@@ -7,6 +7,28 @@
 #include "eacompiler.h"
 
 
+#include "baseparam.h"
+
+///////////////////////////////////////////////////////////////////////////////
+// basic class for using the old way timers
+///////////////////////////////////////////////////////////////////////////////
+bool basics::CTimerBase::init(unsigned long interval)
+{
+	return false;
+}
+
+// external calling from external timer implementation
+int basics::CTimerBase::timercallback(int timer, unsigned long tick, int id, basics::numptr data)
+{
+	return 0;
+}
+void basics::CTimerBase::timerfinalize()
+{
+
+}
+
+
+
 ///////////////////////////////////////////////////////////////////////////////////////
 // temporary placeholder for buildin function support
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -541,7 +563,7 @@ void printoutput(const char* str, int scope, bool &newline, bool &limiter)
 		if(newline)
 		{
 			int i;
-			for(i=0; i<scope; i++)
+			for(i=0; i<scope; ++i)
 				printf("\t");
 			newline=false;
 		}
@@ -973,17 +995,7 @@ int get_option(const char* p)
 // Accepts 3 arguments [engine file] [option(s)] <input file>
 int main(int argc, char *argv[])
 {
-
-	allocator_file<> af(argv[1]);
-
-	
-
-
-
-
-
-
-
+//	buildEngine();
 
 	ulong tick = GetTickCount();
 	CParser_CommentStore* parser = 0;
@@ -996,7 +1008,7 @@ int main(int argc, char *argv[])
 	const char* inputfile=NULL;
 	int i, option=OPT_PARSE;
 
-	for(i=1; i<argc; i++)
+	for(i=1; i<argc; ++i)
 	{
 		if( is_file(argv[i]) )
 		{

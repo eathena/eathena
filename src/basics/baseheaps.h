@@ -12,75 +12,79 @@
 #include "basearray.h"
 
 
+NAMESPACE_BEGIN(basics)
+
 ///////////////////////////////////////////////////////////////////////////////
-// test function
+/// test function
 void test_heaps(int scale=1);
 
 
 
+
 ///////////////////////////////////////////////////////////////////////////////
-// BinaryHeap class
-// Insert appends the element at the end and upheaps it
-// Delete swaps the last element in front and downheaps it until a leaf is reached
-// about 20% slower than method in the second implementation
+/// Binary Heap class.
+/// Insert appends the element at the end and upheaps it
+/// Delete swaps the last element in front and downheaps it until a leaf is reached
+/// about 20% slower than method in the second implementation
 template <class T> class BinaryHeapDH : private TArrayDCT<T>
 {
+
 	friend void test_heaps(int scale);
 public:
 	BinaryHeapDH()	{}
 	BinaryHeapDH(const TArray<T>& arr)
 	{
 		size_t i;
-		for(i=0; i<arr.size(); i++)
+		for(i=0; i<arr.size(); ++i)
 			this->BinaryHeapDH::insert(arr[i]);
 	}
 	virtual ~BinaryHeapDH()	{}
 
 	///////////////////////////////////////////////////////////////////////////
-	// check if empty
+	/// check if empty
 	bool isEmpty( ) const
 	{
 		return this->cCnt == 0;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// remove all elements
+	/// remove all elements
 	virtual bool clear()
 	{
 		this->TArrayDST<T>::resize(0);
 		return true;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// returns number of elements
+	/// returns number of elements
 	virtual size_t size() const						{ return this->TArrayDCT<T>::size(); }
 	virtual size_t length() const					{ return this->TArrayDCT<T>::size(); }
 
 	///////////////////////////////////////////////////////////////////////////
-	// access to element[inx]
+	/// access to element[inx]
 	virtual const T& operator[](size_t inx) const 	{ return this->TArrayDCT<T>::operator[](inx); }
 	// not define write access to the heap elements
 	const T& first()								{ return this->TArrayDCT<T>::first(); }
 	const T& last()									{ return this->TArrayDCT<T>::last(); }
 
 	///////////////////////////////////////////////////////////////////////////
-	// push/pop access
+	/// push/pop access
 	virtual bool push(const T& elem)				{ return this->BinaryHeapDH<T>::insert(elem); }
 	virtual bool push(const TArray<T>& arr)
 	{
 		size_t i;
-		for(i=0; i<arr.size(); i++)
+		for(i=0; i<arr.size(); ++i)
 			this->BinaryHeapDH<T>::insert(arr[i]);
 		return true;
 	}
 	virtual bool push(const T* elem, size_t cnt)
 	{
 		size_t i;
-		for(i=0; i<cnt; i++)
+		for(i=0; i<cnt; ++i)
 			this->BinaryHeapDH<T>::insert(elem[i]);
 		return true;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// return the first element and remove it from list
-	// throw underflow when empty
+	/// return the first element and remove it from list
+	/// throw underflow when empty
 	virtual T pop()
 	{
 #ifdef CHECK_BOUNDS
@@ -98,7 +102,7 @@ public:
 		return minItem;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// as above but with check if element exist
+	/// as above but with check if element exist
 	virtual bool pop(T& elem)
 	{
 		if( this->cCnt )
@@ -113,8 +117,8 @@ public:
 		return false;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// return the first element and do not remove it from list
-	// throw underflow when empty
+	/// return the first element and do not remove it from list
+	/// throw underflow when empty
 	virtual T& top() const
 	{
 #ifdef CHECK_BOUNDS
@@ -126,7 +130,7 @@ public:
 		return this->cField[0];
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// as above but with check if element exist
+	/// as above but with check if element exist
 	virtual bool top(T& elem) const
 	{
 		if( this->cCnt )
@@ -138,8 +142,8 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// Insert item x into the priority queue, maintaining heap order.
-	// Duplicates are allowed.
+	/// Insert item x into the priority queue, maintaining heap order.
+	/// Duplicates are allowed.
 	virtual bool insert( const T& e )
 	{
 		// Percolate up
@@ -154,7 +158,7 @@ public:
 	bool checkHeap()
 	{
 		size_t i;
-		for(i=0; i<this->cCnt/2; i++)
+		for(i=0; i<this->cCnt/2; ++i)
 		{
 			if(  this->cField[i] > this->cField[2*i+1] ||
 				(this->cField[i] > this->cField[2*i+2] && (2*i+2)<this->cCnt) )
@@ -164,8 +168,8 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// Establish heap order property from an arbitrary
-	// arrangement of items. Runs in linear time.
+	/// Establish heap order property from an arbitrary
+	/// arrangement of items. Runs in linear time.
 	void restoreHeap( )
 	{
 		size_t i=this->cCnt/2;
@@ -176,8 +180,8 @@ public:
 		}
 	}
 private:
-	// Internal method to percolate down in the heap.
-	// hole is the index at which the percolate begins.
+	/// Internal method to percolate down in the heap.
+	/// hole is the index at which the percolate begins.
 	void percolateDown( size_t hole )
 	{
 		if(this->cCnt>0)
@@ -200,9 +204,10 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// Insert appends the element at the end and upheaps it
-// Delete downheaps the hole until a leaf is reached, 
-//    then replaces the hole with the last element and upheaps it
+/// Binary Heap using UpDown-movement.
+/// Insert appends the element at the end and upheaps it
+/// Delete downheaps the hole until a leaf is reached, 
+///    then replaces the hole with the last element and upheaps it
 template <class T> class BinaryHeap : public TArrayDCT<T>
 {
 	friend void test_heaps(int scale);
@@ -213,54 +218,54 @@ public:
 	BinaryHeap(const TArray<T>& arr)
 	{
 		size_t i;
-		for(i=0; i<arr.size(); i++)
+		for(i=0; i<arr.size(); ++i)
 			this->BinaryHeap::insert(arr[i]);
 	}
 	virtual ~BinaryHeap()	{}
 	///////////////////////////////////////////////////////////////////////////
-	// check if empty
+	/// check if empty
 	bool isEmpty( ) const
 	{
 		return this->cCnt == 0;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// remove all elements
+	/// remove all elements
 	virtual bool clear()
 	{
 		TArrayDST<T>::resize(0);
 		return true;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// returns number of elements
+	/// returns number of elements
 	virtual size_t size() const						{ return this->TArrayDST<T>::size(); }
 	virtual size_t length() const					{ return this->TArrayDST<T>::size(); }
 
 	///////////////////////////////////////////////////////////////////////////
-	// access to element[inx]
+	/// access to element[inx]
 	virtual const T& operator[](size_t inx) const 	{ return this->TArrayDST<T>::operator[](inx); }
 	// not define write access to the heap elements
 	const T& first()								{ return this->TArrayDST<T>::first(); }
 	const T& last()									{ return this->TArrayDST<T>::last(); }
 
 	///////////////////////////////////////////////////////////////////////////
-	// push/pop access
+	/// push/pop access
 	virtual bool push(const T& elem)				{ return this->BinaryHeap<T>::insert(elem); }
 	virtual bool push(const TArray<T>& arr)
 	{
 		size_t i;
-		for(i=0; i<arr.size(); i++)
+		for(i=0; i<arr.size(); ++i)
 			this->BinaryHeap<T>::insert(arr[i]);
 		return true;
 	}
 	virtual bool push(const T* elem, size_t cnt)
 	{
 		size_t i;
-		for(i=0; i<cnt; i++)
+		for(i=0; i<cnt; ++i)
 			this->BinaryHeap<T>::insert(elem[i]);
 		return true;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// return the first element and remove it from list
+	/// return the first element and remove it from list
 	virtual T pop()
 	{
 #ifdef CHECK_BOUNDS
@@ -274,7 +279,7 @@ public:
 		return tmp;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// as above but with check if element exist
+	/// as above but with check if element exist
 	virtual bool pop(T& elem)
 	{
 		if(this->cCnt<=0)
@@ -353,8 +358,8 @@ public:
 	}
 	*/
 	///////////////////////////////////////////////////////////////////////////
-	// return the first element and do not remove it from list
-	// throw Underflow if empty.
+	/// return the first element and do not remove it from list
+	/// throw Underflow if empty.
 	virtual T& top() const
 	{
 #ifdef CHECK_BOUNDS
@@ -366,7 +371,7 @@ public:
 		return this->cField[0];
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// as above but with check if element exist
+	/// as above but with check if element exist
 	virtual bool top(T& elem) const
 	{
 		if(this->cCnt>0)
@@ -378,8 +383,8 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// Insert item x into the priority queue, maintaining heap order.
-	// Duplicates are allowed.
+	/// Insert item x into the priority queue, maintaining heap order.
+	/// Duplicates are allowed.
 	virtual bool insert( const T& e )
 	{
 		// Percolate up
@@ -394,7 +399,7 @@ public:
 	bool checkHeap()
 	{
 		size_t i;
-		for(i=0; i<this->cCnt/2; i++)
+		for(i=0; i<this->cCnt/2; ++i)
 		{
 			if(  this->cField[i] > this->cField[2*i+1] ||
 				(this->cField[i] > this->cField[2*i+2] && (2*i+2)<this->cCnt) )
@@ -404,8 +409,8 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// Establish heap order property from an arbitrary
-	// arrangement of items. Runs in linear time.
+	/// Establish heap order property from an arbitrary
+	/// arrangement of items. Runs in linear time.
 	void restoreHeap( )
 	{
 		T tmp;
@@ -435,7 +440,7 @@ public:
 
 
 
-
+NAMESPACE_END(basics)
 
 #endif//__BASEHEAPS_H__
 

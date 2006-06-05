@@ -1,24 +1,96 @@
 #ifndef __BASEMEMORY_H__
 #define __BASEMEMORY_H__
 
+
+//## change class hierarchy				(90%, testing phase)
+//## moving basic access interface here	(evaluating)
+
+
 #include "basetypes.h"
 #include "baseobjects.h"
 
-//#define BASEMEMORY_SEPERATEELABORATOR
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+#if defined(WIN32)
+///////////////////////////////////////////////////////////////////////////////
+/// standard new operator
+extern inline void *operator new (size_t sz) NOTHROW()
+{
+	void* p=malloc(sz);
+	return p;
+}
+/// standard new[] operator
+extern inline void *operator new[] (size_t sz) NOTHROW()
+{
+	void* p=malloc(sz);
+	return p;
+}
+/// standard delete operator
+extern inline void operator delete (void * a) NOTHROW()
+{
+	if(a) free(a);
+}
+/// standard delete[] operator
+extern inline void operator delete[] (void *a) NOTHROW()
+{
+	if(a) free(a);
+}
+#ifndef __PLACEMENT_NEW_INLINE
+#define __PLACEMENT_NEW_INLINE
+/// inplace-new operator
+extern inline void *operator new (size_t sz,void* p) NOTHROW()
+{
+	return p;
+}
+
+/// inplace-new operator
+extern inline void *operator new[] (size_t sz, void* p) NOTHROW()
+{
+	return p;
+}
+
+/// inplace-delete operator
+extern inline void operator delete (void * a, void* p) NOTHROW()
+{
+}
+
+/// inplace-delete operator
+extern inline void operator delete[] (void *a, void* p) NOTHROW()
+{
+}
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+#endif//defined(WIN32)
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+NAMESPACE_BEGIN(basics)
 
 //////////////////////////////////////////////////////////////////////////
-// memory allocation
+/// test function
 void test_memory(void);
 
 
 //////////////////////////////////////////////////////////////////////////
-// memory allocation
+/// memory allocation
 //////////////////////////////////////////////////////////////////////////
 void* memalloc(uint a);
 void* memrealloc(void* p, uint a);
 void memfree(void* p);
+
 ///////////////////////////////////////////////////////////////////////////////
-// memory quantisizer
+/// memory quantisizer
 ///////////////////////////////////////////////////////////////////////////////
 extern inline size_t memquantize(size_t sz)
 {
@@ -38,23 +110,114 @@ extern inline size_t memquantize(size_t sz)
 }
 
 
-
 ///////////////////////////////////////////////////////////////////////////////
-// basic elaborator interface
-// for objects working on distinct amount of memory
-// defines basic functions to modify storages
+/// basic elaborator interface.
+/// for objects working on distinct amount of memory
+/// defines basic functions to modify storages
 ///////////////////////////////////////////////////////////////////////////////
 template <class T=char> class elaborator
 {
 public:
 	virtual ~elaborator()	{}
-
 protected:
-#ifdef BASEMEMORY_SEPERATEELABORATOR
 	virtual T*  intern_move(T* target, const T* source, size_t cnt) = 0;
 	virtual T*  intern_copy(T* target, const T* source, size_t cnt) = 0;
 	virtual int intern_cmp(const T* a, const T* b, size_t cnt) const = 0;
-#else
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// elaborator for simple data types.
+/// therefore can use memcopy/move/cmp
+///////////////////////////////////////////////////////////////////////////////
+template<class T> class elaborator_st : public virtual elaborator<T>
+{
+public:
+	virtual ~elaborator_st()	{}
+
+protected:
+	virtual T*  intern_move(T* target, const T* source, size_t cnt)
+	{	// simple type mover, no checks performed
+		memmove(target, source, cnt*sizeof(T));
+		return target+cnt;
+	}
+	virtual T*  intern_copy(T* target, const T* source, size_t cnt)
+	{	// simple type copy, no checks performed
+		memcpy(target, source, cnt*sizeof(T));
+		return target+cnt;
+	}
+	virtual int intern_cmp(const T* a, const T* b, size_t cnt) const
+	{	// simple type compare, no checks performed
+		return memcmp(a,b,cnt*sizeof(T));
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// elaborator for complex data types.
+/// using assignment and compare operators ('=', '==' and '<' mandatory)
+///////////////////////////////////////////////////////////////////////////////
+template<class T> class elaborator_ct : public virtual elaborator<T>
+{
+public:
+	virtual ~elaborator_ct()	{}
+
+protected:
+//## bloat
+	virtual T* intern_move(T* target, const T* source, size_t cnt)
+	{	
+		if(target>source)
+		{	// last to first run
+			T* epp=target;
+			target+=cnt-1;
+			source+=cnt-1;
+			while( target>=epp ) *target-- = *source--;
+			return epp+cnt;
+		}
+		else if(target<source)
+		{	// first to last run
+			T* epp=target+cnt;
+			while( target< epp ) *target++ = *source++;
+			return epp;
+		}
+		else
+			// identical; no move necessary
+			return target+cnt;
+	}
+	virtual T*  intern_copy(T* target, const T* source, size_t cnt)
+	{	
+		T* epp=target+cnt;
+		while( target<epp ) *target++ = *source++;
+		return epp;
+	}
+//## bloat
+	virtual int intern_cmp(const T* a, const T* b, size_t cnt) const
+	{	
+		const T* epp=a+cnt;
+		for( ; a<epp ; ++a,++b)
+		{
+			if( a==b || *a==*b )
+				continue;
+			else if( *a < *b )
+				return -1;
+			else
+				return  1;
+		}
+		return 0;
+	}
+};
+///////////////////////////////////////////////////////////////////////////////
+/// elaborator with automatic type selection.
+/// types smaller than pointers are processed using memcpy etc.,
+/// since it is unlikely to need explicite copy construction there.
+/// on 32bit machine memcpy on chars is up to 4 times faster than element copy,
+/// for types with sizeof(type) >= sizeof(pointers) there is no speed advantage.
+/// optimisation automatically removes the dispensable code
+///////////////////////////////////////////////////////////////////////////////
+template <class T=char> class elaborator_auto : public virtual elaborator<T>
+{
+public:
+	virtual ~elaborator_auto()	{}
+
+protected:
 	virtual T*  intern_move(T* target, const T* source, size_t cnt)
 	{	
 		if( sizeof(T) < sizeof(T*) )
@@ -97,9 +260,9 @@ protected:
 			return epp;
 		}
 	}
-//!! bloat
+//## bloat
 	virtual int intern_cmp(const T* a, const T* b, size_t cnt) const
-	{	
+	{
 		if( sizeof(T) < sizeof(T*) )
 		{	// simple type mover, no checks performed
 			return memcmp(a,b,cnt*sizeof(T));
@@ -119,125 +282,47 @@ protected:
 			return 0;
 		}
 	}
-#endif
-
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// elaborator for simple data types
-// therefore can use memcopy/move/cmp
-///////////////////////////////////////////////////////////////////////////////
-template<class T> class elaborator_st : public elaborator<T>
-{
-public:
-	virtual ~elaborator_st()	{}
-
-protected:
-#ifdef BASEMEMORY_SEPERATEELABORATOR
-	virtual T*  intern_move(T* target, const T* source, size_t cnt)
-	{	// simple type mover, no checks performed
-		memmove(target, source, cnt*sizeof(T));
-		return target+cnt;
-	}
-	virtual T*  intern_copy(T* target, const T* source, size_t cnt)
-	{	// simple type copy, no checks performed
-		memcpy(target, source, cnt*sizeof(T));
-		return target+cnt;
-	}
-	virtual int intern_cmp(const T* a, const T* b, size_t cnt) const
-	{	// simple type compare, no checks performed
-		return memcmp(a,b,cnt*sizeof(T));
-	}
-#endif
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// elaborator for complex data types
-// using assignment and compare operators ('=', '==' and '<' mandatory)
-///////////////////////////////////////////////////////////////////////////////
-template<class T> class elaborator_ct : public elaborator<T>
-{
-public:
-	virtual ~elaborator_ct()	{}
-
-protected:
-#ifdef BASEMEMORY_SEPERATEELABORATOR
-//!! bloat
-	virtual T* intern_move(T* target, const T* source, size_t cnt)
-	{	
-		if(target>source)
-		{	// last to first run
-			T* epp=target;
-			target+=cnt-1;
-			source+=cnt-1;
-			while( target>=epp ) *target-- = *source--;
-			return epp+cnt;
-		}
-		else if(target<source)
-		{	// first to last run
-			T* epp=target+cnt;
-			while( target< epp ) *target++ = *source++;
-			return epp;
-		}
-		else
-			// identical; no move necessary
-			return target+cnt;
-	}
-	virtual void intern_copy(T* target, const T* source, size_t cnt)
-	{	
-		T* epp=target+cnt;
-		while( target<epp ) *target++ = *source++;
-		return epp;
-	}
-//!! bloat
-	virtual int intern_cmp(const T* a, const T* b, size_t cnt) const
-	{	
-		const T* epp=a+cnt;
-		for( ; a<epp ; ++a,++b)
-		{
-			if( a==b || *a==*b )
-				continue;
-			else if( *a < *b )
-				return -1;
-			else
-				return  1;
-		}
-		return 0;
-	}
-#endif
-};
-
-
+/// allocator base interface.
+/// contains type intependend types
 class _allocatorbase : public global, public noncopyable
 {
 public:
-	typedef size_t size_type;
-	static const size_type npos;
+	typedef size_t size_type;		///< type of positions
+	static const size_type npos;	///< not-valid-position constant
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// basic allocator interface
-// for allocating memory in different ways
-// defines basic functions of a storage element
+/// basic allocator interface.
+/// for allocating memory in different ways
+/// defines basic functions of a storage element
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class allocator : public _allocatorbase
+template <class T=char> class allocator : public _allocatorbase, public virtual elaborator<T>
 {
 public:
 	typedef T					value_type;
-	typedef const value_type*	const_iterator;
-//	typedef value_type*			iterator;
 
+	typedef const value_type*	const_iterator;		///< stl like pointer iterator
+	typedef value_type*			simple_iterator;	///< stl like pointer iterator
+
+	///////////////////////////////////////////////////////////////////////////
+	/// iterator wrapper.
+	/// provised iterator interface with additional checkings and conversions
 	class iterator
 	{
 		const allocator* base;
 		T* ptr;
 	public:
+		iterator()
+			: base(NULL), ptr(NULL)
+		{}
 		iterator(const allocator& a)
 			: base(&a), ptr(const_cast<T*>(a.begin()))
 		{}
 		iterator(const allocator& a, const T* p)
-			: base(&a), ptr((p && base && p>=base->begin() && p<=base->end())?const_cast<T*>(p):NULL)
+			: base(&a), ptr((p && base && p>=base->begin() && p<=base->end())?const_cast<T*>(p):(base->begin()?base->begin()-1:NULL))
 		{}
 		~iterator()	{}
 		// can use default copy//assignment
@@ -246,47 +331,55 @@ public:
 			this->ptr=(p && base && p>=base->begin() && p<=base->end())?const_cast<T*>(p):NULL;
 			return *this;
 		}
+		const iterator& operator=(const T& p)
+		{
+			this->ptr=(&p && base && &p>=base->begin() && &p<=base->end())?const_cast<T*>(&p):NULL;
+			return *this;
+		}
 		const iterator& operator=(const allocator& a)
 		{
 			base = &a;
 			ptr = const_cast<T*>(a.begin());
 			return *this;
 		}
-		bool isvalid() const	{ return (this->ptr && this->base && this->ptr>=base->begin() && this->ptr<=base->end()); }
+		size_t position()		{ return (this->ptr && this->base && this->ptr>=base->begin() && this->ptr<=base->end())?(this->ptr-base->begin()):(0); }
+		bool isvalid() const	{ return (this->ptr && this->base && base->begin()<=base->end() && this->ptr>=base->begin() && this->ptr<=base->end()); }
 		operator bool() const	{ return this->isvalid(); }
 		T* operator()()			{ return this->isvalid()?this->ptr:NULL; }
 		T& operator*()			{ return *this->ptr; }
 		T* operator->()			{ return this->isvalid()?this->ptr:NULL; }
 
 		T* operator++()			
-		{// preincrement
-			this->ptr++;
-			if( this->isvalid() )
-				return this->ptr;
-			else
-				return NULL; 
+		{	// preincrement
+			if( base && this->ptr <= this->base->end() )
+			{
+				++this->ptr;
+				if( this->ptr <= this->base->end() )
+					return this->ptr;
+			}
+			return NULL; 
 		}
 		T* operator++(int)
 		{	// postincrement
-			if( this->isvalid() )
+			if( base && this->ptr <= this->base->end() )
 				return this->ptr++;
-			else
-				return NULL; 
+			return NULL; 
 		}
 		T* operator--()
 		{	// predecrement
-			this->ptr--;
-			if( this->isvalid() )
-				return this->ptr;
-			else
-				return NULL; 
+			if( base && this->ptr >= this->base->begin() )
+			{
+				--this->ptr;
+				if(this->ptr >= this->base->begin())
+					return this->ptr;
+			}
+			return NULL; 
 		}
 		T* operator--(int)
 		{	// postdecrement
-			if( this->isvalid() )
+			if( base && this->ptr >= this->base->begin() )
 				return this->ptr--;
-			else
-				return NULL; 
+			return NULL; 
 		}
 		bool operator==(const T*p) const	{ return this->ptr==p; }
 		bool operator!=(const T*p) const	{ return this->ptr!=p; }
@@ -313,17 +406,18 @@ public:
 	virtual const T* begin() const=0;
 	virtual const T* end() const=0;
 	virtual const T* final() const=0;
+	virtual       T* begin()=0;
+	virtual       T* end()=0;
+	virtual       T* final()=0;
 };
 
 
 
 
-
-
 ///////////////////////////////////////////////////////////////////////////////
-// allocators for write buffers
+/// allocators for write buffers.
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class allocator_w : public allocator<T>
+template <class T=char> class allocator_w : public virtual allocator<T>
 {
 protected:
 	mutable T* cBuf;
@@ -343,63 +437,66 @@ protected:
 	virtual bool checkwrite(size_t addsize)	=0;
 public:
 	virtual size_t length()	const		{ return (this->cWpp-this->cBuf); }
-	virtual const T* begin() const		{ return this->cBuf; }
-	virtual const T* end() const		{ return (this->cWpp>this->cBuf)?this->cWpp-1:this->cBuf; }
-	virtual const T* final() const		{ return this->cWpp; }
+	virtual const T* begin() const		{ return  this->cBuf; }
+	virtual const T* end() const		{ return (this->cWpp)?this->cWpp-1:NULL; }
+	virtual const T* final() const		{ return  this->cWpp; }
+	virtual       T* begin()			{ return  this->cBuf; }
+	virtual       T* end()				{ return (this->cWpp)?this->cWpp-1:NULL; }
+	virtual       T* final()			{ return  this->cWpp; }
+
 };
 
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// dynamic write-buffer allocator (string version)
-// creates/reallocates storage on its own
-//
-// size is calculated with one element in advance
-// so it can be used for cstring allocation
+/// dynamic write-buffer allocator (string version).
+/// creates/reallocates storage on its own
+/// size is calculated with one element in advance
+/// so it can be used for cstring allocation
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=char, class E=elaborator_ct<T> > class allocator_ws_dy : public allocator_w<T>, public E
+template < class T=char> class allocator_ws_dy : public allocator_w<T>
 {
 protected:
 	allocator_ws_dy() : allocator_w<T>()			{ }
 	allocator_ws_dy(size_t sz) : allocator_w<T>()	{ checkwrite(sz); }
 	allocator_ws_dy(T* buf, size_t sz)				{ }	// no implementation here
 	virtual ~allocator_ws_dy()						{ if(this->cBuf) delete[] this->cBuf; }
-//!! bloat
+//## bloat
 	virtual bool checkwrite(size_t addsize)
 	{
-		size_t sz = memquantize( (this->cWpp-this->cBuf + addsize + 1)*sizeof(T) )/sizeof(T);
-
-		if( this->cWpp+addsize >= this->cEnd ||
-			(this->cBuf+1024 < this->cEnd && this->cBuf+4*sz <= this->cEnd))
+		const size_t used_count = this->cWpp-this->cBuf;
+		const size_t alloccount = this->cEnd-this->cBuf;
+		const size_t new__count = used_count+addsize  +1 ; //one more than requested
+		if( new__count > alloccount )
 		{	// allocate new
-			// enlarge when not fit
-			// shrink when using less than a quarter of the buffer for >1k elements
+			const size_t sz = memquantize( new__count );
 			T *tmp = new T[sz];
 			if(!tmp) return false;
 			if(this->cBuf)
 			{
-				this->intern_copy(tmp, this->cBuf, this->cWpp-this->cBuf);
+				this->intern_copy(tmp, this->cBuf, used_count);
 				delete[] this->cBuf;
 			}
 			this->cEnd = tmp+sz;
-			this->cWpp = tmp+(this->cWpp-this->cBuf);
+			this->cWpp = tmp+used_count;
 			this->cBuf = tmp;
 		}
 		return (this->cEnd > this->cBuf);
 	}
 	// have the EOS be part of the iteration
- 	virtual const T* end() const			{ return this->cWpp; }
+ 	virtual const T* end() const		{ return this->cWpp; }
+	virtual       T* end()				{ return this->cWpp; }
 };
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// static write-buffer (string version)
-// is using an external buffer for writing
-// does not resize but just returns false on checkwrite
-// size is calculated with one element in advance
-// so it can be used for cstring allocation
+/// static write-buffer (string version).
+/// is using an external buffer for writing
+/// does not resize but just returns false on checkwrite
+/// size is calculated with one element in advance
+/// so it can be used for cstring allocation
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=char, class E=elaborator_ct<T> > class allocator_ws_st : public allocator_w<T>, public E
+template <class T=char> class allocator_ws_st : public allocator_w<T>
 {
 protected:
 	allocator_ws_st()			{}			// no implementation here
@@ -411,40 +508,41 @@ protected:
 		return ( this->cWpp && this->cWpp +addsize < this->cEnd );
 	}
 	// have the EOS be part of the iteration
- 	virtual const T* end() const			{ return this->cWpp; }
+ 	virtual const T* end() const		{ return this->cWpp; }
+	virtual       T* end()				{ return this->cWpp; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// dynamic write-buffer allocator
-// creates/reallocates storage on its own
-// (there is no extra element here, Wpp points outside of the array when full)
+/// dynamic write-buffer allocator.
+/// creates/reallocates storage on its own
+/// (there is no extra element here, Wpp points outside of the array when full)
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=char, class E=elaborator_ct<T> > class allocator_w_dy : public allocator_w<T>, public E
+template < class T=char> class allocator_w_dy : public allocator_w<T>
 {
 protected:
 	allocator_w_dy() : allocator_w<T>()			{}
 	allocator_w_dy(size_t sz) : allocator_w<T>()	{ checkwrite(sz); }
 	allocator_w_dy(T* buf, size_t sz)				{}	// no implementation here
 	virtual ~allocator_w_dy()						{ if(this->cBuf) delete[] this->cBuf; }
-//!! bloat
+//## bloat
 	virtual bool checkwrite(size_t addsize)
 	{
-		size_t sz = memquantize( (this->cWpp-this->cBuf + addsize)*sizeof(T) )/sizeof(T);
+		const size_t used_count = this->cWpp-this->cBuf;
+		const size_t alloccount = this->cEnd-this->cBuf;
+		const size_t new__count = used_count + addsize;
 
-		if( this->cWpp+addsize > this->cEnd ||
-			(this->cBuf+1024 < this->cEnd && this->cBuf+4*sz <= this->cEnd))
+		if( new__count > alloccount )
 		{	// allocate new
-			// enlarge when not fit
-			// shrink when using less than a quarter of the buffer for >1k elements
+			const size_t sz = alloccount + ((addsize<alloccount)?(alloccount):(addsize));
 			T *tmp = new T[sz];
 			if(!tmp) return false;
 			if(this->cBuf)
 			{
-				this->intern_copy(tmp, this->cBuf, this->cWpp-this->cBuf);
+				this->intern_copy(tmp, this->cBuf, used_count);
 				delete[] this->cBuf;
 			}
 			this->cEnd = tmp+sz;
-			this->cWpp = tmp+(this->cWpp-this->cBuf);
+			this->cWpp = tmp+used_count;
 			this->cBuf = tmp;
 		}
 		return (this->cEnd > this->cBuf);
@@ -453,11 +551,11 @@ protected:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// static write-buffer is using an external buffer for writing
-// does not resize but just returns false on checkwrite
-// (there is no extra element here, Wpp points outside of the array when full)
+/// static write-buffer. is using an external buffer for writing
+/// does not resize but just returns false on checkwrite
+/// (there is no extra element here, Wpp points outside of the array when full)
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=char, class E=elaborator_ct<T> > class allocator_w_st : public allocator_w<T>, public E
+template < class T=char> class allocator_w_st : public allocator_w<T>
 {
 protected:
 	allocator_w_st()			{}			// no implementation here
@@ -473,10 +571,10 @@ protected:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// allocators for read/write buffers
-// ie. for FIFO implementations
+/// allocators for read/write buffers.
+/// ie. for FIFO implementations
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=unsigned char> class allocator_rw : public allocator<T>
+template <class T=unsigned char> class allocator_rw : public virtual allocator<T>
 {
 protected:
 	T* cBuf;
@@ -498,47 +596,52 @@ protected:
 	virtual bool checkread(size_t addsize) const =0;
 public:
 	virtual size_t length()	const		{ return (this->cWpp-this->cRpp); }
-	virtual const T* begin() const		{ return this->cRpp; }
-	virtual const T* end() const		{ return (this->cWpp>this->cRpp)?this->cWpp-1:this->cRpp; }
-	virtual const T* final() const		{ return this->cWpp; }
+	virtual const T* begin() const		{ return  this->cRpp; }
+	virtual const T* end() const		{ return (this->cWpp)?this->cWpp-1:NULL; }
+	virtual const T* final() const		{ return  this->cWpp; }
+	virtual       T* begin()			{ return  this->cRpp; }
+	virtual       T* end()				{ return (this->cWpp)?this->cWpp-1:NULL; }
+	virtual       T* final()			{ return  this->cWpp; }
 };
 ///////////////////////////////////////////////////////////////////////////////
-// dynamic read/write-buffer allocator
-// creates/reallocates storage on its own
+/// dynamic read/write-buffer allocator.
+/// creates/reallocates storage on its own
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=unsigned char, class E=elaborator_ct<T> > class allocator_rw_dy : public allocator_rw<T>, public E
+template < class T=unsigned char> class allocator_rw_dy : public allocator_rw<T>
 {
 protected:
 	allocator_rw_dy() : allocator_rw<T>()			{}
 	allocator_rw_dy(size_t sz) : allocator_rw<T>()	{ checkwrite(sz); }
 	allocator_rw_dy(T* buf, size_t sz)				{}
 	virtual ~allocator_rw_dy()				{ if(this->cBuf) delete[] this->cBuf; }
-//!! bloat
+//## bloat
 	virtual bool checkwrite(size_t addsize)
 	{
-		size_t sz = memquantize( (this->cWpp-this->cRpp + addsize)*sizeof(T) )/sizeof(T);
+		const size_t used_count = this->cWpp-this->cRpp;
+		const size_t alloccount = this->cEnd-this->cBuf;
+		const size_t new__count = used_count + addsize;
 
-		if( this->cBuf+sz > this->cEnd  ||
-			(this->cBuf+8192 < this->cEnd && this->cBuf+4*sz <= this->cEnd))
+		if( new__count > alloccount )
 		{	// allocate new
 			// enlarge when not fit
 			// shrink when using less than a quarter of the buffer for >8k buffers
+			const size_t sz = alloccount + ((addsize<alloccount)?(alloccount):(addsize));
 			T *tmp = new T[sz];
 			if(!tmp) return false;
 			if(this->cBuf)
 			{
-				this->intern_copy(tmp, this->cRpp, this->cWpp-this->cRpp);
+				this->intern_copy(tmp, this->cRpp, used_count);
 				delete[] this->cBuf;
 			}
 			this->cEnd = tmp+sz;
-			this->cWpp = tmp+(this->cWpp-this->cRpp);
+			this->cWpp = tmp+used_count;
 			this->cRpp = tmp;
 			this->cBuf = tmp;
 		}
 		else if( this->cWpp+addsize > this->cEnd )
 		{	// moving the current buffer data is sufficient
-			this->intern_move(this->cBuf, this->cRpp, this->cWpp-this->cRpp);
-			this->cWpp = this->cBuf+(this->cWpp-this->cRpp);
+			this->intern_move(this->cBuf, this->cRpp, used_count);
+			this->cWpp = this->cBuf+used_count;
 			this->cRpp = this->cBuf;
 		}
 		return (this->cEnd > this->cBuf);
@@ -550,9 +653,9 @@ protected:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// static read/write-buffer is using an external buffer for writing
+/// static read/write-buffer. is using an external buffer for writing
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=unsigned char, class E=elaborator_ct<T> > class allocator_rw_st : public allocator_rw<T>, public E
+template < class T=unsigned char> class allocator_rw_st : public allocator_rw<T>
 {
 protected:
 	allocator_rw_st()			{}
@@ -560,13 +663,14 @@ protected:
 	allocator_rw_st(T* buf, size_t sz) : allocator_rw<T>(buf, sz)	{}
 protected:
 	virtual ~allocator_rw_st()				{}
-//!! bloat
+//## bloat
 	virtual bool checkwrite(size_t addsize)
 	{
 		if( this->cWpp+addsize > this->cEnd && this->cBuf < this->cRpp )
 		{	// move the current buffer data when necessary and possible 
-			this->intern_move(this->cBuf, this->cRpp, this->cWpp-this->cRpp);
-			this->cWpp = this->cBuf+(this->cWpp-this->cRpp);
+			const size_t used_count = this->cWpp-this->cRpp;
+			this->intern_move(this->cBuf, this->cRpp, used_count);
+			this->cWpp = this->cBuf+used_count;
 			this->cRpp = this->cBuf;
 		}
 		return ( this->cWpp && this->cWpp + addsize <= this->cEnd );
@@ -581,10 +685,10 @@ protected:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// allocators for read buffers with additional scanning
-// ie. for the parser
+/// allocators for read buffers with additional scanning.
+/// ie. for the parser
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=unsigned char> class allocator_r : public allocator<T>
+template <class T=unsigned char> class allocator_r : public virtual allocator<T>
 {
 protected:
 	T* cBuf;
@@ -612,47 +716,54 @@ public:
 	virtual size_t length()	const		{ return (this->cWpp-this->cRpp); }
 
 	// not that usefull here
-	virtual const T* begin() const		{ return this->cRpp; }
-	virtual const T* end() const		{ return (this->cWpp>this->cRpp)?this->cWpp-1:this->cRpp; }
-	virtual const T* final() const		{ return this->cWpp; }
+	virtual const T* begin() const		{ return  this->cRpp; }
+	virtual const T* end() const		{ return (this->cWpp)?this->cWpp-1:NULL; }
+	virtual const T* final() const		{ return  this->cWpp; }
+	virtual       T* begin()			{ return  this->cRpp; }
+	virtual       T* end()				{ return (this->cWpp)?this->cWpp-1:NULL; }
+	virtual       T* final()			{ return  this->cWpp; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// dynamic read-buffer allocator
+/// dynamic read-buffer allocator.
+/// data left of cRpp is considered invalid on reallocation
+/// and overwritten whenever suitable
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=unsigned char, class E=elaborator_ct<T> > class allocator_r_dy : public allocator_r<T>, public E
+template < class T=unsigned char> class allocator_r_dy : public allocator_r<T>
 {
 protected:
 	allocator_r_dy() : allocator_r<T>()				{  }
 	allocator_r_dy(size_t sz) : allocator_r<T>()	{ this->checkwrite(sz); }
 	virtual ~allocator_r_dy()						{ if(this->cBuf) delete[] this->cBuf; }
-//!! bloat
+//## bloat
 	virtual bool checkwrite(size_t addsize)
 	{
-		size_t sz = memquantize( (this->cWpp-this->cRpp + addsize)*sizeof(T) )/sizeof(T);
+		const size_t used_count = this->cWpp-this->cRpp;
+		const size_t alloccount = this->cEnd-this->cBuf;
+		const size_t new__count = used_count + addsize;
 
-		if( this->cBuf+sz > this->cEnd  ||
-			(this->cBuf+8192 < this->cEnd && this->cBuf+4*sz <= this->cEnd))
+		if( new__count > alloccount )
 		{	// allocate new
 			// enlarge when not fit
 			// shrink when using less than a quarter of the buffer for >8k buffers
+			const size_t sz = alloccount + ((addsize<alloccount)?(alloccount):(addsize));
 			T *tmp = new T[sz];
 			if(!tmp) return false;
 			if(this->cBuf)
 			{
-				this->intern_copy(tmp, this->cRpp, this->cWpp-this->cRpp);
+				this->intern_copy(tmp, this->cRpp, used_count);
 				delete[] this->cBuf;
 			}
 			this->cEnd = tmp+sz;
-			this->cWpp = tmp+(this->cWpp-this->cRpp);
+			this->cWpp = tmp+used_count;
 			this->cScn = tmp+(this->cScn-this->cRpp);
 			this->cRpp = tmp;
 			this->cBuf = tmp;
 		}
 		else if( this->cWpp+addsize > this->cEnd )
 		{	// moving the current buffer data is sufficient
-			this->intern_move(this->cBuf, this->cRpp, this->cWpp-this->cRpp);
-			this->cWpp = this->cBuf+(this->cWpp-this->cRpp);
+			this->intern_move(this->cBuf, this->cRpp, used_count);
+			this->cWpp = this->cBuf+used_count;
 			this->cScn = this->cBuf+(this->cScn-this->cRpp);
 			this->cRpp = this->cBuf;
 		}
@@ -675,17 +786,16 @@ protected:
 };
 
 
-
 ///////////////////////////////////////////////////////////////////////////////
-// dynamic file read-buffer
+/// dynamic file read-buffer.
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=unsigned char> class allocator_file : public allocator_r_dy< T, elaborator_st<T> >
+template <class T=unsigned char> class allocator_file : public allocator_r_dy<T>, public elaborator_ct<T> 
 {
 	FILE *cFile;
 public:
-	allocator_file() : allocator_r_dy< T, elaborator_st<T> >(1024), cFile(NULL)
+	allocator_file() : allocator_r_dy<T>(1024), cFile(NULL)
 	{  }
-	allocator_file(const char* name) : allocator_r_dy< T, elaborator_st<T> >(1024), cFile(NULL)
+	allocator_file(const char* name) : allocator_r_dy<T>(1024), cFile(NULL)
 	{
 		open(name);
 	}
@@ -719,7 +829,7 @@ protected:
 	}
 };
 
-
+NAMESPACE_END(basics)
 
 #endif//__BASEMEMORY_H__
 

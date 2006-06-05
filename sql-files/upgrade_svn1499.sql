@@ -1,1 +1,0 @@
-ALTER TABLE `char` ADD `fame` int(11) NOT NULL default '0';

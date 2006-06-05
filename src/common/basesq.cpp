@@ -1,217 +1,970 @@
 // SELECT element FROM table ORDER BY name LIMIT OFFSET,NUMBER
 
 
-
-#ifndef TXT_ONLY
-
 #include "basesq.h"
 
-//////////////////////////////////////////////////////////////////////////////////////
-// CMySQL Class
-//////////////////////////////////////////////////////////////////////////////////////
-// CMySQL Class Constructor
-// Code is executed everytime a CMySQL var is initialized
-CMySQL::CMySQL()
-	: cDBPool(*this),	// initialize the first database object
-	  result(NULL)		// if insisting on class global data, then initialize it
+
+#if defined(WITH_MYSQL)
+
+
+///////////////////////////////////////////////////////////////////////////////
+// sql base interface.
+// wrapper for the sql handle, table control and parameter storage
+
+basics::CMySQL CSQLParameter::sqlbase;
+
+basics::CParam< basics::string<> > CSQLParameter::mysqldb_id("sql_username", "ragnarok",  &ParamCallback_Database_string);
+basics::CParam< basics::string<> > CSQLParameter::mysqldb_pw("sql_password", "ragnarok",  &ParamCallback_Database_string);
+basics::CParam< basics::string<> > CSQLParameter::mysqldb_db("sql_database", "ragnarok",  &ParamCallback_Database_string);
+basics::CParam< basics::string<> > CSQLParameter::mysqldb_ip("sql_ip",       "127.0.0.1", &ParamCallback_Database_string);
+basics::CParam< ushort   >         CSQLParameter::mysqldb_port("sql_port",   3306,        &ParamCallback_Database_ushort);
+
+
+
+basics::CParam< basics::string<> > CSQLParameter::tbl_login_log("tbl_login_log", "login_log", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_char_log("tbl_char_log", "char_log", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_map_log("tbl_map_log", "map_log", ParamCallback_Tables);
+
+basics::CParam< basics::string<> > CSQLParameter::tbl_login_status("tbl_login_status", "login_status", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_char_status("tbl_char_status", "char_status", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_map_status("tbl_map_status", "map_status", ParamCallback_Tables);
+
+basics::CParam< basics::string<> > CSQLParameter::tbl_account("tbl_account", "account", ParamCallback_Tables);
+
+basics::CParam< basics::string<> > CSQLParameter::tbl_char("tbl_char", "character", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_memo("tbl_memo", "memo", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_inventory("tbl_inventory", "inventory", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_cart("tbl_cart", "cart", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_skill("tbl_skill", "skill", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_friends("tbl_friends", "friends", ParamCallback_Tables);
+
+basics::CParam< basics::string<> > CSQLParameter::tbl_mail("tbl_mail", "mail", ParamCallback_Tables);
+
+basics::CParam< basics::string<> > CSQLParameter::tbl_login_reg("tbl_login_reg", "login_reg", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_login_reg2("tbl_login_reg2", "login_reg2", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_char_reg("tbl_char_reg", "char_reg", ParamCallback_Tables);
+
+basics::CParam< basics::string<> > CSQLParameter::tbl_guild("tbl_guild","guild", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_guild_skill("tbl_guild_skill","guild_skill", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_guild_member("tbl_guild_member","guild_member", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_guild_position("tbl_guild_position","guild_position", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_guild_alliance("tbl_guild_alliance","guild_alliance", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_guild_expulsion("tbl_guild_expulsion","guild_expulsion", ParamCallback_Tables);
+
+basics::CParam< basics::string<> > CSQLParameter::tbl_castle("tbl_castle","castle", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_castle_guardian("tbl_castle_guardian", "castle_guardian", ParamCallback_Tables);
+
+basics::CParam< basics::string<> > CSQLParameter::tbl_party ("tbl_party", "party", ParamCallback_Tables);
+
+basics::CParam< basics::string<> > CSQLParameter::tbl_storage("tbl_storage", "storage", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_guild_storage("tbl_guild_storage", "guild_storage", ParamCallback_Tables);
+
+basics::CParam< basics::string<> > CSQLParameter::tbl_pet("tbl_pet", "pet", ParamCallback_Tables);
+
+basics::CParam<bool> CSQLParameter::wipe_sql("wipe_sql", false);
+basics::CParam< basics::string<> > CSQLParameter::sql_engine("sql_engine", "InnoDB");
+//CParam< string<> > CSQLParameter::sql_engine("sql_engine", "MyISAM");
+
+basics::CParam<bool> CSQLParameter::log_login("log_login", true);
+basics::CParam<bool> CSQLParameter::log_char("log_char", true);
+basics::CParam<bool> CSQLParameter::log_map("log_map", true);
+
+
+bool CSQLParameter::ParamCallback_Database_string(const basics::string<>& name, basics::string<>& newval, const basics::string<>& oldval)
 {
-	safestrcpy(mysqldb_ip, "127.0.0.1", sizeof(mysqldb_ip));
-	mysqldb_port=3306;
-	safestrcpy(mysqldb_id, "ragnarok", sizeof(mysqldb_id));
-	safestrcpy(mysqldb_pw, "ragnarok", sizeof(mysqldb_pw));
-	safestrcpy(mysqldb_db, "ragnarok", sizeof(mysqldb_db));
+	sqlbase.init(mysqldb_id, mysqldb_pw,mysqldb_db,mysqldb_ip,mysqldb_port);
+	return true;
+}
+bool CSQLParameter::ParamCallback_Database_ushort(const basics::string<>& name, ushort& newval, const ushort& oldval)
+{
+	sqlbase.init(mysqldb_id, mysqldb_pw,mysqldb_db,mysqldb_ip,mysqldb_port);
+	return true;
+}
+bool CSQLParameter::ParamCallback_Tables(const basics::string<>& name, basics::string<>& newval, const basics::string<>& oldval)
+{
+	CSQLParameter::rebuild();
+	return true;
 }
 
 
-
-// CMySQL Class Destructor
-// Code is executed a CMySQL var is destroyed
-inline CMySQL::~CMySQL()
+void CSQLParameter::rebuild()
 {
-	// close all existing database objects in the pool
-	this->cDBPool.call( &DBConnection::close );
+	// from mysql manual: 
+
+	// restrictions on InnoDB:
+	// 
+	// * `InnoDB' does not support the `AUTO_INCREMENT' table option for
+	//   setting the initial sequence value in a `CREATE TABLE' or `ALTER
+	//   TABLE' statement.  To set the value with `InnoDB', insert a dummy
+	//   row with a value one less and delete that dummy row, or insert the
+	//   first row with an explicit value specified.
+	//
+	// foreign key issues:
+	//
+	// * If `ON DELETE' is the only referential integrity capability an
+	//   application needs, note that as of MySQL Server 4.0, you can use
+	//   multiple-table `DELETE' statements to delete rows from many tables
+	//   with a single statement. *Note `DELETE': DELETE.
+	//   
+	// * A workaround for the lack of `ON DELETE' is to add the appropriate
+	//   `DELETE' statement to your application when you delete records
+	//   from a table that has a foreign key. In practice, this is often as
+	//   quick as using foreign keys, and is more portable.
+	// * Foreign key support addresses many referential integrity issues,
+	//   but it is still necessary to design key relationships carefully to
+	//   avoid circular rules or incorrect combinations of cascading
+	//   deletes.
+	//   
+	// * It is not uncommon for a DBA to create a topology of relationships
+	//   that makes it difficult to restore individual tables from a backup.
+	//   (MySQL alleviates this difficulty by allowing you to temporarily
+	//   disable foreign key checks when reloading a table that depends on
+	//   other tables.  *Note InnoDB foreign key constraints::.
+	//
+	//
+	//   * `INSERT DELAYED' works only with `MyISAM' and `ISAM' tables.  For
+	//	 `MyISAM' tables, if there are no free blocks in the middle of the
+	//	 data file, concurrent `SELECT' and `INSERT' statements are
+	//	 supported.  Under these circumstances, you very seldom need to use
+	//	 `INSERT DELAYED' with `MyISAM'.  *Note `MyISAM' storage engine:
+	//	 MyISAM storage engine.
 
 
-	this->FreeResults();
-}
+	basics::CMySQLConnection dbcon1(CSQLParameter::sqlbase);
+	basics::string<> query;
 
-bool CMySQL::SendQuery(const string<> q) {
+	///////////////////////////////////////////////////////////////////////
+	// disable foreign keys
+	query << "SET FOREIGN_KEY_CHECKS=0";
+	dbcon1.PureQuery(query);
+	query.clear();
 
-//	ShowError("Query = %s\n",q.c_str());
 
-	if( 0==mysql_real_query(&mysqldb_handle, q.c_str(), q.length()) )
+	///////////////////////////////////////////////////////////////////////////
+	// drop all tables, drop child tables first
+	if( CSQLParameter::wipe_sql )
 	{
-		result = mysql_store_result(&mysqldb_handle);
-		if(result)
-			return true;
-		else if(mysql_field_count(&mysqldb_handle) == 0)
-            // query does not return data
-            // (it was not a SELECT)
-            return true;
-		else
-			ShowError("DB result error\nQuery:    %s\n", q.c_str() );
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_pet) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_party) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_castle_guardian) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_castle) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_guild_expulsion) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_guild_alliance) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_guild_position) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_guild_skill) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_guild_member) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_guild_storage) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_guild) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_storage) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_mail) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_skill) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_memo) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_cart) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_inventory) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_friends) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_char_reg) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_char) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_login_reg2) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_login_reg) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_account) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_login_status) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" 
+			<< dbcon1.escaped(CSQLParameter::tbl_login_log) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
 	}
-	else
+
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_login_log) << "` "
+			 "("
+			 "`time`	TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+			 "`ip`		VARCHAR(16) NOT NULL,"
+			 "`user`	VARCHAR(24) NOT NULL,"
+			 "`rcode`	INTEGER(3) UNSIGNED NOT NULL,"
+			 "`log`		VARCHAR(100) NOT NULL"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_login_status) << "` "
+			 "("
+			 "`index` INTEGER UNSIGNED NOT NULL,"
+			 "`name` VARCHAR(24) NOT NULL,"
+			 "`user` INTEGER UNSIGNED NOT NULL,"
+			 "PRIMARY KEY(`index`)"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	basics::CParam<uint32> start_account_num("start_account_num", 10000000);
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_account) << "` "
+			 "("
+			 "`account_id`   INTEGER UNSIGNED AUTO_INCREMENT,"
+			 "`user_id`      VARCHAR(24) NOT NULL,"
+			 "`user_pass`    VARCHAR(34) NOT NULL,"
+			 "`sex`          ENUM('M','F','S') default 'M',"
+			 "`gm_level`     INT(3) UNSIGNED NOT NULL default '0',"
+			 "`online`       BOOL default '0',"
+			 "`email`        VARCHAR(40) NOT NULL default 'a@a.com',"
+			 "`login_id1`    INTEGER UNSIGNED NOT NULL default '0',"
+			 "`login_id2`    INTEGER UNSIGNED NOT NULL  default '0',"
+			 "`client_ip`    VARCHAR(16) NOT NULL default '',"
+			 "`last_login`   VARCHAR(24) NOT NULL default '',"
+			 "`login_count`  INTEGER UNSIGNED NOT NULL default '0',"
+			 "`ban_until`    INTEGER UNSIGNED NOT NULL default '0',"
+			 "`valid_until`  INTEGER UNSIGNED NOT NULL default '0',"
+			 "PRIMARY KEY (`account_id`)"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine) << " AUTO_INCREMENT=" << start_account_num;
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	query << "INSERT INTO `" << dbcon1.escaped(CSQLParameter::tbl_account) << "` "
+			 "(`account_id`, `user_id`,`user_pass`) "
+			 "VALUES "
+			 "('" << start_account_num << "',' ',' ')";
+	dbcon1.PureQuery(query);
+	query.clear();
+	query << "DELETE FROM `" << dbcon1.escaped(CSQLParameter::tbl_account) << "` "
+			 "WHERE `account_id`=" << start_account_num;
+	dbcon1.PureQuery(query);
+	query.clear();
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// add the default accounts 
+	//## change to inserting data from the config file
+	if( CSQLParameter::wipe_sql )
 	{
-		ShowError("Database Error %s\nQuery:    %s\n", mysql_error(&mysqldb_handle), q.c_str());
-		abort();
+		query << "INSERT INTO `" << dbcon1.escaped(CSQLParameter::tbl_account) << "` "
+				 "(`user_id`,`user_pass`,`sex`) VALUES ('s1','p1','S'),('s2','p2','S'),('s3','p3','S')";
+		dbcon1.PureQuery(query);
+		query.clear();
 	}
 
-	return false;
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_login_reg) << "` "
+			 "("
+			 "`account_id`      INTEGER UNSIGNED NOT NULL,"
+			 "`str`             VARCHAR(34) NOT NULL,"
+			 "`value`           VARCHAR(255) NOT NULL default '',"
+			 "PRIMARY KEY (`account_id`,`str`),"
+			 "KEY `account_id` (`account_id`),"
+			 "FOREIGN KEY (`account_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_account) << "` (`account_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_login_reg2) << "` "
+			 "("
+			 "`account_id`      INTEGER UNSIGNED NOT NULL,"
+			 "`str`             VARCHAR(34) NOT NULL,"
+			 "`value`           VARCHAR(255) NOT NULL default '',"
+			 "PRIMARY KEY (`account_id`,`str`),"
+			 "KEY `account_id` (`account_id`),"
+			 "FOREIGN KEY (`account_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_account) << "` (`account_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	basics::CParam<uint32> start_char_num("start_char_num", 20000000);
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_char) << "` "
+			 "("
+			 "`char_id` 		INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,"
+			 "`account_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`slot`			TINYINT UNSIGNED NOT NULL default '0',"
+			 "`name`			VARCHAR(24) NOT NULL default '',"
+			 "`class`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`base_level`		SMALLINT UNSIGNED NOT NULL default '1',"
+			 "`job_level`		SMALLINT UNSIGNED NOT NULL default '1',"
+			 "`base_exp`		BIGINT UNSIGNED NOT NULL default '0',"
+			 "`job_exp`			BIGINT UNSIGNED NOT NULL default '0',"
+			 "`zeny` 			BIGINT UNSIGNED NOT NULL default '0',"
+			 "`str` 			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`agi` 			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`vit` 			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`int`				SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`dex` 			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`luk`				SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`max_hp` 			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`hp`				INTEGER UNSIGNED NOT NULL default '0',"
+			 "`max_sp`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`sp` 				INTEGER UNSIGNED NOT NULL default '0',"
+			 "`status_point`	SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`skill_point`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`option` 			SMALLINT NOT NULL default '0',"
+			 "`karma`			TINYINT NOT NULL default '0',"
+			 "`chaos`			TINYINT NOT NULL default '0',"
+			 "`manner`			SMALLINT NOT NULL default '0',"
+			 "`party_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`guild_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`pet_id`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`hair`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`hair_color` 		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`clothes_color`	SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`weapon`			SMALLINT UNSIGNED NOT NULL default '1',"
+			 "`shield`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`head_top`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`head_mid`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`head_bottom`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`last_map`		VARCHAR(20) NOT NULL default 'new_5-1',"
+			 "`last_x`			SMALLINT UNSIGNED NOT NULL default '53',"
+			 "`last_y`			SMALLINT UNSIGNED NOT NULL default '111',"
+			 "`save_map`		VARCHAR(20) NOT NULL default 'new_5-1',"
+			 "`save_x`			SMALLINT UNSIGNED NOT NULL default '53',"
+			 "`save_y`			SMALLINT UNSIGNED NOT NULL default '111',"
+			 "`partner_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`father_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`mother_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`child_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`fame_points`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`online`			BOOL NOT NULL default '0',"
+			 "PRIMARY KEY (`char_id`),"
+			 "KEY `account_id` (`account_id`),"
+			 "KEY `party_id` (`party_id`),"
+			 "KEY `guild_id` (`guild_id`),"
+			 "FOREIGN KEY (`account_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_account) << "` (`account_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine) << " AUTO_INCREMENT=" << start_char_num;
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	query << "INSERT INTO `" << dbcon1.escaped(CSQLParameter::tbl_char) << "` "
+			 "(`char_id`) "
+			 "VALUES "
+			 "('" << start_char_num << "')";
+	dbcon1.PureQuery(query);
+	query.clear();
+	query << "DELETE FROM `" << dbcon1.escaped(CSQLParameter::tbl_char) << "` "
+			 "WHERE `char_id`=" << start_char_num;
+	dbcon1.PureQuery(query);
+	query.clear();
+
+
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_char_reg) << "` "
+			 "("
+			 "`char_id`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`str`				VARCHAR(32) NOT NULL,"
+			 "`value`			VARCHAR(255) NOT NULL default '',"
+			 "PRIMARY KEY (`char_id`,`str`),"
+			 "KEY `char_id` (`char_id`),"
+			 "FOREIGN KEY (`char_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_char) << "` (`char_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_friends) << "` ("
+			 "`char_id` 		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`friend_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "PRIMARY KEY  (`char_id`,`friend_id`),"
+			 "KEY `char_id` (`char_id`),"
+			 "KEY `friend_id` (`friend_id`),"
+			 "FOREIGN KEY (`char_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_char) << "` (`char_id`) ON DELETE CASCADE ON UPDATE CASCADE,"
+			 "FOREIGN KEY (`friend_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_char) << "` (`char_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_inventory) << "` ("
+			 "`char_id`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`nameid`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`equip`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`amount`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`refine`			TINYINT(2) UNSIGNED NOT NULL default '0',"
+			 "`attribute`		TINYINT UNSIGNED NOT NULL default '0',"
+			 "`identify`		TINYINT UNSIGNED NOT NULL default '1',"
+			 "`card0` 			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`card1` 			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`card2`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`card3`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "KEY `char_id` (`char_id`),"
+			 "FOREIGN KEY (`char_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_char) << "` (`char_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_cart) << "` ("
+			 "`char_id`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`nameid`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`equip`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`amount`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`refine`			TINYINT(2) UNSIGNED NOT NULL default '0',"
+			 "`attribute`		TINYINT UNSIGNED NOT NULL default '0',"
+			 "`identify`		TINYINT UNSIGNED NOT NULL default '1',"
+			 "`card0` 			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`card1` 			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`card2`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`card3`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "KEY `char_id` (`char_id`),"
+			 "FOREIGN KEY (`char_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_char) << "` (`char_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_memo) << "` ("
+			 "`char_id` 		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`map` 			VARCHAR(20) NOT NULL default '',"
+			 "`x` 				SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`y`				SMALLINT UNSIGNED NOT NULL default '0',"
+			 "KEY `char_id` (`char_id`),"
+			 "FOREIGN KEY (`char_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_char) << "` (`char_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_skill) << "` ("
+			 "`char_id` 		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`id`				SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`lv` 				SMALLINT UNSIGNED NOT NULL default '0',"
+			 "PRIMARY KEY (`char_id`,`id`),"
+			 "KEY `char_id` (`char_id`),"
+			 "FOREIGN KEY (`char_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_char) << "` (`char_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_mail) << "` ("
+			 "`message_id`		INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,"
+			 "`to_char_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`to_char_name`	VARCHAR(24) NOT NULL default '',"
+			 "`from_char_id`	INTEGER UNSIGNED NOT NULL default '0',"
+			 "`from_char_name`	VARCHAR(24) NOT NULL default '',"
+			 "`header`			VARCHAR(32) NOT NULL default '',"
+			 "`message`			VARCHAR(80) NOT NULL default '',"
+			 "`read_flag`		BOOL default '0',"
+			 "`sendtime`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`zeny`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`item_nameid`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`item_amount`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`item_equip`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`item_identify`	TINYINT UNSIGNED NOT NULL default '1',"
+			 "`item_refine`		TINYINT UNSIGNED NOT NULL default '0',"
+			 "`item_attribute`	TINYINT UNSIGNED NOT NULL default '0',"
+			 "`item_card0` 		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`item_card1` 		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`item_card2` 		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`item_card3` 		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "PRIMARY KEY (`message_id`),"
+			 "KEY `to_char_id` (`to_char_id`),"
+			 "FOREIGN KEY (`to_char_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_char) << "` (`char_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine) << " AUTO_INCREMENT=1";
+	dbcon1.PureQuery(query);
+	query.clear();
+
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_storage) << "` "
+			 "("
+			 "`account_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`nameid`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`equip`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`amount`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`refine`			TINYINT UNSIGNED NOT NULL default '0',"
+			 "`attribute`		TINYINT UNSIGNED NOT NULL default '0',"
+			 "`identify`		TINYINT UNSIGNED NOT NULL default '1',"
+			 "`card0` 			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`card1` 			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`card2`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`card3`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "KEY `account_id` (`account_id`),"
+			 "FOREIGN KEY (`account_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_account) << "` (`account_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+
+	///////////////////////////////////////////////////////////////////////////
+	basics::CParam<uint32> start_guild_num("start_guild_num", 30000000);
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_guild) << "` "
+			 "("
+			 "`guild_id`		INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,"
+			 "`guild_lv`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`connect_member`	SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`max_member`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`average_lv`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`exp`				INTEGER UNSIGNED NOT NULL default '0',"
+			 "`next_exp`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`skill_point`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`name`			VARCHAR(24) NOT NULL default '',"
+			 "`master_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`mes1`			VARCHAR(64) NOT NULL default '',"
+			 "`mes2`			VARCHAR(128) NOT NULL default '',"
+			 "`emblem_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`emblem_len`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`emblem_data`		BLOB NOT NULL,"
+			 "PRIMARY KEY (`guild_id`),"
+			 "FOREIGN KEY (`master_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_char) << "` (`char_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine) << " AUTO_INCREMENT=" << start_guild_num;
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	query << "INSERT INTO `" << dbcon1.escaped(CSQLParameter::tbl_guild) << "` "
+			 "(`guild_id`) "
+			 "VALUES "
+			 "('" << start_guild_num << "')";
+	dbcon1.PureQuery(query);
+	query.clear();
+	query << "DELETE FROM `" << dbcon1.escaped(CSQLParameter::tbl_guild) << "` "
+			 "WHERE `guild_id`=" << start_guild_num;
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_guild_storage) << "` "
+			 "("
+			 "`guild_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`nameid`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`equip`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`amount`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`refine`			TINYINT UNSIGNED NOT NULL default '0',"
+			 "`attribute`		TINYINT UNSIGNED NOT NULL default '0',"
+			 "`identify`		TINYINT UNSIGNED NOT NULL default '1',"
+			 "`card0` 			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`card1` 			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`card2`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`card3`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "KEY `guild_id` (`guild_id`),"
+			 "FOREIGN KEY (`guild_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_guild) << "` (`guild_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_guild_member) << "` "
+			 "("
+			 "`char_id`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`guild_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`exp`				INTEGER UNSIGNED NOT NULL default '0',"
+			 "`exp_payper`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`position`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`rsv1`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`rsv2`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "PRIMARY KEY (`char_id`, `guild_id`),"
+			 "KEY `guild_id` (`guild_id`),"
+			 "FOREIGN KEY (`guild_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_guild) << "` (`guild_id`) ON DELETE CASCADE ON UPDATE CASCADE,"
+			 "FOREIGN KEY (`char_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_char) << "` (`char_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_guild_skill) << "` "
+			 "("
+			 "`guild_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`id`				SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`lv`				SMALLINT UNSIGNED NOT NULL default '0',"
+			 "PRIMARY KEY (`guild_id`, `id`),"
+			 "KEY `guild_id` (`guild_id`),"
+			 "FOREIGN KEY (`guild_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_guild) << "` (`guild_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_guild_position) << "` "
+			 "("
+			 "`guild_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`position`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`name`			VARCHAR(24) NOT NULL default '',"
+			 "`mode`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`exp_mode`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "PRIMARY KEY (`guild_id`, `position`),"
+			 "KEY `guild_id` (`guild_id`),"
+			 "FOREIGN KEY (`guild_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_guild) << "` (`guild_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_guild_alliance) << "` "
+			 "("
+			 "`guild_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`alliance_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`opposition`		INTEGER NOT NULL default '0',"
+			 "PRIMARY KEY (`guild_id`, `alliance_id`),"
+			 "KEY `guild_id` (`guild_id`),"
+			 "FOREIGN KEY (`guild_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_guild) << "` (`guild_id`) ON DELETE CASCADE ON UPDATE CASCADE,"
+			 "FOREIGN KEY (`alliance_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_guild) << "` (`guild_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_guild_expulsion) << "` "
+			 "("
+			 "`guild_id`		INTEGER UNSIGNED NOT NULL default '0',"	
+			 "`char_id`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`mes`				VARCHAR(40) NOT NULL default '',"
+			 "`acc`				VARCHAR(40) NOT NULL default '',"
+			 "`rsv1`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`rsv2`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`rsv3`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "PRIMARY KEY (`guild_id`, `char_id`),"
+			 "KEY `guild_id` (`guild_id`),"
+			 "FOREIGN KEY (`guild_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_guild) << "` (`guild_id`) ON DELETE CASCADE ON UPDATE CASCADE,"
+			 "FOREIGN KEY (`char_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_char) << "` (`char_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_castle) << "` "
+			 "("
+			 "`castle_id`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`guild_id`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`economy`				INTEGER UNSIGNED NOT NULL default '0',"
+			 "`defense`				INTEGER UNSIGNED NOT NULL default '0',"
+			 "`triggerE`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`triggerD`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`nextTime`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`payTime`				INTEGER UNSIGNED NOT NULL default '0',"
+			 "`createTime`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`visibleC`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "PRIMARY KEY `castle_id` (`castle_id`),"
+			 "KEY `guild_id` (`guild_id`)"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_castle_guardian) << "` "
+			 "("
+			 "`castle_id`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`guardian_id`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`guardian_hp`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`guardian_visible`	BOOL NOT NULL default '0',"
+			 "PRIMARY KEY (`castle_id`,`guardian_id`),"
+			 "KEY `castle_id` (`castle_id`)"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	basics::CParam<uint32> start_party_num("start_party_num", 40000000);
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_party) << "` "
+			 "("
+			 "`party_id`		INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,"
+			 "`name`			VARCHAR(24) NOT NULL default '',"
+			 "`leader`			VARCHAR(24) NOT NULL default '',"
+			 "`expshare`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`itemshare`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`itemc`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "PRIMARY KEY (`party_id`),"
+			 "UNIQUE `name` (`name`),"
+			 "UNIQUE `leader` (`leader`)"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine) << " AUTO_INCREMENT=" << start_party_num;
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	query << "INSERT INTO `" << dbcon1.escaped(CSQLParameter::tbl_party) << "` "
+			 "(`party_id`) "
+			 "VALUES "
+			 "('" << start_party_num << "')";
+	dbcon1.PureQuery(query);
+	query.clear();
+	query << "DELETE FROM `" << dbcon1.escaped(CSQLParameter::tbl_party) << "` "
+			 "WHERE `party_id`=" << start_party_num;
+	dbcon1.PureQuery(query);
+	query.clear();
+
+
+	///////////////////////////////////////////////////////////////////////////
+	basics::CParam<uint32> start_pet_num("start_pet_num", 50000000);
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_pet) << "` "
+			 "("
+			 "`pet_id`			INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,"
+			 "`char_id`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`class`			SMALLINT NOT NULL default '0',"
+			 "`level`			SMALLINT NOT NULL default '0',"
+			 "`egg_id`			SMALLINT NOT NULL default '0',"
+			 "`equip_id`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`intimate`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`hungry`			SMALLINT NOT NULL default '0',"
+			 "`name`			VARCHAR(24) NOT NULL default '',"
+			 "`rename_flag`		TINYINT UNSIGNED NOT NULL default '0',"
+			 "`incuvate`		TINYINT UNSIGNED NOT NULL default '0',"
+			 "PRIMARY KEY `pet_id` (`pet_id`),"
+			 "KEY `char_id` (`char_id`)," 
+			 "FOREIGN KEY (`char_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_char) << "` (`char_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine) << " AUTO_INCREMENT=" << start_pet_num;
+	dbcon1.PureQuery(query);
+	query.clear();
+	query << "INSERT INTO `" << dbcon1.escaped(CSQLParameter::tbl_pet) << "` "
+			 "(`pet_id`) "
+			 "VALUES "
+			 "('" << start_pet_num << "')";
+	dbcon1.PureQuery(query);
+	query.clear();
+	query << "DELETE FROM `" << dbcon1.escaped(CSQLParameter::tbl_pet) << "` "
+			 "WHERE `pet_id`=" << start_pet_num;
+	dbcon1.PureQuery(query);
+	query.clear();
+
+
+	///////////////////////////////////////////////////////////////////////
+	// enable foreign keys
+	query << "SET FOREIGN_KEY_CHECKS=1";
+	dbcon1.PureQuery(query);
+	query.clear();
 }
 
-bool CMySQL::FetchResults()
-{
-	if (result) // was there even a result?
-		if ((row = mysql_fetch_row(result))) // is there a row to pull out?
-			return true;
-	return false;
-}
-
-long int CMySQL::CountResults()
-{
-	return mysql_num_rows(result);
-}
-
-void CMySQL::FreeResults()
-{
-	if (result)
-	{
-		mysql_free_result(result);
-	}
-}
 
 
 
-// Send a MySQL query to get data
-bool CMySQL::mysql_SendQuery(MYSQL_RES*& sql_res, const char* q, size_t sz)
-{
 
-	#ifdef DEBUG_SQL
-		ShowSQL("%s\n", q);
-	#endif
 
-	if( 0==mysql_real_query(&mysqldb_handle, q, (sz)?sz:strlen(q)) ) {
-		if(sql_res) mysql_free_result(sql_res);
 
-		sql_res = mysql_store_result(&mysqldb_handle);
 
-		if(sql_res)
-			return true;
-		else
-			ShowError("DB result error\nQuery:    %s\n", q);
-	}
-	else
-		ShowError("Database Error %s\nQuery:    %s\n", mysql_error(&mysqldb_handle), q);
 
-	return false;
-}
 
-// Send a MySQL query to send data
-bool CMySQL::mysql_SendQuery(const char* q, size_t sz)
-{
 
-	#ifdef DEBUG_SQL
-		ShowSQL("%s\n", q);
-	#endif
 
-	if( 0==mysql_real_query(&mysqldb_handle, q, (sz)?sz:strlen(q)) )
-		return true;
-	else
-		ShowError("Database Error %s\nQuery:    %s\n", mysql_error(&mysqldb_handle), q);
 
-	return false;
-}
 
-// Make string MySQL safe
-inline const char* CMySQL::escape_string(char *target, const char* source, size_t len)
-{
 
-	mysql_real_escape_string(&mysqldb_handle, target, source, len);
-
-	return target;
-}
 
 //////////////////////////////////////////////////////////////////////////////////////
 // CAccountDB_sql Class
 //////////////////////////////////////////////////////////////////////////////////////
-CAccountDB_sql::CAccountDB_sql(const char* configfile)
-	: cSqlRes(NULL)
-{
-	login_auth_db	= "login_auth";
-	login_reg_db	= "login_reg";
-	login_status_db	= "login_status";
-	login_log_db	= "login_log";
-
-	case_sensitive=true;
-	log_login=false;
-	init(configfile);
-}
-
-bool CAccountDB_sql::ProcessConfig(const char*w1, const char*w2)
-{
-	if(w1 && w2)
-	{
-		// All Tables in Database
-		if (strcasecmp(w1, "login_auth_db") == 0) {
-			login_auth_db = w2;
-		}
-		else if (strcasecmp(w1, "login_reg_db") == 0) {
-			login_reg_db = w2;
-		}
-		else if (strcasecmp(w1, "login_log_db") == 0) {
-			login_log_db = w2;
-		}
-		else if (strcasecmp(w1, "login_status_db") == 0) {
-			login_status_db = w2;
-		}
-
-		// Database Connection Settings
-		else if(strcasecmp(w1,"login_server_ip")==0){
-			safestrcpy(this->mysqldb_ip, w2, sizeof(this->mysqldb_ip));
-			ShowMessage ("set login_server_ip : %s\n",w2);
-		}
-		else if(strcasecmp(w1,"login_server_port")==0){
-			this->mysqldb_port=atoi(w2);
-			ShowMessage ("set login_server_port : %s\n",w2);
-		}
-		else if(strcasecmp(w1,"login_server_id")==0){
-			safestrcpy(this->mysqldb_id, w2,sizeof(this->mysqldb_id));
-			ShowMessage ("set login_server_id : %s\n",w2);
-		}
-		else if(strcasecmp(w1,"login_server_pw")==0){
-			safestrcpy(this->mysqldb_pw, w2,sizeof(this->mysqldb_pw));
-			ShowMessage ("set login_server_pw : %s\n",w2);
-		}
-		else if(strcasecmp(w1,"login_server_db")==0){
-			safestrcpy(this->mysqldb_db, w2,sizeof(this->mysqldb_db));
-			ShowMessage ("set login_server_db : %s\n",w2);
-		}
-
-		//end of custom table config
-		else if (strcasecmp(w1, "log_login") == 0) {
-			log_login = Switch(w2);
-		}
-	}
+bool CAccountDB_sql::init(const char* configfile)
+{	// init db
+	if(configfile) basics::CParamBase::loadFile(configfile);
 	return true;
 }
+
+bool CAccountDB_sql::close()
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	//set log.
+	if( this->log_login )
+	{
+		query << "INSERT INTO `" << dbcon1.escaped(this->tbl_login_log) << "` "
+				 "(`time`,`ip`,`user`,`rcode`,`log`) "
+				 "VALUES (NOW(), '', 'lserver','100', 'login server shutdown')";
+		dbcon1.PureQuery(query);
+		query.clear();
+	}
+
+	//delete all server status
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_login_status) << "`";
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	return true;
+}
+
+bool CAccountDB_sql::sql2struct(const basics::string<>& querycondition, CLoginAccount& account)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	size_t i;
+
+	query << "SELECT "
+			 "`account_id`,"	//  0
+			 "`user_id`,"		//  1
+			 "`user_pass`,"		//  2
+			 "`sex`,"			//  3
+			 "`gm_level`,"		//  4
+			 "`online`,"		//  5
+			 "`email`,"			//  6
+			 "`login_id1`,"		//  7
+			 "`login_id2`,"		//  8
+			 "`client_ip`,"		//  9
+			 "`last_login`,"	// 10
+			 "`login_count`,"	// 11
+			 "`ban_until`,"		// 12
+			 "`valid_until` "	// 13
+			 "FROM `" << dbcon1.escaped(this->tbl_account) << "` " <<
+			 querycondition;
+
+	if( dbcon1.ResultQuery(query) )
+	{
+		account.account_id	= atol(dbcon1[0]);
+		safestrcpy(account.userid, dbcon1[1], sizeof(account.userid));
+		safestrcpy(account.passwd, dbcon1[2], sizeof(account.passwd));
+		account.sex			= ((dbcon1[3][0]=='S') ? (2) : (dbcon1[3][0]=='M'));
+		account.gm_level	= atol(dbcon1[4]);
+		account.online		= atol(dbcon1[5]);
+		safestrcpy(account.email, dbcon1[6] , sizeof(account.email));
+		account.login_id1	= atol(dbcon1[7]);
+		account.login_id2	= atol(dbcon1[8]);
+		account.client_ip	= basics::ipaddress(dbcon1[9]);
+		safestrcpy(account.last_ip, dbcon1[9] , sizeof(account.last_ip));
+		safestrcpy(account.last_login, dbcon1[10] , sizeof(account.last_login));
+		account.login_count	= atol(dbcon1[11]);
+		account.ban_until	= (time_t)(atol(dbcon1[12]));
+		account.valid_until	= (time_t)(atol(dbcon1[13]));
+
+		query.clear();
+		query << "SELECT `str`,`value` "
+				 "FROM `" << dbcon1.escaped(this->tbl_login_reg) << "` "
+				 "WHERE `account_id`='" << account.account_id << "'";
+		dbcon1.ResultQuery(query);
+		for(i=0; dbcon1 && i<ACCOUNT_REG2_NUM; ++dbcon1, ++i)
+		{
+			safestrcpy(account.account_reg2[i].str, dbcon1[0], sizeof(account.account_reg2[0].str));
+			account.account_reg2[i].value = atoi(dbcon1[1]);
+		}
+		account.account_reg2_num = i;
+		for( ; i<ACCOUNT_REG2_NUM; ++i)
+		{
+			account.account_reg2[i].str[0] = 0;
+			account.account_reg2[i].value = 0;
+		}
+		return true;
+	}
+	return false;
+}
+
+size_t CAccountDB_sql::size() const
+{
+	return this->get_table_size(this->tbl_account);
+}
+
+CLoginAccount& CAccountDB_sql::operator[](size_t i)
+{	// playing around with this
+	static CLoginAccount account;
+	basics::string<> querycondition;
+	querycondition <<	"ORDER BY `account_id`"
+						"LIMIT "<< i << ",1 ";
+	sql2struct(querycondition, account);
+	// might check the return value
+	return account;
+}
+
+
 
 bool CAccountDB_sql::existAccount(const char* userid)
 {	// check if account with userid already exist
 	bool ret = false;
 	if(userid)
 	{
-		char uid[64];
-		string<> query;
+		basics::CMySQLConnection dbcon1(this->sqlbase);
+		basics::string<> query;
 
-		escape_string(uid, userid, strlen(userid));
 		query << "SELECT `user_id` "
-				 "FROM `" << login_auth_db << "` "
-				 "WHERE " << (case_sensitive?"BINARY ":"") << "`user_id` = '" <<  uid  <<"'";
-		this->SendQuery(query);
-		if( this->FetchResults())
+				 "FROM `" << dbcon1.escaped(this->tbl_account) << "` "
+				 "WHERE " << (this->case_sensitive?"BINARY ":"") << "`user_id` = '" <<  dbcon1.escaped(userid) << "'";
+		
+		if( dbcon1.ResultQuery(query) && dbcon1 )
 		{
-			ret = this->CountResults()>0;
+			ret = dbcon1.countResults()>0;
 		}
 	}
 	return ret;
@@ -219,1015 +972,519 @@ bool CAccountDB_sql::existAccount(const char* userid)
 
 bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 {	// get account by user/pass
-	bool ret = false;
 	if(userid)
 	{
-		string<> query;
-		char uid[64];
-		uint32 accid = 0;
-
-		//-----------
-		// Find the account_id and pass that on to the proper function that gets them via account_id
-		escape_string(uid, userid, strlen(userid));
-		query << "SELECT `account_id` "
-				 "FROM `" << login_auth_db << "` "
-				 "WHERE `user_id`='" << uid << "'";
-
-		if( this->SendQuery(query) )
-		{
-			//row fetching
-			if(this->FetchResults())
-			{
-				accid = this->row[0]?atol(this->row[0]):0;
-			}
-
-			this->FreeResults();
-		}
-
-		ret = this->searchAccount(accid,account);
-
+		basics::CMySQLConnection dbcon1(this->sqlbase);
+		basics::string<> querycondition;
+		querycondition <<	"WHERE `user_id`='" << dbcon1.escaped(userid) << "'";
+		return sql2struct(querycondition, account);
 	}
-	return ret;
+	return false;
 }
 
 bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 {	// get account by account_id
-
-	bool ret = false;
-
 	if(accid)
 	{
-		string<> query;
-		query << "SELECT"
-				 "`account_id`,"	//  0
-				 "`user_id`,"		//  1
-				 "`user_pass`,"		//  2
-				 "`sex`,"			//  3
-				 "`gm_level`,"		//  4
-				 "`online`,"		//  5
-				 "`email`,"			//  6
-				 "`login_id1`,"		//  7
-				 "`login_id2`,"		//  8
-				 "`client_ip`,"		//  9
-				 "`last_login`,"	// 10
-				 "`login_count`,"	// 11
-				 "`ban_until`,"		// 12
-				 "`valid_until` "	// 13
-				 "FROM `" << login_auth_db << "` "
-				 "WHERE `account_id`='" << accid << "'";
-
-		if( this->SendQuery(query) )
-		{
-			//row fetching
-			if(this->FetchResults())
-			{
-				account.account_id	= this->row[0]?atol(this->row[0]):0;
-				safestrcpy(account.userid, this->row[1]?this->row[1]:"", sizeof(account.userid));
-				safestrcpy(account.passwd, this->row[2]?this->row[2]:"", sizeof(account.passwd));
-				account.sex			= this->row[3][0] == 'S' ? 2 : this->row[3][0]=='M';
-				account.gm_level	= this->row[4]?atol(this->row[4]):0;
-				account.online		= this->row[5]?atol(this->row[5]):0;
-				safestrcpy(account.email, this->row[6]?this->row[6]:"" , sizeof(account.email));
-				account.login_id1	= this->row[7]?atol(this->row[7]):0;
-				account.login_id2	= this->row[8]?atol(this->row[8]):0;
-				account.client_ip	= ipaddress(this->row[9]);
-				safestrcpy(account.last_ip, this->row[0]?this->row[9]:"" , sizeof(account.last_ip));
-				safestrcpy(account.last_login, this->row[10]?this->row[10]:"" , sizeof(account.last_login));
-				account.login_count	= this->row[11]?atol(this->row[11]):0;
-				account.ban_until	= (time_t)(this->row[12]?atol(this->row[12]):0);
-				account.valid_until	= (time_t)(this->row[13]?atol(this->row[13]):0);
-
-				this->FreeResults();
-				ret = true;
-			}
-		}
-		if(ret)
-		{
-			query.clear();
-			query << "SELECT `str`,`value` "
-					 "FROM `" << login_reg_db << "` "
-					 "WHERE `account_id`='" << account.account_id << "'";
-			if( this->SendQuery(query) )
-			{
-				size_t i=0;
-				while( i<ACCOUNT_REG2_NUM && this->FetchResults() )
-				{
-					safestrcpy(account.account_reg2[i].str, this->row[0], sizeof(account.account_reg2[0].str));
-					account.account_reg2[i].value = (this->row[1]) ? atoi(this->row[1]):0;
-					i++;
-				}
-				account.account_reg2_num = i;
-
-				this->FreeResults();
-			}
-		}
+		basics::string<> querycondition;
+		querycondition <<	"WHERE `account_id`='" << accid << "'";
+		return sql2struct(querycondition, account);
 	}
-
-	return ret;
+	return false;
 }
 
 bool CAccountDB_sql::insertAccount(const char* userid, const char* passwd, unsigned char sex, const char* email, CLoginAccount& account)
 {	// insert a new account to db
-//	size_t sz;
-	char uid[64], pwd[64];
-	string<> query;
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
 
-	escape_string(uid, userid, strlen(userid));
-	escape_string(pwd, passwd, strlen(passwd));
-
-	query << "INSERT INTO `" << login_auth_db << "` "
+	query << "INSERT INTO `" << dbcon1.escaped(this->tbl_account) << "` "
 			 "(`user_id`, `user_pass`, `sex`, `email`) "
-			 "VALUES ('" << uid << "', '" << pwd << "', '" << sex << "', '" << email << "')";
-	if( this->SendQuery(query) )
-	{
-		// read the complete account back from db
-		return searchAccount(userid, account);
-	}
-	return false;
+			 "VALUES ('" << 
+			 dbcon1.escaped(userid) << "', '" << 
+			 dbcon1.escaped(passwd) << "', '" << 
+			 sex << "', '" << 
+			 dbcon1.escaped(email) << "')";
+
+	return	dbcon1.PureQuery(query) &&
+			searchAccount(userid, account);
 }
 
 bool CAccountDB_sql::removeAccount(uint32 accid)
 {
 	bool ret;
-	string<> query;
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
 
 	query << "DELETE "
-			 "FROM `" << login_auth_db << "` "
+			 "FROM `" << this->tbl_account << "` "
 			 "WHERE `account_id`='" << accid << "'";
-	ret = this->SendQuery(query);
+	ret = dbcon1.PureQuery(query);
 
 	query.clear();
 	query << "DELETE "
-			 "FROM `" << login_reg_db << "` "
-			 "WHERE `account_id`='" << accid << "'"; // must update with the variable login_reg_db
-	ret &=this->SendQuery(query);
+			 "FROM `" << this->tbl_login_reg << "` "
+			 "WHERE `account_id`='" << accid << "'"; // must update with the variable this->tbl_login_reg
+	ret &=dbcon1.PureQuery(query);
 
 	return ret;
 }
 
-bool CAccountDB_sql::init(const char* configfile)
-{	// init db
-	
-	bool wipe=false; // i dont know how a bool is set..
-
-	string<> query; // used for the queries themselves
-
-	CConfig::LoadConfig(configfile);
-
-	mysql_init(&(this->mysqldb_handle));
-
-	// All tables used for login: login_auth, login_reg, login_log, login_status
-
-	// DB connection start
-	ShowMessage("Connect Database Server on %s%u....\n", mysqldb_ip, mysqldb_port);
-	if( mysql_real_connect(&(this->mysqldb_handle), mysqldb_ip, mysqldb_id, mysqldb_pw, mysqldb_db, mysqldb_port, (char *)NULL, 0) )
-	{
-		ShowMessage("connect success!\n");
-		if (log_login)
-		{
-			query << "INSERT DELAYED INTO `" << login_log_db << "` "
-					 "(`time`,`ip`,`user`,`rcode`,`log`) "
-					 "VALUES (NOW(), '', 'Login', '100','login server started')";
-			//query
-			this->SendQuery(query);
-			query.clear();
-		}
-	}
-	else
-	{	// pointer check
-		ShowMessage("%s\n", mysql_error(&(this->mysqldb_handle)));
-		return false;
-	}
-
-	if (wipe)
-	{
-		query << "DROP TABLE IF EXISTS `" << login_auth_db << "`";
-		this->SendQuery(query);
-		query.clear();
-	}
-
-	query << "CREATE TABLE IF NOT EXISTS `" << login_auth_db << "` "
-			 "("
-			 "`account_id` INTEGER UNSIGNED AUTO_INCREMENT,"
-			 "`user_id` VARCHAR(24) NOT NULL,"
-			 "`user_pass` VARCHAR(34) NOT NULL,"
-			 "`sex` ENUM('M','F','S') default 'M',"
-			 "`gm_level` INT(3) UNSIGNED NOT NULL,"
-			 "`online` BOOL default 'false',"
-			 "`email` VARCHAR(40) NOT NULL,"
-			 "`login_id1` INTEGER UNSIGNED NOT NULL,"
-			 "`login_id2` INTEGER UNSIGNED NOT NULL,"
-			 "`client_ip` VARCHAR(16) NOT NULL,"
-			 "`last_login` INTEGER UNSIGNED NOT NULL,"
-			 "`login_count` INTEGER UNSIGNED NOT NULL,"
-			 "`ban_until` INTEGER UNSIGNED NOT NULL,"
-			 "`valid_until` INTEGER UNSIGNED NOT NULL,"
-			 "PRIMARY KEY(`account_id`)"
-			 ")";
-
-	this->SendQuery(query);
-	query.clear();
-
-	if (wipe)
-	{
-		query << "DROP TABLE IF EXISTS `" << login_reg_db << "`";
-		this->SendQuery(query);
-		query.clear();
-	}
-
-	query << "CREATE TABLE IF NOT EXISTS `" << login_reg_db << "` "
-			 "("
-			 "`account_id` INTEGER UNSIGNED AUTO_INCREMENT,"
-			 "`str` VARCHAR(34) NOT NULL,"  // Not sure on the length needed. (struct global_reg::str[32]) but better read the size from the struct later
-			 "`value` INTEGER UNSIGNED NOT NULL,"
-			 "PRIMARY KEY(`account_id`,`str`)"
-			 ")";
-	
-	this->SendQuery(query);
-	query.clear();
-
-
-	if (wipe)
-	{
-		query << "DROP TABLE IF EXISTS `" << login_log_db << "`";
-		this->SendQuery(query);
-		query.clear();
-	}
-
-	query << "CREATE TABLE IF NOT EXISTS `" << login_log_db << "` "
-			 "("
-			 "`time` INTEGER UNSIGNED,"
-			 "`ip` VARCHAR(16) NOT NULL,"
-			 "`user` VARCHAR(24) NOT NULL,"
-			 "`rcode` INTEGER(3) UNSIGNED NOT NULL,"
-			 "`log` VARCHAR(100) NOT NULL"
-			 ")";
-
-	this->SendQuery(query);
-	query.clear();
-
-	if (wipe)
-	{
-		query << "DROP TABLE IF EXISTS `" << login_status_db << "`";
-		this->SendQuery(query);
-		query.clear();
-	}
-
-	query << "CREATE TABLE IF NOT EXISTS `" << login_status_db << "` "
-			 "("
-			 "`index` INTEGER UNSIGNED NOT NULL,"
-			 "`name` VARCHAR(24) NOT NULL,"
-			 "`user` INTEGER UNSIGNED NOT NULL,"
-			 "PRIMARY KEY(`index`)"
-			 ")";
-
-	this->SendQuery(query);
-	query.clear();
-
-	return true;
-}
-
-bool CAccountDB_sql::close()
-{
-	string<> query;
-	//set log.
-	if (log_login)
-	{
-		query << "INSERT DELAYED INTO `" << login_log_db << "` "
-				 "(`time`,`ip`,`user`,`rcode`,`log`) "
-				 "VALUES (NOW(), '', 'lserver','100', 'login server shutdown')";
-		this->SendQuery(query);
-		query.clear();
-	}
-
-	//delete all server status
-	query << "DELETE "
-			 "FROM `" << login_status_db << "`";
-	this->SendQuery(query);
-	query.clear();
-
-	mysql_close(&(this->mysqldb_handle));
-
-	return true;
-}
-
 bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 {
-	bool ret = false;
-	size_t i;
-	string<> query;
-	char tempstr[64];
+	bool ret;
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	size_t i, doit;
+	basics::string<> query;
 
 	//-----------
-	// Update the login_auth_db with new info
-	query << "UPDATE `" << login_auth_db << "` "
+	// Update the this->tbl_account with new info
+	query << "UPDATE `" << dbcon1.escaped(this->tbl_account) << "` "
 			 "SET "
-			 "`user_id` = '"			<< account.userid 				<< "', "
-			 "`user_pass` = '"			<< account.passwd				<< "', "
+			 "`user_id` = '"			<< dbcon1.escaped(account.userid)<< "', "
+			 "`user_pass` = '"			<< dbcon1.escaped(account.passwd)<< "', "
 			 "`sex` = '"				<< ((account.sex==1)?"M":"F")	<< "', "
 			 "`gm_level` = '"			<< account.gm_level				<< "', "
 			 "`online` = '"				<< account.online				<< "', "
-			 "`email` = '"				<< account.email				<< "', "
+			 "`email` = '"				<< dbcon1.escaped(account.email)<< "', "
 			 "`login_id1` = '"			<< account.login_id1			<< "', "
 			 "`login_id2` = '"			<< account.login_id2			<< "', "
 			 "`client_ip` = '"			<< account.client_ip			<< "', "
 			 "`last_login` = '"			<< account.last_login			<< "', "
 			 "`login_count` = '"		<< account.login_count			<< "', "
-			 "`valid_until` = '"		<< account.valid_until			<< "', "
-			 "`ban_until` = '"			<< account.ban_until			<< "' "			 
+			 "`valid_until` = '"		<< (ulong)account.valid_until	<< "', "
+			 "`ban_until` = '"			<< (ulong)account.ban_until		<< "' "
 			 "WHERE `account_id` = '"	<< account.account_id			<< "'";
 
-
-	ret = this->SendQuery(query);
-	query.clear();
+	ret = dbcon1.PureQuery(query);
+	
 
 	//----------
 	// Delete and reinsert data for the registry values
-
+	query.clear();
 	query << "DELETE "
-			 "FROM `" << login_reg_db << "` "
+			 "FROM `" << dbcon1.escaped(this->tbl_login_reg) << "` "
 			 "WHERE `account_id`='" << account.account_id << "'";
-	this->SendQuery(query);
+	dbcon1.PureQuery(query);
 	query.clear();
 
-	//----------
-	// Insert here
-	query << "INSERT INTO `" << login_reg_db << "` "
-			 "(`account_id`, `str`, `value`) VALUES ";
-
-	for(i=0; i<account.account_reg2_num; i++)
+	// Only need to do registry inserts if we have registry stuff to insert.. =o
+	if( account.account_reg2_num )
 	{
-		this->escape_string(tempstr, account.account_reg2[i].str, strlen(account.account_reg2[i].str));
-		query << (i?",":"") << 
-			"("
-			"'" << account.account_id << "','" << tempstr << "','" << account.account_reg2[i].value << "'"
-			") ";
-	}
-	ret &= this->SendQuery(query);
+		query << "INSERT INTO `" << dbcon1.escaped(this->tbl_login_reg) << "` "
+				 "(`account_id`, `str`, `value`) VALUES ";
 
+		for(i=0, doit=0; i<account.account_reg2_num; ++i)
+		{
+			if( account.account_reg2[i].str[0] && account.account_reg2[i].value )
+			{
+				query << (doit?",":"") <<
+					"("
+					"'" << account.account_id << "',"
+					"'" << dbcon1.escaped(account.account_reg2[i].str) << "',"
+					"'" << account.account_reg2[i].value << "'"
+					") ";
+				doit++;
+			}
+		}
+		if(doit) ret &= dbcon1.PureQuery(query);
+	}
 	return ret;
 }
 
 
+
+
+
+
+
+
 // / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
-/// / CHAR SERVER IMPLEMENTATION BY CLOWNISIUS  / / / / / / / / / / / / / / / / / /
+// / CHAR SERVER IMPLEMENTATION BY CLOWNISIUS  / / / / / / / / / / / / / / / / / /
 // / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
 
-/* data for sql tables:
 
-DROP TABLE IF EXISTS `account_storage`;
+bool CCharDB_sql::init(const char* configfile)
+{	// init db
 
-CREATE TABLE IF NOT EXISTS `account_storage` (
-  `id`				BIGINT UNSIGNED NOT NULL auto_increment,
-  `account_id`		INTEGER UNSIGNED NOT NULL default '0',
-  `nameid`			MEDIUMINT UNSIGNED NOT NULL default '0',
-  `amount`			INTEGER UNSIGNED NOT NULL default '0',
-  `equip`			MEDIUMINT UNSIGNED NOT NULL default '0',
-  `identify`		BOOL default 'TRUE',
-  `refine`			TINYINT(2) UNSIGNED NOT NULL default '0',
-  `attribute`		TINYINT UNSIGNED NOT NULL default '0',
-  `card0` 			INTEGER NOT NULL default '0',
-  `card1` 			INTEGER UNSIGNED NOT NULL default '0',
-  `card2`			INTEGER UNSIGNED NOT NULL default '0',
-  `card3`			INTEGER UNSIGNED NOT NULL default '0',
-  `broken` 			BOOL default 'FALSE',
-  PRIMARY KEY  (`id`),
-  KEY `account_id` (`account_id`)
-);
-
-DROP TABLE IF EXISTS `account_reg`;
-
-CREATE TABLE IF NOT EXISTS `account_reg` (
-  `account_id`		INTEGER UNSIGNED NOT NULL default '0',
-  `str`				VARCHAR(255) NOT NULL default '',
-  `value`			VARCHAR(255) NOT NULL default '0',
-  PRIMARY KEY  (`account_id`,`str`),
-  KEY `account_id` (`account_id`)
-);
-
-DROP TABLE IF EXISTS `char_characters`;
-
-CREATE TABLE IF NOT EXISTS `char_characters` (
-  `char_id` 		INTEGER UNSIGNED NOT NULL auto_increment,
-  `account_id`		INTEGER UNSIGNED NOT NULL default '0',
-  `slot`			TINYINT UNSIGNED NOT NULL default '0',
-  `name`			VARCHAR(24) NOT NULL default '',
-  `class`			MEDIUMINT UNSIGNED NOT NULL default '0',
-  `base_level`		TINYINT UNSIGNED NOT NULL default '1',
-  `job_level`		TINYINT UNSIGNED NOT NULL default '1',
-  `base_exp`		BIGINT UNSIGNED NOT NULL default '0',
-  `job_exp`			BIGINT UNSIGNED NOT NULL default '0',
-  `zeny` 			BIGINT UNSIGNED NOT NULL default '500',
-  `str` 			TINYINT UNSIGNED NOT NULL default '0',
-  `agi` 			TINYINT UNSIGNED NOT NULL default '0',
-  `vit` 			TINYINT UNSIGNED NOT NULL default '0',
-  `int`				TINYINT UNSIGNED NOT NULL default '0',
-  `dex` 			TINYINT UNSIGNED NOT NULL default '0',
-  `luk`				TINYINT UNSIGNED NOT NULL default '0',
-  `max_hp` 			MEDIUMINT UNSIGNED NOT NULL default '0',
-  `hp`				MEDIUMINT UNSIGNED NOT NULL default '0',
-  `max_sp`			MEDIUMINT UNSIGNED NOT NULL default '0',
-  `sp` 				MEDIUMINT UNSIGNED NOT NULL default '0',
-  `status_point`	MEDIUMINT UNSIGNED NOT NULL default '0',
-  `skill_point`		MEDIUMINT UNSIGNED NOT NULL default '0',
-  `option` 			INTEGER NOT NULL default '0',
-  `karma`			INTEGER NOT NULL default '0',
-  `manner`			INTEGER NOT NULL default '0',
-  `party_id`		MEDIUMINT UNSIGNED NOT NULL default '0',
-  `guild_id`		MEDIUMINT UNSIGNED NOT NULL default '0',
-  `pet_id`			MEDIUMINT UNSIGNED NOT NULL default '0',
-  `hair`			TINYINT UNSIGNED NOT NULL default '0',
-  `hair_color` 		TINYINT UNSIGNED NOT NULL default '0',
-  `clothes_color`	TINYINT UNSIGNED NOT NULL default '0',
-  `weapon`			MEDIUMINT UNSIGNED NOT NULL default '1',
-  `shield`			MEDIUMINT UNSIGNED NOT NULL default '0',
-  `head_top`		MEDIUMINT UNSIGNED NOT NULL default '0',
-  `head_mid`		MEDIUMINT UNSIGNED NOT NULL default '0',
-  `head_bottom`		MEDIUMINT UNSIGNED NOT NULL default '0',
-  `last_map`		VARCHAR(20) NOT NULL default 'new_5-1.gat',
-  `last_x`			MEDIUMINT(3) UNSIGNED NOT NULL default '53',
-  `last_y`			MEDIUMINT(3) UNSIGNED NOT NULL default '111',
-  `save_map`		VARCHAR(20) NOT NULL default 'new_5-1.gat',
-  `save_x`			MEDIUMINT(3) UNSIGNED NOT NULL default '53',
-  `save_y`			MEDIUMINT(3) UNSIGNED NOT NULL default '111',
-  `partner_id`		INTEGER UNSIGNED NOT NULL default '0',
-  `father_id`		INTEGER UNSIGNED NOT NULL default '0',
-  `mother_id`		INTEGER UNSIGNED NOT NULL default '0',
-  `child_id`		INTEGER UNSIGNED NOT NULL default '0',
-  `fame_points`		INTEGER UNSIGNED NOT NULL default '0',
-  `online`			BOOL NOT NULL default 'false',
-  PRIMARY KEY  (`char_id`),
-  KEY `account_id` (`account_id`),
-  KEY `party_id` (`party_id`),
-  KEY `guild_id` (`guild_id`)
-);
-
-DROP TABLE IF EXISTS `char_character_reg`;
-
-CREATE TABLE IF NOT EXISTS `char_character_reg` (
-  `char_id`			INTEGER UNSIGNED NOT NULL default '0',
-  `str`				VARCHAR(255) NOT NULL default '',
-  `value`			VARCHAR(255) NOT NULL default '0',
-  PRIMARY KEY  (`char_id`,`str`),
-  KEY `char_id` (`char_id`)
-);
-
-DROP TABLE IF EXISTS `char_friends`;
-
-CREATE TABLE IF NOT EXISTS `char_friends` (
-  `char_id` 		INTEGER UNSIGNED NOT NULL default '0',
-  `friend_id`		INTEGER UNSIGNED NOT NULL default '0',
-  PRIMARY KEY  (`char_id`,`friend_id`),
-  KEY `char_id` (`char_id`)
-);
-
-
-DROP TABLE IF EXISTS `char_inventory`;
-
-CREATE TABLE IF NOT EXISTS `char_inventory` (
-  `id`				BIGINT UNSIGNED NOT NULL auto_increment,
-  `char_id`			INTEGER UNSIGNED NOT NULL default '0',
-  `nameid`			MEDIUMINT UNSIGNED NOT NULL default '0',
-  `amount`			INTEGER UNSIGNED NOT NULL default '0',
-  `equip`			MEDIUMINT UNSIGNED NOT NULL default '0',
-  `identify`		BOOL default 'TRUE',
-  `refine`			TINYINT(2) UNSIGNED NOT NULL default '0',
-  `attribute`		TINYINT UNSIGNED NOT NULL default '0',
-  `card0` 			INTEGER NOT NULL default '0',
-  `card1` 			INTEGER UNSIGNED NOT NULL default '0',
-  `card2`			INTEGER UNSIGNED NOT NULL default '0',
-  `card3`			INTEGER UNSIGNED NOT NULL default '0',
-  `broken` 			BOOL default 'FALSE',
-  PRIMARY KEY  (`id`),
-  KEY `char_id` (`char_id`)
-);
-
-DROP TABLE IF EXISTS `char_cart`;
-
-CREATE TABLE IF NOT EXISTS `char_cart` (
-  `id`				BIGINT UNSIGNED NOT NULL auto_increment,
-  `char_id`			INTEGER UNSIGNED NOT NULL default '0',
-  `nameid`			MEDIUMINT UNSIGNED NOT NULL default '0',
-  `amount`			INTEGER UNSIGNED NOT NULL default '0',
-  `equip`			MEDIUMINT UNSIGNED NOT NULL default '0',
-  `identify`		BOOL default 'TRUE',
-  `refine`			TINYINT(2) UNSIGNED NOT NULL default '0',
-  `attribute`		TINYINT UNSIGNED NOT NULL default '0',
-  `card0` 			INTEGER NOT NULL default '0',
-  `card1` 			INTEGER UNSIGNED NOT NULL default '0',
-  `card2`			INTEGER UNSIGNED NOT NULL default '0',
-  `card3`			INTEGER UNSIGNED NOT NULL default '0',
-  `broken` 			BOOL default 'FALSE',
-  PRIMARY KEY  (`id`),
-  KEY `char_id` (`char_id`)
-);
-
-DROP TABLE IF EXISTS `char_memo`;
-
-CREATE TABLE IF NOT EXISTS `char_memo` (
-  `memo_id`			TINYINT UNSIGNED NOT NULL default '0',
-  `char_id` 		INTEGER UNSIGNED NOT NULL default '0',
-  `map` 			VARCHAR(20) NOT NULL default '',
-  `x` 				MEDIUMINT(3) UNSIGNED NOT NULL default '0',
-  `y`				MEDIUMINT(3) UNSIGNED NOT NULL default '0',
-  PRIMARY KEY  (`char_id`,`memo_id`),
-  KEY `char_id` (`char_id`)
-);
-
-
-DROP TABLE IF EXISTS `char_skill`;
-
-CREATE TABLE IF NOT EXISTS `char_skill` (
-  `char_id` 		INTEGER UNSIGNED NOT NULL default '0',
-  `id`				MEDIUMINT UNSIGNED NOT NULL default '0',
-  `lv` 				TINYINT UNSIGNED NOT NULL default '0',
-  PRIMARY KEY  (`char_id`,`id`),
-  KEY `char_id` (`char_id`)
-);
-
-*/
-
-	/**************** NOTES FOR CHAR_FROM_SQL ********************
-
-	Ok, this is a function I'm not too sure how it will end
-
-	But the plan is to unload data from the in house database if
-	the online = false, meaning the person has logged off or is
-	just looking at a character listing.
-
-	A second query will be done for just searching for the needed
-	data for just viewing a list just like on clownphobia branch.
-
-	The function goes like this:
-
-	load local data from in house database
-
-	run each part of the save process, if different, save to
-	database, at the end of the char_from sql, if (online = false)
-	then dont keep or save a copy in the inhouse database. if
-	there is a copy in the inhouse database, remove it, must mean
-	that the player logged off, or was kicked off and this was the
-	last saving function for him.
-
-	*************************************************************/
-
-CCharDB_sql::CCharDB_sql(const char *dbcfgfile)
-{
-	char_name_option=0;
-	memset(char_name_letters,0,sizeof(char_name_letters));
-
-	name_ignoring_case=0;
-
-	start_zeny		= 500;
-	start_weapon	= 1201;
-	start_armor		= 2301;
-
-	safestrcpy(start_point.mapname,		"new_1-1",		sizeof(start_point.mapname));
-	start_point.x=53;
-	start_point.y=111;
-
-	init(dbcfgfile);
-}
-CCharDB_sql::~CCharDB_sql()
-{
-	// Add cleaning code here
-}
-
-bool CCharDB_sql::ProcessConfig(const char*w1, const char*w2)
-{
-
-	if(strcasecmp(w1, "start_point") == 0)
-	{
-		char mapname[32];
-		int x, y;
-		if(sscanf(w2, "%[^,],%d,%d", mapname, &x, &y) == 3 )
-		{
-			char *ip=strchr(mapname, '.');
-			if( ip != NULL ) *ip=0;
-			safestrcpy(start_point.mapname, mapname, sizeof(start_point.mapname));
-			start_point.x = x;
-			start_point.y = y;
-		}
-	}
-	else if(strcasecmp(w1, "start_zeny") == 0)
-	{
-		start_zeny = SwitchValue(w2,0);
-	}
-	else if(strcasecmp(w1, "start_weapon") == 0)
-	{
-		start_weapon = SwitchValue(w2,0);
-	}
-	else if(strcasecmp(w1, "start_armor") == 0)
-	{
-		start_armor = SwitchValue(w2,0);
-	}
-	else if(strcasecmp(w1, "name_ignoring_case") == 0)
-	{
-		name_ignoring_case = Switch(w2);
-	}
-	else if(strcasecmp(w1, "char_name_option") == 0)
-	{
-		char_name_option = atoi(w2);
-	}
-	else if(strcasecmp(w1, "char_name_letters") == 0)
-	{
-		safestrcpy(char_name_letters, w2, sizeof(char_name_letters));
-	}
 	return true;
+}
+
+size_t CCharDB_sql::size() const
+{
+	return this->get_table_size(this->tbl_char);
+}
+CCharCharacter& CCharDB_sql::operator[](size_t i)
+{
+	// not threadsafe
+	static CCharCharacter ch;
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+
+	query << "SELECT "
+			 "`char_id` "
+			 "FROM `" << dbcon1.escaped(this->tbl_char) << "` "
+			 "ORDER BY `char_id`"
+			 "LIMIT "<< i << ",1 ";
+
+	if( dbcon1.ResultQuery(query) )
+	{
+		const uint32 char_id = atol(dbcon1[0]);
+		if( this->searchChar(char_id, ch) )
+			return ch;
+	}
+	ch.char_id=0;
+	return ch;
 }
 
 bool CCharDB_sql::existChar(uint32 char_id)
 {
-	string<> query;
-	bool ret = false;
-
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
 	query << "SELECT count(*) "
-			 "FROM `" << char_db << "` "
+			 "FROM `" << dbcon1.escaped(this->tbl_char) << "` "
 			 "WHERE char_id = '" << char_id << "'";
-
-	if ( this->SendQuery(query) )
-	{
-		if ( this->FetchResults() )
-		{
-			if ( atol(this->row[0]) ) ret = true;
-		}
-		this->FreeResults();
-	}
-
-	return ret;
+	return dbcon1.ResultQuery(query) && dbcon1 && (atol(dbcon1[0])>0);
 }
 
 bool CCharDB_sql::existChar(const char* name)
 {
-	string<> query;
-	char _name[32];
-	bool ret = false;
-
-	escape_string(_name, name, strlen(name));
-
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
 	query << "SELECT count(*) "
-			 "FROM `" << char_db << "` "
-			 "WHERE name = '" << _name << "'";
-
-	if ( this->SendQuery(query) )
-	{
-		if ( this->FetchResults() )
-		{
-			if ( atol(this->row[0]) ) ret = true;
-		}
-		this->FreeResults();
-	}
-
-	return ret;
+			 "FROM `" << dbcon1.escaped(this->tbl_char) << "` "
+			 "WHERE name = '" << dbcon1.escaped(name) << "'";
+	return dbcon1.ResultQuery(query) && dbcon1 && (atol(dbcon1[0])>0);
 }
 
 bool CCharDB_sql::searchChar(const char* name, CCharCharacter &p)
 {
+	basics::CMySQLConnection dbcon1(this->sqlbase);
 	bool ret = false;
-	string<> query;
-	uint32 charid = 0;
-
-
+	basics::string<> query;
 	query << "SELECT `char_id` "
-			 "FROM `" << char_db << " "
-			 "WHERE `name`='" << name << "'";
-	if (this->SendQuery(query))
+			 "FROM `" << dbcon1.escaped(this->tbl_char) << " "
+			 "WHERE `name`='" << dbcon1.escaped(name) << "'";
+	if( dbcon1.ResultQuery(query) && dbcon1 )
 	{
-		this->FetchResults();
-		charid = atoi(this->row[0]);
+		const uint32 charid = atoi(dbcon1[0]);
 		ret = this->searchChar(charid,p);
-		this->FreeResults();
 	}
-
 	return ret;
 }
 
 bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 {
-		bool ret = false;
-		int tmp_int[256];
-		size_t i,n;
-		string<> query;
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	size_t i;
 
+	// Load all base stats
+	query.clear();
+	query << "SELECT "
+			 "`char_id`,"		// 0
+			 "`account_id`,"	// 1
+			 "`slot`,"			// 2
+			 "`name`,"			// 3
+			 "`class`,"			// 4
+			 "`base_level`,"	// 5
+			 "`job_level`,"		// 6
+			 "`base_exp`,"		// 7
+			 "`job_exp`,"		// 8
+			 "`zeny`,"			// 9
+			 "`str`,`agi`,`vit`,`int`,`dex`,`luk`," // 10 - 15
+			 "`max_hp`,`hp`,"	//16 - 17
+			 "`max_sp`,`sp`,"	//18 - 19
+			 "`status_point`,"	//20
+			 "`skill_point`,"	//21
+			 "`option`,"		//22
+			 "`karma`,"			//23
+			 "`chaos`,"			//24
+			 "`manner`,"		//25
+			 "`party_id`,"		//26
+			 "`guild_id`,"		//27
+			 "`pet_id`,"		//28
+			 "`hair`,"			//29
+			 "`hair_color`,"	//30
+			 "`clothes_color`,"	//31
+			 "`weapon`,"		//32
+			 "`shield`,"		//33
+			 "`head_top`,"		//34
+			 "`head_mid`,"		//35
+			 "`head_bottom`,"	//36
+			 "`last_map`,"		//37
+			 "`last_x`,"		//38
+			 "`last_y`,"		//39
+			 "`save_map`,"		//40
+			 "`save_x`,"		//41
+			 "`save_y`,"		//42
+			 "`partner_id`,"	//43
+			 "`father_id`,"		//44
+			 "`mother_id`,"		//45
+			 "`child_id`,"		//46
+			 "`fame_points` "	//47
+			 "FROM `" << dbcon1.escaped(this->tbl_char) << "` "
+			 "WHERE `char_id` = '" << char_id << "'";
 
-		//CCharCharacter p;
-		//CCharCharacter cp;
+	if( dbcon1.ResultQuery(query) && dbcon1 )
+	{
+		p.char_id 			= atoi(dbcon1[0]);
+		p.account_id 		= atoi(dbcon1[1]);
+		p.slot 				= atoi(dbcon1[2]);
+		safestrcpy(p.name,         dbcon1[3], sizeof(p.name));
+		p.class_ 			= atoi(dbcon1[4]);
+		p.base_level 		= atoi(dbcon1[5]);
+		p.job_level 		= atoi(dbcon1[6]);
+		p.base_exp 			= atoi(dbcon1[7]);
+		p.job_exp 			= atoi(dbcon1[8]);
+		p.zeny 				= atoi(dbcon1[9]);
+		p.str 				= atoi(dbcon1[10]);
+		p.agi 				= atoi(dbcon1[11]);
+		p.vit 				= atoi(dbcon1[12]);
+		p.int_				= atoi(dbcon1[13]);
+		p.dex 				= atoi(dbcon1[14]);
+		p.luk 				= atoi(dbcon1[15]);
+		p.max_hp 			= atoi(dbcon1[16]);
+		p.hp 				= atoi(dbcon1[17]);
+		p.max_sp 			= atoi(dbcon1[18]);
+		p.sp 				= atoi(dbcon1[19]);
+		p.status_point 		= atoi(dbcon1[20]);
+		p.skill_point 		= atoi(dbcon1[21]);
+		p.option			= atoi(dbcon1[22]);
+		p.karma				= atoi(dbcon1[23]);
+		p.chaos				= atoi(dbcon1[24]);
+		p.manner			= atoi(dbcon1[25]);
+		p.party_id			= atoi(dbcon1[26]);
+		p.guild_id			= atoi(dbcon1[27]);
+		p.pet_id			= atoi(dbcon1[28]);
+		p.hair				= atoi(dbcon1[29]);
+		p.hair_color		= atoi(dbcon1[30]);
+		p.clothes_color		= atoi(dbcon1[31]);
+		p.weapon			= atoi(dbcon1[32]);
+		p.shield			= atoi(dbcon1[33]);
+		p.head_top			= atoi(dbcon1[34]);
+		p.head_mid			= atoi(dbcon1[35]);
+		p.head_bottom		= atoi(dbcon1[36]);
+		safestrcpy(p.last_point.mapname,dbcon1[37], sizeof(p.last_point.mapname));
+		p.last_point.x		= atoi(dbcon1[38]);
+		p.last_point.y		= atoi(dbcon1[39]);
+		safestrcpy(p.save_point.mapname,dbcon1[40], sizeof(p.save_point.mapname));
+		p.save_point.x		= atoi(dbcon1[41]);
+		p.save_point.y		= atoi(dbcon1[42]);
+		p.partner_id		= atoi(dbcon1[43]);
+		p.father_id			= atoi(dbcon1[44]);
+		p.mother_id			= atoi(dbcon1[45]);
+		p.child_id			= atoi(dbcon1[46]);
+		p.fame_points		= atoi(dbcon1[47]);
 
-
-		// initilialise character
-		memset(&p, 0, sizeof(CCharCharacter));
-		//memset(&cp, 0, sizeof(CCharCharacter));
-		memset(tmp_int, 0, sizeof(tmp_int));
-
-		#ifdef CHAR_DEBUG_INFO
-			printf("Loaded: ");
-		#endif
-
-		p.char_id = char_id;
-
-	/**************** Load all base stats ********************/
-		query.clear();
-		query << "SELECT "
-				 "`char_id`,"		// 0
-				 "`account_id`,"	// 1
-				 "`char_num`,"		// 2
-				 "`name`,"			// 3
-				 "`class`,"			// 4
-				 "`base_level`,"	// 5
-				 "`job_level`,"		// 6
-				 "`base_exp`,"		// 7
-				 "`job_exp`,"		// 8
-				 "`zeny`,"			// 9
-				 "`str`,`agi`,`vit`,`int`,`dex`,`luk`," // 10 - 15
-				 "`max_hp`,`hp`,"	// 16 - 17
-				 "`max_sp`,`sp`,"	// 18 - 19
-				 "`status_point`,"	// 20
-				 "`skill_point` "	// 21
-				 "`option`,"		//22
-				 "`karma`,"			//23
-				 "`manner`,"		//24
-				 "`party_id`,"		//25
-				 "`guild_id`,"		//26
-				 "`pet_id`,"		//27
-				 "`hair`,"			//28
-				 "`hair_color`,"	//29
-				 "`clothes_color`,"	//30
-				 "`weapon`,"		//31
-				 "`shield`,"		//32
-				 "`head_top`,"		//33
-				 "`head_mid`,"		//34
-				 "`head_bottom`,"	//35
-				 "`last_map`,"		//36
-				 "`last_x`,"		//37
-				 "`last_y`,"		//38
-				 "`save_map`,"		//39
-				 "`save_x`,"		//40
-				 "`save_y`,"		//41
-				 "`partner_id`,"	//42
-				 "`father`,"		//43
-				 "`mother`,"		//44
-				 "`child`,"			//45
-				 "`fame`"			//46
-				 "FROM `" << char_db << "` "
-				 "WHERE `char_id` = '" << char_id << "'";
-
-		if( this->SendQuery(query) )
+		///////////////////////////////////////////////////////////////////////
+		// Check start/save locations
+		if( p.last_point.x == 0 || p.last_point.y == 0 || p.last_point.mapname[0] == '\0')
 		{
-			this->FetchResults();
-
-			p.char_id 			= char_id;
-			p.account_id 		= atoi(this->row[1]);
-			p.slot 				= atoi(this->row[2]);
-			safestrcpy(p.name,         this->row[3], sizeof(p.name));
-			p.class_ 			= atoi(this->row[4]);
-			p.base_level 		= atoi(this->row[5]);
-			p.job_level 		= atoi(this->row[6]);
-			p.base_exp 			= atoi(this->row[7]);
-			p.job_exp 			= atoi(this->row[8]);
-			p.zeny 				= atoi(this->row[9]);
-			p.str 				= atoi(this->row[10]);
-			p.agi 				= atoi(this->row[11]);
-			p.vit 				= atoi(this->row[12]);
-			p.int_				= atoi(this->row[13]);
-			p.dex 				= atoi(this->row[14]);
-			p.luk 				= atoi(this->row[15]);
-			p.max_hp 			= atoi(this->row[16]);
-			p.hp 				= atoi(this->row[17]);
-			p.max_sp 			= atoi(this->row[18]);
-			p.sp 				= atoi(this->row[19]);
-			p.status_point 		= atoi(this->row[20]);
-			p.skill_point 		= atoi(this->row[21]);
-			p.option			= atoi(this->row[22]);
-			p.karma				= GetByte( atoi(this->row[23]), 0);
-			p.chaos				= GetByte( atoi(this->row[23]), 1);
-			p.manner			= atoi(this->row[24]);
-			p.party_id			= atoi(this->row[25]);
-			p.guild_id			= atoi(this->row[26]);
-			p.pet_id			= atoi(this->row[27]);
-			p.hair				= atoi(this->row[28]);
-			p.hair_color		= atoi(this->row[29]);
-			p.clothes_color		= atoi(this->row[30]);
-			p.weapon			= atoi(this->row[31]);
-			p.shield			= atoi(this->row[32]);
-			p.head_top			= atoi(this->row[33]);
-			p.head_mid			= atoi(this->row[34]);
-			p.head_bottom		= atoi(this->row[35]);
-			safestrcpy(p.last_point.mapname,this->row[36], sizeof(p.last_point.mapname));
-			p.last_point.x		= atoi(this->row[37]);
-			p.last_point.y		= atoi(this->row[38]);
-			safestrcpy(p.save_point.mapname,this->row[39], sizeof(p.save_point.mapname));
-			p.save_point.x		= atoi(this->row[40]);
-			p.save_point.y		= atoi(this->row[41]);
-			p.partner_id		= atoi(this->row[42]);
-			p.father_id			= atoi(this->row[43]);
-			p.mother_id			= atoi(this->row[44]);
-			p.child_id			= atoi(this->row[45]);
-			p.fame_points		= atoi(this->row[46]);
-
-			//free mysql result.
-			this->FreeResults();
-		} else return ret;
-
-		#ifdef CHAR_DEBUG_INFO
-			printf("("CL_BT_GREEN"%d"CL_RESET")"CL_BT_GREEN"%s"CL_RESET"\t[",p.char_id,p.name);
-			printf("char1 ");
-		#endif
-
-
-		/**************** Check start/save locations ********************/
-		if (p.last_point.x == 0 || p.last_point.y == 0 || p.last_point.mapname[0] == '\0')
-		{
-			char errbuf[64];
-			snprintf(errbuf,sizeof(errbuf),"%s has no last point?\n",p.name);
-			memcpy(&p.last_point, &start_point, sizeof(start_point));
+			ShowWarning("%s (%lu, %lu) has no last point?\n", p.name, (ulong)p.account_id, (ulong)p.char_id);
+			p.last_point = this->start_point;
 		}
 
 		if (p.save_point.x == 0 || p.save_point.y == 0 || p.save_point.mapname[0] == '\0')
 		{
-			char errbuf[64];
-			snprintf(errbuf,sizeof(errbuf),"%s has no save point?\n",p.name);
-			memcpy(&p.save_point, &start_point, sizeof(start_point));
+			ShowWarning("%s (%lu, %lu) has no safe point?\n", p.name, (ulong)p.account_id, (ulong)p.char_id);
+			p.save_point = this->start_point;
 		}
-		#ifdef CHAR_DEBUG_INFO
-			printf("char2 ");
-		#endif
 
-		/**************** Load Memo ********************/
+		///////////////////////////////////////////////////////////////////////
+		// Load Memo
 		query.clear();
 		query << "SELECT `map`,`x`,`y` "
-				 "FROM `" << memo_db << "` "
+				 "FROM `" << dbcon1.escaped(this->tbl_memo) << "` "
 				 "WHERE `char_id`='" << char_id << "'";
 
-		if (this->SendQuery(query))
+		i=0;
+		if( dbcon1.ResultQuery(query) )
 		{
-			for(i=0; this->FetchResults() && i < 3;i++)
+			for( ; dbcon1 && i<MAX_MEMO; ++dbcon1, ++i)
 			{
-				strcpy (p.memo_point[i].mapname,this->row[0]);
-				p.memo_point[i].x=atoi(this->row[1]);
-				p.memo_point[i].y=atoi(this->row[2]);
+				safestrcpy(p.memo_point[i].mapname, dbcon1[0], sizeof(p.memo_point[i].mapname));
+				p.memo_point[i].x=atoi(dbcon1[1]);
+				p.memo_point[i].y=atoi(dbcon1[2]);
 			}
-			this->FreeResults();
 		}
-		#ifdef CHAR_DEBUG_INFO
-			printf("memo ");
-		#endif
+		for( ; i<MAX_MEMO; ++i)
+		{
+			p.memo_point[i].mapname[0] = 0;
+			p.memo_point[i].x = 0;
+			p.memo_point[i].y = 0;
+		}
 
-		/**************** Load Inventory ********************/
+		///////////////////////////////////////////////////////////////////////
+		// Load Inventory
 		query.clear();
 		query << "SELECT "
-				 "`id`,"			// 0
-				 "`nameid`,"		// 1
-				 "`amount`,"		// 2
-				 "`equip`,"			// 3
-				 "`identify`,"		// 4
-				 "`refine`,"		// 5
-				 "`attribute`,"		// 6
-				 "`card0`,"			// 7
-				 "`card1`,"			// 8
-				 "`card2`,"			// 9
-				 "`card3`"			//10
-				 "FROM `" << inventory_db << "` "
+				 "`nameid`,"		// 0
+				 "`amount`,"		// 1
+				 "`equip`,"			// 2
+				 "`identify`,"		// 3
+				 "`refine`,"		// 4
+				 "`attribute`,"		// 5
+				 "`card0`,"			// 6
+				 "`card1`,"			// 7
+				 "`card2`,"			// 8
+				 "`card3`"			// 9
+				 "FROM `" << dbcon1.escaped(this->tbl_inventory) << "` "
 				 "WHERE `char_id`='" << char_id << "'";
-
-		if (this->SendQuery(query))
+		i=0;
+		if( dbcon1.ResultQuery(query) )
 		{
-			for(i=0; this->FetchResults() && i<MAX_INVENTORY; i++)
+			for( ; dbcon1 && i<MAX_INVENTORY; ++dbcon1, ++i)
 			{
-				p.inventory[i].id			= atoi(this->row[0]);
-				p.inventory[i].nameid		= atoi(this->row[1]);
-				p.inventory[i].amount		= atoi(this->row[2]);
-				p.inventory[i].equip		= atoi(this->row[3]);
-				p.inventory[i].identify		= atoi(this->row[4]);
-				p.inventory[i].refine		= atoi(this->row[5]);
-				p.inventory[i].attribute	= atoi(this->row[6]);
-				p.inventory[i].card[0]		= atoi(this->row[7]);
-				p.inventory[i].card[1]		= atoi(this->row[8]);
-				p.inventory[i].card[2]		= atoi(this->row[9]);
-				p.inventory[i].card[3]		= atoi(this->row[10]);
+				p.inventory[i].nameid		= atoi(dbcon1[0]);
+				p.inventory[i].amount		= atoi(dbcon1[1]);
+				p.inventory[i].equip		= atoi(dbcon1[2]);
+				p.inventory[i].identify		= atoi(dbcon1[3]);
+				p.inventory[i].refine		= atoi(dbcon1[4]);
+				p.inventory[i].attribute	= atoi(dbcon1[5]);
+				p.inventory[i].card[0]		= atoi(dbcon1[6]);
+				p.inventory[i].card[1]		= atoi(dbcon1[7]);
+				p.inventory[i].card[2]		= atoi(dbcon1[8]);
+				p.inventory[i].card[3]		= atoi(dbcon1[9]);
 			}
-			this->FreeResults();
 		}
-		#ifdef CHAR_DEBUG_INFO
-			printf("inventory ");
-		#endif
+		for( ; i<MAX_INVENTORY; ++i)
+		{
+			p.inventory[i].nameid		= 0;
+			p.inventory[i].amount		= 0;
+			p.inventory[i].equip		= 0;
+			p.inventory[i].identify		= 0;
+			p.inventory[i].refine		= 0;
+			p.inventory[i].attribute	= 0;
+			p.inventory[i].card[0]		= 0;
+			p.inventory[i].card[1]		= 0;
+			p.inventory[i].card[2]		= 0;
+			p.inventory[i].card[3]		= 0;
+		}
 
-		/**************** Load Cart ********************/
+		///////////////////////////////////////////////////////////////////////
+		// Load Cart
 		query.clear();
 		query << "SELECT "
-				 "`id`,"			// 0
-				 "`nameid`,"		// 1
-				 "`amount`,"		// 2
-				 "`equip`,"			// 3
-				 "`identify`,"		// 4
-				 "`refine`,"		// 5
-				 "`attribute`,"		// 6
-				 "`card0`,"			// 7
-				 "`card1`,"			// 8
-				 "`card2`,"			// 9
-				 "`card3`"			//10
-				 "FROM `"<< cart_db << "` "
+				 "`nameid`,"		// 0
+				 "`amount`,"		// 1
+				 "`equip`,"			// 2
+				 "`identify`,"		// 3
+				 "`refine`,"		// 4
+				 "`attribute`,"		// 5
+				 "`card0`,"			// 6
+				 "`card1`,"			// 7
+				 "`card2`,"			// 8
+				 "`card3`"			// 9
+				 "FROM `"<< dbcon1.escaped(this->tbl_cart) << "` "
 				 "WHERE `char_id`='" << char_id << "'";
 
-		if (this->SendQuery(query))
+		i=0;
+		if( dbcon1.ResultQuery(query) )
 		{
-			for(i=0; this->FetchResults() && i<MAX_CART; i++)
+			for( ; dbcon1 && i<MAX_CART; ++dbcon1, ++i)
 			{
-				p.cart[i].id				= atoi(this->row[0]);
-				p.cart[i].nameid			= atoi(this->row[1]);
-				p.cart[i].amount			= atoi(this->row[2]);
-				p.cart[i].equip				= atoi(this->row[3]);
-				p.cart[i].identify			= atoi(this->row[4]);
-				p.cart[i].refine			= atoi(this->row[5]);
-				p.cart[i].attribute			= atoi(this->row[6]);
-				p.cart[i].card[0]			= atoi(this->row[7]);
-				p.cart[i].card[1]			= atoi(this->row[8]);
-				p.cart[i].card[2]			= atoi(this->row[9]);
-				p.cart[i].card[3]			= atoi(this->row[10]);
+				p.cart[i].nameid		= atoi(dbcon1[0]);
+				p.cart[i].amount		= atoi(dbcon1[1]);
+				p.cart[i].equip			= atoi(dbcon1[2]);
+				p.cart[i].identify		= atoi(dbcon1[3]);
+				p.cart[i].refine		= atoi(dbcon1[4]);
+				p.cart[i].attribute		= atoi(dbcon1[5]);
+				p.cart[i].card[0]		= atoi(dbcon1[6]);
+				p.cart[i].card[1]		= atoi(dbcon1[7]);
+				p.cart[i].card[2]		= atoi(dbcon1[8]);
+				p.cart[i].card[3]		= atoi(dbcon1[9]);
 			}
-			this->FreeResults();
 		}
-		#ifdef CHAR_DEBUG_INFO
-			printf("cart ");
-		#endif
+		for( ; i<MAX_CART; ++i)
+		{
+			p.cart[i].nameid		= 0;
+			p.cart[i].amount		= 0;
+			p.cart[i].equip			= 0;
+			p.cart[i].identify		= 0;
+			p.cart[i].refine		= 0;
+			p.cart[i].attribute		= 0;
+			p.cart[i].card[0]		= 0;
+			p.cart[i].card[1]		= 0;
+			p.cart[i].card[2]		= 0;
+			p.cart[i].card[3]		= 0;
+		}
 
-		/**************** Load skill ********************/
+		///////////////////////////////////////////////////////////////////////
+		// Load skill
 		query.clear();
 		query << "SELECT `id`, `lv` "
-				 "FROM `" << skill_db << "` "
+				 "FROM `" << dbcon1.escaped(this->tbl_skill) << "` "
 				 "WHERE `char_id`='" << char_id << "'";
 
-		if (this->SendQuery(query))
+		for(i=0; i<MAX_SKILL; ++i)
 		{
-			while( this->FetchResults() )
+			p.skill[i].id = 0;
+			p.skill[i].lv = 0;
+			p.skill[i].flag = 0;
+		}
+		if( dbcon1.ResultQuery(query) )
+		{
+			for( ; dbcon1; ++dbcon1)
 			{
-				n = atoi(this->row[0]);
-				if(n<MAX_SKILL)
+				i = atoi(dbcon1[0]);
+				if(i<MAX_SKILL)
 				{
-					p.skill[n].id = n; //memory!? shit!.
-					p.skill[n].lv = atoi(this->row[1]);
+					p.skill[i].id = i;
+					p.skill[i].lv = atoi(dbcon1[1]);
 				}
 			}
-			this->FreeResults();
 		}
-		#ifdef CHAR_DEBUG_INFO
-			printf("skill ");
-		#endif
 
-		/**************** Load registry ********************/
+		///////////////////////////////////////////////////////////////////////
+		// Load registry
 		query.clear();
 		query << "SELECT `str`, `value` "
-				 "FROM ` " << char_reg_db << "` "
+				 "FROM `" << dbcon1.escaped(this->tbl_char_reg) << "` "
 				 "WHERE `char_id`='" << char_id << "'";
-		
+
 		i=0;
-		if (this->SendQuery(query))
+		if( dbcon1.ResultQuery(query) )
 		{
-			for(i=0;this->FetchResults() && i<GLOBAL_REG_NUM ;i++)
+			for( ; dbcon1 && i<GLOBAL_REG_NUM; ++dbcon1, ++i)
 			{
-				strcpy (p.global_reg[i].str, this->row[0]);
-				p.global_reg[i].value = atoi (this->row[1]);
+				safestrcpy(p.global_reg[i].str, dbcon1[0], sizeof(p.global_reg[i].str));
+				p.global_reg[i].value = atoi(dbcon1[1]);
 			}
-			this->FreeResults();
 		}
 		p.global_reg_num=i;
+		for( ; i<GLOBAL_REG_NUM; ++i)
+		{
+			p.global_reg[i].str[0] = 0;
+			p.global_reg[i].value = 0;
+		}
 
-
-
-		/**************** Load Friends ********************/
-
-		for(i=0;i<MAX_FRIENDLIST;i++) // init friends struct
+		///////////////////////////////////////////////////////////////////////
+		// Load Friends
+		query.clear();
+		query << "SELECT `f`.`friend_id`,`c`.`name` "
+				 "FROM `" << dbcon1.escaped(this->tbl_friends) << "` `f` "
+				 "JOIN `" << dbcon1.escaped(this->tbl_char) << "` `c` ON `f`.`friend_id`=`c`.`char_id` "
+				 "WHERE `f`.`char_id` = '" << char_id << "'";
+		i=0;
+		if( dbcon1.ResultQuery(query) )
+		{
+			for( ; dbcon1 && i<MAX_FRIENDLIST; ++dbcon1, ++i)
+			{
+				p.friendlist[i].friend_id = atoi(dbcon1[0]);
+				safestrcpy(p.friendlist[i].friend_name, dbcon1[1], sizeof(p.friendlist[i].friend_name));
+			}
+		}
+		for( ; i<MAX_FRIENDLIST; ++i)
 		{
 			p.friendlist[i].friend_id = 0;
 			p.friendlist[i].friend_name[0] = '\0';
 		}
-
-		query.clear();
-		query << "SELECT `f`.`friend_id`,`c`.`name`"
-				 "FROM `" << friend_db << "` `f` "
-				 "JOIN `" << char_db << "` `c` ON `f`.`friend_id`=`c`.`char_id`"
-				 "WHERE `f`.`char_id` = '" << char_id << "'";
-		
-		if (this->SendQuery(query))
-		{
-			for(i=0; this->FetchResults() && i<MAX_FRIENDLIST; i++)
-			{
-				p.friendlist[i].friend_id = atoi(this->row[0]);
-				safestrcpy(p.friendlist[i].friend_name, this->row[1], sizeof(p.friendlist[i].friend_name));
-			}
-			this->FreeResults();
-		}
-
-		#ifdef CHAR_DEBUG_INFO
-			printf("friends ");
-		#endif
-
-		/**************** Finish setup ********************/
-//		if (online)
-//		{
-			//set_char_online(char_id,p.account_id); // not setup yet... just leave as is
-//		}
+		///////////////////////////////////////////////////////////////////////
 		return true;
+	}
+	return false;
 }
 
 bool CCharDB_sql::insertChar(CCharAccount &account,
@@ -1243,216 +1500,186 @@ bool CCharDB_sql::insertChar(CCharAccount &account,
 					unsigned char hair_color,
 					CCharCharacter &p)
 {
+	p = CCharCharacter(n);
 
-	CCharCharacter tempchar(n);
+	if( remove_control_chars(p.name) )
+	{
+		//char_log("Make new char error (control char received in the name): (connection #%d, account: %d)." RETCODE,
+		//		 fd, sd->account_id);
+		return false;
+	}
 
-	string<> query;
+	basics::itrim(p.name);
 
-	char t_name[128];
+	// check lenght of character name
+	if( strlen(p.name) < 4 )
+	{
+		//char_log("Make new char error (character name too small): (connection #%d, account: %d, name: '%s')." RETCODE,
+		//		 fd, sd->account_id, dat);
+		return false;
+	}
 
-	size_t i;
-
-	this->escape_string(t_name, tempchar.name, strlen(tempchar.name));
+	// Check Authorised letters/symbols in the name of the character
+	if( this->name_letters() != p.name )
+	{
+		//char_log("Make new char error (invalid letter in the name): (connection #%d, account: %d), name: %s, invalid letter: %c." RETCODE,
+		//		 fd, sd->account_id, dat, dat[i]);
+		return false;
+	}
 
 	//check stat error
-	if (
-		(str + agi + vit + int_ + dex + luk !=6*5 ) || // stats
-
+	if( (str + agi + vit + int_ + dex + luk !=6*5 ) || // stats
 		// Check slots
 		(slot >= 9) || // slots must not be over 9
-
 		// Check hair
 		(hair_style <= 0) || (hair_style >= 24) || // hair style
 		(hair_color >= 9) ||					   // Hair color?
 
 		// Check stats pairs and make sure they are balanced
-
 		((str + int_) > 10) || // str + int pairs check
 		((agi + luk ) > 10) || // agi + luk pairs check
 		((vit + dex ) > 10) || // vit + dex pairs check
-
 		// Check individual stats
 		(str < 1 || str > 9) ||
 		(agi < 1 || agi > 9) ||
 		(vit < 1 || vit > 9) ||
 		(int_< 1 || int_> 9) ||
 		(dex < 1 || dex > 9) ||
-		(luk < 1 || luk > 9) ||
-
-		// Check size of the name, too short?
-		(strlen(tempchar.name) < 4)
-
-		)
+		(luk < 1 || luk > 9) )
 	{
 		ShowError("fail (aid: %d), stats error(bot cheat?!)\n", account.account_id);
 		return false;
 	} // now when we have passed all stat checks
 
-	if( remove_control_chars(tempchar.name) )
-		return false;
 
-	// Check Authorised letters/symbols in the name of the character
-	if (char_name_option == 1)// only letters/symbols in char_name_letters are authorised
-		for (i = 0; tempchar.name[i]; i++)
-			if( strchr(char_name_letters, tempchar.name[i]) == NULL )
-				return false;
-
-	else if (char_name_option == 2) // letters/symbols in char_name_letters are forbidden
-		for (i = 0; tempchar.name[i]; i++)
-			if (strchr(char_name_letters, tempchar.name[i]) != NULL)
-				return false;
-	// else, all letters/symbols are authorised (except control char removed before)
-
-
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
 
 	//Check Name (already in use?)
 	query << "SELECT count(*) "
-			 "FROM `" << char_db << "` "
-			 "WHERE `name` = '" << t_name << "'";
-	if ( this->SendQuery(query) )
+			 "FROM `" << this->tbl_char << "` "
+			 "WHERE `name` = '" << dbcon1.escaped(p.name) << "'";
+	if( dbcon1.ResultQuery(query) && dbcon1 )
 	{
-		this->FetchResults();
-		if (atol(this->row[0]))
+		if( atol(dbcon1[0]) )
 		{
-			printf("fail, charname '%s' already in use\n", t_name);
+			ShowError("char creation failed, charname '%s' already in use\n", p.name);
 			return false;
 		}
-		this->FreeResults();
 	}
 
 	// check char slot.
 	query.clear();
 	query << "SELECT count(*) "
-			 "FROM `" << char_db << "` "
+			 "FROM `" << dbcon1.escaped(this->tbl_char) << "` "
 			 "WHERE `account_id` = '" << account.account_id << "' "
-			 "AND `char_num` = '" << slot << "'";
-	if ( this->SendQuery(query) )
+			 "AND `slot` = '" << slot << "'";
+	if( dbcon1.ResultQuery(query) && dbcon1 )
 	{
-		this->FetchResults();
-
-		if(atol(this->row[0]))
+		if( atol(dbcon1[0]) )
 		{
-			printf("fail (aid: %d, slot: %d), slot already in use\n", account.account_id, slot);
+			printf("char creation failed, (aid: %d, slot: %d), slot already in use\n", account.account_id, slot);
 			return false;
 		}
-		this->FreeResults();
 	}
 	// It has passed both the name and slot check, let's insert the info since it doesnt conflict =D
+
+	
+	///////////////////////////////////////////////////////////////////////////
+	p.account_id = account.account_id;
+	p.slot = slot;
+	p.class_ = 0;
+	p.base_level = 1;
+	p.job_level = 1;
+	p.base_exp = 0;
+	p.job_exp = 0;
+	p.zeny = start_zeny;
+	p.str = str;
+	p.agi = agi;
+	p.vit = vit;
+	p.int_ = int_;
+	p.dex = dex;
+	p.luk = luk;
+	p.max_hp = 40 * (100 + vit) / 100;
+	p.max_sp = 11 * (100 + int_) / 100;
+	p.hp = p.max_hp;
+	p.sp = p.max_sp;
+	p.status_point = 0;
+	p.skill_point = 0;
+	p.option = 0;
+	p.karma = 0;
+	p.chaos = 0;
+	p.manner = 0;
+	p.party_id = 0;
+	p.guild_id = 0;
+	p.hair = hair_style;
+	p.hair_color = hair_color;
+	p.clothes_color = 0;
+	p.inventory[0].nameid = start_weapon; // Knife
+	p.inventory[0].amount = 1;
+	p.inventory[0].equip = 0x02;
+	p.inventory[0].identify = 1;
+	p.inventory[1].nameid = start_armor; // Cotton Shirt
+	p.inventory[1].amount = 1;
+	p.inventory[1].equip = 0x10;
+	p.inventory[1].identify = 1;
+	p.weapon = 1;
+	p.shield = 0;
+	p.head_top = 0;
+	p.head_mid = 0;
+	p.head_bottom = 0;
+	p.last_point = start_point;
+	p.save_point = start_point;	
+	
 	// make new char.
 	query.clear();
-	query << "INSERT INTO `" << char_db << "` "
+	query << "INSERT INTO `" << dbcon1.escaped(this->tbl_char) << "` "
 			 "("
 			 "`account_id`,"
-			 "`char_num`,"
+			 "`slot`,"
 			 "`name`,"
 			 "`str`,`agi`,`vit`,`int`,`dex`,`luk`,"
 			 "`hair`,"
-			 "`hair_color`"
+			 "`hair_color`,"
+			 "`zeny`,"
+			 "`hp`,`sp`,`max_hp`,`max_sp`,"
+			 "`last_map`,`last_x`,`last_y`,"
+			 "`save_map`,`save_x`,`save_y`"
 			 ") "
 			 "VALUES "
 			 "("
-			 "'" << account.account_id << "',"
-			 "'" << slot << "',"
-			 "'" << t_name << "',"
-			 "'" << str << "','" << agi << "','" << vit << "','" << int_ << "','" << dex << "','" << luk << "',"
-			 "'" << hair_style << "',"
-			 "'" << hair_color << "'"
+			 "'" << p.account_id << "',"
+			 "'" << p.slot << "',"
+			 "'" << dbcon1.escaped(p.name) << "',"
+			 "'" << p.str << "','" << p.agi << "','" << p.vit << "',"
+			 "'" << p.int_ << "','" << p.dex << "','" << p.luk << "',"
+			 "'" << p.hair << "',"
+			 "'" << p.hair_color << "',"
+			 "'" << p.zeny << "',"
+			 "'" << p.hp << "','" << p.sp << "',"
+			 "'" << p.max_hp << "','" << p.max_sp << "',"
+			 "'" << dbcon1.escaped(p.last_point.mapname) << "',"
+			 "'" << p.last_point.x << "',"
+			 "'" << p.last_point.y << "',"
+			 "'" << dbcon1.escaped(p.save_point.mapname) << "',"
+			 "'" << p.save_point.x << "',"
+			 "'" << p.save_point.y << "'"
 			 ")";
-	this->SendQuery(query);
+	dbcon1.PureQuery(query);
 
 	//Now we need the charid from sql!
-	query.clear();
-	query << "SELECT `char_id` "
-			 "FROM `" << char_db << "`"
-			 "WHERE `account_id` = '" << account.account_id << "' "
-			 "AND `char_num` = '" << slot << "' "
-			 "AND `name` = '" << t_name << "'";
-
-	if( this->SendQuery(query) )
-	{
-		this->FetchResults();
-		if (this->row)
-			tempchar.char_id = atol(this->row[0]); //char id :)
-		this->FreeResults();
-	}
-	else
-		return false;
-	
+	p.char_id = dbcon1.getLastID();
 
 	//Give the char the default items
 	//knife & cotton shirts, add on as needed ifmore items are to be included.
 	query.clear();
-	query << "INSERT INTO `" << inventory_db << "` "
+	query << "INSERT INTO `" << dbcon1.escaped(this->tbl_inventory) << "` "
 			 "(`char_id`,`nameid`, `amount`, `equip`, `identify`) "
 			 "VALUES "
-			 "('" << tempchar.char_id << "', '" << start_weapon << "', '1', '" << 0x02 << "', '1'),"
-			 "('" << tempchar.char_id << "', '" << start_armor  << "', '1', '" << 0x10 << "', '1')";
+			 "('" << p.char_id << "', '" << start_weapon << "', '1', '2', '1'),"
+			 "('" << p.char_id << "', '" << start_armor  << "', '1', '16', '1')";
 
-	this->mysql_SendQuery(query, query.length());
-
-
-	// Update the map they are starting on and where they respawn at.
-	query << "UPDATE `" << char_db << "` "
-			 "SET "
-			 "`last_map` = `save_map` = '" << start_point.mapname << "',"
-			 "`last_x`   = `save_x`   = '" << start_point.x << "',"
-			 "`last_y`   = `save_y`   = '" << start_point.y << "'"
-			 "WHERE `char_id` = '" << tempchar.char_id << "'";
-
-	// All good, init the character data to return i think
-	query.clear();
-
-	tempchar.account_id = account.account_id;
-	tempchar.slot = slot;
-	tempchar.class_ = 0;
-	tempchar.base_level = 1;
-	tempchar.job_level = 1;
-	tempchar.base_exp = 0;
-	tempchar.job_exp = 0;
-	tempchar.zeny = start_zeny;
-	tempchar.str = str;
-	tempchar.agi = agi;
-	tempchar.vit = vit;
-	tempchar.int_ = int_;
-	tempchar.dex = dex;
-	tempchar.luk = luk;
-	tempchar.max_hp = 40 * (100 + vit) / 100;
-	tempchar.max_sp = 11 * (100 + int_) / 100;
-	tempchar.hp = tempchar.max_hp;
-	tempchar.sp = tempchar.max_sp;
-	tempchar.status_point = 0;
-	tempchar.skill_point = 0;
-	tempchar.option = 0;
-	tempchar.karma = 0;
-	tempchar.chaos = 0;
-	tempchar.manner = 0;
-	tempchar.party_id = 0;
-	tempchar.guild_id = 0;
-	tempchar.hair = hair_style;
-	tempchar.hair_color = hair_color;
-	tempchar.clothes_color = 0;
-	tempchar.inventory[0].nameid = start_weapon; // Knife
-	tempchar.inventory[0].amount = 1;
-	tempchar.inventory[0].equip = 0x02;
-	tempchar.inventory[0].identify = 1;
-	tempchar.inventory[1].nameid = start_armor; // Cotton Shirt
-	tempchar.inventory[1].amount = 1;
-	tempchar.inventory[1].equip = 0x10;
-	tempchar.inventory[1].identify = 1;
-	tempchar.weapon = 1;
-	tempchar.shield = 0;
-	tempchar.head_top = 0;
-	tempchar.head_mid = 0;
-	tempchar.head_bottom = 0;
-	tempchar.last_point = start_point;
-	tempchar.save_point = start_point;
-
-
-	// unknown thingy i found =O
-//		account.charlist[slot] = tempchar.char_id;
-
-	p = tempchar;
-//		cCharList.insert(tempchar);
+	dbcon1.PureQuery(query);
 
 	return true;
 }
@@ -1460,41 +1687,24 @@ bool CCharDB_sql::insertChar(CCharAccount &account,
 
 bool CCharDB_sql::removeChar(uint32 charid)
 {
-	string<> query;
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
 	query << "DELETE "
-			 "FROM `" << char_db << "` "
+			 "FROM `" << dbcon1.escaped(this->tbl_char) << "` "
 			 "WHERE `char_id`='" << charid << "'";
-	this->SendQuery(query);
+	dbcon1.PureQuery(query);
 	return true;
 }
 
 bool CCharDB_sql::saveChar(const CCharCharacter& p)
 {
-	string<> query;
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	size_t i, doit;
 
-	bool diff, l , status, loaded=false;
-
-	size_t i;
-
-
-	CCharCharacter cp;
-/*
-	size_t pos;
-	if( cCharList.find( CCharCharacter(p.char_id), pos, 0) )
-	{
-		CCharCharacter &cp = cCharList(pos,0);
-		loaded = true;
-	}
-	else // in case there is nothing loaded. we set one up with defaults 0. and compare against this new set.
-	{
-		memset(&cp, 0, sizeof(CCharCharacter));
-		loaded = false;
-	}
-*/
-
-// Build the update for the character
+	// Build the update for the character
 	query.clear();
-	query << "UPDATE `" << char_db << "` "
+	query << "UPDATE `" << dbcon1.escaped(this->tbl_char) << "` "
 			 "SET "
 			 "`class` = '"		<< p.class_ 		<< "',"
 			 "`base_level`='"	<< p.base_level		<< "',"
@@ -1502,30 +1712,31 @@ bool CCharDB_sql::saveChar(const CCharCharacter& p)
 			 "`base_exp`='"		<< p.base_exp		<< "',"
 			 "`job_exp`='"		<< p.job_exp		<< "',"
 			 "`zeny`='"			<< p.zeny			<< "',"
-			 
+
 			 "`hp`='"			<< p.hp				<< "',"
 			 "`max_hp`='"		<< p.max_hp			<< "',"
-			 
+
 			 "`sp`='"			<< p.sp				<< "',"
 			 "`max_sp`='"		<< p.max_sp			<< "',"
-			 
+
 			 "`str`='"			<< p.str			<< "',"
 			 "`agi`='"			<< p.agi			<< "',"
 			 "`vit`='"			<< p.vit			<< "',"
 			 "`int`='"			<< p.int_			<< "',"
 			 "`dex`='"			<< p.dex			<< "',"
 			 "`luk`='"			<< p.luk			<< "',"
-			 
+
 			 "`status_point`='"	<< p.status_point	<< "',"
 			 "`skill_point`='"	<< p.skill_point	<< "',"
-			 
+
 			 "`option`='"		<< p.option			<< "',"
-			 "`karma`='"		<< MakeWord(p.karma, p.chaos)			<< "',"
+			 "`karma`='"		<< p.karma			<< "',"
+			 "`chaos`='"		<< p.chaos			<< "',"
 			 "`manner`='"		<< p.manner			<< "',"
 			 "`party_id`='"		<< p.party_id		<< "',"
 			 "`guild_id`='"		<< p.guild_id		<< "',"
 			 "`pet_id`='"		<< p.pet_id			<< "',"
-			 
+
 			 "`hair`='"			<< p.hair			<< "',"
 			 "`hair_color`='"	<< p.hair_color		<< "',"
 			 "`clothes_color`='"<< p.clothes_color	<< "',"
@@ -1534,20 +1745,20 @@ bool CCharDB_sql::saveChar(const CCharCharacter& p)
 			 "`head_top`='"		<< p.head_top		<< "',"
 			 "`head_mid`='"		<< p.head_mid		<< "',"
 			 "`head_bottom`='"	<< p.head_bottom	<< "',"
-			 
+
 			 "`last_map`='"		<< p.last_point.mapname		<< "',"
 			 "`last_x`='"		<< p.last_point.x			<< "',"
 			 "`last_y`='"		<< p.last_point.y			<< "',"
 			 "`save_map`='"		<< p.save_point.mapname		<< "',"
 			 "`save_x`='"		<< p.save_point.x			<< "',"
 			 "`save_y`='"		<< p.save_point.y			<< "',"
-			 
+
 			 "`partner_id`='"	<< p.partner_id		<< "',"
-			 "`father`='"		<< p.father_id		<< "',"
-			 "`mother`='"		<< p.mother_id		<< "',"
-			 "`child`='"		<< p.child_id		<< "',"
-			 
-			 "`fame`='"			<< p.fame_points	<< "' "	// dont forget to remove commas at ends
+			 "`father_id`='"	<< p.father_id		<< "',"
+			 "`mother_id`='"	<< p.mother_id		<< "',"
+			 "`child_id`='"		<< p.child_id		<< "',"
+
+			 "`fame_points`='"	<< p.fame_points	<< "' "	// dont forget to remove commas at ends
 			 "WHERE  "
 			 "`account_id`='" 	<< p.account_id		<< "' "
 			 "AND "
@@ -1556,323 +1767,215 @@ bool CCharDB_sql::saveChar(const CCharCharacter& p)
 			 "`slot` = '" 		<< p.slot			<< "'";  // dont forget to finish the line
 
 
-	this->SendQuery(query);
+	dbcon1.PureQuery(query);
 	query.clear();
 
 
-	// This is set for overall.. if anything changed.... it will copy over old data... =o
-	status = false;
 	///////////////////////////////////////////////////////////////////////
 	// Memo Insert
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_memo) << "` "
+			 "WHERE `char_id`='" << p.char_id << "'";
+	dbcon1.PureQuery(query);
+	query.clear();
 
-	diff = false;
-	l = false;
 
-	for(i=0;i<MAX_MEMO;i++)
+	//insert here.
+	query << "REPLACE INTO `" << dbcon1.escaped(this->tbl_memo) << "`"
+			 "(`char_id`,`memo_id`,`map`,`x`,`y`) VALUES ";
+	for(doit=0, i=0; i<MAX_MEMO; ++i)
 	{
-		if(
-			(strcmp(p.memo_point[i].mapname, cp.memo_point[i].mapname) == 0) &&
-			(p.memo_point[i].x == cp.memo_point[i].x) &&
-			(p.memo_point[i].y == cp.memo_point[i].y)
-			)continue;
-		diff = true;
-		status = true;
-		break;
-	}
-
-	if (diff)
-	{
-		query << "DELETE "
-				 "FROM `" << memo_db << "` "
-				 "WHERE `char_id`='" << p.char_id << "'";
-		this->SendQuery(query);
-		query.clear();
-
-
-		//insert here.
-		query << "INSERT INTO `" << memo_db << "`"
-				 "(`char_id`,`memo_id`,`map`,`x`,`y`) VALUES ";
-		l=false;
-		for(i=0; i<MAX_MEMO; i++)
+		if(p.memo_point[i].mapname[0])
 		{
-			if(p.memo_point[i].mapname[0])
-			{
-				query << (l?",":"") << "("
-					"'" << 	p.char_id 					<< "',"
-					"'" <<	(ulong)i					<< "',"
-					"'" <<	p.memo_point[i].mapname		<< "'," <<
-					"'" <<	p.memo_point[i].x			<< "'," <<
-					"'" <<	p.memo_point[i].y			<< "'" <<  // Dont forget to end commas
-				")";
-				l= true;
-			}
+			query << (doit?",":"") << "("
+				"'" << 	p.char_id 			<< "',"
+				"'" <<	(ulong)i					<< "',"
+				"'" <<	dbcon1.escaped(p.memo_point[i].mapname)	<< "'," <<
+				"'" <<	p.memo_point[i].x	<< "'," <<
+				"'" <<	p.memo_point[i].y	<< "'" <<  // Dont forget to end commas
+			")";
+			++doit;
 		}
-		// if at least one entry spotted.
-		if(l)this->SendQuery(query);
-		query.clear();
 	}
+	// if at least one entry spotted.
+	if(doit) dbcon1.PureQuery(query);
+	query.clear();
 
 
 	///////////////////////////////////////////////////////////////////////
 	// Inventory Insert
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_inventory) << "` "
+			"WHERE `char_id`='" << p.char_id << "'";
+	dbcon1.PureQuery(query);
+	query.clear();
 
-	diff = false;
-	l = false;
-
-	for(i = 0; i<MAX_INVENTORY; i++)
+	//insert here.
+	query << "INSERT INTO `" << dbcon1.escaped(this->tbl_inventory) << "`"
+			 "(`char_id`, `nameid`, `amount`, `equip`, "
+			 "`identify`, `refine`, `attribute`, "
+			 "`card0`, `card1`, `card2`, `card3`) VALUES ";
+	for(doit=0,i=0; i<MAX_INVENTORY; ++i)
 	{
-		if( p.inventory[i] != cp.inventory[i] )
+		if(p.inventory[i].nameid>0)
 		{
-			diff = true;
-			status = true;
-			break;
+			query << (doit?",":"") <<
+				"("
+				"'" <<	p.char_id					<< "',"
+				"'" <<	p.inventory[i].nameid		<< "',"
+				"'" <<	p.inventory[i].amount		<< "',"
+				"'" <<	p.inventory[i].equip		<< "',"
+				"'" <<	p.inventory[i].identify		<< "',"
+				"'" <<	p.inventory[i].refine		<< "',"
+				"'" <<	p.inventory[i].attribute	<< "',"
+				"'" <<	p.inventory[i].card[0]		<< "',"
+				"'" <<	p.inventory[i].card[1]		<< "',"
+				"'" <<	p.inventory[i].card[2]		<< "',"
+				"'" <<	p.inventory[i].card[3]		<< "'"
+				")";
+			++doit;
 		}
 	}
-
-	if (diff)
-	{
-		query << "DELETE "
-				 "FROM `" << cart_db << "` "
-				"WHERE `char_id`='" << p.char_id << "'";
-		this->SendQuery(query);
-		query.clear();
-
-		//insert here.
-		query << "INSERT INTO `" << inventory_db << "`"
-				 "(`char_id`, `nameid`, `amount`, `equip`, "
-				 "`identify`, `refine`, `attribute`, "
-				 "`card0`, `card1`, `card2`, `card3`) VALUES ";
-		l=false;
-		for(i=0;i<MAX_INVENTORY;i++)
-		{
-			if(p.inventory[i].nameid>0)
-			{
-				query << (l?",":"") << 
-					"("
-					"'" <<	p.char_id					<< "',"
-					"'" <<	p.inventory[i].nameid		<< "',"
-					"'" <<	p.inventory[i].amount		<< "',"
-					"'" <<	p.inventory[i].equip		<< "',"
-					"'" <<	p.inventory[i].identify		<< "',"
-					"'" <<	p.inventory[i].refine		<< "',"
-					"'" <<	p.inventory[i].attribute	<< "',"
-					"'" <<	p.inventory[i].card[0]		<< "',"
-					"'" <<	p.inventory[i].card[1]		<< "',"
-					"'" <<	p.inventory[i].card[2]		<< "',"
-					"'" <<	p.inventory[i].card[3]		<< "'"
-					")";
-				l = true;
-			}
-		}
-		// if at least one entry spotted.
-		if(l)this->SendQuery(query);
-		query.clear();
-	}
-
+	// if at least one entry spotted.
+	if(doit) dbcon1.PureQuery(query);
+	query.clear();
 
 	///////////////////////////////////////////////////////////////////////
 	// Cart Insert
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_cart) << "` "
+			 "WHERE `char_id`='" << p.char_id << "'";
+	dbcon1.PureQuery(query);
+	query.clear();
 
-	diff = false;
-	l = false;
-
-	for(i = 0; i<MAX_CART; i++)
+	//insert here.
+	query << "INSERT INTO `" << dbcon1.escaped(this->tbl_cart) << "`"
+			 "(`char_id`, `nameid`, `amount`, `equip`, "
+			 "`identify`, `refine`, `attribute`, "
+			 "`card0`, `card1`, `card2`, `card3`) VALUES ";
+	for(doit=0,i=0; i<MAX_CART; ++i)
 	{
-		if( p.cart[i] != cp.cart[i] )
+		if(p.cart[i].nameid>0)
 		{
-			diff = true;
-			status = true;
-			break;
+			query << (doit?",":"") <<
+				"("
+				"'" <<	p.char_id				<< "',"
+				"'" <<	p.cart[i].nameid		<< "',"
+				"'" <<	p.cart[i].amount		<< "',"
+				"'" <<	p.cart[i].equip			<< "',"
+				"'" <<	p.cart[i].identify		<< "',"
+				"'" <<	p.cart[i].refine		<< "',"
+				"'" <<	p.cart[i].attribute		<< "',"
+				"'" <<	p.cart[i].card[0]		<< "',"
+				"'" <<	p.cart[i].card[1]		<< "',"
+				"'" <<	p.cart[i].card[2]		<< "',"
+				"'" <<	p.cart[i].card[3]		<< "'"
+				")";
+			++doit;
 		}
 	}
+	// if at least one entry spotted.
+	if(doit) dbcon1.PureQuery(query);
+	query.clear();
 
-	if (diff)
-	{
-		query << "DELETE "
-				 "FROM `" << cart_db << "` "
-				 "WHERE `char_id`='" << p.char_id << "'";
-		this->SendQuery(query);
-		query.clear();
-
-		//insert here.
-		query << "INSERT INTO `" << cart_db << "`"
-				 "(`char_id`, `nameid`, `amount`, `equip`, "
-				 "`identify`, `refine`, `attribute`, "
-				 "`card0`, `card1`, `card2`, `card3`) VALUES ";
-		l=false;
-		for(i=0;i<MAX_CART;i++)
-		{
-			if(p.cart[i].nameid>0)
-			{
-				query << (l?",":"") << 
-					"("
-					"'" <<	p.char_id				<< "',"
-					"'" <<	p.cart[i].nameid		<< "',"
-					"'" <<	p.cart[i].amount		<< "',"
-					"'" <<	p.cart[i].equip			<< "',"
-					"'" <<	p.cart[i].identify		<< "',"
-					"'" <<	p.cart[i].refine		<< "',"
-					"'" <<	p.cart[i].attribute		<< "',"
-					"'" <<	p.cart[i].card[0]		<< "',"
-					"'" <<	p.cart[i].card[1]		<< "',"
-					"'" <<	p.cart[i].card[2]		<< "',"
-					"'" <<	p.cart[i].card[3]		<< "'"
-					")";
-
-				l = true;
-			}
-		}
-		// if at least one entry spotted.
-		if(l)this->SendQuery(query);
-		query.clear();
-	}
 
 	///////////////////////////////////////////////////////////////////////
 	// Skill Insert
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_skill) << "` "
+			 "WHERE `char_id`='" << p.char_id << "'";
+	dbcon1.PureQuery(query);
+	query.clear();
 
-	diff = false;
-	l = false;
-
-	if (diff)
+	//insert here.
+	query << "INSERT INTO `" << dbcon1.escaped(this->tbl_skill) << "` "
+			 "(`char_id`,`id`,`lv`) VALUES ";
+	for(doit=0,i=0; i<MAX_SKILL; ++i)
 	{
-		query << "DELETE "
-				 "FROM `" << skill_db << "` "
-				 "WHERE `char_id`='" << p.char_id << "'";
-		this->SendQuery(query);
-		query.clear();
-
-		//insert here.
-		query << "INSERT INTO `" << skill_db << "`"
-				 "(`char_id`,`id`,`lvl`) VALUES ";
-		l=false;
-		for(i=0;i<MAX_MEMO;i++)
+		if(p.skill[i].id==i && p.skill[i].lv>0 && p.skill[i].flag != 1)
 		{
-			if(p.skill[i].id>0 && p.skill[i].flag != 1)
-			{
-				query << (l?",":"") << 
-					"("
-					"'" << p.char_id 		<< "'," <<
-					"'" << p.skill[i].id 	<< "'," <<
-					"'" << p.skill[i].lv 	<< "'" <<
-					")";
-				l = true;
-			}
+			query << (doit?",":"") <<
+				"("
+				"'" << p.char_id 		<< "'," <<
+				"'" << p.skill[i].id 	<< "'," <<
+				"'" << p.skill[i].lv 	<< "'" <<
+				")";
+			++doit;
 		}
-		// if at least one entry spotted.
-		if(l)this->SendQuery(query);
-		query.clear();
 	}
+	// if at least one entry spotted.
+	if(doit) dbcon1.PureQuery(query);
+	query.clear();
 
 	///////////////////////////////////////////////////////////////////////
 	// Character Reg Insert
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_char_reg) << "` "
+			 "WHERE `char_id`='" << p.char_id << "'";
+	dbcon1.PureQuery(query);
+	query.clear();
 
-	diff = false;
-	l = false;
-
-	for(i=0;i<p.global_reg_num;i++)
+	//insert here.
+	query << "INSERT INTO `" << dbcon1.escaped(this->tbl_char_reg) << "`"
+			 "(`char_id`,`str`,`value`) VALUES ";
+	for(doit=0,i=0; i<p.global_reg_num && i<GLOBAL_REG_NUM; ++i)
 	{
-		if( ((p.global_reg[i].str == NULL) == (cp.global_reg[i].str == NULL)) ||
-			(p.global_reg[i].value == cp.global_reg[i].value) ||
-			strcmp(p.global_reg[i].str, cp.global_reg[i].str) == 0 )
-			continue;
-		diff = true;
-		status = true;
-		break;
-	}
-
-	if (diff)
-	{
-		query << "DELETE "
-				 "FROM `" << char_reg_db << "` "
-				 "WHERE `char_id`='" << p.char_id << "'";
-		this->SendQuery(query);
-		query.clear();
-
-		//insert here.
-		query << "INSERT INTO `" << char_reg_db << "`"
-				 "(`char_id`,`str`,`value`) VALUES ";
-		for(i=0;i<p.global_reg_num;i++)
+		if(p.global_reg[i].str && p.global_reg[i].value !=0)
 		{
-			if(p.global_reg[i].str && p.global_reg[i].value !=0)
-			{
-				query << (l?",":"") << 
-					"("
-					"'" << p.char_id				<< "',"
-					"'" << p.global_reg[i].str		<< "',"
-					"'" << p.global_reg[i].value	<< "'" <<   // end commas at the end
-					")";
-				l = true;
-			}
+			query << (doit?",":"") <<
+				"("
+				"'" << p.char_id				<< "',"
+				"'" << p.global_reg[i].str		<< "',"
+				"'" << p.global_reg[i].value	<< "'" <<   // end commas at the end
+				")";
+			++doit;
 		}
-		// if at least one entry spotted.
-		if(l)this->SendQuery(query);
-		query.clear();
 	}
+	// if at least one entry spotted.
+	if(doit) dbcon1.PureQuery(query);
+	query.clear();
+
 
 
 	///////////////////////////////////////////////////////////////////////
 	// Friends Insert
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_friends) << "` "
+			 "WHERE `char_id` = '" << p.char_id << "'";
+	dbcon1.PureQuery(query);
+	query.clear();
 
-	diff = false;
-	l = false;
-
-	for(i=0; i<MAX_FRIENDLIST; i++)
+	//insert here.
+	query << "INSERT INTO `" << dbcon1.escaped(this->tbl_friends) << "`"
+			 "(`char_id`, `friend_id`) VALUES ";
+	for(doit=0,i=0; i<MAX_FRIENDLIST; ++i)
 	{
-		if( p.friendlist[i].friend_id != cp.friendlist[i].friend_id )
+		if(p.friendlist[i].friend_id!=0)
 		{
-			diff = true;
-			status = true;
-			break;
+			query << (doit?",":"") <<
+				"("
+				"'" << p.char_id					<< "',"
+				"'" << p.friendlist[i].friend_id	<< "'"
+				")";
+			++doit;
 		}
 	}
-
-	if(diff)
-	{
-		query << "DELETE "
-				 "FROM `" << friend_db << "` "
-				 "WHERE `char_id` = '" << p.char_id << "'";
-		this->SendQuery(query);
-		query.clear();
-
-		//insert here.
-		query << "INSERT INTO `" << friend_db << "`"
-				 "(`char_id`, `friend_id`) VALUES ";
-		for(i=0;i<MAX_FRIENDLIST;i++)
-		{
-			if(p.friendlist[i].friend_id!=0)
-			{
-				query << (l?",":"") << 
-					"("
-					"'" << p.char_id					<< "',"
-					"'" << p.friendlist[i].friend_id	<< "'"
-					")";
-				l = true;
-			}
-		}
-		// if at least one entry spotted.
-		if(l)this->SendQuery(query);
-		query.clear();
-	}
-
-	if (status) // If anything has changed in this process, set to true in any of the differences check.
-	{
-		if(loaded)
-			printf("need to think on how to load the character");
-//				cCharList.removeindex(pos, 0); // remove old char_id where ever the cp index is pointing to
-//			cCharList.insert(p); // now lets add our CharID to the index list.
-	}
+	// if at least one entry spotted.
+	if(doit) dbcon1.PureQuery(query);
+	query.clear();
 
 	return true;
-
-
 }
 bool CCharDB_sql::searchAccount(uint32 accid, CCharCharAccount& account)
 {	// read account data
 	bool ret = false;
 	if(accid)
 	{
-		string<> query;
-		query << "SELECT"
+		basics::CMySQLConnection dbcon1(this->sqlbase);
+		basics::string<> query;
+		size_t i;
+
+		query << "SELECT "
 				 "`account_id`,"	//  0
 				 "`sex`,"			//  1
 				 "`gm_level`,"		//  2
@@ -1882,73 +1985,64 @@ bool CCharDB_sql::searchAccount(uint32 accid, CCharCharAccount& account)
 				 "`client_ip`,"		//  6
 				 "`ban_until`,"		//  7
 				 "`valid_until` "	//  8
-				 "FROM `" << account_db << "` "
+				 "FROM `" << dbcon1.escaped(this->tbl_account) << "` "
 				 "WHERE `account_id`='" << accid << "'";
 
-		if( this->SendQuery(query) )
-		{	//row fetching
-			if(this->FetchResults())
-			{
-				account.account_id	= this->row[0]?atol(this->row[0]):0;
-				account.sex			= this->row[1][0] == 'S' ? 2 : this->row[1][0]=='M';
-				account.gm_level	= this->row[2]?atol(this->row[2]):0;
-				safestrcpy(account.email, this->row[3]?this->row[3]:"" , sizeof(account.email));
-				account.login_id1	= this->row[4]?atol(this->row[4]):0;
-				account.login_id2	= this->row[5]?atol(this->row[5]):0;
-				account.client_ip	= ipaddress(this->row[6]);
-				account.ban_until	= (time_t)(this->row[7]?atol(this->row[7]):0);
-				account.valid_until	= (time_t)(this->row[8]?atol(this->row[8]):0);
+		if( dbcon1.ResultQuery(query) && dbcon1 )
+		{	
+			account.account_id	= atol(dbcon1[0]);
+			account.sex			= dbcon1[1][0] == 'S' ? 2 : dbcon1[1][0]=='M';
+			account.gm_level	= atol(dbcon1[2]);
+			safestrcpy(account.email, dbcon1[3] , sizeof(account.email));
+			account.login_id1	= atol(dbcon1[4]);
+			account.login_id2	= atol(dbcon1[5]);
+			account.client_ip	= basics::ipaddress(dbcon1[6]);
+			account.ban_until	= (time_t)(atol(dbcon1[7]));
+			account.valid_until	= (time_t)(atol(dbcon1[8]));
 
-				this->FreeResults();
-				ret = true;
-			}
-		}
-		if(ret)
-		{	// read accociated char_id's
+			// read accociated char_id's
 			query.clear();
-			query << "SELECT `char_id`,`char_num`"
-					 "FROM `" << char_db << "` "
+			query << "SELECT `char_id`,`slot` "
+					 "FROM `" << dbcon1.escaped(this->tbl_char) << "` "
 					 "WHERE `account_id` = '" << accid << "'";
 
-			if( this->SendQuery(query) )
-			{	
-				size_t i;
-				for(i=0; i<9; i++)
-					account.charlist[i]=0;
-				
-				while( this->FetchResults() )
+			
+			for(i=0; i<9; ++i) account.charlist[i]=0;
+
+			if( dbcon1.ResultQuery(query) )
+			{
+				for( ; dbcon1; ++dbcon1)
 				{
-					i = this->row[1] ? atoi( this->row[1] ) : 9;
-					if( i<9 && this->row[0] && atoi(this->row[0]) )
+					i = atoi( dbcon1[1] );
+					if( i<9 && dbcon1[0] && atoi(dbcon1[0]) )
 					{
 						if( account.charlist[i] != 0 )
 							ShowError("CharDB: doubled used slot %i for account_id %i\n", i, accid );
-
-						account.charlist[ atoi( this->row[1] ) ] = atoi( this->row[0] );
+						account.charlist[ atoi( dbcon1[1] ) ] = atoi( dbcon1[0] );
 					}
 				}
-				this->FreeResults();
 			}
-		}
-		if(ret)
-		{
+
 			query.clear();
 			query << "SELECT `str`,`value` "
-					 "FROM `" << account_reg_db << "` "
+					 "FROM `" << dbcon1.escaped(this->tbl_login_reg) << "` "
 					 "WHERE `account_id`='" << account.account_id << "'";
-			if( this->SendQuery(query) )
+			i=0;
+			if( dbcon1.ResultQuery(query) )
 			{
-				size_t i=0;
-				while( i<ACCOUNT_REG2_NUM && this->FetchResults() )
+				for( ; dbcon1 && i<ACCOUNT_REG2_NUM; ++dbcon1, ++i)
 				{
-					safestrcpy(account.account_reg2[i].str, this->row[0], sizeof(account.account_reg2[0].str));
-					account.account_reg2[i].value = (this->row[1]) ? atoi(this->row[1]):0;
-					i++;
+					safestrcpy(account.account_reg2[i].str, dbcon1[0], sizeof(account.account_reg2[0].str));
+					account.account_reg2[i].value = atoi(dbcon1[1]);
 				}
-				account.account_reg2_num = i;
-
-				this->FreeResults();
 			}
+			account.account_reg2_num = i;
+			for( ; i<ACCOUNT_REG2_NUM; ++i)
+			{
+				account.account_reg2[i].str[0] = 0;
+				account.account_reg2[i].value = 0;
+			}
+			ret = true;
 		}
 	}
 	return ret;
@@ -1964,7 +2058,7 @@ bool CCharDB_sql::saveAccount(CCharAccount& account)
 	// otherwise the login-server already has saved the data into sql
 
 	// asuming that only the simple data storage model will be used
-	// this here can be skipped 
+	// this here can be skipped
 	return true;
 }
 
@@ -1975,56 +2069,63 @@ bool CCharDB_sql::removeAccount(uint32 accid)
 	// are physically seperated
 
 	// asuming that only the simple data storage model will be used
-	// this here can be skipped 
+	// this here can be skipped
 	return true;
 }
 
-/*************************************************/
-/************************MAIL STUFF***************/
-/*************************************************/
-size_t CCharDB_sql::getUnreadCount(uint32 cid)
+///////////////////////////////////////////////////////////////////////////////
+// MAIL STUFF
+size_t CCharDB_sql::getMailCount(uint32 cid, uint32 &all, uint32 &unread)
 {
-	string<> query;
-	size_t count = 0;
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	all = 0;
+	unread = 0;
 
 	query << "SELECT count(*) "
-			 "FROM `" << mail_db << "` "
-			 "WHERE `to_account_id` = '" << cid << "' "
+			 "FROM `" << dbcon1.escaped(this->tbl_mail) << "` "
+			 "WHERE `to_char_id` = '" << cid << "' "
 			 "AND `read_flag` = '0'";
 
-	if( this->SendQuery(query) )
+	if( dbcon1.ResultQuery(query) )
 	{
-		this->FetchResults();
-		count = atol(this->row[0]);
-
-		this->FreeResults();
+		unread = atol(dbcon1[0]);
 	}
-	return count;
+
+	query.clear();
+	query << "SELECT count(*) "
+			 "FROM `" << dbcon1.escaped(this->tbl_mail) << "` "
+			 "WHERE `to_char_id` = '" << cid << "' ";
+	if( dbcon1.ResultQuery(query) )
+	{
+		all = atol(dbcon1[0]);
+	}
+	return all;
 }
 
 size_t CCharDB_sql::listMail(uint32 cid, unsigned char box, unsigned char *buffer)
 {
-	string<> query;
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
 	query << "SELECT "
-			 "`message_id`,`read_flag`,`from_char_name` "
-			 "FROM `" << mail_db << "` "
-			 "WHERE `to_account_id` = '" << cid << "'";
+			 "`message_id`,`read_flag`,`from_char_name`,`sendtime`,`header`"
+			 "FROM `" << dbcon1.escaped(this->tbl_mail) << "` "
+			 "WHERE `to_char_id` = '" << cid << "'";
 
-	if( this->SendQuery(query) )
+	if( dbcon1.ResultQuery(query) )
 	{
-		size_t count=0;
+		
 		unsigned char *buf = buffer;
-		while( this->FetchResults() )
+		size_t count;
+		for(count=0; dbcon1; ++dbcon1, ++count)
 		{
-			CMailHead mailhead( this->row[0]?atol(this->row[0]):0, 
-								this->row[1]?atol(this->row[1]):0, 
-								this->row[2], 
-								"" );
+			CMailHead mailhead( atol(dbcon1[0]),
+								atol(dbcon1[1]),
+								dbcon1[2],
+								atol(dbcon1[3]),
+								dbcon1[4]);
 			mailhead._tobuffer(buf); // automatic buffer increment
-			count++;
 		}
-
-		this->FreeResults();
 		return count;
 	}
 	return 0;
@@ -2032,13 +2133,18 @@ size_t CCharDB_sql::listMail(uint32 cid, unsigned char box, unsigned char *buffe
 
 bool CCharDB_sql::readMail(uint32 cid, uint32 mid, CMail& mail)
 {
-	string<> query;
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
 	bool ret = false;
 
 	query << "SELECT "
-			 "`read_flag`,`from_char_name`,`message` "
-			 "FROM `" << mail_db << "` "
-			 "WHERE `to_account_id` = '" << cid << "' "
+			 "`read_flag`,`from_char_name`,`header`,`sendtime`,`message` "
+			 "`zeny`,"
+			 "`item_nameid`,`item_amount`,`item_equip`,`item_identify`,"
+			 "`item_refine`,`item_attribute`,"
+			 "`item_card0`,`item_card1`,`item_card2`,`item_card3` "
+			 "FROM `" << dbcon1.escaped(this->tbl_mail) << "` "
+			 "WHERE `to_char_id` = '" << cid << "' "
 			 "AND `message_id` = '" << mid << "'";
 
 	// default clearing
@@ -2047,58 +2153,61 @@ bool CCharDB_sql::readMail(uint32 cid, uint32 mid, CMail& mail)
 	mail.head[0] = 0;
 	mail.body[0] = 0;
 
-	if( this->SendQuery(query) )
+	if( dbcon1.ResultQuery(query) && dbcon1 )
 	{
-		if( this->FetchResults() )
+		ret = true;
+
+		struct item item;
+		item.nameid		= atol(dbcon1[ 6]);
+		item.amount		= atol(dbcon1[ 7]);
+		item.equip  	= atol(dbcon1[ 8]);
+		item.identify	= atol(dbcon1[ 9]);
+		item.refine 	= atol(dbcon1[10]);
+		item.attribute	= atol(dbcon1[11]);
+		item.card[0]	= atol(dbcon1[12]);
+		item.card[1]	= atol(dbcon1[13]);
+		item.card[2]	= atol(dbcon1[14]);
+		item.card[3]	= atol(dbcon1[15]);
+
+		mail = CMail( mid, atol(dbcon1[0]), dbcon1[1], dbcon1[2], atol(dbcon1[3]),
+						atol(dbcon1[5]), item, dbcon1[4]);
+		if( 0==mail.read )
 		{
-			ret = true;
-			mail = CMail( mid, 
-						  this->row[0]?atol(this->row[0]):0, 
-						  this->row[1], "", this->row[2] );
-			if( 0==mail.read )
-			{
-				query.clear();
-				query << "UPDATE `" << mail_db << "` "
-						 "SET `read_flag`='1' "
-						 "WHERE `message_id`= '" << mid << "'";
-				this->SendQuery(query);
-			}
+			query.clear();
+			query << "UPDATE `" << dbcon1.escaped(this->tbl_mail) << "` "
+					 "SET `read_flag`='1',"
+					 "`zeny`='0',"
+					 "`item_nameid`='0',`item_amount`='0',`item_equip`='0',`item_identify`='0',"
+					 "`item_refine`='0',`item_attribute`='0',"
+					 "`item_card0`='0',`item_card1`='0',`item_card2`='0',`item_card3`='0' "
+					 "WHERE `message_id`= '" << mid << "'";
+			dbcon1.PureQuery(query);
 		}
-		this->FreeResults();
 	}
 	return ret;
 }
 
 bool CCharDB_sql::deleteMail(uint32 cid, uint32 mid)
 {
-	string<> query;
-
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
 	query << "DELETE "
-			 "FROM `" << mail_db << "` "
-			 "WHERE `to_account_id` = '" << cid << "' "
+			 "FROM `" << dbcon1.escaped(this->tbl_mail) << "` "
+			 "WHERE `to_char_id` = '" << cid << "' "
 			 "AND `message_id` = '" << mid << "'";
-	return this->SendQuery(query);
+	return dbcon1.PureQuery(query);
 }
 
-bool CCharDB_sql::sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32& msgid, uint32& tid)
+bool CCharDB_sql::sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32 zeny, const struct item& item, uint32& msgid, uint32& tid)
 {
-	bool ret = false;
-	bool l = false; // if query is built
-	string<> query;
-
-	char _head[128];
-	char _body[128];
-	char _targetname[32];
-
-	escape_string(_targetname, targetname, strlen(targetname));
-	escape_string(_head, head, strlen(head));
-	escape_string(_body, body, strlen(body));
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
 
 	if( 0==strcmp(targetname,"*") )
 	{	// send to all
 		query << "SELECT DISTINCT "
 				 "`char_id`,`name` "
-				 "FROM `" << char_db << "` "
+				 "FROM `" << dbcon1.escaped(this->tbl_char) << "` "
 				 "WHERE `char_id` <> '" << senderid << "' "
 				 "ORDER BY `char_id`";
 	}
@@ -2106,78 +2215,454 @@ bool CCharDB_sql::sendMail(uint32 senderid, const char* sendername, const char* 
 	{	// send to specific
 		query << "SELECT "
 				 "`char_id`,`name` "
-				 "FROM `" << char_db << "` "
-				 "WHERE `name` = '" << _targetname << "'";
+				 "FROM `" << dbcon1.escaped(this->tbl_char) << "` "
+				 "WHERE `name` = '" << dbcon1.escaped(targetname) << "'";
 	}
 
-	if( this->SendQuery(query) )
+	bool ret = dbcon1.ResultQuery(query);
+	if( ret )
 	{
+		size_t doit = 0;
+
+		basics::string<> _head = dbcon1.escaped(head);
+		basics::string<> _body = dbcon1.escaped(body);
+		basics::string<> _sendername = dbcon1.escaped(sendername);
+
 		query.clear();
-		query << "INSERT DELAYED INTO `" << mail_db << "` "
+		query << "INSERT INTO `" << dbcon1.escaped(this->tbl_mail) << "` "
 				 "("
-				 "`to_account_id`,`to_char_name`,"
-				 "`from_account_id`,`from_char_name`,"
-				 "`message`,`read_flag`"
+				 "`to_char_id`,`to_char_name`,"
+				 "`from_char_id`,`from_char_name`,"
+				 "`header`,`message`,`read_flag`"
+				 "`zeny`,"
+				 "`item_nameid`,`item_amount`,`item_equip`,`item_identify`,`item_refine`,`item_attribute`,"
+				 "`item_card0`,`item_card1`,`item_card2`,`item_card3`"
 				 ") "
 				 "VALUES ";
-		
-		while( this->FetchResults() )
-		{
-			query << (l?",":"") << 
-				"("
-				"'" << atol(this->row[0]) << "','" << this->row[1] << "',"
-				"'" << senderid << "','" << sendername << "',"
-				"'" << _body << "','0'"
-				")";
-			l = true;
-		}
-		this->FreeResults();
-	}
-	if(l) ret &= this->SendQuery(query);
 
+		for( ; dbcon1; ++dbcon1)
+		{
+			query << (doit?",":"") <<
+				"("
+				"'" << dbcon1[0] << "','" << dbcon1.escaped(dbcon1[1]) << "',"
+				"'" << senderid << "','" << _sendername << "',"				
+				"'" << _head << "','" << _body << "','0',"
+				"'" << zeny << "',"
+				"'" << item.nameid << "','" << item.amount << "','" << /*item.equip*/0 << "',"
+				"'" << item.identify << "','" << item.refine << "','" << item.attribute << "',"
+				"'" << item.card[0] << "','" << item.card[1] << "','" << item.card[2] << "','" << item.card[3] << "'"
+				")";
+			++doit;
+		}
+		if(doit) ret = dbcon1.PureQuery(query);
+	}
 	return ret;
 }
 
-/******************************************************************************
-******************************************************************************
-*******     *****  ******  ***  ***  ***********       *********     *********
-****   ****  ****  ******  ***  ***  ***********  ***      **   ****  ********
-****  ***********  ******  ***  ***  ***********  *******  **   **************
-****  ***********  ******  ***  ***  ***********  *******  **   **************
-****  ****   ****  ******  ***  ***  ***********  *******  ***        ********
-****  *****  ****  ******  ***  ***  ***********  *******  **********  *******
-*****  ****  *****  ****  ****  ***  ***********  *******  **********  *******
-******      ******  ****  ****  ***          ***  ***      ***  *****  *******
-*******************      *****  ***          ***       *******        ********
-****************************************************************    **********/
 
-bool CGuildDB_sql::searchGuild(const char* name, CGuild& g)
+void CCharDB_sql::loadfamelist()
 {
-	uint32 guild_id = 0;
-	string<> query;
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+
+	const static fame_t fametype[] = {FAME_PK, FAME_SMITH, FAME_CHEM, FAME_TEAK};
+	const char* queryselect[4] = 
+	{	// pk
+		"(`s`.`str`='PC_PK_FAME')",
+		// blacksmith
+		"(`s`.`str`='PC_SMITH_FAME' AND (`c`.`class`='10' OR `c`.`class`='4011' OR `c`.`class`='4033'))",
+		// alchemist
+		"(`s`.`str`='PC_CHEM_FAME' AND (`c`.`class`='18' OR `c`.`class`='4019' OR `c`.`class`='4041'))",
+		// teakwon
+		"(`s`.`str`='PC_TEAK_FAME' AND (`c`.`class`='4046'))"
+	};
+
+	size_t i,k;
+	for(i=0; i<4; ++i)
+	{
+		CFameList &fl = this->famelists[fametype[i]];
+		fl.clear();
+		query.clear();
+		query << "SELECT "
+				 "`s`.`char_id`,`c`.`name`,`s`.`value` "
+				 "FROM `" << dbcon1.escaped(this->tbl_char_reg) << "` `s` "
+				 "JOIN `" << dbcon1.escaped(this->tbl_char) << "` `c` ON `c`.`char_id` = `s`.`char_id` "
+				 "WHERE `s`.`value`>'0' AND " << queryselect[i] <<
+				 "ORDER BY `s`.`value` LIMIT 0," << (MAX_FAMELIST+1);
+
+		if( dbcon1.ResultQuery(query) )
+		{
+			for(k=0; dbcon1 && k<MAX_FAMELIST+1; ++dbcon1, ++k )
+			{
+				if( atol(dbcon1[0]) && dbcon1[1][0] && atol(dbcon1[2]) )
+				{
+					fl.cEntry[k] = 
+						CFameList::fameentry(atol(dbcon1[0]), dbcon1[1], atol(dbcon1[2]));
+				}
+			}
+			fl.cCount=k;
+			// clear the rest
+			for( ; k<MAX_FAMELIST+1; ++k )
+			{
+				fl.cEntry[k] = 
+					CFameList::fameentry(0, "", 0);
+			}
+		}
+	}
+}
+
+
+
+//******************************************************************************
+//******************************************************************************
+//*******     *****  ******  ***  ***  ***********       *********     *********
+//****   ****  ****  ******  ***  ***  ***********  ***      **   ****  ********
+//****  ***********  ******  ***  ***  ***********  *******  **   **************
+//****  ***********  ******  ***  ***  ***********  *******  **   **************
+//****  ****   ****  ******  ***  ***  ***********  *******  ***        ********
+//****  *****  ****  ******  ***  ***  ***********  *******  **********  *******
+//*****  ****  *****  ****  ****  ***  ***********  *******  **********  *******
+//******      ******  ****  ****  ***          ***  ***      ***  *****  *******
+//*******************      *****  ***          ***       *******        ********
+//****************************************************************    **********
+bool CGuildDB_sql::init(const char* configfile)
+{	// init db
+	if(configfile) basics::CParamBase::loadFile(configfile);
+
+
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+
+	// check if all castles exist
+	size_t i;
+	for(i = 0; i < MAX_GUILDCASTLE; ++i, query.clear())
+	{	
+		query <<  "SELECT "
+				  "count(*) "
+				  "FROM `" << dbcon1.escaped(this->tbl_castle) << "` "
+				  "WHERE `castle_id`='" << i << "'";
+		if( !dbcon1.ResultQuery(query) || 0==atoi(dbcon1[0]) )
+		{
+			this->saveCastle( CCastle(i) ); // constructor takes care of all settings
+		}
+	}
+	return true;
+}
+
+size_t CGuildDB_sql::size() const
+{
+	return this->get_table_size(this->tbl_guild);
+}
+CGuild& CGuildDB_sql::operator[](size_t i)
+{	// not threadsafe
+	static CGuild g;
+
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
 
 	query << "SELECT "
 			 "`guild_id` "
-			 "FROM `" << guild_db << "` "
-			 "WHERE `name` = '" << name << "'";
+			 "FROM `" << dbcon1.escaped(this->tbl_guild) << "` "
+			 "ORDER BY `guild_id`"
+			 "LIMIT "<< i << ",1 ";
 
-	if ( this->SendQuery(query) )
+	if( dbcon1.ResultQuery(query) )
 	{
-		if( this->FetchResults() )
-			guild_id = atol(this->row[0]);
-		this->FreeResults();
+		const uint32 guild_id = atol(dbcon1[0]);
+		if( !this->searchGuild(guild_id,g) )
+			g.guild_id=0;
 	}
-
-	if(guild_id)
-		return false;
-
-	return this->searchGuild(guild_id,g);
+	else
+	{
+		g.guild_id=0;
+	}
+	return g;
 }
 
-bool CGuildDB_sql::searchGuild(uint32 guildid, CGuild& g)
+size_t CGuildDB_sql::castlesize() const
 {
-	// select guild_data where guild_id = guildid
-	// return true and guild data
+	return this->get_table_size(this->tbl_castle);
+}
+CCastle& CGuildDB_sql::castle(size_t i)
+{	// not threadsafe
+	static CCastle c;
+
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+
+	query << "SELECT "
+			 "`castle_id` "
+			 "FROM `" << dbcon1.escaped(this->tbl_castle) << "` "
+			 "ORDER BY `castle_id`"
+			 "LIMIT "<< i << ",1 ";
+
+	if( dbcon1.ResultQuery(query) )
+	{
+		const uint32 castle_id = atol(dbcon1[0]);
+		if( !this->searchCastle(castle_id,c) )
+			c.castle_id=0;
+	}
+	else
+	{
+		c.castle_id=0;
+	}
+	return c;
+}
+
+bool CGuildDB_sql::searchGuild(const char* name, CGuild& g)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+
+	query << "SELECT "
+			 "`guild_id` "
+			 "FROM `" << dbcon1.escaped(this->tbl_guild) << "` "
+			 "WHERE `name` = '" << dbcon1.escaped(name) << "'";
+
+	if( dbcon1.ResultQuery(query) && dbcon1 )
+	{
+		const uint32 guild_id = atol(dbcon1[0]);
+		return this->searchGuild(guild_id,g);
+	}
+	return false;
+}
+
+bool CGuildDB_sql::searchGuild(uint32 guild_id, CGuild& g)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	size_t i;
+
+	query << "SELECT "
+			 "`g`.`guild_id`, `g`.`guild_lv`, "
+			 "`g`.`connect_member`, `g`.`max_member`, `g`.`average_lv`,"
+			 "`g`.`exp`, `g`.`next_exp`, `g`.`skill_point`, "
+			 "`g`.`name`, `c`.`name`, `g`.`mes1`, `g`.`mes2`,"
+			 "`g`.`emblem_id`, `g`.`emblem_len`, `g`.`emblem_data` "
+			 "FROM `" << dbcon1.escaped(this->tbl_guild) << "` `g`"
+			 "JOIN `" << dbcon1.escaped(this->tbl_char) << "` `c` ON `c`.`char_id` = `g`.`master_id`"
+			 "WHERE `g`.`guild_id` = " << guild_id;
+
+	if( dbcon1.ResultQuery(query) && dbcon1 )
+	{
+		///////////////////////////////////////////////////////////////////////
+		g.guild_id		= atoi(dbcon1[0]);
+		g.guild_lv		= atoi(dbcon1[1]);
+		g.connect_member= atoi(dbcon1[2]);
+		g.max_member	= atoi(dbcon1[3]);
+		g.average_lv	= atoi(dbcon1[4]);
+		g.exp			= atoi(dbcon1[5]);
+		g.next_exp		= atoi(dbcon1[6]);
+		g.skill_point	= atoi(dbcon1[7]);
+		safestrcpy(g.name, dbcon1[8], sizeof(g.name)-1);
+		safestrcpy(g.master, dbcon1[9], sizeof(g.name)-1);
+		safestrcpy(g.mes1, dbcon1[10], sizeof(g.mes1)-1);
+		safestrcpy(g.mes2, dbcon1[11], sizeof(g.mes2)-1);
+		g.emblem_id		= atoi(dbcon1[12]);
+		g.emblem_len	= atoi(dbcon1[13]);
+		g.chaos = 0;
+		g.honour = 0;
+		g.save_flags = 0;
+		g.save_timer = 0;
+
+		if(g.max_member>MAX_GUILD) g.max_member = MAX_GUILD;
+
+		///////////////////////////////////////////////////////////////////////
+		{	// Decode the emblem from SQL
+			const uchar *ptr = (uchar*)dbcon1[14];
+			uchar val1, val2;
+			if(ptr)
+			{
+				i=0;
+				while( i<g.emblem_len && i<sizeof(g.emblem_data) && ptr[0] && ptr[1] )
+				{
+					if( ptr[0] >= '0' && ptr[0] <= '9')
+						val1 = ptr[0] - '0';
+					else if(ptr[0] >= 'a' && ptr[0] <= 'f')
+						val1 = ptr[0] - 'a' + 10;
+					else if(ptr[0] >= 'A' && ptr[0] <= 'F')
+						val1 = ptr[0] - 'A' + 10;
+					else
+						break;
+					if(ptr[1] >= '0' && ptr[1] <= '9')
+						val2 = ptr[1] - '0';
+					else if(ptr[1] >= 'a' && ptr[1] <= 'f')
+						val2 = ptr[1] - 'a' + 10;
+					else if(ptr[1] >= 'A' && ptr[1] <= 'F')
+						val2 = ptr[1] - 'A' + 10;
+					else
+						break;
+					g.emblem_data[i++] = (val1<<4) | val2;
+					ptr+=2;
+				}
+			}
+		}
+
+		///////////////////////////////////////////////////////////////////////
+		// Get the guild's members
+		query.clear();
+		query << "SELECT "
+				 "`c`.`account_id`,"
+				 "`g`.`char_id`,"
+				 "`c`.`hair`,"
+				 "`c`.`hair_color`,"
+				 "`a`.`sex`,"
+				 "`c`.`class`,"
+				 "`c`.`base_level`,"
+				 "`g`.`exp`,"
+				 "`g`.`exp_payper`,"
+				 "`a`.`online`,"
+				 "`g`.`position`,"
+				 "`g`.`rsv1`,"
+				 "`g`.`rsv2`,"
+				 "`c`.`name`"
+				 "FROM `" << dbcon1.escaped(this->tbl_guild_member) << "` `g` "
+				 "JOIN `" << dbcon1.escaped(this->tbl_char) << "` `c` ON `g`.`char_id`=`c`.`char_id` "
+				 "JOIN `" << dbcon1.escaped(this->tbl_account) << "` `a` ON `c`.`account_id`=`a`.`account_id` "
+				 "WHERE `g`.`guild_id` = " << g.guild_id << " "
+				 "ORDER BY `g`.`position` ASC, `c`.`class`, `c`.`base_level` DESC, `a`.`sex`";
+
+		dbcon1.ResultQuery(query);
+		for(i=0; dbcon1 && i<MAX_GUILD; ++dbcon1, ++i)
+		{
+			g.member[i].account_id = atoi(dbcon1[0]);
+			g.member[i].char_id = atoi(dbcon1[1]);
+			g.member[i].hair = atoi(dbcon1[2]);
+			g.member[i].hair_color = atoi(dbcon1[3]);
+			g.member[i].gender = atoi(dbcon1[4]);
+			g.member[i].class_ = atoi(dbcon1[5]);
+			g.member[i].lv = atoi(dbcon1[6]);
+			g.member[i].exp = atoi(dbcon1[7]);
+			g.member[i].exp_payper = atoi(dbcon1[8]);
+			g.member[i].online = atoi(dbcon1[9]);
+			g.member[i].position = atoi(dbcon1[10]);
+			g.member[i].rsv1 = atoi(dbcon1[11]);
+			g.member[i].rsv2 = atoi(dbcon1[12]);
+			safestrcpy(g.member[i].name, dbcon1[13], sizeof(g.member[i].name));
+		}
+		for( ; i<MAX_GUILD; ++i)
+		{
+			g.member[i].account_id = 0;
+			g.member[i].char_id = 0;
+			g.member[i].hair = 0;
+			g.member[i].hair_color = 0;
+			g.member[i].gender = 0;
+			g.member[i].class_ = 0;
+			g.member[i].lv = 0;
+			g.member[i].exp = 0;
+			g.member[i].exp_payper = 0;
+			g.member[i].online = 0;
+			g.member[i].position = 0;
+			g.member[i].rsv1 = 0;
+			g.member[i].rsv2 = 0;
+			g.member[i].name[0] = 0;
+		}
+
+
+
+		///////////////////////////////////////////////////////////////////////
+		// Get the guild's positions
+		query.clear();
+		query << "SELECT "
+				 "`name`, `mode`, `exp_mode` "
+				 "FROM `" << dbcon1.escaped(this->tbl_guild_position) << "` "
+				 "WHERE `guild_id` = '" << g.guild_id << "' "
+				 "ORDER BY `position` ASC";
+		dbcon1.ResultQuery(query);
+
+		// Fills in the guild positions array for this guild from sql.
+		// SQL may not provide data for all of the positions, so we
+		// get as much as we can from the DB and fill that in.
+		for(i=0; dbcon1 && i<MAX_GUILDPOSITION; ++dbcon1, ++i)
+		{
+			safestrcpy(g.position[i].name, dbcon1[0], sizeof(g.position[i].name));
+			g.position[i].mode = atoi(dbcon1[1]);
+			g.position[i].exp_mode = atoi(dbcon1[2]);
+		}
+		// If the guild positions array isn't full, we generate names
+		for (; i < MAX_GUILDPOSITION; ++i)
+		{
+			basics::string<> position_name;
+			position_name << "Position " << i+1;
+			safestrcpy(g.position[i].name, position_name, sizeof(g.position[i].name));
+			g.position[i].mode = 0;
+			g.position[i].exp_mode = 0;
+		}
+
+		///////////////////////////////////////////////////////////////////////
+		// Get the guild's aliances
+		query.clear();
+		query << "SELECT "
+				 "`a`.`opposition`, `a`.`alliance_id`, `g`.`name` "
+				 "FROM `" << dbcon1.escaped(this->tbl_guild_alliance) << "` `a`"
+				 "JOIN `" << dbcon1.escaped(this->tbl_guild) << "` `g` ON `a`.`alliance_id`=`g`.`guild_id` "
+				 "WHERE `a`.`guild_id` = " << g.guild_id;
+		dbcon1.ResultQuery(query);
+		for(i=0; dbcon1 && i<MAX_GUILDALLIANCE; ++dbcon1, ++i)
+		{
+			g.alliance[i].opposition = atoi(dbcon1[0]);
+			g.alliance[i].guild_id = atoi(dbcon1[1]);
+			safestrcpy(g.alliance[i].name, dbcon1[2], sizeof(g.alliance[i].name));
+		}
+		for( ; i<MAX_GUILDALLIANCE; ++i)
+		{
+			g.alliance[i].opposition = 0;
+			g.alliance[i].guild_id = 0;
+			g.alliance[i].name[0] = 0;
+		}
+		///////////////////////////////////////////////////////////////////////
+		// Get the guild's history of expulsions
+		query.clear();
+		query << "SELECT "
+				 "`c`.`name`, `e`.`mes`, `e`.`acc`, `c`.`account_id`, `e`.`rsv1`, `e`.`rsv2`, `e`.`rsv3` "
+				 "FROM `" << dbcon1.escaped(this->tbl_guild_expulsion) << "` `e`"
+				 "JOIN `" << dbcon1.escaped(this->tbl_char) << "` `c` ON `e`.`char_id`=`c`.`char_id` "
+				 "WHERE `e`.`guild_id` = " << g.guild_id;
+		dbcon1.ResultQuery(query);
+		for(i=0; dbcon1 && i<MAX_GUILDEXPLUSION; ++dbcon1, ++i)
+		{
+			safestrcpy(g.explusion[i].name, dbcon1[0], sizeof(g.explusion[i].name));
+			safestrcpy(g.explusion[i].mes, dbcon1[1], sizeof(g.explusion[i].mes));
+			safestrcpy(g.explusion[i].acc, dbcon1[2], sizeof(g.explusion[i].acc));
+			g.explusion[i].account_id = atoi(dbcon1[3]);
+			g.explusion[i].char_id = atoi(dbcon1[4]);
+			g.explusion[i].rsv1 = atoi(dbcon1[5]);
+			g.explusion[i].rsv2 = atoi(dbcon1[6]);
+			g.explusion[i].rsv3 = atoi(dbcon1[7]);
+		}
+		for( ; i<MAX_GUILDEXPLUSION; ++i)
+		{
+			g.explusion[i].name[0] = 0;
+			g.explusion[i].mes[0] = 0;
+			g.explusion[i].acc[0] = 0;
+			g.explusion[i].account_id = 0;
+			g.explusion[i].char_id = 0;
+			g.explusion[i].rsv1 = 0;
+			g.explusion[i].rsv2 = 0;
+			g.explusion[i].rsv3 = 0;
+		}
+
+		///////////////////////////////////////////////////////////////////////
+		// Get the guild's skills
+		query.clear();
+		query << "SELECT "
+				 "`id`, `lv` "
+				 "FROM `" << dbcon1.escaped(this->tbl_guild_skill) << "` "
+				 "WHERE `guild_id` = " << g.guild_id;
+		dbcon1.ResultQuery(query);
+		for(i=0; i<MAX_GUILDSKILL; ++i)
+		{
+			g.skill[i].id = i+GD_SKILLBASE;
+			g.skill[i].lv = 0;
+		}
+		for( ; dbcon1; ++dbcon1)
+		{
+			i = atol(dbcon1[0])-GD_SKILLBASE;
+			if(i<MAX_GUILDSKILL)
+				g.skill[i].lv = atol(dbcon1[1]);
+		}
+		return true;
+	}
 	return false;
 }
 
@@ -2185,85 +2670,123 @@ bool CGuildDB_sql::searchGuild(uint32 guildid, CGuild& g)
 
 bool CGuildDB_sql::insertGuild(const struct guild_member &m, const char *name, CGuild &g)
 {
-	char t_name[128],t_master[32],t_mes1[64],t_mes2[256];
-	string<> query;
+	size_t i;
+	// construct initial guild
+	g = CGuild(name);
+	g.member[0] = m;
+	safestrcpy(g.master, m.name, sizeof(g.master));
+	g.position[0].mode=0x11;
+	safestrcpy(g.position[0].name,"GuildMaster", sizeof(g.position[0].name));
+	safestrcpy(g.position[MAX_GUILDPOSITION-1].name,"Newbie", sizeof(g.position[0].name));
+	for(i=1; i<MAX_GUILDPOSITION-1; ++i)
+		snprintf(g.position[i].name,sizeof(g.position[0].name),"Position %ld",(unsigned long)(i+1));
 
+	g.max_member=(16>MAX_GUILD)?MAX_GUILD:16;
+	g.average_lv=g.member[0].lv;
+	for(i=0;i<MAX_GUILDSKILL;++i)
+	{
+		g.skill[i].id = i+GD_SKILLBASE;
+		g.skill[i].lv = 0;
+	}
 
-	this->escape_string(t_name, g.name, strlen(g.name));
-	this->escape_string(t_master, g.member[0].name, strlen(g.member[0].name));
-	this->escape_string(t_mes1, g.mes2, strlen(g.mes1));
-	this->escape_string(t_mes2, g.mes2, strlen(g.mes2));
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
 
-	query << "INSERT INTO `" << guild_db << "` "
-			 "(`guild_id`,`name`,`master`,`char_id`) "
+	query << "INSERT INTO `" << dbcon1.escaped(this->tbl_guild) << "` "
+			 "(`name`,`master_id`) "
 			 "VALUES "
 			 "("
-			 "'" << g.guild_id			<< "',"
-			 "'" << t_name				<< "',"
-			 "'" << t_master			<< "',"
-			 "'" << g.member[0].char_id	<< "'"
+			 "'" << dbcon1.escaped(name)<< "',"
+			 "'" << g.member[0].char_id	<< "'"	
 			 ")";
-	this->SendQuery(query);
-	query.clear();
-
-	return this->saveGuild(g); // Save the rest of the guild now that we have the basics inserted
-
+	if( dbcon1.PureQuery(query) )
+	{
+		g.guild_id = dbcon1.getLastID();
+		// Save the rest of the guild now that we have the basics inserted
+		return this->saveGuild(g) && searchGuild(g.guild_id, g);
+	}
 	return false;
 }
+
 bool CGuildDB_sql::removeGuild(uint32 guild_id)
 {
-	string<> query;
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+
+	query << "UPDATE `" << dbcon1.escaped(this->tbl_char) << "` "
+			 "SET `guild_id`='0' "
+			 "WHERE `guild_id` = '" << guild_id << "'";
+	dbcon1.PureQuery(query);
+	query.clear();
+
 	query << "DELETE "
-			 "FROM `" << guild_db << "` "
-			"WHERE guild_id = '" << guild_id << "'";
+			 "FROM `" << dbcon1.escaped(this->tbl_guild_member) << "` "
+			 "WHERE `guild_id` = '" << guild_id << "'";
+	dbcon1.PureQuery(query);
 
-	this->SendQuery(query);
+	query.clear();
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_guild_skill) << "` "
+			"WHERE `guild_id` = '" << guild_id << "'";
+	dbcon1.PureQuery(query);
 
-	//removeFromMemory(guild_id);
+	query.clear();
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_guild_storage) << "` "
+			"WHERE `guild_id` = '" << guild_id << "'";
+	dbcon1.PureQuery(query);
+
+	query.clear();
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_guild_position) << "` "
+			"WHERE `guild_id` = '" << guild_id << "'";
+	dbcon1.PureQuery(query);
+
+	query.clear();
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_guild_alliance) << "` "
+			"WHERE `guild_id` = '" << guild_id << "' "
+			"OR `alliance_id` = '" << guild_id << "' ";
+	dbcon1.PureQuery(query);
+
+	query.clear();
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_guild_expulsion) << "` "
+			"WHERE `guild_id` = '" << guild_id << "'";
+	dbcon1.PureQuery(query);
+
+	query.clear();
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_guild) << "` "
+			"WHERE `guild_id` = '" << guild_id << "'";
+	dbcon1.PureQuery(query);
 
 	return true;
 }
 
 bool CGuildDB_sql::saveGuild(const CGuild& g)
 {
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	basics::string<> query2;
+	uint doit;
+	size_t i;
 
-	// 1 `guild` (`guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`)
-	// 2 `guild_member` (`guild_id`,`account_id`,`char_id`,`hair`,`hair_color`,`gender`,`class`,`lv`,`exp`,`exp_payper`,`online`,`position`,`rsv1`,`rsv2`,`name`)
-	// 4 `guild_position` (`guild_id`,`position`,`name`,`mode`,`exp_mode`)
-	// 8 `guild_alliance` (`guild_id`,`opposition`,`alliance_id`,`name`)
-	// 16 `guild_expulsion` (`guild_id`,`name`,`mes`,`acc`,`account_id`,`rsv1`,`rsv2`,`rsv3`)
-	// 32 `guild_skill` (`guild_id`,`id`,`lv`)
-
-	char t_name[100],t_mes1[60],t_mes2[240],t_member[24],t_position[24],t_alliance[24];  // temporay storage for str convertion;
-	char t_ename[24],t_emes[40];
-	char emblem_data[4096];
-	int i = 0, len = 0;
-	int guild_online_member=0;
-
-	if (g.guild_id<=0) return false;
-
-	this->escape_string(t_name, g.name, strlen(g.name));
-
-	printf("("CL_BT_MAGENTA"%d"CL_RESET")  Request save guild -(flag 0x%x) ",g.guild_id);
-
-	while (i<g.max_member) {
-		if (g.member[i].account_id>0) guild_online_member++;
-		i++;
-	}
-
-
-	//printf("- Insert guild %d to guild\n",g->guild_id);
-	for(i=0;i<g.emblem_len;i++){
-		len+=snprintf(emblem_data+len,(sizeof(emblem_data)-len), "%02x",(unsigned char)(g.emblem_data[i]));
-		//printf("%02x",(unsigned char)(g->emblem_data[i]));
-	}
-	emblem_data[len] = '\0';
-	//printf("- emblem_len = %d \n",g->emblem_len);
-
-
+	if(g.save_flags&GUILD_SAFE_GUILD)
 	{
-		string<> query;
-		query << "UPDATE `" << guild_db << "` "
+		char emblem_data[4096], *ptr=emblem_data;
+		const char *eptr=emblem_data+sizeof(emblem_data)-2;
+
+		for(i=0;i<g.emblem_len && ptr<eptr;++i)
+		{
+			const uchar v1 = (g.emblem_data[i]     ) & 0x0f;
+			const uchar v2 = (g.emblem_data[i] >> 4) & 0x0f;
+			*ptr++ = ( v2<10 ) ? char(v2+'0') : char(v2-10+'a');
+			*ptr++ = ( v1<10 ) ? char(v1+'0') : char(v1-10+'a');
+		}
+		*ptr = '\0';
+
+		query << "UPDATE `" << dbcon1.escaped(this->tbl_guild) << "` "
 				 "SET"
 				 "`guild_lv`='" 		<< g.guild_lv		<< "',"
 				 "`connect_member`='"	<< g.connect_member	<< "',"
@@ -2272,979 +2795,959 @@ bool CGuildDB_sql::saveGuild(const CGuild& g)
 				 "`exp`='"				<< g.exp 			<< "',"
 				 "`next_exp`='"			<< g.next_exp		<< "',"
 				 "`skill_point`='"		<< g.skill_point	<< "',"
-				 "`mes1`='"				<< t_mes1			<< "',"
-				 "`mes2`='" 			<< t_mes2			<< "',"
-				 "`emblem_len`='"		<< len				<< "',"
+				 "`mes1`='"				<< dbcon1.escaped(g.mes1) << "',"
+				 "`mes2`='" 			<< dbcon1.escaped(g.mes2) << "',"
+				 "`emblem_len`='"		<< g.emblem_len		<< "',"
 				 "`emblem_id`='"		<< g.emblem_id		<< "',"
-				 "`emblem_data`='"		<< emblem_data		<< "'"
+				 "`emblem_data`='"		<< emblem_data			<< "'"
 				 "WHERE `guild_id`='"	<< g.guild_id 		<< "'";
 
-		this->SendQuery(query);
+		dbcon1.PureQuery(query);
 	}
 
+	if(g.save_flags&GUILD_SAFE_MEMBER)
 	{
-		string<> query2;
-		string<> query;
-		int l = 0;
+		if(g.save_flags&GUILD_CLEAR_MEMBER)
+		{
+			query.clear();
+			query << "DELETE "
+					 "FROM `" << dbcon1.escaped(this->tbl_guild_member) << "` "
+					 "WHERE `guild_id` = '" << g.guild_id << "'";
+			dbcon1.PureQuery(query);
 
-		// Re-writing from scratch (Aru)
-		query << "DELETE "
-				 "FROM `" << guild_member_db << "` "
-				 "WHERE `guild_id` = '" << g.guild_id << "'";
-		this->SendQuery(query);
-		query.clear();
+			// Remove guild IDs' from the character information sheets
+			query.clear();
+			query << "UPDATE `" << dbcon1.escaped(this->tbl_char) << "` "
+					 "SET `guild_id` = '0' "
+					 "WHERE `guild_id` = '" << g.guild_id << "'";
+			dbcon1.PureQuery(query);
 
-		// Remove guild IDs' from the character information sheets
-		query << "UPDATE `" << char_db << "` "
-				 "SET `guild_id` = '0' "
-				 "WHERE `guild_id` = '" << g.guild_id << "'";
-		this->SendQuery(query);
-		query.clear();
-
+		}
 
 		// Now reinsert all the data
 		// Begin building long insert
-		query << "INSERT INTO `" << guild_member_db << "` "
-				 "(`guild_id`,`account_id`,`char_id`,`hair`,`hair_color`,`gender`,`class`,`lv`,`exp`,`exp_payper`,`online`,`position`,`name`) VALUES ";
+		query.clear();
+		query << "REPLACE INTO `" << dbcon1.escaped(this->tbl_guild_member) << "` "
+				 "("
+				 "`guild_id`,`char_id`,`exp`,`exp_payper`,`position`,`rsv1`,`rsv2`"
+				 ") "
+				 "VALUES ";
 
-		query2 << "UPDATE `" << char_db << "` "
-				  "SET `guild_id` = '" << g.guild_id << "' WHERE `char_id` IN ";
+		query2.clear();
+		query2 << "UPDATE `" << dbcon1.escaped(this->tbl_char) << "` "
+				  "SET `guild_id` = '" << g.guild_id << "' "
+				  "WHERE `char_id` IN ( ";
 
-		for(i=0;i<g.max_member;i++)
+		for(i=0, doit=0; i<g.max_member && i<MAX_GUILD; ++i)
 		{
 			if(g.member[i].account_id > 0)
 			{
-				this->escape_string(t_member, g.member[i].name, strlen(g.member[i].name));
-				query << (l?",":"") <<
+				query << (doit?",":"") <<
 					"("
-					"'" << g.guild_id 					<< "',"
-					"'" << g.member[i].account_id		<< "',"
-					"'" << g.member[i].char_id			<< "',"
-					"'" << g.member[i].hair				<< "',"
-					"'" << g.member[i].hair_color		<< "',"
-					"'" << g.member[i].gender			<< "',"
-					"'" << g.member[i].class_			<< "',"
-					"'" << g.member[i].lv				<< "',"
-					"'" << g.member[i].exp				<< "',"
-					"'" << g.member[i].exp_payper		<< "',"
-					"'" << g.member[i].online			<< "',"
-					"'" << g.member[i].position			<< "',"
-					"'" << t_member						<< "'"
-					<< ")";
-				
-				query2 << (l?",'":"'") << g.member[i].char_id << "'";
-				l++;
+					"'" << g.guild_id 				<< "',"
+					"'" << g.member[i].char_id		<< "',"
+					"'" << g.member[i].exp			<< "',"
+					"'" << g.member[i].exp_payper	<< "',"
+					"'" << g.member[i].position		<< "',"
+					"'" << g.member[i].rsv1			<< "',"
+					"'" << g.member[i].rsv2			<< "'"
+					")";
+
+				query2 << (doit?",'":"'") << g.member[i].char_id << "'";
+				++doit;
 			}
 		}
-
-		if(l) // if there was a complete query
+		if(doit)
 		{
-			this->SendQuery(query);
-			this->SendQuery(query2);
+			dbcon1.PureQuery(query);
+			query2 << ")";	// -> WHERE <field> IN ( <list> )
+			dbcon1.PureQuery(query2);
 		}
 	}
 
+	if(g.save_flags&GUILD_SAFE_POSITION)
 	{
-		//printf("- Insert guild %d to guild_position\n",g->guild_id);
-		string<> query;
-
-		query << "REPLACE INTO `" << guild_position_db << "` "
+		query.clear();
+		query << "REPLACE "
+				 "INTO `" << dbcon1.escaped(this->tbl_guild_position) << "` "
 				 "(`guild_id`,`position`,`name`,`mode`,`exp_mode`) VALUES ";
-		int l = 0;
-		for(i=0;i<MAX_GUILDPOSITION;i++)
+		for(i=0, doit=0; i<MAX_GUILDPOSITION; ++i)
 		{
-			this->escape_string(t_position, g.position[i].name, strlen(g.position[i].name));
-			query << (l?",":"") <<
+			query << (doit?",":"") <<
 				"("
 				"'" << g.guild_id				<< "',"
-				"'" << i						<< "',"
-				"'" << t_position				<< "',"
+				"'" << i							<< "',"
+				"'" << dbcon1.escaped(g.position[i].name)<< "',"
 				"'" << g.position[i].mode		<< "',"
 				"'" << g.position[i].exp_mode	<< "'"
 				")";
-			l++;
+			++doit;
 		}
-
-		if(l) // if there was a complete query
-		{
-			this->SendQuery(query);
-		}
+		if(doit) dbcon1.PureQuery(query);
 	}
 
+	if(g.save_flags&GUILD_SAFE_ALLIANCE)
 	{
-		string<> query;
-		int l = 0;
-
-//		printf("- Delete guild %d from guild_alliance\n",g->guild_id);
-		query << "DELETE "
-				 "FROM `" << guild_alliance_db << "` "
-				 "WHERE '" << g.guild_id << "' IN (`alliance_id`,`guild_id`)";
-		this->SendQuery(query);
 		query.clear();
+		query << "DELETE "
+				 "FROM `" << dbcon1.escaped(this->tbl_guild_alliance) << "` "
+				 "WHERE '" << g.guild_id << "' IN (`alliance_id`,`guild_id`)";
+		dbcon1.PureQuery(query);
 
 
-//		printf("- Insert guild %d to guild_alliance\n",g->guild_id);
-		query << "REPLACE INTO `" << guild_alliance_db << "` "
-				 "(`guild_id`,`opposition`,`alliance_id`,`name`) VALUES ";
-		for(i=0;i<MAX_GUILDALLIANCE;i++)
+		query.clear();
+		query << "REPLACE INTO `" << dbcon1.escaped(this->tbl_guild_alliance) << "` "
+				 "(`guild_id`,`alliance_id`,`opposition`) VALUES ";
+		for(i=0, doit=0;i<MAX_GUILDALLIANCE;++i)
 		{
 			if(g.alliance[i].guild_id>0)
 			{
-				this->escape_string(t_alliance, g.alliance[i].name, strlen(g.alliance[i].name));
-				query << (l?",":"") <<
+				query << (doit?",":"") <<
 					"(" // Guild alliance for the current guild
 					"'" << g.guild_id				<< "',"
 					"'" << g.alliance[i].opposition	<< "',"
 					"'" << g.alliance[i].guild_id	<< "',"
-					"'" << t_alliance				<< "'"
-					"),"
+					")"
 					"(" // Guild alliance for the other guild
 					"'" << g.alliance[i].guild_id	<< "',"
 					"'" << g.alliance[i].opposition	<< "',"
 					"'" << g.guild_id				<< "',"
-					"'" << t_name					<< "'"
 					")";
-				l++;
+				++doit;
 			}
 		}
-		this->SendQuery(query);
-
+		if(doit) dbcon1.PureQuery(query);
 	}
 
+	if(g.save_flags&GUILD_SAFE_EXPULSE)
 	{
-		string<> query;
-		int l = 0;
+		query.clear();
+		query << "REPLACE INTO `" << dbcon1.escaped(this->tbl_guild_expulsion) << "` "
+				 "(`guild_id`,`char_id`,`mes`,`acc`,`rsv1`,`rsv2`,`rsv3`) "
+				 "VALUES ";
 
-//		printf("- Insert guild %d to guild_expulsion\n",g->guild_id);
-
-		query << "REPLACE INTO `" << guild_expulsion_db << "` "
-				 "(`guild_id`,`name`,`mes`,`acc`,`account_id`,`rsv1`,`rsv2`,`rsv3`) VALUES ";
-
-		for(i=0;i<MAX_GUILDEXPLUSION;i++)
+		for(i=0, doit=0;i<MAX_GUILDEXPLUSION;++i)
 		{
 			if(g.explusion[i].account_id>0)
 			{
-				this->escape_string(t_ename, g.explusion[i].name, strlen(g.explusion[i].name));
-				this->escape_string(t_emes, g.explusion[i].mes, strlen(g.explusion[i].mes));
-
-				query << (l?",":"") <<
+				query << (doit?",":"") <<
 					"("
 					"'" << g.guild_id					<< "',"
-					"'" << t_ename						<< "',"
-					"'" << t_emes						<< "',"
+					"'" << g.explusion[i].char_id		<< "',"
+					"'" << dbcon1.escaped(g.explusion[i].mes)<< "',"
 					"'" << g.explusion[i].acc			<< "',"
-					"'" << g.explusion[i].account_id	<< "',"
 					"'" << g.explusion[i].rsv1			<< "',"
 					"'" << g.explusion[i].rsv2			<< "',"
 					"'" << g.explusion[i].rsv3			<< "'"
 					")";
-				l++;
+				++doit;
 			}
 		}
-
-		if (l)
-		{
-			this->SendQuery(query);
-		}
+		if(doit) dbcon1.PureQuery(query);
 
 	}
 
+	if(g.save_flags&GUILD_SAFE_SKILL)
 	{
-		string<> query;
-		int l = 0;
+		query.clear();
+		query << "DELETE "
+				 "FROM `" << dbcon1.escaped(this->tbl_guild_skill) << "` "
+				 "WHERE `guild_id` = '" << g.guild_id << "'";
+		dbcon1.PureQuery(query);
 
-//		printf("- Insert guild %d to guild_skill\n",g->guild_id);
-
-		query << "REPLACE INTO `" << guild_skill_db << "` "
+		query << "INSERT INTO `" << dbcon1.escaped(this->tbl_guild_skill) << "` "
 				 "(`guild_id`,`id`,`lv`) VALUES ";
 
-		for(i=0;i<MAX_GUILDSKILL;i++)
+		for(i=0, doit=0;i<MAX_GUILDSKILL;++i)
 		{
-			if (g.skill[i].id>0)
+			if(g.skill[i].lv>0)
 			{
-				query << (l?",":"") <<
+				query << (doit?",":"") <<
 					"("
 					"'" << g.guild_id		<< "',"
 					"'" << g.skill[i].id	<< "',"
 					"'" << g.skill[i].lv	<< "'"
 					")";
-				l++;
+				++doit;
 			}
 		}
+		if(doit) dbcon1.PureQuery(query);
+	}
+	const_cast<CGuild&>(g).save_flags = 0;
+	return true;
+}
 
-		if (l)
+//////
+// Grabs information about a castle from the sql database, and writes the
+// newly-fetched information to 'castle'.
+//////
+bool CGuildDB_sql::searchCastle(ushort castle_id, CCastle& castle)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	size_t i;
+	query << "SELECT "
+			 "`castle_id`, `guild_id`, `economy`, `defense`, `triggerE`, `triggerD`, "
+			 "`nextTime`, `payTime`, `createTime`, `visibleC`"
+			 " FROM `" << dbcon1.escaped(this->tbl_castle) << "` "
+			 "WHERE `castle_id` = " << castle_id;
+
+	if( dbcon1.ResultQuery(query) && dbcon1 )
+	{
+		castle.castle_id = atoi(dbcon1[0]);
+		castle.guild_id = atoi(dbcon1[1]);
+		castle.economy = atoi(dbcon1[2]);
+		castle.defense = atoi(dbcon1[3]);
+		castle.triggerE = atoi(dbcon1[4]);
+		castle.triggerD = atoi(dbcon1[5]);
+		castle.nextTime = atoi(dbcon1[6]);
+		castle.payTime = atoi(dbcon1[7]);
+		castle.createTime = atoi(dbcon1[8]);
+		castle.visibleC = atoi(dbcon1[9]);
+
+		query.clear();
+		query << "SELECT "
+				 "`guardian_hp`, `guardian_visible` "
+				 "FROM `" << dbcon1.escaped(this->tbl_castle_guardian) << "` "
+				 "WHERE `castle_id` = " << castle_id;
+
+		dbcon1.ResultQuery(query);
+		for(i=0; dbcon1 && i<MAX_GUARDIAN; ++dbcon1, ++i)
 		{
-			this->SendQuery(query);
+			castle.guardian[i].guardian_id = 0;
+			castle.guardian[i].guardian_hp = atoi(dbcon1[0]);
+			castle.guardian[i].visible = atoi(dbcon1[1]);
+		}
+		for( ; i<MAX_GUARDIAN; ++i)
+		{
+			castle.guardian[i].guardian_id = 0;
+			castle.guardian[i].guardian_hp = 0;
+			castle.guardian[i].visible = 0;
 		}
 	}
-
-	printf("Save guild %d (%s) done\n",g.guild_id,g.name);
 	return true;
 }
-
-bool CGuildDB_sql::searchCastle(ushort castle_id, CCastle& gc)
+bool CGuildDB_sql::saveCastle(const CCastle& castle)
 {
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	size_t i;
 
-	if (castle_id<0) return false;
-	string<> query;
-
-	query << "SELECT "
-		"`castle_id`, `guild_id`, `economy`, `defense`, "
-		"`triggerE`, `triggerD`, `nextTime`, `payTime`, `createTime`, "
-		"`visibleC`, "
-		"`visibleG0`, `visibleG1`, `visibleG2`, `visibleG3`, "
-		"`visibleG4`, `visibleG5`, `visibleG6`, `visibleG7`,"
-		"`Ghp0`, `Ghp1`, `Ghp2`, `Ghp3`, `Ghp4`, `Ghp5`, `Ghp6`, `Ghp7`"
-		" FROM `" << castle_db << "` "
-		"WHERE `castle_id`='" << castle_id << "'";
-
-	if( this->SendQuery(query) )
-	{
-		if ( this->FetchResults() )
-		{
-			gc.castle_id=castle_id; // atoi (this->row[0]);
-			gc.guild_id =  atoi (this->row[1]);
-			gc.economy = atoi (this->row[2]);
-			gc.defense = atoi (this->row[3]);
-			gc.triggerE = atoi (this->row[4]);
-			gc.triggerD = atoi (this->row[5]);
-			gc.nextTime = atoi (this->row[6]);
-			gc.payTime = atoi (this->row[7]);
-			gc.createTime = atoi (this->row[8]);
-			gc.visibleC = atoi (this->row[9]);
-
-			gc.guardian[0].guardian_id = 0;
-			gc.guardian[1].guardian_id = 0;
-			gc.guardian[2].guardian_id = 0;
-			gc.guardian[3].guardian_id = 0;
-			gc.guardian[4].guardian_id = 0;
-			gc.guardian[5].guardian_id = 0;
-			gc.guardian[6].guardian_id = 0;
-			gc.guardian[7].guardian_id = 0;
-			gc.guardian[0].visible = atoi (this->row[10]);
-			gc.guardian[1].visible = atoi (this->row[11]);
-			gc.guardian[2].visible = atoi (this->row[12]);
-			gc.guardian[3].visible = atoi (this->row[13]);
-			gc.guardian[4].visible = atoi (this->row[14]);
-			gc.guardian[5].visible = atoi (this->row[15]);
-			gc.guardian[6].visible = atoi (this->row[16]);
-			gc.guardian[7].visible = atoi (this->row[17]);
-			gc.guardian[0].guardian_hp = atoi (this->row[18]);
-			gc.guardian[1].guardian_hp = atoi (this->row[19]);
-			gc.guardian[2].guardian_hp = atoi (this->row[20]);
-			gc.guardian[3].guardian_hp = atoi (this->row[21]);
-			gc.guardian[4].guardian_hp = atoi (this->row[22]);
-			gc.guardian[5].guardian_hp = atoi (this->row[23]);
-			gc.guardian[6].guardian_hp = atoi (this->row[24]);
-			gc.guardian[7].guardian_hp = atoi (this->row[25]);
-
-			printf("Read Castle %d of guild %d from sql \n",castle_id,gc.guild_id);
-		}
-	} else return false;
-
-	this->FreeResults() ; //resource free
-
-	// select data from castle_db where castle_id = cid
-	//else
-	return true;
-}
-bool CGuildDB_sql::saveCastle(CCastle& gc)
-{
-	string<> query;
-
-	query << "REPLACE INTO `" << castle_db << "` "
-		"("
-			 "`castle_id`, `guild_id`, `economy`, "
-			 "`defense`, `triggerE`, `triggerD`, "
-			 "`nextTime`, `payTime`, `createTime`, "
-			 "`visibleC`, "
-			 "`visibleG0`, `visibleG1`, `visibleG2`, `visibleG3`, "
-			 "`visibleG4`, `visibleG5`, `visibleG6`, `visibleG7`, "
-			 "`Ghp0`, `Ghp1`, `Ghp2`, `Ghp3`, `Ghp4`, `Ghp5`, `Ghp6`, `Ghp7`"
+	// create/update the castle's information
+	query << "REPLACE INTO `" << dbcon1.escaped(this->tbl_castle) << "` "
+			 "("
+			 "`castle_id`,`guild_id`,`economy`,`defense`,`triggerE`,`triggerD`,"
+			 "`nextTime`,`payTime`,`createTime`,`visibleC`"
 			 ") "
-			 "VALUES ("
-			 "'" << gc.castle_id << "','" << gc.guild_id << "','" << gc.economy << "',"
-			 "'" << gc.defense << "'," << "'" << gc.triggerE << "','" << gc.triggerD << "',"
-			 "'" << gc.nextTime << "','" << gc.payTime << "','" << gc.createTime << "',"
-			 "'" << gc.visibleC << "',"
-			 "'" << gc.guardian[0].visible << "','" << gc.guardian[1].visible << "','" << gc.guardian[2].visible << "','" << gc.guardian[3].visible << "',"
-			 "'" << gc.guardian[4].visible << "','" << gc.guardian[5].visible << "','" << gc.guardian[6].visible << "','" << gc.guardian[7].visible << "',"
-			 "'" << gc.guardian[0].guardian_hp << "','" << gc.guardian[1].guardian_hp << "','" << gc.guardian[2].guardian_hp << "','" << gc.guardian[3].guardian_hp << "',"
-			 "'" << gc.guardian[4].guardian_hp << "','" << gc.guardian[5].guardian_hp << "','" << gc.guardian[6].guardian_hp << "','" << gc.guardian[7].guardian_hp << "'"
-			 ")";
+			 "VALUES "
+			 "("
+			 "'" << castle.castle_id	<< "',"
+			 "'" << castle.guild_id		<< "',"
+			 "'" << castle.economy		<< "',"
+			 "'" << castle.defense		<< "',"
+			 "'" << castle.triggerE		<< "',"
+			 "'" << castle.triggerD		<< "',"
+			 "'" << castle.nextTime		<< "',"
+			 "'" << castle.payTime		<< "',"
+			 "'" << castle.createTime	<< "',"
+			 "'" << castle.visibleC		<< "'"
+			 ") ";
 
-	// update castle_db set new_data where castle_id = *castle.id
-	// else
-	return this->SendQuery(query);
+	dbcon1.PureQuery(query);
+
+	// Clear the guardians
+	query.clear();
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_castle_guardian) << "` "
+			 "WHERE castle_id = " << castle.castle_id;
+	dbcon1.PureQuery(query);
+
+	// Update the guardians
+	for (i=0; i<MAX_GUARDIAN; ++i)
+	{
+		if( castle.guardian[i].guardian_id )
+		{
+			query.clear();
+			query << "REPLACE INTO `" << dbcon1.escaped(this->tbl_castle_guardian) << "` "
+					 "(castle_id, guardian_id, guardian_hp, guardian_visible) "
+					 "VALUES "
+					 "(" << 
+					 castle.castle_id << ", " << 
+					 castle.guardian[i].guardian_id << ", " << 
+					 castle.guardian[i].guardian_hp << ", " << 
+					 castle.guardian[i].visible << 
+					 ")";
+			dbcon1.PureQuery(query);
+		}
+	}
+	return true;
 }
 bool CGuildDB_sql::removeCastle(ushort castle_id)
-{
+{	// Delete from this->tbl_castle where castle_id = *cid
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
 
-	// Delete from castle_db where castle_id = *cid
-	// else
-	string<> query;
 	query << "DELETE "
-			 "FROM `" << castle_db << "` "
+			 "FROM `" << dbcon1.escaped(this->tbl_castle_guardian) << "` "
+			 "WHERE castle_id = " << castle_id;
+	dbcon1.PureQuery(query);
+
+	query.clear();
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_castle) << "` "
 			 "WHERE castle_id = '" << castle_id << "'";
 
-	//removeFromMemory(castle_id);
-	this->SendQuery(query);
+	dbcon1.PureQuery(query);
 	return true;
+}
 
+bool CGuildDB_sql::getCastles(basics::vector<CCastle>& castlevector)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	CCastle tmp;
+
+	query << "SELECT "
+			 "castle_id"
+			 " FROM `" << dbcon1.escaped(this->tbl_castle) << "` ";
+	castlevector.clear();
+	for( dbcon1.ResultQuery(query); dbcon1; ++dbcon1)
+	{
+		if( this->searchCastle( atoi(dbcon1[0]), tmp) )
+			castlevector.push(tmp);
+	}
+	return true;
+}
+uint32 CGuildDB_sql::has_conflict(uint32 guild_id, uint32 account_id, uint32 char_id)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+
+	// check guild's members
+	query << "SELECT `guild_id` "
+			 "FROM `" << dbcon1.escaped(this->tbl_guild_member) << "` "
+			 "WHERE `char_id` = " << char_id << " "
+			 "AND `guild_id` != " << guild_id;
+
+	if( dbcon1.ResultQuery(query) && 0!=atoi(dbcon1[0]) && guild_id!=(uint32)atoi(dbcon1[0]) )
+	{	// entry in members
+		return atoi(dbcon1[0]);
+	}
+
+	// check char
+	query.clear();
+	query << "SELECT `guild_id` "
+			 "FROM `" << dbcon1.escaped(this->tbl_char) << "` "
+			 "WHERE `account_id` = " << account_id << " "
+			 "AND `char_id` = " << char_id;
+	if( dbcon1.ResultQuery(query) && 0!=atoi(dbcon1[0]) && guild_id!=(uint32)atoi(dbcon1[0]) )
+	{
+		return atoi(dbcon1[0]);
+	}
+	return 0;
+}
+
+//////////
+// Party
+///////
+bool CPartyDB_sql::init(const char* configfile)
+{	// init db
+	if(configfile) basics::CParamBase::loadFile(configfile);
+	return true;
+}
+size_t CPartyDB_sql::size() const
+{
+	return this->get_table_size(this->tbl_party);
+}
+
+CParty& CPartyDB_sql::operator[](size_t i)
+{	// not threadsafe
+	static CParty p;
+
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	
+	query << "SELECT `party_id` "
+			 "FROM `" << dbcon1.escaped(this->tbl_party) << "` "
+			 "ORDER BY `party_id`"
+			 "LIMIT "<< i << ",1 ";
+
+	if( !dbcon1.ResultQuery(query) || !searchParty( atol(dbcon1[0]), p) )
+			p.party_id = 0;
+	return p;
+}
+bool CPartyDB_sql::searchParty(const char* name, CParty& p)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	
+	query << "SELECT `party_id` "
+			 "FROM `" << dbcon1.escaped(this->tbl_party) << "` "
+			 "WHERE `name` = '" << dbcon1.escaped(name) << "'";
+
+	if( dbcon1.ResultQuery(query) )
+	{
+		return searchParty( atol(dbcon1[0]), p);
+	}
+	return false;
 }
 
 
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Party Database
-///////////////////////////////////////////////////////////////////////////////
-class CPartyDB_sql : public CMySQL, private CConfig, public CPartyDBInterface
+bool CPartyDB_sql::searchParty(uint32 pid, CParty& p)
 {
-/*		// Shouldnt be needed for SQL versions
-		// WIll keep for reference to data structures and usage
-		// after done, will remove, and test compile =D
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	size_t i;
+	bool found, ret = false;
+	query << "SELECT "
+			 "`party_id`, `name`, `expshare`, `itemshare`, `itemc`, `leader` "
+			 "FROM `" << dbcon1.escaped(this->tbl_party) << "` "
+			 "WHERE `party_id` = '" << pid << "'";
 
-	ssize_t party_to_string(char *str, size_t maxlen, const CParty &p)
+	if( dbcon1.ResultQuery(query) )
 	{
-		ssize_t i, len;
-		len = sprintf(str, "%ld\t%s\t%d,%d\t", (unsigned long)p.party_id, p.name, p.expshare, p.itemshare);
-		for(i = 0; i < MAX_PARTY; i++)
-		{
-			const struct party_member &m = p.member[i];
-			len += sprintf(str+len, "%ld,%ld\t%s\t", (unsigned long)m.account_id, (unsigned long)m.leader, ((m.account_id > 0) ? m.name : "NoMember"));
-		}
-		sprintf(str+len, RETCODE);
-		return len;
-	}
-	bool party_from_string(const char *str, CParty &p)
-	{
-		int i, j;
-		int tmp_int[16];
-		char tmp_str[256];
+		p.party_id = atol( dbcon1[0] );
+		safestrcpy(p.name, dbcon1[1], sizeof(p.name));
+		p.expshare = atol( dbcon1[2] );
+		p.itemshare= atol( dbcon1[3] );
+		p.itemc    = atol( dbcon1[4] );
+		basics::string<> leader = atol( dbcon1[5] );
 
-		if (sscanf(str, "%d\t%255[^\t]\t%d,%d\t", &tmp_int[0], tmp_str, &tmp_int[1], &tmp_int[2]) != 4)
-			return false;
+		query.clear();
+		query << "SELECT "
+				 "`account_id`, `name`, `base_level` "
+				 "FROM `" << dbcon1.escaped(this->tbl_char) << "` "
+				 "WHERE `party_id` = '" << p.party_id << "'";
+		dbcon1.ResultQuery(query);
 
-		p.party_id = tmp_int[0];
-		safestrcpy(p.name, tmp_str, sizeof(p.name));
-		p.expshare = tmp_int[1];
-		p.itemshare = tmp_int[2];
-		for(j=0; j<3 && str != NULL; j++)
-			str = strchr(str+1, '\t');
 
-		for(i=0; i<MAX_PARTY; i++)
+		for(i=0, found=false; dbcon1 && i<MAX_PARTY; ++dbcon1, ++i)
 		{
 			struct party_member &m = p.member[i];
-			if(str == NULL)
-				return false;
-			if(sscanf(str + 1, "%d,%d\t%255[^\t]\t", &tmp_int[0], &tmp_int[1], tmp_str) != 3)
-				return false;
+			m.account_id = atol( dbcon1[0] );
+			safestrcpy(m.name, dbcon1[1], sizeof(m.name));
+			m.lv = atol( dbcon1[2] );
 
-			m.account_id = tmp_int[0];
-			m.leader = tmp_int[1];
-			safestrcpy(m.name, tmp_str, sizeof(m.name));
-			for(j=0; j<2 && str != NULL; j++)
-				str = strchr(str + 1, '\t');
+			found |= m.leader = (leader==m.name);
 		}
-		return true;
-	}
-	bool readParties()
-	{
-		char line[8192];
-		int c = 0;
-		int i, j;
-		FILE *fp = safefopen(party_filename, "r");
-
-		if( fp == NULL )
-		{
-			ShowError("Party: cannot open %s\n", party_filename);
-			return false;
+		if(i==0)
+		{	// party is empty but still there
+			this->removeParty(pid);
 		}
-		while(fgets(line, sizeof(line), fp))
+		else
 		{
-			c++;
-			if( !get_prepared_line(line) )
-				continue;
-
-			j = 0;
-			if (sscanf(line, "%d\t%%newid%%\n%n", &i, &j) == 1 && j > 0 && next_party_id <= (uint32)i)
-			{
-				next_party_id = i;
+			if(!found)
+			{	// first member takes over the party
+				p.member[0].leader=1;
 			}
-			else
-			{
-				CParty p;
-				if( party_from_string(line, p) && p.party_id > 0)
-				{
-					if( !p.isempty() )
-					{
-						if(p.party_id >= next_party_id)
-							next_party_id = p.party_id + 1;
-
-						cParties.insert(p);
-					}
-				}
-				else
-				{
-					ShowError("int_party: broken data [%s] line %d\n", party_filename, c);
-				}
-			}
+			ret = true;
 		}
-		fclose(fp);
-		ShowStatus("Party: %s read done (%d parties)\n", party_filename, c);
-		return true;
-	}
-	bool saveParties()
-	{
-		char line[65536];
-		FILE *fp;
-		int lock;
-		size_t i;
-		ssize_t sz;
-
-		if ((fp = lock_fopen(party_filename, &lock)) == NULL) {
-			ShowError("Party: cannot open [%s]\n", party_filename);
-			return false;
-		}
-		for(i=0; i<cParties.size(); i++)
+		// clear the other members
+		for( ; i<MAX_PARTY; ++i)
 		{
-			sz = party_to_string(line, sizeof(line), cParties[i]);
-			if(sz>0) fwrite(line, sz,1, fp);
+			struct party_member &m = p.member[i];
+			m.account_id = 0;
+			m.name[0] = 0;
+			m.lv = 0;
+
+			found |= m.leader = (leader==m.name);
 		}
-		fprintf(fp, "%d\t%%newid%%\n", next_party_id);
-		lock_fclose(fp,party_filename, &lock);
-		return 0;
 	}
-*/
+	return ret;
+}
 
-	string<> party_db;
+bool CPartyDB_sql::insertParty(uint32 accid, const char* nick, const char* mapname, ushort lv, const char* name, CParty& p)
+{	// insert into party values (*party)
+	if( !searchParty(name,p) )
+	{	// not in the database, better create the entry and insert into the database
+		safestrcpy(p.name,name,sizeof(p.name));
+		p.expshare = 0;
+		p.itemshare= 0;
+		p.itemc    = 0;
+		p.member[0].account_id = accid;
+		safestrcpy( p.member[0].name, nick, sizeof(p.member[0].name) );
+		safestrcpy( p.member[0].mapname, mapname, sizeof(p.member[0].mapname) );
+		p.member[0].leader = 1;
+		p.member[0].online = 1;
+		p.member[0].lv = lv;
 
-public:
-	///////////////////////////////////////////////////////////////////////////
-	// construct/destruct
-	CPartyDB_sql(const char *configfile)
-	{
-		party_db = "party";
-		init(configfile);
+		basics::CMySQLConnection dbcon1(this->sqlbase);
+		basics::string<> query;
+
+		query << "INSERT INTO `" << dbcon1.escaped(this->tbl_party) << "` "
+				 "(`name`, `leader`) VALUES "
+				 "('" << dbcon1.escaped(name) << "','" << dbcon1.escaped(nick) << "')";
+		bool ret = dbcon1.PureQuery(query);
+		// now we get the ID from the last inserted INSERT statement 
+		//(returns the last ID for this client, other clients wont affect this)
+		p.party_id = dbcon1.getLastID();
+		return ret;
 	}
-	virtual ~CPartyDB_sql()
-	{
-		close();
-	}
-private:
-	///////////////////////////////////////////////////////////////////////////
-	// data
-	TMultiListP<CParty, 2>	cParties;
-	uint32					next_party_id;
-	uint					savecount;
-	char					party_filename[1024];
-
-	///////////////////////////////////////////////////////////////////////////
-	// Config processor
-	virtual bool ProcessConfig(const char*w1, const char*w2)
-	{
-
-		return true;
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// normal function
-	bool init(const char* configfile)
-	{	// init db
-		if(configfile)
-			CConfig::LoadConfig(configfile);
-		return true;
-	}
-	bool close()
-	{
-		return true;
-	}
-
-
-	///////////////////////////////////////////////////////////////////////////
-	// access interface
-	virtual size_t size()					{ return 0; /*cParties.size();*/ }
-	virtual CParty& operator[](size_t i)	{ static CParty tmp; return tmp; /*return cParties[i];*/ }
-
-	virtual bool searchParty(const char* name, CParty& party)
-	{
-		// select data from party where name = *name
-		// return *party true
-		return false;
-	}
-	virtual bool searchParty(uint32 pid, CParty& party)
-	{
-		// select data from party where party_id = *pid
-		// return party data true
-		return false;
-	}
-	virtual bool insertParty(uint32 accid, const char *nick, const char *map, ushort lv, const char *name, CParty &party)
-	{
-		// insert into party values (*party)
-/*
-		size_t pos;
-		CParty temp(name);
-		if( !cParties.find( temp, pos, 0) )
-		{
-			//temp.name[24];
-			temp.party_id = next_party_id++;
-			temp.expshare = 0;
-			temp.itemshare = 0;
-			temp.member[0].account_id = accid;
-			safestrcpy(temp.member[0].name, nick, sizeof(temp.member[0].name));
-			safestrcpy(temp.member[0].mapname, map, sizeof(temp.member[0].mapname));
-			temp.member[0].leader = 1;
-			temp.member[0].online = 1;
-			temp.member[0].lv = lv;
-
-			cParties.insert(temp);
-			party = temp;
-			return true;
-		}
-
-*/
-		return false;
-	}
-	virtual bool removeParty(uint32 pid)
-	{
-		string<> query;
-		query << "DELETE FROM `" << party_db << "` WHERE `party_id` = '" << pid << "'";
-		return this->SendQuery(query);
-	}
-	virtual bool saveParty(const CParty& party)
-	{/*
-		string<> query;
-		query "REPLACE INTO `" << party_db << "` (`contents`) VALUES ";
-
-		// update party set values=*party
-		// return true */
-		return false;
-	}
-};
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Storage Database Interface
-///////////////////////////////////////////////////////////////////////////////
-class CPCStorageDB_sql : public CMySQL, private CConfig, public CPCStorageDBInterface
+	return false;
+}
+bool CPartyDB_sql::removeParty(uint32 pid)
 {
-/*		// Shouldnt be needed for SQL versions
-		// WIll keep for reference to data structures and usage
-		// after done, will remove, and test compile =D
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
 
-	ssize_t storage_to_string(char *str, size_t maxlen, const CPCStorage &stor)
-	{
-		int i,f=0;
-		char *str_p = str;
-		str_p += sprintf(str_p,"%ld,%d\t",(unsigned long)stor.account_id, stor.storage_amount);
-		for(i=0;i<MAX_STORAGE;i++)
-		{
-			if( (stor.storage[i].nameid) && (stor.storage[i].amount) )
-			{
-				str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
-					stor.storage[i].id,stor.storage[i].nameid,stor.storage[i].amount,stor.storage[i].equip,
-					stor.storage[i].identify,stor.storage[i].refine,stor.storage[i].attribute,
-					stor.storage[i].card[0],stor.storage[i].card[1],stor.storage[i].card[2],stor.storage[i].card[3]);
-				f++;
-			}
-		}
-		*(str_p++)='\t';
-		*str_p='\0';
-		if(!f)
-		{
-			str[0]=0;
-			str_p=str;
-		}
-		return (str_p-str);
-	}
-	int storage_from_string(const char *str, CPCStorage &stor)
-	{
-		int tmp_int[256];
-		int set,next,len,i;
+	query << "UPDATE `" << dbcon1.escaped(this->tbl_char) << "` "
+			 "SET `party_id`='0' "
+			 "WHERE `party_id` = '" << pid << "'";
+	dbcon1.PureQuery(query);
+	
+	query.clear();
+	query << "DELETE FROM `" << dbcon1.escaped(this->tbl_party) << "` "
+			 "WHERE `party_id` = '" << pid << "'";
+	return dbcon1.PureQuery(query);
+}
 
-		set=sscanf(str,"%d,%d%n",&tmp_int[0],&tmp_int[1],&next);
-		stor.storage_amount=tmp_int[1];
-
-		if(set!=2)
-			return false;
-		if(str[next]=='\n' || str[next]=='\r')
-			return false;
-		next++;
-		for(i=0;str[next] && str[next]!='\t';i++)
-		{
-			if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
-				&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-				&tmp_int[4], &tmp_int[5], &tmp_int[6],
-				&tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &tmp_int[10], &len) == 12)
-			{
-				stor.storage[i].id = tmp_int[0];
-				stor.storage[i].nameid = tmp_int[1];
-				stor.storage[i].amount = tmp_int[2];
-				stor.storage[i].equip = tmp_int[3];
-				stor.storage[i].identify = tmp_int[4];
-				stor.storage[i].refine = tmp_int[5];
-				stor.storage[i].attribute = tmp_int[6];
-				stor.storage[i].card[0] = tmp_int[7];
-				stor.storage[i].card[1] = tmp_int[8];
-				stor.storage[i].card[2] = tmp_int[9];
-				stor.storage[i].card[3] = tmp_int[10];
-				next += len;
-				if (str[next] == ' ')
-					next++;
-			}
-			else if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
-				&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-				&tmp_int[4], &tmp_int[5], &tmp_int[6],
-				&tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &len) == 11)
-			{
-				stor.storage[i].id = tmp_int[0];
-				stor.storage[i].nameid = tmp_int[1];
-				stor.storage[i].amount = tmp_int[2];
-				stor.storage[i].equip = tmp_int[3];
-				stor.storage[i].identify = tmp_int[4];
-				stor.storage[i].refine = tmp_int[5];
-				stor.storage[i].attribute = tmp_int[6];
-				stor.storage[i].card[0] = tmp_int[7];
-				stor.storage[i].card[1] = tmp_int[8];
-				stor.storage[i].card[2] = tmp_int[9];
-				stor.storage[i].card[3] = tmp_int[10];
-				next += len;
-				if (str[next] == ' ')
-					next++;
-			}
-			else
-				return false;
-		}
-		return true;
-	}
-	bool readPCStorage()
-	{
-		char line[65536];
-		int c=0;
-		unsigned long tmp;
-		CPCStorage s;
-		FILE *fp=safefopen(pcstorage_filename,"r");
-
-		if(fp==NULL)
-		{
-			ShowError("Storage: cannot open %s\n", pcstorage_filename);
-			return false;
-		}
-		while(fgets(line,sizeof(line),fp))
-		{
-			c++;
-			if( !get_prepared_line(line) )
-				continue;
-
-			sscanf(line,"%ld",&tmp);
-			s.account_id=tmp;
-			if(s.account_id > 0 && storage_from_string(line,s) )
-			{
-				cPCStorList.insert(s);
-			}
-			else
-			{
-				ShowError("Storage: broken data [%s] line %d\n",pcstorage_filename,c);
-			}
-		}
-		fclose(fp);
-		return true;
-	}
-	bool savePCStorage()
-	{
-		char line[65536];
-		int lock;
-		size_t i, sz;
-		FILE *fp=lock_fopen(pcstorage_filename,&lock);
-
-		if( fp==NULL )
-		{
-			ShowError("Storage: cannot open [%s]\n",pcstorage_filename);
-			return false;
-		}
-		for(i=0; i<cPCStorList.size(); i++)
-		{
-			sz = storage_to_string(line, sizeof(line), cPCStorList[i]);
-			if(sz>0) fprintf(fp,"%s"RETCODE,line);
-		}
-		lock_fclose(fp, pcstorage_filename, &lock);
-		return true;
-	}
-
-*/
-
-public:
-	///////////////////////////////////////////////////////////////////////////
-	// construct/destruct
-	CPCStorageDB_sql(const char *dbcfgfile)
-	{
-		init(dbcfgfile);
-	}
-	virtual ~CPCStorageDB_sql()
-	{
-		close();
-	}
-
-private:
-	///////////////////////////////////////////////////////////////////////////
-	// data
-
-
-	///////////////////////////////////////////////////////////////////////////
-	// Config processor
-	virtual bool ProcessConfig(const char*w1, const char*w2)
-	{
-
-		return true;
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// normal function
-	bool init(const char* configfile)
-	{	// init db
-		if(configfile)
-			CConfig::LoadConfig(configfile);
-		return true;
-	}
-	bool close()
-	{
-		return true;
-	}
-
-
-
-	///////////////////////////////////////////////////////////////////////////
-	// access interface
-	virtual size_t size()	{ return 0; /*cPCStorList.size();*/ }
-	virtual CPCStorage& operator[](size_t i)	{ static CPCStorage tmp; return tmp; /*cPCStorList[i];*/ }
-
-	virtual bool searchStorage(uint32 accid, CPCStorage& stor)
-	{
-		//select data from storage where account_id = *accid
-		// return true and stor
-		return false;
-	}
-	virtual bool removeStorage(uint32 accid)
-	{
-		// delete from storage where account_id = *accid
-		// else
-		return false;
-	}
-	virtual bool saveStorage(const CPCStorage& stor)
-	{
-		// insert into storage values (*stor)
-		// return false, and possible debugging on why it couldnt insert
-	}
-};
-
-
-
-class CGuildStorageDB_sql : public CMySQL, private CConfig, public CGuildStorageDBInterface
+bool CPartyDB_sql::saveParty(const CParty& p)
 {
-/*		// Shouldnt be needed for SQL versions
-		// WIll keep for reference to data structures and usage
-		// after done, will remove, and test compile =D
+	size_t i;
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
 
-	ssize_t guild_storage_to_string(char *str, size_t maxlen, const CGuildStorage &stor)
+	// check for existing leader, or just set one
+	for(i=0; i<MAX_PARTY; ++i)
+		if(p.member[i].leader)
+			break;
+	if(i>=MAX_PARTY)
+		i=0;
+
+	query << "UPDATE `" << dbcon1.escaped(this->tbl_party) << "` "
+			 "SET "
+			 "`leader` ='"     << dbcon1.escaped(p.member[i].name) << "',"
+			 "`expshare` = '"  << p.expshare << "',"
+			 "`itemshare` = '" << p.itemshare << "',"
+			 "`itemc` = '"     << p.itemc << "' "
+			 "WHERE `party_id` = '" << p.party_id << "'";
+	dbcon1.PureQuery(query);
+	return true;
+}
+
+
+////////////
+// Account Storage
+/////////
+bool CPCStorageDB_sql::init(const char* configfile)
+{	// init db
+	if(configfile) basics::CParamBase::loadFile(configfile);
+	return true;
+}
+
+size_t CPCStorageDB_sql::size() const
+{
+	return this->get_table_size(this->tbl_storage);
+}
+
+CPCStorage& CPCStorageDB_sql::operator[](size_t i)
+{	// not threadsafe
+	static CPCStorage stor;
+
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	stor.account_id = 0;
+
+	query << "SELECT "
+			 "`account_id`"
+			 "FROM `" << dbcon1.escaped(this->tbl_account) << "` "
+			 "ORDER BY `account_id`"
+			 "LIMIT "<< i << ",1 ";
+	if( dbcon1.ResultQuery(query) )
 	{
-		int i,f=0;
-		char *str_p = str;
-		str_p+=sprintf(str,"%ld,%d\t",(unsigned long)stor.guild_id, stor.storage_amount);
-
-		for(i=0;i<MAX_GUILD_STORAGE;i++)
-		{
-			if( (stor.storage[i].nameid) && (stor.storage[i].amount) )
-			{
-				str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
-					stor.storage[i].id,stor.storage[i].nameid,stor.storage[i].amount,stor.storage[i].equip,
-					stor.storage[i].identify,stor.storage[i].refine,stor.storage[i].attribute,
-					stor.storage[i].card[0],stor.storage[i].card[1],stor.storage[i].card[2],stor.storage[i].card[3]);
-				f++;
-			}
-			*(str_p++)='\t';
-			*str_p='\0';
-		}
-		if(!f)
-		{
-			str[0]=0;
-			str_p=str;
-		}
-		return (str_p-str);
+		this->searchStorage(atol(dbcon1[0]), stor);
 	}
-	bool guild_storage_from_string(const char *str, CGuildStorage &stor)
+	return stor;
+}
+
+
+bool CPCStorageDB_sql::searchStorage(uint32 accid, CPCStorage& stor)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	size_t i;
+
+	query << "SELECT "
+			 "`nameid`, `amount`, `equip`, `identify`, "
+			 "`refine`, `attribute`, `card0`, `card1`, `card2`, `card3` "
+			 "FROM `" << dbcon1.escaped(this->tbl_storage) << "` "
+			 "WHERE `account_id` = '" << accid << "'";
+	if( dbcon1.ResultQuery(query) )
 	{
-		int tmp_int[256];
-		int set,next,len,i;
+		stor.account_id = accid;
 
-		set=sscanf(str,"%d,%d%n",&tmp_int[0],&tmp_int[1],&next);
-		if(set!=2)
-			return false;
-		if(str[next]=='\n' || str[next]=='\r')
-			return false;
-		next++;
-
-		stor.storage_amount = (((ushort)tmp_int[1])<MAX_GUILD_STORAGE) ? tmp_int[1] : MAX_GUILD_STORAGE;
-		for(i=0; str[next] && str[next]!='\t'; i++)
+		for(i=0; dbcon1 && i<MAX_STORAGE; ++dbcon1, ++i)
 		{
-			if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
-				&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-				&tmp_int[4], &tmp_int[5], &tmp_int[6],
-				&tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &tmp_int[10], &len) == 12)
-			{
-				stor.storage[i].id = tmp_int[0];
-				stor.storage[i].nameid = tmp_int[1];
-				stor.storage[i].amount = tmp_int[2];
-				stor.storage[i].equip = tmp_int[3];
-				stor.storage[i].identify = tmp_int[4];
-				stor.storage[i].refine = tmp_int[5];
-				stor.storage[i].attribute = tmp_int[6];
-				stor.storage[i].card[0] = tmp_int[7];
-				stor.storage[i].card[1] = tmp_int[8];
-				stor.storage[i].card[2] = tmp_int[9];
-				stor.storage[i].card[3] = tmp_int[10];
-				next += len;
-				while(str[next] == ' ') next++;
-			}
-			else if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
-				  &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-				  &tmp_int[4], &tmp_int[5], &tmp_int[6],
-				  &tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &len) == 11) {
-				stor.storage[i].id = tmp_int[0];
-				stor.storage[i].nameid = tmp_int[1];
-				stor.storage[i].amount = tmp_int[2];
-				stor.storage[i].equip = tmp_int[3];
-				stor.storage[i].identify = tmp_int[4];
-				stor.storage[i].refine = tmp_int[5];
-				stor.storage[i].attribute = tmp_int[6];
-				stor.storage[i].card[0] = tmp_int[7];
-				stor.storage[i].card[1] = tmp_int[8];
-				stor.storage[i].card[2] = tmp_int[9];
-				stor.storage[i].card[3] = tmp_int[10];
-				next += len;
-				while(str[next] == ' ')	next++;
-			}
-			else
-				return false;
+			stor.storage[i].nameid		= atol( dbcon1[0] );
+			stor.storage[i].amount		= atol( dbcon1[1] );
+			stor.storage[i].equip		= atol( dbcon1[2] );
+			stor.storage[i].identify	= atol( dbcon1[3] );
+			stor.storage[i].refine		= atol( dbcon1[4] );
+			stor.storage[i].attribute	= atol( dbcon1[5] );
+			stor.storage[i].card[0]		= atol( dbcon1[6] );
+			stor.storage[i].card[1]		= atol( dbcon1[7] );
+			stor.storage[i].card[2]		= atol( dbcon1[8] );
+			stor.storage[i].card[3]		= atol( dbcon1[9] );
+		}
+		stor.storage_amount = i;
+		for( ; i<MAX_STORAGE; ++i)
+		{
+			stor.storage[i].nameid		= 0;
+			stor.storage[i].amount		= 0;
+			stor.storage[i].equip		= 0;
+			stor.storage[i].identify	= 0;
+			stor.storage[i].refine		= 0;
+			stor.storage[i].attribute	= 0;
+			stor.storage[i].card[0]		= 0;
+			stor.storage[i].card[1]		= 0;
+			stor.storage[i].card[2]		= 0;
+			stor.storage[i].card[3]		= 0;
 		}
 		return true;
 	}
+	return false;
+}
 
-	bool readGuildStorage()
+bool CPCStorageDB_sql::removeStorage(uint32 accid)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_storage) << "` "
+			 "WHERE `account_id`='" << accid << "'";
+	return dbcon1.PureQuery( query );
+}
+
+bool CPCStorageDB_sql::saveStorage(const CPCStorage& stor)
+{
+	this->removeStorage(stor.account_id);
+
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	size_t i, doit;
+
+	query << "INSERT INTO `" << dbcon1.escaped(this->tbl_storage) << "`"
+			 "(`account_id`, `nameid`, `amount`, `equip`, `identify`, "
+			 "`refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ";
+
+	for(i=0,doit=0; i<MAX_STORAGE; ++i)
 	{
-		char line[65536];
-		int c=0;
-		unsigned long tmp;
-		CGuildStorage gs;
-		FILE *fp=safefopen(guildstorage_filename,"r");
-		if(fp==NULL){
-			ShowMessage("cant't read : %s\n",guildstorage_filename);
-			return 1;
-		}
-		while(fgets(line,sizeof(line),fp))
+		if(stor.storage[i].nameid>0)
 		{
-			c++;
-			if( !get_prepared_line(line) )
-				continue;
-
-			sscanf(line,"%ld",&tmp);
-			gs.guild_id=tmp;
-			if(gs.guild_id > 0 && guild_storage_from_string(line,gs) )
-			{
-				cGuildStorList.insert(gs);
-			}
-			else
-			{
-				ShowError("Storage: broken data [%s] line %d\n", guildstorage_filename, c);
-			}
+			query << (doit?",":"") <<
+				"("
+				"'" <<	stor.account_id				<< "',"
+				"'" <<	stor.storage[i].nameid		<< "',"
+				"'" <<	stor.storage[i].amount		<< "',"
+				"'" <<	stor.storage[i].equip		<< "',"
+				"'" <<	stor.storage[i].identify	<< "',"
+				"'" <<	stor.storage[i].refine		<< "',"
+				"'" <<	stor.storage[i].attribute	<< "',"
+				"'" <<	stor.storage[i].card[0]		<< "',"
+				"'" <<	stor.storage[i].card[1]		<< "',"
+				"'" <<	stor.storage[i].card[2]		<< "',"
+				"'" <<	stor.storage[i].card[3]		<< "'"
+				")";
+			++doit;
 		}
-		fclose(fp);
+	}
+	if(doit) dbcon1.PureQuery(query);
+	return true;
+}
+
+///////////
+// Guild storage
+///////
+
+bool CGuildStorageDB_sql::init(const char* configfile)
+{       // init db
+	if(configfile) basics::CParamBase::loadFile(configfile);
+	return true;
+}
+
+size_t CGuildStorageDB_sql::size() const
+{
+	return this->get_table_size(this->tbl_guild_storage);
+}
+
+CGuildStorage& CGuildStorageDB_sql::operator[](size_t i)
+{	// not threadsafe
+	static CGuildStorage stor;
+
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	stor.guild_id = 0;
+
+	query << "SELECT "
+			 "`guild_id`"
+			 "FROM `" << dbcon1.escaped(this->tbl_guild) << "` "
+			 "ORDER BY `guild_id`"
+			 "LIMIT "<< i << ",1 ";
+	if( dbcon1.ResultQuery(query) )
+	{
+		searchStorage(atol(dbcon1[0]), stor);
+	}
+	return stor;
+}
+
+bool CGuildStorageDB_sql::searchStorage(uint32 gid, CGuildStorage& stor)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	size_t i;
+
+	query << "SELECT "
+			 "`nameid`, `amount`, `equip`, `identify`, "
+			 "`refine`, `attribute`, `card0`, `card1`, `card2`, `card3` "
+			 "FROM `" << dbcon1.escaped(this->tbl_guild_storage) << "` "
+			 "WHERE `guild_id` = '" << gid << "'";
+
+	if( dbcon1.ResultQuery(query) )
+	{
+		stor.guild_id = gid;
+
+		for(i=0; dbcon1 && i<MAX_GUILD_STORAGE; ++dbcon1, ++i)
+		{
+			stor.storage[i].nameid		= atol( dbcon1[0] );
+			stor.storage[i].amount		= atol( dbcon1[1] );
+			stor.storage[i].equip		= atol( dbcon1[2] );
+			stor.storage[i].identify	= atol( dbcon1[3] );
+			stor.storage[i].refine		= atol( dbcon1[4] );
+			stor.storage[i].attribute	= atol( dbcon1[5] );
+			stor.storage[i].card[0]		= atol( dbcon1[6] );
+			stor.storage[i].card[1]		= atol( dbcon1[7] );
+			stor.storage[i].card[2]		= atol( dbcon1[8] );
+			stor.storage[i].card[3]		= atol( dbcon1[9] );
+		}
+		for( ; i<MAX_GUILD_STORAGE; ++i)
+		{
+			stor.storage[i].nameid		= 0;
+			stor.storage[i].amount		= 0;
+			stor.storage[i].equip		= 0;
+			stor.storage[i].identify	= 0;
+			stor.storage[i].refine		= 0;
+			stor.storage[i].attribute	= 0;
+			stor.storage[i].card[0]		= 0;
+			stor.storage[i].card[1]		= 0;
+			stor.storage[i].card[2]		= 0;
+			stor.storage[i].card[3]		= 0;
+		}
 		return true;
 	}
-	bool saveGuildStorage()
-	{
-		char line[65536];
-		int lock;
-		size_t i, sz;
-		FILE *fp=lock_fopen(guildstorage_filename,&lock);
+	return false;
+}
+bool CGuildStorageDB_sql::removeStorage(uint32 gid)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_guild_storage) << "` "
+			 "WHERE `guild_id`='" << gid << "'";
+	return dbcon1.PureQuery( query );
+}
+bool CGuildStorageDB_sql::saveStorage(const CGuildStorage& stor)
+{
+	this->removeStorage(stor.guild_id);
 
-		if( fp==NULL )
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	size_t i, doit;
+	query << "INSERT INTO `" << dbcon1.escaped(this->tbl_guild_storage) << "`"
+			 "(`guild_id`, `nameid`, `amount`, `equip`, `identify`, "
+			 "`refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ";
+
+	for(i=0,doit=0; i<MAX_STORAGE; ++i)
+	{
+		if(stor.storage[i].nameid>0)
 		{
-			ShowError("Storage: cannot open [%s]\n",guildstorage_filename);
-			return false;
+			query << (doit?",":"") <<
+				"("
+				"'" <<	stor.guild_id				<< "',"
+				"'" <<	stor.storage[i].nameid		<< "',"
+				"'" <<	stor.storage[i].amount		<< "',"
+				"'" <<	stor.storage[i].equip		<< "',"
+				"'" <<	stor.storage[i].identify	<< "',"
+				"'" <<	stor.storage[i].refine		<< "',"
+				"'" <<	stor.storage[i].attribute	<< "',"
+				"'" <<	stor.storage[i].card[0]		<< "',"
+				"'" <<	stor.storage[i].card[1]		<< "',"
+				"'" <<	stor.storage[i].card[2]		<< "',"
+				"'" <<	stor.storage[i].card[3]		<< "'"
+				")";
+			++doit;
 		}
-		for(i=0; i<cGuildStorList.size(); i++)
-		{
-			sz = guild_storage_to_string(line, sizeof(line), cGuildStorList[i]);
-			if(sz>0) fprintf(fp,"%s"RETCODE,line);
-		}
-		lock_fclose(fp, guildstorage_filename, &lock);
+	}
+	if(doit) dbcon1.PureQuery(query);
+	return true;
+}
+
+
+////////
+// Pets
+////
+bool CPetDB_sql::init(const char *dbcfgfile)
+{
+	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
+	return true;
+}
+
+size_t CPetDB_sql::size() const
+{
+	return this->get_table_size(this->tbl_pet);
+}
+
+CPet& CPetDB_sql::operator[](size_t i)
+{	// not threadsafe
+	static CPet pet;
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	query << "SELECT "
+			 "`p`.`pet_id`,`c`.`account_id`,`p`.`char_id`,`p`.`class`,`p`.`level`,"
+			 "`p`.`egg_id`,`p`.`equip_id`,`p`.`intimate`,`p`.`hungry`,`p`.`name`,"
+			 "`p`.`rename_flag`,`p`.`incuvate` "
+			 "FROM `" << dbcon1.escaped(this->tbl_pet) << "` `p`"
+			 "JOIN `" << dbcon1.escaped(this->tbl_char) << "` `c` ON `p`.`char_id`=`c`.`char_id` "
+			 "ORDER BY `pet_id`"
+			 "LIMIT "<< i << ",1 ";
+
+	if( dbcon1.ResultQuery(query) )
+	{
+		pet.pet_id = atoi(dbcon1[0]);
+		pet.account_id = atoi(dbcon1[1]);
+		pet.char_id = atoi(dbcon1[2]);
+		pet.class_ = atoi(dbcon1[3]);
+		pet.level = atoi(dbcon1[4]);
+		pet.egg_id = atoi(dbcon1[5]);
+		pet.equip_id = atoi(dbcon1[6]);
+		pet.intimate = atoi(dbcon1[7]);
+		pet.hungry = atoi(dbcon1[8]);
+		safestrcpy(pet.name, dbcon1[9], sizeof(pet.name));
+		pet.rename_flag = atoi(dbcon1[10]);
+		pet.incuvate = atoi(dbcon1[11]);
+	}
+	else
+	{
+		pet.pet_id = 0;
+	}
+
+	return pet;
+}
+
+bool CPetDB_sql::searchPet(uint32 pid, CPet& pet)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	query << "SELECT "
+			 "`p`.`pet_id`,`c`.`account_id`,`p`.`char_id`,`p`.`class`,`p`.`level`,"
+			 "`p`.`egg_id`,`p`.`equip_id`,`p`.`intimate`,`p`.`hungry`,`p`.`name`,"
+			 "`p`.`rename_flag`,`p`.`incuvate` "
+			 "FROM `" << dbcon1.escaped(this->tbl_pet) << "` `p` "
+			 "JOIN `" << dbcon1.escaped(this->tbl_char) << "` `c` ON `p`.`char_id`=`c`.`char_id` "
+			 "WHERE `p`.`pet_id` = '" << pid << "'";
+	if( dbcon1.ResultQuery(query) )
+	{
+		pet.pet_id = atoi(dbcon1[0]);
+		pet.account_id = atoi(dbcon1[1]);
+		pet.char_id = atoi(dbcon1[2]);
+		pet.class_ = atoi(dbcon1[3]);
+		pet.level = atoi(dbcon1[4]);
+		pet.egg_id = atoi(dbcon1[5]);
+		pet.equip_id = atoi(dbcon1[6]);
+		pet.intimate = atoi(dbcon1[7]);
+		pet.hungry = atoi(dbcon1[8]);
+		safestrcpy(pet.name, dbcon1[9], sizeof(pet.name));
+		pet.rename_flag = atoi(dbcon1[10]);
+		pet.incuvate = atoi(dbcon1[11]);
 		return true;
 	}
-	*/
+	return false;
+}
 
-public:
-	///////////////////////////////////////////////////////////////////////////
-	// construct/destruct
-	CGuildStorageDB_sql(const char *dbcfgfile)
+bool CPetDB_sql::insertPet(uint32 accid, uint32 cid, short pet_class, short pet_lv, short pet_egg_id, ushort pet_equip, short intimate, short hungry, char renameflag, char incuvat, char *pet_name, CPet& pd)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+
+
+	query << "INSERT INTO `" << dbcon1.escaped(this->tbl_pet) << "` "
+			 "("
+			 "`char_id`,"
+			 "`class`,"
+			 "`level`,"
+			 "`egg_id`,"
+			 "`equip_id`,"
+			 "`intimate`,"
+			 "`hungry`,"
+			 "`name`,"
+			 "`rename_flag`,"
+			 "`incuvate`"
+			 ") "
+			 "VALUES "
+			 "(" 
+			 "'" << cid << "',"
+			 "'" << pet_class << "',"
+			 "'" << pet_lv << "',"
+			 "'" << pet_egg_id << "',"
+			 "'" << pet_equip << "',"
+			 "'" << intimate << "',"
+			 "'" << hungry << "',"
+			 "'" << dbcon1.escaped(pet_name) << "',"
+			 "'" << ((int)renameflag) << "',"
+			 "'" << ((int)incuvat) << "'"
+			 ")";
+
+	if( dbcon1.PureQuery(query) )
 	{
-		init(dbcfgfile);
-	}
-	virtual ~CGuildStorageDB_sql()
-	{
-		close();
-	}
-
-
-private:
-	///////////////////////////////////////////////////////////////////////////
-	// data
-
-
-	///////////////////////////////////////////////////////////////////////////
-	// Config processor
-	virtual bool ProcessConfig(const char*w1, const char*w2)
-	{
-
+		pd.account_id = accid;
+		pd.char_id = cid;
+		pd.pet_id = dbcon1.getLastID();
+		pd.class_ = pet_class;
+		pd.level = pet_lv;
+		pd.egg_id = pet_egg_id;
+		pd.equip_id = pet_equip;
+		pd.intimate = intimate;
+		pd.hungry = hungry;
+		safestrcpy(pd.name, pet_name, sizeof(pd.name));
+		pd.rename_flag = renameflag;
+		pd.incuvate = incuvat;
 		return true;
 	}
-	///////////////////////////////////////////////////////////////////////////
-	// normal function
-	bool init(const char* configfile)
-	{	// init db
-		if(configfile)
-			CConfig::LoadConfig(configfile);
-		return false;
-	}
-	bool close()
-	{
-		return false;
-	}
+	return false;
+}
 
+bool CPetDB_sql::removePet(uint32 pid)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
 
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_pet) << "` "
+			 "WHERE `pet_id` = '" << pid <<"'";
+	return dbcon1.PureQuery( query );
+}
 
-	///////////////////////////////////////////////////////////////////////////
-	// access interface
-	virtual size_t size()	{ return 0; /*cGuildStorList.size();*/ }
-	virtual CGuildStorage& operator[](size_t i)	{ static CGuildStorage tmp; return tmp; /*cGuildStorList[i];*/ }
+bool CPetDB_sql::savePet(const CPet& pet)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
 
-	virtual bool searchStorage(uint32 gid, CGuildStorage& stor)
-	{
-		// select data from guild_storage where guild_id = *gid
-		// return stor and true
-		return false;
-	}
-	virtual bool removeStorage(uint32 gid)
-	{
-		// delete from guild_storage where guild_id = *gid
-		return false;
-	}
-	virtual bool saveStorage(const CGuildStorage& stor)
-	{
-		//insert into storage values (*sto)
-	}
-};
+	query << "UPDATE `" << dbcon1.escaped(this->tbl_pet) << "` "
+			 "SET "
+			 "`char_id` = '" << pet.char_id << "',"
+			 "`class` = '" << pet.class_ << "',"
+			 "`level` = '" << pet.level << "',"
+			 "`egg_id` = '" << pet.egg_id << "',"
+			 "`equip_id` = '" << pet.equip_id << "',"
+			 "`intimate` = '" << pet.intimate << "',"
+			 "`hungry` = '" << pet.hungry << "',"
+			 "`name` = '" << dbcon1.escaped(pet.name) << "',"
+			 "`rename_flag` = '" << pet.rename_flag << "',"
+			 "`incuvate` = '" << pet.incuvate << "'"
+			 "WHERE `pet_id` = '" << pet.pet_id << "'";
+	
+	return dbcon1.PureQuery( query );
+}
 
+#endif//WITH_MYSQL
 
-#endif// SQL
 

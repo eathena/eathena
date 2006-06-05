@@ -1,6 +1,5 @@
 
 // ステータス計算、状態異常処理
-#include "base.h"
 #include "pc.h"
 #include "map.h"
 #include "pet.h"
@@ -358,7 +357,7 @@ int status_calc_pet(struct map_session_data &sd, bool first)
 		if( first || pd->status && pd->status->level != sd.pet.level)
 		{
 			if (!first) //Lv Up animation
-				clif_misceffect(pd->bl, 0);
+				clif_misceffect(*pd, 0);
 			pd->status->level = sd.pet.level;
 			pd->status->atk1 = (mob_db[pd->class_].atk1*pd->status->level)/mob_db[pd->class_].lv;
 			pd->status->atk2 = (mob_db[pd->class_].atk2*pd->status->level)/mob_db[pd->class_].lv;
@@ -464,7 +463,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		if(first&1)
 		{
 			sd.weight=0;
-			for(i=0;i<MAX_INVENTORY;i++){
+			for(i=0;i<MAX_INVENTORY;++i){
 				if(sd.status.inventory[i].nameid==0 || sd.inventory_data[i] == NULL)
 					continue;
 				sd.weight += sd.inventory_data[i]->weight*sd.status.inventory[i].amount;
@@ -473,7 +472,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 			sd.cart_weight=0;
 			sd.cart_max_num=MAX_CART;
 			sd.cart_num=0;
-			for(i=0;i<MAX_CART;i++){
+			for(i=0;i<MAX_CART;++i){
 				if(sd.status.cart[i].nameid==0)
 					continue;
 				sd.cart_weight+=itemdb_weight(sd.status.cart[i].nameid)*sd.status.cart[i].amount;
@@ -641,7 +640,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		memset(sd.sp_gain_race,0,sizeof(sd.sp_gain_race));
 		sd.setitem_hash = 0;
 
-		for(i=0;i<10;i++)
+		for(i=0;i<10;++i)
 		{	//We pass INDEX to current_equip_item_index - for EQUIP_SCRIPT (new cards solution) [Lupus]
 			current_equip_item_index = index = sd.equip_index[i]; 
 			if(index >= MAX_INVENTORY)
@@ -659,13 +658,13 @@ int status_calc_pc(struct map_session_data& sd, int first)
 				{	// Weapon cards
 					if(sd.status.inventory[index].card[0]!=0x00ff && sd.status.inventory[index].card[0]!=0x00fe && sd.status.inventory[index].card[0]!=0xff00)
 					{
-						for(j=0;j<sd.inventory_data[index]->flag.slot;j++)
+						for(j=0;j<sd.inventory_data[index]->flag.slot;++j)
 						{	// カ?ド
 							int c=sd.status.inventory[index].card[j];
 							if(c>0){
 								if(i==8 && sd.status.inventory[index].equip==0x20)
 									sd.state.lr_flag = 1;
-								CScriptEngine::run(itemdb_equipscript(c),0,sd.bl.id,0);
+								CScriptEngine::run(itemdb_equipscript(c),0,sd.block_list::id,0);
 								sd.state.lr_flag = 0;
 							}
 						}
@@ -675,12 +674,12 @@ int status_calc_pc(struct map_session_data& sd, int first)
 				{	// Non-weapon equipment cards
 					if(sd.status.inventory[index].card[0]!=0x00ff && sd.status.inventory[index].card[0]!=0x00fe && sd.status.inventory[index].card[0]!=0xff00)
 					{
-						for(j=0;j<sd.inventory_data[index]->flag.slot;j++)
+						for(j=0;j<sd.inventory_data[index]->flag.slot;++j)
 						{	// カ?ド
 							int c=sd.status.inventory[index].card[j];
 							if(c>0)
 							{
-								CScriptEngine::run(itemdb_equipscript(c),0,sd.bl.id,0);
+								CScriptEngine::run(itemdb_equipscript(c),0,sd.block_list::id,0);
 							}
 						}
 					}
@@ -707,7 +706,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		memcpy(sd.paramcard,sd.parame,sizeof(sd.paramcard));
 
 		// ?備品によるステ?タス?化はここで?行
-		for(i=0;i<10;i++) {
+		for(i=0;i<10;++i) {
 			current_equip_item_index = index = sd.equip_index[i]; //We pass INDEX to current_equip_item_index - for EQUIP_SCRIPT (new cards solution) [Lupus]
 			if(index >=MAX_INVENTORY)
 				continue;
@@ -734,11 +733,11 @@ int status_calc_pc(struct map_session_data& sd, int first)
 							sd.left_weapon.star = (sd.status.inventory[index].card[1]>>8);	// 星のかけら
 							if(sd.left_weapon.star >= 15) sd.left_weapon.star = 50; // 3 Star Crumbs now give +50 dmg
 							wele_= (sd.status.inventory[index].card[1]&0x0f);	// ? 性
-							sd.left_weapon.fameflag = pc_istop10fame( MakeDWord(sd.status.inventory[index].card[2],sd.status.inventory[index].card[3]) ,0);
+							sd.left_weapon.fameflag = chrif_istop10fame( basics::MakeDWord(sd.status.inventory[index].card[2],sd.status.inventory[index].card[3]), FAME_SMITH);
 						}
 						sd.attackrange_ += sd.inventory_data[index]->range;
 						sd.state.lr_flag = 1;
-						CScriptEngine::run(sd.inventory_data[index]->equip_script,0,sd.bl.id,0);
+						CScriptEngine::run(sd.inventory_data[index]->equip_script,0,sd.block_list::id,0);
 						sd.state.lr_flag = 0;
 					}
 					else {	// Right-hand weapon
@@ -752,16 +751,16 @@ int status_calc_pc(struct map_session_data& sd, int first)
 							sd.right_weapon.star += (sd.status.inventory[index].card[1]>>8);	// 星のかけら
 							if(sd.right_weapon.star >= 15) sd.right_weapon.star = 50; // 3 Star Crumbs now give +50 dmg
 							wele = (sd.status.inventory[index].card[1]&0x0f);	// ? 性
-							sd.right_weapon.fameflag = pc_istop10fame( MakeDWord(sd.status.inventory[index].card[2],sd.status.inventory[index].card[3]) ,0);
+							sd.right_weapon.fameflag = chrif_istop10fame( basics::MakeDWord(sd.status.inventory[index].card[2],sd.status.inventory[index].card[3]), FAME_SMITH);
 						}
 						sd.attackrange += sd.inventory_data[index]->range;
-						CScriptEngine::run(sd.inventory_data[index]->equip_script,0,sd.bl.id,0);
+						CScriptEngine::run(sd.inventory_data[index]->equip_script,0,sd.block_list::id,0);
 					}
 				}
 				else if(sd.inventory_data[index]->type == 5) {
 					sd.right_weapon.watk += sd.inventory_data[index]->atk;
 					refinedef += sd.status.inventory[index].refine*refinebonus[0][0];
-					CScriptEngine::run(sd.inventory_data[index]->equip_script,0,sd.bl.id,0);
+					CScriptEngine::run(sd.inventory_data[index]->equip_script,0,sd.block_list::id,0);
 				}
 			}
 		}
@@ -771,7 +770,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 			if(sd.inventory_data[index])
 			{	// Arrows
 				sd.state.lr_flag = 2;
-				CScriptEngine::run(sd.inventory_data[index]->equip_script,0,sd.bl.id,0);
+				CScriptEngine::run(sd.inventory_data[index]->equip_script,0,sd.block_list::id,0);
 				sd.state.lr_flag = 0;
 				sd.arrow_atk += sd.inventory_data[index]->atk;
 			}
@@ -815,7 +814,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		sd.left_weapon.atkmods[2] = atkmods[2][sd.weapontype2];
 
 		// jobボ?ナス分
-		for(i=0;i<sd.status.job_level && i<MAX_LEVEL;i++){
+		for(i=0;i<sd.status.job_level && i<MAX_LEVEL;++i){
 			if(job_bonus[s_class.upper][s_class.job][i])
 				sd.paramb[job_bonus[s_class.upper][s_class.job][i]-1]++;
 		}
@@ -987,7 +986,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		sd.paramc[3]=sd.status.int_+sd.paramb[3]+sd.parame[3];
 		sd.paramc[4]=sd.status.dex+sd.paramb[4]+sd.parame[4];
 		sd.paramc[5]=sd.status.luk+sd.paramb[5]+sd.parame[5];
-		for(i=0;i<6;i++)
+		for(i=0;i<6;++i)
 			if(sd.paramc[i] < 0) sd.paramc[i] = 0;
 
 		if (sd.sc_data[SC_CURSE].timer!=-1)
@@ -1012,7 +1011,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		}
 		sd.hit += sd.paramc[4] + sd.status.base_level;
 		sd.flee += sd.paramc[1] + sd.status.base_level;
-		if( maps[sd.bl.m].flag.gvg ) sd.flee = (sd.flee>20)?sd.flee-20:0; //20 flee penalty on GVG grounds [Skotlex]
+		if( maps[sd.block_list::m].flag.gvg ) sd.flee = (sd.flee>20)?sd.flee-20:0; //20 flee penalty on GVG grounds [Skotlex]
 		sd.def2 += (unsigned short)sd.paramc[2];
 		sd.mdef2 += (unsigned short)sd.paramc[3];
 		sd.flee2 += sd.paramc[5]+10;
@@ -1081,7 +1080,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		if( (skill=pc_checkskill(sd,BS_WEAPONRESEARCH))>0)	// 武器?究の命中率?加
 			sd.hit += skill*2;
 		if(sd.status.option&2 && (skill = pc_checkskill(sd,RG_TUNNELDRIVE))>0 )	// トンネルドライブ	// トンネルドライブ
-			sd.speed += (100-16*skill)*DEFAULT_WALK_SPEED/100;
+			sd.speed = sd.speed*100/(20+6*skill);
 		if (pc_iscarton(sd) && (skill=pc_checkskill(sd,MC_PUSHCART))>0)	// カ?トによる速度低下
 			sd.speed += (10-skill) * DEFAULT_WALK_SPEED/10;
 		if (pc_isriding(sd)) {	// ペコペコ?りによる速度?加
@@ -1599,17 +1598,17 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		}
 
 		if(b_class != sd.view_class) {
-			clif_changelook(sd.bl,LOOK_BASE,sd.view_class);
+			clif_changelook(sd,LOOK_BASE,sd.view_class);
 #if PACKETVER < 4
-			clif_changelook(sd.bl,LOOK_WEAPON,sd.status.weapon);
-			clif_changelook(sd.bl,LOOK_SHIELD,sd.status.shield);
+			clif_changelook(sd,LOOK_WEAPON,sd.status.weapon);
+			clif_changelook(sd,LOOK_SHIELD,sd.status.shield);
 #else
-			clif_changelook(sd.bl,LOOK_WEAPON,0);
+			clif_changelook(sd,LOOK_WEAPON,0);
 #endif
 		//Restoring cloth dye color after the view class changes. [Skotlex]
 		if(battle_config.save_clothcolor && sd.status.clothes_color > 0 &&
 			(sd.view_class != 22 || !battle_config.wedding_ignorepalette))
-				clif_changelook(sd.bl,LOOK_CLOTHES_COLOR,sd.status.clothes_color);
+				clif_changelook(sd,LOOK_CLOTHES_COLOR,sd.status.clothes_color);
 		}
 
 		if( 0!=memcmp(b_skill,sd.status.skill,sizeof(sd.status.skill)) || b_attackrange != sd.attackrange)
@@ -1623,7 +1622,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 			clif_updatestatus(sd,SP_MAXWEIGHT);
 			pc_checkweighticon(sd);
 		}
-		for(i=0;i<6;i++)
+		for(i=0;i<6;++i)
 			if(b_paramb[i] + b_parame[i] != sd.paramb[i] + sd.parame[i])
 				clif_updatestatus(sd,SP_STR+i);
 		if(b_hit != sd.hit)
@@ -1667,7 +1666,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		if(sd.status.hp<sd.status.max_hp>>2 && sd.sc_data[SC_AUTOBERSERK].timer != -1 &&
 			(sd.sc_data[SC_PROVOKE].timer==-1 || sd.sc_data[SC_PROVOKE].val2.num==0 ) && !pc_isdead(sd))
 			// オ?トバ?サ?ク?動
-			status_change_start(&sd.bl,SC_PROVOKE,10,1,0,0,0,0);
+			status_change_start(&sd,SC_PROVOKE,10,1,0,0,0,0);
 
 		calculating--;
 		return 0;
@@ -1742,7 +1741,7 @@ int status_calc_speed_old (struct map_session_data &sd)
 
 
 	if(sd.status.option&2 && (skill = pc_checkskill(sd,RG_TUNNELDRIVE))>0 )
-		sd.speed += (100-16*skill)*DEFAULT_WALK_SPEED/100;
+		sd.speed = sd.speed*100/(20+6*skill);
 	if (pc_iscarton(sd) && (skill=pc_checkskill(sd,MC_PUSHCART))>0)
 		sd.speed += (10-skill) * DEFAULT_WALK_SPEED/10;
 	else if (pc_isriding(sd)) {
@@ -1837,29 +1836,29 @@ int status_get_class(struct block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_dir(struct block_list *bl)
+dir_t status_get_dir(struct block_list *bl)
 {
-	nullpo_retr(0, bl);
+	nullpo_retr(DIR_N, bl);
 	if(bl->type==BL_MOB)
-		return ((struct mob_data *)bl)->dir;
+		return (dir_t)((struct mob_data *)bl)->dir;
 	else if(bl->type==BL_PC)
-		return ((struct map_session_data *)bl)->dir;
+		return (dir_t)((struct map_session_data *)bl)->dir;
 	else if(bl->type==BL_PET)
-		return ((struct pet_data *)bl)->dir;
+		return (dir_t)((struct pet_data *)bl)->dir;
 	else
-		return 0;
+		return DIR_N;
 }
-int status_get_headdir(struct block_list *bl)
+dir_t status_get_headdir(struct block_list *bl)
 {
-	nullpo_retr(0, bl);
+	nullpo_retr(DIR_N, bl);
 	if(bl->type==BL_MOB)
-		return ((struct mob_data *)bl)->dir;
+		return (dir_t)((struct mob_data *)bl)->dir;
 	else if(bl->type==BL_PC)
-		return ((struct map_session_data *)bl)->head_dir;
+		return (dir_t)((struct map_session_data *)bl)->head_dir;
 	else if(bl->type==BL_PET)
-		return ((struct pet_data *)bl)->dir;
+		return (dir_t)((struct pet_data *)bl)->dir;
 	else
-		return 0;
+		return DIR_N;
 }
 /*==========================================
  * 対象のレベルを返す(汎用)
@@ -2939,8 +2938,8 @@ int status_get_speed(struct block_list *bl)
 /*
 	{
 		int i,k;
-		for(i=-1;i<=1;i++)
-		for(k=-1;k<=1;k++)
+		for(i=-1; i<=1; ++i)
+		for(k=-1; k<=1; ++k)
 		{
 			if( map_getcell(bl->m, bl->x+i, bl->y+k, CELL_CHKHOLE) )
 				speed = speed*116/100; // slow down by 16%
@@ -3474,7 +3473,7 @@ int status_get_sc_def(struct block_list *bl, int type)
  * ステータス異常開始
  *------------------------------------------
  */
-int status_change_start(struct block_list *bl,int type, intptr val1,intptr val2,intptr val3,intptr val4,unsigned long tick,int flag)
+int status_change_start(struct block_list *bl,int type, basics::numptr val1,basics::numptr val2,basics::numptr val3,basics::numptr val4,unsigned long tick,int flag)
 {
 	struct map_session_data *sd = NULL;
 	struct status_change* sc_data;
@@ -3536,7 +3535,7 @@ int status_change_start(struct block_list *bl,int type, intptr val1,intptr val2,
 		if(SC_STONE<=type && type<=SC_BLIND){	/* カ?ドによる耐性 */
 			if( sd && sd->reseff[type-SC_STONE] > 0 && rand()%10000<sd->reseff[type-SC_STONE]){
 				if(battle_config.battle_log)
-					ShowMessage("PC %d skill_sc_start: cardによる異常耐性?動\n",sd->bl.id);
+					ShowMessage("PC %d skill_sc_start: cardによる異常耐性?動\n",sd->block_list::id);
 				return 0;
 			}
 		}
@@ -3992,8 +3991,10 @@ int status_change_start(struct block_list *bl,int type, intptr val1,intptr val2,
 			tick = 1000;
 			break;
 		case SC_SILENCE:			/* 沈?（レックスデビ?ナ） */
-			if (sc_data && sc_data[SC_GOSPEL].timer!=-1) {
-				skill_delunitgroup((struct skill_unit_group *)sc_data[SC_GOSPEL].val3.ptr);
+			if (sc_data && sc_data[SC_GOSPEL].timer!=-1)
+			{
+				struct skill_unit_group *ptr = (struct skill_unit_group *)sc_data[SC_GOSPEL].val3.ptr;
+				if(ptr) skill_delunitgroup(*ptr);
 				status_change_end(bl,SC_GOSPEL,-1);
 				break;
 			}
@@ -4076,7 +4077,7 @@ int status_change_start(struct block_list *bl,int type, intptr val1,intptr val2,
 		case SC_AUTOGUARD:
 			{
 				int i,t;
-				for(i=val2.num=0;i<val1.num;i++) {
+				for(i=val2.num=0;i<val1.num;++i) {
 					t = 5-(i>>1);
 					val2.num += (t < 0)? 1:t;
 				}
@@ -4298,7 +4299,7 @@ int status_change_start(struct block_list *bl,int type, intptr val1,intptr val2,
 			skill_stop_dancing(bl,0);	/* 演奏/ダンスの中? */
 			{	/* 同時に掛からないステ?タス異常を解除 */
 				int i;
-				for(i = SC_STONE; i <= SC_SLEEP; i++){
+				for(i = SC_STONE; i <= SC_SLEEP; ++i){
 					if(sc_data[i].timer != -1){
 						delete_timer(sc_data[i].timer, status_change_timer);
 						sc_data[i].timer = -1;
@@ -4390,7 +4391,7 @@ int status_change_clear(struct block_list *bl,int type)
 	nullpo_retr(0, opt2 = status_get_opt2(bl));
 	nullpo_retr(0, opt3 = status_get_opt3(bl));
 
-	for(i = 0; i < MAX_STATUSCHANGE; i++)
+	for(i = 0; i < MAX_STATUSCHANGE; ++i)
 	{
 		if(sc_data[i].timer != -1){	/* 異常があるならタイマ?を削除する */
 			status_change_end(bl, i, -1);
@@ -4748,7 +4749,7 @@ int status_change_end( struct block_list* bl, int type, int tid )
  * ステータス異常終了タイマー
  *------------------------------------------
  */
-int status_change_timer(int tid, unsigned long tick, int id, intptr data)
+int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	int type = data.num;
 	
@@ -4797,7 +4798,7 @@ int status_change_timer(int tid, unsigned long tick, int id, intptr data)
 	case SC_CHASEWALK:
 		if(sd){
 			long sp = 10+sc_data[SC_CHASEWALK].val1.num*2;
-			if (maps[sd->bl.m].flag.gvg) sp *= 5;
+			if (maps[sd->block_list::m].flag.gvg) sp *= 5;
 			if (sd->status.sp > sp){
 				sd->status.sp -= sp; // update sp cost [Celest]
 				clif_updatestatus(*sd,SP_SP);
@@ -4930,7 +4931,7 @@ int status_change_timer(int tid, unsigned long tick, int id, intptr data)
 			}
 			if(sd->status.max_hp <= sd->status.hp)
 			{
-				status_change_end(&sd->bl,SC_TENSIONRELAX,-1);
+				status_change_end(sd,SC_TENSIONRELAX,-1);
 				return 0;
 			}
 		}
@@ -5373,31 +5374,31 @@ int status_change_clear_buffs (struct block_list *bl)
 	struct status_change *sc_data = status_get_sc_data(bl);
 	if (!sc_data)
 		return 0;		
-	for (i = 0; i <= 26; i++) {
+	for (i = 0; i <= 26; ++i) {
 		if(sc_data[i].timer != -1)
 			status_change_end(bl,i,-1);
 	}
-	for (i = 37; i <= 44; i++) {
+	for (i = 37; i <= 44; ++i) {
 		if(sc_data[i].timer != -1)
 			status_change_end(bl,i,-1);
 	}
-	for (i = 46; i <= 73; i++) {
+	for (i = 46; i <= 73; ++i) {
 		if(sc_data[i].timer != -1)
 			status_change_end(bl,i,-1);
 	}
-	for (i = 90; i <= 93; i++) {
+	for (i = 90; i <= 93; ++i) {
 		if(sc_data[i].timer != -1)
 			status_change_end(bl,i,-1);
 	}
-	for (i = 103; i <= 106; i++) {
+	for (i = 103; i <= 106; ++i) {
 		if(sc_data[i].timer != -1)
 			status_change_end(bl,i,-1);
 	}
-	for (i = 109; i <= 132; i++) {
+	for (i = 109; i <= 132; ++i) {
 		if(sc_data[i].timer != -1)
 			status_change_end(bl,i,-1);
 	}
-	for (i = 172; i <= 188; i++) {
+	for (i = 172; i <= 188; ++i) {
 		if(sc_data[i].timer != -1)
 			status_change_end(bl,i,-1);
 	}
@@ -5409,7 +5410,7 @@ int status_change_clear_debuffs (struct block_list *bl)
 	struct status_change *sc_data = status_get_sc_data(bl);
 	if (!sc_data)
 		return 0;
-	for (i = SC_STONE; i <= SC_DPOISON; i++) {
+	for (i = SC_STONE; i <= SC_DPOISON; ++i) {
 		if(sc_data[i].timer != -1)
 			status_change_end(bl,i,-1);
 	}
@@ -5421,9 +5422,9 @@ int status_calc_sigma(void)
 {
 	int i,j,k;
 
-	for(i=0;i<MAX_PC_CLASS;i++) {
+	for(i=0;i<MAX_PC_CLASS;++i) {
 		memset(hp_sigma_val[i],0,sizeof(hp_sigma_val[i]));
-		for(k=0,j=2;j<=MAX_LEVEL;j++) {
+		for(k=0,j=2;j<=MAX_LEVEL;++j) {
 			k += hp_coefficient[i]*j + 50;
 			k -= k%100;
 			hp_sigma_val[i][j-1] = k;
@@ -5438,7 +5439,7 @@ int status_readdb(void) {
 	char line[1024],*p;
 
 	// JOB補正?値１
-	fp=safefopen("db/job_db1.txt","r");
+	fp=basics::safefopen("db/job_db1.txt","r");
 	if(fp==NULL){
 		ShowError("can't read db/job_db1.txt\n");
 		return 1;
@@ -5448,7 +5449,7 @@ int status_readdb(void) {
 		char *split[50];
 		if( !get_prepared_line(line) )
 			continue;
-		for(j=0,p=line;j<21 && p;j++){
+		for(j=0,p=line;j<21 && p;++j){
 			split[j]=p;
 			p=strchr(p,',');
 			if(p) *p++=0;
@@ -5459,9 +5460,9 @@ int status_readdb(void) {
 		hp_coefficient[i]=atoi(split[1]);
 		hp_coefficient2[i]=atoi(split[2]);
 		sp_coefficient[i]=atoi(split[3]);
-		for(j=0;j<17;j++)
+		for(j=0;j<17;++j)
 			aspd_base[i][j]=atoi(split[j+4]);
-		i++;
+		++i;
 // -- moonsoul (below two lines added to accommodate high numbered new class ids)
 		if(i==24)
 			i=4001;
@@ -5473,7 +5474,7 @@ int status_readdb(void) {
 
 	// JOBボ?ナス
 	memset(job_bonus,0,sizeof(job_bonus));
-	fp=safefopen("db/job_db2.txt","r");
+	fp=basics::safefopen("db/job_db2.txt","r");
 	if(fp==NULL){
 		ShowError("can't read db/job_db2.txt\n");
 		return 1;
@@ -5482,7 +5483,7 @@ int status_readdb(void) {
 	while(fgets(line, sizeof(line), fp)){
 		if( !get_prepared_line(line) )
 			continue;
-		for(j=0,p=line;j<MAX_LEVEL && p;j++){
+		for(j=0,p=line;j<MAX_LEVEL && p;++j){
 			if(sscanf(p,"%d",&k)==0)
 				break;
 			job_bonus[0][i][j]=k;
@@ -5490,7 +5491,7 @@ int status_readdb(void) {
 			p=strchr(p,',');
 			if(p) p++;
 		}
-		i++;
+		++i;
 // -- moonsoul (below two lines added to accommodate high numbered new class ids)
 		if(i==24)
 			i=4001;
@@ -5501,7 +5502,7 @@ int status_readdb(void) {
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/job_db2.txt");
 
 	// JOBボ?ナス2 ?生職用
-	fp=safefopen("db/job_db2-2.txt","r");
+	fp=basics::safefopen("db/job_db2-2.txt","r");
 	if(fp==NULL){
 		ShowError("can't read db/job_db2-2.txt\n");
 		return 1;
@@ -5510,14 +5511,14 @@ int status_readdb(void) {
 	while(fgets(line, sizeof(line), fp)){
 		if( !get_prepared_line(line) )
 			continue;
-		for(j=0,p=line;j<MAX_LEVEL && p;j++){
+		for(j=0,p=line;j<MAX_LEVEL && p;++j){
 			if(sscanf(p,"%d",&k)==0)
 				break;
 			job_bonus[1][i][j]=k;
 			p=strchr(p,',');
 			if(p) p++;
 		}
-		i++;
+		++i;
 		if(i==MAX_PC_CLASS)
 			break;
 	}
@@ -5525,10 +5526,10 @@ int status_readdb(void) {
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/job_db2-2.txt");
 
 	// サイズ補正テ?ブル
-	for(i=0;i<3;i++)
-		for(j=0;j<20;j++)
+	for(i=0;i<3;++i)
+		for(j=0;j<20;++j)
 			atkmods[i][j]=100;
-	fp=safefopen("db/size_fix.txt","r");
+	fp=basics::safefopen("db/size_fix.txt","r");
 	if(fp==NULL){
 		ShowError("can't read db/size_fix.txt\n");
 		return 1;
@@ -5541,28 +5542,28 @@ int status_readdb(void) {
 		if(atoi(line)<=0)
 			continue;
 		memset(split,0,sizeof(split));
-		for(j=0,p=line;j<20 && p;j++){
+		for(j=0,p=line;j<20 && p;++j){
 			split[j]=p;
 			p=strchr(p,',');
 			if(p) *p++=0;
 		}
-		for(j=0;j<20 && split[j];j++)
+		for(j=0;j<20 && split[j];++j)
 			atkmods[i][j]=atoi(split[j]);
-		i++;
+		++i;
 	}
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/size_fix.txt");
 
 	// 精?デ?タテ?ブル
-	for(i=0;i<MAX_REFINE_BONUS;i++){
-		for(j=0;j<MAX_REFINE; j++)
+	for(i=0;i<MAX_REFINE_BONUS;++i){
+		for(j=0;j<MAX_REFINE; ++j)
 			percentrefinery[i][j]=100;
 		percentrefinery[i][j]=0; //Slot MAX+1 always has 0% success chance [Skotlex]
 		refinebonus[i][0]=0;
 		refinebonus[i][1]=0;
 		refinebonus[i][2]=10;
 	}
-	fp=safefopen("db/refine_db.txt","r");
+	fp=basics::safefopen("db/refine_db.txt","r");
 	if(fp==NULL){
 		ShowError("can't read db/refine_db.txt\n");
 		return 1;
@@ -5575,7 +5576,7 @@ int status_readdb(void) {
 		if(atoi(line)<=0)
 			continue;
 		memset(split,0,sizeof(split));
-		for(j=0,p=line;j<16 && p;j++){
+		for(j=0,p=line;j<16 && p;++j){
 			split[j]=p;
 			p=strchr(p,',');
 			if(p) *p++=0;
@@ -5583,9 +5584,9 @@ int status_readdb(void) {
 		refinebonus[i][0]=atoi(split[0]);	// 精?ボ?ナス
 		refinebonus[i][1]=atoi(split[1]);	// 過?精?ボ?ナス
 		refinebonus[i][2]=atoi(split[2]);	// 安全精?限界
-		for(j=0;j<MAX_REFINE && split[j];j++)
+		for(j=0;j<MAX_REFINE && split[j];++j)
 			percentrefinery[i][j]=atoi(split[j+3]);
-		i++;
+		++i;
 	}
 	fclose(fp); //Lupus. close this file!!!
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/refine_db.txt");

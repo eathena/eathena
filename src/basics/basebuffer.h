@@ -11,11 +11,13 @@
 #include "baseexceptions.h"
 
 
-//!! TODO: rewrite with the new memory allocation
+//## TODO: rewrite with the new memory allocation
 
+
+NAMESPACE_BEGIN(basics)
 
 ///////////////////////////////////////////////////////////////////////////////
-// test functions
+/// test functions
 void test_buffer();
 
 
@@ -35,8 +37,8 @@ class buffer;
 
 ///////////////////////////////////////////////////////////////////////////////
 // 
-template < class E=elaborator_st<unsigned char>, class A=allocator_rw_dy< unsigned char,E > >
-class _basebuffer : public A
+template < class E=elaborator_st<unsigned char>, class A=allocator_rw_dy<unsigned char> >
+class _basebuffer : public A, public E
 {
 protected:
 	_basebuffer()	{}
@@ -883,7 +885,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	_basebuffer& operator <<(const char * c)
 	{	
-		size_t sz= (c) ? strlen(c)+1 : 1;
+		size_t sz= (c) ? hstrlen(c)+1 : 1;
 		if( this->checkwrite(sz) )
 		{
 			if( c )
@@ -1155,22 +1157,22 @@ public:
 */
 };
 
-class _fixbuffer : public _basebuffer< elaborator_st<unsigned char>, allocator_rw_st< unsigned char,elaborator_st<unsigned char> > >
+class _fixbuffer : public _basebuffer< elaborator_st<unsigned char>, allocator_rw_st< unsigned char> >
 {
 public:
-	_fixbuffer(unsigned char*buf, size_t sz) : _basebuffer< elaborator_st<unsigned char>, allocator_rw_st< unsigned char,elaborator_st<unsigned char> > >(buf,sz) {}
+	_fixbuffer(unsigned char*buf, size_t sz) : _basebuffer< elaborator_st<unsigned char>, allocator_rw_st< unsigned char> >(buf,sz) {}
 	virtual~_fixbuffer() {}
 };
 
 class _bufferaccess;
 
-class _buffer : public _basebuffer< elaborator_st<unsigned char>, allocator_rw_dy< unsigned char, elaborator_st<unsigned char> > >, public Mutex
+class _buffer : public _basebuffer< elaborator_st<unsigned char>, allocator_rw_dy< unsigned char> >, public Mutex
 {
 	friend class _bufferaccess;
 	_bufferaccess* cAccess;
 public:
 	_buffer() : cAccess(NULL) {}
-	_buffer(size_t sz) : _basebuffer< elaborator_st<unsigned char>, allocator_rw_dy< unsigned char, elaborator_st<unsigned char> > >(sz), cAccess(NULL) {}
+	_buffer(size_t sz) : _basebuffer< elaborator_st<unsigned char>, allocator_rw_dy< unsigned char> >(sz), cAccess(NULL) {}
 	virtual~_buffer() {}
 };
 
@@ -1685,7 +1687,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	const char* operator = (const char * c)
 	{	
-		size_t sz= (c) ? strlen(c)+1 : 1;
+		size_t sz= (c) ? hstrlen(c)+1 : 1;
 		if( checkwrite(sz) )
 		{
 			if( c )
@@ -1724,7 +1726,7 @@ public:
 		{
 			if( c )
 			{
-				size_t cpsz = ( cpsz > strlen(c)+1 ) ? sz : strlen(c)+1;
+				size_t cpsz = ( cpsz > hstrlen(c)+1 ) ? sz : hstrlen(c)+1;
 				memcpy(this->cWpp, c, cpsz);
 				this->cWpp[cpsz-1] = 0;	// force an EOS
 			}
@@ -2335,6 +2337,6 @@ inline const streamable& buffer_iterator::operator = (const streamable& s)
 }
 
 
-
+NAMESPACE_END(basics)
 
 #endif//__BASEBUFFER__

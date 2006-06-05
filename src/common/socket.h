@@ -3,14 +3,21 @@
 #ifndef	_SOCKET_H_
 #define _SOCKET_H_
 
-#include "base.h"
+#include "basetypes.h"
+#include "baseinet.h"
+#include "basesocket.h"
+#include "basebuffer.h"
+#include "basetime.h"
+
 #include "malloc.h"
 #include "timer.h"
 
 
+
 extern time_t last_tick;
 
-
+typedef int (*socket_function)(int);
+typedef int (*console_function )(const char*);
 
 // Class for assigning/reading words from a buffer
 class objW
@@ -141,11 +148,11 @@ public:
 	objLIP& init(char* x,int pos)			{if(x) ip=(unsigned char*)(x+pos);return *this;}
 
 	
-	operator ipaddress() const
+	operator basics::ipaddress() const
 	{
 		return this->operator()();
 	}
-	ipaddress operator()()	const
+	basics::ipaddress operator()()	const
 	{
 		if(ip)
 		{	
@@ -153,10 +160,8 @@ public:
 					|( ((unsigned long)(ip[2])) << 0x08)
 					|( ((unsigned long)(ip[1])) << 0x10)
 					|( ((unsigned long)(ip[0])) << 0x18);
-
-
 		}
-		return INADDR_ANY;
+		return (uint32)INADDR_ANY;
 	}
 	objLIP& operator=(const objLIP& objl)
 	{
@@ -166,7 +171,7 @@ public:
 		}
 		return *this;
 	}
-	ipaddress operator=(ipaddress valin)
+	basics::ipaddress operator=(basics::ipaddress valin)
 	{	
 		if(ip)
 		{
@@ -254,19 +259,35 @@ public:
 #define WBUFLIP(p,pos) (objLIP((p),(pos)))
 
 
-// Struct declaration
+
+
+
+
+
+
+/// abstract session data declaration.
+/// user defined session data have to be derived from this class
+class session_data
+{
+protected:
+	session_data()				{}
+public:
+	virtual ~session_data()		{}
+};
+
+// socket data declaration
 struct socket_data
 {
-	struct {
+	struct _flag{
 		bool connected : 1;		// true when connected
 		bool remove : 1;		// true when to be removed
 		bool marked : 1;		// true when deleayed removal is initiated (optional)
+
+		_flag() : connected(true),remove(false),marked(false)
+		{}
 	}flag;
 
-	time_t rdata_tick;			// tick of last read
-
-	buffer rbuffer;
-	buffer wbuffer;
+	time_t rdata_tick;			// tick of last read, zero when timout restriction is disabled
 
 	unsigned char *rdata;		// buffer
 	size_t rdata_max;			// size of buffer
@@ -277,15 +298,15 @@ struct socket_data
 	size_t wdata_max;			// size of buffer
 	size_t wdata_size;			// size of data
 
-	ipaddress client_ip;	// just an ip in host byte order is enough (4byte instead of 16)
+	basics::ipaddress client_ip;	// just an ip in host byte order is enough (4byte instead of 16)
 
-	int (*func_recv)(int);
-	int (*func_send)(int);
-	int (*func_parse)(int);
-	int (*func_term)(int);
-	int (*func_console)(char*);
+	socket_function func_recv;
+	socket_function func_send;
+	socket_function func_parse;
+	socket_function func_term;
+	console_function func_console;
 
-	void* session_data;
+	session_data*	user_session;
 };
 
 // Data prototype declaration
@@ -352,9 +373,10 @@ void flush_fifos();
 int start_console(void);
 
 void set_defaultparse(int (*defaultparse)(int));
-void set_defaultconsoleparse(int (*defaultparse)(char*));
+void set_defaultconsoleparse(int (*defaultparse)(const char*));
 
-bool detect_WAN(ipaddress& wanip);
-
+bool detect_WAN(basics::ipaddress& wanip);
+bool dropped_WAN(const basics::ipaddress& wanip, const ushort wanport);
+bool initialize_WAN(basics::ipset& set, const ushort defaultport);
 
 #endif	// _SOCKET_H_

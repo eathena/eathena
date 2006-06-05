@@ -2,22 +2,27 @@
 #define __BASETYPES_H__
 
 //////////////////////////////////////////////////////////////////////////
-// basic include for all basics
-// introduces types and global functions
+/// basic include for all basics.
+/// introduces types and global functions
 //////////////////////////////////////////////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////
 // some global switches
 //////////////////////////////////////////////////////////////////////////
-#define COUNT_GLOBALS		// enables countage of created objects
-#define CHECK_BOUNDS		// enables boundary check for arrays and lists
-#define CHECK_EXCEPTIONS	// use exceptions for "exception" handling
-#define CHECK_LOCKS			// enables check of locking/unlocking sync objects
-#define SINGLETHREAD		// builds without multithread guards
-//#define MEMORY_EXCEPTIONS	// use buildin exceptions for out-of-memory handling
+#define COUNT_GLOBALS		///< enables countage of created objects
+#define CHECK_BOUNDS		///< enables boundary check for arrays and lists
+#define CHECK_EXCEPTIONS	///< use exceptions for "exception" handling
+#define CHECK_LOCKS			///< enables check of locking/unlocking sync objects
+#define SINGLETHREAD		///< builds without multithread guards
+//#define MEMORY_EXCEPTIONS	///< use buildin exceptions for out-of-memory handling
+#define WITH_NAMESPACE		///< go with everything inside a namespace
 
 
+
+#ifndef WITH_MYSQL
+//#define WITH_MYSQL		///< builds with mysql access wrappers
+#endif
 //////////////////////////////////////////////////////////////////////////
 // no c support anymore
 //////////////////////////////////////////////////////////////////////////
@@ -28,7 +33,7 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-// setting some defines for compile modes
+/// setting some defines for compile modes
 //////////////////////////////////////////////////////////////////////////
 
 // check global objects count and array boundaries in debug mode
@@ -44,7 +49,7 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-// setting some defines on platforms
+/// setting some defines on platforms
 //////////////////////////////////////////////////////////////////////////
 #if (defined(__WIN32__) || defined(__WIN32) || defined(_WIN32) || defined(_WIN64) || defined(_MSC_VER) || defined(__BORLANDC__)) && !defined(WIN32)
 #define WIN32
@@ -77,8 +82,8 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-// exception macros
-// disable exceptions on unsupported compilers
+/// exception macros.
+/// disable exceptions on unsupported compilers
 #if defined(CHECK_EXCEPTIONS)
 
 #if defined(_MSC_VER) && _MSC_VER <= 1000	// MSVC4 is too old
@@ -96,16 +101,16 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////
-// set some macros for throw declarations
+/// set some macros for throw declarations
 #if defined(CHECK_EXCEPTIONS)
-#define NOTHROW		throw()
+#define NOTHROW()	throw()
 #define THROW(a)	throw(a)
 #define D_NOTHROW	throw()
 #define D_THROW(a)	throw(a)
 #else
-#define NOTHROW
+#define NOTHROW()
 #define THROW(a)
-#define D_NOTHROW
+#define D_NOTHROW()
 #define D_THROW(a)
 #endif
 
@@ -117,11 +122,23 @@
 #endif
 
 
+//////////////////////////////////////////////////////////////////////////
+/// namespace setup
+
+#if defined(WITH_NAMESPACE)
+#define NAMESPACE_BEGIN(x)	namespace x {
+#define NAMESPACE_END(x)	}
+#define USING_NAMESPACE(x)	using namespace x;
+#else
+#define NAMESPACE_BEGIN(x)
+#define NAMESPACE_END(x)
+#define USING_NAMESPACE(x)
+#endif
 
 
 //////////////////////////////////////////////////////////////////////////
-// system dependend include switches, 
-// that need to be done before start including stuff
+/// system dependend include switches.
+/// that need to be done before start including stuff
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////
@@ -147,16 +164,33 @@
 
 
 //////////////////////////////
+// global fdsetsize
+// override all external settings
 #undef FD_SETSIZE
-#define FD_SETSIZE 64//4096
+#define FD_SETSIZE 4096
 //////////////////////////////
 
+
+//////////////////////////////
+// set low-level fileio to 64bit mode.
+#ifndef _FILE_OFFSET_BITS
+#define _FILE_OFFSET_BITS 64
+#endif
+// hack for 64bit compiling problems with explicit 64bit file-io
+// necessary for: procfs.h, sys/swap.h (not used here, just in case)
+//#if _FILE_OFFSET_BITS==64
+//#undef _FILE_OFFSET_BITS
+//#include <procfs.h>
+//#define _FILE_OFFSET_BITS 64
+//#else
+//#include <procfs.h>
+//#endif
 
 
 
 
 //////////////////////////////////////////////////////////////////////////
-// standard headers
+/// standard headers
 //////////////////////////////////////////////////////////////////////////
 #include <stdio.h>
 #include <stdlib.h>
@@ -174,8 +208,8 @@
 #include <signal.h>
 #include <assert.h>
 
-//////////////////////////////////////////////////////////////////////////
-// additional includes for wchar support
+//////////////////////////////
+/// additional includes for wchar support
 #include <wchar.h>
 #include <wctype.h>
 
@@ -202,7 +236,7 @@ extern long altzone;
 
 
 //////////////////////////////////////////////////////////////////////////
-// threads & syncronisation
+/// threads & syncronisation
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////
@@ -235,7 +269,7 @@ extern long altzone;
 
 
 //////////////////////////////////////////////////////////////////////////
-// inet/socket/fileio
+/// inet/socket/fileio
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////
@@ -287,21 +321,22 @@ extern long altzone;
 
 
 //////////////////////////////////////////////////////////////////////////
-// c++ header 
+/// c++ header 
 //////////////////////////////////////////////////////////////////////////
-#include <typeinfo>		//!! this is poisoning the global namespace
+#include <typeinfo>		//## this is poisoning the global namespace
 
 
 //////////////////////////////////////////////////////////////////////////
-// after including the c++ header, class name "exception" has been
-// placed unfortunately in global namespace and in libc's 
-// at least for the VisualC on windows platforms
-// to get it working with the our own exception class we do some workaround
-// by just swapping the name with a hard define, 
-// drawback is, that std::exception is in this case also not usable
-// another possibility would be to retreat to our own namespace
+/// exeption redefine.
+/// after including the c++ header, class name "exception" has been
+/// placed unfortunately in global namespace and in libc's 
+/// at least for the VisualC on windows platforms
+/// to get it working with the our own exception class we do some workaround
+/// by just swapping the name with a hard define, 
+/// drawback is, that std::exception is in this case also not usable
+/// another possibility would be to retreat to our own namespace
 //////////////////////////////////////////////////////////////////////////
-#if _MSC_VER
+#if defined(_MSC_VER) && !defined(WITH_NAMESPACE)
 #define exception CException
 #endif
 //////////////////////////////////////////////////////////////////////////
@@ -320,6 +355,7 @@ extern long altzone;
 #pragma warning(disable : 4244) // converting type on return will shorten
 #pragma warning(disable : 4250) // dominant derive, is only informational
 //#pragma warning(disable : 4251)	// disable "class '...' needs to have dll-interface to be used by clients of class '...'", since the compiler may sometimes give this warning incorrectly.
+#pragma warning(disable : 4256)	// constructor for class with virtual bases has '...'; calls may not be compatible with older versions of Visual C++
 #pragma warning(disable : 4267)	// disable "argument conversion possible loss of data"
 #pragma warning(disable : 4275)	// disable VC6 "exported class was derived from a class that was not exported"
 #pragma warning(disable : 4786)	// disable VC6 "identifier string exceeded maximum allowable length and was truncated" (only affects debugger)
@@ -332,6 +368,7 @@ extern long altzone;
 #pragma warning(disable : 4511)	// no copy constructor
 #pragma warning(disable : 4512)	// no assign operator
 #pragma warning(disable : 4514)	// unreferenced inline function
+#pragma warning(disable : 4663) // new syntax for explicit template specification (comes from Microsofts own c++ headers along with a bunch of sign warnings)
 //   4675 - VC7.1, "change" in function overload resolution _might_ have altered program
 #pragma warning(disable : 4702) // disable "unreachable code" warning for throw (known compiler bug)
 #pragma warning(disable : 4706) // assignment within conditional
@@ -387,7 +424,7 @@ typedef int bool;
 
 
 //////////////////////////////////////////////////////////////////////////
-// useful defines
+/// useful defines
 //////////////////////////////////////////////////////////////////////////
 #if defined(_MSC_VER)
 // Windows compilers before VC7 don't have __FUNCTION__.
@@ -414,7 +451,7 @@ typedef int bool;
 
 
 
-// disable attributed stuff on non-GNU
+/// disable attributed stuff on non-GNU
 #ifndef __GNUC__
 #  define  __attribute__(x)
 #endif
@@ -422,7 +459,7 @@ typedef int bool;
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Problems with the typename keyword
+/// Problems with the typename keyword.
 ////////////////////////////////////////////////////////////////////////////////
 // There are problems with using the 'typename' keyword. Technically, if you
 // use a typedef member of a template class, you need to tell the compiler
@@ -499,7 +536,7 @@ typedef int bool;
 
 
 //////////////////////////////////////////////////////////////////////////
-// useful typedefs
+/// useful typedefs.
 //////////////////////////////////////////////////////////////////////////
 #if !defined(__GLIBC__) || !defined(__USE_MISC)// glibc again
 typedef unsigned int	uint;	// don't use
@@ -523,11 +560,11 @@ typedef int*			pint;
 //////////////////////////////////////////////////////////////////////////
 // pointer type
 //////////////////////////////////////////////////////////////////////////
-//#ifdef WIN32
-//typedef uint         intptr;
-//#else
-//typedef uintptr_t    intptr;
-//#endif
+#ifdef WIN32
+typedef uint         intptr;
+#else
+typedef uintptr_t    intptr;
+#endif
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -537,7 +574,7 @@ typedef int*			pint;
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
-// Integers with guaranteed _exact_ size.
+/// Integers with guaranteed _exact_ size.
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////
@@ -581,9 +618,9 @@ typedef unsigned int		uint32;
 
 
 //////////////////////////////////////////////////////////////////////////
-// Integers with guaranteed _minimum_ size.
-// These could be larger than you expect,
-// they are designed for speed.
+/// Integers with guaranteed _minimum_ size.
+/// These could be larger than you expect,
+/// they are designed for speed.
 //////////////////////////////////////////////////////////////////////////
 typedef          long int      ppint;
 typedef unsigned long int      ppuint;
@@ -598,8 +635,8 @@ typedef unsigned long int      ppuint32;
 
 
 //////////////////////////////////////////////////////////////////////////
-// integer with exact processor width (and best speed)
-//						size_t already defined in stdio.h
+/// integer with exact processor width. (and best speed)
+///						size_t already defined in stdio.h
 //////////////////////////////
 #ifdef WIN32 // does not have a signed size_t
 //////////////////////////////
@@ -614,7 +651,7 @@ typedef int				ssize_t;
 
 
 //////////////////////////////////////////////////////////////////////////
-// portable 64-bit integers
+/// portable 64-bit integers
 //////////////////////////////////////////////////////////////////////////
 #if defined(_MSC_VER) || defined(__BORLANDC__)
 typedef __int64				int64;
@@ -642,7 +679,7 @@ typedef unsigned long long	uint64;
 
 
 //////////////////////////////////////////////////////////////////////////
-// some redefine of function redefines for some Compilers
+/// some redefine of function redefines for some Compilers
 //////////////////////////////////////////////////////////////////////////
 #if defined(_MSC_VER) || defined(__BORLANDC__)
 #define strcasecmp			stricmp
@@ -653,8 +690,6 @@ typedef unsigned long long	uint64;
 #endif
 
 
-
-
 //////////////////////////////////////////////////////////////////////////
 // glibc has become a major bitch
 //////////////////////////////////////////////////////////////////////////
@@ -662,37 +697,6 @@ typedef unsigned long long	uint64;
 // unfold hidden libc proto's
 #endif
 
-
-
-//////////////////////////////////////////////////////////////////////////
-// min max and swap template
-//////////////////////////////////////////////////////////////////////////
-// The Windoze headers define macros called max/min which conflict with the templates std::max and std::min.
-// So, to avoid conflicts, MS removed the std::max/min rather than fixing the problem!
-// From Visual Studio .NET (SV7, compiler version 13.00) the STL templates have been added correctly.
-// This fix switches off the macros and reinstates the STL templates for earlier versions (SV6).
-// Note that this could break MFC applications that rely on the macros (try it and see).
-
-// For MFC compatibility, only undef min and max in non-MFC programs - some bits of MFC
-// use macro min/max in headers. For VC7 both the macros and template functions exist
-// so there is no real need for the undefs but do it anyway for consistency. So, if
-// using VC6 and MFC then template functions will not exist
-
-#ifdef min // windef has macros for that, kill'em
-#undef min
-#endif
-template <class T> inline T &min(const T &i1, const T &i2)
-{	if(i1 < i2) return (T&)i1; else return (T&)i2;
-}
-#ifdef max // windef has macros for that, kill'em
-#undef max
-#endif
-template <class T> inline T &max(const T &i1, const T &i2)	
-{	if(i1 > i2) return (T&)i1; else return (T&)i2;
-}
-template <class T> inline void swap(T &i1, T &i2)
-{	T dummy = i1; i1=i2; i2=dummy;
-}
 
 //////////////////////////////
 #ifndef __cplusplus	// not cplusplus cannot happen, just to store it here
@@ -727,16 +731,56 @@ typedef int bool;
 #endif
 
 //////////////////////////////////////////////////////////////////////////
-// number of bits in a byte
+/// number of bits in a byte
 #ifndef NBBY
 #define	NBBY 8
 #endif
 
 
 
+NAMESPACE_BEGIN(basics)
+
+//////////////////////////////////////////////////////////////////////////
+/// min max and swap template.
+//////////////////////////////////////////////////////////////////////////
+/// The Windoze headers define macros called max/min which conflict with the templates std::max and std::min.
+/// So, to avoid conflicts, MS removed the std::max/min rather than fixing the problem!
+/// From Visual Studio .NET (SV7, compiler version 13.00) the STL templates have been added correctly.
+/// This fix switches off the macros and reinstates the STL templates for earlier versions (SV6).
+/// Note that this could break MFC applications that rely on the macros (try it and see).
+
+// For MFC compatibility, only undef min and max in non-MFC programs - some bits of MFC
+// use macro min/max in headers. For VC7 both the macros and template functions exist
+// so there is no real need for the undefs but do it anyway for consistency. So, if
+// using VC6 and MFC then template functions will not exist
+
+#ifdef min // windef has macros for that, kill'em
+#undef min
+#endif
+template <class T> inline T &min(const T &i1, const T &i2)
+{	if(i1 < i2) return (T&)i1; else return (T&)i2;
+}
+#ifdef max // windef has macros for that, kill'em
+#undef max
+#endif
+template <class T> inline T &max(const T &i1, const T &i2)	
+{	if(i1 < i2) return (T&)i2; else return (T&)i1;
+}
+template <class T> inline void swap(T &i1, T &i2)
+{	T dummy = i1; i1=i2; i2=dummy;
+}
+template <class T> inline void minmax(const T &i1, const T &i2, T &minval, T &maxval)
+{
+	if(i1<i2)
+		minval=i1, maxval=i2;
+	else
+		minval=i2, maxval=i1;
+}
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
-// conversion overloads to change signed types to the appropriate unsigned
+/// conversion overloads. to change signed types to the appropriate unsigned
 ///////////////////////////////////////////////////////////////////////////////
 inline size_t to_unsigned(char t)
 {
@@ -787,9 +831,9 @@ inline uint64 to_unsigned(uint64 t)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// wrappers for Character Classification Routines
-// this also gets rid of the macro definitions
-//!! TODO: choose a better name for the namespace 
+/// wrappers for Character Classification Routines.
+/// this also gets rid of the macro definitions
+//## TODO: choose a better name for the namespace 
 namespace stringcheck
 {
 #ifdef isalpha	// get the function form, not the macro
@@ -902,8 +946,8 @@ extern inline wchar_t tolower(wchar_t c){ return ::towlower( to_unsigned(c) ); }
 
 
 //////////////////////////////////////////////////////////////////////////
-// atomic access functions
-// FASTCALL define is necessary for _asm atomic functions on windows
+/// atomic access functions.
+/// FASTCALL define is necessary for _asm atomic functions on windows
 //////////////////////////////////////////////////////////////////////////
 #ifdef WIN32
 #define FASTCALL __fastcall
@@ -926,9 +970,8 @@ template <class T> inline T* atomicexchange(T** target, T* value)
 
 
 //////////////////////////////////////////////////////////////////////////
-// byte/word/dword access, 32bit limited
+/// byte/word/dword access, 32bit limited
 //////////////////////////////////////////////////////////////////////////
-
 extern inline uchar GetByte(uint32 val, size_t num)
 {
 	switch(num)
@@ -945,6 +988,9 @@ extern inline uchar GetByte(uint32 val, size_t num)
 		return 0;	//better throw something here
 	}
 }
+//////////////////////////////////////////////////////////////////////////
+/// byte/word/dword access, 32bit limited
+//////////////////////////////////////////////////////////////////////////
 extern inline ushort GetWord(uint32 val, size_t num)
 {
 	switch(num)
@@ -957,17 +1003,25 @@ extern inline ushort GetWord(uint32 val, size_t num)
 		return 0;	//better throw something here
 	}	
 }
+//////////////////////////////////////////////////////////////////////////
+/// byte/word/dword access, 32bit limited
+//////////////////////////////////////////////////////////////////////////
 extern inline ushort MakeWord(uchar byte0, uchar byte1)
 {
 	return	  (((ushort)byte0)      )
 			| (((ushort)byte1)<<0x08);
 }
+//////////////////////////////////////////////////////////////////////////
+/// byte/word/dword access, 32bit limited
+//////////////////////////////////////////////////////////////////////////
 extern inline uint32 MakeDWord(ushort word0, ushort word1)
 {
 	return 	  (((uint32)word0)      )
 			| (((uint32)word1)<<0x10);
 }
-
+//////////////////////////////////////////////////////////////////////////
+/// byte/word/dword access, 32bit limited
+//////////////////////////////////////////////////////////////////////////
 extern inline uint32 MakeDWord(uchar byte0, uchar byte1, uchar byte2, uchar byte3)
 {
 	return 	  (((uint32)byte0)      )
@@ -976,8 +1030,7 @@ extern inline uint32 MakeDWord(uchar byte0, uchar byte1, uchar byte2, uchar byte
 			| (((uint32)byte3)<<0x18);
 }
 
-
-// Swap two bytes in a byte stream
+/// Swap two bytes in a byte stream
 extern inline void SwapTwoBytes(char *p)
 {	if(p)
 	{	char tmp =p[0];
@@ -985,15 +1038,15 @@ extern inline void SwapTwoBytes(char *p)
 		p[1] = tmp;
 	}
 }
-// Swap the bytes within a 16-bit WORD.
+
+/// Swap the bytes within a 16-bit WORD.
 extern inline ushort SwapTwoBytes(ushort w)
 {
     return	  ((w & 0x00FF) << 0x08)
 			| ((w & 0xFF00) >> 0x08);
 }
 
-
-// Swap the 4 bytes in a byte stream
+/// Swap the 4 bytes in a byte stream
 extern inline void SwapFourBytes(char *p)
 {	if(p)
 	{	char tmp;
@@ -1016,7 +1069,7 @@ extern inline uint32 SwapFourBytes(uint32 w)
 
 
 //////////////////////////////////////////////////////////////////////////
-// Check the byte-order of the CPU.
+/// Check the byte-order of the CPU.
 //////////////////////////////////////////////////////////////////////////
 #define LSB_FIRST        0
 #define MSB_FIRST        1
@@ -1033,9 +1086,8 @@ extern inline int CheckByteOrder(void)
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
-// Find the log base 2 of an N-bit integer in O(lg(N)) operations
+/// Find the log base 2 of an N-bit integer in O(lg(N)) operations
 // in this case for 32bit input it would be 11 operations
-//////////////////////////////////////////////////////////////////////////
 #ifdef log2 //glibc defines this as macro
 #undef log2
 #endif
@@ -1073,11 +1125,9 @@ inline unsigned long log2(unsigned long v)
 	return c;
 }
 
-
-
 //////////////////////////////////////////////////////////////////////////
-// OR (IF YOU KNOW v IS A POWER OF 2):
-//////////////////////////////////////////////////////////////////////////
+/// Find the log base 2 of an N-bit integer.
+/// if you know it is a power of 2
 inline unsigned long log2_(unsigned long v)
 {
 //	const unsigned long b[] = {0xAAAAAAAA, 0xCCCCCCCC, 0xF0F0F0F0, 0xFF00FF00, 0xFFFF0000};
@@ -1113,12 +1163,12 @@ inline unsigned long log2_(unsigned long v)
 #endif
 	return c;
 }
+
 //////////////////////////////////////////////////////////////////////////
-// Find the log base 2 of an integer with a lookup table
+/// Find the log base 2 of an integer with a lookup table.
 // The lookup table method takes only about 7 operations 
 // to find the log of a 32-bit value. 
 // extended for 64-bit quantities, it would take roughly 9 operations.
-//////////////////////////////////////////////////////////////////////////
 extern inline unsigned long log2t(unsigned long v)
 {
 	static const unsigned char LogTable256[] = 
@@ -1178,12 +1228,8 @@ extern inline unsigned long log2t(unsigned long v)
 	return c;
 }
 
-
-
-
 //////////////////////////////////////////////////////////////////////////
-// Counting bits set, in parallel
-//////////////////////////////////////////////////////////////////////////
+/// Counting bits set, in parallel.
 inline unsigned long bit_count(unsigned long v)
 {
 //	static const ulong S[] = {1, 2, 4, 8, 16}; // Magic Binary Numbers
@@ -1211,6 +1257,8 @@ inline unsigned long bit_count(unsigned long v)
 	return v;
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// Counting bits set, with table.
 inline unsigned long bit_count_t(unsigned long v)
 {
 	// Counting bits set by lookup table 
@@ -1242,25 +1290,30 @@ inline unsigned long bit_count_t(unsigned long v)
 	return c;
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// Counting bits set, Brian Kernighan's way.
 inline unsigned long bit_count_k(unsigned long v)
 {
-	// Counting bits set, Brian Kernighan's way 
 	unsigned long c; // c accumulates the total bits set in v
-	for (c = 0; v; c++)
+	for (c = 0; v; ++c)
 	{	// clear the least significant bit set
 		v &= v - 1; 
 	}
 	return c;
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// Counting bits set in 12-bit words using 64-bit instructions.
 inline unsigned long bit_count_12_i64(unsigned long v)
-{
-	// Counting bits set in 12, 24, or 32-bit words using 64-bit instructions 
+{	
 	unsigned long c; // c accumulates the total bits set in v
 	// option 1, for at most 12-bit values in v:
 	c = (v * ULLCONST(0x1001001001001) & ULLCONST(0x84210842108421)) % 0x1f;
 	return c;
 }
+
+//////////////////////////////////////////////////////////////////////////
+/// Counting bits set in 24-bit words using 64-bit instructions.
 inline unsigned long bit_count_24_i64(unsigned long v)
 {	// option 2, for at most 24-bit values in v:
 	unsigned long c; // c accumulates the total bits set in v
@@ -1269,6 +1322,9 @@ inline unsigned long bit_count_24_i64(unsigned long v)
 	c %= 0x1f;
 	return c;
 }
+
+//////////////////////////////////////////////////////////////////////////
+/// Counting bits set in 32-bit words using 64-bit instructions.
 inline unsigned long bit_count_32_i64(unsigned long v)
 {	// option 3, for at most 32-bit values in v:
 	unsigned long c; // c accumulates the total bits set in v
@@ -1282,11 +1338,9 @@ inline unsigned long bit_count_32_i64(unsigned long v)
 }
 
 //////////////////////////////////////////////////////////////////////////
-// calculate parity
-//////////////////////////////////////////////////////////////////////////
+/// calculate parity in parallel.
 inline bool parity(unsigned long v)
-{	// in parallel
-	// The method above takes around 9 operations for 32-bit words. 
+{	// The method above takes around 9 operations for 32-bit words. 
 #if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
 	v ^= v >> 32;
 #endif
@@ -1297,6 +1351,8 @@ inline bool parity(unsigned long v)
 	return (0x6996 >> v) & 1;
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// calculate parity using Brian Kernigan's bit counting.
 inline bool parity_k(unsigned long v)
 {	// using Brian Kernigan's bit counting
 	// The time it takes is proportional to the number of bits set. 
@@ -1309,12 +1365,16 @@ inline bool parity_k(unsigned long v)
 	return parity;
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// Compute parity of a byte using 64-bit multiply and modulus division.
+// The method takes around 7 operations, but only works on bytes. 
 inline bool parity_b(unsigned char v)
-{	// Compute parity of a byte using 64-bit multiply and modulus division 
-	// The method above takes around 7 operations, but only works on bytes. 
+{	
 	return (((v * ULLCONST(0x0101010101010101)) & ULLCONST(0x8040201008040201)) % 0x1FF) & 1;
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// Compute parity with table.
 inline bool parity_t(unsigned long v)
 {
 	//Thanks to Mathew Hendry for pointing out the shift-lookup idea at 
@@ -1349,15 +1409,15 @@ inline bool parity_t(unsigned long v)
 	return parity;
 }
 
-
 //////////////////////////////////////////////////////////////////////////
-// Reverse the bits in a byte with 7 operations
-//////////////////////////////////////////////////////////////////////////
+/// Reverse the bits in a byte with 7 operations.
 inline uchar bit_reverse(uchar b)
 {
 	return (uchar)(((b * 0x0802LU & 0x22110LU) | (b * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16);
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// Reverse the bits in a byte with 64bit instructions.
 inline uchar bit_reverse_i64(uchar b)
 {	// The multiply operation creates five separate copies of the 8-bit byte 
 	// pattern to fan-out into a 64-bit value. The and operation selects the bits that 
@@ -1375,7 +1435,7 @@ inline uchar bit_reverse_i64(uchar b)
 }
 
 //////////////////////////////////////////////////////////////////////////
-// Reverse an N-bit quantity in parallel in 5 * lg(N) operations:
+/// Reverse an N-bit quantity in parallel in 5 * lg(N) operations.
 // This method is best suited to situations where N is large.
 // Any reasonable optimizing C compiler should treat the dereferences 
 // of B, ~B, and S as constants, requiring no evaluation other than perhaps 
@@ -1383,7 +1443,6 @@ inline uchar bit_reverse_i64(uchar b)
 // See Dr. Dobb's Journal 1983, Edwin Freed's article on Binary Magic Numbers 
 // for more information. 
 // Anyway I would not count on that, so I put values explicitely.
-//////////////////////////////////////////////////////////////////////////
 inline unsigned long bit_reverse(unsigned long v)
 {
 //	static const ulong S[] = {1, 2, 4, 8, 16}; // Magic Binary Numbers
@@ -1412,9 +1471,8 @@ inline unsigned long bit_reverse(unsigned long v)
 }
 
 //////////////////////////////////////////////////////////////////////////
-// check if a number is power of 2
-// roughly; if one (and only one) bit is set
-//////////////////////////////////////////////////////////////////////////
+/// check if a number is power of 2.
+/// roughly; if one (and only one) bit is set
 extern inline bool isPowerOf2(unsigned long i)
 {
 	//return (i & (i - 1)) == 0; 
@@ -1426,8 +1484,7 @@ extern inline bool isPowerOf2(unsigned long i)
 }
 
 //////////////////////////////////////////////////////////////////////////
-// round up to the next power of 2
-//////////////////////////////////////////////////////////////////////////
+/// round up to the next power of 2.
 extern inline unsigned long RoundPowerOf2(unsigned long v)
 {
 	v--;
@@ -1443,16 +1500,18 @@ extern inline unsigned long RoundPowerOf2(unsigned long v)
 	return v;
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// Compute modulus division by 1 << s without a division operator.
 extern inline unsigned long moduloPowerOf2(unsigned long v, unsigned long s)
-{	// Compute modulus division by 1 << s without a division operator
-	// Most programmers learn this trick early, but it was included for the 
+{	// Most programmers learn this trick early, but it was included for the 
 	// sake of completeness. 
 	return v & ( (1<<s) - 1); // v % 2^s
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// Compute modulus division by (1 << s) - 1 without a division operator.
 extern inline unsigned long moduloPowerOf2_1(unsigned long v, unsigned long s)
-{	// Compute modulus division by (1 << s) - 1 without a division operator 
-	// This method of modulus division by an integer that is one less than 
+{	// This method of modulus division by an integer that is one less than 
 	// a power of 2 takes at most 5 + (4 + 5 * ceil(N / s)) * ceil(lg(N / s)) operations, 
 	// where N is the number of bits in the numerator. 
 	// In other words, it takes at most O(N * lg(N)) time. 
@@ -1470,23 +1529,7 @@ extern inline unsigned long moduloPowerOf2_1(unsigned long v, unsigned long s)
 }
 
 //////////////////////////////////////////////////////////////////////////
-// calculate pow n on base 2
-//////////////////////////////////////////////////////////////////////////
-#ifdef pow2 // just to be sure
-#undef pow2
-#endif
-extern inline unsigned long pow2(unsigned long v)
-{
-	if( v < NBBY*sizeof(unsigned long) )
-		return 1<<v;
-	return 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-// Determine if a word has a zero byte 
-//////////////////////////////////////////////////////////////////////////
-// Fewer operations:
+/// Determine if a word has a zero byte.
 inline bool has_zeros(unsigned long v)
 {	// check if any 8-bit byte in it is 0
 #if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
@@ -1515,13 +1558,11 @@ inline bool has_zeros(unsigned long v)
 }
 
 //////////////////////////////////////////////////////////////////////////
-// Interleaved bits (aka Morton numbers) 
-// are useful for linearizing 2D integer coordinates, 
-// so x and y are combined into a single number that can be compared 
-// easily and has the property that a number is usually close to another 
-// if their x and y values are close. 
-//////////////////////////////////////////////////////////////////////////
-
+/// Interleaved bits (aka Morton numbers) using binary magics.
+/// are useful for linearizing 2D integer coordinates, 
+/// so x and y are combined into a single number that can be compared 
+/// easily and has the property that a number is usually close to another 
+/// if their x and y values are close. 
 inline unsigned long interleave(unsigned short x, unsigned short y)
 {	// Interleave bits by Binary Magic Numbers 
 	const unsigned int B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF};
@@ -1537,18 +1578,21 @@ inline unsigned long interleave(unsigned short x, unsigned short y)
 	return x | (y << 1);
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// Interleaved bits (aka Morton numbers) the obvious way.
 inline unsigned long interleave_trivial(unsigned short x, unsigned short y)
-{	// Interleave bits the obvious way 
-	// bits of x are in the even positions and y in the odd;
+{	// bits of x are in the even positions and y in the odd;
 	unsigned int z = 0; // z gets the resulting 32-bit Morton Number.
 	size_t i;
-	for(i=0; i<sizeof(x)*NBBY; i++)// unroll for more speed...
+	for(i=0; i<sizeof(x)*NBBY; ++i)// unroll for more speed...
 	{
 		z |= (x & 1 << i) << i | (y & 1 << i) << (i + 1);
 	}
 	return z;
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// Interleaved bits (aka Morton numbers) using a table.
 inline unsigned long interleave_t(unsigned short x, unsigned short y)
 {
 	static const unsigned short MortonTable256[] = 
@@ -1596,19 +1640,18 @@ inline unsigned long interleave_t(unsigned short x, unsigned short y)
 	return z;
 }
 
-
-
-// square root with newton approximation
-// starting condition calculated with two approximations
-// sqrt(n) = n^1/2 = n / n^1/2 = n / 2^log2(n^1/2) = n / 2^(log2(n)/2)
-// and calculating a/2^b with left shift as a>>b
-// which results in a larger value than necessary 
-// because the integer log2 returns the floored logarism and is smaller than the real log2
-// second approximation is
-// sqrt(n) = n^1/2 = 2^(log2(n)/2) which is calculated as 1<<(log2(n)/2)
-// resulting in a value smaller than necessary because of the integer log2 
-// calculation the mean of those two approximations gets closer to the real value, 
-// only slightly faster than the buildin double sqrt and therefore useless
+//////////////////////////////////////////////////////////////////////////
+/// square root with newton approximation.
+/// starting condition calculated with two approximations
+/// sqrt(n) = n^1/2 = n / n^1/2 = n / 2^log2(n^1/2) = n / 2^(log2(n)/2)
+/// and calculating a/2^b with left shift as a>>b
+/// which results in a larger value than necessary 
+/// because the integer log2 returns the floored logarism and is smaller than the real log2
+/// second approximation is
+/// sqrt(n) = n^1/2 = 2^(log2(n)/2) which is calculated as 1<<(log2(n)/2)
+/// resulting in a value smaller than necessary because of the integer log2 
+/// calculation the mean of those two approximations gets closer to the real value, 
+/// only slightly faster than the buildin double sqrt and therefore useless
 #ifdef isqrt
 #undef isqrt
 #endif
@@ -1629,13 +1672,14 @@ template<class T> static inline T isqrt(const T& n)
 	return 0;
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// The expression evaluates ie. sign = v >> 31 for 32-bit integers. 
+/// This is one operation faster than the obvious way, 
+/// sign = -(v > 0). This trick works because when integers are shifted right, 
+/// the value of the far left bit is copied to the other bits. 
+/// The far left bit is 1 when the value is negative and 0 otherwise; 
 template<class T> inline T sign(const T& v)
-{	// The expression evaluates to sign = v >> 31 for 32-bit integers. 
-	// This is one operation faster than the obvious way, 
-	// sign = -(v > 0). This trick works because when integers are shifted right, 
-	// the value of the far left bit is copied to the other bits. 
-	// The far left bit is 1 when the value is negative and 0 otherwise; 
-	// all 1 bits is -1. 
+{
 	T sign;   // the result goes here 
 
 	// if v < 0 then -1, else 0
@@ -1652,8 +1696,10 @@ template<class T> inline T sign(const T& v)
 	// so on some systems this hack might not work. 
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// Compute the integer absolute value (abs) without branching.
 template<class T> inline T iabs(const T& v)
-{	// Compute the integer absolute value (abs) without branching
+{	
 	return (+1 | (v >> (sizeof(T) * NBBY - 1))) * v;
 	// Some CPUs don't have an integer absolute value instruction 
 	// (or the compiler fails to use them). On machines where branching 
@@ -1662,8 +1708,10 @@ template<class T> inline T iabs(const T& v)
 	// is the same. 
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// Compute the minimum (min) of two integers without branching.
 template<class T> inline T imin(const T& x, const T& y)
-{	// Compute the minimum (min) of two integers without branching 
+{	
 	return y + ((x - y) & ((x - y) >> (sizeof(T) * NBBY - 1))); // min(x, y)
 	// On machines where branching is expensive, the above expression can be faster 
 	// than the obvious approach, r = (x < y) ? x : y, 
@@ -1674,8 +1722,11 @@ template<class T> inline T imin(const T& x, const T& y)
 	// Otherwise, if x >= y, then (x - y) >> 31 will be all zeros, 
 	// so r = y + (x - y) & 0 = y. 
 }
+
+//////////////////////////////////////////////////////////////////////////
+/// Compute the maximum (max) of two integers without branching.
 template<class T> inline T imax(const T& x, const T& y)
-{	// Compute the maximum (max) of two integers without branching 
+{	
 	return  x - ((x - y) & ((x - y) >> (sizeof(int) * NBBY - 1))); // max(x, y)
 	// On machines where branching is expensive, 
 	// the above expression can be faster than the obvious approach, 
@@ -1687,6 +1738,20 @@ template<class T> inline T imax(const T& x, const T& y)
 	// so r = y + (x - y) & 0 = y. 
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// calculate pow n on base 2.
+#ifdef pow2 // just to be sure
+#undef pow2
+#endif
+extern inline unsigned long pow2(unsigned long v)
+{
+	if( v < NBBY*sizeof(unsigned long) )
+		return 1<<v;
+	return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// calculate 10 to the power of exp using a integer operations with table.
 #ifdef pow10
 #undef pow10
 #endif
@@ -1718,5 +1783,7 @@ inline uint64 pow10(uint exp)
 	}
 	return res;
 }
+
+NAMESPACE_END(basics)
 
 #endif//__BASETYPES_H__

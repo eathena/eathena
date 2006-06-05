@@ -75,7 +75,7 @@ bool email_check(const char *email)
 	if( email )
 	{
 		const char* ip;
-		size_t sz = hstrlen(email);
+		size_t sz = (email)?strlen(email):0;
 
 		if( sz > 3 && sz<40 &&
 			// part of RFC limits (official reference of e-mail description)

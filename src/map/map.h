@@ -5,6 +5,7 @@
 #include "mmo.h"
 #include "socket.h"
 #include "script.h"
+#include "path.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 #define MAX_PC_CLASS 4050
@@ -32,7 +33,6 @@
 #define NATURAL_HEAL_INTERVAL 500
 #define MAX_FLOORITEM 500000
 #define MAX_LEVEL 255
-#define MAX_WALKPATH 32
 #define MAX_DROP_PER_MAP 48
 #define MAX_IGNORE_LIST 80
 #define MAX_VENDING 12
@@ -158,32 +158,224 @@ enum { WARP, SHOP, SCRIPT, MONS };											// 0..3 -> 2bit
 
 
 
+/*
+external base classes
+doubled linked list	-> 2 pointers -> 8[16] byte
+
+mapbase			a virtual interface for maps
+				derives:
+				data:
+				members:
+				............
+				just the base class for map and foreign_map (which are "maps on other host")
+				............
+
+map				the actual map
+				derives:	mapbase
+				data:		mapdata, blockroots ...
+				members:	pathsearch, mapiterators (replacement for the foreach_..)
+				............
+
+
+mapobject		something that can be added to a map, a simple immobile object with id
+				derives:	doubled linked list
+				data:		ui id, us map, us posx, us posy, (ch bdir,ch hdir)	-> +10 (+12) byte
+				members:	whatever is done with mapobjects
+				............
+				the directions might fit in here since they fill the data structure to a 4byte boundary
+				(which is done by the compiler anyway) and (almost) any derived element is using it
+				maybe also combine it with a status bitfield since dir's only use 3 bit
+				............
+
+movable			move interface, allows moving objects
+				derives:	block
+				data:		
+				members:	
+				............
+
+battleobj		battle interface, hp/sp, skill
+				derives:	movable
+				data:		
+				members:	
+				............
+
+script			script interface
+				derives:	
+				data:		
+				members:	
+				............
+
+npc/warp/shop	script interface, move interface (script controlled) [warp,shop as special derivated, no unions]
+				derives:	movable, script
+				data:		
+				members:	
+				............
+
+pet/mob/merc	script interface, move/battle interface (script/ai controlled)
+				derives:	battleobj, (script)
+				data:		
+				members:	
+				............
+
+player/homun	client contolled  move/battle interface, socket processor
+				derives:	battleobj
+				data:		
+				members:	
+				............
+
+*/
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // predeclarations
 struct skill_unit_group;
-struct npc_data;
-struct pet_db;
 struct item_data;
-struct square;
+struct pet_db;
+
+struct map_session_data;
+struct npc_data;
+struct mob_data;
+struct pet_data;
+class flooritem_data;
+class chat_data;
+struct skill_unit;
+
+enum dir_t { DIR_N=0, DIR_NE, DIR_E, DIR_SE, DIR_S, DIR_SW, DIR_W, DIR_NW };
 
 
+/// calculates distance between two coordinates
+int distance(int x0,int y0,int x1,int y1);
+/// calculates direction from first to second coordinate
+dir_t direction(int x0,int y0,int x1,int y1);
+// その他
+bool is_same_direction(dir_t s_dir, dir_t t_dir);
+
+// maybe make this also classes with compare and calculation operators
+// but not urgend
+
+
+/// 2 dimentional coordinate.
+struct coordinate
+{
+	unsigned short x;
+	unsigned short y;
+
+	coordinate(unsigned short xi=0, unsigned short yi=0)
+		: x(xi), y(yi)
+	{}
+	~coordinate()
+	{}
+
+	/// get the distance from this coordinate to the x/y
+	int get_distance(int x,int y) const
+	{
+		return distance(this->x,this->y, x, y);
+	}
+	/// get the distance from this coordinate to another
+	int get_distance(const coordinate& c) const
+	{
+		return distance(this->x,this->y, c.x, c.y);
+	}
+	/// get the direction from this coordinate to the x/y
+	dir_t get_direction(int x,int y) const
+	{
+		return direction(this->x,this->y, x, y);
+	}
+	/// get the direction from this coordinate to another
+	dir_t get_direction(const coordinate& c) const
+	{
+		return direction(this->x,this->y, c.x, c.y);
+	}
+
+	/// coordinate distance
+	friend inline int distance(coordinate &c1, coordinate &c2)
+	{
+		return distance(c1.x,c1.y,c2.x,c2.y);
+	}
+	/// coordinate direction
+	friend inline dir_t direction(coordinate &c1, coordinate &c2)
+	{
+		return direction(c1.x,c1.y,c2.x,c2.y);
+	}
+};
 
 
 ///////////////////////////////////////////////////////////////////////////////
-struct block_list
+struct block_list : public coordinate
 {
-	struct block_list *next;
-	struct block_list *prev;
-	uint32 id;
 	unsigned short m;
-	unsigned short x;
-	unsigned short y;
 	unsigned char type;
 	unsigned char subtype;
+	uint32 id;
+	block_list *next;
+	block_list *prev;
+
+	/// default constructor.
+	block_list(uint32 i=0, unsigned char t=0, unsigned char s=0) : 
+		m(0),
+		type(t),
+		subtype(s),
+		id(i),
+		next(NULL),
+		prev(NULL)
+	{}
+	virtual ~block_list()	
+	{
+		// not yet removed from map
+		if(this->prev) this->map_delblock();
+		// and just to be sure that it's removed from iddb
+		this->map_deliddb();
+	}
+
+
+	// missing:
+	// all interactions with map 
+	// which should be directly wrapped into a static interface
+	// any comments? [Hinoko]
+
+	// we'll leave it global right now and wrap it later
+	// just move the basic functions here for the moment
+	// and take care for the necessary refinements [Shinomori]
+
+	// block identifier database
+	void map_addiddb();
+	void map_deliddb();
+
+	// block on a map
+	bool map_addblock();
+	bool map_delblock();
+
+	// collision free deleting of blocks
+	int map_freeblock();
+	static int map_freeblock_lock(void);
+	static int map_freeblock_unlock(void);
+
+
+	/// get randomized move coordinates -> move to movable
+	bool random_position(unsigned short &x, unsigned short &y) const; // [Skotlex]
+	bool random_position(coordinate &pos) const;
+
+
+	/// return body direction.
+	/// default function, needs to be overloaded at specific implementations
+	virtual dir_t get_dir()		{ return DIR_N; }
+	/// return head direction.
+	/// default function, needs to be overloaded at specific implementations
+	virtual dir_t get_headdir()	{ return this->get_dir(); }
+
+
+
+
+
 
 	// New member functions by Aru to cleanup code and 
 	// automate sanity checking when converting block_list
 	// to map_session_data, mob_data or pet_data
+
+	// change all access to virtual overloads
+	// so these might be not necessary when finished, 
+	// also the type and subtype members will be obsolete
+	// since objects can identify themselfs [Shinomori]
 	struct map_session_data* get_sd()
 	{
 		if(type != BL_PC)
@@ -191,7 +383,6 @@ struct block_list
 		else
 			return (struct map_session_data*)this;
 	}
-	operator struct map_session_data*()	{ return get_sd(); }
 
 	struct pet_data* get_pd()
 	{
@@ -200,7 +391,6 @@ struct block_list
 		else
 			return (struct pet_data*)this;
 	}
-	operator struct pet_data*()	{ return get_pd(); }
 
 	struct mob_data* get_md()
 	{
@@ -209,48 +399,66 @@ struct block_list
 		else
 			return (struct mob_data*)this;
 	}
-	operator struct mob_data*()	{ return get_md(); }
 
 };
 
-///////////////////////////////////////////////////////////////////////////////
-struct walkpath_data
-{
-	unsigned char path_len;
-	unsigned char path_pos;
-	unsigned char path_half;
-	unsigned char path[MAX_WALKPATH];
-};
-struct shootpath_data
-{
-	unsigned short rx;
-	unsigned short ry;
-	unsigned short len;
-	unsigned short x[MAX_WALKPATH];
-	unsigned short y[MAX_WALKPATH];
-};
 
 ///////////////////////////////////////////////////////////////////////////////
-struct script_reg
+// currently unused, 
+// needs splitup to movable/fightable and 
+// using class hierarchy instead of pointer linkage
+struct unit_data
 {
-	int index;
-	int data;
+	struct block_list *bl;
+	int walktimer;
+	struct walkpath_data walkpath;
+	unsigned short to_x;
+	unsigned short to_y;
+	unsigned short skillx;
+	unsigned short skilly;
+	unsigned short skillid;
+	unsigned short skilllv;
+	uint32   skilltarget;
+	int   skilltimer;
+	struct linkdb_node *skilltimerskill;
+	struct linkdb_node *skillunit;
+	struct linkdb_node *skilltickset;
+	int   attacktimer;
+	int   attacktarget;
+	short attacktarget_lv;
+	unsigned long attackabletime;
+	unsigned long canact_tick;
+	unsigned long canmove_tick;
+	struct
+	{
+		unsigned change_walk_target : 1 ;
+		unsigned skillcastcancel : 1 ;
+		unsigned attack_continue : 1 ;
+	} state;
+	struct linkdb_node *statuspretimer;
+
 };
-struct script_regstr
-{
-	int index;
-	char data[256];
-};
+
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
 struct status_change
 {
 	int timer;
-	intptr val1;
-	intptr val2;
-	intptr val3;
-	intptr val4;
+	basics::numptr val1;
+	basics::numptr val2;
+	basics::numptr val3;
+	basics::numptr val4;
+
+	// default constructor
+	status_change() :
+		timer(-1),
+		val1(),
+		val2(),
+		val3(),
+		val4()
+	{ }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -259,6 +467,13 @@ struct vending
 	unsigned short index;
 	unsigned short amount;
 	uint32 value;
+
+	// default constructor
+	vending() : 
+		index(0),
+		amount(0),
+		value(0)
+	{}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -291,12 +506,41 @@ struct weapon_data
 	short sp_drain_value;
 
 	unsigned fameflag : 1;
+
+	// default constructor
+	weapon_data() : 
+		watk(0),
+		watk2(0),
+		overrefine(0),
+		star(0),
+		atk_ele(0),
+		ignore_def_ele(0),
+		ignore_def_race(0),
+		ignore_def_mob(0),
+		def_ratio_atk_ele(0),
+		def_ratio_atk_race(0),
+		add_damage_class_count(0),
+		hp_drain_rate(0),
+		hp_drain_per(0),
+		hp_drain_value(0),
+		sp_drain_rate(0),
+		sp_drain_per(0),
+		sp_drain_value(0),
+		fameflag(0)
+	{
+		memset(atkmods,0,sizeof(atkmods));
+		memset(addsize,0,sizeof(addsize));
+		memset(addele,0,sizeof(addele));
+		memset(addrace,0,sizeof(addrace));
+		memset(addrace2,0,sizeof(addrace2));
+		memset(add_damage_classid,0,sizeof(add_damage_classid));
+		memset(add_damage_classrate,0,sizeof(add_damage_classrate));
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-struct skill_unit
+struct skill_unit : public block_list
 {
-	struct block_list bl;
 	struct skill_unit_group *group;
 
 	long limit;
@@ -304,6 +548,18 @@ struct skill_unit
 	long val2;
 	short alive;
 	short range;
+
+	skill_unit() :
+		group(NULL),
+		limit(0),
+		val1(0),
+		val2(0),
+		alive(0),
+		range(0)
+	{}
+private:
+	skill_unit(const skill_unit&);					// forbidden
+	const skill_unit& operator=(const skill_unit&);	// forbidden
 };
 struct skill_unit_group
 {
@@ -321,18 +577,46 @@ struct skill_unit_group
 	long val1;
 	long val2;
 	long val3;
-	char *valstr;
+	basics::string<> valstring;
 	unsigned char unit_id;
 	long group_id;
 	long unit_count;
 	long alive_count;
 	struct skill_unit *unit;
+
+	skill_unit_group() :
+		src_id(0),
+		party_id(0),
+		guild_id(0),
+		map(0),
+		target_flag(0),
+		tick(0),
+		limit(0),
+		interval(0),
+		skill_id(0),
+		skill_lv(0),
+		val1(0),
+		val2(0),
+		val3(0),
+		unit_id(0),
+		group_id(0),
+		unit_count(0),
+		alive_count(0),
+		unit(NULL)
+	{}
 };
+
 struct skill_unit_group_tickset
 {
 	unsigned short skill_id;
 	unsigned long tick;
+
+	skill_unit_group_tickset() :
+		skill_id(0),
+		tick(0)
+	{}
 };
+
 struct skill_timerskill
 {
 	uint32 src_id;
@@ -345,13 +629,24 @@ struct skill_timerskill
 	int timer;
 	long type;
 	long flag;
+
+	skill_timerskill() : 
+		src_id(0),
+		target_id(0),
+		map(0),
+		x(0),
+		y(0),
+		skill_id(0),
+		skill_lv(0),
+		timer(-1),
+		type(0),
+		flag(0)
+	{}
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-struct map_session_data
+struct map_session_data : public block_list, public session_data
 {
-	struct block_list bl;
 	struct {
 		unsigned auth : 1;							// 0
 		unsigned change_walk_target : 1;			// 1
@@ -431,7 +726,6 @@ struct map_session_data
 	uint32 client_tick;
 	struct walkpath_data walkpath;
 	int walktimer;
-//	uint32 next_walktime;
 
 	uint32 areanpc_id;
 	uint32 npc_shopid;
@@ -651,7 +945,7 @@ struct map_session_data
 	//--- end effects
 	short spiritball;
 	short spiritball_old;
-	long spirit_timer[MAX_SKILL_LEVEL];
+	int spirit_timer[MAX_SKILL_LEVEL];
 	long magic_damage_return; // AppleGirl Was Here
 	long random_attack_increase_add;
 	long random_attack_increase_per; // [Valaris]
@@ -661,6 +955,7 @@ struct map_session_data
 	long die_counter;
 	short doridori_counter;
 	char potion_success_counter;
+	unsigned short mission_target;
 
 	unsigned short reg_num;
 	struct script_reg *reg;
@@ -698,10 +993,14 @@ struct map_session_data
 	struct vending vending[MAX_VENDING];
 
 	long catch_target_class;
-	struct s_pet pet;
+	struct petstatus pet;
 	struct petdb *petDB;
 	struct pet_data *pd;
 	int pet_hungry_timer;
+
+	struct homun_data *hd;
+	int homun_hungry_timer;
+	struct homunstatus hom;
 
 	uint32 pvp_won;
 	uint32 pvp_lost;
@@ -713,36 +1012,142 @@ struct map_session_data
 	int eventtimer[MAX_EVENTTIMER];
 	unsigned short eventcount; // [celest]
 
-//	char eventqueue[MAX_EVENTQUEUE][50];
-
 	unsigned short change_level;	// [celest]
 	uint32 canuseitem_tick;
 	char fakename[24];
 	unsigned long mail_tick;	// mail counter for mail system [Valaris]
+
+
+
+
+	// operator new that ensures that memory is cleared before construction
+	// I'm just too lazy to initialize all those stupid menbers that get thrown out anyway
+	void* operator new(size_t sz)
+	{
+		void* ret = malloc(sz);
+		memset(ret,0,sz);
+		return ret;
+	}
+	void  operator delete(void* p)
+	{
+		if(p) free(p);
+	}
+
+	map_session_data(int fdi=0, int packver=0, uint32 account_id=0, uint32 char_id=0, uint32 login_id1=0, uint32 client_tick=0, unsigned char sex=0)
+	{
+		this->init(fdi, packver, account_id, char_id, login_id1, client_tick, sex);
+	}
+private:
+	// no copy/assign since of the bl reference
+	map_session_data(const map_session_data& m);
+	const map_session_data& operator=(const map_session_data& m);
+
+protected:
+	void init(int fdi=0, int packver=0, uint32 account_id=0, uint32 char_id=0, uint32 login_id1=0, uint32 client_tick=0, unsigned char sex=0)
+	{
+		size_t i;
+		unsigned long tick = gettick();
+
+		this->fd				= fdi;
+		this->packet_ver		= packver;
+
+		this->block_list::id	= account_id;
+		this->block_list::type	= BL_PC;
+
+		this->status.char_id	= char_id;
+		this->status.sex		= sex;
+
+		this->login_id1			= login_id1;
+		this->login_id2			= 0;
+		this->state.auth		= 0;
+		this->speed = DEFAULT_WALK_SPEED;
+		this->client_tick		= client_tick;
+		
+		this->skillitem = 0xFFFF;
+		this->skillitemlv = 0xFFFF;
+		
+		this->party_x = 0xFFFF;
+		this->party_y = 0xFFFF;
+		this->party_hp = -1;
+
+		// ticks
+		this->canact_tick		= tick;
+		this->canmove_tick		= tick;
+		this->canlog_tick		= tick;
+		this->canregen_tick = tick;
+		this->attackabletime = tick;
+
+		// timers
+		this->walktimer = -1;
+		this->attacktimer = -1;
+		this->followtimer = -1;
+		this->skilltimer = -1;
+		this->invincible_timer = -1;
+		this->pet_hungry_timer = -1;
+		this->pvp_timer = -1;
+		
+		for(i = 0; i < MAX_EVENTTIMER; ++i)
+			this->eventtimer[i] = -1;
+		for(i = 0; i < MAX_SKILL_LEVEL; ++i)
+			this->spirit_timer[i] = -1;
+	}
+
+private:
+	void* operator new[](size_t);	// forbidden
+	void  operator delete[](void*);	// forbidden
+
 };
 
 
 ///////////////////////////////////////////////////////////////////////////////
-struct npc_timerevent_list {
+struct npc_timerevent_list
+{
 	int timer;
 	size_t pos;
+
+	npc_timerevent_list() : 
+		timer(-1),
+		pos(0)
+	{}
 };
-struct npc_item_list {
+struct npc_item_list
+{
 	unsigned short nameid;
 	long value;
+// part of a union and cannot be default constructed
+// need to wait until new hierarchy is fully implemented
+//	npc_item_list() : 
+//		nameid(0),
+//		value(0)
+//	{}
 };
-struct npc_label_list {
+struct npc_label_list
+{
 	char labelname[24];
 	size_t pos;
+
+	npc_label_list() : 
+		pos(0)
+	{
+		labelname[0]=0;
+	}
 };
-struct npc_reference{
+struct npc_reference
+{
 	char *script;
 	struct npc_label_list *label_list;
 	size_t label_list_num;	
 	size_t refcnt;			//reference counter
+
+	npc_reference(char *sc, struct npc_label_list *ll=NULL, size_t lc=0) :
+		script(sc),
+		label_list(ll),
+		label_list_num(lc),
+		refcnt(0)
+	{}
 };
-struct npc_data {
-	struct block_list bl;
+struct npc_data : public block_list
+{
 	short n;
 	short class_;
 	short dir;
@@ -772,9 +1177,6 @@ struct npc_data {
 	short arenaflag;
 	void *chatdb;
 
-	npc_data() : chatdb(NULL)	{} 
-
-
 	union {
 		struct {
 			struct npc_reference *ref; // char pointer with reference counter
@@ -799,11 +1201,118 @@ struct npc_data {
 		} warp;
 	} u;
 	// ここにメンバを追加してはならない(shop_itemが可変長の為)
+
+
+
+	// can have an empty constructor here since it is cleared at allocation
+	npc_data() : 
+		walktimer(-1)
+	{} 
+
+private:
+	npc_data(const npc_data&);					// forbidden
+	const npc_data& operator=(const npc_data&);	// forbidden
+
+public:
+	// provide special allocation to enable variable space for shop items
+	//
+	// change to an own shop class later that can be called from an npc
+	// to enable the old shop npc and also callable script controlled (dynamic) shops
+
+	void* operator new(size_t sz)
+	{
+		void *ret = malloc(sz);
+		memset(ret,0,sz);
+		return ret;
+	}
+	void operator delete(void *p)
+	{
+		if(p) free(p);
+	}
+	void* operator new(size_t sz, size_t shopitems)
+	{
+		void* ret = malloc(sz + shopitems*sizeof(struct npc_item_list));
+		memset(ret,0,sz + shopitems*sizeof(struct npc_item_list));
+		return ret;
+	}
+	void operator delete(void *p, size_t shopitems)
+	{
+		if(p) free(p);
+	}
+
+private:
+	void* operator new[](size_t sz);			// forbidden
+	void operator delete[](void *p, size_t sz);	// forbidden
 };
 
 
 
 
+/*==========================================
+ * The structure object for item drop with delay
+ * Since it is only two being able to pass [ int ] a timer function
+ * Data is put in and passed to this structure object.
+ *------------------------------------------
+ */
+struct delay_item_drop
+{
+	unsigned short m;
+	unsigned short x;
+	unsigned short y;
+	unsigned short nameid;
+	unsigned short amount;
+	struct map_session_data *first_sd;
+	struct map_session_data *second_sd;
+	struct map_session_data *third_sd;
+
+	delay_item_drop(
+		unsigned short mi,
+		unsigned short xi,
+		unsigned short yi,
+		unsigned short idi,
+		struct map_session_data *sd1=NULL,
+		struct map_session_data *sd2=NULL,
+		struct map_session_data *sd3=NULL
+		) :
+		m(mi),
+		x(xi),
+		y(yi),
+		nameid(idi),
+		amount(1),
+		first_sd(sd1),
+		second_sd(sd2),
+		third_sd(sd3)
+	{}
+};
+
+struct delay_item_drop2
+{
+	unsigned short m;
+	unsigned short x;
+	unsigned short y;
+	struct item item_data;
+	struct map_session_data *first_sd;
+	struct map_session_data *second_sd;
+	struct map_session_data *third_sd;
+
+	delay_item_drop2(
+		unsigned short mi,
+		unsigned short xi,
+		unsigned short yi,
+		const struct item& itemi,
+		struct map_session_data *sd1=NULL,
+		struct map_session_data *sd2=NULL,
+		struct map_session_data *sd3=NULL
+		) :
+		m(mi),
+		x(xi),
+		y(yi),
+		item_data(itemi),
+		first_sd(sd1),
+		second_sd(sd2),
+		third_sd(sd3)
+	{}
+};
 
 
 
@@ -827,11 +1336,27 @@ struct mob_list
 	char eventname[24];
 
 	unsigned short num;
+
+	mob_list() : 
+		m(0),
+		x0(0),
+		y0(0),
+		xs(0),
+		ys(0),
+		delay1(0),
+		delay2(0),
+		class_(0),
+		level(0),
+		num(0)
+	{
+		mobname[0]=0;
+		eventname[0]=0;
+	}
+
 };
 
-struct mob_data
+struct mob_data : public block_list
 {
-	struct block_list bl;
 	unsigned short base_class;
 	unsigned short class_;
 	unsigned short mode;
@@ -842,7 +1367,7 @@ struct mob_data
 	// mobs are divided into cached and noncached (script/spawned)
 	mob_list* cache;
 
-	struct {
+	struct _state {
 		unsigned state : 8;						//b1
 		unsigned skillstate : 8;				//b2
 		unsigned targettype : 1;
@@ -859,6 +1384,24 @@ struct mob_data
 		unsigned size : 2;
 		unsigned recall_flag :1;
 		unsigned _unused : 1;
+
+		_state() :
+			state(0),
+			skillstate(0),
+			targettype(0),
+			steal_flag(0),
+			steal_coin_flag(0),
+			skillcastcancel(0),
+			master_check(0),
+			change_walk_target(0),
+			walk_easy(0),
+			soul_change_flag(0),
+			special_mob_ai(0),
+			is_master(0),
+			alchemist(0),
+			size(0),
+			recall_flag(0)
+		{}
 	} state;
 
 	int timer;
@@ -889,6 +1432,10 @@ struct mob_data
 	{
 		uint32 fromid;
 		long dmg;
+		mob_damage() : 
+			fromid(0),
+			dmg(0)
+		{}
 	} dmglog[DAMAGELOG_SIZE];
 	struct item *lootitem;
 	short move_fail_count;
@@ -925,16 +1472,76 @@ struct mob_data
 
 	unsigned short recallmob_count;
 	unsigned short recallcount;
+
+
+
+	mob_data() :
+		base_class(0),
+		class_(0),
+		mode(0),
+		speed(0),
+		dir(0),
+		cache(NULL),
+		timer(-1),
+		hp(0),
+		max_hp(0),
+		to_x(0),
+		to_y(0),
+		level(0),
+		attacked_count(0),
+		target_dir(0),
+		target_lv(0),
+		provoke_id(0),
+		target_id(0),
+		attacked_id(0),
+		next_walktime(0),
+		attackabletime(0),
+		last_deadtime(0),
+		last_spawntime(0),
+		last_thinktime(0),
+		canmove_tick(0),
+		lootitem(NULL),
+		move_fail_count(0),
+		lootitem_count(0),
+		opt1(0),
+		opt2(0),
+		opt3(0),
+		option(0),
+		min_chase(0),
+		deletetimer(-1),
+		guild_id(0),
+		skilltimer(-1),
+		skilltarget(0),
+		skillx(0),
+		skilly(0),
+		skillid(0),
+		skilllv(0),
+		skillidx(0),
+		def_ele(0),
+		master_id(0),
+		master_dist(0),
+		exclusion_src(0),
+		exclusion_party(0),
+		exclusion_guild(0),
+		recallmob_count(0),
+		recallcount(0)
+	{
+		name[0] = 0;
+		npc_event[0]=0;
+		memset(skilldelay, 0, sizeof(skilldelay));
+	}
+private:
+	mob_data(const mob_data&);					// forbidden
+	const mob_data& operator=(const mob_data&);	// forbidden
 };
 
-///////////////////////////////////////////////////////////////////////////////
-struct pet_data
-{
-	struct block_list bl;
 
-	//char name[24];
-	char *namep;
-	struct {
+///////////////////////////////////////////////////////////////////////////////
+struct pet_data : public block_list
+{
+	const char *namep;
+	struct _state
+	{
 		unsigned state : 8 ;
 		unsigned skillstate : 8 ;
 		unsigned change_walk_target : 1 ;
@@ -942,6 +1549,13 @@ struct pet_data
 		unsigned casting_flag : 1; //Skotlex: Used to identify when we are casting. I want a state.state value for that....
 
 		signed skillbonus : 2;
+		_state() : 
+			state(0),
+			skillstate(0),
+			change_walk_target(0),
+			casting_flag(0),
+			skillbonus(0)
+		{}
 	} state;
 
 	int timer;
@@ -973,12 +1587,28 @@ struct pet_data
 		unsigned short int_;
 		unsigned short dex;
 		unsigned short luk;
+		pet_status() : 
+			level(0),
+			atk1(0),
+			atk2(0),
+			str(0),
+			agi(0),
+			vit(0),
+			int_(0),
+			dex(0),
+			luk(0)
+		{}
 	} *status;  //[Skotlex]
 
 	struct pet_recovery { //Stat recovery
 		unsigned short type;	//Status Change id
 		unsigned short delay; //How long before curing (secs).
 		int timer;
+		pet_recovery() :
+			type(0),
+			delay(0),
+			timer(-1)
+		{}
 	} *recovery; //[Valaris] / Reimplemented by [Skotlex]
 	
 	struct pet_bonus {
@@ -987,6 +1617,13 @@ struct pet_data
 		unsigned short duration; //in secs
 		unsigned short delay;	//Time before recasting (secs)
 		int timer;
+		pet_bonus() :
+			type(0),
+			val(0),
+			duration(0),
+			delay(0),
+			timer(-1)
+		{}
 	} *bonus; //[Valaris] / Reimplemented by [Skotlex]
 	
 	struct pet_skill_attack { //Attack Skill
@@ -995,6 +1632,14 @@ struct pet_data
 		unsigned short div_; //0 = Normal skill. >0 = Fixed damage (lv), fixed div_.
 		unsigned short rate; //Base chance of skill ocurrance (10 = 10% of attacks)
 		unsigned short bonusrate; //How being 100% loyal affects cast rate (10 = At 1000 intimacy->rate+10%
+
+		pet_skill_attack() : 
+			id(0),
+			lv(0),
+			div_(0),
+			rate(0),
+			bonusrate(0)
+		{}
 	} *a_skill;	//[Skotlex]
 	
 	struct pet_skill_support { //Support Skill
@@ -1004,6 +1649,15 @@ struct pet_data
 		unsigned short sp; //Max SP% for skill to trigger (100 = no check)
 		unsigned short delay; //Time (secs) between being able to recast.
 		int timer;
+
+		pet_skill_support() : 
+			id(0),
+			lv(0),
+			hp(0),
+			sp(0),
+			delay(0),
+			timer(-1)
+		{}
 	} *s_skill;	//[Skotlex]
 
 	struct pet_loot {
@@ -1012,13 +1666,164 @@ struct pet_data
 		unsigned short count;
 		unsigned short max;
 		unsigned long loottick;
+
+		pet_loot() : 
+			item(NULL),
+			weight(0),
+			count(0),
+			max(0),
+			loottick(0)
+		{}
 	} *loot; //[Valaris] / Rewritten by [Skotlex]
 	
 	struct skill_timerskill skilltimerskill[MAX_MOBSKILLTIMERSKILL]; // [Valaris]
 	struct skill_unit_group skillunit[MAX_MOBSKILLUNITGROUP]; // [Valaris]
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET]; // [Valaris]
 	struct map_session_data *msd;
+
+
+	pet_data(const char *n) :
+		namep(n),
+		timer(-1),
+		class_(0),
+		dir(0),
+		speed(0),
+		equip_id(0),
+		target_id(0),
+		target_lv(0),
+		to_x(0),
+		to_y(0),
+		rate_fix(0),
+		move_fail_count(0),
+		attackabletime(0),
+		next_walktime(0),
+		last_thinktime(0),
+		status(NULL),
+		recovery(NULL),
+		bonus(NULL),
+		a_skill(NULL),
+		s_skill(NULL),
+		loot(NULL),
+		msd(NULL)
+	{
+	}
+private:
+	pet_data(const pet_data&);					// forbidden
+	const pet_data& operator=(const pet_data&);	// forbidden
+
 };
+
+
+
+
+
+
+
+class homun_data : public block_list
+{
+public:
+	struct unit_data ud;
+	struct homunstatus status;
+	struct
+	{
+		unsigned skillstate : 8 ;
+	} state;
+	uchar dir;
+	short speed;
+	short view_size;
+	int invincible_timer;
+	int hp_sub;
+	int sp_sub;
+	int max_hp;
+	int max_sp;
+	ushort str;
+	ushort agi;
+	ushort vit;
+	ushort int_;
+	ushort dex;
+	ushort luk;
+	ushort atk;
+	ushort matk;
+	ushort def;
+	ushort mdef;
+	ushort hit;
+	ushort critical;
+	ushort flee;
+	ushort aspd;
+	ushort equip;
+	int intimate;
+	uint32 target_id;
+	int homskillstatictimer[MAX_HOMSKILL];
+	struct status_change sc_data[MAX_STATUSCHANGE];
+	ushort sc_count;
+	short atackable;
+	short limits_to_growth;
+	ushort view_class;
+	int nhealhp,nhealsp;
+	int hprecov_rate,sprecov_rate;
+	int natural_heal_hp,natural_heal_sp;
+	int hungry_cry_timer;
+
+	struct map_session_data *msd;
+
+
+	homun_data()
+	{}
+
+	void* operator new(size_t sz)
+	{
+		void *ret = malloc(sz);
+		memset(ret,0,sz);
+		return ret;
+	}
+	void operator delete(void *p)
+	{
+		if(p) free(p);
+	}
+private:
+	void* operator new[](size_t sz);			// forbidden
+	void operator delete[](void *p, size_t sz);	// forbidden
+
+private:
+	homun_data(const homun_data&);					// forbidden
+	const homun_data& operator=(const homun_data&);	// forbidden
+};
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+class flooritem_data : public block_list
+{
+public:
+	unsigned char subx;
+	unsigned char suby;
+	int cleartimer;
+	uint32 first_get_id;
+	uint32 second_get_id;
+	uint32 third_get_id;
+	uint32 first_get_tick;
+	uint32 second_get_tick;
+	uint32 third_get_tick;
+	struct item item_data;
+
+	flooritem_data() :
+		subx(0), suby(0), cleartimer(-1),
+		first_get_id(0), second_get_id(0), third_get_id(0),
+		first_get_tick(0), second_get_tick(0), third_get_tick(0)
+	{ }
+private:
+	flooritem_data(const flooritem_data&);					// forbidden
+	const flooritem_data& operator=(const flooritem_data&);	// forbidden
+};
+
+
+
+
+
+
+
+
 
 enum { MS_IDLE,MS_WALK,MS_ATTACK,MS_DEAD,MS_DELAY };
 
@@ -1033,12 +1838,6 @@ enum {
 	EQP_SHIELD		= 4,		// 左手
 	EQP_HELM		= 8,		// 頭上段
 };
-
-
-
-
-
-
 
 
 
@@ -1110,10 +1909,24 @@ struct map_data
 	char mapname[24];
 	struct mapgat	*gat;	// NULLなら下のmap_data_other_serverとして扱う
 	///////////////////////////////////////////////////////////////////////////
-	struct block_list **block;
-	struct block_list **block_mob;
-	int *block_count;
-	int *block_mob_count;
+
+	struct _objects
+	{
+		struct block_list*	root_blk;
+		struct block_list*	root_mob;
+		uint				cnt_blk;
+		uint				cnt_mob;
+		_objects() :
+			root_blk(NULL),
+			root_mob(NULL),
+			cnt_blk(0),
+			cnt_mob(0)
+		{}
+	} *objects;
+//	struct block_list **block;
+//	struct block_list **block_mob;
+//	int *block_count;
+//	int *block_mob_count;
 	int m;
 	unsigned short xs;
 	unsigned short ys;
@@ -1179,26 +1992,17 @@ struct map_data_other_server
 	char name[24];
 	struct mapgat *gat;	// NULL固定にして判断
 	///////////////////////////////////////////////////////////////////////////
-	ipset mapset;
+	basics::ipset mapset;
 	struct map_data* map;
+
+	map_data_other_server() : 
+		gat(NULL),
+		map(NULL)
+	{
+		name[0]=0;
+	}
 };
 
-
-///////////////////////////////////////////////////////////////////////////////
-struct flooritem_data
-{
-	struct block_list bl;
-	unsigned char subx;
-	unsigned char suby;
-	int cleartimer;
-	uint32 first_get_id;
-	uint32 second_get_id;
-	uint32 third_get_id;
-	uint32 first_get_tick;
-	uint32 second_get_tick;
-	uint32 third_get_tick;
-	struct item item_data;
-};
 
 enum {
 	SP_SPEED,SP_BASEEXP,SP_JOBEXP,SP_KARMA,SP_MANNER,SP_HP,SP_MAXHP,SP_SP,	// 0-7
@@ -1259,22 +2063,6 @@ enum {
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-struct chat_data
-{
-	struct block_list bl;	// block of the chatwindow
-
-	char pass[9];			// password (max 8)
-	char title[61];			// room title (max 60)
-	unsigned short limit;	// join limit
-	unsigned short users;	// current users
-	unsigned char trigger;
-	unsigned char pub;		// room attribute
-	struct map_session_data *usersd[20];
-	struct block_list *owner;
-	char npc_event[50];
-};
-
 extern struct map_data maps[];
 extern size_t map_num;
 extern int autosave_interval;
@@ -1312,13 +2100,6 @@ void map_setcell(unsigned short m,unsigned short x, unsigned short y,int cellck)
 // 鯖全体情報
 void map_setusers(int fd);
 int map_getusers(void);
-// block削除関連
-int map_freeblock(void *bl);
-int map_freeblock_lock(void);
-int map_freeblock_unlock(void);
-// block関連
-int map_addblock(struct block_list &bl);
-int map_delblock(struct block_list &bl);
 
 
 
@@ -1331,7 +2112,7 @@ int map_delblock(struct block_list &bl);
 ///////////////////////////////////////////////////////////////////////////////
 // virtual base class which is called for each block
 ///////////////////////////////////////////////////////////////////////////////
-class CMapProcessor : public noncopyable
+class CMapProcessor : public basics::noncopyable
 {
 public:
 	CMapProcessor()			{}
@@ -1379,8 +2160,8 @@ int map_quit(struct map_session_data &sd);
 int map_addnpc(unsigned short m, struct npc_data *nd);
 
 // 床アイテム関連
-int map_clearflooritem_timer(int tid, unsigned long tick, int id, intptr data);
-int map_removemobs_timer(int tid, unsigned long tick, int id, intptr data);
+int map_clearflooritem_timer(int tid, unsigned long tick, int id, basics::numptr data);
+int map_removemobs_timer(int tid, unsigned long tick, int id, basics::numptr data);
 #define map_clearflooritem(id) map_clearflooritem_timer(0,0,id,1)
 int map_addflooritem(struct item &item_data,unsigned short amount,unsigned short m,unsigned short x,unsigned short y,struct map_session_data *first_sd,struct map_session_data *second_sd,struct map_session_data *third_sd,int type);
 int map_searchrandfreecell(unsigned short m, unsigned short x, unsigned short y, unsigned short range);
@@ -1395,25 +2176,16 @@ struct map_session_data * map_id2sd(uint32 id);
 struct block_list * map_id2bl(uint32 id);
 
 int map_mapname2mapid(const char *name);
-bool map_mapname2ipport(const char *name, ipset &mapset);
-int map_setipport(const char *name, ipset &mapset);
-int map_eraseipport(const char *name, ipset &mapset);
+bool map_mapname2ipport(const char *name, basics::ipset &mapset);
+int map_setipport(const char *name, basics::ipset &mapset);
+int map_eraseipport(const char *name, basics::ipset &mapset);
 int map_eraseallipport(void);
-void map_addiddb(struct block_list &bl);
-void map_deliddb(struct block_list &bl);
 dbt* get_iddb();
 void map_addnickdb(struct map_session_data &sd);
 struct map_session_data * map_nick2sd(const char *nick);
 
-// その他
-int map_check_dir(int s_dir,int t_dir);
-int map_calc_dir( struct block_list &src,int x,int y);
-int map_random_dir(struct block_list &bl, unsigned short &x, unsigned short &y); // [Skotlex]
 
-// path.cより
-int path_search(struct walkpath_data &wpd,unsigned short m,int x0,int y0,int x1,int y1,int flag);
-bool path_search_long(unsigned short m,unsigned short x0,unsigned short y0,unsigned short x1,unsigned short y1);
-int path_blownpos(unsigned short m,int x0,int y0,int dx,int dy,int count);
+
 
 
 void map_helpscreen(); // [Valaris]
@@ -1439,30 +2211,6 @@ void char_online_check(void); // [Valaris]
 void char_offline(struct map_session_data *sd);
 
 
-/*==========================================
- * 二点間の距離を返す
- * 戻りは整数で0以上
- *------------------------------------------
- */
-static inline int distance(int x0,int y0,int x1,int y1)
-{
-	int dx,dy;
-	//dx=abs(x0-x1);
-	//dy=abs(y0-y1);
-	//return dx>dy ? dx : dy;
-
-	// euclidean distance approximation with piecewise linear octagon
-	// but calculated explicitely correct the the borders 
-	dx = (x0>x1)?x0-x1:x1-x0;
-	dy = (y0>y1)?y0-y1:y1-y0;
-	if(dx==0) return dy;
-	if(dy==0) return dx;
-	if(dy>=dx) if(dy>dx) swap(dx,dy); else return (dx*362)/256;
-	//http://www.flipcode.com/articles/article_fastdistance.shtml
-	return ( (( dx << 8 ) + ( dx << 3 ) - ( dx << 4 ) - ( dx << 1 ) +
-			  ( dy << 7 ) - ( dy << 5 ) + ( dy << 3 ) - ( dy << 1 )) >> 8 );
-
-}
 
 
 

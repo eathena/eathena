@@ -3,6 +3,7 @@
 #include "basesync.h"
 #include "basethreads.h"
 
+NAMESPACE_BEGIN(basics)
 
 
 #ifndef SINGLETHREAD
@@ -140,4 +141,6 @@ void thread::threadepilog(thread* thr)
 
 
 
-#endif//!SINGLETHREAD
+#endif// !SINGLETHREAD
+
+NAMESPACE_END(basics)

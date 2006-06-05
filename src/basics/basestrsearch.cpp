@@ -1,12 +1,13 @@
 #include "basestrsearch.h"
 
+NAMESPACE_BEGIN(basics)
 
 ///////////////////////////////////////////////////////////////////////////////
 // String search based on the Knuth-Morris-Pratt algorithm for
 // linear running-time, O(m+n) where m=length of pattern and
 // n=length of text.
 // originally written by Andreas Magnusson in November 2001
-// but was not reviews carefully enough since it was seriously broken
+// but was not reviewed carefully enough since it was seriously broken
 ///////////////////////////////////////////////////////////////////////////////
 
 
@@ -19,7 +20,7 @@ template<class T> void patternstring_kmp<T>::compute_shifts(const string<T> &pat
 	cShifts.push( 0);
 
 	// start with the second character, since the shift to the first is always 0
-	for(i=1; i < pattern.length(); i++)
+	for(i=1; i < pattern.length(); ++i)
 	{
 		while(next_shift > 0 && pattern[next_shift] != pattern[i])
 			next_shift = cShifts[next_shift-1];
@@ -37,7 +38,7 @@ template<class T> void patternstring_kmp<T>::compute_shifts(const string<T> &pat
 template<class T> int patternstring_kmp<T>::findnext(const string<T> &text) const
 {
 	size_t next_shift = 0;
-	for(size_t i = 0; i < text.length(); i++)
+	for(size_t i = 0; i < text.length(); ++i)
 	{
 		while(next_shift > 0 && this->string<T>::operator[](next_shift) != text[i])
 			next_shift = cShifts[next_shift - 1];
@@ -59,7 +60,7 @@ template<class T> vector<size_t> patternstring_kmp<T>::findall(const string<T> &
 {
 	size_t next_shift = 0;
 	vector<size_t> positions;
-	for(size_t i = 0; i < text.length(); i++)
+	for(size_t i = 0; i < text.length(); ++i)
 	{
 		while(next_shift > 0 && this->string<T>::operator[](next_shift) != text[i])
 			next_shift = cShifts[next_shift - 1];
@@ -84,7 +85,7 @@ template<class T> int patternstring_kmp<T>::findnext(const string<T> &text, cons
 	size_t next_shift = 0;
 	compute_shifts(pattern);
 	this->string<T>::operator=(pattern);
-	for(size_t i = 0; i < text.length(); i++)
+	for(size_t i = 0; i < text.length(); ++i)
 	{
 		while(next_shift > 0 && pattern[next_shift] != text[i])
 			next_shift = cShifts[next_shift - 1];
@@ -108,7 +109,7 @@ template<class T> vector<size_t> patternstring_kmp<T>::findall(const string<T> &
 	vector<size_t> positions;
 	compute_shifts(pattern);
 	this->string<T>::operator=(pattern);
-	for(size_t i = 0; i < text.length(); i++)
+	for(size_t i = 0; i < text.length(); ++i)
 	{
 		while(next_shift > 0 && pattern[next_shift] != text[i])
 			next_shift = cShifts[next_shift - 1];
@@ -144,14 +145,14 @@ template<class T> void patternstring<T>::compute_shifts(const stringinterface<T>
 	size_t len = pattern.length();
 	size_t i;
 	// initialisation
-	for (i=0; i<256; i++)
+	for (i=0; i<256; ++i)
 	{	// skip len+1 string chars if search char was not found
 		// not exactly boyer-moore but fastens up the thing
 		SkipTable[i] = len+1;
 	}
-	for (i=0; i<len; i++)
+	for (i=0; i<len; ++i)
 	{	// otherwise skip as only that many 
-		// so the next char in the string fits with the one frome the pattern
+		// so the next char in the string fits with the one from the pattern
 		size_t inx = to_unsigned( pattern[i] );
 		if( inx < (sizeof(SkipTable)/sizeof(SkipTable[0])) )
 			SkipTable[ inx  ] = len-i;
@@ -504,12 +505,12 @@ void test_strsearch(void)
 	patternstring_kmp<> ptk;
 
 	tick = clock();
-	for(k=0; k<elems; k++)
+	for(k=0; k<elems; ++k)
 		ptb = pattern;
 	printf("booyer pattern generation  %lu (%u elems)\n", clock()-tick, elems);
 
 	tick = clock();
-	for(k=0; k<elems; k++)
+	for(k=0; k<elems; ++k)
 	{
 		ptk = pattern;
 	}
@@ -523,7 +524,7 @@ void test_strsearch(void)
 	printf("booyer search %lu (%u elems)\n", clock()-tick, elems);
 
 	tick = clock();
-	for(k=0; k<elems; k++)
+	for(k=0; k<elems; ++k)
 	{
 		ptk.findnext(searchstring);
 	}
@@ -532,3 +533,4 @@ void test_strsearch(void)
 #endif//DEBUG
 }
 
+NAMESPACE_END(basics)

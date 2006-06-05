@@ -1,5 +1,5 @@
 // $Id: vending.c,v 1.2 2004/09/25 05:32:19 MouseJstr Exp $
-#include "base.h"
+
 #include "socket.h"
 #include "showmsg.h"
 #include "utils.h"
@@ -22,7 +22,7 @@
 void vending_closevending(struct map_session_data &sd)
 {
 	sd.vender_id=0;
-	clif_closevendingboard(sd.bl,0);
+	clif_closevendingboard(sd,0);
 }
 
 /*==========================================
@@ -57,7 +57,7 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
 		return;
 	if(vsd->vender_id == 0)
 		return;
-	if(vsd->vender_id == sd.bl.id)
+	if(vsd->vender_id == sd.block_list::id)
 		return;
 	if( vsd->vend_num>MAX_VENDING )
 		vsd->vend_num=MAX_VENDING;
@@ -68,13 +68,13 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
 	// number of blank entries in inventory
 	blank = pc_inventoryblank(sd);
 
-	for(i = 0, w = z = 0; 8 + 4 * i < len; i++) {
+	for(i = 0, w = z = 0; 8 + 4 * i < len; ++i) {
 		amount = RBUFW(buffer, 4 * i);
 		index =  RBUFW(buffer, 2 + 4 * i) - 2;
 
 		if(amount > MAX_AMOUNT) return; // exploit
 			
-		for(j = 0; j < vsd->vend_num; j++) {
+		for(j=0; j<vsd->vend_num; ++j) {
 			if( vsd->vending[j].amount>0 && vsd->vending[j].index == index )
 			{
 				if (amount > vsd->vending[j].amount)
@@ -132,7 +132,7 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
 
 	pc_payzeny(sd, z);
 	pc_getzeny(*vsd, z);
-	for(i = 0; 8 + 4 * i < len; i++) {
+	for(i = 0; 8 + 4 * i < len; ++i) {
 		amount = RBUFW(buffer, 4 *i);
 		index =  RBUFW(buffer, 2 + 4 * i) - 2;
 		//if (amount < 0) break; // tested at start of the function
@@ -169,7 +169,7 @@ void vending_openvending(struct map_session_data &sd,unsigned short len,const ch
 	}
 
 	if (flag) {
-		for(i = 0; (85 + 8 * i < len) && (i < MAX_VENDING); i++) {
+		for(i = 0; (85 + 8 * i < len) && (i < MAX_VENDING); ++i) {
 			sd.vending[i].index = RBUFW(buffer,8*i) - 2;
 			sd.vending[i].amount= RBUFW(buffer,2+8*i);
 			sd.vending[i].value = RBUFL(buffer,4+8*i);
@@ -183,11 +183,11 @@ void vending_openvending(struct map_session_data &sd,unsigned short len,const ch
 				return;
 			}
 		}
-		sd.vender_id = sd.bl.id;
+		sd.vender_id = sd.block_list::id;
 		sd.vend_num = i;
 		strcpy(sd.message,message);
 		if (clif_openvending(sd,sd.vender_id,sd.vending) > 0)
-			clif_showvendingboard(sd.bl,message,0);
+			clif_showvendingboard(sd,message,0);
 		else
 			sd.vender_id = 0;
 	}

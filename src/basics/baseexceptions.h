@@ -2,7 +2,7 @@
 #define __BASEEXCEPTIONS_H__
 
 //////////////////////////////////////////////////////////////////////////
-// exceptions
+/// exceptions
 //////////////////////////////////////////////////////////////////////////
 
 #include "basetypes.h"
@@ -13,102 +13,98 @@
 #include "basestring.h"
 
 
-
+NAMESPACE_BEGIN(basics)
 
 //////////////////////////////////////////////////////////////////////////
-// basic exceptions class
-//
-// on windows there is already an exeption class in global namespace
-// when including any c++ header, 
-//
-// we use a Macro to rename the class completely in this case
-// better might be to retreat to an own namespace, this would
-// also solve problems with other packages (glibc for instance)
-// but adding the extra burden of having a namepspace around everything 
-//////////////////////////////////////////////////////////////////////////
-
+/// basic exceptions class.
+/// on windows there is already an exeption class in global namespace
+/// when including any c++ header (same with string), 
+/// so we use a Macro to rename the class completely in this case
+/// better might be to retreat to an own namespace, this would
+/// also solve problems with other packages (glibc for instance)
+/// but adding the extra burden of having a namespace around everything 
 class exception : public global
 {
 protected:
     string<> message;
 public:
-    exception(const char* e) : message(e)
+    explicit exception(const char* e) : message(e)
 	{ }
-    exception(const string<>& e) : message(e)
+    explicit exception(const string<>& e) : message(e)
 	{ }
-
-    virtual ~exception()				{ }
-    virtual string<>& get_message()		{ return message; }
-	operator const char *()				{ return message; }
-	const char *what()					{ return message; }
+    ~exception()				{ }
+    string<>& get_message()		{ return message; }
+	operator const string<>&()	{ return message; }
+	operator const char *()		{ return message; }
+	const char *what()			{ return message; }
 };
 
 //////////////////////////////////////////////////////////////////////////
-// exception for 'out of bound array access'
+/// exception for 'out of bound array access'.
 //////////////////////////////////////////////////////////////////////////
 class exception_bound : public exception
 {
 public:
-	exception_bound(const char*   e) : exception(e) {}
-	exception_bound(const string<>& e) : exception(e) {}
-	virtual ~exception_bound()						{}
+	explicit exception_bound(const char*   e) : exception(e) {}
+	explicit exception_bound(const string<>& e) : exception(e) {}
+	~exception_bound()						{}
 };
 
 //////////////////////////////////////////////////////////////////////////
-// exception for 'memory allocation failed'
+/// exception for 'memory allocation failed'.
 //////////////////////////////////////////////////////////////////////////
 class exception_memory : public exception
 {
 public:
-	exception_memory(const char*   e) : exception(e)	{}
-	exception_memory(const string<>& e) : exception(e)	{}
-	virtual ~exception_memory()							{}
+	explicit exception_memory(const char*   e) : exception(e)	{}
+	explicit exception_memory(const string<>& e) : exception(e)	{}
+	~exception_memory()							{}
 };
 
 //////////////////////////////////////////////////////////////////////////
-// exception for 'failed conversion'
+/// exception for 'failed conversion'.
 //////////////////////////////////////////////////////////////////////////
 class exception_convert: public exception
 {
 public:
-	exception_convert(const char*   e) : exception(e)	{}
-	exception_convert(const string<>& e) : exception(e)	{}
-    virtual ~exception_convert()						{}
+	explicit exception_convert(const char*   e) : exception(e)	{}
+	explicit exception_convert(const string<>& e) : exception(e)	{}
+    ~exception_convert()						{}
 };
 
 
 
 //////////////////////////////////////////////////////////////////////////
-// variant exception class; 
-// may be thrown when a variant is being typecasted to 32-bit int 
-// and the value is out of range
+/// variant exception class.
+/// may be thrown when a variant is being typecasted to 32-bit int 
+/// and the value is out of range
 //////////////////////////////////////////////////////////////////////////
 class exception_variant: public exception
 {
 public:
-	exception_variant(const char*   e) : exception(e)	{}
-	exception_variant(const string<>& e) : exception(e)	{}
-    virtual ~exception_variant()						{}
+	explicit exception_variant(const char*   e) : exception(e)	{}
+	explicit exception_variant(const string<>& e) : exception(e)	{}
+    ~exception_variant()						{}
 };
 
 //////////////////////////////////////////////////////////////////////////
-// exception for 'socket failed'
+/// exception for 'socket failed'
 //////////////////////////////////////////////////////////////////////////
 class exception_socket : public exception
 {
 public:
-	exception_socket(const char*   e) : exception(e)	{}
-	exception_socket(const string<>& e) : exception(e)	{}
-	virtual ~exception_socket()							{}
+	explicit exception_socket(const char*   e) : exception(e)	{}
+	explicit exception_socket(const string<>& e) : exception(e)	{}
+	~exception_socket()							{}
 };
 
 
 
 
-
+/*
 //////////////////////////////////////////////////////////////////////////
-// new and delete with exceptions 
-// also on compilers that do not support throwing memory
+/// new and delete with exceptions.
+/// also on compilers that do not support throwing memory
 //////////////////////////////////////////////////////////////////////////
 #if defined MEMORY_EXCEPTIONS
 inline void *operator new (size_t sz)
@@ -134,8 +130,9 @@ inline void operator delete[] (void *a)
 	if(a) free(a);
 }
 #endif
+*/
 
-
+NAMESPACE_END(basics)
 
 #endif//__BASEEXCEPTIONS_H__
 

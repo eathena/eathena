@@ -76,7 +76,7 @@ int pc_putitemtocart(struct map_session_data &sd,unsigned short idx, size_t amou
 int pc_getitemfromcart(struct map_session_data &sd,unsigned short idx, size_t amount);
 int pc_cartitem_amount(struct map_session_data &sd,unsigned short idx, size_t amount);
 
-int pc_takeitem(struct map_session_data &sd,struct flooritem_data &fitem);
+int pc_takeitem(struct map_session_data &sd,flooritem_data &fitem);
 int pc_dropitem(struct map_session_data &sd,unsigned short inx, size_t amount);
 
 int pc_checkweighticon(struct map_session_data &sd);
@@ -157,7 +157,7 @@ int pc_cleareventtimer(struct map_session_data &sd);
 int pc_addeventtimercount(struct map_session_data &sd,const char *name,unsigned long tick);
 
 int pc_calc_pvprank(struct map_session_data &sd);
-int pc_calc_pvprank_timer(int tid, unsigned long tick, int id, intptr data);
+int pc_calc_pvprank_timer(int tid, unsigned long tick, int id, basics::numptr data);
 
 uint32 pc_ismarried(struct map_session_data &sd);
 bool pc_marriage(struct map_session_data &sd1,struct map_session_data &sd2);
@@ -199,17 +199,7 @@ int pc_setinvincibletimer(struct map_session_data &sd,int);
 int pc_delinvincibletimer(struct map_session_data &sd);
 int pc_addspiritball(struct map_session_data &sd,int,int);
 int pc_delspiritball(struct map_session_data &sd,int,int);
-int pc_eventtimer(int tid, unsigned long tick, int id, intptr data);
-
-struct fame_list {
-	uint32 id;
-	uint32 fame;
-	char name[24];
-};
-extern struct fame_list smith_fame_list[MAX_FAMELIST];
-extern struct fame_list chemist_fame_list[MAX_FAMELIST];
-int pc_addfame(struct map_session_data &sd, uint32 count,int type);
-bool pc_istop10fame(uint32 char_id,int type);
+int pc_eventtimer(int tid, unsigned long tick, int id, basics::numptr data);
 
 int pc_readdb(void);
 int do_init_pc(void);
@@ -220,8 +210,8 @@ enum {ADDITEM_EXIST,ADDITEM_NEW,ADDITEM_OVERAMOUNT};
 // timer for night.day
 extern int day_timer_tid;
 extern int night_timer_tid;
-int map_day_timer(int tid, unsigned long tick, int id, intptr data); // by [yor]
-int map_night_timer(int tid, unsigned long tick, int id, intptr data); // by [yor]
+int map_day_timer(int tid, unsigned long tick, int id, basics::numptr data); // by [yor]
+int map_night_timer(int tid, unsigned long tick, int id, basics::numptr data); // by [yor]
 
 #endif
 

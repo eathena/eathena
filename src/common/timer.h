@@ -3,8 +3,9 @@
 #ifndef	_TIMER_H_
 #define	_TIMER_H_
 
-#include "base.h"
-
+#include "basetypes.h"
+#include "baseobjects.h"
+#include "basetime.h"
 
 #define BASE_TICK 5
 #define DIFF_TICK(a,b) (((long)(a)-(long)(b)))
@@ -12,19 +13,8 @@
 
 extern time_t start_time;
 
-// 64bit and user save pointer/number sharing structure
-typedef struct _intptr
-{
-	bool	isptr;
-	union{
-		void *	ptr;
-		ssize_t	num;
-	};
-	_intptr():isptr(false),ptr(NULL)				{}	// clear as default
-	explicit _intptr(void*a):isptr(a!=NULL),ptr(a)	{}	// take over the void pointer, block const pointers here to signal the user
-	_intptr(ssize_t a):isptr(false),num(a)			{}	// initialisation from numbers !!DONT CAST POINTERS TO INTS!!
-} intptr;
-
+// timer function
+typedef int (*timerfunction)(int,unsigned long,int,basics::numptr);
 
 // Struct declaration
 struct TimerData
@@ -32,13 +22,22 @@ struct TimerData
 	unsigned long	tick;
 	unsigned long	interval;
 
-	struct{
+	struct _type
+	{
 		bool		pt : 1;
+		_type() : pt(false)	{}
 	}				type;
 
-	int (*func)(int,unsigned long,int,intptr);
+	timerfunction	func;
 	int				id;
-	intptr			data;
+	basics::numptr	data;
+
+	TimerData() : 	
+		tick(0),
+		interval(0),
+		func(NULL),
+		id(0)
+	{}
 };
 // Function prototype declaration
 
@@ -50,14 +49,14 @@ static inline unsigned long gettick(void)			{ return GetTickCount(); }
 
 
 
-int add_timer(unsigned long tick, int (*func)(int,unsigned long,int,intptr),int id, intptr data, bool ownptr=false);
-int add_timer_interval(unsigned long tick, unsigned long interval, int (*func)(int,unsigned long,int,intptr), int id, intptr data, bool ownptr=false);
-int add_timer(unsigned long tick, int (*func)(int,unsigned long,int,intptr),int id, int data);
-int add_timer_interval(unsigned long tick, unsigned long interval, int (*func)(int,unsigned long,int,intptr), int id, int data);
+int add_timer(unsigned long tick, timerfunction func,int id, const basics::numptr& data, bool ownptr=false);
+int add_timer_interval(unsigned long tick, unsigned long interval, timerfunction func, int id, const basics::numptr& data, bool ownptr=false);
+int add_timer(unsigned long tick, timerfunction func,int id, int data);
+int add_timer_interval(unsigned long tick, unsigned long interval, timerfunction func, int id, int data);
 
 
 
-int delete_timer(size_t tid, int (*func)(int,unsigned long,int,intptr));
+int delete_timer(size_t tid, timerfunction func);
 
 int addtick_timer(size_t tid,unsigned long tick);
 struct TimerData *get_timer(size_t tid);
@@ -66,8 +65,8 @@ int do_timer(unsigned long tick);
 
 
 
-int add_timer_func_list(int (*)(int,unsigned long,int,intptr),char*);
-char* search_timer_func_list(int (*)(int,unsigned long,int,intptr));
+int add_timer_func_list(timerfunction func, const char* name);
+const char* search_timer_func_list(timerfunction func);
 
 
 void timer_init(void);

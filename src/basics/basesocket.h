@@ -7,11 +7,24 @@
 #include "baseregex.h"
 
 
+
+
 ///////////////////////////////////////////////////////////////////////////////
-// maximum accept time of a socket in microseconds
-// it defines the maximum time after an incoming socket is accepted
-// and ready to read from (it does not affect read/write, only accept)
-// half a second is a good praktical value
+//## TODO: merge test sockets with implementation from caldon
+//## TODO: check following suggestion
+// no fixed read/write buffers for each socket 
+// but using a pool to aquire/release them on demand
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// maximum accept time of a socket in microseconds.
+/// it defines the maximum time after an incoming socket is accepted
+/// and ready to read from (it does not affect read/write, only accept)
+/// half a second is a good praktical value
 #define SOCKETACCEPTTIME	500000
 
 
@@ -46,10 +59,7 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-// BSD-compatible socket error codes for Win32
-//////////////////////////////////////////////////////////////////////////
 // since there is no way to access this structure in a portable way
-// we need to headbang at a wall until one breaks			
 //typedef	unsigned long	fd_mask;
 #ifndef NBBY
 #define	NBBY 8
@@ -63,7 +73,7 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-// socketlen type definition
+/// socketlen type definition
 //////////////////////////////////////////////////////////////////////////
 #ifndef __socklen_t_defined
   #if defined(__DARWIN__) || defined(WIN32)
@@ -117,31 +127,32 @@ extern inline int ioctlsocket(SOCKET fd, long cmd, unsigned long *arg)
 
 
 
+NAMESPACE_BEGIN(basics)
 
 
 ///////////////////////////////////////////////////////////////////////////////
 #ifndef WIN32
 ///////////////////////////////////////////////////////////////////////////////
-// dynamic size, unix system independend fd_set replacement
+/// dynamic size, unix system independend fd_set replacement
 class CFDSET
 {
 	///////////////////////////////////////////////////////////////////////////
 	// class data
-	unsigned long*	cArray;		// array pointer
-	unsigned long	cSZ;		// alloced size
+	unsigned long*	cArray;		///< array pointer
+	unsigned long	cSZ;		///< alloced size
 
 	///////////////////////////////////////////////////////////////////////////
-	// resize the array; only grow, no shrink
+	/// resize the array; only grow, no shrink
 	void checksize(size_t pos);
 	void copy(const CFDSET& cfd);
 public:
 	///////////////////////////////////////////////////////////////////////////
-	// Construct/Destruct
+	/// Construct/Destruct
 	CFDSET() : cArray(new unsigned long[FD_SETSIZE/NBBY/sizeof(unsigned long)]),cSZ(FD_SETSIZE/NBBY/sizeof(unsigned long))	{}
 	~CFDSET()	{ if(cArray) delete [] cArray; }
 
 	///////////////////////////////////////////////////////////////////////////
-	// Copy/Assign
+	/// Copy/Assign
 	CFDSET(const CFDSET& cfd) : cArray(NULL),cSZ(0)
 	{
 		copy(cfd);
@@ -152,13 +163,13 @@ public:
 		return *this;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// clear everything
+	/// clear everything
 	void clear()
 	{
 		memset (cArray,0, cSZ*sizeof(unsigned long));
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// set a bit
+	/// set a bit
 	void set_bit(int fd)
 	{
 		if(fd>0)
@@ -183,7 +194,7 @@ public:
 		}
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// Clear a bit
+	/// Clear a bit
 	void clear_bit(int fd)
 	{
 		if(fd>0)
@@ -208,7 +219,7 @@ public:
 		}
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// Clear a bit
+	/// Clear a bit
 	bool is_set(int fd) const
 	{
 		if(fd>0)
@@ -232,23 +243,23 @@ public:
 		}
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// Call a function with each set bit
-	// version 1 (using log2)
-	size_t foreach1( void(*func)(size_t), size_t max) const;
+	/// Call a function with each set bit
+	/// version 1 (using log2)
+	size_t foreach1( void(*func)(SOCKET), size_t max) const;
 
 	///////////////////////////////////////////////////////////////////////////
-	// Call a function with each set bit
-	// version 2 (using shifts)
-	size_t foreach2( void(*func)(size_t), size_t max ) const;
+	/// Call a function with each set bit
+	/// version 2 (using shifts)
+	size_t foreach2( void(*func)(SOCKET), size_t max ) const;
 
 	///////////////////////////////////////////////////////////////////////////
-	// pretending to be an unix fd_set structure
+	/// pretending to be an unix fd_set structure
 	operator fd_set*() const
 	{
 		return (fd_set*)cArray; 
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// size
+	/// size
 	int size() const
 	{ 
 		return cSZ * NFDBITS;
@@ -258,12 +269,12 @@ public:
 #else 
 
 ///////////////////////////////////////////////////////////////////////////////
-// dynamic size, windows system independend fd_set replacement
+/// dynamic size, windows system independend fd_set replacement
 class CFDSET
 {
 	///////////////////////////////////////////////////////////////////////////
-	// class data
-	// windows
+	/// class data
+	/// windows
 	struct winfdset
 	{
 		u_int fd_count;				// how many are SET?
@@ -274,19 +285,19 @@ class CFDSET
 	struct winfdset *cSet;			// the set struct
 
 	///////////////////////////////////////////////////////////////////////////
-	// resize the array; only grow, no shrink
+	/// resize the array; only grow, no shrink
 	void checksize();
 	void copy(const CFDSET& cfd);
 	bool find(SOCKET sock, size_t &pos) const;
 
 public:
 	///////////////////////////////////////////////////////////////////////////
-	// Construct/Destruct
+	/// Construct/Destruct
 	CFDSET() : cSet((struct winfdset *) new char[sizeof(struct winfdset)+128*sizeof(SOCKET)]),cSZ(128)	{ cSet->fd_count=0; }
 	~CFDSET()	{ if(cSet) delete [] ((char*)cSet); }
 
 	///////////////////////////////////////////////////////////////////////////
-	// Copy/Assign
+	/// Copy/Assign
 	CFDSET(const CFDSET& cfd) : cSet(NULL),cSZ(0)
 	{
 		copy(cfd);
@@ -297,40 +308,40 @@ public:
 		return *this;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// clear everything
+	/// clear everything
 	void clear()
 	{
 		cSet->fd_count = 0;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// set a bit
+	/// set a bit
 	void set_bit(int fd);
 	///////////////////////////////////////////////////////////////////////////
-	// Clear a bit
+	/// Clear a bit
 	void clear_bit(int fd);
 
 	///////////////////////////////////////////////////////////////////////////
-	// Clear a bit
+	/// Clear a bit
 	bool is_set(int fd) const;
 
 	///////////////////////////////////////////////////////////////////////////
-	// Call a function with each set bit
-	size_t foreach1( void(*func)(size_t), size_t max) const;
+	/// Call a function with each set bit
+	size_t foreach1( void(*func)(SOCKET), size_t max) const;
 
 	///////////////////////////////////////////////////////////////////////////
-	// Call a function with each set bit
-	size_t foreach2( void(*func)(size_t), size_t max ) const
+	/// Call a function with each set bit
+	size_t foreach2( void(*func)(SOCKET), size_t max ) const
 	{	// no different approaches on windows
 		return foreach1( func, max );
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// pretending to be an fd_set structure
+	/// pretending to be an fd_set structure
 	operator fd_set*() const	
 	{
 		return (fd_set*)cSet; 
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// size
+	/// size
 	int size() const
 	{ 
 		return cSZ;
@@ -348,6 +359,10 @@ public:
 
 
 
+//////////////////////////////////////////////////////////////////////////
+/// mini socket.
+/// allowes connection to an address, sending/reading data
+/// uses blocking sockets
 //////////////////////////////////////////////////////////////////////////
 class minisocket
 {
@@ -379,17 +394,17 @@ public:
 	bool connect(const char* address)
 	{
 		// we are lazy here
-		CRegExp regex("(?:([^/:]+)://)?([^:]+)(?::(\\d+))?");
+		CRegExp regex("(?:([^/:]+)://)?([^/:]+)(?::(\\d+))?");
 		if( regex.match(address) )
 		{
-			ipaddress ip = ::hostbyname(regex[2]);
+			ipaddress ip = hostbyname(regex[2]);
 			ushort port = 80;
 			if(regex[1]=="http")
 				port = 80;
 			else if(regex[1]=="ftp")
 				port = 21;
-			if( atoi(regex[4]) )
-				port = atoi(regex[4]);
+			if( atoi(regex[3]) )
+				port = atoi(regex[3]);
 			return this->connect(ip, port);
 		}
 		return false;
@@ -447,8 +462,120 @@ public:
 };
 
 
+// web address splitter (?:([^/:]+)://)?([^/:]+)(?::(\d+))?(?:(/[^\s]*))?
 
 
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// dynamic id's.
+// allow unique identification numbers across network
+// currently embedded into a foreign send-receive regime 
+// handled by pairs of functions in server/client
+// maybe adding a complete network interface with own server port
+///////////////////////////////////////////////////////////////////////////////
+
+
+// amount of ids send in one request call
+#define IDSERVER_AMOUNT 256	
+
+/// identifier type
+typedef uint64 identifier;
+
+// predeclaration
+class CIDClient;
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// server for dynamic id's.
+///////////////////////////////////////////////////////////////////////////////
+class CIDServer
+{
+	identifier	id;
+public:
+	CIDServer() : id(1) // 0 is considered an invalid ID
+	{}
+	~CIDServer()
+	{}
+	/// returns the next free start identifier
+	identifier request()
+	{
+		const identifier i=id;
+		id+=IDSERVER_AMOUNT; // send packets of IDSERVER_AMOUNT id's
+		return i;
+	}
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// client for dynamic id's.
+///////////////////////////////////////////////////////////////////////////////
+class CIDClient
+{
+	friend class CIDVal;
+	friend void test_id();
+
+	stack<identifier>	idlist;		///< stack of identifiers
+	slist<void*>		idrefs;		///< sorted vector of pointers to managed id's that are waiting for their value
+	bool (*sendreqest)(void);		///< external functionpointer to the request function
+	bool requesting;				///< has already requested or not
+
+	/// private constructor. can only be created by CIDVal
+	CIDClient(bool (*r)(void)) : sendreqest(r), requesting((*r)())
+	{}
+public:
+	~CIDClient()
+	{}
+
+	/// receive id's from server
+	void receive(identifier id);
+
+	/// aquire unmanaged id
+	identifier aquire();
+	/// release unmanaged id
+	void release(identifier id);
+private:
+	/// aquire managed id. is internal part of CIDVal
+	void aquire(CIDVal& id);
+	/// release managed id. is internal part of CIDVal
+	void release(CIDVal& id);
+
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// server for dynamic id's.
+///////////////////////////////////////////////////////////////////////////////
+class CIDVal
+{
+	friend class CIDClient;
+	identifier id;				///< the current assigned id or 0 if pending
+public:
+	static CIDClient idclient;	///< a static variable managing system wide id's
+
+public:
+	/// call aquire on construction
+	CIDVal()
+	{
+		this->idclient.aquire(*this);
+	}
+	/// call release on destruction
+	~CIDVal()
+	{
+		this->idclient.release(*this);
+	}
+	/// access on the identifier
+	operator identifier()	{ return id; }
+};
+
+
+NAMESPACE_END(basics)
 
 
 #endif//__BASESOCKET_H__

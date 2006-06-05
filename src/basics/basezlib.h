@@ -2,8 +2,8 @@
 #define __BASEZLIB_H__
 
 //////////////////////////////////////////////////////////////////////////
-// module for zlib wrapper
-// using either static link or dynamic load
+/// module for zlib wrapper.
+/// using either static link or dynamic load
 //////////////////////////////////////////////////////////////////////////
 
 #include "basetypes.h"
@@ -12,15 +12,23 @@
 #include "baselib.h"
 
 //////////////////////////////////////////////////////////////////////////
-// sample implementation of a dynamic loading zlib 
-// with static internals, so can create it once and use it anywere
-// create with path of zlib library and access the member functions
-// as the C functions would be called
-// need the zlib headers for compilation and a lib for linking 
-// when linking statically (either complete or with dll stub)
+/// sample implementation of a dynamic loading zlib.
+/// with static internals, so can create it once and use it anywere
+/// create with path of zlib library and access the member functions
+/// as the C functions would be called
+/// need the zlib headers for compilation and a lib for linking 
+/// when linking statically (either complete or with dll stub)
 //////////////////////////////////////////////////////////////////////////
 
 #include <zlib.h>
+
+
+NAMESPACE_BEGIN(basics)
+
+
+//////////////////////////////////////////////////////////////////////////
+/// test function
+void test_zib(void);
 
 //////////////////////////////////////////////////////////////////////////
 // tells the code to dynamically load an external library via library name
@@ -43,22 +51,22 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-// the zlib wrapper
+/// the zlib wrapper.
 class CZlib : public CLibraryLoader
 {
 
 #ifdef BASE_ZLIB_DYNAMIC
 	//////////////////////////////////////////////////////////////////////
-	// internal class that actually holds the access to the libray
+	/// internal class that actually holds the access to the libray
 	class _CZlib : public CLibraryLoader
 	{
 	public:
 		//////////////////////////////////////////////////////////////////
-		// handle to the library
+		/// handle to the library
 		HINSTANCE czlib;
 
 		//////////////////////////////////////////////////////////////////
-		// function pointers
+		/// function pointers
 		int (* cinflateInit) (z_streamp strm, const char *version, int stream_size);
 		int (* cinflate) (z_streamp strm, int flush);
 		int (* cinflateEnd) (z_streamp strm);
@@ -100,8 +108,8 @@ public:
 	virtual ~CZlib()			{}
 
 	//////////////////////////////////////////////////////////////////////
-	// implementation of virtual base function
-	// will be empty stubs on static link
+	/// implementation of virtual base function.
+	/// will be empty stubs on static link
 	virtual bool FreeLib()
 	{
 #ifdef BASE_ZLIB_DYNAMIC
@@ -131,19 +139,19 @@ public:
 
 
 	//////////////////////////////////////////////////////////////////////
-	// access functions
+	/// access functions
 	int decode(unsigned char *dest, unsigned long& destLen, const unsigned char* source, unsigned long sourceLen);
 	int encode(unsigned char *dest, unsigned long& destLen, const unsigned char* source, unsigned long sourceLen); 
 
-	// deflates from file to memory, 
-	// source is the zip-file, filename the file inside the zip archive
-	// calling with dest=NULL only returns the necessary size in destLen
+	/// deflates from file to memory.
+	/// source is the zip-file, filename the file inside the zip archive
+	/// calling with dest=NULL only returns the necessary size in destLen
 	bool deflate(unsigned char *dest, unsigned long& destLen, const char *source, const char *filename, const char *pass=NULL);
 
 };
 //////////////////////////////////////////////////////////////////////////
 
-
+NAMESPACE_END(basics)
 
 
 #endif//__BASEZLIB_H__

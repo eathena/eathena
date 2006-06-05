@@ -5,9 +5,13 @@
 #include "basesync.h"
 #include "baseparser.h"
 
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // terminal definitions from parse tree
 #include "eascript.h"
+
+USING_NAMESPACE(basics)
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -516,7 +520,7 @@ public:
 	{	
 		if(cList)
 		{	// clear childs
-			for(size_t i=0; i<cCount; i++)
+			for(size_t i=0; i<cCount; ++i)
 				if(cList[i]) delete cList[i];
 			// clear list
 			delete [] cList;
@@ -541,7 +545,7 @@ public:
 	void print_tree(size_t level=0)
 	{
 		size_t i;
-		for(i=0; i<level; i++) this->logging("| ");
+		for(i=0; i<level; ++i) this->logging("| ");
 		this->logging("%c-<%s>(%i)[%i] ::= '%s'\n", 
 			(cType)?'T':'N', 
 			(const char*)cSymbolName,
@@ -549,7 +553,7 @@ public:
 			cCount, 
 			(const char*)cLexeme );
 
-		for(i=0; i<cCount; i++)
+		for(i=0; i<cCount; ++i)
 			if(cList[i]) cList[i]->print_tree(level+1);
 	}
 
@@ -629,10 +633,10 @@ protected:
 		virtual ~CLabel()	{}
 	};
 
-	TslistDCT<CLabel>			cLabelList;	// label list
+	slist<CLabel>			cLabelList;	// label list
 
-	TArrayDST<unsigned char>	cProgramm;	// the stack programm
-	size_t						cVarCnt;	// number of temporal variables
+	vector<uchar>			cProgramm;	// the stack programm
+	size_t					cVarCnt;	// number of temporal variables
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct destruct
@@ -927,7 +931,7 @@ public:
 				cLabelList[inx].valid=1;
 			}
 			else							// otherwise just a usage of the label	
-				cLabelList[inx].use++;
+			cLabelList[inx].use++;
 			return inx;
 		}
 		return -1;
@@ -1224,7 +1228,7 @@ public:
 		if( inx+sizeof(size_t) <= cProgramm.size() )
 		{
 			size_t i, vali = 0;
-			for(i=0; i<sizeof(size_t); i++)
+			for(i=0; i<sizeof(size_t); ++i)
 				vali = vali<<8 | ((size_t)cProgramm[inx++]);
 			return (const char*)vali;
 		}
@@ -1235,7 +1239,7 @@ public:
 		// msb to lsb order for faster reading
 		size_t i, vali = (size_t)val;
 		size_t pos = inx;
-		for(i=0; i<sizeof(size_t); i++)
+		for(i=0; i<sizeof(size_t); ++i)
 		{
 			cProgramm.insert( vali&0xFF, 1, inx+sizeof(size_t)-1-i );
 			vali >>= 8;
@@ -1248,7 +1252,7 @@ public:
 		// msb to lsb order for faster reading
 		size_t i, vali = (size_t)val;
 		size_t pos = inx;
-		for(i=0; i<sizeof(size_t); i++)
+		for(i=0; i<sizeof(size_t); ++i)
 		{
 			cProgramm[inx+sizeof(size_t)-1-i] = ( vali&0xFF );
 			vali >>= 8;
@@ -1261,7 +1265,7 @@ public:
 		// msb to lsb order for faster reading
 		size_t i, vali = (size_t)val;
 		size_t pos = cProgramm.size();
-		for(i=0; i<sizeof(size_t); i++)
+		for(i=0; i<sizeof(size_t); ++i)
 		{
 			cProgramm.append( (vali>>(8*(sizeof(size_t)-1-i)))&0xFF);
 		}
@@ -1357,7 +1361,7 @@ public:
 
 		this->logging("binary output:\n");
 
-		for(i=0; i<cProgramm.size(); i++)
+		for(i=0; i<cProgramm.size(); ++i)
 		{
 			this->logging("%3i  ", cProgramm[i]);
 			if(15==i%16) this->logging("\n");
@@ -1368,7 +1372,7 @@ public:
 
 		this->logging("\n");
 		this->logging("labels:\n");
-		for(i=0; i<cLabelList.size(); i++)
+		for(i=0; i<cLabelList.size(); ++i)
 		{
 			this->logging("'%s' jump to %i (used: %i)\n", (const char*)cLabelList[i], cLabelList[i].pos, cLabelList[i].use);
 		}
@@ -1585,11 +1589,11 @@ public:
 	{
 		// get/check arguments
 
-		function();
+		int ret = function();
 
 		// return to script interpreter
 
-		return 0;
+		return ret;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1691,11 +1695,11 @@ class CScriptEnvironment
 	TArrayDPT<CScript>		cScriptTable;		// table of scripts
 
 	// compile time only
-	TslistDCT<CConstant>	cConstTable;		// table of constants
-	TslistDCT<CParameter>	cParamTable;		// table of parameter keywords
+	slist<CConstant>		cConstTable;		// table of constants
+	slist<CParameter>		cParamTable;		// table of parameter keywords
 	
 	// actually of no real use
-	TslistDCT< string<> >	cStringTable;		// table of strings
+	slist< string<> >		cStringTable;		// table of strings
 
 public:
 	CScriptEnvironment()	{}
@@ -1714,7 +1718,7 @@ public:
 
 	int getFunctionID(const char* name) const
 	{
-		for(size_t i=0; i<cFunctionTable.size(); i++)
+		for(size_t i=0; i<cFunctionTable.size(); ++i)
 		{
 			if( cFunctionTable[i] == name )
 				return i;
@@ -1723,7 +1727,7 @@ public:
 	}
 	int getScriptID(const char* name)
 	{
-		for(size_t i=0; i<cScriptTable.size(); i++)
+		for(size_t i=0; i<cScriptTable.size(); ++i)
 		{
 			if( cScriptTable[i] == name )
 				return i;
@@ -1820,6 +1824,7 @@ class CScriptCompiler : public CLogger
 		~_stmlist()	{}
 
 		bool operator==(const _stmlist &v) const { return this==&v; }
+		bool operator< (const _stmlist &v) const { return this< &v; }
 	};
 
 	///////////////////////////////////////////////////////
@@ -1840,8 +1845,8 @@ class CScriptCompiler : public CLogger
 
 	///////////////////////////////////////////////////////////////////////////
 	// class data
-	TslistDCT<CVariable>	cTempVar;		// variable list
-	TslistDCT<CVariable>	cParaVar;		// parameter list
+	slist<CVariable>		cTempVar;		// variable list
+	slist<CVariable>		cParaVar;		// parameter list
 	CScriptEnvironment		&cEnv;			// the current script environment
 
 
@@ -1904,7 +1909,7 @@ private:
 	{
 		const char *lp;
 		size_t i;
-		for(i=0; i<node.count(); i++)
+		for(i=0; i<node.count(); ++i)
 		{
 			lp = (node[i].Type()==1)?node[i].Lexeme():node[i].SymbolName();
 			this->logging("%s ", (lp)?lp:"");
@@ -2351,7 +2356,7 @@ private:
 				// 	 | <Op If>
 				// 	 | <MultiList>
 				accept = true;
-				for(i=0; i<node.count(); i++)
+				for(i=0; i<node.count(); ++i)
 				{
 					if(node[i].Symbol()==PT_INITLIST)
 						accept &= CompileMain(node[i], level+1, flags & ~CFLAG_LVALUE, prog, userval);
@@ -2618,7 +2623,7 @@ private:
 			case PT_VARLIST:
 			{	// go through childs, spare the comma
 				accept = true;
-				for(i=0; i<node.count() && accept; i++)
+				for(i=0; i<node.count() && accept; ++i)
 				{
 					if( !CheckTerminal(node[i], PT_COMMA) )
 					{
@@ -2678,7 +2683,7 @@ private:
 				if( node.count() <=2  )
 				{	// <ExprList> ';' or ';', just call the childs
 					accept = true;
-					for(i=0; i<node.count(); i++)
+					for(i=0; i<node.count(); ++i)
 					{
 						if( !CheckTerminal(node[i], PT_COMMA) )
 						{
@@ -2843,7 +2848,7 @@ private:
 					}
 
 					// process the case statements
-					TArrayDCT<_stmlist> stmlist;
+					vector<_stmlist> stmlist;
 					int hasdefault=-1;
 
 					if( accept )
@@ -2880,7 +2885,7 @@ private:
 					if( accept )
 					{	// go through the list and build the if-else-if
 
-						for(i=0; i<stmlist.size()&& accept; i++)
+						for(i=0; i<stmlist.size()&& accept; ++i)
 						{
 							if( stmlist[i].value )
 							{	// normal case statements, not the default case
@@ -2910,7 +2915,7 @@ private:
 					{	// build the body of the case statements
 						size_t address;
 						size_t rstart = prog.getCurrentPosition();
-						for(i=0; i<stmlist.size()&& accept; i++)
+						for(i=0; i<stmlist.size()&& accept; ++i)
 						{
 							if( stmlist[i].stm )
 							{	
@@ -3347,7 +3352,7 @@ private:
 			case PT_BLOCK:
 			{	// check if childs are accepted
 				accept = true;
-				for(i=0; i<node.count(); i++)
+				for(i=0; i<node.count(); ++i)
 				{
 					accept = CompileMain(node[i], level+1,flags, prog, userval);
 					if( !accept ) break;
@@ -3363,7 +3368,7 @@ private:
 
 				// accept non-terminal but go through their childs
 				accept = true;
-				for(i=0; i<node.count(); i++)
+				for(i=0; i<node.count(); ++i)
 				{
 					accept = CompileMain(node[i], level+1,flags, prog, userval);
 					if( !accept ) break;
@@ -3405,7 +3410,7 @@ private:
 		else
 		{	// nonterminal
 			accept=true;
-			for(i=0; i<node.count() && accept; i++)
+			for(i=0; i<node.count() && accept; ++i)
 				accept &= CompileVarType(node[i], type, num);
 		}
 		return accept;
@@ -3423,7 +3428,7 @@ private:
 			// <Var> , <Var> , ...
 			size_t i;
 			accept = true;
-			for(i=0; i<node.count(); i++)
+			for(i=0; i<node.count(); ++i)
 			{
 				if( node[i].Symbol() == PT_VARLIST ||
 					node[i].Symbol() == PT_VAR || 
@@ -3520,7 +3525,7 @@ private:
 			{
 				// accept non-terminal but go through their childs
 				accept = true;
-				for(i=0; i<node.count() && accept; i++)
+				for(i=0; i<node.count() && accept; ++i)
 					accept = CompileLabels(node[i], level+1,flags, prog, userval);
 				break;
 			}
@@ -3537,7 +3542,7 @@ private:
 		if( nameid.Symbol()==PT_NAMEID)
 		{	// inside a <exName Id>
 			size_t i;
-			for(i=0; i<nameid.count(); i++)
+			for(i=0; i<nameid.count(); ++i)
 			{
 				if( nameid[i].Symbol()==PT_ID || nameid[i].Symbol()==PT_ID)
 				{
@@ -3691,7 +3696,7 @@ private:
 
 		if( CheckNonTerminal(node, PT_PARAMS) )
 		{	// go through childs, spare the comma
-			for(i=0; i<node.count(); i++)
+			for(i=0; i<node.count(); ++i)
 			{
 				if( !CheckTerminal(node[i], PT_COMMA) )
 				{
@@ -3764,7 +3769,7 @@ public:
 
 					prog.dump();
 					this->logging("variables:\n");
-					for(size_t i=0;i<cTempVar.size(); i++)
+					for(size_t i=0;i<cTempVar.size(); ++i)
 					{
 						this->logging("(%i) '%s' type=%i, id=%i, use=%i\n",
 							i,(const char*)cTempVar[i],
@@ -3825,7 +3830,7 @@ public:
 								this->logging("\n");
 								prog.dump();
 								this->logging("variables:\n");
-								for(size_t i=0;i<cTempVar.size(); i++)
+								for(size_t i=0;i<cTempVar.size(); ++i)
 								{
 									this->logging("(%i) '%s' type=%i, id=%i, use=%i\n",
 										i,(const char*)cTempVar[i],
@@ -3894,7 +3899,7 @@ public:
 							this->logging("\n");
 							prog.dump();
 							this->logging("variables:\n");
-							for(size_t i=0;i<cTempVar.size(); i++)
+							for(size_t i=0;i<cTempVar.size(); ++i)
 							{
 								this->logging("(%i) '%s' type=%i, id=%i, use=%i\n",
 									i,(const char*)cTempVar[i],
@@ -3969,7 +3974,7 @@ public:
 					this->logging("\n");
 					prog.dump();
 					this->logging("variables:\n");
-					for(size_t i=0;i<cTempVar.size(); i++)
+					for(size_t i=0;i<cTempVar.size(); ++i)
 					{
 						this->logging("(%i) '%s' type=%i, id=%i, use=%i\n",
 							i,(const char*)cTempVar[i],
@@ -3995,7 +4000,7 @@ public:
 
 			case PT_DECLS:
 			{	// go through all declarations
-				for(i=0; i<node.count(); i++)
+				for(i=0; i<node.count(); ++i)
 				{
 					accept = CompileTree(node[i]);
 					if( !accept ) break;
@@ -4022,6 +4027,6 @@ public:
 
 
 const unsigned char* getEngine(ulong &sz);
-
+void buildEngine();
 ///////////////////////////////////////////////////////////////////////////////
 #endif//_EACOMPILER_

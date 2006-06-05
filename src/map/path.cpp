@@ -1,11 +1,9 @@
-// $Id: path.c,v 1.1.1.1 2004/09/10 17:27:00 MagicalTux Exp $
-
-#include "base.h"
-#include "map.h"
-#include "battle.h"
 #include "nullpo.h"
 #include "showmsg.h"
 #include "utils.h"
+#include "map.h"
+#include "battle.h"
+#include "path.h"
 
 //#define PATH_STANDALONETEST
 
@@ -20,13 +18,12 @@ struct tmp_path
 	char dir;
 	char flag;
 };
-#define calc_index(x,y) (((x)+(y)*MAX_WALKPATH) & (MAX_WALKPATH*MAX_WALKPATH-1))
 
 /*==========================================
  * åoòHíTçıï‚èïheap push
  *------------------------------------------
  */
-void push_heap_path(int heap[],struct tmp_path tp[],int index)
+void push_heap_path(int heap[], struct tmp_path tp[], int index)
 {
 	int i,h;
 
@@ -35,12 +32,15 @@ void push_heap_path(int heap[],struct tmp_path tp[],int index)
 		return;
 	}
 
-	heap[0]++;
+	// looks like a binary heap with the heap size on element 0, 
+	// stores indexes to the temp path elements and sorting them according to cost
+	++heap[0];
 
-	for(h=heap[0]-1,i=(h-1)/2;
-		h>0 && tp[index].cost<tp[heap[i+1]].cost;
-		i=(h-1)/2)
+	for( h=heap[0]-1, i=(h-1)/2;
+		 h>0 && tp[index].cost<tp[heap[i+1]].cost;
+		 i=(h-1)/2)
 		heap[h+1]=heap[i+1],h=i;
+
 	heap[h+1]=index;
 }
 
@@ -49,20 +49,25 @@ void push_heap_path(int heap[],struct tmp_path tp[],int index)
  * costÇ™å∏Ç¡ÇΩÇÃÇ≈ç™ÇÃï˚Ç÷à⁄ìÆ
  *------------------------------------------
  */
-void update_heap_path(int heap[],struct tmp_path tp[],int index)
+void update_heap_path(int heap[], struct tmp_path tp[], int index)
 {
 	int i,h;
 
 	nullpo_retv(heap);
 	nullpo_retv(tp);
 
-	for(h=0;h<heap[0];h++)
+	// find the element in the heap which needs an update
+	for(h=0; h<heap[0]; ++h)
 		if(heap[h+1]==index)
 			break;
-	if(h==heap[0]){
+
+	if(h>=heap[0])
+	{	// maybe a bit hard, might be possible to just ignore that
 		fprintf(stderr,"update_heap_path bug\n");
 		exit(1);
 	}
+	// one sided update of the node 
+	// since apperently costs only gets larger, so the upheap part can be skipped
 	for(i=(h-1)/2;
 		h>0 && tp[index].cost<tp[heap[i+1]].cost;
 		i=(h-1)/2)
@@ -74,7 +79,7 @@ void update_heap_path(int heap[],struct tmp_path tp[],int index)
  * åoòHíTçıï‚èïheap pop
  *------------------------------------------
  */
-int pop_heap_path(int heap[],struct tmp_path tp[])
+int pop_heap_path(int heap[], struct tmp_path tp[])
 {
 	int i,h,k;
 	int ret,last;
@@ -82,12 +87,18 @@ int pop_heap_path(int heap[],struct tmp_path tp[])
 	nullpo_retr(-1, heap);
 	nullpo_retr(-1, tp);
 
+	// nothing in the heap
 	if(heap[0]<=0)
 		return -1;
+	// take out the first element
 	ret=heap[1];
+	// get the last element
+	// since the size is at index 0, the array is numbered from 1 to size
 	last=heap[heap[0]];
-	heap[0]--;
+	// we are taking out an element
+	--heap[0];
 
+	// move the hole at the top of the tree down until a leaf is reached
 	for(h=0,k=2;k<heap[0];k=k*2+2){
 		if(tp[heap[k+1]].cost>tp[heap[k]].cost)
 			k--;
@@ -95,13 +106,14 @@ int pop_heap_path(int heap[],struct tmp_path tp[])
 	}
 	if(k==heap[0])
 		heap[h+1]=heap[k], h=k-1;
-
+	
+	// now find a suitable position for the last element by doing a upheap
 	for(i=(h-1)/2;
 		h>0 && tp[heap[i+1]].cost>tp[last].cost;
 		i=(h-1)/2)
 		heap[h+1]=heap[i+1],h=i;
+	// and put it into the new position
 	heap[h+1]=last;
-
 	return ret;
 }
 
@@ -109,16 +121,41 @@ int pop_heap_path(int heap[],struct tmp_path tp[])
  * åªç›ÇÃì_ÇÃcoståvéZ
  *------------------------------------------
  */
-int calc_cost(struct tmp_path &tp,int x1,int y1)
+int calc_cost(const struct tmp_path &tp, const int x1, const int y1)
 {
-	int xd,yd;
-
-	xd=x1 - tp.x;
-	if(xd<0) xd=-xd;
-	yd=y1 - tp.y;
-	if(yd<0) yd=-yd;
-	return (xd+yd)*10 + tp.dist;
+	const int abs_dx = (x1>tp.x)?(x1-tp.x):(tp.x-x1);
+	const int abs_dy = (y1>tp.y)?(y1-tp.y):(tp.y-y1);
+	return (abs_dx+abs_dy)*10 + tp.dist;
+	// this is using simple manhattan distance
+	// might be not that suitable since diagonal movement is allowed but not considered here
+	// since the cost for a diagonal move is higher than it should be (20 instead of 14.14213)
+	//
+	// so a better heuristic might be:
+	// h = D * max(abs_dx, abs_dy);
+	// which on the other hand prefers diagonal movements when possible
+	// since costs for orthogonal and diagonal are D for both
+	//
+	// therefore a more sophisticaed heuristic might be:
+	// diagonal_steps = min(abs_dx, abs_dy);
+	// orthogon_steps = abs_dx + abs_dy;
+	// h = D2 * diagonal_steps + D * (orthogon_steps - 2*diagonal_steps)
+	// which still slightly favours orthogonal movement
+	//
+	// exact would be eucledian distance which however has other disadvantages
+	//
+	// with D = cost for an orthogonal step (here 10)
+	// and  D2= cost for a diagonal step (here ~14)
 }
+inline int calc_index(const int x, const int y)
+{	// this calculation is only valid when MAX_WALKPATH is multiple of 2
+	return (((x)+(y)*MAX_WALKPATH) & (MAX_WALKPATH*MAX_WALKPATH-1));
+
+	// it defines a window of MAX_WALKPATH sqared inside the actual map
+	// start point is somewhere inside this the window,
+	// which automatically wraps around on the window border.
+	// it will overwrite existing data when path is larger than the window size
+}
+
 
 /*==========================================
  * ïKóvÇ»ÇÁpathÇí«â¡/èCê≥Ç∑ÇÈ
@@ -133,16 +170,24 @@ int add_path(int heap[],struct tmp_path tp[],int x,int y,int dist,int dir,int be
 
 	i=calc_index(x,y);
 
-	if(tp[i].x==x && tp[i].y==y){
-		if(tp[i].dist>dist){
+	
+	if(tp[i].x==x && tp[i].y==y)
+	{	// already have calculated this node
+		if(tp[i].dist>dist)
+		{	// new distance is better, 
+			// so overwrite the previous
+			// it would be actually better to compare the costs, 
+			// comparing distance might not do the job, 
+			// in this case here where distance equals the cost it might be ok 
+			// but not for the scenario I have in mind
 			tp[i].dist=dist;
 			tp[i].dir=dir;
 			tp[i].before=before;
 			tp[i].cost=calc_cost(tp[i],x1,y1);
 			if(tp[i].flag)
-				push_heap_path(heap,tp,i);
+				push_heap_path(heap,tp,i);		// if it is an already processed node, push it new
 			else
-				update_heap_path(heap,tp,i);
+				update_heap_path(heap,tp,i);	// otherwise it is still on the heap so just update it
 			tp[i].flag=0;
 		}
 		return 0;
@@ -169,45 +214,43 @@ int add_path(int heap[],struct tmp_path tp[],int x,int y,int dist,int dir,int be
  * flag 0x10000 âìãóó£çUåÇîªíË
  *------------------------------------------
  */
-int can_place(struct map_data &m,int x,int y,int flag)
-{
-
-	if(map_getcellp(m,x,y,CELL_CHKPASS))
-		return 1;
-	else if((flag&0x10000) && map_getcellp(m,x,y,CELL_CHKGROUND))
-		return 1;
-	return 0;
+inline bool can_place(struct map_data &m, int x, int y, int flag)
+{	// cell is passable when it is passable by itself
+	// or when it is a ground cell in case it's flagged
+	return map_getcellp(m,x,y,CELL_CHKPASS) ||
+			((flag&0x10000) && map_getcellp(m,x,y,CELL_CHKGROUND));
 }
 
 /*==========================================
  * (x0,y0)Ç©ÇÁ(x1,y1)Ç÷1ï‡Ç≈à⁄ìÆâ¬î\Ç©åvéZ
  *------------------------------------------
  */
-int can_move(struct map_data &m,int x0,int y0,int x1,int y1,int flag)
-{
-	if(x0-x1<-1 || x0-x1>1 || y0-y1<-1 || y0-y1>1)
-		return 0;
-	if(x1<0 || y1<0 || x1>=m.xs || y1>=m.ys)
-		return 0;
-	if(!can_place(m,x0,y0,flag))
-		return 0;
-	if(!can_place(m,x1,y1,flag))
-		return 0;
+bool can_move(struct map_data &m, const int x0, const int y0, const int x1, const int y1, const int flag)
+{	// check if the position is valid
+	if( x0-x1<-1 || x0-x1>1 || y0-y1<-1 || y0-y1>1 ||
+		x1<0 || y1<0 || x1>=m.xs || y1>=m.ys)
+		return false;
+	// check if source and target postion are passable
+	if( !can_place(m,x0,y0,flag) || !can_place(m,x1,y1,flag) )
+		return false;
+	// can finished successfully when going orthogonal
 	if(x0==x1 || y0==y1)
-		return 1;
-	if(!can_place(m,x0,y1,flag) || !can_place(m,x1,y0,flag))
-		return 0;
-	return 1;
+		return true;
+	// otherwise also check the neighbour cells on the diagonal path
+	return (can_place(m,x0,y1,flag) && can_place(m,x1,y0,flag));
 }
 /*==========================================
  * (x0,y0)Ç©ÇÁ(dx,dy)ï˚å¸Ç÷countÉZÉãï™
  * êÅÇ´îÚÇŒÇµÇΩÇ†Ç∆ÇÃç¿ïWÇèäìæ
  *------------------------------------------
  */
-int path_blownpos(unsigned short m,int x0,int y0,int dx,int dy,int count)
+void path_blownpos(unsigned short m,int x0,int y0,int dx,int dy,int count, int& nx, int& ny)
 {
 	if(m >= map_num || !maps[m].gat)
-		return -1;
+	{
+		nx=ny=0xFFFF;
+		return;
+	}
 
 	if(count>15){	// ç≈ëÂ10É}ÉXÇ…êßå¿
 		if(battle_config.error_log)
@@ -235,7 +278,8 @@ int path_blownpos(unsigned short m,int x0,int y0,int dx,int dy,int count)
 		x0+=dx;
 		y0+=dy;
 	}
-	return (x0<<16)|y0;
+	nx = x0;
+	ny = y0;
 }
 
 /*==========================================
@@ -254,8 +298,8 @@ bool path_search_long(unsigned short m,unsigned short x0,unsigned short y0,unsig
 
 	dx = ((int)x1 - (int)x0);
 	if (dx < 0) {
-		swap(x0, x1);
-		swap(y0, y1);
+		basics::swap(x0, x1);
+		basics::swap(y0, y1);
 		dx = -dx;
 	}
 	dy = ((int)y1 - (int)y0);
@@ -307,13 +351,13 @@ bool path_search_long2(unsigned short m,unsigned short x0,unsigned short y0,unsi
 	{
 		if(dx<0)
 		{
-			swap(x0,x1);
-			swap(y0,y1);
+			basics::swap(x0,x1);
+			basics::swap(y0,y1);
 			dx=-dx;
 			dy=-dy;
 		}
 
-		for(x=x0,y=y0; x<=x1; x++)
+		for(x=x0,y=y0; x<=x1; ++x)
 		{
 			if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
 				return false;
@@ -336,13 +380,13 @@ bool path_search_long2(unsigned short m,unsigned short x0,unsigned short y0,unsi
 	{
 		if(dy<0)
 		{
-			swap(x0,x1);
-			swap(y0,y1);
+			basics::swap(x0,x1);
+			basics::swap(y0,y1);
 			dx=-dx;
 			dy=-dy;
 		}
 
-		for(x=x0,y=y0; y<=y1; y++)
+		for(x=x0,y=y0; y<=y1; ++y)
 		{
 			if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
 				return false;
@@ -381,15 +425,15 @@ bool path_search_long3(unsigned short m,unsigned short x0,unsigned short y0,unsi
 	{
 		if(dx<0)
 		{
-			swap(x0,x1);
-			swap(y0,y1);
+			basics::swap(x0,x1);
+			basics::swap(y0,y1);
 			dx=-dx;
 			dy=-dy;
 		}
 
 		if(dy>0)
 		{
-			for(x=x0,y=y0; x<=x1; x++)
+			for(x=x0,y=y0; x<=x1; ++x)
 			{
 				if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
 					return false;
@@ -404,7 +448,7 @@ bool path_search_long3(unsigned short m,unsigned short x0,unsigned short y0,unsi
 		}
 		else
 		{
-			for(x=x0,y=y0; x<=x1; x++)
+			for(x=x0,y=y0; x<=x1; ++x)
 			{
 				if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
 					return false;
@@ -423,14 +467,14 @@ bool path_search_long3(unsigned short m,unsigned short x0,unsigned short y0,unsi
 	{
 		if(dy<0)
 		{
-			swap(x0,x1);
-			swap(y0,y1);
+			basics::swap(x0,x1);
+			basics::swap(y0,y1);
 			dx=-dx;
 			dy=-dy;
 		}
 		if(dx>0)
 		{
-			for(x=x0,y=y0; y<=y1; y++)
+			for(x=x0,y=y0; y<=y1; ++y)
 			{
 				if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
 					return false;
@@ -446,7 +490,7 @@ bool path_search_long3(unsigned short m,unsigned short x0,unsigned short y0,unsi
 		}
 		else
 		{
-			for(x=x0,y=y0; y<=y1; y++)
+			for(x=x0,y=y0; y<=y1; ++y)
 			{
 				if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
 					return false;
@@ -469,58 +513,76 @@ bool path_search_long3(unsigned short m,unsigned short x0,unsigned short y0,unsi
  * pathíTçı (x0,y0)->(x1,y1)
  *------------------------------------------
  */
-int path_search(struct walkpath_data &wpd,unsigned short m,int x0,int y0,int x1,int y1,int flag)
+bool walkpath_data::path_search(unsigned short m,int x0,int y0,int x1,int y1,int flag)
 {
 	int heap[MAX_HEAP+1];
 	struct tmp_path tp[MAX_WALKPATH*MAX_WALKPATH];
 	size_t i;
 	int rp,x,y;
-	int dx,dy;
 
 	if(m > MAX_MAP_PER_SERVER || !maps[m].gat)
-		return -1;
+		return false;
 
+	if( x1<0 || x1>=maps[m].xs || y1<0 || y1>=maps[m].ys || 
+		!can_place(maps[m],x0,y0,flag) || !can_place(maps[m],x1,y1,flag) )
+		return false;
 
-	if(x1<0 || x1>=maps[m].xs || y1<0 || y1>=maps[m].ys || map_getcellp(maps[m],x1,y1,CELL_CHKNOPASS))
-		return -1;
+	// check if going straight is possible
 
-	// easy
-	dx = (x1<x0) ? -1 : 1;
-	dy = (y1<y0) ? -1 : 1;
-	for(x=x0,y=y0,i=0;x!=x1 || y!=y1;)
+	const int dx = (x1<x0) ? -1 : 1;
+	const int dy = (y1<y0) ? -1 : 1;
+	for(x=x0,y=y0,i=0; ; )
 	{
-		if(i>=sizeof(wpd.path))
-			return -1;
-		if(x!=x1 && y!=y1){
-			if(!can_move(maps[m],x,y,x+dx,y+dy,flag))
-				break;
-			x+=dx;
-			y+=dy;
-			wpd.path[i++]=(dx<0) ? ((dy>0)? 1 : 3) : ((dy<0)? 5 : 7);
-		} else if(x!=x1){
-			if(!can_move(maps[m],x,y,x+dx,y   ,flag))
-				break;
-			x+=dx;
-			wpd.path[i++]=(dx<0) ? 2 : 6;
-		} else { // y!=y1
-			if(!can_move(maps[m],x,y,x   ,y+dy,flag))
-				break;
-			y+=dy;
-			wpd.path[i++]=(dy>0) ? 0 : 4;
+		if(i>=sizeof(this->path))
+			return false;
+		
+		if(x==x1 && y==y1)
+		{	//reached the aim
+			this->path_len=i;
+			this->path_pos=0;
+			this->path_half=0;
+			return true;
 		}
-		if(x==x1 && y==y1){
-			wpd.path_len=i;
-			wpd.path_pos=0;
-			wpd.path_half=0;
-			return 0;
+		else
+		{
+			if(x!=x1 && y!=y1)
+			{	// diagonal
+				// target must be valid and either one of the diagonal neighbours
+				if( !can_place(maps[m],x+dx,y+dy,flag) || 
+					(!can_place(maps[m],x,y+dy,flag) && !can_place(maps[m],x+dx,y,flag)) )
+					break;
+				x+=dx;
+				y+=dy;
+				this->path[i++]=(dx<0) ? ((dy>0)? 1 : 3) : ((dy<0)? 5 : 7);
+			}
+			else if(x!=x1)
+			{	// orthogonal x
+				if(!can_place(maps[m],x+dx,y   ,flag))
+					break;
+				x+=dx;
+				this->path[i++]=(dx<0) ? 2 : 6;
+			}
+			else if(y!=y1)
+			{	// orthogonal y
+				if(!can_place(maps[m],x    ,y+dy,flag))
+					break;
+				y+=dy;
+				this->path[i++]=(dy>0) ? 0 : 4;
+			}
 		}
 	}
 
 	if(flag&1)
-		return -1;
+		return false;
+
+
+	// real path search
+	// doing a A* algorithm with simple heuristic
+	// using a binary heap as node queue
 
 	memset(tp,0,sizeof(tp));
 
+	// build starting point
 	i=calc_index(x0,y0);
 	tp[i].x=x0;
 	tp[i].y=y0;
@@ -531,50 +593,81 @@ int path_search(struct walkpath_data &wpd,unsigned short m,int x0,int y0,int x1,
 	tp[i].flag=0;
 	heap[0]=0;
 	push_heap_path(heap,tp,calc_index(x0,y0));
-	while(1){
-		int e=0,fromdir;
 
+
+	// have a randomizer to randomly seperate path of same costs
+	// a real tie breaker in the cost function would be better 
+	// but the current number scales don't allow this, and I don't want to rescale
+	const unsigned long randomizer = (rand()<<16) | rand();
+
+	while(1)
+	{
+		int e=0;
+
+		// fail when nothing on the heap
 		if(heap[0]==0)
-			return -1;
+			return false;
+
+		// get the element with the lowest cost
 		rp=pop_heap_path(heap,tp);
+
 		x=tp[rp].x;
 		y=tp[rp].y;
-		if(x==x1 && y==y1){
-			int len,j;
+		if(x==x1 && y==y1)
+		{	// reached the destination, therefore found a path
+			size_t len;
+			int j;
 
-			for(len=0,i=rp;len<100 && i!=(size_t)calc_index(x0,y0);i=tp[i].before,len++);
-			if(len==100 || (size_t)len>=sizeof(wpd.path))
-				return -1;
-			wpd.path_len=len;
-			wpd.path_pos=0;
-			wpd.path_half=0;
-			for(i=rp,j=len-1;j>=0;i=tp[i].before,j--)
-				wpd.path[j]=tp[i].dir;
+			// find the first node and count the length
+			//for(len=0,i=rp; len<sizeof(wpd.path)/sizeof(wpd.path[0]) && i!=(size_t)calc_index(x0,y0); i=tp[i].before, ++len);
+			// break if too long
+			//if(len>=sizeof(wpd.path)/sizeof(wpd.path[0]))
+			//	return -1;
+			/////////////////////////////////////////////////
+			// other option:
+			// find the first node and count the length
+			for(len=0,i=rp; i!=(size_t)calc_index(x0,y0); i=tp[i].before, ++len);
+			// limit length when too long
+			if( len>=sizeof(this->path)/sizeof(this->path[0])) 
+				len=sizeof(this->path)/sizeof(this->path[0]);
+			/////////////////////////////////////////////////
+			// fill the walkpath structure, 
+			// only take the directions that have to be walked to at each position
+			this->path_len=len;
+			this->path_pos=0;
+			this->path_half=0;
+			// fill in the path
+			for(i=rp,j=len-1;j>=0;i=tp[i].before,--j)
+				this->path[j] = tp[i].dir;
 
-			return 0;
+			// and return success
+			return true;
 		}
-		fromdir=tp[rp].dir;
-		if(can_move(maps[m],x,y,x+1,y-1,flag))
-			e+=add_path(heap,tp,x+1,y-1,tp[rp].dist+14,5,rp,x1,y1);
-		if(can_move(maps[m],x,y,x+1,y  ,flag))
-			e+=add_path(heap,tp,x+1,y  ,tp[rp].dist+10,6,rp,x1,y1);
-		if(can_move(maps[m],x,y,x+1,y+1,flag))
-			e+=add_path(heap,tp,x+1,y+1,tp[rp].dist+14,7,rp,x1,y1);
-		if(can_move(maps[m],x,y,x  ,y+1,flag))
-			e+=add_path(heap,tp,x  ,y+1,tp[rp].dist+10,0,rp,x1,y1);
-		if(can_move(maps[m],x,y,x-1,y+1,flag))
-			e+=add_path(heap,tp,x-1,y+1,tp[rp].dist+14,1,rp,x1,y1);
-		if(can_move(maps[m],x,y,x-1,y  ,flag))
-			e+=add_path(heap,tp,x-1,y  ,tp[rp].dist+10,2,rp,x1,y1);
-		if(can_move(maps[m],x,y,x-1,y-1,flag))
-			e+=add_path(heap,tp,x-1,y-1,tp[rp].dist+14,3,rp,x1,y1);
-		if(can_move(maps[m],x,y,x  ,y-1,flag))
-			e+=add_path(heap,tp,x  ,y-1,tp[rp].dist+10,4,rp,x1,y1);
+		// cut out a single bit of the randomizer depending on current x/y
+		const int randbit = 0x1 & (randomizer>>((x*y)&0x1F)); 
+
+		// check surounding in order N, NW, W, SW, S, SE, E, NE and add it to the heap
+		// have weight 10 for orthogonals, and 14 for diagonals (should be 10*sqr(2) but 14 is good enough)
+		if(can_move(maps[m],x,y,x  ,y+1,flag)) e+=add_path(heap,tp,x  ,y+1,tp[rp].dist+10+randbit,0,rp,x1,y1);
+		if(can_move(maps[m],x,y,x-1,y+1,flag)) e+=add_path(heap,tp,x-1,y+1,tp[rp].dist+14+randbit,1,rp,x1,y1);
+		if(can_move(maps[m],x,y,x-1,y  ,flag)) e+=add_path(heap,tp,x-1,y  ,tp[rp].dist+10+randbit,2,rp,x1,y1);
+		if(can_move(maps[m],x,y,x-1,y-1,flag)) e+=add_path(heap,tp,x-1,y-1,tp[rp].dist+14+randbit,3,rp,x1,y1);
+		if(can_move(maps[m],x,y,x  ,y-1,flag)) e+=add_path(heap,tp,x  ,y-1,tp[rp].dist+10+randbit,4,rp,x1,y1);
+		if(can_move(maps[m],x,y,x+1,y-1,flag)) e+=add_path(heap,tp,x+1,y-1,tp[rp].dist+14+randbit,5,rp,x1,y1);
+		if(can_move(maps[m],x,y,x+1,y  ,flag)) e+=add_path(heap,tp,x+1,y  ,tp[rp].dist+10+randbit,6,rp,x1,y1);
+		if(can_move(maps[m],x,y,x+1,y+1,flag)) e+=add_path(heap,tp,x+1,y+1,tp[rp].dist+14+randbit,7,rp,x1,y1);
+
+		// set the node as handled
 		tp[rp].flag=1;
+
+		// break when error or heap almost full 
+		// but no idea why it's limited to 5 below max heapsize
+		// it instead could overwrite the node which is most unlikely to be on the sortest path
 		if(e || heap[0]>=MAX_HEAP-5)
-			return -1;
+			return false;
 	}
-	return -1;
+	// return failure
+	return false;
 }
 
 #ifdef PATH_STANDALONETEST
@@ -600,27 +693,29 @@ void main(int argc,char *argv[])
 	maps[0].xs=64;
 	maps[0].ys=64;
 
-	path_search(wpd,0,3,4,5,4);
-	path_search(wpd,0,5,4,3,4);
-	path_search(wpd,0,6,4,3,4);
-	path_search(wpd,0,7,4,3,4);
-	path_search(wpd,0,4,3,4,5);
-	path_search(wpd,0,4,2,4,5);
-	path_search(wpd,0,4,1,4,5);
-	path_search(wpd,0,4,5,4,3);
-	path_search(wpd,0,4,6,4,3);
-	path_search(wpd,0,4,7,4,3);
-	path_search(wpd,0,7,4,3,4);
-	path_search(wpd,0,8,4,3,4);
-	path_search(wpd,0,9,4,3,4);
-	path_search(wpd,0,10,4,3,4);
-	path_search(wpd,0,11,4,3,4);
-	path_search(wpd,0,12,4,3,4);
-	path_search(wpd,0,13,4,3,4);
-	path_search(wpd,0,14,4,3,4);
-	path_search(wpd,0,15,4,3,4);
-	path_search(wpd,0,16,4,3,4);
-	path_search(wpd,0,17,4,3,4);
-	path_search(wpd,0,18,4,3,4);
+	wpd.path_search(0,3,4,5,4);
+	wpd.path_search(0,5,4,3,4);
+	wpd.path_search(0,6,4,3,4);
+	wpd.path_search(0,7,4,3,4);
+	wpd.path_search(0,4,3,4,5);
+	wpd.path_search(0,4,2,4,5);
+	wpd.path_search(0,4,1,4,5);
+	wpd.path_search(0,4,5,4,3);
+	wpd.path_search(0,4,6,4,3);
+	wpd.path_search(0,4,7,4,3);
+	wpd.path_search(0,7,4,3,4);
+	wpd.path_search(0,8,4,3,4);
+	wpd.path_search(0,9,4,3,4);
+	wpd.path_search(0,10,4,3,4);
+	wpd.path_search(0,11,4,3,4);
+	wpd.path_search(0,12,4,3,4);
+	wpd.path_search(0,13,4,3,4);
+	wpd.path_search(0,14,4,3,4);
+	wpd.path_search(0,15,4,3,4);
+	wpd.path_search(0,16,4,3,4);
+	wpd.path_search(0,17,4,3,4);
+	wpd.path_search(0,18,4,3,4);
 }
 #endif
+
+

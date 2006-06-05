@@ -1,6 +1,7 @@
 #include "basethreadpool.h"
 
 
+NAMESPACE_BEGIN(basics)
 
 
 #if defined(DEBUG)
@@ -36,53 +37,69 @@ public:
 void test_threadpool(void)
 {
 #if defined(DEBUG)
-//#ifndef SINGLETHREAD
-	//!! TODO copy testcases from caldon
-	threadpool	tp(2,false);
 
-	testtask tt[500];
-	testtask ts[500];
 
-	for(size_t ii=0; ii<500; ii++)
 	{
-		tt[ii].timed=true;
-		tp.insert( tt[ii], (800+rand()%8192) );
-		tp.insert( ts[ii] );
+		testtask a,b,c;
+		testtask *d = new testtask;
+
+		taskqueue tq;
+
+		tq.insert(a);
+		tq.insert(b);
+		tq.insert(c);
+
+		tq.insert(*d);
+		sleep(100);
+
+		delete d;
 	}
 
-	printf("start 2 threads %ld\n", GetTickCount() );
-	fflush(stdout);
-	tp.start();
+	{
+		//## TODO copy testcases from caldon
+		threadpool	tp(2,false);
 
-	//sleep(1000);
-	ulong tick=GetTickCount()+1000;
-	while( GetTickCount() < tick )
-		tp.process( tick-GetTickCount() );
+		testtask tt[500];
+		testtask ts[500];
 
-	printf("switch to 10 threads %ld\n", GetTickCount() );
-	fflush(stdout);
-	tp.MaxThreads() = 10;
+		for(size_t ii=0; ii<500; ++ii)
+		{
+			tt[ii].timed=true;
+			tp.insert( tt[ii], (800+rand()%8192) );
+			tp.insert( ts[ii] );
+		}
 
-	//sleep(20000);
-	tick=GetTickCount()+20000;
-	while( GetTickCount() < tick )
-		tp.process( tick-GetTickCount() );
+		printf("start 2 threads %ld\n", GetTickCount() );
+		fflush(stdout);
+		tp.start();
 
-	
+		//sleep(1000);
+		ulong tick=GetTickCount()+1000;
+		while( GetTickCount() < tick )
+			tp.process( tick-GetTickCount() );
 
-	printf("switch to 1 thread %ld\n", GetTickCount() );
-	fflush(stdout);
-	tp.MaxThreads() = 2;
+		printf("switch to 10 threads %ld\n", GetTickCount() );
+		fflush(stdout);
+		tp.MaxThreads() = 10;
 
-	//sleep(20000);
-	tick=GetTickCount()+20000;
-	while( GetTickCount() < tick )
-		tp.process( tick-GetTickCount() );
+		//sleep(20000);
+		tick=GetTickCount()+20000;
+		while( GetTickCount() < tick )
+			tp.process( tick-GetTickCount() );
 
+		
 
-//#endif//!SINGLETHREAD
+		printf("switch to 1 thread %ld\n", GetTickCount() );
+		fflush(stdout);
+		tp.MaxThreads() = 2;
+
+		//sleep(20000);
+		tick=GetTickCount()+20000;
+		while( GetTickCount() < tick )
+			tp.process( tick-GetTickCount() );
+	}
 #endif//DEBUG
 }
 
 
-
+NAMESPACE_END(basics)

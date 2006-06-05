@@ -13,11 +13,17 @@
 #include "basearray.h"
 
 
+NAMESPACE_BEGIN(basics)
+
 ///////////////////////////////////////////////////////////////////////////////
+/// a pool provides overlapping free usage of objects.
+/// usable types need copy constructor
 template <class T> class TPool : public global, protected Mutex
 {
-	TslistDST<T*> cListAll;
-	TslistDST<T*> cListFree;
+	//TslistDST<T*> cListAll;
+	//TslistDST<T*> cListFree;
+	ptrvector<T> cListAll;
+	ptrvector<T> cListFree;
 
 public:
 	// constructions already create a default T object
@@ -72,7 +78,7 @@ public:
 	~TPool()
 	{	// free the pool elements
 		size_t i;
-		for(i=0; i<cListAll.size(); i++)
+		for(i=0; i<cListAll.size(); ++i)
 			delete cListAll[i];
 	}
 	T& aquire()
@@ -101,7 +107,7 @@ public:
 	{
 		ScopeLock sl(*this);
 		size_t i;
-		for(i=0; i<cListAll.size(); i++)
+		for(i=0; i<cListAll.size(); ++i)
 		{	
 			(cListAll[i]->*func)();
 		}
@@ -110,14 +116,15 @@ public:
 	{
 		ScopeLock sl(*this);
 		size_t i;
-		for(i=0; i<cListAll.size(); i++)
+		for(i=0; i<cListAll.size(); ++i)
 		{	
 			(cListAll[i]->*func)(p1);
 		}
 	}
 };
 
-// automates aquire/release of pool objects
+///////////////////////////////////////////////////////////////////////////////
+/// object for automates aquire/release of pool objects
 template<class T> class TPoolObj
 {
 	TPool<T>& cPool;
@@ -126,11 +133,15 @@ public:
 	TPoolObj<T>(TPool<T>& pool) : cPool(pool), cObj( pool.aquire() )	{}
 	~TPoolObj<T>()	{ cPool.release(cObj); }
 
-	operator T&()	{ return cObj; }
-	T& operator*()	{ return cObj; }
-	T* operator->()	{ return &cObj; }
+	operator       T&()			{ return cObj; }
+	operator const T&() const 	{ return cObj; }
+	      T& operator*()		{ return cObj; }
+	const T& operator*() const 	{ return cObj; }
+	      T* operator->()		{ return &cObj; }
+	const T* operator->() const { return &cObj; }
 };
 
+NAMESPACE_END(basics)
 
 
 #endif//__BASEPOOL_H__

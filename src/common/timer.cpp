@@ -3,8 +3,51 @@
 
 #include "timer.h"
 #include "utils.h"
-#include "malloc.h"
 #include "showmsg.h"
+#include "malloc.h"
+
+#include "baseparam.h"
+
+
+///////////////////////////////////////////////////////////////////////////////
+// basic class for using the old way timers
+///////////////////////////////////////////////////////////////////////////////
+bool basics::CTimerBase::init(unsigned long interval)
+{
+	if(interval<1000)
+		interval = 1000;
+	cTimer = add_timer_interval(gettick()+interval, interval, timercallback, 0, basics::numptr(this), false);
+	return (cTimer>=0);
+}
+
+// external calling from external timer implementation
+int basics::CTimerBase::timercallback(int timer, unsigned long tick, int id, basics::numptr data)
+{
+	if(data.isptr)
+	{
+		CTimerBase* base = (CTimerBase*)data.ptr;
+		if(timer==base->cTimer)
+		{
+			if( !base->timeruserfunc(tick) )
+			{
+				delete_timer(base->cTimer, timercallback);
+				base->cTimer = -1;
+			}
+		}
+	}
+	return 0;
+}
+void basics::CTimerBase::timerfinalize()
+{
+	if(cTimer>0)
+	{
+		delete_timer(cTimer, timercallback);
+		cTimer = -1;
+	}
+}
+
+
+
 
 
 // タイマー間隔の最小値。モンスターの大量召還時、多数のクライアント接続時に
@@ -30,37 +73,20 @@ static size_t				timer_heap_pos	=0;
 
 /////////////////////////////////////////////////////////////////////////////////////
 // for debug
-struct timer_func_list
-{
-	int (*func)(int,unsigned long,int,intptr);
-	struct timer_func_list* next;
-	char name[2];// will allocate larger from here and copy the name beyond this structure
-};
+basics::smap<timerfunction, const char*> timer_func_list; ///< maps function pointers to names
 
-static struct timer_func_list* tfl_root=NULL;
-
-//
-int add_timer_func_list(int (*func)(int,unsigned long,int,intptr),char* name)
+/// add a function to timer function list
+int add_timer_func_list(timerfunction func, const char* name)
 {
 	if(name)
-	{	// pad a struct timer_func_list together with the name
-		struct timer_func_list* tfl = (struct timer_func_list*)aMalloc(sizeof(struct timer_func_list) + strlen(name) );
-
-		tfl->func = func;
-		memcpy(tfl->name, name, 1+strlen(name));
-		tfl->next = tfl_root;
-		tfl_root = tfl;
-	}
+		timer_func_list[func] = name;
 	return 0;
 }
-
-char* search_timer_func_list(int (*func)(int,unsigned long,int,intptr))
+/// search a function in timer function list
+const char* search_timer_func_list(timerfunction func)
 {
-	struct timer_func_list* tfl;
-	for(tfl = tfl_root;tfl;tfl = tfl->next) {
-		if (func == tfl->func)
-			return tfl->name;
-	}
+	if( timer_func_list.exists(func) )
+		return timer_func_list[func];
 	return "unknown timer function";
 }
 /////////////////////////////////////////////////////////////////////////////////////
@@ -155,7 +181,7 @@ int search_timer_heap(size_t* field, size_t count, size_t elem, size_t &pos)
 void dump_timer_heap(void)
 {
 	size_t j;
-	for(j = 0; j < timer_heap_pos; j++) {
+	for(j = 0; j < timer_heap_pos; ++j) {
 		if( j != (timer_heap_pos-1) && 
 			timer_data_diff_tick( timer_heap[j], timer_heap[j+1]) < 0) {
 			printf("*");
@@ -173,9 +199,7 @@ int push_timer_heap(size_t index)
 
 	if ( timer_heap_pos >= timer_heap_max )
 	{	// will need proper initialisation before coming here
-		timer_heap_max += 256;
-		timer_heap = (size_t*)aRealloc(timer_heap, timer_heap_max*sizeof(size_t));
-		memset(timer_heap + (timer_heap_max - 256), 0, 256*sizeof(size_t));
+		timer_heap_max = new_realloc(timer_heap, timer_heap_max, 256);
 	}
 
 	// push value to the heap
@@ -242,7 +266,7 @@ void push_timer_heap(int index)
 		h = i;
 			}
 	timer_heap[h]=index;
-				}
+}
 
 
 inline int top_timer_heap()
@@ -250,7 +274,7 @@ inline int top_timer_heap()
 	if(timer_heap==NULL || timer_heap_pos<=0)
 		return -1;
 	return timer_heap[0];
-			}
+}
 
 
 
@@ -282,11 +306,11 @@ inline int pop_timer_heap()
 		(h > 0) && (0 < DIFF_TICK(timer_data[timer_heap[i+1]].tick , timer_data[last].tick));
 		i = (h-1)/2) {
 		timer_heap[h]=timer_heap[i], h = i;
-}
+	}
 	timer_heap[h]=last;
 
 	return ret;
-	}
+}
 
 */
 
@@ -303,7 +327,7 @@ size_t aquire_timer(void)
 	
 	if( timer_free_pos > 0 )
 	{	// get a timer from free_timer if possible
-		timer_free_pos--;
+		--timer_free_pos;
 		ret = timer_free[timer_free_pos];
 	}
 	else
@@ -311,12 +335,10 @@ size_t aquire_timer(void)
 		if( timer_data_pos >= timer_data_max)
 		{	// no, we have to enlarge timer_data
 			// will need proper initialisation before coming here
-			timer_data_max += 256;
-			timer_data = (struct TimerData*)aRealloc(timer_data, timer_data_max*sizeof(struct TimerData));
-			memset(timer_data + (timer_data_max - 256), 0, 256*sizeof(struct TimerData));
+			timer_data_max = new_realloc(timer_data, timer_data_max, 256);
 		}
 		ret = timer_data_pos;
-		timer_data_pos++;
+		++timer_data_pos;
 	}
 	// a valid and free index for timer_data
 	return ret;
@@ -328,7 +350,10 @@ void release_timer(size_t tid)
 	// clean the timer before putting it to the free timers
 	if( (timer_data[tid].type.pt) && timer_data[tid].data.isptr && (NULL != timer_data[tid].data.ptr) )
 	{	// clear if pointer still exist
-		aFree( timer_data[tid].data.ptr );
+//!!		
+//		aFree( timer_data[tid].data.ptr );
+		ShowWarning("releasetimer: data not released (%s)\n", search_timer_func_list(timer_data[tid].func));
+
 		timer_data[tid].data = 0;
 	}
 	timer_data[tid].type.pt  = false;
@@ -341,15 +366,13 @@ void release_timer(size_t tid)
 	if( timer_free_pos >= timer_free_max)
 	{	// no, we have to enlarge timer_free
 		// will need proper initialisation before coming here
-		timer_free_max += 256;
-		timer_free = (size_t*)aRealloc(timer_free, timer_free_max*sizeof(size_t));
-		memset(timer_free + (timer_free_max - 256), 0, 256*sizeof(size_t));
+		timer_free_max = new_realloc(timer_free, timer_free_max, 256);
 	}
 	timer_free[timer_free_pos++] = tid;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
-int add_timer(unsigned long tick, int (*func)(int,unsigned long,int,intptr),int id, int data)
+int add_timer(unsigned long tick, timerfunction func,int id, int data)
 {
 	size_t tid = aquire_timer();
 	
@@ -363,7 +386,7 @@ int add_timer(unsigned long tick, int (*func)(int,unsigned long,int,intptr),int 
 	push_timer_heap(tid);
 	return tid;
 }
-int add_timer(unsigned long tick, int (*func)(int,unsigned long,int,intptr),int id, intptr data, bool ownptr)
+int add_timer(unsigned long tick, timerfunction func,int id, const basics::numptr& data, bool ownptr)
 {
 	size_t tid = aquire_timer();
 	
@@ -377,7 +400,7 @@ int add_timer(unsigned long tick, int (*func)(int,unsigned long,int,intptr),int 
 	push_timer_heap(tid);
 	return tid;
 }
-int add_timer_interval(unsigned long tick, unsigned long interval,int (*func)(int,unsigned long,int,intptr),int id,int data)
+int add_timer_interval(unsigned long tick, unsigned long interval,timerfunction func,int id,int data)
 {
 	size_t tid = aquire_timer();
 
@@ -391,7 +414,7 @@ int add_timer_interval(unsigned long tick, unsigned long interval,int (*func)(in
 	push_timer_heap(tid);
 	return tid;
 }
-int add_timer_interval(unsigned long tick, unsigned long interval,int (*func)(int,unsigned long,int,intptr),int id, intptr data, bool ownptr)
+int add_timer_interval(unsigned long tick, unsigned long interval,timerfunction func,int id, const basics::numptr& data, bool ownptr)
 {
 	size_t tid = aquire_timer();
 
@@ -405,7 +428,7 @@ int add_timer_interval(unsigned long tick, unsigned long interval,int (*func)(in
 	return tid;
 }
 
-int delete_timer(size_t tid, int (*func)(int,unsigned long,int,intptr))
+int delete_timer(size_t tid, timerfunction func)
 {
 	// a basic check
 	if( !timer_data )	// when called after timers have been finalized
@@ -506,7 +529,7 @@ fflush(stdout);
 			push_timer_heap(tid);
 		}
 		else
-		{	// timer_once is freed
+		{	// timer_once is released
 			release_timer(tid);
 		}
 	}// end while
@@ -523,26 +546,19 @@ void timer_init(void)
 
 void timer_final(void) 
 {
-	struct timer_func_list *tfl_next;
-	while(tfl_root)
-	{
-		tfl_next = tfl_root->next;
-		aFree(tfl_root);
-		tfl_root = tfl_next;
-	}
 	if(timer_heap)
 	{
-		aFree(timer_heap);
+		delete[] timer_heap;
 		timer_heap=NULL;
 	}
 	if(timer_free)
 	{
-		aFree(timer_free);
+		delete[] timer_free;
 		timer_free=NULL;
 	}
 	if(timer_data)
 	{
-		aFree(timer_data);
+		delete[] timer_data;
 		timer_data=NULL;
 	}
 }

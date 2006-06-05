@@ -1,5 +1,4 @@
 // $Id: party.c,v 1.2 2004/09/22 02:59:47 Akitasha Exp $
-#include "base.h"
 #include "db.h"
 #include "nullpo.h"
 #include "showmsg.h"
@@ -18,14 +17,14 @@
 
 static struct dbt* party_db;
 
-int party_send_xyhp_timer(int tid, unsigned long tick, int id, intptr data);
+int party_send_xyhp_timer(int tid, unsigned long tick, int id, basics::numptr data);
 /*==========================================
  * 終了
  *------------------------------------------
  */
 int party_db_final(void *key,void *data)
 {
-	aFree(data);
+	delete ((struct party*)data);
 	return 0;
 }
 void do_final_party(void)
@@ -49,18 +48,8 @@ struct party *party_search(uint32 party_id)
 {
 	return (struct party *)numdb_search(party_db,party_id);
 }
-/*
-int party_searchname_sub(void *key,void *data,va_list &ap)
-{
-	struct party *p=(struct party *)data,**dst;
-	char *str;
-	str=va_arg(ap,char *);
-	dst=va_arg(ap,struct party**);
-	if(strcasecmp(p->name,str)==0)
-		*dst=p;
-	return 0;
-}
-*/
+
+
 class CDBPartySearchname : public CDBProcessor
 {
 	const char *str;
@@ -113,14 +102,12 @@ int party_created(uint32 account_id,int fail,uint32 party_id,const char *name)
 		}
 		else
 		{
-			struct party *p = (struct party *)aCalloc(1,sizeof(struct party));
-			p->party_id=party_id;
+			struct party *p = new struct party(party_id, name);
 			sd->status.party_id=party_id;
-			memcpy(p->name, name, 24);
-			
+		
 			numdb_insert(party_db,party_id,p);
 			clif_party_created(*sd,0);
-			clif_charnameack(-1, sd->bl); //Update other people's display. [Skotlex]
+			clif_charnameack(-1, *sd); //Update other people's display. [Skotlex]
 			return 0;
 		}
 	}
@@ -141,14 +128,14 @@ int party_check_member(struct party &p)
 	size_t i;
 	struct map_session_data *sd;
 
-	for(i=0;i<fd_max;i++)
+	for(i=0;i<fd_max; ++i)
 	{
-		if(session[i] && (sd=(struct map_session_data *)session[i]->session_data) && sd->state.auth)
+		if(session[i] && (sd=(struct map_session_data *)session[i]->user_session) && sd->state.auth)
 		{
 			if(sd->status.party_id==p.party_id)
 			{
 				size_t j, f=1;
-				for(j=0;j<MAX_PARTY;j++)
+				for(j=0;j<MAX_PARTY; ++j)
 				{	// パーティにデータがあるか確認
 					if(	p.member[j].account_id==sd->status.account_id)
 					{
@@ -175,8 +162,8 @@ int party_recv_noinfo(uint32 party_id)
 {
 	size_t i;
 	struct map_session_data *sd;
-	for(i=0;i<fd_max;i++){
-		if(session[i] && (sd=(struct map_session_data *) session[i]->session_data) && sd->state.auth){
+	for(i=0;i<fd_max; ++i){
+		if(session[i] && (sd=(struct map_session_data *) session[i]->user_session) && sd->state.auth){
 			if(sd->status.party_id==party_id)
 				sd->status.party_id=0;
 		}
@@ -188,17 +175,19 @@ int party_recv_info(struct party &sp)
 {
 	int i;
 	struct party *p=(struct party *)numdb_search(party_db, sp.party_id);
-	
 	if(p==NULL)
-	{	//does not exist, so create a new one
-		p=(struct party *)aCalloc(1,sizeof(struct party));
-		numdb_insert(party_db,sp.party_id,p);
-		// 最初のロードなのでユーザーのチェックを行う
+	{	//does not exist, so create a new one as direct copy
+		p= new struct party(sp);
+		numdb_insert(party_db, sp.party_id, p);
+
 		party_check_member(sp);
 	}
-	memcpy(p,&sp,sizeof(struct party));
+	else
+	{	// just copy
+		*p = sp;
+	}
 	
-	for(i=0;i<MAX_PARTY;i++)
+	for(i=0;i<MAX_PARTY; ++i)
 	{	// sdの設定
 		if( p->member[i].account_id )
 		{
@@ -209,7 +198,7 @@ int party_recv_info(struct party &sp)
 
 	clif_party_info(*p,-1);
 
-	for(i=0;i<MAX_PARTY;i++)
+	for(i=0;i<MAX_PARTY; ++i)
 	{	// 設定情報の送信
 		struct map_session_data *sd = p->member[i].sd;
 		if(sd!=NULL && sd->party_sended==0){
@@ -239,7 +228,7 @@ int party_invite(struct map_session_data &sd,uint32 account_id)
 		clif_party_inviteack(sd,tsd->status.name,0);
 		return 0;
 	}
-	for(i=0;i<MAX_PARTY;i++){	// 同アカウント確認
+	for(i=0;i<MAX_PARTY; ++i){	// 同アカウント確認
 		if(p->member[i].account_id==account_id){
 			clif_party_inviteack(sd,tsd->status.name,0);
 			return 0;
@@ -303,7 +292,7 @@ int party_member_added(uint32 party_id,uint32 account_id,int flag)
 
 	// いちおう競合確認
 	party_check_conflict(*sd);
-	clif_charnameack(-1, sd->bl); //Update char name's display [Skotlex]
+	clif_charnameack(-1, *sd); //Update char name's display [Skotlex]
 	return 0;
 }
 // パーティ除名要求
@@ -315,13 +304,13 @@ int party_removemember(struct map_session_data &sd,uint32 account_id,const char 
 	if( (p = party_search(sd.status.party_id)) == NULL )
 		return 0;
 
-	for(i=0;i<MAX_PARTY;i++){	// リーダーかどうかチェック
+	for(i=0;i<MAX_PARTY; ++i){	// リーダーかどうかチェック
 		if(p->member[i].account_id==sd.status.account_id)
 			if(p->member[i].leader==0)
 				return 0;
 	}
 
-	for(i=0;i<MAX_PARTY;i++){	// 所属しているか調べる
+	for(i=0;i<MAX_PARTY; ++i){	// 所属しているか調べる
 		if(p->member[i].account_id==account_id){
 			intif_party_leave(p->party_id,account_id);
 			return 0;
@@ -339,7 +328,7 @@ int party_leave(struct map_session_data &sd)
 	if( (p = party_search(sd.status.party_id)) == NULL )
 		return 0;
 	
-	for(i=0;i<MAX_PARTY;i++){	// 所属しているか
+	for(i=0;i<MAX_PARTY; ++i){	// 所属しているか
 		if(p->member[i].account_id==sd.status.account_id){
 			intif_party_leave(p->party_id,sd.status.account_id);
 			return 0;
@@ -355,7 +344,7 @@ int party_member_leaved(uint32 party_id,uint32 account_id,const char *name)
 	struct party *p=party_search(party_id);
 	if(p!=NULL){
 		int i;
-		for(i=0;i<MAX_PARTY;i++)
+		for(i=0;i<MAX_PARTY; ++i)
 			if(p->member[i].account_id==account_id){
 				clif_party_leaved(*p,sd,account_id,name,0x00);
 				p->member[i].account_id=0;
@@ -365,7 +354,7 @@ int party_member_leaved(uint32 party_id,uint32 account_id,const char *name)
 	if(sd!=NULL && sd->status.party_id==party_id){
 		sd->status.party_id=0;
 		sd->party_sended=0;
-		clif_charnameack(-1, sd->bl, true); //Update name display [Skotlex]
+		clif_charnameack(-1, *sd, true); //Update name display [Skotlex]
 	}
 	return 0;
 }
@@ -377,7 +366,7 @@ int party_broken(uint32 party_id)
 	if( (p=party_search(party_id))==NULL )
 		return 0;
 	
-	for(i=0;i<MAX_PARTY;i++){
+	for(i=0;i<MAX_PARTY; ++i){
 		if(p->member[i].sd!=NULL){
 			clif_party_leaved(*p,p->member[i].sd,
 				p->member[i].account_id,p->member[i].name,0x10);
@@ -397,7 +386,7 @@ int party_changeoption(struct map_session_data &sd,unsigned short expshare,unsig
 	if( sd.status.party_id==0 || (p=party_search(sd.status.party_id))==NULL )
 		return 0;
 
-	for(i=0; i<MAX_PARTY; i++)
+	for(i=0; i<MAX_PARTY; ++i)
 	{	// only leader can change party options
 		if(p->member[i].account_id == sd.status.account_id)
 		{
@@ -429,7 +418,7 @@ int party_recv_movemap(uint32 party_id,uint32 account_id,const char *mapname,int
 	int i;
 	if( (p=party_search(party_id))==NULL)
 		return 0;
-	for(i=0;i<MAX_PARTY;i++)
+	for(i=0;i<MAX_PARTY; ++i)
 	{
 		struct party_member *m=&p->member[i];
 
@@ -448,7 +437,7 @@ int party_recv_movemap(uint32 party_id,uint32 account_id,const char *mapname,int
 		return 0;
 	}
 	
-	for(i=0;i<MAX_PARTY;i++){	// sd再設定
+	for(i=0;i<MAX_PARTY; ++i){	// sd再設定
 		struct map_session_data *sd= map_id2sd(p->member[i].account_id);
 		p->member[i].sd=(sd!=NULL && sd->status.party_id==p->party_id && !sd->state.waitingdisconnect)?sd:NULL;
 	}
@@ -497,7 +486,7 @@ int party_send_logout(struct map_session_data &sd)
 	// sdが無効になるのでパーティ情報から削除
 	if( (p=party_search(sd.status.party_id))!=NULL ){
 		int i;
-		for(i=0;i<MAX_PARTY;i++)
+		for(i=0;i<MAX_PARTY; ++i)
 			if(p->member[i].sd==&sd)
 				p->member[i].sd=NULL;
 	}
@@ -515,7 +504,7 @@ int party_send_message(struct map_session_data &sd,const char *mes,size_t len)
 	if(log_config.chat&1 //we log everything then
 		|| ( log_config.chat&4 //if Party bit is on
 		&& ( !agit_flag || !(log_config.chat&16) ))) //if WOE ONLY flag is off or AGIT is OFF
-		log_chat("P", sd.status.party_id, sd.status.char_id, sd.status.account_id, sd.mapname, sd.bl.x, sd.bl.y, "", mes);
+		log_chat("P", sd.status.party_id, sd.status.char_id, sd.status.account_id, sd.mapname, sd.block_list::x, sd.block_list::y, "", mes);
 	
 	return 0;
 }
@@ -546,19 +535,19 @@ int party_send_xyhp_timer_sub(void *key,void *data,va_list &ap)
 
 	nullpo_retr(0, p);
 
-	for(i=0;i<MAX_PARTY;i++)
+	for(i=0;i<MAX_PARTY; ++i)
 	{
 		struct map_session_data *sd=p->member[i].sd;
 		if(sd!=NULL)
 		{
 			// 座標通知
-			if(sd->party_x!=sd->bl.x || sd->party_y!=sd->bl.y)
+			if(sd->party_x!=sd->block_list::x || sd->party_y!=sd->block_list::y)
 			{
 				clif_party_xy(*p,*sd);
 				if(sd->status.guild_id)
 					clif_guild_xy(*sd);
-				sd->party_x=sd->bl.x;
-				sd->party_y=sd->bl.y;
+				sd->party_x=sd->block_list::x;
+				sd->party_y=sd->block_list::y;
 			}
 			// ＨＰ通知
 			if(sd->party_hp!=sd->status.hp)
@@ -584,19 +573,19 @@ public:
 
 		nullpo_retr(true, p);
 
-		for(i=0;i<MAX_PARTY;i++)
+		for(i=0;i<MAX_PARTY; ++i)
 		{
 			struct map_session_data *sd=p->member[i].sd;
 			if(sd!=NULL)
 			{
 				// 座標通知
-				if(sd->party_x!=sd->bl.x || sd->party_y!=sd->bl.y)
+				if(sd->party_x!=sd->block_list::x || sd->party_y!=sd->block_list::y)
 				{
 					clif_party_xy(*p,*sd);
 					if(sd->status.guild_id)
 						clif_guild_xy(*sd);
-					sd->party_x=sd->bl.x;
-					sd->party_y=sd->bl.y;
+					sd->party_x=sd->block_list::x;
+					sd->party_y=sd->block_list::y;
 				}
 				// ＨＰ通知
 				if(sd->party_hp!=sd->status.hp)
@@ -610,7 +599,7 @@ public:
 	}
 };
 // 位置やＨＰ通知
-int party_send_xyhp_timer(int tid, unsigned long tick, int id, intptr data)
+int party_send_xyhp_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	numdb_foreach(party_db, CDBPartySendXYHP(tick) );
 //	numdb_foreach(party_db,party_send_xyhp_timer_sub,tick);
@@ -622,7 +611,7 @@ int party_send_xyhp_timer(int tid, unsigned long tick, int id, intptr data)
 int party_send_xy_clear(struct party &p)
 {
 	int i;
-	for(i=0;i<MAX_PARTY;i++){
+	for(i=0;i<MAX_PARTY; ++i){
 		struct map_session_data *sd=p.member[i].sd;
 		if(sd!=NULL){
 			sd->party_x=0xFFFF;
@@ -670,9 +659,9 @@ int party_exp_share(struct party &p,unsigned short map, uint32 base_exp,uint32 j
 	unsigned short c=0;
 	unsigned short memberpos[MAX_PARTY];
 
-	for (i=c=0; i < MAX_PARTY; i++)
+	for (i=c=0; i < MAX_PARTY; ++i)
 	{	
-		if((sd=p.member[i].sd)!=NULL && p.member[i].online && sd->bl.m==map && session[sd->fd] != NULL )
+		if((sd=p.member[i].sd)!=NULL && p.member[i].online && sd->block_list::m==map && session[sd->fd] != NULL )
 		{
 			if( !( sd->chatID                            && battle_config.party_share_mode>=2 ) &&	// don't count chatting
 				!( difftime(last_tick, sd->idletime)>120 && battle_config.party_share_mode>=1) &&	// don't count idle
@@ -709,7 +698,7 @@ int party_exp_share(struct party &p,unsigned short map, uint32 base_exp,uint32 j
 		zeny     = zeny    /c;
 	}
 
-	for(i = 0; i < c; i++)
+	for(i = 0; i < c; ++i)
 	{
 		if( (sd=p.member[memberpos[i]].sd)!=NULL )
 		{
@@ -736,9 +725,9 @@ int party_exp_share2(struct party &p, unsigned short map, uint32 base_exp, uint3
 	double base_exp_div,job_exp_div,zeny_div;
 
 
-	for (i=c=0; i < MAX_PARTY; i++)
+	for (i=c=0; i < MAX_PARTY; ++i)
 	{	
-		if((sd=p.member[i].sd)!=NULL && p.member[i].online && sd->bl.m==map && session[sd->fd] != NULL)
+		if((sd=p.member[i].sd)!=NULL && p.member[i].online && sd->block_list::m==map && session[sd->fd] != NULL)
 		{
 			if( !( sd->chatID                             && battle_config.party_share_mode>=2 ) &&	// don't count chatting
 				!( difftime(last_tick, sd->idletime)>120  && battle_config.party_share_mode>=1) &&	// don't count idle
@@ -767,7 +756,7 @@ int party_exp_share2(struct party &p, unsigned short map, uint32 base_exp, uint3
 	}
 
 
-	for(i = 0; i < c; i++)
+	for(i = 0; i < c; ++i)
 	{
 		if( (sd=p.member[memberpos[i]].sd)!=NULL )
 		{

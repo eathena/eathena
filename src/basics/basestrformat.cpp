@@ -1,12 +1,15 @@
 #include "basestrformat.h"
 #include "basestring.h"
-
+#include "baseinet.h"
 
 
 
 #include <limits.h>
 #include <float.h>
 #include <ctype.h>
+
+NAMESPACE_BEGIN(basics)
+
 
 /*------------------------------------------------------------------------------
 
@@ -189,6 +192,12 @@ template<typename T> ssize_t dvsprintf(stringoperator<T>& formatted, const T* fm
 				T conversion = *fmt++;
 				switch (conversion)
 				{
+				case 'a': 
+				{
+					ipaddress value =(ulong)va_arg(args, size_t);
+					formatted << value;
+					break;
+				}
 				case 'd': 
 				case 'i':
 				{
@@ -361,4 +370,4 @@ template string<wchar_t> dprintf<wchar_t>(const wchar_t* fmt, ...);
 
 
 
-
+NAMESPACE_END(basics)

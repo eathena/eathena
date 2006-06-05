@@ -7,6 +7,8 @@
 #include "basesync.h"
 #include "baseexceptions.h"
 
+NAMESPACE_BEGIN(basics)
+
 
 #ifndef SINGLETHREAD
 
@@ -348,4 +350,7 @@ void SemaphoreTimed::post(size_t amount)
 
 
 
-#endif//!SINGLETHREAD
+#endif// !SINGLETHREAD
+
+
+NAMESPACE_END(basics)

@@ -14,10 +14,8 @@ packet_db_ver: default
 
 // Whether the packet DB takes higher precedence over the hardcoded packet
 // length and functions, and whether to overwrite them when reading
-prefer_packet_db: yes
 
-
-// packet_ver: 5
+packet_ver: 5
 0x0064,55
 0x0065,17
 0x0066,3
@@ -449,63 +447,63 @@ prefer_packet_db: yes
 //jRO‚Í‚±‚±‚Ü‚Å
 
 //2004-07-06kRO
-// packet_ver: 6
-// 0x0072,22,wanttoconnection,5:9:13:17:21
-// 0x0085,8,walktoxy,5
-// 0x00a7,13,useitem,5:9
-// 0x0113,15,useskilltoid,4:9:11
-// 0x0116,15,useskilltopos,4:9:11:13
-// 0x0190,95,useskilltopos,4:9:11:13:15
+packet_ver: 6
+0x0072,22,wanttoconnection,5:9:13:17:21
+0x0085,8,walktoxy,5
+0x00a7,13,useitem,5:9
+0x0113,15,useskilltoid,4:9:11
+0x0116,15,useskilltopos,4:9:11:13
+0x0190,95,useskilltopos,4:9:11:13:15
 
 //2004-07-13kRO
-// packet_ver: 7
-// 0x0072,39,wanttoconnection,12:22:30:34:38
-// 0x0085,9,walktoxy,6
-// 0x009b,13,changedir,5:12
-// 0x009f,10,takeitem,6
-// 0x00a7,17,useitem,6:13
-// 0x0113,19,useskilltoid,7:9:15
-// 0x0116,19,useskilltopos,7:9:15:17
-// 0x0190,99,useskilltopos,7:9:15:17:19
+packet_ver: 7
+0x0072,39,wanttoconnection,12:22:30:34:38
+0x0085,9,walktoxy,6
+0x009b,13,changedir,5:12
+0x009f,10,takeitem,6
+0x00a7,17,useitem,6:13
+0x0113,19,useskilltoid,7:9:15
+0x0116,19,useskilltopos,7:9:15:17
+0x0190,99,useskilltopos,7:9:15:17:19
 
 //2004-07-26kRO
-// packet_ver: 8
-// 0x0072,14,dropitem,5:12
-// 0x007e,33,wanttoconnection,12:18:24:28:32
-// 0x0085,20,useskilltoid,7:12:16
-// 0x0089,15,getcharnamerequest,11
-// 0x008c,23,useskilltopos,3:6:17:21
-// 0x0094,10,takeitem,6
-// 0x009b,6,walktoxy,3
-// 0x009f,13,changedir,5:12
-// 0x00a2,103,useskilltopos,3:6:17:21:23
-// 0x00a7,12,solvecharname,8
-// 0x00f3,-1,globalmessage,2:4
-// 0x00f5,17,useitem,6:12
-// 0x00f7,10,ticksend,6
-// 0x0113,16,movetokafra,5:12
-// 0x0116,2,closekafra,0
-// 0x0190,26,movefromkafra,10:22
-// 0x0193,9,actionrequest,3:8
+packet_ver: 8
+0x0072,14,dropitem,5:12
+0x007e,33,wanttoconnection,12:18:24:28:32
+0x0085,20,useskilltoid,7:12:16
+0x0089,15,getcharnamerequest,11
+0x008c,23,useskilltopos,3:6:17:21
+0x0094,10,takeitem,6
+0x009b,6,walktoxy,3
+0x009f,13,changedir,5:12
+0x00a2,103,useskilltopos,3:6:17:21:23
+0x00a7,12,solvecharname,8
+0x00f3,-1,globalmessage,2:4
+0x00f5,17,useitem,6:12
+0x00f7,10,ticksend,6
+0x0113,16,movetokafra,5:12
+0x0116,2,closekafra,0
+0x0190,26,movefromkafra,10:22
+0x0193,9,actionrequest,3:8
 
 //2004-08-09kRO
-// packet_ver: 9
-// 0x0072,17,dropitem,8:15
+packet_ver: 9
+0x0072,17,dropitem,8:15
 //9, +12, +7, +4, +4
-// 0x007e,37,wanttoconnection,9:21:28:32:36
-// 0x0085,26,useskilltoid,11:18:22
-// 0x0089,12,getcharnamerequest,8
-// 0x008c,40,useskilltopos,5:15:29:38
-// 0x0094,13,takeitem,9
-// 0x009b,15,walktoxy,12
-// 0x009f,12,changedir,7:11
-// 0x00a2,120,useskilltopos,5:15:29:38:40
-// 0x00a7,11,solvecharname,7
-// 0x00f5,24,useitem,9:20
-// 0x00f7,13,ticksend,9
-// 0x0113,23,movetokafra,5:19
-// 0x0190,26,movefromkafra,11:22
-// 0x0193,18,actionrequest,7:17
+0x007e,37,wanttoconnection,9:21:28:32:36
+0x0085,26,useskilltoid,11:18:22
+0x0089,12,getcharnamerequest,8
+0x008c,40,useskilltopos,5:15:29:38
+0x0094,13,takeitem,9
+0x009b,15,walktoxy,12
+0x009f,12,changedir,7:11
+0x00a2,120,useskilltopos,5:15:29:38:40
+0x00a7,11,solvecharname,7
+0x00f5,24,useitem,9:20
+0x00f7,13,ticksend,9
+0x0113,23,movetokafra,5:19
+0x0190,26,movefromkafra,11:22
+0x0193,18,actionrequest,7:17
 
 //2004-08-16aSakexe
 // 0x020f,0
@@ -520,103 +518,105 @@ prefer_packet_db: yes
 0x0210,22
 
 //2004-09-06aSakexe
-// packet_ver: 10
+packet_ver: 10
 //0x0072,20,useitem,9:20
-// 0x007e,19,movetokafra,3:15
-// 0x0085,23,actionrequest,9:22
-// 0x0089,9,walktoxy,6
-// 0x008c,105,useskilltopos,10:14:18:23:25
-// 0x0094,17,dropitem,6:15
-// 0x009b,14,getcharnamerequest,10
-// 0x009f,-1,globalmessage,2:4
-// 0x00a2,14,solvecharname,10
-// 0x00a7,25,useskilltopos,10:14:18:23
-// 0x00f3,10,changedir,4:9
+0x007e,19,movetokafra,3:15
+0x0085,23,actionrequest,9:22
+0x0089,9,walktoxy,6
+0x008c,105,useskilltopos,10:14:18:23:25
+0x0094,17,dropitem,6:15
+0x009b,14,getcharnamerequest,10
+0x009f,-1,globalmessage,2:4
+0x00a2,14,solvecharname,10
+0x00a7,25,useskilltopos,10:14:18:23
+0x00f3,10,changedir,4:9
 //7, +7, +10, +4, +6
-// 0x00f5,34,wanttoconnection,7:15:25:29:33
-// 0x00f7,2,closekafra,0
-// 0x0113,11,takeitem,7
-// 0x0116,11,ticksend,7
-// 0x0190,22,useskilltoid,9:15:18
-// 0x0193,17,movefromkafra,3:13
+0x00f5,34,wanttoconnection,7:15:25:29:33
+0x00f7,2,closekafra,0
+0x0113,11,takeitem,7
+0x0116,11,ticksend,7
+0x0190,22,useskilltoid,9:15:18
+0x0193,17,movefromkafra,3:13
 
 //2004-09-21aSakexe by Sara
-// packet_ver: 11
-// 0x0072,18,useitem,10:14
-// 0x007e,25,movetokafra,6:21
-// 0x0085,9,actionrequest,3:8
-// 0x0089,14,walktoxy,11
-// 0x008c,109,useskilltopos,16:20:23:27:29
-// 0x0094,19,dropitem,12:17
-// 0x00a2,10,solvecharname,6
-// 0x00a7,29,useskilltopos,6:20:23:27
-// 0x00f3,18,changedir,8:17
-// 0x00f5,32,wanttoconnection,10:17:23:27:31
-// 0x009b,10,getcharnamerequest,6
-// 0x0113,14,takeitem,10
-// 0x0116,14,ticksend,10
-// 0x0190,14,useskilltoid,4:7:10
-// 0x0193,12,movefromkafra,4:8
+packet_ver: 11
+0x0072,18,useitem,10:14
+0x007e,25,movetokafra,6:21
+0x0085,9,actionrequest,3:8
+0x0089,14,walktoxy,11
+0x008c,109,useskilltopos,16:20:23:27:29
+0x0094,19,dropitem,12:17
+0x00a2,10,solvecharname,6
+0x00a7,29,useskilltopos,6:20:23:27
+0x00f3,18,changedir,8:17
+0x00f5,32,wanttoconnection,10:17:23:27:31
+0x009b,10,getcharnamerequest,6
+0x0113,14,takeitem,10
+0x0116,14,ticksend,10
+0x0190,14,useskilltoid,4:7:10
+0x0193,12,movefromkafra,4:8
 
 //2004-10-11aSakexe by Sara
-// packet_ver: 12
-// 0x0072,17,useitem,6:13
-// 0x007e,16,movetokafra,5:12
-// 0x0089,6,walktoxy,3
-// 0x008c,103,useskilltopos,2:6:17:21:23
-// 0x0094,14,dropitem,5:12
-// 0x009b,15,getcharnamerequest,11
-// 0x00a2,12,solvecharname,8
-// 0x00a7,23,useskilltopos,3:6:17:21
-// 0x00f3,13,changedir,5:12
-// 0x00f5,33,wanttoconnection,12:18:24:28:32
-// 0x0113,10,takeitem,6
-// 0x0116,10,ticksend,6
-// 0x0190,20,useskilltoid,7:12:16
-// 0x0193,26,movefromkafra,10:22
+packet_ver: 12
+0x0072,17,useitem,6:13
+0x007e,16,movetokafra,5:12
+0x0089,6,walktoxy,3
+0x008c,103,useskilltopos,2:6:17:21:23
+0x0094,14,dropitem,5:12
+0x009b,15,getcharnamerequest,11
+0x00a2,12,solvecharname,8
+0x00a7,23,useskilltopos,3:6:17:21
+0x00f3,13,changedir,5:12
+0x00f5,33,wanttoconnection,12:18:24:28:32
+0x0113,10,takeitem,6
+0x0116,10,ticksend,6
+0x0190,20,useskilltoid,7:12:16
+0x0193,26,movefromkafra,10:22
 
 //2004-10-25aSakexe by Sara
-// packet_ver: 13
-// 0x0072,13,useitem,5:9
-// 0x007e,13,movetokafra,6:9
-// 0x0085,15,actionrequest,4:14
-// 0x008c,108,useskilltopos,6:9:23:26:28
-// 0x0094,12,dropitem,6:10
-// 0x009b,10,getcharnamerequest,6
-// 0x00a2,16,solvecharname,12
-// 0x00a7,28,useskilltopos,6:9:23:26
-// 0x00f3,15,changedir,6:14
-// 0x00f5,29,wanttoconnection,5:14:20:24:28
-// 0x0113,9,takeitem,5
-// 0x0116,9,ticksend,5
-// 0x0190,26,useskilltoid,4:10:22
-// 0x0193,22,movefromkafra,12:18
+packet_ver: 13
+0x0072,13,useitem,5:9
+0x007e,13,movetokafra,6:9
+0x0085,15,actionrequest,4:14
+0x008c,108,useskilltopos,6:9:23:26:28
+0x0094,12,dropitem,6:10
+0x009b,10,getcharnamerequest,6
+0x00a2,16,solvecharname,12
+0x00a7,28,useskilltopos,6:9:23:26
+0x00f3,15,changedir,6:14
+0x00f5,29,wanttoconnection,5:14:20:24:28
+0x0113,9,takeitem,5
+0x0116,9,ticksend,5
+0x0190,26,useskilltoid,4:10:22
+0x0193,22,movefromkafra,12:18
 
 //2004-11-01aSakexe by Sara
-// packet_ver: 14
+// disabled
+packet_ver: 14
+0x0000,0,wanttoconnection,0
 0x0143,23,npcamountinput,2:6
 0x0215,6
 0x0216,6
 
 //2004-12-06aSakexe
-// packet_ver: 15
-// 0x0190,15,useitem,3:11
-// 0x0094,14,movetokafra,4:10
-// 0x009f,18,actionrequest,6:17
-// 0x00a7,7,walktoxy,4
-// 0x007e,30,useskilltopos,4:9:22:28
-// 0x0116,12,dropitem,4:10
-// 0x008c,13,getcharnamerequest,9
-// 0x0085,-1,globalmessage,2:4
-// 0x00f7,14,solvecharname,10
-// 0x0113,110,useskilltopos,4:9:22:28:30
-// 0x00f3,8,changedir,3:7
-// 0x00f5,29,wanttoconnection,3:10:20:24:28
-// 0x00a2,7,takeitem,3
-// 0x0089,7,ticksend,3
-// 0x0072,22,useskilltoid,8:12:18
-// 0x0193,21,movefromkafra,4:17
-// 0x009b,2,closekafra,0
+packet_ver: 15
+0x0190,15,useitem,3:11
+0x0094,14,movetokafra,4:10
+0x009f,18,actionrequest,6:17
+0x00a7,7,walktoxy,4
+0x007e,30,useskilltopos,4:9:22:28
+0x0116,12,dropitem,4:10
+0x008c,13,getcharnamerequest,9
+0x0085,-1,globalmessage,2:4
+0x00f7,14,solvecharname,10
+0x0113,110,useskilltopos,4:9:22:28:30
+0x00f3,8,changedir,3:7
+0x00f5,29,wanttoconnection,3:10:20:24:28
+0x00a2,7,takeitem,3
+0x0089,7,ticksend,3
+0x0072,22,useskilltoid,8:12:18
+0x0193,21,movefromkafra,4:17
+0x009b,2,closekafra,0
 0x0217,2,blacksmith,0
 0x0218,2,alchemist,0
 0x0219,282
@@ -626,34 +626,34 @@ prefer_packet_db: yes
 0x021d,6
 0x021e,6
 0x0221,-1
-0x0222,6
+0x0222,6,weaponrefine,2
 0x0223,8
 
 //2005-01-10bSakexe by Sara
-// packet_ver: 16
-//0x009b,32,wanttoconnection,3:12:23:27:31
-//0x0089,9,ticksend,5
-//0x00a7,13,walktoxy,10
-//0x0190,20,actionrequest,9:19
-//0x00f3,-1,globalmessage,2:4
-//0x008c,8,getcharnamerequest,4
-//0x0085,23,changedir,12:22
-//0x0094,20,movetokafra,10:16
-//0x0193,2,closekafra,0
-//0x00f7,21,movefromkafra,11:17
-//0x009f,17,useitem,5:13
-//0x0116,20,dropitem,15:18
-//0x00f5,9,takeitem,5
-//0x0113,34,useskilltopos,10:18:22:32
-//0x0072,26,useskilltoid,8:16:22
-//0x007e,114,useskilltopos,10:18:22:32:34
-//0x00a2,11,solvecharname,7
-//0x0143,10,npcamountinput,2:6
+packet_ver: 16
+0x009b,32,wanttoconnection,3:12:23:27:31
+0x0089,9,ticksend,5
+0x00a7,13,walktoxy,10
+0x0190,20,actionrequest,9:19
+0x00f3,-1,globalmessage,2:4
+0x008c,8,getcharnamerequest,4
+0x0085,23,changedir,12:22
+0x0094,20,movetokafra,10:16
+0x0193,2,closekafra,0
+0x00f7,21,movefromkafra,11:17
+0x009f,17,useitem,5:13
+0x0116,20,dropitem,15:18
+0x00f5,9,takeitem,5
+0x0113,34,useskilltopos,10:18:22:32
+0x0072,26,useskilltoid,8:16:22
+0x007e,114,useskilltopos,10:18:22:32:34
+0x00a2,11,solvecharname,7
+0x0143,10,npcamountinput,2:6
 0x021f,66
 0x0220,10
 
 //2005-05-09aSakexe by Sara
-// packet_ver: 17
+packet_ver: 17
 0x009b,26,wanttoconnection,4:9:17:18:25
 0x0089,8,ticksend,4
 0x00a7,8,walktoxy,5
@@ -687,7 +687,7 @@ prefer_packet_db: yes
 0x0234,-1
 
 //2005-06-28aSakexe by Sara
-// packet_ver: 18
+packet_ver: 18
 0x009b,32,wanttoconnection,9:15:23:30:31
 0x0089,13,ticksend,9
 0x00a7,11,walktoxy,8
@@ -706,6 +706,74 @@ prefer_packet_db: yes
 0x007e,113,useskilltopos,12:15:18:31:33
 0x00a2,9,solvecharname,5
 0x0143,10,npcamountinput,2:6
+0x20e,10
+0x22e,71
+0x230,12
+0x235,115
+0x237,2,rankingpk,0
+0x23d,-1
+0x23e,4
+0x23f,2
+0x240,-1
+0x241,-1
+0x242,-1
+0x243,-1
+0x244,-1
+0x245,3
+0x246,4
+0x247,8
+0x248,116
+0x249,3
+0x24a,70
+0x24b,4
+0x24c,8
+0x24d,12
+0x24e,4
+0x24f,10
+0x250,3
+0x251,32
+0x252,-1
+0x253,3
+0x254,3,feelsaveok,0
+0x255,5
+0x256,5
+0x257,8
+0x258,2
+0x259,3
+0x25a,-1
+0x25b,-1
+0x25c,4
+0x25d,-1
+0x25e,4
+
+
+//2006-04-04aSakexe by blackhole89
+packet_ver: 19
+0x0072,26,useskilltoid,11:18:22
+0x007e,120,useskilltoposinfo,5:15:29:38:40
+0x0085,12,changedir,7:11
+0x0089,13,ticksend,7
+0x008c,12,getcharnamerequest,8
+0x0094,23,movetokafra,5:19
+0x009b,37,wanttoconnection,9:21:28:32:36
+0x009f,24,useitem,9:20
+0x00a2,11,solvecharname,7
+0x00a7,15,walktoxy,12
+0x00f3,-1,globalmessage,2:4
+0x00f5,13,takeitem,9
+0x00f7,26,movefromkafra,11:22
+0x0113,40,useskilltopos,5:15:29:38
+0x0116,17,dropitem,8:15
+0x0190,18,actionrequest,7:17
+0x0193,2,closekafra,0
+0x023f,2,refleshmailbox,0
+0x0241,6,readmail,2
+0x0243,6,deletemail,2
+0x0244,6,mailgetappend,2
+0x0246,4,mailwinopen,2
+0x0247,8,sendmailsetappend,2,4
+0x0248,-1,sendmail,2:4:28:69
+
 
 // Add new packets here
-// packet_ver: 19
+//packet_ver: 20

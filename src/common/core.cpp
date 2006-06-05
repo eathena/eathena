@@ -3,7 +3,8 @@
 
 #define LOG_UPTIME 0
 
-#include "base.h"
+#include "baseparam.h" // for parseCommandline
+
 #include "mmo.h"
 #include "malloc.h"
 #include "core.h"
@@ -14,8 +15,6 @@
 #include "version.h"
 #include "utils.h"
 #include "showmsg.h"
-
-#include "basesq.h"
 
 
 
@@ -80,7 +79,7 @@ void pid_create(const char* file)
 			pid_file[len - 4] = 0;
 		}
 		strcat(pid_file,".pid");
-		fp = safefopen(pid_file,"w");
+		fp = basics::safefopen(pid_file,"w");
 		if(fp)
 		{
 			fprintf(fp,"%ld", (unsigned long)GetCurrentProcessId());
@@ -194,7 +193,7 @@ void init_signal()
 // revision
 // would make it inline but dll wants it on a fixed position
 // to get it's function pointer
-const char* get_svn_revision()	{ return "Shinomori's Modified Version (2005-01-15)"; }
+const char* get_svn_revision()	{ return "Shinomori's Modified Version (2006-05-19)"; }
 /*
 {
 	static char version[16]="";
@@ -228,7 +227,7 @@ void display_title(void)
 {
 	ShowMessage(CL_CLS); // clear screen and go up/left (0, 0 position in text)
 	ShowMessage(CL_WTBL"          (=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=)"CL_CLL""CL_NORM"\n"); // white writing (37) on blue background (44), "CL_CLL" clean until end of file
-	ShowMessage(CL_XXBL"          ("CL_BT_YELLOW"        (c)2004 eAthena Development Team presents        "CL_XXBL")"CL_CLL""CL_NORM"\n"); // yellow writing (33)
+	ShowMessage(CL_XXBL"          ("CL_BT_YELLOW"        (c)2006 eAthena Development Team presents        "CL_XXBL")"CL_CLL""CL_NORM"\n"); // yellow writing (33)
 	ShowMessage(CL_XXBL"          ("CL_BOLD"       ______  __    __                                  "CL_XXBL")"CL_CLL""CL_NORM"\n"); // 1: bold char, 0: normal char
 	ShowMessage(CL_XXBL"          ("CL_BOLD"      /\\  _  \\/\\ \\__/\\ \\                     v%2d.%02d.%02d   "CL_XXBL")"CL_CLL""CL_NORM"\n", ATHENA_MAJOR_VERSION, ATHENA_MINOR_VERSION, ATHENA_REVISION); // 1: bold char, 0: normal char
 	ShowMessage(CL_XXBL"          ("CL_BOLD"    __\\ \\ \\_\\ \\ \\ ,_\\ \\ \\___      __    ___      __      "CL_XXBL")"CL_CLL""CL_NORM"\n"); // 1: bold char, 0: normal char
@@ -258,7 +257,7 @@ int main (int argc, char **argv)
 
 	///////////////////////////////////////////////////////////////////////////
 	// read in parameters from commandline
-	parseCommandline(argc, argv);
+	basics::parseCommandline(argc, argv);
 
 	///////////////////////////////////////////////////////////////////////////
 	// startup

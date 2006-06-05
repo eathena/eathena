@@ -189,7 +189,7 @@ int SessionInsertSocket(const SOCKET elem)
 		}
 
 		// find an empty position in session[]
-		for(fd=0; fd<FD_SETSIZE; fd++)
+		for(fd=0; fd<FD_SETSIZE; ++fd)
 			if( NULL==session[fd] )
 				break;
 		// we might not need to test validity 
@@ -321,19 +321,34 @@ class DDoS
 		ACO_MUTUAL_FAILTURE,
 	};
 
-	struct _access_control {
+	struct _access_control
+	{
 		uint32 ip;
 		uint32 mask;
+
+		_access_control() : 
+			ip(0),
+			mask(0)
+		{}
 	};
-	struct _connect_history {
+	struct _connect_history
+	{
 		struct _connect_history *next;
 		struct _connect_history *prev;
 		int    status;
 		int    count;
 		uint32 ip;
 		unsigned long tick;
-	};
 
+		_connect_history(uint32 ip) :
+			next(NULL),
+			prev(NULL),
+			status(0),
+			count(0),
+			ip(ip),
+			tick(gettick())
+		{}
+	};
 	struct _access_control *access_allow;
 	struct _access_control *access_deny;
 	int access_order;
@@ -359,30 +374,31 @@ public:
 	{}
 	~DDoS()
 	{
-		Clean();
+		clear();
 	}
 
-	void Clean()
+	void clear()
 	{
 		struct _connect_history *hist , *hist2;
-		for(size_t i=0; i<0x10000; i++) 
+		for(size_t i=0; i<0x10000; ++i) 
 		{
 			hist = connect_history[i];
-			while(hist) {
+			while(hist)
+			{
 				hist2 = hist->next;
-				aFree(hist);
+				delete hist;
 				hist = hist2;
 			}
 			connect_history[i]=NULL;
 		}
 		if(access_allow)
 		{
-			aFree(access_allow);
+			delete[] access_allow;
 			access_allow = NULL;
 		}
 		if(access_deny)
 		{	
-			aFree(access_deny);
+			delete[] access_deny;
 			access_deny = NULL;
 		}
 	}
@@ -410,7 +426,7 @@ public:
 		int    i,is_allowip = 0,is_denyip = 0,connect_ok = 0;
 
 		// allow , deny リストに入っているか確認
-		for(i = 0;i < access_allownum; i++) {
+		for(i = 0;i < access_allownum; ++i) {
 			if((ip & access_allow[i].mask) == (access_allow[i].ip & access_allow[i].mask)) {
 				if(access_debug) {
 					printf("connect_check: match allow list from:%08lx ip:%08lx mask:%08lx\n",
@@ -420,7 +436,7 @@ public:
 				break;
 			}
 		}
-		for(i = 0;i < access_denynum; i++) {
+		for(i = 0;i < access_denynum; ++i) {
 			if((ip & access_deny[i].mask) == (access_deny[i].ip & access_deny[i].mask)) {
 				if(access_debug) {
 					printf("connect_check: match deny list  from:%08lx ip:%08lx mask:%08lx\n",
@@ -493,10 +509,9 @@ public:
 			hist = hist->next;
 		}
 		// IPリストに無いので新規作成
-		hist_new = (struct _connect_history *)aCalloc(1,sizeof(struct _connect_history));
-		hist_new->ip   = ip;
-		hist_new->tick = gettick();
-		if(connect_history[ip & 0xFFFF] != NULL) {
+		hist_new = new struct _connect_history(ip);
+		if(connect_history[ip & 0xFFFF] != NULL)
+		{
 			hist = connect_history[ip & 0xFFFF];
 			hist->prev = hist_new;
 			hist_new->next = hist;
@@ -505,12 +520,13 @@ public:
 		return connect_ok;
 	}
 
-	int connect_check_clear(int tid,unsigned long tick,int id,intptr data) {
+	int connect_check_clear(int tid,unsigned long tick,int id,basics::numptr data)
+	{
 		int i;
 		int clear = 0;
 		int list  = 0;
 		struct _connect_history *hist , *hist2;
-		for(i = 0;i < 0x10000 ; i++) {
+		for(i = 0;i < 0x10000 ; ++i) {
 			hist = connect_history[i];
 			while(hist) {
 				if(
@@ -527,7 +543,7 @@ public:
 					if(hist->next) {
 						hist->next->prev = hist->prev;
 					}
-					aFree(hist);
+					delete hist;
 					hist = hist2;
 					clear++;
 				} else {
@@ -544,44 +560,55 @@ public:
 
 private:
 	// IPマスクチェック
-	int access_ipmask(const char *str,struct _access_control* acc)
+	bool access_ipmask(const char *str,struct _access_control& acc)
 	{
 		unsigned int mask=0,i=0,m,ip, a0,a1,a2,a3;
-		if( !strcmp(str,"all") ) {
+		if( !strcmp(str,"all") )
+		{
 			ip   = 0;
 			mask = 0;
-		} else {
-			if( sscanf(str,"%d.%d.%d.%d%n",&a0,&a1,&a2,&a3,&i)!=4 || i==0) {
+		}
+		else
+		{
+			if( sscanf(str,"%d.%d.%d.%d%n",&a0,&a1,&a2,&a3,&i)!=4 || i==0)
+			{
 				printf("access_ipmask: unknown format %s\n",str);
-				return 0;
+				return false;
 			}
 			ip = (a3 << 24) | (a2 << 16) | (a1 << 8) | a0;
-
-			if(sscanf(str+i,"/%d.%d.%d.%d",&a0,&a1,&a2,&a3)==4 ){
+			if(sscanf(str+i,"/%d.%d.%d.%d",&a0,&a1,&a2,&a3)==4 )
+			{
 				mask = (a3 << 24) | (a2 << 16) | (a1 << 8) | a0;
-			} else if(sscanf(str+i,"/%d",&m) == 1) {
-				for(i=0;i<m;i++) {
+			}
+			else if(sscanf(str+i,"/%d",&m) == 1)
+			{
+				for(i=0;i<m;++i)
+				{
 					mask = (mask >> 1) | 0x80000000;
 				}
 				mask = ntohl(mask);
-			} else {
+			}
+			else
+			{
 				mask = 0xFFFFFFFF;
 			}
 		}
-		if(access_debug) {
+		if(access_debug)
+		{
 			ShowMessage("access_ipmask: ip:%08x mask:%08x %s\n",ip,mask,str);
 		}
-		acc->ip   = ip;
-		acc->mask = mask;
-		return 1;
+		acc.ip   = ip;
+		acc.mask = mask;
+		return true;
 	}
 public:
-	int socket_config_read(const char *cfgName) {
+	int socket_config_read(const char *cfgName)
+	{
 		int i;
 		char line[1024],w1[1024],w2[1024];
 		FILE *fp;
 
-		fp=safefopen(cfgName, "r");
+		fp=basics::safefopen(cfgName, "r");
 		if(fp==NULL){
 			ShowError("socket config file not found: %s\n", cfgName);
 			return 1;
@@ -599,15 +626,25 @@ public:
 				if(strcasecmp(w2,"deny,allow")==0) access_order=ACO_DENY_ALLOW;
 				if(strcasecmp(w2,"allow,deny")==0) access_order=ACO_ALLOW_DENY;
 				if(strcasecmp(w2,"mutual-failture")==0) access_order=ACO_MUTUAL_FAILTURE;
-			} else if(strcasecmp(w1,"allow")==0){
-				access_allow = (struct _access_control*)aRealloc(access_allow,(access_allownum+1)*sizeof(struct _access_control));
-				if(access_ipmask(w2,&access_allow[access_allownum])) {
-					access_allownum++;
+			}
+			else if(strcasecmp(w1,"allow")==0)
+			{
+				struct _access_control tmp;
+				if( access_ipmask(w2,tmp) )
+				{
+					new_realloc(access_allow, access_allownum, 1);
+					access_allow[access_allownum] = tmp;
+					++access_allownum;
 				}
-			} else if(strcasecmp(w1,"deny")==0){
-				access_deny = (struct _access_control*)aRealloc(access_deny,(access_denynum+1)*sizeof(struct _access_control));
-				if(access_ipmask(w2,&access_deny[access_denynum])) {
-					access_denynum++;
+			}
+			else if(strcasecmp(w1,"deny")==0)
+			{
+				struct _access_control tmp;
+				if( access_ipmask(w2, tmp) )
+				{
+					new_realloc(access_deny, access_denynum, 1);
+					access_deny[access_denynum] = tmp;
+					++access_denynum;
 				}
 			} else if(!strcasecmp(w1,"ddos_interval")){
 				ddos_interval = atoi(w2);
@@ -627,7 +664,7 @@ public:
 
 DDoS ddos;
 
-int connect_check_clear(int tid,unsigned long tick,int id,intptr data)
+int connect_check_clear(int tid,unsigned long tick,int id,basics::numptr data)
 {
 	return ddos.connect_check_clear(tid, tick, id, data);
 }
@@ -657,8 +694,8 @@ int connect_check_clear(int tid,unsigned long tick,int id,intptr data)
 ///////////////////////////////////////////////////////////////////////////////
 int null_parse(int fd);
 int (*default_func_parse)(int) = null_parse;
-int null_console_parse(char *buf);
-int (*default_console_parse)(char*) = null_console_parse;
+int null_console_parse(const char *buf);
+int (*default_console_parse)(const char*) = null_console_parse;
 
 /*======================================
  *	CORE : Set function
@@ -729,7 +766,7 @@ void dumpx(unsigned char *buf, int len)
 {	int i;
 	if(len>0)
 	{
-		for(i=0; i<len; i++)
+		for(i=0; i<len; ++i)
 			printf("%02X ", buf[i]);
 	}
 	printf("\n");
@@ -770,7 +807,7 @@ int recv_to_fifo(int fd)
 #endif  
 		if(len>0){
 			session[fd]->rdata_size+=len;
-			session[fd]->rdata_tick = last_tick;
+			if(session[fd]->rdata_tick) session[fd]->rdata_tick = last_tick;
 		} else if(len<=0){
 			session[fd]->flag.connected = false;
 			session[fd]->wdata_size=0;
@@ -837,7 +874,7 @@ void flush_fifos()
 	// easy method but needs a socket mode switch
 	// and processes each write individually
 /*	int fd;
-	for(fd=0; fd<fd_max; fd++)
+	for(fd=0; fd<fd_max; ++fd)
 	{
 		if( session_isActive(fd) && session[fd]->func_send == send_from_fifo && session[fd]->wdata_size > 0)
 		{
@@ -858,7 +895,7 @@ void flush_fifos()
 	{
 		memset(&wfd,0,sizeof(fd_set));
 		c=0;
-		for(fd=0; fd<fd_max; fd++)
+		for(fd=0; fd<fd_max; ++fd)
 		{
 			if( session_isActive(fd) && session[fd]->func_send == send_from_fifo && session[fd]->wdata_size > 0)
 			{
@@ -1124,7 +1161,7 @@ int connect_client(int listen_fd)
 	}
 
 
-	session[fd] = new struct socket_data;
+	session[fd] = new struct socket_data();
 	////////////////
 	// init members
 	// move to constructor
@@ -1151,7 +1188,7 @@ int connect_client(int listen_fd)
 	session[fd]->func_term    = NULL;
 	session[fd]->func_console = NULL;
 	
-	session[fd]->session_data = NULL;
+	session[fd]->user_session = NULL;
 
 	ShowStatus("Incoming connection from %d.%d.%d.%d:%i\n",
 		(session[fd]->client_ip>>24)&0xFF,(session[fd]->client_ip>>16)&0xFF,(session[fd]->client_ip>>8)&0xFF,(session[fd]->client_ip)&0xFF,
@@ -1207,21 +1244,40 @@ int make_listen(unsigned long ip, unsigned short port)
 		return -1;
 	}
 
-//	CREATE(session[fd], struct socket_data, 1);
-	session[fd] = new struct socket_data;
-	memset(session[fd],0,sizeof(struct socket_data));
-
+	session[fd] = new struct socket_data();
+	////////////////
+	// init members
+	// move to constructor
 	session[fd]->flag.connected   = true;
 	session[fd]->flag.remove      = false;
 	session[fd]->flag.marked      = false;
 
-	session[fd]->func_recv   = connect_client;
+	session[fd]->rdata_tick   = 0;	
+	
+	session[fd]->rdata      = NULL;
+	session[fd]->rdata_max  = 0;
+	session[fd]->rdata_size = 0;
+	session[fd]->rdata_pos  = 0;
+
+	session[fd]->wdata      = NULL;
+	session[fd]->wdata_max  = 0;
+	session[fd]->wdata_size = 0;
+
+	session[fd]->client_ip    = ip;
+
+	session[fd]->func_recv    = connect_client;
+	session[fd]->func_send    = NULL;
+	session[fd]->func_parse   = NULL;
+	session[fd]->func_term    = NULL;
+	session[fd]->func_console = NULL;
+	
+	session[fd]->user_session = NULL;
 
 	if(ip==INADDR_ANY)
 	{	size_t i;
 		ShowStatus("Open listen ports on localhost");
-		for(i=0; i<ipaddress::GetSystemIPCount(); i++)
-			ShowMessage(", %d.%d.%d.%d:%i",ipaddress::GetSystemIP(i)[3],ipaddress::GetSystemIP(i)[2],ipaddress::GetSystemIP(i)[1],ipaddress::GetSystemIP(i)[0],port);
+		for(i=0; i<basics::ipaddress::GetSystemIPCount(); ++i)
+			ShowMessage(", %d.%d.%d.%d:%i",basics::ipaddress::GetSystemIP(i)[3],basics::ipaddress::GetSystemIP(i)[2],basics::ipaddress::GetSystemIP(i)[1],basics::ipaddress::GetSystemIP(i)[0],port);
 		ShowMessage("\n");
 	}
 	else
@@ -1279,7 +1335,7 @@ int make_connection(unsigned long ip, unsigned short port)
 		return -1;
 	}
 
-	session[fd] = new struct socket_data;
+	session[fd] = new struct socket_data();
 	////////////////
 	// init members
 	// move to constructor
@@ -1306,7 +1362,7 @@ int make_connection(unsigned long ip, unsigned short port)
 	session[fd]->func_term    = NULL;
 	session[fd]->func_console = NULL;
 	
-	session[fd]->session_data = NULL;
+	session[fd]->user_session = NULL;
 
 	return fd;
 }
@@ -1319,13 +1375,13 @@ int make_connection(unsigned long ip, unsigned short port)
 
 int console_recieve(int fd) {
 	int n;
-	char buf[64];
-	memset(buf,0,sizeof(64));
+	char buf[128];
+	memset(buf,0,sizeof(buf));
 
 	if( !session_isActive(fd) )
 		return -1;
 
-	n = read(fd, buf , 64);
+	n = read(fd, buf , 128);
 	if( (n < 0) || !session[fd]->func_console )
 		ShowMessage("Console input read error\n");
 	else if(session[fd]->func_console)
@@ -1333,12 +1389,12 @@ int console_recieve(int fd) {
 	return 0;
 }
 
-void set_defaultconsoleparse(int (*defaultparse)(char*))
+void set_defaultconsoleparse(int (*defaultparse)(const char*))
 {
 	default_console_parse = defaultparse;
 }
 
-int null_console_parse(char *buf)
+int null_console_parse(const char *buf)
 {
 	ShowMessage("null_console_parse : %s\n",buf);
 	return 0;
@@ -1358,7 +1414,7 @@ int start_console(void) {
 		return -1;
 	}
 
-	session[fd] = new struct socket_data;
+	session[fd] = new struct socket_data();
 	////////////////
 	// init members
 	// move to constructor
@@ -1377,7 +1433,7 @@ int start_console(void) {
 	session[fd]->wdata_max    = WFIFO_SIZE;
 	session[fd]->wdata_size   = 0;
 
-	session[fd]->client_ip    = INADDR_ANY;
+	session[fd]->client_ip    = (uint32)INADDR_ANY;
 
 	session[fd]->func_recv    = console_recieve;
 	session[fd]->func_send    = NULL;
@@ -1385,7 +1441,7 @@ int start_console(void) {
 	session[fd]->func_term    = NULL;
 	session[fd]->func_console = default_console_parse;
 	
-	session[fd]->session_data = NULL;
+	session[fd]->user_session = NULL;
 
 	return 0;
 }   
@@ -1453,7 +1509,7 @@ size_t process_fdset(fd_set* fds, void(*func)(size_t) )
 	size_t fd;
 
 	if(func)
-	for(i=0;i<fds->fd_count;i++)
+	for(i=0;i<fds->fd_count;++i)
 	{
 		if( SessionFindSocket( fds->fd_array[i], fd ) )
 		{
@@ -1498,7 +1554,7 @@ size_t process_fdset(fd_set* fds, void(*func)(size_t) )
 			// this method is especially fast 
 			// when only a few bits are set in the field
 			// which usually happens on read events
-			val = log2( bits );
+			val = basics::log2( bits );
 			bits ^= (1<<val);	
 			// build the socket number
 			sock = nfd*NFDBITS + val;
@@ -1599,7 +1655,7 @@ int do_sendrecv(int next)
 #ifdef SOCKET_DEBUG_PRINT
 	printf("\r[%ld]", (unsigned long)last_tick);
 #endif
-	for(fd=0; fd<fd_max; fd++)
+	for(fd=0; fd<fd_max; ++fd)
 	{
 		if( session[fd] )
 		{
@@ -1671,7 +1727,7 @@ int do_sendrecv(int next)
 ///////////////////////////////////////////////////////////////////////////////
 // delayed session removal timer entry
 ///////////////////////////////////////////////////////////////////////////////
-int session_WaitClose(int tid, unsigned long tick, int id, intptr data) 
+int session_WaitClose(int tid, unsigned long tick, int id, basics::numptr data) 
 {
 	if( session_isValid(id) && session[id]->flag.marked )
 	{	// set session to offline
@@ -1691,7 +1747,7 @@ bool session_SetWaitClose(int fd, unsigned long timeoffset)
 	{	// set the session to marked state
 		session[fd]->flag.marked	= true;
 
-		if(session[fd]->session_data == NULL)
+		if(session[fd]->user_session == NULL)
 			// limited timer, just to send information.
 			add_timer(gettick() + 1000, session_WaitClose, fd, 0);
 		else
@@ -1727,7 +1783,7 @@ bool session_Delete(int fd)
 		// and clean up
 		if(session[fd]->rdata)			delete[] session[fd]->rdata;
 		if(session[fd]->wdata)			delete[] session[fd]->wdata;
-		if(session[fd]->session_data)	aFree(session[fd]->session_data);
+		if(session[fd]->user_session)	delete session[fd]->user_session;
 		delete session[fd];
 		session[fd]=NULL;
 
@@ -1755,14 +1811,15 @@ void socket_init(void)
 void socket_final(void)
 {
 	size_t fd;
-	for(fd=0;fd<fd_max;fd++){
+	for(fd=0; fd<fd_max; ++fd){
 		// don't use session_Delete here
 		// just force deletion of the sessions
 		if( session_isValid(fd) )
 		{
 			if(session[fd]->rdata)			delete[] session[fd]->rdata;
 			if(session[fd]->wdata)			delete[] session[fd]->wdata;
-			if(session[fd]->session_data)	aFree(session[fd]->session_data);
+			if(session[fd]->user_session)	delete session[fd]->user_session;
+
 			delete session[fd];
 			session[fd]=NULL;
 			SessionRemoveIndex( fd );
@@ -1770,16 +1827,16 @@ void socket_final(void)
 	}
 
 	// might remove that later when switching memory model
-	ddos.Clean();
+	ddos.clear();
 }
 
 
 
 //#define WHATISMYIP // for using whatismyip.com
 // default using checkip.dyndns.org
-bool detect_WAN(ipaddress& wanip)
+bool detect_WAN(basics::ipaddress& wanip)
 {	// detect WAN
-	minisocket ms;
+	basics::minisocket ms;
 
 #ifdef WHATISMYIP
 	static const char* query = "GET / HTTP/1.1\r\nHost: whatismyip.com\r\n\r\n";
@@ -1799,18 +1856,70 @@ bool detect_WAN(ipaddress& wanip)
 		buffer[sizeof(buffer)-1]=0;
 
 #ifdef WHATISMYIP
-		static const CRegExp regex("WhatIsMyIP.com -\\s+([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)");
+		static const basics::CRegExp regex("WhatIsMyIP.com -\\s+([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)");
 #else
-		static const CRegExp regex("Current IP Address:\\s+([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)");
+		static const basics::CRegExp regex("Current IP Address:\\s+([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)");
 #endif
 		regex.match((const char*)buffer);
 		wanip = (const char*)regex[1];
-		if(wanip != ipaddress::GetSystemIP() )
+		if(wanip != basics::ipaddress::GetSystemIP() )
 		{
-			ShowStatus("WANIP dectected as: %s\n", (const char*)tostring(wanip));
+			ShowStatus("WANIP dectected as: %s\n", (const char*)basics::tostring(wanip));
 			return true;
 		}
 	}
 	return false;
 }
+
+//check if wan has been dropped
+bool dropped_WAN(const basics::ipaddress& wanip, const ushort wanport)
+{	
+	if( wanip != basics::ipany )
+	{	// try to open a socket to wanip
+		struct sockaddr_in server_address;
+
+		SOCKET sock = socket( AF_INET, SOCK_STREAM, 0 );
+
+		server_address.sin_family		= AF_INET;
+		server_address.sin_addr.s_addr	= htonl( wanip );
+		server_address.sin_port			= htons(wanport);
+
+		const int result = connect(sock, (struct sockaddr *)(&server_address),sizeof(struct sockaddr_in));
+
+		// only need the connection result
+		closesocket(sock);
+
+		// returns true, when connection has failed
+		return (result < 0);
+	}
+	// return true when wanip was not set up
+	return true;
+}
+
+//
+bool initialize_WAN(basics::ipset& set, const ushort defaultport)
+{
+	basics::ipaddress wanip;
+	bool ret = detect_WAN(wanip);
+	if( ret &&
+		set.WANIP() != wanip && 
+		set.LANIP() != wanip &&
+		!set.SetLANIP(wanip) )
+	{
+		ShowStatus("Setting WAN IP %s (overwriting config).\n", (const char*)basics::tostring(wanip));
+		set.SetWANIP(wanip);
+		if( set.LANMask() == basics::ipany )
+		{
+			set.LANMask() = basics::ipaddress(0xFFFFFF00ul);
+			ShowStatus("Setting LAN Mask to %s (overwriting config).\n", (const char*)basics::tostring(set.LANMask()));
+		}
+		if( set.WANPort() == 0 )
+		{
+			ShowStatus("Setting default WAN Port to %d.\n", defaultport);
+			set.WANPort() = defaultport;
+		}
+	}
+	return ret;
+}
+
 

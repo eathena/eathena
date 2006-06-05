@@ -1,5 +1,4 @@
 // $Id: chat.c,v 1.2 2004/09/22 02:59:47 Akitasha Exp $
-#include "base.h"
 #include "nullpo.h"
 #include "showmsg.h"
 #include "utils.h"
@@ -11,7 +10,7 @@
 #include "pc.h"
 #include "npc.h"
 
-int chat_triggerevent(struct chat_data &cd);
+int chat_triggerevent(chat_data &cd);
 
 /*==========================================
  * チャットルーム作成
@@ -21,22 +20,22 @@ int chat_createchat(struct map_session_data &sd,unsigned short limit,unsigned ch
 {
 	if( !sd.chatID )
 	{
-		struct chat_data *cd = (struct chat_data *) aCalloc(1,sizeof(struct chat_data));
+		chat_data *cd = new chat_data;
 
-		cd->bl.id	= map_addobject(cd->bl);
-		if(cd->bl.id==0)
+		cd->block_list::id	= map_addobject(*cd);
+		if(cd->block_list::id==0)
 		{
 			clif_createchat(sd,1);
-			aFree(cd);
+			delete cd;
 			return 0;
 		}
 
-		cd->bl.m	= sd.bl.m;
-		cd->bl.x	= sd.bl.x;
-		cd->bl.y	= sd.bl.y;
-		cd->bl.type	= BL_CHAT;
+		cd->block_list::m		= sd.block_list::m;
+		cd->block_list::x		= sd.block_list::x;
+		cd->block_list::y		= sd.block_list::y;
+		cd->block_list::type	= BL_CHAT;
 
-		cd->owner	= &sd.bl;
+		cd->owner	= &sd;
 		cd->usersd[0] = &sd;
 		
 		cd->limit = limit;
@@ -50,7 +49,7 @@ int chat_createchat(struct map_session_data &sd,unsigned short limit,unsigned ch
 		memcpy(cd->title,title,titlelen);
 		cd->title[titlelen]=0;
 
-		pc_setchatid(sd,cd->bl.id);
+		pc_setchatid(sd, cd->block_list::id);
 		clif_createchat(sd,0);
 		clif_dispchat(*cd,0);
 	}
@@ -63,9 +62,9 @@ int chat_createchat(struct map_session_data &sd,unsigned short limit,unsigned ch
  */
 int chat_joinchat(struct map_session_data &sd,uint32 chatid,const char* pass)
 {
-	struct chat_data *cd = (struct chat_data*)map_id2bl(chatid);
+	chat_data *cd = (chat_data*)map_id2bl(chatid);
 
-	if( !cd || cd->bl.m != sd.bl.m || sd.chatID || cd->limit <= cd->users )
+	if( !cd || cd->block_list::m != sd.block_list::m || sd.chatID || cd->limit <= cd->users )
 	{
 		clif_joinchatfail(sd,0);
 		return 0;
@@ -82,7 +81,7 @@ int chat_joinchat(struct map_session_data &sd,uint32 chatid,const char* pass)
 	cd->usersd[cd->users] = &sd;
 	cd->users++;
 
-	pc_setchatid(sd,cd->bl.id);
+	pc_setchatid(sd,cd->block_list::id);
 
 	clif_joinchatok(sd,*cd);	// 新たに参加した人には全員のリスト
 	clif_addchat(*cd,sd);	// 既に中に居た人には追加した人の報告
@@ -99,14 +98,14 @@ int chat_joinchat(struct map_session_data &sd,uint32 chatid,const char* pass)
  */
 int chat_leavechat(struct map_session_data &sd)
 {
-	struct chat_data *cd;
+	chat_data *cd;
 	size_t leavechar;
 
-	cd=(struct chat_data*)map_id2bl(sd.chatID);
+	cd=(chat_data*)map_id2bl(sd.chatID);
 	if(cd==NULL)
 		return 1;
 
-	for(leavechar=0; leavechar<cd->users; leavechar++)
+	for(leavechar=0; leavechar<cd->users; ++leavechar)
 	{
 		if(cd->usersd[leavechar] == &sd)
 		{
@@ -131,17 +130,17 @@ int chat_leavechat(struct map_session_data &sd)
 	if(cd->users == 0 && cd->owner && cd->owner->type==BL_PC)
 	{	// 全員居なくなった&PCのチャットなので消す
 		clif_clearchat(*cd,0);
-		map_delobject(cd->bl.id);	// freeまでしてくれる
+		map_delobject(cd->block_list::id);	// freeまでしてくれる
 	}
 	else
 	{
 		size_t i;
-		for(i=leavechar; i+1<cd->users; i++)
+		for(i=leavechar; i+1<cd->users; ++i)
 			cd->usersd[i] = cd->usersd[i+1];
 		if(leavechar==0 && cd->owner && cd->owner->type==BL_PC)
 		{	// PCのチャットなので所有者が抜けたので位置変更
-			cd->bl.x = cd->owner->x;
-			cd->bl.y = cd->owner->y;
+			cd->block_list::x = cd->owner->x;
+			cd->block_list::y = cd->owner->y;
 		}
 		clif_dispchat(*cd,0);
 	}
@@ -154,15 +153,15 @@ int chat_leavechat(struct map_session_data &sd)
  */
 int chat_changechatowner(struct map_session_data &sd, const char *nextownername)
 {
-	struct chat_data *cd;
+	chat_data *cd;
 	struct map_session_data *tmp_sd;
 	size_t nextowner;
 
-	cd=(struct chat_data*)map_id2bl(sd.chatID);
-	if(cd==NULL || &sd.bl!=cd->owner)
+	cd=(chat_data*)map_id2bl(sd.chatID);
+	if(cd==NULL || &sd!=cd->owner)
 		return 1;
 
-	for(nextowner=1; nextowner<cd->users; nextowner++){
+	for(nextowner=1; nextowner<cd->users; ++nextowner){
 		if(strcmp(cd->usersd[nextowner]->status.name,nextownername)==0){
 			break;
 		}
@@ -181,8 +180,8 @@ int chat_changechatowner(struct map_session_data &sd, const char *nextownername)
 	cd->usersd[nextowner] = tmp_sd;
 
 	// 新しい所有者の位置へ変更
-	cd->bl.x=cd->usersd[0]->bl.x;
-	cd->bl.y=cd->usersd[0]->bl.y;
+	cd->block_list::x=cd->usersd[0]->block_list::x;
+	cd->block_list::y=cd->usersd[0]->block_list::y;
 
 	// 再度表示
 	clif_dispchat(*cd,0);
@@ -196,10 +195,10 @@ int chat_changechatowner(struct map_session_data &sd, const char *nextownername)
  */
 int chat_changechatstatus(struct map_session_data &sd,unsigned short limit,unsigned char pub,const char* pass,const char* title, size_t titlelen)
 {
-	struct chat_data *cd;
+	chat_data *cd;
 
-	cd=(struct chat_data*)map_id2bl(sd.chatID);
-	if(cd==NULL || &sd.bl!=cd->owner)
+	cd=(chat_data*)map_id2bl(sd.chatID);
+	if(cd==NULL || &sd!=cd->owner)
 		return 1;
 
 	cd->limit = limit;
@@ -223,10 +222,10 @@ int chat_changechatstatus(struct map_session_data &sd,unsigned short limit,unsig
  */
 int chat_kickchat(struct map_session_data &sd, const char *kickusername)
 {
-	struct chat_data *cd;
+	chat_data *cd;
 	size_t kickuser;
 
-	cd = (struct chat_data *)map_id2bl(sd.chatID);
+	cd = (chat_data *)map_id2bl(sd.chatID);
 	if( cd == NULL )
 		return 1;
 
@@ -250,9 +249,9 @@ int chat_kickchat(struct map_session_data &sd, const char *kickusername)
  */
 int chat_createnpcchat(struct npc_data &nd,unsigned short limit,unsigned char pub, int trigger,const char* title, unsigned short titlelen,const char *ev)
 {
-	struct chat_data *cd;
+	chat_data *cd;
 
-	cd = (struct chat_data *) aCalloc(1,sizeof(struct chat_data));
+	cd = new chat_data;
 
 	cd->limit = cd->trigger = limit;
 	if(trigger>0)
@@ -264,19 +263,20 @@ int chat_createnpcchat(struct npc_data &nd,unsigned short limit,unsigned char pu
 	memcpy(cd->title,title,titlelen);
 	cd->title[titlelen]=0;
 
-	cd->bl.m = nd.bl.m;
-	cd->bl.x = nd.bl.x;
-	cd->bl.y = nd.bl.y;
-	cd->bl.type = BL_CHAT;
-	cd->owner = &nd.bl;
+	cd->block_list::m = nd.block_list::m;
+	cd->block_list::x = nd.block_list::x;
+	cd->block_list::y = nd.block_list::y;
+	cd->block_list::type = BL_CHAT;
+	cd->owner = &nd;
 	memcpy(cd->npc_event,ev,strlen(ev));
 
-	cd->bl.id = map_addobject(cd->bl);	
-	if(cd->bl.id==0){
-		aFree(cd);
+	cd->block_list::id = map_addobject(*cd);	
+	if(cd->block_list::id==0)
+	{
+		delete cd;
 		return 0;
 	}
-	nd.chat_id=cd->bl.id;
+	nd.chat_id=cd->block_list::id;
 
 	clif_dispchat(*cd,0);
 
@@ -288,13 +288,13 @@ int chat_createnpcchat(struct npc_data &nd,unsigned short limit,unsigned char pu
  */
 int chat_deletenpcchat(struct npc_data &nd)
 {
-	struct chat_data *cd;
+	chat_data *cd;
 
-	nullpo_retr(0, cd=(struct chat_data*)map_id2bl(nd.chat_id));
+	nullpo_retr(0, cd=(chat_data*)map_id2bl(nd.chat_id));
 	
-	chat_npckickall(*cd);
+	cd->kickall();
 	clif_clearchat(*cd,0);
-	map_delobject(cd->bl.id);	// freeまでしてくれる
+	map_delobject(cd->block_list::id);	// freeまでしてくれる
 	nd.chat_id=0;
 	
 	return 0;
@@ -304,7 +304,7 @@ int chat_deletenpcchat(struct npc_data &nd)
  * 規定人数以上でイベントが定義されてるなら実行
  *------------------------------------------
  */
-int chat_triggerevent(struct chat_data &cd)
+int chat_triggerevent(chat_data &cd)
 {
 	if(cd.users>=cd.trigger && cd.npc_event[0])
 		npc_event_do(cd.npc_event);
@@ -315,28 +315,25 @@ int chat_triggerevent(struct chat_data &cd)
  * イベントの有効化
  *------------------------------------------
  */
-int chat_enableevent(struct chat_data &cd)
+void chat_data::enable_event()
 {
-	cd.trigger&=0x7f;
-	chat_triggerevent(cd);
-	return 0;
+	this->trigger&=0x7f;
+	chat_triggerevent(*this);
 }
 /*==========================================
  * イベントの無効化
  *------------------------------------------
  */
-int chat_disableevent(struct chat_data &cd)
+void chat_data::disable_event()
 {
-	cd.trigger|=0x80;
-	return 0;
+	this->trigger|=0x80;
 }
 /*==========================================
  * チャットルームから全員蹴り出す
  *------------------------------------------
  */
-int chat_npckickall(struct chat_data &cd)
+void chat_data::kickall()
 {
-	while(cd.users>0 && cd.usersd[cd.users-1])
-		chat_leavechat( *cd.usersd[cd.users-1] );
-	return 0;
+	while(this->users>0 && this->usersd[this->users-1])
+		chat_leavechat( *this->usersd[this->users-1] );
 }

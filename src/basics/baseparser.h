@@ -14,6 +14,7 @@
 #include "basearray.h"
 
 
+NAMESPACE_BEGIN(basics)
 
 //
 // Symbol Types
@@ -212,6 +213,14 @@ public:
 
 	CParseInput() : line(1),column(0)	{}
 	virtual ~CParseInput()				{}
+
+
+	bool open(const char* name)
+	{
+		line =1;
+		column =0;
+		return allocator_file<char>::open(name);
+	}
 
 	short scan(CParser& parser, CToken& target); 
 
@@ -554,9 +563,9 @@ public:
 		CLineStorage(size_t l, const string<>& s, bool m=false) : line(l), content(s), multi(m)	{}
 
 		bool operator==(const CLineStorage& a) const { return a.line==line; }
-		bool operator!=(const CLineStorage& a) const { return a.line!=line; }
+		bool operator< (const CLineStorage& a) const { return a.line< line; }
 	};
-	TArrayDCT<CLineStorage> cCommentList;
+	vector<CLineStorage> cCommentList;
 
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -573,6 +582,7 @@ protected:
 	virtual bool MatchFunction(short type, const string<>& name, short symbol);
 };
 
+NAMESPACE_END(basics)
 
 
 #endif//__BASEPARSER_H__

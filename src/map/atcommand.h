@@ -258,16 +258,17 @@ enum AtCommandType {
 	AtCommand_Unknown,
 	AtCommand_MAX
 };
+typedef bool (*atcommand_function)(int, struct map_session_data&, const char* command, const char* message);
 
-typedef enum AtCommandType AtCommandType;
-
-struct AtCommandInfo {
+struct AtCommandInfo
+{
 	AtCommandType type;
 	const char* command;
 	unsigned char level;
-	bool (*proc)(int, struct map_session_data&, const char* command, const char* message);
+	atcommand_function proc;
 };
-typedef struct AtCommandInfo AtCommandInfo;
+
+
 
 AtCommandType is_atcommand(int fd, struct map_session_data &sd, const char* message, unsigned char gmlvl);
 unsigned char get_atcommand_level(const AtCommandType type);

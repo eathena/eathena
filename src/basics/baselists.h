@@ -5,15 +5,16 @@
 #include "baseobjects.h"
 #include "baseexceptions.h"
 
+NAMESPACE_BEGIN(basics)
 
 ///////////////////////////////////////////////////////////////////////////////
-// test function
+/// test function
 void test_lists(void);
 
 
 //////////////////////////////////////////////////////////////////////////
-// non intrusive single linked list class
-// stores objects / copy's of given objects
+/// non intrusive single linked list class.
+/// stores objects / copy's of given objects
 //////////////////////////////////////////////////////////////////////////
 template<class T> class CSList
 {
@@ -113,7 +114,7 @@ T* CSList<T>::find(const T& in)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// doubled linked list
+/// doubled linked list
 ///////////////////////////////////////////////////////////////////////////////
 class CDLinkRoot;
 
@@ -193,7 +194,7 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-//!! TODO: add complete list interface
+//## TODO: add complete list interface
 class CDLinkRoot
 {
 protected:
@@ -330,6 +331,6 @@ public:
 	bool push(T& n)							{ return CDLinkRoot::push(n); }
 };
 
-
+NAMESPACE_END(basics)
 
 #endif//__BASELISTS__

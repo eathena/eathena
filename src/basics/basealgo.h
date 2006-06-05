@@ -3,17 +3,17 @@
 
 #include "basetypes.h"
 
-
+NAMESPACE_BEGIN(basics)
 
 ///////////////////////////////////////////////////////////////////////////////
-// test function
+/// test function
 ///////////////////////////////////////////////////////////////////////////////
 void test_algo(int scale=1);
 
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// quick sort defines
+/// quick sort defines
 ///////////////////////////////////////////////////////////////////////////////
 #define QUICK_MEDIAN_OF_THREE	// activates median-of-three pivot selection
 //#define QUICK_ONESIDE			// activates one-side-checking middle pivot selection
@@ -24,16 +24,15 @@ void test_algo(int scale=1);
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Sort Algo's 
-// C-Array Implementation
-///////////////////////////////////////////////////////////////////////////////
-// working on standard fields
-// field objects need boolean compare operators
+/// Sort Algo's 
+/// C-Array Implementation
+/// working on standard fields
+/// field objects need boolean compare operators
 ///////////////////////////////////////////////////////////////////////////////
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Bubble Sort, just informative, practically unusable
+/// Bubble Sort, just informative, practically unusable
 ///////////////////////////////////////////////////////////////////////////////
 template <class T>
 void BubbleSort(T a[], ssize_t l, ssize_t r)
@@ -58,7 +57,7 @@ template <class T> void BubbleSort(T a[], size_t count)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Insertion Sort, linear time for small fields
+/// Insertion Sort, linear time for small fields
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> void InsertionSort(T a[], ssize_t l, ssize_t r)
 {
@@ -85,7 +84,7 @@ template <class T> void InsertionSort(T a[], size_t count)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Selection Sort
+/// Selection Sort
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> void SelectionSort(T a[], ssize_t l, ssize_t r)
 {
@@ -107,7 +106,7 @@ template <class T> void SelectionSort(T a[], size_t count)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Shell Sort
+/// Shell Sort
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> void ShellSort(T a[], ssize_t l, ssize_t r)
 {
@@ -142,7 +141,7 @@ template <class T> void ShellSort(T a[], size_t count)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Merge Sort, stable variant of quicksort but needs extra memory and copies
+/// Merge Sort, stable variant of quicksort but needs extra memory and copies
 ///////////////////////////////////////////////////////////////////////////////
 // Array b[] must have same size like a[]; result is in a[]!
 template <class T> void MergeSort(T a[], T b[], ssize_t l, ssize_t r)
@@ -176,7 +175,7 @@ template <class T> void MergeSort(T a[], T b[], size_t count)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Comb Sort, variant of BubbleSort with variable gap between compare positions
+/// Comb Sort, variant of BubbleSort with variable gap between compare positions
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> void CombSort(T a[], ssize_t l, ssize_t r)
 {
@@ -237,7 +236,7 @@ template <class T> void CombSort(T a[], size_t count)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Heap Sort, builds a binary tree
+/// Heap Sort, builds a binary tree
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> void HeapSort(T a[], ssize_t l, ssize_t r)
 {
@@ -329,8 +328,8 @@ template <class T> void HeapSort(T a[], size_t count)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Heap Sort variant
-// builds heap from bottom up, using downheaps
+/// Heap Sort variant.
+/// builds heap from bottom up, using downheaps
 ///////////////////////////////////////////////////////////////////////////////
 template<class T> void HeapSortBUDH(T a[], ssize_t l, ssize_t r)
 {
@@ -456,8 +455,8 @@ template<class T> void HeapSortBUDH(T a[], size_t count)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Heap Sort variant
-// builds heap from bottom up, using upheaps
+/// Heap Sort variant.
+/// builds heap from bottom up, using upheaps
 ///////////////////////////////////////////////////////////////////////////////
 template<class T> void HeapSortBUUH(T a[], ssize_t l, ssize_t r)
 {
@@ -654,8 +653,9 @@ template<class T> void HeapSortBUUH(T a[], size_t count)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// classic QuickSort, modified with middle pivot 
-// to not get worst case behaviour on already sorted fields
+/// classic QuickSort.
+/// modified with middle pivot 
+/// to not get worst case behaviour on already sorted fields
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> void QuickSortClassic(T a[], ssize_t l, ssize_t r)
 {
@@ -703,9 +703,9 @@ template <class T> void QuickSortClassic(T a[], size_t count)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// nonrecursive QuickSort with definable pivot selection
-// switching to InsertionSort for short partitions (<=32 elements)
-// and switching to HeapSort, when stack is full
+/// nonrecursive QuickSort with definable pivot selection.
+/// switching to InsertionSort for short partitions (<=32 elements)
+/// and switching to HeapSort, when stack is full
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> void QuickSort(T a[], ssize_t l, ssize_t r)
 {
@@ -885,41 +885,40 @@ template <class T> void QuickSort(T a[], size_t count)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Sort Algo's 
-// Array Object Implementation
-///////////////////////////////////////////////////////////////////////////////
-// working on list types
-// list needs operator[] and list elements need boolean compare operators
+/// Sort Algo's 
+/// Array Object Implementation
+/// working on list types
+/// list needs operator[] and list elements need boolean compare operators
 ///////////////////////////////////////////////////////////////////////////////
 
 
 
 // predeclaration
-template<class T> class TArray;
+template<class T> class vectorinterface;
 
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Bubble Sort, just informative, practically unusable
+/// Bubble Sort, just informative, practically unusable
 ///////////////////////////////////////////////////////////////////////////////
 template <class T>
-void BubbleSort(TArray<T>& a, ssize_t l, ssize_t r)
+void BubbleSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	ssize_t i, j;
 	for(i=r; i>l; --i)
 	for(j=l; j<i; ++j)
 		if(a[j] > a[j+1]) swap(a[j], a[j+1]);
 }
-template <class T> inline void BubbleSort(TArray<T>& a, size_t count)
+template <class T> inline void BubbleSort(vectorinterface<T>& a, size_t count)
 {
 	if(count>1) BubbleSort<T>(a, 0, count-1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Insertion Sort, linear time for small fields
+/// Insertion Sort, linear time for small fields
 ///////////////////////////////////////////////////////////////////////////////
 
-template <class T> void InsertionSort(TArray<T>& a, ssize_t l, ssize_t r)
+template <class T> void InsertionSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	ssize_t i, j;
 	T v;
@@ -929,15 +928,15 @@ template <class T> void InsertionSort(TArray<T>& a, ssize_t l, ssize_t r)
 		a[j+1] = v;
 	}
 }
-template <class T> inline void InsertionSort(TArray<T>& a, size_t count)
+template <class T> inline void InsertionSort(vectorinterface<T>& a, size_t count)
 {
 	if(count>1) InsertionSort<T>(a, 0, count-1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Selection Sort
+/// Selection Sort
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void SelectionSort(TArray<T>& a, ssize_t l, ssize_t r)
+template <class T> void SelectionSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	ssize_t i, j, min;
 	for(i=l; i<r; ++i)
@@ -947,15 +946,15 @@ template <class T> void SelectionSort(TArray<T>& a, ssize_t l, ssize_t r)
 	}
 }
 
-template <class T> inline void SelectionSort(TArray<T>& a, size_t count)
+template <class T> inline void SelectionSort(vectorinterface<T>& a, size_t count)
 {
 	if(count>1) SelectionSort<T>(a, 0, count-1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Shell Sort
+/// Shell Sort
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void ShellSort(TArray<T>& a, ssize_t l, ssize_t r)
+template <class T> void ShellSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	ssize_t i, j, h;
 	T v;
@@ -970,16 +969,16 @@ template <class T> void ShellSort(TArray<T>& a, ssize_t l, ssize_t r)
 		}
 	}
 }
-template <class T> inline void ShellSort(TArray<T>& a, size_t count)
+template <class T> inline void ShellSort(vectorinterface<T>& a, size_t count)
 {
 	if(count>1) ShellSort<T>(a, 0, count-1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Merge Sort, stable variant of quicksort but needs extra memory and copies
+/// Merge Sort, stable variant of quicksort but needs extra memory and copies
 ///////////////////////////////////////////////////////////////////////////////
 // Array b must have same size as a; result is in a!
-template <class T> void MergeSort(TArray<T>& a, TArray<T>& b, ssize_t l, ssize_t r)
+template <class T> void MergeSort(vectorinterface<T>& a, vectorinterface<T>& b, ssize_t l, ssize_t r)
 {
 	if(r > l)
 	{
@@ -999,15 +998,15 @@ template <class T> void MergeSort(TArray<T>& a, TArray<T>& b, ssize_t l, ssize_t
 }
 
 // Array b must have same size like a; result is in a!
-template <class T> inline void MergeSort(TArray<T>& a, TArray<T>& b, size_t count)
+template <class T> inline void MergeSort(vectorinterface<T>& a, vectorinterface<T>& b, size_t count)
 {
 	if(count>1) MergeSort<T>(a, b, 0, count-1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Comb Sort, variant of BubbleSort with variable gap between compare positions
+/// Comb Sort, variant of BubbleSort with variable gap between compare positions
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> inline void CombSort(TArray<T>& a, ssize_t l, ssize_t r)
+template <class T> inline void CombSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	if(r>l)
 	{
@@ -1021,7 +1020,7 @@ template <class T> inline void CombSort(TArray<T>& a, ssize_t l, ssize_t r)
 			else if (gap < 1)
 				gap = 1;
 			swapped = false;
-			for(i=l; i<=r-gap; i++)
+			for(i=l; i<=r-gap; ++i)
 			{
 				j = i + gap;
 				if (a[i] > a[j])
@@ -1036,7 +1035,7 @@ template <class T> inline void CombSort(TArray<T>& a, ssize_t l, ssize_t r)
 	}
 }
 
-template <class T> void CombSort(TArray<T>& a, size_t count)
+template <class T> void CombSort(vectorinterface<T>& a, size_t count)
 {
 	if(count > 1)
 	{
@@ -1050,7 +1049,7 @@ template <class T> void CombSort(TArray<T>& a, size_t count)
 			else if (gap < 1)
 				gap = 1;
 			swapped = false;
-			for(i=0; i<count-gap; i++)
+			for(i=0; i<count-gap; ++i)
 			{
 				j = i + gap;
 				if (a[i] > a[j])
@@ -1066,10 +1065,10 @@ template <class T> void CombSort(TArray<T>& a, size_t count)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Heap Sort, builds a binary tree
+/// Heap Sort, builds a binary tree
 ///////////////////////////////////////////////////////////////////////////////
 
-template <class T> inline void HeapSort(TArray<T>& a, ssize_t l, ssize_t r)
+template <class T> inline void HeapSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	if(r>l)
 	{
@@ -1114,7 +1113,7 @@ template <class T> inline void HeapSort(TArray<T>& a, ssize_t l, ssize_t r)
 	}
 }
 
-template <class T> void HeapSort(TArray<T>& a, size_t count)
+template <class T> void HeapSort(vectorinterface<T>& a, size_t count)
 {
 	if(count>1)
 	{
@@ -1159,10 +1158,10 @@ template <class T> void HeapSort(TArray<T>& a, size_t count)
 	}
 }
 ///////////////////////////////////////////////////////////////////////////////
-// Heap Sort variant
-// builds heap from bottom up, using downheaps
+/// Heap Sort variant.
+/// builds heap from bottom up, using downheaps
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> void HeapSortBUDH(TArray<T>& a, ssize_t l, ssize_t r)
+template<class T> void HeapSortBUDH(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	if(r>l)
 	{
@@ -1222,7 +1221,7 @@ template<class T> void HeapSortBUDH(TArray<T>& a, ssize_t l, ssize_t r)
 		}
 	}
 }
-template<class T> void HeapSortBUDH(TArray<T>& a, size_t count)
+template<class T> void HeapSortBUDH(vectorinterface<T>& a, size_t count)
 {
 	if(count>1)
 	{
@@ -1284,8 +1283,8 @@ template<class T> void HeapSortBUDH(TArray<T>& a, size_t count)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Heap Sort variant
-// builds heap from bottom up, using upheaps
+/// Heap Sort variant.
+/// builds heap from bottom up, using upheaps
 ///////////////////////////////////////////////////////////////////////////////
 /*
 // derived from Written by J. Teuhola <teuhola@cs.utu.fi>
@@ -1345,7 +1344,7 @@ template<class T> void bottom_up_heapsort(T a[], int n)
 }
 */
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> void HeapSortBUUH(TArray<T>& a, ssize_t l, ssize_t r)
+template<class T> void HeapSortBUUH(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	if(r>l)
 	{
@@ -1451,7 +1450,7 @@ template<class T> void HeapSortBUUH(TArray<T>& a, ssize_t l, ssize_t r)
 }
 
 
-template<class T> void HeapSortBUUH(TArray<T>& a, size_t count)
+template<class T> void HeapSortBUUH(vectorinterface<T>& a, size_t count)
 {
 	if(count>1)
 	{
@@ -1540,10 +1539,11 @@ template<class T> void HeapSortBUUH(TArray<T>& a, size_t count)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// classic QuickSort, modified with middle pivot 
-// to not get worst case behaviour on already sorted fields
+/// classic QuickSort.
+/// modified with middle pivot 
+/// to not get worst case behaviour on already sorted fields
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void QuickSortClassic(TArray<T>& a, ssize_t l, ssize_t r)
+template <class T> void QuickSortClassic(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	if(r > l)
 	{
@@ -1564,17 +1564,17 @@ template <class T> void QuickSortClassic(TArray<T>& a, ssize_t l, ssize_t r)
 		QuickSortClassic<T>(a,i+1,r);			// partition after a[i]
 	}
 }
-template <class T> inline void QuickSortClassic(TArray<T>& a, size_t count)
+template <class T> inline void QuickSortClassic(vectorinterface<T>& a, size_t count)
 {
 	if(count>1) QuickSortClassic<T>(a, 0, count-1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// nonrecursive QuickSort with definable pivot selection
-// switching to InsertionSort for short partitions (<=32 elements)
-// and switching to HeapSort, when stack is full
+/// nonrecursive QuickSort with definable pivot selection.
+/// switching to InsertionSort for short partitions (<=32 elements)
+/// and switching to HeapSort, when stack is full
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void QuickSort(TArray<T>& a, ssize_t l, ssize_t r)
+template <class T> void QuickSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	if(r>l)
 	{
@@ -1660,7 +1660,7 @@ template <class T> void QuickSort(TArray<T>& a, ssize_t l, ssize_t r)
 		}
 	}
 }
-template <class T> inline void QuickSort(TArray<T>& a, size_t count)
+template <class T> inline void QuickSort(vectorinterface<T>& a, size_t count)
 {
 	if(count>1) QuickSort<T>(a, 0, count-1);
 }
@@ -1671,12 +1671,12 @@ template <class T> inline void QuickSort(TArray<T>& a, size_t count)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Binary Search for both orders
-// checks borders for out-of-bounds first
-// if returning false, the findpos contains the position 
-// where to insert the new element in the fields
-// uses binary operators of the elements
-// works on objects and fields likewise since no pointer arithmetic used
+/// Binary Search for both orders.
+/// checks borders for out-of-bounds first
+/// if returning false, the findpos contains the position 
+/// where to insert the new element in the fields
+/// uses binary operators of the elements
+/// works on objects and fields likewise since no pointer arithmetic used
 ///////////////////////////////////////////////////////////////////////////////
 template<class X, class L> bool BinarySearch(const X& elem, const L& list, size_t sz, size_t startpos, size_t& findpos, bool asc=true)
 {	// do a binary search
@@ -1787,12 +1787,12 @@ template<class X, class L> bool BinarySearch(const X& elem, const L& list, size_
 	return ret;
 }
 ///////////////////////////////////////////////////////////////////////////////
-// Binary Search for both orders
-// checks borders for out-of-bounds first
-// if returning false, the findpos contains the position 
-// where to insert the new element in the fields
-// uses given X member compare function
-// works on objects and fields likewise since no pointer arithmetic used
+/// Binary Search for both orders.
+/// checks borders for out-of-bounds first
+/// if returning false, the findpos contains the position 
+/// where to insert the new element in the fields
+/// uses given X member compare function
+/// works on objects and fields likewise since no pointer arithmetic used
 ///////////////////////////////////////////////////////////////////////////////
 template<class X, class L, class Y> bool BinarySearchB(const X& elem, const L& list, size_t sz, size_t startpos, size_t& findpos, int (Y::*cmp)(const X&) const, bool asc=true)
 {	// do a binary search
@@ -1904,12 +1904,12 @@ template<class X, class L, class Y> bool BinarySearchB(const X& elem, const L& l
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Binary Search for both orders
-// checks borders for out-of-bounds first
-// if returning false, the findpos contains the position 
-// where to insert the new element in the fields
-// uses given external compare function
-// works on objects and fields likewise since no pointer arithmetic used
+/// Binary Search for both orders.
+/// checks borders for out-of-bounds first
+/// if returning false, the findpos contains the position 
+/// where to insert the new element in the fields
+/// uses given external compare function
+/// works on objects and fields likewise since no pointer arithmetic used
 ///////////////////////////////////////////////////////////////////////////////
 template<class X, class L, class Y> bool BinarySearchC(const X& elem, const L& list, size_t sz, size_t startpos, size_t& findpos, int (*cmp)(const X&, const Y&), bool asc=true)
 {	// do a binary search
@@ -2021,9 +2021,37 @@ template<class X, class L, class Y> bool BinarySearchC(const X& elem, const L& l
 }
 
 
+///////////////////////////////////////////////////////////////////////////////
+/// classic QuickSort.
+/// modified with middle pivot 
+/// to not get worst case behaviour on already sorted fields
+///////////////////////////////////////////////////////////////////////////////
+template <class T> void QuickSortClassicC(T a[], ssize_t l, ssize_t r, int (*cmp)(const T&, const T&))
+{
+	if(r > l)
+	{
+		T* ip = a+l-1;
+		T* jp = a+r;
+		T* rp = jp;
+		// always take middle pivot
+		// this makes perfect match for sorted lists
+		if(l+3<r) swap(a[(l+r)/2], *rp);
+		for(;;)
+		{
+			while( cmp(*(++ip),*rp) < 0 );			// move upwards as long as smaller
+			while( cmp(*(--jp),*rp) > 0 );			// move down as long as larger
+			if(ip >= jp) break;						// finish when pointers crossed
+			swap(*ip, *jp);							// swap larger and smaller
+		}
+		swap(*ip, *rp);								// swap pivot in place
+		QuickSortClassicC<T>(a, l, (ip-a)-1, cmp);	// partition before a[i]
+		QuickSortClassicC<T>(a, (ip-a)+1, r, cmp);	// partition after a[i]
+	}
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
-// quicksort and binarysearch used in pointer vectors
+/// quicksort and binarysearch used in pointer vectors
 void QuickSortClassic(const void* a[], ssize_t l, ssize_t r, int (*cmp)(void*a, void*b, bool asc), bool asc);
 bool BinarySearch(const void* elem, const void* list[], size_t sz, size_t startpos, size_t& findpos, int (*cmp)(const void*a, const void*b, bool asc), bool asc=true);
 
@@ -2037,8 +2065,8 @@ bool BinarySearch(const void* elem, const void* list[], size_t sz, size_t startp
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// assinment optimized move without overwrite, pointer version
-// moves cnt elements starting from spos to tpos
+/// assignment optimized move without overwrite. pointer version
+/// moves cnt elements starting from spos to tpos
 // 0 1 2 3 4 5 6 7 8 9 ->(1,5,2)-> 0 5 6 1 2 3 4 7 8 9
 template <class T>
 bool elementmove(T array[], size_t sz, size_t tpos, size_t spos, size_t cnt)
@@ -2119,11 +2147,11 @@ printf("copies for (%lu->%lu)x%lu = %i", (ulong)spos, (ulong)tpos, (ulong)cnt, c
 		return false;
 }
 ///////////////////////////////////////////////////////////////////////////////
-// assinment optimized move without overwrite, array version
-// moves cnt elements starting from spos to tpos
+/// assignment optimized move without overwrite. array version
+/// moves cnt elements starting from spos to tpos
 // 0 1 2 3 4 5 6 7 8 9 ->(1,5,2)-> 0 5 6 1 2 3 4 7 8 9
 template <class T>
-bool elementmove(TArray<T>& array, size_t sz, size_t tpos, size_t spos, size_t cnt)
+bool elementmove(vectorinterface<T>& array, size_t sz, size_t tpos, size_t spos, size_t cnt)
 {	
 	if( tpos+cnt > sz )
 		cnt = tpos-sz;
@@ -2205,6 +2233,7 @@ printf("copies for (%lu->%lu)x%lu = %i", (ulong)spos, (ulong)tpos, (ulong)cnt, c
 }
 
 
+NAMESPACE_END(basics)
 
 #endif//__BASEALGORITHM_H__
 

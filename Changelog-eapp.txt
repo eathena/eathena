@@ -1,4 +1,128 @@
 Date	Added
+06/07
+	* removed the usage of the "bl" block_list member
+	  and wrapped up some parts of block_list usage function
+	  added some safty to virtual destruction, but need to add 
+	  more data protection among the classes
+	* added Hinoko's pre-release of the script parser, 
+	  it should also read newer ea script with for/while/switch commands,
+	  although the compile step is not done yet, the script checker 
+	  already finds severe parse errors in almost all ea scripts 
+	  (which are real errors), so it's good enough for the current purpose
+	* implemented almost all ansi control sequences, only missing are insert/delete
+	  which should be possible with rectangle movements, but I need to check how 
+	  they actually work on msvc since description was not really comprehensible
+	  also beautified the internal loop a bit and made it more generic
+05/29
+	* added support for external parameter file processors so
+	  automatic file reloading can be used also for non-param configs
+	* some tweaking on the automatic wan setup, it now is possible to
+	  reenable it during runtime when disabled because of network errors
+	  it is also disabled now by default, to enable it add 
+	  "automatic_wan_setup = true" in char/map config
+	* changed parameter "engine" to "sql_engine" for selecting the 
+	  table engine on sql recreation, also changed some queries for mysql5
+	* simplified famelist storage/transfer, it's also using pc variables
+	  instead of explicit mmo_char elements now, so there will be no extra
+	  memory load for characters that don't use this values.
+	  update and requesting scheme is also changed and char holds a master copy
+	* slight cleaning of login, readded M/F registration and new login packet
+	* started capsuling existing class related functions in map
+	  and added some new types in map.h
+	  also unifying return types/values; this mixture of 0/!=0
+	  for success/failure is more than annoying
+	* some VC8 fixes (tnx to ALZ, there should be some more warnings, eh?)
+05/25
+	* after Hinoko acted a bit autonomous by removing all c style
+	  allocations and virtually broke the mapserver, I'm quite happy
+	  that this step is finally done, even if it has cost me the 
+	  rare free evenings of the last two weeks to get is usable again
+	  (might be still crashy since I didn't test much)
+	  anyway, final status message: map is c++ ready
+	* only drawback is that the memory manager is commented and 
+	  therefore completely useless but it will be replaced as soon 
+	  as I find some minute to write the new memory allocator
+	* for finding current leaks better add basics::global for 
+	  object counting whereever necessary
+	* I also put the hierarchy from the draft into map.h for reference
+	  and started to converge the classes
+	  deriving seems to work, too, I placed a helper blocklist reference 
+	  to emulate the previous bl data member, which now actually 
+	  is a base class, there are far too many usages of xy->bl stuff
+	  to get them removed at once. it also should be further discussed 
+	  how granular the hierarchy might be, there are several candidates 
+	  for new objects
+	* next step should be to add the separated movable/fightable classes 
+	  and to collect all the functions that belong exclusively to the 
+	  different objects and extract the similarities to be placed 
+	  at their base classes. This unfortunately will be a 
+	  recursive process of quite some time.
+	* since I had some time today as nobody of the eA devs seems to have 
+	  had any questions according my offers, I had a look at path.h instead
+	  and added documentation to all the functions there and also 
+	  revised the code when necessary, there are several possibilities 
+	  for more speedups especially at the initial path finder since 
+	  this thing is called for every movement [Shinomori]
+05/07
+	* since I had access to a windows machine with mysql this weekend,
+	  I spend some time merging the recent changes from Hinoko and
+	  also had a look at the current sql database implementation 
+	  (I actually won't talk about, but just one word: read more documentations)
+	* corrected the sql implementation as far as I could test it, also changed 
+	  to use the seperated sql module, which is much more convienient and threadsafe; 
+	  reduced the additional interfaces on the databases to only the simple one 
+	  (random access using the 'limit'-command) and also removed all the other things 
+	  like lists and creation/destruction of temp objects which I actually 
+	  don't understand have been useful for something
+	* added the 3 special function which absence made buuyo worry about performance
+	* changed some smaller things on the build flow to enable dynamically dependencies
+	  for now only basics have it, but it might be integratable also with common and map
+	* changed the global defines for selecting txt/sql: 
+	  WITH_MYSQL builds with mysql support, WITH_TEXT builds with text support,
+	  both defines are possible at once, the database is then selectable
+	  on startup with a "database_engine" parameter given either by commandline or configfile
+	  (though current buildflow does not have the last option integrated, needs manual make addition)
+	* some fixes for ladmin on windows, which might be a general case to look at:
+	  at least the encryption keys where send as strings without termination
+	  but used as cstrings with termination on the receiver side, causing unexpected behaviour 
+	  which worst were memory overwrites (because string copies without size checks have been used)
+	* also removed the session timeout limit for ladmin connections
+	* wrapped up all basics into a seperated namespace, so now std:: is usable in parallel
+	* changed to using the parameter class where easy to integrate
+	  but also needs some eye on where it might cause trouble
+	* some additions on the automatic WAN detection like the parts for configuration, 
+	  reconnection and dynamic check, this might possibly end all "cannot connect server" issues
+	  but still need Hinoko to finish her tests with it
+04/23	
+	* some changes to basics memory allocation class hierarchy
+	  (but will not generate a new doxygen tree since no interface changes)
+	* moving the threadsafe mysql wrapper example into a seperated module
+	  and adding a real usage example (see below), needs compilation
+	  with "WITH_MYSQL"-switch and global visible mysql headers
+	* splitting common/baseio into baseio for definitions only
+	  and basetx for the actual txt implementation of the database,
+	  next is that baseio implements parameters for runtime decision on
+	  what database is to be used and from where data gets converted
+	* integrated the example for sql reading on an in-memory database
+	  into basetxt, illustrating it for account_db,
+	  compile with SQL_EMBED define for a running example
+	* splitting this as third database type under "basesx"
+	  maybe have general file renamings to better reflect the content
+	* preparing phoenix database module
+	* applying some of the login<->char protocol change from working copy
+	* merging some fixes from ea stable
+04/02
+	* changed doxygen formatting to javadoc since the new version did
+	  not recognize my former style template
+	* some smaller (untested) additions, notably mysql reconnect and map.rsw reading
+03/28
+	* still cleaning code/moving section etc.
+	  fixed compile errors on MSVC/commented out some warning throwing variables
+	* mapped std::vectors to basics since not usable in combination on windows
+	* fixed PROCESS_CONFIG_FOR defines, fixed config_var_matrix usable for non-gcc
+	  which results in beeing really ugly code, maybe rethink the design
+	  possibly switching to CParam's, which also include the file processing
+	* added some doxygen doc's (though might still be missing a lot)
 03/13
 	* some cleaning on basesql (making it compileable, simplifying query building, 
 	  explaining questioned functions, etc)

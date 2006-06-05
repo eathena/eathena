@@ -14,6 +14,8 @@
 #include "baseinet.h"
 #include "basesocket.h"
 
+NAMESPACE_BEGIN(basics)
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -117,10 +119,10 @@ ipaddress hostbyname(const char* name)
 			if (hp->h_addrtype == AF_INET)
 			{
 				uchar*a = (uchar*)hp->h_addr;
-				ip = (  (((ulong)a[0])<<0x18)
-					  | (((ulong)a[1])<<0x10)
-					  | (((ulong)a[2])<<0x08)
-					  | (((ulong)a[3])      ) );
+				ip =  (a[0]<<0x18)
+					| (a[1]<<0x10)
+					| (a[2]<<0x08)
+					| (a[3]);
 			}
 #ifdef USE_GETIPNODEBY
             freehostent(hp);
@@ -310,7 +312,7 @@ bool ipaddress::isBindable(ipaddress ip)
 {	// check if an given IP is part of the system IP that can be bound to
 	if( gethelper().GetSystemIPCount() > 0 )
 	{	// looping here is ok since the list is not large
-		for(uint i=0; i<GetSystemIPCount(); i++)
+		for(uint i=0; i<GetSystemIPCount(); ++i)
 			if( ip==GetSystemIP(i) )
 				return true;
 		return false;
@@ -384,7 +386,8 @@ const char *ipaddress::tostring(char *buffer) const
 		(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF);
 	return buf;
 }
-template<class T> string<T>& operator <<(string<T>& str, const ipaddress& ip)
+
+template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const ipaddress& ip)
 {
 	str << ((ip.cAddr>>0x18)&0xFF) << '.' <<
 		   ((ip.cAddr>>0x10)&0xFF) << '.' <<
@@ -393,8 +396,9 @@ template<class T> string<T>& operator <<(string<T>& str, const ipaddress& ip)
 	return str;
 }
 // explicit instantiation
-template string<char   >& operator<< (string<char   >& str, const ipaddress& ip);
-template string<wchar_t>& operator<< (string<wchar_t>& str, const ipaddress& ip);
+template stringoperator<char   >& operator<< (stringoperator<char   >& str, const ipaddress& ip);
+template stringoperator<wchar_t>& operator<< (stringoperator<wchar_t>& str, const ipaddress& ip);
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // converts a string to an ip (host byte order)
@@ -405,7 +409,7 @@ ipaddress ipaddress::str2ip(const char *str)
 		while( stringcheck::isspace(*str) ) str++;
 		// look up the name
 		// this can take long time (i.e. until timeout looking up non-existing addresses)
-		return ::hostbyname(str);
+		return hostbyname(str);
 	}
 	return GetSystemIP();
 }
@@ -482,15 +486,21 @@ string<> netaddress::tostring() const
 {	
 	char buf[32];
 	size_t sz = sprintf(buf, "%d.%d.%d.%d:%d",
-		(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF,
-		cPort);
+		(this->cAddr>>0x18)&0xFF,
+		(this->cAddr>>0x10)&0xFF,
+		(this->cAddr>>0x08)&0xFF,
+		(this->cAddr      )&0xFF,
+		 this->cPort);
 	return string<>(buf,sz);
 }
 ssize_t netaddress::tostring(char *buffer, size_t sz) const
 {	
 	return snprintf(buffer, sz, "%d.%d.%d.%d:%d",
-		(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF,
-		cPort);
+		(this->cAddr>>0x18)&0xFF,
+		(this->cAddr>>0x10)&0xFF,
+		(this->cAddr>>0x08)&0xFF,
+		(this->cAddr      )&0xFF,
+		 this->cPort);
 }
 const char *netaddress::tostring(char *buffer) const
 {	// usage of the static buffer is not threadsafe
@@ -501,18 +511,19 @@ const char *netaddress::tostring(char *buffer) const
 		cPort);
 	return buf;
 }
-template<class T> string<T>& operator <<(string<T>& str, const netaddress& ip)
+
+template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const netaddress& ip)
 {
-	str << ((ip.cAddr>>0x18)&0xFF) << '.' <<
-		   ((ip.cAddr>>0x10)&0xFF) << '.' <<
-		   ((ip.cAddr>>0x08)&0xFF) << '.' <<
-		   ((ip.cAddr      )&0xFF) << '.' <<
-		   (ip.cPort);
+	str << ((ip.addr()>>0x18)&0xFF) << '.' <<
+		   ((ip.addr()>>0x10)&0xFF) << '.' <<
+		   ((ip.addr()>>0x08)&0xFF) << '.' <<
+		   ((ip.addr()      )&0xFF) << '.' <<
+		   ( ip.port());
 	return str;
 }
 // explicit instantiation
-template string<char   >& operator<< (string<char   >& str, const netaddress& ip);
-template string<wchar_t>& operator<< (string<wchar_t>& str, const netaddress& ip);
+template stringoperator<char   >& operator<< (stringoperator<char   >& str, const netaddress& ip);
+template stringoperator<wchar_t>& operator<< (stringoperator<wchar_t>& str, const netaddress& ip);
 
 ///////////////////////////////////////////////////////////////////////////////
 // subnetworkaddr2string
@@ -520,71 +531,98 @@ string<> subnetaddress::tostring() const
 {	
 	char buf[64];
 	size_t sz;
-	if(this->cMask.cAddr==INADDR_ANY)
+	if(this->cMask.addr()==INADDR_ANY)
 		sz = sprintf(buf, "%d.%d.%d.%d:%d",
-			(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF, 
-			this->cPort);
+			(this->cAddr>>0x18)&0xFF,
+			(this->cAddr>>0x10)&0xFF,
+			(this->cAddr>>0x08)&0xFF,
+			(this->cAddr      )&0xFF, 
+			 this->cPort);
 	else
 		sz = sprintf(buf, "%d.%d.%d.%d/%d.%d.%d.%d:%d",
-			(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF, 
-			this->cMask[3],this->cMask[2],this->cMask[1],this->cMask[0], 
-			this->cPort);
+			(this->cAddr>>0x18)&0xFF,
+			(this->cAddr>>0x10)&0xFF,
+			(this->cAddr>>0x08)&0xFF,
+			(this->cAddr      )&0xFF, 
+			(this->cMask>>0x18)&0xFF,
+			(this->cMask>>0x10)&0xFF,
+			(this->cMask>>0x08)&0xFF,
+			(this->cMask      )&0xFF,
+			 this->cPort);
 	return string<>(buf,sz);
 }
 ssize_t subnetaddress::tostring(char *buffer, size_t sz) const
 {	
-	if(this->cMask.cAddr==INADDR_ANY)
+	if(this->cMask.addr()==INADDR_ANY)
 		return snprintf(buffer, sz, "%d.%d.%d.%d:%d",
-			(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF, 
-			this->cPort);
+			(this->cAddr>>0x18)&0xFF,
+			(this->cAddr>>0x10)&0xFF,
+			(this->cAddr>>0x08)&0xFF,
+			(this->cAddr      )&0xFF, 
+			 this->cPort);
 	else
 		return snprintf(buffer, sz, "%d.%d.%d.%d/%d.%d.%d.%d:%d",
-			(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF, 
-			this->cMask[3],this->cMask[2],this->cMask[1],this->cMask[0], 
-			this->cPort);
+			(this->cAddr>>0x18)&0xFF,
+			(this->cAddr>>0x10)&0xFF,
+			(this->cAddr>>0x08)&0xFF,
+			(this->cAddr      )&0xFF, 
+			(this->cMask>>0x18)&0xFF,
+			(this->cMask>>0x10)&0xFF,
+			(this->cMask>>0x08)&0xFF,
+			(this->cMask      )&0xFF,
+			 this->cPort);
 }
 const char *subnetaddress::tostring(char *buffer) const
 {	// usage of the static buffer is not threadsafe
 	static char tmp[64];
 	char *buf = (buffer) ? buffer : tmp;
-	if(this->cMask.cAddr==INADDR_ANY)
+	if(this->cMask.addr()==INADDR_ANY)
 		sprintf(buf, "%d.%d.%d.%d:%d",
-			(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF, 
-			this->cPort);
+			(this->cAddr>>0x18)&0xFF,
+			(this->cAddr>>0x10)&0xFF,
+			(this->cAddr>>0x08)&0xFF,
+			(this->cAddr      )&0xFF, 
+			 this->cPort);
 	else
 		sprintf(buf, "%d.%d.%d.%d/%d.%d.%d.%d:%d",
-			(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF, 
-			this->cMask[3],this->cMask[2],this->cMask[1],this->cMask[0], 
-			this->cPort);
+			(this->cAddr>>0x18)&0xFF,
+			(this->cAddr>>0x10)&0xFF,
+			(this->cAddr>>0x08)&0xFF,
+			(this->cAddr      )&0xFF, 
+			(this->cMask>>0x18)&0xFF,
+			(this->cMask>>0x10)&0xFF,
+			(this->cMask>>0x08)&0xFF,
+			(this->cMask      )&0xFF,
+			 this->cPort);
 	return buf;
 }
-template<class T> string<T>& operator <<(string<T>& str, const subnetaddress& ip)
+template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const subnetaddress& ip)
 {
-	if(ip.cMask.cAddr==INADDR_ANY)
+	if(ip.cMask.addr()==INADDR_ANY)
 	{
-		str << ((ip.cAddr>>0x18)&0xFF) << '.' <<
-			   ((ip.cAddr>>0x10)&0xFF) << '.' <<
-			   ((ip.cAddr>>0x08)&0xFF) << '.' <<
-			   ((ip.cAddr      )&0xFF) << ':' <<
-			   (ip.cPort);
+		str << ((ip.addr()>>0x18)&0xFF) << '.' <<
+			   ((ip.addr()>>0x10)&0xFF) << '.' <<
+			   ((ip.addr()>>0x08)&0xFF) << '.' <<
+			   ((ip.addr()      )&0xFF) << ':' <<
+			   ( ip.port());
 	}
 	else
 	{
-		str << ((ip.cAddr>>0x18)&0xFF) << '.' <<
-			   ((ip.cAddr>>0x10)&0xFF) << '.' <<
-			   ((ip.cAddr>>0x08)&0xFF) << '.' <<
-			   ((ip.cAddr      )&0xFF) << '/' <<
-			   ((ip.cMask>>0x18)&0xFF) << '.' <<
-			   ((ip.cMask>>0x10)&0xFF) << '.' <<
-			   ((ip.cMask>>0x08)&0xFF) << '.' <<
-			   ((ip.cMask      )&0xFF) << ':' <<
-			   (ip.cPort);
+		str << ((ip.addr()>>0x18)&0xFF) << '.' <<
+			   ((ip.addr()>>0x10)&0xFF) << '.' <<
+			   ((ip.addr()>>0x08)&0xFF) << '.' <<
+			   ((ip.addr()      )&0xFF) << '/' <<
+			   ((ip.mask()>>0x18)&0xFF) << '.' <<
+			   ((ip.mask()>>0x10)&0xFF) << '.' <<
+			   ((ip.mask()>>0x08)&0xFF) << '.' <<
+			   ((ip.mask()      )&0xFF) << ':' <<
+			   ( ip.port());
 	}
 	return str;
 }
 // explicit instantiation
-template string<char   >& operator<< (string<char   >& str, const subnetaddress& ip);
-template string<wchar_t>& operator<< (string<wchar_t>& str, const subnetaddress& ip);
+template stringoperator<char   >& operator<< (stringoperator<char   >& str, const subnetaddress& ip);
+template stringoperator<wchar_t>& operator<< (stringoperator<wchar_t>& str, const subnetaddress& ip);
 
 ///////////////////////////////////////////////////////////////////////////////
 // ipset functions
@@ -675,103 +713,132 @@ string<> ipset::tostring() const
 {	
 	char buf[64];
 	size_t sz;
-	if(this->cMask.cAddr == INADDR_ANY)
+	if(this->cMask.addr() == INADDR_ANY)
 	{	// have only one accessable ip
 		sz = sprintf(buf, "%d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,(this->cAddr>>0x10)&0xFF,(this->cAddr>>0x8)&0xFF,(this->cAddr)&0xFF, 
-			this->cPort);
+			(this->cAddr>>0x18)&0xFF,
+			(this->cAddr>>0x10)&0xFF,
+			(this->cAddr>>0x08)&0xFF,
+			(this->cAddr      )&0xFF, 
+			 this->cPort);
 	}
 	else
 	{	// have a full set
 		sz = sprintf(buf, "%d.%d.%d.%d/%d.%d.%d.%d:%d, %d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,(this->cAddr>>0x10)&0xFF,(this->cAddr>>0x8)&0xFF,(this->cAddr)&0xFF,
-			(this->cMask>>0x18)&0xFF,(this->cMask>>0x10)&0xFF,(this->cMask>>0x8)&0xFF,(this->cMask)&0xFF,
-			this->cPort,
-			(wanaddr.cAddr>>0x18)&0xFF,(wanaddr.cAddr>>0x10)&0xFF,(wanaddr.cAddr>>0x8)&0xFF,(wanaddr.cAddr)&0xFF,
-			wanaddr.cPort);
+			(this->cAddr>>0x18)&0xFF,
+			(this->cAddr>>0x10)&0xFF,
+			(this->cAddr>>0x08)&0xFF,
+			(this->cAddr      )&0xFF,
+			(this->cMask>>0x18)&0xFF,
+			(this->cMask>>0x10)&0xFF,
+			(this->cMask>>0x08)&0xFF,
+			(this->cMask      )&0xFF,
+			 this->cPort,
+			(wanaddr.cAddr>>0x18)&0xFF,
+			(wanaddr.cAddr>>0x10)&0xFF,
+			(wanaddr.cAddr>>0x08)&0xFF,
+			(wanaddr.cAddr      )&0xFF,
+			 wanaddr.cPort);
 	}
 	return string<>(buf,sz);
 }
 ssize_t ipset::tostring(char *buffer, size_t sz) const
 {	
-	if(this->cMask.cAddr == INADDR_ANY)
+	if(this->cMask.addr() == INADDR_ANY)
 	{	// have only one accessable ip
 		return snprintf(buffer, sz, "%d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,(this->cAddr>>0x10)&0xFF,(this->cAddr>>0x8)&0xFF,(this->cAddr)&0xFF, 
-			this->cPort);
+			(this->cAddr>>0x18)&0xFF,
+			(this->cAddr>>0x10)&0xFF,
+			(this->cAddr>>0x08)&0xFF,
+			(this->cAddr      )&0xFF, 
+			 this->cPort);
 	}
 	else
 	{	// have a full set
 		return snprintf(buffer, sz, "%d.%d.%d.%d/%d.%d.%d.%d:%d, %d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,(this->cAddr>>0x10)&0xFF,(this->cAddr>>0x8)&0xFF,(this->cAddr)&0xFF,
-			(this->cMask>>0x18)&0xFF,(this->cMask>>0x10)&0xFF,(this->cMask>>0x8)&0xFF,(this->cMask)&0xFF,
-			this->cPort,
-			(wanaddr.cAddr>>0x18)&0xFF,(wanaddr.cAddr>>0x10)&0xFF,(wanaddr.cAddr>>0x8)&0xFF,(wanaddr.cAddr)&0xFF,
-			wanaddr.cPort);
+			(this->cAddr>>0x18)&0xFF,
+			(this->cAddr>>0x10)&0xFF,
+			(this->cAddr>>0x08)&0xFF,
+			(this->cAddr      )&0xFF,
+			(this->cMask>>0x18)&0xFF,
+			(this->cMask>>0x10)&0xFF,
+			(this->cMask>>0x08)&0xFF,
+			(this->cMask      )&0xFF,
+			 this->cPort,
+			(wanaddr.cAddr>>0x18)&0xFF,
+			(wanaddr.cAddr>>0x10)&0xFF,
+			(wanaddr.cAddr>>0x08)&0xFF,
+			(wanaddr.cAddr      )&0xFF,
+			 wanaddr.cPort);
 	}
 }
 const char *ipset::tostring(char *buffer) const
 {	// usage of the static buffer is not threadsafe
 	static char tmp[64];
 	char *buf = (buffer) ? buffer : tmp;
-	if(this->cMask.cAddr == INADDR_ANY)
+	if(this->cMask.addr() == INADDR_ANY)
 	{	// have only one accessable ip
 		sprintf(buf, "%d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,(this->cAddr>>0x10)&0xFF,(this->cAddr>>0x8)&0xFF,(this->cAddr)&0xFF, 
-			this->cPort);
+			(this->cAddr>>0x18)&0xFF,
+			(this->cAddr>>0x10)&0xFF,
+			(this->cAddr>>0x08)&0xFF,
+			(this->cAddr      )&0xFF, 
+			 this->cPort);
 	}
 	else
 	{	// have a full set
 		sprintf(buf, "%d.%d.%d.%d/%d.%d.%d.%d:%d, %d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,(this->cAddr>>0x10)&0xFF,(this->cAddr>>0x8)&0xFF,(this->cAddr)&0xFF,
-			(this->cMask>>0x18)&0xFF,(this->cMask>>0x10)&0xFF,(this->cMask>>0x8)&0xFF,(this->cMask)&0xFF,
-			this->cPort,
-			(wanaddr.cAddr>>0x18)&0xFF,(wanaddr.cAddr>>0x10)&0xFF,(wanaddr.cAddr>>0x8)&0xFF,(wanaddr.cAddr)&0xFF,
-			wanaddr.cPort);
+			(this->cAddr>>0x18)&0xFF,
+			(this->cAddr>>0x10)&0xFF,
+			(this->cAddr>>0x08)&0xFF,
+			(this->cAddr      )&0xFF,
+			(this->cMask>>0x18)&0xFF,
+			(this->cMask>>0x10)&0xFF,
+			(this->cMask>>0x08)&0xFF,
+			(this->cMask      )&0xFF,
+			 this->cPort,
+			(wanaddr.cAddr>>0x18)&0xFF,
+			(wanaddr.cAddr>>0x10)&0xFF,
+			(wanaddr.cAddr>>0x08)&0xFF,
+			(wanaddr.cAddr      )&0xFF,
+			 wanaddr.cPort);
 	}
 	return buf;
 }
-template<class T> string<T>& operator <<(string<T>& str, const ipset& ip)
+
+template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const ipset& ip)
 {
-	if(ip.cMask.cAddr==INADDR_ANY)
+	if(ip.cMask.addr()==INADDR_ANY)
 	{
-		str << ((ip.cAddr>>0x18)&0xFF) << '.' <<
-			   ((ip.cAddr>>0x10)&0xFF) << '.' <<
-			   ((ip.cAddr>>0x08)&0xFF) << '.' <<
-			   ((ip.cAddr      )&0xFF) << ':' <<
-			   (ip.cPort);
+		str << ((ip.addr()>>0x18)&0xFF) << '.' <<
+			   ((ip.addr()>>0x10)&0xFF) << '.' <<
+			   ((ip.addr()>>0x08)&0xFF) << '.' <<
+			   ((ip.addr()      )&0xFF) << ':' <<
+			    (ip.port());
 	}
 	else
 	{	// have a full set
-		str << ((ip.cAddr>>0x18)&0xFF) << '.' <<
-			   ((ip.cAddr>>0x10)&0xFF) << '.' <<
-			   ((ip.cAddr>>0x08)&0xFF) << '.' <<
-			   ((ip.cAddr      )&0xFF) << '/' <<
-			   ((ip.cMask>>0x18)&0xFF) << '.' <<
-			   ((ip.cMask>>0x10)&0xFF) << '.' <<
-			   ((ip.cMask>>0x08)&0xFF) << '.' <<
-			   ((ip.cMask      )&0xFF) << ':' <<
-			   (ip.cPort)                   << ',' << ' ' <<
-			   ((ip.wanaddr.cAddr>>0x18)&0xFF) << '.' <<
-			   ((ip.wanaddr.cAddr>>0x10)&0xFF) << '.' <<
-			   ((ip.wanaddr.cAddr>>0x08)&0xFF) << '.' <<
-			   ((ip.wanaddr.cAddr      )&0xFF) << ':' <<
-			   (ip.wanaddr.cPort);
+		str << ((ip.addr()>>0x18)&0xFF) << '.'  <<
+			   ((ip.addr()>>0x10)&0xFF) << '.'  <<
+			   ((ip.addr()>>0x08)&0xFF) << '.'  <<
+			   ((ip.addr()      )&0xFF) << '/'  <<
+			   ((ip.mask()>>0x18)&0xFF) << '.'  <<
+			   ((ip.mask()>>0x10)&0xFF) << '.'  <<
+			   ((ip.mask()>>0x08)&0xFF) << '.'  <<
+			   ((ip.mask()      )&0xFF) << ':'  <<
+			    (ip.cPort)              << ','  << ' ' <<
+			   ((ip.wanaddr.addr()>>0x18)&0xFF) << '.' <<
+			   ((ip.wanaddr.addr()>>0x10)&0xFF) << '.' <<
+			   ((ip.wanaddr.addr()>>0x08)&0xFF) << '.' <<
+			   ((ip.wanaddr.addr()      )&0xFF) << ':' <<
+			    (ip.wanaddr.cPort);
 	}
 	return str;
 }
 // explicit instantiation
-template string<char   >& operator<< (string<char   >& str, const ipset& ip);
-template string<wchar_t>& operator<< (string<wchar_t>& str, const ipset& ip);
-/*
-template<class T> void operator <<(string<T>& str, const ipset& ip)
-{
+template stringoperator<char   >& operator<< (stringoperator<char   >& str, const ipset& ip);
+template stringoperator<wchar_t>& operator<< (stringoperator<wchar_t>& str, const ipset& ip);
 
-}
-// explicit instantiation
-template void operator<< (string<char   >& str, const ipset& ip);
-template void operator<< (string<wchar_t>& str, const ipset& ip);
-*/
 
 //////////////////////////////////////////////////////////////////////////
 // instantiate some fixed ip's
@@ -791,3 +858,5 @@ void test_inet()
 #endif//DEBUG
 }
 
+
+NAMESPACE_END(basics)

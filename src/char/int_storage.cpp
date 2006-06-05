@@ -1,5 +1,4 @@
 // $Id: int_storage.c,v 1.1.1.1 2004/09/10 17:26:51 MagicalTux Exp $
-#include "base.h"
 #include "baseio.h"
 #include "utils.h"
 #include "db.h"
@@ -21,8 +20,8 @@ CPCStorageDB	cPCstorageDB;
 int inter_storage_init()
 {
 	//!! no config file at the moment, will use parameter class later on, live with the defaults now
-	cPCstorageDB.init(NULL);
-	cGDStorageDB.init(NULL);
+	cPCstorageDB.init(CHAR_CONF_NAME);
+	cGDStorageDB.init(CHAR_CONF_NAME);
 	return 0;
 }
 

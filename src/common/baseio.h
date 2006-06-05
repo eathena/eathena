@@ -1,14 +1,70 @@
 #ifndef __IO_H__
 #define __IO_H__
 
-#include "base.h"
+#include "basetypes.h"
+#include "basecharset.h"
 #include "baseparam.h"
+
 #include "showmsg.h"	// ShowMessage
 #include "utils.h"		// safefopen
-#include "socket.h"		// buffer iterator
 #include "timer.h"		// timed config reload
 #include "db.h"
 #include "mmo.h"
+
+//#define WITH_TEXT
+
+///////////////////////////////////////////////////////////////////////////////
+// database implementation selection
+// compile switches are:
+// WITH_MYSQL	- for MySQL support available
+// WITH_TEXT	- for text support available
+// when both defined at compilation, it is swichable
+// using command line option or config file entry named "database_engine"
+// usable values are "sql" or "txt"
+///////////////////////////////////////////////////////////////////////////////
+#if !defined(WITH_MYSQL) && !defined(WITH_TEXT)
+#error "no database implementation specified, define 'WITH_MYSQL','WITH_TEXT' or both"
+#endif
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// logging stub
+///////////////////////////////////////////////////////////////////////////////
+class log_interface
+{
+protected:
+	basics::string<> name;
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	log_interface(const basics::string<>& n) : name(n)		{}
+	virtual ~log_interface()	{}
+public:
+	///////////////////////////////////////////////////////////////////////////
+	virtual void put(const char* str)=0;
+};
+
+//## derive from stream when integrated
+inline log_interface& operator <<(log_interface& l, const char* str)
+{
+	l.put(str);
+	return l;
+}
+inline log_interface& operator <<(log_interface& l, int i)
+{
+	basics::string<> str = i;
+	l.put(str);
+	return l;
+}
+inline log_interface& operator <<(log_interface& l, uint i)
+{
+	basics::string<> str = i;
+	l.put(str);
+	return l;
+}
+
 
 
 
@@ -19,401 +75,17 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 
-///////////////////////////////////////////////////////////////////////////////
-// Authentification Data used to authentify that clients are going from
-// login through char to map.
-// 
-// uint32 login_id1;	// just a random id given by login
-// uint32 login_id2;	// just a random id given by login
-// uint32 client_ip;	// the current ip of the client
-// 
-// a client has to show these three values to get autentified
-// (gets it in login process)
-// 
-///////////////////////////////////////////////////////////////////////////////
-// Account Data which holds the necessary data for an account
-// 
-// uint32 account_id;			// id to identify an account
-// char userid[24];				// user name
-// char passwd[34];				// user password
-// unsigned char sex;			// gender
-// unsigned char gm_level;		// gm_level
-// unsigned char online;		// true when online (actually only usefull when adding datamining onto the storing data and not onto the server)
-// char email[40];				// email address for confiming char deletion
-// uint32 login_count;			// number of logins
-// char last_login[24];			// timestamp of last login
-// char last_ip[16];			// last ip as string
-// time_t ban_until;			// set to time(NULL)+delta for temporary ban
-// time_t valid_until;			// set to time(NULL)+delta for temporary valid account or time(NULL) for complete disable
-// 
-// the values last_ip, state, error_message, memo are quite useless,
-// state might be usefull for debugging login of accounts
-// but it is easier to read the output then to dig in the db for that
-// 
-///////////////////////////////////////////////////////////////////////////////
-// Account Reg for account wide variables:
-// 
-// unsigned short account_reg2_num;
-// struct global_reg account_reg2[ACCOUNT_REG2_NUM];
-///////////////////////////////////////////////////////////////////////////////
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-// common structures
-///////////////////////////////////////////////////////////////////////////////
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Authentification
-///////////////////////////////////////////////////////////////////////////////
-class CAuth
-{
-public:
-	uint32 account_id;
-	uint32 login_id1;
-	uint32 login_id2;
-	ipaddress client_ip;
-
-	CAuth(uint32 aid=0) : account_id(aid)	{}
-	~CAuth()	{}
-
-	///////////////////////////////////////////////////////////////////////////
-	// sorting by accountid
-	bool operator==(const CAuth& c) const { return this->account_id==c.account_id; }
-	bool operator!=(const CAuth& c) const { return this->account_id!=c.account_id; }
-	bool operator> (const CAuth& c) const { return this->account_id> c.account_id; }
-	bool operator>=(const CAuth& c) const { return this->account_id>=c.account_id; }
-	bool operator< (const CAuth& c) const { return this->account_id< c.account_id; }
-	bool operator<=(const CAuth& c) const { return this->account_id<=c.account_id; }
-
-	///////////////////////////////////////////////////////////////////////////
-	// comparing
-	bool isEqual(const CAuth& a) const	{ return account_id==a.account_id && client_ip==a.client_ip && login_id1==a.login_id1 && login_id2==a.login_id2; }
-
-	///////////////////////////////////////////////////////////////////////////
-	// buffer transfer
-	size_t size() const	{ return 4*sizeof(uint32); }	// Return size of class
-
-	void _tobuffer(unsigned char* &buf) const;		// Put class into given buffer
-	void _frombuffer(const unsigned char* &buf);	// Get class from given buffer
-
-	void tobuffer(unsigned char* buf) const	{ _tobuffer(buf); }		// Put class into given buffer
-	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// Account Reg
-///////////////////////////////////////////////////////////////////////////////
-class CAccountReg
-{
-public:
-	ushort account_reg2_num;
-	struct global_reg account_reg2[ACCOUNT_REG2_NUM];
-
-	CAccountReg()	{ account_reg2_num=0; memset(account_reg2,0,sizeof(account_reg2)); }
-	~CAccountReg()	{}
-
-	///////////////////////////////////////////////////////////////////////////
-	// buffer transfer
-	size_t size() const	{ return sizeof(account_reg2_num)+ACCOUNT_REG2_NUM*sizeof(struct global_reg); }
-
-	void _tobuffer(unsigned char* &buf) const;		// Put class into given buffer
-	void _frombuffer(const unsigned char* &buf);	// Get class from given buffer
-
-	void tobuffer(unsigned char* buf) const	{ _tobuffer(buf); }		// Put class into given buffer
-	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// Account related data for map server
-///////////////////////////////////////////////////////////////////////////////
-class CMapAccount : public CAuth, public CAccountReg
-{
-public:
-	unsigned char sex;
-	unsigned char gm_level;
-	time_t ban_until;
-	time_t valid_until;
-
-	CMapAccount():CAuth(0)	{}
-	~CMapAccount()	{}
-
-	///////////////////////////////////////////////////////////////////////////
-	// creation and sorting by accountid
-	CMapAccount(uint32 aid):CAuth(aid)	{}
-	bool operator==(const CMapAccount& c) const { return this->account_id==c.account_id; }
-	bool operator!=(const CMapAccount& c) const { return this->account_id!=c.account_id; }
-	bool operator> (const CMapAccount& c) const { return this->account_id> c.account_id; }
-	bool operator>=(const CMapAccount& c) const { return this->account_id>=c.account_id; }
-	bool operator< (const CMapAccount& c) const { return this->account_id< c.account_id; }
-	bool operator<=(const CMapAccount& c) const { return this->account_id<=c.account_id; }
-
-	///////////////////////////////////////////////////////////////////////////
-	// buffer transfer
-	size_t size() const;	// Return size of class
-
-	void _tobuffer(unsigned char* &buf) const;		// Put class into given buffer
-	void _frombuffer(const unsigned char* &buf);	// Get class from given buffer
-
-	void tobuffer(unsigned char* buf) const	{ _tobuffer(buf); }		// Put class into given buffer
-	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// Account related data for char server
-///////////////////////////////////////////////////////////////////////////////
-class CCharAccount : public CMapAccount
-{
-public:
-	char email[40];
-
-	CCharAccount()	{}
-	CCharAccount(uint32 aid):CMapAccount(aid)	{}
-	~CCharAccount()	{}
-	
-	///////////////////////////////////////////////////////////////////////////
-	// buffer transfer
-	size_t size() const	{ return sizeof(email)+CMapAccount::size();	}	// Return size of class
-
-	void _tobuffer(unsigned char* &buf) const;		// Put class into given buffer
-	void _frombuffer(const unsigned char* &buf);	// Get class from given buffer
-
-	void tobuffer(unsigned char* buf) const	{ _tobuffer(buf); }		// Put class into given buffer
-	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// Account related data for login server
-///////////////////////////////////////////////////////////////////////////////
-class CLoginAccount : public CCharAccount
-{
-public:
-	char userid[24];
-	char passwd[34];
-	unsigned char online;
-	uint32 login_count;
-	char last_login[24];
-	char last_ip[16];
-////////////////////////////
-	// marked for deletion
-//	unsigned char state;
-//	char error_message[24];
-//	char memo[256];
-//////////////////////////
-
-	CLoginAccount()	{}
-	~CLoginAccount()	{}
-	///////////////////////////////////////////////////////////////////////////
-	// creation of a new account
-	CLoginAccount(uint32 accid, const char* uid, const char* pwd, unsigned char s, const char* em)
-	{	// init account data
-		this->account_id = accid;
-		safestrcpy(this->userid, uid, 24);
-		safestrcpy(this->passwd, pwd, 34);
-		this->sex = sex;
-		if( !email_check(em) )
-			safestrcpy(this->email, "a@a.com", 40);
-		else
-			safestrcpy(this->email, em, 40);
-		this->gm_level=0;
-		this->login_count=0;
-		*this->last_login= 0;
-		this->ban_until = 0;
-		this->valid_until = 0;
-		this->account_reg2_num=0;
-	}
-	CLoginAccount(const char* uid)		{ safestrcpy(this->userid, uid, sizeof(this->userid));  }
-	CLoginAccount(uint32 accid)	{ this->account_id=accid; }
-
-	const CLoginAccount& operator=(const CCharAccount&a)
-	{
-		this->CCharAccount::operator=(a);
-		return *this;
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	// compare for Multilist
-	int compare(const CLoginAccount& c, size_t i=0) const	
-	{
-		if(i==0)
-			return (account_id - c.account_id);
-		else
-			return strcmp(this->userid, c.userid); 
-	}
-
-	// no buffer transfer necessary
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// mail structures
-///////////////////////////////////////////////////////////////////////////////
-class CMailHead
-{
-public:
-	uint32 msid;
-	unsigned char read;
-	char name[24];
-	char head[32];
-
-	CMailHead()	{}
-	CMailHead(uint32 id, unsigned char r, const char *n, const char *h) : msid(id), read(r)
-	{
-		safestrcpy(name,	n, sizeof(name));
-		safestrcpy(head,	h, sizeof(head));
-	}
-	~CMailHead()	{}
-	///////////////////////////////////////////////////////////////////////////
-	// buffer transfer
-	size_t size() const	
-	{
-		return ( sizeof(msid)+sizeof(read)+sizeof(name)+sizeof(head) );	
-	}	// Return size of class
-
-	void _tobuffer(unsigned char* &buf) const		// Put class into given buffer
-	{
-		_L_tobuffer(msid,	buf);
-		_B_tobuffer(read,	buf);
-		_S_tobuffer(name,	buf, 24);
-		_S_tobuffer(head,	buf, 32);
-	}
-	void _frombuffer(const unsigned char* &buf)		// Get class from given buffer
-	{
-		_L_frombuffer(msid,	buf);
-		_B_frombuffer(read,	buf);
-		_S_frombuffer(name,	buf, 24);
-		_S_frombuffer(head,	buf, 32);
-	}
-	void tobuffer(unsigned char* buf) const	{ _tobuffer(buf); }		// Put class into given buffer
-	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
-};
-
-class CMail : public CMailHead
-{
-public:
-	char body[80];
-
-	CMail()	{}
-	CMail(uint32 id, unsigned char r, const char *n, const char *h, const char *b)
-		: CMailHead(id, r, n, h)
-	{
-		safestrcpy(body,	b, sizeof(body));
-	}
-	~CMail()	{}
-	
-	///////////////////////////////////////////////////////////////////////////
-	// buffer transfer
-	size_t size() const	
-	{
-		return ( CMailHead::size()+sizeof(body) );	
-	}	// Return size of class
-
-	void _tobuffer(unsigned char* &buf) const		// Put class into given buffer
-	{
-		CMailHead::_tobuffer(buf);
-		_S_tobuffer(body,	buf, 80);
-	}
-	void _frombuffer(const unsigned char* &buf)		// Get class from given buffer
-	{
-		CMailHead::_frombuffer(buf);
-		_S_frombuffer(body,	buf, 80);
-	}
-	void tobuffer(unsigned char* buf) const	{ _tobuffer(buf); }		// Put class into given buffer
-	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// char structures
-///////////////////////////////////////////////////////////////////////////////
-class CCharCharAccount : public CCharAccount
-{
-public:
-	uint32 charlist[9];
-
-	CCharCharAccount()		{}
-	~CCharCharAccount()		{}
-	CCharCharAccount(const CCharAccount& c) : CCharAccount(c)	{ memset(charlist,0,sizeof(charlist)); }
-	
-
-	///////////////////////////////////////////////////////////////////////////
-	// creation and sorting by accountid
-	CCharCharAccount(uint32 aid):CCharAccount(aid) {}
-	bool operator==(const CCharAccount& c) const { return this->account_id==c.account_id; }
-	bool operator!=(const CCharAccount& c) const { return this->account_id!=c.account_id; }
-	bool operator> (const CCharAccount& c) const { return this->account_id> c.account_id; }
-	bool operator>=(const CCharAccount& c) const { return this->account_id>=c.account_id; }
-	bool operator< (const CCharAccount& c) const { return this->account_id< c.account_id; }
-	bool operator<=(const CCharAccount& c) const { return this->account_id<=c.account_id; }
-};
-
-
-
-class CCharCharacter : public mmo_charstatus
-{
-	int	server;
-public:
-	CCharCharacter():server(-1)		{}
-	~CCharCharacter()		{}
-
-
-	CCharCharacter(const char* n)		{ memset(this, 0, sizeof(CCharCharacter)); server=-1; safestrcpy(this->name, n, sizeof(this->name)); }
-	CCharCharacter(uint32 cid)	{ memset(this, 0, sizeof(CCharCharacter)); server=-1; this->char_id=cid; }
-
-	///////////////////////////////////////////////////////////////////////////
-	// creation and sorting by charid
-
-	bool operator==(const CCharCharacter& c) const { return this->char_id==c.char_id; }
-	bool operator!=(const CCharCharacter& c) const { return this->char_id!=c.char_id; }
-	bool operator> (const CCharCharacter& c) const { return this->char_id> c.char_id; }
-	bool operator>=(const CCharCharacter& c) const { return this->char_id>=c.char_id; }
-	bool operator< (const CCharCharacter& c) const { return this->char_id< c.char_id; }
-	bool operator<=(const CCharCharacter& c) const { return this->char_id<=c.char_id; }
-
-
-	///////////////////////////////////////////////////////////////////////////
-	// compare for Multilist
-	int compare(const CCharCharacter& c, size_t i=0) const	
-	{
-		if(i==0)
-			return (this->char_id - c.char_id);
-		else
-			return strcmp(this->name, c.name); 
-	}
-
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// map structure
-///////////////////////////////////////////////////////////////////////////////
-class CMapCharacter : public CCharCharacter, public CAuth
-{
-public:
-	CMapCharacter()			{}
-	~CMapCharacter()		{}
-
-};
-
-
-
-
-
-
-class CDBInterface : public noncopyable, public global
-{
-protected:
-	CDBInterface()	{}
-public:
-	~CDBInterface()	{}
-};
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // Account Database Interface
 // for storing accounts stuff in login
 ///////////////////////////////////////////////////////////////////////////////
-class CAccountDBInterface : public CDBInterface
+class CAccountDBInterface : public basics::noncopyable, public basics::global
 {
+protected:
+	static basics::CParam<bool> case_sensitive;
+
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
@@ -423,8 +95,8 @@ public:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-//	virtual size_t size()=0;
-//	virtual CLoginAccount& operator[](size_t i)=0;
+	virtual size_t size() const=0;
+	virtual CLoginAccount& operator[](size_t i)=0;
 
 	virtual bool existAccount(const char* userid) =0;
 	virtual bool searchAccount(const char* userid, CLoginAccount&account) =0;
@@ -432,20 +104,6 @@ public:
 	virtual bool insertAccount(const char* userid, const char* passwd, unsigned char sex, const char* email, CLoginAccount&account) =0;
 	virtual bool removeAccount(uint32 accid) =0;
 	virtual bool saveAccount(const CLoginAccount& account) =0;
-
-
-	///////////////////////////////////////////////////////////////////////////
-	// alternative interface
-	virtual bool aquire() =0;
-	virtual bool release() =0;
-	virtual bool first() =0;
-	virtual operator bool() =0;
-	virtual bool operator++(int) =0;
-	virtual bool save()=0;
-
-	virtual bool find(const char* userid)=0;
-	virtual bool find(uint32 accid)=0;
-	virtual CLoginAccount& operator()()=0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -484,29 +142,15 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-//	virtual size_t size()	{ return db->size(); }
-//	virtual CLoginAccount& operator[](size_t i)	{ return (*db)[i]; }
+	virtual size_t size() const { return db->size(); }
+	virtual CLoginAccount& operator[](size_t i) { return (*db)[i]; }
 
-	virtual bool existAccount(const char* userid)	{ return db->existAccount(userid); }
-	virtual bool searchAccount(const char* userid, CLoginAccount&account)	{ return db->searchAccount(userid, account); }
-	virtual bool searchAccount(uint32 accid, CLoginAccount&account)	{ return db->searchAccount(accid, account); }
+	virtual bool existAccount(const char* userid) { return db->existAccount(userid); }
+	virtual bool searchAccount(const char* userid, CLoginAccount&account) { return db->searchAccount(userid, account); }
+	virtual bool searchAccount(uint32 accid, CLoginAccount&account) { return db->searchAccount(accid, account); }
 	virtual bool insertAccount(const char* userid, const char* passwd, unsigned char sex, const char* email, CLoginAccount&account)	{ return db->insertAccount(userid, passwd, sex, email, account); }
-	virtual bool removeAccount(uint32 accid)	{ return db->removeAccount(accid); }
-	virtual bool saveAccount(const CLoginAccount& account)	{ return db->saveAccount(account); }
-
-
-	///////////////////////////////////////////////////////////////////////////
-	// alternative interface
-	virtual bool aquire()					{ return db->aquire(); }
-	virtual bool release()					{ return db->release(); }
-	virtual bool first()					{ return db->first(); }
-	virtual operator bool()					{ return *db; }
-	virtual bool operator++(int)			{ return (*db)++; }
-	virtual bool save()						{ return db->save(); }
-
-	virtual bool find(const char* userid)	{ return db->find(userid); }
-	virtual bool find(uint32 accid)			{ return db->find(accid); }
-	virtual CLoginAccount& operator()()		{ return db->operator()(); }
+	virtual bool removeAccount(uint32 accid) { return db->removeAccount(accid); }
+	virtual bool saveAccount(const CLoginAccount& account) { return db->saveAccount(account); }
 };
 
 
@@ -514,8 +158,18 @@ public:
 // Char Database Interface
 // for storing stuff in char
 ///////////////////////////////////////////////////////////////////////////////
-class CCharDBInterface : public CDBInterface
+class CCharDBInterface : public basics::noncopyable, public basics::global
 {
+protected:
+	///////////////////////////////////////////////////////////////////////////
+	static basics::CParam<bool>				name_ignore_case;
+	static basics::CParam<basics::charset>	name_letters;
+	static basics::CParam<uint32>			start_zeny;
+	static basics::CParam<ushort>			start_weapon;
+	static basics::CParam<ushort>			start_armor;
+	static basics::CParam<struct point>		start_point;
+	static CFameList						famelists[4]; // order: pk, smith, chem, teak
+
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
@@ -525,8 +179,8 @@ public:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-//	virtual size_t size()=0;
-//	virtual CCharCharacter& operator[](size_t i)=0;
+	virtual size_t size() const=0;
+	virtual CCharCharacter& operator[](size_t i)=0;
 
 	virtual bool existChar(const char* name) =0;
 	virtual bool searchChar(const char* name, CCharCharacter&character) =0;
@@ -543,20 +197,13 @@ public:
 	virtual size_t listMail(uint32 cid, unsigned char box, unsigned char *buffer) =0;
 	virtual bool readMail(uint32 cid, uint32 mid, CMail& mail) =0;
 	virtual bool deleteMail(uint32 cid, uint32 mid) =0;
-	virtual bool sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32& msgid, uint32& tid) =0;
+	virtual bool sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32 zeny, const struct item& item, uint32& msgid, uint32& tid) =0;
 
-	///////////////////////////////////////////////////////////////////////////
-	// alternative interface
-	virtual bool aquire()=0;
-	virtual bool release()=0;
-	virtual bool first()=0;
-	virtual operator bool()=0;
-	virtual bool operator++(int)=0;
-	virtual bool save()=0;
-
-	virtual bool find(const char* name)=0;
-	virtual bool find(uint32 charid)=0;
-	virtual CCharCharacter& operator()()=0;
+	virtual void loadfamelist()=0;
+	CFameList& getfamelist(size_t i)
+	{
+		return famelists[(i<4)?i:0];
+	}
 };
 ///////////////////////////////////////////////////////////////////////////////
 // Dynamic Account Database Implementation
@@ -582,6 +229,7 @@ public:
 	{
 		if(db) delete db;
 		db = getDB(dbcfgfile);
+		if(db) this->loadfamelist();
 		return (NULL!=db);
 	}
 	bool close()
@@ -595,8 +243,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-//	virtual size_t size()	{ return db->size(); }
-//	virtual CCharCharacter& operator[](size_t i)	{ return (*db)[i]; }
+	virtual size_t size() const	{ return db->size(); }
+	virtual CCharCharacter& operator[](size_t i)	{ return (*db)[i]; }
 
 	virtual bool existChar(const char* name)	{ return db->existChar(name); }
 	virtual bool searchChar(const char* name, CCharCharacter&data)	{ return db->searchChar(name, data); }
@@ -614,161 +262,18 @@ public:
 	virtual size_t listMail(uint32 cid, unsigned char box, unsigned char *buffer) { return db->listMail(cid, box, buffer); }
 	virtual bool readMail(uint32 cid, uint32 mid, CMail& mail) { return db->readMail(cid, mid, mail); }
 	virtual bool deleteMail(uint32 cid, uint32 mid) { return db->deleteMail(cid, mid); }
-	virtual bool sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32& msgid, uint32& tid) { return db->sendMail(senderid, sendername, targetname, head, body, msgid, tid); }
+	virtual bool sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32 zeny, const struct item& item, uint32& msgid, uint32& tid) { return db->sendMail(senderid, sendername, targetname, head, body, zeny, item, msgid, tid); }
 
-
-	///////////////////////////////////////////////////////////////////////////
-	// alternative interface
-	virtual bool aquire()					{ return db->aquire(); }
-	virtual bool release()					{ return db->release(); }
-	virtual bool first()					{ return db->first(); }
-	virtual operator bool()					{ return *db; }
-	virtual bool operator++(int)			{ return (*db)++; }
-	virtual bool save()						{ return db->save(); }
-
-	virtual bool find(const char* name)		{ return db->find(name); }
-	virtual bool find(uint32 charid)		{ return db->find(charid); }
-	virtual CCharCharacter& operator()()	{ return db->operator()(); }
+	virtual void loadfamelist()	{ db->loadfamelist(); }
 };
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-// Guild Class Definition
-///////////////////////////////////////////////////////////////////////////////
-class CGuildExp
-{
-	uint32 exp[100];
-public:
-	CGuildExp()	{ memset(exp,0,sizeof(exp)); }
-	void init(const char* filename);
-
-	uint32 operator[](size_t i)	{ i--; return (i<100) ? exp[i] : 0; }
-};
-
-class CGuild : public guild
-{
-public:
-	CGuild()					{  }
-	CGuild(const char* n)		{ memset(this, 0, sizeof(CGuild)); safestrcpy(this->name, n, sizeof(this->name)); }
-	CGuild(uint32 gid)			{ memset(this, 0, sizeof(CGuild)); this->guild_id=gid; }
-
-	///////////////////////////////////////////////////////////////////////////
-	// creation and sorting by guildid
-
-	bool operator==(const CGuild& c) const { return this->guild_id==c.guild_id; }
-	bool operator!=(const CGuild& c) const { return this->guild_id!=c.guild_id; }
-	bool operator> (const CGuild& c) const { return this->guild_id> c.guild_id; }
-	bool operator>=(const CGuild& c) const { return this->guild_id>=c.guild_id; }
-	bool operator< (const CGuild& c) const { return this->guild_id< c.guild_id; }
-	bool operator<=(const CGuild& c) const { return this->guild_id<=c.guild_id; }
-
-
-	///////////////////////////////////////////////////////////////////////////
-	// compare for Multilist
-	int compare(const CGuild& c, size_t i=0) const	
-	{
-		if(i==0)
-			return (this->guild_id - c.guild_id);
-		else
-			return strcmp(this->name, c.name); 
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	// class internal functions
-
-	unsigned short checkSkill(unsigned short id)
-	{
-		unsigned short idx = id - GD_SKILLBASE;
-		if(idx < MAX_GUILDSKILL)
-			return skill[idx].lv;
-		return 0;
-	}
-
-	static CGuildExp cGuildExp;
-
-	bool calcInfo()
-	{
-		size_t i,c;
-		uint32 nextexp;
-		unsigned short before_max_member = this->max_member;
-		unsigned short before_guild_lv = this->guild_lv;
-		unsigned short before_skill_point = this->skill_point;
-
-		// スキルIDの設定
-		for(i=0;i<MAX_GUILDSKILL;i++)
-			this->skill[i].id = i+GD_SKILLBASE;
-
-		// ギルドレベル
-		if(this->guild_lv<=0) this->guild_lv=1;
-		nextexp = cGuildExp[this->guild_lv];
-		while(this->exp >= nextexp && nextexp > 0)
-		{
-			this->exp-=nextexp;
-			this->guild_lv++;
-			this->skill_point++;
-			nextexp = cGuildExp[this->guild_lv];
-		}
-
-		// ギルドの次の経験値
-		this->next_exp = cGuildExp[this->guild_lv];
-
-		// メンバ上限（ギルド拡張適用）
-		this->max_member = 16 + this->checkSkill(GD_EXTENSION) * 6; //  Guild Extention skill - adds by 6 people per level to Max Member [Lupus]
-
-		// 平均レベルとオンライン人数
-		this->average_lv=0;
-		this->connect_member=0;
-		for(i=0,c=0; i<this->max_member; i++){
-			if(this->member[i].account_id>0){
-				this->average_lv+=this->member[i].lv;
-				c++;
-
-				if(this->member[i].online>0)
-					this->connect_member++;
-			}
-		}
-		if(c) this->average_lv/=c;
-
-		// return true on changing a value
-		return ( before_max_member != this->max_member ||
-				 before_guild_lv != this->guild_lv ||
-				 before_skill_point != this->skill_point );
-	}
-	int isEmpty()
-	{
-		size_t i;
-		for(i=0; i<this->max_member; i++)
-		{
-			if (this->member[i].account_id > 0)
-				return true;
-		}
-		return false;
-	}
-};
-///////////////////////////////////////////////////////////////////////////////
-// Guild Castle Class Definition
-///////////////////////////////////////////////////////////////////////////////
-class CCastle : public guild_castle
-{
-public:
-	CCastle()	{}
-	CCastle(ushort cid)				{ memset(this, 0, sizeof(CCastle)); this->castle_id=cid; }
-
-	///////////////////////////////////////////////////////////////////////////
-	// creation and sorting by id
-	bool operator==(const CCastle& c) const { return this->castle_id==c.castle_id; }
-	bool operator!=(const CCastle& c) const { return this->castle_id!=c.castle_id; }
-	bool operator> (const CCastle& c) const { return this->castle_id> c.castle_id; }
-	bool operator>=(const CCastle& c) const { return this->castle_id>=c.castle_id; }
-	bool operator< (const CCastle& c) const { return this->castle_id< c.castle_id; }
-	bool operator<=(const CCastle& c) const { return this->castle_id<=c.castle_id; }
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 // Guild Database Interface
 ///////////////////////////////////////////////////////////////////////////////
-class CGuildDBInterface : public CDBInterface
+class CGuildDBInterface : public basics::noncopyable, public basics::global
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -779,10 +284,10 @@ public:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-//	virtual size_t size()=0;
-//	virtual CGuild& operator[](size_t i)=0;
-//	virtual size_t castlesize()	=0;
-//	virtual CCastle& castle(size_t i) =0;
+	virtual size_t size() const=0;
+	virtual CGuild& operator[](size_t i)=0;
+	virtual size_t castlesize() const	=0;
+	virtual CCastle& castle(size_t i) =0;
 
 	virtual bool searchGuild(const char* name, CGuild& guild) =0;
 	virtual bool searchGuild(uint32 guildid, CGuild& guild) =0;
@@ -791,30 +296,10 @@ public:
 	virtual bool saveGuild(const CGuild& guild) =0;
 
 	virtual bool searchCastle(ushort castleid, CCastle& castle) =0;
-	virtual bool saveCastle(CCastle& castle) =0;
-	virtual bool removeCastle(ushort castleid)=0;
+	virtual bool saveCastle(const CCastle& castle) =0;
 
-	///////////////////////////////////////////////////////////////////////////
-	// alternative interface
-	virtual bool aquireGuild()=0;
-	virtual bool aquireCastle()=0;
-	virtual bool releaseGuild()=0;
-	virtual bool releaseCastle()=0;
-	virtual bool firstGuild()=0;
-	virtual bool firstCastle()=0;
-	virtual bool isGuildOk()=0;
-	virtual bool isCastleOk()=0;
-	virtual bool nextGuild()=0;
-	virtual bool nextCastle()=0;
-	virtual bool saveGuild()=0;
-	virtual bool saveCastle()=0;
-
-	virtual bool findGuild(const char* name)=0;
-	virtual bool findGuild(uint32 guildid)=0;
-	virtual bool findCastle(ushort cid)=0;
-
-	virtual CGuild& getGuild()=0;
-	virtual CCastle& getCastle()=0;
+	virtual bool getCastles(basics::vector<CCastle>& castlevector) =0;
+	virtual uint32 has_conflict(uint32 guild_id, uint32 account_id, uint32 char_id)=0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -851,10 +336,10 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-//	virtual size_t size()					{ return db->size(); }
-//	virtual CGuild& operator[](size_t i)	{ return (*db)[i]; }
-//	virtual size_t castlesize()				{ return db->castlesize(); }
-//	virtual CCastle& castle(size_t i)		{ return db->castle(i); }
+	virtual size_t size() const				{ return db->size(); }
+	virtual CGuild& operator[](size_t i)	{ return (*db)[i]; }
+	virtual size_t castlesize() const		{ return db->castlesize(); }
+	virtual CCastle& castle(size_t i)		{ return db->castle(i); }
 
 	virtual bool searchGuild(const char* name, CGuild& guild)	{ return db->searchGuild(name, guild); }
 	virtual bool searchGuild(uint32 guildid, CGuild& guild)	{ return db->searchGuild(guildid, guild); }
@@ -863,31 +348,10 @@ public:
 	virtual bool saveGuild(const CGuild& guild)	{ return db->saveGuild(guild); }
 
 	virtual bool searchCastle(ushort cid, CCastle& castle)	{ return db->searchCastle(cid, castle); }
-	virtual bool saveCastle(CCastle& castle)	{ return db->saveCastle(castle); }
-	virtual bool removeCastle(ushort cid)	{ return db->removeCastle(cid); }
+	virtual bool saveCastle(const CCastle& castle)	{ return db->saveCastle(castle); }
 
-
-	///////////////////////////////////////////////////////////////////////////
-	// alternative interface
-	virtual bool aquireGuild()				{ return db->aquireGuild(); }
-	virtual bool aquireCastle()				{ return db->aquireCastle(); }
-	virtual bool releaseGuild()				{ return db->releaseGuild(); }
-	virtual bool releaseCastle()			{ return db->releaseCastle(); }
-	virtual bool firstGuild()				{ return db->firstGuild(); }
-	virtual bool firstCastle()				{ return db->firstCastle(); }
-	virtual bool isGuildOk()				{ return db->isGuildOk(); }
-	virtual bool isCastleOk()				{ return db->isCastleOk(); }
-	virtual bool nextGuild()				{ return db->nextGuild(); }
-	virtual bool nextCastle()				{ return db->nextCastle(); }
-	virtual bool saveGuild()				{ return db->saveGuild(); }
-	virtual bool saveCastle()				{ return db->saveCastle(); }
-
-	virtual bool findGuild(const char* name){ return db->findGuild(name); }
-	virtual bool findGuild(uint32 guildid)	{ return db->findGuild(guildid); }
-	virtual bool findCastle(ushort cid)		{ return db->findCastle(cid); }
-
-	virtual CGuild& getGuild()				{ return db->getGuild(); }
-	virtual CCastle& getCastle()			{ return db->getCastle(); }
+	virtual bool getCastles(basics::vector<CCastle>& castlevector)	{ return db->getCastles(castlevector); }
+	virtual uint32 has_conflict(uint32 guild_id, uint32 account_id, uint32 char_id) { return db->has_conflict(guild_id, account_id, char_id); }
 };
 
 
@@ -898,9 +362,9 @@ public:
 class CParty : public party
 {
 public:
-	CParty()					{}
-	CParty(const char* n)		{ memset(this, 0, sizeof(CParty)); safestrcpy(this->name, n, sizeof(this->name)); }
-	CParty(uint32 pid)			{ memset(this, 0, sizeof(CParty)); this->party_id=pid; }
+	CParty() : party(0,NULL)				{}
+	CParty(const char* n) : party(0,n)		{}
+	CParty(uint32 pid)  : party(pid,NULL)	{}
 
 	///////////////////////////////////////////////////////////////////////////
 	// creation and sorting by guildid
@@ -912,6 +376,17 @@ public:
 	bool operator< (const CParty& c) const { return this->party_id< c.party_id; }
 	bool operator<=(const CParty& c) const { return this->party_id<=c.party_id; }
 
+	///////////////////////////////////////////////////////////////////////////
+	// get the leader id
+	uint32 leader() const
+	{
+		for(size_t i=0; i<MAX_PARTY; ++i)
+		{
+			if (this->member[i].account_id > 0 && this->member[i].leader )
+				return this->member[i].account_id;
+		}
+		return 0;
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	// compare for Multilist
@@ -925,10 +400,10 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// class internal functions
-	bool isEmpty() 
+	bool isEmpty() const
 	{
 		int i;
-		for(i = 0; i < MAX_PARTY; i++)
+		for(i = 0; i < MAX_PARTY; ++i)
 		{
 			if (this->member[i].account_id > 0)
 				return false;
@@ -940,7 +415,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // Party Database Interface
 ///////////////////////////////////////////////////////////////////////////////
-class CPartyDBInterface : public CDBInterface
+class CPartyDBInterface : public basics::noncopyable, public basics::global
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -951,12 +426,12 @@ public:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()=0;
+	virtual size_t size() const=0;
 	virtual CParty& operator[](size_t i)=0;
 
 	virtual bool searchParty(const char* name, CParty& party) =0;
 	virtual bool searchParty(uint32 pid, CParty& party) =0;
-	virtual bool insertParty(uint32 accid, const char *nick, const char *map, ushort lv, const char *name, CParty &party) =0;
+	virtual bool insertParty(uint32 accid, const char *nick, const char *mapname, ushort lv, const char *name, CParty &party) =0;
 	virtual bool removeParty(uint32 pid) =0;
 	virtual bool saveParty(const CParty& party) =0;
 };
@@ -967,7 +442,6 @@ public:
 class CPartyDB : public CPartyDBInterface
 {
 	CPartyDBInterface *db;
-
 	CPartyDBInterface* getDB(const char *dbcfgfile);
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -995,12 +469,12 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()					{ return db->size(); }
+	virtual size_t size() const				{ return db->size(); }
 	virtual CParty& operator[](size_t i)	{ return (*db)[i]; }
 
 	virtual bool searchParty(const char* name, CParty& party)	{ return db->searchParty(name, party); }
 	virtual bool searchParty(uint32 pid, CParty& party)	{ return db->searchParty(pid, party); }
-	virtual bool insertParty(uint32 accid, const char *nick, const char *map, ushort lv, const char *name, CParty &party)	{ return db->insertParty(accid, nick, map, lv, name, party); }
+	virtual bool insertParty(uint32 accid, const char *nick, const char *mapname, ushort lv, const char *name, CParty &party)	{ return db->insertParty(accid, nick, mapname, lv, name, party); }
 	virtual bool removeParty(uint32 pid)	{ return db->removeParty(pid); }
 	virtual bool saveParty(const CParty& party)	{ return db->saveParty(party); }
 };
@@ -1012,8 +486,8 @@ public:
 class CPCStorage : public pc_storage
 {
 public:
-	CPCStorage()						{}
-	CPCStorage(uint32 accid)			{ memset(this, 0, sizeof(CPCStorage)); this->account_id=accid; }
+	CPCStorage()											{}
+	explicit CPCStorage(uint32 accid) : pc_storage(accid)	{}
 
 	///////////////////////////////////////////////////////////////////////////
 	// creation and sorting by accountid
@@ -1028,8 +502,8 @@ public:
 class CGuildStorage : public guild_storage
 {
 public:
-	CGuildStorage()						{}
-	CGuildStorage(uint32 gid)			{ memset(this, 0, sizeof(CGuildStorage)); this->guild_id=gid; }
+	CGuildStorage()											{}
+	explicit CGuildStorage(uint32 gid) : guild_storage(gid)	{}
 
 	///////////////////////////////////////////////////////////////////////////
 	// creation and sorting by guildid
@@ -1045,7 +519,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // Storage Database Interface
 ///////////////////////////////////////////////////////////////////////////////
-class CPCStorageDBInterface : public CDBInterface
+class CPCStorageDBInterface : public basics::noncopyable, public basics::global
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -1056,14 +530,14 @@ public:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()=0;
+	virtual size_t size() const=0;
 	virtual CPCStorage& operator[](size_t i)=0;
 
 	virtual bool searchStorage(uint32 accid, CPCStorage& stor) =0;
 	virtual bool removeStorage(uint32 accid) =0;
 	virtual bool saveStorage(const CPCStorage& stor) =0;
 };
-class CGuildStorageDBInterface : public CDBInterface
+class CGuildStorageDBInterface : public basics::noncopyable, public basics::global
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -1074,7 +548,7 @@ public:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()=0;
+	virtual size_t size() const=0;
 	virtual CGuildStorage& operator[](size_t i)=0;
 
 	virtual bool searchStorage(uint32 gid, CGuildStorage& stor) =0;
@@ -1115,12 +589,12 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()						{ return db->size(); }
+	virtual size_t size() const					{ return db->size(); }
 	virtual CPCStorage& operator[](size_t i) 	{ return (*db)[i]; }
 
 	virtual bool searchStorage(uint32 accid, CPCStorage& stor)	{ return db->searchStorage(accid, stor); }
-	virtual bool removeStorage(uint32 accid)	{ return removeStorage(accid); }
-	virtual bool saveStorage(const CPCStorage& stor)	{ return saveStorage(stor); }
+	virtual bool removeStorage(uint32 accid)					{ return db->removeStorage(accid); }
+	virtual bool saveStorage(const CPCStorage& stor)			{ return db->saveStorage(stor); }
 };
 class CGuildStorageDB : public CGuildStorageDBInterface
 {
@@ -1153,25 +627,13 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()						{ return db->size(); }
+	virtual size_t size() const					{ return db->size(); }
 	virtual CGuildStorage& operator[](size_t i) { return (*db)[i]; }
 
 	virtual bool searchStorage(uint32 gid, CGuildStorage& stor)	{ return db->searchStorage(gid, stor); }
-	virtual bool removeStorage(uint32 gid)	{ return removeStorage(gid); }
-	virtual bool saveStorage(const CGuildStorage& stor)	{ return saveStorage(stor); }
+	virtual bool removeStorage(uint32 gid)						{ return db->removeStorage(gid); }
+	virtual bool saveStorage(const CGuildStorage& stor)			{ return db->saveStorage(stor); }
 };
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1180,7 +642,7 @@ public:
 // Pet Class
 ///////////////////////////////////////////////////////////////////////////////
 
-class CPet : public s_pet
+class CPet : public petstatus
 {public:
 	CPet()					{}
 	CPet(const char* n)		{ memset(this, 0, sizeof(CPet)); safestrcpy(this->name, n, sizeof(this->name)); }
@@ -1202,7 +664,7 @@ class CPet : public s_pet
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// creation and sorting by guildid
+	// creation and sorting by id
 
 	bool operator==(const CPet& c) const { return this->pet_id==c.pet_id; }
 	bool operator!=(const CPet& c) const { return this->pet_id!=c.pet_id; }
@@ -1210,23 +672,12 @@ class CPet : public s_pet
 	bool operator>=(const CPet& c) const { return this->pet_id>=c.pet_id; }
 	bool operator< (const CPet& c) const { return this->pet_id< c.pet_id; }
 	bool operator<=(const CPet& c) const { return this->pet_id<=c.pet_id; }
-
-
-	///////////////////////////////////////////////////////////////////////////
-	// compare for Multilist
-	int compare(const CPet& c, size_t i=0) const	
-	{
-		if(i==0)
-			return (this->pet_id - c.pet_id);
-		else
-			return strcmp(this->name, c.name); 
-	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 // Pet Database Interface
 ///////////////////////////////////////////////////////////////////////////////
-class CPetDBInterface : public CDBInterface
+class CPetDBInterface : public basics::noncopyable, public basics::global
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -1237,10 +688,9 @@ public:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()=0;
+	virtual size_t size() const=0;
 	virtual CPet& operator[](size_t i)=0;
 
-	virtual bool searchPet(const char* name, CPet& pet) =0;
 	virtual bool searchPet(uint32 pid, CPet& pet) =0;
 	virtual bool insertPet(uint32 accid, uint32 cid, short pet_class, short pet_lv, short pet_egg_id, ushort pet_equip, short intimate, short hungry, char renameflag, char incuvat, char *pet_name, CPet& pet) =0;
 	virtual bool removePet(uint32 pid) =0;
@@ -1278,10 +728,9 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()				{ return db->size(); }
-	virtual CPet& operator[](size_t i) { return (*db)[i]; }
+	virtual size_t size() const			{ return db->size(); }
+	virtual CPet& operator[](size_t i)	{ return (*db)[i]; }
 
-	virtual bool searchPet(const char* name, CPet& pet) { return db->searchPet(name, pet); }
 	virtual bool searchPet(uint32 pid, CPet& pet) { return db->searchPet(pid, pet); }
 	virtual bool insertPet(uint32 accid, uint32 cid, short pet_class, short pet_lv, short pet_egg_id, ushort pet_equip, short intimate, short hungry, char renameflag, char incuvat, char *pet_name, CPet& pet)
 	{
@@ -1292,4 +741,455 @@ public:
 };
 
 
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// playground
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+
+class CVar
+{
+public:
+	CVar()	{}
+
+
+	void str2array()
+	{
+		////////////////////////
+		// hallo	2		3
+		// 3		xxx		4
+		////////////////////////
+		basics::string<> str = "(2,3):hallo,2,3,3,xxx,4";
+		basics::CRegExp re( "\\(([^,\\(\\)\\:]*)(?:,([^,\\(\\)\\:]*))*\\):([^,]*)(?:,([^,]*))*");
+
+		if( re.match(str) && re.sub_count()==4 )
+		{
+			// result should be now:
+			// [1] - first dimension
+			// [2][0][n] - second to last dimension
+			// [3] - first value
+			// [4][0][n] - second to last value
+			size_t v,i,k;
+			basics::vector<size_t>				dimension;
+			basics::vector< basics::string<> >	values;
+			bool error=false;
+
+			i=v= atol( re(1,0) );					// [0]
+			// dimension size of 0 makes no sense
+			//if( (error=(v==0)) );
+			error=(v==0);
+			if(!error)
+			{
+				dimension.push_back(v);
+				for(k=0; k<re.sub_count(2); ++k)
+				{	
+					v= atol( re(2,k) );			// [2][0][n]
+					if( (error=(v==0)) )
+						break;
+					i*=v;						// number of elements inside the volume
+					dimension.push_back(v);
+				}
+			}
+			if(!error)
+			{	// values
+				values.push_back(re(3,0));		// [3]
+			
+				for(k=0; k<re.sub_count(4) && k<i; ++k)
+				{	
+					values.push_back(re(4,k));	// [4][0][n]
+				}
+			}
+
+			printf("dimensions: ");
+			for(i=0; i<dimension.size(); ++i)
+				printf("%li ", (ulong)dimension[i]);
+
+			printf("\nvalues:");
+			for(i=0; i<values.size(); ++i)
+				printf("'%s' ", (const char*)values[i]);
+		}	
+	}
+
+
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+class CVarDBInterface : public basics::noncopyable, public basics::global
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CVarDBInterface()				{}
+	virtual ~CVarDBInterface()		{}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size() const=0;
+	virtual CVar& operator[](size_t i)=0;
+
+	virtual bool searchVar(const basics::string<>& name, CVar& var) =0;
+	virtual bool insertVar(const basics::string<>& name, const basics::string<>& value) =0;
+	virtual bool removeVar(const basics::string<>& name) =0;
+	virtual bool saveVar(const CVar& pet) =0;
+};
+
+class CVarDB : public CVarDBInterface
+{
+	CVarDBInterface *db;
+	CVarDBInterface* getDB(const char *dbcfgfile);
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CVarDB():db(NULL)	{}
+	CVarDB(const char *dbcfgfile):db(getDB(dbcfgfile))	{}
+	virtual ~CVarDB()									{ delete db; }
+
+public:
+
+	bool init(const char *dbcfgfile)
+	{
+		if(db) delete db;
+		db = getDB(dbcfgfile);
+		return (NULL!=db);
+	}
+	bool close()
+	{
+		if(db)
+		{	delete db;
+			db=NULL;
+		}
+		return true;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size() const				 { return db->size(); }
+	virtual CVar& operator[](size_t i)		 { return (*db)[i]; }
+
+	virtual bool searchVar(const basics::string<>& name, CVar& var)
+	{
+		return db->searchVar(name, var);
+	}
+	virtual bool insertVar(const basics::string<>& name, const basics::string<>& value)
+	{
+		return db->insertVar(name, value);
+	}
+	virtual bool removeVar(const basics::string<>& name)
+	{
+		return db->removeVar(name);
+	}
+	virtual bool saveVar(const CVar& var)
+	{
+		return db->saveVar(var);
+	}
+};
+
+
+
+
+
+
+
+
+
+
+
+
+template <typename T> class play_interface
+{
+protected:
+	play_interface()	{}
+public:
+	virtual ~play_interface()	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	// check/init structure
+	virtual bool do_init()=0;
+	///////////////////////////////////////////////////////////////////////////
+	// read single entry using query-by-example
+	virtual bool do_read(T& elem)=0;
+	///////////////////////////////////////////////////////////////////////////
+	// read all entries
+	virtual bool do_read(basics::vectorinterface<T>& vec)=0;
+	///////////////////////////////////////////////////////////////////////////
+	// save entry
+	virtual bool do_save(const T& elem)=0;
+	///////////////////////////////////////////////////////////////////////////
+	// save all entries
+	virtual bool do_save(const basics::vectorinterface<T>& vec)=0;
+	///////////////////////////////////////////////////////////////////////////
+	// create new entry
+	virtual bool do_create(const T& elem)=0;
+	///////////////////////////////////////////////////////////////////////////
+	// remove entry
+	virtual bool do_remove(const T& elem)=0;
+};
+
+
+
+
+
+
+class variable : public basics::string<>
+{
+public:
+								// name of the variable (the class itself)
+	basics::string<> value;		// stringified value of the variable
+
+	variable()	{}
+	variable(const basics::string<>& n, const basics::string<>& v) :  basics::string<>(n), value(v) {}
+	~variable()	{}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// current buffer transfer
+	// change to binary stream io
+
+	// Return size of class.
+	// this here depends on actual string length
+	size_t size() const	
+	{
+		return this->length()+1+this->value.length()+1;
+	}
+	// Put class into given buffer
+	void _tobuffer(unsigned char* &buf) const
+	{
+		if(buf)
+		{
+			if( !this->is_empty() )
+			{
+				memcpy(buf, (const char*)*this, this->length());
+				buf+=this->length();
+			}
+			*buf++=0;
+			if( !this->value.is_empty() )
+			{
+				memcpy(buf, (const char*)this->value, this->value.length());
+				buf+=this->value.length();
+			}
+			*buf++=0;
+		}
+	}
+	// Get class from given buffer
+	void _frombuffer(const unsigned char* &buf)
+	{
+		if(buf)
+		{
+			this->clear();
+			this->value.clear();
+
+			if( *buf )
+			{
+				this->assign( (const char*)buf );
+				buf+=this->length();
+			}
+			buf++;
+			if( *buf )
+			{
+				this->value = (const char*)buf;
+				buf+=this->value.length();
+			}
+			buf++;
+		}
+	}
+	void tobuffer(unsigned char* buf) const	{ _tobuffer(buf); }		// Put class into given buffer
+	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
+};
+
+
+// types of variables
+enum var_t
+{
+	VAR_NONE = 0,		// not specified
+	VAR_SERVER,			// server side variables (char and maps)
+	VAR_ACCOUNT1,		// account variables (account limited)
+	VAR_ACCOUNT2,		// account variables (shared among different logins)
+	VAR_CHAR,			// char variables (specific for a distinct char)
+	VAR_PARTY,			// party variables (specific for a distinct party)
+	VAR_GUILD			// guild variables (specific for a distinct guild)
+};
+
+// array of variables
+// each array has a type and a specific id
+class vararray
+{
+public:
+	basics::slist<variable>	carray;
+	var_t			ctype;
+	uint32			cid;
+
+	vararray() : ctype(VAR_NONE), cid(0)	{}
+	~vararray()	{}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// current buffer transfer
+
+	// Return size of class.
+	// this here depends on actual string length
+	// spend only one byte for the var_t
+	size_t size() const	
+	{
+		basics::slist<variable>::iterator iter(carray);
+		size_t len = 1+2*sizeof(uint32);
+		while(iter)
+		{
+			len += iter->size();
+			iter++;
+		}
+		return len;
+	}
+	// Put class into given buffer
+	void _tobuffer(unsigned char* &buf) const
+	{
+		if(buf)
+		{
+			*buf++=ctype;
+			_L_tobuffer(cid,buf);
+			_L_tobuffer((uint32)carray.length(),buf);
+			basics::slist<variable>::iterator iter(carray);
+			while(iter)
+			{
+				iter->_tobuffer(buf);
+				iter++;
+			}
+		}
+	}
+	// Get class from given buffer
+	void _frombuffer(const unsigned char* &buf)
+	{
+		if(buf)
+		{
+			variable tmp;
+			uint32 sz;
+			ctype = (var_t)*buf++;
+			_L_frombuffer(cid,buf);
+			_L_frombuffer(sz,buf);
+			while(sz--)
+			{
+				tmp._frombuffer(buf);
+				carray.push(tmp);
+			}
+		}
+	}
+	void tobuffer(unsigned char* buf) const	{ _tobuffer(buf); }		// Put class into given buffer
+	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
+};
+
+
+
+using basics::smap;
+// array of variables organized as simple map
+class varmap : public smap< basics::string<>, basics::string<> >
+{
+public:
+	var_t			ctype;
+	uint32			cid;
+
+	varmap() : ctype(VAR_NONE), cid(0)	{}
+	~varmap()	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	// current buffer transfer
+
+	// Return size of class.
+	// this here depends on actual string length
+	// spend only one byte for the var_t
+	size_t size() const	
+	{
+		size_t len = 1+2*sizeof(uint32);
+
+		smap< basics::string<>, basics::string<> >::iterator iter(*const_cast<varmap*>(this));
+		while(iter)
+		{
+			len += iter->key.length();
+			len += iter->data.length();
+			len+=2;
+		}
+		return len;
+	}
+	// Put class into given buffer
+	void _tobuffer(unsigned char* &buf) const
+	{
+		if(buf)
+		{
+			*buf++=this->ctype;
+			_L_tobuffer(this->cid,buf);
+			_L_tobuffer((uint32)this->smap< basics::string<>, basics::string<> >::length(),buf);
+			smap< basics::string<>, basics::string<> >::iterator iter(*this);
+			while(iter)
+			{
+				if( !iter->key.is_empty() )
+				{
+					memcpy(buf, (const char*)iter->key, iter->key.length());
+					buf+=iter->key.length();
+				}
+				*buf++=0;
+				if( !iter->data.is_empty() )
+				{
+					memcpy(buf, (const char*)iter->data, iter->data.length());
+					buf+=iter->data.length();
+				}
+				*buf++=0;
+
+				iter++;
+			}
+		}
+	}
+	// Get class from given buffer
+	void _frombuffer(const unsigned char* &buf)
+	{
+		this->clear();
+		if(buf)
+		{
+			basics::string<> k,d;
+			variable tmp;
+			uint32 sz;
+			ctype = (var_t)*buf++;
+			_L_frombuffer(cid,buf);
+			_L_frombuffer(sz,buf);
+			while(sz--)
+			{
+				k.clear();
+				d.clear();
+
+				if( *buf )
+				{
+					k = (const char*)buf;
+					buf+=k.length();
+				}
+				buf++;
+				if( *buf )
+				{
+					d = (const char*)buf;
+					buf+=d.length();
+				}
+				buf++;
+
+				(*this)[k] = d;
+			}
+		}
+	}
+	void tobuffer(unsigned char* buf) const	{ _tobuffer(buf); }		// Put class into given buffer
+	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
+};
+
+
+
+
+
+
 #endif//__IO_H__
+
+
+
+

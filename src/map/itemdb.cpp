@@ -1,5 +1,4 @@
 // $Id: itemdb.c,v 1.3 2004/09/25 05:32:18 MouseJstr Exp $
-#include "base.h"
 #include "db.h"
 #include "nullpo.h"
 #include "malloc.h"
@@ -24,9 +23,29 @@
 
 static struct dbt* item_db;
 
-static struct random_item_data blue_box[MAX_RANDITEM], violet_box[MAX_RANDITEM], card_album[MAX_RANDITEM], gift_box[MAX_RANDITEM], scroll[MAX_RANDITEM], finding_ore[MAX_RANDITEM];
-static int blue_box_count=0, violet_box_count=0, card_album_count=0, gift_box_count=0, scroll_count=0, finding_ore_count = 0;
-static int blue_box_default=0, violet_box_default=0, card_album_default=0, gift_box_default=0, scroll_default=0, finding_ore_default = 0;
+static struct random_item_data blue_box[MAX_RANDITEM];
+static int blue_box_count=0;
+static int blue_box_default=0;
+
+static struct random_item_data violet_box[MAX_RANDITEM];
+static int violet_box_count=0;
+static int violet_box_default=0;
+
+static struct random_item_data card_album[MAX_RANDITEM];
+static int card_album_count=0;
+static int card_album_default=0;
+
+static struct random_item_data gift_box[MAX_RANDITEM];
+static int gift_box_count=0;
+static int gift_box_default=0;
+
+static struct random_item_data scroll[MAX_RANDITEM];
+static int scroll_count=0;
+static int scroll_default=0;
+
+static struct random_item_data finding_ore[MAX_RANDITEM];
+static int finding_ore_count = 0;
+static int finding_ore_default = 0;
 
 static struct item_group itemgroup_db[MAX_ITEMGROUP];
 
@@ -128,16 +147,17 @@ int itemdb_searchrandomid(int flags)
 		unsigned short nameid;
 		size_t count;
 		struct random_item_data *list;
-	} data[7];
-
-	// for BCC32 compile error
-	data[0].nameid = 0;						data[0].count = 0; 					data[0].list = NULL;
-	data[1].nameid = blue_box_default;		data[1].count = blue_box_count;		data[1].list = blue_box;
-	data[2].nameid = violet_box_default;	data[2].count = violet_box_count;	data[2].list = violet_box;
-	data[3].nameid = card_album_default;	data[3].count = card_album_count;	data[3].list = card_album;
-	data[4].nameid = gift_box_default;		data[4].count = gift_box_count;		data[4].list = gift_box;
-	data[5].nameid = scroll_default;		data[5].count = scroll_count;		data[5].list = scroll;
-	data[6].nameid = finding_ore_default;	data[6].count = finding_ore_count;	data[6].list = finding_ore;
+	}
+	data[7] =
+	{
+		{ 0,                   0,                 NULL        },
+		{ blue_box_default,    blue_box_count,    blue_box    },
+		{ violet_box_default,  violet_box_count,  violet_box  },
+		{ card_album_default,  card_album_count,  card_album  },
+		{ gift_box_default,    gift_box_count,    gift_box    },
+		{ scroll_default,      scroll_count,      scroll      },
+		{ finding_ore_default, finding_ore_count, finding_ore }
+	};
 
 	if(flags>=1 && flags<=6){
 		nameid=data[flags].nameid;
@@ -145,7 +165,7 @@ int itemdb_searchrandomid(int flags)
 		list=data[flags].list;
 
 		if(count > 0) {
-			for(i=0;i<1000;i++) {
+			for(i=0;i<1000;++i) {
 				index = rand()%count;
 				if(	rand()%1000000 < list[index].per) {
 					nameid = list[index].nameid;
@@ -164,8 +184,8 @@ int itemdb_searchrandomid(int flags)
 int itemdb_group (unsigned short nameid)
 {
 	int i, j;
-	for (i=0; i < MAX_ITEMGROUP; i++) {
-		for (j=0; j < 20 && itemgroup_db[i].nameid[j]; j++) {
+	for (i=0; i < MAX_ITEMGROUP; ++i) {
+		for (j=0; j < 20 && itemgroup_db[i].nameid[j]; ++j) {
 			if (itemgroup_db[i].nameid[j] == nameid)
 				return i;
 		}
@@ -206,7 +226,7 @@ struct item_data* itemdb_search(unsigned short nameid)
 	id=(struct item_data *) numdb_search(item_db,nameid);
 	if(id) return id;
 
-	id=(struct item_data *)aCalloc(1,sizeof(struct item_data));
+	id = new struct item_data();
 	numdb_insert(item_db,nameid,id);
 
 	id->nameid=nameid;
@@ -346,14 +366,14 @@ int itemdb_read_randomitem()
 		{"db/item_findingore.txt",	finding_ore,&finding_ore_count, &finding_ore_default	},
 	};
 
-	for(i=0;i<sizeof(data)/sizeof(data[0]);i++)
+	for(i=0;i<sizeof(data)/sizeof(data[0]);++i)
 	{
 		struct random_item_data *pd=data[i].pdata;
 		int *pc=data[i].pcount;
 		int *pdefault=data[i].pdefault;
 		char *fn=(char *) data[i].filename;
 		*pdefault = 0;
-		if( (fp=safefopen(fn,"r"))==NULL )
+		if( (fp=basics::safefopen(fn,"r"))==NULL )
 		{
 			ShowError("can't read %s\n",fn);
 			continue;
@@ -363,7 +383,7 @@ int itemdb_read_randomitem()
 			if( !get_prepared_line(line) )
 				continue;
 			memset(str,0,sizeof(str));
-			for(j=0,p=line;j<3 && p;j++){
+			for(j=0,p=line;j<3 && p; ++j){
 				str[j]=p;
 				p=strchr(p,',');
 				if(p) *p++=0;
@@ -413,7 +433,7 @@ int itemdb_read_itemavail(void)
 	char *str[10],*p;
 	struct item_data *id;
 
-	if( (fp=safefopen("db/item_avail.txt","r"))==NULL ){
+	if( (fp=basics::safefopen("db/item_avail.txt","r"))==NULL ){
 		ShowError("can't read %s\n","db/item_avail.txt");
 		return -1;
 	}
@@ -422,7 +442,7 @@ int itemdb_read_itemavail(void)
 		if( !get_prepared_line(line) )
 			continue;
 		memset(str,0,sizeof(str));
-		for(j=0,p=line;j<2 && p;j++){
+		for(j=0,p=line;j<2 && p; ++j){
 			str[j]=p;
 			p=strchr(p,',');
 			if(p) *p++=0;
@@ -459,7 +479,7 @@ int itemdb_read_itemgroup(void)
 	size_t j;
 	char *str[31],*p;
 
-	if( (fp=safefopen("db/item_group_db.txt","r"))==NULL ){
+	if( (fp=basics::safefopen("db/item_group_db.txt","r"))==NULL ){
 		ShowError("can't read db/item_group_db.txt\n");
 		return -1;
 	}
@@ -468,7 +488,7 @@ int itemdb_read_itemgroup(void)
 		if( !get_prepared_line(line) )
 			continue;
 		memset(str,0,sizeof(str));
-		for(j=0,p=line;j<31 && p;j++){
+		for(j=0,p=line;j<31 && p; ++j){
 			str[j]=p;
 			p=strchr(p,',');
 			if(p) *p++=0;
@@ -480,7 +500,7 @@ int itemdb_read_itemgroup(void)
 		if(groupid >= MAX_ITEMGROUP)
 			continue;
 
-		for (j=1; j<=30; j++) {
+		for (j=1; j<=30; ++j) {
 			if (!str[j])
 				break;
 			nameid=atoi(str[j]);
@@ -505,7 +525,7 @@ int itemdb_read_itemnametable(void)
 	char *buf,*p;
 	int s;
 
-	buf=(char *) grfio_reads("data\\idnum2itemdisplaynametable.txt",&s);
+	buf=(char *) grfio_reads("data\\idnum2itemdisplaynametable.txt", s);
 
 	if(buf==NULL)
 		return -1;
@@ -532,7 +552,7 @@ int itemdb_read_itemnametable(void)
 		if(!p) break;
 		p++;
 	}
-	aFree(buf);
+	delete[] buf;
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","data\\idnum2itemdisplaynametable.txt");
 
 	return 0;
@@ -547,7 +567,7 @@ int itemdb_read_cardillustnametable(void)
 	char *buf,*p;
 	int s;
 
-	buf=(char *) grfio_reads("data\\num2cardillustnametable.txt",&s);
+	buf=(char *) grfio_reads("data\\num2cardillustnametable.txt", s);
 
 	if(buf==NULL)
 		return -1;
@@ -567,7 +587,7 @@ int itemdb_read_cardillustnametable(void)
 		if(!p) break;
 		p++;
 	}
-	aFree(buf);
+	delete[] buf;
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","data\\num2cardillustnametable.txt");
 
 	return 0;
@@ -585,7 +605,7 @@ int itemdb_read_itemslottable(void)
 	char *buf, *p;
 	int s;
 
-	buf = (char *)grfio_reads("data\\itemslottable.txt", &s);
+	buf = (char *)grfio_reads("data\\itemslottable.txt", s);
 	if (buf == NULL)
 		return -1;
 	buf[s] = 0;
@@ -603,7 +623,7 @@ int itemdb_read_itemslottable(void)
 		if(!p) break;
 		p++;
 	}
-	aFree(buf);
+	delete[] buf;
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","data\\itemslottable.txt");
 	return 0;
 }
@@ -613,7 +633,7 @@ int itemdb_read_itemslotcounttable(void)
 	char *buf, *p;
 	int s;
 
-	buf = (char *)grfio_reads("data\\itemslotcounttable.txt", &s);
+	buf = (char *)grfio_reads("data\\itemslotcounttable.txt", s);
 	if (buf == NULL)
 		return -1;
 	buf[s] = 0;
@@ -628,7 +648,7 @@ int itemdb_read_itemslotcounttable(void)
 		if(!p) break;
 		p++;
 	}
-	aFree(buf);
+	delete[] buf;
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n", "data\\itemslotcounttable.txt");
 	return 0;
 }
@@ -646,7 +666,7 @@ int itemdb_read_noequip(void)
 	char *str[32],*p;
 	struct item_data *id;
 
-	if( (fp=safefopen("db/item_noequip.txt","r"))==NULL ){
+	if( (fp=basics::safefopen("db/item_noequip.txt","r"))==NULL ){
 		ShowError("can't read %s\n", "db/item_noequip.txt");
 		return -1;
 	}
@@ -654,7 +674,7 @@ int itemdb_read_noequip(void)
 		if( !get_prepared_line(line) )
 			continue;
 		memset(str,0,sizeof(str));
-		for(j=0,p=line;j<2 && p;j++){
+		for(j=0,p=line;j<2 && p; ++j){
 			str[j]=p;
 			p=strchr(p,',');
 			if(p) *p++=0;
@@ -697,7 +717,7 @@ int itemdb_read_itemtrade(void)
 		if( !get_prepared_line(line) )
 			continue;
 		memset(str, 0, sizeof(str));
-		for (j = 0, p = line; j < 3 && p; j++) {
+		for (j=0, p=line; j < 3 && p; ++j) {
 			str[j] = p;
 			p = strchr(p, ',');
 			if(p) *p++ = 0;
@@ -723,7 +743,7 @@ int itemdb_read_itemtrade(void)
 	return 0;
 }
 
-#ifndef TXT_ONLY
+#if defined(WITH_MYSQL)
 
 /*======================================
 * SQL
@@ -740,7 +760,7 @@ int itemdb_read_sqldb(void)
 
 	// ----------
 
-	for (i = 0; i < 2; i++)
+	for (i = 0; i < 2; ++i)
 	{
 		snprintf(tmp_sql, sizeof(tmp_sql), "SELECT * FROM `%s`", item_db_name[i]);
 
@@ -873,7 +893,7 @@ int itemdb_read_sqldb(void)
 	}
 	return 0;
 }
-#endif /* not TXT_ONLY */
+#endif//WITH_MYSQL
 
 /*==========================================
  * アイテムデータベースの読み込み
@@ -891,9 +911,9 @@ int itemdb_readdb(void)
 	int i=0;
 	char *filename[]={ "db/item_db.txt","db/item_db2.txt" };
 
-	for(i=0;i<2;i++)
+	for(i=0;i<2;++i)
 	{
-		fp=safefopen(filename[i],"r");
+		fp=basics::safefopen(filename[i],"r");
 		if(fp==NULL)
 		{
 			ShowError("can't read %s\n",filename[i]);
@@ -906,7 +926,7 @@ int itemdb_readdb(void)
 			if( !get_prepared_line(line) )
 				continue;
 			memset(str,0,sizeof(str));
-			for(j=0,np=p=line;j<18 && p;j++){
+			for(j=0,np=p=line;j<18 && p; ++j){
 				str[j]=p;
 				p=strchr(p,',');
 				if(p){ *p++=0; np=p; }
@@ -1001,7 +1021,7 @@ int itemdb_readdb(void)
  */
 void itemdb_read(void)
 {
-#ifndef TXT_ONLY
+#if defined(WITH_MYSQL)
 	if (db_use_sqldbs)
 	{
 		itemdb_read_sqldb();
@@ -1010,9 +1030,9 @@ void itemdb_read(void)
 	{
 		itemdb_readdb();	
 	}
-#else	// not TXT_ONLY
+#else
 	itemdb_readdb();
-#endif	// TXT_ONLY
+#endif
 
 	itemdb_read_itemgroup();
 	itemdb_read_randomitem();
@@ -1064,12 +1084,12 @@ public:
 		if( id )
 		{
 			if (id->use_script)
-				aFree(id->use_script);
+				delete[] id->use_script;
 			if (id->equip_script)
-				aFree(id->equip_script);
+				delete[] id->equip_script;
 			// Whether to clear the item data
 			if (flag)
-				aFree(id);
+				delete id;
 		}
 		return true;
 	}

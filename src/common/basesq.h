@@ -1,319 +1,152 @@
 #ifndef _SQL_H_
 #define _SQL_H_
 
-#include "base.h"
 #include "baseio.h"
-
-#ifndef TXT_ONLY
-
-#include <mysql.h>
+#include "basemysql.h"
 
 
-class CMySQL : public global, public noncopyable
+#if defined(WITH_MYSQL)
+
+
+///////////////////////////////////////////////////////////////////////////////
+// sql base interface.
+// wrapper for the sql handle, table control and parameter storage
+class CSQLParameter
 {
-public:
-	///////////////////////////////////////////////////////////////////////////
-	// database connection object
-	// enables threadsafe/multithreaded connections to the sql database
-	class DBConnection
-	{
-		///////////////////////////////////////////////////////////////////////
-		// class data
-		bool			cInit;		// necessary to enable delayed initialisation/safe destruction
-		CMySQL&			cMySQL;		// reference to the base
-		MYSQL			cHandle;	// handle to the mysql database
-		MYSQL_RES*		cRes;		// result pointer
-		MYSQL_ROW		cRow;		// the result row
-
-		///////////////////////////////////////////////////////////////////////
-		// startup function is automatically called on the first query
-		bool startup(void)
-		{	
-			if(!this->cInit)
-			{	// init new database handle
-				mysql_init(&(this->cHandle));
-
-				// DB connection start
-				ShowMessage("Connect Database Server on %s%u....\n", cMySQL.mysqldb_ip, cMySQL.mysqldb_port);
-				if( mysql_real_connect(&(this->cHandle), cMySQL.mysqldb_ip, cMySQL.mysqldb_id, cMySQL.mysqldb_pw, cMySQL.mysqldb_db, cMySQL.mysqldb_port, (char *)NULL, 0) )
-				{
-					ShowMessage("connect success!\n");
-					this->cInit = true;
-				}
-				else
-				{	// pointer check
-					ShowError("%s\n", mysql_error(&(this->cHandle)));
-				}
-			}
-			return this->cInit;
-		}
-	public:
-		///////////////////////////////////////////////////////////////////////
-		// constructor/destructor
-		DBConnection(CMySQL& mysql)
-			: cInit(false), cMySQL(mysql), cRes(NULL), cRow(0)
-		{ }
-		~DBConnection()
-		{
-			this->close();
-		}
-		///////////////////////////////////////////////////////////////////////
-		// copy/assignment (assignment disabled)
-		DBConnection(const DBConnection& db)
-			: cInit(false), cMySQL(db.cMySQL), cRes(NULL), cRow(0)
-		{ }
-		const DBConnection& operator=(const DBConnection& DBConnection);
-		
-		///////////////////////////////////////////////////////////////////////
-		// Queries with no returns
-		bool PureQuery(const string<>& q)
-		{
-			if( this->startup() )
-			{
-				this->clear();
-				if( 0==mysql_real_query(&cHandle, (const char*)q, q.length()) )
-					return true;
-				else
-				{
-					ShowError("Database Error %s\nQuery:    %s\n", mysql_error(&this->cHandle), (const char*)q);
-				}
-			}
-			return false;
-		}
-		///////////////////////////////////////////////////////////////////////
-		// Queries with returns, automatically fetch first result
-		bool ResultQuery(const string<>& q)
-		{
-			if( this->startup() )
-			{
-				this->clear();
-				if( 0==mysql_real_query(&cHandle, (const char*)q, q.length()) )
-				{
-					cRes = mysql_store_result(&this->cHandle);
-					if(cRes)
-					{
-						this->cRow = mysql_fetch_row(this->cRes);
-						return true;
-					}
-					else
-						ShowError("DB result error\nQuery:    %s\n", (const char*)q);
-				}
-				else
-					ShowError("Database Error %s\nQuery:    %s\n", mysql_error(&this->cHandle), (const char*)q);
-			}
-			return false;
-		}
-		///////////////////////////////////////////////////////////////////////
-		// number of results
-		size_t size() const
-		{
-			return (this->cRes) ? mysql_num_rows(this->cRes) : 0;
-		}
-		///////////////////////////////////////////////////////////////////////
-		// next result
-		bool operator++(int)
-		{
-			return ( this->cRes && (cRow = mysql_fetch_row(this->cRes) ) );
-		}
-		///////////////////////////////////////////////////////////////////////
-		// access the row, also prevent returning NULL pointers
-		const char*operator[](int inx)
-		{
-			return (this->cRes && this->cRow[inx])?(this->cRow[inx]):("");
-		}
-		///////////////////////////////////////////////////////////////////////
-		// free result memory
-		void clear()
-		{
-			if (this->cRes)
-			{
-				mysql_free_result(this->cRes);
-				this->cRes=NULL;
-			}
-		}
-		///////////////////////////////////////////////////////////////////////
-		// close the database connection
-		void close()
-		{
-			this->clear();
-			if( this->cInit )
-			{
-				ShowMessage("Closing Database Server %s%u\n", cMySQL.mysqldb_ip, cMySQL.mysqldb_port);
-				mysql_close(&(this->cHandle));
-				this->cInit=false;
-			}
-		}
-	};
-	///////////////////////////////////////////////////////////////////////////
 protected:
-	// the pool of database handles
-	// will automatically create a many as necessary
-	TPool<DBConnection>	cDBPool;
-	// allow the database connection to read base internals
-	friend class DBConnection;
 
-	void example()
-	{	
-		// usage of the database pool:
+	///////////////////////////////////////////////////////////////////////////
+	static basics::CMySQL sqlbase;					///< sql handle and connection pool
+	///////////////////////////////////////////////////////////////////////////
+	static basics::CParam< basics::string<> > mysqldb_id;	///< username
+	static basics::CParam< basics::string<> > mysqldb_pw;	///< password
+	static basics::CParam< basics::string<> > mysqldb_db;	///< database
+	static basics::CParam< basics::string<> > mysqldb_ip;	///< server ip
+	static basics::CParam< ushort   >         mysqldb_port;	///< server port
+
+	///////////////////////////////////////////////////////////////////////////
+	// parameters
+	static basics::CParam< basics::string<> > tbl_login_log;
+	static basics::CParam< basics::string<> > tbl_char_log;
+	static basics::CParam< basics::string<> > tbl_map_log;
+
+	static basics::CParam< basics::string<> > tbl_login_status;
+	static basics::CParam< basics::string<> > tbl_char_status;
+	static basics::CParam< basics::string<> > tbl_map_status;
+
+	static basics::CParam< basics::string<> > tbl_account;
 	
-		// get a database object out of the pool:
-		CMySQL::DBConnection& db = this->cDBPool.aquire();
+	static basics::CParam< basics::string<> > tbl_char;
+	static basics::CParam< basics::string<> > tbl_memo;
+	static basics::CParam< basics::string<> > tbl_inventory;
+	static basics::CParam< basics::string<> > tbl_cart;
+	static basics::CParam< basics::string<> > tbl_skill;
+	static basics::CParam< basics::string<> > tbl_friends;
 
-		//do a query:
-		if( !db.ResultQuery("select * from `somewhere`") )
-			printf("some error");
+	static basics::CParam< basics::string<> > tbl_mail;
 
-		printf( "has found %lu results\n", (ulong)db.size());
+	static basics::CParam< basics::string<> > tbl_login_reg;
+	static basics::CParam< basics::string<> > tbl_login_reg2;
+	static basics::CParam< basics::string<> > tbl_char_reg;
+	static basics::CParam< basics::string<> > tbl_guild_reg;
+
+	static basics::CParam< basics::string<> > tbl_guild;
+	static basics::CParam< basics::string<> > tbl_guild_skill;
+	static basics::CParam< basics::string<> > tbl_guild_member;
+	static basics::CParam< basics::string<> > tbl_guild_position;
+	static basics::CParam< basics::string<> > tbl_guild_alliance;
+	static basics::CParam< basics::string<> > tbl_guild_expulsion;
+	
+	static basics::CParam< basics::string<> > tbl_castle;
+	static basics::CParam< basics::string<> > tbl_castle_guardian;
+	
+	static basics::CParam< basics::string<> > tbl_party;
+	
+	static basics::CParam< basics::string<> > tbl_storage;
+	
+	static basics::CParam< basics::string<> > tbl_guild_storage;
+	
+	static basics::CParam< basics::string<> > tbl_pet;
+
+	static basics::CParam<bool> wipe_sql;
+	static basics::CParam< basics::string<> > sql_engine;
+
+	static basics::CParam<bool> log_login;
+	static basics::CParam<bool> log_char;
+	static basics::CParam<bool> log_map;
+
+
+	static bool ParamCallback_Database_string(const basics::string<>& name, basics::string<>& newval, const basics::string<>& oldval);
+	static bool ParamCallback_Database_ushort(const basics::string<>& name, ushort& newval, const ushort& oldval);
+	static bool ParamCallback_Tables(const basics::string<>& name, basics::string<>& newval, const basics::string<>& oldval);
+
+
+	///////////////////////////////////////////////////////////////////////////
+	/// read number of rows from given table
+	size_t get_table_size(basics::string<> tbl_name) const
+	{
+		basics::CMySQLConnection dbcon1(this->sqlbase);
+		basics::string<> query;
+
+		query << "SELECT COUNT(*) "
+				 "FROM `" << dbcon1.escaped(tbl_name) << "` ";
 		
-		// the first result is automatically fetched on success
-		// so read it's cols
-		int      resi = atoi( db[0] );
-
-		// select the next row:
-		db++;
-
-		// put the database object back to the pool after queries beeing finished:
-		this->cDBPool.release(db);
-		
-		// !! dont work on released objects, when using manual aquire/release !!
-		// !! dont forget to to release an object when finished with it !!
-
-
-		// therefore:
-		// automatic aquire/release by using the TPoolObj:
-		// aquires on instantiation/releases on destruction
-		// TPoolObj behaves like a pointer to the database object
-		TPoolObj<CMySQL::DBConnection> dbobj(this->cDBPool);
-
-		//do a query:
-		if( !dbobj->ResultQuery("select * from `somewhere`") )
-			printf("some error");
-
-		if( dbobj->PureQuery("DROP TABLE IF EXISTS `something`") )
-			printf("ok");
-
-		printf( "has found %lu results\n", (ulong)dbobj->size());
-
-		// the first result is automatically fetched on success
-		// so read it's cols
-		string<> ress = (*dbobj)[1];
-		
-		// select the next row:
-		(*dbobj)++;
-
-
-		// going out of scope
-		// dbobj is destroyed and puts back the DBConnection to the pool
-
-
-		resi++;	// just to have annoying C4189 disabled
+		if( dbcon1.ResultQuery(query) )
+		{
+			return atol( dbcon1[0] );
+		}
+		return 0;
 	}
-
-
+	///////////////////////////////////////////////////////////////////////////
+	/// constructor.
+	/// initialize the database on the first run
+	CSQLParameter(const char* configfile)		
+	{
+		if(configfile) basics::CParamBase::loadFile(configfile);
+		static bool first=true;
+		if(first)
+		{
+			this->rebuild();
+			first = false;
+		}
+	}
 public:
-	CMySQL();
-	virtual ~CMySQL();
+	///////////////////////////////////////////////////////////////////////////
+	/// destructor
+	~CSQLParameter()	{}
 
-	//Some public var?
-	MYSQL_ROW row;
-
-	// string<> versions -> my versions =D
-	bool mysql_SendQuery(const string<> q); // Queries with no returns
-	bool mysql_SendQuery(MYSQL_RES*& sql_res, const string<> q); // queries with returns
-
-	// New style functions
-	// Will be easy to use for SQL type functions SQLite, ODBC, etc... all support the same
-	// results.
-
-	bool SendQuery(const string<> q);	// Do query
-	bool FetchResults();				// Fetch the rows
-	long CountResults();				// Show how many results came in
-	void FreeResults();					// Free results
-
-
-
-	// Old versions to removed at some point
-	bool mysql_SendQuery(MYSQL_RES*& sql_res, const char* q, size_t sz=0);	// Queries that are obtaining data
-	bool mysql_SendQuery(const char* q, size_t sz=0);						// Queries that are sending data
-
-
-	// Please be aware that I was drunk when i wrote what i need here, so if spelling errors are
-	// present, please yell at me and beat me with a stick == CLOWNISIUS
-
-	//Queries that wil be here will be for string<> or variants =D
-
-	// When creating a new instance of `query` must specify what connection
-	// ex:  query_sql query(MYSQL); where MYSQL is the connection created...
-	//
-	// This will create a string type that is the current MySQL conneciton
-	// this will be useful posibly in the multi threading of MySQL connection:
-	// ex: query_sql query(thread_id);
-
-	// this will limit a thread ID per mysql connection which can be created via:
-	// ex: CMySQL::connection(thread thread_id, const char * hostname, const char * user, const char * pass, int port);
-
-	// operators should be for + and << to append more data
-
-	// send();  sends the query, returns a MYSQL_RES for manipulation..
-	// count(); returns the number of rows returned
-	//
-	// fetch_row(); returns an array like below each time this is run, it goes to the next row, returns true if rows exist, false if empty
-	// result[n]; // array that send[] creates... returns a reference to it like MYSQL_RES does. similar to a vector
-	// size();  for length/size of query/string
-	// length(); for length/size of query/string
-	// clear(); does a mysql_free_result for send() when the query returns a result...
-
-	const char *escape_string(char *target, const char* source, size_t len);// Add excape strings to make it safer
-
-protected:
-	MYSQL mysqldb_handle;			// Connection ID
-
-	MYSQL_RES *result;
-
-	char mysqldb_ip[32];			// Server IP
-	unsigned short mysqldb_port;	// Server Port
-	char mysqldb_id[32];			// Username
-	char mysqldb_pw[32];			// Password
-	char mysqldb_db[32];			// Database to use
+	///////////////////////////////////////////////////////////////////////////
+	// rebuild the tables
+	static void rebuild();
 };
 
 
-
-class CAccountDB_sql : public CMySQL, private CConfig, public CAccountDBInterface
+///////////////////////////////////////////////////////////////////////////////
+//
+class CAccountDB_sql : public CAccountDBInterface, public CSQLParameter
 {
-protected:
-	///////////////////////////////////////////////////////////////////////////
-	// data
-
-	// table names
-	string<> login_auth_db;
-	string<> login_reg_db;
-	string<> login_log_db;
-	string<> login_status_db;
-
-	// options
-	bool case_sensitive;
-	bool log_login;
-
-	///////////////////////////////////////////////////////////////////////////
-	// data for alternative interface
-	CLoginAccount	cTempAccount;
-	Mutex			cMx;
-	MYSQL_RES*		cSqlRes;
-	MYSQL_ROW		cSqlRow;
-
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
-	CAccountDB_sql(const char* configfile);
-	virtual ~CAccountDB_sql() {	close(); }
+	CAccountDB_sql(const char* configfile=NULL) : CSQLParameter(configfile)
+	{
+		 this->init(configfile);
+	}
+	virtual ~CAccountDB_sql()
+	{
+		close();
+	}
+protected:
+	///////////////////////////////////////////////////////////////////////////
+	bool init(const char* configfile);
+	bool close();
 
+	bool sql2struct(const basics::string<>& querycondition, CLoginAccount& account);
+public:
 	///////////////////////////////////////////////////////////////////////////
 	// functions for db interface
-
-	//!! todo, add some functionality if needed
-//	virtual size_t size()	{ return 0; }
-//	virtual CLoginAccount& operator[](size_t i) { static CLoginAccount dummy; return dummy; }
+	virtual size_t size() const;
+	virtual CLoginAccount& operator[](size_t i);
 
 	virtual bool existAccount(const char* userid);
 	virtual bool searchAccount(const char* userid, CLoginAccount&account);
@@ -321,168 +154,28 @@ public:
 	virtual bool insertAccount(const char* userid, const char* passwd, unsigned char sex, const char* email, CLoginAccount&account);
 	virtual bool removeAccount(uint32 accid);
 	virtual bool saveAccount(const CLoginAccount& account);
+};
 
-
-	///////////////////////////////////////////////////////////////////////////
-	// alternative interface
-
-	///////////////////////////////////////////////////////////////////////////
-	// get exclusive access on the database
-	virtual bool aquire()
+class CCharDB_sql : public CCharDBInterface, public CSQLParameter
+{
+public:
+	CCharDB_sql(const char *dbcfgfile) : CSQLParameter(dbcfgfile)
 	{
-		release();	// just in case
-		cMx.lock();
-		return this->first();
+		init(dbcfgfile);
 	}
-	///////////////////////////////////////////////////////////////////////////
-	// return exclusive access
-	virtual bool release()
-	{
-		if(cSqlRes)
-		{
-			mysql_free_result(cSqlRes);
-			cSqlRes=NULL;
-		}
-		cMx.unlock();
-		return true;
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// set database reader to first entry
-	virtual bool first()
-	{
-		ScopeLock sl(cMx);
-		string<> query;
-
-		query << "SELECT `*` FROM `" << login_auth_db << "`";
-
-		if(cSqlRes)
-		{
-			mysql_free_result(cSqlRes);
-			cSqlRes=NULL;
-		}
-		if( this->mysql_SendQuery(cSqlRes, query.c_str(), query.length() ) )
-		{
-			if( mysql_num_rows(cSqlRes) > 0 )
-			{
-				return (*this)++;
-			}
-		}
-		return false;
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// check if current data position is valid
-	virtual operator bool()		{ ScopeLock sl(cMx); return (NULL!=cSqlRow); }
-	///////////////////////////////////////////////////////////////////////////
-	// go to the next data position
-	virtual bool operator++(int)
-	{
-		ScopeLock sl(cMx);
-		cSqlRow = mysql_fetch_row(cSqlRes);	//row fetching
-		if(cSqlRow)
-		{
-			cTempAccount.account_id	= cSqlRow[0]?atol(cSqlRow[0]):0;
-			safestrcpy(cTempAccount.userid, cSqlRow[1]?cSqlRow[1]:"", sizeof(cTempAccount.userid));
-			safestrcpy(cTempAccount.passwd, cSqlRow[2]?cSqlRow[2]:"", sizeof(cTempAccount.passwd));
-			cTempAccount.sex			= cSqlRow[3][0] == 'S' ? 2 : cSqlRow[3][0]=='M';
-			cTempAccount.gm_level	= cSqlRow[4]?atol(cSqlRow[4]):0;
-			cTempAccount.online		= cSqlRow[5]?atol(cSqlRow[5]):0;
-			safestrcpy(cTempAccount.email, cSqlRow[6]?cSqlRow[6]:"" , sizeof(cTempAccount.email));
-			cTempAccount.login_id1	= cSqlRow[7]?atol(cSqlRow[7]):0;
-			cTempAccount.login_id2	= cSqlRow[8]?atol(cSqlRow[8]):0;
-			cTempAccount.client_ip	= ipaddress(cSqlRow[9]);
-			safestrcpy(cTempAccount.last_login, cSqlRow[10]?cSqlRow[10]:"" , sizeof(cTempAccount.last_login));
-			cTempAccount.login_count	= cSqlRow[11]?atol(cSqlRow[11]):0;
-			cTempAccount.valid_until	= (time_t)(cSqlRow[12]?atol(cSqlRow[12]):0);
-			cTempAccount.ban_until	= (time_t)(cSqlRow[13]?atol(cSqlRow[13]):0);
-
-			// clear unused fields until they got removed from all implementations
-			cTempAccount.last_ip[0]=0;
-		}
-		return (cSqlRow!=NULL);
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// store the current data
-	virtual bool save()
-	{
-		ScopeLock sl(cMx);
-		return saveAccount(cTempAccount);
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// search data (limited functionality)
-	virtual bool find(const char* userid)
-	{
-		ScopeLock sl(cMx);
-		return searchAccount(userid, cTempAccount);
-	}
-	virtual bool find(uint32 accid)
-	{
-		ScopeLock sl(cMx);
-		return searchAccount(accid, cTempAccount);
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// access currently selected data
-	virtual CLoginAccount& operator()()
-	{
-		ScopeLock sl(cMx);
-		return cTempAccount;
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	// functions internal access
-private:
-	///////////////////////////////////////////////////////////////////////////
-	// Config processor
-	virtual bool ProcessConfig(const char*w1, const char*w2);
-
+	virtual ~CCharDB_sql()
+	{}
+protected:
 	///////////////////////////////////////////////////////////////////////////
 	// normal function
 	bool init(const char* configfile);
-	bool close();
-
-};
-
-class CCharDB_sql : public CMySQL, private CConfig, public CCharDBInterface
-{
-	///////////////////////////////////////////////////////////////////////////
-	// config stuff
-	// uint32 next_char_id;
-
-	string<> account_db;
-	string<> account_reg_db;
-	string<> char_db;
-	string<> friend_db;
-	string<> memo_db;
-	string<> cart_db;
-	string<> inventory_db;
-	string<> skill_db;
-	string<> char_reg_db;
-
-	string<> mail_db;
-
-	bool name_ignoring_case;
-	int char_name_option;
-	char char_name_letters[256];
-	uint32 start_zeny;
-	unsigned short start_weapon;
-	unsigned short start_armor;
-	struct point start_point;
-
-	size_t savecount;
-
-	///////////////////////////////////////////////////////////////////////////
-	// data
-//	TMultiListP<CCharCharacter, 2>	cCharList;
-//	TslistDCT<CCharCharAccount>		cAccountList;
-
-public:
-	CCharDB_sql(const char *dbcfgfile);
-	virtual ~CCharDB_sql();
+	bool close(){ return true; }
 
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()	{ return 0;/*cCharList.size();*/ }
-	virtual CCharCharacter& operator[](size_t i)	{ static CCharCharacter tmp; return tmp; /*cCharList[i];*/ }
+	virtual size_t size() const;
+	virtual CCharCharacter& operator[](size_t i);
 
 	virtual bool existChar(const char* name);
 	virtual bool existChar(uint32 char_id);
@@ -497,144 +190,26 @@ public:
 	virtual bool removeAccount(uint32 accid);
 
 
-	///////////////////////////////////////////////////////////////////////////
-	// Mail should be in its own class at some point, shouldnt be mixed in
-	// saving and loading of character info... no relation
-/*
-	//!! need rework
-	current fields in table 'mail'
-	------------------------------
-	message_id			// used as is
-	to_account_id		// used for target charid
-	to_char_name		// used as is, not necessary though
-	from_account_id		// used for sender charid
-	from_char_name		// used as is, not necessary though
-	message				// used as is
-	read_flag			// used as is
-	priority			// not used
-	check_flag			// not used
-
-	head				// missing
-*/
-
-	virtual size_t getUnreadCount(uint32 cid);
+	virtual size_t getMailCount(uint32 cid, uint32 &all, uint32 &unread);
 	virtual size_t listMail(uint32 cid, unsigned char box, unsigned char *buffer);
 	virtual bool readMail(uint32 cid, uint32 mid, CMail& mail);
 	virtual bool deleteMail(uint32 cid, uint32 mid);
-	virtual bool sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32& msgid, uint32& tid);
+	virtual bool sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32 zeny, const struct item& item, uint32& msgid, uint32& tid);
 
-
-
-
-	virtual size_t getMailCount(uint32, uint32&, uint32&){return 0;}
-	///////////////////////////////////////////////////////////////////////////
-	// alternative interface
-	virtual bool aquire()
-	{
-		return this->first();
-	}
-	virtual bool release()
-	{
-		return true;
-	}
-	virtual bool first()
-	{
-		return this->operator bool();
-	}
-	virtual operator bool()
-	{
-		return true;
-	}
-	virtual bool operator++(int)
-	{
-		return this->operator bool();
-	}
-	virtual bool save()
-	{
-		return true;
-	}
-
-	virtual bool find(const char* name)
-	{
-		// search in index 1
-		return existChar(name);
-
-	}
-	virtual bool find(uint32 char_id)
-	{
-		return existChar(char_id);
-	}
-	virtual CCharCharacter& operator()()
-	{
-		static CCharCharacter dummy;
-		return dummy;
-	}
-
-
-
-private:
-	///////////////////////////////////////////////////////////////////////////
-	// Config processor
-	virtual bool ProcessConfig(const char*w1, const char*w2);
-
-	///////////////////////////////////////////////////////////////////////////
-	// normal function
-	bool init(const char* configfile)
-	{	// init db
-		char_db = "char";
-		friend_db = "friends";
-		memo_db = "memo";
-		cart_db = "cart";
-		inventory_db = "inventory";
-		skill_db = "skill";
-		char_reg_db = "char_reg";
-
-		mail_db = "mail";
-
-		if(configfile)
-			CConfig::LoadConfig(configfile);
-		//return read_chars() && read_friends();
-		return true;
-	}
-	bool close()
-	{
-		//return save_chars() && save_friends();
-		return true;
-	}
+	virtual void loadfamelist();
 };
 
 
-
-
-class CGuildDB_sql : public CMySQL, private CConfig, public CGuildDBInterface
+///////////////////////////////////////////////////////////////////////////////
+//
+class CGuildDB_sql : public CGuildDBInterface, public CSQLParameter
 {
-
-
-	string<> guild_db;
-	string<> guild_member_db;
-	string<> guild_skill_db;
-	string<> guild_position_db;
-	string<> guild_alliance_db;
-	string<> guild_expulsion_db;
-
-	string<> char_db;
-
-	char castle_db[256];
-
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
-	CGuildDB_sql(const char *configfile)
+	CGuildDB_sql(const char *dbcfgfile) : CSQLParameter(dbcfgfile)
 	{
-		guild_db = "guild";
-		guild_member_db = "guild_member";
-		guild_skill_db = "guild_skill_db";
-		guild_position_db = "guild_position";
-		guild_alliance_db = "guild_alliance";
-		guild_expulsion_db = "guild_expulsion";
-		char_db = "char_db";
-
-		init(configfile);
+		this->init(dbcfgfile);
 	}
 	virtual ~CGuildDB_sql()
 	{
@@ -643,47 +218,175 @@ public:
 
 private:
 	///////////////////////////////////////////////////////////////////////////
-	// Config processor
-	virtual bool ProcessConfig(const char*w1, const char*w2)
-	{
-
-		return true;
-	}
-	///////////////////////////////////////////////////////////////////////////
 	// normal function
-	bool init(const char* configfile)
-	{	// init db
-		if(configfile)
-			CConfig::LoadConfig(configfile);
-		return false;
-	}
+	bool init(const char* configfile);
 	bool close()
 	{
-		//saveAllInMemory();
-		return false;
+		return true;
 	}
 
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()					{ return 0;/*cGuilds.size();*/ }
-	virtual CGuild& operator[](size_t i)	{ static CGuild tmp; return tmp; /*return cGuilds[i];*/ }
+	virtual size_t size() const;
+	virtual CGuild& operator[](size_t i);
 
-	virtual size_t castlesize()				{ return 0;/*cGuilds.size();*/ }
-	virtual CCastle &castle(size_t i)		{ static CCastle tmp; return tmp; }
+	virtual size_t castlesize() const;
+	virtual CCastle &castle(size_t i);
 
 
 	virtual bool searchGuild(const char* name, CGuild& guild);
-	virtual bool searchGuild(uint32 guildid, CGuild& guild);
+	virtual bool searchGuild(uint32 guildid, CGuild& guild); // TODO: Write
 	virtual bool insertGuild(const struct guild_member &member, const char *name, CGuild &g);
 	virtual bool removeGuild(uint32 guild_id);
 	virtual bool saveGuild(const CGuild& g);
 
-	virtual bool searchCastle(ushort castle_id, CCastle& castle);
-	virtual bool saveCastle(CCastle& castle);
+	virtual bool searchCastle(ushort castleid, CCastle& castle);
+	virtual bool saveCastle(const CCastle& castle);
 	virtual bool removeCastle(ushort castle_id);
+	
+	virtual bool getCastles(basics::vector<CCastle>& castlevector);
+	virtual uint32 has_conflict(uint32 guild_id, uint32 account_id, uint32 char_id);
+};
+
+///////////////////////////////////////////////////////////////////////////////
+//
+class CPartyDB_sql : public CPartyDBInterface, public CSQLParameter
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CPartyDB_sql(const char *dbcfgfile) : CSQLParameter(dbcfgfile)
+	{
+		init(dbcfgfile);
+	}
+
+	virtual ~CPartyDB_sql()
+	{
+		close();
+	}
+private:
+	///////////////////////////////////////////////////////////////////////////
+	// normal function
+	bool init(const char* configfile);
+	bool close()
+	{
+		return true;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size() const;
+	virtual CParty& operator[](size_t i);
+
+	virtual bool searchParty(const char* name, CParty& p);
+	virtual bool searchParty(uint32 pid, CParty& p);
+	virtual bool insertParty(uint32 accid, const char* nick, const char* mapname, ushort lv, const char* name, CParty& p);
+	virtual bool removeParty(uint32 pid);
+	virtual bool saveParty(const CParty& p);
 };
 
 
-#endif//!TXT_ONLY
+///////////////////////////////////////////////////////////////////////////////
+// Storage Database Interface
+class CPCStorageDB_sql : public CPCStorageDBInterface, public CSQLParameter
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CPCStorageDB_sql(const char *dbcfgfile) : CSQLParameter(dbcfgfile)
+	{
+		init(dbcfgfile);
+	}
+
+	~CPCStorageDB_sql()
+	{
+		close();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// normal function
+	bool init(const char* configfile);
+	bool close()
+	{
+		return true;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	size_t size() const;
+	CPCStorage& operator[](size_t i);
+
+	virtual bool searchStorage(uint32 accid, CPCStorage& stor);
+	virtual bool removeStorage(uint32 accid);
+	virtual bool saveStorage(const CPCStorage& stor);
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+//
+class CGuildStorageDB_sql : public CGuildStorageDBInterface, public CSQLParameter
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CGuildStorageDB_sql(const char *dbcfgfile) : CSQLParameter(dbcfgfile)
+	{
+		init(dbcfgfile);
+	};
+	virtual ~CGuildStorageDB_sql()
+	{
+		close();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	size_t size() const;
+	CGuildStorage& operator[](size_t i);
+
+	virtual bool searchStorage(uint32 gid, CGuildStorage& stor);
+	virtual bool removeStorage(uint32 gid);
+	virtual bool saveStorage(const CGuildStorage& stor);
+
+private:
+	///////////////////////////////////////////////////////////////////////////
+	// normal function
+	bool init(const char* configfile);
+	bool close()
+	{
+		return true;
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Pet Database Interface
+class CPetDB_sql : public CPetDBInterface, public CSQLParameter
+{
+public:
+	CPetDB_sql(const char *dbcfgfile) : CSQLParameter(dbcfgfile)
+	{
+		init(dbcfgfile);
+	}
+	virtual ~CPetDB_sql()
+	{
+		close();
+	}
+protected:
+	bool init(const char *dbcfgfile);
+	bool close()
+	{
+		return true;
+	}
+public:
+	virtual size_t size() const;
+	virtual CPet& operator[](size_t i);
+
+	virtual bool searchPet(uint32 pid, CPet& pet);
+	virtual bool insertPet(uint32 accid, uint32 cid, short pet_class, short pet_lv, short pet_egg_id, ushort pet_equip, short intimate, short hungry, char renameflag, char incuvat, char *pet_name, CPet& pet);
+	virtual bool removePet(uint32 pid);
+	virtual bool savePet(const CPet& pet);
+};
+
+
+#endif// defined(WITH_MYSQL)
+
 #endif //_SQL_H_

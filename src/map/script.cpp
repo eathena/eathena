@@ -3,7 +3,6 @@
 //#define DEBUG_DISP
 //#define DEBUG_RUN
 
-#include "base.h"
 #include "socket.h"
 #include "timer.h"
 #include "malloc.h"
@@ -589,7 +588,7 @@ CScript::CStringBuffer	CScript::cStrData;
 void CScript::CStringBuffer::loadBuildinFunc(void)
 {
 	size_t i,n;
-	for(i=0; buildin_func[i].func; i++)
+	for(i=0; buildin_func[i].func; ++i)
 	{
 		n=addString(buildin_func[i].name);
 		cStrData[n].type=CScriptEngine::C_FUNC;
@@ -604,7 +603,7 @@ void CScript::CStringBuffer::loadConstDB(void)
 	char name[1024];
 	int val,n,type;
 
-	fp=safefopen("db/const.txt","r");
+	fp=basics::safefopen("db/const.txt","r");
 	if(fp==NULL)
 	{
 		ShowError("can't read %s\n","db/const.txt");
@@ -619,7 +618,7 @@ void CScript::CStringBuffer::loadConstDB(void)
 			if( sscanf(line,"%[A-Za-z0-9_],%d,%d",name,&val,&type)>=2 ||
 				sscanf(line,"%[A-Za-z0-9_] %d %d",name,&val,&type)>=2 )
 			{
-				tolower(name);
+				basics::tolower(name);
 				n=addString(name);
 				if(type==0)
 					cStrData[n].type=CScriptEngine::C_INT;
@@ -634,13 +633,13 @@ void CScript::CStringBuffer::loadConstDB(void)
 void CScript::CStringBuffer::loadMapReg(void)
 {
 	char line[1024];
-	FILE *fp=safefopen(mapreg_txt,"rt");
+	FILE *fp=basics::safefopen(mapreg_txt,"rt");
 
 	if( fp )
 	{
 		while(fgets(line,sizeof(line),fp))
 		{
-			char buf1[256],buf2[1024],*p;
+			char buf1[256],buf2[1024];
 			int n,v,s,i;
 			if( sscanf(line,"%255[^,],%d\t%n",buf1,&i,&n)!=2 &&
 				(i=0,sscanf(line,"%[^\t]\t%n",buf1,&n)!=1) )
@@ -651,9 +650,10 @@ void CScript::CStringBuffer::loadMapReg(void)
 					ShowMessage("%s: %s broken data !\n",mapreg_txt,buf1);
 					continue;
 				}
-				p=(char *)aMalloc( (strlen(buf2) + 1)*sizeof(char));
-				strcpy(p,buf2);
 				s= addString(buf1);
+
+//				char* p = new char[1+strlen(buf2)];
+//				memcpy(p,buf2,1+strlen(buf2));
 //!!				numdb_insert(mapregstr_db,(i<<24)|s,p);
 			}
 			else
@@ -663,7 +663,7 @@ void CScript::CStringBuffer::loadMapReg(void)
 					ShowMessage("%s: %s broken data !\n",mapreg_txt,buf1);
 					continue;
 				}
-				s= addString( buf1);
+				s= addString(buf1);
 //!!				numdb_insert(mapreg_db,(i<<24)|s,v);
 			}
 		}
@@ -692,7 +692,7 @@ void CScript::CStringBuffer::init()
 	cStrData[LABEL_NEXTLINE].type = CScriptEngine::C_NOP;
 	cStrData[LABEL_NEXTLINE].backpatch = -1;
 	cStrData[LABEL_NEXTLINE].label = -1;
-	for(i=LABEL_START; i<cStrData.size(); i++)
+	for(i=LABEL_START; i<cStrData.size(); ++i)
 	{
 		if( cStrData[i].type==CScriptEngine::C_POS || cStrData[i].type==CScriptEngine::C_NAME )
 		{
@@ -734,7 +734,7 @@ int CScript::CStringBuffer::searchString(const char *p)
 	return -1;
 }
 
-int CScript::CStringBuffer::addString(const MiniString& str)
+int CScript::CStringBuffer::addString(const basics::string<>& str)
 {
 	// try a case-insensitive search
 	int i=searchString(str);
@@ -1013,7 +1013,7 @@ bool CParser::parseSimpleExpr(const char *&p)
 				ErrorMessage("unexpected character", p);
 				return false;
 			}
-			l=cStrData.addString( MiniString(p, p2-p) );
+			l=cStrData.addString( basics::string<>(p, p2-p) );
 			p=p2;
 
 			cParseCommand=l;	// warn_*_mismatch_paramnumのために必要
@@ -1068,7 +1068,7 @@ bool CParser::parseSubExpr(const char *&p, int limit)
 	if((op=CScriptEngine::C_NEG,*p=='-') || (op=CScriptEngine::C_LNOT,*p=='!') || (op=CScriptEngine::C_NOT,*p=='~'))
 	{
 		p++;
-		parseSubExpr(p,100);
+		parseSubExpr(p,8);
 		appendCommand(op);
 	}
 	else
@@ -1080,7 +1080,7 @@ bool CParser::parseSubExpr(const char *&p, int limit)
 		   (op=CScriptEngine::C_MUL,opl=7,len=1,*p=='*') ||
 		   (op=CScriptEngine::C_DIV,opl=7,len=1,*p=='/') ||
 		   (op=CScriptEngine::C_MOD,opl=7,len=1,*p=='%') ||
-		   (op=CScriptEngine::C_FUNC,opl=8,len=1,*p=='(') ||
+		   (op=CScriptEngine::C_FUNC,opl=9,len=1,*p=='(') ||
 		   (op=CScriptEngine::C_LAND,opl=1,len=2,*p=='&' && p[1]=='&') ||
 		   (op=CScriptEngine::C_AND,opl=5,len=1,*p=='&') ||
 		   (op=CScriptEngine::C_LOR,opl=0,len=2,*p=='|' && p[1]=='|') ||
@@ -1136,7 +1136,7 @@ bool CParser::parseSubExpr(const char *&p, int limit)
 			{
 				const char *arg = buildin_func[cStrData[func].val].arg;
 				int j = 0;
-				for (; arg[j]; j++) if (arg[j] == '*') break;
+				for (; arg[j]; ++j) if (arg[j] == '*') break;
 				if (!(i <= 1 && j == 0) && ((arg[j] == 0 && i != j) || (arg[j] == '*' && i < j))) {
 					ErrorMessage("illegal number of parameters",plist[(i<j)?i:j]);
 				}
@@ -1235,7 +1235,7 @@ bool CParser::parseLine(const char *&p)
 	{
 		const char *arg=buildin_func[cStrData[cmd].val].arg;
 		size_t j;
-		for(j=0; arg[j]; j++) if(arg[j]=='*') break;
+		for(j=0; arg[j]; ++j) if(arg[j]=='*') break;
 		if( (arg[j]==0 && i!=j) || (arg[j]=='*' && i<j) )
 		{
 			ErrorMessage("illegal number of parameters", plist[(i<j)?i:j]);
@@ -1291,7 +1291,7 @@ CScript CParser::parseScript(const char *name, const char *src, size_t line)
 			skipSpaceComment(tmpp);
 			if(*tmpp==':')
 			{	// a label
-				int label = cStrData.addString( MiniString(p, cp-p) );
+				int label = cStrData.addString( basics::string<>(p, cp-p) );
 				if( cStrData[label].label != -1)
 				{
 					ErrorMessage("duplicated label", p);
@@ -1319,7 +1319,7 @@ CScript CParser::parseScript(const char *name, const char *src, size_t line)
 		
 		// fill in targets of unprocessed strings,
 		// they are used as variable names now
-		for(i=LABEL_START; i<cStrData.size(); i++)
+		for(i=LABEL_START; i<cStrData.size(); ++i)
 		{
 			if (cStrData[i].type == CScriptEngine::C_NOP)
 			{
@@ -1352,7 +1352,7 @@ CScript CParser::parseScript(const char *name, const char *src, size_t line)
 // Script implementation
 ///////////////////////////////////////////////////////////////////////////////
 
-void CScript::init(const MiniString& name)
+void CScript::init(const basics::string<>& name)
 {
 	// start a new script
 	this->cScript.make_unique();
@@ -1541,14 +1541,11 @@ int add_str(const char *p)
 
 	if(str_num>=str_data_size)
 	{
-		str_data_size+=128;
-		str_data=(struct s_str_data*)aRealloc(str_data,str_data_size*sizeof(struct s_str_data));
-		memset(str_data + (str_data_size - 128), 0, 128*sizeof(struct s_str_data));
+		str_data_size = new_realloc(str_data, str_data_size, 128);
 	}
-	while(str_pos+strlen(p)+1>=str_size){
-		str_size+=256;
-		str_buf=(char *)aRealloc(str_buf,str_size*sizeof(char));
-		memset(str_buf + (str_size - 256), 0, 256*sizeof(char));
+	while(str_pos+strlen(p)+1>=str_size)
+	{
+		str_size = new_realloc(str_buf, str_size, 256);
 	}
 	memcpy(str_buf+str_pos,p,strlen(p)+1);
 
@@ -1571,9 +1568,7 @@ void check_script_buf(int size)
 {
 	if(script_pos+size>=script_size)
 	{
-		script_size+=SCRIPT_BLOCK_SIZE;
-		script_buf=(char *)aRealloc(script_buf,script_size*sizeof(char));
-		memset(script_buf + (script_size - SCRIPT_BLOCK_SIZE), 0, SCRIPT_BLOCK_SIZE*sizeof(char));
+		script_size = new_realloc(script_buf,script_size,SCRIPT_BLOCK_SIZE);
 	}
 }
 
@@ -1803,7 +1798,7 @@ void disp_error_message(const char *mes,const char *pos)
 	int line,c=0,i,on=0;
 	char *p,*linestart,*lineend;
 
-	for(line=startline,p=startptr;p && *p;line++){
+	for(line=startline,p=startptr;p && *p;++line){
 		linestart=p;
 		lineend=strchr(p,'\n');
 		if(lineend){
@@ -1812,7 +1807,7 @@ void disp_error_message(const char *mes,const char *pos)
 		}
 		if(lineend==NULL || pos<lineend){
 			ShowMessage("\n%s line "CL_WHITE"\'%d\'"CL_RESET" :\n", mes, line);
-			for(i=0;(linestart[i]!='\r') && (linestart[i]!='\n') && linestart[i];i++)
+			for(i=0;(linestart[i]!='\r') && (linestart[i]!='\n') && linestart[i];++i)
 			{
 				if(linestart+i==pos)
 				{
@@ -1961,7 +1956,7 @@ char* parse_subexpr(char *p,int limit)
 	tmpp = p;
 	if((op=CScriptEngine::C_NEG,*p=='-') || (op=CScriptEngine::C_LNOT,*p=='!') || (op=CScriptEngine::C_NOT,*p=='~'))
 	{
-		p=parse_subexpr(p+1,100);
+		p=parse_subexpr(p+1,8);
 		add_scriptc(op);
 	}
 	else
@@ -1972,7 +1967,7 @@ char* parse_subexpr(char *p,int limit)
 		   (op=CScriptEngine::C_MUL,opl=7,len=1,*p=='*') ||
 		   (op=CScriptEngine::C_DIV,opl=7,len=1,*p=='/') ||
 		   (op=CScriptEngine::C_MOD,opl=7,len=1,*p=='%') ||
-		   (op=CScriptEngine::C_FUNC,opl=8,len=1,*p=='(') ||
+		   (op=CScriptEngine::C_FUNC,opl=9,len=1,*p=='(') ||
 		   (op=CScriptEngine::C_LAND,opl=1,len=2,*p=='&' && p[1]=='&') ||
 		   (op=CScriptEngine::C_AND,opl=5,len=1,*p=='&') ||
 		   (op=CScriptEngine::C_LOR,opl=0,len=2,*p=='|' && p[1]=='|') ||
@@ -2017,7 +2012,7 @@ char* parse_subexpr(char *p,int limit)
 			if (str_data[func].type == CScriptEngine::C_FUNC && script_config.warn_func_mismatch_paramnum) {
 				const char *arg = buildin_func[str_data[func].val].arg;
 				int j = 0;
-				for (; arg[j]; j++) if (arg[j] == '*') break;
+				for (; arg[j]; ++j) if (arg[j] == '*') break;
 				if (!(i <= 1 && j == 0) && ((arg[j] == 0 && i != j) || (arg[j] == '*' && i < j))) {
 					disp_error_message("illegal number of parameters",plist[(i<j)?i:j]);
 				}
@@ -2110,7 +2105,7 @@ char* parse_line(char *p)
 	if( str_data[cmd].type==CScriptEngine::C_FUNC && script_config.warn_cmd_mismatch_paramnum){
 		const char *arg=buildin_func[str_data[cmd].val].arg;
 		int j=0;
-		for(j=0;arg[j];j++) if(arg[j]=='*')break;
+		for(j=0;arg[j];++j) if(arg[j]=='*')break;
 		if( (arg[j]==0 && i!=j) || (arg[j]=='*' && i<j) ){
 			disp_error_message("illegal number of parameters",plist[(i<j)?i:j]);
 		}
@@ -2127,7 +2122,7 @@ char* parse_line(char *p)
 void add_buildin_func(void)
 {
 	int i,n;
-	for(i=0;buildin_func[i].func;i++){
+	for(i=0;buildin_func[i].func;++i){
 		n=add_str(buildin_func[i].name);
 		str_data[n].type=CScriptEngine::C_FUNC;
 		str_data[n].val=i;
@@ -2146,7 +2141,7 @@ void read_constdb(void)
 	char name[1024];
 	int val,n,type;
 
-	fp=safefopen("db/const.txt","r");
+	fp=basics::safefopen("db/const.txt","r");
 	if(fp==NULL){
 		ShowError("can't read %s\n","db/const.txt");
 		return ;
@@ -2158,7 +2153,7 @@ void read_constdb(void)
 		if(sscanf(line,"%[A-Za-z0-9_],%d,%d",name,&val,&type)>=2 ||
 		   sscanf(line,"%[A-Za-z0-9_] %d %d",name,&val,&type)>=2)
 		{
-			tolower(name);
+			basics::tolower(name);
 			n=add_str(name);
 			if(type==0)
 				str_data[n].type=CScriptEngine::C_INT;
@@ -2222,15 +2217,16 @@ char* parse_script(unsigned char *src, size_t line)
 	//////////////////////////////////////////////
 
 
-	if(script_buf) aFree(script_buf);
-	script_buf=(char *)aCalloc(SCRIPT_BLOCK_SIZE,sizeof(char));
+	if(script_buf) delete[] script_buf;
+	script_buf = new char[SCRIPT_BLOCK_SIZE];
+	memset(script_buf,0,sizeof(char)*SCRIPT_BLOCK_SIZE);
 
 	script_pos = 0;
 	script_size = SCRIPT_BLOCK_SIZE;
 	str_data[LABEL_NEXTLINE].type = CScriptEngine::C_NOP;
 	str_data[LABEL_NEXTLINE].backpatch = -1;
 	str_data[LABEL_NEXTLINE].label = -1;
-	for (i = LABEL_START; i < str_num; i++) {
+	for (i = LABEL_START; i < str_num; ++i) {
 		if (str_data[i].type == CScriptEngine::C_POS || str_data[i].type == CScriptEngine::C_NAME) {
 			str_data[i].type = CScriptEngine::C_NOP;
 			str_data[i].backpatch = -1;
@@ -2283,10 +2279,14 @@ char* parse_script(unsigned char *src, size_t line)
 
 	add_scriptc(CScriptEngine::C_NOP);
 	script_size = script_pos;
-	script_buf=(char*)aRealloc(script_buf,(script_pos + 1)*sizeof(char));
+
+	char* tmp=new char[1+script_pos];
+	memcpy(tmp,script_buf,1+script_pos);
+	delete[] script_buf;
+	script_buf = tmp;
 
 	// 未解決のラベルを解決
-	for (i = LABEL_START; i < str_num; i++) {
+	for (i = LABEL_START; i < str_num; ++i) {
 		if (str_data[i].type == CScriptEngine::C_NOP) {
 			int j, next;
 			str_data[i].type = CScriptEngine::C_NAME;
@@ -2306,7 +2306,7 @@ char* parse_script(unsigned char *src, size_t line)
 	}
 
 #ifdef DEBUG_DISP
-	for (i = 0; i < script_pos; i++) {
+	for (i = 0; i < script_pos; ++i) {
 		if((i&15)==0) ShowMessage("%04x : ",i);
 		ShowMessage("%02x ", 0xFF&script_buf[i]);
 		if((i&15)==15) ShowMessage("\n");
@@ -2322,7 +2322,7 @@ char* parse_script(unsigned char *src, size_t line)
 		CScript scr = parser.parseScript("",(char*)src,startline);
 
 		size_t i, err=0;
-		for(i=0;i<scr.size(); i++)
+		for(i=0;i<scr.size(); ++i)
 		{
 			if((unsigned char)script_buf[i] != scr[i])
 			{
@@ -2334,7 +2334,7 @@ char* parse_script(unsigned char *src, size_t line)
 		{
 			ShowMessage("\n");
 			err = min(scr.size(),(size_t)26);
-			for(i=0;i<err; i++)
+			for(i=0;i<err; ++i)
 			{
 				if((unsigned char)script_buf[i] != scr[i])
 				ShowMessage(CL_BT_RED"%2X "CL_RESET, (unsigned char)script_buf[i]);
@@ -2342,7 +2342,7 @@ char* parse_script(unsigned char *src, size_t line)
 				ShowMessage("%2X ", (unsigned char)script_buf[i]);
 			}
 			ShowMessage("\n");
-			for(i=0;i<err; i++)
+			for(i=0;i<err; ++i)
 			{
 				if((unsigned char)script_buf[i] != scr[i])
 				ShowMessage(CL_BT_RED"%2X "CL_RESET, scr[i]);
@@ -2389,7 +2389,7 @@ int set_var(const char *name, void *v)
 			}
 			else
 			{
-				mapreg_setregnum(num,(ssize_t)v);
+				mapreg_setregnum(num,(ssize_t)((size_t)v));
 			}
 		}
 		else
@@ -2414,7 +2414,7 @@ int set_var(struct map_session_data &sd, const char *name, void *v)
 			}
 			else
 			{
-				pc_setreg(sd,num,(ssize_t)v);
+				pc_setreg(sd,num,(ssize_t)((size_t)v));
 			}
 		}
 		else
@@ -2456,7 +2456,7 @@ int set_reg(CScriptEngine &st,int num,const char *name, void *v)
 		}
 		else 
 		{	// 数値
-			int val = (ssize_t)v;
+			int val = (ssize_t)((size_t)v);
 			if(str_data[num&0x00ffffff].type==CScriptEngine::C_PARAM)
 			{
 				if(st.sd)
@@ -2546,18 +2546,16 @@ v18 xxxx-xx-xx	text & input ok
 	{	// a npc is only necessary in combination with a sd
 		static struct npc_data defnpc;
 		static bool needinit = true;
-		static Mutex mx;
-		ScopeLock sl(mx);	// lock the scope
 
 		if(needinit)	//!! integrate to a default constructor
 		{	// and initialize
 			needinit = false;
 
-			defnpc.bl.id = this->defoid;
-			defnpc.bl.type = BL_NPC;
-			defnpc.bl.subtype = 0;
-			defnpc.bl.prev = defnpc.bl.next = NULL;
-			defnpc.bl.id = defoid;
+			defnpc.block_list::id = this->defoid;
+			defnpc.block_list::type = BL_NPC;
+			defnpc.block_list::subtype = 0;
+			defnpc.block_list::prev = defnpc.block_list::next = NULL;
+			defnpc.block_list::id = defoid;
 			defnpc.dir = 0;
 			defnpc.flag = 0;
 			defnpc.class_ = 111; // hidden npc
@@ -2587,17 +2585,21 @@ v18 xxxx-xx-xx	text & input ok
 					this->npcstate = NPC_GIVEN;
 				}
 				else
-				{	// the targeted npc is not real or out of sight
+				{	
+					static basics::Mutex mx;
+					basics::ScopeLock sl(mx);	// lock the scope
+
+					// the targeted npc is not real or out of sight
 					// send a new one to the client
 					this->npcstate = NPC_DEFAULT;
 
 					// set current player position
-					defnpc.bl.m = this->sd->bl.m;
-					defnpc.bl.x = this->sd->bl.x;
-					defnpc.bl.y = this->sd->bl.y;
+					defnpc.block_list::m = this->sd->block_list::m;
+					defnpc.block_list::x = this->sd->block_list::x;
+					defnpc.block_list::y = this->sd->block_list::y;
 					// spawn only on it's own client
 					clif_spawnnpc(*this->sd, defnpc);
-//printf("send default npc (%i,%i,%i) ", defnpc.bl.m, defnpc.bl.x, defnpc.bl.y);
+//printf("send default npc (%i,%i,%i) ", defnpc.block_list::m, defnpc.block_list::x, defnpc.block_list::y);
 
 					// tell the engine to refer the default npc
 					ret = this->defoid;
@@ -2611,7 +2613,7 @@ v18 xxxx-xx-xx	text & input ok
 		else
 		{
 			if( NPC_DEFAULT==this->npcstate )
-				clif_clearchar(*(this->sd), defnpc.bl);
+				clif_clearchar(*(this->sd), defnpc);
 			this->npcstate = NONE;
 //printf("npc clearing ");
 		}
@@ -2711,18 +2713,17 @@ const char* CScriptEngine::GetString(CScriptEngine::CValue &data)
 	ConvertName(data);
 	if(data.type==CScriptEngine::C_INT)
 	{
-		char *buf;
-		buf=(char *)aMalloc(24*sizeof(char));
-		snprintf(buf,24,"%d",data.num);
-		data.type=CScriptEngine::C_STR;
-		data.str=buf;
+		char*tmp = new char[24];
+		snprintf(tmp,24,"%d",data.num);
+		data.type= CScriptEngine::C_STR;
+		data.str = tmp;
 	}
 	else if(data.type==CScriptEngine::C_NAME)
 	{	// テンポラリ。本来無いはず
 		data.type=CScriptEngine::C_CONSTSTR;
 		data.str=str_buf+str_data[data.num].str;
 	}
-	return data.str;
+	return (data.str)?data.str:"";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2788,8 +2789,12 @@ void CScriptEngine::push_copy(size_t pos)
 		push_str(CScriptEngine::C_CONSTSTR,stack_data[pos].str);
 		break;
 	case CScriptEngine::C_STR:
-		push_str(CScriptEngine::C_STR, aStrdup(stack_data[pos].str));
+	{
+		char *str = new char[1+strlen(stack_data[pos].str)];
+		memcpy(str, stack_data[pos].str, 1+strlen(stack_data[pos].str));
+		push_str(CScriptEngine::C_STR, str);
 		break;
+	}
 	default:
 		push_val(stack_data[pos].type,stack_data[pos].num);
 		break;
@@ -2807,7 +2812,7 @@ void CScriptEngine::pop_stack(size_t start, size_t end)
 		if(end>stack_ptr)
 			end = stack_ptr;
 		// move the values behind 'end' to 'start'
-		for(i=start,k=end; k<stack_ptr; i++,k++)
+		for(i=start,k=end; k<stack_ptr; ++i,++k)
 			stack_data[i] << stack_data[k];
 		// reduce the stack pointer
 		stack_ptr -= end-start;
@@ -2833,8 +2838,8 @@ void CScriptEngine::op_2str(int op)
 	{
 	case C_AND:
 	case C_ADD:
-		buf=(char *)aMalloc((1+strlen(stack_data[stack_ptr-1].str)+
-							   strlen(stack_data[stack_ptr  ].str)) * sizeof(char));
+		buf=new char[ 1+strlen(stack_data[stack_ptr-1].str)+
+			            strlen(stack_data[stack_ptr  ].str) ];
 		strcpy(buf,stack_data[stack_ptr-1].str);
 		strcat(buf,stack_data[stack_ptr].str);
 		break;
@@ -3031,7 +3036,7 @@ int CScriptEngine::run_func()
 	if(battle_config.etc_log) {
 		ShowMessage("run_func : %s? (%d(%d))\n",str_buf+str_data[func].str,func,str_data[func].type);
 		ShowMessage("stack dump :");
-		for(i=0;i<end_sp;i++){
+		for(i=0;i<end_sp;++i){
 			switch(stack_data[i].type){
 			case C_INT:
 				ShowMessage("| int(%d)", stack_data[i].num);
@@ -3126,7 +3131,7 @@ int CScriptEngine::run_main()
 						struct npc_data* nd = (struct npc_data*)map_id2bl(this->oid);
 						if(nd)
 						{
-							printf("npc script '%s'/'%s' , map %s, ", nd->name?nd->name:"", nd->exname?nd->exname:"", maps[nd->bl.m].mapname);
+							printf("npc script '%s'/'%s' , map %s, ", nd->name?nd->name:"", nd->exname?nd->exname:"", maps[nd->block_list::m].mapname);
 						}
 						else
 						{
@@ -3248,7 +3253,7 @@ int CScriptEngine::run(const char *rootscript, size_t pos, uint32 rid, uint32 oi
 	static CScriptEngine defaultengine;	
 	//!! change to nonstatic and give attention to attachrid on a multithread scheme
 
-	static Mutex mx;
+	static basics::Mutex mx;
 	if( rootscript )
 	{	// threadlock
 		mx.lock();
@@ -3285,7 +3290,7 @@ int CScriptEngine::run(const char *rootscript, size_t pos, uint32 rid, uint32 oi
 
 			if( ENVSWAP==engine.state && engine.sd )
 			{	// attach_rid has been called and we need to swap the engine environment
-				// local sd is the contest where the script was started in (possibly NULL)
+				// local sd is the context where the script was started in (possibly NULL)
 				// engine.sd is the context where the script is transfered to
 				if(engine.sd->ScriptEngine.isRunning() )
 				{	// the other script engine is either running or waiting for data
@@ -3307,9 +3312,9 @@ int CScriptEngine::run(const char *rootscript, size_t pos, uint32 rid, uint32 oi
 
 //ShowWarning("Swap Environment for %p %i %i %i\n", rootscript, pos, rid, oid);
 					// swap the stack with the target
-					swap(engine.sd->ScriptEngine.stack_max,	engine.stack_max);
-					swap(engine.sd->ScriptEngine.stack_ptr,	engine.stack_ptr);
-					swap(engine.sd->ScriptEngine.stack_data,engine.stack_data);
+					basics::swap(engine.sd->ScriptEngine.stack_max,	engine.stack_max);
+					basics::swap(engine.sd->ScriptEngine.stack_ptr,	engine.stack_ptr);
+					basics::swap(engine.sd->ScriptEngine.stack_data,engine.stack_data);
 
 					// copy the run parameter
 					engine.sd->ScriptEngine.script = engine.script;
@@ -3489,17 +3494,20 @@ int buildin_menu(CScriptEngine &st)
 			for(i=st.start+2,len=16;i<st.end;i+=2)
 			{
 				c=strlen( st.GetString(st.stack_data[i]) );
-				len+=1+(c?c:1);
+				if(c) len+=1+c;
 			}
-			buf=(char *)aMalloc((len+1)*sizeof(char));
+			buf= new char[len+1];
 			buf[0]=0;
 			for(i=st.start+2,len=0;i<st.end;i+=2)
 			{
-				strcat(buf, *st.stack_data[i].str?st.stack_data[i].str:" ");
-				strcat(buf,":");
+				if( st.stack_data[i].str && *st.stack_data[i].str )
+				{
+					strcat(buf, st.stack_data[i].str);
+					strcat(buf,":");
+				}
 			}
 			clif_scriptmenu(*st.sd, st.send_defaultnpc(), buf);
-			aFree(buf);
+			delete[] buf;
 		}
 		else
 		{
@@ -3544,20 +3552,23 @@ int buildin_select(CScriptEngine &st)
 		{
 			char *buf;
 			size_t len,i,c;
-			for(i=st.start+2,len=16;i<st.end;i++)
+			for(i=st.start+2,len=16;i<st.end;++i)
 			{	
 				c = strlen( st.GetString(st.stack_data[i]) );
-				len+=1+(c?c:1);
+				if(c) len+=1+c;
 			}
-			buf=(char *)aMalloc((len+1)*sizeof(char));
+			buf = new char[len+1];
 			buf[0]=0;
-			for(i=st.start+2,len=0;i<st.end;i++)
+			for(i=st.start+2,len=0;i<st.end;++i)
 			{
-				strcat(buf,*st.stack_data[i].str?st.stack_data[i].str:" ");
-				strcat(buf,":");
+				if( st.stack_data[i].str && *st.stack_data[i].str )
+				{
+					strcat(buf, st.stack_data[i].str);
+					strcat(buf,":");
+				}
 			}
 			clif_scriptmenu(*st.sd, st.send_defaultnpc(), buf);
-			aFree(buf);
+			delete[] buf;
 		}
 		else
 		{
@@ -3679,7 +3690,7 @@ int buildin_callfunc(CScriptEngine &st)
 	if( (scr=(char *) strdb_search(script_get_userfunc_db(),str)) )
 	{
 		size_t i,j;
-		for(i=st.start+3,j=0; i<st.end; i++,j++)
+		for(i=st.start+3,j=0; i<st.end; ++i,++j)
 			st.push_copy(i);
 
 		st.push_val(CScriptEngine::C_INT,j);				// 引数の数をプッシュ
@@ -3707,7 +3718,7 @@ int buildin_callsub(CScriptEngine &st)
 {
 	int pos=st.GetInt(st[2]);
 	size_t i,j;
-	for(i=st.start+3,j=0;i<st.end;i++,j++)
+	for(i=st.start+3,j=0;i<st.end;++i,++j)
 		st.push_copy(i);
 
 	st.push_val(CScriptEngine::C_INT,j);				// 引数の数をプッシュ
@@ -3828,7 +3839,7 @@ int buildin_if(CScriptEngine &st)
 	// 間に引数マーカを入れて
 	st.push_val(CScriptEngine::C_ARG,0);
 	// 残りの引数をコピー
-	for(i=st.start+4;i<st.end;i++){
+	for(i=st.start+4;i<st.end;++i){
 		st.push_copy(i);
 	}
 	st.run_func();
@@ -3872,7 +3883,7 @@ int buildin_rand(CScriptEngine &st)
 		int max;
 		min = st.GetInt(st[2]);
 		max = st.GetInt(st[3]);
-		if(min>max)	swap(max, min);
+		if(min>max)	basics::swap(max, min);
 		range = max - min;
 	}
 	else
@@ -3941,7 +3952,7 @@ int buildin_setarray(CScriptEngine &st)
 		}
 		else
 		{
-			for(j=0,i=st.start+3; i<st.end && j<128;i++,j++){
+			for(j=0,i=st.start+3; i<st.end && j<128;++i,++j){
 				void *v;
 				if( postfix=='$' )
 					v=(void*)st.GetString(st.stack_data[i]);
@@ -3980,7 +3991,7 @@ int buildin_cleararray(CScriptEngine &st)
 			else
 				v=(void*)((size_t)st.GetInt(st[3]));
 
-			for(i=0;i<sz;i++)
+			for(i=0;i<sz;++i)
 				set_reg(st,num+(i<<24),name,v);
 		}
 	}
@@ -4015,7 +4026,7 @@ int buildin_copyarray(CScriptEngine &st)
 		}
 		else
 		{
-			for(i=0;i<sz;i++)
+			for(i=0;i<sz;++i)
 				set_reg(st,num+(i<<24),name, get_val2(st,num2+(i<<24)) );
 		}
 	}
@@ -4028,7 +4039,7 @@ int buildin_copyarray(CScriptEngine &st)
 int getarraysize(CScriptEngine &st,int num,int postfix)
 {
 	int i=(num>>24),c=i;
-	for(;i<128;i++){
+	for(;i<128;++i){
 		void *v=get_val2(st,num+(i<<24));
 		if(postfix=='$' && *((char*)v) ) c=i;
 		if(postfix!='$' && (size_t)v )c=i;
@@ -4080,10 +4091,10 @@ int buildin_deletearray(CScriptEngine &st)
 		}
 		else
 		{
-			for(i=0;i<sz;i++){
+			for(i=0;i<sz;++i){
 				set_reg(st,num+(i<<24),name, get_val2(st,num+((i+count)<<24) ) );
 			}
-			for(;i<(128-(num>>24));i++){
+			for(;i<(128-(num>>24));++i){
 				if( postfix!='$' ) set_reg(st,num+(i<<24),name, 0);
 				if( postfix=='$' ) set_reg(st,num+(i<<24),name, (void *) "");
 			}
@@ -4140,12 +4151,12 @@ int buildin_warp(CScriptEngine &st)
 	}
 	else if( 0==strcmp(str,"SavePoint") )
 	{
-		if( !maps[st.sd->bl.m].flag.noreturn )	// 蝶禁止
+		if( !maps[st.sd->block_list::m].flag.noreturn )	// 蝶禁止
 			pc_setpos(*st.sd,st.sd->status.save_point.mapname,st.sd->status.save_point.x,st.sd->status.save_point.y,3);
 	}
 	else if( 0==strcmp(str,"Save") )
 	{
-		if( !maps[st.sd->bl.m].flag.noreturn )	// 蝶禁止
+		if( !maps[st.sd->block_list::m].flag.noreturn )	// 蝶禁止
 			pc_setpos(*st.sd,st.sd->status.save_point.mapname,st.sd->status.save_point.x,st.sd->status.save_point.y,3);
 	}
 	else
@@ -4376,7 +4387,7 @@ int buildin_countitem(CScriptEngine &st)
 		
 		if(nameid>=500 && nameid<MAX_ITEMS)
 		{
-			for(i=0;i<MAX_INVENTORY;i++)
+			for(i=0;i<MAX_INVENTORY;++i)
 			{
 				if(st.sd->status.inventory[i].nameid==nameid)
 					count+=st.sd->status.inventory[i].amount;
@@ -4477,7 +4488,7 @@ int buildin_getitem(CScriptEngine &st)
 			clif_additem(*sd,0,0,flag);
 			// create it on floor if dropable, let it vanish otherwise
 			if( itemdb_isdropable(nameid, pc_isGM(*sd)) )
-				map_addflooritem(item_tmp,amount,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
+				map_addflooritem(item_tmp,amount,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
 		}
 	}
 
@@ -4556,7 +4567,7 @@ int buildin_getitem2(CScriptEngine &st)
 		item_tmp.card[3]=c4;
 		if((flag = pc_additem(*sd,item_tmp,amount))) {
 			clif_additem(*sd,0,0,flag);
-			map_addflooritem(item_tmp,amount,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
+			map_addflooritem(item_tmp,amount,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
 		}
 	}
 
@@ -4671,7 +4682,7 @@ int buildin_makeitem(CScriptEngine &st)
 	y	=st.GetInt(st[6]);
 
 	if( st.sd && strcmp(mapname,"this")==0)
-		m=st.sd->bl.m;
+		m=st.sd->block_list::m;
 	else
 		m=map_mapname2mapid(mapname);
 
@@ -4721,7 +4732,7 @@ int buildin_delitem(CScriptEngine &st)
 		
 		//1st pass
 		//here we won't delete items with CARDS, named items but we count them
-		for(i=0;i<MAX_INVENTORY && amount>0; i++)
+		for(i=0;i<MAX_INVENTORY && amount>0; ++i)
 		{	//we don't delete wrong item or equipped item
 			if( st.sd->status.inventory[i].nameid!=nameid || st.sd->inventory_data[i] == NULL ||
 				st.sd->status.inventory[i].nameid>=20000  || st.sd->status.inventory[i].amount>=MAX_AMOUNT )
@@ -4730,7 +4741,7 @@ int buildin_delitem(CScriptEngine &st)
 			//1 egg uses 1 cell in the inventory. so it's ok to delete 1 pet / per cycle
 			if(st.sd->inventory_data[i]->type==7 && st.sd->status.inventory[i].card[0] == 0xff00 && search_petDB_index(nameid, PET_EGG) >= 0 )
 			{
-				intif_delete_petdata( MakeDWord(st.sd->status.inventory[i].card[1], st.sd->status.inventory[i].card[2]) );
+				intif_delete_petdata( basics::MakeDWord(st.sd->status.inventory[i].card[1], st.sd->status.inventory[i].card[2]) );
 				//clear egg flag. so it won't be put in IMPORTANT items (eggs look like item with 2 cards ^_^)
 				st.sd->status.inventory[i].card[1] = st.sd->status.inventory[i].card[0] = 0;
 				//now this egg'll be deleted as a common unimportant item
@@ -4758,7 +4769,7 @@ int buildin_delitem(CScriptEngine &st)
 		//now if there WERE items with CARDs/REFINED/NAMED... and if we still have to delete some items. we'll delete them finally
 		if (important_item>0 && amount>0)
 		{
-			for(i=0;i<MAX_INVENTORY && amount>0;i++)
+			for(i=0;i<MAX_INVENTORY && amount>0;++i)
 			{
 				//we don't delete wrong item
 				if( st.sd->status.inventory[i].nameid!=nameid || st.sd->inventory_data[i] == NULL ||
@@ -4839,7 +4850,7 @@ char *buildin_getpartyname_sub(uint32 party_id)
 
 	if(p!=NULL){
 		char *buf;
-		buf=(char *)aMalloc(24*sizeof(char));
+		buf=new char[24];
 		memcpy(buf, p->name, 24);
 		return buf;
 	}
@@ -4869,7 +4880,7 @@ int buildin_getpartymember(CScriptEngine &st)
 	struct party *p=party_search(st.GetInt( st[2]));
 	if(p!=NULL)
 	{
-		for(i=0;i<MAX_PARTY;i++)
+		for(i=0;i<MAX_PARTY;++i)
 		{
 			if(p->member[i].account_id)
 			{
@@ -4894,7 +4905,7 @@ char *buildin_getguildname_sub(int guild_id)
 
 	if(g!=NULL)
 	{
-		char *buf = (char *)aMalloc(24*sizeof(char));
+		char *buf = new char[24];
 		memcpy(buf, g->name, 24);
 		return buf;
 	}
@@ -4922,7 +4933,7 @@ char *buildin_getguildmaster_sub(int guild_id)
 	g=guild_search(guild_id);
 	if(g!=NULL){
 		char *buf;
-		buf=(char *)aMalloc(24*sizeof(char));
+		buf= new char[24];
 		memcpy(buf,g->master, 24);//EOS included
 		return buf;
 	}
@@ -4968,7 +4979,7 @@ int buildin_strcharinfo(CScriptEngine &st)
 	}
 	else if(num==0)
 	{
-		buf=(char *)aMalloc(24*sizeof(char));
+		buf= new char[24];
 		memcpy(buf,st.sd->status.name, 24);//EOS included	
 	}
 	else if(num==1)
@@ -4995,7 +5006,7 @@ int buildin_pcstrcharinfo(CScriptEngine &st)
 	}
 	else if(num==0)
 	{
-		buf=(char*)aMalloc(24 * sizeof(char));
+		buf=new char[24];
 		safestrcpy(buf,sd->status.name, 24);
 		st.push_str(CScriptEngine::C_STR,buf);
 	}
@@ -5047,20 +5058,21 @@ int buildin_getequipname(CScriptEngine &st)
 	struct map_session_data *sd=st.sd;
 	struct item_data* item;
 	unsigned short num, itempos;
-	char *buf = (char *)aCalloc(128,sizeof(char)); // string is clear by default
+	char *buf = NULL;
 	if(sd)
 	{
 		num = st.GetInt(st[2]) - 1;
 		if(num<(sizeof(equip)/sizeof(equip[0])))
 		{
 			itempos=pc_checkequip(*sd,equip[num]);
+			buf = new char[128];
 			if(itempos < MAX_INVENTORY && (item=sd->inventory_data[itempos])!=NULL)
 				snprintf(buf,128,"%s-[%s+%i]",positions[num],item->jname, sd->status.inventory[itempos].refine);
 			else
 				snprintf(buf,128,"%s-[%s]",positions[num],positions[10]);
 		}
 	}
-	st.push_str(CScriptEngine::C_STR, buf);
+	st.push_str((buf)?CScriptEngine::C_STR:CScriptEngine::C_CONSTSTR, (buf)?buf:"");
 	return 0;
 }
 
@@ -5119,7 +5131,7 @@ int buildin_repair(CScriptEngine &st)
 					sd->status.inventory[itempos].attribute=0;
 					clif_equiplist(*sd);
 					clif_produceeffect(*sd, sd->status.inventory[itempos].nameid, 0);
-					clif_misceffect(sd->bl, 3);
+					clif_misceffect(*sd, 3);
 					clif_displaymessage(sd->fd,"Item has been repaired.");
 					break;
 				}
@@ -5303,26 +5315,17 @@ int buildin_successrefitem(CScriptEngine &st)
 				clif_delitem(*sd,itempos,1);
 				clif_additem(*sd,itempos,1,0);
 				pc_equipitem(*sd,itempos,equippos);
-				clif_misceffect(sd->bl,3);
+				clif_misceffect(*sd,3);
 				if( sd->status.inventory[itempos].refine == 10 && 
 					sd->status.inventory[itempos].card[0] == 0x00ff && 
-					sd->status.char_id == MakeDWord(sd->status.inventory[itempos].card[2],sd->status.inventory[itempos].card[3])  )
+					sd->status.char_id == basics::MakeDWord(sd->status.inventory[itempos].card[2],sd->status.inventory[itempos].card[3]) &&
+					sd->inventory_data[itempos]->wlv>0 && sd->inventory_data[itempos]->wlv<4 )
 				{	// Fame point system [DracoRPG]
-					switch (sd->inventory_data[itempos]->wlv)
-					{
-					 // Success to refine to +10 a lv1 weapon you forged = +1 fame point
-					case 1:
-						pc_addfame(*sd,1,0);
-						break;
+					static const ushort fame_points[4] = {0,1,25,1000};
+					chrif_updatefame(*sd, FAME_SMITH, fame_points[sd->inventory_data[itempos]->wlv]);
+					// Success to refine to +10 a lv1 weapon you forged = +1 fame point
 					// Success to refine to +10 a lv2 weapon you forged = +25 fame point
-					case 2:
-						pc_addfame(*sd,25,0);
-						break;
 					// Success to refine to +10 a lv3 weapon you forged = +1000 fame point
-					case 3:
-						pc_addfame(*sd,1000,0);
-						break;
-					}
 				}
 			}
 		}
@@ -5355,7 +5358,7 @@ int buildin_failedrefitem(CScriptEngine &st)
 				clif_refine(sd->fd,*sd,1,itempos,sd->status.inventory[itempos].refine);
 				pc_delitem(*sd,itempos,1,0);
 				// 他の人にも失敗を通知
-				clif_misceffect(sd->bl,2);
+				clif_misceffect(*sd,2);
 			}
 		}
 	}
@@ -5492,7 +5495,7 @@ int buildin_guildskill(CScriptEngine &st)
 		int id=st.GetInt(st[2]);
 		int level=st.GetInt(st[3]);
 		int flag =(st.Arguments() > 4) ? st.GetInt(st[4]) : 0;
-		for(i=0; i<level; i++)
+		for(i=0; i<level; ++i)
 			guild_skillup(*st.sd,id,flag);
 	}
 	return 0;
@@ -5770,7 +5773,7 @@ int buildin_gettimestr(CScriptEngine &st)
 	fmtstr=st.GetString((st[2]));
 	maxlen=st.GetInt(st[3]);
 
-	tmpstr=(char *)aMalloc((maxlen+1)*sizeof(char));
+	tmpstr=new char[maxlen+1];
 	strftime(tmpstr,maxlen,fmtstr,localtime(&now));
 	tmpstr[maxlen]='\0';
 
@@ -6230,7 +6233,7 @@ int buildin_attachnpctimer(CScriptEngine &st)
 		sd=map_nick2sd(name);
 	}
 	if(sd && nd)
-		nd->u.scr.rid = sd->bl.id;
+		nd->u.scr.rid = sd->block_list::id;
 	return 0;
 }
 
@@ -6262,7 +6265,7 @@ int buildin_announce(CScriptEngine &st)
 
 	if(flag&0x0f)
 	{
-		struct block_list *bl=(flag&0x08) ? map_id2bl(st.oid) : &st.sd->bl;
+		struct block_list *bl=(flag&0x08) ? map_id2bl(st.oid) : st.sd;
 		clif_GMmessage(bl, str, len, flag);
 	}
 	else
@@ -6348,7 +6351,7 @@ int buildin_areaannounce(CScriptEngine &st)
 int buildin_getusers(CScriptEngine &st)
 {
 	int flag=st.GetInt(st[2]);
-	struct block_list *bl = (flag&0x08)?map_id2bl(st.oid):(st.sd)?&(st.sd->bl):NULL;
+	struct block_list *bl = (flag&0x08)?map_id2bl(st.oid):st.sd;
 	int val=0;
 	switch(flag&0x07)
 	{
@@ -6368,9 +6371,9 @@ int buildin_getusersname(CScriptEngine &st)
 	{
 		struct map_session_data *pl_sd = NULL;
 		size_t i=0,disp_num=1;
-		for (i=0;i<fd_max;i++)
+		for (i=0;i<fd_max;++i)
 		{
-			if(session[i] && (pl_sd=(struct map_session_data *) session[i]->session_data) && pl_sd->state.auth)
+			if(session[i] && (pl_sd=(struct map_session_data *) session[i]->user_session) && pl_sd->state.auth)
 			{
 				if( !(battle_config.hide_GM_session && pc_isGM(*pl_sd)) )
 				{
@@ -6446,7 +6449,7 @@ int buildin_getareadropitem_sub(struct block_list &bl,va_list &ap)
 {
 	int item=va_arg(ap,int);
 	int *amount=va_arg(ap,int *);
-	struct flooritem_data &drop=(struct flooritem_data &)bl;
+	flooritem_data &drop=(flooritem_data &)bl;
 
 	if(drop.item_data.nameid==item)
 		(*amount)+=drop.item_data.amount;
@@ -6462,7 +6465,7 @@ public:
 	~CBuildinCountDropitem()	{}
 	virtual int process(struct block_list& bl) const
 	{
-		struct flooritem_data &drop=(struct flooritem_data &)bl;
+		flooritem_data &drop=(flooritem_data &)bl;
 		return (drop.item_data.nameid==item) ? drop.item_data.amount : 0;
 	}
 };
@@ -6525,9 +6528,9 @@ int buildin_disablenpc(CScriptEngine &st)
 int buildin_enablearena(CScriptEngine &st)	// Added by RoVeRT
 {
 	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
-	struct chat_data *cd;
+	chat_data *cd;
 
-	if( nd && (cd=(struct chat_data *)map_id2bl(nd->chat_id)) )
+	if( nd && (cd=(chat_data *)map_id2bl(nd->chat_id)) )
 	{
 		npc_enable(nd->name,1);
 		nd->arenaflag=1;
@@ -6581,7 +6584,7 @@ int buildin_sc_start(CScriptEngine &st)
 	if( st.Arguments() > 5 ) //指定したキャラを状態異常にする
 		bl = map_id2bl(st.GetInt(st[5]));
 	else
-		bl = (st.sd)?&(st.sd->bl):NULL;
+		bl = st.sd;
 
 	if(bl)
 	{
@@ -6612,7 +6615,7 @@ int buildin_sc_start2(CScriptEngine &st)
 	if( st.Arguments() > 6 ) //指定したキャラを状態異常にする
 		bl = map_id2bl(st.GetInt(st[6]));
 	else
-		bl = (st.sd)?&(st.sd->bl):NULL;
+		bl = st.sd;
 	if(bl)
 	{
 		if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
@@ -6640,7 +6643,7 @@ int buildin_sc_start4(CScriptEngine &st)
 	if( st.Arguments() > 8 )
 		bl = map_id2bl( st.GetInt(st[8]) );
 	else
-		bl = (st.sd)?&(st.sd->bl):NULL;
+		bl = st.sd;
 
 	if (bl)
 	{
@@ -6659,10 +6662,10 @@ int buildin_sc_end(CScriptEngine &st)
 {
 	if(st.sd)
 	{
-		struct block_list *bl = &(st.sd->bl);
+		struct block_list *bl = st.sd;
 
 		int type=st.GetInt(st[2]);
-		if(st.sd->bl.type == BL_PC && st.sd->state.potion_flag==1)
+		if(st.sd->block_list::type == BL_PC && st.sd->state.potion_flag==1)
 			bl = map_id2bl(st.sd->skilltarget);
 
 		status_change_end(bl,type,-1);
@@ -6685,7 +6688,7 @@ int buildin_getscrate(CScriptEngine &st)
 	if( st.Arguments() > 4 ) //指定したキャラの耐性を計算する
 		bl = map_id2bl(st.GetInt(st[6]));
 	else
-		bl = (st.sd)?&(st.sd->bl):NULL;
+		bl = st.sd;
 
 	sc_def = status_get_sc_def(bl,type);
 
@@ -6905,15 +6908,15 @@ int buildin_delwaitingroom(CScriptEngine &st)
 int buildin_waitingroomkickall(CScriptEngine &st)
 {
 	struct npc_data *nd;
-	struct chat_data *cd;
+	chat_data *cd;
 
 	if( st.Arguments() > 2 )
 		nd=npc_name2id(st.GetString( (st[2])));
 	else
 		nd=(struct npc_data *)map_id2bl(st.oid);
 
-	if(nd && (cd=(struct chat_data *)map_id2bl(nd->chat_id)) )
-		chat_npckickall(*cd);
+	if(nd && (cd=(chat_data *)map_id2bl(nd->chat_id)) )
+		cd->kickall();
 	return 0;
 }
 
@@ -6924,15 +6927,15 @@ int buildin_waitingroomkickall(CScriptEngine &st)
 int buildin_enablewaitingroomevent(CScriptEngine &st)
 {
 	struct npc_data *nd;
-	struct chat_data *cd;
+	chat_data *cd;
 
 	if( st.Arguments() > 2 )
 		nd=npc_name2id(st.GetString( (st[2])));
 	else
 		nd=(struct npc_data *)map_id2bl(st.oid);
 
-	if(nd && (cd=(struct chat_data *)map_id2bl(nd->chat_id)) )
-		chat_enableevent(*cd);
+	if(nd && (cd=(chat_data *)map_id2bl(nd->chat_id)) )
+		cd->enable_event();
 	return 0;
 }
 
@@ -6943,15 +6946,15 @@ int buildin_enablewaitingroomevent(CScriptEngine &st)
 int buildin_disablewaitingroomevent(CScriptEngine &st)
 {
 	struct npc_data *nd;
-	struct chat_data *cd;
+	chat_data *cd;
 
 	if( st.Arguments() > 2 )
 		nd=npc_name2id(st.GetString( (st[2])));
 	else
 		nd=(struct npc_data *)map_id2bl(st.oid);
 
-	if(nd && (cd=(struct chat_data *)map_id2bl(nd->chat_id)) )
-		chat_disableevent(*cd);
+	if(nd && (cd=(chat_data *)map_id2bl(nd->chat_id)) )
+		cd->disable_event();
 	return 0;
 }
 /*==========================================
@@ -6961,7 +6964,7 @@ int buildin_disablewaitingroomevent(CScriptEngine &st)
 int buildin_getwaitingroomstate(CScriptEngine &st)
 {
 	struct npc_data *nd;
-	struct chat_data *cd;
+	chat_data *cd;
 	int val=0,type;
 	type=st.GetInt(st[2]);
 	if( st.Arguments() > 3 )
@@ -6969,7 +6972,7 @@ int buildin_getwaitingroomstate(CScriptEngine &st)
 	else
 		nd=(struct npc_data *)map_id2bl(st.oid);
 
-	if(nd==NULL || (cd=(struct chat_data *)map_id2bl(nd->chat_id))==NULL ){
+	if(nd==NULL || (cd=(chat_data *)map_id2bl(nd->chat_id))==NULL ){
 		st.push_val(CScriptEngine::C_INT,-1);
 		return 0;
 	}
@@ -7005,9 +7008,9 @@ int buildin_warpwaitingpc(CScriptEngine &st)
 	int x,y,i,n;
 	const char *str;
 	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
-	struct chat_data *cd;
+	chat_data *cd;
 
-	if(nd==NULL || (cd=(struct chat_data *)map_id2bl(nd->chat_id))==NULL )
+	if(nd==NULL || (cd=(chat_data *)map_id2bl(nd->chat_id))==NULL )
 		return 0;
 
 	n=cd->trigger&0x7f;
@@ -7018,15 +7021,15 @@ int buildin_warpwaitingpc(CScriptEngine &st)
 	if( st.Arguments() > 5 )
 		n=st.GetInt(st[5]);
 
-	for(i=0;i<n;i++){
+	for(i=0;i<n;++i){
 		struct map_session_data *sd=cd->usersd[0];	// リスト先頭のPCを次々に。
 
-		mapreg_setregnum(add_str( "$@warpwaitingpc")+(i<<24),sd->bl.id);
+		mapreg_setregnum(add_str( "$@warpwaitingpc")+(i<<24),sd->block_list::id);
 
 		if(strcmp(str,"Random")==0)
 			pc_randomwarp(*sd,3);
 		else if(strcmp(str,"SavePoint")==0){
-			if(maps[sd->bl.m].flag.noteleport)	// テレポ禁止
+			if(maps[sd->block_list::m].flag.noteleport)	// テレポ禁止
 				return 0;
 
 			pc_setpos(*sd,sd->status.save_point.mapname,sd->status.save_point.x,sd->status.save_point.y,3);
@@ -7302,10 +7305,10 @@ int buildin_pvpon(CScriptEngine &st)
 		if(battle_config.pk_mode) // disable ranking functions if pk_mode is on [Valaris]
 			return 0;
 
-		for(i=0;i<fd_max;i++){	//人数分ループ
-			if(session[i] && (pl_sd=(struct map_session_data *) session[i]->session_data) && pl_sd->state.auth){
-				if(m == pl_sd->bl.m && pl_sd->pvp_timer == -1) {
-					pl_sd->pvp_timer=add_timer(gettick()+200,pc_calc_pvprank_timer,pl_sd->bl.id,0);
+		for(i=0;i<fd_max;++i){	//人数分ループ
+			if(session[i] && (pl_sd=(struct map_session_data *) session[i]->user_session) && pl_sd->state.auth){
+				if(m == pl_sd->block_list::m && pl_sd->pvp_timer == -1) {
+					pl_sd->pvp_timer=add_timer(gettick()+200,pc_calc_pvprank_timer,pl_sd->block_list::id,0);
 					pl_sd->pvp_rank=0;
 					pl_sd->pvp_lastusers=0;
 					pl_sd->pvp_point=5;
@@ -7335,9 +7338,9 @@ int buildin_pvpoff(CScriptEngine &st)
 		if(battle_config.pk_mode) // disable ranking options if pk_mode is on [Valaris]
 			return 0;
 
-		for(i=0;i<fd_max;i++){	//人数分ループ
-			if(session[i] && (pl_sd=(struct map_session_data *) session[i]->session_data) && pl_sd->state.auth){
-				if(m == pl_sd->bl.m) {
+		for(i=0;i<fd_max;++i){	//人数分ループ
+			if(session[i] && (pl_sd=(struct map_session_data *) session[i]->user_session) && pl_sd->state.auth){
+				if(m == pl_sd->block_list::m) {
 					clif_pvpset(*pl_sd,0,0,2);
 					if(pl_sd->pvp_timer != -1) {
 						delete_timer(pl_sd->pvp_timer,pc_calc_pvprank_timer);
@@ -7397,7 +7400,7 @@ int buildin_emotion(CScriptEngine &st)
 		if (player)
 		{
 			struct map_session_data *sd = map_id2sd(player);
-			if (sd) clif_emotion(sd->bl,type);
+			if (sd) clif_emotion(*sd,type);
 		}
 		else
 		{
@@ -7533,14 +7536,14 @@ int buildin_getcastlename(CScriptEngine &st)
 	int i;
 	char *buf=NULL;
 
-	for(i=0;i<MAX_GUILDCASTLE;i++)
+	for(i=0;i<MAX_GUILDCASTLE;++i)
 	{
 		if( (gc=guild_castle_search(i)) != NULL )
 		{
 			if( strcasecmp(mapname,gc->mapname)==0 )
 			{
-				buf=(char *)aMalloc(24*sizeof(char));
-				memcpy(buf,gc->castle_name,24);//EOS included
+				buf= new char[24];
+				safestrcpy(buf,gc->castle_name,24);//EOS included
 				break;
 			}
 		}
@@ -7556,7 +7559,7 @@ int buildin_getcastledata(CScriptEngine &st)
 	struct guild_castle *gc;
 	int i, val=0;
 
-	for(i=0;i<MAX_GUILDCASTLE;i++)
+	for(i=0;i<MAX_GUILDCASTLE;++i)
 	{
 		if( (gc=guild_castle_search(i)) != NULL && 0==strcmp(mapname,gc->mapname) )
 		{
@@ -7568,7 +7571,7 @@ int buildin_getcastledata(CScriptEngine &st)
 					const char *event = st.GetString(st[4]);
 					guild_addcastleinfoevent(i,17,event);
 				}
-				for(i=1;i<26;i++) guild_castledataload(gc->castle_id,i);
+				for(i=1;i<26;++i) guild_castledataload(gc->castle_id,i);
 				val = 0;
 				break;  // Initialize[AgitInit]
 			case  1: val = gc->guild_id; break;
@@ -7614,7 +7617,7 @@ int buildin_setcastledata(CScriptEngine &st)
 	struct guild_castle *gc;
 	int i;
 
-	for(i=0;i<MAX_GUILDCASTLE;i++){
+	for(i=0;i<MAX_GUILDCASTLE;++i){
 		if( (gc=guild_castle_search(i)) != NULL ){
 			if(strcmp(mapname,gc->mapname)==0){
 				// Save Data byself First
@@ -7726,7 +7729,6 @@ int buildin_successremovecards(CScriptEngine &st)
 					itemdb_type(st.sd->status.inventory[i].card[c-1]) == 6)
 				{	// [Celest]
 
-					item_tmp.id=0;
 					item_tmp.nameid = st.sd->status.inventory[i].card[c-1];
 					item_tmp.equip=0;
 					item_tmp.identify=1;
@@ -7742,7 +7744,7 @@ int buildin_successremovecards(CScriptEngine &st)
 					if(flag)
 					{	// 持てないならドロップ
 						clif_additem(*st.sd,0,0,flag);
-						map_addflooritem(item_tmp,1,st.sd->bl.m,st.sd->bl.x,st.sd->bl.y,NULL,NULL,NULL,0);
+						map_addflooritem(item_tmp,1,st.sd->block_list::m,st.sd->block_list::x,st.sd->block_list::y,NULL,NULL,NULL,0);
 					}
 				}
 				c--;
@@ -7750,7 +7752,6 @@ int buildin_successremovecards(CScriptEngine &st)
 
 			if(cardflag == 1)
 			{	// カードを取り除いたアイテム所得
-				item_tmp.id=0;
 				item_tmp.nameid=st.sd->status.inventory[i].nameid;
 				item_tmp.equip=0;
 				item_tmp.identify=1;
@@ -7765,9 +7766,9 @@ int buildin_successremovecards(CScriptEngine &st)
 				if(flag)
 				{	// もてないならドロップ
 					clif_additem(*st.sd,0,0,flag);
-					map_addflooritem(item_tmp,1,st.sd->bl.m,st.sd->bl.x,st.sd->bl.y,NULL,NULL,NULL,0);
+					map_addflooritem(item_tmp,1,st.sd->block_list::m,st.sd->block_list::x,st.sd->block_list::y,NULL,NULL,NULL,0);
 				}
-				clif_misceffect(st.sd->bl,3);
+				clif_misceffect(*st.sd,3);
 			}
 		}
 	}
@@ -7801,7 +7802,6 @@ int buildin_failedremovecards(CScriptEngine &st)
 					cardflag = 1;
 					if(typefail == 2)
 					{	// 武具のみ損失なら、カードは受け取らせる
-						item_tmp.id=0;
 						item_tmp.nameid=st.sd->status.inventory[i].card[c-1];
 						item_tmp.equip=0;
 						item_tmp.identify=1;
@@ -7815,7 +7815,7 @@ int buildin_failedremovecards(CScriptEngine &st)
 						if(flag)
 						{
 							clif_additem(*st.sd,0,0,flag);
-							map_addflooritem(item_tmp,1,st.sd->bl.m,st.sd->bl.x,st.sd->bl.y,NULL,NULL,NULL,0);
+							map_addflooritem(item_tmp,1,st.sd->block_list::m,st.sd->block_list::x,st.sd->block_list::y,NULL,NULL,NULL,0);
 						}
 					}
 				}
@@ -7832,7 +7832,6 @@ int buildin_failedremovecards(CScriptEngine &st)
 				else if(typefail == 1)
 				{	// カードのみ損失（武具を返す）
 					flag=0;
-					item_tmp.id=0;
 					item_tmp.nameid=st.sd->status.inventory[i].nameid;
 					item_tmp.equip=0;
 					item_tmp.identify=1;
@@ -7846,10 +7845,10 @@ int buildin_failedremovecards(CScriptEngine &st)
 					if((flag=pc_additem(*st.sd,item_tmp,1)))
 					{
 						clif_additem(*st.sd,0,0,flag);
-						map_addflooritem(item_tmp,1,st.sd->bl.m,st.sd->bl.x,st.sd->bl.y,NULL,NULL,NULL,0);
+						map_addflooritem(item_tmp,1,st.sd->block_list::m,st.sd->block_list::x,st.sd->block_list::y,NULL,NULL,NULL,0);
 					}
 				}
-				clif_misceffect(st.sd->bl,2);
+				clif_misceffect(*st.sd,2);
 			}
 		}
 	}
@@ -7972,7 +7971,7 @@ int buildin_wedding_effect(CScriptEngine &st)
 	if(st.sd==NULL) {
 		bl=map_id2bl(st.oid);
 	} else
-		bl=&st.sd->bl;
+		bl=st.sd;
 	if(bl) clif_wedding_effect(*bl);
 	return 0;
 }
@@ -8043,7 +8042,7 @@ int buildin_strmobinfo(CScriptEngine &st)
 	case 1:
 	{
 		char *buf;
-		buf = (char*)aMalloc(24*sizeof(char));
+		buf = new char[24];
 		strcpy(buf,mob_db[class_].name);
 		st.push_str(CScriptEngine::C_STR, buf);
 		break;
@@ -8051,7 +8050,7 @@ int buildin_strmobinfo(CScriptEngine &st)
 	case 2:
 	{
 		char *buf;
-		buf=(char*)aMalloc(24*sizeof(char));
+		buf= new char[24];
 		strcpy(buf,mob_db[class_].jname);
 		st.push_str(CScriptEngine::C_STR, buf);
 		break;
@@ -8107,7 +8106,7 @@ int buildin_guardianinfo(CScriptEngine &st)
 {
 	int index=st.GetInt(st[2]);
 	struct map_session_data *sd=st.sd;
-	struct guild_castle *gc=guild_mapname2gc(maps[sd->bl.m].mapname);
+	struct guild_castle *gc=guild_mapname2gc(maps[sd->block_list::m].mapname);
 	st.push_val(CScriptEngine::C_INT,
 		(index>=0 && index<MAX_GUARDIAN && gc && gc->guardian[index].visible) ?
 		(int)gc->guardian[index].guardian_hp : -1		
@@ -8137,7 +8136,7 @@ int buildin_getitemname(CScriptEngine &st)
 	if(item_data)
 	{
 		char *item_name;
-		item_name=(char *)aMalloc(24*sizeof(char));
+		item_name= new char[24];
 		memcpy(item_name,item_data->jname,24);//EOS included
 		st.push_str(CScriptEngine::C_STR, item_name);
 	}
@@ -8162,7 +8161,9 @@ int buildin_petskillbonus(CScriptEngine &st)
 				delete_timer(pd->bonus->timer, pet_skill_bonus_timer);
 		}
 		else //init
-			pd->bonus = (struct pet_data::pet_bonus *) aCalloc(1, sizeof(struct pet_data::pet_bonus));
+		{
+			pd->bonus = new struct pet_data::pet_bonus;
+		}
 		
 		pd->bonus->type=st.GetInt(st[2]);
 		pd->bonus->val=st.GetInt(st[3]);
@@ -8176,7 +8177,7 @@ int buildin_petskillbonus(CScriptEngine &st)
 		if (battle_config.pet_equip_required && pd->equip_id == 0)
 			pd->bonus->timer=-1;
 		else
-			pd->bonus->timer=add_timer(gettick()+pd->bonus->delay*1000, pet_skill_bonus_timer, st.sd->bl.id, 0);
+			pd->bonus->timer=add_timer(gettick()+pd->bonus->delay*1000, pet_skill_bonus_timer, st.sd->block_list::id, 0);
 	}
 	return 0;
 }
@@ -8205,12 +8206,14 @@ int buildin_petloot(CScriptEngine &st)
 	if(pd && pd->loot != NULL && pd->msd)
 	{	//Release whatever was there already and reallocate memory
 		pet_lootitem_drop(*pd, pd->msd);
-		aFree(pd->loot->item);
+		delete[] pd->loot->item;
 	}
 	else
-		pd->loot = (struct pet_data::pet_loot *)aCalloc(1, sizeof(struct pet_data::pet_loot));
+	{
+		pd->loot = new struct pet_data::pet_loot;
+	}
 
-	pd->loot->item = (struct item *)aCalloc(max,sizeof(struct item));
+	pd->loot->item = new struct item[max];
 	pd->loot->max=max;
 	pd->loot->count = 0;
 	pd->loot->weight = 0;
@@ -8227,7 +8230,7 @@ int buildin_getinventorylist(CScriptEngine &st)
 	struct map_session_data *sd=st.sd;
 	int i,j=0;
 	if(!sd) return 0;
-	for(i=0;i<MAX_INVENTORY;i++){
+	for(i=0;i<MAX_INVENTORY;++i){
 		if(sd->status.inventory[i].nameid > 0 && sd->status.inventory[i].amount > 0){
 			pc_setreg(*sd,add_str( "@inventorylist_id")+(j<<24),sd->status.inventory[i].nameid);
 			pc_setreg(*sd,add_str( "@inventorylist_amount")+(j<<24),sd->status.inventory[i].amount);
@@ -8251,7 +8254,7 @@ int buildin_getskilllist(CScriptEngine &st)
 	struct map_session_data *sd=st.sd;
 	int i,j=0;
 	if(!sd) return 0;
-	for(i=0;i<MAX_SKILL;i++){
+	for(i=0;i<MAX_SKILL;++i){
 		if(sd->status.skill[i].id > 0 && sd->status.skill[i].lv > 0){
 			pc_setreg(*sd,add_str("@skilllist_id")+(j<<24),sd->status.skill[i].id);
 			pc_setreg(*sd,add_str("@skilllist_lv")+(j<<24),sd->status.skill[i].lv);
@@ -8268,7 +8271,7 @@ int buildin_clearitem(CScriptEngine &st)
 	if(st.sd)
 	{
 		size_t i;
-		for (i=0; i<MAX_INVENTORY; i++)
+		for (i=0; i<MAX_INVENTORY; ++i)
 		{
 			if(st.sd->status.inventory[i].amount)
 				pc_delitem(*st.sd, i, st.sd->status.inventory[i].amount, 0);
@@ -8311,7 +8314,7 @@ int buildin_misceffect(CScriptEngine &st)
 	else
 	{
 		struct map_session_data *sd=st.sd;
-		if(sd) clif_misceffect2(sd->bl,type);
+		if(sd) clif_misceffect2(*sd,type);
 //!! broadcast command if not on this mapserver
 	}
 	return 0;
@@ -8332,7 +8335,7 @@ int buildin_soundeffect(CScriptEngine &st)
 		}
 		else
 		{
-			clif_soundeffect(*st.sd,st.sd->bl,name,type);
+			clif_soundeffect(*st.sd,*st.sd,name,type);
 		}
 	}
 	return 0;
@@ -8351,7 +8354,7 @@ int buildin_soundeffectall(CScriptEngine &st)
 	if(st.oid && (bl=map_id2bl(st.oid))!=NULL)
 		clif_soundeffectall(*bl,name,type);
 	else if(sd)
-		clif_soundeffectall(sd->bl,name,type);
+		clif_soundeffectall(*sd,name,type);
 	return 0;
 }
 /*==========================================
@@ -8373,7 +8376,9 @@ int buildin_petrecovery(CScriptEngine &st)
 			delete_timer(pd->recovery->timer, pet_recovery_timer);
 	}
 	else //Init
-		pd->recovery = (struct pet_data::pet_recovery *)aCalloc(1, sizeof(struct pet_data::pet_recovery));
+	{
+		pd->recovery = new struct pet_data::pet_recovery;
+	}
 		
 	pd->recovery->type=st.GetInt(st[2]);
 	pd->recovery->delay=st.GetInt(st[3]);
@@ -8405,7 +8410,9 @@ int buildin_petheal(CScriptEngine &st)
 		}
 	}
 	else //init memory
-		pd->s_skill = (struct pet_data::pet_skill_support *) aCalloc(1, sizeof(struct pet_data::pet_skill_support)); 
+	{
+		pd->s_skill = new struct pet_data::pet_skill_support;
+	}
 	
 	//This id identifies that it IS petheal rather than pet_skillsupport
 	pd->s_skill->id=0;
@@ -8419,7 +8426,7 @@ int buildin_petheal(CScriptEngine &st)
 	if (battle_config.pet_equip_required && pd->equip_id == 0)
 		pd->s_skill->timer=-1;
 	else
-		pd->s_skill->timer=add_timer(gettick()+pd->s_skill->delay*1000,pet_heal_timer,st.sd->bl.id,0);
+		pd->s_skill->timer=add_timer(gettick()+pd->s_skill->delay*1000,pet_heal_timer,st.sd->block_list::id,0);
 
 	return 0;
 }
@@ -8436,7 +8443,9 @@ int buildin_petskillattack(CScriptEngine &st)
 
 	pd=st.sd->pd;
 	if (pd->a_skill == NULL)
-		pd->a_skill = (struct pet_data::pet_skill_attack *)aCalloc(1, sizeof(struct pet_data::pet_skill_attack));
+	{
+		pd->a_skill = new struct pet_data::pet_skill_attack;
+	}
 				
 	pd->a_skill->id=st.GetInt(st[2]);
 	pd->a_skill->lv=st.GetInt(st[3]);
@@ -8461,7 +8470,9 @@ int buildin_petskillattack2(CScriptEngine &st)
 
 	pd=sd->pd;
 	if (pd->a_skill == NULL)
-		pd->a_skill = (struct pet_data::pet_skill_attack *)aCalloc(1, sizeof(struct pet_data::pet_skill_attack));
+	{
+		pd->a_skill = new struct pet_data::pet_skill_attack;
+	}
 				
 	pd->a_skill->id=st.GetInt(st[2]);
 	pd->a_skill->lv=st.GetInt(st[3]);
@@ -8495,7 +8506,9 @@ int buildin_petskillsupport(CScriptEngine &st)
 				delete_timer(pd->s_skill->timer, pet_heal_timer);
 		}
 	} else //init memory
-		pd->s_skill = (struct pet_data::pet_skill_support *) aCalloc(1, sizeof(struct pet_data::pet_skill_support)); 
+	{
+		pd->s_skill = new struct pet_data::pet_skill_support;
+	}
 	
 	pd->s_skill->id=st.GetInt(st[2]);
 	pd->s_skill->lv=st.GetInt(st[3]);
@@ -8507,7 +8520,7 @@ int buildin_petskillsupport(CScriptEngine &st)
 	if (battle_config.pet_equip_required && pd->equip_id == 0)
 		pd->s_skill->timer=-1;
 	else
-		pd->s_skill->timer=add_timer(gettick()+pd->s_skill->delay*1000,pet_skill_support_timer,sd->bl.id,0);
+		pd->s_skill->timer=add_timer(gettick()+pd->s_skill->delay*1000,pet_skill_support_timer,sd->block_list::id,0);
 
 	return 0;
 }
@@ -8524,7 +8537,7 @@ int buildin_skilleffect(CScriptEngine &st)
 	int skilllv=st.GetInt(st[3]);
 	sd=st.sd;
 
-	clif_skill_nodamage(sd->bl,sd->bl,skillid,skilllv,1);
+	clif_skill_nodamage(*sd,*sd,skillid,skilllv,1);
 
 	return 0;
 }
@@ -8542,7 +8555,7 @@ int buildin_npcskilleffect(CScriptEngine &st)
 	int x=st.GetInt(st[4]);
 	int y=st.GetInt(st[5]);
 
-	clif_skill_poseffect(nd->bl,skillid,skilllv,x,y,gettick());
+	clif_skill_poseffect(*nd,skillid,skilllv,x,y,gettick());
 
 	return 0;
 }
@@ -8564,7 +8577,7 @@ int buildin_specialeffect2(CScriptEngine &st)
 {
 	struct map_session_data *sd=st.sd;
 
-	if(sd) clif_specialeffect(sd->bl,st.GetInt( (st[2])), 0);
+	if(sd) clif_specialeffect(*sd,st.GetInt( (st[2])), 0);
 		return 0;
 }
 
@@ -8580,7 +8593,7 @@ int buildin_nude(CScriptEngine &st)
 	{
 		size_t i;
 		register bool calcflag=false;
-		for(i=0;i<MAX_EQUIP;i++)
+		for(i=0;i<MAX_EQUIP;++i)
 		{
 			if(sd->equip_index[i] < MAX_INVENTORY)
 			{
@@ -8657,9 +8670,9 @@ int buildin_dispbottom(CScriptEngine &st)
 int buildin_recovery(CScriptEngine &st)
 {
 	size_t i;
-	for (i = 0; i < fd_max; i++) {
+	for (i = 0; i < fd_max; ++i) {
 		if (session[i]){
-			struct map_session_data *sd = (struct map_session_data *) session[i]->session_data;
+			struct map_session_data *sd = (struct map_session_data *) session[i]->user_session;
 			if (sd && sd->state.auth) {
 				sd->status.hp = sd->status.max_hp;
 				sd->status.sp = sd->status.max_sp;
@@ -8667,7 +8680,7 @@ int buildin_recovery(CScriptEngine &st)
 				clif_updatestatus(*sd, SP_SP);
 				if(pc_isdead(*sd)){
 					pc_setstand(*sd);
-					clif_resurrection(sd->bl, 1);
+					clif_resurrection(*sd, 1);
 				}
 				clif_displaymessage(sd->fd,"You have been recovered!");
 			}
@@ -8700,7 +8713,7 @@ int buildin_getpetinfo(CScriptEngine &st)
 			case 2:
 				if(sd->pet.name)
 				{	
-					char *buf=(char *)aMalloc(24*sizeof(char));
+					char *buf = new char[24];
 					memcpy(buf,sd->pet.name, 24);//EOS included
 					st.push_str(CScriptEngine::C_STR, buf);
 				}
@@ -8737,9 +8750,9 @@ int buildin_checkequipedcard(CScriptEngine &st)
 	c=st.GetInt(st[2]);
 
 	if(sd){
-		for(i=0;i<MAX_INVENTORY;i++){
+		for(i=0;i<MAX_INVENTORY;++i){
 			if(sd->status.inventory[i].nameid > 0 && sd->status.inventory[i].amount){
-				for(n=0;n<4;n++){
+				for(n=0;n<4;++n){
 					if(sd->status.inventory[i].card[n]==c){
 						st.push_val(CScriptEngine::C_INT,1);
 						return 0;
@@ -8769,7 +8782,7 @@ int buildin_getmapmobs(CScriptEngine &st)
 	if( 0==strcmp(str,"this") ) 
 	{
 		if(st.sd)
-			m=st.sd->bl.m;
+			m=st.sd->block_list::m;
 	}
 	else
 		m=map_mapname2mapid(str);
@@ -8843,7 +8856,7 @@ int buildin_npctalk(CScriptEngine &st)
 	if(nd) {
 		snprintf(message, sizeof(message), "%s: %s", nd->name, str);
 		message[sizeof(message)-1]=0;
-		clif_message(nd->bl, message);
+		clif_message(*nd, message);
 	}
 
 	return 0;
@@ -8863,7 +8876,7 @@ int buildin_hasitems(CScriptEngine &st)
 
 	sd=st.sd;
 
-	for(i=0; i<MAX_INVENTORY; i++) {
+	for(i=0; i<MAX_INVENTORY; ++i) {
 		if(sd->status.inventory[i].amount && sd->status.inventory[i].nameid!=2364 && sd->status.inventory[i].nameid!=2365)
 		{
 			st.push_val(CScriptEngine::C_INT,1);
@@ -8966,7 +8979,7 @@ int buildin_getsavepoint(CScriptEngine &st)
 	{
 	case 0:
 	{
-		char *mapname=(char*)aMalloc(24*sizeof(char));
+		char *mapname= new char[24];
 		safestrcpy(mapname,st.sd ? st.sd->status.save_point.mapname : "unknown", 24);
 		st.push_str(CScriptEngine::C_STR,mapname);
 		break;
@@ -9048,8 +9061,8 @@ int buildin_getmapxy(CScriptEngine &st)
 				st.push_val(CScriptEngine::C_INT,-1);
 				return 0;
 			}
-			x=sd->bl.x;
-			y=sd->bl.y;
+			x=sd->block_list::x;
+			y=sd->block_list::y;
 			mapname = sd->mapname;
 			ShowMessage(">>>>%s %d %d\n",mapname,x,y);
 			break;
@@ -9063,9 +9076,9 @@ int buildin_getmapxy(CScriptEngine &st)
 				st.push_val(CScriptEngine::C_INT,-1);
 				return 0;
 			}
-			x=nd->bl.x;
-			y=nd->bl.y;
-			mapname=maps[nd->bl.m].mapname;
+			x=nd->block_list::x;
+			y=nd->block_list::y;
+			mapname=maps[nd->block_list::m].mapname;
 			ShowMessage(">>>>%s %d %d\n",mapname,x,y);
 			break;
 		case 2:	//Get Pet Position
@@ -9084,9 +9097,9 @@ int buildin_getmapxy(CScriptEngine &st)
 				st.push_val(CScriptEngine::C_INT,-1);
 				return 0;
 			}
-			x=pd->bl.x;
-			y=pd->bl.y;
-			mapname=maps[pd->bl.m].mapname;
+			x=pd->block_list::x;
+			y=pd->block_list::y;
+			mapname=maps[pd->block_list::m].mapname;
 			ShowMessage(">>>>%s %d %d\n",mapname,x,y);
 			break;
 		case 3:	//Get Mob Position
@@ -9176,13 +9189,13 @@ int buildin_summon(CScriptEngine &st)
 
 		id=mob_once_spawn(sd, "this", 0, 0, str,class_,1,event);
 		if((md=(struct mob_data *)map_id2bl(id))){
-			md->master_id=sd->bl.id;
+			md->master_id=sd->block_list::id;
 			md->state.special_mob_ai=1;
 			md->mode=mob_db[md->class_].mode|0x04;
 			md->deletetimer=add_timer(tick+60000,mob_timer_delete,id,0);
-			clif_misceffect2(md->bl,344);
+			clif_misceffect2(*md,344);
 		}
-		clif_skill_poseffect(sd->bl,AM_CALLHOMUN,1,sd->bl.x,sd->bl.y,tick);
+		clif_skill_poseffect(*sd,AM_CALLHOMUN,1,sd->block_list::x,sd->block_list::y,tick);
 	}
 
 	return 0;
@@ -9220,7 +9233,7 @@ int buildin_isequipped(CScriptEngine &st)
 		unsigned short id = 1;
 		ret = -1;
 
-		for (i=0; id!=0; i++)
+		for (i=0; id!=0; ++i)
 		{
 			int flag = 0;
 			if( st.Arguments() > (i+2) )
@@ -9229,7 +9242,7 @@ int buildin_isequipped(CScriptEngine &st)
 				id = 0;
 			if (id <= 0)
 				continue;
-			for (j=0; j<10; j++)
+			for (j=0; j<10; ++j)
 			{
 				int index, type;
 				index = st.sd->equip_index[j];
@@ -9250,7 +9263,7 @@ int buildin_isequipped(CScriptEngine &st)
 					{	// Item Hash format:
 						// 1111 1111 1111 1111 1111 1111 1111 1111
 						// [ left  ] [ right ] [ NA ] [  armor  ]
-						for (k = 0; k < st.sd->inventory_data[index]->flag.slot; k++)
+						for (k = 0; k < st.sd->inventory_data[index]->flag.slot; ++k)
 						{	// --- Calculate hash for current card ---
 							// Defense equipment
 							// They *usually* have only 1 slot, so we just assign 1 bit
@@ -9314,7 +9327,7 @@ int buildin_isequippedcnt(CScriptEngine &st)
 
 	if(st.sd)
 	{
-		for (i=0; id!=0; i++)
+		for (i=0; id!=0; ++i)
 		{
 			if( st.Arguments() > i+2 )
 				id = st.GetInt(st[i+2]);
@@ -9322,7 +9335,7 @@ int buildin_isequippedcnt(CScriptEngine &st)
 				id = 0;
 			if (id <= 0)
 				continue;
-			for (j=0; j<10; j++)
+			for (j=0; j<10; ++j)
 			{
 				index = st.sd->equip_index[j];
 				if(index >= MAX_INVENTORY) continue;
@@ -9341,7 +9354,7 @@ int buildin_isequippedcnt(CScriptEngine &st)
 					}
 					else if (type == 6)
 					{
-						for(k=0; k<st.sd->inventory_data[index]->flag.slot; k++)
+						for(k=0; k<st.sd->inventory_data[index]->flag.slot; ++k)
 						{
 							if( st.sd->status.inventory[index].card[0]!=0x00ff &&
 								st.sd->status.inventory[index].card[0]!=0x00fe &&
@@ -9374,7 +9387,7 @@ int buildin_cardscnt(CScriptEngine &st)
 
 	if(st.sd)
 	{
-		for (i=0; id!=0; i++)
+		for (i=0; id!=0; ++i)
 		{
 			if( st.Arguments() > (i+2) )
 				id=st.GetInt(st[(i+2)]);
@@ -9397,7 +9410,7 @@ int buildin_cardscnt(CScriptEngine &st)
 				}
 				else if (type == 6)
 				{
-					for(k=0; k<st.sd->inventory_data[index]->flag.slot; k++)
+					for(k=0; k<st.sd->inventory_data[index]->flag.slot; ++k)
 					{
 						if( st.sd->status.inventory[index].card[0]!=0x00ff &&
 							st.sd->status.inventory[index].card[0]!=0x00fe &&
@@ -9546,7 +9559,7 @@ int buildin_warpparty(CScriptEngine &st)
 	uint32 p	=st.GetInt(st[5]);
 	struct map_session_data *sd=st.sd;
 
-	if(!sd || maps[sd->bl.m].flag.noreturn || maps[sd->bl.m].flag.nowarp || NULL==party_search(p))
+	if(!sd || maps[sd->block_list::m].flag.noreturn || maps[sd->block_list::m].flag.nowarp || NULL==party_search(p))
 		return 0;
 	
 	if(p!=0)
@@ -9556,24 +9569,24 @@ int buildin_warpparty(CScriptEngine &st)
 
 		if( 0==strcasecmp(str,"Random") )
 		{
-			for(i=0; i<fd_max; i++)
+			for(i=0; i<fd_max; ++i)
 			{
-				if(session[i] && (pl_sd = (struct map_session_data *)session[i]->session_data) && pl_sd->state.auth &&
+				if(session[i] && (pl_sd = (struct map_session_data *)session[i]->user_session) && pl_sd->state.auth &&
 					pl_sd->status.party_id == p)
 				{
-					if(!maps[pl_sd->bl.m].flag.nowarp)
+					if(!maps[pl_sd->block_list::m].flag.nowarp)
 						pc_randomwarp(*pl_sd,3);
 				}
 			}
 		}
 		else if( 0==strcasecmp(str,"SavePointAll") )
 		{
-			for(i=0; i<fd_max; i++)
+			for(i=0; i<fd_max; ++i)
 			{
-				if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
+				if(session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 					pl_sd->status.party_id == p)
 				{
-					if(!maps[pl_sd->bl.m].flag.noreturn)
+					if(!maps[pl_sd->block_list::m].flag.noreturn)
 						pc_setpos(*pl_sd,pl_sd->status.save_point.mapname,pl_sd->status.save_point.x,pl_sd->status.save_point.y,3);
 				}
 			}
@@ -9583,24 +9596,24 @@ int buildin_warpparty(CScriptEngine &st)
 			str=sd->status.save_point.mapname;
 			x=sd->status.save_point.x;
 			y=sd->status.save_point.y;
-			for (i = 0; i < fd_max; i++)
+			for (i = 0; i < fd_max; ++i)
 			{
-				if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
+				if(session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 					pl_sd->status.party_id == p)
 				{
-					if(!maps[pl_sd->bl.m].flag.noreturn)
+					if(!maps[pl_sd->block_list::m].flag.noreturn)
 						pc_setpos(*pl_sd,str,x,y,3);
 				}
 			}
 		}
 		else
 		{
-			for (i = 0; i < fd_max; i++)
+			for (i = 0; i < fd_max; ++i)
 			{
-				if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
+				if(session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 					pl_sd->status.party_id == p)
 				{
-					if(!maps[pl_sd->bl.m].flag.noreturn)
+					if(!maps[pl_sd->block_list::m].flag.noreturn)
 						pc_setpos(*pl_sd,str,x,y,3);
 				}
 			}
@@ -9621,7 +9634,7 @@ int buildin_warpguild(CScriptEngine &st)
 	uint32 g	=st.GetInt(st[5]);
 	struct map_session_data *sd=st.sd;
 
-	if(!sd || maps[sd->bl.m].flag.noreturn || maps[sd->bl.m].flag.nowarp || NULL==guild_search(g) )
+	if(!sd || maps[sd->block_list::m].flag.noreturn || maps[sd->block_list::m].flag.nowarp || NULL==guild_search(g) )
 		return 0;
 	
 	if(g!=0)
@@ -9631,24 +9644,24 @@ int buildin_warpguild(CScriptEngine &st)
 
 		if( 0==strcasecmp(str,"Random") )
 		{
-			for(i=0; i<fd_max; i++)
+			for(i=0; i<fd_max; ++i)
 			{
-				if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
+				if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 					pl_sd->status.guild_id == g)
 				{
-					if(!maps[pl_sd->bl.m].flag.nowarp)
+					if(!maps[pl_sd->block_list::m].flag.nowarp)
 						pc_randomwarp(*pl_sd,3);
 				}
 			}
 		}
 		else if( 0==strcasecmp(str,"SavePointAll") )
 		{
-			for(i=0; i < fd_max; i++)
+			for(i=0; i < fd_max; ++i)
 			{
-				if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
+				if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 					pl_sd->status.guild_id == g)
 				{
-					if(!maps[pl_sd->bl.m].flag.noreturn)
+					if(!maps[pl_sd->block_list::m].flag.noreturn)
 						pc_setpos(*pl_sd,pl_sd->status.save_point.mapname,pl_sd->status.save_point.x,pl_sd->status.save_point.y,3);
 				}
 			}
@@ -9658,24 +9671,24 @@ int buildin_warpguild(CScriptEngine &st)
 			str=sd->status.save_point.mapname;
 			x=sd->status.save_point.x;
 			y=sd->status.save_point.y;
-			for(i=0; i<fd_max; i++)
+			for(i=0; i<fd_max; ++i)
 			{
-				if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
+				if(session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 					pl_sd->status.guild_id == g)
 				{
-					if(maps[pl_sd->bl.m].flag.noreturn)
+					if(maps[pl_sd->block_list::m].flag.noreturn)
 						pc_setpos(*pl_sd,str,x,y,3);
 				}
 			}
 		}
 		else
 		{
-			for(i=0; i<fd_max; i++)
+			for(i=0; i<fd_max; ++i)
 			{
-				if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
+				if(session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 					pl_sd->status.guild_id == g)
 				{
-					if(maps[pl_sd->bl.m].flag.noreturn)
+					if(maps[pl_sd->block_list::m].flag.noreturn)
 						pc_setpos(*pl_sd,str,x,y,3);
 				}
 			}
@@ -9694,7 +9707,7 @@ int buildin_pc_emotion(CScriptEngine &st)
 	{
 		int type=st.GetInt(st[2]);
 		if(type >= 0 && type <= 100)
-			clif_emotion(st.sd->bl,type);
+			clif_emotion(*st.sd,type);
 	}
 	return 0;
 }
@@ -9761,21 +9774,21 @@ int buildin_callshop(CScriptEngine &st)
 		if( st.Arguments() > (3) )
 			flag = st.GetInt(st[3]);
 		nd = npc_name2id(shopname);
-		if( nd && nd->bl.type==BL_NPC && nd->bl.subtype==SHOP)
+		if( nd && nd->block_list::type==BL_NPC && nd->block_list::subtype==SHOP)
 		{
 			switch (flag)
 			{
 			case 1: //Buy window
-				npc_buysellsel(*st.sd,nd->bl.id,0);
+				npc_buysellsel(*st.sd,nd->block_list::id,0);
 				break;
 			case 2: //Sell window
-				npc_buysellsel(*st.sd,nd->bl.id,1);
+				npc_buysellsel(*st.sd,nd->block_list::id,1);
 				break;
 			default: //Show menu
-				clif_npcbuysell(*st.sd,nd->bl.id);
+				clif_npcbuysell(*st.sd,nd->block_list::id);
 				break;
 			}
-			st.sd->npc_shopid = nd->bl.id;
+			st.sd->npc_shopid = nd->block_list::id;
 			ret = 1;
 		}
 	}
@@ -9805,7 +9818,7 @@ int mapreg_setregstr(int num, const char *str)
 {
 	char *p = (char *) numdb_search(mapregstr_db, num);
 	if( p!=NULL )
-		aFree(p);
+		delete[] p;
 
 	if( str==NULL || *str==0 )
 	{
@@ -9813,7 +9826,7 @@ int mapreg_setregstr(int num, const char *str)
 	}
 	else
 	{
-		p=(char *)aMalloc( (strlen(str)+1)*sizeof(char));
+		p= new char[strlen(str)+1];
 		memcpy(p,str,(strlen(str)+1)*sizeof(char));
 		numdb_insert(mapregstr_db,num,p);
 	}
@@ -9830,7 +9843,7 @@ int script_load_mapreg()
 	FILE *fp;
 	char line[1024];
 
-	if( (fp=safefopen(mapreg_txt,"rt"))==NULL )
+	if( (fp=basics::safefopen(mapreg_txt,"rt"))==NULL )
 		return -1;
 
 	while(fgets(line,sizeof(line),fp)){
@@ -9844,7 +9857,7 @@ int script_load_mapreg()
 				ShowMessage("%s: %s broken data !\n",mapreg_txt,buf1);
 				continue;
 			}
-			p=(char *)aMalloc( (strlen(buf2) + 1)*sizeof(char));
+			p= new char[(strlen(buf2) + 1)];
 			strcpy(p,buf2);
 			s= add_str( buf1);
 			numdb_insert(mapregstr_db,(i<<24)|s,p);
@@ -9905,9 +9918,9 @@ public:
 		char *name=str_buf+str_data[num].str;
 		if( name[1]!='@' ){
 			if(i==0)
-				fprintf(fp,"%s\t%d\n", name, (size_t)data);
+				fprintf(fp,"%s\t%d\n", name, (int)((size_t)data));
 			else
-				fprintf(fp,"%s,%d\t%d\n", name, i, (size_t)data);
+				fprintf(fp,"%s,%d\t%d\n", name, i, (int)((size_t)data));
 		}
 		return true;
 	}	
@@ -9947,7 +9960,7 @@ int script_save_mapreg()
 	mapreg_dirty=0;
 	return 0;
 }
-int script_autosave_mapreg(int tid, unsigned long tick, int id, intptr data)
+int script_autosave_mapreg(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	if(mapreg_dirty)
 		script_save_mapreg();
@@ -9963,7 +9976,7 @@ int set_posword(const char *p)
 	const char* np;
 	int i;
 	if(p)
-	for(i=0;i<MAX_EQUIP;i++)
+	for(i=0;i<MAX_EQUIP;++i)
 	{
 		if((np=strchr(p,','))!=NULL)
 		{	// copy up to the comma
@@ -9998,7 +10011,7 @@ int script_config_read(const char *cfgName)
 	script_config.event_script_type = 0;
 	script_config.event_requires_trigger = 1;
 
-	fp=safefopen(cfgName,"r");
+	fp=basics::safefopen(cfgName,"r");
 	if (fp == NULL) {
 		ShowError("file not found: %s\n",cfgName);
 		return 1;
@@ -10073,7 +10086,8 @@ int mapreg_db_final(void *key,void *data)
 }
 int mapregstr_db_final(void *key,void *data)
 {
-	aFree(data);
+
+	delete[] ((char*)data);
 	return 0;
 }
 int scriptlabel_db_final(void *key,void *data)
@@ -10082,8 +10096,8 @@ int scriptlabel_db_final(void *key,void *data)
 }
 int userfunc_db_final(void *key,void *data)
 {
-	aFree(key);
-	aFree(data);
+	delete[] ((char*)key);
+	delete[] ((unsigned char*)data);
 	return 0;
 }
 int do_final_script()
@@ -10114,12 +10128,12 @@ int do_final_script()
 
 	if(str_data)
 	{
-		aFree(str_data);
+		delete[] str_data;
 		str_data=NULL;
 	}
 	if(str_buf)
 	{
-		aFree(str_buf);
+		delete[] str_buf;
 		str_buf=NULL;
 	}
 

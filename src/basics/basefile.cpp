@@ -38,6 +38,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 
+NAMESPACE_BEGIN(basics)
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // inconvinient/inefficient/slow
 // but working completely platform/implementation independend
@@ -47,7 +51,7 @@ ssize_t CFile::getline(char *buf, size_t maxlen)
 	int c;
 	if(cFile)
 	{
-		// skip leading returns
+		// skip all leading returns
 		do
 		{
 			c = getc(cFile);
@@ -68,11 +72,36 @@ ssize_t CFile::getline(char *buf, size_t maxlen)
 	*buf=0;
 	return -1;
 }
+
+ssize_t CFile::getline(string<>& str)
+{
+	int c;
+	str.clear();
+	if(cFile)
+	{
+		// skip leading returns
+		do
+		{
+			c = getc(cFile);
+		} while((c==0x0A) || (c==0x0D));
+		if(c==EOF)
+			return -1;
+		//at this position c contains the first read character
+		do
+		{
+			str.append( (char)c );		// put character to buffer
+			c = getc(cFile);			// get next character
+		}while( ((c!=0x0A) && (c!=0x0D)) && (c!=EOF) );
+		// return the number of chars in the buffer
+		return str.length();
+	}
+	return -1;
+}
 ssize_t CFile::writeline(const char *buf, size_t maxlen)
 {
 	if(buf && cFile)
 	{
-		if(maxlen==0) maxlen= strlen(buf);
+		if(maxlen==0) maxlen= hstrlen(buf);
 		ssize_t sz=fwrite(buf,1,maxlen,cFile);
 		if( buf[maxlen-1] != '\n')
 			sz+=fwrite("\n",1,1,cFile);
@@ -80,8 +109,17 @@ ssize_t CFile::writeline(const char *buf, size_t maxlen)
 	}
 	return -1;
 }
-
-
+ssize_t CFile::writeline(const string<>& str)
+{
+	if(cFile)
+	{
+		ssize_t sz=fwrite((const char*)str,1,str.size(),cFile);
+		if( str[str.size()-1] != '\n' )
+			sz+=fwrite("\n",1,1,cFile);
+		return sz;
+	}
+	return -1;
+}
 
 
 
@@ -175,7 +213,7 @@ bool findFiles(const char *p, const char *pat, const CFileProcessor& fp)
 	const char *pattern = (pat==NULL)? "" : pat;
 	
 	checkPath(tmppath,path);
-	if( PATHSEP != tmppath[strlen(tmppath)-1])
+	if( PATHSEP != tmppath[hstrlen(tmppath)-1])
 		strcat(tmppath, "\\*");
 	else
 		strcat(tmppath, "*");
@@ -534,7 +572,7 @@ static const char preferred_separator = '/';
 
 static bool is_separator (char ch)
 {
-	for (int i = 0; separator_set[i]; i++)
+	for (int i = 0; separator_set[i]; ++i)
 	{
 		if(separator_set[i] == ch)
 			return true;
@@ -555,8 +593,8 @@ static bool path_compare(const string<>& l, const string<>& r)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Internal data structure used to hold the different parts of a filespec
-
+/// Internal data structure.
+/// used to hold the different parts of a filespec
 class file_specification
 {
 private:
@@ -627,7 +665,7 @@ bool file_specification::initialise_folder(const string<>& folder_spec)
 			{
 				// the path includes the drive so we have the drive info twice
 				// need to prepend this absolute path to the spec such that any remaining relative path is still retained
-				if(!is_separator(path[strlen(path)-1]))
+				if(!is_separator(path[hstrlen(path)-1]))
 					spec.insert(2, 1, preferred_separator);
 				spec.insert(2, path+2);
 			}
@@ -762,7 +800,7 @@ bool file_specification::make_absolute(const file_specification& rootspec)
 		return true;
 	// now append this's relative path and filename to the root's absolute path
 	file_specification result = rootspec;
-	for (size_t i = 0; i < subpath_size(); i++)
+	for (size_t i = 0; i < subpath_size(); ++i)
 		result.add_subpath(subpath_element(i));
 	result.set_file(file());
 	// now the rootspec is the absolute path, so transfer it to this
@@ -1058,7 +1096,7 @@ string<> folder_up (const char* directory, size_t levels)
 {
 	file_specification spec;
 	spec.initialise_folder(directory);
-	for (size_t i = 0; i < levels; i++)
+	for (size_t i = 0; i < levels; ++i)
 		spec.add_subpath("..");
 	spec.simplify();
 	return spec.image();
@@ -1185,22 +1223,22 @@ static string<> relative_path(const string<>& root, const string<>& path)
 	return spec.image();
 }
 
-string<> folder_to_path (const string<>& path, const string<>& directory)
+string<> folder_to_path (const char* root, const char* folder)
 {
-	return full_path(path, directory);
+	return full_path(root, folder);
 }
 
-string<> filespec_to_path (const string<>& path, const string<>& spec)
+string<> filespec_to_path (const char* root, const char* filespec)
 {
-	return create_filespec(folder_to_path(path, folder_part(spec)),filename_part(spec));
+	return create_filespec(folder_to_path(root, folder_part(filespec)),filename_part(filespec));
 }
 
-string<> folder_to_path(const string<>& folder)
+string<> folder_to_path(const char* folder)
 {
 	return folder_to_path(folder_current(), folder);
 }
 
-string<> filespec_to_path(const string<>& filespec)
+string<> filespec_to_path(const char* filespec)
 {
 	return filespec_to_path(folder_current(), filespec);
 }
@@ -1242,7 +1280,7 @@ string<> basename_part (const char* spec)
 	{
 		// scan back through filename until a '.' is found and remove suffix
 		// the whole filename is the basename if there is no '.'
-		char* ip = strrchr(spec, '.');
+		const char* ip = strrchr(spec, '.');
 		// observe Unix convention that a dot at the start of a filename is part of the basename, not the extension
 		if( ip && ip != spec)
 			fname.append(spec, ip-spec);
@@ -1299,6 +1337,7 @@ string<> folder_part (const char * spec)
 		{
 			if( is_separator(*ip) )
 				return string<>( spec, ip-spec);
+			--ip;
 		}
 	}
 	return string<>();
@@ -1356,7 +1395,7 @@ string<> lookup (const char* command, const char* path, const char* splitter)
 	{
 		// command is just a name - so do path lookup
 		vector< string<> > paths = split<char>(path, splitter);
-		for (size_t i = 0; i < paths.size(); i++)
+		for (size_t i = 0; i < paths.size(); ++i)
 		{
 			string<> spec = create_filespec(paths[i], command);
 			if(file_exists(spec))
@@ -1389,3 +1428,5 @@ string<> install_path(const char* argv0)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+NAMESPACE_END(basics)

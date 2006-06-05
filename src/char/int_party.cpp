@@ -1,5 +1,4 @@
 // $Id: int_party.c,v 1.1.1.1 2004/09/10 17:26:51 MagicalTux Exp $
-#include "base.h"
 #include "baseio.h"
 #include "utils.h"
 #include "malloc.h"
@@ -25,7 +24,7 @@ CPartyDB	cPartyDB;
 // パーティデータのロード
 int inter_party_init()
 {
-	cPartyDB.init(NULL);
+	cPartyDB.init(CHAR_CONF_NAME);
 	return 0;
 }
 
@@ -41,7 +40,7 @@ bool party_check_exp_share(CParty &p)
 	size_t i, cnt_lo=0, cnt_hi=0;
 	unsigned short maxlv = 0, minlv = 0xFFFF;
 
-	for(i = 0; i < MAX_PARTY; i++)
+	for(i = 0; i < MAX_PARTY; ++i)
 	{
 		unsigned short lv = p.member[i].lv;
 		if(lv && p.member[i].account_id && p.member[i].online)
@@ -75,12 +74,12 @@ bool party_check_exp_share(CParty &p)
 int party_check_conflict(uint32 party_id, uint32 account_id, const char *nick)
 {
 	size_t i,k;
-	for(i=0; i<cPartyDB.size(); i++)
+	for(i=0; i<cPartyDB.size(); ++i)
 	{
 		// 本来の所属なので問題なし
 		if( cPartyDB[i].party_id != party_id )
 		{
-			for(k=0; k<MAX_PARTY; k++)
+			for(k=0; k<MAX_PARTY; ++k)
 			{
 				if( cPartyDB[i].member[k].account_id == account_id && 0==strcmp(cPartyDB[i].member[k].name, nick) )
 				{	// 別のパーティに偽の所属データがあるので脱退
@@ -258,7 +257,7 @@ int mapif_parse_CreateParty(int fd, uint32 account_id, const char *name, const c
 	if(NULL==name)
 		return 0;
 
-	for(ip=name; *ip; ip++)
+	for(ip=name; *ip; ++ip)
 	{
 		if ( *((unsigned char*)ip)==0xe0 || *ip== 0x7f)
 		{
@@ -318,6 +317,8 @@ int mapif_parse_PartyChangeOption(int fd, uint32 party_id, uint32 account_id, un
 		}
 		mapif_party_optionchanged(fd, p, account_id, flag );
 	}
+	else
+		mapif_party_broken(party_id, 0);
 	return 0;
 }
 
@@ -330,7 +331,7 @@ int mapif_parse_PartyAddMember(int fd, uint32 party_id, uint32 account_id, const
 
 	if( cPartyDB.searchParty(party_id, p)  )
 	{
-		for(i = 0; i < MAX_PARTY; i++)
+		for(i = 0; i < MAX_PARTY; ++i)
 		{
 			if( p.member[i].account_id == 0)
 			{
@@ -348,23 +349,24 @@ int mapif_parse_PartyAddMember(int fd, uint32 party_id, uint32 account_id, const
 				break;
 			}
 		}
-	}
-
-	if(ok)
-	{
-		mapif_party_memberadded(fd, party_id, account_id, 0);
-		mapif_party_info(-1, p);
-		if( (p.itemshare||p.expshare) && !party_check_exp_share(p) )
-		{	// disable the menu
-			p.itemshare = p.expshare = 0;
-			mapif_party_optionchanged(fd, p, 0, 0);
+		if(ok)
+		{
+			mapif_party_memberadded(fd, party_id, account_id, 0);
+			mapif_party_info(-1, p);
+			if( (p.itemshare||p.expshare) && !party_check_exp_share(p) )
+			{	// disable the menu
+				p.itemshare = p.expshare = 0;
+				mapif_party_optionchanged(fd, p, 0, 0);
+			}
+			cPartyDB.saveParty(p);
 		}
-		cPartyDB.saveParty(p);
+		else
+		{
+			mapif_party_memberadded(fd, party_id, account_id, 1);
+		}
 	}
 	else
-	{
-		mapif_party_memberadded(fd, party_id, account_id, 1);
-	}
+		mapif_party_broken(party_id,0);
 	return 0;
 }
 
@@ -373,10 +375,11 @@ int mapif_parse_PartyLeave(int fd, uint32 party_id, uint32 account_id)
 {
 	CParty p;
 	size_t i,j,k;
+	bool broken=false;
 
 	if( cPartyDB.searchParty(party_id, p) )
 	{
-		for(i=0; i<MAX_PARTY; i++)
+		for(i=0; i<MAX_PARTY; ++i)
 		{
 			if(p.member[i].account_id == account_id)
 			{	
@@ -388,11 +391,11 @@ int mapif_parse_PartyLeave(int fd, uint32 party_id, uint32 account_id)
 				if( !p.isEmpty() )
 				{	// まだ人がいるのでデータ送信
 					// reorganize
-					for(k=0; k<MAX_PARTY; k++)
+					for(k=0; k<MAX_PARTY; ++k)
 					{
 						if(p.member[k].account_id == 0)
 						{
-							for(j=k+1; j<MAX_PARTY; j++)
+							for(j=k+1; j<MAX_PARTY; ++j)
 							{
 								if(p.member[j].account_id != 0)
 								{
@@ -411,17 +414,24 @@ int mapif_parse_PartyLeave(int fd, uint32 party_id, uint32 account_id)
 					}
 					mapif_party_info(-1, p);
 
-
+					if( (p.itemshare||p.expshare) && !party_check_exp_share(p) )
+					{	// disable the menu
+						p.itemshare = p.expshare = 0;
+						mapif_party_optionchanged(fd, p, 0, 0);
+					}
 					cPartyDB.saveParty(p);
 				}
 				else
+				{
 					cPartyDB.removeParty(p.party_id);
+					broken=true;
+				}
 
 				break;
 			}
 		}
 	}
-
+	if(broken) mapif_party_broken(party_id,0);
 	return 0;
 }
 
@@ -432,7 +442,7 @@ int mapif_parse_PartyChangeMap(int fd, uint32 party_id, uint32 account_id, const
 	size_t i;
 	if( cPartyDB.searchParty(party_id, p) )
 	{
-		for(i=0; i<MAX_PARTY; i++)
+		for(i=0; i<MAX_PARTY; ++i)
 		{
 			if (p.member[i].account_id == account_id)
 			{
@@ -454,13 +464,17 @@ int mapif_parse_PartyChangeMap(int fd, uint32 party_id, uint32 account_id, const
 			}
 		}
 	}
+	else
+		mapif_party_broken(party_id,0);
 	return 0;
 }
 
 // パーティ解散要求
 int mapif_parse_BreakParty(int fd, uint32 party_id)
 {
-	return cPartyDB.removeParty(party_id);
+	cPartyDB.removeParty(party_id);
+	mapif_party_broken(party_id,0);
+	return 0;
 }
 
 // パーティメッセージ送信

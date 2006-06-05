@@ -6,28 +6,22 @@
 #include "basestring.h"
 #include "basearray.h"
 
+
 //////////////////////////////////////////////////////////////////////////
-// switch to change pattern recognition bahaviour
-// perl regular expressions only accept the last match in a recursive pattern
-// such as 
-// "([abc])*d" used on the string "abbbcd" would result in $0 = "abbbcd" and $1 = "c"
-// even if "a","b","b","b" would also match to the first parentheses pattern
-// without conformity finding all of them is possible, resulting in
-// $0 = "abbbcd", $1 = "a", $2 = "b", $3 = "b", $4 = "b", $5 = "c"
-// but would loose track of the $1..$n correlation
+/// Regualar Expression Library
 
-//!! TODO: modifiy the result to prepare arrays at $n with default returns conform to the standard
 
+NAMESPACE_BEGIN(basics)
 
 
 //////////////////////////////////////////////////////////////////////////
-// test function
+/// test function
 void test_regex(void);
 
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Regular expression class
+/// Regular expression class
 class CRegExp
 {
 	///////////////////////////////////////////////////////////////////////////
@@ -42,8 +36,8 @@ class CRegExp
 	// class declarations
 public:
 	///////////////////////////////////////////////////////////////////////////
-	// an find element; consists actually of a start and end pointer 
-	// inside the string element from the match query, which is internally copied
+	/// find element. consists actually of a start and end pointer 
+	/// inside the string element from the match query, which is internally copied
 	class CFinds : public defaultcmp
 	{
 	public:
@@ -59,7 +53,7 @@ public:
 	};
 private:
 	///////////////////////////////////////////////////////////////////////////
-	// error handler
+	/// error handler.
 	class CRegErrorHandler
 	{
 		///////////////////////////////////////////////////////////////////////
@@ -98,8 +92,8 @@ private:
 	};
 
 	///////////////////////////////////////////////////////////////////////////
-	// the actual regular expressio engine
-	// contains/builds/executes the automat for running the query
+	/// the actual regular expression engine.
+	/// contains/builds/executes the automat for running the query
 	class CRegProgram : public CRegErrorHandler
 	{
 
@@ -109,11 +103,21 @@ private:
 
 		///////////////////////////////////////////////////////////////////////
 		// class data
-		TArrayDST<char> cProgramm;	// the Programm
+		vector<char> cProgramm;		// the Programm
 		size_t	cMust;				// internal
 		size_t	cMustLen;			// internal
 		char	cStartChar;			// internal
 		char	cAnchor;			// internal
+
+
+		/// regex configuration.
+		/// cPCREconform:
+		/// perl regular expressions only accept the last match in a recursive pattern
+		/// such as 
+		/// "([abc])*d" used on the string "abbbcd" would result in $0 = "abbbcd" and $1 = "c"
+		/// even if "a","b","b","b" would also match to the first parentheses pattern
+		/// with cPCREconform=false the result of each parentheses is stored
+		/// as vector so each match can be obtained
 		struct _config
 		{
 			uint	cStatus : 1;
@@ -129,11 +133,11 @@ private:
 			{}
 		} cConfig;
 #ifdef DEBUG
-		string<> cExpression;		// the regex itself
+		string<> cExpression;		///< the regex itself
 #endif
 	public:
 		///////////////////////////////////////////////////////////////////////
-		// construction
+		/// construction
 		CRegProgram() :
 			cMust(0),
 			cMustLen(0),
@@ -151,7 +155,7 @@ private:
 			Compile( exp );
 		}
 		///////////////////////////////////////////////////////////////////////
-		// copy/assignment
+		/// copy/assignment
 		CRegProgram(const CRegProgram& a) :
 			cProgramm(a.cProgramm),
 			cMust(a.cMust),
@@ -181,26 +185,26 @@ private:
 		}
 	private:
 		///////////////////////////////////////////////////////////////////////
-		// set query to case-ignoring
+		/// set query to case-ignoring.
 		void ignoreCase(const char * in, char * out) const;
 
 		///////////////////////////////////////////////////////////////////////
-		// returns the command at pos
+		/// returns the command at pos.
 		char command( size_t pos ) const
 		{
 			return cProgramm[pos];
 		}
 		///////////////////////////////////////////////////////////////////////
-		// returns the operand at pos
+		/// returns the operand at pos.
 		const char* operand( size_t pos ) const
 		{
 			return &(cProgramm[pos]) + 3;
 		}
 		///////////////////////////////////////////////////////////////////////
-		// steps to the next command
+		/// steps to the next command
 		size_t nextcommand( size_t pos ) const;
 		///////////////////////////////////////////////////////////////////////
-		// AddValue - emit (if appropriate) a byte of code
+		/// emit (if appropriate) a byte of code.
 		void AddValue(char b)
 		{
 			cProgramm.append( b );
@@ -208,7 +212,7 @@ private:
 		void AddtoSet(size_t &pos, char b);
 		bool ComparetoSet(size_t node, char b) const;
 		///////////////////////////////////////////////////////////////////////
-		// AddNode - emit a node
+		/// emit a node.
 		size_t AddNode(char op)
 		{
 			char buf[3] = {op,0,0};
@@ -217,44 +221,46 @@ private:
 			return ret;
 		}
 		///////////////////////////////////////////////////////////////////////
-		// InsertNode - insert an operator in front of already-emitted operand
-		// Means relocating the operand.
+		/// InsertNode - insert an operator in front of already-emitted operand
+		/// Means relocating the operand.
 		void InsertNode(char op, size_t opnd)
 		{
 			char buf[3] = {op,0,0};
 			cProgramm.insert(buf,3, opnd);
 		}
 		///////////////////////////////////////////////////////////////////////
-		// AddTail - set the next-pointer at the end of a node chain
+		/// AddTail - set the next-pointer at the end of a node chain
 		void AddTail(size_t p, size_t val);
 		///////////////////////////////////////////////////////////////////////
 		// AddCmdTail - AddTail on operand of first argument; nop if operandless
 		void AddCmdTail(size_t p, size_t val);
 		///////////////////////////////////////////////////////////////////////
-		// ParseExp - regular expression, i.e. main body or parenthesized thing
-		// Caller must absorb opening parenthesis.
-		// Combining parenthesis handling with the base level of regular expression
-		// is a trifle forced, but the need to tie the tails of the branches to what
-		// follows makes it hard to avoid.
+		/// parses regular expression. i.e. main body or parenthesized thing
+		/// Caller must absorb opening parenthesis.
+		/// Combining parenthesis handling with the base level of regular expression
+		/// is a trifle forced, but the need to tie the tails of the branches to what
+		/// follows makes it hard to avoid.
 		size_t ParseExp(const char*&parsestr, int paren, int &parcnt, int &flag);
 		///////////////////////////////////////////////////////////////////////
-		// ParseBranch - one alternative of an | operator
-		// Implements the concatenation operator.
+		/// parses one alternative of an | operator.
+		/// Implements the concatenation operator.
 		size_t ParseBranch(const char*&parsestr, int &parcnt, int &flag);
 		///////////////////////////////////////////////////////////////////////
-		// ParsePiece - something followed by possible [*+?]
-		// Note that the branching code sequences used for ? and the general cases
-		// of * and + are somewhat optimized:  they use the same NOTHING node as
-		// both the endmarker for their branch list and the body of the last branch.
-		// It might seem that this node could be dispensed with entirely, but the
-		// endmarker role is not redundant.
+		/// parses a piece - something followed by possible [*+?].
+		/// Note that the branching code sequences used for ? and the general cases
+		/// of * and + are somewhat optimized:  they use the same NOTHING node as
+		/// both the endmarker for their branch list and the body of the last branch.
+		/// It might seem that this node could be dispensed with entirely, but the
+		/// endmarker role is not redundant.
 		size_t ParsePiece(const char*&parsestr, int &parcnt, int &flag);
 		///////////////////////////////////////////////////////////////////////
-		// ParseAtom - the lowest level
-		// Optimization:  gobbles an entire sequence of ordinary characters so that
-		// it can turn them into a single node, which is smaller to store and
-		// faster to run.  Backslashed characters are exceptions, each becoming a
-		// separate node; the code is simpler that way and it's not worth fixing.
+		/// parses atoms - the lowest level.
+		/// Optimization:
+		/// - gobbles an entire sequence of ordinary characters so that
+		///   it can turn them into a single node, which is smaller to store and
+		///   faster to run.
+		/// - Backslashed characters are exceptions, each becoming a separate node; 
+		///   the code is simpler that way and it's not worth fixing.
 		size_t ParseAtom(const char*&parsestr, int &parcnt, int &flag);
 
 		///////////////////////////////////////////////////////////////////////
@@ -265,29 +271,31 @@ private:
 		}
 
 		///////////////////////////////////////////////////////////////////////
-		// calling the match query
+		// calling the match query.
 		bool MatchTry(const char* base, const char* str, vector< vector<CFinds> >& finds) const;
 
 		///////////////////////////////////////////////////////////////////////
-		// MatchMain - main matching routine
-		// Conceptually the strategy is simple:  check to see whether the current
-		// node matches, call self recursively to see whether the rest matches,
-		// and then act accordingly.  In practice we make some effort to avoid
-		// recursion, in particular by going through "ordinary" nodes (that don't
-		// need to know whether the rest of the match failed) by a loop instead of
-		// by recursion.
+		/// MatchMain - main matching routine.
+		/// Conceptually the strategy is simple:
+		/// - check to see whether the current node matches, 
+		///   call self recursively to see whether the rest matches, 
+		///   and then act accordingly. 
+		/// - In practice we make some effort to avoid recursion, 
+		///   in particular by going through "ordinary" nodes (that don't
+		///   need to know whether the rest of the match failed) by a loop 
+		///   instead of by recursion.
 		bool MatchMain(const char* base, const char* str, vector< vector<CFinds> >& finds, size_t progstart, const char*&reginput, map<size_t, size_t>& imap) const;
 
 		///////////////////////////////////////////////////////////////////////
-		// MatchRepeat - report how many times something simple would match
+		/// MatchRepeat. - report how many times something simple would match
 		size_t MatchRepeat(const char* base, size_t node, const char*&reginput ) const;
 
 
 #ifdef DEBUG
 		///////////////////////////////////////////////////////////////////////
-		// debug functions
+		// debug functions.
 	private:
-		// GetPrintCmd - printable representation of opcode
+		/// GetPrintCmd - printable representation of opcode.
 		const char * GetPrintCmd( size_t pos ) const;
 	public:
 		void Print() const;
@@ -297,13 +305,13 @@ private:
 
 	public:
 		///////////////////////////////////////////////////////////////////////
-		// returns the internal status
+		/// returns the internal status.
 		bool Status() const { return cConfig.cStatus; }
 		///////////////////////////////////////////////////////////////////////
-		// compiles an expression
+		/// compiles an expression.
 		bool Compile(const char* exp);
 		///////////////////////////////////////////////////////////////////////
-		// regexec - match a CRegExpWorker against a string
+		/// match a CRegExpWorker against a string.
 		bool Execute( const char* string, vector< vector<CFinds> >& finds ) const;
 	};
 	///////////////////////////////////////////////////////////////////////////
@@ -311,29 +319,29 @@ private:
 private:
 	///////////////////////////////////////////////////////////////////////////
 	// class data
-	mutable string<>					cQueryString;	// the string which we match with
-	mutable vector< vector<CFinds> >	cFinds;			// the finds in that string
+	mutable string<>					cQueryString;	///< the string which we match with
+	mutable vector< vector<CFinds> >	cFinds;			///< the finds in that string
 
 	///////////////////////////////////////////////////////////////////////////
-	// reference to the expression parser
+	/// reference to the expression parser.
 	TPtrAutoRef<CRegProgram> cProg;
 
 	///////////////////////////////////////////////////////////////////////////
-	// clears the errormessage
+	/// clears the errormessage.
 	void clearerror() const;
 
 	///////////////////////////////////////////////////////////////////////////
 public:
 
 	///////////////////////////////////////////////////////////////////////////
-	// constructor/destructor
+	/// constructor/destructor
 	CRegExp()	{}
 	CRegExp( const char* exp, bool icase = false, bool conf=true )
 		: cProg( exp, icase, conf )	{}
 	~CRegExp()	{}
 
 	///////////////////////////////////////////////////////////////////////////
-	// copy/assign
+	/// copy/assign
 	CRegExp( const CRegExp &r )	: cProg( r.cProg )	{}
 	const CRegExp & operator=( const CRegExp & r );
 
@@ -342,7 +350,7 @@ public:
 	const CRegExp & assign( const CRegExp & r );
 
 	///////////////////////////////////////////////////////////////////////////
-	// search
+	/// search
 	bool match( const char *s ) const;
 	bool match( const string<> &s ) const;
 
@@ -353,31 +361,31 @@ public:
 	friend bool operator==( const string<> &s, const CRegExp& reg ) { return reg.match(s); }
 
 	///////////////////////////////////////////////////////////////////////////
-	// substring access
-	// number of finds
+	/// substring access.
+	/// number of finds/number of finds in a parenthesis
 	unsigned int sub_count() const;
 	unsigned int sub_count(size_t i) const;
-	// last find at position i (PCRE conform)
+	/// last find at position i (PCRE conform)
 	const string<> operator[]( size_t i ) const;
-	// access to all finds (default to the last == PCRE conform)
+	/// access to all finds (default to the last == PCRE conform)
 	const string<> operator()(size_t i=0, size_t k=~0) const;
-	// start and length of the substring according to the matchstring
+	/// start and length of the substring according to the matchstring
 	unsigned int sub_start(size_t i=0, size_t k=~0) const;
 	unsigned int sub_length(size_t i=0, size_t k=~0) const;
 
 	///////////////////////////////////////////////////////////////////////////
-	// replacements
+	/// replacements.
 	string<> replacestring(const char* sReplaceExp) const;
 	string<> sub(const char * replacement, const string<> str, size_t count=~0, size_t which=0);
 	string<> subn(const char * replacement, const string<> str, size_t &count, size_t which=0);
 
 
 	///////////////////////////////////////////////////////////////////////////
-	// correctly compiled 
+	/// correctly compiled.
 	bool is_valid() const;
 
 	///////////////////////////////////////////////////////////////////////////
-	// run options
+	/// run options
 	void setCaseSensitive(bool v);
 	bool isCaseSensitive() const;
 	void setMultiLine(bool v);
@@ -386,7 +394,7 @@ public:
 	bool isPCREconform() const;
 
 	///////////////////////////////////////////////////////////////////////////
-	// last run error message, NULL when none
+	/// last run error message. NULL when none
 	const char* errmsg() const;
 	
 #ifdef DEBUG
@@ -397,8 +405,7 @@ public:
 
 
 
-
-
+NAMESPACE_END(basics)
 
 
 #endif//__BASEREGEX__

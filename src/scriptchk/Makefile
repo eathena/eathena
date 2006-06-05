@@ -23,8 +23,9 @@ include $(BP)/Makefile.dep
 eascriptchk: eacompiler.o scriptchk.o $(BASE_OBJ)
 	$(CCC) $> $(LIBS) -o $(RETURN_PATH)/$@
 
-eacompiler.o: eacompiler.cpp $(BASE_H)
+eacompiler.o: eacompiler.cpp eascript.engine.txt $(BASE_H)
 scriptchk.o: scriptchk.cpp $(BASE_H)
+eascript.engine.txt:
 
 clean:
 	rm -rf *.o $(RETURN_PATH)/eascriptchk GNUmakefile

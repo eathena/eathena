@@ -3,7 +3,8 @@
 #ifndef	_CORE_H_
 #define	_CORE_H_
 
-#include "base.h"
+#include "basetypes.h"
+#include "baseobjects.h"
 #include "version.h"
 
 
@@ -18,7 +19,7 @@ const char* get_svn_revision();
 
 ///////////////////////////////////////////////////////////////////////////////
 // uptime
-class uptime : public noncopyable
+class uptime : public basics::noncopyable
 {
 	static time_t starttime;
 public:

@@ -4,6 +4,7 @@
 #include "basesync.h"		// for mutex
 
 
+NAMESPACE_BEGIN(basics)
 
 //////////////////////////////////////////////////////////////////////////
 // atomic access functions
@@ -284,6 +285,7 @@ int FASTCALL atomicdecrement(int* target)
 
 #endif // plattform
 
-#endif//!SINGLETHREAD
+#endif// !SINGLETHREAD
 
 
+NAMESPACE_END(basics)

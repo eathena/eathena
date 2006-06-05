@@ -3,6 +3,9 @@
 #include "basearray.h"
 #include "basestrformat.h"
 
+NAMESPACE_BEGIN(basics)
+
+
 #if defined(DEBUG)
 
 
@@ -76,23 +79,23 @@ void test_buffer(void)
 		static double v;
 
 		double**arr2 = new double*[sz];
-		for(i=0;i<sz; i++)
+		for(i=0;i<sz; ++i)
 			arr2[i] = new double[sz];
 
 
 		tick = clock();
-		for(s=0;s<5000; s++)
-		for(i=0;i<128; i++)
-		for(k=0;k<128; k++)
+		for(s=0; s<5000; ++s)
+		for(i=0; i<128; ++i)
+		for(k=0; k<128; ++k)
 		{
 			v = arr[i*sz+k];
 		}
 		printf("array ordered access mult %lu\n", clock()-tick);
 	
 		tick = clock();
-		for(s=0;s<5000; s++)
-		for(i=0;i<128; i++)
-		for(k=0;k<128; k++)
+		for(s=0; s<5000; ++s)
+		for(i=0; i<128; ++i)
+		for(k=0; k<128; ++k)
 		{
 			v = arr2[i][k];
 		}
@@ -110,16 +113,16 @@ void test_buffer(void)
 		}
 
 		tick = clock();
-		for(i=0;i<4; i++)
-		for(s=0;s<4194304; s++)
+		for(i=0; i<4; ++i)
+		for(s=0; s<4194304; ++s)
 		{
 			v = arr[randix_x[s]*sz+randix_y[s]];
 		}
 		printf("array rand access mult %lu\n", clock()-tick);
 	
 		tick = clock();
-		for(i=0;i<4; i++)
-		for(s=0;s<4194304; s++)
+		for(i=0; i<4; ++i)
+		for(s=0; s<4194304; ++s)
 		{
 			v = arr2[randix_x[s]][randix_y[s]];
 		}
@@ -136,6 +139,8 @@ void test_buffer(void)
 		unsigned char ucbuf[64];
 		_fixbuffer bbb(ucbuf, sizeof(ucbuf));
 		_buffer ccc(20);
+
+
 
 
 		bbb << 1ul;
@@ -174,33 +179,33 @@ void test_buffer(void)
 		
 		ba = (unsigned long)1;
 
-		for(i=0; i<5; i++)
+		for(i=0; i<5; ++i)
 			bb = (unsigned short)i;
 
 		printf("buffer\n");
-		for(i=0; i<sizeof(buf); i++)
+		for(i=0; i<sizeof(buf); ++i)
 			printf("%02x ", buf[i]);
 		printf("\n");
 
-		for(i=5; i<10; i++)
+		for(i=5; i<10; ++i)
 			printf("%02x ", (unsigned short)bb);
 		printf("\n");
 
 		printf("buffer\n");
-		for(i=0; i<sizeof(buf); i++)
+		for(i=0; i<sizeof(buf); ++i)
 			printf("%02x ", buf[i]);
 		printf("\n");
 
 
-		for(i=5; i<10; i++)
+		for(i=5; i<10; ++i)
 			bb = (unsigned short)i;
 
 		printf("buffer\n");
-		for(i=0; i<sizeof(buf); i++)
+		for(i=0; i<sizeof(buf); ++i)
 			printf("%02x ", buf[i]);
 		printf("\n");
 
-		for(i=0; i<10; i++)
+		for(i=0; i<10; ++i)
 			printf("%i", (unsigned short)bb);
 		printf("\n");
 	
@@ -211,3 +216,5 @@ void test_buffer(void)
 	}
 #endif//DEBUG
 }
+
+NAMESPACE_END(basics)

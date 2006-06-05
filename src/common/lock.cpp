@@ -1,6 +1,5 @@
 
-
-#include "base.h"
+#include "basereentrant.h"
 #include "lock.h"
 #include "utils.h"
 #include "showmsg.h"
@@ -22,37 +21,15 @@
 04 Read permission 
 06 Read and write permission 
 */
-
 #endif
 
 
 
 
+
+
+
 #define exists(filename) (!access(filename, F_OK))
-
-
-//////////////////////////////////////////////////////////////////////////
-// system independend threadsafe strerror
-const char* strerror(int err, char* buf, size_t size)
-{
-	static Mutex mx;
-	ScopeLock sl(mx);
-	if(buf)
-	{
-		char*p = ::strerror(err);
-		if(p)
-		{
-			if( strlen(p)+1 < size ) size = strlen(p)+1;
-			memcpy(buf,p,size);
-			buf[size-1]=0; //force EOS
-		}
-		else
-			*buf=0;
-	}
-	return buf;
-}
-
-
 
 
 // 書き込みファイルの保護処理
@@ -68,9 +45,9 @@ FILE* lock_fopen (const char* filename, int &info)
 	// 安全なファイル名を得る（手抜き）
 	do {
 		snprintf(newfile, sizeof(newfile),"%s_%04d.tmp", filename, ++no);
-	} while((fp = safefopen(newfile,"r")) && (fclose(fp), no<9999) );
+	} while((fp = basics::safefopen(newfile,"r")) && (fclose(fp), no<9999) );
 	info = no;
-	return safefopen(newfile,"wb");
+	return basics::safefopen(newfile,"wb");
 }
 
 // 旧ファイルを削除＆新ファイルをリネーム

@@ -1,8 +1,8 @@
 #ifndef __BASESTRING_H__
 #define __BASESTRING_H__
 
-//!! bloat marker included
-//!! move back included
+//## bloat marker included
+//## move back included
 
 #include "basetypes.h"
 #include "baseobjects.h"
@@ -13,11 +13,11 @@
 
 #include "basestrformat.h"
 
-
+NAMESPACE_BEGIN(basics)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// test functions
+/// test functions
 ///////////////////////////////////////////////////////////////////////////////
 void test_strings(void);
 void test_stringbuffer(void);
@@ -26,8 +26,8 @@ void test_stringbuffer(void);
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// character conversion/checking
-// with specified implementations for certain types
+/// character conversion/checking.
+/// with specified implementations for certain types
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> inline T locase(T c) { return ::tolower( to_unsigned(c) ); }
 inline char locase(char c) { if (c >= 'A' && c <= 'Z') return char(c + 32); return c; }
@@ -44,7 +44,7 @@ inline wchar_t upcase(wchar_t c) { return ::towupper( to_unsigned(c) ); }
 
 
 ///////////////////////////////////////////////////////////////////////////////
-//!! TODO: check for integration to the template generation
+//## TODO: check for integration to the template generation
 //         (currently implemented as external stringtable)
 #define CONSTSTRING(x) x
 //#define CONSTSTRING(x) L##x		// unicode string marker
@@ -55,7 +55,7 @@ inline wchar_t upcase(wchar_t c) { return ::towupper( to_unsigned(c) ); }
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// cstring to number
+/// cstring to number
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> uint64 stringtoue(const T* str, size_t base);
 template <class T> sint64 stringtoie(const T* str);
@@ -63,8 +63,8 @@ template <class T> sint64 stringtoi(const T* p);
 template <class T> double stringtod(const T* p);
 
 ///////////////////////////////////////////////////////////////////////////////
-// number conversion core
-// don't use directly
+/// number conversion core.
+/// don't use directly
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> const T* _itobase(sint64 value, T* buf, size_t base, size_t& len, bool _signed, T pluschar);
 
@@ -74,7 +74,7 @@ template <class T> const T* _itobase(sint64 value, T* buf, size_t base, size_t& 
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// predeclaration
+/// predeclaration
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> class stringinterface;
 template <class T> class stringoperator;
@@ -92,7 +92,7 @@ template <class X>          class formatobj;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// error message
+/// error message.
 void string_error(const char*errmsg);
 
 
@@ -107,14 +107,14 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// basic string interface
-// defines all reading access on a string object
+/// basic string interface.
+/// defines all reading access on a string object
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class stringinterface : public allocator<T>, public stringconfig
+template <class T=char> class stringinterface : public allocator<T>, public elaborator_st<T>, public stringconfig
 {
 protected:
 	///////////////////////////////////////////////////////////////////////////
-	// internal StringConstant aquire
+	/// internal StringConstant aquire
 	const T*getStringConstant(size_t i) const;
 
 	stringinterface<T>()			{}
@@ -125,14 +125,14 @@ public:
 	virtual operator const T*() const =0;
 	virtual const T* c_str() const =0;
 	///////////////////////////////////////////////////////////////////////////
-	// search functions
+	/// search functions
 	///////////////////////////////////////////////////////////////////////////
 	bool			findnext(const stringinterface<T>& pattern, size_t &startpos, bool ignorecase=false) const;
 	vector<size_t>	findall (const stringinterface<T>& pattern, bool ignorecase=false) const;
 
 
 	///////////////////////////////////////////////////////////////////////////
-	// readable array access
+	/// readable array access
 	///////////////////////////////////////////////////////////////////////////
 	virtual const T operator[](size_t inx) const = 0;
 	virtual const T operator[](int inx) const=0;
@@ -140,14 +140,14 @@ public:
 
 
 	///////////////////////////////////////////////////////////////////////////
-	// compare functions
+	/// compare functions
 	///////////////////////////////////////////////////////////////////////////
 	virtual int compareTo(const stringinterface<T>& s) const=0;
 	virtual int compareTo(const T*c) const=0;
 	virtual int compareTo(const T c) const=0;
 
 	/////////////////////////////////////////////////////////////////
-	// boolean operators
+	/// boolean operators
 	/////////////////////////////////////////////////////////////////
 	virtual bool operator ==(const stringinterface<T> &s)	const { return (this->compareTo( s ) == 0); }
 	virtual bool operator !=(const stringinterface<T> &s)	const { return (this->compareTo( s ) != 0); }
@@ -180,13 +180,15 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// basic string functions
+/// basic string functions
 ///////////////////////////////////////////////////////////////////////////////
 
-// some Unix systems do not accept NULL
+/// some Unix systems do not accept NULL
 inline size_t hstrlen(const char* p)		{ return p == NULL ? 0 : strlen(p); }
 inline size_t hstrlen(const wchar_t* p)		{ return p == NULL ? 0 : wcslen(p); }
+#if !defined(WITH_NAMESPACE)
 template<class T> inline size_t strlen(const stringinterface<T>& p)	{ return p.length(); }
+#endif
 template<class T> inline size_t hstrlen(const stringinterface<T>& p){ return p.length(); }
 
 
@@ -195,8 +197,8 @@ template<class T> inline size_t hstrlen(const stringinterface<T>& p){ return p.l
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// basic string operator
-// defines write access on a string object
+/// basic string operator.
+/// defines write access on a string object
 ///////////////////////////////////////////////////////////////////////////////
 template <class T=char> class stringoperator : public stringinterface<T>
 {
@@ -207,48 +209,44 @@ public:
 
 
 	///////////////////////////////////////////////////////////////////////////
-	// standard functions
+	/// standard functions
 	///////////////////////////////////////////////////////////////////////////
 	virtual void clear() =0;
 	virtual void empty() =0;
-	// remove everything from ix for sz length
+	/// remove everything from ix for sz length
 	virtual void clear(size_t inx, size_t len) =0;
-	// remove everything exept from 0 for sz length
+	/// remove everything exept from 0 for sz length
 	virtual void truncate(size_t sz) =0;
-	// remove everything exept from ix for sz length
+	/// remove everything exept from ix for sz length
 	virtual void truncate(size_t ix, size_t sz) =0;
-	// removes sz elements from the end
+	/// removes sz elements from the end
 	virtual void strip(size_t sz) =0;
-	// check if requestes overall size is available
+	/// removes sz elements from the start
+	void skip(size_t sz)	{ clear(0,sz); }
+
+	/// check if requestes overall size is available
 	virtual bool checksize(size_t sz) =0;
 
 
 	///////////////////////////////////////////////////////////////////////////
-	// templated single element append function
+	/// templated single element append function
 	///////////////////////////////////////////////////////////////////////////
 	template<class X> const stringoperator<T>& assign(const X& t)
 	{
 		this->clear();
-		return this->operator<<(t);
+		return this->append(t);
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// templated single element append function
-	///////////////////////////////////////////////////////////////////////////
-	template<class X> stringoperator<T>& append(const X& t)
-	{
-		return this->operator<<(t);
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// templated add-assignment operators
+	/// templated add-assignment operators
 	///////////////////////////////////////////////////////////////////////////
 	template <class X> const stringoperator<T>& operator +=(const X& t)
 	{
-		return this->operator<<(t);
+		return this->append(t);
 	}
 
 
 	///////////////////////////////////////////////////////////////////////////
-	// assignment function
+	/// assignment function
 	///////////////////////////////////////////////////////////////////////////
 	virtual const stringoperator<T>& assign(const stringinterface<T>& t, size_t slen) = 0;
 	virtual const stringoperator<T>& assign(const T* c, size_t slen) = 0;
@@ -259,75 +257,71 @@ public:
 	virtual const stringoperator<T>& assign_toupper(const T* c, size_t slen=~((size_t)0)) = 0;
 	virtual const stringoperator<T>& assign_process(const T* c, size_t slen=~((size_t)0), T (*func)(T)=NULL) = 0;
 
-	/////////////////////////////////////////////////////////////////
-	// append function
-	/////////////////////////////////////////////////////////////////
-	virtual const stringoperator<T>& append(const stringinterface<T>& t, size_t slen) = 0;
-	virtual const stringoperator<T>& append(const T* c, size_t slen) = 0;
-	virtual const stringoperator<T>& append(const T& c, size_t slen) = 0;
-	virtual const stringoperator<T>& append(const T ch) = 0;
-	virtual const stringoperator<T>& append_tolower(const T* c, size_t slen=~((size_t)0)) = 0;
-	virtual const stringoperator<T>& append_toupper(const T* c, size_t slen=~((size_t)0)) = 0;
-	virtual const stringoperator<T>& append_process(const T* c, size_t slen=~((size_t)0), T (*func)(T)=NULL) = 0;
-
-	/////////////////////////////////////////////////////////////////
-	// insert function
-	/////////////////////////////////////////////////////////////////
-	virtual const stringoperator<T>& insert(size_t pos, const stringinterface<T>& t, size_t slen=~((size_t)0)) = 0;
-	virtual const stringoperator<T>& insert(size_t pos, const T* c, size_t slen=~((size_t)0)) = 0;
-	virtual const stringoperator<T>& insert(size_t pos, const T& c, size_t slen=1) = 0;
-
-	/////////////////////////////////////////////////////////////////
-	// replace
-	/////////////////////////////////////////////////////////////////
-	virtual const stringoperator<T>& replace(size_t pos, size_t tlen, const stringinterface<T>& t, size_t slen=~((size_t)0)) = 0;
-	virtual const stringoperator<T>& replace(size_t pos, size_t tlen, const T* c, size_t slen=~((size_t)0)) = 0;
-	virtual const stringoperator<T>& replace(size_t pos, size_t tlen, const T ch, size_t slen=1) = 0;
-
-
-
 	///////////////////////////////////////////////////////////////////////////
-	// pipe operator for supported types
+	/// single element append function
 	///////////////////////////////////////////////////////////////////////////
-	virtual stringoperator<T>& operator <<(const stringinterface<T>& t) =0;
-	virtual stringoperator<T>& operator <<(const T* ip) =0;
-	virtual stringoperator<T>& operator <<(const T ch) =0;
-	virtual stringoperator<T>& operator <<(const int v) =0;
-	virtual stringoperator<T>& operator <<(const unsigned int v) =0;
-	virtual stringoperator<T>& operator <<(const long v) =0;
-	virtual stringoperator<T>& operator <<(const unsigned long v) =0;
-	virtual stringoperator<T>& operator <<(const int64 v) =0;
-	virtual stringoperator<T>& operator <<(const uint64 v) =0;
-	virtual stringoperator<T>& operator <<(const double v) =0;
+	virtual stringoperator<T>& append(const stringinterface<T>& t) =0;
+	virtual stringoperator<T>& append(const T* ip) =0;
+	virtual stringoperator<T>& append(const T ch) =0;
+	virtual stringoperator<T>& append(const int v) =0;
+	virtual stringoperator<T>& append(const unsigned int v) =0;
+	virtual stringoperator<T>& append(const long v) =0;
+	virtual stringoperator<T>& append(const unsigned long v) =0;
+	virtual stringoperator<T>& append(const int64 v) =0;
+	virtual stringoperator<T>& append(const uint64 v) =0;
+	virtual stringoperator<T>& append(const double v) =0;
 
-	template<class X> stringoperator<T>& operator << (const formatstr<T,X>& t)
+	template<class X> stringoperator<T>& append(const formatstr<T,X>& t)
 	{
 		dsprintf<T>(*this, t.fmt(), t.val());
 		return *this;
 	}
-	template<class X> stringoperator<T>& operator << (const formatobj<X>& t)
+	template<class X> stringoperator<T>& append(const formatobj<X>& t)
 	{
 		t.print( *this );
 		return *this;
 	}
 
 	/////////////////////////////////////////////////////////////////
-	// change case
+	/// append function
+	/////////////////////////////////////////////////////////////////
+	virtual const stringoperator<T>& append(const stringinterface<T>& t, size_t slen) = 0;
+	virtual const stringoperator<T>& append(const T* c, size_t slen) = 0;
+	virtual const stringoperator<T>& append(const T& c, size_t slen) = 0;
+	virtual const stringoperator<T>& append_tolower(const T* c, size_t slen=~((size_t)0)) = 0;
+	virtual const stringoperator<T>& append_toupper(const T* c, size_t slen=~((size_t)0)) = 0;
+	virtual const stringoperator<T>& append_process(const T* c, size_t slen=~((size_t)0), T (*func)(T)=NULL) = 0;
+
+	/////////////////////////////////////////////////////////////////
+	/// insert function
+	/////////////////////////////////////////////////////////////////
+	virtual const stringoperator<T>& insert(size_t pos, const stringinterface<T>& t, size_t slen=~((size_t)0)) = 0;
+	virtual const stringoperator<T>& insert(size_t pos, const T* c, size_t slen=~((size_t)0)) = 0;
+	virtual const stringoperator<T>& insert(size_t pos, const T& c, size_t slen=1) = 0;
+
+	/////////////////////////////////////////////////////////////////
+	/// replace
+	/////////////////////////////////////////////////////////////////
+	virtual const stringoperator<T>& replace(size_t pos, size_t tlen, const stringinterface<T>& t, size_t slen=~((size_t)0)) = 0;
+	virtual const stringoperator<T>& replace(size_t pos, size_t tlen, const T* c, size_t slen=~((size_t)0)) = 0;
+	virtual const stringoperator<T>& replace(size_t pos, size_t tlen, const T ch, size_t slen=1) = 0;
+
+	/////////////////////////////////////////////////////////////////
+	/// change case
 	/////////////////////////////////////////////////////////////////
 	virtual void tolower() =0;
 	virtual void toupper() =0;
 	///////////////////////////////////////////////////////////////////////////
-	// Trim's
+	/// Trim's
 	///////////////////////////////////////////////////////////////////////////
 	virtual void ltrim() =0;
 	virtual void rtrim() =0;
 	virtual void trim() =0;
 	virtual void itrim(bool removeall=false) =0;
-
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// case and trim
+/// case and trim
 ///////////////////////////////////////////////////////////////////////////////
 template<class T> const T* toupper(T* str);
 template<class T> const T* tolower(T* str);
@@ -345,7 +339,7 @@ template<class T> const stringoperator<T>& itrim(stringoperator<T>& str)	{ retur
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// basic number conversion
+/// basic number conversion
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> void _itostring(stringoperator<T>& result, sint64 value, size_t base, bool _signed, size_t width=0, bool left=true, T padchar=0, T pluschar=0);
 template <class T> void _hextostring(stringoperator<T>& result, uint64 value, size_t width=0, bool left=true, T padchar=0, bool alt=false, bool low=true);
@@ -358,16 +352,16 @@ template <class T> void _ftostring(stringoperator<T>& result, double value, int 
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// basic string template implementations
-// writable part
+/// basic string template implementations.
+/// writable part
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=char, class A=allocator_ws_dy<T,elaborator_st<T> > >
+template < class T=char, class A=allocator_ws_dy<T> >
 class TString : public A, public stringoperator<T>
 {
 	friend void test_stringbuffer(void);
 protected:
 	///////////////////////////////////////////////////////////////////////////
-	// protected constructors, only derived can create
+	/// protected constructors, only derived can create
 	///////////////////////////////////////////////////////////////////////////
 	TString<T,A>()									{}
 	TString<T,A>(size_t sz) : A(sz)					{}
@@ -380,17 +374,17 @@ protected:
 	// it "detects" ambiguities in this case
 //	template <class A> TString<T,A>(const TString<T, A>& b) : alloc(b.length())
 //	{
-//		*this<<b;
+//		this->append(b);
 //	}
-	// declare standard copy constructor
+	/// declare standard copy constructor
 	TString<T,A>(const TString<T,A>& b) : A(b.length())
 	{
-		*this<<b;
+		this->append(b);
 	}
-	// declare copy of base class types
+	/// declare copy of base class types
 	TString<T,A>(const stringinterface<T>& t) : A(t.length())
 	{
-		*this<<t;
+		this->append(t);
 	}
 
 public:
@@ -398,7 +392,7 @@ public:
 
 
 	///////////////////////////////////////////////////////////////////////////
-	// assignment operators
+	/// assignment operators
 	///////////////////////////////////////////////////////////////////////////
 // M$ VisualC does not allow template generated copy/assignment operators
 // but always generating defaults if not explicitely defines
@@ -411,23 +405,23 @@ public:
 //	}
 
 	// only default copy assignment usable
-	const TString<T,A>& operator=(const TString<T,A>& t)	{ this->cWpp = this->cBuf; this->operator<<(t); return *this; }
-	const TString<T,A>& operator=(const stringinterface<T>& t){ this->cWpp = this->cBuf; this->operator<<(t); return *this; }
+	const TString<T,A>& operator=(const TString<T,A>& t)	{ this->cWpp = this->cBuf; this->append(t); return *this; }
+	const TString<T,A>& operator=(const stringinterface<T>& t){ this->cWpp = this->cBuf; this->append(t); return *this; }
 
-	const TString<T,A>& operator=(const T* t)				{ this->cWpp = this->cBuf; this->operator<<(t); return *this; }
-	const TString<T,A>& operator=(const T t)				{ this->cWpp = this->cBuf; this->operator<<(t); return *this; }
-	const TString<T,A>& operator=(const int t)				{ this->cWpp = this->cBuf; this->operator<<(t); return *this; }
-	const TString<T,A>& operator=(const unsigned int t)		{ this->cWpp = this->cBuf; this->operator<<(t); return *this; }
-	const TString<T,A>& operator=(const long t)				{ this->cWpp = this->cBuf; this->operator<<(t); return *this; }
-	const TString<T,A>& operator=(const unsigned long t)	{ this->cWpp = this->cBuf; this->operator<<(t); return *this; }
-	const TString<T,A>& operator=(const double t)			{ this->cWpp = this->cBuf; this->operator<<(t); return *this; }
+	const TString<T,A>& operator=(const T* t)				{ this->cWpp = this->cBuf; this->append(t); return *this; }
+	const TString<T,A>& operator=(const T t)				{ this->cWpp = this->cBuf; this->append(t); return *this; }
+	const TString<T,A>& operator=(const int t)				{ this->cWpp = this->cBuf; this->append(t); return *this; }
+	const TString<T,A>& operator=(const unsigned int t)		{ this->cWpp = this->cBuf; this->append(t); return *this; }
+	const TString<T,A>& operator=(const long t)				{ this->cWpp = this->cBuf; this->append(t); return *this; }
+	const TString<T,A>& operator=(const unsigned long t)	{ this->cWpp = this->cBuf; this->append(t); return *this; }
+	const TString<T,A>& operator=(const double t)			{ this->cWpp = this->cBuf; this->append(t); return *this; }
 
 	///////////////////////////////////////////////////////////////////////////
-	// base class functions
+	/// base class functions
 	///////////////////////////////////////////////////////////////////////////
 	virtual const T* c_str() const		
 	{
-		if(!this->cBuf && const_cast<TString<T,A>*>(this)->checkwrite(1))
+		if( !this->cBuf && const_cast<TString<T,A>*>(this)->checkwrite(1) )
 			*(const_cast<TString<T,A>*>(this)->cWpp)=0; 
 		return this->cBuf; 
 	}
@@ -436,9 +430,12 @@ public:
 	virtual const T* begin() const		{ return this->A::begin(); }
 	virtual const T* end() const		{ return this->A::end(); }
 	virtual const T* final() const		{ return this->A::final(); }
+	virtual       T* begin()			{ return this->A::begin(); }
+	virtual       T* end()				{ return this->A::end(); }
+	virtual       T* final()			{ return this->A::final(); }
 
 	///////////////////////////////////////////////////////////////////////////
-	// standard functions
+	/// standard functions
 	///////////////////////////////////////////////////////////////////////////
 	bool is_empty() const
 	{
@@ -446,7 +443,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// readable array access
+	/// readable array access
 	///////////////////////////////////////////////////////////////////////////
 	virtual const T operator[](size_t inx) const
 	{
@@ -461,7 +458,7 @@ public:
 
 
 	///////////////////////////////////////////////////////////////////////////
-	// compare functions
+	/// compare functions
 	///////////////////////////////////////////////////////////////////////////
 	virtual int compareTo(const stringinterface<T>& s) const
 	{	
@@ -501,12 +498,13 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// finds
+	/// finds
 	///////////////////////////////////////////////////////////////////////////
 	size_t find_first_of(const T& ch) const
 	{
 		const T *ptr  = this->begin();
 		const T *eptr = this->end();
+		if(ptr)
 		while(ptr<=eptr)
 		{
 			if( *ptr == ch )
@@ -519,6 +517,7 @@ public:
 	{
 		const T *ptr  = this->end();
 		const T *eptr = this->begin();
+		if(ptr)
 		while(ptr>=eptr)
 		{
 			if( *ptr == ch )
@@ -529,7 +528,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// hash
+	/// hash
 	///////////////////////////////////////////////////////////////////////////
 	size_t hash() const
 	{	
@@ -547,7 +546,7 @@ public:
 
 
 	///////////////////////////////////////////////////////////////////////////
-	// standard functions
+	/// standard functions
 	///////////////////////////////////////////////////////////////////////////
 	virtual void clear()				
 	{
@@ -558,7 +557,7 @@ public:
 	{
 		this->clear(); 
 	}
-	// remove everything from ix for sz length
+	/// remove everything from ix for sz length
 	virtual void clear(size_t inx, size_t len)
 	{
 		if( this->cBuf+inx < this->cWpp )
@@ -571,7 +570,7 @@ public:
 			*this->cWpp = 0;
 		}
 	}
-	// remove everything exept from 0 for sz length
+	/// remove everything exept from 0 for sz length
 	virtual void truncate(size_t sz)
 	{
 		if( this->cBuf+sz < this->cWpp )
@@ -589,7 +588,7 @@ public:
 			}
 		}
 	}
-	// remove everything exept from ix for sz length
+	/// remove everything exept from ix for sz length
 	virtual void truncate(size_t ix, size_t sz)
 	{
 		if(ix==0)
@@ -619,7 +618,7 @@ public:
 			if(this->cWpp) *this->cWpp = 0;
 		}
 	}
-	// removes sz elements from the end
+	/// removes sz elements from the end
 	virtual void strip(size_t sz)
 	{
 		if( sz > (size_t)(this->cWpp-this->cBuf) )
@@ -633,14 +632,14 @@ public:
 			*this->cWpp = 0;
 		}
 	}
-	// checks if overall site can be granted
+	/// checks if overall site can be granted
 	virtual bool checksize(size_t sz)	
 	{
 		return (sz>(size_t)(this->cEnd-this->cBuf)) ? checkwrite(sz-(this->cEnd-this->cBuf)) : true; 
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// writable array access
+	/// writable array access
 	///////////////////////////////////////////////////////////////////////////
 	T& operator[](size_t inx)
 	{
@@ -668,37 +667,30 @@ public:
 
 
 	///////////////////////////////////////////////////////////////////////////
-	// templated single element append function
+	/// templated single element append function
 	///////////////////////////////////////////////////////////////////////////
 	template<class X> const stringoperator<T>& assign(const X& t)
 	{
 		this->clear();
-		return this->operator<<(t);
+		return this->append(t);
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// templated single element append function
-	///////////////////////////////////////////////////////////////////////////
-	template<class X> stringoperator<T>& append(const X& t)
-	{
-		return this->operator<<(t);
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// templated add-assignment operators
+	/// templated add-assignment operators
 	///////////////////////////////////////////////////////////////////////////
 	template <class X> const stringoperator<T>& operator +=(const X& t)
 	{
-		return this->operator<<(t);
+		return this->append(t);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// assignment function
+	/// assignment function
 	///////////////////////////////////////////////////////////////////////////
 	virtual const stringoperator<T>& assign(const stringinterface<T>& t, size_t slen)
 	{
 		this->cWpp = this->cBuf;
 		return this->append(t,slen);
 	}
-	virtual const stringoperator<T>& assign(const T* c, size_t slen=~((size_t)0))
+	virtual const stringoperator<T>& assign(const T* c, size_t slen)
 	{
 		this->cWpp = this->cBuf;
 		return this->append(c,slen);
@@ -751,9 +743,91 @@ public:
 		return this->assign_process(c,slen);
 	}
 
-
 	///////////////////////////////////////////////////////////////////////////
-	// append with length
+	/// single element append function
+	///////////////////////////////////////////////////////////////////////////
+	virtual stringoperator<T>& append(const stringinterface<T>& t)
+	{
+		if( t.length() )
+		{
+			if( t.length()<(size_t)(this->cEnd-this->cWpp) || this->checkwrite( t.length() ) )
+			{
+				this->intern_copy(this->cWpp, t, t.length());
+				this->cWpp += t.length();
+				if(this->cWpp) *this->cWpp=0;
+			}
+		}
+		return *this;
+	}
+	virtual stringoperator<T>& append(const T* ip)
+	{
+		if(ip)
+		{
+			while( *ip && this->checkwrite(1) )
+				*this->cWpp++ = *ip++;
+			if(this->cWpp) *this->cWpp=0;
+		}
+		return *this;
+	}
+	virtual stringoperator<T>&  append(const T ch)
+	{
+		if(ch) // dont append a eos
+		{
+			if( this->cWpp+1<this->cEnd || this->checkwrite( 1 ) )
+			{
+				*this->cWpp++ = ch;
+				*this->cWpp = 0;
+			}
+		}
+		return *this;
+	}
+	virtual stringoperator<T>& append(const int v)
+	{
+		_itostring<T>(*this, sint64(v), 10, true,  0, true, ' ', '\0');
+		return *this;
+	}
+	virtual stringoperator<T>& append(const unsigned int v)
+	{
+		_itostring<T>(*this, uint64(v), 10, false,  0, true, ' ', '\0');
+		return *this;
+	}
+	virtual stringoperator<T>& append(const long v)
+	{
+		_itostring<T>(*this, sint64(v), 10, true,  0, true, ' ', '\0');
+		return *this;
+	}
+	virtual stringoperator<T>& append(const unsigned long v)
+	{
+		_itostring<T>(*this, uint64(v), 10, false,  0, true, ' ', '\0');
+		return *this;
+	}
+	virtual stringoperator<T>& append(const int64 v)
+	{
+		_itostring<T>(*this, sint64(v), 10, true,  0, true, ' ', '\0');
+		return *this;
+	}
+	virtual stringoperator<T>& append(const uint64 v)
+	{
+		_itostring<T>(*this, uint64(v), 10, false,  0, true, ' ', '\0');
+		return *this;
+	}
+	virtual stringoperator<T>& append(const double v)
+	{
+		_ftostring<T>(*this, v, -1, 'g', 0, true, ' ', '\0', stringconfig::default_double_alternate);
+		return *this;
+	}
+	template<class X> stringoperator<T>& append(const formatstr<T,X>& t)
+	{
+		dsprintf<T>(*this, t.fmt(), t.val());
+		return *this;
+	}
+	template<class X> stringoperator<T>& append(const formatobj<X>& t)
+	{
+		t.print( *this );
+		return *this;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	/// append with length
 	///////////////////////////////////////////////////////////////////////////
 	virtual const stringoperator<T>& append(const stringinterface<T>& t, size_t slen)
 	{
@@ -795,18 +869,6 @@ public:
 		}
 		return *this;
 	}
-	virtual const stringoperator<T>& append(const T ch)
-	{
-		if(ch) // dont append a eos
-		{
-			if( this->cWpp+1<this->cEnd || this->checkwrite( 1 ) )
-			{
-				*this->cWpp++ = ch;
-				*this->cWpp = 0;
-			}
-		}
-		return *this;
-	}
 	virtual const stringoperator<T>& append_tolower(const T* c, size_t slen=~((size_t)0))
 	{
 		if(c)
@@ -843,7 +905,7 @@ public:
 		return *this;
 	}
 	/////////////////////////////////////////////////////////////////
-	// insert
+	/// insert
 	/////////////////////////////////////////////////////////////////
 	virtual const stringoperator<T>& insert(size_t pos, const stringinterface<T>& t, size_t slen=~((size_t)0))
 	{
@@ -920,7 +982,7 @@ public:
 		return *this;
 	}
 	/////////////////////////////////////////////////////////////////
-	// replace
+	/// replace
 	/////////////////////////////////////////////////////////////////
 	virtual const stringoperator<T>& replace(size_t pos, size_t tlen, const stringinterface<T>& t, size_t slen=~((size_t)0))
 	{
@@ -1004,89 +1066,10 @@ public:
 		return *this;
 	}
 
-	///////////////////////////////////////////////////////////////////////////
-	// operator realisations for supported types
-	///////////////////////////////////////////////////////////////////////////
-	virtual stringoperator<T>& operator <<(const stringinterface<T>& t)
-	{
-		if( t.length() )
-		{
-			if( t.length()<(size_t)(this->cEnd-this->cWpp) || this->checkwrite( t.length() ) )
-			{
-				this->intern_copy(this->cWpp, t, t.length());
-				this->cWpp += t.length();
-				if(this->cWpp) *this->cWpp=0;
-			}
-		}
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const T* ip)
-	{
-		if(ip)
-		{
-			while( *ip && this->checkwrite(1) )
-				*this->cWpp++ = *ip++;
-			if(this->cWpp) *this->cWpp=0;
-		}
-		return *this;
-	}
-	virtual stringoperator<T>&  operator <<(const T ch)
-	{
-		if( ch && this->checkwrite(1) )
-		{
-			*this->cWpp++ = ch;
-			*this->cWpp=0;
-		}
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const int v)
-	{
-		_itostring<T>(*this, sint64(v), 10, true,  0, true, ' ', '\0');
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const unsigned int v)
-	{
-		_itostring<T>(*this, uint64(v), 10, false,  0, true, ' ', '\0');
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const long v)
-	{
-		_itostring<T>(*this, sint64(v), 10, true,  0, true, ' ', '\0');
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const unsigned long v)
-	{
-		_itostring<T>(*this, uint64(v), 10, false,  0, true, ' ', '\0');
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const int64 v)
-	{
-		_itostring<T>(*this, sint64(v), 10, true,  0, true, ' ', '\0');
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const uint64 v)
-	{
-		_itostring<T>(*this, uint64(v), 10, false,  0, true, ' ', '\0');
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const double v)
-	{
-		_ftostring<T>(*this, v, -1, 'g', 0, true, ' ', '\0', stringconfig::default_double_alternate);
-		return *this;
-	}
-	template<class X> stringoperator<T>& operator << (const formatstr<T,X>& t)
-	{
-		dsprintf<T>(*this, t.fmt(), t.val());
-		return *this;
-	}
-	template<class X> stringoperator<T>& operator << (const formatobj<X>& t)
-	{
-		t.print( *this );
-		return *this;
-	}
+
 
 	///////////////////////////////////////////////////////////////////////////
-	// change case
+	/// change case
 	///////////////////////////////////////////////////////////////////////////
 	virtual void tolower()
 	{
@@ -1109,7 +1092,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// trim's
 	///////////////////////////////////////////////////////////////////////////
-	// remove whitespaces from left side
+	/// remove whitespaces from left side
 	virtual void ltrim()
 	{
 		T* ipp = this->cBuf;
@@ -1121,7 +1104,7 @@ public:
 			*this->cWpp=0;
 		}
 	}
-	// remove whitespaces from right side
+	/// remove whitespaces from right side
 	virtual void rtrim()
 	{
 		T* ipp = this->cWpp-1;
@@ -1135,7 +1118,7 @@ public:
 			*this->cWpp=0;
 		}
 	}
-	// remove whitespaces from both sides
+	/// remove whitespaces from both sides
 	virtual void trim()
 	{
 		T *src=this->cBuf, *tar=this->cBuf, *mk=NULL;
@@ -1149,7 +1132,7 @@ public:
 		this->cWpp = (mk) ? mk : tar;
 		if(this->cWpp) *this->cWpp=0;
 	}
-	// remove whitespaces from both sides, combine or remove speces inside
+	/// remove whitespaces from both sides, combine or remove speces inside
 	virtual void itrim(bool removeall=false)
 	{
 		T *src=this->cBuf, *tar=this->cBuf, mk=0;
@@ -1173,76 +1156,76 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// basestring class
-// implements a dynamic in-place buffer
-// type construction always copies the  data to a newly created buffer
+/// basestring class.
+/// implements a dynamic in-place buffer
+/// type construction always copies the data to a newly created buffer
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class basestring : public TString< T, allocator_ws_dy<T, elaborator_st<T> > >
+template <class T=char> class basestring : public TString< T, allocator_ws_dy<T> >
 {
 public:
 	basestring()
 	{}
-	basestring<T>(const basestring<T>& t) : TString< T, allocator_ws_dy<T, elaborator_st<T> > >()
+	basestring<T>(const basestring<T>& t) : TString< T, allocator_ws_dy<T> >()
 	{
-		this->TString< T, allocator_ws_dy<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_dy<T> >::assign(t);
 	}
-	basestring<T>(const stringinterface<T>& t) : TString< T, allocator_ws_dy<T,elaborator_st<T> > >()
+	basestring<T>(const stringinterface<T>& t) : TString< T, allocator_ws_dy<T> >()
 	{
-		this->TString< T, allocator_ws_dy<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_dy<T> >::assign(t);
 	}
-	basestring<T>(const char* t) : TString< T, allocator_ws_dy<T, elaborator_st<T> > >()
+	basestring<T>(const char* t) : TString< T, allocator_ws_dy<T> >()
 	{
-		this->TString< T, allocator_ws_dy<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_dy<T> >::assign(t);
 	}
-	explicit basestring<T>(char t) : TString< T, allocator_ws_dy<T, elaborator_st<T> > >()
+	explicit basestring<T>(char t) : TString< T, allocator_ws_dy<T> >()
 	{
-		this->TString< T, allocator_ws_dy<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_dy<T> >::assign(t);
 	}
-	explicit basestring<T>(int t) : TString< T, allocator_ws_dy<T, elaborator_st<T> > >()
+	explicit basestring<T>(int t) : TString< T, allocator_ws_dy<T> >()
 	{
-		this->TString< T, allocator_ws_dy<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_dy<T> >::assign(t);
 	}
-	explicit basestring<T>(unsigned int t) : TString< T, allocator_ws_dy<T, elaborator_st<T> > >()
+	explicit basestring<T>(unsigned int t) : TString< T, allocator_ws_dy<T> >()
 	{
-		this->TString< T, allocator_ws_dy<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_dy<T> >::assign(t);
 	}
-	explicit basestring<T>(double t) : TString< T, allocator_ws_dy<T, elaborator_st<T> > >()
+	explicit basestring<T>(double t) : TString< T, allocator_ws_dy<T> >()
 	{
-		this->TString< T, allocator_ws_dy<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_dy<T> >::assign(t);
 	}
 
 	virtual ~basestring()	{}
 
 
 	///////////////////////////////////////////////////////////////////////////
-	// assignments
+	/// assignments
 	///////////////////////////////////////////////////////////////////////////
 	template<class X> const basestring<T>& operator=(const X& t)
 	{
-		this->TString< T, allocator_ws_dy<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_dy<T> >::assign(t);
 		return *this;
 	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// staticstring class
-// implements an external static buffer
-// type construction only possible with either a buffer which is used for writing
-// or with a const cstring which is then used as a constant without write possibility
+/// staticstring class.
+/// implements an external static buffer
+/// type construction only possible with either a buffer which is used for writing
+/// or with a const cstring which is then used as a constant without write possibility
 ///////////////////////////////////////////////////////////////////////////////
-template<class T=char> class staticstring : public TString< T, allocator_ws_st<T, elaborator_st<T> > >
+template<class T=char> class staticstring : public TString< T, allocator_ws_st<T> >
 {
 	staticstring<T>();
 	staticstring<T>(const staticstring<T>&);
 	const staticstring& operator=(const staticstring& t);
 public:
 	staticstring<T>(T* buf, size_t sz)
-		: TString< T, allocator_ws_st<T, elaborator_st<T> > >(buf, sz)
+		: TString< T, allocator_ws_st<T> >(buf, sz)
 	{}
 	virtual ~staticstring()	{}
 
 	///////////////////////////////////////////////////////////////////////////
-	// array access
+	/// array access
 	///////////////////////////////////////////////////////////////////////////
 	virtual const T* c_str() const		
 	{
@@ -1252,28 +1235,28 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// assignments
+	/// assignments
 	///////////////////////////////////////////////////////////////////////////
 	template<class X> const staticstring<T>& operator=(const X& t)
 	{
-		this->TString< T, allocator_ws_st<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_st<T> >::assign(t);
 		return *this;
 	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// staticstring class
-// implements an external static buffer
-// type construction only possible with either a buffer which is used for writing
-// or with a const cstring which is then used as a constant without write possibility
+/// constant string class.
+/// implements an external static buffer
+/// type construction only possible with either a buffer which is used for writing
+/// or with a const cstring which is then used as a constant without write possibility
 ///////////////////////////////////////////////////////////////////////////////
-template<class T=char> class conststring : public stringinterface<T>, public allocator_ws_st<T, elaborator_st<T> >
+template<class T=char> class conststring : public stringinterface<T>, public allocator_ws_st<T>
 {
 	// prevent default construction
 	conststring<T>();
 public:
 	explicit conststring<T>(const T* cstr)
-		: allocator_ws_st<T, elaborator_st<T> >(const_cast<T*>(cstr), 0)
+		: allocator_ws_st<T>(const_cast<T*>(cstr), 0)
 	{	// set up a zero-length buffer, 
 		// where the length pointer is set at position
 		if(cstr) this->cWpp+=hstrlen(cstr);
@@ -1281,7 +1264,7 @@ public:
 	
 	virtual ~conststring()	{}
 
-	// copy/assign
+	/// copy/assign
 	conststring<T>(const conststring<T>& c)
 	{
 		this->cBuf= c.cBuf;
@@ -1297,8 +1280,8 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// supported assignments
-	// be careful with assigning stuff here
+	/// supported assignments.
+	/// be careful with assigning stuff here
 	///////////////////////////////////////////////////////////////////////////
 	const conststring& operator=(const char* t)
 	{	// set up a zero-length buffer, 
@@ -1308,13 +1291,13 @@ public:
 	}
 private:
 	///////////////////////////////////////////////////////////////////////////
-	// prevent direct asignment of stringclass content
+	/// prevent direct asignment of stringclass content
 	const conststring& operator=(const stringinterface<T>& t)
 	{ return *this; }
 public:
 
 	///////////////////////////////////////////////////////////////////////////
-	// base class functions
+	/// base class functions
 	///////////////////////////////////////////////////////////////////////////
 	virtual const T* c_str() const		
 	{
@@ -1326,25 +1309,28 @@ public:
 		return this->cBuf;
 	}
 	virtual operator const T*() const	{ return this->c_str(); }
-	virtual size_t length()	const		{ return this->allocator_ws_st<T, elaborator_st<T> >::length(); }
-	virtual const T* begin() const		{ return this->allocator_ws_st<T, elaborator_st<T> >::begin(); }
-	virtual const T* end() const		{ return this->allocator_ws_st<T, elaborator_st<T> >::end(); }
-	virtual const T* final() const		{ return this->allocator_ws_st<T, elaborator_st<T> >::final(); }
+	virtual size_t length()	const		{ return this->allocator_ws_st<T>::length(); }
+	virtual const T* begin() const		{ return this->allocator_ws_st<T>::begin(); }
+	virtual const T* end() const		{ return this->allocator_ws_st<T>::end(); }
+	virtual const T* final() const		{ return this->allocator_ws_st<T>::final(); }
+	virtual       T* begin()			{ return this->allocator_ws_st<T>::begin(); }
+	virtual       T* end()				{ return this->allocator_ws_st<T>::end(); }
+	virtual       T* final()			{ return this->allocator_ws_st<T>::final(); }
 
 	///////////////////////////////////////////////////////////////////////////
-	// standard functions
+	/// standard functions
 	///////////////////////////////////////////////////////////////////////////
-	void clear()
+	virtual void clear()
 	{
 		this->cWpp=this->cBuf=this->cEnd=NULL; 
 	}
-	bool is_empty() const
+	virtual bool is_empty() const
 	{
 		return this->cWpp==this->cBuf; 
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// readable array access
+	/// readable array access
 	///////////////////////////////////////////////////////////////////////////
 	virtual const T operator[](size_t inx) const
 	{
@@ -1361,7 +1347,7 @@ public:
 
 
 	///////////////////////////////////////////////////////////////////////////
-	// compare functions
+	/// compare functions
 	///////////////////////////////////////////////////////////////////////////
 	virtual int compareTo(const stringinterface<T>& s) const
 	{	
@@ -1401,12 +1387,13 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// finds
+	/// finds
 	///////////////////////////////////////////////////////////////////////////
 	size_t find_first_of(const T& ch) const
 	{
 		const T *ptr  = this->begin();
 		const T *eptr = this->end();
+		if(ptr)
 		while(ptr<=eptr)
 		{
 			if( *ptr == ch )
@@ -1419,6 +1406,7 @@ public:
 	{
 		const T *ptr  = this->end();
 		const T *eptr = this->begin();
+		if(ptr)
 		while(ptr>=eptr)
 		{
 			if( *ptr == ch )
@@ -1429,7 +1417,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// hash
+	/// hash
 	///////////////////////////////////////////////////////////////////////////
 	size_t hash() const
 	{	
@@ -1451,27 +1439,27 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// main string class
-// derives internally from basestring and inherits it's dynamic buffer
-// additionally it implements a smart pointer with copy-on-write semantic
-// so that string copy operations are basically reduced to copying a pointer
+/// main string class.
+/// derives internally from basestring and inherits it's dynamic buffer
+/// additionally it implements a smart pointer with copy-on-write semantic
+/// so that string copy operations are basically reduced to copying a pointer
 ///////////////////////////////////////////////////////////////////////////////
 template <class T=char> class string : public stringoperator<T>
 {
 	friend class substring<T>;
 private:
 	/////////////////////////////////////////////////////////////////
-	// smart pointer base class
+	/// internal string smart pointer object
 	/////////////////////////////////////////////////////////////////
 	class ptrstring : public basestring<T>
 	{
 	private:
 		friend class string<T>;
 
-		// reference counter
+		/// reference counter
 		unsigned int cRefCnt;
 
-		// construction
+		/// construction
 		ptrstring() : cRefCnt(1)	{}
 		ptrstring(const ptrstring& b) : basestring<T>(b), cRefCnt(1)	{}
 		ptrstring(const basestring<T>& b) : basestring<T>(b), cRefCnt(1)	{}
@@ -1486,7 +1474,7 @@ private:
 			return *this;
 		}
 
-		// access on the smart pointer
+		/// access on the smart pointer
 		ptrstring* aquire()
 		{
 			atomicincrement( &cRefCnt );
@@ -1501,12 +1489,12 @@ private:
 	};
 protected:
 	/////////////////////////////////////////////////////////////////
-	// the smart pointer itself
+	/// the smart pointer itself
 	/////////////////////////////////////////////////////////////////
 	ptrstring *cCountObj;
 
 	/////////////////////////////////////////////////////////////////
-	// allocation of the pointer
+	/// allocation of the pointer
 	/////////////////////////////////////////////////////////////////
 	virtual ptrstring *createpointer() const throw()
 	{
@@ -1517,7 +1505,7 @@ protected:
 		return new ptrstring(old);
 	}
 	/////////////////////////////////////////////////////////////////
-	// virtual access functions to the smart pointer
+	/// virtual access functions to the smart pointer
 	/////////////////////////////////////////////////////////////////
 	// !!copy-on-write
 	virtual const basestring<T>& readaccess() const	
@@ -1534,7 +1522,7 @@ protected:
 		return *this->cCountObj;
 	}
 	/////////////////////////////////////////////////////////////////
-	// aquire/release the pointer
+	/// aquire/release the pointer
 	/////////////////////////////////////////////////////////////////
 	void acquire(const string<T>& r) throw()
 	{	// check if not already pointing to the same object
@@ -1556,7 +1544,7 @@ protected:
 		if(this->cCountObj) this->cCountObj = this->cCountObj->release();
 	}
 	/////////////////////////////////////////////////////////////////
-	// control of the smart pointer
+	/// control of the smart pointer
 	/////////////////////////////////////////////////////////////////
 	void checkpointer() const
 	{
@@ -1583,7 +1571,7 @@ protected:
 
 public:
 	/////////////////////////////////////////////////////////////////
-	// public pointer functions
+	/// public pointer functions
 	/////////////////////////////////////////////////////////////////
 	const size_t getRefCount() const
 	{
@@ -1603,16 +1591,17 @@ public:
 		// which creates a unique object
 		// we then can return also a writable pointer to the string data
 		// but don't try to change the size of the string by modifying the eos!!
-		return const_cast<T*>(this->string::writeaccess().c_str());
+		return const_cast<T*>(this->string<T>::writeaccess().c_str());
 	}
 	/////////////////////////////////////////////////////////////////
-	// direct access to the underlying class
+	/// direct access to the underlying class
 	virtual basestring<T>& operator*()	throw()				{ return this->writeaccess(); }
+	virtual basestring<T>* operator->()	throw()				{ return &this->writeaccess(); }
 	virtual operator const basestring<T>&() const throw()	{ return this->readaccess();  }
 
 
 	/////////////////////////////////////////////////////////////////
-	// construction/destruction
+	/// construction/destruction
 	/////////////////////////////////////////////////////////////////
 	string<T>() : cCountObj(NULL)					{  }
 	string<T>(const string& r) : cCountObj(NULL)	{ this->acquire(r); }
@@ -1620,7 +1609,7 @@ public:
 	virtual ~string<T>()							{ this->release(); }
 
 	/////////////////////////////////////////////////////////////////
-	// type construction
+	/// type construction
 	/////////////////////////////////////////////////////////////////
 	string<T>(const stringinterface<T>& t) : cCountObj(NULL)
 	{
@@ -1656,7 +1645,7 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////
-	// assignment operators
+	/// assignment operators
 	/////////////////////////////////////////////////////////////////
 	const string<T>& operator =(const stringinterface<T>& t)
 	{
@@ -1717,208 +1706,26 @@ public:
 		return *this;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// templated add-assignment operators
+	///////////////////////////////////////////////////////////////////////////
+	template <class X> const stringoperator<T>& operator +=(const X& t)
+	{
+		return this->writeaccess().append(t);
+	}
 	/////////////////////////////////////////////////////////////////
-	// concatination assignment operators
+	/// add operators.
+	/// for right side operations
 	/////////////////////////////////////////////////////////////////
-	/*
-	const string<T>& operator +=(const stringinterface<T>& t)
-	{
-		this->writeaccess() += t;
-		return *this;
-	}
-	const string<T>& operator +=(const string<T>& t)
-	{
-		this->writeaccess() += t.readaccess();
-		return *this;
-	}
-	const string<T>& operator +=(const char* t)
-	{
-		this->writeaccess() += t;
-		return *this;
-	}
-	const string<T>& operator +=(char t)
-	{
-		this->writeaccess() += t;
-		return *this;
-	}
-	const string<T>& operator +=(int t)
-	{
-		this->writeaccess() += t;
-		return *this;
-	}
-	const string<T>& operator +=(unsigned int t)
-	{
-		this->writeaccess() += t;
-		return *this;
-	}
-	const string<T>& operator +=(short t)
-	{
-		this->writeaccess() += t;
-		return *this;
-	}
-	const string<T>& operator +=(unsigned short t)
-	{
-		this->writeaccess() += t;
-		return *this;
-	}
-	const string<T>& operator +=(long t)
-	{
-		this->writeaccess() += t;
-		return *this;
-	}
-	const string<T>& operator +=(unsigned long t)
-	{
-		this->writeaccess() += t;
-		return *this;
-	}
-	const string<T>& operator +=(double t)
-	{
-		this->writeaccess() += t;
-		return *this;
-	}
-	*/
-	/////////////////////////////////////////////////////////////////
-	// add operators 
-	// for right side operations
-	/////////////////////////////////////////////////////////////////
-	string<T> operator +(const stringinterface<T>& t)
+	template <class X> string<T> operator +(const X& t)
 	{
 		string<T> a(*this);
-		a.writeaccess() += t;
+		a.writeaccess().append(t);
 		return a;
-	}
-	string<T> operator +(const string<T>& t)
-	{
-		string<T> a(*this);
-		a.writeaccess() += t.readaccess();
-		return a;
-	}
-	string<T> operator +(const char* t)
-	{
-		string<T> a(*this);
-		a.writeaccess() += t;
-		return a;
-	}
-	string<T> operator +(char t)
-	{
-		string<T> a(*this);
-		a.writeaccess() += t;
-		return a;
-	}
-	string<T> operator +(int t)
-	{
-		string<T> a(*this);
-		a.writeaccess() += t;
-		return a;
-	}
-	string<T> operator +(unsigned int t)
-	{
-		string<T> a(*this);
-		a.writeaccess() += t;
-		return a;
-	}
-	string<T> operator +(short t)
-	{
-		string<T> a(*this);
-		a.writeaccess() += t;
-		return a;
-	}
-	string<T> operator +(unsigned short t)
-	{
-		string<T> a(*this);
-		a.writeaccess() += t;
-		return a;
-	}
-	string<T> operator +(long t)
-	{
-		string<T> a(*this);
-		a.writeaccess() += t;
-		return a;
-	}
-	string<T> operator +(unsigned long t)
-	{
-		string<T> a(*this);
-		a.writeaccess() += t;
-		return a;
-	}
-	string<T> operator +(double t)
-	{
-		string<T> a(*this);
-		a.writeaccess() += t;
-		return a;
-	}
-
-	/////////////////////////////////////////////////////////////////
-	// c++ style piping
-	/////////////////////////////////////////////////////////////////
-	string<T>& operator <<(const string<T>& t)
-	{
-		this->writeaccess() << t.readaccess();
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const stringinterface<T>& t)
-	{
-		this->writeaccess() << t;
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const T* t)
-	{
-		this->writeaccess() << t;
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const T t)
-	{
-		this->writeaccess() << t;
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const int t)
-	{
-		this->writeaccess() << t;
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const unsigned int t)
-	{
-		this->writeaccess() << t;
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const long t)
-	{
-		this->writeaccess() << t;
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const unsigned long t)
-	{
-		this->writeaccess() << t;
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const int64 t)
-	{
-		this->writeaccess() << t;
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const uint64 t)
-	{
-		this->writeaccess() << t;
-		return *this;
-	}
-	virtual stringoperator<T>& operator <<(const double t)
-	{
-		this->writeaccess() << t;
-		return *this;
-	}
-	template<class X> string<T>& operator << (const formatstr<T,X>& t)
-	{
-		dsprintf<T>(this->writeaccess(), t.fmt(), t.val());
-		return *this;
-	}
-	template<class X> string<T>& operator << (const formatobj<X>& t)
-	{
-		t.print( this->writeaccess() );
-		return *this;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// assignment function
+	/// assignment function
 	///////////////////////////////////////////////////////////////////////////
 	template<class X> string<T>& assign(const X& t)
 	{
@@ -2024,22 +1831,83 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// append function
+	/// append function
 	///////////////////////////////////////////////////////////////////////////
-	template<class X> string<T>& append(const X& t)
+	string<T>& append(const string<T>& t)
+	{
+		this->writeaccess().append(t.readaccess());
+		return *this;
+	}
+	virtual stringoperator<T>& append(const stringinterface<T>& t)
 	{
 		this->writeaccess().append(t);
 		return *this;
 	}
+	virtual stringoperator<T>& append(const T* t)
+	{
+		this->writeaccess().append(t);
+		return *this;
+	}
+	virtual stringoperator<T>& append(const T t)
+	{
+		this->writeaccess().append(t);
+		return *this;
+	}
+	virtual stringoperator<T>& append(const int t)
+	{
+		this->writeaccess().append(t);
+		return *this;
+	}
+	virtual stringoperator<T>& append(const unsigned int t)
+	{
+		this->writeaccess().append(t);
+		return *this;
+	}
+	virtual stringoperator<T>& append(const long t)
+	{
+		this->writeaccess().append(t);
+		return *this;
+	}
+	virtual stringoperator<T>& append(const unsigned long t)
+	{
+		this->writeaccess().append(t);
+		return *this;
+	}
+	virtual stringoperator<T>& append(const int64 t)
+	{
+		this->writeaccess().append(t);
+		return *this;
+	}
+	virtual stringoperator<T>& append(const uint64 t)
+	{
+		this->writeaccess().append(t);
+		return *this;
+	}
+	virtual stringoperator<T>& append(const double t)
+	{
+		this->writeaccess().append(t);
+		return *this;
+	}
+	template<class X> string<T>& append(const formatstr<T,X>& t)
+	{
+		dsprintf<T>(this->writeaccess(), t.fmt(), t.val());
+		return *this;
+	}
+	template<class X> string<T>& append(const formatobj<X>& t)
+	{
+		t.print( this->writeaccess() );
+		return *this;
+	}
+
 	/////////////////////////////////////////////////////////////////
-	// append with length
+	/// append with length
 	/////////////////////////////////////////////////////////////////
-	virtual const stringoperator<T>& append(const stringinterface<T>& t, size_t slen=~((size_t)0))
+	virtual const stringoperator<T>& append(const stringinterface<T>& t, size_t slen)
 	{
 		this->writeaccess().append(t, slen);
 		return *this;
 	}
-	virtual const stringoperator<T>& append(const T* c, size_t slen=~((size_t)0))
+	virtual const stringoperator<T>& append(const T* c, size_t slen)
 	{
 		this->writeaccess().append(c, slen);
 		return *this;
@@ -2047,11 +1915,6 @@ public:
 	virtual const stringoperator<T>& append(const T& ch, size_t slen)
 	{
 		this->writeaccess().append(ch, slen);
-		return *this;
-	}
-	virtual const stringoperator<T>& append(const T ch)
-	{
-		this->writeaccess().append(ch);
 		return *this;
 	}
 	virtual const stringoperator<T>& append_tolower(const T* c, size_t slen=~((size_t)0))
@@ -2070,7 +1933,7 @@ public:
 		return *this;
 	}
 	/////////////////////////////////////////////////////////////////
-	// insert
+	/// insert
 	/////////////////////////////////////////////////////////////////
 	virtual const stringoperator<T>& insert(size_t pos, const stringinterface<T>& t, size_t slen=~((size_t)0))
 	{
@@ -2100,7 +1963,7 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////
-	// replace
+	/// replace
 	/////////////////////////////////////////////////////////////////
 	virtual const stringoperator<T>& replace(size_t pos, size_t tlen, const stringinterface<T>& t, size_t slen=~((size_t)0))
 	{
@@ -2130,7 +1993,7 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////
-	// standard string functions
+	/// standard string functions
 	/////////////////////////////////////////////////////////////////
     virtual operator const T*() const	{ return this->readaccess().c_str(); }
 	virtual const T* c_str() const		{ return this->readaccess().c_str(); }
@@ -2138,28 +2001,31 @@ public:
 	virtual const T* begin() const		{ return this->readaccess().begin(); }
 	virtual const T* end() const		{ return this->readaccess().end(); }
 	virtual const T* final() const		{ return this->readaccess().final(); }
+	virtual       T* begin()			{ return this->writeaccess().begin(); }
+	virtual       T* end()				{ return this->writeaccess().end(); }
+	virtual       T* final()			{ return this->writeaccess().final(); }
 
 
-	void clear()						{ this->writeaccess().clear(); }
-	void empty()						{ this->writeaccess().clear(); }
-	void clear(size_t inx, size_t len)	{ this->writeaccess().clear(inx, len); }
-	bool is_empty() const
+	virtual void clear()						{ this->writeaccess().clear(); }
+	virtual void empty()						{ this->writeaccess().clear(); }
+	virtual void clear(size_t inx, size_t len)	{ this->writeaccess().clear(inx, len); }
+	virtual bool is_empty() const
 	{	
 		return ( NULL==this->cCountObj || 0==this->readaccess().length() );
 	}
-	void truncate(size_t sz)			{ this->writeaccess().truncate(sz); }
-	void truncate(size_t ix, size_t sz)	{ this->writeaccess().truncate(ix, sz); }
-	void strip(size_t sz)				{ this->writeaccess().strip(sz); }
-	bool checksize(size_t sz)			{ return this->writeaccess().checksize(sz); }
+	virtual void truncate(size_t sz)			{ this->writeaccess().truncate(sz); }
+	virtual void truncate(size_t ix, size_t sz)	{ this->writeaccess().truncate(ix, sz); }
+	virtual void strip(size_t sz)				{ this->writeaccess().strip(sz); }
+	virtual bool checksize(size_t sz)			{ return this->writeaccess().checksize(sz); }
 
 	/////////////////////////////////////////////////////////////////
-	// Array access
-	// did not find a way to force the compiler to use the readonly [] operator
-	// in any case where it's not written to the object; instead they always
-	// use the nonconst operator exept the whole object is const,
-	// so we actually do some detour and return a substring which will either 
-	// just return the char on readaccess or call the copy-on-write when writing
-	// unfortunately the cost of this detour is somewhat higher
+	/// Array access.
+	/// did not find a way to force the compiler to use the readonly [] operator
+	/// in any case where it's not written to the object; instead they always
+	/// use the nonconst operator exept the whole object is const,
+	/// so we actually do some detour and return a substring which will either 
+	/// just return the char on readaccess or call the copy-on-write when writing
+	/// unfortunately the cost of this detour is somewhat higher
 	/////////////////////////////////////////////////////////////////
 	substring<T>operator[](size_t inx)
 	{
@@ -2178,7 +2044,7 @@ public:
 			return substring<T>(this, inx, 1);
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// readable array access
+	/// readable array access
 	///////////////////////////////////////////////////////////////////////////
 	virtual const T operator[](size_t inx) const	{ return this->readaccess()[inx]; }
 	virtual const T operator[](int inx) const		{ return this->readaccess()[inx]; }
@@ -2186,12 +2052,12 @@ public:
 
 
 	/////////////////////////////////////////////////////////////////
-	// returns a string to access the string bound to all pointers
-	// instead of making it copy on write
+	/// returns a string to access the string bound to all pointers
+	/// instead of making it copy on write
 	globalstring<T> global()	{ return *this; }
 
 	/////////////////////////////////////////////////////////////////
-	// the sub-string operator
+	/// the sub-string operator
 	/////////////////////////////////////////////////////////////////
 	substring<T> operator()(size_t inx, size_t len=1) const
 	{
@@ -2215,7 +2081,7 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////
-	// comparisons
+	/// comparisons
 	/////////////////////////////////////////////////////////////////
 	virtual int compareTo(const string<T> &s) const 
 	{	// first check if the pointers are identical
@@ -2237,7 +2103,7 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////
-	// booleans
+	/// booleans
 	/////////////////////////////////////////////////////////////////
 	virtual bool operator ==(const string<T> &s)const { return (this->compareTo( s ) == 0); }
 	virtual bool operator !=(const string<T> &s)const { return (this->compareTo( s ) != 0); }
@@ -2294,7 +2160,7 @@ public:
 
 
 	///////////////////////////////////////////////////////////////////////////
-	// search functions
+	/// search functions
 	///////////////////////////////////////////////////////////////////////////
 	bool			findnext(const string<T>& pattern, size_t &startpos, bool ignorecase=false) const
 	{
@@ -2365,7 +2231,7 @@ public:
 
 
 	/////////////////////////////////////////////////////////////////
-	// change case
+	/// change case
 	/////////////////////////////////////////////////////////////////
 	virtual void tolower()
 	{	// this function does practically nothing if the string
@@ -2431,7 +2297,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// trim's
 	///////////////////////////////////////////////////////////////////////////
-	// remove whitespaces from left side
+	/// remove whitespaces from left side
 	virtual void ltrim()
 	{	// a trick to get a non-const pointer without making
 		// the string unique
@@ -2444,7 +2310,7 @@ public:
 				writeaccess().clear(0, p-q);
 		}
 	}
-	// remove whitespaces from right side
+	/// remove whitespaces from right side
 	virtual void rtrim()
 	{	// a trick to get a non-const pointer without making
 		// the string unique
@@ -2457,13 +2323,13 @@ public:
 				writeaccess().truncate(1+p-e);
 		}
 	}
-	// remove whitespaces from both sides
+	/// remove whitespaces from both sides
 	virtual void trim()
 	{
 		rtrim();
 		ltrim();
 	}
-	// remove whitespaces from both sides, combine or remove speces inside
+	/// remove whitespaces from both sides, combine or remove speces inside
 	virtual void itrim(bool removeall=false)
 	{
 		this->writeaccess().itrim(removeall);
@@ -2476,19 +2342,19 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// globalstring
-// practically same as string
-// but the smart pointer behaviour does not do copy-on-write
-// can be used to globally change all strings connected to the same buffer
-// use with care in multithread environment
+/// globalstring.
+/// practically same as string
+/// but the smart pointer behaviour does not do copy-on-write
+/// can be used to globally change all strings connected to the same buffer
+/// use with care in multithread environment
 ///////////////////////////////////////////////////////////////////////////////
 template<class T=char> class globalstring : public string<T>
 {
 protected:
 	/////////////////////////////////////////////////////////////////
-	// virtual access functions to the smart pointer
+	/// virtual access functions to the smart pointer
+	/// autocount behaviour
 	/////////////////////////////////////////////////////////////////
-	// !!autocount behaviour
 	virtual const basestring<T>& readaccess() const
 	{
 		this->checkpointer();	
@@ -2504,7 +2370,7 @@ protected:
 
 public:
 	/////////////////////////////////////////////////////////////////
-	// construction/destruction
+	/// construction/destruction
 	/////////////////////////////////////////////////////////////////
 	globalstring<T>()											{  }
 	const globalstring<T>& operator=(const globalstring<T>& r)
@@ -2520,7 +2386,7 @@ public:
 	virtual ~globalstring<T>()									{  }
 
 	/////////////////////////////////////////////////////////////////
-	// type construction
+	/// type construction
 	/////////////////////////////////////////////////////////////////
 	globalstring<T>(const globalstring<T>& r) : string<T>(r)	{  }
 	globalstring<T>(const string<T>& r) : string<T>(r)			{  }
@@ -2534,7 +2400,7 @@ public:
 	explicit globalstring<T>(double t) : string<T>(t)			{  }
 
 	/////////////////////////////////////////////////////////////////
-	// assignment operators
+	/// assignment operators
 	/////////////////////////////////////////////////////////////////
 	const globalstring<T>& operator =(const stringinterface<T>& t)
 	{
@@ -2579,10 +2445,10 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// substring
-// result of string::operator()
-// can only be created from inside a string and not stored, 
-// so it is safe to just contain and work on a pointer to the calling string
+/// substring.
+/// result of string::operator()
+/// can only be created from inside a string and not stored, 
+/// so it is safe to just contain and work on a pointer to the calling string
 ///////////////////////////////////////////////////////////////////////////////
 template <class T=char> class substring : public stringinterface<T>
 {
@@ -2621,9 +2487,13 @@ public:
 	virtual const T* begin() const		{ return const_cast<T*>( this->c_str() ); }
 	virtual const T* end() const		{ return const_cast<T*>( this->c_str()+cLen ); }
 	virtual const T* final() const		{ return const_cast<T*>( this->c_str()+cLen ); }
+	virtual       T* begin()			{ return const_cast<T*>( this->c_str() ); }
+	virtual       T* end()				{ return const_cast<T*>( this->c_str()+cLen ); }
+	virtual       T* final()			{ return const_cast<T*>( this->c_str()+cLen ); }
+
 
 	/////////////////////////////////////////////////////////////////
-	// Different Assignments to a substring
+	/// Different Assignments to a substring
 	/////////////////////////////////////////////////////////////////
 	const substring<T>& operator=(const string<T>& str)
 	{	
@@ -2671,35 +2541,41 @@ public:
 
 	string<T> operator +(const string<T> &s)
 	{
-		return string<T>(*this) << s;
+		string<T> a(*this);
+		return  (a << s);
 	}
 	string<T> operator +(const stringinterface<T> &t)
 	{
-		return string<T>(*this) << t;
+		string<T> a(*this);
+		return  (a << t);
+
 	}
 	string<T> operator +(const substring<T> &sub)
 	{
-		return string<T>(*this) << sub;
+		string<T> a(*this);
+		return  (a << sub);
 	}
 	string<T> operator +(const char* c)
 	{
-		return string<T>(*this) << c;
+		string<T> a(*this);
+		return  (a << c);
 	}
 	string<T> operator +(const char ch)
 	{
-		return string<T>(*this) << ch;
+		string<T> a(*this);
+		return  (a << ch);
 	}
 
 
 	///////////////////////////////////////////////////////////////////////////
-	// readable array access
+	/// readable array access
 	///////////////////////////////////////////////////////////////////////////
 	virtual const T operator[](size_t inx) const	{ return (this->cString)?this->cString->operator[](cLen+inx):0; }
 	virtual const T operator[](int inx) const		{ return (this->cString)?this->cString->operator[](cLen+inx):0; }
 
 
 	/////////////////////////////////////////////////////////////////
-	// compares
+	/// compares
 	/////////////////////////////////////////////////////////////////
 	virtual int compareTo(const substring<T> &sub) const
 	{
@@ -2734,7 +2610,7 @@ public:
 			return this->c_str()[1];
 	}
 	/////////////////////////////////////////////////////////////////
-	// change case
+	/// change case
 	/////////////////////////////////////////////////////////////////
 	virtual bool operator ==(const substring<T> &s)	const { return (compareTo( s ) == 0); }
 	virtual bool operator !=(const substring<T> &s)	const { return (compareTo( s ) != 0); }
@@ -2794,7 +2670,7 @@ public:
 
 
 	/////////////////////////////////////////////////////////////////
-	// basic assign
+	/// basic assign
 	/////////////////////////////////////////////////////////////////
 	const substring<T>& assign(const T* c, size_t slen)
 	{
@@ -2811,7 +2687,7 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////
-	// basic append
+	/// basic append
 	/////////////////////////////////////////////////////////////////
 	const substring<T>& append(const T* c, size_t slen)
 	{
@@ -2820,7 +2696,7 @@ public:
 			size_t sz = this->cString->size();
 			this->cString->writeaccess().insert(cPos+cLen, c, slen);
 			cLen += this->cString->size() - sz;
-			//!! TODO change on modified access interface
+			//## TODO change on modified access interface
 		}
 		return *this;
 	}
@@ -2831,12 +2707,12 @@ public:
 			size_t sz = this->cString->size();
 			this->cString->writeaccess().insert(cPos+cLen, c, slen);
 			cLen += this->cString->size() - sz;
-			//!! TODO change on modified access interface
+			//## TODO change on modified access interface
 		}
 		return *this;
 	}
 	/////////////////////////////////////////////////////////////////
-	// basic insert
+	/// basic insert
 	/////////////////////////////////////////////////////////////////
 	const substring<T>& insert(size_t pos, const T* c, size_t slen)
 	{
@@ -2846,7 +2722,7 @@ public:
 			size_t sz = this->cString->size();
 			this->cString->writeaccess().insert(cPos+pos, c, slen);
 			cLen += this->cString->size() - sz;
-			//!! TODO change on modified access interface
+			//## TODO change on modified access interface
 		}
 		return *this;
 	}
@@ -2858,13 +2734,13 @@ public:
 			size_t sz = this->cString->size();
 			this->cString->writeaccess().insert(cPos+pos, c, slen);
 			cLen += this->cString->size() - sz;
-			//!! TODO change on modified access interface
+			//## TODO change on modified access interface
 		}
 		return *this;
 	}
 
 	/////////////////////////////////////////////////////////////////
-	// change case
+	/// change case
 	/////////////////////////////////////////////////////////////////
 	virtual void tolower()
 	{
@@ -2882,7 +2758,7 @@ public:
 			*this=sel;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// trim's
+	/// trim's
 	///////////////////////////////////////////////////////////////////////////
 	// remove whitespaces from left side
 	virtual void ltrim()
@@ -2908,7 +2784,7 @@ public:
 		if(*this!=sel)
 			*this=sel;
 	}
-	// remove whitespaces from both sides, combine or remove speces inside
+	// remove whitespaces from both sides, combine or remove spaces inside
 	virtual void itrim(bool removeall=false)
 	{
 		string<T> sel = *this;
@@ -2921,10 +2797,10 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// dbstring
-// class itself is not usable
-// it just contains a simple singleton with a list of all stored strings
-// so it can be used to retrieve same stringbuffers throughout the application
+/// dbstring.
+/// class itself is not usable
+/// it just contains a simple singleton with a list of all stored strings
+/// so it can be used to retrieve same stringbuffers throughout the application
 ///////////////////////////////////////////////////////////////////////////////
 template<class T=char> class dbstring
 {
@@ -2977,35 +2853,91 @@ public:
 };
 
 
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
-// add operators 
-// for left hand side operators, only implement these, 
-// the others would confuse standard operators
+/// pipe operators 
+///////////////////////////////////////////////////////////////////////////////
+template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const stringinterface<T>& t)	{ return s.append(t); }
+template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const string<T>& t)			{ return s.append(t); }
+template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const T* t)					{ return s.append(t); }
+template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const T t)					{ return s.append(t); }
+template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const int t)					{ return s.append(t); }
+template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const unsigned int t)			{ return s.append(t); }
+template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const long t)					{ return s.append(t); }
+template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const unsigned long t)		{ return s.append(t); }
+template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const int64 t)				{ return s.append(t); }
+template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const uint64 t)				{ return s.append(t); }
+template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const double t)				{ return s.append(t); }
+template<class T, class X> inline stringoperator<T>& operator <<(stringoperator<T>& s, const formatstr<T,X>& t)	{ return s.append(t); }
+template<class T, class X> inline stringoperator<T>& operator <<(stringoperator<T>& s, const formatobj<X>& t)	{ return s.append(t); }
+
+template<class T> inline string<T>& operator <<(string<T>& s, const stringinterface<T>& t)		{ s->append(t); return s; }
+template<class T> inline string<T>& operator <<(string<T>& s, const string<T>& t)				{ s->append(t); return s; }
+template<class T> inline string<T>& operator <<(string<T>& s, const T* t)						{ s->append(t); return s; }
+template<class T> inline string<T>& operator <<(string<T>& s, const T t)						{ s->append(t); return s; }
+template<class T> inline string<T>& operator <<(string<T>& s, const int t)						{ s->append(t); return s; }
+template<class T> inline string<T>& operator <<(string<T>& s, const unsigned int t)				{ s->append(t); return s; }
+template<class T> inline string<T>& operator <<(string<T>& s, const long t)						{ s->append(t); return s; }
+template<class T> inline string<T>& operator <<(string<T>& s, const unsigned long t)			{ s->append(t); return s; }
+template<class T> inline string<T>& operator <<(string<T>& s, const int64 t)					{ s->append(t); return s; }
+template<class T> inline string<T>& operator <<(string<T>& s, const uint64 t)					{ s->append(t); return s; }
+template<class T> inline string<T>& operator <<(string<T>& s, const double t)					{ s->append(t); return s; }
+template<class T, class X> inline string<T>& operator <<(string<T>& s, const formatstr<T,X>& t)	{ s->append(t); return s; } 
+template<class T, class X> inline string<T>& operator <<(string<T>& s, const formatobj<X>& t)	{ s->append(t); return s; }
+
+
+// have type conversions for extra windows buildin types for MSVC versions that have them seperated
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+// take __int8 and __int16 as numbers, not as char/wchar
+template<class T> inline string<T>& operator <<(string<T>& s, const          __int8  t)			{ s->append((         int)t); return s; }
+template<class T> inline string<T>& operator <<(string<T>& s, const unsigned __int8  t)			{ s->append((unsigned int)t); return s; }
+template<class T> inline string<T>& operator <<(string<T>& s, const          __int16 t)			{ s->append((         int)t); return s; }
+template<class T> inline string<T>& operator <<(string<T>& s, const unsigned __int16 t)			{ s->append((unsigned int)t); return s; }
+template<class T> inline string<T>& operator <<(string<T>& s, const          __int32 t)			{ s->append((         long)t); return s; }
+template<class T> inline string<T>& operator <<(string<T>& s, const unsigned __int32 t)			{ s->append((unsigned long)t); return s; }
+// (__int64 already handled)
+// (no use for __int128 currently)
+#endif
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// add operators.
+/// for left hand side operators, only implement these, 
+/// the others would confuse standard operators
 ///////////////////////////////////////////////////////////////////////////////
 template<class T> string<T> operator +(const T* t, const stringinterface<T>& str)
 {
-	return ( string<T>(t) << str );
+	string<T> a(t);
+	return ( a << str );
 }
 template<class T> string<T> operator +(const T t, const stringinterface<T>& str)
 {
-	return ( string<T>(t) << str );
+	string<T> a(t);
+	return ( a << str );
 }
 template<class T> string<T> operator +(const T* t, const string<T>& str)
 {
-	return ((string<T>(t)) << str );
+	string<T> a(t);
+	return ( a << str );
 }
 template<class T> string<T> operator +(const T t, const string<T>& str)
 {
-	return ((string<T>(t)) << str );
+	string<T> a(t);
+	return ( a << str );
 }
 
 template<class T, class X> string<T> operator +(const stringinterface<T>& t, const X& v)
 {
-	return ((string<T>(t)) << v );
+	string<T> a(t);
+	return ( a << v );
 }
 template<class T, class X> string<T> operator +(const string<T>& t, const X& v)
 {
-	return ((string<T>(t)) << v );
+	string<T> a(t);
+	return ( a << v );
 }
 
 
@@ -3182,8 +3114,8 @@ template<class T> inline vector< string<T> > split(const string<T>& s, const str
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// default number to string conversions
-// using string default type
+/// default number to string conversions.
+/// using string default type
 ///////////////////////////////////////////////////////////////////////////////
 string<> itostring(sint64 value, size_t base, size_t width=0, bool left=true, char padchar=0, char pluschar=0);
 string<> itostring(uint64 value, size_t base, size_t width=0, bool left=true, char padchar=0, char pluschar=0);
@@ -3204,14 +3136,16 @@ inline string<> tostring(double v)	{ return ftostring(v, 6, 'g', 0, true, ' ', '
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// timestamp string
+/// timestamp string
 ///////////////////////////////////////////////////////////////////////////////
 template<class T> string<T> nowstring(const T* fmt, bool utc=true);
 template<class T> string<T> dttostring(const datetime& dt, const T* fmt);
 string<> longtimestring(ulong seconds);
-template<class T> string<T>& operator <<(string<T>& str, const datetime& dt);
+template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const datetime& dt);
+template<class T> string<T>& operator <<(string<T>& str, const datetime& dt)	{ *str << dt; return str; }
 
 ////////////////////////////////////////////////////////////////////////////////
+// converts given number to string with k/M/G.. units with base 1024
 string<> bytestostring(long bytes);
 
 
@@ -3230,7 +3164,8 @@ extern string<> nullstring;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// objects for sprintf compatible formating
+/// object for sprintf compatible formating.
+/// though supports only one printing element per object
 ///////////////////////////////////////////////////////////////////////////////
 template <class T, class X> class formatstr
 {
@@ -3258,7 +3193,9 @@ public:
 };
 
 
-
+///////////////////////////////////////////////////////////////////////////////
+/// object for formating.
+///////////////////////////////////////////////////////////////////////////////
 template <class X> class formatobj
 {
 	mutable const X&	cval;
@@ -3324,15 +3261,9 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// format object
-// type depending inplementations
+/// format object.
+/// type depending inplementations
 ///////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
 
 template <class X> inline formatstr<char   ,X> format(const char   *f, const X& v)
 {
@@ -3358,11 +3289,164 @@ template <class X> inline formatobj<X> format(const X& v, int prec, int width, c
 }
 
 
-
-
-
-
-
+NAMESPACE_END(basics)
 
 
 #endif//__BASESTRING_H__
+
+
+
+
+
+/*
+#include <locale.h>
+char *setlocale(int category, const char *locale);
+LC_CTYPE
+
+  mbstowcs(), mbsrtowcs()
+
+
+  mbtowc(), wctomb()
+function can be used safely in a  multithreaded application, 
+as long as setlocale(3C) is not being called to change the locale
+
+  mbrtowc/wcrtomb
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// Convert utf8-string to ucs1-string.
+///////////////////////////////////////////////////////////////////////////////
+char* utf2ucs(const char *utf8, char *ucs, size_t n)
+{
+	const char *pin;
+	char *pout;
+	unsigned char current, next;
+	int i;
+	for(i=0, pin=utf8, pout=ucs; i<n && *pin; ++i,++pin,++pout)
+	{
+		current = *pin;
+		if (current >= 0xE0)
+		{	// support only two-byte utf8
+			return NULL;
+		}
+		else if( (current & 0x80) == 0 )
+		{	// one-byte utf8
+			*pout = current;
+		}
+		else
+		{ // two-byte utf8
+			next = *(++pin);
+			if(next >= 0xC0)
+			{	// illegal coding
+				return NULL;
+			}
+			*pout = ((current & 3) << 6) +	// first two bits of first byte
+					(next & 63);			// last six bits of second byte
+		}
+	}
+	if (i < n)
+		*pout = '\0';
+	return ucs;
+///////////////////////////////////////////////////////////////////////////////
+/// Convert ucs1-string to utf8-string.
+///////////////////////////////////////////////////////////////////////////////
+char* ucs2utf(const char *ucs, char *utf8, size_t n)
+{
+	const char *pin;
+	char *pout;
+	unsigned char current;
+	int i;
+	for(i=0,pin=ucs,pout=utf8; i < n && *pin; ++i,++pin,++pout)
+	{
+		current = *pin;
+		if (current < 0x80)
+		{	// one-byte utf8
+			*pout = current;
+		}
+		else
+		{	// two-byte utf8
+			*pout = 0xC0 + (current>>6);	// first two bits
+			pout++, i++;					// examine second byte
+			if (i>=n)
+			{	// cannot convert last byte
+				*(--pout) = '\0';
+				return utf8;
+			}
+			*pout = 0x80 + (current & 63);	// last six bits
+		}
+	}
+	if (i < n)
+		*pout = '\0';
+	return utf8;
+}
+
+/// direct mapping from 31 bit UCS-4 to UTF-8.
+size_t ucs4toutf8( unsigned long value, unsigned char *buf )
+{
+	if( value <=      0x0000007F )
+	{
+		buf[0] = (unsigned char)value;
+		return 1;
+	}
+	else if( value <= 0x000007FF )
+	{
+		buf[1] = (unsigned char)(value & 0x3F | 0x80);
+		value>>=6;
+		buf[0] = (unsigned char)(value & 0x1F | 0xC0);
+		return 2;
+	}
+	else if( value <= 0x0000FFFF )
+	{
+		buf[2] = (unsigned char)(value & 0x3F | 0x80);
+		value>>=6;
+		buf[1] = (unsigned char)(value & 0x3F | 0x80);
+		value>>=6;
+		buf[0] = (unsigned char)(value & 0x0F | 0xE0);
+		return 3;
+	}
+	else if( value <= 0x001FFFFF )
+	{
+		buf[3] = (unsigned char)(value & 0x3F | 0x80);
+		value>>=6;
+		buf[2] = (unsigned char)(value & 0x3F | 0x80);
+		value>>=6;
+		buf[1] = (unsigned char)(value & 0x3F | 0x80);
+		value>>=6;
+		buf[0] = (unsigned char)(value & 0x07 | 0xF0);
+		return 4;
+	}
+	else if( value <= 0x03FFFFFF )
+	{
+		buf[4] = (unsigned char)(value & 0x3F | 0x80);
+		value>>=6;
+		buf[3] = (unsigned char)(value & 0x3F | 0x80);
+		value>>=6;
+		buf[2] = (unsigned char)(value & 0x3F | 0x80);
+		value>>=6;
+		buf[1] = (unsigned char)(value & 0x3F | 0x80);
+		value>>=6;
+		buf[0] = (unsigned char)(value & 0x03 | 0xF8);
+		return 5;
+	}
+	else if( value <= 0x7FFFFFFF )
+	{
+		buf[5] = (unsigned char)(value & 0x3F | 0x80);
+		value>>=6;
+		buf[4] = (unsigned char)(value & 0x3F | 0x80);
+		value>>=6;
+		buf[3] = (unsigned char)(value & 0x3F | 0x80);
+		value>>=6;
+		buf[2] = (unsigned char)(value & 0x3F | 0x80);
+		value>>=6;
+		buf[1] = (unsigned char)(value & 0x3F | 0x80);
+		value>>=6;
+		buf[0] = (unsigned char)(value & 0x01 | 0xFC);
+		return 6;
+	}
+	return 0;
+}
+
+*/
+
+

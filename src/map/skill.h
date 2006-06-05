@@ -112,6 +112,24 @@ enum {
 	UF_ENSEMBLE			= 0x0200,	// 合奏スキル
 };
 
+struct castend_delay
+{
+	struct block_list &src;
+	uint32 target_id;
+	unsigned short skill_id;
+	unsigned short skill_lv;
+	int flag;
+
+	castend_delay(struct block_list &s, uint32 tid, unsigned short skid, unsigned short  sklv, int f) :
+	 	src(s),
+		target_id(tid),
+		skill_id(skid),
+		skill_lv(sklv),
+		flag(f)
+	{}
+};
+
+
 // アイテム作成デ?タベ?ス
 struct skill_produce_db {
 	unsigned short nameid;
@@ -193,7 +211,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, unsigned sho
 struct skill_unit *skill_initunit(struct skill_unit_group *group,int idx,int x,int y);
 int skill_delunit(struct skill_unit *unit);
 struct skill_unit_group *skill_initunitgroup(struct block_list *src,int count,unsigned short skillid,unsigned short skilllv,int unit_id);
-int skill_delunitgroup(struct skill_unit_group *group);
+int skill_delunitgroup(struct skill_unit_group &group);
 int skill_clear_unitgroup(struct block_list *src);
 
 int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,int damage,unsigned long tick);
@@ -207,7 +225,7 @@ int skill_check_unit_range2(int m,int x,int y,unsigned short skillid, unsigned s
 //int skill_check_unit_cell(int skillid,int m,int x,int y,int unit_id);
 //int skill_unit_out_all( struct block_list *bl,unsigned long tick,int range);
 int skill_unit_move(struct block_list &bl,unsigned long tick,int flag);
-int skill_unit_move_unit_group( struct skill_unit_group *group, int m,int dx,int dy);
+int skill_unit_move_unit_group(struct skill_unit_group& group, unsigned short m, int dx,int dy);
 
 struct skill_unit_group *skill_check_dancing( struct block_list *src );
 void skill_stop_dancing(struct block_list *src, int flag);

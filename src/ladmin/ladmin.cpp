@@ -5,7 +5,6 @@
 // if you modify this software, modify ladmin in tool too.
 ///////////////////////////////////////////////////////////////////////////
 
-#include "base.h"
 #include "core.h"
 #include "socket.h"
 #include "ladmin.h"
@@ -239,7 +238,7 @@ int ladmin_log(char *fmt, ...)
 	struct timeval tv;
 	time_t unixtime;
 	char tmpstr[2048];
-	FILE *logfp = safefopen(ladmin_log_filename, "a");
+	FILE *logfp = basics::safefopen(ladmin_log_filename, "a");
 	if (logfp)
 	{
 		if (fmt[0] == '\0') // jump a line if no message
@@ -294,7 +293,7 @@ char* makeordinal(int number) {
 int verify_accountname(char* account_name) {
 	int i;
 
-	for(i = 0; account_name[i]; i++) {
+	for(i = 0; account_name[i]; ++i) {
 		if (account_name[i] < 32) {
 			if (defaultlanguage == 'F') {
 				ShowMessage("Caractère interdit trouvé dans le nom du compte (%d%s caractère).\n", i+1, makeordinal(i+1));
@@ -394,7 +393,7 @@ int typepasswd(char * password) {
 int verify_password(char * password) {
 	int i;
 
-	for(i = 0; password[i]; i++) {
+	for(i = 0; password[i]; ++i) {
 		if (password[i] < 32) {
 			if (defaultlanguage == 'F') {
 				ShowMessage("Caractère interdit trouvé dans le mot de passe (%d%s caractère).\n", i+1, makeordinal(i+1));
@@ -553,7 +552,7 @@ void display_help(char* param, int language)
 	}
 
 	// lowercase for command
-	tolower(command);
+	basics::tolower(command);
 
 	// Analyse of the command
 	check_command(command); // give complete name to the command
@@ -1106,7 +1105,7 @@ int addaccount(char* param, int emailflag)
 		return 102;
 	}
 
-/*	for(i = 0; name[i]; i++) {
+/*	for(i = 0; name[i]; ++i) {
 		if (strchr("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_", name[i]) == NULL) {
 			if (defaultlanguage == 'F') {
 				ShowMessage("Caractère interdit (%c) trouvé dans le nom du compte (%d%s caractère).\n", name[i], i+1, makeordinal(i+1));
@@ -1223,7 +1222,7 @@ int banaddaccount(char* param)
 	}
 
 	// lowercase for modif
-	tolower(modif);
+	basics::tolower(modif);
 	p_modif = modif;
 	while (strlen(p_modif) > 0) {
 		value = atoi(p_modif);
@@ -2063,7 +2062,7 @@ int listaccount(char* param, int type)
 	if (list_type == 1) { // if listgm
 		// get all accounts = use default
 	} else if (list_type == 2) { // if search
-		tolower(param);
+		basics::tolower(param);
 		// get all accounts = use default
 	} else if (list_type == 3) { // if listban
 		// get all accounts = use default
@@ -2547,7 +2546,7 @@ int timeaddaccount(char* param)
 	}
 
 	// lowercase for modif
-	tolower(modif);
+	basics::tolower(modif);
 	p_modif = modif;
 	while (strlen(p_modif) > 0) {
 		value = atoi(p_modif);
@@ -2969,7 +2968,7 @@ int prompt() {
 		if((p = strrchr(buf, '\n')) != NULL)
 			p[0] = '\0';
 		// remove all control char
-		for (i = 0; buf[i]; i++)
+		for (i = 0; buf[i]; ++i)
 			if (buf[i] < 32) {
 				// remove cursor control.
 				if (buf[i] == 27 && buf[i+1] == '[' &&
@@ -2980,10 +2979,10 @@ int prompt() {
 				     buf[i+2] == 'C' || // right 1 position
 				     buf[i+2] == 'D' || // left 1 position
 				     buf[i+2] == 'G')) { // center cursor (windows)
-					for (j = i; buf[j]; j++)
+					for (j = i; buf[j]; ++j)
 						buf[j] = buf[j+3];
 				} else if (buf[i] == 27 && buf[i+1] == '[' && buf[i+2] == '2' && buf[i+3] == 'J') { // clear screen
-					for (j = i; buf[j]; j++)
+					for (j = i; buf[j]; ++j)
 						buf[j] = buf[j+4];
 				} else if (buf[i] == 27 && buf[i+1] == '[' && buf[i+3] == '~' &&
 				           (buf[i+2] == '1' || // home (windows)
@@ -2992,11 +2991,11 @@ int prompt() {
 				            buf[i+2] == '4' || // end (windows)
 				            buf[i+2] == '5' || // pgup (windows)
 				            buf[i+2] == '6')) { // pgdown (windows)
-					for (j = i; buf[j]; j++)
+					for (j = i; buf[j]; ++j)
 						buf[j] = buf[j+4];
 				} else {
 					// remove other control char.
-					for (j = i; buf[j]; j++)
+					for (j = i; buf[j]; ++j)
 						buf[j] = buf[j+1];
 				}
 				i--;
@@ -3010,7 +3009,7 @@ int prompt() {
 		parameters[1023] = '\0';
 
 		// lowercase for command line
-		tolower(command);
+		basics::tolower(command);
 
 		if (command[0] == '?' || strlen(command) == 0) {
 			if (defaultlanguage == 'F') {
@@ -3142,9 +3141,8 @@ int prompt() {
 //-------------------------------------------------------------
 int parse_fromlogin(int fd)
 {
-	struct char_session_data *sd;
-
-	if( !session_isActive(fd) ) {
+	if( !session_isActive(fd) )
+	{
 		if (defaultlanguage == 'F') {
 			ShowMessage("Impossible de se connecter au serveur de login [%s:%d] !\n", loginserverip, loginserverport);
 			ladmin_log("Impossible de se connecter au serveur de login [%s:%d] !" RETCODE, loginserverip, loginserverport);
@@ -3159,7 +3157,6 @@ int parse_fromlogin(int fd)
 	}
 
 //	ShowMessage("parse_fromlogin : %d %d %d\n", fd, RFIFOREST(fd), RFIFOW(fd,0));
-	sd = (struct char_session_data*)session[fd]->session_data;
 
 	while(RFIFOREST(fd) >= 2) {
 		switch(RFIFOW(fd,0)) {
@@ -3205,16 +3202,15 @@ int parse_fromlogin(int fd)
 				return 0;
 		  {
 			char md5str[64] = "", md5bin[32];
-			CREATE_BUFFER(md5key,char,RFIFOW(fd,2) - 4 + 1);
+			size_t sz = (RFIFOW(fd,2)>4) ? RFIFOW(fd,2)-4 : 0;
+			CREATE_BUFFER(md5key,char,sz+1);
 
-			memcpy(md5key, (char*)RFIFOP(fd,4), RFIFOW(fd,2) - 4);
-			md5key[sizeof(md5key)-1] = '0';
+			memcpy(md5key, (char*)RFIFOP(fd,4), sz);
+			md5key[sz] = '0';
 			if (passenc == 1) {
-				safestrcpy(md5str, (char*)RFIFOP(fd,4), RFIFOW(fd,2) - 4);
-				strcat(md5str, loginserveradminpassword);
+				snprintf(md5str, sizeof(md5str), "%s%s", (const char*)RFIFOP(fd,4), loginserveradminpassword);
 			} else if (passenc == 2) {
-				safestrcpy(md5str, loginserveradminpassword, sizeof(loginserveradminpassword));
-				strcat(md5str, (char*)RFIFOP(fd,4));
+				snprintf(md5str, sizeof(md5str), "%s%s", loginserveradminpassword, (const char*)RFIFOP(fd,4));
 			}
 			MD5_String2binary(md5str, md5bin);
 			WFIFOW(login_fd,0) = 0x7918; // Request for administation login (encrypted password)
@@ -3235,10 +3231,9 @@ int parse_fromlogin(int fd)
 
 			DELETE_BUFFER(md5key);
 
-		  }
 			bytes_to_read = 1;
 			RFIFOSKIP(fd,RFIFOW(fd,2));
-
+		  }
 			break;
 
 		case 0x7531:	// Displaying of the version of the login-server
@@ -4102,6 +4097,8 @@ int Connect_login_server()
 		login_fd = make_connection(login_ip, loginserverport);
 		if(login_fd<0) sleep(2000); 
 	}
+	// disable timeout disconnection
+	session[login_fd]->rdata_tick = 0;
 
 	if (passenc == 0)
 	{
@@ -4142,7 +4139,7 @@ int ladmin_config_read(const char *cfgName) {
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
 
-	fp = safefopen(cfgName, "r");
+	fp = basics::safefopen(cfgName, "r");
 	if (fp == NULL) {
 		if (defaultlanguage == 'F') {
 			ShowError(CL_NORM"Fichier de configuration (%s) non trouvé.\n", cfgName);
@@ -4238,7 +4235,7 @@ void do_final(void) {
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// delete sessions
-	for(i = 0; i < fd_max; i++)
+	for(i = 0; i < fd_max; ++i)
 		if(session[i] != NULL) 
 			session_Delete(i);
 	// clear externaly stored fd's

@@ -7,7 +7,6 @@
  *
  ***********************************************************/
 
-#include "base.h"
 #include "md5calc.h"
 
 #ifndef UINT_MAX
@@ -100,7 +99,7 @@ static void MD5_Round_Calculate(const unsigned char *block,
 	pX = X;
 
 	//Copy block(padding_message) i into X
-	for (j=0,k=0; j<64; j+=4,k++)
+	for (j=0,k=0; j<64; j+=4,++k)
 		X[k] = ( (unsigned int )block[j] )         // 8byte*4 -> 32byte conversion
 			| ( ((unsigned int )block[j+1]) << 8 ) // A function called Decode as used in the field of RFC
 			| ( ((unsigned int )block[j+2]) << 16 )

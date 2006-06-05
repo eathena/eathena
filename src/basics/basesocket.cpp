@@ -8,6 +8,7 @@
 #include "baseregex.h"
 
 
+NAMESPACE_BEGIN(basics)
 
 
 
@@ -64,12 +65,11 @@ void CFDSET::copy(const CFDSET& cfd)
 ///////////////////////////////////////////////////////////////////////////
 // Call a function with each set bit
 // version 1 (using log2)
-size_t CFDSET::foreach1( void(*func)(size_t), size_t max) const
+size_t CFDSET::foreach1( void(*func)(SOCKET), size_t max) const
 {
 	size_t c = 0;
 	if(func)
 	{
-		size_t fd;
 		SOCKET sock;
 		unsigned long	val;
 		unsigned long	bits;
@@ -93,7 +93,7 @@ size_t CFDSET::foreach1( void(*func)(size_t), size_t max) const
 
 				///////////////////////////////////////////////////
 				// call the user function
-				func(fd);
+				func(sock);
 				c++;
 			}
 			// go to next field position
@@ -105,12 +105,11 @@ size_t CFDSET::foreach1( void(*func)(size_t), size_t max) const
 ///////////////////////////////////////////////////////////////////////////
 // Call a function with each set bit
 // version 2 (using shifts)
-size_t CFDSET::foreach2( void(*func)(size_t), size_t max ) const
+size_t CFDSET::foreach2( void(*func)(SOCKET), size_t max ) const
 {
 	size_t c=0;
 	if(func)
 	{
-		size_t fd;
 		SOCKET sock;
 		unsigned long	val;
 		unsigned long	bits;
@@ -143,7 +142,7 @@ size_t CFDSET::foreach2( void(*func)(size_t), size_t max ) const
 
 				///////////////////////////////////////////////////
 				// call the user function
-				func(fd);
+				func(sock);
 				c++;
 			}
 			// go to next field position
@@ -248,12 +247,12 @@ bool CFDSET::is_set(int fd) const
 }
 ///////////////////////////////////////////////////////////////////////////
 // Call a function with each set bit
-size_t CFDSET::foreach1( void(*func)(size_t), size_t max) const
+size_t CFDSET::foreach1( void(*func)(SOCKET), size_t max) const
 {
 	if(func)
 	{	
 		size_t i;
-		for(i=0; i<this->cSet->fd_count; i++)
+		for(i=0; i<this->cSet->fd_count; ++i)
 			func( this->cSet->fd_array[i] );
 	}
 	return cSet->fd_count;
@@ -264,6 +263,126 @@ size_t CFDSET::foreach1( void(*func)(size_t), size_t max) const
 
 
 
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// dynamic id's
+///////////////////////////////////////////////////////////////////////////////
+
+void CIDClient::receive(identifier id)
+{	// id is the starting point from where we generate IDSERVER_AMOUNT id's
+
+	if(id)
+	{
+		const identifier e = id+IDSERVER_AMOUNT;
+
+		CIDVal* cid;
+		// put id's to existing ID's without values
+		for( ; id<e && idrefs.size(); ++id)
+		{
+			cid = (CIDVal*)idrefs.pop();
+			if(cid)
+				cid->id = id;
+			else
+				idlist.push(id);
+		}
+		// insert the rest, values shuffled
+		for( ; id<e; ++id)
+		{
+			const size_t i=idlist.size();
+			idlist.insert(id, 1, (i|(i-1))&rand());
+		}
+
+		// request more id's when running empty
+		requesting = ( idlist.size() <= IDSERVER_AMOUNT/8 ) ? (*this->sendreqest)() : false;
+	}
+}
+
+identifier CIDClient::aquire()
+{
+	// request more id's when running empty
+	if( !requesting && idlist.size() < 8 )
+		requesting = (*this->sendreqest)();
+
+	if( idlist.size() )
+		 return idlist.pop();
+	return 0;
+}
+void CIDClient::release(identifier id)
+{
+	if(id) idlist.push(id);
+}
+void CIDClient::aquire(CIDVal& id)
+{
+	// request more id's when running empty
+	if( !requesting && idlist.size() < IDSERVER_AMOUNT/8 )
+		requesting = (*this->sendreqest)();
+
+	if( idlist.size() )
+		id.id = idlist.pop();
+	else
+	{
+		id.id = 0;
+		// store the pointer so it can be updated later
+		idrefs.push(&id);
+	}
+}
+void CIDClient::release(CIDVal& id)
+{
+	if(id.id)
+		idlist.push(id.id);
+	else
+	{	// deleting some zero id
+		// find it in list
+		size_t pos;
+		if( idrefs.find(&id,0,pos) )
+			idrefs.removeindex(pos);
+	}
+}
+
+#ifdef DEBUG
+CIDServer idserv;
+
+bool isrequest();
+CIDClient CIDVal::idclient(isrequest);
+
+
+bool isrequest()
+{
+
+	// client code sends request to server->
+	// returns true when sending is on it's way, false on failure
+
+	// -> server code call idserver request
+	uint64 id = idserv.request();
+	// server code sends id to client ->
+	// no further error passing
+
+	// -> client code calls idclient receive
+	CIDVal::idclient.receive(id);
+	// no error passing
+
+	// this example returns false since the receive has been done already
+	return false;
+}
+#endif//DEBUG
+
+
+void test_id()
+{
+#ifdef DEBUG
+	CIDVal a,b,c,d;
+
+	uint64 i = CIDVal::idclient.aquire();
+
+	for(i=0; i<CIDVal::idclient.idlist.size(); ++i)
+		printf("%i ", CIDVal::idclient.idlist[(size_t)i]); 
+#endif//DEBUG
+}
 
 
 
@@ -285,14 +404,262 @@ void test_socket()
 
 			CRegExp regex("Current IP Address:\\s+([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)");
 			regex.match((const char*)buffer);
-			ipaddress myip = (const char*)regex[1];
+			ipaddress myip = ipaddress(regex[1]);
 
 			printf("ipaddress is: %s", (const char*)tostring(myip));
 		}
 	}
 
+	{
+		ipaddress sysip = ipaddress::GetSystemIP();
+		ipaddress ip = hostbyname("checkip.dyndns.org");
+		//ipaddress ip = hostbyname("www.google.com");
+
+		struct sockaddr_in addr;
+		SOCKET sock = socket( AF_INET, SOCK_STREAM, 0 );
+
+		addr.sin_family			= AF_INET;
+		addr.sin_addr.s_addr	= htonl( ip );
+		addr.sin_port			= htons(80);
+		
+		if( 0 > connect(sock, (struct sockaddr *)(&addr),sizeof(struct sockaddr_in)) )
+		{
+			closesocket(sock);
+		}
+		else
+		{
+			const char* str = 
+			 "GET / HTTP/1.1\r\n"
+			 "Host: checkip.dyndns.org\r\n"
+//			 "User-Agent: Mozilla/5.0 (compatible; MSIE 5.0; IRIX 6.3 IP32)\r\n"
+//			 "Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5\r\n"
+//			 "Accept-Language: de-de,de;q=0.8,en-us;q=0.5,en;q=0.3\r\n"
+//			 "Accept-Encoding: gzip,deflate\r\n"
+//			 "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7\r\n"
+			 "Keep-Alive: 300\r\n"
+			 "Connection: keep-alive\r\n"
+			"\r\n";
+			int ret = write(sock, (char*)str, strlen(str));
+			if(ret != (int)strlen(str))
+				printf("send err");
+
+			unsigned long arg = 0;
+			char buffer[1024];
+
+			fd_set fdset;
+			FD_ZERO(&fdset);
+			FD_SET(sock,&fdset);
+
+			select(sock+1,&fdset,NULL,NULL,NULL);
+
+			int rv = ioctlsocket(sock, FIONREAD, &arg);
+			if( (rv == 0) && (arg > 0) )
+			{	// we are reading 'arg' bytes of data from the socket
+				
+				if( arg > sizeof(buffer) ) arg = sizeof(buffer);
+				int len=read(sock,buffer,arg);
+				buffer[len]=0;
+
+				FILE*ff = fopen("test2.txt", "wb");
+				fwrite(buffer,1,len,ff);
+				fclose(ff);
+
+				CRegExp regex("Current IP Address:\\s+([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)");
+				regex.match(buffer);
+
+				ipaddress myip = ipaddress(regex[1]);
+			}
+		}
+	}
+
+
+	{
+		unsigned long ip = ipaddress::GetSystemIP(); 
+		unsigned short port = 8080;
+
+		struct sockaddr_in server_address;
+		SOCKET server;
+		int result;
+
+		server = socket( AF_INET, SOCK_STREAM, 0 );
+
+		server_address.sin_family      = AF_INET;
+		server_address.sin_addr.s_addr = htonl( ip );
+		server_address.sin_port        = htons(port);
+
+		result = bind(server, (struct sockaddr*)&server_address, sizeof(server_address));
+		if( result == -1 ) {
+			closesocket(server);
+			perror("bind");
+			exit(1);
+		}
+		result = listen( server, 5 );
+		if( result == -1 ) {
+			closesocket(server);
+			perror("listen");
+			exit(1);
+		}
+
+		fd_set fdset;
+		FD_ZERO(&fdset);
+		FD_SET(server,&fdset);
+
+		select(server+1,&fdset,NULL,NULL,NULL);
+
+
+		
+		SOCKET client;
+		struct sockaddr_in client_address;
+		socklen_t len = sizeof(client_address);
+
+		client = accept(server,(struct sockaddr*)&client_address,&len);
+		if(client==-1) 
+		{	// same here, app might have passed away
+			perror("accept");
+			return;
+		}
+
+
+		unsigned long arg = 0;
+		int rv = ioctlsocket(client, FIONREAD, &arg);
+		if( (rv == 0) && (arg > 0) )
+		{	// we are reading 'arg' bytes of data from the socket
+			char buffer[1024];
+			if( arg > sizeof(buffer) ) arg = sizeof(buffer);
+			int len=read(client,buffer,arg);
+			buffer[len]=0;
+			FILE*ff = fopen("test.txt", "wb");
+			fprintf(ff, buffer);
+			fclose(ff);
+
+			printf(buffer);
+		}
+	}
+
+
+
+	{
+		size_t i;
+#ifdef WIN32
+		ipaddress ip = ipaddress::GetSystemIP();
+		struct winfdset
+		{
+			u_int fd_count;					// how many are SET?
+			SOCKET  fd_array[2*FD_SETSIZE];	// an array of SOCKETs 
+											// only one in the struct the others will be alloced outside
+		} fd;
+		for(i=0; i<2*FD_SETSIZE; ++i)
+			fd.fd_array[i] = i;
+		fd.fd_count = 0;
+#else
+		struct uxfdset
+		{
+			ulong fd_array[ howmany(2*FD_SETSIZE,NBBY*sizeof(ulong)) ];
+		} fd;
+		memset (fd.fd_array, 0xFF, sizeof(fd.fd_array));
+		FD_ZERO((fd_set *)&fd);
+		fd.fd_array[1] = ~0;
+
+
+#endif
+		SOCKET s1 = ::socket( AF_INET, SOCK_STREAM, 0 );
+		SOCKET s2 = ::socket( AF_INET, SOCK_STREAM, 0 );
+		SOCKET s3 = ::socket( AF_INET, SOCK_STREAM, 0 );
+		SOCKET s4 = ::socket( AF_INET, SOCK_STREAM, 0 );
+
+#ifndef WIN32
+		if(s1>2*FD_SETSIZE)
+		{
+			printf("s1 too large");
+		}
+		else
+#endif
+		{
+			if(s1>FD_SETSIZE)
+				printf("s1 outside");
+			FD_SET(s1, (fd_set *)&fd);
+		}
+		printf("  %i\n", (int)s1);
+#ifndef WIN32
+		if(s2>2*FD_SETSIZE)
+		{
+			printf("s2 too large");
+		}
+		else
+#endif
+		{
+			if(s2>FD_SETSIZE)
+				printf("s2 outside");
+			FD_SET(s2, (fd_set *)&fd);
+		}
+		printf("  %i\n", (int)s2);
+#ifndef WIN32
+		if(s3>2*FD_SETSIZE)
+		{
+			printf("s3 too large");
+		}
+		else
+#endif
+		{
+			if(s3>FD_SETSIZE)
+				printf("s3 outside");
+			FD_SET(s3, (fd_set *)&fd);
+		}
+		printf("  %i\n", (int)s3);
+#ifndef WIN32
+		if(s4>2*FD_SETSIZE)
+		{
+			printf("s4 too large");
+		}
+		else
+#endif
+		{
+			if(s4>FD_SETSIZE)
+				printf("s4 outside");
+			FD_SET(s4, (fd_set *)&fd);
+		}
+		printf("  %i\n", (int)s4);
+
+		static struct timeval timeout  = {0,0};
+		
+
+
+		struct sockaddr_in server_address;
+		server_address.sin_family      = AF_INET;
+		server_address.sin_addr.s_addr = htonl( ipaddress::GetSystemIP() );
+		server_address.sin_port        = htons( 1414 );
+		int result = bind(s1, (struct sockaddr*)&server_address, sizeof(server_address));
+		if( result == -1 ) {
+			exit(1);
+		}
+		result = listen( s1, 5 );
+		if( result == -1 ) {
+			exit(1);
+		}
+
+		result = connect(s2, (struct sockaddr *)(&server_address),sizeof(struct sockaddr_in));
+
+
+		int num = ::select(FD_SETSIZE/2,NULL,(fd_set *)&fd,NULL,&timeout);
+
+		printf("%i\n", num);
+		for(i=0; i<howmany(2*FD_SETSIZE,NBBY*sizeof(ulong)); ++i)
+			printf("%X ", fd.fd_array[i]);
+		printf("\n");
+
+		num = ::select(FD_SETSIZE,(fd_set *)&fd,NULL,NULL,&timeout);
+
+		printf("%i\n", num);
+		for(i=0; i<howmany(2*FD_SETSIZE,NBBY*sizeof(ulong)); ++i)
+			printf("%X ", fd.fd_array[i]);
+		printf("\n");
+		
+
+	}
+
+
 #endif//DEBUG
 }
 
 
-
+NAMESPACE_END(basics)

@@ -6,20 +6,20 @@
 #include "basethreads.h"
 #include "basetime.h"
 
+NAMESPACE_BEGIN(basics)
 
 ///////////////////////////////////////////////////////////////////////////////
-// test function
+/// test function
 void test_threadpool(void);
 
 
 
 ///////////////////////////////////////////////////////////////////////////////
-//!! TODO: re-implement the heap/dl-list task objects with the new environment
-//!! TODO: find some passthrough for making it runnable in singlethread
+//## TODO: re-implement the heap/dl-list task objects with the new environment
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// just a fix combination of existing stuff 
+/// just a fix combination of existing stuff 
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -29,18 +29,18 @@ class task_link;
 class intervaltask;
 class pooltask;
 class threadpool;
-
+class taskqueue;
 
 ///////////////////////////////////////////////////////////////////////////////
-// the actual object that links tasks and its execution together
-// creation/destruction is automatically via smartpointer
+/// the actual object that links tasks and its execution together.
+/// creation/destruction is automatically via smartpointer
 class task_link : public global, public noncopyable
 {
 private:
-	friend class TPtrAutoCount<task_link>;
-public:
+	friend class TPtrCount<task_link>;
 	// only the smartpointer can create
 	task_link():stamp(0)	{}
+public:
 
 	~task_link()			{}
 
@@ -57,7 +57,8 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// basic task object
+/// basic task object.
+/// provides the interface for entering into a taskqueue
 class task : public global, public noncopyable
 {
 	friend class task_link;
@@ -104,6 +105,8 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
+/// task object which automatically reenters.
+/// to be processed again after given time
 class intervaltask : public task
 {
 	ulong	interval;
@@ -117,10 +120,11 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// class for holding calling tasks inside the pool
+/// class for holding calling tasks inside the pool
 class pooltask : public global
 {
 	friend class threadpool;
+	friend class taskqueue;
 	TPtrAutoCount<task_link>	pLink;
 
 	pooltask(task&t)
@@ -175,8 +179,8 @@ public:
 		return 0;
 	}
 
-	bool operator ==(const pooltask& p) const	{ return this->pLink == p.pLink; }
-	bool operator !=(const pooltask& p) const	{ return this->pLink != p.pLink; }
+	bool operator ==(const pooltask& p) const	{ return this->pLink.pointer() == p.pLink.pointer(); }
+	bool operator !=(const pooltask& p) const	{ return this->pLink.pointer() != p.pLink.pointer(); }
 	bool operator >=(const pooltask& p) const	{ return this->schedule() >= p.schedule(); }
 	bool operator <=(const pooltask& p) const	{ return this->schedule() <= p.schedule(); }
 	bool operator > (const pooltask& p) const	{ return this->schedule() >  p.schedule(); }
@@ -184,7 +188,8 @@ public:
 };
 
 
-
+///////////////////////////////////////////////////////////////////////////////
+// threadpool manages the task processing
 class threadpool: public global, public noncopyable
 {
 	/////////////////////////////////////////////////////////////
@@ -192,10 +197,10 @@ class threadpool: public global, public noncopyable
 	/////////////////////////////////////////////////////////////
 #ifndef SINGLETHREAD
 	class worker;
-#endif//!SINGLETHREAD
+#endif// !SINGLETHREAD
 
 	/////////////////////////////////////////////////////////////
-	// handle for shared data between the worker threads
+	/// handle for shared data between the worker threads
 	/////////////////////////////////////////////////////////////
 	class WorkerHandle : public global
 	{
@@ -207,9 +212,9 @@ class threadpool: public global, public noncopyable
 		unsigned int		cSignal;
 		Mutex				mSystem;
 		Mutex				mTask;
-		TfifoDCT<pooltask>	fTask;
+		fifo<pooltask>		fTask;
 		Mutex				mTimeTask;
-		TslistDCT<pooltask>	fTimeTask;
+		slist<pooltask>		fTimeTask;
 		SemaphoreTimed		fSema;
 		Gate				cRunGate;
 	public:
@@ -217,11 +222,11 @@ class threadpool: public global, public noncopyable
 		{}
 #ifndef SINGLETHREAD
 		friend class worker;
-#endif//!SINGLETHREAD
+#endif// !SINGLETHREAD
 		friend class threadpool;
 
 		/////////////////////////////////////////////////////////
-		// the data procesing core function
+		/// the data procesing core function
 		void process(long maxwaittime=500)
 		{
 			pooltask	localtask;
@@ -273,15 +278,21 @@ class threadpool: public global, public noncopyable
 				}
 				catch(...)
 				{	// ignore the exceptions for now
-					//!! TODO: add some usefull stuff here
+					//## TODO: add some usefull stuff here
 				}
 				atomicdecrement(&this->cWorkCount);// and finished working
 			}
 		}
 	};
 #ifndef SINGLETHREAD
+	/////////////////////////////////////////////////////////////
+	/// worker thread
+	/////////////////////////////////////////////////////////////
 	class worker: public thread
 	{
+		/////////////////////////////////////////////////////////
+		/// main execution function
+		/////////////////////////////////////////////////////////
 		virtual void execute()
 		{
 			pooltask		localtask;
@@ -342,7 +353,7 @@ class threadpool: public global, public noncopyable
 		}
 		virtual ~worker()	{}
 	};
-#endif//!SINGLETHREAD
+#endif// !SINGLETHREAD
 
 	TPtrAutoCount<WorkerHandle> pWorkerHandle;
 
@@ -375,7 +386,7 @@ public:
 		if( pWorkerHandle->cThreadCount < 1 )
 		{	new worker(pWorkerHandle);
 		}
-#endif//!SINGLETHREAD
+#endif// !SINGLETHREAD
 		pWorkerHandle->cRunGate.open();
 	}
 	void stop()
@@ -413,6 +424,119 @@ public:
 };
 
 
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+/// taskqueue.
+/// processes given tasks sequentially,
+/// enables same interface for single/multithread,
+/// on multithread:  
+/// - store the task and process it with an own thread independend from the caller
+/// - in contrast to the threadpool there is only one thread here
+/// - queued task can be deleted or unlinked before beeing processed 
+/// on singlethread: 
+/// - process the task directly and immediately
+//////////////////////////////////////////////////////////////////////////
+class taskqueue 
+#ifndef SINGLETHREAD
+				: public Mutex
+				, protected thread
+#endif
+{
+#ifndef SINGLETHREAD
+	//////////////////////////////////////////////////////////////////////
+	/// main execution function
+	virtual void execute()
+	{
+		static const long waittime=500;
+		while( this->fTask.size()>0 )
+		{			
+			// check for tasks
+			if( this->fSema.wait(waittime) )
+			{	// there is some task to do
+				pooltask	localtask;
+				this->Mutex::lock();
+				this->fTask.pop(localtask);		// pop it from the fifo
+				this->Mutex::unlock();
+
+				try
+				{
+					// call the task function
+					localtask.function();
+					// not running the epilog here
+				}
+				catch(...)
+				{	// ignore the exceptions for now
+					//## TODO: add some usefull stuff here
+				}
+			}
+		}
+	}
+#endif
+protected:
+#ifndef SINGLETHREAD
+	int				running;	///< run flag. 
+	fifo<pooltask>	fTask;		///< list of queued tasks
+	SemaphoreTimed	fSema;		///< sync semaphore
+#endif
+
+public:
+    taskqueue()
+#ifndef SINGLETHREAD
+		: thread(false)
+		, running(1)
+#endif
+	{
+#ifndef SINGLETHREAD
+		this->thread::start();
+#endif
+	}
+	virtual ~taskqueue()
+	{
+#ifndef SINGLETHREAD
+		atomicexchange(&this->running, 0);
+		this->thread::waitfor();
+#endif
+	}
+
+	bool insert(task &t)
+	{
+#ifndef SINGLETHREAD
+		if( running )
+		{
+			this->Mutex::lock();
+
+			if( this->fTask.push( pooltask(t) ) )
+				this->fSema.post();
+
+			this->Mutex::unlock();
+			sleep(0);
+			return true;
+		}
+		return false;
+#else
+		try
+		{
+			// call the task function
+			t.function();
+		}
+		catch(...)
+		{	// ignore the exceptions for now
+			//## TODO: add some usefull stuff here
+			return false;
+		}
+		return true;
+#endif
+	}
+};
+
+
+NAMESPACE_END(basics)
 
 
 #endif//__BASETHREADPOOL_H__

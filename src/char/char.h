@@ -2,11 +2,31 @@
 #ifndef _CHAR_H_
 #define _CHAR_H_
 
+
+#include "baseio.h"
+#include "mmo.h"
+
+
 #define MAX_MAP_SERVERS 30
-
 #define CHAR_CONF_NAME	"conf/char_athena.conf"
-
 #define DEFAULT_AUTOSAVE_INTERVAL 300*1000
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// char session data.
+/// used for client connections and holds a char-char-account
+/// (which is the account data that references all characters of this account)
+class char_session_data : public session_data, public CCharCharAccount
+{
+public:
+	char_session_data()				{}
+	virtual ~char_session_data()	{}
+
+};
+
+
+
+
 
 
 int mapif_sendall(unsigned char *buf, unsigned int len);
@@ -28,5 +48,10 @@ int char_log(char *fmt, ...);
 extern char db_path[];
 
 extern int party_modus;
+
+
+
+
+
 
 #endif

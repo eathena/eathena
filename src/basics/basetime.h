@@ -2,69 +2,19 @@
 #define __BASETIME_H__
 
 ///////////////////////////////////////////////////////////////////////////////
-// time handler
-// introduces datatime object and access functions
+/// time handler.
+/// introduces datatime object and access functions
 ///////////////////////////////////////////////////////////////////////////////
 #include "basetypes.h"
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-// datetime type: 
-// 64-bit int defined as number of milliseconds since midnight 01/01/0001
-// derived from PTypes (C++ Portable Types Library)
-///////////////////////////////////////////////////////////////////////////////
-typedef int64 datetime;
 
-#define invdatetime LLCONST(-1)
-
-#define _msecsmax 86400000						// number of milliseconds of one day
-#define _daysmax  3652059						// number of days between 01/01/0001 and 12/31/9999
-#define _datetimemax LLCONST(315537897600000)	// max. allowed number for datetime type
-#define _unixepoch LLCONST(62135596800000)		// difference between time_t and datetime in milliseconds
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-// datetime general utilities
-///////////////////////////////////////////////////////////////////////////////
-inline int days(datetime d)			{ return int(d / _msecsmax); }
-inline int msecs(datetime d)		{ return int(d % _msecsmax); }
-
-datetime makedt(int days, int msecs);
-bool isvalid(datetime);
-datetime now(bool utc = true);
-void tzupdate();
-int	tzoffset();
-datetime utodatetime(time_t u);
-struct tm* dttotm(datetime dt, struct tm& t);
-
-///////////////////////////////////////////////////////////////////////////////
-// date/calendar manipulation
-///////////////////////////////////////////////////////////////////////////////
-bool isleapyear(int year);
-int	daysinmonth(int year, int month);
-int	daysinyear(int year, int month);
-int	dayofweek(datetime);
-bool isdatevalid(int year, int month, int day);
-datetime encodedate(int year, int month, int day);
-bool decodedate(datetime, int& year, int& month, int& day);
-
-///////////////////////////////////////////////////////////////////////////////
-// time manipulation
-///////////////////////////////////////////////////////////////////////////////
-bool istimevalid(int hour, int min, int sec, int msec = 0);
-datetime encodetime(int hour, int min, int sec, int msec = 0);
-bool decodetime(datetime, int& hour, int& min, int& sec, int& msec);
-bool decodetime(datetime, int& hour, int& min, int& sec);
-
-
-datetime encodedate(int year, int month, int day, int hour, int min, int sec, int msec = 0);
 
 ///////////////////////////////////////////////////////////////////////////////
 #ifdef WIN32
 ///////////////////////////////////////////////////////////////////////////////
-// missing gettimeofday on windows
+/// missing gettimeofday on windows
 extern inline int gettimeofday(struct timeval *timenow, void *tz)
 {
 	if (timenow)
@@ -136,8 +86,8 @@ extern inline int gettimeofday(struct timeval *timenow, void *tz)
 ///////////////////////////////////////////////////////////////////////////////
 #else
 ///////////////////////////////////////////////////////////////////////////////
-// missing TickCount on Unix
-// return millisecond precision
+/// missing TickCount on Unix.
+/// return millisecond precision
 extern inline unsigned long GetTickCount()
 {
 	struct timeval tval;
@@ -149,11 +99,76 @@ extern inline unsigned long GetTickCount()
 
 
 
+
+
+
+
+
+
+
+
+
+NAMESPACE_BEGIN(basics)
+
+
 ///////////////////////////////////////////////////////////////////////////////
-// directly read the processor clock register (using RDTSC command)
-// combined with known processor clock it would allow timers in nanosecond scale
-// unfortunately the later is unlikely to get in necessary precision
-// and might even vary at runtime (dynamic clock scaling)
+/// datetime type.
+/// 64-bit int defined as number of milliseconds since midnight 01/01/0001
+/// derived from PTypes (C++ Portable Types Library)
+///////////////////////////////////////////////////////////////////////////////
+typedef int64 datetime;
+
+#define invdatetime LLCONST(-1)
+
+#define _msecsmax 86400000						///< number of milliseconds of one day
+#define _daysmax  3652059						///< number of days between 01/01/0001 and 12/31/9999
+#define _datetimemax LLCONST(315537897600000)	///< max. allowed number for datetime type
+#define _unixepoch LLCONST(62135596800000)		///< difference between time_t and datetime in milliseconds
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// datetime general utilities
+///////////////////////////////////////////////////////////////////////////////
+inline int days(datetime d)			{ return int(d / _msecsmax); }
+inline int msecs(datetime d)		{ return int(d % _msecsmax); }
+
+datetime makedt(int days, int msecs);
+bool isvalid(datetime);
+datetime now(bool utc = true);
+void tzupdate();
+int	tzoffset();
+datetime utodatetime(time_t u);
+struct tm* dttotm(datetime dt, struct tm& t);
+
+///////////////////////////////////////////////////////////////////////////////
+/// date/calendar manipulation
+///////////////////////////////////////////////////////////////////////////////
+bool isleapyear(int year);
+int	daysinmonth(int year, int month);
+int	daysinyear(int year, int month);
+int	dayofweek(datetime);
+bool isdatevalid(int year, int month, int day);
+datetime encodedate(int year, int month, int day);
+bool decodedate(datetime, int& year, int& month, int& day);
+
+///////////////////////////////////////////////////////////////////////////////
+/// time manipulation
+///////////////////////////////////////////////////////////////////////////////
+bool istimevalid(int hour, int min, int sec, int msec = 0);
+datetime encodetime(int hour, int min, int sec, int msec = 0);
+bool decodetime(datetime, int& hour, int& min, int& sec, int& msec);
+bool decodetime(datetime, int& hour, int& min, int& sec);
+
+
+datetime encodedate(int year, int month, int day, int hour, int min, int sec, int msec = 0);
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// directly read the processor clock register (using RDTSC command).
+/// combined with known processor clock it would allow timers in nanosecond scale
+/// unfortunately the later is unlikely to get in necessary precision
+/// and might even vary at runtime (dynamic clock scaling)
 inline uint64 rdtsc(void)
 {
 ///////////////////////////////////////////////////////////////////////////////
@@ -209,6 +224,14 @@ inline uint64 rdtsc(void)
 #endif
 ///////////////////////////////////////////////////////////////////////////////
 }
+
+NAMESPACE_END(basics)
+
+
+
+
+
+
 
 
 

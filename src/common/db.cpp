@@ -3,13 +3,8 @@
 
 
 #include "db.h"
-#include "mmo.h"
 #include "utils.h"
 #include "showmsg.h"
-
-
-
-CDBBase::CDBNode::CDBMemory CDBBase::CDBNode::cMem;
 
 
 #define MALLOC_DBN
@@ -30,7 +25,8 @@ struct dbn* malloc_dbn (void)
 	{
 		if(dbn_root_pos >= ROOT_SIZE)
 		{
-			CREATE(dbn_root[dbn_root_inx], struct dbn, ROOT_SIZE);
+			dbn_root[dbn_root_inx] = new struct dbn[ROOT_SIZE];
+			memset(dbn_root[dbn_root_inx],0, sizeof(struct dbn)*ROOT_SIZE);
 			dbn_root_inx++;
 			dbn_root_pos = 0;
 		}
@@ -51,10 +47,10 @@ void free_dbn (struct dbn *add_dbn)
 void exit_dbn (void)
 {
 	size_t i;
-	for (i = 0; i < dbn_root_inx; i++)
+	for (i = 0; i < dbn_root_inx; ++i)
 		if (dbn_root[i])
 		{
-			aFree(dbn_root[i]);
+			delete[] dbn_root[i];
 			dbn_root[i]=NULL;
 		}
 	dbn_root_pos = dbn_root_inx = 0;
@@ -64,12 +60,14 @@ void exit_dbn (void)
 
 inline struct dbn* malloc_dbn (void)
 {
-	return (struct dbn *) aCalloc ((1), sizeof(struct dbn));
+	struct dbn x= new struct dbn;
+	memset(x,0, sizeof(struct dbn));
+	return x;
 }
 
 inline void free_dbn (struct dbn *add_dbn)
 {
-	aFree(p);
+	delete p;
 }
 
 inline void exit_dbn(void)
@@ -101,14 +99,13 @@ size_t strdb_hash (struct dbt* table, void* a)
 struct dbt* strdb_init_ (int maxlen, const char *file, int line)
 {
 	int i;
-	struct dbt* table;
-
-	CREATE(table, struct dbt, 1);
+	struct dbt* table = new struct dbt;
+	memset(table,0,sizeof(struct dbt));
 
 	table->cmp = strdb_cmp;
 	table->hashfunc = strdb_hash;
 	table->maxlen = maxlen;
-	for (i = 0; i < HASH_SIZE; i++)
+	for (i = 0; i < HASH_SIZE; ++i)
 		table->ht[i] = NULL;
 	table->alloc_file = file;
 	table->alloc_line = line;
@@ -130,17 +127,16 @@ size_t numdb_hash (struct dbt *table, void *a)
 	return (size_t)a;
 }
 
-struct dbt* numdb_init_(const char *file,int line)
+struct dbt* numdb_init_(const char *file, int line)
 {
 	int i;
-	struct dbt* table;
-
-	CREATE(table, struct dbt, 1);
+	struct dbt* table = new struct dbt;
+	memset(table,0,sizeof(struct dbt));
 
 	table->cmp=numdb_cmp;
 	table->hashfunc=numdb_hash;
 	table->maxlen=sizeof(size_t);
-	for(i=0;i<HASH_SIZE;i++)
+	for(i=0;i<HASH_SIZE;++i)
 		table->ht[i]=NULL;
 	table->alloc_file = file;
 	table->alloc_line = line;
@@ -170,7 +166,7 @@ void* db_search2 (struct dbt *table, const char *key)
 	struct dbn *p, *pn, *stack[64];
 	size_t slen = strlen(key);
 
-	for (i = 0; i < HASH_SIZE; i++) {
+	for (i = 0; i < HASH_SIZE; ++i) {
 		if ((p = table->ht[i]) == NULL)
 			continue;
 		sp=0;
@@ -419,14 +415,14 @@ void db_free_unlock(struct dbt *table)
 	if(table->free_lock == 0)
 	{
 		int i;
-		for(i = 0; i < table->free_count ; i++)
+		for(i = 0; i < table->free_count ; ++i)
 		{
 			db_rebalance_erase(table->free_list[i].z, table->free_list[i].root);
 			// made a local copy of the key before
 			// need to free it now
 			if(table->cmp == strdb_cmp)
 			{
-				aFree(table->free_list[i].z->key);
+				delete[] ((char*)table->free_list[i].z->key);
 				table->free_list[i].z->key=NULL;
 			}
 			free_dbn(table->free_list[i].z);
@@ -457,7 +453,7 @@ struct dbn* db_insert(struct dbt *table,void* key,void* data)
 			if(p->deleted)
 			{	// 削除されたデータなので、free_list 上の削除予定を消す
 				int i;
-				for(i = 0; i < table->free_count ; i++)
+				for(i = 0; i < table->free_count ; ++i)
 				{
 					if(table->free_list[i].z == p)
 					{
@@ -473,8 +469,9 @@ struct dbn* db_insert(struct dbt *table,void* key,void* data)
 					ShowError("db_insert: cannnot find deleted db node.\n");
 				} else {
 					table->free_count--;
-					if(table->cmp == strdb_cmp) {
-						aFree(p->key);
+					if(table->cmp == strdb_cmp)
+					{
+						delete[] ((char*)p->key);
 					}
 				}
 			}
@@ -557,9 +554,21 @@ void* db_erase(struct dbt *table,void* key)
 		data=p->data;
 		if(table->free_lock)
 		{
-			if(table->free_count == table->free_max) {
-				table->free_max += 32;
-				table->free_list = (struct db_free*)aRealloc(table->free_list,sizeof(struct db_free) * table->free_max);
+			if(table->free_count == table->free_max)
+			{
+				const size_t sz = table->free_max + 32;
+				struct db_free* tmp = new struct db_free[sz];
+
+				if( table->free_list )
+				{
+					memcpy(tmp, table->free_list, table->free_max*sizeof(struct db_free));
+					delete[] table->free_list;
+				}
+				memset(tmp+table->free_max,0,32*sizeof(struct db_free));
+
+				table->free_list = tmp;
+				table->free_max  = sz;;
+	
 			}
 			table->free_list[table->free_count].z    = p;
 			table->free_list[table->free_count].root = &table->ht[hash];
@@ -569,14 +578,13 @@ void* db_erase(struct dbt *table,void* key)
 
 			// assuming that the key is part of the data,
 			// we need to prepare a local copy since the data is gone
-			if(table->cmp == strdb_cmp) {
-				if(table->maxlen) {
-					char *key = (char*)aMalloc(table->maxlen);
-					memcpy(key,p->key,table->maxlen);
-					p->key = key;
-				} else {
-					p->key = aStrdup((const char*)p->key);
-				}
+			if(table->cmp == strdb_cmp)
+			{
+				size_t len = 1+((table->maxlen) ? table->maxlen : strlen((const char*)p->key));
+				char *key = new char[len];
+				memcpy(key,p->key,len);
+				key[len-1]=0;
+				p->key = key;
 			}
 		}
 		else
@@ -597,57 +605,7 @@ void* db_erase(struct dbt *table,void* key)
 	}
 	return data;
 }
-/*
-void db_foreach(struct dbt *table,int (*func)(void*,void*,va_list &),...)
-{
-	size_t i,sp;
-	int count = table->item_count;
-	// red-black treeなので64個stackがあれば2^32個ノードまで大丈夫
-	struct dbn *p,*pn,*stack[128];
-	
-	
-	db_free_lock(table);
-	for(i=0;i<HASH_SIZE;i++){
-		if((p=table->ht[i])==NULL)
-			continue;
-		sp=0;
-		while(1){
-			if(!p->deleted)
-			{
-				va_list ap;
-				va_start(ap,func);
-				func(p->key, p->data, ap);
-				va_end(ap);
-			}
-			count--;
-			if((pn=p->left)!=NULL)
-			{
-				if(p->right){
-					stack[sp++]=p->right;
-				}
-				p=pn;
-			}
-			else
-			{
-				if(p->right){
-					p=p->right;
-				} else {
-					if(sp==0)
-						break;
-					p=stack[--sp];
-				}
-			}
-		}
-	}
-	db_free_unlock(table);
-	if(count) {
-		ShowError(
-			"db_foreach : data lost %d item(s) allocated from %s line %d\n",
-			count,table->alloc_file,table->alloc_line
-		);
-	}
-}
-*/
+
 void db_foreach(struct dbt* table, const CDBProcessor& elem)
 {
 	if(table)
@@ -676,64 +634,7 @@ void db_foreach(struct dbt* table, const CDBProcessor& elem)
 		}
 	}
 }
-/*
-void db_final(struct dbt *table,int (*func)(void*,void*,va_list &),...)
-{
-	int i,sp;
-	struct dbn *p,*pn,*stack[64];
-	db_free_lock(table);
-	for(i=0;i<HASH_SIZE;i++){
-		if((p=table->ht[i])==NULL)
-			continue;
-		sp=0;
-		while(1){
-			if(func && !p->deleted)
-			{
-				va_list ap;
-				va_start(ap,func);
-				func(p->key,p->data,ap);
-				va_end(ap);
-				p->key=NULL;
-				p->data=NULL;
-			}
-			if((pn=p->left)!=NULL){
-				if(p->right){
-					stack[sp++]=p->right;
-				}
-			} else {
-				if(p->right){
-					pn=p->right;
-				} else {
-					if(sp==0)
-						break;
-					pn=stack[--sp];
-				}
-			}
-			if (p->prev)
-				p->prev->next = p->next;
-			else
-				table->head = p->next;
-			if (p->next)
-				p->next->prev = p->prev;
-			else
-				table->tail = p->prev;
-			free_dbn(p);
-			p=pn;
-		}
-	}
-	db_free_unlock(table);
-	if(table->free_list)
-	{
-		aFree(table->free_list);
-		table->free_list=NULL;
-	}
-	if(table)
-	{
-		aFree(table);
-		table=NULL;
-	}
-}
-*/
+
 void db_final(struct dbt *&table,int (*func)(void*,void*))
 {
 	if(table)
@@ -766,10 +667,10 @@ void db_final(struct dbt *&table,int (*func)(void*,void*))
 		db_free_unlock(table);
 		if(table->free_list)
 		{
-			aFree(table->free_list);
+			delete table->free_list;
 			table->free_list=NULL;
 		}
-		aFree(table);
+		delete table;
 		table=NULL;
 	}
 }
@@ -804,11 +705,11 @@ void db_final(struct dbt*&table, const CDBProcessor& elem)
 		db_free_unlock(table);
 		if(table->free_list)
 		{
-			aFree(table->free_list);
+			delete table->free_list;
 			table->free_list=NULL;
 		}
 
-		aFree(table);
+		delete table;
 		table=NULL;
 	}
 }

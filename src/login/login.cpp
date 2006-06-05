@@ -2,7 +2,6 @@
 // $Id: login.c,v 1.1.1.1 2004/09/10 17:26:53 MagicalTux Exp $
 // new version of the login-server by [Yor]
 
-#include "base.h"
 #include "baseparam.h"
 #include "baseio.h"
 #include "core.h"
@@ -25,22 +24,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 // server address
-netaddress loginaddress(INADDR_ANY, 6900);
+basics::netaddress loginaddress((uint32)INADDR_ANY, 6900);
 int login_fd;
-
-
-
-
-
-bool callback_loginaddress(const char* name, const netaddress& newval, netaddress& oldval)
-{
-	printf("loading new parameter '%s', new value = %s (was %s)\n",
-		name, (const char*)MiniString(newval.tostring(NULL)), (const char*)MiniString(oldval.tostring(NULL)));
-	return true;
-}
-
-CParam<netaddress> _loginaddress("login_address", netaddress(INADDR_ANY, 6900), callback_loginaddress);
-
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -48,20 +33,18 @@ CParam<netaddress> _loginaddress("login_address", netaddress(INADDR_ANY, 6900), 
 struct mmo_char_server server[MAX_SERVERS];
 unsigned short server_num;
 
+
 ///////////////////////////////////////////////////////////////////////////////
 // the account data base
-char databaseinit_filename[1024] = "conf/inter.conf";
 CAccountDB account_db;
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // account registration
-uint32 new_account_flag = 0;
-unsigned int new_reg_tick=0;
-int allowed_regs=1;
-int num_regs=0;
-int time_allowed=10; //Init this to 10 seconds. [Skotlex]
-
+bool new_account_flag = false;		///< creation of new accounts allowed
+bool allowed_regs = false;			///< M/F registration allowed
+unsigned long new_reg_tick=0;		///< internal tickcounter for M/F registration
+unsigned long time_allowed=10;		///< time in seconds between registrations (10)
 
 
 
@@ -69,7 +52,8 @@ int time_allowed=10; //Init this to 10 seconds. [Skotlex]
 ///////////////////////////////////////////////////////////////////////////////
 // access stuff 
 //!! todo move to socket
-enum {
+enum
+{
 	ACO_DENY_ALLOW = 0,
 	ACO_ALLOW_DENY,
 	ACO_MUTUAL_FAILTURE,
@@ -94,28 +78,15 @@ int dynamic_pass_failure_ban_how_long = 1;
 
 ///////////////////////////////////////////////////////////////////////////////
 // connection stuff
-int min_level_to_connect = 0; // minimum level of player/GM (0: player, 1-99: gm) to connect on the server
-int add_to_unlimited_account = 0; // Give possibility or not to adjust (ladmin command: timeadd) the time of an unlimited account.
-int start_limited_time = -1; // Starting additional sec from now for the limited time at creation of accounts (-1: unlimited time, 0 or more: additional sec from now)
-int check_ip_flag = 1; // It's to check IP of a player between login-server and char-server (part of anti-hacking system)
-
-int check_client_version = 0; //Client version check ON/OFF .. (sirius)
-int client_version_to_connect = 20; //Client version needed to connect ..(sirius)
+int min_level_to_connect = 0;		// minimum level of player/GM (0: player, 1-99: gm) to connect on the server
+int add_to_unlimited_account = 0;	// Give possibility or not to adjust (ladmin command: timeadd) the time of an unlimited account.
+int start_limited_time = -1;		// Starting additional sec from now for the limited time at creation of accounts (-1: unlimited time, 0 or more: additional sec from now)
+int check_ip_flag = 1;				// It's to check IP of a player between login-server and char-server (part of anti-hacking system)
 int use_md5_passwds = 0;
-
-
-///////////////////////////////////////////////////////////////////////////////
-// login session data (only used for holding the md5key)
-struct login_session_data {
-	unsigned short md5keylen;
-	char md5key[20];
-};
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // enable console
 int console = 0;
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // admin/gm stuff
@@ -127,7 +98,7 @@ int level_new_gm = 60;
 
 ///////////////////////////////////////////////////////////////////////////////
 // logging (txt)
-//!! todo compound to class with sql looging
+//!! todo compound to class with sql logging
 FILE *log_fp = NULL;
 int log_login = 1;
 char login_log_filename[1024] = "log/login.log";
@@ -150,7 +121,7 @@ int login_log(char *fmt, ...)
 		char tmpstr[2048];
 
 		if(!log_fp)
-			log_fp = safefopen(login_log_filename, "a");
+			log_fp = basics::safefopen(login_log_filename, "a");
 
 		if (log_fp) {
 			if (fmt[0] == '\0') // jump a line if no message
@@ -187,7 +158,7 @@ int save_packet(int fd, const char* str, const char* ip_str)
 		char tmpstr[24];
 		struct timeval tv;
 		time_t unixtime;
-		FILE *logfp = safefopen(login_log_unknown_packets_filename, "a");
+		FILE *logfp = basics::safefopen(login_log_unknown_packets_filename, "a");
 		if (logfp)
 		{
 			gettimeofday(&tv, NULL);
@@ -198,10 +169,10 @@ int save_packet(int fd, const char* str, const char* ip_str)
 			fprintf(logfp, "Detail (in hex):" RETCODE);
 			fprintf(logfp, "---- 00-01-02-03-04-05-06-07  08-09-0A-0B-0C-0D-0E-0F" RETCODE);
 			memset(tmpstr, '\0', sizeof(tmpstr));
-			for(i = 0; i < (size_t)RFIFOREST(fd); i++)
+			for(i = 0; i < (size_t)RFIFOREST(fd); ++i)
 			{
 				if ((i & 15) == 0)
-					fprintf(logfp, "%04X ",i);
+					fprintf(logfp, "%04X ", (int)i);
 				fprintf(logfp, "%02x ", (unsigned char)RFIFOB(fd,i));
 				if (RFIFOB(fd,i) > 0x1f)
 					tmpstr[i % 16] = RFIFOB(fd,i);
@@ -217,7 +188,7 @@ int save_packet(int fd, const char* str, const char* ip_str)
 			}
 			if (i % 16 != 0)
 			{
-				for(j = i; j % 16 != 0; j++)
+				for(j = i; j % 16 != 0; ++j)
 				{
 					fprintf(logfp, "   ");
 					if ((j - 7) % 16 == 0) // -8 + 1
@@ -234,7 +205,7 @@ int save_packet(int fd, const char* str, const char* ip_str)
 
 ///////////////////////////////////////////////////////////////////////////////
 // encrypted/unencrypted password check
-bool check_password(struct login_session_data* ld, int passwdenc, const char* passwd, const char* refpass)
+bool check_password(login_session_data* ld, int passwdenc, const char* passwd, const char* refpass)
 {	
 	if(passwdenc == 0)
 	{
@@ -244,26 +215,14 @@ bool check_password(struct login_session_data* ld, int passwdenc, const char* pa
 	{
 		char md5str[64], md5bin[32];
 		bool encpasswdok = false;
-		int j=passwdenc;
+		if(passwdenc == 2)
+			snprintf(md5str, sizeof(md5str), "%s%s", refpass, ld->md5key); // 24 + 20
+		else // otherwise take passwdenc == 1 as defaule
+			snprintf(md5str, sizeof(md5str), "%s%s", ld->md5key, refpass); // 20 + 24
 
-		if( j<1 || j > 2 )
-			j = 1;
-		do
-		{
-			if(j == 1)
-			{
-				snprintf(md5str, sizeof(md5str), "%s%s", ld->md5key, refpass); // 20 + 24
-			}
-			else if (j == 2)
-			{
-				snprintf(md5str, sizeof(md5str), "%s%s", refpass, ld->md5key); // 24 + 20
-			}
-			else
-				md5str[0] = '\0';
-			md5str[sizeof(md5str)-1] = '\0';
-			MD5_String2binary(md5str, md5bin);
-			encpasswdok = (memcmp(passwd, md5bin, 16) == 0);
-		} while(j<2 && !encpasswdok && (j++) != passwdenc);
+		md5str[sizeof(md5str)-1] = '\0';
+		MD5_String2binary(md5str, md5bin);
+		encpasswdok = (memcmp(passwd, md5bin, 16) == 0);
 		return encpasswdok;
 	}
 	return false;
@@ -271,13 +230,17 @@ bool check_password(struct login_session_data* ld, int passwdenc, const char* pa
 
 const char* timestamp2string(char* str, size_t sz)
 {
-	size_t csz;
-	timeval tv;
-	time_t unixtime;
-	gettimeofday(&tv, NULL);										// get time
-	unixtime = (time_t)tv.tv_sec;									// pick out seconds from unix epoch 
-	csz=strftime(str, sz, "%Y-%m-%d %H:%M:%S", localtime(&unixtime));// print string with given dateformat
-	snprintf(str+csz, sz-csz, ".%03ld", tv.tv_usec / 1000);			// add milliseconds
+	if(str && sz)
+	{
+		size_t csz;
+		timeval tv;
+		time_t unixtime;
+		gettimeofday(&tv, NULL);										// get time
+		unixtime = (time_t)tv.tv_sec;									// pick out seconds from unix epoch 
+		csz=strftime(str, sz, "%Y-%m-%d %H:%M:%S", localtime(&unixtime));// print string with given dateformat
+		snprintf(str+csz, sz-csz, ".%03lu", tv.tv_usec / 1000);			// add milliseconds
+		str[sz-1] = 0;	// system snprintf does not add EOS when buffer limit is reached
+	}
 	return str;
 }
 
@@ -299,7 +262,7 @@ bool check_ipmask(uint32 ip, const unsigned char *str)
 		p2[0] = a0; p2[1] = a1; p2[2] = a2; p2[3] = a3;
 		mask = ntohl(mask);
 	} else if (sscanf((char *)(str+i), "%d", &m) == 1 && m >= 0 && m <= 32) {
-		for(i = 0; i < m && i < 32; i++)
+		for(i = 0; i < m && i < 32; ++i)
 			mask = (mask >> 1) | 0x80000000;
 	} else {
 		ShowWarning("check_ipmask: invalid mask [%s].\n", str);
@@ -331,9 +294,9 @@ bool check_ip(uint32 ip)
 //	    If we have an answer, there is no guarantee to have a 100% correct value.
 //	    And, the waiting time (to check) can be long (over 1 minute to a timeout). That can block the software.
 //	    So, DNS notation isn't authorised for ip checking.
-	((ipaddress)ip).tostring(buf,sizeof(buf));
+	((basics::ipaddress)ip).tostring(buf,sizeof(buf));
 
-	for(i = 0; i < access_allownum; i++) {
+	for(i = 0; i < access_allownum; ++i) {
 		access_ip = access_allow + i * ACO_STRSIZE;
 		if (memcmp(access_ip, buf, strlen(access_ip)) == 0 || check_ipmask(ip, (unsigned char*)access_ip)) {
 			if(access_order == ACO_ALLOW_DENY)
@@ -343,7 +306,7 @@ bool check_ip(uint32 ip)
 		}
 	}
 
-	for(i = 0; i < access_denynum; i++) {
+	for(i = 0; i < access_denynum; ++i) {
 		access_ip = access_deny + i * ACO_STRSIZE;
 		if (memcmp(access_ip, buf, strlen(access_ip)) == 0 || check_ipmask(ip, (unsigned char*)access_ip)) {
 			//flag = ACF_DENY; // not necessary to define flag
@@ -379,9 +342,9 @@ bool check_ladminip(uint32 ip)
 //	    If we have an answer, there is no guarantee to have a 100% correct value.
 //	    And, the waiting time (to check) can be long (over 1 minute to a timeout). That can block the software.
 //	    So, DNS notation isn't authorised for ip checking.
-	((ipaddress)ip).tostring(buf,sizeof(buf));
+	((basics::ipaddress)ip).tostring(buf,sizeof(buf));
 
-	for(i = 0; i < access_ladmin_allownum; i++)
+	for(i = 0; i < access_ladmin_allownum; ++i)
 	{
 		access_ip = access_ladmin_allow + i * ACO_STRSIZE;
 		if (memcmp(access_ip, buf, strlen(access_ip)) == 0 || check_ipmask(ip, (unsigned char*)access_ip))
@@ -397,7 +360,7 @@ bool check_ladminip(uint32 ip)
 int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len)
 {
 	size_t i, c;
-	for(i=0, c=0; i<MAX_SERVERS; i++)
+	for(i=0, c=0; i<MAX_SERVERS; ++i)
 	{
 		if( server[i].fd != sfd && session_isActive(server[i].fd) ) 
 		{
@@ -423,7 +386,7 @@ int parse_fromchar(int fd)
 	if(session[fd]) session[fd]->client_ip.tostring(ip_str, sizeof(ip_str));
 
 
-	for(id = 0; id < MAX_SERVERS; id++)
+	for(id = 0; id < MAX_SERVERS; ++id)
 		if (server[id].fd == fd)
 			break;
 	if (id == MAX_SERVERS)
@@ -460,6 +423,32 @@ int parse_fromchar(int fd)
 			break;
 		}
 		///////////////////////////////////////////////////////////////////////
+		// char server reconnection, update the ip's
+		case 0x2710:
+		{
+			if (RFIFOREST(fd) < 90)
+					return 0;
+
+			char* server_name=(char*)RFIFOP(fd,50);
+			server_name[19] = '\0';
+			remove_control_chars(server_name);
+
+			memcpy(server[id].name,server_name,20);
+			server[id].maintenance=RFIFOB(fd,70);
+			server[id].new_display=RFIFOB(fd,71);
+			// wanip,wanport,lanip,lanmask,lanport
+			server[id].address = basics::ipset(	RFIFOLIP(fd,74), RFIFOLIP(fd,78), RFIFOW(fd,82), RFIFOLIP(fd,84), RFIFOW(fd,88) );
+
+			
+			login_log("Connection update of the char-server '%s' @ %s" RETCODE,
+				      server_name, server[id].address.tostring(NULL) );
+			ShowStatus("Connection update of the char-server '%s' @ %s\n",
+				      server_name, server[id].address.tostring(NULL) );
+
+			RFIFOSKIP(fd,90);
+			break;
+		}
+		///////////////////////////////////////////////////////////////////////
 		// request from char-server to authentify an account
 		case 0x2712: 
 		{
@@ -491,7 +480,7 @@ int parse_fromchar(int fd)
 				WFIFOL(fd,4) = accid;
 
 				size_t p,j;
-				for(p = 8, j = 0; j < account.account_reg2_num; p += 36, j++) {
+				for(p = 8, j = 0; j < account.account_reg2_num; p += 36, ++j) {
 					memcpy(WFIFOP(fd,p), account.account_reg2[j].str, 32);
 					WFIFOL(fd,p+32) = account.account_reg2[j].value;
 				}
@@ -557,42 +546,6 @@ int parse_fromchar(int fd)
 			WFIFOSET(fd,2);
 
 			RFIFOSKIP(fd,6);
-			break;
-		}
-		///////////////////////////////////////////////////////////////////////
-		// we receive a e-mail creation of an account with a default e-mail (no answer)
-// obsolete, use sending the account data with 2750 instead
-		case 0x2715:
-		{
-			if (RFIFOREST(fd) < 46)
-				return 0;
-
-			uint32 accid = RFIFOL(fd,2);
-			char *email = (char*)RFIFOP(fd,6);			
-			email[39] = '\0';
-			remove_control_chars(email);
-			//ShowMessage("parse_fromchar: an e-mail creation of an account with a default e-mail: server '%s', account: %d, e-mail: '%s'.\n", server[id].name, accid, RFIFOP(fd,6));
-			if( email_check(email) )
-			{
-				CLoginAccount account;
-				if( account_db.searchAccount(accid, account) &&
-					(0==strcmp(account.email, "a@a.com") || account.email[0] == '\0') )
-				{
-					safestrcpy(account.email, email, sizeof(account.email));
-					login_log("Char-server '%s': Create an e-mail on an account with a default e-mail (account: %d, new e-mail: %s, ip: %s)." RETCODE, server[id].name, accid, email, ip_str);
-					// Save
-					account_db.saveAccount(account);
-				}
-				else
-				{
-					login_log("Char-server '%s': Attempt to create an e-mail on an account with a default e-mail REFUSED - account doesn't exist or e-mail of account isn't default e-mail (account: %d, ip: %s)." RETCODE, server[id].name, accid, ip_str);
-				}
-			}
-			else
-			{
-				login_log("Char-server '%s': Attempt to create an e-mail on an account with a default e-mail REFUSED - e-mail is invalid (account: %d, ip: %s)" RETCODE, server[id].name, accid, ip_str);
-			}
-			RFIFOSKIP(fd,46);
 			break;
 		}
 
@@ -853,7 +806,7 @@ int parse_fromchar(int fd)
 				login_log("Char-server '%s': receiving (from the char-server) of account_reg2 (account: %d, ip: %s)." RETCODE,
 					server[id].name, accid, ip_str);
 				
-				for(p=8, j=0; p<sz && j<ACCOUNT_REG2_NUM; p += 36, j++)
+				for(p=8, j=0; p<sz && j<ACCOUNT_REG2_NUM; p += 36, ++j)
 				{
 					memcpy(account.account_reg2[j].str, RFIFOP(fd,p), 32);
 					account.account_reg2[j].str[31] = '\0';
@@ -1051,12 +1004,11 @@ int parse_admin(int fd)
 		{
 			if (RFIFOREST(fd) < 10)
 				return 0;
-//			size_t i;
 			size_t len;
 			uint32 st = RFIFOL(fd,2);
 			uint32 ed = RFIFOL(fd,6);
 
-			if(st>ed) swap(st,ed);
+			if(st>ed) basics::swap(st,ed);
 			if(ed > END_ACCOUNT_NUM || ed < st || ed <= 0)
 				ed = END_ACCOUNT_NUM;
 
@@ -1065,7 +1017,7 @@ int parse_admin(int fd)
 
 			WFIFOW(fd,0) = 0x7921;
 			len = 4;
-
+/*
 			// lock the database
 			account_db.aquire();
 			// go through accounts
@@ -1089,8 +1041,10 @@ int parse_admin(int fd)
 			}
 			// release the database
 			account_db.release();
-/*
-			for(i=0; i<account_db.size() && len < 65536; i++)
+*/
+
+			size_t i;
+			for(i=0; i<account_db.size() && len < 65536; ++i)
 			{
 				CLoginAccount &account = account_db[i]; // sorted by index 0
 				if(account.account_id >= st && account.account_id <= ed)
@@ -1100,14 +1054,13 @@ int parse_admin(int fd)
 					memcpy(WFIFOP(fd,len+5), account.userid, 24);
 					WFIFOB(fd,len+29) = account.sex;
 					WFIFOL(fd,len+30) = account.login_count;
-					if(account.state == 0 && account.ban_until != 0) // if no state and banished
+					if(account.ban_until != 0)
 						WFIFOL(fd,len+34) = 7; // 6 = Your are Prohibited to log in until %s
 					else
-						WFIFOL(fd,len+34) = account.state;
+						WFIFOL(fd,len+34) = 0;
 					len += 38;
 				}
 			}
-*/
 
 			WFIFOW(fd,2) = len;
 			WFIFOSET(fd,len);
@@ -1189,8 +1142,6 @@ int parse_admin(int fd)
 			{	// save deleted account in log file
 				login_log("'ladmin': Account deletion (account: %s, id: %d, ip: %s) - saved in next line:" RETCODE,
 				          account.userid, account.account_id, ip_str);
-//				mmo_auth_tostr((char*)buf, &auth_dat[i]);
-//				login_log("%s" RETCODE, buf);
 				// delete account
 
 				account_db.removeAccount(account.account_id);
@@ -1328,7 +1279,7 @@ int parse_admin(int fd)
 			size_t i;
 			login_log("'ladmin': Sending of servers list (ip: %s)" RETCODE, ip_str);
 			server_num = 0;
-			for(i = 0; i < MAX_SERVERS; i++)
+			for(i = 0; i < MAX_SERVERS; ++i)
 			{
 				if (server[i].fd >= 0)
 				{
@@ -1855,7 +1806,7 @@ int parse_admin(int fd)
 			else
 			{
 				size_t i;
-				for(i = 0; i < MAX_SERVERS; i++)
+				for(i = 0; i < MAX_SERVERS; ++i)
 					if (server[i].fd >= 0)
 						break;
 				if (i == MAX_SERVERS)
@@ -2136,8 +2087,10 @@ int parse_login(int fd)
 			RFIFOSKIP(fd,18);
 			break;
 		}
+
 		///////////////////////////////////////////////////////////////////////
 		case 0x64:		// Ask connection of a client
+		case 0x277:		// new login packet (layout is same as 0x64 but different length)
 		case 0x01dd:	// Ask connection of a client (encryption mode)
 		{
 			// 0 = Unregistered ID
@@ -2151,16 +2104,12 @@ int parse_login(int fd)
 			// 8 = No MSG (actually, all states after 9 except 99 are No MSG, use only this)
 			// 99 = This ID has been totally erased
 
-			if (RFIFOREST(fd) < ((RFIFOW(fd,0) == 0x64) ? 55 : 47))
+			size_t len = ((command==0x64) ? 55 : (command==0x01dd) ? 47 : 84);
+
+			if( (size_t)RFIFOREST(fd) < len )
 				return 0;
 
-			CLoginAccount account;
-//			uint32 version = RFIFOL(fd, 2);	//for exe version check [Sirius]
-			char* userid = (char*)RFIFOP(fd,6);
-			userid[23] = '\0';
-			remove_control_chars(userid);
-
-			if ( !check_ip(session[fd]->client_ip) )
+			if( !check_ip(session[fd]->client_ip) )
 			{
 				login_log("Connection refused: IP isn't authorised (deny/allow, ip: %s)." RETCODE, ip_str);
 
@@ -2169,156 +2118,193 @@ int parse_login(int fd)
 				WFIFOB(fd,3) = 0;
 				WFIFOSET(fd,23);
 			}
-			else if( !account_db.searchAccount( userid, account) )
+			else 
 			{
-				WFIFOW(fd,0) = 0x6a;
-				WFIFOB(fd,2) = 0; // // 0 = Unregistered ID
-				WFIFOB(fd,3) = 0;
-				WFIFOSET(fd,23);
-			}
-			else
-			{
-				struct login_session_data *ld = (struct login_session_data*)session[fd]->session_data;
-				int passwdenc = (command == 0x64) ? 0 : PASSWORDENC;
+				CLoginAccount account;
+				int passwdenc = (command == 0x64 || command == 0x277) ? 0 : PASSWORDENC;
+				char* userid = (char*)RFIFOP(fd,6);
+				userid[23] = '\0';
+				remove_control_chars(userid);
 				char *passwd = (char*)RFIFOP(fd,30);
-				if (RFIFOW(fd,0) == 0x64)
+				if( command == 0x64 )
 				{
-					login_log("Request for connection (non encryption mode) of %s (ip: %s)." RETCODE, account.userid, ip_str);
-					memcpy(account.passwd, RFIFOP(fd,30), 24);
 					passwd[23] = '\0';
 					remove_control_chars(passwd);
 				}
 				else
-				{
-					login_log("Request for connection (encryption mode) of %s (ip: %s)." RETCODE, account.userid, ip_str);
-					// If remove control characters from received password encrypted by md5,
+				{	// If remove control characters from received password encrypted by md5,
 					// there would be a wrong result and failed to authentication. [End_of_exam]
-					account.passwd[16] = '\0';
+					passwd[16] = '\0';
 				}
 				
-				if( !check_password(ld, passwdenc, passwd, account.passwd) )
+				bool ok = account_db.searchAccount(userid, account);
+				if( !ok )
+				{	// try for account creation with _M/_F
+					size_t len = strlen(userid) - 2;
+					if( new_account_flag && allowed_regs &&
+						len >= 4 &&
+						passwdenc == 0 && 
+						userid[len] == '_' &&
+						(basics::upcase(userid[len+1]) == 'F' || 
+						 basics::upcase(userid[len+1]) == 'M' ) &&
+						strlen(passwd) >= 4)
+					{
+						//only continue if amount in this time limit is allowed (account registration flood protection)[Kevin]
+						if( gettick() <= new_reg_tick )
+						{
+							ShowNotice("Account registration denied (registration limit exceeded) to %s!\n", ip_str);
+							login_log("Notice: Account registration denied (registration limit exceeded) to %s!\n", ip_str);
+						}
+						else
+						{
+							new_reg_tick = gettick() + 1000*time_allowed;
+							userid[len] = '\0';
+							ok = account_db.insertAccount(userid, passwd, (toupper(userid[len+1]) == 'M'),"a@a.com", account);
+							if(ok)
+							{
+								ShowNotice("Account registration successful account: %s, ip %s!\n", userid, ip_str);
+								login_log("Account registration successful account: %s, ip %s!\n", userid, ip_str);
+							}
+						}
+					}
+				}
+				if(!ok)
 				{
 					WFIFOW(fd,0) = 0x6a;
-					WFIFOB(fd,2) = 1; // 1 = Incorrect Password
+					WFIFOB(fd,2) = 0; // 0 = Unregistered ID
 					WFIFOB(fd,3) = 0;
-					WFIFOSET(fd,23);
-				}
-				else if (min_level_to_connect > account.gm_level)
-				{
-					login_log("Connection refused: the minimum GM level for connection is %d (account: %s, GM level: %d, ip: %s)." RETCODE,
-					          min_level_to_connect, account.userid, account.gm_level, ip_str);
-					WFIFOW(fd,0) = 0x81;
-					WFIFOL(fd,2) = 1; // 01 = Server closed
-					WFIFOSET(fd,3);
-				}
-				else if( account.valid_until && account.valid_until<time(NULL) )
-				{
-					WFIFOW(fd,0) = 0x6a;
-					WFIFOB(fd,2) = 2; // 2 = This ID is expired
-					WFIFOB(fd,3) = 0;
-					WFIFOSET(fd,23);
-				}
-				else if( account.ban_until && account.ban_until>time(NULL) )
-				{
-					char tmpstr[32];
-					strftime(tmpstr, 20, date_format, localtime(&account.ban_until));
-					tmpstr[19] = '\0';
-					
-					WFIFOW(fd,0) = 0x6a;
-					WFIFOB(fd,2) = 6; // 6 = Your are Prohibited to log in until %s
-					memcpy(WFIFOP(fd,3), tmpstr, 20);
 					WFIFOSET(fd,23);
 				}
 				else
 				{
-					size_t i, server_num=0;
-					for(i = 0; i < MAX_SERVERS; i++)
+					login_session_data *ld = (login_session_data*)session[fd]->user_session;
+
+					login_log("Request for connection %s of %s (ip: %s)."RETCODE, 
+						( command == 0x64 )?"(non encryption mode)":"(encryption mode)",account.userid, ip_str);
+
+					if( !check_password(ld, passwdenc, passwd, account.passwd) )
 					{
-						if( session_isActive(server[i].fd) )
-						{
-							if( server[i].address.isLAN(session[fd]->client_ip) )
-							{
-								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.LANIP().tostring(NULL), server[i].address.LANPort(), CL_BT_GREEN"LAN"CL_NORM);
-								WFIFOLIP(fd,47+server_num*32) = server[i].address.LANIP();
-								WFIFOW(fd,47+server_num*32+4) = server[i].address.LANPort();
-							}
-							else
-							{
-								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.WANIP().tostring(NULL), server[i].address.WANPort(), CL_BT_CYAN"WAN"CL_NORM);
-								WFIFOLIP(fd,47+server_num*32) = server[i].address.WANIP();
-								WFIFOW(fd,47+server_num*32+4) = server[i].address.WANPort();
-							}
-							memcpy(WFIFOP(fd,47+server_num*32+6), server[i].name, 20);
-							WFIFOW(fd,47+server_num*32+26) = server[i].users;
-							WFIFOW(fd,47+server_num*32+28) = server[i].maintenance;
-							WFIFOW(fd,47+server_num*32+30) = server[i].new_display;
-							server_num++;
-						}
+						WFIFOW(fd,0) = 0x6a;
+						WFIFOB(fd,2) = 1; // 1 = Incorrect Password
+						WFIFOB(fd,3) = 0;
+						WFIFOSET(fd,23);
 					}
-					// if at least 1 char-server
-					if (server_num > 0)
+					else if (min_level_to_connect > account.gm_level)
 					{
-						if(account.gm_level)
-							ShowStatus("Connection of the GM (level:%d) account '%s' accepted.\n", account.gm_level, account.userid);
-						else
-							ShowStatus("Connection of the account '%s' accepted.\n", account.userid);
-
-						// build authentification data
-						account.login_id1 = rand();
-						account.login_id2 = rand();
-						account.client_ip = session[fd]->client_ip;
-						// update account information
-						timestamp2string(account.last_login, sizeof(account.last_login));
-						session[fd]->client_ip.tostring(account.last_ip, sizeof(account.last_ip));
-						account.login_count++;
-						//account.state = 0;
-
-						// save
-						account_db.saveAccount(account);
-
-						// send authentification to char
-						unsigned char buf[16+sizeof(account)]; // a bit larger then necessary
-						WBUFW(buf,0) = 0x2750;
-						account.CCharAccount::tobuffer(WBUFP(buf, 2));
-						charif_sendallwos(-1, buf, 2+account.CCharAccount::size() );
-
-						// send server list to client
-						WFIFOW(fd,0) = 0x69;
-						WFIFOW(fd,2) = 47+32*server_num;
-						WFIFOL(fd,4) = account.login_id1;
-						WFIFOL(fd,8) = account.account_id;
-						WFIFOL(fd,12) = account.login_id2;
-						WFIFOL(fd,16) = 0; // in old version, that was for ip (not more used)
-						memcpy(WFIFOP(fd,20), account.last_login, 24); // in old version, that was for name (not more used)
-						WFIFOB(fd,46) = account.sex;
-						WFIFOSET(fd,47+32*server_num);
-					}
-					else
-					{	// if no char-server, don't send void list of servers, just disconnect the player with proper message
-						login_log("Connection refused: there is no char-server online (account: %s, ip: %s)." RETCODE,
-							account.userid, ip_str);
+						login_log("Connection refused: the minimum GM level for connection is %d (account: %s, GM level: %d, ip: %s)." RETCODE,
+								  min_level_to_connect, account.userid, account.gm_level, ip_str);
 						WFIFOW(fd,0) = 0x81;
 						WFIFOL(fd,2) = 1; // 01 = Server closed
 						WFIFOSET(fd,3);
 					}
+					else if( account.valid_until && account.valid_until<time(NULL) )
+					{
+						WFIFOW(fd,0) = 0x6a;
+						WFIFOB(fd,2) = 2; // 2 = This ID is expired
+						WFIFOB(fd,3) = 0;
+						WFIFOSET(fd,23);
+					}
+					else if( account.ban_until && account.ban_until>time(NULL) )
+					{
+						char tmpstr[32];
+						strftime(tmpstr, 20, date_format, localtime(&account.ban_until));
+						tmpstr[19] = '\0';
+						
+						WFIFOW(fd,0) = 0x6a;
+						WFIFOB(fd,2) = 6; // 6 = Your are Prohibited to log in until %s
+						memcpy(WFIFOP(fd,3), tmpstr, 20);
+						WFIFOSET(fd,23);
+					}
+					else
+					{
+						size_t i, server_num=0;
+						for(i = 0; i < MAX_SERVERS; ++i)
+						{
+							if( session_isActive(server[i].fd) )
+							{
+								if( server[i].address.isLAN(session[fd]->client_ip) )
+								{
+									ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.LANIP().tostring(NULL), server[i].address.LANPort(), CL_BT_GREEN"LAN"CL_NORM);
+									WFIFOLIP(fd,47+server_num*32) = server[i].address.LANIP();
+									WFIFOW(fd,47+server_num*32+4) = server[i].address.LANPort();
+								}
+								else
+								{
+									ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.WANIP().tostring(NULL), server[i].address.WANPort(), CL_BT_CYAN"WAN"CL_NORM);
+									WFIFOLIP(fd,47+server_num*32) = server[i].address.WANIP();
+									WFIFOW(fd,47+server_num*32+4) = server[i].address.WANPort();
+								}
+								memcpy(WFIFOP(fd,47+server_num*32+6), server[i].name, 20);
+								WFIFOW(fd,47+server_num*32+26) = server[i].users;
+								WFIFOW(fd,47+server_num*32+28) = server[i].maintenance;
+								WFIFOW(fd,47+server_num*32+30) = server[i].new_display;
+								server_num++;
+							}
+						}
+						// if at least 1 char-server
+						if (server_num > 0)
+						{
+							if(account.gm_level)
+								ShowStatus("Connection of the GM (level:%d) account '%s' accepted.\n", account.gm_level, account.userid);
+							else
+								ShowStatus("Connection of the account '%s' accepted.\n", account.userid);
+
+							// build authentification data
+							account.login_id1 = rand();
+							account.login_id2 = rand();
+							account.client_ip = session[fd]->client_ip;
+							// update account information
+							timestamp2string(account.last_login, sizeof(account.last_login));
+							session[fd]->client_ip.tostring(account.last_ip, sizeof(account.last_ip));
+							account.login_count++;
+							//account.state = 0;
+
+							// save
+							account_db.saveAccount(account);
+
+							// send authentification to char
+							unsigned char buf[16+sizeof(account)]; // a bit larger then necessary
+							WBUFW(buf,0) = 0x2750;
+							account.CCharAccount::tobuffer(WBUFP(buf, 2));
+							charif_sendallwos(-1, buf, 2+account.CCharAccount::size() );
+
+							// send server list to client
+							WFIFOW(fd,0) = 0x69;
+							WFIFOW(fd,2) = 47+32*server_num;
+							WFIFOL(fd,4) = account.login_id1;
+							WFIFOL(fd,8) = account.account_id;
+							WFIFOL(fd,12) = account.login_id2;
+							WFIFOL(fd,16) = 0; // in old version, that was for ip (not more used)
+							memcpy(WFIFOP(fd,20), account.last_login, 24); // in old version, that was for name (not more used)
+							WFIFOB(fd,46) = account.sex;
+							WFIFOSET(fd,47+32*server_num);
+						}
+						else
+						{	// if no char-server, don't send void list of servers, just disconnect the player with proper message
+							login_log("Connection refused: there is no char-server online (account: %s, ip: %s)." RETCODE,
+								account.userid, ip_str);
+							WFIFOW(fd,0) = 0x81;
+							WFIFOL(fd,2) = 1; // 01 = Server closed
+							WFIFOSET(fd,3);
+						}
+					}
 				}
 			}
-			RFIFOSKIP(fd,(RFIFOW(fd,0) == 0x64) ? 55 : 47);
+			RFIFOSKIP(fd,len);
 			break;
 		}
 		///////////////////////////////////////////////////////////////////////
 		case 0x01db:	// Sending request of the coding key
 		case 0x791a:	// Sending request of the coding key (administration packet)
 		{
-			size_t i;
-			struct login_session_data *ld;
-			if (session[fd]->session_data)
+			login_session_data *ld;
+			if (session[fd]->user_session)
 			{
 				ShowError("login: abnormal request of MD5 key (already opened session).\n");
 				session_Remove(fd);
 				return 0;
 			}
-			ld = (struct login_session_data*)(session[fd]->session_data = aCalloc(1, sizeof(struct login_session_data)));
+			session[fd]->user_session = ld = new login_session_data;
 			if(!ld)
 			{
 				ShowError("login: Request for md5 key: memory allocation failure (malloc)!\n");
@@ -2329,11 +2315,6 @@ int parse_login(int fd)
 				login_log("Sending request of the coding key (ip: %s)" RETCODE, ip_str);
 			else
 				login_log("'ladmin': Sending request of the coding key (ip: %s)" RETCODE, ip_str);
-			// Creation of the coding key
-			memset(ld->md5key, '\0', sizeof(ld->md5key));
-			ld->md5keylen = rand() % 4 + 12;
-			for(i = 0; i < ld->md5keylen; i++)
-				ld->md5key[i] = rand() % 255 + 1;
 			WFIFOW(fd,0) = 0x01dc;
 			WFIFOW(fd,2) = 4 + ld->md5keylen;
 			memcpy(WFIFOP(fd,4), ld->md5key, ld->md5keylen);
@@ -2378,7 +2359,7 @@ int parse_login(int fd)
 			else
 			{
 				size_t i;
-				for(i=0; i<MAX_SERVERS; i++)
+				for(i=0; i<MAX_SERVERS; ++i)
 				{
 					if(server[i].fd==-1)
 						break;
@@ -2394,13 +2375,11 @@ int parse_login(int fd)
 				}
 				else
 				{
-					memset(&server[i], 0, sizeof(struct mmo_char_server));
-					
 					memcpy(server[i].name,server_name,20);
 					server[i].maintenance=RFIFOB(fd,70);
 					server[i].new_display=RFIFOB(fd,71);
 					// wanip,wanport,lanip,lanmask,lanport
-					server[i].address = ipset(	RFIFOLIP(fd,74), RFIFOLIP(fd,78), RFIFOW(fd,82), RFIFOLIP(fd,84), RFIFOW(fd,88) );
+					server[i].address = basics::ipset(	RFIFOLIP(fd,74), RFIFOLIP(fd,78), RFIFOW(fd,82), RFIFOLIP(fd,84), RFIFOW(fd,88) );
 					server[i].users = 0;
 					server[i].fd = fd;
 					
@@ -2408,9 +2387,9 @@ int parse_login(int fd)
 					realloc_fifo(fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 
 					login_log("Connection of the char-server '%s' accepted (account: %s, pass: %s, ip: %s)" RETCODE,
-							  server[i].name, account.userid, account.passwd, server[i].address.tostring(NULL));
-					ShowStatus("Connection of the char-server '%s' (%s) accepted.\n", server[i].name, server[i].address.tostring(NULL));
-
+							server[i].name, account.userid, account.passwd, server[i].address.tostring(NULL));
+					ShowStatus("Connection of the char-server '%s' (%s) accepted.\n", 
+							server[i].name, server[i].address.tostring(NULL));
 					
 					WFIFOW(fd,0) = 0x2711;
 					WFIFOB(fd,2) = 0;
@@ -2454,7 +2433,7 @@ int parse_login(int fd)
 			if (!check_ladminip( session[fd]->client_ip )) {
 				login_log("'ladmin'-login: Connection in administration mode refused: IP isn't authorised (ladmin_allow, ip: %s)." RETCODE, ip_str);
 			} else {
-				struct login_session_data *ld = (struct login_session_data*)session[fd]->session_data;
+				login_session_data *ld = (login_session_data*)session[fd]->user_session;
 				if (RFIFOW(fd,2) == 0) {	// non encrypted password
 					char password[64];
 					memcpy(password, RFIFOP(fd,4), 24);
@@ -2487,6 +2466,7 @@ int parse_login(int fd)
 							ShowStatus("Connection of a remote administration accepted (encrypted password).\n");
 							WFIFOB(fd,2) = 0;
 							session[fd]->func_parse = parse_admin;
+							session[fd]->rdata_tick = 0;
 						} else if (admin_state != 1)
 							login_log("'ladmin'-login: Connection in administration mode REFUSED - remote administration is disabled (encrypted password, ip: %s)" RETCODE, ip_str);
 						else
@@ -2512,7 +2492,7 @@ int parse_login(int fd)
 //-----------------------
 // Console Command Parser [Wizputer]
 //-----------------------
-int parse_console(char *buf)
+int parse_console(const char *buf)
 {
 	char command[256];
 
@@ -2549,7 +2529,7 @@ int login_config_read(const char *cfgName)
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
 	
-	if ((fp = safefopen(cfgName, "r")) == NULL)
+	if ((fp = basics::safefopen(cfgName, "r")) == NULL)
 	{
 		ShowError("Configuration file (%s) not found.\n", cfgName);
 		return 1;
@@ -2567,68 +2547,99 @@ int login_config_read(const char *cfgName)
 			remove_control_chars(w1);
 			remove_control_chars(w2);
 			
-			if (strcasecmp(w1, "admin_state") == 0) {
+			if (strcasecmp(w1, "admin_state") == 0)
+			{
 				admin_state = config_switch(w2);
-			} else if (strcasecmp(w1, "admin_pass") == 0) {
+			}
+			else if (strcasecmp(w1, "admin_pass") == 0)
+			{
 				safestrcpy(admin_pass, w2, sizeof(admin_pass));
-			} else if (strcasecmp(w1, "ladminallowip") == 0) {
-				if (strcasecmp(w2, "clear") == 0) {
+			}
+			else if (strcasecmp(w1, "ladminallowip") == 0)
+			{
+				if (strcasecmp(w2, "clear") == 0)
+				{
 					if (access_ladmin_allow)
 					{
-						aFree(access_ladmin_allow);
+						delete[] access_ladmin_allow;
 						access_ladmin_allow = NULL;
 						access_ladmin_allownum = 0;
 					}
-				} else {
-					if (strcasecmp(w2, "all") == 0) {
-						// reset all previous values
-						if (access_ladmin_allow)
-							aFree(access_ladmin_allow);
+				}
+				else
+				{
+					if (strcasecmp(w2, "all") == 0)
+					{	// reset all previous values
+						if(access_ladmin_allow)
+							delete[] access_ladmin_allow;
 						// set to all
-						access_ladmin_allow = (char*)aCalloc(ACO_STRSIZE, sizeof(char));
+						access_ladmin_allow = new char[ACO_STRSIZE];
 						access_ladmin_allownum = 1;
 						access_ladmin_allow[0] = '\0';
-					} else if (w2[0] && !(access_ladmin_allownum == 1 && access_ladmin_allow[0] == '\0')) { // don't add IP if already 'all'
-						if (access_ladmin_allow)
-							access_ladmin_allow = (char*)aRealloc(access_ladmin_allow, (access_ladmin_allownum+1) * ACO_STRSIZE);
-						else
-							access_ladmin_allow = (char*)aCalloc(ACO_STRSIZE, sizeof(char));
+					}
+					else if (w2[0] && !(access_ladmin_allownum == 1 && access_ladmin_allow[0] == '\0'))
+					{	// don't add IP if already 'all'
+						new_realloc(access_ladmin_allow, access_ladmin_allownum*ACO_STRSIZE, ACO_STRSIZE);
 						safestrcpy(access_ladmin_allow + (access_ladmin_allownum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
 					}
 				}
-			} else if (strcasecmp(w1, "gm_pass") == 0) {
+			} else if (strcasecmp(w1, "gm_pass") == 0)
+			{
 				safestrcpy(gm_pass, w2, sizeof(gm_pass));
-			} else if (strcasecmp(w1, "level_new_gm") == 0) {
+			}
+			else if (strcasecmp(w1, "level_new_gm") == 0)
+			{
 				level_new_gm = atoi(w2);
-			} else if (strcasecmp(w1, "new_account") == 0) {
+			}
+			else if (strcasecmp(w1, "new_account") == 0)
+			{
 				new_account_flag = config_switch(w2);
 			}
-
 			else if (strcasecmp(w1, "login_ip") == 0) {
 				loginaddress = w2;
 				ShowMessage("Login server IP address : %s -> %s\n", w2, loginaddress.tostring(NULL));
 			}
-			else if (strcasecmp(w1, "login_port") == 0) {
+			else if (strcasecmp(w1, "login_port") == 0)
+			{
 				loginaddress.port() = atoi(w2);
-			} else if (strcasecmp(w1, "use_MD5_passwords") == 0) {
+			}
+			else if (strcasecmp(w1, "use_MD5_passwords") == 0)
+			{
 				use_md5_passwds = config_switch(w2);
-			} else if (strcasecmp(w1, "login_log_filename") == 0) {
+			}
+			else if (strcasecmp(w1, "login_log_filename") == 0)
+			{
 				safestrcpy(login_log_filename, w2, sizeof(login_log_filename));
-			} else if (strcasecmp(w1, "log_login") == 0) {
+			}
+			else if (strcasecmp(w1, "log_login") == 0)
+			{
 				log_login = atoi(w2);
-			} else if (strcasecmp(w1, "login_log_unknown_packets_filename") == 0) {
+			}
+			else if (strcasecmp(w1, "login_log_unknown_packets_filename") == 0)
+			{
 				safestrcpy(login_log_unknown_packets_filename, w2, sizeof(login_log_unknown_packets_filename));
-			} else if (strcasecmp(w1, "save_unknown_packets") == 0) {
+			}
+			else if (strcasecmp(w1, "save_unknown_packets") == 0)
+			{
 				save_unknown_packets = config_switch(w2);
-			} else if (strcasecmp(w1, "display_parse_login") == 0) {
+			}
+			else if (strcasecmp(w1, "display_parse_login") == 0)
+			{
 				display_parse_login = config_switch(w2); // 0: no, 1: yes
-			} else if (strcasecmp(w1, "display_parse_admin") == 0) {
+			}
+			else if (strcasecmp(w1, "display_parse_admin") == 0)
+			{
 				display_parse_admin = config_switch(w2); // 0: no, 1: yes
-			} else if (strcasecmp(w1, "display_parse_fromchar") == 0) {
+			}
+			else if (strcasecmp(w1, "display_parse_fromchar") == 0)
+			{
 				display_parse_fromchar = config_switch(w2); // 0: no, 1: yes (without packet 0x2714), 2: all packets
-			} else if (strcasecmp(w1, "date_format") == 0) { // note: never have more than 19 char for the date!
+			}
+			else if (strcasecmp(w1, "date_format") == 0)
+			{	// note: never have more than 19 char for the date!
 				memset(date_format, 0, sizeof(date_format));
-				switch (atoi(w2)) {
+				switch (atoi(w2))
+				{
 				case 0:
 					strcpy(date_format, "%d-%m-%Y %H:%M:%S"); // 31-12-2004 23:59:59
 					break;
@@ -2642,15 +2653,25 @@ int login_config_read(const char *cfgName)
 					strcpy(date_format, "%Y-%m-%d %H:%M:%S"); // 2004-12-31 23:59:59
 					break;
 				}
-			} else if (strcasecmp(w1, "min_level_to_connect") == 0) {
+			}
+			else if (strcasecmp(w1, "min_level_to_connect") == 0)
+			{
 				min_level_to_connect = atoi(w2);
-			} else if (strcasecmp(w1, "add_to_unlimited_account") == 0) {
+			}
+			else if (strcasecmp(w1, "add_to_unlimited_account") == 0)
+			{
 				add_to_unlimited_account = config_switch(w2);
-			} else if (strcasecmp(w1, "start_limited_time") == 0) {
+			} 
+			else if (strcasecmp(w1, "start_limited_time") == 0)
+			{
 				start_limited_time = atoi(w2);
-			} else if (strcasecmp(w1, "check_ip_flag") == 0) {
+			}
+			else if (strcasecmp(w1, "check_ip_flag") == 0)
+			{
 				check_ip_flag = config_switch(w2);
-			} else if (strcasecmp(w1, "order") == 0) {
+			} 
+			else if (strcasecmp(w1, "order") == 0)
+			{
 				access_order = atoi(w2);
 				if (strcasecmp(w2, "deny,allow") == 0 ||
 				    strcasecmp(w2, "deny, allow") == 0) access_order = ACO_DENY_ALLOW;
@@ -2658,51 +2679,58 @@ int login_config_read(const char *cfgName)
 				    strcasecmp(w2, "allow, deny") == 0) access_order = ACO_ALLOW_DENY;
 				if (strcasecmp(w2, "mutual-failture") == 0 ||
 				    strcasecmp(w2, "mutual-failure") == 0) access_order = ACO_MUTUAL_FAILTURE;
-			} else if (strcasecmp(w1, "allow") == 0) {
-				if (strcasecmp(w2, "clear") == 0) {
+			}
+			else if (strcasecmp(w1, "allow") == 0)
+			{
+				if (strcasecmp(w2, "clear") == 0)
+				{
 					if (access_allow)
-						aFree(access_allow);
+						delete[] access_allow;
 					access_allow = NULL;
 					access_allownum = 0;
-				} else {
-					if (strcasecmp(w2, "all") == 0) {
-						// reset all previous values
+				}
+				else
+				{
+					if (strcasecmp(w2, "all") == 0)
+					{	// reset all previous values
 						if (access_allow)
-							aFree(access_allow);
+							delete[] access_allow;
 						// set to all
-						access_allow = (char*)aCalloc(ACO_STRSIZE, sizeof(char));
+						access_allow = new char[ACO_STRSIZE];
+						memset(access_allow,0,ACO_STRSIZE*sizeof(char));
 						access_allownum = 1;
 						access_allow[0] = '\0';
-					} else if (w2[0] && !(access_allownum == 1 && access_allow[0] == '\0')) { // don't add IP if already 'all'
-						if (access_allow)
-							access_allow = (char*)aRealloc(access_allow, (access_allownum+1) * ACO_STRSIZE);
-						else
-							access_allow = (char*)aCalloc(ACO_STRSIZE, sizeof(char));
+					} else if (w2[0] && !(access_allownum == 1 && access_allow[0] == '\0'))
+					{	// don't add IP if already 'all'
+						new_realloc(access_allow,access_allownum*ACO_STRSIZE,ACO_STRSIZE);
 						safestrcpy(access_allow + (access_allownum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
 					}
 				}
-			} else if (strcasecmp(w1, "deny") == 0) {
-				if (strcasecmp(w2, "clear") == 0) {
+			} else if (strcasecmp(w1, "deny") == 0)
+			{
+				if (strcasecmp(w2, "clear") == 0)
+				{
 					if (access_deny)
 					{
-						aFree(access_deny);
+						delete[] access_deny;
 					access_deny = NULL;
 					access_denynum = 0;
 					}
-				} else {
-					if (strcasecmp(w2, "all") == 0) {
-						// reset all previous values
+				}
+				else
+				{
+					if (strcasecmp(w2, "all") == 0)
+					{	// reset all previous values
 						if (access_deny)
-							aFree(access_deny);
+							delete[] access_deny;
 						// set to all
-						access_deny = (char*)aCalloc(ACO_STRSIZE, sizeof(char));
+						access_deny = new char[ACO_STRSIZE];
 						access_denynum = 1;
 						access_deny[0] = '\0';
-					} else if (w2[0] && !(access_denynum == 1 && access_deny[0] == '\0')) { // don't add IP if already 'all'
-						if (access_deny)
-							access_deny = (char*)aRealloc(access_deny, (access_denynum+1) * ACO_STRSIZE);
-						else
-							access_deny = (char*)aCalloc(ACO_STRSIZE, sizeof(char));
+					}
+					else if (w2[0] && !(access_denynum == 1 && access_deny[0] == '\0'))
+					{	// don't add IP if already 'all'
+						new_realloc(access_deny, access_denynum*ACO_STRSIZE,ACO_STRSIZE);
 						safestrcpy(access_deny + (access_denynum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
 					}
 				}
@@ -2717,10 +2745,6 @@ int login_config_read(const char *cfgName)
 				dynamic_pass_failure_ban_how_long = atoi(w2);
 			} else if (strcasecmp(w1, "import") == 0) {
 				login_config_read(w2);
-			} else if(strcasecmp(w1, "check_client_version") == 0){	//Added by Sirius for client version check
-				check_client_version = config_switch(w2);
-			}else if(strcasecmp(w1, "client_version_to_connect") == 0){	//Added by Sirius for client version check
-				client_version_to_connect = atoi(w2);			//Added by Sirius for client version check
 			} else if (strcasecmp(w1, "console") == 0) {
 				console = config_switch(w2);
 			} else if (strcasecmp(w1, "allowed_regs") == 0) {			
@@ -2894,7 +2918,7 @@ void save_config_in_log(void) {
 		login_log("- to accept any IP for remote administration" RETCODE);
 	} else {
 		login_log("- to accept following IP for remote administration:" RETCODE);
-		for(i = 0; i < access_ladmin_allownum; i++)
+		for(i = 0; i < access_ladmin_allownum; ++i)
 			login_log("  %s" RETCODE, (char *)(access_ladmin_allow + i * ACO_STRSIZE));
 	}
 
@@ -2971,7 +2995,7 @@ void save_config_in_log(void) {
 			login_log("- with the IP security order: 'deny,allow' (allow if not deny). You refuse ALL IP." RETCODE);
 		} else {
 			login_log("- with the IP security order: 'deny,allow' (allow if not deny). Refused IP are:" RETCODE);
-			for(i = 0; i < access_denynum; i++)
+			for(i = 0; i < access_denynum; ++i)
 				login_log("  %s" RETCODE, (char *)(access_deny + i * ACO_STRSIZE));
 		}
 	} else if (access_order == ACO_ALLOW_DENY) {
@@ -2981,7 +3005,7 @@ void save_config_in_log(void) {
 			login_log("- with the IP security order: 'allow,deny' (deny if not allow). You authorise ALL IP." RETCODE);
 		} else {
 			login_log("- with the IP security order: 'allow,deny' (deny if not allow). Authorised IP are:" RETCODE);
-			for(i = 0; i < access_allownum; i++)
+			for(i = 0; i < access_allownum; ++i)
 				login_log("  %s" RETCODE, (char *)(access_allow + i * ACO_STRSIZE));
 		}
 	} else { // ACO_MUTUAL_FAILTURE
@@ -2995,11 +3019,11 @@ void save_config_in_log(void) {
 				login_log("  You authorise ALL IP." RETCODE);
 			} else {
 				login_log("  Authorised IP are:" RETCODE);
-				for(i = 0; i < access_allownum; i++)
+				for(i = 0; i < access_allownum; ++i)
 					login_log("    %s" RETCODE, (char *)(access_allow + i * ACO_STRSIZE));
 			}
 			login_log("  Refused IP are:" RETCODE);
-			for(i = 0; i < access_denynum; i++)
+			for(i = 0; i < access_denynum; ++i)
 				login_log("    %s" RETCODE, (char *)(access_deny + i * ACO_STRSIZE));
 		}
 
@@ -3024,18 +3048,18 @@ void do_final(void) {
 
 	account_db.close();
 
-	if(access_ladmin_allow) aFree(access_ladmin_allow);
-	if(access_allow) aFree(access_allow);
-	if(access_deny) aFree(access_deny);
+	if(access_ladmin_allow) delete[] access_ladmin_allow;
+	if(access_allow) delete[] access_allow;
+	if(access_deny) delete[] access_deny;
 
 	///////////////////////////////////////////////////////////////////////////
 	// delete sessions
-	for (i = 0; i < fd_max; i++) {
+	for (i = 0; i < fd_max; ++i) {
 		if (session[i])
 			session_Delete(i);
 	}
 	// clear externaly stored fd's
-	for (i = 0; i < MAX_SERVERS; i++) {
+	for (i = 0; i < MAX_SERVERS; ++i) {
 			server[i].fd = -1;
 		}
 	login_fd = -1;
@@ -3054,25 +3078,23 @@ unsigned char getServerType()
 {
 	return ATHENA_SERVER_LOGIN | ATHENA_SERVER_CORE;
 }
+
 int do_init(int argc, char **argv)
 {
 	int i;
 	// read login-server configuration
 	login_config_read((argc > 1) ? argv[1] : LOGIN_CONF_NAME);
+	basics::CParamBase::loadFile((argc > 1) ? argv[1] : LOGIN_CONF_NAME);
 	display_conf_warnings(); // not in login_config_read, because we can use 'import' option, and display same message twice or more
 	save_config_in_log(); // not before, because log file name can be changed
-
-
-	CParamStorage::loadFile(LOGIN_CONF_NAME);
-
-
+	
 	if (!account_db.init( (argc > 1) ? argv[1] : LOGIN_CONF_NAME ))
 	{
 		core_stoprunning();
 		return 0;
 	}
 
-	for(i = 0; i < MAX_SERVERS; i++)
+	for(i = 0; i < MAX_SERVERS; ++i)
 		server[i].fd = -1;
 
 	set_defaultparse(parse_login);

@@ -1,4 +1,3 @@
-
 #include "basetypes.h"
 #include "baseobjects.h"
 #include "basememory.h"
@@ -7,6 +6,171 @@
 #include "basestring.h"
 #include "baseexceptions.h"
 
+#include "basesync.h"
+#include "basearray.h"
+
+
+
+
+
+/* from gcc include/c++/3.4.2/new
+
+ ** These are replaceable signatures:
+ *  - normal single new and delete (no arguments, throw @c bad_alloc on error)
+ *  - normal array new and delete (same)
+ *  - @c nothrow single new and delete (take a @c nothrow argument, return
+ *    @c NULL on error)
+ *  - @c nothrow array new and delete (same)
+ *
+ *  Placement new and delete signatures (take a memory address argument,
+ *  does nothing) may not be replaced by a user's program.
+
+  nice, but how to check if the non-overloadable stuff exists
+  and doing this plattform independend?
+  and what if I nevertheless want to overload?
+  answer is: not possible and fish around in a bunch of defines
+
+  and "replaceable" only means "replace them with the same declaration"
+  but what when I want to throw a different exception
+  answer is: "you cannot since the throw definition is part of the declaration"
+
+  so what do I need this if I cannot change it
+ ...crap...
+*/
+
+// on windows you can (and must) overload and it must be in global namespace
+// so we put another define in the header since this here is a temporary workaround
+#if !defined(WIN32)	
+// these are the scope declarations of incluse/c++/<new> from solaris and two different linux distros, 
+// I bet there are more of these, but how was the meaning of "standardisation? everybody makes his own?
+#if !defined(_NEW) && !defined(_NEW_)  && !defined(__NEW__) 
+///////////////////////////////////////////////////////////////////////////////
+// global new/delete operators
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+#if defined(WITH_NAMESPACE)
+///////////////////////////////////////////////////////////////////////////////
+/// standard new operator
+extern inline void *operator new (size_t sz) THROW(basics::exception_memory)
+{
+	void* p=malloc(sz);
+#if defined(MEMORY_EXCEPTIONS)
+	if(!p) throw basics::exception_memory("allocation failed");
+#endif
+	return p;
+}
+/// standard new[] operator
+extern inline void *operator new[] (size_t sz) THROW(basics::exception_memory)
+{
+	void* p=malloc(sz);
+#if defined(MEMORY_EXCEPTIONS)
+	if(!p) throw basics::exception_memory("allocation failed");
+#endif
+	return p;
+}
+/// standard delete operator
+extern inline void operator delete (void * a) NOTHROW()
+{
+	if(a) free(a);
+}
+/// standard delete[] operator
+extern inline void operator delete[] (void *a) NOTHROW()
+{
+	if(a) free(a);
+}
+/// inplace-new operator
+extern inline void *operator new (size_t sz,void* p) THROW(basics::exception_memory)
+{
+#if defined(MEMORY_EXCEPTIONS)
+	if(!p) throw basics::exception_memory("allocation failed");
+#endif
+	return p;
+}
+
+/// inplace-new operator
+extern inline void *operator new[] (size_t sz, void* p) THROW(basics::exception_memory)
+{
+#if defined(MEMORY_EXCEPTIONS)
+	if(!p) throw basics::exception_memory("allocation failed");
+#endif
+	return p;
+}
+/// inplace-delete operator
+extern inline void operator delete (void * a, void* p) NOTHROW()
+{
+}
+/// inplace-delete operator
+extern inline void operator delete[] (void *a, void* p) NOTHROW()
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////
+#else//!defined(WITH_NAMESPACE)
+///////////////////////////////////////////////////////////////////////////////
+/// standard new operator
+extern inline void *operator new (size_t sz) THROW(exception_memory)
+{
+	void* p=malloc(sz);
+#if defined(MEMORY_EXCEPTIONS)
+	if(!p) throw exception_memory("allocation failed");
+#endif
+	return p;
+}
+/// standard new[] operator
+extern inline void *operator new[] (size_t sz) THROW(exception_memory)
+{
+	void* p=malloc(sz);
+#if defined(MEMORY_EXCEPTIONS)
+	if(!p) throw exception_memory("allocation failed");
+#endif
+	return p;
+}
+/// standard delete operator
+extern inline void operator delete (void * a) NOTHROW()
+{
+	if(a) free(a);
+}
+/// standard delete[] operator
+extern inline void operator delete[] (void *a) NOTHROW()
+{
+	if(a) free(a);
+}
+/// inplace-new operator
+extern inline void *operator new (size_t sz,void* p) THROW(exception_memory)
+{
+#if defined(MEMORY_EXCEPTIONS)
+	if(!p) throw exception_memory("allocation failed");
+#endif
+	return p;
+}
+
+
+/// inplace-new operator
+extern inline void *operator new[] (size_t sz, void* p) THROW(exception_memory)
+{
+#if defined(MEMORY_EXCEPTIONS)
+	if(!p) throw exception_memory("allocation failed");
+#endif
+	return p;
+}
+
+/// inplace-delete operator
+extern inline void operator delete (void * a, void* p) NOTHROW()
+{
+}
+/// inplace-delete operator
+extern inline void operator delete[] (void *a, void* p) NOTHROW()
+{
+}
+///////////////////////////////////////////////////////////////////////////////
+#endif//defined(WITH_NAMESPACE)
+///////////////////////////////////////////////////////////////////////////////
+#endif// !defined _NEW or _NEW_
+#endif// !defined(WIN32)
+
+
+NAMESPACE_BEGIN(basics)
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -53,7 +217,7 @@ const _allocatorbase::size_type _allocatorbase::npos = (_allocatorbase::size_typ
 
 
 
-//!! TODO copy back c++ memory handler
+//## TODO copy back c++ memory handler
 
 
 
@@ -85,7 +249,7 @@ template <class T> int test_memcopy(T dummy)
 
 
 	tick=clock();
-	for(i=0; i<100;i++)
+	for(i=0; i<100;++i)
 	{	
 		target=t, source=s;
 		// simple type mover, no checks performed
@@ -94,7 +258,7 @@ template <class T> int test_memcopy(T dummy)
 	printf("memmove: %lu\n", clock()-tick);
 
 	tick=clock();
-	for(i=0; i<100;i++)
+	for(i=0; i<100;++i)
 	{
 		target=t, source=s;
 		// simple type copy, no checks performed
@@ -103,7 +267,7 @@ template <class T> int test_memcopy(T dummy)
 	printf("memcpy: %lu\n", clock()-tick);
 
 	tick=clock();
-	for(i=0; i<100;i++)
+	for(i=0; i<100;++i)
 	{
 		target=t, source=s;
 		// simple type compare, no checks performed
@@ -112,7 +276,7 @@ template <class T> int test_memcopy(T dummy)
 	printf("memcmp: %lu\n", clock()-tick);
 
 	tick=clock();
-	for(i=0; i<100;i++)
+	for(i=0; i<100;++i)
 	{	
 		target=t, source=s;
 		if(target>source)
@@ -132,7 +296,7 @@ template <class T> int test_memcopy(T dummy)
 	printf("move: %lu\n", clock()-tick);
 
 	tick=clock();
-	for(i=0; i<100;i++)
+	for(i=0; i<100;++i)
 	{	
 		target=t, source=s;
 		T* epp=target+cnt;
@@ -142,7 +306,7 @@ template <class T> int test_memcopy(T dummy)
 
 	tick=clock();
 
-	for(i=0; i<100;i++)
+	for(i=0; i<100;++i)
 	{	
 		target=t, source=s;
 		const T* epp=target+cnt;
@@ -235,24 +399,189 @@ cpcnt++;
 	}
 	return 0;
 }
-
 #endif//DEBUG
+
+
+
+
+
+
+static bool printcreate=false;
+static int sscount=0;
+const int sslimit=100000000;
+
+
+class simple_class : public defaultcmp, public global
+{
+public:
+	int data;
+	int data1;
+	int data2;
+	int data3;
+	int data4;
+	int data5;
+	int data6;
+	int data7;
+
+	void init()
+	{
+		data1 = rand();
+		data2 = rand();
+		data3 = rand();
+		data4 = rand();
+		data5 = rand();
+		data6 = rand();
+		data7 = rand();
+	}
+
+	simple_class() : data(0x1234)
+	{
+		init();
+		if(sscount==sslimit)
+			throw "error";
+		++sscount;
+		if(printcreate) printf("d");
+	}
+	simple_class(const simple_class& c) : data(c.data)
+	{
+		init();
+		if(sscount==sslimit)
+			throw "error";
+		++sscount;
+		if(printcreate) printf("c");
+	}
+	const simple_class& operator=(const simple_class& c)
+	{
+		data  = c.data;
+		data1 = c.data1;
+		data2 = c.data2;
+		data3 = c.data3;
+		data4 = c.data4;
+		data5 = c.data5;
+		data6 = c.data6;
+		data7 = c.data7;
+		if(printcreate) printf("a");
+		return *this;
+	}
+	simple_class(int v) : data(v)
+	{
+		init();
+		if(sscount==sslimit)
+			throw "error";
+		++sscount;
+		if(printcreate) printf("i");
+	}
+	~simple_class()
+	{
+		--sscount;
+		data = 0xABCD; 
+		if(printcreate) printf("x");
+	}
+};
+
+
+
+
 
 
 void test_memory(void)
 {
 #if defined(DEBUG)
 
-	printf("copy chars\n");
-	test_memcopy<char>(1);
-	printf("copy shorts\n");
-	test_memcopy<short>(1);
-	printf("copy longs\n");
-	test_memcopy<long>(1);
+//	printf("copy chars\n");
+//	test_memcopy<char>(1);
+//	printf("copy shorts\n");
+//	test_memcopy<short>(1);
+//	printf("copy longs\n");
+//	test_memcopy<long>(1);
+//
+//	printf("test memswap\n");
+//	test_memswap();
 
-	printf("test memswap\n");
-	test_memswap();
 
 #endif//DEBUG
 
+	{
+		printcreate = true;
+		{
+			printf("\nTArray\n");
+			TArrayDCT<simple_class> svc;
+			svc.append(1);printf("-");
+			svc.append(2);printf("-");
+			svc.append(3);printf("-");
+			svc.append(4);printf("-");
+		}		
+		{
+			printf("\nvector\n");
+			vector<simple_class> svc;
+			svc.append(1);printf("-");
+			svc.append(2);printf("-");
+			svc.append(3);printf("-");
+			svc.append(4);printf("-");
+		}
+		printf("\n");
+	}
+
+	{
+		printcreate = false;
+		printf("TArray vs. vector\n");
+		size_t runs=100, elems=10000;
+		size_t i,k;
+		ulong tick;
+
+		TArrayDCT<simple_class> arr;
+		vector<simple_class> vec;
+/*
+		TArrayDCT	<int> arr;
+		vector		<int> vec;
+*/
+
+		printf("append:\n");
+
+		tick = clock();
+		for(k=0; k<runs;k++, arr.clear() )
+		for(i=0; i<elems; ++i)
+		{
+			arr.append( (uchar)i );
+			//arr.insert( (uchar)i, 1, 0 );
+		}
+		printf("tarray %lu  (%lu,%lu)\n", clock()-tick, (ulong)runs, (ulong)elems);
+
+
+		tick = clock();
+		for(k=0; k<runs;k++, vec.resize(0) )
+		for(i=0; i<elems; ++i)
+		{			
+			vec.append( (uchar)i );
+			//vec.insert( (uchar)i, 1, 0 );
+		}
+		printf("vector: %lu (%lu,%lu)\n", clock()-tick, (ulong)runs, (ulong)elems);
+
+
+		printf("insert:\n");
+		runs=100, elems=1000;
+
+		tick = clock();
+		for(k=0; k<runs;k++, arr.clear() )
+		for(i=0; i<elems; ++i)
+		{
+			//arr.append( (uchar)i );
+			arr.insert( (uchar)i, 1, 0 );
+		}
+		printf("tarray %lu  (%lu,%lu)\n", clock()-tick, (ulong)runs, (ulong)elems);
+
+
+		tick = clock();
+		for(k=0; k<runs;k++, vec.resize(0) )
+		for(i=0; i<elems; ++i)
+		{			
+			//vec.append( (uchar)i );
+			vec.insert( (uchar)i, 1, 0 );
+		}
+		printf("vector: %lu (%lu,%lu)\n", clock()-tick, (ulong)runs, (ulong)elems);
+	}
 }
+
+
+NAMESPACE_END(basics)
+

@@ -1,7 +1,72 @@
 
+
+// mes/input on npcevents
+-	script	NPCNAME	-1,{
+end;
+OnInit:
+callfunc "spawn";
+end;
+OnPoringKilled:
+mes "poring died!";
+next;
+mes "gimme any number";
+next;
+input @temp;
+end;
+}
+
+function	script	spawn	{
+monster "geffen",0,0,"Quest Poring",1002,10,"NPCNAME::OnPoringKilled";
+return;
+}
+
+geffen.gat,0,0,0,0	monster	QuestPoring2	1002,10,0,0,NPCNAME::OnPoringKilled
+
+
+prontera.gat,150,290,1	script	testscript	53,1,1,{
+set $var,1;
+if ($var==1) mapannounce "prontera.gat","Hi all",16;
+if ($var==1) mapannounce "prontera.gat","Hi all2",16;
+
+	if( $@testscriptname$ != "" ) goto L_BUSY;
+	mes "this test script will set the character name and invoke a timer to check attachrid behaviour";
+	set $@testscriptname$, strcharinfo(0);
+	mes "name '"+$@testscriptname$+"' stored, adding timer.";
+	addtimer 5000, "testscript::OnTimer5000";
+	close;
+L_BUSY:
+	mes "I'm busy waiting for '"+$@testscriptname$+"', please try again later";
+	close;
+OnTimer5000:
+	areaannounce "prontera.gat",100,200,250,350,"Uhaaa...",8;
+	if( attachrid( getcharid(3, $@testscriptname$) ) ) goto L_SWOK;
+	set $@testscriptname$, "";
+	end;
+L_SWOK:	
+	mes "found your char '"+ $@testscriptname$ +"'=='"+ strcharinfo(0) +"'";
+	set $@testscriptname$, "";
+	close;
+
+OnInit:
+set $GlobalNumeric, 0x00010001;
+set @TempNumeric, $GlobalNumeric;
+set @BitOpTest, @TempNumeric & 0xffff;
+debugmes  $GlobalNumeric;
+debugmes  @TempNumeric;
+debugmes  @BitOpTest;
+
+set @TempNumeric, 0x00010001;
+set @BitOpTest, @TempNumeric & 0xffff;
+debugmes  $GlobalNumeric;
+debugmes  @TempNumeric;
+debugmes  @BitOpTest;
+
+}
+
+
 prontera.gat,0,0,0	script	PCLoginEvent	-1,{
 set $@bot, rand(100000,999999);
-mes "Welcome to StarsRO";
+mes "Welcome to RO";
 mes "Please input the following six digit number.";
 mes " ";
 mes "Number: "+$@bot;

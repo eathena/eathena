@@ -3,40 +3,45 @@
 
 #include "basetypes.h"
 
-
+NAMESPACE_BEGIN(basics)
 ///////////////////////////////////////////////////////////////////////////////
-// test case
+/// test case
 void test_charset();
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// 4bit number <-> hex character
+/// 4bit number <-> hex character
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> uchar char2hex(T c);
 template <class T> uchar str2hex(const T*& p) ;
 template <class T> T hex2char(uchar c);
 
 
-
 ///////////////////////////////////////////////////////////////////////////////
-// ansi character set
-// derived from PTypes (C++ Portable Types Library)
-// contains sets of characters with various math/compare operations
-// sets can be defined by strings containing the characters itself
-// or escaped ansi hex codes of the chars, ranges can be given with '-'
-//
-// ie: "abcdefg" == "a-g" =="~61-~67"
-//
-// locase/upcase has to be handled manually
+// constants
 ///////////////////////////////////////////////////////////////////////////////
 const int _csetbits = 256;
 const int _csetbytes = _csetbits / 8;
 const int _csetwords = _csetbytes / sizeof(ulong);
 const char _csetesc = '~';	// escape character in charset strings
 
+///////////////////////////////////////////////////////////////////////////////
 // predeclaration
+///////////////////////////////////////////////////////////////////////////////
 template <class T> class string;
 
+
+///////////////////////////////////////////////////////////////////////////////
+/// ansi character set.
+/// derived from PTypes (C++ Portable Types Library)
+/// contains sets of characters with various math/compare operations
+/// sets can be defined by strings containing the characters itself
+/// or escaped ansi hex codes of the chars, ranges can be given with '-'
+///
+/// ie: "abcdefg" == "a-g" =="~61-~67"
+///
+/// locase/upcase has to be handled manually
+///////////////////////////////////////////////////////////////////////////////
 class charset 
 {
 protected:
@@ -114,16 +119,25 @@ public:
 	friend void exclude(charset& s, char min, char max)			{ s.exclude(min, max); }
 	friend void exclude(charset& s, const char* c)				{ s.exclude(c); }
 
-	friend string<char> tostring(const charset& s);
-	template<class T> friend string<T>& tostring(string<T>& str, const charset& s);
+	friend string<char   >& tostring(string<char   >& str, const charset& s);
+	friend string<wchar_t>& tostring(string<wchar_t>& str, const charset& s);
+
 };
 
 
+string<char   >& tostring(string<char   >& str, const charset& s);
+string<wchar_t>& tostring(string<wchar_t>& str, const charset& s);
+
+template<class T> inline string<T>& operator<<(string<T>& str, const charset& s)
+{
+	return tostring(str, s);
+}
+
+string<char> tostring(const charset& s);
 
 
 
-
-
+NAMESPACE_END(basics)
 
 #endif//__BASECHARSET_H__
 

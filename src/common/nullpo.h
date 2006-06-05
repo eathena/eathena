@@ -1,7 +1,7 @@
 #ifndef _NULLPO_H_
 #define _NULLPO_H_
 
-#include "base.h"
+#include "basetypes.h"
 
 #define NULLPO_CHECK 1
 		// 全体のスイッチを宣言しているヘッダがあれば

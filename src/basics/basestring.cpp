@@ -11,6 +11,7 @@
 #include "basestrformat.h"
 #include "baseministring.h"
 
+NAMESPACE_BEGIN(basics)
 
 
 /*
@@ -778,7 +779,7 @@ template <class T> double stringtod(const T* p)
 		{	// check for SI prefix
 			static const T units[] = {'y','z','a','f','p','n','u','m','\0','k','M','G','T','P','E','Z','Y'};
 			size_t i;
-			for(i=0; i<=16; i++)
+			for(i=0; i<=16; ++i)
 			{
 				if( *p == units[i] )
 				{
@@ -904,25 +905,26 @@ template<class T> string<T> dttostring(const datetime& dt, const T* fmt)
 template string<char>    dttostring<char>   (const datetime& dt, const char*    fmt);
 template string<wchar_t> dttostring<wchar_t>(const datetime& dt, const wchar_t* fmt);
 
-
-string<char   >& operator <<(string<char   >& str, const datetime& dt)
+template<>
+stringoperator<char   >& operator <<(stringoperator<char   >& str, const datetime& dt)
 {
 	char buf[128];
 	tm t;
 	size_t r = string_from_time(buf, sizeof(buf)/sizeof(*buf), "%Y.%m.%d %H:%M:%S.", dttotm(dt, t));
 	buf[r] = 0;
 	str.append(buf,r);
-	str << (ushort)(dt%1000);
+	str.append((uint)(dt%1000));
 	return str;
 }
-string<wchar_t>& operator <<(string<wchar_t>& str, const datetime& dt)
+template<>
+stringoperator<wchar_t>& operator <<(stringoperator<wchar_t>& str, const datetime& dt)
 {
 	wchar_t buf[128];
 	tm t;
 	size_t r = string_from_time(buf, sizeof(buf)/sizeof(*buf), L"%Y.%m.%d %H:%M:%S.", dttotm(dt, t));
 	buf[r] = 0;
 	str.append(buf,r);
-	str << (ushort)(dt%1000);
+	str.append((uint)(dt%1000));
 	return str;
 }
 
@@ -1011,10 +1013,12 @@ string<> bytestostring(long bytes)
 ///////////////////////////////////////////////////////////////////////////
 // internal StringConstant aquire
 ///////////////////////////////////////////////////////////////////////////
+template<>
 const char   * stringinterface<char   >::getStringConstant(size_t i) const
 {
 	return StringConstant(i, (char   )0 );
 }
+template<>
 const wchar_t* stringinterface<wchar_t>::getStringConstant(size_t i) const
 {
 	return StringConstant(i, (wchar_t)0 );
@@ -1032,6 +1036,114 @@ const wchar_t* stringinterface<wchar_t>::getStringConstant(size_t i) const
 ///////////////////////////////////////////////////////////////////////////////
 // Search function
 ///////////////////////////////////////////////////////////////////////////////
+
+// Windows compilers before VC7 have problems with the explicit template instantiation
+// so as workaround it can work on explicite copies of the functions
+# if _MSC_VER < 1300
+
+template<>
+bool stringinterface<char>::findnext(const stringinterface<char>& pattern, size_t &startpos, bool ignorecase) const
+{	// modified boyer-moore search
+	
+	// this table size is bound to 8bit values
+	// so just treat other values like single steps
+	size_t	SkipTable[256]; 
+
+	size_t i,k,sp, inx;
+	size_t len = pattern.length();
+
+	// initialisation
+	for (i=0; i<256; ++i)
+	{	// skip len+1 string chars if search char was not found,
+		// not exactly boyer-moore but fastens up the thing
+		SkipTable[i] = len+1;
+	}
+	for (i=0; i<len; ++i)
+	{	// otherwise skip as only that many 
+		// so the next char in the string fits with the one frome the pattern
+		inx = to_unsigned( pattern[i] );
+		if( inx < (sizeof(SkipTable)/sizeof(SkipTable[0])) )
+		SkipTable[ inx ] = len-i;
+	}
+
+	// run first to last / case sensitive
+	sp=i=startpos;
+	k=0; 
+	while( i<this->length() && k<len )
+	{
+		if( ignorecase ? 
+			( locase((*this)[i]) != locase(pattern[k]) ) :
+			( (*this)[i] != pattern[k] ) )
+		{	// no match at that position, find the next starting pos
+			size_t inx = to_unsigned( (*this)[sp+len] );
+			sp += (inx<(sizeof(SkipTable)/sizeof(SkipTable[0]))) ? SkipTable[inx] : 1;
+			i=sp;
+			k=0;
+		}
+		else
+		{	// check the next char
+			i++;
+			k++;
+		}
+	}
+	if( k<len ) // not found
+		return false;
+	startpos = sp;
+	return true;
+}
+template<>
+bool stringinterface<wchar_t>::findnext(const stringinterface<wchar_t>& pattern, size_t &startpos, bool ignorecase) const
+{	// modified boyer-moore search
+	
+	// this table size is bound to 8bit values
+	// so just treat other values like single steps
+	size_t	SkipTable[256]; 
+
+	size_t i,k,sp, inx;
+	size_t len = pattern.length();
+
+	// initialisation
+	for (i=0; i<256; ++i)
+	{	// skip len+1 string chars if search char was not found,
+		// not exactly boyer-moore but fastens up the thing
+		SkipTable[i] = len+1;
+	}
+	for (i=0; i<len; ++i)
+	{	// otherwise skip as only that many 
+		// so the next char in the string fits with the one frome the pattern
+		inx = to_unsigned( pattern[i] );
+		if( inx < (sizeof(SkipTable)/sizeof(SkipTable[0])) )
+		SkipTable[ inx ] = len-i;
+	}
+
+	// run first to last / case sensitive
+	sp=i=startpos;
+	k=0; 
+	while( i<this->length() && k<len )
+	{
+		if( ignorecase ? 
+			( locase((*this)[i]) != locase(pattern[k]) ) :
+			( (*this)[i] != pattern[k] ) )
+		{	// no match at that position, find the next starting pos
+			size_t inx = to_unsigned( (*this)[sp+len] );
+			sp += (inx<(sizeof(SkipTable)/sizeof(SkipTable[0]))) ? SkipTable[inx] : 1;
+			i=sp;
+			k=0;
+		}
+		else
+		{	// check the next char
+			i++;
+			k++;
+		}
+	}
+	if( k<len ) // not found
+		return false;
+	startpos = sp;
+	return true;
+}
+
+#else
+
 template <class T> bool stringinterface<T>::findnext(const stringinterface<T>& pattern, size_t &startpos, bool ignorecase) const
 {	// modified boyer-moore search
 	
@@ -1043,12 +1155,12 @@ template <class T> bool stringinterface<T>::findnext(const stringinterface<T>& p
 	size_t len = pattern.length();
 
 	// initialisation
-	for (i=0; i<256; i++)
+	for (i=0; i<256; ++i)
 	{	// skip len+1 string chars if search char was not found,
 		// not exactly boyer-moore but fastens up the thing
 		SkipTable[i] = len+1;
 	}
-	for (i=0; i<len; i++)
+	for (i=0; i<len; ++i)
 	{	// otherwise skip as only that many 
 		// so the next char in the string fits with the one frome the pattern
 		inx = to_unsigned( pattern[i] );
@@ -1085,6 +1197,9 @@ template <class T> bool stringinterface<T>::findnext(const stringinterface<T>& p
 template bool stringinterface<char   >::findnext(const stringinterface<char   >& pattern, size_t &startpos, bool ignorecase) const;
 template bool stringinterface<wchar_t>::findnext(const stringinterface<wchar_t>& pattern, size_t &startpos, bool ignorecase) const;
 
+
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 // Search function
 ///////////////////////////////////////////////////////////////////////////////
@@ -1094,6 +1209,7 @@ template bool stringinterface<wchar_t>::findnext(const stringinterface<wchar_t>&
 # if _MSC_VER < 1300
 
 
+template<>
 vector<size_t> stringinterface<char>::findall(const stringinterface<char>& pattern, bool ignorecase) const
 {	// modified boyer-moore search
 
@@ -1108,12 +1224,12 @@ vector<size_t> stringinterface<char>::findall(const stringinterface<char>& patte
 	size_t len = pattern.length();
 
 	// initialisation
-	for (i=0; i<256; i++)
+	for (i=0; i<256; ++i)
 	{	// skip len+1 string chars if search char was not found,
 		// not exactly boyer-moore but fastens up the thing
 		SkipTable[i] = len+1;
 	}
-	for (i=0; i<len; i++)
+	for (i=0; i<len; ++i)
 	{	// otherwise skip as only that many 
 		// so the next char in the string fits with the one frome the pattern
 		inx = to_unsigned( pattern[i] );
@@ -1149,6 +1265,7 @@ vector<size_t> stringinterface<char>::findall(const stringinterface<char>& patte
 	}
 	return poslist;
 }
+template<>
 vector<size_t> stringinterface<wchar_t>::findall(const stringinterface<wchar_t>& pattern, bool ignorecase) const
 {	// modified boyer-moore search
 
@@ -1163,12 +1280,12 @@ vector<size_t> stringinterface<wchar_t>::findall(const stringinterface<wchar_t>&
 	size_t len = pattern.length();
 
 	// initialisation
-	for (i=0; i<256; i++)
+	for (i=0; i<256; ++i)
 	{	// skip len+1 string chars if search char was not found,
 		// not exactly boyer-moore but fastens up the thing
 		SkipTable[i] = len+1;
 	}
-	for (i=0; i<len; i++)
+	for (i=0; i<len; ++i)
 	{	// otherwise skip as only that many 
 		// so the next char in the string fits with the one frome the pattern
 		inx = to_unsigned( pattern[i] );
@@ -1222,12 +1339,12 @@ template <class T> vector<size_t> stringinterface<T>::findall(const stringinterf
 	size_t len = pattern.length();
 
 	// initialisation
-	for (i=0; i<256; i++)
+	for (i=0; i<256; ++i)
 	{	// skip len+1 string chars if search char was not found,
 		// not exactly boyer-moore but fastens up the thing
 		SkipTable[i] = len+1;
 	}
-	for (i=0; i<len; i++)
+	for (i=0; i<len; ++i)
 	{	// otherwise skip as only that many 
 		// so the next char in the string fits with the one frome the pattern
 		inx = to_unsigned( pattern[i] );
@@ -1324,10 +1441,12 @@ string<> nullstring("");
 ///////////////////////////////////////////////////////////////////////////////
 // cstrings
 ///////////////////////////////////////////////////////////////////////////////
+template<>
 void formatobj<char*>::checktype()
 {
 	cType = 's';
 }
+template<>
 ssize_t formatobj<char*>::print(stringoperator<char>& str) const
 {
 	size_t len=str.length();
@@ -1340,6 +1459,7 @@ ssize_t formatobj<char*>::print(stringoperator<char>& str) const
 
 	return str.length()-len;
 }
+template<>
 ssize_t formatobj<char*>::print(stringoperator<wchar_t>& str) const
 {
 	size_t len=str.length();
@@ -1364,10 +1484,12 @@ ssize_t formatobj<char*>::print(stringoperator<wchar_t>& str) const
 ///////////////////////////////////////////////////////////////////////////////
 // wcstrings
 ///////////////////////////////////////////////////////////////////////////////
+template<>
 void formatobj<wchar_t*>::checktype()
 {
 	cType = 's';
 }
+template<>
 ssize_t formatobj<wchar_t*>::print(stringoperator<char>& str) const
 {
 	// conversion from unicode to cstrings
@@ -1375,6 +1497,7 @@ ssize_t formatobj<wchar_t*>::print(stringoperator<char>& str) const
 	return 0;
 
 }
+template<>
 ssize_t formatobj<wchar_t*>::print(stringoperator<wchar_t>& str) const
 {
 	size_t len=str.length();
@@ -1389,10 +1512,12 @@ ssize_t formatobj<wchar_t*>::print(stringoperator<wchar_t>& str) const
 ///////////////////////////////////////////////////////////////////////////////
 // char string interfaces
 ///////////////////////////////////////////////////////////////////////////////
+template<>
 void formatobj< stringinterface<char> >::checktype()
 {
 	cType = 's';
 }
+template<>
 ssize_t formatobj< stringinterface<char> >::print(stringoperator<char>& str) const
 {
 	size_t len=str.length();
@@ -1409,11 +1534,13 @@ ssize_t formatobj< stringinterface<char> >::print(stringoperator<char>& str) con
 ///////////////////////////////////////////////////////////////////////////////
 // wchar string interfaces
 ///////////////////////////////////////////////////////////////////////////////
+template<>
 void formatobj< stringinterface<wchar_t> >::checktype()
 {
 	cType = 's';
 }
 // no copy to char* here
+template<>
 ssize_t formatobj< stringinterface<wchar_t> >::print(stringoperator<wchar_t>& str) const
 {
 	size_t len=str.length();
@@ -1467,12 +1594,14 @@ template ssize_t print_integer<wchar_t>(stringoperator<wchar_t>& str, sint64 val
 ///////////////////////////////////////////////////////////////////////////////
 // double
 ///////////////////////////////////////////////////////////////////////////////
+template<>
 void formatobj<double>::checktype()
 {
 	static const char *typ = "iduxXocCfgGeE";	// allowed types
 	if( NULL==strchr(typ, cType) )
 		cType = 'g';	// set to auto exponential as default
 }
+template<>
 ssize_t formatobj<double>::print(stringoperator<char>& str) const
 {
 	if( cType=='f' || cType=='g' || cType=='G' || cType=='e' || cType=='E' )
@@ -1484,6 +1613,7 @@ ssize_t formatobj<double>::print(stringoperator<char>& str) const
 	else
 		return print_integer<char>(str, (sint64)cval, cType, cPrec, cWidth, cLeft, cPad, cPlus, cAlt);	
 }
+template<>
 ssize_t formatobj<double>::print(stringoperator<wchar_t>& str) const
 {
 	if( cType=='f' || cType=='g' || cType=='G' || cType=='e' || cType=='E' )
@@ -1499,16 +1629,19 @@ ssize_t formatobj<double>::print(stringoperator<wchar_t>& str) const
 ///////////////////////////////////////////////////////////////////////////////
 // int
 ///////////////////////////////////////////////////////////////////////////////
+template<>
 void formatobj<int>::checktype()
 {
 	static const char *typ = "iduxXocCfgGeE";	// allowed types
 	if( NULL==strchr(typ, cType) )
 		cType = 'i';	// set to auto exponential as default
 }
+template<>
 ssize_t formatobj<int>::print(stringoperator<char>& str) const
 {
 	return print_integer<char>(str, (sint64)cval, cType, cPrec, cWidth, cLeft, cPad, cPlus, cAlt);
 }
+template<>
 ssize_t formatobj<int>::print(stringoperator<wchar_t>& str) const
 {
 	return print_integer<wchar_t>(str, (sint64)cval, cType, cPrec, cWidth, cLeft, cPad, cPlus, cAlt);
@@ -1516,16 +1649,19 @@ ssize_t formatobj<int>::print(stringoperator<wchar_t>& str) const
 ///////////////////////////////////////////////////////////////////////////////
 // int
 ///////////////////////////////////////////////////////////////////////////////
+template<>
 void formatobj<uint>::checktype()
 {
 	static const char *typ = "iduxXocCfgGeE";	// allowed types
 	if( NULL==strchr(typ, cType) )
 		cType = 'u';	// set to auto exponential as default
 }
+template<>
 ssize_t formatobj<uint>::print(stringoperator<char>& str) const
 {
 	return print_integer<char>(str, (sint64)cval, cType, cPrec, cWidth, cLeft, cPad, cPlus, cAlt);
 }
+template<>
 ssize_t formatobj<uint>::print(stringoperator<wchar_t>& str) const
 {
 	return print_integer<wchar_t>(str, (sint64)cval, cType, cPrec, cWidth, cLeft, cPad, cPlus, cAlt);
@@ -1533,16 +1669,19 @@ ssize_t formatobj<uint>::print(stringoperator<wchar_t>& str) const
 ///////////////////////////////////////////////////////////////////////////////
 // long
 ///////////////////////////////////////////////////////////////////////////////
+template<>
 void formatobj<long>::checktype()
 {
 	static const char *typ = "iduxXocCfgGeE";	// allowed types
 	if( NULL==strchr(typ, cType) )
 		cType = 'i';	// set to auto exponential as default
 }
+template<>
 ssize_t formatobj<long>::print(stringoperator<char>& str) const
 {
 	return print_integer<char>(str, (sint64)cval, cType, cPrec, cWidth, cLeft, cPad, cPlus, cAlt);
 }
+template<>
 ssize_t formatobj<long>::print(stringoperator<wchar_t>& str) const
 {
 	return print_integer<wchar_t>(str, (sint64)cval, cType, cPrec, cWidth, cLeft, cPad, cPlus, cAlt);
@@ -1550,16 +1689,19 @@ ssize_t formatobj<long>::print(stringoperator<wchar_t>& str) const
 ///////////////////////////////////////////////////////////////////////////////
 // ulong
 ///////////////////////////////////////////////////////////////////////////////
+template<>
 void formatobj<ulong>::checktype()
 {
 	static const char *typ = "iduxXocCfgGeE";	// allowed types
 	if( NULL==strchr(typ, cType) )
 		cType = 'u';	// set to auto exponential as default
 }
+template<>
 ssize_t formatobj<ulong>::print(stringoperator<char>& str) const
 {
 	return print_integer<char>(str, (sint64)cval, cType, cPrec, cWidth, cLeft, cPad, cPlus, cAlt);
 }
+template<>
 ssize_t formatobj<ulong>::print(stringoperator<wchar_t>& str) const
 {
 	return print_integer<wchar_t>(str, (sint64)cval, cType, cPrec, cWidth, cLeft, cPad, cPlus, cAlt);
@@ -1567,16 +1709,19 @@ ssize_t formatobj<ulong>::print(stringoperator<wchar_t>& str) const
 ///////////////////////////////////////////////////////////////////////////////
 // int64
 ///////////////////////////////////////////////////////////////////////////////
+template<>
 void formatobj<int64>::checktype()
 {
 	static const char *typ = "iduxXocCfgGeE";	// allowed types
 	if( NULL==strchr(typ, cType) )
 		cType = 'i';	// set to auto exponential as default
 }
+template<>
 ssize_t formatobj<int64>::print(stringoperator<char>& str) const
 {
 	return print_integer<char>(str, (sint64)cval, cType, cPrec, cWidth, cLeft, cPad, cPlus, cAlt);
 }
+template<>
 ssize_t formatobj<int64>::print(stringoperator<wchar_t>& str) const
 {
 	return print_integer<wchar_t>(str, (sint64)cval, cType, cPrec, cWidth, cLeft, cPad, cPlus, cAlt);
@@ -1584,16 +1729,19 @@ ssize_t formatobj<int64>::print(stringoperator<wchar_t>& str) const
 ///////////////////////////////////////////////////////////////////////////////
 // uint64
 ///////////////////////////////////////////////////////////////////////////////
+template<>
 void formatobj<uint64>::checktype()
 {
 	static const char *typ = "iduxXocCfgGeE";	// allowed types
 	if( NULL==strchr(typ, cType) )
 		cType = 'u';	// set to auto exponential as default
 }
+template<>
 ssize_t formatobj<uint64>::print(stringoperator<char>& str) const
 {
 	return print_integer<char>(str, (sint64)cval, cType, cPrec, cWidth, cLeft, cPad, cPlus, cAlt);
 }
+template<>
 ssize_t formatobj<uint64>::print(stringoperator<wchar_t>& str) const
 {
 	return print_integer<wchar_t>(str, (sint64)cval, cType, cPrec, cWidth, cLeft, cPad, cPlus, cAlt);
@@ -1695,7 +1843,7 @@ void test_stringbuffer(void)
 		const char *c;
 		uint b, i;
 	
-		for(i=0; i<66; i++)
+		for(i=0; i<66; ++i)
 		{
 			a = itostring(1234567890, i);
 			c = a;
@@ -1721,8 +1869,8 @@ void test_stringbuffer(void)
 
 		char buffer[1024];
 
-		TString< char, allocator_ws_dy<char, elaborator_st<char> > > aa;
-		TString< char, allocator_ws_st<char, elaborator_st<char> > > bb(buffer,1024);
+		TString< char, allocator_ws_dy<char> > aa;
+		TString< char, allocator_ws_st<char> > bb(buffer,1024);
 
 		aa = bb;
 
@@ -1802,12 +1950,12 @@ size_t sz=0;
 	ulong tick;
 
 	tick = clock();
-	for(i=0; i<runs; i++)
+	for(i=0; i<runs; ++i)
 		sz = snprintf(buffer1, sizeof(buffer1), "hallo %i ballo %i no %lf", i, i*2/3+i, ((double)i)*1.3);
 	printf("sprintf %li\n", clock()-tick);
 
 	tick = clock();
-	for(i=0; i<runs; i++)
+	for(i=0; i<runs; ++i)
 	{
 		a.clear();
 		a << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " <<(((double)i)*1.3);
@@ -1815,7 +1963,7 @@ size_t sz=0;
 	printf("Ministring %li\n", clock()-tick);
 
 	tick = clock();
-	for(i=0; i<runs; i++)
+	for(i=0; i<runs; ++i)
 	{
 		sa.clear();
 		sa << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " << (((double)i)*1.3);
@@ -1823,7 +1971,7 @@ size_t sz=0;
 	printf("staticstring %li\n", clock()-tick);
 
 	tick = clock();
-	for(i=0; i<runs; i++)
+	for(i=0; i<runs; ++i)
 	{
 		sb.clear();
 		sb << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " << (((double)i)*1.3);
@@ -1832,7 +1980,7 @@ size_t sz=0;
 
 	string<> ds;
 	tick = clock();
-	for(i=0; i<runs; i++)
+	for(i=0; i<runs; ++i)
 	{
 		ds.clear();
 		ds << "a";
@@ -2043,7 +2191,7 @@ void test_assign()
   // This makes sure that the [] operator is implemented properly
   // and does not cause a "copy-on-write" on a read operation.
   bool contentOK = true;
-  for (size_t i = 0; i < len; i++) {
+  for (size_t i = 0; i < len; ++i) {
     if (constCStr[i] != foo[i]) {
       contentOK = false;
       break;
@@ -2165,7 +2313,7 @@ void test_plus_equal()
 
   string e("1234");
 
-  for (size_t i = 5; i < 10; i++) {
+  for (size_t i = 5; i < 10; ++i) {
     e += (char)(i + (char)'0');
   }
   if (e != "123456789") {
@@ -2530,7 +2678,7 @@ void test_arrayop()
     printf("0.5. string index seems to have caused a copy\n");
   }
 
-  for (size_t i = 0; i < len; i++) {
+  for (size_t i = 0; i < len; ++i) {
     char lhsCh = jabbarString[i];
     char rhsCh = jabbar[i];
     if (lhsCh != rhsCh) {
@@ -2918,3 +3066,5 @@ void test_strings(void)
 {}
 
 #endif//DEBUG
+
+NAMESPACE_END(basics)

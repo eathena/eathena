@@ -1,6 +1,9 @@
 #include "basetypes.h"
 #include "baselists.h"
 
+NAMESPACE_BEGIN(basics)
+
+
 #if defined(DEBUG)
 
 class linkdata : public CDLinkNode
@@ -71,3 +74,5 @@ void test_lists(void)
 	}
 #endif//DEBUG
 }
+
+NAMESPACE_END(basics)

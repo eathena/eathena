@@ -1,5 +1,4 @@
 // $Id: battle.c,v 1.10 2004/09/29 21:08:17 Akitasha Exp $
-#include "base.h"
 #include "nullpo.h"
 #include "showmsg.h"
 #include "utils.h"
@@ -28,45 +27,6 @@ struct Battle_Config battle_config;
  * 自分をロックしているMOBの?を?える(foreachclient)
  *------------------------------------------
  */
-/*
-int battle_counttargeted_sub(struct block_list &bl, va_list &ap)
-{
-	uint32 id;
-	int *c;
-	unsigned short target_lv;
-	struct block_list *src;
-
-	nullpo_retr(0, ap);
-	id = va_arg(ap,int);
-	nullpo_retr(0, c = va_arg(ap, int *));
-	src = va_arg(ap,struct block_list*);
-	target_lv = (unsigned short)va_arg(ap,int);
-
-	if (id == bl.id || (src && id == src->id))
-		return 0;
-	if (bl.type == BL_PC)
-	{
-		struct map_session_data &sd = (struct map_session_data &)bl;
-		if(sd.attacktarget == id && sd.attacktimer != -1 && sd.attacktarget_lv >= target_lv)
-			(*c)++;
-	}
-	else if (bl.type == BL_MOB)
-	{
-		struct mob_data &md = (struct mob_data &)bl;
-		if(md.target_id == id && md.timer != -1 && md.state.state == MS_ATTACK && md.target_lv >= target_lv)		
-			(*c)++;
-		//ShowMessage("md->target_lv:%d, target_lv:%d\n", md->target_lv, target_lv);
-	}
-	else if (bl.type == BL_PET)
-	{
-		struct pet_data &pd = (struct pet_data &)bl;
-		if( pd.target_id == id && pd.timer != -1 && pd.state.state == MS_ATTACK && pd.target_lv >= target_lv)
-			(*c)++;
-	}
-
-	return 0;
-}
-*/
 class CBattleCountTargeted : public CMapProcessor
 {
 	uint32 id;
@@ -113,11 +73,6 @@ public:
  */
 unsigned int battle_counttargeted(struct block_list &bl,struct block_list *src,  unsigned short target_lv)
 {
-//	unsigned int c = 0;
-//	map_foreachinarea(battle_counttargeted_sub, 
-//		bl.m, ((int)bl.x)-AREA_SIZE, ((int)bl.y)-AREA_SIZE, ((int)bl.x)+AREA_SIZE, ((int)bl.y)+AREA_SIZE, 0,
-//		bl.id, &c, src, target_lv);
-//	return c;
 	CBattleCountTargeted bct(bl.id, src, target_lv);
 	CMap::foreachinarea( bct,
 		bl.m, ((int)bl.x)-AREA_SIZE, ((int)bl.y)-AREA_SIZE, ((int)bl.x)+AREA_SIZE, ((int)bl.y)+AREA_SIZE, 0);
@@ -128,46 +83,7 @@ unsigned int battle_counttargeted(struct block_list &bl,struct block_list *src, 
  * Get random targetting enemy
  *------------------------------------------
  */
-/*
-int battle_gettargeted_sub(struct block_list &bl, va_list &ap)
-{
-	struct block_list **bl_list;
-	struct block_list *target;
-	int *c;
 
-	nullpo_retr(0, ap);
-
-	bl_list = va_arg(ap, struct block_list **);
-	nullpo_retr(0, c = va_arg(ap, int *));
-	nullpo_retr(0, target = va_arg(ap, struct block_list *));
-
-	if (bl.id == target->id)
-		return 0;
-	if (*c >= 24)
-		return 0;
-
-	if (bl.type == BL_PC)
-	{
-		struct map_session_data &sd = (struct map_session_data &)bl;
-		if(sd.attacktarget != target->id || sd.attacktimer == -1)
-			return 0;
-	}
-	else if (bl.type == BL_MOB)
-	{
-		struct mob_data &md = (struct mob_data &)bl;
-		if(md.target_id != target->id || md.timer == -1 || md.state.state != MS_ATTACK)
-			return 0;
-	}
-	else if (bl.type == BL_PET)
-	{
-		struct pet_data &pd = (struct pet_data &)bl;
-		if(pd.target_id != target->id || pd.timer == -1 || pd.state.state != MS_ATTACK)
-			return 0;
-	}
-	bl_list[(*c)++] = &bl;
-	return 0;
-}
-*/
 class CBattleGetTargeted : public CMapProcessor
 {
 	struct block_list &target;
@@ -210,16 +126,6 @@ public:
 };
 struct block_list* battle_gettargeted(struct block_list &target)
 {
-//	struct block_list *bl_list[24];
-//	int c = 0;
-//	memset(bl_list, 0, sizeof(bl_list));
-//	map_foreachinarea(battle_gettargeted_sub, 
-//		target.m, ((int)target.x)-AREA_SIZE, ((int)target.y)-AREA_SIZE, ((int)target.x)+AREA_SIZE, ((int)target.y)+AREA_SIZE, 0,
-//		bl_list, &c, &target);
-//	if (c == 0 || c > 24)
-//		return NULL;
-//	return bl_list[rand()%c];
-
 	CBattleGetTargeted bgt(target);
 	CMap::foreachinarea( bgt,
 		target.m, ((int)target.x)-AREA_SIZE, ((int)target.y)-AREA_SIZE, ((int)target.x)+AREA_SIZE, ((int)target.y)+AREA_SIZE, 0);
@@ -237,7 +143,7 @@ struct delay_damage {
 	int flag;
 };
 
-int battle_delay_damage_sub(int tid, unsigned long tick, int id, intptr data)
+int battle_delay_damage_sub(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	struct delay_damage *dat = (struct delay_damage *)data.ptr;
 	if(dat)
@@ -245,7 +151,8 @@ int battle_delay_damage_sub(int tid, unsigned long tick, int id, intptr data)
 		struct block_list *target = map_id2bl(dat->target);
 		if (target && map_id2bl(id) == dat->src && target->prev != NULL)
 		battle_damage(dat->src, target, dat->damage, dat->flag);
-		aFree(dat);
+		delete dat;
+		get_timer(tid)->data=0;
 	}
 	return 0;
 }
@@ -257,12 +164,12 @@ int battle_delay_damage(unsigned long tick, struct block_list &src, struct block
 		battle_damage(&src, &target, damage, flag);
 		return 0;
 	}
-	dat = (struct delay_damage *)aCalloc(1, sizeof(struct delay_damage));
+	dat = new struct delay_damage;
 	dat->src = &src;
 	dat->target = target.id;
 	dat->damage = damage;
 	dat->flag = flag;
-	add_timer(tick, battle_delay_damage_sub, src.id, intptr(dat), false);
+	add_timer(tick, battle_delay_damage_sub, src.id, basics::numptr(dat), false);
 	return 0;
 }
 
@@ -317,16 +224,16 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage,int
 		if(sc_data && sc_data[SC_DEVOTION].val1.num)
 		{	// ディボーションをかけられている
 			struct map_session_data *sd2 = map_id2sd(sc_data[SC_DEVOTION].val1.num);
-			if (sd2 && skill_devotion3(&sd2->bl, target->id))
+			if (sd2 && skill_devotion3(sd2, target->id))
 			{
 				skill_devotion(sd2, target->id);
 			}
 			else if (sd2 && bl)
 			{
-				for (i = 0; i < 5; i++)
+				for (i = 0; i < 5; ++i)
 					if (sd2->dev.val1[i] == target->id) {
-						clif_damage(*bl, sd2->bl, gettick(), 0, 0, damage, 0 , 0, 0);
-						pc_damage(*sd2, damage,&sd2->bl);
+						clif_damage(*bl, *sd2, gettick(), 0, 0, damage, 0 , 0, 0);
+						pc_damage(*sd2, damage, sd2);
 						return 0;
 					}
 			}
@@ -444,7 +351,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		{	// セーフティウォール
 			struct skill_unit *unit = (struct skill_unit *)sc_data[SC_SAFETYWALL].val2.ptr;
 			// temporary check to prevent access on wrong val2
-			if (unit && unit->bl.m == bl->m) {
+			if (unit && unit->block_list::m == bl->m) {
 				if (unit->group && (--unit->group->val2)<=0)
 					skill_delunit(unit);
 				damage=0;
@@ -910,7 +817,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 		atkmin = status_get_atk(src);
 		atkmax = status_get_atk2(src);
 	}
-	if(atkmin > atkmax) swap(atkmin,atkmax);
+	if(atkmin > atkmax) basics::swap(atkmin,atkmax);
 
 	if(mob_db[pd->class_].range>3 )
 		flag=(flag&~BF_RANGEMASK)|BF_LONG;
@@ -1351,9 +1258,10 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 	if(skill_num == 0 || (target->type == BL_PC && battle_config.pc_auto_counter_type&2) ||
 		(target->type == BL_MOB && battle_config.monster_auto_counter_type&2)) {
 		if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1) {
-			int dir = map_calc_dir(*src,target->x,target->y),t_dir = status_get_dir(target);
-			int dist = distance(src->x,src->y,target->x,target->y);
-			if(dist <= 0 || map_check_dir(dir,t_dir) ) {
+			dir_t dir = src->get_direction(*target);
+			dir_t t_dir = status_get_dir(target);
+			int dist = distance(*src,*target);
+			if(dist <= 0 || !is_same_direction(dir,t_dir) ) {
 				memset(&wd,0,sizeof(wd));
 				t_sc_data[SC_AUTOCOUNTER].val3 = 0;
 				t_sc_data[SC_AUTOCOUNTER].val4 = 1;
@@ -1788,13 +1696,13 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 			cardfix=cardfix*(100-tsd->subrace[10])/100;
 		else
 			cardfix=cardfix*(100-tsd->subrace[11])/100;
-		for(i=0;i<tsd->add_def_class_count;i++) {
+		for(i=0;i<tsd->add_def_class_count; ++i) {
 			if(tsd->add_def_classid[i] == md->class_) {
 				cardfix=cardfix*(100-tsd->add_def_classrate[i])/100;
 				break;
 			}
 		}
-		for(i=0;i<tsd->add_damage_class_count2;i++) {
+		for(i=0;i<tsd->add_damage_class_count2; ++i) {
 			if(tsd->add_damage_classid2[i] == md->class_) {
 				cardfix=cardfix*(100+tsd->add_damage_classrate2[i])/100;
 				break;
@@ -1954,9 +1862,10 @@ static struct Damage battle_calc_pc_weapon_attack(
 	if(skill_num == 0 || (target->type == BL_PC && battle_config.pc_auto_counter_type&2) ||
 		(target->type == BL_MOB && battle_config.monster_auto_counter_type&2)) {
 		if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1) { //グランドクロスでなく、対象がオートカウンター状態の場合
-			int dir = map_calc_dir(*src,target->x,target->y),t_dir = status_get_dir(target);
-			int dist = distance(src->x,src->y,target->x,target->y);
-			if(dist <= 0 || map_check_dir(dir,t_dir) ) { //対象との距離が0以下、または対象の正面？
+			dir_t dir = src->get_direction(*target);
+			dir_t t_dir = status_get_dir(target);
+			int dist = distance(*src,*target);
+			if(dist <= 0 || !is_same_direction(dir,t_dir) ) { //対象との距離が0以下、または対象の正面？
 				memset(&wd,0,sizeof(wd));
 				t_sc_data[SC_AUTOCOUNTER].val3 = 0;
 				t_sc_data[SC_AUTOCOUNTER].val4 = 1;
@@ -2009,7 +1918,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 	if(skill_num == HW_MAGICCRASHER)	/* マジッククラッシャーはMATKで殴る */
 		damage = damage2 = status_get_matk1(src); //damega,damega2初登場、base_atkの取得
 	else
-		damage = damage2 = status_get_baseatk(&sd->bl); //damega,damega2初登場、base_atkの取得
+		damage = damage2 = status_get_baseatk(sd); //damega,damega2初登場、base_atkの取得
 
 	atkmin = atkmin_ = dex; //最低ATKはDEXで初期化？
 	sd->state.arrow_atk = 0; //arrow_atk初期化
@@ -2616,10 +2525,10 @@ static struct Damage battle_calc_pc_weapon_attack(
 		if (!skill_num && sc_data[SC_SACRIFICE].timer != -1) {
 			int self_damage = status_get_max_hp(src) * 9/100;
 			//pc_heal(*sd, -dmg, 0);
-			pc_damage(*sd, self_damage, &sd->bl);
-			clif_damage(sd->bl,sd->bl, gettick(), 0, 0, self_damage, 0 , 0, 0);
+			pc_damage(*sd, self_damage, sd);
+			clif_damage(*sd,*sd, gettick(), 0, 0, self_damage, 0 , 0, 0);
 			damage = self_damage * (90 + sc_data[SC_SACRIFICE].val1.num * 10) / 100;
-			if (maps[sd->bl.m].flag.gvg)
+			if (maps[sd->block_list::m].flag.gvg)
 				damage = 6*damage/10; //40% less effective on siege maps. [Skotlex]
 			damage2 = 0;
 			hitrate = 1000000;
@@ -2759,7 +2668,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 	}
 	//特定Class用補正処理(少女の日記→ボンゴン用？)
 	t_class = status_get_class(target);
-	for(i=0;i<sd->right_weapon.add_damage_class_count;i++) {
+	for(i=0;i<sd->right_weapon.add_damage_class_count; ++i) {
 		if(sd->right_weapon.add_damage_classid[i] == t_class) {
 			cardfix=cardfix*(100+sd->right_weapon.add_damage_classrate[i])/100;
 			break;
@@ -2782,7 +2691,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			cardfix=cardfix*(100+sd->left_weapon.addrace[11])/100; //ボス以外モンスターに追加ダメージ左手
 	}
 	//特定Class用補正処理左手(少女の日記→ボンゴン用？)
-	for(i=0;i<sd->left_weapon.add_damage_class_count;i++) {
+	for(i=0;i<sd->left_weapon.add_damage_class_count; ++i) {
 		if(sd->left_weapon.add_damage_classid[i] == t_class) {
 			cardfix=cardfix*(100+sd->left_weapon.add_damage_classrate[i])/100;
 			break;
@@ -2805,7 +2714,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 		else
 			cardfix=cardfix*(100-tsd->subrace[11])/100; //ボス以外からの攻撃はダメージ減少
 		//特定Class用補正処理左手(少女の日記→ボンゴン用？)
-		for(i=0;i<tsd->add_def_class_count;i++) {
+		for(i=0;i<tsd->add_def_class_count; ++i) {
 			if(tsd->add_def_classid[i] == sd->status.class_) {
 				cardfix=cardfix*(100-tsd->add_def_classrate[i])/100;
 				break;
@@ -3172,10 +3081,10 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 	{
 		if(t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1)
 		{
-			int dir = map_calc_dir(*target,src->x,src->y);
-			int t_dir = status_get_dir(target);
-			int dist = distance(src->x,src->y,target->x,target->y);
-			if(dist <= 0 || map_check_dir(dir,t_dir) )
+			dir_t dir = target->get_direction(*src);
+			dir_t t_dir = status_get_dir(target);
+			int dist = distance(*src,*target);
+			if(dist <= 0 || !is_same_direction(dir,t_dir) )
 			{
 				memset(&wd,0,sizeof(wd));
 				t_sc_data[SC_AUTOCOUNTER].val3 = 0;
@@ -4073,7 +3982,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 				}
 			}
 
-			for(i=0;i<sd->right_weapon.add_damage_class_count;i++) {
+			for(i=0;i<sd->right_weapon.add_damage_class_count; ++i) {
 				if(sd->right_weapon.add_damage_classid[i] == t_class) {
 					cardfix=cardfix*(100+sd->right_weapon.add_damage_classrate[i])/100;
 					break;
@@ -4082,7 +3991,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 
 			if (flag.lh)
 			{
-				for(i=0;i<sd->left_weapon.add_damage_class_count;i++) {
+				for(i=0;i<sd->left_weapon.add_damage_class_count; ++i) {
 					if(sd->left_weapon.add_damage_classid[i] == t_class) {
 						cardfix_=cardfix_*(100+sd->left_weapon.add_damage_classrate[i])/100;
 						break;
@@ -4111,7 +4020,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
  		cardfix=cardfix*(100-tsd->subrace2[s_race2])/100;
 		cardfix=cardfix*(100-tsd->subrace[is_boss(target)?10:11])/100;
 		
-		for(i=0;i<tsd->add_damage_class_count2;i++) {
+		for(i=0;i<tsd->add_damage_class_count2; ++i) {
 				if(tsd->add_damage_classid2[i] == s_class) {
 					cardfix=cardfix*(100+tsd->add_damage_classrate2[i])/100;
 					break;
@@ -4578,7 +4487,7 @@ struct Damage battle_calc_magic_attack(struct block_list *bl,struct block_list *
 		else
 			cardfix=cardfix*(100+sd->magic_addrace[11])/100;
 		t_class = status_get_class(target);
-		for(i=0;i<sd->add_magic_damage_class_count;i++) {
+		for(i=0;i<sd->add_magic_damage_class_count; ++i) {
 			if(sd->add_magic_damage_classid[i] == t_class) {
 				cardfix=cardfix*(100+sd->add_magic_damage_classrate[i])/100;
 				break;
@@ -4601,7 +4510,7 @@ struct Damage battle_calc_magic_attack(struct block_list *bl,struct block_list *
 			cardfix=cardfix*(100-tsd->magic_subrace[10])/100;
 		else
 			cardfix=cardfix*(100-tsd->magic_subrace[11])/100;
-		for(i=0;i<tsd->add_mdef_class_count;i++) {
+		for(i=0;i<tsd->add_mdef_class_count; ++i) {
 			if(tsd->add_mdef_classid[i] == s_class) {
 				cardfix=cardfix*(100-tsd->add_mdef_classrate[i])/100;
 				break;
@@ -4953,11 +4862,11 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 		if(flag&0x8000)
 		{
 			if(sd && battle_config.pc_attack_direction_change)
-				sd->dir = sd->head_dir = map_calc_dir(*src, target->x,target->y );
+				sd->dir = sd->head_dir = src->get_direction(*target);
 			else if(src->type == BL_MOB && battle_config.monster_attack_direction_change)
 			{
 				struct mob_data *md = (struct mob_data *)src;
-				if (md) md->dir = map_calc_dir(*src, target->x, target->y);
+				if (md) md->dir = src->get_direction(*target);
 			}
 			wd = battle_calc_weapon_attack(src, target, KN_AUTOCOUNTER, flag&0xff, 0);
 		}
@@ -5021,7 +4930,7 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 		if (sd && sd->splash_range > 0 && (wd.damage > 0 || wd.damage2 > 0))
 			skill_castend_damage_id(src,target,0,0,tick,0);
 
-		map_freeblock_lock();
+		block_list::map_freeblock_lock();
 
 		battle_delay_damage(tick+wd.amotion, *src, *target, (wd.damage+wd.damage2), 0);
 
@@ -5087,7 +4996,7 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 		if(sd)
 		{
 			size_t i;
-			for (i = 0; i < 10; i++)
+			for (i = 0; i < 10; ++i)
 			{
 				if(sd->autospell_id[i] != 0)
 				{
@@ -5169,7 +5078,7 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 		if(tsd)
 		{
 			int i;
-			for (i = 0; i < 10; i++)
+			for (i = 0; i < 10; ++i)
 			{
 				if(tsd->autospell2_id[i] != 0)
 				{
@@ -5248,15 +5157,15 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 				int skilllv = tsc_data[SC_BLADESTOP_WAIT].val1.num;
 				int duration = skill_get_time2(MO_BLADESTOP,skilllv);
 				status_change_end(target, SC_BLADESTOP_WAIT, -1);
-				status_change_start(target, SC_BLADESTOP, skilllv, 2, intptr(target), intptr(src), duration, 0);
+				status_change_start(target, SC_BLADESTOP, skilllv, 2, basics::numptr(target), basics::numptr(src), duration, 0);
 				skilllv = sd?pc_checkskill(*sd, MO_BLADESTOP):1;
-				status_change_start(src, SC_BLADESTOP, skilllv, 1, intptr(src), intptr(target), duration, 0);
+				status_change_start(src, SC_BLADESTOP, skilllv, 1, basics::numptr(src), basics::numptr(target), duration, 0);
 			}
 			if (tsc_data[SC_SPLASHER].timer != -1)	//殴ったので対象のベナムスプラッシャー状態を解除
 				status_change_end(target, SC_SPLASHER, -1);
 		}
 
-		map_freeblock_unlock();
+		block_list::map_freeblock_unlock();
 	}
 	return wd.dmg_lv;
 }
@@ -5346,7 +5255,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 				state |= BCT_ENEMY;	//Summoned creatures can target other mobs.
 			//Don't fallback on the master in the case of summoned creaturess to enable hitting them.
 			if (md->master_id && !md->state.special_mob_ai && (t_bl = map_id2bl(md->master_id)) == NULL)
-				t_bl = &md->bl; //Fallback on the mob itself, otherwise consider this a "versus master" scenario.
+				t_bl = md; //Fallback on the mob itself, otherwise consider this a "versus master" scenario.
 			break;
 		}
 		case BL_PET:
@@ -5398,7 +5307,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 			if (md->state.special_mob_ai && target->type == BL_MOB)
 				state |= BCT_ENEMY;	//Summoned creatures can target other mobs.
 			if (md->master_id && (s_bl = map_id2bl(md->master_id)) == NULL)
-				s_bl = &md->bl; //Fallback on the mob itself, otherwise consider this a "from master" scenario.
+				s_bl = md; //Fallback on the mob itself, otherwise consider this a "from master" scenario.
 			break;
 		}
 		case BL_PET:
@@ -5407,7 +5316,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 			if (!pd)
 				return 0;
 			if (pd->msd)
-				s_bl = &pd->msd->bl; //"My master's enemies are my enemies..."
+				s_bl = pd->msd; //"My master's enemies are my enemies..."
 			break;
 		}
 		case BL_SKILL: //Skill with no owner? Fishy, but let it through.
@@ -5699,7 +5608,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 				return 1;
 			if ((g = guild_search(s_g))) {
 				int i;
-				for (i = 0; i < MAX_GUILDALLIANCE; i++) {
+				for (i = 0; i < MAX_GUILDALLIANCE; ++i) {
 					if (g->alliance[i].guild_id > 0 && g->alliance[i].guild_id == t_g) {
 						if (g->alliance[i].opposition)
 							return 0;//敵対ギルドなら無条件に敵
@@ -5874,6 +5783,7 @@ static struct {
 	{ "job_exp_rate",						&battle_config.job_exp_rate				},
 	{ "left_cardfix_to_right",             &battle_config.left_cardfix_to_right	},
 	{ "magic_defense_type",                &battle_config.magic_defense_type		},
+	{ "mailsystem",							&battle_config.mailsystem		},
 	{ "making_arrow_name_input",           &battle_config.making_arrow_name_input	},
 	{ "max_adv_level",						&battle_config.max_adv_level				},
 	{ "max_aspd",                          &battle_config.max_aspd					},
@@ -6035,7 +5945,7 @@ static struct {
 int battle_set_value(const char *w1, const char *w2)
 {
 	size_t i;
-	for(i = 0; i < sizeof(battle_data) / (sizeof(battle_data[0])); i++)
+	for(i = 0; i < sizeof(battle_data) / (sizeof(battle_data[0])); ++i)
 	{
 		if(battle_data[i].val && battle_data[i].str && strcasecmp(w1, battle_data[i].str) == 0)
 		{
@@ -6172,6 +6082,7 @@ void battle_set_defaults()
 	battle_config.job_exp_rate=100;
 	battle_config.left_cardfix_to_right=0;
 	battle_config.magic_defense_type = 0;
+	battle_config.mailsystem=1;
 	battle_config.making_arrow_name_input = 1;
 	battle_config.max_adv_level=70;
 	battle_config.max_aspd = 199;
@@ -6480,7 +6391,7 @@ int battle_config_read(const char *cfgName)
 	if ((count++) == 0)
 		battle_set_defaults();
 
-	fp = safefopen(cfgName,"r");
+	fp = basics::safefopen(cfgName,"r");
 	if (fp == NULL) {
 		ShowError("file not found: %s\n", cfgName);
 		return 1;

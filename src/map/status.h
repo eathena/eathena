@@ -1,6 +1,9 @@
 #ifndef _STATUS_H_
 #define _STATUS_H_
 
+#include "map.h" // for basic type definitions, move to a seperated file
+
+
 enum {	// struct map_session_data の status_changeの番?テ?ブル
 // MAX_STATUSCHANGE未?はクライアントへの通知あり。
 // 2-2次職の値はなんかめちゃくちゃっぽいので暫定。たぶん?更されます。
@@ -216,8 +219,8 @@ extern int current_equip_item_index;
 
 // パラメータ所得系 battle.c より移動
 int status_get_class(struct block_list *bl);
-int status_get_dir(struct block_list *bl);
-int status_get_headdir(struct block_list *bl);
+dir_t status_get_dir(struct block_list *bl);
+dir_t status_get_headdir(struct block_list *bl);
 int status_get_lv(struct block_list *bl);
 int status_get_range(struct block_list *bl);
 int status_get_hp(struct block_list *bl);
@@ -279,9 +282,9 @@ int status_get_sc_def(struct block_list *bl, int type);
 #define status_get_sc_def_luk(bl)	(status_get_sc_def(bl, SP_LUK))
 
 // 状態異常関連 skill.c より移動
-int status_change_start(struct block_list *bl,int type,intptr val1,intptr val2,intptr val3,intptr val4,unsigned long tick,int flag);
+int status_change_start(struct block_list *bl,int type,basics::numptr val1,basics::numptr val2,basics::numptr val3,basics::numptr val4,unsigned long tick,int flag);
 int status_change_end(struct block_list* bl, int type,int tid );
-int status_change_timer(int tid, unsigned long tick, int id, intptr data);
+int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data);
 
 class CStatusChangetimer : public CMapProcessor
 {

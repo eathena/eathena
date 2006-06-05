@@ -7,6 +7,7 @@
 #include "basememory.h"
 #include "basestring.h"
 
+NAMESPACE_BEGIN(basics)
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -86,7 +87,7 @@ void charset::include(char min, char max)
 	else 
 	{
 		bytedata[lidx] |= lbits;
-		for (int i = lidx + 1; i < ridx; i++)
+		for (int i = lidx + 1; i < ridx; ++i)
 			bytedata[i] = uchar(-1);
 		bytedata[ridx] |= rbits;
 	}
@@ -97,8 +98,8 @@ void charset::exclude(char min, char max)
 		swap(min, max);
 	int lidx = uchar(min) >>3;	// /8
 	int ridx = uchar(max) >>3;	// /8
-	uchar lbits = lbitmask[ min%0x07 ];
-	uchar rbits = rbitmask[ max%0x07 ];
+	uchar lbits = lbitmask[ min&0x07 ];
+	uchar rbits = rbitmask[ max&0x07 ];
 
 	if (lidx == ridx) 
 	{
@@ -107,7 +108,7 @@ void charset::exclude(char min, char max)
 	else 
 	{
 		bytedata[lidx] |= lbits;
-		for (int i = lidx + 1; i < ridx; i++)
+		for (int i = lidx + 1; i < ridx; ++i)
 			bytedata[i] = uchar(0);
 		bytedata[ridx] &= ~rbits;
 	}
@@ -121,7 +122,7 @@ void charset::assign(const char* p)
 	else 
 	{
 		clear();
-		for (; *p != 0; p++) {
+		for (; *p != 0; ++p) {
 			uchar left = str2hex<char>(p);
 			if (*(p + 1) == '-') {
 				p += 2;
@@ -137,35 +138,35 @@ void charset::assign(const char* p)
 
 void charset::unite(const charset& s) 
 {
-	for(int i = 0; i < _csetwords; i++) 
+	for(int i = 0; i < _csetwords; ++i) 
 		worddata[i] |= s.worddata[i];
 }
 
 
 void charset::subtract(const charset& s) 
 {
-	for(int i = 0; i < _csetwords; i++) 
+	for(int i = 0; i < _csetwords; ++i) 
 		worddata[i] &= ~s.worddata[i];
 }
 
 
 void charset::intersect(const charset& s) 
 {
-	for(int i = 0; i < _csetwords; i++) 
+	for(int i = 0; i < _csetwords; ++i) 
 		worddata[i] &= s.worddata[i];
 }
 
 
 void charset::invert() 
 {
-	for(int i = 0; i < _csetwords; i++) 
+	for(int i = 0; i < _csetwords; ++i) 
 		worddata[i] = ~worddata[i];
 }
 
 
 bool charset::le(const charset& s) const 
 {
-	for (int i = 0; i < _csetwords; i++) 
+	for (int i = 0; i < _csetwords; ++i) 
 	{
 		ulong w1 = worddata[i];
 		ulong w2 = s.worddata[i];
@@ -206,11 +207,11 @@ template<class T> static size_t showmember(uchar c, T *buffer)
     }
 }
 
-template<class T> string<T>& tostring(string<T>& str, const charset& s)
+string<char   >& tostring(string<char   >& str, const charset& s)
 {
     int i, l = -1, r = -1;
 	str.empty();
-    for(i=0; i<=_csetbits; i++) 
+    for(i=0; i<=_csetbits; ++i) 
     {
         if( i<_csetbits && (uchar(i)&s) ) 
         {
@@ -221,7 +222,7 @@ template<class T> string<T>& tostring(string<T>& str, const charset& s)
         }
         else if (l != -1) 
         {	
-			T buffer[16];
+			char buffer[16];
 			size_t sz = showmember(uchar(l), buffer);
             str.append(buffer,sz);
             if (r != -1)
@@ -237,19 +238,45 @@ template<class T> string<T>& tostring(string<T>& str, const charset& s)
     }
     return str;
 }
-// explicit instantiation
-template string<char   >& tostring(string<char   >& str, const charset& s);
-template string<wchar_t>& tostring(string<wchar_t>& str, const charset& s);
-
-
-string<> tostring(const charset& s)
+string<wchar_t>& tostring(string<wchar_t>& str, const charset& s)
 {
-	string<> ret;
-	tostring(ret,s);
-	return ret;
+    int i, l = -1, r = -1;
+	str.empty();
+    for(i=0; i<=_csetbits; ++i) 
+    {
+        if( i<_csetbits && (uchar(i)&s) ) 
+        {
+            if (l == -1)
+                l = i;
+            else
+                r = i;
+        }
+        else if (l != -1) 
+        {	
+			wchar_t buffer[16];
+			size_t sz = showmember(uchar(l), buffer);
+            str.append(buffer,sz);
+            if (r != -1)
+			{
+                if (r > l + 1) 
+                    str.append('-');
+				sz = showmember(uchar(r), buffer);
+				str.append(buffer,sz);
+            }
+            l = -1;
+            r = -1;
+        }
+    }
+    return str;
 }
 
 
+string<char> tostring(const charset& s)
+{
+	string<char> ret;
+	tostring(ret,s);
+	return ret;
+}
 
 
 
@@ -273,3 +300,5 @@ void test_charset()
 	printf("%i\n", ca.containsall("hallo") );
 }
 
+
+NAMESPACE_END(basics)

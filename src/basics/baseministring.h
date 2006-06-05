@@ -11,11 +11,12 @@
 #include "baseexceptions.h"
 #include "basearray.h"
 
+NAMESPACE_BEGIN(basics)
 
 /////////////////////////////////////////////////////////////////////////////
-//
-// MiniString
-//
+/// MiniString.
+/// basically a downsized version of string<char>
+/// mainly for testing purpose
 /////////////////////////////////////////////////////////////////////////////
 class MiniString : public global
 {
@@ -44,7 +45,7 @@ protected:
 		if( cStrPtr != s.cStrPtr )
 		{
 			if(s.cStrPtr->size()>1 && cStrPtr->size()>1) 
-				return memcmp(s, cStrPtr->array(), cStrPtr->size());
+				return memcmp(s, cStrPtr->begin(), cStrPtr->size());
 
 			if(s.cStrPtr->size()==0 && cStrPtr->size()==0) return 0;
 			if(s.cStrPtr->size()==0) return -1;
@@ -55,7 +56,7 @@ protected:
 	int compareTo(const char *c) const 
 	{	// compare with memcmp including the end-of-string
 		// which is faster than doing a strcmp
-		if(c && cStrPtr.exists()) return memcmp(c, cStrPtr->array(), cStrPtr->size());
+		if(c && cStrPtr.exists()) return memcmp(c, cStrPtr->begin(), cStrPtr->size());
 		if((!c || *c==0) && !cStrPtr.exists()) return 0;
 		if((!c || *c==0)) return -1;
 		return 1;
@@ -73,7 +74,7 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////
-	// a special constructor for creating an addition objects
+	/// a special constructor for creating an addition objects
 	MiniString(const char *c1, const size_t len1, const char *c2, const size_t len2)
 	{	// double initialisation to concatenate two strings within the constructor
 		// the given len values are only the number of characters without the EOS
@@ -116,9 +117,9 @@ public:
 
 	//////////////////////////////////////////////////////
 	// 
-	const char* get() const						{ return cStrPtr->array(); }
-	const char* c_str() const					{ return cStrPtr->array(); }
-	operator const char*() const				{ return cStrPtr->array(); }
+	const char* get() const						{ return cStrPtr->begin(); }
+	const char* c_str() const					{ return cStrPtr->begin(); }
+	operator const char*() const				{ return cStrPtr->begin(); }
 	size_t length() const	{ return (cStrPtr.exists() && cStrPtr->size()>0) ? ( cStrPtr->size()-1):0; }
 
 	void clear()
@@ -297,20 +298,20 @@ public:
 	//////////////////////////////////////////////////////
 	MiniString operator +(const MiniString &s)
 	{
-		return MiniString(cStrPtr->array(),length(), s.cStrPtr->array(), s.length());
+		return MiniString(cStrPtr->begin(),length(), s.cStrPtr->begin(), s.length());
 	}
 	MiniString operator +(const char* c)
 	{
 		if(c)
 		{
-			return MiniString(cStrPtr->array(),length(), c, strlen(c));
+			return MiniString(cStrPtr->begin(),length(), c, strlen(c));
 		}
 		return *this;
 	}
 	MiniString operator +(const char ch)
 	{
 		if(ch)
-			return MiniString(cStrPtr->array(),length(), &ch, 1);
+			return MiniString(cStrPtr->begin(),length(), &ch, 1);
 		return *this;
 	}
 	MiniString operator +(int v)
@@ -366,5 +367,10 @@ public:
 	friend int compare(const MiniString &a,const MiniString &b){ return a.compareTo(b); }
 };
 
+
+template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const MiniString& t)	{ s.append(t.c_str(), t.length()); return s;}
+template<class T> inline string<T>& operator <<(string<T>& s, const MiniString& t)					{ s->append(t.c_str(), t.length()); return s; }
+
+NAMESPACE_END(basics)
 
 #endif//__BASEMINISTRING_H__

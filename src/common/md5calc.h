@@ -2,7 +2,7 @@
 #ifndef _MD5CALC_H_
 #define _MD5CALC_H_
 
-#include "base.h"
+#include "basetypes.h"
 
 void MD5_String(const char * str, char * output);
 void MD5_String2binary(const char * str, char * output);

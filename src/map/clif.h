@@ -2,22 +2,22 @@
 #ifndef _CLIF_H_
 #define _CLIF_H_
 
-#include "base.h"
 #include "socket.h"
 #include "map.h"
+#include "chat.h"
 
 bool clif_packetsend(int fd, struct map_session_data &sd, unsigned short cmd, int info[], size_t sz);
 
-netaddress& getcharaddress();
-ipset& getmapaddress();
+basics::netaddress& getcharaddress();
+basics::ipset& getmapaddress();
 
 int clif_countusers(void);
 
 int clif_authok(struct map_session_data &sd);
-int clif_authfail_fd(int fd, uint32 type);
+int clif_authfail(struct map_session_data &sd, uint32 type);
 int clif_charselectok(uint32 id);
-int clif_dropflooritem(struct flooritem_data &fitem);
-int clif_clearflooritem(struct flooritem_data &fitem, int fd=0);
+int clif_dropflooritem(flooritem_data &fitem);
+int clif_clearflooritem(flooritem_data &fitem, int fd=0);
 int clif_clearchar(struct block_list &bl, unsigned char type);
 int clif_clearchar(struct map_session_data &sd, struct block_list &bl); // self
 #define clif_clearchar_area(bl, type)	clif_clearchar(bl,type)
@@ -34,7 +34,7 @@ int clif_movemob(struct mob_data &md);	//area
 int clif_movepet(struct pet_data &pd);	//area
 int clif_movenpc(struct npc_data &nd);	// [Valaris]
 int clif_changemap(struct map_session_data &sd, const char *mapname, unsigned short x, unsigned short y);	//self
-int clif_changemapserver(struct map_session_data &sd, const char *mapname, unsigned short x, unsigned short y, ipaddress ip, unsigned short port);	//self
+int clif_changemapserver(struct map_session_data &sd, const char *mapname, unsigned short x, unsigned short y, basics::ipaddress ip, unsigned short port);	//self
 int clif_fixpos(struct block_list &bl);	// area
 int clif_fixmobpos(struct mob_data &md);
 int clif_fixpcpos(struct map_session_data &sd);
@@ -70,19 +70,27 @@ int clif_changeoption(struct block_list&bl);	// area
 int clif_useitemack(struct map_session_data &sd,unsigned short index,unsigned short amount,unsigned char ok);	// self
 int clif_GlobalMessage(struct block_list &bl,const char *message, size_t len);
 int clif_createchat(struct map_session_data &sd,unsigned char fail);	// self
-int clif_dispchat(struct chat_data &cd,int fd);	// area or fd
+int clif_dispchat(chat_data &cd,int fd);	// area or fd
 int clif_joinchatfail(struct map_session_data &sd,unsigned char fail);	// self
-int clif_joinchatok(struct map_session_data&,struct chat_data&);	// self
-int clif_addchat(struct chat_data&,struct map_session_data&);	// chat
-int clif_changechatowner(struct chat_data&,struct map_session_data&);	// chat
-int clif_clearchat(struct chat_data &cd,int fd);	// area or fd
-int clif_leavechat(struct chat_data&,struct map_session_data&);	// chat
-int clif_changechatstatus(struct chat_data&);	// chat
+int clif_joinchatok(struct map_session_data&, chat_data&);	// self
+int clif_addchat(chat_data&,struct map_session_data&);	// chat
+int clif_changechatowner(chat_data&,struct map_session_data&);	// chat
+int clif_clearchat(chat_data &cd,int fd);	// area or fd
+int clif_leavechat(chat_data&,struct map_session_data&);	// chat
+int clif_changechatstatus(chat_data&);	// chat
 int clif_refresh(struct map_session_data&);	// self
 int clif_charnameack(int fd, struct block_list &bl, bool clear=false);
 
-int clif_fame_blacksmith(struct map_session_data &sd, uint32 points);
-int clif_fame_alchemist(struct map_session_data &sd, uint32 points);
+int clif_pk_fame(struct map_session_data &sd, const uint32 total, int delta);
+int clif_blacksmith_fame(struct map_session_data &sd, const uint32 total, int delta);
+int clif_alchemist_fame(struct map_session_data &sd, const uint32 total, int delta);
+int clif_taekwon_fame(const struct map_session_data &sd, const uint32 total, int delta);
+
+
+int clif_mission_mob(struct map_session_data &sd, unsigned short mob_id, unsigned short progress);
+int clif_hate_mob(struct map_session_data &sd, unsigned short skilllv, unsigned short  mob_id);
+int clif_feel_info(struct map_session_data &sd, int feel_level);
+
 
 int clif_emotion(struct block_list &bl,unsigned char type);
 int clif_talkiebox(struct block_list &bl,const char* talkie);
@@ -342,8 +350,19 @@ int clif_pet_equip(struct pet_data &pd,unsigned short nameid);
 int clif_pet_food(struct map_session_data &sd,unsigned short foodid,unsigned char fail);
 
 //friends list
-int clif_friendslist_send(struct map_session_data &sd);
-int clif_friendslist_reqack(struct map_session_data &sd, const char *name, unsigned short type);
+int clif_friend_send_info(struct map_session_data &sd);
+int clif_friend_add_ack(struct map_session_data &sd, uint32 friend_account_id, uint32 friend_char_id, const char* name, unsigned short flag);
+
+
+
+// mail system
+int clif_openmailbox(struct map_session_data &sd);
+int clif_send_mailbox(struct map_session_data &sd, uint32 count, const unsigned char* buffer);
+int clif_res_sendmail(struct map_session_data &sd, bool ok);
+int clif_res_sendmail_setappend(struct map_session_data &sd, int flag);
+int clif_arrive_newmail(struct map_session_data &sd, const CMailHead& mh);
+int clif_receive_mail(struct map_session_data &sd, const CMail& md);
+int clif_deletemail_res(struct map_session_data &sd, uint32 msgid, bool ok);
 
 
 int clif_clearweather(unsigned short m);
@@ -359,7 +378,7 @@ int clif_GM_silence(struct map_session_data &sd,struct map_session_data &tsd,int
 int clif_timedout(struct map_session_data &sd);
 
 
-class CClifProcessor : public noncopyable
+class CClifProcessor : public basics::noncopyable
 {
 public:
 	CClifProcessor()			{}

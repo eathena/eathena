@@ -3,18 +3,30 @@
 
 #include "basetypes.h"
 
+//////////////////////////////////////////////////////////////////////////
+/// basic abstract classes
+//////////////////////////////////////////////////////////////////////////
 
-
+NAMESPACE_BEGIN(basics)
 
 int unixerrno();
 const char* unixerrmsg(int code);
 
-//////////////////////////////////////////////////////////////////////////
-// basic abstract classes
-//////////////////////////////////////////////////////////////////////////
+// possibly undefined error numbers on win32
+#ifndef ENOTBLK
+#define ENOTBLK 15
+#endif
+#ifndef EUCLEAN
+#define EUCLEAN 35
+#endif
+#ifndef ETXTBSY
+#define ETXTBSY 26
+#endif
+
+
 
 //////////////////////////////////////////////////////////////////////////
-// base class to prevent copy/assign
+/// base class to prevent copy/assign
 //////////////////////////////////////////////////////////////////////////
 class noncopyable 
 {
@@ -39,7 +51,7 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////////
-// base class to prevent allocation
+/// base class to prevent allocation
 //////////////////////////////////////////////////////////////////////////
 class nonallocable 
 {	// prevent allocation
@@ -52,7 +64,7 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// default compare operators using object pointers
+/// default compare operators using object pointers
 //////////////////////////////////////////////////////////////////////////
 class defaultcmp
 {
@@ -67,8 +79,28 @@ public:
 	bool operator< (const defaultcmp& a) const	{ return this< &a; }
 };
 
+
+///////////////////////////////////////////////////////////////////////////////
+/// reduced compare set
 //////////////////////////////////////////////////////////////////////////
-// base class for clonable objects
+class reducedcmp
+{
+protected:
+	reducedcmp()	{}
+	virtual ~reducedcmp()	{}
+public:
+	virtual bool operator==(const defaultcmp& a) const=0;
+	bool operator!=(const defaultcmp& a) const	{ return !this->operator==(a); }
+	bool operator>=(const defaultcmp& a) const	{ return !this->operator< (a); }
+	bool operator> (const defaultcmp& a) const	{ return !this->operator< (a) && !this->operator==(a); }
+	bool operator<=(const defaultcmp& a) const	{ return  this->operator< (a) ||  this->operator==(a); }
+	virtual bool operator< (const defaultcmp& a) const=0;
+};
+
+
+
+//////////////////////////////////////////////////////////////////////////
+/// base class for clonable objects
 //////////////////////////////////////////////////////////////////////////
 class clonable
 {
@@ -80,7 +112,7 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////////
-// base class for objects that can be counted on global scope
+/// base class for objects that can be counted on global scope
 //////////////////////////////////////////////////////////////////////////
 class global 
 {
@@ -93,8 +125,11 @@ private:
 	public:
 		_globalcount();
 		~_globalcount();
+
+		static void finalcheck();
 	};
 	static _globalcount gc;
+	friend class _globalcount;
 #endif
 #endif
 
@@ -102,44 +137,30 @@ private:
 protected:
 	global()				{ atomicincrement(&sGlobalCount); }
 public:
-	virtual ~global()		{ atomicdecrement(&sGlobalCount); }
+	virtual ~global()
+	{
+		atomicdecrement(&sGlobalCount);	
+#ifdef DEBUG
+		_globalcount::finalcheck();
+#endif
+	}
 	static int getcount()	{ return sGlobalCount; }
-	static int correct()	{ atomicdecrement(&sGlobalCount); return sGlobalCount; }
+	static void debugprint();
 #else
 protected:
 	global()				{ }
 public:
 	virtual ~global()		{ }
 	static int getcount()	{ return 0; }
-	static int correct()	{ return 0; }
-#endif
-};
-
-//////////////////////////////////////////////////////////////////////////
-// class for correcting global counter
-// in case of instantiation of static objects that might get destructed
-// after the global class and thus cause incorrect global object counter
-//////////////////////////////////////////////////////////////////////////
-class globalrecount
-{
-public:
-#ifdef COUNT_GLOBALS
-	globalrecount()		{ global::correct(); }
-	~globalrecount()	{ }
-#else
-	globalrecount()		{ }
-	~globalrecount()	{ }
+	static void debugprint(){}
 #endif
 };
 
 
 
-
 //////////////////////////////////////////////////////////////////////////
-// 64bit and user save pointer/number sharing structure
-// use with care
-//!! currently in common/timer.h
-/*
+/// 64bit and user save pointer/number sharing structure.
+/// use with care
 typedef struct _numptr
 {
 	bool	isptr;
@@ -151,14 +172,13 @@ typedef struct _numptr
 	explicit _numptr(void*a):isptr(a!=NULL),ptr(a)	{}	// take over the void pointer, block const pointers here to signal the user
 	_numptr(ssize_t a):isptr(false),num(a)			{}	// initialisation from numbers !!DONT CAST POINTERS TO INTS!!
 } numptr;
-*/
 
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// modifies a value on a scope change (actually on object destruction)
-// removes the necessity of writing bunches of value settings before returns
-// on spagetti code like frequently found especially here
+/// modifies a value on a scope change. (actually on object destruction)
+/// removes the necessity of writing bunches of value settings before returns
+/// on spagetti code like frequently found especially here
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> class TScopeChange
 {
@@ -174,12 +194,12 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Singleton Templates
+/// Singleton Templates
 ///////////////////////////////////////////////////////////////////////////////
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Simple Singleton for default creatable objects only
+/// Simple Singleton for default creatable objects only
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> class TSimpleSingleton
 {
@@ -189,7 +209,6 @@ public:
 
 	static T& aquire()
 	{
-		static globalrecount grc;	// for reduceing global counter
 		static T singleton;
 		return singleton;
 	}
@@ -197,13 +216,12 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// Singleton with templated create functions
+/// Singleton with templated create functions
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> class TSingleton
 {
 	static T*& getpointer()
 	{
-		static globalrecount grc;	// for reduceing global counter
 		static T*singleton_ptr=NULL;
 		return singleton_ptr;
 	}
@@ -359,6 +377,7 @@ public:
 	}
 };
 
+NAMESPACE_END(basics)
 
 #endif//__BASEOBJECTS_H__
 

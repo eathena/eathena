@@ -13,6 +13,30 @@
 #define END_ACCOUNT_NUM 100000000
 
 
+///////////////////////////////////////////////////////////////////////////////
+/// login session data.
+/// only used for holding a md5key
+class login_session_data : public session_data
+{
+public:
+	uchar md5keylen;
+	char md5key[23];
+
+	login_session_data() : md5keylen( rand() % 4 + 12 )
+	{	// create a coding key, 
+		// all chars exept zero allowed
+		size_t i;
+		for(i=0; i<this->md5keylen; ++i)
+			this->md5key[i] = rand() % 255 + 1;
+
+		// terminate with zero
+		this->md5key[this->md5keylen-1]=0;
+	}
+	virtual ~login_session_data()	{}
+};
+
+
+
 
 
 
@@ -41,8 +65,8 @@
 
 	the protocol between login and char then could be reduced to
 		"login/re-login+ack"	login<- char 
-		"add account(s)"		login<->char
-		"update account(s)"		login<->char
+		"add account(s)"		login<->char (reverse when M/F creation is active)
+		"update account(s)"		login<->char (reverse for login_count/lastip)
 		"delete account(s)"		login<- char
 
 */

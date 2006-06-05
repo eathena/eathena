@@ -4,6 +4,7 @@
 
 #include "basetypes.h"
 
+NAMESPACE_BEGIN(basics)
 
 ///////////////////////////////////////////////////////////////////////////////
 // predeclaration
@@ -98,6 +99,7 @@ template<typename T> string<T> dprintf(const T* format, ...);
 template<typename T> string<T> dvprintf(const T* format, va_list);
 
 
+NAMESPACE_END(basics)
 
 
 #endif//__BASESTRFORMAT_H__

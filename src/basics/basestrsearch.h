@@ -4,17 +4,18 @@
 #include "basestring.h"
 #include "basearray.h"
 
+NAMESPACE_BEGIN(basics)
+
+
 ///////////////////////////////////////////////////////////////////////////////
-// test function
+/// test function
 void test_strsearch(void);
 
 ///////////////////////////////////////////////////////////////////////////////
-// String search based on the Knuth-Morris-Pratt algorithm for
-// linear running-time, O(m+n) where m=length of pattern and
-// n=length of text.
-//
-// originally written by Andreas Magnusson in November 2001
-///////////////////////////////////////////////////////////////////////////////
+/// String search based on the Knuth-Morris-Pratt algorithm.
+/// for linear running-time, O(m+n) where m=length of pattern and
+/// n=length of text.
+/// originally written by Andreas Magnusson in November 2001
 template <class T=char> class patternstring_kmp : public string<T>
 {
 	vector<size_t>	cShifts;
@@ -43,10 +44,10 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// patternstring
-// derived from string
-// additionally generates the pattern skip table to be used in booyer-moore search
-// fastens up continious searches of the same pattern in different strings
+/// booyer-moore patternstring.
+/// derived from string
+/// additionally generates the pattern skip table to be used in booyer-moore search
+/// fastens up continious searches of the same pattern in different strings
 ///////////////////////////////////////////////////////////////////////////////
 template <class T=char> class patternstring : public string<T>
 {
@@ -67,7 +68,7 @@ public:
 		return *this;
 	}
 	///////////////////////////////////////////////////////////////////////////////
-	// Search function
+	/// Search function
 	///////////////////////////////////////////////////////////////////////////////
 	bool findnext(const stringinterface<T>& searchstring, size_t &startpos, bool ignorecase=false) const;
 	vector<size_t> findall(const stringinterface<T>& searchstring, bool ignorecase=false) const;
@@ -79,12 +80,14 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// simple pattern matching
+/// simple pattern matching.
+/// using *?# wildcards and character sets
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> bool match_wildcard(const T* wild, const T* match);
 
 
 
+NAMESPACE_END(basics)
 
 
 #endif//__BASESTRSEARCH_H__

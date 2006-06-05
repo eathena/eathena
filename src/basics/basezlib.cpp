@@ -5,15 +5,14 @@
 #include "baselib.h"
 #include "basezlib.h"
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // direct copy of the minizip environment 
 // from zlib v1.2.3 package "zlib/contrib/minizip"
 // cleaned for usage inside this environment
 //
-//!! TODO: remove usused stuff
-//!! TODO: integrate to zlib class to enable dynamic zlib loading
-//!! TODO: check if stripping the fileio api to basefile is preferable
+//## TODO: remove usused stuff
+//## TODO: integrate to zlib class to enable dynamic zlib loading
+//## TODO: check if stripping the fileio api to basefile is preferable
 
 
 
@@ -38,6 +37,9 @@
 #else
 #   include <errno.h>
 #endif
+
+
+NAMESPACE_BEGIN(basics)
 
 
 #ifdef _MSC_VER
@@ -586,14 +588,14 @@ static int crypthead(const char *passwd,	// password string
         srand((unsigned)(time(NULL) ^ ZCR_SEED2));
     }
     init_keys(passwd, pkeys, pcrc_32_tab);
-    for (n = 0; n < RAND_HEAD_LEN-2; n++)
+    for (n = 0; n < RAND_HEAD_LEN-2; ++n)
     {
         c = (rand() >> 7) & 0xff;
         header[n] = (unsigned char)zencode(pkeys, pcrc_32_tab, c, t);
     }
     // Encrypt random header (last two bytes is high word of crc)
     init_keys(passwd, pkeys, pcrc_32_tab);
-    for (n = 0; n < RAND_HEAD_LEN-2; n++)
+    for (n = 0; n < RAND_HEAD_LEN-2; ++n)
     {
         buf[n] = (unsigned char)zencode(pkeys, pcrc_32_tab, header[n], t);
     }
@@ -1484,7 +1486,7 @@ bool CZlib::deflate(unsigned char *dest, unsigned long& destLen, const char *sou
 		printf("Cannot open %s\n", source);
 		err = UNZ_ERRNO;
 	}
-	else if( (err=unzLocateFile(uf, filename, 0)) != UNZ_OK)
+	else if( filename && (err=unzLocateFile(uf, filename, 0)) != UNZ_OK)
 	{
 		printf("file %s not found in the zipfile\n", filename);
 	}
@@ -2480,7 +2482,7 @@ int unzOpenCurrentFile3 (unzFile file,
         if(ZREAD(s->z_filefunc, s->filestream,source, 12)<12)
             return UNZ_INTERNALERROR;
 
-        for (i = 0; i<12; i++)
+        for (i = 0; i<12; ++i)
             zdecode(s->keys,s->pcrc_32_tab,source[i]);
 
         s->pfile_in_zip_read->pos_in_zipfile+=12;
@@ -2583,7 +2585,7 @@ int unzReadCurrentFile(unzFile file, voidp buf, unsigned len)
             if(s->encrypted)
             {
                 uInt i;
-                for(i=0;i<uReadThis;i++)
+                for(i=0;i<uReadThis;++i)
                   pfile_in_zip_read_info->read_buffer[i] =
                       zdecode(s->keys,s->pcrc_32_tab,
                               pfile_in_zip_read_info->read_buffer[i]);
@@ -2614,7 +2616,7 @@ int unzReadCurrentFile(unzFile file, voidp buf, unsigned len)
             else
                 uDoCopy = pfile_in_zip_read_info->stream.avail_in ;
 
-            for (i=0;i<uDoCopy;i++)
+            for (i=0;i<uDoCopy;++i)
                 *(pfile_in_zip_read_info->stream.next_out+i) =
                         *(pfile_in_zip_read_info->stream.next_in+i);
 
@@ -3301,7 +3303,7 @@ int do_list(unzFile uf)
         printf("error %d with zipfile in unzGetGlobalInfo \n",err);
     printf(" Length  Method   Size  Ratio   Date    Time   CRC-32     Name\n");
     printf(" ------  ------   ----  -----   ----    ----   ------     ----\n");
-    for (i=0;i<gi.number_entry;i++)
+    for (i=0;i<gi.number_entry;++i)
     {
         char filename_inzip[256];
         unz_file_info file_info;
@@ -3537,7 +3539,7 @@ int do_extract(unzFile uf,
     if (err!=UNZ_OK)
         printf("error %d with zipfile in unzGetGlobalInfo \n",err);
 
-    for (i=0;i<gi.number_entry;i++)
+    for (i=0;i<gi.number_entry;++i)
     {
         if (do_extract_currentfile(uf,&opt_extract_without_path,
                                       &opt_overwrite,
@@ -3670,7 +3672,7 @@ static int add_data_in_datablock(linkedlist_data* ll,
 
         to_copy = &(ldi->data[ldi->filled_in_this_block]);
 
-        for (i=0;i<copy_this;i++)
+        for (i=0;i<copy_this;++i)
             *(to_copy+i)=*(from_copy+i);
 
         ldi->filled_in_this_block += copy_this;
@@ -3698,14 +3700,14 @@ static int ziplocal_putValue(const zlib_filefunc_def* pzlib_filefunc_def,
 {
     unsigned char buf[4];
     int n;
-    for (n = 0; n < nbByte; n++)
+    for (n = 0; n < nbByte; ++n)
     {
         buf[n] = (unsigned char)(x & 0xff);
         x >>= 8;
     }
     if (x != 0)
       {     /* data overflow - hack for ZIP64 (X Roche) */
-      for (n = 0; n < nbByte; n++)
+      for (n = 0; n < nbByte; ++n)
         {
           buf[n] = 0xff;
         }
@@ -3721,14 +3723,14 @@ static void ziplocal_putValue_inmemory (void* dest, uLong x, int nbByte)
 {
     unsigned char* buf=(unsigned char*)dest;
     int n;
-    for (n = 0; n < nbByte; n++) {
+    for (n = 0; n < nbByte; ++n) {
         buf[n] = (unsigned char)(x & 0xff);
         x >>= 8;
     }
 
     if (x != 0)
     {     /* data overflow - hack for ZIP64 */
-       for (n = 0; n < nbByte; n++)
+       for (n = 0; n < nbByte; ++n)
        {
           buf[n] = 0xff;
        }
@@ -4193,14 +4195,14 @@ int zipOpenNewFileInZip3(zipFile file,
 
     ziplocal_putValue_inmemory(zi->ci.central_header+42,(uLong)zi->ci.pos_local_header- zi->add_position_when_writting_offset,4);
 
-    for (i=0;i<size_filename;i++)
+    for (i=0;i<size_filename;++i)
         *(zi->ci.central_header+SIZECENTRALHEADER+i) = *(filename+i);
 
-    for (i=0;i<size_extrafield_global;i++)
+    for (i=0;i<size_extrafield_global;++i)
         *(zi->ci.central_header+SIZECENTRALHEADER+size_filename+i) =
               *(((const char*)extrafield_global)+i);
 
-    for (i=0;i<size_comment;i++)
+    for (i=0;i<size_comment;++i)
         *(zi->ci.central_header+SIZECENTRALHEADER+size_filename+
               size_extrafield_global+i) = *(comment+i);
     if (zi->ci.central_header == NULL)
@@ -4332,7 +4334,7 @@ static int zipFlushWriteBuffer(zip_internal* zi)
 #ifndef NOCRYPT
         uInt i;
         int t;
-        for (i=0;i<zi->ci.pos_in_buffered_data;i++)
+        for (i=0;i<zi->ci.pos_in_buffered_data;++i)
             zi->ci.buffered_data[i] = zencode(zi->ci.keys, zi->ci.pcrc_32_tab,
                                        zi->ci.buffered_data[i],t);
 #endif
@@ -4390,7 +4392,7 @@ int zipWriteInFileInZip (zipFile file,
                 copy_this = zi->ci.stream.avail_in;
             else
                 copy_this = zi->ci.stream.avail_out;
-            for (i=0;i<copy_this;i++)
+            for (i=0;i<copy_this;++i)
                 *(((char*)zi->ci.stream.next_out)+i) =
                     *(((const char*)zi->ci.stream.next_in)+i);
             {
@@ -4634,13 +4636,13 @@ uLong filetime(const char *f,	// name of file to get info on
 		if (len > MAXFILENAME)
 		len = MAXFILENAME;
 
-		strncpy(name, f,MAXFILENAME-1);
-		/* strncpy doesnt append the trailing NULL, of the string is too long. */
+		strncpy(name, f, MAXFILENAME);
+		// strncpy doesnt append the trailing NULL, of the string is too long.
 		name[ MAXFILENAME ] = '\0';
 
 		if (name[len - 1] == '/')
 		name[len - 1] = '\0';
-		/* not all systems allow stat'ing a file with / appended */
+		// not all systems allow stat'ing a file with / appended
 		if (stat(name,&s)==0)
 		{
 			tm_t = s.st_mtime;
@@ -4739,7 +4741,7 @@ int zipmain(int argc,char *argv[])
     }
     else
     {
-        for (i=1;i<argc;i++)
+        for (i=1;i<argc;++i)
         {
             if ((*argv[i])=='-')
             {
@@ -4785,11 +4787,11 @@ int zipmain(int argc,char *argv[])
 
         zipok = 1 ;
         strncpy(filename_try, argv[zipfilenamearg],MAXFILENAME-1);
-        /* strncpy doesnt append the trailing NULL, of the string is too long. */
+        // strncpy doesnt append the trailing NULL, of the string is too long.
         filename_try[ MAXFILENAME ] = '\0';
 
         len=(int)strlen(filename_try);
-        for (i=0;i<len;i++)
+        for (i=0;i<len;++i)
             if (filename_try[i]=='.')
                 dot_found=1;
 
@@ -4843,7 +4845,7 @@ int zipmain(int argc,char *argv[])
         else
             printf("creating %s\n",filename_try);
 
-        for (i=zipfilenamearg+1;(i<argc) && (err==ZIP_OK);i++)
+        for (i=zipfilenamearg+1;(i<argc) && (err==ZIP_OK);++i)
         {
             if (!((((*(argv[i]))=='-') || ((*(argv[i]))=='/')) &&
                   ((argv[i][1]=='o') || (argv[i][1]=='O') ||
@@ -4937,3 +4939,36 @@ int zipmain(int argc,char *argv[])
     free(buf);
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void test_zib(void)
+{
+#if defined(DEBUG)
+	CZlib czlib;
+	unsigned long len=0;
+	czlib.deflate(NULL, len, "out.zip", "out.txt");
+	unsigned char buf[65535];
+	len=sizeof(buf);
+	czlib.deflate(buf, len, "out.zip", "out.txt");
+#endif
+}
+
+NAMESPACE_END(basics)

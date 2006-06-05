@@ -1,5 +1,4 @@
 // $Id: int_pet.c,v 1.1.1.1 2004/09/10 17:26:51 MagicalTux Exp $
-#include "base.h"
 #include "baseio.h"
 #include "mmo.h"
 #include "socket.h"
@@ -18,7 +17,7 @@ CPetDB	cPetDB;
 
 int inter_pet_init()
 {
-	cPetDB.init(NULL);
+	cPetDB.init(CHAR_CONF_NAME);
 	return 0;
 }
 
@@ -52,7 +51,7 @@ int mapif_pet_info(int fd, uint32 account_id, const CPet &pet)
 	if( session_isActive(fd) )
 	{
 		WFIFOW(fd,0)=0x3881;
-		WFIFOW(fd,2)=sizeof(struct s_pet) + 9;
+		WFIFOW(fd,2)=sizeof(struct petstatus) + 9;
 		WFIFOL(fd,4)=account_id;
 		WFIFOB(fd,8)=0;
 		s_pet_tobuffer(pet, WFIFOP(fd,9));
@@ -66,10 +65,10 @@ int mapif_pet_noinfo(int fd, uint32 account_id)
 	if( session_isActive(fd) )
 	{
 		WFIFOW(fd,0)=0x3881;
-		WFIFOW(fd,2)=sizeof(struct s_pet) + 9;
+		WFIFOW(fd,2)=sizeof(struct petstatus) + 9;
 		WFIFOL(fd,4)=account_id;
 		WFIFOB(fd,8)=1;
-		memset(WFIFOP(fd,9),0,sizeof(struct s_pet));
+		memset(WFIFOP(fd,9),0,sizeof(struct petstatus));
 		WFIFOSET(fd,WFIFOW(fd,2));
 	}
 	return 0;
@@ -136,9 +135,9 @@ int mapif_save_pet(int fd, uint32 account_id, unsigned char* buf)
 	{
 		
 		int len=RFIFOW(fd,2);
-		if(sizeof(struct s_pet)!=len-8)
+		if(sizeof(struct petstatus)!=len-8)
 		{
-			ShowMessage("inter pet: data size error %d %d\n",sizeof(struct s_pet),len-8);
+			ShowMessage("inter pet: data size error %d %d\n",sizeof(struct petstatus),len-8);
 		}
 		else
 		{

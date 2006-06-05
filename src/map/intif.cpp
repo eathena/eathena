@@ -1,5 +1,4 @@
 // $Id: intif.c,v 1.2 2004/09/25 05:32:18 MouseJstr Exp $
-#include "base.h"
 #include "socket.h"
 #include "timer.h"
 #include "map.h"
@@ -70,15 +69,15 @@ int intif_request_petdata(uint32 account_id,uint32 char_id,uint32 pet_id)
 	return 0;
 }
 
-int intif_save_petdata(uint32 account_id,struct s_pet &pet)
+int intif_save_petdata(uint32 account_id,struct petstatus &pet)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
 
 	WFIFOW(char_fd,0) = 0x3082;
-	WFIFOW(char_fd,2) = sizeof(struct s_pet) + 8;
+	WFIFOW(char_fd,2) = sizeof(struct petstatus) + 8;
 	WFIFOL(char_fd,4) = account_id;
-	//memcpy(WFIFOP(char_fd,8),p,sizeof(struct s_pet));
+	//memcpy(WFIFOP(char_fd,8),p,sizeof(struct petstatus));
 	s_pet_tobuffer(pet, WFIFOP(char_fd,8));
 	WFIFOSET(char_fd,WFIFOW(char_fd,2));
 
@@ -183,7 +182,7 @@ int intif_saveaccountreg(struct map_session_data &sd)
 		return 0;
 
 	WFIFOW(char_fd,0) = 0x3004;
-	WFIFOL(char_fd,4) = sd.bl.id;
+	WFIFOL(char_fd,4) = sd.block_list::id;
 	for(j=0,p=8;j<sd.status.account_reg_num;j++,p+=36){
 		memcpy(WFIFOP(char_fd,p),sd.status.account_reg[j].str,32);
 		WFIFOL(char_fd,p+32)=sd.status.account_reg[j].value;
@@ -199,7 +198,7 @@ int intif_request_accountreg(struct map_session_data &sd)
 		return 0;
 
 	WFIFOW(char_fd,0) = 0x3005;
-	WFIFOL(char_fd,2) = sd.bl.id;
+	WFIFOL(char_fd,2) = sd.block_list::id;
 	WFIFOSET(char_fd,6);
 
 	sd.status.account_reg_num = 0xFFFFFFFF;
@@ -266,7 +265,7 @@ int intif_create_party(struct map_session_data &sd,const char *name,int item,int
 	WFIFOL(char_fd,2) = sd.status.account_id;
 	memcpy(WFIFOP(char_fd, 6),name,24);
 	memcpy(WFIFOP(char_fd,30),sd.status.name,24);
-	memcpy(WFIFOP(char_fd,54),maps[sd.bl.m].mapname,16);
+	memcpy(WFIFOP(char_fd,54),maps[sd.block_list::m].mapname,16);
 	WFIFOW(char_fd,70)= sd.status.base_level;
 	WFIFOB(char_fd,72)= item;
 	WFIFOB(char_fd,73)= item2;
@@ -301,7 +300,7 @@ int intif_party_addmember(uint32 party_id,uint32 account_id)
 		WFIFOL(char_fd,2)=party_id;
 		WFIFOL(char_fd,6)=account_id;
 		memcpy(WFIFOP(char_fd,10),sd->status.name,24);
-		memcpy(WFIFOP(char_fd,34),maps[sd->bl.m].mapname,16);
+		memcpy(WFIFOP(char_fd,34),maps[sd->block_list::m].mapname,16);
 		WFIFOW(char_fd,50)=sd->status.base_level;
 		WFIFOSET(char_fd,52);
 	}
@@ -342,7 +341,7 @@ int intif_party_changemap(struct map_session_data *sd,int online)
 	    WFIFOW(char_fd,0)=0x3025;
 	    WFIFOL(char_fd,2)=sd->status.party_id;
 	    WFIFOL(char_fd,6)=sd->status.account_id;
-	    memcpy(WFIFOP(char_fd,10),maps[sd->bl.m].mapname,16);
+	    memcpy(WFIFOP(char_fd,10),maps[sd->block_list::m].mapname,16);
 	    WFIFOB(char_fd,26)=online;
 	    WFIFOW(char_fd,27)=sd->status.base_level;
 	    WFIFOSET(char_fd,29);
@@ -643,7 +642,7 @@ int intif_parse_WisMessage(int fd)
 		if(sd->state.ignoreAll == 1){
 			intif_wis_replay(id,2);	// 受信拒否
 		}else{
-			for(i=0;i<MAX_IGNORE_LIST;i++){   //拒否リストに名前があるかどうか判定してあれば拒否
+			for(i=0; i<MAX_IGNORE_LIST; ++i){   //拒否リストに名前があるかどうか判定してあれば拒否
 				if(strcmp(sd->ignore[i].name,(char*)RFIFOP(fd,8))==0){
 					break;
 				}
@@ -681,9 +680,10 @@ int mapif_parse_WisToGM(int fd)
 	size_t i;
 	int min_gm_level;
 	struct map_session_data *pl_sd;
-	char Wisp_name[24];
-        char mbuf[255];
-	char *message = ( (size_t)RFIFOW(fd,2) >= 30+sizeof(mbuf)) ? (char *)aMalloc((RFIFOW(fd,2) - 30)*sizeof(char)) : mbuf;
+	char Wisp_name[32];
+	char mbuf[256];
+
+	char *message = ( (size_t)RFIFOW(fd,2) >= 30+sizeof(mbuf)) ? new char[(RFIFOW(fd,2) - 30)] : mbuf;
 
 	min_gm_level = (int)RFIFOW(fd,28);
 	memcpy(Wisp_name, RFIFOP(fd,4), 24);
@@ -691,13 +691,13 @@ int mapif_parse_WisToGM(int fd)
 	memcpy(message, RFIFOP(fd,30), RFIFOW(fd,2) - 30);
 	message[sizeof(message) - 1] = '\0';
 	// information is sended to all online GM
-	for (i = 0; i < fd_max; i++)
-		if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth)
+	for (i = 0; i < fd_max; ++i)
+		if(session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth)
 			if(pc_isGM(*pl_sd) >= min_gm_level)
 				clif_wis_message(i, Wisp_name, message, strlen(message) + 1);
 
         if(message != mbuf)
-            aFree(message);
+            delete[] message;
 
 	return 0;
 }
@@ -709,7 +709,7 @@ int intif_parse_AccountReg(int fd) {
 
 	if( (sd=map_id2sd(RFIFOL(fd,4)))==NULL )
 		return 1;
-	for(p=8,j=0;p<RFIFOW(fd,2) && j<ACCOUNT_REG_NUM;p+=36,j++){
+	for(p=8,j=0; p<RFIFOW(fd,2) && j<ACCOUNT_REG_NUM; p+=36,++j){
 		memcpy(sd->status.account_reg[j].str,RFIFOP(fd,p),32);
 		sd->status.account_reg[j].value=RFIFOL(fd,p+32);
 	}
@@ -797,8 +797,6 @@ int intif_parse_LoadGuildStorage(int fd)
 		if(battle_config.save_log)
 			ShowMessage("intif_open_guild_storage: %ld\n",(unsigned long)RFIFOL(fd,4) );
 
-
-//		memcpy(gstor,RFIFOP(fd,12),sizeof(struct guild_storage));
 		guild_storage_frombuffer(*gstor, RFIFOP(fd,12));
 
 		gstor->storage_status = 1;
@@ -1068,13 +1066,13 @@ int intif_parse_CreatePet(int fd)
 int intif_parse_RecvPetData(int fd)
 {
 	int len=RFIFOW(fd,2);
-	if(sizeof(struct s_pet)!=len-9) {
+	if(sizeof(struct petstatus)!=len-9) {
 		if(battle_config.etc_log)
-			ShowMessage("intif: pet data: data size error %d %d\n",sizeof(struct s_pet),len-9);
+			ShowMessage("intif: pet data: data size error %d %d\n",sizeof(struct petstatus),len-9);
 	}
 	else{
-		struct s_pet pet;
-//		memcpy(&p,RFIFOP(fd,9),sizeof(struct s_pet));
+		struct petstatus pet;
+//		memcpy(&p,RFIFOP(fd,9),sizeof(struct petstatus));
 		s_pet_frombuffer(pet, RFIFOP(fd,9));
 
 		pet_recv_petdata(RFIFOL(fd,4), pet, RFIFOB(fd,8));

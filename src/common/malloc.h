@@ -4,7 +4,7 @@
 #include <stdio.h> // for size_t
 
 
-
+/*
 
 #define ALC_MARK __FILE__, __LINE__, __func__
 
@@ -183,21 +183,6 @@ public:
 
 #endif
 
-/////////////// Buffer Creation /////////////////
-// Full credit for this goes to Shinomori [Ajarn]
-
-#ifdef __GNUC__ // GCC has variable length arrays
-
-	#define CREATE_BUFFER(name, type, size) type name[size]; memset(name,0,size*sizeof(type))
-	#define DELETE_BUFFER(name)
-
-#else // others don't, so we emulate them
-
-	#define CREATE_BUFFER(name, type, size) type *name = (type *) aCalloc (size, sizeof(type))
-	#define DELETE_BUFFER(name) aFree(name)
-
-#endif
-
 ////////////// Others //////////////////////////
 // should be merged with any of above later
 #define CREATE(result, type, number) \
@@ -211,7 +196,48 @@ public:
 
 ////////////////////////////////////////////////
 
+
+*/
+
+
+/////////////// Buffer Creation /////////////////
+// Full credit for this goes to Shinomori [Ajarn]
+
+#ifdef __GNUC__ // GCC has variable length arrays
+
+	#define CREATE_BUFFER(name, type, size) type name[size]; memset(name,0,size*sizeof(type))
+	#define DELETE_BUFFER(name)
+
+#else // others don't, so we emulate them
+
+	#define CREATE_BUFFER(name, type, size) type *name = (type *) calloc (size, sizeof(type))
+	#define DELETE_BUFFER(name) free(name)
+
+#endif
+
+
+
+
+
+// temporary memory realloc replacement using memcpy and memset
+// change to containers generally
+template<typename T> size_t new_realloc(T*& pointer, size_t oldsize, size_t addition)
+{
+	const size_t sz = oldsize+addition;
+	T* tmp = new T[sz];
+	memset(tmp+oldsize,0, addition*sizeof(T));
+	if(pointer)
+	{
+		memcpy(tmp, pointer, oldsize*sizeof(T));
+		delete[] pointer;
+	}
+	pointer = tmp;
+	return sz;
+}
+
+
 int memmgr_init(const char* file);
 void memmgr_final(void);
+
 
 #endif

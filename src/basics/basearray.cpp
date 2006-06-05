@@ -12,8 +12,7 @@
 #include "baseexceptions.h"
 #include "basearray.h"
 
-
-
+NAMESPACE_BEGIN(basics)
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -50,293 +49,97 @@ template class vector<void*>;
 
 
 
+#if defined(DEBUG)
 
-///////////////////////////////////////////////////////////////////////////
-// predeclaration
-class publisher;
-class subscriber;
-class singlesubscriber;
-class multisubscriber;
-
-///////////////////////////////////////////////////////////////////////////
-// subscriber interface
-class subscriber : public defaultcmp, public Mutex
-{
-public:
-	subscriber()			{}
-	virtual ~subscriber()	{}
-	
-	///////////////////////////////////////////////////////////////////////
-	// connect/disconnect
-	virtual void connect(publisher& pub) =0;
-	virtual void disconnect(publisher& pub) =0;
-	virtual void disconnect() =0;
-	virtual void notify()	{}
-};
-
-
-
-///////////////////////////////////////////////////////////////////////////
-// publisher
-// can connect to a multiple subscriber objects
-class publisher : public defaultcmp, public Mutex
-{
-	friend class singlesubscriber;
-	friend class multisubscriber;
-	ptrslist<subscriber> subs;
-public:
-	///////////////////////////////////////////////////////////////////////
-	// constructor/destructor
-	publisher()		{}
-	~publisher()	{ this->disconnect(); }
-
-	///////////////////////////////////////////////////////////////////////
-	// connect a subscriber
-	void connect(subscriber& sub)
-	{
-		sub.connect(*this);
-	}
-	///////////////////////////////////////////////////////////////////////
-	// disconnect a subscriber
-	void disconnect(subscriber& sub)
-	{
-		sub.disconnect(*this);
-	}
-	///////////////////////////////////////////////////////////////////////
-	// disconnect all
-	void disconnect()
-	{
-		ScopeLock sl(*this);
-		size_t i;
-		while( (i=this->subs.size())>0 )
-		{
-			if( this->subs[i-1] )
-				this->subs[i-1]->disconnect(*this);
-		}
-	}
-	///////////////////////////////////////////////////////////////////////
-	// call function func in subscribers of type T (or derived)
-	template<typename T> void call( void (T::*func)(void) )
-	{
-		size_t i;
-		for(i=0; i<this->subs.size(); i++)
-		{
-			if( this->subs[i] )
-			{
-				T*ptr = dynamic_cast<T*>( this->subs[i] );
-				if( ptr ) (ptr->*func)();
-			}
-		}
-	}
-	///////////////////////////////////////////////////////////////////////
-	// call function func with parameter p1 in subscribers of type T (or derived)
-	template<typename T, typename X> void call( void (T::*func)(X p1), X p1 )
-	{
-		size_t i;
-		for(i=0; i<this->subs.size(); i++)
-		{
-			if( this->subs[i] )
-			{
-				T*ptr = dynamic_cast<T*>( this->subs[i] );
-				if( ptr ) (ptr->*func)(p1);
-			}
-		}
-	}
-};
-
-///////////////////////////////////////////////////////////////////////////
-// single subscriber
-// can connect to a (single) publisher object
-class singlesubscriber : public subscriber
-{
-	publisher* pub;
-public:
-	singlesubscriber() : pub(NULL)	{}
-	virtual ~singlesubscriber()		{ this->disconnect(); }
-	
-	///////////////////////////////////////////////////////////////////////
-	// connect/disconnect
-	virtual void connect(publisher& pub)
-	{
-		if( this->pub != &pub && (void*)this != (void*)&pub )
-		{
-			ScopeLock sl(pub);
-			if( this->pub )
-				this->disconnect(*this->pub);
-			this->pub = &pub;
-			pub.subs.append(this);
-		}
-	}
-	virtual void disconnect(publisher& pub)
-	{
-		if( this->pub == &pub )
-		{
-			ScopeLock sl(pub);
-			this->pub = NULL;
-			size_t pos;
-			if( pub.subs.find(this, 0, pos) )
-				pub.subs.removeindex(pos);
-		}
-	}
-	virtual void disconnect()
-	{
-		if( this->pub )
-		{
-			ScopeLock sl(*this);
-			ScopeLock sp(*this->pub);
-			size_t pos;
-			if( this->pub->subs.find(this, 0, pos) )
-				this->pub->subs.removeindex(pos);
-			this->pub=NULL;
-		}
-	}
-};
-
-
-///////////////////////////////////////////////////////////////////////////
-// multi subscriber
-// can connect to multiple publisher object
-class multisubscriber : public subscriber
-{
-	ptrslist<publisher> pubs;
-public:
-	multisubscriber()			{}
-	virtual ~multisubscriber()	{ this->disconnect(); }
-	
-	///////////////////////////////////////////////////////////////////////
-	// connect/disconnect
-	virtual void connect(publisher& pub)
-	{	
-		if( (void*)&pub!=(void*)this )
-		{
-			ScopeLock sl(*this);
-			ScopeLock sp(pub);
-			size_t pos;
-			if( !this->pubs.find(&pub, 0, pos) )
-			{
-				this->pubs.append(&pub);
-				pub.subs.append(this);
-			}
-		}
-	}
-	virtual void disconnect(publisher& pub)
-	{	
-		ScopeLock sl(*this);
-		ScopeLock sp(pub);
-		size_t pos;
-		if( this->pubs.find(&pub, 0, pos) )
-			this->pubs.removeindex(pos);
-		if( pub.subs.find(this, 0, pos) )
-			pub.subs.removeindex(pos);
-	}
-	virtual void disconnect()
-	{	// disconnect from all
-		ScopeLock sl(*this);
-		size_t i, pos;
-		for(i=0; i<this->pubs.size(); i++)
-		{
-			if( this->pubs[i] )
-			{
-				ScopeLock sl(*this->pubs[i]);
-				if( this->pubs[i]->subs.find(this, 0, pos) )
-					this->pubs[i]->subs.removeindex(pos);
-				this->pubs[i]=NULL;
-			}
-		}
-		this->pubs.clear();
-	}
-};
-
-///////////////////////////////////////////////////////////////////////////
-// component
-// publisher/subscriber combo
-class component : public publisher, public singlesubscriber
-{
-public:
-	component()				{}
-	virtual ~component()	{}
-
-	virtual void disconnect()
-	{
-		this->publisher::disconnect();
-		this->singlesubscriber::disconnect();
-	}
-};
-
-class subtest1 : public singlesubscriber
-{
-public:
-
-	subtest1()	{}
-
-	void functest0()
-	{
-		printf("1. ft %p\n", this);
-	}
-	void functest1(int param)
-	{
-		printf("1. ft %p -> %i\n", this, param);
-	}
-};
-
-
-class subtest2 : public subtest1
-{
-public:
-
-	subtest2()	{}
-
-	void functest0()
-	{
-		printf("2. ft %p\n", this);
-	}
-	void functest1(int param)
-	{
-		printf("2. ft %p -> %i\n", this, param);
-	}
-};
-
-
-
-
-class XXX
+class XXX : public defaultcmp
 {
 public:
 	ssize_t i;
 	string<> s;
-	XXX() : i((ssize_t)this)	{}
+	XXX() : i((size_t)this)	{}
 	XXX(const char*str) : i(1), s(str)	{}
 };
 
 
+
+class constructtest : public defaultcmp
+{
+public:
+	constructtest()
+	{
+		printf("constructtest default\n");
+	}
+	constructtest(int a, long b, const string<>& c, char d)
+	{
+		printf("constructtest%i %li, %s, %c\n", a,b,(const char*)c,d);
+	}
+};
+
+#endif
 
 void test_array(void)
 {
 #if defined(DEBUG)
 
 	{
-		publisher p;
+		slist< TObjPtr<int> > tlist;
 
-		singlesubscriber s1;
-		p.connect(s1);
+		tlist.insert( 1 );
+		tlist.insert( 2 );
+		tlist.insert( 1 );
+		tlist.insert( 2 );
 
-		subtest1 st1;
-		p.connect(st1);
 
+		slist< TObjPtr<int> >::iterator iter( tlist );
+
+		while( iter )
 		{
-			multisubscriber s2;
-			p.connect(s2);
-
-
-			subtest2 st2;
-			p.connect(st2);
-
-			p.call( &subtest1::functest0 );
-			p.call( &subtest2::functest1, 1 );
+			if( *iter )
+				printf("%i, ", **iter );
+			else
+				printf("empty, ");
+			++iter;
 		}
-
-		p.disconnect();	
 	}
+
+	{
+		char carr[5] = {1,2,3,4,5};
+		TObjPtr< vector<char> > ptrarray(carr,5);
+
+		printf("%li\n------------------\n", (ulong)ptrarray->size());
+
+		string<> sarr[5];
+		TObjPtr< vector< string<> > > ptrarray1(sarr,5);
+		printf("%li\n------------------\n", (ulong)ptrarray1->size());
+
+		TObjPtr< constructtest > sptr(1,2,"TObjPtr",'c');
+
+		TPtrCount< constructtest > sptr2(1,2,"TPtrCount",'c');
+		TPtrAutoCount< constructtest > sptr3(1,2,"TPtrAutoCount",'c');
+		TPtrAutoRef< constructtest > sptr4(1,2,"TPtrAutoRef",'c');
+		TPtrCommon< constructtest > sptr5(1,2,"TPtrCommon",'c');
+
+		TPtrCommon< vector<char> > ptrarray2;
+
+		vector<char> aa;
+		aa.resize(5);
+		aa[0] = 1;
+		aa[1] = 2;
+		aa[2] = 3;
+		aa[3] = 4;
+		aa[4] = 5;
+
+
+		size_t a = sizeof(ptrarray);
+		a = sizeof(ptrarray2);
+
+		ptrarray.setCopyonWrite();
+		printf("%li\n", (ulong)ptrarray->size());
+		char b = (*ptrarray)[2];
+		b++;
+	}
+
+
 
 	{
 		map<uint32, TObjPtr<XXX> > ptmap;
@@ -444,13 +247,13 @@ void test_array(void)
 		vector< string<> > ret2 = split(test,";:");
 
 		size_t i;
-		for(i=0; i<ret1.size(); i++)
+		for(i=0; i<ret1.size(); ++i)
 			printf("%s\n", (const char*)ret1[i]);
-		for(i=0; i<ret2.size(); i++)
+		for(i=0; i<ret2.size(); ++i)
 			printf("%s\n", (const char*)ret2[i]);
 
 
-		test << format<ulong>("%ul", 3);
+		test << format<ulong>("%lu", 3);
 
 		test = bytestostring(12345678l);
 		printf("%s\n", (const char*)test );
@@ -557,19 +360,20 @@ void test_array(void)
 
 
 
-	//!! TODO copy testcases from caldon
+	//## TODO copy testcases from caldon
 	{
 		printf("TArray vs. vector\n");
 		size_t runs=1000, elems=1000;
 		size_t i,k;
 		ulong tick;
 		TArrayDST<char> arr;
+
 		vector<char> vec;
 
 		tick = clock();
 
-		for(k=0; k<runs;k++, arr.resize(1), arr.realloc(1000))
-		for(i=0; i<elems; i++)
+		for(k=0; k<runs;++k, arr.resize(1), arr.realloc(1000))
+		for(i=0; i<elems; ++i)
 		{
 			arr.append( (char)i );
 		}
@@ -577,8 +381,8 @@ void test_array(void)
 
 
 		tick = clock();
-		for(k=0; k<runs;k++, vec.resize(1), vec.realloc(1000))
-		for(i=0; i<elems; i++)
+		for(k=0; k<runs;++k, vec.resize(1), vec.realloc(1000))
+		for(i=0; i<elems; ++i)
 		{			
 			vec.append( (char)i );
 		}
@@ -823,7 +627,7 @@ void test_array(void)
 		}
 		catch(exception e)
 		{
-			printf("catched: %s", e.what());
+			printf("catched: %s\n", e.what());
 		}
 		ss[3] = 'z'; 
 
@@ -833,7 +637,7 @@ void test_array(void)
 		}
 		catch(exception e)
 		{
-			printf("catched: %s", e.what());
+			printf("catched: %s\n", e.what());
 		}
 		ss.debug_print(); 
 		printf("slist order destroyed\n");
@@ -1047,3 +851,5 @@ void test_array(void)
 
 #endif//DEBUG
 }
+
+NAMESPACE_END(basics)

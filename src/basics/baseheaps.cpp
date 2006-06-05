@@ -10,17 +10,7 @@
 #include "baseheaps.h"
 
 
-
-
-
-
-
-
-
-
-
-
-
+NAMESPACE_BEGIN(basics)
 
 
 
@@ -29,7 +19,7 @@
 // Insert appends the element at the end and upheaps it
 // Delete swaps the last element in front and downheaps it until a leaf is reached
 // about 20% slower than method in the second implementation
-template <class T> class _BinaryHeapDH : private allocator_w_dy<T, elaborator_ct<T> >
+template <class T> class _BinaryHeapDH : private allocator_w_dy<T>, private elaborator_ct<T> 
 {
 	friend void test_heaps(int scale);
 	bool append(const T&e)
@@ -195,7 +185,7 @@ public:
 	bool checkHeap()
 	{
 		size_t i;
-		for(i=0; i<this->size()/2; i++)
+		for(i=0; i<this->size()/2; ++i)
 		{
 			if(  this->cBuf[i] > this->cBuf[2*i+1] ||
 				(this->cBuf[i] > this->cBuf[2*i+2] && (2*i+2)<this->size()) )
@@ -244,7 +234,7 @@ private:
 // Insert appends the element at the end and upheaps it
 // Delete downheaps the hole until a leaf is reached, 
 //    then replaces the hole with the last element and upheaps it
-template <class T> class _BinaryHeap : private allocator_w_dy<T, elaborator_ct<T> >
+template <class T> class _BinaryHeap : private allocator_w_dy<T>, private elaborator_ct<T> 
 {
 	friend void test_heaps(int scale);
 
@@ -467,7 +457,7 @@ public:
 	bool checkHeap()
 	{
 		size_t i;
-		for(i=0; i<this->size()/2; i++)
+		for(i=0; i<this->size()/2; ++i)
 		{
 			if(  this->cBuf[i] > this->cBuf[2*i+1] ||
 				(this->cBuf[i] > this->cBuf[2*i+2] && (2*i+2)<this->size()) )
@@ -511,13 +501,6 @@ public:
 
 
 
-
-
-
-
-
-#define DEBUG
-
 void test_heaps(int scale)
 {
 #if defined(DEBUG)
@@ -525,7 +508,6 @@ void test_heaps(int scale)
 	if( scale<1 ) scale=1;
 
 	uint k;
-//	const uint CFIELDSIZE = 5000000/scale;
 	const uint CFIELDSIZE = 5000000/scale;
 	uint elems=0;
 
@@ -537,7 +519,7 @@ void test_heaps(int scale)
 
 	
 	srand( time(NULL) );
-	for(k=0; k<CFIELDSIZE; k++)
+	for(k=0; k<CFIELDSIZE; ++k)
 		array[0][k]=array[1][k]=
 		rand();						// random data
 	//	k;							// sorted
@@ -552,7 +534,7 @@ void test_heaps(int scale)
 
 	bhtest1.clear();
 	bhtest1.realloc(elems);
-	for(k=0; k<elems; k++)
+	for(k=0; k<elems; ++k)
 		bhtest1.append(array[0][k]);
 
 	tick = clock();
@@ -567,7 +549,7 @@ void test_heaps(int scale)
 
 	bhtest2.clear();
 	bhtest2.realloc(elems);
-	for(k=0; k<elems; k++)
+	for(k=0; k<elems; ++k)
 		bhtest2.append(array[0][k]);
 
 	tick = clock();
@@ -624,7 +606,7 @@ void test_heaps(int scale)
 
 	elems = CFIELDSIZE;
 	tick = clock();
-	for(i=0; i<elems; i++)
+	for(i=0; i<elems; ++i)
 	{
 		bh1.insert( array[0][i] );
 	}
@@ -632,7 +614,7 @@ void test_heaps(int scale)
 
 	val2=-1;
 	tick = clock();
-	for(i=0; i<CFIELDSIZE; i++)
+	for(i=0; i<CFIELDSIZE; ++i)
 	{
 		bh1.pop( val );
 		if( val<val2 )
@@ -647,7 +629,7 @@ void test_heaps(int scale)
 	
 	elems = CFIELDSIZE;
 	tick = clock();
-	for(i=0; i<elems; i++)
+	for(i=0; i<elems; ++i)
 	{
 		bh2.insert( array[0][i] );
 	}
@@ -655,7 +637,7 @@ void test_heaps(int scale)
 
 	val2=-1;
 	tick = clock();
-	for(i=0; i<CFIELDSIZE; i++)
+	for(i=0; i<CFIELDSIZE; ++i)
 	{
 		bh2.pop( val );
 		if( val<val2 )
@@ -680,7 +662,7 @@ void test_heaps(int scale)
 	elems = CFIELDSIZE;
 
 	bhtest1.clear();
-	for(k=0; k<elems; k++)
+	for(k=0; k<elems; ++k)
 		bhtest1.append(array[0][k]);
 
 	tick = clock();
@@ -694,7 +676,7 @@ void test_heaps(int scale)
 	elems = CFIELDSIZE;
 
 	bhtest2.clear();
-	for(k=0; k<elems; k++)
+	for(k=0; k<elems; ++k)
 		bhtest2.append(array[0][k]);
 
 	tick = clock();
@@ -759,7 +741,7 @@ void test_heaps(int scale)
 
 	elems = CFIELDSIZE;
 	tick = clock();
-	for(i=0; i<elems; i++)
+	for(i=0; i<elems; ++i)
 	{
 		bh1.insert( array[0][i] );
 	}
@@ -767,7 +749,7 @@ void test_heaps(int scale)
 
 	val2=-1;
 	tick = clock();
-	for(i=0; i<CFIELDSIZE; i++)
+	for(i=0; i<CFIELDSIZE; ++i)
 	{
 		bh1.pop( val );
 		if( val<val2 )
@@ -782,7 +764,7 @@ void test_heaps(int scale)
 	
 	elems = CFIELDSIZE;
 	tick = clock();
-	for(i=0; i<elems; i++)
+	for(i=0; i<elems; ++i)
 	{
 		bh2.insert( array[0][i] );
 	}
@@ -790,7 +772,7 @@ void test_heaps(int scale)
 
 	val2=-1;
 	tick = clock();
-	for(i=0; i<CFIELDSIZE; i++)
+	for(i=0; i<CFIELDSIZE; ++i)
 	{
 		bh2.pop( val );
 		if( val<val2 )
@@ -805,7 +787,7 @@ void test_heaps(int scale)
 
 #endif//DEBUG
 }
-
+NAMESPACE_END(basics)
 
 /*
 // implementation of a van Emde Boas max-heap, 
@@ -1036,7 +1018,7 @@ public:
         {
             char nextLevel[128];
 			snprintf(nextLevel, sizeof(nextLevel), "%s    ", prefix);
-            for (int i=0; i<fChildren.length; i++)
+            for (int i=0; i<fChildren.length; ++i)
             {
                 if (fChildren[i] != null) fChildren[i].showHeap(nextLevel);
             }
@@ -1064,4 +1046,5 @@ public:
 
 
 */
+
 

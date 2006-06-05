@@ -4,8 +4,10 @@
 #include "basetypes.h"
 #include "baseobjects.h"
 
+NAMESPACE_BEGIN(basics)
+
 /////////////////////////////////////////////////////////////////////////////////////////
-// basic pointer interface
+/// basic pointer interface
 /////////////////////////////////////////////////////////////////////////////////////////
 template <class X> class TPtr : public noncopyable
 {
@@ -14,21 +16,103 @@ protected:
 public:
 	virtual ~TPtr()	{}
 	virtual const X* get() const = 0;
+	const X* pointer() const						{ return this->get(); }
+
+	///////////////////////////////////////////////////////////////////////////
+	/// logical tests to see if there is anything contained in the pointer since it can be null
+//	operator bool(void) const						{ return NULL!=this->get(); }
+	bool operator!(void) const						{ return NULL==this->get(); }
+	bool present(void) const						{ return NULL!=this->get(); }
+	bool null(void) const							{ return NULL==this->get(); }
 
 	virtual const X& readaccess() const = 0;
 	virtual X& writeaccess() = 0;
 
-	virtual bool operator ==(const TPtr& p)	const	{return false;}
-	virtual bool operator !=(const TPtr& p)	const	{return true;}
-	virtual bool operator ==(void *p) const = 0;
-	virtual bool operator !=(void *p) const = 0;
+	virtual const X& operator*() const throw() =0;
+	virtual const X* operator->() const throw() =0;
+	virtual X& operator*()	throw() =0;
+	virtual X* operator->()	throw() =0;
+	virtual operator const X&() const throw() =0;
+
+	virtual bool operator ==(void *p) const			{ return p==(void*)this->get(); }
+	virtual bool operator !=(void *p) const			{ return p==(void*)this->get(); }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// Simple Auto/Copy-Pointer
-// it creates a default object on first access if not initialized
-// automatic free on object delete
-// does not use a counting object
+/// Pointer Compares
+//## I'm not sure if burdening the compares with the stl-reduced-compare-set is a good idea
+template<typename T>
+bool operator==(const TPtr<T>& left, const TPtr<T>& right)
+{
+	// a null is not equal to a non-null but equal to another null
+	if(!left || !right) return left.pointer() == right.pointer();
+	// shortcut - if the two pointers are equal then the objects must be equal
+	if (left.pointer() == right.pointer()) return true;
+	// otherwise compare the objects themselves
+	return  (*left == *right);
+}
+template<typename T>
+bool operator!=(const TPtr<T>& left, const TPtr<T>& right)
+{
+	// a null is not equal to a non-null but equal to another null
+	if(!left || !right) return left.pointer() != right.pointer();
+	// shortcut - if the two pointers are equal then the objects must be equal
+	if (left.pointer() == right.pointer()) return false;
+	// otherwise compare the objects themselves
+	return !(*left == *right);
+//	return  (*left != *right);
+}
+
+template<typename T>
+bool operator< (const TPtr<T>& left, const TPtr<T>& right)
+{
+	// a null pointer is less than a non-null but equal to another null
+	if(!left || !right) return left.pointer() < right.pointer();
+	// shortcut - if the two pointers are equal then the comparison must be false
+	if (left.pointer() == right.pointer()) return false;
+	// otherwise, compare the objects
+	return (*left < *right);
+}
+template<typename T>
+bool operator<=(const TPtr<T>& left, const TPtr<T>& right)
+{
+	// a null pointer is less than a non-null but equal to another null
+	if(!left || !right) return left.pointer() <= right.pointer();
+	// shortcut - if the two pointers are equal then the comparison must be false
+	if (left.pointer() == right.pointer()) return true;
+	// otherwise, compare the objects
+	return (*left < *right) || (*left == *right);
+//	return (*left <=*right);
+}
+template<typename T>
+bool operator> (const TPtr<T>& left, const TPtr<T>& right)
+{
+	// a null pointer is less than a non-null but equal to another null
+	if(!left || !right) return left.pointer() > right.pointer();
+	// shortcut - if the two pointers are equal then the comparison must be false
+	if (left.pointer() == right.pointer()) return false;
+	// otherwise, compare the objects
+	return !(*left < *right) && !(*left == *right);
+//	return  (*left > *right);
+}
+template<typename T>
+bool operator>=(const TPtr<T>& left, const TPtr<T>& right)
+{
+	// a null pointer is less than a non-null but equal to another null
+	if(!left || !right) return left.pointer() >= right.pointer();
+	// shortcut - if the two pointers are equal then the comparison must be false
+	if (left.pointer() == right.pointer()) return true;
+	// otherwise, compare the objects
+	return !(*left < *right);
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// Simple Auto/Copy-Pointer.
+/// it creates a default object on first access if not initialized
+/// automatic free on object delete
+/// does not use a counting object
 /////////////////////////////////////////////////////////////////////////////////////////
 template <class X> class TPtrAuto : public TPtr<X>
 {
@@ -60,9 +144,9 @@ public:
 	virtual const X* get() const				{ const_cast<TPtrAuto<X>*>(this)->create(); return  this->itsPtr; }
 	virtual const X& operator*() const throw()	{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
 	virtual const X* operator->() const throw() { const_cast<TPtrAuto<X>*>(this)->create(); return  this->itsPtr; }
-	X& operator*()	throw()						{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
-	X* operator->()	throw()						{ const_cast<TPtrAuto<X>*>(this)->create(); return  this->itsPtr; }
-	operator const X&() const throw()			{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
+	virtual X& operator*()	throw()				{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
+	virtual X* operator->()	throw()				{ const_cast<TPtrAuto<X>*>(this)->create(); return  this->itsPtr; }
+	virtual operator const X&() const throw()	{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
 
 
 	virtual bool operator ==(void *p) const { return this->itsPtr==p; }
@@ -71,10 +155,10 @@ public:
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// Count-Pointer
-// pointer copies are counted
-// when reference counter becomes zero the object is automatically deleted
-// if there is no pointer, it will return NULL
+/// Count-Pointer.
+/// pointer copies are counted
+/// when reference counter becomes zero the object is automatically deleted
+/// if there is no pointer, it will return NULL
 /////////////////////////////////////////////////////////////////////////////////////////
 template <class X> class TPtrCount : public TPtr<X>
 {
@@ -109,35 +193,7 @@ protected:
 			return NULL;
 		}
 	};
-/*
-	template <class T> class CCounter
-	{
-	public:
-		T				ptr;
-		unsigned int	count;
 
-		CCounter() : count(1) {}
-		CCounter(const T& p, unsigned int c = 1) : ptr(p), count(c) {}
-		~CCounter()	{ }
-
-
-		operator T()	{  return ptr; }
-
-		CCounter<T>* aquire()
-		{
-			atomicincrement( &count );
-			return this;
-		}
-		CCounter<T>* release()
-		{
-			if( atomicdecrement( &count ) == 0 )
-			{
-				delete this;
-			}
-			return NULL;
-		}
-	};
-*/
 	CCounter<X>* cCntObj;
 
 	void acquire(const TPtrCount<X>& r) throw()
@@ -193,13 +249,13 @@ public:
 	}
 	TPtrCount<X>& operator=(X* p)
 	{	// take ownership of the given pointer
-		if( this->cCntObj )
-		{	
-			make_unique();
+		if( this->cCntObj && this->isunique() )
+		{
 			*this->cCntObj = p;
 		}
 		else
 		{
+			this->release();
 			this->cCntObj = new CCounter<X>(p);
 		}
 		return *this;
@@ -261,12 +317,6 @@ public:
 		}
 		return true;
 	}
-	virtual bool operator ==(const TPtrCount<X>& p) const { return this->cCntObj == p.cCntObj; }
-	virtual bool operator !=(const TPtrCount<X>& p) const { return this->cCntObj != p.cCntObj; }
-	virtual bool operator ==(void *p) const { return (this->cCntObj) ? (this->cCntObj->ptr==p) : (this->cCntObj==p); }
-	virtual bool operator !=(void *p) const { return (this->cCntObj) ? (this->cCntObj->ptr!=p) : (this->cCntObj!=p); }
-
-
 	virtual const X& readaccess() const			{ return *this->cCntObj->ptr; }
 	virtual X& writeaccess()					{ return *this->cCntObj->ptr; }
 
@@ -276,6 +326,10 @@ public:
 	virtual X& operator*() throw()				{ return *this->cCntObj->ptr; }
 	virtual X* operator->() throw()				{ return this->cCntObj ?  this->cCntObj->ptr : 0; }
 	virtual operator const X&() const throw()	{ return *this->cCntObj->ptr; }
+
+	virtual bool operator ==(void *p) const { return (this->cCntObj) ? (this->cCntObj->ptr==p) : (this->cCntObj==p); }
+	virtual bool operator !=(void *p) const { return (this->cCntObj) ? (this->cCntObj->ptr!=p) : (this->cCntObj!=p); }
+
 
 	const TPtrCount<X>& create ()
 	{
@@ -335,10 +389,10 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// Count-Pointer
-// pointer copies are counted
-// when reference counter becomes zero the object is automatically deleted
-// creates a default object if not exist
+/// Count-Pointer.
+/// pointer copies are counted
+/// when reference counter becomes zero the object is automatically deleted
+/// creates a default object if not exist
 /////////////////////////////////////////////////////////////////////////////////////////
 template <class X> class TPtrAutoCount : public TPtrCount<X>
 {
@@ -384,10 +438,10 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// Count-Auto-Pointer with copy-on-write scheme
-// pointer copies are counted
-// when reference counter becomes zero the object is automatically deleted
-// creates a default object if not exist
+/// Count-Auto-Pointer with copy-on-write scheme.
+/// pointer copies are counted
+/// when reference counter becomes zero the object is automatically deleted
+/// creates a default object if not exist
 /////////////////////////////////////////////////////////////////////////////////////////
 template <class X> class TPtrAutoRef : public TPtrCount<X>
 {
@@ -444,7 +498,7 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// Pointer with loadable scheme
+/// Pointer with loadable scheme.
 /////////////////////////////////////////////////////////////////////////////////////////
 enum POINTER_TYPE
 {
@@ -516,6 +570,15 @@ public:
 
 
 
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// smart pointer with embedded data.
+/// 
+/// TObjPtr implements copy-on-write & autocreate
+/// TObjPtrCount implements autocreate
+/// TObjPtrCommon is switchable
+/////////////////////////////////////////////////////////////////////////////////////////
 template <class X> class TObjPtr : public TPtr<X>
 {
 protected:
@@ -572,7 +635,7 @@ protected:
 	};
 
 	CCounter<X>* cCntObj;
-	mutable X& (TObjPtr<X>::*fAccess)(void) const;
+
 
 	void acquire(const TObjPtr<X>& r) throw()
 	{	// check if not already pointing to the same object
@@ -600,6 +663,8 @@ protected:
 		// usable objects here need a default constructor
 		if(!this->cCntObj)		this->cCntObj		= new (typename TObjPtr<X>::template CCounter<X>)();
 	}
+
+
 	virtual X& autocreate() const
 	{ 
 		(const_cast< TObjPtr<X>* >(this))->checkobject();	
@@ -616,24 +681,19 @@ protected:
 
 public:
 	TObjPtr<X>()
-		: cCntObj(NULL), fAccess(&TObjPtr<X>::copyonwrite)
-	{ }
-	TObjPtr<X>(bool cpwr)
-		: cCntObj(NULL), fAccess(cpwr?&TObjPtr<X>::copyonwrite:&TObjPtr<X>::autocreate)
-	{ }
-	explicit TObjPtr<X>(const X& p,bool cpwr=false)
-		: cCntObj( new CCounter<X>(p) ), fAccess(cpwr?&TObjPtr<X>::copyonwrite:&TObjPtr<X>::autocreate)
+		: cCntObj(NULL)
 	{ }
 	TObjPtr<X>(const TObjPtr<X>& r)
-		: cCntObj(NULL), fAccess(r.fAccess)
+		: cCntObj(NULL)
 	{
 		this->acquire(r);
 	}
-	explicit TObjPtr<X>(const TObjPtr<X>& r, bool cpwr)
-		: cCntObj(NULL), fAccess(cpwr?&TObjPtr<X>::copyonwrite:&TObjPtr<X>::autocreate)
-	{
-		this->acquire(r);
-	}
+	explicit TObjPtr<X>(bool cpwr)
+		: cCntObj(NULL)
+	{ }
+	TObjPtr<X>(const X& p)
+		: cCntObj( new CCounter<X>(p) )
+	{ }
 	virtual ~TObjPtr<X>()	
 	{
 		this->release();
@@ -646,7 +706,7 @@ public:
 	TObjPtr<X>& operator=(const X& p)
 	{	
 		if( this->cCntObj )
-			(this->*fAccess)() = p;
+			this->writeaccess() = p;
 		else
 			this->cCntObj = new CCounter<X>(p);
 		return *this;
@@ -656,32 +716,31 @@ public:
 //	template <class P1>
 //	TPtrCount<X>(P1& p1) : cCntObj(new CCounter<X>(p1))
 //	{ }
-
 	// have copies here istead of references
 	// otherwise gcc mixes it up with the other two parameter constructors
 	template <class P1, class P2>
 	TObjPtr<X>(P1 p1, P2 p2)
-		: cCntObj(new CCounter<X>(p1,p2)), fAccess(&TObjPtr<X>::copyonwrite)
+		: cCntObj(new CCounter<X>(p1,p2))
 	{ }
 	template <class P1, class P2, class P3>
 	TObjPtr<X>(P1 p1, P2 p2, P3 p3)
-		: cCntObj(new CCounter<X>(p1,p2,p3)), fAccess(&TObjPtr<X>::copyonwrite)
+		: cCntObj(new CCounter<X>(p1,p2,p3))
 	{ }
 	template <class P1, class P2, class P3, class P4>
 	TObjPtr<X>(P1 p1, P2 p2, P3 p3, P4 p4)
-		: cCntObj(new CCounter<X>(p1,p2,p3,p4)), fAccess(&TObjPtr<X>::copyonwrite)
+		: cCntObj(new CCounter<X>(p1,p2,p3,p4))
 	{ }
 	template <class P1, class P2, class P3, class P4, class P5>
 	TObjPtr<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
-		: cCntObj(new CCounter<X>(p1,p2,p3,p4,p5)), fAccess(&TObjPtr<X>::copyonwrite)
+		: cCntObj(new CCounter<X>(p1,p2,p3,p4,p5))
 	{ }
 	template <class P1, class P2, class P3, class P4, class P5, class P6>
 	TObjPtr<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
-		: cCntObj(new CCounter<X>(p1,p2,p3,p4,p5,p6)), fAccess(&TObjPtr<X>::copyonwrite)
+		: cCntObj(new CCounter<X>(p1,p2,p3,p4,p5,p6))
 	{ }
 	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
 	TObjPtr<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
-		: cCntObj(new CCounter<X>(p1,p2,p3,p4,p5,p6,p7)), fAccess(&TObjPtr<X>::copyonwrite)
+		: cCntObj(new CCounter<X>(p1,p2,p3,p4,p5,p6,p7))
 	{ }
 
 	const size_t getRefCount() const { return (this->cCntObj) ? this->cCntObj->count : 1;}
@@ -699,19 +758,14 @@ public:
 		}
 		return true;
 	}
-	bool isCopyonWrite() const	{ return (this->fAccess == &TObjPtr::copyonwrite); }
-	bool isAutoCreate() const	{ return (this->fAccess == &TObjPtr::autocreate); }
-	void setCopyonWrite() const	{ this->fAccess = &TObjPtr::copyonwrite; }
-	void setAutoCreate() const	{ this->fAccess = &TObjPtr::autocreate; }
 
-	virtual const X& readaccess() const		{ return this->autocreate(); }
-	virtual X& writeaccess()				{ return (this->*fAccess)(); }
+	virtual bool isCopyonWrite() const	{ return true; }
+	virtual bool isAutoCreate() const	{ return false; }
+	virtual void setCopyonWrite() const	{ }
+	virtual void setAutoCreate() const	{ }
 
-	virtual bool operator ==(const TObjPtr<X>& p) const { return this->cCntObj == p.cCntObj; }
-	virtual bool operator !=(const TObjPtr<X>& p) const { return this->cCntObj != p.cCntObj; }
-	virtual bool operator ==(void *p) const				{ return this->cCntObj==p; }
-	virtual bool operator !=(void *p) const				{ return this->cCntObj!=p; }
-
+	virtual const X& readaccess() const	{ return this->autocreate(); }
+	virtual X& writeaccess()			{ return this->copyonwrite(); }
 
 	virtual const X* get() const					{ this->readaccess(); return this->cCntObj ? &this->cCntObj->ptr : NULL; }
 	virtual const X& operator*()	const throw()	{ return this->readaccess(); }
@@ -720,6 +774,8 @@ public:
 	virtual X* operator->()	throw()					{ this->writeaccess(); return this->cCntObj ? &this->cCntObj->ptr : NULL; }
 	virtual operator const X&() const throw()		{ return this->readaccess(); }
 
+	virtual bool operator ==(void *p) const			{ return this->cCntObj==p; }
+	virtual bool operator !=(void *p) const			{ return this->cCntObj!=p; }
 
 	const TObjPtr<X>& create ()
 	{
@@ -777,6 +833,185 @@ public:
 		return *this;
 	}
 };
+
+
+template <class X> class TObjPtrCount : public TObjPtr<X>
+{
+public:
+	TObjPtrCount<X>()
+	{ }
+	TObjPtrCount<X>(const TObjPtrCount<X>& r)
+	{
+		this->acquire(r);
+	}
+	TObjPtrCount<X>(const TObjPtr<X>& r)
+	{
+		this->acquire(r);
+	}
+	TObjPtrCount<X>(const X& p) : TObjPtr<X>(p)
+	{ }
+	virtual ~TObjPtrCount<X>()	
+	{ }
+	const TObjPtrCount<X>& operator=(const TObjPtrCount<X>& r)
+	{
+		this->acquire(r);
+		return *this;
+	}
+	const TObjPtrCount<X>& operator=(const TObjPtr<X>& r)
+	{
+		this->acquire(r);
+		return *this;
+	}
+	TObjPtrCount<X>& operator=(const X& p)
+	{	
+		this->TObjPtr<X>::operator=(p);
+		return *this;
+	}
+
+	// have copies here istead of references
+	// otherwise gcc mixes it up with the other two parameter constructors
+	template <class P1, class P2>
+	TObjPtrCount<X>(P1 p1, P2 p2)
+		: TObjPtr<X>(p1,p2)
+	{ }
+	template <class P1, class P2, class P3>
+	TObjPtrCount<X>(P1 p1, P2 p2, P3 p3)
+		: TObjPtr<X>(p1,p2,p3)
+	{ }
+	template <class P1, class P2, class P3, class P4>
+	TObjPtrCount<X>(P1 p1, P2 p2, P3 p3, P4 p4)
+		: TObjPtr<X>(p1,p2,p3,p4)
+	{ }
+	template <class P1, class P2, class P3, class P4, class P5>
+	TObjPtrCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
+		: TObjPtr<X>(p1,p2,p3,p4,p5)
+	{ }
+	template <class P1, class P2, class P3, class P4, class P5, class P6>
+	TObjPtrCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
+		: TObjPtr<X>(p1,p2,p3,p4,p5,p6)
+	{ }
+	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+	TObjPtrCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
+		: TObjPtr<X>(p1,p2,p3,p4,p5,p6,p7)
+	{ }
+
+	virtual bool isCopyonWrite() const	{ return false; }
+	virtual bool isAutoCreate() const	{ return true; }
+	virtual void setCopyonWrite() const	{  }
+	virtual void setAutoCreate() const	{  }
+
+	virtual const X& readaccess() const	{ return this->TObjPtr<X>::autocreate(); }
+	virtual X& writeaccess()			{ return this->TObjPtr<X>::autocreate(); }
+};
+
+
+
+template <class X> class TObjPtrCommon : public TObjPtr<X>
+{
+protected:
+	mutable X& (TObjPtr<X>::*fAccess)(void) const;
+
+public:
+	TObjPtrCommon<X>()
+		: fAccess(&TObjPtr<X>::copyonwrite)
+	{ }
+	TObjPtrCommon<X>(const TObjPtrCommon<X>& r)
+		: fAccess(r.fAccess)
+	{
+		this->acquire(r);
+	}
+	TObjPtrCommon<X>(const TObjPtr<X>& r)
+		: fAccess(&TObjPtr<X>::copyonwrite)
+	{
+		this->acquire(r);
+	}
+	TObjPtrCommon<X>(const TObjPtrCount<X>& r)
+		: fAccess(&TObjPtr<X>::autocreate)
+	{
+		this->acquire(r);
+	}
+	explicit TObjPtrCommon<X>(bool cpwr)
+		: fAccess(cpwr?&TObjPtr<X>::copyonwrite:&TObjPtr<X>::autocreate)
+	{ }
+	explicit TObjPtrCommon<X>(const TObjPtr<X>& r, bool cpwr)
+		: fAccess(cpwr?&TObjPtr<X>::copyonwrite:&TObjPtr<X>::autocreate)
+	{
+		this->acquire(r);
+	}
+	TObjPtrCommon<X>(const X& p, bool cpwr=false)
+		: TObjPtr<X>(p), fAccess(cpwr?&TObjPtr<X>::copyonwrite:&TObjPtr<X>::autocreate)
+	{ }
+	virtual ~TObjPtrCommon<X>()	
+	{ }
+	const TObjPtrCommon<X>& operator=(const TObjPtrCommon<X>& r)
+	{
+		this->fAccess = r.fAccess;
+		this->acquire(r);
+		return *this;
+	}
+	const TObjPtrCommon<X>& operator=(const TObjPtr<X>& r)
+	{
+		this->fAccess = &TObjPtr<X>::copyonwrite;
+		this->acquire(r);
+		return *this;
+	}
+	const TObjPtrCommon<X>& operator=(const TObjPtrCount<X>& r)
+	{
+		this->fAccess = &TObjPtr<X>::autocreate;
+		this->acquire(r);
+		return *this;
+	}
+
+	TObjPtrCommon<X>& operator=(const X& p)
+	{	
+		this->TObjPtr<X>::operator =(p);
+		return *this;
+	}
+
+	// have copies here istead of references
+	// otherwise gcc mixes it up with the other two parameter constructors
+	template <class P1, class P2>
+	TObjPtrCommon<X>(P1 p1, P2 p2)
+		: TObjPtr<X>(p1,p2), fAccess(&TObjPtr<X>::copyonwrite)
+	{ }
+	template <class P1, class P2, class P3>
+	TObjPtrCommon<X>(P1 p1, P2 p2, P3 p3)
+		: TObjPtr<X>(p1,p2,p3), fAccess(&TObjPtr<X>::copyonwrite)
+	{ }
+	template <class P1, class P2, class P3, class P4>
+	TObjPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4)
+		: TObjPtr<X>(p1,p2,p3,p4), fAccess(&TObjPtr<X>::copyonwrite)
+	{ }
+	template <class P1, class P2, class P3, class P4, class P5>
+	TObjPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
+		: TObjPtr<X>(p1,p2,p3,p4,p5), fAccess(&TObjPtr<X>::copyonwrite)
+	{ }
+	template <class P1, class P2, class P3, class P4, class P5, class P6>
+	TObjPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
+		: TObjPtr<X>(p1,p2,p3,p4,p5,p6), fAccess(&TObjPtr<X>::copyonwrite)
+	{ }
+	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+	TObjPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
+		: TObjPtr<X>(p1,p2,p3,p4,p5,p6,p7), fAccess(&TObjPtr<X>::copyonwrite)
+	{ }
+
+	virtual bool isCopyonWrite() const	{ return (this->fAccess == &TObjPtr<X>::copyonwrite); }
+	virtual bool isAutoCreate() const	{ return (this->fAccess == &TObjPtr<X>::autocreate); }
+	virtual void setCopyonWrite() const	{ this->fAccess = &TObjPtr<X>::copyonwrite; }
+	virtual void setAutoCreate() const	{ this->fAccess = &TObjPtr<X>::autocreate; }
+
+	virtual const X& readaccess() const	{ return this->autocreate(); }
+	virtual X& writeaccess()			{ return (this->*fAccess)(); }
+
+};
+
+
+
+
+
+
+
+
 
 
 
@@ -1804,5 +2039,6 @@ inline void swap (TPtrWeak<T>& t1, TPtrWeak<T>& t2) {
 
 
 */
+NAMESPACE_END(basics)
 
 #endif//__BASESAFEPTR_H__

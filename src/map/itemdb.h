@@ -20,11 +20,8 @@ struct item_data
 	uint32 def;
 
 	unsigned char type;
-//0 Healing, 2: Usable, 3: Misc, 4: Weapon, 5: Armor, 6: Card, 7: Pet Egg,
-//8: Pet Equipment, 10: Arrow, 11: Usable with delayed consumption (all items with script "pet" or "itemskill": Lures, Scrolls, Magnifier, Yggdrasil Leaf)
-
-	unsigned char getType()	{ return (type==7) ? 4 : type; } // pet eggs are handled as weapons by the client
-
+	//0 Healing, 2: Usable, 3: Misc, 4: Weapon, 5: Armor, 6: Card, 7: Pet Egg,
+	//8: Pet Equipment, 10: Arrow, 11: Usable with delayed consumption (all items with script "pet" or "itemskill": Lures, Scrolls, Magnifier, Yggdrasil Leaf)
 
 	unsigned char gm_lv_trade_override;
 
@@ -36,7 +33,7 @@ struct item_data
 	unsigned short wlv;
 	unsigned short view_id;
 
-	struct {
+	struct _flags {
 		unsigned available : 1;			// 0
 		unsigned value_notdc : 1;		// 1
 		unsigned value_notoc : 1;		// 2
@@ -48,10 +45,50 @@ struct item_data
 		unsigned delay_consume : 1;		// 13 Signifies items that are not consumed inmediately upon double-click [Skotlex]
 		unsigned trade_restriction : 7;	// 14-20 Item restrictions mask [Skotlex]
 		unsigned _unused : 3;			// 21-23
+
+		_flags() :
+			available(0),
+			value_notdc(0),
+			value_notoc(0),
+			no_use(0),
+			sex(0),
+			slot(0),
+			no_refine(0),
+			no_equip(0),
+			delay_consume(0),
+			trade_restriction(0)
+		{}
 	} flag;
 
 	char *use_script;	// ‰ñ•œ‚Æ‚©‚à‘S•”‚±‚Ì’†‚Å‚â‚ë‚¤‚©‚È‚Æ
 	char *equip_script;	// UŒ‚,–hŒä‚Ì‘®«İ’è‚à‚±‚Ì’†‚Å‰Â”\‚©‚È?
+
+
+	unsigned char getType()	{ return (type==7) ? 4 : type; } // pet eggs are handled as weapons by the client
+
+	item_data(unsigned short nid=0) : 
+		nameid(nid),
+		value_buy(0),
+		value_sell(0),
+		weight(0),
+		atk(0),
+		def(0),
+		type(0),
+		gm_lv_trade_override(0),
+		class_array(0),
+		equip(0),
+		range(0),
+		look(0),
+		elv(0),
+		wlv(0),
+		view_id(0)
+	{
+		name[0]=0;
+		jname[0]=0;
+		prefix[0]=0;
+		suffix[0]=0;
+		cardillustname[0]=0;
+	}
 };
 
 

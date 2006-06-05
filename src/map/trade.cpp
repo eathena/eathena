@@ -1,4 +1,3 @@
-#include "base.h"
 
 #include "clif.h"
 #include "itemdb.h"
@@ -48,13 +47,13 @@ void trade_traderequest(struct map_session_data &sd, uint32 target_id)
 			trade_tradecancel(sd); // GM is not allowed to trade		
 		}
 		else  if ( !level && 
-					(sd.bl.m != target_sd->bl.m ||
-					(sd.bl.x+5 <= target_sd->bl.x || sd.bl.x >= target_sd->bl.x+5) ||
-					(sd.bl.y+5 <= target_sd->bl.y || sd.bl.y  >= target_sd->bl.y+5)) )
+					(sd.block_list::m != target_sd->block_list::m ||
+					(sd.block_list::x+5 <= target_sd->block_list::x || sd.block_list::x >= target_sd->block_list::x+5) ||
+					(sd.block_list::y+5 <= target_sd->block_list::y || sd.block_list::y  >= target_sd->block_list::y+5)) )
 		{
 			clif_tradestart(sd, 0); // too far
 		}
-		else if (sd.bl.id != target_sd->bl.id)
+		else if (sd.block_list::id != target_sd->block_list::id)
 		{
 			target_sd->trade_partner = sd.status.account_id;
 			sd.trade_partner = target_sd->status.account_id;
@@ -121,12 +120,12 @@ int impossible_trade_check(struct map_session_data &sd)
 	memcpy(&inventory, &sd.status.inventory, sizeof(struct item) * MAX_INVENTORY);
 
 	// remove equiped items (they can not be trade)
-	for (i = 0; i < MAX_INVENTORY; i++)
+	for (i = 0; i < MAX_INVENTORY; ++i)
 		if (inventory[i].nameid > 0 && inventory[i].equip && !(inventory[i].equip & 0x8000))
-			memset(&inventory[i], 0, sizeof(struct item));
+			inventory[i] = item();
 
 	// check items in player inventory
-	for(i = 0; i < MAX_TRADING; i++)
+	for(i = 0; i < MAX_TRADING; ++i)
 	{
 		if(sd.deal_item_amount[i] > 0)
 		{
@@ -200,8 +199,8 @@ void trade_tradeadditem(struct map_session_data &sd, unsigned short index, uint3
 		else if (amount > 0 && amount <= sd.status.inventory[index-2].amount)
 		{
 
-			level = max( pc_isGM(sd), pc_isGM(*target_sd));
-			for(trade_i = 0; trade_i < MAX_TRADING; trade_i++)
+			level = basics::max( pc_isGM(sd), pc_isGM(*target_sd));
+			for(trade_i = 0; trade_i < MAX_TRADING; ++trade_i)
 			{
 				if (sd.deal_item_amount[trade_i] == 0)
 				{
@@ -218,7 +217,7 @@ void trade_tradeadditem(struct map_session_data &sd, unsigned short index, uint3
 					}
 					else 
 					{
-						for(c = 0; c == trade_i - 1; c++)
+						for(c = 0; c == trade_i - 1; ++c)
 						{	// re-deal exploit protection [Valaris]
 							if (sd.deal_item_index[c] == index)
 							{
@@ -256,7 +255,7 @@ void trade_tradeok(struct map_session_data &sd)
 	struct map_session_data *target_sd;
 	int trade_i;
 	// check items
-	for(trade_i = 0; trade_i < MAX_TRADING; trade_i++)
+	for(trade_i = 0; trade_i < MAX_TRADING; ++trade_i)
 	{	// have a trade amount, so check if index and amount is valid
 		if( sd.deal_item_amount[trade_i]>0 )
 		if( (sd.deal_item_index[trade_i] < 2) ||
@@ -303,7 +302,7 @@ void trade_tradecancel(struct map_session_data &sd)
 
 	if ((target_sd = map_id2sd(sd.trade_partner)) != NULL)
 	{
-		for(trade_i = 0; trade_i < MAX_TRADING; trade_i++)
+		for(trade_i = 0; trade_i < MAX_TRADING; ++trade_i)
 		{	// give items back (only virtual)
 			if (sd.deal_item_amount[trade_i] != 0)
 			{
@@ -374,7 +373,7 @@ void trade_tradecommit(struct map_session_data &sd)
 				    (sd.status.zeny + target_sd->deal_zeny) <= MAX_ZENY) // fix positiv overflow
 				{
 					// trade is accepted
-					for(trade_i = 0; trade_i < MAX_TRADING; trade_i++)
+					for(trade_i = 0; trade_i < MAX_TRADING; ++trade_i)
 					{
 						if (sd.deal_item_amount[trade_i] != 0)
 						{

@@ -1,4 +1,3 @@
-#include "base.h"
 #include "timer.h"
 #include "malloc.h"
 #include "version.h"
@@ -66,21 +65,38 @@
 /* Structure containing all info associated with a single pattern
    block */
 
-struct pcrematch_entry {
+struct pcrematch_entry
+{
     struct pcrematch_entry *next_;
     char *pattern_;
     pcre *pcre_;
     pcre_extra *pcre_extra_;
     char *label_;
+
+	pcrematch_entry() : 
+		next_(NULL),
+		pattern_(NULL),
+		pcre_(NULL),
+		pcre_extra_(NULL),
+		label_(NULL)
+	{}
 };
 
 /* A set of patterns that can be activated and deactived with a single
    command */
 
-struct pcrematch_set {
+struct pcrematch_set
+{
     struct pcrematch_set *next_, *prev_;
     struct pcrematch_entry *head_;
     int setid_;
+
+
+	pcrematch_set(int id) : 
+		next_(NULL), prev_(NULL),head_(NULL),
+		setid_(id)
+	{}
+
 };
 
 /* 
@@ -93,9 +109,14 @@ struct pcrematch_set {
  * without having to do a large number of changes.
  */
 
-struct npc_parse {
+struct npc_parse
+{
     struct pcrematch_set *active_;
     struct pcrematch_set *inactive_;
+
+	npc_parse() :
+		active_(NULL), inactive_(NULL)
+	{}
 };
 
 
@@ -107,10 +128,10 @@ struct npc_parse {
 
 void finalize_pcrematch_entry(struct pcrematch_entry *e)
 {
-    if(e->pcre_) { free(e->pcre_); e->pcre_=NULL; }
-	if(e->pcre_extra_) { free(e->pcre_extra_); e->pcre_extra_=NULL; }
-	if(e->pattern_) { free(e->pattern_); e->pattern_=NULL; }
-	if(e->label_) { free(e->label_); e->label_=NULL; }
+    if(e->pcre_)		{ pcre_free(e->pcre_); e->pcre_=NULL; }
+	if(e->pcre_extra_)	{ pcre_free(e->pcre_extra_); e->pcre_extra_=NULL; }
+	if(e->pattern_)		{ free(e->pattern_); e->pattern_=NULL; }
+	if(e->label_)		{ free(e->label_); e->label_=NULL; }
 }
 
 /**
@@ -121,7 +142,7 @@ struct pcrematch_set * lookup_pcreset(struct npc_data *nd,int setid)
     struct pcrematch_set *pcreset;
     struct npc_parse *npcParse = (struct npc_parse *) nd->chatdb;
     if (npcParse == NULL) 
-        nd->chatdb = npcParse = (struct npc_parse *)aCalloc(sizeof(struct npc_parse), 1);
+        nd->chatdb = npcParse = new struct npc_parse;
 
     pcreset = npcParse->active_;
 
@@ -142,13 +163,12 @@ struct pcrematch_set * lookup_pcreset(struct npc_data *nd,int setid)
 
     if (pcreset == NULL) 
 	{
-        pcreset = (struct pcrematch_set *)aCalloc(sizeof(struct pcrematch_set), 1);
+        pcreset = new struct pcrematch_set(setid);
         pcreset->next_ = npcParse->inactive_;
         if (pcreset->next_ != NULL)
             pcreset->next_->prev_ = pcreset;
         pcreset->prev_ = 0;
         npcParse->inactive_ = pcreset;
-        pcreset->setid_ = setid;
     }
     return pcreset;
 }
@@ -242,12 +262,15 @@ void delete_pcreset(struct npc_data *nd,int setid)
 		return; // Nothing to deactivate...
 	
 	pcreset = npcParse->active_;
-	while (pcreset != NULL) {
+	npcParse->active_ = NULL;
+	while (pcreset != NULL)
+	{
 		if (pcreset->setid_ == setid)
 			break;
 		pcreset = pcreset->next_;
 	}
-	if (pcreset == NULL) {
+	if (pcreset == NULL)
+	{
 		active = 0;
 		pcreset = npcParse->inactive_;
 		while (pcreset != NULL) {
@@ -261,22 +284,27 @@ void delete_pcreset(struct npc_data *nd,int setid)
 	
 	if (pcreset->next_ != NULL)
 		pcreset->next_->prev_ = pcreset->prev_;
+	
 	if (pcreset->prev_ != NULL)
 		pcreset->prev_->next_ = pcreset->next_;
-	if(active == 1)
-		npcParse->active_ = pcreset->next_;
-	else
-		npcParse->inactive_ = pcreset->next_;
-	
+	else // we have been the first
+	{	// also update the root
+		if(active == 1)
+			npcParse->active_ = pcreset->next_;
+		else
+			npcParse->inactive_ = pcreset->next_;
+	}
+
 	pcreset->prev_ = NULL;
 	pcreset->next_ = NULL;
 	
-	while (pcreset->head_) {
+	while (pcreset->head_)
+	{
 		struct pcrematch_entry *n = pcreset->head_->next_;
 		finalize_pcrematch_entry(pcreset->head_);
 		pcreset->head_ = n;
 	}
-	aFree(pcreset);
+	delete pcreset;
 }
 
 /**
@@ -287,8 +315,7 @@ struct pcrematch_entry *create_pcrematch_entry(struct pcrematch_set * set)
 	if(!set)
 		return NULL;
 
-    struct pcrematch_entry * e =  
-		(struct pcrematch_entry *)aCalloc(sizeof(struct pcrematch_entry), 1);
+    struct pcrematch_entry * e =   new struct pcrematch_entry;
     struct pcrematch_entry * last = set->head_;
 
     // Normally we would have just stuck it at the end of the list but
@@ -342,14 +369,15 @@ void npc_chat_finalize(struct npc_data *nd)
     struct npc_parse *npcParse = (struct npc_parse *) nd->chatdb;
     if (npcParse == NULL)
         return;
+	nd->chatdb=NULL;
 
     while(npcParse->active_)
       delete_pcreset(nd, npcParse->active_->setid_);
 
     while(npcParse->inactive_)
       delete_pcreset(nd, npcParse->inactive_->setid_);
-	aFree(nd->chatdb);
-	nd->chatdb=NULL;
+	delete npcParse;
+	
 }
 
 /**
@@ -383,7 +411,7 @@ int CNpcChat::process(block_list &bl) const
 			{
 				pos = -1;
 				lst=nd.u.scr.ref->label_list;           
-				for (i = 0; (size_t)i < nd.u.scr.ref->label_list_num; i++)
+				for (i = 0; (size_t)i < nd.u.scr.ref->label_list_num; ++i)
 				{
 					if( strcmp(lst[i].labelname, e->label_ ) == 0) {
 						pos = lst[i].pos;
@@ -484,7 +512,7 @@ int CNpcChat::process(block_list &bl) const
 						}
 
 						// run the npc script
-						CScriptEngine::run(nd.u.scr.ref->script,pos,sd.bl.id,nd.bl.id);
+						CScriptEngine::run(nd.u.scr.ref->script,pos,sd.block_list::id,nd.block_list::id);
 						// and return
 						return 0;
 					}

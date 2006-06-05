@@ -49,7 +49,7 @@ int intif_guild_castle_datasave(unsigned short castle_id, int index, int value);
 int intif_create_pet(uint32 account_id, uint32 char_id, short pet_type, short pet_lv, short pet_egg_id,
                      short pet_equip, short intimate, short hungry, char rename_flag, char incuvate, const char *pet_name);
 int intif_request_petdata(uint32 account_id, uint32 char_id, uint32 pet_id);
-int intif_save_petdata(uint32 account_id, struct s_pet &pet);
+int intif_save_petdata(uint32 account_id, struct petstatus &pet);
 int intif_delete_petdata(uint32 pet_id);
 
 #endif

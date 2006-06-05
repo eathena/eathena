@@ -1,18 +1,20 @@
 #ifndef __THREAD_H
 #define __THREAD_H
 //////////////////////////////////////////////////////////////////////////
-// thread objects
+/// thread objects
 //////////////////////////////////////////////////////////////////////////
 
 #include "basesync.h"
 #include "baseobjects.h"
 
+NAMESPACE_BEGIN(basics)
+
 
 #ifndef SINGLETHREAD
 
 //////////////////////////////////////////////////////////////////////////
-// basic thread object
-// derived from PTypes (C++ Portable Types Library)
+/// basic thread object.
+/// derived from PTypes (C++ Portable Types Library)
 //////////////////////////////////////////////////////////////////////////
 class thread: public global
 {
@@ -30,7 +32,8 @@ protected:
     SemaphoreTimed relaxsem;
 
 	//////////////////////////////////////////////////////////////////////
-	// user functions
+	/// user functions.
+	/// only execute is mandatory in derived classes, the others are optional
 	//////////////////////////////////////////////////////////////////////
     virtual void startup();
 	virtual void execute() = 0;
@@ -70,12 +73,12 @@ public:
 
 
 
-#endif//!SINGLETHREAD
+#endif// !SINGLETHREAD
 
 
 
 //////////////////////////////////////////////////////////////////////////
-// unit
+/// unit.
 //////////////////////////////////////////////////////////////////////////
 class unit : public Mutex
 {
@@ -157,7 +160,7 @@ public:
     void connect(unit* next)
 	{
 		waitfor();
-		//!! TODO: add module connection code
+		//## TODO: add module connection code
 	}
     void run(bool async = false)
 	{
@@ -197,5 +200,8 @@ public:
 	}
 
 };
+
+NAMESPACE_END(basics)
+
 
 #endif//__THREAD_H

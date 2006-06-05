@@ -1,13 +1,10 @@
 // $Id: char.c,v 1.3 2004/09/13 16:52:16 Yor Exp $
 // original : char2.c 2003/03/14 11:58:35 Rev.1.5
 
-#include "base.h"
-#include "baseio.h"
 #include "core.h"
 #include "socket.h"
 #include "timer.h"
 #include "db.h"
-#include "mmo.h"
 #include "malloc.h"
 #include "version.h"
 #include "lock.h"
@@ -24,12 +21,12 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-CCharDB	char_db;
-
+/// chardb
+CCharDB		char_db;
 
 ///////////////////////////////////////////////////////////////////////////////
-netaddress	loginaddress(ipaddress::GetSystemIP(0), 6900);	 // first lanip as default
-ipset		charaddress(6121);								 // automatic setup as default
+basics::netaddress	loginaddress(basics::ipaddress::GetSystemIP(0), 6900);	 // first lanip as default
+basics::ipset		charaddress(6121);								 // automatic setup as default
 
 int login_fd= -1;
 int char_fd = -1;
@@ -40,12 +37,6 @@ char passwd[24]="";
 char server_name[20] = "Server";
 char wisp_server_name[24] = "Server";
 
-
-///////////////////////////////////////////////////////////////////////////////
-struct char_session_data : public CCharCharAccount
-{
-
-};
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -62,7 +53,7 @@ char db_path[1024]="db";
 
 int party_modus=0;			// party modus, 0 break on leader leave, 1 successor takes over
 int name_ignoring_case = 0; // Allow or not identical name for characters but with a different case by [Yor]
-int char_name_option = 0; // Option to know which letters/symbols are authorised in the name of a character (0: all, 1: only those in char_name_letters, 2: all EXCEPT those in char_name_letters) by [Yor]
+int char_name_option = 0;	// Option to know which letters/symbols are authorised in the name of a character (0: all, 1: only those in char_name_letters, 2: all EXCEPT those in char_name_letters) by [Yor]
 char char_name_letters[1024] = ""; // list of letters/symbols authorised (or not) in a character name. by [Yor]
 
 int check_ip_flag = 1; // It's to check IP of a player between char-server and other servers (part of anti-hacking system)
@@ -104,7 +95,7 @@ int char_log(char *fmt, ...)
 		struct timeval tv;
 		time_t unixtime;
 		char tmpstr[2048];
-		FILE *logfp = safefopen(char_log_filename, "a");
+		FILE *logfp = basics::safefopen(char_log_filename, "a");
 		if (logfp)
 		{
 			if (fmt[0] == '\0') // jump a line if no message
@@ -164,7 +155,7 @@ void set_all_offline(void)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Function to save (in a periodic way) datas in files
-int mmo_char_sync_timer(int tid, unsigned long tick, int id, intptr data)
+int mmo_char_sync_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	inter_save();
 	return 0;
@@ -270,7 +261,7 @@ void create_online_files(void)
 
 	// Get number of online players, id of each online players, and verify if a server is offline
 	players = 0;
-	for (i = 0; i < online_players_max; i++) {
+	for (i = 0; i < online_players_max; ++i) {
 		if( online_chars[i].char_id != 0xFFFFFFFF ) {
 			// check if map-server is online
 			sv = online_chars[i].server;
@@ -285,7 +276,7 @@ void create_online_files(void)
 			}
 			// check if the character is twice or more in the list
 			// (multiple map-servers and player have successfully connected twice!)
-			for(j = i + 1; j < online_players_max; j++)
+			for(j = i + 1; j < online_players_max; ++j)
 			{
 				if (online_chars[i].char_id == online_chars[j].char_id) {
 					sv = online_chars[j].server;
@@ -296,7 +287,7 @@ void create_online_files(void)
 				}
 			}
 			// search position of character in char_dat and sort online characters.
-			for(j = 0; j < char_num; j++)
+			for(j = 0; j < char_num; ++j)
 			{
 				if( char_dat[j].char_id == online_chars[i].char_id )
 				{
@@ -304,7 +295,7 @@ void create_online_files(void)
 					// use sorting option
 					switch (online_sorting_option) {
 					case 1: // by name (without case sensitive)
-						for(k = 0; k < players; k++)
+						for(k = 0; k < players; ++k)
 							if(strcasecmp(char_dat[j].name, char_dat[id[k]].name) < 0 ||
 							   // if same name, we sort with case sensitive.
 							   (strcasecmp(char_dat[j].name, char_dat[id[k]].name) == 0 &&
@@ -316,7 +307,7 @@ void create_online_files(void)
 							}
 						break;
 					case 2: // by zeny
-						for(k = 0; k < players; k++)
+						for(k = 0; k < players; ++k)
 							if (char_dat[j].zeny < char_dat[id[k]].zeny ||
 							   // if same number of zenys, we sort by name.
 							   (char_dat[j].zeny == char_dat[id[k]].zeny &&
@@ -328,7 +319,7 @@ void create_online_files(void)
 							}
 						break;
 					case 3: // by base level
-						for(k = 0; k < players; k++)
+						for(k = 0; k < players; ++k)
 							if (char_dat[j].base_level < char_dat[id[k]].base_level ||
 							   // if same base level, we sort by base exp.
 							   (char_dat[j].base_level == char_dat[id[k]].base_level &&
@@ -340,7 +331,7 @@ void create_online_files(void)
 							}
 						break;
 					case 4: // by job (and job level)
-						for(k = 0; k < players; k++)
+						for(k = 0; k < players; ++k)
 							if (char_dat[j].class_ < char_dat[id[k]].class_ ||
 							   // if same job, we sort by job level.
 							   (char_dat[j].class_ == char_dat[id[k]].class_ &&
@@ -356,7 +347,7 @@ void create_online_files(void)
 							}
 						break;
 					case 5: // by location map name
-						for(k = 0; k < players; k++)
+						for(k = 0; k < players; ++k)
 							if(strcasecmp(char_dat[j].last_point.map, char_dat[id[k]].last_point.map) < 0 ||
 							   // if same map name, we sort by name.
 							   (strcasecmp(char_dat[j].last_point.map, char_dat[id[k]].last_point.map) == 0 &&
@@ -403,7 +394,7 @@ void create_online_files(void)
 			fprintf(fp, "Online Players on %s (%s):\n", server_name, temp);
 			fprintf(fp, "\n");
 
-			for (i = 0; i < players; i++) {
+			for (i = 0; i < players; ++i) {
 				// if it's the first player
 				if (i == 0) {
 					j = 0; // count the number of characters for the txt version and to set the separate line
@@ -449,7 +440,7 @@ void create_online_files(void)
 					}
 					fprintf(fp2, "      </tr>\n");
 					fprintf(fp, "\n");
-					for (k = 0; k < j; k++)
+					for (k = 0; k < j; ++k)
 						fprintf(fp, "-");
 					fprintf(fp, "\n");
 				}
@@ -471,7 +462,7 @@ void create_online_files(void)
 					fprintf(fp2, "        <td>");
 					if ((online_display_option & 64) && l >= online_gm_display_min_level)
 						fprintf(fp2, "<b>");
-					for (k = 0; k < strlen(temp); k++) {
+					for (k = 0; k < strlen(temp); ++k) {
 						switch(temp[k]) {
 						case '<': // <
 							fprintf(fp2, "&lt;");
@@ -566,7 +557,7 @@ void create_online_files(void)
 int count_users(void)
 {
 	size_t i, users = 0;
-	for(i = 0; i < MAX_MAP_SERVERS; i++)
+	for(i = 0; i < MAX_MAP_SERVERS; ++i)
 		if(server[i].fd >= 0)
 			users += server[i].users;
 	return users;
@@ -575,7 +566,7 @@ int count_users(void)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Function to send characters to a player
-int mmo_char_send006b(int fd, struct char_session_data &sd)
+int mmo_char_send006b(int fd, char_session_data &sd)
 {
 	size_t i, j, found_num = 0;
 	const int offset = 24;
@@ -587,7 +578,7 @@ int mmo_char_send006b(int fd, struct char_session_data &sd)
 
 	memset(WFIFOP(fd,0), 0, offset + 9*106);
 	WFIFOW(fd,0) = 0x6b;
-	for(i=0; i<9; i++)
+	for(i=0; i<9; ++i)
 	{
 		if( sd.charlist[i]!=0 &&
 			char_db.searchChar(sd.charlist[i], character) )
@@ -664,22 +655,22 @@ bool char_divorce(CCharCharacter &character)
 			partner.partner_id==character.char_id )
 		{
 			partner.partner_id=0;
-			for(j=0; j<MAX_INVENTORY; j++)
+			for(j=0; j<MAX_INVENTORY; ++j)
 			{
 				if(partner.inventory[j].nameid == WEDDING_RING_M || partner.inventory[j].nameid == WEDDING_RING_F)
 				{
-					memset(&partner.inventory[j], 0, sizeof(partner.inventory[0]));
+					partner.inventory[j] = item();
 					break;
 				}
 			}
 			char_db.saveChar(partner);
 		}
 		character.partner_id = 0;
-		for(j=0; j<MAX_INVENTORY; j++)
+		for(j=0; j<MAX_INVENTORY; ++j)
 		{
 			if(character.inventory[j].nameid == WEDDING_RING_M || character.inventory[j].nameid == WEDDING_RING_F)
 			{
-				memset(&character.inventory[j], 0, sizeof(character.inventory[0]));
+				character.inventory[j] = item();
 				break;
 			}
 		}
@@ -760,11 +751,11 @@ bool char_exist(uint32 id)
 bool disconnect_player(uint32 accound_id)
 {
 	size_t fd;
-	struct char_session_data *sd;
+	char_session_data *sd;
 	// disconnect player if online on char-server
-	for(fd = 0; fd < fd_max; fd++)
+	for(fd = 0; fd < fd_max; ++fd)
 	{
-		if(session[fd] && (sd = (struct char_session_data *)session[fd]->session_data))
+		if(session[fd] && (sd = (char_session_data *)session[fd]->user_session))
 		{
 			if(sd->account_id == accound_id)
 			{
@@ -787,12 +778,12 @@ bool char_delete(uint32 char_id)
 		// ÉyÉbÉgçÌèú
 		if(character.pet_id)
 			inter_pet_delete(character.pet_id);
-		for(j=0; j<MAX_INVENTORY; j++)
+		for(j=0; j<MAX_INVENTORY; ++j)
 			if(character.inventory[j].card[0] == 0xff00)
-				inter_pet_delete(MakeDWord(character.inventory[j].card[1],character.inventory[j].card[2]));
-		for(j=0; j<MAX_CART; j++)
+				inter_pet_delete(basics::MakeDWord(character.inventory[j].card[1],character.inventory[j].card[2]));
+		for(j=0; j<MAX_CART; ++j)
 			if(character.cart[j].card[0] == 0xff00)
-				inter_pet_delete(MakeDWord(character.cart[j].card[1],character.cart[j].card[2]));
+				inter_pet_delete(basics::MakeDWord(character.cart[j].card[1],character.cart[j].card[2]));
 		// ÉMÉãÉhíEëﬁ
 		if(character.guild_id)
 			inter_guild_leave(character.guild_id, character.account_id, character.char_id);
@@ -851,7 +842,7 @@ int parse_tologin(int fd)
 			{
 				ShowStatus("Connected to login-server (connection #%d).\n", fd);
 				// if no map-server already connected, display a message...
-				for(i = 0; i < MAX_MAP_SERVERS; i++)
+				for(i = 0; i < MAX_MAP_SERVERS; ++i)
 					if(server[i].fd >= 0 && server[i].map[0][0]) // if map-server online and at least 1 map
 						break;
 				if (i == MAX_MAP_SERVERS)
@@ -877,13 +868,13 @@ int parse_tologin(int fd)
 			if (RFIFOREST(fd) < 51)
 				return 0;
 
-			struct char_session_data *sd;
+			char_session_data *sd;
 			CCharCharAccount account;
 			// search session 
 			//!! add a connection db
-			for(i = 0; i < fd_max; i++)
+			for(i = 0; i < fd_max; ++i)
 			{
-				if(session[i] && (sd = (struct char_session_data *)session[i]->session_data) && sd->account_id == RFIFOL(fd,2))
+				if(session[i] && (sd = (char_session_data *)session[i]->user_session) && sd->account_id == RFIFOL(fd,2))
 				{
 					// check authentification if login authentified and send the data
 					if( RFIFOB(fd,6) == 0 &&
@@ -900,9 +891,9 @@ int parse_tologin(int fd)
 							sd->CCharCharAccount::operator=(account);
 
 							if( sd->gm_level )
-								ShowMessage("Account Logged On; Account ID: %ld (GM level %d).\n", (unsigned long)sd->account_id, sd->gm_level);
+								ShowInfo("Account Logged On; Account ID: %ld (GM level %d).\n", (unsigned long)sd->account_id, sd->gm_level);
 							else
-								ShowMessage("Account Logged On; Account ID: %ld.\n", (unsigned long)sd->account_id);
+								ShowInfo("Account Logged On; Account ID: %ld.\n", (unsigned long)sd->account_id);
 
 							// send characters to player
 							mmo_char_send006b(fd, *sd);
@@ -948,7 +939,7 @@ int parse_tologin(int fd)
 /*
 			// to conserv a maximum of authentification, search if account is already authentified and replace it
 			// that will reduce multiple connection too
-			for(i = 0; i < AUTH_FIFO_SIZE; i++)
+			for(i = 0; i < AUTH_FIFO_SIZE; ++i)
 				if (auth_fifo[i].account_id == RFIFOL(fd,2))
 					break;
 			// if not found, use next value
@@ -1006,7 +997,7 @@ int parse_tologin(int fd)
 			sex = RFIFOB(fd,6);
 			
 			if (acc > 0) {
-				for (i = 0; i < char_num; i++) {
+				for (i = 0; i < char_num; ++i) {
 					if (char_dat[i].account_id == acc) {
 						int jobclass = char_dat[i].class_;
 						char_dat[i].sex = sex;
@@ -1023,7 +1014,7 @@ int parse_tologin(int fd)
 								char_dat[i].class_ = (sex) ? 4042 : 4043;
 							}
 							// remove specifical skills of classes 19, 4020 and 4042
-							for(j = 315; j <= 322; j++) {
+							for(j = 315; j <= 322; ++j) {
 								if (char_dat[i].skill[j].id > 0 && !char_dat[i].skill[j].flag) {
 									char_dat[i].skill_point += char_dat[i].skill[j].lv;
 									char_dat[i].skill[j].id = 0;
@@ -1031,7 +1022,7 @@ int parse_tologin(int fd)
 								}
 							}
 							// remove specifical skills of classes 20, 4021 and 4043
-							for(j = 323; j <= 330; j++) {
+							for(j = 323; j <= 330; ++j) {
 								if (char_dat[i].skill[j].id > 0 && !char_dat[i].skill[j].flag) {
 									char_dat[i].skill_point += char_dat[i].skill[j].lv;
 									char_dat[i].skill[j].id = 0;
@@ -1040,7 +1031,7 @@ int parse_tologin(int fd)
 							}
 						}
 						// to avoid any problem with equipment and invalid sex, equipment is unequiped.
-						for (j = 0; j < MAX_INVENTORY; j++) {
+						for (j = 0; j < MAX_INVENTORY; ++j) {
 							if (char_dat[i].inventory[j].nameid && char_dat[i].inventory[j].equip)
 								char_dat[i].inventory[j].equip = 0;
 						}
@@ -1072,7 +1063,7 @@ int parse_tologin(int fd)
 				char_log("Receiving a message for broadcast, but message is void." RETCODE);
 			else
 			{	// at least 1 map-server
-				for(i = 0; i < MAX_MAP_SERVERS; i++)
+				for(i = 0; i < MAX_MAP_SERVERS; ++i)
 					if(server[i].fd >= 0)
 						break;
 				if (i == MAX_MAP_SERVERS)
@@ -1152,7 +1143,7 @@ int parse_tologin(int fd)
 			CCharCharAccount account;
 			if( char_db.searchAccount(accid,account) )
 			{
-				for(p = 8, j = 0; p < sz && j < ACCOUNT_REG2_NUM; p += 36, j++)
+				for(p = 8, j = 0; p < sz && j < ACCOUNT_REG2_NUM; p += 36, ++j)
 				{
 					memcpy(account.account_reg2[j].str, RFIFOP(fd,p), 32);
 					account.account_reg2[j].value = RFIFOL(fd,p+32);
@@ -1182,7 +1173,7 @@ int parse_tologin(int fd)
 			if( char_db.searchAccount(RFIFOL(fd,2), account) )
 			{
 				size_t i;
-				for(i=0; i<9; i++)
+				for(i=0; i<9; ++i)
 				{
 					if( account.charlist[i] != 0)
 						char_delete(account.charlist[i]);
@@ -1262,7 +1253,7 @@ int parse_tologin(int fd)
 /*			{
 				unsigned char buf[32000];
 				int new_level = 0;
-				for(i = 0; i < GM_num; i++)
+				for(i = 0; i < GM_num; ++i)
 					if (gm_account[i].account_id == RFIFOL(fd,2)) {
 						if(gm_account[i].level != RFIFOB(fd,6)) {
 							gm_account[i].level = RFIFOB(fd,6);
@@ -1299,7 +1290,7 @@ int parse_tologin(int fd)
 					len = 4;
 					WBUFW(buf,0) = 0x2b15;
 				
-					for(i = 0; i < GM_num; i++) {
+					for(i = 0; i < GM_num; ++i) {
 						WBUFL(buf, len) = gm_account[i].account_id;
 						WBUFB(buf, len+4) = (unsigned char)gm_account[i].level;
 						len += 5;
@@ -1350,7 +1341,7 @@ int parse_frommap(int fd)
 	size_t i, j;
 	size_t id;
 
-	for(id = 0; id < MAX_MAP_SERVERS; id++)
+	for(id = 0; id < MAX_MAP_SERVERS; ++id)
 		if(server[id].fd == fd)
 			break;
 	if(id==MAX_MAP_SERVERS) {
@@ -1377,10 +1368,9 @@ int parse_frommap(int fd)
 		WBUFLIP(buf,14) = server[id].address.WANIP();
 		WBUFW(buf,18) = server[id].address.WANPort();
 
-		for(i=20, j=0; j<server[id].maps; i+=16, j++)
+		for(i=20, j=0; j<server[id].maps; i+=16, ++j)
 			memcpy(RBUFP(buf,i), server[id].map[j], 16);
 		mapif_sendallwos(fd, buf, server[id].maps * 16 + 20);
-
 		return 0;
 	}
 
@@ -1419,7 +1409,7 @@ int parse_frommap(int fd)
 		{
 			if(RFIFOREST(fd) < 70)
 				return 0;
-			server[id].address = ipset(RFIFOLIP(fd,54), RFIFOLIP(fd,58), RFIFOW(fd,62),RFIFOLIP(fd,64), RFIFOW(fd,68));
+			server[id].address = basics::ipset(RFIFOLIP(fd,54), RFIFOLIP(fd,58), RFIFOW(fd,62),RFIFOLIP(fd,64), RFIFOW(fd,68));
 			// send new ipset to mapservers for update
 			unsigned char buf[16384];
 			WBUFLIP(buf,4) = server[id].address.LANIP();
@@ -1428,7 +1418,7 @@ int parse_frommap(int fd)
 			WBUFLIP(buf,14) = server[id].address.WANIP();
 			WBUFW(buf,18) = server[id].address.WANPort();
 		
-			for(i=0, j=0; i<MAX_MAP_PER_SERVER; i++)
+			for(i=0, j=0; i<MAX_MAP_PER_SERVER; ++i)
 				if(server[id].map[i][0])
 					memcpy(WBUFP(buf,20+(j++)*16), server[id].map[i], 16);
 			if (j > 0) {
@@ -1486,7 +1476,7 @@ int parse_frommap(int fd)
 					mapif_sendallwos(fd, buf, j*16+20);
 				}
 				// Transmitting the maps of the other map-servers to the new map-server
-				for(x = 0; x < MAX_MAP_SERVERS; x++) {
+				for(x = 0; x < MAX_MAP_SERVERS; ++x) {
 					if(server[x].fd >= 0 && x != id) {
 						WFIFOW(fd,0) = 0x2b04;
 						WFIFOLIP(fd,4) = server[x].address.LANIP();
@@ -1495,7 +1485,7 @@ int parse_frommap(int fd)
 						WFIFOLIP(fd,14) = server[x].address.WANIP();
 						WFIFOW(fd,18) = server[x].address.WANPort();
 						
-						for(i=0, j=0; i<MAX_MAP_PER_SERVER; i++)
+						for(i=0, j=0; i<MAX_MAP_PER_SERVER; ++i)
 							if (server[x].map[i][0])
 								memcpy(WFIFOP(fd,20+(j++)*16), server[x].map[i], 16);
 						if (j > 0) {
@@ -1503,6 +1493,17 @@ int parse_frommap(int fd)
 							WFIFOSET(fd,j*16+20);
 						}
 					}
+				}
+				// send all fame lists
+				for(x=0; x<4; x++)
+				{	
+					CFameList &fl = char_db.getfamelist(x);
+					size_t len = 6+fl.tobuffer(WBUFP(buf,6));
+					WBUFW(buf,0) = 0x2b1b;
+					WBUFW(buf,4) = x;
+					WBUFW(buf,2) = len;
+					// send to all maps
+					mapif_sendall(buf, len);
 				}
 			}
 			RFIFOSKIP(fd,RFIFOW(fd,2));
@@ -1568,15 +1569,15 @@ int parse_frommap(int fd)
 /*
 //!! rewrite
 			// remove all previously online players of the server
-			for(i = 0; i < online_players_max; i++)
+			for(i = 0; i < online_players_max; ++i)
 				if (online_chars[i].server == id) {
 					online_chars[i].char_id = 0xFFFFFFFF;
 					online_chars[i].server  = 0xFFFFFFFF;
 				}
 			// add online players in the list by [Yor]
 			j = 0;
-			for(i = 0; i < server[id].users; i++) {
-				for(; j < online_players_max; j++)
+			for(i = 0; i < server[id].users; ++i) {
+				for(; j < online_players_max; ++j)
 					if(online_chars[j].char_id == 0xFFFFFFFF) {
 						online_chars[j].char_id = RFIFOL(fd,6+i*4);
 						online_chars[j].server = id;
@@ -1588,7 +1589,7 @@ int parse_frommap(int fd)
 					// create 256 new slots
 					online_players_max += 256;
 					online_chars = (struct online_chars*)aRealloc(online_chars, online_players_max*sizeof(struct online_chars) );
-					for( ; j < online_players_max; j++) {
+					for( ; j < online_players_max; ++j) {
 						online_chars[j].char_id = 0xFFFFFFFF;
 						online_chars[j].server  = 0xFFFFFFFF;
 					}
@@ -1640,7 +1641,6 @@ int parse_frommap(int fd)
 			}
 			else
 			{
-				memset(&account, 0, sizeof(account));//!!
 				account.account_id = RFIFOL(fd,2);
 				account.login_id1 = RFIFOL(fd,6);
 				account.login_id2 = RFIFOL(fd,10);
@@ -1680,7 +1680,6 @@ int parse_frommap(int fd)
 			}
 			else
 			{
-				memset(&account, 0, sizeof(account));//!!
 				account.account_id = RFIFOL(fd,2);
 				account.login_id1 = RFIFOL(fd,6);
 				account.login_id2 = RFIFOL(fd,10);
@@ -1754,7 +1753,8 @@ int parse_frommap(int fd)
 				return 0;
 			if( session_isActive(login_fd) )
 			{	// don't send request if no login-server
-				memcpy(WFIFOP(login_fd,0), RFIFOP(fd,0), 86); // 0x2722 <account_id>.L <actual_e-mail>.40B <new_e-mail>.40B
+				 // 0x2722 <account_id>.L <actual_e-mail>.40B <new_e-mail>.40B
+				memcpy(WFIFOP(login_fd,0), RFIFOP(fd,0), 86);
 				WFIFOW(login_fd,0) = 0x2722;
 				WFIFOSET(login_fd, 86);
 			}
@@ -1875,7 +1875,7 @@ int parse_frommap(int fd)
 			CCharCharAccount account;
 			if( char_db.searchAccount(accid,account) )
 			{
-				for(p = 8, j = 0; p < sz && j < ACCOUNT_REG2_NUM; p += 36, j++)
+				for(p = 8, j = 0; p < sz && j < ACCOUNT_REG2_NUM; p += 36, ++j)
 				{
 					memcpy(account.account_reg2[j].str, RFIFOP(fd,p), 32);
 					account.account_reg2[j].value = RFIFOL(fd,p+32);
@@ -1931,180 +1931,29 @@ int parse_frommap(int fd)
 			RFIFOSKIP(fd,10);
 			break;
 		///////////////////////////////////////////////////////////////////////
-		// Request sending of fame list
+		// Request for updating the fame list
 		case 0x2b1a:
 		{
-			if (RFIFOREST(fd) < 2)
+			if (RFIFOREST(fd) < 36)
 				return 0;
-			
-			struct famesort
-			{
-			public:
-				uint32	char_id;
-				uint32	fame_points;
-				char	name[24];
-				
-				famesort()	{}
-				famesort(uint32 c, const char *n, uint32 f) : char_id(c), fame_points(f)
-				{
-					safestrcpy(name,n,sizeof(name));
-				}
-			};
 
-			register size_t k;
-			size_t cnt_black=0, cnt_alche=0;
-			struct famesort fame_black[MAX_FAMELIST];
-			struct famesort fame_alche[MAX_FAMELIST];
-			unsigned char buf[1024]; // sending max 6 + 2*10*(4+4+24) bytes
-			size_t len = 6;
+			const int type = RFIFOW(fd,2);
+			const uint32 charid = RFIFOL(fd,4);
+			const char* name    = (const char*)RFIFOP(fd,8);
+			const uint32 points = RFIFOL(fd,32);
+			CFameList& fl = char_db.getfamelist(type);
 
-			char_db.aquire();
-			while( char_db )
-			{
-				if( char_db().fame_points>0 )
-				{
-					if( char_db().class_ == 10 ||
-						char_db().class_ == 4011 ||
-						char_db().class_ == 4033 )
-					{	// blacksmiths
-						for(k=0; k<cnt_black; k++)
-						{
-							if(char_db().fame_points > fame_black[k].fame_points)
-								break;
-						}
-						if(k<MAX_FAMELIST)
-						{
-							if(k<cnt_black)
-								memmove(fame_black+k, fame_black+k+1, (cnt_black-1-k)*sizeof(struct famesort));
-							fame_black[k] = famesort(char_db().char_id, char_db().name, char_db().fame_points);
-							cnt_black++;
-						}
-					}
-					else if( char_db().class_ == 18 ||
-							 char_db().class_ == 4019 ||
-							 char_db().class_ == 4041 )
-					{	// alchemists
-						for(k=0; k<cnt_alche;k++)
-						{
-							if(char_db().fame_points > fame_alche[k].fame_points)
-								break;
-						}
-						if(k<MAX_FAMELIST)
-						{
-							if(k<cnt_alche)
-								memmove(fame_alche+k, fame_alche+k+1, (cnt_alche-1-k)*sizeof(int));
-							fame_alche[k] = famesort(char_db().char_id, char_db().name, char_db().fame_points);
-							cnt_alche++;
-						}
-					}
-				}
-				// next char
-				char_db++;
+			if( fl.update(charid, name, points) )
+			{	// has changed so we send it
+				unsigned char buf[32+sizeof(CFameList)];
+				size_t len = 6+fl.tobuffer(WBUFP(buf,6));
+				WBUFW(buf,0) = 0x2b1b;
+				WBUFW(buf,4) = type;
+				WBUFW(buf,2) = len;
+				// sending to all maps
+				mapif_sendall(buf, len);
 			}
-			char_db.release();
-
-			// starting to send to map
-			WBUFW(buf,0) = 0x2b1b;
-			// send first list for blacksmiths
-			for(k=0; k<cnt_black; k++)
-			{
-				WBUFL(buf, len) = fame_black[k].char_id;
-				WBUFL(buf, len+4) = fame_black[k].fame_points;
-				memcpy(WBUFP(buf, len+8), fame_black[k].name, 24);
-				len += 32;
-			}
-			// adding blacksmith's list length
-			WBUFW(buf, 4) = len;
-			// adding second list for alchemists
-			for(k=0; k<cnt_alche; k++)
-			{
-				WBUFL(buf, len) = fame_black[k].char_id;
-				WBUFL(buf, len+4) = fame_black[k].fame_points;
-				memcpy(WBUFP(buf, len+8), fame_black[k].name, 24);
-				len += 32;
-			}
-			// adding packet length			
-			WBUFW(buf, 2) = len;
-			// sending to all maps
-			mapif_sendall(buf, len);
-
-/*
-			unsigned char buf[1024]; // sending max 6 + 2*10*(4+4+24) bytes
-			size_t len = 6;
-			register size_t k;
-			register size_t i;
-
-			uint32 val_fame_black[MAX_FAMELIST];
-			uint32 cid_fame_black[MAX_FAMELIST];
-			uint32 val_fame_alche[MAX_FAMELIST];
-			uint32 inx_fame_alche[MAX_FAMELIST];
-			size_t cnt_black=0, cnt_alche=0;
-
-			for(i=0; i<char_db.size(); i++)
-			{
-				if( char_db[i].fame_points>0 )
-				{
-					if( char_db[i].class_ == 10 ||
-						char_db[i].class_ == 4011 ||
-						char_db[i].class_ == 4033 )
-					{	// blacksmiths
-						for(k=0; k<cnt_black; k++)
-						{
-							if(char_db[i].fame_points > char_db[inx_fame_black[k]].fame_points)
-								break;
-						}
-						if(k<MAX_FAMELIST)
-						{
-							if(k<cnt_black)
-								memmove(inx_fame_black+k, inx_fame_black+k+1, (cnt_black-1-k)*sizeof(int));
-							inx_fame_black[k] = i;
-							cnt_black++;
-						}
-					}
-					else if( char_db[i].class_ == 18 ||
-							 char_db[i].class_ == 4019 ||
-							 char_db[i].class_ == 4041 )
-					{	// alchemists
-						for(k=0; k<cnt_alche;k++)
-						{
-							if(char_db[i].fame_points > char_db[inx_fame_alche[k]].fame_points)
-								break;
-						}
-						if(k<MAX_FAMELIST)
-						{
-							if(k<cnt_alche)
-								memmove(inx_fame_alche+k, inx_fame_alche+k+1, (cnt_alche-1-k)*sizeof(int));
-							inx_fame_alche[k] = i;
-							cnt_alche++;
-						}
-					}
-				}
-			}
-
-			// starting to send to map
-			WBUFW(buf,0) = 0x2b1b;
-			// send first list for blacksmiths
-			for(i = 0; i < cnt_black; i++) {
-				WBUFL(buf, len) = char_db[inx_fame_black[i]].char_id;
-				WBUFL(buf, len+4) = char_db[inx_fame_black[i]].fame_points;
-				memcpy(WBUFP(buf, len+8), char_db[inx_fame_black[i]].name, 24);
-				len += 32;
-			}
-			// adding blacksmith's list length
-			WBUFW(buf, 4) = len;
-			// adding second list for alchemists
-			for(i = 0; i < cnt_alche; i++) {
-				WBUFL(buf, len) = char_db[inx_fame_alche[i]].char_id;
-				WBUFL(buf, len+4) = char_db[inx_fame_alche[i]].fame_points;
-				memcpy(WBUFP(buf, len+8), char_db[inx_fame_alche[i]].name, 24);
-				len += 32;
-			}
-			// adding packet length			
-			WBUFW(buf, 2) = len;
-			// sending to all maps
-			mapif_sendall(buf, len);
-*/
-			RFIFOSKIP(fd,2);
+			RFIFOSKIP(fd,36);
 			break;
 		}
 		///////////////////////////////////////////////////////////////////////
@@ -2160,8 +2009,9 @@ int parse_frommap(int fd)
 			RFIFOSKIP(fd,sz);
 			break;
 		}
-		// read
+		// read/getappend
 		case 0x2b25:
+		case 0x2b28:
 		{	size_t sz;
 			if (RFIFOREST(fd) < 4 || (size_t)RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
 				return 0;
@@ -2169,7 +2019,8 @@ int parse_frommap(int fd)
 			uint32 msgid  = RFIFOL(fd,8);
 			CMail mail;
 			char_db.readMail(charid, msgid, mail);
-			WFIFOW(fd, 0) = 0x2b25;
+			// send wit same command
+			WFIFOW(fd, 0) = command;//0x2b25;
 			WFIFOW(fd, 2) = 8+mail.size();
 			WFIFOL(fd, 4) = charid;
 			mail.tobuffer( WFIFOP(fd, 8) );
@@ -2208,10 +2059,14 @@ int parse_frommap(int fd)
 			char* sender  = (char*)RFIFOP(fd,8);
 			char* target  = (char*)RFIFOP(fd,32);
 			char* head    = (char*)RFIFOP(fd,56);
-			char* body    = (char*)RFIFOP(fd,88);
-		
+			char* body    = (char*)RFIFOP(fd,96);
+			uint32 zeny   = RFIFOL(fd,608);
+			struct item it;
+
+			item_frombuffer(it, RFIFOP(fd, 612));
+
 			// store mail
-			ok = char_db.sendMail(senderid, sender, target, head, body, msgid, tid);
+			ok = char_db.sendMail(senderid, sender, target, head, body, zeny, it, msgid, tid);
 			if(ok)
 			{	// send "you have new mail" to addressee
 				unsigned char buf[16];
@@ -2233,6 +2088,7 @@ int parse_frommap(int fd)
 			RFIFOSKIP(fd,sz);
 			break;
 		}
+		
 
 
 		///////////////////////////////////////////////////////////////////////
@@ -2274,11 +2130,11 @@ int search_mapserver(const char *mapname)
 		temp_map[strchr(temp_map, '.') - temp_map + 1] = '\0'; // suppress the '.gat', but conserve the '.' to be sure of the name of the map
 
 	temp_map_len = strlen(temp_map);
-	for(i = 0; i < MAX_MAP_SERVERS; i++)
+	for(i = 0; i < MAX_MAP_SERVERS; ++i)
 	{
 		if( session_isActive( server[i].fd ) )
 		{
-			for (j = 0; server[i].map[j][0]; j++)
+			for (j = 0; server[i].map[j][0]; ++j)
 			{
 				//ShowMessage("%s : %s = %d\n", server[i].map[j], map, strncmp(server[i].map[j], temp_map, temp_map_len));
 				if(strncmp(server[i].map[j], temp_map, temp_map_len) == 0)
@@ -2313,7 +2169,7 @@ int parse_char(int fd)
 
 	unsigned short cmd;
 	uint32 client_ip = session[fd]->client_ip;
-	struct char_session_data *sd = (struct char_session_data *)session[fd]->session_data;
+	char_session_data *sd = (char_session_data *)session[fd]->user_session;
 
 	while (RFIFOREST(fd) >= 2)
 	{
@@ -2359,15 +2215,15 @@ int parse_char(int fd)
 				return 0;
 			if (sd == NULL)
 			{
-				sd = (struct char_session_data*)(session[fd]->session_data = aCalloc(1, sizeof(struct char_session_data)));
+				session[fd]->user_session = sd = new char_session_data;
 				safestrcpy(sd->email, "no mail", 40); // put here a mail without '@' to refuse deletion if we don't receive the e-mail
-				sd->valid_until = 0; // unknow or illimited (not displaying on map-server)
+				sd->valid_until = 0; // unknow or unlimited (not displaying on map-server)
 			}
 			// send back account_id
 			WFIFOL(fd,0) = RFIFOL(fd,2);
 			WFIFOSET(fd,4);
 
-			// search authentification
+			// search authentification, does also fill the char_session_data
 			if( char_db.searchAccount(RFIFOL(fd,2), *sd) &&
 				client_ip     == sd->client_ip &&
 				RFIFOL(fd,2)  == sd->account_id &&
@@ -2380,9 +2236,9 @@ int parse_char(int fd)
 				{
 					// make a local copy of the whole account data
 					if( sd->gm_level )
-						ShowMessage("Account Logged On; Account ID: %ld (GM level %d).\n", (unsigned long)sd->account_id, sd->gm_level);
+						ShowInfo("Account Logged On; Account ID: %ld (GM level %d).\n", (unsigned long)sd->account_id, sd->gm_level);
 					else
-						ShowMessage("Account Logged On; Account ID: %ld.\n", (unsigned long)sd->account_id);
+						ShowInfo("Account Logged On; Account ID: %ld.\n", (unsigned long)sd->account_id);
 
 					// send characters to player
 					mmo_char_send006b(fd, *sd);
@@ -2480,7 +2336,7 @@ int parse_char(int fd)
 								character.last_point.y = 103;
 							} else {
 								// get first online server (with a map)
-								for(j = 0; j < MAX_MAP_SERVERS; j++)
+								for(j = 0; j < MAX_MAP_SERVERS; ++j)
 								{
 									if( session_isActive(server[j].fd) && server[j].map[0][0])
 									{	// change save point to one of map found on the server (the first)
@@ -2549,9 +2405,9 @@ int parse_char(int fd)
 					CCharCharacter character;
 					
 					if( !char_db.insertChar( *sd, (char*)RFIFOP(fd,2),
-							RFIFOB(fd,24),RFIFOB(fd,25),RFIFOB(fd,26),RFIFOB(fd,27),RFIFOB(fd,28),RFIFOB(fd,29), //stats
-							RFIFOB(fd,30), // slot
-							RFIFOB(fd,33), RFIFOB(fd,31), // hair style, color
+							RFIFOB(fd,26),RFIFOB(fd,27),RFIFOB(fd,28),RFIFOB(fd,29),RFIFOB(fd,30),RFIFOB(fd,31), //stats
+							RFIFOB(fd,32), // slot
+							RFIFOB(fd,35), RFIFOB(fd,33), // hair style, color
 							character) )
 					{	// error
 						{	//already exists
@@ -2632,67 +2488,60 @@ int parse_char(int fd)
 			char* email = (char*)RFIFOP(fd,6);
 			email[39]=0;
 			if( !email_check(email) )
-				safestrcpy(email, "a@a.com", 40); // default e-mail
+				safestrcpy(email, "a@a.com", 40); // default e-mail if incorrect
 			
-			if(email_creation != 0 && strcmp(sd->email, "a@a.com") == 0
-				&& session_isActive(login_fd) )
-			{	// if we activated email creation and email is default email
-				// to modify an e-mail, login-server must be online
-				// if sended email is incorrect e-mail
-				if( 0==strcmp(email, "a@a.com") )
+			if( email_creation && session_isActive(login_fd) &&
+				0!=strcmp(email, "a@a.com") && 0==strcmp(sd->email, "a@a.com") )
+			{	// enable changeing the email when email creation is activated
+				// and a non-default email comes in
+				
+				// we save new e-mail
+				safestrcpy(sd->email, email, 40);
+
+				// send changed authentification to login
+				WFIFOW(fd,0) = 0x2750;
+				sd->CCharAccount::tobuffer( WFIFOP(fd, 2) );
+				WFIFOSET(fd, 2+sd->CCharAccount::size() );
+
+
+				// modify packet to simulate a char selection
+				CCharCharacter character;
+				if( char_db.searchChar(RFIFOL(fd,2),character) )
+				{
+					//////////////////
+					//## attention, two unusual schemes at once here
+
+					// skip part of the packet! (46, but leave the size of select packet: 3)
+					RFIFOSKIP(fd,43);
+					// change value to put new packet (char selection)
+					RFIFOW(fd, 0) = 0x66;
+					RFIFOB(fd, 2) = character.slot;
+					// not skip packet, it's modify of actual packet
+					break;
+
+					//## attention, two unusual schemes at once here
+					//////////////////
+				}
+				else
 				{
 					WFIFOW(fd, 0) = 0x70;
 					WFIFOB(fd, 2) = 0; // 00 = Incorrect Email address
 					WFIFOSET(fd, 3);
-				}
-				else
-				{	// we act like we have selected a character
-					// we change the packet to set it like selection.
-					CCharCharacter character;
-					if( char_db.searchChar(RFIFOL(fd,2),character) )
-					{
-						// we save new e-mail
-						safestrcpy(sd->email, email, 40);
-						// we send new e-mail to login-server ('online' login-server is checked before)
-						//!! change to 2750
-						WFIFOW(login_fd,0) = 0x2715;
-						WFIFOL(login_fd,2) = sd->account_id;
-						memcpy(WFIFOP(login_fd, 6), email, 40);
-						WFIFOSET(login_fd,46);
-						
-						// skip part of the packet! (46, but leave the size of select packet: 3)
-						RFIFOSKIP(fd,43);
-						// change value to put new packet (char selection)
-						RFIFOW(fd, 0) = 0x66;
-						RFIFOB(fd, 2) = character.slot;
-						// not send packet, it's modify of actual packet
-						break;
-			//!! attention, two unusual schemes at once here
-			//////////////////
-					}
-					else
-					{
-						WFIFOW(fd, 0) = 0x70;
-						WFIFOB(fd, 2) = 0; // 00 = Incorrect Email address
-						WFIFOSET(fd, 3);
-					}
+					char_log("Char-server '%s': Attempt to create an e-mail on an account with a default e-mail REFUSED - e-mail is invalid (account: %d, ip: %s)" RETCODE, server_name, sd->account_id, basics::ipaddress(client_ip).tostring(NULL));
 				}
 			}
-			else
-			{	// otherwise, we delete the character
-				CCharCharacter character;
-				if( email && sd->email && 0==strcasecmp(email, sd->email) &&
+			// otherwise, we delete the character
+			else if( email && sd->email && 0==strcasecmp(email, sd->email) &&
 					char_delete(RFIFOL(fd,2)) )
-				{
-					WFIFOW(fd,0) = 0x6f;
-					WFIFOSET(fd,2);
-				}
-				else
-				{	// semething went wrong / most possibly an invalid email
-					WFIFOW(fd, 0) = 0x70;
-					WFIFOB(fd, 2) = 0; // 00 = Incorrect Email address
-					WFIFOSET(fd, 3);
-				}
+			{
+				WFIFOW(fd,0) = 0x6f;
+				WFIFOSET(fd,2);
+			}
+			else
+			{	// semething went wrong / most possibly an invalid email
+				WFIFOW(fd, 0) = 0x70;
+				WFIFOB(fd, 2) = 0; // 00 = Incorrect Email address
+				WFIFOSET(fd, 3);
 			}
 			RFIFOSKIP(fd,46);
 			break;
@@ -2705,7 +2554,7 @@ int parse_char(int fd)
 			if (RFIFOREST(fd) < 70)
 				return 0;
 			WFIFOW(fd,0) = 0x2af9;
-			for(i = 0; i < MAX_MAP_SERVERS; i++) {
+			for(i = 0; i < MAX_MAP_SERVERS; ++i) {
 				if(server[i].fd < 0)
 					break;
 			}
@@ -2716,7 +2565,7 @@ int parse_char(int fd)
 				WFIFOB(fd,2) = 0;
 				session[fd]->func_parse = parse_frommap;
 
-				server[i].address = ipset(RFIFOLIP(fd,54), RFIFOLIP(fd,58), RFIFOW(fd,62),RFIFOLIP(fd,64), RFIFOW(fd,68));
+				server[i].address = basics::ipset(RFIFOLIP(fd,54), RFIFOLIP(fd,58), RFIFOW(fd,62),RFIFOLIP(fd,64), RFIFOW(fd,68));
 				server[i].fd    = fd;
 				server[i].users = 0;
 				memset(server[i].map, 0, sizeof(server[i].map));
@@ -2763,7 +2612,7 @@ int parse_char(int fd)
 }
 ///////////////////////////////////////////////////////////////////////////////
 // Console Command Parser [Wizputer]
-int parse_console(char *buf)
+int parse_console(const char *buf)
 {
     char type[64], command[64];
 
@@ -2774,7 +2623,6 @@ int parse_console(char *buf)
 
     ShowMessage("Type of command: %s || Command: %s \n",type,command);
 
-    if(buf) aFree(buf);
     return 0;
 }
 ///////////////////////////////////////////////////////////////////////////////
@@ -2784,7 +2632,7 @@ int mapif_sendall(unsigned char *buf, unsigned int len) {
 	int fd;
 
 	if(buf)
-	for(i = 0; i < MAX_MAP_SERVERS; i++)
+	for(i = 0; i < MAX_MAP_SERVERS; ++i)
 	{
 		fd = server[i].fd;
 		if( session_isActive(fd) )
@@ -2803,7 +2651,7 @@ int mapif_sendallwos(int sfd, unsigned char *buf, unsigned int len) {
 	int fd;
 
 	if(buf)
-	for(i = 0; i < MAX_MAP_SERVERS; i++)
+	for(i = 0; i < MAX_MAP_SERVERS; ++i)
 	{
 		fd = server[i].fd;
 		if( session_isActive(fd) && fd != sfd )
@@ -2821,7 +2669,7 @@ int mapif_send(int fd, unsigned char *buf, unsigned int len) {
 	int i;
 	if( buf && session_isActive(fd) )
 	{
-		for(i = 0; i < MAX_MAP_SERVERS; i++)
+		for(i = 0; i < MAX_MAP_SERVERS; ++i)
 		{
 			if(fd == server[i].fd)
 			{
@@ -2834,7 +2682,7 @@ int mapif_send(int fd, unsigned char *buf, unsigned int len) {
 	return 0;
 }
 ///////////////////////////////////////////////////////////////////////////////
-int send_users_tologin(int tid, unsigned long tick, int id, intptr data) {
+int send_users_tologin(int tid, unsigned long tick, int id, basics::numptr data) {
 	int users = count_users();
 	unsigned char buf[16];
 
@@ -2852,48 +2700,92 @@ int send_users_tologin(int tid, unsigned long tick, int id, intptr data) {
 
 	return 0;
 }
+void connect_login(void)
+{
+	if( session_isActive(login_fd) )
+	{
+		session[login_fd]->func_parse = parse_tologin;
+		realloc_fifo(login_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
+
+		WFIFOW(login_fd,0) = 0x2710;
+		memcpy(WFIFOP(login_fd,2), userid, strlen(userid) < 24 ? 1+strlen(userid) : 24);
+		WFIFOB(login_fd,25) = 0;
+		memcpy(WFIFOP(login_fd,26), passwd, strlen(passwd) < 24 ? 1+strlen(passwd) : 24);
+		WFIFOB(login_fd,49) = 0;
+		memcpy(WFIFOP(login_fd,50), server_name, strlen(server_name) < 20 ? 1+strlen(server_name) : 20);
+		WFIFOB(login_fd,69) = 0;
+		WFIFOB(login_fd,70) = char_maintenance;
+		WFIFOB(login_fd,71) = char_new_display;
+		WFIFOB(login_fd,72) = 0;
+		WFIFOB(login_fd,73) = 0;
+		// ip's
+		WFIFOLIP(login_fd,74) = charaddress.LANIP();
+		WFIFOLIP(login_fd,78) = charaddress.LANMask();
+		WFIFOW(login_fd,82)   = charaddress.LANPort();
+		WFIFOLIP(login_fd,84) = charaddress.WANIP();
+		WFIFOW(login_fd,88)   = charaddress.WANPort();
+
+		WFIFOSET(login_fd,90);
+	}
+}
 ///////////////////////////////////////////////////////////////////////////////
-int check_connect_login_server(int tid, unsigned long tick, int id, intptr data)
+int check_connect_login_server(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	if( !session_isActive(login_fd) )
 	{
 		ShowStatus("Attempt to connect to login-server...(%s)\n", server_name);
 		login_fd = make_connection(loginaddress.addr(), loginaddress.port());
 
-		if( session_isActive(login_fd) )
+		connect_login();
+	}
+	return 0;
+}
+int check_dropped_charwan(int tid, unsigned long tick, int id, basics::numptr data)
+{
+	static basics::CParam<bool> automatic_wan_setup("automatic_wan_setup", false);
+
+	if(	automatic_wan_setup )
+	{
+		if( dropped_WAN(charaddress.WANIP(), charaddress.WANPort()) )
 		{
-			session[login_fd]->func_parse = parse_tologin;
-			realloc_fifo(login_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
+			if( charaddress.WANIP() != basics::ipany )
+				ShowWarning("WAN connection dropped.\n");
 
-			WFIFOW(login_fd,0) = 0x2710;
-			memcpy(WFIFOP(login_fd,2), userid, strlen(userid) < 24 ? 1+strlen(userid) : 24);
-			WFIFOB(login_fd,25) = 0;
-			memcpy(WFIFOP(login_fd,26), passwd, strlen(passwd) < 24 ? 1+strlen(passwd) : 24);
-			WFIFOB(login_fd,49) = 0;
-			memcpy(WFIFOP(login_fd,50), server_name, strlen(server_name) < 20 ? 1+strlen(server_name) : 20);
-			WFIFOB(login_fd,69) = 0;
-			WFIFOB(login_fd,70) = char_maintenance;
-			WFIFOB(login_fd,71) = char_new_display;
-			WFIFOB(login_fd,72) = 0;
-			WFIFOB(login_fd,73) = 0;
-			// ip's
-			WFIFOLIP(login_fd,74) = charaddress.LANIP();
-			WFIFOLIP(login_fd,78) = charaddress.LANMask();
-			WFIFOW(login_fd,82)   = charaddress.LANPort();
-			WFIFOLIP(login_fd,84) = charaddress.WANIP();
-			WFIFOW(login_fd,88)   = charaddress.WANPort();
+			if( initialize_WAN(charaddress, 6121) )
+			{	// if ok, then check if we can connect to it
+				if( dropped_WAN(charaddress.WANIP(), charaddress.WANPort()) )
+				{	// most likely the router/firewall settings are wrong
+					// give a warning and disable the automatic wan setup
+					char buf1[16],buf2[16];
+					ShowWarning("WAN connection not available or router with wrong configuration.\n"
+								CL_SPACE"expecting correct port forward from router to local machine\n"
+								CL_SPACE"router is on %s:%i, local machine on %s:%i\n"
+								, charaddress.WANIP().tostring(buf1), charaddress.WANPort()
+								, charaddress.LANIP().tostring(buf2), charaddress.LANPort()
+								);
 
-			WFIFOSET(login_fd,90);
+					ShowWarning("automatic WAN detection will be disabled now.\n");
+					automatic_wan_setup = false;
+
+					// reset the wanip to default
+					// only accept lan ip's from now
+					charaddress.LANMask() = basics::ipany;
+					charaddress.SetWANIP(basics::ipany);
+				}
+				// send changes to login
+				connect_login();
+			}
 		}
 	}
 	return 0;
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 int char_config_read(const char *cfgName)
 {
 	char line[1024], w1[1024], w2[1024];
 
-	FILE *fp = safefopen(cfgName, "r");
+	FILE *fp = basics::safefopen(cfgName, "r");
 	if (fp == NULL) {
 		ShowError("Configuration file not found: %s.\n", cfgName);
 		return 0;
@@ -3030,7 +2922,7 @@ void do_final(void)
 
 	///////////////////////////////////////////////////////////////////////////
 	// delete sessions
-	for(i = 0; i < (size_t)fd_max; i++)
+	for(i = 0; i < (size_t)fd_max; ++i)
 		if(session[i] != NULL) 
 			session_Delete(i);
 	// clear externaly stored fd's
@@ -3052,35 +2944,14 @@ int do_init(int argc, char **argv)
 
 	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
 	char_db.init( (argc < 2) ? CHAR_CONF_NAME : argv[1] );
-
 	// a newline in the log...
 	char_log("");
 	// moved behind char_config_read in case we changed the filename [celest]
 	char_log("The char-server starting..." RETCODE);
 
-	for(i = 0; i < MAX_MAP_SERVERS; i++) {
-		memset(&server[i], 0, sizeof(struct mmo_map_server));
-		server[i].fd = -1;
-	}
-
-	ipaddress wanip;
-	if( detect_WAN(wanip) && 
-		charaddress.WANIP() != wanip && 
-		charaddress.LANIP() != wanip &&
-		!charaddress.SetLANIP(wanip) )
+	for(i = 0; i < MAX_MAP_SERVERS; ++i)
 	{
-		ShowStatus("Setting WAN IP %s (overwriting config).\n", (const char*)tostring(wanip));
-		charaddress.SetWANIP(wanip);
-		if( charaddress.LANMask() == ipany )
-		{
-			charaddress.LANMask() = ipaddress(0xFFFFFF00ul);
-			ShowStatus("Setting LAN Mask to %s (overwriting config).\n", (const char*)tostring(charaddress.LANMask()));
-		}
-		if( charaddress.WANPort() == 0 )
-		{
-			ShowStatus("Setting default WAN Port to %d.\n", 6121);
-			charaddress.WANPort() = 6121;
-		}
+		server[i].fd = -1;
 	}
 
 	update_online = time(NULL);
@@ -3090,18 +2961,25 @@ int do_init(int argc, char **argv)
 
 	set_defaultparse(parse_char);
 
+	basics::CParam<bool> automatic_wan_setup("automatic_wan_setup",false);
+	if( automatic_wan_setup )
+		initialize_WAN(charaddress, 6121);
+
 	char_fd = make_listen(charaddress.LANIP(),charaddress.LANPort());
 
 	add_timer_func_list(check_connect_login_server, "check_connect_login_server");
-	add_timer_func_list(send_users_tologin, "send_users_tologin");
-	add_timer_func_list(mmo_char_sync_timer, "mmo_char_sync_timer");
-
 	add_timer_interval(gettick() + 1000, 10 * 1000, check_connect_login_server, 0, 0);
+
+	add_timer_func_list(check_dropped_charwan, "check_dropped_charwan");
+	add_timer_interval(gettick() + 10000, 600 * 1000, check_dropped_charwan, 0, 0);
+
+	add_timer_func_list(send_users_tologin, "send_users_tologin");
 	add_timer_interval(gettick() + 1000, 5 * 1000, send_users_tologin, 0, 0);
+	add_timer_func_list(mmo_char_sync_timer, "mmo_char_sync_timer");
 	add_timer_interval(gettick() + autosave_interval, autosave_interval, mmo_char_sync_timer, 0, 0);
 
-
-	if(console) {
+	if(console)
+	{
 	    set_defaultconsoleparse(parse_console);
 	   	start_console();
 	}

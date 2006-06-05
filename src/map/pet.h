@@ -44,7 +44,7 @@ int search_petDB_index(int key,int type);
 int pet_remove_map(struct map_session_data &sd);
 int pet_data_init(struct map_session_data &sd);
 int pet_birth_process(struct map_session_data &sd);
-int pet_recv_petdata(uint32 account_id,struct s_pet &p,int flag);
+int pet_recv_petdata(uint32 account_id,struct petstatus &p,int flag);
 int pet_select_egg(struct map_session_data &sd,short egg_index);
 int pet_catch_process1(struct map_session_data &sd,int target_class);
 int pet_catch_process2(struct map_session_data &sd,uint32 target_id);
@@ -55,20 +55,20 @@ int pet_equipitem(struct map_session_data &sd,int index);
 int pet_unequipitem(struct map_session_data &sd);
 int pet_food(struct map_session_data &sd);
 int pet_lootitem_drop(struct pet_data &pd,struct map_session_data *sd);
-int pet_delay_item_drop2(int tid, unsigned long tick, int id, intptr data);
+int pet_delay_item_drop2(int tid, unsigned long tick, int id, basics::numptr data);
 int petskill_use(struct pet_data &pd, struct block_list &target, short skill_id, short skill_lv, unsigned int tick);
-int pet_skill_support_timer(int tid, unsigned long tick, int id, intptr data); // [Skotlex]
-int pet_skill_bonus_timer(int tid, unsigned long tick, int id, intptr data); // [Valaris]
-int pet_recovery_timer(int tid, unsigned long tick, int id, intptr data); // [Valaris]
-int pet_heal_timer(int tid, unsigned long tick, int id, intptr data); // [Valaris]
-int pet_skillsupport_timer(int tid, unsigned long tick, int id, intptr data); // [Skotlex]
+int pet_skill_support_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Skotlex]
+int pet_skill_bonus_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
+int pet_recovery_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
+int pet_heal_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
+int pet_skillsupport_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Skotlex]
 
-int pet_skill_bonus_timer(int tid, unsigned long tick, int id, intptr data); // [Valaris]
-int pet_recovery_timer(int tid, unsigned long tick, int id, intptr data); // [Valaris]
-//int pet_mag_timer(int tid, unsigned long tick, int id, intptr data); // [Valaris]
-int pet_heal_timer(int tid, unsigned long tick, int id, intptr data); // [Valaris]
-int pet_skillattack_timer(int tid, unsigned long tick, int id, intptr data); // [Valaris]
-int pet_skill_support_timer(int tid, unsigned long tick, int id, intptr data);// [Skotlex]
+int pet_skill_bonus_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
+int pet_recovery_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
+//int pet_mag_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
+int pet_heal_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
+int pet_skillattack_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
+int pet_skill_support_timer(int tid, unsigned long tick, int id, basics::numptr data);// [Skotlex]
 
 int read_petdb();
 int do_init_pet(void);

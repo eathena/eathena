@@ -1,6 +1,7 @@
 #include "basetypes.h"
 #include "basetime.h"
 
+NAMESPACE_BEGIN(basics)
 
 //////////////////////////////////////////////////////////////////////////
 // datetime type: 
@@ -287,4 +288,4 @@ datetime utodatetime(time_t u)
 }
 
 
-
+NAMESPACE_END(basics)

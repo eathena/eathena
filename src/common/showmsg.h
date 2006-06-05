@@ -1,7 +1,7 @@
 #ifndef _SHOWMSG_H_
 #define _SHOWMSG_H_
 
-#include "base.h"
+#include "basetypes.h"
 
 //ok thanks MC I see it
 #define SHOW_DEBUG_MSG 1
@@ -66,6 +66,7 @@
 #define CL_NORMAL	CL_RESET
 #define CL_NONE		CL_RESET
 
+#define CL_SPACE         "           "	// space aquivalent of the print messages
 enum msg_type {MSG_NONE,MSG_STATUS,MSG_SQL,MSG_INFORMATION,MSG_CONSOLE,MSG_NOTICE,MSG_WARNING,MSG_DEBUG,MSG_ERROR,MSG_FATALERROR};
 
 extern int _vShowMessage(enum msg_type flag, const char *str, va_list va);

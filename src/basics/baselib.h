@@ -2,8 +2,8 @@
 #define __BASELIB__
 
 //////////////////////////////////////////////////////////////////////////
-// module for loading dynamic libraries
-// defines a wrapper for unifying unix/windows style of lib loading
+/// module for loading dynamic libraries.
+/// defines a wrapper for unifying unix/windows style of lib loading
 //////////////////////////////////////////////////////////////////////////
 
 #include "basetypes.h"
@@ -20,7 +20,7 @@
 #else
 
 #  include <dlfcn.h>
-// implement a windows like loading environment
+/// implement a windows like loading environment
 typedef void* HINSTANCE;
 
 extern inline HINSTANCE LoadLibrary(const char* lpLibFileName)
@@ -39,10 +39,12 @@ extern inline void *GetProcAddress(HINSTANCE hModule, const char* lpProcName)
 #endif
 
 
+NAMESPACE_BEGIN(basics)
+
 
 //////////////////////////////////////////////////////////////////////////
-// basic interface for dynamic library loading class
-// derive an implementation from here
+/// basic interface for dynamic library loading class.
+/// derive an implementation from here
 //////////////////////////////////////////////////////////////////////////
 
 class CLibraryLoader : public noncopyable, public global
@@ -57,7 +59,7 @@ public:
 };
 
 
-
+NAMESPACE_END(basics)
 
 
 #endif//__BASELIB__

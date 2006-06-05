@@ -2,7 +2,8 @@
 #ifndef _SCRIPT_H_
 #define _SCRIPT_H_
 
-#include <baseparam.h>
+#include "basestring.h"
+
 // predeclaration
 struct map_session_data;
 class CScriptEngine;
@@ -31,7 +32,7 @@ extern struct Script_Config
 
 ///////////////////////////////////////////////////////////////////////////////
 // a label marks a position within a script with a name
-class CLabel : public MiniString
+class CLabel : public basics::string<>
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -42,8 +43,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// constructors/destructor
 	CLabel()	{}
-	CLabel(const MiniString& s) : MiniString(s)	{}
-	CLabel(const MiniString& s, size_t p) : MiniString(s), cPos(p)	{}
+	CLabel(const basics::string<>& s) : basics::string<>(s)	{}
+	CLabel(const basics::string<>& s, size_t p) : basics::string<>(s), cPos(p)	{}
 	~CLabel()	{}
 	///////////////////////////////////////////////////////////////////////////
 	// compare operators for sorting derived from MiniString
@@ -52,22 +53,22 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // a script data stub
 // contains the parsed programm and a label list
-class _CScript : public global
+class _CScript : public basics::global
 {
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	// friends
 	friend class CScript;
 	friend class CParser;
-	friend class TPtrCount<_CScript>;
-	friend class TPtrAutoCount<_CScript>;
+	friend class basics::TPtrCount<_CScript>;
+	friend class basics::TPtrAutoCount<_CScript>;
 	friend class CScriptEngine;
 
 	///////////////////////////////////////////////////////////////////////////
 	// class data
-	MiniString			cName;		// name of the script
-	TArrayDST<uchar>	cProgramm;	// the programm
-	TslistDCT<CLabel>	cLabels;	// list of labels (sorted by name)
+	basics::string<>			cName;		// name of the script
+	basics::TArrayDST<uchar>	cProgramm;	// the programm
+	basics::TslistDCT<CLabel>	cLabels;	// list of labels (sorted by name)
 
 	///////////////////////////////////////////////////////////////////////////
 	// construction, only friends are allowed to create
@@ -109,7 +110,7 @@ public:
 // a script container
 // consists of a reference counting pointer to the actual script object
 // which is automatically destructed when the script is not referenced anymore
-class CScript : public global
+class CScript : public basics::global
 {
 	///////////////////////////////////////////////////////////////////////////
 	// friends
@@ -124,24 +125,24 @@ class CScript : public global
 		class CStrData
 		{
 		public:
-			int			type;
-			MiniString	str;
-			int			backpatch;
-			int			label;
-			int			val;
-			int			next;
+			int					type;
+			basics::string<>	str;
+			int					backpatch;
+			int					label;
+			int					val;
+			int					next;
 			int (*func)(CScriptEngine &);
 
 			CStrData() : type(0),backpatch(0),label(0),val(0),next(0),func(NULL)	{}
-			CStrData(int t, const MiniString& s, int b, int l, int v, int n,  int (*f)(CScriptEngine &))
+			CStrData(int t, const basics::string<>& s, int b, int l, int v, int n,  int (*f)(CScriptEngine &))
 				: type(t),str(s),backpatch(b),label(l),val(v),next(n),func(f)	{}
 
 			// unused but necessary for list template
 			bool operator==(const CStrData a) const { return this->str==a.str; }
 		};
 
-		int					cStrHash[16];
-		TArrayDCT<CStrData>	cStrData;
+		int							cStrHash[16];
+		basics::TArrayDCT<CStrData>	cStrData;
 	public:
 		CStringBuffer();
 		~CStringBuffer()
@@ -167,7 +168,7 @@ class CScript : public global
 		unsigned char calcHash(const char *str);
 	public:
 		int searchString(const char *p);
-		int addString(const MiniString& str);
+		int addString(const basics::string<>& str);
 	};
 
 	static CStringBuffer	cStrData;			// static string buffer
@@ -175,7 +176,7 @@ class CScript : public global
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	// data
-	TPtrAutoCount<_CScript>	cScript;
+	basics::TPtrAutoCount<_CScript>	cScript;
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construction/destruction
@@ -186,7 +187,7 @@ public:
 
 	size_t size()	{return cScript->cProgramm.size(); }	
 	uchar& operator[](size_t i)	{ return cScript->cProgramm[i]; }
-	void init(const MiniString& name);
+	void init(const basics::string<>& name);
 
 	int getInt(unsigned int &pos);
 	int getCommand(unsigned int &pos);
@@ -241,7 +242,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 // simple class only since we use c-style allocation and clearing at the moment
-class CScriptEngine : public noncopyable
+class CScriptEngine : public basics::noncopyable
 {
 	///////////////////////////////////////////////////////////////////////////
 	// friends
@@ -282,8 +283,15 @@ public:
 		CValue(int t, int n) :type(t), num(n)			{}
 		CValue(int t, const char *s) :type(t), str(s)	{}
 		CValue(int n) : type(C_INT), num(n)				{}
-		CValue(const char* str) : type(C_STR), str(aStrdup(str))	{}
-		CValue(const CValue& a)
+		CValue(const char* s) : type(C_STR), str(NULL)
+		{
+			if(s)
+			{
+				str = new char[1+strlen(s)];
+				memcpy(const_cast<char*>(str), s, 1+strlen(s));
+			}
+		}
+		CValue(const CValue& a) : type(a.type), str(NULL)
 		{
 			this->type = a.type;
 			switch(a.type)
@@ -292,7 +300,11 @@ public:
 				this->str = a.str;
 				break;
 			case CScriptEngine::C_STR:
-				this->str = aStrdup(a.str);
+				if(a.str)
+				{
+					this->str = new char[1+strlen(a.str)];
+					memcpy(const_cast<char*>(str), a.str, 1+strlen(a.str));
+				}
 				break;
 			default:
 				this->num = a.num;
@@ -315,8 +327,11 @@ public:
 				this->str = a.str;
 				break;
 			case CScriptEngine::C_STR:
-				this->str = aStrdup(a.str);
-				break;
+				if(a.str)
+				{
+					this->str = new char[1+strlen(a.str)];
+					memcpy(const_cast<char*>(str), a.str, 1+strlen(a.str));
+				}
 			default:
 				this->num = a.num;
 				break;
@@ -333,8 +348,16 @@ public:
 		CValue& operator=(const char* s)
 		{
 			clear();
-			this->type = (s) ? C_STR : C_CONSTSTR;
-			this->str =  (s) ? aStrdup(s) : "";
+			if(s)
+			{	// copy
+				this->str = new char[1+strlen(s)];
+				memcpy(const_cast<char*>(str), s, 1+strlen(s));
+			}
+			else
+			{	// empty const string
+				this->type = C_CONSTSTR;
+				this->str =  "";
+			}
 			return *this;
 		}
 
@@ -365,9 +388,9 @@ public:
 		///////////////////////////////////////////////////////////////////////
 		void clear()
 		{
-			if( type==CScriptEngine::C_STR )
+			if( type==CScriptEngine::C_STR && str )
 			{
-				aFree( (void*)str );
+				delete[] const_cast<char*>(str);
 				type = C_INT;
 				num = 0;
 			}
@@ -377,7 +400,7 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	// helper for queueing calling scripts
 	// use it dynamically only
-	class CCallScript : public noncopyable
+	class CCallScript : public basics::noncopyable
 	{	
 	protected:
 		// only CScriptEngine and derived can create and modify this class
@@ -576,7 +599,7 @@ private:
 			CValue *temp = new CValue[stack_max];
 			if(stack_data)
 			{
-				for(size_t i=0; i<stack_ptr;i++)
+				for(size_t i=0; i<stack_ptr;++i)
 					temp[i] << stack_data[i];
 				delete [] stack_data;
 			}
@@ -665,6 +688,41 @@ public:
 	friend int buildin_setarray(CScriptEngine &st);
 	friend int buildin_if(CScriptEngine &st);
 };
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// variables will change
+struct script_reg
+{
+	int index;
+	int data;
+
+	// default constructor
+	script_reg() : 
+		index(0),
+		data(0)
+	{}
+};
+
+struct script_regstr
+{
+	int index;
+	char data[256];
+
+	// default constructor
+	script_regstr() : 
+		index(0)
+	{
+		data[0] = 0;
+	}
+};
+
+
+
 
 char *parse_script(unsigned char *src, size_t line);
 

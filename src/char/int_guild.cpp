@@ -1,5 +1,4 @@
 // $Id: int_guild.c,v 1.2 2004/09/25 19:36:53 Akitasha Exp $
-#include "base.h"
 #include "baseio.h"
 #include "inter.h"
 #include "int_guild.h"
@@ -29,7 +28,7 @@ CGuildDB	cGuildDB;
 // ギルドデータの読み込み
 int inter_guild_init()
 {
-	cGuildDB.init(NULL);
+	cGuildDB.init(CHAR_CONF_NAME);
 	return 0;
 }
 
@@ -38,104 +37,6 @@ void inter_guild_final()
 	return;
 }
 
-
-class CDBguild_break : public CDBProcessor
-{
-	uint32 guild_id;
-public:
-	CDBguild_break(uint32 gid) : guild_id(gid)	{}
-	virtual ~CDBguild_break()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		struct guild *g = (struct guild *)data;
-		int i;
-		for(i = 0; i < MAX_GUILDALLIANCE; i++)
-		{
-			if (g->alliance[i].guild_id == guild_id)
-				g->alliance[i].guild_id = 0;
-		}
-		return true;
-	}
-};
-
-class CDBguild_check_conflict : public CDBProcessor
-{
-	uint32 guild_id;
-	uint32 account_id;
-	uint32 char_id;
-public:
-	CDBguild_check_conflict(uint32 gid, uint32 aid,  uint32 cid)
-		: guild_id(gid), account_id(aid), char_id(cid) 	{}
-	virtual ~CDBguild_check_conflict()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		struct guild *g = (struct guild *)data;
-		size_t i;
-
-		if (g->guild_id != guild_id)	// 本来の所属なので問題なし
-		{
-			for(i = 0; i < MAX_GUILD; i++)
-			{
-				if (g->member[i].account_id == account_id && g->member[i].char_id == char_id) {
-					// 別のギルドに偽の所属データがあるので脱退
-					ShowMessage("int_guild: guild conflict! %d,%d %d!=%d\n", 
-						account_id, char_id, guild_id, g->guild_id);
-					mapif_parse_GuildLeave(-1, g->guild_id, account_id, char_id, 0, "**データ競合**");
-				}
-			}
-		}
-		return true;
-	}
-};
-// キャラの競合がないかチェック
-int guild_check_conflict(uint32 guild_id, uint32 account_id, uint32 char_id)
-{
-
-	size_t k;
-	cGuildDB.aquireGuild();
-	while( cGuildDB.isGuildOk() )
-	{	CGuild &g = cGuildDB.getGuild();
-		if( g.guild_id != guild_id )
-		{
-			for(k=0; k<MAX_GUILD; k++)
-			{
-				if( g.member[k].account_id == account_id && 
-					g.member[k].char_id == char_id)
-				{	// 別のギルドに偽の所属データがあるので脱退
-					ShowMessage("int_guild: guild conflict! %d,%d %d!=%d\n", 
-						account_id, char_id, guild_id, g.guild_id);
-					mapif_parse_GuildLeave(-1, g.guild_id, account_id, char_id, 0, "**データ競合**");
-					
-					goto finish; // not nice but fast
-				}
-			}
-		}
-		cGuildDB.nextGuild();
-	}
-finish:
-	cGuildDB.releaseGuild();
-/*
-	size_t i,k;
-	for(i=0; i<cGuildDB.size(); i++)
-	{
-		if( cGuildDB[i].guild_id != guild_id )
-		{
-			for(k=0; k<MAX_GUILD; k++)
-			{
-				if( cGuildDB[i].member[k].account_id == account_id && 
-					cGuildDB[i].member[k].char_id == char_id)
-				{	// 別のギルドに偽の所属データがあるので脱退
-					ShowMessage("int_guild: guild conflict! %d,%d %d!=%d\n", 
-						account_id, char_id, guild_id, cGuildDB[i].guild_id);
-					mapif_parse_GuildLeave(-1, cGuildDB[i].guild_id, account_id, char_id, 0, "**データ競合**");
-					return 0;
-				}
-			}
-		}
-	}
-*/
-	return 0;
-}
 
 //-------------------------------------------------------------------
 // map serverへの通信
@@ -411,8 +312,9 @@ int mapif_guild_castle_alldataload(int fd)
 {
 	if( session_isActive(fd) )
 	{
-		size_t /*i,*/ len = 4;
-
+		size_t i, len = 4;
+/*
+		// using alternalte interface
 		cGuildDB.aquireCastle();
 		while( cGuildDB.isCastleOk() )
 		{
@@ -422,12 +324,25 @@ int mapif_guild_castle_alldataload(int fd)
 			cGuildDB.nextCastle();
 		}
 		cGuildDB.releaseCastle();
-/*		for(i=0; i<cGuildDB.castlesize(); i++)
+*/
+/*
+		// using random access
+		for(i=0; i<cGuildDB.castlesize(); ++i)
 		{
 			guild_castle_tobuffer( cGuildDB.castle(i), WFIFOP(fd,len));
 			len += sizeof(struct guild_castle);
 		}
-*/		WFIFOW(fd,0) = 0x3842;
+*/
+		// using specific implementation
+		basics::vector<CCastle> cv;
+		cGuildDB.getCastles(cv);
+		for(i=0; i<cv.size(); ++i)
+		{
+			guild_castle_tobuffer( cv[i], WFIFOP(fd,len) );
+			len += sizeof(struct guild_castle);
+		}
+
+		WFIFOW(fd,0) = 0x3842;
 		WFIFOW(fd,2) = len;
 		WFIFOSET(fd, len);
 	}
@@ -443,7 +358,7 @@ int mapif_parse_CreateGuild(int fd, uint32 account_id, char *name, unsigned char
 	CGuild g;
 	size_t i;
 
-	for(i = 0; i < 24 && name[i]; i++) {
+	for(i = 0; i < 24 && name[i]; ++i) {
 		if (!(name[i] & 0xe0) || name[i] == 0x7f) {
 			ShowMessage("int_guild: illeagal guild name [%s]\n", name);
 			mapif_guild_create_failed(fd, account_id);
@@ -481,7 +396,8 @@ int mapif_parse_GuildInfo(int fd, uint32 guild_id)
 	{
 		g.calcInfo();
 		mapif_guild_info(fd, g);
-	} else
+	}
+	else
 		mapif_guild_noinfo(fd, guild_id);
 
 	return 0;
@@ -494,7 +410,7 @@ int mapif_parse_GuildAddMember(int fd, int guild_id, unsigned char *buf)
 	if( cGuildDB.searchGuild(guild_id, g) )
 	{
 		size_t i;
-		for(i=0; i<g.max_member; i++)
+		for(i=0; i<g.max_member && i<MAX_GUILD; ++i)
 		{
 			if(g.member[i].account_id == 0)
 			{
@@ -502,6 +418,7 @@ int mapif_parse_GuildAddMember(int fd, int guild_id, unsigned char *buf)
 				mapif_guild_memberadded(fd, guild_id, g.member[i].account_id, g.member[i].char_id, 0);
 				g.calcInfo();
 				mapif_guild_info(-1, g);
+				g.save_flags = GUILD_SAFE_ALL & !GUILD_CLEAR_MEMBER;
 				cGuildDB.saveGuild(g);
 				return 0;
 			}
@@ -522,20 +439,20 @@ int mapif_parse_GuildLeave(int fd, uint32 guild_id, uint32 account_id, uint32 ch
 
 	if( cGuildDB.searchGuild(guild_id, g) )
 	{
-		for(i=0; i<MAX_GUILD; i++)
+		for(i=0; i<MAX_GUILD; ++i)
 		{
 			if (g.member[i].account_id == account_id && g.member[i].char_id == char_id)
 			{
 				if (flag)
 				{	// 追放の場合追放リストに入れる
-					for(j=0; j<MAX_GUILDEXPLUSION; j++)
+					for(j=0; j<MAX_GUILDEXPLUSION; ++j)
 					{
 						if (g.explusion[j].account_id == 0)
 							break;
 					}
 					if (j == MAX_GUILDEXPLUSION)
 					{	// 一杯なので古いのを消す
-						for(j = 0; j < MAX_GUILDEXPLUSION - 1; j++)
+						for(j = 0; j < MAX_GUILDEXPLUSION - 1; ++j)
 							g.explusion[j] = g.explusion[j+1];
 						j = MAX_GUILDEXPLUSION - 1;
 					}
@@ -549,19 +466,22 @@ int mapif_parse_GuildLeave(int fd, uint32 guild_id, uint32 account_id, uint32 ch
 				mapif_guild_leaved(guild_id, account_id, char_id, flag, g.member[i].name, mes);
 				memset(&g.member[i], 0, sizeof(struct guild_member));
 
-				if( g.isEmpty() )
+				if( g.is_empty() )
 				{
 					cGuildDB.removeGuild(g.guild_id);
 				}
 				else
 				{
 					mapif_guild_info(-1,g);// まだ人がいるのでデータ送信
+					g.save_flags = GUILD_SAFE_ALL;
 					cGuildDB.saveGuild(g);
 				}
 				break;
 			}
 		}
 	}
+	else
+		mapif_guild_broken(guild_id, 0);
 	return 0;
 }
 
@@ -576,7 +496,7 @@ int mapif_parse_GuildChangeMemberInfoShort(int fd, uint32 guild_id, uint32 accou
 
 		alv = 0;
 		c = 0;
-		for(i=0; i<MAX_GUILD; i++)
+		for(i=0; i<MAX_GUILD; ++i)
 		{
 			if (g.member[i].account_id == account_id && g.member[i].char_id == char_id) {
 				g.member[i].online = online;
@@ -595,6 +515,7 @@ int mapif_parse_GuildChangeMemberInfoShort(int fd, uint32 guild_id, uint32 accou
 		if (c)
 			g.average_lv = alv / c;
 
+		g.save_flags = GUILD_SAFE_GUILD | GUILD_SAFE_MEMBER;
 		cGuildDB.saveGuild(g);
 	}
 	return 0;
@@ -604,12 +525,10 @@ int mapif_parse_GuildChangeMemberInfoShort(int fd, uint32 guild_id, uint32 accou
 int mapif_parse_BreakGuild(int fd, uint32 guild_id)
 {
 	cGuildDB.removeGuild(guild_id);
-
 	inter_guild_storage_delete(guild_id);
-
+	mapif_guild_broken(guild_id, 0);
 	if(log_inter)
 		inter_log("guild broken (id=%d)" RETCODE, guild_id);
-
 	return 0;
 }
 
@@ -643,8 +562,11 @@ int mapif_parse_GuildBasicInfoChange(int fd, uint32 guild_id, int type, uint32 d
 			break;
 		}
 		mapif_guild_basicinfochanged(guild_id, type, data);
+		g.save_flags = GUILD_SAFE_GUILD;
 		cGuildDB.saveGuild(g);
 	}
+	else
+		mapif_guild_broken(guild_id, 0);
 	return 0;
 }
 
@@ -655,12 +577,12 @@ int mapif_parse_GuildMemberInfoChange(int fd, uint32 guild_id, uint32 account_id
 	if( cGuildDB.searchGuild(guild_id, g) )
 	{
 		size_t i;
-		for(i=0; i<g.max_member; i++)
+		for(i=0; i<g.max_member && i<MAX_GUILD; ++i)
 		{
 			if (g.member[i].account_id == account_id && g.member[i].char_id == char_id)
 				break;
 		}
-		if( i==g.max_member )
+		if( i>=g.max_member ||  i>=MAX_GUILD )
 		{
 			ShowError("int_guild: GuildMemberChange: Not found %d,%d in %d[%s]\n", account_id, char_id, guild_id, g.name);
 			return 0;
@@ -685,8 +607,11 @@ int mapif_parse_GuildMemberInfoChange(int fd, uint32 guild_id, uint32 account_id
 			break;
 		}
 		mapif_guild_memberinfochanged(guild_id, account_id, char_id, type, data);
+		g.save_flags = GUILD_SAFE_ALL & !GUILD_CLEAR_MEMBER;
 		cGuildDB.saveGuild(g);
 	}
+	else
+		mapif_guild_broken(guild_id, 0);
 	return 0;
 }
 
@@ -701,8 +626,11 @@ int mapif_parse_GuildPosition(int fd, uint32 guild_id, uint32 idx, unsigned char
 			guild_position_frombuffer(g.position[idx],buf);
 			mapif_guild_position(g, idx);
 			ShowMessage("int_guild: position changed %d\n", idx);
+			g.save_flags = GUILD_SAFE_GUILD | GUILD_SAFE_POSITION;
 			cGuildDB.saveGuild(g);
 		}
+		else
+			mapif_guild_broken(guild_id, 0);
 	}
 	return 0;
 }
@@ -724,6 +652,7 @@ int mapif_parse_GuildSkillUp(int fd, uint32 guild_id, uint32 skillid, uint32 acc
 				mapif_guild_info(-1, g);
 			mapif_guild_skillupack(guild_id, skillid, account_id);
 			ShowMessage("int_guild: skill %d up\n", skillid);
+			g.save_flags = GUILD_SAFE_GUILD | GUILD_SAFE_SKILL;
 			cGuildDB.saveGuild(g);
 		}
 	}
@@ -740,9 +669,9 @@ int mapif_parse_GuildAlliance(int fd, uint32 guild_id1, uint32 guild_id2, uint32
 	{
 		if (!(flag & 0x8))
 		{
-			for(i=0; i<2 - (flag&1); i++)
+			for(i=0; i<2 - (flag&1); ++i)
 			{
-				for(j=0; j<MAX_GUILDALLIANCE; j++)
+				for(j=0; j<MAX_GUILDALLIANCE; ++j)
 				{
 					if (g[i].alliance[j].guild_id == 0)
 					{
@@ -756,9 +685,9 @@ int mapif_parse_GuildAlliance(int fd, uint32 guild_id1, uint32 guild_id2, uint32
 		}
 		else
 		{	// 関係解消
-			for(i=0; i<2 - (flag&1); i++)
+			for(i=0; i<2 - (flag&1); ++i)
 			{
-				for(j=0; j<MAX_GUILDALLIANCE; j++)
+				for(j=0; j<MAX_GUILDALLIANCE; ++j)
 				{
 					if (g[i].alliance[j].guild_id == g[1-i].guild_id && g[i].alliance[j].opposition == (flag & 1))
 					{
@@ -769,7 +698,9 @@ int mapif_parse_GuildAlliance(int fd, uint32 guild_id1, uint32 guild_id2, uint32
 			}
 		}
 		mapif_guild_alliance(guild_id1, guild_id2, account_id1, account_id2, flag, g[0].name, g[1].name);
+		g[0].save_flags = GUILD_SAFE_ALLIANCE;
 		cGuildDB.saveGuild(g[0]);
+		g[1].save_flags = GUILD_SAFE_ALLIANCE;
 		cGuildDB.saveGuild(g[1]);
 	}
 	return 0;
@@ -783,9 +714,12 @@ int mapif_parse_GuildNotice(int fd, int guild_id, const char *mes1, const char *
 	{
 		memcpy(g.mes1, mes1, 60);
 		memcpy(g.mes2, mes2, 120);
+		g.save_flags = GUILD_SAFE_GUILD;
 		cGuildDB.saveGuild(g);
 		return mapif_guild_notice(g);
 	}
+	else
+		mapif_guild_broken(guild_id, 0);
 	return 0;
 }
 
@@ -799,9 +733,12 @@ int mapif_parse_GuildEmblem(int fd, int len, int guild_id, int dummy, const char
 		memcpy(g.emblem_data, data, len);
 		g.emblem_len = len;
 		g.emblem_id++;
+		g.save_flags = GUILD_SAFE_GUILD;
 		cGuildDB.saveGuild(g);
 		return mapif_guild_emblem(g);
 	}
+	else
+		mapif_guild_broken(guild_id, 0);
 	return 0;
 }
 
@@ -910,7 +847,58 @@ int mapif_parse_GuildCastleDataSave(int fd, int castle_id, int index, int value)
 // ギルドチェック要求
 int mapif_parse_GuildCheck(int fd, uint32 guild_id, uint32 account_id, uint32 char_id)
 {
-	return guild_check_conflict(guild_id, account_id, char_id);
+/*
+	// using alternate interface
+	size_t k;
+	cGuildDB.aquireGuild();
+	while( cGuildDB.isGuildOk() )
+	{	CGuild &g = cGuildDB.getGuild();
+		if( g.guild_id != guild_id )
+		{
+			for(k=0; k<MAX_GUILD; ++k)
+			{
+				if( g.member[k].account_id == account_id && 
+					g.member[k].char_id == char_id)
+				{	// 別のギルドに偽の所属データがあるので脱退
+					ShowMessage("int_guild: guild conflict! %d,%d %d!=%d\n", 
+						account_id, char_id, guild_id, g.guild_id);
+					mapif_parse_GuildLeave(-1, g.guild_id, account_id, char_id, 0, "**データ競合**");
+					
+					goto finish; // not nice but fast
+				}
+			}
+		}
+		cGuildDB.nextGuild();
+	}
+finish:
+	cGuildDB.releaseGuild();
+*/
+/*
+	// using random access operator
+	size_t i,k;
+	for(i=0; i<cGuildDB.size(); ++i)
+	{
+		if( cGuildDB[i].guild_id != guild_id )
+		{
+			for(k=0; k<MAX_GUILD; ++k)
+			{
+				if( cGuildDB[i].member[k].account_id == account_id && 
+					cGuildDB[i].member[k].char_id == char_id)
+				{	// 別のギルドに偽の所属データがあるので脱退
+					ShowMessage("int_guild: guild conflict! %d,%d %d!=%d\n", 
+						account_id, char_id, guild_id, cGuildDB[i].guild_id);
+					mapif_parse_GuildLeave(-1, cGuildDB[i].guild_id, account_id, char_id, 0, "**データ競合**");
+					return 0;
+				}
+			}
+		}
+	}
+*/
+	// using special implementation
+	const uint32 other_guild = cGuildDB.has_conflict(guild_id, account_id, char_id);
+	if( other_guild )
+		mapif_parse_GuildLeave(-1, other_guild, account_id, char_id, 0, "");
+	return 0;
 }
 
 // マップサーバーの接続時処理

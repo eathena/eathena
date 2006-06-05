@@ -2,6 +2,8 @@
 #include "baseregex.h"
 #include "basesafeptr.h"
 
+NAMESPACE_BEGIN(basics)
+
 // code derived from implementation of Guy Gascoigne - Piggford (ggp@bigfoot.com)
 // which is a port of originally code written by Henry Spencer
 // the original author wants his copyright notice intact, so I follow his wish.
@@ -2820,7 +2822,7 @@ void CRegExp::CRegProgram::Print() const
 //
 void CRegExp::CRegProgram::Dump() const
 {
-	for(size_t i=0; i<cProgramm.size(); i++)
+	for(size_t i=0; i<cProgramm.size(); ++i)
 		printf("%i ", cProgramm[i]);
 	printf("\n"); 
 }
@@ -3200,7 +3202,7 @@ string<> CRegExp::replacestring( const char* sReplaceExp ) const
 				// Get tagged expression
 				len = cFinds[no].last().endp - cFinds[no].last().startp;
 				if( len != 0 && hstrlen( cFinds[no].last().startp ) < len )
-				{	/* strncpy hit NUL. */
+				{	// strncpy hit NULL
 					cProg->regerror( REGERR_DAMAGED_MATCH_STRING );
 					ret.clear();
 					break;
@@ -3311,10 +3313,10 @@ void test_regex(void)
 
 		printf("----\n%s\n", (const char*)re[0]);
 		uint i,k;
-		for(i=1; i<=re.sub_count(); i++)	// finds count from 1
+		for(i=1; i<=re.sub_count(); ++i)	// finds count from 1
 		{
 			printf("%2i: ", i);
-			for(k=0; k<re.sub_count(i); k++)	// inside finds count from 0
+			for(k=0; k<re.sub_count(i); ++k)	// inside finds count from 0
 				printf("%s, ", (const char*)re(i,k));
 
 			printf("\n");
@@ -3335,7 +3337,7 @@ void test_regex(void)
 		yy.match("ab1ba, ab2ba, ab3ba, ab4ba, ab5ba, ab6ab");
 		{
 			uint i;
-			for(i=0; i<=yy.sub_count(); i++)
+			for(i=0; i<=yy.sub_count(); ++i)
 				printf("%2i: %s\n", i, (const char*)yy[i]);
 		}
 
@@ -3343,7 +3345,7 @@ void test_regex(void)
 		yy.match("abbbcd");
 		{
 			uint i;
-			for(i=0; i<=yy.sub_count(); i++)
+			for(i=0; i<=yy.sub_count(); ++i)
 				printf("%2i: %s\n", i, (const char*)yy[i]);
 		}
 
@@ -3514,7 +3516,7 @@ void test_regex(void)
 
 		size_t i;
 		printf("\n");
-		for(i=0; i<sizeof(fields)/sizeof(fields[0]); i++)
+		for(i=0; i<sizeof(fields)/sizeof(fields[0]); ++i)
 		{
 			CRegExp r(fields[i][0]);
 			if( !r.is_valid() )
@@ -3624,3 +3626,4 @@ void test_regex(void)
 }
 
 
+NAMESPACE_END(basics)

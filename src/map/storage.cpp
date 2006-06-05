@@ -1,11 +1,11 @@
 // $Id: storage.c,v 1.3 2004/09/25 02:05:22 MouseJstr Exp $
-#include "base.h"
 #include "nullpo.h"
 #include "showmsg.h"
 #include "utils.h"
 #include "malloc.h"
 #include "db.h"
 
+#include "map.h"
 #include "storage.h"
 #include "chrif.h"
 #include "itemdb.h"
@@ -58,13 +58,13 @@ void sortage_gsortitem(struct guild_storage& gstor)
 int guild_storage_db_final(void *key,void *data)
 {
 	struct guild_storage *gstor = (struct guild_storage *)data;
-	if(gstor) aFree(gstor);
+	if(gstor) delete gstor;
 	return 0;
 }
 int storage_db_final(void *key,void *data)
 {
-	struct storage *stor = (struct storage *)data;
-	if(stor) aFree(stor);
+	struct pc_storage *stor = (struct pc_storage *)data;
+	if(stor) delete stor;
 	return 0;
 }
 void do_final_storage(void) // by [MC Cameri]
@@ -96,8 +96,7 @@ struct pc_storage *account2storage(uint32 account_id)
 	struct pc_storage *stor = (struct pc_storage *)numdb_search(storage_db,account_id);
 	if(stor == NULL)
 	{
-		stor = (struct pc_storage *)aCalloc(sizeof(struct pc_storage), 1);
-		stor->account_id=account_id;
+		stor = new struct pc_storage(account_id);
 		numdb_insert(storage_db,stor->account_id,stor);
 	}
 	return stor;
@@ -115,7 +114,7 @@ int storage_delete(uint32 account_id)
 	if(stor)
 	{
 		numdb_erase(storage_db,account_id);
-		aFree(stor);
+		delete stor;
 	}
 	return 0;
 }
@@ -177,7 +176,7 @@ int storage_additem(struct map_session_data &sd, struct pc_storage &stor, struct
 	i=MAX_STORAGE;
 	if( !itemdb_isSingleStorage(*data) )
 	{	// 装備品ではないので、既所有品なら個数のみ変化させる
-		for(i=0;i<MAX_STORAGE;i++)
+		for(i=0;i<MAX_STORAGE;++i)
 		{
 			if( item_data == stor.storage[i] )
 			{
@@ -191,7 +190,7 @@ int storage_additem(struct map_session_data &sd, struct pc_storage &stor, struct
 	}
 	if(i>=MAX_STORAGE)
 	{	// 装備品か未所有品だったので空き欄へ追加
-		for(i=0;i<MAX_STORAGE;i++)
+		for(i=0;i<MAX_STORAGE;++i)
 		{
 			if(stor.storage[i].nameid==0)
 			{
@@ -222,7 +221,7 @@ int storage_delitem(struct map_session_data &sd,struct pc_storage &stor,size_t n
 	stor.storage[n].amount-=amount;
 	if(stor.storage[n].amount==0)
 	{
-		memset(&stor.storage[n],0,sizeof(struct item));
+		stor.storage[n] = item();
 		stor.storage_amount--;
 		clif_updatestorageamount(sd,stor);
 	}
@@ -401,8 +400,7 @@ struct guild_storage *guild2storage(uint32 guild_id)
 		gs = (struct guild_storage *)numdb_search(guild_storage_db,guild_id);
 		if(gs == NULL)
 		{
-			gs = (struct guild_storage *)aCalloc(sizeof(struct guild_storage), 1);
-			gs->guild_id=guild_id;
+			gs = new struct guild_storage(guild_id);
 			numdb_insert(guild_storage_db,gs->guild_id,gs);
 		}
 	}
@@ -415,7 +413,7 @@ int guild_storage_delete(uint32 guild_id)
 	if(gstor)
 	{
 		numdb_erase(guild_storage_db,guild_id);
-		aFree(gstor);
+		delete gstor;
 	}
 	return 0;
 }
@@ -466,7 +464,7 @@ int guild_storage_additem(struct map_session_data &sd,struct guild_storage &stor
 	i=MAX_GUILD_STORAGE;
 	if( !itemdb_isSingleStorage(*data) )
 	{	// 装備品ではないので、既所有品なら個数のみ変化させる
-		for(i=0;i<MAX_GUILD_STORAGE;i++)
+		for(i=0;i<MAX_GUILD_STORAGE;++i)
 		{
 			if( item_data == stor.storage[i] )
 			{
@@ -480,7 +478,7 @@ int guild_storage_additem(struct map_session_data &sd,struct guild_storage &stor
 	}
 	if(i>=MAX_GUILD_STORAGE)
 	{	// 装備品か未所有品だったので空き欄へ追加
-		for(i=0;i<MAX_GUILD_STORAGE;i++)
+		for(i=0;i<MAX_GUILD_STORAGE;++i)
 		{
 			if(stor.storage[i].nameid==0)
 			{
@@ -506,7 +504,7 @@ int guild_storage_delitem(struct map_session_data &sd,struct guild_storage &stor
 	stor.storage[n].amount-=amount;
 	if(stor.storage[n].amount==0)
 	{
-		memset(&stor.storage[n],0,sizeof(stor.storage[0]));
+		stor.storage[n] = item();
 		stor.storage_amount--;
 		clif_updateguildstorageamount(sd,stor);
 	}

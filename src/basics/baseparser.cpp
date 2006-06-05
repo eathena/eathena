@@ -10,6 +10,7 @@
 #include "baseparser.h"
 
 
+NAMESPACE_BEGIN(basics)
 
 //
 // Action Types
@@ -63,11 +64,11 @@ void CParser::print_rt()
 {
 	size_t i, k;
 	printf ("print rt\n");
-	for(i=0; i<this->rt.size(); i++)
+	for(i=0; i<this->rt.size(); ++i)
 	{
 		printf("%03li - (%i) %s, childs:", (unsigned long)i, this->rt[i].symbol.idx, (const char*)this->rt[i].symbol.Name);
 
-		for(k=0; k<this->rt[i].cChildNum; k++)
+		for(k=0; k<this->rt[i].cChildNum; ++k)
 			printf("%li ", (unsigned long)(this->rt[i].cChildPos+k));
 		printf("\n");
 	}
@@ -77,11 +78,11 @@ void CParser::print_stack()
 {
 	size_t i,k;
 printf ("print stack\n");
-	for(i=0; i<this->cStack.size(); i++)
+	for(i=0; i<this->cStack.size(); ++i)
 	{
 		printf("%03li - (%i) %s, childs:", (unsigned long)i, this->cStack[i].symbol.idx, (const char*)this->cStack[i].symbol.Name);
 
-		for(k=0; k<this->rt[i].cChildNum; k++)
+		for(k=0; k<this->rt[i].cChildNum; ++k)
 			printf("%li ", (unsigned long)(this->rt[i].cChildPos+k));
 
 		printf("\n");
@@ -92,7 +93,7 @@ void CParser::print_expects()
 	printf("recognized: '%s'\n", (const char*)this->cScanToken.cLexeme);
 	printf("expecting: ");
 	size_t i;
-	for(i=0; i<this->pconfig->lalr_state[this->lalr_state].cAction.size(); i++)
+	for(i=0; i<this->pconfig->lalr_state[this->lalr_state].cAction.size(); ++i)
 	{
 		CAction* action = &this->pconfig->lalr_state[this->lalr_state].cAction[i];
 		printf("'%s' ", (const char*) pconfig->sym[action->SymbolIndex].Name );
@@ -280,7 +281,7 @@ short CParseInput::scan(CParser& parser, CToken& target)
 		if (c != EEOF)
 		{
 			nedge = dfa->cEdge.size();
-			for (i=0; i<nedge; i++)
+			for (i=0; i<nedge; ++i)
 			{
 				idx = dfa->cEdge[i].CharSetIndex;
 				if (strchr(parser.pconfig->charset[idx], c))
@@ -384,7 +385,7 @@ short CParseInput::scan(CParser& parser, CToken& target)
 		// look for a matching edge
 		if (c != EEOF) {
 			nedge = dfa->cEdge.size();
-			for (i=0; i<nedge; i++) {
+			for (i=0; i<nedge; ++i) {
 				idx = dfa->cEdge[i].CharSetIndex;
 				if (strchr(parser.pconfig->charset[idx], c)) {
 					dfa = &parser.pconfig->dfa_state[dfa->cEdge[i].TargetIndex];
@@ -495,7 +496,7 @@ void CParser::reinit()
 	// because it contains the finalizing reduction rule
 	// so we just empty the children list of the first and delete the others
 	size_t i;
-	for(i=0; i<this->cStack.size(); i++)
+	for(i=0; i<this->cStack.size(); ++i)
 	{
 		if( this->cStack[i].cChildNum>0 )
 		{
@@ -588,7 +589,7 @@ short CParser::parse(short reduce_sym)
 
 				se.cChildPos = this->rt.size();
 				// move elements to rt
-				for(i=this->cStack.size() - nrtIdx; i<this->cStack.size(); i++)
+				for(i=this->cStack.size() - nrtIdx; i<this->cStack.size(); ++i)
 					this->rt.push(this->cStack[i]);
 				// remove them from stack
 				cStack.resize(this->cStack.size() - nrtIdx);
@@ -637,7 +638,7 @@ short CParser::parse(short reduce_sym)
 		}
 
 		bfound = 0;
-		for (i=0;(!bfound) && (i<this->pconfig->lalr_state[this->lalr_state].cAction.size());i++)
+		for (i=0; (!bfound) && (i<this->pconfig->lalr_state[this->lalr_state].cAction.size()); ++i)
 		{
 			CAction* action = &this->pconfig->lalr_state[this->lalr_state].cAction[i];
 			if(action->SymbolIndex == this->cScanToken.id) {
@@ -730,8 +731,8 @@ short CParser::parse(short reduce_sym)
 ///////////////////////////////////////////////////////////////////////////////
 const unsigned char* getws(const unsigned char* b, char* s)
 {
-	while( (*s++ = *b++) ) b++;
-	b++; return b;
+	while( (*s++ = *b++) ) ++b;
+	++b; return b;
 }
 const unsigned char* getsh(const unsigned char* b, short* s)
 {
@@ -741,21 +742,21 @@ const unsigned char* getsh(const unsigned char* b, short* s)
 }
 const unsigned char* getvws(const unsigned char* b, char* str)
 {
-	b++; return getws(b,str);
+	++b; return getws(b,str);
 }
 const unsigned char* skipvws(const unsigned char* b)
 {
-	b++; while(*b++) b++;
+	++b; while(*b++) ++b;
 	return ++b;
 }
 const unsigned char* getvb(const unsigned char* b, unsigned char* v)
 {
-	b++; *v = *b++;
+	++b; *v = *b++;
 	return b;
 }
 const unsigned char* getvsh(const unsigned char* b, short* v)
 {
-	b++; return getsh(b,v);
+	++b; return getsh(b,v);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -852,7 +853,7 @@ bool CParseConfig::create(const unsigned char* b, size_t len)
 			b++; // reserved
 
 			this->rule[idx].cSymbol.resize(((nEntries-4)>0)?(nEntries-4):0);
-			for(i=0;i<this->rule[idx].cSymbol.size();i++)
+			for(i=0;i<this->rule[idx].cSymbol.size();++i)
 				b = getvsh(b, &(this->rule[idx].cSymbol[i]));
 			break;
 		}
@@ -864,7 +865,7 @@ bool CParseConfig::create(const unsigned char* b, size_t len)
 			this->dfa_state[idx].Accept = byt?1:0;
 			b++; // reserved
 			this->dfa_state[idx].cEdge.resize(((nEntries-5)/3)>0?((nEntries-5)/3):0);
-			for (i=0; i<this->dfa_state[idx].cEdge.size(); i++)
+			for (i=0; i<this->dfa_state[idx].cEdge.size(); ++i)
 			{
 				b = getvsh(b, &this->dfa_state[idx].cEdge[i].CharSetIndex);
 				b = getvsh(b, &this->dfa_state[idx].cEdge[i].TargetIndex);
@@ -877,7 +878,7 @@ bool CParseConfig::create(const unsigned char* b, size_t len)
 			b = getvsh(b, &idx);
 			b++; // reserved
 			this->lalr_state[idx].cAction.resize((((nEntries-3)/4)>0)?((nEntries-3)/4):0);
-			for (i=0;i<this->lalr_state[idx].cAction.size();i++)
+			for (i=0;i<this->lalr_state[idx].cAction.size();++i)
 			{
 				b = getvsh(b, &this->lalr_state[idx].cAction[i].SymbolIndex);
 				b = getvsh(b, &this->lalr_state[idx].cAction[i].Action);
@@ -923,3 +924,4 @@ bool CParseConfig::create(const char* filename)
 }
 
 
+NAMESPACE_END(basics)

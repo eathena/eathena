@@ -1,11 +1,11 @@
-#include "base.h"
+#include "baselib.h"
 
-#include "mmo.h"
 #include "core.h"
 #include "utils.h"
-#include "malloc.h"
 #include "version.h"
+#include "timer.h"
 #include "showmsg.h"
+#include "malloc.h"
 
 #include "plugin.h"
 #include "plugins.h"
@@ -23,7 +23,7 @@
 
 typedef HINSTANCE DLL;
 
-const char *LibraryError(void);
+
 
 #else
 
@@ -38,58 +38,63 @@ const char *LibraryError(void);
 
 typedef void* DLL;
 
-inline DLL LoadLibrary(const char* lpLibFileName)
-{
-	return dlopen(lpLibFileName,RTLD_LAZY);
-}
-inline bool FreeLibrary(DLL hLibModule)
-{
-	return 0==dlclose(hLibModule);
-}
-inline void *GetProcAddress(DLL hModule, const char* lpProcName)
-{
-	return dlsym(hModule, lpProcName);
-}
-inline const char *LibraryError(void)
-{
-	return dlerror();
-}
+
 #endif
-
-//////////////////////////////////////////////////////////////////////////
-// implementation of library access functions
-
-#ifdef WIN32
-const char *LibraryError(void)
-{
-	static char dllbuf[80];
-	DWORD dw = GetLastError();
-	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, dw, 0, dllbuf, 80, NULL);
-	return dllbuf;
-}
-#endif
-
 
 //////////////////////////////////////////////////////////////////////////
 // storage for loading dlls
 
-typedef struct _Plugin {
+typedef struct _Plugin
+{
 	DLL dll;
 	char state;
-	char *filename;
+	basics::string<> filename;
 	Plugin_Info *info;
 	struct _Plugin *next;
+
+	_Plugin(const basics::string<>fn, const DLL& d) :
+		dll(d),
+		state(0),
+		filename(fn),
+		info(NULL),
+		next(NULL)
+	{}
+
+	~_Plugin()
+	{
+		this->close();
+	}
+	void close()
+	{
+		this->filename.clear();
+		if(this->dll)
+			FreeLibrary(this->dll);
+	}
+
 } Plugin;
 
-typedef struct _Plugin_Event {
+typedef struct _Plugin_Event
+{
 	void (*func)();
 	struct _Plugin_Event *next;
+
+	_Plugin_Event() :
+		func(NULL),
+		next(NULL)
+	{}
 } Plugin_Event;
 
-typedef struct _Plugin_Event_List {
+typedef struct _Plugin_Event_List
+{
 	char *name;
 	struct _Plugin_Event_List *next;
 	struct _Plugin_Event *events;
+
+	_Plugin_Event_List() : 
+		name(NULL),
+		next(NULL),
+		events(NULL)
+	{}
 } Plugin_Event_List;
 
 int auto_search	= 1;
@@ -110,10 +115,10 @@ Plugin_Info default_info = { "Unknown", PLUGIN_ALL, "0", PLUGIN_VERSION, "Unknow
 int register_plugin_func (char *name)
 {
 	Plugin_Event_List *evl;
-	if (name) {
-		evl = (Plugin_Event_List *) aMalloc(sizeof(Plugin_Event_List));
-		evl->name = (char *) aMalloc (strlen(name) + 1);
-
+	if (name)
+	{
+		evl = new Plugin_Event_List;
+		evl->name = new char[1+strlen(name)];
 		evl->next = event_head;
 		strcpy(evl->name, name);
 		evl->events = NULL;
@@ -125,7 +130,8 @@ int register_plugin_func (char *name)
 Plugin_Event_List *search_plugin_func (char *name)
 {
 	Plugin_Event_List *evl = event_head;
-	while (evl) {
+	while (evl)
+	{
 		if (strcasecmp(evl->name, name) == 0)
 			return evl;
 		evl = evl->next;
@@ -136,25 +142,27 @@ Plugin_Event_List *search_plugin_func (char *name)
 int register_plugin_event (void (*func)(), char* name)
 {
 	Plugin_Event_List *evl = search_plugin_func(name);
-	if (!evl) {
+	if(!evl)
+	{
 		// register event if it doesn't exist already
 		register_plugin_func(name);
 		// relocate the new event list
 		evl = search_plugin_func(name);
 	}
-	if (evl) {
-		Plugin_Event *ev;
-
-		ev = (Plugin_Event *) aMalloc(sizeof(Plugin_Event));
+	if(evl)
+	{
+		Plugin_Event *ev = new Plugin_Event;
 		ev->func = func;
 		ev->next = NULL;
 
-		if (evl->events == NULL)
+		if(evl->events == NULL)
 			evl->events = ev;
 		else {
 			Plugin_Event *ev2 = evl->events;
-			while (ev2) {
-				if (ev2->next == NULL) {
+			while(ev2)
+			{
+				if(ev2->next == NULL)
+				{
 					ev2->next = ev;
 					break;
 				}
@@ -171,10 +179,11 @@ int plugin_event_trigger (char *name)
 	Plugin_Event_List *evl = search_plugin_func(name);
 	if (evl) {
 		Plugin_Event *ev = evl->events;
-		while (ev) {
+		while (ev)
+		{
 			ev->func();
 			ev = ev->next;
-			c++;
+			++c;
 		}
 	}
 	return c;
@@ -191,12 +200,9 @@ int export_symbol (void *var, int offset)
 		offset = call_table_size;
 	
 	// realloc if not large enough  
-	if ((size_t)offset >= call_table_max) {
-		call_table_max = 1 + offset;
-		plugin_call_table = (void**)aRealloc(plugin_call_table, call_table_max*sizeof(void*));
-		
-		// clear the new alloced block
-		memset(plugin_call_table + call_table_size, 0, (call_table_max-call_table_size)*sizeof(void*));
+	if( (size_t)offset >= call_table_max )
+	{
+		call_table_max = new_realloc(plugin_call_table, call_table_max, (offset+1)-call_table_max);
 	}
 
 	// the new table size is delimited by the new element at the end
@@ -210,14 +216,6 @@ int export_symbol (void *var, int offset)
 
 ////// Plugins Core /////////////////////////
 
-void plugin_close(Plugin *plugin)
-{
-	if (plugin == NULL)
-		return;
-	if (plugin->filename) aFree(plugin->filename);
-	if (plugin->dll) FreeLibrary(plugin->dll);
-	aFree(plugin);
-}
 
 Plugin *plugin_open (const char *filename, bool force=false)
 {
@@ -231,27 +229,26 @@ Plugin *plugin_open (const char *filename, bool force=false)
 	
 	// Check if the plugin has been loaded before
 	plugin = plugin_head;
-	while (plugin) {
+	while (plugin)
+	{
 		// returns handle to the already loaded plugin
-		if (plugin->state && strcasecmp(plugin->filename, filename) == 0) {
+		if (plugin->state && strcasecmp(plugin->filename, filename) == 0)
+		{
 			//printf ("not loaded (duplicate) : %s\n", filename);
 			return plugin;
 		}
 		plugin = plugin->next;
 	}
 
-	plugin = (Plugin *)aCalloc(1,sizeof(Plugin));
-	plugin->state = -1;	// not loaded
-
-	plugin->dll = LoadLibrary(filename);
-	if (!plugin->dll) {
-		//printf ("not loaded (invalid file) : %s\n", filename);
-		aFree(plugin);
+	DLL dll = LoadLibrary(filename);
+	if( !dll )
+	{
+		ShowError("Plugin not loaded (invalid file) : %s\n", filename);
 		return NULL;
 	}
-	
+	plugin = new Plugin(filename, dll);
+
 	// Retrieve plugin information
-	plugin->state = 0;	// initialising
 	info = (Plugin_Info *)GetProcAddress(plugin->dll, "plugin_info");
 	// For high priority plugins (those that are explicitly loaded from the conf file)
 	// we'll ignore them even (could be a 3rd party dll file)
@@ -262,13 +259,10 @@ Plugin *plugin_open (const char *filename, bool force=false)
 		!(getServerType() & info->type) )
 	{
 		//printf ("not loaded (incompatible) : %s\n", filename);
-		plugin_close(plugin);
+		delete plugin;
 		return NULL;
 	}
 	plugin->info = (info) ? info : &default_info;
-
-	plugin->filename = (char *) aMalloc(1+strlen(filename));
-	memcpy(plugin->filename, filename, 1+strlen(filename));
 
 	// Initialise plugin call table (For exporting procedures)
 	procs = (void**)GetProcAddress(plugin->dll, "plugin_call_table");
@@ -276,23 +270,29 @@ Plugin *plugin_open (const char *filename, bool force=false)
 	
 	// Register plugin events
 	events = (Plugin_Event_Table*)GetProcAddress(plugin->dll, "plugin_event_table");
-	if (events) {
+	if (events)
+	{
 		int i = 0;
-		while (events[i].func_name) {
-			if (strcasecmp(events[i].event_name, "Plugin_Test") == 0) {
+		while (events[i].func_name)
+		{
+			if (strcasecmp(events[i].event_name, "Plugin_Test") == 0)
+			{
 				int (*test_func)(void);
 				test_func = (int (*)(void))GetProcAddress(plugin->dll, events[i].func_name);
-				if (test_func && test_func() == 0) {
+				if (test_func && test_func() == 0)
+				{
 					// plugin has failed test, disabling
 					//printf ("disabled (failed test) : %s\n", filename);
 					init_flag = 0;
 				}
-			} else {
+			}
+			else
+			{
 				void (*func)(void);
 				func = (void (*)(void))GetProcAddress(plugin->dll, events[i].func_name);
 				if (func) register_plugin_event (func, events[i].event_name);
 			}
-			i++;
+			++i;
 		}
 	}
 
@@ -305,15 +305,12 @@ Plugin *plugin_open (const char *filename, bool force=false)
 	return plugin;
 }
 
+// filesearch callback
 void plugin_load (const char *filename)
 {
 	plugin_open(filename);
 }
 
-void plugin_unload (Plugin *plugin)
-{
-	plugin_close(plugin);
-}
 
 
 ////// Initialize/Finalize ////////////////////
@@ -323,24 +320,30 @@ int plugins_config_read(const char *cfgName)
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
 
-	fp = safefopen(cfgName, "r");
-	if (fp == NULL) {
+	fp = basics::safefopen(cfgName, "r");
+	if (fp == NULL)
+	{
 		ShowError("File not found: %s\n", cfgName);
 		return 1;
 	}
-	while (fgets(line, sizeof(line), fp)) {
+	while (fgets(line, sizeof(line), fp))
+	{
 		if( !get_prepared_line(line) )
 			continue;
 		if (sscanf(line,"%[^:]: %[^\r\n]", w1, w2) != 2)
 			continue;
 
-		if (strcasecmp(w1, "auto_search") == 0) {
+		if (strcasecmp(w1, "auto_search") == 0)
+		{
 			auto_search = config_switch(w2);
-		} else if (strcasecmp(w1, "plugin") == 0) {
+		}
+		else if (strcasecmp(w1, "plugin") == 0)
+		{
 			char filename[128];
 			snprintf(filename, sizeof(filename), "addons%c%s%s", PATHSEP, w2, DLL_EXT);
 			plugin_open(filename, true);
-		} else if (strcasecmp(w1, "import") == 0)
+		}
+		else if (strcasecmp(w1, "import") == 0)
 			plugins_config_read(w2);
 	}
 	fclose(fp);
@@ -380,7 +383,7 @@ void plugin_init (void)
 
 
 	if (auto_search)
-		findFiles("plugins", "*"DLL_EXT, plugin_load);
+		basics::findFiles("plugins", "*"DLL_EXT, plugin_load);
 
 	plugin_event_trigger("Plugin_Init");
 
@@ -396,29 +399,32 @@ void plugin_final (void)
 	plugin_event_trigger("Plugin_Final");
 
 	evl = event_head;
-	while (evl) {
+	while (evl)
+	{
 		ev = evl->events;
-		while (ev) {
+		while (ev)
+		{
 			ev2 = ev->next;
-			aFree(ev);
+			delete ev;
 			ev = ev2;
 		}
 		evl2 = evl->next;
-		aFree(evl->name);
-		aFree(evl);
+		delete[] evl->name;
+		delete evl;
 		evl = evl2;
 	}
 	event_head = NULL;
 
 	plugin = plugin_head;
-	while (plugin) {
+	while (plugin)
+	{
 		plugin2 = plugin->next;
-		plugin_unload(plugin);
+		delete plugin;
 		plugin = plugin2;
 	}
 	plugin_head = NULL;
 
-	aFree(plugin_call_table);
+	delete[] plugin_call_table;
 	plugin_call_table = NULL;
 
 	return;

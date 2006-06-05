@@ -9,8 +9,11 @@
 #include "basetime.h"
 #include "basestring.h"
 
+
+NAMESPACE_BEGIN(basics)
+
 ///////////////////////////////////////////////////////////////////////////////
-// test function
+/// test function
 void test_inet();
 
 
@@ -23,7 +26,7 @@ void test_inet();
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
-// error functions
+/// error functions
 #if defined(WIN32)
 typedef ushort sa_family_t;
 typedef ushort in_port_t;
@@ -35,7 +38,7 @@ int sockerrno();
 const char* sockerrmsg(int code);
 
 //////////////////////////////////////////////////////////////////////////
-// BSD-compatible socket error codes for Win32
+/// BSD-compatible socket error codes for Win32
 //////////////////////////////////////////////////////////////////////////
 
 #if defined(WSAENOTSOCK) && !defined(ENOTSOCK)
@@ -86,14 +89,14 @@ const char* sockerrmsg(int code);
 
 #endif
 
-// shutdown() constants
+/// shutdown() constants
 #if defined(SD_RECEIVE) && !defined(SHUT_RD)
 #  define SHUT_RD       SD_RECEIVE
 #  define SHUT_WR       SD_SEND
 #  define SHUT_RDWR     SD_BOTH
 #endif
 
-// max backlog value for listen()
+/// max backlog value for listen()
 #ifndef SOMAXCONN
 #define SOMAXCONN -1
 #endif
@@ -101,7 +104,7 @@ const char* sockerrmsg(int code);
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// IP number stuff
+/// IP number stuff
 ///////////////////////////////////////////////////////////////////////////////
 #ifndef INADDR_NONE
 #define INADDR_NONE             INADDR_BROADCAST
@@ -117,33 +120,35 @@ const char* sockerrmsg(int code);
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// class for ip numbers and helpers
-// currently limited to IP4
+/// class for ip numbers and helpers.
+/// currently limited to IP4
 ///////////////////////////////////////////////////////////////////////////////
 class ipaddress
 {
+	friend string<> hostbyaddr(ipaddress ip);
 private:
 	///////////////////////////////////////////////////////////////////////////
-	// class helper
-	// does network initialisation and gets available system ips
+	/// class helper.
+	/// does network initialisation and gets available system ips
 	class _ipset_helper
 	{	
-		uint32	cAddr[16];	// ip addresses of local host (host byte order)
-		uint	cCnt;		// # of valid ip addresses
+		uint32	cAddr[16];	///< ip addresses of local host (host byte order)
+							///< 16 ipaddresses should be enough for practical purpose
+		uint	cCnt;		///< # of valid ip addresses
 	public:
 		_ipset_helper()		{ init(); }
 		~_ipset_helper();
 
 		///////////////////////////////////////////////////////////////////////
-		// initialize
+		/// initialize
 		void init();
 
 		///////////////////////////////////////////////////////////////////////
-		// number of found system ip's (w/o localhost)
+		/// number of found system ip's (w/o localhost)
 		uint GetSystemIPCount()	const	{ return cCnt; }
 
 		///////////////////////////////////////////////////////////////////////
-		// get an address from the array, return loopback on error
+		/// get an address from the array, return loopback on error
 		ipaddress GetSystemIP(uint i=0) const
 		{
 			if( i < cCnt )
@@ -154,9 +159,8 @@ private:
 		}
 	};
 	///////////////////////////////////////////////////////////////////////////
-	// need a singleton, this here is safe, 
-	// we need it only once and destruction order is irrelevant
-	// 16 ipaddresses should be enough for practical purpose
+	/// need a singleton. this here is safe, 
+	/// we need it only once and destruction order is irrelevant
 	static _ipset_helper& gethelper()
 	{
 		static _ipset_helper iphelp;
@@ -169,9 +173,9 @@ public:
 	static bool isBindable(ipaddress ip);
 	bool isBindable()	{ return ipaddress::isBindable(*this); }
 
-public:
+protected:
 	///////////////////////////////////////////////////////////////////////////
-	// class data
+	/// class data
     union
     {
         uchar	bdata[4];
@@ -179,18 +183,18 @@ public:
     };
 public:
 	///////////////////////////////////////////////////////////////////////////
-	// standard constructor/destructor
+	/// standard constructor/destructor
     ipaddress():cAddr(INADDR_ANY)	{}
 	virtual ~ipaddress()			{}
 	///////////////////////////////////////////////////////////////////////////
-	// copy/assign (actually not really necessary)
+	/// copy/assign (actually not really necessary)
     ipaddress(const ipaddress& a) : cAddr(a.cAddr)	{}
     const ipaddress& operator= (const ipaddress& a)	{ this->cAddr = a.cAddr; return *this; }
 
 	///////////////////////////////////////////////////////////////////////////
-	// construction set (needs explicite casts when initializing with 0)
+	/// construction set (needs explicite casts when initializing with 0)
     ipaddress(uint32 a):cAddr(a)	{}
-	ipaddress(const char* str):cAddr(str2ip(str))	{}
+	explicit ipaddress(const char* str):cAddr(str2ip(str))	{}
     ipaddress(int a, int b, int c, int d)
 	{
 		cAddr =	 (a&0xFF) << 0x18
@@ -199,7 +203,7 @@ public:
 				|(d&0xFF);
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// assignment set (needs explicite casts when assigning 0)
+	/// assignment set (needs explicite casts when assigning 0)
     const ipaddress& operator= (uint32 a)			{ cAddr = a; return *this; }
 	const ipaddress& operator= (const char* str)	{ cAddr = str2ip(str); return *this; }
 
@@ -210,16 +214,16 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// bytewise access (writable and readonly)
+	/// bytewise access (writable and readonly)
     uchar& operator [] (int i);
     const uchar operator [] (int i) const;
 
 	///////////////////////////////////////////////////////////////////////////
-	// pod access on the ip (host byte order)
+	/// pod access on the ip (host byte order)
     operator uint32() const	{ return cAddr; }
 
 	///////////////////////////////////////////////////////////////////////////
-	// virtual access interface
+	/// virtual access interface
 	virtual uint32 addr() const { return cAddr; }
 	virtual uint32& addr() { return cAddr; }
 	///////////////////////////////////////////////////////////////////////////
@@ -230,58 +234,56 @@ public:
 	virtual ushort& port() { static ushort dummy; return dummy=0; }
 
 	///////////////////////////////////////////////////////////////////////////
-	// boolean operators
+	/// boolean operators
 	bool operator == (const ipaddress s) const { return cAddr==s.cAddr; }
 	bool operator != (const ipaddress s) const { return cAddr!=s.cAddr; }
 	bool operator == (const uint32 s) const { return cAddr==s; }
 	bool operator != (const uint32 s) const { return cAddr!=s; }
 
 	///////////////////////////////////////////////////////////////////////////
-	// ip2string
+	/// ip2string
 	virtual string<> tostring() const;
 	virtual ssize_t tostring(char *buffer, size_t sz) const;
-	// not threadsafe
+	/// not threadsafe
 	virtual const char *tostring(char *buffer) const;
 	operator const char*()	{ return this->tostring(NULL); }
 
-	template<class T> friend string<T>& operator <<(string<T>& str, const ipaddress& ip);
+	template<class T> friend stringoperator<T>& operator <<(stringoperator<T>& str, const ipaddress& ip);
 
 	///////////////////////////////////////////////////////////////////////////
-	// converts a string to an ip (host byte order)
+	/// converts a string to an ip (host byte order)
 	static ipaddress str2ip(const char *str);
 	static bool str2ip(const char* str, ipaddress &addr, ipaddress &mask, ushort &port);
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-//
-// class for a network address (compound of an ip address and a port number)
-//
+/// class for a network address. (compound of an ip address and a port number)
 ///////////////////////////////////////////////////////////////////////////////
 class netaddress : public ipaddress
 {
 	friend class ipset;
 protected:
 	///////////////////////////////////////////////////////////////////////////
-	// class data
+	/// class data
 	ushort		cPort;
 public:
 	///////////////////////////////////////////////////////////////////////////
-	// standard constructor/destructor
+	/// standard constructor/destructor
     netaddress():ipaddress((uint32)INADDR_ANY),cPort(0)	{}
 	virtual ~netaddress()	{}
 	///////////////////////////////////////////////////////////////////////////
-	// copy/assign (actually not really necessary)
+	/// copy/assign (actually not really necessary)
     netaddress(const netaddress& a):ipaddress(a.cAddr),cPort(a.cPort){}
     const netaddress& operator= (const netaddress& a)	{ this->cAddr = a.cAddr; this->cPort=a.cPort; return *this; }
 
 	///////////////////////////////////////////////////////////////////////////
-	// construction set
+	/// construction set
 	netaddress(uint32 a, ushort p):ipaddress(a),cPort(p)	{}
 	netaddress(ushort p):ipaddress((uint32)INADDR_ANY),cPort(p)	{}
     netaddress(int a, int b, int c, int d, ushort p):ipaddress(a,b,c,d),cPort(p) {}
 	netaddress(const char* str)	{ init(str); }
 	///////////////////////////////////////////////////////////////////////////
-	// assignment set
+	/// assignment set
     const netaddress& operator= (uint32 a)			{ this->cAddr = a; return *this; }
 	const netaddress& operator= (ushort p)			{ this->cPort = p; return *this; }
 	const netaddress& operator= (const char* str)	{ init(str); return *this; }
@@ -295,17 +297,17 @@ public:
 	virtual const ushort port() const { return cPort; }
 	virtual ushort& port() { return cPort; }
 	///////////////////////////////////////////////////////////////////////////
-	// networkaddr2string
+	/// networkaddr2string
 	virtual string<> tostring() const;
 	virtual ssize_t tostring(char *buffer, size_t sz) const;
-	// not threadsafe
+	/// not threadsafe
 	virtual const char *tostring(char *buffer) const;
 
-	template<class T> friend string<T>& operator <<(string<T>& str, const netaddress& ip);
-	template<class T> friend string<T>& operator <<(string<T>& str, const ipset& ip);
+	template<class T> friend stringoperator<T>& operator <<(stringoperator<T>& str, const netaddress& ip);
+	template<class T> friend stringoperator<T>& operator <<(stringoperator<T>& str, const ipset& ip);
 
 	///////////////////////////////////////////////////////////////////////////
-	// boolean operators
+	/// boolean operators
 	bool operator == (const netaddress s) const { return this->cAddr==s.cAddr && this->cPort==s.cPort; }
 	bool operator != (const netaddress s) const { return this->cAddr!=s.cAddr || this->cPort!=s.cPort; }
 };
@@ -313,54 +315,52 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-//
-// class for a subnetwork address (ip address, subnetmask and port number)
-//
+/// class for a subnetwork address. (ip address, subnetmask and port number)
 ///////////////////////////////////////////////////////////////////////////////
 class subnetaddress : public netaddress
 {
 	friend class ipset;
 protected:
 	///////////////////////////////////////////////////////////////////////////
-	// class data
+	/// class data
 	ipaddress cMask;
 public:
 	///////////////////////////////////////////////////////////////////////////
-	// standard constructor/destructor
+	/// standard constructor/destructor
     subnetaddress():cMask((uint32)INADDR_ANY)	{}
 	virtual ~subnetaddress()	{}
 	///////////////////////////////////////////////////////////////////////////
-	// copy/assign (actually not really necessary)
+	/// copy/assign (actually not really necessary)
     subnetaddress(const subnetaddress& a):netaddress(a),cMask(a.cMask) {}
     const subnetaddress& operator= (const subnetaddress& a)	{ this->cAddr = a.cAddr; this->cPort=a.cPort; this->cMask=a.cMask; return *this; }
 
 	///////////////////////////////////////////////////////////////////////////
-	// construction set
+	/// construction set
 	subnetaddress(uint32 a, uint32 m, ushort p):netaddress(a,p),cMask(m)	{}
 	subnetaddress(netaddress a, ipaddress m):netaddress(a),cMask(m)	{}
 	subnetaddress(const char* str)	{ init(str); }
 	///////////////////////////////////////////////////////////////////////////
-	// assignment set
+	/// assignment set
 	const subnetaddress& operator= (const char* str)	{ init(str); return *this; }
 	bool init(const char *str)
 	{	// format: <ip>/<mask>:<port>
 		return ipaddress::str2ip(str, *this, this->cMask, this->cPort);
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// virtual access interface
-	virtual const uint32 mask() const { return cMask.cAddr; }
-	virtual uint32& mask() { return cMask.cAddr; }
+	/// virtual access interface
+	virtual const uint32 mask() const { return cMask.addr(); }
+	virtual uint32& mask() { return cMask.addr(); }
 	///////////////////////////////////////////////////////////////////////////
-	// subnetworkaddr2string
+	/// subnetworkaddr2string
 	virtual string<> tostring() const;
 	virtual ssize_t tostring(char *buffer, size_t sz) const;
 	// not threadsafe
 	virtual const char *tostring(char *buffer) const;
 
-	template<class T> friend string<T>& operator <<(string<T>& str, const subnetaddress& ip);
+	template<class T> friend stringoperator<T>& operator <<(stringoperator<T>& str, const subnetaddress& ip);
 
 	///////////////////////////////////////////////////////////////////////////
-	// boolean operators
+	/// boolean operators
 	bool operator == (const subnetaddress s) const { return this->cMask==s.cMask && this->cAddr==s.cAddr && this->cPort==s.cPort; }
 	bool operator != (const subnetaddress s) const { return this->cMask!=s.cMask || this->cAddr!=s.cAddr || this->cPort!=s.cPort; }
 
@@ -368,19 +368,19 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// class for IP-sets 
-// stores wan/lan ips with lan subnet and wan/lan ports
-// can automatically fill default values
-// does not automatically resolve wan addresses though
+/// class for IP-sets.
+/// stores wan/lan ips with lan subnet and wan/lan ports
+/// can automatically fill default values
+/// does not automatically resolve wan addresses though
 ///////////////////////////////////////////////////////////////////////////////
 class ipset : public subnetaddress
 {
 	///////////////////////////////////////////////////////////////////////////
-	// class data
+	/// class data
 	netaddress		wanaddr;
 public:
 	///////////////////////////////////////////////////////////////////////////
-	// construct/destruct
+	/// construct/destruct
 	// init with 0, need to
 	ipset(const ipaddress lip = ipaddress::GetSystemIP(0),	// identify with the first System IP by default
 		  const ipaddress lsu = (uint32)INADDR_ANY,			// 0.0.0.0
@@ -409,35 +409,35 @@ public:
 	// can use default copy/assign here
 
 	///////////////////////////////////////////////////////////////////////////
-	// construction set
+	/// construction set
 	ipset(const char* str)	{ init(str); }
 
 	///////////////////////////////////////////////////////////////////////////
-	// assignment set
+	/// assignment set
 	const ipset& operator=(const char* str)	{ init(str); return *this; }
 
 	///////////////////////////////////////////////////////////////////////////
-	// initializes from a format string
-	// automatically checks the ips for local usage
+	/// initializes from a format string
+	/// automatically checks the ips for local usage
 	bool init(const char *str);
 	///////////////////////////////////////////////////////////////////////////
-	// checks if the ip's are locally available and correct wrong entries
-	// returns true on ok, false if something has changed
+	/// checks if the ip's are locally available and correct wrong entries
+	/// returns true on ok, false if something has changed
 	bool checklocal();
 	bool checkPorts();
 
 public:
 	///////////////////////////////////////////////////////////////////////////
-	// check if an given ip is LAN
+	/// check if an given ip is LAN
 	bool isLAN(const ipaddress ip) const
 	{
-		return ( (this->cAddr&this->cMask) == (ip.cAddr&this->cMask) );
+		return ( (this->cAddr&this->cMask) == (ip.addr()&this->cMask) );
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// check if an given ip is WAN
+	/// check if an given ip is WAN
 	bool isWAN(const ipaddress ip) const
 	{
-		return ( (this->cAddr&this->cMask) != (ip.cAddr&this->cMask) );
+		return ( (this->cAddr&this->cMask) != (ip.addr()&this->cMask) );
 	}
 	///////////////////////////////////////////////////////////////////////////
 	bool SetLANIP(const ipaddress ip)
@@ -459,11 +459,11 @@ public:
 	ipaddress LANIP() const	{ return this->cAddr; }
 	ipaddress& LANMask()	{ return this->cMask; }
 	ushort& LANPort()		{ return this->cPort; }
-	ipaddress WANIP()		{ return wanaddr.cAddr; }
-	ushort& WANPort()		{ return wanaddr.cPort; }
+	ipaddress WANIP()		{ return wanaddr.addr(); }
+	ushort& WANPort()		{ return wanaddr.port(); }
 
 	///////////////////////////////////////////////////////////////////////////
-	// returning as netaddresses only
+	/// returning as netaddresses only
 	netaddress& LANAddr()	{ return *this;; }	
 	netaddress& WANAddr()	{ return wanaddr; }
 
@@ -473,32 +473,40 @@ public:
 	// not threadsafe
 	virtual const char *tostring(char *buffer) const;
 
-	template<class T> friend string<T>& operator <<(string<T>& str, const ipset& ip);
+	template<class T> friend stringoperator<T>& operator <<(stringoperator<T>& str, const ipset& ip);
 
 	///////////////////////////////////////////////////////////////////////////
-	// boolean operators
+	/// boolean operators
 	bool operator == (const ipset s) const { return this->cAddr==s.cAddr && this->cMask==s.cMask && this->cPort==s.cPort && wanaddr==s.wanaddr; }
 	bool operator != (const ipset s) const { return this->cAddr!=s.cAddr || this->cMask!=s.cMask || this->cPort!=s.cPort || wanaddr!=s.wanaddr; }
 };
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// string conversion
+/// string conversion
 inline string<> tostring(const ipaddress& ip)		{ return ip.tostring(); }
 inline string<> tostring(const netaddress& ip)		{ return ip.tostring(); }
 inline string<> tostring(const subnetaddress& ip)	{ return ip.tostring(); }
 inline string<> tostring(const ipset& ip)			{ return ip.tostring(); }
 
 
-template<class T> string<T>& operator <<(string<T>& str, const ipaddress& ip);
-template<class T> string<T>& operator <<(string<T>& str, const netaddress& ip);
-template<class T> string<T>& operator <<(string<T>& str, const subnetaddress& ip);
-template<class T> string<T>& operator <<(string<T>& str, const ipset& ip);
+template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const ipaddress& ip);
+template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const netaddress& ip);
+template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const subnetaddress& ip);
+template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const ipset& ip);
+
+// give operation down to the wrapped basestring
+template<class T> inline string<T>& operator <<(string<T>& str, const ipaddress& ip)		{ *str << ip; return str; }
+template<class T> inline string<T>& operator <<(string<T>& str, const netaddress& ip)		{ *str << ip; return str; }
+template<class T> inline string<T>& operator <<(string<T>& str, const subnetaddress& ip)	{ *str << ip; return str; }
+template<class T> inline string<T>& operator <<(string<T>& str, const ipset& ip)			{ *str << ip; return str; }
+
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // some variables
-extern ipaddress	iplocal;	// stores local ip on startup, does not refresh automatically
+extern ipaddress	iplocal;	///< stores local ip on startup, does not refresh automatically
 const ipaddress		ipany((uint32)INADDR_ANY);
 const ipaddress		iploopback(INADDR_LOOPBACK);
 const ipaddress		ipnone(INADDR_NONE);
@@ -507,6 +515,8 @@ const ipaddress		ipnone(INADDR_NONE);
 ipaddress hostbyname(const char* name);
 string<> hostbyaddr(ipaddress ip);
 string<> hostname(const char* name);
+
+NAMESPACE_END(basics)
 
 
 #endif//__INET__
