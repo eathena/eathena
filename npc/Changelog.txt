@@ -31,6 +31,15 @@ Evera
 
 Date		Added
 ======
+06/05
+	* Merged from TRUNK: Now re-using one variable MISC_QUEST for such quests: [Lupus]
+	  Morgenstein, Nifl Witch, Edgar's Offer, Prontera Culvert, Juice Maker, Tempestra, 
+	- replaced BUNYBND with @BUNYBND
+	- added a special global function "F_ClearGarbage" [Lupus]
+	  that converts old quest variables into MISC_QUEST bits;
+	  clears outdated, wasted variables. Temporary added its calls into Warpra & Kafra
+	IMPORTANT! Update all your quests and Global_Functions.txt
+	  If you continue using not updated Quests scripts, it could cause some exploits or the passed quests reset
 06/03
 	* Updated Kafras [Evera]
 	* Small adjustment to Thanatos Tower spawns [Playtester]
