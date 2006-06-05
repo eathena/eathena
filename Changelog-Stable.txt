@@ -6,6 +6,8 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
 2006/06/05
+	* Merged auto-closing the guild storage when said member leaves the guild.
+	  [Skotlex]
 	* Corrected mob level being set to 0 on death and before Soul Drain takes
 	  effect. [Skotlex]
 2006/06/03
