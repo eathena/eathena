@@ -675,8 +675,10 @@ int mob_spawn (struct mob_data *md)
 
 	md->def_ele = md->db->element;
 
-	if (!md->level) // [Valaris]
-		md->level=md->db->lv;
+	if (md->spawn) //Set initial level. [Skotlex]
+	  	md->level = md->spawn->level;
+	else
+		md->level = md->db->lv; // [Valaris]
 
 //	md->master_id = 0;
 	md->master_dist = 0;
@@ -1944,7 +1946,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				(int)(md->db->lv - sd->status.base_level) >= 20)
 				drop_rate = (int)(drop_rate*1.25); // pk_mode increase drops if 20 level difference [Valaris]
 
-//			if (10000 < rand()%10000+drop_rate) { //May be better if MAX_RAND is too low?
+//			if (10000 < rand()%10000+drop_rate) //May be better if MAX_RAND is too low?
 			if (drop_rate < rand() % 10000 + 1) //fixed 0.01% impossible drops bug [Lupus]
 				continue;
 
@@ -2103,7 +2105,6 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		if(mvp_sd->state.event_kill_mob)
 			npc_script_event(mvp_sd, NPCE_KILLNPC); // PCKillNPC [Lance]
 	}
-	if(md->level) md->level=0;
 	map_freeblock_unlock();
 	unit_remove_map(&md->bl, 1);
 	return damage;

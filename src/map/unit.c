@@ -472,9 +472,7 @@ int unit_warp(struct block_list *bl,int m,short x,short y,int type)
 	if(bl->prev==NULL || !ud)
 		return 1;
 
-	if (type < 0 || type == 1)
-		//Type 1 is invalid, since you shouldn't warp a bl with the "death" 
-		//animation, it messes up with unit_remove_map! [Skotlex]
+	if (type < 0)
 		return 1;
 	
 	if( m<0 ) m=bl->m;
@@ -523,10 +521,6 @@ int unit_warp(struct block_list *bl,int m,short x,short y,int type)
 
 	map_addblock(bl);
 	clif_spawn(bl);
-//This is broken because the mob already was changed from map.
-//Fortunately, the slave ai will make them chase their master automatically
-//	if (bl->type == BL_MOB)
-//		mob_warpslave(bl,AREA_SIZE);
 	skill_unit_move(bl,gettick(),1);
 	return 0;
 }
