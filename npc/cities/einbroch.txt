@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Nexon
 //===== Current Version: ===================================== 
-//= 0.4c
+//= 0.6
 //===== Compatible With: ===================================== 
 //= eAthena Revision 3000+
 //===== Description: ========================================= 
@@ -16,6 +16,7 @@
 //= 0.4b Added missing close [Komurka]
 //= 0.5 Added Temporal Locations of Gunslinger Job Change map.
 //=	Info provided by RockmanEXE [erKURITA]
+//= 0.6 Implemented an inn NPC [MasterOfMuppets]
 //============================================================
 
 
@@ -1512,6 +1513,57 @@ einbroch.gat,188,72,3	script	Keneshiotz	855,{
 	mes "know that money makes";
 	mes "the world go 'round?";
 	close;
+}
+
+ein_in01.gat,206,224,2	script	Hotel Employee	855,{
+
+	mes "[Hotel Employee]";
+	mes "Good day, welcome to the";
+	mes "Einbroch Hotel. The staff is";
+	mes "always striving to accomodate";
+	mes "our guests with the highest";
+	mes "standards in cleanliness,";
+	mes "service and convenience~";
+	next;
+	menu "Save",s_Save,"Take Rest- 5,000 zeny",s_Rest,"Cancel",-;
+
+	mes "[Hotel Employee]";
+	mes "Thank you and";
+	mes "please come again~";
+	close;
+
+s_Save:
+	savepoint "ein_in01.gat",199,224;
+	mes "[Hotel Employee]";
+	mes "Your Respawn Point";
+	mes "has been saved here";
+	mes "in the Einbroch Hotel.";
+	mes "Thank you, and please";
+	mes "come again.";
+	next;
+	mes "[Hotel Employee]";
+	mes "Have a good day.";
+	close;
+
+s_Rest:
+	if(Zeny < 5000)goto s_NEnoughZeny;
+	mes "[Hotel Employee]";
+	mes "Thank you.";
+	mes "Please enjoy";
+	mes "your rest~";
+	close2;
+	set zeny,zeny - 5000;
+	warp "ein_in01.gat",272,167;
+	percentheal 100,100;
+	end;
+
+s_NEnoughZeny:
+	mes "[Hotel Employee]";
+	mes "I'm sorry but";
+	mes "you don't seem";
+	mes "to have enough zeny.";
+	close;
+
 }
 
 //| Temporal NPC locations until the text inside it has been obtained
