@@ -32,6 +32,8 @@ Evera
 Date		Added
 ======
 06/05
+	* Implemented some more airship NPCs, more are to come. [MasterOfMuppets]
+	- Also put in a few warps from the sign quest which is to come.
 	* Merged from TRUNK: Now re-using one variable MISC_QUEST for such quests: [Lupus]
 	  Morgenstein, Nifl Witch, Edgar's Offer, Prontera Culvert, Juice Maker, Tempestra, 
 	- replaced BUNYBND with @BUNYBND
