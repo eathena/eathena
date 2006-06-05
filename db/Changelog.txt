@@ -1,3 +1,5 @@
+06/05
+	* A typo fix, thanks to DracoRPG. [MasterOfMuppets]
 06/02
 	* Once again merged mob_db.txt [Playtester]
 05/31
