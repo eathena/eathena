@@ -26,12 +26,14 @@ Evera
 	* Everything.
 	* Dungeon Teleport System NPCs
 	* iRO information gathering.
+	* Kafra maintainment.
 
 == Changelog ==
 
 Date		Added
 ======
 06/05
+	* Fixed missing function problems for Kafra, also now using cleararray instead of assigning blank variables to every other array [Evera]
 	* Implemented some more Louyang npcs, thanks to Prometheus for them. [MasterOfMuppets]
 	* Implemented an inn NPC in Einbroch [MasterOfMuppets]
 	* Fixed some typos in Lighthalzen and merged other fixes [Playtester]
