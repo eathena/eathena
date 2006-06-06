@@ -1,3 +1,6 @@
+06/06
+	* Merged various db files from trunk [Playtester]
+	- item_db, job_db2, mob_avail, mob_db, mob_db2, mob_skill_db
 06/05
 	* Added some sign quest related item restrictions. [MasterOfMuppets]
 	* Fixed the item bonus of baseball cap. [MasterOfMuppets]
