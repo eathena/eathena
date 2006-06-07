@@ -111,9 +111,9 @@ CAccountDBInterface* CAccountDB::getDB(const char *dbcfgfile)
 {
 	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
 #if defined(WITH_TEXT) && defined(WITH_MYSQL)
-	if(database_engine=="txt")
+	if(database_engine()=="txt")
 		return new CAccountDB_txt(dbcfgfile);
-	if(database_engine=="sql")
+	if(database_engine()=="sql")
 		return new CAccountDB_sql(dbcfgfile);
 #elif defined(WITH_TEXT)
 	return new CAccountDB_txt(dbcfgfile);
@@ -138,9 +138,9 @@ CCharDBInterface* CCharDB::getDB(const char *dbcfgfile)
 {
 	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
 #if defined(WITH_TEXT) && defined(WITH_MYSQL)
-	if(database_engine=="txt")
+	if(database_engine()=="txt")
 		return new CCharDB_txt(dbcfgfile);
-	if(database_engine=="sql")
+	if(database_engine()=="sql")
 		return new CCharDB_sql(dbcfgfile);
 #elif defined(WITH_TEXT)
 	return new CCharDB_txt(dbcfgfile);
@@ -158,9 +158,9 @@ CGuildDBInterface* CGuildDB::getDB(const char *dbcfgfile)
 {
 	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
 #if defined(WITH_TEXT) && defined(WITH_MYSQL)
-	if(database_engine=="txt")
+	if(database_engine()=="txt")
 		return new CGuildDB_txt(dbcfgfile);
-	if(database_engine=="sql")
+	if(database_engine()=="sql")
 		return new CGuildDB_sql(dbcfgfile);
 #elif defined(WITH_TEXT)
 	return new CGuildDB_txt(dbcfgfile);
@@ -182,9 +182,9 @@ CPartyDBInterface* CPartyDB::getDB(const char *dbcfgfile)
 {
 	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
 #if defined(WITH_TEXT) && defined(WITH_MYSQL)
-	if(database_engine=="txt")
+	if(database_engine()=="txt")
 		return new CPartyDB_txt(dbcfgfile);
-	if(database_engine=="sql")
+	if(database_engine()=="sql")
 		return new CPartyDB_sql(dbcfgfile);
 #elif defined(WITH_TEXT)
 	return new CPartyDB_txt(dbcfgfile);
@@ -205,9 +205,9 @@ CPCStorageDBInterface* CPCStorageDB::getDB(const char *dbcfgfile)
 {
 	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
 #if defined(WITH_TEXT) && defined(WITH_MYSQL)
-	if(database_engine=="txt")
+	if(database_engine()=="txt")
 		return new CPCStorageDB_txt(dbcfgfile);
-	if(database_engine=="sql")
+	if(database_engine()=="sql")
 		return new CPCStorageDB_sql(dbcfgfile);
 #elif defined(WITH_TEXT)
 	return new CPCStorageDB_txt(dbcfgfile);
@@ -225,9 +225,9 @@ CGuildStorageDBInterface* CGuildStorageDB::getDB(const char *dbcfgfile)
 {
 	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
 #if defined(WITH_TEXT) && defined(WITH_MYSQL)
-	if(database_engine=="txt")
+	if(database_engine()=="txt")
 		return new CGuildStorageDB_txt(dbcfgfile);
-	if(database_engine=="sql")
+	if(database_engine()=="sql")
 		return new CGuildStorageDB_sql(dbcfgfile);
 #elif defined(WITH_TEXT)
 	return new CGuildStorageDB_txt(dbcfgfile);
@@ -239,16 +239,13 @@ CGuildStorageDBInterface* CGuildStorageDB::getDB(const char *dbcfgfile)
 	return NULL;
 }
 
-
-
-
 CPetDBInterface* CPetDB::getDB(const char *dbcfgfile)
 {
 	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
 #if defined(WITH_TEXT) && defined(WITH_MYSQL)
-	if(database_engine=="txt")
+	if(database_engine()=="txt")
 		return new CPetDB_txt(dbcfgfile);
-	if(database_engine=="sql")
+	if(database_engine()=="sql")
 		return new CPetDB_sql(dbcfgfile);
 #elif defined(WITH_TEXT)
 	return new CPetDB_txt(dbcfgfile);

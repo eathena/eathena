@@ -14,6 +14,13 @@
 #include "baseinet.h"
 #include "basesocket.h"
 
+/// example for a static initializer.
+/// the comma operator forces calling the init function and inititializer is set to the boolean
+/// namespace
+/// {
+///   bool initialiser = (my_class:init(), true);
+/// }
+
 NAMESPACE_BEGIN(basics)
 
 
@@ -256,7 +263,7 @@ void ipaddress::_ipset_helper::init(void)
 			cAddr[i] =	  (a[i][0]<<0x18)
 						| (a[i][1]<<0x10)
 						| (a[i][2]<<0x08)
-						| (a[i][3]);
+						| (a[i][3]);		
 		}
 		cCnt = i;
 	}
@@ -305,6 +312,16 @@ ipaddress::_ipset_helper::~_ipset_helper()
 #endif
 }
 
+///////////////////////////////////////////////////////////////////////////
+/// need a singleton. this here is safe, 
+/// we need it only once and destruction order is irrelevant,
+/// CYGWIN does not support this function beeing inlined (crashes on access), 
+/// maybe a general problem with static function variables
+ipaddress::_ipset_helper& ipaddress::gethelper()
+{
+	static _ipset_helper iphelp;
+	return iphelp;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // ipaddress functions

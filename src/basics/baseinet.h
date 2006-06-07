@@ -136,7 +136,7 @@ private:
 							///< 16 ipaddresses should be enough for practical purpose
 		uint	cCnt;		///< # of valid ip addresses
 	public:
-		_ipset_helper()		{ init(); }
+		_ipset_helper() : cCnt(0)		{ this->init(); }
 		~_ipset_helper();
 
 		///////////////////////////////////////////////////////////////////////
@@ -145,31 +145,26 @@ private:
 
 		///////////////////////////////////////////////////////////////////////
 		/// number of found system ip's (w/o localhost)
-		uint GetSystemIPCount()	const	{ return cCnt; }
+		uint GetSystemIPCount()	const	{ return this->cCnt; }
 
 		///////////////////////////////////////////////////////////////////////
 		/// get an address from the array, return loopback on error
 		ipaddress GetSystemIP(uint i=0) const
 		{
-			if( i < cCnt )
-				return cAddr[i];
-			else if(cCnt>0)
-				return cAddr[0];
-			return INADDR_LOOPBACK;
+			if( i < this->cCnt )
+				return this->cAddr[i];
+			else if(this->cCnt>0)
+				return this->cAddr[0];
+			return (ipaddress)INADDR_LOOPBACK;
 		}
 	};
 	///////////////////////////////////////////////////////////////////////////
-	/// need a singleton. this here is safe, 
-	/// we need it only once and destruction order is irrelevant
-	static _ipset_helper& gethelper()
-	{
-		static _ipset_helper iphelp;
-		return iphelp;
-	}
+	/// access on a singleton.
+	static _ipset_helper& gethelper();
 public:
-	static void InitSystemIP()				{        gethelper().init(); }
-	static ipaddress GetSystemIP(uint i=0)	{ return gethelper().GetSystemIP(i); }
-	static uint GetSystemIPCount()			{ return gethelper().GetSystemIPCount(); }
+	static void InitSystemIP()				{        ipaddress::gethelper().init(); }
+	static ipaddress GetSystemIP(uint i=0)	{ return ipaddress::gethelper().GetSystemIP(i); }
+	static uint GetSystemIPCount()			{ return ipaddress::gethelper().GetSystemIPCount(); }
 	static bool isBindable(ipaddress ip);
 	bool isBindable()	{ return ipaddress::isBindable(*this); }
 
@@ -197,19 +192,19 @@ public:
 	explicit ipaddress(const char* str):cAddr(str2ip(str))	{}
     ipaddress(int a, int b, int c, int d)
 	{
-		cAddr =	 (a&0xFF) << 0x18
-				|(b&0xFF) << 0x10
-				|(c&0xFF) << 0x08
-				|(d&0xFF);
+		this->cAddr = (a&0xFF) << 0x18
+					| (b&0xFF) << 0x10
+					| (c&0xFF) << 0x08
+					| (d&0xFF);
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// assignment set (needs explicite casts when assigning 0)
-    const ipaddress& operator= (uint32 a)			{ cAddr = a; return *this; }
-	const ipaddress& operator= (const char* str)	{ cAddr = str2ip(str); return *this; }
+    const ipaddress& operator= (uint32 a)			{ this->cAddr = a; return *this; }
+	const ipaddress& operator= (const char* str)	{ this->cAddr = str2ip(str); return *this; }
 
 	bool init(const char *str)
 	{
-		cAddr = str2ip(str);
+		this->cAddr = str2ip(str);
 		return true;
 	}
 
@@ -220,12 +215,12 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// pod access on the ip (host byte order)
-    operator uint32() const	{ return cAddr; }
+    operator uint32() const	{ return this->cAddr; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// virtual access interface
-	virtual uint32 addr() const { return cAddr; }
-	virtual uint32& addr() { return cAddr; }
+	virtual uint32 addr() const { return this->cAddr; }
+	virtual uint32& addr() { return this->cAddr; }
 	///////////////////////////////////////////////////////////////////////////
 	virtual const uint32 mask() const { return INADDR_BROADCAST; }
 	virtual uint32& mask() { static uint32 dummy; return dummy=INADDR_BROADCAST; }
@@ -235,10 +230,10 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// boolean operators
-	bool operator == (const ipaddress s) const { return cAddr==s.cAddr; }
-	bool operator != (const ipaddress s) const { return cAddr!=s.cAddr; }
-	bool operator == (const uint32 s) const { return cAddr==s; }
-	bool operator != (const uint32 s) const { return cAddr!=s; }
+	bool operator == (const ipaddress s) const { return this->cAddr==s.cAddr; }
+	bool operator != (const ipaddress s) const { return this->cAddr!=s.cAddr; }
+	bool operator == (const uint32 s) const { return this->cAddr==s; }
+	bool operator != (const uint32 s) const { return this->cAddr!=s; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// ip2string

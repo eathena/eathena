@@ -407,6 +407,36 @@ public:
 	const T& operator()() const		{ return cData; }
 	const T& value() const			{ return cData; }
 	const char*name() const			{ return cStor; }
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// compares parameters directly.
+	// have all six compares
+	template <typename X> bool operator==(const CParam<X>& p)
+	{
+		return this->cValue == p();
+	}
+	template <typename X> bool operator!=(const CParam<X>& p)
+	{
+		return this->cValue != p();
+	}
+	template <typename X> bool operator< (const CParam<X>& p)
+	{
+		return this->cValue <  p();
+	}
+	template <typename X> bool operator<=(const CParam<X>& p)
+	{
+		return this->cValue <= p();
+	}
+	template <typename X> bool operator> (const CParam<X>& p)
+	{
+		return this->cValue >  p();
+	}
+	template <typename X> bool operator>=(const CParam<X>& p)
+	{
+		return this->cValue >= p();
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 	/// check and set parameter modification
 	bool isModified()
@@ -874,6 +904,35 @@ public:
 		return value; 
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	// compares parameters directly.
+	// have all six compares
+	template <typename X> bool operator==(const CParam<X>& p)
+	{
+		return this->cValue == p();
+	}
+	template <typename X> bool operator!=(const CParam<X>& p)
+	{
+		return this->cValue != p();
+	}
+	template <typename X> bool operator< (const CParam<X>& p)
+	{
+		return this->cValue <  p();
+	}
+	template <typename X> bool operator<=(const CParam<X>& p)
+	{
+		return this->cValue <= p();
+	}
+	template <typename X> bool operator> (const CParam<X>& p)
+	{
+		return this->cValue >  p();
+	}
+	template <typename X> bool operator>=(const CParam<X>& p)
+	{
+		return this->cValue >= p();
+	}
+
+
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// function which is called on external parameter modification
@@ -934,9 +993,62 @@ inline bool existParam(const string<>& name, const string<>& value)
 #endif//PARAM_RTTI
 
 
+///////////////////////////////////////////////////////////////////////////
+// compares parameters with content type, both sides
+template <typename T1, typename T2> bool operator==(const T1& t1, const CParam<T2>& p2)
+{
+	return t1 == p2();
+}
+template <typename T1, typename T2> bool operator!=(const T1& t1, const CParam<T2>& p2)
+{
+	return t1 != p2();
+}
+template <typename T1, typename T2> bool operator< (const T1& t1, const CParam<T2>& p2)
+{
+	return t1 <  p2();
+}
+template <typename T1, typename T2> bool operator<=(const T1& t1, const CParam<T2>& p2)
+{
+	return t1 <= p2();
+}
+template <typename T1, typename T2> bool operator> (const T1& t1, const CParam<T2>& p2)
+{
+	return t1 >  p2();
+}
+template <typename T1, typename T2> bool operator>=(const T1& t1, const CParam<T2>& p2)
+{
+	return t1 >= p2();
+}
 
 
+template <typename T1, typename T2> bool operator==(const CParam<T1>& p1, const T2& t2)
+{
+	return p1() == t2;
+}
+template <typename T1, typename T2> bool operator!=(const CParam<T1>& p1, const T2& t2)
+{
+	return p1() != t2;
+}
+template <typename T1, typename T2> bool operator< (const CParam<T1>& p1, const T2& t2)
+{
+	return p1() <  t2;
+}
+template <typename T1, typename T2> bool operator<=(const CParam<T1>& p1, const T2& t2)
+{
+	return p1() <= t2;
+}
+template <typename T1, typename T2> bool operator> (const CParam<T1>& p1, const T2& t2)
+{
+	return p1() >  t2;
+}
+template <typename T1, typename T2> bool operator>=(const CParam<T1>& p1, const T2& t2)
+{
+	return p1() >= t2;
+}
 
+
+///////////////////////////////////////////////////////////////////////////
+// string concatinate
 template <typename T> stringoperator<>& operator << (stringoperator<>& str, const CParam<T>& param)
 {
 	str << (const T&)param;

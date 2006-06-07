@@ -2140,7 +2140,7 @@ int parse_login(int fd)
 				bool ok = account_db.searchAccount(userid, account);
 				if( !ok )
 				{	// try for account creation with _M/_F
-					size_t len = strlen(userid) - 2;
+					int len = strlen(userid) - 2;
 					if( new_account_flag && allowed_regs &&
 						len >= 4 &&
 						passwdenc == 0 && 
@@ -3079,6 +3079,24 @@ unsigned char getServerType()
 	return ATHENA_SERVER_LOGIN | ATHENA_SERVER_CORE;
 }
 
+
+int check_connect_login_port(int tid, unsigned long tick, int id, basics::numptr data)
+{
+	if( !session_isActive(login_fd) )
+	{	// the listen port was dropped, open it new
+		login_fd = make_listen(loginaddress.addr(),loginaddress.port());
+
+		if(login_fd>=0)
+		{
+			login_log("The login-server is ready (Server is listening on port %d)." RETCODE, loginaddress.port());
+			ShowStatus("The login-server is "CL_BT_GREEN"ready"CL_NORM" (Server is listening on port %d).\n", loginaddress.port());
+		}
+		else
+			ShowError("open listening socket on port '"CL_WHITE"%d"CL_RESET"' failed.\n\n", loginaddress.port());
+	}
+	return 0;
+}
+
 int do_init(int argc, char **argv)
 {
 	int i;
@@ -3099,15 +3117,13 @@ int do_init(int argc, char **argv)
 
 	set_defaultparse(parse_login);
 
-	login_fd = make_listen(loginaddress.addr(),loginaddress.port());
-
 	if(console) {
 		set_defaultconsoleparse(parse_console);
 	   	start_console();
 	}
 
-	login_log("The login-server is ready (Server is listening on port %d)." RETCODE, loginaddress.port());
-	ShowStatus("The login-server is "CL_BT_GREEN"ready"CL_NORM" (Server is listening on port %d).\n", loginaddress.port());
+	add_timer_func_list(check_connect_login_port, "check_connect_login_port");
+	add_timer_interval(gettick() + 1000, 10 * 1000, check_connect_login_port, 0, 0);
 
 	return 0;
 }

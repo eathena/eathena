@@ -2410,17 +2410,17 @@ int parse_char(int fd)
 							RFIFOB(fd,35), RFIFOB(fd,33), // hair style, color
 							character) )
 					{	// error
-						{	//already exists
-							WFIFOW(fd, 0) = 0x6e;
-							WFIFOB(fd, 2) = 0x00;
-							WFIFOSET(fd, 3);
-						}
-						/*
-						else if(ret == -2)
 						{	//denied
 							WFIFOW(fd, 0) = 0x6e;
 							WFIFOB(fd, 2) = 0x02;
 							WFIFOSET(fd, 3); 
+						}
+						/*
+						else if(ret == -2)
+						{	//already exists
+							WFIFOW(fd, 0) = 0x6e;
+							WFIFOB(fd, 2) = 0x00;
+							WFIFOSET(fd, 3);
 						}
 						else if(ret == -3)
 						{	//underaged XD
@@ -2738,6 +2738,17 @@ int check_connect_login_server(int tid, unsigned long tick, int id, basics::nump
 
 		connect_login();
 	}
+	if( !session_isActive(char_fd) )
+	{	// the listen port was dropped, open it new
+		char_fd = make_listen(charaddress.LANIP(),charaddress.LANPort());
+		if(char_fd>=0)
+		{
+			char_log("The char-server is ready (Server is listening on %s:%d)." RETCODE, charaddress.LANIP().tostring(NULL),charaddress.LANPort());
+			ShowStatus("The char-server is "CL_BT_GREEN"ready"CL_NORM" (listening on '"CL_WHITE"%s:%d"CL_RESET"').\n", charaddress.LANIP().tostring(NULL),charaddress.LANPort());
+		}
+		else
+			ShowStatus("open listen socket on '"CL_WHITE"%s:%d"CL_RESET"' failed.\n", charaddress.LANIP().tostring(NULL),charaddress.LANPort());
+	}
 	return 0;
 }
 int check_dropped_charwan(int tid, unsigned long tick, int id, basics::numptr data)
@@ -2965,7 +2976,6 @@ int do_init(int argc, char **argv)
 	if( automatic_wan_setup )
 		initialize_WAN(charaddress, 6121);
 
-	char_fd = make_listen(charaddress.LANIP(),charaddress.LANPort());
 
 	add_timer_func_list(check_connect_login_server, "check_connect_login_server");
 	add_timer_interval(gettick() + 1000, 10 * 1000, check_connect_login_server, 0, 0);
@@ -2983,8 +2993,6 @@ int do_init(int argc, char **argv)
 	    set_defaultconsoleparse(parse_console);
 	   	start_console();
 	}
-	char_log("The char-server is ready (Server is listening on %s:%d)." RETCODE, charaddress.LANIP().tostring(NULL),charaddress.LANPort());
-	ShowStatus("The char-server is "CL_BT_GREEN"ready"CL_NORM" (listening on %s:%d).\n", charaddress.LANIP().tostring(NULL),charaddress.LANPort());
 
 	return 0;
 }

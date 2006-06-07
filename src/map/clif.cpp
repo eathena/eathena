@@ -13533,6 +13533,19 @@ int packetdb_readdb(void)
 	return 0;
 }
 
+int check_connect_map_port()
+{
+	if( !session_isActive(map_fd) )
+	{	// the listen port was dropped, open it new
+		map_fd = make_listen(mapaddress.LANIP(), mapaddress.LANPort());
+		if(map_fd>=0)
+			ShowStatus("Server is '"CL_BT_GREEN"ready"CL_RESET"' and listening on '"CL_WHITE"%s:%d"CL_RESET"'.\n\n", getmapaddress().LANIP().tostring(NULL), getmapaddress().LANPort());
+		else
+			ShowError("open listening socket on '"CL_WHITE"%s:%d"CL_RESET"' failed.\n\n", getmapaddress().LANIP().tostring(NULL), getmapaddress().LANPort());
+	}
+	return 0;
+}
+
 
 /*==========================================
  *
@@ -13549,15 +13562,6 @@ int do_init_clif(void)
 	
 	packetdb_readdb();
 	set_defaultparse(clif_parse);
-
-	size_t i;
-	for(i=0; i<10; ++i)
-	{
-		map_fd = make_listen(mapaddress.LANIP(), mapaddress.LANPort());
-		if( map_fd >= 0 )
-			break;
-		sleep(20);
-	}
 
 	add_timer_func_list(clif_clearchar_delay_sub, "clif_clearchar_delay_sub");
 	return 0;

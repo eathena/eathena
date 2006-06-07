@@ -4784,8 +4784,6 @@ int do_init(int argc, char *argv[])
 	if (battle_config.pk_mode == 1)
 		ShowNotice("Server is running on '"CL_WHITE"PK Mode"CL_RESET"'.\n");
 
-	ShowStatus("Server is '"CL_BT_GREEN"ready"CL_RESET"' and listening on '"CL_WHITE"%s:%d"CL_RESET"'.\n\n", getmapaddress().LANIP().tostring(NULL), getmapaddress().LANPort());
-
 	return 0;
 }
 

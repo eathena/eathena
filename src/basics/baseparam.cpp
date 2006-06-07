@@ -182,31 +182,66 @@ void parseCommandline(int argc, char **argv)
 	char w1[1024], w2[1024];
 	int i;
 
-	// reserved parameter
-	createParam("application", argv[0]);
+	// reserved parameters
+	{
+		char*path = argv[0];
+		char*file = strrchr(path, PATHSEP);
+		if(file)
+		{	// had a pathname with a filename
+			*file++=0;
+		}
+		else
+		{	// no path
+			path = "";
+			file = argv[0];
+		}
+
+		createParam("application", file);
+		createParam("application_path", path);
+	}
 
 	for(i=1; i<argc; ++i)
 	{
-		str << argv[i] << ' ';
-		memset(w1, 0, sizeof(w1));
-		memset(w2, 0, sizeof(w2));
-		// if not matching in the first place 
-		// just try with the concatinated commandline
-		// until something matches or the line runs out
-		//## check effort with regex
-		if( sscanf(argv[i], "%[^=]= %[^\r\n]", w1, w2) == 2 ||
-			sscanf(argv[i], "%[^:]: %[^\r\n]", w1, w2) == 2 ||
-			sscanf(str,     "%[^=]= %[^\r\n]", w1, w2) == 2 ||
-			sscanf(str,     "%[^:]: %[^\r\n]", w1, w2) == 2 )
+		if( is_file(argv[i]) )
 		{
-			CConfig::CleanControlChars(w1);
-			CConfig::CleanControlChars(w2);
-			itrim(w1);
-			itrim(w2);
-			// create the parameter
-			createParam(w1, w2);
-			// clear the string, start new search
+			// we have a valid filename, so we load it directly
+			CParamBase::loadFile(argv[i]);
+
+			// and clear the string, start new search
 			str.empty();
+		}
+		else
+		{	// not a file, check if it is a direct parameter
+			str << argv[i] << ' ';
+			memset(w1, 0, sizeof(w1));
+			memset(w2, 0, sizeof(w2));
+			// if not matching in the first place 
+			// just try with the concatinated commandline
+			// until something matches or the line runs out
+			//## check effort with regex
+			if( sscanf(argv[i], "%[^=]= %[^\r\n]", w1, w2) == 2 ||
+				sscanf(argv[i], "%[^:]: %[^\r\n]", w1, w2) == 2 ||
+				sscanf(str,     "%[^=]= %[^\r\n]", w1, w2) == 2 ||
+				sscanf(str,     "%[^:]: %[^\r\n]", w1, w2) == 2 )
+			{
+				CConfig::CleanControlChars(w1);
+				CConfig::CleanControlChars(w2);
+				itrim(w1);
+				itrim(w2);
+
+				if( strcasecmp(w1, "import") == 0 ||
+					strcasecmp(w1, "include") == 0 ||
+					strcasecmp(w1, "load") == 0 )
+				{	// load the file
+					CParamBase::loadFile(w2);
+				}
+				else
+				{	// create the parameter
+					createParam(w1, w2);
+				}
+				// clear the string, start new search
+				str.empty();
+			}
 		}
 	}
 }

@@ -391,7 +391,7 @@ int clif_disp_overhead(struct map_session_data &sd, const char* mes);
 
 
 int clif_terminate(int fd);
-
+int check_connect_map_port();
 int do_final_clif(void);
 int do_init_clif(void);
 

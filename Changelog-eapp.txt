@@ -1,5 +1,9 @@
 Date	Added
-06/07
+06/07	* added recovery of dropped listen port
+	* fixed runtime problem with cygwin (which does not supported 
+	  inlined static constructors, tnx to erKURITA), 
+	* fixed unsupported parameter compare on intel compiler (tnx to ALZ)
+06/04
 	* removed the usage of the "bl" block_list member
 	  and wrapped up some parts of block_list usage function
 	  added some safty to virtual destruction, but need to add 

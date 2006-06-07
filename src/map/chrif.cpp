@@ -1974,6 +1974,7 @@ int check_connect_char_server(int tid, unsigned long tick, int id, basics::numpt
 			chrif_ragsrvinfo(battle_config.base_exp_rate, battle_config.job_exp_rate, battle_config.item_rate_common);
 		}
 	}
+	check_connect_map_port();
 	return 0;
 }
 int check_dropped_mapwan(int tid, unsigned long tick, int id, basics::numptr data)
