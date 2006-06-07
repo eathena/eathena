@@ -1162,37 +1162,49 @@ int duel_reject(
  */
 
 /*==========================================
- * @commands Lists available @ commands to you.
+ * @commands Lists available @ commands to you (code 98% from Meruru)
  *------------------------------------------
  */
-int atcommand_commands(const int fd, struct map_session_data* sd,
+int atcommand_commands(
+	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int i,count=0,level;
-	nullpo_retr(-1, sd);
-	level = pc_isGM(sd);
-	
-	clif_displaymessage(fd, msg_txt(273));
-	memset(atcmd_output, 0, sizeof atcmd_output);
-	for (i = 0; atcommand_info[i].type != AtCommand_Unknown; i++)
-		if (atcommand_info[i].level <= level && atcommand_info[i].command) {
-			count++;
-			strcat(atcmd_output, atcommand_info[i].command);
-			strcat(atcmd_output, " ");
-			if (!(count%10)) {
-				clif_displaymessage(fd, atcmd_output);
-				memset(atcmd_output, 0, sizeof atcmd_output);
-			}
-		}
-	if (count%10)
-		clif_displaymessage(fd, atcmd_output);
+	char cz_line_buff[MESSAGE_SIZE+1];
 
-	if (count) {
-		sprintf(atcmd_output, msg_txt(274), count);
-		clif_displaymessage(fd, atcmd_output);
-	} else
-		clif_displaymessage(fd, msg_txt(275));
-		
+	register char *lpcz_cur = cz_line_buff;
+	register unsigned int ui_slen;
+
+	int i_cur_cmd,gm_lvl = pc_isGM(sd), count = 0;
+
+	memset(cz_line_buff,' ',MESSAGE_SIZE);
+	cz_line_buff[MESSAGE_SIZE] = 0;
+
+	clif_displaymessage(fd, msg_txt(273));
+
+	for (i_cur_cmd = 0;atcommand_info[i_cur_cmd].type != AtCommand_Unknown;i_cur_cmd++)
+	{
+		if(gm_lvl  < atcommand_info[i_cur_cmd].level)
+		continue;
+
+		count++;
+		ui_slen = (unsigned int)strlen(atcommand_info[i_cur_cmd].command);
+
+		//rember not <= bc we need null terminator
+		if(((MESSAGE_SIZE+(int)cz_line_buff)-(int)lpcz_cur) < (int)ui_slen)
+		{
+			clif_displaymessage(fd,(char*)cz_line_buff);
+			lpcz_cur = cz_line_buff;
+			memset(cz_line_buff,' ',MESSAGE_SIZE);
+			cz_line_buff[MESSAGE_SIZE] = 0;
+		}
+
+		memcpy(lpcz_cur,atcommand_info[i_cur_cmd].command,ui_slen);
+		lpcz_cur += ui_slen+(10-ui_slen%10);
+	}
+
+	clif_displaymessage(fd,(char*)cz_line_buff);
+	sprintf(atcmd_output, msg_txt(274), count); //There will always be at least 1 command (@commands)
+	clif_displaymessage(fd, atcmd_output);	
 	return 0;
 }
 
@@ -4391,7 +4403,6 @@ int atcommand_petfriendly(
 	const char* command, const char* message)
 {
 	int friendly;
-	int t;
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message || (friendly = atoi(message)) < 0) {
@@ -4399,35 +4410,25 @@ int atcommand_petfriendly(
 		return -1;
 	}
 
-	if (sd->status.pet_id > 0 && sd->pd) {
-		if (friendly >= 0 && friendly <= 1000) {
-			if (friendly != sd->pet.intimate) {
-				t = sd->pet.intimate;
-				sd->pet.intimate = friendly;
-				clif_send_petstatus(sd);
-				if (battle_config.pet_status_support) {
-					if ((sd->pet.intimate > 0 && t <= 0) ||
-					    (sd->pet.intimate <= 0 && t > 0)) {
-						if (sd->bl.prev != NULL)
-							status_calc_pc(sd, 0);
-						else
-							status_calc_pc(sd, 2);
-					}
-				}
-				clif_displaymessage(fd, msg_table[182]); // Pet friendly value changed!
-			} else {
-				clif_displaymessage(fd, msg_table[183]); // Pet friendly is already the good value.
-				return -1;
-			}
-		} else {
-			clif_displaymessage(fd, msg_table[37]); // An invalid number was specified.
-			return -1;
-		}
-	} else {
+	if (!sd->pd) {
 		clif_displaymessage(fd, msg_table[184]); // Sorry, but you have no pet.
 		return -1;
+		return -1;
 	}
-
+	
+	if (friendly < 0 || friendly > 1000)
+	{
+		clif_displaymessage(fd, msg_table[37]); // An invalid number was specified.
+		return -1;
+	}
+	
+	if (friendly == sd->pet.intimate) {
+		clif_displaymessage(fd, msg_table[183]); // Pet friendly is already the good value.
+		return -1;
+	}
+	sd->pet.intimate = friendly;
+	clif_send_petstatus(sd);
+	clif_displaymessage(fd, msg_table[182]); // Pet friendly value changed!
 	return 0;
 }
 
@@ -9432,7 +9433,7 @@ int atcommand_iteminfo(
 	//, "Lure/Scroll"}; No need, type 11 items are converted to type 2 upon loading [Skotlex]
 
 	struct item_data *item_data, *item_array[MAX_SEARCH];
-	int i, item_id=0, count = 1;
+	int i, count = 1;
 
 	if (!message || !*message) {
 		clif_displaymessage(fd, "Please, enter Item name or its ID (usage: @iteminfo <item_name_or_ID>).");
@@ -9454,13 +9455,13 @@ int atcommand_iteminfo(
 	for (i = 0; i < count; i++) {
 		item_data = item_array[i];
 		sprintf(atcmd_output, "Item: '%s'/'%s'[%d] (%d) Type: %s | Extra Effect: %s",
-			item_data->name,item_data->jname,item_data->slot,item_id,
+			item_data->name,item_data->jname,item_data->slot,item_data->nameid,
 			item_data->type < 12 ? itype[item_data->type] : "BUG!", 
 			(item_data->script==NULL)? "None" : "With script"
 		);
 		clif_displaymessage(fd, atcmd_output);
 
-		sprintf(atcmd_output, "NPC Buy:%dz%s, Sell:%dz%s | Weight: %d ", item_data->value_buy, item_data->flag.value_notdc ? "(No Discount!)":"", item_data->value_sell, item_data->flag.value_notoc ? "(No Overcharge!)":"", item_data->weight );
+		sprintf(atcmd_output, "NPC Buy:%dz%s, Sell:%dz%s | Weight: %.1f ", item_data->value_buy, item_data->flag.value_notdc ? "(No Discount!)":"", item_data->value_sell, item_data->flag.value_notoc ? "(No Overcharge!)":"", item_data->weight/10. );
 		clif_displaymessage(fd, atcmd_output);
 
 		if (item_data->maxchance == 10000)

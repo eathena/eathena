@@ -52,13 +52,14 @@ int mapif_sendall(unsigned char *buf,unsigned int len);
 int mapif_sendallwos(int fd,unsigned char *buf,unsigned int len);
 int mapif_send(int fd,unsigned char *buf,unsigned int len);
 
-int char_nick2id (char *name);
 int char_married(int pl1,int pl2);
 int char_child(int parent_id, int child_id);
 
 int request_accreg2(int account_id, int char_id);
 int save_accreg2(unsigned char* buf, int len);
 
+extern int char_name_option;
+extern char char_name_letters[];
 extern bool char_gm_read;
 extern int autosave_interval;
 extern int save_log;

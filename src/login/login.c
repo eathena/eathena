@@ -35,7 +35,6 @@ void Gettimeofday(struct timeval *timenow)
 #include <string.h>
 #include <stdarg.h>
 
-#include "login.h"
 #include "../common/core.h"
 #include "../common/socket.h"
 #include "../common/timer.h"
@@ -47,6 +46,7 @@ void Gettimeofday(struct timeval *timenow)
 #include "../common/malloc.h"
 #include "../common/strlib.h"
 #include "../common/showmsg.h"
+#include "login.h"
 
 #ifdef PASSWORDENC
 #include "md5calc.h"
@@ -1090,10 +1090,10 @@ int mmo_auth_new(struct mmo_account* account, char sex, char* email) {
 
 	auth_dat[i].account_id = account_id_count++;
 
-	strncpy(auth_dat[i].userid, account->userid, 24);
+	strncpy(auth_dat[i].userid, account->userid, NAME_LENGTH);
 	auth_dat[i].userid[23] = '\0';
 
-	strncpy(auth_dat[i].pass, account->passwd, 32);
+	strncpy(auth_dat[i].pass, account->passwd, NAME_LENGTH);
 	auth_dat[i].pass[23] = '\0';
 
 	memcpy(auth_dat[i].lastlogin, "-", 2);
@@ -1204,7 +1204,7 @@ int mmo_auth(struct mmo_account* account, int fd) {
 		if(use_md5_passwds)
 			MD5_String(account->passwd, user_password);
 		else
-			memcpy(user_password, account->passwd, 25);
+			memcpy(user_password, account->passwd, NAME_LENGTH);
 		encpasswdok = 0;
 #ifdef PASSWORDENC
 		ld = (struct login_session_data*)session[fd]->session_data;
@@ -2118,19 +2118,16 @@ int parse_admin(int fd) {
 				return 0;
 			{
 				struct mmo_account ma;
-				ma.userid = (char*)RFIFOP(fd, 2);
+				memcpy(ma.userid,RFIFOP(fd, 2),NAME_LENGTH);
 				ma.userid[23] = '\0';
-				memcpy(ma.passwd, RFIFOP(fd, 26), 24);
+				memcpy(ma.passwd, RFIFOP(fd, 26), NAME_LENGTH);
 				ma.passwd[23] = '\0';
 				memcpy(ma.lastlogin, "-", 2);
 				ma.sex = RFIFOB(fd,50);
 				WFIFOW(fd,0) = 0x7931;
 				WFIFOL(fd,2) = 0xffffffff;
 				memcpy(WFIFOP(fd,6), RFIFOP(fd,2), 24);
-				if (strlen(ma.userid) > 23 || strlen(ma.passwd) > 23) {
-					login_log("'ladmin': Attempt to create an invalid account (account or pass is too long, ip: %s)" RETCODE,
-					          ip);
-				} else if (strlen(ma.userid) < 4 || strlen(ma.passwd) < 4) {
+				if (strlen(ma.userid) < 4 || strlen(ma.passwd) < 4) {
 					login_log("'ladmin': Attempt to create an invalid account (account or pass is too short, ip: %s)" RETCODE,
 					          ip);
 				} else if (ma.sex != 'F' && ma.sex != 'M') {
@@ -3056,16 +3053,32 @@ int parse_login(int fd) {
 			RFIFOSKIP(fd,18);
 			break;
 
-		case 0x64:		// Ask connection of a client
-		case 0x01dd:	// Ask connection of a client (encryption mode)
-			if ((int)RFIFOREST(fd) < ((RFIFOW(fd,0) == 0x64) ? 55 : 47))
-				return 0;
+		case 0x277: // New login packet
+		case 0x64:		// request client login
+		case 0x01dd:	// request client login with encrypt
+		{
+			int packet_len = RFIFOREST(fd);
+
+			switch(RFIFOW(fd, 0)){
+				case 0x64:
+					if(packet_len < 55)
+						return 0;
+					break;
+				case 0x01dd:
+					if(packet_len < 47)
+						return 0;
+					break;
+				case 0x277:
+					if(packet_len < 84)
+						return 0;
+					break;
+			}
 			
 			account.version = RFIFOL(fd, 2);	//for exe version check [Sirius]
-			account.userid = (char*)RFIFOP(fd,6);
+			memcpy(account.userid,RFIFOP(fd,6),NAME_LENGTH);
 			account.userid[23] = '\0';
 			remove_control_chars((unsigned char *)account.userid);
-			if (RFIFOW(fd,0) == 0x64) {
+			if (RFIFOW(fd,0) != 0x01dd) {
 				login_log("Request for connection (non encryption mode) of %s (ip: %s)." RETCODE, account.userid, ip);
 				memcpy(account.passwd, RFIFOP(fd,30), NAME_LENGTH);
 				account.passwd[23] = '\0';
@@ -3078,18 +3091,18 @@ int parse_login(int fd) {
 				account.passwd[16] = '\0';
 			}
 #ifdef PASSWORDENC
-			account.passwdenc = (RFIFOW(fd,0) == 0x64) ? 0 : PASSWORDENC;
+			account.passwdenc = (RFIFOW(fd,0) != 0x01dd) ? 0 : PASSWORDENC;
 #else
 			account.passwdenc = 0;
 #endif
 
 			if (!check_ip(session[fd]->client_addr.sin_addr.s_addr)) {
 				login_log("Connection refused: IP isn't authorised (deny/allow, ip: %s)." RETCODE, ip);
-                                WFIFOHEAD(fd, 23);
+				WFIFOHEAD(fd, 23);
 				WFIFOW(fd,0) = 0x6a;
 				WFIFOB(fd,2) = 3; // 3 = Rejected from Server
 				WFIFOSET(fd,23);
-				RFIFOSKIP(fd,(RFIFOW(fd,0) == 0x64) ? 55 : 47);
+				RFIFOSKIP(fd,packet_len);
 				break;
 			}
 
@@ -3099,7 +3112,7 @@ int parse_login(int fd) {
 				if (min_level_to_connect > gm_level) {
 					login_log("Connection refused: the minimum GM level for connection is %d (account: %s, GM level: %d, ip: %s)." RETCODE,
 					          min_level_to_connect, account.userid, gm_level, ip);
-                                        WFIFOHEAD(fd, 3);
+					WFIFOHEAD(fd, 3);
 					WFIFOW(fd,0) = 0x81;
 					WFIFOB(fd,2) = 1; // 01 = Server closed
 					WFIFOSET(fd,3);
@@ -3176,9 +3189,9 @@ int parse_login(int fd) {
 				}
 				WFIFOSET(fd,23);
 			}
-			RFIFOSKIP(fd,(RFIFOW(fd,0) == 0x64) ? 55 : 47);
+			RFIFOSKIP(fd,packet_len);
 			break;
-
+		}
 		case 0x01db:	// Sending request of the coding key
 		case 0x791a:	// Sending request of the coding key (administration packet)
 			{
@@ -3219,10 +3232,10 @@ int parse_login(int fd) {
 			{
 				int GM_value, len;
 				char* server_name;
-				account.userid = (char*)RFIFOP(fd,2);
+				memcpy(account.userid,RFIFOP(fd,2),NAME_LENGTH);
 				account.userid[23] = '\0';
 				remove_control_chars((unsigned char *)account.userid);
-				memcpy(account.passwd, RFIFOP(fd,26), 24);
+				memcpy(account.passwd, RFIFOP(fd,26), NAME_LENGTH);
 				account.passwd[23] = '\0';
 				remove_control_chars((unsigned char *)account.passwd);
 				account.passwdenc = 0;

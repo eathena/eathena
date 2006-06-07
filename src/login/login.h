@@ -4,6 +4,8 @@
 #ifndef _LOGIN_H_
 #define _LOGIN_H_
 
+#include "../common/mmo.h"
+
 #define MAX_SERVERS 30
 
 #define LOGIN_CONF_NAME "conf/login_athena.conf"
@@ -18,8 +20,8 @@
 extern int login_port;
 struct mmo_account {
 	int version;	//Added for version check [Sirius]
-	char* userid;
-	char passwd[33];
+	char userid[NAME_LENGTH];
+	char passwd[NAME_LENGTH];
 	int passwdenc;
 
 	long account_id;

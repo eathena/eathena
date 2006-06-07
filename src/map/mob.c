@@ -1158,6 +1158,13 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		mob_ai_sub_hard_slavemob(md, tick);
 
 	// Scan area for targets
+	if (!tbl && mode&MD_LOOTER && md->lootitem && DIFF_TICK(tick, md->ud.canact_tick) > 0 &&
+		(md->lootitem_count < LOOTITEM_SIZE || battle_config.monster_loot_type != 1))
+	{	// Scan area for items to loot, avoid trying to loot of the mob is full and can't consume the items.
+		map_foreachinrange (mob_ai_sub_hard_lootsearch, &md->bl,
+			view_range, BL_ITEM, md, &tbl);
+	}
+
 	if ((!tbl && mode&MD_AGGRESSIVE && battle_config.monster_active_enable) ||
 		(mode&MD_ANGRY && md->state.skillstate == MSS_FOLLOW)
 	) {
@@ -1170,12 +1177,6 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		map_foreachinrange (mob_ai_sub_hard_changechase, &md->bl,
 				search_size, (md->special_state.ai?BL_CHAR:BL_PC), md, &tbl);
 	}
-	if (!tbl && mode&MD_LOOTER && md->lootitem && 
-		(md->lootitem_count < LOOTITEM_SIZE || battle_config.monster_loot_type != 1))
-	{	// Scan area for items to loot, avoid trying to loot of the mob is full and can't consume the items.
-		map_foreachinrange (mob_ai_sub_hard_lootsearch, &md->bl,
-			view_range, BL_ITEM, md, &tbl);
-	}
 
 	if (tbl)
 	{	//Target exists, attack or loot as applicable.
@@ -1183,7 +1184,11 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		{	//Attempt to attack.
 			//At this point we know the target is attackable, we just gotta check if the range matches.
 			if (md->ud.target == tbl->id && md->ud.attacktimer != -1)
+			{
+				if (md->state.skillstate!=(md->state.aggressive?MSS_ANGRY:MSS_BERSERK))
+					md->state.skillstate = md->state.aggressive?MSS_ANGRY:MSS_BERSERK;	//Correct the state.
 				return 0; //Already locked.
+			}
 			
 			if (!battle_check_range (&md->bl, tbl, md->db->range))
 			{	//Out of range...

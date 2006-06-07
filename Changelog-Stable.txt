@@ -6,6 +6,16 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
 2006/06/07
+	* Fixed the mob state not being set to Berserk/Angry correctly after the
+	  mob reaches the target's location. [Skotlex]
+	* Merged most of login_sql/login.c, which includes new login packet 0x277
+	  [Skotlex]
+	* Removed char_nick2id from char-sql as it's no longer needed. [Skotlex]
+	* Merged applying char-name letters option to party/guild names. [Skotlex]
+	* Merged fix to iteminfo to display item name id and weight correctly.
+	  [Skotlex]
+	* Merged mob_ai looting being prioritized over picking an enemy when a mob
+	  is both looter and aggressive. [Skotlex]
 	* Added a mob_setdelayspawn call when capturing a mob, should take care of
 	  the mob not respawning again after tamed. [Skotlex]
 2006/06/05
