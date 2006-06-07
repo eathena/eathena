@@ -1630,7 +1630,6 @@ int unit_free(struct block_list *bl) {
 		pc_cleareventtimer(sd);		
 		pc_delspiritball(sd,sd->spiritball,1);
 		chrif_save_scdata(sd); //Save status changes, then clear'em out from memory. [Skotlex]
-		storage_delete(sd->status.account_id);
 		pc_makesavestatus(sd);
 		sd->state.waitingdisconnect = 1;
 	} else if( bl->type == BL_PET ) {
