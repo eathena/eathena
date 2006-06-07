@@ -4,6 +4,10 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
+
+2006/06/07
+	* Added a mob_setdelayspawn call when capturing a mob, should take care of
+	  the mob not respawning again after tamed. [Skotlex]
 2006/06/05
 	* Fixed firewall counter going down by 2 each hit rather than 1. [Skotlex]
 	* Merged fix for Brandish Spear lv 11+ [Skotlex]
