@@ -3533,8 +3533,8 @@ int status_get_sc_tick(struct block_list *bl, int type, int tick)
 		case SC_FREEZE:				/* “€Œ‹ */
 			rate = 100*status_get_mdef(bl);
 		break;
-		case SC_STUN:	//Reduction in duration is the same as reduction in rate.
-			rate = status_get_sc_def(bl, type);
+		case SC_STUN:
+			rate =  100*status_get_vit(bl);
 		break;
 		case SC_DPOISON:			/* –Ò“Å */
 		case SC_POISON:				/* “Å */
