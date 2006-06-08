@@ -33,6 +33,7 @@ Evera
 Date		Added
 ======
 06/08
+	* Fixed Yuno Kafra warp, sorry guys, I made a typo [Evera]
 	* Merged NEW Alchem Job Quest from Trunk that i forgot to merge [Lupus]
 	  Sorry, reverted back MasterOfMuppets' fix 8)
 06/05
