@@ -6,6 +6,8 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
 2006/06/07
+	* Merged a fix when checking if you can use Asura Strike in the middle of a
+	  combo. [Skotlex]
 	* Made SC_STUN's duration be decreased only by vit% (until the whole SC
 	  issue is resolved in trunk for merging) [Skotlex]
 	* Fixed the mob state not being set to Berserk/Angry correctly after the

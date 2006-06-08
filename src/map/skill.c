@@ -7363,11 +7363,6 @@ int skill_check_condition(struct map_session_data *sd,int skill, int lv, int typ
 		return 1;
 	}
 
-	if( sd->sc.opt1 ) {
-		clif_skill_fail(sd,skill,0,0);
-		sd->skillitem = sd->skillitemlv = -1;
-		return 0;
-	}
 	if(pc_is90overweight(sd)) {
 		clif_skill_fail(sd,skill,9,0);
 		sd->skillitem = sd->skillitemlv = -1;
@@ -7575,13 +7570,19 @@ int skill_check_condition(struct map_session_data *sd,int skill, int lv, int typ
 		if(sd->sc.data[SC_BLADESTOP].timer!=-1)
 			spiritball--;
 		else if (sd->sc.data[SC_COMBO].timer != -1) {
-			if (sd->sc.data[SC_COMBO].val1 == MO_COMBOFINISH)
-				spiritball = 4;
-			else if (sd->sc.data[SC_COMBO].val1 == CH_TIGERFIST)
-				spiritball = 3;
-			else if (sd->sc.data[SC_COMBO].val1 == CH_CHAINCRUSH)
-				spiritball = sd->spiritball?sd->spiritball:1;
-			//It should consume whatever is left as long as it's at least 1.
+			switch(sd->sc.data[SC_COMBO].val1) {
+				case MO_COMBOFINISH:
+					spiritball = 4;
+					break;
+				case CH_TIGERFIST:
+					spiritball = 3;
+					break;
+				case CH_CHAINCRUSH:	//It should consume whatever is left as long as it's at least 1.
+					spiritball = sd->spiritball?sd->spiritball:1;
+					break;
+				default:
+					return 0;
+			}
 		} else if(!type && !unit_can_move(&sd->bl)) //Check only on begin casting.
 	  	{	//Placed here as ST_MOVE_ENABLE should not apply if rooted or on a combo. [Skotlex]
 			clif_skill_fail(sd,skill,0,0);
