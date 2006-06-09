@@ -33,6 +33,7 @@ Evera
 Date		Added
 ======
 06/09
+	* Fixed Lighthalzen and Yuno Kafra respawn locations [Playtester]
 	* Implemented two airship mini games scripted by Dj-Yhn [MasterOfMuppets]
 	* Merged Shinokas quest from trunk [MasterOfMuppets]
 06/08
