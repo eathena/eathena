@@ -5,6 +5,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/06/09
+	* Changed the interval between water balls back to 125 [MasterOfMuppets]
 	* Fixed a typo in char_sql/char.c, thanks to Euph [MasterOfMuppets]
 2006/06/07
 	* Merged a fix when checking if you can use Asura Strike in the middle of a

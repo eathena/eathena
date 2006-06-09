@@ -2286,7 +2286,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id,int data )
 					if (!status_isdead(target))
 						skill_attack(BF_MAGIC,src,src,target,skl->skill_id,skl->skill_lv,tick,skl->flag);
 					if (skl->type>1 && !status_isdead(target)) {
-						skill_addtimerskill(src,tick+250,target->id,0,0,skl->skill_id,skl->skill_lv,skl->type-1,skl->flag);
+						skill_addtimerskill(src,tick+125,target->id,0,0,skl->skill_id,skl->skill_lv,skl->type-1,skl->flag);
 					} else {
 						struct status_change *sc = status_get_sc(src);
 						if(sc && sc->data[SC_MAGICPOWER].timer != -1)
@@ -2790,7 +2790,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			}
 			cnt--;
 			if (cnt > 0)
-				skill_addtimerskill(src,tick+250,bl->id,0,0,
+				skill_addtimerskill(src,tick+125,bl->id,0,0,
 					skillid,skilllv,cnt,flag);
 		} else if (sd) //Eat up deluge tiles.
 			skill_count_water(src,0);
