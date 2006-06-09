@@ -33,9 +33,12 @@ Evera
 Date		Added
 ======
 06/08
+	* Reverted counteragent_mixture.txt according to the new Alchemist Quest [Lupus]
+	  Don't touch it, please. Just carefully check both files.
 	* Fixed Yuno Kafra warp, sorry guys, I made a typo [Evera]
-	* Merged NEW Alchem Job Quest from Trunk that i forgot to merge [Lupus]
-	  Sorry, reverted back MasterOfMuppets' fix 8)
+	* Merged NEW Alchem Job Quest from Trunk [Lupus]
+	* Readded the 'al_morgen' variable to counteragent_mixture.txt, it's needed [MasterOfMuppets]
+	  for the alchemist quest. Thanks to Belle for the fix.
 06/05
 	* Fixed missing function problems for Kafra, also now using cleararray instead of assigning blank variables to every other array [Evera]
 	* Implemented some more Louyang npcs, thanks to Prometheus for them. [MasterOfMuppets]
