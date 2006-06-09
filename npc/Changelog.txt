@@ -33,6 +33,7 @@ Evera
 Date		Added
 ======
 06/08
+	* Merged Shinokas quest from trunk [MasterOfMuppets]
 	* Reverted counteragent_mixture.txt according to the new Alchemist Quest [Lupus]
 	  Don't touch it, please. Just carefully check both files.
 	* Fixed Yuno Kafra warp, sorry guys, I made a typo [Evera]
