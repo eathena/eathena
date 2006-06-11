@@ -1,3 +1,6 @@
+06/11
+	* Merged item_db from trunk [Playtester]
+	- Fixed Stormy Knight Card, Goggles, Slotted Tiara/Crown, Electric Wire
 06/06
 	* Merged various db files from trunk [Playtester]
 	- item_db, job_db2, mob_avail, mob_db, mob_db2, mob_skill_db
