@@ -1808,24 +1808,6 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		if (ret)
 			per += per*ret/100.; //SC_RICHMANKIM bonus. [Skotlex]
 
-		if(sd) {
-			if (sd->expaddrace[race])
-				per += per*sd->expaddrace[race]/100.;	
-				per += per*sd->expaddrace[mode&MD_BOSS?10:11]/100.;
-		}
-		if (battle_config.pk_mode &&
-			(int)(md->db->lv - tmpsd[i]->status.base_level) >= 20) //Needed due to unsigned checks
-			per *= 1.15;	// pk_mode additional exp if monster >20 levels [Valaris]	
-		
-		//SG additional exp from Blessings [Komurka] - probably can be optimalized ^^;;
-		//
-		if(md->class_ == tmpsd[i]->hate_mob[2] && (battle_config.allow_skill_without_day || is_day_of_star() || tmpsd[i]->sc.data[SC_MIRACLE].timer!=-1))
-			per += per*20*pc_checkskill(tmpsd[i],SG_STAR_BLESS)/100.;
-		else if(md->class_ == tmpsd[i]->hate_mob[1] && (battle_config.allow_skill_without_day || is_day_of_moon()))
-			per += per*10*pc_checkskill(tmpsd[i],SG_MOON_BLESS)/100.;
-		else if(md->class_ == tmpsd[i]->hate_mob[0] && (battle_config.allow_skill_without_day || is_day_of_sun()))
-			per += per*10*pc_checkskill(tmpsd[i],SG_SUN_BLESS)/100.;
-
 		if(md->special_state.size==1)	// change experience for different sized monsters [Valaris]
 			per /=2.;
 		else if(md->special_state.size==2)
@@ -1900,7 +1882,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		}
 		if(flag) {	// added zeny from mobs [Valaris]
 			if(base_exp > 0 || job_exp > 0)
-				pc_gainexp(tmpsd[i],base_exp,job_exp);
+				pc_gainexp(tmpsd[i],&md->bl,base_exp,job_exp);
 			if (battle_config.zeny_from_mobs && zeny > 0) {
 				pc_getzeny(tmpsd[i],zeny); // zeny from mobs [Valaris]
 			}
@@ -1909,7 +1891,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	}
 	// 公平分配
 	for(i=0;i<pnum;i++)
-		party_exp_share(pt[i].p,md->bl.m,pt[i].base_exp,pt[i].job_exp,pt[i].zeny);
+		party_exp_share(pt[i].p,&md->bl,pt[i].base_exp,pt[i].job_exp,pt[i].zeny);
 
 	// item drop
 	if (!(type&1)) {
@@ -2036,7 +2018,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		if(mexp < 1) mexp = 1;
 		clif_mvp_effect(mvp_sd);					// エフェクト
 		clif_mvp_exp(mvp_sd,mexp);
-		pc_gainexp(mvp_sd,mexp,0);
+		pc_gainexp(mvp_sd,&md->bl,mexp,0);
 		log_mvp[1] = mexp;
 		for(j=0;j<3;j++){
 			i = rand() % 3;

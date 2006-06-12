@@ -5,6 +5,15 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/06/12
+	* Merged pc_gainexp/pc_calcexp receiving the source, so that the exp bonus
+	  cards will apply only to the exp received by the card's owner. [Skotlex]
+	* Removed useless server_tick variable from players. [Skotlex]
+	* Merged pvp ranking packet not being sent to other players when originator
+	  is in gm-hidden mode. [Skotlex]
+	* Merged clean-up in clif_parse_LoadEndAck which only sends the required
+	  data packets rather than everything on map-change. [Skotlex]
+	* Merged clean-up of clif_parse_TakeItem so that a item-nak reply will
+	  always be sent when the item fails to be picked up. [Skotlex]
 	* Merged setting pvp mapflag removing gvg flags and viceversa. Makes a
 	  gvg-map unable to be both pvp and gvg at a time. Helps against "gvg-only"
 	  skills not being usable anywhere on pk_mode servers. [Skotlex]

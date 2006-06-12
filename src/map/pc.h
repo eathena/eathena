@@ -64,7 +64,6 @@ enum {
 #define pcdb_checkid(class_) (class_ <= JOB_XMAS || (class_ >= JOB_NOVICE_HIGH && class_ <= JOB_SOUL_LINKER))
 
 int pc_isGM(struct map_session_data *sd);
-int pc_iskiller(struct map_session_data *src, struct map_session_data *target); // [MouseJstr]
 int pc_getrefinebonus(int lv,int type);
 int pc_can_give_items(int level); //[Lupus]
 
@@ -137,7 +136,7 @@ unsigned int pc_maxbaselv(struct map_session_data *sd);
 unsigned int pc_maxjoblv(struct map_session_data *sd);
 int pc_checkbaselevelup(struct map_session_data *sd);
 int pc_checkjoblevelup(struct map_session_data *sd);
-int pc_gainexp(struct map_session_data*,unsigned int,unsigned int);
+int pc_gainexp(struct map_session_data*,struct block_list*,unsigned int,unsigned int);
 unsigned int pc_nextbaseexp(struct map_session_data *);
 unsigned int pc_nextjobexp(struct map_session_data *);
 int pc_need_status_point(struct map_session_data *,int);

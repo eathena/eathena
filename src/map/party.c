@@ -436,12 +436,6 @@ int party_recv_movemap(int party_id,int account_id,int char_id, unsigned short m
 	for(i=0;i<MAX_PARTY;i++){
 		struct map_session_data *sd;
 		struct party_member *m=&p->member[i];
-		/* This can never happen...
-		if( m == NULL ){
-			ShowError("party_recv_movemap nullpo?\n");
-			return 0;
-		}
-		*/
 		if(m->account_id==account_id && m->char_id==char_id){
 			m->map = map;
 			m->online=online;
@@ -654,7 +648,7 @@ int party_send_xy_clear(struct party *p)
 }
 
 // exp share and added zeny share [Valaris]
-int party_exp_share(struct party *p,int map,unsigned int base_exp,unsigned int job_exp,int zeny)
+int party_exp_share(struct party *p,struct block_list *src,unsigned int base_exp,unsigned int job_exp,int zeny)
 {
 	struct map_session_data* sd[MAX_PARTY];
 	int i;
@@ -663,7 +657,7 @@ int party_exp_share(struct party *p,int map,unsigned int base_exp,unsigned int j
 	nullpo_retr(0, p);
 
 	for (i = c = 0; i < MAX_PARTY; i++)
-		if ((sd[c] = p->member[i].sd)!=NULL && sd[c]->bl.m == map && !pc_isdead(sd[c])) {
+		if ((sd[c] = p->member[i].sd)!=NULL && sd[c]->bl.m == src->m && !pc_isdead(sd[c])) {
 			if (battle_config.idle_no_share && (pc_issit(sd[c]) || sd[c]->chatID || (sd[c]->idletime < (last_tick - battle_config.idle_no_share))))
 				continue;
 			c++;
@@ -689,7 +683,7 @@ int party_exp_share(struct party *p,int map,unsigned int base_exp,unsigned int j
 
 	for (i = 0; i < c; i++)
 	{
-		pc_gainexp(sd[i], base_exp, job_exp);
+		pc_gainexp(sd[i], src, base_exp, job_exp);
 		if (battle_config.zeny_from_mobs) // zeny from mobs [Valaris]
 			pc_getzeny(sd[i],bonus*zeny/(c*100));
 	}

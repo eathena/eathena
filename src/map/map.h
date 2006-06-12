@@ -543,7 +543,7 @@ struct map_session_data {
 	unsigned short mapindex;
 	short speed,prev_speed;
 	unsigned char head_dir;
-	unsigned int client_tick,server_tick;
+	unsigned int client_tick;
 	int npc_id,areanpc_id,npc_shopid;
 	int npc_item_flag; //Marks the npc_id with which you can use items during interactions with said npc (see script command enable_itemuse)
 	int npc_pos;
