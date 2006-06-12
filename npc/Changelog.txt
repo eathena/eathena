@@ -32,6 +32,8 @@ Evera
 
 Date		Added
 ======
+06/12
+	* Implemented Amatsu guides and changed/removed some Amatsu warps [MasterOfMuppets]
 06/09
 	* Implemented the Poison King quest, beware of potential bugs. [MasterOfMuppets]
 	* Fixed a problem with Kafra's getarg(1),6 of showing the default menu [Evera]
