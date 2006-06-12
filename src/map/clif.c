@@ -2066,7 +2066,7 @@ int clif_equiplist(struct map_session_data *sd)
 	fd=sd->fd;
 	if (!session_isActive(fd))
 		return 0;
-        WFIFOHEAD(fd, 4 + MAX_INVENTORY * 20);
+	WFIFOHEAD(fd, 4 + MAX_INVENTORY * 20);
 	WFIFOW(fd,0)=0xa4;
 	for(i=0,n=0;i<MAX_INVENTORY;i++){
 		if(sd->status.inventory[i].nameid<=0 || sd->inventory_data[i] == NULL || !itemdb_isequip2(sd->inventory_data[i]))
@@ -5461,10 +5461,10 @@ int clif_cart_equiplist(struct map_session_data *sd)
 	nullpo_retr(0, sd);
 
 	fd=sd->fd;
-	WFIFOHEAD(fd, MAX_INVENTORY * 20 + 4);
+	WFIFOHEAD(fd, MAX_CART * 20 + 4);
 	buf = WFIFOP(fd,0);
 
-	for(i=0,n=0;i<MAX_INVENTORY;i++){
+	for(i=0,n=0;i<MAX_CART;i++){
 		if(sd->status.cart[i].nameid<=0)
 			continue;
 		id = itemdb_search(sd->status.cart[i].nameid);

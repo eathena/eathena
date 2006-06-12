@@ -5,6 +5,9 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/06/12
+	* Fixed clif_cart_equiplist using MAX_INVENTORY instead of MAX_CART, which
+	  leads to crashes when someone customizes their server so that both do not
+	  match. [Skotlex]
 	* Merged pc_gainexp/pc_calcexp receiving the source, so that the exp bonus
 	  cards will apply only to the exp received by the card's owner. [Skotlex]
 	* Removed useless server_tick variable from players. [Skotlex]
