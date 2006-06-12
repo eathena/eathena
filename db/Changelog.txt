@@ -1,3 +1,5 @@
+06/12
+	* Fixed the mode of Monemus [MasterOfMuppets]
 06/11
 	* Merged item_db from trunk [Playtester]
 	- Fixed Stormy Knight Card, Goggles, Slotted Tiara/Crown, Electric Wire
