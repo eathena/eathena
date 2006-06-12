@@ -4,6 +4,10 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
+2006/06/12
+	* Merged setting pvp mapflag removing gvg flags and viceversa. Makes a
+	  gvg-map unable to be both pvp and gvg at a time. Helps against "gvg-only"
+	  skills not being usable anywhere on pk_mode servers. [Skotlex]
 2006/06/11
 	* Merged Frost Nova/Frost Diver's freezing chance (it was being reduced by
 	  int/luk even before actual resistances from freeze). [Skotlex]
