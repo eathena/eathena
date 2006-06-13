@@ -33,6 +33,8 @@ Evera
 Date		Added
 ======
 06/13
+	* Added Dr.Evil's fixes to the Umbala NPCs [Playtester]
+	- probably needs some testing
 	* Fixed the Job Level requirement for Arrow Crafting [Playtester]
 	* Implemented the comodo gambling NPCs. Thanks to reddozen and Zefris. [MasterOfMuppets]
 	* [Merged] Added custom quest for 5 mobile RO bonus items [Lupus]
