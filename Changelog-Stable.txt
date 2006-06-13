@@ -5,6 +5,9 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/06/13
+	* Updated mob_db.sql and item_db.sql to latest. [Skotlex]
+	* Added account_id index to char table. Thanks to Buuyo for reporting it.
+	  Sql users apply upgrade_svn7147.sql NOW. [Skotlex]
 	* Merged pc_takeitem. Fixes "can't get item" messages showing up when they
 	  shouldn't (or twice when they should) [Skotlex]
 2006/06/12
