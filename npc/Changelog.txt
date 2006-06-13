@@ -33,6 +33,8 @@ Evera
 Date		Added
 ======
 06/12
+	* Implemented a missing NPC in Amatsu and fixed up the old [MasterOfMuppets]
+	  version of the Momotaro event, it is now a permanent quest.
 	* Changed Biolab quest so that case for the first letter of each input doesn't matter. [Evera]
 	* Implemented Amatsu guides and changed/removed some Amatsu warps [MasterOfMuppets]
 06/09
