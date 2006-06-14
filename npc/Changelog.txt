@@ -33,6 +33,8 @@ Evera
 Date		Added
 ======
 06/14
+	* Fixed some experience gained bugs in two scripts. [MasterOfMuppets]
+	- Also fixed a major problem in the level 4 weapon quest, thanks to Qwadrat.
 	* Fixed an exploit in the Comodo gambling script. Thanks to reddozen. [MasterOfMuppest]
 06/13
 	* Fixed exploit in Louyang NPC [Playtester]
