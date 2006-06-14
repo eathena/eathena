@@ -243,6 +243,9 @@ enum {
 //Specifies maps that have special GvG/WoE restrictions
 #define map_flag_gvg(m) (map[m].flag.gvg || (agit_flag && map[m].flag.gvg_castle))
 
+//Caps values to min/max
+#define cap_value(a, min, max) (a>max?max:a<min?min:a)
+
 //This stackable implementation does not means a BL can be more than one type at a time, but it's 
 //meant to make it easier to check for multiple types at a time on invocations such as
 // map_foreach* calls [Skotlex]
@@ -600,16 +603,16 @@ struct map_session_data {
 	int addeff[SC_COMMON_MAX-SC_COMMON_MIN+1];
 	int addeff2[SC_COMMON_MAX-SC_COMMON_MIN+1];
 	int reseff[SC_COMMON_MAX-SC_COMMON_MIN+1];
-	int weapon_coma_ele[10];
+	int weapon_coma_ele[ELE_MAX];
 	int weapon_coma_race[RC_MAX];
 	int weapon_atk[16];
 	int weapon_atk_rate[16];
-	int arrow_addele[10];
+	int arrow_addele[ELE_MAX];
 	int arrow_addrace[RC_MAX];
 	int arrow_addsize[3];
 	int arrow_addeff[SC_COMMON_MAX-SC_COMMON_MIN+1];
 	int arrow_addeff2[SC_COMMON_MAX-SC_COMMON_MIN+1];
-	int magic_addele[10];
+	int magic_addele[ELE_MAX];
 	int magic_addrace[RC_MAX];
 	int magic_addsize[3];
 	int critaddrace[RC_MAX];
@@ -1310,11 +1313,11 @@ int map_setwaterheight(int m, char *mapname, int height);
 int map_waterheight(char *mapname);
 
 // path.c‚æ‚è
-int path_search_real(struct walkpath_data *wpd,int m,int x0,int y0,int x1,int y1,int flag,int flag2);
+int path_search_real(struct walkpath_data *wpd,int m,int x0,int y0,int x1,int y1,int flag,cell_t flag2);
 #define path_search(wpd,m,x0,y0,x1,y1,flag)  path_search_real(wpd,m,x0,y0,x1,y1,flag,CELL_CHKNOPASS)
 #define path_search2(wpd,m,x0,y0,x1,y1,flag) path_search_real(wpd,m,x0,y0,x1,y1,flag,CELL_CHKWALL)
 
-int path_search_long_real(struct shootpath_data *spd,int m,int x0,int y0,int x1,int y1,int flag);
+int path_search_long_real(struct shootpath_data *spd,int m,int x0,int y0,int x1,int y1,cell_t flag);
 #define path_search_long(spd,m,x0,y0,x1,y1) path_search_long_real(spd,m,x0,y0,x1,y1,CELL_CHKWALL)
 
 int path_blownpos(int m,int x0,int y0,int dx,int dy,int count);
