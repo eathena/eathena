@@ -11,7 +11,7 @@ struct Damage {
 	int amotion,dmotion;
 	int blewcount;
 	int flag;
-	int dmg_lv;	//囲まれ減算計算用　0:スキル攻撃 ATK_LUCKY,ATK_FLEE,ATK_DEF
+	int dmg_lv;	//ATK_LUCKY,ATK_FLEE,ATK_DEF
 };
 
 // 属性表（読み込みはpc.c、battle_attr_fixで使用）
@@ -268,6 +268,7 @@ extern struct Battle_Config {
 	unsigned short display_snatcher_skill_fail;
 	unsigned short chat_warpportal;
 	unsigned short mob_warpportal;
+	unsigned short mob_npc_warp;
 	unsigned short dead_branch_active;
 	unsigned int vending_max_value;
 	unsigned short show_steal_in_same_party;

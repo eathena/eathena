@@ -192,6 +192,9 @@ static int unit_walktoxy_timer(int tid,unsigned int tick,int id,int data)
 			sc_start(&sd->bl,SC_MIRACLE,100,1,battle_config.sg_miracle_skill_duration);
 		}
 	} else if (md) {
+		if(battle_config.mob_npc_warp && map_getcell(bl->m,x,y,CELL_CHKNPC) &&
+			npc_touch_areanpc2(bl)) // Enable mobs to step on warps. [Skotlex]
+	  		return 0;
 		if (md->min_chase > md->db->range2) md->min_chase--;
 		//Walk skills are triggered regardless of target due to the idle-walk mob state.
 		if(!(ud->walk_count%WALK_SKILL_INTERVAL) &&
@@ -229,8 +232,11 @@ static int unit_walktoxy_timer(int tid,unsigned int tick,int id,int data)
 		}
 		if (tbl->m == bl->m && check_distance_bl(bl, tbl, ud->chaserange))
 		{	//Reached destination.
-			if (ud->state.attack_continue)
+			if (ud->state.attack_continue) {
+				clif_fixpos(bl); //Aegis uses one before every attack, we should
+				  //only need this one for syncing purposes. [Skotlex]
 				unit_attack(bl, tbl->id, ud->state.attack_continue);
+			}
 		} else { //Update chase-path
 			unit_walktobl(bl, tbl, ud->chaserange, ud->state.walk_easy|(ud->state.attack_continue?2:0));
 			return 0;
@@ -238,8 +244,6 @@ static int unit_walktoxy_timer(int tid,unsigned int tick,int id,int data)
 	} else {	//Stopped walking. Update to_x and to_y to current location [Skotlex]
 		ud->to_x = bl->x;
 		ud->to_y = bl->y;
-//		if (bl->type == BL_NPC) //Original eA code had this one only for BL_NPCs
-//			clif_fixpos(bl);
 	}
 	return 0;
 }
@@ -554,7 +558,6 @@ int unit_stop_walking(struct block_list *bl,int type)
 		unit_walktoxy_timer(-1, tick, bl->id, ud->walkpath.path_pos);
 	}
 
-//	if(md) { md->state.skillstate = MSS_IDLE; }
 	if(type&0x01)
 		clif_fixpos(bl);
 	
@@ -759,12 +762,12 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 	if(sd) {
 		switch(skill_num){
 		case SA_CASTCANCEL:
-			if(ud->skillid != skill_num){ //ƒLƒƒƒXƒgƒLƒƒƒ“ƒZƒ‹Ž©‘Ì‚ÍŠo‚¦‚È‚¢
+			if(ud->skillid != skill_num){
 				sd->skillid_old = ud->skillid;
 				sd->skilllv_old = ud->skilllv;
 				break;
 			}
-		case BD_ENCORE:					/* ƒAƒ“ƒR[ƒ‹ */
+		case BD_ENCORE:
 			//Prevent using the dance skill if you no longer have the skill in your tree. 
 			if(!sd->skillid_dance || pc_checkskill(sd,sd->skillid_dance)<=0){
 				clif_skill_fail(sd,skill_num,0,0);
@@ -772,15 +775,15 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 			}
 			sd->skillid_old = skill_num;
 			break;
-		case BD_LULLABY:				/* ŽqŽç‰Ì */
-		case BD_RICHMANKIM:				/* ƒjƒˆƒ‹ƒh‚Ì‰ƒ */
-		case BD_ETERNALCHAOS:			/* ‰i‰“‚Ì?¬“× */
-		case BD_DRUMBATTLEFIELD:		/* ?‘¾ŒÛ‚Ì‹¿‚« */
-		case BD_RINGNIBELUNGEN:			/* ƒj?ƒxƒ‹ƒ“ƒO‚ÌŽw—Ö */
-		case BD_ROKISWEIL:				/* ƒ?ƒL‚Ì‹©‚Ñ */
-		case BD_INTOABYSS:				/* ?[•£‚Ì’†‚É */
-		case BD_SIEGFRIED:				/* •sŽ€?g‚ÌƒW?ƒNƒtƒŠ?ƒh */
-		case CG_MOONLIT:				/* ŒŽ–¾‚è‚Ì?ò‚É—Ž‚¿‚é‰Ô‚Ñ‚ç */
+		case BD_LULLABY:
+		case BD_RICHMANKIM:
+		case BD_ETERNALCHAOS:
+		case BD_DRUMBATTLEFIELD:
+		case BD_RINGNIBELUNGEN:
+		case BD_ROKISWEIL:
+		case BD_INTOABYSS:
+		case BD_SIEGFRIED:
+		case CG_MOONLIT:
 			if (battle_config.player_skill_partner_check &&
 				(!battle_config.gm_skilluncond || pc_isGM(sd) < battle_config.gm_skilluncond) &&
 				(skill_check_pc_partner(sd, skill_num, &skill_lv, 1, 0) < 1)
@@ -798,7 +801,8 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 		switch (skill_num) {
 			case NPC_SUMMONSLAVE:
 			case NPC_SUMMONMONSTER:
-				if (((TBL_MOB*)src)->master_id)
+			case AL_TELEPORT:
+				if (((TBL_MOB*)src)->master_id && ((TBL_MOB*)src)->special_state.ai)
 					return 0;
 		}
 	}
@@ -817,20 +821,18 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 
 	//temp: Used to signal force cast now.
 	temp = 0;
-	/* ‰½‚©“ÁŽê‚Èˆ—‚ª•K—v */
-	// Ž¸”s”»’è‚Ískill_check_condition() ‚É‘‚­‚±‚Æ
 	switch(skill_num){
-	case ALL_RESURRECTION:	/* ƒŠƒUƒŒƒNƒVƒ‡ƒ“ */
-		if(battle_check_undead(status_get_race(target),status_get_elem_type(target))){	/* “G‚ªƒAƒ“ƒfƒbƒh‚È‚ç */
-			temp=1;	/* ƒ^[ƒ“ƒAƒ“ƒfƒbƒg‚Æ“¯‚¶‰r¥ŽžŠÔ */
+	case ALL_RESURRECTION:
+		if(battle_check_undead(status_get_race(target),status_get_elem_type(target))){
+			temp=1;
 			casttime = skill_castfix(src, PR_TURNUNDEAD, skill_lv);
 		}
 		break;
-	case MO_FINGEROFFENSIVE:	/* Žw’e */
+	case MO_FINGEROFFENSIVE:
 		if(sd)
 			casttime += casttime * ((skill_lv > sd->spiritball)? sd->spiritball:skill_lv);
 		break;
-	case MO_EXTREMITYFIST:	/*ˆ¢?C—…”e–PŒ?*/
+	case MO_EXTREMITYFIST:
 		if (sc && sc->data[SC_COMBO].timer != -1 &&
 			(sc->data[SC_COMBO].val1 == MO_COMBOFINISH ||
 			sc->data[SC_COMBO].val1 == CH_TIGERFIST ||
@@ -846,24 +848,22 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 	case SA_SPELLBREAKER:
 		temp =1;
 		break;
-	case KN_CHARGEATK:			//ƒ`ƒƒ[ƒWƒAƒ^ƒbƒN
+	case KN_CHARGEATK:
 		//Taken from jA: Casttime is increased by dist/3*100%
 		casttime = casttime * ((distance_bl(src,target)-1)/3+1);
 		break;
 	}
 
-	//ƒƒ‚ƒ‰ƒCƒYó‘Ô‚È‚çƒLƒƒƒXƒgƒ^ƒCƒ€‚ª1/2
 	if (sc && sc->data[SC_MEMORIZE].timer != -1 && casttime > 0) {
 		casttime = casttime/2;
 		if ((--sc->data[SC_MEMORIZE].val2) <= 0)
 			status_change_end(src, SC_MEMORIZE, -1);
 	}
 
-	if( casttime>0 || temp){ /* ‰r¥‚ª•K—v */
+	if( casttime>0 || temp){
 
 		clif_skillcasting(src, src->id, target_id, 0,0, skill_num,casttime);
 
-		/* ‰r¥”½‰žƒ‚ƒ“ƒXƒ^[ */
 		if (sd && target->type == BL_MOB)
 		{
 			TBL_MOB *md = (TBL_MOB*)target;
@@ -909,11 +909,8 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 		else
 			unit_stop_walking(src,1);
 	}
-	else {
-//		if(skill_num != SA_CASTCANCEL)
-//			ud->skilltimer = -1; //This check is done above...
+	else
 		skill_castend_id(ud->skilltimer,tick,src->id,0);
-	}
 	return 1;
 }
 
@@ -1215,7 +1212,7 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 
 	range = status_get_range(src);
 	
-	if(!sd || sd->status.weapon != 11) range++; //Dunno why everyone but bows gets this extra range...
+	if(!sd || sd->status.weapon != W_BOW) range++; //Dunno why everyone but bows gets this extra range...
 	if(unit_is_walking(target)) range++; //Extra range when chasing
 
 	if(!check_distance_bl(src,target,range) ) {
@@ -1236,6 +1233,10 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 		}
 		return 1;
 	}
+
+	//Sync packet only for players.
+	//Non-players use the sync packet on the walk timer. [Skotlex]
+	if (tid == -1 && sd) clif_fixpos(src);
 
 	if(DIFF_TICK(ud->attackabletime,tick) <= 0) {
 		if (battle_config.attack_direction_change &&
@@ -1468,6 +1469,10 @@ int unit_remove_map(struct block_list *bl, int clrtype) {
 			skill_stop_dancing(bl);
 		if (sc->data[SC_DEVOTION].timer!=-1)
 			status_change_end(bl,SC_DEVOTION,-1);
+		if (sc->data[SC_MARIONETTE].timer!=-1)
+			status_change_end(bl,SC_MARIONETTE,-1);
+		if (sc->data[SC_MARIONETTE2].timer!=-1)
+			status_change_end(bl,SC_MARIONETTE2,-1);
 		if (sc->data[SC_CLOSECONFINE].timer!=-1)
 			status_change_end(bl,SC_CLOSECONFINE,-1);
 		if (sc->data[SC_CLOSECONFINE2].timer!=-1)
@@ -1609,6 +1614,8 @@ int unit_free(struct block_list *bl) {
 			if(sd->sc.data[SC_TRICKDEAD].timer!=-1)
 				status_change_end(bl,SC_TRICKDEAD,-1);
 			if (battle_config.debuff_on_logout) {
+				if(sd->sc.data[SC_ORCISH].timer!=-1)
+					status_change_end(bl,SC_ORCISH,-1);
 				if(sd->sc.data[SC_STRIPWEAPON].timer!=-1)
 					status_change_end(bl,SC_STRIPWEAPON,-1);
 				if(sd->sc.data[SC_STRIPARMOR].timer!=-1)
