@@ -33,6 +33,7 @@ Evera
 Date		Added
 ======
 06/14
+	* Some more sign quest warps [MasterOfMuppets]
 	* Fixed the Job Level requirement for Auto-Berserk [Playtester]
 	* Fixed some experience gained bugs in two scripts. [MasterOfMuppets]
 	- Also fixed a major problem in the level 4 weapon quest, thanks to Qwadrat.
