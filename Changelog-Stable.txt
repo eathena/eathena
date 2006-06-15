@@ -5,6 +5,12 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/06/15
+	* Merged save character update on char-sql which speeds up character
+	  validation prior to saving. [Skotlex]
+	* Merged fix which was preventing male accounts from moving from one map
+	  server to another. [Skotlex]
+	* Merged fix to delete corresponding registry values when deleting a
+	  character. [Skotlex]
 	* Fixed trade_traderequest which wasn't updated correctly after the @noask
 	  update. [Skotlex]
 	* Merged cleanup of clif_disp_onlyself. [Skotlex]
