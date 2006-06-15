@@ -33,6 +33,7 @@ Evera
 Date		Added
 ======
 06/15
+	* Reverted Dr.Evil's fix since it crashes the map-server [Playtester]
 	* Dr.Evil fixed his Umbala script [Playtester]
 	* Fixed an exploit in the Comodo gambling script. [Lupus]
 06/14
