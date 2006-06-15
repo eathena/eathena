@@ -33,6 +33,7 @@ Evera
 Date		Added
 ======
 06/15
+	* Fixed the gambling npc giving Orc Helm [1] instead of the non-slotted version. [MasterOfMuppets]
 	* Reverted Dr.Evil's fix since it crashes the map-server [Playtester]
 	* Dr.Evil fixed his Umbala script [Playtester]
 	* Fixed an exploit in the Comodo gambling script. [Lupus]
