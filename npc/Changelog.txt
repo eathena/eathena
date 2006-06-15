@@ -33,6 +33,7 @@ Evera
 Date		Added
 ======
 06/15
+	* Dr.Evil fixed his Umbala script [Playtester]
 	* Fixed an exploit in the Comodo gambling script. [Lupus]
 06/14
 	* Some more sign quest warps [MasterOfMuppets]
