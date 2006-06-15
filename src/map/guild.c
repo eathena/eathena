@@ -367,8 +367,8 @@ int guild_payexp_timer_sub(DBKey dataid, void *data, va_list ap)
 		return 0;
 	}
 
-	if ((unsigned int)g->member[i].exp > INT_MAX - c->exp)
-		g->member[i].exp = INT_MAX;
+	if (g->member[i].exp > UINT_MAX - c->exp)
+		g->member[i].exp = UINT_MAX;
 	else
 		g->member[i].exp+= c->exp;
 
@@ -566,6 +566,13 @@ int guild_recv_info(struct guild *sg)
 		before=*g;
 	memcpy(g,sg,sizeof(struct guild));
 
+	if(g->max_member > MAX_GUILD)
+	{
+		if (battle_config.error_log)
+			ShowError("guild_recv_info: Received guild with %d members, but MAX_GUILD is only %d. Extra guild-members have been lost!\n", g->max_member, MAX_GUILD);
+		g->max_member = MAX_GUILD;
+	}
+	
 	for(i=bm=m=0;i<g->max_member;i++){	// sd‚ÌÝ’è‚Æl”‚ÌŠm”F
 		if(g->member[i].account_id>0){
 			struct map_session_data *sd = map_id2sd(g->member[i].account_id);
@@ -623,15 +630,13 @@ int guild_recv_info(struct guild *sg)
 
 
 // ƒMƒ‹ƒh‚Ö‚ÌŠ©—U
-int guild_invite(struct map_session_data *sd,int account_id)
+int guild_invite(struct map_session_data *sd,struct map_session_data *tsd)
 {
-	struct map_session_data *tsd;
 	struct guild *g;
 	int i;
 
 	nullpo_retr(0, sd);
 
-	tsd= map_id2sd(account_id);
 	g=guild_search(sd->status.guild_id);
 
 	if(tsd==NULL || g==NULL)
@@ -973,7 +978,7 @@ int guild_recv_memberinfoshort(int guild_id,int account_id,int char_id,int onlin
 
 	//Send XY dot updates. [Skotlex]
 	//Moved from guild_send_memberinfoshort [LuzZza]
-	for(i=0; i < MAX_GUILD; i++) {
+	for(i=0; i < g->max_member; i++) {
 		
 		if(!g->member[i].sd || i == idx ||
 			g->member[i].sd->bl.m != g->member[idx].sd->bl.m)
@@ -1279,9 +1284,8 @@ int guild_check_alliance(int guild_id1, int guild_id2, int flag)
 	return 0;
 }
 // ƒMƒ‹ƒh“¯–¿—v‹
-int guild_reqalliance(struct map_session_data *sd,int account_id)
+int guild_reqalliance(struct map_session_data *sd,struct map_session_data *tsd)
 {
-	struct map_session_data *tsd= map_id2sd(account_id);
 	struct guild *g[2];
 	int i;
 
@@ -1399,9 +1403,8 @@ int guild_delalliance(struct map_session_data *sd,int guild_id,int flag)
 	return 0;
 }
 // ƒMƒ‹ƒh“G‘Î
-int guild_opposition(struct map_session_data *sd,int char_id)
+int guild_opposition(struct map_session_data *sd,struct map_session_data *tsd)
 {
-	struct map_session_data *tsd=map_id2sd(char_id);
 	struct guild *g;
 	int i;
 
@@ -1418,14 +1421,20 @@ int guild_opposition(struct map_session_data *sd,int char_id)
 	if( guild_get_alliance_count(g,1)>=3 )	// “G‘Î”Šm”F
 		clif_guild_oppositionack(sd,1);
 
+	if(agit_flag)	{
+		clif_displaymessage(sd->fd,"You cannot make oppositions during Guild Wars!");
+		return 0;
+	}
+
 	for(i=0;i<MAX_GUILDALLIANCE;i++){	// ‚·‚Å‚ÉŠÖŒW‚ðŽ‚Á‚Ä‚¢‚é‚©Šm”F
 		if(g->alliance[i].guild_id==tsd->status.guild_id){
 			if(g->alliance[i].opposition==1){	// ‚·‚Å‚É“G‘Î
 				clif_guild_oppositionack(sd,2);
 				return 0;
-			}else	// “¯–¿”jŠü
-				intif_guild_alliance( sd->status.guild_id,tsd->status.guild_id,
-					sd->status.account_id,tsd->status.account_id,8 );
+			}
+			//Change alliance to opposition.
+			intif_guild_alliance( sd->status.guild_id,tsd->status.guild_id,
+				sd->status.account_id,tsd->status.account_id,8 );
 		}
 	}
 

@@ -213,10 +213,8 @@ int party_recv_info(struct party *sp)
 	return 0;
 }
 
-// パーティへの勧誘
-int party_invite(struct map_session_data *sd,int account_id)
+int party_invite(struct map_session_data *sd,struct map_session_data *tsd)
 {
-	struct map_session_data *tsd= map_id2sd(account_id);
 	struct party *p=party_search(sd->status.party_id);
 	int i,flag=0;
 	
@@ -225,19 +223,20 @@ int party_invite(struct map_session_data *sd,int account_id)
 	if(tsd==NULL || p==NULL)
 		return 0;
 	if(!battle_config.invite_request_check) {
-		if (tsd->guild_invite>0 || tsd->trade_partner) {	// 相手が取引中かどうか
+		if (tsd->guild_invite>0 || tsd->trade_partner) {
 			clif_party_inviteack(sd,tsd->status.name,0);
 			return 0;
 		}
 	}
-	if( tsd->status.party_id>0 || tsd->party_invite>0 ){	// 相手の所属確認
+	if( tsd->status.party_id>0 || tsd->party_invite>0 ){
 		clif_party_inviteack(sd,tsd->status.name,0);
 		return 0;
 	}
 	for(i=0;i<MAX_PARTY;i++){
 		if(p->member[i].account_id == 0) //Room for a new member.
 			flag = 1;
-		if(p->member[i].account_id==account_id && p->member[i].char_id==tsd->status.char_id){
+		if(p->member[i].account_id==tsd->status.account_id &&
+			p->member[i].char_id==tsd->status.char_id){
 			clif_party_inviteack(sd,tsd->status.name,0);
 			return 0;
 		}
