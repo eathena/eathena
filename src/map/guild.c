@@ -367,7 +367,7 @@ int guild_payexp_timer_sub(DBKey dataid, void *data, va_list ap)
 		return 0;
 	}
 
-	if (g->member[i].exp > UINT_MAX - c->exp)
+	if (g->member[i].exp > UINT_MAX - (unsigned int)c->exp)
 		g->member[i].exp = UINT_MAX;
 	else
 		g->member[i].exp+= c->exp;

@@ -5,6 +5,8 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/06/15
+	* Fixed trade_traderequest which wasn't updated correctly after the @noask
+	  update. [Skotlex]
 	* Merged cleanup of clif_disp_onlyself. [Skotlex]
 	* Merged updated @noask implementation which reports back when you've
 	  rejected someone's request. [Skotlex]
