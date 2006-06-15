@@ -32,6 +32,8 @@ Evera
 
 Date		Added
 ======
+06/15
+	* Fixed an exploit in the Comodo gambling script. [Lupus]
 06/14
 	* Some more sign quest warps [MasterOfMuppets]
 	* Fixed the Job Level requirement for Auto-Berserk [Playtester]
