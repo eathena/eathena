@@ -5,6 +5,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/06/15
+	* Added indexes for loginlog and ipbanlist as they did not have any. [Euph]
 	* Merged save character update on char-sql which speeds up character
 	  validation prior to saving. [Skotlex]
 	* Merged fix which was preventing male accounts from moving from one map
