@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #include "../common/mmo.h"
 #include "../common/socket.h"
@@ -948,6 +949,22 @@ int mapif_parse_CreateGuild(int fd, int account_id, char *name, struct guild_mem
 		mapif_guild_created(fd, account_id, NULL);
 		return 0;
 	}
+
+	// Check Authorised letters/symbols in the name of the character
+	if (char_name_option == 1) { // only letters/symbols in char_name_letters are authorised
+		for (i = 0; i < NAME_LENGTH && name[i]; i++)
+			if (strchr(char_name_letters, name[i]) == NULL) {
+				mapif_guild_created(fd,account_id,NULL);
+				return 0;
+			}
+	} else if (char_name_option == 2) { // letters/symbols in char_name_letters are forbidden
+		for (i = 0; i < NAME_LENGTH && name[i]; i++)
+			if (strchr(char_name_letters, name[i]) != NULL) {
+				mapif_guild_created(fd,account_id,NULL);
+				return 0;
+			}
+	}
+
 	g = (struct guild *) aCalloc(sizeof(struct guild), 1);
 	if (g == NULL) {
 		ShowFatalError("int_guild: CreateGuild: out of memory !\n");
@@ -1417,6 +1434,10 @@ int mapif_parse_GuildCastleDataSave(int fd, int castle_id, int index, int value)
 					(g) ? g->name : "??", gid, (value) ? "occupy" : "abandon", castle_id);
 		}
 		gc->guild_id = value;
+		if(gc->guild_id == 0) {
+			//Delete guardians.
+			memset(&gc->guardian, 0, sizeof(gc->guardian));
+		}
 		break;
 	case 2: gc->economy = value; break;
 	case 3: gc->defense = value; break;

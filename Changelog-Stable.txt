@@ -4,6 +4,9 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
+2006/06/16
+	* Merged char_name letters restriction applying to parties/guilds in
+	  char-txt (somehow forgot to merge this from before) [Skotlex]
 2006/06/15
 	* Added indexes for loginlog and ipbanlist as they did not have any. [Euph]
 	* Merged save character update on char-sql which speeds up character
