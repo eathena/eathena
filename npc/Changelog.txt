@@ -32,6 +32,8 @@ Evera
 
 Date		Added
 ======
+06/16
+	* Implemented the Lovers quest. [MasterOfMuppets]
 06/15
 	* Fixed the gambling npc giving Orc Helm [1] instead of the non-slotted version. [MasterOfMuppets]
 	* Reverted Dr.Evil's fix since it crashes the map-server [Playtester]
