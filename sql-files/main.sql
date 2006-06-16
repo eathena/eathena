@@ -411,7 +411,8 @@ CREATE TABLE `loginlog` (
   `ip` varchar(64) NOT NULL default '',
   `user` varchar(32) NOT NULL default '',
   `rcode` tinyint(4) NOT NULL default '0',
-  `log` varchar(255) NOT NULL default ''
+  `log` varchar(255) NOT NULL default '',
+  KEY (`ip`)
 ) TYPE=MyISAM;
 
 --
