@@ -1,6 +1,16 @@
-// Homunculus and future Mercenary system code go here [Celest]
-
 #include "mercenary.h"
+#include "basetypes.h"
+
+
+/// level depending factor.
+/// for ie. exponential increase/decrease of costs
+double level_factor(unsigned short wishlv, unsigned short baselv)
+{
+	const double lvl_diff = 10.0;
+	return pow(2.0, ((double)(wishlv-baselv))/lvl_diff);
+}
+
+
 
 int do_init_merc (void)
 {

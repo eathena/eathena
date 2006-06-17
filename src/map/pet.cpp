@@ -70,29 +70,12 @@ int pet_hungry_val(struct map_session_data &sd)
 		return 0;
 }
 
-int pet_can_reach(struct pet_data &pd,int x,int y)
-{
-	struct walkpath_data wpd;
-
-	if( pd.block_list::x==x && pd.block_list::y==y )	// 同じマス
-		return 1;
-
-	// 障害物判定
-	wpd.path_len=0;
-	wpd.path_pos=0;
-	wpd.path_half=0;
-	return wpd.path_search(pd.block_list::m,pd.block_list::x,pd.block_list::y,x,y,0);
-}
 
 int pet_calc_pos(struct pet_data &pd,int tx,int ty,int dir)
 {
 	int x,y,dx,dy;
-	int i,j=0,k;
+	int i,k;
 	uint32 vary = rand();
-
-	pd.to_x = tx;
-	pd.to_y = ty;
-
 
 	dir+=vary&0x03-1;	// vary the target position
 	dir &= 0x07;		// only 3 bits allowed
@@ -102,40 +85,45 @@ int pet_calc_pos(struct pet_data &pd,int tx,int ty,int dir)
 
 	x = tx + dx;
 	y = ty + dy;
-	if(!(j=pet_can_reach(pd,x,y))) {
+	if( !pd.can_reach(x,y) )
+	{	// bunch of unnecessary code
 		if(dx > 0) x--;
 		else if(dx < 0) x++;
 		if(dy > 0) y--;
 		else if(dy < 0) y++;
-		if(!(j=pet_can_reach(pd,x,y))) {
-			for(i=0;i<12;++i) {
+		if( !pd.can_reach(x,y) )
+		{
+			for(i=0;i<12;++i)
+			{
 				k = rand()%8;
 				dx = -dirx[k]*2;
 				dy = -diry[k]*2;
 				x = tx + dx;
 				y = ty + dy;
-				if((j=pet_can_reach(pd,x,y)))
+				if( pd.can_reach(x,y) )
 					break;
-				else {
+				else
+				{
 					if(dx > 0) x--;
 					else if(dx < 0) x++;
 					if(dy > 0) y--;
 					else if(dy < 0) y++;
-					if((j=pet_can_reach(pd,x,y)))
+					if( pd.can_reach(x,y) )
 						break;
 				}
 			}
-			if(!j) {
+			if(i>=12)
+			{
 				x = tx;
 				y = ty;
-				if(!pet_can_reach(pd,x,y))
+				if( pd.can_reach(x,y) )
 					return 1;
 			}
 		}
 	}
 
-	pd.to_x = x;
-	pd.to_y = y;
+	pd.walkpath.target.x = x;
+	pd.walkpath.target.y = y;
 	return 0;
 }
 
@@ -353,7 +341,7 @@ int pet_walk(struct pet_data &pd,unsigned long tick,int data)
 	pd.walkpath.path_half ^= 1;
 	if(pd.walkpath.path_half==0){
 		pd.walkpath.path_pos++;
-		if(pd.state.change_walk_target){
+		if(pd.walkpath.change_walk_target){
 			pet_walktoxy_sub(pd);
 			return 0;
 		}
@@ -610,11 +598,11 @@ int pet_timer(int tid, unsigned long tick, int id, basics::numptr data)
 int pet_walktoxy_sub(struct pet_data &pd)
 {
 	struct walkpath_data wpd;
-	if( !wpd.path_search(pd.block_list::m,pd.block_list::x,pd.block_list::y,pd.to_x,pd.to_y,0) )
+	if( !wpd.path_search(pd.block_list::m,pd.block_list::x,pd.block_list::y,pd.walkpath.target.x,pd.walkpath.target.y,0) )
 		return 1;
 	pd.walkpath = wpd;
 
-	pd.state.change_walk_target=0;
+	pd.walkpath.change_walk_target=0;
 	pet_changestate(pd,MS_WALK,0);
 	clif_movepet(pd);
 	return 0;
@@ -622,15 +610,14 @@ int pet_walktoxy_sub(struct pet_data &pd)
 
 int pet_walktoxy(struct pet_data &pd,int x,int y)
 {
-	struct walkpath_data wpd;
-	if(pd.state.state == MS_WALK && !wpd.path_search(pd.block_list::m,pd.block_list::x,pd.block_list::y,x,y,0))
+	if(pd.state.state == MS_WALK && !walkpath_data::is_possible(pd.block_list::m,pd.block_list::x,pd.block_list::y,x,y,0))
 		return 1;
 
-	pd.to_x=x;
-	pd.to_y=y;
+	pd.walkpath.target.x=x;
+	pd.walkpath.target.y=y;
 
 	if(pd.state.state == MS_WALK) {
-		pd.state.change_walk_target=1;
+		pd.walkpath.change_walk_target=1;
 	} else {
 		return pet_walktoxy_sub(pd);
 	}
@@ -641,8 +628,8 @@ int pet_stop_walking(struct pet_data &pd,int type)
 {
 	if(pd.state.state == MS_WALK || pd.state.state == MS_IDLE) {
 		pd.walkpath.path_len=0;
-		pd.to_x=pd.block_list::x;
-		pd.to_y=pd.block_list::y;
+		pd.walkpath.target.x=pd.block_list::x;
+		pd.walkpath.target.y=pd.block_list::y;
 	}
 	if(type&0x01)
 		clif_fixpetpos(pd);
@@ -912,11 +899,11 @@ int pet_data_init(struct map_session_data &sd)
 	sd.pd = pd = new struct pet_data(sd.pet.name);
 
 	pd->block_list::m = sd.block_list::m;
-	pd->block_list::x = pd->to_x = sd.block_list::x;
-	pd->block_list::y = pd->to_y = sd.block_list::y;
+	pd->block_list::x = pd->walkpath.target.x = sd.block_list::x;
+	pd->block_list::y = pd->walkpath.target.y = sd.block_list::y;
 	pet_calc_pos(*pd,sd.block_list::x,sd.block_list::y,sd.dir);
-	pd->block_list::x = pd->to_x;
-	pd->block_list::y = pd->to_y;
+	pd->block_list::x = pd->walkpath.target.x;
+	pd->block_list::y = pd->walkpath.target.y;
 	pd->block_list::id = npc_get_new_npc_id();
 	pd->class_ = sd.pet.class_;
 	pd->equip_id = sd.pet.equip_id;
@@ -1406,7 +1393,7 @@ int pet_ai_sub_hard_lootsearch(struct block_list &bl,va_list &ap)
 		if(pd->loot == NULL || pd->loot->item == NULL || (pd->loot->count >= pd->loot->max) || (sd && sd->pd != pd))
 			return 0;
 		if(bl.m == pd->block_list::m && (dist=distance(pd->block_list::x,pd->block_list::y,bl.x,bl.y))<5){
-			if( pet_can_reach(*pd,bl.x,bl.y)		// 到達可能性判定
+			if( pd->can_reach(bl.x,bl.y)		// 到達可能性判定
 				 && rand()%1000<1000/(++(*itc)) ){	// 範囲内PCで等確率にする
 				pd->target_id=bl.id;
 			}
@@ -1438,7 +1425,7 @@ public:
 				return 0;
 			if(bl.m == pd.block_list::m && (dist=distance(pd.block_list::x,pd.block_list::y,bl.x,bl.y))<5)
 			{
-				if( pet_can_reach(pd,bl.x,bl.y) &&		// 到達可能性判定
+				if( pd.can_reach(bl.x,bl.y) &&		// 到達可能性判定
 					rand()%1000<1000/(++itc) )			// 範囲内PCで等確率にする
 				{	
 					pd.target_id=bl.id;
@@ -1490,13 +1477,13 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 		{
 			if(pd.target_id > 0)
 				pet_unlocktarget(pd);
-			if(pd.timer != -1 && pd.state.state == MS_WALK && sd->get_distance(pd.to_x,pd.to_y) < 3)
+			if(pd.timer != -1 && pd.state.state == MS_WALK && sd->get_distance(pd.walkpath.target.x,pd.walkpath.target.y) < 3)
 				return 0;
 			pd.speed = sd->speed *3/4; // be faster than master
 			if(pd.speed <= 10)
 				pd.speed = 10;
 			pet_calc_pos(pd,sd->block_list::x,sd->block_list::y,sd->dir);
-			if(pet_walktoxy(pd,pd.to_x,pd.to_y))
+			if(pet_walktoxy(pd,pd.walkpath.target.x,pd.walkpath.target.y))
 				pet_randomwalk(pd,tick);
 		}
 		else if(pd.target_id > MAX_FLOORITEM)
@@ -1514,9 +1501,9 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 //				pet_unlocktarget(pd);
 			else if(!battle_check_range(&pd,md,mob_db[pd.class_].range && !pd.state.casting_flag))
 			{	//Skotlex Don't interrupt a casting spell when targed moved
-				if(pd.timer != -1 && pd.state.state == MS_WALK && md->get_distance(pd.to_x,pd.to_y) < 2)
+				if(pd.timer != -1 && pd.state.state == MS_WALK && md->get_distance(pd.walkpath.target.x,pd.walkpath.target.y) < 2)
 					return 0;
-				if( !pet_can_reach(pd,md->block_list::x,md->block_list::y))
+				if( !pd.can_reach(md->block_list::x,md->block_list::y) )
 					pet_unlocktarget(pd);
 				else
 				{
@@ -1572,7 +1559,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 			}
 			else if(dist)
 			{
-				if(pd.timer != -1 && pd.state.state!=MS_ATTACK && (DIFF_TICK(pd.next_walktime,tick)<0 || bl_item->get_distance(pd.to_x,pd.to_y) <= 0))
+				if(pd.timer != -1 && pd.state.state!=MS_ATTACK && (DIFF_TICK(pd.next_walktime,tick)<0 || bl_item->get_distance(pd.walkpath.target.x,pd.walkpath.target.y) <= 0))
 					return 0; // 既に移動中
 
 				pd.next_walktime=tick+500;
@@ -1603,7 +1590,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 			}
 		else
 		{
-			if((pd.timer != -1 && pd.state.state == MS_WALK && sd->get_distance(pd.to_x,pd.to_y) < 3) )
+			if((pd.timer != -1 && pd.state.state == MS_WALK && sd->get_distance(pd.walkpath.target.x,pd.walkpath.target.y) < 3) )
 				return 0;
 			if(dist<=3)
 			{
@@ -1613,7 +1600,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 			}
 			pd.speed = status_get_speed(&pd);
 			pet_calc_pos(pd,sd->block_list::x,sd->block_list::y,sd->dir);
-			if(pet_walktoxy(pd,pd.to_x,pd.to_y))
+			if(pet_walktoxy(pd,pd.walkpath.target.x,pd.walkpath.target.y))
 				pet_randomwalk(pd,tick);
 		}
 	}

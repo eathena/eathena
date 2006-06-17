@@ -41,20 +41,9 @@ char wisp_server_name[24] = "Server";
 
 ///////////////////////////////////////////////////////////////////////////////
 int char_maintenance = 0;
-int char_new = 0;
 int char_new_display;
 int email_creation = 0; // disabled by default
-char char_txt[1024]="save/athena.txt";
-char backup_txt[1024]="save/backup.txt"; //By zanetheinsane
-char friends_txt[1024]="save/friends.txt"; // davidsiaw
-char backup_txt_flag = 0; // The backup_txt file was created because char deletion bug existed. Now it's finish and that take a lot of time to create a second file when there are a lot of characters. => option By [Yor]
 char unknown_char_name[1024] = "Unknown";
-char db_path[1024]="db";
-
-int party_modus=0;			// party modus, 0 break on leader leave, 1 successor takes over
-int name_ignoring_case = 0; // Allow or not identical name for characters but with a different case by [Yor]
-int char_name_option = 0;	// Option to know which letters/symbols are authorised in the name of a character (0: all, 1: only those in char_name_letters, 2: all EXCEPT those in char_name_letters) by [Yor]
-char char_name_letters[1024] = ""; // list of letters/symbols authorised (or not) in a character name. by [Yor]
 
 int check_ip_flag = 1; // It's to check IP of a player between char-server and other servers (part of anti-hacking system)
 
@@ -2393,88 +2382,86 @@ int parse_char(int fd)
 				return 0;
 				
 			if(sd)
-			{
-				if(char_new == 0)
-				{	//denied
+			{	
+				CCharCharacter character;
+				char* name = (char*)RFIFOP(fd,2);
+				const unsigned char str	= RFIFOB(fd,26);
+				const unsigned char agi = RFIFOB(fd,27);
+				const unsigned char vit = RFIFOB(fd,28);
+				const unsigned char int_= RFIFOB(fd,29);
+				const unsigned char dex = RFIFOB(fd,30);
+				const unsigned char luk = RFIFOB(fd,31);
+				const unsigned char slot= RFIFOB(fd,32);
+				const unsigned char hair_style = RFIFOB(fd,35);
+				const unsigned char hair_color = RFIFOB(fd,33);
+
+				if( !char_db.testChar( *sd, name, str,agi,vit,int_,dex,luk,slot,hair_style,hair_color) )
+				{
+					//denied
 					WFIFOW(fd, 0) = 0x6e;
 					WFIFOB(fd, 2) = 0x02;
 					WFIFOSET(fd, 3); 
 				}
+				else if( !char_db.insertChar( *sd, name, str,agi,vit,int_,dex,luk,slot,hair_style,hair_color, character) )
+				{	//already exists
+					WFIFOW(fd, 0) = 0x6e;
+					WFIFOB(fd, 2) = 0x00;
+					WFIFOSET(fd, 3);
+					/*
+					useless error message
+					else if(ret == -3)
+					{	//underaged XD
+						WFIFOW(fd, 0) = 0x6e;
+						WFIFOB(fd, 2) = 0x01;
+						WFIFOSET(fd, 3);
+					}
+					*/
+				}
 				else
-				{
-					CCharCharacter character;
-					
-					if( !char_db.insertChar( *sd, (char*)RFIFOP(fd,2),
-							RFIFOB(fd,26),RFIFOB(fd,27),RFIFOB(fd,28),RFIFOB(fd,29),RFIFOB(fd,30),RFIFOB(fd,31), //stats
-							RFIFOB(fd,32), // slot
-							RFIFOB(fd,35), RFIFOB(fd,33), // hair style, color
-							character) )
-					{	// error
-						{	//denied
-							WFIFOW(fd, 0) = 0x6e;
-							WFIFOB(fd, 2) = 0x02;
-							WFIFOSET(fd, 3); 
-						}
-						/*
-						else if(ret == -2)
-						{	//already exists
-							WFIFOW(fd, 0) = 0x6e;
-							WFIFOB(fd, 2) = 0x00;
-							WFIFOSET(fd, 3);
-						}
-						else if(ret == -3)
-						{	//underaged XD
-							WFIFOW(fd, 0) = 0x6e;
-							WFIFOB(fd, 2) = 0x01;
-							WFIFOSET(fd, 3);
-						}
-						*/
-					}
-					else
-					{
-						WFIFOW(fd,0) = 0x6d;
-						memset(WFIFOP(fd,2), 0, 106);
+				{	// ok
+					WFIFOW(fd,0) = 0x6d;
+					memset(WFIFOP(fd,2), 0, 106);
 
-						WFIFOL(fd,2) = character.char_id;
-						WFIFOL(fd,2+4) = character.base_exp;
-						WFIFOL(fd,2+8) = character.zeny;
-						WFIFOL(fd,2+12) = character.job_exp;
-						WFIFOL(fd,2+16) = character.job_level;
+					WFIFOL(fd,2) = character.char_id;
+					WFIFOL(fd,2+4) = character.base_exp;
+					WFIFOL(fd,2+8) = character.zeny;
+					WFIFOL(fd,2+12) = character.job_exp;
+					WFIFOL(fd,2+16) = character.job_level;
 
-						WFIFOL(fd,2+28) = character.karma;
-						WFIFOL(fd,2+32) = character.manner;
+					WFIFOL(fd,2+28) = character.karma;
+					WFIFOL(fd,2+32) = character.manner;
 
-						WFIFOW(fd,2+40) = 0x30;
-						WFIFOW(fd,2+42) = (unsigned short)((character.hp > 0x7fff) ? 0x7fff : character.hp);
-						WFIFOW(fd,2+44) = (unsigned short)((character.max_hp > 0x7fff) ? 0x7fff : character.max_hp);
-						WFIFOW(fd,2+46) = (unsigned short)((character.sp > 0x7fff) ? 0x7fff : character.sp);
-						WFIFOW(fd,2+48) = (unsigned short)((character.max_sp > 0x7fff) ? 0x7fff : character.max_sp);
-						WFIFOW(fd,2+50) = DEFAULT_WALK_SPEED; // char_dat[i].speed;
-						WFIFOW(fd,2+52) = character.class_;
-						WFIFOW(fd,2+54) = character.hair;
+					WFIFOW(fd,2+40) = 0x30;
+					WFIFOW(fd,2+42) = (unsigned short)((character.hp > 0x7fff) ? 0x7fff : character.hp);
+					WFIFOW(fd,2+44) = (unsigned short)((character.max_hp > 0x7fff) ? 0x7fff : character.max_hp);
+					WFIFOW(fd,2+46) = (unsigned short)((character.sp > 0x7fff) ? 0x7fff : character.sp);
+					WFIFOW(fd,2+48) = (unsigned short)((character.max_sp > 0x7fff) ? 0x7fff : character.max_sp);
+					WFIFOW(fd,2+50) = DEFAULT_WALK_SPEED; // char_dat[i].speed;
+					WFIFOW(fd,2+52) = character.class_;
+					WFIFOW(fd,2+54) = character.hair;
 
-						WFIFOW(fd,2+58) = character.base_level;
-						WFIFOW(fd,2+60) = character.skill_point;
+					WFIFOW(fd,2+58) = character.base_level;
+					WFIFOW(fd,2+60) = character.skill_point;
 
-						WFIFOW(fd,2+64) = character.shield;
-						WFIFOW(fd,2+66) = character.head_top;
-						WFIFOW(fd,2+68) = character.head_mid;
-						WFIFOW(fd,2+70) = character.hair_color;
+					WFIFOW(fd,2+64) = character.shield;
+					WFIFOW(fd,2+66) = character.head_top;
+					WFIFOW(fd,2+68) = character.head_mid;
+					WFIFOW(fd,2+70) = character.hair_color;
 
-						memcpy(WFIFOP(fd,2+74), character.name, 24);
+					memcpy(WFIFOP(fd,2+74), character.name, 24);
 
-						WFIFOB(fd,2+98) = (character.str > 255) ? 255 : character.str;
-						WFIFOB(fd,2+99) = (character.agi > 255) ? 255 : character.agi;
-						WFIFOB(fd,2+100) = (character.vit > 255) ? 255 : character.vit;
-						WFIFOB(fd,2+101) = (character.int_ > 255) ? 255 : character.int_;
-						WFIFOB(fd,2+102) = (character.dex > 255) ? 255 : character.dex;
-						WFIFOB(fd,2+103) = (character.luk > 255) ? 255 : character.luk;
-						WFIFOB(fd,2+104) = character.slot;
+					WFIFOB(fd,2+98) = (character.str > 255) ? 255 : character.str;
+					WFIFOB(fd,2+99) = (character.agi > 255) ? 255 : character.agi;
+					WFIFOB(fd,2+100) = (character.vit > 255) ? 255 : character.vit;
+					WFIFOB(fd,2+101) = (character.int_ > 255) ? 255 : character.int_;
+					WFIFOB(fd,2+102) = (character.dex > 255) ? 255 : character.dex;
+					WFIFOB(fd,2+103) = (character.luk > 255) ? 255 : character.luk;
+					WFIFOB(fd,2+104) = character.slot;
 
-						WFIFOSET(fd,108);
-					}
+					WFIFOSET(fd,108);
 				}
 			}
+			// else there is no sd
 			RFIFOSKIP(fd,37);
 			break;
 		}
@@ -2843,20 +2830,10 @@ else if(strcasecmp(w1, "char_port") == 0) {
 
 		else if(strcasecmp(w1, "char_maintenance") == 0) {
 			char_maintenance = atoi(w2);
-		} else if(strcasecmp(w1, "char_new") == 0) {
-			char_new = atoi(w2);
 		} else if (strcasecmp(w1, "char_new_display") == 0) {
 			char_new_display = atoi(w2);
 		} else if (strcasecmp(w1, "email_creation") == 0) {
 			email_creation = config_switch(w2);
-		} else if(strcasecmp(w1, "char_txt") == 0) {
-			strcpy(char_txt, w2);
-		} else if(strcasecmp(w1, "backup_txt") == 0) { //By zanetheinsane
-			strcpy(backup_txt, w2);
-		} else if(strcasecmp(w1, "friends_txt") == 0) { //By davidsiaw
-			strcpy(friends_txt, w2);
-		} else if(strcasecmp(w1, "backup_txt_flag") == 0) { // The backup_txt file was created because char deletion bug existed. Now it's finish and that take a lot of time to create a second file when there are a lot of characters. By [Yor]
-			backup_txt_flag = config_switch(w2);
 		} else if(strcasecmp(w1, "max_connect_user") == 0) {
 			max_connect_user = atoi(w2);
 			if (max_connect_user < 0)
@@ -2878,14 +2855,6 @@ else if(strcasecmp(w1, "char_port") == 0) {
 			unknown_char_name[24] = 0;
 		} else if(strcasecmp(w1, "char_log_filename") == 0) {
 			strcpy(char_log_filename, w2);
-		} else if(strcasecmp(w1, "name_ignoring_case") == 0) {
-			name_ignoring_case = config_switch(w2);
-		} else if(strcasecmp(w1, "char_name_option") == 0) {
-			char_name_option = atoi(w2);
-		} else if(strcasecmp(w1, "char_name_letters") == 0) {
-			strcpy(char_name_letters, w2);
-		} else if (strcasecmp(w1, "party_modus") == 0) {
-			party_modus = atoi(w2);
 // online files options
 		} else if(strcasecmp(w1, "online_txt_filename") == 0) {
 			strcpy(online_txt_filename, w2);
@@ -2903,8 +2872,6 @@ else if(strcasecmp(w1, "char_port") == 0) {
 			online_refresh_html = atoi(w2);
 			if (online_refresh_html < 1)
 				online_refresh_html = 1;
-		} else if(strcasecmp(w1,"db_path")==0) {
-			strcpy(db_path,w2);
 		} else if(strcasecmp(w1, "import") == 0) {
 			char_config_read(w2);
 		} else if(strcasecmp(w1, "console") == 0) {

@@ -52,7 +52,6 @@ int pc_clean_skilltree(struct map_session_data &sd);
 int pc_checkoverhp(struct map_session_data &sd);
 int pc_checkoversp(struct map_session_data &sd);
 
-bool pc_can_reach(struct map_session_data &sd, unsigned short x,unsigned short y);
 int pc_walktoxy(struct map_session_data &sd, unsigned short x,unsigned short y);
 int pc_stop_walking(struct map_session_data &sd, int type);
 int pc_movepos(struct map_session_data &sd, unsigned short x,unsigned short y);

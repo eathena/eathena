@@ -1337,7 +1337,7 @@ int npc_walk(struct npc_data &nd,unsigned long tick,int data)
 	nd.walkpath.path_half ^= 1;
 	if(nd.walkpath.path_half==0){
 		nd.walkpath.path_pos++;
-		if(nd.state.change_walk_target){
+		if(nd.walkpath.change_walk_target){
 			npc_walktoxy_sub(nd);
 			return 0;
 		}
@@ -1499,11 +1499,11 @@ int npc_walktoxy_sub(struct npc_data &nd)
 {
 	struct walkpath_data wpd;
 
-	if( !wpd.path_search(nd.block_list::m,nd.block_list::x,nd.block_list::y,nd.to_x,nd.to_y,nd.state.walk_easy) )
+	if( !wpd.path_search(nd.block_list::m,nd.block_list::x,nd.block_list::y,nd.walkpath.target.x,nd.walkpath.target.y,nd.walkpath.walk_easy) )
 		return 1;
 	nd.walkpath = wpd;
 
-	nd.state.change_walk_target=0;
+	nd.walkpath.change_walk_target=0;
 
 	npc_changestate(nd,MS_WALK,0);
 	clif_movenpc(nd);
@@ -1513,16 +1513,14 @@ int npc_walktoxy_sub(struct npc_data &nd)
 
 int npc_walktoxy(struct npc_data &nd,int x,int y,int easy)
 {
-	struct walkpath_data wpd;
-
-	if(nd.state.npcstate == MS_WALK && !wpd.path_search(nd.block_list::m,nd.block_list::x,nd.block_list::y,x,y,0) )
+	if(nd.state.npcstate == MS_WALK && !walkpath_data::is_possible(nd.block_list::m,nd.block_list::x,nd.block_list::y,x,y,0) )
 		return 1;
 
-	nd.state.walk_easy = easy;
-	nd.to_x=x;
-	nd.to_y=y;
+	nd.walkpath.walk_easy = easy;
+	nd.walkpath.target.x=x;
+	nd.walkpath.target.y=y;
 	if(nd.state.npcstate == MS_WALK)
-		nd.state.change_walk_target=1;
+		nd.walkpath.change_walk_target=1;
 	else
 		return npc_walktoxy_sub(nd);
 
@@ -1538,19 +1536,19 @@ int npc_stop_walking(struct npc_data &nd,int type)
 		nd.walkpath.path_len=0;
 		if(type&4)
 		{
-			dx = nd.to_x - nd.block_list::x;
+			dx = nd.walkpath.target.x - nd.block_list::x;
 			if(dx<0)
 				dx=-1;
 			else if(dx>0)
 				dx=1;
-			dy = nd.to_y - nd.block_list::y;
+			dy = nd.walkpath.target.y - nd.block_list::y;
 			if(dy<0)
 				dy=-1;
 			else if(dy>0)
 				dy=1;
 		}
-		nd.to_x = nd.block_list::x+dx;
-		nd.to_y = nd.block_list::y+dy;
+		nd.walkpath.target.x = nd.block_list::x+dx;
+		nd.walkpath.target.y = nd.block_list::y+dy;
 		if(dx!=0 || dy!=0){
 			npc_walktoxy_sub(nd);
 			return 0;
@@ -1679,14 +1677,14 @@ void npc_delsrcfile(const char *name)
  */
 bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
 {
-	int x, y, xs, ys, to_x, to_y, m;
+	int x, y, xs, ys, xt, yt, m;
 	int i, j;
 	char mapname[32], to_mapname[32], *ip;
 	struct npc_data *nd;
 
 	// 引数の個数チェック
 	if( sscanf(w1, "%[^,],%d,%d", mapname, &x, &y) != 3 ||
-		sscanf(w4, "%d,%d,%[^,],%d,%d", &xs, &ys, to_mapname, &to_x, &to_y) != 5)
+		sscanf(w4, "%d,%d,%[^,],%d,%d", &xs, &ys, to_mapname, &xt, &yt) != 5)
 	{
 		ShowError("bad warp line : %s\n", w3);
 		return false;
@@ -1724,8 +1722,8 @@ bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
 	memcpy(nd->u.warp.name, to_mapname, 16);
 	xs += 2;
 	ys += 2;
-	nd->u.warp.x = to_x;
-	nd->u.warp.y = to_y;
+	nd->u.warp.x = xt;
+	nd->u.warp.y = yt;
 	nd->u.warp.xs = xs;
 	nd->u.warp.ys = ys;
 

@@ -1,5 +1,16 @@
 Date	Added
-06/07	* added recovery of dropped listen port
+06/16
+	* starting numbers for id's (account, char, guild, party, pet)
+	  are now forced lower bounds
+	* added a seperate function for sanity checking of new characters
+	  this should also solve the problem with the misleading message
+	  on a failed char creation
+	* seperated the data structure for the movable-class and
+	  started filling it with functions, 
+	  also combined walkpath with target coordinates and walk flags, 
+	  but might completely combine it with movable later
+06/07
+	* added recovery of dropped listen port
 	* fixed runtime problem with cygwin (which does not supported 
 	  inlined static constructors, tnx to erKURITA), 
 	* fixed unsupported parameter compare on intel compiler (tnx to ALZ)

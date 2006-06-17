@@ -1097,7 +1097,7 @@ int parse_admin(int fd)
 				login_log("'ladmin': Attempt to create an invalid account (account or pass is too short, ip: %s)" RETCODE,
 					ip_str);
 			}
-			else if( toupper(sex) != 'F' && toupper(sex) != 'M' )
+			else if( basics::upcase(sex) != 'F' && basics::upcase(sex) != 'M' )
 			{
 				login_log("'ladmin': Attempt to create an invalid account (account: %s, received pass: %s, invalid sex, ip: %s)" RETCODE,
 					userid, passwd, ip_str);
@@ -1113,7 +1113,7 @@ int parse_admin(int fd)
 				char* email = (char*)RFIFOP(fd,51);
 				remove_control_chars(email);
 
-				if( account_db.insertAccount(userid, passwd, (toupper(sex)=='M')?1:0, email, account) )
+				if( account_db.insertAccount(userid, passwd, (basics::upcase(sex)=='M')?1:0, email, account) )
 				{
 					login_log("'ladmin': Account creation (account: %s (id: %d), pass: %s, sex: %c, email: %s, ip: %s)" RETCODE,
 						      account.userid, account.account_id, account.passwd, account.sex, account.email, ip_str);
@@ -1360,7 +1360,7 @@ int parse_admin(int fd)
 			WFIFOL(fd,2) = 0xFFFFFFFF;
 			memcpy(WFIFOP(fd,6), userid, 24);
 			
-			char sex = toupper( RFIFOB(fd,26) );
+			char sex = basics::upcase( (char)RFIFOB(fd,26) );
 
 			if( sex != 'F' && sex != 'M')
 			{
@@ -2159,7 +2159,7 @@ int parse_login(int fd)
 						{
 							new_reg_tick = gettick() + 1000*time_allowed;
 							userid[len] = '\0';
-							ok = account_db.insertAccount(userid, passwd, (toupper(userid[len+1]) == 'M'),"a@a.com", account);
+							ok = account_db.insertAccount(userid, passwd, (basics::upcase(userid[len+1]) == 'M'),"a@a.com", account);
 							if(ok)
 							{
 								ShowNotice("Account registration successful account: %s, ip %s!\n", userid, ip_str);

@@ -2605,23 +2605,23 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 	if(count&0x20000) {
 		battle_stopwalking(target,1);
 		if(sd){
-			sd->to_x=nx;
-			sd->to_y=ny;
+			sd->walkpath.target.x=nx;
+			sd->walkpath.target.y=ny;
 			sd->walktimer = 1;
 			clif_walkok(*sd);
 			clif_movechar(*sd);
 			sd->walktimer = -1;  // set back so not to disturb future pc_stop_walking calls
 		}
 		else if(md) {
-			md->to_x=nx;
-			md->to_y=ny;
+			md->walkpath.target.x=nx;
+			md->walkpath.target.y=ny;
 			prev_state = md->state.state;
 			md->state.state = MS_WALK;
 			clif_fixmobpos(*md);
 		}
 		else if(pd) {
-			pd->to_x=nx;
-			pd->to_y=ny;
+			pd->walkpath.target.x=nx;
+			pd->walkpath.target.y=ny;
 			prev_state = pd->state.state;
 			pd->state.state = MS_WALK;
 			clif_fixpetpos(*pd);
@@ -4056,7 +4056,6 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl, unsi
 	case MO_EXTREMITYFIST:	/* ˆ¢C—…”e–PŒ */
 		{
 			if(sd) {
-				struct walkpath_data wpd;
 				int dx,dy;
 
 				dx = bl->x - sd->block_list::x;
@@ -4066,18 +4065,18 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl, unsi
 				if (dy > 0) ++dy;
 				else if(dy < 0) --dy;
 				if(dx == 0 && dy == 0) ++dx;
-				if( !wpd.path_search(src->m,sd->block_list::x,sd->block_list::y,sd->block_list::x+dx,sd->block_list::y+dy,1) )
+				if( !walkpath_data::is_possible(src->m,sd->block_list::x,sd->block_list::y,sd->block_list::x+dx,sd->block_list::y+dy,1) )
 				{
 					dx = bl->x - sd->block_list::x;
 					dy = bl->y - sd->block_list::y;
-					if( !wpd.path_search(src->m,sd->block_list::x,sd->block_list::y,sd->block_list::x+dx,sd->block_list::y+dy,1) )
+					if( !walkpath_data::is_possible(src->m,sd->block_list::x,sd->block_list::y,sd->block_list::x+dx,sd->block_list::y+dy,1) )
 					{
 						clif_skill_fail(*sd,sd->skillid,0,0);
 						break;
 					}
 				}
-				sd->to_x = sd->block_list::x + dx;
-				sd->to_y = sd->block_list::y + dy;
+				sd->walkpath.target.x = sd->block_list::x + dx;
+				sd->walkpath.target.y = sd->block_list::y + dy;
 				skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 				clif_walkok(*sd);
 				clif_movechar(*sd);
@@ -4086,7 +4085,7 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl, unsi
 				sd->attackabletime = sd->canmove_tick = tick + 100 + sd->speed * ((dx > dy)? dx:dy);
 				if(sd->canact_tick < sd->canmove_tick)
 					sd->canact_tick = sd->canmove_tick;
-				pc_movepos(*sd,sd->to_x,sd->to_y);
+				pc_movepos(*sd,sd->walkpath.target.x,sd->walkpath.target.y);
 				status_change_end(sd,SC_COMBO,-1);
 			}
 			else
@@ -7731,7 +7730,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned lon
 		if(bl->type==BL_PC){
 			struct map_session_data *sd = (struct map_session_data *)bl;
 			if(sd && src->block_list::m == bl->m && src->block_list::x == bl->x && src->block_list::y == bl->y &&
-				src->block_list::x == sd->to_x && src->block_list::y == sd->to_y) {
+				src->block_list::x == sd->walkpath.target.x && src->block_list::y == sd->walkpath.target.y) {
 				if( battle_config.chat_warpportal || !sd->chatID ){
 					pc_setpos(*sd,sg->valstring,sg->val2>>16,sg->val2&0xffff,3);
 					if( sg->src_id == bl->id || (sg->valstring == maps[src->block_list::m].mapname &&
@@ -8749,8 +8748,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		break;
 	case ST_MOVE_ENABLE:
 		{
-			struct walkpath_data wpd;
-			if( !wpd.path_search(sd->block_list::m,sd->block_list::x,sd->block_list::y,sd->skillx,sd->skilly,1) )
+			if( !walkpath_data::is_possible(sd->block_list::m,sd->block_list::x,sd->block_list::y,sd->skillx,sd->skilly,1) )
 			{
 				clif_skill_fail(*sd,skill,0,0);
 				return 0;
@@ -10221,7 +10219,7 @@ void skill_stop_dancing(struct block_list *src, int flag)
 			if( (flag & 2) )
 			{ //ƒnƒG‚Å”ò‚ñ‚¾‚Æ‚«‚Æ‚©‚Íƒ†ƒjƒbƒg‚à”ò‚Ô
 				struct map_session_data *sd = (struct map_session_data *)src;
-				if (sd) skill_unit_move_unit_group(*group, sd->block_list::m, (sd->to_x - sd->block_list::x), (sd->to_y - sd->block_list::y));
+				if (sd) skill_unit_move_unit_group(*group, sd->block_list::m, (sd->walkpath.target.x - sd->block_list::x), (sd->walkpath.target.y - sd->block_list::y));
 				return;
 			}
 			skill_delunitgroup(*group);

@@ -465,7 +465,7 @@ int mob_walk(struct mob_data &md, unsigned long tick, int data)
 	md.walkpath.path_half ^= 1;
 	if(md.walkpath.path_half==0){
 		md.walkpath.path_pos++;
-		if(md.state.change_walk_target){
+		if(md.walkpath.change_walk_target){
 			mob_walktoxy_sub(md);
 			return 0;
 		}
@@ -812,21 +812,19 @@ int mob_walktoxy_sub(struct mob_data &md)
 	static int dirx[8]={0,-1,-1,-1,0,1,1,1};
 	static int diry[8]={1,1,0,-1,-1,-1,0,1};
 
-
-
-	if( !wpd.path_search(md.block_list::m,md.block_list::x,md.block_list::y,md.to_x,md.to_y,md.state.walk_easy) )
+	if( !wpd.path_search(md.block_list::m,md.block_list::x,md.block_list::y,md.walkpath.target.x,md.walkpath.target.y,md.walkpath.walk_easy) )
 		return 1;
 	if (wpd.path[0] >= 8)
 		return 1;	
 	x = md.block_list::x+dirx[wpd.path[0]];
 	y = md.block_list::y+diry[wpd.path[0]];
-	md.state.change_walk_target=0;
+	md.walkpath.change_walk_target=0;
 
 	if (map_getcell(md.block_list::m,x,y,CELL_CHKBASILICA) && !(status_get_mode(&md)&0x20))
 	{
 		return 1;
 	}
-	memcpy(&md.walkpath,&wpd,sizeof(wpd));
+	md.walkpath = wpd;
 	mob_changestate(md,MS_WALK,0);
 	clif_movemob(md);
 
@@ -839,21 +837,19 @@ int mob_walktoxy_sub(struct mob_data &md)
  */
 int mob_walktoxy(struct mob_data &md,int x,int y,int easy)
 {
-	struct walkpath_data wpd;
-
 	if( md.block_list::prev == NULL || md.state.state == MS_DEAD || 
-		md.state.state == MS_WALK && !wpd.path_search(md.block_list::m,md.block_list::x,md.block_list::y,x,y,easy) )
+		(md.state.state == MS_WALK && !walkpath_data::is_possible(md.block_list::m,md.block_list::x,md.block_list::y,x,y,easy)) )
 		return 1;
 	
-	md.state.walk_easy = easy;
-	md.to_x=x;
-	md.to_y=y;
+	md.walkpath.walk_easy = easy;
+	md.walkpath.target.x=x;
+	md.walkpath.target.y=y;
 
 	if (md.sc_data[SC_CONFUSION].timer != -1) //Randomize target direction.
-		md.random_position(md.to_x, md.to_y);
+		md.random_position(md.walkpath.target.x, md.walkpath.target.y);
 
 	if(md.state.state == MS_WALK)
-		md.state.change_walk_target=1;
+		md.walkpath.change_walk_target=1;
 	else
 		return mob_walktoxy_sub(md);
 
@@ -1043,8 +1039,8 @@ int mob_spawn(uint32 id)
 		md->block_list::x = x;
 		md->block_list::y = y;
 	}
-	md->to_x = md->block_list::x;
-	md->to_y = md->block_list::y;
+	md->walkpath.target.x = md->block_list::x;
+	md->walkpath.target.y = md->block_list::y;
 
 	md->dir=rand()%8;
 
@@ -1080,19 +1076,19 @@ int mob_stop_walking(struct mob_data &md,int type)
 
 		md.walkpath.path_len=0;
 		if(type&0x02 && mob_can_move(md)){
-			dx=md.to_x-md.block_list::x;
+			dx=md.walkpath.target.x-md.block_list::x;
 			if(dx<0)
 				dx=-1;
 			else if(dx>0)
 				dx=1;
-			dy=md.to_y-md.block_list::y;
+			dy=md.walkpath.target.y-md.block_list::y;
 			if(dy<0)
 				dy=-1;
 			else if(dy>0)
 				dy=1;
 		}
-		md.to_x=md.block_list::x+dx;
-		md.to_y=md.block_list::y+dy;
+		md.walkpath.target.x=md.block_list::x+dx;
+		md.walkpath.target.y=md.block_list::y+dy;
 		if(dx!=0 || dy!=0){
 			mob_walktoxy_sub(md);
 			return 0;
@@ -1115,10 +1111,10 @@ int mob_stop_walking(struct mob_data &md,int type)
  * Reachability to a Specification ID existence place
  *------------------------------------------
  */
-int mob_can_reach(struct mob_data &md,struct block_list &bl,int range)
+
+int mob_can_reach(struct mob_data &md, struct block_list &bl, int range)
 {
 	int dx,dy;
-	struct walkpath_data wpd;
 	int i;
 
 	if( md.block_list::m != bl.m)	// 違うャbプ
@@ -1163,10 +1159,7 @@ int mob_can_reach(struct mob_data &md,struct block_list &bl,int range)
   	}*/
 
 	// Obstacle judging
-	wpd.path_len=0;
-	wpd.path_pos=0;
-	wpd.path_half=0;
-	if( wpd.path_search(md.block_list::m,md.block_list::x,md.block_list::y,bl.x,bl.y,0) )
+	if( walkpath_data::is_possible(md.block_list::m,md.block_list::x,md.block_list::y,bl.x,bl.y,0) )
 		return 1;
 
 	if(bl.type!=BL_PC && bl.type!=BL_MOB)
@@ -1175,10 +1168,10 @@ int mob_can_reach(struct mob_data &md,struct block_list &bl,int range)
 	// It judges whether it can adjoin or not.
 	dx=(dx>0)?1:((dx<0)?-1:0);
 	dy=(dy>0)?1:((dy<0)?-1:0);
-	if( wpd.path_search(md.block_list::m,md.block_list::x,md.block_list::y,bl.x-dx,bl.y-dy,0) )
+	if( walkpath_data::is_possible(md.block_list::m,md.block_list::x,md.block_list::y,bl.x-dx,bl.y-dy,0) )
 		return 1;
 	for(i=0;i<9;++i){
-		if( wpd.path_search(md.block_list::m,md.block_list::x,md.block_list::y,bl.x-1+i/3,bl.y-1+i%3,0) )
+		if( walkpath_data::is_possible(md.block_list::m,md.block_list::x,md.block_list::y,bl.x-1+i/3,bl.y-1+i%3,0) )
 			return 1;
 	}
 	return 0;
@@ -1288,7 +1281,7 @@ int mob_ai_sub_hard_activesearch(struct block_list &bl,va_list &ap)
 			{	// 妨害がないか判定
 
 
-				if( ((mob_db[smd->class_].range > 6) || mob_can_reach(*smd,bl,12)) && 	// 到達可能性判定
+				if( ((mob_db[smd->class_].range > 6) || smd->can_reach(bl,12)) && 	// 到達可能性判定
 					rand()%1000<1000/(++(*pcc)) )	// 範囲内PCで等確率にする
 				{
 					smd->target_id=tsd.block_list::id;
@@ -1303,7 +1296,7 @@ int mob_ai_sub_hard_activesearch(struct block_list &bl,va_list &ap)
 			if( tmd.block_list::m == smd->block_list::m &&
 				(dist=distance(smd->block_list::x,smd->block_list::y,tmd.block_list::x,tmd.block_list::y))<9 )
 			{
-				if( mob_can_reach(*smd,bl,12) && 		// 到達可能性判定
+				if( smd->can_reach(bl,12) && 		// 到達可能性判定
 					rand()%1000<1000/(++(*pcc)) )
 				{	// 範囲内で等確率にする
 					smd->target_id=bl.id;
@@ -1361,7 +1354,7 @@ public:
 				{	// 妨害がないか判定
 
 
-					if( ((mob_db[smd.class_].range > 6) || mob_can_reach(smd,bl,12)) && 	// 到達可能性判定
+					if( ((mob_db[smd.class_].range > 6) || smd.can_reach(bl,12)) && 	// 到達可能性判定
 						rand()%1000<1000/(++pcc) )	// 範囲内PCで等確率にする
 					{
 						smd.target_id=tsd.block_list::id;
@@ -1376,7 +1369,7 @@ public:
 				if( tmd.block_list::m == smd.block_list::m &&
 					(dist=distance(smd.block_list::x,smd.block_list::y,tmd.block_list::x,tmd.block_list::y))<9 )
 				{
-					if( mob_can_reach(smd,bl,12) && 		// 到達可能性判定
+					if( smd.can_reach(bl,12) && 		// 到達可能性判定
 						rand()%1000<1000/(++pcc) )
 					{	// 範囲内で等確率にする
 						smd.target_id=bl.id;
@@ -1413,7 +1406,7 @@ int mob_ai_sub_hard_lootsearch(struct block_list &bl,va_list &ap)
 		if(!md->lootitem || (battle_config.monster_loot_type == 1 && md->lootitem_count >= LOOTITEM_SIZE) )
 			return 0;
 		if(bl.m == md->block_list::m && (dist=distance(md->block_list::x,md->block_list::y,bl.x,bl.y))<9){
-			if( mob_can_reach(*md,bl,12) && 		// Reachability judging
+			if( md->can_reach(bl,12) && 		// Reachability judging
 				rand()%1000<1000/(++(*itc)) ){	// It is made a probability, such as within the limits PC.
 				md->target_id=bl.id;
 				md->state.targettype = NONE_ATTACKABLE;
@@ -1446,7 +1439,7 @@ public:
 				return 0;
 			if(bl.m == md.block_list::m && (dist=distance(md.block_list::x,md.block_list::y,bl.x,bl.y))<9)
 			{	// Reachability judging
-				if( mob_can_reach(md, bl, 12) && 		
+				if( md.can_reach(bl, 12) && 		
 					rand()%1000<1000/(++itc) )
 				{	// It is made a probability, such as within the limits PC.
 					md.target_id=bl.id;
@@ -1476,7 +1469,7 @@ int mob_ai_sub_hard_linksearch(struct block_list &bl,va_list &ap)
 
 	if( md->attacked_id > 0 && mob_db[md->class_].mode&0x08){
 		if (tmd.class_ == md->class_ && tmd.block_list::m == md->block_list::m && (!tmd.target_id || md->state.targettype == NONE_ATTACKABLE)){
-			if( mob_can_reach(tmd,*target,12) ){	// Reachability judging
+			if( tmd.can_reach(*target,12) ){	// Reachability judging
 				tmd.target_id = md->attacked_id;
 				md->attacked_count = 0;
 				tmd.state.targettype = ATTACKABLE;
@@ -1504,7 +1497,7 @@ public:
 		{
 			if( tmd.class_ == md.class_ && tmd.block_list::m == md.block_list::m && (!tmd.target_id || md.state.targettype == NONE_ATTACKABLE))
 			{
-				if( mob_can_reach(tmd,target,12) )
+				if( tmd.can_reach(target,12) )
 				{	// Reachability judging
 					tmd.target_id = md.attacked_id;
 					md.attacked_count = 0;
@@ -1812,7 +1805,7 @@ int mob_ai_sub_hard(struct block_list &bl,va_list &ap)
 			if (asd == NULL || md.block_list::m != abl->m || abl->prev == NULL ||
 				dist>= 32 ||
 				battle_check_target(&bl, abl, BCT_ENEMY) <= 0 ||
-				!mob_can_reach(md, *abl, dist) )
+				!md.can_reach(*abl, dist) )
 			{
 				md.attacked_id = 0;
 //				if (md.attacked_count++ > 3) 
@@ -1836,8 +1829,8 @@ int mob_ai_sub_hard(struct block_list &bl,va_list &ap)
 							//!! add something to enable
 							//!! the mob to flee away from the attacker
 							//!! possibly a new state together with additional transitions
-							md.to_x=md.block_list::x + dist * mask[dir][0];
-							md.to_y=md.block_list::y + dist * mask[dir][1];
+							md.walkpath.target.x=md.block_list::x + dist * mask[dir][0];
+							md.walkpath.target.y=md.block_list::y + dist * mask[dir][1];
 						}
 						md.attacked_count = 0;// move this away later
 					}
@@ -1955,12 +1948,12 @@ int mob_ai_sub_hard(struct block_list &bl,va_list &ap)
 					mobskill_use (md, tick, -1);
 					if (md.timer != -1 && md.state.state != MS_ATTACK &&
 						(DIFF_TICK (md.next_walktime, tick) < 0 ||
-						distance(md.to_x, md.to_y, tbl->x, tbl->y) < 2))
+						distance(md.walkpath.target.x, md.walkpath.target.y, tbl->x, tbl->y) < 2))
 					{
 						return 0; // 既に移動中
 					}
 					search_size = (blind_flag) ? 3 : ((md.min_chase>13) ? md.min_chase : 13);
-					if (!mob_can_reach(md, *tbl, search_size))
+					if (!md.can_reach(*tbl, search_size))
 						mob_unlocktarget(md,tick);	// 移動できないのでタゲ解除（IWとか？）
 					else
 					{	// 追跡
@@ -2032,7 +2025,7 @@ int mob_ai_sub_hard(struct block_list &bl,va_list &ap)
 					mobskill_use(md, tick, -1);
 					if( md.timer != -1 && md.state.state != MS_ATTACK &&
 						(DIFF_TICK(md.next_walktime,tick) < 0 ||
-						 distance(md.to_x, md.to_y, tbl->x, tbl->y) <= 0) )
+						 distance(md.walkpath.target.x, md.walkpath.target.y, tbl->x, tbl->y) <= 0) )
 					{
 						return 0; // 既に移動中
 					}
@@ -2187,7 +2180,7 @@ public:
 			if( !abl || md.block_list::m != abl->m || abl->prev == NULL ||
 				(dist = distance(md.block_list::x, md.block_list::y, abl->x, abl->y))>= 32 ||
 				battle_check_target(&bl, abl, BCT_ENEMY) <= 0 ||
-				!mob_can_reach(md, *abl, dist) )
+				!md.can_reach(*abl, dist) )
 			{
 				md.attacked_id = 0;
 				//if (md.attacked_count++ > 3) 
@@ -2211,8 +2204,8 @@ public:
 							//!! add something to enable
 							//!! the mob to flee away from the attacker
 							//!! possibly a new state together with additional transitions
-							md.to_x=md.block_list::x + dist * mask[dir][0];
-							md.to_y=md.block_list::y + dist * mask[dir][1];
+							md.walkpath.target.x=md.block_list::x + dist * mask[dir][0];
+							md.walkpath.target.y=md.block_list::y + dist * mask[dir][1];
 							// move as soon as possible
 							if( DIFF_TICK(md.canmove_tick,tick)>0 )
 								md.next_walktime = md.canmove_tick;
@@ -2332,12 +2325,12 @@ public:
 						mobskill_use (md, tick, -1);
 						if (md.timer != -1 && md.state.state != MS_ATTACK &&
 							(DIFF_TICK (md.next_walktime, tick) < 0 ||
-							distance(md.to_x, md.to_y, tbl->x, tbl->y) < 2))
+							distance(md.walkpath.target.x, md.walkpath.target.y, tbl->x, tbl->y) < 2))
 						{
 							return 0; // 既に移動中
 						}
 						search_size = (blind_flag) ? 3 : ((md.min_chase>13) ? md.min_chase : 13);
-						if (!mob_can_reach(md, *tbl, search_size))
+						if (!md.can_reach(*tbl, search_size))
 							mob_unlocktarget(md,tick);	// 移動できないのでタゲ解除（IWとか？）
 						else
 						{	// 追跡
@@ -2409,7 +2402,7 @@ public:
 						mobskill_use(md, tick, -1);
 						if( md.timer != -1 && md.state.state != MS_ATTACK &&
 							(DIFF_TICK(md.next_walktime,tick) < 0 ||
-							 distance(md.to_x, md.to_y, tbl->x, tbl->y) <= 0) )
+							 distance(md.walkpath.target.x, md.walkpath.target.y, tbl->x, tbl->y) <= 0) )
 						{
 							return 0; // 既に移動中
 						}
@@ -3418,9 +3411,9 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 				i_data = itemdb_exists(ditem->nameid);
 				size_t sz=1;
 				if (sd!=NULL && sd->status.name != NULL)
-					sz+=snprintf(buf, sizeof(buf), "'%s' won %s's %s (chance: %%%0.02f)", sd->status.name, mob_db[md.class_].jname, i_data->jname, (float)drop_rate/1000);
+					sz+=snprintf(buf, sizeof(buf), "'%s' won %s's %s (chance: %%%0.04f)", sd->status.name, mob_db[md.class_].jname, i_data->jname, (float)drop_rate/1000);
 				else
-					sz+=snprintf(buf, sizeof(buf), "GM won %s's %s (chance: %%%0.02f)", mob_db[md.class_].jname, i_data->jname, (float)drop_rate/1000);
+					sz+=snprintf(buf, sizeof(buf), "GM won %s's %s (chance: %%%0.04f)", mob_db[md.class_].jname, i_data->jname, (float)drop_rate/1000);
 				intif_GMmessage(buf,sz,0);
 			}
 		}
@@ -3810,8 +3803,8 @@ int mob_warp(struct mob_data &md,int m,int x,int y,int type)
 	}
 	md.dir=0;
 	if(i<1000){
-		md.block_list::x=md.to_x=x;
-		md.block_list::y=md.to_y=y;
+		md.block_list::x=md.walkpath.target.x=x;
+		md.block_list::y=md.walkpath.target.y=y;
 		md.block_list::m=m;
 	}else {
 		m=md.block_list::m;

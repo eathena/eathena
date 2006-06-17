@@ -254,6 +254,7 @@ bool is_same_direction(dir_t s_dir, dir_t t_dir);
 // but not urgend
 
 
+///////////////////////////////////////////////////////////////////////////////
 /// 2 dimentional coordinate.
 struct coordinate
 {
@@ -288,12 +289,12 @@ struct coordinate
 	}
 
 	/// coordinate distance
-	friend inline int distance(coordinate &c1, coordinate &c2)
+	friend inline int distance(const coordinate &c1, const coordinate &c2)
 	{
 		return distance(c1.x,c1.y,c2.x,c2.y);
 	}
 	/// coordinate direction
-	friend inline dir_t direction(coordinate &c1, coordinate &c2)
+	friend inline dir_t direction(const coordinate &c1, const coordinate &c2)
 	{
 		return direction(c1.x,c1.y,c2.x,c2.y);
 	}
@@ -301,6 +302,7 @@ struct coordinate
 
 
 ///////////////////////////////////////////////////////////////////////////////
+/// object on a map
 struct block_list : public coordinate
 {
 	unsigned short m;
@@ -403,41 +405,77 @@ struct block_list : public coordinate
 };
 
 
+
 ///////////////////////////////////////////////////////////////////////////////
-// currently unused, 
-// needs splitup to movable/fightable and 
-// using class hierarchy instead of pointer linkage
-struct unit_data
+/// moving object on a map
+struct movable : public block_list
 {
-	struct block_list *bl;
-	int walktimer;
 	struct walkpath_data walkpath;
-	unsigned short to_x;
-	unsigned short to_y;
-	unsigned short skillx;
-	unsigned short skilly;
-	unsigned short skillid;
-	unsigned short skilllv;
-	uint32   skilltarget;
-	int   skilltimer;
-	struct linkdb_node *skilltimerskill;
-	struct linkdb_node *skillunit;
-	struct linkdb_node *skilltickset;
-	int   attacktimer;
-	int   attacktarget;
-	short attacktarget_lv;
-	unsigned long attackabletime;
-	unsigned long canact_tick;
 	unsigned long canmove_tick;
-	struct
+	int walktimer;
+
+	movable() : 
+		canmove_tick(0),
+		walktimer(-1)
+	{}
+
+	/// check for reachability, but don't build a path
+	bool can_reach(unsigned short x, unsigned short y) const
 	{
-		unsigned change_walk_target : 1 ;
-		unsigned skillcastcancel : 1 ;
-		unsigned attack_continue : 1 ;
-	} state;
-	struct linkdb_node *statuspretimer;
+		if( this->block_list::x==x && this->block_list::y==y )
+			return true;
+
+		return walkpath_data::is_possible(this->block_list::m,this->block_list::x,this->block_list::y, x, y, 0);
+	}
+	/// check for reachability, but don't build a path
+	bool can_reach(const coordinate& c) const
+	{
+		return this->can_reach(c.x, c.y);
+	}
+
+	/// check for reachability with limiting range, but don't build a path
+	bool can_reach(const struct block_list &bl, size_t range=0) const
+	{
+
+		if( this->block_list::m == bl.m &&
+			(range==0 || distance(*this,bl) <= (int)range) )
+		{
+
+			if( this->block_list::x==bl.x && 
+				this->block_list::y==bl.y )
+				return true;
+
+			// Obstacle judging
+			if( walkpath_data::is_possible(this->block_list::m, this->block_list::x, this->block_list::y, bl.x, bl.y, 0) )
+				return true;
+
+		//////////////
+		// possibly unnecessary since when the itself block is not reachable
+		// also the surrounding is not reachable
+			
+			// check the surrounding
+			const static char dirx[8] = { 0, 1, 1, 1, 0,-1,-1,-1};
+			const static char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
+
+			// get the start direction
+			const dir_t d = bl.get_direction(*this);
+
+			int i;
+			for(i=0; i<8; ++i)
+			{	// check all eight surrounding cells by going clockwise beginning with the start direction
+				if( walkpath_data::is_possible(this->block_list::m, this->block_list::x, this->block_list::y, bl.x+dirx[(d+i)&0x7], bl.y+diry[(d+i)&0x7], 0) )
+					return true;
+			}
+		//////////////
+		}
+		return false;
+	}
 
 };
+
+
+
+
 
 
 
@@ -645,11 +683,10 @@ struct skill_timerskill
 };
 
 
-struct map_session_data : public block_list, public session_data
+struct map_session_data : public movable, public session_data
 {
 	struct {
 		unsigned auth : 1;							// 0
-		unsigned change_walk_target : 1;			// 1
 		unsigned attack_continue : 1;				// 2
 		unsigned monster_ignore :1;					// 3
 		unsigned dead_sit : 2;						// 4, 5
@@ -715,8 +752,6 @@ struct map_session_data : public block_list, public session_data
 	unsigned short cart_max_num;
 	char mapname[24];
 	int fd;
-	unsigned short to_x;
-	unsigned short to_y;
 	unsigned short speed;
 	short opt1;
 	short opt2;
@@ -724,8 +759,6 @@ struct map_session_data : public block_list, public session_data
 	unsigned char dir;
 	unsigned char head_dir;
 	uint32 client_tick;
-	struct walkpath_data walkpath;
-	int walktimer;
 
 	uint32 areanpc_id;
 	uint32 npc_shopid;
@@ -774,7 +807,6 @@ struct map_session_data : public block_list, public session_data
 
 	int invincible_timer;
 	unsigned long canact_tick;
-	unsigned long canmove_tick;
 	unsigned long canlog_tick;
 	unsigned long canregen_tick;
 	uint32 hp_sub;
@@ -1146,7 +1178,7 @@ struct npc_reference
 		refcnt(0)
 	{}
 };
-struct npc_data : public block_list
+struct npc_data : public movable
 {
 	short n;
 	short class_;
@@ -1160,17 +1192,10 @@ struct npc_data : public block_list
 	short opt3;
 	short option;
 	short flag;
-	int walktimer; // [Valaris]
-	short to_x;
-	short to_y; // [Valaris]
-	struct walkpath_data walkpath;
 	unsigned long next_walktime;
-	unsigned long canmove_tick;
 
 	struct { // [Valaris]
 		unsigned npcstate : 8;
-		unsigned change_walk_target : 1;
-		unsigned walk_easy : 1;
 	} state;
 
 
@@ -1205,8 +1230,7 @@ struct npc_data : public block_list
 
 
 	// can have an empty constructor here since it is cleared at allocation
-	npc_data() : 
-		walktimer(-1)
+	npc_data()
 	{} 
 
 private:
@@ -1355,7 +1379,7 @@ struct mob_list
 
 };
 
-struct mob_data : public block_list
+struct mob_data : public movable
 {
 	unsigned short base_class;
 	unsigned short class_;
@@ -1375,8 +1399,6 @@ struct mob_data : public block_list
 		unsigned steal_coin_flag : 1;
 		unsigned skillcastcancel : 1;
 		unsigned master_check : 1;
-		unsigned change_walk_target : 1;
-		unsigned walk_easy : 1;
 		unsigned soul_change_flag : 1;			//b3
 		unsigned special_mob_ai : 2;			//	takes values 0,1,2,3
 		unsigned is_master : 1;					//	set if mob is a master with spawns
@@ -1393,8 +1415,6 @@ struct mob_data : public block_list
 			steal_coin_flag(0),
 			skillcastcancel(0),
 			master_check(0),
-			change_walk_target(0),
-			walk_easy(0),
 			soul_change_flag(0),
 			special_mob_ai(0),
 			is_master(0),
@@ -1408,8 +1428,6 @@ struct mob_data : public block_list
 	long hp;
 	long max_hp;
 
-	unsigned short to_x;
-	unsigned short to_y;
 
 	unsigned short level;
 	unsigned short attacked_count;
@@ -1419,14 +1437,12 @@ struct mob_data : public block_list
 	uint32 provoke_id; // Celest
 	uint32 target_id;
 	uint32 attacked_id;
-	struct walkpath_data walkpath;
 
 	unsigned long next_walktime;
 	unsigned long attackabletime;
 	unsigned long last_deadtime;
 	unsigned long last_spawntime;
 	unsigned long last_thinktime;
-	unsigned long canmove_tick;
 	
 	struct mob_damage
 	{
@@ -1485,8 +1501,6 @@ struct mob_data : public block_list
 		timer(-1),
 		hp(0),
 		max_hp(0),
-		to_x(0),
-		to_y(0),
 		level(0),
 		attacked_count(0),
 		target_dir(0),
@@ -1499,7 +1513,6 @@ struct mob_data : public block_list
 		last_deadtime(0),
 		last_spawntime(0),
 		last_thinktime(0),
-		canmove_tick(0),
 		lootitem(NULL),
 		move_fail_count(0),
 		lootitem_count(0),
@@ -1537,14 +1550,13 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-struct pet_data : public block_list
+struct pet_data : public movable
 {
 	const char *namep;
 	struct _state
 	{
 		unsigned state : 8 ;
 		unsigned skillstate : 8 ;
-		unsigned change_walk_target : 1 ;
 		
 		unsigned casting_flag : 1; //Skotlex: Used to identify when we are casting. I want a state.state value for that....
 
@@ -1552,7 +1564,6 @@ struct pet_data : public block_list
 		_state() : 
 			state(0),
 			skillstate(0),
-			change_walk_target(0),
 			casting_flag(0),
 			skillbonus(0)
 		{}
@@ -1567,10 +1578,7 @@ struct pet_data : public block_list
 
 	uint32 target_id;
 	unsigned short target_lv;
-	unsigned short to_x;
-	unsigned short to_y;
 	short rate_fix;	//Support rate as modified by intimacy (1000 = 100%) [Skotlex]
-	struct walkpath_data walkpath;
 	uint32 move_fail_count;
 	unsigned long attackabletime;
 	unsigned long next_walktime;
@@ -1691,8 +1699,6 @@ struct pet_data : public block_list
 		equip_id(0),
 		target_id(0),
 		target_lv(0),
-		to_x(0),
-		to_y(0),
 		rate_fix(0),
 		move_fail_count(0),
 		attackabletime(0),
@@ -1719,10 +1725,43 @@ private:
 
 
 
+/*
+///////////////////////////////////////////////////////////////////////////////
+// currently unused, 
+// needs splitup to movable/fightable and 
+// using class hierarchy instead of pointer linkage
+struct unit_data : public movable
+{
+	struct block_list *bl;
+
+	unsigned short skillx;
+	unsigned short skilly;
+	unsigned short skillid;
+	unsigned short skilllv;
+	uint32   skilltarget;
+	int   skilltimer;
+	struct linkdb_node *skilltimerskill;
+	struct linkdb_node *skillunit;
+	struct linkdb_node *skilltickset;
+	int   attacktimer;
+	int   attacktarget;
+	short attacktarget_lv;
+	unsigned long attackabletime;
+	unsigned long canact_tick;
+	struct
+	{
+		unsigned skillcastcancel : 1 ;
+		unsigned attack_continue : 1 ;
+	} state;
+	struct linkdb_node *statuspretimer;
+
+};
+*/
+
 class homun_data : public block_list
 {
 public:
-	struct unit_data ud;
+//	struct unit_data ud;
 	struct homunstatus status;
 	struct
 	{

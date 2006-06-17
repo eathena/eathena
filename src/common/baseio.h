@@ -162,6 +162,7 @@ class CCharDBInterface : public basics::noncopyable, public basics::global
 {
 protected:
 	///////////////////////////////////////////////////////////////////////////
+	static basics::CParam<bool>				char_new;	
 	static basics::CParam<bool>				name_ignore_case;
 	static basics::CParam<basics::charset>	name_letters;
 	static basics::CParam<uint32>			start_zeny;
@@ -176,6 +177,7 @@ public:
 	CCharDBInterface()			{}
 	virtual ~CCharDBInterface()	{}
 
+	bool testChar(const CCharAccount& account, char *name, const unsigned char str, const unsigned char agi, const unsigned char vit, const unsigned char int_, const unsigned char dex, const unsigned char luk, const unsigned char slot, const unsigned char hair_style, const unsigned char hair_color);
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// access interface

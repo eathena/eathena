@@ -4,7 +4,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 /// missing wchar time defines (ie. cygwin)
-#if !defined(_WTIME_DEFINED)
+#if defined(__CYGWIN__) && !defined(_WTIME_DEFINED)
 
 #ifdef __GNUC__ 
 // message convention for gnu compilers

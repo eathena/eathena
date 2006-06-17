@@ -630,7 +630,6 @@ protected:
 	virtual void do_removeChar(const CCharCharacter& data)	{ ++this->savecount; }
 
 	basics::CParam< basics::string<> > char_txt;
-	basics::CParam< basics::string<> > backup_txt;
 	basics::CParam< basics::string<> > friends_txt;
 	size_t savecount;
 	basics::simple_database				cMailDB;

@@ -670,6 +670,131 @@ bool walkpath_data::path_search(unsigned short m,int x0,int y0,int x1,int y1,int
 	return false;
 }
 
+/// same as pathsearch but does not fill the path structure
+bool walkpath_data::is_possible(unsigned short m,int x0,int y0,int x1,int y1,int flag)
+{
+	int x,y;
+
+	if(m > MAX_MAP_PER_SERVER || !maps[m].gat)
+		return false;
+
+	if( x1<0 || x1>=maps[m].xs || y1<0 || y1>=maps[m].ys || 
+		!can_place(maps[m],x0,y0,flag) || !can_place(maps[m],x1,y1,flag) )
+		return false;
+
+	// check if going straight is possible
+
+	const int dx = (x1<x0) ? -1 : 1;
+	const int dy = (y1<y0) ? -1 : 1;
+	for(x=x0,y=y0; ; )
+	{
+		
+		if(x==x1 && y==y1)
+		{	//reached the aim
+			return true;
+		}
+		else
+		{
+			if(x!=x1 && y!=y1)
+			{	// diagonal
+				// target must be valid and either one of the diagonal neighbours
+				if( !can_place(maps[m],x+dx,y+dy,flag) || 
+					(!can_place(maps[m],x,y+dy,flag) && !can_place(maps[m],x+dx,y,flag)) )
+					break;
+				x+=dx;
+				y+=dy;
+			}
+			else if(x!=x1)
+			{	// orthogonal x
+				if(!can_place(maps[m],x+dx,y   ,flag))
+					break;
+				x+=dx;
+			}
+			else if(y!=y1)
+			{	// orthogonal y
+				if(!can_place(maps[m],x    ,y+dy,flag))
+					break;
+				y+=dy;
+			}
+		}
+	}
+
+	if(flag&1)
+		return false;
+
+
+	// real path search
+	// doing a A* algorithm with simple heuristic
+	// using a binary heap as node queue
+	int heap[MAX_HEAP+1];
+	struct tmp_path tp[MAX_WALKPATH*MAX_WALKPATH];
+	size_t i;
+	int rp;
+
+	//memset(tp,0,sizeof(tp));
+
+	// build starting point
+	i=calc_index(x0,y0);
+	tp[i].x=x0;
+	tp[i].y=y0;
+	tp[i].dist=0;
+	tp[i].dir=0;
+	tp[i].before=0;
+	tp[i].cost=calc_cost(tp[i],x1,y1);
+	tp[i].flag=0;
+	heap[0]=0;
+	push_heap_path(heap,tp,calc_index(x0,y0));
+
+
+	// have a randomizer to randomly seperate path of same costs
+	// a real tie breaker in the cost function would be better 
+	// but the current number scales don't allow this, and I don't want to rescale
+	const unsigned long randomizer = (rand()<<16) | rand();
+
+	while(1)
+	{
+		int e=0;
+
+		// fail when nothing on the heap
+		if(heap[0]==0)
+			return false;
+
+		// get the element with the lowest cost
+		rp=pop_heap_path(heap,tp);
+
+		x=tp[rp].x;
+		y=tp[rp].y;
+		if(x==x1 && y==y1)
+		{	// reached the destination, therefore found a path
+			return true;
+		}
+		// cut out a single bit of the randomizer depending on current x/y
+		const int randbit = 0x1 & (randomizer>>((x*y)&0x1F)); 
+
+		// check surounding in order N, NW, W, SW, S, SE, E, NE and add it to the heap
+		// have weight 10 for orthogonals, and 14 for diagonals (should be 10*sqr(2) but 14 is good enough)
+		if(can_move(maps[m],x,y,x  ,y+1,flag)) e+=add_path(heap,tp,x  ,y+1,tp[rp].dist+10+randbit,0,rp,x1,y1);
+		if(can_move(maps[m],x,y,x-1,y+1,flag)) e+=add_path(heap,tp,x-1,y+1,tp[rp].dist+14+randbit,1,rp,x1,y1);
+		if(can_move(maps[m],x,y,x-1,y  ,flag)) e+=add_path(heap,tp,x-1,y  ,tp[rp].dist+10+randbit,2,rp,x1,y1);
+		if(can_move(maps[m],x,y,x-1,y-1,flag)) e+=add_path(heap,tp,x-1,y-1,tp[rp].dist+14+randbit,3,rp,x1,y1);
+		if(can_move(maps[m],x,y,x  ,y-1,flag)) e+=add_path(heap,tp,x  ,y-1,tp[rp].dist+10+randbit,4,rp,x1,y1);
+		if(can_move(maps[m],x,y,x+1,y-1,flag)) e+=add_path(heap,tp,x+1,y-1,tp[rp].dist+14+randbit,5,rp,x1,y1);
+		if(can_move(maps[m],x,y,x+1,y  ,flag)) e+=add_path(heap,tp,x+1,y  ,tp[rp].dist+10+randbit,6,rp,x1,y1);
+		if(can_move(maps[m],x,y,x+1,y+1,flag)) e+=add_path(heap,tp,x+1,y+1,tp[rp].dist+14+randbit,7,rp,x1,y1);
+
+		// set the node as handled
+		tp[rp].flag=1;
+
+		// break when error or heap almost full 
+		// but no idea why it's limited to 5 below max heapsize
+		// it instead could overwrite the node which is most unlikely to be on the sortest path
+		if(e || heap[0]>=MAX_HEAP-5)
+			return false;
+	}
+	// return failure
+	return false;
+}
+
 #ifdef PATH_STANDALONETEST
 
 char gat[64][64]={
@@ -693,28 +818,28 @@ void main(int argc,char *argv[])
 	maps[0].xs=64;
 	maps[0].ys=64;
 
-	wpd.path_search(0,3,4,5,4);
-	wpd.path_search(0,5,4,3,4);
-	wpd.path_search(0,6,4,3,4);
-	wpd.path_search(0,7,4,3,4);
-	wpd.path_search(0,4,3,4,5);
-	wpd.path_search(0,4,2,4,5);
-	wpd.path_search(0,4,1,4,5);
-	wpd.path_search(0,4,5,4,3);
-	wpd.path_search(0,4,6,4,3);
-	wpd.path_search(0,4,7,4,3);
-	wpd.path_search(0,7,4,3,4);
-	wpd.path_search(0,8,4,3,4);
-	wpd.path_search(0,9,4,3,4);
-	wpd.path_search(0,10,4,3,4);
-	wpd.path_search(0,11,4,3,4);
-	wpd.path_search(0,12,4,3,4);
-	wpd.path_search(0,13,4,3,4);
-	wpd.path_search(0,14,4,3,4);
-	wpd.path_search(0,15,4,3,4);
-	wpd.path_search(0,16,4,3,4);
-	wpd.path_search(0,17,4,3,4);
-	wpd.path_search(0,18,4,3,4);
+	wpd.path_search(0,3,4,5,4,0);
+	wpd.path_search(0,5,4,3,4,0);
+	wpd.path_search(0,6,4,3,4,0);
+	wpd.path_search(0,7,4,3,4,0);
+	wpd.path_search(0,4,3,4,5,0);
+	wpd.path_search(0,4,2,4,5,0);
+	wpd.path_search(0,4,1,4,5,0);
+	wpd.path_search(0,4,5,4,3,0);
+	wpd.path_search(0,4,6,4,3,0);
+	wpd.path_search(0,4,7,4,3,0);
+	wpd.path_search(0,7,4,3,4,0);
+	wpd.path_search(0,8,4,3,4,0);
+	wpd.path_search(0,9,4,3,4,0);
+	wpd.path_search(0,10,4,3,4,0);
+	wpd.path_search(0,11,4,3,4,0);
+	wpd.path_search(0,12,4,3,4,0);
+	wpd.path_search(0,13,4,3,4,0);
+	wpd.path_search(0,14,4,3,4,0);
+	wpd.path_search(0,15,4,3,4,0);
+	wpd.path_search(0,16,4,3,4,0);
+	wpd.path_search(0,17,4,3,4,0);
+	wpd.path_search(0,18,4,3,4,0);
 }
 #endif
 

@@ -1286,7 +1286,7 @@ int clif_set007b(struct map_session_data &sd,unsigned char *buf)
 	WBUFW(buf,46)=sd.status.manner;
 	WBUFB(buf,48)=sd.status.karma;
 	WBUFB(buf,49)=sd.sex;
-	WBUFPOS2(buf,50,sd.block_list::x,sd.block_list::y,sd.to_x,sd.to_y);
+	WBUFPOS2(buf,50,sd.block_list::x,sd.block_list::y,sd.walkpath.target.x,sd.walkpath.target.y);
 	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
@@ -1336,7 +1336,7 @@ int clif_set007b(struct map_session_data &sd,unsigned char *buf)
 	WBUFW(buf,46)=sd.opt3;
 	WBUFB(buf,48)=sd.status.karma;
 	WBUFB(buf,49)=sd.status.sex;
-	WBUFPOS2(buf,50,sd.block_list::x,sd.block_list::y,sd.to_x,sd.to_y);
+	WBUFPOS2(buf,50,sd.block_list::x,sd.block_list::y,sd.walkpath.target.x,sd.walkpath.target.y);
 	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
@@ -1360,7 +1360,7 @@ int clif_dis007b(struct map_session_data &sd,unsigned char *buf)
 	WBUFL(buf,22)=gettick();
 	//WBUFL(buf,38)=sd.status.guild_id;
 	//WBUFL(buf,42)=sd.guild_emblem_id;
-	WBUFPOS2(buf,50,sd.block_list::x,sd.block_list::y,sd.to_x,sd.to_y);
+	WBUFPOS2(buf,50,sd.block_list::x,sd.block_list::y,sd.walkpath.target.x,sd.walkpath.target.y);
 	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
@@ -1536,7 +1536,7 @@ int clif_mob007b(struct mob_data &md, unsigned char *buf)
 		WBUFW(buf,46)=md.opt3;
 		WBUFB(buf,48)=0; // karma
 		WBUFB(buf,49)=mob_get_sex(md.class_);
-		WBUFPOS2(buf,50,md.block_list::x,md.block_list::y,md.to_x,md.to_y);
+		WBUFPOS2(buf,50,md.block_list::x,md.block_list::y,md.walkpath.target.x,md.walkpath.target.y);
 		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 		WBUFB(buf,56)=5;
 		WBUFB(buf,57)=5;
@@ -1572,7 +1572,7 @@ int clif_mob007b(struct mob_data &md, unsigned char *buf)
 			}
 		} // End addition
 
-		WBUFPOS2(buf,50,md.block_list::x,md.block_list::y,md.to_x,md.to_y);
+		WBUFPOS2(buf,50,md.block_list::x,md.block_list::y,md.walkpath.target.x,md.walkpath.target.y);
 		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 		WBUFB(buf,56)=5;
 		WBUFB(buf,57)=5;
@@ -1625,7 +1625,7 @@ int clif_npc007b(struct npc_data &nd, unsigned char *buf)
 	}
 
 	WBUFL(buf,22)=gettick();
-	WBUFPOS2(buf,50,nd.block_list::x,nd.block_list::y,nd.to_x,nd.to_y);
+	WBUFPOS2(buf,50,nd.block_list::x,nd.block_list::y,nd.walkpath.target.x,nd.walkpath.target.y);
 	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
@@ -1741,7 +1741,7 @@ int clif_pet007b(struct pet_data &pd, unsigned char *buf)
 		WBUFW(buf,46)=0; // opt3
 		WBUFB(buf,48)=0; // karma
 		WBUFB(buf,49)=mob_get_sex(pd.class_);
-		WBUFPOS2(buf,50,pd.block_list::x,pd.block_list::y,pd.to_x,pd.to_y);
+		WBUFPOS2(buf,50,pd.block_list::x,pd.block_list::y,pd.walkpath.target.x,pd.walkpath.target.y);
 		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 		WBUFB(buf,56)=0;
 		WBUFB(buf,57)=0;
@@ -1764,7 +1764,7 @@ int clif_pet007b(struct pet_data &pd, unsigned char *buf)
 			WBUFW(buf,20)=pd.equip_id;
 		WBUFL(buf,22)=gettick();
 
-		WBUFPOS2(buf,50,pd.block_list::x,pd.block_list::y,pd.to_x,pd.to_y);
+		WBUFPOS2(buf,50,pd.block_list::x,pd.block_list::y,pd.walkpath.target.x,pd.walkpath.target.y);
 		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 		WBUFB(buf,56)=0;
 		WBUFB(buf,57)=0;
@@ -2178,7 +2178,7 @@ int clif_walkok(struct map_session_data &sd)
 
 	WFIFOW(fd,0)=0x87;
 	WFIFOL(fd,2)=gettick();
-	WFIFOPOS2(fd,6,sd.block_list::x,sd.block_list::y,sd.to_x,sd.to_y);
+	WFIFOPOS2(fd,6,sd.block_list::x,sd.block_list::y,sd.walkpath.target.x,sd.walkpath.target.y);
 	WFIFOB(fd,11)=0x88;
 	WFIFOSET(fd,packet_len_table[0x87]);
 
@@ -2217,7 +2217,7 @@ int clif_movechar(struct map_session_data &sd)
 		WBUFW(buf2,12)=OPTION_HIDE;
 		WBUFW(buf2,14)=100;
 		WBUFL(buf2,22)=gettick();
-		WBUFPOS2(buf2,50,sd.block_list::x,sd.block_list::y,sd.to_x,sd.to_y);
+		WBUFPOS2(buf2,50,sd.block_list::x,sd.block_list::y,sd.walkpath.target.x,sd.walkpath.target.y);
 		WBUFB(buf2,56)=5;
 		WBUFB(buf2,57)=5;
 		clif_send(buf2, len, &sd, SELF);

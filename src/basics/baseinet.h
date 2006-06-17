@@ -251,6 +251,8 @@ public:
 	static bool str2ip(const char* str, ipaddress &addr, ipaddress &mask, ushort &port);
 };
 
+// predeclaration necessary for gcc4
+class ipset;	
 ///////////////////////////////////////////////////////////////////////////////
 /// class for a network address. (compound of an ip address and a port number)
 ///////////////////////////////////////////////////////////////////////////////

@@ -126,6 +126,7 @@ CAccountDBInterface* CAccountDB::getDB(const char *dbcfgfile)
 }
 
 
+basics::CParam<bool>				CCharDBInterface::char_new("char_new", false);
 basics::CParam<bool>				CCharDBInterface::name_ignore_case("name_ignore_case", false);
 basics::CParam<basics::charset>		CCharDBInterface::name_letters("name_letters", basics::charset("a-zA-Z0-9 ,."));
 basics::CParam<uint32>				CCharDBInterface::start_zeny("start_zeny", 500);
@@ -133,6 +134,53 @@ basics::CParam<ushort>				CCharDBInterface::start_weapon("start_weapon", 1201);
 basics::CParam<ushort>				CCharDBInterface::start_armor("start_armor", 2301);
 basics::CParam<struct point>		CCharDBInterface::start_point("start_point", point("new_1-1,53,111"));
 CFameList							CCharDBInterface::famelists[4]; // order: pk, smith, chem, teak
+
+
+bool CCharDBInterface::testChar(const CCharAccount& account, char *name, const unsigned char str, const unsigned char agi, const unsigned char vit, const unsigned char int_, const unsigned char dex, const unsigned char luk, const unsigned char slot, const unsigned char hair_style, const unsigned char hair_color)
+{
+	if( !char_new() )
+	{	// just ignore here, no error message
+	}
+	// ensure string termination
+	else if( (name[23]=0), remove_control_chars(name) )
+	{
+		ShowError("Make new char error (control char received in the name): (account: %d).\n", account.account_id);
+	}
+	// check lenght of character name
+	else if( basics::itrim(name), (strlen(name) < 4) )
+	{
+		ShowError("Make new char error (character name too small): (account: %d, name: '%s').\n",account.account_id, name);
+	}
+	// Check Authorised letters/symbols in the name of the character
+	else if( this->name_letters() != name )
+	{
+		ShowError("Make new char error (invalid letter in the name): (account: %d), name: %s.\n", account.account_id, name);
+	}
+	//check stat error
+	else if( (str + agi + vit + int_ + dex + luk !=6*5 ) || // stats
+			 (slot >= 9) || // slots must not be over 9
+			 (hair_style <= 0) || (hair_style >= 24) || // hair style
+			 (hair_color >= 9) ||					   // Hair color?
+			 // Check stats pairs and make sure they are balanced
+			 ((str + int_) > 10) || // str + int pairs check
+			 ((agi + luk ) > 10) || // agi + luk pairs check
+			 ((vit + dex ) > 10) || // vit + dex pairs check
+			 // Check individual stats
+			 (str < 1 || str > 9) ||
+			 (agi < 1 || agi > 9) ||
+			 (vit < 1 || vit > 9) ||
+			 (int_< 1 || int_> 9) ||
+			 (dex < 1 || dex > 9) ||
+			 (luk < 1 || luk > 9) )
+	{
+		ShowError("Make new char error (stats error, bot cheat) (aid: %d)\n", account.account_id);
+	}
+	else
+		return true;
+
+	return false;
+}
+
 
 CCharDBInterface* CCharDB::getDB(const char *dbcfgfile)
 {

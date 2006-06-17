@@ -3208,8 +3208,8 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 
 	if(m == sd.block_list::m)
 	{	// 同じマップなのでダンスユニット引き継ぎ
-		sd.to_x = x;
-		sd.to_y = y;
+		sd.walkpath.target.x = x;
+		sd.walkpath.target.y = y;
 		skill_stop_dancing(&sd, 2); //移動先にユニットを移動するかどうかの判断もする
 	}
 	else
@@ -3264,8 +3264,8 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 	if(sd.status.pet_id > 0 && sd.pd && sd.pet.intimate > 0)
 	{
 		sd.pd->block_list::m = m;
-		sd.pd->block_list::x = sd.pd->to_x = x;
-		sd.pd->block_list::y = sd.pd->to_y = y;
+		sd.pd->block_list::x = sd.pd->walkpath.target.x = x;
+		sd.pd->block_list::y = sd.pd->walkpath.target.y = y;
 		sd.pd->dir  = sd.dir;
 	}
 
@@ -3353,23 +3353,6 @@ int pc_memo(struct map_session_data &sd, int i)
 	return 1;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
-bool pc_can_reach(struct map_session_data &sd, unsigned short x,unsigned short y)
-{
-	struct walkpath_data wpd;
-
-	if( sd.block_list::x==x && sd.block_list::y==y )	// 同じマス
-		return true;
-
-	// 障害物判定
-	wpd.path_len=0;
-	wpd.path_pos=0;
-	wpd.path_half=0;
-	return wpd.path_search(sd.block_list::m,sd.block_list::x,sd.block_list::y,x,y,0);
-}
 
 //
 // ? 行物
@@ -3419,7 +3402,7 @@ int pc_walk(int tid, unsigned long tick, int id, basics::numptr data)
 	sd->walkpath.path_half ^= 1;
 	if (sd->walkpath.path_half == 0) { // マス目中心へ途
 		sd->walkpath.path_pos++;
-		if (sd->state.change_walk_target) {
+		if (sd->walkpath.change_walk_target) {
 			pc_walktoxy_sub(*sd);
 			return 0;
 		}
@@ -3542,12 +3525,12 @@ int pc_walktoxy_sub (struct map_session_data &sd)
 	struct walkpath_data wpd;
 	int i;
 
-	if( !wpd.path_search(sd.block_list::m,sd.block_list::x,sd.block_list::y,sd.to_x,sd.to_y,0) )
+	if( !wpd.path_search(sd.block_list::m,sd.block_list::x,sd.block_list::y,sd.walkpath.target.x,sd.walkpath.target.y,0) )
 		return 1;
 
 	sd.walkpath = wpd;
 	clif_walkok(sd);
-	sd.state.change_walk_target = 0;
+	sd.walkpath.change_walk_target = 0;
 	if ((i = calc_next_walk_step(sd)) > 0)
 	{
 		i = i >> 2;
@@ -3569,17 +3552,17 @@ int pc_walktoxy_sub (struct map_session_data &sd)
  */
 int pc_walktoxy (struct map_session_data &sd, unsigned short x,unsigned short y)
 {
-	sd.to_x = x;
-	sd.to_y = y;
+	sd.walkpath.target.x = x;
+	sd.walkpath.target.y = y;
 	sd.idletime = last_tick;
 
 	if( sd.sc_data[SC_CONFUSION].timer != -1 ) //Randomize the target position
-		sd.random_position(sd.to_x, sd.to_y);
+		sd.random_position(sd.walkpath.target.x, sd.walkpath.target.y);
 
-	if( sd.walktimer != -1 && sd.state.change_walk_target == 0)
+	if( sd.walktimer != -1 && sd.walkpath.change_walk_target == 0)
 	{	// 現在?いている最中の目的地?更なのでマス目の中心に?た暫ﾉ
 		// timer??からpc_walktoxy_subを呼ぶようにする
-		sd.state.change_walk_target = 1;
+		sd.walkpath.change_walk_target = 1;
 	}
 	else
 	{
@@ -3630,8 +3613,8 @@ int pc_stop_walking (struct map_session_data &sd, int type)
 		sd.walktimer = -1;
 	}
 	sd.walkpath.path_len = 0;
-	sd.to_x = sd.block_list::x;
-	sd.to_y = sd.block_list::y;
+	sd.walkpath.target.x = sd.block_list::x;
+	sd.walkpath.target.y = sd.block_list::y;
 	if (type & 0x01)
 		clif_fixpos(sd);
 	if (type & 0x02 && battle_config.pc_damage_delay)
@@ -3655,9 +3638,8 @@ int pc_movepos(struct map_session_data &sd, unsigned short x,unsigned short y)
 	int moveblock;
 	int dx,dy;
 	unsigned long tick = gettick();
-	struct walkpath_data wpd;
 
-	if( !wpd.path_search(sd.block_list::m,sd.block_list::x,sd.block_list::y,x,y,0) )
+	if( !walkpath_data::is_possible(sd.block_list::m,sd.block_list::x,sd.block_list::y,x,y,0) )
 		return 1;
 
 	sd.dir = sd.head_dir = sd.get_direction(x,y);
@@ -3977,13 +3959,13 @@ int pc_attack_timer(int tid, unsigned long tick, int id, basics::numptr data)
 	range = sd->attackrange;
 	if(sd->status.weapon != 11) range++;
 	if( dist > range ){	// ? かないので移動
-		if(pc_can_reach(*sd,bl->x,bl->y))
+		if( sd->can_reach(bl->x,bl->y) )
 			clif_movetoattack(*sd,*bl);
 		return 0;
 	}
 
 	if(dist <= range && !battle_check_range(sd,bl,range) ) {
-		if(pc_can_reach(*sd,bl->x,bl->y) && DIFF_TICK(sd->canmove_tick,tick)<0 && (sd->sc_data[SC_ANKLE].timer == -1 || sd->sc_data[SC_SPIDERWEB].timer == -1))
+		if( sd->can_reach(bl->x,bl->y) && DIFF_TICK(sd->canmove_tick,tick)<0 && (sd->sc_data[SC_ANKLE].timer == -1 || sd->sc_data[SC_SPIDERWEB].timer == -1))
 			pc_walktoxy(*sd,bl->x,bl->y);
 		sd->attackabletime = tick + (sd->aspd<<1);
 	}
@@ -4109,7 +4091,7 @@ int pc_follow_timer(int tid, unsigned long tick, int id, basics::numptr data)
 
 		if( sd->skilltimer == -1 && sd->attacktimer == -1 && sd->walktimer == -1 && sd->block_list::m == bl->m)
 		{
-			if( pc_can_reach(*sd,bl->x,bl->y) )
+			if( sd->can_reach(bl->x,bl->y) )
 			{
 				if( distance(*sd, *bl) > 5 )
 					pc_walktoxy(*sd,bl->x,bl->y);

@@ -44,10 +44,7 @@ bool char_exist(const char* name);
 
 int char_log(char *fmt, ...);
 
-//extern int autosave_interval;
-extern char db_path[];
 
-extern int party_modus;
 
 
 

@@ -1500,60 +1500,10 @@ bool CCharDB_sql::insertChar(CCharAccount &account,
 					unsigned char hair_color,
 					CCharCharacter &p)
 {
-	p = CCharCharacter(n);
-
-	if( remove_control_chars(p.name) )
-	{
-		//char_log("Make new char error (control char received in the name): (connection #%d, account: %d)." RETCODE,
-		//		 fd, sd->account_id);
-		return false;
-	}
-
-	basics::itrim(p.name);
-
-	// check lenght of character name
-	if( strlen(p.name) < 4 )
-	{
-		//char_log("Make new char error (character name too small): (connection #%d, account: %d, name: '%s')." RETCODE,
-		//		 fd, sd->account_id, dat);
-		return false;
-	}
-
-	// Check Authorised letters/symbols in the name of the character
-	if( this->name_letters() != p.name )
-	{
-		//char_log("Make new char error (invalid letter in the name): (connection #%d, account: %d), name: %s, invalid letter: %c." RETCODE,
-		//		 fd, sd->account_id, dat, dat[i]);
-		return false;
-	}
-
-	//check stat error
-	if( (str + agi + vit + int_ + dex + luk !=6*5 ) || // stats
-		// Check slots
-		(slot >= 9) || // slots must not be over 9
-		// Check hair
-		(hair_style <= 0) || (hair_style >= 24) || // hair style
-		(hair_color >= 9) ||					   // Hair color?
-
-		// Check stats pairs and make sure they are balanced
-		((str + int_) > 10) || // str + int pairs check
-		((agi + luk ) > 10) || // agi + luk pairs check
-		((vit + dex ) > 10) || // vit + dex pairs check
-		// Check individual stats
-		(str < 1 || str > 9) ||
-		(agi < 1 || agi > 9) ||
-		(vit < 1 || vit > 9) ||
-		(int_< 1 || int_> 9) ||
-		(dex < 1 || dex > 9) ||
-		(luk < 1 || luk > 9) )
-	{
-		ShowError("fail (aid: %d), stats error(bot cheat?!)\n", account.account_id);
-		return false;
-	} // now when we have passed all stat checks
-
-
 	basics::CMySQLConnection dbcon1(this->sqlbase);
 	basics::string<> query;
+
+	p = CCharCharacter(n);
 
 	//Check Name (already in use?)
 	query << "SELECT count(*) "
@@ -1578,7 +1528,7 @@ bool CCharDB_sql::insertChar(CCharAccount &account,
 	{
 		if( atol(dbcon1[0]) )
 		{
-			printf("char creation failed, (aid: %d, slot: %d), slot already in use\n", account.account_id, slot);
+			ShowError("char creation failed, (aid: %d, slot: %d), slot already in use\n", account.account_id, slot);
 			return false;
 		}
 	}
@@ -1586,6 +1536,7 @@ bool CCharDB_sql::insertChar(CCharAccount &account,
 
 	
 	///////////////////////////////////////////////////////////////////////////
+
 	p.account_id = account.account_id;
 	p.slot = slot;
 	p.class_ = 0;

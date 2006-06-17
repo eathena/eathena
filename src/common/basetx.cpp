@@ -150,12 +150,16 @@ bool CAccountDB_mem::insertAccount(const char* userid, const char* passwd, unsig
 		while( b > a+1 )
 		{
 			c=(a+b)/2;
-			if( (this->cList[c].account_id-this->cList[a].account_id) > (c-a) )
+			if( this->cList[c].account_id >= accid && 
+				(this->cList[c].account_id-this->cList[a].account_id) > (c-a) )
 				b=c;
 			else
 				a=c;
 		}
 		accid = this->cList[a].account_id + 1;
+		// don't use id's less than start_account_num		
+		if( accid < start_account_num() )
+			accid = start_account_num;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	
@@ -281,50 +285,12 @@ bool CCharDB_mem::make_new_char(CCharCharAccount& account, const char *n, unsign
 	size_t pos;
 	target = CCharCharacter(n);
 
-	if( remove_control_chars(target.name) )
+	// check slot usage
+	if( account.charlist[slot]!=0 )
 	{
-		//char_log("Make new char error (control char received in the name): (connection #%d, account: %d)." RETCODE,
-		//		 fd, sd->account_id);
 		return false;
 	}
 
-	basics::itrim(target.name);
-
-	// check lenght of character name
-	if( strlen(target.name) < 4 )
-	{
-		//char_log("Make new char error (character name too small): (connection #%d, account: %d, name: '%s')." RETCODE,
-		//		 fd, sd->account_id, dat);
-		return false;
-	}
-
-	// Check Authorised letters/symbols in the name of the character
-	if( name_letters() != target.name )
-	{
-		//char_log("Make new char error (invalid letter in the name): (connection #%d, account: %d), name: %s, invalid letter: %c." RETCODE,
-		//		 fd, sd->account_id, dat, dat[i]);
-		return false;
-	}
-
-	if( str<1 || str>9 ||					// stats single
-		agi<1 || agi>9 ||
-		vit<1 || vit>9 ||
-		int_<1 || int_>9 ||
-		dex<1 || dex>9 ||
-		luk<1 || luk>9 ||
-		str+int_ > 10 ||					// stats pair-wise
-		agi+dex > 10 ||
-		vit+luk > 10 ||
-		str+agi+vit+int_+dex+luk != 5*6 ||	// stats summ
-		slot >= 9 ||						// slots
-		account.charlist[slot]!=0 ||
-		hair_style >= 24 ||					// styles
-		hair_style >= 9)
-	{
-		//char_log("Make new char error (invalid values): (connection #%d, account: %d) slot %d, name: %s, stats: %d+%d+%d+%d+%d+%d=%d, hair: %d, hair color: %d" RETCODE,
-		//		 fd, sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[24] + dat[25] + dat[26] + dat[27] + dat[28] + dat[29], dat[33], dat[31]);
-		return false;
-	}
 //!! adding name_ignoring_case
 
 	if( cCharList.find(target, pos, 1) )
@@ -357,12 +323,15 @@ bool CCharDB_mem::make_new_char(CCharCharAccount& account, const char *n, unsign
 		while( b > a+1 )
 		{
 			c=(a+b)/2;
-			if( (cCharList[c].char_id-cCharList[a].char_id) > (c-a) )
+			if( cCharList[c].char_id >= char_id && 
+				(cCharList[c].char_id-cCharList[a].char_id) > (c-a) )
 				b=c;
 			else
 				a=c;
 		}
 		char_id = cCharList[a].char_id + 1;
+		if( char_id < start_char_num() )
+			char_id = start_char_num;
 	}
 	///////////////////////////////////////////////////////////////////////////
 
@@ -410,7 +379,6 @@ bool CCharDB_mem::make_new_char(CCharCharAccount& account, const char *n, unsign
 	target.head_bottom = 0;
 	target.last_point = start_point;
 	target.save_point = start_point;
-
 
 	account.charlist[slot] = target.char_id;
 	cCharList.insert(target);
@@ -768,12 +736,15 @@ bool CGuildDB_mem::insertGuild(const struct guild_member &member, const char *na
 			while( b > a+1 )
 			{
 				c=(a+b)/2;
-				if( (cGuilds[c].guild_id-cGuilds[a].guild_id) > (c-a) )
+				if( cGuilds[c].guild_id >= guild_id && 
+					(cGuilds[c].guild_id-cGuilds[a].guild_id) > (c-a) )
 					b=c;
 				else
 					a=c;
 			}
 			guild_id = cGuilds[a].guild_id + 1;
+			if( guild_id < start_guild_num() )
+				guild_id = start_guild_num;
 		}
 		///////////////////////////////////////////////////////////////////////
 
@@ -1044,12 +1015,15 @@ bool CPartyDB_mem::insertParty(uint32 accid, const char *nick, const char *mapna
 			while( b > a+1 )
 			{
 				c=(a+b)/2;
-				if( (cParties[c].party_id-cParties[a].party_id) > (c-a) )
+				if( cParties[c].party_id >= party_id && 
+					(cParties[c].party_id-cParties[a].party_id) > (c-a) )
 					b=c;
 				else
 					a=c;
 			}
 			party_id = cParties[a].party_id + 1;
+			if( party_id < start_party_num() )
+				party_id = start_party_num;
 		}
 		///////////////////////////////////////////////////////////////////////
 
@@ -1307,12 +1281,15 @@ bool CPetDB_mem::insertPet(uint32 accid, uint32 cid, short pet_class, short pet_
 		while( b > a+1 )
 		{
 			c=(a+b)/2;
-			if( (cPetList[c].pet_id-cPetList[a].pet_id) > (c-a) )
+			if( cPetList[c].pet_id >= pet_id && 
+				(cPetList[c].pet_id-cPetList[a].pet_id) > (c-a) )
 				b=c;
 			else
 				a=c;
 		}
 		pet_id = cPetList[a].pet_id + 1;
+		if( pet_id < start_pet_num() )
+			pet_id = start_pet_num;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	
@@ -1499,7 +1476,7 @@ bool CAccountDB_txt::do_readAccounts()
 				pass[23] = '\0';
 				remove_control_chars(pass);
 				safestrcpy(temp.passwd, pass, sizeof(temp.passwd));
-				temp.sex = (toupper(sex) == 'S') ? 2 : (toupper(sex) == 'M');
+				temp.sex = (basics::upcase(sex) == 'S') ? 2 : (basics::upcase(sex) == 'M');
 				if (temp.sex == 2)
 					server_count++;
 
@@ -2470,12 +2447,11 @@ bool CCharDB_txt::do_readChars(void)
 bool CCharDB_txt::do_saveChars(void)
 {
 	char line[65536];
-	int lockfp,lockfb;
-	FILE *fp, *fb=NULL;
+	int lockfp;
+	FILE *fp;
 
 	// Data save
 	fp = lock_fopen(char_txt(), lockfp);
-	fb = lock_fopen(backup_txt(), lockfb);
 	if (fp == NULL)
 	{
 		ShowWarning("Server cannot save characters.\n");
@@ -2489,15 +2465,11 @@ bool CCharDB_txt::do_saveChars(void)
 		{
 			char_to_str(line, sizeof(line), cCharList[i]);
 			fprintf(fp, line); fprintf(fp, RETCODE);
-			if(fb) { fprintf(fb, line); fprintf(fb, RETCODE); }
 		}
 		//fprintf(fp, "%d\t%%newid%%" RETCODE, next_char_id);
 		lock_fclose(fp, char_txt(), lockfp);
-		if(fb) lock_fclose(fb, backup_txt(), lockfb);
 
-		this->save_friends();
-
-		return true;
+		return this->save_friends();
 	}
 }
 
@@ -2506,7 +2478,6 @@ CCharDB_txt::CCharDB_txt(const char *dbcfgfile) :
 	CTimerBase(300*1000),
 	CCharDB_mem(dbcfgfile),
 	char_txt("char_txt","save/athena.txt"),
-	backup_txt("backup_txt","save/backup.txt"),
 	friends_txt("friends_txt","save/friends.txt"),
 	savecount(0)
 {
