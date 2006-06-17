@@ -32,6 +32,8 @@ Evera
 
 Date		Added
 ======
+06/17
+	* Fixed some typos in quests_lighthalzen.txt thanks to Karore [Playtester]
 06/16
 	* Implemented the Lovers quest. [MasterOfMuppets]
 06/15
