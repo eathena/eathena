@@ -351,7 +351,6 @@ ordeal_2-3.gat	mapflag	nomemo
 ordeal_3-1.gat	mapflag	nomemo
 ordeal_3-2.gat	mapflag	nomemo
 ordeal_3-3.gat	mapflag	nomemo
-pvp_2vs2.gat	mapflag	nomemo
 pvp_c_room.gat	mapflag	nomemo
 quiz_00.gat	mapflag	nomemo
 quiz_01.gat	mapflag	nomemo

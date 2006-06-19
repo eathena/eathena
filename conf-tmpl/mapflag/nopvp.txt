@@ -69,3 +69,8 @@ yuno_in05.gat	mapflag	pvp	off
 yuno.gat	mapflag	pvp	off
 yuno_pre.gat	mapflag	pvp	off
 y_airport.gat	mapflag	pvp	off
+airplane.gat	mapflag	pvp	off
+airport.gat	mapflag	pvp	off
+einbech.gat	mapflag	pvp	off
+einbroch.gat	mapflag	pvp	off
+ein_in01.gat	mapflag	pvp	off
