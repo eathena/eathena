@@ -32,6 +32,9 @@ Evera
 
 Date		Added
 ======
+06/19
+	* Fixed umbala.txt's Elemental Stones Quest bug. Thanks to Vhan Morthis.
+	  [Skotlex]
 06/17
 	* Fixed some typos in quests_lighthalzen.txt thanks to Karore [Playtester]
 06/16
