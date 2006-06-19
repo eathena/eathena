@@ -5497,12 +5497,11 @@ int pc_setcart(struct map_session_data *sd,int type)
 	if(pc_checkskill(sd,MC_PUSHCART)>0){ // プッシュカ?トスキル所持
 		option = sd->sc.option;
 		//This should preserve the current option, only modifying the cart bit.
-		option&=~(OPTION_CART1|OPTION_CART2|OPTION_CART3|OPTION_CART4|OPTION_CART5);
+		option&=~OPTION_CART;
 		option|=cart[type];
 		if(!pc_iscarton(sd)){ // カ?トを付けていない
 			pc_setoption(sd,option);
-			clif_cart_itemlist(sd);
-			clif_cart_equiplist(sd);
+			clif_cartlist(sd);
 			clif_updatestatus(sd,SP_CARTINFO);
 			clif_status_change(&sd->bl,SI_INCREASEAGI,0); //0x0c is 12, Increase Agi??
 		}

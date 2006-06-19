@@ -5,6 +5,17 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/06/19
+	* Merged the other_mapserver_count variable which makes each map-server
+	  keep count of how many other mapservers are connected, and skip sending
+	  inter-server packets when there's no other map servers connected. [Skotlex]
+	* Merged the unification of the storage/guild storage/cart packets for
+	  better performance when sending these packets. [Skotlex]
+	* Merged enabling disable of stances always, blocking of kick skills when a
+	  Soul Linker. [Skotlex]
+	* Merged dummy hp values send for the HP bar when someone has over 32K max
+	  Hp so that the client-side HP bar will display correctly. [Skotlex]
+	* Merged clif_parse_RemoveOption removal of only cart/peco/falcon.
+	  [Skotlex]
 	* Added missing Arunafeltz maps with information from NLZ [Evera]
 2006/06/17
 	* Mapflag changes according to the eye of hellion quest [MasterOfMuppets]
