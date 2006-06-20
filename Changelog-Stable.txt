@@ -5,6 +5,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/06/19
+	* Added Ayothaya to nopenalty and nopvp mapflags. [Evera]
 	* Merged the other_mapserver_count variable which makes each map-server
 	  keep count of how many other mapservers are connected, and skip sending
 	  inter-server packets when there's no other map servers connected. [Skotlex]
