@@ -763,7 +763,7 @@ void clif_get_weapon_view(TBL_PC* sd, unsigned short *rhand, unsigned short *lha
 	struct item_data *id;
 #endif
 
-	if(sd->sc.option&OPTION_WEDDING || sd->vd.class_ == JOB_XMAS)
+	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS))
 	{
 		*rhand = *lhand = 0;
 		return;
@@ -2309,8 +2309,8 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 		// 00b0
 	case SP_WEIGHT:
 		pc_checkweighticon(sd);
-		WFIFOW(fd,0)=0xb0;
-		WFIFOW(fd,2)=type;	//Added this packet back, Temp fix to the slow motion [Lupus]
+		WFIFOW(fd,0)=0xb0;	//Need to re-set as pc_checkweighticon can alter the buffer. [Skotlex]
+		WFIFOW(fd,2)=type;
 		WFIFOL(fd,4)=sd->weight;
 		break;
 	case SP_MAXWEIGHT:
@@ -2575,10 +2575,10 @@ int clif_changelook(struct block_list *bl,int type,int val)
 			vd->hair_color = val;
 		break;
 		case LOOK_CLOTHES_COLOR:
-			if (
+			if (val && (
 				(vd->class_ == JOB_WEDDING && battle_config.wedding_ignorepalette) ||
 				(vd->class_ == JOB_XMAS && battle_config.xmas_ignorepalette)
-			)
+			))
 				val = 0;
 			vd->cloth_color = val;
 		break;
@@ -4989,7 +4989,7 @@ int clif_solved_charname(struct map_session_data *sd,int char_id)
 
 	fd=sd->fd;
 	if(p!=NULL){
-                WFIFOHEAD(fd,packet_len_table[0x194]);
+		WFIFOHEAD(fd,packet_len_table[0x194]);
 		WFIFOW(fd,0)=0x194;
 		WFIFOL(fd,2)=char_id;
 		memcpy(WFIFOP(fd,6), p, NAME_LENGTH);
@@ -8499,7 +8499,7 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 		if (clif_cant_act(sd) || sd->sc.option&OPTION_HIDE)
 			return;
 
-		if(sd->sc.option&OPTION_WEDDING || sd->vd.class_ == JOB_XMAS)
+		if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS))
 			return;
 
 		if (!battle_config.sdelay_attack_enable && pc_checkskill(sd, SA_FREECAST) <= 0) {
@@ -9304,7 +9304,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 		return;
 	}
 
-	if(sd->sc.option&OPTION_WEDDING || sd->vd.class_ == JOB_XMAS)
+	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS))
 		return;
 	
 	if (sd->invincible_timer != -1)
@@ -9394,7 +9394,7 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, int skilll
 		return;
 	}
 
-	if(sd->sc.option&OPTION_WEDDING || sd->vd.class_ == JOB_XMAS)
+	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS))
 		return;
 	
 	if (sd->invincible_timer != -1)
@@ -9458,7 +9458,7 @@ void clif_parse_UseSkillMap(int fd,struct map_session_data *sd)
 	if (clif_cant_act(sd))
 		return;
 
-	if(sd->sc.option&OPTION_WEDDING || sd->vd.class_ == JOB_XMAS)
+	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS))
 		return;
 	
 	if(sd->invincible_timer != -1)

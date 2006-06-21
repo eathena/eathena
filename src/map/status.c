@@ -3315,6 +3315,12 @@ void status_set_viewdata(struct block_list *bl, int class_)
 		{
 			TBL_PC* sd = (TBL_PC*)bl;
 			if (pcdb_checkid(class_)) {
+				if (sd->sc.option&OPTION_WEDDING)
+					class_ = JOB_WEDDING;
+				else
+				if (sd->sc.option&OPTION_XMAS)
+					class_ = JOB_XMAS;
+				else
 				if (sd->sc.option&OPTION_RIDING)
 				switch (class_)
 				{	//Adapt class to a Mounted one.
@@ -3337,10 +3343,6 @@ void status_set_viewdata(struct block_list *bl, int class_)
 					class_ = JOB_BABY_CRUSADER2;
 					break;
 				}
-				if (class_ == JOB_WEDDING)
-					sd->sc.option|=OPTION_WEDDING;
-				else if (sd->sc.option&OPTION_WEDDING)
-					sd->sc.option&=~OPTION_WEDDING; //If not going to display it, then remove the option.
 				sd->vd.class_ = class_;
 				clif_get_weapon_view(sd, &sd->vd.weapon, &sd->vd.shield);
 				sd->vd.head_top = sd->status.head_top;
@@ -3390,7 +3392,7 @@ void status_set_viewdata(struct block_list *bl, int class_)
 			else if (battle_config.error_log)
 				ShowError("status_set_viewdata (NPC): No view data for class %d\n", class_);
 		}
-	break;
+		break;
 	}
 	vd = status_get_viewdata(bl);
 	if (vd && vd->cloth_color && (
