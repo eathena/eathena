@@ -146,6 +146,7 @@ int save_log = 1;
 int start_zeny = 500;
 int start_weapon = 1201;
 int start_armor = 2301;
+int guild_exp_rate = 100;
 
 //Custom limits for the fame lists. [Skotlex]
 int fame_list_size_chemist = MAX_FAME_LIST;
@@ -403,7 +404,6 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 
 	cp = idb_ensure(char_db_, char_id, create_charstatus);
 
-//	ShowInfo("Saving char "CL_WHITE"%d"CL_RESET" (%s)...\n",char_id,char_dat[0].name);
 	memset(save_status, 0, sizeof(save_status));
 	diff = 0;
 	//map inventory data
@@ -727,7 +727,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	}
 
 	if (save_status[0]!='\0' && save_log)
-		ShowInfo("Saved char %d - %s:%s.\n", char_id, char_dat[0].name, save_status);
+		ShowInfo("Saved char %d - %s:%s.\n", char_id, p->name, save_status);
 	memcpy(cp, p, sizeof(struct mmo_charstatus));
 
 	return 0;
@@ -1916,7 +1916,11 @@ int parse_tologin(int fd) {
 			RFIFOSKIP(fd,18);
 			break;
 
-/*		case 0x2721:	// gm reply. I don't want to support this function.
+		case 0x2721:	// gm reply. I don't want to support this function.
+			if (RFIFOREST(fd) < 10)
+				return 0;
+			RFIFOSKIP(fd, 10);
+/*		Note that this is the code from char-txt! Even uncommenting it will not work.
 			printf("0x2721:GM reply\n");
 		  {
 			int oldacc, newacc;
@@ -1938,8 +1942,8 @@ int parse_tologin(int fd) {
 			mapif_sendall(buf,10);
 //			printf("char -> map\n");
 		  }
-			break;
 */
+			break;
 		case 0x2723:	// changesex reply (modified by [Yor])
 			if (RFIFOREST(fd) < 7)
 				return 0;
@@ -1965,16 +1969,16 @@ int parse_tologin(int fd) {
 						skill_point = atoi(sql_row[2]);
 						guild_id = atoi(sql_row[3]);
 						class_ = jobclass;
-						if (jobclass == 19 || jobclass == 20 ||
-						    jobclass == 4020 || jobclass == 4021 ||
-						    jobclass == 4042 || jobclass == 4043) {
+						if (jobclass == JOB_BARD || jobclass == JOB_DANCER ||
+						    jobclass == JOB_CLOWN || jobclass == JOB_GYPSY ||
+						    jobclass == JOB_BABY_BARD || jobclass == JOB_BABY_DANCER) {
 							// job modification
-							if (jobclass == 19 || jobclass == 20) {
-								class_ = (sex) ? 19 : 20;
-							} else if (jobclass == 4020 || jobclass == 4021) {
-								class_ = (sex) ? 4020 : 4021;
-							} else if (jobclass == 4042 || jobclass == 4043) {
-								class_ = (sex) ? 4042 : 4043;
+							if (jobclass == JOB_BARD || jobclass == JOB_DANCER) {
+								class_ = (sex) ? JOB_BARD : JOB_DANCER;
+							} else if (jobclass == JOB_CLOWN || jobclass == JOB_GYPSY) {
+								class_ = (sex) ? JOB_CLOWN : JOB_GYPSY;
+							} else if (jobclass == JOB_BABY_BARD || jobclass == JOB_BABY_DANCER) {
+								class_ = (sex) ? JOB_BABY_BARD : JOB_BABY_DANCER;
 							}
 							// remove specifical skills of classes 19,20 4020,4021 and 4042,4043
 							sprintf(tmp_sql, "SELECT `lv` FROM `%s` WHERE `char_id` = '%d' AND `id` >= '315' AND `id` <= '330'",skill_db, char_id);
@@ -2256,7 +2260,7 @@ int parse_frommap(int fd) {
 	}
 
 	while(RFIFOREST(fd) >= 2 && !session[fd]->eof) {
-//		printf("parse_frommap : %d %d %x\n", fd, RFIFOREST(fd), RFIFOW(fd,0));
+	//ShowDebug("Received packet 0x%4x (%d bytes) from map-server (connection %d)\n", RFIFOW(fd, 0), RFIFOREST(fd), fd);
 
 		switch(RFIFOW(fd, 0)) {
 
@@ -2629,7 +2633,6 @@ int parse_frommap(int fd) {
 								WFIFOL(login_fd,2) = atoi(sql_row[0]); // account value
 								WFIFOL(login_fd,6) = 5; // status of the account
 								WFIFOSET(login_fd, 10);
-//								printf("char : status -> login: account %d, status: %d \n", char_dat[i].account_id, 5);
 							} else
 								WFIFOW(fd,32) = 3; // answer: 0-login-server resquest done, 1-player not found, 2-gm level too low, 3-login-server offline
 						} else
@@ -2647,8 +2650,6 @@ int parse_frommap(int fd) {
 								WFIFOW(login_fd,14) = RFIFOW(fd,40); // minute
 								WFIFOW(login_fd,16) = RFIFOW(fd,42); // second
 								WFIFOSET(login_fd,18);
-//								printf("char : status -> login: account %d, ban: %dy %dm %dd %dh %dmn %ds\n",
-//								       char_dat[i].account_id, (short)RFIFOW(fd,32), (short)RFIFOW(fd,34), (short)RFIFOW(fd,36), (short)RFIFOW(fd,38), (short)RFIFOW(fd,40), (short)RFIFOW(fd,42));
 							} else
 								WFIFOW(fd,32) = 3; // answer: 0-login-server resquest done, 1-player not found, 2-gm level too low, 3-login-server offline
 						} else
@@ -2661,7 +2662,6 @@ int parse_frommap(int fd) {
 								WFIFOL(login_fd,2) = atoi(sql_row[0]); // account value
 								WFIFOL(login_fd,6) = 0; // status of the account
 								WFIFOSET(login_fd, 10);
-//								printf("char : status -> login: account %d, status: %d \n", char_dat[i].account_id, 0);
 							} else
 								WFIFOW(fd,32) = 3; // answer: 0-login-server resquest done, 1-player not found, 2-gm level too low, 3-login-server offline
 						} else
@@ -2673,7 +2673,6 @@ int parse_frommap(int fd) {
 								WFIFOW(login_fd, 0) = 0x272a;
 								WFIFOL(login_fd, 2) = atoi(sql_row[0]); // account value
 								WFIFOSET(login_fd, 6);
-//								printf("char : status -> login: account %d, unban request\n", char_dat[i].account_id);
 							} else
 								WFIFOW(fd,32) = 3; // answer: 0-login-server resquest done, 1-player not found, 2-gm level too low, 3-login-server offline
 						} else
@@ -2685,7 +2684,6 @@ int parse_frommap(int fd) {
 								WFIFOW(login_fd, 0) = 0x2727;
 								WFIFOL(login_fd, 2) = atoi(sql_row[0]); // account value
 								WFIFOSET(login_fd, 6);
-//								printf("char : status -> login: account %d, change sex request\n", char_dat[i].account_id);
 							} else
 								WFIFOW(fd,32) = 3; // answer: 0-login-server resquest done, 1-player not found, 2-gm level too low, 3-login-server offline
 						} else
@@ -3268,7 +3266,6 @@ int parse_char(int fd) {
 			memset(WFIFOP(fd, 2), 0x00, 106);
 
 			mmo_char_fromsql_short(i, char_dat); //Only the short data is needed.
-			//mmo_char_fromsql(i, char_dat);
 			i = 0;
 			WFIFOL(fd, 2) = char_dat[i].char_id;
 			WFIFOL(fd,2+4) = char_dat[i].base_exp>LONG_MAX?LONG_MAX:char_dat[i].base_exp;
@@ -4077,6 +4074,8 @@ int char_config_read(const char *cfgName) {
 				ShowWarning("Max fame list size is %d (fame_list_taekwon)\n", MAX_FAME_LIST);
 				fame_list_size_taekwon = MAX_FAME_LIST;
 			}
+		} else if (strcmpi(w1, "guild_exp_rate") == 0) {
+			guild_exp_rate = atoi(w2);
 		} else if (strcmpi(w1, "import") == 0) {
 			char_config_read(w2);
 		}

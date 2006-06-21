@@ -263,7 +263,8 @@ struct party {
 struct guild_member {
 	int account_id, char_id;
 	short hair,hair_color,gender,class_,lv;
-	int exp,exp_payper;
+	unsigned int exp;
+	int exp_payper;
 	short online,position;
 	int rsv1,rsv2;
 	char name[NAME_LENGTH];
@@ -297,7 +298,8 @@ struct guild_skill {
 struct guild {
 	int guild_id;
 	short guild_lv, connect_member, max_member, average_lv;
-	int exp,next_exp,skill_point;
+	unsigned int exp,next_exp;
+	int skill_point;
 #ifdef TXT_ONLY
 	//FIXME: Gotta remove this variable completely, but doing so screws up the format of the txt save file...
 	int castle_id;
@@ -381,6 +383,93 @@ enum {
 	GD_RESTORE=10012,
 	GD_EMERGENCYCALL=10013,
 	GD_DEVELOPMENT=10014,
+};
+
+//Base Homun skill.
+#define HM_SKILLBASE 8001
+#define MAX_HOMUNSKILL 16
+
+//These mark the ID of the jobs, as expected by the client. [Skotlex]
+enum {
+	JOB_NOVICE,
+	JOB_SWORDMAN,
+	JOB_MAGE,
+	JOB_ARCHER,
+	JOB_ACOLYTE,
+	JOB_MERCHANT,
+	JOB_THIEF,
+	JOB_KNIGHT,
+	JOB_PRIEST,
+	JOB_WIZARD,
+	JOB_BLACKSMITH,
+	JOB_HUNTER,
+	JOB_ASSASSIN,
+	JOB_KNIGHT2,
+	JOB_CRUSADER,
+	JOB_MONK,
+	JOB_SAGE,
+	JOB_ROGUE,
+	JOB_ALCHEMIST,
+	JOB_BARD,
+	JOB_DANCER,
+	JOB_CRUSADER2,
+	JOB_WEDDING,
+	JOB_SUPER_NOVICE,
+	JOB_GUNSLINGER,
+	JOB_NINJA,
+	JOB_XMAS,
+
+	JOB_NOVICE_HIGH = 4001,
+	JOB_SWORDMAN_HIGH,
+	JOB_MAGE_HIGH,
+	JOB_ARCHER_HIGH,
+	JOB_ACOLYTE_HIGH,
+	JOB_MERCHANT_HIGH,
+	JOB_THIEF_HIGH,
+	JOB_LORD_KNIGHT,
+	JOB_HIGH_PRIEST,
+	JOB_HIGH_WIZARD,
+	JOB_WHITESMITH,
+	JOB_SNIPER,
+	JOB_ASSASSIN_CROSS,
+	JOB_LORD_KNIGHT2,
+	JOB_PALADIN,
+	JOB_CHAMPION,
+	JOB_PROFESSOR,
+	JOB_STALKER,
+	JOB_CREATOR,
+	JOB_CLOWN,
+	JOB_GYPSY,
+	JOB_PALADIN2,
+
+	JOB_BABY,
+	JOB_BABY_SWORDMAN,
+	JOB_BABY_MAGE,
+	JOB_BABY_ARCHER,
+	JOB_BABY_ACOLYTE,
+	JOB_BABY_MERCHANT,
+	JOB_BABY_THIEF,
+	JOB_BABY_KNIGHT,
+	JOB_BABY_PRIEST,
+	JOB_BABY_WIZARD,
+	JOB_BABY_BLACKSMITH,
+	JOB_BABY_HUNTER,
+	JOB_BABY_ASSASSIN,
+	JOB_BABY_KNIGHT2,
+	JOB_BABY_CRUSADER,
+	JOB_BABY_MONK,
+	JOB_BABY_SAGE,
+	JOB_BABY_ROGUE,
+	JOB_BABY_ALCHEMIST,
+	JOB_BABY_BARD,
+	JOB_BABY_DANCER,
+	JOB_BABY_CRUSADER2,
+	JOB_SUPER_BABY,
+
+	JOB_TAEKWON,
+	JOB_STAR_GLADIATOR,
+	JOB_STAR_GLADIATOR2,
+	JOB_SOUL_LINKER,
 };
 
 #ifndef __WIN32

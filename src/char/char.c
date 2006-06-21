@@ -127,6 +127,7 @@ int save_log = 1;
 int start_zeny = 500;
 int start_weapon = 1201;
 int start_armor = 2301;
+int guild_exp_rate = 100;
 
 //Custom limits for the fame lists. [Skotlex]
 int fame_list_size_chemist = MAX_FAME_LIST;
@@ -566,26 +567,26 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 	//Temporal fix until all chars are reverted from peco-flying-class to 
 	//normal classes. [Skotlex]
 	switch (p->class_) {
-		case 13: //Job_Knight2
-			p->class_ = 7;
+		case JOB_KNIGHT2: //Job_Knight2
+			p->class_ = JOB_KNIGHT;
 			break;
-		case 21: //Job_Crusader2
-			p->class_ = 14;
+		case JOB_CRUSADER2: //Job_Crusader2
+			p->class_ = JOB_CRUSADER;
 			break;
-		case 4014: //Job_Lord_Knight2
-			p->class_	= 4008;
+		case JOB_LORD_KNIGHT2: //Job_Lord_Knight2
+			p->class_	= JOB_LORD_KNIGHT;
 			break;
-		case 4022: //Job_Paladin2
-			p->class_ = 4015;
+		case JOB_PALADIN2: //Job_Paladin2
+			p->class_ = JOB_PALADIN;
 			break;
-		case 4036: //Job_Baby_Knight2
-			p->class_ = 4030;
+		case JOB_BABY_KNIGHT2: //Job_Baby_Knight2
+			p->class_ = JOB_BABY_KNIGHT;
 			break;
-		case 4044: //Job_Baby_Crusader2
-			p->class_ = 4037;
+		case JOB_BABY_CRUSADER2: //Job_Baby_Crusader2
+			p->class_ = JOB_BABY_CRUSADER;
 			break;
-		case 4048: //Job_Star_Gladiator2
-			p->class_ = 4047;
+		case JOB_STAR_GLADIATOR2: //Job_Star_Gladiator2
+			p->class_ = JOB_STAR_GLADIATOR;
 			break;
 	}
 	p->base_level = tmp_int[4];
@@ -1177,75 +1178,82 @@ int make_new_char(int fd, unsigned char *dat) {
 //----------------------------------------------------
 char * job_name(int class_) {
 	switch (class_) {
-	case 0:    return "Novice";
-	case 1:    return "Swordsman";
-	case 2:    return "Mage";
-	case 3:    return "Archer";
-	case 4:    return "Acolyte";
-	case 5:    return "Merchant";
-	case 6:    return "Thief";
-	case 7:    return "Knight";
-	case 8:    return "Priest";
-	case 9:    return "Wizard";
-	case 10:   return "Blacksmith";
-	case 11:   return "Hunter";
-	case 12:   return "Assassin";
-	case 13:   return "Knight 2";
-	case 14:   return "Crusader";
-	case 15:   return "Monk";
-	case 16:   return "Sage";
-	case 17:   return "Rogue";
-	case 18:   return "Alchemist";
-	case 19:   return "Bard";
-	case 20:   return "Dancer";
-	case 21:   return "Crusader 2";
-	case 22:   return "Wedding";
-	case 23:   return "Super Novice";
-	case 4001: return "Novice High";
-	case 4002: return "Swordsman High";
-	case 4003: return "Mage High";
-	case 4004: return "Archer High";
-	case 4005: return "Acolyte High";
-	case 4006: return "Merchant High";
-	case 4007: return "Thief High";
-	case 4008: return "Lord Knight";
-	case 4009: return "High Priest";
-	case 4010: return "High Wizard";
-	case 4011: return "Whitesmith";
-	case 4012: return "Sniper";
-	case 4013: return "Assassin Cross";
-	case 4014: return "Peko Knight";
-	case 4015: return "Paladin";
-	case 4016: return "Champion";
-	case 4017: return "Professor";
-	case 4018: return "Stalker";
-	case 4019: return "Creator";
-	case 4020: return "Clown";
-	case 4021: return "Gypsy";
-	case 4022: return "Peko Paladin";
-	case 4023: return "Baby Novice";
-	case 4024: return "Baby Swordsman";
-	case 4025: return "Baby Mage";
-	case 4026: return "Baby Archer";
-	case 4027: return "Baby Acolyte";
-	case 4028: return "Baby Merchant";
-	case 4029: return "Baby Thief";
-	case 4030: return "Baby Knight";
-	case 4031: return "Baby Priest";
-	case 4032: return "Baby Wizard";
-	case 4033: return "Baby Blacksmith";
-	case 4034: return "Baby Hunter";
-	case 4035: return "Baby Assassin";
-	case 4036: return "Baby Peco Knight";
-	case 4037: return "Baby Crusader";
-	case 4038: return "Baby Monk";
-	case 4039: return "Baby Sage";
-	case 4040: return "Baby Rogue";
-	case 4041: return "Baby Alchemist";
-	case 4042: return "Baby Bard";
-	case 4043: return "Baby Dancer";
-	case 4044: return "Baby Peco Crusader";
-	case 4045: return "Super Baby";
+	case JOB_NOVICE:    return "Novice";
+	case JOB_SWORDMAN:    return "Swordsman";
+	case JOB_MAGE:    return "Mage";
+	case JOB_ARCHER:    return "Archer";
+	case JOB_ACOLYTE:    return "Acolyte";
+	case JOB_MERCHANT:    return "Merchant";
+	case JOB_THIEF:    return "Thief";
+	case JOB_KNIGHT:    return "Knight";
+	case JOB_PRIEST:    return "Priest";
+	case JOB_WIZARD:    return "Wizard";
+	case JOB_BLACKSMITH:   return "Blacksmith";
+	case JOB_HUNTER:   return "Hunter";
+	case JOB_ASSASSIN:   return "Assassin";
+	case JOB_KNIGHT2:   return "Peco-Knight";
+	case JOB_CRUSADER:   return "Crusader";
+	case JOB_MONK:   return "Monk";
+	case JOB_SAGE:   return "Sage";
+	case JOB_ROGUE:   return "Rogue";
+	case JOB_ALCHEMIST:   return "Alchemist";
+	case JOB_BARD:   return "Bard";
+	case JOB_DANCER:   return "Dancer";
+	case JOB_CRUSADER2:   return "Peco-Crusader";
+	case JOB_WEDDING:   return "Wedding";
+	case JOB_SUPER_NOVICE:   return "Super Novice";
+	case JOB_GUNSLINGER: return "Gunslinger";
+	case JOB_NINJA: return "Ninja";
+	case JOB_XMAS: return "Christmas";
+	case JOB_NOVICE_HIGH: return "Novice High";
+	case JOB_SWORDMAN_HIGH: return "Swordsman High";
+	case JOB_MAGE_HIGH: return "Mage High";
+	case JOB_ARCHER_HIGH: return "Archer High";
+	case JOB_ACOLYTE_HIGH: return "Acolyte High";
+	case JOB_MERCHANT_HIGH: return "Merchant High";
+	case JOB_THIEF_HIGH: return "Thief High";
+	case JOB_LORD_KNIGHT: return "Lord Knight";
+	case JOB_HIGH_PRIEST: return "High Priest";
+	case JOB_HIGH_WIZARD: return "High Wizard";
+	case JOB_WHITESMITH: return "Whitesmith";
+	case JOB_SNIPER: return "Sniper";
+	case JOB_ASSASSIN_CROSS: return "Assassin Cross";
+	case JOB_LORD_KNIGHT2: return "Peko Knight";
+	case JOB_PALADIN: return "Paladin";
+	case JOB_CHAMPION: return "Champion";
+	case JOB_PROFESSOR: return "Professor";
+	case JOB_STALKER: return "Stalker";
+	case JOB_CREATOR: return "Creator";
+	case JOB_CLOWN: return "Clown";
+	case JOB_GYPSY: return "Gypsy";
+	case JOB_PALADIN2: return "Peko Paladin";
+	case JOB_BABY: return "Baby Novice";
+	case JOB_BABY_SWORDMAN: return "Baby Swordsman";
+	case JOB_BABY_MAGE: return "Baby Mage";
+	case JOB_BABY_ARCHER: return "Baby Archer";
+	case JOB_BABY_ACOLYTE: return "Baby Acolyte";
+	case JOB_BABY_MERCHANT: return "Baby Merchant";
+	case JOB_BABY_THIEF: return "Baby Thief";
+	case JOB_BABY_KNIGHT: return "Baby Knight";
+	case JOB_BABY_PRIEST: return "Baby Priest";
+	case JOB_BABY_WIZARD: return "Baby Wizard";
+	case JOB_BABY_BLACKSMITH: return "Baby Blacksmith";
+	case JOB_BABY_HUNTER: return "Baby Hunter";
+	case JOB_BABY_ASSASSIN: return "Baby Assassin";
+	case JOB_BABY_KNIGHT2: return "Baby Peco Knight";
+	case JOB_BABY_CRUSADER: return "Baby Crusader";
+	case JOB_BABY_MONK: return "Baby Monk";
+	case JOB_BABY_SAGE: return "Baby Sage";
+	case JOB_BABY_ROGUE: return "Baby Rogue";
+	case JOB_BABY_ALCHEMIST: return "Baby Alchemist";
+	case JOB_BABY_BARD: return "Baby Bard";
+	case JOB_BABY_DANCER: return "Baby Dancer";
+	case JOB_BABY_CRUSADER2: return "Baby Peco Crusader";
+	case JOB_SUPER_BABY: return "Super Baby";
+	case JOB_TAEKWON: return "Taekwon";
+	case JOB_STAR_GLADIATOR: return "Star Gladiator";
+	case JOB_STAR_GLADIATOR2: return "Flying Star Gladiator";
+	case JOB_SOUL_LINKER: return "Soul Linker";
 	}
 	return "Unknown Job";
 }
@@ -1953,16 +1961,16 @@ int parse_tologin(int fd) {
 					if (char_dat[i].status.account_id == acc) {
 						int jobclass = char_dat[i].status.class_;
 						char_dat[i].status.sex = sex;
-						if (jobclass == 19 || jobclass == 20 ||
-						    jobclass == 4020 || jobclass == 4021 ||
-						    jobclass == 4042 || jobclass == 4043) {
+						if (jobclass == JOB_BARD || jobclass == JOB_DANCER ||
+						    jobclass == JOB_CLOWN || jobclass == JOB_GYPSY ||
+						    jobclass == JOB_BABY_BARD || jobclass == JOB_BABY_DANCER) {
 							// job modification
-							if (jobclass == 19 || jobclass == 20) {
-								char_dat[i].status.class_ = (sex) ? 19 : 20;
-							} else if (jobclass == 4020 || jobclass == 4021) {
-								char_dat[i].status.class_ = (sex) ? 4020 : 4021;
-							} else if (jobclass == 4042 || jobclass == 4043) {
-								char_dat[i].status.class_ = (sex) ? 4042 : 4043;
+							if (jobclass == JOB_BARD || jobclass == JOB_DANCER) {
+								char_dat[i].status.class_ = (sex) ? JOB_BARD : JOB_DANCER;
+							} else if (jobclass == JOB_CLOWN || jobclass == JOB_GYPSY) {
+								char_dat[i].status.class_ = (sex) ? JOB_CLOWN : JOB_GYPSY;
+							} else if (jobclass == JOB_BABY_BARD || jobclass == JOB_BABY_DANCER) {
+								char_dat[i].status.class_ = (sex) ? JOB_BABY_BARD : JOB_BABY_DANCER;
 							}
 							// remove specifical skills of classes 19, 4020 and 4042
 							for(j = 315; j <= 322; j++) {
@@ -2443,7 +2451,7 @@ int parse_frommap(int fd) {
 				if (max_account_id != DEFAULT_MAX_ACCOUNT_ID || max_char_id != DEFAULT_MAX_CHAR_ID)
 					mapif_send_maxid(max_account_id, max_char_id); //Send the current max ids to the server to keep in sync [Skotlex]
 			}
-                        WFIFOHEAD(fd, 3 + NAME_LENGTH);
+			WFIFOHEAD(fd, 3 + NAME_LENGTH);
 			WFIFOW(fd,0) = 0x2afb;
 			WFIFOB(fd,2) = 0;
 			memcpy(WFIFOP(fd,3), wisp_server_name, NAME_LENGTH); // name for wisp to player
@@ -2570,9 +2578,8 @@ int parse_frommap(int fd) {
 			}
 			if (i != char_num)
 				memcpy(&char_dat[i].status, RFIFOP(fd,13), sizeof(struct mmo_charstatus));
-			if (RFIFOB(fd,12)) { //Flag, set character offline. [Skotlex]
+			if (RFIFOB(fd,12)) //Flag, set character offline. [Skotlex]
 				set_char_offline(RFIFOL(fd,8),RFIFOL(fd,4));
-			}
 			RFIFOSKIP(fd,RFIFOW(fd,2));
 			break;
 
@@ -2625,6 +2632,7 @@ int parse_frommap(int fd) {
 					char_data->last_point.map = RFIFOW(fd,18);
 					char_data->last_point.x = RFIFOW(fd,20);
 					char_data->last_point.y = RFIFOW(fd,22);
+					char_data->sex = RFIFOB(fd,30);  // Buuyo^
 
 					WFIFOW(map_fd,0) = 0x2afd;
 					WFIFOW(map_fd,2) = 20 + sizeof(struct mmo_charstatus);
@@ -2667,7 +2675,6 @@ int parse_frommap(int fd) {
 			else
 				memcpy(WFIFOP(fd,6), unknown_char_name, NAME_LENGTH);
 			WFIFOSET(fd,6+NAME_LENGTH);
-			//WFIFOSET(fd,30);
 			RFIFOSKIP(fd,6);
 			break;
 
@@ -4009,6 +4016,8 @@ int char_config_read(const char *cfgName) {
 				ShowWarning("Max fame list size is %d (fame_list_taekwon)\n", MAX_FAME_LIST);
 				fame_list_size_taekwon = MAX_FAME_LIST;
 			}
+		} else if (strcmpi(w1, "guild_exp_rate") == 0) {
+			guild_exp_rate = atoi(w2);
 		} else if (strcmpi(w1, "import") == 0) {
 			char_config_read(w2);
 		}

@@ -168,7 +168,6 @@ extern struct Battle_Config {
 	unsigned short quest_skill_reset;
 	unsigned short basic_skill_check;
 	unsigned short guild_emperium_check;
-	unsigned short guild_exp_rate;	//[Skotlex]
 	unsigned short guild_exp_limit;
 	unsigned short guild_max_castles;
 	unsigned short pc_invincible_time;
@@ -274,10 +273,8 @@ extern struct Battle_Config {
 	unsigned short show_steal_in_same_party;
 	unsigned short party_share_type;
 	unsigned short party_show_share_picker;
-	unsigned short pet_attack_attr_none;
-	unsigned short mob_attack_attr_none;
 	unsigned short mob_ghostring_fix;
-	unsigned short pc_attack_attr_none;
+	unsigned short attack_attr_none;
 	int item_rate_mvp, item_rate_common, item_rate_common_boss, item_rate_card, item_rate_card_boss,	// added support for MVP drops [Reddozen]
 		item_rate_equip, item_rate_equip_boss, item_rate_heal, item_rate_heal_boss, item_rate_use,
 		item_rate_use_boss, item_rate_treasure,	// Added by RoVeRT, Additional Heal and Usable item rate by Val

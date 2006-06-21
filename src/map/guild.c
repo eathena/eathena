@@ -367,7 +367,7 @@ int guild_payexp_timer_sub(DBKey dataid, void *data, va_list ap)
 		return 0;
 	}
 
-	if (g->member[i].exp > UINT_MAX - (unsigned int)c->exp)
+	if (g->member[i].exp > UINT_MAX - c->exp)
 		g->member[i].exp = UINT_MAX;
 	else
 		g->member[i].exp+= c->exp;
@@ -1150,37 +1150,30 @@ unsigned int guild_payexp(struct map_session_data *sd,unsigned int exp)
 	struct guild *g;
 	struct guild_expcache *c;
 	int per;
-	unsigned int exp2;
-	double tmp;
 	
 	nullpo_retr(0, sd);
 
+	if (!exp) return 0;
+	
 	if (sd->status.guild_id == 0 ||
 		(g = guild_search(sd->status.guild_id)) == NULL ||
-		(per = g->position[guild_getposition(sd,g)].exp_mode) <= 0)
+		(per = guild_getposition(sd,g)) < 0 ||
+		(per = g->position[per].exp_mode) < 1)
 		return 0;
 	
 
-	if (per > 100) per = 100;
-	else
-	if (per < 1) return 0;
-
-	if ((tmp = exp * per / 100) <= 0)
-		return 0;
+	if (per < 100)
+		exp = (unsigned int) exp * per / 100;
+	//Otherwise tax everything.
 	
-	exp2 = (unsigned int)tmp;
-	
-	if (battle_config.guild_exp_rate != 100)
-		tmp = tmp*battle_config.guild_exp_rate/100;
-
 	c = guild_expcache_db->ensure(guild_expcache_db, i2key(sd->status.char_id), create_expcache, sd);
 
-	if (c->exp > UINT_MAX - (unsigned int)tmp)
+	if (c->exp > UINT_MAX - exp)
 		c->exp = UINT_MAX;
 	else
-		c->exp += (unsigned int)tmp;
+		c->exp += exp;
 	
-	return exp2;
+	return exp;
 }
 
 // Celest

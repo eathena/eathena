@@ -1917,9 +1917,7 @@ static struct Damage battle_calc_weapon_attack(
 	if(skill_num==TF_POISON)
 		ATK_ADD(15*skill_lv);
 
-	if ((sd && (skill_num || !battle_config.pc_attack_attr_none)) ||
-		(md && (skill_num || !battle_config.mob_attack_attr_none)) ||
-		(pd && (skill_num || !battle_config.pet_attack_attr_none)))
+	if (skill_num || !(battle_config.attack_attr_none&src->type))
 	{	//Elemental attribute fix
 		short t_element = status_get_element(target);
 		if	(!(!sd && tsd && battle_config.mob_ghostring_fix && t_ele==8))
@@ -2858,6 +2856,11 @@ struct Damage battle_calc_attack(	int attack_type,
 		memset(&d,0,sizeof(d));
 		break;
 	}
+	if (d.damage + d.damage2 < 1 && d.dmg_lv != ATK_LUCKY)
+	{	//Miss/Absorbed
+		d.dmg_lv = ATK_FLEE;
+		d.dmotion = 0;
+	}
 	return d;
 }
 
@@ -3045,7 +3048,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		}
 	}
 	//Recycled the damage variable rather than use a new one... [Skotlex]
-	if(sd && (damage = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0) // triple blow works with bows ^^ [celest]
+	if(sd && (damage = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0)
 	{
 		int triple_rate= 30 - damage; //Base Rate
 		if (sc && sc->data[SC_SKILLRATE_UP].timer!=-1 && sc->data[SC_SKILLRATE_UP].val1 == MO_TRIPLEATTACK)
@@ -3053,7 +3056,8 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			triple_rate+= triple_rate*(sc->data[SC_SKILLRATE_UP].val2)/100;
 			status_change_end(src,SC_SKILLRATE_UP,-1);
 		}
-		if (rand()%100 < triple_rate) return skill_attack(BF_WEAPON,src,src,target,MO_TRIPLEATTACK,damage,tick,0);
+		if (rand()%100 < triple_rate)
+			return skill_attack(BF_WEAPON,src,src,target,MO_TRIPLEATTACK,damage,tick,0);
 	}
 	else if (sc && sc->data[SC_SACRIFICE].timer != -1)
 		return skill_attack(BF_WEAPON,src,src,target,PA_SACRIFICE,sc->data[SC_SACRIFICE].val1,tick,0);
@@ -3546,7 +3550,6 @@ static const struct battle_data_short {
 	{ "quest_skill_reset",                 &battle_config.quest_skill_reset		},
 	{ "basic_skill_check",                 &battle_config.basic_skill_check		},
 	{ "guild_emperium_check",              &battle_config.guild_emperium_check		},
-	{ "guild_exp_rate",                    &battle_config.guild_exp_rate			},
 	{ "guild_exp_limit",                   &battle_config.guild_exp_limit			},
 	{ "player_invincible_time",            &battle_config.pc_invincible_time		},
 	{ "pet_catch_rate",                    &battle_config.pet_catch_rate			},
@@ -3649,10 +3652,8 @@ static const struct battle_data_short {
 	{ "show_steal_in_same_party",          &battle_config.show_steal_in_same_party		},
 	{ "show_party_share_picker",           &battle_config.party_show_share_picker },
 	{ "party_item_share_type",             &battle_config.party_share_type },
-	{ "pet_attack_attr_none",              &battle_config.pet_attack_attr_none		},
-	{ "mob_attack_attr_none",              &battle_config.mob_attack_attr_none		},
 	{ "mob_ghostring_fix",                 &battle_config.mob_ghostring_fix		},
-	{ "pc_attack_attr_none",               &battle_config.pc_attack_attr_none		},
+	{ "attack_attr_none",                  &battle_config.attack_attr_none		},
 	{ "gx_allhit",                         &battle_config.gx_allhit				},
 	{ "gx_disptype",                       &battle_config.gx_disptype				},
 	{ "devotion_level_difference",         &battle_config.devotion_level_difference	},
@@ -3943,7 +3944,6 @@ void battle_set_defaults() {
 	battle_config.basic_skill_check=1;
 	battle_config.guild_emperium_check=1;
 	battle_config.guild_exp_limit=50;
-	battle_config.guild_exp_rate=100;
 	battle_config.pc_invincible_time = 5000;
 	battle_config.pet_catch_rate=100;
 	battle_config.pet_rename=0;
@@ -4055,9 +4055,7 @@ void battle_set_defaults() {
 	battle_config.show_steal_in_same_party = 0;
 	battle_config.party_share_type = 0;
 	battle_config.party_show_share_picker = 0;
-	battle_config.pet_attack_attr_none = 0;
-	battle_config.pc_attack_attr_none = 0;
-	battle_config.mob_attack_attr_none = 0;
+	battle_config.attack_attr_none = 0;
 	battle_config.mob_ghostring_fix = 1;
 	battle_config.gx_allhit = 1;
 	battle_config.gx_disptype = 1;
