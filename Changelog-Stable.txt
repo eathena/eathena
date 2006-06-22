@@ -5,6 +5,8 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/06/22
+	* Fixed blind's resistance using vit/3 rather than luk/3, thanks to Beetle
+	  for pointing it out. [Skotlex]
 	* Merged sending of packets to self when the target is 'area' and the source
 	  is not on the current map (which means he normally would miss said packet)
 	  Fixes stuff like status-change icons staying there forever if the status

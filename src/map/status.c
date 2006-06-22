@@ -3488,7 +3488,7 @@ int status_get_sc_def(struct block_list *bl, int type)
 			sc_def = 300 +100*status_get_luk(bl) +33*status_get_vit(bl);
 		break;
 	case SC_BLIND:
-		sc_def = 300 +50*status_get_vit(bl) +50*status_get_int(bl) +33*status_get_vit(bl);
+		sc_def = 300 +50*status_get_vit(bl) +50*status_get_int(bl) +33*status_get_luk(bl);
 		break;
 	case SC_CONFUSION:
 		sc_def = 300 +50*status_get_str(bl) +50*status_get_int(bl) +33*status_get_luk(bl);
