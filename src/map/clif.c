@@ -395,6 +395,8 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 		break;
 	case AREA:
 	case AREA_WOSC:
+		if (sd && bl->prev == NULL) //Otherwise source misses the packet.[Skotlex]
+			clif_send (buf, len, bl, SELF);
 	case AREA_WOC:
 	case AREA_WOS:
 		map_foreachinarea(clif_send_sub, bl->m, bl->x-AREA_SIZE, bl->y-AREA_SIZE, bl->x+AREA_SIZE, bl->y+AREA_SIZE,

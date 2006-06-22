@@ -4626,13 +4626,8 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 		break;
 	}
 
-
-	if (bl->type == BL_PC)
-	{
-		if (flag&4)
-			clif_status_load(bl,StatusIconChangeTable[type],1); //Sending to owner since they aren't in the map yet. [Skotlex]
+	if (sd) //Only for players, client crashes if they receive this for a mob o.O [Skotlex]
 		clif_status_change(bl,StatusIconChangeTable[type],1);
-	}
 
 	// Set option as needed.
 	opt_flag = 1;
