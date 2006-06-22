@@ -4528,6 +4528,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 		case SC_DECREASEAGI:
 		case SC_ONEHAND:
 		case SC_DONTFORGETME:
+		case SC_ETERNALCHAOS:
 		case SC_DELUGE:
 		case SC_CARTBOOST:
 		case SC_QUAGMIRE:

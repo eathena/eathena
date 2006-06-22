@@ -5,6 +5,9 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/06/21
+	* Fixed Eternal Chaos having no effect. [Skotlex]
+	* Merged the crashfix when accessing the grfio module after it's been
+	  halted on a @reloaditemdb. [Skotlex]
 	* Merged guild member experience being an unsigned int, doubles the max
 	  possible taxed exp value per guild member. [Skotlex]
 	* Merged moving guild_exp_rate setting from map server to char server (now
