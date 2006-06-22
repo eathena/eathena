@@ -32,6 +32,9 @@ Evera
 
 Date		Added
 ======
+06/22
+	* Fixed treasure chests round number exploit [Lupus]
+	  Now u get an extra chest one exact 4 Eco.pts adding
 06/21
 	* Merged spawn files from trunk [Playtester]
 	- X.4 spawns thanks to Tharis
