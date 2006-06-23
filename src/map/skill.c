@@ -1049,9 +1049,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 	case WZ_STORMGUST:
 		tsc->data[SC_FREEZE].val3++;
-		if(tsc->data[SC_FREEZE].val3 >= 3)
-			status_change_start(bl,SC_FREEZE,10000,
-				skilllv,0,0,0,skill_get_time2(skillid,skilllv),8);
+		if(tsc->data[SC_FREEZE].val3 >= 3) //Tharis pointed out that this is normal freeze chance with a base of 300%
+			sc_start(bl,SC_FREEZE,300,skilllv,skill_get_time2(skillid,skilllv));
 		break;
 
 	case WZ_METEOR:

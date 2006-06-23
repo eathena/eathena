@@ -3432,6 +3432,8 @@ int status_get_sc_def(struct block_list *bl, int type)
 {
 	int sc_def;
 	struct status_change* sc;
+	struct map_session_data *sd;
+
 	nullpo_retr(0, bl);
 
 	//Status that are blocked by Golden Thief Bug card or Wand of Hermod
@@ -3464,45 +3466,67 @@ int status_get_sc_def(struct block_list *bl, int type)
 	
 	switch (type)
 	{
-	//Note that stats that are *100/3 were simplified to *33
 	case SC_STUN:
 	case SC_POISON:
 	case SC_DPOISON:
 	case SC_SILENCE:
 	case SC_BLEEDING:
-		sc_def = 300 +100*status_get_vit(bl) +33*status_get_luk(bl);
+		sc_def = 300 +100*status_get_vit(bl);
 		break;
 	case SC_SLEEP:
-		sc_def = 300 +100*status_get_int(bl) +33*status_get_luk(bl);
+		sc_def = 300 +100*status_get_int(bl);
 		break;
 	case SC_STONE:
 	case SC_FREEZE:
 	case SC_DECREASEAGI:
 	case SC_COMA:
-		sc_def = 300 +100*status_get_mdef(bl) +33*status_get_luk(bl);
+		sc_def = 300 +100*status_get_mdef(bl);
 		break;
 	case SC_CURSE:
 		if (status_get_luk(bl) > status_get_lv(bl))
-			sc_def = 10000; //Special property: inmunity when luk is greater than level
+			return 10000; //Special property: inmunity when luk is greater than level
 		else
-			sc_def = 300 +100*status_get_luk(bl) +33*status_get_vit(bl);
+			sc_def = 300 +100*status_get_luk(bl);
 		break;
 	case SC_BLIND:
-		sc_def = 300 +50*status_get_vit(bl) +50*status_get_int(bl) +33*status_get_luk(bl);
+		sc_def = 300 +50*status_get_vit(bl) +50*status_get_int(bl);
 		break;
 	case SC_CONFUSION:
-		sc_def = 300 +50*status_get_str(bl) +50*status_get_int(bl) +33*status_get_luk(bl);
+		sc_def = 300 +50*status_get_str(bl) +50*status_get_int(bl);
 		break;
 	default:
 		return 0; //Effect that cannot be reduced? Likely a buff.
 	}
 
-	if (bl->type == BL_PC) {
+	BL_CAST(BL_PC,bl,sd);
+	
+	if (sd) {
+
 		if (battle_config.pc_sc_def_rate != 100)
 			sc_def = sc_def*battle_config.pc_sc_def_rate/100;
-	} else
-	if (battle_config.mob_sc_def_rate != 100)
-		sc_def = sc_def*battle_config.mob_sc_def_rate/100;
+
+		if(SC_COMMON_MIN<=type && type<=SC_COMMON_MAX
+			&& sd->reseff[type-SC_COMMON_MIN] > 0)
+			sc_def+= sd->reseff[type-SC_COMMON_MIN];
+
+		if (sc_def < battle_config.pc_max_sc_def)
+			sc_def += (battle_config.pc_max_sc_def - sc_def)*
+				status_get_luk(bl)/battle_config.pc_luk_sc_def;
+		else
+			sc_def = battle_config.pc_max_sc_def;
+
+	} else {
+
+		if (battle_config.mob_sc_def_rate != 100)
+			sc_def = sc_def*battle_config.mob_sc_def_rate/100;
+
+		if (sc_def < battle_config.mob_max_sc_def)
+			sc_def += (battle_config.mob_max_sc_def - sc_def)*
+				status_get_luk(bl)/battle_config.mob_luk_sc_def;
+		else
+			sc_def = battle_config.mob_max_sc_def;
+
+	}
 	
 	sc = status_get_sc(bl);
 	if (sc && sc->count)
@@ -3510,16 +3534,10 @@ int status_get_sc_def(struct block_list *bl, int type)
 		if (sc->data[SC_SCRESIST].timer != -1)
 			sc_def += 100*sc->data[SC_SCRESIST].val1; //Status resist
 		else if (sc->data[SC_SIEGFRIED].timer != -1)
-			sc_def += 100*sc->data[SC_SIEGFRIED].val2; //Status resistance.
+			sc_def += 100*sc->data[SC_SIEGFRIED].val3; //Status resistance.
 	}
 
-	if(bl->type == BL_PC) {
-		if (sc_def > battle_config.pc_max_sc_def)
-			sc_def = battle_config.pc_max_sc_def;
-	} else if (sc_def > battle_config.mob_max_sc_def)
-		sc_def = battle_config.mob_max_sc_def;
-	
-	return sc_def;
+	return sc_def>10000?10000:sc_def;
 }
 
 //Reduces tick delay based on type and character defenses.
@@ -3645,15 +3663,11 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 
 	//Check rate
 	if (!(flag&(4|1))) {
-		if (rate > 10000) //Shouldn't let this go above 100%
-			rate = 10000;
-		race = flag&8?0:status_get_sc_def(bl, type); //recycling race to store the sc_def value.
-		//sd resistance applies even if the flag is &8
-		if(sd && SC_COMMON_MIN<=type && type<=SC_COMMON_MAX && sd->reseff[type-SC_COMMON_MIN] > 0)
-			race+= sd->reseff[type-SC_COMMON_MIN];
+		int def;
+		def = flag&8?0:status_get_sc_def(bl, type); //recycling race to store the sc_def value.
 
-		if (race)
-			rate -= rate*race/10000;
+		if (def)
+			rate -= rate*def/10000;
 
 		if (!(rand()%10000 < rate))
 			return 0;
