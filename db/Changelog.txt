@@ -1,3 +1,5 @@
+06/23
+	* Corrected BD_INTOABYSS unit flag to not affect mobs.  [Skotlex]
 06/18
 	* Merged Garm Claw and Baseball Cap fix [Playtester]
 06/17

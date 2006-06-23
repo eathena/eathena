@@ -136,6 +136,8 @@ int do_final_skill(void);
 enum { CAST_GROUND, CAST_DAMAGE, CAST_NODAMAGE };
 int skill_get_casttype(int id); //[Skotlex]
 // スキルデ?タベ?スへのアクセサ
+//
+int	skill_get_type( int id );
 int	skill_get_hit( int id );
 int	skill_get_inf( int id );
 int	skill_get_pl( int id );
@@ -158,6 +160,7 @@ int	skill_get_castdef( int id );
 int	skill_get_weapontype( int id );
 int	skill_get_ammotype( int id );
 int	skill_get_ammo_qty( int id, int lv );
+int	skill_get_nocast( int id );
 int	skill_get_unit_id(int id,int flag);
 int	skill_get_inf2( int id );
 int	skill_get_castcancel( int id );
@@ -224,7 +227,7 @@ void skill_identify(struct map_session_data *sd,int idx);
 void skill_weaponrefine(struct map_session_data *sd,int idx); // [Celest]
 int skill_autospell(struct map_session_data *md,int skillid);
 
-#define skill_calc_heal(bl,skill_lv) (( status_get_lv(bl)+status_get_int(bl) )/8 *(4+ skill_lv*8))
+int skill_calc_heal(struct block_list *bl, int skill_lv);
 
 // その他
 int skill_check_cloaking(struct block_list *bl);

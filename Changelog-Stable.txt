@@ -1,10 +1,19 @@
 Date	Added
 
-AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO INTO TRUNK.
-IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
-GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
+AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
+GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
+WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/06/23
+	* Breaker is now an entirely physical weapon attack with additional
+	  int-based damage (added after reductions and before elemental modifier)
+	  [Skotlex]
+	* Applied the corrections that should enable attacks to be absorbed due to
+	  elemental modifiers. [Skotlex]
+	* Energy Drain / Mental Breaker now always hit. [Skotlex]
+	* Fogwall won't affect the caster in any way. [Skotlex]
+	* move_enable state skills will cancel the can't walk delay when used from
+	  a combo skill. [Skotlex]
 	* Fixed Invulnerable Siegfried using the Elemental Resist value for Status
 	  Resistance (val2 instead of val3) [Skotlex]
 	* Merged luk reducing success chance of status effects on a

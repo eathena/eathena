@@ -40,8 +40,6 @@
 #define MOB_LAZYMOVEPERC 50	// Move probability in the negligent mode MOB (rate of 1000 minute)
 #define MOB_LAZYWARPPERC 20	// Warp probability in the negligent mode MOB (rate of 1000 minute)
 
-#define MOB_SLAVEDISTANCE 2	//Distance that slaves should keep from their master.
-
 #define MAX_MINCHASE 30	//Max minimum chase value to use for mobs.
 //Dynamic mob database, allows saving of memory when there's big gaps in the mob_db [Skotlex]
 struct mob_db *mob_db_data[MAX_MOB_DB+1];
