@@ -329,14 +329,23 @@ int clif_send_sub(struct block_list *bl, va_list ap)
 							case 0x119:
 								WFIFOW(sd->fd,10) &= ~(OPTION_HIDE|OPTION_CLOAK);
 								break;
-#if PACKETVER < 4
-							case 0x78:
-#else
+#if PACKETVER > 6
+							case 0x22c:
+							case 0x22b:
+							case 0x22a:
+								WFIFOL(sd->fd,12) &=~(OPTION_HIDE|OPTION_CLOAK);
+								break;
+#endif
+#if PACKETVER > 3
+							case 0x1d8:
+							case 0x1d9:
 							case 0x1da:
 #endif
+							case 0x78:
+							case 0x79:
+							case 0x7a:
 							case 0x7b:
 							case 0x7c:
-							case 0x1d8:
 								WFIFOW(sd->fd,12) &=~(OPTION_HIDE|OPTION_CLOAK);
 								break;
 						}
@@ -845,7 +854,43 @@ static int clif_set0078(struct block_list *bl, struct view_data *vd, unsigned ch
 	dir = unit_getdir(bl);
 	lv = status_get_lv(bl);
 	if(pcdb_checkid(vd->class_)) { 
-#if PACKETVER > 3
+#if PACKETVER > 6
+		memset(buf,0,packet_len_table[0x22a]);
+
+		WBUFW(buf,0)=0x22a;
+		WBUFL(buf,2)=bl->id;
+		WBUFW(buf,6)=status_get_speed(bl);
+		if (sc) {
+			WBUFW(buf,8)=sc->opt1;
+			WBUFW(buf,10)=sc->opt2;
+			WBUFL(buf,12)=sc->option;
+			WBUFL(buf,42)=sc->opt3;
+		}
+		WBUFW(buf,16)=vd->class_;
+		WBUFW(buf,18)=vd->hair_style;
+		WBUFW(buf,20)=vd->weapon;
+		WBUFW(buf,22)=vd->shield;
+		WBUFW(buf,24)=vd->head_bottom;
+		WBUFW(buf,26)=vd->head_top;
+		WBUFW(buf,28)=vd->head_mid;
+		WBUFW(buf,30)=vd->hair_color;
+		WBUFW(buf,32)=vd->cloth_color;
+		WBUFW(buf,34)=sd?sd->head_dir:dir;
+		WBUFL(buf,36)=guild_id;
+		WBUFW(buf,40)=emblem_id;
+		if (sd) {
+			WBUFW(buf,46)=sd->status.manner;
+			WBUFB(buf,48)=sd->status.karma;
+		}
+		WBUFB(buf,49)=vd->sex;
+		WBUFPOS(buf,50,bl->x,bl->y);
+		WBUFB(buf,52)|=dir & 0x0f;
+		WBUFB(buf,53)=5;
+		WBUFB(buf,54)=5;
+		WBUFB(buf,55)=vd->dead_sit;
+		WBUFW(buf,56)=clif_setlevel(lv);
+		return packet_len_table[0x22a];
+#elif PACKETVER > 3
 		memset(buf,0,packet_len_table[0x1d8]);
 
 		WBUFW(buf,0)=0x1d8;
@@ -1135,20 +1180,25 @@ static int clif_set007b(struct block_list *bl, struct view_data *vd, struct unit
 //Flag = 0: change id to negative, buf will have disguise data.
 //Flag = 1: change id to positive, class and option to make your own char invisible.
 //Luckily, the offsets that need to be changed are the same in packets 0x78, 0x7b, 0x1d8 and 0x1da
-//But no longer holds true for packet 0x22c
+//But no longer holds true for those packet of PACKETVER 7.
 static void clif_setdisguise(struct map_session_data *sd, unsigned char *buf,int len, int flag) {
 
 	if (flag) {
 #if PACKETVER > 6
-		if (WBUFW(buf,0)==0x22c) {
+		switch (WBUFW(buf,0)) {
+		case 0x22c:
+		case 0x22b:
+		case 0x22a:
 			WBUFL(buf,12)=OPTION_INVISIBLE;
 			WBUFW(buf,16)=sd->status.class_;
-		} else {
+			break;
+		default:
 #endif
 			WBUFL(buf,2)=sd->bl.id;
 			WBUFW(buf,12)=OPTION_INVISIBLE;
 			WBUFW(buf,14)=sd->status.class_;
 #if PACKETVER > 6
+			break;
 		}
 #endif
 	} else {
@@ -1298,19 +1348,31 @@ int clif_spawn(struct block_list *bl)
 	if (pcdb_checkid(vd->class_))
 	{	//Player spawn packet.
 		clif_set0078(bl, vd, buf);
-		if (WBUFW(buf,0)==0x78) {
-			WBUFW(buf, 0) = 0x79;
-			WBUFW(buf,51) = WBUFW(buf,52); //Lv is placed on offset 52
-			clif_send(buf, packet_len_table[0x79], bl, AREA_WOS);
-			if (disguised(bl))
-				clif_setdisguise((TBL_PC*)bl, buf, packet_len_table[0x79], 0);
+		switch(WBUFW(buf,0)) {
+			case 0x78: //Convert to 0x79
+				WBUFW(buf, 0) = 0x79;
+				WBUFW(buf,51) = WBUFW(buf,52); //Lv is placed on offset 52
+				clif_send(buf, packet_len_table[0x79], bl, AREA_WOS);
+				if (disguised(bl))
+					clif_setdisguise((TBL_PC*)bl, buf, packet_len_table[0x79], 0);
+				break;
 #if PACKETVER > 3
-		} else {
-			WBUFW(buf, 0) = 0x1d9;
-			WBUFW(buf,51) = WBUFW(buf,52); //Lv is placed on offset 52
-			clif_send(buf, packet_len_table[0x1d9], bl, AREA_WOS);
-			if (disguised(bl))
-				clif_setdisguise((TBL_PC*)bl, buf, packet_len_table[0x1d9], 0);
+			case 0x1d8: //Convert to 0x1d9
+				WBUFW(buf, 0) = 0x1d9;
+				WBUFW(buf,51) = WBUFW(buf,52); //Lv is placed on offset 52
+				clif_send(buf, packet_len_table[0x1d9], bl, AREA_WOS);
+				if (disguised(bl))
+					clif_setdisguise((TBL_PC*)bl, buf, packet_len_table[0x1d9], 0);
+				break;
+#endif
+#if PACKETVER > 6
+			case 0x22a: //Convert to 0x22b
+				WBUFW(buf, 0) = 0x22b;
+				WBUFW(buf,55) = WBUFW(buf,56); //Lv is placed on offset 56
+				clif_send(buf, packet_len_table[0x22b], bl, AREA_WOS);
+				if (disguised(bl))
+					clif_setdisguise((TBL_PC*)bl, buf, packet_len_table[0x22b], 0);
+				break;
 #endif
 		}
 	} else {	//Mob spawn packet.
@@ -1671,7 +1733,7 @@ int clif_selllist(struct map_session_data *sd) {
 	nullpo_retr(0, sd);
 
 	fd=sd->fd;
-        WFIFOHEAD(fd, MAX_INVENTORY * 10 + 4);
+	WFIFOHEAD(fd, MAX_INVENTORY * 10 + 4);
 	WFIFOW(fd,0)=0xc7;
 	for(i=0;i<MAX_INVENTORY;i++) {
 		if(sd->status.inventory[i].nameid > 0 && sd->inventory_data[i]) {
@@ -2326,6 +2388,9 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 		break;
 	case SP_JOBLEVEL:
 		WFIFOL(fd,4)=sd->status.job_level;
+		break;
+	case SP_KARMA: // Adding this back, I wonder if the client intercepts this - [Lance]
+		WFIFOL(fd,4)=sd->status.karma;
 		break;
 	case SP_MANNER:
 		WFIFOL(fd,4)=sd->status.manner;
@@ -8462,16 +8527,9 @@ void clif_parse_HowManyConnections(int fd, struct map_session_data *sd) {
 	WFIFOSET(fd,packet_len_table[0xc2]);
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
-void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
-	unsigned int tick;
+void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, int target_id, unsigned int tick)
+{
 	unsigned char buf[64];
-	int action_type, target_id;
-	RFIFOHEAD(fd);
-
 	if (pc_isdead(sd)) {
 		clif_clearchar_area(&sd->bl, 1);
 		return;
@@ -8483,13 +8541,8 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 		sd->sc.data[SC_BLADESTOP].timer != -1))
 		return;
 
-	tick = gettick();
-
 	pc_stop_walking(sd, 1);
 	pc_stop_attack(sd);
-
-	target_id = RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
-	action_type = RFIFOB(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]);
 
 	if(target_id<0 && -target_id == sd->bl.id) // for disguises [Valaris]
 		target_id = sd->bl.id;
@@ -8553,7 +8606,7 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 			return;
 		}
 		pc_setstand(sd);
-		skill_gangsterparadise(sd, 0); // ギャングスターパラダイス解除 fixed Valaris
+		skill_gangsterparadise(sd, 0); 
 		skill_rest(sd, 0); // TK_HPTIME standing up mode [Dralnu]
 		WBUFW(buf, 0) = 0x8a;
 		WBUFL(buf, 2) = sd->bl.id;
@@ -8561,6 +8614,18 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 		clif_send(buf, packet_len_table[0x8a], &sd->bl, AREA);
 		break;
 	}
+}
+
+/*==========================================
+ *
+ *------------------------------------------
+ */
+void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
+	clif_parse_ActionRequest_sub(sd,
+		RFIFOB(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]),
+		RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]),
+		gettick()
+	);
 }
 
 /*==========================================
@@ -10389,16 +10454,13 @@ void clif_parse_GMReqNoChat(int fd,struct map_session_data *sd)
 		((level = pc_isGM(sd)) > pc_isGM(dstsd) && level >= get_atcommand_level(AtCommand_Mute))
 		|| (type == 2 && !level)) {
 		clif_GM_silence(sd, dstsd, ((type == 2) ? 1 : type));
-		if (battle_config.manner_system)
+		dstsd->status.manner -= limit;
+		if(dstsd->status.manner < 0)
+			sc_start(bl,SC_NOCHAT,100,0,0);
+		else
 		{
-			dstsd->status.manner -= limit;
-			if(dstsd->status.manner < 0)
-				sc_start(bl,SC_NOCHAT,100,0,0);
-			else
-			{
-				dstsd->status.manner = 0;
-				status_change_end(bl,SC_NOCHAT,-1);
-			}
+			dstsd->status.manner = 0;
+			status_change_end(bl,SC_NOCHAT,-1);
 		}
 		ShowDebug("GMReqNoChat: name:%s type:%d limit:%d manner:%d\n", dstsd->status.name, type, limit, dstsd->status.manner);
 	}
@@ -11541,9 +11603,6 @@ static int packetdb_readdb(void)
  *------------------------------------------
  */
 int do_init_clif(void) {
-#ifndef __WIN32
-	int i;
-#endif
 	
 	clif_config.packet_db_ver = -1; // the main packet version of the DB
 	memset(clif_config.connect_cmd, 0, sizeof(clif_config.connect_cmd)); //The default connect command will be determined after reading the packet_db [Skotlex]
@@ -11553,24 +11612,10 @@ int do_init_clif(void) {
 	packetdb_readdb();
 
 	set_defaultparse(clif_parse);
-#ifdef __WIN32
-	//if (!make_listen_port(map_port)) {
 	if (!make_listen_bind(bind_ip,map_port)) {
 		ShowFatalError("cant bind game port\n");
 		exit(1);
 	}
-#else
-	for(i = 0; i < 10; i++) {
-		//if (make_listen_port(map_port))
-		if (make_listen_bind(bind_ip,map_port))
-			break;
-		sleep(20);
-	}
-	if (i == 10) {
-		ShowFatalError("cant bind game port\n");
-		exit(1);
-	}
-#endif
 
 	add_timer_func_list(clif_waitclose, "clif_waitclose");
 	add_timer_func_list(clif_clearchar_delay_sub, "clif_clearchar_delay_sub");

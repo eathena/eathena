@@ -5,6 +5,10 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/06/23
+	* Applied some ASC_BREAKER corrections (int damage after attribute fix,
+	  skill being a right-hand-only skill) [Skotlex]
+	* Merged handling of the PACKET_VER 7 packets (but left PACKET_VER at 6 for
+	  now) [Skotlex]
 	* Breaker is now an entirely physical weapon attack with additional
 	  int-based damage (added after reductions and before elemental modifier)
 	  [Skotlex]

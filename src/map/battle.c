@@ -1124,6 +1124,10 @@ static struct Damage battle_calc_weapon_attack(
 			}
 		if(sd->status.weapon > MAX_WEAPON_TYPE)
 			flag.rh = flag.lh = 1;
+		if (skill_num == ASC_BREAKER)
+		{ //Soul Breaker disregards dual-wielding.
+			flag.rh = 1; flag.lh = 0;
+		}
 	}
 
 	//Check for critical
@@ -1851,9 +1855,6 @@ static struct Damage battle_calc_weapon_attack(
 	if(skill_num==TF_POISON)
 		ATK_ADD(15*skill_lv);
 
-	if(skill_num==ASC_BREAKER) //Breaker's int-based damage.
-		ATK_ADD(rand()%500 + 500 + skill_lv * status_get_int(src) * 5);
-
 	if (skill_num || !(battle_config.attack_attr_none&src->type))
 	{	//Elemental attribute fix
 		short t_element = status_get_element(target);
@@ -1877,6 +1878,10 @@ static struct Damage battle_calc_weapon_attack(
 			ATK_ADD(damage);
 		}
 	}
+
+	//Breaker's int-based damage (applies after attribute modifiers)
+	if(skill_num==ASC_BREAKER)
+		ATK_ADD(rand()%500 + 500 + skill_lv * status_get_int(src) * 5);
 
 	if ((!flag.rh || !wd.damage) && (!flag.lh || !wd.damage2))
 		flag.cardfix = 0;	//When the attack does no damage, avoid doing %bonuses
@@ -1979,11 +1984,11 @@ static struct Damage battle_calc_weapon_attack(
 		cardfix=cardfix*(100-tsd->subrace[is_boss(src)?10:11])/100;
 		
 		for(i=0;i<tsd->add_dmg_count;i++) {
-				if(tsd->add_dmg[i].class_ == s_class) {
-					cardfix=cardfix*(100+tsd->add_dmg[i].rate)/100;
-					break;
-				}
+			if(tsd->add_dmg[i].class_ == s_class) {
+				cardfix=cardfix*(100+tsd->add_dmg[i].rate)/100;
+				break;
 			}
+		}
 	
 		if(wd.flag&BF_SHORT)
 			cardfix=cardfix*(100-tsd->near_attack_def_rate)/100;
@@ -2012,7 +2017,7 @@ static struct Damage battle_calc_weapon_attack(
 		{
 			if (rand()%100 < (skill_lv>sd->double_rate?skill_lv:sd->double_rate))
 			{
-				wd.div_=skill_get_num(TF_DOUBLE,skill_lv?skill_lv:1);
+				wd.div_=skill_get_num(TF_DOUBLE,skill_lv?skill_lv/5:1);
 				damage_div_fix(wd.damage, wd.div_);
 				wd.type = 0x08;
 			}
@@ -2027,7 +2032,7 @@ static struct Damage battle_calc_weapon_attack(
 			wd.damage2 = 0;
 			flag.rh=1;
 			flag.lh=0;
-		} else if(sd->status.weapon > MAX_WEAPON_TYPE && skill_num != ASC_BREAKER)
+		} else if(flag.rh && flag.lh)
 		{	//Dual-wield
 			if (wd.damage)
 			{
