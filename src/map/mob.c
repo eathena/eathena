@@ -668,7 +668,6 @@ int mob_spawn (struct mob_data *md)
 	md->attacked_players = 0;
 	md->attacked_count = 0;
 	md->target_id = 0;
-	md->mode = 0;
 	md->move_fail_count = 0;
 
 	md->def_ele = md->db->element;

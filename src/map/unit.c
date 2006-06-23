@@ -1543,6 +1543,7 @@ int unit_remove_map(struct block_list *bl, int clrtype) {
 			if(md->deletetimer!=-1)
 				delete_timer(md->deletetimer,mob_timer_delete);
 			md->deletetimer=-1;
+			md->mode = 0;
 			md->hp=0;
 			if(pcdb_checkid(md->vd->class_)) //Player mobs are not removed automatically by the client.
 				clif_clearchar_delay(gettick()+3000,bl,0);
