@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/06/23
+	* Updated mob_db.sql and item_db.sql to latest. [Skotlex]
 	* Fixed slaves_inherit_mode not working. [Skotlex]
 	* Allowed itemdb_exists to return the dummy item. Enables "invalid" items
 	  to be sold, traded, dropped, etc. [Skotlex]
