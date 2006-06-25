@@ -33,6 +33,7 @@ Evera
 Date		Added
 ======
 06/25
+	* Hopefully fixed an exploit in the Umbala Elemental Stone quest [Playtester]
 	* Added a shop to Prontera, it's required for the Hellion Quest. [MasterOfMuppets]
 06/22
 	* Fixed treasure chests round number exploit [Lupus]
