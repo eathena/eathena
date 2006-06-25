@@ -965,6 +965,9 @@ um_in.gat,44,71,2	script	Utan Tribe Shaman	782,{
 	}
 	
 	next;
+
+	set @need,0;
+
 	switch (select("Create Essence","Dismantle Elemental Stone","Nothing")) {
 	case 1:
 		mes "[Putsuchiritan]";
@@ -980,7 +983,6 @@ um_in.gat,44,71,2	script	Utan Tribe Shaman	782,{
 					mes "a friend of the earth.  Explore";
 					mes "the verdant forest and find";
 					mes "^3377FF15x Horn^000000 for the ritual.";
-					set @need,0;
 				}
 				else {
 					set @need,947;
@@ -995,7 +997,6 @@ um_in.gat,44,71,2	script	Utan Tribe Shaman	782,{
 					mes "saturated with water.  Explore";
 					mes "the area around here and find";
 					mes "^3377FF20x Snails Shell^000000 for the ritual.";
-					set @need,0;
 				}
 				else {
 					set @need,946;
@@ -1011,7 +1012,6 @@ um_in.gat,44,71,2	script	Utan Tribe Shaman	782,{
 					mes "of perpetual flame.  Explore the";
 					mes "desert and find ^3377FF20x Scorpion Tail^000000";
 					mes "for the ritual.";
-					set @need,0;
 				}
 				else {
 					set @need,904;
@@ -1027,7 +1027,6 @@ um_in.gat,44,71,2	script	Utan Tribe Shaman	782,{
 					mes "the sky itself.";
 					mes "You need ^3377FF25x Rainbow Shell^000000";
 					mes "to complete the ritual.";
-					set @need,0;
 				}
 				else {
 					set @need,1013;
@@ -1110,7 +1109,6 @@ um_in.gat,44,71,2	script	Utan Tribe Shaman	782,{
 					mes "^3377FF1x Great Nature^000000";
 					mes "to disassemble into its";
 					mes "component essence.";
-					set @need,0;
 				}
 				else {
 					set @need,997;
@@ -1124,7 +1122,6 @@ um_in.gat,44,71,2	script	Utan Tribe Shaman	782,{
 					mes "^3377FF1x Mystic Frozen^000000";
 					mes "to disassemble into its";
 					mes "component essence.";
-					set @need,0;
 				}
 				else {
 					set @need,995;
@@ -1138,7 +1135,6 @@ um_in.gat,44,71,2	script	Utan Tribe Shaman	782,{
 					mes "^3377FF1x Flaming Heart^000000";
 					mes "to disassemble into its";
 					mes "component essence.";
-					set @need,0;
 				}
 				else {
 					set @need,994;
@@ -1152,7 +1148,6 @@ um_in.gat,44,71,2	script	Utan Tribe Shaman	782,{
 					mes "^3377FF1x Rough Wind^000000";
 					mes "to disassemble into its";
 					mes "component essence.";
-					set @need,0;
 				}
 				else {
 					set @need,996;
