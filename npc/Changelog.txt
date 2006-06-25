@@ -32,6 +32,8 @@ Evera
 
 Date		Added
 ======
+06/25
+	* Added a shop to Prontera, it's required for the Hellion Quest. [MasterOfMuppets]
 06/22
 	* Fixed treasure chests round number exploit [Lupus]
 	  Now u get an extra chest one exact 4 Eco.pts adding
