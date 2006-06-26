@@ -115,7 +115,6 @@ Larcher:
 	mes "[Aire]";
 	mes "So what do you say?";
 	mes "Are you proposing you become a dancer? or will you be leaving like many before you.";
-	next;
 	menu "Fill in the form",L1,"Leave",-;
 		mes "[Aire]";
 		mes "If you do reconsider please return to me.";
@@ -687,8 +686,7 @@ job_duncer.gat,32,152,6	script	Guide::dancew	69,{
 OnWarp:
 	warpwaitingpc "job_duncer.gat",70,112,1;
 	disablewaitingroomevent;
-	attachnpctimer;
-	initnpctimer "jobDq";
+	doevent "jobDq::OnStart";
 	end;
 OnInit:
 	waitingroom "Dance lesson waiting room",20,"dancew::OnWarp",1;
@@ -696,6 +694,12 @@ OnInit:
 }
 job_duncer.gat,0,0,0	script	jobDq	-1,{
 	end;
+
+OnStart:
+	attachnpctimer;
+	initnpctimer;
+	end;
+
 OnTimer1000:
 	mapannounce "job_duncer.gat","Bijou: The test begins, Total time allowed is 1 minute.",8;
 	end;
