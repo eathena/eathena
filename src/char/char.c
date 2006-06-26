@@ -134,6 +134,11 @@ int fame_list_size_chemist = MAX_FAME_LIST;
 int fame_list_size_smith = MAX_FAME_LIST;
 int fame_list_size_taekwon = MAX_FAME_LIST;
 
+// Char-server-side stored fame lists [DracoRPG]
+struct fame_list smith_fame_list[MAX_FAME_LIST];
+struct fame_list chemist_fame_list[MAX_FAME_LIST];
+struct fame_list taekwon_fame_list[MAX_FAME_LIST];
+
 // Initial position (it's possible to set it in conf file)
 struct point start_point = { 0, 53, 111};
 
@@ -2368,6 +2373,111 @@ int char_account_reg_reply(int fd,int account_id,int char_id) {
 		WFIFOW(fd,2)=p;
 	}
 	WFIFOSET(fd,WFIFOW(fd,2));
+	return 0;
+}
+
+void char_read_fame_list(void)
+{
+	int i, j, k;
+	struct fame_list fame_item;
+	CREATE_BUFFER(id, int, char_num);
+
+	for(i = 0; i < char_num; i++) {
+		id[i] = i;
+		for(j = 0; j < i; j++) {
+			if (char_dat[i].status.fame > char_dat[id[j]].status.fame) {
+				for(k = i; k > j; k--)
+					id[k] = id[k-1];
+				id[j] = i; // id[i]
+				break;
+			}
+		}
+	}
+
+	// Empty ranking lists
+	memset(smith_fame_list, 0, sizeof(smith_fame_list));
+	memset(chemist_fame_list, 0, sizeof(chemist_fame_list));
+	memset(taekwon_fame_list, 0, sizeof(taekwon_fame_list));
+	// Build Blacksmith ranking list
+	for (i = 0, j = 0; i < char_num && j < fame_list_size_smith; i++) {
+		if (char_dat[id[i]].status.fame && (
+			char_dat[id[i]].status.class_ == JOB_BLACKSMITH ||
+			char_dat[id[i]].status.class_ == JOB_WHITESMITH ||
+			char_dat[id[i]].status.class_ == JOB_BABY_BLACKSMITH))
+		{
+			fame_item.id = char_dat[id[i]].status.char_id;
+			fame_item.fame = char_dat[id[i]].status.fame;
+			strncpy(fame_item.name, char_dat[id[i]].status.name, NAME_LENGTH);
+
+			memcpy(&smith_fame_list[j],&fame_item,sizeof(struct fame_list));
+			j++;
+		}
+	}
+	// Build Alchemist ranking list
+	for (i = 0, j = 0; i < char_num && j < fame_list_size_chemist; i++) {
+		if (char_dat[id[i]].status.fame && (
+			char_dat[id[i]].status.class_ == JOB_ALCHEMIST ||
+			char_dat[id[i]].status.class_ == JOB_CREATOR ||
+			char_dat[id[i]].status.class_ == JOB_BABY_ALCHEMIST))
+		{
+			fame_item.id = char_dat[id[i]].status.char_id;
+			fame_item.fame = char_dat[id[i]].status.fame;
+			strncpy(fame_item.name, char_dat[id[i]].status.name, NAME_LENGTH);
+
+			memcpy(&chemist_fame_list[j],&fame_item,sizeof(struct fame_list));
+
+			j++;
+		}
+	}
+	// Build Taekwon ranking list
+	for (i = 0, j = 0; i < char_num && j < fame_list_size_taekwon; i++) {
+		if (char_dat[id[i]].status.fame &&
+			char_dat[id[i]].status.class_ == JOB_TAEKWON)
+		{
+			fame_item.id = char_dat[id[i]].status.char_id;
+			fame_item.fame = char_dat[id[i]].status.fame;
+			strncpy(fame_item.name, char_dat[id[i]].status.name, NAME_LENGTH);
+
+			memcpy(&taekwon_fame_list[j],&fame_item,sizeof(struct fame_list));
+
+			j++;
+		}
+	}
+	DELETE_BUFFER(id);
+}
+// Send map-servers the fame ranking lists
+int char_send_fame_list(int fd) {
+	int i, len = 8;
+	unsigned char buf[32000];
+	
+	WBUFW(buf,0) = 0x2b1b;
+
+	for(i = 0; i < fame_list_size_smith && smith_fame_list[i].id; i++) {
+		memcpy(WBUFP(buf, len), &smith_fame_list[i], sizeof(struct fame_list));
+		len += sizeof(struct fame_list);
+	}
+	// add blacksmith's block length
+	WBUFW(buf, 6) = len;
+
+	for(i = 0; i < fame_list_size_chemist && chemist_fame_list[i].id; i++) {
+		memcpy(WBUFP(buf, len), &chemist_fame_list[i], sizeof(struct fame_list));
+		len += sizeof(struct fame_list);
+	}
+	// add alchemist's block length
+	WBUFW(buf, 4) = len;
+
+	for(i = 0; i < fame_list_size_taekwon && taekwon_fame_list[i].id; i++) {
+		memcpy(WBUFP(buf, len), &taekwon_fame_list[i], sizeof(struct fame_list));
+		len += sizeof(struct fame_list);
+	}
+	// add total packet length
+	WBUFW(buf, 2) = len;
+
+	if(fd!=-1)
+		mapif_send(fd, buf, len);
+	else
+		mapif_sendall(buf, len);
+
 	return 0;
 }
 

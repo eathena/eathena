@@ -2,20 +2,8 @@
 // For more information, see LICENCE in the main folder
 
 #include <sys/types.h>
-#ifdef _WIN32
-#include <winsock.h>
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef _WIN32
-#include <sys/time.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#endif
 #include <signal.h>
 #include <fcntl.h>
 #include <string.h>
@@ -46,7 +34,7 @@ static const int packet_len_table[]={
 	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
 	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
 	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
-	11,-1, 7, 3,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3880
+	11,-1, 7, 3, 36, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3880
 };
 
 extern int char_fd;		// inter serverのfdはchar_fdを使う
@@ -122,6 +110,20 @@ int intif_delete_petdata(int pet_id)
 
 	return 0;
 }
+int intif_rename_pet(struct map_session_data *sd,char *name)
+{
+	if (CheckForCharServer())
+		return 1;
+
+	WFIFOHEAD(inter_fd,NAME_LENGTH+11);
+	WFIFOW(inter_fd,0) = 0x3084;
+	WFIFOL(inter_fd,2) = sd->status.account_id;
+	WFIFOL(inter_fd,6) = sd->status.char_id;
+	memcpy(WFIFOP(inter_fd,10),name, NAME_LENGTH);
+	WFIFOSET(inter_fd,NAME_LENGTH+11);
+	return 0;
+}
+
 
 // GMメッセージを送信
 int intif_GMmessage(char* mes,int len,int flag)
@@ -1162,7 +1164,8 @@ int intif_parse_GuildBroken(int fd)
 // ギルド基本情報変更通知
 int intif_parse_GuildBasicInfoChanged(int fd)
 {
-	int type, guild_id, dd;
+	int type, guild_id;
+	unsigned int dd;
 	void *data;
 	struct guild *g;
 	short dw;
@@ -1172,7 +1175,7 @@ int intif_parse_GuildBasicInfoChanged(int fd)
 	data=RFIFOP(fd,10);
 	g=guild_search(guild_id);
 	dw=*((short *)data);
-	dd=*((int *)data);
+	dd=*((unsigned int *)data);
 	if( g==NULL )
 		return 0;
 	switch(type){
@@ -1346,6 +1349,23 @@ int intif_parse_DeletePetOk(int fd)
 
 	return 0;
 }
+
+int intif_parse_RenamePetOk(int fd)
+{
+	struct map_session_data *sd = NULL;
+	RFIFOHEAD(fd);
+	if((sd=map_id2sd(RFIFOL(fd,2)))==NULL  ||
+		sd->status.char_id != RFIFOL(fd,6))
+		return 0;
+	if (RFIFOB(fd,10) == 0) {
+		clif_displaymessage(sd->fd, msg_txt(280)); // You cannot use this name for your pet.
+		clif_send_petstatus(sd); //Send status so client knows oet name change got rejected.
+		return 0;
+	}
+	pet_change_name(sd, RFIFOP(fd,11),1);
+	return 0;
+}
+
 //-----------------------------------------------------------------
 // inter serverからの通信
 // エラーがあれば0(false)を返すこと
@@ -1420,6 +1440,7 @@ int intif_parse(int fd)
 	case 0x3881:	intif_parse_RecvPetData(fd); break;
 	case 0x3882:	intif_parse_SavePetOk(fd); break;
 	case 0x3883:	intif_parse_DeletePetOk(fd); break;
+	case 0x3884:   intif_parse_RenamePetOk(fd); break;
 	default:
 		if(battle_config.error_log)
 			ShowError("intif_parse : unknown packet %d %x\n",fd,RFIFOW(fd,0));

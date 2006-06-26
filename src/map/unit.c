@@ -854,13 +854,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 		break;
 	}
 
-	if (sc && sc->data[SC_MEMORIZE].timer != -1 && casttime > 0) {
-		casttime = casttime/2;
-		if ((--sc->data[SC_MEMORIZE].val2) <= 0)
-			status_change_end(src, SC_MEMORIZE, -1);
-	}
-
-	if( casttime>0 || temp){
+	if( casttime>0 || temp){ 
 
 		clif_skillcasting(src, src->id, target_id, 0,0, skill_num,casttime);
 
@@ -975,12 +969,6 @@ int unit_skilluse_pos2( struct block_list *src, int skill_x, int skill_y, int sk
 
 	unit_stop_attack(src);
 	ud->state.skillcastcancel = castcancel;
-
-	if (sc && sc->data[SC_MEMORIZE].timer != -1 && casttime > 0){
-		casttime = casttime/3;
-		if ((--sc->data[SC_MEMORIZE].val2)<=0)
-			status_change_end(src, SC_MEMORIZE, -1);
-	}
 
 	if( casttime>0 ) {
 		unit_stop_walking( src, 1);
@@ -1262,7 +1250,7 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 		map_freeblock_lock();
 		ud->attacktarget_lv = battle_weapon_attack(src,target,tick,0);
 
-		if(sd && sd->status.pet_id > 0 && sd->pd && sd->petDB && battle_config.pet_attack_support)
+		if(sd && sd->status.pet_id > 0 && sd->pd && battle_config.pet_attack_support)
 			pet_target_check(sd,target,0);
 		map_freeblock_unlock();
 
@@ -1447,7 +1435,8 @@ int unit_remove_map(struct block_list *bl, int clrtype) {
 		unit_stop_attack(bl);
 	if (ud->skilltimer != -1)
 		unit_skillcastcancel(bl,0);
-	ud->attackabletime = ud->canmove_tick = ud->canact_tick = gettick();
+// Do not reset can-act delay. [Skotlex]
+	ud->attackabletime = ud->canmove_tick /*= ud->canact_tick*/ = gettick();
 	clif_clearchar_area(bl,clrtype);
 	
 	if (clrtype == 1) //Death. Remove all status changes.
@@ -1572,7 +1561,6 @@ int unit_remove_map(struct block_list *bl, int clrtype) {
 			intif_delete_petdata(sd->status.pet_id);
 			sd->status.pet_id = 0;
 			sd->pd = NULL;
-			sd->petDB = NULL;
 			pd->msd = NULL;
 			if(battle_config.pet_status_support)
 				status_calc_pc(sd,2);
@@ -1640,11 +1628,11 @@ int unit_free(struct block_list *bl) {
 		chrif_save_scdata(sd); //Save status changes, then clear'em out from memory. [Skotlex]
 		pc_makesavestatus(sd);
 		sd->state.waitingdisconnect = 1;
+		pc_clean_skilltree(sd);
 	} else if( bl->type == BL_PET ) {
 		struct pet_data *pd = (struct pet_data*)bl;
 		struct map_session_data *sd = pd->msd;
-		if(sd && sd->pet_hungry_timer != -1)
-			pet_hungry_timer_delete(sd);
+		pet_hungry_timer_delete(pd);
 		if (pd->a_skill)
 		{
 			aFree(pd->a_skill);
@@ -1687,7 +1675,11 @@ int unit_free(struct block_list *bl) {
 			aFree(pd->status);
 			pd->status = NULL;
 		}
-		if (sd) sd->pd = NULL;
+		if (sd) {
+			if(sd->pet.intimate > 0)
+				intif_save_petdata(sd->status.account_id,&sd->pet);
+			sd->pd = NULL;
+		}
 	} else if(bl->type == BL_MOB) {
 		struct mob_data *md = (struct mob_data*)bl;
 		if(md->deletetimer!=-1)

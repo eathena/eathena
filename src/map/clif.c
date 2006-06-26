@@ -2054,7 +2054,7 @@ void clif_item_sub(unsigned char *buf, int n, struct item *i, struct item_data *
 		WBUFW(buf,n)=i->nameid;
 	WBUFB(buf,n+2)=itemtype(id->type);
 	WBUFB(buf,n+3)=i->identify;
-	if (equip > 0) { //Equippable item.
+	if (equip > 0 || id->type == 7) { //Equippable item (pet eggs also count).
 		WBUFW(buf,n+4)=equip;
 		WBUFW(buf,n+6)=i->equip;
 		WBUFB(buf,n+8)=i->attribute;
@@ -6120,21 +6120,19 @@ int clif_send_petstatus(struct map_session_data *sd)
 int clif_pet_emotion(struct pet_data *pd,int param)
 {
 	unsigned char buf[16];
-	struct map_session_data *sd;
 
 	nullpo_retr(0, pd);
-	nullpo_retr(0, sd = pd->msd);
 
 	memset(buf,0,packet_len_table[0x1aa]);
 
 	WBUFW(buf,0)=0x1aa;
 	WBUFL(buf,2)=pd->bl.id;
-	if(param >= 100 && sd->petDB->talk_convert_class) {
-		if(sd->petDB->talk_convert_class < 0)
+	if(param >= 100 && pd->petDB->talk_convert_class) {
+		if(pd->petDB->talk_convert_class < 0)
 			return 0;
-		else if(sd->petDB->talk_convert_class > 0) {
+		else if(pd->petDB->talk_convert_class > 0) {
 			param -= (pd->class_ - 100)*100;
-			param += (sd->petDB->talk_convert_class - 100)*100;
+			param += (pd->petDB->talk_convert_class - 100)*100;
 		}
 	}
 	WBUFL(buf,6)=param;
@@ -9651,14 +9649,18 @@ void clif_parse_NpcAmountInput(int fd,struct map_session_data *sd)
  */
 void clif_parse_NpcStringInput(int fd,struct map_session_data *sd)
 {
+	unsigned short message_len = RFIFOW(fd,2)-7;
 	RFIFOHEAD(fd);
 
-	if(RFIFOW(fd,2)-7 >= sizeof(sd->npc_str)){
+	if(message_len >= sizeof(sd->npc_str)){
 		ShowWarning("clif: input string too long !\n");
-		memcpy(sd->npc_str,RFIFOP(fd,8),sizeof(sd->npc_str));
-		sd->npc_str[sizeof(sd->npc_str)-1]=0;
-	} else
-		strcpy(sd->npc_str,(char*)RFIFOP(fd,8));
+		message_len = sizeof(sd->npc_str);
+	}
+
+	// Exploit prevention if crafted packets (without null) is being sent. [Lance]
+	memcpy(sd->npc_str,RFIFOP(fd,8),message_len); 
+	sd->npc_str[message_len-1]=0;
+
 	npc_scriptcont(sd,RFIFOL(fd,4));
 }
 
@@ -10291,7 +10293,7 @@ void clif_parse_SendEmotion(int fd, struct map_session_data *sd) {
 
 void clif_parse_ChangePetName(int fd, struct map_session_data *sd) {
 	RFIFOHEAD(fd);
-	pet_change_name(sd,(char*)RFIFOP(fd,2));
+	pet_change_name(sd,(char*)RFIFOP(fd,2), 0);
 }
 
 // Kick (right click menu for GM "(name) force to quit")

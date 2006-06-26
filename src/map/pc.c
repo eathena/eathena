@@ -351,11 +351,9 @@ int pc_makesavestatus(struct map_session_data *sd)
 	if (sd->state.finalsave)
 		return 0; //Nothing to change.
 	
-	// 秒ﾌ色は色?弊害が多いので保存?象にはしない
 	if(!battle_config.save_clothcolor)
 		sd->status.clothes_color=0;
 
-	// 死亡?態だったのでhpを1、位置をセ?ブ場所に?更
 	if(!sd->state.waitingdisconnect) {
 		sd->status.option = sd->sc.option; //Since the option saved is in 
 		if(pc_isdead(sd)){
@@ -367,7 +365,6 @@ int pc_makesavestatus(struct map_session_data *sd)
 			sd->status.last_point.y = sd->bl.y;
 		}
 
-		// セ?ブ禁止マップだったので指定位置に移動
 		if(map[sd->bl.m].flag.nosave){
 			struct map_data *m=&map[sd->bl.m];
 			if(m->save.map)
@@ -404,7 +401,6 @@ int pc_setnewpc(struct map_session_data *sd, int account_id, int char_id, int lo
 int pc_equippoint(struct map_session_data *sd,int n)
 {
 	int ep = 0;
-	//?生や養子の場合の元の職業を算出する
 
 	nullpo_retr(0, sd);
 
@@ -660,9 +656,6 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	status_change_init(&sd->bl);
 	unit_dataset(&sd->bl);
 	
-	// pet
-	sd->pet_hungry_timer = -1;
-
 	if ((battle_config.atc_gmonly == 0 || pc_isGM(sd)) &&
 	    (pc_isGM(sd) >= get_atcommand_level(AtCommand_Hide)))
 		sd->status.option &= (OPTION_MASK | OPTION_INVISIBLE);
@@ -733,7 +726,6 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	sd->state.event_disconnect = 1;
 	sd->state.event_kill_mob = 1;
 
-	// ステ?タス初期計算など
 	status_calc_pc(sd,1);
 			
 	sd->state.auth = 1; //Do not auth him until the initial stats have been placed.
@@ -4492,7 +4484,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 	else
 		sd->status.hp = 0;
 	
-	if(sd->status.pet_id > 0 && sd->pd && sd->petDB && battle_config.pet_damage_support)
+	if(sd->status.pet_id > 0 && sd->pd && battle_config.pet_damage_support)
 		pet_target_check(sd,src,1);
 
 	clif_updatestatus(sd,SP_HP);
@@ -4519,14 +4511,16 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 	if(sd->vender_id)
 		vending_closevending(sd);
 
-	if(sd->status.pet_id > 0 && sd->pd && 
-		!map[sd->bl.m].flag.nopenalty) {
-		if(sd->petDB) {
-			sd->pet.intimate -= sd->petDB->die;
+	if(sd->status.pet_id > 0 && sd->pd)
+	{
+		if(!map[sd->bl.m].flag.nopenalty){
+			sd->pet.intimate -= sd->pd->petDB->die;
 			if(sd->pet.intimate < 0)
 				sd->pet.intimate = 0;
 			clif_send_petdata(sd,1,sd->pet.intimate);
 		}
+		if(sd->pd->target_id) // Unlock all targets...
+			pet_unlocktarget(sd->pd);
 	}
 
 	// Leave duel if you die [LuzZza]

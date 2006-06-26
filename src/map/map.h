@@ -663,9 +663,7 @@ struct map_session_data {
 	struct vending vending[MAX_VENDING];
 
 	struct s_pet pet;
-	struct pet_db *petDB;
 	struct pet_data *pd;
-	int pet_hungry_timer;
 
 	struct{
 		int  m; //-1 - none, other: map index corresponding to map name.
@@ -839,6 +837,8 @@ struct pet_data {
 	struct unit_data ud;
 	struct view_data vd;
 	struct mob_db *db;
+	struct pet_db *petDB;
+	int pet_hungry_timer;
 	int target_id;
 	short n;
 	short class_;

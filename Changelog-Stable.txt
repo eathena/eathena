@@ -5,6 +5,13 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/06/26
+	* Merged doing name-check using "allowed letters" char-server setting when
+	  renaming pets. [Skotlex]
+	* Merged Memorize halving casting time regardless of skill type. [Skotlex]
+	* Merged can-act delay not resetting on warp. [Skotlex]
+	* merged that fix that should correct pet egg displays. [Skotlex]
+	* Merged pets respecting the skill canact delay. [Skotlex]
+	* Merged various cleanups from pet.c [Skotlex]
 	* Fixed Reject Sword's trigger rate. [Skotlex]
 2006/06/23
 	* Updated mob_db.sql and item_db.sql to latest. [Skotlex]

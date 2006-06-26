@@ -153,6 +153,11 @@ int fame_list_size_chemist = MAX_FAME_LIST;
 int fame_list_size_smith = MAX_FAME_LIST;
 int fame_list_size_taekwon = MAX_FAME_LIST;
 
+// Char-server-side stored fame lists [DracoRPG]
+struct fame_list smith_fame_list[MAX_FAME_LIST];
+struct fame_list chemist_fame_list[MAX_FAME_LIST];
+struct fame_list taekwon_fame_list[MAX_FAME_LIST];
+
 // check for exit signal
 // 0 is saving complete
 // other is char_id
@@ -2212,7 +2217,138 @@ int save_accreg2(unsigned char* buf, int len) {
 	}
 	return 0;
 }
+
+void char_read_fame_list(void)
+{
+	int i;
+	struct fame_list fame_item;
+
+	// Empty ranking lists
+	memset(smith_fame_list, 0, sizeof(smith_fame_list));
+	memset(chemist_fame_list, 0, sizeof(chemist_fame_list));
+	memset(taekwon_fame_list, 0, sizeof(taekwon_fame_list));
+	// Build Blacksmith ranking list
+	sprintf(tmp_sql, "SELECT `char_id`,`fame`, `name` FROM `%s` WHERE `fame`>0 AND (`class`='%d' OR `class`='%d' OR `class`='%d') ORDER BY `fame` DESC LIMIT 0,%d", char_db, JOB_BLACKSMITH, JOB_WHITESMITH, JOB_BABY_BLACKSMITH, fame_list_size_smith);
+	if (mysql_query(&mysql_handle, tmp_sql)) {
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+	}
+	sql_res = mysql_store_result(&mysql_handle);
+	if (sql_res) {
+		i = 0;
+		while((sql_row = mysql_fetch_row(sql_res))) {
+			fame_item.id = atoi(sql_row[0]);
+			fame_item.fame = atoi(sql_row[1]);
+			strncpy(fame_item.name, sql_row[2], NAME_LENGTH);
+			memcpy(&smith_fame_list[i], &fame_item, sizeof(struct fame_list));
+
+			if (++i == fame_list_size_smith)
+				break;
+		}
+		mysql_free_result(sql_res);
+	}
+	// Build Alchemist ranking list
+	sprintf(tmp_sql, "SELECT `char_id`,`fame`, `name` FROM `%s` WHERE `fame`>0 AND (`class`='%d' OR `class`='%d' OR `class`='%d') ORDER BY `fame` DESC LIMIT 0,%d", char_db, JOB_ALCHEMIST, JOB_CREATOR, JOB_BABY_ALCHEMIST, fame_list_size_chemist);
+	if (mysql_query(&mysql_handle, tmp_sql)) {
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+	}
+	sql_res = mysql_store_result(&mysql_handle);
+	if (sql_res) {
+		i = 0;
+		while((sql_row = mysql_fetch_row(sql_res))) {
+			fame_item.id = atoi(sql_row[0]);
+			fame_item.fame = atoi(sql_row[1]);
+			strncpy(fame_item.name, sql_row[2], NAME_LENGTH);
+
+			memcpy(&chemist_fame_list[i], &fame_item, sizeof(struct fame_list));
+
+			if (++i == fame_list_size_chemist)
+				break;
+		}
+		mysql_free_result(sql_res);
+	}
+	// Build Taekwon ranking list
+	sprintf(tmp_sql, "SELECT `char_id`,`fame`, `name` FROM `%s` WHERE `fame`>0 AND (`class`='%d') ORDER BY `fame` DESC LIMIT 0,%d", char_db, JOB_TAEKWON, fame_list_size_taekwon);
+	if (mysql_query(&mysql_handle, tmp_sql)) {
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+	}
+	sql_res = mysql_store_result(&mysql_handle);
+	if (sql_res) {
+		i = 0;
+		while((sql_row = mysql_fetch_row(sql_res))) {
+			fame_item.id = atoi(sql_row[0]);
+			fame_item.fame = atoi(sql_row[1]);
+			strncpy(fame_item.name, sql_row[2], NAME_LENGTH);
+
+			memcpy(&taekwon_fame_list[i], &fame_item, sizeof(struct fame_list));
+			
+			if (++i == fame_list_size_taekwon)
+				break;
+		}
+		mysql_free_result(sql_res);
+	}
+}
+
+// Send map-servers the fame ranking lists
+int char_send_fame_list(int fd) {
+	int i, len = 8;
+	unsigned char buf[32000];
+	
+	WBUFW(buf,0) = 0x2b1b;
+
+	for(i = 0; i < fame_list_size_smith && smith_fame_list[i].id; i++) {
+		memcpy(WBUFP(buf, len), &smith_fame_list[i], sizeof(struct fame_list));
+		len += sizeof(struct fame_list);
+	}
+	// add blacksmith's block length
+	WBUFW(buf, 6) = len;
+
+	for(i = 0; i < fame_list_size_chemist && chemist_fame_list[i].id; i++) {
+		memcpy(WBUFP(buf, len), &chemist_fame_list[i], sizeof(struct fame_list));
+		len += sizeof(struct fame_list);
+	}
+	// add alchemist's block length
+	WBUFW(buf, 4) = len;
+
+	for(i = 0; i < fame_list_size_taekwon && taekwon_fame_list[i].id; i++) {
+		memcpy(WBUFP(buf, len), &taekwon_fame_list[i], sizeof(struct fame_list));
+		len += sizeof(struct fame_list);
+	}
+	// add total packet length
+	WBUFW(buf, 2) = len;
+
+	if (fd != -1)
+		mapif_send(fd, buf, len);
+	else
+		mapif_sendall(buf, len);
+	return 0;
+}
+
 int search_mapserver(unsigned short map, long ip, short port);
+				
+//Loads a character's name and stores it in the buffer given (must be NAME_LENGTH in size)
+//Returns 1 on found, 0 on not found (buffer is filled with Unknown char name)
+int char_loadName(int char_id, char* name)
+{
+	sprintf(tmp_sql, "SELECT `name` FROM `%s` WHERE `char_id`='%d'", char_db, char_id);
+	if (mysql_query(&mysql_handle, tmp_sql)) {
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+	}
+	
+	sql_res = mysql_store_result(&mysql_handle);
+	sql_row = sql_res?mysql_fetch_row(sql_res):NULL;
+
+	if (sql_row)
+		memcpy(name, sql_row[0], NAME_LENGTH);
+	else
+		memcpy(name, unknown_char_name, NAME_LENGTH);
+	if (sql_res) mysql_free_result(sql_res);
+	return sql_row?1:0;
+}
+
 
 int parse_frommap(int fd) {
 	int i = 0, j = 0;
@@ -2545,28 +2681,15 @@ int parse_frommap(int fd) {
 		case 0x2b08:
 			if (RFIFOREST(fd) < 6)
 				return 0;
-		
-			sprintf(tmp_sql, "SELECT `name` FROM `%s` WHERE `char_id`='%d'", char_db, (int)RFIFOL(fd,2));
-			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			{
+				char name[NAME_LENGTH];
+				char_loadName((int)RFIFOL(fd,2), name);
+				WFIFOW(fd,0) = 0x2b09;
+				WFIFOL(fd,2) = RFIFOL(fd,2);
+				memcpy(WFIFOP(fd,6), name, NAME_LENGTH);
+				WFIFOSET(fd,30);
+				RFIFOSKIP(fd,6);
 			}
-			
-			sql_res = mysql_store_result(&mysql_handle);
-			sql_row = sql_res?mysql_fetch_row(sql_res):NULL;
-
-			WFIFOW(fd,0) = 0x2b09;
-			WFIFOL(fd,2) = RFIFOL(fd,2);
-
-			if (sql_row)
-				memcpy(WFIFOP(fd,6), sql_row[0], NAME_LENGTH);
-			else
-				memcpy(WFIFOP(fd,6), unknown_char_name, NAME_LENGTH);
-			if (sql_res) mysql_free_result(sql_res);
-
-			WFIFOSET(fd,30);
-
-			RFIFOSKIP(fd,6);
 			break;
 
 		// I want become GM - fuck!
