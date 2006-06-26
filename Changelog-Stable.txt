@@ -4,6 +4,8 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/06/26
+	* Fixed Reject Sword's trigger rate. [Skotlex]
 2006/06/23
 	* Updated mob_db.sql and item_db.sql to latest. [Skotlex]
 	* Fixed slaves_inherit_mode not working. [Skotlex]

@@ -494,7 +494,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 				damage = damage*50/100;
 				battle_damage(bl,src,damage,clif_damage(bl,src,gettick(),0,0,damage,0,0,0),0);
 				clif_skill_nodamage(bl,bl,ST_REJECTSWORD,sc->data[SC_REJECTSWORD].val1,1);
-				if((--sc->data[SC_REJECTSWORD].val2)<=0)
+				if((--sc->data[SC_REJECTSWORD].val3)<=0)
 					status_change_end(bl, SC_REJECTSWORD, -1);
 			}
 		}

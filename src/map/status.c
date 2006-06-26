@@ -1356,7 +1356,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	if(pc_isriding(sd) && pc_checkskill(sd,KN_RIDING)>0)
 		sd->speed -= sd->speed * 25/100;
 	if(pc_ishiding(sd) && (skill=pc_checkskill(sd,RG_TUNNELDRIVE))>0)
-		sd->speed = (int)sd->speed * (1 / ((.06*skill) + 0.2));
+		sd->speed = (int)(sd->speed * (1 / ((.06*skill) + 0.2)));
 	if(pc_iscarton(sd) && (skill=pc_checkskill(sd,MC_PUSHCART))>0)
 		sd->speed += sd->speed * (100-10*skill)/100;
  	if(sd->ud.skilltimer != -1 && (skill=pc_checkskill(sd,SA_FREECAST))>0) {
@@ -4315,7 +4315,8 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			break;
 
 		case SC_REJECTSWORD:
-			val2 = 3;
+			val2 = 15*val1; //Reflect chance
+			val3 = 3; //Number of reflections
 			break;
 
 		case SC_MEMORIZE:
