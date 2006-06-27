@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/06/26
+	* Put pay_arche.gat in the "no experience lost" mapflag file. [MasterOfMuppets]
 	* Changed skill_setmapcell to use skill splash rather than range. [Skotlex]
 	* Cleaned up a bit skill_moonlit, now it knocks back the correct amount of
 	  cells. [Skotlex]
