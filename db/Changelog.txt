@@ -1,3 +1,7 @@
+06/27
+	* Merged item_db and mob_db from Trunk [Playtester]
+	- various item updates
+	- new cards will now be dropped by mobs
 06/26
 	* Corrected the element of hunter traps. [Skotlex]
 06/23
