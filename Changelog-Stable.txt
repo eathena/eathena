@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/06/27
+	* Fixed changing the pet's name causing the char server to disconnect the
+	  map server. [Skotlex]
 	* Merged most of itemdb.c, added LottoBox random item group. [Skotlex]
 	* Merged the updated tools/stackdump script. [Skotlex]
 	* Reenabled auto-cast skills not triggering if the skill's nk is "no
