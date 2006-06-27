@@ -1,3 +1,5 @@
+06/26
+	* Corrected the element of hunter traps. [Skotlex]
 06/23
 	* Corrected BD_INTOABYSS unit flag to not affect mobs.  [Skotlex]
 06/18
