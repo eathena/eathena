@@ -24,7 +24,7 @@ static struct dbt* item_db;
 
 static struct item_group itemgroup_db[MAX_ITEMGROUP];
 
-struct item_data *dummy_item=NULL; //This is the default dummy item used for non-existant items. [Skotlex]
+struct item_data dummy_item; //This is the default dummy item used for non-existant items. [Skotlex]
 
 /*==========================================
  * –¼‘O‚ÅŒŸõ—p
@@ -37,7 +37,7 @@ int itemdb_searchname_sub(DBKey key,void *data,va_list ap)
 	char *str;
 	str=va_arg(ap,char *);
 	dst=va_arg(ap,struct item_data **);
-	if(item == dummy_item) return 0;
+	if(item == &dummy_item) return 0;
 	if( strcmpi(item->name,str)==0 ) //by lupus
 		*dst=item;
 	return 0;
@@ -74,7 +74,7 @@ static int itemdb_searchname_array_sub(DBKey key,void * data,va_list ap)
 	struct item_data *item=(struct item_data *)data;
 	char *str;
 	str=va_arg(ap,char *);
-	if (item == dummy_item)
+	if (item == &dummy_item)
 		return 1; //Invalid item.
 	if(stristr(item->jname,str))
 		return 0;
@@ -135,7 +135,7 @@ int itemdb_group (int nameid)
 struct item_data* itemdb_exists(int nameid)
 {
 	struct item_data* id = idb_get(item_db,nameid);
-//	if (id == dummy_item) return NULL; //Let dummy items go through... technically they "exist" because someone already has them...
+//	if (id == &dummy_item) return NULL; //Let dummy items go through... technically they "exist" because someone already has them...
 	return id;
 }
 
@@ -201,16 +201,14 @@ static void itemdb_jobid2mapid(unsigned int *bclass, unsigned int jobmask)
 }
 
 static void create_dummy_data(void) {
-	if (dummy_item)
-		aFree(dummy_item);
-	
-	dummy_item=(struct item_data *)aCalloc(1,sizeof(struct item_data));
-	dummy_item->nameid=500;
-	dummy_item->weight=1;
-	dummy_item->type=3; //Etc item
-	strncpy(dummy_item->name,"UNKNOWN_ITEM",ITEM_NAME_LENGTH-1);
-	strncpy(dummy_item->jname,"UNKNOWN_ITEM",ITEM_NAME_LENGTH-1);
-	dummy_item->view_id = 512; //Use apple sprite.
+	memset(&dummy_item, 0, sizeof(struct item_data));
+	dummy_item.nameid=500;
+	dummy_item.weight=1;
+	dummy_item.value_sell = 1;
+	dummy_item.type=3; //Etc item
+	strncpy(dummy_item.name,"UNKNOWN_ITEM",ITEM_NAME_LENGTH-1);
+	strncpy(dummy_item.jname,"UNKNOWN_ITEM",ITEM_NAME_LENGTH-1);
+	dummy_item.view_id = 512; //Use apple sprite.
 }
 
 static void* create_item_data(DBKey key, va_list args) {
@@ -234,7 +232,7 @@ struct item_data* itemdb_load(int nameid)
 static void* return_dummy_data(DBKey key, va_list args) {
 	if (battle_config.error_log)
 		ShowWarning("itemdb_search: Item ID %d does not exists in the item_db. Using dummy data.\n", key.i);
-	return dummy_item;
+	return &dummy_item;
 }
 
 /*==========================================
@@ -262,15 +260,29 @@ int itemdb_isequip(int nameid)
  *------------------------------------------
  */
 int itemdb_isequip2(struct item_data *data)
-{
-	if(data) {
-		int type=data->type;
-		if(type==0 || type==2 || type==3 || type==6 || type==10)
+{ 
+	nullpo_retr(0, data);
+	switch(data->type) {
+		case 0:
+		case 2:
+		case 3:
+		case 6:
+		case 10:
 			return 0;
-		else
+		default:
 			return 1;
 	}
-	return 0;
+}
+//Checks if the item is pet-equipment (7/8)
+static int itemdb_ispetequip(struct item_data *data)
+{ 
+	switch(data->type) {
+		case 7:
+		case 8:
+			return 1;
+		default:
+			return 0;
+	}
 }
 
 /*==========================================
@@ -469,13 +481,14 @@ static void itemdb_read_itemgroup(void)
 		"Masks",
 		"Accesory",
 		"Jewels",
-		"Gift Box",
-		"Gift Box",
-		"Gift Box",
-		"Gift Box",
+		"Gift Box 1",
+		"Gift Box 2",
+		"Gift Box 3",
+		"Gift Box 4",
 		"Egg Boy",
 		"Egg Girl",
-		"Gift Box"
+		"Gift Box China",
+		"Lotto Box",
 	};
 	memset(&itemgroup_db, 0, sizeof(itemgroup_db));
 	snprintf(path, 255, "%s/item_group_db.txt", db_path);
@@ -584,7 +597,7 @@ static int itemdb_read_itemslottable(void)
 		struct item_data* item;
 		sscanf(p, "%d#%d#", &nameid, &equip);
 		item = itemdb_search(nameid);
-		if (item && itemdb_isequip2(item))			
+		if (equip && item && itemdb_isequip2(item))
 			item->equip = equip;
 		p = strchr(p, 10);
 		if(!p) break;
@@ -852,6 +865,11 @@ static int itemdb_read_sqldb(void)
 					id->class_upper= (sql_row[12] != NULL) ? atoi(sql_row[12]) : 0;
 					id->sex		= (sql_row[13] != NULL) ? atoi(sql_row[13]) : 0;
 					id->equip	= (sql_row[14] != NULL) ? atoi(sql_row[14]) : 0;
+					if (!id->equip && itemdb_isequip2(id) && !itemdb_ispetequip(id))
+					{
+						ShowWarning("Item %d (%s) is an equipment with no equip-field! Making it an etc item.\n", nameid, id->jname);
+						id->type = 3;
+					}
 					id->wlv		= (sql_row[15] != NULL) ? atoi(sql_row[15]) : 0;
 					id->elv		= (sql_row[16] != NULL)	? atoi(sql_row[16]) : 0;
 					id->flag.no_refine = (sql_row[17] == NULL || atoi(sql_row[17]) == 1)?0:1;
@@ -1019,6 +1037,11 @@ static int itemdb_readdb(void)
 			if(id->equip != atoi(str[14])){
 				id->equip=atoi(str[14]);
 			}
+			if (!id->equip && itemdb_isequip2(id) && !itemdb_ispetequip(id))
+			{
+				ShowWarning("Item %d (%s) is an equipment with no equip-field! Making it an etc item.\n", nameid, id->jname);
+				id->type = 3;
+			}
 			id->wlv=atoi(str[15]);
 			id->elv=atoi(str[16]);
 			id->flag.no_refine = atoi(str[17])?0:1;	//If the refine column is 1, no_refine is 0
@@ -1144,7 +1167,7 @@ static int itemdb_final_sub (DBKey key,void *data,va_list ap)
 		id->unequip_script = NULL;
 	}
 	// Whether to clear the item data (exception: do not clear the dummy item data
-	if (flag && id != dummy_item) 
+	if (flag && id != &dummy_item) 
 		aFree(id);
 
 	return 0;
@@ -1160,15 +1183,17 @@ void itemdb_reload(void)
 void do_final_itemdb(void)
 {
 	item_db->destroy(item_db, itemdb_final_sub, 1);
-	if (dummy_item) {
-		if (dummy_item->script)
-			aFree(dummy_item->script);
-		if (dummy_item->equip_script)
-			aFree(dummy_item->equip_script);
-		if (dummy_item->unequip_script)
-			aFree(dummy_item->unequip_script);
-		aFree(dummy_item);
-		dummy_item = NULL;
+	if (dummy_item.script) {
+		aFree(dummy_item.script);
+		dummy_item.script = NULL;
+	}
+	if (dummy_item.equip_script) {
+		aFree(dummy_item.equip_script);
+		dummy_item.equip_script = NULL;
+	}
+	if (dummy_item.unequip_script) {
+		aFree(dummy_item.unequip_script);
+		dummy_item.unequip_script = NULL;
 	}
 }
 
