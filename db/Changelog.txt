@@ -1,3 +1,5 @@
+06/28
+	* Fixed the SP usage of AS_SPLASHER. Thanks to Belle. [MasterOfMuppets]
 06/27
 	* Merged item_db and mob_db from Trunk [Playtester]
 	- various item updates
