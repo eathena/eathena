@@ -3016,7 +3016,7 @@ static int mob_makedummymobdb(int class_)
 }
 
 //Adjusts the drop rate of item according to the criteria given. [Skotlex]
-static unsigned int mob_drop_adjust(unsigned int rate, int rate_adjust, unsigned short rate_min, unsigned short rate_max)
+static unsigned int mob_drop_adjust(int rate, int rate_adjust, unsigned short rate_min, unsigned short rate_max)
 {
 	if (battle_config.logarithmic_drops && rate_adjust > 0) //Logarithmic drops equation by Ishizu-Chan
 		//Equation: Droprate(x,y) = x * (5 - log(x)) ^ (ln(y) / ln(5))
