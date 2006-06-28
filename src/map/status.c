@@ -925,7 +925,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			{	// Forged weapon
 				wd->star += (sd->status.inventory[index].card[1]>>8);
 				if(wd->star >= 15) wd->star = 40; // 3 Star Crumbs now give +40 dmg
-				if(pc_istop10fame( MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,MAPID_BLACKSMITH))
+				if(pc_famerank(MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,MAPID_BLACKSMITH))
 					wd->star += 10;
 				
 				if (!wd->atk_ele) //Do not overwrite element from previous bonuses.
@@ -1426,7 +1426,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		index += index * 30/100;
 	else if (sd->class_&JOBL_BABY)
 		index -= index * 30/100;
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_istop10fame(sd->char_id, MAPID_TAEKWON))
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->char_id, MAPID_TAEKWON))
 		index *= 3; //Triple max HP for top ranking Taekwons over level 90.
 	
 	sd->status.max_hp += index;
@@ -1485,7 +1485,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		index += index * 30/100;
 	else if (sd->class_&JOBL_BABY)
 		index -= index * 30/100;
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_istop10fame(sd->char_id, MAPID_TAEKWON))
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->char_id, MAPID_TAEKWON))
 		index *= 3; //Triple max SP for top ranking Taekwons over level 90.
 	
 	sd->status.max_sp += index;

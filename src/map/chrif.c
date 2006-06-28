@@ -44,7 +44,7 @@ static const int packet_len_table[0x3d] = {
 	 6,-1,18, 7,-1,49,30,10,	// 2b00-2b07: U->2b00, U->2b01, U->2b02, U->2b03, U->2b04, U->2b05, U->2b06, U->2b07
 	 6,30,-1,10,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, U->2b0a, U->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
 	 0,-1,10, 6,11,-1, 0, 0,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, U->2b15, U->2b16, U->2b17
-	-1,-1,-1,-1,-1,-1,-1, 7,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, U->2b1c, U->2b1d, F->2b1e, U->2b1f
+	-1,-1,-1,-1,-1,-1, 2, 7,		// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, U->2b1c, U->2b1d, U->2b1e, U->2b1f
 	-1,-1,-1,-1,-1,-1,-1,-1,	// 2b20-2b27: U->2b20, F->2b21, F->2b22, F->2b23, F->2b24, F->2b25, F->2b26, F->2b27
 };
 
@@ -73,18 +73,18 @@ static const int packet_len_table[0x3d] = {
 //2b0d: Incomming, chrif_changedsex -> 'Change sex of acc XY'
 //2b0e: Outgoing, chrif_char_ask_name -> 'Do some operations (change sex, ban / unban etc)'
 //2b0f: Incomming, chrif_char_ask_name_answer -> 'answer of the 2b0e'
-//2b10: FREE
+//2b10: Outgoing, chrif_updatefamelist -> 'Update the fame ranking lists and send them'
 //2b11: Outgoing, chrif_changesex -> 'change sex of acc X'
 //2b12: Incomming, chrif_divorce -> 'divorce a wedding of charid X and partner id X'
 //2b13: Incomming, chrif_accountdeletion -> 'Delete acc XX, if the player is on, kick ....'
 //2b14: Incomming, chrif_accountban -> 'not sure: kick the player with message XY'
-//2b15: Incomming, chrif_recvgmaccounts -> 'recive gm accs from charserver (seems to be incomplete !)'
+//2b15: Incomming, chrif_recvgmaccounts -> 'recieve gm accs from charserver (seems to be incomplete !)'
 //2b16: Outgoing, chrif_ragsrvinfo -> 'sends motd / rates ....'
 //2b17: Outgoing, chrif_char_offline -> 'tell the charserver that the char is now offline'
 //2b18: Outgoing, chrif_char_reset_offline -> 'set all players OFF!'
 //2b19: Outgoing, chrif_char_online -> 'tell the charserver that the char .. is online'
-//2b1a: Outgoing, chrif_reqfamelist -> 'Request the fame list (top10)'
-//2b1b: Incomming, chrif_recvfamelist -> 'answer of 2b1a ..... the famelist top10^^'
+//2b1a: Outgoing, chrif_buildfamelist -> 'Build the fame ranking lists and send them'
+//2b1b: Incomming, chrif_recvfamelist -> 'Receive fame ranking lists'
 //2b1c: Outgoing, chrif_save_scdata -> 'Send sc_data of player for saving.'
 //2b1d: Incomming, chrif_load_scdata -> 'received sc_data of player for loading.'
 //2b1e: FREE
@@ -175,7 +175,9 @@ int chrif_isconnect(void)
 }
 
 /*==========================================
- *
+ * Saves char.
+ * Flag = 1: Character is quitting.
+ * Flag = 2: Character is changing map-servers
  *------------------------------------------
  */
 int chrif_save(struct map_session_data *sd, int flag)
@@ -203,7 +205,7 @@ int chrif_save(struct map_session_data *sd, int flag)
 #ifndef TXT_ONLY
 	if(charsave_method){ //New 'Local' save
 		charsave_savechar(sd->char_id, &sd->status);
-		if (flag) chrif_char_offline(sd); //Tell char server that character went offline.
+		if (flag == 1) chrif_char_offline(sd); //Tell char server that character went offline.
 	}else{
 #endif
 		WFIFOHEAD(char_fd, sizeof(sd->status) + 13);
@@ -211,7 +213,7 @@ int chrif_save(struct map_session_data *sd, int flag)
 		WFIFOW(char_fd,2) = sizeof(sd->status) + 13;
 		WFIFOL(char_fd,4) = sd->bl.id;
 		WFIFOL(char_fd,8) = sd->char_id;
-		WFIFOB(char_fd,12) = flag?1:0; //Flag to tell char-server this character is quitting.
+		WFIFOB(char_fd,12) = (flag==1)?1:0; //Flag to tell char-server this character is quitting.
 		memcpy(WFIFOP(char_fd,13), &sd->status, sizeof(sd->status));
 		WFIFOSET(char_fd, WFIFOW(char_fd,2));
 #ifndef TXT_ONLY
@@ -587,7 +589,7 @@ int chrif_searchcharid(int char_id)
 		return -1;
 	chrif_check(-1);
 
-        WFIFOHEAD(char_fd, 6);
+	WFIFOHEAD(char_fd, 6);
 	WFIFOW(char_fd,0) = 0x2b08;
 	WFIFOL(char_fd,2) = char_id;
 	WFIFOSET(char_fd,6);
@@ -1110,19 +1112,50 @@ int chrif_recvgmaccounts(int fd)
  * Request/Receive top 10 Fame character list
  *------------------------------------------
  */
-int chrif_reqfamelist(void)
+
+int chrif_updatefamelist(struct map_session_data *sd)
+{
+	char type;
+	chrif_check(-1);
+
+	switch(sd->class_&MAPID_UPPERMASK) {
+		case MAPID_BLACKSMITH:
+			type = 1;
+			break;
+		case MAPID_ALCHEMIST:
+			type = 2;
+			break;
+		case MAPID_TAEKWON:
+			type = 3;
+			break;
+		default:
+			return 0;
+	}
+
+	WFIFOHEAD(char_fd, 12);
+	WFIFOW(char_fd, 0) = 0x2b10;
+	WFIFOL(char_fd, 2) = sd->char_id;
+	WFIFOL(char_fd, 6) = sd->status.fame;
+	WFIFOB(char_fd, 10) = type;
+	WFIFOB(char_fd, 11) = pc_famerank(sd->char_id, sd->class_&MAPID_UPPERMASK);
+	WFIFOSET(char_fd, 12);
+
+	return 0;
+}
+
+int chrif_buildfamelist(void)
 {
 	chrif_check(-1);
 
-        WFIFOHEAD(char_fd, 2);
-	WFIFOW(char_fd,0) = 0x2b1a;
+	WFIFOHEAD(char_fd, 2);
+	WFIFOW(char_fd, 0) = 0x2b1a;
 	WFIFOSET(char_fd, 2);
 
 	return 0;
 }
 
 int chrif_recvfamelist(int fd)
-{	// response from 0x2b1b
+{
 	int num, size;
 	int total = 0, len = 8;
 	RFIFOHEAD(fd);
@@ -1131,21 +1164,21 @@ int chrif_recvfamelist(int fd)
 	memset (chemist_fame_list, 0, sizeof(chemist_fame_list));
 	memset (taekwon_fame_list, 0, sizeof(taekwon_fame_list));
 
-	size = RFIFOW(fd,6); //Blacksmith block size
+	size = RFIFOW(fd, 6); //Blacksmith block size
 	for (num = 0; len < size && num < MAX_FAME_LIST; num++) {
 		memcpy(&smith_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
  		len += sizeof(struct fame_list);
 	}
 	total += num;
 
-	size = RFIFOW(fd,4); //Alchemist block size
+	size = RFIFOW(fd, 4); //Alchemist block size
 	for (num = 0; len < size && num < MAX_FAME_LIST; num++) {
 		memcpy(&chemist_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
  		len += sizeof(struct fame_list);
 	}
 	total += num;
 
-	size = RFIFOW(fd,2); //Total packet length
+	size = RFIFOW(fd, 2); //Total packet length
 	for (num = 0; len < size && num < MAX_FAME_LIST; num++) {
 		memcpy(&taekwon_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
  		len += sizeof(struct fame_list);
@@ -1430,7 +1463,7 @@ int chrif_parse(int fd)
 
 		switch(cmd) {
 		case 0x2af9: chrif_connectack(fd); break;
-		case 0x2afb: chrif_sendmapack(fd); chrif_reqfamelist(); break;
+		case 0x2afb: chrif_sendmapack(fd); break;
 		case 0x2afd: chrif_authok(fd); break;
 		case 0x2b00: map_setusers(fd); break;
 		case 0x2b03: clif_charselectok(RFIFOL(fd,2)); break;

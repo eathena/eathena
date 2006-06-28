@@ -1818,7 +1818,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				//set this skill as previous one.
 				sd->skillid_old = skillid;
 				sd->skilllv_old = skilllv;
-				if (pc_istop10fame(sd->char_id,MAPID_TAEKWON))
+				if (pc_famerank(sd->char_id,MAPID_TAEKWON))
 					break; //Do not end combo state.
 			default:
 				status_change_end(src,SC_COMBO,-1);
@@ -7621,7 +7621,7 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 			return 0; //Anti-Soul Linker check in case you job-changed with Stances active.
 		if(sd->sc.data[SC_COMBO].timer == -1)
 			return 0; //Combo needs to be ready
-		if (pc_istop10fame(sd->char_id,MAPID_TAEKWON))
+		if (pc_famerank(sd->char_id,MAPID_TAEKWON))
 		{	//Unlimited Combo
 			if (skill == sd->skillid_old) {
 				status_change_end(&sd->bl, SC_COMBO, -1);

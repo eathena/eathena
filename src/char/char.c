@@ -2567,6 +2567,7 @@ int parse_frommap(int fd) {
 			memcpy(WFIFOP(fd,3), wisp_server_name, NAME_LENGTH); // name for wisp to player
 			WFIFOSET(fd,3+NAME_LENGTH);
 			//WFIFOSET(fd,27);
+			char_send_fame_list(fd); //Send fame list.
 			{
 				unsigned char buf[16384];
 				int x;
@@ -2923,10 +2924,72 @@ int parse_frommap(int fd) {
 			break;
 		  }
 
-//		case 0x2b0f: not more used (available for futur usage)
+//		case 0x2b0f: Not used anymore, available for future use
 
-		//Packet 0x2b10 deprecated in favor of packet 0x3004 for registry saving. [Skotlex]
-		//case 0x2b10:
+		// Update and send fame ranking list [DracoRPG]
+		case 0x2b10:
+			if (RFIFOREST(fd) < 12)
+				return 0;
+			{
+				int i, j;
+				int id = RFIFOL(fd, 2);
+				int fame = RFIFOL(fd, 6);
+				char type = RFIFOB(fd, 10);
+				char pos = RFIFOB(fd, 11);
+				int size;
+				struct fame_list *list;
+				RFIFOSKIP(fd,12);
+				
+				switch(type) {
+					case 1:
+						size = fame_list_size_smith;
+						list = smith_fame_list;
+						break;
+					case 2:
+						size = fame_list_size_chemist;
+						list = chemist_fame_list;
+						break;
+					case 3:
+						size = fame_list_size_taekwon;
+						list = taekwon_fame_list;
+						break;
+					default:
+						size = 0;
+						break;
+				}
+				if(!size)
+					break;
+				if(pos)
+				{
+				 	pos--; //Convert from pos to index.
+					if(
+						(pos == 0 || fame < list[pos-1].fame) &&
+						(pos == size-1 || fame > list[pos+1].fame)
+					) { //No change in order.
+						list[(int)pos].fame = fame;
+						char_send_fame_list(fd);
+						break;
+					}
+					// If the player's already in the list, remove the entry and shift the following ones 1 step up
+					memmove(list+pos, list+pos+1, (size-pos-1) * sizeof(struct fame_list));
+					list[size].fame = 0; // At worst, the guy'll end up last (shouldn't happen if fame only goes up)
+				}
+				// Find the position where the player has to be inserted
+				for(i = 0; i < size && fame < list[i].fame; i++);
+				// When found someone with less or as much fame, insert just above
+				if(i >= size) break;//Out of ranking.
+				memmove(list+i+1, list+i, (size-i-1) * sizeof(struct fame_list));
+				list[i].id = id;
+				list[i].fame = fame;
+				// Look for the player's name
+				for(j = 0; j < char_num && char_dat[j].status.char_id != id; j++);
+				if(j < char_num)
+					strncpy(list[i].name, char_dat[j].status.name, NAME_LENGTH);
+				else //Not found??
+					strncpy(list[i].name, "Unknown", NAME_LENGTH);
+				char_send_fame_list(-1);
+			}
+			break;
 
 		// Recieve rates [Wizputer]
 		case 0x2b16:
@@ -2959,98 +3022,15 @@ int parse_frommap(int fd) {
 			RFIFOSKIP(fd,10);
 			break;
 
-		// Request sending of fame list
+		// Build and send fame ranking lists [DracoRPG]
 		case 0x2b1a:
 			if (RFIFOREST(fd) < 2)
 				return 0;
-		{
-			int i, j, k, len = 8;
-			unsigned char buf[32000];
-			struct fame_list fame_item;
-			//struct mmo_charstatus *dat;
-			//dat = (struct mmo_charstatus *)aCalloc(char_num, sizeof(struct mmo_charstatus *));
-			CREATE_BUFFER(id, int, char_num);
-			
-			// copy character list into buffer
-			//for (i = 0; i < char_num; i++)
-			//	dat[i] = char_dat[i];
-			// sort according to fame
-			// qsort(dat, char_num, sizeof(struct mmo_charstatus *), sort_fame);
-
-			for(i = 0; i < char_num; i++) {
-				id[i] = i;
-				for(j = 0; j < i; j++) {
-					if (char_dat[i].status.fame > char_dat[id[j]].status.fame) {
-						for(k = i; k > j; k--)
-							id[k] = id[k-1];
-						id[j] = i; // id[i]
-						break;
-					}
-				}
-			}
-
-			// starting to send to map
-			WBUFW(buf,0) = 0x2b1b;
-			// add list for blacksmiths
-			for (i = 0, j = 0; i < char_num && j < fame_list_size_smith; i++) {
-				if (char_dat[id[i]].status.fame && (char_dat[id[i]].status.class_ == 10 ||
-					char_dat[id[i]].status.class_ == 4011 ||
-					char_dat[id[i]].status.class_ == 4033))
-				{
-					fame_item.id = char_dat[id[i]].status.char_id;
-					fame_item.fame = char_dat[id[i]].status.fame;
-					strncpy(fame_item.name, char_dat[id[i]].status.name, NAME_LENGTH);
-					
-					memcpy(WBUFP(buf, len), &fame_item, sizeof(struct fame_list));
-					len += sizeof(struct fame_list);
-					j++;
-				}
-			}
-			// add blacksmith's block length
-			WBUFW(buf, 6) = len;
-			
-			// add list for alchemists
-			for (i = 0, j = 0; i < char_num && j < fame_list_size_chemist; i++) {
-				if (char_dat[id[i]].status.fame && (char_dat[id[i]].status.class_ == 18 ||
-					char_dat[id[i]].status.class_ == 4019 ||
-					char_dat[id[i]].status.class_ == 4041))
-				{
-					fame_item.id = char_dat[id[i]].status.char_id;
-					fame_item.fame = char_dat[id[i]].status.fame;
-					strncpy(fame_item.name, char_dat[id[i]].status.name, NAME_LENGTH);
-					
-					memcpy(WBUFP(buf, len), &fame_item, sizeof(struct fame_list));
-					len += sizeof(struct fame_list);
-					j++;
-				}
-			}
-			// add alchemist's block length
-			WBUFW(buf, 4) = len;
-
-			// adding list for taekwons
-			for (i = 0, j = 0; i < char_num && j < fame_list_size_taekwon; i++) {
-				if (char_dat[id[i]].status.fame && char_dat[id[i]].status.class_ == 4046)
-				{
-					fame_item.id = char_dat[id[i]].status.char_id;
-					fame_item.fame = char_dat[id[i]].status.fame;
-					strncpy(fame_item.name, char_dat[id[i]].status.name, NAME_LENGTH);
-					
-					memcpy(WBUFP(buf, len), &fame_item, sizeof(struct fame_list));
-					len += sizeof(struct fame_list);
-					j++;
-				}
-			}
-			// add total packet length
-			WBUFW(buf, 2) = len;
-
-			// sending to all maps
-			mapif_sendall(buf, len);
-			// done!
-			//aFree(dat);
-			DELETE_BUFFER(id);
+			char_read_fame_list();
+			char_send_fame_list(-1);
 			RFIFOSKIP(fd,2);
 			break;
-		}
+
 		//Request to save status change data. [Skotlex]
 		case 0x2b1c:
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
@@ -4269,6 +4249,8 @@ int do_init(int argc, char **argv) {
 	add_timer_interval(gettick() + 3600*1000, send_accounts_tologin, 0, 0, 3600*1000); //Sync online accounts every hour
 	add_timer_interval(gettick() + autosave_interval, mmo_char_sync_timer, 0, 0, autosave_interval);
 
+	char_read_fame_list(); //Read fame lists.
+	
 	if(console) {
 	    set_defaultconsoleparse(parse_console);
 	   	start_console();
