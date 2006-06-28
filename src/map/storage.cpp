@@ -127,7 +127,7 @@ int storage_storageopen(struct map_session_data &sd)
 {
 	struct pc_storage *stor;
 
-	if(pc_isGM(sd) && pc_isGM(sd) < battle_config.gm_can_drop_lv)
+	if(sd.isGM() && sd.isGM() < battle_config.gm_can_drop_lv)
 	{
 		clif_displaymessage(sd.fd, msg_txt(246));
 		return 1;
@@ -167,7 +167,7 @@ int storage_additem(struct map_session_data &sd, struct pc_storage &stor, struct
 		return 1;
 	nullpo_retr(1, data = itemdb_exists(item_data.nameid));
 
-	if( !itemdb_canstore(item_data.nameid, pc_isGM(sd)) )
+	if( !itemdb_canstore(item_data.nameid, sd.isGM()) )
 	{	//Check if item is storable. [Skotlex]
 		clif_displaymessage (sd.fd, msg_txt(264));
 		return 1;
@@ -455,7 +455,7 @@ int guild_storage_additem(struct map_session_data &sd,struct guild_storage &stor
 	if(item_data.nameid <= 0 || amount <= 0)
 		return 1;
 
-	if( !itemdb_canguildstore(item_data.nameid, pc_isGM(sd)) )
+	if( !itemdb_canguildstore(item_data.nameid, sd.isGM()) )
 	{	//Check if item is storable. [Skotlex]
 		clif_displaymessage (sd.fd, msg_txt(264));
 		return 1;

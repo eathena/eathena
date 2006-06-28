@@ -114,8 +114,7 @@ int display_parse_fromchar = 0; // 0: no, 1: yes (without packet 0x2714), 2: all
 int login_log(char *fmt, ...)
 {
 	if (log_login)
-	{
-		
+	{		
 		time_t unixtime;
 		struct timeval tv;
 		char tmpstr[2048];
@@ -2159,7 +2158,8 @@ int parse_login(int fd)
 						{
 							new_reg_tick = gettick() + 1000*time_allowed;
 							userid[len] = '\0';
-							ok = account_db.insertAccount(userid, passwd, (basics::upcase(userid[len+1]) == 'M'),"a@a.com", account);
+							ok = !account_db.existAccount(userid) &&
+								account_db.insertAccount(userid, passwd, (basics::upcase(userid[len+1]) == 'M'),"a@a.com", account);
 							if(ok)
 							{
 								ShowNotice("Account registration successful account: %s, ip %s!\n", userid, ip_str);

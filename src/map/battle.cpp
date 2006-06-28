@@ -52,14 +52,14 @@ public:
 		else if (bl.type == BL_MOB)
 		{
 			struct mob_data &md = (struct mob_data &)bl;
-			if(md.target_id == id && md.timer != -1 && md.state.state == MS_ATTACK && md.target_lv >= target_lv)		
+			if(md.target_id == id && md.walktimer != -1 && md.state.state == MS_ATTACK && md.target_lv >= target_lv)		
 				c++;
 			//ShowMessage("md->target_lv:%d, target_lv:%d\n", md->target_lv, target_lv);
 		}
 		else if (bl.type == BL_PET)
 		{
 			struct pet_data &pd = (struct pet_data &)bl;
-			if( pd.target_id == id && pd.timer != -1 && pd.state.state == MS_ATTACK && pd.target_lv >= target_lv)
+			if( pd.target_id == id && pd.walktimer != -1 && pd.state.state == MS_ATTACK && pd.target_lv >= target_lv)
 				c++;
 		}
 
@@ -105,19 +105,19 @@ public:
 		if (bl.type == BL_PC)
 		{
 			struct map_session_data &sd = (struct map_session_data &)bl;
-			if(sd.attacktarget != target.id || sd.attacktimer == -1)
+			if( sd.attacktarget != target.id || sd.attacktimer == -1 )
 				return 0;
 		}
 		else if (bl.type == BL_MOB)
 		{
 			struct mob_data &md = (struct mob_data &)bl;
-			if(md.target_id != target.id || md.timer == -1 || md.state.state != MS_ATTACK)
+			if(md.target_id != target.id || md.walktimer == -1 || md.state.state != MS_ATTACK)
 				return 0;
 		}
 		else if (bl.type == BL_PET)
 		{
 			struct pet_data &pd = (struct pet_data &)bl;
-			if(pd.target_id != target.id || pd.timer == -1 || pd.state.state != MS_ATTACK)
+			if(pd.target_id != target.id || pd.walktimer == -1 || pd.state.state != MS_ATTACK)
 				return 0;
 		}
 		bl_list[c++] = &bl;
@@ -277,23 +277,19 @@ int battle_stopattack(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if (bl->type == BL_MOB)
-		return mob_stopattack( *((struct mob_data*)bl) );
+		return mob_stopattack( *bl->get_md() );
 	else if (bl->type == BL_PC)
-		return pc_stopattack( *((struct map_session_data*)bl) );
+		return pc_stopattack( *bl->get_sd() );
 	else if (bl->type == BL_PET)
-		return pet_stopattack(*((struct pet_data*)bl));
+		return pet_stopattack( *bl->get_pd() );
 	return 0;
 }
 // ˆÚ“®’â~
-int battle_stopwalking(struct block_list *bl,int type)
+int battle_stopwalking(struct block_list *bl, int type)
 {
 	nullpo_retr(0, bl);
-	if (bl->type == BL_MOB)
-		return mob_stop_walking(*((struct mob_data*)bl),type);
-	else if (bl->type == BL_PC)
-		return pc_stop_walking(*((struct map_session_data*)bl),type);
-	else if (bl->type == BL_PET)
-		return pet_stop_walking(*((struct pet_data*)bl),type);
+	if( bl->type == BL_MOB || bl->type == BL_PC || bl->type == BL_PET )
+		((movable*)bl)->stop_walking(type);
 	return 0;
 }
 
@@ -4370,6 +4366,8 @@ struct Damage battle_calc_magic_attack(struct block_list *bl,struct block_list *
 			if((t_ele==3 || battle_check_undead(t_race,t_ele)) && target->type!=BL_PC)
 			{	// not knocking back, but stopping
 				blewcount  = 0x10000;
+				if(target->type==BL_MOB)
+					((mob_data*)target)->stop_walking(1);
 			}
 			else
 				blewcount |= 0x10000;
@@ -4548,7 +4546,7 @@ struct Damage battle_calc_magic_attack(struct block_list *bl,struct block_list *
 		damage = 1;
 
 	if(is_boss(target))
-		blewcount = 0;
+		blewcount &= 0x10000;
 
 	if (tsd && status_isimmune(target)) {
 		if (sd && battle_config.gtb_pvp_only != 0)  { // [MouseJstr]
@@ -4915,7 +4913,7 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 				}
 				status_change_start(src, SC_COMBO, MO_TRIPLEATTACK, skilllv, 0, 0, delay, 0);
 			}
-			if(sd) sd->attackabletime = sd->canmove_tick = tick + delay;
+			if(sd) sd->attackable_tick = sd->canmove_tick = tick + delay;
 
 			clif_combo_delay(*src, delay);
 			clif_skill_damage(*src, *target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_,
@@ -5364,10 +5362,10 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 				if (battle_config.pk_mode)
 				{	//Prevent novice engagement on pk_mode (feature by Valaris)
 					struct map_session_data* sd;
-					if (s_bl->type == BL_PC && (sd = (struct map_session_data*)s_bl) != NULL &&
+					if (s_bl->type == BL_PC && (sd = s_bl->get_sd()) != NULL &&
 						(pc_calc_base_job2(sd->status.class_) == JOB_NOVICE || sd->status.base_level < battle_config.pk_min_level))
 						state&=~BCT_ENEMY;
-					else if (t_bl->type == BL_PC && (sd = (struct map_session_data*)t_bl) != NULL &&
+					else if (t_bl->type == BL_PC && (sd = t_bl->get_sd()) != NULL &&
 						(pc_calc_base_job2(sd->status.class_) == JOB_NOVICE || sd->status.base_level < battle_config.pk_min_level))
 						state&=~BCT_ENEMY;
 				}
@@ -5519,7 +5517,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 				}
 			}
 			// option to have monsters ignore GMs [Valaris]
-			if (battle_config.monsters_ignore_gm > 0 && pc_isGM(*tsd) >= battle_config.monsters_ignore_gm)
+			if (battle_config.monsters_ignore_gm > 0 && tsd->isGM() >= battle_config.monsters_ignore_gm)
 				return 1;
 		}
 		// Mob‚Åmaster_id‚ª‚ ‚Á‚Äspecial_mob_ai‚È‚çA¢Š«å‚ğ‹‚ß‚é

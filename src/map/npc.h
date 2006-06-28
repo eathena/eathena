@@ -52,9 +52,6 @@ int npc_enable(const char *name,int flag);
 int npc_changename(const char *name, const char *newname, unsigned short look);
 struct npc_data* npc_name2id(const char *name);
 
-int npc_walktoxy(struct npc_data &nd,int x,int y,int easy); // npc walking [Valaris]
-int npc_stop_walking(struct npc_data &nd,int type);
-int npc_changestate(struct npc_data &nd,int state,int type);
 
 uint32 npc_get_new_npc_id(void);
 

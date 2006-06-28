@@ -244,7 +244,7 @@ CharCommandType is_charcommand(int fd, struct map_session_data &sd, const char* 
 	if (!*str)
 		return CharCommand_None;
 
-	type = charcommand(info, str, gmlvl > 0 ? gmlvl : pc_isGM(sd));
+	type = charcommand(info, str, gmlvl > 0 ? gmlvl : sd.isGM());
 
 	if (type != CharCommand_None)
 	{
@@ -314,7 +314,7 @@ bool charcommand_jobchange(int fd, struct map_session_data &sd,const char *comma
 	if ((pl_sd = map_nick2sd(character)) != NULL)
 	{
 		size_t j;
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can change job only to lower or same level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can change job only to lower or same level
 			if ((job >= 0 && job < MAX_PC_CLASS)) {
 
 				// fix pecopeco display
@@ -436,7 +436,7 @@ bool charcommand_petfriendly(int fd, struct map_session_data &sd,const char *com
 		return false;
 	}
 
-	if (((pl_sd = map_nick2sd(character)) != NULL) && pc_isGM(sd)>pc_isGM(*pl_sd)) {
+	if (((pl_sd = map_nick2sd(character)) != NULL) && sd.isGM()>pl_sd->isGM()) {
 		if (pl_sd->status.pet_id > 0 && pl_sd->pd) {
 			if (friendly >= 0 && friendly <= 1000) {
 				if (friendly != pl_sd->pet.intimate) {
@@ -549,7 +549,7 @@ bool charcommand_reset(int fd, struct map_session_data &sd,const char *command, 
 	}
 
 	if ((pl_sd = map_nick2sd(character)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can reset a character only for lower or same GM level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can reset a character only for lower or same GM level
 			pc_resetstate(*pl_sd);
 			pc_resetskill(*pl_sd);
 			snprintf(output, sizeof(output), msg_txt(208), character); // '%s' skill and stats points reseted!
@@ -586,7 +586,7 @@ bool charcommand_option(int fd, struct map_session_data &sd,const char *command,
 	}
 
 	if ((pl_sd = map_nick2sd(character)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can change option only to lower or same level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can change option only to lower or same level
 			pl_sd->opt1 = opt1;
 			pl_sd->opt2 = opt2;
 			pl_sd->status.option = opt3;
@@ -662,13 +662,13 @@ bool charcommand_save(int fd, struct map_session_data &sd,const char *command, c
 	if(ip) *ip=0;
 
 	if ((pl_sd = map_nick2sd(character)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can change save point only to lower or same gm level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can change save point only to lower or same gm level
 			m = map_mapname2mapid(mapname);
 			if (m < 0) {
 				clif_displaymessage(fd, msg_txt(1)); // Map not found.
 				return false;
 			} else {
-				if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+				if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
 					clif_displaymessage(fd, "You are not authorised to set this map as a save map.");
 					return false;
 				}
@@ -705,8 +705,8 @@ bool charcommand_stats_all(int fd, struct map_session_data &sd,const char *comma
 	for(i = 0; i < fd_max; ++i) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
 
-			if (pc_isGM(*pl_sd) > 0)
-				snprintf(gmlevel, sizeof(gmlevel), "| GM Lvl: %d", pc_isGM(*pl_sd));
+			if (pl_sd->isGM() > 0)
+				snprintf(gmlevel, sizeof(gmlevel), "| GM Lvl: %d", pl_sd->isGM());
 			else
 				snprintf(gmlevel, sizeof(gmlevel), " ");
 
@@ -795,7 +795,7 @@ bool charcommand_itemlist(int fd, struct map_session_data &sd,const char *comman
 	}
 
 	if ((pl_sd = map_nick2sd(character)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can look items only lower or same level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can look items only lower or same level
 			counter = 0;
 			count = 0;
 			for (i = 0; i < MAX_INVENTORY; ++i) {
@@ -931,7 +931,7 @@ bool charcommand_storagelist(int fd, struct map_session_data &sd,const char *com
 	}
 
 	if ((pl_sd = map_nick2sd(character)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can look items only lower or same level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can look items only lower or same level
 			if((stor = account2storage2(pl_sd->status.account_id)) != NULL) {
 				counter = 0;
 				count = 0;
@@ -1052,7 +1052,7 @@ bool charcommand_item(int fd, struct map_session_data &sd,const char *command, c
 			get_count = 1;
 		}
 		if ((pl_sd = map_nick2sd(character)) != NULL) {
-			if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can look items only lower or same level
+			if (sd.isGM() >= pl_sd->isGM()) { // you can look items only lower or same level
 				for (i = 0; i < (size_t)number; i += get_count) {
 					// if pet egg
 					if (pet_id >= 0) {
@@ -1128,14 +1128,14 @@ bool charcommand_warp(int fd, struct map_session_data &sd,const char *command, c
 	if(ip) *ip=0;
 
 	if ((pl_sd = map_nick2sd(character)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can rura+ only lower or same GM level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can rura+ only lower or same GM level
 			if (x > 0 && x < 400 && y > 0 && y < 400) {
 				m = map_mapname2mapid(mapname);
-				if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+				if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
 					clif_displaymessage(fd, "You are not authorised to warp someone to this map.");
 					return false;
 				}
-				if(pl_sd->block_list::m <map_num && maps[pl_sd->block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+				if(pl_sd->block_list::m <map_num && maps[pl_sd->block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
 					clif_displaymessage(fd, "You are not authorised to warp this player from its actual map.");
 					return false;
 				}
@@ -1321,7 +1321,7 @@ bool charcommand_baselevel(int fd, struct map_session_data &sd,const char *comma
 	}
 
 	if ((pl_sd = map_nick2sd(player)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can change base level only lower or same gm level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can change base level only lower or same gm level
 
 			if (level > 0) {
 				if (pl_sd->status.base_level == battle_config.max_base_level) {	// check for max level by Valaris
@@ -1395,7 +1395,7 @@ bool charcommand_joblevel(int fd, struct map_session_data &sd,const char *comman
 
 	if ((pl_sd = map_nick2sd(player)) != NULL) {
 		pl_s_class = pc_calc_base_job(pl_sd->status.class_);
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can change job level only lower or same gm level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can change job level only lower or same gm level
 			if (pl_s_class.job == 0)
 				max_level = 10; //Novice
 			// super novices can go up to 99 [celest]
@@ -1557,7 +1557,7 @@ bool charcommand_skreset(int fd, struct map_session_data &sd,const char *command
 	}
 
 	if ((pl_sd = map_nick2sd(player)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can reset skill points only lower or same gm level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can reset skill points only lower or same gm level
 			pc_resetskill(*pl_sd);
 			snprintf(output, sizeof(output), msg_txt(206), player); // '%s' skill points reseted!
 			clif_displaymessage(fd, output);
@@ -1589,7 +1589,7 @@ bool charcommand_streset(int fd, struct map_session_data &sd,const char *command
 	}
 
 	if ((pl_sd = map_nick2sd(player)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can reset stats points only lower or same gm level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can reset stats points only lower or same gm level
 			pc_resetstate(*pl_sd);
 			snprintf(output, sizeof(output), msg_txt(207), player); // '%s' stats points reseted!
 			clif_displaymessage(fd, output);

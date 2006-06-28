@@ -1,4 +1,50 @@
 Date	Added
+06/26
+	* adding default parameter names to inter_athena.conf, 
+	  even if this file is not loaded by default, 
+	  you now have the correct names
+	* some changes on login and txt guild reading which might
+	  fix the registration and the charname display problem
+	* since I don't have much time at the moment I basically
+	  only merge Hinoko's changes into public svn and 
+	  have some gcc (3.2/3.4) compile errors removed [Shinomori]
+
+	  Hinoko's log:
+	- seperating coordinate and movable into own files
+	- start wrapping up the old functions into class members
+	  trying to use a some more intuitive interfaces and also trying
+	  to extract a common access structure (which is not that easy 
+	  since in the past appearently anyone thinking of beeing able 
+	  to write code added some more or less (usually less) usefull code 
+	  extension to eA without a spark of understanding of what harm 
+	  this did on a global scope; I explicitely don't mention the 
+	  memory consuming usage of bunches of useless variables in this context
+	- from what I've seen, almost a quater of clif/pc/npc and 
+	  half of mob/pet is completely redundend
+	- anyway I leave the functional part of the code as it is, 
+	  only unifying the interfaces, removing the useless crap is then done quicky
+	- added the new proposed walking code for testing purpose only
+	  since I had to fill the gaps of the missing fightable class
+	  with copies from the old function (which appearently don't really fit)
+
+	* some open decisions:
+	- naming conventions (I had names as far as possible in the old eA style
+	  but would tend to a more coherent naming)
+	- having a complate set of the virtual interfaces already at block_list
+	  or have multiple levels of depencencies (I'd prefer the first, 
+	  maybe also using pure virtual interface classes)
+	- building pets also as real fightables with hp/sp, stats etc. 
+	  which are just not used in "RO conform" mode or have it with
+	  a simplified fightable structure
+	  (advantage of first option is more flexibility and easier code,
+	  the second is using some less memory)
+	- it might be promising to really seperate execution code from control code,
+	  since the basic objects would be players, mobs and npc, while controls 
+	  would be AI control (mob/pet), and player control (clif), 
+	  so plugging a mob controller to a pc will automatically result in 
+	  a player acting as mob while a clif module on a mob would be a 
+	  real player controlled mob with stats and skills and stuff
+	  without needing any special code for disguises/clones.
 06/16
 	* starting numbers for id's (account, char, guild, party, pet)
 	  are now forced lower bounds

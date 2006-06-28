@@ -1815,6 +1815,99 @@ printf("speed set to %i (%i)\n",sd.speed, val);
 	return 0;
 }
 /*==========================================
+ * 対象のSpeed(移動速度)を返す(汎用)
+ * 戻りは整数で1以上
+ * Speedは小さいほうが移動速度が速い
+ *------------------------------------------
+ */
+int status_recalc_speed(struct block_list *bl)
+{
+	int speed;
+	nullpo_retr(1000, bl);
+	if(bl->type==BL_PC)
+	{
+		speed = ((struct map_session_data *)bl)->speed;
+	}
+	else
+	{
+		struct status_change *sc_data=status_get_sc_data(bl);
+		speed = 1000;
+		if(bl->type==BL_MOB) {
+			speed = ((struct mob_data *)bl)->speed;
+			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
+				speed-=((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
+		}
+		else if(bl->type==BL_PET) {
+			speed = ((struct pet_data *)bl)->msd->petDB->speed;
+		} else if(bl->type==BL_NPC && (struct npc_data *)bl)	//Added BL_NPC (Skotlex)
+			speed = ((struct npc_data *)bl)->speed;
+
+		if(sc_data) {
+			//速度増加時は25%減算
+			if(sc_data[SC_INCREASEAGI].timer!=-1)
+				speed -= speed*25/100;
+			//ウィンドウォーク時はLv*2%減算
+			else if(sc_data[SC_WINDWALK].timer!=-1)
+				speed -= (speed*(sc_data[SC_WINDWALK].val1.num*4))/100;
+			//速度減少時は25%加算
+			if(sc_data[SC_DECREASEAGI].timer!=-1)
+				speed = speed*125/100;
+			//クァグマイア時は50%加算
+			if(sc_data[SC_QUAGMIRE].timer!=-1)
+				speed = speed*3/2;
+			//私を忘れないで…時は加算
+			if(sc_data[SC_DONTFORGETME].timer!=-1)
+				speed = speed*(100+sc_data[SC_DONTFORGETME].val1.num*2 + sc_data[SC_DONTFORGETME].val2.num + (sc_data[SC_DONTFORGETME].val3.num&0xffff))/100;
+			//金剛時は25%加算
+			if(sc_data[SC_STEELBODY].timer!=-1)
+				speed = speed*125/100;
+			//ディフェンダー時は加算
+			if(sc_data[SC_DEFENDER].timer!=-1)
+				speed = (speed * (155 - sc_data[SC_DEFENDER].val1.num*5)) / 100;
+			//踊り状態は4倍遅い
+			if(sc_data[SC_DANCING].timer!=-1 )
+				speed *= 6;
+			//呪い時は450加算
+			if(sc_data[SC_CURSE].timer!=-1)
+				speed = speed + 450;
+			if(sc_data[SC_SLOWDOWN].timer!=-1)
+				speed = speed*150/100;
+
+			if(sc_data[SC_SPEEDUP1].timer!=-1)
+				speed -= speed*50/100;
+			else if(sc_data[SC_SPEEDUP0].timer!=-1 && sc_data[SC_INCREASEAGI].timer==-1)
+				speed -= speed*25/100;
+
+			if(sc_data[SC_GOSPEL].timer!=-1 &&
+				sc_data[SC_GOSPEL].val4.num == BCT_ENEMY &&
+				sc_data[SC_GOSPEL].val3.num == 8)
+				speed = speed*125/100;
+			if(sc_data[SC_JOINTBEAT].timer!=-1) {
+				if (sc_data[SC_JOINTBEAT].val2.num == 0)
+					speed = speed*150/100;
+				else if (sc_data[SC_JOINTBEAT].val2.num == 2)
+					speed = speed*130/100;				
+			}
+		}
+	}
+
+	// map tile dependend reducing of speed
+/*
+	{
+		int i,k;
+		for(i=-1; i<=1; ++i)
+		for(k=-1; k<=1; ++k)
+		{
+			if( map_getcell(bl->m, bl->x+i, bl->y+k, CELL_CHKHOLE) )
+				speed = speed*116/100; // slow down by 16%
+		}
+	}
+*/
+	if(speed < 1) speed = 1;
+	return speed;
+}
+
+/*==========================================
  * 対象のClassを返す(汎用)
  * 戻りは整数で0以上
  *------------------------------------------
@@ -2857,98 +2950,7 @@ int status_get_mdef2(struct block_list *bl)
 	if(mdef2 < 0) mdef2 = 0;
 		return mdef2;
 }
-/*==========================================
- * 対象のSpeed(移動速度)を返す(汎用)
- * 戻りは整数で1以上
- * Speedは小さいほうが移動速度が速い
- *------------------------------------------
- */
-int status_get_speed(struct block_list *bl)
-{
-	int speed;
-	nullpo_retr(1000, bl);
-	if(bl->type==BL_PC)
-	{
-		speed = ((struct map_session_data *)bl)->speed;
-	}
-	else
-	{
-		struct status_change *sc_data=status_get_sc_data(bl);
-		speed = 1000;
-		if(bl->type==BL_MOB) {
-			speed = ((struct mob_data *)bl)->speed;
-			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
-				speed-=((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
-		}
-		else if(bl->type==BL_PET) {
-			speed = ((struct pet_data *)bl)->msd->petDB->speed;
-		} else if(bl->type==BL_NPC && (struct npc_data *)bl)	//Added BL_NPC (Skotlex)
-			speed = ((struct npc_data *)bl)->speed;
 
-		if(sc_data) {
-			//速度増加時は25%減算
-			if(sc_data[SC_INCREASEAGI].timer!=-1)
-				speed -= speed*25/100;
-			//ウィンドウォーク時はLv*2%減算
-			else if(sc_data[SC_WINDWALK].timer!=-1)
-				speed -= (speed*(sc_data[SC_WINDWALK].val1.num*4))/100;
-			//速度減少時は25%加算
-			if(sc_data[SC_DECREASEAGI].timer!=-1)
-				speed = speed*125/100;
-			//クァグマイア時は50%加算
-			if(sc_data[SC_QUAGMIRE].timer!=-1)
-				speed = speed*3/2;
-			//私を忘れないで…時は加算
-			if(sc_data[SC_DONTFORGETME].timer!=-1)
-				speed = speed*(100+sc_data[SC_DONTFORGETME].val1.num*2 + sc_data[SC_DONTFORGETME].val2.num + (sc_data[SC_DONTFORGETME].val3.num&0xffff))/100;
-			//金剛時は25%加算
-			if(sc_data[SC_STEELBODY].timer!=-1)
-				speed = speed*125/100;
-			//ディフェンダー時は加算
-			if(sc_data[SC_DEFENDER].timer!=-1)
-				speed = (speed * (155 - sc_data[SC_DEFENDER].val1.num*5)) / 100;
-			//踊り状態は4倍遅い
-			if(sc_data[SC_DANCING].timer!=-1 )
-				speed *= 6;
-			//呪い時は450加算
-			if(sc_data[SC_CURSE].timer!=-1)
-				speed = speed + 450;
-			if(sc_data[SC_SLOWDOWN].timer!=-1)
-				speed = speed*150/100;
-
-			if(sc_data[SC_SPEEDUP1].timer!=-1)
-				speed -= speed*50/100;
-			else if(sc_data[SC_SPEEDUP0].timer!=-1 && sc_data[SC_INCREASEAGI].timer==-1)
-				speed -= speed*25/100;
-
-			if(sc_data[SC_GOSPEL].timer!=-1 &&
-				sc_data[SC_GOSPEL].val4.num == BCT_ENEMY &&
-				sc_data[SC_GOSPEL].val3.num == 8)
-				speed = speed*125/100;
-			if(sc_data[SC_JOINTBEAT].timer!=-1) {
-				if (sc_data[SC_JOINTBEAT].val2.num == 0)
-					speed = speed*150/100;
-				else if (sc_data[SC_JOINTBEAT].val2.num == 2)
-					speed = speed*130/100;				
-			}
-		}
-	}
-
-	// map tile dependend reducing of speed
-/*
-	{
-		int i,k;
-		for(i=-1; i<=1; ++i)
-		for(k=-1; k<=1; ++k)
-		{
-			if( map_getcell(bl->m, bl->x+i, bl->y+k, CELL_CHKHOLE) )
-				speed = speed*116/100; // slow down by 16%
-		}
-	}
-*/
-	if(speed < 1) speed = 1;
-	return speed;
-}
 
 
 /*==========================================
@@ -4007,9 +4009,7 @@ int status_change_start(struct block_list *bl,int type, basics::numptr val1,basi
 			val2 = tick;
 			tick = 100;
 			clif_emotion(*bl,1);
-			if (sd) {
-				pc_stop_walking (*sd, 0);
-			}
+			if(sd)	sd->stop_walking(0);
 			break;
 		case SC_BLIND:				/* 暗? */
 			calc_flag = 1;
@@ -5111,16 +5111,15 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 			{
 				i=1000 + rand()%1000;
 			} 
-			else if(md && md->mode&1 && mob_can_move(*md)) 
+			else if(md && md->mode&1 && md->is_movable()) 
 			{
 				md->state.state=MS_WALK;
-				if( DIFF_TICK(md->next_walktime,tick) > 7000 &&
-					(md->walkpath.path_len==0 || md->walkpath.path_pos>=md->walkpath.path_len) )
+				if( DIFF_TICK(md->next_walktime,tick) > 7000 && md->walkpath.finished() )
 				{
 					i = 3000 + rand()%2000;
 					md->next_walktime = tick + i;
 				}
-				mob_randomwalk(*md,tick);
+				md->randomwalk(tick);
 			}
 			if( sc_data[type].val2.num > 1000 ) 
 			{

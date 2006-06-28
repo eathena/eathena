@@ -47,6 +47,345 @@ static size_t npc_mob=0;
 static size_t npc_delay_mob=0;
 static size_t npc_cache_mob=0;
 
+
+
+
+
+
+
+
+
+int npc_data::walktimer_func_old(int tid, unsigned long tick, basics::numptr data)
+{
+	struct npc_data *nd=this;
+
+	if(nd->block_list::prev == NULL)
+		return 1;
+
+	switch(nd->state.npcstate){
+		case MS_WALK:
+			nd->walk(tick);
+			break;
+		case MS_DELAY:
+			nd->changestate(MS_IDLE,0);
+			break;
+		default:
+			break;
+	}
+	return 0;
+}
+
+
+/*==========================================
+ * npc Walk processing
+ *------------------------------------------
+ */
+int npc_data::walkstep_old(unsigned long tick)
+{
+	int moveblock;
+	int i,j;
+	const static char dirx[8] = { 0, 1, 1, 1, 0,-1,-1,-1};
+	const static char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
+	int x,y,dx,dy;
+
+	this->state.npcstate=MS_IDLE;
+	if( this->walkpath.finished() )
+		return 0;
+
+	this->walkpath.path_half ^= 1;
+	if(this->walkpath.path_half==0)
+	{
+		this->walkpath++;
+		if(this->walkpath.change_target)
+		{
+			this->walktoxy_sub();
+			return 0;
+		}
+	}
+	else
+	{
+		x = this->block_list::x;
+		y = this->block_list::y;
+		if(map_getcell(this->block_list::m,x,y,CELL_CHKNOPASS))
+		{
+			this->stop_walking(1);
+			return 0;
+		}
+		this->dir=this->walkpath.get_current_step();
+		dx = dirx[this->dir];
+		dy = diry[this->dir];
+
+		if(map_getcell(this->block_list::m,x+dx,y+dy,CELL_CHKNOPASS))
+		{
+			this->walktoxy_sub();
+			return 0;
+		}
+
+		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
+
+		this->state.npcstate=MS_WALK;
+
+		CMap::foreachinmovearea( CClifNpcOutsight(*this),
+			this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC);
+
+		x += dx;
+		y += dy;
+
+		// ontouch fix for moving npcs with ontouch area
+		if(this->class_>=0 && this->u.scr.xs>0 && this->u.scr.ys>0)
+		{
+			for(i=0;i<this->u.scr.ys;++i)
+			for(j=0;j<this->u.scr.xs;++j)
+			{
+				if(map_getcell(this->block_list::m,this->block_list::x-this->u.scr.xs/2+j,this->block_list::y-this->u.scr.ys/2+i,CELL_CHKNOPASS))
+					continue;
+
+				// remove npc ontouch area from map_cells
+				map_setcell(this->block_list::m,this->block_list::x-this->u.scr.xs/2+j,this->block_list::y-this->u.scr.ys/2+i,CELL_CLRNPC);
+			}
+		}
+
+		if(moveblock) this->map_delblock();
+		this->block_list::x = x;
+		this->block_list::y = y;
+		if(moveblock) this->map_addblock();
+
+
+		// ontouch fix for moving npcs with ontouch area
+		if (this->class_>=0 && this->u.scr.xs>0 && this->u.scr.ys>0)
+		{
+			for(i=0;i<this->u.scr.ys;++i)
+			for(j=0;j<this->u.scr.xs;++j)
+			{
+				if(map_getcell(this->block_list::m,this->block_list::x-this->u.scr.xs/2+j,this->block_list::y-this->u.scr.ys/2+i,CELL_CHKNOPASS))
+					continue;
+				// add npc ontouch area from map_cells
+				map_setcell(this->block_list::m,this->block_list::x-this->u.scr.xs/2+j,this->block_list::y-this->u.scr.ys/2+i,CELL_SETNPC);
+			}
+		}
+		CMap::foreachinmovearea( CClifNpcInsight(*this),
+			this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC);
+		this->state.npcstate=MS_IDLE;
+	}
+	if((i=this->calc_next_walk_step())>0)
+	{
+		i = i>>1;
+		if(i < 1 && this->walkpath.path_half == 0)
+			i = 1;
+
+		this->state.npcstate=MS_WALK;
+		if(this->walktimer != -1)
+		{
+			delete_timer(this->walktimer,movable::walktimer_entry_old);
+			this->walktimer=-1;
+		}
+		this->walktimer=add_timer(tick+i,movable::walktimer_entry_old,this->block_list::id,0);
+	}
+	if( this->walkpath.finished() )
+		clif_fixobject(*this);	// When npc stops, retransmission current of a position.
+	return 0;
+}
+
+int npc_data::walktoxy_sub_old()
+{
+	if( !this->walkpath.path_search(this->block_list::m,this->block_list::x,this->block_list::y,this->target.x,this->target.y,this->walkpath.walk_easy) )
+		return 1;
+
+	this->walkpath.change_target=0;
+
+	this->changestate(MS_WALK,0);
+	clif_moveobject(*this);
+
+	return 0;
+}
+
+int npc_data::walktoxy_old(unsigned short x,unsigned short y,bool easy)
+{
+	if( this->state.npcstate == MS_WALK && 
+		!walkpath_data::is_possible(this->block_list::m,this->block_list::x,this->block_list::y,x,y,easy?1:0) )
+		return 1;
+
+	this->walkpath.walk_easy = easy;
+	this->target.x=x;
+	this->target.y=y;
+	if(this->state.npcstate == MS_WALK)
+		this->walkpath.change_target=1;
+	else
+		return this->walktoxy_sub();
+
+	return 0;
+}
+
+int npc_data::stop_walking_old(int type)
+{
+	if(this->state.npcstate == MS_WALK || this->state.npcstate == MS_IDLE)
+	{
+		int dx=0,dy=0;
+
+		this->walkpath.clear();
+		if(type&4)
+		{
+			dx = this->target.x - this->block_list::x;
+			if(dx<0)
+				dx=-1;
+			else if(dx>0)
+				dx=1;
+			dy = this->target.y - this->block_list::y;
+			if(dy<0)
+				dy=-1;
+			else if(dy>0)
+				dy=1;
+		}
+		this->target.x = this->block_list::x+dx;
+		this->target.y = this->block_list::y+dy;
+		if(dx!=0 || dy!=0){
+			this->walktoxy_sub();
+			return 0;
+		}
+		this->changestate(MS_IDLE,0);
+	}
+
+	if(type&0x01)
+		clif_fixobject(*this);
+
+	if(type&0x02)
+	{
+		int delay=status_get_dmotion(this);
+		unsigned long tick = gettick();
+		if( DIFF_TICK(this->canmove_tick,tick) < 0 )
+			this->canmove_tick = tick + delay;
+	}
+	return 0;
+}
+
+
+int npc_data::changestate_old(int state,int type)
+{
+	npc_data &nd = *this;
+	int i;
+
+	if(nd.walktimer != -1)
+	{
+		delete_timer(nd.walktimer,movable::walktimer_entry_old);
+		nd.walktimer=-1;
+	}
+
+	nd.state.npcstate=state;
+
+	switch(state){
+	case MS_WALK:
+		if((i=nd.calc_next_walk_step())>0){
+			i = i>>2;
+			nd.walktimer = add_timer(gettick()+i,movable::walktimer_entry_old,nd.block_list::id,0);
+		}
+		else {
+			nd.state.npcstate=MS_IDLE;
+		}
+		break;
+	case MS_IDLE:
+		break;
+	case MS_DELAY:
+		nd.walktimer = add_timer(gettick()+type,movable::walktimer_entry_old,nd.block_list::id,0);
+		break;
+	}
+
+	return 0;
+}
+
+
+
+/// do object depending stuff for ending the walk.
+void npc_data::do_stop_walking()
+{
+	if( this->state.npcstate == MS_WALK )
+		this->changestate(MS_IDLE,0);
+}
+/// do object depending stuff for the walk step.
+void npc_data::do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy)
+{
+	// ontouch fix for moving npcs with ontouch area
+	if(this->class_>=0 && this->u.scr.xs>0 && this->u.scr.ys>0)
+	{
+		// "xor" is an operator in C++ (Alternative tokens)
+		// together with all other logic operator names ans some more digraphs
+		// whatever shit those guys had in mind; I don't argue with it 
+		// on gcc it could be disables with -fno-operator-names, MS does not have it at all
+		// but better make sure to not have those in the code at all
+
+		// coord of old rectangle
+		const int xol = this->block_list::x-this->u.scr.xs/2;
+		const int xo_ = this->block_list::x+this->u.scr.xs/2;
+		const int yol = this->block_list::y-this->u.scr.ys/2;
+		const int yor = this->block_list::y+this->u.scr.ys/2;
+		// coord of new rectangle
+		const int xnl = target.x-this->u.scr.xs/2;
+		const int xnr = target.x+this->u.scr.xs/2;
+		const int ynl = target.y-this->u.scr.ys/2;
+		const int ynr = target.y+this->u.scr.ys/2;
+
+		int i,k;
+		// going through old rechtangle
+		for(i=xol; i<=xo_; ++i)
+		for(k=yol; k<=yor; ++k)
+		{
+			if( i>=0 && i<maps[this->block_list::m].xs &&	// inside map
+				k>=0 && k<maps[this->block_list::m].ys &&
+				(i<xnl || i>xnr || k<ynl || k>ynr) &&		// not inside of new rect
+				!map_getcell(this->block_list::m,i,k,CELL_CHKNOPASS) )
+			{	// remove npc ontouch area from map_cells
+				map_setcell(this->block_list::m,i,k,CELL_CLRNPC);
+			}
+		}
+
+		// going through new rechtangle
+		for(i=xnl; i<=xnr; ++i)
+		for(k=ynl; k<=ynr; ++k)
+		{
+			if( i>=0 && i<maps[this->block_list::m].xs &&	// inside map
+				k>=0 && k<maps[this->block_list::m].ys &&
+				(i<xol || i>xo_ || k<yol || k>yor) &&		// not inside of old rect
+				!map_getcell(this->block_list::m,i,k,CELL_CHKNOPASS) )
+			{	// add npc ontouch area from map_cells
+				map_setcell(this->block_list::m,i,k,CELL_SETNPC);
+			}
+		}
+	}
+
+	this->state.npcstate = MS_WALK;
+}
+
+/// do object depending stuff for changestate
+void npc_data::do_changestate(int state,int type)
+{
+	npc_data &nd = *this;
+
+	if(nd.walktimer != -1)
+	{
+		if( nd.is_walking() )
+			delete_timer(nd.walktimer,nd.walktimer_entry);
+		else
+			delete_timer(nd.walktimer,movable::walktimer_entry_old);
+		nd.walktimer=-1;
+	}
+
+	nd.state.npcstate=state;
+
+	switch(state){
+	case MS_WALK:
+		if( !nd.set_walktimer( gettick() ) )
+			nd.state.npcstate=MS_IDLE;
+		break;
+	case MS_IDLE:
+		break;
+	case MS_DELAY:
+		nd.walktimer = add_timer(gettick()+type,movable::walktimer_entry_old,nd.block_list::id,0);
+		break;
+	}
+}
+
+
+
+
 uint32 &get_npc_id()
 {
 	// simple singleton
@@ -75,8 +414,8 @@ struct event_data
 
 static struct tm ev_tm_b;	// 時計イベント用
 
-int npc_walktimer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
-int npc_walktoxy_sub(struct npc_data &nd); // [Valaris]
+
+
 
 
 // ============================================
@@ -960,9 +1299,10 @@ int npc_touch_areanpc(struct map_session_data &sd, unsigned short m, int x,int y
 	if( sd.ScriptEngine.isRunning() || m>=map_num )
 		return 1;
 
-	for(i=0;i<maps[m].npc_num;++i) {
-
-		if (maps[m].npc[i]->flag&1) {	// 無効化されている
+	for(i=0;i<maps[m].npc_num;++i)
+	{
+		if (maps[m].npc[i]->flag&1)
+		{	// 無効化されている
 			f=0;
 			continue;
 		}
@@ -1302,274 +1642,6 @@ int npc_selllist(struct map_session_data &sd,unsigned short n,unsigned char *buf
 
 }
 
-// [Valaris] NPC Walking
-
-/*==========================================
- * Time calculation concerning one step next to npc
- *------------------------------------------
- */
-int calc_next_walk_step(struct npc_data &nd)
-{
-	if( nd.walkpath.path_pos >= nd.walkpath.path_len )
-		return -1;
-	if( nd.walkpath.path[nd.walkpath.path_pos]&1 )
-		return status_get_speed(&nd)*14/10;
-	return status_get_speed(&nd);
-}
-
-
-/*==========================================
- * npc Walk processing
- *------------------------------------------
- */
-int npc_walk(struct npc_data &nd,unsigned long tick,int data)
-{
-	int moveblock;
-	int i,j;
-	static int dirx[8]={0,-1,-1,-1,0,1,1,1};
-	static int diry[8]={1,1,0,-1,-1,-1,0,1};
-	int x,y,dx,dy;
-
-	nd.state.npcstate=MS_IDLE;
-	if(nd.walkpath.path_pos>=nd.walkpath.path_len || nd.walkpath.path_pos!=data)
-		return 0;
-
-	nd.walkpath.path_half ^= 1;
-	if(nd.walkpath.path_half==0){
-		nd.walkpath.path_pos++;
-		if(nd.walkpath.change_walk_target){
-			npc_walktoxy_sub(nd);
-			return 0;
-		}
-	}
-	else {
-		if(nd.walkpath.path[nd.walkpath.path_pos]>=8)
-			return 1;
-
-		x = nd.block_list::x;
-		y = nd.block_list::y;
-		if(map_getcell(nd.block_list::m,x,y,CELL_CHKNOPASS)) {
-			npc_stop_walking(nd,1);
-			return 0;
-		}
-		nd.dir=nd.walkpath.path[nd.walkpath.path_pos];
-		dx = dirx[nd.dir];
-		dy = diry[nd.dir];
-
-		if(map_getcell(nd.block_list::m,x+dx,y+dy,CELL_CHKNOPASS)) {
-			npc_walktoxy_sub(nd);
-			return 0;
-		}
-
-		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
-
-		nd.state.npcstate=MS_WALK;
-
-		CMap::foreachinmovearea( CClifNpcOutsight(nd),
-			nd.block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC);
-//		map_foreachinmovearea(clif_npcoutsight,
-//			nd.block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,
-//			&nd);
-
-		x += dx;
-		y += dy;
-
-
-		// ontouch fix for moving npcs with ontouch area
-		if (nd.class_>=0 && nd.u.scr.xs>0 && nd.u.scr.ys>0)
-		{
-			for(i=0;i<nd.u.scr.ys;++i)
-			for(j=0;j<nd.u.scr.xs;++j)
-			{
-				if(map_getcell(nd.block_list::m,nd.block_list::x-nd.u.scr.xs/2+j,nd.block_list::y-nd.u.scr.ys/2+i,CELL_CHKNOPASS))
-					continue;
-
-				// remove npc ontouch area from map_cells
-				map_setcell(nd.block_list::m,nd.block_list::x-nd.u.scr.xs/2+j,nd.block_list::y-nd.u.scr.ys/2+i,CELL_CLRNPC);
-			}
-		}
-
-		if(moveblock) nd.map_delblock();
-		nd.block_list::x = x;
-		nd.block_list::y = y;
-		if(moveblock) nd.map_addblock();
-
-
-		// ontouch fix for moving npcs with ontouch area
-		if (nd.class_>=0 && nd.u.scr.xs>0 && nd.u.scr.ys>0)
-		{
-			for(i=0;i<nd.u.scr.ys;++i)
-			for(j=0;j<nd.u.scr.xs;++j)
-			{
-				if(map_getcell(nd.block_list::m,nd.block_list::x-nd.u.scr.xs/2+j,nd.block_list::y-nd.u.scr.ys/2+i,CELL_CHKNOPASS))
-					continue;
-				// add npc ontouch area from map_cells
-				map_setcell(nd.block_list::m,nd.block_list::x-nd.u.scr.xs/2+j,nd.block_list::y-nd.u.scr.ys/2+i,CELL_SETNPC);
-			}
-		}
-		CMap::foreachinmovearea( CClifNpcInsight(nd),
-			nd.block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC);
-//		map_foreachinmovearea(clif_npcinsight,
-//			nd.block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC,
-//			&nd);
-		nd.state.npcstate=MS_IDLE;
-	}
-	if((i=calc_next_walk_step(nd))>0){
-		i = i>>1;
-		if(i < 1 && nd.walkpath.path_half == 0)
-			i = 1;
-
-		nd.state.npcstate=MS_WALK;
-		if(nd.walktimer != -1)
-		{
-			delete_timer(nd.walktimer,npc_walktimer);
-			nd.walktimer=-1;
-		}
-		nd.walktimer=add_timer(tick+i,npc_walktimer,nd.block_list::id,nd.walkpath.path_pos);
-
-		if(nd.walkpath.path_pos>=nd.walkpath.path_len)
-			clif_fixnpcpos(nd);	// When npc stops, retransmission current of a position.
-	}
-	return 0;
-}
-
-int npc_changestate(struct npc_data &nd,int state,int type)
-{
-	int i;
-
-	if(nd.walktimer != -1)
-	{
-		delete_timer(nd.walktimer,npc_walktimer);
-		nd.walktimer=-1;
-	}
-
-	nd.state.npcstate=state;
-
-	switch(state){
-	case MS_WALK:
-		if((i=calc_next_walk_step(nd))>0){
-			i = i>>2;
-			nd.walktimer = add_timer(gettick()+i,npc_walktimer,nd.block_list::id,0);
-		}
-		else {
-			nd.state.npcstate=MS_IDLE;
-		}
-		break;
-	case MS_IDLE:
-		break;
-	case MS_DELAY:
-		nd.walktimer = add_timer(gettick()+type,npc_walktimer,nd.block_list::id,0);
-		break;
-	}
-
-	return 0;
-}
-
-int npc_walktimer(int tid, unsigned long tick, int id, basics::numptr data)
-{
-	struct npc_data *nd;
-
-	nd=(struct npc_data*)map_id2bl(id);
-	if(nd == NULL || nd->block_list::type != BL_NPC)
-		return 1;
-
-	if(nd->walktimer != tid)
-		return 0;
-
-	nd->walktimer=-1;
-
-	if(nd->block_list::prev == NULL)
-		return 1;
-
-	switch(nd->state.npcstate){
-		case MS_WALK:
-			npc_walk(*nd,tick,data.num);
-			break;
-		case MS_DELAY:
-			npc_changestate(*nd,MS_IDLE,0);
-			break;
-		default:
-			break;
-	}
-	return 0;
-}
-
-
-int npc_walktoxy_sub(struct npc_data &nd)
-{
-	struct walkpath_data wpd;
-
-	if( !wpd.path_search(nd.block_list::m,nd.block_list::x,nd.block_list::y,nd.walkpath.target.x,nd.walkpath.target.y,nd.walkpath.walk_easy) )
-		return 1;
-	nd.walkpath = wpd;
-
-	nd.walkpath.change_walk_target=0;
-
-	npc_changestate(nd,MS_WALK,0);
-	clif_movenpc(nd);
-
-	return 0;
-}
-
-int npc_walktoxy(struct npc_data &nd,int x,int y,int easy)
-{
-	if(nd.state.npcstate == MS_WALK && !walkpath_data::is_possible(nd.block_list::m,nd.block_list::x,nd.block_list::y,x,y,0) )
-		return 1;
-
-	nd.walkpath.walk_easy = easy;
-	nd.walkpath.target.x=x;
-	nd.walkpath.target.y=y;
-	if(nd.state.npcstate == MS_WALK)
-		nd.walkpath.change_walk_target=1;
-	else
-		return npc_walktoxy_sub(nd);
-
-	return 0;
-}
-
-int npc_stop_walking(struct npc_data &nd,int type)
-{
-	if(nd.state.npcstate == MS_WALK || nd.state.npcstate == MS_IDLE)
-	{
-		int dx=0,dy=0;
-
-		nd.walkpath.path_len=0;
-		if(type&4)
-		{
-			dx = nd.walkpath.target.x - nd.block_list::x;
-			if(dx<0)
-				dx=-1;
-			else if(dx>0)
-				dx=1;
-			dy = nd.walkpath.target.y - nd.block_list::y;
-			if(dy<0)
-				dy=-1;
-			else if(dy>0)
-				dy=1;
-		}
-		nd.walkpath.target.x = nd.block_list::x+dx;
-		nd.walkpath.target.y = nd.block_list::y+dy;
-		if(dx!=0 || dy!=0){
-			npc_walktoxy_sub(nd);
-			return 0;
-		}
-		npc_changestate(nd,MS_IDLE,0);
-	}
-
-	if(type&0x01)
-		clif_fixnpcpos(nd);
-
-	if(type&0x02)
-	{
-		int delay=status_get_dmotion(&nd);
-		unsigned long tick = gettick();
-		if( DIFF_TICK(nd.canmove_tick,tick) < 0 )
-			nd.canmove_tick = tick + delay;
-}
-
-
-	return 0;
-}
 
 
 
@@ -1696,11 +1768,10 @@ bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
 
 	m = map_mapname2mapid(mapname);
 
-	nd = new struct npc_data(); 
+	nd = new npc_data(); 
 
 	nd->block_list::id = npc_get_new_npc_id();
 	nd->n = map_addnpc(m, nd);
-	nd->block_list::prev = nd->block_list::next = NULL;
 	nd->block_list::m = m;
 	nd->block_list::x = x;
 	nd->block_list::y = y;
@@ -1809,7 +1880,6 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 
 	nd->u.shop_item[pos++].nameid = 0;
 
-	nd->block_list::prev = nd->block_list::next = NULL;
 	nd->block_list::m = m;
 	nd->block_list::x = x;
 	nd->block_list::y = y;
@@ -2042,7 +2112,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 		ref = nd2->u.scr.ref;
 	}// end of スクリプト解析
 
-	nd = new struct npc_data();
+	nd = new npc_data();
 
 	if(dummy_npc) *dummy_npc=nd;
 
@@ -2114,7 +2184,6 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 	nd->opt1 = 0;
 	nd->opt2 = 0;
 	nd->opt3 = 0;
-	nd->walktimer = -1;
 	nd->u.scr.nexttimer=-1;
 	nd->u.scr.timerid=-1;
 
@@ -2299,44 +2368,18 @@ int npc_parse_mob2(struct mob_list &mob)
 
 	for(i = 0; i < mob.num; ++i)
 	{
-		md = new struct mob_data;
+		md = new mob_data(mob.mobname, mob.class_);
 
-		if(mob.class_ > 2*MAX_MOB_DB)
-		{	// large/tiny mobs [Valaris]
-			md->state.size = 2;
-			mob.class_ -= (2*MAX_MOB_DB);
-		}
-		else if (mob.class_ > MAX_MOB_DB)
-		{
-			md->state.size = 1;
-			mob.class_ -= MAX_MOB_DB;
-		}
-
-		md->block_list::prev = NULL;
-		md->block_list::next = NULL;
-
-		md->block_list::id = npc_get_new_npc_id();
-		md->block_list::type = BL_MOB;
 		md->block_list::m = mob.m;
 		md->block_list::x = mob.x0;
 		md->block_list::y = mob.y0;
+		md->map_addiddb();
 
 		md->level = mob.level;
-		memcpy(md->name, mob.mobname, 24);
-		md->base_class = md->class_ = mob.class_;
 
 		md->cache = &mob;
 
-		md->speed=mob_db[mob.class_].speed;
-		md->mode=mob_db[mob.class_].mode;
-		md->timer = -1;
-
-		if(mob_db[mob.class_].mode & 0x02)
-			md->lootitem = new struct item[LOOTITEM_SIZE];
-		else
-			md->lootitem = NULL;
-
-		if (strlen(mob.eventname) >= 4)
+		if( strlen(mob.eventname) >= 4 )
 		{
 			memcpy(md->npc_event, mob.eventname, 24);
 		}
@@ -2352,8 +2395,7 @@ int npc_parse_mob2(struct mob_list &mob)
 					md->state.size=2;
 			}
 		}
-			
-		md->map_addiddb();
+		
 		mob_spawn(md->block_list::id);
 	}
 	// all mobs from cache are spawned now
@@ -3178,7 +3220,6 @@ int do_init_npc(void)
 	}
 */
 
-	add_timer_func_list(npc_walktimer,"npc_walktimer"); // [Valaris]
 	add_timer_func_list(npc_event_timer,"npc_event_timer");
 	add_timer_func_list(npc_event_do_clock,"npc_event_do_clock");
 	add_timer_func_list(npc_timerevent,"npc_timerevent");

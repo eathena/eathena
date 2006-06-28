@@ -32,8 +32,8 @@ void trade_traderequest(struct map_session_data &sd, uint32 target_id)
 				return;
 			}
 		}
-		level  = pc_isGM(sd);
-		level2 = pc_isGM(*target_sd);
+		level  = sd.isGM();
+		level2 = target_sd->isGM();
 
 		if( (target_sd->trade_partner != 0) || (sd.trade_partner != 0) )
 		{
@@ -199,7 +199,7 @@ void trade_tradeadditem(struct map_session_data &sd, unsigned short index, uint3
 		else if (amount > 0 && amount <= sd.status.inventory[index-2].amount)
 		{
 
-			level = basics::max( pc_isGM(sd), pc_isGM(*target_sd));
+			level = basics::max( sd.isGM(), target_sd->isGM());
 			for(trade_i = 0; trade_i < MAX_TRADING; ++trade_i)
 			{
 				if (sd.deal_item_amount[trade_i] == 0)

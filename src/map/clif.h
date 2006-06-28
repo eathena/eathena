@@ -28,18 +28,18 @@ int clif_spawnnpc(struct npc_data &nd);	// area
 int clif_spawnnpc(struct map_session_data &sd, struct npc_data &nd);	// self
 int clif_spawnmob(struct mob_data &md);	// area
 int clif_spawnpet(struct pet_data &pd);	// area
-int clif_walkok(struct map_session_data &sd);	// self
-int clif_movechar(struct map_session_data &sd);	// area
-int clif_movemob(struct mob_data &md);	//area
-int clif_movepet(struct pet_data &pd);	//area
-int clif_movenpc(struct npc_data &nd);	// [Valaris]
+
+
+int clif_fixpos(const block_list &bl);
+int clif_fixobject(const block_list &bl);
+int clif_moveobject(const block_list &bl);
+
+int clif_walkok(const block_list& bl);	// self
+
 int clif_changemap(struct map_session_data &sd, const char *mapname, unsigned short x, unsigned short y);	//self
 int clif_changemapserver(struct map_session_data &sd, const char *mapname, unsigned short x, unsigned short y, basics::ipaddress ip, unsigned short port);	//self
-int clif_fixpos(struct block_list &bl);	// area
-int clif_fixmobpos(struct mob_data &md);
-int clif_fixpcpos(struct map_session_data &sd);
-int clif_fixpetpos(struct pet_data &pd);
-int clif_fixnpcpos(struct npc_data &nd); // [Valaris]
+
+
 int clif_npcbuysell(struct map_session_data &sd, uint32 id);	//self
 int clif_buylist(struct map_session_data&,struct npc_data&);	//self
 int clif_selllist(struct map_session_data&);	//self
@@ -201,6 +201,24 @@ public:
 
 
 
+class CClifInsight : public CMapProcessor
+{
+	struct block_list &tbl;
+	map_session_data *tsd;
+public:
+	CClifInsight(struct block_list &b):tbl(b), tsd(b.get_sd())	{}
+	~CClifInsight()	{}
+	virtual int process(struct block_list& bl) const;
+};
+class CClifOutsight : public CMapProcessor
+{
+	struct block_list &tbl;
+	map_session_data *tsd;
+public:
+	CClifOutsight(struct block_list &b):tbl(b), tsd(b.get_sd())	{}
+	~CClifOutsight()	{}
+	virtual int process(struct block_list& bl) const;
+};
 
 
 
@@ -209,7 +227,7 @@ public:
 
 
 int clif_class_change(struct block_list &bl,unsigned short class_,unsigned char type);
-int clif_mob_class_change(struct mob_data &md,unsigned short class_);
+int clif_mob_class_change(struct mob_data &md);
 int clif_mob_equip(struct mob_data &md,unsigned short nameid); // [Valaris]
 
 int clif_skillinfo(struct map_session_data &sd,unsigned short skillid, short type,short range);

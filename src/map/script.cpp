@@ -2567,7 +2567,6 @@ v18 xxxx-xx-xx	text & input ok
 			defnpc.opt1 = 0;
 			defnpc.opt2 = 0;
 			defnpc.opt3 = 0;
-			defnpc.walktimer = -1;
 			defnpc.u.scr.nexttimer=-1;
 			defnpc.u.scr.timerid=-1;
 			defnpc.canmove_tick=0;
@@ -4487,7 +4486,7 @@ int buildin_getitem(CScriptEngine &st)
 		{	// additem failed
 			clif_additem(*sd,0,0,flag);
 			// create it on floor if dropable, let it vanish otherwise
-			if( itemdb_isdropable(nameid, pc_isGM(*sd)) )
+			if( itemdb_isdropable(nameid, sd->isGM()) )
 				map_addflooritem(item_tmp,amount,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
 		}
 	}
@@ -5542,7 +5541,7 @@ int buildin_basicskillcheck(CScriptEngine &st)
  */
 int buildin_getgmlevel(CScriptEngine &st)
 {
-	st.push_val(CScriptEngine::C_INT, ((st.sd) ? pc_isGM(*st.sd):0) );
+	st.push_val(CScriptEngine::C_INT, ((st.sd) ? st.sd->isGM():0) );
 	return 0;
 }
 
@@ -6375,7 +6374,7 @@ int buildin_getusersname(CScriptEngine &st)
 		{
 			if(session[i] && (pl_sd=(struct map_session_data *) session[i]->user_session) && pl_sd->state.auth)
 			{
-				if( !(battle_config.hide_GM_session && pc_isGM(*pl_sd)) )
+				if( !(battle_config.hide_GM_session && pl_sd->isGM()) )
 				{
 					if((disp_num++)%10==0)
 						clif_scriptnext(*st.sd,st.oid);
@@ -8162,7 +8161,7 @@ int buildin_petskillbonus(CScriptEngine &st)
 		}
 		else //init
 		{
-			pd->bonus = new struct pet_data::pet_bonus;
+			pd->bonus = new pet_data::pet_bonus;
 		}
 		
 		pd->bonus->type=st.GetInt(st[2]);
@@ -8210,7 +8209,7 @@ int buildin_petloot(CScriptEngine &st)
 	}
 	else
 	{
-		pd->loot = new struct pet_data::pet_loot;
+		pd->loot = new pet_data::pet_loot;
 	}
 
 	pd->loot->item = new struct item[max];
@@ -8377,7 +8376,7 @@ int buildin_petrecovery(CScriptEngine &st)
 	}
 	else //Init
 	{
-		pd->recovery = new struct pet_data::pet_recovery;
+		pd->recovery = new pet_data::pet_recovery;
 	}
 		
 	pd->recovery->type=st.GetInt(st[2]);
@@ -8411,7 +8410,7 @@ int buildin_petheal(CScriptEngine &st)
 	}
 	else //init memory
 	{
-		pd->s_skill = new struct pet_data::pet_skill_support;
+		pd->s_skill = new pet_data::pet_skill_support;
 	}
 	
 	//This id identifies that it IS petheal rather than pet_skillsupport
@@ -8444,7 +8443,7 @@ int buildin_petskillattack(CScriptEngine &st)
 	pd=st.sd->pd;
 	if (pd->a_skill == NULL)
 	{
-		pd->a_skill = new struct pet_data::pet_skill_attack;
+		pd->a_skill = new pet_data::pet_skill_attack;
 	}
 				
 	pd->a_skill->id=st.GetInt(st[2]);
@@ -8471,7 +8470,7 @@ int buildin_petskillattack2(CScriptEngine &st)
 	pd=sd->pd;
 	if (pd->a_skill == NULL)
 	{
-		pd->a_skill = new struct pet_data::pet_skill_attack;
+		pd->a_skill = new pet_data::pet_skill_attack;
 	}
 				
 	pd->a_skill->id=st.GetInt(st[2]);
@@ -8507,7 +8506,7 @@ int buildin_petskillsupport(CScriptEngine &st)
 		}
 	} else //init memory
 	{
-		pd->s_skill = new struct pet_data::pet_skill_support;
+		pd->s_skill = new pet_data::pet_skill_support;
 	}
 	
 	pd->s_skill->id=st.GetInt(st[2]);
@@ -8910,7 +8909,7 @@ int buildin_npcwalkto(CScriptEngine &st)
 	y=st.GetInt(st[3]);
 
 	if(nd)
-		npc_walktoxy(*nd,x,y,0);
+		nd->walktoxy(x,y);
 
 	return 0;
 }
@@ -8920,7 +8919,7 @@ int buildin_npcstop(CScriptEngine &st)
 	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
 
 	if( (nd) && (nd->state.npcstate==MS_WALK) )
-		npc_stop_walking(*nd,1);
+		nd->stop_walking(1);
 	return 0;
 }
 

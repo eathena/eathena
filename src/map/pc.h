@@ -10,7 +10,6 @@ static inline void pc_setdead(struct map_session_data &sd)	{ sd.state.dead_sit =
 static inline bool pc_isdead(struct map_session_data &sd)	{ return sd.state.dead_sit == 1; }
 static inline void pc_setsit(struct map_session_data &sd)	{ sd.state.dead_sit = 2; }
 static inline bool pc_issit(struct map_session_data &sd)	{ return sd.state.dead_sit == 2; }
-static inline void pc_setdir(struct map_session_data &sd, unsigned char b, unsigned char h) { sd.dir = b; sd.head_dir = h; }
 static inline void pc_setchatid(struct map_session_data &sd, unsigned int chatid)	{ sd.chatID = chatid; }
 static inline bool pc_ishiding(struct map_session_data &sd) { return 0 != (sd.status.option&0x4006); }
 static inline bool pc_iscloaking(struct map_session_data &sd) { return 0==(sd.status.option&0x4000) && 0!=(sd.status.option&0x0004); }
@@ -22,7 +21,7 @@ static inline bool pc_isinvisible(struct map_session_data &sd) { return 0 != (sd
 static inline bool pc_is50overweight(struct map_session_data &sd) { return sd.weight*2 >= sd.max_weight; }
 static inline bool pc_is90overweight(struct map_session_data &sd) { return sd.weight*10 >= sd.max_weight*9; }
 
-unsigned char pc_isGM(struct map_session_data &sd);
+
 bool pc_iskiller(struct map_session_data &src, struct map_session_data &target); // [MouseJstr]
 int pc_getrefinebonus(int lv,int type);
 
@@ -52,8 +51,6 @@ int pc_clean_skilltree(struct map_session_data &sd);
 int pc_checkoverhp(struct map_session_data &sd);
 int pc_checkoversp(struct map_session_data &sd);
 
-int pc_walktoxy(struct map_session_data &sd, unsigned short x,unsigned short y);
-int pc_stop_walking(struct map_session_data &sd, int type);
 int pc_movepos(struct map_session_data &sd, unsigned short x,unsigned short y);
 bool pc_setpos(struct map_session_data &sd,const char *mapname_org,unsigned short x,unsigned short y,int clrtype);
 int pc_setsavepoint(struct map_session_data &sd,const char *mapname,unsigned short x,unsigned short y);

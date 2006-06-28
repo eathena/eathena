@@ -815,7 +815,7 @@ bool atcommand_config_read(const char *cfgName)
 
 AtCommandType atcommand(AtCommandInfo& info, const char* message, struct map_session_data &sd, unsigned char level)
 {
-	if (battle_config.atc_gmonly != 0 && !level) // level = pc_isGM(sd)
+	if (battle_config.atc_gmonly != 0 && !level) // level = sd.isGM()
 		return AtCommand_None;
 	if (!message || !*message)
 	{
@@ -885,7 +885,7 @@ AtCommandType is_atcommand(const int fd, struct map_session_data &sd, const char
 	if (!*str)
 		return AtCommand_None;
 
-	type = atcommand(info, str, sd, gmlvl > 0 ? gmlvl : pc_isGM(sd));
+	type = atcommand(info, str, sd, gmlvl > 0 ? gmlvl : sd.isGM());
 	if (type != AtCommand_None)
 	{
 		char command[128]="";
@@ -980,12 +980,12 @@ bool atcommand_rura(int fd, struct map_session_data &sd, const char* command, co
 		if(ip) *ip=0;
 
 		m = map_mapname2mapid(mapname);
-		if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd))
+		if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM())
 		{
 			clif_displaymessage(fd, msg_table[247]);
 			return false;
 		}
-		if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd))
+		if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM())
 		{
 			clif_displaymessage(fd, msg_table[248]);
 			return false;
@@ -1025,7 +1025,7 @@ bool atcommand_where(int fd, struct map_session_data &sd, const char* command, c
 	if(strncmp(sd.status.name,player_name,24)==0)
 		return false;
 	
-	if( battle_config.hide_GM_session && !(battle_config.who_display_aid > 0 && pc_isGM(sd)>=battle_config.who_display_aid) )
+	if( battle_config.hide_GM_session && !(battle_config.who_display_aid > 0 && sd.isGM()>=battle_config.who_display_aid) )
 	{
 		return false;
 	}
@@ -1063,11 +1063,11 @@ bool atcommand_jumpto(int fd, struct map_session_data &sd, const char* command, 
 		return false;
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL) {
-		if (pl_sd->block_list::m <map_num  && maps[pl_sd->block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+		if (pl_sd->block_list::m <map_num  && maps[pl_sd->block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
 			clif_displaymessage(fd, msg_table[247]);
 			return false;
 		}
-		if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+		if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
 			clif_displaymessage(fd, msg_table[248]);
 			return false;
 		}
@@ -1098,7 +1098,7 @@ bool atcommand_jump(int fd, struct map_session_data &sd, const char* command, co
 
 	if( sd.block_list::m >= map_num || 
 		maps[sd.block_list::m].flag.nowarp || 
-		(maps[sd.block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) )
+		(maps[sd.block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) )
 	{
 		clif_displaymessage(fd, msg_table[248]);
 		return false;
@@ -1140,17 +1140,17 @@ bool atcommand_who(int fd, struct map_session_data &sd, const char* command, con
 	basics::tolower(match_text);
 
 	count = 0;
-	GM_level = pc_isGM(sd);
+	GM_level = sd.isGM();
 	for (i = 0; i < fd_max; ++i)
 	{
 		if( session[i] && (pl_sd = (struct map_session_data *)session[i]->user_session) && pl_sd->state.auth)
 		{
-			pl_GM_level = pc_isGM(*pl_sd);
+			pl_GM_level = pl_sd->isGM();
 			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				strcpytolower(player_name,pl_sd->status.name);
 				if(strstr(player_name, match_text) != NULL)
 				{	// search with no case sensitive
-					if (battle_config.who_display_aid > 0 && pc_isGM(sd) >= battle_config.who_display_aid) {
+					if (battle_config.who_display_aid > 0 && sd.isGM() >= battle_config.who_display_aid) {
 						if (pl_GM_level > 0)
 							snprintf(output, sizeof(output), "(CID:%ld/AID:%ld) Name: %s (GM:%d) | Location: %s %d %d", (unsigned long)pl_sd->status.char_id, (unsigned long)pl_sd->status.account_id, pl_sd->status.name, pl_GM_level, pl_sd->mapname, pl_sd->block_list::x, pl_sd->block_list::y);
 						else
@@ -1201,10 +1201,10 @@ bool atcommand_who2(int fd, struct map_session_data &sd, const char* command, co
 	basics::tolower(match_text);
 
 	count = 0;
-	GM_level = pc_isGM(sd);
+	GM_level = sd.isGM();
 	for (i = 0; i < fd_max; ++i) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
-			pl_GM_level = pc_isGM(*pl_sd);
+			pl_GM_level = pl_sd->isGM();
 			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				strcpytolower(player_name,pl_sd->status.name);
 				if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
@@ -1255,10 +1255,10 @@ bool atcommand_who3(int fd, struct map_session_data &sd, const char* command, co
 	basics::tolower(match_text);
 
 	count = 0;
-	GM_level = pc_isGM(sd);
+	GM_level = sd.isGM();
 	for (i = 0; i < fd_max; ++i) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
-			pl_GM_level = pc_isGM(*pl_sd);
+			pl_GM_level = pl_sd->isGM();
 			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				strcpytolower(player_name,pl_sd->status.name);
 				if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
@@ -1320,10 +1320,10 @@ bool atcommand_whomap(int fd, struct map_session_data &sd, const char* command, 
 	}
 
 	count = 0;
-	GM_level = pc_isGM(sd);
+	GM_level = sd.isGM();
 	for (i = 0; i < fd_max; ++i) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
-			pl_GM_level = pc_isGM(*pl_sd);
+			pl_GM_level = pl_sd->isGM();
 			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				if (pl_sd->block_list::m == map_id) {
 					if (pl_GM_level > 0)
@@ -1375,10 +1375,10 @@ bool atcommand_whomap2(int fd, struct map_session_data &sd, const char* command,
 	}
 
 	count = 0;
-	GM_level = pc_isGM(sd);
+	GM_level = sd.isGM();
 	for (i = 0; i < fd_max; ++i) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
-			pl_GM_level = pc_isGM(*pl_sd);
+			pl_GM_level = pl_sd->isGM();
 			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				if (pl_sd->block_list::m == map_id) {
 					if (pl_GM_level > 0)
@@ -1434,10 +1434,10 @@ bool atcommand_whomap3(int fd, struct map_session_data &sd, const char* command,
 	}
 
 	count = 0;
-	GM_level = pc_isGM(sd);
+	GM_level = sd.isGM();
 	for (i = 0; i < fd_max; ++i) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
-			pl_GM_level = pc_isGM(*pl_sd);
+			pl_GM_level = pl_sd->isGM();
 			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				if (pl_sd->block_list::m == map_id) {
 					g = guild_search(pl_sd->status.guild_id);
@@ -1495,10 +1495,10 @@ bool atcommand_whogm(int fd, struct map_session_data &sd, const char* command, c
 	basics::tolower(match_text);
 
 	count = 0;
-	GM_level = pc_isGM(sd);
+	GM_level = sd.isGM();
 	for (i = 0; i < fd_max; ++i) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
-			pl_GM_level = pc_isGM(*pl_sd);
+			pl_GM_level = pl_sd->isGM();
 			if (pl_GM_level > 0) {
 				if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 					strcpytolower(player_name, pl_sd->status.name);
@@ -1649,11 +1649,11 @@ bool atcommand_load(int fd, struct map_session_data &sd, const char* command, co
 	int m;
 
 	m = map_mapname2mapid(sd.status.save_point.mapname);
-	if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+	if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
 		clif_displaymessage(fd, msg_table[249]);
 		return false;
 	}
-	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
 		clif_displaymessage(fd, msg_table[248]);
 		return false;
 	}
@@ -2022,7 +2022,7 @@ bool atcommand_kill(int fd, struct map_session_data &sd, const char* command, co
 	}
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can kill only lower or same level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can kill only lower or same level
 			pc_damage(*pl_sd, pl_sd->status.hp + 1,NULL);
 			clif_displaymessage(fd, msg_table[14]); // Character killed.
 		} else {
@@ -2425,7 +2425,7 @@ bool atcommand_help(int fd, struct map_session_data &sd, const char* command, co
 
 	if((fp = basics::safefopen(help_txt, "r")) != NULL) {
 		clif_displaymessage(fd, msg_table[26]); // Help commands:
-		gm_level = pc_isGM(sd);
+		gm_level = sd.isGM();
 		while(fgets(buf, sizeof(buf), fp) != NULL) {
 			if (buf[0] == '/' && buf[1] == '/')
 				continue;
@@ -2465,7 +2465,7 @@ bool atcommand_gm(int fd, struct map_session_data &sd, const char* command, cons
 		return false;
 	}
 
-	if (pc_isGM(sd)) { // a GM can not use this function. only a normal player (become gm is not for gm!)
+	if (sd.isGM()) { // a GM can not use this function. only a normal player (become gm is not for gm!)
 		clif_displaymessage(fd, msg_table[50]); // You already have some GM powers.
 		return false;
 	} else
@@ -2857,12 +2857,12 @@ bool atcommand_go(int fd, struct map_session_data &sd, const char* command, cons
 			if (sd.status.memo_point[-town-1].mapname[0])
 			{
 				m = map_mapname2mapid(sd.status.memo_point[-town-1].mapname);
-				if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd))
+				if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM())
 				{
 					clif_displaymessage(fd, msg_table[247]);
 					return false;
 				}
-				else if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd))
+				else if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM())
 				{
 					clif_displaymessage(fd, msg_table[248]);
 					return false;
@@ -2887,11 +2887,11 @@ bool atcommand_go(int fd, struct map_session_data &sd, const char* command, cons
 		else if (town >= 0 && town < (int)(sizeof(data) / sizeof(data[0])))
 		{
 			m = map_mapname2mapid(data[town].map);
-			if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+			if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
 				clif_displaymessage(fd, msg_table[247]);
 				return false;
 			}
-			if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+			if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
 				clif_displaymessage(fd, msg_table[248]);
 				return false;
 			}
@@ -3477,7 +3477,7 @@ bool atcommand_memo(int fd, struct map_session_data &sd, const char* command, co
 		if (position >= MIN_PORTAL_MEMO && position <= MAX_PORTAL_MEMO) {
 			if( sd.block_list::m < map_num && 
 				(maps[sd.block_list::m].flag.nowarpto || maps[sd.block_list::m].flag.nomemo) && 
-				battle_config.any_warp_GM_min_level > pc_isGM(sd) )
+				battle_config.any_warp_GM_min_level > sd.isGM() )
 			{
 				clif_displaymessage(fd, msg_table[253]);
 				return false;
@@ -4015,12 +4015,12 @@ bool atcommand_recall(int fd, struct map_session_data &sd, const char* command, 
 		return false;
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can recall only lower or same level
-			if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+		if (sd.isGM() >= pl_sd->isGM()) { // you can recall only lower or same level
+			if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
 				clif_displaymessage(fd, "You are not authorised to warp somenone to your actual map.");
 				return false;
 			}
-			if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+			if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
 				clif_displaymessage(fd, "You are not authorised to warp this player from its actual map.");
 				return false;
 			}
@@ -4325,7 +4325,7 @@ bool atcommand_doom(int fd, struct map_session_data &sd, const char* command, co
 	clif_specialeffect(sd,450,2);
 	for(i = 0; i < fd_max; ++i) {
 		if(session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth && i != (size_t)fd &&
-		    pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can doom only lower or same gm level
+		    sd.isGM() >= pl_sd->isGM()) { // you can doom only lower or same gm level
 			pc_damage(*pl_sd, pl_sd->status.hp + 1,NULL);
 			clif_displaymessage(pl_sd->fd, msg_table[61]); // The holy messenger has given judgement.
 		}
@@ -4347,7 +4347,7 @@ bool atcommand_doommap(int fd, struct map_session_data &sd, const char* command,
 	clif_specialeffect(sd,450,3);
 	for (i = 0; i < fd_max; ++i) {
 		if(session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth && i != (size_t)fd && sd.block_list::m == pl_sd->block_list::m &&
-		    pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can doom only lower or same gm level
+		    sd.isGM() >= pl_sd->isGM()) { // you can doom only lower or same gm level
 			pc_damage(*pl_sd, pl_sd->status.hp + 1,NULL);
 //			clif_specialeffect(&pl_sd->bl,450,1);
 			clif_displaymessage(pl_sd->fd, msg_table[61]); // The holy messenger has given judgement.
@@ -4431,7 +4431,7 @@ bool atcommand_character_baselevel(int fd, struct map_session_data &sd, const ch
 	}
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can change base level only lower or same gm level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can change base level only lower or same gm level
 
 			if (level > 0) {
 				if (pl_sd->status.base_level == battle_config.maximum_level) {	// check for max level by Valaris
@@ -4504,7 +4504,7 @@ bool atcommand_character_joblevel(int fd, struct map_session_data &sd, const cha
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL) {
 		pl_s_class = pc_calc_base_job(pl_sd->status.class_);
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can change job level only lower or same gm level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can change job level only lower or same gm level
 			if (pl_s_class.job == 0)
 				max_level -= 40;
 			// super novices can go up to 99 [celest]
@@ -4576,7 +4576,7 @@ bool atcommand_kick(int fd, struct map_session_data &sd, const char* command, co
 	}
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) // you can kick only lower or same gm level
+		if (sd.isGM() >= pl_sd->isGM()) // you can kick only lower or same gm level
 			clif_GM_kick(sd, *pl_sd, 1);
 		else {
 			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
@@ -4602,7 +4602,7 @@ bool atcommand_kickall(int fd, struct map_session_data &sd, const char* command,
 
 	for (i = 0; i < fd_max; ++i) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
-		    pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can kick only lower or same gm level
+		    sd.isGM() >= pl_sd->isGM()) { // you can kick only lower or same gm level
 			if (sd.status.account_id != pl_sd->status.account_id)
 				clif_GM_kick(sd, *pl_sd, 0);
 			}
@@ -4981,7 +4981,7 @@ bool atcommand_charskreset(int fd, struct map_session_data &sd, const char* comm
 	}
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can reset skill points only lower or same gm level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can reset skill points only lower or same gm level
 			pc_resetskill(*pl_sd);
 			snprintf(output, sizeof(output), msg_table[206], player_name); // '%s' skill points reseted!
 			clif_displaymessage(fd, output);
@@ -5015,7 +5015,7 @@ bool atcommand_charstreset(int fd, struct map_session_data &sd, const char* comm
 	}
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can reset stats points only lower or same gm level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can reset stats points only lower or same gm level
 			pc_resetstate(*pl_sd);
 			snprintf(output, sizeof(output), msg_table[207], player_name); // '%s' stats points reseted!
 			clif_displaymessage(fd, output);
@@ -5174,7 +5174,7 @@ bool atcommand_recallall(int fd, struct map_session_data &sd, const char* comman
 
 
 
-	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
 		clif_displaymessage(fd, "You are not authorised to warp somenone to your actual map.");
 		return false;
 	}
@@ -5182,8 +5182,8 @@ bool atcommand_recallall(int fd, struct map_session_data &sd, const char* comman
 	count = 0;
 	for (i = 0; i < fd_max; ++i) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth && sd.status.account_id != pl_sd->status.account_id &&
-		    pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can recall only lower or same level
-			if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd))
+		    sd.isGM() >= pl_sd->isGM()) { // you can recall only lower or same level
+			if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM())
 				count++;
 			else
 				pc_setpos(*pl_sd, sd.mapname, sd.block_list::x, sd.block_list::y, 2);
@@ -5218,7 +5218,7 @@ bool atcommand_guildrecall(int fd, struct map_session_data &sd, const char* comm
 		return false;
 	}
 
-	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
 		clif_displaymessage(fd, "You are not authorised to warp somenone to your actual map.");
 		return false;
 	}
@@ -5230,7 +5230,7 @@ bool atcommand_guildrecall(int fd, struct map_session_data &sd, const char* comm
 			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 			    sd.status.account_id != pl_sd->status.account_id &&
 			    pl_sd->status.guild_id == g->guild_id) {
-				if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd))
+				if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM())
 					count++;
 				else
 					pc_setpos(*pl_sd, sd.mapname, sd.block_list::x, sd.block_list::y, 2);
@@ -5269,7 +5269,7 @@ bool atcommand_partyrecall(int fd, struct map_session_data &sd, const char* comm
 		return false;
 	}
 
-	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
 		clif_displaymessage(fd, "You are not authorised to warp somenone to your actual map.");
 		return false;
 	}
@@ -5281,7 +5281,7 @@ bool atcommand_partyrecall(int fd, struct map_session_data &sd, const char* comm
 			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 			    sd.status.account_id != pl_sd->status.account_id &&
 			    pl_sd->status.party_id == p->party_id) {
-				if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd))
+				if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM())
 					count++;
 				else
 					pc_setpos(*pl_sd, sd.mapname, sd.block_list::x, sd.block_list::y, 2);
@@ -5855,7 +5855,7 @@ bool atcommand_nuke(int fd, struct map_session_data &sd, const char* command, co
 	}
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can kill only lower or same GM level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can kill only lower or same GM level
 			skill_castend_damage_id(pl_sd, pl_sd, NPC_SELFDESTRUCTION, 99, gettick(), 0);
 			clif_displaymessage(fd, msg_table[109]); // Player has been nuked!
 		} else {
@@ -6116,7 +6116,7 @@ bool atcommand_chardelitem(int fd, struct map_session_data &sd, const char* comm
 
 	if (item_id > 500) {
 		if((pl_sd = map_nick2sd(player_name)) != NULL) {
-			if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can kill only lower or same level
+			if (sd.isGM() >= pl_sd->isGM()) { // you can kill only lower or same level
 				item_position = pc_search_inventory(*pl_sd, item_id);
 				if (item_position >= 0) {
 					count = 0;
@@ -6170,7 +6170,7 @@ bool atcommand_jail(int fd, struct map_session_data &sd, const char* command, co
 	}
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can jail only lower or same GM
+		if (sd.isGM() >= pl_sd->isGM()) { // you can jail only lower or same GM
 			switch(rand() % 2) {
 			case 0:
 				x = 24;
@@ -6217,7 +6217,7 @@ bool atcommand_unjail(int fd, struct map_session_data &sd, const char* command, 
 	}
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can jail only lower or same GM
+		if (sd.isGM() >= pl_sd->isGM()) { // you can jail only lower or same GM
 			if (pl_sd->block_list::m != map_mapname2mapid("sec_pri.gat")) {
 				clif_displaymessage(fd, msg_table[119]); // This player is not in jails.
 				return false;
@@ -6264,7 +6264,7 @@ bool atcommand_disguise(int fd, struct map_session_data &sd, const char* command
 		(mob_id >= 700 && mob_id <= 858) || // NPC
 	    (mob_id > 1000 && mob_id < 1582)) { // monsters
 
-		pc_stop_walking(sd,0);
+		sd.stop_walking(0);
 		clif_clearchar(sd, 0);
 		sd.disguise_id = mob_id;
 		clif_changeoption(sd);
@@ -6303,20 +6303,19 @@ bool atcommand_disguiseall(int fd, struct map_session_data &sd, const char* comm
 	    (mob_id >= 813 && mob_id <= 834) || // NPC
 	    (mob_id > 1000 && mob_id < 1582)) { // monsters
 		for(i=0; i < fd_max; ++i) {
-			if(session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
-				pc_stop_walking(*pl_sd,0);
+			if(session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth)
+			{
+				pl_sd->stop_walking(0);
 				clif_clearchar(*pl_sd, 0);
 				pl_sd->disguise_id = mob_id;
 				clif_changeoption(*pl_sd);
 				clif_spawnpc(*pl_sd);
-				}
 			}
+		}
 		clif_displaymessage(fd, msg_table[122]); // Disguise applied.
-	} else {
-		return false;
+		return true;
 	}
-
-	return true;
+	return false;
 }
 
 /*==========================================
@@ -6328,7 +6327,7 @@ bool atcommand_undisguise(int fd, struct map_session_data &sd, const char* comma
 	
 	if(sd.disguise_id)
 	{
-		pc_stop_walking(sd,0);
+		sd.stop_walking(0);
 		clif_clearchar(sd, 0);
 		sd.disguise_id = 0;
 		clif_changeoption(sd);
@@ -6353,7 +6352,7 @@ bool atcommand_undisguiseall(int fd, struct map_session_data &sd, const char* co
 	{
 		if(session[i] && (pl_sd = (struct map_session_data *)session[i]->user_session) && pl_sd->state.auth && pl_sd->disguise_id)
 		{
-			pc_stop_walking(*pl_sd,0);
+			pl_sd->stop_walking(0);
 			clif_clearchar(*pl_sd, 0);
 			pl_sd->disguise_id = 0;
 			clif_changeoption(*pl_sd);
@@ -6428,14 +6427,14 @@ bool atcommand_chardisguise(int fd, struct map_session_data &sd, const char* com
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL)
 	{
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd))
+		if (sd.isGM() >= pl_sd->isGM())
 		{	// you can disguise only lower or same level
 			if ((mob_id >=  46 && mob_id <= 125) || (mob_id >= 700 && mob_id <= 718) || // NPC
 			    (mob_id >= 721 && mob_id <= 755) || (mob_id >= 757 && mob_id <= 811) || // NPC
 			    (mob_id >= 813 && mob_id <= 834) || // NPC
 			    (mob_id > 1000 && mob_id < 1521))
 			{	// monsters
-				pc_stop_walking(*pl_sd,0);
+				pl_sd->stop_walking(0);
 				clif_clearchar(*pl_sd, 0);
 				pl_sd->disguise_id = mob_id;
 				clif_changeoption(*pl_sd);
@@ -6475,11 +6474,11 @@ bool atcommand_charundisguise(int fd, struct map_session_data &sd, const char* c
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL)
 	{
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd))
+		if (sd.isGM() >= pl_sd->isGM())
 		{ // you can undisguise only lower or same level
 			if(pl_sd->disguise_id)
 			{
-				pc_stop_walking(*pl_sd,0);
+				pl_sd->stop_walking(0);
 				clif_clearchar(*pl_sd, 0);
 				pl_sd->disguise_id = 0;
 				clif_changeoption(*pl_sd);
@@ -6593,7 +6592,7 @@ bool atcommand_character_storage_list(int fd, struct map_session_data &sd, const
 	}
 
 	if((pl_sd = map_nick2sd(character)) != NULL) {
-		if(pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can look items only lower or same level
+		if(sd.isGM() >= pl_sd->isGM()) { // you can look items only lower or same level
 			if((stor = account2storage2(pl_sd->status.account_id)) != NULL) {
 				counter = 0;
 				count = 0;
@@ -6674,7 +6673,7 @@ bool atcommand_character_cart_list(int fd, struct map_session_data &sd, const ch
 	}
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can look items only lower or same level
+		if (sd.isGM() >= pl_sd->isGM()) { // you can look items only lower or same level
 			counter = 0;
 			count = 0;
 			for (i = 0; i < MAX_CART; ++i) {
@@ -7599,29 +7598,7 @@ bool atcommand_sound(int fd, struct map_session_data &sd, const char *command, c
  * Mob search
  *------------------------------------------
  */
-/*
-int atmobsearch_sub(struct block_list &bl,va_list &ap)
-{
-	int mob_id,fd;
-	static int number=0;
-	struct mob_data &md = (struct mob_data &)bl;
-	char output[128];
 
-	if(!ap){
-		number=0;
-		return 0;
-	}
-	mob_id = va_arg(ap,int);
-	fd = va_arg(ap,int);
-
-	if(bl.type==BL_MOB && fd && (mob_id==-1 || (md.class_==mob_id)))
-	{
-		snprintf(output, sizeof(output), "%2d[%3d:%3d] %s",++number,bl.x, bl.y,md.name);
-		clif_displaymessage(fd, output);
-	}
-	return 0;
-}
-*/
 class CAtMobSearch : public CMapProcessor
 {
 	int mob_id;
@@ -8105,7 +8082,7 @@ bool atcommand_mute(int fd, struct map_session_data &sd, const char* command, co
 		clif_displaymessage(fd, msg_table[3]); // Character not found.
 		return false;
 	}
-	else if (pc_isGM(*pl_sd) > pc_isGM(sd))
+	else if (pl_sd->isGM() > sd.isGM())
 	{
 		clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
 		return false;
@@ -8291,11 +8268,11 @@ bool atcommand_jumptoid(int fd, struct map_session_data &sd, const char* command
 
 	if((session_id=charid2sessionid(cid))!=0){
       if ((pl_sd = (struct map_session_data *) session[session_id]->user_session) != NULL) {
-         if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+         if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
             clif_displaymessage(fd, msg_table[247]);
             return false;
          }
-         if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+         if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
             clif_displaymessage(fd, msg_table[248]);
             return false;
          }
@@ -8335,11 +8312,11 @@ bool atcommand_jumptoid2(int fd, struct map_session_data &sd, const char* comman
 
 	if((session_id=accountid2sessionid(aid))!=0) {
       if ((pl_sd = (struct map_session_data *) session[session_id]->user_session) != NULL) {
-         if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+         if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
             clif_displaymessage(fd, msg_table[247]);
             return false;
          }
-         if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+         if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
             clif_displaymessage(fd, msg_table[248]);
             return false;
          }
@@ -8379,12 +8356,12 @@ bool atcommand_recallid(int fd, struct map_session_data &sd, const char* command
 
 	if((session_id=charid2sessionid(cid))!=0){
       if ((pl_sd = (struct map_session_data *) session[session_id]->user_session) != NULL) {
-         if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can recall only lower or same level
-            if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+         if (sd.isGM() >= pl_sd->isGM()) { // you can recall only lower or same level
+            if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
                clif_displaymessage(fd, msg_table[247]);
                return false;
             }
-            if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+            if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
                clif_displaymessage(fd, msg_table[248]);
                return false;
             }
@@ -8428,12 +8405,12 @@ bool atcommand_recallid2(int fd, struct map_session_data &sd, const char* comman
 
 	if((session_id=accountid2sessionid(aid))!=0) {
       if ((pl_sd = (struct map_session_data *) session[session_id]->user_session) != NULL) {
-         if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can recall only lower or same level
-            if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+         if (sd.isGM() >= pl_sd->isGM()) { // you can recall only lower or same level
+            if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
 				clif_displaymessage(fd, msg_table[247]);
 				return false;
             }
-            if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+            if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
                clif_displaymessage(fd, msg_table[248]);
                return false;
             }
@@ -8475,7 +8452,7 @@ bool atcommand_kickid(int fd, struct map_session_data &sd, const char* command, 
 
 	if((session_id=charid2sessionid(cid))!=0){
       if ((pl_sd = (struct map_session_data *) session[session_id]->user_session) != NULL) {
-			if(pc_isGM(sd) >= pc_isGM(*pl_sd)){ // you can kick only lower or same gm level
+			if(sd.isGM() >= pl_sd->isGM()){ // you can kick only lower or same gm level
             clif_GM_kick(sd, *pl_sd, 1);
 			} else {
             clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
@@ -8512,7 +8489,7 @@ bool atcommand_kickid2(int fd, struct map_session_data &sd, const char* command,
 
 	if((session_id=accountid2sessionid(aid))!=0) {
       if ((pl_sd = (struct map_session_data *) session[session_id]->user_session) != NULL) {
-			if(pc_isGM(sd) >= pc_isGM(*pl_sd)){ // you can kick only lower or same gm level
+			if(sd.isGM() >= pl_sd->isGM()){ // you can kick only lower or same gm level
             clif_GM_kick(sd, *pl_sd, 1);
 			} else {
             clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
@@ -8626,7 +8603,7 @@ bool atcommand_killid(int fd, struct map_session_data &sd, const char* command, 
    cid=atoi(message);
 	if((session_id=charid2sessionid(cid))!=0){
       if ((pl_sd = (struct map_session_data *) session[session_id]->user_session) != NULL) {
-         if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can kill only lower or same level
+         if (sd.isGM() >= pl_sd->isGM()) { // you can kill only lower or same level
             pc_damage(*pl_sd, pl_sd->status.hp + 1,NULL);
             clif_displaymessage(fd, msg_table[14]); // Character killed.
          } else {
@@ -8665,7 +8642,7 @@ bool atcommand_killid2(int fd, struct map_session_data &sd, const char* command,
 
 	if((session_id=accountid2sessionid(aid))!=0){
       if ((pl_sd = (struct map_session_data *) session[session_id]->user_session) != NULL) {
-         if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can kill only lower or same level
+         if (sd.isGM() >= pl_sd->isGM()) { // you can kill only lower or same level
             pc_damage(*pl_sd, pl_sd->status.hp + 1,NULL);
             clif_displaymessage(fd, msg_table[14]); // Character killed.
          } else {
@@ -9061,7 +9038,7 @@ public:
 		if(bl.type==BL_PC)
 		{
 			struct map_session_data &sd = (struct map_session_data &)bl;
-			if( id != bl.id && !pc_isGM(sd) )
+			if( id != bl.id && !sd.isGM() )
 			{
 				sd.status.manner -= time;
 				if(sd.status.manner < 0)
@@ -9098,7 +9075,7 @@ bool atcommand_mutearea(int fd, struct map_session_data &sd, const char* command
 int atcommand_shuffle_sub(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data &sd = (struct map_session_data &) bl;
-	if( bl.type==BL_PC && !pc_isGM(sd))
+	if( bl.type==BL_PC && !sd.isGM())
 		pc_setpos(sd, sd.mapname, rand() % 399 + 1, rand() % 399 + 1, 3);
 	return 0;
 }
@@ -9111,7 +9088,7 @@ public:
 	virtual int process(struct block_list& bl) const
 	{
 		struct map_session_data &sd = (struct map_session_data &) bl;
-		if( bl.type==BL_PC && !pc_isGM(sd))
+		if( bl.type==BL_PC && !sd.isGM())
 			pc_setpos(sd, sd.mapname, rand() % 399 + 1, rand() % 399 + 1, 3);
 		return 0;
 	}

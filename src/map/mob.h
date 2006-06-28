@@ -26,16 +26,34 @@ struct mob_db
 	char name[24];
 	char jname[24];
 	short lv;
-	int max_hp,max_sp;
-	int base_exp,job_exp;
-	int atk1,atk2;
-	int def,mdef;
-	int str,agi,vit,int_,dex,luk;
-	int range,range2,range3;
-	int size,race,element,mode;
+	int max_hp;
+	int max_sp;
+	int base_exp;
+	int job_exp;
+	int atk1;
+	int atk2;
+	int def;
+	int mdef;
+	int str;
+	int agi;
+	int vit;
+	int int_;
+	int dex;
+	int luk;
+	int range;
+	int range2;
+	int range3;
+	int size;
+	int race;
+	int element;
+	int mode;
 	short race2;	// celest
-	int speed,adelay,amotion,dmotion;
-	int mexp,mexpper;
+	int speed;
+	int adelay;
+	int amotion;
+	int dmotion;
+	int mexp;
+	int mexpper;
 	struct 
 	{
 		unsigned short nameid;
@@ -46,9 +64,18 @@ struct mob_db
 		unsigned short nameid;
 		unsigned short p;
 	} mvpitem[3];
-	int view_class,sex;
-	short hair,hair_color,weapon,shield,head_top,head_mid,head_buttom,option,clothes_color; // [Valaris]
-	int equip; // [Valaris]
+	int view_class;
+	int sex;
+	unsigned short hair;
+	unsigned short hair_color;
+	unsigned short weapon;
+	unsigned short shield;
+	unsigned short head_top;
+	unsigned short head_mid;
+	unsigned short head_buttom;
+	unsigned short option;
+	unsigned short clothes_color;
+	int equip;
 	int summonper[MAX_RANDOMMONSTER];
 	int maxskill;
 	struct mob_skill skill[MAX_MOBSKILL];
@@ -111,32 +138,15 @@ int mob_once_spawn_area(struct map_session_data *sd,const char *mapname,
 int mob_spawn_guardian(struct map_session_data *sd,const char *mapname,	// Spawning Guardians [Valaris]
 	int x,int y,const char *mobname,int class_,int amount,const char *event,int guardian);	// Spawning Guardians [Valaris]
 
-int mob_walktoxy(struct mob_data &md,int x,int y,int easy);
-int mob_randomwalk(struct mob_data &md,unsigned long tick);
-int mob_can_move(struct mob_data &md);
 
 int mob_target(struct mob_data &md,struct block_list *bl,int dist);
 int mob_unlocktarget(struct mob_data &md,unsigned long tick);
-int mob_stop_walking(struct mob_data &md,int type);
 int mob_stopattack(struct mob_data &md);
 int mob_spawn(uint32 id);
 int mob_setdelayspawn(uint32 id);
 int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src);
-int mob_changestate(struct mob_data &md,int state,int type);
 int mob_heal(struct mob_data &md,int heal);
-int mob_exclusion_add(struct mob_data &md,int type,uint32 id);
-int mob_exclusion_check(struct mob_data &md,struct map_session_data *sd);
-int mob_get_viewclass(int);
-int mob_get_sex(int);
-short mob_get_hair(int);
-short mob_get_hair_color(int);
-short mob_get_weapon(int);
-short mob_get_shield(int);
-short mob_get_head_top(int);
-short mob_get_head_mid(int);
-short mob_get_head_buttom(int);
-short mob_get_clothes_color(int);	//player mob dye [Valaris]
-int mob_get_equip(int); // mob equip [Valaris]
+
 int do_init_mob(void);
 
 void mob_unload(struct mob_data &md);

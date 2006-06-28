@@ -629,7 +629,6 @@ int chrif_authreq(struct map_session_data &sd)
  */
 int chrif_charselectreq(struct map_session_data &sd)
 {
-	size_t i; 
 	basics::ipaddress s_ip=(uint32)INADDR_ANY;
 
 	if( !sd.block_list::id || !sd.login_id1 )
@@ -637,12 +636,15 @@ int chrif_charselectreq(struct map_session_data &sd)
 	if( !session_isActive(char_fd) || !chrif_isconnect() )
 		return -1;
 
-	for(i = 0; i < fd_max; ++i)
-		if (session[i] && session[i]->user_session == &sd)
-		{
-			s_ip = session[i]->client_ip;
-			break;
-		}
+//	for(i = 0; i < fd_max; ++i)
+//		if (session[i] && session[i]->user_session == &sd)
+//		{
+//			s_ip = session[i]->client_ip;
+//			break;
+//		}
+	if( session_isActive(sd.fd) && session[sd.fd] && session[sd.fd]->user_session == &sd)
+		s_ip = session[sd.fd]->client_ip;
+
 
 	WFIFOW(char_fd, 0) = 0x2b02;
 	WFIFOL(char_fd, 2) = sd.block_list::id;
@@ -944,7 +946,7 @@ int chrif_changedsex(int fd)
 			// to avoid any problem with equipment and invalid sex, equipment is unequiped.
 			for (i = 0; i < MAX_INVENTORY; ++i) {
 				if (sd->status.inventory[i].nameid && sd->status.inventory[i].equip)
-					pc_unequipitem(*((struct map_session_data*)sd), i, 2);
+					pc_unequipitem(*sd->get_sd(), i, 2);
 			}
 			// reset skill of some job
 			if (s_class.job == 19 || s_class.job == 4020 || s_class.job == 4042 ||
@@ -1676,12 +1678,12 @@ int chrif_parse_mail_delete(int fd)
 
 bool chrif_mail_send(struct map_session_data &sd, const char *target, const char *header, const char *body)
 {
-	if(pc_isGM(sd) < 80 && DIFF_TICK(gettick(), sd.mail_tick) < 10*60*1000)
+	if(sd.isGM() < 80 && DIFF_TICK(gettick(), sd.mail_tick) < 10*60*1000)
 	{
 		//clif_displaymessage(sd.fd,"You must wait 10 minutes before sending another message");
 		clif_disp_onlyself(sd,msg_txt(522));
 	}
-	else if( (pc_isGM(sd) < 80 && 0==strcmp(target,"*")) || (0==strcmp(target,sd.status.name)) )
+	else if( (sd.isGM() < 80 && 0==strcmp(target,"*")) || (0==strcmp(target,sd.status.name)) )
 	{
 		//clif_displaymessage(sd.fd, "Access Denied.");
 		clif_disp_onlyself(sd, msg_txt(523));
@@ -1939,7 +1941,7 @@ int send_users_tochar(int tid, unsigned long tick, int id, basics::numptr data) 
 	WFIFOW(char_fd,0) = 0x2aff;
 	for (i = 0; i < fd_max; ++i) {
 		if (session[i] && (sd = (struct map_session_data*)session[i]->user_session) && sd->state.auth &&
-		    !((battle_config.hide_GM_session || (sd->status.option & OPTION_HIDE)) && pc_isGM(*sd))) {
+		    !((battle_config.hide_GM_session || (sd->status.option & OPTION_HIDE)) && sd->isGM())) {
 			WFIFOL(char_fd,6+4*users) = sd->status.char_id;
 			users++;
 		}

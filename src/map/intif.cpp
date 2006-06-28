@@ -693,7 +693,7 @@ int mapif_parse_WisToGM(int fd)
 	// information is sended to all online GM
 	for (i = 0; i < fd_max; ++i)
 		if(session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth)
-			if(pc_isGM(*pl_sd) >= min_gm_level)
+			if(pl_sd->isGM() >= min_gm_level)
 				clif_wis_message(i, Wisp_name, message, strlen(message) + 1);
 
         if(message != mbuf)

@@ -2708,6 +2708,8 @@ bool CGuildDB_txt::string2guild(const char *str, CGuild &g)
 	char tmp_str2[4096];
 	char *pstr;
 
+	tmp_str[2][0]=0;
+	tmp_str[3][0]=0;
 	// 基本データ
 	if( 8 > sscanf(str,
 		"%d\t%[^\t]\t%[^\t]\t%d,%d,%d,%d,%d\t%[^\t]\t%[^\t]\t",
@@ -2729,6 +2731,10 @@ bool CGuildDB_txt::string2guild(const char *str, CGuild &g)
 	safestrcpy(g.master, tmp_str[1], sizeof(g.master));
 	safestrcpy(g.mes1, tmp_str[2], sizeof(g.mes1));
 	safestrcpy(g.mes2, tmp_str[3], sizeof(g.mes2));
+
+	// remove the default chars
+	for(pstr = g.mes1+strlen(g.mes1)-1; pstr>=g.mes1 && *pstr=='#'; --pstr) *pstr=0;
+	for(pstr = g.mes2+strlen(g.mes2)-1; pstr>=g.mes2 && *pstr=='#'; --pstr) *pstr=0;
 
 	for(j=0; j<6 && str!=NULL; ++j)	// 位置スキップ
 		str = strchr(str + 1, '\t');
@@ -2771,6 +2777,8 @@ bool CGuildDB_txt::string2guild(const char *str, CGuild &g)
 		g.position[i].mode		= tmp_int[0];
 		g.position[i].exp_mode	= tmp_int[1];
 		safestrcpy(g.position[i].name, tmp_str[0], sizeof(g.position[i].name));
+
+		for(pstr = g.position[i].name+strlen(g.position[i].name)-1; pstr>=g.position[i].name && *pstr=='#'; --pstr) *pstr=0;
 
 		for(j=0; j<2 && str!=NULL; ++j)	// 位置スキップ
 			str = strchr(str+1, '\t');

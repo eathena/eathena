@@ -5,6 +5,7 @@
 #include "mmo.h"
 #include "socket.h"
 #include "script.h"
+#include "coordinate.h"
 #include "path.h"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -151,9 +152,28 @@
 ///////////////////////////////////////////////////////////////////////////////
 #define OPTION_HIDE 0x40
 
+
+
+
+enum { MS_IDLE,MS_WALK,MS_ATTACK,MS_DEAD,MS_DELAY };
+
+enum { NONE_ATTACKABLE,ATTACKABLE };
+
+enum { ATK_LUCKY=1,ATK_FLEE,ATK_DEF};	// 囲まれペナルティ計算用
+
+// 装備コード
+enum {
+	EQP_WEAPON		= 1,		// 右手
+	EQP_ARMOR		= 2,		// 体
+	EQP_SHIELD		= 4,		// 左手
+	EQP_HELM		= 8,		// 頭上段
+};
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
-enum { BL_NUL, BL_PC, BL_NPC, BL_MOB, BL_ITEM, BL_CHAT, BL_SKILL, BL_PET };	// 0..7 -> 3bit
-enum { WARP, SHOP, SCRIPT, MONS };											// 0..3 -> 2bit
+enum object_t { BL_NUL, BL_PC, BL_NPC, BL_MOB, BL_ITEM, BL_CHAT, BL_SKILL, BL_PET };	// 0..7 -> 3bit
+enum object_sub_t { WARP, SHOP, SCRIPT, MONS };											// 0..3 -> 2bit
 
 
 
@@ -232,6 +252,7 @@ struct skill_unit_group;
 struct item_data;
 struct pet_db;
 
+struct movable;
 struct map_session_data;
 struct npc_data;
 struct mob_data;
@@ -239,66 +260,6 @@ struct pet_data;
 class flooritem_data;
 class chat_data;
 struct skill_unit;
-
-enum dir_t { DIR_N=0, DIR_NE, DIR_E, DIR_SE, DIR_S, DIR_SW, DIR_W, DIR_NW };
-
-
-/// calculates distance between two coordinates
-int distance(int x0,int y0,int x1,int y1);
-/// calculates direction from first to second coordinate
-dir_t direction(int x0,int y0,int x1,int y1);
-// その他
-bool is_same_direction(dir_t s_dir, dir_t t_dir);
-
-// maybe make this also classes with compare and calculation operators
-// but not urgend
-
-
-///////////////////////////////////////////////////////////////////////////////
-/// 2 dimentional coordinate.
-struct coordinate
-{
-	unsigned short x;
-	unsigned short y;
-
-	coordinate(unsigned short xi=0, unsigned short yi=0)
-		: x(xi), y(yi)
-	{}
-	~coordinate()
-	{}
-
-	/// get the distance from this coordinate to the x/y
-	int get_distance(int x,int y) const
-	{
-		return distance(this->x,this->y, x, y);
-	}
-	/// get the distance from this coordinate to another
-	int get_distance(const coordinate& c) const
-	{
-		return distance(this->x,this->y, c.x, c.y);
-	}
-	/// get the direction from this coordinate to the x/y
-	dir_t get_direction(int x,int y) const
-	{
-		return direction(this->x,this->y, x, y);
-	}
-	/// get the direction from this coordinate to another
-	dir_t get_direction(const coordinate& c) const
-	{
-		return direction(this->x,this->y, c.x, c.y);
-	}
-
-	/// coordinate distance
-	friend inline int distance(const coordinate &c1, const coordinate &c2)
-	{
-		return distance(c1.x,c1.y,c2.x,c2.y);
-	}
-	/// coordinate direction
-	friend inline dir_t direction(const coordinate &c1, const coordinate &c2)
-	{
-		return direction(c1.x,c1.y,c2.x,c2.y);
-	}
-};
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -352,20 +313,12 @@ struct block_list : public coordinate
 	static int map_freeblock_lock(void);
 	static int map_freeblock_unlock(void);
 
-
-	/// get randomized move coordinates -> move to movable
-	bool random_position(unsigned short &x, unsigned short &y) const; // [Skotlex]
-	bool random_position(coordinate &pos) const;
-
-
 	/// return body direction.
 	/// default function, needs to be overloaded at specific implementations
 	virtual dir_t get_dir()		{ return DIR_N; }
 	/// return head direction.
 	/// default function, needs to be overloaded at specific implementations
 	virtual dir_t get_headdir()	{ return this->get_dir(); }
-
-
 
 
 
@@ -378,103 +331,114 @@ struct block_list : public coordinate
 	// so these might be not necessary when finished, 
 	// also the type and subtype members will be obsolete
 	// since objects can identify themselfs [Shinomori]
-	struct map_session_data* get_sd()
+
+	// ok some more explanation on this; 
+	// simple example in virtual overloads:
+	/*
+	// predeclaration
+	class derive1;
+	class derive2;
+
+	// base class
+	class base		
+	{
+	public:
+		// virtual conversion operators to derived class
+		// initialized with returning NULL since base class 
+		// is neither of type derived1 nor of derived2
+		virtual operator derive1*()	{return NULL;}
+		virtual operator derive2*()	{return NULL;}
+	};
+
+
+	class derive1 : public base
+	{
+	public:
+		// virtual conversion operator
+		// only the one that gets overloaded in this class
+		// actually only returns a pointer to the class itself
+		virtual operator derive1*()	{return this;}
+	};
+
+	class derive2 : public base
+	{
+	public:
+		// virtual conversion operator
+		// only the one that gets overloaded in this class
+		// actually only returns a pointer to the class itself
+		virtual operator derive2*()	{return this;}
+	};
+
+	{
+		// instanciate the two objects
+		derive1 d1;
+		derive2 d2;
+
+		// get the pointers
+		base *b1 = &d1;
+		base *b2 = &d2;
+
+		// from here on we can work with pointers to base objects
+		// but the object can identify itself, in this case here
+		// by using the conversion operator, 
+		// any other function wuld be also possible
+		
+		derive1 *pd11 = *b1;	// since b1 points to a d1 object, it used the d1 conversion
+		derive1 *pd12 = *b2;	// this conersion was not overloaded and will return NULL
+								// meaning that b2 does not point to a derived1 object
+
+		derive2 *pd21 = *b1;	// vise versa
+		derive2 *pd22 = *b2;
+	}
+
+	*/
+
+
+	struct map_session_data* get_sd() const
 	{
 		if(type != BL_PC)
 			return NULL;
 		else
 			return (struct map_session_data*)this;
 	}
-
-	struct pet_data* get_pd()
+	struct pet_data* get_pd() const
 	{
 		if(type != BL_PET)
 			return NULL;
 		else
 			return (struct pet_data*)this;
 	}
-
-	struct mob_data* get_md()
+	struct mob_data* get_md() const
 	{
 		if(type != BL_MOB)
 			return NULL;
 		else
 			return (struct mob_data*)this;
 	}
+	struct npc_data* get_nd() const
+	{
+		if(type != BL_NPC)
+			return NULL;
+		else
+			return (struct npc_data*)this;
+	}
 
+	// might later replace the type compare
+	// can be overloaded and could also used with masks instead pure enums
+//	bool is_type(int t)
+//	{
+//		return (t==this->type);
+//	}
+
+	virtual movable* get_movable()	{ return NULL; }
 };
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-/// moving object on a map
-struct movable : public block_list
-{
-	struct walkpath_data walkpath;
-	unsigned long canmove_tick;
-	int walktimer;
-
-	movable() : 
-		canmove_tick(0),
-		walktimer(-1)
-	{}
-
-	/// check for reachability, but don't build a path
-	bool can_reach(unsigned short x, unsigned short y) const
-	{
-		if( this->block_list::x==x && this->block_list::y==y )
-			return true;
-
-		return walkpath_data::is_possible(this->block_list::m,this->block_list::x,this->block_list::y, x, y, 0);
-	}
-	/// check for reachability, but don't build a path
-	bool can_reach(const coordinate& c) const
-	{
-		return this->can_reach(c.x, c.y);
-	}
-
-	/// check for reachability with limiting range, but don't build a path
-	bool can_reach(const struct block_list &bl, size_t range=0) const
-	{
-
-		if( this->block_list::m == bl.m &&
-			(range==0 || distance(*this,bl) <= (int)range) )
-		{
-
-			if( this->block_list::x==bl.x && 
-				this->block_list::y==bl.y )
-				return true;
-
-			// Obstacle judging
-			if( walkpath_data::is_possible(this->block_list::m, this->block_list::x, this->block_list::y, bl.x, bl.y, 0) )
-				return true;
-
-		//////////////
-		// possibly unnecessary since when the itself block is not reachable
-		// also the surrounding is not reachable
-			
-			// check the surrounding
-			const static char dirx[8] = { 0, 1, 1, 1, 0,-1,-1,-1};
-			const static char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
-
-			// get the start direction
-			const dir_t d = bl.get_direction(*this);
-
-			int i;
-			for(i=0; i<8; ++i)
-			{	// check all eight surrounding cells by going clockwise beginning with the start direction
-				if( walkpath_data::is_possible(this->block_list::m, this->block_list::x, this->block_list::y, bl.x+dirx[(d+i)&0x7], bl.y+diry[(d+i)&0x7], 0) )
-					return true;
-			}
-		//////////////
-		}
-		return false;
-	}
-
-};
 
 
-
+// include it here until the classes got seperated
+#include "movable.h"
 
 
 
@@ -773,13 +737,11 @@ struct map_session_data : public movable, public session_data
 	} ignore[MAX_IGNORE_LIST];
 
 	unsigned short attacktarget_lv;
-	unsigned long attackabletime;
 
 	uint32 attacktarget;	
 	uint32 followtarget;
-	int attacktimer;
 	int followtimer; // [MouseJstr]
-	int skilltimer;
+
 
 	time_t emotionlasttime; // to limit flood with emotion packets
 
@@ -1069,6 +1031,36 @@ struct map_session_data : public movable, public session_data
 	{
 		this->init(fdi, packver, account_id, char_id, login_id1, client_tick, sex);
 	}
+
+	/// returns GM level
+	unsigned char isGM() const;
+
+	/// internal walk subfunction
+	virtual int walktoxy_sub_old();
+	/// walks to a coordinate
+	virtual int walktoxy_old(unsigned short x,unsigned short y,bool easy=false);
+	/// do a walk step
+	virtual int walkstep_old(unsigned long tick);
+	/// interrupts walking
+	virtual int stop_walking_old(int type=1);
+	/// walk to a random target
+	virtual int randomwalk_old(unsigned long tick)	{ return 0; }
+	/// change object state
+	virtual int changestate_old(int state,int type);
+	/// timer callback
+	virtual int walktimer_func_old(int tid, unsigned long tick, basics::numptr data);
+
+
+	/// do object depending stuff for ending the walk.
+	virtual void do_stop_walking()	{}
+	/// do object depending stuff for the walk step.
+	virtual void do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
+	/// do object depending stuff for the walkto
+	virtual void do_walkto();
+	/// do object depending stuff for changestate
+	virtual void do_changestate(int state,int type);
+
+
 private:
 	// no copy/assign since of the bl reference
 	map_session_data(const map_session_data& m);
@@ -1107,11 +1099,9 @@ protected:
 		this->canmove_tick		= tick;
 		this->canlog_tick		= tick;
 		this->canregen_tick = tick;
-		this->attackabletime = tick;
+		this->attackable_tick = tick;
 
 		// timers
-		this->walktimer = -1;
-		this->attacktimer = -1;
 		this->followtimer = -1;
 		this->skilltimer = -1;
 		this->invincible_timer = -1;
@@ -1232,6 +1222,35 @@ struct npc_data : public movable
 	// can have an empty constructor here since it is cleared at allocation
 	npc_data()
 	{} 
+
+	/// internal walk subfunction
+	virtual int walktoxy_sub_old();
+	/// walks to a coordinate
+	virtual int walktoxy_old(unsigned short x,unsigned short y,bool easy=false);
+	/// do a walk step
+	virtual int walkstep_old(unsigned long tick);
+	/// interrupts walking
+	virtual int stop_walking_old(int type=1);
+	/// walk to a random target
+	virtual int randomwalk_old(unsigned long tick)	{ return 0; }
+	/// change object state
+	virtual int changestate_old(int state,int type);
+	/// timer callback
+	virtual int walktimer_func_old(int tid, unsigned long tick, basics::numptr data);
+
+
+	/// do object depending stuff for ending the walk.
+	virtual void do_stop_walking();
+	/// do object depending stuff for the walk step.
+	virtual void do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
+	/// do object depending stuff for the walkto
+	virtual void do_walkto() {}
+	/// do object depending stuff for changestate
+	virtual void do_changestate(int state,int type);
+
+	/// checks for walking state
+	virtual bool is_walking() const		{ return this->movable::is_walking()&&(state.npcstate==MS_WALK); }
+
 
 private:
 	npc_data(const npc_data&);					// forbidden
@@ -1424,7 +1443,6 @@ struct mob_data : public movable
 		{}
 	} state;
 
-	int timer;
 	long hp;
 	long max_hp;
 
@@ -1439,7 +1457,6 @@ struct mob_data : public movable
 	uint32 attacked_id;
 
 	unsigned long next_walktime;
-	unsigned long attackabletime;
 	unsigned long last_deadtime;
 	unsigned long last_spawntime;
 	unsigned long last_thinktime;
@@ -1478,9 +1495,6 @@ struct mob_data : public movable
 	int def_ele;
 	uint32 master_id;
 	int master_dist;
-	uint32 exclusion_src;
-	uint32 exclusion_party;
-	uint32 exclusion_guild;
 	struct skill_timerskill skilltimerskill[MAX_MOBSKILLTIMERSKILL];
 	struct skill_unit_group skillunit[MAX_MOBSKILLUNITGROUP];
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET];
@@ -1490,59 +1504,65 @@ struct mob_data : public movable
 	unsigned short recallcount;
 
 
+	/// constructor.
+	/// prepares the minimum data set for MOB spawning
+	mob_data(const char *mobname, int class_);
 
-	mob_data() :
-		base_class(0),
-		class_(0),
-		mode(0),
-		speed(0),
-		dir(0),
-		cache(NULL),
-		timer(-1),
-		hp(0),
-		max_hp(0),
-		level(0),
-		attacked_count(0),
-		target_dir(0),
-		target_lv(0),
-		provoke_id(0),
-		target_id(0),
-		attacked_id(0),
-		next_walktime(0),
-		attackabletime(0),
-		last_deadtime(0),
-		last_spawntime(0),
-		last_thinktime(0),
-		lootitem(NULL),
-		move_fail_count(0),
-		lootitem_count(0),
-		opt1(0),
-		opt2(0),
-		opt3(0),
-		option(0),
-		min_chase(0),
-		deletetimer(-1),
-		guild_id(0),
-		skilltimer(-1),
-		skilltarget(0),
-		skillx(0),
-		skilly(0),
-		skillid(0),
-		skilllv(0),
-		skillidx(0),
-		def_ele(0),
-		master_id(0),
-		master_dist(0),
-		exclusion_src(0),
-		exclusion_party(0),
-		exclusion_guild(0),
-		recallmob_count(0),
-		recallcount(0)
-	{
-		name[0] = 0;
-		npc_event[0]=0;
-		memset(skilldelay, 0, sizeof(skilldelay));
-	}
+
+	/// internal walk subfunction
+	virtual int walktoxy_sub_old();
+	/// walks to a coordinate
+	virtual int walktoxy_old(unsigned short x,unsigned short y,bool easy=false);
+	/// do a walk step
+	virtual int walkstep_old(unsigned long tick);
+	/// interrupts walking
+	virtual int stop_walking_old(int type=1);
+	/// walk to a random target
+	virtual int randomwalk_old(unsigned long tick);
+	/// change object state
+	virtual int changestate_old(int state,int type);
+	/// timer callback
+	virtual int walktimer_func_old(int tid, unsigned long tick, basics::numptr data);
+
+
+	/// do object depending stuff for ending the walk.
+	virtual void do_stop_walking();
+	/// do object depending stuff for the walk step.
+	virtual void do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
+	/// do object depending stuff for the walkto
+	virtual void do_walkto() {}
+	/// do object depending stuff for changestate
+	virtual void do_changestate(int state,int type);
+
+	/// checks for walking state
+	virtual bool is_walking() const		{ return this->movable::is_walking()&&(state.state==MS_WALK); }
+
+
+	/// timer function.
+	/// called from walktimer_entry
+	virtual bool walktimer_func(unsigned long tick);
+
+
+
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// Appearance functions.
+	// might fit in status module
+	virtual int get_viewclass() const;
+	virtual int get_sex() const;
+	virtual ushort get_hair() const;
+	virtual ushort get_hair_color() const;
+	virtual ushort get_weapon() const;
+	virtual ushort get_shield() const;
+	virtual ushort get_head_top() const;
+	virtual ushort get_head_mid() const;
+	virtual ushort get_head_buttom() const;
+	virtual ushort get_clothes_color() const;
+	virtual int get_equip() const;
+
+
+
 private:
 	mob_data(const mob_data&);					// forbidden
 	const mob_data& operator=(const mob_data&);	// forbidden
@@ -1569,8 +1589,6 @@ struct pet_data : public movable
 		{}
 	} state;
 
-	int timer;
-
 	unsigned short class_;
 	unsigned short dir;
 	unsigned short speed;
@@ -1580,7 +1598,6 @@ struct pet_data : public movable
 	unsigned short target_lv;
 	short rate_fix;	//Support rate as modified by intimacy (1000 = 100%) [Skotlex]
 	uint32 move_fail_count;
-	unsigned long attackabletime;
 	unsigned long next_walktime;
 	unsigned long last_thinktime;
 
@@ -1692,7 +1709,6 @@ struct pet_data : public movable
 
 	pet_data(const char *n) :
 		namep(n),
-		timer(-1),
 		class_(0),
 		dir(0),
 		speed(0),
@@ -1701,7 +1717,6 @@ struct pet_data : public movable
 		target_lv(0),
 		rate_fix(0),
 		move_fail_count(0),
-		attackabletime(0),
 		next_walktime(0),
 		last_thinktime(0),
 		status(NULL),
@@ -1713,6 +1728,52 @@ struct pet_data : public movable
 		msd(NULL)
 	{
 	}
+
+	/// internal walk subfunction
+	virtual int walktoxy_sub_old();
+	/// walks to a coordinate
+	virtual int walktoxy_old(unsigned short x,unsigned short y,bool easy=false);
+	/// do a walk step
+	virtual int walkstep_old(unsigned long tick);
+	/// interrupts walking
+	virtual int stop_walking_old(int type=1);
+	/// walk to a random target
+	virtual int randomwalk_old(unsigned long tick);
+	/// change object state
+	virtual int changestate_old(int state,int type);
+	/// timer callback
+	virtual int walktimer_func_old(int tid, unsigned long tick, basics::numptr data);
+
+
+	/// do object depending stuff for ending the walk.
+	virtual void do_stop_walking();
+	/// do object depending stuff for the walk step.
+	virtual void do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
+	/// do object depending stuff for the walkto
+	virtual void do_walkto() {}
+	/// do object depending stuff for changestate
+	virtual void do_changestate(int state,int type);
+
+	/// checks for walking state
+	virtual bool is_walking() const		{ return this->movable::is_walking()&&(state.state==MS_WALK); }
+
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// Appearance functions.
+	// might fit in status module
+	virtual int get_viewclass() const;
+	virtual int get_sex() const;
+	virtual ushort get_hair() const;
+	virtual ushort get_hair_color() const;
+	virtual ushort get_weapon() const;
+	virtual ushort get_shield() const;
+	virtual ushort get_head_top() const;
+	virtual ushort get_head_mid() const;
+	virtual ushort get_head_buttom() const;
+	virtual ushort get_clothes_color() const;
+	virtual int get_equip() const;
+
 private:
 	pet_data(const pet_data&);					// forbidden
 	const pet_data& operator=(const pet_data&);	// forbidden
@@ -1721,54 +1782,14 @@ private:
 
 
 
-
-
-
-
-/*
-///////////////////////////////////////////////////////////////////////////////
-// currently unused, 
-// needs splitup to movable/fightable and 
-// using class hierarchy instead of pointer linkage
-struct unit_data : public movable
-{
-	struct block_list *bl;
-
-	unsigned short skillx;
-	unsigned short skilly;
-	unsigned short skillid;
-	unsigned short skilllv;
-	uint32   skilltarget;
-	int   skilltimer;
-	struct linkdb_node *skilltimerskill;
-	struct linkdb_node *skillunit;
-	struct linkdb_node *skilltickset;
-	int   attacktimer;
-	int   attacktarget;
-	short attacktarget_lv;
-	unsigned long attackabletime;
-	unsigned long canact_tick;
-	struct
-	{
-		unsigned skillcastcancel : 1 ;
-		unsigned attack_continue : 1 ;
-	} state;
-	struct linkdb_node *statuspretimer;
-
-};
-*/
-
-class homun_data : public block_list
+class homun_data : public movable
 {
 public:
-//	struct unit_data ud;
 	struct homunstatus status;
 	struct
 	{
 		unsigned skillstate : 8 ;
 	} state;
-	uchar dir;
-	short speed;
 	short view_size;
 	int invincible_timer;
 	int hp_sub;
@@ -1808,6 +1829,33 @@ public:
 
 	homun_data()
 	{}
+
+
+	/// internal walk subfunction
+	virtual int walktoxy_sub_old();
+	/// walks to a coordinate
+	virtual int walktoxy_old(unsigned short x,unsigned short y,bool easy=false);
+	/// do a walk step
+	virtual int walkstep_old(unsigned long tick);
+	/// interrupts walking
+	virtual int stop_walking_old(int type=1);
+	/// walk to a random target
+	virtual int randomwalk_old(unsigned long tick);
+	/// change object state
+	virtual int changestate_old(int state,int type);
+	/// timer callback
+	virtual int walktimer_func_old(int tid, unsigned long tick, basics::numptr data);
+
+
+	/// do object depending stuff for ending the walk.
+	virtual void do_stop_walking();
+	/// do object depending stuff for the walk step.
+	virtual void do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
+	/// do object depending stuff for the walkto
+	virtual void do_walkto();
+	/// do object depending stuff for changestate
+	virtual void do_changestate(int state,int type);
+
 
 	void* operator new(size_t sz)
 	{
@@ -1861,22 +1909,6 @@ private:
 
 
 
-
-
-
-enum { MS_IDLE,MS_WALK,MS_ATTACK,MS_DEAD,MS_DELAY };
-
-enum { NONE_ATTACKABLE,ATTACKABLE };
-
-enum { ATK_LUCKY=1,ATK_FLEE,ATK_DEF};	// 囲まれペナルティ計算用
-
-// 装備コード
-enum {
-	EQP_WEAPON		= 1,		// 右手
-	EQP_ARMOR		= 2,		// 体
-	EQP_SHIELD		= 4,		// 左手
-	EQP_HELM		= 8,		// 頭上段
-};
 
 
 
@@ -2254,3 +2286,4 @@ void char_offline(struct map_session_data *sd);
 
 
 #endif
+

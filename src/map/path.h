@@ -23,22 +23,14 @@ struct walkpath_data
 										//						107bit
 										// currently used:		280bit
 
+private:
 	unsigned char path_len		: 6;	// more than necessary but it fills the 
 	unsigned char path_pos		: 6;	// struct to a 16bit boundary
-	unsigned path_half			: 1;
-	unsigned change_walk_target	: 1;
-	unsigned walk_easy			: 1;
-	unsigned _dummy				: 1;
-
-	// -> change this to coordinate when coordinates get their own file
-	struct _dummy
-	{
-		unsigned short x;
-		unsigned short y;
-
-		_dummy() : x(0),y(0)
-		{}
-	} target;
+public:
+	unsigned char path_half		: 1;
+	unsigned char change_target	: 1;
+	unsigned char walk_easy		: 1;
+	unsigned char _dummy		: 1;
 
 	unsigned char path[MAX_WALKPATH];
 
@@ -47,7 +39,7 @@ struct walkpath_data
 		path_len(0),
 		path_pos(0),
 		path_half(0),
-		change_walk_target(0),
+		change_target(0),
 		walk_easy(0)
 	{
 		memset(path,0, sizeof(path));
@@ -68,6 +60,39 @@ struct walkpath_data
 
 	bool path_search(unsigned short m,int x0,int y0,int x1,int y1,int flag);
 	static bool is_possible(unsigned short m,int x0,int y0,int x1,int y1,int flag);
+
+	bool first_step() const 		{ return this->path_pos == 0; }
+	bool finished() const			{ return this->path_pos >= this->path_len; }
+	dir_t get_current_step() const	{ return dir_t(this->path[this->path_pos]&0x07); }
+
+	void clear()
+	{
+		this->path_pos = this->path_len = this->path_half = 0;
+	}
+
+	bool next()
+	{
+		++this->path_pos;
+		if( this->path_pos >= this->path_len )
+		{
+			this->path_pos = this->path_len = 0;
+			return false;
+		}
+		return true;
+	}
+	bool operator++(int)	{ return this->next(); }
+	bool operator++()		{ return this->next(); }
+
+
+	unsigned long get_path_time() const
+	{
+		unsigned long c,i;
+		for(c=0, i=this->path_pos; i<this->path_len; ++i)
+		{	// diagonals count 14, orthogonals 10
+			c += (this->path[i]&1) ? 14 : 10;
+		}
+		return c;
+	}
 
 };
 

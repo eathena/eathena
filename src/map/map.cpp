@@ -186,168 +186,6 @@ int map_getusers(void)
 
 
 
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-/// check for blocks in same direction.
-/// appearently it's returning true when directions are same or 45degree
-bool is_same_direction(dir_t s_dir,dir_t t_dir)
-{
-/*	if(s_dir == t_dir)
-		return true;
-	switch(s_dir) {
-		case 0:
-			if(t_dir == 7 || t_dir == 1 || t_dir == 0)
-				return true;
-			break;
-		case 1:
-			if(t_dir == 0 || t_dir == 2 || t_dir == 1)
-				return true;
-			break;
-		case 2:
-			if(t_dir == 1 || t_dir == 3 || t_dir == 2)
-				return true;
-			break;
-		case 3:
-			if(t_dir == 2 || t_dir == 4 || t_dir == 3)
-				return true;
-			break;
-		case 4:
-			if(t_dir == 3 || t_dir == 5 || t_dir == 4)
-				return true;
-			break;
-		case 5:
-			if(t_dir == 4 || t_dir == 6 || t_dir == 5)
-				return true;
-			break;
-		case 6:
-			if(t_dir == 5 || t_dir == 7 || t_dir == 6)
-				return true;
-			break;
-		case 7:
-			if(t_dir == 6 || t_dir == 0 || t_dir == 7)
-				return true;
-			break;
-	}
-	return false;
-*/
-	return (s_dir == t_dir || ((s_dir+1)&0x07)==t_dir || s_dir==((t_dir+1)&0x07));
-}
-///////////////////////////////////////////////////////////////////////////////
-/// calculate distance.
-/// original code did manhattan formula, 
-/// was changed to an euclidean distance approximation
-int distance(int x0,int y0,int x1,int y1)
-{
-	int dx,dy;
-	//dx=abs(x0-x1);
-	//dy=abs(y0-y1);
-	//return dx>dy ? dx : dy;
-
-	// euclidean distance approximation with piecewise linear octagon
-	// but calculated explicitely correct at the borders (PI/4 multiples)
-	dx = (x0>x1)?x0-x1:x1-x0;
-	dy = (y0>y1)?y0-y1:y1-y0;
-	if(dx==0) return dy;
-	if(dy==0) return dx;
-	if(dy>=dx) if(dy>dx) basics::swap(dx,dy); else return (dx*362)>>8;
-	//http://www.flipcode.com/articles/article_fastdistance.shtml
-	return ( (( dx << 8 ) + ( dx << 3 ) - ( dx << 4 ) - ( dx << 1 ) +
-			  ( dy << 7 ) - ( dy << 5 ) + ( dy << 3 ) - ( dy << 1 )) >> 8 );
-
-}
-///////////////////////////////////////////////////////////////////////////////
-/// 彼我の方向を計算
-dir_t direction(int x0,int y0,int x1,int y1)
-{
-	dir_t dir=DIR_N;
-	int dx,dy;
-	dx = x1-x0;
-	dy = y1-y0;
-	if( dx==0 && dy==0 )
-	{	// 彼我の場所一致
-		dir=DIR_N;						// 上
-	}
-	else if( dx>=0 && dy>=0 )
-	{	// 方向的に右上
-		if( dx*2-1<dy )		dir=DIR_N;	// 上
-		else if( dx>dy*2 )	dir=DIR_W;	// 右
-		else				dir=DIR_NW;	// 右上
-	}
-	else if( dx>=0 && dy<=0 )
-	{	// 方向的に右下
-		if( dx*2-1<-dy )	dir=DIR_S;	// 下
-		else if( dx>-dy*2 )	dir=DIR_W;	// 右
-		else				dir=DIR_SW;	// 右下
-	}
-	else if( dx<=0 && dy<=0 )
-	{ // 方向的に左下
-		if( dx*2+1>dy )		dir=DIR_S;	// 下
-		else if( dx<dy*2 )	dir=DIR_E;	// 左
-		else				dir=DIR_SE;	// 左下
-	}
-	else
-	{	// 方向的に左上
-		if( -dx*2-1<dy )	dir=DIR_N;	// 上
-		else if( -dx>dy*2 )	dir=DIR_E;	// 左
-		else				dir=DIR_NE;	// 左上
-	}
-	return dir;
-}
-///////////////////////////////////////////////////////////////////////////////
-/// Randomizes target cell. 
-/// get a random walkable cell that has the same distance from object 
-/// as given coordinates do, but randomly choosen. [Skotlex]
-bool block_list::random_position(unsigned short &xs, unsigned short &ys) const
-{
-	unsigned short xi, yi;
-	unsigned short dist = this->get_distance(xs, ys);
-	int i=0;
-	if (dist < 1) dist =1;
-	
-	do
-	{
-		xi = this->x + rand()%(2*dist) - dist;
-		yi = this->y + rand()%(2*dist) - dist;
-	} while( map_getcell(this->m, xi, yi, CELL_CHKNOPASS) && (++i)<100 );
-	if (i < 100)
-	{
-		xs = xi;
-		ys = yi;
-		return true;
-	}
-	// keep the position
-	xs = this->x;
-	ys = this->y;
-	return false;
-}
-///////////////////////////////////////////////////////////////////////////////
-/// Randomizes target cell. 
-/// same as above for coordinates
-bool block_list::random_position(coordinate &pos) const
-{
-	unsigned short xi, yi;
-	unsigned short dist = this->get_distance(pos);
-	size_t i=0;
-	if (dist < 1) dist =1;
-	do
-	{
-		xi = this->x + rand()%(2*dist) - dist;
-		yi = this->y + rand()%(2*dist) - dist;
-	} while( map_getcell(this->m, xi, yi, CELL_CHKNOPASS) && (++i)<100 );
-	if (i < 100)
-	{
-		pos = coordinate(xi,yi);
-		return true;
-	}
-	// keep current position
-	pos = *this;
-	return false;
-}
-
-
 ///////////////////////////////////////////////////////////////////////////////
 /// add id to id_db
 /// * id_dbへblを追加
@@ -1254,34 +1092,32 @@ int CMap::foreachinmovearea(const CMapProcessor& elem, unsigned short m,int x0,i
 		if(x1>=maps[m].xs) x1=maps[m].xs-1;
 		if(y1>=maps[m].ys) y1=maps[m].ys-1;
 		for(by=y0/BLOCK_SIZE;by<=y1/BLOCK_SIZE; ++by)
+		for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE; ++bx)
 		{
-			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE; ++bx)
+			bl = maps[m].objects[bx+by*maps[m].bxs].root_blk;
+			c  = maps[m].objects[bx+by*maps[m].bxs].cnt_blk;
+			for(i=0;i<c && bl;i++,bl=bl->next)
 			{
-				bl = maps[m].objects[bx+by*maps[m].bxs].root_blk;
-				c  = maps[m].objects[bx+by*maps[m].bxs].cnt_blk;
-				for(i=0;i<c && bl;i++,bl=bl->next)
-				{
-					if(bl && type && bl->type!=type)
-						continue;
-					if((bl) && !(bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1))
-						continue;
-					if((bl) && ((dx>0 && bl->x<x0+dx) || (dx<0 && bl->x>x1+dx) ||
-						(dy>0 && bl->y<y0+dy) || (dy<0 && bl->y>y1+dy)) &&
-						bl_list_count<BL_LIST_MAX)
-							bl_list[bl_list_count++]=bl;
-				}
-				bl = maps[m].objects[bx+by*maps[m].bxs].root_mob;
-				c  = maps[m].objects[bx+by*maps[m].bxs].cnt_mob;
-				for(i=0;i<c && bl;i++,bl=bl->next){
-					if(bl && type && bl->type!=type)
-						continue;
-					if((bl) && !(bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1))
-						continue;
-					if((bl) && ((dx>0 && bl->x<x0+dx) || (dx<0 && bl->x>x1+dx) ||
-						(dy>0 && bl->y<y0+dy) || (dy<0 && bl->y>y1+dy)) &&
-						bl_list_count<BL_LIST_MAX)
-							bl_list[bl_list_count++]=bl;
-				}
+				if(bl && type && bl->type!=type)
+					continue;
+				if((bl) && !(bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1))
+					continue;
+				if((bl) && ((dx>0 && bl->x<x0+dx) || (dx<0 && bl->x>x1+dx) ||
+					(dy>0 && bl->y<y0+dy) || (dy<0 && bl->y>y1+dy)) &&
+					bl_list_count<BL_LIST_MAX)
+						bl_list[bl_list_count++]=bl;
+			}
+			bl = maps[m].objects[bx+by*maps[m].bxs].root_mob;
+			c  = maps[m].objects[bx+by*maps[m].bxs].cnt_mob;
+			for(i=0;i<c && bl;i++,bl=bl->next){
+				if(bl && type && bl->type!=type)
+					continue;
+				if((bl) && !(bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1))
+					continue;
+				if((bl) && ((dx>0 && bl->x<x0+dx) || (dx<0 && bl->x>x1+dx) ||
+					(dy>0 && bl->y<y0+dy) || (dy<0 && bl->y>y1+dy)) &&
+					bl_list_count<BL_LIST_MAX)
+						bl_list[bl_list_count++]=bl;
 			}
 		}
 	}
@@ -2641,7 +2477,7 @@ int map_quit(struct map_session_data &sd)
 	skill_clear_unitgroup(&sd);	// スキルユニットグル?プの削除
 	skill_cleartimerskill(&sd);
 
-	pc_stop_walking(sd,0);
+	sd.stop_walking(0);
 	pc_stopattack(sd);
 	pc_delinvincibletimer(sd);
 
@@ -2722,14 +2558,30 @@ struct map_session_data * map_id2sd(uint32 id)
 //     point to a memory area that is not more a session_data and value are incorrect (or out of available memory) -> crash
 // replaced by searching in all session.
 // by searching in session, we are sure that fd, session, and account exist.
-/*
-	struct block_list *bl;
 
-	bl=numdb_search(id_db,id);
-	if(bl && bl->type==BL_PC)
-		return (struct map_session_data*)bl;
+// this explanation is not consistent at all
+// db search is O(lg(N)), session search is O(M) 
+// with N == object count and M == player count
+// so, for ~50000 map objects it takes fd_max >= 16 (usually less than 8 players)
+// to have the for-loop performing slower than the db search
+//
+// for the crash argument:
+// if the id's are not cleared correctly it will crash in any case,
+// when not in this search than in some other
+//
+// anyway to enable the mapsearch, all db-insert/erase operations need to be restructured
+// so I leave this loop as it is until this part is done
+/*
+	if(id) // skip if zero id's are searched
+	{
+		struct block_list *bl = (struct block_list *)numdb_search(id_db,id);
+		struct map_session_data *sd;
+		if(bl && (sd=bl->get_sd()) && session_isActive(sd->fd) )
+			return sd;
+	}
 	return NULL;
 */
+
 	size_t i;
 	struct map_session_data *sd;
 
@@ -2738,6 +2590,7 @@ struct map_session_data * map_id2sd(uint32 id)
 		if (session[i] && (sd = (struct map_session_data*)session[i]->user_session) && sd->block_list::id == id)
 			return sd;
 	return NULL;
+
 }
 
 /*==========================================
@@ -4422,9 +4275,9 @@ void char_online_check(void)
 	for(i=0;i<fd_max;++i)
 	{
 		if( session[i] &&
-			(sd = (struct map_session_data*)session[i]->user_session) && sd->state.auth &&
-			!(battle_config.hide_GM_session &&
-			pc_isGM(*sd)) &&
+			(sd = (struct map_session_data*)session[i]->user_session) && 
+			sd->state.auth &&
+			!(battle_config.hide_GM_session && sd->isGM()) &&
 			sd->status.char_id)
 		{
 			chrif_char_online(*sd);
@@ -4719,6 +4572,7 @@ int do_init(int argc, char *argv[])
 	}
 
 	map_config_read(MAP_CONF_NAME);
+	basics::CParamBase::loadFile(MAP_CONF_NAME);
 
 	if (SHOW_DEBUG_MSG)
 		ShowNotice("Server running in '"CL_WHITE"Debug Mode"CL_RESET"'.\n");

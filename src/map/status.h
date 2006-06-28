@@ -217,6 +217,9 @@ extern int SkillStatusChangeTable[];
 
 extern int current_equip_item_index;
 
+
+int status_recalc_speed(struct block_list *bl);
+
 // ƒpƒ‰ƒ[ƒ^Š“¾Œn battle.c ‚æ‚èˆÚ“®
 int status_get_class(struct block_list *bl);
 dir_t status_get_dir(struct block_list *bl);
@@ -241,7 +244,6 @@ int status_get_mdef2(struct block_list *bl);
 int status_get_baseatk(struct block_list *bl);
 int status_get_atk(struct block_list *bl);
 int status_get_atk2(struct block_list *bl);
-int status_get_speed(struct block_list *bl);
 int status_get_adelay(struct block_list *bl);
 int status_get_amotion(struct block_list *bl);
 int status_get_dmotion(struct block_list *bl);

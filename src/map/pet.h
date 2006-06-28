@@ -36,9 +36,8 @@ int pet_hungry_val(struct map_session_data &sd);
 int pet_target_check(struct map_session_data &sd,struct block_list *bl,int type);
 int pet_sc_check(struct map_session_data &sd, int type); //Skotlex
 int pet_stopattack(struct pet_data &pd);
-int pet_changestate(struct pet_data &pd,int state,int type);
-int pet_walktoxy(struct pet_data &pd,int x,int y);
-int pet_stop_walking(struct pet_data &pd,int type);
+int pet_timer(int tid, unsigned long tick, int id, basics::numptr data);
+
 int search_petDB_index(int key,int type);
 
 int pet_remove_map(struct map_session_data &sd);

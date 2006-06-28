@@ -246,37 +246,40 @@ bool can_move(struct map_data &m, const int x0, const int y0, const int x1, cons
  */
 void path_blownpos(unsigned short m,int x0,int y0,int dx,int dy,int count, int& nx, int& ny)
 {
-	if(m >= map_num || !maps[m].gat)
+	if( count )
 	{
-		nx=ny=0xFFFF;
-		return;
-	}
-
-	if(count>15){	// 最大10マスに制限
-		if(battle_config.error_log)
-			ShowMessage("path_blownpos: count too many %d !\n",count);
-		count=15;
-	}
-	if(dx>1 || dx<-1 || dy>1 || dy<-1){
-		if(battle_config.error_log)
-			ShowMessage("path_blownpos: illeagal dx=%d or dy=%d !\n",dx,dy);
-		dx=(dx>=0)?1:((dx<0)?-1:0);
-		dy=(dy>=0)?1:((dy<0)?-1:0);
-	}
-	
-	while( (count--)>0 && (dx!=0 || dy!=0) ){
-		if( !can_move(maps[m],x0,y0,x0+dx,y0+dy,0) ){
-			int fx=(dx!=0 && can_move(maps[m],x0,y0,x0+dx,y0,0));
-			int fy=(dy!=0 && can_move(maps[m],x0,y0,x0,y0+dy,0));
-			if( fx && fy ){
-				if(rand()&1) dx=0;
-				else		 dy=0;
-			}
-			if( !fx )		dx=0;
-			if( !fy )		dy=0;
+		if(m >= map_num || !maps[m].gat)
+		{
+			nx=ny=0xFFFF;
+			return;
 		}
-		x0+=dx;
-		y0+=dy;
+
+		if(count>15){	// 最大10マスに制限
+			if(battle_config.error_log)
+				ShowMessage("path_blownpos: count too many %d !\n",count);
+			count=15;
+		}
+		if(dx>1 || dx<-1 || dy>1 || dy<-1){
+			if(battle_config.error_log)
+				ShowMessage("path_blownpos: illeagal dx=%d or dy=%d !\n",dx,dy);
+			dx=(dx>=0)?1:((dx<0)?-1:0);
+			dy=(dy>=0)?1:((dy<0)?-1:0);
+		}
+		
+		while( (count--)>0 && (dx!=0 || dy!=0) ){
+			if( !can_move(maps[m],x0,y0,x0+dx,y0+dy,0) ){
+				int fx=(dx!=0 && can_move(maps[m],x0,y0,x0+dx,y0,0));
+				int fy=(dy!=0 && can_move(maps[m],x0,y0,x0,y0+dy,0));
+				if( fx && fy ){
+					if(rand()&1) dx=0;
+					else		 dy=0;
+				}
+				if( !fx )		dx=0;
+				if( !fy )		dy=0;
+			}
+			x0+=dx;
+			y0+=dy;
+		}
 	}
 	nx = x0;
 	ny = y0;
@@ -524,23 +527,42 @@ bool walkpath_data::path_search(unsigned short m,int x0,int y0,int x1,int y1,int
 		return false;
 
 	if( x1<0 || x1>=maps[m].xs || y1<0 || y1>=maps[m].ys || 
+		(x0==x1 && y0==y1) ||
 		!can_place(maps[m],x0,y0,flag) || !can_place(maps[m],x1,y1,flag) )
 		return false;
+
+
+	// reuse the current path when it is used, 
+	// could be added when the walk process has been restructured
+//	if( this->path_pos >= this->path_len )
+//	{	// copy only the actual position, when pos!=0
+//		if(this->path_pos)
+//		{
+//			this->path[0] = this->path[this->path_pos];
+//			this->path_pos=0;
+//		}
+//		this->path_len=1;
+//		// leave path_half as it is
+//	}
+//	else
+	{	// start a new path
+		this->path_len=0;
+		this->path_pos=0;
+		this->path_half=0;
+	}
 
 	// check if going straight is possible
 
 	const int dx = (x1<x0) ? -1 : 1;
 	const int dy = (y1<y0) ? -1 : 1;
-	for(x=x0,y=y0,i=0; ; )
+	for(x=x0,y=y0,i=this->path_len; ; ++i)
 	{
-		if(i>=sizeof(this->path))
+		if( i >= sizeof(this->path)/sizeof(this->path[0]))
 			return false;
 		
 		if(x==x1 && y==y1)
 		{	//reached the aim
 			this->path_len=i;
-			this->path_pos=0;
-			this->path_half=0;
 			return true;
 		}
 		else
@@ -553,28 +575,27 @@ bool walkpath_data::path_search(unsigned short m,int x0,int y0,int x1,int y1,int
 					break;
 				x+=dx;
 				y+=dy;
-				this->path[i++]=(dx<0) ? ((dy>0)? 1 : 3) : ((dy<0)? 5 : 7);
+				this->path[i]=(dx>0) ? ((dy>0)? 1 : 3) : ((dy<0)? 5 : 7);
 			}
 			else if(x!=x1)
 			{	// orthogonal x
 				if(!can_place(maps[m],x+dx,y   ,flag))
 					break;
 				x+=dx;
-				this->path[i++]=(dx<0) ? 2 : 6;
+				this->path[i]=(dx>0) ? 2 : 6;
 			}
 			else if(y!=y1)
 			{	// orthogonal y
 				if(!can_place(maps[m],x    ,y+dy,flag))
 					break;
 				y+=dy;
-				this->path[i++]=(dy>0) ? 0 : 4;
+				this->path[i]=(dy>0) ? 0 : 4;
 			}
 		}
 	}
 
 	if(flag&1)
 		return false;
-
 
 	// real path search
 	// doing a A* algorithm with simple heuristic
@@ -626,19 +647,16 @@ bool walkpath_data::path_search(unsigned short m,int x0,int y0,int x1,int y1,int
 			/////////////////////////////////////////////////
 			// other option:
 			// find the first node and count the length
-			for(len=0,i=rp; i!=(size_t)calc_index(x0,y0); i=tp[i].before, ++len);
+			for(len=this->path_len,i=rp; i!=(size_t)calc_index(x0,y0); i=tp[i].before, ++len);
 			// limit length when too long
 			if( len>=sizeof(this->path)/sizeof(this->path[0])) 
 				len=sizeof(this->path)/sizeof(this->path[0]);
 			/////////////////////////////////////////////////
 			// fill the walkpath structure, 
 			// only take the directions that have to be walked to at each position
-			this->path_len=len;
-			this->path_pos=0;
-			this->path_half=0;
-			// fill in the path
-			for(i=rp,j=len-1;j>=0;i=tp[i].before,--j)
+			for(i=rp,j=len-1; j>=this->path_len; i=tp[i].before,--j)
 				this->path[j] = tp[i].dir;
+			this->path_len=len;
 
 			// and return success
 			return true;
@@ -646,16 +664,16 @@ bool walkpath_data::path_search(unsigned short m,int x0,int y0,int x1,int y1,int
 		// cut out a single bit of the randomizer depending on current x/y
 		const int randbit = 0x1 & (randomizer>>((x*y)&0x1F)); 
 
-		// check surounding in order N, NW, W, SW, S, SE, E, NE and add it to the heap
+		// check surrounding in order N, NE, E, SE, S, SW, W, NW and add it to the heap
 		// have weight 10 for orthogonals, and 14 for diagonals (should be 10*sqr(2) but 14 is good enough)
 		if(can_move(maps[m],x,y,x  ,y+1,flag)) e+=add_path(heap,tp,x  ,y+1,tp[rp].dist+10+randbit,0,rp,x1,y1);
-		if(can_move(maps[m],x,y,x-1,y+1,flag)) e+=add_path(heap,tp,x-1,y+1,tp[rp].dist+14+randbit,1,rp,x1,y1);
-		if(can_move(maps[m],x,y,x-1,y  ,flag)) e+=add_path(heap,tp,x-1,y  ,tp[rp].dist+10+randbit,2,rp,x1,y1);
-		if(can_move(maps[m],x,y,x-1,y-1,flag)) e+=add_path(heap,tp,x-1,y-1,tp[rp].dist+14+randbit,3,rp,x1,y1);
+		if(can_move(maps[m],x,y,x+1,y+1,flag)) e+=add_path(heap,tp,x+1,y+1,tp[rp].dist+14+randbit,1,rp,x1,y1);
+		if(can_move(maps[m],x,y,x+1,y  ,flag)) e+=add_path(heap,tp,x+1,y  ,tp[rp].dist+10+randbit,2,rp,x1,y1);
+		if(can_move(maps[m],x,y,x+1,y-1,flag)) e+=add_path(heap,tp,x+1,y-1,tp[rp].dist+14+randbit,3,rp,x1,y1);
 		if(can_move(maps[m],x,y,x  ,y-1,flag)) e+=add_path(heap,tp,x  ,y-1,tp[rp].dist+10+randbit,4,rp,x1,y1);
-		if(can_move(maps[m],x,y,x+1,y-1,flag)) e+=add_path(heap,tp,x+1,y-1,tp[rp].dist+14+randbit,5,rp,x1,y1);
-		if(can_move(maps[m],x,y,x+1,y  ,flag)) e+=add_path(heap,tp,x+1,y  ,tp[rp].dist+10+randbit,6,rp,x1,y1);
-		if(can_move(maps[m],x,y,x+1,y+1,flag)) e+=add_path(heap,tp,x+1,y+1,tp[rp].dist+14+randbit,7,rp,x1,y1);
+		if(can_move(maps[m],x,y,x-1,y-1,flag)) e+=add_path(heap,tp,x-1,y-1,tp[rp].dist+14+randbit,5,rp,x1,y1);
+		if(can_move(maps[m],x,y,x-1,y  ,flag)) e+=add_path(heap,tp,x-1,y  ,tp[rp].dist+10+randbit,6,rp,x1,y1);
+		if(can_move(maps[m],x,y,x-1,y+1,flag)) e+=add_path(heap,tp,x-1,y+1,tp[rp].dist+14+randbit,7,rp,x1,y1);
 
 		// set the node as handled
 		tp[rp].flag=1;
@@ -771,16 +789,16 @@ bool walkpath_data::is_possible(unsigned short m,int x0,int y0,int x1,int y1,int
 		// cut out a single bit of the randomizer depending on current x/y
 		const int randbit = 0x1 & (randomizer>>((x*y)&0x1F)); 
 
-		// check surounding in order N, NW, W, SW, S, SE, E, NE and add it to the heap
+		// check surrounding in order N, NE, E, SE, S, SW, W, NW and add it to the heap
 		// have weight 10 for orthogonals, and 14 for diagonals (should be 10*sqr(2) but 14 is good enough)
 		if(can_move(maps[m],x,y,x  ,y+1,flag)) e+=add_path(heap,tp,x  ,y+1,tp[rp].dist+10+randbit,0,rp,x1,y1);
-		if(can_move(maps[m],x,y,x-1,y+1,flag)) e+=add_path(heap,tp,x-1,y+1,tp[rp].dist+14+randbit,1,rp,x1,y1);
-		if(can_move(maps[m],x,y,x-1,y  ,flag)) e+=add_path(heap,tp,x-1,y  ,tp[rp].dist+10+randbit,2,rp,x1,y1);
-		if(can_move(maps[m],x,y,x-1,y-1,flag)) e+=add_path(heap,tp,x-1,y-1,tp[rp].dist+14+randbit,3,rp,x1,y1);
+		if(can_move(maps[m],x,y,x+1,y+1,flag)) e+=add_path(heap,tp,x+1,y+1,tp[rp].dist+14+randbit,1,rp,x1,y1);
+		if(can_move(maps[m],x,y,x+1,y  ,flag)) e+=add_path(heap,tp,x+1,y  ,tp[rp].dist+10+randbit,2,rp,x1,y1);
+		if(can_move(maps[m],x,y,x+1,y-1,flag)) e+=add_path(heap,tp,x+1,y-1,tp[rp].dist+14+randbit,3,rp,x1,y1);
 		if(can_move(maps[m],x,y,x  ,y-1,flag)) e+=add_path(heap,tp,x  ,y-1,tp[rp].dist+10+randbit,4,rp,x1,y1);
-		if(can_move(maps[m],x,y,x+1,y-1,flag)) e+=add_path(heap,tp,x+1,y-1,tp[rp].dist+14+randbit,5,rp,x1,y1);
-		if(can_move(maps[m],x,y,x+1,y  ,flag)) e+=add_path(heap,tp,x+1,y  ,tp[rp].dist+10+randbit,6,rp,x1,y1);
-		if(can_move(maps[m],x,y,x+1,y+1,flag)) e+=add_path(heap,tp,x+1,y+1,tp[rp].dist+14+randbit,7,rp,x1,y1);
+		if(can_move(maps[m],x,y,x-1,y-1,flag)) e+=add_path(heap,tp,x-1,y-1,tp[rp].dist+14+randbit,5,rp,x1,y1);
+		if(can_move(maps[m],x,y,x-1,y  ,flag)) e+=add_path(heap,tp,x-1,y  ,tp[rp].dist+10+randbit,6,rp,x1,y1);
+		if(can_move(maps[m],x,y,x-1,y+1,flag)) e+=add_path(heap,tp,x-1,y+1,tp[rp].dist+14+randbit,7,rp,x1,y1);
 
 		// set the node as handled
 		tp[rp].flag=1;
