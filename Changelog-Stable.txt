@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/06/28
+	* Added a check in script command "set_option" so that invoking
+	  "set_option(0)" removes Cart/Peco/Falcon, as expected by scripts. [Skotlex]
 	* Merged char-sql using a single instance of char_dat rather than a
 	  pointless array. [Skotlex]
 	* Merged support for the character-side fame-list. [Skotlex]
