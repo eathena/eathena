@@ -1,3 +1,6 @@
+06/29
+	* [Again] Added back walkdelay to Sonic Blow(thx@rkit), Arrow Vulcan [Lupus]
+	  Walk delay lasts as attack does. In ARROW VULCAN fixed CONSTANT delay to the list
 06/28
 	* Fixed the SP usage of AS_SPLASHER. Thanks to Belle. [MasterOfMuppets]
 06/27
