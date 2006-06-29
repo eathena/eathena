@@ -1,4 +1,5 @@
 06/29
+	* Merged mob_skill_db [Playtester]
 	* [Again] Added back walkdelay to Sonic Blow(thx@rkit), Arrow Vulcan [Lupus]
 	  Walk delay lasts as attack does. In ARROW VULCAN fixed CONSTANT delay to the list
 06/28
