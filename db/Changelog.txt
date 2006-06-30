@@ -1,3 +1,5 @@
+06/30
+	* Reverted back Vulcan Arrow. It's fine now. Player can move after the attack animation end [Lupus]
 06/29
 	* Merged mob_skill_db [Playtester]
 	* [Again] Added back walkdelay to Sonic Blow(thx@rkit), Arrow Vulcan [Lupus]
