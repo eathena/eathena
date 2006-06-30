@@ -38,6 +38,10 @@ Playtester
 
 Date		Added
 ======
+06/30
+	* Added custom/floating_rates.txt [Lupus]
+	  Random change of Drop/Exp rates from 1x to 1.5x every 6 hours
+	NOTE! Take a look at an incredible script function 'setbattleflag'
 06/29
 	* Stricted up penal servitude conditions [Lupus]
 	- Restricted Novices Castles entrance of TK/Highs to 80 BaseLevel
