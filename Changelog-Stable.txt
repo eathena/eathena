@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/06/30
+	* Fixed a typo in msg_athena.conf, "This item cannot be drop" -> "This item cannot be dropped" [MasterOfMuppets]
 	* Merged bNoWeaponDamage/bNoMagicDamage bonuses receiving an argument with
 	  a 1-100 value (rather than always being 100% block). [Skotlex]
 	* Merged replacement of config setting gtb_pvp_only to gtb_sc_immunity
