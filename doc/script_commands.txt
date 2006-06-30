@@ -459,13 +459,13 @@ Variable scope is defined by a prefix before the variable name:
        They are stored with all the account data in "save\accreg.txt" in TXT 
        versions and in the SQL versions in the 'global_reg_value' table using
 		 type 2.
-"##" - A permanent account-based variable stored by the login server.
-       They are stored in "save\account.txt" and in the SQL versions in the
-		 'global_reg_value' table, using type 1. The only difference you will
-		 note from normal # variables is when you have multiple char-servers
-		 connected to the same login server. The # variables are unique to each
-		 char-server, while the ## variables are shared by all these
-		 char-servers.
+"##" -	A permanent account-based variable stored by the login server.
+	They are stored in "save\account.txt" and in the SQL versions in the
+	'global_reg_value' table, using type 1. The only difference you will
+	note from normal # variables is when you have multiple char-servers
+	connected to the same login server. The # variables are unique to each
+	char-server, while the ## variables are shared by all these
+	char-servers.
 
 Some variables are special, that is, they are already defined for you by the 
 scripting engine. You can see the full list somewhere in 'db/const.txt', which 
@@ -4889,7 +4889,7 @@ and return the info set by TYPE argument.
 It will return -1 if there is no such item.
 
 Valid types are:
-	0 - Buy Price; 1 - Sell Price; 2 - Item Type; 3 - Allowed Classes;
+	0 - Buy Price; 1 - Sell Price; 2 - Item Type;
 	3 - maxchance (Max drop chance of this item e.g. 1 = 0.01% , etc..
 		if = 0, then monsters don't drop it at all (rare or a quest item)
 		if = 10000, then this item is sold in NPC shops only
@@ -4951,7 +4951,6 @@ set @i, distance(100,200,101,202);
 
 ---------------------------------------
 *query_sql "your MySQL query", <array name>
-
 Returns up to 127 values into array.
 
 Example:
@@ -5017,6 +5016,7 @@ set @i, petstat(PET_CLASS);
 Set a new script bonus to the Item. Very useful for game events.
 
 Example:
+
 setitemscript 2637,"{ bonus bDamageWhenUnequip,40; if(isequipped(2236)==0)end; if(getskilllv(26)){skill 40,1;}else{skill 26,1+isequipped(2636);} }";
 
 ---------------------------------------
