@@ -1246,6 +1246,11 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 			sd->arrow_ele=val;
 		break;
 	case SP_DEFELE:
+		if(val >= ELE_MAX) {
+			if(battle_config.error_log)
+				ShowError("pc_bonus: SP_DEFELE: Invalid element %d\n", val);
+			break;
+		}
 		if(sd->state.lr_flag != 2)
 			sd->def_ele=val;
 		break;
@@ -1338,6 +1343,11 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 			sd->matk_rate += val;
 		break;
 	case SP_IGNORE_DEF_ELE:
+		if(val >= ELE_MAX) {
+			if(battle_config.error_log)
+				ShowError("pc_bonus: SP_IGNORE_DEF_ELE: Invalid element %d\n", val);
+			break;
+		}
 		if(!sd->state.lr_flag)
 			sd->right_weapon.ignore_def_ele |= 1<<val;
 		else if(sd->state.lr_flag == 1)
@@ -1362,6 +1372,11 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 			sd->misc_def_rate += val;
 		break;
 	case SP_IGNORE_MDEF_ELE:
+		if(val >= ELE_MAX) {
+			if(battle_config.error_log)
+				ShowError("pc_bonus: SP_IGNORE_MDEF_ELE: Invalid element %d\n", val);
+			break;
+		}
 		if(sd->state.lr_flag != 2)
 			sd->ignore_mdef_ele |= 1<<val;
 		break;
@@ -1382,12 +1397,22 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 			sd->critical_rate+=val;
 		break;
 	case SP_DEF_RATIO_ATK_ELE:
+		if(val >= ELE_MAX) {
+			if(battle_config.error_log)
+				ShowError("pc_bonus: SP_DEF_RATIO_ATK_ELE: Invalid element %d\n", val);
+			break;
+		}
 		if(!sd->state.lr_flag)
 			sd->right_weapon.def_ratio_atk_ele |= 1<<val;
 		else if(sd->state.lr_flag == 1)
 			sd->left_weapon.def_ratio_atk_ele |= 1<<val;
 		break;
 	case SP_DEF_RATIO_ATK_RACE:
+		if(val >= RC_MAX) {
+			if(battle_config.error_log)
+				ShowError("pc_bonus: SP_DEF_RATIO_ATK_RACE: Invalid race %d\n", val);
+			break;
+		}
 		if(!sd->state.lr_flag)
 			sd->right_weapon.def_ratio_atk_race |= 1<<val;
 		else if(sd->state.lr_flag == 1)
@@ -1438,12 +1463,16 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 			sd->special_state.no_sizefix = 1;
 		break;
 	case SP_NO_MAGIC_DAMAGE:
-		if(sd->state.lr_flag != 2)
-			sd->special_state.no_magic_damage = 1;
+		if(sd->state.lr_flag == 2)
+			break;
+		val+= sd->special_state.no_magic_damage;
+		sd->special_state.no_magic_damage = cap_value(val,0,100);
 		break;
 	case SP_NO_WEAPON_DAMAGE:
-		if(sd->state.lr_flag != 2)
-			sd->special_state.no_weapon_damage = 1;
+		if(sd->state.lr_flag == 2)
+			break;
+		val+= sd->special_state.no_weapon_damage;
+		sd->special_state.no_weapon_damage = cap_value(val,0,100);
 		break;
 	case SP_NO_GEMSTONE:
 		if(sd->state.lr_flag != 2)
@@ -7283,7 +7312,7 @@ int pc_readdb(void)
 			max_level[job][type]--;
 		if (max_level[job][type] < max) {
 			ShowWarning("pc_readdb: Specified max %d for job %d, but that job's exp table only goes up to level %d.\n", max, job, max_level[job][type]);
-			ShowNotice("(You may still reach lv %d through scripts/gm-commands)\n");
+			ShowNotice("(You may still reach lv %d through scripts/gm-commands)\n", max);
 			max_level[job][type] = max;
 		}
 //		ShowDebug("%s - Class %d: %d\n", type?"Job":"Base", job, max_level[job][type]);
@@ -7359,8 +7388,8 @@ int pc_readdb(void)
 
 	// ?«C³ƒe?ƒuƒ‹
 	for(i=0;i<4;i++)
-		for(j=0;j<10;j++)
-			for(k=0;k<10;k++)
+		for(j=0;j<ELE_MAX;j++)
+			for(k=0;k<ELE_MAX;k++)
 				attr_fix_table[i][j][k]=100;
 
 	sprintf(line, "%s/attr_fix.txt", db_path);

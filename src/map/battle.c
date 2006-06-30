@@ -512,7 +512,15 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			if((--sci->val3)<=0 || (sci->val2<=0) || skill_num == AL_HOLYLIGHT)
 				status_change_end(bl, SC_KYRIE, -1);
 		}
-		if (damage <= 0) return 0;
+
+		//Special no damage states
+		if(flag&BF_WEAPON && sd && sd->special_state.no_weapon_damage)
+			damage -= damage*sd->special_state.no_weapon_damage/100;
+
+		if(flag&BF_MAGIC && sd && sd->special_state.no_magic_damage)
+			damage -= damage*sd->special_state.no_magic_damage/100;
+
+		if (!damage) return 0;
 	}
 	
 	//SC effects from caster side.
@@ -2240,9 +2248,6 @@ struct Damage battle_calc_magic_attack(
 	else if (s_ele == -2) //Use status element
 		s_ele = status_get_attack_sc_element(src);
 	
-	if (skill_num == ASC_BREAKER) // Soul Breaker's magical part is neutral, although pl=-1 for the physical part to take weapon element
-		s_ele = 0;
-
 	//Set miscellaneous data that needs be filled
 	if(sd) {
 		sd->state.arrow_atk = 0;
@@ -2549,12 +2554,6 @@ struct Damage battle_calc_magic_attack(
 	if (flag.infdef && ad.damage)
 		ad.damage/= ad.damage; //Why this? Because, well, if damage is absorbed, it should heal 1, not do 1 dmg.
 		
-	if (tsd && status_isimmune(target)) {
-		if (sd && battle_config.gtb_pvp_only)  { // [MouseJstr]
-			MATK_RATE(100 - battle_config.gtb_pvp_only);
-		} else ad.damage = 0;
-	}
-
 	ad.damage=battle_calc_damage(src,target,ad.damage,ad.div_,skill_num,skill_lv,ad.flag);
 	if (map_flag_gvg(target->m))
 		ad.damage=battle_calc_gvg_damage(src,target,ad.damage,ad.div_,skill_num,skill_lv,ad.flag);
@@ -3443,7 +3442,7 @@ static const struct battle_data_short {
 	{ "item_auto_get",                     &battle_config.item_auto_get			},
 	{ "drop_rate0item",                    &battle_config.drop_rate0item			},
 	{ "pvp_exp",                           &battle_config.pvp_exp		},
-	{ "gtb_pvp_only",                      &battle_config.gtb_pvp_only		},
+	{ "gtb_sc_immunity",                   &battle_config.gtb_sc_immunity},
 	{ "guild_max_castles",                 &battle_config.guild_max_castles		},
 	{ "death_penalty_type",                &battle_config.death_penalty_type		},
 	{ "death_penalty_base",                &battle_config.death_penalty_base		},
@@ -3838,7 +3837,7 @@ void battle_set_defaults() {
 	battle_config.base_exp_rate=100;
 	battle_config.job_exp_rate=100;
 	battle_config.pvp_exp=1;
-	battle_config.gtb_pvp_only=0;
+	battle_config.gtb_sc_immunity=50;
 	battle_config.death_penalty_type=0;
 	battle_config.death_penalty_base=0;
 	battle_config.death_penalty_job=0;
