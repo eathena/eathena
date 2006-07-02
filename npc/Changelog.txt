@@ -38,6 +38,8 @@ Playtester
 
 Date		Added
 ======
+07/02
+	* Moved Earth Petits away from the Coal Mine Entrance Map in eamobs [Playtester]
 06/30
 	* Implemented the Eye of Hellion Quest. [MasterOfMuppets]
 	* Completely updated Lighthalzen Field spawns to X.4 [Playtester]
