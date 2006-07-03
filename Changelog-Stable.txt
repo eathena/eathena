@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/03
+	* Testing commit requested by LittleWolf. [Euph]
 	* Merged the timer intervals to check for IP change updates. Use the
 	  login_athena "ip_sync_interval" setting if you run a server with dynamic
 	  ips. [Skotlex]
