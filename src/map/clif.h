@@ -4,19 +4,10 @@
 #ifndef _CLIF_H_
 #define _CLIF_H_
 
-#ifdef __WIN32
-typedef unsigned int in_addr_t;
-#else
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#endif
-
 #include "map.h"
 
 // protocol version
-#define PACKETVER			6
+#define PACKETVER			7
 
 // packet DB
 #define MAX_PACKET_DB		0x25f
@@ -30,11 +21,12 @@ struct packet_db {
 
 extern struct packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB];
 
-void clif_setip(char*);
+int clif_setip(char*);
 void clif_setbindip(char*);
 void clif_setport(int);
 
-in_addr_t clif_getip(void);
+unsigned long clif_getip_long(void);
+unsigned long clif_refresh_ip(void);
 int clif_getport(void);
 int clif_countusers(void);
 void clif_setwaitclose(int);

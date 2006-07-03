@@ -10,16 +10,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include <limits.h>
-#ifdef __WIN32
-#define __USE_W32_SOCKETS
-#include <windows.h>
-#else
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#endif
 #include <time.h>
 
 #include "../common/socket.h"
@@ -166,7 +156,7 @@ enum {
 
 //To idenfity disguised characters.
 #define disguised(bl) (bl->type==BL_PC && ((TBL_PC*)bl)->disguise)
-static char map_ip_str[16];
+static char map_ip_str[128];
 static in_addr_t map_ip;
 static in_addr_t bind_ip = INADDR_ANY;
 static int map_port = 5121;
@@ -185,15 +175,29 @@ static void clif_hpmeter_single(int fd, struct map_session_data *sd);
  * mapŽI‚ÌipÝ’è
  *------------------------------------------
  */
-void clif_setip(char *ip)
+int clif_setip(char *ip)
 {
-	memcpy(map_ip_str, ip, 16);
-	map_ip = inet_addr(map_ip_str);
+	char ip_str[16];
+	map_ip = resolve_hostbyname(ip,NULL,ip_str);
+	if (!map_ip) {
+		ShowWarning("Failed to Resolve Map Server Address! (%s)\n", ip);
+		return 0;
+	}
+
+	strncpy(map_ip_str, ip, sizeof(map_ip_str));
+	ShowInfo("Map Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", ip, ip_str);
+	return 1;
 }
 
 void clif_setbindip(char *ip)
 {
-	bind_ip = inet_addr(ip);
+	unsigned char ip_str[4];
+	bind_ip = resolve_hostbyname(ip,ip_str,NULL);
+	if (bind_ip) {
+		ShowInfo("Map Server Bind IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%d.%d.%d.%d"CL_RESET"'.\n", ip, ip_str[0], ip_str[1], ip_str[2], ip_str[3]);
+	} else {
+		ShowWarning("Failed to Resolve Map Server Address! (%s)\n", ip);
+	}
 }
 
 /*==========================================
@@ -212,6 +216,26 @@ void clif_setport(int port)
 in_addr_t clif_getip(void)
 {
 	return map_ip;
+}
+
+//Returns the ip casted as a basic type, to avoid needing to include the socket/net related libs by calling modules.
+unsigned long clif_getip_long(void)
+{
+	return (unsigned long)map_ip;
+}
+
+//Refreshes map_server ip, returns the new ip if the ip changed, otherwise it 
+//returns 0.
+unsigned long clif_refresh_ip(void) {
+	in_addr_t new_ip;
+
+	new_ip = resolve_hostbyname(map_ip_str, NULL, NULL);
+	if (new_ip && new_ip != map_ip) {
+		map_ip = new_ip;
+		ShowInfo("Updating IP resolution of [%s].\n",map_ip_str);
+		return (unsigned long)map_ip;
+	}
+	return 0;
 }
 
 /*==========================================
@@ -1615,9 +1639,6 @@ int clif_changemap(struct map_session_data *sd, short map, int x, int y) {
 	WFIFOW(fd,20) = y;
 	WFIFOSET(fd, packet_len_table[0x91]);
 
-	if(pc_isdead(sd)) // If player is dead, and is spawned (such as @refresh) send death packet. [Valaris]
-		clif_clearchar_area(&sd->bl,1);
-
 	return 0;
 }
 
@@ -2680,7 +2701,7 @@ int clif_changelook(struct block_list *bl,int type,int val)
 		WBUFW(buf,9)=vd->shield;
 		clif_send(buf,packet_len_table[0x1d7],bl,AREA);
 	}
-	else if(type == LOOK_BASE && val > 255)
+	else
 	{
 		WBUFW(buf,0)=0x1d7;
 		WBUFL(buf,2)=bl->id;
@@ -2688,12 +2709,6 @@ int clif_changelook(struct block_list *bl,int type,int val)
 		WBUFW(buf,7)=val;
 		WBUFW(buf,9)=0;
 		clif_send(buf,packet_len_table[0x1d7],bl,AREA);
-	} else {
-		WBUFW(buf,0)=0xc3;
-		WBUFL(buf,2)=bl->id;
-		WBUFB(buf,6)=type;
-		WBUFB(buf,7)=val;
-		clif_send(buf,packet_len_table[0xc3],bl,AREA);
 	}
 #endif
 	return 0;
@@ -2710,21 +2725,12 @@ void clif_changetraplook(struct block_list *bl,int val)
 	WBUFB(buf,7)=val;
 	clif_send(buf,packet_len_table[0xc3],bl,AREA);
 #else
-	if (val > 255)
-	{
-		WBUFW(buf,0)=0x1d7;
-		WBUFL(buf,2)=bl->id;
-		WBUFB(buf,6)=LOOK_BASE;
-		WBUFW(buf,7)=val;
-		WBUFW(buf,9)=0;
-		clif_send(buf,packet_len_table[0x1d7],bl,AREA);
-	} else {
-		WBUFW(buf,0)=0xc3;
-		WBUFL(buf,2)=bl->id;
-		WBUFB(buf,6)=LOOK_BASE;
-		WBUFB(buf,7)=val;
-		clif_send(buf,packet_len_table[0xc3],bl,AREA);
-	}
+	WBUFW(buf,0)=0x1d7;
+	WBUFL(buf,2)=bl->id;
+	WBUFB(buf,6)=LOOK_BASE;
+	WBUFW(buf,7)=val;
+	WBUFW(buf,9)=0;
+	clif_send(buf,packet_len_table[0x1d7],bl,AREA);
 #endif
 
 	
@@ -2741,21 +2747,12 @@ void clif_refreshlook(struct block_list *bl,int id,int type,int val,int area)
 	WBUFB(buf,7)=val;
 	clif_send(buf,packet_len_table[0xc3],bl,area);
 #else
-	if(type == LOOK_BASE && val > 255)
-	{
-		WBUFW(buf,0)=0x1d7;
-		WBUFL(buf,2)=id;
-		WBUFB(buf,6)=type;
-		WBUFW(buf,7)=val;
-		WBUFW(buf,9)=0;
-		clif_send(buf,packet_len_table[0x1d7],bl,area);
-	} else {
-		WBUFW(buf,0)=0xc3;
-		WBUFL(buf,2)=id;
-		WBUFB(buf,6)=type;
-		WBUFB(buf,7)=val;
-		clif_send(buf,packet_len_table[0xc3],bl,area);
-	}
+	WBUFW(buf,0)=0x1d7;
+	WBUFL(buf,2)=id;
+	WBUFB(buf,6)=type;
+	WBUFW(buf,7)=val;
+	WBUFW(buf,9)=0;
+	clif_send(buf,packet_len_table[0x1d7],bl,area);
 #endif
 	return;
 }
@@ -7921,6 +7918,13 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	
 	if(sd->bl.prev != NULL)
 		return;
+		
+	if (sd->state.rewarp)
+  	{	//Rewarp player.
+		sd->state.rewarp = 0;
+		clif_changemap(sd,sd->mapindex,sd->bl.x,sd->bl.y);
+		return;
+	}
 
 	if(sd->npc_id) npc_event_dequeue(sd);
 
@@ -8084,8 +8088,9 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	else
 		sd->areanpc_id = 0;
 
-	if (pc_isdead(sd)) //In case you warped dead.
-		clif_clearchar_area(&sd->bl, 1);
+  	// If player is dead, and is spawned (such as @refresh) send death packet. [Valaris]
+	if(pc_isdead(sd))
+		clif_clearchar_area(&sd->bl,1);
 }
 
 /*==========================================

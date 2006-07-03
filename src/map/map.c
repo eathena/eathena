@@ -5,13 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#ifdef _WIN32
-#include <winsock.h>
-#else
-#include <netdb.h>
+#include <math.h>
+
+#ifndef _WIN32
 #include <unistd.h>
 #endif
-#include <math.h>
 
 #include "../common/core.h"
 #include "../common/timer.h"
@@ -513,9 +511,9 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick) {
 	if (bl->type&BL_CHAR) {
 		skill_unit_move(bl,tick,3);
 		if (sc) {
-			if (sc->option&OPTION_CLOAK)
-				skill_check_cloaking(bl);
 			if (sc->count) {
+				if (sc->data[SC_CLOAKING].timer != -1)
+					skill_check_cloaking(bl);
 				if (sc->data[SC_DANCING].timer != -1) {
 					//Cancel Moonlight Petals if moved from casting position. [Skotlex]
 					if (sc->data[SC_DANCING].val1 == CG_MOONLIT)
@@ -1133,13 +1131,13 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 				bl = map[m].block[bx+by*map[m].bxs];
 				c = map[m].block_count[bx+by*map[m].bxs];
 				for(i=0;i<c && bl;i++,bl=bl->next){
-					if(bl && bl->type&type && bl_list_count<BL_LIST_MAX)
+					if(bl && bl->prev && bl->type&type && bl_list_count<BL_LIST_MAX)
 					{
 						xi = bl->x;
 						yi = bl->y;
 					
 						k = (xi-x0)*(x1-x0) + (yi-y0)*(y1-y0);
-						if (k < 0)// || k > magnitude2) //No check to see if it lies after the target's point.
+						if (k < 0 || k > magnitude2) //Since more skills use this, check for ending point as well.
 							continue;
 					
 						//All these shifts are to increase the precision of the intersection point and distance considering how it's
@@ -1166,12 +1164,12 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 				bl = map[m].block_mob[bx+by*map[m].bxs];
 				c = map[m].block_mob_count[bx+by*map[m].bxs];
 				for(i=0;i<c && bl;i++,bl=bl->next){
-					if(bl && bl_list_count<BL_LIST_MAX)
+					if(bl && bl->prev && bl_list_count<BL_LIST_MAX)
 					{
 						xi = bl->x;
 						yi = bl->y;
 						k = (xi-x0)*(x1-x0) + (yi-y0)*(y1-y0);
-						if (k < 0)// || k > magnitude2) //No check to see if it lies after the target's point.
+						if (k < 0 || k > magnitude2)
 							continue;
 					
 						k = (k<<4)/magnitude2; //k will be between 1~16 instead of 0~1
@@ -1196,13 +1194,12 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 			ShowWarning("map_foreachinpath: block count too many!\n");
 	}
 
-	map_freeblock_lock();	// メモリからの解放を禁止する
+	map_freeblock_lock();
 
 	for(i=blockcount;i<bl_list_count;i++)
-		if(bl_list[i]->prev)	// 有?かどうかチェック
-			returnCount += func(bl_list[i],ap);
+		returnCount += func(bl_list[i],ap);
 
-	map_freeblock_unlock();	// 解放を許可する
+	map_freeblock_unlock();
 
 	va_end(ap);
 	bl_list_count = blockcount;
@@ -1483,8 +1480,10 @@ int map_search_freecell(struct block_list *src, int m, short *x,short *y, int rx
 	if (rx >= 0 && ry >= 0) {
 		tries = rx2*ry2;
 		if (tries > 100) tries = 100;
-	} else
-		tries = 1000; //Must retry a lot for maps with many non-walkable tiles.
+	} else {
+		tries = map[m].xs*map[m].ys;
+		if (tries > 500) tries = 500;
+	}
 	
 	while(tries--) {
 		*x = (rx >= 0)?(rand()%rx2-rx+bx):(rand()%(map[m].xs-2)+1);
@@ -1497,12 +1496,15 @@ int map_search_freecell(struct block_list *src, int m, short *x,short *y, int rx
 		{
 			if(flag&2 && !unit_can_reach_pos(src, *x, *y, 1))
 				continue;
-			if(flag&4 && spawn++ < battle_config.no_spawn_on_player &&
-				map_foreachinarea(map_count_sub, m,
-					*x-AREA_SIZE, *y-AREA_SIZE, *x+AREA_SIZE, *y+AREA_SIZE, BL_PC)
-			)
+			if(flag&4) {
+				if (spawn >= 100) return 0; //Limit of retries reached.
+				if (spawn++ < battle_config.no_spawn_on_player &&
+					map_foreachinarea(map_count_sub, m,
+						*x-AREA_SIZE, *y-AREA_SIZE,
+					  	*x+AREA_SIZE, *y+AREA_SIZE, BL_PC)
+				)
 				continue;
-
+			}
 			return 1;
 		}
 	}
@@ -2312,7 +2314,7 @@ int map_setipport(unsigned short mapindex,unsigned long ip,int port) {
 	
 	if(mdos->gat) //Local map,Do nothing. Give priority to our own local maps over ones from another server. [Skotlex]
 		return 0;
-	if(ip == clif_getip() && port == clif_getport()) {
+	if(ip == clif_getip_long() && port == clif_getport()) {
 		//That's odd, we received info that we are the ones with this map, but... we don't have it.
 		ShowFatalError("map_setipport : received info that this map-server SHOULD have map '%s', but it is not loaded.\n",mapindex_id2name(mapindex));
 		exit(1);
@@ -2670,9 +2672,8 @@ static int map_cache_write(struct map_data *m)
 			map_cache.map[i].water_height = m->water_height;
 			map_cache.head.filesize += len_new;
 			map_cache.dirty = 1;
-			if(map_read_flag == 2) {
+			if(map_read_flag == 2)
 				aFree(write_buf);
-			}
 			return 0;
 		}
 	}
@@ -2800,16 +2801,18 @@ static int map_loadafm (struct map_data *m, char *fn)
 		int afm_size[2];
 		char *str;
 
+		//Gotta skip the first two lines which are just a header of sorts.
 		str = fgets(afm_line, sizeof(afm_line)-1, afm_file);
 		str = fgets(afm_line, sizeof(afm_line)-1, afm_file);
 		str = fgets(afm_line, sizeof(afm_line)-1, afm_file);
+		if (!str) return 0;
 		sscanf(str , "%d%d", &afm_size[0], &afm_size[1]);
 
 		xs = m->xs = afm_size[0];
 		ys = m->ys = afm_size[1];
 		m->water_height = map_waterheight(m->name);
 		// check this, unsigned where it might not need to be
-		m->gat = (unsigned char*)aCallocA(xs * ys, 1);
+		m->gat = (unsigned char*)aMallocA(xs * ys);
 
 		for (y = 0; y < ys; y++) {
 			str = fgets(afm_line, sizeof(afm_line)-1, afm_file);
@@ -2837,6 +2840,8 @@ int map_readafm (struct map_data *m)
 		// check if it's necessary to replace the extension - speeds up loading a bit
 		strncpy(afm_name, m->name, strlen(m->name) - 4);
 		strcat(afm_name, ".afm");
+	} else {
+		strcpy(afm_name, m->name);
 	}
 	
 	sprintf(fn, "%s\\%s", afm_dir, afm_name);
@@ -2905,20 +2910,13 @@ int map_readaf2 (struct map_data *m)
  */
 int map_readgat (struct map_data *m)
 {
-	char fn[256], *pt;
+	char fn[256];
 	char *gat;
 	int wh,x,y,xs,ys;
 	struct gat_1cell {float high[4]; int type;} *p = NULL;
 	
 	if (strstr(m->name,".gat") == NULL)
 		return 0;
-
-	if ((pt = strstr(m->name,"<")) != NULL) { // [MouseJstr]
-		char buf[64];
-		*pt++ = '\0';
-		sprintf(buf,"data\\%s", pt);
-		m->alias = aStrdup(buf);
-	}
 
 	sprintf(fn,"data\\%s",m->name);
 
@@ -3135,10 +3133,7 @@ int map_readallmaps (void)
 
 				size = map[i].bxs * map[i].bys * sizeof(int);
 				map[i].block_count = (int*)aCallocA(size, 1);
-				memset(map[i].block_count, 0, size);
-
 				map[i].block_mob_count = (int*)aCallocA(size, 1);
-				memset(map[i].block_mob_count, 0, size);
 
 				uidb_put(map_db, (unsigned int)map[i].index, &map[i]);
 
@@ -3181,10 +3176,8 @@ int map_readallmaps (void)
 }
 
 ////////////////////////////////////////////////////////////////////////
-
-static int map_ip_set_ = 0;
-static int char_ip_set_ = 0;
-//static int bind_ip_set_ = 0;
+static int map_ip_set = 0;
+static int char_ip_set = 0;
 
 /*==========================================
  * Console Command Parser [Wizputer]
@@ -3196,7 +3189,7 @@ int parse_console(char *buf) {
 	int m, n;
 	struct map_session_data *sd;
 
-	sd = (struct map_session_data*)aCalloc(sizeof(*sd), 1);
+	sd = (struct map_session_data*)aCalloc(sizeof(struct map_session_data), 1);
 
 	sd->fd = 0;
 	strcpy( sd->status.name , "console");
@@ -3273,7 +3266,6 @@ int parse_console(char *buf) {
 int map_config_read(char *cfgName) {
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
-	struct hostent *h = NULL;
 
 	fp = fopen(cfgName,"r");
 	if (fp == NULL) {
@@ -3295,30 +3287,12 @@ int map_config_read(char *cfgName) {
 			} else if (strcmpi(w1, "passwd") == 0) {
 				chrif_setpasswd(w2);
 			} else if (strcmpi(w1, "char_ip") == 0) {
-				char_ip_set_ = 1;
-				h = gethostbyname (w2);
-				if(h != NULL) {
-					ShowInfo("Char Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%d.%d.%d.%d"CL_RESET"'.\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-					sprintf(w2,"%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-				}
-				chrif_setip(w2);
+				char_ip_set = chrif_setip(w2);
 			} else if (strcmpi(w1, "char_port") == 0) {
 				chrif_setport(atoi(w2));
 			} else if (strcmpi(w1, "map_ip") == 0) {
-				map_ip_set_ = 1;
-				h = gethostbyname (w2);
-				if (h != NULL) {
-					ShowInfo("Map Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%d.%d.%d.%d"CL_RESET"'.\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-					sprintf(w2, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-				}
-				clif_setip(w2);
+				map_ip_set = clif_setip(w2);
 			} else if (strcmpi(w1, "bind_ip") == 0) {
-				//bind_ip_set_ = 1;
-				h = gethostbyname (w2);
-				if (h != NULL) {
-					ShowInfo("Map Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%d.%d.%d.%d"CL_RESET"'.\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-					sprintf(w2, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-				}
 				clif_setbindip(w2);
 			} else if (strcmpi(w1, "map_port") == 0) {
 				clif_setport(atoi(w2));
@@ -3848,26 +3822,25 @@ int do_init(int argc, char *argv[]) {
 	map_config_read(MAP_CONF_NAME);
 	chrif_checkdefaultlogin();
 
-	if ((naddr_ == 0) && (map_ip_set_ == 0 || char_ip_set_ == 0)) {
-		ShowError("\nUnable to determine your IP address... please edit the map_athena.conf file and set it.\n");
-		ShowError("(127.0.0.1 is valid if you have no network interface)\n");
-	}
-
-	if (map_ip_set_ == 0 || char_ip_set_ == 0) {
+	if (!map_ip_set || !char_ip_set) {
 		// The map server should know what IP address it is running on
 		//   - MouseJstr
 		int localaddr = ntohl(addr_[0]);
 		unsigned char *ptr = (unsigned char *) &localaddr;
 		char buf[16];
+		if (naddr_ == 0) {
+			ShowError("\nUnable to determine your IP address... please edit the map_athena.conf file and set it.\n");
+			ShowError("(127.0.0.1 is valid if you have no network interface)\n");
+		}
 		sprintf(buf, "%d.%d.%d.%d", ptr[0], ptr[1], ptr[2], ptr[3]);;
 		if (naddr_ != 1)
 			ShowNotice("Multiple interfaces detected..  using %s as our IP address\n", buf);
 		else
 			ShowInfo("Defaulting to %s as our IP address\n", buf);
-		if (map_ip_set_ == 0)
+		if (!map_ip_set)
 			clif_setip(buf);
-		if (char_ip_set_ == 0)
-				chrif_setip(buf);
+		if (!char_ip_set)
+			chrif_setip(buf);
 		if (ptr[0] == 192 && ptr[1] == 168)
 			ShowNotice("\nFirewall detected.. \n    edit subnet_athena.conf and map_athena.conf\n\n");
 	}

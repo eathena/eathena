@@ -7,25 +7,10 @@
 #ifdef __WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <winsock2.h>
-#include <time.h>
-void Gettimeofday(struct timeval *timenow)
-{
-	time_t t;
-	t = clock();
-	timenow->tv_usec = (long)t;
-	timenow->tv_sec = (long)(t / CLK_TCK);
-	return;
-}
-#define gettimeofday(timenow, dummy) Gettimeofday(timenow)
-#define in_addr_t unsigned long
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <sys/time.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
 #include <arpa/inet.h>
-#include <netdb.h>
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,7 +40,7 @@ void Gettimeofday(struct timeval *timenow)
 int account_id_count = START_ACCOUNT_NUM;
 int server_num;
 int new_account_flag = 0;
-int bind_ip_set_ = 0;
+in_addr_t bind_ip= 0;
 char bind_ip_str[128];
 int login_port = 6900;
 
@@ -120,7 +105,7 @@ int check_ip_flag = 1; // It's to check IP of a player between login-server and 
 
 int check_client_version = 0; //Client version check ON/OFF .. (sirius)
 int client_version_to_connect = 20; //Client version needed to connect ..(sirius)
-
+static int ip_sync_interval = 0;
 
 
 struct login_session_data {
@@ -186,6 +171,8 @@ int dynamic_pass_failure_ban_how_long = 1;
 int use_md5_passwds = 0;
 
 int console = 0;
+
+int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len);
 
 //------------------------------
 // Writing function of logs file
@@ -256,6 +243,14 @@ int waiting_disconnect_timer(int tid, unsigned int tick, int id, int data)
 	struct online_login_data *p;
 	if ((p= idb_get(online_db, id)) != NULL && p->waiting_disconnect)
 		remove_online_user(p->account_id);
+	return 0;
+}
+
+static int sync_ip_addresses(int tid, unsigned int tick, int id, int data){
+	unsigned char buf[2];
+	ShowInfo("IP Sync in progress...\n");
+	WBUFW(buf,0) = 0x2735;
+	charif_sendallwos(-1, buf, 2);
 	return 0;
 }
 
@@ -1887,7 +1882,7 @@ int parse_fromchar(int fd) {
 			}
 			{
 				struct online_login_data *p;
-				int aid, i, users;
+				int aid, users;
 				online_db->foreach(online_db,online_db_setoffline,id); //Set all chars from this char-server offline first
 				users = RFIFOW(fd,4);
 				for (i = 0; i < users; i++) {
@@ -1929,11 +1924,21 @@ int parse_fromchar(int fd) {
 			}
 			break;
 
+		case 0x2736: // WAN IP update from char-server
+			if (RFIFOREST(fd) < 6)
+				return 0;
+			ShowInfo("Updated IP of Server #%d to %d.%d.%d.%d.\n",id,
+			(int)RFIFOB(fd,2),(int)RFIFOB(fd,3),
+			(int)RFIFOB(fd,4),(int)RFIFOB(fd,5));
+			server[id].ip = RFIFOL(fd,2);
+			RFIFOSKIP(fd,6);
+			break;
+
 		case 0x3000: //change sex for chrif_changesex()
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
 			{
-				unsigned int sex,i = 0;
+				unsigned int sex;
 				acc = RFIFOL(fd,4);
 				sex = RFIFOB(fd,8);
 				if (sex != 0 && sex != 1)
@@ -3537,7 +3542,6 @@ int login_lan_config_read(const char *lancfgName) {
 // Reading general configuration file
 //-----------------------------------
 int login_config_read(const char *cfgName) {
-	struct hostent *h = NULL;
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
 
@@ -3602,13 +3606,9 @@ int login_config_read(const char *cfgName) {
 			} else if (strcmpi(w1, "new_account") == 0) {
 				new_account_flag = config_switch(w2);
 			} else if (strcmpi(w1, "bind_ip") == 0) {
-				bind_ip_set_ = 1;
-				h = gethostbyname (w2);
-				if (h != NULL) {
-					ShowStatus("Login server binding IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-					sprintf(bind_ip_str, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-				} else
-					memcpy(bind_ip_str,w2,16);
+				bind_ip = resolve_hostbyname(w2, NULL, bind_ip_str);
+				if (bind_ip) 
+					ShowStatus("Login server binding IP address : %s -> %s\n", w2, bind_ip_str);
 			} else if (strcmpi(w1, "login_port") == 0) {
 				login_port = atoi(w2);
 			} else if (strcmpi(w1, "account_filename") == 0) {
@@ -3755,6 +3755,8 @@ int login_config_read(const char *cfgName) {
 					online_check = atoi(w2);
 			} else if (strcmpi(w1, "import") == 0) {
 				login_config_read(w2);
+			} else if(strcmpi(w1,"ip_sync_interval")==0) {
+				ip_sync_interval = 1000*60*atoi(w2); //w2 comes in minutes.
 			}
 		}
 	}
@@ -4116,10 +4118,7 @@ int do_init(int argc, char **argv) {
 	online_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));	// reinitialise
 	add_timer_func_list(waiting_disconnect_timer, "waiting_disconnect_timer");
 
-	if (bind_ip_set_)
-		login_fd = make_listen_bind(inet_addr(bind_ip_str),login_port);
-	else
-		login_fd = make_listen_bind(INADDR_ANY,login_port);
+	login_fd = make_listen_bind(bind_ip?bind_ip:INADDR_ANY,login_port);
 
 	add_timer_func_list(check_auth_sync, "check_auth_sync");
 	add_timer_interval(gettick() + 60000, check_auth_sync, 0, 0, 60000); // every 60 sec we check if we must save accounts file (only if necessary to save)
@@ -4135,6 +4134,11 @@ int do_init(int argc, char **argv) {
 	
 	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
 	add_timer_interval(gettick() + 600*1000, online_data_cleanup, 0, 0, 600*1000); // every 10 minutes cleanup online account db.
+	
+	if (ip_sync_interval) {
+		add_timer_func_list(sync_ip_addresses, "sync_ip_addresses");
+		add_timer_interval(gettick() + ip_sync_interval, sync_ip_addresses, 0, 0, ip_sync_interval);
+	}
 	if(console) {
 		set_defaultconsoleparse(parse_console);
 	   	start_console();

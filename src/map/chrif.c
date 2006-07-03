@@ -4,14 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef _WIN32
-#include <winsock.h>
-#else
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#endif
 #include <sys/types.h>
 #include <time.h>
 #include <limits.h>
@@ -87,7 +79,7 @@ static const int packet_len_table[0x3d] = {
 //2b1b: Incomming, chrif_recvfamelist -> 'Receive fame ranking lists'
 //2b1c: Outgoing, chrif_save_scdata -> 'Send sc_data of player for saving.'
 //2b1d: Incomming, chrif_load_scdata -> 'received sc_data of player for loading.'
-//2b1e: FREE
+//2b1e: Incoming, chrif_update_ip -> 'Reqest forwarded from char-server for interserver IP sync.' [Lance]
 //2b1f: Incomming, chrif_disconnectplayer -> 'disconnects a player (aid X) with the message XY ... 0x81 ..' [Sirius]
 //2b20: Incomming, chrif_removemap -> 'remove maps of a server (sample: its going offline)' [Sirius]
 //2b21-2b27: FREE
@@ -95,8 +87,8 @@ static const int packet_len_table[0x3d] = {
 int chrif_connected;
 int char_fd = 0; //Using 0 instead of -1 is safer against crashes. [Skotlex]
 int srvinfo;
-static char char_ip_str[16];
-static int char_ip;
+static char char_ip_str[128];
+static in_addr_t char_ip= 0;
 static int char_port = 6121;
 static char userid[NAME_LENGTH], passwd[NAME_LENGTH];
 static int chrif_state = 0;
@@ -150,10 +142,18 @@ void chrif_checkdefaultlogin(void)
  *
  *------------------------------------------
  */
-void chrif_setip(char *ip)
+int chrif_setip(char *ip)
 {
-	memcpy(&char_ip_str, ip, 16);
-	char_ip = inet_addr(char_ip_str);
+	char ip_str[16];
+	char_ip = resolve_hostbyname(ip,NULL,ip_str);
+
+	if (!char_ip) {
+		ShowWarning("Failed to Resolve Char Server Address! (%s)\n", ip);
+		return 0;
+	}
+	strncpy(char_ip_str, ip, sizeof(char_ip_str));
+	ShowInfo("Char Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", ip, ip_str);
+	return 1;
 }
 
 /*==========================================
@@ -238,7 +238,7 @@ int chrif_connect(int fd)
 	memcpy(WFIFOP(fd,2), userid, NAME_LENGTH);
 	memcpy(WFIFOP(fd,26), passwd, NAME_LENGTH);
 	WFIFOL(fd,50) = 0;
-	WFIFOL(fd,54) = clif_getip();
+	WFIFOL(fd,54) = clif_getip_long();
 	WFIFOW(fd,58) = clif_getport();	// [Valaris] thanks to fov
 	WFIFOSET(fd,60);
 
@@ -416,7 +416,7 @@ int chrif_sendmapack(int fd)
 
 	//If there are players online, send them to the char-server. [Skotlex]
 	send_users_tochar(-1, gettick(), 0, 0);
-
+	
 	//Re-save any storages that were modified in the disconnection time. [Skotlex]
 	do_reconnect_storage();
 
@@ -469,13 +469,13 @@ void chrif_authreq(struct map_session_data *sd)
 			aFree(auth_data->char_dat);
 		idb_remove(auth_db, sd->bl.id);
 	} else { //data from char server has not arrived yet.
-		auth_data = aCalloc(1, sizeof(struct auth_node));
+		auth_data = aCalloc(1,sizeof(struct auth_node));
 		auth_data->sd = sd;
 		auth_data->fd = sd->fd;
 		auth_data->account_id = sd->bl.id;
 		auth_data->login_id1 = sd->login_id1;
 		auth_data->node_created = gettick();
-		idb_put(auth_db, sd->bl.id, auth_data);
+		uidb_put(auth_db, sd->bl.id, auth_data);
 	}
 	return;
 }
@@ -515,8 +515,8 @@ void chrif_authok(int fd) {
 		return;
 	}
 	// Awaiting for client to connect.
-	auth_data = (struct auth_node *)aCalloc(1, sizeof(struct auth_node));
-	auth_data->char_dat = (struct mmo_charstatus *) aCalloc(1, sizeof(struct mmo_charstatus));
+	auth_data = (struct auth_node *)aCalloc(1,sizeof(struct auth_node));
+	auth_data->char_dat = (struct mmo_charstatus *) aCalloc(1,sizeof(struct mmo_charstatus));
 
 	auth_data->account_id=RFIFOL(fd, 4);
 	auth_data->login_id1=RFIFOL(fd, 8);
@@ -1416,6 +1416,20 @@ int chrif_disconnect(int fd) {
 	return 0;
 }
 
+void chrif_update_ip(int fd){
+	unsigned long new_ip;
+
+	new_ip = resolve_hostbyname(char_ip_str, NULL, NULL);
+	if (new_ip && new_ip != char_ip)
+		char_ip = new_ip; //Update char_ip
+
+	new_ip = clif_refresh_ip();
+	if (!new_ip) return; //No change
+	WFIFOW(fd, 0) = 0x2736;
+	WFIFOL(fd, 2) = new_ip;
+	WFIFOSET(fd, 6);
+}
+
 /*==========================================
  *
  *------------------------------------------
@@ -1479,6 +1493,7 @@ int chrif_parse(int fd)
 		case 0x2b15: chrif_recvgmaccounts(fd); break;
 		case 0x2b1b: chrif_recvfamelist(fd); break;
 		case 0x2b1d: chrif_load_scdata(fd); break;
+		case 0x2b1e: chrif_update_ip(fd); break;
 		case 0x2b1f: chrif_disconnectplayer(fd); break;
 		case 0x2b20: chrif_removemap(fd); break; //Remove maps of a server [Sirius]
 

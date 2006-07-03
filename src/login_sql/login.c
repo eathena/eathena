@@ -5,32 +5,15 @@
 
 #ifdef LCCWIN32
 #include <winsock.h>
-#pragma lib <libmysql.lib>
 #else
 #ifdef __WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winsock2.h>
-#include <time.h>
-void Gettimeofday(struct timeval *timenow)
-{
-	time_t t;
-	t = clock();
-	timenow->tv_usec = (long)t;
-	timenow->tv_sec = (long)(t / CLK_TCK);
-	return;
-}
-#define gettimeofday(timenow, dummy) Gettimeofday(timenow)
-#define in_addr_t unsigned long
-#pragma comment(lib,"libmysql.lib")
 #else
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/time.h>
-#include <sys/ioctl.h>
+#include <netinet/in.h> 
 #include <arpa/inet.h>
-#include <netdb.h>
-#include <unistd.h>
 #endif
 #endif
 
@@ -53,6 +36,7 @@ void Gettimeofday(struct timeval *timenow)
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
 #include "../common/version.h"
+#include "../common/cbasetypes.h"
 #include "login.h"
 
 #ifdef PASSWORDENC
@@ -66,7 +50,7 @@ void Gettimeofday(struct timeval *timenow)
 //-----------------------------------------------------
 int server_num;
 int new_account_flag = 0; //Set from config too XD [Sirius]
-int bind_ip_set_ = 0;
+in_addr_t bind_ip= 0;
 char bind_ip_str[128];
 int login_port = 6900;
 
@@ -99,6 +83,7 @@ int check_ip_flag = 1; // It's to check IP of a player between login-server and 
 int check_client_version = 0; //Client version check ON/OFF .. (sirius)
 int client_version_to_connect = 20; //Client version needed to connect ..(sirius)
 static int online_check=1; //When set to 1, login server rejects incoming players that are already registered as online. [Skotlex]
+static int ip_sync_interval = 0;
 
 MYSQL mysql_handle;
 
@@ -172,6 +157,8 @@ static void* create_online_user(DBKey key, va_list args) {
 	return p;	
 }
 
+int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len);
+
 //-----------------------------------------------------
 // Online User Database [Wizputer]
 //-----------------------------------------------------
@@ -204,6 +191,14 @@ int waiting_disconnect_timer(int tid, unsigned int tick, int id, int data)
 	struct online_login_data *p;
 	if ((p= idb_get(online_db, id)) != NULL && p->waiting_disconnect)
 		remove_online_user(id);
+	return 0;
+}
+
+static int sync_ip_addresses(int tid, unsigned int tick, int id, int data){
+	unsigned char buf[2];
+	ShowInfo("IP Sync in progress...\n");
+	WBUFW(buf,0) = 0x2735;
+	charif_sendallwos(-1, buf, 2);
 	return 0;
 }
 
@@ -241,8 +236,6 @@ void read_gm_account(void) {
 		mysql_free_result(sql_res);
 	}
 }
-
-int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len);
 
 //-----------------------------------------------------
 // Send GM accounts to all char-server
@@ -394,7 +387,7 @@ int mmo_auth_sqldb_init(void) {
 
 	if (log_login)
 	{
-		sprintf(tmpsql, "INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver', '100','login server started')", loginlog_db);
+		sprintf(tmpsql, "INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '0', 'lserver','100','login server started')", loginlog_db);
 
 		//query
 		if (mysql_query(&mysql_handle, tmpsql)) {
@@ -428,7 +421,7 @@ void mmo_db_close(void) {
 	//set log.
 	if (log_login)
 	{
-		sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver','100', 'login server shutdown')", loginlog_db);
+		sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '0', 'lserver','100', 'login server shutdown')", loginlog_db);
 
 		//query
 		if (mysql_query(&mysql_handle, tmpsql)) {
@@ -478,7 +471,7 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 		ShowNotice("Account registration denied (registration limit exceeded)\n");
 		return 3;
 	}
-	
+
 	//Check for preexisting account
 	sprintf(tmp_sql, "SELECT `%s` FROM `%s` WHERE `userid` = '%s'", login_db_userid, login_db, account->userid);
 	if(mysql_query(&mysql_handle, tmp_sql)){
@@ -507,7 +500,7 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 	ShowInfo("New account: user: %s with passwd: %s sex: %c\n", account->userid, user_password, sex);
 
 	sprintf(tmp_sql, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_db, login_db_userid, login_db_user_pass, account->userid, user_password, sex, "a@a.com");
-		
+
 	if(mysql_query(&mysql_handle, tmp_sql)){
 		//Failed to insert new acc :/
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -543,10 +536,6 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 
 	return 0;
 }
-
-#ifdef LCCWIN32
-extern void gettimeofday(struct timeval *t, struct timezone *dummy);
-#endif
 
 // Send to char
 int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len) {
@@ -591,10 +580,10 @@ int mmo_auth( struct mmo_account* account , int fd){
 
 	sprintf(ip, "%d.%d.%d.%d", sin_addr[0], sin_addr[1], sin_addr[2], sin_addr[3]);
 	//ShowInfo("auth start for %s...\n", ip);
-	
+
 	//accountreg with _M/_F .. [Sirius]
 	len = strlen(account->userid) -2;
-	
+
 	if (account->passwdenc == 0 && account->userid[len] == '_' &&
 		(account->userid[len+1] == 'F' || account->userid[len+1] == 'M' ||
 		account->userid[len+1] == 'f' || account->userid[len+1] == 'm') &&
@@ -645,7 +634,7 @@ int mmo_auth( struct mmo_account* account , int fd){
 		ShowError("mmo_auth DB result error ! \n");
 		return 0;
 	}
-	
+
 	//Client Version check[Sirius]
 	if(check_client_version == 1 && account->version != 0){
 		if(account->version != client_version_to_connect){
@@ -919,7 +908,7 @@ int parse_fromchar(int fd){
 		case 0x2709:
 			if (log_login)
 			{
-				sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s','%s', 'GM reload request')", loginlog_db, p[0], p[1], p[2], p[3], server[id].name, RETCODE);
+				sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%lu', '%s','%s', 'GM reload request')", loginlog_db, *((ulong *)p),server[id].name, RETCODE);
 				if (mysql_query(&mysql_handle, tmpsql)) {
 					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -1263,7 +1252,7 @@ int parse_fromchar(int fd){
 					sscanf(RFIFOP(fd,p), "%255c%n",value,&len);
 					value[len]='\0';
 					p +=len+1;
-					
+
 					sprintf(tmpsql,"INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES ( 1 , '%d' , '%s' , '%s');",  reg_db, acc, jstrescapecpy(temp_str,str), jstrescapecpy(temp_str2,value));
 					if(mysql_query(&mysql_handle, tmpsql)) {
 						ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -1331,7 +1320,7 @@ int parse_fromchar(int fd){
 			}
 			{
 				struct online_login_data *p;
-				int aid, i, users;
+				int aid, users;
 				online_db->foreach(online_db,online_db_setoffline,id); //Set all chars from this char-server offline first
 				users = RFIFOW(fd,4);
 				for (i = 0; i < users; i++) {
@@ -1375,6 +1364,16 @@ int parse_fromchar(int fd){
 				mysql_free_result(sql_res);
 			}
 			break;
+
+		case 0x2736: // WAN IP update from char-server
+			if (RFIFOREST(fd) < 6)
+				return 0;
+			ShowInfo("Updated IP of Server #%d to %d.%d.%d.%d.\n",id,
+			(int)RFIFOB(fd,2),(int)RFIFOB(fd,3),
+			(int)RFIFOB(fd,4),(int)RFIFOB(fd,5));
+			server[id].ip = RFIFOL(fd,2);
+			RFIFOSKIP(fd,6);
+			break;
 		default:
 			ShowError("login: unknown packet %x! (from char).\n", RFIFOW(fd,0));
 			session[fd]->eof = 1;
@@ -1394,21 +1393,21 @@ int lan_subnetcheck(long *p) {
 
 	int i;
 	unsigned char *sbn, *msk, *src = (unsigned char *)p;
-	
+
 	for(i=0; i<subnet_count; i++) {
-	
+
 		if(subnet[i].subnet == (*p & subnet[i].mask)) {
-			
+
 			sbn = (unsigned char *)&subnet[i].subnet;
 			msk = (unsigned char *)&subnet[i].mask;
-			
+
 			ShowInfo("Subnet check [%u.%u.%u.%u]: Matches "CL_CYAN"%u.%u.%u.%u/%u.%u.%u.%u"CL_RESET"\n",
 				src[0], src[1], src[2], src[3], sbn[0], sbn[1], sbn[2], sbn[3], msk[0], msk[1], msk[2], msk[3]);
-			
+
 			return subnet[i].char_ip;
 		}
 	}
-	
+
 	ShowInfo("Subnet check [%u.%u.%u.%u]: "CL_CYAN"WAN"CL_RESET"\n", src[0], src[1], src[2], src[3]);
 	return 0;
 }
@@ -1456,7 +1455,7 @@ int parse_login(int fd) {
 				ShowWarning("packet from banned ip : %d.%d.%d.%d\n" RETCODE, p[0], p[1], p[2], p[3]);
 				if (log_login)
 				{
-					sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', 'unknown','-3', 'ip banned')", loginlog_db, p[0], p[1], p[2], p[3]);
+					sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%lu', 'unknown','-3', 'ip banned')", loginlog_db, *((ulong *)p));
 
 					// query
 					if(mysql_query(&mysql_handle, tmpsql)) {
@@ -1520,12 +1519,13 @@ int parse_login(int fd) {
 					break;
 			}
 
-			ShowInfo("client connection request %s from %d.%d.%d.%d\n", RFIFOP(fd, 6), p[0], p[1], p[2], p[3]);
 			account.version = RFIFOL(fd, 2);
 			memcpy(account.userid,RFIFOP(fd, 6),NAME_LENGTH);
 			account.userid[23] = '\0';
 			memcpy(account.passwd,RFIFOP(fd, 30),NAME_LENGTH);
 			account.passwd[23] = '\0';
+
+			ShowInfo("client connection request %s from %d.%d.%d.%d\n", RFIFOP(fd, 6), p[0], p[1], p[2], p[3]);
 #ifdef PASSWORDENC
 			account.passwdenc= (RFIFOW(fd,0)!=0x01dd)?0:PASSWORDENC;
 #else
@@ -1546,7 +1546,7 @@ int parse_login(int fd) {
 				} else {
 
 					if (p[0] != 127 && log_login) {
-						sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s','100', 'login ok')", loginlog_db, p[0], p[1], p[2], p[3], t_uid);
+						sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%lu', '%s','100', 'login ok')", loginlog_db, (ulong)p, t_uid);
 						//query
 						if(mysql_query(&mysql_handle, tmpsql)) {
 							ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -1604,7 +1604,7 @@ int parse_login(int fd) {
 				char error[64];
 				if (log_login)
 				{
-					sprintf(tmp_sql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s', '%d','login failed : %%s')", loginlog_db, p[0], p[1], p[2], p[3], t_uid, result);
+					sprintf(tmp_sql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%lu', '%s', '%d','login failed : %%s')", loginlog_db, *((ulong *)p), t_uid, result);
 					switch((result + 1)) {
 					case -2:	//-3 = Account Banned
 						sprintf(tmpsql,tmp_sql,"Account banned.");
@@ -1703,8 +1703,8 @@ int parse_login(int fd) {
 						sprintf(error,"Deleting spouse char.");
 						break;
 					default:
-						sprintf(tmpsql,tmp_sql,"Uknown Error.");
-						sprintf(error,"Uknown Error.");
+						sprintf(tmpsql,tmp_sql,"Unknown Error.");
+						sprintf(error,"Unknown Error.");
 						break;
 					}
 					//query
@@ -1714,8 +1714,8 @@ int parse_login(int fd) {
 					}
 				} //End login log of error.
 				if ((result == 1) && (dynamic_pass_failure_ban != 0) && log_login){	// failed password
-					sprintf(tmpsql,"SELECT count(*) FROM `%s` WHERE `ip` = '%d.%d.%d.%d' AND `rcode` = '1' AND `time` > NOW() - INTERVAL %d MINUTE",
-						loginlog_db, p[0], p[1], p[2], p[3], dynamic_pass_failure_ban_time);	//how many times filed account? in one ip.
+					sprintf(tmpsql,"SELECT count(*) FROM `%s` WHERE `ip` = '%lu' AND `rcode` = '1' AND `time` > NOW() - INTERVAL %d MINUTE",
+						loginlog_db,*((ulong *)p), dynamic_pass_failure_ban_time);	//how many times filed account? in one ip.
 					if(mysql_query(&mysql_handle, tmpsql)) {
 						ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 						ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -1793,7 +1793,7 @@ int parse_login(int fd) {
 				unsigned char* server_name;
 				if (log_login)
 				{
-					sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s@%s','100', 'charserver - %s@%d.%d.%d.%d:%d')", loginlog_db, p[0], p[1], p[2], p[3], RFIFOP(fd, 2),RFIFOP(fd, 60),RFIFOP(fd, 60), RFIFOB(fd, 54), RFIFOB(fd, 55), RFIFOB(fd, 56), RFIFOB(fd, 57), RFIFOW(fd, 58));
+					sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%lu', '%s@%s','100', 'charserver - %s@%d.%d.%d.%d:%d')", loginlog_db, *((ulong *)p), RFIFOP(fd, 2),RFIFOP(fd, 60),RFIFOP(fd, 60), RFIFOB(fd, 54), RFIFOB(fd, 55), RFIFOB(fd, 56), RFIFOB(fd, 57), RFIFOW(fd, 58));
 
 					//query
 					if(mysql_query(&mysql_handle, tmpsql)) {
@@ -1947,7 +1947,7 @@ int login_lan_config_read(const char *lancfgName) {
 	FILE *fp;
 	int line_num = 0;
 	char line[1024], w1[64], w2[64], w3[64], w4[64];
-	
+
 	if((fp = fopen(lancfgName, "r")) == NULL) {
 		ShowWarning("LAN Support configuration file is not found: %s\n", lancfgName);
 		return 1;
@@ -1963,7 +1963,7 @@ int login_lan_config_read(const char *lancfgName) {
 
 		line[sizeof(line)-1] = '\0';
 		if(sscanf(line,"%[^:]: %[^:]:%[^:]:%[^\r\n]", w1, w2, w3, w4) != 4) {
-	
+
 			ShowWarning("Error syntax of configuration file %s in line %d.\n", lancfgName, line_num);	
 			continue;
 		}
@@ -1974,7 +1974,7 @@ int login_lan_config_read(const char *lancfgName) {
 		remove_control_chars((unsigned char *)w4);
 
 		if(strcmpi(w1, "subnet") == 0) {
-	
+
 			subnet[subnet_count].mask = inet_addr(w2);
 			subnet[subnet_count].char_ip = inet_addr(w3);
 			subnet[subnet_count].map_ip = inet_addr(w4);
@@ -1983,7 +1983,7 @@ int login_lan_config_read(const char *lancfgName) {
 				ShowError("%s: Configuration Error: The char server (%s) and map server (%s) belong to different subnetworks!\n", lancfgName, w3, w4);
 				continue;
 			}
-				
+
 			subnet_count++;
 		}
 
@@ -2013,7 +2013,6 @@ int ip_ban_check(int tid, unsigned int tick, int id, int data){
 //-----------------------------------------------------
 int login_config_read(const char *cfgName){
 	int i;
-	struct hostent *h = NULL;
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
 
@@ -2041,13 +2040,9 @@ int login_config_read(const char *cfgName){
 			ShowInfo("Console Silent Setting: %d\n", atoi(w2));
 			msg_silent = atoi(w2);
 		} else if (strcmpi(w1, "bind_ip") == 0) {
-			bind_ip_set_ = 1;
-			h = gethostbyname (w2);
-			if (h != NULL) {
-				ShowStatus("Login server binding IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-				sprintf(bind_ip_str, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-			} else
-				memcpy(bind_ip_str,w2,16);
+			bind_ip = resolve_hostbyname(w2, NULL, bind_ip_str);
+			if (bind_ip)
+				ShowStatus("Login server binding IP address : %s -> %s\n", w2, bind_ip_str);
 		} else if(strcmpi(w1,"login_port")==0){
 			login_port=atoi(w2);
 			ShowStatus("set login_port : %s\n",w2);
@@ -2153,6 +2148,8 @@ int login_config_read(const char *cfgName){
 				log_login = atoi(w2);
 		} else if (strcmpi(w1, "import") == 0) {
 			login_config_read(w2);
+		} else if(strcmpi(w1,"ip_sync_interval")==0) {
+			ip_sync_interval = 1000*60*atoi(w2); //w2 comes in minutes.
 		}
 	}
 	fclose(fp);
@@ -2273,7 +2270,7 @@ int do_init(int argc,char **argv){
 		md5key[i]=rand()%255+1;
 	ShowInfo("md5key setup complete\n");
 
-	
+
 	ShowInfo("set FIFO Size\n");
 	for(i=0;i<AUTH_FIFO_SIZE;i++)
 		auth_fifo[i].delflag=1;
@@ -2289,17 +2286,13 @@ int do_init(int argc,char **argv){
 	online_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));	// reinitialise
 	add_timer_func_list(waiting_disconnect_timer, "waiting_disconnect_timer");
 
-	//login_fd=make_listen_port(login_port);
-	if (bind_ip_set_)
-		login_fd = make_listen_bind(inet_addr(bind_ip_str),login_port);
-	else
-		login_fd = make_listen_bind(INADDR_ANY,login_port);
+	login_fd = make_listen_bind(bind_ip?bind_ip:INADDR_ANY,login_port);
 
 	//Auth start
 	ShowInfo("Running mmo_auth_sqldb_init()\n");
 	mmo_auth_sqldb_init();
 	ShowInfo("finished mmo_auth_sqldb_init()\n");
-	
+
 	if(login_gm_read)
 		//Read account information.
 		read_gm_account();
@@ -2314,7 +2307,12 @@ int do_init(int argc,char **argv){
 
 	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
 	add_timer_interval(gettick() + 600*1000, online_data_cleanup, 0, 0, 600*1000); // every 10 minutes cleanup online account db.
-	
+
+	if (ip_sync_interval) {
+		add_timer_func_list(sync_ip_addresses, "sync_ip_addresses");
+		add_timer_interval(gettick() + ip_sync_interval, sync_ip_addresses, 0, 0, ip_sync_interval);
+	}
+
 	if (console) {
 		set_defaultconsoleparse(parse_console);
 		start_console();

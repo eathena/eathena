@@ -9,6 +9,7 @@
 #ifdef __WIN32
 #define __USE_W32_SOCKETS
 #include <windows.h>
+#include <winsock.h>
 #include <io.h>
 typedef int socklen_t;
 #else
@@ -16,9 +17,11 @@ typedef int socklen_t;
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <net/if.h>
-#include <sys/time.h>
 #include <unistd.h>
+#include <sys/time.h>
 #include <sys/ioctl.h>
+#include <netdb.h>
+#include <arpa/inet.h>
 
 #ifndef SIOCGIFCONF
 #include <sys/sockio.h> // SIOCGIFCONF on Solaris, maybe others? [Shinomori]
@@ -1210,7 +1213,7 @@ int RFIFOSKIP(int fd,int len)
 
 	s = session[fd];
 
-	if (s->rdata_size-s->rdata_pos-len<0) {
+	if ((signed int)(s->rdata_size-s->rdata_pos-len)<0) {
 		//fprintf(stderr,"too many skip\n");
 		//exit(1);
 		//better than a COMPLETE program abort // TEST! :)
@@ -1387,4 +1390,19 @@ bool session_isValid(int fd)
 bool session_isActive(int fd)
 {
 	return ( session_isValid(fd) && !session[fd]->eof );
+}
+
+in_addr_t resolve_hostbyname(char* hostname, unsigned char *ip, char *ip_str) {
+	struct hostent *h = gethostbyname(hostname);
+	unsigned char ip_buf[16];
+	char ip2[4];
+	if (!h) return 0;
+	if (ip == NULL) ip = ip2;
+	ip[0] = (unsigned char) h->h_addr[0];
+	ip[1]	= (unsigned char) h->h_addr[1];
+	ip[2] = (unsigned char) h->h_addr[2];
+	ip[3] = (unsigned char) h->h_addr[3];
+	if (ip_str == NULL) ip_str = ip_buf;
+	sprintf(ip_str, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+	return inet_addr(ip_str);
 }

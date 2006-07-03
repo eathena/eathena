@@ -1993,8 +1993,12 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			sd->subrace2[type2]+=val;
 		break;
 	case SP_ADD_ITEM_HEAL_RATE:
-		if(sd->state.lr_flag != 2)
-			sd->itemhealrate[type2 - 1] += val;
+		if(sd->state.lr_flag == 2)
+			break;
+		if (type2 < MAX_ITEMGROUP)
+			sd->itemhealrate[type2] += val;
+		else
+			ShowWarning("pc_bonus2: AddItemHealRate: Group %d is beyond limit (%d).\n", type2, MAX_ITEMGROUP);
 		break;
 	case SP_EXP_ADDRACE:
 		if(sd->state.lr_flag != 2)
@@ -2006,11 +2010,11 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		break;
 	case SP_ADD_MONSTER_DROP_ITEM:
 		if (sd->state.lr_flag != 2)
-			pc_bonus_item_drop(sd->add_drop, &sd->add_drop_count, type2, 0, (1<<10)|(1<<11), val);
+			pc_bonus_item_drop(sd->add_drop, &sd->add_drop_count, type2, 0, (1<<RC_BOSS)|(1<<RC_NONBOSS), val);
 		break;
 	case SP_ADD_MONSTER_DROP_ITEMGROUP:
 		if (sd->state.lr_flag != 2)
-			pc_bonus_item_drop(sd->add_drop, &sd->add_drop_count, 0, type2, (1<<10)|(1<<11), val);
+			pc_bonus_item_drop(sd->add_drop, &sd->add_drop_count, 0, type2, (1<<RC_BOSS)|(1<<RC_NONBOSS), val);
 		break;
 	case SP_SP_LOSS_RATE:
 		if(sd->state.lr_flag != 2) {
@@ -2153,7 +2157,7 @@ int pc_skill(struct map_session_data *sd,int id,int level,int flag)
 
 	if(level>MAX_SKILL_LEVEL){
 		if(battle_config.error_log)
-			ShowError("support card skill only!\n");
+			ShowError("pc_skill: Skill level %d too high. Max lv supported is MAX_SKILL_LEVEL (%d)\n", level, MAX_SKILL_LEVEL);
 		return 0;
 	}
 	if(!flag && (sd->status.skill[id].id == id || level == 0)){	// クエスト所得ならここで?件を確認して送信する
@@ -2942,7 +2946,7 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 	if (i == MAX_MOB_DROP)
 		return 0;
 	
-	md->state.steal_flag = 255; //you can't steal from this mob any more
+	md->state.steal_flag = UCHAR_MAX; //you can't steal from this mob any more
 	
 	memset(&tmp_item,0,sizeof(tmp_item));
 	tmp_item.nameid = itemid;
@@ -3021,13 +3025,6 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 		ShowDebug("pc_setpos: Passed mapindex(%d) is invalid!\n", mapindex);
 		return 1;
 	}
-	if(sd->state.auth && sd->bl.prev == NULL)
-	{	//Should NOT move a character while it is not in a map (changing between maps, for example)
-		//state.auth helps identifies if this is the initial setpos rather than a normal map-change set pos.
-		if (battle_config.etc_log)
-			ShowInfo("pc_setpos failed: Attempted to relocate player %s (%d:%d) while it is still between maps.\n", sd->status.name, sd->status.account_id, sd->status.char_id);
-		return 3;
-	}
 
 	m=map_mapindex2mapid(mapindex);
 
@@ -3100,7 +3097,9 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 		if(sd->status.pet_id > 0 && sd->pd)
 			unit_remove_map(&sd->pd->bl, clrtype);
 		clif_changemap(sd,map[m].index,x,y); // [MouseJstr]
-	}
+	} else if(sd->state.auth)
+		//Tag player for rewarping after map-loading is done. [Skotlex]
+		sd->state.rewarp = 1;
 	
 	sd->mapindex =  mapindex;
 	sd->bl.m = m;
@@ -5156,13 +5155,14 @@ int pc_itemheal(struct map_session_data *sd,int hp,int sp)
 		sp = 0;
 
 	if(hp > 0) {
+		int itemid = sd->itemid;
 		bonus = (sd->paramc[2]<<1) + 100 + pc_checkskill(sd,SM_RECOVERY)*10
 			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5;
 		// A potion produced by an Alchemist in the Fame Top 10 gets +50% effect [DracoRPG]
 		bonus += (potion_flag==2)?50:(potion_flag==3?100:0);
-		if ((type = itemdb_group(sd->itemid)) > 0 && type <= 7)
-			bonus = bonus * (100+sd->itemhealrate[type - 1]) / 100;
-		if(bonus != 100)
+		if ((type = itemdb_group(itemid)) > 0 && type < MAX_ITEMGROUP && sd->itemhealrate[type])
+			bonus += bonus * sd->itemhealrate[type] / 100;
+		if(bonus!=100)
 			hp = hp * bonus / 100;
 	}
 	if(sp > 0) {

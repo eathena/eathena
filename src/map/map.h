@@ -216,6 +216,45 @@ enum {
 	ELE_MAX
 };
 
+enum {
+	IG_BLUEBOX=1,
+	IG_VIOLETBOX,	//2
+	IG_CARDALBUM,	//3
+	IG_GIFTBOX,	//4
+	IG_SCROLLBOX,	//5
+	IG_FINDINGORE,	//6
+	IG_COOKIEBAG,	//7
+	IG_POTION,	//8
+	IG_HERBS,	//9
+	IG_FRUITS,	//10
+	IG_MEAT,	//11
+	IG_CANDY,	//12
+	IG_JUICE,	//13
+	IG_FISH,	//14
+	IG_BOXES,	//15
+	IG_GEMSTONE,	//16
+	IG_JELLOPY,	//17
+	IG_ORE,	//18
+	IG_FOOD,	//19
+	IG_RECOVERY,	//20
+	IG_MINERALS,	//21
+	IG_TAMING,	//22
+	IG_SCROLLS,	//23
+	IG_QUIVERS,	//24
+	IG_MASKS,	//25
+	IG_ACCESORY,	//26
+	IG_JEWELS,	//27
+	IG_GIFTBOX_1,	//28
+	IG_GIFTBOX_2,	//29
+	IG_GIFTBOX_3,	//30
+	IG_GIFTBOX_4,	//31
+	IG_EGGBOY,	//32
+	IG_EGGGIRL,	//33
+	IG_GIFTBOXCHINA,	//34
+	IG_LOTTOBOX,	//35
+	MAX_ITEMGROUP,
+} item_group_list;
+
 struct block_list {
 	struct block_list *next,*prev;
 	int id;
@@ -435,6 +474,7 @@ struct map_session_data {
 		unsigned size :2; // for tiny/large types
 		unsigned night :1; //Holds whether or not the player currently has the SI_NIGHT effect on. [Skotlex]
 		unsigned finalsave :1; //Signals whether the final save for the char was done or not yet. Meant to prevent exploits and the like. [Skotlex]
+		unsigned rewarp :1; //Signals that a player should warp as soon as he is done loading a map. [Skotlex]
 		unsigned short autoloot;
 		struct guild *gmaster_flag;
 	} state;
@@ -535,7 +575,7 @@ struct map_session_data {
 	int magic_addsize[3];
 	int critaddrace[RC_MAX];
 	int expaddrace[RC_MAX];
-	int itemhealrate[7];
+	int itemhealrate[MAX_ITEMGROUP];
 	int addeff3[SC_COMMON_MAX-SC_COMMON_MIN+1];
 	short addeff3_type[SC_COMMON_MAX-SC_COMMON_MIN+1];
 	short sp_gain_race[RC_MAX];
@@ -789,7 +829,11 @@ struct mob_data {
 	struct {
 		unsigned size : 2; //Small/Big monsters.
 		unsigned cached : 1; //Cached mobs for dynamic mob unloading [Skotlex]
-		unsigned ai : 3; //Special ai for summoned monsters.
+		unsigned ai : 2; //Special ai for summoned monsters.
+							//0: Normal mob.
+							//1: Standard summon, attacks mobs.
+							//2: Alchemist Marine Sphere
+							//3: Alchemist Summon Flora
 	} special_state; //Special mob information that does not needs to be zero'ed on mob respawn.
 	struct {
 		unsigned skillstate : 8;
@@ -1052,8 +1096,10 @@ enum {
 	SP_UNSTRIPABLE_WEAPON,SP_UNSTRIPABLE_ARMOR,SP_UNSTRIPABLE_HELM,SP_UNSTRIPABLE_SHIELD,  // 2034-2037
 	SP_INTRAVISION, SP_ADD_MONSTER_DROP_ITEMGROUP, SP_SP_LOSS_RATE, // 2038-2040
 	SP_ADD_SKILL_BLOW, SP_SP_VANISH_RATE //2041
-	//Before adding another, note that 1077 (SP_FREE, previously disguise) and
-	//2007 (SP_FREE, previously Infinite Endure) are available!
+	//Before adding another, note that
+	//1077 (SP_FREE, previously disguise),
+	//2007 (SP_FREE2, previously Infinite Endure)
+	//are available!
 };
 
 enum {

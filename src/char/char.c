@@ -2,20 +2,13 @@
 // For more information, see LICENCE in the main folder
 
 #include <sys/types.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 #ifdef _WIN32
 #include <winsock.h>
-typedef long in_addr_t;
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <netdb.h>
-#include <sys/ioctl.h>
-#include <sys/time.h>
-#include <unistd.h>
 #endif
 
 #include <time.h>
@@ -23,6 +16,8 @@ typedef long in_addr_t;
 #include <fcntl.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <limits.h>
 
 #include "../common/strlib.h"
@@ -54,15 +49,13 @@ char userid[24];
 char passwd[24];
 char server_name[20];
 char wisp_server_name[NAME_LENGTH] = "Server";
-int login_ip_set_ = 0;
-char login_ip_str[16];
+char login_ip_str[128];
 in_addr_t login_ip;
 int login_port = 6900;
-int char_ip_set_ = 0;
-char char_ip_str[16];
-int bind_ip_set_ = 0;
-char bind_ip_str[16];
+char char_ip_str[128];
 in_addr_t char_ip;
+char bind_ip_str[128];
+in_addr_t bind_ip;
 int char_port = 6121;
 int char_maintenance;
 int char_new;
@@ -2293,6 +2286,30 @@ int parse_tologin(int fd) {
 				RFIFOSKIP(fd,6);
 			}
 			break;
+		case 0x2735:
+		{
+			unsigned char buf[2];
+			in_addr_t new_ip = 0;
+			RFIFOSKIP(fd,2);
+
+			WBUFW(buf,0) = 0x2b1e;
+			mapif_sendall(buf, 2);
+
+			new_ip = resolve_hostbyname(login_ip_str, NULL, NULL);
+			if (new_ip && new_ip != login_ip)
+				login_ip = new_ip; //Update login up.
+
+			new_ip = resolve_hostbyname(char_ip_str, NULL, NULL);
+			if (new_ip && new_ip != char_ip)
+			{	//Update ip.
+				char_ip = new_ip;
+				ShowInfo("Updating IP for [%s].\n",char_ip_str);
+				WFIFOW(fd,0) = 0x2736;
+				WFIFOL(fd,2) = char_ip;
+				WFIFOSET(fd,6);
+			}
+			break;
+		}
 		default:
 			ShowWarning("Unknown packet 0x%04x received from login-server, disconnecting.\n", RFIFOW(fd,0));
 			session[fd]->eof = 1;
@@ -3054,6 +3071,14 @@ int parse_frommap(int fd) {
 			RFIFOSKIP(fd, RFIFOW(fd, 2));
 			break;
 		}
+		case 0x2736:
+			if (RFIFOREST(fd) < 6) return 0;
+			ShowInfo("Updated IP address of Server #%d to %d.%d.%d.%d.\n",i,
+				(int)RFIFOB(fd,2),(int)RFIFOB(fd,3),
+				(int)RFIFOB(fd,4),(int)RFIFOB(fd,5));
+			server[id].ip = RFIFOL(fd, 2);
+			RFIFOSKIP(fd,6);
+			break;
 		default:
 			// inter serverˆ—‚É“n‚·
 			{
@@ -3924,7 +3949,6 @@ int char_lan_config_read(const char *lancfgName) {
 }
 
 int char_config_read(const char *cfgName) {
-	struct hostent *h = NULL;
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp = fopen(cfgName, "r");
 
@@ -3964,31 +3988,28 @@ int char_config_read(const char *cfgName) {
 				wisp_server_name[sizeof(wisp_server_name) - 1] = '\0';
 			}
 		} else if (strcmpi(w1, "login_ip") == 0) {
-			login_ip_set_ = 1;
-			h = gethostbyname(w2);
-			if (h != NULL) {
-				ShowStatus("Login server IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-				sprintf(login_ip_str, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-			} else
-				memcpy(login_ip_str, w2, 16);
+			char ip_str[16];
+			login_ip = resolve_hostbyname(w2, NULL, ip_str);
+			if (login_ip) {
+				strncpy(login_ip_str, w2, sizeof(login_ip_str));
+				ShowStatus("Login server IP address : %s -> %s\n", w2, ip_str);
+			}
 		} else if (strcmpi(w1, "login_port") == 0) {
 			login_port = atoi(w2);
 		} else if (strcmpi(w1, "char_ip") == 0) {
-			char_ip_set_ = 1;
-			h = gethostbyname(w2);
-			if (h != NULL) {
-				ShowStatus("Character server IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-				sprintf(char_ip_str, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-			} else
-				memcpy(char_ip_str, w2, 16);
+			char ip_str[16];
+			char_ip = resolve_hostbyname(w2, NULL, ip_str);
+			if (char_ip){
+				strncpy(char_ip_str, w2, sizeof(char_ip_str));
+				ShowStatus("Character server IP address : %s -> %s\n", w2, ip_str);
+			}
 		} else if (strcmpi(w1, "bind_ip") == 0) {
-			bind_ip_set_ = 1;
-			h = gethostbyname(w2);
-			if (h != NULL) {
-				ShowStatus("Character server binding IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-				sprintf(bind_ip_str, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-			} else
-				memcpy(bind_ip_str, w2, 16);
+			char ip_str[16];
+			bind_ip = resolve_hostbyname(w2, NULL, ip_str);
+			if (bind_ip) {
+				strncpy(bind_ip_str, w2, sizeof(bind_ip_str));
+				ShowStatus("Character server binding IP address : %s -> %s\n", w2, ip_str);
+			}
 		} else if (strcmpi(w1, "char_port") == 0) {
 			char_port = atoi(w2);
 		} else if (strcmpi(w1, "char_maintenance") == 0) {
@@ -4190,7 +4211,7 @@ int do_init(int argc, char **argv) {
 	// moved behind char_config_read in case we changed the filename [celest]
 	char_log("The char-server starting..." RETCODE);
 
-	if ((naddr_ != 0) && (login_ip_set_ == 0 || char_ip_set_ == 0)) {
+	if ((naddr_ != 0) && (!login_ip || !char_ip)) {
 		// The char server should know what IP address it is running on
 		 //   - MouseJstr
 		int localaddr = ntohl(addr_[0]);
@@ -4201,17 +4222,18 @@ int do_init(int argc, char **argv) {
 			ShowStatus("Multiple interfaces detected..  using %s as our IP address\n", buf);
 		else
 			ShowStatus("Defaulting to %s as our IP address\n", buf);
-		if (login_ip_set_ == 0)
+		if (!login_ip) {
 			strcpy(login_ip_str, buf);
-		if (char_ip_set_ == 0)
+			login_ip = inet_addr(login_ip_str);
+		}
+		if (!char_ip) {
 			strcpy(char_ip_str, buf);
+			char_ip = inet_addr(char_ip_str);
+		}
 
 		if (ptr[0] == 192 && ptr[1] == 168)
 			ShowWarning("Firewall detected.. edit subnet_athena.conf and char_athena.conf\n");
 	}
-
-	login_ip = inet_addr(login_ip_str);
-	char_ip = inet_addr(char_ip_str);
 
 	for(i = 0; i < MAX_MAP_SERVERS; i++) {
 		memset(&server[i], 0, sizeof(struct mmo_map_server));
@@ -4231,10 +4253,7 @@ int do_init(int argc, char **argv) {
 
 	set_defaultparse(parse_char);
 
-	if (bind_ip_set_)
-		char_fd = make_listen_bind(inet_addr(bind_ip_str),char_port);
-	else
-		char_fd = make_listen_bind(INADDR_ANY,char_port);
+	char_fd = make_listen_bind(bind_ip?bind_ip:INADDR_ANY,char_port);
 
 	add_timer_func_list(check_connect_login_server, "check_connect_login_server");
 	add_timer_func_list(send_users_tologin, "send_users_tologin");
