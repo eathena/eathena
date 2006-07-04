@@ -5,6 +5,11 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/04
+	* Merged use of flag nocast&16 to specify non-cloneable skills. Flag 2 (pvp
+	  restricted) now does what 16 did previously (not usable on pk-mode maps)
+	  [Skotlex]
+	* Merged some of the cleanups in the logic when assigning skills to clones.
+	  [Skotlex]
 	* Added a check when joining a chat to make sure the target object is of
 	  type BL_CHAT. [Skotlex]
 	* Merged the refine_db reading fix when MAX_REFINE was bumped up from 10
