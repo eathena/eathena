@@ -40,6 +40,8 @@
 	* Merged Kiel & Odin drop update [Playtester]
 	* Fixed 12106,Jeweled_Box. Now giving an accessory [Lupus]
 	* Merged Sidewinder Card effect from TRUNK
+06/04
+	* Updated Soul Change's inf2 flag to enable it's usage on enemies. [Skotlex]
 05/25
 	* Merged mob_db from trunk [Playtester]
 	- Aegis X.2 drops

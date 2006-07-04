@@ -5498,17 +5498,12 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 
 		inf2 = skill_get_inf2(ud->skillid);
 		if(inf2 & (INF2_PARTY_ONLY|INF2_GUILD_ONLY) && src != target) {
-			int fail_flag = 1;
-			if(inf2 & INF2_PARTY_ONLY && battle_check_target(src, target, BCT_PARTY) > 0)
-				fail_flag = 0;
-			else if(inf2 & INF2_GUILD_ONLY && battle_check_target(src, target, BCT_GUILD) > 0)
-				fail_flag = 0;
-			
-			if (ud->skillid == PF_SOULCHANGE && map_flag_vs(target->m))
-				//Soul Change overrides this restriction during pvp/gvg [Skotlex]
-				fail_flag = 0;
-			
-			if(fail_flag)
+			inf2 = 	
+				(inf2&INF2_PARTY_ONLY?BCT_PARTY:0)|
+				(inf2&INF2_GUILD_ONLY?BCT_GUILD:0)|
+				(inf2&INF2_ALLOW_ENEMY?BCT_ENEMY:0);
+
+			if(battle_check_target(src, target, inf2) <= 0)
 				break;
 		}
 
@@ -6705,19 +6700,18 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		sg->state.into_abyss = 1; //Prevent Remove Trap from giving you the trap back. [Skotlex]
 		break;
 
+	case UNT_CLAYMORETRAP:
 	case UNT_BLASTMINE:
+		//Hold number of targets (required for damage calculation)
+		type = map_foreachinrange(skill_count_target,&src->bl,
+			skill_get_splash(sg->skill_id, sg->skill_lv), sg->bl_flag, &src->bl);
 	case UNT_SHOCKWAVE:
 	case UNT_SANDMAN:
 	case UNT_FLASHER:
 	case UNT_FREEZINGTRAP:
-	case UNT_CLAYMORETRAP:
-// This ain't used anymore....
-//		map_foreachinrange(skill_count_target,&src->bl,
-//			skill_get_splash(sg->skill_id, sg->skill_lv), sg->bl_flag,
-//			&src->bl,&splash_count);
 		map_foreachinrange(skill_trap_splash,&src->bl,
 			skill_get_splash(sg->skill_id, sg->skill_lv), sg->bl_flag,
-			&src->bl,tick);
+			&src->bl,tick,type);
 		sg->unit_id = UNT_USED_TRAPS;
 		clif_changetraplook(&src->bl, UNT_USED_TRAPS);
 		sg->limit=DIFF_TICK(tick,sg->tick)+1500;
@@ -8858,10 +8852,11 @@ int skill_trap_splash (struct block_list *bl, va_list ap)
 	struct skill_unit *unit;
 	struct skill_unit_group *sg;
 	struct block_list *ss;
-
+	int i,count;
 	src = va_arg(ap,struct block_list *);
 	unit = (struct skill_unit *)src;
 	tick = va_arg(ap,int);
+	count = va_arg(ap,int);
 	
 	nullpo_retr(0, sg = unit->group);
 	nullpo_retr(0, ss = map_id2bl(sg->src_id));
@@ -8875,7 +8870,10 @@ int skill_trap_splash (struct block_list *bl, va_list ap)
 				break;
 			case UNT_BLASTMINE:
 			case UNT_CLAYMORETRAP:
-				skill_attack(BF_MISC,ss,src,bl,sg->skill_id,sg->skill_lv,tick,0);
+				//Special property: Each target is hit N times (N = number of targets on splash area)
+				if (!count) count = 1;
+				for(i=0;i<count;i++)
+					skill_attack(BF_MISC,ss,src,bl,sg->skill_id,sg->skill_lv,tick,0);
 				break;
 			case UNT_FREEZINGTRAP:
 				skill_attack(BF_WEAPON,ss,src,bl,sg->skill_id,sg->skill_lv,tick,0);
