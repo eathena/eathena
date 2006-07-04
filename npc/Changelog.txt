@@ -39,6 +39,7 @@ Playtester
 Date		Added
 ======
 07/03
+	* Fixed bug in DTS warper that votes weren't counted on Sunday [Evera]
 	* Fixed many many bugs in Crusader Job Quest [Lupus]
 	  Changed all numbers to job_constants
 07/02
