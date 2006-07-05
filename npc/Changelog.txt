@@ -38,6 +38,8 @@ Playtester
 
 Date		Added
 ======
+07/05
+	* Fixed bugs / typos in 2004_headgears.txt, thanks to Qwadrat [Lupus]
 07/04
 	* Implemented the official 2004 Headgear quests, thanks to Dj-Yhn [MasterOfMuppets]
 	  for the conversion from Aegis format.
