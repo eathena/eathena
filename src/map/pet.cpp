@@ -35,7 +35,7 @@ const static char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
 
 
 
-int pet_data::walktimer_func_old(int tid, unsigned long tick, basics::numptr data)
+int pet_data::walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	struct pet_data *pd=this;
 
@@ -84,6 +84,45 @@ int pet_data::walktimer_func_old(int tid, unsigned long tick, basics::numptr dat
 			break;
 	}
 
+	return 0;
+}
+
+int pet_data::attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
+{
+	pet_data*pd = this;
+
+	if (pd->msd == NULL) //Is this even possible?
+		return 0;
+	if (pc_isdead(*pd->msd))
+	{	//Stop attacking when master died.
+		pet_stopattack(*pd);
+		return 0;
+	}
+	if (pd->state.casting_flag) 
+	{	//There is a skill being cast.
+		petskill_castend(*pd, tick, data.isptr?((struct castend_delay *)data.ptr):NULL );
+		struct TimerData *td = get_timer(tid);
+		if(td && td->data.isptr)
+		{
+			td->data = 0;
+		}
+		return 0;
+	}
+	if (battle_config.pet_status_support &&
+		pd->a_skill &&
+		(!battle_config.pet_equip_required || pd->equip_id > 0) &&
+		(rand()%100 < (pd->a_skill->rate +pd->msd->pet.intimate*pd->a_skill->bonusrate/1000))
+		)
+	{	//Skotlex: Use pet's skill 
+		pet_attackskill(*pd,tick,data.num);
+		return 0;
+	}
+	pet_attack(*pd,tick,data.num);
+
+	return 0;
+}
+int pet_data::skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
+{
 	return 0;
 }
 /*==========================================
@@ -159,9 +198,9 @@ int pet_data::walkstep_old(unsigned long tick)
 				delete ((struct castend_delay*)td->data.ptr);
 				td->data = 0;
 			}
-			delete_timer(this->walktimer, movable::walktimer_entry_old);
+			delete_timer(this->walktimer, movable::walktimer_entry);
 		}
-		this->walktimer=add_timer(tick+i,movable::walktimer_entry_old,this->block_list::id,0);
+		this->walktimer=add_timer(tick+i,movable::walktimer_entry,this->block_list::id,0);
 	}
 	if( this->walkpath.finished() )
 		clif_fixobject(*this);
@@ -229,34 +268,47 @@ int pet_data::changestate_old(int state,int type)
 			delete ((struct castend_delay*)td->data.ptr);
 			td->data = 0;
 		}
-		delete_timer(pd.walktimer,movable::walktimer_entry_old);
+		delete_timer(pd.walktimer,movable::walktimer_entry);
 		pd.walktimer=-1;
+	}
+	if(pd.attacktimer != -1)
+	{
+		delete_timer(pd.attacktimer,fightable::attacktimer_entry);
+		pd.attacktimer=-1;
+	}
+	if(pd.skilltimer != -1)
+	{
+		delete_timer(pd.skilltimer,fightable::skilltimer_entry);
+		pd.skilltimer=-1;
 	}
 	pd.state.state=state;
 
 	switch(state)
 	{
 		case MS_WALK:
-			if((i=pd.calc_next_walk_step()) > 0){
+			if((i=pd.calc_next_walk_step()) > 0)
+			{
 				i = i>>2;
-				pd.walktimer=add_timer(gettick()+i,movable::walktimer_entry_old,pd.block_list::id,0);
-			} else
+				pd.walktimer=add_timer(gettick()+i,movable::walktimer_entry,pd.block_list::id,0);
+			}
+			else
 				pd.state.state=MS_IDLE;
 			break;
 		case MS_ATTACK:
 			tick = gettick();
 			i=DIFF_TICK(pd.attackable_tick,tick);
 			if(i>0 && i<2000)
-				pd.walktimer=add_timer(pd.attackable_tick,movable::walktimer_entry_old,pd.block_list::id,0);
+				pd.attacktimer=add_timer(pd.attackable_tick,fightable::attacktimer_entry,pd.block_list::id,0);
 			else
-				pd.walktimer=add_timer(tick+1,movable::walktimer_entry_old,pd.block_list::id,0);
+				pd.attacktimer=add_timer(tick+1,fightable::attacktimer_entry,pd.block_list::id,0);
 			break;
 		case MS_DELAY:
-				pd.walktimer=add_timer(gettick()+type,movable::walktimer_entry_old,pd.block_list::id,0);
+				pd.walktimer=add_timer(gettick()+type,movable::walktimer_entry,pd.block_list::id,0);
 			break;
 	}
 	return 0;
 }
+
 
 
 
@@ -297,9 +349,22 @@ void pet_data::do_changestate(int state,int type)
 		if( pd.is_walking() )
 			delete_timer(pd.walktimer,pd.walktimer_entry);
 		else
-			delete_timer(pd.walktimer,movable::walktimer_entry_old);
+			delete_timer(pd.walktimer,movable::walktimer_entry);
 		pd.walktimer=-1;
 	}
+	if(pd.attacktimer != -1)
+	{
+		delete_timer(pd.attacktimer,fightable::attacktimer_entry);
+		pd.attacktimer=-1;
+	}
+	if(pd.skilltimer != -1)
+	{
+		delete_timer(pd.skilltimer,fightable::skilltimer_entry);
+		pd.skilltimer=-1;
+	}
+
+
+
 	pd.state.state=state;
 
 	switch(state)
@@ -312,15 +377,19 @@ void pet_data::do_changestate(int state,int type)
 			tick = gettick();
 			i=DIFF_TICK(pd.attackable_tick,tick);
 			if(i>0 && i<2000)
-				pd.walktimer=add_timer(pd.attackable_tick,movable::walktimer_entry_old,pd.block_list::id,0);
+				pd.attacktimer=add_timer(pd.attackable_tick,fightable::attacktimer_entry,pd.block_list::id,0);
 			else
-				pd.walktimer=add_timer(tick+1,movable::walktimer_entry_old,pd.block_list::id,0);
+				pd.attacktimer=add_timer(tick+1,fightable::attacktimer_entry,pd.block_list::id,0);
 			break;
 		case MS_DELAY:
-				pd.walktimer=add_timer(gettick()+type,movable::walktimer_entry_old,pd.block_list::id,0);
+				pd.walktimer=add_timer(gettick()+type,movable::walktimer_entry,pd.block_list::id,0);
 			break;
 	}
 }
+
+
+
+
 // Random walk
 int pet_data::randomwalk_old(unsigned long tick)
 {
@@ -328,7 +397,8 @@ int pet_data::randomwalk_old(unsigned long tick)
 	const int retrycount=20;
 	int speed = pd.get_speed();
 
-	if(DIFF_TICK(pd.next_walktime,tick) < 0){
+	if(DIFF_TICK(pd.next_walktime,tick) < 0)
+	{
 		int i,x,y,d=12-pd.move_fail_count;
 		if(d<5) d=5;
 		for(i=0;i<retrycount;++i)
@@ -345,22 +415,24 @@ int pet_data::randomwalk_old(unsigned long tick)
 				y=pd.block_list::y+r/(d*2+1)%(d*2+1)-d;
 			}
 
-			if((map_getcell(pd.block_list::m,x,y,CELL_CHKPASS))&&( pd.walktoxy(x,y)==0)){
+			if((map_getcell(pd.block_list::m,x,y,CELL_CHKPASS))&&( pd.walktoxy(x,y)==0))
+			{
 				pd.move_fail_count=0;
 				break;
 			}
-			if(i+1>=retrycount){
-				pd.move_fail_count++;
-				if(pd.move_fail_count>1000){
-					if(battle_config.error_log)
-						ShowMessage("PET cant move. hold position %d, class_ = %d\n",pd.block_list::id,pd.class_);
-					pd.move_fail_count=0;
-					pd.changestate(MS_DELAY,60000);
-					return 0;
-				}
+		}
+		if(i>=retrycount)
+		{
+			pd.move_fail_count++;
+			if(pd.move_fail_count>1000)
+			{
+				if(battle_config.error_log)
+					ShowMessage("PET cant move. hold position %d, class_ = %d\n",pd.block_list::id,pd.class_);
+				pd.move_fail_count=0;
+				pd.changestate(MS_DELAY,60000);
+				return 0;
 			}
 		}
-
 		pd.next_walktime = tick+rand()%3000+3000+speed*pd.walkpath.get_path_time()/10;
 		return 1;
 	}
@@ -536,10 +608,10 @@ int pet_attack(struct pet_data &pd,unsigned int tick,int datax)
 
 	pd.attackable_tick = tick + status_get_adelay(&pd);
 
-	if( pd.walktimer!=-1 )
+	if( pd.is_walking() || pd.is_attacking() )
 		pd.changestate(MS_IDLE,0);
 
-	pd.walktimer=add_timer(pd.attackable_tick,movable::walktimer_entry_old,pd.block_list::id,0);
+	pd.attacktimer=add_timer(pd.attackable_tick,fightable::attacktimer_entry,pd.block_list::id,0);
 	pd.state.state=MS_ATTACK;
 	return 0;
 }
@@ -603,9 +675,8 @@ int petskill_use(struct pet_data &pd, struct block_list &target, short skill_id,
 		else
 			clif_skillcasting(pd, pd.block_list::id, target.id, 0, 0, skill_id,casttime);
 		
-		struct castend_delay *dat
-			= new struct castend_delay(pd, target.id, skill_id, skill_lv, 0);
-		pd.walktimer = add_timer(pd.attackable_tick,movable::walktimer_entry_old,pd.block_list::id, basics::numptr(dat), false);
+		struct castend_delay *dat = new struct castend_delay(pd, target.id, skill_id, skill_lv, 0);
+		pd.attacktimer = add_timer(pd.attackable_tick,fightable::attacktimer_entry,pd.block_list::id, basics::numptr(dat), false);
 	}
 	else
 	{
@@ -679,7 +750,7 @@ int petskill_castend2(struct pet_data &pd, struct block_list &target, unsigned s
 	pd.attackable_tick = tick + delaytime; 
 	if (pd.target_id) //Resume attacking
 		pd.state.state=MS_ATTACK;
-	pd.walktimer=add_timer(pd.attackable_tick,movable::walktimer_entry_old,pd.block_list::id,0);
+	pd.attacktimer=add_timer(pd.attackable_tick,fightable::attacktimer_entry,pd.block_list::id,0);
 
 	return 0;
 }

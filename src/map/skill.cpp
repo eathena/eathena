@@ -2607,7 +2607,6 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 		if(sd){
 			sd->target.x=nx;
 			sd->target.y=ny;
-			clif_walkok(*sd);
 			clif_moveobject(*sd);
 		}
 		else if(md) {
@@ -4053,7 +4052,6 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl, unsi
 				sd->target.x = sd->block_list::x + dx;
 				sd->target.y = sd->block_list::y + dy;
 				skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-				clif_walkok(*sd);
 				clif_moveobject(*sd);
 				if(dx < 0) dx = -dx;
 				if(dy < 0) dy = -dy;
@@ -5986,9 +5984,8 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		break;
 
 	case NPC_REBIRTH:
-		if (md && md->state.state == MS_DEAD) {
+		if (md && md->state.state == MS_DEAD)
 			mob_setdelayspawn (md->block_list::id);
-		}
 		break;
 
 	case NPC_DARKBLESSING:
@@ -9247,8 +9244,8 @@ int skill_use_id(struct map_session_data *sd, uint32 target_id,unsigned short sk
 		else
 		clif_skillcasting(*sd, sd->block_list::id, target_id, 0,0, skill_num,casttime);
 		/* ‰r¥”½?ƒ‚ƒ“ƒXƒ^? */
-		if (bl->type == BL_MOB && (md = (struct mob_data *)bl) && mob_db[md->class_].mode & 0x10 &&
-			md->state.state != MS_ATTACK && sd->invincible_timer == -1){
+		if( bl->type == BL_MOB && (md = (struct mob_data *)bl) && mob_db[md->class_].mode & 0x10 &&
+			!md->is_attacking() && sd->invincible_timer == -1){
 				md->target_id = sd->block_list::id;
 				md->state.targettype = ATTACKABLE;
 				md->min_chase = 13;

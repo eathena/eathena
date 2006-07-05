@@ -234,7 +234,7 @@ bool block_list::map_addblock()
 			this->prev = &bl_head;
 			if(this->next) this->next->prev = this;
 			obj.root_mob = this;
-			obj.cnt_mob++;
+			++obj.cnt_mob;
 		}
 		else
 		{
@@ -242,7 +242,7 @@ bool block_list::map_addblock()
 			this->prev = &bl_head;
 			if( this->next ) this->next->prev = this;
 			obj.root_blk = this;
-			obj.cnt_blk++;
+			++obj.cnt_blk;
 
 			if( this->type == BL_PC )
 			{
@@ -286,7 +286,7 @@ bool block_list::map_delblock()
 		if( this->next )
 			this->next->prev = this->prev;
 
-		if (this->prev == &bl_head)
+		if( this->prev == &bl_head )
 		{	// head entry
 			const size_t pos = this->x/BLOCK_SIZE+(this->y/BLOCK_SIZE)*maps[this->m].bxs;
 			map_data::_objects &obj = maps[this->m].objects[pos];
@@ -295,14 +295,14 @@ bool block_list::map_delblock()
 			if(this->type==BL_MOB)
 			{
 				obj.root_mob = this->next;
-				if( --obj.cnt_mob < 0 )
-					obj.cnt_mob = 0;
+				if( obj.cnt_mob > 0 )
+					--obj.cnt_mob;
 			}
 			else
 			{
 				obj.root_blk = this->next;
-				if( --obj.cnt_blk < 0 )
-					obj.cnt_blk = 0;
+				if( obj.cnt_blk > 0 )
+					--obj.cnt_blk;
 			}
 		}
 		else

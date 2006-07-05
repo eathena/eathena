@@ -80,7 +80,6 @@ mob_data::mob_data(const char *mobname, int class_) :
 	min_chase(0),
 	deletetimer(-1),
 	guild_id(0),
-	skilltimer(-1),
 	skilltarget(0),
 	skillx(0),
 	skilly(0),
@@ -131,21 +130,22 @@ mob_data::mob_data(const char *mobname, int class_) :
  * It branches to a walk and an attack.
  *------------------------------------------
  */
-int mob_data::walktimer_func_old(int tid, unsigned long tick, basics::numptr data)
+int mob_data::walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	struct mob_data *md=this;
 
 	if(md->block_list::prev == NULL || md->state.state == MS_DEAD)
 		return 1;
-
+	
 	block_list::map_freeblock_lock();
+
 	switch(md->state.state){
 	case MS_WALK:
 		md->walk(tick);
 		break;
-	case MS_ATTACK:
-		mob_attack(*md,tick,data.num);
-		break;
+//	case MS_ATTACK:
+//		mob_attack(*md,tick,data.num);
+//		break;
 	case MS_DELAY:
 		md->changestate(MS_IDLE,0);
 		break;
@@ -155,39 +155,25 @@ int mob_data::walktimer_func_old(int tid, unsigned long tick, basics::numptr dat
 		break;
 	}
 
-	if (md->walktimer == -1)
+	if( !md->is_walking() && !md->is_attacking() )
 		md->changestate(MS_WALK,0);
 
 	block_list::map_freeblock_unlock();
 	return 0;
 }
-/// timer function.
-/// called from walktimer_entry
-bool mob_data::walktimer_func(unsigned long tick)
-{	
+
+int mob_data::attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
+{
 	block_list::map_freeblock_lock();
-	switch(this->state.state){
-	case MS_WALK:
-		this->walkstep(tick);
-		break;
-	case MS_ATTACK:
-		mob_attack(*this,tick,0);
-		break;
-	case MS_DELAY:
-		this->changestate(MS_IDLE,0);
-		break;
-	default:
-		if(battle_config.error_log)
-			ShowMessage("Walk_timer : %d ?\n",this->state.state);
-		break;
-	}
-
-	if(this->walktimer == -1)
-		this->changestate(MS_WALK,0);
-
+	const int ret = mob_attack(*this,tick,data.num);
 	block_list::map_freeblock_unlock();
-	return true;
+	return ret;
 }
+int mob_data::skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
+{
+	return 0;
+}
+
 
 
 /*==========================================
@@ -202,7 +188,8 @@ int mob_data::walkstep_old(unsigned long tick)
 	const static char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
 	int x,y,dx,dy;
 
-	this->state.state=MS_IDLE;
+	this->changestate(MSS_IDLE,0);
+
 	if( this->walkpath.finished() )
 		return 0;
 
@@ -285,10 +272,10 @@ int mob_data::walkstep_old(unsigned long tick)
 			i = 1;
 		if(this->walktimer != -1)
 		{
-			delete_timer(this->walktimer,movable::walktimer_entry_old);
+			delete_timer(this->walktimer,movable::walktimer_entry);
 			this->walktimer=-1;
 		}
-		this->walktimer=add_timer(tick+i, movable::walktimer_entry_old, this->block_list::id, 0);
+		this->walktimer=add_timer(tick+i, movable::walktimer_entry, this->block_list::id, 0);
 		this->state.state=MS_WALK;
 	}
 	if( this->walkpath.finished() )
@@ -424,9 +411,19 @@ int mob_data::changestate_old(int state,int type)
 	int i;
 
 	if(md.walktimer != -1)
-	{	
-		delete_timer(md.walktimer,movable::walktimer_entry_old);
+	{
+		delete_timer(md.walktimer,movable::walktimer_entry);
 		md.walktimer=-1;
+	}
+	if(md.attacktimer != -1)
+	{
+		delete_timer(md.attacktimer,fightable::attacktimer_entry);
+		md.attacktimer=-1;
+	}
+	if(md.skilltimer != -1)
+	{
+		delete_timer(md.skilltimer,fightable::skilltimer_entry);
+		md.skilltimer=-1;
 	}
 	md.state.state=state;
 
@@ -435,7 +432,7 @@ int mob_data::changestate_old(int state,int type)
 		if((i=md.calc_next_walk_step())>0)
 		{
 			i = i>>2;
-			md.walktimer=add_timer(gettick()+i,movable::walktimer_entry_old,md.block_list::id,0);
+			md.walktimer=add_timer(gettick()+i,movable::walktimer_entry,md.block_list::id,0);
 		}
 		else
 			md.state.state=MS_IDLE;
@@ -444,18 +441,20 @@ int mob_data::changestate_old(int state,int type)
 		tick = gettick();
 		i=DIFF_TICK(md.attackable_tick,tick);
 		if(i>0 && i<2000)
-			md.walktimer=add_timer(md.attackable_tick,movable::walktimer_entry_old,md.block_list::id,0);
-		else if(type) {
+			md.attacktimer=add_timer(md.attackable_tick,fightable::attacktimer_entry,md.block_list::id,0);
+		else if(type)
+		{
 			md.attackable_tick = tick + status_get_amotion(&md);
-			md.walktimer=add_timer(md.attackable_tick,movable::walktimer_entry_old,md.block_list::id,0);
+			md.attacktimer=add_timer(md.attackable_tick,fightable::attacktimer_entry,md.block_list::id,0);
 		}
-		else {
+		else
+		{	// possibly better to call it directly
 			md.attackable_tick = tick + 1;
-			md.walktimer=add_timer(md.attackable_tick,movable::walktimer_entry_old,md.block_list::id,0);
+			md.attacktimer=add_timer(md.attackable_tick,fightable::attacktimer_entry,md.block_list::id,0);
 		}
 		break;
 	case MS_DELAY:
-		md.walktimer=add_timer(gettick()+type,movable::walktimer_entry_old,md.block_list::id,0);
+		md.walktimer=add_timer(gettick()+type,movable::walktimer_entry,md.block_list::id,0);
 		break;
 	case MS_DEAD:
 		skill_castcancel(&md,0);
@@ -484,6 +483,38 @@ int mob_data::changestate_old(int state,int type)
 
 
 
+
+/*
+/// timer function.
+/// called from walktimer_entry
+bool mob_data::walktimer_func(unsigned long tick)
+{	
+	block_list::map_freeblock_lock();
+	switch(this->state.state){
+	case MS_WALK:
+		this->walkstep(tick);
+		break;
+//	case MS_ATTACK:
+//		mob_attack(*this,tick,0);
+//		break;
+	case MS_DELAY:
+		this->changestate(MS_IDLE,0);
+		break;
+	default:
+		if(battle_config.error_log)
+			ShowMessage("Walk_timer : %d ?\n",this->state.state);
+		break;
+	}
+
+	if(this->walktimer == -1)
+		this->changestate(MS_WALK,0);
+
+	block_list::map_freeblock_unlock();
+	return true;
+}
+*/
+
+
 /// do object depending stuff for ending the walk.
 void mob_data::do_stop_walking()
 {
@@ -507,7 +538,6 @@ void mob_data::do_walkstep(unsigned long tick, const coordinate &target, int dx,
 		return;
 	}
 //---
-
 	if(this->min_chase>13)
 		--this->min_chase;
 
@@ -525,8 +555,18 @@ void mob_data::do_changestate(int state,int type)
 
 	if(md.walktimer != -1)
 	{
-		delete_timer(md.walktimer,movable::walktimer_entry_old);
+		delete_timer(md.walktimer,movable::walktimer_entry);
 		md.walktimer=-1;
+	}
+	if(md.attacktimer != -1)
+	{
+		delete_timer(md.attacktimer,fightable::attacktimer_entry);
+		md.attacktimer=-1;
+	}
+	if(md.skilltimer != -1)
+	{
+		delete_timer(md.skilltimer,fightable::skilltimer_entry);
+		md.skilltimer=-1;
 	}
 	md.state.state=state;
 
@@ -539,18 +579,20 @@ void mob_data::do_changestate(int state,int type)
 		tick = gettick();
 		i=DIFF_TICK(md.attackable_tick,tick);
 		if(i>0 && i<2000)
-			md.walktimer=add_timer(md.attackable_tick,movable::walktimer_entry_old,md.block_list::id,0);
-		else if(type) {
+			md.attacktimer=add_timer(md.attackable_tick,fightable::attacktimer_entry,md.block_list::id,0);
+		else if(type)
+		{
 			md.attackable_tick = tick + status_get_amotion(&md);
-			md.walktimer=add_timer(md.attackable_tick,movable::walktimer_entry_old,md.block_list::id,0);
+			md.attacktimer=add_timer(md.attackable_tick,fightable::attacktimer_entry,md.block_list::id,0);
 		}
-		else {
+		else
+		{
 			md.attackable_tick = tick + 1;
-			md.walktimer=add_timer(md.attackable_tick,movable::walktimer_entry_old,md.block_list::id,0);
+			md.attacktimer=add_timer(md.attackable_tick,fightable::attacktimer_entry,md.block_list::id,0);
 		}
 		break;
 	case MS_DELAY:
-		md.walktimer=add_timer(gettick()+type,movable::walktimer_entry_old,md.block_list::id,0);
+		md.walktimer=add_timer(gettick()+type,movable::walktimer_entry,md.block_list::id,0);
 		break;
 	case MS_DEAD:
 		skill_castcancel(&md,0);
@@ -575,6 +617,9 @@ void mob_data::do_changestate(int state,int type)
 }
 
 
+
+
+
 // Random walk
 int mob_data::randomwalk_old(unsigned long tick)
 {
@@ -587,7 +632,8 @@ int mob_data::randomwalk_old(unsigned long tick)
 
 		int i,x,y,d=12-md.move_fail_count;
 		if(d<5) d=5;
-		for(i=0;i<retrycount;++i){	// Search of a movable place
+		for(i=0;i<retrycount;++i)
+		{	// Search of a movable place
 			int r=rand();
 			x=r%(d*2+1)-d;
 			y=r/(d*2+1)%(d*2+1)-d;
@@ -938,7 +984,7 @@ int mob_attack(struct mob_data &md,unsigned long tick,int data)
 	int mode,race,range;
 
 	md.min_chase=13;
-	md.state.state=MS_IDLE;
+	md.changestate(MS_IDLE,0);
 	md.state.skillstate=MSS_IDLE;
 
 	if( md.skilltimer!=-1 )	// スキル使用中
@@ -1019,12 +1065,15 @@ int mob_attack(struct mob_data &md,unsigned long tick,int data)
 		status_change_end(&md,SC_CLOAKING,-1);
 
 	md.attackable_tick = tick + status_get_adelay(&md);
-	if(md.walktimer != -1)
+	if( md.is_walking() )
+		md.stop_walking();
+
+	if( md.attacktimer != -1 )
 	{
-		delete_timer(md.walktimer,movable::walktimer_entry_old);
-		md.walktimer=-1;
+		delete_timer(md.attacktimer,fightable::attacktimer_entry);
+		md.attacktimer=-1;
 	}
-	md.walktimer=add_timer(md.attackable_tick,movable::walktimer_entry_old,md.block_list::id,0);
+	md.attacktimer=add_timer(md.attackable_tick,fightable::attacktimer_entry,md.block_list::id,0);
 	md.state.state=MS_ATTACK;
 
 	return 0;

@@ -55,14 +55,14 @@ static size_t npc_cache_mob=0;
 
 
 
-int npc_data::walktimer_func_old(int tid, unsigned long tick, basics::numptr data)
+int npc_data::walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	struct npc_data *nd=this;
 
 	if(nd->block_list::prev == NULL)
 		return 1;
 
-	switch(nd->state.npcstate){
+	switch(nd->state.state){
 		case MS_WALK:
 			nd->walk(tick);
 			break;
@@ -72,6 +72,14 @@ int npc_data::walktimer_func_old(int tid, unsigned long tick, basics::numptr dat
 		default:
 			break;
 	}
+	return 0;
+}
+int npc_data::attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
+{
+	return 0;
+}
+int npc_data::skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
+{
 	return 0;
 }
 
@@ -88,7 +96,7 @@ int npc_data::walkstep_old(unsigned long tick)
 	const static char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
 	int x,y,dx,dy;
 
-	this->state.npcstate=MS_IDLE;
+	this->state.state=MS_IDLE;
 	if( this->walkpath.finished() )
 		return 0;
 
@@ -123,7 +131,7 @@ int npc_data::walkstep_old(unsigned long tick)
 
 		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
 
-		this->state.npcstate=MS_WALK;
+		this->state.state=MS_WALK;
 
 		CMap::foreachinmovearea( CClifNpcOutsight(*this),
 			this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC);
@@ -165,7 +173,7 @@ int npc_data::walkstep_old(unsigned long tick)
 		}
 		CMap::foreachinmovearea( CClifNpcInsight(*this),
 			this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC);
-		this->state.npcstate=MS_IDLE;
+		this->state.state=MS_IDLE;
 	}
 	if((i=this->calc_next_walk_step())>0)
 	{
@@ -173,13 +181,13 @@ int npc_data::walkstep_old(unsigned long tick)
 		if(i < 1 && this->walkpath.path_half == 0)
 			i = 1;
 
-		this->state.npcstate=MS_WALK;
+		this->state.state=MS_WALK;
 		if(this->walktimer != -1)
 		{
-			delete_timer(this->walktimer,movable::walktimer_entry_old);
+			delete_timer(this->walktimer,movable::walktimer_entry);
 			this->walktimer=-1;
 		}
-		this->walktimer=add_timer(tick+i,movable::walktimer_entry_old,this->block_list::id,0);
+		this->walktimer=add_timer(tick+i,movable::walktimer_entry,this->block_list::id,0);
 	}
 	if( this->walkpath.finished() )
 		clif_fixobject(*this);	// When npc stops, retransmission current of a position.
@@ -201,14 +209,14 @@ int npc_data::walktoxy_sub_old()
 
 int npc_data::walktoxy_old(unsigned short x,unsigned short y,bool easy)
 {
-	if( this->state.npcstate == MS_WALK && 
+	if( this->state.state == MS_WALK && 
 		!walkpath_data::is_possible(this->block_list::m,this->block_list::x,this->block_list::y,x,y,easy?1:0) )
 		return 1;
 
 	this->walkpath.walk_easy = easy;
 	this->target.x=x;
 	this->target.y=y;
-	if(this->state.npcstate == MS_WALK)
+	if(this->state.state == MS_WALK)
 		this->walkpath.change_target=1;
 	else
 		return this->walktoxy_sub();
@@ -218,7 +226,7 @@ int npc_data::walktoxy_old(unsigned short x,unsigned short y,bool easy)
 
 int npc_data::stop_walking_old(int type)
 {
-	if(this->state.npcstate == MS_WALK || this->state.npcstate == MS_IDLE)
+	if(this->state.state == MS_WALK || this->state.state == MS_IDLE)
 	{
 		int dx=0,dy=0;
 
@@ -266,26 +274,26 @@ int npc_data::changestate_old(int state,int type)
 
 	if(nd.walktimer != -1)
 	{
-		delete_timer(nd.walktimer,movable::walktimer_entry_old);
+		delete_timer(nd.walktimer,movable::walktimer_entry);
 		nd.walktimer=-1;
 	}
 
-	nd.state.npcstate=state;
+	nd.state.state=state;
 
 	switch(state){
 	case MS_WALK:
 		if((i=nd.calc_next_walk_step())>0){
 			i = i>>2;
-			nd.walktimer = add_timer(gettick()+i,movable::walktimer_entry_old,nd.block_list::id,0);
+			nd.walktimer = add_timer(gettick()+i,movable::walktimer_entry,nd.block_list::id,0);
 		}
 		else {
-			nd.state.npcstate=MS_IDLE;
+			nd.state.state=MS_IDLE;
 		}
 		break;
 	case MS_IDLE:
 		break;
 	case MS_DELAY:
-		nd.walktimer = add_timer(gettick()+type,movable::walktimer_entry_old,nd.block_list::id,0);
+		nd.walktimer = add_timer(gettick()+type,movable::walktimer_entry,nd.block_list::id,0);
 		break;
 	}
 
@@ -294,10 +302,11 @@ int npc_data::changestate_old(int state,int type)
 
 
 
+
 /// do object depending stuff for ending the walk.
 void npc_data::do_stop_walking()
 {
-	if( this->state.npcstate == MS_WALK )
+	if( this->state.state == MS_WALK )
 		this->changestate(MS_IDLE,0);
 }
 /// do object depending stuff for the walk step.
@@ -307,7 +316,7 @@ void npc_data::do_walkstep(unsigned long tick, const coordinate &target, int dx,
 	if(this->class_>=0 && this->u.scr.xs>0 && this->u.scr.ys>0)
 	{
 		// "xor" is an operator in C++ (Alternative tokens)
-		// together with all other logic operator names ans some more digraphs
+		// together with all other logic operator names and some more digraphs
 		// whatever shit those guys had in mind; I don't argue with it 
 		// on gcc it could be disables with -fno-operator-names, MS does not have it at all
 		// but better make sure to not have those in the code at all
@@ -351,7 +360,7 @@ void npc_data::do_walkstep(unsigned long tick, const coordinate &target, int dx,
 		}
 	}
 
-	this->state.npcstate = MS_WALK;
+	this->state.state = MS_WALK;
 }
 
 /// do object depending stuff for changestate
@@ -364,21 +373,21 @@ void npc_data::do_changestate(int state,int type)
 		if( nd.is_walking() )
 			delete_timer(nd.walktimer,nd.walktimer_entry);
 		else
-			delete_timer(nd.walktimer,movable::walktimer_entry_old);
+			delete_timer(nd.walktimer,movable::walktimer_entry);
 		nd.walktimer=-1;
 	}
 
-	nd.state.npcstate=state;
+	nd.state.state=state;
 
 	switch(state){
 	case MS_WALK:
 		if( !nd.set_walktimer( gettick() ) )
-			nd.state.npcstate=MS_IDLE;
+			nd.state.state=MS_IDLE;
 		break;
 	case MS_IDLE:
 		break;
 	case MS_DELAY:
-		nd.walktimer = add_timer(gettick()+type,movable::walktimer_entry_old,nd.block_list::id,0);
+		nd.walktimer = add_timer(gettick()+type,movable::walktimer_entry,nd.block_list::id,0);
 		break;
 	}
 }
@@ -491,32 +500,6 @@ int npc_event_doall_attached(const char *name, struct map_session_data &sd)
  * npc_enable_sub 有効時にOnTouchイベントを実行
  *------------------------------------------
  */
-/*
-int npc_enable_sub( struct block_list &bl, va_list &ap)
-{
-	struct npc_data *nd;
-
-	nullpo_retr(0, ap);
-	nd=va_arg(ap,struct npc_data*);
-	nullpo_retr(0, nd);
-	if(bl.type == BL_PC )
-	{
-		struct map_session_data &sd=(struct map_session_data &)bl;
-		char name[50];
-
-		if (nd->flag&1)	// 無効化されている
-			return 1;
-
-		if(sd.areanpc_id==nd->block_list::id)
-			return 1;
-		sd.areanpc_id=nd->block_list::id;
-
-		sprintf(name,"%s::OnTouch", nd->name);
-		npc_event(sd,name,0);
-	}
-	return 0;
-}
-*/
 class CNpcEnable : public CMapProcessor
 {
 	struct npc_data &nd;
@@ -567,9 +550,6 @@ int npc_enable(const char *name,int flag)
 	{
 		CMap::foreachinarea( CNpcEnable(*nd),
 			nd->block_list::m, ((int)nd->block_list::x)-nd->u.scr.xs,((int)nd->block_list::y)-nd->u.scr.ys, ((int)nd->block_list::x)+nd->u.scr.xs,((int)nd->block_list::y)+nd->u.scr.ys,BL_PC);
-//		map_foreachinarea( npc_enable_sub,
-//			nd->block_list::m, ((int)nd->block_list::x)-nd->u.scr.xs,((int)nd->block_list::y)-nd->u.scr.ys, ((int)nd->block_list::x)+nd->u.scr.xs,((int)nd->block_list::y)+nd->u.scr.ys,BL_PC,
-//			nd);
 	}
 
 	return 0;

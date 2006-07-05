@@ -253,6 +253,7 @@ struct item_data;
 struct pet_db;
 
 struct movable;
+struct fightable;
 struct map_session_data;
 struct npc_data;
 struct mob_data;
@@ -430,7 +431,11 @@ struct block_list : public coordinate
 //		return (t==this->type);
 //	}
 
-	virtual movable* get_movable()	{ return NULL; }
+	///////////////////////////////////////////////////////////////////////////
+	/// upcasting overload.
+	virtual movable*	get_movable()	{ return NULL; }
+	/// upcasting overload.
+	virtual fightable*	get_fightable()	{ return NULL; }
 };
 
 
@@ -440,7 +445,7 @@ struct block_list : public coordinate
 // include it here until the classes got seperated
 #include "movable.h"
 
-
+#include "fightable.h"
 
 
 
@@ -647,7 +652,7 @@ struct skill_timerskill
 };
 
 
-struct map_session_data : public movable, public session_data
+struct map_session_data : public fightable, public session_data
 {
 	struct {
 		unsigned auth : 1;							// 0
@@ -1048,7 +1053,9 @@ struct map_session_data : public movable, public session_data
 	/// change object state
 	virtual int changestate_old(int state,int type);
 	/// timer callback
-	virtual int walktimer_func_old(int tid, unsigned long tick, basics::numptr data);
+	virtual int walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
+	virtual int attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
+	virtual int skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
 
 
 	/// do object depending stuff for ending the walk.
@@ -1103,7 +1110,6 @@ protected:
 
 		// timers
 		this->followtimer = -1;
-		this->skilltimer = -1;
 		this->invincible_timer = -1;
 		this->pet_hungry_timer = -1;
 		this->pvp_timer = -1;
@@ -1185,7 +1191,7 @@ struct npc_data : public movable
 	unsigned long next_walktime;
 
 	struct { // [Valaris]
-		unsigned npcstate : 8;
+		unsigned state : 8;
 	} state;
 
 
@@ -1236,7 +1242,9 @@ struct npc_data : public movable
 	/// change object state
 	virtual int changestate_old(int state,int type);
 	/// timer callback
-	virtual int walktimer_func_old(int tid, unsigned long tick, basics::numptr data);
+	virtual int walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
+	virtual int attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
+	virtual int skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
 
 
 	/// do object depending stuff for ending the walk.
@@ -1249,7 +1257,7 @@ struct npc_data : public movable
 	virtual void do_changestate(int state,int type);
 
 	/// checks for walking state
-	virtual bool is_walking() const		{ return this->movable::is_walking()&&(state.npcstate==MS_WALK); }
+	virtual bool is_walking() const		{ return this->movable::is_walking()||(state.state==MS_WALK); }
 
 
 private:
@@ -1398,7 +1406,7 @@ struct mob_list
 
 };
 
-struct mob_data : public movable
+struct mob_data : public fightable
 {
 	unsigned short base_class;
 	unsigned short class_;
@@ -1484,7 +1492,6 @@ struct mob_data : public movable
 
 	uint32 guild_id; // for guardians
 
-	int skilltimer;
 	uint32 skilltarget;
 	unsigned short skillx;
 	unsigned short skilly;
@@ -1522,7 +1529,9 @@ struct mob_data : public movable
 	/// change object state
 	virtual int changestate_old(int state,int type);
 	/// timer callback
-	virtual int walktimer_func_old(int tid, unsigned long tick, basics::numptr data);
+	virtual int walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
+	virtual int attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
+	virtual int skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
 
 
 	/// do object depending stuff for ending the walk.
@@ -1534,16 +1543,25 @@ struct mob_data : public movable
 	/// do object depending stuff for changestate
 	virtual void do_changestate(int state,int type);
 
+	/// timer function.
+	/// called from walktimer_entry
+//	virtual bool walktimer_func(unsigned long tick);
+
 	/// checks for walking state
-	virtual bool is_walking() const		{ return this->movable::is_walking()&&(state.state==MS_WALK); }
+	virtual bool is_walking() const		{ return this->movable::is_walking()||(state.state==MS_WALK); }
 
 
 	/// timer function.
 	/// called from walktimer_entry
-	virtual bool walktimer_func(unsigned long tick);
+	virtual bool walktimer_func(unsigned long tick)
+	{	// does standard walking by default
+		const bool ret = this->walkstep(tick);
 
+		if( this->walktimer == -1 && this->attacktimer == -1 && this->skilltimer == -1 )
+			this->changestate(MS_WALK,0);
 
-
+		return ret;
+	}
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1570,7 +1588,7 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-struct pet_data : public movable
+struct pet_data : public fightable
 {
 	const char *namep;
 	struct _state
@@ -1742,7 +1760,9 @@ struct pet_data : public movable
 	/// change object state
 	virtual int changestate_old(int state,int type);
 	/// timer callback
-	virtual int walktimer_func_old(int tid, unsigned long tick, basics::numptr data);
+	virtual int walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
+	virtual int attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
+	virtual int skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
 
 
 	/// do object depending stuff for ending the walk.
@@ -1755,7 +1775,7 @@ struct pet_data : public movable
 	virtual void do_changestate(int state,int type);
 
 	/// checks for walking state
-	virtual bool is_walking() const		{ return this->movable::is_walking()&&(state.state==MS_WALK); }
+	virtual bool is_walking() const		{ return this->movable::is_walking()||(state.state==MS_WALK); }
 
 
 
@@ -1782,7 +1802,7 @@ private:
 
 
 
-class homun_data : public movable
+class homun_data : public fightable
 {
 public:
 	struct homunstatus status;
@@ -1844,9 +1864,11 @@ public:
 	/// change object state
 	virtual int changestate_old(int state,int type);
 	/// timer callback
-	virtual int walktimer_func_old(int tid, unsigned long tick, basics::numptr data);
+	virtual int walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
+	virtual int attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
+	virtual int skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
 
-
+/*
 	/// do object depending stuff for ending the walk.
 	virtual void do_stop_walking();
 	/// do object depending stuff for the walk step.
@@ -1855,7 +1877,7 @@ public:
 	virtual void do_walkto();
 	/// do object depending stuff for changestate
 	virtual void do_changestate(int state,int type);
-
+*/
 
 	void* operator new(size_t sz)
 	{

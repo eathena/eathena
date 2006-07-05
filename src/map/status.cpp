@@ -1892,17 +1892,23 @@ int status_recalc_speed(struct block_list *bl)
 	}
 
 	// map tile dependend reducing of speed
-/*
+
+	if( map_getcell(bl->m, bl->x, bl->y, CELL_CHKHOLE) )
 	{
 		int i,k;
 		for(i=-1; i<=1; ++i)
 		for(k=-1; k<=1; ++k)
 		{
 			if( map_getcell(bl->m, bl->x+i, bl->y+k, CELL_CHKHOLE) )
-				speed = speed*116/100; // slow down by 16%
+				speed = speed*116/100; // slow down by 16% per surrounding quicksand tile
 		}
 	}
-*/
+	else if( map_getcell(bl->m, bl->x, bl->y, CELL_CHKWATER) )
+	{
+		speed *= 2; // slower in water
+	}
+
+
 	if(speed < 1) speed = 1;
 	return speed;
 }

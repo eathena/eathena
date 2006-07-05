@@ -37,7 +37,7 @@ COMMON_H   += $(CP)/grfio.h
 
 MAP_SQL = sqlobj/itemdb.o sqlobj/log.o sqlobj/map.o sqlobj/mob.o 
 MAP_TXT = txtobj/itemdb.o txtobj/log.o txtobj/map.o txtobj/mob.o 
-MAP_OBJ = txtobj/chrif.o txtobj/coordinate.o txtobj/movable.o txtobj/pc.o txtobj/npc.o txtobj/chat.o txtobj/path.o txtobj/script.o txtobj/storage.o txtobj/skill.o txtobj/atcommand.o txtobj/charcommand.o txtobj/battle.o txtobj/intif.o txtobj/trade.o txtobj/party.o txtobj/vending.o txtobj/guild.o txtobj/pet.o txtobj/status.o txtobj/npc_chat.o txtobj/mercenary.o txtobj/clif.o
+MAP_OBJ = txtobj/chrif.o txtobj/coordinate.o txtobj/fightable.o txtobj/movable.o txtobj/pc.o txtobj/npc.o txtobj/chat.o txtobj/path.o txtobj/script.o txtobj/storage.o txtobj/skill.o txtobj/atcommand.o txtobj/charcommand.o txtobj/battle.o txtobj/intif.o txtobj/trade.o txtobj/party.o txtobj/vending.o txtobj/guild.o txtobj/pet.o txtobj/status.o txtobj/npc_chat.o txtobj/mercenary.o txtobj/clif.o
 
 map-server: $(MAP_TXT) $(MAP_OBJ) $(COMMON_TXT) $(COMMON_OBJ) $(BASE_OBJ)
 	$(CCC) $> -lm $(LIBS) -o $(RETURN_PATH)/$@
@@ -58,6 +58,7 @@ txtobj/chat.o: chat.cpp map.h clif.h pc.h chat.h $(COMMON_H) $(BASE_H)
 txtobj/chrif.o: chrif.cpp map.h battle.h chrif.h clif.h intif.h pc.h npc.h $(COMMON_H) $(BASE_H)
 txtobj/clif.o: clif.cpp map.h chrif.h clif.h mob.h intif.h pc.h npc.h itemdb.h chat.h script.h storage.h party.h guild.h atcommand.h pet.h charcommand.h $(COMMON_H) $(BASE_H)
 txtobj/coordinate.o: coordinate.cpp coordinate.h $(COMMON_H) $(BASE_H)
+txtobj/fightable.o: fightable.cpp fightable.h movable.h map.h $(COMMON_H) $(BASE_H)
 txtobj/guild.o: guild.cpp guild.h storage.h battle.h clif.h intif.h pc.h npc.h map.h $(COMMON_H) $(BASE_H)
 txtobj/intif.o: intif.cpp intif.h chrif.h clif.h party.h guild.h storage.h map.h battle.h pet.h $(COMMON_H) $(BASE_H)
 txtobj/itemdb.o: itemdb.cpp itemdb.h battle.h pc.h $(COMMON_H) $(BASE_H)

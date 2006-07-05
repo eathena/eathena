@@ -15,9 +15,9 @@ public:
 
 	unsigned long canmove_tick;
 	int walktimer;
-	int attacktimer;	// borrowed, will be placed in fightable class
-	int skilltimer;		// borrowed, will be placed in fightable class
-	unsigned long attackable_tick;
+//	int attacktimer;	// borrowed, will be placed in fightable class
+//	int skilltimer;		// borrowed, will be placed in fightable class
+//	unsigned long attackable_tick;
 private:
 	unsigned char bodydir : 3;	
 	unsigned char headdir : 3;
@@ -34,11 +34,9 @@ public:
 
 
 
-
 	///////////////////////////////////////////////////////////////////////////
-	/// overload
+	/// upcasting overload.
 	virtual movable* get_movable()	{ return this; }
-
 
 
 
@@ -87,71 +85,27 @@ public:
 	int get_speed() const { return this->speed; }
 	/// (re)-calculate the actual speed of the object.
 	/// overload this for the specific objects 
-	/// or even better do specific recalcuations when changes happen
+	/// or even better do specific recalcuations only when changes happen
 	/// (status_start/end, equip/unequip, walking on specific cells, etc)
 	virtual int calc_speed();
 
-//#define NEW_INTERFACE
+
 	///////////////////////////////////////////////////////////////////////////
 	// compound of the old interface with modified timer callback
+	// clean up when new interface is debugged
 
 	/// internal walk subfunction
-	int walktoxy_sub()
-	{
-#ifndef NEW_INTERFACE
-		return this->walktoxy_sub_old();
-#else
-		return 0;
-#endif
-	}
+	int walktoxy_sub();
 	/// walks to a coordinate
-	int walktoxy(unsigned short x,unsigned short y,bool easy=false)
-	{
-#ifndef NEW_INTERFACE
-		return this->walktoxy_old(x,y,easy);
-#else
-		return this->walkto(x,y);
-#endif
-	}
+	int walktoxy(unsigned short x,unsigned short y,bool easy=false);
 	/// interrupts walking
-	int stop_walking(int type=1)
-	{
-#ifndef NEW_INTERFACE
-		return stop_walking_old(type);
-#else
-		return stop_walking_new(type);
-#endif
-	}
+	int stop_walking(int type=1);
 	/// do a walk step
-	int walk(unsigned long tick)
-	{
-#ifndef NEW_INTERFACE
-		return this->walkstep_old(tick);
-#else
-		printf("old walkfunction called\n");
-		return 0;
-#endif
-	}
+	int walk(unsigned long tick);
 	/// change object state
-	int changestate(int state,int type)
-	{
-#ifndef NEW_INTERFACE
-		return changestate_old(state,type);
-#else
-		do_changestate(state,type);
-		return 0;
-#endif
-	}
+	int changestate(int state,int type);
 	/// change object state
-	int randomwalk(unsigned long tick)
-	{
-#ifndef NEW_INTERFACE
-		return randomwalk_old(tick);
-#else
-		// will be part of controlable (AI control interface)
-		return 0;
-#endif
-	}
+	int randomwalk(unsigned long tick);
 
 	/// internal walk subfunction
 	virtual int walktoxy_sub_old()=0;
@@ -168,12 +122,21 @@ public:
 
 
 	/// walktimer entry point.
+	/// call back function for the timer
+	static int walktimer_entry(int tid, unsigned long tick, int id, basics::numptr data);
 	/// call back function for the walktimer
-	static int walktimer_entry_old(int tid, unsigned long tick, int id, basics::numptr data);
-	virtual int walktimer_func_old(int tid, unsigned long tick, basics::numptr data)=0;
+	virtual int walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)=0;
 
+/*	/// attacktimer entry point.
+	static int attacktimer_entry(int tid, unsigned long tick, int id, basics::numptr data);
+	/// call back function for the attacktimer
+	virtual int attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)=0;
 
-
+	/// skilltimer entry point.
+	static int skilltimer_entry(int tid, unsigned long tick, int id, basics::numptr data);
+	/// call back function for the skilltimer
+	virtual int skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)=0;
+*/
 
 // new interface
 
@@ -182,6 +145,12 @@ public:
 
 	/// checks for walking state
 	virtual bool is_walking() const		{ return (walktimer!=-1); }
+
+/*	/// checks for walking state
+	virtual bool is_attacking() const	{ return (attacktimer!=-1); }
+	/// checks for walking state
+	virtual bool is_skilling() const	{ return (skilltimer!=-1); }
+*/
 	/// checks for dead state
 	virtual bool is_dead() const		{ return false; }
 	/// checks for sitting state
@@ -196,7 +165,6 @@ public:
 	virtual bool is_confuse() const		{ return false; }
 
 
-
 	///////////////////////////////////////////////////////////////////////////
 	// walking functions
 
@@ -205,6 +173,7 @@ public:
 	virtual bool is_movable();
 
 	/// checks if walking on the quested tile is possible
+	/// -> move to map class
 	virtual bool can_walk(unsigned short m, unsigned short x, unsigned short y);
 
 	/// do object depending stuff for ending the walk.
@@ -214,18 +183,17 @@ public:
 	/// do object depending stuff for the walkto
 	virtual void do_walkto()	{}
 	/// do object depending stuff for changestate
-	virtual void do_changestate(int state,int type)=0;
+	// -> possibly remove this at all
+	virtual void do_changestate(int state,int type)	{}
 
 
-	/// timer entry point.
-	/// call back function for the timer
-	static int walktimer_entry(int tid, unsigned long tick, int id, basics::numptr data);
 
 	/// timer function.
 	/// called from walktimer_entry
+	// possibly clean and compound all related functions, the interface might only need 2 or 3 accesses
 	virtual bool walktimer_func(unsigned long tick)
 	{	// does standard walking by default
-		return walkstep(tick);
+		return this->walkstep(tick);
 	}
 
 	/// initialize walkpath. uses current target position as walk target
@@ -242,6 +210,8 @@ public:
 		return this->walkto( coordinate(x,y) );
 	}
 	bool stop_walking_new(int type);
+
+
 };
 
 

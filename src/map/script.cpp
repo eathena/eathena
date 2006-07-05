@@ -296,6 +296,9 @@ int buildin_getiteminfo(CScriptEngine &st);
 int buildin_callshop(CScriptEngine &st);
 
 
+int buildin_regex(CScriptEngine &st);
+
+
 struct {
 	int (*func)(CScriptEngine &);
 	char *name;
@@ -553,6 +556,7 @@ struct {
 	{buildin_pc_emotion,"pc_emotion","i"},
 	{buildin_getiteminfo,"getiteminfo","i"},
 	{buildin_callshop,"callshop","si"}, // [Skotlex]
+	{buildin_regex,"regex","ss"},
 	// array terminator
 	{NULL,NULL,NULL},
 };
@@ -8918,7 +8922,7 @@ int buildin_npcstop(CScriptEngine &st)
 {
 	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
 
-	if( (nd) && (nd->state.npcstate==MS_WALK) )
+	if( (nd) && (nd->state.state==MS_WALK) )
 		nd->stop_walking(1);
 	return 0;
 }
@@ -9794,6 +9798,29 @@ int buildin_callshop(CScriptEngine &st)
 	st.push_val(CScriptEngine::C_INT,ret);
 	return 0;
 }
+
+/// regular expression.
+/// returns true/false on match success, 
+/// capture patterns are stored in variables $p0$..$p9$ as done in npc_chat
+int buildin_regex(CScriptEngine &st)
+{
+	const char *regexpr = st.GetString(st[2]);
+	const char *pattern = st.GetString(st[3]);
+	basics::CRegExp rx(regexpr);
+	int ret = rx.match(pattern);
+
+	size_t i;
+	char buffer[16];
+	for(i=0; i<9; ++i)
+	{
+		snprintf(buffer, sizeof(buffer), "$p%i$", (int)i);
+		set_var(buffer, (void*)(( i<=rx.sub_count() ) ? ((const char*)rx[i]) : "") );
+	}
+
+	st.push_val(CScriptEngine::C_INT,ret);
+	return 0;
+}
+
 
 /*==========================================
  * マップ変数の変更

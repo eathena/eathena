@@ -61,6 +61,11 @@ debugmes  $GlobalNumeric;
 debugmes  @TempNumeric;
 debugmes  @BitOpTest;
 
+debugmes  "regex:";
+regex "\\s(h[^\\s]*)\\s", "this is a hallo test";
+debugmes  $p0$;
+debugmes  $p1$;
+debugmes  $p2$;
 }
 
 

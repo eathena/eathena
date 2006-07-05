@@ -2125,21 +2125,17 @@ int clif_servertick(struct map_session_data &sd, unsigned long tick)
  *
  *------------------------------------------
  */
-int clif_walkok(const block_list& bl)
+int clif_walkok(const map_session_data& sd)
 {
-	if( bl.get_sd() )
-	{
-		struct map_session_data &sd = *bl.get_sd();
-		int fd=sd.fd;
-		if( !session_isActive(fd) )
-			return 0;
+	int fd=sd.fd;
+	if( !session_isActive(fd) )
+		return 0;
 
-		WFIFOW(fd,0)=0x87;
-		WFIFOL(fd,2)=gettick();
-		WFIFOPOS2(fd,6,sd.block_list::x,sd.block_list::y,sd.target.x,sd.target.y);
-		WFIFOB(fd,11)=0x88;
-		WFIFOSET(fd,packet_len_table[0x87]);
-	}
+	WFIFOW(fd,0)=0x87;
+	WFIFOL(fd,2)=gettick();
+	WFIFOPOS2(fd,6,sd.block_list::x,sd.block_list::y,sd.target.x,sd.target.y);
+	WFIFOB(fd,11)=0x88;
+	WFIFOSET(fd,packet_len_table[0x87]);
 	return 0;
 }
 /*==========================================
@@ -2156,8 +2152,11 @@ int clif_moveobject(const block_list& bl)
 		unsigned char buf2[256];
 		unsigned char buf3[256];
 
+		clif_walkok(sd);
+
 		len = clif_set007b(sd, buf);
 		clif_send(buf, len, &sd, AREA_WOS);
+
 
 		if( maps[sd.block_list::m].flag.snow || 
 			maps[sd.block_list::m].flag.clouds || 
@@ -4175,15 +4174,12 @@ int clif_getareachar_npc(struct map_session_data &sd,struct npc_data &nd)
 
 	if(nd.class_ < 0 || nd.flag&1 || nd.class_ == INVISIBLE_CLASS)
 		return 0;
-	if(nd.state.npcstate == MS_WALK){
+	if(nd.is_walking() )
 		len = clif_npc007b(nd,WFIFOP(sd.fd,0));
-		WFIFOSET(sd.fd,len);
-	}
 	else
-	{
 		len = clif_npc0078(nd,WFIFOP(sd.fd,0));
-		WFIFOSET(sd.fd,len);
-	}
+	WFIFOSET(sd.fd,len);
+
 	if(nd.chat_id)
 	{
 		chat_data*ct = (chat_data*)map_id2bl(nd.chat_id);
@@ -4249,7 +4245,7 @@ int clif_fixobject(const block_list &bl)
 	{
 		mob_data &md = *bl.block_list::get_md();
 		
-		if(md.state.state == MS_WALK)
+		if( md.is_walking() )
 			len = clif_mob007b(md,buf);
 		else
 			len = clif_mob0078(md,buf);
@@ -4258,7 +4254,7 @@ int clif_fixobject(const block_list &bl)
 	{
 		pet_data &pd = *bl.block_list::get_pd();
 		
-		if(pd.state.state == MS_WALK)
+		if( pd.is_walking() )
 			len = clif_pet007b(pd,buf);
 		else
 			len = clif_pet0078(pd,buf);
@@ -4267,7 +4263,7 @@ int clif_fixobject(const block_list &bl)
 	{
 		npc_data &nd = *bl.block_list::get_nd();
 		
-		if(nd.state.npcstate == MS_WALK)
+		if( nd.is_walking() )
 			len = clif_npc007b(nd,buf);
 		else
 			len = clif_npc0078(nd,buf);
@@ -4364,13 +4360,11 @@ int clif_getareachar_mob(struct map_session_data &sd,struct mob_data &md)
 	if( !session_isActive(sd.fd) )
 		return 0;
 
-	if(md.state.state == MS_WALK){
+	if( md.is_walking() )
 		len = clif_mob007b(md,WFIFOP(sd.fd,0));
-		WFIFOSET(sd.fd,len);
-	} else {
+	else
 		len = clif_mob0078(md,WFIFOP(sd.fd,0));
-		WFIFOSET(sd.fd,len);
-	}
+	WFIFOSET(sd.fd,len);
 
 	if(md.get_equip() > 0) // mob equipment [Valaris]
 		clif_mob_equip(md,md.get_equip());
@@ -5056,13 +5050,13 @@ int CClifOutsight::process(struct block_list& bl) const
 			break;
 		}
 		case BL_ITEM:
-			clif_clearflooritem((struct flooritem_data&)bl,sd->fd);
+			clif_clearflooritem( *((struct flooritem_data*)object),sd->fd);
 			break;
 		case BL_SKILL:
-			clif_clearchar_skillunit((struct skill_unit &)bl,sd->fd);
+			clif_clearchar_skillunit( *((struct skill_unit*)object),sd->fd);
 			break;
 		default:
-			clif_clearchar_id(sd->fd, bl.id,0);
+			clif_clearchar_id(sd->fd, object->id, 0);
 			break;
 		}
 	}

@@ -1,4 +1,13 @@
 Date	Added
+07/05
+	* switched to new moving code, also activated map tile depending moving, 
+	  both something experimental, will need some review after cleaning the old stuff
+	  debug has been done not very extensive so there still might be problems
+	* start on implementing fightable class, only finished the timer interface right now,
+	  removing all the useless crap from current attack/skill code might take some time
+	* some more bug reports/comments would be appreciated 
+	  since this was an important argument to convince me returning to eA, 
+	  but until now, there was not really much to see. [Shinomori]
 06/26
 	* adding default parameter names to inter_athena.conf, 
 	  even if this file is not loaded by default, 
@@ -30,7 +39,7 @@ Date	Added
 	* some open decisions:
 	- naming conventions (I had names as far as possible in the old eA style
 	  but would tend to a more coherent naming)
-	- having a complate set of the virtual interfaces already at block_list
+	- having a complete set of the virtual interfaces already at block_list
 	  or have multiple levels of depencencies (I'd prefer the first, 
 	  maybe also using pure virtual interface classes)
 	- building pets also as real fightables with hp/sp, stats etc. 

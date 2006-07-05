@@ -1310,7 +1310,7 @@ public:
 		this->account_id = accid;
 		safestrcpy(this->userid, uid, 24);
 		safestrcpy(this->passwd, pwd, 34);
-		this->sex = sex;
+		this->sex = s;
 		if( !email_check(em) )
 			safestrcpy(this->email, "a@a.com", 40);
 		else
@@ -1340,7 +1340,6 @@ public:
 		else
 			return strcmp(this->userid, c.userid); 
 	}
-
 	// no buffer transfer necessary
 };
 

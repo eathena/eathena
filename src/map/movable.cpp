@@ -17,59 +17,168 @@ const static char dirx[8] = { 0, 1, 1, 1, 0,-1,-1,-1};
 const static char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
 
 
-
-
-
-
 ///////////////////////////////////////////////////////////////////////////////
 /// constructor
 movable::movable() : 
 	canmove_tick(0),
 	walktimer(-1),
-	attacktimer(-1),
-	skilltimer(-1),
-	attackable_tick(0),
+//	attacktimer(-1),
+//	skilltimer(-1),
+//	attackable_tick(0),
 	bodydir(DIR_S),
 	headdir(DIR_S),
 	speed(DEFAULT_WALK_SPEED)
 {
-	add_timer_func_list(this->walktimer_entry, "new walktimer entry function");
-	add_timer_func_list(this->walktimer_entry_old, "old walktimer entry function");
+	add_timer_func_list(this->walktimer_entry, "walktimer entry function");
+//	add_timer_func_list(this->attacktimer_entry, "attacktimer entry function");
+//	add_timer_func_list(this->skilltimer_entry, "skilltimer entry function");
 }
+
+
+
+#define NEW_INTERFACE
+
+/// internal walk subfunction
+int movable::walktoxy_sub()
+{
+#ifndef NEW_INTERFACE
+	return this->walktoxy_sub_old();
+#else
+	return 0;
+#endif
+}
+/// walks to a coordinate
+int movable::walktoxy(unsigned short x,unsigned short y,bool easy)
+{
+#ifndef NEW_INTERFACE
+	return this->walktoxy_old(x,y,easy);
+#else
+	// interface here is idiotic
+	return !this->walkto(x,y);
+#endif
+}
+/// interrupts walking
+int movable::stop_walking(int type)
+{
+#ifndef NEW_INTERFACE
+	return stop_walking_old(type);
+#else
+	return stop_walking_new(type);
+#endif
+}
+/// do a walk step
+int movable::walk(unsigned long tick)
+{
+#ifndef NEW_INTERFACE
+	return this->walkstep_old(tick);
+#else
+	printf("old walkfunction called\n");
+	return 0;
+#endif
+}
+/// change object state
+int movable::changestate(int state,int type)
+{
+#ifndef NEW_INTERFACE
+	return changestate_old(state,type);
+#else
+	do_changestate(state,type);
+	return 0;
+#endif
+}
+/// change object state
+int movable::randomwalk(unsigned long tick)
+{
+#ifndef NEW_INTERFACE
+	return randomwalk_old(tick);
+#else
+	// will be part of controlable (AI control interface)
+	// for now use the old function
+	return randomwalk_old(tick);
+#endif
+}
+
 
 
 // old timer entry function
 // it actually combines the extraction of the object and calling the 
 // object interal handler, which formally was pc_timer, mob_timer, etc.
-int movable::walktimer_entry_old(int tid, unsigned long tick, int id, basics::numptr data)
+int movable::walktimer_entry(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	block_list* bl = map_id2bl(id);
-
-// pets are using timer data to transfer the castend_delay object 
-// so we need to send the tid and the data down to the objects
-
 	movable* mv;
 	if( bl && (mv=bl->get_movable()) )
 	{
 		if(mv->walktimer != tid)
 		{
 			if(battle_config.error_log)
-				ShowError("timer_entry %d != %d\n",mv->walktimer,tid);
+				ShowError("walktimer_entry %d != %d\n",mv->walktimer,tid);
 			return 0;
 		}
 		// timer was executed, clear it
 		mv->walktimer = -1;
+#ifndef NEW_INTERFACE
+		// call the user function
+		mv->walktimer_func_old(tid, tick, id, data);
+#else
+		mv->walktimer_func(tick);
+#endif
+	}
+
+	return 0;
+}
+/*
+// old timer entry function
+int movable::attacktimer_entry(int tid, unsigned long tick, int id, basics::numptr data)
+{
+	block_list* bl = map_id2bl(id);
+	movable* mv;
+	if( bl && (mv=bl->get_movable()) )
+	{
+		if(mv->attacktimer != tid)
+		{
+			if(battle_config.error_log)
+				ShowError("attacktimer_entry %d != %d\n",mv->attacktimer,tid);
+			return 0;
+		}
+		// timer was executed, clear it
+		mv->attacktimer = -1;
 
 		// call the user function
-		mv->walktimer_func_old(tid, tick, data);
+		mv->attacktimer_func_old(tid, tick, id, data);
 	}
 
 	return 0;
 }
 
+// old timer entry function
+int movable::skilltimer_entry(int tid, unsigned long tick, int id, basics::numptr data)
+{
+	// pets are using timer data to transfer the castend_delay object 
+	// so we need to send the tid and the data down to the objects
+	// to allow cleaning
 
 
+	block_list* bl = map_id2bl(id);
+	movable* mv;
+	if( bl && (mv=bl->get_movable()) )
+	{
+		if(mv->skilltimer != tid)
+		{
+			if(battle_config.error_log)
+				ShowError("skilltimer_entry %d != %d\n",mv->skilltimer,tid);
+			return 0;
+		}
+		// timer was executed, clear it
+		mv->skilltimer = -1;
 
+		// call the user function
+		mv->skilltimer_func_old(tid, tick, id, data);
+	}
+
+	return 0;
+}
+*/
 ///////////////////////////////////////////////////////////////////////////////
 /// set directions seperately.
 void movable::set_dir(dir_t b, dir_t h)
@@ -111,8 +220,8 @@ bool movable::random_position(unsigned short &xs, unsigned short &ys) const
 	{
 		xi = this->x + rand()%(2*dist) - dist;
 		yi = this->y + rand()%(2*dist) - dist;
-		if( !map_getcell(this->m, xi, yi, CELL_CHKNOPASS) )
-		{	// nopass is false -> so it is walkable; take it
+		if( map_getcell(this->m, xi, yi, CELL_CHKPASS) )
+		{
 			xs = xi;
 			ys = yi;
 			return true;
@@ -183,6 +292,13 @@ int movable::calc_next_walk_step()
 	if( old_speed != this->calc_speed() )
 	{	// retransfer the object (only) when the speed changes
 		// so the client can sync to the new object speed
+
+		// still need to find out the best way 
+		// to force the client to cancel the previous walk packet
+		// the current one is a bit heavy, though it's rarely used (at least now)
+
+		clif_fixpos(*this);
+		if( this->get_sd() ) clif_updatestatus(*this->get_sd(),SP_SPEED);
 		clif_moveobject(*this);
 	}
 
@@ -203,12 +319,74 @@ int movable::calc_speed()
 	return this->speed;
 }
 
+bool movable::is_movable()
+{
+	if( DIFF_TICK(this->canmove_tick, gettick()) > 0 )
+		return false;
+
+	map_session_data *sd = this->block_list::get_sd();
+	mob_data *md = this->block_list::get_md();
+	pet_data *pd = this->block_list::get_pd();
+	npc_data *nd = this->block_list::get_nd();
+	if( sd )
+	{
+		if( sd->skilltimer != -1 && !pc_checkskill(*sd, SA_FREECAST) ||
+			pc_issit(*sd) )
+			return false;
+	}
+	else if( md )
+	{
+		if( md->skilltimer != -1 )
+			return false;
+	}
+	else if( pd )
+	{
+		if(pd->state.casting_flag )
+			return false;
+	}
+	else if( nd )
+	{
+		// nothing to break here
+	}
+	else
+		return false;
+
+	struct status_change *sc_data = status_get_sc_data(this);
+	if (sc_data)
+	{
+		if(	sc_data[SC_ANKLE].timer != -1 ||
+			sc_data[SC_AUTOCOUNTER].timer !=-1 ||
+			sc_data[SC_TRICKDEAD].timer !=-1 ||
+			sc_data[SC_BLADESTOP].timer !=-1 ||
+			sc_data[SC_BLADESTOP_WAIT].timer !=-1 ||
+			sc_data[SC_SPIDERWEB].timer !=-1 ||
+			(sc_data[SC_DANCING].timer !=-1 && (
+				(sc_data[SC_DANCING].val4.num && sc_data[SC_LONGING].timer == -1) ||
+				sc_data[SC_DANCING].val1.num == CG_HERMODE	//cannot move while Hermod is active.
+			)) ||
+//			sc_data[SC_STOP].timer != -1 ||
+//			sc_data[SC_CLOSECONFINE].timer != -1 ||
+//			sc_data[SC_CLOSECONFINE2].timer != -1 ||
+			sc_data[SC_MOONLIT].timer != -1 ||
+			(sc_data[SC_GOSPEL].timer !=-1 && sc_data[SC_GOSPEL].val4.num == BCT_SELF) // cannot move while gospel is in effect
+			)
+			return false;
+	}
+	return true;
+}
+
+
+
+bool movable::can_walk(unsigned short m, unsigned short x, unsigned short y)
+{	// default only checks for non-passable cells
+	return !map_getcell(m,x,y,CELL_CHKNOPASS);
+}
+
 /// initialize walkpath. uses current target position as walk target
 bool movable::init_walkpath()
 {
 	if( this->walkpath.path_search(this->block_list::m,this->block_list::x,this->block_list::y,this->target.x,this->target.y,this->walkpath.walk_easy) )
 	{
-		clif_walkok(*this);
 		clif_moveobject(*this);
 		return true;
 	}
@@ -240,7 +418,7 @@ bool movable::set_walktimer(unsigned long tick)
 /// main walking function
 bool movable::walkstep(unsigned long tick)
 {
-	if( !this->walkpath.finished() &&	// waklign not finished
+	if( !this->walkpath.finished() &&	// walking not finished
 		this->is_movable() &&			// object is movable and can walk on the source tile
 		this->can_walk(this->block_list::m,this->block_list::x,this->block_list::y) )
 	{	// do a walk step
@@ -313,11 +491,12 @@ bool movable::walkstep(unsigned long tick)
 		CMap::foreachinmovearea( CClifInsight(*this),
 			this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,this->get_sd()?0:BL_PC);
 
-// this could be simplified when allowing pathsearch to reuse the current path
-// the change_target member would be obsolete and 
-// this->init_walkpath would be called from this->walkto
-// the extra expence is that multiple target changes within a single walk cycle
-// would also do multiple path searches
+
+		// this could be simplified when allowing pathsearch to reuse the current path
+		// the change_target member would be obsolete and 
+		// this->init_walkpath would be called from this->walkto
+		// the extra expence is that multiple target changes within a single walk cycle
+		// would also do multiple path searches
 		if( this->walkpath.change_target )
 		{	// build a new path when target has changed
 			this->walkpath.change_target=0;
@@ -336,7 +515,7 @@ bool movable::walkstep(unsigned long tick)
 	// finished walking
 	// the normal walking flow will end here
 	// when the target is reached
-	clif_fixobject(*this);
+//	clif_fixobject(*this);
 	this->do_stop_walking();
 	return true;
 }
@@ -354,7 +533,7 @@ bool movable::walkto(const coordinate& pos)
 		if( this->is_confuse() ) //Randomize target direction.
 			this->random_position(this->target);
 
-		if( !this->is_walking() )
+		if( this->walktimer == -1 )
 		{
 			if( this->init_walkpath() )
 			{
@@ -371,92 +550,9 @@ bool movable::walkto(const coordinate& pos)
 	return false;
 }
 
-int movable::walktimer_entry(int tid, unsigned long tick, int id, basics::numptr data)
-{
-	// check the object
-	movable *mv = (movable *)data.ptr;
-	struct block_list *bl=map_id2bl(id);
-	if( bl != NULL && bl == mv )
-	{
-		// check the timer
-		if(mv->walktimer != tid)
-		{
-			if(battle_config.error_log)
-				ShowMessage("movable::walktimer %d != %d\n",mv->walktimer,tid);
-			return 0;
-		}
-		mv->walktimer=-1;
-
-		// call the object internal timer function
-		return mv->walktimer_func(tick);
-	}
-	return 1;
-}
-
-bool movable::can_walk(unsigned short m, unsigned short x, unsigned short y)
-{	// default only checks for non-passable cells
-	return !map_getcell(m,x,y,CELL_CHKNOPASS);
-}
-
-bool movable::is_movable()
-{
-	if( DIFF_TICK(this->canmove_tick, gettick()) > 0 )
-		return false;
-
-	map_session_data *sd = this->block_list::get_sd();
-	mob_data *md = this->block_list::get_md();
-	pet_data *pd = this->block_list::get_pd();
-	npc_data *nd = this->block_list::get_nd();
-	if( sd )
-	{
-		if( sd->skilltimer != -1 && !pc_checkskill(*sd, SA_FREECAST) ||
-			pc_issit(*sd) )
-			return false;
-	}
-	else if( md )
-	{
-		if( md->skilltimer != -1 )
-			return false;
-	}
-	else if( pd )
-	{
-		if(pd->state.casting_flag )
-			return false;
-	}
-	else if( nd )
-	{
-		// nothing to break here
-	}
-	else
-		return false;
-
-	struct status_change *sc_data = status_get_sc_data(this);
-	if (sc_data)
-	{
-		if(	sc_data[SC_ANKLE].timer != -1 ||
-			sc_data[SC_AUTOCOUNTER].timer !=-1 ||
-			sc_data[SC_TRICKDEAD].timer !=-1 ||
-			sc_data[SC_BLADESTOP].timer !=-1 ||
-			sc_data[SC_BLADESTOP_WAIT].timer !=-1 ||
-			sc_data[SC_SPIDERWEB].timer !=-1 ||
-			(sc_data[SC_DANCING].timer !=-1 && (
-				(sc_data[SC_DANCING].val4.num && sc_data[SC_LONGING].timer == -1) ||
-				sc_data[SC_DANCING].val1.num == CG_HERMODE	//cannot move while Hermod is active.
-			)) ||
-//			sc_data[SC_STOP].timer != -1 ||
-//			sc_data[SC_CLOSECONFINE].timer != -1 ||
-//			sc_data[SC_CLOSECONFINE2].timer != -1 ||
-			sc_data[SC_MOONLIT].timer != -1 ||
-			(sc_data[SC_GOSPEL].timer !=-1 && sc_data[SC_GOSPEL].val4.num == BCT_SELF) // cannot move while gospel is in effect
-			)
-			return false;
-	}
-	return true;
-}
-
 bool movable::stop_walking_new(int type)
 {
-	if( this->is_walking() )
+	if( this->walktimer != -1 )
 	{
 		delete_timer(this->walktimer, this->walktimer_entry);
 		this->walktimer = -1;

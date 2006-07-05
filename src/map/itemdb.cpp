@@ -1083,10 +1083,16 @@ public:
 		struct item_data *id = (struct item_data *)data;
 		if( id )
 		{
-			if (id->use_script)
+			if(id->use_script)
+			{
 				delete[] id->use_script;
+				id->use_script = NULL;
+			}
 			if (id->equip_script)
+			{
 				delete[] id->equip_script;
+				id->equip_script = NULL;
+			}
 			// Whether to clear the item data
 			if (flag)
 				delete id;
@@ -1099,7 +1105,6 @@ void itemdb_reload(void)
 {
 	// free up all item scripts first
 	numdb_foreach(item_db, CDBItemFinal(0) );
-//	numdb_foreach(item_db, itemdb_final_sub, 0);
 	itemdb_read();
 }
 
@@ -1108,7 +1113,6 @@ void do_final_itemdb(void)
 	if (item_db)
 	{
 		numdb_final(item_db, CDBItemFinal(1) );
-//		numdb_final(item_db, itemdb_final_sub, 1);
 		item_db = NULL;
 	}
 }
@@ -1118,7 +1122,6 @@ int do_init_itemdb(void)
 	if(item_db)
 	{
 		numdb_final(item_db, CDBItemFinal(1) );
-//		numdb_final(item_db, itemdb_final_sub, 1);
 		item_db=NULL;
 	}
 	item_db = numdb_init();

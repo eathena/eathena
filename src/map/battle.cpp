@@ -46,20 +46,20 @@ public:
 		if (bl.type == BL_PC)
 		{
 			struct map_session_data &sd = (struct map_session_data &)bl;
-			if(sd.attacktarget == id && sd.attacktimer != -1 && sd.attacktarget_lv >= target_lv)
+			if(sd.attacktarget == id && sd.is_attacking() && sd.attacktarget_lv >= target_lv)
 				c++;
 		}
 		else if (bl.type == BL_MOB)
 		{
 			struct mob_data &md = (struct mob_data &)bl;
-			if(md.target_id == id && md.walktimer != -1 && md.state.state == MS_ATTACK && md.target_lv >= target_lv)		
+			if(md.target_id == id && md.is_attacking() && md.target_lv >= target_lv)		
 				c++;
 			//ShowMessage("md->target_lv:%d, target_lv:%d\n", md->target_lv, target_lv);
 		}
 		else if (bl.type == BL_PET)
 		{
 			struct pet_data &pd = (struct pet_data &)bl;
-			if( pd.target_id == id && pd.walktimer != -1 && pd.state.state == MS_ATTACK && pd.target_lv >= target_lv)
+			if( pd.target_id == id && pd.is_attacking() && pd.target_lv >= target_lv)
 				c++;
 		}
 
@@ -102,22 +102,22 @@ public:
 		if ((size_t)c >= sizeof(bl_list)/sizeof(bl_list[0]))
 			return 0;
 
-		if (bl.type == BL_PC)
+		if( bl.type == BL_PC )
 		{
 			struct map_session_data &sd = (struct map_session_data &)bl;
-			if( sd.attacktarget != target.id || sd.attacktimer == -1 )
+			if( sd.attacktarget != target.id || !sd.is_attacking() )
 				return 0;
 		}
 		else if (bl.type == BL_MOB)
 		{
 			struct mob_data &md = (struct mob_data &)bl;
-			if(md.target_id != target.id || md.walktimer == -1 || md.state.state != MS_ATTACK)
+			if( md.target_id != target.id || !md.is_attacking() )
 				return 0;
 		}
 		else if (bl.type == BL_PET)
 		{
 			struct pet_data &pd = (struct pet_data &)bl;
-			if(pd.target_id != target.id || pd.walktimer == -1 || pd.state.state != MS_ATTACK)
+			if( pd.target_id != target.id || !pd.is_attacking() )
 				return 0;
 		}
 		bl_list[c++] = &bl;

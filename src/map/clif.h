@@ -34,8 +34,6 @@ int clif_fixpos(const block_list &bl);
 int clif_fixobject(const block_list &bl);
 int clif_moveobject(const block_list &bl);
 
-int clif_walkok(const block_list& bl);	// self
-
 int clif_changemap(struct map_session_data &sd, const char *mapname, unsigned short x, unsigned short y);	//self
 int clif_changemapserver(struct map_session_data &sd, const char *mapname, unsigned short x, unsigned short y, basics::ipaddress ip, unsigned short port);	//self
 
