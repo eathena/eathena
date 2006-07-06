@@ -456,6 +456,9 @@ struct map_session_data {
 		unsigned event_kill_pc : 1;
 		unsigned event_disconnect : 1;
 		unsigned event_kill_mob : 1;
+		unsigned event_baselvup : 1;
+		unsigned event_joblvup : 1;
+		unsigned event_loadmap : 1;
 		// Abracadabra bugfix by Aru
 		unsigned abra_flag : 1;
 		unsigned autotrade : 1;	//By Fantik
@@ -813,7 +816,7 @@ struct spawn_data {
 	unsigned int delay1,delay2; //Min delay before respawning after spawn/death
 	struct {
 		unsigned size :2; //Holds if mob has to be tiny/large
-		unsigned ai :1;	//Holds if mob is special ai.
+		unsigned ai :2;	//Holds if mob is special ai.
 	} state;
 	char name[NAME_LENGTH],eventname[50]; //Name/event
 };
@@ -1013,6 +1016,8 @@ struct map_data {
 		unsigned nocommand : 1; //Blocks @/# commands for non-gms. [Skotlex]
 		unsigned nodrop : 1;
 		unsigned novending : 1;
+		unsigned loadevent : 1;
+		unsigned nochat :1;
 	} flag;
 	struct point save;
 	struct npc_data *npc[MAX_NPC_PER_MAP];
@@ -1175,6 +1180,7 @@ struct chat_data {
 extern struct map_data map[];
 extern int map_num;
 extern int autosave_interval;
+extern int save_settings;
 extern int agit_flag;
 extern int night_flag; // 0=day, 1=night [Yor]
 extern int kick_on_disconnect; //To allow inter-server reconnections without kicking players out [Skotlex]

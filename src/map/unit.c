@@ -1456,6 +1456,8 @@ int unit_remove_map(struct block_list *bl, int clrtype) {
 			status_change_end(bl,SC_RUN,-1);
 		if (sc->data[SC_DANCING].timer!=-1) // clear dance effect when warping [Valaris]
 			skill_stop_dancing(bl);
+		if (sc->data[SC_WARM].timer!=-1)
+			status_change_end(bl, SC_WARM, -1);
 		if (sc->data[SC_DEVOTION].timer!=-1)
 			status_change_end(bl,SC_DEVOTION,-1);
 		if (sc->data[SC_MARIONETTE].timer!=-1)
@@ -1494,11 +1496,13 @@ int unit_remove_map(struct block_list *bl, int clrtype) {
 			trade_tradecancel(sd);
 		if(sd->vender_id)
 			vending_closevending(sd);
-		if(sd->state.storage_flag == 1)
-			storage_storage_quit(sd,0);
-		else if (sd->state.storage_flag == 2)
-			storage_guild_storage_quit(sd,0);
-
+		if(!sd->state.waitingdisconnect)
+	  	{	//when quitting, let the final chrif_save handle storage saving.
+			if(sd->state.storage_flag == 1)
+				storage_storage_quit(sd,0);
+			else if (sd->state.storage_flag == 2)
+				storage_guild_storage_quit(sd,0);
+		}
 		if(sd->party_invite>0)
 			party_reply_invite(sd,sd->party_invite_account,0);
 		if(sd->guild_invite>0)
@@ -1562,8 +1566,6 @@ int unit_remove_map(struct block_list *bl, int clrtype) {
 			sd->status.pet_id = 0;
 			sd->pd = NULL;
 			pd->msd = NULL;
-			if(battle_config.pet_status_support)
-				status_calc_pc(sd,2);
 			map_delblock(bl);
 			unit_free(bl);
 			map_freeblock_unlock();
@@ -1627,7 +1629,6 @@ int unit_free(struct block_list *bl) {
 		pc_delspiritball(sd,sd->spiritball,1);
 		chrif_save_scdata(sd); //Save status changes, then clear'em out from memory. [Skotlex]
 		pc_makesavestatus(sd);
-		sd->state.waitingdisconnect = 1;
 		pc_clean_skilltree(sd);
 	} else if( bl->type == BL_PET ) {
 		struct pet_data *pd = (struct pet_data*)bl;
@@ -1665,6 +1666,7 @@ int unit_free(struct block_list *bl) {
 		}
 		if (pd->loot)
 		{
+			pet_lootitem_drop(pd,sd);
 			if (pd->loot->item)
 				aFree(pd->loot->item);
 			aFree (pd->loot);

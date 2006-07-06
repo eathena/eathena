@@ -105,11 +105,11 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 		z += ((double)vsd->vending[j].value * (double)amount);
 		if (z > (double)sd->status.zeny || z < 0. || z > (double)MAX_ZENY) { // fix positiv overflow (buyer)
 			clif_buyvending(sd, idx, amount, 1); // you don't have enough zeny
-			return; // zenys'<
+			return; // zeny s'<
 		}
 		if (z + (double)vsd->status.zeny > (double)MAX_ZENY) { // fix positiv overflow (merchand)
 			clif_buyvending(sd, idx, vsd->vending[j].amount, 4); // too much zeny = overflow
-			return; // zenys'<
+			return; // zeny s'<
 		}
 		w += itemdb_weight(vsd->status.cart[idx].nameid) * amount;
 		if (w + sd->weight > sd->max_weight) {
@@ -162,13 +162,6 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 		}
 		//Logs
 
-		//Old VENDING log added by Lupus
-		if(log_config.vend > 0) {
-			log_vend(sd,vsd, idx, amount, (int)z); // for Item + Zeny. log.
-			//we log ZENY only with the 1st item. Then zero it for the rest items
-			z = 0;
-		}
-
 		// vending item
 		pc_additem(sd, &vsd->status.cart[idx], amount);
 		vsd->vending[vend_list[i]].amount -= amount;
@@ -184,8 +177,10 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 	}
 
 	//Always save BOTH: buyer and customer
-	chrif_save(sd,0);
-	chrif_save(vsd,0);
+	if (save_settings&2) {
+		chrif_save(sd,0);
+		chrif_save(vsd,0);
+	}
 	//check for @AUTOTRADE users [durf]
 	if (vsd->state.autotrade)
 	{
@@ -245,7 +240,7 @@ void vending_openvending(struct map_session_data *sd,int len,char *message,int f
 			else if(sd->vending[i].value < 1)
 				sd->vending[i].value = 1000000;	// auto set to 1 million [celest]
 			// カート内のアイテム数と販売するアイテム数に相違があったら中止
-			if(pc_cartitem_amount(sd, sd->vending[i].index, sd->vending[i].amount) < 0 || sd->vending[i].value < 0) { // fixes by Valaris and fritz
+			if(pc_cartitem_amount(sd, sd->vending[i].index, sd->vending[i].amount) < 0) { // fixes by Valaris and fritz
 				clif_skill_fail(sd, MC_VENDING, 0, 0);
 				return;
 			}
@@ -257,9 +252,10 @@ void vending_openvending(struct map_session_data *sd,int len,char *message,int f
 		sd->vender_id = sd->bl.id;
 		sd->vend_num = i;
 		memcpy(sd->message,message, MESSAGE_SIZE-1);
-		if (clif_openvending(sd,sd->vender_id,sd->vending) > 0)
+		if (clif_openvending(sd,sd->vender_id,sd->vending) > 0){
+			pc_stop_walking(sd,1);
 			clif_showvendingboard(&sd->bl,message,0);
-		else
+		} else
 			sd->vender_id = 0;
 	}
 }

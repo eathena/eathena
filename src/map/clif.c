@@ -8071,7 +8071,9 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		sc_start(&sd->bl,SC_NOCHAT,100,0,0);
 
 // Lance
-	npc_script_event(sd, NPCE_LOADMAP);
+	if(sd->state.event_loadmap && map[sd->bl.m].flag.loadevent){
+		npc_script_event(sd, NPCE_LOADMAP);
+	}
 
 	if (pc_checkskill(sd, SG_DEVIL) && !pc_nextjobexp(sd))
 		clif_status_load(&sd->bl, SI_DEVIL, 1);  //blindness [Komurka]

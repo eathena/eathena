@@ -4,6 +4,29 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/07/06
+	* Merged the save_settings config (map_athena.conf). Now you can specify
+	  whether both characters should be saved on
+	  vending/trade/storage-closing/etc. The default is "yes" to all cases to
+	  prevent dupes due to crashes, but if the uber-saving is slowing the
+	  char-server to a crawl, you may want to turn some off. [Skotlex]
+	* Merged mapflags loadevent and nochat. The first is required on maps where
+	  you want the maploadevent script to trigger, the later disables chat-room
+	  creations. [Skotlex]
+	* merged cancelling of Warmth on warp. [Skotlex]
+	* Merged fix which was causing storages to be saved twice on logout.
+	  [Skotlex]
+	* Merged fix of pets consuming loot on logout rather than giving it to
+	  their masters. [Skotlex]
+	* Merged making you stop walking when opening vending. [Skotlex]
+	* Merged character states baselvlup_event, job_lvlup_event, loadmap_event
+	  [Skotlex]
+	* Merged warnings when doing a element-based bonus with an invalid element.
+	  [Skotlex]
+	* Merged improved storage saving, where the storage is not removed from
+	  memory until the save-ack is received from the char-server. Storages in
+	  said waiting state will be resent for saving in case char-map connection is
+	  lost & restored. [Skotlex]
 2006/07/04
 	* Merged use of flag nocast&16 to specify non-cloneable skills. Flag 2 (pvp
 	  restricted) now does what 16 did previously (not usable on pk-mode maps)

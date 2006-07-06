@@ -340,7 +340,7 @@ int pc_can_give_items(int level) {
 }
 
 /*==========================================
- * saveに必要なステ?タス修正を行なう
+ * prepares character for saving.
  *------------------------------------------
  */
 int pc_makesavestatus(struct map_session_data *sd)
@@ -353,24 +353,22 @@ int pc_makesavestatus(struct map_session_data *sd)
 	if(!battle_config.save_clothcolor)
 		sd->status.clothes_color=0;
 
-	if(!sd->state.waitingdisconnect) {
-		sd->status.option = sd->sc.option; //Since the option saved is in 
-		if(pc_isdead(sd)){
-			pc_setrestartvalue(sd,0);
-			memcpy(&sd->status.last_point,&sd->status.save_point,sizeof(sd->status.last_point));
-		} else {
-			sd->status.last_point.map = sd->mapindex;
-			sd->status.last_point.x = sd->bl.x;
-			sd->status.last_point.y = sd->bl.y;
-		}
+	sd->status.option = sd->sc.option; //Since the option saved is in 
+	if(pc_isdead(sd)){
+		pc_setrestartvalue(sd,0);
+		memcpy(&sd->status.last_point,&sd->status.save_point,sizeof(sd->status.last_point));
+	} else {
+		sd->status.last_point.map = sd->mapindex;
+		sd->status.last_point.x = sd->bl.x;
+		sd->status.last_point.y = sd->bl.y;
+	}
 
-		if(map[sd->bl.m].flag.nosave){
-			struct map_data *m=&map[sd->bl.m];
-			if(m->save.map)
-				memcpy(&sd->status.last_point,&m->save,sizeof(sd->status.last_point));
-			else
-				memcpy(&sd->status.last_point,&sd->status.save_point,sizeof(sd->status.last_point));
-		}
+	if(map[sd->bl.m].flag.nosave){
+		struct map_data *m=&map[sd->bl.m];
+		if(m->save.map)
+			memcpy(&sd->status.last_point,&m->save,sizeof(sd->status.last_point));
+		else
+			memcpy(&sd->status.last_point,&sd->status.save_point,sizeof(sd->status.last_point));
 	}
 
 	return 0;
@@ -589,7 +587,6 @@ int pc_isequip(struct map_session_data *sd,int n)
  */
 int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_time, struct mmo_charstatus *st)
 {
-	struct party *p;
 	struct guild *g;
 	int i;
 	unsigned long tick = gettick();
@@ -652,11 +649,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	pc_setinventorydata(sd);
 	pc_checkitem(sd);
 	
-	//Set here because we need the inventory data for weapon sprite parsing.
-	status_set_viewdata(&sd->bl, sd->status.class_);
 	status_change_init(&sd->bl);
-	unit_dataset(&sd->bl);
-	
 	if ((battle_config.atc_gmonly == 0 || pc_isGM(sd)) &&
 	    (pc_isGM(sd) >= get_atcommand_level(AtCommand_Hide)))
 		sd->status.option &= (OPTION_MASK | OPTION_INVISIBLE);
@@ -664,6 +657,10 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 		sd->status.option &= OPTION_MASK;
 
 	sd->sc.option = sd->status.option; //This is the actual option used in battle.
+	//Set here because we need the inventory data for weapon sprite parsing.
+	status_set_viewdata(&sd->bl, sd->status.class_);
+	unit_dataset(&sd->bl);
+
 	// パ?ティ??係の初期化
 	sd->party_x = -1;
 	sd->party_y = -1;
@@ -695,7 +692,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 		intif_request_petdata(sd->status.account_id, sd->status.char_id, sd->status.pet_id);
 
 	// パ?ティ、ギルドデ?タの要求
-	if (sd->status.party_id > 0 && (p = party_search(sd->status.party_id)) == NULL)
+	if (sd->status.party_id > 0 && party_search(sd->status.party_id) == NULL)
 		party_request_info(sd->status.party_id);
 	if (sd->status.guild_id > 0)
 	{
@@ -843,12 +840,18 @@ int pc_reg_received(struct map_session_data *sd)
 		sd->state.event_kill_pc = pc_readglobalreg(sd, script_config.kill_pc_event_name);
 		sd->state.event_kill_mob = pc_readglobalreg(sd, script_config.kill_mob_event_name);
 		sd->state.event_disconnect = pc_readglobalreg(sd, script_config.logout_event_name);
+		sd->state.event_baselvup = pc_readglobalreg(sd, script_config.baselvup_event_name);
+		sd->state.event_joblvup = pc_readglobalreg(sd, script_config.joblvup_event_name);
+		sd->state.event_loadmap = pc_readglobalreg(sd, script_config.loadmap_event_name);
 	// if script triggers are not required
 	} else {
 		sd->state.event_death = 1;
 		sd->state.event_kill_pc = 1;
 		sd->state.event_disconnect = 1;
 		sd->state.event_kill_mob = 1;
+		sd->state.event_baselvup = 1;
+		sd->state.event_joblvup = 1;
+		sd->state.event_loadmap = 1;
 	}
 
 	npc_script_event(sd, NPCE_LOGIN);
@@ -934,6 +937,8 @@ int pc_calc_skilltree(struct map_session_data *sd)
 		flag=0;
 		for(i=0;i < MAX_SKILL_TREE && (id=skill_tree[c][i].id)>0;i++){
 			int j,f=1;
+			if(sd->status.skill[id].id)
+				continue; //Skill already known.
 			if(!battle_config.skillfree) {
 				for(j=0;j<5;j++) {
 					if( skill_tree[c][i].need[j].id &&
@@ -948,20 +953,18 @@ int pc_calc_skilltree(struct map_session_data *sd)
 				else if (pc_checkskill(sd, NV_BASIC) < 9 && id != NV_BASIC && !(skill_get_inf2(id)&INF2_QUEST_SKILL))
 					f=0; // Do not unlock normal skills when Basic Skills is not maxed out (can happen because of skill reset)
 			}
-			if(sd->status.skill[id].id==0 ){
-				if(skill_get_inf2(id)&INF2_SPIRIT_SKILL)
-				{	//Spirit skills cannot be learned, they will only show up on your tree when you get buffed.
-					if (sd->sc.count && sd->sc.data[SC_SPIRIT].timer != -1)
-					{	//Enable Spirit Skills. [Skotlex]
-						sd->status.skill[id].id=id;
-						sd->status.skill[id].lv=1;
-						sd->status.skill[id].flag=1; //So it is not saved, and tagged as a "bonus" skill.
-						flag=1;
-					}
-				} else if (f){
+			if(skill_get_inf2(id)&INF2_SPIRIT_SKILL)
+			{	//Spirit skills cannot be learned, they will only show up on your tree when you get buffed.
+				if (sd->sc.count && sd->sc.data[SC_SPIRIT].timer != -1)
+				{	//Enable Spirit Skills. [Skotlex]
 					sd->status.skill[id].id=id;
+					sd->status.skill[id].lv=1;
+					sd->status.skill[id].flag=1; //So it is not saved, and tagged as a "bonus" skill.
 					flag=1;
 				}
+			} else if (f){
+				sd->status.skill[id].id=id;
+				flag=1;
 			}
 		}
 	} while(flag);
@@ -987,9 +990,13 @@ int pc_calc_skilltree(struct map_session_data *sd)
 int pc_clean_skilltree(struct map_session_data *sd) {
 	int i;
 	for (i = 0; i < MAX_SKILL; i++){
-		if (sd->status.skill[i].flag == 13){
+		if (sd->status.skill[i].flag == 13 || sd->status.skill[i].flag == 1)
+		{
 			sd->status.skill[i].id = 0;
 			sd->status.skill[i].lv = 0;
+			sd->status.skill[i].flag = 0;
+		} else if (sd->status.skill[i].flag){
+			sd->status.skill[i].lv = sd->status.skill[i].flag-2;
 			sd->status.skill[i].flag = 0;
 		}
 	}
@@ -1552,13 +1559,10 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 			sd->unbreakable_equip |= EQP_SHIELD;
 		break;
 	case SP_CLASSCHANGE: // [Valaris]
-		if(sd->state.lr_flag !=2){
+		if(sd->state.lr_flag !=2)
 			sd->classchange=val;
-		}
 		break;
 	case SP_LONG_ATK_RATE:
-		//if(sd->state.lr_flag != 2 && sd->long_attack_atk_rate < val)
-		//	sd->long_attack_atk_rate = val;
 		if(sd->state.lr_flag != 2)	//[Lupus] it should stack, too. As any other cards rate bonuses
 			sd->long_attack_atk_rate+=val;
 		break;
@@ -1657,6 +1661,11 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 
 	switch(type){
 	case SP_ADDELE:
+		if(type2 >= ELE_MAX) {
+			if(battle_config.error_log)
+				ShowError("pc_bonus2: SP_ADDELE: Invalid element %d\n", type2);
+			break;
+		}
 		if(!sd->state.lr_flag)
 			sd->right_weapon.addele[type2]+=val;
 		else if(sd->state.lr_flag == 1)
@@ -1681,6 +1690,11 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			sd->arrow_addsize[type2]+=val;
 		break;
 	case SP_SUBELE:
+		if(type2 >= ELE_MAX) {
+			if(battle_config.error_log)
+				ShowError("pc_bonus2: SP_SUBELE: Invalid element %d\n", type2);
+			break;
+		}
 		if(sd->state.lr_flag != 2)
 			sd->subele[type2]+=val;
 		break;
@@ -1717,6 +1731,11 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			sd->reseff[type2-SC_COMMON_MIN]+=val;
 		break;
 	case SP_MAGIC_ADDELE:
+		if(type2 >= ELE_MAX) {
+			if(battle_config.error_log)
+				ShowError("pc_bonus2: SP_MAGIC_ADDELE: Invalid element %d\n", type2);
+			break;
+		}
 		if(sd->state.lr_flag != 2)
 			sd->magic_addele[type2]+=val;
 		break;
@@ -1878,6 +1897,11 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		}
 		break;
 	case SP_WEAPON_COMA_ELE:
+		if(type2 >= ELE_MAX) {
+			if(battle_config.error_log)
+				ShowError("pc_bonus2: SP_WEAPON_COMA_ELE: Invalid element %d\n", type2);
+			break;
+		}
 		if(sd->state.lr_flag != 2)
 			sd->weapon_coma_ele[type2] += val;
 		break;
@@ -3770,7 +3794,8 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 
 		clif_misceffect(&sd->bl,0);
 		//LORDALFA - LVLUPEVENT
-		npc_script_event(sd, NPCE_BASELVUP);
+		if(sd->state.event_baselvup)
+			npc_script_event(sd, NPCE_BASELVUP);
 		return 1;
 		}
 
@@ -3800,8 +3825,8 @@ int pc_checkjoblevelup(struct map_session_data *sd)
 		clif_misceffect(&sd->bl,1);
 		if (pc_checkskill(sd, SG_DEVIL) && !pc_nextjobexp(sd))
 			clif_status_change(&sd->bl,SI_DEVIL, 1); //Permanent blind effect from SG_DEVIL.
-
-		npc_script_event(sd, NPCE_JOBLVUP);
+		if(sd->state.event_joblvup)
+			npc_script_event(sd, NPCE_JOBLVUP);
 		return 1;
 	}
 

@@ -460,7 +460,8 @@ int pet_birth_process(struct map_session_data *sd)
 	}
 
 	intif_save_petdata(sd->status.account_id,&sd->pet);
-	chrif_save(sd,0); //FIXME: As before, is it REALLY Needed to save the char for hatching a pet? [Skotlex]
+	if (save_settings&8)
+		chrif_save(sd,0); //is it REALLY Needed to save the char for hatching a pet? [Skotlex]
 
 	map_addblock(&sd->pd->bl);
 	clif_spawn(&sd->pd->bl);
@@ -586,7 +587,7 @@ int pet_catch_process2(struct map_session_data *sd,int target_id)
 	i = search_petDB_index(md->class_,PET_CLASS);
 	//catch_target_class == 0 is used for universal lures. [Skotlex]
 	//for now universal lures do not include bosses.
-	if (sd->catch_target_class == 0 && !(md->db->mode&0x20))
+	if (sd->catch_target_class == 0 && !(md->db->mode&MD_BOSS))
 		sd->catch_target_class = md->class_;
 	if(i < 0 || sd->catch_target_class != md->class_) {
 		clif_emotion(&md->bl, 7);	//mob will do /ag if wrong lure is used on them.

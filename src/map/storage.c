@@ -76,13 +76,13 @@ static int storage_reconnect_sub(DBKey key,void *data,va_list ap)
 	{	//Guild Storage
 		struct guild_storage* stor = (struct guild_storage*) data;
 		if (stor->dirty && stor->storage_status == 0) //Save closed storages.
-			storage_guild_storagesave(0, stor->guild_id);
+			storage_guild_storagesave(0, stor->guild_id,0);
 	}
 	else
 	{	//Account Storage
 		struct storage* stor = (struct storage*) data;
 		if (stor->dirty && stor->storage_status == 0) //Save closed storages.
-			storage_storage_save(stor->account_id);
+			storage_storage_save(stor->account_id, stor->dirty==2?1:0);
 	}
 	return 0;
 }
@@ -353,8 +353,12 @@ int storage_storageclose(struct map_session_data *sd)
 
 	clif_storageclose(sd);
 	if (stor->storage_status)
-		chrif_save(sd,0); //This will invoke the storage save function as well. [Skotlex]
-	
+  	{
+		if (save_settings&4)
+			chrif_save(sd,0); //Invokes the storage saving as well.
+		else
+			storage_storage_save(sd->status.account_id, 0);
+	}
 	stor->storage_status=0;
 	sd->state.storage_flag=0;
 	return 0;
@@ -369,14 +373,17 @@ int storage_storage_quit(struct map_session_data *sd, int flag)
 	struct storage *stor;
 
 	nullpo_retr(0, sd);
-
-	stor = account2storage2(sd->status.account_id);
-	if(stor)  {
-		chrif_save(sd, flag); //Invokes the storage saving as well.
-		stor->storage_status = 0;
-		sd->state.storage_flag = 0;
+	nullpo_retr(0, stor=account2storage2(sd->status.account_id));
+	
+	if (stor->storage_status)
+	{
+		if (save_settings&4)
+			chrif_save(sd, flag); //Invokes the storage saving as well.
+		else
+			storage_storage_save(sd->status.account_id, flag);
 	}
-
+	stor->storage_status = 0;
+	sd->state.storage_flag = 0;
 	return 0;
 }
 
@@ -390,14 +397,25 @@ void storage_storage_dirty(struct map_session_data *sd)
 		stor->dirty = 1;
 }
 
-int storage_storage_save(int account_id)
+int storage_storage_save(int account_id, int final)
 {
 	struct storage *stor;
 
 	stor=account2storage2(account_id);
-	if(stor && stor->dirty)
+	if(!stor) return 0;
+
+	if(stor->dirty)
 	{
+		if (final) {
+			stor->dirty = 2;
+			stor->storage_status = 0; //To prevent further manipulation of it.
+		}
 		intif_send_storage(stor);
+		return 1;
+	}
+	if (final) 
+	{	//Clear storage from memory. Nothing to save.
+		storage_delete(account_id);
 		return 1;
 	}
 
@@ -409,13 +427,19 @@ int storage_storage_saved(int account_id)
 {
 	struct storage *stor;
 	
-	if((stor=account2storage2(account_id)) != NULL)
+	if((stor=account2storage2(account_id)) == NULL)
+		return 0;
+
+	if (stor->dirty == 2)
+	{	//Final save of storage. Remove from memory.
+	  	storage_delete(account_id);
+		return 1;
+	}
+
+	if (stor->dirty && stor->storage_status == 0)
 	{	//Only mark it clean if it's not in use. [Skotlex]
-		if (stor->dirty && stor->storage_status == 0)
-		{
-			stor->dirty = 0;
-			sortage_sortitem(stor);
-		}
+		stor->dirty = 0;
+		sortage_sortitem(stor);
 		return 1;
 	}
 	return 0;
@@ -650,19 +674,22 @@ int storage_guild_storagegettocart(struct map_session_data *sd,int index,int amo
 	return 1;
 }
 
-int storage_guild_storagesave(int account_id, int guild_id)
+int storage_guild_storagesave(int account_id, int guild_id, int flag)
 {
 	struct guild_storage *stor = guild2storage2(guild_id);
 
-	if(stor && stor->dirty)
+	if(stor)
 	{
-		intif_send_guild_storage(account_id,stor);
+		if (flag) //Char quitting, close it.
+			stor->storage_status = 0;
+	 	if (stor->dirty)
+			intif_send_guild_storage(account_id,stor);
 		return 1;
 	}
 	return 0;
 }
 
-int storage_guild_storagesaved(int account_id, int guild_id)
+int storage_guild_storagesaved(int guild_id)
 {
 	struct guild_storage *stor;
 
@@ -685,8 +712,13 @@ int storage_guild_storageclose(struct map_session_data *sd)
 	nullpo_retr(0, stor=guild2storage2(sd->status.guild_id));
 
 	clif_storageclose(sd);
-	chrif_save(sd, 0); //This one also saves the storage. [Skotlex]
-
+	if (stor->storage_status)
+	{
+		if (save_settings&4)
+			chrif_save(sd, 0); //This one also saves the storage. [Skotlex]
+		else
+			storage_guild_storagesave(sd->status.account_id, sd->status.guild_id,0);
+	}
 	stor->storage_status=0;
 	sd->state.storage_flag = 0;
 
@@ -699,15 +731,25 @@ int storage_guild_storage_quit(struct map_session_data *sd,int flag)
 
 	nullpo_retr(0, sd);
 	nullpo_retr(0, stor=guild2storage2(sd->status.guild_id));
+	
+	if(flag)
+	{	//Only during a guild break flag is 1 (don't save storage)
+		sd->state.storage_flag = 0;
+		stor->storage_status = 0;
+		clif_storageclose(sd);
+		if (save_settings&4)
+			chrif_save(sd,0);
+		return 0;
+	}
 
+	if(stor->storage_status) {
+		if (save_settings&4)
+			chrif_save(sd,0);
+		else
+			storage_guild_storagesave(sd->status.account_id,sd->status.guild_id,1);
+	}
 	sd->state.storage_flag = 0;
 	stor->storage_status = 0;
 
-	chrif_save(sd,flag);
-	if(!flag) //Only during a guild break flag is 1.
-		storage_guild_storagesave(sd->status.account_id,sd->status.guild_id);
-	else	//When the guild was broken, close the storage of he who has it open.
-		clif_storageclose(sd);
-	
 	return 0;
 }
