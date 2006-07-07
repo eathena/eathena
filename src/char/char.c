@@ -1787,6 +1787,8 @@ static int char_delete(struct mmo_charstatus *cs) {
 	return 0;
 }
 
+int send_accounts_tologin(int tid, unsigned int tick, int id, int data);
+
 int parse_tologin(int fd) {
 	int i;
 	struct char_session_data *sd;
@@ -1823,8 +1825,15 @@ int parse_tologin(int fd) {
 				exit(1);
 			} else {
 				ShowStatus("Connected to login-server (connection #%d).\n", fd);
-				if (kick_on_disconnect)
-					set_all_offline();
+//				Don't set them offline as there's no packet to tell the map server
+//				to kick everyone out. Also, a disconnection from the login server is
+//				NOT something serious to the data integrity as a char-map disconnect
+//				is. [Skotlex]
+//				if (kick_on_disconnect)
+//					set_all_offline();
+//				However, on reconnect, DO send our connected accounts to login.
+				send_accounts_tologin(-1, gettick(), 0, 0);
+
 				// if no map-server already connected, display a message...
 				for(i = 0; i < MAX_MAP_SERVERS; i++)
 					if (server_fd[i] >= 0 && server[i].map[0]) // if map-server online and at least 1 map
@@ -2636,8 +2645,6 @@ int parse_frommap(int fd) {
 			data = status_search_scdata(aid, cid);
 			if (data->count > 0)
 			{	//Deliver status change data.
-				int i;
-				
 				WFIFOW(fd,0) = 0x2b1d;
 				WFIFOW(fd,2) = 14 + data->count*sizeof(struct status_change_data);
 				WFIFOL(fd,4) = aid;
@@ -2739,7 +2746,7 @@ int parse_frommap(int fd) {
 				return 0;
 			{
 				unsigned short name;
-				int map_id, map_fd = -1, i;
+				int map_id, map_fd = -1;
 				struct online_char_data* data;
 				struct mmo_charstatus* char_data;
 
@@ -2948,7 +2955,7 @@ int parse_frommap(int fd) {
 			if (RFIFOREST(fd) < 12)
 				return 0;
 			{
-				int i, j;
+				int j;
 				int id = RFIFOL(fd, 2);
 				int fame = RFIFOL(fd, 6);
 				char type = RFIFOB(fd, 10);
@@ -3054,7 +3061,7 @@ int parse_frommap(int fd) {
 				return 0;
 		{
 #ifdef ENABLE_SC_SAVING
-			int count, aid, cid, i;
+			int count, aid, cid;
 			struct scdata *data;
 			aid = RFIFOL(fd, 4);
 			cid = RFIFOL(fd, 8);
@@ -3846,7 +3853,7 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 		}
 		session[login_fd]->func_parse = parse_tologin;
 		realloc_fifo(login_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
-                WFIFOHEAD(login_fd, 86);
+		WFIFOHEAD(login_fd, 86);
 		WFIFOW(login_fd,0) = 0x2710;
 		memcpy(WFIFOP(login_fd,2), userid, 24);
 		memcpy(WFIFOP(login_fd,26), passwd, 24);
