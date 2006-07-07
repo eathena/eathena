@@ -5,6 +5,9 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/07
+	* itemdb_exists will now return NULL for item_id 0. Should fix
+	  @mobinfo/@iteminfo at times returning the unknown item for every seek.
+	  [Skotlex]
 	* Fixed the Sage weapon endow skills never failing. [Skotlex]
 	* Merged character servers not setting everyone offline as soon as they
 	  reconnect to the login server as that breaks char-sql character saving of
