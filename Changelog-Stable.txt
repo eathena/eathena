@@ -5,6 +5,9 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/07
+	* Some merges in clif.c. Merged the fix for displaying pet egg/armor
+	  correctly and the less-bandwidth consuming weather packets (who's flaw is
+	  no inmediate removal of the effect when weather ends) [Skotlex]
 	* itemdb_exists will now return NULL for item_id 0. Should fix
 	  @mobinfo/@iteminfo at times returning the unknown item for every seek.
 	  [Skotlex]

@@ -489,26 +489,26 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 			
 		if (p) {
 			for(i=0;i<MAX_PARTY;i++){
-				if ((sd = p->member[i].sd) != NULL) {
-					if (!sd->fd || session[sd->fd] == NULL || sd->state.auth == 0
-						|| session[sd->fd]->session_data == NULL || sd->packet_ver > MAX_PACKET_VER)
-						continue;
-					
-					if (sd->bl.id == bl->id && (type == PARTY_WOS || type == PARTY_SAMEMAP_WOS || type == PARTY_AREA_WOS))
-						continue;
-					
-					if (type != PARTY && type != PARTY_WOS && bl->m != sd->bl.m) // マップチェック
-						continue;
-					
-					if ((type == PARTY_AREA || type == PARTY_AREA_WOS) &&
-						(sd->bl.x < x0 || sd->bl.y < y0 || sd->bl.x > x1 || sd->bl.y > y1))
-						continue;
-					
-					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
-						WFIFOHEAD(sd->fd,len);
-						memcpy(WFIFOP(sd->fd,0), buf, len);
-						WFIFOSET(sd->fd,len);
-					}
+				if ((sd = p->member[i].sd) == NULL)
+					continue;
+				if (!sd->fd || session[sd->fd] == NULL || sd->state.auth == 0
+					|| session[sd->fd]->session_data == NULL || sd->packet_ver > MAX_PACKET_VER)
+					continue;
+				
+				if (sd->bl.id == bl->id && (type == PARTY_WOS || type == PARTY_SAMEMAP_WOS || type == PARTY_AREA_WOS))
+					continue;
+				
+				if (type != PARTY && type != PARTY_WOS && bl->m != sd->bl.m) // マップチェック
+					continue;
+				
+				if ((type == PARTY_AREA || type == PARTY_AREA_WOS) &&
+					(sd->bl.x < x0 || sd->bl.y < y0 || sd->bl.x > x1 || sd->bl.y > y1))
+					continue;
+				
+				if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
+					WFIFOHEAD(sd->fd,len);
+					memcpy(WFIFOP(sd->fd,0), buf, len);
+					WFIFOSET(sd->fd,len);
 				}
 			}
 			if (!enable_spy) //Skip unnecessary parsing. [Skotlex]
@@ -1280,6 +1280,15 @@ static int clif_set0192(int fd, int m, int x, int y, int type) {
 	return 0;
 }
 
+// new and improved weather display [Valaris]
+static void clif_weather_sub(int fd, int id, int type) {
+	WFIFOHEAD(fd, packet_len_table[0x1f3]);
+	WFIFOW(fd,0) = 0x1f3;
+	WFIFOL(fd,2) = id;
+	WFIFOL(fd,6) = type;
+	WFIFOSET(fd,packet_len_table[0x1f3]);
+}
+
 /*==========================================
  *
  *------------------------------------------
@@ -1296,48 +1305,26 @@ static void clif_weather_check(struct map_session_data *sd) {
 		|| map[m].flag.rain
 		|| map[m].flag.clouds2)
 	{
-		WFIFOHEAD(fd, packet_len_table[0x7c]);
-		WFIFOW(fd,0)=0x7c;
-		WFIFOL(fd,2)=-10;
-		WFIFOW(fd,6)=0;
-		WFIFOW(fd,8)=0;
-		WFIFOW(fd,10)=0;
-		WFIFOW(fd,12)=OPTION_INVISIBLE;
-		WFIFOW(fd,20)=100;
-		WFIFOPOS(fd,36,sd->bl.x,sd->bl.y);
-		WFIFOSET(fd,packet_len_table[0x7c]);
-
 		if (map[m].flag.snow)
-			clif_weather_sub(fd, 162);
+			clif_weather_sub(fd, sd->bl.id, 162);
 		if (map[m].flag.clouds)
-			clif_weather_sub(fd, 233);
+			clif_weather_sub(fd, sd->bl.id, 233);
 		if (map[m].flag.clouds2)
-			clif_weather_sub(fd, 516);
+			clif_weather_sub(fd, sd->bl.id, 516);
 		if (map[m].flag.fog)
-			clif_weather_sub(fd, 515);
+			clif_weather_sub(fd, sd->bl.id, 515);
 		if (map[m].flag.fireworks) {
-			clif_weather_sub(fd, 297);
-			clif_weather_sub(fd, 299);
-			clif_weather_sub(fd, 301);
+			clif_weather_sub(fd, sd->bl.id, 297);
+			clif_weather_sub(fd, sd->bl.id, 299);
+			clif_weather_sub(fd, sd->bl.id, 301);
 		}
 		if (map[m].flag.sakura)
-			clif_weather_sub(fd, 163);
+			clif_weather_sub(fd, sd->bl.id, 163);
 		if (map[m].flag.leaves)
-			clif_weather_sub(fd, 333);
+			clif_weather_sub(fd, sd->bl.id, 333);
 		if (map[m].flag.rain)
-			clif_weather_sub(fd, 161);
+			clif_weather_sub(fd, sd->bl.id, 161);
 	}
-}
-
-// new and improved weather display [Valaris]
-int clif_weather_sub(int fd, int type) {
-	WFIFOHEAD(fd, packet_len_table[0x1f3]);
-	WFIFOW(fd,0) = 0x1f3;
-	WFIFOL(fd,2) = -10;
-	WFIFOL(fd,6) = type;
-	WFIFOSET(fd,packet_len_table[0x1f3]);
-
-	return 0;
 }
 
 int clif_weather(int m) {
@@ -1347,12 +1334,6 @@ int clif_weather(int m) {
 
 	for(i = 0; i < fd_max; i++) {
 		if (session[i] && (sd = session[i]->session_data) != NULL && sd->state.auth && sd->bl.m == m) {
-			WFIFOHEAD(sd->fd, packet_len_table[0x80]);
-			WFIFOW(sd->fd,0) = 0x80;
-			WFIFOL(sd->fd,2) = -10;
-			WFIFOB(sd->fd,6) = 0;
-			WFIFOSET(sd->fd,packet_len_table[0x80]);
-
 			clif_weather_check(sd);
 		}
 	}
@@ -1662,7 +1643,7 @@ int clif_changemapserver(struct map_session_data *sd, char *mapname, int x, int 
 	WFIFOL(fd,22) = ip;
 	WFIFOW(fd,26) = port;
 	WFIFOSET(fd, packet_len_table[0x92]);
-	
+
 	return 0;
 }
 
@@ -2065,8 +2046,8 @@ int clif_delitem(struct map_session_data *sd,int n,int amount)
 }
 
 // Simplifies inventory/cart/storage packets by handling the packet section relevant to items. [Skotlex]
-// Equip is > 0 for equippable items (holds the equip-point)
-// 0 for stackable items, -1 for stackable items where arrows must send in the equip-point.
+// Equip is >= 0 for equippable items (holds the equip-point, is 0 for pet 
+// armor/egg) -1 for stackable items, -2 for stackable items where arrows must send in the equip-point.
 void clif_item_sub(unsigned char *buf, int n, struct item *i, struct item_data *id, int equip)
 {
 	if (id->view_id > 0)
@@ -2075,14 +2056,14 @@ void clif_item_sub(unsigned char *buf, int n, struct item *i, struct item_data *
 		WBUFW(buf,n)=i->nameid;
 	WBUFB(buf,n+2)=itemtype(id->type);
 	WBUFB(buf,n+3)=i->identify;
-	if (equip > 0 || id->type == 7) { //Equippable item (pet eggs also count).
+	if (equip >= 0) { //Equippable item 
 		WBUFW(buf,n+4)=equip;
 		WBUFW(buf,n+6)=i->equip;
 		WBUFB(buf,n+8)=i->attribute;
 		WBUFB(buf,n+9)=i->refine;
 	} else { //Stackable item.
 		WBUFW(buf,n+4)=i->amount;
-		if (equip == -1 && id->equip == 0x8000)
+		if (equip == -2 && id->equip == 0x8000)
 			WBUFW(buf,n+6)=0x8000;
 		else
 			WBUFW(buf,n+6)=0;
@@ -2116,7 +2097,7 @@ void clif_inventorylist(struct map_session_data *sd)
 			ne++;
 		} else { //Stackable.
 			WBUFW(buf,n*s+4)=i+2;
-			clif_item_sub(buf, n*s+6, &sd->status.inventory[i], sd->inventory_data[i], -1);
+			clif_item_sub(buf, n*s+6, &sd->status.inventory[i], sd->inventory_data[i], -2);
 			if (sd->inventory_data[i]->equip == 0x8000 &&
 				sd->status.inventory[i].equip)
 				arrow=i;
@@ -2200,7 +2181,7 @@ void clif_storagelist(struct map_session_data *sd,struct storage *stor)
 			ne++;
 		} else { //Stackable
 			WBUFW(buf,n*s+4)=i+1;
-			clif_item_sub(buf, n*s+6, &stor->storage_[i], id, 0);
+			clif_item_sub(buf, n*s+6, &stor->storage_[i], id,-1);
 #if PACKETVER >= 5
 			clif_addcards(WBUFP(buf,n*s+14), &stor->storage_[i]);
 #endif
@@ -2250,7 +2231,7 @@ void clif_guildstoragelist(struct map_session_data *sd,struct guild_storage *sto
 			ne++;
 		} else { //Stackable
 			WBUFW(buf,n*s+4)=i+1;
-			clif_item_sub(buf, n*s+6, &stor->storage_[i], id, 0);
+			clif_item_sub(buf, n*s+6, &stor->storage_[i], id,-1);
 #if PACKETVER >= 5
 			clif_addcards(WBUFP(buf,n*s+14), &stor->storage_[i]);
 #endif
@@ -2299,7 +2280,7 @@ void clif_cartlist(struct map_session_data *sd)
 			ne++;
 		} else { //Stackable
 			WBUFW(buf,n*s+4)=i+2;
-			clif_item_sub(buf, n*s+6, &sd->status.cart[i], id, 0);
+			clif_item_sub(buf, n*s+6, &sd->status.cart[i], id,-1);
 #if PACKETVER >= 5
 			clif_addcards(WBUFP(buf,n*s+14), &sd->status.cart[i]);
 #endif
@@ -7489,6 +7470,7 @@ int clif_refresh(struct map_session_data *sd) {
 	clif_updatestatus(sd,SP_MAXWEIGHT);
 	clif_updatestatus(sd,SP_WEIGHT);
 	map_foreachinrange(clif_getareachar,&sd->bl,AREA_SIZE,BL_ALL,sd);
+	clif_weather_check(sd);
 	return 0;
 }
 
@@ -7577,7 +7559,7 @@ int clif_charnameack (int fd, struct block_list *bl)
 				WBUFB(buf,30) = 0;
 				memcpy(WBUFP(buf,54), md->guardian_data->guild_name, NAME_LENGTH);
 				memcpy(WBUFP(buf,78), md->guardian_data->castle->castle_name, NAME_LENGTH);
-			} else if (battle_config.show_mob_hp == 1) {
+			} else if (battle_config.show_mob_hp) {
 				char mobhp[50];
 				WBUFW(buf, 0) = cmd = 0x195;
 				sprintf(mobhp, "HP: %d/%d", md->hp, md->max_hp);
@@ -10384,7 +10366,7 @@ void clif_parse_GM_Monster_Item(int fd, struct map_session_data *sd) {
 		memcpy(monster_item_name, RFIFOP(fd,2), NAME_LENGTH);
 
 		if (mobdb_searchname(monster_item_name) != 0) {
-			if (pc_isGM(sd) >= (level =get_atcommand_level(AtCommand_Spawn)))	// changed from AtCommand_Monster to AtCommand_Spawn for Skots [Reddozen]
+			if (pc_isGM(sd) >= (level =get_atcommand_level(AtCommand_Spawn)))	// changed from AtCommand_Monster for Skots [Reddozen]
 			{
 				atcommand_monster(fd, sd, "@spawn", monster_item_name); // as @spawn
 				if(log_config.gm && level >= log_config.gm)
