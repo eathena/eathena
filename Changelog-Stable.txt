@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/07
+	* Fixed the Sage weapon endow skills never failing. [Skotlex]
 	* Merged character servers not setting everyone offline as soon as they
 	  reconnect to the login server as that breaks char-sql character saving of
 	  characters already online. [Skotlex]
