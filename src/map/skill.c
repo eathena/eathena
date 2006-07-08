@@ -899,6 +899,7 @@ int skillnotok (int skillid, struct map_session_data *sd)
 				clif_skill_fail(sd,skillid,0,0);
 				return 1;
 			}
+			break;
 	}
 	return (map[sd->bl.m].flag.noskill);
 }
