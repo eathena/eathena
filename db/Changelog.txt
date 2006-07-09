@@ -1,3 +1,8 @@
+07/09
+	* Merged item_db and mob_db [Playtester]
+	- mob stat updates according to latest patches
+	- mob drop updates (NJ/GS equip, cooking)
+	- added various items, fixed various items, sorted item_db
 06/30
 	* Reverted back Vulcan Arrow. It's fine now. Player can move after the attack animation end [Lupus]
 06/29
