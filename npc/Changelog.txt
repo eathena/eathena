@@ -39,6 +39,7 @@ Playtester
 Date		Added
 ======
 07/09
+	* Merged spawn updates according to X.4 patches [Playtester]
 	* Added a fix to npc/other/books.txt [Playtester]
 07/07
 	* Fixed bugs in 2004_headgears.txt [Evera]
