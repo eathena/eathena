@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/11
+	* Fixed GTB card only working while you had a status-change active.
+	  [Skotlex]
 	* Merged the mob-position snap-fix from trunk (ie: Now it sends a fixpos
 	  packet when a mob triggers a skill while walking to properly cancel the
 	  walking animation client-side) [Skotlex]
