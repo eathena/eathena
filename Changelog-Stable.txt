@@ -5,6 +5,9 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/10
+	* Fixed @follow stopping the moment you are warped. [Skotlex]
+	* Fixed pc_additem messing with the equip field of the passed item data.
+	  Fixes the famous "equip stuff on your arrow slot" bug. [Skotlex]
 	* Should have fixed bonus skills not showing up inmediately on log-in.
 	  [Skotlex]
 2006/07/08
