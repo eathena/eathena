@@ -831,7 +831,8 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 		if(battle_check_undead(status_get_race(target),status_get_elem_type(target))){
 			temp=1;
 			casttime = skill_castfix(src, PR_TURNUNDEAD, skill_lv);
-		}
+		} else if (!status_isdead(target))
+			return 0; //Can't cast on non-dead characters.
 		break;
 	case MO_FINGEROFFENSIVE:
 		if(sd)

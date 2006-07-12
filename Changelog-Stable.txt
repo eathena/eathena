@@ -5,6 +5,12 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/12
+	* Merged some of atcommand.c. Reenabled @changesex, fixed @reset, updated
+	  the clean implementation of @refine which takes into account MAX_REFINE
+	  constant. Also fixes @mapinfo incorrectly displaying the save point of maps
+	  whose return point is the player's save point. [Skotlex]
+	* Resurrection will now silently fail when used on non-undead + not-dead
+	  characters. [Skotlex]
 	* Fixed the IP value being apparently incorrectly casted before inserting
 	  into the loginlog table on "connect success" events. [Skotlex]
 	* Merged the chrif_save fix when quitting with the charsave_method: 1

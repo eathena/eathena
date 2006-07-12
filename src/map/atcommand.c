@@ -215,6 +215,7 @@ ACMD_FUNC(cleanmap);
 ACMD_FUNC(npctalk);
 ACMD_FUNC(pettalk);
 ACMD_FUNC(users);
+ACMD_FUNC(reset);
 ACMD_FUNC(autoloot);  // Improved version imported from Freya.
 
 #ifndef TXT_ONLY
@@ -510,7 +511,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_UnMute,			"@unmute",			60, atcommand_unmute }, // [Valaris]
 	{ AtCommand_Clearweather,		"@clearweather",		99, atcommand_clearweather }, // Dexity
 	{ AtCommand_UpTime,			"@uptime",			 1, atcommand_uptime }, // by MC Cameri
-//	{ AtCommand_ChangeSex,			"@changesex",		 1, atcommand_changesex }, // by MC Cameri <- do we still need this? [Foruken]
+	{ AtCommand_ChangeSex,			"@changesex",		 60, atcommand_changesex }, // by MC Cameri <- do we still need this? [Foruken] <- why not? [Skotlex]
 	{ AtCommand_Mute,				"@mute",			99, atcommand_mute }, // [celest]
 	{ AtCommand_Mute,				"@red",			99, atcommand_mute }, // [celest]
 	{ AtCommand_WhoZeny,			"@whozeny",			20, atcommand_whozeny }, // [Valaris]
@@ -525,7 +526,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_NpcTalk,			"@npctalk",			20, atcommand_npctalk },
 	{ AtCommand_PetTalk,			"@pettalk",			10, atcommand_pettalk },
 	{ AtCommand_Users,			"@users",			40, atcommand_users },
-	{ AtCommand_ResetState,			"/reset",			40, NULL },
+	{ AtCommand_ResetState,			"@reset",			40, atcommand_reset },
 
 #ifndef TXT_ONLY // sql-only commands
 	{ AtCommand_CheckMail,			"@checkmail",		 1, atcommand_listmail }, // [Valaris]
@@ -893,7 +894,7 @@ int msg_config_read(const char *cfgName) {
 				if (msg_number >= 0 && msg_number < MAX_MSG) {
 					if (msg_table[msg_number] != NULL)
 						aFree(msg_table[msg_number]);
-					msg_table[msg_number] = (char *)aCalloc(strlen(w2) + 1, sizeof (char));
+					msg_table[msg_number] = (char *)aMalloc((strlen(w2) + 1)*sizeof (char));
 					strcpy(msg_table[msg_number],w2);
 				//	printf("message #%d: '%s'.\n", msg_number, msg_table[msg_number]);
 				}
@@ -3758,7 +3759,7 @@ int atcommand_refine(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int i, position = 0, refine = 0, current_position, final_refine;
+	int i,j, position = 0, refine = 0, current_position, final_refine;
 	int count;
 	nullpo_retr(-1, sd);
 
@@ -3769,34 +3770,34 @@ int atcommand_refine(
 		return -1;
 	}
 
-	if (refine < -10)
-		refine = -10;
-	else if (refine > 10)
-		refine = 10;
+	if (refine < -MAX_REFINE)
+		refine = -MAX_REFINE;
+	else if (refine > MAX_REFINE)
+		refine = MAX_REFINE;
 	else if (refine == 0)
 		refine = 1;
 
 	count = 0;
-	for (i = 0; i < MAX_INVENTORY; i++) {
-		if (sd->status.inventory[i].nameid &&	// ŠY“–ŒÂŠ‚Ì‘•”õ‚ð¸˜B‚·‚é
-		    (sd->status.inventory[i].equip & position ||
-			(sd->status.inventory[i].equip && !position))) {
-			final_refine = sd->status.inventory[i].refine + refine;
-			if (final_refine > 10)
-				final_refine = 10;
-			else if (final_refine < 0)
-				final_refine = 0;
-			if (sd->status.inventory[i].refine != final_refine) {
-				sd->status.inventory[i].refine = final_refine;
-				current_position = sd->status.inventory[i].equip;
-				pc_unequipitem(sd, i, 3);
-				clif_refine(fd, sd, 0, i, sd->status.inventory[i].refine);
-				clif_delitem(sd, i, 1);
-				clif_additem(sd, i, 1, 0);
-				pc_equipitem(sd, i, current_position);
-				clif_misceffect((struct block_list*)&sd->bl, 3);
-				count++;
-			}
+	for (j = 0; j < 10; j++) {
+		if ((i = sd->equip_index[j]) < 0)
+			continue;
+		if(position && !(sd->status.inventory[i].equip & position))
+			continue;
+		final_refine = sd->status.inventory[i].refine + refine;
+		if (final_refine > MAX_REFINE)
+			final_refine = MAX_REFINE;
+		else if (final_refine < 0)
+			final_refine = 0;
+		if (sd->status.inventory[i].refine != final_refine) {
+			sd->status.inventory[i].refine = final_refine;
+			current_position = sd->status.inventory[i].equip;
+			pc_unequipitem(sd, i, 3);
+			clif_refine(fd, sd, 0, i, sd->status.inventory[i].refine);
+			clif_delitem(sd, i, 1);
+			clif_additem(sd, i, 1, 0);
+			pc_equipitem(sd, i, current_position);
+			clif_misceffect(&sd->bl, 3);
+			count++;
 		}
 	}
 
@@ -4412,7 +4413,6 @@ int atcommand_petfriendly(
 
 	if (!sd->pd) {
 		clif_displaymessage(fd, msg_table[184]); // Sorry, but you have no pet.
-		return -1;
 		return -1;
 	}
 	
@@ -5710,7 +5710,9 @@ int atcommand_mapinfo(
 	clif_displaymessage(fd, atcmd_output);
 
 	if (map[m_id].flag.nosave) {
-		if (map[m_id].save.x == -1 || map[m_id].save.y == -1 )
+		if (!map[m_id].save.map)
+			sprintf(atcmd_output, "No Save (Return to last Save Point)");
+		else if (map[m_id].save.x == -1 || map[m_id].save.y == -1 )
 			sprintf(atcmd_output, "No Save, Save Point: %s,Random",mapindex_id2name(map[m_id].save.map));
 		else
 			sprintf(atcmd_output, "No Save, Save Point: %s,%d,%d",
@@ -7347,6 +7349,7 @@ atcommand_skilltree(const int fd, struct map_session_data* sd,
 		return -1;
 
 	c = pc_calc_skilltree_normalize_job(pl_sd);
+	c = pc_mapid2jobid(c, pl_sd->status.sex);
 
 	tbl = job_name(c);
 
@@ -8175,6 +8178,18 @@ atcommand_users(
 	users_db->foreach(users_db,atcommand_users_sub2,sd);
 	sprintf(buf,"all : %d",users_all);
 	clif_displaymessage(fd,buf);
+	return 0;
+}
+
+int
+atcommand_reset(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	pc_resetstate(sd);
+	pc_resetskill(sd,1);
+	sprintf(atcmd_output, msg_table[208], sd->status.name); // '%s' skill and stats points reseted!
+	clif_displaymessage(fd, atcmd_output);
 	return 0;
 }
 
@@ -9377,7 +9392,7 @@ int atcommand_mobinfo(
 		clif_displaymessage(fd, " Drops:");
 		strcpy(atcmd_output, " ");
 		j = 0;
-		for (i = 0; i < 10; i++) {
+		for (i = 0; i < MAX_MOB_DROP; i++) {
 			if (mob->dropitem[i].nameid <= 0 || (item_data = itemdb_search(mob->dropitem[i].nameid)) == NULL)
 				continue;
 			if (mob->dropitem[i].p > 0) {
