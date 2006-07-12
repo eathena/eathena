@@ -1183,7 +1183,6 @@ extern int autosave_interval;
 extern int save_settings;
 extern int agit_flag;
 extern int night_flag; // 0=day, 1=night [Yor]
-extern int kick_on_disconnect; //To allow inter-server reconnections without kicking players out [Skotlex]
 extern int enable_spy; //Determines if @spy commands are active.
 extern char db_path[256];
 
@@ -1240,6 +1239,7 @@ void map_foreachobject(int (*)(struct block_list*,va_list),int,...);
 int map_search_freecell(struct block_list *src, int m, short *x, short *y, int rx, int ry, int flag);
 //
 int map_quit(struct map_session_data *);
+void map_quit_ack(struct map_session_data *);
 // npc
 int map_addnpc(int,struct npc_data *);
 
@@ -1311,6 +1311,7 @@ int map_delmap(char *mapname);
 int map_addmobtolist(unsigned short m, struct spawn_data *spawn);	// [Wizputer]
 void map_spawnmobs(int); // [Wizputer]
 void map_removemobs(int); // [Wizputer]
+void do_reconnect_map(void); //Invoked on map-char reconnection [Skotlex]
 
 //Added for own save method
 int charsql_db_init(int method);

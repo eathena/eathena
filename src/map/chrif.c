@@ -37,7 +37,7 @@ static const int packet_len_table[0x3d] = {
 	 6,30,-1,10,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, U->2b0a, U->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
 	 0,-1,10, 6,11,-1, 0, 0,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, U->2b15, U->2b16, U->2b17
 	-1,-1,-1,-1,-1,-1, 2, 7,		// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, U->2b1c, U->2b1d, U->2b1e, U->2b1f
-	-1,-1,-1,-1,-1,-1,-1,-1,	// 2b20-2b27: U->2b20, F->2b21, F->2b22, F->2b23, F->2b24, F->2b25, F->2b26, F->2b27
+	-1,10,-1,-1,-1,-1,-1,-1,	// 2b20-2b27: U->2b20, U->2b21, F->2b22, F->2b23, F->2b24, F->2b25, F->2b26, F->2b27
 };
 
 //Used Packets:
@@ -82,7 +82,8 @@ static const int packet_len_table[0x3d] = {
 //2b1e: Incoming, chrif_update_ip -> 'Reqest forwarded from char-server for interserver IP sync.' [Lance]
 //2b1f: Incomming, chrif_disconnectplayer -> 'disconnects a player (aid X) with the message XY ... 0x81 ..' [Sirius]
 //2b20: Incomming, chrif_removemap -> 'remove maps of a server (sample: its going offline)' [Sirius]
-//2b21-2b27: FREE
+//2b21: Incomming, chrif_save_ack. Returned after a character has been "final saved" on the char-server. [Skotlex]
+//2b22-2b27: FREE
 
 int chrif_connected;
 int char_fd = 0; //Using 0 instead of -1 is safer against crashes. [Skotlex]
@@ -183,8 +184,13 @@ int chrif_isconnect(void)
 int chrif_save(struct map_session_data *sd, int flag)
 {
 	nullpo_retr(-1, sd);
-	chrif_check(-1);
+	
 	pc_makesavestatus(sd);
+	if(!chrif_isconnect())
+  	{
+		if (flag) sd->state.finalsave = 1; //Will save character on reconnect.
+		return -1;
+	}
 
 	if (sd->state.finalsave)
 		return -1; //Refuse to save a char already tagged for final saving. [Skotlex]
@@ -193,6 +199,7 @@ int chrif_save(struct map_session_data *sd, int flag)
 		storage_storage_save(sd->status.account_id, flag);
 	else if (sd->state.storage_flag == 2)
 		storage_guild_storagesave(sd->status.account_id, sd->status.guild_id, flag);
+	if (flag) sd->state.storage_flag = 0; //Force close it.
 
 	//Saving of registry values. 
 	if (sd->state.reg_dirty&4)
@@ -306,6 +313,14 @@ int chrif_removemap(int fd){
 	return 0;
 }
 
+int chrif_save_ack(int fd) {
+	int aid = RFIFOL(fd,2), cid = RFIFOL(fd,6);
+	struct map_session_data *sd = map_id2sd(aid);
+	if (sd && sd->status.char_id == cid)
+		map_quit_ack(sd);
+	return 0;
+}
+
 /*==========================================
  * マップ鯖間移動のためのデータ準備要求
  *------------------------------------------
@@ -367,6 +382,10 @@ int chrif_changemapserverack(int fd)
 		return 0;
 	}
 	clif_changemapserver(sd, (char*)mapindex_id2name(RFIFOW(fd,18)), RFIFOW(fd,20), RFIFOW(fd,22), RFIFOL(fd,24), RFIFOW(fd,28));
+
+	//Player has been saved already, remove him from memory. [Skotlex]	
+	map_quit(sd);
+	map_quit_ack(sd);
 	return 0;
 }
 
@@ -416,6 +435,7 @@ int chrif_sendmapack(int fd)
 	send_users_tochar(-1, gettick(), 0, 0);
 	
 	//Re-save any storages that were modified in the disconnection time. [Skotlex]
+	do_reconnect_map();
 	do_reconnect_storage();
 
 	return 0;
@@ -434,7 +454,7 @@ int chrif_scdata_request(int account_id, int char_id)
 #endif
 	chrif_check(-1);
 
-        WFIFOHEAD(char_fd, 10);
+	WFIFOHEAD(char_fd, 10);
 	WFIFOW(char_fd, 0) = 0x2afc;
 	WFIFOL(char_fd, 2) = account_id;
 	WFIFOL(char_fd, 6) = char_id;
@@ -1324,7 +1344,7 @@ int chrif_char_offline(struct map_session_data *sd)
 {
 	chrif_check(-1);
 
-        WFIFOHEAD(char_fd, 10);
+	WFIFOHEAD(char_fd, 10);
 	WFIFOW(char_fd,0) = 0x2b17;
 	WFIFOL(char_fd,2) = sd->status.char_id;
 	WFIFOL(char_fd,6) = sd->status.account_id;
@@ -1354,7 +1374,7 @@ int chrif_flush_fifo(void) {
 int chrif_char_reset_offline(void) {
 	chrif_check(-1);
 
-        WFIFOHEAD(char_fd, 2);
+	WFIFOHEAD(char_fd, 2);
 	WFIFOW(char_fd,0) = 0x2b18;
 	WFIFOSET(char_fd,2);
 
@@ -1379,35 +1399,15 @@ int chrif_char_online(struct map_session_data *sd)
 	return 0;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
-int chrif_disconnect_sub(struct map_session_data* sd,va_list va) {
-	if (sd->fd)
-		clif_authfail_fd(sd->fd,1);
-	else
-		map_quit(sd);
-	return 0;
-}
-
 int chrif_disconnect(int fd) {
 	if(fd == char_fd) {
 		char_fd = 0;
 		ShowWarning("Map Server disconnected from Char Server.\n\n");
-		if (kick_on_disconnect)
-			clif_foreachclient(chrif_disconnect_sub);
 		chrif_connected = 0;
 		
 	 	other_mapserver_count=0; //Reset counter. We receive ALL maps from all map-servers on reconnect.
 		map_eraseallipport();
 
-		// 倉庫キャッシュを消す
-		if (kick_on_disconnect)
-		{	//Do not clean the storage if players are gonna be left inside. [Skotlex]
-			do_final_storage();
-			do_init_storage();
-		}
 		//Attempt to reconnect in a second. [Skotlex]
 		add_timer(gettick() + 1000, check_connect_char_server, 0, 0);
 	}
@@ -1493,7 +1493,8 @@ int chrif_parse(int fd)
 		case 0x2b1d: chrif_load_scdata(fd); break;
 		case 0x2b1e: chrif_update_ip(fd); break;
 		case 0x2b1f: chrif_disconnectplayer(fd); break;
-		case 0x2b20: chrif_removemap(fd); break; //Remove maps of a server [Sirius]
+		case 0x2b20: chrif_removemap(fd); break;
+		case 0x2b21: chrif_save_ack(fd); break;
 
 		default:
 			if (battle_config.error_log)

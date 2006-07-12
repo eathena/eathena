@@ -171,7 +171,6 @@ int save_settings = 0xFFFF;
 int charsave_method = 0; //Default 'OLD' Save method (SQL ONLY!) [Sirius]
 int agit_flag = 0;
 int night_flag = 0; // 0=day, 1=night [Yor]
-int kick_on_disconnect = 1;
 
 struct charid2nick {
 	char nick[NAME_LENGTH];
@@ -1681,7 +1680,6 @@ int map_quit(struct map_session_data *sd) {
 	//Do we really need to remove the name?
 	idb_remove(charid_db,sd->status.char_id);
 	idb_remove(id_db,sd->bl.id);
-	idb_remove(pc_db,sd->bl.id);
 
 	if(sd->reg)
 	{	//Double logout already freed pointer fix... [Skotlex]
@@ -1695,10 +1693,34 @@ int map_quit(struct map_session_data *sd) {
 		sd->regstr = NULL;
 		sd->regstr_num = 0;
 	}
-
-	if(!sd->fd) //There is no session connected, and as such socket.c won't free the data, we must do it. [Skotlex]
-		aFree(sd);
+	if(sd->fd)
+  	{	//Player will be free'd on save-ack. [Skotlex]
+		if (session[sd->fd])
+			session[sd->fd]->session_data = NULL;
+		sd->fd = 0;
+	}
 	return 0;
+}
+
+void map_quit_ack(struct map_session_data *sd) {
+	if (sd && sd->state.finalsave) {
+		idb_remove(pc_db,sd->status.account_id);
+		aFree(sd);
+	}
+}
+
+static int do_reconnect_map_sub(DBKey key,void *data,va_list va) {
+	struct map_session_data *sd = (TBL_PC*)data;
+	if (sd->state.finalsave) {
+		sd->state.finalsave = 0;
+		chrif_save(sd, 1); //Resend to save!
+		return 1;
+	}
+	return 0;
+}
+
+void do_reconnect_map(void) {
+	pc_db->foreach(pc_db,do_reconnect_map_sub);
 }
 
 /*==========================================
@@ -3370,9 +3392,7 @@ int inter_config_read(char *cfgName)
 		i=sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
 		if(i!=2)
 			continue;
-		if(strcmpi(w1,"kick_on_disconnect")==0){
-			kick_on_disconnect = battle_config_switch(w2);
-		} else if(strcmpi(w1,"party_share_level")==0){
+		if(strcmpi(w1,"party_share_level")==0){
 			party_share_level = battle_config_switch(w2);
 		} else if(strcmpi(w1,"lowest_gm_level")==0){
 			lowest_gm_level = atoi(w2);

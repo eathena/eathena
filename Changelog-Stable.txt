@@ -5,6 +5,16 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/11
+	* Merged the clif_parse fix which checks for the correct session-type
+	  before sending packets (fix is not complete as it also requires changes to
+	  other files, but for now this will have to do until it's been tested more
+	  on trunk) [Skotlex]
+	* Merged the player disconnect code update which guarantees character data
+	  saving before removing the player from memory. [Skotlex]
+	* I know this hasn't been in trunk for long enough to know it works
+	  perfectly, but the current stable situation with lag-induced dupes is bad
+	  enough to justify the risk of bugs on this update...
+	
 	* Fixed GTB card only working while you had a status-change active.
 	  [Skotlex]
 	* Merged the mob-position snap-fix from trunk (ie: Now it sends a fixpos

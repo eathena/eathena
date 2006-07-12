@@ -257,8 +257,9 @@ int clif_countusers(void)
 	struct map_session_data *sd;
 
 	for(i = 0; i < fd_max; i++) {
-		if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) && sd->state.auth &&
-				!(battle_config.hide_GM_session && pc_isGM(sd)))
+		if (session[i] && session[i]->func_parse == clif_parse &&
+			(sd = (struct map_session_data*)session[i]->session_data) &&
+		  	sd->state.auth && !(battle_config.hide_GM_session && pc_isGM(sd)))
 			users++;
 	}
 	return users;
@@ -278,10 +279,9 @@ int clif_foreachclient(int (*func)(struct map_session_data*, va_list),...) //rec
 	va_start(ap,func);
 
 	for(i = 0; i < fd_max; i++) {
-		if ( session[i] ) {
+		if ( session[i] && session[i]->func_parse == clif_parse) {
 			sd = (struct map_session_data*)session[i]->session_data;
-			if ( sd && session[i]->func_parse == clif_parse &&
-					sd->state.auth && !sd->state.waitingdisconnect )
+			if ( sd && sd->state.auth && !sd->state.waitingdisconnect )
 				func(sd, ap);
 		}
 	}
@@ -403,9 +403,11 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 	}
 
 	switch(type) {
-	case ALL_CLIENT: // 全クライアントに送信
+	case ALL_CLIENT: //All player clients.
 		for (i = 0; i < fd_max; i++) {
-			if (session[i] && (sd = (struct map_session_data *)session[i]->session_data) != NULL && sd->state.auth) {
+			if (session[i] && session[i]->func_parse == clif_parse &&
+				(sd = (struct map_session_data *)session[i]->session_data) != NULL&&
+				sd->state.auth) {
 				if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
 					WFIFOHEAD(i, len);
 					memcpy(WFIFOP(i,0), buf, len);
@@ -414,9 +416,10 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 			}
 		}
 		break;
-	case ALL_SAMEMAP: // 同じマップの全クライアントに送信
+	case ALL_SAMEMAP: //All players on the same map
 		for(i = 0; i < fd_max; i++) {
-			if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL &&
+			if (session[i] && session[i]->func_parse == clif_parse &&
+				(sd = (struct map_session_data*)session[i]->session_data) != NULL &&
 				sd->state.auth && sd->bl.m == bl->m) {
 				if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
 					WFIFOHEAD(i,len);
@@ -466,7 +469,8 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 		break;
 	case CHAT_MAINCHAT: //[LuzZza]
 		for(i=1; i<fd_max; i++) {
-			if(session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL &&
+			if (session[i] && session[i]->func_parse == clif_parse &&
+				(sd = (struct map_session_data*)session[i]->session_data) != NULL &&
 				sd->state.mainchat && sd->fd) {
 					WFIFOHEAD(sd->fd, len);								
 					memcpy(WFIFOP(sd->fd,0), buf, len);
@@ -474,16 +478,16 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 			}
 		}
 		break;
-	case PARTY_AREA:		// 同じ画面内の全パーティーメンバに送信
-	case PARTY_AREA_WOS:	// 自分以外の同じ画面内の全パーティーメンバに送信
+	case PARTY_AREA:
+	case PARTY_AREA_WOS:
 		x0 = bl->x - AREA_SIZE;
 		y0 = bl->y - AREA_SIZE;
 		x1 = bl->x + AREA_SIZE;
 		y1 = bl->y + AREA_SIZE;
-	case PARTY:				// 全パーティーメンバに送信
-	case PARTY_WOS:			// 自分以外の全パーティーメンバに送信
-	case PARTY_SAMEMAP:		// 同じマップの全パーティーメンバに送信
-	case PARTY_SAMEMAP_WOS:	// 自分以外の同じマップの全パーティーメンバに送信
+	case PARTY:
+	case PARTY_WOS:
+	case PARTY_SAMEMAP:
+	case PARTY_SAMEMAP_WOS:
 		if (sd && sd->status.party_id)
 			p = party_search(sd->status.party_id);
 			
@@ -514,13 +518,15 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 			if (!enable_spy) //Skip unnecessary parsing. [Skotlex]
 				break;
 			for (i = 1; i < fd_max; i++){ // partyspy [Syrus22]
-				if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth && sd->fd && sd->partyspy) {
-					if (sd->partyspy == p->party_id) {
-						if (sd->fd && packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
-							WFIFOHEAD(sd->fd,len);
-							memcpy(WFIFOP(sd->fd,0), buf, len);
-							WFIFOSET(sd->fd,len);
-						}
+
+				if (session[i] && session[i]->func_parse == clif_parse &&
+					(sd = (struct map_session_data*)session[i]->session_data) != NULL &&
+				  	sd->state.auth && sd->fd && sd->partyspy == p->party_id)
+		  		{
+					if (sd->fd && packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
+						WFIFOHEAD(sd->fd,len);
+						memcpy(WFIFOP(sd->fd,0), buf, len);
+						WFIFOSET(sd->fd,len);
 					}
 				}
 			}
@@ -575,13 +581,13 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 			if (!enable_spy) //Skip unnecessary parsing. [Skotlex]
 				break;
 			for (i = 1; i < fd_max; i++){ // guildspy [Syrus22]
-				if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth && sd->fd && sd->guildspy) {
-					if (sd->guildspy == g->guild_id) {
-						if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
-							WFIFOHEAD(sd->fd,len);
-							memcpy(WFIFOP(sd->fd,0), buf, len);
-							WFIFOSET(sd->fd,len);
-						}
+				if (session[i] && session[i]->func_parse == clif_parse &&
+					(sd = (struct map_session_data*)session[i]->session_data) != NULL &&
+				  	sd->state.auth && sd->fd && sd->guildspy == g->guild_id) {
+					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
+						WFIFOHEAD(sd->fd,len);
+						memcpy(WFIFOP(sd->fd,0), buf, len);
+						WFIFOSET(sd->fd,len);
 					}
 				}
 			}
@@ -1333,7 +1339,9 @@ int clif_weather(int m) {
 	struct map_session_data *sd=NULL;
 
 	for(i = 0; i < fd_max; i++) {
-		if (session[i] && (sd = session[i]->session_data) != NULL && sd->state.auth && sd->bl.m == m) {
+		if (session[i] && session[i]->func_parse == clif_parse &&	
+			(sd = session[i]->session_data) != NULL &&
+		  	sd->state.auth && sd->bl.m == m) {
 			clif_weather_check(sd);
 		}
 	}
@@ -1549,12 +1557,9 @@ int clif_move(struct block_list *bl) {
 static int clif_delayquit(int tid, unsigned int tick, int id, int data) {
 	struct map_session_data *sd = NULL;
 
-	if (chrif_isconnect())
-	{	//Remove player from map server
-		if ((sd = map_id2sd(id)) != NULL && sd->fd == 0) //Should be a disconnected player.
-			map_quit(sd);
-	} else //Save later.
-		add_timer(tick + 10000, clif_delayquit, id, 0);
+	//Remove player from map server
+	if ((sd = map_id2sd(id)) != NULL && sd->fd == 0) //Should be a disconnected player.
+		map_quit(sd);
 	return 0;
 }
 
@@ -1564,12 +1569,13 @@ static int clif_delayquit(int tid, unsigned int tick, int id, int data) {
  */
 void clif_quitsave(int fd,struct map_session_data *sd)
 {
-	if (chrif_isconnect() && (sd->state.waitingdisconnect || //Was already waiting to be disconnected.
-		!battle_config.prevent_logout || DIFF_TICK(gettick(), sd->canlog_tick) > battle_config.prevent_logout))
+	if (sd->state.waitingdisconnect || //Was already waiting to be disconnected.
+		!battle_config.prevent_logout ||
+	  	DIFF_TICK(gettick(), sd->canlog_tick) > battle_config.prevent_logout)
 		map_quit(sd);
 	else if (sd->fd)
 	{	//Disassociate session from player (session is deleted after this function was called)
-		//And set a timer to delete this player later.
+		//And set a timer to make him quit later.
 		session[fd]->session_data = NULL;
 		sd->fd = 0;
 		add_timer(gettick() + 10000, clif_delayquit, sd->bl.id, 0);
@@ -7263,6 +7269,21 @@ int clif_disp_onlyself(struct map_session_data *sd, char *mes, int len)
 }
 
 /*==========================================
+ * Displays a message using the guild-chat colors to the specified targets. [Skotlex]
+ *------------------------------------------
+ */
+void clif_disp_message(struct block_list *src, char *mes, int len, int type)
+{
+	unsigned char buf[1024];
+	if (!len) return;
+	WBUFW(buf, 0) = 0x17f;
+	WBUFW(buf, 2) = len + 5;
+	memcpy(WBUFP(buf,4), mes, len);
+	clif_send(buf, WBUFW(buf,2), src, type);
+	return;
+}
+
+/*==========================================
  *
  *------------------------------------------
  */
@@ -7852,10 +7873,12 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 		if ((old_sd = map_id2sd(account_id)) != NULL)
 		{	// if same account already connected, we disconnect the 2 sessions
 			//Check for characters with no connection (includes those that are using autotrade) [durf],[Skotlex]
-			if (!old_sd->fd)
-				map_quit(old_sd);
-			else 
+			if (old_sd->state.finalsave)
+				; //Ack has not arrived yet from char-server, be patient!
+			else if (old_sd->fd)
 				clif_authfail_fd(old_sd->fd, 2); // same id
+			else 
+				map_quit(old_sd);
 			clif_authfail_fd(fd, 8); // still recognizes last connection
 		} else {
 			sd = (struct map_session_data*)aCalloc(1, sizeof(struct map_session_data));
@@ -8640,7 +8663,7 @@ void clif_parse_Restart(int fd, struct map_session_data *sd) {
 			//map_quit(sd);	//A clif_quitsave is sent inmediately after this, so no need to quit yet. [Skotlex]
 			chrif_charselectreq(sd);
 		} else {
-                        WFIFOHEAD(fd,packet_len_table[0x18b]);
+			WFIFOHEAD(fd,packet_len_table[0x18b]);
 			WFIFOW(fd,0)=0x18b;
 			WFIFOW(fd,2)=1;
 
@@ -11133,9 +11156,9 @@ int clif_parse(int fd) {
 	}
 
 	sd = (struct map_session_data*)session[fd]->session_data;
-
-	// 接続が切れてるので後始末
-	if (!chrif_isconnect() && kick_on_disconnect)
+/* This behaviour has been deprecated due to actually causing trouble instead
+ * of helping against exploits ~.~ [Skotlex]
+	if (!chrif_isconnect())
 	{
 		ShowInfo("Closing session #%d (Not connected to Char server)\n", fd);
 		if (sd && sd->state.auth)
@@ -11143,6 +11166,7 @@ int clif_parse(int fd) {
 		do_close(fd);
 		return 0;
 	} else
+	*/
 	if (session[fd]->eof) {
 		if (sd && sd->state.autotrade) {
 			//Disassociate character from the socket connection.
