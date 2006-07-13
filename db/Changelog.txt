@@ -1,3 +1,8 @@
+07/13
+	* Merged item_db, mob_db and mob_skill_db [Playtester]
+	- various item fixes
+	- new Marionette Doll drop + mob element and aDelay fixes
+	- fixed Detale's and Tao Gunka's skills
 07/10
 	* Updated files skill_db.txt/skill_cast_db.txt/skill_unit_db.txt with trunk
 	  info. [Skotlex]

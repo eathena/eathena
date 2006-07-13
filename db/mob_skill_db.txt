@@ -2519,8 +2519,8 @@
 1583,Tao Gunka@NPC_MENTALBREAKER,chase,159,5,2000,0,5000,yes,target,always,0,,,,,,7
 1583,Tao Gunka@NPC_STUNATTACK,attack,179,5,2000,0,5000,yes,target,always,0,,,,,,7
 1583,Tao Gunka@NPC_STUNATTACK,chase,179,5,2000,0,5000,yes,target,always,0,,,,,,7
-1583,Tao Gunka@NPC_SUMMONSLAVE,attack,196,5,10000,700,10000,no,self,slavele,4,1274,,,,,
-1583,Tao Gunka@NPC_SUMMONSLAVE,idle,196,5,10000,700,10000,no,self,slavele,4,1274,,,,,
+1583,Tao Gunka@NPC_SUMMONSLAVE,attack,196,5,10000,700,10000,no,self,slavele,4,1793,,,,,
+1583,Tao Gunka@NPC_SUMMONSLAVE,idle,196,5,10000,700,10000,no,self,slavele,4,1793,,,,,
 1583,Tao Gunka@NPC_SUMMONSLAVE,idle,196,5,10000,0,0,no,self,onspawn,0,1274,,,,,
 1584,Tamruan@NPC_EMOTION,chase,197,1,2000,0,5000,yes,self,always,0,9,,,,,
 1584,Tamruan@NPC_EMOTION,idle,197,1,2000,0,5000,yes,self,always,0,9,,,,,
@@ -3544,15 +3544,16 @@
 1716,Acidus@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
 1717,Ferus@KN_BRANDISHSPEAR,attack,57,10,2000,0,10000,yes,target,always,0,,,,,,29
 1717,Ferus@KN_BRANDISHSPEAR,attack,170,1,1000,0,30000,no,target,always,0,,,,,,
-1719,Detale@NPC_GUIDEDATTACK,attack,172,3,500,1000,20000,no,target,always,0,,,,,,
-1719,Detale@BS_MAXIMIZE,attack,114,5,500,1000,5000,no,self,always,0,,,,,,
-1719,Detale@AL_DECAGI,chase,30,10,2000,0,300000,no,target,always,0,,,,,,
-1719,Detale@NPC_WATERATTACK,attack,184,5,500,500,5000,no,target,always,0,,,,,,
-1719,Detale@NPC_BREAKARMOR,attack,344,10,2000,0,5000,no,target,always,0,,,,,,
-1719,Detale@NPC_AGIUP,attack,350,5,10000,0,30000,yes,self,myhpltmaxrate,30,,,,,,
-1719,Detale@NPC_AGIUP,chase,350,5,10000,0,30000,yes,self,myhpltmaxrate,30,,,,,,
-1719,Detale@WZ_WATERBALL,attack,86,5,1000,0,5000,yes,target,always,0,,,,,,
-1719,Detale@WZ_WATERBALL,chase,86,5,5000,0,5000,yes,target,always,0,,,,,,
+1719,Detale@NPC_POWERUP,attack,349,5,10000,0,30000,yes,self,myhpltmaxrate,30,,,,,,6
+1719,Detale@WZ_VERMILION,attack,85,20,2000,0,5000,yes,target,always,0,,,,,,
+1719,Detale@WZ_VERMILION,chase,85,20,2000,0,5000,yes,target,always,0,,,,,,
+1719,Detale@WZ_METEOR,attack,83,11,500,0,5000,yes,target,always,0,,,,,,
+1719,Detale@WZ_METEOR,chase,83,11,500,0,5000,yes,target,always,0,,,,,,
+1719,Detale@SM_MAGNUM,attack,7,20,2000,0,5000,yes,self,attackpcgt,2,,,,,,
+1719,Detale@MG_FIREBALL,attack,17,10,2000,0,5000,yes,target,always,0,,,,,,
+1719,Detale@MG_FIREBALL,chase,17,10,2000,0,5000,yes,target,always,0,,,,,,
+1719,Detale@NPC_BREAKWEAPON,attack,343,10,500,0,5000,no,target,always,0,,,,,,
+1719,Detale@NPC_BREAKARMOR,attack,344,10,500,0,5000,no,target,always,0,,,,,,
 1719,Detale@NPC_CALLSLAVE,attack,352,1,10000,0,30000,yes,target,always,0,,,,,,
 1719,Detale@NPC_CALLSLAVE,chase,352,1,10000,0,30000,yes,target,always,0,,,,,,
 1719,Detale@NPC_SUMMONSLAVE,attack,196,1,10000,700,10000,no,self,slavele,0,1756,,,,,
@@ -3909,3 +3910,12 @@
 1767,Deviling@NPC_SUMMONSLAVE,attack,196,7,10000,2000,10000,no,self,slavele,3,1595,1595,1595,1433,,6
 1767,Deviling@NPC_SUMMONSLAVE,idle,196,7,10000,2000,10000,no,self,slavele,3,1595,1595,1595,1433,,6
 1767,Deviling@NPC_SUMMONSLAVE,idle,196,7,10000,0,0,no,self,onspawn,0,1242,1242,1242,1109,,
+1793,Megalith@NPC_EMOTION,idle,197,1,2000,0,5000,yes,self,always,0,9,,,,,
+1795,Bloody Knight@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
+1795,Bloody Knight@CR_SHIELDCHARGE,attack,250,5,500,0,5000,yes,target,always,0,,,,,,9
+1795,Bloody Knight@KN_BRANDISHSPEAR,attack,57,5,500,1000,5000,no,target,always,0,,,,,,9
+1795,Bloody Knight@NPC_CHANGEFIRE,attack,164,1,10000,2000,600000,no,self,myhpltmaxrate,20,,,,,,
+1795,Bloody Knight@NPC_DARKNESSATTACK,attack,190,2,500,500,5000,no,target,always,0,,,,,,9
+1795,Bloody Knight@NPC_WEAPONBRAKER,attack,343,5,500,0,30000,yes,target,always,0,,,,,,
+1795,Bloody Knight@WZ_METEOR,attack,83,5,2000,1500,5000,no,target,myhpltmaxrate,20,,,,,,
+1795,Bloody Knight@WZ_METEOR,chase,83,5,2000,1500,5000,no,target,myhpltmaxrate,20,,,,,,
