@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.5
+//= 1.6
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -11,17 +11,18 @@
 //===== Additional Comments: ================================= 
 //= Fully working
 //= 1.1 fixed 2 zeny bugs/checks [Lupus]
-//= 1.2 Fixed a lot of typo’s [Nexon]
+//= 1.2 Fixed a lot of typos [Nexon]
 //= 1.3 Removed callfunc Is_####_Class in favor of baseClass [Silentdragon]
 //= 1.4 Added a Jawaii related npc. 1.4a Fixed a small bug to
 //=	the Jawaii warper, thanks to reddozen and Silent [MasterOfMuppets]
 //= 1.5 Replaced iz_move_alberta with MISC_QUEST & 16 [Lupus]
+//= 1.6 Removed Duplicates [Silent]
 //============================================================
 
 
 
 // Welcome Sign ----------------------------------------------------------
-izlude.gat,125,116,1	script	Welcome Sign	111,{
+izlude.gat,125,116,1	script	Welcome Sign::ws_izlude	111,{
   mes "~sign reads...~";
   mes "Salutations and welcome to Izlude! Izlude is the satellite of Prontera and is home to Swordsmen and the Cool Event Corp.'s Monster Arena!";
   close;
@@ -529,7 +530,7 @@ izlude.gat,58,126,1	script	Red	98,{
 		mes "Hahahaha!! See!? Someone who";
 		mes "pursues a different job agrees with";
 		mes "me~! You really are a great guy!";
-		mes "Hahaha!! Undoubtedly, onlu ^FF0000Bash^000000";
+		mes "Hahaha!! Undoubtedly, only ^FF0000Bash^000000";
 		mes "suits a Swordman. Please tell that";
 		mes "to this NIMROD over here~ Hahaha!";
 		close;
@@ -659,7 +660,7 @@ izlude.gat,56,126,7	script	Cebalis	85,{
 		mes "Hahahaha!! See!? Someone who";
 		mes "pursues a different job agrees with";
 		mes "me~! You really are a great guy!";
-		mes "Hahaha!! Undoubtedly, onlu ^FF0000Bash^000000";
+		mes "Hahaha!! Undoubtedly, only ^FF0000Bash^000000";
 		mes "suits a Swordman. Please tell that";
 		mes "to this NIMROD over here~ Hahaha!";
 		close;
@@ -898,7 +899,7 @@ M_Menu:
 }
 
 //Sailor-------------------------------------------------------------------------------------
-izlude.gat,201,181,2	script	Sailor	100,{
+izlude.gat,201,181,2	script	Sailor#06	100,{
 	mes "[Sailor]";
 	mes "Hey Everybody!";
 	mes "Attention, attention!";
@@ -931,7 +932,7 @@ izlude.gat,201,181,2	script	Sailor	100,{
 }
 
 //Sailor-------------------------------------------------------------------------------------
-izlu2dun.gat,108,27,4	script	Sailor	100,{
+izlu2dun.gat,108,27,4	script	Sailor#07	100,{
 	mes "[Sailor]";
 	mes "Wanna";
 	mes "head back?";
