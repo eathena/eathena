@@ -39,6 +39,8 @@ Playtester
 Date		Added
 ======
 07/14
+	* Merged the Socket Enchant NPC [Playtester]
+	- it's disabled by default since success chance is not 100% official
 	* Fixed a quest NPC giving you a Huge Leaf rather than Smokie Leaf [Playtester]
 	* Improved the Fox Mask quest [Playtester]
 	* Small Kafra coordinate fixes [Playtester]
