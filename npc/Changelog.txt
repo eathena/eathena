@@ -39,6 +39,11 @@ Playtester
 Date		Added
 ======
 07/14
+	* Big merge of most NPC files [Playtester]
+	- sorry guys, but this had to be done, I hope there are no problems
+	- merged quest extraction from city npcs
+	- merged official thanatos tower quest
+	- quests that could NOT be merged: juperos, umbala
 	* Merged the Socket Enchant NPC [Playtester]
 	- it's disabled by default since success chance is not 100% official
 	* Fixed a quest NPC giving you a Huge Leaf rather than Smokie Leaf [Playtester]
