@@ -118,7 +118,7 @@ lhz_in02.gat,237,284,4	script	Kafra	861,{
 	callfunc "F_Kafra",0,4,1;
 
 	M_Save:
-		savepoint "lighthalzen.gat",278,215;
+		savepoint "lhz_in02.gat",278,215;
 		callfunc "F_KafEnd",0,1;
 }
 

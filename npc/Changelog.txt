@@ -39,6 +39,7 @@ Playtester
 Date		Added
 ======
 07/13
+	* Merged fix for invalid savepoint in Lighthalzen Inn. [Adam]
 	* Fixed some typos thanks to Zarnox [Playtester]
 07/09
 	* Merged spawn updates according to X.4 patches [Playtester]
