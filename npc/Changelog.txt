@@ -39,6 +39,7 @@ Playtester
 Date		Added
 ======
 07/14
+	* Merged the custom Kiel quest made by Lupus [Playtester]
 	* Big merge of most NPC files [Playtester]
 	- sorry guys, but this had to be done, I hope there are no problems
 	- merged quest extraction from city npcs
