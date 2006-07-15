@@ -3,11 +3,11 @@
 //===== By: ================================================== 
 //= Lupus, kobra_k88
 //===== Current Version: ===================================== 
-//= 2.0
+//= 2.02
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
-//= <Description> 
+//= <Description>
 //===== Additional Comments: ================================= 
 //= Added F_ClearJobVar - on getting a new job it clears all Job Quest variables
 //= Removed individual job check functions as they were redundant [kobra_k88]
@@ -22,6 +22,8 @@
 //= 1.9 Added "F_ClearGarbage" func that clears outdated, wasted variables [Lupus]
 //= 1.91 Added "F_SaveQuestSkills","F_Load?Skills" functions [Lupus]
 //= 2.0 Fixed F_Save/LoadQuestSkills functions. Had to split in into 2 vars [Lupus]
+//= 2.01 Added $talk to F_ClearGarbage [Evera]
+//= 2.02 Added $dtsglobalelig and $dts|(1<<6) to F_ClearGarbage [Evera]
 //============================================================ 
 
 
@@ -37,7 +39,7 @@ function	script	F_ClearJobVar	{
 	set job_archer_q,0;
 	set job_magician_q,0;
 	set job_merchant_q,0; set job_merchant_q2,0; set job_merchant_q3,0;
-	set job_sword_q,0; set job_sword_q2,0; set SWTEST, 0;
+	set job_sword_q,0; set SWTEST, 0;
 	set job_thief_q,0;
 	// Super Novice
 	set SUPNOV_Q,0;
@@ -65,6 +67,9 @@ function	script	F_ClearJobVar	{
 
 function	script	F_ClearGarbage	{
 	// Clear outdated global VARS
+	if($talk) set $talk,0;
+	if($dtsglobalelig) set $dtsglobalelig,0;
+	if($dts&(1<<6)) set $dts,$dts&~(1<<6);
 	if(MARIANNE) {set MISC_QUEST,MISC_QUEST | 1; set MARIANNE,0;}
 	set MEAT,0; set MORRISON,0;
 	set BUNYBND,0; set TEMPESTRA,0; 

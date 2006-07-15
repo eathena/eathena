@@ -39,7 +39,12 @@ Playtester
 Date		Added
 ======
 07/15
-	* Fixed incorrect information in dts_warper.txt
+	* Merged dts_warper.txt and Global_Functions.txt in other/ from trunk: [Evera]
+	- Global_Functions has 2.02 replacing 2.0, and dts_warper has 1.9 replacing 1.8 [Evera]
+	* Removed global eligibility option from DTS warper [Evera]
+	- Added old global eligibility variable for DTS warper to garbage [Evera]
+	- Fixed incorrect information in DTS warper header [Evera]
+	* Fixed incorrect information in dts_warper.txt [Evera]
 	* Fixed Detale's spawn location [Playtester]
 	* Fixed Blue Fish quest only removing 1 Stinky Scale [Playtester]
 	* Fixed some typos in cities/izlude.txt thanks to Zarnox [Playtester]
