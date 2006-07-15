@@ -21,8 +21,6 @@
 //=					= (1<<5) Kafra won last election
 //=					= (1<<6) Global Eligibility
 //=Character -	dtseligible 		= eligibility status, 0 not eligible yet, 1 eligible, 2 eligible & voted.
-//=					= (By default, 1/4 chance of being able to vote. set to 1 after having random selection;
-//=					= not used if $dtsglobalelig == 1) 
 //=NPC Func. -	arg(0) 			= 0, Cool Event Corp Voting Staff; 1, Kafra Corp Voting Staff
 //=		arg(1)			= Kafra only, Cool Corp script does not use. Changes illus for different sprites.
 //=					= 0 = 4_f_kafra6 (yellow ponytail, classic outfit, spr 112)
