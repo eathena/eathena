@@ -60,6 +60,9 @@ basics::CParam< basics::string<> > CSQLParameter::tbl_storage("tbl_storage", "st
 basics::CParam< basics::string<> > CSQLParameter::tbl_guild_storage("tbl_guild_storage", "guild_storage", ParamCallback_Tables);
 
 basics::CParam< basics::string<> > CSQLParameter::tbl_pet("tbl_pet", "pet", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_homunculus("tbl_homunculus", "homunculus", ParamCallback_Tables);
+basics::CParam< basics::string<> > CSQLParameter::tbl_homunskill("tbl_homunskill", "homunskill", ParamCallback_Tables);
+
 
 basics::CParam<bool> CSQLParameter::wipe_sql("wipe_sql", false);
 basics::CParam< basics::string<> > CSQLParameter::sql_engine("sql_engine", "InnoDB");
@@ -144,6 +147,14 @@ void CSQLParameter::rebuild()
 	// drop all tables, drop child tables first
 	if( CSQLParameter::wipe_sql )
 	{
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_homunskill) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_homunculus) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
 		///////////////////////////////////////////////////////////////////////
 		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_pet) << "`";
 		dbcon1.PureQuery(query);
@@ -813,6 +824,76 @@ void CSQLParameter::rebuild()
 			 "WHERE `pet_id`=" << start_pet_num;
 	dbcon1.PureQuery(query);
 	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	basics::CParam<uint32> start_homun_num("start_homun_num", 60000000);
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_homunculus) << "` "
+			 "("
+			 "`homun_id`		INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,"
+			 "`account_id`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`char_id`			INTEGER UNSIGNED NOT NULL default '0',"
+
+			 "`base_exp`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`name`			VARCHAR(24) NOT NULL default '',"
+
+			 "`hp`				INTEGER UNSIGNED NOT NULL default '0',"
+			 "`max_hp`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`sp`				INTEGER UNSIGNED NOT NULL default '0',"
+			 "`max_sp`			INTEGER UNSIGNED NOT NULL default '0',"
+
+			 "`class`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`status_point`	SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`skill_point`		SMALLINT UNSIGNED NOT NULL default '0',"
+
+			 "`str`				SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`agi`				SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`vit`				SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`int_`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`dex`				SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`luk`				SMALLINT UNSIGNED NOT NULL default '0',"
+
+			 "`option`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`equip`			SMALLINT UNSIGNED NOT NULL default '0',"
+
+			 "`intimate`		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`hungry`			SMALLINT NOT NULL default '0',"
+			 "`equip`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`base_level`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 
+			 "`rename_flag`		TINYINT UNSIGNED NOT NULL default '0',"
+			 "`incubate`		TINYINT UNSIGNED NOT NULL default '0',"
+
+			 "PRIMARY KEY `homun_id` (`homun_id`),"
+			 "KEY `char_id` (`char_id`)," 
+			 "FOREIGN KEY (`char_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_char) << "` (`char_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine) << " AUTO_INCREMENT=" << start_homun_num;
+	dbcon1.PureQuery(query);
+	query.clear();
+	query << "INSERT INTO `" << dbcon1.escaped(CSQLParameter::tbl_homunculus) << "` "
+			 "(`homun_id`) "
+			 "VALUES "
+			 "('" << start_homun_num << "')";
+	dbcon1.PureQuery(query);
+	query.clear();
+	query << "DELETE FROM `" << dbcon1.escaped(CSQLParameter::tbl_homunculus) << "` "
+			 "WHERE `homun_id`=" << start_homun_num;
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_homunskill) << "` ("
+			 "`homun_id` 		INTEGER UNSIGNED NOT NULL default '0',"
+			 "`id`				SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`lv` 				SMALLINT UNSIGNED NOT NULL default '0',"
+			 "PRIMARY KEY (`homun_id`,`id`),"
+			 "KEY `homun_id` (`homun_id`),"
+			 "FOREIGN KEY (`homun_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_homunculus) << "` (`homun_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
+
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -3697,6 +3778,223 @@ bool CPetDB_sql::savePet(const CPet& pet)
 			 "WHERE `pet_id` = '" << pet.pet_id << "'";
 	
 	return dbcon1.PureQuery( query );
+}
+
+
+
+
+////////
+// Homunculus
+////
+bool CHomunculusDB_sql::init(const char *dbcfgfile)
+{
+	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
+	return true;
+}
+
+size_t CHomunculusDB_sql::size() const
+{
+	return this->get_table_size(this->tbl_homunculus);
+}
+
+CHomunculus& CHomunculusDB_sql::operator[](size_t i)
+{	// not threadsafe
+	static CHomunculus hom;
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+/*	query << "SELECT "
+			 "`p`.`pet_id`,`c`.`account_id`,`p`.`char_id`,`p`.`class`,`p`.`level`,"
+			 "`p`.`egg_id`,`p`.`equip_id`,`p`.`intimate`,`p`.`hungry`,`p`.`name`,"
+			 "`p`.`rename_flag`,`p`.`incuvate` "
+			 "FROM `" << dbcon1.escaped(this->tbl_pet) << "` `p`"
+			 "JOIN `" << dbcon1.escaped(this->tbl_char) << "` `c` ON `p`.`char_id`=`c`.`char_id` "
+			 "ORDER BY `pet_id`"
+			 "LIMIT "<< i << ",1 ";
+
+	if( dbcon1.ResultQuery(query) )
+	{
+		pet.pet_id = atoi(dbcon1[0]);
+		pet.account_id = atoi(dbcon1[1]);
+		pet.char_id = atoi(dbcon1[2]);
+		pet.class_ = atoi(dbcon1[3]);
+		pet.level = atoi(dbcon1[4]);
+		pet.egg_id = atoi(dbcon1[5]);
+		pet.equip_id = atoi(dbcon1[6]);
+		pet.intimate = atoi(dbcon1[7]);
+		pet.hungry = atoi(dbcon1[8]);
+		safestrcpy(pet.name, dbcon1[9], sizeof(pet.name));
+		pet.rename_flag = atoi(dbcon1[10]);
+		pet.incuvate = atoi(dbcon1[11]);
+	}
+	else
+	{
+		pet.pet_id = 0;
+	}
+*/
+	return hom;
+}
+
+bool CHomunculusDB_sql::searchHomunculus(uint32 hid, CHomunculus& hom)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+/*	query << "SELECT "
+			 "`p`.`pet_id`,`c`.`account_id`,`p`.`char_id`,`p`.`class`,`p`.`level`,"
+			 "`p`.`egg_id`,`p`.`equip_id`,`p`.`intimate`,`p`.`hungry`,`p`.`name`,"
+			 "`p`.`rename_flag`,`p`.`incuvate` "
+			 "FROM `" << dbcon1.escaped(this->tbl_pet) << "` `p` "
+			 "JOIN `" << dbcon1.escaped(this->tbl_char) << "` `c` ON `p`.`char_id`=`c`.`char_id` "
+			 "WHERE `p`.`pet_id` = '" << pid << "'";
+	if( dbcon1.ResultQuery(query) )
+	{
+		pet.pet_id = atoi(dbcon1[0]);
+		pet.account_id = atoi(dbcon1[1]);
+		pet.char_id = atoi(dbcon1[2]);
+		pet.class_ = atoi(dbcon1[3]);
+		pet.level = atoi(dbcon1[4]);
+		pet.egg_id = atoi(dbcon1[5]);
+		pet.equip_id = atoi(dbcon1[6]);
+		pet.intimate = atoi(dbcon1[7]);
+		pet.hungry = atoi(dbcon1[8]);
+		safestrcpy(pet.name, dbcon1[9], sizeof(pet.name));
+		pet.rename_flag = atoi(dbcon1[10]);
+		pet.incuvate = atoi(dbcon1[11]);
+		return true;
+	}
+*/	return false;
+}
+
+bool CHomunculusDB_sql::insertHomunculus(CHomunculus& hom)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+
+
+/*	query << "INSERT INTO `" << dbcon1.escaped(this->tbl_pet) << "` "
+			 "("
+			 "`char_id`,"
+			 "`class`,"
+			 "`level`,"
+			 "`egg_id`,"
+			 "`equip_id`,"
+			 "`intimate`,"
+			 "`hungry`,"
+			 "`name`,"
+			 "`rename_flag`,"
+			 "`incuvate`"
+			 ") "
+			 "VALUES "
+			 "(" 
+			 "'" << cid << "',"
+			 "'" << pet_class << "',"
+			 "'" << pet_lv << "',"
+			 "'" << pet_egg_id << "',"
+			 "'" << pet_equip << "',"
+			 "'" << intimate << "',"
+			 "'" << hungry << "',"
+			 "'" << dbcon1.escaped(pet_name) << "',"
+			 "'" << ((int)renameflag) << "',"
+			 "'" << ((int)incuvat) << "'"
+			 ")";
+
+	if( dbcon1.PureQuery(query) )
+	{
+		pd.account_id = accid;
+		pd.char_id = cid;
+		pd.pet_id = dbcon1.getLastID();
+		pd.class_ = pet_class;
+		pd.level = pet_lv;
+		pd.egg_id = pet_egg_id;
+		pd.equip_id = pet_equip;
+		pd.intimate = intimate;
+		pd.hungry = hungry;
+		safestrcpy(pd.name, pet_name, sizeof(pd.name));
+		pd.rename_flag = renameflag;
+		pd.incuvate = incuvat;
+		return true;
+	}
+*/	return false;
+}
+
+bool CHomunculusDB_sql::removeHomunculus(uint32 hid)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_homunskill) << "` "
+			 "WHERE `homun_id` = '" << hid <<"'";
+
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_homunculus) << "` "
+			 "WHERE `homun_id` = '" << hid <<"'";
+
+	return dbcon1.PureQuery( query );
+
+	return false;
+}
+
+bool CHomunculusDB_sql::saveHomunculus(const CHomunculus& hom)
+{
+	if( hom.homun_id==0 )
+	{	// insert will create an unique id for the object
+		return this->insertHomunculus( const_cast<CHomunculus&>(hom) );
+	}
+	else
+	{
+		basics::CMySQLConnection dbcon1(this->sqlbase);
+		basics::string<> query;
+
+
+
+		query << "UPDATE `" << dbcon1.escaped(this->tbl_homunculus) << "` "
+				 "SET "
+				 "`homun_id` = '"		<< hom.homun_id << "',"
+				 "`account_id` = '"		<< hom.account_id << "',"
+				 "`char_id` = '"		<< hom.char_id << "',"
+
+				 "`base_exp` = '"		<< hom.base_exp << "',"
+				 "`name` = '"			<< hom.name << "',"
+
+				 "`hp` = '"				<< hom.hp << "',"
+				 "`max_hp` = '"			<< hom.max_hp << "',"
+				 "`sp` = '"				<< hom.sp << "',"
+				 "`max_sp` = '"			<< hom.max_sp << "',"
+
+				 "`class` = '"			<< hom.class_ << "',"
+				 "`status_point` = '"	<< hom.status_point << "',"
+				 "`skill_point` = '"	<< hom.skill_point << "',"
+
+				 "`str` = '"			<< hom.str << "',"
+				 "`agi` = '"			<< hom.agi << "',"
+				 "`vit` = '"			<< hom.vit << "',"
+				 "`int_` = '"			<< hom.int_ << "',"
+				 "`dex` = '"			<< hom.dex << "',"
+				 "`luk` = '"			<< hom.luk << "',"
+
+				 "`option` = '"			<< hom.option << "',"
+				 "`equip` = '"			<< hom.equip << "',"
+
+				 "`intimate` = '"		<< hom.intimate << "',"
+				 "`hungry` = '"			<< hom.hungry << "',"
+				 "`equip` = '"			<< hom.equip << "',"
+				 "`base_level` = '"		<< hom.base_level << "',"
+				 
+				 "`rename_flag` = '"	<< hom.rename_flag << "',"
+				 "`incubate` = '"		<< hom.incubate << "',"
+
+				 "WHERE `homun_id` = '" << hom.homun_id << "'";
+		
+		bool ret = dbcon1.PureQuery( query );
+
+		query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_homunskill) << "` "
+			 "WHERE `homun_id` = '" << hom.homun_id <<"'";
+
+		// and re-insert the skills
+
+		return ret;
+	}
 }
 
 #endif//WITH_MYSQL

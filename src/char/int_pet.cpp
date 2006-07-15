@@ -13,11 +13,13 @@
 #include "inter.h"
 #include "int_pet.h"
 
-CPetDB	cPetDB;
+CPetDB			cPetDB;
+CHomunculusDB	cHomunculusDB;
 
 int inter_pet_init()
 {
 	cPetDB.init(CHAR_CONF_NAME);
+	cHomunculusDB.init(CHAR_CONF_NAME);
 	return 0;
 }
 
@@ -198,6 +200,84 @@ int mapif_parse_DeletePet(int fd)
 	return 0;
 }
 
+
+
+int mapif_parse_CreateHomun(int fd)
+{
+	if( session_isActive(fd) )
+	{
+		// insert
+		CHomunculus hom;
+		homun_frombuffer(hom, RFIFOP(fd,12));
+
+		bool ok = cHomunculusDB.insertHomunculus( hom );
+
+		// send back complete dataset
+		const size_t sz=5 + ( (ok)?sizeof(struct homunstatus):0 );
+		WFIFOW(fd,0)=0x3889;
+		WFIFOW(fd,2)=sz;
+		WFIFOB(fd,4)=(ok)?0:1;
+		if(ok) homun_tobuffer(hom, WFIFOP(fd,5));
+		WFIFOSET(fd,sz);
+	}
+	return 0;
+}
+int mapif_parse_LoadHomun(int fd)
+{
+	if( session_isActive(fd) )
+	{
+		// search
+		CHomunculus hom;
+		bool ok = cHomunculusDB.searchHomunculus( RFIFOL(fd,10), hom )
+			&& hom.account_id==RFIFOL(fd,2) && hom.char_id==RFIFOL(fd,6);
+
+		// send back complete dataset
+		const size_t sz=5 + ( (ok)?sizeof(struct homunstatus):0 );
+		WFIFOW(fd,0)=0x3889;
+		WFIFOW(fd,2)=sz;
+		WFIFOB(fd,4)=(ok)?0:1;
+		if(ok) homun_tobuffer(hom, WFIFOP(fd,5));
+		WFIFOSET(fd,sz);
+	}
+	return 0;
+}
+int mapif_parse_SaveHomun(int fd)
+{
+	if( session_isActive(fd) )
+	{
+		// save
+		CHomunculus hom;
+		homun_frombuffer(hom, RFIFOP(fd,12));
+		// update the current owner just to be sure 
+		hom.account_id = RFIFOL(fd,4);
+		hom.char_id = RFIFOL(fd,8);
+		bool ok = cHomunculusDB.saveHomunculus( hom );
+
+		// send back ok/fail
+		WFIFOW(fd,0)=0x388a;
+		WFIFOB(fd,2)=(ok)?0:1;
+		WFIFOSET(fd,3);
+	}
+	return 0;
+}
+int mapif_parse_DeleteHomun(int fd)
+{
+	if( session_isActive(fd) )
+	{
+		// delete
+		bool ok = cHomunculusDB.removeHomunculus( RFIFOL(fd,10) );
+
+		// send back ok/fail
+		WFIFOW(fd,0)=0x388b;
+		WFIFOB(fd,2)=(ok)?0:1;
+		WFIFOSET(fd,3);
+	}
+	return 0;
+}
+
+
+
+
 // map server からの通信
 // ・１パケットのみ解析すること
 // ・パケット長データはinter.cにセットしておくこと
@@ -213,6 +293,14 @@ int inter_pet_parse_frommap(int fd)
 	case 0x3081: mapif_parse_LoadPet(fd); break;
 	case 0x3082: mapif_parse_SavePet(fd); break;
 	case 0x3083: mapif_parse_DeletePet(fd); break;
+
+
+	case 0x3088: mapif_parse_CreateHomun(fd); break;
+	case 0x3089: mapif_parse_LoadHomun(fd); break;
+	case 0x308a: mapif_parse_SaveHomun(fd); break;
+	case 0x308b: mapif_parse_DeleteHomun(fd); break;
+
+
 	default:
 		return 0;
 	}

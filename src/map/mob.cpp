@@ -38,10 +38,11 @@ struct mob_db mob_db[MAX_MOB_DB+1];
  *------------------------------------------
  */
 int mob_makedummymobdb(int);
+
+
 int mobskill_deltimer(struct mob_data &md);
 int mob_skillid2skillidx(int class_,unsigned short skillid);
 int mobskill_use_id(struct mob_data &md,struct block_list *target,unsigned short skill_idx);
-int mob_attack(struct mob_data &md,unsigned long tick,int data);
 
 
 
@@ -64,7 +65,6 @@ mob_data::mob_data(const char *mobname, int class_) :
 	target_dir(0),
 	target_lv(0),
 	provoke_id(0),
-	target_id(0),
 	attacked_id(0),
 	next_walktime(0),
 	last_deadtime(0),
@@ -143,9 +143,6 @@ int mob_data::walktimer_func_old(int tid, unsigned long tick, int id, basics::nu
 	case MS_WALK:
 		md->walk(tick);
 		break;
-//	case MS_ATTACK:
-//		mob_attack(*md,tick,data.num);
-//		break;
 	case MS_DELAY:
 		md->changestate(MS_IDLE,0);
 		break;
@@ -162,14 +159,116 @@ int mob_data::walktimer_func_old(int tid, unsigned long tick, int id, basics::nu
 	return 0;
 }
 
-int mob_data::attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
+int mob_data::attacktimer_func(int tid, unsigned long tick, int id, basics::numptr data)
 {
+	mob_data &md = *this;
+	struct block_list *tbl=NULL;
+	struct map_session_data *tsd=NULL;
+	struct mob_data *tmd=NULL;
+
+	int mode,race,range;
+
+	md.min_chase=13;
+	md.changestate(MS_IDLE,0);
+	md.state.skillstate=MSS_IDLE;
+
+	if( md.skilltimer!=-1 )	// スキル使用中
+		return 0;
+
+	if(md.opt1>0 || md.option&2)
+		return 0;
+
+	if(md.sc_data[SC_AUTOCOUNTER].timer != -1)
+		return 0;
+
+	if(md.sc_data[SC_BLADESTOP].timer != -1)
+		return 0;
+
+	tbl = map_id2bl(md.target_id);
+	if(tbl == NULL){
+		md.target_id=0;
+		md.state.targettype = NONE_ATTACKABLE;
+		return 0;
+	}
+
+	if(tbl->type==BL_PC)
+		tsd=(struct map_session_data *)tbl;
+	else if(tbl->type==BL_MOB)
+		tmd=(struct mob_data *)tbl;
+	else
+		return 0;
+
+	if(tsd){
+		if( pc_isdead(*tsd) || tsd->invincible_timer != -1 ||  pc_isinvisible(*tsd) || md.block_list::m != tbl->m || tbl->prev == NULL || distance(md,*tbl)>=13 ){
+			mob_stopattack(md); //Stop attacking once target has been defeated/unreachable.[Skotlex]
+			return 0;
+		}
+	}
+	if(tmd){
+		if(md.block_list::m != tbl->m || tbl->prev == NULL || distance(md,*tbl)>=13){
+			mob_stopattack(md); //Stop attacking once target has been defeated/unreachable.[Skotlex]
+			return 0;
+		}
+	}
+
+
+	if(!md.mode)
+		mode=mob_db[md.class_].mode;
+	else
+		mode=md.mode;
+
+	race=mob_db[md.class_].race;
+	if(!(mode&0x80)){
+		md.target_id=0;
+		md.state.targettype = NONE_ATTACKABLE;
+		return 0;
+	}
+	if(tsd && !(mode&0x20) && (tsd->sc_data[SC_TRICKDEAD].timer != -1 || tsd->sc_data[SC_BASILICA].timer != -1 ||
+		 ((pc_ishiding(*tsd) || tsd->state.gangsterparadise) && !((race == 4 || race == 6 || mode&0x100) && !tsd->state.perfect_hiding) ) ) ) {
+		md.target_id=0;
+		md.state.targettype = NONE_ATTACKABLE;
+		return 0;
+	}
+
+	range = mob_db[md.class_].range;
+	if(mode&1)
+		range++;
+	if( distance(md, *tbl) > range)
+		return 0;
+	if(battle_config.monster_attack_direction_change)
+		md.dir=md.get_direction(*tbl);	// 向き設定
+
+	//clif_fixmobpos(md);
+
+	md.state.skillstate=MSS_ATTACK;
+	if( mobskill_use(md,tick,-2) )	// スキル使用
+		return 0;
+
+
 	block_list::map_freeblock_lock();
-	const int ret = mob_attack(*this,tick,data.num);
+
+	md.target_lv = battle_weapon_attack(&md,tbl,tick,0);
+
+	if(!(battle_config.monster_cloak_check_type&2) && md.sc_data[SC_CLOAKING].timer != -1)
+		status_change_end(&md,SC_CLOAKING,-1);
+
+	md.attackable_tick = tick + status_get_adelay(&md);
+	if( md.is_walking() )
+		md.stop_walking();
+
+	if( md.attacktimer != -1 )
+	{
+		delete_timer(md.attacktimer,fightable::attacktimer_entry);
+		md.attacktimer=-1;
+	}
+	md.attacktimer=add_timer(md.attackable_tick,fightable::attacktimer_entry,md.block_list::id,0);
+	md.state.state=MS_ATTACK;
+
 	block_list::map_freeblock_unlock();
-	return ret;
+
+	return 0;
 }
-int mob_data::skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
+int mob_data::skilltimer_func(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	return 0;
 }
@@ -294,8 +393,8 @@ int mob_data::walktoxy_sub_old()
 	const static char dirx[8] = { 0, 1, 1, 1, 0,-1,-1,-1};
 	const static char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
 
-	if( !this->walkpath.path_search(this->block_list::m,this->block_list::x,this->block_list::y,this->target.x,this->target.y,this->walkpath.walk_easy) )
-		return 1;
+	if( !this->walkpath.path_search(this->block_list::m,this->block_list::x,this->block_list::y,this->walktarget.x,this->walktarget.y,this->walkpath.walk_easy) )
+		return 0;
 
 	x = this->block_list::x+dirx[this->walkpath.get_current_step()];
 	y = this->block_list::y+diry[this->walkpath.get_current_step()];
@@ -303,13 +402,13 @@ int mob_data::walktoxy_sub_old()
 
 	if (map_getcell(this->block_list::m,x,y,CELL_CHKBASILICA) && !(status_get_mode(this)&0x20))
 	{
-		return 1;
+		return 0;
 	}
 
 	this->changestate(MS_WALK,0);
 	clif_moveobject(*this);
 
-	return 0;
+	return 1;
 }
 
 /*==========================================
@@ -320,20 +419,20 @@ int mob_data::walktoxy_old(unsigned short x,unsigned short y,bool easy)
 {
 	if( this->block_list::prev == NULL || this->state.state == MS_DEAD || 
 		(this->state.state == MS_WALK && !walkpath_data::is_possible(this->block_list::m,this->block_list::x,this->block_list::y,x,y,easy?1:0)) )
-		return 1;
+		return 0;
 	
 	this->walkpath.walk_easy = easy;
-	this->target.x=x;
-	this->target.y=y;
+	this->walktarget.x=x;
+	this->walktarget.y=y;
 
 	if( this->sc_data[SC_CONFUSION].timer != -1 ) //Randomize target direction.
-		this->random_position(this->target);
+		this->random_position(this->walktarget);
 
 	if(this->state.state == MS_WALK)
 		this->walkpath.change_target=1;
 	else
 		return this->walktoxy_sub();
-	return 0;
+	return 1;
 }
 
 /*==========================================
@@ -349,19 +448,19 @@ int mob_data::stop_walking_old(int type)
 		this->walkpath.clear();
 		if( type&0x02 && this->is_movable() )
 		{
-			dx=this->target.x-this->block_list::x;
+			dx=this->walktarget.x-this->block_list::x;
 			if(dx<0)
 				dx=-1;
 			else if(dx>0)
 				dx=1;
-			dy=this->target.y-this->block_list::y;
+			dy=this->walktarget.y-this->block_list::y;
 			if(dy<0)
 				dy=-1;
 			else if(dy>0)
 				dy=1;
 		}
-		this->target.x=this->block_list::x+dx;
-		this->target.y=this->block_list::y+dy;
+		this->walktarget.x=this->block_list::x+dx;
+		this->walktarget.y=this->block_list::y+dy;
 		if(dx!=0 || dy!=0)
 		{
 			this->walktoxy_sub();
@@ -395,7 +494,7 @@ public:
 	virtual ~CClifMobStopattacked()	{}
 	virtual bool process(struct map_session_data& sd) const
 	{
-		if(sd.attacktarget==id)
+		if(sd.target_id==id)
 			pc_stopattack(sd);
 		return 0;
 	}
@@ -494,9 +593,6 @@ bool mob_data::walktimer_func(unsigned long tick)
 	case MS_WALK:
 		this->walkstep(tick);
 		break;
-//	case MS_ATTACK:
-//		mob_attack(*this,tick,0);
-//		break;
 	case MS_DELAY:
 		this->changestate(MS_IDLE,0);
 		break;
@@ -563,11 +659,13 @@ void mob_data::do_changestate(int state,int type)
 		delete_timer(md.attacktimer,fightable::attacktimer_entry);
 		md.attacktimer=-1;
 	}
-	if(md.skilltimer != -1)
-	{
-		delete_timer(md.skilltimer,fightable::skilltimer_entry);
-		md.skilltimer=-1;
-	}
+// not applicable since skills don't yet go this way
+//	if(md.skilltimer != -1)
+//	{
+//		delete_timer(md.skilltimer,fightable::skilltimer_entry);
+//		md.skilltimer=-1;
+//	}
+
 	md.state.state=state;
 
 	switch(state){
@@ -621,7 +719,7 @@ void mob_data::do_changestate(int state,int type)
 
 
 // Random walk
-int mob_data::randomwalk_old(unsigned long tick)
+bool mob_data::randomwalk(unsigned long tick)
 {
 	mob_data& md = *this;
 	const int retrycount=20;
@@ -646,14 +744,17 @@ int mob_data::randomwalk_old(unsigned long tick)
 			x+=md.block_list::x;
 			y+=md.block_list::y;
 
-			if((map_getcell(md.block_list::m,x,y,CELL_CHKPASS)) && md.walktoxy(x,y,1)==0){
+			if( map_getcell(md.block_list::m,x,y,CELL_CHKPASS) && md.walktoxy(x,y,1) )
+			{
 				md.move_fail_count=0;
 				break;
 			}
-			if(i+1>=retrycount){
+			if(i+1>=retrycount)
+			{
 				md.move_fail_count++;
 				md.target_dir = 0;
-				if(md.move_fail_count>1000){
+				if(md.move_fail_count>1000)
+				{
 					if(battle_config.error_log)
 						ShowMessage("MOB cant move. random spawn %d, class_ = %d\n",md.block_list::id,md.class_);
 					md.move_fail_count=0;
@@ -663,11 +764,95 @@ int mob_data::randomwalk_old(unsigned long tick)
 		}
 		md.next_walktime = tick+rand()%3000+3000+speed*md.walkpath.get_path_time()/10;
 		md.state.skillstate=MSS_WALK;
-		return 1;
+		return true;
 	}
+	return false;
+}
+
+
+/*==========================================
+ * A lock of target is stopped and mob moves to a standby state.
+ *------------------------------------------
+ */
+void mob_data::unlock_target(unsigned long tick)
+{
+	this->fightable::unlock_target();
+
+	this->state.targettype = NONE_ATTACKABLE;
+	this->state.skillstate=MSS_IDLE;
+	this->next_walktime=tick+rand()%3000+3000;
+}
+
+
+/*==========================================
+ * The stop of MOB's attack
+ *------------------------------------------
+ */
+int mob_stopattack(struct mob_data &md)
+{
+	md.target_id = 0;
+	md.state.targettype = NONE_ATTACKABLE;
+	md.attacked_id = 0;
+	md.attacked_count = 0;
 	return 0;
 }
 
+
+/*==========================================
+ * Determination for an attack of a monster
+ *------------------------------------------
+ */
+int mob_target(struct mob_data &md,struct block_list *bl,int dist)
+{
+	struct map_session_data *sd;
+	struct status_change *sc_data;
+	short *option;
+	int mode,race;
+
+	nullpo_retr(0, bl);
+
+	sc_data = status_get_sc_data(bl);
+	option = status_get_option(bl);
+	race=mob_db[md.class_].race;
+
+	if(!md.mode)
+		mode=mob_db[md.class_].mode;
+	else
+		mode=md.mode;
+	if(!(mode&0x80)) {
+		md.target_id = 0;
+		return 0;
+	}
+	// Nothing will be carried out if there is no mind of changing TAGE by TAGE ending.
+	if( (md.target_id > 0 && md.state.targettype == ATTACKABLE) && (!(mode&0x04) || rand()%100>25) &&
+		// if the monster was provoked ignore the above rule [celest]
+		!(md.provoke_id && md.provoke_id == bl->id))
+		return 0;
+	if(mode&0x20 ||	// Coercion is exerted if it is MVPMOB.
+		(sc_data && sc_data[SC_TRICKDEAD].timer == -1 && sc_data[SC_BASILICA].timer == -1 &&
+		 ( (option && !(*option&0x06) ) || race==4 || race==6 || mode&0x100 ) ) )
+	{
+		if(bl->type == BL_PC)
+		{
+			sd = (struct map_session_data *)bl;
+			if(sd->invincible_timer != -1 || pc_isinvisible(*sd))
+				return 0;
+			if(!(mode&0x20) && race!=4 && race!=6 && !(mode&0x100) && sd->state.gangsterparadise)
+				return 0;
+		}
+		md.target_id = bl->id;	// Since there was no disturbance, it locks on to target.
+		if(bl->type == BL_PC || bl->type == BL_MOB)
+			md.state.targettype = ATTACKABLE;
+		else
+			md.state.targettype = NONE_ATTACKABLE;
+		if (md.provoke_id)
+			md.provoke_id = 0;
+		md.min_chase=dist+13;
+		if(md.min_chase>26)
+			md.min_chase=26;
+	}
+	return 0;
+}
 
 
 
@@ -971,183 +1156,7 @@ int mob_spawn_guardian(struct map_session_data *sd,const char *mapname,
 
 
 
-/*==========================================
- * Attack processing of mob
- *------------------------------------------
- */
-int mob_attack(struct mob_data &md,unsigned long tick,int data)
-{
-	struct block_list *tbl=NULL;
-	struct map_session_data *tsd=NULL;
-	struct mob_data *tmd=NULL;
 
-	int mode,race,range;
-
-	md.min_chase=13;
-	md.changestate(MS_IDLE,0);
-	md.state.skillstate=MSS_IDLE;
-
-	if( md.skilltimer!=-1 )	// スキル使用中
-		return 0;
-
-	if(md.opt1>0 || md.option&2)
-		return 0;
-
-	if(md.sc_data[SC_AUTOCOUNTER].timer != -1)
-		return 0;
-
-	if(md.sc_data[SC_BLADESTOP].timer != -1)
-		return 0;
-
-	tbl = map_id2bl(md.target_id);
-	if(tbl == NULL){
-		md.target_id=0;
-		md.state.targettype = NONE_ATTACKABLE;
-		return 0;
-	}
-
-	if(tbl->type==BL_PC)
-		tsd=(struct map_session_data *)tbl;
-	else if(tbl->type==BL_MOB)
-		tmd=(struct mob_data *)tbl;
-	else
-		return 0;
-
-	if(tsd){
-		if( pc_isdead(*tsd) || tsd->invincible_timer != -1 ||  pc_isinvisible(*tsd) || md.block_list::m != tbl->m || tbl->prev == NULL || distance(md,*tbl)>=13 ){
-			mob_stopattack(md); //Stop attacking once target has been defeated/unreachable.[Skotlex]
-			return 0;
-		}
-	}
-	if(tmd){
-		if(md.block_list::m != tbl->m || tbl->prev == NULL || distance(md,*tbl)>=13){
-			mob_stopattack(md); //Stop attacking once target has been defeated/unreachable.[Skotlex]
-			return 0;
-		}
-	}
-
-
-	if(!md.mode)
-		mode=mob_db[md.class_].mode;
-	else
-		mode=md.mode;
-
-	race=mob_db[md.class_].race;
-	if(!(mode&0x80)){
-		md.target_id=0;
-		md.state.targettype = NONE_ATTACKABLE;
-		return 0;
-	}
-	if(tsd && !(mode&0x20) && (tsd->sc_data[SC_TRICKDEAD].timer != -1 || tsd->sc_data[SC_BASILICA].timer != -1 ||
-		 ((pc_ishiding(*tsd) || tsd->state.gangsterparadise) && !((race == 4 || race == 6 || mode&0x100) && !tsd->state.perfect_hiding) ) ) ) {
-		md.target_id=0;
-		md.state.targettype = NONE_ATTACKABLE;
-		return 0;
-	}
-
-	range = mob_db[md.class_].range;
-	if(mode&1)
-		range++;
-	if( distance(md, *tbl) > range)
-		return 0;
-	if(battle_config.monster_attack_direction_change)
-		md.dir=md.get_direction(*tbl);	// 向き設定
-
-	//clif_fixmobpos(md);
-
-	md.state.skillstate=MSS_ATTACK;
-	if( mobskill_use(md,tick,-2) )	// スキル使用
-		return 0;
-
-	md.target_lv = battle_weapon_attack(&md,tbl,tick,0);
-
-	if(!(battle_config.monster_cloak_check_type&2) && md.sc_data[SC_CLOAKING].timer != -1)
-		status_change_end(&md,SC_CLOAKING,-1);
-
-	md.attackable_tick = tick + status_get_adelay(&md);
-	if( md.is_walking() )
-		md.stop_walking();
-
-	if( md.attacktimer != -1 )
-	{
-		delete_timer(md.attacktimer,fightable::attacktimer_entry);
-		md.attacktimer=-1;
-	}
-	md.attacktimer=add_timer(md.attackable_tick,fightable::attacktimer_entry,md.block_list::id,0);
-	md.state.state=MS_ATTACK;
-
-	return 0;
-}
-
-/*==========================================
- * The stop of MOB's attack
- *------------------------------------------
- */
-int mob_stopattack(struct mob_data &md)
-{
-	md.target_id = 0;
-	md.state.targettype = NONE_ATTACKABLE;
-	md.attacked_id = 0;
-	md.attacked_count = 0;
-	return 0;
-}
-
-
-/*==========================================
- * Determination for an attack of a monster
- *------------------------------------------
- */
-int mob_target(struct mob_data &md,struct block_list *bl,int dist)
-{
-	struct map_session_data *sd;
-	struct status_change *sc_data;
-	short *option;
-	int mode,race;
-
-	nullpo_retr(0, bl);
-
-	sc_data = status_get_sc_data(bl);
-	option = status_get_option(bl);
-	race=mob_db[md.class_].race;
-
-	if(!md.mode)
-		mode=mob_db[md.class_].mode;
-	else
-		mode=md.mode;
-	if(!(mode&0x80)) {
-		md.target_id = 0;
-		return 0;
-	}
-	// Nothing will be carried out if there is no mind of changing TAGE by TAGE ending.
-	if( (md.target_id > 0 && md.state.targettype == ATTACKABLE) && (!(mode&0x04) || rand()%100>25) &&
-		// if the monster was provoked ignore the above rule [celest]
-		!(md.provoke_id && md.provoke_id == bl->id))
-		return 0;
-	if(mode&0x20 ||	// Coercion is exerted if it is MVPMOB.
-		(sc_data && sc_data[SC_TRICKDEAD].timer == -1 && sc_data[SC_BASILICA].timer == -1 &&
-		 ( (option && !(*option&0x06) ) || race==4 || race==6 || mode&0x100 ) ) )
-	{
-		if(bl->type == BL_PC)
-		{
-			sd = (struct map_session_data *)bl;
-			if(sd->invincible_timer != -1 || pc_isinvisible(*sd))
-				return 0;
-			if(!(mode&0x20) && race!=4 && race!=6 && !(mode&0x100) && sd->state.gangsterparadise)
-				return 0;
-		}
-		md.target_id = bl->id;	// Since there was no disturbance, it locks on to target.
-		if(bl->type == BL_PC || bl->type == BL_MOB)
-			md.state.targettype = ATTACKABLE;
-		else
-			md.state.targettype = NONE_ATTACKABLE;
-		if (md.provoke_id)
-			md.provoke_id = 0;
-		md.min_chase=dist+13;
-		if(md.min_chase>26)
-			md.min_chase=26;
-	}
-	return 0;
-}
 
 
 
@@ -1333,8 +1342,8 @@ int mob_spawn(uint32 id)
 		md->block_list::x = x;
 		md->block_list::y = y;
 	}
-	md->target.x = md->block_list::x;
-	md->target.y = md->block_list::y;
+	md->walktarget.x = md->block_list::x;
+	md->walktarget.y = md->block_list::y;
 
 	md->dir=rand()%8;
 
@@ -1563,10 +1572,10 @@ int mob_ai_sub_hard_slavemob(struct mob_data &md,unsigned long tick)
 	if((!md.target_id || md.state.targettype == NONE_ATTACKABLE) && 
 		md.is_movable() && md.master_dist<15 && md.walkpath.finished() )
 	{
-		int i=0,dx,dy,ret;
+		int i=0,dx,dy;
 		if(md.master_dist>AREA_SIZE/2)
 		{
-			do
+			for(i=0; i<10; ++i)
 			{
 				if(i<=5)
 				{
@@ -1582,13 +1591,13 @@ int mob_ai_sub_hard_slavemob(struct mob_data &md,unsigned long tick)
 					dx=bl->x - md.block_list::x + rand()%11- 5;
 					dy=bl->y - md.block_list::y + rand()%11- 5;
 				}
-				ret=md.walktoxy(md.block_list::x+dx,md.block_list::y+dy);
-				i++;
-			} while(ret && i<10);
+				if( md.walktoxy(md.block_list::x+dx,md.block_list::y+dy) )
+					break;
+			}
 		}
 		else
 		{
-			do
+			for(i=0; i<10; ++i)
 			{
 				dx = rand()%(AREA_SIZE/2 +1) - AREA_SIZE/2;
 				dy = rand()%(AREA_SIZE/2 +1) - AREA_SIZE/2;
@@ -1597,9 +1606,9 @@ int mob_ai_sub_hard_slavemob(struct mob_data &md,unsigned long tick)
 					dy = (rand()%1)? 1:-1;
 				}
 
-				ret=md.walktoxy(mmd->block_list::x+dx,mmd->block_list::y+dy);
-				i++;
-			} while(ret && i<10);
+				if( md.walktoxy(mmd->block_list::x+dx,mmd->block_list::y+dy) )
+					break;
+			}
 		}
 
 		md.next_walktime=tick + 200+rand()%600;
@@ -1645,18 +1654,7 @@ int mob_ai_sub_hard_slavemob(struct mob_data &md,unsigned long tick)
 	return 0;
 }
 
-/*==========================================
- * A lock of target is stopped and mob moves to a standby state.
- *------------------------------------------
- */
-int mob_unlocktarget(struct mob_data &md,unsigned long tick)
-{
-	md.target_id=0;
-	md.state.targettype = NONE_ATTACKABLE;
-	md.state.skillstate=MSS_IDLE;
-	md.next_walktime=tick+rand()%3000+3000;
-	return 0;
-}
+
 
 /*==========================================
  * AI of MOB whose is near a Player
@@ -1676,7 +1674,7 @@ public:
 		struct map_session_data *tsd = NULL;
 		struct block_list *tbl = NULL;
 		flooritem_data *fitem;
-		int i, dx, dy, ret, dist;
+		int i, dx=-1, dy=-1, dist;
 		int attack_type = 0;
 		int mode, race;
 		int search_size = AREA_SIZE*2;
@@ -1723,7 +1721,7 @@ public:
 			}
 			else 
 			{	//target is not reachable, unlock it. [Skotlex]
-				mob_unlocktarget(md, tick);
+				md.unlock_target(tick);
 				if (md.state.skillstate == MSS_CHASE)
 				{	//Confused!
 					md.stop_walking(0);
@@ -1765,8 +1763,8 @@ public:
 							//!! add something to enable
 							//!! the mob to flee away from the attacker
 							//!! possibly a new state together with additional transitions
-							md.target.x=md.block_list::x + dist * mask[dir][0];
-							md.target.y=md.block_list::y + dist * mask[dir][1];
+							md.walktarget.x=md.block_list::x + dist * mask[dir][0];
+							md.walktarget.y=md.block_list::y + dist * mask[dir][1];
 							// move as soon as possible
 							if( DIFF_TICK(md.canmove_tick,tick)>0 )
 								md.next_walktime = md.canmove_tick;
@@ -1775,7 +1773,8 @@ public:
 					}
 				}
 			}
-			else if (blind_flag && dist > 2 && DIFF_TICK(tick,md.next_walktime) < 0) {
+			else if (blind_flag && dist > 2 && DIFF_TICK(tick,md.next_walktime) < 0)
+			{
 				md.target_id = 0;
 				md.attacked_id = 0;
 				md.state.targettype = NONE_ATTACKABLE;
@@ -1783,7 +1782,7 @@ public:
 					dx = abl->x - md.block_list::x;
 					dy = abl->y - md.block_list::y;
 					md.next_walktime = tick + 1000;
-					ret = md.walktoxy( md.block_list::x+dx, md.block_list::y+dy, 0);
+					md.walktoxy( md.block_list::x+dx, md.block_list::y+dy, 0);
 				}
 			}
 			else
@@ -1848,7 +1847,7 @@ public:
 						(dist = distance(md.block_list::x, md.block_list::y, tbl->x, tbl->y)) >= search_size || 
 						(tsd && pc_isdead(*tsd)) )
 					{
-						mob_unlocktarget(md,tick);	// 別マップか、視界外
+						md.unlock_target(tick);	// 別マップか、視界外
 					}
 					else if (blind_flag && dist > 2 && DIFF_TICK(tick,md.next_walktime) < 0)
 					{
@@ -1860,7 +1859,7 @@ public:
 						dx = tbl->x - md.block_list::x;
 						dy = tbl->y - md.block_list::y;
 						md.next_walktime = tick + 800+rand()%400;
-						ret = md.walktoxy( md.block_list::x+dx, md.block_list::y+dy, 0);
+						md.walktoxy( md.block_list::x+dx, md.block_list::y+dy, 0);
 					}
 					else if( tsd && !(mode & 0x20) &&
 						(tsd->sc_data[SC_TRICKDEAD].timer != -1 ||
@@ -1868,13 +1867,13 @@ public:
 						((pc_ishiding(*tsd) || tsd->state.gangsterparadise) &&
 						!((race == 4 || race == 6 || mode&0x100) && !tsd->state.perfect_hiding))))
 					{
-						mob_unlocktarget(md,tick);	// スキルなどによる策敵妨害
+						md.unlock_target(tick);	// スキルなどによる策敵妨害
 					}
 					else if (!battle_check_range (&md, tbl, mob_db[md.class_].range))
 					{	// 攻撃範囲外なので移動
 						if(!(mode & 1))
 						{	// 移動しないモード
-							mob_unlocktarget(md,tick);
+							md.unlock_target(tick);
 							return 0;
 						}
 						if( !md.is_movable() )	// 動けない状態にある
@@ -1883,18 +1882,17 @@ public:
 						mobskill_use (md, tick, -1);
 						if( md.walktimer!=-1 && md.state.state != MS_ATTACK &&
 							(DIFF_TICK (md.next_walktime, tick) < 0 ||
-							distance(md.target.x, md.target.y, tbl->x, tbl->y) < 2))
+							distance(md.walktarget, *tbl) < 2) )
 						{
 							return 0; // 既に移動中
 						}
 						search_size = (blind_flag) ? 3 : ((md.min_chase>13) ? md.min_chase : 13);
 						if (!md.can_reach(*tbl, search_size))
-							mob_unlocktarget(md,tick);	// 移動できないのでタゲ解除（IWとか？）
+							md.unlock_target(tick);	// 移動できないのでタゲ解除（IWとか？）
 						else
 						{	// 追跡
 							md.next_walktime = tick + 200+rand()%600;
-							i = 0;
-							do
+							for(i=0; i<5; ++i)
 							{
 								if (i == 0)
 								{	// 最初はAEGISと同じ方法で検索
@@ -1910,11 +1908,10 @@ public:
 									dx = tbl->x - md.block_list::x + rand()%3 - 1;
 									dy = tbl->y - md.block_list::y + rand()%3 - 1;
 								}
-								ret = md.walktoxy( md.block_list::x + dx, md.block_list::y + dy, 0);
-								i++;
-							} while (ret && i < 5);
-
-							if (ret)
+								if( md.walktoxy( md.block_list::x + dx, md.block_list::y + dy, 0) )
+									break;
+							}
+							if(i>=5)
 							{	// 移動不可能な所からの攻撃なら2歩下る
 								if (dx < 0) dx = 2;
 								else if (dx > 0) dx = -2;
@@ -1943,7 +1940,7 @@ public:
 						(blind_flag && dist >= 4))
 					{
 						 // 遠すぎるかアイテムがなくなった
-						mob_unlocktarget (md, tick);
+						md.unlock_target(tick);
 						if (md.state.state == MS_WALK)
 							md.stop_walking(1);	// 歩行中なら停止
 					}
@@ -1951,7 +1948,7 @@ public:
 					{
 						if (!(mode & 1))
 						{	// 移動しないモード
-							mob_unlocktarget(md,tick);
+							md.unlock_target(tick);
 							return 0;
 						}
 						if( !md.is_movable() )	// 動けない状態にある
@@ -1960,16 +1957,15 @@ public:
 						mobskill_use(md, tick, -1);
 						if( md.walktimer!=-1 && md.state.state != MS_ATTACK &&
 							(DIFF_TICK(md.next_walktime,tick) < 0 ||
-							 distance(md.target.x, md.target.y, tbl->x, tbl->y) <= 0) )
+							 distance(md.walktarget, *tbl) <= 0) )
 						{
 							return 0; // 既に移動中
 						}
 						md.next_walktime = tick + 500;
 						dx = tbl->x - md.block_list::x;
 						dy = tbl->y - md.block_list::y;
-						ret = md.walktoxy( md.block_list::x+dx, md.block_list::y+dy, 0);
-						if (ret)
-							mob_unlocktarget(md, tick);// 移動できないのでタゲ解除（IWとか？）
+						if( !md.walktoxy( md.block_list::x+dx, md.block_list::y+dy, 0) )
+							md.unlock_target(tick);// 移動できないのでタゲ解除（IWとか？）
 					}
 					else
 					{	// アイテムまでたどり着いた
@@ -1984,7 +1980,7 @@ public:
 						}
 						else if (battle_config.monster_loot_type == 1 && md.lootitem_count >= LOOTITEM_SIZE)
 						{
-							mob_unlocktarget(md,tick);
+							md.unlock_target(tick);
 							return 0;
 						}
 						else
@@ -1996,16 +1992,16 @@ public:
 							memcpy (&md.lootitem[LOOTITEM_SIZE-1], &fitem->item_data, sizeof(md.lootitem[0]));
 						}
 						map_clearflooritem (tbl->id);
-						mob_unlocktarget (md,tick);
+						md.unlock_target(tick);
 					}
 					return 0;
 				}
 			}
 			else
 			{
-				mob_unlocktarget(md,tick);
+				md.unlock_target(tick);
 				if (md.state.state == MS_WALK)
-					md.stop_walking(4);	// 歩行中なら停止
+					md.stop_walking(1);
 				return 0;
 			}
 		}
@@ -2567,7 +2563,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 	max_hp = status_get_max_hp(&md);
 
 	if(src && src->type == BL_MOB)
-		mob_unlocktarget(*((struct mob_data *)src),tick);
+		((struct mob_data *)src)->unlock_target(tick);
 
 	if(sd)
 	{
@@ -3261,8 +3257,8 @@ int mob_warp(struct mob_data &md,int m,int x,int y,int type)
 	}
 	md.dir=0;
 	if(i<1000){
-		md.block_list::x=md.target.x=x;
-		md.block_list::y=md.target.y=y;
+		md.block_list::x=md.walktarget.x=x;
+		md.block_list::y=md.walktarget.y=y;
 		md.block_list::m=m;
 	}else {
 		m=md.block_list::m;
@@ -3676,10 +3672,12 @@ int mobskill_use_id(struct mob_data &md,struct block_list *target,unsigned short
 	if(!(battle_config.monster_cloak_check_type&2) && md.sc_data[SC_CLOAKING].timer != -1 && md.skillid != AS_CLOAKING)
 		status_change_end(&md,SC_CLOAKING,-1);
 
-	if( casttime>0 ){
-		md.skilltimer =
-			add_timer( gettick()+casttime, mobskill_castend_id, md.block_list::id, 0 );
-	}else{
+	if( casttime>0 )
+	{
+		md.skilltimer = add_timer( gettick()+casttime, mobskill_castend_id, md.block_list::id, 0 );
+	}
+	else
+	{
 		md.skilltimer = -1;
 		mobskill_castend_id(md.skilltimer,gettick(),md.block_list::id, 0);
 	}
@@ -3766,10 +3764,12 @@ int mobskill_use_pos( struct mob_data *md, int skill_x, int skill_y, unsigned sh
 	if(!(battle_config.monster_cloak_check_type&2) && md->sc_data[SC_CLOAKING].timer != -1)
 		status_change_end(md,SC_CLOAKING,-1);
 
-	if( casttime>0 ){
-		md->skilltimer =
-			add_timer( gettick()+casttime, mobskill_castend_pos, md->block_list::id, 0 );
-	}else{
+	if( casttime>0 )
+	{
+		md->skilltimer = add_timer( gettick()+casttime, mobskill_castend_pos, md->block_list::id, 0 );
+	}
+	else
+	{
 		md->skilltimer = -1;
 		mobskill_castend_pos(md->skilltimer,gettick(),md->block_list::id, 0);
 	}
@@ -4091,32 +4091,30 @@ int mobskill_event(struct mob_data &md, int flag)
  * Mobがエンペリウムなどの場合の判定
  *------------------------------------------
  */
-int mob_gvmobcheck(struct map_session_data &sd, struct block_list *bl)
+bool mob_gvmobcheck(struct map_session_data &sd, struct block_list &bl)
 {
-	struct mob_data *md=NULL;
+	struct mob_data &md=(struct mob_data &)bl;
 
-	nullpo_retr(0,bl);
-
-	if(bl->type==BL_MOB && (md=(struct mob_data *)bl) &&
-		(md->class_ == MOBID_EMPERIUM || md->class_ == 1287 || md->class_ == 1286 || md->class_ == 1285))
+	if( bl.type==BL_MOB && (md.class_ == MOBID_EMPERIUM || md.class_ == 1287 || md.class_ == 1286 || md.class_ == 1285))
 	{
 		struct guild_castle *gc=guild_mapname2gc(maps[sd.block_list::m].mapname);
 		struct guild *g=guild_search(sd.status.guild_id);
 
-		if(g == NULL && md->class_ == MOBID_EMPERIUM)
-			return 0;//ギルド未加入ならダメージ無し
+		if(g == NULL && md.class_ == MOBID_EMPERIUM)
+			return false;//ギルド未加入ならダメージ無し
 		else if(gc != NULL && !maps[sd.block_list::m].flag.gvg)
-			return 0;//砦内でGvじゃないときはダメージなし
-		else if(g) {
+			return false;//砦内でGvじゃないときはダメージなし
+		else if(g)
+		{
 			if (gc != NULL && g->guild_id == gc->guild_id)
-				return 0;//自占領ギルドのエンペならダメージ無し
-			else if(guild_checkskill(*g,GD_APPROVAL) <= 0 && md->class_ == MOBID_EMPERIUM)
-				return 0;//正規ギルド承認がないとダメージ無し
+				return false;//自占領ギルドのエンペならダメージ無し
+			else if(guild_checkskill(*g,GD_APPROVAL) <= 0 && md.class_ == MOBID_EMPERIUM)
+				return false;//正規ギルド承認がないとダメージ無し
 			else if (gc && guild_check_alliance(gc->guild_id, g->guild_id, 0) == 1)
-				return 0;	// 同盟ならダメージ無し
+				return false;	// 同盟ならダメージ無し
 		}
 	}
-	return 1;
+	return true;
 }
 /*==========================================
  * スキル用タイマー削除

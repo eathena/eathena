@@ -1,10 +1,25 @@
 Date	Added
+07/15
+	* added parameters fixing (ie. command line parameters are 
+	  not overwritable by files (might also add forced overwrites)
+	* update for better character sets in regular expressions
+	* more fightable, still in compounding/evaluation phase
+	  using the homunculus stuff as test case which does not 
+	  destroy the rest of the code
+	* start on cleaning clif, lot's of functions are redundant,
+	  and using hardwired switches inside is just stupid,
+	  also try to tweak it for more flexibility in in terms of
+	  changing to the new socket layer (this will unfortuantely
+	  need a new packetdb for the dynamic packet creation)
 07/05
-	* switched to new moving code, also activated map tile depending moving, 
-	  both something experimental, will need some review after cleaning the old stuff
-	  debug has been done not very extensive so there still might be problems
-	* start on implementing fightable class, only finished the timer interface right now,
-	  removing all the useless crap from current attack/skill code might take some time
+	* switched to new moving code, also activated map tile depending
+	  moving, both something experimental, will need some review 
+	  after cleaning the old stuff
+	  debug has been done not very extensive so there still might 
+	  be problems
+	* start on implementing fightable class, only finished the timer 
+	  interface right now, removing all the useless crap from current
+	  attack/skill code might take some time
 	* some more bug reports/comments would be appreciated 
 	  since this was an important argument to convince me returning to eA, 
 	  but until now, there was not really much to see. [Shinomori]

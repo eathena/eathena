@@ -9,6 +9,7 @@
 #include "npc.h"
 #include "pc.h"
 #include "pet.h"
+#include "homun.h"
 #include "skill.h"
 #include "status.h"
 
@@ -22,19 +23,12 @@ const static char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
 movable::movable() : 
 	canmove_tick(0),
 	walktimer(-1),
-//	attacktimer(-1),
-//	skilltimer(-1),
-//	attackable_tick(0),
 	bodydir(DIR_S),
 	headdir(DIR_S),
 	speed(DEFAULT_WALK_SPEED)
 {
 	add_timer_func_list(this->walktimer_entry, "walktimer entry function");
-//	add_timer_func_list(this->attacktimer_entry, "attacktimer entry function");
-//	add_timer_func_list(this->skilltimer_entry, "skilltimer entry function");
 }
-
-
 
 #define NEW_INTERFACE
 
@@ -53,8 +47,7 @@ int movable::walktoxy(unsigned short x,unsigned short y,bool easy)
 #ifndef NEW_INTERFACE
 	return this->walktoxy_old(x,y,easy);
 #else
-	// interface here is idiotic
-	return !this->walkto(x,y);
+	return this->walkto(x,y);
 #endif
 }
 /// interrupts walking
@@ -86,18 +79,6 @@ int movable::changestate(int state,int type)
 	return 0;
 #endif
 }
-/// change object state
-int movable::randomwalk(unsigned long tick)
-{
-#ifndef NEW_INTERFACE
-	return randomwalk_old(tick);
-#else
-	// will be part of controlable (AI control interface)
-	// for now use the old function
-	return randomwalk_old(tick);
-#endif
-}
-
 
 
 // old timer entry function
@@ -127,58 +108,7 @@ int movable::walktimer_entry(int tid, unsigned long tick, int id, basics::numptr
 
 	return 0;
 }
-/*
-// old timer entry function
-int movable::attacktimer_entry(int tid, unsigned long tick, int id, basics::numptr data)
-{
-	block_list* bl = map_id2bl(id);
-	movable* mv;
-	if( bl && (mv=bl->get_movable()) )
-	{
-		if(mv->attacktimer != tid)
-		{
-			if(battle_config.error_log)
-				ShowError("attacktimer_entry %d != %d\n",mv->attacktimer,tid);
-			return 0;
-		}
-		// timer was executed, clear it
-		mv->attacktimer = -1;
 
-		// call the user function
-		mv->attacktimer_func_old(tid, tick, id, data);
-	}
-
-	return 0;
-}
-
-// old timer entry function
-int movable::skilltimer_entry(int tid, unsigned long tick, int id, basics::numptr data)
-{
-	// pets are using timer data to transfer the castend_delay object 
-	// so we need to send the tid and the data down to the objects
-	// to allow cleaning
-
-
-	block_list* bl = map_id2bl(id);
-	movable* mv;
-	if( bl && (mv=bl->get_movable()) )
-	{
-		if(mv->skilltimer != tid)
-		{
-			if(battle_config.error_log)
-				ShowError("skilltimer_entry %d != %d\n",mv->skilltimer,tid);
-			return 0;
-		}
-		// timer was executed, clear it
-		mv->skilltimer = -1;
-
-		// call the user function
-		mv->skilltimer_func_old(tid, tick, id, data);
-	}
-
-	return 0;
-}
-*/
 ///////////////////////////////////////////////////////////////////////////////
 /// set directions seperately.
 void movable::set_dir(dir_t b, dir_t h)
@@ -328,6 +258,7 @@ bool movable::is_movable()
 	mob_data *md = this->block_list::get_md();
 	pet_data *pd = this->block_list::get_pd();
 	npc_data *nd = this->block_list::get_nd();
+	homun_data *hd = this->block_list::get_hd();
 	if( sd )
 	{
 		if( sd->skilltimer != -1 && !pc_checkskill(*sd, SA_FREECAST) ||
@@ -348,6 +279,14 @@ bool movable::is_movable()
 	{
 		// nothing to break here
 	}
+	else if( hd )
+	{
+		if( hd->skilltimer != -1 )
+			return false;
+		if( hd->attacktimer != -1 )
+			return false;
+		
+	}	
 	else
 		return false;
 
@@ -376,6 +315,15 @@ bool movable::is_movable()
 }
 
 
+/// sets the object to idle state
+bool movable::set_idle()
+{
+	if( this->is_walking() )
+		this->stop_walking();
+	return this->is_idle();
+}
+
+
 
 bool movable::can_walk(unsigned short m, unsigned short x, unsigned short y)
 {	// default only checks for non-passable cells
@@ -385,7 +333,7 @@ bool movable::can_walk(unsigned short m, unsigned short x, unsigned short y)
 /// initialize walkpath. uses current target position as walk target
 bool movable::init_walkpath()
 {
-	if( this->walkpath.path_search(this->block_list::m,this->block_list::x,this->block_list::y,this->target.x,this->target.y,this->walkpath.walk_easy) )
+	if( this->walkpath.path_search(this->block_list::m,this->block_list::x,this->block_list::y,this->walktarget.x,this->walktarget.y,this->walkpath.walk_easy) )
 	{
 		clif_moveobject(*this);
 		return true;
@@ -515,23 +463,28 @@ bool movable::walkstep(unsigned long tick)
 	// finished walking
 	// the normal walking flow will end here
 	// when the target is reached
-//	clif_fixobject(*this);
+
+
+//	clif_fixobject(*this);	
+// it might be not necessary to force the client to sync with the current position
+// this might cause small walk irregularities when server and client are slightly out of sync
+
 	this->do_stop_walking();
 	return true;
 }
 
 bool movable::walkto(const coordinate& pos)
 {
-	if( this->block_list::prev != NULL && this->target != pos )
+	if( this->block_list::prev != NULL )
 	{
 		//
 		// insert code for target position checking here
 		//
 
-		this->target = pos;
+		this->walktarget = pos;
 
 		if( this->is_confuse() ) //Randomize target direction.
-			this->random_position(this->target);
+			this->random_position(this->walktarget);
 
 		if( this->walktimer == -1 )
 		{
@@ -557,17 +510,78 @@ bool movable::stop_walking_new(int type)
 		delete_timer(this->walktimer, this->walktimer_entry);
 		this->walktimer = -1;
 		this->walkpath.clear();
-		this->target = *this;
-		clif_fixpos(*this);
+		this->walktarget = *this;
 
-		int delay=status_get_dmotion(this);
-		unsigned long tick;
-		if( delay && DIFF_TICK(this->canmove_tick,(tick = gettick()))<0 )
-			this->canmove_tick = tick + delay;
+		// always send a fixed position to the client
+//		if(type&0x01)
+		{
+			clif_fixpos(*this);
+		}
+
+		// move this out
+		if( type&0x02 )
+		{
+			const int delay=status_get_dmotion(this);
+			unsigned long tick;
+			if( delay && DIFF_TICK(this->canmove_tick,(tick = gettick()))<0 )
+				this->canmove_tick = tick + delay;
+		}
 
 		do_stop_walking();
 	}
 	return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// calculate a position around the target coordiantes
+bool movable::calc_pos(const block_list &target_bl)
+{
+	dir_t default_dir = target_bl.get_dir();
+	int x,y,dx,dy;
+	int i,k;
+	uint32 vary = rand();
+	
 
+	default_dir = (dir_t)((default_dir+vary&0x03-1)&0x07);	// vary the default direction
+
+	dx = -dirx[default_dir]*((vary&0x04)!=0)?2:1;
+	dy = -diry[default_dir]*((vary&0x08)!=0)?2:1;
+
+	x = target_bl.x + dx;
+	y = target_bl.y + dy;
+	if( !this->can_reach(x,y) )
+	{	// bunch of unnecessary code
+		if(dx > 0) x--;
+		else if(dx < 0) x++;
+		if(dy > 0) y--;
+		else if(dy < 0) y++;
+		if( !this->can_reach(x,y) )
+		{
+			for(i=0;i<12;++i)
+			{
+				k = rand()&0x07;
+				dx = -dirx[k]*2;
+				dy = -diry[k]*2;
+				x = target_bl.x + dx;
+				y = target_bl.y + dy;
+				if( this->can_reach(x,y) )
+					break;
+				else
+				{
+					if(dx > 0) x--;
+					else if(dx < 0) x++;
+					if(dy > 0) y--;
+					else if(dy < 0) y++;
+					if( this->can_reach(x,y) )
+						break;
+				}
+			}
+			if(i>=12)
+				return false;
+		}
+	}
+
+	this->walktarget.x = x;
+	this->walktarget.y = y;
+	return true;
+}

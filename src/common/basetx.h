@@ -487,7 +487,7 @@ protected:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Pat Database Interface
+// Pet Database Interface
 ///////////////////////////////////////////////////////////////////////////////
 class CPetDB_mem : public CPetDBInterface
 {
@@ -527,6 +527,45 @@ public:
 };
 
 
+///////////////////////////////////////////////////////////////////////////////
+// Homunculus Database Interface
+///////////////////////////////////////////////////////////////////////////////
+class CHomunculusDB_mem : public CHomunculusDBInterface
+{
+protected:
+	virtual bool do_readHomunculus()=0;
+	virtual bool do_saveHomunculus()=0;
+	virtual void do_createHomunculus(const CHomunculus& hom)	{}
+	virtual void do_saveHomunculus(const CHomunculus& hom)		{}
+	virtual void do_removeHomunculus(const CHomunculus& hom)	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CHomunculusDB_mem(const char* configfile=NULL);
+public:
+	virtual ~CHomunculusDB_mem();
+
+protected:
+	///////////////////////////////////////////////////////////////////////////
+	// data
+	basics::TslistDST<CHomunculus> cHomunculusList;
+
+	///////////////////////////////////////////////////////////////////////////
+	// normal function
+	virtual bool init(const char* configfile)=0;
+	virtual bool close()=0;
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size() const;
+	virtual CHomunculus& operator[](size_t i);
+
+	virtual bool searchHomunculus(uint32 hid, CHomunculus& hom);
+	virtual bool insertHomunculus(CHomunculus& hom);
+	virtual bool removeHomunculus(uint32 hid);
+	virtual bool saveHomunculus(const CHomunculus& hom);
+};
 
 
 
@@ -823,7 +862,7 @@ protected:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Pat Database Interface
+// Pet Database Interface
 ///////////////////////////////////////////////////////////////////////////////
 class CPetDB_txt : public basics::CTimerBase, public CPetDB_mem
 {
@@ -859,7 +898,42 @@ protected:
 	virtual bool timeruserfunc(unsigned long tick);
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Homunculus Database Interface
+///////////////////////////////////////////////////////////////////////////////
+class CHomunculusDB_txt : public basics::CTimerBase, public CHomunculusDB_mem
+{
+protected:
+	int homunculus_to_string(char *str, size_t sz, CHomunculus &hom);
+	bool homunculus_from_string(const char *str, CHomunculus &hom);
 
+	virtual bool do_readHomunculus();
+	virtual bool do_saveHomunculus();
+	virtual void do_createHomunculus(const CHomunculus& hom)	{ ++this->savecount; }
+	virtual void do_saveHomunculus(const CHomunculus& hom)		{ ++this->savecount; }
+	virtual void do_removeHomunculus(const CHomunculus& hom)	{ ++this->savecount; }
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CHomunculusDB_txt(const char *dbcfgfile);
+	virtual ~CHomunculusDB_txt();
+
+protected:
+	///////////////////////////////////////////////////////////////////////////
+	// data
+	basics::CParam< basics::string<> > homunculus_filename;
+	uint savecount;
+
+	///////////////////////////////////////////////////////////////////////////
+	// normal function
+	virtual bool init(const char* configfile);
+	virtual bool close();
+
+	///////////////////////////////////////////////////////////////////////////
+	// timer function
+	virtual bool timeruserfunc(unsigned long tick);
+};
 
 
 ///////////////////////////////////////////////////////////////////////////////

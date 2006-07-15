@@ -743,6 +743,91 @@ public:
 };
 
 
+///////////////////////////////////////////////////////////////////////////////
+// Homunculus Class
+///////////////////////////////////////////////////////////////////////////////
+
+class CHomunculus : public homunstatus
+{
+public:
+	CHomunculus()				{}
+	CHomunculus(uint32 hid)			{ memset(this, 0, sizeof(CHomunculus)); this->homun_id=hid; }
+	CHomunculus(const homunstatus &h) : homunstatus(h) { }
+
+	///////////////////////////////////////////////////////////////////////////
+	// creation and sorting by id
+
+	bool operator==(const CHomunculus& c) const { return this->homun_id==c.homun_id; }
+	bool operator!=(const CHomunculus& c) const { return this->homun_id!=c.homun_id; }
+	bool operator> (const CHomunculus& c) const { return this->homun_id> c.homun_id; }
+	bool operator>=(const CHomunculus& c) const { return this->homun_id>=c.homun_id; }
+	bool operator< (const CHomunculus& c) const { return this->homun_id< c.homun_id; }
+	bool operator<=(const CHomunculus& c) const { return this->homun_id<=c.homun_id; }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Homunculus Database Interface
+///////////////////////////////////////////////////////////////////////////////
+class CHomunculusDBInterface : public basics::noncopyable, public basics::global
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CHomunculusDBInterface()				{}
+	virtual ~CHomunculusDBInterface()		{}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size() const=0;
+	virtual CHomunculus& operator[](size_t i)=0;
+
+	virtual bool searchHomunculus(uint32 hid, CHomunculus& hom) =0;
+	virtual bool insertHomunculus(CHomunculus& hom) =0;
+	virtual bool removeHomunculus(uint32 hid) =0;
+	virtual bool saveHomunculus(const CHomunculus& hom) =0;
+};
+
+
+class CHomunculusDB : public CHomunculusDBInterface
+{
+	CHomunculusDBInterface *db;
+	CHomunculusDBInterface* getDB(const char *dbcfgfile);
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CHomunculusDB():db(NULL)	{}
+	CHomunculusDB(const char *dbcfgfile):db(getDB(dbcfgfile))	{}
+	virtual ~CHomunculusDB()									{ delete db; }
+
+public:
+
+	bool init(const char *dbcfgfile)
+	{
+		if(db) delete db;
+		db = getDB(dbcfgfile);
+		return (NULL!=db);
+	}
+	bool close()
+	{
+		if(db)
+		{	delete db;
+			db=NULL;
+		}
+		return true;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size() const					{ return db->size(); }
+	virtual CHomunculus& operator[](size_t i)	{ return (*db)[i]; }
+
+
+	virtual bool searchHomunculus(uint32 hid, CHomunculus& hom)	{ return db->searchHomunculus(hid, hom); }
+	virtual bool insertHomunculus(CHomunculus& hom)				{ return db->insertHomunculus(hom); }
+	virtual bool removeHomunculus(uint32 hid)					{ return db->removeHomunculus(hid); }
+	virtual bool saveHomunculus(const CHomunculus& hom)			{ return db->saveHomunculus(hom); }
+};
 
 
 

@@ -11,13 +11,10 @@ struct movable : public block_list
 {
 public:
 	walkpath_data walkpath;
-	coordinate target;
+	coordinate walktarget;
 
 	unsigned long canmove_tick;
 	int walktimer;
-//	int attacktimer;	// borrowed, will be placed in fightable class
-//	int skilltimer;		// borrowed, will be placed in fightable class
-//	unsigned long attackable_tick;
 private:
 	unsigned char bodydir : 3;	
 	unsigned char headdir : 3;
@@ -79,6 +76,10 @@ public:
 	bool can_reach(const block_list &bl, size_t range=0) const;
 
 	///////////////////////////////////////////////////////////////////////////
+	/// calculate a position around the target coordiantes
+	bool calc_pos(const block_list &target_bl);
+
+	///////////////////////////////////////////////////////////////////////////
 	/// get the speed for the next walkstep
 	int calc_next_walk_step();
 	/// retrive the actual speed of the object
@@ -104,8 +105,10 @@ public:
 	int walk(unsigned long tick);
 	/// change object state
 	int changestate(int state,int type);
-	/// change object state
-	int randomwalk(unsigned long tick);
+	/// walk to a random target
+	/// is ignored by default
+	virtual bool randomwalk(unsigned long tick)	{ return false; }
+
 
 	/// internal walk subfunction
 	virtual int walktoxy_sub_old()=0;
@@ -117,53 +120,20 @@ public:
 	virtual int changestate_old(int state,int type)=0;
 	/// interrupts walking
 	virtual int stop_walking_old(int type=1)=0;
-	/// walk to a random target
-	virtual int randomwalk_old(unsigned long tick)=0;
 
-
-	/// walktimer entry point.
-	/// call back function for the timer
-	static int walktimer_entry(int tid, unsigned long tick, int id, basics::numptr data);
 	/// call back function for the walktimer
 	virtual int walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)=0;
 
-/*	/// attacktimer entry point.
-	static int attacktimer_entry(int tid, unsigned long tick, int id, basics::numptr data);
-	/// call back function for the attacktimer
-	virtual int attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)=0;
-
-	/// skilltimer entry point.
-	static int skilltimer_entry(int tid, unsigned long tick, int id, basics::numptr data);
-	/// call back function for the skilltimer
-	virtual int skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)=0;
-*/
 
 // new interface
 
-	///////////////////////////////////////////////////////////////////////////
-	// status functions
 
-	/// checks for walking state
-	virtual bool is_walking() const		{ return (walktimer!=-1); }
 
-/*	/// checks for walking state
-	virtual bool is_attacking() const	{ return (attacktimer!=-1); }
-	/// checks for walking state
-	virtual bool is_skilling() const	{ return (skilltimer!=-1); }
-*/
-	/// checks for dead state
-	virtual bool is_dead() const		{ return false; }
-	/// checks for sitting state
-	virtual bool is_sitting() const		{ return false; }
-	/// checks for idle state (alive+not sitting+not blocked by skill)
-	virtual bool is_idle() const		{ return true; }
-	/// checks for flying state
-	virtual bool is_flying() const		{ return false; }
-	/// checks for invisible state
-	virtual bool is_invisible() const	{ return false; }
-	/// checks for confusion state
-	virtual bool is_confuse() const		{ return false; }
 
+	/// sets the object to idle state
+	virtual bool set_idle();
+
+	
 
 	///////////////////////////////////////////////////////////////////////////
 	// walking functions
@@ -187,6 +157,9 @@ public:
 	virtual void do_changestate(int state,int type)	{}
 
 
+	/// walktimer entry point.
+	/// call back function for the timer
+	static int walktimer_entry(int tid, unsigned long tick, int id, basics::numptr data);
 
 	/// timer function.
 	/// called from walktimer_entry
@@ -210,8 +183,6 @@ public:
 		return this->walkto( coordinate(x,y) );
 	}
 	bool stop_walking_new(int type);
-
-
 };
 
 

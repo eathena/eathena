@@ -926,10 +926,12 @@ AtCommandType is_atcommand(const int fd, struct map_session_data &sd, const char
  *------------------------------------------
  */
 
-/*==========================================
- * @send (used for testing packet sends from the client)
- *------------------------------------------
- */
+
+///////////////////////////////////////////////////////////////////////////////
+/// @send. (used for testing packet sends from the client)
+/// 
+/// parameters: <hex digit> <decimal digit>{20,20}
+/// 
 bool atcommand_send(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int type=0;
@@ -953,11 +955,11 @@ bool atcommand_send(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-// @rura
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @rura.
+///
+/// parameters: <mapname> <x> <y>
+///
 bool atcommand_rura(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char mapname[128]="";
@@ -1007,10 +1009,9 @@ bool atcommand_rura(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_where(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd = NULL;
@@ -1043,10 +1044,9 @@ bool atcommand_where(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_jumpto(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd = NULL;
@@ -1082,10 +1082,9 @@ bool atcommand_jumpto(int fd, struct map_session_data &sd, const char* command, 
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_jump(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char output[128];
@@ -1122,10 +1121,9 @@ bool atcommand_jump(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_who(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -1181,10 +1179,9 @@ bool atcommand_who(int fd, struct map_session_data &sd, const char* command, con
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_who2(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -1231,10 +1228,9 @@ bool atcommand_who2(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_who3(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char temp0[128];
@@ -1295,10 +1291,9 @@ bool atcommand_who3(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_whomap(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -1349,10 +1344,9 @@ bool atcommand_whomap(int fd, struct map_session_data &sd, const char* command, 
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_whomap2(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -1404,10 +1398,9 @@ bool atcommand_whomap2(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_whomap3(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char temp0[128];
@@ -1473,10 +1466,9 @@ bool atcommand_whomap3(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_whogm(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char temp0[128];
@@ -1538,6 +1530,9 @@ bool atcommand_whogm(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_whozeny(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -1601,7 +1596,10 @@ bool atcommand_whozeny(int fd, struct map_session_data &sd, const char* command,
 }
 
 
-// cause random emote on all online players [Valaris]
+///////////////////////////////////////////////////////////////////////////////
+///
+/// cause random emote on all online players [Valaris]
+///
 bool atcommand_happyhappyjoyjoy(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -1621,10 +1619,9 @@ bool atcommand_happyhappyjoyjoy(int fd, struct map_session_data &sd, const char*
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_save(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 
@@ -1640,10 +1637,9 @@ bool atcommand_save(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_load(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int m;
@@ -1664,10 +1660,9 @@ bool atcommand_load(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_speed(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int speed;
@@ -1695,10 +1690,9 @@ bool atcommand_speed(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_storage(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct pc_storage *stor; //changes from Freya/Yor
@@ -1720,10 +1714,9 @@ bool atcommand_storage(int fd, struct map_session_data &sd, const char* command,
 }
 
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_guildstorage(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct pc_storage *stor; //changes from Freya/Yor
@@ -1747,10 +1740,9 @@ bool atcommand_guildstorage(int fd, struct map_session_data &sd, const char* com
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_option(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int param1 = 0, param2 = 0, param3 = 0;
@@ -1812,10 +1804,9 @@ bool atcommand_option(int fd, struct map_session_data &sd, const char* command, 
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_hide(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -1831,10 +1822,10 @@ bool atcommand_hide(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- * 転職する upperを指定すると転生や養子にもなれる
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 転職する upperを指定すると転生や養子にもなれる
+///
 bool atcommand_jobchange(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int job = 0, upper = 0;
@@ -1991,10 +1982,9 @@ bool atcommand_jobchange(int fd, struct map_session_data &sd, const char* comman
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_die(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -2005,10 +1995,9 @@ bool atcommand_die(int fd, struct map_session_data &sd, const char* command, con
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_kill(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -2037,10 +2026,9 @@ bool atcommand_kill(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_alive(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -2061,10 +2049,9 @@ bool atcommand_alive(int fd, struct map_session_data &sd, const char* command, c
 	return false;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_kami(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char output[128]="";
@@ -2078,10 +2065,9 @@ bool atcommand_kami(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_heal(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	long hp = 0, sp = 0; // [Valaris] thanks to fov
@@ -2127,10 +2113,10 @@ bool atcommand_heal(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- * @item command (usage: @item <name/id_of_item> <quantity>) (modified by [Yor] for pet_egg)
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @item command (usage: @item <name/id_of_item> <quantity>) (modified by [Yor] for pet_egg)
+///
 bool atcommand_item(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char item_name[128]="";
@@ -2189,10 +2175,9 @@ bool atcommand_item(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_item2(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct item item_tmp;
@@ -2260,10 +2245,9 @@ bool atcommand_item2(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_itemreset(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int i;
@@ -2278,20 +2262,18 @@ bool atcommand_itemreset(int fd, struct map_session_data &sd, const char* comman
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_itemcheck(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	pc_checkitem(sd);
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_baselevelup(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int level, i;
@@ -2345,10 +2327,9 @@ bool atcommand_baselevelup(int fd, struct map_session_data &sd, const char* comm
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_joblevelup(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int up_level = 50;
@@ -2410,10 +2391,9 @@ bool atcommand_joblevelup(int fd, struct map_session_data &sd, const char* comma
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_help(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char buf[2048], w1[2048], w2[2048];
@@ -2449,10 +2429,9 @@ bool atcommand_help(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_gm(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char password[128];
@@ -2474,10 +2453,9 @@ bool atcommand_gm(int fd, struct map_session_data &sd, const char* command, cons
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_pvpoff(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -2512,10 +2490,9 @@ bool atcommand_pvpoff(int fd, struct map_session_data &sd, const char* command, 
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_pvpon(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -2554,10 +2531,9 @@ bool atcommand_pvpon(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_gvgoff(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -2573,10 +2549,9 @@ bool atcommand_gvgoff(int fd, struct map_session_data &sd, const char* command, 
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_gvgon(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -2592,10 +2567,9 @@ bool atcommand_gvgon(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 bool atcommand_model(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	unsigned int hair_style = 0, hair_color = 0, cloth_color = 0;
@@ -2632,10 +2606,10 @@ bool atcommand_model(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
-/*==========================================
- * @dye && @ccolor
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @dye && @ccolor
+///
 bool atcommand_dye(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	unsigned int cloth_color = 0;
@@ -2659,10 +2633,10 @@ bool atcommand_dye(int fd, struct map_session_data &sd, const char* command, con
 	return true;
 }
 
-/*==========================================
- * @hairstyle && @hstyle
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @hairstyle && @hstyle
+///
 bool atcommand_hair_style(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	unsigned int hair_style = 0;
@@ -2691,20 +2665,19 @@ bool atcommand_hair_style(int fd, struct map_session_data &sd, const char* comma
 	return true;
 }
 
-/*==========================================
- * @charhairstyle by [MouseJstr]
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @charhairstyle by [MouseJstr]
+///
 bool atcommand_charhairstyle(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
     return true;
 }
 
-/*==========================================
- * @haircolor && @hcolor
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @haircolor && @hcolor
 bool atcommand_hair_color(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	unsigned int hair_color = 0;
@@ -2733,10 +2706,9 @@ bool atcommand_hair_color(int fd, struct map_session_data &sd, const char* comma
 	return true;
 }
 
-/*==========================================
- * @go [city_number/city_name]: improved by [yor] to add city names and help
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @go [city_number/city_name]: improved by [yor] to add city names and help
 bool atcommand_go(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int town;
@@ -2912,10 +2884,9 @@ bool atcommand_go(int fd, struct map_session_data &sd, const char* command, cons
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_monster(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char name[128]="";
@@ -2997,10 +2968,9 @@ bool atcommand_monster(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_spawn(int fd, struct map_session_data &sd, const char* command, const char* message) {
 	char name[128]="";
 	char monster[128]="";
@@ -3085,7 +3055,9 @@ bool atcommand_spawn(int fd, struct map_session_data &sd, const char* command, c
 	}
 	return true;
 }
-// small monster spawning [Valaris]
+///////////////////////////////////////////////////////////////////////////////
+///
+///  small monster spawning [Valaris]
 bool atcommand_monstersmall(int fd, struct map_session_data &sd, const char* command, const char* message) {
 	char name[128] = "";
 	char monster[128] = "";
@@ -3160,7 +3132,9 @@ bool atcommand_monstersmall(int fd, struct map_session_data &sd, const char* com
 
 	return true;
 }
-// big monster spawning [Valaris]
+///////////////////////////////////////////////////////////////////////////////
+///
+///  big monster spawning [Valaris]
 bool atcommand_monsterbig(int fd, struct map_session_data &sd, const char* command, const char* message) {
 	char name[128] = "";
 	char monster[128] = "";
@@ -3236,27 +3210,9 @@ bool atcommand_monsterbig(int fd, struct map_session_data &sd, const char* comma
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
-/*
-int atkillmonster_sub(struct block_list &bl, va_list &ap)
-{
-	struct mob_data &md = (struct mob_data &)bl;
-	int flag;
-
-	nullpo_retr(0, ap);
-	flag = va_arg(ap, int);
-
-	if(flag)
-		mob_damage(md, md.hp, 2, NULL);
-	else
-		mob_remove_map(md,1);
-
-	return 0;
-}
-*/
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 class CAtKillMonster : public CMapProcessor
 {
 	int flag;
@@ -3304,28 +3260,25 @@ bool atcommand_killmonster_sub(int fd, struct map_session_data &sd, const char* 
 	return false;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_killmonster(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	return atcommand_killmonster_sub(fd, sd, message, 1);
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_killmonster2(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	return atcommand_killmonster_sub(fd, sd, message, 0);
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_refine(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int i, position = 0, refine = 0, current_position, final_refine;
@@ -3382,10 +3335,9 @@ bool atcommand_refine(int fd, struct map_session_data &sd, const char* command, 
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_produce(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char item_name[128]="";
@@ -3441,10 +3393,9 @@ bool atcommand_produce(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- * Sub-function to display actual memo points
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Sub-function to display actual memo points
 void atcommand_memo_sub(struct map_session_data& sd)
 {
 	int i;
@@ -3461,10 +3412,9 @@ void atcommand_memo_sub(struct map_session_data& sd)
 	return;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_memo(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char output[128];
@@ -3504,10 +3454,9 @@ bool atcommand_memo(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_gat(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int y;
@@ -3529,10 +3478,9 @@ bool atcommand_gat(int fd, struct map_session_data &sd, const char* command, con
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_packet(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	static int packet_mode = 0;
@@ -3574,10 +3522,10 @@ bool atcommand_packet(int fd, struct map_session_data &sd, const char* command, 
 	return true;
 }
 
-/*==========================================
- * @stpoint (Rewritten by [Yor])
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @stpoint (Rewritten by [Yor])
+
 bool atcommand_statuspoint(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int point, new_status_point;
@@ -3608,10 +3556,10 @@ bool atcommand_statuspoint(int fd, struct map_session_data &sd, const char* comm
 	return true;
 }
 
-/*==========================================
- * @skpoint (Rewritten by [Yor])
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @skpoint (Rewritten by [Yor])
+
 bool atcommand_skillpoint(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int point, new_skill_point;
@@ -3643,10 +3591,10 @@ bool atcommand_skillpoint(int fd, struct map_session_data &sd, const char* comma
 	return true;
 }
 
-/*==========================================
- * @zeny (Rewritten by [Yor])
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @zeny (Rewritten by [Yor])
+
 bool atcommand_zeny(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	long zeny;
@@ -3681,10 +3629,9 @@ bool atcommand_zeny(int fd, struct map_session_data &sd, const char* command, co
 	}
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_param(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int i, index, value = 0, new_value;
@@ -3738,11 +3685,9 @@ bool atcommand_param(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
-//** Stat all by fritz (rewritten by [Yor])
+///////////////////////////////////////////////////////////////////////////////
+///
+///  Stat all by fritz (rewritten by [Yor])
 bool atcommand_stat_all(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int index, count, value = 0, new_value;
@@ -3786,10 +3731,9 @@ bool atcommand_stat_all(int fd, struct map_session_data &sd, const char* command
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_guildlevelup(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int level = 0;
@@ -3828,10 +3772,9 @@ bool atcommand_guildlevelup(int fd, struct map_session_data &sd, const char* com
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_makeegg(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct item_data *item_data;
@@ -3866,10 +3809,9 @@ bool atcommand_makeegg(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_hatch(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -3883,10 +3825,9 @@ bool atcommand_hatch(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_petfriendly(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int friendly;
@@ -3930,10 +3871,9 @@ bool atcommand_petfriendly(int fd, struct map_session_data &sd, const char* comm
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_pethungry(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int hungry;
@@ -3966,10 +3906,9 @@ bool atcommand_pethungry(int fd, struct map_session_data &sd, const char* comman
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_petrename(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -3991,10 +3930,9 @@ bool atcommand_petrename(int fd, struct map_session_data &sd, const char* comman
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_recall(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char output[128];
@@ -4039,10 +3977,9 @@ bool atcommand_recall(int fd, struct map_session_data &sd, const char* command, 
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_revive(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128];
@@ -4076,10 +4013,10 @@ bool atcommand_revive(int fd, struct map_session_data &sd, const char* command, 
 	return false;
 	}
 
-/*==========================================
- * charchangesex command (usage: charchangesex <player_name>)
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// charchangesex command (usage: charchangesex <player_name>)
+
 bool atcommand_char_change_sex(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128];
@@ -4105,11 +4042,10 @@ bool atcommand_char_change_sex(int fd, struct map_session_data &sd, const char* 
 	return true;
 }
 
-/*==========================================
- * charblock command (usage: charblock <player_name>)
- * This command do a definitiv ban on a player
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// charblock command (usage: charblock <player_name>)
+/// This command do a definitiv ban on a player
 bool atcommand_char_block(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -4135,22 +4071,22 @@ bool atcommand_char_block(int fd, struct map_session_data &sd, const char* comma
 	return true;
 }
 
-/*==========================================
- * charban command (usage: charban <time> <player_name>)
- * This command do a limited ban on a player
- * Time is done as follows:
- *   Adjustment value (-1, 1, +1, etc...)
- *   Modified element:
- *     a or y: year
- *     m:  month
- *     j or d: day
- *     h:  hour
- *     mn: minute
- *     s:  second
- * <example> @ban +1m-2mn1s-6y test_player
- *           this example adds 1 month and 1 second, and substracts 2 minutes and 6 years at the same time.
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// charban command (usage: charban <time> <player_name>)
+/// This command do a limited ban on a player
+/// Time is done as follows:
+///   Adjustment value (-1, 1, +1, etc...)
+///   Modified element:
+///     a or y: year
+///     m:  month
+///     j or d: day
+///     h:  hour
+///     mn: minute
+///     s:  second
+/// <example> @ban +1m-2mn1s-6y test_player
+///           this example adds 1 month and 1 second, and substracts 2 minutes and 6 years at the same time.
+///
 bool atcommand_char_ban(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -4219,10 +4155,10 @@ bool atcommand_char_ban(int fd, struct map_session_data &sd, const char* command
 	return true;
 }
 
-/*==========================================
- * charunblock command (usage: charunblock <player_name>)
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// charunblock command (usage: charunblock <player_name>)
+
 bool atcommand_char_unblock(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -4249,10 +4185,10 @@ bool atcommand_char_unblock(int fd, struct map_session_data &sd, const char* com
 	return true;
 }
 
-/*==========================================
- * charunban command (usage: charunban <player_name>)
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// charunban command (usage: charunban <player_name>)
+
 bool atcommand_char_unban(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -4279,10 +4215,9 @@ bool atcommand_char_unban(int fd, struct map_session_data &sd, const char* comma
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_night(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	if (night_flag != 1) {
@@ -4295,10 +4230,9 @@ bool atcommand_night(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_day(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 
@@ -4313,10 +4247,9 @@ bool atcommand_day(int fd, struct map_session_data &sd, const char* command, con
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_doom(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -4335,10 +4268,9 @@ bool atcommand_doom(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_doommap(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -4358,10 +4290,9 @@ bool atcommand_doommap(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 void atcommand_raise_sub(struct map_session_data& sd)
 {
 	if(sd.state.auth && pc_isdead(sd))
@@ -4379,10 +4310,9 @@ void atcommand_raise_sub(struct map_session_data& sd)
 	}
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_raise(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -4397,10 +4327,9 @@ bool atcommand_raise(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_raisemap(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -4414,10 +4343,10 @@ bool atcommand_raisemap(int fd, struct map_session_data &sd, const char* command
 	return true;
 }
 
-/*==========================================
- * atcommand_character_baselevel @charbaselvlで対象キャラのレベルを上げる
- *------------------------------------------
-*/
+///////////////////////////////////////////////////////////////////////////////
+///
+/// atcommand_character_baselevel @charbaselvlで対象キャラのレベルを上げる
+
 bool atcommand_character_baselevel(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -4483,10 +4412,10 @@ bool atcommand_character_baselevel(int fd, struct map_session_data &sd, const ch
 	return true; //正常終了
 }
 
-/*==========================================
- * atcommand_character_joblevel @charjoblvlで対象キャラのJobレベルを上げる
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// atcommand_character_joblevel @charjoblvlで対象キャラのJobレベルを上げる
+
 bool atcommand_character_joblevel(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -4560,10 +4489,9 @@ bool atcommand_character_joblevel(int fd, struct map_session_data &sd, const cha
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_kick(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -4590,10 +4518,9 @@ bool atcommand_kick(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_kickall(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -4613,10 +4540,9 @@ bool atcommand_kickall(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_allskill(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -4628,10 +4554,9 @@ bool atcommand_allskill(int fd, struct map_session_data &sd, const char* command
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_questskill(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	short skill_id;
@@ -4663,10 +4588,9 @@ bool atcommand_questskill(int fd, struct map_session_data &sd, const char* comma
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_charquestskill(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -4705,10 +4629,9 @@ bool atcommand_charquestskill(int fd, struct map_session_data &sd, const char* c
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_lostskill(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	short skill_id;
@@ -4742,10 +4665,9 @@ bool atcommand_lostskill(int fd, struct map_session_data &sd, const char* comman
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_charlostskill(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -4786,10 +4708,9 @@ bool atcommand_charlostskill(int fd, struct map_session_data &sd, const char* co
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_spiritball(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int number;
@@ -4825,10 +4746,9 @@ bool atcommand_spiritball(int fd, struct map_session_data &sd, const char* comma
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_party(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char party[128];
@@ -4846,10 +4766,9 @@ bool atcommand_party(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_guild(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char guild[128];
@@ -4871,10 +4790,9 @@ bool atcommand_guild(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_agitstart(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -4890,10 +4808,9 @@ bool atcommand_agitstart(int fd, struct map_session_data &sd, const char* comman
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_agitend(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -4909,10 +4826,10 @@ bool atcommand_agitend(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- * @mapexitでマップサーバーを終了させる
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @mapexitでマップサーバーを終了させる
+
 bool atcommand_mapexit(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -4931,10 +4848,10 @@ bool atcommand_mapexit(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- * idsearch <part_of_name>: revrited by [Yor]
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// idsearch <part_of_name>: revrited by [Yor]
+
 bool atcommand_idsearch(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char item_name[128]="";
@@ -4964,10 +4881,10 @@ bool atcommand_idsearch(int fd, struct map_session_data &sd, const char* command
 	return true;
 }
 
-/*==========================================
- * Character Skill Reset
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Character Skill Reset
+
 bool atcommand_charskreset(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -4997,10 +4914,10 @@ bool atcommand_charskreset(int fd, struct map_session_data &sd, const char* comm
 	return true;
 }
 
-/*==========================================
- * Character Stat Reset
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Character Stat Reset
+
 bool atcommand_charstreset(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -5031,10 +4948,10 @@ bool atcommand_charstreset(int fd, struct map_session_data &sd, const char* comm
 	return true;
 }
 
-/*==========================================
- * Character Model by chbrules
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Character Model by chbrules
+
 bool atcommand_charmodel(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	unsigned int hair_style = 0, hair_color = 0, cloth_color = 0;
@@ -5078,10 +4995,10 @@ bool atcommand_charmodel(int fd, struct map_session_data &sd, const char* comman
 	return true;
 }
 
-/*==========================================
- * Character Skill Point (Rewritten by [Yor])
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Character Skill Point (Rewritten by [Yor])
+
 bool atcommand_charskpoint(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -5120,10 +5037,10 @@ bool atcommand_charskpoint(int fd, struct map_session_data &sd, const char* comm
 	return true;
 }
 
-/*==========================================
- * Character Status Point (rewritten by [Yor])
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Character Status Point (rewritten by [Yor])
+
 bool atcommand_charstpoint(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -5162,10 +5079,10 @@ bool atcommand_charstpoint(int fd, struct map_session_data &sd, const char* comm
 	return true;
 }
 
-/*==========================================
- * Recall All Characters Online To Your Location
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Recall All Characters Online To Your Location
+
 bool atcommand_recallall(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -5199,10 +5116,10 @@ bool atcommand_recallall(int fd, struct map_session_data &sd, const char* comman
 	return true;
 }
 
-/*==========================================
- * Recall online characters of a guild to your location
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Recall online characters of a guild to your location
+
 bool atcommand_guildrecall(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -5250,10 +5167,10 @@ bool atcommand_guildrecall(int fd, struct map_session_data &sd, const char* comm
 	return true;
 }
 
-/*==========================================
- * Recall online characters of a party to your location
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Recall online characters of a party to your location
+
 bool atcommand_partyrecall(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	size_t i, count;
@@ -5301,10 +5218,9 @@ bool atcommand_partyrecall(int fd, struct map_session_data &sd, const char* comm
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_reloaditemdb(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -5314,10 +5230,9 @@ bool atcommand_reloaditemdb(int fd, struct map_session_data &sd, const char* com
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_reloadmobdb(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -5329,10 +5244,9 @@ bool atcommand_reloadmobdb(int fd, struct map_session_data &sd, const char* comm
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_reloadskilldb(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -5342,11 +5256,11 @@ bool atcommand_reloadskilldb(int fd, struct map_session_data &sd, const char* co
 	return true;
 }
 
-/*==========================================
- * @reloadatcommand
- *   atcommand_athena.conf のリロード
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @reloadatcommand
+///  atcommand_athena.conf のリロード
+
 bool atcommand_reloadatcommand(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	atcommand_config_read(ATCOMMAND_CONF_FILENAME);
@@ -5364,25 +5278,25 @@ bool atcommand_reloadbattleconf(int fd, struct map_session_data &sd, const char*
 	clif_displaymessage(fd, msg_table[255]);
 	return true;
 }
-/*==========================================
- * @reloadstatusdb
- *   job_db1.txt job_db2.txt job_db2-2.txt 
- *   refine_db.txt size_fix.txt
- *   のリロード
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @reloadstatusdb
+///  job_db1.txt job_db2.txt job_db2-2.txt 
+///  refine_db.txt size_fix.txt
+///  のリロード
+
 bool atcommand_reloadstatusdb(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	status_readdb();
 	clif_displaymessage(fd, msg_table[256]);
 	return true;
 }
-/*==========================================
- * @reloadpcdb
- *   exp.txt skill_tree.txt attr_fix.txt 
- *   のリロード
- *------------------------------------------
- */
+
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @reloadpcdb
+///  exp.txt skill_tree.txt attr_fix.txt 
+///  のリロード
 bool atcommand_reloadpcdb(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	pc_readdb();
@@ -5390,10 +5304,9 @@ bool atcommand_reloadpcdb(int fd, struct map_session_data &sd, const char* comma
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_reloadscript(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -5412,10 +5325,9 @@ bool atcommand_reloadscript(int fd, struct map_session_data &sd, const char* com
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_reloadgmdb( // by [Yor]
 	int fd, struct map_session_data &sd, const char* command, const char* message)
 {
@@ -5427,15 +5339,15 @@ bool atcommand_reloadgmdb( // by [Yor]
 	return true;
 }
 
-/*==========================================
- * @mapinfo <map name> [0-3] by MC_Cameri
- * => Shows information about the map [map name]
- * 0 = no additional information
- * 1 = Show users in that map and their location
- * 2 = Shows NPCs in that map
- * 3 = Shows the shops/chats in that map (not implemented)
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @mapinfo <map name> [0-3] by MC_Cameri
+/// => Shows information about the map [map name]
+/// 0 = no additional information
+/// 1 = Show users in that map and their location
+/// 2 = Shows NPCs in that map
+/// 3 = Shows the shops/chats in that map (not implemented)
+///
 bool atcommand_mapinfo(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -5632,10 +5544,9 @@ bool atcommand_mapinfo(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_mount_peco(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -5681,10 +5592,9 @@ bool atcommand_mount_peco(int fd, struct map_session_data &sd, const char* comma
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_char_mount_peco(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -5741,10 +5651,10 @@ bool atcommand_char_mount_peco(int fd, struct map_session_data &sd, const char* 
 	return true;
 }
 
-/*==========================================
- *Spy Commands by Syrus22
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Spy Commands by Syrus22
+
 bool atcommand_guildspy(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char guild_name[128]="";
@@ -5776,10 +5686,9 @@ bool atcommand_guildspy(int fd, struct map_session_data &sd, const char* command
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_partyspy(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char party_name[128]="";
@@ -5812,10 +5721,10 @@ bool atcommand_partyspy(int fd, struct map_session_data &sd, const char* command
 	return true;
 }
 
-/*==========================================
- * @repairall [Valaris]
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @repairall [Valaris]
+
 bool atcommand_repairall(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int count, i;
@@ -5842,7 +5751,9 @@ bool atcommand_repairall(int fd, struct map_session_data &sd, const char* comman
 	return true;
 }
 
-// Removed @nuke for now in favor of alchemist marine sphere skill [Valaris]
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Removed @nuke for now in favor of alchemist marine sphere skill [Valaris]
 bool atcommand_nuke(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -5871,10 +5782,9 @@ bool atcommand_nuke(int fd, struct map_session_data &sd, const char* command, co
 }
 
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_shownpc(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char NPCname[128]="";
@@ -5895,10 +5805,9 @@ bool atcommand_shownpc(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_hidenpc(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char NPCname[128];
@@ -5922,6 +5831,9 @@ bool atcommand_hidenpc(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_loadnpc(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	FILE *fp;
@@ -5947,6 +5859,9 @@ bool atcommand_loadnpc(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_unloadnpc(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct npc_data *nd;
@@ -5972,11 +5887,10 @@ bool atcommand_unloadnpc(int fd, struct map_session_data &sd, const char* comman
 	return true;
 }
 
-/*==========================================
- * time in txt for time command (by [Yor])
- //!! not threadsave
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// time in txt for time command (by [Yor])
+/// !! not threadsave
 char * txt_time(unsigned long duration)
 {
 	unsigned long days, hours, minutes, seconds;
@@ -6016,11 +5930,11 @@ char * txt_time(unsigned long duration)
 	return temp1;
 }
 
-/*==========================================
- * @time/@date/@server_date/@serverdate/@server_time/@servertime: Display the date/time of the server (by [Yor]
- * Calculation management of GM modification (@day/@night GM commands) is done
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @time/@date/@server_date/@serverdate/@server_time/@servertime: Display the date/time of the server (by [Yor]
+/// Calculation management of GM modification (@day/@night GM commands) is done
+///
 bool atcommand_servertime(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct TimerData * timer_data;
@@ -6087,13 +6001,13 @@ bool atcommand_servertime(int fd, struct map_session_data &sd, const char* comma
 	return true;
 }
 
-/*==========================================
- * @chardelitem <item_name_or_ID> <quantity> <player> (by [Yor]
- * removes <quantity> item from a character
- * item can be equiped or not.
- * Inspired from a old command created by RoVeRT
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @chardelitem <item_name_or_ID> <quantity> <player> (by [Yor]
+/// removes <quantity> item from a character
+/// item can be equiped or not.
+/// Inspired from a old command created by RoVeRT
+///
 bool atcommand_chardelitem(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -6152,11 +6066,11 @@ bool atcommand_chardelitem(int fd, struct map_session_data &sd, const char* comm
 	return true;
 }
 
-/*==========================================
- * @jail <char_name> by [Yor]
- * Special warp! No check with nowarp and nowarpto flag
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @jail <char_name> by [Yor]
+/// Special warp! No check with nowarp and nowarpto flag
+///
 bool atcommand_jail(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -6201,11 +6115,11 @@ bool atcommand_jail(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- * @unjail/@discharge <char_name> by [Yor]
- * Special warp! No check with nowarp and nowarpto flag
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @unjail/@discharge <char_name> by [Yor]
+/// Special warp! No check with nowarp and nowarpto flag
+///
 bool atcommand_unjail(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -6241,10 +6155,10 @@ bool atcommand_unjail(int fd, struct map_session_data &sd, const char* command, 
 	return true;
 }
 
-/*==========================================
- * @disguise <mob_id> by [Valaris] (simplified by [Yor])
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @disguise <mob_id> by [Valaris] (simplified by [Yor])
+///
 bool atcommand_disguise(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	unsigned short mob_id = 0;
@@ -6278,11 +6192,10 @@ bool atcommand_disguise(int fd, struct map_session_data &sd, const char* command
 	return true;
 }
 
-/*==========================================
- * DisguiseAll
- *------------------------------------------
- */
-
+///////////////////////////////////////////////////////////////////////////////
+///
+/// DisguiseAll
+///
 bool atcommand_disguiseall(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	unsigned short mob_id=0;
@@ -6318,10 +6231,10 @@ bool atcommand_disguiseall(int fd, struct map_session_data &sd, const char* comm
 	return false;
 }
 
-/*==========================================
- * @undisguise by [Yor]
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @undisguise by [Yor]
+///
 bool atcommand_undisguise(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -6340,10 +6253,10 @@ bool atcommand_undisguise(int fd, struct map_session_data &sd, const char* comma
 	return true;
 }
 
-/*==========================================
- * UndisguiseAll
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// UndisguiseAll
+///
 bool atcommand_undisguiseall(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -6364,10 +6277,10 @@ bool atcommand_undisguiseall(int fd, struct map_session_data &sd, const char* co
 	return true;
 }
 
-/*==========================================
- * @broadcast by [Valaris]
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @broadcast by [Valaris]
+///
 bool atcommand_broadcast(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char output[128];
@@ -6384,10 +6297,10 @@ bool atcommand_broadcast(int fd, struct map_session_data &sd, const char* comman
 	return true;
 }
 
-/*==========================================
- * @localbroadcast by [Valaris]
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @localbroadcast by [Valaris]
+///
 bool atcommand_localbroadcast(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char output[128];
@@ -6404,10 +6317,10 @@ bool atcommand_localbroadcast(int fd, struct map_session_data &sd, const char* c
 	return true;
 }
 
-/*==========================================
- * @chardisguise <mob_id> <character> by Kalaspuff (based off Valaris' and Yor's work)
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @chardisguise <mob_id> <character> by Kalaspuff (based off Valaris' and Yor's work)
+///
 bool atcommand_chardisguise(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	unsigned short mob_id;
@@ -6456,10 +6369,10 @@ bool atcommand_chardisguise(int fd, struct map_session_data &sd, const char* com
 	return true;
 }
 
-/*==========================================
- * @charundisguise <character> by Kalaspuff (based off Yor's work)
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @charundisguise <character> by Kalaspuff (based off Yor's work)
+///
 bool atcommand_charundisguise(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -6506,10 +6419,10 @@ bool atcommand_charundisguise(int fd, struct map_session_data &sd, const char* c
 	return true;
 }
 
-/*==========================================
- * @email <actual@email> <new@email> by [Yor]
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @email <actual@email> <new@email> by [Yor]
+///
 bool atcommand_email(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char actual_email[128]="";
@@ -6540,10 +6453,10 @@ bool atcommand_email(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
-/*==========================================
- *@effect
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @effect
+///
 bool atcommand_effect(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -6571,10 +6484,10 @@ bool atcommand_effect(int fd, struct map_session_data &sd, const char* command, 
 	return true;
 }
 
-/*==========================================
- * @charstoragelist <character>: Displays the items list of a player's storage.
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @charstoragelist <character>: Displays the items list of a player's storage.
+///
 bool atcommand_character_storage_list(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct pc_storage *stor;
@@ -6651,10 +6564,10 @@ bool atcommand_character_storage_list(int fd, struct map_session_data &sd, const
 	return true;
 }
 
-/*==========================================
- * @charcartlist <character>: Displays the items list of a player's cart.
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @charcartlist <character>: Displays the items list of a player's cart.
+///
 bool atcommand_character_cart_list(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 
@@ -6727,11 +6640,11 @@ bool atcommand_character_cart_list(int fd, struct map_session_data &sd, const ch
 	return true;
 }
 
-/*==========================================
- * @killer by MouseJstr
- * enable killing players even when not in pvp
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @killer by MouseJstr
+/// enable killing players even when not in pvp
+///
 bool atcommand_killer(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 
@@ -6745,11 +6658,11 @@ bool atcommand_killer(int fd, struct map_session_data &sd, const char* command, 
 	return true;
 }
 
-/*==========================================
- * @killable by MouseJstr
- * enable other people killing you
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @killable by MouseJstr
+/// enable other people killing you
+///
 bool atcommand_killable(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 
@@ -6763,11 +6676,11 @@ bool atcommand_killable(int fd, struct map_session_data &sd, const char* command
 	return true;
 }
 
-/*==========================================
- * @charkillable by MouseJstr
- * enable another player to be killed
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @charkillable by MouseJstr
+/// enable another player to be killed
+///
 bool atcommand_charkillable(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd = NULL;
@@ -6790,11 +6703,11 @@ bool atcommand_charkillable(int fd, struct map_session_data &sd, const char* com
 }
 
 
-/*==========================================
- * @skillon by MouseJstr
- * turn skills on for the map
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @skillon by MouseJstr
+/// turn skills on for the map
+///
 bool atcommand_skillon(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -6803,11 +6716,11 @@ bool atcommand_skillon(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- * @skilloff by MouseJstr
- * Turn skills off on the map
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @skilloff by MouseJstr
+/// Turn skills off on the map
+///
 bool atcommand_skilloff(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -6816,12 +6729,11 @@ bool atcommand_skilloff(int fd, struct map_session_data &sd, const char* command
 	return true;
 }
 
-/*==========================================
- * @npcmove by MouseJstr
- *
- * move a npc
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @npcmove by MouseJstr
+/// move a npc
+///
 bool atcommand_npcmove(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -6850,12 +6762,11 @@ bool atcommand_npcmove(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- * @addwarp by MouseJstr
- *
- * Create a new static warp point.
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @addwarp by MouseJstr
+/// Create a new static warp point.
+///
 bool atcommand_addwarp(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char output[128];
@@ -6882,12 +6793,11 @@ bool atcommand_addwarp(int fd, struct map_session_data &sd, const char* command,
 	return false;
 }
 
-/*==========================================
- * @follow by [MouseJstr]
- *
- * Follow a player .. staying no more then 5 spaces away
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @follow by [MouseJstr]
+/// Follow a player .. staying no more then 5 spaces away
+///
 bool atcommand_follow(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd = NULL;
@@ -6907,13 +6817,11 @@ bool atcommand_follow(int fd, struct map_session_data &sd, const char* command, 
 	return false;
 }
 
-
-/*==========================================
- * @dropall by [MouseJstr]
- *
- * Drop all your possession on the ground
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @dropall by [MouseJstr]
+/// Drop all your possession on the ground
+///
 bool atcommand_dropall(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	size_t i;
@@ -6928,13 +6836,13 @@ bool atcommand_dropall(int fd, struct map_session_data &sd, const char* command,
 	}
 	return true;
 }
-/*==========================================
- * @chardropall by [MouseJstr]
- *
- * Throw all the characters possessions on the ground.  Normally
- * done in response to them being disrespectful of a GM
- *------------------------------------------
- */
+
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @chardropall by [MouseJstr]
+/// Throw all the characters possessions on the ground.  Normally
+/// done in response to them being disrespectful of a GM
+///
 bool atcommand_chardropall(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int i;
@@ -6959,13 +6867,11 @@ bool atcommand_chardropall(int fd, struct map_session_data &sd, const char* comm
 
 	return true;
 }
-/*==========================================
- * @storeall by [MouseJstr]
- *
- * Put everything into storage to simplify your inventory to make
- * debugging easie
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @storeall by [MouseJstr]
+/// Put everything into storage to simplify your inventory to make debugging easier
+///
 bool atcommand_storeall(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int i;
@@ -6986,12 +6892,11 @@ bool atcommand_storeall(int fd, struct map_session_data &sd, const char* command
 	clif_displaymessage(fd, "It is done");
 	return true;
 }
-/*==========================================
- * @charstoreall by [MouseJstr]
- *
- * A way to screw with players who piss you off
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @charstoreall by [MouseJstr]
+/// A way to screw with players who piss you off
+///
 bool atcommand_charstoreall(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int i;
@@ -7025,12 +6930,11 @@ bool atcommand_charstoreall(int fd, struct map_session_data &sd, const char* com
 
 	return true;
 }
-/*==========================================
- * @skillid by [MouseJstr]
- *
- * lookup a skill by name
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @skillid by [MouseJstr]
+/// lookup a skill by name
+///
 bool atcommand_skillid(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	size_t skillen, idx;
@@ -7053,12 +6957,11 @@ bool atcommand_skillid(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- * @useskill by [MouseJstr]
- *
- * A way of using skills without having to find them in the skills menu
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @useskill by [MouseJstr]
+/// A way of using skills without having to find them in the skills menu
+///
 bool atcommand_useskill(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd = NULL;
@@ -7088,12 +6991,11 @@ bool atcommand_useskill(int fd, struct map_session_data &sd, const char* command
 	return true;
 }
 
-/*==========================================
- * @skilltree by [MouseJstr]
- *
- * prints the skill tree for a player required to get to a skill
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @skilltree by [MouseJstr]
+/// prints the skill tree for a player required to get to a skill
+///
 bool atcommand_skilltree(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char output[128];
@@ -7161,7 +7063,10 @@ bool atcommand_skilltree(int fd, struct map_session_data &sd, const char* comman
 	return true;
 }
 
-// Hand a ring with partners name on it to this char
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Hand a ring with partners name on it to this char
+///
 void getring(struct map_session_data &sd)
 {
 	int flag;
@@ -7184,12 +7089,11 @@ void getring(struct map_session_data &sd)
 }
 
 
-/*==========================================
- * @marry by [MouseJstr], fixed by Lupus
- *
- * Marry two players
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @marry by [MouseJstr], fixed by Lupus
+/// Marry two players
+///
 bool atcommand_marry(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
   struct map_session_data *pl_sd1 = NULL;
@@ -7225,12 +7129,11 @@ bool atcommand_marry(int fd, struct map_session_data &sd, const char* command, c
 	return false;
 }
 
-/*==========================================
- * @divorce by [MouseJstr], fixed by [Lupus]
- *
- * divorce two players 
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @divorce by [MouseJstr], fixed by [Lupus]
+/// divorce two players 
+///
 bool atcommand_divorce(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char output[128];
@@ -7283,10 +7186,10 @@ bool atcommand_dmtick(int fd, struct map_session_data &sd, const char* command, 
 }
 #endif
 
-/*==========================================
- * @grind by [MouseJstr]
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @grind by [MouseJstr]
+///
 bool atcommand_grind(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd = NULL;
@@ -7319,10 +7222,10 @@ bool atcommand_grind(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
-/*==========================================
- * @grind2 by [MouseJstr]
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @grind2 by [MouseJstr]
+///
 bool atcommand_grind2(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int i, x, y, id;
@@ -7337,10 +7240,10 @@ bool atcommand_grind2(int fd, struct map_session_data &sd, const char* command, 
 	return true;
 }
 
-/*==========================================
- * @changelook by [Celest]
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///  @changelook by [Celest]
+///
 bool atcommand_changelook(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int i, j = 0, k = 0;
@@ -7364,11 +7267,10 @@ bool atcommand_changelook(int fd, struct map_session_data &sd, const char* comma
 	return true;
 }
 
-/*==========================================
- *Turns on/off AutoLoot for a specific player
- *------------------------------------------
- *by Upa-Kun
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Turns on/off AutoLoot for a specific player
+///
 bool atcommand_autoloot(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -7386,10 +7288,10 @@ bool atcommand_autoloot(int fd, struct map_session_data &sd, const char* command
 }   
 
 
-/*==========================================
- * It is made to rain.
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// It is made to rain.
+///
 bool atcommand_rain(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	if (maps[sd.block_list::m].flag.rain)
@@ -7406,10 +7308,10 @@ bool atcommand_rain(int fd, struct map_session_data &sd, const char* command, co
 	}
 	return true;
 }
-/*==========================================
- * It is made to snow.
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// It is made to snow.
+///
 bool atcommand_snow(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 
@@ -7429,10 +7331,10 @@ bool atcommand_snow(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- * Cherry tree snowstorm is made to fall. (Sakura)
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Cherry tree snowstorm is made to fall. (Sakura)
+///
 bool atcommand_sakura(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	if (maps[sd.block_list::m].flag.sakura)
@@ -7450,10 +7352,10 @@ bool atcommand_sakura(int fd, struct map_session_data &sd, const char* command, 
 	return true;
 }
 
-/*==========================================
- * Clouds appear.
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Clouds appear.
+///
 bool atcommand_clouds(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	if (maps[sd.block_list::m].flag.clouds)
@@ -7470,6 +7372,10 @@ bool atcommand_clouds(int fd, struct map_session_data &sd, const char* command, 
 	}
 	return true;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_clouds2(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	if (maps[sd.block_list::m].flag.clouds2)
@@ -7487,10 +7393,10 @@ bool atcommand_clouds2(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- * Fog hangs over.
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Fog hangs over.
+///
 bool atcommand_fog(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	if (maps[sd.block_list::m].flag.fog)
@@ -7508,10 +7414,10 @@ bool atcommand_fog(int fd, struct map_session_data &sd, const char* command, con
 	return true;
 }
 
-/*==========================================
- * Fallen leaves fall.
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Fallen leaves fall.
+///
 bool atcommand_leaves(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 
@@ -7530,10 +7436,10 @@ bool atcommand_leaves(int fd, struct map_session_data &sd, const char* command, 
 	return true;
 }
 
-/*==========================================
- * Clouds appear.
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Clouds appear.
+///
 bool atcommand_fireworks(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	if (maps[sd.block_list::m].flag.fireworks) {
@@ -7551,10 +7457,10 @@ bool atcommand_fireworks(int fd, struct map_session_data &sd, const char* comman
 	return true;
 }
 
-/*==========================================
- * Clearing Weather Effects by Dexity
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Clearing Weather Effects by Dexity
+///
 bool atcommand_clearweather(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	maps[sd.block_list::m].flag.rain=0;
@@ -7569,10 +7475,10 @@ bool atcommand_clearweather(int fd, struct map_session_data &sd, const char* com
 	return true;
 }
 
-/*===============================================================
- * Sound Command - plays a sound for everyone! [Codemaster]
- *---------------------------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Sound Command - plays a sound for everyone! [Codemaster]
+///
 bool atcommand_sound(int fd, struct map_session_data &sd, const char *command, const char *message)
 {
 	char sound_file[128]="";
@@ -7594,11 +7500,10 @@ bool atcommand_sound(int fd, struct map_session_data &sd, const char *command, c
 }
 
 
-/*==========================================
- * Mob search
- *------------------------------------------
- */
-
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Mob search
+///
 class CAtMobSearch : public CMapProcessor
 {
 	int mob_id;
@@ -7658,21 +7563,12 @@ bool atcommand_mobsearch(int fd, struct map_session_data& sd, const char* comman
 
 	return true;
 }
-/*==========================================
- * ドロップアイテムの掃除
- *------------------------------------------
- */
-/*==========================================
- * cleanmap
- *------------------------------------------
- */
-/*
-int atcommand_cleanmap_sub(struct block_list &bl, va_list &ap)
-{
-	map_clearflooritem(bl.id);
-	return 0;
-}
-*/
+
+
+///////////////////////////////////////////////////////////////////////////////
+///
+/// cleanmap
+///
 class CAtCleanMap : public CMapProcessor
 {
 public:
@@ -7695,10 +7591,10 @@ bool atcommand_cleanmap(int fd, struct map_session_data &sd, const char* command
 	return true;
 }
 
-/*==========================================
- * NPC/PETに話させる
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// NPC/PETに話させる
+///
 bool atcommand_npctalk(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char name[128],mes[128],output[256];
@@ -7721,7 +7617,9 @@ bool atcommand_npctalk(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_pettalk(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char mes[128],temp[128];
@@ -7738,24 +7636,14 @@ bool atcommand_pettalk(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- * @users
- * サーバー内の人数マップを表示させる
- * 手抜きのため汚くなっているのは仕様です。
- *------------------------------------------
- */
-
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @users
+/// サーバー内の人数マップを表示させる
+/// 手抜きのため汚くなっているのは仕様です。
+///
 static struct dbt *users_db;
 static int users_all;
-/*
-int atcommand_users_sub1(struct map_session_data &sd, va_list &va)
-{
-	size_t users = (size_t)strdb_search(users_db,sd.mapname) + 1;
-	users_all++;
-	strdb_insert(users_db,sd.mapname,(void *)users);
-	return 0;
-}
-*/
 class CClifAtUsers : public CClifProcessor
 {
 public:
@@ -7769,19 +7657,6 @@ public:
 		return 0;
 	}
 };
-/*
-int atcommand_users_sub2(void* key,void* val,va_list &va)
-{
-	char buf[256];
-	struct map_session_data* sd = va_arg(va,struct map_session_data*);
-	if(sd)
-	{
-	sprintf(buf,"%s : %d (%d%%)",(char *)key,(ssize_t)val,(ssize_t)val * 100 / users_all);
-	clif_displaymessage(sd->fd,buf);
-	}
-	return 0;
-}
-*/
 class CDBAtUsers : public CDBProcessor
 {
 	struct map_session_data &sd;
@@ -7826,10 +7701,9 @@ bool atcommand_users(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_summon(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char name[128];
@@ -7875,15 +7749,13 @@ bool atcommand_summon(int fd, struct map_session_data &sd, const char* command, 
 }
 
 
-/*==========================================
- * @adjcmdlvl by [MouseJstr]
- *
- * Temp adjust the GM level required to use a GM command
- *
- * Used during beta testing to allow players to use GM commands
- * for short periods of time
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @adjcmdlvl by [MouseJstr]
+/// Temp adjust the GM level required to use a GM command
+/// Used during beta testing to allow players to use GM commands
+/// for short periods of time
+///
 bool atcommand_adjcmdlvl(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
     int i, newlev;
@@ -7906,13 +7778,11 @@ bool atcommand_adjcmdlvl(int fd, struct map_session_data &sd, const char* comman
     return false;
 }
 
-/*==========================================
- * @adjgmlvl by [MouseJstr]
- *
- * Change GM level
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @adjgmlvl by [MouseJstr]
+/// Change GM level
+///
 bool atcommand_adjgmlvl(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
     int newlev;
@@ -7946,15 +7816,12 @@ bool atcommand_adjgmlvl(int fd, struct map_session_data &sd, const char* command
 }
 
 
-/*==========================================
- * @trade by [MouseJstr]
- *
- * Open a trade window with a remote player
- *
- * If I have to jump to a remote player one more time, I am
- * gonna scream!
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @trade by [MouseJstr]
+/// Open a trade window with a remote player
+/// If I have to jump to a remote player one more time, I am gonna scream!
+///
 bool atcommand_trade(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
     struct map_session_data *pl_sd = NULL;
@@ -7969,11 +7836,11 @@ bool atcommand_trade(int fd, struct map_session_data &sd, const char* command, c
     return false;
 }
 
-/*==========================================
- * @setbattleflag by [MouseJstr]
- *
- * set a battle_config flag without having to reboot
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @setbattleflag by [MouseJstr]
+/// set a battle_config flag without having to reboot
+///
 bool atcommand_setbattleflag(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char flag[128];
@@ -7995,10 +7862,10 @@ bool atcommand_setbattleflag(int fd, struct map_session_data &sd, const char* co
 }
 
 
-/*===========================
- * @unmute [Valaris]
- *===========================
-*/
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @unmute [Valaris]
+///
 bool atcommand_unmute(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd = NULL;
@@ -8025,10 +7892,10 @@ bool atcommand_unmute(int fd, struct map_session_data &sd, const char* command, 
 	return true;
 }
 
-/*==========================================
- * @uptime by MC Cameri
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @uptime by MC Cameri
+///
 bool atcommand_uptime(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char output[128];
@@ -8043,12 +7910,12 @@ bool atcommand_uptime(int fd, struct map_session_data &sd, const char* command, 
 	return true;
 }
 
-/*==========================================
- * @changesex <sex>
- * => Changes one's sex. Argument sex can be
- * 0 or 1, m or f, male or female.
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @changesex <sex>
+/// => Changes one's sex. Argument sex can be
+/// 0 or 1, m or f, male or female.
+///
 bool atcommand_changesex(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -8056,10 +7923,10 @@ bool atcommand_changesex(int fd, struct map_session_data &sd, const char* comman
 	return true;
 }
 
-/*================================================
- * @mute - Mutes a player for a set amount of time
- *------------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @mute - Mutes a player for a set amount of time
+///
 bool atcommand_mute(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -8097,10 +7964,10 @@ bool atcommand_mute(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- * @refresh (like @jumpto <<yourself>>)
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @refresh (like @jumpto <<yourself>>)
+///
 bool atcommand_refresh(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
@@ -8109,11 +7976,11 @@ bool atcommand_refresh(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- * @petid <part of pet name>
- * => Displays a list of matching pets.
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @petid <part of pet name>
+/// => Displays a list of matching pets.
+///
 bool atcommand_petid(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char searchtext[128];
@@ -8152,11 +8019,11 @@ bool atcommand_petid(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
-/*==========================================
- * @identify
- * => GM's magnifier.
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @identify
+/// => GM's magnifier.
+///
 bool atcommand_identify(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int i,num;
@@ -8176,11 +8043,11 @@ bool atcommand_identify(int fd, struct map_session_data &sd, const char* command
 	return true;
 }
 
-/*==========================================
- * @gmotd (Global MOTD)
- * by davidsiaw :P
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @gmotd (Global MOTD)
+/// by davidsiaw :P
+///
 bool atcommand_gmotd(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char buf[256];
@@ -8200,6 +8067,9 @@ bool atcommand_gmotd(int fd, struct map_session_data &sd, const char* command, c
 	return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_misceffect(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int effect = 0;
@@ -8213,6 +8083,9 @@ bool atcommand_misceffect(int fd, struct map_session_data &sd, const char* comma
 	return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 int charid2sessionid(uint32 charid)
 {
 	size_t session_id;
@@ -8228,6 +8101,9 @@ int charid2sessionid(uint32 charid)
    return session_id;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 int accountid2sessionid(uint32 accountid)
 {
 	size_t session_id;
@@ -8245,13 +8121,12 @@ int accountid2sessionid(uint32 accountid)
 }
 
 
-/*==========================================
- * Jump to a player by PID number
- * Original by Dino9021
- * Added in by nsstrunks
- *------------------------------------------
- */
-
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Jump to a player by PID number
+/// Original by Dino9021
+///  Added in by nsstrunks
+///
 bool atcommand_jumptoid(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -8290,12 +8165,12 @@ bool atcommand_jumptoid(int fd, struct map_session_data &sd, const char* command
    return true;
 }
 
-/*==========================================
- * Jump to a player by PID number
- * Original by Dino9021
- * Added in by nsstrunks
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// Jump to a player by PID number
+/// Original by Dino9021
+/// Added in by nsstrunks
+///
 bool atcommand_jumptoid2(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char output[128];
@@ -8334,12 +8209,12 @@ bool atcommand_jumptoid2(int fd, struct map_session_data &sd, const char* comman
    return true;
 }
 
-/*==========================================
- * Recall a player by PID number
- * Original by Dino9021
- * Added in by nsstrunks
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///  Recall a player by PID number
+/// Original by Dino9021
+/// Added in by nsstrunks
+///
 bool atcommand_recallid(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -8383,12 +8258,12 @@ bool atcommand_recallid(int fd, struct map_session_data &sd, const char* command
    return true;
 }
 
-/*==========================================
- * Recall a player by PID number
- * Original by Dino9021
- * Added in by nsstrunks
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///  Recall a player by PID number
+/// Original by Dino9021
+/// Added in by nsstrunks
+///
 bool atcommand_recallid2(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -8432,12 +8307,12 @@ bool atcommand_recallid2(int fd, struct map_session_data &sd, const char* comman
    return true;
 }
 
-/*==========================================
- * Kick a player by PID number
- * Original by Dino9021
- * Added in by nsstrunks
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///  Kick a player by PID number
+/// Original by Dino9021
+/// Added in by nsstrunks
+///
 bool atcommand_kickid(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -8469,12 +8344,12 @@ bool atcommand_kickid(int fd, struct map_session_data &sd, const char* command, 
    return true;
 }
 
-/*==========================================
- * Kick a player by PID number
- * Original by Dino9021
- * Added in by nsstrunks
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///  Kick a player by PID number
+/// Original by Dino9021
+/// Added in by nsstrunks
+///
 bool atcommand_kickid2(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -8506,12 +8381,12 @@ bool atcommand_kickid2(int fd, struct map_session_data &sd, const char* command,
    return true;
 }
 
-/*==========================================
- * Revive a player by PID number
- * Original by Dino9021
- * Added in by nsstrunks
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///  Revive a player by PID number
+/// Original by Dino9021
+/// Added in by nsstrunks
+///
 bool atcommand_reviveid(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -8545,12 +8420,12 @@ bool atcommand_reviveid(int fd, struct map_session_data &sd, const char* command
    return true;
 }
 
-/*==========================================
- * Revive a player by PID number
- * Original by Dino9021
- * Added in by nsstrunks
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///  Revive a player by PID number
+/// Original by Dino9021
+/// Added in by nsstrunks
+///
 bool atcommand_reviveid2(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -8584,12 +8459,12 @@ bool atcommand_reviveid2(int fd, struct map_session_data &sd, const char* comman
    return true;
 }
 
-/*==========================================
- * Kill a player by PID number
- * Original by Dino9021
- * Added in by nsstrunks
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///  Kill a player by PID number
+/// Original by Dino9021
+/// Added in by nsstrunks
+///
 bool atcommand_killid(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -8621,12 +8496,12 @@ bool atcommand_killid(int fd, struct map_session_data &sd, const char* command, 
    return true;
 }
 
-/*==========================================
- * Kill a player by PID number
- * Original by Dino9021
- * Added in by nsstrunks
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///  Kill a player by PID number
+/// Original by Dino9021
+/// Added in by nsstrunks
+///
 bool atcommand_killid2(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
@@ -8660,12 +8535,12 @@ bool atcommand_killid2(int fd, struct map_session_data &sd, const char* command,
    return true;
 }
 
-/*==========================================
- * Make a player killable, by PID
- * Original by Dino9021
- * Added in by nsstrunks
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///  Make a player killable, by PID
+/// Original by Dino9021
+/// Added in by nsstrunks
+///
 bool atcommand_charkillableid(int fd, struct map_session_data& sd,const char* command, const char* message)
 {
    struct map_session_data *pl_sd = NULL;
@@ -8696,12 +8571,12 @@ bool atcommand_charkillableid(int fd, struct map_session_data& sd,const char* co
 }
 
 
-/*==========================================
- * Make a player killable, by PID
- * Original by Dino9021
- * Added in by nsstrunks
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///  Make a player killable, by PID
+/// Original by Dino9021
+/// Added in by nsstrunks
+///
 bool atcommand_charkillableid2(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
    struct map_session_data *pl_sd = NULL;
@@ -8733,10 +8608,10 @@ bool atcommand_charkillableid2(int fd, struct map_session_data &sd, const char* 
 }
 
 
-/*==========================================
- * Mail System commands by [Valaris]
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///  Mail System commands by [Valaris]
+///
 bool atcommand_checkmail(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	return chrif_mail_check(sd, true);
@@ -8794,12 +8669,12 @@ bool atcommand_sendmail(int fd, struct map_session_data &sd, const char* command
 	return chrif_mail_send(sd, name, "", text);
 }
 
-/*==========================================
- * Refresh online command for SQL [Valaris]
- * Will refresh and check online column of
- * players and set correctly.
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///  Refresh online command for SQL [Valaris]
+/// Will refresh and check online column of
+/// players and set correctly.
+///
 bool atcommand_refreshonline(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char_online_check();
@@ -8808,11 +8683,11 @@ bool atcommand_refreshonline(int fd, struct map_session_data &sd, const char* co
 
 
 
-/*==========================================
- * Show Monster DB Info   v 1.0
- * originally by [Lupus] eAthena
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///  Show Monster DB Info   v 1.0
+/// originally by [Lupus] eAthena
+///
 bool atcommand_mobinfo(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	unsigned char msize[3][7] = {"Small", "Medium", "Large"};
@@ -8909,11 +8784,11 @@ bool atcommand_mobinfo(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- * Show Items DB Info   v 1.0
- * originally by [Lupus] eAthena
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///  Show Items DB Info   v 1.0
+/// originally by [Lupus] eAthena
+///
 bool atcommand_iteminfo(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char *itype[12] = {"Potion/Food", "BUG!", "Usable", "Etc", "Weapon", "Protection", "Card", "Egg", "Pet Acessory", "BUG!", "Arrow", "Lure/Scroll"};
@@ -8954,12 +8829,11 @@ bool atcommand_iteminfo(int fd, struct map_session_data &sd, const char* command
 
 }
 
-/*==========================================
- * @adopt by [Veider]
- *
- * adopt a novice
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///  @adopt by [Veider]
+/// adopt a novice
+///
 bool atcommand_adopt(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd1 = NULL;
@@ -9007,6 +8881,9 @@ bool atcommand_adopt(int fd, struct map_session_data &sd, const char* command, c
 	return false;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_version(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	const char * revision;
@@ -9022,10 +8899,10 @@ bool atcommand_version(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-/*==========================================
- * @mutearea by MouseJstr
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @mutearea by MouseJstr
+///
 class CAtMuteArea : public CMapProcessor
 {
 	uint32 id;
@@ -9067,19 +8944,10 @@ bool atcommand_mutearea(int fd, struct map_session_data &sd, const char* command
 	return true;
 }
 
-/*==========================================
- * @shuffle by MouseJstr
- *------------------------------------------
- */
-/*
-int atcommand_shuffle_sub(struct block_list &bl,va_list &ap)
-{
-	struct map_session_data &sd = (struct map_session_data &) bl;
-	if( bl.type==BL_PC && !sd.isGM())
-		pc_setpos(sd, sd.mapname, rand() % 399 + 1, rand() % 399 + 1, 3);
-	return 0;
-}
-*/
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @shuffle by MouseJstr
+///
 class CAtShuffle : public CMapProcessor
 {
 public:
@@ -9121,6 +8989,9 @@ bool atcommand_shuffle(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///
+/// 
 bool atcommand_rates(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char buf[256];
@@ -9131,12 +9002,12 @@ bool atcommand_rates(int fd, struct map_session_data &sd, const char* command, c
 }
 
 
-/*==========================================
- * @me by lordalfa
- * => Displays the OUTPUT string on top of 
- *    the Visible players Heads.
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @me by lordalfa
+/// => Displays the OUTPUT string on top of 
+///    the Visible players Heads.
+///
 bool atcommand_me(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char tempmes[256];
@@ -9152,11 +9023,10 @@ bool atcommand_me(int fd, struct map_session_data &sd, const char* command, cons
 	return true;
 }
 
-/*==========================================
- * @size
- * => ?
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @size
+///
 bool atcommand_size(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int size=0;
@@ -9181,11 +9051,11 @@ bool atcommand_size(int fd, struct map_session_data &sd, const char* command, co
 	return true;
 }
 
-/*==========================================
- * @fakename
- * => Gives your character a fake name.
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @fakename
+/// => Gives your character a fake name.
+///
 bool atcommand_fakename(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char name[24];
@@ -9218,23 +9088,24 @@ bool atcommand_fakename(int fd, struct map_session_data &sd, const char* command
 	return true;
 
 }
-/*==========================================
- * @mapflag [flagap name] [1|0|on|off] [map name] by Lupus
- * => Shows information about the map flags [map name]
- * Also set flags
- *------------------------------------------
- */
+
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @mapflag [flagap name] [1|0|on|off] [map name] by Lupus
+/// => Shows information about the map flags [map name]
+/// Also set flags
+///
 bool atcommand_mapflag(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 // WIP
 	return true;
 }
-/*==========================================
- * @monsterignore
- * => Makes monsters ignore you. [Valaris]
- *------------------------------------------
- */
 
+///////////////////////////////////////////////////////////////////////////////
+///
+/// @monsterignore
+/// => Makes monsters ignore you. [Valaris]
+///
 bool atcommand_monsterignore(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	if(!sd.state.monster_ignore) {

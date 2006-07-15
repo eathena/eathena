@@ -365,6 +365,15 @@ int clif_pet_performance(struct block_list &bl,uint32 param);
 int clif_pet_equip(struct pet_data &pd,unsigned short nameid);
 int clif_pet_food(struct map_session_data &sd,unsigned short foodid,unsigned char fail);
 
+//homun
+int clif_send_homdata(const homun_data &hd, const map_session_data &sd, unsigned short type, uint32 param);
+int clif_spawnhom(const homun_data &hd);
+int clif_movehom(const homun_data &hd);
+int clif_send_homstatus(const homun_data &hd, const map_session_data &sd, int flag);
+int clif_hom_food(const map_session_data &sd, unsigned short foodid, int fail);
+int clif_homskillinfoblock(const homun_data &hd, const map_session_data &sd);
+int clif_homskillup(const homun_data &hd, const map_session_data &sd, unsigned short skill_num);
+
 //friends list
 int clif_friend_send_info(struct map_session_data &sd);
 int clif_friend_add_ack(struct map_session_data &sd, uint32 friend_account_id, uint32 friend_char_id, const char* name, unsigned short flag);
@@ -385,7 +394,7 @@ int clif_clearweather(unsigned short m);
 int clif_weather2(unsigned short m, int type);
 int clif_weather1(int fd, int type);
 
-int clif_specialeffect(struct block_list &bl,uint32 type, int flag); // special effects [Valaris]
+int clif_specialeffect(const block_list &bl, uint32 type, int flag); // special effects [Valaris]
 int clif_message(struct block_list &bl, const char* msg); // messages (from mobs/npcs) [Valaris]
 
 int clif_GM_kickack(struct map_session_data &sd,uint32 id);

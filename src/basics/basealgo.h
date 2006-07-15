@@ -2233,6 +2233,149 @@ printf("copies for (%lu->%lu)x%lu = %i", (ulong)spos, (ulong)tpos, (ulong)cnt, c
 }
 
 
+
+
+/////////////////////////////////////
+/// partial copy from baserandom, put back when possible
+
+class polygen
+{
+public:
+	void shuffle_02()
+	{	// c(x) = x^2 + x^1 + 1
+		poly <<= 1;
+		if( ((poly&0x0004)!=0) ^ ((poly&0x0002)!=0) )
+			poly |= 1;
+		poly &= 0x0003;
+	}
+	void shuffle_03()
+	{	// c(x) = x^3 + x^1 + 1
+		poly <<= 1;
+		if( ((poly&0x0008)!=0) ^ ((poly&0x0002)!=0) )
+			poly |= 1;
+		poly &= 0x0007;
+	}
+	void shuffle_04()
+	{	// c(x) = x^4 + x^1 + 1
+		poly <<= 1;
+		if( ((poly&0x0010)!=0) ^ ((poly&0x0002)!=0) )
+			poly |= 1;
+		poly &= 0x000F;
+	}
+	void shuffle_05()
+	{	// c(x) = x^5 + x^2 + 1
+		poly <<= 1;
+		if( ((poly&0x0020)!=0) ^ ((poly&0x0004)!=0) )
+			poly |= 1;
+		poly &= 0x001F;
+	}
+	void shuffle_06()
+	{	// c(x) = x^6 + x^1 + 1
+		poly <<= 1;
+		if( ((poly&0x0040)!=0) ^ ((poly&0x0002)!=0) )
+			poly |= 1;
+		poly &= 0x003F;
+	}
+	void shuffle_07()
+	{	// c(x) = x^7 + x^3 + 1
+		poly <<= 1;
+		if( ((poly&0x0080)!=0) ^ ((poly&0x0008)!=0) )
+			poly |= 1;
+		poly &= 0x007F;
+	}
+	void shuffle_08()
+	{	// c(x) = x^8 + x^4 + x^3 + x^2 + 1
+		poly <<= 1;
+		if( ((poly&0x0100)!=0) ^ ((poly&0x0010)!=0) ^ ((poly&0x0008)!=0) ^ ((poly&0x0004)!=0) )
+			poly |= 1;
+		poly &= 0x00FF;
+	}
+	void shuffle_09()
+	{	// c(x) = x^9 + x^4 + 1
+		poly <<= 1;
+		if( ((poly&0x0200)!=0) ^ ((poly&0x0010)!=0) )
+			poly |= 1;
+		poly &= 0x01FF;
+	}
+	void shuffle_10()
+	{	// c(x) = x^10 + x^3 + 1
+		poly <<= 1;
+		if( ((poly&0x0400)!=0) ^ ((poly&0x0008)!=0) )
+			poly |= 1;
+		poly &= 0x03FF;
+	}
+	void shuffle_11()
+	{	// c(x) = x^11 + x^2 + 1
+		poly <<= 1;
+		if( ((poly&0x0800)!=0) ^ ((poly&0x0004)!=0) )
+			poly |= 1;
+		poly &= 0x07FF;
+	}
+	void shuffle_12()
+	{	// c(x) = x^12 + x^6 + x^4 + x^1 + 1
+		poly <<= 1;
+		if( ((poly&0x1000)!=0) ^ ((poly&0x0040)!=0) ^ ((poly&0x0010)!=0) ^ ((poly&0x0002)!=0) )
+			poly |= 1;
+		poly &= 0x0FFF;
+	}
+	void shuffle_13()
+	{	// c(x) = x^13 + x^12 + x^9 + x^3 + 1
+		poly <<= 1;
+		if( ((poly&0x2000)!=0) ^ ((poly&0x1000)!=0) ^ ((poly&0x0200)!=0) ^ ((poly&0x0008)!=0) )
+			poly |= 1;
+		poly &= 0x1FFF;
+	}
+	void shuffle_14()
+	{	// c(x) = x^14 + x^12 + x^11 + x^1 + 1
+		poly <<= 1;
+		if( ((poly&0x4000)!=0) ^ ((poly&0x1000)!=0) ^ ((poly&0x0800)!=0) ^ ((poly&0x0002)!=0) )
+			poly |= 1;
+		poly &= 0x3FFF;
+	}
+	void shuffle_15()
+	{	// c(x) = x^158 + x^1 + 1
+		poly <<= 1;
+		if( ((poly&0x8000)!=0) ^ ((poly&0x0002)!=0) )
+			poly |= 1;
+		poly &= 0x7FFF;
+	}
+	void shuffle_16()
+	{	// c(x) = x^16 + x^12 + x^3 + x^1 + 1
+		poly <<= 1;
+		if( ((poly&0x10000)!=0) ^ ((poly&0x1000)!=0) ^ ((poly&0x0008)!=0) ^ ((poly&0x0002)!=0) )
+			poly |= 1;
+		poly &= 0xFFFF;
+	}
+private:
+	typedef void (polygen::*shuffle_func)(void);
+
+
+	shuffle_func fShuffle;
+	uint32 poly;
+public:
+
+	polygen(shuffle_func s) : fShuffle(s), poly(rand())
+	{
+		if(!poly) poly=0;
+	}
+	//polygen(int width);
+
+	int shuffle()
+	{
+		(this->*fShuffle)();
+		return poly;
+	}
+
+	operator int()		{ return poly; }
+	int operator()()	{ return poly; }
+};
+
+
+
+
+
+
+
 NAMESPACE_END(basics)
 
 #endif//__BASEALGORITHM_H__

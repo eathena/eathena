@@ -780,7 +780,16 @@ void CRegExp::CRegProgram::AddtoSet(size_t &pos, char b)
 	}
 	else
 	{	// append to the set
-		cProgramm.insert( (char)b, 1, pos+1 );
+		// check if b already exists in the set
+		// rely on the set beeing terminated properly
+		// also sort the set, but maybe not that important
+		size_t i;
+		for(i=pos+1; cProgramm[i] && cProgramm[i]<b; ++i);
+		if( cProgramm[i]!=b )
+			cProgramm.insert( (char)b, 1, i );
+
+		// just insert without any checking
+		//cProgramm.insert( (char)b, 1, pos+1 );
 	}
 }
 bool CRegExp::CRegProgram::ComparetoSet(size_t node, char b) const
@@ -832,6 +841,7 @@ bool CRegExp::CRegProgram::ComparetoSet(size_t node, char b) const
 			break;
 		case REGEX_SET:
 		{	// start of the charset string
+			++opsc;
 			if( this->cConfig.cCaseInSensitive )
 			{
 				while( *opsc && (locase(*opsc)!=locase(b)) ) ++opsc;
@@ -2414,11 +2424,12 @@ printf("imap r %i = %i\n", scan, imap[scan]);
 					this->command(scan) == REGEX_L_RANGE ||
 					this->command(scan) == REGEX_L_RANGEMIN ||
 					this->command(scan) == REGEX_L_RANGEMAX )
-				{	// lazy
+				{	// lazy operator
+					// start with min count and go up to max when fails
 					no=MatchRepeat(base, scan+ofs,reginput);
 					if(no>=min)
 					{
-						if( no<max ) max = no;
+						if( !max || no<max ) max = no;
 						no = min;
 						for(; no<max ; ++no)
 						{
@@ -2432,6 +2443,7 @@ printf("imap r %i = %i\n", scan, imap[scan]);
 				}
 				else
 				{	// gready 
+					// start with max count and go down to min when fails
 					no=MatchRepeat(base, scan+ofs,reginput);
 					if(max && no>max) no = max;
 					for(no++; no>min ; --no)	// find another way to detect the unsigned overflow
@@ -2488,13 +2500,8 @@ size_t CRegExp::CRegProgram::MatchRepeat(const char* base, size_t node, const ch
 		case REGEX_ANYBUT:
 		case REGEX_ANYOF:
 		{
-			bool compare = (REGEX_ANYOF==this->command(node));
-			bool found = ComparetoSet(node, *scan);
-			while( *scan && !(found^compare) )
-			{
-				++scan;
-				found = ComparetoSet(node, *scan);
-			}
+			bool compare = (REGEX_ANYOF!=this->command(node));
+			for( ; *scan && (compare^ComparetoSet(node, *scan)); ++scan);
 			break;
 		}
 		case REGEX_SPACE:

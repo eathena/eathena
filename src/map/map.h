@@ -172,7 +172,7 @@ enum {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-enum object_t { BL_NUL, BL_PC, BL_NPC, BL_MOB, BL_ITEM, BL_CHAT, BL_SKILL, BL_PET };	// 0..7 -> 3bit
+enum object_t { BL_NUL, BL_PC, BL_NPC, BL_MOB, BL_ITEM, BL_CHAT, BL_SKILL, BL_PET, BL_HOM };	//xxx 0..7 -> 3bit
 enum object_sub_t { WARP, SHOP, SCRIPT, MONS };											// 0..3 -> 2bit
 
 
@@ -261,7 +261,7 @@ struct pet_data;
 class flooritem_data;
 class chat_data;
 struct skill_unit;
-
+class homun_data;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// object on a map
@@ -273,7 +273,6 @@ struct block_list : public coordinate
 	uint32 id;
 	block_list *next;
 	block_list *prev;
-
 	/// default constructor.
 	block_list(uint32 i=0, unsigned char t=0, unsigned char s=0) : 
 		m(0),
@@ -316,10 +315,10 @@ struct block_list : public coordinate
 
 	/// return body direction.
 	/// default function, needs to be overloaded at specific implementations
-	virtual dir_t get_dir()		{ return DIR_N; }
+	virtual dir_t get_dir()	const		{ return DIR_N; }
 	/// return head direction.
 	/// default function, needs to be overloaded at specific implementations
-	virtual dir_t get_headdir()	{ return this->get_dir(); }
+	virtual dir_t get_headdir()	const	{ return this->get_dir(); }
 
 
 
@@ -382,7 +381,7 @@ struct block_list : public coordinate
 		// from here on we can work with pointers to base objects
 		// but the object can identify itself, in this case here
 		// by using the conversion operator, 
-		// any other function wuld be also possible
+		// any other function would be also possible
 		
 		derive1 *pd11 = *b1;	// since b1 points to a d1 object, it used the d1 conversion
 		derive1 *pd12 = *b2;	// this conersion was not overloaded and will return NULL
@@ -423,7 +422,20 @@ struct block_list : public coordinate
 		else
 			return (struct npc_data*)this;
 	}
-
+	homun_data* get_hd() const
+	{
+		if(type != BL_HOM)
+			return NULL;
+		else
+			return (struct homun_data*)this;
+	}
+	chat_data* get_cd() const
+	{
+		if(type != BL_CHAT)
+			return NULL;
+		else
+			return (struct chat_data*)this;
+	}
 	// might later replace the type compare
 	// can be overloaded and could also used with masks instead pure enums
 //	bool is_type(int t)
@@ -433,9 +445,31 @@ struct block_list : public coordinate
 
 	///////////////////////////////////////////////////////////////////////////
 	/// upcasting overload.
-	virtual movable*	get_movable()	{ return NULL; }
+	virtual movable*	get_movable()		{ return NULL; }
 	/// upcasting overload.
-	virtual fightable*	get_fightable()	{ return NULL; }
+	virtual fightable*	get_fightable()		{ return NULL; }
+
+
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// status functions
+
+	/// checks for walking state
+	virtual bool is_walking() const		{ return false; }
+	/// checks for dead state
+	virtual bool is_dead() const		{ return false; }
+	/// checks for sitting state
+	virtual bool is_sitting() const		{ return false; }
+	/// checks for idle state (alive+not sitting+not blocked by skill)
+	virtual bool is_idle() const		{ return true; }
+	/// checks for flying state
+	virtual bool is_flying() const		{ return false; }
+	/// checks for invisible state
+	virtual bool is_invisible() const	{ return false; }
+	/// checks for confusion state
+	virtual bool is_confuse() const		{ return false; }
+
 };
 
 
@@ -656,7 +690,6 @@ struct map_session_data : public fightable, public session_data
 {
 	struct {
 		unsigned auth : 1;							// 0
-		unsigned attack_continue : 1;				// 2
 		unsigned monster_ignore :1;					// 3
 		unsigned dead_sit : 2;						// 4, 5
 		unsigned skillcastcancel : 1;				// 6
@@ -743,7 +776,7 @@ struct map_session_data : public fightable, public session_data
 
 	unsigned short attacktarget_lv;
 
-	uint32 attacktarget;	
+
 	uint32 followtarget;
 	int followtimer; // [MouseJstr]
 
@@ -993,13 +1026,7 @@ struct map_session_data : public fightable, public session_data
 
 	long catch_target_class;
 	struct petstatus pet;
-	struct petdb *petDB;
 	struct pet_data *pd;
-	int pet_hungry_timer;
-
-	struct homun_data *hd;
-	int homun_hungry_timer;
-	struct homunstatus hom;
 
 	uint32 pvp_won;
 	uint32 pvp_lost;
@@ -1048,14 +1075,12 @@ struct map_session_data : public fightable, public session_data
 	virtual int walkstep_old(unsigned long tick);
 	/// interrupts walking
 	virtual int stop_walking_old(int type=1);
-	/// walk to a random target
-	virtual int randomwalk_old(unsigned long tick)	{ return 0; }
 	/// change object state
 	virtual int changestate_old(int state,int type);
 	/// timer callback
 	virtual int walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
-	virtual int attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
-	virtual int skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
+	virtual int attacktimer_func(int tid, unsigned long tick, int id, basics::numptr data);
+	virtual int skilltimer_func(int tid, unsigned long tick, int id, basics::numptr data);
 
 
 	/// do object depending stuff for ending the walk.
@@ -1067,6 +1092,17 @@ struct map_session_data : public fightable, public session_data
 	/// do object depending stuff for changestate
 	virtual void do_changestate(int state,int type);
 
+
+	///////////////////////////////////////////////////////////////////////////
+	// status functions
+
+	/// checks for dead state
+	virtual bool is_dead() const		{ return (this->state.dead_sit == 1); }
+
+
+
+	/// do object depending stuff for attacking
+	virtual void do_attack();
 
 private:
 	// no copy/assign since of the bl reference
@@ -1111,7 +1147,6 @@ protected:
 		// timers
 		this->followtimer = -1;
 		this->invincible_timer = -1;
-		this->pet_hungry_timer = -1;
 		this->pvp_timer = -1;
 		
 		for(i = 0; i < MAX_EVENTTIMER; ++i)
@@ -1188,7 +1223,6 @@ struct npc_data : public movable
 	short opt3;
 	short option;
 	short flag;
-	unsigned long next_walktime;
 
 	struct { // [Valaris]
 		unsigned state : 8;
@@ -1237,14 +1271,10 @@ struct npc_data : public movable
 	virtual int walkstep_old(unsigned long tick);
 	/// interrupts walking
 	virtual int stop_walking_old(int type=1);
-	/// walk to a random target
-	virtual int randomwalk_old(unsigned long tick)	{ return 0; }
 	/// change object state
 	virtual int changestate_old(int state,int type);
 	/// timer callback
 	virtual int walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
-	virtual int attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
-	virtual int skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
 
 
 	/// do object depending stuff for ending the walk.
@@ -1461,7 +1491,6 @@ struct mob_data : public fightable
 	unsigned short target_lv;
 
 	uint32 provoke_id; // Celest
-	uint32 target_id;
 	uint32 attacked_id;
 
 	unsigned long next_walktime;
@@ -1525,13 +1554,13 @@ struct mob_data : public fightable
 	/// interrupts walking
 	virtual int stop_walking_old(int type=1);
 	/// walk to a random target
-	virtual int randomwalk_old(unsigned long tick);
+	virtual bool randomwalk(unsigned long tick);
 	/// change object state
 	virtual int changestate_old(int state,int type);
 	/// timer callback
 	virtual int walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
-	virtual int attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
-	virtual int skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
+	virtual int attacktimer_func(int tid, unsigned long tick, int id, basics::numptr data);
+	virtual int skilltimer_func(int tid, unsigned long tick, int id, basics::numptr data);
 
 
 	/// do object depending stuff for ending the walk.
@@ -1549,6 +1578,10 @@ struct mob_data : public fightable
 
 	/// checks for walking state
 	virtual bool is_walking() const		{ return this->movable::is_walking()||(state.state==MS_WALK); }
+
+
+	/// special target unlocking with standby time
+	void unlock_target(unsigned long tick);
 
 
 	/// timer function.
@@ -1581,6 +1614,15 @@ struct mob_data : public fightable
 
 
 
+
+	///////////////////////////////////////////////////////////////////////////
+	// status functions
+
+	/// checks for dead state
+	virtual bool is_dead() const		{ return (this->hp<=0); }
+
+
+
 private:
 	mob_data(const mob_data&);					// forbidden
 	const mob_data& operator=(const mob_data&);	// forbidden
@@ -1591,6 +1633,10 @@ private:
 struct pet_data : public fightable
 {
 	const char *namep;
+
+	const struct petdb &petDB;
+
+
 	struct _state
 	{
 		unsigned state : 8 ;
@@ -1612,7 +1658,6 @@ struct pet_data : public fightable
 	unsigned short speed;
 	unsigned short equip_id;
 
-	uint32 target_id;
 	unsigned short target_lv;
 	short rate_fix;	//Support rate as modified by intimacy (1000 = 100%) [Skotlex]
 	uint32 move_fail_count;
@@ -1723,15 +1768,15 @@ struct pet_data : public fightable
 	struct skill_unit_group skillunit[MAX_MOBSKILLUNITGROUP]; // [Valaris]
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET]; // [Valaris]
 	struct map_session_data *msd;
+	int hungry_timer;
 
-
-	pet_data(const char *n) :
+	pet_data(const char *n, const struct petdb &pdb) :
 		namep(n),
+		petDB(pdb),
 		class_(0),
 		dir(0),
 		speed(0),
 		equip_id(0),
-		target_id(0),
 		target_lv(0),
 		rate_fix(0),
 		move_fail_count(0),
@@ -1743,7 +1788,8 @@ struct pet_data : public fightable
 		a_skill(NULL),
 		s_skill(NULL),
 		loot(NULL),
-		msd(NULL)
+		msd(NULL),
+		hungry_timer(-1)
 	{
 	}
 
@@ -1756,13 +1802,13 @@ struct pet_data : public fightable
 	/// interrupts walking
 	virtual int stop_walking_old(int type=1);
 	/// walk to a random target
-	virtual int randomwalk_old(unsigned long tick);
+	virtual bool randomwalk(unsigned long tick);
 	/// change object state
 	virtual int changestate_old(int state,int type);
 	/// timer callback
 	virtual int walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
-	virtual int attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
-	virtual int skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
+	virtual int attacktimer_func(int tid, unsigned long tick, int id, basics::numptr data);
+	virtual int skilltimer_func(int tid, unsigned long tick, int id, basics::numptr data);
 
 
 	/// do object depending stuff for ending the walk.
@@ -1802,101 +1848,7 @@ private:
 
 
 
-class homun_data : public fightable
-{
-public:
-	struct homunstatus status;
-	struct
-	{
-		unsigned skillstate : 8 ;
-	} state;
-	short view_size;
-	int invincible_timer;
-	int hp_sub;
-	int sp_sub;
-	int max_hp;
-	int max_sp;
-	ushort str;
-	ushort agi;
-	ushort vit;
-	ushort int_;
-	ushort dex;
-	ushort luk;
-	ushort atk;
-	ushort matk;
-	ushort def;
-	ushort mdef;
-	ushort hit;
-	ushort critical;
-	ushort flee;
-	ushort aspd;
-	ushort equip;
-	int intimate;
-	uint32 target_id;
-	int homskillstatictimer[MAX_HOMSKILL];
-	struct status_change sc_data[MAX_STATUSCHANGE];
-	ushort sc_count;
-	short atackable;
-	short limits_to_growth;
-	ushort view_class;
-	int nhealhp,nhealsp;
-	int hprecov_rate,sprecov_rate;
-	int natural_heal_hp,natural_heal_sp;
-	int hungry_cry_timer;
 
-	struct map_session_data *msd;
-
-
-	homun_data()
-	{}
-
-
-	/// internal walk subfunction
-	virtual int walktoxy_sub_old();
-	/// walks to a coordinate
-	virtual int walktoxy_old(unsigned short x,unsigned short y,bool easy=false);
-	/// do a walk step
-	virtual int walkstep_old(unsigned long tick);
-	/// interrupts walking
-	virtual int stop_walking_old(int type=1);
-	/// walk to a random target
-	virtual int randomwalk_old(unsigned long tick);
-	/// change object state
-	virtual int changestate_old(int state,int type);
-	/// timer callback
-	virtual int walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
-	virtual int attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
-	virtual int skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
-
-/*
-	/// do object depending stuff for ending the walk.
-	virtual void do_stop_walking();
-	/// do object depending stuff for the walk step.
-	virtual void do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
-	/// do object depending stuff for the walkto
-	virtual void do_walkto();
-	/// do object depending stuff for changestate
-	virtual void do_changestate(int state,int type);
-*/
-
-	void* operator new(size_t sz)
-	{
-		void *ret = malloc(sz);
-		memset(ret,0,sz);
-		return ret;
-	}
-	void operator delete(void *p)
-	{
-		if(p) free(p);
-	}
-private:
-	void* operator new[](size_t sz);			// forbidden
-	void operator delete[](void *p, size_t sz);	// forbidden
-
-private:
-	homun_data(const homun_data&);					// forbidden
-	const homun_data& operator=(const homun_data&);	// forbidden
-};
 
 
 

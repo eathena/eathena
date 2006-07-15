@@ -3,6 +3,7 @@
 #include "pc.h"
 #include "map.h"
 #include "pet.h"
+#include "homun.h"
 #include "mob.h"
 #include "clif.h"
 #include "guild.h"
@@ -1832,17 +1833,30 @@ int status_recalc_speed(struct block_list *bl)
 	{
 		struct status_change *sc_data=status_get_sc_data(bl);
 		speed = 1000;
-		if(bl->type==BL_MOB) {
+		if(bl->type==BL_MOB)
+		{
 			speed = ((struct mob_data *)bl)->speed;
 			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				speed-=((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
 		}
-		else if(bl->type==BL_PET) {
-			speed = ((struct pet_data *)bl)->msd->petDB->speed;
-		} else if(bl->type==BL_NPC && (struct npc_data *)bl)	//Added BL_NPC (Skotlex)
+		else if(bl->type==BL_PET)
+		{	
+			struct pet_data *pd = bl->get_pd();
+			if(pd) 
+				speed = pd->petDB.speed;
+		}
+		else if(bl->type==BL_HOM)
+		{
+			struct homun_data *hd = bl->get_hd();
+			if(hd && hd->msd) 
+				speed = hd->msd->speed;
+
+		}
+		else if(bl->type==BL_NPC && (struct npc_data *)bl)	//Added BL_NPC (Skotlex)
 			speed = ((struct npc_data *)bl)->speed;
 
-		if(sc_data) {
+		if(sc_data)
+		{
 			//‘¬“x‘‰ÁŽž‚Í25%Œ¸ŽZ
 			if(sc_data[SC_INCREASEAGI].timer!=-1)
 				speed -= speed*25/100;
@@ -1964,7 +1978,7 @@ dir_t status_get_headdir(struct block_list *bl)
  * –ß‚è‚Í®”‚Å0ˆÈã
  *------------------------------------------
  */
-int status_get_lv(struct block_list *bl)
+int status_get_lv(const block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type==BL_MOB)
@@ -1982,7 +1996,7 @@ int status_get_lv(struct block_list *bl)
  * –ß‚è‚Í®”‚Å0ˆÈã
  *------------------------------------------
  */
-int status_get_range(struct block_list *bl)
+int status_get_range(const block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type==BL_MOB)
@@ -3046,14 +3060,14 @@ int status_get_adelay(struct block_list *bl)
 	}
 }
 
-int status_get_amotion(struct block_list *bl)
+int status_get_amotion(const block_list *bl)
 {
 	nullpo_retr(2000, bl);
 	if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->amotion;
 	else
 	{
-		struct status_change *sc_data=status_get_sc_data(bl);
+		struct status_change *sc_data=status_get_sc_data( const_cast<block_list*>(bl) );
 		int amotion=2000, aspd_rate = 100, i;
 		if(bl->type==BL_MOB)
 		{
@@ -3109,12 +3123,13 @@ int status_get_amotion(struct block_list *bl)
 
 int status_get_dmotion(struct block_list *bl)
 {
-	int ret;
+	int ret=0;
 	struct status_change *sc_data;
 
 	nullpo_retr(0, bl);
 	sc_data = status_get_sc_data(bl);
-	if(bl->type==BL_MOB){
+	if(bl->type==BL_MOB)
+	{
 		ret=mob_db[((struct mob_data *)bl)->class_].dmotion;
 		if(battle_config.monster_damage_delay_rate != 100)
 			ret = ret*battle_config.monster_damage_delay_rate/100;

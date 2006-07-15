@@ -1238,26 +1238,26 @@ CPetDB_mem::~CPetDB_mem()
 bool CPetDB_mem::init(const char* configfile)
 {	// init db
 	if(configfile) basics::CParamBase::loadFile(configfile);
-	return do_readPets();
+	return this->do_readPets();
 }
 
 ///////////////////////////////////////////////////////////////////////////
 // access interface
 size_t CPetDB_mem::size() const
 {
-	return cPetList.size();
+	return this->cPetList.size();
 }
 CPet& CPetDB_mem::operator[](size_t i)
 {
-	return cPetList[i];
+	return this->cPetList[i];
 }
 
 bool CPetDB_mem::searchPet(uint32 pid, CPet& pet)
 {
 	size_t pos;
-	if( cPetList.find( CPet(pid), 0, pos) )
+	if( this->cPetList.find( CPet(pid), 0, pos) )
 	{
-		pet = cPetList[pos];
+		pet = this->cPetList[pos];
 		return true;
 	}
 	return false;
@@ -1268,12 +1268,12 @@ bool CPetDB_mem::insertPet(uint32 accid, uint32 cid, short pet_class, short pet_
 	basics::CParam<uint32> start_pet_num("start_pet_num", 50000000);
 	size_t pet_id=start_pet_num;
 	const size_t p=this->cPetList.size();
-	if( 0==p || cPetList[0].pet_id > pet_id)
+	if( 0==p || this->cPetList[0].pet_id > pet_id)
 	{	// take the start value
 	}
-	else if( cPetList[0].pet_id+p == cPetList[p-1].pet_id )
+	else if( this->cPetList[0].pet_id+p == this->cPetList[p-1].pet_id )
 	{	// increment last id when range is fully used
-		pet_id = cPetList[p-1].pet_id++;
+		pet_id = this->cPetList[p-1].pet_id++;
 	}
 	else
 	{	// find some unused key within
@@ -1281,20 +1281,20 @@ bool CPetDB_mem::insertPet(uint32 accid, uint32 cid, short pet_class, short pet_
 		while( b > a+1 )
 		{
 			c=(a+b)/2;
-			if( cPetList[c].pet_id >= pet_id && 
-				(cPetList[c].pet_id-cPetList[a].pet_id) > (c-a) )
+			if( this->cPetList[c].pet_id >= pet_id && 
+				(this->cPetList[c].pet_id-this->cPetList[a].pet_id) > (c-a) )
 				b=c;
 			else
 				a=c;
 		}
-		pet_id = cPetList[a].pet_id + 1;
+		pet_id = this->cPetList[a].pet_id + 1;
 		if( pet_id < start_pet_num() )
 			pet_id = start_pet_num;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	
 	CPet tmppet(pet_id, accid, cid, pet_class, pet_lv, pet_egg_id, pet_equip, intimate, hungry, renameflag, incuvat, pet_name);
-	if( cPetList.insert(tmppet) && searchPet(pet_id, tmppet) )
+	if( this->cPetList.insert(tmppet) && searchPet(pet_id, tmppet) )
 	{
 		this->do_createPet(tmppet);
 		return true;
@@ -1304,10 +1304,10 @@ bool CPetDB_mem::insertPet(uint32 accid, uint32 cid, short pet_class, short pet_
 bool CPetDB_mem::removePet(uint32 pid)
 {
 	size_t pos;
-	if( cPetList.find( CPet(pid), 0, pos) )
+	if( this->cPetList.find( CPet(pid), 0, pos) )
 	{
 		this->do_removePet(cPetList[pos]);
-		cPetList.removeindex(pos);
+		this->cPetList.removeindex(pos);
 		return true;
 	}
 	return false;
@@ -1315,9 +1315,9 @@ bool CPetDB_mem::removePet(uint32 pid)
 bool CPetDB_mem::savePet(const CPet& pet)
 {
 	size_t pos;
-	if( cPetList.find( pet, 0, pos) )
+	if( this->cPetList.find( pet, 0, pos) )
 	{
-		cPetList[pos] = pet;
+		this->cPetList[pos] = pet;
 		this->do_savePet(pet);
 		return true;
 	}
@@ -1328,8 +1328,108 @@ bool CPetDB_mem::savePet(const CPet& pet)
 
 
 
+///////////////////////////////////////////////////////////////////////////
+// construct/destruct
+CHomunculusDB_mem::CHomunculusDB_mem(const char *configfile)
+{
+	if(configfile) basics::CParamBase::loadFile(configfile);
+}
+CHomunculusDB_mem::~CHomunculusDB_mem()
+{
+}
 
 
+///////////////////////////////////////////////////////////////////////////
+// normal function
+bool CHomunculusDB_mem::init(const char* configfile)
+{	// init db
+	if(configfile) basics::CParamBase::loadFile(configfile);
+	return this->do_readHomunculus();
+}
+///////////////////////////////////////////////////////////////////////////
+// access interface
+
+size_t CHomunculusDB_mem::size() const
+{
+	return this->cHomunculusList.size();
+}
+CHomunculus& CHomunculusDB_mem::operator[](size_t i)
+{
+	return this->cHomunculusList[i];
+}
+
+bool CHomunculusDB_mem::searchHomunculus(uint32 hid, CHomunculus& hom)
+{
+	size_t pos;
+	if( this->cHomunculusList.find( CHomunculus(hid), 0, pos) )
+	{
+		hom = this->cHomunculusList[pos];
+		return true;
+	}
+	return false;
+}
+
+bool CHomunculusDB_mem::insertHomunculus(CHomunculus& hom)
+{
+	///////////////////////////////////////////////////////////////////////////
+	basics::CParam<uint32> start_homun_num("start_homun_num", 60000000);
+	size_t homun_id=start_homun_num;
+	const size_t p=this->cHomunculusList.size();
+	if( 0==p || this->cHomunculusList[0].homun_id > homun_id)
+	{	// take the start value
+	}
+	else if( cHomunculusList[0].homun_id+p == cHomunculusList[p-1].homun_id )
+	{	// increment last id when range is fully used
+		homun_id = this->cHomunculusList[p-1].homun_id++;
+	}
+	else
+	{	// find some unused key within
+		size_t a=0, b=p, c;
+		while( b > a+1 )
+		{
+			c=(a+b)/2;
+			if( this->cHomunculusList[c].homun_id >= homun_id && 
+				(this->cHomunculusList[c].homun_id-this->cHomunculusList[a].homun_id) > (c-a) )
+				b=c;
+			else
+				a=c;
+		}
+		homun_id = this->cHomunculusList[a].homun_id + 1;
+		if( homun_id < start_homun_num() )
+			homun_id = start_homun_num;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	
+	hom.homun_id = homun_id;
+	if( this->cHomunculusList.insert(hom) && searchHomunculus(homun_id, hom) )
+	{
+		this->do_createHomunculus(hom);
+		return true;
+	}
+	return false;
+}
+bool CHomunculusDB_mem::removeHomunculus(uint32 hid)
+{
+	size_t pos;
+	if( this->cHomunculusList.find( CHomunculus(hid), 0, pos) )
+	{
+		this->do_removeHomunculus(cHomunculusList[pos]);
+		this->cHomunculusList.removeindex(pos);
+		return true;
+	}
+	return false;
+}
+bool CHomunculusDB_mem::saveHomunculus(const CHomunculus& hom)
+{
+	size_t pos;
+	if( this->cHomunculusList.find( hom, 0, pos) )
+	{
+		this->cHomunculusList[pos] = hom;
+		this->do_saveHomunculus(hom);
+		return true;
+	}
+	return false;
+}
 
 
 
@@ -1774,7 +1874,7 @@ int CCharDB_txt::char_to_str(char *str, size_t sz, const CCharCharacter &p)
 		"\t%d,%d,%d,%d,%d,%d"
 		"\t%d,%d"
 		"\t%d,%d,%d"
-		"\t%ld,%ld,%ld"
+		"\t%ld,%ld,%ld,%ld"
 		"\t%d,%d,%d"
 		"\t%d,%d,%d,%d,%d"
 		"\t%s,%d,%d"
@@ -1791,7 +1891,7 @@ int CCharDB_txt::char_to_str(char *str, size_t sz, const CCharCharacter &p)
 		p.str, p.agi, p.vit, p.int_, p.dex, p.luk,
 		p.status_point, p.skill_point,
 		p.option, basics::MakeWord(p.karma, p.chaos), p.manner,
-		(unsigned long)p.party_id, (unsigned long)p.guild_id, (unsigned long)p.pet_id,
+		(unsigned long)p.party_id, (unsigned long)p.guild_id,(unsigned long)p.pet_id,(unsigned long)p.homun_id,
 		p.hair, p.hair_color, p.clothes_color,
 		p.weapon, p.shield, p.head_top, p.head_mid, p.head_bottom,
 		// store the checked lastpoint
@@ -1859,6 +1959,39 @@ bool CCharDB_txt::char_from_str(const char *str)
 		"\t%d,%d,%d,%d,%d,%d"
 		"\t%d,%d"
 		"\t%d,%d,%d"
+		"\t%d,%d,%d,%d"
+		"\t%d,%d,%d"
+		"\t%d,%d,%d,%d,%d"
+		"\t%[^,],%d,%d"
+		"\t%[^,],%d,%d"
+		"\t%d,%d,%d,%d"
+		"\t%d"
+		"%n",
+		&tmp_int[0], &tmp_int[1], &tmp_int[2], p.name, //
+		&tmp_int[3], &tmp_int[4], &tmp_int[5],
+		&tmp_int[6], &tmp_int[7], &tmp_int[8],
+		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
+		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
+		&tmp_int[19], &tmp_int[20],
+		&tmp_int[21], &tmp_int[22], &tmp_int[23],
+		&tmp_int[24], &tmp_int[25], &tmp_int[26], &tmp_int[44],
+		&tmp_int[27], &tmp_int[28], &tmp_int[29],
+		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
+		p.last_point.mapname, &tmp_int[35], &tmp_int[36], //
+		p.save_point.mapname, &tmp_int[37], &tmp_int[38], &tmp_int[39],
+		&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next) == 47 )
+	{
+		// my personal reordering
+		//ShowMessage("char: new char data ver.6\n");
+	}
+	else if( sscanf(str,
+		"%d\t%d,%d\t%[^\t]"
+		"\t%d,%d,%d"
+		"\t%d,%d,%d"
+		"\t%d,%d,%d,%d"
+		"\t%d,%d,%d,%d,%d,%d"
+		"\t%d,%d"
+		"\t%d,%d,%d"
 		"\t%d,%d,%d"
 		"\t%d,%d,%d"
 		"\t%d,%d,%d,%d,%d"
@@ -1903,6 +2036,7 @@ bool CCharDB_txt::char_from_str(const char *str)
 	{
 		// Char structture of version 1488+
 		//ShowMessage("char: new char data ver.5\n");
+		tmp_int[44] = 0;
 	}
 	else if( sscanf(str, "%d\t%d,%d\t%[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
@@ -1923,6 +2057,7 @@ bool CCharDB_txt::char_from_str(const char *str)
 	{
 		// Char structture of version 1363+
 		tmp_int[43] = 0; // fame
+		tmp_int[44] = 0;
 		//ShowMessage("char: new char data ver.4\n");
 	}
 	else if( sscanf(str,"%d\t%d,%d\t%[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
@@ -1946,6 +2081,7 @@ bool CCharDB_txt::char_from_str(const char *str)
 		tmp_int[41] = 0; // mother
 		tmp_int[42] = 0; // child
 		tmp_int[43] = 0; // fame
+		tmp_int[44] = 0;
 		//ShowMessage("char: new char data ver.3\n");
 	}
 	else if( sscanf(str, "%d\t%d,%d\t%[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
@@ -1970,6 +2106,7 @@ bool CCharDB_txt::char_from_str(const char *str)
 		tmp_int[41] = 0; // mother
 		tmp_int[42] = 0; // child
 		tmp_int[43] = 0; // fame
+		tmp_int[44] = 0;
 		//ShowMessage("char: old char data ver.2\n");
 	}
 	else if( sscanf(str, "%d\t%d,%d\t%[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
@@ -1995,6 +2132,7 @@ bool CCharDB_txt::char_from_str(const char *str)
 		tmp_int[41] = 0; // mother
 		tmp_int[42] = 0; // child
 		tmp_int[43] = 0; // fame
+		tmp_int[44] = 0;
 		//ShowMessage("char: old char data ver.1\n");
 	}
 	else
@@ -2049,6 +2187,7 @@ bool CCharDB_txt::char_from_str(const char *str)
 	p.mother_id = tmp_int[41];
 	p.child_id = tmp_int[42];
 	p.fame_points = tmp_int[43];
+	p.homun_id = tmp_int[44];
 
 	size_t pos;
 	if( cCharList.find(p, pos, 0) )
@@ -3919,6 +4058,232 @@ bool CPetDB_txt::timeruserfunc(unsigned long tick)
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+int CHomunculusDB_txt::homunculus_to_string(char *str, size_t sz, CHomunculus &hom)
+{
+	int len=0, i;
+
+	len=snprintf(str, sz, 
+		"%lu,%lu,%lu,"
+		"%lu,%.24s,"
+		"%lu,%lu,"
+		"%lu,%lu,"
+		"%u,%u,%u,"
+		"%u,%u,%u,%u,%u,%u,"
+		"%u,%u,"
+		"%lu,%u,%u,%u,%u\t",
+		(ulong)hom.homun_id, (ulong)hom.account_id, (ulong)hom.char_id,
+		(ulong)hom.base_exp, (hom.name && hom.name[0])?hom.name:"dummy", 
+		(ulong)hom.hp,(ulong)hom.max_hp,
+		(ulong)hom.sp,(ulong)hom.max_sp,
+		hom.class_,hom.status_point,hom.skill_point,
+		hom.str,hom.agi,hom.vit,hom.int_,hom.dex,hom.luk,
+		hom.option,hom.equip,
+		(ulong)hom.intimate,hom.hungry,hom.base_level,hom.rename_flag,hom.incubate);
+
+	for(i=0; i<MAX_HOMSKILL; ++i)
+	{
+		if( hom.skill[i].id && hom.skill[i].lv )
+		{
+			len += snprintf(str+len, sz-len, "%d,%d\t", hom.skill[i].id, hom.skill[i].lv);
+		}
+	}
+	return len;
+}
+
+bool CHomunculusDB_txt::homunculus_from_string(const char *str, CHomunculus &hom)
+{
+	bool ret = false;
+	unsigned int tmp_int[32];
+	char tmp_str[256];
+	int len;
+	int s=sscanf(str,
+		"%u,%u,%u,"
+		"%u,%256[^,],"
+		"%u,%u,"
+		"%u,%u,"
+		"%u,%u,%u,"
+		"%u,%u,%u,%u,%u,%u,"
+		"%u,%u,"
+		"%u,%u,%u,%u,%u\t%n",
+		&tmp_int[ 0],&tmp_int[ 1],&tmp_int[ 2],
+		&tmp_int[ 3],tmp_str,
+		&tmp_int[ 4],&tmp_int[ 5],
+		&tmp_int[ 6],&tmp_int[ 7],
+		&tmp_int[ 8],&tmp_int[ 9],&tmp_int[10],
+		&tmp_int[11],&tmp_int[12],&tmp_int[13],&tmp_int[14],&tmp_int[15],&tmp_int[16],
+		&tmp_int[17],&tmp_int[18],
+		&tmp_int[19],&tmp_int[20],&tmp_int[21],&tmp_int[22],&tmp_int[23],&len);
+
+	if(s==25)
+	{
+		hom.homun_id		= tmp_int[ 0];
+		hom.account_id		= tmp_int[ 1];
+		hom.char_id			= tmp_int[ 2];
+		hom.base_exp		= tmp_int[ 3];
+		safestrcpy(hom.name, tmp_str, sizeof(hom.name));
+		hom.hp				= tmp_int[ 4];
+		hom.max_hp			= tmp_int[ 5];
+		hom.sp				= tmp_int[ 6];
+		hom.max_sp			= tmp_int[ 7];
+		hom.class_			= tmp_int[ 8];
+		hom.status_point	= tmp_int[ 9];
+		hom.skill_point		= tmp_int[10];
+		hom.str				= tmp_int[11];
+		hom.agi				= tmp_int[12];
+		hom.vit				= tmp_int[13];
+		hom.int_			= tmp_int[14];
+		hom.dex				= tmp_int[15];
+		hom.luk				= tmp_int[16];
+		hom.option			= tmp_int[17];
+		hom.equip			= tmp_int[18];
+		hom.intimate		= tmp_int[19];
+		hom.hungry			= tmp_int[20];
+		hom.base_level		= tmp_int[21];
+		hom.rename_flag		= tmp_int[22];
+		hom.incubate		= tmp_int[23];
+
+		if(hom.hungry < 0)
+			hom.hungry = 0;
+		else if(hom.hungry > 100)
+			hom.hungry = 100;
+		if(hom.intimate > 100000)
+			hom.intimate = 100000;
+
+		ret = true;
+	}
+
+	if(ret)
+	{	
+		// start with the next char after the delimiter
+		int next = len++;
+		size_t i;
+
+		for(i=0; i<MAX_HOMSKILL; ++i)
+		{
+			hom.skill[i].id = i;
+			hom.skill[i].lv = 0;
+			hom.skill[i].flag = 0;
+		}
+		for(i = 0; str[next]; ++i)
+		{
+			if( sscanf(str+next, "%d,%d%n", &tmp_int[0], &tmp_int[1], &len) != 2 )
+			{
+				ret = false;
+				break;
+			}
+			if( tmp_int[0] < MAX_HOMSKILL )
+			{
+				hom.skill[tmp_int[0]].lv = tmp_int[1];
+			}
+			next += len;
+			if(str[next] == '\t')
+				next++;
+		}
+	}
+	return ret;
+}
+
+bool CHomunculusDB_txt::do_readHomunculus()
+{
+	char line[65536];
+	int c=0;
+	CHomunculus hom;
+	FILE *fp=basics::safefopen(homunculus_filename(),"r");
+	if(fp==NULL){
+		ShowMessage("cant't read : %s\n",(const char*)homunculus_filename());
+		return 1;
+	}
+	while(fgets(line,sizeof(line),fp))
+	{
+		c++;
+		if( !get_prepared_line(line) )
+			continue;
+
+		if( homunculus_from_string(line,hom) )
+		{
+			cHomunculusList.insert(hom);
+		}
+		else
+		{
+			ShowError("Homunculus: broken data [%s] line %d\n", (const char*)homunculus_filename(), c);
+		}
+	}
+	fclose(fp);
+	return true;
+}
+bool CHomunculusDB_txt::do_saveHomunculus()
+{
+	char line[65536];
+	int lock;
+	size_t i, sz;
+	FILE *fp=lock_fopen(homunculus_filename(), lock);
+
+	if( fp==NULL )
+	{
+		ShowError("Homunculus: cannot open [%s]\n",(const char*)homunculus_filename());
+		return false;
+	}
+	for(i=0; i<cHomunculusList.size(); ++i)
+	{
+		sz = homunculus_to_string(line, sizeof(line), cHomunculusList[i]);
+		if(sz>0) fprintf(fp,"%s"RETCODE,line);
+	}
+	lock_fclose(fp, homunculus_filename(), lock);
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// construct/destruct
+CHomunculusDB_txt::CHomunculusDB_txt(const char *dbcfgfile) :
+	CTimerBase(60000),		// 60sec save interval
+	CHomunculusDB_mem(dbcfgfile),
+	homunculus_filename("homunculus_filename", "save/homunculus.txt"),
+	savecount(0)
+{
+	this->init(NULL);
+}
+CHomunculusDB_txt::~CHomunculusDB_txt()
+{
+	this->close();
+}
+
+///////////////////////////////////////////////////////////////////////////
+// normal function
+bool CHomunculusDB_txt::init(const char* configfile)
+{	// init db
+	if(configfile) basics::CParamBase::loadFile(configfile);
+	return this->do_readHomunculus();
+}
+bool CHomunculusDB_txt::close()
+{
+	return this->do_saveHomunculus();
+}
+
+///////////////////////////////////////////////////////////////////////////
+// timer function
+bool CHomunculusDB_txt::timeruserfunc(unsigned long tick)
+{
+	// we only save if necessary:
+	if( this->savecount > 10 )
+	{
+		this->savecount=0;
+		this->do_saveHomunculus();
+	}
+	return true;
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////

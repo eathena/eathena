@@ -69,15 +69,128 @@ int map_session_data::walktimer_func_old(int tid, unsigned long tick, int id, ba
 }
 
 
-// slight port of the old function until fightable class gets inserted
-int pc_attack_timer_old(struct map_session_data &xsd, unsigned long tick);
 
-int map_session_data::attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
+int map_session_data::attacktimer_func(int tid, unsigned long tick, int id, basics::numptr data)
 {	
-	return pc_attack_timer_old(*this, tick);
+	struct map_session_data *sd = this;	// to lazy to remove the pointer usage
+	struct status_change *sc_data;
+	short *opt;
+	int dist,skill,range;
+
+	sd->idletime = last_tick;
+	if( sd->block_list::prev == NULL )
+		return 0;
+
+	block_list* bl=map_id2bl(sd->target_id);
+	if(bl==NULL || bl->prev == NULL)
+		return 0;
+
+	if(bl->type == BL_PC) {
+		if (pc_isdead(*((struct map_session_data *)bl)))
+			return 0;
+		else if (pc_ishiding(*((struct map_session_data *)bl)))
+			return 0;
+	}
+
+	// “¯‚¶map‚Å‚È‚¢‚È‚çU?‚µ‚È‚¢
+	// PC‚ªŽ€‚ñ‚Å‚Ä‚àU?‚µ‚È‚¢
+	if(sd->block_list::m != bl->m || pc_isdead(*sd))
+		return 0;
+
+	if( sd->opt1>0 || sd->status.option&2 || pc_ischasewalk(*sd))	// ˆÙí‚È‚Ç‚ÅU?‚Å‚«‚È‚¢
+		return 0;
+
+	if(sd->sc_data[SC_AUTOCOUNTER].timer != -1)
+		return 0;
+	if(sd->sc_data[SC_BLADESTOP].timer != -1)
+		return 0;
+	if(sd->sc_data[SC_GRAVITATION].timer != -1)
+		return 0;
+
+	if((opt = status_get_option(bl)) != NULL && *opt&0x42)
+		return 0;
+	if((sc_data = status_get_sc_data(bl)) != NULL) {
+		if (sc_data[SC_TRICKDEAD].timer != -1 ||
+			sc_data[SC_BASILICA].timer != -1)
+		return 0;
+	}
+
+	if(sd->skilltimer != -1 && pc_checkskill(*sd,SA_FREECAST) <= 0)
+		return 0;
+
+	if(!battle_config.sdelay_attack_enable && pc_checkskill(*sd,SA_FREECAST) <= 0) {
+		if(DIFF_TICK(tick, sd->canact_tick) < 0) {
+			clif_skill_fail(*sd,1,4,0);
+			return 0;
+		}
+	}
+
+	if(sd->status.weapon == 11 && sd->equip_index[10] >= MAX_INVENTORY) {
+		clif_arrow_fail(*sd,0);
+		return 0;
+	}
+
+	dist = distance(*sd,*bl);
+	range = sd->attackrange;
+	if(sd->status.weapon != 11) range++;
+	if( dist > range ){	// ? ‚©‚È‚¢‚Ì‚ÅˆÚ“®
+		if( sd->can_reach(bl->x,bl->y) )
+			clif_movetoattack(*sd,*bl);
+		return 0;
+	}
+
+	if(dist <= range && !battle_check_range(sd,bl,range) ) {
+		if( sd->can_reach(bl->x,bl->y) && DIFF_TICK(sd->canmove_tick,tick)<0 && (sd->sc_data[SC_ANKLE].timer == -1 || sd->sc_data[SC_SPIDERWEB].timer == -1))
+			sd->walktoxy(bl->x,bl->y);
+		sd->attackable_tick = tick + (sd->aspd<<1);
+	}
+	else
+	{	// On this point, we have reached our target, and guarantee an attack, so.. uncloak. [Skotlex]
+		if(pc_iscloaking(*sd))
+			status_change_end(sd, SC_CLOAKING, -1);
+
+		if(battle_config.pc_attack_direction_change)
+			sd->dir=sd->head_dir=sd->get_direction(*bl);	// Œü‚«Ý’è
+
+		if( sd->is_walking() )
+			sd->stop_walking(1);
+
+		if(sd->sc_data[SC_COMBO].timer == -1)
+		{
+			block_list::map_freeblock_lock();
+			sd->stop_walking(0);
+			sd->attacktarget_lv = battle_weapon_attack(sd,bl,tick,0);
+			// &2 = ? - Celest
+			if(!(battle_config.pc_cloak_check_type&2) && sd->sc_data[SC_CLOAKING].timer != -1)
+				status_change_end(sd,SC_CLOAKING,-1);
+			if(sd->attacktarget_lv >0 && sd->status.pet_id > 0 && sd->pd && battle_config.pet_attack_support)
+				pet_target_check(*sd,bl,0);
+			block_list::map_freeblock_unlock();
+			if(sd->skilltimer != -1 && (skill = pc_checkskill(*sd,SA_FREECAST)) > 0 ) // ƒtƒŠ?ƒLƒƒƒXƒg
+				sd->attackable_tick = tick + ((sd->aspd<<1)*(150 - skill*5)/100);
+			else
+				sd->attackable_tick = tick + (sd->aspd<<1);
+		}
+		else if( DIFF_TICK(sd->attackable_tick,tick) <= 0 )
+		{
+			if(sd->skilltimer != -1 && (skill = pc_checkskill(*sd,SA_FREECAST)) > 0 ) // ƒtƒŠ?ƒLƒƒƒXƒg
+			{
+				sd->attackable_tick = tick + ((sd->aspd<<1)*(150 - skill*5)/100);
+			}
+			else
+				sd->attackable_tick = tick + (sd->aspd<<1);
+		}
+	}
+	if( DIFF_TICK(sd->attackable_tick,tick) < (int)(battle_config.max_aspd_interval<<1) )
+		sd->attackable_tick = tick + (battle_config.max_aspd_interval<<1);
+
+	if(sd->fightable::attack_continue)
+		sd->attacktimer=add_timer(sd->attackable_tick,fightable::attacktimer_entry,sd->block_list::id,0);
+
+	return 0;
 }
 
-int map_session_data::skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
+int map_session_data::skilltimer_func(int tid, unsigned long tick, int id, basics::numptr data)
 {	
 	return 0;
 }
@@ -220,7 +333,7 @@ int map_session_data::walktoxy_sub_old()
 {
 	int i;
 
-	if( !this->walkpath.path_search(this->block_list::m,this->block_list::x,this->block_list::y,this->target.x,this->target.y,0) )
+	if( !this->walkpath.path_search(this->block_list::m,this->block_list::x,this->block_list::y,this->walktarget.x,this->walktarget.y,0) )
 		return 1;
 
 	this->walkpath.change_target = 0;
@@ -244,15 +357,12 @@ int map_session_data::walktoxy_sub_old()
  */
 int map_session_data::walktoxy_old(unsigned short x,unsigned short y, bool easy)
 {
-// new
-//	return sd.walkto(x,y);
-// old
-	this->target.x = x;
-	this->target.y = y;
+	this->walktarget.x = x;
+	this->walktarget.y = y;
 	this->idletime = last_tick;
 
 	if( this->sc_data[SC_CONFUSION].timer != -1 ) //Randomize the target position
-		this->random_position(this->target);
+		this->random_position(this->walktarget);
 
 	if( this->walktimer != -1 && this->walkpath.change_target == 0)
 	{	// Œ»Ý?‚¢‚Ä‚¢‚éÅ’†‚Ì–Ú“I’n?X‚È‚Ì‚Åƒ}ƒX–Ú‚Ì’†S‚É?‚½ŽbÉ
@@ -289,7 +399,7 @@ int map_session_data::walktoxy_old(unsigned short x,unsigned short y, bool easy)
 			}
 		}
 	}
-	return 0;
+	return 1;
 }
 
 /*==========================================
@@ -304,8 +414,8 @@ int map_session_data::stop_walking_old(int type)
 		this->walktimer = -1;
 	}
 	this->walkpath.clear();
-	this->target.x = this->block_list::x;
-	this->target.y = this->block_list::y;
+	this->walktarget.x = this->block_list::x;
+	this->walktarget.y = this->block_list::y;
 	if( type&0x01 )
 		clif_fixpos(*this);
 	if( type&0x02 && battle_config.pc_damage_delay )
@@ -438,6 +548,12 @@ void map_session_data::do_changestate(int state,int type)
 {
 }
 
+/// do object depending stuff for attacking
+void map_session_data::do_attack()
+{
+	this->idletime = last_tick;
+}
+
 
 
 /*==========================================
@@ -497,131 +613,62 @@ int pc_movepos(struct map_session_data &sd, unsigned short x,unsigned short y)
 }
 
 
+
 /*==========================================
- * PC‚ÌU? (timer??)
+ * U?—v‹
+ * type‚ª1‚È‚ç??U?
  *------------------------------------------
  */
-int pc_attack_timer_old(struct map_session_data &xsd, unsigned long tick)
+int pc_attack(struct map_session_data &sd, uint32 target_id, int type)
 {
-	struct map_session_data *sd = &xsd;	// to lazy to remove the pointer usage
-	struct status_change *sc_data;
-	short *opt;
-	int dist,skill,range;
+	struct block_list *bl;
+	int d;
 
-	sd->idletime = last_tick;
-	if( sd->block_list::prev == NULL )
-		return 0;
+	bl=map_id2bl(target_id);
+	if(bl==NULL)
+		return 1;
 
-	block_list* bl=map_id2bl(sd->attacktarget);
-	if(bl==NULL || bl->prev == NULL)
-		return 0;
+	sd.idletime = last_tick;
 
-	if(bl->type == BL_PC) {
-		if (pc_isdead(*((struct map_session_data *)bl)))
-			return 0;
-		else if (pc_ishiding(*((struct map_session_data *)bl)))
-			return 0;
-	}
-
-	// “¯‚¶map‚Å‚È‚¢‚È‚çU?‚µ‚È‚¢
-	// PC‚ªŽ€‚ñ‚Å‚Ä‚àU?‚µ‚È‚¢
-	if(sd->block_list::m != bl->m || pc_isdead(*sd))
-		return 0;
-
-	if( sd->opt1>0 || sd->status.option&2 || pc_ischasewalk(*sd))	// ˆÙí‚È‚Ç‚ÅU?‚Å‚«‚È‚¢
-		return 0;
-
-	if(sd->sc_data[SC_AUTOCOUNTER].timer != -1)
-		return 0;
-	if(sd->sc_data[SC_BLADESTOP].timer != -1)
-		return 0;
-	if(sd->sc_data[SC_GRAVITATION].timer != -1)
-		return 0;
-
-	if((opt = status_get_option(bl)) != NULL && *opt&0x42)
-		return 0;
-	if((sc_data = status_get_sc_data(bl)) != NULL) {
-		if (sc_data[SC_TRICKDEAD].timer != -1 ||
-			sc_data[SC_BASILICA].timer != -1)
+	if(bl->type==BL_NPC) { // monster npcs [Valaris]
+		npc_click(sd,target_id); // submitted by leinsirk10 [Celest]
 		return 0;
 	}
 
-	if(sd->skilltimer != -1 && pc_checkskill(*sd,SA_FREECAST) <= 0)
-		return 0;
+	if(battle_check_target(&sd,bl,BCT_ENEMY) <= 0)
+		return 1;
+	if(sd.attacktimer != -1)
+		pc_stopattack(sd);
+	sd.target_id=target_id;
+	sd.attack_continue=type;
 
-	if(!battle_config.sdelay_attack_enable && pc_checkskill(*sd,SA_FREECAST) <= 0) {
-		if(DIFF_TICK(tick, sd->canact_tick) < 0) {
-			clif_skill_fail(*sd,1,4,0);
-			return 0;
-		}
+	d=DIFF_TICK(sd.attackable_tick,gettick());
+
+	if(d>0 && d<2000){	// U?delay’†
+		sd.attacktimer=add_timer(sd.attackable_tick,fightable::attacktimer_entry,sd.block_list::id,0);
+	} else {
+		// –{?timer??‚È‚Ì‚Åˆø?‚ð‡‚í‚¹‚é
+		fightable::attacktimer_entry(-1,gettick(),sd.block_list::id,0);
 	}
-
-	if(sd->status.weapon == 11 && sd->equip_index[10] >= MAX_INVENTORY) {
-		clif_arrow_fail(*sd,0);
-		return 0;
-	}
-
-	dist = distance(*sd,*bl);
-	range = sd->attackrange;
-	if(sd->status.weapon != 11) range++;
-	if( dist > range ){	// ? ‚©‚È‚¢‚Ì‚ÅˆÚ“®
-		if( sd->can_reach(bl->x,bl->y) )
-			clif_movetoattack(*sd,*bl);
-		return 0;
-	}
-
-	if(dist <= range && !battle_check_range(sd,bl,range) ) {
-		if( sd->can_reach(bl->x,bl->y) && DIFF_TICK(sd->canmove_tick,tick)<0 && (sd->sc_data[SC_ANKLE].timer == -1 || sd->sc_data[SC_SPIDERWEB].timer == -1))
-			sd->walktoxy(bl->x,bl->y);
-		sd->attackable_tick = tick + (sd->aspd<<1);
-	}
-	else
-	{	// On this point, we have reached our target, and guarantee an attack, so.. uncloak. [Skotlex]
-		if(pc_iscloaking(*sd))
-			status_change_end(sd, SC_CLOAKING, -1);
-
-		if(battle_config.pc_attack_direction_change)
-			sd->dir=sd->head_dir=sd->get_direction(*bl);	// Œü‚«Ý’è
-
-		if( sd->is_walking() )
-			sd->stop_walking(1);
-
-		if(sd->sc_data[SC_COMBO].timer == -1)
-		{
-			block_list::map_freeblock_lock();
-			sd->stop_walking(0);
-			sd->attacktarget_lv = battle_weapon_attack(sd,bl,tick,0);
-			// &2 = ? - Celest
-			if(!(battle_config.pc_cloak_check_type&2) && sd->sc_data[SC_CLOAKING].timer != -1)
-				status_change_end(sd,SC_CLOAKING,-1);
-			if(sd->attacktarget_lv >0 && sd->status.pet_id > 0 && sd->pd && sd->petDB && battle_config.pet_attack_support)
-				pet_target_check(*sd,bl,0);
-			block_list::map_freeblock_unlock();
-			if(sd->skilltimer != -1 && (skill = pc_checkskill(*sd,SA_FREECAST)) > 0 ) // ƒtƒŠ?ƒLƒƒƒXƒg
-				sd->attackable_tick = tick + ((sd->aspd<<1)*(150 - skill*5)/100);
-			else
-				sd->attackable_tick = tick + (sd->aspd<<1);
-		}
-		else if( DIFF_TICK(sd->attackable_tick,tick) <= 0 )
-		{
-			if(sd->skilltimer != -1 && (skill = pc_checkskill(*sd,SA_FREECAST)) > 0 ) // ƒtƒŠ?ƒLƒƒƒXƒg
-			{
-				sd->attackable_tick = tick + ((sd->aspd<<1)*(150 - skill*5)/100);
-			}
-			else
-				sd->attackable_tick = tick + (sd->aspd<<1);
-		}
-	}
-	if( DIFF_TICK(sd->attackable_tick,tick) < (int)(battle_config.max_aspd_interval<<1) )
-		sd->attackable_tick = tick + (battle_config.max_aspd_interval<<1);
-
-	if(sd->state.attack_continue)
-		sd->attacktimer=add_timer(sd->attackable_tick,fightable::attacktimer_entry,sd->block_list::id,0);
 
 	return 0;
 }
 
+/*==========================================
+ * ??U?’âŽ~
+ *------------------------------------------
+ */
+int pc_stopattack(struct map_session_data &sd)
+{
+	if(sd.attacktimer != -1) {
+		delete_timer(sd.attacktimer,fightable::attacktimer_entry);
+		sd.attacktimer=-1;
+	}
+	sd.target_id=0;
+	sd.attack_continue=0;
 
+	return 0;
+}
 
 
 
@@ -1193,7 +1240,6 @@ int pc_setnewpc(int fd, struct map_session_data &sd, uint32 account_id, uint32 c
 	// pet
 //	sd.petDB = NULL;
 //	sd.pd = NULL;
-	sd.pet_hungry_timer = -1;
 //	memset(&sd.pet, 0, sizeof(struct petstatus));
 
 	// ƒXƒe?ƒ^ƒXˆÙí‚Ì‰Šú‰»
@@ -1294,6 +1340,11 @@ int pc_authok(uint32 id, uint32 login_id2, time_t connect_until_time, unsigned c
 	// pet
 	if (sd->status.pet_id > 0)
 		intif_request_petdata(sd->status.account_id, sd->status.char_id, sd->status.pet_id);
+
+	// hom
+	if(sd->status.homun_id > 0)
+		intif_request_homdata(sd->status.account_id,sd->status.char_id,sd->status.homun_id);
+
 
 	// ƒp?ƒeƒBAƒMƒ‹ƒhƒf?ƒ^‚Ì—v‹
 	if (sd->status.party_id > 0 && (p = party_search(sd->status.party_id)) == NULL)
@@ -3707,7 +3758,6 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 					intif_delete_petdata(sd.status.pet_id);
 					sd.status.pet_id = 0;
 					sd.pd = NULL;
-					sd.petDB = NULL;
 					if(battle_config.pet_status_support)
 						status_calc_pc(sd,2);
 				}
@@ -3772,8 +3822,8 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 
 	if(m == sd.block_list::m)
 	{	// “¯‚¶ƒ}ƒbƒv‚È‚Ì‚Åƒ_ƒ“ƒXƒ†ƒjƒbƒgˆø‚«Œp‚¬
-		sd.target.x = x;
-		sd.target.y = y;
+		sd.walktarget.x = x;
+		sd.walktarget.y = y;
 		skill_stop_dancing(&sd, 2); //ˆÚ“®æ‚Éƒ†ƒjƒbƒg‚ðˆÚ“®‚·‚é‚©‚Ç‚¤‚©‚Ì”»’f‚à‚·‚é
 	}
 	else
@@ -3793,7 +3843,6 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 				intif_delete_petdata(sd.status.pet_id);
 				sd.status.pet_id = 0;
 				sd.pd = NULL;
-				sd.petDB = NULL;
 				if(battle_config.pet_status_support)
 					status_calc_pc(sd,2);
 				pc_clean_skilltree(sd);
@@ -3828,8 +3877,8 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 	if(sd.status.pet_id > 0 && sd.pd && sd.pet.intimate > 0)
 	{
 		sd.pd->block_list::m = m;
-		sd.pd->block_list::x = sd.pd->target.x = x;
-		sd.pd->block_list::y = sd.pd->target.y = y;
+		sd.pd->block_list::x = sd.pd->walktarget.x = x;
+		sd.pd->block_list::y = sd.pd->walktarget.y = y;
 		sd.pd->dir  = sd.dir;
 	}
 
@@ -4107,61 +4156,7 @@ int pc_calc_upper(int b_class)
 }
 
 
-/*==========================================
- * U?—v‹
- * type‚ª1‚È‚ç??U?
- *------------------------------------------
- */
-int pc_attack(struct map_session_data &sd,uint32 target_id,int type)
-{
-	struct block_list *bl;
-	int d;
 
-	bl=map_id2bl(target_id);
-	if(bl==NULL)
-		return 1;
-
-	sd.idletime = last_tick;
-
-	if(bl->type==BL_NPC) { // monster npcs [Valaris]
-		npc_click(sd,target_id); // submitted by leinsirk10 [Celest]
-		return 0;
-	}
-
-	if(battle_check_target(&sd,bl,BCT_ENEMY) <= 0)
-		return 1;
-	if(sd.attacktimer != -1)
-		pc_stopattack(sd);
-	sd.attacktarget=target_id;
-	sd.state.attack_continue=type;
-
-	d=DIFF_TICK(sd.attackable_tick,gettick());
-
-	if(d>0 && d<2000){	// U?delay’†
-		sd.attacktimer=add_timer(sd.attackable_tick,fightable::attacktimer_entry,sd.block_list::id,0);
-	} else {
-		// –{?timer??‚È‚Ì‚Åˆø?‚ð‡‚í‚¹‚é
-		fightable::attacktimer_entry(-1,gettick(),sd.block_list::id,0);
-	}
-
-	return 0;
-}
-
-/*==========================================
- * ??U?’âŽ~
- *------------------------------------------
- */
-int pc_stopattack(struct map_session_data &sd)
-{
-	if(sd.attacktimer != -1) {
-		delete_timer(sd.attacktimer,fightable::attacktimer_entry);
-		sd.attacktimer=-1;
-	}
-	sd.attacktarget=0;
-	sd.state.attack_continue=0;
-
-	return 0;
-}
 
 int pc_follow_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
@@ -4905,8 +4900,6 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 	size_t i=0,j=0;
 	struct pc_base_job s_class;
 
-	//?¶‚â—{Žq‚Ìê‡‚ÌŒ³‚ÌE‹Æ‚ðŽZo‚·‚é
-	s_class = pc_calc_base_job(sd.status.class_);
 	// ?‚ÉŽ€‚ñ‚Å‚¢‚½‚ç–³?
 	if(pc_isdead(sd))
 		return 0;
@@ -4915,6 +4908,8 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 		pc_setstand(sd);
 		skill_gangsterparadise(&sd,0);
 	}
+	//?¶‚â—{Žq‚Ìê‡‚ÌŒ³‚ÌE‹Æ‚ðŽZo‚·‚é
+	s_class = pc_calc_base_job(sd.status.class_);
 
 	// ? ‚¢‚Ä‚¢‚½‚ç‘«‚ðŽ~‚ß‚é
 	if( sd.sc_data )
@@ -4949,7 +4944,7 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 	else
 		sd.status.hp = 0;
 
-	if(sd.status.pet_id > 0 && sd.pd && sd.petDB && battle_config.pet_damage_support && src)
+	if(sd.status.pet_id > 0 && sd.pd && battle_config.pet_damage_support && src)
 		pet_target_check(sd,src,1);
 
 	if (sd.sc_data[SC_TRICKDEAD].timer != -1)
@@ -4986,10 +4981,10 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 	if(sd.vender_id)
 		vending_closevending(sd);
 
-	if(sd.status.pet_id > 0 && sd.pd && sd.petDB)
+	if(sd.status.pet_id > 0 && sd.pd)
 	{
-		if(sd.pet.intimate > sd.petDB->die)
-			sd.pet.intimate	-= sd.petDB->die;
+		if(sd.pet.intimate > sd.pd->petDB.die)
+			sd.pet.intimate	-= sd.pd->petDB.die;
 		else
 			sd.pet.intimate = 0;
 		clif_send_petdata(sd,1,sd.pet.intimate);

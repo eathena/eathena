@@ -140,7 +140,6 @@ int mob_spawn_guardian(struct map_session_data *sd,const char *mapname,	// Spawn
 
 
 int mob_target(struct mob_data &md,struct block_list *bl,int dist);
-int mob_unlocktarget(struct mob_data &md,unsigned long tick);
 int mob_stopattack(struct mob_data &md);
 int mob_spawn(uint32 id);
 int mob_setdelayspawn(uint32 id);
@@ -165,7 +164,7 @@ int mobskill_castend_pos(int tid, unsigned long tick, int id, basics::numptr dat
 int mob_summonslave(struct mob_data &md2,int *value,size_t amount,unsigned short skillid);
 unsigned int mob_countslave(struct mob_data &md);
 
-int mob_gvmobcheck(struct map_session_data &sd, struct block_list *bl);
+bool mob_gvmobcheck(struct map_session_data &sd, struct block_list &bl);
 void mob_reload(void);
 
 #endif

@@ -29,6 +29,7 @@
 #include "script.h"
 #include "guild.h"
 #include "pet.h"
+#include "homun.h"
 #include "atcommand.h"
 #include "charcommand.h"
 #include "log.h"
@@ -182,10 +183,6 @@ int map_getusers(void)
 	return users;
 }
 
-
-
-
-
 ///////////////////////////////////////////////////////////////////////////////
 /// add id to id_db
 /// * id_dbへblを追加
@@ -273,42 +270,45 @@ bool block_list::map_delblock()
 		if(this->next!=NULL)
 		{	// prevがNULLでnextがNULLでないのは有ってはならない
 			if(battle_config.error_log)
-				ShowMessage("map_delblock error : bl->next!=NULL, (type=%i)\n", this->type);
+				ShowError("map_delblock error : bl->next!=NULL, (type=%i)\n", this->type);
 		}
 	}
 	else if( map_num && this->m < map_num)
 	{
+		const size_t pos = this->x/BLOCK_SIZE+(this->y/BLOCK_SIZE)*maps[this->m].bxs;
+		map_data::_objects &obj = maps[this->m].objects[pos];
+
 		if( this->type == BL_PC )
 		{
 			if( maps[this->m].users>0 && --maps[this->m].users == 0 && battle_config.dynamic_mobs)	//[Skotlex]
 				map_removemobs(this->m);
 		}
+		if(this->type==BL_MOB)
+		{
+			if( obj.cnt_mob > 0 )
+				--obj.cnt_mob;
+		}
+		else
+		{
+			if( obj.cnt_blk > 0 )
+				--obj.cnt_blk;
+		}
+
 		if( this->next )
 			this->next->prev = this->prev;
 
 		if( this->prev == &bl_head )
 		{	// head entry
-			const size_t pos = this->x/BLOCK_SIZE+(this->y/BLOCK_SIZE)*maps[this->m].bxs;
-			map_data::_objects &obj = maps[this->m].objects[pos];
-
-			// リストの頭なので、maps[]のblock_listを更新する
 			if(this->type==BL_MOB)
-			{
 				obj.root_mob = this->next;
-				if( obj.cnt_mob > 0 )
-					--obj.cnt_mob;
-			}
 			else
-			{
 				obj.root_blk = this->next;
-				if( obj.cnt_blk > 0 )
-					--obj.cnt_blk;
-			}
 		}
 		else
 		{
 			this->prev->next = this->next;
 		}
+
 		this->next = NULL;
 		this->prev = NULL;
 		return true;
@@ -410,6 +410,8 @@ int map_countnearpc (unsigned short m, int x, int y)
 	if( m>MAX_MAP_PER_SERVER || maps[m].users==0 )
 		return 0;
 
+	block_list::map_freeblock_lock();
+
 	for(by=y/BLOCK_SIZE-AREA_SIZE/BLOCK_SIZE-1;by<=y/BLOCK_SIZE+AREA_SIZE/BLOCK_SIZE+1; ++by)
 	{
 		if (by < 0 || by >= maps[m].bys)
@@ -427,7 +429,7 @@ int map_countnearpc (unsigned short m, int x, int y)
 			}
 		}
 	}
-
+	block_list::map_freeblock_unlock();
 	return c;
 }
 
@@ -444,6 +446,7 @@ int map_count_oncell(unsigned short m, int x, int y, int type)
 
 	if (x < 0 || y < 0 || (x >= maps[m].xs) || (y >= maps[m].ys))
 		return 0;
+	block_list::map_freeblock_lock();
 
 	bx = x/BLOCK_SIZE;
 	by = y/BLOCK_SIZE;
@@ -468,6 +471,7 @@ int map_count_oncell(unsigned short m, int x, int y, int type)
 				count++;
 		}
 	}
+	block_list::map_freeblock_unlock();
 	return count;
 }
 /*
@@ -478,11 +482,13 @@ struct skill_unit *map_find_skill_unit_oncell(struct block_list &target,int x,in
 	int m,bx,by;
 	struct block_list *bl;
 	int i,c;
-	struct skill_unit *unit;
+	struct skill_unit *unit, *ret=NULL;
 	m = target.m;
 
 	if (x < 0 || y < 0 || (x >= maps[m].xs) || (y >= maps[m].ys))
 		return NULL;
+	block_list::map_freeblock_lock();
+
 	bx = x/BLOCK_SIZE;
 	by = y/BLOCK_SIZE;
 
@@ -497,9 +503,13 @@ struct skill_unit *map_find_skill_unit_oncell(struct block_list &target,int x,in
 				!unit->group || unit->group->skill_id!=skill_id)
 			continue;
 		if (battle_check_target(unit,&target,unit->group->target_flag)>0)
-			return unit;
+		{
+			ret = unit;
+			break;
+		}
 	}
-	return NULL;
+	block_list::map_freeblock_unlock();
+	return ret;
 }
 
 
@@ -867,6 +877,7 @@ int CMap::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y
 
 	// no map
 	if(m >= MAX_MAP_PER_SERVER) return 0;
+	block_list::map_freeblock_lock();	// メモリからの解放を禁止する
 
 	// xy out of range
 	if (x0 < 0) x0 = 0;
@@ -966,8 +977,6 @@ int CMap::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y
 			ShowWarning("map_foreachinpath: *WARNING* block count too many!\n");
 	}
 
-	block_list::map_freeblock_lock();	// メモリからの解放を禁止する
-
 	for(i=blockcount;i<bl_list_count;++i)
 	{
 		if(bl_list[i] && bl_list[i]->prev)	// 有?かどうかチェック
@@ -988,6 +997,7 @@ int CMap::foreachincell(const CMapProcessor& elem, unsigned short m,int x,int y,
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
 	struct block_list *bl=NULL;
 	int blockcount=bl_list_count,i,c;
+	block_list::map_freeblock_lock();	// メモリからの解放を禁止する
 
 	by=y/BLOCK_SIZE;
 	bx=x/BLOCK_SIZE;
@@ -1021,8 +1031,6 @@ int CMap::foreachincell(const CMapProcessor& elem, unsigned short m,int x,int y,
 			ShowMessage("map_foreachincell: *WARNING* block count too many!\n");
 	}
 
-	block_list::map_freeblock_lock();	// メモリからの解放を禁止する
-
 	for(i=blockcount;i<bl_list_count;++i)
 	{
 		if(bl_list[i] && bl_list[i]->prev)	// 有?かどうかチェック
@@ -1039,6 +1047,7 @@ int CMap::foreachinmovearea(const CMapProcessor& elem, unsigned short m,int x0,i
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
 	struct block_list *bl=NULL;
 	int blockcount=bl_list_count,i,c;
+	block_list::map_freeblock_lock();	// メモリからの解放を禁止する
 
 	if(x0>x1) basics::swap(x0,x1);
 	if(y0>y1) basics::swap(y0,y1);
@@ -1127,8 +1136,6 @@ int CMap::foreachinmovearea(const CMapProcessor& elem, unsigned short m,int x0,i
 			ShowMessage("map_foreachinarea: *WARNING* block count too many!\n");
 	}
 
-	block_list::map_freeblock_lock();	// メモリからの解放を禁止する
-
 	for(i=blockcount;i<bl_list_count;++i)
 	{
 		if(bl_list[i] && bl_list[i]->prev)
@@ -1153,6 +1160,7 @@ int CMap::foreachinarea(const CMapProcessor& elem, unsigned short m, int x0,int 
 
 	if(m >= map_num )
 		return 0;
+	block_list::map_freeblock_lock();	// メモリからの解放を禁止する
 	
 	if(x0>x1) basics::swap(x0,x1);
 	if(y0>y1) basics::swap(y0,y1);
@@ -1193,7 +1201,6 @@ int CMap::foreachinarea(const CMapProcessor& elem, unsigned short m, int x0,int 
 			ShowMessage("map_foreachinarea: *WARNING* block count too many!\n");
 	}
 
-	block_list::map_freeblock_lock();	// メモリからの解放を禁止する
 
 	for(i=blockcount;i<bl_list_count;++i)
 		if(bl_list[i] && bl_list[i]->prev)	// 有?かどうかチェック
@@ -1214,6 +1221,7 @@ int CMap::foreachpartymemberonmap(const CMapProcessor& elem, struct map_session_
 	
 	if((p=party_search(sd.status.party_id))==NULL)
 		return 0;
+	block_list::map_freeblock_lock();	// メモリからの解放を禁止する
 
 	x0=sd.block_list::x-AREA_SIZE;
 	y0=sd.block_list::y-AREA_SIZE;
@@ -1235,7 +1243,6 @@ int CMap::foreachpartymemberonmap(const CMapProcessor& elem, struct map_session_
 		}
 	}
 
-	block_list::map_freeblock_lock();	// メモリからの解放を禁止する
 	for(i=0;i<blockcount;++i)
 	{
 		if(list[i] && list[i]->prev)	// 有効かどうかチェック
@@ -1251,6 +1258,7 @@ int CMap::foreachobject(const CMapProcessor& elem,int type)
 	int returncount=0;
 	int i;
 	int blockcount=bl_list_count;
+	block_list::map_freeblock_lock();
 
 	for(i=2;i<=last_object_id;++i)
 	{
@@ -1269,7 +1277,6 @@ int CMap::foreachobject(const CMapProcessor& elem,int type)
 		}
 	}
 
-	block_list::map_freeblock_lock();
 
 	for(i=blockcount;i<bl_list_count;++i)
 	{
@@ -2500,7 +2507,6 @@ int map_quit(struct map_session_data &sd)
 			intif_delete_petdata(sd.status.pet_id);
 			sd.status.pet_id = 0;
 			sd.pd = NULL;
-			sd.petDB = NULL;
 		}
 		else
 			intif_save_petdata(sd.status.account_id,sd.pet);
@@ -2508,6 +2514,7 @@ int map_quit(struct map_session_data &sd)
 	if(pc_isdead(sd))
 		pc_setrestartvalue(sd,2);
 
+	homun_data::clear_homunculus(sd);
 	pc_clean_skilltree(sd);
 	pc_makesavestatus(sd);
 	chrif_save(sd);
@@ -4424,6 +4431,7 @@ void do_final(void)
 	map_checknpcsleft();
 
 	do_final_pc();
+	do_final_homun();
 	do_final_pet();
 	do_final_guild();
 	do_final_party();
@@ -4616,6 +4624,7 @@ int do_init(int argc, char *argv[])
 	do_init_storage();
 	do_init_skill();
 	do_init_pet();
+	do_init_homun();
 	do_init_npc();
 	do_init_clif();
 	do_init_chrif();

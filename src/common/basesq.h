@@ -67,6 +67,8 @@ protected:
 	static basics::CParam< basics::string<> > tbl_guild_storage;
 	
 	static basics::CParam< basics::string<> > tbl_pet;
+	static basics::CParam< basics::string<> > tbl_homunculus;
+	static basics::CParam< basics::string<> > tbl_homunskill;
 
 	static basics::CParam<bool> wipe_sql;
 	static basics::CParam< basics::string<> > sql_engine;
@@ -386,6 +388,35 @@ public:
 	virtual bool savePet(const CPet& pet);
 };
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Homunculu Database Interface
+class CHomunculusDB_sql : public CHomunculusDBInterface, public CSQLParameter
+{
+public:
+	CHomunculusDB_sql(const char *dbcfgfile) : CSQLParameter(dbcfgfile)
+	{
+		init(dbcfgfile);
+	}
+	virtual ~CHomunculusDB_sql()
+	{
+		close();
+	}
+protected:
+	bool init(const char *dbcfgfile);
+	bool close()
+	{
+		return true;
+	}
+public:
+	virtual size_t size() const;
+	virtual CHomunculus& operator[](size_t i);
+
+	virtual bool searchHomunculus(uint32 hid, CHomunculus& hom);
+	virtual bool insertHomunculus(CHomunculus& hom);
+	virtual bool removeHomunculus(uint32 hid);
+	virtual bool saveHomunculus(const CHomunculus& hom);
+};
 
 #endif// defined(WITH_MYSQL)
 

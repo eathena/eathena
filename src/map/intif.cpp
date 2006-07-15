@@ -11,21 +11,24 @@
 #include "party.h"
 #include "guild.h"
 #include "pet.h"
+#include "homun.h"
 #include "nullpo.h"
 #include "showmsg.h"
 #include "utils.h"
 #include "malloc.h"
 static const int packet_len_table[]={
-	-1,-1,27,-1, -1, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
-	-1, 7, 0, 0,  0, 0, 0, 0, -1,11, 0, 0,  0, 0,  0, 0,
-	35,-1,11,15, 34,29, 7,-1,  0, 0, 0, 0,  0, 0,  0, 0,
-	10,-1,15, 0, 79,19, 7,-1,  0,-1,-1,-1, 14,67,186,-1,
-	 9, 9,-1, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
-	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
-	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
-	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
-	11,-1, 7, 3,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
+	-1,-1,27,-1, -1, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 0x3000-
+	-1, 7, 0, 0,  0, 0, 0, 0, -1,11, 0, 0,  0, 0,  0, 0,	// 0x3010-
+	35,-1,11,15, 34,29, 7,-1,  0, 0, 0, 0,  0, 0,  0, 0,	// 0x3020-
+	10,-1,15, 0, 79,19, 7,-1,  0,-1,-1,-1, 14,67,186,-1,	// 0x3030-
+	 9, 9,-1, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 0x3040-
+	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 0x3050-
+	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 0x3060-
+	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 0x3070-
+	11,-1, 7, 3,  0, 0, 0, 0,  0,-1, 3, 3,  0, 0,  0, 0,	// 0x3080-
+	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 0x3090-
 };
+
 
 extern int char_fd;		// inter serverのfdはchar_fdを使う
 
@@ -94,6 +97,100 @@ int intif_delete_petdata(uint32 pet_id)
 
 	return 0;
 }
+
+
+///////////////////////////////////////////////////////////////////////////////
+// homunculus
+///////////////////////////////////////////////////////////////////////////////
+int intif_create_homdata(uint32 account_id, uint32 char_id, const homun_data &hd)
+{
+	WFIFOW(char_fd,0) = 0x3088;
+	WFIFOW(char_fd,2) = sizeof(struct homunstatus) + 12;
+	WFIFOL(char_fd,4) = account_id;
+	WFIFOL(char_fd,8) = char_id;
+	homun_tobuffer(hd.status, WFIFOP(char_fd,12));
+	WFIFOSET(char_fd,sizeof(struct homunstatus) + 12);
+
+	return 0;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+int intif_request_homdata(uint32 account_id,uint32 char_id,uint32 homun_id)
+{
+	WFIFOW(char_fd,0) = 0x3089;
+	WFIFOL(char_fd,2) = account_id;
+	WFIFOL(char_fd,6) = char_id;
+	WFIFOL(char_fd,10)= homun_id;
+	WFIFOSET(char_fd,14);
+
+	return 0;
+}
+int intif_parse_RecvHomun(int fd)
+{
+	int len=RFIFOW(fd,2);
+	if( 5 == len || 1==RFIFOB(fd,4) )
+	{
+		if(battle_config.etc_log)
+			ShowError("intif: hom data create/request failed\n");
+
+	}
+	else if( 5+sizeof(struct homunstatus) != len )
+	{
+		if(battle_config.etc_log)
+			ShowError("intif: hom data: data size error %d %d\n",sizeof(struct homunstatus),len-5);
+	}
+	else
+	{
+		struct homunstatus tmp;
+		homun_frombuffer(tmp, RFIFOP(fd,5));
+		homun_data::recv_homunculus(tmp, 0);
+	}
+	return 0;
+}
+///////////////////////////////////////////////////////////////////////////////
+int intif_save_homdata(uint32 account_id, uint32 char_id, const homun_data &hd)
+{
+	WFIFOW(char_fd,0) = 0x308a;
+	WFIFOW(char_fd,2) = sizeof(struct homunstatus) + 12;
+	WFIFOL(char_fd,4) = account_id;
+	WFIFOL(char_fd,8) = char_id;
+	homun_tobuffer(hd.status, WFIFOP(char_fd,12));
+	WFIFOSET(char_fd,sizeof(struct homunstatus) + 12);
+
+	return 0;
+}
+int intif_parse_SaveHomun(int fd)
+{
+	if(RFIFOB(fd,2) == 1)
+	{
+		if(battle_config.error_log)
+			ShowError("hom data saving failed\n");
+	}
+	return 0;
+}
+///////////////////////////////////////////////////////////////////////////////
+int intif_delete_homdata(uint32 account_id,uint32 char_id,uint32 homun_id)
+{
+	WFIFOW(char_fd,0) = 0x308b;
+	WFIFOL(char_fd,2) = account_id;
+	WFIFOL(char_fd,6) = char_id;
+	WFIFOL(char_fd,10) = homun_id;
+	WFIFOSET(char_fd,14);
+
+	return 0;
+}
+int intif_parse_DeleteHomun(int fd)
+{
+	if(RFIFOB(fd,2) == 1)
+	{
+		if(battle_config.error_log)
+			ShowError("hom data deletion failed\n");
+	}
+	return 0;
+}
+///////////////////////////////////////////////////////////////////////////////
+
 
 // GMメッセージを送信
 int intif_GMmessage(const char* mes, size_t len, int flag)
@@ -1163,6 +1260,11 @@ int intif_parse(int fd)
 	case 0x3881:	intif_parse_RecvPetData(fd); break;
 	case 0x3882:	intif_parse_SavePetOk(fd); break;
 	case 0x3883:	intif_parse_DeletePetOk(fd); break;
+
+	case 0x3889:	intif_parse_RecvHomun(fd); break;
+	case 0x388a:	intif_parse_SaveHomun(fd); break;
+	case 0x388b:	intif_parse_DeleteHomun(fd); break;
+
 	default:
 		if(battle_config.error_log)
 			ShowMessage("intif_parse : unknown packet %d %x\n",fd,(unsigned short)RFIFOW(fd,0));

@@ -75,6 +75,7 @@ enum fame_t{ FAME_PK=0, FAME_SMITH, FAME_CHEM, FAME_TEAK };
 #define WEDDING_RING_F 2635
 
 
+
 #define CHAR_CONF_NAME  "conf/char_athena.conf"
 
 /////////////////////////////////////////////////////////////////////////////
@@ -115,6 +116,7 @@ enum
 #define HOM_SKILLID 8001		// ホムスキルIDの開始値
 #define MAX_HOM_SKILLID (HOM_SKILLID+MAX_HOMSKILL)	// ホムスキルIDの最大値
 #define MAX_HOMSKILL 16
+
 
 /////////////////////////////////////////////////////////////////////////////
 // simplified buffer functions with moving buffer pointer 
@@ -747,9 +749,9 @@ struct homunstatus
 
 	uint32 intimate;	// ペットと違い、最大100,000で計算
 	signed short hungry;
-	ushort incubate;
+	ushort base_level;
 	uchar rename_flag;
-	uchar base_level;
+	uchar incubate;
 
 	struct skill skill[MAX_HOMSKILL];
 };
@@ -788,9 +790,9 @@ extern inline void _homun_tobuffer(const struct homunstatus &p, uchar *&buf)
 
 	_L_tobuffer( (p.intimate),		buf);
 	_W_tobuffer( (p.hungry),		buf);
-	_W_tobuffer( (p.incubate),		buf);
+	_W_tobuffer( (p.base_level),	buf);
 	_B_tobuffer( (p.rename_flag),	buf);
-	_B_tobuffer( (p.base_level),	buf);
+	_B_tobuffer( (p.incubate),		buf);
 
 	for(size_t i=0; i<MAX_HOMSKILL; ++i)
 		_skill_tobuffer(p.skill[i], buf);
@@ -804,41 +806,41 @@ extern inline void _homun_frombuffer(struct homunstatus &p, const uchar *&buf)
 	if( NULL==buf )	return;
 
 	_L_frombuffer( (p.homun_id),		buf);
-	_L_frombuffer( (p.account_id),	buf);
-	_L_frombuffer( (p.char_id),		buf);
+	_L_frombuffer( (p.account_id),		buf);
+	_L_frombuffer( (p.char_id),			buf);
 	_L_frombuffer( (p.base_exp),		buf);
 
 	_S_frombuffer( (p.name),			buf, 24);
 
-	_L_frombuffer( (p.hp),			buf);
-	_L_frombuffer( (p.max_hp),		buf);
-	_L_frombuffer( (p.sp),			buf);
-	_L_frombuffer( (p.max_sp),		buf);
+	_L_frombuffer( (p.hp),				buf);
+	_L_frombuffer( (p.max_hp),			buf);
+	_L_frombuffer( (p.sp),				buf);
+	_L_frombuffer( (p.max_sp),			buf);
 
-	_W_frombuffer( (p.class_),		buf);
+	_W_frombuffer( (p.class_),			buf);
 	_W_frombuffer( (p.status_point),	buf);
-	_W_frombuffer( (p.skill_point),	buf);
+	_W_frombuffer( (p.skill_point),		buf);
 
 
-	_W_frombuffer( (p.str),			buf);
-	_W_frombuffer( (p.agi),			buf);
-	_W_frombuffer( (p.vit),			buf);
+	_W_frombuffer( (p.str),				buf);
+	_W_frombuffer( (p.agi),				buf);
+	_W_frombuffer( (p.vit),				buf);
 	_W_frombuffer( (p.int_),			buf);
-	_W_frombuffer( (p.dex),			buf);
-	_W_frombuffer( (p.luk),			buf);
+	_W_frombuffer( (p.dex),				buf);
+	_W_frombuffer( (p.luk),				buf);
 
-	_W_frombuffer( (p.option),		buf);
+	_W_frombuffer( (p.option),			buf);
 	_W_frombuffer( (p.equip),			buf);
 
 
 	_L_frombuffer( (p.intimate),		buf);
-	_W_frombuffer( (p.hungry),		buf);
-	_W_frombuffer( (p.incubate),		buf);
-	_B_frombuffer( (p.rename_flag),	buf);
-	_B_frombuffer( (p.base_level),	buf);
+	_W_frombuffer( (p.hungry),			buf);
+	_W_frombuffer( (p.base_level),		buf);
+	_B_frombuffer( (p.rename_flag),		buf);
+	_B_frombuffer( (p.incubate),		buf);
 
 	for(size_t i=0; i<MAX_HOMSKILL; ++i)
-		_skill_frombuffer(p.skill[i], buf);
+		_skill_frombuffer(p.skill[i],	buf);
 }
 extern inline void homun_frombuffer(struct homunstatus &p, const uchar *buf)
 {
@@ -888,6 +890,7 @@ struct mmo_charstatus
 	uint32 party_id;
 	uint32 guild_id;
 	uint32 pet_id;
+	uint32 homun_id;
 	uint32 fame_points;
 
 	unsigned short weapon;
@@ -967,7 +970,8 @@ extern inline void _mmo_charstatus_tobuffer(const struct mmo_charstatus &p, ucha
 	_L_tobuffer( (p.party_id),		buf);
 	_L_tobuffer( (p.guild_id),		buf);
 	_L_tobuffer( (p.pet_id),		buf);
-
+	_L_tobuffer( (p.homun_id),		buf);
+	
 	_L_tobuffer( (p.fame_points),	buf);
 
 	_W_tobuffer( (p.weapon),		buf);
@@ -1066,6 +1070,7 @@ extern inline void _mmo_charstatus_frombuffer(struct mmo_charstatus &p, const uc
 	_L_frombuffer( (p.party_id),		buf);
 	_L_frombuffer( (p.guild_id),		buf);
 	_L_frombuffer( (p.pet_id),			buf);
+	_L_frombuffer( (p.homun_id),		buf);
 
 	_L_frombuffer( (p.fame_points),		buf);
 

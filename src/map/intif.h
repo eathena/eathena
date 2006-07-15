@@ -52,4 +52,9 @@ int intif_request_petdata(uint32 account_id, uint32 char_id, uint32 pet_id);
 int intif_save_petdata(uint32 account_id, struct petstatus &pet);
 int intif_delete_petdata(uint32 pet_id);
 
+
+int intif_create_homdata(uint32 account_id, uint32 char_id, const homun_data &hd);
+int intif_request_homdata(uint32 account_id,uint32 char_id,uint32 homun_id);
+int intif_save_homdata(uint32 account_id, uint32 char_id, const homun_data &hd);
+int intif_delete_homdata(uint32 account_id,uint32 char_id,uint32 homun_id);
 #endif

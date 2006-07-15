@@ -290,6 +290,11 @@ public:
 				str = new char[1+strlen(s)];
 				memcpy(const_cast<char*>(str), s, 1+strlen(s));
 			}
+			else
+			{	// empty const string
+				this->type = C_CONSTSTR;
+				this->str =  "";
+			}
 		}
 		CValue(const CValue& a) : type(a.type), str(NULL)
 		{
@@ -350,6 +355,7 @@ public:
 			clear();
 			if(s)
 			{	// copy
+				this->type = C_STR;
 				this->str = new char[1+strlen(s)];
 				memcpy(const_cast<char*>(str), s, 1+strlen(s));
 			}

@@ -96,6 +96,7 @@ struct Battle_Config
 	uint32 agi_penalty_type;
 	uint32 alchemist_summon_reward;
 	uint32 allow_atcommand_when_mute; // [celest]
+	uint32 allow_homun_status_change;
 	uint32 any_warp_GM_min_level; // added by [Yor]
 	uint32 area_size; // added by [MouseJstr]
 	uint32 arrow_decrement;
@@ -180,6 +181,9 @@ struct Battle_Config
 	uint32 heal_exp;
 	uint32 hide_GM_session;
 	uint32 holywater_name_input;
+	uint32 homun_creation_rate;
+	uint32 homun_intimate_rate;
+	uint32 homun_temporal_intimate_resilience;
 	uint32 hp_rate;
 	uint32 idle_no_share;
 	uint32 ignore_items_gender; //[Lupus]
@@ -216,6 +220,8 @@ struct Battle_Config
 	uint32 magic_defense_type;
 	uint32 mailsystem;
 	uint32 making_arrow_name_input;
+	uint32 master_get_homun_base_exp;
+	uint32 master_get_homun_job_exp;
 	uint32 max_adv_level;
 	uint32 max_aspd;
 	uint32 max_aspd_interval; // not writable

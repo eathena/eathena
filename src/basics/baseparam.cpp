@@ -19,7 +19,7 @@ NAMESPACE_BEGIN(basics)
 /////////////////////////////////////////////////////////////////
 bool CConfig::LoadConfig(const char* cfgName)
 {
-	char line[1024], w1[1024], w2[1024], *ip;
+	char line[1024], w1[1024], w2[1024], *ip, *kp;
 	FILE *fp;
 	// called with empty filename
 	// just return silently 
@@ -41,14 +41,26 @@ bool CConfig::LoadConfig(const char* cfgName)
 		ip = line;
 		while( stringcheck::isspace(*ip) ) ip++;
 
-		// skipping comment lines
-		if( !ip[0] || (ip[0] == '/' && ip[1] == '/'))
+		// check for comments (only "//") 
+		// does not check for escapes or string markers 
+		// as a appropiate config grammer needs to be defined first
+		for(kp=ip; *kp; ++kp)
+		{	// cut of trailing comments
+			if(kp[0]=='/' && kp[1]=='/')
+			{
+				kp[0] = 0;
+				break;
+			}
+		}
+
+		// skipping empty lines
+		if( !ip[0] )
 			continue;
 
 		memset(w2, 0, sizeof(w2));
-		// format: "name:value"
-		if( sscanf(ip, "%[^=]= %[^\r\n]", w1, w2) == 2 ||
-			sscanf(ip, "%[^:]: %[^\r\n]", w1, w2) == 2 )
+		// format: "name:value" or "name=value"
+		if( sscanf(ip, "%1024[^=]=%1024[^\r\n]", w1, w2) == 2 ||
+			sscanf(ip, "%1024[^:]:%1024[^\r\n]", w1, w2) == 2 )
 		{
 			CleanControlChars(w1);
 			CleanControlChars(w2);
@@ -184,20 +196,22 @@ void parseCommandline(int argc, char **argv)
 
 	// reserved parameters
 	{
-		char*path = argv[0];
-		char*file = strrchr(path, PATHSEP);
-		if(file)
+		const char*path = argv[0];
+		const char*pathend = strrchr(path, PATHSEP);
+		const char*file;
+		if(pathend)
 		{	// had a pathname with a filename
-			*file++=0;
+			file = pathend+1;
 		}
 		else
-		{	// no path
+		{	// no path given
 			path = "";
+			pathend = path+1;
 			file = argv[0];
 		}
 
-		createParam("application", file);
-		createParam("application_path", path);
+		createParam("application", file, true);
+		createParam("application_path", string<>(path,pathend-path), true);
 	}
 
 	for(i=1; i<argc; ++i)
@@ -237,7 +251,7 @@ void parseCommandline(int argc, char **argv)
 				}
 				else
 				{	// create the parameter
-					createParam(w1, w2);
+					createParam(w1, w2, true);
 				}
 				// clear the string, start new search
 				str.empty();
@@ -513,7 +527,7 @@ TObjPtrCount<CParamObj> CParamBase::getParam(const string<>& name, const string<
 }
 ///////////////////////////////////////////////////////////////////////////////
 // create a new parameter or update the values
-TObjPtr<CParamObj> CParamBase::createParam(const string<>& name, const string<>& value)
+TObjPtr<CParamObj> CParamBase::createParam(const string<>& name, const string<>& value, bool fixed)
 {
 	CSingletonData &sd = getSingletonData();
 	ScopeLock sl(sd);
@@ -526,7 +540,17 @@ TObjPtr<CParamObj> CParamBase::createParam(const string<>& name, const string<>&
 		if( !sd.cParams.find(tmp, 0, pos) )
 			throw exception("Params: insert failed");
 	}
-	sd.cParams[pos]->assignvalue(value);
+	if( sd.cParams[pos]->isFixed() )
+	{	// don't overwrite fixed parameters with creation command
+		// maybe print a warning
+		printf("parameter '%s'='%s' is fixed, ignoring new assignment of '%s'\n",
+			(const char*)name, (const char*)sd.cParams[pos]->value(), (const char*)value);
+	}
+	else
+	{	
+		sd.cParams[pos]->assignvalue(value);
+		if(fixed) sd.cParams[pos]->setFixed();
+	}
 	return sd.cParams[pos];
 }
 ///////////////////////////////////////////////////////////////////////////////

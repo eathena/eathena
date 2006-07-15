@@ -27,8 +27,8 @@ private:
 	unsigned char path_len		: 6;	// more than necessary but it fills the 
 	unsigned char path_pos		: 6;	// struct to a 16bit boundary
 public:
-	unsigned char path_half		: 1;
-	unsigned char change_target	: 1;
+	unsigned char path_half		: 1;	// can be removed on new walk
+	unsigned char change_target	: 1;	
 	unsigned char walk_easy		: 1;
 	unsigned char _dummy		: 1;
 

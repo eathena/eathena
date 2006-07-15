@@ -147,16 +147,21 @@ class CParamObj
 {
 	///////////////////////////////////////////////////////////////////////////
 	// class data
-	bool cReferenced;	// true when this parameter has been referenced
+	bool cReferenced;	///< true when this parameter has been referenced
+	bool cFixed;		///< true when not changeable from file loading (ie. when given via command line)
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
-	CParamObj() : cReferenced(false)		{}
-	virtual ~CParamObj()					{}
+	CParamObj(bool fixed=false) : cReferenced(false), cFixed(fixed)	{}
+	virtual ~CParamObj()											{}
 	///////////////////////////////////////////////////////////////////////////
 	// check/set the reference
 	bool isReferenced()						{ return cReferenced; }
-	bool setReference()						{ return (cReferenced=true); }
+	bool setReference(bool val=true)		{ return (cReferenced=val); }
+	///////////////////////////////////////////////////////////////////////////
+	// check/set the fixed
+	bool isFixed()							{ return cFixed; }
+	bool setFixed(bool val=true)			{ return (cFixed=val); }
 	///////////////////////////////////////////////////////////////////////////
 	// access functions for overloading
 	virtual const std::type_info& getType()	{ return typeid(CParamObj); }
@@ -286,7 +291,7 @@ public:
 	/// list all parameters
 	static string<> getlist();
 	/// create a new parameter/overwrite an existing
-	static void create(const string<>& name, const string<>& value);
+	static void create(const string<>& name, const string<>& value, bool fixed=false);
 	/// load parameters from file
 	static void loadFile(const string<>& name, paramproc p=NULL);
 };
@@ -311,11 +316,11 @@ private:
 		bool (*cCallback)(const string<>& name, X& newval, const X& oldval);
 		///////////////////////////////////////////////////////////////////////
 		/// construction
-		CParamData(const char* value) : cCallback(NULL)
+		CParamData(const char* value, bool fixed=false) : CParamObj(fixed), cCallback(NULL)
 		{
 			paramconvert(cData, value);
 		}
-		CParamData(const X& value) : cData(value), cCallback(NULL)
+		CParamData(const X& value, bool fixed=false) : CParamObj(fixed), cData(value), cCallback(NULL)
 		{}
 		///////////////////////////////////////////////////////////////////////
 		/// access on the parameter
@@ -414,27 +419,27 @@ public:
 	// have all six compares
 	template <typename X> bool operator==(const CParam<X>& p)
 	{
-		return this->cValue == p();
+		return this->cData == p();
 	}
 	template <typename X> bool operator!=(const CParam<X>& p)
 	{
-		return this->cValue != p();
+		return this->cData != p();
 	}
 	template <typename X> bool operator< (const CParam<X>& p)
 	{
-		return this->cValue <  p();
+		return this->cData <  p();
 	}
 	template <typename X> bool operator<=(const CParam<X>& p)
 	{
-		return this->cValue <= p();
+		return this->cData <= p();
 	}
 	template <typename X> bool operator> (const CParam<X>& p)
 	{
-		return this->cValue >  p();
+		return this->cData >  p();
 	}
 	template <typename X> bool operator>=(const CParam<X>& p)
 	{
-		return this->cValue >= p();
+		return this->cData >= p();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -553,7 +558,7 @@ private:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// create a new variable / overwrite the content of an existing
-	static void create(const string<>& name, const T& value)
+	static void create(const string<>& name, const T& value, bool fixed=false)
 	{
 		ScopeLock sl(CParamBase::getMutex());
 		// get a reference to the parameter
@@ -561,7 +566,12 @@ private:
 		if( !stor.cParam.exists() )
 		{	// there is no data pointer
 			// create one
-			stor.cParam = (CParamObj*)new CParamData<T>(value);
+			stor.cParam = (CParamObj*)new CParamData<T>(value,fixed);
+		}
+		else if( stor.cParam->isFixed() )
+		{	// don't overwrite fixed parameters with creation command
+			// maybe print a warning
+			printf("parameter '%s' is fixed, ignoring new assignment\n", (const char*)name);
 		}
 		else if( stor.cParam->getType() == typeid(T) )
 		{	// data is of same type and can be used directly
@@ -587,15 +597,15 @@ private:
 		return CParamBase::existParam(name);
 	}
 
-	friend void CParamBase::create(const string<>& name, const string<>& value);
+	friend void CParamBase::create(const string<>& name, const string<>& value, bool fixed);
 	friend bool existParam(const string<>& name);
-	friend void createParam(const string<>& name, const string<>& value);
+	friend void createParam(const string<>& name, const string<>& value, bool fixed);
 };
 
 
-inline void CParamBase::create(const string<>& name, const string<>& value)
+inline void CParamBase::create(const string<>& name, const string<>& value, bool fixed)
 {
-	CParam< string<> >::create(name, value);
+	CParam< string<> >::create(name, value, fixed);
 }
 ///////////////////////////////////////////////////////////////////////////
 /// load parameters from file
@@ -611,9 +621,9 @@ inline void cleanParam()
 }
 ///////////////////////////////////////////////////////////////////////////////
 /// create/overwrite parameter
-inline void createParam(const string<>& name, const string<>& value)
+inline void createParam(const string<>& name, const string<>& value, bool fixed=false)
 {
-	CParam< string<> >::create(name, value);
+	CParam< string<> >::create(name, value, fixed);
 }
 ///////////////////////////////////////////////////////////////////////////////
 /// check if parameter exist
@@ -672,13 +682,25 @@ class CParamObj : public string<>
 	ulong			cTime;			///< last modification time as tickcount
 	CParamBase*		cParamRoot;		///< start of the currently linked CParam's
 	bool			cReferenced;	///< true when this object has been referenced
+	bool			cFixed;			///< true when not changeable from file loading (ie. when given via command line)
 	bool (*cCallback)(const string<>& name, string<>& newval, const string<>& oldval);
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// construction/destruction
-	CParamObj() : cParamRoot(NULL), cReferenced(false),cCallback(NULL)	{}
-	CParamObj(const string<>& name) : string<>(name), cParamRoot(NULL), cReferenced(false),cCallback(NULL)	{}
+	CParamObj() : cParamRoot(NULL), cReferenced(false),cFixed(false),cCallback(NULL)	{}
+	CParamObj(const string<>& name) : string<>(name), cParamRoot(NULL), cReferenced(false),cFixed(false),cCallback(NULL)	{}
 	~CParamObj()	{}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// check/set the reference
+	bool isReferenced()						{ return cReferenced; }
+	bool setReference(bool val=true)		{ return (cReferenced=val); }
+
+	///////////////////////////////////////////////////////////////////////////
+	// check/set the fixed
+	bool isFixed()							{ return cFixed; }
+	bool setFixed(bool val=true)			{ return (cFixed=val); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// class access
@@ -765,7 +787,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// static access functions
 	static TObjPtrCount<CParamObj> getParam(const string<>& name, const string<>& value);
-	static TObjPtr<CParamObj> createParam(const string<>& name, const string<>& value);
+	static TObjPtr<CParamObj> createParam(const string<>& name, const string<>& value, bool fixed=false);
 	static bool existParam(const string<>& name);
 	static void clean();
 	static void listall();
@@ -833,20 +855,20 @@ template <typename T> class CParam : public CParamBase
 	///////////////////////////////////////////////////////////////////////////
 	// class data
 	T cValue;
-	bool (*cCallback)(const string<>& name, T& newval, const T& oldval);
+	bool (*cLocalCallback)(const string<>& name, T& newval, const T& oldval);
 public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// construction/destruction
 	CParam(const string<>& name, bool (*callback)(const string<>& name, T& newval, const T& oldval)=NULL)
-		: cCallback(callback)
+		: cLocalCallback(callback)
 	{
 		string<> tmp;
 		this->cParamObj = CParamBase::getParam(name, tmp);
 		this->link();
 	}
 	CParam(const string<>& name, const T& value, bool (*callback)(const string<>& name, T& newval, const T& oldval)=NULL)
-		: cCallback(callback)
+		: cLocalCallback(callback)
 	{
 		string<> tmp;
 		tmp << value;
@@ -860,7 +882,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// copy construction/assignment
 	CParam(const CParam<T>& p)
-		: CParamBase(p), cValue(p.cValue), cCallback(p.cCallback)
+		: CParamBase(p), cValue(p.cValue), cLocalCallback(p.cLocalCallback)
 	{
 		this->link();
 	}
@@ -869,7 +891,7 @@ public:
 		this->unlink();
 		this->cParamObj = p.cParamObj;
 		this->cValue = p.cValue;
-		this->cCallback = p.callback;
+		this->cLocalCallback = p.callback;
 		this->link();
 		return *this;
 	}
@@ -890,7 +912,7 @@ public:
 			const T oldvalue = this->cValue;
 			this->cValue = value;
 			// check the callback
-			if( !cCallback || cCallback(*cParamObj, this->cValue, oldvalue) )
+			if( !cLocalCallback || cLocalCallback(*cParamObj, this->cValue, oldvalue) )
 			{	// set the value into the global object
 				string<> tmpstr;
 				tmpstr << this->cValue;
@@ -945,7 +967,7 @@ protected:
 			const T oldvalue = this->cValue;
 			this->cValue = value;
 			// check the callback
-			if( !cCallback || cCallback(*cParamObj, this->cValue, oldvalue) )
+			if( !cLocalCallback || cLocalCallback(*cParamObj, this->cValue, oldvalue) )
 			{	// keep the new value
 			}
 			else
@@ -970,9 +992,9 @@ inline void cleanParam()
 }
 ///////////////////////////////////////////////////////////////////////////
 /// create/update parameter
-inline void createParam(const string<>& name, const string<>& value)
+inline void createParam(const string<>& name, const string<>& value, bool fixed=false)
 {
-	CParamBase::createParam(name, value);
+	CParamBase::createParam(name, value, fixed);
 }
 ///////////////////////////////////////////////////////////////////////////
 /// check if parameter exist

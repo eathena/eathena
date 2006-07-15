@@ -46,7 +46,7 @@ public:
 		if (bl.type == BL_PC)
 		{
 			struct map_session_data &sd = (struct map_session_data &)bl;
-			if(sd.attacktarget == id && sd.is_attacking() && sd.attacktarget_lv >= target_lv)
+			if(sd.target_id == id && sd.is_attacking() && sd.attacktarget_lv >= target_lv)
 				c++;
 		}
 		else if (bl.type == BL_MOB)
@@ -62,7 +62,6 @@ public:
 			if( pd.target_id == id && pd.is_attacking() && pd.target_lv >= target_lv)
 				c++;
 		}
-
 		return 0;
 	}
 };
@@ -105,7 +104,7 @@ public:
 		if( bl.type == BL_PC )
 		{
 			struct map_session_data &sd = (struct map_session_data &)bl;
-			if( sd.attacktarget != target.id || !sd.is_attacking() )
+			if( sd.target_id != target.id || !sd.is_attacking() )
 				return 0;
 		}
 		else if (bl.type == BL_MOB)
@@ -5664,6 +5663,7 @@ static struct {
 	{ "agi_penalty_type",					&battle_config.agi_penalty_type			},
 	{ "alchemist_summon_reward",			&battle_config.alchemist_summon_reward	},	// [Valaris]
 	{ "allow_atcommand_when_mute",			&battle_config.allow_atcommand_when_mute}, // [celest]
+	{ "allow_homun_status_change",			&battle_config.allow_homun_status_change}, // [celest]	
 	{ "any_warp_GM_min_level",				&battle_config.any_warp_GM_min_level	}, // added by [Yor]
 	{ "area_size",							&battle_config.area_size				}, // added by [MouseJstr]
 	{ "arrow_decrement",					&battle_config.arrow_decrement			},
@@ -5747,6 +5747,9 @@ static struct {
 	{ "heal_exp",							&battle_config.heal_exp					},
 	{ "hide_GM_session",					&battle_config.hide_GM_session			},
 	{ "holywater_name_input",				&battle_config.holywater_name_input		},
+	{ "homun_creation_rate",				&battle_config.homun_creation_rate		},
+	{ "homun_intimate_rate",				&battle_config.homun_intimate_rate		},
+	{ "homun_temporal_intimate_resilience",	&battle_config.homun_temporal_intimate_resilience		},
 	{ "hp_rate",							&battle_config.hp_rate					},
 	{ "idle_no_share",						&battle_config.idle_no_share}, // [celest], for a feature by [MouseJstr]
 	{ "ignore_items_gender",				&battle_config.ignore_items_gender}, // [Lupus]
@@ -5783,6 +5786,8 @@ static struct {
 	{ "magic_defense_type",                &battle_config.magic_defense_type		},
 	{ "mailsystem",							&battle_config.mailsystem		},
 	{ "making_arrow_name_input",           &battle_config.making_arrow_name_input	},
+	{ "master_get_homun_base_exp",           &battle_config.master_get_homun_base_exp	},
+	{ "master_get_homun_job_exp",           &battle_config.master_get_homun_job_exp	},
 	{ "max_adv_level",						&battle_config.max_adv_level				},
 	{ "max_aspd",                          &battle_config.max_aspd					},
 	{ "max_base_level",						&battle_config.max_base_level				},
@@ -5962,6 +5967,7 @@ void battle_set_defaults()
 	battle_config.agi_penalty_type = 1;
 	battle_config.alchemist_summon_reward = 0;
 	battle_config.allow_atcommand_when_mute = 0;
+	battle_config.allow_homun_status_change = 0;
 	battle_config.any_warp_GM_min_level = 60; // added by [Yor]
 	battle_config.area_size = 14;
 	battle_config.arrow_decrement=1;
@@ -6046,6 +6052,9 @@ void battle_set_defaults()
 	battle_config.heal_exp=0;
 	battle_config.hide_GM_session = 0;
 	battle_config.holywater_name_input = 1;
+	battle_config.homun_creation_rate = 100;
+	battle_config.homun_intimate_rate = 100;
+	battle_config.homun_temporal_intimate_resilience = 50;
 	battle_config.hp_rate = 100;
 	battle_config.idle_no_share = 0;
 	battle_config.ignore_items_gender = 1;
@@ -6082,6 +6091,8 @@ void battle_set_defaults()
 	battle_config.magic_defense_type = 0;
 	battle_config.mailsystem=1;
 	battle_config.making_arrow_name_input = 1;
+	battle_config.master_get_homun_base_exp =0;
+	battle_config.master_get_homun_job_exp =0;
 	battle_config.max_adv_level=70;
 	battle_config.max_aspd = 199;
 	battle_config.max_aspd_interval=10;

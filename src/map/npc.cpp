@@ -74,14 +74,6 @@ int npc_data::walktimer_func_old(int tid, unsigned long tick, int id, basics::nu
 	}
 	return 0;
 }
-int npc_data::attacktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
-{
-	return 0;
-}
-int npc_data::skilltimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
-{
-	return 0;
-}
 
 
 /*==========================================
@@ -196,32 +188,32 @@ int npc_data::walkstep_old(unsigned long tick)
 
 int npc_data::walktoxy_sub_old()
 {
-	if( !this->walkpath.path_search(this->block_list::m,this->block_list::x,this->block_list::y,this->target.x,this->target.y,this->walkpath.walk_easy) )
-		return 1;
+	if( !this->walkpath.path_search(this->block_list::m,this->block_list::x,this->block_list::y,this->walktarget.x,this->walktarget.y,this->walkpath.walk_easy) )
+		return 0;
 
 	this->walkpath.change_target=0;
 
 	this->changestate(MS_WALK,0);
 	clif_moveobject(*this);
 
-	return 0;
+	return 1;
 }
 
 int npc_data::walktoxy_old(unsigned short x,unsigned short y,bool easy)
 {
 	if( this->state.state == MS_WALK && 
 		!walkpath_data::is_possible(this->block_list::m,this->block_list::x,this->block_list::y,x,y,easy?1:0) )
-		return 1;
+		return 0;
 
 	this->walkpath.walk_easy = easy;
-	this->target.x=x;
-	this->target.y=y;
+	this->walktarget.x=x;
+	this->walktarget.y=y;
 	if(this->state.state == MS_WALK)
 		this->walkpath.change_target=1;
 	else
 		return this->walktoxy_sub();
 
-	return 0;
+	return 1;
 }
 
 int npc_data::stop_walking_old(int type)
@@ -233,19 +225,19 @@ int npc_data::stop_walking_old(int type)
 		this->walkpath.clear();
 		if(type&4)
 		{
-			dx = this->target.x - this->block_list::x;
+			dx = this->walktarget.x - this->block_list::x;
 			if(dx<0)
 				dx=-1;
 			else if(dx>0)
 				dx=1;
-			dy = this->target.y - this->block_list::y;
+			dy = this->walktarget.y - this->block_list::y;
 			if(dy<0)
 				dy=-1;
 			else if(dy>0)
 				dy=1;
 		}
-		this->target.x = this->block_list::x+dx;
-		this->target.y = this->block_list::y+dy;
+		this->walktarget.x = this->block_list::x+dx;
+		this->walktarget.y = this->block_list::y+dy;
 		if(dx!=0 || dy!=0){
 			this->walktoxy_sub();
 			return 0;

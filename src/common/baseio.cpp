@@ -304,3 +304,23 @@ CPetDBInterface* CPetDB::getDB(const char *dbcfgfile)
 #endif
 	return NULL;
 }
+
+
+CHomunculusDBInterface* CHomunculusDB::getDB(const char *dbcfgfile)
+{
+	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
+#if defined(WITH_TEXT) && defined(WITH_MYSQL)
+	if(database_engine()=="txt")
+		return new CHomunculusDB_txt(dbcfgfile);
+	if(database_engine()=="sql")
+		return new CHomunculusDB_sql(dbcfgfile);
+#elif defined(WITH_TEXT)
+	return new CHomunculusDB_txt(dbcfgfile);
+#elif defined(WITH_MYSQL)
+	return new CHomunculusDB_sql(dbcfgfile);
+#else
+#error "no database implementation specified, define 'WITH_MYSQL','WITH_TEXT' or both"
+#endif
+	return NULL;
+}
+
