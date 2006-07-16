@@ -39,6 +39,7 @@ Playtester
 Date		Added
 ======
 07/16
+	* Small spawn update in Kiel Dungeon [Playtester]
 	* Readded the Umbala Quest, it got lost in the last big quest merge [Playtester]
 07/15
 	* Merged dts_warper.txt and Global_Functions.txt in other/ from trunk: [Evera]
