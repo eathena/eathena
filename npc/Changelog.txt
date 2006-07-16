@@ -38,6 +38,8 @@ Playtester
 
 Date		Added
 ======
+07/16
+	* Readded the Umbala Quest, it got lost in the last big quest merge [Playtester]
 07/15
 	* Merged dts_warper.txt and Global_Functions.txt in other/ from trunk: [Evera]
 	- Global_Functions has 2.02 replacing 2.0, and dts_warper has 1.9 replacing 1.8 [Evera]
