@@ -1,3 +1,8 @@
+07/16
+	* Merged mob_db and mob_skill_db [Playtester]
+	- various Speed/aDelay/aMotion adjustments
+	- added many of the new X.4 and 11.1 drops
+	- Detale now uses Reflect Shield
 07/13
 	* Merged item_db, mob_db and mob_skill_db [Playtester]
 	- various item fixes
