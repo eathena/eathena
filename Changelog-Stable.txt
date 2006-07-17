@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/17
+	* Some sign quest map flag updates [MasterOfMuppets]
 	* atcommand_follow is now more verbose. [Adam]
 2006/07/16
 	* Updated mob_db.sql to current mob_db.txt data. [Skotlex]
