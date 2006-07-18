@@ -2612,10 +2612,10 @@ int parse_frommap(int fd) {
 				RFIFOSKIP(fd,size);
 				break;
 			}
-			//Check account
-			if (
+			//Check account only if this ain't final save. Final-save goes through because of the char-map reconnect
+			if (RFIFOB(fd,12) || (
 				(character = idb_get(online_char_db, aid)) != NULL &&
-				character->char_id == cid)
+				character->char_id == cid))
 			{
 				memcpy(&char_dat, RFIFOP(fd,13), sizeof(struct mmo_charstatus));
 				mmo_char_tosql(cid, &char_dat);
@@ -4039,7 +4039,7 @@ int char_config_read(const char *cfgName) {
 		} else if (strcmpi(w1, "passwd") == 0) {
 			strncpy(passwd, w2, 24);
 		} else if (strcmpi(w1, "server_name") == 0) {
-			memcpy(server_name, w2, sizeof(server_name));
+			strncpy(server_name, w2, 20);
 			server_name[sizeof(server_name) - 1] = '\0';
 			ShowStatus("%s server has been initialized\n", w2);
 		} else if (strcmpi(w1, "wisp_server_name") == 0) {
