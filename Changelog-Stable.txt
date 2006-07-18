@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/18
+	* Merged some missing lines from int_party.c... should fix sql compilation.
+	  [Skotlex]
 	* Merges from trunk of some stuff that has been on trunk for a long time
 	  now: [Skotlex]
 	- Merged the party_data structure which contains more information about the

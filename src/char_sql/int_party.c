@@ -25,7 +25,7 @@ static struct party_data *party_pt;
 static struct dbt *party_db_;
 
 int mapif_party_broken(int party_id,int flag);
-int party_check_empty(struct party *p);
+int party_check_empty(struct party_data *p);
 int mapif_parse_PartyLeave(int fd, int party_id, int account_id, int char_id);
 int party_check_exp_share(struct party_data *p);
 int mapif_party_optionchanged(int fd,struct party *p, int account_id, int flag);
@@ -122,7 +122,7 @@ int inter_party_tosql(struct party_data *party, int flag, int index)
 	char t_name[NAME_LENGTH*2]; //Required for jstrescapecpy [Skotlex]
 	struct party *p;
 	int party_id;
-	if (p == NULL || p->party_id == 0)
+	if (party == NULL || party->party.party_id == 0)
 		return 0;
 	p = &party->party;
 	party_id = p->party_id;
