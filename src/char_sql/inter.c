@@ -29,8 +29,7 @@ struct accreg {
 static struct accreg *accreg_pt;
 
 
-int party_share_level = 10;
-int kick_on_disconnect = 1;
+unsigned int party_share_level = 10;
 MYSQL mysql_handle;
 MYSQL_RES* 	sql_res ;
 MYSQL_ROW	sql_row ;
@@ -73,7 +72,7 @@ int inter_send_packet_length[]={
 int inter_recv_packet_length[]={
 	-1,-1, 7,-1, -1,13, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3000-0x300f
 	 6,-1, 0, 0,  0, 0, 0, 0, 10,-1, 0, 0,  0, 0,  0, 0, //0x3010-0x301f
-	64, 6,42,14, 14,19, 6,-1, 14,14, 0, 0,  0, 0,  0, 0, //0x3020-0x302f
+	-1, 6,-1,14, 14,19, 6,-1, 14,14, 0, 0,  0, 0,  0, 0, //0x3020-0x302f
 	-1, 6,-1,-1, 55,19, 6,-1, 14,-1,-1,-1, 14,19,186,-1, //0x3030-0x303f
 	 5, 9, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
 	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
@@ -256,12 +255,8 @@ int inter_config_read(const char *cfgName) {
 			strcpy(login_server_db, w2);
 			ShowStatus ("set login_server_db : %s\n",w2);
 		}
-		else if(strcmpi(w1,"kick_on_disconnect")==0){
-			kick_on_disconnect=atoi(w2);
-		}
 		else if(strcmpi(w1,"party_share_level")==0){
-			party_share_level=atoi(w2);
-			if(party_share_level < 0) party_share_level = 0;
+			party_share_level=(unsigned int)atof(w2);
 		}
 		else if(strcmpi(w1,"log_inter")==0){
 			log_inter = atoi(w2);

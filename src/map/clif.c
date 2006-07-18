@@ -108,33 +108,6 @@ static const int packet_len_table[MAX_PACKET_DB] = {
     3, 32,  -1,  3,  3,  5,  5,  8,   2,  3, -1, -1,  4,-1,  4
 };
 
-// local define
-enum {
-	ALL_CLIENT,
-	ALL_SAMEMAP,
-	AREA,
-	AREA_WOS,
-	AREA_WOC,
-	AREA_WOSC,
-	AREA_CHAT_WOC,
-	CHAT,
-	CHAT_WOS,
-	CHAT_MAINCHAT,
-	PARTY,
-	PARTY_WOS,
-	PARTY_SAMEMAP,
-	PARTY_SAMEMAP_WOS,
-	PARTY_AREA,
-	PARTY_AREA_WOS,
-	GUILD,
-	GUILD_WOS,
-	GUILD_SAMEMAP,	// [Valaris]
-	GUILD_SAMEMAP_WOS,
-	GUILD_AREA,
-	GUILD_AREA_WOS,	// end additions [Valaris]
-	SELF
-};
-
 //Converts item type in case of pet eggs.
 #define itemtype(a) (a == 7)?4:a
 
@@ -390,7 +363,7 @@ int clif_send_sub(struct block_list *bl, va_list ap)
 int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 	int i;
 	struct map_session_data *sd = NULL;
-	struct party *p = NULL;
+	struct party_data *p = NULL;
 	struct guild *g = NULL;
 	int x0 = 0, x1 = 0, y0 = 0, y1 = 0;
 
@@ -493,7 +466,7 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 			
 		if (p) {
 			for(i=0;i<MAX_PARTY;i++){
-				if ((sd = p->member[i].sd) == NULL)
+				if ((sd = p->data[i].sd) == NULL)
 					continue;
 				if (!sd->fd || session[sd->fd] == NULL || sd->state.auth == 0
 					|| session[sd->fd]->session_data == NULL || sd->packet_ver > MAX_PACKET_VER)
@@ -502,7 +475,7 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 				if (sd->bl.id == bl->id && (type == PARTY_WOS || type == PARTY_SAMEMAP_WOS || type == PARTY_AREA_WOS))
 					continue;
 				
-				if (type != PARTY && type != PARTY_WOS && bl->m != sd->bl.m) // マップチェック
+				if (type != PARTY && type != PARTY_WOS && bl->m != sd->bl.m)
 					continue;
 				
 				if ((type == PARTY_AREA || type == PARTY_AREA_WOS) &&
@@ -521,13 +494,32 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 
 				if (session[i] && session[i]->func_parse == clif_parse &&
 					(sd = (struct map_session_data*)session[i]->session_data) != NULL &&
-				  	sd->state.auth && sd->fd && sd->partyspy == p->party_id)
+				  	sd->state.auth && sd->fd && sd->partyspy == p->party.party_id)
 		  		{
 					if (sd->fd && packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
 						WFIFOHEAD(sd->fd,len);
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
 					}
+				}
+			}
+		}
+		break;
+	case DUEL:
+	case DUEL_WOS:
+		if (!sd || !sd->duel_group) break; //Invalid usage.
+
+		x0 = sd->duel_group; //Here we use x0 to store the duel group. [Skotlex]
+		for (i = 0; i < fd_max; i++) {
+			if (session[i] && session[i]->func_parse == clif_parse &&
+				(sd = (struct map_session_data *)session[i]->session_data) != NULL &&
+				sd->state.auth && sd->duel_group == x0) {
+				if (type == DUEL_WOS && bl->id == sd->bl.id)
+					continue;
+				if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { 
+					WFIFOHEAD(i, len);
+					memcpy(WFIFOP(i,0), buf, len);
+					WFIFOSET(i,len);
 				}
 			}
 		}
@@ -1422,18 +1414,18 @@ int clif_spawn(struct block_list *bl)
 			if (sd->spiritball > 0)
 				clif_spiritball(sd);
 			if(sd->state.size==2) // tiny/big players [Valaris]
-				clif_specialeffect(bl,423,0);
+				clif_specialeffect(bl,423,AREA);
 			else if(sd->state.size==1)
-				clif_specialeffect(bl,421,0);
+				clif_specialeffect(bl,421,AREA);
 		}
 	break;
 	case BL_MOB:
 		{
 			TBL_MOB *md = ((TBL_MOB*)bl);
 			if(md->special_state.size==2) // tiny/big mobs [Valaris]
-				clif_specialeffect(&md->bl,423,0);
+				clif_specialeffect(&md->bl,423,AREA);
 			else if(md->special_state.size==1)
-				clif_specialeffect(&md->bl,421,0);
+				clif_specialeffect(&md->bl,421,AREA);
 		}
 	break;
 	}
@@ -1529,20 +1521,20 @@ int clif_move(struct block_list *bl) {
 	case BL_PC:
 		{
 			TBL_PC *sd = ((TBL_PC*)bl);
-			clif_movepc(sd);
+//			clif_movepc(sd);
 			if(sd->state.size==2) // tiny/big players [Valaris]
-				clif_specialeffect(&sd->bl,423,0);
+				clif_specialeffect(&sd->bl,423,AREA);
 			else if(sd->state.size==1)
-				clif_specialeffect(&sd->bl,421,0);
+				clif_specialeffect(&sd->bl,421,AREA);
 		}
 		break;
 	case BL_MOB:
 		{
 			TBL_MOB *md = ((TBL_MOB*)bl);
 			if(md->special_state.size==2) // tiny/big mobs [Valaris]
-				clif_specialeffect(&md->bl,423,0);
+				clif_specialeffect(&md->bl,423,AREA);
 			else if(md->special_state.size==1)
-				clif_specialeffect(&md->bl,421,0);
+				clif_specialeffect(&md->bl,421,AREA);
 		}
 		break;
 	}
@@ -3657,9 +3649,9 @@ void clif_getareachar_char(struct map_session_data* sd,struct block_list *bl)
 			TBL_PC* tsd = (TBL_PC*)bl;
 			clif_getareachar_pc(sd, tsd);
 			if(tsd->state.size==2) // tiny/big players [Valaris]
-				clif_specialeffect(bl,423,0);
+				clif_specialeffect(bl,423,AREA);
 			else if(tsd->state.size==1)
-				clif_specialeffect(bl,421,0);
+				clif_specialeffect(bl,421,AREA);
 		}
 		break;
 	case BL_NPC:
@@ -3672,9 +3664,9 @@ void clif_getareachar_char(struct map_session_data* sd,struct block_list *bl)
 		{
 			TBL_MOB* md = (TBL_MOB*)bl;
 			if(md->special_state.size==2) // tiny/big mobs [Valaris]
-				clif_specialeffect(bl,423,0);
+				clif_specialeffect(bl,423,AREA);
 			else if(md->special_state.size==1)
-				clif_specialeffect(bl,421,0);
+				clif_specialeffect(bl,421,AREA);
 		}
 		break;
 	}
@@ -5568,26 +5560,26 @@ int clif_party_created(struct map_session_data *sd,int flag)
 	return 0;
 }
 
-int clif_party_main_info(struct party *p, int fd)
+int clif_party_main_info(struct party_data *p, int fd)
 {
 	struct map_session_data *sd;
 	int i;
 	unsigned char buf[96];
 	
-	for (i=0; i<MAX_PARTY && !p->member[i].leader; i++);
+	for (i=0; i<MAX_PARTY && !p->party.member[i].leader; i++);
 	if (i >= MAX_PARTY) return 0; //Should never happen...
-	sd = p->member[i].sd;
+	sd = p->data[i].sd;
 	WBUFW(buf,0)=0x1e9;
-	WBUFL(buf,2)= p->member[i].account_id;
+	WBUFL(buf,2)= p->party.member[i].account_id;
 	WBUFL(buf,6)= 0; //We don't know yet what this long is about.
 	WBUFW(buf,10)=sd?sd->bl.x:0;
 	WBUFW(buf,12)=sd?sd->bl.y:0;
-	WBUFB(buf,14)=(p->member[i].online)?0:1;	//This byte is also unconfirmed...
-	memcpy(WBUFP(buf,15), p->name, NAME_LENGTH);
-	memcpy(WBUFP(buf,39), p->member[i].name, NAME_LENGTH);
-	memcpy(WBUFP(buf,63), mapindex_id2name(p->member[i].map), MAP_NAME_LENGTH);
-	WBUFB(buf,79) = (p->item&1)?1:0;
-	WBUFB(buf,80) = (p->item&2)?1:0;
+	WBUFB(buf,14)=(p->party.member[i].online)?0:1;	//This byte is also unconfirmed...
+	memcpy(WBUFP(buf,15), p->party.name, NAME_LENGTH);
+	memcpy(WBUFP(buf,39), p->party.member[i].name, NAME_LENGTH);
+	memcpy(WBUFP(buf,63), mapindex_id2name(p->party.member[i].map), MAP_NAME_LENGTH);
+	WBUFB(buf,79) = (p->party.item&1)?1:0;
+	WBUFB(buf,80) = (p->party.item&2)?1:0;
 	if(fd>=0){
 		WFIFOHEAD(fd,packet_len_table[0x1e9]);
 		memcpy(WFIFOP(fd,0),buf,packet_len_table[0x1e9]);
@@ -5595,9 +5587,9 @@ int clif_party_main_info(struct party *p, int fd)
 		return 1;
 	}
 	if (!sd) {
-		for (i=0; i<MAX_PARTY && !p->member[i].sd; i++)
+		for (i=0; i<MAX_PARTY && !p->data[i].sd; i++)
 		if (i >= MAX_PARTY) return 0; //Should never happen...
-		sd=p->member[i].sd;
+		sd=p->data[i].sd;
 	}
 	clif_send(buf,packet_len_table[0x1e9],&sd->bl,PARTY);
 	return 1;
@@ -5626,7 +5618,7 @@ int clif_party_join_info(struct party *p, struct map_session_data *sd)
  * パーティ情報送信
  *------------------------------------------
  */
-int clif_party_info(struct party *p,int fd)
+int clif_party_info(struct party_data *p,int fd)
 {
 	unsigned char buf[1024];
 	int i,c;
@@ -5635,18 +5627,18 @@ int clif_party_info(struct party *p,int fd)
 	nullpo_retr(0, p);
 
 	WBUFW(buf,0)=0xfb;
-	memcpy(WBUFP(buf,4),p->name,NAME_LENGTH);
+	memcpy(WBUFP(buf,4),p->party.name,NAME_LENGTH);
 	for(i=c=0;i<MAX_PARTY;i++){
-		struct party_member *m=&p->member[i];
-		if(m->account_id>0){
-			if(sd==NULL) sd=m->sd;
-			WBUFL(buf,28+c*46)=m->account_id;
-			memcpy(WBUFP(buf,28+c*46+ 4),m->name,NAME_LENGTH);
-			memcpy(WBUFP(buf,28+c*46+28),mapindex_id2name(m->map),MAP_NAME_LENGTH);
-			WBUFB(buf,28+c*46+44)=(m->leader)?0:1;
-			WBUFB(buf,28+c*46+45)=(m->online)?0:1;
-			c++;
-		}
+		struct party_member *m=&p->party.member[i];
+		if(!m->account_id)
+			continue;
+		if(sd==NULL) sd=p->data[i].sd;
+		WBUFL(buf,28+c*46)=m->account_id;
+		memcpy(WBUFP(buf,28+c*46+ 4),m->name,NAME_LENGTH);
+		memcpy(WBUFP(buf,28+c*46+28),mapindex_id2name(m->map),MAP_NAME_LENGTH);
+		WBUFB(buf,28+c*46+44)=(m->leader)?0:1;
+		WBUFB(buf,28+c*46+45)=(m->online)?0:1;
+		c++;
 	}
 	WBUFW(buf,2)=28+c*46;
 	if(fd>=0){	// fdが設定されてるならそれに送る
@@ -5666,7 +5658,7 @@ int clif_party_info(struct party *p,int fd)
 int clif_party_invite(struct map_session_data *sd,struct map_session_data *tsd)
 {
 	int fd;
-	struct party *p;
+	struct party_data *p;
 
 	nullpo_retr(0, sd);
 	nullpo_retr(0, tsd);
@@ -5679,7 +5671,7 @@ int clif_party_invite(struct map_session_data *sd,struct map_session_data *tsd)
 	WFIFOHEAD(fd,packet_len_table[0xfe]);
 	WFIFOW(fd,0)=0xfe;
 	WFIFOL(fd,2)=sd->status.account_id;
-	memcpy(WFIFOP(fd,6),p->name,NAME_LENGTH);
+	memcpy(WFIFOP(fd,6),p->party.name,NAME_LENGTH);
 	WFIFOSET(fd,packet_len_table[0xfe]);
 	return 0;
 }
@@ -5710,7 +5702,7 @@ int clif_party_inviteack(struct map_session_data *sd,char *nick,int flag)
  *        0x100=一人にのみ送信
  *------------------------------------------
  */
-int clif_party_option(struct party *p,struct map_session_data *sd,int flag)
+int clif_party_option(struct party_data *p,struct map_session_data *sd,int flag)
 {
 	unsigned char buf[16];
 
@@ -5720,14 +5712,14 @@ int clif_party_option(struct party *p,struct map_session_data *sd,int flag)
 //		printf("clif_party_option: %d %d %d\n",p->exp,p->item,flag);
 	if(sd==NULL && flag==0){
 		int i;
-		for(i=0;i<MAX_PARTY;i++)
-			if((sd=(p->member[i].sd))!=NULL)
-				break;
+		for(i=0;i<MAX_PARTY && !p->data[i].sd;i++);
+		if (i < MAX_PARTY)
+			sd = p->data[i].sd;
 	}
 	if(sd==NULL)
 		return 0;
 	WBUFW(buf,0)=0x101;
-	WBUFW(buf,2)=((flag&0x01)?2:p->exp);
+	WBUFW(buf,2)=((flag&0x01)?2:p->party.exp);
 	WBUFW(buf,4)=0; //NOTE: We don't know yet what this is for, it is NOT for item share rules, though. [Skotlex]
 	if(flag==0)
 		clif_send(buf,packet_len_table[0x101],&sd->bl,PARTY);
@@ -5742,7 +5734,7 @@ int clif_party_option(struct party *p,struct map_session_data *sd,int flag)
  * パーティ脱退（脱退前に呼ぶこと）
  *------------------------------------------
  */
-int clif_party_leaved(struct party *p,struct map_session_data *sd,int account_id,char *name,int flag)
+int clif_party_leaved(struct party_data *p,struct map_session_data *sd,int account_id,char *name,int flag)
 {
 	unsigned char buf[64];
 	int i;
@@ -5755,11 +5747,12 @@ int clif_party_leaved(struct party *p,struct map_session_data *sd,int account_id
 	WBUFB(buf,30)=flag&0x0f;
 
 	if((flag&0xf0)==0){
-		if(sd==NULL)
-			for(i=0;i<MAX_PARTY;i++)
-				if((sd=p->member[i].sd)!=NULL)
-					break;
-		if (sd!=NULL)
+		if(sd==NULL) {
+			for(i=0;i<MAX_PARTY && !p->data[i].sd;i++);
+			if (i < MAX_PARTY)
+				sd = p->data[i].sd;
+		}
+		if (sd)		
 			clif_send(buf,packet_len_table[0x105],&sd->bl,PARTY);
 	} else if (sd!=NULL) {
 		WFIFOHEAD(sd->fd,packet_len_table[0x105]);
@@ -5772,19 +5765,17 @@ int clif_party_leaved(struct party *p,struct map_session_data *sd,int account_id
  * パーティメッセージ送信
  *------------------------------------------
  */
-int clif_party_message(struct party *p,int account_id,char *mes,int len)
+int clif_party_message(struct party_data *p,int account_id,char *mes,int len)
 {
 	struct map_session_data *sd;
 	int i;
 
 	nullpo_retr(0, p);
 
-	for(i=0;i<MAX_PARTY;i++){
-		if((sd=p->member[i].sd)!=NULL)
-			break;
-	}
-	if(sd!=NULL){
+	for(i=0; i < MAX_PARTY && !p->data[i].sd;i++);
+	if(i < MAX_PARTY){
 		unsigned char buf[1024];
+		sd = p->data[i].sd;
 		WBUFW(buf,0)=0x109;
 		WBUFW(buf,2)=len+8;
 		WBUFL(buf,4)=account_id;
@@ -5899,7 +5890,9 @@ int clif_hpmeter(struct map_session_data *sd)
 		WBUFW(buf,8) = sd->status.max_hp;
 	}
 	for (i = 0; i < fd_max; i++) {
-		if (session[i] && (sd2 = (struct map_session_data*)session[i]->session_data) &&  sd != sd2 && sd2->state.auth) {
+		if (session[i] && session[i]->func_parse == clif_parse &&	
+			(sd2 = (struct map_session_data*)session[i]->session_data) &&
+			sd != sd2 && sd2->state.auth) {
 			if (sd2->bl.m != sd->bl.m || 
 				sd2->bl.x < x0 || sd2->bl.y < y0 ||
 				sd2->bl.x > x1 || sd2->bl.y > y1 ||
@@ -6144,7 +6137,7 @@ int clif_pet_performance(struct block_list *bl,int param)
 	return 0;
 }
 
-int clif_pet_equip(struct pet_data *pd,int nameid)
+int clif_pet_equip(struct pet_data *pd)
 {
 	unsigned char buf[16];
 
@@ -7456,22 +7449,8 @@ int clif_specialeffect(struct block_list *bl, int type, int flag)
 	WBUFL(buf,2) = bl->id;
 	WBUFL(buf,6) = type;
 
-	switch (flag) {
-	case 4:
-		clif_send(buf, packet_len_table[0x1f3], bl, AREA_WOS);
-		break;
-	case 3:
-		clif_send(buf, packet_len_table[0x1f3], bl, ALL_CLIENT);
-		break;
-	case 2:
-		clif_send(buf, packet_len_table[0x1f3], bl, ALL_SAMEMAP);
-		break;
-	case 1:
-		clif_send(buf, packet_len_table[0x1f3], bl, SELF);
-		break;
-	default:
-		clif_send(buf, packet_len_table[0x1f3], bl, AREA);
-	}
+	clif_send(buf, packet_len_table[0x1f3], bl, flag);
+
 	if (disguised(bl)) {
 		WBUFL(buf,2) = -bl->id;
 		clif_send(buf, packet_len_table[0x1f3], bl, SELF);
@@ -7510,7 +7489,7 @@ int clif_charnameack (int fd, struct block_list *bl)
 	case BL_PC:
 		{
 			struct map_session_data *ssd = (struct map_session_data *)bl;
-			struct party *p = NULL;
+			struct party_data *p = NULL;
 			struct guild *g = NULL;
 			
 			//Requesting your own "shadow" name. [Skotlex]
@@ -7534,7 +7513,7 @@ int clif_charnameack (int fd, struct block_list *bl)
 			
 			WBUFW(buf, 0) = cmd = 0x195;
 			if (p)
-				memcpy(WBUFP(buf,30), p->name, NAME_LENGTH);
+				memcpy(WBUFP(buf,30), p->party.name, NAME_LENGTH);
 			else
 				WBUFB(buf,30) = 0;
 			
@@ -7620,7 +7599,7 @@ int clif_charnameupdate (struct map_session_data *ssd)
 {
 	unsigned char buf[103];
 	int cmd = 0x195;
-	struct party *p = NULL;
+	struct party_data *p = NULL;
 	struct guild *g = NULL;
 
 	nullpo_retr(0, ssd);
@@ -7640,7 +7619,7 @@ int clif_charnameupdate (struct map_session_data *ssd)
 		g = guild_search(ssd->status.guild_id);
 
 	if (p)
-		memcpy(WBUFP(buf,30), p->name, NAME_LENGTH);
+		memcpy(WBUFP(buf,30), p->party.name, NAME_LENGTH);
 	else
 		WBUFB(buf,30) = 0;
 			
@@ -8659,9 +8638,8 @@ void clif_parse_Restart(int fd, struct map_session_data *sd) {
 	case 0x01:
 		/*	Rovert's Prevent logout option - Fixed [Valaris]	*/
 		if (!battle_config.prevent_logout || DIFF_TICK(gettick(), sd->canlog_tick) > battle_config.prevent_logout)
-		{
-			//map_quit(sd);	//A clif_quitsave is sent inmediately after this, so no need to quit yet. [Skotlex]
-			chrif_charselectreq(sd);
+		{	//Send to char-server for character selection.
+			chrif_charselectreq(sd, session[fd]->client_addr.sin_addr.s_addr);
 		} else {
 			WFIFOHEAD(fd,packet_len_table[0x18b]);
 			WFIFOW(fd,0)=0x18b;
@@ -9002,10 +8980,11 @@ void clif_parse_EquipItem(int fd,struct map_session_data *sd)
 	}
 	//ペット用装備であるかないか
 	if(sd->inventory_data[index]) {
-		if(sd->inventory_data[index]->type != 8){
-			if(sd->inventory_data[index]->type == 10)
-				RFIFOW(fd,4)=0x8000;	// 矢を無理やり装備できるように（－－；
-			pc_equipitem(sd,index,RFIFOW(fd,4));
+		if(sd->inventory_data[index]->type != IT_PETARMOR){
+			if(sd->inventory_data[index]->type == IT_AMMO)
+				pc_equipitem(sd,index,EQP_AMMO); //Client doesn't sends the position.
+			else
+				pc_equipitem(sd,index,RFIFOW(fd,4));
 		} else
 			pet_equipitem(sd,index);
 	}
@@ -9394,48 +9373,55 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 		if (skilllv != sd->skillitemlv)
 			skilllv = sd->skillitemlv;
 		unit_skilluse_id(&sd->bl, target_id, skillnum, skilllv);
-	} else {
-		sd->skillitem = sd->skillitemlv = -1;
-		if (skillnum == MO_EXTREMITYFIST) {
-			if ((sd->sc.data[SC_COMBO].timer == -1 ||
-				(sd->sc.data[SC_COMBO].val1 != MO_COMBOFINISH &&
-				sd->sc.data[SC_COMBO].val1 != CH_TIGERFIST &&
-				sd->sc.data[SC_COMBO].val1 != CH_CHAINCRUSH))) {
-				if (!sd->state.skill_flag ) {
-					sd->state.skill_flag = 1;
-					clif_skillinfo(sd, MO_EXTREMITYFIST, INF_ATTACK_SKILL, -1);
-					return;
-				} else if (sd->bl.id == target_id) {
-					clif_skillinfo(sd, MO_EXTREMITYFIST, INF_ATTACK_SKILL, -1);
-					return;
-				}
-			}
-		}
-		if (skillnum == TK_JUMPKICK) {
-			if (sd->sc.data[SC_COMBO].timer == -1 ||
-				sd->sc.data[SC_COMBO].val1 != TK_JUMPKICK) {
-				if (!sd->state.skill_flag ) {
-					sd->state.skill_flag = 1;
-					clif_skillinfo(sd, TK_JUMPKICK, INF_ATTACK_SKILL, -1);
-					return;
-				} else if (sd->bl.id == target_id) {
-					clif_skillinfo(sd, TK_JUMPKICK, INF_ATTACK_SKILL, -1);
-					return;
-				}
-			}
-		}
-
-		if (skillnum >= GD_SKILLBASE && sd->state.gmaster_flag)
-			skilllv = guild_checkskill(sd->state.gmaster_flag, skillnum);
+		return;
+	}
 		
-		if ((lv = pc_checkskill(sd, skillnum)) > 0) {
-			if (skilllv > lv)
-				skilllv = lv;
-			unit_skilluse_id(&sd->bl, target_id, skillnum, skilllv);
-			if (sd->state.skill_flag)
-				sd->state.skill_flag = 0;
+	sd->skillitem = sd->skillitemlv = -1;
+	if (skillnum == MO_EXTREMITYFIST) {
+		if ((sd->sc.data[SC_COMBO].timer == -1 ||
+			(sd->sc.data[SC_COMBO].val1 != MO_COMBOFINISH &&
+			sd->sc.data[SC_COMBO].val1 != CH_TIGERFIST &&
+			sd->sc.data[SC_COMBO].val1 != CH_CHAINCRUSH))) {
+			if (!sd->state.skill_flag ) {
+				sd->state.skill_flag = 1;
+				clif_skillinfo(sd, MO_EXTREMITYFIST, INF_ATTACK_SKILL, -1);
+				return;
+			} else if (sd->bl.id == target_id) {
+				clif_skillinfo(sd, MO_EXTREMITYFIST, INF_ATTACK_SKILL, -1);
+				return;
+			}
 		}
 	}
+	if (skillnum == TK_JUMPKICK) {
+		if (sd->sc.data[SC_COMBO].timer == -1 ||
+			sd->sc.data[SC_COMBO].val1 != TK_JUMPKICK) {
+			if (!sd->state.skill_flag ) {
+				sd->state.skill_flag = 1;
+				clif_skillinfo(sd, TK_JUMPKICK, INF_ATTACK_SKILL, -1);
+				return;
+			} else if (sd->bl.id == target_id) {
+				clif_skillinfo(sd, TK_JUMPKICK, INF_ATTACK_SKILL, -1);
+				return;
+			}
+		}
+	}
+
+	if (skillnum >= GD_SKILLBASE) {
+		if (sd->state.gmaster_flag)
+			skilllv = guild_checkskill(sd->state.gmaster_flag, skillnum);
+		else
+			skilllv = 0;
+	} else {
+		lv = pc_checkskill(sd, skillnum);
+		if (skilllv > lv)
+			skilllv = lv;
+	}
+
+	if (skilllv)
+		unit_skilluse_id(&sd->bl, target_id, skillnum, skilllv);
+
+	if (sd->state.skill_flag)
+		sd->state.skill_flag = 0;
 }
 
 /*==========================================

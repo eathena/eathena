@@ -85,7 +85,7 @@ static const int packet_len_table[0x3d] = {
 //2b21: Incomming, chrif_save_ack. Returned after a character has been "final saved" on the char-server. [Skotlex]
 //2b22-2b27: FREE
 
-int chrif_connected;
+int chrif_connected = 0;
 int char_fd = 0; //Using 0 instead of -1 is safer against crashes. [Skotlex]
 int srvinfo;
 static char char_ip_str[128];
@@ -571,24 +571,15 @@ int auth_db_cleanup(int tid, unsigned int tick, int id, int data) {
  *
  *------------------------------------------
  */
-int chrif_charselectreq(struct map_session_data *sd)
+int chrif_charselectreq(struct map_session_data *sd, unsigned long s_ip)
 {
-	int i, s_ip;
-
 	nullpo_retr(-1, sd);
 
 	if( !sd || !sd->bl.id || !sd->login_id1 )
 		return -1;
 	chrif_check(-1);
 
-	s_ip = 0;
-	for(i = 0; i < fd_max; i++)
-		if (session[i] && session[i]->session_data == sd) {
-			s_ip = session[i]->client_addr.sin_addr.s_addr;
-			break;
-		}
-
-        WFIFOHEAD(char_fd, 18);
+	WFIFOHEAD(char_fd, 18);
 	WFIFOW(char_fd, 0) = 0x2b02;
 	WFIFOL(char_fd, 2) = sd->bl.id;
 	WFIFOL(char_fd, 6) = sd->login_id1;
@@ -687,7 +678,7 @@ int chrif_char_ask_name(int id, char * character_name, short operation_type, int
 		WFIFOW(char_fd, 40) = minute;
 		WFIFOW(char_fd, 42) = second;
 	}
-	ShowInfo("chrif : sended 0x2b0e\n");
+//	ShowInfo("chrif : sent 0x2b0e\n");
 	WFIFOSET(char_fd,44);
 
 	return 0;
@@ -705,7 +696,7 @@ int chrif_changesex(int id, int sex) {
 	WFIFOW(char_fd,2) = 9;
 	WFIFOL(char_fd,4) = id;
 	WFIFOB(char_fd,8) = sex;
-	ShowInfo("chrif : sent 0x3000(changesex)\n");
+//	ShowInfo("chrif : sent 0x3000(changesex)\n");
 	WFIFOSET(char_fd,9);
 	return 0;
 }

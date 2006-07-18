@@ -108,7 +108,7 @@ int intif_delete_petdata(int pet_id)
 	WFIFOL(inter_fd,2) = pet_id;
 	WFIFOSET(inter_fd,6);
 
-	return 0;
+	return 1;
 }
 int intif_rename_pet(struct map_session_data *sd,char *name)
 {
@@ -132,13 +132,13 @@ int intif_GMmessage(char* mes,int len,int flag)
 
 	// Send to the local players
 	clif_GMmessage(NULL, mes, len, flag);
-	
+
 	if (CheckForCharServer())
 		return 0;
-	
+
 	if (other_mapserver_count < 1)
 		return 0; //No need to send.
-	
+
 	WFIFOHEAD(inter_fd,lp + len + 4);
 	WFIFOW(inter_fd,0) = 0x3000;
 	WFIFOW(inter_fd,2) = lp + len + 4;
@@ -156,13 +156,13 @@ int intif_announce(char* mes,int len, unsigned long color, int flag)
 		clif_MainChatMessage(mes);
 	else
 		clif_announce(NULL, mes, len, color, flag);
-	
+
 	if (CheckForCharServer())
 		return 0;
 
 	if (other_mapserver_count < 1)
 		return 0; //No need to send.
-	
+
 	WFIFOHEAD(inter_fd, 8 + len);
 	WFIFOW(inter_fd,0) = 0x3000;
 	WFIFOW(inter_fd,2) = 8 + len;
@@ -182,8 +182,8 @@ int intif_wis_message(struct map_session_data *sd, char *nick, char *mes, int me
 	{	//Character not found.
 		clif_wis_end(sd->fd, 1);
 		return 0;
-	}	
-		
+	}
+
 	WFIFOHEAD(inter_fd,mes_len + 52);
 	WFIFOW(inter_fd,0) = 0x3001;
 	WFIFOW(inter_fd,2) = mes_len + 52;
@@ -236,7 +236,7 @@ int intif_wis_message_to_gm(char *Wisp_name, int min_gm_level, char *mes) {
 
 int intif_regtostr(char* str, struct global_reg *reg, int qty) {
 	int len =0, i;
-	
+
 	for (i = 0; i < qty; i++) {
 		len+= sprintf(str+len, "%s", reg[i].str)+1; //We add 1 to consider the '\0' in place.
 		len+= sprintf(str+len, "%s", reg[i].value)+1;
@@ -252,7 +252,7 @@ int intif_saveregistry(struct map_session_data *sd, int type)
 
 	if (CheckForCharServer())
 		return -1;
-	
+
 	switch (type) {
 	case 3: //Character reg
 		reg = sd->save_reg.global;
@@ -311,7 +311,7 @@ int intif_request_registry(struct map_session_data *sd, int flag)
 	WFIFOW(inter_fd,0) = 0x3005;
 	WFIFOL(inter_fd,2) = sd->status.account_id;
 	WFIFOL(inter_fd,6) = sd->status.char_id;
-	WFIFOB(inter_fd,10) = (flag&1?1:0); //Request Acc Reg 2 
+	WFIFOB(inter_fd,10) = (flag&1?1:0); //Request Acc Reg 2
 	WFIFOB(inter_fd,11) = (flag&2?1:0); //Request Acc Reg
 	WFIFOB(inter_fd,12) = (flag&4?1:0); //Request Char Reg
 	WFIFOSET(inter_fd,13);
@@ -371,23 +371,20 @@ int intif_send_guild_storage(int account_id,struct guild_storage *gstor)
 }
 
 // パーティ作成要求
-int intif_create_party(struct map_session_data *sd,char *name,int item,int item2)
+int intif_create_party(struct party_member *member,char *name,int item,int item2)
 {
 	if (CheckForCharServer())
 		return 0;
-	nullpo_retr(0, sd);
+	nullpo_retr(0, member);
 
 	WFIFOHEAD(inter_fd,64);
 	WFIFOW(inter_fd,0) = 0x3020;
-	WFIFOL(inter_fd,2) = sd->status.account_id;
-	WFIFOL(inter_fd,6) = sd->status.char_id;
-	memcpy(WFIFOP(inter_fd,10),name, NAME_LENGTH);
-	memcpy(WFIFOP(inter_fd,34),sd->status.name,NAME_LENGTH);
-	WFIFOW(inter_fd,58) = sd->mapindex;
-	WFIFOW(inter_fd,60)= sd->status.base_level;
-	WFIFOB(inter_fd,62)= item;
-	WFIFOB(inter_fd,63)= item2;
-	WFIFOSET(inter_fd,64);
+	WFIFOW(inter_fd,2) = 24+2+sizeof(struct party_member);
+	memcpy(WFIFOP(inter_fd,4),name, NAME_LENGTH);
+	WFIFOB(inter_fd,28)= item;
+	WFIFOB(inter_fd,29)= item2;
+	memcpy(WFIFOP(inter_fd,30), member, sizeof(struct party_member));
+	WFIFOSET(inter_fd,WFIFOW(inter_fd, 2));
 	return 0;
 }
 // パーティ情報要求
@@ -404,20 +401,17 @@ int intif_request_partyinfo(int party_id)
 	return 0;
 }
 // パーティ追加要求
-int intif_party_addmember(int party_id,struct map_session_data *sd)
+int intif_party_addmember(int party_id,struct party_member *member)
 {
 	if (CheckForCharServer())
 		return 0;
-	
+
 	WFIFOHEAD(inter_fd,42);
 	WFIFOW(inter_fd,0)=0x3022;
-	WFIFOL(inter_fd,2)=party_id;
-	WFIFOL(inter_fd,6)=sd->status.account_id;
-	WFIFOL(inter_fd,10)=sd->status.char_id;
-	memcpy(WFIFOP(inter_fd,14),sd->status.name,NAME_LENGTH);
-	WFIFOW(inter_fd,38) = sd->mapindex;
-	WFIFOW(inter_fd,40)=sd->status.base_level;
-	WFIFOSET(inter_fd,42);
+	WFIFOW(inter_fd,2)=8+sizeof(struct party_member);
+	WFIFOL(inter_fd,4)=party_id;
+	memcpy(WFIFOP(inter_fd,8),member,sizeof(struct party_member));
+	WFIFOSET(inter_fd,WFIFOW(inter_fd, 2));
 	return 1;
 }
 // パーティ設定変更
@@ -454,7 +448,7 @@ int intif_party_changemap(struct map_session_data *sd,int online)
 		return 0;
 	if(!sd)
 		return 0;
-	
+
 	WFIFOHEAD(inter_fd,19);
 	WFIFOW(inter_fd,0)=0x3025;
 	WFIFOL(inter_fd,2)=sd->status.party_id;
@@ -837,10 +831,22 @@ int intif_parse_WisEnd(int fd) {
 	return 0;
 }
 
+static int mapif_parse_WisToGM_sub(struct map_session_data* sd,va_list va) {
+	int min_gm_level = va_arg(va, int);
+	char *wisp_name;
+	char *message;
+	int len;
+	if (pc_isGM(sd) < min_gm_level) return 0;
+	wisp_name = va_arg(va, char*);
+	message = va_arg(va, char*);
+	len = va_arg(va, int);
+	clif_wis_message(sd->fd, wisp_name, message, len);
+	return 1;
+}
+
 // Received wisp message from map-server via char-server for ALL gm
 int mapif_parse_WisToGM(int fd) { // 0x3003/0x3803 <packet_len>.w <wispname>.24B <min_gm_level>.w <message>.?B
-	int i, min_gm_level, mes_len;
-	struct map_session_data *pl_sd;
+	int min_gm_level, mes_len;
 	char Wisp_name[NAME_LENGTH];
 	char mbuf[255];
 	char *message;
@@ -855,14 +861,10 @@ int mapif_parse_WisToGM(int fd) { // 0x3003/0x3803 <packet_len>.w <wispname>.24B
 	memcpy(message, RFIFOP(fd,30), mes_len);
 	message[mes_len-1] = '\0';
 	// information is sended to all online GM
-	for (i = 0; i < fd_max; i++)
-		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth)
-			if (pc_isGM(pl_sd) >= min_gm_level)
-				clif_wis_message(i, Wisp_name, message, strlen(message) + 1);
+	clif_foreachclient(mapif_parse_WisToGM_sub, min_gm_level, Wisp_name, message, mes_len);
 
 	if (message != mbuf)
 		aFree(message);
-
 	return 0;
 }
 
@@ -879,9 +881,9 @@ int intif_parse_Registers(int fd) {
 
 	if (RFIFOB(fd,12) == 3 && sd->status.char_id != RFIFOL(fd,8))
 		return 1; //Character registry from another character.
-	
+
 	flag = (sd->save_reg.global_num == -1 || sd->save_reg.account_num == -1 || sd->save_reg.account2_num == -1);
-	
+
 	switch (RFIFOB(fd,12)) {
 		case 3: //Character Registry
 			reg = sd->save_reg.global;
@@ -930,7 +932,9 @@ int intif_parse_LoadStorage(int fd) {
 			ShowError("intif_parse_LoadStorage: user not found %d\n",RFIFOL(fd,4));
 		return 1;
 	}
+
 	stor = account2storage( RFIFOL(fd,4));
+
 	if (stor->storage_status == 1) { // Already open.. lets ignore this update
 		if (battle_config.error_log)
 			ShowWarning("intif_parse_LoadStorage: storage received for a client already open (User %d:%d)\n", sd->status.account_id, sd->status.char_id);
@@ -1394,7 +1398,7 @@ int intif_parse(int fd)
 	}
 	// 処理分岐
 	switch(cmd){
-	case 0x3800:	
+	case 0x3800:
 		if (RFIFOL(fd,4) == 0xFF000000) //Normal announce.
 			clif_GMmessage(NULL,(char *) RFIFOP(fd,8),packet_len-8,0);
 		else if (RFIFOL(fd,4) == 0xFE000000) //Main chat message [LuzZza]

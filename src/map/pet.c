@@ -467,7 +467,7 @@ int pet_birth_process(struct map_session_data *sd)
 	clif_spawn(&sd->pd->bl);
 	clif_send_petdata(sd,0,0);
 	clif_send_petdata(sd,5,battle_config.pet_hair_style);
-	clif_pet_equip(sd->pd,sd->pet.equip);
+	clif_pet_equip(sd->pd);
 	clif_send_petstatus(sd);
 
 	Assert((sd->status.pet_id == 0 || sd->pd == 0) || sd->pd->msd == sd); 
@@ -512,7 +512,7 @@ int pet_recv_petdata(int account_id,struct s_pet *p,int flag)
 			clif_spawn(&sd->pd->bl);
 			clif_send_petdata(sd,0,0);
 			clif_send_petdata(sd,5,battle_config.pet_hair_style);
-			clif_pet_equip(sd->pd,sd->pet.equip);
+			clif_pet_equip(sd->pd);
 			clif_send_petstatus(sd);
 		}
 	}
@@ -717,7 +717,7 @@ int pet_change_name(struct map_session_data *sd,char *name, int flag) //flag 0 =
 
 	clif_charnameack (0,&sd->pd->bl);
 	sd->pet.rename_flag = 1;
-	clif_pet_equip(sd->pd,sd->pet.equip);
+	clif_pet_equip(sd->pd);
 	clif_send_petstatus(sd);
 
 	return 0;
@@ -741,7 +741,8 @@ int pet_equipitem(struct map_session_data *sd,int index)
 
 	pc_delitem(sd,index,1,0);
 	sd->pet.equip = pd->equip = nameid;
-	clif_pet_equip(pd,nameid);
+	status_set_viewdata(&pd->bl, pd->vd.class_); //Updates view_data.
+	clif_pet_equip(pd);
 	if (battle_config.pet_equip_required)
 	{ 	//Skotlex: start support timers if need
 		unsigned int tick = gettick();
@@ -769,7 +770,8 @@ static int pet_unequipitem(struct map_session_data *sd, struct pet_data *pd)
 
 	nameid = sd->pet.equip;
 	sd->pet.equip = pd->equip = 0;
-	clif_pet_equip(pd,0);
+	status_set_viewdata(&pd->bl, pd->vd.class_);
+	clif_pet_equip(pd);
 	memset(&tmp_item,0,sizeof(tmp_item));
 	tmp_item.nameid = nameid;
 	tmp_item.identify = 1;

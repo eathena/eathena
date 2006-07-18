@@ -5,6 +5,40 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/18
+	* Merges from trunk of some stuff that has been on trunk for a long time
+	  now: [Skotlex]
+	- Merged the party_data structure which contains more information about the
+	  party for better handling. TXT-party save structure changed, so you'll have
+	  to wipe the party file...
+	- Merged party item sharing skipping idle/dead characters.
+	- Merged the remaining missing checks on functions that scan all connected
+	  clients to use clif_foreachclient instead of manually scanning it. Fixes
+	  data being sent to invalid recipients which in turn could crash the server.
+	  This involved a lot of rewrites around the duel-related functions and
+	  night/day time.
+	- Updated monsterignore to make you inmune to offensive attacks. Added
+	  @battleignore alias to reflect this change.
+	- Merged clif_specialeffect directly receiving the recipient type. 
+	- Merged fix for @storeall saying it failed when the storage is already
+	  open.
+	- Merged a bunch of defines and constants from map.h, mmo.h and itemdb.h
+	- merged Emergency call config setting which lets you determine how the
+	  skill behaves. (battle/skill.conf)
+	- Merged update of summons_inherit_effects into summons_trigger_autospells.
+	  (battle/monster.conf)
+	- merged config settings max_heal_lv, no_skill_delay, max_heal
+	  (battle/skill.conf)
+	- merged fakename commands invoking a name-update instead of pc_setpos.
+	- merged the addeff structure which lets you specify the bonus3 versions,
+	  as well as specifying target both (check doc/item_bonuses)
+	- Merged support for specifying negative autospell rates to cancel said
+	  type of bonus.
+	- Merged TK ranker unlimited combo-time being extended when you use a
+	  proper skill.
+	- Merged cleaned up code for pc_setoption
+	- Merged some mob ai cleanups from trunk.
+	- Merged mobs with player sprites having an act/walk delay when looting.
+	- Merged fix where pet armor doesn't shows when just equipped/unequipped.
 	* Merged a char-sql fix which was preventing characters to be saved on the
 	  char-server after a char-map reconnect. [Skotlex]
 2006/07/17

@@ -160,7 +160,7 @@ extern struct Battle_Config {
 	unsigned short mob_spawn_delay, plant_spawn_delay, boss_spawn_delay;	// [Skotlex]
 	unsigned short slaves_inherit_mode;
 	unsigned short slaves_inherit_speed;
-	unsigned short summons_inherit_effects;
+	unsigned short summons_trigger_autospells;
 	unsigned short pc_walk_delay_rate; //Adjusts can't walk delay after being hit for players. [Skotlex]
 	unsigned short walk_delay_rate; //Adjusts can't walk delay after being hit. [Skotlex]
 	unsigned short multihit_delay;  //Adjusts can't walk delay per hit on multi-hitting skills. [Skotlex]
@@ -170,6 +170,7 @@ extern struct Battle_Config {
 	unsigned short guild_emperium_check;
 	unsigned short guild_exp_limit;
 	unsigned short guild_max_castles;
+	unsigned short emergency_call;
 	unsigned short pc_invincible_time;
 	unsigned short pet_catch_rate;
 	unsigned short pet_rename;
@@ -192,6 +193,8 @@ extern struct Battle_Config {
 	unsigned short skill_min_damage;
 	unsigned short finger_offensive_type;
 	unsigned short heal_exp;
+	unsigned short max_heal_lv;
+	int max_heal; //Mitternacht
 	unsigned short resurrection_exp;
 	unsigned short shop_exp;
 	unsigned short combo_delay_rate;
@@ -366,6 +369,7 @@ extern struct Battle_Config {
 	unsigned short exp_calc_type;
 	unsigned short min_skill_delay_limit;
 	unsigned short default_skill_delay;
+	unsigned short no_skill_delay;
 	unsigned short require_glory_guild;
 	unsigned short idle_no_share;
 	unsigned short party_even_share_bonus;

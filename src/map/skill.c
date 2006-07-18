@@ -799,6 +799,10 @@ int skill_get_range2 (struct block_list *bl, int id, int lv)
 int skill_calc_heal (struct block_list *bl, int skill_lv)
 {
 	int skill, heal;
+
+	if (skill_lv >= battle_config.max_heal_lv)
+		return battle_config.max_heal;
+
 	heal = ( status_get_lv(bl)+status_get_int(bl) )/8 *(4+ skill_lv*8);
 	if(bl->type == BL_PC && (skill = pc_checkskill((TBL_PC*)bl, HP_MEDITATIO)) > 0)
 		heal += heal * skill * 2 / 100;
@@ -896,6 +900,14 @@ int skillnotok (int skillid, struct map_session_data *sd)
 		case WZ_ICEWALL:
 			// noicewall flag [Valaris]
 			if (map[sd->bl.m].flag.noicewall) {
+				clif_skill_fail(sd,skillid,0,0);
+				return 1;
+			}
+			break;
+		case GD_EMERGENCYCALL:
+			if (!battle_config.emergency_call ||
+				(map[sd->bl.m].flag.nowarpto && battle_config.emergency_call&1))
+			{
 				clif_skill_fail(sd,skillid,0,0);
 				return 1;
 			}
@@ -1315,20 +1327,41 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 	}
 
-	if (md && battle_config.summons_inherit_effects && md->master_id && md->special_state.ai)
-	{	//Pass heritage to Master for status causing effects. [Skotlex]
-		sd = map_id2sd(md->master_id);
+	if(sd && attack_type&BF_WEAPON &&
+		skillid != MC_CARTREVOLUTION &&
+		skillid != AM_DEMONSTRATION &&
+		skillid != CR_REFLECTSHIELD
+	){	//Trigger status effects
+		int i, type;
+		for(i=0; i < MAX_PC_BONUS && sd->addeff[i].flag; i++)
+		{
+			rate = sd->addeff[i].rate;
+			type = sd->state.arrow_atk; //Ranged?
+			if (type)
+				rate += sd->addeff[i].arrow_rate;
+			if (!rate) continue;
+			
+			if (!(sd->addeff[i].flag&ATF_LONG && sd->addeff[i].flag&ATF_SHORT))
+			{	//Trigger has range consideration.
+				if ((sd->addeff[i].flag&ATF_LONG && !type) ||
+					(sd->addeff[i].flag&ATF_SHORT && type))
+					continue; //Range Failed.
+			}
+			type =  sd->addeff[i].id;
+			skill = skill_get_time2(StatusSkillChangeTable[type],7);
+			
+			if (sd->addeff[i].flag&ATF_TARGET)
+				status_change_start(bl,type,rate,7,0,0,0,skill,0);
+			
+			if (sd->addeff[i].flag&ATF_SELF)
+				status_change_start(src,type,rate,7,0,0,0,skill,0);
+		}
 	}
 
-	if(sd && skillid != MC_CARTREVOLUTION && skillid != AM_DEMONSTRATION && skillid != CR_REFLECTSHIELD && attack_type&BF_WEAPON){	/* カ?ドによる追加?果 */
-		int i, type;
-		for(i=SC_COMMON_MIN;i<=SC_COMMON_MAX;i++){
-			type=i-SC_COMMON_MIN;
-			rate = sd->addeff[type]+(sd->state.arrow_atk?sd->arrow_addeff[type]:0);
-			if (!rate)
-				continue; //Code Speedup.
-			status_change_start(bl,i,rate,7,0,0,0,skill_get_time2(StatusSkillChangeTable[type],7),0);
-		}
+	if (md && battle_config.summons_trigger_autospells && md->master_id && md->special_state.ai)
+	{	//Pass heritage to Master for status causing effects. [Skotlex]
+		sd = map_id2sd(md->master_id);
+		src = sd?&sd->bl:src;
 	}
 
 	//Reports say that autospell effects get triggered on skills and pretty much everything including splash attacks. [Skotlex]
@@ -1427,23 +1460,6 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		sc_start(src,SkillStatusChangeTable[skillid],100,skilllv,skill_get_time2(skillid,skilllv));
 		break;
 	}
-	
-	if((sd||dstsd) && skillid != MC_CARTREVOLUTION && attack_type&BF_WEAPON){	/* カ?ドによる追加?果 */
-		int i, type;
-
-		for(i=SC_COMMON_MIN;i<=SC_COMMON_MAX;i++){
-			type=i-SC_COMMON_MIN;
-			
-			
-			rate = sd?(sd->addeff2[type]+(sd->state.arrow_atk?sd->arrow_addeff2[type]:0)):0;
-			if (rate) //Self infliced status from attacking.
-				status_change_start(src,i,rate,7,0,0,0,skill_get_time2(StatusSkillChangeTable[type],7),0);
-
-			rate = dstsd?dstsd->addeff3[type]:0;
-			if (rate && (dstsd->addeff3_type[type] == 1 || ((sd && sd->state.arrow_atk) || (status_get_range(src)>2))))
-				status_change_start(src,i,rate,7,0,0,0,skill_get_time2(StatusSkillChangeTable[type],7),0);
-		}
-	}
 
 	if(sd && bl->type == BL_MOB && status_isdead(bl) &&
 		skillid && skill_get_type(skillid)==BF_MAGIC &&
@@ -1462,6 +1478,34 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		}
 	}
 
+	if(dstsd && attack_type&BF_WEAPON)
+	{	//Counter effects.
+		int i, type, time;
+		for(i=0; i < MAX_PC_BONUS && dstsd->addeff2[i].flag; i++)
+		{
+			rate = dstsd->addeff2[i].rate;
+			type = (sd && sd->state.arrow_atk) || (status_get_range(src)>2);
+			if (type)
+				rate+=dstsd->addeff2[i].arrow_rate;
+			if (!rate) continue;
+			
+			if (!(dstsd->addeff2[i].flag&ATF_LONG && dstsd->addeff2[i].flag&ATF_SHORT))
+			{	//Trigger has range consideration.
+				if ((dstsd->addeff2[i].flag&ATF_LONG && !type) ||
+					(dstsd->addeff2[i].flag&ATF_SHORT && type))
+					continue; //Range Failed.
+			}
+			type =  dstsd->addeff2[i].id;
+			time = skill_get_time2(StatusSkillChangeTable[type],7);
+			
+			if (dstsd->addeff2[i].flag&ATF_TARGET)
+				status_change_start(src,type,rate,7,0,0,0,time,0);
+			
+			if (dstsd->addeff2[i].flag&ATF_SELF && !status_isdead(bl))
+				status_change_start(bl,type,rate,7,0,0,0,time,0);
+		}
+	}
+	
 	//Trigger counter-spells to retaliate against damage causing skills. [Skotlex]
 	if(dstsd && !status_isdead(bl) && src != bl && !(skillid && skill_get_nk(skillid)&NK_NO_DAMAGE)) 
 	{
@@ -1673,7 +1717,7 @@ int skill_blown (struct block_list *src, struct block_list *target, int count)
 	if(!(count&0x20000)) 
 		clif_blown(target);
 
-	return 0;
+	return (count&0xFFFF); //Return amount of knocked back cells.
 }
 
 /*
@@ -1816,7 +1860,13 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				sd->skillid_old = skillid;
 				sd->skilllv_old = skilllv;
 				if (pc_famerank(sd->char_id,MAPID_TAEKWON))
-					break; //Do not end combo state.
+			  	{	//Extend combo time.
+					delete_timer(sd->sc.data[SC_COMBO].timer, status_change_timer);
+					sd->sc.data[SC_COMBO].timer = add_timer(
+						tick+sd->sc.data[SC_COMBO].val4,
+					  	status_change_timer, src->id, SC_COMBO);
+					break;
+				}
 			default:
 				status_change_end(src,SC_COMBO,-1);
 			}
@@ -5118,7 +5168,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			}
 			do {
 				eff = rand() % 14;
-				clif_specialeffect(bl, 523 + eff, 0);
+				clif_specialeffect(bl, 523 + eff, AREA);
 				switch (eff)
 				{
 				case 0:	// heals SP to 0
@@ -8075,8 +8125,8 @@ int skill_delayfix (struct block_list *bl, int skill_id, int skill_lv)
 	
 	nullpo_retr(0, bl);
 
-	if (bl->type == BL_MOB)
-		return 0; //Mobs have no delay other than the skill-specific delay in their skill db. [Skotlex]
+	if (bl->type&battle_config.no_skill_delay)
+		return battle_config.min_skill_delay_limit; 
 	
 	// instant cast attack skills depend on aspd as delay [celest]
 	if (time == 0) {
@@ -9968,8 +10018,9 @@ int skill_produce_mix (struct map_session_data *sd, int skill_id, int nameid, in
 					clif_misceffect(&sd->bl,3);
 					break;
 				default: //Those that don't require a skill?
-					if (skill_produce_db[idx].itemlv==11) //Cooking items.
-						clif_specialeffect(&sd->bl, 608, 0);
+					if (skill_produce_db[idx].itemlv>10 &&
+						skill_produce_db[idx].itemlv<= 20) //Cooking items.
+						clif_specialeffect(&sd->bl, 608, AREA);
 					break;
 			}
 		}
@@ -10008,8 +10059,9 @@ int skill_produce_mix (struct map_session_data *sd, int skill_id, int nameid, in
 				clif_misceffect(&sd->bl,2);
 				break;
 			default:
-				if (skill_produce_db[idx].itemlv==11)
-					clif_specialeffect(&sd->bl, 609, 0);
+				if (skill_produce_db[idx].itemlv>10 &&
+					skill_produce_db[idx].itemlv<= 20) //Cooking items.
+					clif_specialeffect(&sd->bl, 609, AREA);
 		}
 	}
 	return 0;
@@ -10258,6 +10310,46 @@ void skill_init_unit_layout (void)
 				skill_unit_layout[pos].count = 33;
 				memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 				memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
+				break;
+			}
+			case NJ_TATAMIGAESHI:
+			{
+				//Level 1 (count 4, cross of 3x3)
+				static const int dx1[] = {-1, 1, 0, 0};
+				static const int dy1[] = { 0, 0,-1, 1};
+				//Level 2-3 (count 8, cross of 5x5)
+				static const int dx2[] = {-2,-1, 1, 2, 0, 0, 0, 0};
+				static const int dy2[] = { 0, 0, 0, 0,-2,-1, 1, 2};
+				//Level 4-5 (count 12, cross of 7x7
+				static const int dx3[] = {-3,-2,-1, 1, 2, 3, 0, 0, 0, 0, 0, 0};
+				static const int dy3[] = { 0, 0, 0, 0, 0, 0,-3,-2,-1, 1, 2, 3};
+				//lv1
+				j = 0;
+				skill_unit_layout[pos].count = 4;
+				memcpy(skill_unit_layout[pos].dx,dx1,sizeof(dx1));
+				memcpy(skill_unit_layout[pos].dy,dy1,sizeof(dy1));
+				skill_db[i].unit_layout_type[j] = pos;
+				//lv2/3
+				j++;
+				pos++;
+				skill_unit_layout[pos].count = 8;
+				memcpy(skill_unit_layout[pos].dx,dx2,sizeof(dx2));
+				memcpy(skill_unit_layout[pos].dy,dy2,sizeof(dy2));
+				skill_db[i].unit_layout_type[j] = pos;
+				skill_db[i].unit_layout_type[++j] = pos;
+				//lv4/5
+				j++;
+				pos++;
+				skill_unit_layout[pos].count = 12;
+				memcpy(skill_unit_layout[pos].dx,dx3,sizeof(dx3));
+				memcpy(skill_unit_layout[pos].dy,dy3,sizeof(dy3));
+				skill_db[i].unit_layout_type[j] = pos;
+				skill_db[i].unit_layout_type[++j] = pos;
+				//Fill in the rest using lv 5.
+				for (;j<MAX_SKILL_LEVEL;j++)
+					skill_db[i].unit_layout_type[j] = pos;
+				//Skip, this way the check below will fail and continue to the next skill.
+				pos++;
 				break;
 			}
 			default:

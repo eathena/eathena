@@ -155,7 +155,7 @@ enum {
 //Don't change this, as the client seems to always send/receive 80 characters as it currently is. [Skotlex]
 #define MESSAGE_SIZE 80
 
-#define DEFAULT_AUTOSAVE_INTERVAL 60*1000
+#define DEFAULT_AUTOSAVE_INTERVAL 5*60*1000
 
 //Specifies maps where players may hit each other
 #define map_flag_vs(m) (map[m].flag.pvp || map[m].flag.gvg_dungeon || map[m].flag.gvg || (agit_flag && map[m].flag.gvg_castle))
@@ -254,6 +254,13 @@ enum {
 	IG_LOTTOBOX,	//35
 	MAX_ITEMGROUP,
 } item_group_list;
+
+enum {
+	ATF_SELF=0x01,
+	ATF_TARGET=0x02,
+	ATF_SHORT=0x04,
+	ATF_LONG=0x08
+} auto_trigger_flag;
 
 struct block_list {
 	struct block_list *next,*prev;
@@ -426,6 +433,25 @@ struct view_data {
 	char sex;
 	unsigned dead_sit : 2;
 };
+
+struct party_member_data {
+	struct map_session_data *sd;
+	unsigned int hp; //For HP,x,y refreshing.
+	unsigned short x, y;
+};
+
+struct party_data {
+	struct party party;
+	struct party_member_data data[MAX_PARTY];
+	unsigned char itemc; //For item distribution.
+	struct {
+		unsigned monk : 1; //There's at least one monk in party?
+		unsigned sg : 1;	//There's at least one Star Gladiator in party?
+		unsigned snovice :1; //There's a Super Novice
+		unsigned tk : 1; //There's a taekwon
+	} state;
+};
+
 struct npc_data;
 struct pet_db;
 struct item_data;
@@ -561,8 +587,6 @@ struct map_session_data {
 	int subrace[RC_MAX];
 	int subrace2[RC_MAX];
 	int subsize[3];
-	int addeff[SC_COMMON_MAX-SC_COMMON_MIN+1];
-	int addeff2[SC_COMMON_MAX-SC_COMMON_MIN+1];
 	int reseff[SC_COMMON_MAX-SC_COMMON_MIN+1];
 	int weapon_coma_ele[ELE_MAX];
 	int weapon_coma_race[RC_MAX];
@@ -571,22 +595,22 @@ struct map_session_data {
 	int arrow_addele[ELE_MAX];
 	int arrow_addrace[RC_MAX];
 	int arrow_addsize[3];
-	int arrow_addeff[SC_COMMON_MAX-SC_COMMON_MIN+1];
-	int arrow_addeff2[SC_COMMON_MAX-SC_COMMON_MIN+1];
 	int magic_addele[ELE_MAX];
 	int magic_addrace[RC_MAX];
 	int magic_addsize[3];
 	int critaddrace[RC_MAX];
 	int expaddrace[RC_MAX];
 	int itemhealrate[MAX_ITEMGROUP];
-	int addeff3[SC_COMMON_MAX-SC_COMMON_MIN+1];
-	short addeff3_type[SC_COMMON_MAX-SC_COMMON_MIN+1];
 	short sp_gain_race[RC_MAX];
 	// zeroed arrays end here.
 	// zeroed structures start here
 	struct s_autospell{
 		short id, lv, rate, card_id;
 	} autospell[MAX_PC_BONUS], autospell2[MAX_PC_BONUS];
+	struct s_addeffect{
+		short id, rate, arrow_rate;
+		unsigned char flag;
+	} addeff[MAX_PC_BONUS], addeff2[MAX_PC_BONUS];
 	struct { //skillatk raises bonus dmg% of skills, skillblown increases bonus blewcount for some skills.
 		short id, val;
 	} skillatk[MAX_PC_BONUS], skillblown[MAX_PC_BONUS];
@@ -691,7 +715,6 @@ struct map_session_data {
 	} deal;
 
 	int party_invite,party_invite_account;
-	short party_x,party_y; // should be short [zzo]
 
 	int guild_invite,guild_invite_account;
 	int guild_emblem_id,guild_alliance,guild_alliance_account;
@@ -946,14 +969,6 @@ struct pet_data {
 };
 
 enum { ATK_LUCKY=1,ATK_FLEE,ATK_DEF};	// 囲まれペナルティ計算用
-
-// For equipment breaking/stripping effects
-enum {
-	EQP_WEAPON		= 1,		// Both weapons
-	EQP_ARMOR		= 2,		// Armor
-	EQP_SHIELD		= 4,		// Shield
-	EQP_HELM		= 8,		// Top-head headgear
-};
 
 struct map_data {
 	char name[MAP_NAME_LENGTH];

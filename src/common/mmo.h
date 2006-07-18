@@ -117,6 +117,11 @@
 
 #define CHAR_CONF_NAME  "conf/char_athena.conf"
 
+//Base Homun skill.
+#define HM_SKILLBASE 8000
+#define MAX_HOMUNSKILL 16
+#define MAX_HOMUNCULUS_CLASS	16	//[orn]
+
 struct item {
 	int id;
 	short nameid;
@@ -244,7 +249,7 @@ struct party_member {
 	int account_id;
 	int char_id;
 	char name[NAME_LENGTH];
-	struct map_session_data *sd;
+	unsigned short class_;
 	unsigned short map;
 	unsigned short lv;
 	unsigned leader : 1,
@@ -254,9 +259,9 @@ struct party_member {
 struct party {
 	int party_id;
 	char name[NAME_LENGTH];
+	unsigned char count; //Count of online characters.
 	unsigned exp : 1,
 				item : 2; //&1: Party-Share (round-robin), &2: pickup style: shared.
-	short itemc; //For item sharing through round-robin, holds last item receiver.
 	struct party_member member[MAX_PARTY];
 };
 
@@ -385,9 +390,6 @@ enum {
 	GD_DEVELOPMENT=10014,
 };
 
-//Base Homun skill.
-#define HM_SKILLBASE 8001
-#define MAX_HOMUNSKILL 16
 
 //These mark the ID of the jobs, as expected by the client. [Skotlex]
 enum {

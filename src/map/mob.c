@@ -390,12 +390,13 @@ static int mob_spawn_guardian_sub(int tid,unsigned int tick,int id,int data)
 	if (bl == NULL) //It is possible mob was already removed from map when the castle has no owner. [Skotlex]
 		return 0;
 	
-	if (bl->type != BL_MOB || (md = (struct mob_data*)bl) == NULL)
+	if (bl->type != BL_MOB)
 	{
 		ShowError("mob_spawn_guardian_sub: Block error!\n");
 		return 0;
 	}
 	
+	md = (struct mob_data*)bl;
 	nullpo_retr(0, md->guardian_data);
 	g = guild_search(data);
 
@@ -643,7 +644,7 @@ int mob_spawn (struct mob_data *md)
 		{	//Monster can be spawned on an area.
 			short x, y, xs, ys;
 			if (md->spawn->x == 0 && md->spawn->y == 0)
-				xs = ys = -1;
+				x = y = xs = ys = -1;
 			else {
 				x = md->spawn->x;
 				y = md->spawn->y;
@@ -684,16 +685,6 @@ int mob_spawn (struct mob_data *md)
 	md->state.skillstate = MSS_IDLE;
 	md->next_walktime = tick+rand()%5000+1000;
 	md->last_linktime = tick;
-
-	/* Guardians should be spawned using mob_spawn_guardian! [Skotlex]
-	 * and the Emperium is spawned using mob_once_spawn.
-	md->guild_id = 0;
-	if (md->class_ >= 1285 && md->class_ <= 1288) {
-		struct guild_castle *gc=guild_mapname2gc(map[md->bl.m].name);
-		if(gc)
-			md->guild_id = gc->guild_id;
-	}
-	*/
 
 	for (i = 0, c = tick-1000*3600*10; i < MAX_MOBSKILL; i++)
 		md->skilldelay[i] = c;
@@ -797,7 +788,10 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 	target= va_arg(ap,struct block_list**);
 
 	//If can't seek yet, not an enemy, or you can't attack it, skip.
-	if ((*target) == bl || battle_check_target(&md->bl,bl,BCT_ENEMY)<=0 || !status_check_skilluse(&md->bl, bl, 0, 0))
+	if ((*target) == bl || !status_check_skilluse(&md->bl, bl, 0, 0))
+		return 0;
+
+	if(battle_check_target(&md->bl,bl,BCT_ENEMY)<=0)
 		return 0;
 
 	switch (bl->type)
@@ -806,10 +800,11 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 		if (((TBL_PC*)bl)->state.gangsterparadise &&
 			!(status_get_mode(&md->bl)&MD_BOSS))
 			return 0; //Gangster paradise protection.
-	case BL_MOB:
-		if((dist=distance_bl(&md->bl, bl)) < md->db->range2
-			&& (md->db->range > 6 || mob_can_reach(md,bl,dist+1, MSS_FOLLOW))
-			&& ((*target) == NULL || !check_distance_bl(&md->bl, *target, dist)) //New target closer than previous one.
+	default:
+
+		if((dist=distance_bl(&md->bl, bl)) < md->db->range2 &&
+			((*target) == NULL || !check_distance_bl(&md->bl, *target, dist)) &&
+			battle_check_range(&md->bl,bl,md->db->range2)
 		) {
 			(*target) = bl;
 			md->target_id=bl->id;
@@ -918,14 +913,17 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		md->master_dist=distance_bl(&md->bl, bl);
 
 		// Since the master was in near immediately before, teleport is carried out and it pursues.
-		if(old_dist<10 && md->master_dist>18){
-			unit_warp(&md->bl,-1,bl->x,bl->y,3);
+		if(bl->m != md->bl.m || 
+			(old_dist<10 && md->master_dist>18) ||
+			md->master_dist > MAX_MINCHASE
+		){
+			md->master_dist = 0;
+			unit_warp(&md->bl,bl->m,bl->x,bl->y,3);
 			return 0;
 		}
 
 		// Approach master if within view range, chase back to Master's area also if standing on top of the master.
-		if(md->master_dist<md->db->range3 &&
-			(md->master_dist>MOB_SLAVEDISTANCE || md->master_dist == 0) &&
+		if((md->master_dist>MOB_SLAVEDISTANCE || md->master_dist == 0) &&
 			unit_can_move(&md->bl))
 		{
 			short x = bl->x, y = bl->y;
@@ -943,7 +941,8 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 	}
 	
 	//Avoid attempting to lock the master's target too often to avoid unnecessary overload. [Skotlex]
-	if (DIFF_TICK(md->last_linktime, tick) < MIN_MOBLINKTIME && !md->target_id) {
+	if (DIFF_TICK(md->last_linktime, tick) < MIN_MOBLINKTIME && !md->target_id)
+  	{
 		struct unit_data *ud = unit_bl2ud(bl);
 		md->last_linktime = tick;
 		
@@ -1061,7 +1060,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	if (md->ud.skilltimer != -1)
 		return 0;
 
-	if( md->ud.walktimer != -1 && md->ud.walkpath.path_pos <= 3)
+	if(md->ud.walktimer != -1 && md->ud.walkpath.path_pos <= 3)
 		return 0;
 
 	// Abnormalities
@@ -1101,7 +1100,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			if (!can_move && (battle_config.mob_ai&2) &&
 				!battle_check_range(&md->bl, tbl, md->db->range))
 			{	//Rude-attacked.
-				if (md->attacked_count++ > 3)
+				if (DIFF_TICK(tick, md->ud.canmove_tick) > 0 &&
+				  	md->attacked_count++ > 3)
 					mobskill_use(md, tick, MSC_RUDEATTACKED);
 			}
 		} else
@@ -1267,6 +1267,12 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				memcpy (&md->lootitem[LOOTITEM_SIZE-1], &fitem->item_data, sizeof(md->lootitem[0]));
 			}
 			//Clear item.
+			if (pcdb_checkid(md->vd->class_))
+			{	//Give them walk act/delay to properly mimic players. [Skotlex]
+				clif_takeitem(&md->bl,tbl);
+				md->ud.canact_tick = tick + status_get_amotion(&md->bl);
+				unit_set_walkdelay(&md->bl, tick, status_get_amotion(&md->bl), 1);
+			}
 			map_clearflooritem (tbl->id);
 			mob_unlocktarget (md,tick);
 			return 0;
@@ -1554,7 +1560,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	int i,count,minpos,mindmg;
 	struct map_session_data *sd = NULL,*tmpsd[DAMAGELOG_SIZE];
 	struct {
-		struct party *p;
+		struct party_data *p;
 		int id,zeny;
 		unsigned int base_exp,job_exp;
 	} pt[DAMAGELOG_SIZE];
@@ -1787,7 +1793,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		int pid,flag=1,zeny=0;
 		unsigned int base_exp,job_exp;
 		double per;
-		struct party *p;
+		struct party_data *p;
 		if(tmpsd[i]==NULL || tmpsd[i]->bl.m != md->bl.m || pc_isdead(tmpsd[i]))
 			continue;
 		
@@ -1851,7 +1857,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				if(pt[j].id==pid)
 					break;
 			if(j==pnum){	// ‚¢‚È‚¢‚Æ‚«‚ÍŒö•½‚©‚Ç‚¤‚©Šm”F
-				if((p=party_search(pid))!=NULL && p->exp!=0){
+				if((p=party_search(pid))!=NULL && p->party.exp!=0){
 					pt[pnum].id=pid;
 					pt[pnum].p=p;
 					pt[pnum].base_exp=base_exp;

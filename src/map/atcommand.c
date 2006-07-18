@@ -590,6 +590,7 @@ static AtCommandInfo atcommand_info[] = {
 
 	{ AtCommand_Me,					"@me",			20, atcommand_me }, //added by massdriller, code by lordalfa
 	{ AtCommand_MonsterIgnore,		"@monsterignore",		99, atcommand_monsterignore }, // [Valaris]
+	{ AtCommand_MonsterIgnore,		"@battleignore",		99, atcommand_monsterignore },
 	{ AtCommand_FakeName,			"@fakename",		20, atcommand_fakename }, // [Valaris]
 	{ AtCommand_Size,				"@size",			20, atcommand_size },
 	{ AtCommand_ShowExp,			"@showexp", 		10, atcommand_showexp},
@@ -978,21 +979,6 @@ int atcommand_config_read(const char *cfgName) {
  * Duel organizing functions [LuzZza]
  *------------------------------------------
  */
-void duel_msg_foreach_sameduel_wos(
-	const unsigned int did, struct map_session_data* sd, char *output)
-{
-	int i;
-	struct map_session_data* msg_sd;
-	
-	for(i=0; i<fd_max; i++)
-		if(session[i] && (msg_sd = (struct map_session_data *) session[i]->session_data) 
-		&& msg_sd->state.auth && msg_sd->duel_group == did && msg_sd != sd)
-
-			clif_disp_onlyself(msg_sd, output, strlen(output));
-
-	return;
-}
-
 void duel_savetime(struct map_session_data* sd) {
 
 	time_t timer;
@@ -1020,13 +1006,23 @@ int duel_checktime(struct map_session_data* sd) {
 	
 	return !(diff >= 0 && diff < battle_config.duel_time_interval);
 }
+static int duel_showinfo_sub(struct map_session_data* sd,va_list va) {
+	struct map_session_data *ssd = va_arg(va, struct map_session_data*);
+	int *p = va_arg(va, int*);
+	char output[256];
+
+	if (sd->duel_group != ssd->duel_group) return 0;
+	
+	sprintf(output, "      %d. %s", ++(*p), (unsigned char *)sd->status.name);
+	clif_disp_onlyself(ssd, output, strlen(output));
+	return 1;
+}
 
 int duel_showinfo(
 	const unsigned int did, struct map_session_data* sd)
 {
-	int i, p=0;
+	int p=0;
 	char output[256];
-	struct map_session_data* msg_sd;
 
 	if(duel_list[did].max_players_limit > 0)
 		sprintf(output, msg_txt(370), //" -- Duels: %d/%d, Members: %d/%d, Max players: %d --"
@@ -1041,15 +1037,7 @@ int duel_showinfo(
 			duel_list[did].members_count + duel_list[did].invites_count);
 
 	clif_disp_onlyself(sd, output, strlen(output));
-      
-	for(i=0; i<fd_max; i++)
-		if (session[i] && (msg_sd = (struct map_session_data *) session[i]->session_data) 
-			&& msg_sd->state.auth && msg_sd->duel_group == did) {
-
-			sprintf(output, "      %d. %s", ++p, (unsigned char *) msg_sd->status.name);
-			clif_disp_onlyself(sd, output, strlen(output));
-		}
-	    
+   clif_foreachclient(duel_showinfo_sub, sd, &p);
 	return 0;
 }
 
@@ -1085,7 +1073,7 @@ int duel_invite(
 	sprintf(output, msg_txt(373), // " -- Player %s invites %s to duel --"
 		(unsigned char *)sd->status.name, (unsigned char *)target_sd->status.name);
 
-	duel_msg_foreach_sameduel_wos(did, sd, output);
+	clif_disp_message(&sd->bl, output, strlen(output), DUEL_WOS);
 
 	target_sd->duel_invite = did;
 	duel_list[did].invites_count++;
@@ -1096,27 +1084,26 @@ int duel_invite(
 	return 0;
 }
 
+static int duel_leave_sub(struct map_session_data* sd,va_list va) {
+	int did = va_arg(va, int);
+	if (sd->duel_invite == did)
+		sd->duel_invite = 0;
+	return 0;
+}
+
 int duel_leave(
 	const unsigned int did, struct map_session_data* sd)
 {
-	int i;
 	char output[256];
-	struct map_session_data* msg_sd;
 	
 	// " <- Player %s has left duel --"
 	sprintf(output, msg_txt(375), (unsigned char *)sd->status.name);
-	duel_msg_foreach_sameduel_wos(did, sd, output);
+	clif_disp_message(&sd->bl, output, strlen(output), DUEL_WOS);
 	
 	duel_list[did].members_count--;
 	
 	if(duel_list[did].members_count == 0) {
-		for (i=0; i<fd_max; i++)
-			if (session[i] && (msg_sd = (struct map_session_data *) session[i]->session_data) 
-				&& msg_sd->state.auth && msg_sd->duel_invite == did && msg_sd != sd) {
-				
-				msg_sd->duel_invite = 0;
-			}
-			
+		clif_foreachclient(duel_leave_sub, did); 
 		duel_count--;
 	}
 	
@@ -1133,7 +1120,7 @@ int duel_accept(
 	
 	// " -> Player %s has accepted duel --"
 	sprintf(output, msg_txt(376), (unsigned char *)sd->status.name);
-	duel_msg_foreach_sameduel_wos(did, sd, output);
+	clif_disp_message(&sd->bl, output, strlen(output), DUEL_WOS);
 	
 	duel_list[did].members_count++;
 	sd->duel_group = sd->duel_invite;
@@ -1152,7 +1139,7 @@ int duel_reject(
 	
 	// " -- Player %s has rejected duel --"
 	sprintf(output, msg_txt(377), (unsigned char *)sd->status.name);
-	duel_msg_foreach_sameduel_wos(did, sd, output);
+	clif_disp_message(&sd->bl, output, strlen(output), DUEL_WOS);
 	
 	duel_list[did].invites_count--;
 	sd->duel_invite = 0;
@@ -1601,7 +1588,7 @@ int atcommand_who(
 	char match_text[100];
 	char player_name[NAME_LENGTH];
 	struct guild *g;
-	struct party *p;
+	struct party_data *p;
 
 	nullpo_retr(-1, sd);
 
@@ -1640,7 +1627,7 @@ int atcommand_who(
 					//Players Party if exists
 					if (p != NULL) {
 						//sprintf(temp0," | Party: '%s'", p->name);
-						sprintf(temp0, msg_txt(335), p->name);
+						sprintf(temp0, msg_txt(335), p->party.name);
 						strcat(atcmd_output,temp0);
 					}
 					//Players Guild if exists
@@ -1802,7 +1789,7 @@ int atcommand_whomap(
 	int map_id = 0;
 	char map_name[MAP_NAME_LENGTH];
 	struct guild *g;
-	struct party *p;
+	struct party_data *p;
 
 	nullpo_retr(-1, sd);
 
@@ -1839,7 +1826,7 @@ int atcommand_whomap(
 					if (p == NULL)
 						sprintf(temp0, "None");
 					else
-						sprintf(temp0, "%s", p->name);
+						sprintf(temp0, "%s", p->party.name);
 					if (pl_GM_level > 0)
 						sprintf(atcmd_output, "Name: %s (GM:%d) | Party: '%s' | Guild: '%s'", pl_sd->status.name, pl_GM_level, temp0, temp1);
 					else
@@ -1879,7 +1866,7 @@ int atcommand_whogm(
 	char match_text[100];
 	char player_name[NAME_LENGTH];
 	struct guild *g;
-	struct party *p;
+	struct party_data *p;
 
 	nullpo_retr(-1, sd);
 
@@ -1919,7 +1906,7 @@ int atcommand_whogm(
 						if (p == NULL)
 							sprintf(temp0, "None");
 						else
-							sprintf(temp0, "%s", p->name);
+							sprintf(temp0, "%s", p->party.name);
 						sprintf(atcmd_output, "       Party: '%s' | Guild: '%s'", temp0, temp1);
 						clif_displaymessage(fd, atcmd_output);
 						count++;
@@ -2379,7 +2366,7 @@ int atcommand_die(
 	const char* command, const char* message)
 {
 	nullpo_retr(-1, sd);
-	clif_specialeffect(&sd->bl,450,1);
+	clif_specialeffect(&sd->bl,450,SELF);
 	pc_damage(NULL, sd, sd->status.hp);
 	clif_displaymessage(fd, msg_table[13]); // A pity! You've died.
 
@@ -4824,7 +4811,7 @@ int atcommand_doom(
 	struct map_session_data *pl_sd, **pl_allsd;
 	int i, users;
 	nullpo_retr(-1, sd);
-	clif_specialeffect(&sd->bl,450,2);
+	clif_specialeffect(&sd->bl,450,ALL_SAMEMAP);
 	pl_allsd = map_getallusers(&users);
 	for(i = 0; i < users; i++) {
 		if ((pl_sd = pl_allsd[i]) && pl_sd->fd != fd && pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can doom only lower or same gm level
@@ -4848,7 +4835,7 @@ int atcommand_doommap(
 	struct map_session_data *pl_sd, **pl_allsd;
 	int i, users;
 	nullpo_retr(-1, sd);
-	clif_specialeffect(&sd->bl,450,3);
+	clif_specialeffect(&sd->bl,450,ALL_CLIENT);
 	pl_allsd = map_getallusers(&users);
 	for (i = 0; i < users; i++) {
 		if ((pl_sd = pl_allsd[i]) && pl_sd->fd != fd && sd->bl.m == pl_sd->bl.m &&
@@ -5394,7 +5381,7 @@ int atcommand_partyrecall(
 	int i;
 	struct map_session_data *pl_sd, **pl_allsd;
 	char party_name[NAME_LENGTH];
-	struct party *p;
+	struct party_data *p;
 	int count, users;
 	nullpo_retr(-1, sd);
 
@@ -5418,7 +5405,7 @@ int atcommand_partyrecall(
 		pl_allsd = map_getallusers(&users);
 		for (i = 0; i < users; i++) {
 			if ((pl_sd = pl_allsd[i]) && sd->status.account_id != pl_sd->status.account_id &&
-			    pl_sd->status.party_id == p->party_id) {
+			    pl_sd->status.party_id == p->party.party_id) {
 				if (pc_isGM(pl_sd) > pc_isGM(sd))
 					continue; //Skip GMs greater than you.
 				if (pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd))
@@ -5427,7 +5414,7 @@ int atcommand_partyrecall(
 					pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, 2);
 			}
 		}
-		sprintf(atcmd_output, msg_table[95], p->name); // All online characters of the %s party are near you.
+		sprintf(atcmd_output, msg_table[95], p->party.name); // All online characters of the %s party are near you.
 		clif_displaymessage(fd, atcmd_output);
 		if (count) {
 			sprintf(atcmd_output, "Because you are not authorised to warp from some maps, %d player(s) have not been recalled.", count);
@@ -5951,7 +5938,7 @@ int atcommand_partyspy(
 	const char* command, const char* message)
 {
 	char party_name[NAME_LENGTH];
-	struct party *p;
+	struct party_data *p;
 	nullpo_retr(-1, sd);
 
 	memset(party_name, '\0', sizeof(party_name));
@@ -5970,13 +5957,13 @@ int atcommand_partyspy(
 
 	if ((p = party_searchname(party_name)) != NULL || // name first to avoid error when name begin with a number
 	    (p = party_search(atoi(message))) != NULL) {
-		if (sd->partyspy == p->party_id) {
+		if (sd->partyspy == p->party.party_id) {
 			sd->partyspy = 0;
-			sprintf(atcmd_output, msg_table[105], p->name); // No longer spying on the %s party.
+			sprintf(atcmd_output, msg_table[105], p->party.name); // No longer spying on the %s party.
 			clif_displaymessage(fd, atcmd_output);
 		} else {
-			sd->partyspy = p->party_id;
-			sprintf(atcmd_output, msg_table[106], p->name); // Spying on the %s party.
+			sd->partyspy = p->party.party_id;
+			sprintf(atcmd_output, msg_table[106], p->party.name); // Spying on the %s party.
 			clif_displaymessage(fd, atcmd_output);
 		}
 	} else {
@@ -6815,27 +6802,16 @@ int atcommand_effect(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	struct map_session_data *pl_sd, **pl_allsd;
-	int type = 0, flag = 0, i, users;
+	int type = 0, flag = 0;
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message || sscanf(message, "%d %d", &type,&flag) < 2) {
 		clif_displaymessage(fd, "Please, enter at least a option (usage: @effect <type+>).");
 		return -1;
 	}
-	if(flag <=0){
-		clif_specialeffect(&sd->bl, type, flag);
-		clif_displaymessage(fd, msg_table[229]); // Your effect has changed.
-	}
-	else{
-		pl_allsd = map_getallusers(&users);
-		for (i = 0; i < users; i++) {
-			if ((pl_sd = pl_allsd[i])) {
-				clif_specialeffect(&pl_sd->bl, type, flag);
-				clif_displaymessage(pl_sd->fd, msg_table[229]); // Your effect has changed.
-			}
-		}
-	}
+
+	clif_specialeffect(&sd->bl, type, flag);
+	clif_displaymessage(fd, msg_table[229]); // Your effect has changed.
 
 	return 0;
 }
@@ -7135,7 +7111,7 @@ atcommand_follow(const int fd, struct map_session_data* sd,
 		clif_displaymessage(fd, "Character not found.");
 		return -1;
 	}
-
+	
 	return 1;
 }
 
@@ -7207,9 +7183,17 @@ atcommand_storeall(const int fd, struct map_session_data* sd,
 {
 	int i;
 	nullpo_retr(-1, sd);
-	if (storage_storageopen(sd) == 1) {
-		clif_displaymessage(fd, "run this command again..");
-		return 0;
+
+	if (sd->state.storage_flag != 1)
+  	{	//Open storage.
+		switch (storage_storageopen(sd)) {
+		case 2: //Try again
+			clif_displaymessage(fd, "run this command again..");
+			return 0;
+		case 1: //Failure
+			clif_displaymessage(fd, "You can't open the storage currently.");
+			return 1;
+		}
 	}
 	for (i = 0; i < MAX_INVENTORY; i++) {
 		if (sd->status.inventory[i].amount) {
@@ -7242,10 +7226,17 @@ atcommand_charstoreall(const int fd, struct map_session_data* sd,
 	if((pl_sd=map_nick2sd((char *) message)) == NULL)
 		return -1;
 
-	if (storage_storageopen(pl_sd) == 1) {
-		clif_displaymessage(fd, "Had to open the characters storage window...");
-		clif_displaymessage(fd, "run this command again..");
-		return 0;
+	if (pl_sd->state.storage_flag != 1)
+  	{	//Open storage.
+		switch (storage_storageopen(pl_sd)) {
+		case 2: //Try again
+			clif_displaymessage(fd, "Had to open the characters storage window...");
+			clif_displaymessage(fd, "run this command again..");
+			return 0;
+		case 1: //Failure
+			clif_displaymessage(fd, "The character currently can't use the storage.");
+			return 1;
+		}
 	}
 	for (i = 0; i < MAX_INVENTORY; i++) {
 		if (pl_sd->status.inventory[i].amount) {
@@ -7690,7 +7681,7 @@ atcommand_changeleader(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	struct party *p;
+	struct party_data *p;
 	struct map_session_data *pl_sd;
 	int mi, pl_mi;
 	nullpo_retr(-1, sd);
@@ -7701,12 +7692,12 @@ atcommand_changeleader(
 		return -1;
 	}
 	
-	for (mi = 0; mi < MAX_PARTY && p->member[mi].sd != sd; mi++);
+	for (mi = 0; mi < MAX_PARTY && p->data[mi].sd != sd; mi++);
 	
 	if (mi == MAX_PARTY)
 		return -1; //Shouldn't happen
 
-	if (!p->member[mi].leader)
+	if (!p->party.member[mi].leader)
 	{
 		clif_displaymessage(fd, "You need to be the party's leader to use this command.");
 		return -1;
@@ -7723,20 +7714,20 @@ atcommand_changeleader(
 		return -1;
 	}
 
-	for (pl_mi = 0; pl_mi < MAX_PARTY && p->member[pl_mi].sd != pl_sd; pl_mi++);
+	for (pl_mi = 0; pl_mi < MAX_PARTY && p->data[pl_mi].sd != pl_sd; pl_mi++);
 	
 	if (pl_mi == MAX_PARTY)
 		return -1; //Shouldn't happen
 
 	//Change leadership.
-	p->member[mi].leader = 0;
-	if (p->member[mi].sd->fd)
-		clif_displaymessage(p->member[mi].sd->fd, "Leadership transferred.");
-	p->member[pl_mi].leader = 1;
-	if (p->member[pl_mi].sd->fd)
-		clif_displaymessage(p->member[pl_mi].sd->fd, "You've become the party leader.");
+	p->party.member[mi].leader = 0;
+	if (p->data[mi].sd->fd)
+		clif_displaymessage(p->data[mi].sd->fd, "Leadership transferred.");
+	p->party.member[pl_mi].leader = 1;
+	if (p->data[pl_mi].sd->fd)
+		clif_displaymessage(p->data[pl_mi].sd->fd, "You've become the party leader.");
 
-	intif_party_leaderchange(p->party_id,p->member[pl_mi].account_id,p->member[pl_mi].char_id);
+	intif_party_leaderchange(p->party.party_id,p->party.member[pl_mi].account_id,p->party.member[pl_mi].char_id);
 	//Update info.
 	clif_party_main_info(p,-1);
 	clif_party_info(p,-1);
@@ -7749,10 +7740,7 @@ atcommand_changeleader(
  *------------------------------------------
  *by Upa-Kun
  */
-int
-atcommand_autoloot(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+int atcommand_autoloot(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	int rate;
 	double drate;
@@ -9782,10 +9770,10 @@ int atcommand_size(
 
 	if(size==1) {
 		sd->state.size=1;
-		clif_specialeffect(&sd->bl,420,0);
+		clif_specialeffect(&sd->bl,420,AREA);
 	} else if(size==2) {
 		sd->state.size=2;
-		clif_specialeffect(&sd->bl,422,0);
+		clif_specialeffect(&sd->bl,422,AREA);
 	}
 
 	return 0;
@@ -9805,10 +9793,10 @@ int atcommand_monsterignore(
 
 	if (!sd->state.monster_ignore) {
 		sd->state.monster_ignore = 1;
-		clif_displaymessage(sd->fd, "Monsters will now ignore you.");
+		clif_displaymessage(sd->fd, "You are now inmune to attacks.");
 	} else {
 		sd->state.monster_ignore = 0;
-		clif_displaymessage(sd->fd, "Monsters are no longer ignoring you.");
+		clif_displaymessage(sd->fd, "Returned to normal state.");
 	}
 
 	return 0;
@@ -9828,7 +9816,7 @@ int atcommand_fakename(
 	
 	if((!message || !*message) && strlen(sd->fakename) > 1) {
 		sd->fakename[0]='\0';
-		pc_setpos(sd, sd->mapindex, sd->bl.x, sd->bl.y, 3);
+		clif_charnameack(0, &sd->bl);
 		clif_displaymessage(sd->fd,"Returned to real name.");
 		return 0;
 	}

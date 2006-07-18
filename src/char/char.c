@@ -4038,7 +4038,7 @@ int char_config_read(const char *cfgName) {
 		} else if (strcmpi(w1, "passwd") == 0) {
 			strncpy(passwd, w2, 24);
 		} else if (strcmpi(w1, "server_name") == 0) {
-			memcpy(server_name, w2, sizeof(server_name));
+			strncpy(server_name, w2, 20);
 			server_name[sizeof(server_name) - 1] = '\0';
 			ShowStatus("%s server has been initialized\n", w2);
 		} else if (strcmpi(w1, "wisp_server_name") == 0) {

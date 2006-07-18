@@ -19,6 +19,35 @@ struct packet_db {
 	short pos[20];
 };
 
+// local define
+enum {
+	ALL_CLIENT,
+	ALL_SAMEMAP,
+	AREA,
+	AREA_WOS,
+	AREA_WOC,
+	AREA_WOSC,
+	AREA_CHAT_WOC,
+	CHAT,
+	CHAT_WOS,
+	CHAT_MAINCHAT,
+	PARTY,
+	PARTY_WOS,
+	PARTY_SAMEMAP,
+	PARTY_SAMEMAP_WOS,
+	PARTY_AREA,
+	PARTY_AREA_WOS,
+	GUILD,
+	GUILD_WOS,
+	GUILD_SAMEMAP,	// [Valaris]
+	GUILD_SAMEMAP_WOS,
+	GUILD_AREA,
+	GUILD_AREA_WOS,	// end additions [Valaris]
+	SELF,
+	DUEL,
+	DUEL_WOS
+};
+
 extern struct packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB];
 
 int clif_setip(char*);
@@ -221,14 +250,14 @@ int clif_movetoattack(struct map_session_data *sd,struct block_list *bl);
 
 // party
 int clif_party_created(struct map_session_data *sd,int flag);
-int clif_party_main_info(struct party *p, int fd);
+int clif_party_main_info(struct party_data *p, int fd);
 int clif_party_join_info(struct party *p, struct map_session_data *sd);
-int clif_party_info(struct party *p,int fd);
+int clif_party_info(struct party_data *p,int fd);
 int clif_party_invite(struct map_session_data *sd,struct map_session_data *tsd);
 int clif_party_inviteack(struct map_session_data *sd,char *nick,int flag);
-int clif_party_option(struct party *p,struct map_session_data *sd,int flag);
-int clif_party_leaved(struct party *p,struct map_session_data *sd,int account_id,char *name,int flag);
-int clif_party_message(struct party *p,int account_id,char *mes,int len);
+int clif_party_option(struct party_data *p,struct map_session_data *sd,int flag);
+int clif_party_leaved(struct party_data *p,struct map_session_data *sd,int account_id,char *name,int flag);
+int clif_party_message(struct party_data *p,int account_id,char *mes,int len);
 int clif_party_move(struct party *p,struct map_session_data *sd,int online);
 int clif_party_xy(struct map_session_data *sd);
 int clif_party_xy_single(int fd, struct map_session_data *sd);
@@ -287,8 +316,9 @@ int clif_send_petdata(struct map_session_data *sd,int type,int param);
 int clif_send_petstatus(struct map_session_data *sd);
 int clif_pet_emotion(struct pet_data *pd,int param);
 int clif_pet_performance(struct block_list *bl,int param);
-int clif_pet_equip(struct pet_data *pd,int nameid);
+int clif_pet_equip(struct pet_data *pd);
 int clif_pet_food(struct map_session_data *sd,int foodid,int fail);
+int clif_send (unsigned char *buf, int len, struct block_list *bl, int type);
 
 //friends list
 int clif_friendslist_toggle_sub(struct map_session_data *sd,va_list ap);

@@ -3188,8 +3188,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			TBL_PC *sd = (TBL_PC*)t_bl;
 			if (sd->invincible_timer != -1 || pc_isinvisible(sd))
 				return -1; //Cannot be targeted yet.
-			if (sd->state.monster_ignore && src->type == BL_MOB)
-				return 0; //option to have monsters ignore GMs [Valaris]
+			if (sd->state.monster_ignore && t_bl != s_bl && flag&BCT_ENEMY)
+				return 0; //Global inmunity to attacks.
 			if (sd->special_state.killable && t_bl != s_bl)
 			{
 				state |= BCT_ENEMY; //Universal Victim
@@ -3450,6 +3450,7 @@ static const struct battle_data_short {
 	{ "pvp_exp",                           &battle_config.pvp_exp		},
 	{ "gtb_sc_immunity",                   &battle_config.gtb_sc_immunity},
 	{ "guild_max_castles",                 &battle_config.guild_max_castles		},
+	{ "emergency_call",                    &battle_config.emergency_call },
 	{ "death_penalty_type",                &battle_config.death_penalty_type		},
 	{ "death_penalty_base",                &battle_config.death_penalty_base		},
 	{ "death_penalty_job",                 &battle_config.death_penalty_job		},
@@ -3486,7 +3487,7 @@ static const struct battle_data_short {
 	{ "boss_spawn_delay",                  &battle_config.boss_spawn_delay			},
 	{ "slaves_inherit_mode",               &battle_config.slaves_inherit_mode	},
 	{ "slaves_inherit_speed",              &battle_config.slaves_inherit_speed		},
-	{ "summons_inherit_effects",           &battle_config.summons_inherit_effects	},
+	{ "summons_trigger_autospells",           &battle_config.summons_trigger_autospells	},
 	{ "pc_damage_walk_delay_rate",         &battle_config.pc_walk_delay_rate		},
 	{ "damage_walk_delay_rate",            &battle_config.walk_delay_rate		},
 	{ "multihit_delay",                    &battle_config.multihit_delay			},
@@ -3517,6 +3518,7 @@ static const struct battle_data_short {
 	{ "skill_min_damage",                  &battle_config.skill_min_damage			},
 	{ "finger_offensive_type",             &battle_config.finger_offensive_type	},
 	{ "heal_exp",                          &battle_config.heal_exp					},
+	{ "max_heal_lv",                       &battle_config.max_heal_lv	},
 	{ "resurrection_exp",                  &battle_config.resurrection_exp			},
 	{ "shop_exp",                          &battle_config.shop_exp					},
 	{ "combo_delay_rate",                  &battle_config.combo_delay_rate			},
@@ -3679,6 +3681,7 @@ static const struct battle_data_short {
 	{ "exp_calc_type",                     &battle_config.exp_calc_type}, // [celest]
 	{ "min_skill_delay_limit",             &battle_config.min_skill_delay_limit}, // [celest]
 	{ "default_skill_delay",               &battle_config.default_skill_delay}, // [Skotlex]
+	{ "no_skill_delay",                    &battle_config.no_skill_delay}, // [Skotlex]
 	{ "require_glory_guild",               &battle_config.require_glory_guild}, // [celest]
 	{ "idle_no_share",                     &battle_config.idle_no_share}, // [celest], for a feature by [MouseJstr]
 	{ "party_even_share_bonus",            &battle_config.party_even_share_bonus}, 
@@ -3776,6 +3779,7 @@ static const struct battle_data_int {
 	{ "item_rate_treasure",                &battle_config.item_rate_treasure }, // End
 	{ "day_duration",                      &battle_config.day_duration	}, // added by [Yor]
 	{ "night_duration",                    &battle_config.night_duration	}, // added by [Yor]
+	{ "max_heal",                          &battle_config.max_heal },
 	{ "mob_remove_delay",                  &battle_config.mob_remove_delay	},
 	{ "sg_miracle_skill_duration",				&battle_config.sg_miracle_skill_duration },
 
@@ -3865,6 +3869,7 @@ void battle_set_defaults() {
 	battle_config.gm_join_chat=0;
 	battle_config.gm_kick_chat=0;
 	battle_config.guild_max_castles=0;
+	battle_config.emergency_call=2;
 	battle_config.skillfree = 0;
 	battle_config.skillup_limit = 0;
 	battle_config.wp_rate=100;
@@ -3881,7 +3886,7 @@ void battle_set_defaults() {
 	battle_config.boss_spawn_delay=100;
 	battle_config.slaves_inherit_mode=1;
 	battle_config.slaves_inherit_speed=1;
- 	battle_config.summons_inherit_effects=1; 
+ 	battle_config.summons_trigger_autospells=1; 
 	battle_config.pc_walk_delay_rate=20;
 	battle_config.walk_delay_rate=100;
 	battle_config.multihit_delay=80;
@@ -3912,6 +3917,8 @@ void battle_set_defaults() {
 	battle_config.skill_min_damage=6; //Ishizu claims that magic and misc attacks always do at least div_ damage. [Skotlex]
 	battle_config.finger_offensive_type=0;
 	battle_config.heal_exp=0;
+	battle_config.max_heal=9999;
+	battle_config.max_heal_lv=11;
 	battle_config.resurrection_exp=0;
 	battle_config.shop_exp=0;
 	battle_config.combo_delay_rate=100;
@@ -4098,6 +4105,7 @@ void battle_set_defaults() {
 	battle_config.exp_calc_type = 1;
 	battle_config.min_skill_delay_limit = 100;
 	battle_config.default_skill_delay = 300; //Default skill delay according to official servers.
+	battle_config.no_skill_delay = BL_MOB;
 	battle_config.require_glory_guild = 0;
 	battle_config.idle_no_share = 0;
 	battle_config.party_even_share_bonus = 0;
