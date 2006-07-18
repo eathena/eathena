@@ -1,3 +1,7 @@
+07/18
+	* Merged mob_db [Playtester]
+	- Changed Speed/aDelay/aMotion/dMotion of various mobs to Aegis
+	- Added more of the new X.4 and 11.1 drops
 07/16
 	* Merged mob_db and mob_skill_db [Playtester]
 	- various Speed/aDelay/aMotion adjustments
