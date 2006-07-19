@@ -1,3 +1,5 @@
+07/19
+	* Fixed mob skills for G_INCUBUS and G_WRAITH_DEAD [MasterOfMuppets]
 07/18
 	* Merged mob_db [Playtester]
 	- Changed Speed/aDelay/aMotion/dMotion of various mobs to Aegis
