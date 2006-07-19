@@ -5,6 +5,10 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/19
+	* Merged grfio.c... which should had been done months ago! Fixes a few
+	  oddities with local files not being found and the data_dir being
+	  confusing to use. Thanks to The Ultra Mage for noting me about it.
+	  [Skotlex] 
 	* Some minor mapflag changes. [MasterOfMuppets]
 2006/07/18
 	* Merged some missing lines from int_party.c... should fix sql compilation.
