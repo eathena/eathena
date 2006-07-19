@@ -1,4 +1,5 @@
 07/19
+	* Put the newly implemented cards into the old card album list. [MasterOfMuppets]
 	* Fixed mob skills for G_INCUBUS and G_WRAITH_DEAD [MasterOfMuppets]
 07/18
 	* Merged mob_db [Playtester]
