@@ -1,3 +1,6 @@
+07/20
+	* Changed the sell price of Serin's ring to 22500 [MasterOfMuppets]
+	* Merged the new item_trade.txt updates from trunk [MasterOfMuppets]
 07/19
 	* Put the newly implemented cards into the old card album list. [MasterOfMuppets]
 	* Fixed mob skills for G_INCUBUS and G_WRAITH_DEAD [MasterOfMuppets]
