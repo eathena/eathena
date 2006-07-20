@@ -38,6 +38,9 @@ Playtester
 
 Date		Added
 ======
+07/20
+	* Dj-Yhn optimized the Shinokas quest to only use one variable. [MasterOfMuppets]
+	- Hopefully this will fix all the issues with is as well.
 07/19
 	* Completed the sign quest warps [MasterOfMuppets]
 07/17
