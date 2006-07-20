@@ -18,6 +18,12 @@ const static char dirx[8] = { 0, 1, 1, 1, 0,-1,-1,-1};
 const static char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
 
 
+//## change to static initializer when timer function management got classified
+void _movable_init()
+{
+	add_timer_func_list(movable::walktimer_entry, "walktimer entry function");
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// constructor
 movable::movable() : 
@@ -27,59 +33,17 @@ movable::movable() :
 	headdir(DIR_S),
 	speed(DEFAULT_WALK_SPEED)
 {
-	add_timer_func_list(this->walktimer_entry, "walktimer entry function");
+	static bool initialiser = (_movable_init(), true);
 }
 
-#define NEW_INTERFACE
 
-/// internal walk subfunction
-int movable::walktoxy_sub()
-{
-#ifndef NEW_INTERFACE
-	return this->walktoxy_sub_old();
-#else
-	return 0;
-#endif
-}
-/// walks to a coordinate
-int movable::walktoxy(unsigned short x,unsigned short y,bool easy)
-{
-#ifndef NEW_INTERFACE
-	return this->walktoxy_old(x,y,easy);
-#else
-	return this->walkto(x,y);
-#endif
-}
-/// interrupts walking
-int movable::stop_walking(int type)
-{
-#ifndef NEW_INTERFACE
-	return stop_walking_old(type);
-#else
-	return stop_walking_new(type);
-#endif
-}
-/// do a walk step
-int movable::walk(unsigned long tick)
-{
-#ifndef NEW_INTERFACE
-	return this->walkstep_old(tick);
-#else
-	printf("old walkfunction called\n");
-	return 0;
-#endif
-}
+
 /// change object state
 int movable::changestate(int state,int type)
 {
-#ifndef NEW_INTERFACE
-	return changestate_old(state,type);
-#else
 	do_changestate(state,type);
 	return 0;
-#endif
 }
-
 
 // old timer entry function
 // it actually combines the extraction of the object and calling the 
@@ -90,6 +54,10 @@ int movable::walktimer_entry(int tid, unsigned long tick, int id, basics::numptr
 	movable* mv;
 	if( bl && (mv=bl->get_movable()) )
 	{
+
+		if( mv->get_sd() )
+			mv->get_sd();
+
 		if(mv->walktimer != tid)
 		{
 			if(battle_config.error_log)
@@ -98,14 +66,8 @@ int movable::walktimer_entry(int tid, unsigned long tick, int id, basics::numptr
 		}
 		// timer was executed, clear it
 		mv->walktimer = -1;
-#ifndef NEW_INTERFACE
-		// call the user function
-		mv->walktimer_func_old(tid, tick, id, data);
-#else
 		mv->walktimer_func(tick);
-#endif
 	}
-
 	return 0;
 }
 
@@ -119,6 +81,13 @@ void movable::set_dir(dir_t b, dir_t h)
 /// set both directions equally.
 void movable::set_dir(dir_t d)
 {
+	const bool ch = this->bodydir == d || this->headdir == d;
+	if(ch) this->bodydir = this->headdir = d, clif_changed_dir(*this);
+}
+/// set directions to look at target
+void movable::set_dir(const coordinate& to)
+{
+	const dir_t d = get_direction(to);
 	const bool ch = this->bodydir == d || this->headdir == d;
 	if(ch) this->bodydir = this->headdir = d, clif_changed_dir(*this);
 }
@@ -254,11 +223,11 @@ bool movable::is_movable()
 	if( DIFF_TICK(this->canmove_tick, gettick()) > 0 )
 		return false;
 
-	map_session_data *sd = this->block_list::get_sd();
-	mob_data *md = this->block_list::get_md();
-	pet_data *pd = this->block_list::get_pd();
-	npc_data *nd = this->block_list::get_nd();
-	homun_data *hd = this->block_list::get_hd();
+	map_session_data *sd = this->get_sd();
+	mob_data *md = this->get_md();
+	pet_data *pd = this->get_pd();
+	npc_data *nd = this->get_nd();
+	homun_data *hd = this->get_hd();
 	if( sd )
 	{
 		if( sd->skilltimer != -1 && !pc_checkskill(*sd, SA_FREECAST) ||
@@ -318,8 +287,7 @@ bool movable::is_movable()
 /// sets the object to idle state
 bool movable::set_idle()
 {
-	if( this->is_walking() )
-		this->stop_walking();
+	this->stop_walking();
 	return this->is_idle();
 }
 
@@ -356,7 +324,7 @@ bool movable::set_walktimer(unsigned long tick)
 			delete_timer(this->walktimer, walktimer_entry);
 			//this->walktimer=-1;
 		}
-		this->walktimer = add_timer(tick+i, walktimer_entry, this->block_list::id, basics::numptr(this) );
+		this->walktimer = add_timer(tick+i, this->walktimer_entry, this->block_list::id, basics::numptr(this) );
 		return true;
 	}
 	return false;
@@ -442,7 +410,7 @@ bool movable::walkstep(unsigned long tick)
 
 		// this could be simplified when allowing pathsearch to reuse the current path
 		// the change_target member would be obsolete and 
-		// this->init_walkpath would be called from this->walkto
+		// this->init_walkpath would be called from this->walktoxy
 		// the extra expence is that multiple target changes within a single walk cycle
 		// would also do multiple path searches
 		if( this->walkpath.change_target )
@@ -473,10 +441,12 @@ bool movable::walkstep(unsigned long tick)
 	return true;
 }
 
-bool movable::walkto(const coordinate& pos)
+bool movable::walktoxy(const coordinate& pos, bool easy)
 {
 	if( this->block_list::prev != NULL )
 	{
+		if( this->get_sd() )
+			this->get_sd();
 		//
 		// insert code for target position checking here
 		//
@@ -486,6 +456,7 @@ bool movable::walkto(const coordinate& pos)
 		if( this->is_confuse() ) //Randomize target direction.
 			this->random_position(this->walktarget);
 
+		this->walkpath.walk_easy = easy;
 		if( this->walktimer == -1 )
 		{
 			if( this->init_walkpath() )
@@ -503,7 +474,7 @@ bool movable::walkto(const coordinate& pos)
 	return false;
 }
 
-bool movable::stop_walking_new(int type)
+bool movable::stop_walking(int type)
 {
 	if( this->walktimer != -1 )
 	{
@@ -585,3 +556,89 @@ bool movable::calc_pos(const block_list &target_bl)
 	this->walktarget.y = y;
 	return true;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// instant position change
+bool movable::movepos(const coordinate &target)
+{
+	if( !walkpath_data::is_possible(this->block_list::m,this->block_list::x,this->block_list::y,target.x,target.y,0) )
+		return false;
+
+	const unsigned long tick = gettick();
+	int dx = target.x - this->block_list::x;
+	int dy = target.y - this->block_list::y;
+	bool moveblock = ( this->block_list::x/BLOCK_SIZE != target.x/BLOCK_SIZE || this->block_list::y/BLOCK_SIZE != target.y/BLOCK_SIZE);
+
+	this->set_idle();
+	this->set_dir( direction(*this, target) );
+
+	CMap::foreachinmovearea( CClifOutsight(*this),
+		this->block_list::m,((int)this->block_list::x)-AREA_SIZE,((int)this->block_list::y)-AREA_SIZE,((int)this->block_list::x)+AREA_SIZE,((int)this->block_list::y)+AREA_SIZE,dx,dy,0);
+
+	// call object depending move code
+	this->do_walkstep(tick, target, dx,dy);
+
+	skill_unit_move(*this,tick,0);
+	if(moveblock) this->map_delblock();
+	this->block_list::x = target.x;
+	this->block_list::y = target.y;
+	if(moveblock) this->map_addblock();
+	skill_unit_move(*this,tick,1);
+
+	CMap::foreachinmovearea( CClifInsight(*this),
+		this->block_list::m,((int)this->block_list::x)-AREA_SIZE,((int)this->block_list::y)-AREA_SIZE,((int)this->block_list::x)+AREA_SIZE,((int)this->block_list::y)+AREA_SIZE,-dx,-dy,0);
+
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// warps to a given map/position. 
+/// In the case of players, pc_setpos is used.
+/// it respects the no warp flags, so it is safe to call this without doing nowarpto/nowarp checks.
+bool movable::warp(unsigned short m, unsigned short x, unsigned short y, int type)
+{
+	if(this->block_list::prev==NULL)
+		return false;
+
+	if(type < 0 || type == 1)
+		// Type 1 is invalid, since you shouldn't warp a bl with the "death" animation
+		return false;
+	
+	if( m>=map_num )
+		m = this->block_list::m;
+	
+	
+	if( this->get_sd() ) //Use pc_setpos
+	{
+		if( maps[this->block_list::m].flag.noteleport )
+			return false;
+		return pc_setpos(*this->get_sd(), maps[m].mapname, x, y, type);
+	}
+
+	if( this->get_md() )
+	{
+		if( maps[this->block_list::m].flag.monster_noteleport )
+			return false;
+	}
+
+	clif_clearchar_area(*this, 0);
+	this->map_delblock();
+
+	this->block_list::x = this->walktarget.x = x;
+	this->block_list::y = this->walktarget.y = y;
+	this->block_list::m = m;
+
+	this->map_addblock();
+	clif_spawn(*this);
+
+	skill_unit_move(*this,gettick(),1);
+
+//	if( this->get_md() )
+//	{
+//		mob_data* md = this->get_sd();
+//		if(md->nd) // Tell the script engine we've warped
+//			mob_script_callback(md, NULL, CALLBACK_WARPACK);
+//	}
+	return 0;
+}
+

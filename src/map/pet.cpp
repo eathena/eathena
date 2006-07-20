@@ -34,29 +34,6 @@ const static char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
 
 
 
-int pet_data::walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
-{
-	struct pet_data *pd=this;
-
-	if(pd->block_list::prev == NULL)
-		return 1;
-
-	switch(pd->state.state){
-		case MS_WALK:
-			pd->walk(tick);
-			break;
-		case MS_DELAY:
-			pd->changestate(MS_IDLE,0);
-			break;
-		default:
-			if(battle_config.error_log)
-				ShowMessage("pet_timer : %d ?\n",pd->state.state);
-			break;
-	}
-
-	return 0;
-}
-
 int pet_data::attacktimer_func(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	pet_data &pd = *this;
@@ -65,7 +42,7 @@ int pet_data::attacktimer_func(int tid, unsigned long tick, int id, basics::nump
 		return 0;
 	if (pc_isdead(*pd.msd))
 	{	//Stop attacking when master died.
-		pet_stopattack(pd);
+		pd.stop_attack();
 		return 0;
 	}
 	if (pd.state.casting_flag) 
@@ -116,194 +93,12 @@ int pet_data::attacktimer_func(int tid, unsigned long tick, int id, basics::nump
 	pd.attacktimer=add_timer(pd.attackable_tick,fightable::attacktimer_entry,pd.block_list::id,0);
 	pd.state.state=MS_ATTACK;
 	return 0;
-
-
-	return 0;
 }
 
 int pet_data::skilltimer_func(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	return 0;
 }
-/*==========================================
- *
- *------------------------------------------
- */
-int pet_data::walkstep_old(unsigned long tick)
-{
-	int moveblock;
-	int i;
-	int x,y,dx,dy;
-
-	this->state.state=MS_IDLE;
-	if( this->walkpath.finished() )
-		return 0;
-
-	this->walkpath.path_half ^= 1;
-	if(this->walkpath.path_half==0)
-	{
-		this->walkpath++;
-		if(this->walkpath.change_target)
-		{
-			this->walktoxy_sub();
-			return 0;
-		}
-	}
-	else
-	{
-		x = this->block_list::x;
-		y = this->block_list::y;
-
-		this->dir=this->walkpath.get_current_step();
-		dx = dirx[this->dir];
-		dy = diry[this->dir];
-
-		if(map_getcell(this->block_list::m,x+dx,y+dy,CELL_CHKNOPASS)){
-			this->walktoxy_sub();
-			return 0;
-		}
-
-		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
-
-		this->state.state=MS_WALK;
-
-		CMap::foreachinmovearea( CClifPetOutsight(*this),
-			this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC);
-
-		x += dx;
-		y += dy;
-
-		if(moveblock) this->map_delblock();
-		this->block_list::x = x;
-		this->block_list::y = y;
-		if(moveblock) this->map_addblock();
-
-		CMap::foreachinmovearea( CClifPetInsight(*this),
-			this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC);
-
-		this->state.state=MS_IDLE;
-	}
-	if((i=this->calc_next_walk_step())>0)
-	{
-		i = i>>1;
-		if(i < 1 && this->walkpath.path_half == 0)
-			i = 1;
-
-		this->state.state=MS_WALK;
-		if(this->walktimer!=-1)
-		{
-			delete_timer(this->walktimer, movable::walktimer_entry);
-		}
-		this->walktimer=add_timer(tick+i,movable::walktimer_entry,this->block_list::id,0);
-	}
-	if( this->walkpath.finished() )
-		clif_fixobject(*this);
-
-	return 0;
-}
-
-int pet_data::walktoxy_sub_old()
-{
-	if( !this->walkpath.path_search(this->block_list::m,this->block_list::x,this->block_list::y,this->walktarget.x,this->walktarget.y,0) )
-		return 0;
-	this->walkpath.change_target=0;
-	this->changestate(MS_WALK,0);
-	clif_moveobject(*this);
-	return 1;
-}
-
-int pet_data::walktoxy_old(unsigned short x,unsigned short y, bool easy)
-{
-	if(this->state.state == MS_WALK && !walkpath_data::is_possible(this->block_list::m,this->block_list::x,this->block_list::y,x,y,0))
-		return 0;
-
-	this->walktarget.x=x;
-	this->walktarget.y=y;
-
-	if(this->state.state == MS_WALK) {
-		this->walkpath.change_target=1;
-	} else {
-		return this->walktoxy_sub();
-	}
-	return 1;
-}
-
-int pet_data::stop_walking_old(int type)
-{
-	if(this->state.state == MS_WALK || this->state.state == MS_IDLE)
-	{
-		this->walkpath.clear();
-		this->walktarget.x=this->block_list::x;
-		this->walktarget.y=this->block_list::y;
-	}
-	if(type&0x01)
-		clif_fixobject(*this);
-	if(type&~0xff)
-		this->changestate(MS_DELAY,type>>8);
-	else
-		this->changestate(MS_IDLE,0);
-	return 0;
-}
-
-int pet_data::changestate_old(int state,int type)
-{
-	pet_data &pd = *this;
-	unsigned long tick;
-	int i;
-
-	if( pd.state.casting_flag )
-		skill_castcancel(&pd, 0);
-
-	if(pd.walktimer != -1)
-	{
-		delete_timer(pd.walktimer,movable::walktimer_entry);
-		pd.walktimer=-1;
-	}
-	if(pd.attacktimer != -1)
-	{
-		struct TimerData *td = get_timer(pd.walktimer);
-		if(td && td->data.isptr)
-		{
-			delete ((struct castend_delay*)td->data.ptr);
-			td->data = 0;
-		}
-		delete_timer(pd.attacktimer,fightable::attacktimer_entry);
-		pd.attacktimer=-1;
-	}
-	if(pd.skilltimer != -1)
-	{
-		delete_timer(pd.skilltimer,fightable::skilltimer_entry);
-		pd.skilltimer=-1;
-	}
-	pd.state.state=state;
-
-	switch(state)
-	{
-		case MS_WALK:
-			if((i=pd.calc_next_walk_step()) > 0)
-			{
-				i = i>>2;
-				pd.walktimer=add_timer(gettick()+i,movable::walktimer_entry,pd.block_list::id,0);
-			}
-			else
-				pd.state.state=MS_IDLE;
-			break;
-		case MS_ATTACK:
-			tick = gettick();
-			i=DIFF_TICK(pd.attackable_tick,tick);
-			if(i>0 && i<2000)
-				pd.attacktimer=add_timer(pd.attackable_tick,fightable::attacktimer_entry,pd.block_list::id,0);
-			else
-				pd.attacktimer=add_timer(tick+1,fightable::attacktimer_entry,pd.block_list::id,0);
-			break;
-		case MS_DELAY:
-				pd.walktimer=add_timer(gettick()+type,movable::walktimer_entry,pd.block_list::id,0);
-			break;
-	}
-	return 0;
-}
-
-
 
 
 /// do object depending stuff for ending the walk.
@@ -485,6 +280,13 @@ int pet_data::get_equip() const
 }
 
 
+bool pet_data::stop_attack()
+{
+	this->target_id=0;
+	if(this->state.state == MS_ATTACK)
+		this->changestate(MS_IDLE,0);
+	return this->fightable::stop_attack();
+}
 
 
 
@@ -653,15 +455,6 @@ int petskill_castend2(struct pet_data &pd, struct block_list &target, unsigned s
 
 
 
-int pet_stopattack(struct pet_data &pd)
-{
-	pd.target_id=0;
-	if(pd.state.state == MS_ATTACK)
-		pd.changestate(MS_IDLE,0);
-
-	return 0;
-}
-
 int pet_target_check(struct map_session_data &sd,struct block_list *bl,int type)
 {
 	struct pet_data *pd;
@@ -775,7 +568,7 @@ int pet_hungry(int tid, unsigned long tick, int id, basics::numptr data)
 	t = sd->pet.intimate;
 	if(sd->pet.hungry < 0) {
 		if(sd->pd->target_id > 0)
-			pet_stopattack(*(sd->pd));
+			sd->pd->stop_attack();
 		sd->pet.hungry = 0;
 		sd->pet.intimate -= battle_config.pet_hungry_friendly_decrease;
 		if(sd->pet.intimate <= 0) {
@@ -1548,8 +1341,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 			}
 			else
 			{
-				if(pd.state.state==MS_WALK)
-					pd.stop_walking(1);
+				pd.stop_walking(1);
 				if(pd.state.state==MS_ATTACK)
 					return 0;
 				pd.changestate(MS_ATTACK,0);
@@ -1580,10 +1372,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 				if(pd.state.state==MS_ATTACK)
 					return 0; // UŒ‚’†
 
-				if(pd.state.state==MS_WALK)
-				{	// •às’†‚È‚ç’â~
-					pd.stop_walking(1);
-				}
+				pd.stop_walking(1);
 
 				if(pd.loot && pd.loot->count < pd.loot->max)
 				{
@@ -1615,7 +1404,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 	{
 		pd.calc_speed();
 		if(pd.state.state == MS_ATTACK)
-			pet_stopattack(pd);
+			pd.stop_attack();
 		pd.randomwalk(tick);
 	}
 	return 0;
@@ -1792,7 +1581,7 @@ int pet_heal_timer(int tid, unsigned long tick, int id, basics::numptr data)
 	}
 
 	if (pd->state.state == MS_ATTACK)
-			pet_stopattack(*pd);
+			pd->stop_attack();
 	clif_skill_nodamage(*pd,*sd,AL_HEAL,pd->s_skill->lv,1);
 	pc_heal(*sd,pd->s_skill->lv,0);
 	
@@ -1837,7 +1626,7 @@ int pet_skill_support_timer(int tid, unsigned long tick, int id, basics::numptr 
 	}
 	
 	if (pd->state.state == MS_ATTACK)
-		pet_stopattack(*pd);
+		pd->stop_attack();
 	petskill_use(*pd, *sd, pd->s_skill->id, pd->s_skill->lv, tick);
 
 	pd->s_skill->timer=add_timer(tick+pd->s_skill->delay*1000,pet_skill_support_timer,sd->block_list::id,0);

@@ -56,9 +56,6 @@ int battle_delay_damage(unsigned long tick, struct block_list &src, struct block
 int battle_damage(struct block_list *bl,struct block_list *target,int damage,int flag);
 int battle_heal(struct block_list *bl,struct block_list *target,int hp,int sp,int flag);
 
-// UŒ‚‚âˆÚ“®‚ğ~‚ß‚é
-int battle_stopattack(struct block_list *bl);
-int battle_stopwalking(struct block_list *bl,int type);
 
 // ’ÊíUŒ‚ˆ—‚Ü‚Æ‚ß
 int battle_weapon_attack( struct block_list *bl,struct block_list *target,unsigned long tick,int flag);
@@ -350,7 +347,8 @@ struct Battle_Config
 	uint32 resurrection_exp;
 	uint32 save_clothcolor;
 	uint32 save_log;
-	uint32 sdelay_attack_enable;
+	uint32 serverside_friendlist;
+	uint32 skill_delay_attack_enable;
 	uint32 shop_exp;
 	uint32 show_hp_sp_drain;
 	uint32 show_hp_sp_gain;

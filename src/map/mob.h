@@ -140,7 +140,6 @@ int mob_spawn_guardian(struct map_session_data *sd,const char *mapname,	// Spawn
 
 
 int mob_target(struct mob_data &md,struct block_list *bl,int dist);
-int mob_stopattack(struct mob_data &md);
 int mob_spawn(uint32 id);
 int mob_setdelayspawn(uint32 id);
 int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src);

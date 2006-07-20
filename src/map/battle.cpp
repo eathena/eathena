@@ -13,6 +13,7 @@
 #include "itemdb.h"
 #include "clif.h"
 #include "pet.h"
+#include "homun.h"
 #include "guild.h"
 
 #define	is_boss(bl)	status_get_mexp(bl)	// Can refine later [Aru]
@@ -268,27 +269,6 @@ int battle_heal(struct block_list *bl,struct block_list *target,int hp,int sp,in
 		return mob_heal(*((struct mob_data *)target),hp);
 	else if (target->type == BL_PC)
 		return pc_heal(*((struct map_session_data *)target),hp,sp);
-	return 0;
-}
-
-// 攻撃停止
-int battle_stopattack(struct block_list *bl)
-{
-	nullpo_retr(0, bl);
-	if (bl->type == BL_MOB)
-		return mob_stopattack( *bl->get_md() );
-	else if (bl->type == BL_PC)
-		return pc_stopattack( *bl->get_sd() );
-	else if (bl->type == BL_PET)
-		return pet_stopattack( *bl->get_pd() );
-	return 0;
-}
-// 移動停止
-int battle_stopwalking(struct block_list *bl, int type)
-{
-	nullpo_retr(0, bl);
-	if( bl->type == BL_MOB || bl->type == BL_PC || bl->type == BL_PET )
-		((movable*)bl)->stop_walking(type);
 	return 0;
 }
 
@@ -1254,7 +1234,7 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 		(target->type == BL_MOB && battle_config.monster_auto_counter_type&2)) {
 		if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1) {
 			dir_t dir = src->get_direction(*target);
-			dir_t t_dir = status_get_dir(target);
+			dir_t t_dir = target->get_dir();
 			int dist = distance(*src,*target);
 			if(dist <= 0 || !is_same_direction(dir,t_dir) ) {
 				memset(&wd,0,sizeof(wd));
@@ -1858,7 +1838,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 		(target->type == BL_MOB && battle_config.monster_auto_counter_type&2)) {
 		if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1) { //グランドクロスでなく、対象がオートカウンター状態の場合
 			dir_t dir = src->get_direction(*target);
-			dir_t t_dir = status_get_dir(target);
+			dir_t t_dir = target->get_dir();
 			int dist = distance(*src,*target);
 			if(dist <= 0 || !is_same_direction(dir,t_dir) ) { //対象との距離が0以下、または対象の正面？
 				memset(&wd,0,sizeof(wd));
@@ -3077,7 +3057,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 		if(t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1)
 		{
 			dir_t dir = target->get_direction(*src);
-			dir_t t_dir = status_get_dir(target);
+			dir_t t_dir = target->get_dir();
 			int dist = distance(*src,*target);
 			if(dist <= 0 || !is_same_direction(dir,t_dir) )
 			{
@@ -4824,7 +4804,7 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 
 	opt1 = status_get_opt1(src);
 	if (opt1 && *opt1 > 0) {
-		battle_stopattack(src);
+		src->stop_attack();
 		return 0;
 	}
 
@@ -4832,7 +4812,7 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 	tsc_data = status_get_sc_data(target);
 
 	if (sc_data && sc_data[SC_BLADESTOP].timer != -1) {
-		battle_stopattack(src);
+		src->stop_attack();
 		return 0;
 	}
 
@@ -5314,6 +5294,15 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 				return 0;
 			if (pd->msd)
 				s_bl = pd->msd; //"My master's enemies are my enemies..."
+			break;
+		}
+		case BL_HOM:
+		{
+			struct homun_data *hd = s_bl->get_hd();
+			if (!hd)
+				return 0;
+			if (hd->msd)
+				s_bl = hd->msd; //"My master's enemies are my enemies..."
 			break;
 		}
 		case BL_SKILL: //Skill with no owner? Fishy, but let it through.
@@ -5915,23 +5904,24 @@ static struct {
 	{ "resurrection_exp",                  &battle_config.resurrection_exp			},
 	{ "save_clothcolor",                   &battle_config.save_clothcolor			},
 	{ "save_log",                          &battle_config.save_log					},
+	{ "serverside_friendlist",				&battle_config.serverside_friendlist	},
 	{ "shop_exp",                          &battle_config.shop_exp					},
-	{ "show_hp_sp_drain",					&battle_config.show_hp_sp_drain}, // [Skotlex]
-	{ "show_hp_sp_gain",					&battle_config.show_hp_sp_gain}, // [Skotlex]
-	{ "show_mob_hp",                       &battle_config.show_mob_hp	}, // [Valaris]
-	{ "show_steal_in_same_party",          &battle_config.show_steal_in_same_party		},
-	{ "skill_delay_attack_enable",         &battle_config.sdelay_attack_enable		},
-	{ "skill_min_damage",                  &battle_config.skill_min_damage			},
-	{ "skill_out_range_consume",           &battle_config.skill_out_range_consume	},
-	{ "skill_removetrap_type",             &battle_config.skill_removetrap_type	},
-	{ "skill_sp_override_grffile",         &battle_config.skill_sp_override_grffile},	// [Celest]
-	{ "skill_steal_rate",                  &battle_config.skill_steal_rate}, // [celest]
-	{ "skill_steal_type",                  &battle_config.skill_steal_type}, // [celest]
-	{ "sp_rate",                           &battle_config.sp_rate					},
-	{ "undead_detect_type",                &battle_config.undead_detect_type		},
-	{ "unit_movement_type",                &battle_config.unit_movement_type		},
-	{ "use_statpoint_table",				&battle_config.use_statpoint_table}, // [Skotlex]
-	{ "vending_max_value",                 &battle_config.vending_max_value		},
+	{ "show_hp_sp_drain",					&battle_config.show_hp_sp_drain			}, // [Skotlex]
+	{ "show_hp_sp_gain",					&battle_config.show_hp_sp_gain			}, // [Skotlex]
+	{ "show_mob_hp",                       &battle_config.show_mob_hp				}, // [Valaris]
+	{ "show_steal_in_same_party",			&battle_config.show_steal_in_same_party	},
+	{ "skill_delay_attack_enable",			&battle_config.skill_delay_attack_enable},
+	{ "skill_min_damage",					&battle_config.skill_min_damage			},
+	{ "skill_out_range_consume",			&battle_config.skill_out_range_consume	},
+	{ "skill_removetrap_type",				&battle_config.skill_removetrap_type	},
+	{ "skill_sp_override_grffile",			&battle_config.skill_sp_override_grffile},	// [Celest]
+	{ "skill_steal_rate",					&battle_config.skill_steal_rate			}, // [celest]
+	{ "skill_steal_type",					&battle_config.skill_steal_type			}, // [celest]
+	{ "sp_rate",							&battle_config.sp_rate					},
+	{ "undead_detect_type",					&battle_config.undead_detect_type		},
+	{ "unit_movement_type",					&battle_config.unit_movement_type		},
+	{ "use_statpoint_table",				&battle_config.use_statpoint_table		}, // [Skotlex]
+	{ "vending_max_value",                 &battle_config.vending_max_value			},
 	{ "vit_penalty_count",                 &battle_config.vit_penalty_count			},
 	{ "vit_penalty_count_lv",              &battle_config.vit_penalty_count_lv		},
 	{ "vit_penalty_num",                   &battle_config.vit_penalty_num			},
@@ -6220,12 +6210,13 @@ void battle_set_defaults()
 	battle_config.resurrection_exp=0;
 	battle_config.save_clothcolor = 0;
 	battle_config.save_log = 0;
-	battle_config.sdelay_attack_enable=0;
+	battle_config.serverside_friendlist=1;
 	battle_config.shop_exp=100;
 	battle_config.show_hp_sp_drain = 0; //Display drained hp/sp from attacks
 	battle_config.show_hp_sp_gain = 1;
 	battle_config.show_mob_hp = 0; // [Valaris]
 	battle_config.show_steal_in_same_party = 0;
+	battle_config.skill_delay_attack_enable=0;
 	battle_config.skill_min_damage=0;
 	battle_config.skill_out_range_consume=1;
 	battle_config.skill_removetrap_type = 0;

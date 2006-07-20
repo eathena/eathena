@@ -259,7 +259,6 @@ bool block_list::map_addblock()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-///
 /// maps[]のblock_listから外す
 /// prevがNULLの場合listに?がってない
 bool block_list::map_delblock()
@@ -316,7 +315,6 @@ bool block_list::map_delblock()
 	return false;
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////
 /// 
 /// block削除の安全性確保?理
@@ -338,8 +336,8 @@ int block_list::map_freeblock()
 	}
 	return block_free_lock;
 }
+
 ///////////////////////////////////////////////////////////////////////////////
-/// 
 /// blockのfreeを一市Iに禁止する
 int block_list::map_freeblock_lock (void)
 {
@@ -347,7 +345,6 @@ int block_list::map_freeblock_lock (void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-///
 /// blockのaFreeのロックを解除する
 /// このとき、ロックが完全になくなると
 /// バッファにたまっていたblockを全部削除
@@ -374,8 +371,8 @@ int block_list::map_freeblock_unlock (void)
 	}
 	return block_free_lock;
 }
+
 ///////////////////////////////////////////////////////////////////////////////
-///
 /// map_freeblock_lock() を呼んで map_freeblock_unlock() を呼ばない
 /// 関数があったので、定期的にblock_free_lockをリセットするようにする。
 /// この関数は、do_timer() のトップレベルから呼ばれるので、
@@ -389,10 +386,6 @@ int map_freeblock_timer (int tid, unsigned long tick, int id, basics::numptr dat
 	}
 	return 0;
 }
-
-
-
-
 
 
 
@@ -2485,7 +2478,7 @@ int map_quit(struct map_session_data &sd)
 	skill_cleartimerskill(&sd);
 
 	sd.stop_walking(0);
-	pc_stopattack(sd);
+	sd.stop_attack();
 	pc_delinvincibletimer(sd);
 
 	pc_delspiritball(sd,sd.spiritball,1);

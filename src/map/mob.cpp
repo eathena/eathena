@@ -125,39 +125,7 @@ mob_data::mob_data(const char *mobname, int class_) :
 	if(this->mode & 0x02)
 		this->lootitem = new struct item[LOOTITEM_SIZE];
 }
-/*==========================================
- * timer processing of mob (timer function)
- * It branches to a walk and an attack.
- *------------------------------------------
- */
-int mob_data::walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
-{
-	struct mob_data *md=this;
 
-	if(md->block_list::prev == NULL || md->state.state == MS_DEAD)
-		return 1;
-	
-	block_list::map_freeblock_lock();
-
-	switch(md->state.state){
-	case MS_WALK:
-		md->walk(tick);
-		break;
-	case MS_DELAY:
-		md->changestate(MS_IDLE,0);
-		break;
-	default:
-		if(battle_config.error_log)
-			ShowMessage("mob_timer : %d ?\n",md->state.state);
-		break;
-	}
-
-	if( !md->is_walking() && !md->is_attacking() )
-		md->changestate(MS_WALK,0);
-
-	block_list::map_freeblock_unlock();
-	return 0;
-}
 
 int mob_data::attacktimer_func(int tid, unsigned long tick, int id, basics::numptr data)
 {
@@ -200,13 +168,13 @@ int mob_data::attacktimer_func(int tid, unsigned long tick, int id, basics::nump
 
 	if(tsd){
 		if( pc_isdead(*tsd) || tsd->invincible_timer != -1 ||  pc_isinvisible(*tsd) || md.block_list::m != tbl->m || tbl->prev == NULL || distance(md,*tbl)>=13 ){
-			mob_stopattack(md); //Stop attacking once target has been defeated/unreachable.[Skotlex]
+			md.stop_attack(); //Stop attacking once target has been defeated/unreachable.[Skotlex]
 			return 0;
 		}
 	}
 	if(tmd){
 		if(md.block_list::m != tbl->m || tbl->prev == NULL || distance(md,*tbl)>=13){
-			mob_stopattack(md); //Stop attacking once target has been defeated/unreachable.[Skotlex]
+			md.stop_attack(); //Stop attacking once target has been defeated/unreachable.[Skotlex]
 			return 0;
 		}
 	}
@@ -253,8 +221,7 @@ int mob_data::attacktimer_func(int tid, unsigned long tick, int id, basics::nump
 		status_change_end(&md,SC_CLOAKING,-1);
 
 	md.attackable_tick = tick + status_get_adelay(&md);
-	if( md.is_walking() )
-		md.stop_walking();
+	md.stop_walking();
 
 	if( md.attacktimer != -1 )
 	{
@@ -268,217 +235,13 @@ int mob_data::attacktimer_func(int tid, unsigned long tick, int id, basics::nump
 
 	return 0;
 }
+
+
 int mob_data::skilltimer_func(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	return 0;
 }
 
-
-
-/*==========================================
- * Mob Walk processing
- *------------------------------------------
- */
-int mob_data::walkstep_old(unsigned long tick)
-{
-	int moveblock;
-	int i;
-	const static char dirx[8] = { 0, 1, 1, 1, 0,-1,-1,-1};
-	const static char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
-	int x,y,dx,dy;
-
-	this->changestate(MSS_IDLE,0);
-
-	if( this->walkpath.finished() )
-		return 0;
-
-	this->walkpath.path_half ^= 1;
-	if(this->walkpath.path_half==0)
-	{
-		this->walkpath++;
-		if(this->walkpath.change_target)
-		{
-			this->walktoxy_sub();
-			return 0;
-		}
-	}
-	else
-	{
-		this->calc_speed();
-
-		x = this->block_list::x;
-		y = this->block_list::y;
-		if( map_getcell(this->block_list::m,x,y,CELL_CHKNOPASS) )
-		{
-			this->stop_walking(1);
-			return 0;
-		}
-
-		this->dir=this->walkpath.get_current_step();
-
-		dx = dirx[this->dir];
-		dy = diry[this->dir];
-
-		if (map_getcell(this->block_list::m,x+dx,y+dy,CELL_CHKBASILICA) && !(status_get_mode(this)&0x20))
-		{
-			this->stop_walking(1);
-			return 0;
-		}
-
-		if (map_getcell(this->block_list::m,x+dx,y+dy,CELL_CHKNOPASS))
-		{
-			this->walktoxy_sub();
-			return 0;
-		}
-
-		if (skill_check_moonlit (this,x+dx,y+dy))
-		{
-			this->walktoxy_sub();
-			return 0;
-		}
-		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
-
-		this->state.state=MS_WALK;
-		CMap::foreachinmovearea( CClifMobOutsight(*this),
-			this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC);
-		x += dx;
-		y += dy;
-		if(this->min_chase>13)
-			--this->min_chase;
-
-		skill_unit_move(*this,tick,0);
-
-		if(moveblock) this->map_delblock();
-		this->block_list::x = x;
-		this->block_list::y = y;
-		if(moveblock) this->map_addblock();
-
-		skill_unit_move(*this,tick,1);
-
-		CMap::foreachinmovearea( CClifMobInsight(*this),
-			this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC);
-
-		this->state.state=MS_IDLE;
-
-		if(this->option&4)
-			skill_check_cloaking(this);
-	}
-
-	if((i=this->calc_next_walk_step())>0)
-	{
-		i = i>>1;
-		if(i < 1 && this->walkpath.path_half == 0)
-			i = 1;
-		if(this->walktimer != -1)
-		{
-			delete_timer(this->walktimer,movable::walktimer_entry);
-			this->walktimer=-1;
-		}
-		this->walktimer=add_timer(tick+i, movable::walktimer_entry, this->block_list::id, 0);
-		this->state.state=MS_WALK;
-	}
-	if( this->walkpath.finished() )
-		clif_fixobject(*this);	// とまったときに位置の再送信
-
-	return 0;
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
-int mob_data::walktoxy_sub_old()
-{
-	int x,y;
-	const static char dirx[8] = { 0, 1, 1, 1, 0,-1,-1,-1};
-	const static char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
-
-	if( !this->walkpath.path_search(this->block_list::m,this->block_list::x,this->block_list::y,this->walktarget.x,this->walktarget.y,this->walkpath.walk_easy) )
-		return 0;
-
-	x = this->block_list::x+dirx[this->walkpath.get_current_step()];
-	y = this->block_list::y+diry[this->walkpath.get_current_step()];
-	this->walkpath.change_target=0;
-
-	if (map_getcell(this->block_list::m,x,y,CELL_CHKBASILICA) && !(status_get_mode(this)&0x20))
-	{
-		return 0;
-	}
-
-	this->changestate(MS_WALK,0);
-	clif_moveobject(*this);
-
-	return 1;
-}
-
-/*==========================================
- * mob move start
- *------------------------------------------
- */
-int mob_data::walktoxy_old(unsigned short x,unsigned short y,bool easy)
-{
-	if( this->block_list::prev == NULL || this->state.state == MS_DEAD || 
-		(this->state.state == MS_WALK && !walkpath_data::is_possible(this->block_list::m,this->block_list::x,this->block_list::y,x,y,easy?1:0)) )
-		return 0;
-	
-	this->walkpath.walk_easy = easy;
-	this->walktarget.x=x;
-	this->walktarget.y=y;
-
-	if( this->sc_data[SC_CONFUSION].timer != -1 ) //Randomize target direction.
-		this->random_position(this->walktarget);
-
-	if(this->state.state == MS_WALK)
-		this->walkpath.change_target=1;
-	else
-		return this->walktoxy_sub();
-	return 1;
-}
-
-/*==========================================
- * The stop of MOB's walking
- *------------------------------------------
- */
-int mob_data::stop_walking_old(int type)
-{
-	if(this->state.state == MS_WALK || this->state.state == MS_IDLE)
-	{
-		int dx=0,dy=0;
-
-		this->walkpath.clear();
-		if( type&0x02 && this->is_movable() )
-		{
-			dx=this->walktarget.x-this->block_list::x;
-			if(dx<0)
-				dx=-1;
-			else if(dx>0)
-				dx=1;
-			dy=this->walktarget.y-this->block_list::y;
-			if(dy<0)
-				dy=-1;
-			else if(dy>0)
-				dy=1;
-		}
-		this->walktarget.x=this->block_list::x+dx;
-		this->walktarget.y=this->block_list::y+dy;
-		if(dx!=0 || dy!=0)
-		{
-			this->walktoxy_sub();
-			return 0;
-		}
-		this->changestate(MS_IDLE,0);
-	}
-	if(type&0x01)
-		clif_fixobject(*this);
-	if(battle_config.monster_damage_delay && type&0x02)
-	{
-		int delay=status_get_dmotion(this);
-		unsigned long tick = gettick();
-		if( DIFF_TICK(this->canmove_tick,tick)<0 )
-			this->canmove_tick = tick + delay;
-	}
-	return 0;
-}
 
 
 /*==========================================
@@ -495,120 +258,16 @@ public:
 	virtual bool process(struct map_session_data& sd) const
 	{
 		if(sd.target_id==id)
-			pc_stopattack(sd);
+			sd.stop_attack();
 		return 0;
 	}
 };
-/*==========================================
- * The timer in which the mob's states changes
- *------------------------------------------
- */
-int mob_data::changestate_old(int state,int type)
-{
-	mob_data &md = *this;
-	unsigned long tick;
-	int i;
-
-	if(md.walktimer != -1)
-	{
-		delete_timer(md.walktimer,movable::walktimer_entry);
-		md.walktimer=-1;
-	}
-	if(md.attacktimer != -1)
-	{
-		delete_timer(md.attacktimer,fightable::attacktimer_entry);
-		md.attacktimer=-1;
-	}
-	if(md.skilltimer != -1)
-	{
-		delete_timer(md.skilltimer,fightable::skilltimer_entry);
-		md.skilltimer=-1;
-	}
-	md.state.state=state;
-
-	switch(state){
-	case MS_WALK:
-		if((i=md.calc_next_walk_step())>0)
-		{
-			i = i>>2;
-			md.walktimer=add_timer(gettick()+i,movable::walktimer_entry,md.block_list::id,0);
-		}
-		else
-			md.state.state=MS_IDLE;
-		break;
-	case MS_ATTACK:
-		tick = gettick();
-		i=DIFF_TICK(md.attackable_tick,tick);
-		if(i>0 && i<2000)
-			md.attacktimer=add_timer(md.attackable_tick,fightable::attacktimer_entry,md.block_list::id,0);
-		else if(type)
-		{
-			md.attackable_tick = tick + status_get_amotion(&md);
-			md.attacktimer=add_timer(md.attackable_tick,fightable::attacktimer_entry,md.block_list::id,0);
-		}
-		else
-		{	// possibly better to call it directly
-			md.attackable_tick = tick + 1;
-			md.attacktimer=add_timer(md.attackable_tick,fightable::attacktimer_entry,md.block_list::id,0);
-		}
-		break;
-	case MS_DELAY:
-		md.walktimer=add_timer(gettick()+type,movable::walktimer_entry,md.block_list::id,0);
-		break;
-	case MS_DEAD:
-		skill_castcancel(&md,0);
-		mobskill_deltimer(md);
-		md.state.skillstate=MSS_DEAD;
-		md.last_deadtime=gettick();
-		// Since it died, all aggressors' attack to this mob is stopped.
-
-		clif_foreachclient( CClifMobStopattacked(md.block_list::id) );
-
-		skill_unit_move(md,gettick(),0);
-		status_change_clear(&md,2);	// ステータス異常を解除する
-		skill_clear_unitgroup(&md);	// 全てのスキルユニットグループを削除する
-		skill_cleartimerskill(&md);
-		if(md.deletetimer!=-1)
-			delete_timer(md.deletetimer,mob_timer_delete);
-		md.deletetimer=-1;
-		md.hp = md.target_id = md.attacked_id = md.attacked_count = 0;
-		md.state.targettype = NONE_ATTACKABLE;
-		break;
-	}
-	return 0;
-}
 
 
 
 
 
 
-/*
-/// timer function.
-/// called from walktimer_entry
-bool mob_data::walktimer_func(unsigned long tick)
-{	
-	block_list::map_freeblock_lock();
-	switch(this->state.state){
-	case MS_WALK:
-		this->walkstep(tick);
-		break;
-	case MS_DELAY:
-		this->changestate(MS_IDLE,0);
-		break;
-	default:
-		if(battle_config.error_log)
-			ShowMessage("Walk_timer : %d ?\n",this->state.state);
-		break;
-	}
-
-	if(this->walktimer == -1)
-		this->changestate(MS_WALK,0);
-
-	block_list::map_freeblock_unlock();
-	return true;
-}
-*/
 
 
 /// do object depending stuff for ending the walk.
@@ -628,9 +287,9 @@ void mob_data::do_walkstep(unsigned long tick, const coordinate &target, int dx,
 		return;
 	}
 
-	if (skill_check_moonlit (this,target.x,target.y))
+	if( skill_check_moonlit(this,target.x,target.y) )
 	{
-		this->walktoxy_sub();
+		this->stop_walking(1);
 		return;
 	}
 //---
@@ -788,13 +447,13 @@ void mob_data::unlock_target(unsigned long tick)
  * The stop of MOB's attack
  *------------------------------------------
  */
-int mob_stopattack(struct mob_data &md)
+bool mob_data::stop_attack()
 {
-	md.target_id = 0;
-	md.state.targettype = NONE_ATTACKABLE;
-	md.attacked_id = 0;
-	md.attacked_count = 0;
-	return 0;
+	this->target_id = 0;
+	this->state.targettype = NONE_ATTACKABLE;
+	this->attacked_id = 0;
+	this->attacked_count = 0;
+	return this->fightable::stop_attack();
 }
 
 
@@ -1924,8 +1583,7 @@ public:
 					else
 					{	// 攻撃射程範囲内
 						md.state.skillstate = MSS_ATTACK;
-						if (md.state.state == MS_WALK)
-							md.stop_walking(1);	// 歩行中なら停止
+						md.stop_walking(1);	// 歩行中なら停止
 						if (md.state.state == MS_ATTACK)
 							return 0; // 既に攻撃中
 						md.changestate(MS_ATTACK, attack_type);
@@ -1941,8 +1599,7 @@ public:
 					{
 						 // 遠すぎるかアイテムがなくなった
 						md.unlock_target(tick);
-						if (md.state.state == MS_WALK)
-							md.stop_walking(1);	// 歩行中なら停止
+						md.stop_walking(1);	// 歩行中なら停止
 					}
 					else if (dist)
 					{
@@ -1971,8 +1628,7 @@ public:
 					{	// アイテムまでたどり着いた
 						if (md.state.state == MS_ATTACK)
 							return 0; // 攻撃中
-						if (md.state.state == MS_WALK)
-							md.stop_walking(1);	// 歩行中なら停止
+						md.stop_walking(1);	// 歩行中なら停止
 						fitem = (flooritem_data *)tbl;
 						if(md.lootitem_count < LOOTITEM_SIZE)
 						{
@@ -2000,8 +1656,7 @@ public:
 			else
 			{
 				md.unlock_target(tick);
-				if (md.state.state == MS_WALK)
-					md.stop_walking(1);
+				md.stop_walking(1);
 				return 0;
 			}
 		}
@@ -3448,7 +3103,7 @@ int mobskill_castend_id(int tid, unsigned long tick, int id, basics::numptr data
 	}
 	else if(md->skillid == RG_BACKSTAP) {
 		dir_t dir = md->get_direction(*bl);
-		dir_t t_dir = status_get_dir(bl);
+		dir_t t_dir = bl->get_dir();
 		int dist = distance(*md, *bl);
 		if(bl->type != BL_SKILL && (dist == 0 || !is_same_direction(dir,t_dir)))
 			return 0;
@@ -3746,7 +3401,8 @@ int mobskill_use_pos( struct mob_data *md, int skill_x, int skill_y, unsigned sh
 		ShowMessage("MOB skill use target_pos=(%d,%d) skill=%d lv=%d cast=%d, class_ = %d\n",
 			skill_x,skill_y,skill_id,skill_lv,casttime,md->class_);
 
-	if( casttime>0 ) {	// A cast time is required.
+	if( casttime>0 )
+	{	// A cast time is required.
 		md->stop_walking(1);		// 歩行停止
 		clif_skillcasting(*md, md->block_list::id, 0, skill_x,skill_y, skill_id,casttime);
 	}

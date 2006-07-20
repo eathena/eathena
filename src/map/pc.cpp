@@ -62,14 +62,6 @@ unsigned char map_session_data::isGM() const
 }
 
 
-int map_session_data::walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)
-{	// only do the walk function here
-	this->walk(tick);
-	return 0;
-}
-
-
-
 int map_session_data::attacktimer_func(int tid, unsigned long tick, int id, basics::numptr data)
 {	
 	struct map_session_data *sd = this;	// to lazy to remove the pointer usage
@@ -85,7 +77,8 @@ int map_session_data::attacktimer_func(int tid, unsigned long tick, int id, basi
 	if(bl==NULL || bl->prev == NULL)
 		return 0;
 
-	if(bl->type == BL_PC) {
+	if(bl->type == BL_PC)
+	{
 		if (pc_isdead(*((struct map_session_data *)bl)))
 			return 0;
 		else if (pc_ishiding(*((struct map_session_data *)bl)))
@@ -118,7 +111,7 @@ int map_session_data::attacktimer_func(int tid, unsigned long tick, int id, basi
 	if(sd->skilltimer != -1 && pc_checkskill(*sd,SA_FREECAST) <= 0)
 		return 0;
 
-	if(!battle_config.sdelay_attack_enable && pc_checkskill(*sd,SA_FREECAST) <= 0) {
+	if(!battle_config.skill_delay_attack_enable && pc_checkskill(*sd,SA_FREECAST) <= 0) {
 		if(DIFF_TICK(tick, sd->canact_tick) < 0) {
 			clif_skill_fail(*sd,1,4,0);
 			return 0;
@@ -152,13 +145,11 @@ int map_session_data::attacktimer_func(int tid, unsigned long tick, int id, basi
 		if(battle_config.pc_attack_direction_change)
 			sd->dir=sd->head_dir=sd->get_direction(*bl);	// 向き設定
 
-		if( sd->is_walking() )
-			sd->stop_walking(1);
+		sd->stop_walking(1);
 
 		if(sd->sc_data[SC_COMBO].timer == -1)
 		{
 			block_list::map_freeblock_lock();
-			sd->stop_walking(0);
 			sd->attacktarget_lv = battle_weapon_attack(sd,bl,tick,0);
 			// &2 = ? - Celest
 			if(!(battle_config.pc_cloak_check_type&2) && sd->sc_data[SC_CLOAKING].timer != -1)
@@ -195,243 +186,9 @@ int map_session_data::skilltimer_func(int tid, unsigned long tick, int id, basic
 	return 0;
 }
 
-/*==========================================
- * 半?進む(timer??)
- *------------------------------------------
- */
-int map_session_data::walkstep_old(unsigned long tick)
-{
-	int i, x, y, dx, dy;
-	int moveblock;
 
-	if( this->walkpath.finished() )
-		return 0;
 
-	//?いたので息吹のタイマ?を初期化
-	this->inchealspirithptick = 0;
-	this->inchealspiritsptick = 0;
 
-	this->walkpath.path_half ^= 1;
-	if(this->walkpath.path_half == 0)
-	{	// マス目中心へ途
-		this->walkpath++;
-		if(this->walkpath.change_target)
-		{
-			this->walktoxy_sub();
-			return 0;
-		}
-	}
-	else
-	{
-		x = this->block_list::x;
-		y = this->block_list::y;
-		if (map_getcell(this->block_list::m,x,y,CELL_CHKNOPASS))
-		{
-			this->stop_walking(1);
-			return 0;
-		}
-		this->dir = this->head_dir = this->walkpath.get_current_step();
-		dx = dirx[this->dir];
-		dy = diry[this->dir];
-		if (map_getcell(this->block_list::m,x+dx,y+dy,CELL_CHKNOPASS))
-		{
-			this->walktoxy_sub();
-			return 0;
-		}
-		if( skill_check_moonlit(this,x+dx,y+dy) )
-		{
-			this->stop_walking(1);
-			return 0;
-		}
-		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
-
-		this->walktimer = 1;	// temporarily set (so that in clif_set007x the player will still appear as walking)
-
-		CMap::foreachinmovearea( CClifPCOutsight(*this),
-			this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,0);
-		this->walktimer = -1;	// set back so not to disturb future pc_stopwalking calls
-
-		x += dx;
-		y += dy;
-		skill_unit_move(*this,tick,0);
-		if(moveblock) this->map_delblock();
-		this->block_list::x = x;
-		this->block_list::y = y;
-		if(moveblock) this->map_addblock();
-		skill_unit_move(*this,tick,1);
-
-		this->walktimer = 1;	// temporarily set (so that in clif_set007x the player will still appear as walking)
-		CMap::foreachinmovearea( CClifPCInsight(*this),
-			this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,0);
-		this->walktimer = -1;	// set back so not to disturb future pc_stop_walking calls
-
-		if(this->status.party_id > 0)
-		{	// パ?ティのＨＰ情報通知?査
-			struct party *p = party_search(this->status.party_id);
-			if (p != NULL) {
-				int p_flag = 0;
-
-				CMap::foreachinmovearea(CPartySendHP(this->status.party_id, p_flag),
-					this->block_list::m, x-AREA_SIZE, y-AREA_SIZE, x+AREA_SIZE, y+AREA_SIZE, -dx, -dy, BL_PC);
-				if (p_flag)
-					this->party_hp = -1;
-			}
-		}
-
-		if (pc_iscloaking(*this))	// クロ?キングの消滅?査
-			skill_check_cloaking(this);
-		/* ディボ?ション?査 */
-		for (i = 0; i < 5; ++i)
-			if (this->dev.val1[i]) {
-				skill_devotion3(this, this->dev.val1[i]);
-				break;
-			}
-
-		/* 被ディボ?ション?査 */
-		if( this->sc_data[SC_DANCING].timer != -1 && this->sc_data[SC_DANCING].val2.isptr )
-		{
-			struct skill_unit_group *ptr = (struct skill_unit_group *)this->sc_data[SC_DANCING].val2.ptr;
-			if(ptr) skill_unit_move_unit_group(*ptr, this->block_list::m, dx, dy);
-		}
-
-		if (this->sc_data[SC_DEVOTION].val1.num)
-			skill_devotion2(this, this->sc_data[SC_DEVOTION].val1.num);
-
-		if (this->sc_data[SC_BASILICA].timer != -1)
-		{	// Basilica cancels if caster moves [celest]
-			struct skill_unit_group *sg = (struct skill_unit_group *)this->sc_data[SC_BASILICA].val4.ptr;
-			if (sg && sg->src_id == this->block_list::id)
-				skill_delunitgroup (*sg);
-			status_change_end(this,SC_BASILICA,-1);
-		}
-		if( map_getcell(this->block_list::m,x,y,CELL_CHKNPC) )
-			npc_touch_areanpc(*this,this->block_list::m,x,y);
-		else
-			this->areanpc_id = 0;
-
-	}
-
-	if ((i = this->calc_next_walk_step()) > 0)
-	{
-		i = i>>1;
-		if (i < 1 && this->walkpath.path_half == 0)
-			i = 1;
-		this->walktimer = add_timer (tick+i, movable::walktimer_entry, id, 0);
-	}
-
-	if (battle_config.disp_hpmeter)
-		clif_hpmeter(*this);
-
-	return 0;
-}
-
-/*==========================================
- * 移動可能か確認して、可能なら?行開始
- *------------------------------------------
- */
-int map_session_data::walktoxy_sub_old()
-{
-	int i;
-
-	if( !this->walkpath.path_search(this->block_list::m,this->block_list::x,this->block_list::y,this->walktarget.x,this->walktarget.y,0) )
-		return 1;
-
-	this->walkpath.change_target = 0;
-	if ((i = this->calc_next_walk_step()) > 0)
-	{
-		i = i >> 2;
-		if(this->walktimer != -1)
-		{
-			delete_timer(this->walktimer,movable::walktimer_entry);
-			this->walktimer=-1;
-		}
-		this->walktimer = add_timer(gettick()+i, movable::walktimer_entry, this->block_list::id, 0);
-	}
-	clif_moveobject(*this);
-
-	return 0;
-}
-/*==========================================
- * pc? 行要求
- *------------------------------------------
- */
-int map_session_data::walktoxy_old(unsigned short x,unsigned short y, bool easy)
-{
-	this->walktarget.x = x;
-	this->walktarget.y = y;
-	this->idletime = last_tick;
-
-	if( this->sc_data[SC_CONFUSION].timer != -1 ) //Randomize the target position
-		this->random_position(this->walktarget);
-
-	if( this->walktimer != -1 && this->walkpath.change_target == 0)
-	{	// 現在?いている最中の目的地?更なのでマス目の中心に?た暫ﾉ
-		// timer??からpc_walktoxy_subを呼ぶようにする
-		this->walkpath.change_target = 1;
-	}
-	else
-	{
-		this->walktoxy_sub();
-	}
-
-	if( this->status.guild_id > 0 )
-	{	// ckeck for beeing guildmaster
-		struct guild *g = guild_search(this->status.guild_id);
-		if (g && strcmp(this->status.name, g->master)==0)
-		{
-			int skill, guildflag = 0;
-
-			if ((skill = guild_checkskill(*g, GD_LEADERSHIP)) > 0)
-				guildflag |= skill<<16;
-			if ((skill = guild_checkskill(*g, GD_GLORYWOUNDS)) > 0)
-				guildflag |= skill<<12;
-			if ((skill = guild_checkskill(*g, GD_SOULCOLD)) > 0)
-				guildflag |= skill<<8;
-			if ((skill = guild_checkskill(*g, GD_HAWKEYES)) > 0)
-				guildflag |= skill<<4;
-			if ((skill = guild_checkskill(*g, GD_CHARISMA)) > 0)
-				guildflag |= skill;
-
-			if (guildflag)
-			{	
-				CMap::foreachinarea( CSkillGuildaura(this->block_list::id, this->status.guild_id, guildflag),
-					this->block_list::m,((int)this->block_list::x)-2, ((int)this->block_list::y)-2, ((int)this->block_list::x)+2, ((int)this->block_list::y)+2, BL_PC);
-			}
-		}
-	}
-	return 1;
-}
-
-/*==========================================
- * ? 行停止
- *------------------------------------------
- */
-int map_session_data::stop_walking_old(int type)
-{
-	if( this->walktimer != -1 )
-	{
-		delete_timer(this->walktimer, movable::walktimer_entry);
-		this->walktimer = -1;
-	}
-	this->walkpath.clear();
-	this->walktarget.x = this->block_list::x;
-	this->walktarget.y = this->block_list::y;
-	if( type&0x01 )
-		clif_fixpos(*this);
-	if( type&0x02 && battle_config.pc_damage_delay )
-	{
-		unsigned long tick = gettick();
-		int delay = status_get_dmotion(this);
-		if( DIFF_TICK(this->canmove_tick,tick) < 0)
-			this->canmove_tick = tick + delay;
-	}
-	return 0;
-}
-
-int map_session_data::changestate_old(int state,int type)
-{
-	return 0;
-}
 
 
 
@@ -556,62 +313,6 @@ void map_session_data::do_attack()
 
 
 
-/*==========================================
- *
- *------------------------------------------
- */
-int pc_movepos(struct map_session_data &sd, unsigned short x,unsigned short y)
-{
-	int moveblock;
-	int dx,dy;
-	unsigned long tick = gettick();
-
-	if( !walkpath_data::is_possible(sd.block_list::m,sd.block_list::x,sd.block_list::y,x,y,0) )
-		return 1;
-
-	sd.dir = sd.head_dir = sd.get_direction(x,y);
-
-	dx = x - sd.block_list::x;
-	dy = y - sd.block_list::y;
-
-	moveblock = ( sd.block_list::x/BLOCK_SIZE != x/BLOCK_SIZE || sd.block_list::y/BLOCK_SIZE != y/BLOCK_SIZE);
-
-	CMap::foreachinmovearea( CClifPCOutsight(sd),
-		sd.block_list::m,((int)sd.block_list::x)-AREA_SIZE,((int)sd.block_list::y)-AREA_SIZE,((int)sd.block_list::x)+AREA_SIZE,((int)sd.block_list::y)+AREA_SIZE,dx,dy,0);
-
-	skill_unit_move(sd,tick,0);
-	if(moveblock) sd.map_delblock();
-	sd.block_list::x = x;
-	sd.block_list::y = y;
-	if(moveblock) sd.map_addblock();
-	skill_unit_move(sd,tick,1);
-
-	CMap::foreachinmovearea( CClifPCOutsight(sd),
-		sd.block_list::m,((int)sd.block_list::x)-AREA_SIZE,((int)sd.block_list::y)-AREA_SIZE,((int)sd.block_list::x)+AREA_SIZE,((int)sd.block_list::y)+AREA_SIZE,-dx,-dy,0);
-
-	if(sd.status.party_id>0)
-	{	// パ?ティのＨＰ情報通知?査
-		struct party *p=party_search(sd.status.party_id);
-		if(p!=NULL)
-		{
-			int flag=0;
-			CMap::foreachinmovearea( CPartySendHP(sd.status.party_id, flag),
-				sd.block_list::m,((int)sd.block_list::x)-AREA_SIZE,((int)sd.block_list::y)-AREA_SIZE,((int)sd.block_list::x)+AREA_SIZE,((int)sd.block_list::y)+AREA_SIZE,-dx,-dy,BL_PC);
-			if(flag)
-				sd.party_hp=-1;
-		}
-	}
-
-	if (pc_iscloaking(sd)) // クロ?キングの消滅?査
-		skill_check_cloaking(&sd);
-
-	if( map_getcell(sd.block_list::m,sd.block_list::x,sd.block_list::y,CELL_CHKNPC) )
-		npc_touch_areanpc(sd,sd.block_list::m,sd.block_list::x,sd.block_list::y);
-	else
-		sd.areanpc_id=0;
-	return 0;
-}
-
 
 
 /*==========================================
@@ -637,8 +338,7 @@ int pc_attack(struct map_session_data &sd, uint32 target_id, int type)
 
 	if(battle_check_target(&sd,bl,BCT_ENEMY) <= 0)
 		return 1;
-	if(sd.attacktimer != -1)
-		pc_stopattack(sd);
+	sd.stop_attack();
 	sd.target_id=target_id;
 	sd.attack_continue=type;
 
@@ -654,21 +354,7 @@ int pc_attack(struct map_session_data &sd, uint32 target_id, int type)
 	return 0;
 }
 
-/*==========================================
- * ??攻?停止
- *------------------------------------------
- */
-int pc_stopattack(struct map_session_data &sd)
-{
-	if(sd.attacktimer != -1) {
-		delete_timer(sd.attacktimer,fightable::attacktimer_entry);
-		sd.attacktimer=-1;
-	}
-	sd.target_id=0;
-	sd.attack_continue=0;
 
-	return 0;
-}
 
 
 
@@ -3099,8 +2785,7 @@ int pc_takeitem(struct map_session_data &sd, flooritem_data &fitem)
 	else
 	{
 		/* 取得成功 */
-		if(sd.attacktimer != -1)
-			pc_stopattack(sd);
+		sd.stop_attack();
 		clif_takeitem(sd,fitem);
 		map_clearflooritem(fitem.block_list::id);
 	}
@@ -3682,7 +3367,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 
 	skill_castcancel(&sd,0);// 詠唱中断
 	sd.stop_walking(0);		// 歩行中断
-	pc_stopattack(sd);			// 攻撃中断
+	sd.stop_attack();			// 攻撃中断
 
 	// Delete timer before the player moved to hise repawn point
 	if (sd.pvp_timer != -1 && !battle_config.pk_mode) {
@@ -3734,7 +3419,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 		status_change_end(&sd, SC_CHASEWALK, -1);
 
 	if(sd.status.pet_id > 0 && sd.pd && sd.pet.intimate > 0) {
-		pet_stopattack(*(sd.pd));
+		sd.pd->stop_attack();
 		sd.pd->changestate(MS_IDLE,0);
 	}
 
@@ -3763,7 +3448,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 				}
 				else if(sd.pet.intimate > 0)
 				{
-					pet_stopattack(*(sd.pd));
+					sd.pd->stop_attack();
 					sd.pd->changestate(MS_IDLE,0);
 					clif_clearchar_area(*sd.pd,clrtype);
 					sd.pd->map_delblock();
@@ -3852,7 +3537,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 			}
 			else if(sd.pet.intimate > 0)
 			{
-				pet_stopattack(*(sd.pd));
+				sd.pd->stop_attack();
 				sd.pd->changestate(MS_IDLE,0);
 				clif_clearchar_area(*sd.pd,clrtype);
 				sd.pd->map_delblock();

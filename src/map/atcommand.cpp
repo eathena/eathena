@@ -7515,10 +7515,10 @@ public:
 	~CAtMobSearch()	{}
 	virtual int process(struct block_list& bl) const
 	{
-		struct mob_data &md = (struct mob_data &)bl;
-		if( bl.type==BL_MOB && fd && (mob_id==-1 || (md.class_==mob_id)) )
+		struct mob_data *md = bl.get_md();
+		if( md && fd && (mob_id==-1 || (md->class_==mob_id)) )
 		{
-			snprintf(output, sizeof(output), "%2d[%3d:%3d] %s",++number,bl.x, bl.y,md.name);
+			snprintf(output, sizeof(output), "%2d[%3d:%3d] %s",++number,bl.x, bl.y,md->name);
 			clif_displaymessage(fd, output);
 		}
 		return 0;

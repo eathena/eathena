@@ -49,15 +49,15 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// save a single account.
 	/// does nothing by default, needs overloading
-	virtual void do_saveAccount(const CLoginAccount& account)	{}
+	virtual void do_saveAccount(const CLoginAccount& account)=0;
 	///////////////////////////////////////////////////////////////////////////
 	/// create a single account.
 	/// does nothing by default, needs overloading
-	virtual void do_createAccount(const CLoginAccount& account)	{}
+	virtual void do_createAccount(const CLoginAccount& account)=0;
 	///////////////////////////////////////////////////////////////////////////
 	/// delete a single account.
 	/// does nothing by default, needs overloading
-	virtual void do_removeAccount(const CLoginAccount& account)	{}
+	virtual void do_removeAccount(const CLoginAccount& account)=0;
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -159,15 +159,15 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// save a single char.
 	/// does nothing by default, needs overloading
-	virtual void do_saveChar(const CCharCharacter& data)	{}
+	virtual void do_saveChar(const CCharCharacter& data)=0;
 	///////////////////////////////////////////////////////////////////////////
 	/// create a single char.
 	/// does nothing by default, needs overloading
-	virtual void do_createChar(const CCharCharacter& data)	{}
+	virtual void do_createChar(const CCharCharacter& data)=0;
 	///////////////////////////////////////////////////////////////////////////
 	/// delete a single char.
 	/// does nothing by default, needs overloading
-	virtual void do_removeChar(const CCharCharacter& data)	{}
+	virtual void do_removeChar(const CCharCharacter& data)=0;
 
 	///////////////////////////////////////////////////////////////////////////
 	basics::TMultiListP<CCharCharacter, 2>	cCharList;
@@ -268,9 +268,9 @@ class CGuildDB_mem : public CGuildDBInterface
 protected:
 	virtual bool do_readGuildsCastles()=0;
 	virtual bool do_saveGuildsCastles()=0;
-	virtual void do_createGuild(const CGuild& guild)	{}
-	virtual void do_saveGuild(const CGuild& guild)		{}
-	virtual void do_removeGuild(const CGuild& guild)	{}
+	virtual void do_createGuild(const CGuild& guild)=0;
+	virtual void do_saveGuild(const CGuild& guild)=0;
+	virtual void do_removeGuild(const CGuild& guild)=0;
 
 	virtual void do_saveCastle(const CCastle& castle)	{}
 
@@ -371,9 +371,9 @@ class CPartyDB_mem : public CPartyDBInterface
 protected:
 	virtual bool do_readParties()=0;
 	virtual bool do_saveParties()=0;
-	virtual void do_createParty(const CParty& party)	{}
-	virtual void do_saveParty(const CParty& party)		{}
-	virtual void do_removeParty(const CParty& party)	{}
+	virtual void do_createParty(const CParty& party)=0;
+	virtual void do_saveParty(const CParty& party)=0;
+	virtual void do_removeParty(const CParty& party)=0;
 
 
 	CPartyDB_mem(const char *configfile=NULL);
@@ -413,9 +413,9 @@ class CPCStorageDB_mem : public CPCStorageDBInterface
 protected:
 	virtual bool do_readPCStorage()=0;
 	virtual bool do_savePCStorage()=0;
-	virtual void do_cratePCStorage(const CPCStorage& stor)	{}
-	virtual void do_savePCStorage(const CPCStorage& stor)	{}
-	virtual void do_removePCStorage(const CPCStorage& stor)	{}
+	virtual void do_cratePCStorage(const CPCStorage& stor)=0;
+	virtual void do_savePCStorage(const CPCStorage& stor)=0;
+	virtual void do_removePCStorage(const CPCStorage& stor)=0;
 
 
 	CPCStorageDB_mem(const char *dbcfgfile=NULL);
@@ -452,9 +452,9 @@ class CGuildStorageDB_mem : public CGuildStorageDBInterface
 protected:
 	virtual bool do_readGuildStorage()=0;
 	virtual bool do_saveGuildStorage()=0;
-	virtual void do_crateGuildStorage(const CGuildStorage& stor)	{}
-	virtual void do_saveGuildStorage(const CGuildStorage& stor)		{}
-	virtual void do_removeGuildStorage(const CGuildStorage& stor)	{}
+	virtual void do_crateGuildStorage(const CGuildStorage& stor)=0;
+	virtual void do_saveGuildStorage(const CGuildStorage& stor)=0;
+	virtual void do_removeGuildStorage(const CGuildStorage& stor)=0;
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -494,9 +494,9 @@ class CPetDB_mem : public CPetDBInterface
 protected:
 	virtual bool do_readPets()=0;
 	virtual bool do_savePets()=0;
-	virtual void do_createPet(const CPet& pet)	{}
-	virtual void do_savePet(const CPet& pet)	{}
-	virtual void do_removePet(const CPet& pet)	{}
+	virtual void do_createPet(const CPet& pet)=0;
+	virtual void do_savePet(const CPet& pet)=0;
+	virtual void do_removePet(const CPet& pet)=0;
 
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
@@ -535,9 +535,9 @@ class CHomunculusDB_mem : public CHomunculusDBInterface
 protected:
 	virtual bool do_readHomunculus()=0;
 	virtual bool do_saveHomunculus()=0;
-	virtual void do_createHomunculus(const CHomunculus& hom)	{}
-	virtual void do_saveHomunculus(const CHomunculus& hom)		{}
-	virtual void do_removeHomunculus(const CHomunculus& hom)	{}
+	virtual void do_createHomunculus(const CHomunculus& hom)=0;
+	virtual void do_saveHomunculus(const CHomunculus& hom)=0;
+	virtual void do_removeHomunculus(const CHomunculus& hom)=0;
 
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct

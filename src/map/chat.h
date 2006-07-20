@@ -28,6 +28,12 @@ public:
 		memset(usersd,0,sizeof(usersd));
 		memset(npc_event,0,sizeof(npc_event));
 	}
+	virtual ~chat_data()	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// upcasting overloads.
+	virtual chat_data*				get_cd()				{ return this; }
+	virtual const chat_data*		get_cd() const			{ return this; }
 
 	void kickall();
 	void enable_event();

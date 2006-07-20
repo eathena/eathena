@@ -22,7 +22,9 @@ int clif_clearchar(struct block_list &bl, unsigned char type);
 int clif_clearchar(struct map_session_data &sd, struct block_list &bl); // self
 #define clif_clearchar_area(bl, type)	clif_clearchar(bl,type)
 int clif_clearchar_delay(unsigned long tick, struct block_list &bl, int type);
-int clif_clearchar_id(int fd, uint32 id, unsigned char type);
+int clif_clearchar_id(const map_session_data &sd, uint32 id, unsigned char type);
+
+bool clif_spawn(block_list& bl);
 int clif_spawnpc(struct map_session_data &sd);	//area
 int clif_spawnnpc(struct npc_data &nd);	// area
 int clif_spawnnpc(struct map_session_data &sd, struct npc_data &nd);	// self
@@ -55,7 +57,7 @@ int clif_updatestatus(struct map_session_data &sd,unsigned short type);	//self
 int clif_changestatus(struct block_list &bl,unsigned short type,uint32 val);	//area
 int clif_damage(struct block_list &src,struct block_list &dst,unsigned long tick,uint32 sdelay,uint32 ddelay,unsigned short damage,unsigned short div,unsigned char type,unsigned short damage2);	// area
 #define clif_takeitem(src,dst) clif_damage(src,dst,0,0,0,0,0,1,0)
-int clif_changelook(struct block_list &bl,unsigned char type, unsigned short val);	// area
+int clif_changelook(const block_list &bl,unsigned char type, unsigned short val);	// area
 int clif_arrowequip(struct map_session_data &sd,unsigned short val); //self
 int clif_arrow_fail(struct map_session_data &sd,unsigned short type); //self
 int clif_arrow_create_list(struct map_session_data &sd);	//self
@@ -224,9 +226,9 @@ public:
 
 
 
-int clif_class_change(struct block_list &bl,unsigned short class_,unsigned char type);
-int clif_mob_class_change(struct mob_data &md);
-int clif_mob_equip(struct mob_data &md,unsigned short nameid); // [Valaris]
+int clif_class_change(const block_list &bl,unsigned short class_,unsigned char type);
+int clif_mob_class_change(const mob_data &md);
+int clif_mob_equip(const mob_data &md,unsigned short nameid); // [Valaris]
 
 int clif_skillinfo(struct map_session_data &sd,unsigned short skillid, short type,short range);
 int clif_skillinfoblock(struct map_session_data &sd);
@@ -376,6 +378,7 @@ int clif_homskillup(const homun_data &hd, const map_session_data &sd, unsigned s
 
 //friends list
 int clif_friend_send_info(struct map_session_data &sd);
+int clif_friend_add_request(struct map_session_data &sd, struct map_session_data &from_sd);
 int clif_friend_add_ack(struct map_session_data &sd, uint32 friend_account_id, uint32 friend_char_id, const char* name, unsigned short flag);
 
 

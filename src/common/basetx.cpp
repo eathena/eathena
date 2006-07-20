@@ -2999,13 +2999,16 @@ bool CGuildDB_txt::string2guild(const char *str, CGuild &g)
 	}
 
 	// ƒMƒ‹ƒhƒXƒLƒ‹
-	memset(&g.skill,0, sizeof(g.skill));
 	for(i=0; i<MAX_GUILDSKILL; ++i)
 	{
-		if (sscanf(str+1,"%d,%d ", &tmp_int[0], &tmp_int[1]) < 2)
-			break;
-		g.skill[i].id = tmp_int[0];
-		g.skill[i].lv = tmp_int[1];
+		g.skill[i].id = i+GD_SKILLBASE;
+		g.skill[i].lv = 0;
+	}
+	while( 2==sscanf(str+1,"%d,%d ", &tmp_int[0], &tmp_int[1]) )
+	{
+		i = tmp_int[0]-GD_SKILLBASE;
+		if(i<MAX_GUILDSKILL)
+			g.skill[i].lv = tmp_int[1];
 		str = strchr(str+1, ' ');
 	}
 	str = strchr(str + 1, '\t');
@@ -4173,20 +4176,16 @@ bool CHomunculusDB_txt::homunculus_from_string(const char *str, CHomunculus &hom
 
 		for(i=0; i<MAX_HOMSKILL; ++i)
 		{
-			hom.skill[i].id = i;
+			hom.skill[i].id = i+HOM_SKILLID;
 			hom.skill[i].lv = 0;
 			hom.skill[i].flag = 0;
 		}
-		for(i = 0; str[next]; ++i)
+		while( str[next] && 2==sscanf(str+next, "%d,%d%n", &tmp_int[0], &tmp_int[1], &len) )
 		{
-			if( sscanf(str+next, "%d,%d%n", &tmp_int[0], &tmp_int[1], &len) != 2 )
+			i = tmp_int[0]-HOM_SKILLID;
+			if( tmp_int[1] && i < MAX_HOMSKILL )
 			{
-				ret = false;
-				break;
-			}
-			if( tmp_int[0] < MAX_HOMSKILL )
-			{
-				hom.skill[tmp_int[0]].lv = tmp_int[1];
+				hom.skill[i].lv = tmp_int[1];
 			}
 			next += len;
 			if(str[next] == '\t')
@@ -4277,7 +4276,7 @@ bool CHomunculusDB_txt::close()
 bool CHomunculusDB_txt::timeruserfunc(unsigned long tick)
 {
 	// we only save if necessary:
-	if( this->savecount > 10 )
+	if( this->savecount )//> 10 )
 	{
 		this->savecount=0;
 		this->do_saveHomunculus();

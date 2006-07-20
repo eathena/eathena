@@ -848,7 +848,7 @@ void CSQLParameter::rebuild()
 			 "`str`				SMALLINT UNSIGNED NOT NULL default '0',"
 			 "`agi`				SMALLINT UNSIGNED NOT NULL default '0',"
 			 "`vit`				SMALLINT UNSIGNED NOT NULL default '0',"
-			 "`int_`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`int`				SMALLINT UNSIGNED NOT NULL default '0',"
 			 "`dex`				SMALLINT UNSIGNED NOT NULL default '0',"
 			 "`luk`				SMALLINT UNSIGNED NOT NULL default '0',"
 
@@ -3730,9 +3730,9 @@ bool CPetDB_sql::insertPet(uint32 accid, uint32 cid, short pet_class, short pet_
 
 	if( dbcon1.PureQuery(query) )
 	{
+		pd.pet_id = dbcon1.getLastID();
 		pd.account_id = accid;
 		pd.char_id = cid;
-		pd.pet_id = dbcon1.getLastID();
 		pd.class_ = pet_class;
 		pd.level = pet_lv;
 		pd.egg_id = pet_egg_id;
@@ -3802,35 +3802,85 @@ CHomunculus& CHomunculusDB_sql::operator[](size_t i)
 	static CHomunculus hom;
 	basics::CMySQLConnection dbcon1(this->sqlbase);
 	basics::string<> query;
-/*	query << "SELECT "
-			 "`p`.`pet_id`,`c`.`account_id`,`p`.`char_id`,`p`.`class`,`p`.`level`,"
-			 "`p`.`egg_id`,`p`.`equip_id`,`p`.`intimate`,`p`.`hungry`,`p`.`name`,"
-			 "`p`.`rename_flag`,`p`.`incuvate` "
-			 "FROM `" << dbcon1.escaped(this->tbl_pet) << "` `p`"
-			 "JOIN `" << dbcon1.escaped(this->tbl_char) << "` `c` ON `p`.`char_id`=`c`.`char_id` "
-			 "ORDER BY `pet_id`"
+	query << "SELECT "
+			 "`homun_id`,"
+			 "`account_id`,"
+			 "`char_id`,"
+			 "`base_exp`,"
+			 "`name`,"
+			 "`hp`,"
+			 "`max_hp`,"
+			 "`sp`,"
+			 "`max_sp`,"
+			 "`class`,"
+			 "`status_point`,"
+			 "`skill_point`,"
+			 "`str`,"
+			 "`agi`,"
+			 "`vit`,"
+			 "`int`,"
+			 "`dex`,"
+			 "`luk`,"
+			 "`option`,"
+			 "`equip`,"
+			 "`intimate`,"
+			 "`hungry`,"
+			 "`base_level`,"
+			 "`rename_flag`,"
+			 "`incubate` "
+			 "FROM `" << dbcon1.escaped(this->tbl_homunculus) << "` "
+			 "ORDER BY `homun_id`"
 			 "LIMIT "<< i << ",1 ";
-
 	if( dbcon1.ResultQuery(query) )
 	{
-		pet.pet_id = atoi(dbcon1[0]);
-		pet.account_id = atoi(dbcon1[1]);
-		pet.char_id = atoi(dbcon1[2]);
-		pet.class_ = atoi(dbcon1[3]);
-		pet.level = atoi(dbcon1[4]);
-		pet.egg_id = atoi(dbcon1[5]);
-		pet.equip_id = atoi(dbcon1[6]);
-		pet.intimate = atoi(dbcon1[7]);
-		pet.hungry = atoi(dbcon1[8]);
-		safestrcpy(pet.name, dbcon1[9], sizeof(pet.name));
-		pet.rename_flag = atoi(dbcon1[10]);
-		pet.incuvate = atoi(dbcon1[11]);
+		hom.homun_id		= atoi(dbcon1[ 0]);
+		hom.account_id		= atoi(dbcon1[ 1]);
+		hom.char_id			= atoi(dbcon1[ 2]);
+		hom.base_exp		= atoi(dbcon1[ 3]);
+		safestrcpy(hom.name, dbcon1[ 4], sizeof(hom.name));
+		hom.hp				= atoi(dbcon1[ 5]);
+		hom.max_hp			= atoi(dbcon1[ 6]);
+		hom.sp				= atoi(dbcon1[ 7]);
+		hom.max_sp			= atoi(dbcon1[ 8]);
+		hom.class_			= atoi(dbcon1[ 9]);
+		hom.status_point	= atoi(dbcon1[10]);
+		hom.skill_point		= atoi(dbcon1[11]);
+		hom.str				= atoi(dbcon1[12]);
+		hom.agi				= atoi(dbcon1[13]);
+		hom.vit				= atoi(dbcon1[14]);
+		hom.int_			= atoi(dbcon1[15]);
+		hom.dex				= atoi(dbcon1[16]);
+		hom.luk				= atoi(dbcon1[17]);
+		hom.option			= atoi(dbcon1[18]);
+		hom.equip			= atoi(dbcon1[19]);
+		hom.intimate		= atoi(dbcon1[20]);
+		hom.hungry			= atoi(dbcon1[21]);
+		hom.base_level		= atoi(dbcon1[22]);
+		hom.rename_flag		= atoi(dbcon1[23]);
+		hom.incubate		= atoi(dbcon1[24]);
+		
+
+		///////////////////////////////////////////////////////////////////////
+		// Get the skills
+		query.clear();
+		query << "SELECT "
+				 "`id`, `lv` "
+				 "FROM `" << dbcon1.escaped(this->tbl_homunskill) << "` "
+				 "WHERE `homun_id` = " << hom.homun_id;
+		dbcon1.ResultQuery(query);
+		size_t i;
+		for(i=0; i<MAX_HOMSKILL; ++i)
+		{
+			hom.skill[i].id = i+HOM_SKILLID;
+			hom.skill[i].lv = 0;
+		}
+		for( ; dbcon1; ++dbcon1)
+		{
+			i = atol(dbcon1[0])-HOM_SKILLID;
+			if(i<MAX_HOMSKILL)
+				hom.skill[i].lv = atol(dbcon1[1]);
+		}
 	}
-	else
-	{
-		pet.pet_id = 0;
-	}
-*/
 	return hom;
 }
 
@@ -3838,30 +3888,86 @@ bool CHomunculusDB_sql::searchHomunculus(uint32 hid, CHomunculus& hom)
 {
 	basics::CMySQLConnection dbcon1(this->sqlbase);
 	basics::string<> query;
-/*	query << "SELECT "
-			 "`p`.`pet_id`,`c`.`account_id`,`p`.`char_id`,`p`.`class`,`p`.`level`,"
-			 "`p`.`egg_id`,`p`.`equip_id`,`p`.`intimate`,`p`.`hungry`,`p`.`name`,"
-			 "`p`.`rename_flag`,`p`.`incuvate` "
-			 "FROM `" << dbcon1.escaped(this->tbl_pet) << "` `p` "
-			 "JOIN `" << dbcon1.escaped(this->tbl_char) << "` `c` ON `p`.`char_id`=`c`.`char_id` "
-			 "WHERE `p`.`pet_id` = '" << pid << "'";
+	query << "SELECT "
+			 "`homun_id`,"
+			 "`account_id`,"
+			 "`char_id`,"
+			 "`base_exp`,"
+			 "`name`,"
+			 "`hp`,"
+			 "`max_hp`,"
+			 "`sp`,"
+			 "`max_sp`,"
+			 "`class`,"
+			 "`status_point`,"
+			 "`skill_point`,"
+			 "`str`,"
+			 "`agi`,"
+			 "`vit`,"
+			 "`int`,"
+			 "`dex`,"
+			 "`luk`,"
+			 "`option`,"
+			 "`equip`,"
+			 "`intimate`,"
+			 "`hungry`,"
+			 "`base_level`,"
+			 "`rename_flag`,"
+			 "`incubate` "
+			 "FROM `" << dbcon1.escaped(this->tbl_homunculus) << "` "
+			 "WHERE `homun_id` = '" << hid << "'";
 	if( dbcon1.ResultQuery(query) )
 	{
-		pet.pet_id = atoi(dbcon1[0]);
-		pet.account_id = atoi(dbcon1[1]);
-		pet.char_id = atoi(dbcon1[2]);
-		pet.class_ = atoi(dbcon1[3]);
-		pet.level = atoi(dbcon1[4]);
-		pet.egg_id = atoi(dbcon1[5]);
-		pet.equip_id = atoi(dbcon1[6]);
-		pet.intimate = atoi(dbcon1[7]);
-		pet.hungry = atoi(dbcon1[8]);
-		safestrcpy(pet.name, dbcon1[9], sizeof(pet.name));
-		pet.rename_flag = atoi(dbcon1[10]);
-		pet.incuvate = atoi(dbcon1[11]);
+		hom.homun_id		= atoi(dbcon1[ 0]);
+		hom.account_id		= atoi(dbcon1[ 1]);
+		hom.char_id			= atoi(dbcon1[ 2]);
+		hom.base_exp		= atoi(dbcon1[ 3]);
+		safestrcpy(hom.name, dbcon1[ 4], sizeof(hom.name));
+		hom.hp				= atoi(dbcon1[ 5]);
+		hom.max_hp			= atoi(dbcon1[ 6]);
+		hom.sp				= atoi(dbcon1[ 7]);
+		hom.max_sp			= atoi(dbcon1[ 8]);
+		hom.class_			= atoi(dbcon1[ 9]);
+		hom.status_point	= atoi(dbcon1[10]);
+		hom.skill_point		= atoi(dbcon1[11]);
+		hom.str				= atoi(dbcon1[12]);
+		hom.agi				= atoi(dbcon1[13]);
+		hom.vit				= atoi(dbcon1[14]);
+		hom.int_			= atoi(dbcon1[15]);
+		hom.dex				= atoi(dbcon1[16]);
+		hom.luk				= atoi(dbcon1[17]);
+		hom.option			= atoi(dbcon1[18]);
+		hom.equip			= atoi(dbcon1[19]);
+		hom.intimate		= atoi(dbcon1[20]);
+		hom.hungry			= atoi(dbcon1[21]);
+		hom.base_level		= atoi(dbcon1[22]);
+		hom.rename_flag		= atoi(dbcon1[23]);
+		hom.incubate		= atoi(dbcon1[24]);
+		
+
+		///////////////////////////////////////////////////////////////////////
+		// Get the skills
+		query.clear();
+		query << "SELECT "
+				 "`id`, `lv` "
+				 "FROM `" << dbcon1.escaped(this->tbl_homunskill) << "` "
+				 "WHERE `homun_id` = " << hom.homun_id;
+		dbcon1.ResultQuery(query);
+		size_t i;
+		for(i=0; i<MAX_HOMSKILL; ++i)
+		{
+			hom.skill[i].id = i+HOM_SKILLID;
+			hom.skill[i].lv = 0;
+		}
+		for( ; dbcon1; ++dbcon1)
+		{
+			i = atol(dbcon1[0])-HOM_SKILLID;
+			if(i<MAX_HOMSKILL)
+				hom.skill[i].lv = atol(dbcon1[1]);
+		}
 		return true;
 	}
-*/	return false;
+	return false;
 }
 
 bool CHomunculusDB_sql::insertHomunculus(CHomunculus& hom)
@@ -3869,51 +3975,92 @@ bool CHomunculusDB_sql::insertHomunculus(CHomunculus& hom)
 	basics::CMySQLConnection dbcon1(this->sqlbase);
 	basics::string<> query;
 
-
-/*	query << "INSERT INTO `" << dbcon1.escaped(this->tbl_pet) << "` "
+	query << "INSERT INTO `" << dbcon1.escaped(this->tbl_homunculus) << "` "
 			 "("
+			 "`account_id`,"
 			 "`char_id`,"
+			 "`base_exp`,"
+			 "`name`,"
+			 "`hp`,"
+			 "`max_hp`,"
+			 "`sp`,"
+			 "`max_sp`,"
 			 "`class`,"
-			 "`level`,"
-			 "`egg_id`,"
-			 "`equip_id`,"
+			 "`status_point`,"
+			 "`skill_point`,"
+			 "`str`,"
+			 "`agi`,"
+			 "`vit`,"
+			 "`int`,"
+			 "`dex`,"
+			 "`luk`,"
+			 "`option`,"
+			 "`equip`,"
 			 "`intimate`,"
 			 "`hungry`,"
-			 "`name`,"
+			 "`base_level`,"
 			 "`rename_flag`,"
-			 "`incuvate`"
+			 "`incubate`"
 			 ") "
 			 "VALUES "
 			 "(" 
-			 "'" << cid << "',"
-			 "'" << pet_class << "',"
-			 "'" << pet_lv << "',"
-			 "'" << pet_egg_id << "',"
-			 "'" << pet_equip << "',"
-			 "'" << intimate << "',"
-			 "'" << hungry << "',"
-			 "'" << dbcon1.escaped(pet_name) << "',"
-			 "'" << ((int)renameflag) << "',"
-			 "'" << ((int)incuvat) << "'"
+			 "'" << hom.account_id << "',"
+			 "'" << hom.char_id << "',"
+			 "'" << hom.base_exp << "',"
+			 "'" << dbcon1.escaped(hom.name) << "',"
+			 "'" << hom.hp << "',"
+			 "'" << hom.max_hp << "',"
+			 "'" << hom.sp << "',"
+			 "'" << hom.max_sp << "',"
+			 "'" << hom.class_ << "',"
+			 "'" << hom.status_point << "',"
+			 "'" << hom.skill_point << "',"
+			 "'" << hom.str << "',"
+			 "'" << hom.agi << "',"
+			 "'" << hom.vit << "',"
+			 "'" << hom.int_ << "',"
+			 "'" << hom.dex << "',"
+			 "'" << hom.luk << "',"
+			 "'" << hom.option << "',"
+			 "'" << hom.equip << "',"
+			 "'" << hom.intimate << "',"
+			 "'" << hom.hungry << "',"
+			 "'" << hom.base_level << "',"			 
+			 "'" << ((int)hom.rename_flag) << "',"
+			 "'" << ((int)hom.incubate) << "'"
 			 ")";
-
 	if( dbcon1.PureQuery(query) )
 	{
-		pd.account_id = accid;
-		pd.char_id = cid;
-		pd.pet_id = dbcon1.getLastID();
-		pd.class_ = pet_class;
-		pd.level = pet_lv;
-		pd.egg_id = pet_egg_id;
-		pd.equip_id = pet_equip;
-		pd.intimate = intimate;
-		pd.hungry = hungry;
-		safestrcpy(pd.name, pet_name, sizeof(pd.name));
-		pd.rename_flag = renameflag;
-		pd.incuvate = incuvat;
+		hom.homun_id = dbcon1.getLastID();
+
+		query.clear();
+		query << "DELETE "
+				 "FROM `" << dbcon1.escaped(this->tbl_homunskill) << "` "
+				 "WHERE `homun_id` = '" << hom.homun_id <<"'";
+		dbcon1.PureQuery(query);
+
+
+		query << "INSERT INTO `" << dbcon1.escaped(this->tbl_homunskill) << "` "
+				 "(`homun_id`,`id`,`lv`) VALUES ";
+
+		size_t i, doit;
+		for(i=0,doit=0; i<MAX_HOMSKILL; ++i)
+		{
+			if(hom.skill[i].lv>0)
+			{
+				query << (doit?",":"") <<
+					"("
+					"'" << hom.homun_id		<< "',"
+					"'" << hom.skill[i].id	<< "',"
+					"'" << hom.skill[i].lv	<< "'"
+					")";
+				++doit;
+			}
+		}
+		if(doit) dbcon1.PureQuery(query);
 		return true;
 	}
-*/	return false;
+	return false;
 }
 
 bool CHomunculusDB_sql::removeHomunculus(uint32 hid)
@@ -3924,14 +4071,14 @@ bool CHomunculusDB_sql::removeHomunculus(uint32 hid)
 	query << "DELETE "
 			 "FROM `" << dbcon1.escaped(this->tbl_homunskill) << "` "
 			 "WHERE `homun_id` = '" << hid <<"'";
+	const bool ret = dbcon1.PureQuery( query );
 
+	query.clear();
 	query << "DELETE "
 			 "FROM `" << dbcon1.escaped(this->tbl_homunculus) << "` "
 			 "WHERE `homun_id` = '" << hid <<"'";
 
-	return dbcon1.PureQuery( query );
-
-	return false;
+	return ret && dbcon1.PureQuery( query );
 }
 
 bool CHomunculusDB_sql::saveHomunculus(const CHomunculus& hom)
@@ -3944,8 +4091,6 @@ bool CHomunculusDB_sql::saveHomunculus(const CHomunculus& hom)
 	{
 		basics::CMySQLConnection dbcon1(this->sqlbase);
 		basics::string<> query;
-
-
 
 		query << "UPDATE `" << dbcon1.escaped(this->tbl_homunculus) << "` "
 				 "SET "
@@ -3968,7 +4113,7 @@ bool CHomunculusDB_sql::saveHomunculus(const CHomunculus& hom)
 				 "`str` = '"			<< hom.str << "',"
 				 "`agi` = '"			<< hom.agi << "',"
 				 "`vit` = '"			<< hom.vit << "',"
-				 "`int_` = '"			<< hom.int_ << "',"
+				 "`int` = '"			<< hom.int_ << "',"
 				 "`dex` = '"			<< hom.dex << "',"
 				 "`luk` = '"			<< hom.luk << "',"
 
@@ -3981,18 +4126,37 @@ bool CHomunculusDB_sql::saveHomunculus(const CHomunculus& hom)
 				 "`base_level` = '"		<< hom.base_level << "',"
 				 
 				 "`rename_flag` = '"	<< hom.rename_flag << "',"
-				 "`incubate` = '"		<< hom.incubate << "',"
+				 "`incubate` = '"		<< hom.incubate << "' "
 
 				 "WHERE `homun_id` = '" << hom.homun_id << "'";
 		
 		bool ret = dbcon1.PureQuery( query );
 
+		query.clear();
 		query << "DELETE "
-			 "FROM `" << dbcon1.escaped(this->tbl_homunskill) << "` "
-			 "WHERE `homun_id` = '" << hom.homun_id <<"'";
+				 "FROM `" << dbcon1.escaped(this->tbl_homunskill) << "` "
+				 "WHERE `homun_id` = '" << hom.homun_id <<"'";
+		dbcon1.PureQuery(query);
 
-		// and re-insert the skills
 
+		query << "INSERT INTO `" << dbcon1.escaped(this->tbl_homunskill) << "` "
+				 "(`homun_id`,`id`,`lv`) VALUES ";
+
+		size_t i, doit;
+		for(i=0,doit=0; i<MAX_HOMSKILL; ++i)
+		{
+			if(hom.skill[i].lv>0)
+			{
+				query << (doit?",":"") <<
+					"("
+					"'" << hom.homun_id		<< "',"
+					"'" << hom.skill[i].id	<< "',"
+					"'" << hom.skill[i].lv	<< "'"
+					")";
+				++doit;
+			}
+		}
+		if(doit) ret &= dbcon1.PureQuery(query);
 		return ret;
 	}
 }

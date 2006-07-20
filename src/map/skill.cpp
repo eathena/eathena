@@ -2260,7 +2260,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl,unsign
 			int sec = skill_get_time2(skillid,skilllv);
 			if(maps[src->m].flag.pvp) //PvPでは拘束時間半減？
 				sec = sec/2;
-			battle_stopwalking(bl,1);
+			bl->stop_walking(1);
 			status_change_start(bl,SC_SPIDERWEB,skilllv,0,0,0,sec,0);
 		}
 		break;
@@ -2448,7 +2448,7 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 	if (count&0xf00000)
 		dir = (dir_t)((count>>20)&0x7);
 	else if (count&0x10000 || (target->x==src->x && target->y==src->y))
-		dir = status_get_dir(target);
+		dir = target->get_dir();
 	else
 		dir = target->get_direction(*src);
 	if (dir>=0 && dir<8){
@@ -2460,7 +2460,7 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 	moveblock=( x/BLOCK_SIZE != nx/BLOCK_SIZE || y/BLOCK_SIZE != ny/BLOCK_SIZE);
 
 	if(count&0x20000) {
-		battle_stopwalking(target,1);
+		target->stop_walking(1);
 		if(sd){
 			sd->walktarget.x=nx;
 			sd->walktarget.y=ny;
@@ -2482,7 +2482,7 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 		}
 	}
 	else
-		battle_stopwalking(target,2);
+		target->stop_walking(2);
 
 	dx = nx - x;
 	dy = ny - y;
@@ -2528,7 +2528,7 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 	{	// ?面?に入ってきたので表示 
 		CMap::foreachinmovearea( CClifPCInsight(*sd),
 			target->m,nx-AREA_SIZE,ny-AREA_SIZE,nx+AREA_SIZE,ny+AREA_SIZE,-dx,-dy,0);
-		if(count&0x20000 && sd->is_walking())
+		if(count&0x20000)
 			sd->stop_walking();
 	}
 	else if(md)
@@ -3826,7 +3826,7 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl, unsi
 	case RG_BACKSTAP:		/* バックスタブ */
 		{
 			dir_t dir = src->get_direction(*bl);
-			dir_t t_dir = status_get_dir(bl);
+			dir_t t_dir = bl->get_dir();
 			int dist = distance(*src, *bl);
 			if ((dist > 0 && is_same_direction(dir, t_dir)) || bl->type == BL_SKILL) {
 				if (sc_data && sc_data[SC_HIDING].timer != -1)
@@ -3886,7 +3886,8 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl, unsi
 
 	case MO_EXTREMITYFIST:	/* 阿修羅覇鳳拳 */
 		{
-			if(sd) {
+			if(sd)
+			{
 				int dx,dy;
 
 				dx = bl->x - sd->block_list::x;
@@ -3915,7 +3916,7 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl, unsi
 				sd->attackable_tick = sd->canmove_tick = tick + 100 + sd->speed * ((dx > dy)? dx:dy);
 				if(sd->canact_tick < sd->canmove_tick)
 					sd->canact_tick = sd->canmove_tick;
-				pc_movepos(*sd,sd->walktarget.x,sd->walktarget.y);
+				sd->movepos(sd->walktarget.x,sd->walktarget.y);
 				status_change_end(sd,SC_COMBO,-1);
 			}
 			else
@@ -5275,7 +5276,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 	case HP_BASILICA:			/* バジリカ */
 		{
 			struct skill_unit_group *sg;
-			battle_stopwalking(src,1);
+			src->stop_walking(1);
 			skill_clear_unitgroup(src);
 			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 			sg = skill_unitsetting(src,skillid,skilllv,src->x,src->y,0);
@@ -5693,7 +5694,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		break;
 
 	case TF_BACKSLIDING:		/* バックステップ */
-		battle_stopwalking(src,1);
+		src->stop_walking(1);
 		skill_blown(src,bl,skill_get_blewcount(skillid,skilllv)|0x10000);
 		clif_fixobject(*src);
 		skill_addtimerskill(src,tick + 200,src->id,0,0,skillid,skilllv,0,flag);
@@ -5984,10 +5985,10 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 			md->unlock_target(tick);
 		}
 		if(dstsd) {
-			battle_stopwalking(dstsd,1);
+			dstsd->stop_walking(1);
 		    dstsd->canmove_tick += skill_get_time(skillid,skilllv);
 		} else if(dstmd) {
-			battle_stopwalking(dstmd,1);
+			dstmd->stop_walking(1);
 		    dstmd->canmove_tick += skill_get_time(skillid,skilllv);
 		}
 		clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
@@ -6685,7 +6686,7 @@ int skill_castend_id(int tid, unsigned long tick, int id, basics::numptr data)
 	}
 	else if(sd->skillid == RG_BACKSTAP) {
 		dir_t dir = sd->get_direction(*bl);
-		dir_t t_dir = status_get_dir(bl);
+		dir_t t_dir = bl->get_dir();
 		int dist = distance(*sd,*bl);
 		if(bl->type != BL_SKILL && (dist == 0 || !is_same_direction(dir,t_dir))) {
 			clif_skill_fail(*sd,sd->skillid,0,0);
@@ -7070,10 +7071,13 @@ int skill_castend_pos2(struct block_list *src, int x,int y,unsigned short skilli
 		break;
 
 	case MO_BODYRELOCATION:
-		if (sd) {
-			pc_movepos(*sd,x,y);
+		if (sd)
+		{
+			sd->movepos(x,y);
 			pc_blockskill_start(*sd, MO_EXTREMITYFIST, 2000);
-		} else if (src->type == BL_MOB) {
+		}
+		else if (src->type == BL_MOB)
+		{
 			struct mob_data *md = (struct mob_data *)src;
 			mob_warp(*md, -1, x, y, 0);
 			clif_spawnmob(*md);
@@ -7236,7 +7240,7 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 	//Clear it up to prevent resent packets through! [Skotlex]
 	basics::TScopeChange<unsigned short> clear(sd->skillid, 0);
 
-	pc_stopattack(*sd);
+	sd->stop_attack();
 
 	if(battle_config.pc_skill_log)
 		ShowMessage("PC %d skill castend skill =%d map=%s\n",sd->block_list::id,skill_num,mapname);
@@ -7871,7 +7875,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 				sec = sec/5;
 			if (sec < 3000+30*sg->skill_lv)	// minimum time of 3 seconds [celest]
 				sec = 3000+30*sg->skill_lv;
-			battle_stopwalking(bl,1);
+			bl->stop_walking(1);
 			status_change_start(bl,SC_ANKLE,sg->skill_lv,0,0,0,sec,0);
 
 			skill_unit_move(*bl,tick,0);
@@ -9031,7 +9035,7 @@ int skill_use_id(struct map_session_data *sd, uint32 target_id, unsigned short s
 		skill_num != CH_CHAINCRUSH) ||
 		(skill_num == CH_CHAINCRUSH && sd->state.skill_flag) ||
 		(skill_num == MO_EXTREMITYFIST && sd->state.skill_flag) )
-		pc_stopattack(*sd);
+		sd->stop_attack();
 
 	casttime = skill_castfix(sd, skill_get_cast(skill_num, skill_lv));
 	if (skill_num != SA_MAGICROD)
@@ -9314,7 +9318,7 @@ int skill_use_pos( struct map_session_data *sd, int skill_x, int skill_y, unsign
 		}
 	}
 
-	pc_stopattack(*sd);
+	sd->stop_attack();
 
 	casttime = skill_castfix(sd, skill_get_cast( skill_num,skill_lv) );
 	delay = skill_delayfix(sd, skill_get_delay( skill_num,skill_lv) );
@@ -9884,24 +9888,6 @@ int skill_rest(struct map_session_data &sd ,int type)
  * Moonlit creates a 'safe zone' [celest]
  *------------------------------------------
  */
-/*
-int skill_moonlit_count(struct block_list &bl,va_list &ap)
-{
-	int *c;
-	uint32 id;
-	struct map_session_data &sd=(struct map_session_data &)bl;
-
-	nullpo_retr(0, ap);
-
-	id=va_arg(ap,uint32);
-	c=va_arg(ap,int *);
-
-	if(sd.block_list::id != id && 
-		sd.sc_data[SC_MOONLIT].timer != -1 && c)
-		++(*c);
-	return 0;
-}
-*/
 class CSkillMoonlitCount : public CMapProcessor
 {
 	uint32 id;

@@ -128,7 +128,7 @@ CAccountDBInterface* CAccountDB::getDB(const char *dbcfgfile)
 
 basics::CParam<bool>				CCharDBInterface::char_new("char_new", false);
 basics::CParam<bool>				CCharDBInterface::name_ignore_case("name_ignore_case", false);
-basics::CParam<basics::charset>		CCharDBInterface::name_letters("name_letters", basics::charset("a-zA-Z0-9 ,."));
+basics::CParam<basics::charset>		CCharDBInterface::name_letters("name_letters", basics::charset("a-zA-Z0-9 ,.'"));
 basics::CParam<uint32>				CCharDBInterface::start_zeny("start_zeny", 500);
 basics::CParam<ushort>				CCharDBInterface::start_weapon("start_weapon", 1201);
 basics::CParam<ushort>				CCharDBInterface::start_armor("start_armor", 2301);

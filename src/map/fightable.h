@@ -73,25 +73,15 @@ struct fightable : public movable
 	virtual ~fightable()	{}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// upcasting overload.
-	virtual fightable*	get_fightable()		{ return this; }
-
-
-	/// attacktimer entry point.
-	static int attacktimer_entry(int tid, unsigned long tick, int id, basics::numptr data);
-	/// call back function for the attacktimer
-	virtual int attacktimer_func(int tid, unsigned long tick, int id, basics::numptr data)=0;
-
-	/// skilltimer entry point.
-	static int skilltimer_entry(int tid, unsigned long tick, int id, basics::numptr data);
-	/// call back function for the skilltimer
-	virtual int skilltimer_func(int tid, unsigned long tick, int id, basics::numptr data)=0;
-
-
+	/// upcasting overloads.
+	virtual fightable*				get_fightable()			{ return this; }
+	virtual const fightable*		get_fightable() const	{ return this; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// status functions
 
+	/// checks if this is attackable
+	virtual bool is_attackable() const	{ return true; }
 	/// checks for attack state
 	virtual bool is_attacking() const	{ return (attacktimer!=-1); }
 	/// checks for skill state
@@ -103,25 +93,46 @@ struct fightable : public movable
 	/// sets the object to idle state
 	virtual bool set_idle();
 
-	/// starts attack
-	virtual bool start_attack(uint32 target_id, bool cont);
-	/// stops attack
-	virtual bool stop_attack();
-	/// stops skill
-	virtual bool stop_skill();
-
-	/// do object depending stuff for attacking
-	virtual void do_attack()	{}
-
-
 	///////////////////////////////////////////////////////////////////////////
 	// targeting functions
 
-	void unlock_target()
+	/// unlock from current target
+	virtual void unlock_target()
 	{
 		this->target_id=0;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	// attack functions
+
+	/// attacktimer entry point.
+	static int attacktimer_entry(int tid, unsigned long tick, int id, basics::numptr data);
+	/// call back function for the attacktimer
+	virtual int attacktimer_func(int tid, unsigned long tick, int id, basics::numptr data);
+
+	/// starts attack
+	virtual bool start_attack(uint32 target_id, bool cont);
+	/// stops attack
+	virtual bool stop_attack();
+
+
+	/// object depending check if attack is possible
+	virtual bool can_attack(const fightable& target)	{ return false; }
+	/// do object depending stuff for attacking
+	virtual void do_attack()							{}
+	/// get the current attack range
+	virtual ushort get_attackrange()					{ return 0; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// skill functions
+
+	/// skilltimer entry point.
+	static int skilltimer_entry(int tid, unsigned long tick, int id, basics::numptr data);
+	/// call back function for the skilltimer
+	virtual int skilltimer_func(int tid, unsigned long tick, int id, basics::numptr data)=0;
+
+	/// stops skill
+	virtual bool stop_skill();
 
 };
 

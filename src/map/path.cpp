@@ -139,6 +139,7 @@ int calc_cost(const struct tmp_path &tp, const int x1, const int y1)
 	// diagonal_steps = min(abs_dx, abs_dy);
 	// orthogon_steps = abs_dx + abs_dy;
 	// h = D2 * diagonal_steps + D * (orthogon_steps - 2*diagonal_steps)
+	//   = D * orthogon_steps - (2*D-D2) * diagonal_steps 
 	// which still slightly favours orthogonal movement
 	//
 	// exact would be eucledian distance which however has other disadvantages

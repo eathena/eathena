@@ -51,7 +51,6 @@ int pc_clean_skilltree(struct map_session_data &sd);
 int pc_checkoverhp(struct map_session_data &sd);
 int pc_checkoversp(struct map_session_data &sd);
 
-int pc_movepos(struct map_session_data &sd, unsigned short x,unsigned short y);
 bool pc_setpos(struct map_session_data &sd,const char *mapname_org,unsigned short x,unsigned short y,int clrtype);
 int pc_setsavepoint(struct map_session_data &sd,const char *mapname,unsigned short x,unsigned short y);
 int pc_randomwarp(struct map_session_data &sd,int type);
@@ -97,7 +96,6 @@ int pc_modifybuyvalue(struct map_session_data &sd,size_t orig_value);
 int pc_modifysellvalue(struct map_session_data &sd,size_t orig_value);
 
 int pc_attack(struct map_session_data &sd,uint32 target_id,int type);
-int pc_stopattack(struct map_session_data &sd);
 
 int pc_follow(struct map_session_data &sd, uint32 target_id); // [MouseJstr]
 int pc_stop_following(struct map_session_data &sd);

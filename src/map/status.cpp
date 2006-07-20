@@ -1944,35 +1944,7 @@ int status_get_class(struct block_list *bl)
 	else
 		return 0;
 }
-/*==========================================
- * 対象の方向を返す(汎用)
- * 戻りは整数で0以上
- *------------------------------------------
- */
-dir_t status_get_dir(struct block_list *bl)
-{
-	nullpo_retr(DIR_N, bl);
-	if(bl->type==BL_MOB)
-		return (dir_t)((struct mob_data *)bl)->dir;
-	else if(bl->type==BL_PC)
-		return (dir_t)((struct map_session_data *)bl)->dir;
-	else if(bl->type==BL_PET)
-		return (dir_t)((struct pet_data *)bl)->dir;
-	else
-		return DIR_N;
-}
-dir_t status_get_headdir(struct block_list *bl)
-{
-	nullpo_retr(DIR_N, bl);
-	if(bl->type==BL_MOB)
-		return (dir_t)((struct mob_data *)bl)->dir;
-	else if(bl->type==BL_PC)
-		return (dir_t)((struct map_session_data *)bl)->head_dir;
-	else if(bl->type==BL_PET)
-		return (dir_t)((struct pet_data *)bl)->dir;
-	else
-		return DIR_N;
-}
+
 /*==========================================
  * 対象のレベルを返す(汎用)
  * 戻りは整数で0以上
@@ -3596,7 +3568,7 @@ int status_change_start(struct block_list *bl,int type, basics::numptr val1,basi
 		return 0;
 	}
 	if(type==SC_FREEZE || type==SC_STAN || type==SC_SLEEP || type == SC_CONFUSION)
-		battle_stopwalking(bl,1);
+		bl->stop_walking(1);
 
 	if(sc_data[type].timer != -1)
 	{	/* すでに同じ異常になっている場合タイマ解除 */
@@ -3733,9 +3705,7 @@ int status_change_start(struct block_list *bl,int type, basics::numptr val1,basi
 			calc_flag = 1;
 			if(tick <= 0) tick = 1000;	/* (オ?トバ?サ?ク) */
 		case SC_TRICKDEAD:			/* 死んだふり */
-			if (bl->type == BL_PC) {
-				pc_stopattack(*sd);
-			}
+			bl->stop_attack();
 			break;
 		case SC_QUAGMIRE:			/* クァグマイア */
 			calc_flag = 1;
@@ -4316,7 +4286,7 @@ int status_change_start(struct block_list *bl,int type, basics::numptr val1,basi
 		        if (md->skilltimer != -1) skill_castcancel(bl, 0);
 			}	    		
 
-			battle_stopattack(bl);	/* 攻?停止 */
+			bl->stop_attack();	/* 攻?停止 */
 			skill_stop_dancing(bl,0);	/* 演奏/ダンスの中? */
 			{	/* 同時に掛からないステ?タス異常を解除 */
 				int i;
@@ -4350,12 +4320,12 @@ int status_change_start(struct block_list *bl,int type, basics::numptr val1,basi
 			break;
 		case SC_HIDING:
 		case SC_CLOAKING:
-			battle_stopattack(bl);	/* 攻?停止 */
+			bl->stop_attack();	/* 攻?停止 */
 			*option |= ((type==SC_HIDING)?2:4);
 			opt_flag =1 ;
 			break;
 		case SC_CHASEWALK:
-			battle_stopattack(bl);	/* 攻?停止 */
+			bl->stop_attack();	/* 攻?停止 */
 			*option |= 16388;
 			opt_flag =1 ;
 			break;
@@ -4900,7 +4870,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 			short *opt1 = status_get_opt1(bl);
 			sc_data[type].val2 = 0;
 			sc_data[type].val4 = 0;
-			battle_stopwalking(bl,1);
+			bl->stop_walking(1);
 			if(opt1) {
 				*opt1 = 1;
 				clif_changeoption(*bl);
@@ -4975,7 +4945,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 			}
 			if (!status_isdead(bl)) {
 				// walking and casting effect is lost
-				battle_stopwalking (bl, 1);
+				bl->stop_walking(1);
 				skill_castcancel (bl, 0);
 				sc_data[type].timer = add_timer(10000 + tick, status_change_timer, bl->id, data );
 			}

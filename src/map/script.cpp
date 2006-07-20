@@ -8922,7 +8922,7 @@ int buildin_npcstop(CScriptEngine &st)
 {
 	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
 
-	if( (nd) && (nd->state.state==MS_WALK) )
+	if( nd )
 		nd->stop_walking(1);
 	return 0;
 }

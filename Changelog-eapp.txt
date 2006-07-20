@@ -1,4 +1,11 @@
 Date	Added
+07/20
+	* enabled some already prepared virtual interfaces
+	* removed the old walk implementations 
+	* removed some redundant functions from battle and status 
+	  but still a big bunch of redundancy left for removal
+	* added some basic fightable functions, but need to merge them
+	  with the already existing battle code
 07/15
 	* added parameters fixing (ie. command line parameters are 
 	  not overwritable by files (might also add forced overwrites)

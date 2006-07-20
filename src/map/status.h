@@ -613,8 +613,6 @@ int status_recalc_speed(struct block_list *bl);
 
 // ƒpƒ‰ƒ[ƒ^Š“¾Œn battle.c ‚æ‚èˆÚ“®
 int status_get_class(struct block_list *bl);
-dir_t status_get_dir(struct block_list *bl);
-dir_t status_get_headdir(struct block_list *bl);
 int status_get_lv(const block_list *bl);
 int status_get_range(const block_list *bl);
 int status_get_hp(struct block_list *bl);

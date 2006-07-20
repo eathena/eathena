@@ -1665,6 +1665,8 @@ int guild_agit_start(void)
 	int c = npc_event_doall("OnAgitStart");
 	ShowMessage("NPC_Event:[OnAgitStart] Run (%d) Events by @AgitStart.\n",c);
 	// Start auto saving
+	if(guild_save_timer!=-1)
+		delete_timer (guild_save_timer, guild_save_sub);
 	guild_save_timer = add_timer_interval(gettick() + GUILD_SAVE_INTERVAL, GUILD_SAVE_INTERVAL, guild_save_sub, 0, 0);
 	return 0;
 }
@@ -1674,7 +1676,11 @@ int guild_agit_end(void)
 	int c = npc_event_doall("OnAgitEnd");
 	ShowMessage("NPC_Event:[OnAgitEnd] Run (%d) Events by @AgitEnd.\n",c);
 	// Stop auto saving
-	delete_timer (guild_save_timer, guild_save_sub);
+	if(guild_save_timer!=-1)
+	{
+		delete_timer (guild_save_timer, guild_save_sub);
+		guild_save_timer=-1;
+	}
 	return 0;
 }
 

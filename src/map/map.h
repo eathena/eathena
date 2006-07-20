@@ -313,14 +313,6 @@ struct block_list : public coordinate
 	static int map_freeblock_lock(void);
 	static int map_freeblock_unlock(void);
 
-	/// return body direction.
-	/// default function, needs to be overloaded at specific implementations
-	virtual dir_t get_dir()	const		{ return DIR_N; }
-	/// return head direction.
-	/// default function, needs to be overloaded at specific implementations
-	virtual dir_t get_headdir()	const	{ return this->get_dir(); }
-
-
 
 
 	// New member functions by Aru to cleanup code and 
@@ -394,69 +386,82 @@ struct block_list : public coordinate
 	*/
 
 
-	struct map_session_data* get_sd() const
-	{
-		if(type != BL_PC)
-			return NULL;
-		else
-			return (struct map_session_data*)this;
-	}
-	struct pet_data* get_pd() const
-	{
-		if(type != BL_PET)
-			return NULL;
-		else
-			return (struct pet_data*)this;
-	}
-	struct mob_data* get_md() const
-	{
-		if(type != BL_MOB)
-			return NULL;
-		else
-			return (struct mob_data*)this;
-	}
-	struct npc_data* get_nd() const
-	{
-		if(type != BL_NPC)
-			return NULL;
-		else
-			return (struct npc_data*)this;
-	}
-	homun_data* get_hd() const
-	{
-		if(type != BL_HOM)
-			return NULL;
-		else
-			return (struct homun_data*)this;
-	}
-	chat_data* get_cd() const
-	{
-		if(type != BL_CHAT)
-			return NULL;
-		else
-			return (struct chat_data*)this;
-	}
+
 	// might later replace the type compare
-	// can be overloaded and could also used with masks instead pure enums
-//	bool is_type(int t)
-//	{
-//		return (t==this->type);
-//	}
+	// this here can be overloaded and could also used with masks instead pure enums
+	virtual bool is_type(int t)
+	{
+		return (t==this->type);
+	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// upcasting overload.
-	virtual movable*	get_movable()		{ return NULL; }
-	/// upcasting overload.
-	virtual fightable*	get_fightable()		{ return NULL; }
+	/// upcasting overloads.
+	virtual map_session_data*		get_sd()				{ return NULL; }
+	virtual const map_session_data* get_sd() const			{ return NULL; }
 
+	virtual pet_data*				get_pd()				{ return NULL; }
+	virtual const pet_data*			get_pd() const			{ return NULL; }
+
+	virtual mob_data*				get_md()				{ return NULL; }
+	virtual const mob_data*			get_md() const			{ return NULL; }
+
+	virtual npc_data*				get_nd()				{ return NULL; }
+	virtual const npc_data*			get_nd() const			{ return NULL; }
+
+	virtual homun_data*				get_hd()				{ return NULL; }
+	virtual const homun_data*		get_hd() const			{ return NULL; }
+
+	virtual chat_data*				get_cd()				{ return NULL; }
+	virtual const chat_data*		get_cd() const			{ return NULL; }
+
+	virtual skill_unit*				get_sk()				{ return NULL; }
+	virtual const skill_unit*		get_sk() const			{ return NULL; }
+
+	virtual flooritem_data*			get_fd()				{ return NULL; }
+	virtual const flooritem_data*	get_fd() const			{ return NULL; }
+
+	virtual movable*				get_movable()			{ return NULL; }
+	virtual const movable*			get_movable() const		{ return NULL; }
+
+	virtual fightable*				get_fightable()			{ return NULL; }
+	virtual const fightable*		get_fightable() const	{ return NULL; }
+
+
+
+	///////////////////////////////////////////////////////////////////////////
+	/// return head direction.
+	/// default function, needs to be overloaded at specific implementations
+	virtual dir_t get_headdir() const		{ return DIR_S; }
+	/// return body direction.
+	/// default function, needs to be overloaded at specific implementations
+	virtual dir_t get_bodydir() const		{ return DIR_S; }
+	/// alias to body direction.
+	virtual dir_t get_dir() const			{ return DIR_S; }
+
+	///////////////////////////////////////////////////////////////////////////
+	/// set directions seperately.
+	virtual void set_dir(dir_t b, dir_t h)	{}
+	/// set both directions equally.
+	virtual void set_dir(dir_t d)			{}
+	/// set directions to look at target
+	virtual void set_dir(const coordinate& to)	{}
+	/// set body direction only.
+	virtual void set_bodydir(dir_t d)		{}
+	/// set head direction only.
+	virtual void set_headdir(dir_t d)		{}
 
 
 
 	///////////////////////////////////////////////////////////////////////////
 	// status functions
+	// overloaded at derived classes
 
 	/// checks for walking state
 	virtual bool is_walking() const		{ return false; }
+	/// checks for attack state
+	virtual bool is_attacking() const	{ return false; }
+	/// checks for skill state
+	virtual bool is_skilling() const	{ return false; }
 	/// checks for dead state
 	virtual bool is_dead() const		{ return false; }
 	/// checks for sitting state
@@ -469,6 +474,45 @@ struct block_list : public coordinate
 	virtual bool is_invisible() const	{ return false; }
 	/// checks for confusion state
 	virtual bool is_confuse() const		{ return false; }
+	/// checks if this is attackable
+	virtual bool is_attackable() const	{ return false; }
+
+	/// sets the object to idle state
+	virtual bool set_idle()				{ return false; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// walking functions
+	// overloaded at derived classes
+
+	/// walk to position
+	virtual bool walktoxy(const coordinate& pos,bool easy=false)						{ return false; }
+	/// walk to a coordinate
+	virtual bool walktoxy(unsigned short x,unsigned short y,bool easy=false)			{ return false; }
+	/// stop walking
+	virtual bool stop_walking(int type=1)												{ return false; }
+	/// instant position change
+	virtual bool movepos(const coordinate &target)										{ return false; }
+	/// instant position change
+	virtual bool movepos(unsigned short x,unsigned short y)								{ return false; }
+	/// warps to a given map/position. 
+	virtual bool warp(unsigned short m, unsigned short x, unsigned short y, int type)	{ return false; }
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// attack functions
+
+	/// starts attack
+	virtual bool start_attack(uint32 target_id, bool cont)	{ return false; }
+	/// stops attack
+	virtual bool stop_attack()								{ return false; }
+	/// stops skill
+	virtual bool stop_skill()								{ return false; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// targeting functions
+
+	/// unlock from current target
+	virtual void unlock_target()							{ }
 
 };
 
@@ -598,6 +642,14 @@ struct skill_unit : public block_list
 		alive(0),
 		range(0)
 	{}
+	virtual ~skill_unit()
+	{}
+
+
+	virtual skill_unit*				get_sk()				{ return this; }
+	virtual const skill_unit*		get_sk() const			{ return this; }
+
+
 private:
 	skill_unit(const skill_unit&);					// forbidden
 	const skill_unit& operator=(const skill_unit&);	// forbidden
@@ -1063,22 +1115,19 @@ struct map_session_data : public fightable, public session_data
 	{
 		this->init(fdi, packver, account_id, char_id, login_id1, client_tick, sex);
 	}
+	virtual ~map_session_data()
+	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// upcasting overloads.
+	virtual map_session_data*		get_sd()				{ return this; }
+	virtual const map_session_data* get_sd() const			{ return this; }
+
 
 	/// returns GM level
 	unsigned char isGM() const;
 
-	/// internal walk subfunction
-	virtual int walktoxy_sub_old();
-	/// walks to a coordinate
-	virtual int walktoxy_old(unsigned short x,unsigned short y,bool easy=false);
-	/// do a walk step
-	virtual int walkstep_old(unsigned long tick);
-	/// interrupts walking
-	virtual int stop_walking_old(int type=1);
-	/// change object state
-	virtual int changestate_old(int state,int type);
 	/// timer callback
-	virtual int walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
 	virtual int attacktimer_func(int tid, unsigned long tick, int id, basics::numptr data);
 	virtual int skilltimer_func(int tid, unsigned long tick, int id, basics::numptr data);
 
@@ -1261,20 +1310,15 @@ struct npc_data : public movable
 
 	// can have an empty constructor here since it is cleared at allocation
 	npc_data()
-	{} 
+	{}
+	virtual ~npc_data()
+	{}
 
-	/// internal walk subfunction
-	virtual int walktoxy_sub_old();
-	/// walks to a coordinate
-	virtual int walktoxy_old(unsigned short x,unsigned short y,bool easy=false);
-	/// do a walk step
-	virtual int walkstep_old(unsigned long tick);
-	/// interrupts walking
-	virtual int stop_walking_old(int type=1);
-	/// change object state
-	virtual int changestate_old(int state,int type);
-	/// timer callback
-	virtual int walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// upcasting overloads.
+	virtual npc_data*				get_nd()				{ return this; }
+	virtual const npc_data*			get_nd() const			{ return this; }
 
 
 	/// do object depending stuff for ending the walk.
@@ -1481,9 +1525,8 @@ struct mob_data : public fightable
 		{}
 	} state;
 
-	long hp;
-	long max_hp;
-
+	sint32 hp;
+	sint32 max_hp;
 
 	unsigned short level;
 	unsigned short attacked_count;
@@ -1543,22 +1586,19 @@ struct mob_data : public fightable
 	/// constructor.
 	/// prepares the minimum data set for MOB spawning
 	mob_data(const char *mobname, int class_);
+	virtual ~mob_data()	{}
 
 
-	/// internal walk subfunction
-	virtual int walktoxy_sub_old();
-	/// walks to a coordinate
-	virtual int walktoxy_old(unsigned short x,unsigned short y,bool easy=false);
-	/// do a walk step
-	virtual int walkstep_old(unsigned long tick);
-	/// interrupts walking
-	virtual int stop_walking_old(int type=1);
+	///////////////////////////////////////////////////////////////////////////
+	/// upcasting overloads.
+	virtual mob_data*				get_md()				{ return this; }
+	virtual const mob_data*			get_md() const			{ return this; }
+
+
+
 	/// walk to a random target
 	virtual bool randomwalk(unsigned long tick);
-	/// change object state
-	virtual int changestate_old(int state,int type);
 	/// timer callback
-	virtual int walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
 	virtual int attacktimer_func(int tid, unsigned long tick, int id, basics::numptr data);
 	virtual int skilltimer_func(int tid, unsigned long tick, int id, basics::numptr data);
 
@@ -1595,6 +1635,12 @@ struct mob_data : public fightable
 
 		return ret;
 	}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// attack functions
+
+	virtual bool stop_attack();
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1790,23 +1836,18 @@ struct pet_data : public fightable
 		loot(NULL),
 		msd(NULL),
 		hungry_timer(-1)
-	{
-	}
+	{}
+	virtual ~pet_data()	{}
 
-	/// internal walk subfunction
-	virtual int walktoxy_sub_old();
-	/// walks to a coordinate
-	virtual int walktoxy_old(unsigned short x,unsigned short y,bool easy=false);
-	/// do a walk step
-	virtual int walkstep_old(unsigned long tick);
-	/// interrupts walking
-	virtual int stop_walking_old(int type=1);
+	///////////////////////////////////////////////////////////////////////////
+	/// upcasting overloads.
+	virtual pet_data*				get_pd()				{ return this; }
+	virtual const pet_data*			get_pd() const			{ return this; }
+
+
 	/// walk to a random target
 	virtual bool randomwalk(unsigned long tick);
-	/// change object state
-	virtual int changestate_old(int state,int type);
 	/// timer callback
-	virtual int walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data);
 	virtual int attacktimer_func(int tid, unsigned long tick, int id, basics::numptr data);
 	virtual int skilltimer_func(int tid, unsigned long tick, int id, basics::numptr data);
 
@@ -1824,6 +1865,10 @@ struct pet_data : public fightable
 	virtual bool is_walking() const		{ return this->movable::is_walking()||(state.state==MS_WALK); }
 
 
+	///////////////////////////////////////////////////////////////////////////
+	// attack functions
+
+	virtual bool stop_attack();
 
 	///////////////////////////////////////////////////////////////////////////
 	// Appearance functions.
@@ -1873,6 +1918,14 @@ public:
 		first_get_id(0), second_get_id(0), third_get_id(0),
 		first_get_tick(0), second_get_tick(0), third_get_tick(0)
 	{ }
+	virtual ~flooritem_data()	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// upcasting overloads.
+	virtual flooritem_data*			get_fd()				{ return this; }
+	virtual const flooritem_data*	get_fd() const			{ return this; }
+
+
 private:
 	flooritem_data(const flooritem_data&);					// forbidden
 	const flooritem_data& operator=(const flooritem_data&);	// forbidden

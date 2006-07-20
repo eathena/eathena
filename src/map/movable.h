@@ -32,28 +32,31 @@ public:
 
 
 	///////////////////////////////////////////////////////////////////////////
-	/// upcasting overload.
-	virtual movable* get_movable()	{ return this; }
-
+	/// upcasting overloads.
+	virtual movable*				get_movable()			{ return this; }
+	virtual const movable*			get_movable() const		{ return this; }
 
 
 	///////////////////////////////////////////////////////////////////////////
-	/// return body direction.
-	dir_t get_bodydir() const		{ return (dir_t)this->bodydir; }
-	/// alias to body direction.
-	dir_t get_dir() const			{ return (dir_t)this->bodydir; }
 	/// return head direction.
-	dir_t get_headdir() const		{ return (dir_t)this->headdir; }
+	virtual dir_t get_headdir() const		{ return (dir_t)this->headdir; }
+	/// return body direction.
+	virtual dir_t get_bodydir() const		{ return (dir_t)this->bodydir; }
+	/// alias to body direction.
+	virtual dir_t get_dir() const			{ return (dir_t)this->bodydir; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// set directions seperately.
-	void set_dir(dir_t b, dir_t h);
+	virtual void set_dir(dir_t b, dir_t h);
 	/// set both directions equally.
-	void set_dir(dir_t d);
+	virtual void set_dir(dir_t d);
+	/// set directions to look at target
+	virtual void set_dir(const coordinate& to);
 	/// set body direction only.
-	void set_bodydir(dir_t d);
+	virtual void set_bodydir(dir_t d);
 	/// set head direction only.
-	void set_headdir(dir_t d);
+	virtual void set_headdir(dir_t d);
+
 
 	///////////////////////////////////////////////////////////////////////////
 	/// get randomized move coordinates with same distance
@@ -95,48 +98,19 @@ public:
 	// compound of the old interface with modified timer callback
 	// clean up when new interface is debugged
 
-	/// internal walk subfunction
-	int walktoxy_sub();
-	/// walks to a coordinate
-	int walktoxy(unsigned short x,unsigned short y,bool easy=false);
-	/// interrupts walking
-	int stop_walking(int type=1);
-	/// do a walk step
-	int walk(unsigned long tick);
 	/// change object state
 	int changestate(int state,int type);
 	/// walk to a random target
 	/// is ignored by default
 	virtual bool randomwalk(unsigned long tick)	{ return false; }
 
-
-	/// internal walk subfunction
-	virtual int walktoxy_sub_old()=0;
-	/// walks to a coordinate
-	virtual int walktoxy_old(unsigned short x,unsigned short y,bool easy=false)=0;
-	/// do a walk step
-	virtual int walkstep_old(unsigned long tick)=0;
-	/// change object state
-	virtual int changestate_old(int state,int type)=0;
-	/// interrupts walking
-	virtual int stop_walking_old(int type=1)=0;
-
-	/// call back function for the walktimer
-	virtual int walktimer_func_old(int tid, unsigned long tick, int id, basics::numptr data)=0;
-
-
-// new interface
-
-
-
-
 	/// sets the object to idle state
 	virtual bool set_idle();
-
 	
 
 	///////////////////////////////////////////////////////////////////////////
 	// walking functions
+
 
 	/// checks if object is movable at all. immobile by default
 	// currently not overloaded and only used for mobs
@@ -157,6 +131,27 @@ public:
 	virtual void do_changestate(int state,int type)	{}
 
 
+
+	/// walk to position
+	virtual bool walktoxy(const coordinate& pos,bool easy=false);
+	/// walk to a coordinate
+	virtual bool walktoxy(unsigned short x,unsigned short y,bool easy=false)
+	{
+		return this->walktoxy( coordinate(x,y), easy );
+	}
+	/// stop walking
+	virtual bool stop_walking(int type=1);
+	/// instant position change
+	virtual bool movepos(const coordinate &target);
+	/// instant position change
+	virtual bool movepos(unsigned short x,unsigned short y)
+	{
+		return this->movepos( coordinate(x,y) );
+	}
+	/// warps to a given map/position. 
+	virtual bool warp(unsigned short m, unsigned short x, unsigned short y, int type);
+
+
 	/// walktimer entry point.
 	/// call back function for the timer
 	static int walktimer_entry(int tid, unsigned long tick, int id, basics::numptr data);
@@ -175,14 +170,7 @@ public:
 	bool set_walktimer(unsigned long tick);
 	/// main walking function
 	bool walkstep(unsigned long tick);
-	/// walk to position
-	bool walkto(const coordinate& pos);
-	/// walk to xy
-	bool walkto(const unsigned short x, const unsigned short y)
-	{
-		return this->walkto( coordinate(x,y) );
-	}
-	bool stop_walking_new(int type);
+
 };
 
 

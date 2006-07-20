@@ -23,7 +23,6 @@
 #include "npc.h"
 #include "script.h"
 #include "status.h"
-#include "unit.h"
 #include "skill.h"
 
 #ifdef MEMWATCH
@@ -77,57 +76,6 @@ int homun_natural_heal_sp(int tid,unsigned long tick,int id, basics::numptr data
 
 
 
-int  homun_data::skilltimer_func(int,unsigned long,int,struct basics::_numptr)
-{
-	// no skills for now
-	return 0;
-}
-int  homun_data::attacktimer_func(int,unsigned long,int,struct basics::_numptr)
-{
-	// don't attack, just emote for now
-	clif_emotion(*this, 7);
-	return 0;
-}
-void  homun_data::do_changestate(int,int)
-{
-}
-void  homun_data::do_walkto(void)
-{
-}
-void  homun_data::do_walkstep(unsigned long,struct coordinate const &,int,int)
-{
-}
-void  homun_data::do_stop_walking(void)
-{
-}
-int  homun_data::walktimer_func_old(int,unsigned long,int,struct basics::_numptr)
-{
-	return 0;
-}
-int  homun_data::stop_walking_old(int)
-{
-	return 0;
-}
-int  homun_data::changestate_old(int,int)
-{
-	return 0;
-}
-int  homun_data::walkstep_old(unsigned long)
-{
-	return 0;
-}
-int  homun_data::walktoxy_old(unsigned short,unsigned short,bool)
-{
-	return 0;
-}
-int  homun_data::walktoxy_sub_old(void)
-{
-	return 0;
-}
-bool  homun_data::randomwalk(unsigned long)
-{
-	return true;
-}
 
 
 
