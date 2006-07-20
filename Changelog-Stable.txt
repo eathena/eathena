@@ -4,6 +4,11 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/07/20
+	* Merged the mob_db correction that updates the adelay to amotion when the
+	  first is shorter than the later. [Skotlex]
+	* Merged fix that uses clear-char/spawn packets on warps (since option
+	  changes do not work on them client-side) [Skotlex]
 2006/07/19
 	* Merged grfio.c... which should had been done months ago! Fixes a few
 	  oddities with local files not being found and the data_dir being

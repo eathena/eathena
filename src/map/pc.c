@@ -461,26 +461,26 @@ int pc_setequipindex(struct map_session_data *sd)
 
 	nullpo_retr(0, sd);
 
-	for(i=0;i<11;i++)
+	for(i=0;i<EQI_MAX;i++)
 		sd->equip_index[i] = -1;
 
 	for(i=0;i<MAX_INVENTORY;i++) {
 		if(sd->status.inventory[i].nameid <= 0)
 			continue;
 		if(sd->status.inventory[i].equip) {
-			for(j=0;j<11;j++)
+			for(j=0;j<EQI_MAX;j++)
 				if(sd->status.inventory[i].equip & equip_pos[j])
 					sd->equip_index[j] = i;
-			if(sd->status.inventory[i].equip & 0x0002) {
+			if(sd->status.inventory[i].equip & EQP_HAND_R) {
 				if(sd->inventory_data[i])
 					sd->weapontype1 = sd->inventory_data[i]->look;
 				else
 					sd->weapontype1 = 0;
 			}
-			if(sd->status.inventory[i].equip & 0x0020) {
+			if(sd->status.inventory[i].equip & EQP_HAND_L) {
 				if(sd->inventory_data[i]) {
 					if(sd->inventory_data[i]->type == 4) {
-						if(sd->status.inventory[i].equip == 0x0020)
+						if(sd->status.inventory[i].equip == EQP_HAND_L)
 							sd->weapontype2 = sd->inventory_data[i]->look;
 						else
 							sd->weapontype2 = 0;
@@ -502,11 +502,8 @@ static int pc_isAllowedCardOn(struct map_session_data *sd,int s,int eqindex,int 
 	int i;
 	struct item *item = &sd->status.inventory[eqindex];
 	struct item_data *data;
-	if (	//Crafted/made/hatched items.
-		item->card[0]==0x00ff ||
-		item->card[0]==0x00fe ||
-		item->card[0]==(short)0xff00
-	)
+	//Crafted/made/hatched items.
+	if (itemdb_isspecial(item->card[0]))
 		return 1;
 	
 	for (i=0;i<s;i++)	{
@@ -545,20 +542,21 @@ int pc_isequip(struct map_session_data *sd,int n)
 		return 0;
 	if (sd->sc.count) {
 			
-		if((item->equip & 0x0002 || item->equip & 0x0020) && item->type == 4 && sd->sc.data[SC_STRIPWEAPON].timer != -1) // Also works with left-hand weapons [DracoRPG]
+		if(item->equip & EQP_WEAPON && item->type == 4 && sd->sc.data[SC_STRIPWEAPON].timer != -1) // Also works with left-hand weapons [DracoRPG]
 			return 0;
-		if(item->equip & 0x0020 && item->type == 5 && sd->sc.data[SC_STRIPSHIELD].timer != -1) // Also works with left-hand weapons [DracoRPG]
+		if(item->equip & EQP_SHIELD && item->type == 5 && sd->sc.data[SC_STRIPSHIELD].timer != -1)
 			return 0;
-		if(item->equip & 0x0010 && sd->sc.data[SC_STRIPARMOR].timer != -1)
+		if(item->equip & EQP_ARMOR && sd->sc.data[SC_STRIPARMOR].timer != -1)
 			return 0;
-		if(item->equip & 0x0100 && sd->sc.data[SC_STRIPHELM].timer != -1)
+		if(item->equip & EQP_HELM && sd->sc.data[SC_STRIPHELM].timer != -1)
 			return 0;
 
 		if (sd->sc.data[SC_SPIRIT].timer != -1 && sd->sc.data[SC_SPIRIT].val2 == SL_SUPERNOVICE) {
 			//Spirit of Super Novice equip bonuses. [Skotlex]
-			if (sd->status.base_level > 90 && item->equip & 0x301)
+			if (sd->status.base_level > 90 && item->equip & EQP_HELM)
 				return 1; //Can equip all helms
-			if (sd->status.base_level > 96 && item->equip & 0x022 && item->type == 4)
+
+			if (sd->status.base_level > 96 && item->equip & EQP_WEAPON && item->type == IT_WEAPON)
 				switch(item->look) { //In weapons, the look determines type of weapon.
 					case W_DAGGER: //Level 4 Knives are equippable.. this means all knives, I'd guess?
 					case W_1HSWORD: //All 1H swords
@@ -979,6 +977,54 @@ int pc_calc_skilltree(struct map_session_data *sd)
 	}
 
 	return 0;
+}
+
+//Checks if you can learn a new skill after having leveled up a skill.
+static void pc_check_skilltree(struct map_session_data *sd, int skill) {
+	int i,id=0,flag;
+	int c=0;
+
+	if(battle_config.skillfree)
+		return; //Function serves no purpose if this is set
+	
+	i = pc_calc_skilltree_normalize_job(sd);
+	c = pc_mapid2jobid(i, sd->status.sex);
+	if (c == -1) { //Unable to normalize job??
+		if (battle_config.error_log)
+			ShowError("pc_check_skilltree: Unable to normalize job %d for character %s (%d:%d)\n", i, sd->status.name, sd->status.account_id, sd->status.char_id);
+		return;
+	}
+	
+	do {
+		flag=0;
+		for(i=0;i < MAX_SKILL_TREE && (id=skill_tree[c][i].id)>0;i++){
+			int j,f=1;
+
+			if(sd->status.skill[id].id) //Already learned
+				continue;
+			
+			for(j=0;j<5;j++) {
+				if( skill_tree[c][i].need[j].id &&
+					pc_checkskill(sd,skill_tree[c][i].need[j].id) <
+					skill_tree[c][i].need[j].lv) {
+					f=0;
+					break;
+				}
+			}
+			if (!f)
+				continue;
+			if (sd->status.job_level < skill_tree[c][i].joblv)
+				continue;
+			else if (pc_checkskill(sd, NV_BASIC) < 9 && id != NV_BASIC && !(skill_get_inf2(id)&INF2_QUEST_SKILL))
+				continue; // Do not unlock normal skills when Basic Skills is not maxed out (can happen because of skill reset)
+			
+			if(skill_get_inf2(id)&INF2_SPIRIT_SKILL)
+				//Spirit skills cannot be learned
+				continue;
+			sd->status.skill[id].id=id;
+			flag=1;
+		}
+	} while(flag);
 }
 
 // Make sure all the skills are in the correct condition
@@ -1582,9 +1628,8 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		}
 		break;
 	case SP_UNBREAKABLE:
-		if(sd->state.lr_flag!=2) {
+		if(sd->state.lr_flag!=2)
 			sd->unbreakable += val;
-		}
 		break;
 	case SP_UNBREAKABLE_WEAPON:
 		if(sd->state.lr_flag != 2)
