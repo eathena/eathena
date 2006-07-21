@@ -2819,10 +2819,6 @@ int mob_clone_spawn(struct map_session_data *sd, char *map, int x, int y, const 
 	mob_db_data[class_]->amotion=status_get_amotion(&sd->bl);
 	mob_db_data[class_]->dmotion=status_get_dmotion(&sd->bl);
 
-	//If the attack animation is longer than the delay, the client crops the attack animation!
-	if (mob_db_data[class_]->adelay < mob_db_data[class_]->amotion)
-		mob_db_data[class_]->adelay = mob_db_data[class_]->amotion;
-
 	memcpy(&mob_db_data[class_]->vd, &sd->vd, sizeof(struct view_data));
 	mob_db_data[class_]->option=sd->sc.option;
 
@@ -3155,6 +3151,9 @@ static int mob_readdb(void)
 			mob_db_data[class_]->adelay=atoi(str[27]);
 			mob_db_data[class_]->amotion=atoi(str[28]);
 			mob_db_data[class_]->dmotion=atoi(str[29]);
+
+			if (mob_db_data[class_]->adelay < mob_db_data[class_]->amotion)
+				mob_db_data[class_]->adelay = mob_db_data[class_]->amotion;
 
 			// MVP EXP Bonus, Chance: MEXP,ExpPer
 			mob_db_data[class_]->mexp=atoi(str[30])*battle_config.mvp_exp_rate/100;
@@ -3810,7 +3809,6 @@ static int mob_read_sqldb(void)
 				//If the attack animation is longer than the delay, the client crops the attack animation!
 				if (mob_db_data[class_]->adelay < mob_db_data[class_]->amotion)
 					mob_db_data[class_]->adelay = mob_db_data[class_]->amotion;
-
 
 				// MVP EXP Bonus, Chance: MEXP,ExpPer
 				mob_db_data[class_]->mexp = TO_INT(30) * battle_config.mvp_exp_rate / 100;
