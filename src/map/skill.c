@@ -9705,8 +9705,8 @@ int skill_can_produce_mix (struct map_session_data *sd, int nameid, int trigger,
 		if(trigger>20) { // Non-weapon, non-food item (itemlv must match)
 			if(skill_produce_db[i].itemlv!=trigger)
 				return 0;
-		} else if(trigger>10) { // Food (itemlv must be higher or equal)
-			if(skill_produce_db[i].itemlv<=10 || skill_produce_db[i].itemlv>trigger)
+		} else if(trigger>10) { // Food (any item level between 10 and 20 will do)
+			if(skill_produce_db[i].itemlv<=10)
 				return 0;
 		} else { // Weapon (itemlv must be higher or equal)
 			if(skill_produce_db[i].itemlv>trigger)
@@ -9899,6 +9899,16 @@ int skill_produce_mix (struct map_session_data *sd, int skill_id, int nameid, in
 				}
 				break;
 			default:
+				if (sd->menuskill_id ==	AM_PHARMACY &&
+					sd->menuskill_lv > 10 && sd->menuskill_lv <= 20)
+				{	//Assume Cooking Dish
+					if (sd->menuskill_lv >= 15) //Legendary Cooking Set.
+						make_per = 10000; //100% Success
+					else
+						make_per = 1200*(sd->menuskill_lv-10) //12% chance per set level.
+							+ 7000 - 700*(skill_produce_db[idx].itemlv-10); //70% - 7% per dish level
+					break;
+				}
 				make_per = 5000;
 				break;
 			}

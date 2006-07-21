@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/21
+	* Merged cooking success chances. [Skotlex]
 	* Corrected the loadmap event description to specify that the mapflag
 	  required is actually "loadevent", NOT "loadmap"! [Skotlex]
 	* Merged the trim chars update on the char-server to trim line-terminator
