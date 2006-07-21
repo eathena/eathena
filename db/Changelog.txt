@@ -1,4 +1,11 @@
 07/21
+	* Merged item_db and mob_db again [Playtester]
+	- replace race numbers with constants
+	- adjusted the item drop bonuses of the new items
+	- fixed Lord of Death card's status change chances
+	- official Speed/Delays for: Louyang, Ayothaya, Einbech, Lighthalzen, Juperos
+	  (this completes the delay update)
+	- fixed Christmas Orc's drops
 	* Merged item_db, mob_db and mob_skill_db [Playtester]
 	- fixed Anonymity Request and Erende Ebecee Card
 	- X.4/11.1 drop updates
