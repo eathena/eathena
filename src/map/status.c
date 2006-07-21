@@ -4434,6 +4434,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				ud->attackabletime = gettick()+tick;
 				unit_set_walkdelay(bl, gettick(), tick, 1);
 			}
+			val4 = tick; //Store combo-time in val4.
 		}
 			break;
 		case SC_TKREST:

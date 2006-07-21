@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/21
+	* Merged SC_COMBO storing the combo-time in val4. This should fix TK
+	  infinite combos from not working. [Skotlex]
 	* Merges from trunk: [Skotlex]
 	- Rewrite/cleanups of the item giving atcommands and script commands, as
 	  well as the equip-counting related script commands. The item givers should
