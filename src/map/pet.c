@@ -108,6 +108,20 @@ static int pet_calc_pos(struct pet_data *pd,int tx,int ty,int dir)
 	return 0;
 }
 
+int pet_create_egg(struct map_session_data *sd, int item_id)
+{
+	int pet_id = search_petDB_index(item_id, PET_EGG);
+	if (pet_id < 0) return 0; //No pet egg here.
+	sd->catch_target_class = pet_db[pet_id].class_;
+	intif_create_pet(sd->status.account_id, sd->status.char_id,
+		(short)pet_db[pet_id].class_,
+		(short)mob_db(pet_db[pet_id].class_)->lv,
+		(short)pet_db[pet_id].EggID, 0,
+		(short)pet_db[pet_id].intimate,
+		100, 0, 1, pet_db[pet_id].jname);
+	return 1;
+}
+
 int pet_unlocktarget(struct pet_data *pd)
 {
 	nullpo_retr(0, pd);

@@ -401,14 +401,18 @@ int pc_equippoint(struct map_session_data *sd,int n)
 
 	nullpo_retr(0, sd);
 
-	if(sd->inventory_data[n]) {
-		ep = sd->inventory_data[n]->equip;
-		if(sd->inventory_data[n]->look == W_DAGGER	||
-			sd->inventory_data[n]->look == W_1HSWORD ||
-			sd->inventory_data[n]->look == W_1HAXE) {
-			if(ep == 2 && (pc_checkskill(sd,AS_LEFT) > 0 || (sd->class_&MAPID_UPPERMASK) == MAPID_ASSASSIN))
-				return 34;
-		}
+	if(!sd->inventory_data[n])
+		return 0;
+
+	if (!itemdb_isequip2(sd->inventory_data[n]))
+		return 0; //Not equippable by players.
+	
+	ep = sd->inventory_data[n]->equip;
+	if(sd->inventory_data[n]->look == W_DAGGER	||
+		sd->inventory_data[n]->look == W_1HSWORD ||
+		sd->inventory_data[n]->look == W_1HAXE) {
+		if(ep == EQP_HAND_R && (pc_checkskill(sd,AS_LEFT) > 0 || (sd->class_&MAPID_UPPERMASK) == MAPID_ASSASSIN))
+			return EQP_WEAPON;
 	}
 	return ep;
 }
@@ -2333,26 +2337,23 @@ int pc_insert_card(struct map_session_data *sd,int idx_card,int idx_equip)
 	cardid=sd->status.inventory[idx_card].nameid;
 	ep=sd->inventory_data[idx_card]->equip;
 
+	//Check validity
 	if( nameid <= 0 || cardid <= 0 ||
-		(sd->inventory_data[idx_equip]->type!=4 && sd->inventory_data[idx_equip]->type!=5)||	// ? ”õ‚¶‚á‚È‚¢
-		sd->inventory_data[idx_card]->type!=6 || // Prevent Hack [Ancyker]
-		sd->status.inventory[idx_equip].identify==0 ||		// –¢ŠÓ’è
-		sd->status.inventory[idx_equip].card[0]==0x00ff ||		// »‘¢•Ší
-		sd->status.inventory[idx_equip].card[0]==0x00fe ||
-		sd->status.inventory[idx_equip].card[0]==(short)0xff00 ||
-		!(sd->inventory_data[idx_equip]->equip&ep) ||					// ? ”õŒÂŠˆá‚¢
-		(sd->inventory_data[idx_equip]->type==4 && ep==32) ||			// ? è•Ší‚Æ‚ƒJ?ƒh
+		(sd->inventory_data[idx_equip]->type!=IT_WEAPON && sd->inventory_data[idx_equip]->type!=IT_ARMOR)||
+		sd->inventory_data[idx_card]->type!=IT_CARD || // Prevent Hack [Ancyker]
+		sd->status.inventory[idx_equip].identify==0 ||
+		itemdb_isspecial(sd->status.inventory[idx_equip].card[0]) ||
+		!(sd->inventory_data[idx_equip]->equip&ep) ||
+		(sd->inventory_data[idx_equip]->type==IT_WEAPON && ep==EQP_SHIELD) || //Card shield attempted to place on left-hand weapon.
 		sd->status.inventory[idx_equip].equip){
 
 		clif_insert_card(sd,idx_equip,idx_card,1);
 		return 0;
 	}
 	for(i=0;i<sd->inventory_data[idx_equip]->slot;i++){
-		if( sd->status.inventory[idx_equip].card[i] == 0){
-		// ‹ó‚«ƒXƒƒbƒg‚ª‚ ‚Á‚½‚Ì‚Å·‚µ?‚Ş
+		if( sd->status.inventory[idx_equip].card[i] == 0)
+		{	//Free slot found.
 			sd->status.inventory[idx_equip].card[i]=cardid;
-
-		// ƒJ?ƒh‚ÍŒ¸‚ç‚·
 			clif_insert_card(sd,idx_equip,idx_card,0);
 			pc_delitem(sd,idx_card,1,1);
 			return 0;
@@ -2414,7 +2415,7 @@ int pc_checkadditem(struct map_session_data *sd,int nameid,int amount)
 
 	nullpo_retr(0, sd);
 
-	if(itemdb_isequip(nameid))
+	if(!itemdb_isstackable(nameid))
 		return ADDITEM_NEW;
 
 	for(i=0;i<MAX_INVENTORY;i++){
@@ -2537,7 +2538,7 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount)
 
 	i = MAX_INVENTORY;
 
-	if (!itemdb_isequip2(data))
+	if (itemdb_isstackable2(data))
 	{ //Stackable
 		for (i = 0; i < MAX_INVENTORY; i++)
 		{
@@ -2623,7 +2624,7 @@ int pc_dropitem(struct map_session_data *sd,int n,int amount)
 		return 0; //Can't drop items in nodrop mapflag maps.
 	}
 	
-	if (!pc_candrop(sd,sd->status.inventory[n].nameid)) {
+	if (!pc_candrop(sd,&sd->status.inventory[n])) {
 		clif_displaymessage (sd->fd, msg_txt(263));
 		return 0;
 	}
@@ -2834,7 +2835,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 		//Logs
 		pc_delitem(sd,n,1,1);
 	}
-	if(sd->status.inventory[n].card[0]==0x00fe &&
+	if(sd->status.inventory[n].card[0]==CARD0_CREATE &&
 		pc_famerank(MakeDWord(sd->status.inventory[n].card[2],sd->status.inventory[n].card[3]), MAPID_ALCHEMIST))
 	{
 	    potion_flag = 2; // Famous player's potions have 50% more efficiency
@@ -2864,7 +2865,7 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 		return 1;
 	data = itemdb_search(item_data->nameid);
 
-	if(!itemdb_cancartstore(item_data->nameid, pc_isGM(sd)))
+	if(!itemdb_cancartstore(item_data, pc_isGM(sd)))
 	{	//Check item trade restrictions	[Skotlex]
 		clif_displaymessage (sd->fd, msg_txt(264));
 		return 1;
@@ -2874,8 +2875,7 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 		return 1;
 
 	i=MAX_CART;
-	if(!itemdb_isequip2(data)){
-		// ‘• ”õ•i‚Å‚Í‚È‚¢‚Ì‚ÅAŠùŠ—L•i‚È‚çŒÂ”‚Ì‚İ•Ï‰»‚³‚¹‚é
+	if(itemdb_isstackable2(data)){
 		for(i=0;i<MAX_CART;i++){
 			if(sd->status.cart[i].nameid==item_data->nameid &&
 				sd->status.cart[i].card[0] == item_data->card[0] && sd->status.cart[i].card[1] == item_data->card[1] &&
@@ -2889,7 +2889,6 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 		}
 	}
 	if(i >= MAX_CART){
-		// ‘• ”õ•i‚©–¢Š—L•i‚¾‚Á‚½‚Ì‚Å‹ó‚«—“‚Ö’Ç‰Á
 		for(i=0;i<MAX_CART;i++){
 			if(sd->status.cart[i].nameid==0){
 				memcpy(&sd->status.cart[i],item_data,sizeof(sd->status.cart[0]));
@@ -2989,7 +2988,7 @@ int pc_getitemfromcart(struct map_session_data *sd,int idx,int amount)
 	
 	item_data=&sd->status.cart[idx];
 
-	if( item_data->nameid==0 || amount < 1 || item_data->amount<amount || sd->vender_id )
+	if(item_data->nameid==0 || amount < 1 || item_data->amount<amount || sd->vender_id )
 		return 1;
 	if((flag = pc_additem(sd,item_data,amount)) == 0)
 		return pc_cart_delitem(sd,idx,amount,0);
@@ -3082,7 +3081,7 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 	memset(&tmp_item,0,sizeof(tmp_item));
 	tmp_item.nameid = itemid;
 	tmp_item.amount = 1;
-	tmp_item.identify = !itemdb_isequip3(itemid);
+	tmp_item.identify = itemdb_isidentified(itemid);
 	flag = pc_additem(sd,&tmp_item,1);
 
 	if(battle_config.show_steal_in_same_party)
@@ -3407,7 +3406,7 @@ int pc_checkequip(struct map_session_data *sd,int pos)
 
 	nullpo_retr(-1, sd);
 
-	for(i=0;i<11;i++){
+	for(i=0;i<EQI_MAX;i++){
 		if(pos & equip_pos[i])
 			return sd->equip_index[i];
 	}
@@ -3858,9 +3857,10 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 {
 	unsigned int next = pc_nextbaseexp(sd);
 
-	nullpo_retr(0, sd);
-
-	if(sd->status.base_exp >= next && next > 0){
+	if (!next || sd->status.base_exp < next)
+		return 0;
+	
+	do {
 		sd->status.base_exp -= next;
 		//Kyoki pointed out that the max overcarry exp is the exp needed for the previous level -1. [Skotlex]
 		if(!battle_config.multi_level_up && sd->status.base_exp > next-1)
@@ -3868,8 +3868,6 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 
 		sd->status.base_level ++;
 
-		if (battle_config.pet_lv_rate && sd->pd)	//<Skotlex> update pet's level
-			status_calc_pet(sd,0);
 		if (battle_config.use_statpoint_table)
 			next = statp[sd->status.base_level] - statp[sd->status.base_level-1];
 		else //Estimated way.
@@ -3878,35 +3876,36 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 			sd->status.status_point = USHRT_MAX;
 		else	
 			sd->status.status_point += next;
-		clif_updatestatus(sd,SP_STATUSPOINT);
-		clif_updatestatus(sd,SP_BASELEVEL);
-		clif_updatestatus(sd,SP_NEXTBASEEXP);
-		status_calc_pc(sd,0);
-		pc_heal(sd,sd->status.max_hp,sd->status.max_sp);
 
-		//ƒXƒpƒmƒr‚ÍƒLƒŠƒGAƒCƒ€ƒ|Aƒ}ƒjƒsAƒOƒAƒTƒtƒ‰Lv1‚ª‚©‚©‚é
-		if((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE)
-		{
-			sc_start(&sd->bl,SkillStatusChangeTable[PR_KYRIE],100,1,skill_get_time(PR_KYRIE,1));
-			sc_start(&sd->bl,SkillStatusChangeTable[PR_IMPOSITIO],100,1,skill_get_time(PR_IMPOSITIO,1));
-			sc_start(&sd->bl,SkillStatusChangeTable[PR_MAGNIFICAT],100,1,skill_get_time(PR_MAGNIFICAT,1));
-			sc_start(&sd->bl,SkillStatusChangeTable[PR_GLORIA],100,1,skill_get_time(PR_GLORIA,1));
-			sc_start(&sd->bl,SkillStatusChangeTable[PR_SUFFRAGIUM],100,1,skill_get_time(PR_SUFFRAGIUM,1));
-		} else
-		if((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON)
-		{
-			sc_start(&sd->bl,SkillStatusChangeTable[AL_INCAGI],100,10,skill_get_time(AL_INCAGI,10));
-			sc_start(&sd->bl,SkillStatusChangeTable[AL_BLESSING],100,10,skill_get_time(AL_BLESSING,10));
-		}
+	} while ((next=pc_nextbaseexp(sd)) > 0 && sd->status.base_exp >= next);
 
-		clif_misceffect(&sd->bl,0);
-		//LORDALFA - LVLUPEVENT
-		if(sd->state.event_baselvup)
-			npc_script_event(sd, NPCE_BASELVUP);
-		return 1;
-		}
+	if (battle_config.pet_lv_rate && sd->pd)	//<Skotlex> update pet's level
+		status_calc_pet(sd,0);
+	
+	clif_updatestatus(sd,SP_STATUSPOINT);
+	clif_updatestatus(sd,SP_BASELEVEL);
+	clif_updatestatus(sd,SP_NEXTBASEEXP);
+	status_calc_pc(sd,0);
+	pc_heal(sd,sd->status.max_hp,sd->status.max_sp);
 
-	return 0;
+	if((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE)
+	{
+		sc_start(&sd->bl,SkillStatusChangeTable[PR_KYRIE],100,1,skill_get_time(PR_KYRIE,1));
+		sc_start(&sd->bl,SkillStatusChangeTable[PR_IMPOSITIO],100,1,skill_get_time(PR_IMPOSITIO,1));
+		sc_start(&sd->bl,SkillStatusChangeTable[PR_MAGNIFICAT],100,1,skill_get_time(PR_MAGNIFICAT,1));
+		sc_start(&sd->bl,SkillStatusChangeTable[PR_GLORIA],100,1,skill_get_time(PR_GLORIA,1));
+		sc_start(&sd->bl,SkillStatusChangeTable[PR_SUFFRAGIUM],100,1,skill_get_time(PR_SUFFRAGIUM,1));
+	} else
+	if((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON)
+	{
+		sc_start(&sd->bl,SkillStatusChangeTable[AL_INCAGI],100,10,skill_get_time(AL_INCAGI,10));
+		sc_start(&sd->bl,SkillStatusChangeTable[AL_BLESSING],100,10,skill_get_time(AL_BLESSING,10));
+	}
+	clif_misceffect(&sd->bl,0);
+	//LORDALFA - LVLUPEVENT
+	if(sd->state.event_baselvup)
+		npc_script_event(sd, NPCE_BASELVUP);
+	return 1;
 }
 
 int pc_checkjoblevelup(struct map_session_data *sd)
@@ -3914,30 +3913,31 @@ int pc_checkjoblevelup(struct map_session_data *sd)
 	unsigned int next = pc_nextjobexp(sd);
 
 	nullpo_retr(0, sd);
+	if(!next || sd->status.job_exp < next)
+		return 0;
 
-	if(sd->status.job_exp >= next && next > 0){
+	do {
 		sd->status.job_exp -= next;
 		//Kyoki pointed out that the max overcarry exp is the exp needed for the previous level -1. [Skotlex]
 		if(!battle_config.multi_level_up && sd->status.job_exp > next-1)
 			sd->status.job_exp = next-1;
 
 		sd->status.job_level ++;
-		  
-		clif_updatestatus(sd,SP_JOBLEVEL);
-		clif_updatestatus(sd,SP_NEXTJOBEXP);
 		sd->status.skill_point ++;
-		clif_updatestatus(sd,SP_SKILLPOINT);
-		status_calc_pc(sd,0);
 
-		clif_misceffect(&sd->bl,1);
-		if (pc_checkskill(sd, SG_DEVIL) && !pc_nextjobexp(sd))
-			clif_status_change(&sd->bl,SI_DEVIL, 1); //Permanent blind effect from SG_DEVIL.
-		if(sd->state.event_joblvup)
-			npc_script_event(sd, NPCE_JOBLVUP);
-		return 1;
-	}
+	} while ((next=pc_nextjobexp(sd)) > 0 && sd->status.job_exp >= next);
 
-	return 0;
+	clif_updatestatus(sd,SP_JOBLEVEL);
+	clif_updatestatus(sd,SP_NEXTJOBEXP);
+	clif_updatestatus(sd,SP_SKILLPOINT);
+	status_calc_pc(sd,0);
+	clif_misceffect(&sd->bl,1);
+	if (pc_checkskill(sd, SG_DEVIL) && !pc_nextjobexp(sd))
+		clif_status_change(&sd->bl,SI_DEVIL, 1); //Permanent blind effect from SG_DEVIL.
+
+	if(sd->state.event_joblvup)
+		npc_script_event(sd, NPCE_JOBLVUP);
+	return 1;
 }
 
 /*==========================================
@@ -4042,7 +4042,7 @@ int pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int
 	else
 		sd->status.base_exp += base_exp;
 	
-	while(pc_checkbaselevelup(sd)) ;
+	pc_checkbaselevelup(sd);
 
 	clif_updatestatus(sd,SP_BASEEXP);
 
@@ -4051,7 +4051,7 @@ int pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int
 	else
 		sd->status.job_exp += job_exp;
 
-	while(pc_checkjoblevelup(sd)) ;
+	pc_checkjoblevelup(sd);
 
 	clif_updatestatus(sd,SP_JOBEXP);
 
@@ -4287,7 +4287,7 @@ int pc_skillup(struct map_session_data *sd,int skill_num)
 {
 	nullpo_retr(0, sd);
 
-	if( skill_num>=GD_SKILLBASE){
+	if(skill_num >= GD_SKILLBASE){
 		guild_skillup(sd,skill_num,0);
 		return 0;
 	}
@@ -4427,7 +4427,7 @@ int pc_resetlvl(struct map_session_data* sd,int type)
 	clif_updatestatus(sd,SP_UDEX);
 	clif_updatestatus(sd,SP_ULUK);	// End Addition
 
-	for(i=0;i<11;i++) { // unequip items that can't be equipped by base 1 [Valaris]
+	for(i=0;i<EQI_MAX;i++) { // unequip items that can't be equipped by base 1 [Valaris]
 		if(sd->equip_index[i] >= 0)
 			if(!pc_isequip(sd,sd->equip_index[i]))
 				pc_unequipitem(sd,sd->equip_index[i],2);
@@ -5712,12 +5712,12 @@ int pc_setriding(struct map_session_data *sd)
  * ƒAƒCƒeƒ€ƒhƒƒbƒv‰Â•s‰Â”»’è
  *------------------------------------------
  */
-int pc_candrop(struct map_session_data *sd,int item_id)
+int pc_candrop(struct map_session_data *sd,struct item *item)
 {
 	int level = pc_isGM(sd);
 	if ( pc_can_give_items(level) ) //check if this GM level can drop items
 		return 0;
-	return (itemdb_isdropable(item_id, level));
+	return (itemdb_isdropable(item, level));
 }
 
 /*==========================================
@@ -6175,20 +6175,19 @@ int pc_cleareventtimer(struct map_session_data *sd)
  * ƒAƒCƒeƒ€‚ğ?”õ‚·‚é
  *------------------------------------------
  */
-int pc_equipitem(struct map_session_data *sd,int n,int pos)
+int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 {
-	int i,nameid, arrow;
+	int i,pos,flag=0;
 	struct item_data *id;
-	//?¶‚â—{q‚Ìê‡‚ÌŒ³‚ÌE‹Æ‚ğZo‚·‚é
 
 	nullpo_retr(0, sd);
 
-	nameid = sd->status.inventory[n].nameid;
 	id = sd->inventory_data[n];
-	pos = pc_equippoint(sd,n);
+	pos = pc_equippoint(sd,n); //With a few exceptions, item should go in all specified slots.
+
 	if(battle_config.battle_log)
-		ShowInfo("equip %d(%d) %x:%x\n",nameid,n,id->equip,pos);
-	if(!pc_isequip(sd,n) || !pos || sd->status.inventory[n].attribute==1 ) { // [Valaris]
+		ShowInfo("equip %d(%d) %x:%x\n",sd->status.inventory[n].nameid,n,id->equip,req_pos);
+	if(!pc_isequip(sd,n) || !(pos&req_pos) || sd->status.inventory[n].attribute==1 ) { // [Valaris]
 		clif_equipitemack(sd,n,0,0);	// fail
 		return 0;
 	}
@@ -6199,52 +6198,51 @@ int pc_equipitem(struct map_session_data *sd,int n,int pos)
 		clif_equipitemack(sd,n,0,0);	// fail
 		return 0;
 	}
-
-	if(pos==0x88){ // ƒAƒNƒZƒTƒŠ—p—áŠO?—
-		int epor=0;
-		if(sd->equip_index[0] >= 0)
-			epor |= sd->status.inventory[sd->equip_index[0]].equip;
-		if(sd->equip_index[1] >= 0)
-			epor |= sd->status.inventory[sd->equip_index[1]].equip;
-		epor &= 0x88;
-		pos = epor == 0x08 ? 0x80 : 0x08;
+	
+	if(pos == EQP_ACC) { //Accesories should only go in one of the two,
+		pos = req_pos&EQP_ACC;
+		if (pos == EQP_ACC) //User specified both slots.. 
+			pos = sd->equip_index[EQI_ACC_L] >= 0 ? EQP_ACC_R : EQP_ACC_L;
 	}
 
-	// “ñ“—¬?—
-	if ((pos==0x22) // ˆê?A?”õ—v‹‰ÓŠ‚ª“ñ“—¬•Ší‚©ƒ`ƒFƒbƒN‚·‚é
-	 &&	(id->equip==2)	// ? è•Ší
-	 &&	(pc_checkskill(sd, AS_LEFT) > 0 || (sd->class_&MAPID_UPPERMASK) == MAPID_ASSASSIN) ) // ¶èC?—L
-	{
-		int tpos=0;
-		if(sd->equip_index[8] >= 0)
-			tpos |= sd->status.inventory[sd->equip_index[8]].equip;
-		if(sd->equip_index[9] >= 0)
-			tpos |= sd->status.inventory[sd->equip_index[9]].equip;
-		tpos &= 0x02;
-		pos = tpos == 0x02 ? 0x20 : 0x02;
+	if(pos == EQP_WEAPON && id->equip == EQP_HAND_R &&
+		(pc_checkskill(sd, AS_LEFT) > 0 ||
+		(sd->class_&MAPID_UPPERMASK) == MAPID_ASSASSIN)
+	) {	//Dual wield capable weapon.
+	  	pos = (req_pos&EQP_WEAPON);
+		if (pos == EQP_WEAPON) //User specified both slots, pick one for them.
+			pos = sd->equip_index[EQI_HAND_R] >= 0 ? EQP_HAND_L : EQP_HAND_R;
+	}
+	
+
+	if (pos&EQP_HAND_R && battle_config.use_weapon_skill_range)
+	{	//Update skill-block range database when weapon range changes. [Skotlex]
+		i = sd->equip_index[EQI_HAND_R];
+		if (i < 0 || !sd->inventory_data[i]) //No data, or no weapon equipped
+			flag = 1;
+		else
+			flag = id->range != sd->inventory_data[i]->range;
 	}
 
-	arrow=pc_search_inventory(sd,pc_checkequip(sd,9));	// Added by RoVeRT
-	for(i=0;i<11;i++) {
-		if(sd->equip_index[i] >= 0 && sd->status.inventory[sd->equip_index[i]].equip&pos) {
-			pc_unequipitem(sd,sd->equip_index[i],2);
+	for(i=0;i<EQI_MAX;i++) {
+		if(pos & equip_pos[i]) {
+			if(sd->equip_index[i] >= 0) //Slot taken, remove item from there.
+				pc_unequipitem(sd,sd->equip_index[i],2);
+
+			sd->equip_index[i] = n;
 		}
 	}
-	// ‹|–î?”õ
-	if(pos==0x8000){
+	
+	if(pos==EQP_AMMO){
 		clif_arrowequip(sd,n);
-		clif_arrow_fail(sd,3);	// 3=–î‚ª?”õ‚Å‚«‚Ü‚µ‚½
+		clif_arrow_fail(sd,3);
 	}
 	else
 		clif_equipitemack(sd,n,pos,1);
 
-	for(i=0;i<11;i++) {
-		if(pos & equip_pos[i])
-			sd->equip_index[i] = n;
-	}
 	sd->status.inventory[n].equip=pos;
 
-	if(sd->status.inventory[n].equip & 0x0002) {
+	if(sd->status.inventory[n].equip & EQP_HAND_R) {
 		if(sd->inventory_data[n])
 			sd->weapontype1 = sd->inventory_data[n]->look;
 		else
@@ -6252,11 +6250,11 @@ int pc_equipitem(struct map_session_data *sd,int n,int pos)
 		pc_calcweapontype(sd);
 		clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
 	}
-	if(sd->status.inventory[n].equip & 0x0020) {
+	if(sd->status.inventory[n].equip & EQP_HAND_L) {
 		if(sd->inventory_data[n]) {
 			if(sd->inventory_data[n]->type == 4) {
 				sd->status.shield = 0;
-				if(sd->status.inventory[n].equip == 0x0020)
+				if(sd->status.inventory[n].equip == EQP_HAND_L)
 					sd->weapontype2 = sd->inventory_data[n]->look;
 				else
 					sd->weapontype2 = 0;
@@ -6271,45 +6269,53 @@ int pc_equipitem(struct map_session_data *sd,int n,int pos)
 		pc_calcweapontype(sd);
 		clif_changelook(&sd->bl,LOOK_SHIELD,sd->status.shield);
 	}
-	if(sd->status.inventory[n].equip & 0x0001) {
+	if(sd->status.inventory[n].equip & EQP_HEAD_LOW) {
 		if(sd->inventory_data[n])
 			sd->status.head_bottom = sd->inventory_data[n]->look;
 		else
 			sd->status.head_bottom = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_BOTTOM,sd->status.head_bottom);
 	}
-	if(sd->status.inventory[n].equip & 0x0100) {
+	if(sd->status.inventory[n].equip & EQP_HEAD_TOP) {
 		if(sd->inventory_data[n])
 			sd->status.head_top = sd->inventory_data[n]->look;
 		else
 			sd->status.head_top = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
 	}
-	if(sd->status.inventory[n].equip & 0x0200) {
+	if(sd->status.inventory[n].equip & EQP_HEAD_MID) {
 		if(sd->inventory_data[n])
 			sd->status.head_mid = sd->inventory_data[n]->look;
 		else
 			sd->status.head_mid = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
 	}
-	if(sd->status.inventory[n].equip & 0x0040)
+	if(sd->status.inventory[n].equip & EQP_SHOES)
 		clif_changelook(&sd->bl,LOOK_SHOES,0);
 
-	pc_checkallowskill(sd);	// ?”õ•i‚ÅƒXƒLƒ‹‚©‰ğœ‚³‚ê‚é‚©ƒ`ƒFƒbƒN
-	if (itemdb_look(sd->status.inventory[n].nameid) == 11 && (arrow >= 0)){	// Added by RoVeRT
+	pc_checkallowskill(sd); //Check if status changes should be halted.
+
+
+/* WTF? pc_checkequip returns an item index, pc_search_inventory expects a 
+ * nameid as argument. This function is totally broken, so most (all?) of the
+ *  time it would return arrow == -1 anyway...?? [Skotlex]
+	arrow=pc_search_inventory(sd,pc_checkequip(sd,EQI_AMMO));	// Added by RoVeRT
+	if (itemdb_look(sd->status.inventory[n].nameid) == W_BOW && (arrow >= 0)){	// Added by RoVeRT
 		clif_arrowequip(sd,arrow);
-		sd->status.inventory[arrow].equip=32768;
+		sd->status.inventory[arrow].equip=EQP_AMMO;
 	}
+*/
 	status_calc_pc(sd,0);
+	if (flag) //Update skill data
+		clif_skillinfoblock(sd);
+
 	//OnEquip script [Skotlex]
 	if (sd->inventory_data[n]) {
 		int i;
 		struct item_data *data;
 		if (sd->inventory_data[n]->equip_script)
 			run_script(sd->inventory_data[n]->equip_script,0,sd->bl.id,0);
-		if(sd->status.inventory[n].card[0]==0x00ff ||
-			sd->status.inventory[n].card[0]==0x00fe ||
-			sd->status.inventory[n].card[0]==(short)0xff00)
+		if(itemdb_isspecial(sd->status.inventory[n].card[0]))
 			; //No cards
 		else
 		for(i=0;i<sd->inventory_data[n]->slot; i++)
@@ -6351,12 +6357,12 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag)
 		clif_unequipitemack(sd,n,0,0);
 		return 0;
 	}
-	for(i=0;i<11;i++) {
+	for(i=0;i<EQI_MAX;i++) {
 		if(sd->status.inventory[n].equip & equip_pos[i])
 			sd->equip_index[i] = -1;
 	}
 
-	if(sd->status.inventory[n].equip & 0x0002) {
+	if(sd->status.inventory[n].equip & EQP_HAND_R) {
 		sd->weapontype1 = 0;
 		sd->status.weapon = sd->weapontype2;
 		pc_calcweapontype(sd);
@@ -6364,29 +6370,29 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag)
 		if(sd->sc.data[SC_DANCING].timer!=-1) //When unequipping, stop dancing. [Skotlex]
 			skill_stop_dancing(&sd->bl);
 	}
-	if(sd->status.inventory[n].equip & 0x0020) {
+	if(sd->status.inventory[n].equip & EQP_HAND_L) {
 		sd->status.shield = sd->weapontype2 = 0;
 		pc_calcweapontype(sd);
 		clif_changelook(&sd->bl,LOOK_SHIELD,sd->status.shield);
 	}
-	if(sd->status.inventory[n].equip & 0x0001) {
+	if(sd->status.inventory[n].equip & EQP_HEAD_LOW) {
 		sd->status.head_bottom = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_BOTTOM,sd->status.head_bottom);
 	}
-	if(sd->status.inventory[n].equip & 0x0100) {
+	if(sd->status.inventory[n].equip & EQP_HEAD_TOP) {
 		sd->status.head_top = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
 	}
-	if(sd->status.inventory[n].equip & 0x0200) {
+	if(sd->status.inventory[n].equip & EQP_HEAD_MID) {
 		sd->status.head_mid = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
 	}
-	if(sd->status.inventory[n].equip & 0x0040)
+	if(sd->status.inventory[n].equip & EQP_SHOES)
 		clif_changelook(&sd->bl,LOOK_SHOES,0);
 
 	clif_unequipitemack(sd,n,sd->status.inventory[n].equip,1);
 
-	if((sd->status.inventory[n].equip&0x0022) && 
+	if((sd->status.inventory[n].equip & EQP_WEAPON) && 
 		sd->weapontype1 == 0 && sd->weapontype2 == 0)
 		skill_enchant_elemental_end(&sd->bl,-1);
 	
@@ -6405,9 +6411,7 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag)
 		struct item_data *data;
 		if (sd->inventory_data[n]->unequip_script)
 			run_script(sd->inventory_data[n]->unequip_script,0,sd->bl.id,0);
-		if(sd->status.inventory[n].card[0]==0x00ff ||
-			sd->status.inventory[n].card[0]==0x00fe ||
-			sd->status.inventory[n].card[0]==(short)0xff00)
+		if(itemdb_isspecial(sd->status.inventory[n].card[0]))
 			; //No cards
 		else
 		for(i=0;i<sd->inventory_data[n]->slot; i++)
@@ -6465,7 +6469,7 @@ int pc_checkitem(struct map_session_data *sd)
 			continue;
 		if( battle_config.item_check &&  !itemdb_available(id) ){
 			if(battle_config.error_log)
-				ShowWarning("illeagal item id %d in %d[%s] cart.\n",id,sd->bl.id,sd->status.name);
+				ShowWarning("illegal item id %d in %d[%s] cart.\n",id,sd->bl.id,sd->status.name);
 			pc_cart_delitem(sd,i,sd->status.cart[i].amount,1);
 			continue;
 		}
@@ -7208,6 +7212,8 @@ int pc_autosave(int tid,unsigned int tick,int id,int data)
 	clif_foreachclient(pc_autosave_sub);
 	if(save_flag==0)
 		last_save_fd=0;
+	if (autosave_interval < 0)
+		return 0; //Fixed interval for saving. [Skotlex]
 
 	interval = autosave_interval/(clif_countusers()+1);
 	if(interval <= 0)
@@ -7624,7 +7630,11 @@ int do_init_pc(void) {
 	add_timer_func_list(pc_follow_timer, "pc_follow_timer");
 	natural_heal_prev_tick = gettick();
 	add_timer_interval(natural_heal_prev_tick + NATURAL_HEAL_INTERVAL, pc_natural_heal, 0, 0, NATURAL_HEAL_INTERVAL);
-	add_timer(gettick() + autosave_interval, pc_autosave, 0, 0);
+
+	if (autosave_interval > 0) //Normal saving.
+		add_timer(gettick() + autosave_interval, pc_autosave, 0, 0);
+	else //Constant save interval.
+		add_timer_interval(gettick() -autosave_interval, pc_autosave, 0, 0, -autosave_interval);
 
 	if (battle_config.day_duration > 0 && battle_config.night_duration > 0) {
 		int day_duration = battle_config.day_duration;

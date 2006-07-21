@@ -102,14 +102,14 @@ int itemdb_searchrandomid(int group)
 	if(group<1 || group>=MAX_ITEMGROUP) {
 		if (battle_config.error_log)
 			ShowError("itemdb_searchrandomid: Invalid group id %d\n", group);
-		return 512; //Return apple?
+		return UNKNOWN_ITEM_ID;
 	}
 	if (itemgroup_db[group].qty)
 		return itemgroup_db[group].nameid[rand()%itemgroup_db[group].qty];
 	
 	if (battle_config.error_log)
 		ShowError("itemdb_searchrandomid: No item entries for group id %d\n", group);
-	return 512;
+	return UNKNOWN_ITEM_ID;
 }
 
 /*==========================================
@@ -210,7 +210,7 @@ static void create_dummy_data(void) {
 	dummy_item.type=3; //Etc item
 	strncpy(dummy_item.name,"UNKNOWN_ITEM",ITEM_NAME_LENGTH-1);
 	strncpy(dummy_item.jname,"UNKNOWN_ITEM",ITEM_NAME_LENGTH-1);
-	dummy_item.view_id = 512; //Use apple sprite.
+	dummy_item.view_id = UNKNOWN_ITEM_ID;
 }
 
 static void* create_item_data(DBKey key, va_list args) {
@@ -218,7 +218,7 @@ static void* create_item_data(DBKey key, va_list args) {
 	id=(struct item_data *)aCalloc(1,sizeof(struct item_data));
 	id->nameid = key.i;
 	id->weight=1;
-	id->type=3; //Etc item
+	id->type=IT_ETC;
 	return id;
 }
 
@@ -228,7 +228,16 @@ static void* create_item_data(DBKey key, va_list args) {
  */
 struct item_data* itemdb_load(int nameid)
 {
-	return idb_ensure(item_db,nameid,create_item_data);
+	struct item_data *id = idb_ensure(item_db,nameid,create_item_data);
+	if (id == &dummy_item)
+  	{	//Remove dummy_item, replace by real data.
+		DBKey key;
+		key.i = nameid;
+		idb_remove(item_db,nameid);
+		id = create_item_data(key, NULL);
+		idb_put(item_db,nameid,id);
+	}
+	return id;
 }
 
 static void* return_dummy_data(DBKey key, va_list args) {
@@ -247,102 +256,149 @@ struct item_data* itemdb_search(int nameid)
 }
 
 /*==========================================
- *
+ * Returns if given item is a player-equippable piece.
  *------------------------------------------
  */
 int itemdb_isequip(int nameid)
 {
 	int type=itemdb_type(nameid);
-	if(type==0 || type==2 || type==3 || type==6 || type==10)
-		return 0;
-	return 1;
+	switch (type) {
+		case IT_WEAPON:
+		case IT_ARMOR:
+		case IT_AMMO:
+			return 1;
+		default:
+			return 0;
+	}
 }
+
 /*==========================================
- *
+ * Alternate version of itemdb_isequip
  *------------------------------------------
  */
 int itemdb_isequip2(struct item_data *data)
 { 
 	nullpo_retr(0, data);
 	switch(data->type) {
-		case 0:
-		case 2:
-		case 3:
-		case 6:
-		case 10:
-			return 0;
-		default:
-			return 1;
-	}
-}
-//Checks if the item is pet-equipment (7/8)
-static int itemdb_ispetequip(struct item_data *data)
-{ 
-	switch(data->type) {
-		case 7:
-		case 8:
+		case IT_WEAPON:
+		case IT_ARMOR:
+		case IT_AMMO:
 			return 1;
 		default:
 			return 0;
 	}
 }
+
+/*==========================================
+* Returns if given item's type is stackable.
+*------------------------------------------
+*/
+int itemdb_isstackable(int nameid)
+{
+  int type=itemdb_type(nameid);
+  switch(type) {
+	  case IT_WEAPON:
+	  case IT_ARMOR:
+	  case IT_PETEGG:
+	  case IT_PETARMOR:
+		  return 0;
+	  default:
+		  return 1;
+  }
+}
+
+/*==========================================
+* Alternate version of itemdb_isstackable
+*------------------------------------------
+*/
+int itemdb_isstackable2(struct item_data *data)
+{
+  nullpo_retr(0, data);
+  switch(data->type) {
+	  case IT_WEAPON:
+	  case IT_ARMOR:
+	  case IT_PETEGG:
+	  case IT_PETARMOR:
+		  return 0;
+	  default:
+		  return 1;
+  }
+}
+
 
 /*==========================================
  * Trade Restriction functions [Skotlex]
  *------------------------------------------
  */
-int itemdb_isdropable(int nameid, int gmlv)
+int itemdb_isdropable_sub(struct item_data *item, int gmlv, int unused)
 {
-	struct item_data* item = itemdb_exists(nameid);
 	return (item && (!(item->flag.trade_restriction&1) || gmlv >= item->gm_lv_trade_override));
 }
 
-int itemdb_cantrade(int nameid, int gmlv, int gmlv2)
+int itemdb_cantrade_sub(struct item_data* item, int gmlv, int gmlv2)
 {
-	struct item_data* item = itemdb_exists(nameid);
 	return (item && (!(item->flag.trade_restriction&2) || gmlv >= item->gm_lv_trade_override || gmlv2 >= item->gm_lv_trade_override));
 }
 
-int itemdb_canpartnertrade(int nameid, int gmlv, int gmlv2)
+int itemdb_canpartnertrade_sub(struct item_data* item, int gmlv, int gmlv2)
 {
-	struct item_data* item = itemdb_exists(nameid);
 	return (item && (item->flag.trade_restriction&4 || gmlv >= item->gm_lv_trade_override || gmlv2 >= item->gm_lv_trade_override));
 }
 
-int itemdb_cansell(int nameid, int gmlv)
+int itemdb_cansell_sub(struct item_data* item, int gmlv, int unused)
 {
-	struct item_data* item = itemdb_exists(nameid);
 	return (item && (!(item->flag.trade_restriction&8) || gmlv >= item->gm_lv_trade_override));
 }
 
-int itemdb_cancartstore(int nameid, int gmlv)
+int itemdb_cancartstore_sub(struct item_data* item, int gmlv, int unused)
 {	
-	struct item_data* item = itemdb_exists(nameid);
 	return (item && (!(item->flag.trade_restriction&16) || gmlv >= item->gm_lv_trade_override));
 }
 
-int itemdb_canstore(int nameid, int gmlv)
+int itemdb_canstore_sub(struct item_data* item, int gmlv, int unused)
 {	
-	struct item_data* item = itemdb_exists(nameid);
 	return (item && (!(item->flag.trade_restriction&32) || gmlv >= item->gm_lv_trade_override));
 }
 
-int itemdb_canguildstore(int nameid, int gmlv)
+int itemdb_canguildstore_sub(struct item_data* item, int gmlv, int unused)
 {	
-	struct item_data* item = itemdb_exists(nameid);
 	return (item && (!(item->flag.trade_restriction&64) || gmlv >= item->gm_lv_trade_override));
 }
 
+int itemdb_isrestricted(struct item* item, int gmlv, int gmlv2, int (*func)(struct item_data*, int, int))
+{
+	struct item_data* item_data = itemdb_search(item->nameid);
+	int i;
+
+	if (!func(item_data, gmlv, gmlv2))
+		return 0;
+	
+	if(item_data->slot == 0 || itemdb_isspecial(item->card[0]))
+		return 1;
+	
+	for(i = 0; i < item_data->slot; i++) {
+		if (!item->card[i]) continue;
+		if (!func(itemdb_search(item->card[i]), gmlv, gmlv2))
+			return 0;
+	}
+	return 1;
+}
+
 /*==========================================
- *
+ *	Specifies if item-type should drop unidentified.
  *------------------------------------------
  */
-int itemdb_isequip3(int nameid)
+int itemdb_isidentified(int nameid)
 {
 	int type=itemdb_type(nameid);
-	if(type==4 || type==5 || type == 8)
-		return 1;
-	return 0;
+	switch (type) {
+		case IT_WEAPON:
+		case IT_ARMOR:
+		case IT_PETARMOR:
+			return 0;
+		default:
+			return 1;
+	}
 }
 
 /*==========================================
@@ -373,7 +429,7 @@ static int itemdb_read_itemavail (void)
 		}
 
 		if (j < 2 || str[0] == NULL ||
-			(nameid = atoi(str[0])) < 0 || nameid >= 20000 || !(id = itemdb_exists(nameid)))
+			(nameid = atoi(str[0])) < 0 || !(id = itemdb_exists(nameid)))
 			continue;
 
 		k = atoi(str[1]);
@@ -680,7 +736,7 @@ static int itemdb_read_noequip(void)
 			continue;
 
 		nameid=atoi(str[0]);
-		if(nameid<=0 || nameid>=20000 || !(id=itemdb_exists(nameid)))
+		if(nameid<=0 || !(id=itemdb_exists(nameid)))
 			continue;
 
 		id->flag.no_equip=atoi(str[1]);
@@ -723,7 +779,7 @@ static int itemdb_read_itemtrade(void)
 		}
 
 		if (j < 3 || str[0] == NULL ||
-			(nameid = atoi(str[0])) < 0 || nameid >= 20000 || !(id = itemdb_exists(nameid)))
+			(nameid = atoi(str[0])) < 0 || !(id = itemdb_exists(nameid)))
 			continue;
 
 		flag = atoi(str[1]);
@@ -751,9 +807,9 @@ static int itemdb_gendercheck(struct item_data *id)
 		return 1;
 	if (id->nameid == WEDDING_RING_F) //Bride Ring
 		return 0;
-	if (id->look == 13 && id->type == 4) //Musical instruments are always male-only
+	if (id->look == W_MUSICAL && id->type == IT_WEAPON) //Musical instruments are always male-only
 		return 1;
-	if (id->look == 14 && id->type == 4) //Whips are always female-only
+	if (id->look == W_WHIP && id->type == IT_WEAPON) //Whips are always female-only
 		return 0;
 
 	return (battle_config.ignore_items_gender?2:id->sex);
@@ -813,7 +869,7 @@ static int itemdb_read_sqldb(void)
 					nameid = atoi(sql_row[0]);
 
 					// If the identifier is not within the valid range, process the next row
-					if (nameid == 0 || nameid >= 20000)
+					if (nameid == 0)
 						continue;
 
 					ln++;
@@ -825,10 +881,10 @@ static int itemdb_read_sqldb(void)
 					strncpy(id->jname, sql_row[2], ITEM_NAME_LENGTH-1);
 
 					id->type = atoi(sql_row[3]);
-					if (id->type == 11)
+					if (id->type == IT_DELAYCONSUME)
 					{	//Items that are consumed upon target confirmation
 						//(yggdrasil leaf, spells & pet lures) [Skotlex]
-						id->type = 2;
+						id->type = IT_USABLE;
 						id->flag.delay_consume=1;
 					}
 
@@ -867,7 +923,7 @@ static int itemdb_read_sqldb(void)
 					id->class_upper= (sql_row[12] != NULL) ? atoi(sql_row[12]) : 0;
 					id->sex		= (sql_row[13] != NULL) ? atoi(sql_row[13]) : 0;
 					id->equip	= (sql_row[14] != NULL) ? atoi(sql_row[14]) : 0;
-					if (!id->equip && itemdb_isequip2(id) && !itemdb_ispetequip(id))
+					if (!id->equip && itemdb_isequip2(id))
 					{
 						ShowWarning("Item %d (%s) is an equipment with no equip-field! Making it an etc item.\n", nameid, id->jname);
 						id->type = 3;
@@ -980,7 +1036,7 @@ static int itemdb_readdb(void)
 				continue;
 
 			nameid=atoi(str[0]);
-			if(nameid<=0 || nameid>=20000)
+			if(nameid<=0)
 				continue;
 			if (j < 19)
 			{	//Crash-fix on broken item lines. [Skotlex]
@@ -994,10 +1050,10 @@ static int itemdb_readdb(void)
 			strncpy(id->name, str[1], ITEM_NAME_LENGTH-1);
 			strncpy(id->jname, str[2], ITEM_NAME_LENGTH-1);
 			id->type=atoi(str[3]);
-			if (id->type == 11)
+			if (id->type == IT_DELAYCONSUME)
 			{	//Items that are consumed upon target confirmation
 				//(yggdrasil leaf, spells & pet lures) [Skotlex]
-				id->type = 2;
+				id->type = IT_USABLE;
 				id->flag.delay_consume=1;
 			}
 
@@ -1039,7 +1095,7 @@ static int itemdb_readdb(void)
 			if(id->equip != atoi(str[14])){
 				id->equip=atoi(str[14]);
 			}
-			if (!id->equip && itemdb_isequip2(id) && !itemdb_ispetequip(id))
+			if (!id->equip && itemdb_isequip2(id))
 			{
 				ShowWarning("Item %d (%s) is an equipment with no equip-field! Making it an etc item.\n", nameid, id->jname);
 				id->type = 3;
@@ -1177,8 +1233,7 @@ static int itemdb_final_sub (DBKey key,void *data,va_list ap)
 
 void itemdb_reload(void)
 {
-	// free up all item scripts first
-	item_db->foreach(item_db, itemdb_final_sub, 0);
+	//Just read, the function takes care of freeing scripts.
 	itemdb_read();
 }
 

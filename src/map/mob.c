@@ -1414,7 +1414,7 @@ static struct item_drop* mob_setdropitem(int nameid, int qty)
 	memset(&drop->item_data, 0, sizeof(struct item));
 	drop->item_data.nameid = nameid;
 	drop->item_data.amount = qty;
-	drop->item_data.identify = !itemdb_isequip3(nameid);
+	drop->item_data.identify = itemdb_isidentified(nameid);
 	drop->next = NULL;
 	return drop;
 };
@@ -2038,7 +2038,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				continue;
 			memset(&item,0,sizeof(item));
 			item.nameid=md->db->mvpitem[i].nameid;
-			item.identify=!itemdb_isequip3(item.nameid);
+			item.identify= itemdb_isidentified(item.nameid);
 			clif_mvp_item(mvp_sd,item.nameid);
 			log_mvp[0] = item.nameid;
 			if(mvp_sd->weight*2 > mvp_sd->max_weight)

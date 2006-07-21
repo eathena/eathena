@@ -223,7 +223,7 @@ int trade_check(struct map_session_data *sd, struct map_session_data *tsd) {
 			
 			data = itemdb_search(inventory[n].nameid);
 			i = MAX_INVENTORY;
-			if (!itemdb_isequip2(data)) { //Stackable item.
+			if (itemdb_isstackable2(data)) { //Stackable item.
 				for(i = 0; i < MAX_INVENTORY; i++)
 					if (inventory2[i].nameid == inventory[n].nameid &&
 						inventory2[i].card[0] == inventory[n].card[0] && inventory2[i].card[1] == inventory[n].card[1] &&
@@ -259,7 +259,7 @@ int trade_check(struct map_session_data *sd, struct map_session_data *tsd) {
 		// search if it's possible to add item (for full inventory)
 		data = itemdb_search(inventory2[n].nameid);
 		i = MAX_INVENTORY;
-		if (!itemdb_isequip2(data)) {
+		if (itemdb_isstackable2(data)) {
 			for(i = 0; i < MAX_INVENTORY; i++)
 				if (inventory[i].nameid == inventory2[n].nameid &&
 					inventory[i].card[0] == inventory2[n].card[0] && inventory[i].card[1] == inventory2[n].card[1] &&
@@ -294,7 +294,8 @@ int trade_check(struct map_session_data *sd, struct map_session_data *tsd) {
  */
 void trade_tradeadditem(struct map_session_data *sd, int index, int amount) {
 	struct map_session_data *target_sd;
-	int trade_i, trade_weight, nameid;
+	struct item *item;
+	int trade_i, trade_weight;
 
 	nullpo_retv(sd);
 	if (!sd->state.trading || sd->state.deal_locked > 0)
@@ -324,10 +325,12 @@ void trade_tradeadditem(struct map_session_data *sd, int index, int amount) {
 	if (amount < 0 || amount > sd->status.inventory[index].amount)
 		return;
 
-	nameid = sd->inventory_data[index]->nameid;
-
-	if (!itemdb_cantrade(nameid, pc_isGM(sd), pc_isGM(target_sd)) &&	//Can't trade
-		(pc_get_partner(sd) != target_sd || !itemdb_canpartnertrade(nameid, pc_isGM(sd), pc_isGM(target_sd))))	//Can't partner-trade
+	item = &sd->status.inventory[index];
+	trade_i = pc_isGM(sd); //Recycling the variables to check for trad restrict.
+	trade_weight = pc_isGM(target_sd);
+	if (!itemdb_cantrade(item, trade_i, trade_weight) &&	//Can't trade
+		(pc_get_partner(sd) != target_sd ||
+		!itemdb_canpartnertrade(item, trade_i, trade_weight))) //Can't partner-trade
 	{
 		clif_displaymessage (sd->fd, msg_txt(260));
 		return;

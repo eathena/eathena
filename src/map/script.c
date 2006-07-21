@@ -3660,7 +3660,7 @@ int buildin_checkweight(struct script_state *st)
  */
 int buildin_getitem(struct script_state *st)
 {
-	int nameid,nameidsrc,amount,flag = 0;
+	int nameid,amount,flag = 0;
 	struct item item_tmp;
 	struct map_session_data *sd;
 	struct script_data *data;
@@ -3672,46 +3672,52 @@ int buildin_getitem(struct script_state *st)
 	if( data->type==C_STR || data->type==C_CONSTSTR ){
 		const char *name=conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
-		nameid=512; //Apple item ID
-		if( item_data != NULL)
-			nameid=item_data->nameid;
+		if( item_data == NULL) {
+			ShowWarning("buildin_getitem: Nonexistant item %s requested.\n", name);
+			return 1; //No item created.
+		}
+		nameid=item_data->nameid;
 	}else
 		nameid=conv_num(st,data);
 
-	if ( ( amount=conv_num(st,& (st->stack->stack_data[st->start+3])) ) <= 0) {
+	if ( ( amount=conv_num(st,& (st->stack->stack_data[st->start+3])) ) <= 0)
 		return 0; //return if amount <=0, skip the useles iteration
-	}
-	//Violet Box, Blue Box, etc - random item pick
-	if((nameidsrc = nameid)<0) { // Save real ID of the source Box [Lupus]
-		nameid=itemdb_searchrandomid(-nameid);
 
+	//Violet Box, Blue Box, etc - random item pick
+	if(nameid <0) {
+		nameid=itemdb_searchrandomid(-nameid);
 		flag = 1;
 	}
 
-	if(nameid > 0) {
-		memset(&item_tmp,0,sizeof(item_tmp));
-		item_tmp.nameid=nameid;
-		if(!flag)
-			item_tmp.identify=1;
-		else
-			item_tmp.identify=!itemdb_isequip3(nameid);
-		if( st->end>st->start+5 ) //アイテムを指定したIDに渡す
-			sd=map_id2sd(conv_num(st,& (st->stack->stack_data[st->start+5])));
-		if(sd == NULL) //アイテムを渡す相手がいなかったらお帰り
-			return 0;
-		if((flag = pc_additem(sd,&item_tmp,amount))) {
-			clif_additem(sd,0,0,flag);
-			if(pc_candrop(sd,nameid))
-				map_addflooritem(&item_tmp,amount,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
-		}
-
-		//Logs items, got from (N)PC scripts [Lupus]
-		if(log_config.pick > 0 ) {
-			log_pick(sd, "N", 0, nameid, amount, NULL);
-		}
-		//Logs
-
+	if(nameid <= 0 || !itemdb_exists(nameid)) {
+		ShowWarning("buildin_getitem: Nonexistant item %d requested.\n", nameid);
+		return 1; //No item created.
 	}
+		
+	memset(&item_tmp,0,sizeof(item_tmp));
+	item_tmp.nameid=nameid;
+	if(!flag)
+		item_tmp.identify=1;
+	else
+		item_tmp.identify=itemdb_isidentified(nameid);
+	if( st->end>st->start+5 ) //アイテムを指定したIDに渡す
+		sd=map_id2sd(conv_num(st,& (st->stack->stack_data[st->start+5])));
+	if(sd == NULL) //アイテムを渡す相手がいなかったらお帰り
+		return 0;
+	if(pet_create_egg(sd, nameid))
+		amount = 1; //This is a pet!
+	else
+	if((flag = pc_additem(sd,&item_tmp,amount))) {
+		clif_additem(sd,0,0,flag);
+		if (pc_candrop(sd, &item_tmp))
+			map_addflooritem(&item_tmp,amount,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
+	}
+
+	//Logs items, got from (N)PC scripts [Lupus]
+	if(log_config.pick > 0 ) {
+		log_pick(sd, "N", 0, nameid, amount, NULL);
+	}
+	//Logs
 
 	return 0;
 }
@@ -3736,7 +3742,7 @@ int buildin_getitem2(struct script_state *st)
 	if( data->type==C_STR || data->type==C_CONSTSTR ){
 		const char *name=conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
-		nameid=512; //Apple item ID
+		nameid=UNKNOWN_ITEM_ID;
 		if( item_data )
 			nameid=item_data->nameid;
 	}else
@@ -3838,7 +3844,7 @@ int buildin_getnameditem(struct script_state *st)
 	}else
 		nameid = conv_num(st,data);
 
-	if(!itemdb_exists(nameid) || !itemdb_isequip3(nameid))
+	if(!itemdb_exists(nameid) || itemdb_isstackable(nameid))
 	{	//We don't allow non-equipable/stackable items to be named
 		//to avoid any qty exploits that could happen because of it.
 		push_val(st->stack,C_INT,0);
@@ -3911,7 +3917,7 @@ int buildin_makeitem(struct script_state *st)
 	if( data->type==C_STR || data->type==C_CONSTSTR ){
 		const char *name=conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
-		nameid=512; //Apple Item ID
+		nameid=UNKNOWN_ITEM_ID;
 		if( item_data )
 			nameid=item_data->nameid;
 	}else
@@ -3942,7 +3948,7 @@ int buildin_makeitem(struct script_state *st)
 		if(!flag)
 			item_tmp.identify=1;
 		else
-			item_tmp.identify=!itemdb_isequip3(nameid);
+			item_tmp.identify=itemdb_isidentified(nameid);
 
 		map_addflooritem(&item_tmp,amount,m,x,y,NULL,NULL,NULL,0);
 	}
@@ -3966,7 +3972,7 @@ int buildin_delitem(struct script_state *st)
 	if( data->type==C_STR || data->type==C_CONSTSTR ){
 		const char *name=conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
-		//nameid=512;
+		//nameid=UNKNOWN_ITEM_ID;
 		if( item_data )
 			nameid=item_data->nameid;
 	}else
@@ -3983,20 +3989,24 @@ int buildin_delitem(struct script_state *st)
 	for(i=0;i<MAX_INVENTORY;i++){
 		//we don't delete wrong item or equipped item
 		if(sd->status.inventory[i].nameid<=0 || sd->inventory_data[i] == NULL ||
-		   sd->status.inventory[i].amount<=0 ||	sd->status.inventory[i].nameid!=nameid )
+		   sd->status.inventory[i].amount<=0 || sd->status.inventory[i].nameid!=nameid)
 			continue;
 		//1 egg uses 1 cell in the inventory. so it's ok to delete 1 pet / per cycle
-		if(sd->inventory_data[i]->type==7 && sd->status.inventory[i].card[0] == (short)0xff00 && search_petDB_index(nameid, PET_EGG) >= 0 ){
-			intif_delete_petdata( MakeDWord(sd->status.inventory[i].card[1], sd->status.inventory[i].card[2]) );
-			//clear egg flag. so it won't be put in IMPORTANT items (eggs look like item with 2 cards ^_^)
-			sd->status.inventory[i].card[1] = sd->status.inventory[i].card[0] = 0;
-			//now this egg'll be deleted as a common unimportant item
+		if(sd->inventory_data[i]->type==IT_PETEGG &&
+			sd->status.inventory[i].card[0] == CARD0_PET)
+		{
+			if (intif_delete_petdata(MakeDWord(sd->status.inventory[i].card[1], sd->status.inventory[i].card[2])))
+				continue; //pet couldn't be sent for deletion.
 		}
 		//is this item important? does it have cards? or Player's name? or Refined/Upgraded
-		if( sd->status.inventory[i].card[0] || sd->status.inventory[i].card[1] ||
-			sd->status.inventory[i].card[2] || sd->status.inventory[i].card[3] || sd->status.inventory[i].refine) {
-			//this is important item, count it
-			important_item++;
+		if(itemdb_isspecial(sd->status.inventory[i].card[0]) ||
+			sd->status.inventory[i].card[1] ||
+			sd->status.inventory[i].card[2] ||
+		  	sd->status.inventory[i].card[3] ||
+		  	sd->status.inventory[i].refine) {
+			//this is important item, count it (except for pet eggs)
+			if(sd->status.inventory[i].card[0] != CARD0_PET)
+				important_item++;
 			continue;
 		}
 
@@ -4075,7 +4085,7 @@ int buildin_delitem2(struct script_state *st)
 	if( data->type==C_STR || data->type==C_CONSTSTR ){
 		const char *name=conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
-		//nameid=512;
+		//nameid=UNKNOWN_ITEM_ID;
 		if( item_data )
 			nameid=item_data->nameid;
 	}else
@@ -4090,9 +4100,9 @@ int buildin_delitem2(struct script_state *st)
 	c3=conv_num(st,& (st->stack->stack_data[st->start+9]));
 	c4=conv_num(st,& (st->stack->stack_data[st->start+10]));
 
-	if (nameid<500 || amount<=0 ) {//by Lupus. Don't run FOR if u got wrong item ID or amount<=0
-	 //eprintf("wrong item ID or amount<=0 : delitem %i,\n",nameid,amount);
-	 return 0;
+	if (!itemdb_exists(nameid) || amount<=0 ) {//by Lupus. Don't run FOR if u got wrong item ID or amount<=0
+		 //eprintf("wrong item ID or amount<=0 : delitem %i,\n",nameid,amount);
+		 return 0;
 	}
 
 	for(i=0;i<MAX_INVENTORY;i++){
@@ -4105,11 +4115,10 @@ int buildin_delitem2(struct script_state *st)
 			sd->status.inventory[i].card[3]!=c4)
 			continue;
 	//1 egg uses 1 cell in the inventory. so it's ok to delete 1 pet / per cycle
-		if(sd->inventory_data[i]->type==7 && sd->status.inventory[i].card[0] == (short)0xff00 && search_petDB_index(nameid, PET_EGG) >= 0 ){
-			intif_delete_petdata( MakeDWord(sd->status.inventory[i].card[1], sd->status.inventory[i].card[2]) );
-			//clear egg flag. so it won't be put in IMPORTANT items (eggs look like item with 2 cards ^_^)
-			sd->status.inventory[i].card[1] = sd->status.inventory[i].card[0] = 0;
-			//now this egg'll be deleted as a common unimportant item
+		if(sd->inventory_data[i]->type==IT_PETEGG && sd->status.inventory[i].card[0] == CARD0_PET)
+		{
+			if (!intif_delete_petdata( MakeDWord(sd->status.inventory[i].card[1], sd->status.inventory[i].card[2])))
+				continue; //Failed to send delete the pet.
 		}
 
 		if(sd->status.inventory[i].amount>=amount){
@@ -5976,7 +5985,7 @@ int buildin_getareadropitem(struct script_state *st)
 	if( data->type==C_STR || data->type==C_CONSTSTR ){
 		const char *name=conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
-		item=512;
+		item=UNKNOWN_ITEM_ID;
 		if( item_data )
 			item=item_data->nameid;
 	}else
@@ -7266,14 +7275,14 @@ int buildin_getequipcardcnt(struct script_state *st)
 	num=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	sd=script_rid2sd(st);
 	i=pc_checkequip(sd,equip[num-1]);
-	if(sd->status.inventory[i].card[0] == 0x00ff){ // 製造武器はカードなし
+	if(itemdb_isspecial(sd->status.inventory[i].card[0]))
+	{
 		push_val(st->stack,C_INT,0);
 		return 0;
 	}
 	do{
-		if( (sd->status.inventory[i].card[c-1] > 4000 &&
-			sd->status.inventory[i].card[c-1] < 5000) ||
-			itemdb_type(sd->status.inventory[i].card[c-1]) == 6){	// [Celest]
+		if(sd->status.inventory[i].card[c-1] &&
+			itemdb_type(sd->status.inventory[i].card[c-1]) == IT_CARD){	// [Celest]
 			push_val(st->stack,C_INT,(c));
 			return 0;
 		}
@@ -7296,13 +7305,12 @@ int buildin_successremovecards(struct script_state *st)
 	num=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	sd=script_rid2sd(st);
 	i=pc_checkequip(sd,equip[num-1]);
-	if(sd->status.inventory[i].card[0]==0x00ff){ // 製造武器は処理しない
+	if(itemdb_isspecial(sd->status.inventory[i].card[0])) 
 		return 0;
-	}
+
 	do{
-		if( (sd->status.inventory[i].card[c-1] > 4000 &&
-			sd->status.inventory[i].card[c-1] < 5000) ||
-			itemdb_type(sd->status.inventory[i].card[c-1]) == 6){	// [Celest]
+		if(sd->status.inventory[i].card[c-1] &&
+			itemdb_type(sd->status.inventory[i].card[c-1]) == IT_CARD){	// [Celest]
 
 			cardflag = 1;
 			item_tmp.id=0,item_tmp.nameid=sd->status.inventory[i].card[c-1];
@@ -7372,13 +7380,12 @@ int buildin_failedremovecards(struct script_state *st)
 	typefail=conv_num(st,& (st->stack->stack_data[st->start+3]));
 	sd=script_rid2sd(st);
 	i=pc_checkequip(sd,equip[num-1]);
-	if(sd->status.inventory[i].card[0]==0x00ff){ // 製造武器は処理しない
+	if(itemdb_isspecial(sd->status.inventory[i].card[0]))
 		return 0;
-	}
+
 	do{
-		if( (sd->status.inventory[i].card[c-1] > 4000 &&
-			sd->status.inventory[i].card[c-1] < 5000) ||
-			itemdb_type(sd->status.inventory[i].card[c-1]) == 6){	// [Celest]
+		if(sd->status.inventory[i].card[c-1] &&
+			itemdb_type(sd->status.inventory[i].card[c-1]) == IT_CARD){	// [Celest]
 
 			cardflag = 1;
 
@@ -8087,9 +8094,11 @@ int buildin_misceffect(struct script_state *st)
 	int type;
 
 	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	if(st->oid)
-		clif_misceffect2(map_id2bl(st->oid),type);
-	else{
+	if(st->oid) {
+		struct block_list *bl = map_id2bl(st->oid);
+		if (bl)
+			clif_misceffect2(bl,type);
+	} else{
 		struct map_session_data *sd=script_rid2sd(st);
 		if(sd)
 			clif_misceffect2(&sd->bl,type);
@@ -9187,32 +9196,34 @@ int buildin_isequipped(struct script_state *st)
 		if (id <= 0)
 			continue;
 		
-		for (j=0; j<10; j++) {
-			int index, type;
+		for (j=0; j<EQI_MAX; j++) {
+			int index;
 			index = sd->equip_index[j];
 			if(index < 0) continue;
-			if(j == 9 && sd->equip_index[8] == index) continue;
-			if(j == 5 && sd->equip_index[4] == index) continue;
-			if(j == 6 && (sd->equip_index[5] == index || sd->equip_index[4] == index)) continue;
-			type = itemdb_type(id);
+			if(j == EQI_HAND_R && sd->equip_index[EQI_HAND_L] == index) continue;
+			if(j == EQI_HEAD_MID && sd->equip_index[EQI_HEAD_LOW] == index) continue;
+			if(j == EQI_HEAD_TOP && (sd->equip_index[EQI_HEAD_MID] == index || sd->equip_index[EQI_HEAD_LOW] == index)) continue;
 			
-			if(sd->inventory_data[index]) {
-				if (type == 4 || type == 5) {
-					if (sd->inventory_data[index]->nameid == id)
+			if(!sd->inventory_data[index])
+				continue;
+
+			if(itemdb_type(id) != IT_CARD) { //Non card
+				if (sd->inventory_data[index]->nameid == id) {
+					flag = 1;
+					break;
+				}
+			} else { //Card
+				if (itemdb_isspecial(sd->status.inventory[index].card[0]))
+					continue;
+				for(k=0; k<sd->inventory_data[index]->slot; k++) {
+					if (sd->status.inventory[index].card[k] == id)
+					{
 						flag = 1;
-				} else if (type == 6) {
-					for(k=0; k<sd->inventory_data[index]->slot; k++) {
-						if (sd->status.inventory[index].card[0]!=0x00ff &&
-							sd->status.inventory[index].card[0]!=0x00fe &&
-							sd->status.inventory[index].card[0]!=(short)0xff00 &&
-							sd->status.inventory[index].card[k] == id) {
-							flag = 1;
-							break;
-						}
+						break;
 					}
 				}
-				if (flag) break;
 			}
+			if (flag) break;
 		}
 		if (ret == -1)
 			ret = flag;
@@ -9238,34 +9249,36 @@ int buildin_isequippedcnt(struct script_state *st)
 	int ret = 0;
 
 	sd = script_rid2sd(st);
+	if (!sd) { //If the player is not attached it is a script error anyway... but better prevent the map server from crashing...
+		push_val(st->stack,C_INT,0);
+		return 0;
+	}
 	
 	for (i=0; id!=0; i++) {
 		FETCH (i+2, id) else id = 0;
 		if (id <= 0)
 			continue;
 		
-		for (j=0; j<10; j++) {
-			int index, type;
+		for (j=0; j<EQI_MAX; j++) {
+			int index;
 			index = sd->equip_index[j];
 			if(index < 0) continue;
-			if(j == 9 && sd->equip_index[8] == index) continue;
-			if(j == 5 && sd->equip_index[4] == index) continue;
-			if(j == 6 && (sd->equip_index[5] == index || sd->equip_index[4] == index)) continue;
-			type = itemdb_type(id);
+			if(j == EQI_HAND_R && sd->equip_index[EQI_HAND_L] == index) continue;
+			if(j == EQI_HEAD_MID && sd->equip_index[EQI_HEAD_LOW] == index) continue;
+			if(j == EQI_HEAD_TOP && (sd->equip_index[EQI_HEAD_MID] == index || sd->equip_index[EQI_HEAD_LOW] == index)) continue;
 			
-			if(sd->inventory_data[index]) {
-				if (type == 4 || type == 5) {
-					if (sd->inventory_data[index]->nameid == id)
+			if(!sd->inventory_data[index])
+				continue;
+
+			if (itemdb_type(id) != IT_CARD) { //No card. Count amount in inventory.
+				if (sd->inventory_data[index]->nameid == id)
+					ret+= sd->status.inventory[index].amount;
+			} else { //Count cards.
+				if (itemdb_isspecial(sd->status.inventory[index].card[0]))
+					continue; //No cards
+				for(k=0; k<sd->inventory_data[index]->slot; k++) {
+					if (sd->status.inventory[index].card[k] == id) 
 						ret++; //[Lupus]
-				} else if (type == 6) {
-					for(k=0; k<sd->inventory_data[index]->slot; k++) {
-						if (sd->status.inventory[index].card[0]!=0x00ff &&
-							sd->status.inventory[index].card[0]!=0x00fe &&
-							sd->status.inventory[index].card[0]!=(short)0xff00 &&
-							sd->status.inventory[index].card[k] == id) {
-							ret++; //[Lupus]
-						}
-					}
 				}				
 			}
 		}
@@ -9286,7 +9299,7 @@ int buildin_isequipped(struct script_state *st)
 {
 	struct map_session_data *sd;
 	int i, j, k, id = 1;
-	int index, type, flag;
+	int index, flag;
 	int ret = -1;
 
 	sd = script_rid2sd(st);
@@ -9302,58 +9315,49 @@ int buildin_isequipped(struct script_state *st)
 		if (id <= 0)
 			continue;
 		
-		type = itemdb_type(id);
 		flag = 0;
-		for (j=0; j<10; j++)
+		for (j=0; j<EQI_MAX; j++)
 		{
 			index = sd->equip_index[j];
 			if(index < 0) continue;
-			if(j == 9 && sd->equip_index[8] == index) continue;
-			if(j == 5 && sd->equip_index[4] == index) continue;
-			if(j == 6 && (sd->equip_index[5] == index || sd->equip_index[4] == index)) continue;
-			
+			if(j == EQI_HAND_R && sd->equip_index[EQI_HAND_L] == index) continue;
+			if(j == EQI_HEAD_MID && sd->equip_index[EQI_HEAD_LOW] == index) continue;
+			if(j == EQI_HEAD_TOP && (sd->equip_index[EQI_HEAD_MID] == index || sd->equip_index[EQI_HEAD_LOW] == index)) continue;
+	
 			if(!sd->inventory_data[index])
 				continue;
 			
-			switch (type)
-			{
-				case 4:
-				case 5:
-					if (sd->inventory_data[index]->nameid == id)
-						flag = 1;
-					break;
-				case 6:
-					if (
-						sd->inventory_data[index]->slot == 0 ||
-						sd->status.inventory[index].card[0] == 0x00ff ||
-						sd->status.inventory[index].card[0] == 0x00fe ||
-						sd->status.inventory[index].card[0] == (short)0xff00)
+			if (itemdb_type(id) != IT_CARD) {
+				if (sd->inventory_data[index]->nameid == id)
+					flag = 1;
+				break;
+			} else { //Cards
+				if (sd->inventory_data[index]->slot == 0 ||
+					itemdb_isspecial(sd->status.inventory[index].card[0]))
+					continue;
+
+				for (k = 0; k < sd->inventory_data[index]->slot; k++)
+				{	//New hash system which should support up to 4 slots on any equipment. [Skotlex]
+					unsigned int hash = 0;
+					if (sd->status.inventory[index].card[k] != id)
 						continue;
 
-					for (k = 0; k < sd->inventory_data[index]->slot; k++)
-					{	//New hash system which should support up to 4 slots on any equipment. [Skotlex]
-						unsigned int hash = 0;
-						if (sd->status.inventory[index].card[k] != id)
-							continue;
+					hash = 1<<((j<5?j:j-5)*4 + k);
+					// check if card is already used by another set
+					if ((j<5?sd->setitem_hash:sd->setitem_hash2) & hash)	
+						continue;
 
-						hash = 1<<((j<5?j:j-5)*4 + k);
-						// check if card is already used by another set
-						if ((j<5?sd->setitem_hash:sd->setitem_hash2) & hash)	
-							continue;
-
-						// We have found a match
-						flag = 1;
-						// Set hash so this card cannot be used by another
-						if (j<5)
-							sd->setitem_hash |= hash;
-						else
-							sd->setitem_hash2 |= hash;
-						break;
-					}
-				//Case 6 end
-				break;
+					// We have found a match
+					flag = 1;
+					// Set hash so this card cannot be used by another
+					if (j<5)
+						sd->setitem_hash |= hash;
+					else
+						sd->setitem_hash2 |= hash;
+					break;
+				}
 			}
-			if (flag) break;
+			if (flag) break; //Card found
 		}
 		if (ret == -1)
 			ret = flag;
@@ -9376,7 +9380,7 @@ int buildin_cardscnt(struct script_state *st)
 	struct map_session_data *sd;
 	int i, k, id = 1;
 	int ret = 0;
-	int index, type;
+	int index;
 
 	sd = script_rid2sd(st);
 	
@@ -9387,22 +9391,19 @@ int buildin_cardscnt(struct script_state *st)
 		
 		index = current_equip_item_index; //we get CURRENT WEAPON inventory index from status.c [Lupus]
 		if(index < 0) continue;
-
-		type = itemdb_type(id);
 			
-		if(sd->inventory_data[index]) {
-			if (type == 4 || type == 5) {
-				if (sd->inventory_data[index]->nameid == id)
+		if(!sd->inventory_data[index])
+			continue;
+
+		if(itemdb_type(id) != IT_CARD) {
+			if (sd->inventory_data[index]->nameid == id)
+				ret+= sd->status.inventory[index].amount;
+		} else {
+			if (itemdb_isspecial(sd->status.inventory[index].card[0]))
+				continue;
+			for(k=0; k<sd->inventory_data[index]->slot; k++) {
+				if (sd->status.inventory[index].card[k] == id)
 					ret++;
-			} else if (type == 6) {
-				for(k=0; k<sd->inventory_data[index]->slot; k++) {
-					if (sd->status.inventory[index].card[0]!=0x00ff &&
-						sd->status.inventory[index].card[0]!=0x00fe &&
-						sd->status.inventory[index].card[0]!=(short)0xff00 &&
-						sd->status.inventory[index].card[k] == id) {
-						ret++;
-					}
-				}
 			}				
 		}
 	}
@@ -9860,12 +9861,12 @@ int buildin_getmonsterinfo(struct script_state *st)
 	int mob_id;
 
 	mob_id	= conv_num(st,& (st->stack->stack_data[st->start+2]));
-	if (mob_id <= 1000 || (mob = mob_db(mob_id))==NULL) {
+	if (!mobdb_checkid(mob_id)) {
 		ShowError("buildin_getmonsterinfo: Wrong Monster ID: %i", mob_id);
 		push_val(st->stack, C_INT, -1);
 		return -1;
 	}
-		
+	mob = mob_db(mob_id);
 	switch ( conv_num(st,& (st->stack->stack_data[st->start+3])) ) {
 		case 0: //Name
 			push_str(st->stack,C_CONSTSTR, (unsigned char *) mob->jname);
@@ -10200,6 +10201,7 @@ void op_2(struct script_state *st,int op)
 	}else{
 		// si,is => error
 		ShowWarning("script: op_2: int&str, str&int not allow.");
+		report_src(st);
 		push_val(st->stack,C_INT,0);
 	}
 }

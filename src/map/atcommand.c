@@ -2533,7 +2533,7 @@ int atcommand_item(
 	int number = 0, item_id, flag;
 	struct item item_tmp;
 	struct item_data *item_data;
-	int get_count, i, pet_id;
+	int get_count, i;
 	nullpo_retr(-1, sd);
 
 	memset(item_name, '\0', sizeof(item_name));
@@ -2546,50 +2546,37 @@ int atcommand_item(
 	if (number <= 0)
 		number = 1;
 
-	item_id = 0;
-	if ((item_data = itemdb_searchname(item_name)) != NULL ||
-	    (item_data = itemdb_exists(atoi(item_name))) != NULL)
-		item_id = item_data->nameid;
-
-	if (item_id >= 500) {
-		get_count = number;
-		// check pet egg
-		pet_id = search_petDB_index(item_id, PET_EGG);
-		if (item_data->type == 4 || item_data->type == 5 ||
-			item_data->type == 7 || item_data->type == 8) {
-			get_count = 1;
-		}
-		for (i = 0; i < number; i += get_count) {
-			// if pet egg
-			if (pet_id >= 0) {
-				sd->catch_target_class = pet_db[pet_id].class_;
-				intif_create_pet(sd->status.account_id, sd->status.char_id,
-				                 (short)pet_db[pet_id].class_, (short)mob_db(pet_db[pet_id].class_)->lv,
-				                 (short)pet_db[pet_id].EggID, 0, (short)pet_db[pet_id].intimate,
-				                 100, 0, 1, pet_db[pet_id].jname);
-			// if not pet egg
-			} else {
-				memset(&item_tmp, 0, sizeof(item_tmp));
-				item_tmp.nameid = item_id;
-				item_tmp.identify = 1;
-
-				if ((flag = pc_additem((struct map_session_data*)sd, &item_tmp, get_count)))
-					clif_additem((struct map_session_data*)sd, 0, 0, flag);
-			}
-		}
-
-		//Logs (A)dmins items [Lupus]
-		if(log_config.pick > 0 ) {
-			log_pick(sd, "A", 0, item_id, number, NULL);
-		}
-		//Logs
-
-		clif_displaymessage(fd, msg_table[18]); // Item created.
-	} else {
+	if ((item_data = itemdb_searchname(item_name)) == NULL &&
+	    (item_data = itemdb_exists(atoi(item_name))) == NULL)
+	{
 		clif_displaymessage(fd, msg_table[19]); // Invalid item ID or name.
 		return -1;
 	}
 
+	item_id = item_data->nameid;
+	get_count = number;
+	//Check if it's stackable.
+	if (!itemdb_isstackable2(item_data))
+		get_count = 1;
+
+	for (i = 0; i < number; i += get_count) {
+		// if not pet egg
+		if (!pet_create_egg(sd, item_id)) {
+			memset(&item_tmp, 0, sizeof(item_tmp));
+			item_tmp.nameid = item_id;
+			item_tmp.identify = 1;
+
+			if ((flag = pc_additem(sd, &item_tmp, get_count)))
+				clif_additem(sd, 0, 0, flag);
+		}
+	}
+
+	//Logs (A)dmins items [Lupus]
+	if(log_config.pick > 0 )
+		log_pick(sd, "A", 0, item_id, number, NULL);
+	//Logs
+
+	clif_displaymessage(fd, msg_table[18]); // Item created.
 	return 0;
 }
 
@@ -3832,15 +3819,15 @@ int atcommand_produce(
 	}
 
 	item_id = 0;
-	if ((item_data = itemdb_searchname(item_name)) != NULL ||
-	    (item_data = itemdb_exists(atoi(item_name))) != NULL)
-		item_id = item_data->nameid;
-
-	if (itemdb_exists(item_id) &&
-	    (item_id <= 500 || item_id > 1099) &&
-	    (item_id < 4001 || item_id > 4148) &&
-	    (item_id < 7001 || item_id > 10019) &&
-	    itemdb_isequip(item_id)) {
+	if ((item_data = itemdb_searchname(item_name)) == NULL &&
+	    (item_data = itemdb_exists(atoi(item_name))) == NULL)
+	{
+		sprintf(atcmd_output, msg_table[170]); // This item is not an equipment.
+		clif_displaymessage(fd, atcmd_output);
+		return -1;
+	}
+	item_id = item_data->nameid;
+	if (itemdb_isequip2(item_data) && item_data->type == IT_WEAPON) {
 		if (attribute < MIN_ATTRIBUTE || attribute > MAX_ATTRIBUTE)
 			attribute = ATTRIBUTE_NORMAL;
 		if (star < MIN_STAR || star > MAX_STAR)
@@ -3849,12 +3836,12 @@ int atcommand_produce(
 		tmp_item.nameid = item_id;
 		tmp_item.amount = 1;
 		tmp_item.identify = 1;
-		tmp_item.card[0] = 0x00ff;
+		tmp_item.card[0] = CARD0_FORGE;
 		tmp_item.card[1] = ((star * 5) << 8) + attribute;
 		tmp_item.card[2] = GetWord(sd->char_id, 0);
 		tmp_item.card[3] = GetWord(sd->char_id, 1);
-		clif_produceeffect(sd, 0, item_id); // 製造エフェクトパケット
-		clif_misceffect(&sd->bl, 3); // 他人にも成功を通知
+		clif_produceeffect(sd, 0, item_id);
+		clif_misceffect(&sd->bl, 3);
 
 		//Logs (A)dmins items [Lupus]
 		if(log_config.pick > 0 ) {
@@ -3865,12 +3852,7 @@ int atcommand_produce(
 		if ((flag = pc_additem(sd, &tmp_item, 1)))
 			clif_additem(sd, 0, 0, flag);
 	} else {
-		if (battle_config.error_log)
-			ShowError("@produce NOT WEAPON [%d]\n", item_id);
-		if (item_id != 0 && itemdb_exists(item_id))
-			sprintf(atcmd_output, msg_table[169], item_id, item_data->name); // This item (%d: '%s') is not an equipment.
-		else
-			sprintf(atcmd_output, msg_table[170]); // This item is not an equipment.
+		sprintf(atcmd_output, msg_table[169], item_id, item_data->name); // This item (%d: '%s') is not an equipment.
 		clif_displaymessage(fd, atcmd_output);
 		return -1;
 	}

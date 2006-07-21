@@ -1390,7 +1390,7 @@ int map_clearflooritem_timer(int tid,unsigned int tick,int id,int data) {
 	}
 	if(data)
 		delete_timer(fitem->cleartimer,map_clearflooritem_timer);
-	else if(fitem->item_data.card[0] == (short)0xff00)
+	else if(fitem->item_data.card[0] == CARD0_PET)
 		intif_delete_petdata( MakeDWord(fitem->item_data.card[1],fitem->item_data.card[2]) );
 	clif_clearflooritem(fitem,0);
 	map_delobject(fitem->bl.id);
@@ -1856,6 +1856,13 @@ struct map_session_data** map_getallusers(int *users) {
 	if (*users > (signed int)all_count) //Which should be impossible...
 		*users = all_count;
 	return all_sd;
+}
+
+void map_foreachpc(int (*func)(DBKey,void*,va_list),...) {
+	va_list ap;
+	va_start(ap,func);
+	pc_db->foreach(pc_db,func,ap);
+	va_end(ap);
 }
 
 /*==========================================
@@ -3205,54 +3212,38 @@ static int char_ip_set = 0;
  *------------------------------------------
  */
 int parse_console(char *buf) {
-	char *type,*command,*map, *buf2;
+	char type[64],command[64],map[64], buf2[72];
 	int x = 0, y = 0;
 	int m, n;
-	struct map_session_data *sd;
+	struct map_session_data sd;
 
-	sd = (struct map_session_data*)aCalloc(sizeof(struct map_session_data), 1);
-
-	sd->fd = 0;
-	strcpy( sd->status.name , "console");
-
-	type = (char *)aCallocA(64,1);
-	command = (char *)aCallocA(64,1);
-	map = (char *)aCallocA(64,1);
-	buf2 = (char *)aCallocA(72,1);
+	memset(&sd, 0, sizeof(struct map_session_data));
+	strcpy( sd.status.name , "console");
 
 	if ( ( n = sscanf(buf, "%[^:]:%[^:]:%99s %d %d[^\n]", type , command , map , &x , &y )) < 5 )
 		if ( ( n = sscanf(buf, "%[^:]:%[^\n]", type , command )) < 2 )
 			n = sscanf(buf,"%[^\n]",type);
 
 	if ( n == 5 ) {
-		if (x <= 0) {
-			x = rand() % 399 + 1;
-			sd->bl.x = x;
-		} else {
-			sd->bl.x = x;
-		}
-
-		if (y <= 0) {
-			y = rand() % 399 + 1;
-			sd->bl.y = y;
-		} else {
-			sd->bl.y = y;
-		}
-
 		m = map_mapname2mapid(map);
-		if ( m >= 0 )
-			sd->bl.m = m;
-		else {
+		if ( m < 0 ) {
 			ShowWarning("Console: Unknown map\n");
-			goto end;
+			return 0;
 		}
+		sd.bl.m = m;
+		map_search_freecell(&sd.bl, m, &sd.bl.x, &sd.bl.y, -1, -1, 0); 
+		if (x > 0)
+			sd.bl.x = x;
+
+		if (y > 0)
+			sd.bl.y = y;
 	}
 
 	ShowInfo("Type of command: %s || Command: %s || Map: %s Coords: %d %d\n",type,command,map,x,y);
 
 	if ( strcmpi("admin",type) == 0 && n == 5 ) {
 		sprintf(buf2,"console: %s",command);
-		if( is_atcommand(sd->fd,sd,buf2,99) == AtCommand_None )
+		if( is_atcommand(sd.fd,&sd,buf2,99) == AtCommand_None )
 			printf("Console: not atcommand\n");
 	} else if ( strcmpi("server",type) == 0 && n == 2 ) {
 		if ( strcmpi("shutdown", command) == 0 || strcmpi("exit",command) == 0 || strcmpi("quit",command) == 0 ) {
@@ -3268,14 +3259,6 @@ int parse_console(char *buf) {
 		printf("To shutdown the server:\n");
 		printf("server:shutdown\n");
 	}
-
-	end:
-	aFree(buf);
-	aFree(type);
-	aFree(command);
-	aFree(map);
-	aFree(buf2);
-	aFree(sd);
 
 	return 0;
 }
@@ -3327,9 +3310,13 @@ int map_config_read(char *cfgName) {
 			} else if (strcmpi(w1, "delnpc") == 0) {
 				npc_delsrcfile(w2);
 			} else if (strcmpi(w1, "autosave_time") == 0) {
-				autosave_interval = atoi(w2) * 1000;
-				if (autosave_interval <= 0)
+				autosave_interval = atoi(w2);
+				if (!autosave_interval) //Revert to default saving.
 					autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
+				else if (autosave_interval > 0) //Pass from MS to seconds
+					autosave_interval *= 1000;
+				else if (autosave_interval > -100) //Use lower cap of 100ms
+					autosave_interval = -100;
 			} else if (strcmpi(w1, "save_settings") == 0) {
 				save_settings = atoi(w2);
 			} else if (strcmpi(w1, "motd_txt") == 0) {
@@ -3806,8 +3793,6 @@ int do_init(int argc, char *argv[]) {
 	SCRIPT_CONF_NAME = "conf/script_athena.conf";
 	MSG_CONF_NAME = "conf/msg_athena.conf";
 	GRF_PATH_FILENAME = "conf/grf-files.txt";
-
-	chrif_connected = 0;
 
 	srand(gettick());
 
