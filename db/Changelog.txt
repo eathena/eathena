@@ -1,3 +1,10 @@
+07/21
+	* Merged item_db, mob_db and mob_skill_db [Playtester]
+	- fixed Anonymity Request and Erende Ebecee Card
+	- X.4/11.1 drop updates
+	- official Speed/Delays for: Amatsu, Kunlun, Umbala and Niflheim
+	- also fixed behavior of some 'problematic delay mobs'
+	- made Bacsojin's skills uninteruptable
 07/20
 	* Changed the sell price of Serin's ring to 22500 [MasterOfMuppets]
 	* Merged the new item_trade.txt updates from trunk [MasterOfMuppets]
