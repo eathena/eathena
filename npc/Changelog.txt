@@ -39,6 +39,7 @@ Playtester
 Date		Added
 ======
 07/20
+	* Merged changed city and quest files from trunk, split quests from cities/ to quests/ [Evera]
 	* Dj-Yhn optimized the Shinokas quest to only use one variable. [MasterOfMuppets]
 	- Hopefully this will fix all the issues with is as well.
 07/19
