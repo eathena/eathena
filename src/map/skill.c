@@ -6163,6 +6163,15 @@ struct skill_unit_group *skill_unitsetting (struct block_list *src, int skillid,
 	unit_flag = skill_get_unit_flag(skillid);
 	layout = skill_get_unit_layout(skillid,skilllv,src,x,y);
 
+	if (skillid == AL_WARP && flag && src->type == BL_SKILL)
+	{	//Warp Portal morphing to active mode, extract relevant data from src. [Skotlex]
+		group= ((TBL_SKILL*)src)->group;
+		src = map_id2bl(group->src_id);
+		if (!src) return NULL;
+		val2=group->val2; //Copy the (x,y) position you warp to
+		val3=group->val3; //as well as the mapindex to warp to.
+	}
+	
 	BL_CAST(BL_PC, src, sd);
 	sc= status_get_sc(src);	// for traps, firewall and fogwall - celest
 	if (sc && !sc->count)
@@ -6183,7 +6192,6 @@ struct skill_unit_group *skill_unitsetting (struct block_list *src, int skillid,
 		val1=skilllv+6;
 		if(!(flag&1))
 			limit=2000;
-		active_flag=0;
 		break;
 
 	case PR_SANCTUARY:			/* ÉTÉìÉNÉ`ÉÖÉAÉä */
@@ -6349,6 +6357,10 @@ struct skill_unit_group *skill_unitsetting (struct block_list *src, int skillid,
 	group->state.magic_power = (flag&2 || (sc && sc->data[SC_MAGICPOWER].timer != -1)); //Store the magic power flag. [Skotlex]
 	group->state.ammo_consume = (sd && sd->state.arrow_atk); //Store if this skill needs to consume ammo.
 	
+	//if tick is greater than current, do not invoke onplace function just yet. [Skotlex]
+	if (DIFF_TICK(group->tick, gettick()) > 100)
+		active_flag = 0;
+
 	if(skillid==HT_TALKIEBOX ||
 	   skillid==RG_GRAFFITI){
 		group->valstr=(char *) aMallocA(MESSAGE_SIZE*sizeof(char));
@@ -7115,16 +7127,8 @@ int skill_unit_onlimit (struct skill_unit *src, unsigned int tick)
 	nullpo_retr(0, sg=src->group);
 
 	switch(sg->unit_id){
-	case UNT_WARP_ACTIVE:	/* É??ÉvÉ|?É^Éã(?ìÆëO) */
-		{
-			struct skill_unit_group *group=
-				skill_unitsetting(map_id2bl(sg->src_id),sg->skill_id,sg->skill_lv,
-					src->bl.x,src->bl.y,1);
-			if(group == NULL)
-				return 0;
-			group->val2=sg->val2; //Copy the (x,y) position you warp to
-			group->val3=sg->val3; //as well as the mapindex to warp to.
-		}
+	case UNT_WARP_ACTIVE:
+		skill_unitsetting(&src->bl,sg->skill_id,sg->skill_lv,src->bl.x,src->bl.y,1);
 		break;
 
 	case UNT_ICEWALL:	/* ÉAÉCÉXÉEÉH?Éã */

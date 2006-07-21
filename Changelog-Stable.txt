@@ -5,6 +5,12 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/21
+	* Merged the fix that enables warp portal to warp people instantly if they
+	  were standing on the spot where it activates. [Skotlex]
+	* Also merged the correction which prevents the on-place skill-unit event
+	  from triggering when the groups tick has been increased (should fix
+	  Sanctuary, Gospel and others from taking effect inmediately after being
+	  placed down) [Skotlex]
 	* Fixed the "cap adelay to amotion when the first is greater than the
 	  longer" being applied to clones instead of txt mob_db reading. [Skotlex]
 2006/07/20
