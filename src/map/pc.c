@@ -57,7 +57,7 @@ struct fame_list smith_fame_list[MAX_FAME_LIST];
 struct fame_list chemist_fame_list[MAX_FAME_LIST];
 struct fame_list taekwon_fame_list[MAX_FAME_LIST];
 
-static unsigned short equip_pos[11]={0x0080,0x0008,0x0040,0x0004,0x0001,0x0200,0x0100,0x0010,0x0020,0x0002,0x8000};
+static unsigned short equip_pos[EQI_MAX]={EQP_ACC_L,EQP_ACC_R,EQP_SHOES,EQP_GARMENT,EQP_HEAD_LOW,EQP_HEAD_MID,EQP_HEAD_TOP,EQP_ARMOR,EQP_HAND_L,EQP_HAND_R,EQP_AMMO};
 
 static struct gm_account *gm_account = NULL;
 static int GM_num = 0;
@@ -6203,11 +6203,6 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 		pos = req_pos&EQP_ACC;
 		if (pos == EQP_ACC) //User specified both slots.. 
 			pos = sd->equip_index[EQI_ACC_L] >= 0 ? EQP_ACC_R : EQP_ACC_L;
-		if (pos == EQP_ACC_L && 
-			sd->equip_index[EQI_ACC_L] >= 0 &&
-			sd->equip_index[EQI_ACC_R] < 0
-		)	//Requesting to reequip on left when right is available?
-			pos = EQP_ACC_R;
 	}
 
 	if(pos == EQP_WEAPON && id->equip == EQP_HAND_R &&
@@ -6217,11 +6212,6 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 	  	pos = (req_pos&EQP_WEAPON);
 		if (pos == EQP_WEAPON) //User specified both slots, pick one for them.
 			pos = sd->equip_index[EQI_HAND_R] >= 0 ? EQP_HAND_L : EQP_HAND_R;
-		if (pos == EQP_HAND_R && 
-			sd->equip_index[EQI_HAND_R] >= 0 &&
-			sd->equip_index[EQI_HAND_L] < 0
-		)	//Requesting to reequip on right when left is available?
-			pos = EQP_HAND_L;
 	}
 
 	if (pos&EQP_HAND_R && battle_config.use_weapon_skill_range)
