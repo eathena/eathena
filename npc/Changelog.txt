@@ -39,6 +39,7 @@ Playtester
 Date		Added
 ======
 07/23
+	* Jawaii warp now costs 10,000z [Playtester]
 	* Fixed some NPC names. [MasterOfMuppets]
 07/22
 	* Removed two warps in Aldebaran in preparation for the sign quest. [MasterOfMuppets]
