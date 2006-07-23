@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/22
+	* Updated mob_db.sql to latest. [Skotlex]
 	* Fixed the whole accessory position equipping bug. [Skotlex]
 2006/07/21
 	* Merged the check that will make weapons/accesories go on the left when
