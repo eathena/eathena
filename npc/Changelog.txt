@@ -39,6 +39,7 @@ Playtester
 Date		Added
 ======
 07/23
+	* Implemented the Niflheim town invasion. [MasterOfMuppets]
 	* Jawaii warp now costs 10,000z [Playtester]
 	* Fixed some NPC names. [MasterOfMuppets]
 07/22
