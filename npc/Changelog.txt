@@ -39,6 +39,7 @@ Playtester
 Date		Added
 ======
 07/23
+	* Removed the regular Thanatos spawn, since the quest is now implemented. [MasterOfMuppets]
 	* Implemented the Niflheim town invasion. [MasterOfMuppets]
 	* Jawaii warp now costs 10,000z [Playtester]
 	* Fixed some NPC names. [MasterOfMuppets]
