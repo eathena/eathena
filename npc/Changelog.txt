@@ -38,6 +38,9 @@ Playtester
 
 Date		Added
 ======
+07/25
+	* Updated Thanatos Tower spawns [Playtester]
+	- they are official up to Floor 6 now
 07/23
 	* Removed the regular Thanatos spawn, since the quest is now implemented. [MasterOfMuppets]
 	* Implemented the Niflheim town invasion. [MasterOfMuppets]
