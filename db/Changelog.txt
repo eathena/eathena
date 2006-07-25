@@ -1,3 +1,13 @@
+07/25
+	* Merged exp, exp2, item_db, item_misc, mob_db, mob_race2_db, mob_skill_db, produce_db [Playtester]
+	- fixed some problems with exp.txt and exp2.txt
+	- fixed some items and added the new ones
+	- added Holy Quiver to the Quiver Group
+	- adjusted drop rate of cooking items so it's close to official
+	- added Beret drop to Turtle General
+	- added boss mode to Bio Lab 3 G_mobs and fixed G_Kraben
+	- Kiel/Valkyrie drop rate adjustment
+	- added G_mobs to the Race2 groups
 07/21
 	* Merged item_db and mob_db again [Playtester]
 	- replace race numbers with constants
