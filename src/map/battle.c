@@ -1238,7 +1238,8 @@ static struct Damage battle_calc_weapon_attack(
 			flee = status_get_flee(target),
 			hitrate=80; //Default hitrate
 
-		if(battle_config.agi_penalty_type)
+		if(battle_config.agi_penalty_type &&
+			battle_config.agi_penalty_target&target->type)
 		{	
 			unsigned char target_count; //256 max targets should be a sane max
 			target_count = unit_counttargeted(target,battle_config.agi_penalty_count_lv);
@@ -1762,7 +1763,8 @@ static struct Damage battle_calc_weapon_attack(
 		if (!flag.idef || !flag.idef2)
 		{	//Defense reduction
 			short vit_def;
-			if(battle_config.vit_penalty_type)
+			if(battle_config.vit_penalty_type &&
+				battle_config.vit_penalty_target&target->type)
 			{
 				unsigned char target_count; //256 max targets should be a sane max
 				target_count = unit_counttargeted(target,battle_config.vit_penalty_count_lv);
@@ -3553,10 +3555,12 @@ static const struct battle_data_short {
 	{ "auto_counter_type",                 &battle_config.auto_counter_type		},
 	{ "min_hitrate",                       &battle_config.min_hitrate	},
 	{ "max_hitrate",                       &battle_config.max_hitrate	},
+	{ "agi_penalty_target",                &battle_config.agi_penalty_target	},
 	{ "agi_penalty_type",                  &battle_config.agi_penalty_type			},
 	{ "agi_penalty_count",                 &battle_config.agi_penalty_count			},
 	{ "agi_penalty_num",                   &battle_config.agi_penalty_num			},
 	{ "agi_penalty_count_lv",              &battle_config.agi_penalty_count_lv		},
+	{ "vit_penalty_target",                &battle_config.vit_penalty_target },
 	{ "vit_penalty_type",                  &battle_config.vit_penalty_type			},
 	{ "vit_penalty_count",                 &battle_config.vit_penalty_count			},
 	{ "vit_penalty_num",                   &battle_config.vit_penalty_num			},
@@ -3826,7 +3830,7 @@ void battle_set_defaults() {
 	battle_config.skill_add_range=0;
 	battle_config.skill_out_range_consume=1;
 	battle_config.skillrange_by_distance=BL_MOB|BL_PET;
-	battle_config.use_weapon_skill_range=0;
+	battle_config.use_weapon_skill_range=BL_MOB|BL_PET;
 	battle_config.pc_damage_delay_rate=100;
 	battle_config.defnotenemy=0;
 	battle_config.vs_traps_bctall=BL_PC;
@@ -3959,10 +3963,12 @@ void battle_set_defaults() {
 	battle_config.auto_counter_type = BL_ALL;
 	battle_config.min_hitrate = 5;
 	battle_config.max_hitrate = 100;
+	battle_config.agi_penalty_target = BL_PC;
 	battle_config.agi_penalty_type = 1;
 	battle_config.agi_penalty_count = 3;
 	battle_config.agi_penalty_num = 10;
 	battle_config.agi_penalty_count_lv = ATK_FLEE;
+	battle_config.vit_penalty_target = BL_PC;
 	battle_config.vit_penalty_type = 1;
 	battle_config.vit_penalty_count = 3;
 	battle_config.vit_penalty_num = 5;

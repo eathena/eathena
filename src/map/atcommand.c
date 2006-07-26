@@ -8115,6 +8115,10 @@ atcommand_pettalk(
 	if(!sd->status.pet_id || !(pd=sd->pd))
 		return -1;
 
+	if (sd->sc.count && //no "chatting" while muted.
+		(sd->sc.data[SC_BERSERK].timer!=-1 || sd->sc.data[SC_NOCHAT].timer != -1))
+		return -1;
+
 	if (sscanf(message, "%99[^\n]", mes) < 1)
 		return -1;
 
@@ -9720,6 +9724,10 @@ int atcommand_me(
    	
 	memset(tempmes, '\0', sizeof(tempmes));    
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
+
+	if (sd->sc.count && //no "chatting" while muted.
+		(sd->sc.data[SC_BERSERK].timer!=-1 || sd->sc.data[SC_NOCHAT].timer != -1))
+		return -1;
 
 	if (!message || !*message) {
 		clif_displaymessage(fd, "Please, enter a message (usage: @me <message>).");
