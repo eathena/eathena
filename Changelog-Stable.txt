@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/26
+	* Merged log.c and log_athena.conf, this removes the last traces of the
+	  "old" logs structure which wasn't even working anymore anyway. [Skotlex]
 	* Merged itemdb_group skipping common item givers like Blue/Violent boxes,
 	  so that item-healing bonuses will work correctly now. [Skotlex]
 	* Merged support for "sc_end -1" which will clear all status changes. Added
