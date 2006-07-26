@@ -7677,8 +7677,8 @@ atcommand_changeleader(
 	nullpo_retr(-1, sd);
 
 	if (sd->status.party_id == 0 || (p = party_search(sd->status.party_id)) == NULL)
-	{
-		clif_displaymessage(fd, "You need to be a party's leader to use this command.");
+	{	//Need to be a party leader.
+		clif_displaymessage(fd, msg_txt(282));
 		return -1;
 	}
 	
@@ -7688,8 +7688,8 @@ atcommand_changeleader(
 		return -1; //Shouldn't happen
 
 	if (!p->party.member[mi].leader)
-	{
-		clif_displaymessage(fd, "You need to be the party's leader to use this command.");
+	{	//Need to be a party leader.
+		clif_displaymessage(fd, msg_txt(282));
 		return -1;
 	}
 	
@@ -7700,7 +7700,7 @@ atcommand_changeleader(
 	}
 	
 	if((pl_sd=map_nick2sd((char *) message)) == NULL || pl_sd->status.party_id != sd->status.party_id) {
-		clif_displaymessage(fd, "Target character must be online and be in your party.");
+		clif_displaymessage(fd, msg_txt(283));
 		return -1;
 	}
 
@@ -7712,10 +7712,10 @@ atcommand_changeleader(
 	//Change leadership.
 	p->party.member[mi].leader = 0;
 	if (p->data[mi].sd->fd)
-		clif_displaymessage(p->data[mi].sd->fd, "Leadership transferred.");
+		clif_displaymessage(p->data[mi].sd->fd, msg_txt(284));
 	p->party.member[pl_mi].leader = 1;
 	if (p->data[pl_mi].sd->fd)
-		clif_displaymessage(p->data[pl_mi].sd->fd, "You've become the party leader.");
+		clif_displaymessage(p->data[pl_mi].sd->fd, msg_txt(285));
 
 	intif_party_leaderchange(p->party.party_id,p->party.member[pl_mi].account_id,p->party.member[pl_mi].char_id);
 	//Update info.
