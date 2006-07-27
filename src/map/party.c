@@ -452,13 +452,13 @@ int party_broken(int party_id)
 	return 0;
 }
 
-int party_changeoption(struct map_session_data *sd,int exp,int flag)
+int party_changeoption(struct map_session_data *sd,int exp,int item)
 {
 	nullpo_retr(0, sd);
 
 	if( sd->status.party_id==0)
 		return 0;
-	intif_party_changeoption(sd->status.party_id,sd->status.account_id,exp,flag);
+	intif_party_changeoption(sd->status.party_id,sd->status.account_id,exp,item);
 	return 0;
 }
 
@@ -469,9 +469,16 @@ int party_optionchanged(int party_id,int account_id,int exp,int item,int flag)
 	if( (p=party_search(party_id))==NULL)
 		return 0;
 
-	if(!(flag&0x01)) p->party.exp=exp;
-	if(!(flag&0x10)) p->party.item=item;
-	clif_party_option(p,sd,flag);
+	if(!(flag&0x01) && p->party.exp != exp) {
+		p->party.exp=exp;
+		clif_party_option(p,sd,flag); //This packet doesn't updates item info anymore...
+	}
+	if(!(flag&0x10) && p->party.item != item) {
+		p->party.item=item;
+		clif_party_main_info(p,-1);
+	}
+	if(flag&0x01) //Send denied message
+		clif_party_option(p,sd,flag);
 	return 0;
 }
 

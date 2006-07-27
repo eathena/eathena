@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/27
+	* Merged the @partyoption command. [Skotlex]
 	* Removed a redeclared variable i in the parsing of the fame list (char-sql
  	  server) which seems to be the cause of the random memory corruptions.
 	  [Skotlex]

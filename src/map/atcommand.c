@@ -280,6 +280,7 @@ ACMD_FUNC(showzeny);
 ACMD_FUNC(showdelay); //moved from charcommand [Kevin]
 ACMD_FUNC(autotrade);// durf
 ACMD_FUNC(changeleader);// [Skotlex]
+ACMD_FUNC(partyoption);// [Skotlex]
 ACMD_FUNC(changegm);// durf
 
 // Duel [LuzZza]
@@ -600,6 +601,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_AutoTrade,			"@at",			10, atcommand_autotrade },
 	{ AtCommand_ChangeGM,			"@changegm",		10, atcommand_changegm }, // durf
 	{ AtCommand_ChangeLeader,		"@changeleader",		10, atcommand_changeleader }, // durf
+	{ AtCommand_PartyOption,		"@partyoption",		10, atcommand_partyoption}, // durf
 	{ AtCommand_Invite,				"@invite",			 1, atcommand_invite }, // By LuzZza
 	{ AtCommand_Duel,				"@duel",			 1, atcommand_duel }, // By LuzZza
 	{ AtCommand_Leave,				"@leave",			 1, atcommand_leave }, // By LuzZza
@@ -7724,6 +7726,55 @@ atcommand_changeleader(
 	
 	return 0;  
 }   
+
+/*==========================================
+ * Used to change the item share setting of a party.
+ *------------------------------------------
+ *by Skotlex
+ */
+int
+atcommand_partyoption(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	struct party_data *p;
+	int mi, option;
+	char w1[15], w2[15];
+	nullpo_retr(-1, sd);
+
+	if (sd->status.party_id == 0 || (p = party_search(sd->status.party_id)) == NULL)
+	{
+		clif_displaymessage(fd, msg_txt(282));
+		return -1;
+	}
+	
+	for (mi = 0; mi < MAX_PARTY && p->data[mi].sd != sd; mi++);
+	
+	if (mi == MAX_PARTY)
+		return -1; //Shouldn't happen
+
+	if (!p->party.member[mi].leader)
+	{
+		clif_displaymessage(fd, msg_txt(282));
+		return -1;
+	}
+	
+	if(!message || !*message || sscanf(message, "%15s %15s", w1, w2) < 2)
+	{
+		clif_displaymessage(fd, "Command usage: @changeoption <pickup share: yes/no> <item distribution: yes/no>");
+		return -1;
+	}
+	w1[14] = w2[14] = '\0'; //Assure a proper string terminator.
+	option = (battle_config_switch(w1)?1:0)|(battle_config_switch(w2)?2:0);
+	
+	//Change item share type.
+	if (option != p->party.item)
+		party_changeoption(sd, p->party.exp, option);
+	else
+		clif_displaymessage(fd, msg_txt(286));
+
+	return 0;  
+} 
 
 /*==========================================
  *Turns on/off AutoLoot for a specific player
