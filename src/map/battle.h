@@ -277,6 +277,7 @@ extern struct Battle_Config {
 	unsigned int vending_max_value;
 	unsigned short show_steal_in_same_party;
 	unsigned short party_share_type;
+	unsigned short party_hp_mode;
 	unsigned short party_show_share_picker;
 	unsigned short mob_ghostring_fix;
 	unsigned short attack_attr_none;
@@ -374,6 +375,7 @@ extern struct Battle_Config {
 	unsigned short no_skill_delay;
 	unsigned short require_glory_guild;
 	unsigned short idle_no_share;
+	unsigned short party_update_interval;
 	unsigned short party_even_share_bonus;
 	unsigned short delay_battle_damage;
 	unsigned short hide_woe_damage;

@@ -22,8 +22,6 @@
 #include "skill.h"
 #include "status.h"
 
-#define PARTY_SEND_XY_INVERVAL	1000	// À•W‚â‚g‚o‘—M‚ÌŠÔŠu
-
 static struct dbt* party_db;
 static struct party_data* party_cache = NULL; //party in cache for skipping consecutive lookups. [Skotlex]
 int party_share_level = 10;
@@ -58,7 +56,7 @@ void do_init_party(void)
 {
 	party_db=db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 	add_timer_func_list(party_send_xy_timer,"party_send_xy_timer");
-	add_timer_interval(gettick()+PARTY_SEND_XY_INVERVAL,party_send_xy_timer,0,0,PARTY_SEND_XY_INVERVAL);
+	add_timer_interval(gettick()+battle_config.party_update_interval,party_send_xy_timer,0,0,battle_config.party_update_interval);
 }
 
 // ŒŸõ
@@ -343,6 +341,8 @@ int party_member_added(int party_id,int account_id,int char_id, int flag)
 		sd->status.party_id=party_id;
 		party_check_conflict(sd);
 		clif_party_join_info(&p->party,sd);
+		clif_party_hp(sd);
+		clif_party_xy(sd);
 		clif_charnameupdate(sd); //Update char name's display [Skotlex]
 	}
 
@@ -668,7 +668,8 @@ int party_send_xy_timer_sub(DBKey key,void *data,va_list ap)
 			p->data[i].x = sd->bl.x;
 			p->data[i].y = sd->bl.y;
 		}
-		if (p->data[i].hp != sd->status.hp)
+		if (battle_config.party_hp_mode &&
+			p->data[i].hp != sd->status.hp)
 		{
 			clif_party_hp(sd);
 			p->data[i].hp = sd->status.hp;
@@ -741,13 +742,14 @@ int party_exp_share(struct party_data *p,struct block_list *src,unsigned int bas
 	return 0;
 }
 
-int party_share_loot(struct party_data *p, TBL_PC *sd, struct item *item_data)
+//Does party loot. first holds the id of the player who has time priority to take the item.
+int party_share_loot(struct party_data *p, TBL_PC *sd, struct item *item_data, int first)
 {
 	TBL_PC *target=NULL;
 	int i;
-	if (p && p->party.item&2) {
+	if (p && p->party.item&2 && (first || !(battle_config.party_share_type&1))) {
 		//item distribution to party members.
-		if (battle_config.party_share_type) { //Round Robin
+		if (battle_config.party_share_type&2) { //Round Robin
 			TBL_PC *psd;
 			i = p->itemc;
 			do {
