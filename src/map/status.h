@@ -641,8 +641,8 @@ int status_get_attack_element(struct block_list *bl);
 int status_get_attack_element2(struct block_list *bl);  //¶è•Ší‘®«æ“¾
 #define status_get_elem_type(bl)	(status_get_element(bl)%10)
 #define status_get_elem_level(bl)	(status_get_element(bl)/10/2)
-uint32 status_get_party_id(struct block_list *bl);
-uint32 status_get_guild_id(struct block_list *bl);
+uint32 status_get_party_id(const block_list *bl);
+uint32 status_get_guild_id(const block_list *bl);
 int status_get_race(struct block_list *bl);
 int status_get_size(struct block_list *bl);
 int status_get_mode(struct block_list *bl);
@@ -650,7 +650,6 @@ int status_get_mexp(struct block_list *bl);
 int status_get_race2(struct block_list *bl);
 
 struct status_change *status_get_sc_data(struct block_list *bl);
-//short *status_get_sc_count(struct block_list *bl);
 short *status_get_opt1(struct block_list *bl);
 short *status_get_opt2(struct block_list *bl);
 short *status_get_opt3(struct block_list *bl);
@@ -663,7 +662,6 @@ int status_get_atk_(struct block_list *bl);
 int status_get_atk_2(struct block_list *bl);
 int status_get_atk2(struct block_list *bl);
 
-int status_isdead(struct block_list *bl);
 int status_isimmune(struct block_list *bl);
 
 int status_get_sc_def(struct block_list *bl, int type);

@@ -1434,7 +1434,88 @@ bool CHomunculusDB_mem::saveHomunculus(const CHomunculus& hom)
 
 
 
+///////////////////////////////////////////////////////////////////////////
+// construct/destruct
+CVarDB_mem::CVarDB_mem(const char *configfile)
+{
+	if(configfile) basics::CParamBase::loadFile(configfile);
+}
+CVarDB_mem::~CVarDB_mem()
+{
+}
 
+
+///////////////////////////////////////////////////////////////////////////
+// normal function
+bool CVarDB_mem::init(const char* configfile)
+{	// init db
+	if(configfile) basics::CParamBase::loadFile(configfile);
+	return this->do_readVars();
+}
+///////////////////////////////////////////////////////////////////////////
+// access interface
+
+size_t CVarDB_mem::size() const
+{
+	return this->cVarList.size();
+}
+CVar& CVarDB_mem::operator[](size_t i)
+{
+	return this->cVarList[i];
+}
+
+bool CVarDB_mem::searchVar(const char* name, CVar& var)
+{
+	size_t pos;
+	if( this->cVarList.find( CVar(name), 0, pos) )
+	{
+		var = this->cVarList[pos];
+		return true;
+	}
+	return false;
+}
+
+bool CVarDB_mem::insertVar(const char* name, const char* value)
+{
+	CVar var(name, value);
+	if( this->cVarList.insert(var) && searchVar(name, var) )
+	{
+		this->do_createVar(var);
+		return true;
+	}
+	return false;
+}
+
+bool CVarDB_mem::removeVar(const char* name)
+{
+	size_t pos;
+	if( this->cVarList.find( CVar(name), 0, pos) )
+	{
+		this->do_removeVar(cVarList[pos]);
+		this->cVarList.removeindex(pos);
+		return true;
+	}
+	return false;
+}
+bool CVarDB_mem::saveVar(const CVar& var)
+{
+	size_t pos;
+
+	if( this->cVarList.find( var, 0, pos) )
+	{
+		if( this->cVarList[pos].value() != var.value() )
+		{
+			this->cVarList[pos] = var;
+			this->do_saveVar(var);
+			return true;
+		}
+		return false;
+	}
+	else
+	{
+		return this->cVarList.insert(var);
+	}
+}
 
 
 
@@ -1979,7 +2060,7 @@ bool CCharDB_txt::char_from_str(const char *str)
 		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
 		p.last_point.mapname, &tmp_int[35], &tmp_int[36], //
 		p.save_point.mapname, &tmp_int[37], &tmp_int[38], &tmp_int[39],
-		&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next) == 47 )
+		&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next) == 48 )
 	{
 		// my personal reordering
 		//ShowMessage("char: new char data ver.6\n");
@@ -4201,9 +4282,10 @@ bool CHomunculusDB_txt::do_readHomunculus()
 	int c=0;
 	CHomunculus hom;
 	FILE *fp=basics::safefopen(homunculus_filename(),"r");
-	if(fp==NULL){
-		ShowMessage("cant't read : %s\n",(const char*)homunculus_filename());
-		return 1;
+	if(fp==NULL)
+	{
+		ShowError("cant't read : %s\n",(const char*)homunculus_filename());
+		return false;
 	}
 	while(fgets(line,sizeof(line),fp))
 	{
@@ -4284,6 +4366,94 @@ bool CHomunculusDB_txt::timeruserfunc(unsigned long tick)
 	return true;
 }
 
+
+
+
+
+bool CVarDB_txt::do_readVars()
+{
+	char line[65536];
+	int c=0;
+	CVar var;
+	FILE *fp=basics::safefopen(variable_filename(),"r");
+	if(fp==NULL)
+	{
+		ShowError("cant't read : %s\n",(const char*)variable_filename());
+		return false;
+	}
+	while(fgets(line,sizeof(line),fp))
+	{
+		c++;
+		if( !get_prepared_line(line) )
+			continue;
+
+		if( var.from_string(line) )
+		{
+			cVarList.insert(var);
+		}
+		else
+		{
+			ShowError("Variable: broken data [%s] line %d\n", (const char*)variable_filename(), c);
+		}
+	}
+	fclose(fp);
+	return true;
+}
+bool CVarDB_txt::do_saveVars()
+{
+	char line[65536];
+	int lock;
+	size_t i, sz;
+	FILE *fp=lock_fopen(variable_filename(), lock);
+
+	if( fp==NULL )
+	{
+		ShowError("Variable: cannot open [%s]\n",(const char*)variable_filename());
+		return false;
+	}
+	for(i=0; i<cVarList.size(); ++i)
+	{
+		sz = cVarList[i].to_string(line, sizeof(line));
+		if(sz>0) fprintf(fp,"%s"RETCODE, line);
+	}
+	lock_fclose(fp, variable_filename(), lock);
+	return true;
+}
+
+CVarDB_txt::CVarDB_txt(const char *dbcfgfile) :
+	CTimerBase(60000),		// 60sec save interval
+	CVarDB_mem(dbcfgfile),
+	variable_filename("variable_filename", "save/variables.txt"),
+	savecount(0)
+{
+	this->init(NULL);
+}
+
+CVarDB_txt::~CVarDB_txt()
+{
+	this->close();
+}
+
+bool CVarDB_txt::init(const char* configfile)
+{	// init db
+	if(configfile) basics::CParamBase::loadFile(configfile);
+	return this->do_readVars();
+}
+bool CVarDB_txt::close()
+{
+	return this->do_saveVars();
+}
+
+bool CVarDB_txt::timeruserfunc(unsigned long tick)
+{
+	// we only save if necessary:
+	if( this->savecount )//> 10 )
+	{
+		this->savecount=0;
+		this->do_saveVars();
+	}
+	return true;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 #endif//WITH_TEXT

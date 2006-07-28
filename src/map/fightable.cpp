@@ -9,6 +9,7 @@
 #include "npc.h"
 #include "pc.h"
 #include "pet.h"
+#include "homun.h"
 #include "skill.h"
 #include "status.h"
 
@@ -39,46 +40,104 @@ bool fightable::set_idle()
 	return this->movable::set_idle();
 }
 
+bool fightable::is_movable()
+{
+	if( DIFF_TICK(this->canmove_tick, gettick()) > 0 )
+		return false;
+
+	map_session_data *sd = this->get_sd();
+	mob_data *md = this->get_md();
+	pet_data *pd = this->get_pd();
+	homun_data *hd = this->get_hd();
+	if( sd )
+	{
+		if( sd->skilltimer != -1 && !pc_checkskill(*sd, SA_FREECAST) ||
+			pc_issit(*sd) )
+			return false;
+	}
+	else if( md )
+	{
+		if( md->skilltimer != -1 )
+			return false;
+	}
+	else if( pd )
+	{
+		if(pd->state.casting_flag )
+			return false;
+	}
+	else if( hd )
+	{
+		if( hd->skilltimer != -1 )
+			return false;
+		if( hd->attacktimer != -1 )
+			return false;
+	}	
+	else
+		return false;
+
+	struct status_change *sc_data = status_get_sc_data(this);
+	if (sc_data)
+	{
+		if(	sc_data[SC_ANKLE].timer != -1 ||
+			sc_data[SC_AUTOCOUNTER].timer !=-1 ||
+			sc_data[SC_TRICKDEAD].timer !=-1 ||
+			sc_data[SC_BLADESTOP].timer !=-1 ||
+			sc_data[SC_BLADESTOP_WAIT].timer !=-1 ||
+			sc_data[SC_SPIDERWEB].timer !=-1 ||
+			(sc_data[SC_DANCING].timer !=-1 && (
+				(sc_data[SC_DANCING].val4.num && sc_data[SC_LONGING].timer == -1) ||
+				sc_data[SC_DANCING].val1.num == CG_HERMODE	//cannot move while Hermod is active.
+			)) ||
+//			sc_data[SC_STOP].timer != -1 ||
+//			sc_data[SC_CLOSECONFINE].timer != -1 ||
+//			sc_data[SC_CLOSECONFINE2].timer != -1 ||
+			sc_data[SC_MOONLIT].timer != -1 ||
+			(sc_data[SC_GOSPEL].timer !=-1 && sc_data[SC_GOSPEL].val4.num == BCT_SELF) // cannot move while gospel is in effect
+			)
+			return false;
+	}
+	return true;
+}
+
+
+/// starts attack
 bool fightable::start_attack(uint32 target_id, bool cont)
 {
 	struct block_list *bl=map_id2bl(target_id);
-	
-
-	if(bl==NULL)
-		return false;
-
-	if( bl->type==BL_NPC && this->get_sd() )
-	{	// monster npcs [Valaris]
-		npc_click(*this->get_sd(),target_id);
-		return true;
-	}
-
-	if( this->get_sd() && battle_check_target(this->get_sd(), bl, BCT_ENEMY) <= 0)
-		return false;
-
-	this->do_attack();
-
-	if( this->attacktimer != -1 )
-	{
-		delete_timer(this->attacktimer, fightable::attacktimer_entry);
-		this->attacktimer = -1;
-	}
-
-	this->target_id = target_id;
-	this->attack_continue = cont;
-
-	int d=DIFF_TICK(this->attackable_tick,gettick());
-	if( d>0 && d<2000 )
-	{	// attack with delay
-		this->attacktimer=add_timer(this->attackable_tick, fightable::attacktimer_entry, this->block_list::id, 0);
-	}
-	else
-	{	// call it directly
-		fightable::attacktimer_entry(-1, gettick(), this->block_list::id, 0);
-	}
-	return 0;
+	return (bl)?this->start_attack(*bl,cont):false;
 }
+/// starts attack
+bool fightable::start_attack(const block_list& target_bl, bool cont)
+{
+	if( target_bl.get_nd() && this->get_sd() )
+	{	
+		npc_click(*this->get_sd(), target_bl.block_list::id);
+	}
+	else if( this->get_sd() && battle_check_target(this->get_sd(), &target_bl, BCT_ENEMY) <= 0)
+		return false;
+	else
+	{
+		if( this->attacktimer != -1 )
+		{
+			delete_timer(this->attacktimer, fightable::attacktimer_entry);
+			this->attacktimer = -1;
+		}
 
+		this->target_id = target_bl.block_list::id;
+		this->attack_continue = cont;
+
+		int d=DIFF_TICK(this->attackable_tick,gettick());
+		if( d>0 && d<2000 )
+		{	// attack with delay
+			this->attacktimer=add_timer(this->attackable_tick, fightable::attacktimer_entry, this->block_list::id, 0);
+		}
+		else
+		{	// call it directly
+			fightable::attacktimer_entry(-1, gettick(), this->block_list::id, 0);
+		}
+	}
+	return true;
+}
 /// stops attack
 bool fightable::stop_attack()
 {
@@ -112,7 +171,7 @@ int fightable::attacktimer_entry(int tid, unsigned long tick, int id, basics::nu
 	{
 		if(mv->attacktimer != tid)
 		{
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowError("attacktimer_entry %d != %d\n",mv->attacktimer,tid);
 			return 0;
 		}
@@ -185,7 +244,7 @@ int fightable::skilltimer_entry(int tid, unsigned long tick, int id, basics::num
 	{
 		if(mv->skilltimer != tid)
 		{
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowError("skilltimer_entry %d != %d\n",mv->skilltimer,tid);
 			return 0;
 		}
@@ -225,7 +284,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 	int temp;
 
 	nullpo_retr(0, src);
-	if(status_isdead(src))
+	if(src->is_dead())
 		return 0; // Ž€‚ñ‚Å‚¢‚È‚¢‚©
 
 	if( BL_CAST( BL_PC,  src, sd ) ) {
@@ -320,8 +379,8 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 		case BD_INTOABYSS:
 		case BD_SIEGFRIED:
 		case CG_MOONLIT:
-			if (battle_config.player_skill_partner_check &&
-				(!battle_config.gm_skilluncond || sd.isGM() < battle_config.gm_skilluncond) &&
+			if (config.player_skill_partner_check &&
+				(!config.gm_skilluncond || sd.isGM() < config.gm_skilluncond) &&
 				(skill_check_pc_partner(sd, skill_num, &skill_lv, 1, 0) < 1)
 			) {
 				clif_skill_fail(sd,skill_num,0,0);
@@ -471,7 +530,7 @@ int unit_skilluse_pos2( struct block_list *src, int skill_x, int skill_y, int sk
 	nullpo_retr(0, src);
 
 	if(!src->prev) return 0; // map ã‚É‘¶Ý‚·‚é‚©
-	if(status_isdead(src)) return 0;
+	if(src->is_dead()) return 0;
 
 	if( BL_CAST( BL_PC, src, sd ) ) {
 		ud = &sd->ud;
@@ -592,7 +651,7 @@ int unit_attack(struct block_list *src,int target_id,int type)
 	nullpo_retr(0, ud = unit_bl2ud(src));
 
 	target=map_id2bl(target_id);
-	if(target==NULL || status_isdead(target)) {
+	if(target==NULL || target->is_dead()) {
 		unit_unattackable(src);
 		return 1;
 	}
@@ -641,7 +700,7 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 	if((ud=unit_bl2ud(src))==NULL)
 		return 0;
 	if(ud->attacktimer != tid){
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowError("unit_attack_timer %d != %d\n",ud->attacktimer,tid);
 		return 0;
 	}
@@ -656,12 +715,12 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 	if(ud->skilltimer != -1 && (!sd || pc_checkskill(sd,SA_FREECAST) <= 0))
 		return 0;
 	
-	if(src->m != target->m || status_isdead(src) || status_isdead(target) || !status_check_skilluse(src, target, 0, 0))
+	if(src->m != target->m || src->is_dead() || target->is_dead() || !status_check_skilluse(src, target, 0, 0))
 		return 0;
 
 	sstatus = status_get_status_data(src);
 
-	if(!battle_config.skill_delay_attack_enable &&
+	if(!config.skill_delay_attack_enable &&
 		DIFF_TICK(ud->canact_tick,tick) > 0 && 
 		(!sd || pc_checkskill(sd,SA_FREECAST) <= 0)
 	) {
@@ -707,8 +766,8 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 	if (tid == -1 && sd) clif_fixpos(src);
 
 	if(DIFF_TICK(ud->attackable_tick,tick) <= 0) {
-		if (battle_config.attack_direction_change &&
-			(src->type&battle_config.attack_direction_change)) {
+		if (config.attack_direction_change &&
+			(src->type&config.attack_direction_change)) {
 			ud->dir = map_calc_dir(src, target->x,target->y );
 			if (sd) sd->head_dir = ud->dir;
 		}
@@ -730,7 +789,7 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 		map_freeblock_lock();
 		ud->attacktarget_lv = battle_weapon_attack(src,target,tick,0);
 
-		if(sd && sd->status.pet_id > 0 && sd->pd && battle_config.pet_attack_support)
+		if(sd && sd->status.pet_id > 0 && sd->pd && config.pet_attack_support)
 			pet_target_check(sd,target,0);
 		map_freeblock_unlock();
 
@@ -990,7 +1049,7 @@ int unit_free(struct block_list *bl) {
 	
 	if( bl->type == BL_PC ) {
 		struct map_session_data *sd = (struct map_session_data*)bl;
-		if(status_isdead(bl))
+		if(bl->is_dead())
 			pc_setrestartvalue(sd,2);
 
 		//Status that are not saved...
@@ -1001,7 +1060,7 @@ int unit_free(struct block_list *bl) {
 				status_change_end(bl,SC_BERSERK,-1);
 			if(sd->sc.data[SC_TRICKDEAD].timer!=-1)
 				status_change_end(bl,SC_TRICKDEAD,-1);
-			if (battle_config.debuff_on_logout) {
+			if (config.debuff_on_logout) {
 				if(sd->sc.data[SC_ORCISH].timer!=-1)
 					status_change_end(bl,SC_ORCISH,-1);
 				if(sd->sc.data[SC_STRIPWEAPON].timer!=-1)

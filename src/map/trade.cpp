@@ -24,7 +24,7 @@ void trade_traderequest(struct map_session_data &sd, uint32 target_id)
 
 	if ((target_sd = map_id2sd(target_id)) != NULL)
 	{
-		if (!battle_config.invite_request_check)
+		if (!config.invite_request_check)
 		{
 			if (target_sd->guild_invite > 0 || target_sd->party_invite > 0)
 			{	 // ‘ŠŽè‚ÍPT—v¿’†‚©Guild—v¿’†
@@ -39,9 +39,9 @@ void trade_traderequest(struct map_session_data &sd, uint32 target_id)
 		{
 			trade_tradecancel(sd); // person is in another trade
 		}
-		else if( battle_config.gm_can_drop_lv &&
-			(level > 0 && level  < battle_config.gm_can_drop_lv) ||
-			(level2> 0 && level2 < battle_config.gm_can_drop_lv) )
+		else if( config.gm_can_drop_lv &&
+			(level > 0 && level  < config.gm_can_drop_lv) ||
+			(level2> 0 && level2 < config.gm_can_drop_lv) )
 		{
 			clif_displaymessage(sd.fd, msg_txt(246));
 			trade_tradecancel(sd); // GM is not allowed to trade		
@@ -133,29 +133,29 @@ int impossible_trade_check(struct map_session_data &sd)
 			if( index>=MAX_INVENTORY || inventory[index].amount < sd.deal_item_amount[i] )
 			{	// wrong index or more than the player have -> hack
 				snprintf(message_to_gm, sizeof(message_to_gm),msg_txt(538), sd.status.name, sd.status.account_id); // Hack on trade: character '%s' (account: %d) try to trade more items that he has.
-				intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
+				intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message_to_gm);
 				snprintf(message_to_gm, sizeof(message_to_gm),msg_txt(539), sd.status.inventory[index].amount, sd.status.inventory[index].nameid, sd.status.inventory[index].amount - inventory[index].amount); // This player has %d of a kind of item (id: %d), and try to trade %d of them.
-				intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
+				intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message_to_gm);
 				
-				if(battle_config.ban_hack_trade < 0)
+				if(config.ban_hack_trade < 0)
 				{	// if we block people
 					chrif_char_ask_name(-1, sd.status.name, 1, 0, 0, 0, 0, 0, 0); // type: 1 - block
 					session_Remove(sd.fd); // forced to disconnect because of the hack
 					// message about the ban
-					snprintf(message_to_gm, sizeof(message_to_gm),msg_txt(540), battle_config.ban_spoof_namer); //  This player has been definitivly blocked.
+					snprintf(message_to_gm, sizeof(message_to_gm),msg_txt(540), config.ban_spoof_namer); //  This player has been definitivly blocked.
 				}
-				else if(battle_config.ban_hack_trade > 0)
+				else if(config.ban_hack_trade > 0)
 				{	// if we ban people
-					chrif_char_ask_name(-1, sd.status.name, 2, 0, 0, 0, 0, battle_config.ban_hack_trade, 0); // type: 2 - ban (year, month, day, hour, minute, second)
+					chrif_char_ask_name(-1, sd.status.name, 2, 0, 0, 0, 0, config.ban_hack_trade, 0); // type: 2 - ban (year, month, day, hour, minute, second)
 					session_Remove(sd.fd); // forced to disconnect because of the hack
 					// message about the ban
-					snprintf(message_to_gm, sizeof(message_to_gm),msg_txt(507), battle_config.ban_spoof_namer); //  This player has been banned for %d minute(s).
+					snprintf(message_to_gm, sizeof(message_to_gm),msg_txt(507), config.ban_spoof_namer); //  This player has been banned for %d minute(s).
 				}
 				else
 				{	// message about the ban
 					snprintf(message_to_gm, sizeof(message_to_gm),msg_txt(508)); //  This player hasn't been banned (Ban option is disabled).
 				}
-				intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
+				intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message_to_gm);
 				return 1;
 			}
 			else

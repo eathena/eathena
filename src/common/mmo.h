@@ -52,12 +52,12 @@ enum fame_t{ FAME_PK=0, FAME_SMITH, FAME_CHEM, FAME_TEAK };
 #define MAX_GUILDLEVEL 50
 #define MAX_FRIENDLIST 40
 
-#define MIN_HAIR_STYLE battle_config.min_hair_style
-#define MAX_HAIR_STYLE battle_config.max_hair_style
-#define MIN_HAIR_COLOR battle_config.min_hair_color
-#define MAX_HAIR_COLOR battle_config.max_hair_color
-#define MIN_CLOTH_COLOR battle_config.min_cloth_color
-#define MAX_CLOTH_COLOR battle_config.max_cloth_color
+#define MIN_HAIR_STYLE config.min_hair_style
+#define MAX_HAIR_STYLE config.max_hair_style
+#define MIN_HAIR_COLOR config.min_hair_color
+#define MAX_HAIR_COLOR config.max_hair_color
+#define MIN_CLOTH_COLOR config.min_cloth_color
+#define MAX_CLOTH_COLOR config.max_cloth_color
 
 // for produce
 #define MIN_ATTRIBUTE 0

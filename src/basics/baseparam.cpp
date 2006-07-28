@@ -233,10 +233,10 @@ void parseCommandline(int argc, char **argv)
 			// just try with the concatinated commandline
 			// until something matches or the line runs out
 			//## check effort with regex
-			if( sscanf(argv[i], "%[^=]= %[^\r\n]", w1, w2) == 2 ||
-				sscanf(argv[i], "%[^:]: %[^\r\n]", w1, w2) == 2 ||
-				sscanf(str,     "%[^=]= %[^\r\n]", w1, w2) == 2 ||
-				sscanf(str,     "%[^:]: %[^\r\n]", w1, w2) == 2 )
+			if( sscanf(argv[i], "%1024[^=]= %1024[^\r\n]", w1, w2) == 2 ||
+				sscanf(argv[i], "%1024[^:]: %1024[^\r\n]", w1, w2) == 2 ||
+				sscanf(str,     "%1024[^=]= %1024[^\r\n]", w1, w2) == 2 ||
+				sscanf(str,     "%1024[^:]: %1024[^\r\n]", w1, w2) == 2 )
 			{
 				CConfig::CleanControlChars(w1);
 				CConfig::CleanControlChars(w2);

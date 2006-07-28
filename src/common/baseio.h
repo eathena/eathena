@@ -842,10 +842,33 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 
 
-class CVar
+class CVar : public basics::string<>
 {
+	basics::string<> cValue;
 public:
+	/// standard constructor
 	CVar()	{}
+	CVar(const basics::string<>& name, const basics::string<>& value) : basics::string<>(name), cValue(value)	{}
+	CVar(const basics::string<>& name) : basics::string<>(name)	{}
+	/// destructor
+	virtual ~CVar()	{}
+
+	// element access
+	const basics::string<>& name()			{ return *this; }
+	const basics::string<>& name() const	{ return *this; }
+	basics::string<>& value()				{ return cValue; }
+	const basics::string<>& value() const 	{ return cValue; }
+
+
+	/// conversion from saved string
+	bool from_string(const char* str);
+	/// conversion to save string
+	size_t to_string(char* str, size_t len) const;
+	/// conversion from transfer buffer
+	bool from_buffer(const unsigned char* buf);
+	/// conversion to transfer buffer
+	size_t to_buffer(unsigned char* buf, size_t len) const;
+
 
 
 	void str2array()
@@ -904,8 +927,11 @@ public:
 				printf("'%s' ", (const char*)values[i]);
 		}	
 	}
+	void array2str()
+	{
+		basics::string<> str = "(2,3):hallo,2,3,3,xxx,4";
 
-
+	}
 };
 
 
@@ -924,10 +950,22 @@ public:
 	virtual size_t size() const=0;
 	virtual CVar& operator[](size_t i)=0;
 
-	virtual bool searchVar(const basics::string<>& name, CVar& var) =0;
-	virtual bool insertVar(const basics::string<>& name, const basics::string<>& value) =0;
-	virtual bool removeVar(const basics::string<>& name) =0;
-	virtual bool saveVar(const CVar& pet) =0;
+	virtual bool searchVar(const basics::string<>& name, CVar& var)
+	{
+		return this->searchVar((const char*)name, var);
+	}
+	virtual bool searchVar(const char* name, CVar& var) =0;
+	virtual bool insertVar(const basics::string<>& name, const basics::string<>& value)
+	{
+		return this->insertVar((const char*)name, (const char*)value);
+	}
+	virtual bool insertVar(const char* name, const char* value) =0;
+	virtual bool removeVar(const basics::string<>& name)
+	{
+		return this->removeVar((const char*)name);
+	}
+	virtual bool removeVar(const char* name) =0;
+	virtual bool saveVar(const CVar& var) =0;
 };
 
 class CVarDB : public CVarDBInterface
@@ -966,7 +1004,15 @@ public:
 	{
 		return db->searchVar(name, var);
 	}
+	virtual bool searchVar(const char* name, CVar& var)
+	{
+		return db->searchVar(name, var);
+	}
 	virtual bool insertVar(const basics::string<>& name, const basics::string<>& value)
+	{
+		return db->insertVar(name, value);
+	}
+	virtual bool insertVar(const char* name, const char* value)
 	{
 		return db->insertVar(name, value);
 	}
@@ -974,9 +1020,14 @@ public:
 	{
 		return db->removeVar(name);
 	}
+	virtual bool removeVar(const char* name)
+	{
+		return db->removeVar(name);
+	}
 	virtual bool saveVar(const CVar& var)
 	{
-		return db->saveVar(var);
+		const bool del = (var.value() == "" || var.value() == "0" );
+		return (del) ? db->removeVar(var) : db->saveVar(var);
 	}
 };
 

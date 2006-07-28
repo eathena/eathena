@@ -17,12 +17,13 @@
 #include "int_guild.h"
 #include "int_party.h"
 #include "int_storage.h"
-
+#include "irc.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
 /// chardb
 CCharDB		char_db;
+CVarDB		var_db;
 
 ///////////////////////////////////////////////////////////////////////////////
 basics::netaddress	loginaddress(basics::ipaddress::GetSystemIP(0), 6900);	 // first lanip as default
@@ -1494,6 +1495,19 @@ int parse_frommap(int fd)
 					// send to all maps
 					mapif_sendall(buf, len);
 				}
+
+				// send vars
+				size_t cnt=var_db.size();
+				for(x=0; x<cnt; ++x)
+				{
+					const CVar &var = var_db[x];
+					const size_t sz = var.to_buffer(WFIFOP(fd,4), 0); //## len curently ignored
+					WFIFOW(fd,0) = 0x2b31;
+					WFIFOW(fd,2) = 4+sz;
+					WFIFOSET(fd, 4+sz);
+				}
+				
+
 			}
 			RFIFOSKIP(fd,RFIFOW(fd,2));
 			break;
@@ -2077,9 +2091,51 @@ int parse_frommap(int fd)
 			RFIFOSKIP(fd,sz);
 			break;
 		}
-		
 
+		///////////////////////////////////////////////////////////////////////
+		// variable system
+		// req variable in/out
+		case 0x2b30:
+		{	size_t sz;
+			if (RFIFOREST(fd) < 4 || (size_t)RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
+				return 0;
 
+			// nothing here right now
+
+			RFIFOSKIP(fd,sz);
+			break;
+		}
+		// save variable in/out
+		case 0x2b31:
+		{	size_t sz;
+			if (RFIFOREST(fd) < 4 || (size_t)RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
+				return 0;
+
+			const char*n =(const char*)RFIFOP(fd,4);
+			const char*v =(const char*)RFIFOP(fd,36); 
+			// putting Macros into indirect conversions results in problems on M$
+			CVar var( n, v );
+			if( var_db.saveVar(var) )
+			{
+				// and send it down to all other maps for map/party/guild vars
+				mapif_sendallwos(fd, RFIFOP(fd,0), sz);
+				// do not send down for account/char vars
+			}
+
+			RFIFOSKIP(fd,sz);
+			break;
+		}
+
+		///////////////////////////////////////////////////////////////////////
+		// irc system
+		// announce
+		case 0x2b38:
+		{	size_t sz;
+			if (RFIFOREST(fd) < 4 || (size_t)RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
+				return 0;
+			irc_announce(fd);
+			break;
+		}
 		///////////////////////////////////////////////////////////////////////
 //!! reorder for proper returns or just integrate
 		default:
@@ -2896,6 +2952,7 @@ void do_final(void)
 	set_all_offline();
 
 	inter_final();
+	irc_final();
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -2922,12 +2979,15 @@ int do_init(int argc, char **argv)
 
 	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
 	char_db.init( (argc < 2) ? CHAR_CONF_NAME : argv[1] );
+	var_db.init( (argc < 2) ? CHAR_CONF_NAME : argv[1] );
+
+
 	// a newline in the log...
 	char_log("");
 	// moved behind char_config_read in case we changed the filename [celest]
 	char_log("The char-server starting..." RETCODE);
 
-	for(i = 0; i < MAX_MAP_SERVERS; ++i)
+	for(i=0; i<MAX_MAP_SERVERS; ++i)
 	{
 		server[i].fd = -1;
 	}
@@ -2936,7 +2996,7 @@ int do_init(int argc, char **argv)
 	create_online_files(); // update online players files at start of the server
 
 	inter_init((argc > 2) ? argv[2] : inter_cfgName);	// inter server ‰Šú‰»
-
+	
 	set_defaultparse(parse_char);
 
 	basics::CParam<bool> automatic_wan_setup("automatic_wan_setup",false);
@@ -2961,5 +3021,6 @@ int do_init(int argc, char **argv)
 	   	start_console();
 	}
 
+	irc_init();
 	return 0;
 }

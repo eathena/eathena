@@ -4,12 +4,8 @@
 #include "map.h"
 #include "battle.h"
 #include "clif.h"
-#include "mob.h"
 #include "movable.h"
-#include "npc.h"
 #include "pc.h"
-#include "pet.h"
-#include "homun.h"
 #include "skill.h"
 #include "status.h"
 
@@ -44,33 +40,6 @@ int movable::changestate(int state,int type)
 	do_changestate(state,type);
 	return 0;
 }
-
-// old timer entry function
-// it actually combines the extraction of the object and calling the 
-// object interal handler, which formally was pc_timer, mob_timer, etc.
-int movable::walktimer_entry(int tid, unsigned long tick, int id, basics::numptr data)
-{
-	block_list* bl = map_id2bl(id);
-	movable* mv;
-	if( bl && (mv=bl->get_movable()) )
-	{
-
-		if( mv->get_sd() )
-			mv->get_sd();
-
-		if(mv->walktimer != tid)
-		{
-			if(battle_config.error_log)
-				ShowError("walktimer_entry %d != %d\n",mv->walktimer,tid);
-			return 0;
-		}
-		// timer was executed, clear it
-		mv->walktimer = -1;
-		mv->walktimer_func(tick);
-	}
-	return 0;
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 /// set directions seperately.
 void movable::set_dir(dir_t b, dir_t h)
@@ -103,6 +72,147 @@ void movable::set_headdir(dir_t d)
 	const bool ch = this->headdir == d;
 	if(ch) this->headdir=d, clif_changed_dir(*this);
 }
+
+/// walktimer entry function.
+/// it actually combines the extraction of the object and calling the 
+/// object interal handler, which formally was pc_timer, mob_timer, etc.
+int movable::walktimer_entry(int tid, unsigned long tick, int id, basics::numptr data)
+{
+	block_list* bl = map_id2bl(id);
+	movable* mv;
+	if( bl && (mv=bl->get_movable()) )
+	{
+
+		if( mv->get_sd() )
+			mv->get_sd();
+
+		if(mv->walktimer != tid)
+		{
+			if(config.error_log)
+				ShowError("walktimer_entry %d != %d\n",mv->walktimer,tid);
+			return 0;
+		}
+		// timer was executed, clear it
+		mv->walktimer = -1;
+		// and call the actual timer function
+		mv->walktimer_func(tick);
+	}
+	return 0;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// main walking function
+bool movable::walktimer_func(unsigned long tick)
+{
+	if( !this->walkpath.finished() &&	// walking not finished
+		this->is_movable() &&			// object is movable and can walk on the source tile
+		this->can_walk(this->block_list::m,this->block_list::x,this->block_list::y) )
+	{	// do a walk step
+		int dx,dy;
+		dir_t d;
+		int x = this->block_list::x;
+		int y = this->block_list::y;
+
+		// test the target tile
+		for(;;)
+		{
+			// get the direction to walk to
+			d = this->walkpath.get_current_step();
+			// get the delta's
+			dx = dirx[d];
+			dy = diry[d];
+
+			// check if the object can move to the target tile
+			if( this->can_walk(this->block_list::m,x+dx,y+dy) )
+				// the selected step is valid, so break the loop
+				break;
+
+			// otherwise the next target tile is not walkable
+			// try to get a new path to the final target 
+			// that is different from the current
+			if( this->init_walkpath() && d != this->walkpath.get_current_step() )
+			{	// and use it
+				continue;
+			}
+			else
+			{	// otherwise fail to walk
+				clif_fixobject(*this);
+				this->do_stop_walking();
+				return false;
+			}
+		}
+
+		// new coordinate
+		x += dx;
+		y += dy;
+
+		// call object depending move code
+		if( this->do_walkstep(tick, coordinate(x,y), dx,dy) )
+		{
+			// check if crossing a block border
+			const bool moveblock = ( this->block_list::x/BLOCK_SIZE != x/BLOCK_SIZE || this->block_list::y/BLOCK_SIZE != y/BLOCK_SIZE);
+
+			// set the object direction
+			this->set_dir( d );
+
+			// signal out-of-sight
+			CMap::foreachinmovearea( CClifOutsight(*this),
+				this->block_list::m,this->block_list::x-AREA_SIZE,this->block_list::y-AREA_SIZE,this->block_list::x+AREA_SIZE,this->block_list::y+AREA_SIZE,dx,dy,this->get_sd()?0:BL_PC);
+
+
+			skill_unit_move(*this,tick,0);
+
+			// remove from blocklist when crossing a block border
+			if(moveblock) this->map_delblock();
+
+			// assign the new coordinate
+			this->block_list::x = x;
+			this->block_list::y = y;
+
+			// reinsert to blocklist when crossing a block border
+			if(moveblock) this->map_addblock();
+
+			skill_unit_move(*this,tick,1);
+
+			// signal in-sight
+			CMap::foreachinmovearea( CClifInsight(*this),
+				this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,this->get_sd()?0:BL_PC);
+
+			// do object depending stuff at the end of the walk step.
+			this->do_walkend();
+
+			// this could be simplified when allowing pathsearch to reuse the current path
+			// the change_target member would be obsolete and 
+			// this->init_walkpath would be called from this->walktoxy
+			// the extra expence is that multiple target changes within a single walk cycle
+			// would also do multiple path searches
+			if( this->walkpath.change_target )
+			{	// build a new path when target has changed
+				this->walkpath.change_target=0;
+				this->init_walkpath();
+			}
+			else
+			{	// set the next walk position otherwise
+				++this->walkpath;
+			}
+
+			// set the timer for the next loop
+			if( this->set_walktimer(tick) )
+				return true;
+		}
+	}
+	// finished walking
+	// the normal walking flow will end here
+	// when the target is reached
+
+
+//	clif_fixobject(*this);	
+// it might be not necessary to force the client to sync with the current position
+// this might cause small walk irregularities when server and client are slightly out of sync
+
+	this->do_stop_walking();
+	return true;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Randomizes target cell.
@@ -218,80 +328,12 @@ int movable::calc_speed()
 	return this->speed;
 }
 
-bool movable::is_movable()
-{
-	if( DIFF_TICK(this->canmove_tick, gettick()) > 0 )
-		return false;
-
-	map_session_data *sd = this->get_sd();
-	mob_data *md = this->get_md();
-	pet_data *pd = this->get_pd();
-	npc_data *nd = this->get_nd();
-	homun_data *hd = this->get_hd();
-	if( sd )
-	{
-		if( sd->skilltimer != -1 && !pc_checkskill(*sd, SA_FREECAST) ||
-			pc_issit(*sd) )
-			return false;
-	}
-	else if( md )
-	{
-		if( md->skilltimer != -1 )
-			return false;
-	}
-	else if( pd )
-	{
-		if(pd->state.casting_flag )
-			return false;
-	}
-	else if( nd )
-	{
-		// nothing to break here
-	}
-	else if( hd )
-	{
-		if( hd->skilltimer != -1 )
-			return false;
-		if( hd->attacktimer != -1 )
-			return false;
-		
-	}	
-	else
-		return false;
-
-	struct status_change *sc_data = status_get_sc_data(this);
-	if (sc_data)
-	{
-		if(	sc_data[SC_ANKLE].timer != -1 ||
-			sc_data[SC_AUTOCOUNTER].timer !=-1 ||
-			sc_data[SC_TRICKDEAD].timer !=-1 ||
-			sc_data[SC_BLADESTOP].timer !=-1 ||
-			sc_data[SC_BLADESTOP_WAIT].timer !=-1 ||
-			sc_data[SC_SPIDERWEB].timer !=-1 ||
-			(sc_data[SC_DANCING].timer !=-1 && (
-				(sc_data[SC_DANCING].val4.num && sc_data[SC_LONGING].timer == -1) ||
-				sc_data[SC_DANCING].val1.num == CG_HERMODE	//cannot move while Hermod is active.
-			)) ||
-//			sc_data[SC_STOP].timer != -1 ||
-//			sc_data[SC_CLOSECONFINE].timer != -1 ||
-//			sc_data[SC_CLOSECONFINE2].timer != -1 ||
-			sc_data[SC_MOONLIT].timer != -1 ||
-			(sc_data[SC_GOSPEL].timer !=-1 && sc_data[SC_GOSPEL].val4.num == BCT_SELF) // cannot move while gospel is in effect
-			)
-			return false;
-	}
-	return true;
-}
-
-
 /// sets the object to idle state
 bool movable::set_idle()
 {
 	this->stop_walking();
 	return this->is_idle();
 }
-
-
 
 bool movable::can_walk(unsigned short m, unsigned short x, unsigned short y)
 {	// default only checks for non-passable cells
@@ -330,116 +372,7 @@ bool movable::set_walktimer(unsigned long tick)
 	return false;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-/// main walking function
-bool movable::walkstep(unsigned long tick)
-{
-	if( !this->walkpath.finished() &&	// walking not finished
-		this->is_movable() &&			// object is movable and can walk on the source tile
-		this->can_walk(this->block_list::m,this->block_list::x,this->block_list::y) )
-	{	// do a walk step
-		int dx,dy;
-		dir_t d;
-		int x = this->block_list::x;
-		int y = this->block_list::y;
 
-		// test the target tile
-		for(;;)
-		{
-			// get the direction to walk to
-			d = this->walkpath.get_current_step();
-			// get the delta's
-			dx = dirx[d];
-			dy = diry[d];
-
-			// check if the object can move to the target tile
-			if( this->can_walk(this->block_list::m,x+dx,y+dy) )
-				// the selected step is valid, so break the loop
-				break;
-
-			// otherwise the next target tile is not walkable
-			// try to get a new path to the final target 
-			// that is different from the current
-			if( this->init_walkpath() && d != this->walkpath.get_current_step() )
-			{	// and use it
-				continue;
-			}
-			else
-			{	// otherwise fail to walk
-				clif_fixobject(*this);
-				this->do_stop_walking();
-				return false;
-			}
-		}
-
-		// check if crossing a block border
-		const bool moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
-
-		// set the object direction
-		this->set_dir( d );
-
-		// signal out-of-sight
-		CMap::foreachinmovearea( CClifOutsight(*this),
-			this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,this->get_sd()?0:BL_PC);
-
-		// new coordinate
-		x += dx;
-		y += dy;
-
-		// call object depending move code
-		this->do_walkstep(tick, coordinate(x,y), dx,dy);
-
-		skill_unit_move(*this,tick,0);
-
-		// remove from blocklist when crossing a block border
-		if(moveblock) this->map_delblock();
-
-		// assign the new coordinate
-		this->block_list::x = x;
-		this->block_list::y = y;
-
-		// reinsert to blocklist when crossing a block border
-		if(moveblock) this->map_addblock();
-
-		skill_unit_move(*this,tick,1);
-
-		// signal in-sight
-		CMap::foreachinmovearea( CClifInsight(*this),
-			this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,this->get_sd()?0:BL_PC);
-
-
-		// this could be simplified when allowing pathsearch to reuse the current path
-		// the change_target member would be obsolete and 
-		// this->init_walkpath would be called from this->walktoxy
-		// the extra expence is that multiple target changes within a single walk cycle
-		// would also do multiple path searches
-		if( this->walkpath.change_target )
-		{	// build a new path when target has changed
-			this->walkpath.change_target=0;
-			this->init_walkpath();
-		}
-		else
-		{	// set the next walk position otherwise
-			++this->walkpath;
-		}
-
-		// set the timer for the next loop
-		if( this->set_walktimer(tick) )
-			return true;
-	}
-
-	// finished walking
-	// the normal walking flow will end here
-	// when the target is reached
-
-
-//	clif_fixobject(*this);	
-// it might be not necessary to force the client to sync with the current position
-// this might cause small walk irregularities when server and client are slightly out of sync
-
-	this->do_stop_walking();
-	return true;
-}
 
 bool movable::walktoxy(const coordinate& pos, bool easy)
 {
@@ -476,14 +409,15 @@ bool movable::walktoxy(const coordinate& pos, bool easy)
 
 bool movable::stop_walking(int type)
 {
+	this->walkpath.clear();
+	this->walktarget = *this;
+
 	if( this->walktimer != -1 )
 	{
 		delete_timer(this->walktimer, this->walktimer_entry);
 		this->walktimer = -1;
-		this->walkpath.clear();
-		this->walktarget = *this;
 
-		// always send a fixed position to the client
+		// always send a fixed position to the client when killing the timer
 //		if(type&0x01)
 		{
 			clif_fixpos(*this);
@@ -498,7 +432,7 @@ bool movable::stop_walking(int type)
 				this->canmove_tick = tick + delay;
 		}
 
-		do_stop_walking();
+		this->do_stop_walking();
 	}
 	return true;
 }
@@ -567,27 +501,28 @@ bool movable::movepos(const coordinate &target)
 	const unsigned long tick = gettick();
 	int dx = target.x - this->block_list::x;
 	int dy = target.y - this->block_list::y;
-	bool moveblock = ( this->block_list::x/BLOCK_SIZE != target.x/BLOCK_SIZE || this->block_list::y/BLOCK_SIZE != target.y/BLOCK_SIZE);
 
 	this->set_idle();
 	this->set_dir( direction(*this, target) );
 
-	CMap::foreachinmovearea( CClifOutsight(*this),
-		this->block_list::m,((int)this->block_list::x)-AREA_SIZE,((int)this->block_list::y)-AREA_SIZE,((int)this->block_list::x)+AREA_SIZE,((int)this->block_list::y)+AREA_SIZE,dx,dy,0);
-
 	// call object depending move code
-	this->do_walkstep(tick, target, dx,dy);
+	if( this->do_walkstep(tick, target, dx,dy) )
+	{
+		bool moveblock = ( this->block_list::x/BLOCK_SIZE != target.x/BLOCK_SIZE || this->block_list::y/BLOCK_SIZE != target.y/BLOCK_SIZE);
 
-	skill_unit_move(*this,tick,0);
-	if(moveblock) this->map_delblock();
-	this->block_list::x = target.x;
-	this->block_list::y = target.y;
-	if(moveblock) this->map_addblock();
-	skill_unit_move(*this,tick,1);
+		CMap::foreachinmovearea( CClifOutsight(*this),
+			this->block_list::m,((int)this->block_list::x)-AREA_SIZE,((int)this->block_list::y)-AREA_SIZE,((int)this->block_list::x)+AREA_SIZE,((int)this->block_list::y)+AREA_SIZE,dx,dy,0);
 
-	CMap::foreachinmovearea( CClifInsight(*this),
-		this->block_list::m,((int)this->block_list::x)-AREA_SIZE,((int)this->block_list::y)-AREA_SIZE,((int)this->block_list::x)+AREA_SIZE,((int)this->block_list::y)+AREA_SIZE,-dx,-dy,0);
+		skill_unit_move(*this,tick,0);
+		if(moveblock) this->map_delblock();
+		this->block_list::x = target.x;
+		this->block_list::y = target.y;
+		if(moveblock) this->map_addblock();
+		skill_unit_move(*this,tick,1);
 
+		CMap::foreachinmovearea( CClifInsight(*this),
+			this->block_list::m,((int)this->block_list::x)-AREA_SIZE,((int)this->block_list::y)-AREA_SIZE,((int)this->block_list::x)+AREA_SIZE,((int)this->block_list::y)+AREA_SIZE,-dx,-dy,0);
+	}
 	return true;
 }
 

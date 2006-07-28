@@ -111,10 +111,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// walking functions
 
-
-	/// checks if object is movable at all. immobile by default
-	// currently not overloaded and only used for mobs
-	virtual bool is_movable();
+	/// checks if object is movable at all.
+	virtual bool is_movable()	{ return true; }
 
 	/// checks if walking on the quested tile is possible
 	/// -> move to map class
@@ -123,7 +121,9 @@ public:
 	/// do object depending stuff for ending the walk.
 	virtual void do_stop_walking()	{}
 	/// do object depending stuff for the walk step.
-	virtual void do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy)	{}
+	virtual bool do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy)	{ return true; }
+	/// do object depending stuff at the end of the walk step.
+	virtual void do_walkend()	{}
 	/// do object depending stuff for the walkto
 	virtual void do_walkto()	{}
 	/// do object depending stuff for changestate
@@ -156,20 +156,16 @@ public:
 	/// call back function for the timer
 	static int walktimer_entry(int tid, unsigned long tick, int id, basics::numptr data);
 
-	/// timer function.
+	/// main walking function
 	/// called from walktimer_entry
-	// possibly clean and compound all related functions, the interface might only need 2 or 3 accesses
-	virtual bool walktimer_func(unsigned long tick)
-	{	// does standard walking by default
-		return this->walkstep(tick);
-	}
+	virtual bool walktimer_func(unsigned long tick);
+
 
 	/// initialize walkpath. uses current target position as walk target
 	bool init_walkpath();
 	/// activates the walktimer
 	bool set_walktimer(unsigned long tick);
-	/// main walking function
-	bool walkstep(unsigned long tick);
+
 
 };
 

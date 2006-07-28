@@ -264,7 +264,6 @@ public:
 
 
 
-
 /// abstract session data declaration.
 /// user defined session data have to be derived from this class
 class session_data
@@ -351,6 +350,9 @@ static inline bool session_SetTermFunction(int fd, int (*term)(int))
 
 bool session_SetWaitClose(int fd, unsigned long timeoffset);
 bool session_Delete(int fd);
+
+bool session_checkbuffer(int fd, size_t sz);
+
 
 // Function prototype declaration
 

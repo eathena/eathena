@@ -189,7 +189,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// construction set (needs explicite casts when initializing with 0)
     ipaddress(uint32 a):cAddr(a)	{}
-	explicit ipaddress(const char* str):cAddr(str2ip(str))	{}
+	ipaddress(const char* str):cAddr(str2ip(str))	{}
+	ipaddress(const string<>& str):cAddr(str2ip(str))	{}
     ipaddress(int a, int b, int c, int d)
 	{
 		this->cAddr = (a&0xFF) << 0x18
@@ -201,6 +202,8 @@ public:
 	/// assignment set (needs explicite casts when assigning 0)
     const ipaddress& operator= (uint32 a)			{ this->cAddr = a; return *this; }
 	const ipaddress& operator= (const char* str)	{ this->cAddr = str2ip(str); return *this; }
+	const ipaddress& operator= (const string<>& str){ this->cAddr = str2ip(str); return *this; }
+	
 
 	bool init(const char *str)
 	{
@@ -276,14 +279,17 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// construction set
 	netaddress(uint32 a, ushort p):ipaddress(a),cPort(p)	{}
-	netaddress(ushort p):ipaddress((uint32)INADDR_ANY),cPort(p)	{}
+	netaddress(uint32 ip):ipaddress(ip),cPort(0)	{}
+	explicit netaddress(ushort p):ipaddress((uint32)INADDR_ANY),cPort(p)	{}
     netaddress(int a, int b, int c, int d, ushort p):ipaddress(a,b,c,d),cPort(p) {}
-	netaddress(const char* str)	{ init(str); }
+	netaddress(const char* str):ipaddress((uint32)INADDR_ANY),cPort(0)	{ init(str); }
+	netaddress(const string<>& str):ipaddress((uint32)INADDR_ANY),cPort(0)	{ init(str); }
 	///////////////////////////////////////////////////////////////////////////
 	/// assignment set
     const netaddress& operator= (uint32 a)			{ this->cAddr = a; return *this; }
 	const netaddress& operator= (ushort p)			{ this->cPort = p; return *this; }
 	const netaddress& operator= (const char* str)	{ init(str); return *this; }
+	const netaddress& operator= (const string<>& str){ init(str); return *this; }
 	bool init(const char *str)
 	{	
 		ipaddress mask; // dummy
@@ -335,10 +341,12 @@ public:
 	/// construction set
 	subnetaddress(uint32 a, uint32 m, ushort p):netaddress(a,p),cMask(m)	{}
 	subnetaddress(netaddress a, ipaddress m):netaddress(a),cMask(m)	{}
-	subnetaddress(const char* str)	{ init(str); }
+	subnetaddress(const char* str):cMask((uint32)INADDR_ANY)	{ init(str); }
+	subnetaddress(const string<>& str):cMask((uint32)INADDR_ANY)	{ init(str); }
 	///////////////////////////////////////////////////////////////////////////
 	/// assignment set
 	const subnetaddress& operator= (const char* str)	{ init(str); return *this; }
+	const subnetaddress& operator= (const string<>& str){ init(str); return *this; }
 	bool init(const char *str)
 	{	// format: <ip>/<mask>:<port>
 		return ipaddress::str2ip(str, *this, this->cMask, this->cPort);
@@ -398,20 +406,23 @@ public:
 		  const ushort wpt)
 		: subnetaddress(ipaddress::GetSystemIP(0),(uint32)INADDR_ANY,lpt),wanaddr((uint32)INADDR_ANY,wpt)
 	{}
-	ipset(const ushort pt)
+	explicit ipset(const ushort pt)
 		: subnetaddress(ipaddress::GetSystemIP(0),(uint32)INADDR_ANY,pt),wanaddr((uint32)INADDR_ANY,pt)
 	{}
+
 
 	virtual ~ipset()	{}
 	// can use default copy/assign here
 
 	///////////////////////////////////////////////////////////////////////////
 	/// construction set
-	ipset(const char* str)	{ init(str); }
+	ipset(const char* str)		{ init(str); }
+	ipset(const string<>& str)	{ init(str); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// assignment set
-	const ipset& operator=(const char* str)	{ init(str); return *this; }
+	const ipset& operator=(const char* str)		{ init(str); return *this; }
+	const ipset& operator=(const string<>& str)	{ init(str); return *this; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// initializes from a format string

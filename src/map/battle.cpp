@@ -20,7 +20,7 @@
 
 int attr_fix_table[4][10][10];
 
-struct Battle_Config battle_config;
+
 
 
 
@@ -159,7 +159,7 @@ int battle_delay_damage_sub(int tid, unsigned long tick, int id, basics::numptr 
 int battle_delay_damage(unsigned long tick, struct block_list &src, struct block_list &target, int damage, int flag)
 {
 	struct delay_damage *dat;
-	if(!battle_config.delay_battle_damage)
+	if(!config.delay_battle_damage)
 	{
 		battle_damage(&src, &target, damage, flag);
 		return 0;
@@ -289,7 +289,7 @@ int battle_attr_fix(int damage,int atk_elem,int def_elem)
 
 	if (def_type < 0 || def_type > 9 ||
 		def_lv < 1 || def_lv > 4) {	// 属 性値がおかしいのでとりあえずそのまま返す
-		if (battle_config.error_log)
+		if (config.error_log)
 			ShowMessage("battle_attr_fix: unknown attr type: atk=%d def_type=%d def_lv=%d\n",atk_elem,def_type,def_lv);
 		return damage;
 	}
@@ -503,7 +503,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 				damage=0;//自占領ギルドのエンペならダメージ無し
 			else if(g && guild_checkskill(*g,GD_APPROVAL) <= 0)
 				damage=0;//正規ギルド承認がないとダメージ無し
-			else if (g && battle_config.guild_max_castles != 0 && guild_checkcastles(*g)>=battle_config.guild_max_castles)
+			else if (g && config.guild_max_castles != 0 && guild_checkcastles(*g)>=config.guild_max_castles)
 				damage = 0; // [MouseJstr]
 			else if (g && gc && guild_check_alliance(gc->guild_id, g->guild_id, 0) == 1)
 				return 0;
@@ -515,19 +515,19 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		if (maps[bl->m].flag.gvg) { //GvG
 			if (bl->type == BL_MOB){	//defenseがあればダメージが減るらしい？
 			struct guild_castle *gc=guild_mapname2gc(maps[bl->m].mapname);
-				if (gc) damage -= damage * (gc->defense / 100) * (battle_config.castle_defense_rate/100);
+				if (gc) damage -= damage * (gc->defense / 100) * (config.castle_defense_rate/100);
 			}
 			if (flag & BF_WEAPON) {
 				if (flag & BF_SHORT)
-					damage = damage * battle_config.gvg_short_damage_rate/100;
+					damage = damage * config.gvg_short_damage_rate/100;
 				if (flag & BF_LONG)
-					damage = damage * battle_config.gvg_long_damage_rate/100;
+					damage = damage * config.gvg_long_damage_rate/100;
 			}
 			if (flag&BF_MAGIC)
-				damage = damage * battle_config.gvg_magic_damage_rate/100;
+				damage = damage * config.gvg_magic_damage_rate/100;
 			if (flag&BF_MISC)
-				damage = damage * battle_config.gvg_misc_damage_rate/100;
-		} else if (battle_config.pk_mode && bl->type == BL_PC) {
+				damage = damage * config.gvg_misc_damage_rate/100;
+		} else if (config.pk_mode && bl->type == BL_PC) {
 			if (flag & BF_WEAPON) {
 				if (flag & BF_SHORT)
 					damage = damage * 80/100;
@@ -542,7 +542,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		if(damage < 1) damage  = 1;
 	}
 
-	if(battle_config.skill_min_damage || flag&BF_MISC) {
+	if(config.skill_min_damage || flag&BF_MISC) {
 		if(div_ < 255) {
 			if(damage > 0 && damage < div_)
 				damage = div_;
@@ -758,14 +758,14 @@ static struct Damage battle_calc_pet_weapon_attack(
 
 	// 回避率計算、回避判定は後で
 	flee = status_get_flee(target);
-	if(battle_config.agi_penalty_type > 0 || battle_config.vit_penalty_type > 0)
-		target_count += battle_counttargeted(*target,src,battle_config.agi_penalty_count_lv);
-	if(battle_config.agi_penalty_type > 0) {
-		if(target_count >= battle_config.agi_penalty_count) {
-			if(battle_config.agi_penalty_type == 1)
-				flee = (flee * (100 - (target_count - (battle_config.agi_penalty_count - 1))*battle_config.agi_penalty_num))/100;
-			else if(battle_config.agi_penalty_type == 2)
-				flee -= (target_count - (battle_config.agi_penalty_count - 1))*battle_config.agi_penalty_num;
+	if(config.agi_penalty_type > 0 || config.vit_penalty_type > 0)
+		target_count += battle_counttargeted(*target,src,config.agi_penalty_count_lv);
+	if(config.agi_penalty_type > 0) {
+		if(target_count >= config.agi_penalty_count) {
+			if(config.agi_penalty_type == 1)
+				flee = (flee * (100 - (target_count - (config.agi_penalty_count - 1))*config.agi_penalty_num))/100;
+			else if(config.agi_penalty_type == 2)
+				flee -= (target_count - (config.agi_penalty_count - 1))*config.agi_penalty_num;
 			if(flee < 1) flee = 1;
 		}
 	}
@@ -780,7 +780,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 
 	luk=status_get_luk(src);
 
-	if(battle_config.pet_str)
+	if(config.pet_str)
 		damage = status_get_baseatk(src);
 	else
 		damage = 0;
@@ -799,8 +799,8 @@ static struct Damage battle_calc_pet_weapon_attack(
 
 	cri = status_get_critical(src);
 	cri -= status_get_luk(target) * 2; // luk/5*10 => target_luk*2 not target_luk*3
-	if(battle_config.enemy_critical_rate != 100) {
-		cri = cri*battle_config.enemy_critical_rate/100;
+	if(config.enemy_critical_rate != 100) {
+		cri = cri*config.enemy_critical_rate/100;
 		if(cri < 1)
 			cri = 1;
 	}
@@ -812,7 +812,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 			cri = 1000;
 	}
 
-	if(skill_num == 0 && battle_config.enemy_critical && (rand() % 1000) < cri)
+	if(skill_num == 0 && config.enemy_critical && (rand() % 1000) < cri)
 	{
 		damage += atkmax;
 		type = 0x0a;
@@ -1071,18 +1071,18 @@ static struct Damage battle_calc_pet_weapon_attack(
 		// ディバインプロテクション（ここでいいのかな？）
 		if (!ignore_def_flag && def1 < 1000000) {	//DEF, VIT無視
 			int t_def;
-			target_count = 1 + battle_counttargeted(*target,src,battle_config.vit_penalty_count_lv);
-			if(battle_config.vit_penalty_type > 0) {
-				if(target_count >= battle_config.vit_penalty_count) {
-					if(battle_config.vit_penalty_type == 1) {
-						def1 = (def1 * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
-						def2 = (def2 * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
-						t_vit = (t_vit * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
+			target_count = 1 + battle_counttargeted(*target,src,config.vit_penalty_count_lv);
+			if(config.vit_penalty_type > 0) {
+				if(target_count >= config.vit_penalty_count) {
+					if(config.vit_penalty_type == 1) {
+						def1 = (def1 * (100 - (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num))/100;
+						def2 = (def2 * (100 - (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num))/100;
+						t_vit = (t_vit * (100 - (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num))/100;
 					}
-					else if(battle_config.vit_penalty_type == 2) {
-						def1 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
-						def2 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
-						t_vit -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
+					else if(config.vit_penalty_type == 2) {
+						def1 -= (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num;
+						def2 -= (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num;
+						t_vit -= (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num;
 					}
 					if(def1 < 0) def1 = 0;
 						if(def2 < 1) def2 = 1;
@@ -1091,8 +1091,8 @@ static struct Damage battle_calc_pet_weapon_attack(
 			}
 			t_def = def2*8/10;
 			vitbonusmax = (t_vit/20)*(t_vit/20)-1;
-			if(battle_config.pet_defense_type) {
-				damage = damage - (def1 * battle_config.pet_defense_type) - t_def - ((vitbonusmax < 1)?0: rand()%(vitbonusmax+1) );
+			if(config.pet_defense_type) {
+				damage = damage - (def1 * config.pet_defense_type) - t_def - ((vitbonusmax < 1)?0: rand()%(vitbonusmax+1) );
 			}
 			else{
 				damage = damage * (100 - def1) /100 - t_def - ((vitbonusmax < 1)?0: rand()%(vitbonusmax+1) );
@@ -1136,7 +1136,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 	if(damage < 0) damage = 0;
 
 	// 属 性の適用
-	if(skill_num != 0 || s_ele != 0 || !battle_config.pet_attack_attr_none)
+	if(skill_num != 0 || s_ele != 0 || !config.pet_attack_attr_none)
 	damage=battle_attr_fix(damage, s_ele, status_get_element(target) );
 
 	if(skill_num==PA_PRESSURE) /* プレッシャー 必中? */
@@ -1151,7 +1151,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 	}
 
 	// 完全回避の判定
-	if(battle_config.enemy_perfect_flee) {
+	if(config.enemy_perfect_flee) {
 		if(skill_num == 0 && tmd!=NULL && rand()%1000 < status_get_flee2(target) ){
 			damage=0;
 			type=0x0b;
@@ -1230,8 +1230,8 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 	t_mode = status_get_mode( target );
 	t_sc_data = status_get_sc_data( target );
 
-	if(skill_num == 0 || (target->type == BL_PC && battle_config.pc_auto_counter_type&2) ||
-		(target->type == BL_MOB && battle_config.monster_auto_counter_type&2)) {
+	if(skill_num == 0 || (target->type == BL_PC && config.pc_auto_counter_type&2) ||
+		(target->type == BL_MOB && config.monster_auto_counter_type&2)) {
 		if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1) {
 			dir_t dir = src->get_direction(*target);
 			dir_t t_dir = target->get_dir();
@@ -1259,14 +1259,14 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 
 	// 回避率計算、回避判定は後で
 	flee = status_get_flee(target);
-	if(battle_config.agi_penalty_type > 0 || battle_config.vit_penalty_type > 0)
-		target_count += battle_counttargeted(*target,src,battle_config.agi_penalty_count_lv);
-	if(battle_config.agi_penalty_type > 0) {
-		if(target_count >= battle_config.agi_penalty_count) {
-			if(battle_config.agi_penalty_type == 1)
-				flee = (flee * (100 - (target_count - (battle_config.agi_penalty_count - 1))*battle_config.agi_penalty_num))/100;
-			else if(battle_config.agi_penalty_type == 2)
-				flee -= (target_count - (battle_config.agi_penalty_count - 1))*battle_config.agi_penalty_num;
+	if(config.agi_penalty_type > 0 || config.vit_penalty_type > 0)
+		target_count += battle_counttargeted(*target,src,config.agi_penalty_count_lv);
+	if(config.agi_penalty_type > 0) {
+		if(target_count >= config.agi_penalty_count) {
+			if(config.agi_penalty_type == 1)
+				flee = (flee * (100 - (target_count - (config.agi_penalty_count - 1))*config.agi_penalty_num))/100;
+			else if(config.agi_penalty_type == 2)
+				flee -= (target_count - (config.agi_penalty_count - 1))*config.agi_penalty_num;
 			if(flee < 1) flee = 1;
 		}
 	}
@@ -1280,7 +1280,7 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 
 	luk=status_get_luk(src);
 
-	if(battle_config.enemy_str)
+	if(config.enemy_str)
 		damage = status_get_baseatk(src);
 	else
 		damage = 0;
@@ -1302,8 +1302,8 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 
 	cri = status_get_critical(src);
 	cri -= status_get_luk(target) * 3;
-	if(battle_config.enemy_critical_rate != 100) {
-		cri = cri*battle_config.enemy_critical_rate/100;
+	if(config.enemy_critical_rate != 100) {
+		cri = cri*config.enemy_critical_rate/100;
 		if(cri < 1)
 			cri = 1;
 	}
@@ -1318,7 +1318,7 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 	if(ac_flag) cri = 1000;
 
 	if(skill_num == KN_AUTOCOUNTER) {
-		if(!(battle_config.monster_auto_counter_type&1))
+		if(!(config.monster_auto_counter_type&1))
 			cri = 1000;
 		else
 			cri <<= 1;
@@ -1327,7 +1327,7 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 	if(tsd && tsd->critical_def)
 		cri = cri * (100 - tsd->critical_def) / 100;
 
-	if((skill_num == 0 || skill_num == KN_AUTOCOUNTER) && skill_lv >= 0 && battle_config.enemy_critical && (rand() % 1000) < cri)	// 判定（スキルの場合は無視）
+	if((skill_num == 0 || skill_num == KN_AUTOCOUNTER) && skill_lv >= 0 && config.enemy_critical && (rand() % 1000) < cri)	// 判定（スキルの場合は無視）
 			// 敵の判定
 	{
 		damage += atkmax;
@@ -1419,7 +1419,7 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 				blewcount=0;
 				break;
 			case KN_AUTOCOUNTER:
-				if(battle_config.monster_auto_counter_type&1)
+				if(config.monster_auto_counter_type&1)
 					hitrate += 20;
 				else
 					hitrate = 1000000;
@@ -1605,18 +1605,18 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 		// ディバインプロテクション（ここでいいのかな？）
 		if (!ignore_def_flag && def1 < 1000000) {	//DEF, VIT無視
 			int t_def;
-			target_count = 1 + battle_counttargeted(*target,src,battle_config.vit_penalty_count_lv);
-			if(battle_config.vit_penalty_type > 0) {
-				if(target_count >= battle_config.vit_penalty_count) {
-					if(battle_config.vit_penalty_type == 1) {
-						def1 = (def1 * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
-						def2 = (def2 * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
-						t_vit = (t_vit * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
+			target_count = 1 + battle_counttargeted(*target,src,config.vit_penalty_count_lv);
+			if(config.vit_penalty_type > 0) {
+				if(target_count >= config.vit_penalty_count) {
+					if(config.vit_penalty_type == 1) {
+						def1 = (def1 * (100 - (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num))/100;
+						def2 = (def2 * (100 - (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num))/100;
+						t_vit = (t_vit * (100 - (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num))/100;
 					}
-					else if(battle_config.vit_penalty_type == 2) {
-						def1 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
-						def2 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
-						t_vit -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
+					else if(config.vit_penalty_type == 2) {
+						def1 -= (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num;
+						def2 -= (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num;
+						t_vit -= (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num;
 					}
 					if(def1 < 0) def1 = 0;
 					if(def2 < 1) def2 = 1;
@@ -1630,8 +1630,8 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 					//t_def += skill*3;
 
 			vitbonusmax = (t_vit/20)*(t_vit/20)-1;
-			if(battle_config.monster_defense_type) {
-				damage = damage - (def1 * battle_config.monster_defense_type) - t_def - ((vitbonusmax < 1)?0: rand()%(vitbonusmax+1) );
+			if(config.monster_defense_type) {
+				damage = damage - (def1 * config.monster_defense_type) - t_def - ((vitbonusmax < 1)?0: rand()%(vitbonusmax+1) );
 			}
 			else{
 				damage = damage * (100 - def1) /100 - t_def - ((vitbonusmax < 1)?0: rand()%(vitbonusmax+1) );
@@ -1708,10 +1708,10 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 	if(damage < 0) damage = 0;
 
 	// 属 性の適用
-	if (!((battle_config.mob_ghostring_fix == 1) &&
+	if (!((config.mob_ghostring_fix == 1) &&
 		(status_get_elem_type(target) == 8) &&
 		(target->type==BL_PC))) // [MouseJstr]
-		if(skill_num != 0 || s_ele != 0 || !battle_config.mob_attack_attr_none)
+		if(skill_num != 0 || s_ele != 0 || !config.mob_attack_attr_none)
 			damage=battle_attr_fix(damage, s_ele, status_get_element(target) );
 
 	//if(sc_data && sc_data[SC_AURABLADE].timer!=-1)	/* オーラブレード 必中 */
@@ -1734,7 +1734,7 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 		dmg_lv = ATK_LUCKY;
 	}
 
-	if(battle_config.enemy_perfect_flee) {
+	if(config.enemy_perfect_flee) {
 		if(skill_num == 0 && tmd!=NULL && rand()%1000 < status_get_flee2(target) ){
 			damage=0;
 			type=0x0b;
@@ -1834,8 +1834,8 @@ static struct Damage battle_calc_pc_weapon_attack(
 	t_sc_data=status_get_sc_data( target ); //対象のステータス異常
 
 //オートカウンター処理ここから
-	if(skill_num == 0 || (target->type == BL_PC && battle_config.pc_auto_counter_type&2) ||
-		(target->type == BL_MOB && battle_config.monster_auto_counter_type&2)) {
+	if(skill_num == 0 || (target->type == BL_PC && config.pc_auto_counter_type&2) ||
+		(target->type == BL_MOB && config.monster_auto_counter_type&2)) {
 		if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1) { //グランドクロスでなく、対象がオートカウンター状態の場合
 			dir_t dir = src->get_direction(*target);
 			dir_t t_dir = target->get_dir();
@@ -1866,14 +1866,14 @@ static struct Damage battle_calc_pc_weapon_attack(
 
 	// 回避率計算、回避判定は後で
 	flee = status_get_flee(target);
-	if(battle_config.agi_penalty_type > 0 || battle_config.vit_penalty_type > 0) //AGI、VITペナルティ設定が有効
-		target_count += battle_counttargeted(*target,src,battle_config.agi_penalty_count_lv);	//対象の数を算出
-	if(battle_config.agi_penalty_type > 0) {
-		if(target_count >= battle_config.agi_penalty_count) { //ペナルティ設定より対象が多い
-			if(battle_config.agi_penalty_type == 1) //回避率がagi_penalty_num%ずつ減少
-				flee = (flee * (100 - (target_count - (battle_config.agi_penalty_count - 1))*battle_config.agi_penalty_num))/100;
-			else if(battle_config.agi_penalty_type == 2) //回避率がagi_penalty_num分減少
-				flee -= (target_count - (battle_config.agi_penalty_count - 1))*battle_config.agi_penalty_num;
+	if(config.agi_penalty_type > 0 || config.vit_penalty_type > 0) //AGI、VITペナルティ設定が有効
+		target_count += battle_counttargeted(*target,src,config.agi_penalty_count_lv);	//対象の数を算出
+	if(config.agi_penalty_type > 0) {
+		if(target_count >= config.agi_penalty_count) { //ペナルティ設定より対象が多い
+			if(config.agi_penalty_type == 1) //回避率がagi_penalty_num%ずつ減少
+				flee = (flee * (100 - (target_count - (config.agi_penalty_count - 1))*config.agi_penalty_num))/100;
+			else if(config.agi_penalty_type == 2) //回避率がagi_penalty_num分減少
+				flee -= (target_count - (config.agi_penalty_count - 1))*config.agi_penalty_num;
 			if(flee < 1) flee = 1; //回避率は最低でも1
 		}
 	}
@@ -1973,7 +1973,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 		if (ac_flag) cri = 1000;
 
 		if (skill_num == KN_AUTOCOUNTER) {
-			if (!(battle_config.pc_auto_counter_type&1))
+			if (!(config.pc_auto_counter_type&1))
 				cri = 1000;
 			else
 				cri <<= 1;
@@ -2163,7 +2163,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				blewcount=0;
 				break;
 			case KN_AUTOCOUNTER:
-				if(battle_config.pc_auto_counter_type&1)
+				if(config.pc_auto_counter_type&1)
 					hitrate += 20;
 				else
 					hitrate = 1000000;
@@ -2224,7 +2224,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				ignore_def_flag = 1;
 				break;
 			case RG_BACKSTAP:	// バックスタブ
-				if(battle_config.backstab_bow_penalty == 1 && sd->status.weapon == 11){
+				if(config.backstab_bow_penalty == 1 && sd->status.weapon == 11){
 					damage_rate += 50+ 20*skill_lv; // Back Stab with a bow does twice less damage
 				}else{
 					damage_rate += 200+ 40*skill_lv;
@@ -2254,7 +2254,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			case NPC_GRANDDARKNESS:
 			case CR_GRANDCROSS:
 				hitrate= 1000000;
-				if(!battle_config.gx_cardfix)
+				if(!config.gx_cardfix)
 					no_cardfix = 1;
 				break;
 			case AM_DEMONSTRATION:	// デモンストレーション
@@ -2271,7 +2271,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				break;
 			case MO_FINGEROFFENSIVE:	//指弾
 				damage_rate += 25 + 25 * skill_lv;
-				if(battle_config.finger_offensive_type == 0) {
+				if(config.finger_offensive_type == 0) {
 					div_ = sd->spiritball_old;
 					div_flag = 1;
 				}
@@ -2418,18 +2418,18 @@ static struct Damage battle_calc_pc_weapon_attack(
 		// ディバインプロテクション（ここでいいのかな？）
 		if (!ignore_def_flag && def1 < 1000000) {	//DEF, VIT無視
 			int t_def;
-			target_count = 1 + battle_counttargeted(*target,src,battle_config.vit_penalty_count_lv);
-			if(battle_config.vit_penalty_type > 0) {
-				if(target_count >= battle_config.vit_penalty_count) {
-					if(battle_config.vit_penalty_type == 1) {
-						def1 = (def1 * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
-						def2 = (def2 * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
-						t_vit = (t_vit * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
+			target_count = 1 + battle_counttargeted(*target,src,config.vit_penalty_count_lv);
+			if(config.vit_penalty_type > 0) {
+				if(target_count >= config.vit_penalty_count) {
+					if(config.vit_penalty_type == 1) {
+						def1 = (def1 * (100 - (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num))/100;
+						def2 = (def2 * (100 - (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num))/100;
+						t_vit = (t_vit * (100 - (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num))/100;
 					}
-					else if(battle_config.vit_penalty_type == 2) {
-						def1 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
-						def2 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
-						t_vit -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
+					else if(config.vit_penalty_type == 2) {
+						def1 -= (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num;
+						def2 -= (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num;
+						t_vit -= (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num;
 					}
 					if(def1 < 0) def1 = 0;
 					if(def2 < 1) def2 = 1;
@@ -2469,16 +2469,16 @@ static struct Damage battle_calc_pc_weapon_attack(
 			}
 
 			if(!idef_flag){
-				if(battle_config.player_defense_type) {
-					damage = damage - (def1 * battle_config.player_defense_type) - t_def - ((vitbonusmax < 1)?0: rand()%(vitbonusmax+1) );
+				if(config.player_defense_type) {
+					damage = damage - (def1 * config.player_defense_type) - t_def - ((vitbonusmax < 1)?0: rand()%(vitbonusmax+1) );
 				}
 				else{
 					damage = damage * (100 - def1) /100 - t_def - ((vitbonusmax < 1)?0: rand()%(vitbonusmax+1) );
 				}
 			}
 			if(!idef_flag_){
-				if(battle_config.player_defense_type) {
-					damage2 = damage2 - (def1 * battle_config.player_defense_type) - t_def - ((vitbonusmax < 1)?0: rand()%(vitbonusmax+1) );
+				if(config.player_defense_type) {
+					damage2 = damage2 - (def1 * config.player_defense_type) - t_def - ((vitbonusmax < 1)?0: rand()%(vitbonusmax+1) );
 				}
 				else{
 					damage2 = damage2 * (100 - def1) /100 - t_def - ((vitbonusmax < 1)?0: rand()%(vitbonusmax+1) );
@@ -2602,7 +2602,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 //カードによるダメージ追加処理ここから
 	cardfix=100;
 	if(!sd->state.arrow_atk) { //弓矢以外
-		if(!battle_config.left_cardfix_to_right) { //左手カード補正設定無し
+		if(!config.left_cardfix_to_right) { //左手カード補正設定無し
 			cardfix=cardfix*(100+sd->right_weapon.addrace[t_race])/100;	// 種族によるダメージ修正
 			cardfix=cardfix*(100+sd->right_weapon.addele[t_ele])/100;	// 属性によるダメージ修正
 			cardfix=cardfix*(100+sd->right_weapon.addsize[t_size])/100;	// サイズによるダメージ修正
@@ -2623,7 +2623,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 	}
 	if(is_boss(target)) { //ボス
 		if(!sd->state.arrow_atk) { //弓矢攻撃以外なら
-			if(!battle_config.left_cardfix_to_right) //左手カード補正設定無し
+			if(!config.left_cardfix_to_right) //左手カード補正設定無し
 				cardfix=cardfix*(100+sd->right_weapon.addrace[10])/100; //ボスモンスターに追加ダメージ
 			else //左手カード補正設定あり
 				cardfix=cardfix*(100+sd->right_weapon.addrace[10]+sd->left_weapon.addrace[10])/100; //ボスモンスターに追加ダメージ(左手による追加あり)
@@ -2633,7 +2633,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 	}
 	else { //ボスじゃない
 		if(!sd->state.arrow_atk) { //弓矢攻撃以外
-			if(!battle_config.left_cardfix_to_right) //左手カード補正設定無し
+			if(!config.left_cardfix_to_right) //左手カード補正設定無し
 				cardfix=cardfix*(100+sd->right_weapon.addrace[11])/100; //ボス以外モンスターに追加ダメージ
 			else //左手カード補正設定あり
 				cardfix=cardfix*(100+sd->right_weapon.addrace[11]+sd->left_weapon.addrace[11])/100; //ボス以外モンスターに追加ダメージ(左手による追加あり)
@@ -2655,7 +2655,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 
 //カードによるダメージ追加処理(左手)ここから
 	cardfix=100;
-	if(!battle_config.left_cardfix_to_right) {  //左手カード補正設定無し
+	if(!config.left_cardfix_to_right) {  //左手カード補正設定無し
 		cardfix=cardfix*(100+sd->left_weapon.addrace[t_race])/100;	// 種族によるダメージ修正左手
 		cardfix=cardfix*(100+sd->left_weapon.addele[t_ele])/100;	// 属 性によるダメージ修正左手
 		cardfix=cardfix*(100+sd->left_weapon.addsize[t_size])/100;	// サイズによるダメージ修正左手
@@ -2802,7 +2802,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 	}
 
 	// 対象が完全回避をする設定がONなら
-	if(battle_config.enemy_perfect_flee) {
+	if(config.enemy_perfect_flee) {
 		if(skill_num == 0 && tmd!=NULL && div_ < 255 && rand()%1000 < status_get_flee2(target) ) {
 			damage=damage2=0;
 			type=0x0b;
@@ -2836,7 +2836,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 		else {	// 両 手/カタールの場合はちょっと計算ややこしい
 			int d1=damage+damage2,d2=damage2;
 			damage=battle_calc_damage(src,target,damage+damage2,div_,skill_num,skill_lv,flag);
-			damage2=(d2*100/d1)*damage/100;
+			damage2=d1?((d2*100/d1)*damage/100):0;
 			if(damage > 1 && damage2 < 1) damage2=1;
 			damage-=damage2;
 		}
@@ -3006,7 +3006,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 				break;
 
 			case MO_FINGEROFFENSIVE:
-				if(sd && battle_config.finger_offensive_type == 0)
+				if(sd && config.finger_offensive_type == 0)
 					wd.div_ = sd->spiritball_old;
 			case KN_SPEARBOOMERANG:
 			case NPC_RANGEATTACK:
@@ -3051,8 +3051,8 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 	//Check for counter 
 	if( skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS &&
  		(!skill_num ||
-		(tsd && battle_config.pc_auto_counter_type&2) ||
-		(tmd && battle_config.monster_auto_counter_type&2)))
+		(tsd && config.pc_auto_counter_type&2) ||
+		(tmd && config.monster_auto_counter_type&2)))
 	{
 		if(t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1)
 		{
@@ -3113,7 +3113,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 		skill_lv =  sc_data[SC_SACRIFICE].val1.num;
 	}
 
-	if (!skill_num && (tsd || battle_config.enemy_perfect_flee))
+	if (!skill_num && (tsd || config.enemy_perfect_flee))
 	{	//Check for Lucky Dodge
 		short flee2 = status_get_flee2(target);
 		if (rand()%1000 < flee2)
@@ -3148,7 +3148,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 
 	//Check for critical
 	if(!flag.cri &&
-		(sd || battle_config.enemy_critical) &&
+		(sd || config.enemy_critical) &&
 		(!skill_num || skill_num == KN_AUTOCOUNTER || skill_num == SN_SHARPSHOOTING))
 	{
 		short cri = status_get_critical(src);
@@ -3163,9 +3163,9 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 		//The official equation is *2, but that only applies when sd's do critical.
 		//Therefore, we use the old value 3 on cases when an sd gets attacked by a mob
 		cri -= status_get_luk(target) * (md&&tsd?3:2);
-		if(!sd && battle_config.enemy_critical_rate != 100)
+		if(!sd && config.enemy_critical_rate != 100)
 		{ //Mob/Pets
-			cri = cri*battle_config.enemy_critical_rate/100;
+			cri = cri*config.enemy_critical_rate/100;
 			if (cri<1) cri = 1;
 		}
 		
@@ -3180,7 +3180,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 		switch (skill_num)
 		{
 			case KN_AUTOCOUNTER:
-				if(!(battle_config.pc_auto_counter_type&1))
+				if(!(config.pc_auto_counter_type&1))
 					flag.cri = 1;
 				else
 					cri <<= 1;
@@ -3229,16 +3229,16 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 	{	//Hit/Flee calculation
 		unsigned short flee = status_get_flee(target);
 		unsigned short hitrate=80; //Default hitrate
-		if(battle_config.agi_penalty_type)
+		if(config.agi_penalty_type)
 		{	
 			unsigned char target_count; //256 max targets should be a sane max
-			target_count = 1+battle_counttargeted(*target,src,battle_config.agi_penalty_count_lv);
-			if(target_count >= battle_config.agi_penalty_count)
+			target_count = 1+battle_counttargeted(*target,src,config.agi_penalty_count_lv);
+			if(target_count >= config.agi_penalty_count)
 			{
-				if (battle_config.agi_penalty_type == 1)
-					flee = (flee * (100 - (target_count - (battle_config.agi_penalty_count - 1))*battle_config.agi_penalty_num))/100;
+				if (config.agi_penalty_type == 1)
+					flee = (flee * (100 - (target_count - (config.agi_penalty_count - 1))*config.agi_penalty_num))/100;
 				else //asume type 2: absolute reduction
-					flee -= (target_count - (battle_config.agi_penalty_count - 1))*battle_config.agi_penalty_num;
+					flee -= (target_count - (config.agi_penalty_count - 1))*config.agi_penalty_num;
 				if(flee < 1) flee = 1;
 			}
 		}
@@ -3273,10 +3273,10 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 				break;
 		}
 
-		if (hitrate > battle_config.max_hitrate)
-			hitrate = battle_config.max_hitrate;
-		else if (hitrate < battle_config.min_hitrate)
-			hitrate = battle_config.min_hitrate;
+		if (hitrate > config.max_hitrate)
+			hitrate = config.max_hitrate;
+		else if (hitrate < config.min_hitrate)
+			hitrate = config.min_hitrate;
 
 		if(rand()%100 >= hitrate)
 			wd.dmg_lv = ATK_FLEE;
@@ -3321,8 +3321,8 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 				unsigned short baseatk=0, baseatk_=0, atkmin=0, atkmax=0, atkmin_=0, atkmax_=0;
 				if (!sd)
 				{	//Mobs/Pets
-					if ((md && battle_config.enemy_str) ||
-						(pd && battle_config.pet_str))
+					if ((md && config.enemy_str) ||
+						(pd && config.pet_str))
 						baseatk = status_get_baseatk(src);
 
 					if(skill_num==HW_MAGICCRASHER)
@@ -3561,7 +3561,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 					flag.idef= flag.idef2= 1;
 					break;
 				case RG_BACKSTAP:
-					if(sd && sd->status.weapon == 11 && battle_config.backstab_bow_penalty)
+					if(sd && sd->status.weapon == 11 && config.backstab_bow_penalty)
 						skillratio+= (200+ 40*skill_lv)/2;
 					else
 						skillratio+= 200+ 40*skill_lv;
@@ -3586,7 +3586,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 					break;
 				case NPC_GRANDDARKNESS:
 				case CR_GRANDCROSS:
-					if(!battle_config.gx_cardfix)
+					if(!config.gx_cardfix)
 						flag.cardfix = 0;
 					break;
 				case AM_DEMONSTRATION:
@@ -3600,7 +3600,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 					flag.cardfix = 0;
 					break;
 				case MO_FINGEROFFENSIVE:
-					if(battle_config.finger_offensive_type == 0)
+					if(config.finger_offensive_type == 0)
 						//div_flag = 1;
 						skillratio+= wd.div_ * (125 + 25*skill_lv) -100;
 					else
@@ -3698,7 +3698,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 					if(sd && sd->cart_max_weight > 0 && sd->cart_weight > 0)
 						skillratio += sd->cart_weight / (10 * (16 - skill_lv)) - 100;
 					else if (!sd)
-						skillratio += battle_config.max_cart_weight / (10 * (16 - skill_lv));
+						skillratio += config.max_cart_weight / (10 * (16 - skill_lv));
 					flag.cardfix = 0;
 					break;
 			}
@@ -3798,19 +3798,19 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 			int t_vit = status_get_vit(target);
 			int vit_def;
 
-			if(battle_config.vit_penalty_type)
+			if(config.vit_penalty_type)
 			{
 				unsigned char target_count; //256 max targets should be a sane max
-				target_count = 1 + battle_counttargeted(*target,src,battle_config.vit_penalty_count_lv);
-				if(target_count >= battle_config.vit_penalty_count) {
-					if(battle_config.vit_penalty_type == 1) {
-						def1 = (def1 * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
-						def2 = (def2 * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
-						t_vit = (t_vit * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
+				target_count = 1 + battle_counttargeted(*target,src,config.vit_penalty_count_lv);
+				if(target_count >= config.vit_penalty_count) {
+					if(config.vit_penalty_type == 1) {
+						def1 = (def1 * (100 - (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num))/100;
+						def2 = (def2 * (100 - (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num))/100;
+						t_vit = (t_vit * (100 - (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num))/100;
 					} else { //Assume type 2
-						def1 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
-						def2 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
-						t_vit -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
+						def1 -= (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num;
+						def2 -= (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num;
+						t_vit -= (target_count - (config.vit_penalty_count - 1))*config.vit_penalty_num;
 					}
 				}
 				if(def1 < 0) def1 = 0;
@@ -3832,8 +3832,8 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 				vit_def = t_vit + (vit_def>0?rand()%vit_def:0);
 			}
 			
-			if(battle_config.player_defense_type)
-				vit_def += def1*battle_config.player_defense_type;
+			if(config.player_defense_type)
+				vit_def += def1*config.player_defense_type;
 			else
 				ATK_RATE2(flag.idef?100:100-def1, flag.idef2?100:100-def1);
 			ATK_ADD2(flag.idef?0:-vit_def, flag.idef2?0:-vit_def);
@@ -3870,11 +3870,11 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 	if(skill_num==TF_POISON)
 		ATK_ADD(15*skill_lv);
 
-	if( (sd && (skill_num || !battle_config.pc_attack_attr_none)) ||
-		(md && (skill_num || !battle_config.mob_attack_attr_none)) ||
-		(pd && (skill_num || !battle_config.pet_attack_attr_none)) )
+	if( (sd && (skill_num || !config.pc_attack_attr_none)) ||
+		(md && (skill_num || !config.mob_attack_attr_none)) ||
+		(pd && (skill_num || !config.pet_attack_attr_none)) )
 	{	//Elemental attribute fix
-		if( sd || !tsd || !battle_config.mob_ghostring_fix || t_ele!=8 )
+		if( sd || !tsd || !config.mob_ghostring_fix || t_ele!=8 )
 		{
 			short t_element = status_get_element(target);
 			int ratio=0, s_element=0, damage;
@@ -3932,7 +3932,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 				cardfix=cardfix*(100+sd->right_weapon.addrace2[t_race2])/100;
 				cardfix=cardfix*(100+sd->right_weapon.addrace[is_boss(target)?10:11]+sd->arrow_addrace[t_mode & 0x20?10:11])/100;
 			} else {	//Melee attack
-				if(!battle_config.left_cardfix_to_right)
+				if(!config.left_cardfix_to_right)
 				{
 					cardfix=cardfix*(100+sd->right_weapon.addrace[t_race])/100;
 					cardfix=cardfix*(100+sd->right_weapon.addele[t_ele])/100;
@@ -4099,7 +4099,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 		{
 			int d1=wd.damage+wd.damage2,d2=wd.damage2;
 			wd.damage=battle_calc_damage(src,target,d1,wd.div_,skill_num,skill_lv,wd.flag);
-			wd.damage2=(d2*100/d1)*wd.damage/100;
+			wd.damage2=d1?((d2*100/d1)*wd.damage/100):0;
 			if(wd.damage > 1 && wd.damage2 < 1) wd.damage2=1;
 			wd.damage-=wd.damage2;
 		}
@@ -4145,45 +4145,36 @@ struct Damage battle_calc_weapon_attack(struct block_list *src,struct block_list
 		return wd;
 	}
 
-	//Until the function becomes official [Skotlex]
-	if (battle_config.new_attack_function)
-		wd = battle_calc_weapon_attack_sub(src,target,skill_num,skill_lv,wflag);
+	if(target->type == BL_PET)
+		memset(&wd,0,sizeof(wd));
+	else if(src->type == BL_PC)
+		wd = battle_calc_pc_weapon_attack(src,target,skill_num,skill_lv,wflag);
+	else if(src->type == BL_MOB)
+		wd = battle_calc_mob_weapon_attack(src,target,skill_num,skill_lv,wflag);
+	else if(src->type == BL_PET)
+		wd = battle_calc_pet_weapon_attack(src,target,skill_num,skill_lv,wflag);
 	else
-	{
-		if(target->type == BL_PET)
-			memset(&wd,0,sizeof(wd));
-		else if(src->type == BL_PC)
-			wd = battle_calc_pc_weapon_attack(src,target,skill_num,skill_lv,wflag);
-		else if(src->type == BL_MOB)
-			wd = battle_calc_mob_weapon_attack(src,target,skill_num,skill_lv,wflag);
-		else if(src->type == BL_PET)
-			wd = battle_calc_pet_weapon_attack(src,target,skill_num,skill_lv,wflag);
-		else
-			memset(&wd,0,sizeof(wd));
-	}
+		memset(&wd,0,sizeof(wd));
 
 	if( src->type==BL_PC && (wd.damage > 0 || wd.damage2 > 0) &&
-		( battle_config.equip_self_break_rate || battle_config.equip_skill_break_rate ) ) {
+		( config.equip_self_break_rate || config.equip_skill_break_rate ) ) {
 		struct map_session_data *sd = (struct map_session_data *)src;
 
-		if (battle_config.equip_self_break_rate && sd->status.weapon != 11)
+		if (config.equip_self_break_rate && sd->status.weapon != 11)
 		{	//Self weapon breaking chance (Bows exempted)
-			int breakrate = battle_config.equip_natural_break_rate;	//default self weapon breaking chance [DracoRPG]
+			int breakrate = config.equip_natural_break_rate;	//default self weapon breaking chance [DracoRPG]
 				if(sd->sc_data[SC_OVERTHRUST].timer!=-1)
 					breakrate += 10;
 				if(sd->sc_data[SC_MAXOVERTHRUST].timer!=-1)
 					breakrate += 10;				
 
-			if((size_t)rand() % 10000 < breakrate * battle_config.equip_self_break_rate / 100 || breakrate >= 10000)
+			if((size_t)rand() % 10000 < breakrate * config.equip_self_break_rate / 100 || breakrate >= 10000)
 				if (pc_breakweapon(*sd))
 				{
-					if (battle_config.new_attack_function)
-						wd = battle_calc_weapon_attack_sub(src,target,skill_num,skill_lv,wflag);
-					else
-						wd = battle_calc_pc_weapon_attack(src,target,skill_num,skill_lv,wflag);
+					wd = battle_calc_pc_weapon_attack(src,target,skill_num,skill_lv,wflag);
 				}
 		}
-		if (battle_config.equip_skill_break_rate)
+		if (config.equip_skill_break_rate)
 		{	//Target equipment breaking
 			// weapon = 0, armor = 1
 			int breakrate_[2] = {0,0};	//target breaking chance [celest]
@@ -4198,7 +4189,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src,struct block_list
 					breaktime = skill_get_time2(WS_MELTDOWN,1);
 				}
 			
-			if((size_t)rand() % 10000 < breakrate_[0] * battle_config.equip_skill_break_rate / 100 || breakrate_[0] >= 10000) {
+			if((size_t)rand() % 10000 < breakrate_[0] * config.equip_skill_break_rate / 100 || breakrate_[0] >= 10000) {
 				if (target->type == BL_PC) {
 					struct map_session_data *tsd = (struct map_session_data *)target;
 					if(tsd->status.weapon != 11)
@@ -4206,7 +4197,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src,struct block_list
 				} else
 					status_change_start(target,SC_STRIPWEAPON,1,75,0,0,breaktime,0);
 			}
-			if((size_t)rand() % 10000 < breakrate_[1] * battle_config.equip_skill_break_rate/100 || breakrate_[1] >= 10000) {
+			if((size_t)rand() % 10000 < breakrate_[1] * config.equip_skill_break_rate/100 || breakrate_[1] >= 10000) {
 				if (target->type == BL_PC) {
 					struct map_session_data *tsd = (struct map_session_data *)target;
 					pc_breakarmor(*tsd);
@@ -4304,7 +4295,7 @@ struct Damage battle_calc_magic_attack(struct block_list *bl,struct block_list *
 						status_get_int(bl) + status_get_lv(bl)+
 						((200 - hp * 200 / mhp));
 				if(thres > 700) thres = 700;
-//				if(battle_config.battle_log)
+//				if(config.battle_log)
 //					ShowMessage("ターンアンデッド！ 確率%d ‰(千分率)\n", thres);
 				if(rand()%1000 < thres && !(t_mode&0x20))	// 成功
 					damage = hp;
@@ -4319,7 +4310,7 @@ struct Damage battle_calc_magic_attack(struct block_list *bl,struct block_list *
 			if(flag>0){
 				MATK_FIX(1,flag);
 			}else {
-				if(battle_config.error_log)
+				if(config.error_log)
 					ShowMessage("battle_calc_magic_attack(): napam enemy count=0 !\n");
 			}
 			break;
@@ -4396,7 +4387,7 @@ struct Damage battle_calc_magic_attack(struct block_list *bl,struct block_list *
 			if(flag>0){
 				MATK_FIX(1,flag);
 			}else {
-				if(battle_config.error_log)
+				if(config.error_log)
 					ShowMessage("battle_calc_magic_attack(): napalmvulcan enemy count=0 !\n");
 			}
 			break;
@@ -4443,8 +4434,8 @@ struct Damage battle_calc_magic_attack(struct block_list *bl,struct block_list *
 			}
 		}
 		if(!imdef_flag){
-			if(battle_config.magic_defense_type) {
-				damage = damage - (mdef1 * battle_config.magic_defense_type) - mdef2;
+			if(config.magic_defense_type) {
+				damage = damage - (mdef1 * config.magic_defense_type) - mdef2;
 			}
 			else{
 			damage = (damage*(100-mdef1))/100 - mdef2;
@@ -4506,7 +4497,7 @@ struct Damage battle_calc_magic_attack(struct block_list *bl,struct block_list *
 		struct Damage wd;
 		wd=battle_calc_weapon_attack(bl,target,skill_num,skill_lv,flag);
 		damage = (damage + wd.damage) * (100 + 40*skill_lv)/100;
-		if(battle_config.gx_dupele) damage=battle_attr_fix(damage, ele, status_get_element(target) );	//属性2回かかる
+		if(config.gx_dupele) damage=battle_attr_fix(damage, ele, status_get_element(target) );	//属性2回かかる
 		if(bl==target){
 			if(bl->type == BL_MOB)
 				damage = 0;		//MOBが使う場合は反動無し
@@ -4528,8 +4519,8 @@ struct Damage battle_calc_magic_attack(struct block_list *bl,struct block_list *
 		blewcount &= 0x10000;
 
 	if (tsd && status_isimmune(target)) {
-		if (sd && battle_config.gtb_pvp_only != 0)  { // [MouseJstr]
-			damage = (damage * (100 - battle_config.gtb_pvp_only)) / 100;
+		if (sd && config.gtb_pvp_only != 0)  { // [MouseJstr]
+			damage = (damage * (100 - config.gtb_pvp_only)) / 100;
 		} else damage = 0;	// 黄 金蟲カード（魔法ダメージ０）
 	}
 
@@ -4761,7 +4752,7 @@ struct Damage battle_calc_attack(int attack_type, struct block_list *bl,struct b
 	case BF_MISC:
 		return battle_calc_misc_attack(bl,target,skill_num,skill_lv,flag);
 	default:
-		if (battle_config.error_log)
+		if (config.error_log)
 			ShowError("battle_calc_attack: unknown attack type! %d\n",attack_type);
 		memset(&d,0,sizeof(d));
 		break;
@@ -4827,7 +4818,7 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 		{
 			if(sd->equip_index[10] < MAX_INVENTORY)
 			{
-				if(battle_config.arrow_decrement)
+				if(config.arrow_decrement)
 					pc_delitem(*sd,sd->equip_index[10],1,0);
 			}
 			else
@@ -4838,9 +4829,9 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 		}
 		if(flag&0x8000)
 		{
-			if(sd && battle_config.pc_attack_direction_change)
+			if(sd && config.pc_attack_direction_change)
 				sd->dir = sd->head_dir = src->get_direction(*target);
-			else if(src->type == BL_MOB && battle_config.monster_attack_direction_change)
+			else if(src->type == BL_MOB && config.monster_attack_direction_change)
 			{
 				struct mob_data *md = (struct mob_data *)src;
 				if (md) md->dir = src->get_direction(*target);
@@ -4888,7 +4879,7 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 				int skilllv = pc_checkskill(*sd, MO_CHAINCOMBO);
 				if (skilllv > 0) {
 					delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
-					delay += 300 * battle_config.combo_delay_rate / 100; //追加ディレイをconfにより調整
+					delay += 300 * config.combo_delay_rate / 100; //追加ディレイをconfにより調整
 				}
 				status_change_start(src, SC_COMBO, MO_TRIPLEATTACK, skilllv, 0, 0, delay, 0);
 			}
@@ -5012,7 +5003,7 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 			if(wd.flag&BF_WEAPON && src != target && (wd.damage > 0 || wd.damage2 > 0))
 			{
 				int hp = 0, sp = 0;
-				if(!battle_config.left_cardfix_to_right)
+				if(!config.left_cardfix_to_right)
 				{	// 二刀流左手カードの吸収系効果を右手に追加しない場合
 					hp += battle_calc_drain(wd.damage, sd->right_weapon.hp_drain_rate, sd->right_weapon.hp_drain_per, sd->right_weapon.hp_drain_value);
 					hp += battle_calc_drain(wd.damage2, sd->left_weapon.hp_drain_rate, sd->left_weapon.hp_drain_per, sd->left_weapon.hp_drain_value);
@@ -5040,7 +5031,7 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 					pc_heal(*sd, hp, sp);
 				}
 
-				if (battle_config.show_hp_sp_drain)
+				if (config.show_hp_sp_drain)
 				{	//Display gained values [Skotlex]
 					if (hp > 0 && pc_heal(*sd, hp, 0) > 0)
 						clif_heal(sd->fd, SP_HP, hp);
@@ -5149,11 +5140,11 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 
 bool battle_check_undead(int race,int element)
 {
-	if(battle_config.undead_detect_type == 0) {
+	if(config.undead_detect_type == 0) {
 		if(element == 9)
 			return true;
 	}
-	else if(battle_config.undead_detect_type == 1) {
+	else if(config.undead_detect_type == 1) {
 		if(race == 1)
 			return true;
 	}
@@ -5179,10 +5170,10 @@ bool battle_check_undead(int race,int element)
  * 0: Invalid target (non-targetable ever)
  *------------------------------------------
  */
-int battle_check_target(struct block_list *src, struct block_list *target,int flag)
+int battle_check_target(const block_list *src, const block_list *target, int flag)
 {
 	int m,state = 0; //Initial state none
-	struct block_list *s_bl= src, *t_bl= target;
+	const struct block_list *s_bl= src, *t_bl= target;
 	
 	m = target->m;
 	if (flag&BCT_ENEMY && !maps[m].flag.gvg)	//Offensive stuff can't be casted on Basilica
@@ -5267,7 +5258,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 	{
 		case BL_PC:
 		{
-			struct map_session_data *sd = (struct map_session_data *) s_bl;
+			const map_session_data *sd = s_bl->get_sd();
 			if (!sd) //Should never happen...
 				return 0;
 			if (sd->state.killer)
@@ -5276,7 +5267,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 		}
 		case BL_MOB:
 		{
-			struct mob_data *md = (struct mob_data *)s_bl;
+			const mob_data *md = s_bl->get_md();
 			if (!md)
 				return 0;
 			if (!agit_flag && md->guild_id)
@@ -5289,7 +5280,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 		}
 		case BL_PET:
 		{
-			struct pet_data *pd = (struct pet_data *)s_bl;
+			const pet_data *pd = s_bl->get_pd();
 			if (!pd)
 				return 0;
 			if (pd->msd)
@@ -5298,7 +5289,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 		}
 		case BL_HOM:
 		{
-			struct homun_data *hd = s_bl->get_hd();
+			const homun_data *hd = s_bl->get_hd();
 			if (!hd)
 				return 0;
 			if (hd->msd)
@@ -5347,14 +5338,14 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 			{
 				state |= BCT_ENEMY;
 			
-				if (battle_config.pk_mode)
+				if (config.pk_mode)
 				{	//Prevent novice engagement on pk_mode (feature by Valaris)
-					struct map_session_data* sd;
+					const map_session_data* sd;
 					if (s_bl->type == BL_PC && (sd = s_bl->get_sd()) != NULL &&
-						(pc_calc_base_job2(sd->status.class_) == JOB_NOVICE || sd->status.base_level < battle_config.pk_min_level))
+						(pc_calc_base_job2(sd->status.class_) == JOB_NOVICE || sd->status.base_level < config.pk_min_level))
 						state&=~BCT_ENEMY;
 					else if (t_bl->type == BL_PC && (sd = t_bl->get_sd()) != NULL &&
-						(pc_calc_base_job2(sd->status.class_) == JOB_NOVICE || sd->status.base_level < battle_config.pk_min_level))
+						(pc_calc_base_job2(sd->status.class_) == JOB_NOVICE || sd->status.base_level < config.pk_min_level))
 						state&=~BCT_ENEMY;
 				}
 			}
@@ -5505,7 +5496,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 				}
 			}
 			// option to have monsters ignore GMs [Valaris]
-			if (battle_config.monsters_ignore_gm > 0 && tsd->isGM() >= battle_config.monsters_ignore_gm)
+			if (config.monsters_ignore_gm > 0 && tsd->isGM() >= config.monsters_ignore_gm)
 				return 1;
 		}
 		// Mobでmaster_idがあってspecial_mob_aiなら、召喚主を求める
@@ -5573,10 +5564,10 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 		if (maps[ss->m].flag.pvp || pc_iskiller(*ssd, *tsd)) { // [MouseJstr]
 			if(su && su->group->target_flag == BCT_NOENEMY)
 				return 1;
-			else if (battle_config.pk_mode &&
+			else if (config.pk_mode &&
 				(ssd->status.class_ == 0 || tsd->status.class_ == 0 ||
-				ssd->status.base_level < battle_config.pk_min_level ||
-				tsd->status.base_level < battle_config.pk_min_level))
+				ssd->status.base_level < config.pk_min_level ||
+				tsd->status.base_level < config.pk_min_level))
 				return 1; // prevent novice engagement in pk_mode [Valaris]
 			else if (maps[ss->m].flag.pvp_noparty && s_p > 0 && t_p > 0 && s_p == t_p)
 				return 1;
@@ -5614,7 +5605,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
  * 射程判定
  *------------------------------------------
  */
-bool battle_check_range(struct block_list *src,struct block_list *bl,unsigned int range)
+bool battle_check_range(const block_list *src, const block_list *bl, unsigned int range)
 {
 	unsigned int dx,dy, arange;
 
@@ -5641,780 +5632,9 @@ bool battle_check_range(struct block_list *src,struct block_list *bl,unsigned in
 	return path_search_long(src->m,src->x,src->y,bl->x,bl->y);
 }
 
-
-static struct {
-	const char *str;
-	uint32 *val;
-} battle_data[] = {
-	{ "agi_penalty_count",					&battle_config.agi_penalty_count		},
-	{ "agi_penalty_count_lv",				&battle_config.agi_penalty_count_lv		},
-	{ "agi_penalty_num",					&battle_config.agi_penalty_num			},
-	{ "agi_penalty_type",					&battle_config.agi_penalty_type			},
-	{ "alchemist_summon_reward",			&battle_config.alchemist_summon_reward	},	// [Valaris]
-	{ "allow_atcommand_when_mute",			&battle_config.allow_atcommand_when_mute}, // [celest]
-	{ "allow_homun_status_change",			&battle_config.allow_homun_status_change}, // [celest]	
-	{ "any_warp_GM_min_level",				&battle_config.any_warp_GM_min_level	}, // added by [Yor]
-	{ "area_size",							&battle_config.area_size				}, // added by [MouseJstr]
-	{ "arrow_decrement",					&battle_config.arrow_decrement			},
-	{ "atcommand_gm_only",					&battle_config.atc_gmonly				},
-	{ "atcommand_spawn_quantity_limit",		&battle_config.atc_spawn_quantity_limit	},
-	{ "attribute_recover",					&battle_config.attr_recover				},
-	{ "backstab_bow_penalty",				&battle_config.backstab_bow_penalty		},
-	{ "ban_bot",							&battle_config.ban_bot					},	
-	{ "ban_spoof_namer",					&battle_config.ban_spoof_namer			}, // added by [Yor]
-	{ "base_exp_rate",						&battle_config.base_exp_rate			},
-	{ "basic_skill_check",					&battle_config.basic_skill_check		},
-	{ "battle_log",							&battle_config.battle_log				},
-	{ "berserk_candels_buffs",				&battle_config.berserk_cancels_buffs	}, // [Aru]
-	{ "bone_drop",							&battle_config.bone_drop				},
-	{ "boss_spawn_delay",					&battle_config.boss_spawn_delay			},
-	{ "buyer_name",							&battle_config.buyer_name				},
-	{ "cardillust_read_grffile",           &battle_config.cardillust_read_grffile	},	// [Celest]
-	{ "casting_rate",                      &battle_config.cast_rate					},
-	{ "castle_defense_rate",               &battle_config.castle_defense_rate		},
-	{ "castrate_dex_scale",                &battle_config.castrate_dex_scale		}, // added by [MouseJstr]
-	{ "character_size",						&battle_config.character_size			}, // [Lupus]
-	{ "chat_warpportal",					&battle_config.chat_warpportal			},
-	{ "combo_delay_rate",					&battle_config.combo_delay_rate			},
-	{ "copyskill_restrict",					&battle_config.copyskill_restrict		}, // [Aru]
-	{ "day_duration",                      &battle_config.day_duration				}, // added by [Yor]
-	{ "dead_branch_active",                &battle_config.dead_branch_active		},
-	{ "death_penalty_base",                &battle_config.death_penalty_base		},
-	{ "death_penalty_job",                 &battle_config.death_penalty_job			},
-	{ "death_penalty_type",                &battle_config.death_penalty_type		},
-	{ "defunit_not_enemy",                 &battle_config.defnotenemy				},
-	{ "delay_battle_damage",				&battle_config.delay_battle_damage		}, // [celest]
-	{ "delay_dependon_dex",                &battle_config.delay_dependon_dex		},
-	{ "delay_rate",                        &battle_config.delay_rate				},
-	{ "devotion_level_difference",         &battle_config.devotion_level_difference	},
-	{ "disp_experience",                   &battle_config.disp_experience			},
-	{ "disp_hpmeter",                      &battle_config.disp_hpmeter				},
-	{ "display_delay_skill_fail",          &battle_config.display_delay_skill_fail	},
-	{ "display_hallucination",				&battle_config.display_hallucination	}, // [Skotlex]
-	{ "display_snatcher_skill_fail",       &battle_config.display_snatcher_skill_fail	},
-	{ "display_version",					&battle_config.display_version			}, // [Ancyker], for a feature by...?
-	{ "drop_rate0item",						&battle_config.drop_rate0item			},
-	{ "drop_rare_announce",					&battle_config.drop_rare_announce		},
-	{ "drops_by_luk",                      &battle_config.drops_by_luk				},	// [Valaris]
-	{ "dynamic_mobs",						&battle_config.dynamic_mobs				},
-	{ "enemy_critical",                    &battle_config.enemy_critical			},
-	{ "enemy_critical_rate",               &battle_config.enemy_critical_rate		},
-	{ "enemy_perfect_flee",                &battle_config.enemy_perfect_flee		},
-	{ "enemy_str",                         &battle_config.enemy_str					},
-	{ "equip_natural_break_rate",          &battle_config.equip_natural_break_rate	},
-	{ "equip_self_break_rate",             &battle_config.equip_self_break_rate		},
-	{ "equip_skill_break_rate",            &battle_config.equip_skill_break_rate	},
-	{ "error_log",                         &battle_config.error_log					},
-	{ "etc_log",                           &battle_config.etc_log					},
-	{ "exp_calc_type",						&battle_config.exp_calc_type			}, // [celest]
-	{ "finding_ore_rate",					&battle_config.finding_ore_rate			}, // [celest]
-	{ "finger_offensive_type",             &battle_config.finger_offensive_type		},
-	{ "flooritem_lifetime",                &battle_config.flooritem_lifetime		},
-	{ "gm_all_equipment",                  &battle_config.gm_allequip				},
-	{ "gm_all_skill",                      &battle_config.gm_allskill				},
-	{ "gm_all_skill_add_abra",	            &battle_config.gm_allskill_addabra		},
-	{ "gm_can_drop_lv",                    &battle_config.gm_can_drop_lv			},
-	{ "gm_join_chat",                      &battle_config.gm_join_chat				},
-	{ "gm_kick_chat",                      &battle_config.gm_kick_chat				},
-	{ "gm_skill_unconditional",            &battle_config.gm_skilluncond			},
-	{ "gtb_pvp_only",                      &battle_config.gtb_pvp_only				},
-	{ "guild_emperium_check",              &battle_config.guild_emperium_check		},
-	{ "guild_exp_limit",                   &battle_config.guild_exp_limit			},
-	{ "guild_max_castles",                 &battle_config.guild_max_castles			},
-	{ "gvg_eliminate_time",                &battle_config.gvg_eliminate_time		},
-	{ "gvg_long_attack_damage_rate",       &battle_config.gvg_long_damage_rate		},
-	{ "gvg_magic_attack_damage_rate",      &battle_config.gvg_magic_damage_rate		},
-	{ "gvg_misc_attack_damage_rate",       &battle_config.gvg_misc_damage_rate		},
-	{ "gvg_short_attack_damage_rate",      &battle_config.gvg_short_damage_rate		},
-	{ "gvg_weapon_damage_rate",				&battle_config.gvg_weapon_damage_rate	},
-	{ "gx_allhit",                         &battle_config.gx_allhit					},
-	{ "gx_cardfix",                        &battle_config.gx_cardfix				},
-	{ "gx_disptype",                       &battle_config.gx_disptype				},
-	{ "gx_dupele",                         &battle_config.gx_dupele					},
-	{ "hack_info_GM_level",                &battle_config.hack_info_GM_level		}, // added by [Yor]
-	{ "headset_block_music",				&battle_config.headset_block_music		}, // [Lupus]
-	{ "heal_exp",							&battle_config.heal_exp					},
-	{ "hide_GM_session",					&battle_config.hide_GM_session			},
-	{ "holywater_name_input",				&battle_config.holywater_name_input		},
-	{ "homun_creation_rate",				&battle_config.homun_creation_rate		},
-	{ "homun_intimate_rate",				&battle_config.homun_intimate_rate		},
-	{ "homun_temporal_intimate_resilience",	&battle_config.homun_temporal_intimate_resilience		},
-	{ "hp_rate",							&battle_config.hp_rate					},
-	{ "idle_no_share",						&battle_config.idle_no_share}, // [celest], for a feature by [MouseJstr]
-	{ "ignore_items_gender",				&battle_config.ignore_items_gender}, // [Lupus]
-	{ "indoors_override_grffile",          &battle_config.indoors_override_grffile},	// [Celest]
-	{ "invite_request_check",              &battle_config.invite_request_check		},
-	{ "item_auto_get",                     &battle_config.item_auto_get			},
-	{ "item_check",                        &battle_config.item_check				},
-	{ "item_drop_card_max",                &battle_config.item_drop_card_max	},
-	{ "item_drop_card_min",                &battle_config.item_drop_card_min	},
-	{ "item_drop_common_max",              &battle_config.item_drop_common_max	},
-	{ "item_drop_common_min",              &battle_config.item_drop_common_min	},	// Added by TyrNemesis^
-	{ "item_drop_equip_max",               &battle_config.item_drop_equip_max	},
-	{ "item_drop_equip_min",               &battle_config.item_drop_equip_min	},
-	{ "item_drop_heal_max",                 &battle_config.item_drop_heal_max	},
-	{ "item_drop_heal_min",                 &battle_config.item_drop_heal_min	},
-	{ "item_drop_mvp_max",                 &battle_config.item_drop_mvp_max	},	// End Addition
-	{ "item_drop_mvp_min",                 &battle_config.item_drop_mvp_min	},
-	{ "item_drop_use_max",                 &battle_config.item_drop_use_max	},
-	{ "item_drop_use_min",                 &battle_config.item_drop_use_min	},
-	{ "item_equip_override_grffile",       &battle_config.item_equip_override_grffile},	// [Celest]
-	{ "item_first_get_time",				&battle_config.item_first_get_time		},
-	{ "item_name_override_grffile",        &battle_config.item_name_override_grffile},
-	{ "item_rate_card",						&battle_config.item_rate_card	},	// End Addition
-	{ "item_rate_common",					&battle_config.item_rate_common	},	// Added by RoVeRT
-	{ "item_rate_equip",					&battle_config.item_rate_equip	},
-	{ "item_rate_heal",						&battle_config.item_rate_heal	},	// Added by Valaris
-	{ "item_rate_use",						&battle_config.item_rate_use	},	// End
-	{ "item_second_get_time",				&battle_config.item_second_get_time		},
-	{ "item_slots_override_grffile",       &battle_config.item_slots_override_grffile},	// [Celest]
-	{ "item_third_get_time",				&battle_config.item_third_get_time		},
-	{ "item_use_interval",                 &battle_config.item_use_interval	},
-	{ "job_exp_rate",						&battle_config.job_exp_rate				},
-	{ "left_cardfix_to_right",             &battle_config.left_cardfix_to_right	},
-	{ "magic_defense_type",                &battle_config.magic_defense_type		},
-	{ "mailsystem",							&battle_config.mailsystem		},
-	{ "making_arrow_name_input",           &battle_config.making_arrow_name_input	},
-	{ "master_get_homun_base_exp",           &battle_config.master_get_homun_base_exp	},
-	{ "master_get_homun_job_exp",           &battle_config.master_get_homun_job_exp	},
-	{ "max_adv_level",						&battle_config.max_adv_level				},
-	{ "max_aspd",                          &battle_config.max_aspd					},
-	{ "max_base_level",						&battle_config.max_base_level				},
-	{ "max_cart_weight",                   &battle_config.max_cart_weight			},
-	{ "max_cloth_color",                   &battle_config.max_cloth_color	}, // added by [MouseJstr]
-	{ "max_hair_color",                    &battle_config.max_hair_color	}, // added by [MouseJstr]
-	{ "max_hair_style",                    &battle_config.max_hair_style	}, // added by [MouseJstr]
-	{ "max_hitrate",                       &battle_config.max_hitrate	},
-	{ "max_hp",                            &battle_config.max_hp					},
-	{ "max_job_level",						&battle_config.max_job_level				},
-	{ "max_parameter",                     &battle_config.max_parameter			},
-	{ "max_sn_level",						&battle_config.max_sn_level				},
-	{ "max_sp",                            &battle_config.max_sp					},
-	{ "max_walk_speed",						&battle_config.max_walk_speed			},
-	{ "maximum_level",                     &battle_config.maximum_level	},	// [Valaris]
-	{ "min_cloth_color",                   &battle_config.min_cloth_color	}, // added by [MouseJstr]
-	{ "min_hair_color",                    &battle_config.min_hair_color	}, // added by [MouseJstr]
-	{ "min_hair_style",                    &battle_config.min_hair_style	}, // added by [MouseJstr]
-	{ "min_hitrate",                       &battle_config.min_hitrate	},
-	{ "min_skill_delay_limit",             &battle_config.min_skill_delay_limit}, // [celest]
-	{ "mob_attack_attr_none",              &battle_config.mob_attack_attr_none		},
-	{ "mob_changetarget_byskill",          &battle_config.mob_changetarget_byskill},
-	{ "mob_clear_delay",					&battle_config.mob_clear_delay	},
-	{ "mob_count_rate",                    &battle_config.mob_count_rate			},
-	{ "mob_ghostring_fix",                 &battle_config.mob_ghostring_fix		},
-	{ "mob_remove_damaged",                &battle_config.mob_remove_damaged},
-	{ "mob_remove_delay",					&battle_config.mob_remove_delay	},
-	{ "mob_skill_delay",                   &battle_config.mob_skill_delay			},
-	{ "mob_skill_rate",                    &battle_config.mob_skill_rate			},
-	{ "mob_slaves_inherit_speed",			&battle_config.mob_slaves_inherit_speed		},
-	{ "mob_spawn_delay",                   &battle_config.mob_spawn_delay			},
-	{ "mob_warpportal",                    &battle_config.mob_warpportal			},
-	{ "mobs_level_up",                     &battle_config.mobs_level_up}, // [Valaris]
-	{ "monster_active_enable",             &battle_config.monster_active_enable	},
-	{ "monster_attack_direction_change",   &battle_config.monster_attack_direction_change },
-	{ "monster_auto_counter_type",         &battle_config.monster_auto_counter_type},
-	{ "monster_class_change_full_recover", &battle_config.monster_class_change_full_recover },
-	{ "monster_cloak_check_type",          &battle_config.monster_cloak_check_type	},
-	{ "monster_damage_delay",              &battle_config.monster_damage_delay		},
-	{ "monster_damage_delay_rate",         &battle_config.monster_damage_delay_rate},
-	{ "monster_defense_type",              &battle_config.monster_defense_type		},
-	{ "monster_hp_rate",                   &battle_config.monster_hp_rate			},
-	{ "monster_land_skill_limit",          &battle_config.monster_land_skill_limit},
-	{ "monster_loot_type",                 &battle_config.monster_loot_type		},
-	{ "monster_max_aspd",                  &battle_config.monster_max_aspd			},
-	{ "monster_skill_add_range",           &battle_config.mob_skill_add_range		},
-	{ "monster_skill_log",                 &battle_config.mob_skill_log			},
-	{ "monster_skill_nofootset",           &battle_config.monster_skill_nofootset	},
-	{ "monster_skill_reiteration",         &battle_config.monster_skill_reiteration},
-	{ "monsters_ignore_gm",                &battle_config.monsters_ignore_gm	},	// [Valaris]
-	{ "motd_type",							&battle_config.motd_type}, // [celest]
-	{ "multi_level_up",                    &battle_config.multi_level_up		}, // [Valaris]
-	{ "muting_players",                    &battle_config.muting_players}, // added by [Apple]
-	{ "mvp_exp_rate",						&battle_config.mvp_exp_rate				},
-	{ "mvp_hp_rate",                       &battle_config.mvp_hp_rate				},
-	{ "mvp_item_first_get_time",           &battle_config.mvp_item_first_get_time	},
-	{ "mvp_item_rate",						&battle_config.mvp_item_rate			},
-	{ "mvp_item_second_get_time",          &battle_config.mvp_item_second_get_time	},
-	{ "mvp_item_third_get_time",           &battle_config.mvp_item_third_get_time	},
-	{ "natural_heal_skill_interval",		&battle_config.natural_heal_skill_interval},
-	{ "natural_heal_weight_rate",          &battle_config.natural_heal_weight_rate	},
-	{ "natural_healhp_interval",           &battle_config.natural_healhp_interval	},
-	{ "natural_healsp_interval",           &battle_config.natural_healsp_interval	},
-	{ "night_at_start",                    &battle_config.night_at_start	}, // added by [Yor]
-	{ "night_darkness_level",              &battle_config.night_darkness_level}, // [celest]
-	{ "night_duration",                    &battle_config.night_duration	}, // added by [Yor]
-	{ "packet_ver_flag",                   &battle_config.packet_ver_flag	}, // added by [Yor]
-	{ "party_bonus",						&battle_config.party_bonus	}, // added by [Valaris]
-	{ "party_share_mode",					&battle_config.party_share_mode			},
-	{ "party_skill_penalty",               &battle_config.party_skill_penalty		},
-	{ "pc_attack_attr_none",               &battle_config.pc_attack_attr_none		},
-	{ "pet_attack_attr_none",              &battle_config.pet_attack_attr_none		},
-	{ "pet_attack_exp_rate",               &battle_config.pet_attack_exp_rate	 },
-	{ "pet_attack_exp_to_master",          &battle_config.pet_attack_exp_to_master	},
-	{ "pet_attack_support",                &battle_config.pet_attack_support		},
-	{ "pet_catch_rate",                    &battle_config.pet_catch_rate			},
-	{ "pet_damage_support",                &battle_config.pet_damage_support		},
-	{ "pet_defense_type",                  &battle_config.pet_defense_type			},
-	{ "pet_equip_required",                &battle_config.pet_equip_required	},	// [Valaris]
-	{ "pet_friendly_rate",                 &battle_config.pet_friendly_rate		},
-	{ "pet_hair_style",						&battle_config.pet_hair_style			},
-	{ "pet_hungry_delay_rate",             &battle_config.pet_hungry_delay_rate	},
-	{ "pet_hungry_friendly_decrease",      &battle_config.pet_hungry_friendly_decrease},
-	{ "pet_lv_rate",                       &battle_config.pet_lv_rate				},	//Skotlex
-	{ "pet_max_atk1",                      &battle_config.pet_max_atk1				},	//Skotlex
-	{ "pet_max_atk2",                      &battle_config.pet_max_atk2				},	//Skotlex
-	{ "pet_max_stats",                     &battle_config.pet_max_stats				},	//Skotlex
-	{ "pet_no_gvg",						   &battle_config.pet_no_gvg				},	//Skotlex
-	{ "pet_random_move",					&battle_config.pet_random_move			},
-	{ "pet_rename",                        &battle_config.pet_rename				},
-	{ "pet_status_support",                &battle_config.pet_status_support		},
-	{ "pet_str",                           &battle_config.pet_str					},
-	{ "pet_support_min_friendly",          &battle_config.pet_support_min_friendly	},
-	{ "pet_support_rate",                  &battle_config.pet_support_rate			},
-	{ "pk_min_level",                      &battle_config.pk_min_level}, // [celest]
-	{ "pk_mode",                           &battle_config.pk_mode			},  	// [Valaris]
-	{ "plant_spawn_delay",                 &battle_config.plant_spawn_delay			},
-	{ "player_attack_direction_change",    &battle_config.pc_attack_direction_change },
-	{ "player_auto_counter_type",          &battle_config.pc_auto_counter_type		},
-	{ "player_cloak_check_type",           &battle_config.pc_cloak_check_type		},
-	{ "player_damage_delay",               &battle_config.pc_damage_delay			},
-	{ "player_damage_delay_rate",          &battle_config.pc_damage_delay_rate		},
-	{ "player_defense_type",               &battle_config.player_defense_type		},
-	{ "player_invincible_time",            &battle_config.pc_invincible_time		},
-	{ "player_land_skill_limit",           &battle_config.pc_land_skill_limit		},
-	{ "player_skill_add_range",            &battle_config.pc_skill_add_range		},
-	{ "player_skill_log",                  &battle_config.pc_skill_log				},
-	{ "player_skill_nofootset",            &battle_config.pc_skill_nofootset		},
-	{ "player_skill_partner_check",        &battle_config.player_skill_partner_check},
-	{ "player_skill_reiteration",          &battle_config.pc_skill_reiteration		},
-	{ "player_skillfree",                  &battle_config.skillfree				},
-	{ "player_skillup_limit",              &battle_config.skillup_limit			},
-	{ "potion_produce_rate",               &battle_config.pp_rate					},
-	{ "prevent_logout",                    &battle_config.prevent_logout		},	// Added by RoVeRT
-	{ "produce_item_name_input",           &battle_config.produce_item_name_input	},
-	{ "produce_potion_name_input",         &battle_config.produce_potion_name_input},
-	{ "pvp_exp",                           &battle_config.pvp_exp		},
-	{ "quest_skill_learn",                 &battle_config.quest_skill_learn		},
-	{ "quest_skill_reset",                 &battle_config.quest_skill_reset		},
-	{ "rainy_waterball",					&battle_config.rainy_waterball}, // [Shinomori]
-	{ "random_monster_checklv",            &battle_config.random_monster_checklv	},
-	{ "require_glory_guild",				&battle_config.require_glory_guild}, // [celest]
-	{ "restart_hp_rate",                   &battle_config.restart_hp_rate			},
-	{ "restart_sp_rate",                   &battle_config.restart_sp_rate			},
-	{ "resurrection_exp",                  &battle_config.resurrection_exp			},
-	{ "save_clothcolor",                   &battle_config.save_clothcolor			},
-	{ "save_log",                          &battle_config.save_log					},
-	{ "serverside_friendlist",				&battle_config.serverside_friendlist	},
-	{ "shop_exp",                          &battle_config.shop_exp					},
-	{ "show_hp_sp_drain",					&battle_config.show_hp_sp_drain			}, // [Skotlex]
-	{ "show_hp_sp_gain",					&battle_config.show_hp_sp_gain			}, // [Skotlex]
-	{ "show_mob_hp",                       &battle_config.show_mob_hp				}, // [Valaris]
-	{ "show_steal_in_same_party",			&battle_config.show_steal_in_same_party	},
-	{ "skill_delay_attack_enable",			&battle_config.skill_delay_attack_enable},
-	{ "skill_min_damage",					&battle_config.skill_min_damage			},
-	{ "skill_out_range_consume",			&battle_config.skill_out_range_consume	},
-	{ "skill_removetrap_type",				&battle_config.skill_removetrap_type	},
-	{ "skill_sp_override_grffile",			&battle_config.skill_sp_override_grffile},	// [Celest]
-	{ "skill_steal_rate",					&battle_config.skill_steal_rate			}, // [celest]
-	{ "skill_steal_type",					&battle_config.skill_steal_type			}, // [celest]
-	{ "sp_rate",							&battle_config.sp_rate					},
-	{ "undead_detect_type",					&battle_config.undead_detect_type		},
-	{ "unit_movement_type",					&battle_config.unit_movement_type		},
-	{ "use_statpoint_table",				&battle_config.use_statpoint_table		}, // [Skotlex]
-	{ "vending_max_value",                 &battle_config.vending_max_value			},
-	{ "vit_penalty_count",                 &battle_config.vit_penalty_count			},
-	{ "vit_penalty_count_lv",              &battle_config.vit_penalty_count_lv		},
-	{ "vit_penalty_num",                   &battle_config.vit_penalty_num			},
-	{ "vit_penalty_type",                  &battle_config.vit_penalty_type			},
-	{ "warp_point_debug",                  &battle_config.warp_point_debug			},
-	{ "weapon_produce_rate",				&battle_config.wp_rate					},
-	{ "wedding_ignorepalette",				&battle_config.wedding_ignorepalette	},
-	{ "wedding_modifydisplay",				&battle_config.wedding_modifydisplay	},
-	{ "who_display_aid",					&battle_config.who_display_aid			}, // [Ancyker], for a feature by...?
-	{ "zeny_from_mobs",						&battle_config.zeny_from_mobs			}, // [Valaris]
-	{ "zeny_penalty",						&battle_config.zeny_penalty				},
-};
-
-int battle_set_value(const char *w1, const char *w2)
+void battle_init()
 {
-	size_t i;
-	for(i = 0; i < sizeof(battle_data) / (sizeof(battle_data[0])); ++i)
-	{
-		if(battle_data[i].val && battle_data[i].str && strcasecmp(w1, battle_data[i].str) == 0)
-		{
-			*(battle_data[i].val) = config_switch(w2);
-			return 1;
-		}
-	}
-	return 0;
+	add_timer_func_list(battle_delay_damage_sub, "battle_delay_damage_sub");
 }
 
-void battle_set_defaults()
-{
-	battle_config.agi_penalty_count = 3;
-	battle_config.agi_penalty_count_lv = ATK_FLEE;
-	battle_config.agi_penalty_num = 10;
-	battle_config.agi_penalty_type = 1;
-	battle_config.alchemist_summon_reward = 0;
-	battle_config.allow_atcommand_when_mute = 0;
-	battle_config.allow_homun_status_change = 0;
-	battle_config.any_warp_GM_min_level = 60; // added by [Yor]
-	battle_config.area_size = 14;
-	battle_config.arrow_decrement=1;
-	battle_config.atc_gmonly=0;
-	battle_config.atc_spawn_quantity_limit=0;
-	battle_config.attr_recover=1;
-	battle_config.backstab_bow_penalty = 0; // Akaru
-	battle_config.ban_bot=1;
-	battle_config.ban_hack_trade=1;
-	battle_config.ban_spoof_namer = 5; // added by [Yor] (default: 5 minutes)
-	battle_config.base_exp_rate=100;
-	battle_config.basic_skill_check=1;
-	battle_config.battle_log = 0;
-	battle_config.berserk_cancels_buffs = 0;
-	battle_config.bone_drop = 0;
-	battle_config.boss_spawn_delay=100;	
-	battle_config.buyer_name = 1;
-	battle_config.character_size = 3; //3: Peco riders Size=2, Baby Class Riders Size=1
-	battle_config.cardillust_read_grffile=0;
-	battle_config.cast_rate=100;
-	battle_config.castle_defense_rate = 100;
-	battle_config.castrate_dex_scale = 150;
-	battle_config.chat_warpportal = 0;
-	battle_config.combo_delay_rate=100;
-	battle_config.copyskill_restrict=0;
-	battle_config.day_duration = 2*60*60*1000; // added by [Yor] (2 hours)
-	battle_config.dead_branch_active = 0;
-	battle_config.death_penalty_base=0;
-	battle_config.death_penalty_job=0;
-	battle_config.death_penalty_type=0;
-	battle_config.defnotenemy=0;
-	battle_config.delay_battle_damage = 1;
-	battle_config.delay_dependon_dex=0;
-	battle_config.delay_rate=100;
-	battle_config.devotion_level_difference = 10;
-	battle_config.disp_experience = 0;
-	battle_config.disp_hpmeter = 60;
-	battle_config.display_delay_skill_fail = 1;
-	battle_config.display_hallucination = 1;
-	battle_config.display_snatcher_skill_fail = 1;
-	battle_config.display_version = 1;
-	battle_config.drop_rate0item=0;
-	battle_config.drop_rare_announce=10;//show global announces for rare items drops (<= 0.1% chance) [Lupus]
-	battle_config.drops_by_luk = 0;
-	battle_config.dynamic_mobs = 1;
-	battle_config.enemy_critical_rate=100;
-	battle_config.enemy_critical=0;
-	battle_config.enemy_perfect_flee=0;
-	battle_config.enemy_str=1;
-	battle_config.equip_natural_break_rate = 1;
-	battle_config.equip_self_break_rate = 100; // [Valaris], adapted by [Skotlex]
-	battle_config.equip_skill_break_rate = 100; // [Valaris], adapted by [Skotlex]
-	battle_config.error_log = 1;
-	battle_config.etc_log = 1;
-	battle_config.exp_calc_type = 1;
-	battle_config.finding_ore_rate = 100;
-	battle_config.finger_offensive_type=0;
-	battle_config.flooritem_lifetime=LIFETIME_FLOORITEM*1000;
-	battle_config.gm_allequip=0;
-	battle_config.gm_allskill=0;
-	battle_config.gm_allskill_addabra=0;
-	battle_config.gm_can_drop_lv = 0;
-	battle_config.gm_join_chat=0;
-	battle_config.gm_kick_chat=0;
-	battle_config.gm_skilluncond=0;
-	battle_config.gtb_pvp_only=0;
-	battle_config.guild_emperium_check=1;
-	battle_config.guild_exp_limit=50;
-	battle_config.guild_max_castles=0;
-	battle_config.gvg_eliminate_time = 7000;
-	battle_config.gvg_long_damage_rate = 80;
-	battle_config.gvg_magic_damage_rate = 60;
-	battle_config.gvg_misc_damage_rate = 60;
-	battle_config.gvg_short_damage_rate = 100;
-	battle_config.gvg_weapon_damage_rate = 60;
-	battle_config.gx_allhit = 1;
-	battle_config.gx_cardfix = 0;
-	battle_config.gx_disptype = 1;
-	battle_config.gx_dupele = 1;
-	battle_config.hack_info_GM_level = 60; // added by [Yor] (default: 60, GM level)
-	battle_config.headset_block_music = 0; //Do headsets block some sound skills like Frost Joke
-	battle_config.heal_exp=0;
-	battle_config.hide_GM_session = 0;
-	battle_config.holywater_name_input = 1;
-	battle_config.homun_creation_rate = 100;
-	battle_config.homun_intimate_rate = 100;
-	battle_config.homun_temporal_intimate_resilience = 50;
-	battle_config.hp_rate = 100;
-	battle_config.idle_no_share = 0;
-	battle_config.ignore_items_gender = 1;
-	battle_config.indoors_override_grffile=0;
-	battle_config.invite_request_check = 1;
-	battle_config.item_auto_get=0;
-	battle_config.item_check=1;
-	battle_config.item_drop_card_max=10000;
-	battle_config.item_drop_card_min=1;
-	battle_config.item_drop_common_max=10000;
-	battle_config.item_drop_common_min=1;
-	battle_config.item_drop_equip_max=10000;
-	battle_config.item_drop_equip_min=1;
-	battle_config.item_drop_heal_max=10000;
-	battle_config.item_drop_heal_min=1;
-	battle_config.item_drop_mvp_max=10000;
-	battle_config.item_drop_mvp_min=1;
-	battle_config.item_drop_use_max=10000;
-	battle_config.item_drop_use_min=1;
-	battle_config.item_equip_override_grffile=0;
-	battle_config.item_first_get_time=3000;
-	battle_config.item_name_override_grffile=1;
-	battle_config.item_rate_card = 100;
-	battle_config.item_rate_common = 100;
-	battle_config.item_rate_equip = 100;
-	battle_config.item_rate_heal = 100;
-	battle_config.item_rate_use = 100;
-	battle_config.item_second_get_time=1000;
-	battle_config.item_slots_override_grffile=0;
-	battle_config.item_third_get_time=1000;
-	battle_config.item_use_interval=500;
-	battle_config.job_exp_rate=100;
-	battle_config.left_cardfix_to_right=0;
-	battle_config.magic_defense_type = 0;
-	battle_config.mailsystem=1;
-	battle_config.making_arrow_name_input = 1;
-	battle_config.master_get_homun_base_exp =0;
-	battle_config.master_get_homun_job_exp =0;
-	battle_config.max_adv_level=70;
-	battle_config.max_aspd = 199;
-	battle_config.max_aspd_interval=10;
-	battle_config.max_base_level = 99; // [MouseJstr]
-	battle_config.max_cart_weight = 8000;
-	battle_config.max_cloth_color = 4;
-	battle_config.max_hair_color = 9;
-	battle_config.max_hair_style = 23;
-	battle_config.max_hitrate = 95;
-	battle_config.max_hp = 32500;
-	battle_config.max_job_level = 50; // [MouseJstr]
-	battle_config.max_parameter = 99;
-	battle_config.max_sn_level = 70;
-	battle_config.max_sp = 32500;
-	battle_config.max_walk_speed = 300;
-	battle_config.maximum_level = 255;
-	battle_config.min_cloth_color = 0;
-	battle_config.min_hair_color = 0;
-	battle_config.min_hair_style = 0;
-	battle_config.min_hitrate = 5;
-	battle_config.min_skill_delay_limit = 100;
-	battle_config.mob_attack_attr_none = 1;
-	battle_config.mob_changetarget_byskill = 0;
-	battle_config.mob_clear_delay=0;
-	battle_config.mob_count_rate=100;
-	battle_config.mob_ghostring_fix = 0;
-	battle_config.mob_remove_damaged = 0;
-	battle_config.mob_remove_delay = 60000;
-	battle_config.mob_skill_add_range=0;
-	battle_config.mob_skill_delay=100;
-	battle_config.mob_skill_log = 0;
-	battle_config.mob_skill_rate=100;
-	battle_config.mob_slaves_inherit_speed=1;
-	battle_config.mob_spawn_delay=100;
-	battle_config.mob_warpportal = 0;
-	battle_config.mobs_level_up = 0;
-	battle_config.monster_active_enable=1;
-	battle_config.monster_attack_direction_change = 1;
-	battle_config.monster_auto_counter_type = 1;
-	battle_config.monster_class_change_full_recover = 0;
-	battle_config.monster_cloak_check_type = 0;
-	battle_config.monster_damage_delay = 1;
-	battle_config.monster_damage_delay_rate=100;
-	battle_config.monster_defense_type = 0;
-	battle_config.monster_hp_rate=100;
-	battle_config.monster_land_skill_limit = 1;
-	battle_config.monster_loot_type=0;
-	battle_config.monster_max_aspd=199;
-	battle_config.monster_skill_nofootset = 0;
-	battle_config.monster_skill_reiteration = 0;
-	battle_config.monsters_ignore_gm=0;
-	battle_config.motd_type = 0;
-	battle_config.multi_level_up = 0; // [Valaris]
-	battle_config.muting_players=0;
-	battle_config.mvp_exp_rate=100;
-	battle_config.mvp_hp_rate=100;
-	battle_config.mvp_item_first_get_time=10000;
-	battle_config.mvp_item_rate=100;
-	battle_config.mvp_item_second_get_time=10000;
-	battle_config.mvp_item_third_get_time=2000;
-	battle_config.natural_heal_skill_interval=10000;
-	battle_config.natural_heal_weight_rate=50;
-	battle_config.natural_healhp_interval=6000;
-	battle_config.natural_healsp_interval=8000;
-	battle_config.new_attack_function = 0; //This is for test/debug purposes [Skotlex]
-	battle_config.night_at_start = 0; // added by [Yor]
-	battle_config.night_darkness_level = 9;
-	battle_config.night_duration = 30*60*1000; // added by [Yor] (30 minutes)
-	battle_config.packet_ver_flag = 0; // added by [Yor]
-	battle_config.party_bonus = 0;
-	battle_config.party_share_mode = 2; // 0 exclude none, 1 exclude idle, 2 exclude idle+chatting
-	battle_config.party_skill_penalty = 1;
-	battle_config.pc_attack_attr_none = 0;
-	battle_config.pc_attack_direction_change = 1;
-	battle_config.pc_auto_counter_type = 1;
-	battle_config.pc_cloak_check_type = 0;
-	battle_config.pc_damage_delay_rate=100;
-	battle_config.pc_damage_delay=1;
-	battle_config.pc_invincible_time = 5000;
-	battle_config.pc_land_skill_limit = 1;
-	battle_config.pc_skill_add_range=0;
-	battle_config.pc_skill_log = 1;
-	battle_config.pc_skill_nofootset = 0;
-	battle_config.pc_skill_reiteration = 0;
-	battle_config.pet_attack_attr_none = 0;
-	battle_config.pet_attack_exp_rate=100;
-	battle_config.pet_attack_exp_to_master=0;
-	battle_config.pet_attack_support=0;
-	battle_config.pet_catch_rate=100;
-	battle_config.pet_damage_support=0;
-	battle_config.pet_defense_type = 0;
-	battle_config.pet_equip_required = 0; // [Valaris]
-	battle_config.pet_friendly_rate=100;
-	battle_config.pet_hair_style = 100;
-	battle_config.pet_hungry_delay_rate=100;
-	battle_config.pet_hungry_friendly_decrease=5;
-	battle_config.pet_lv_rate=0;
-	battle_config.pet_max_atk1=750;
-	battle_config.pet_max_atk2=1000;
-	battle_config.pet_max_stats=99;
-	battle_config.pet_no_gvg = 0;
-	battle_config.pet_random_move=1;
-	battle_config.pet_rename=0;
-	battle_config.pet_status_support=0;
-	battle_config.pet_str=1;
-	battle_config.pet_support_min_friendly=900;
-	battle_config.pet_support_rate=100;
-	battle_config.pk_min_level = 55;
-	battle_config.pk_mode = 0; // [Valaris]
-	battle_config.plant_spawn_delay=100;
-	battle_config.player_defense_type = 0;
-	battle_config.player_skill_partner_check = 1;
-	battle_config.pp_rate=100;
-	battle_config.prevent_logout = 1;
-	battle_config.produce_item_name_input = 1;
-	battle_config.produce_potion_name_input = 1;
-	battle_config.pvp_exp=1;
-	battle_config.quest_skill_learn=0;
-	battle_config.quest_skill_reset=1;
-	battle_config.rainy_waterball = 1;
-	battle_config.random_monster_checklv=1;
-	battle_config.require_glory_guild = 0;
-	battle_config.restart_hp_rate=0;
-	battle_config.restart_sp_rate=0;
-	battle_config.resurrection_exp=0;
-	battle_config.save_clothcolor = 0;
-	battle_config.save_log = 0;
-	battle_config.serverside_friendlist=1;
-	battle_config.shop_exp=100;
-	battle_config.show_hp_sp_drain = 0; //Display drained hp/sp from attacks
-	battle_config.show_hp_sp_gain = 1;
-	battle_config.show_mob_hp = 0; // [Valaris]
-	battle_config.show_steal_in_same_party = 0;
-	battle_config.skill_delay_attack_enable=0;
-	battle_config.skill_min_damage=0;
-	battle_config.skill_out_range_consume=1;
-	battle_config.skill_removetrap_type = 0;
-	battle_config.skill_sp_override_grffile=0;
-	battle_config.skill_steal_rate = 100;
-	battle_config.skill_steal_type = 1;
-	battle_config.skillfree = 0;
-	battle_config.skillup_limit = 0;
-	battle_config.sp_rate = 100;
-	battle_config.undead_detect_type = 0;
-	battle_config.unit_movement_type = 0;
-	battle_config.use_statpoint_table = 1;
-	battle_config.vending_max_value = 10000000;
-	battle_config.vit_penalty_count = 3;
-	battle_config.vit_penalty_count_lv = ATK_DEF;
-	battle_config.vit_penalty_num = 5;
-	battle_config.vit_penalty_type = 1;
-	battle_config.warp_point_debug=0;
-	battle_config.wedding_ignorepalette=0;
-	battle_config.wedding_modifydisplay=0;
-	battle_config.who_display_aid = 0;
-	battle_config.wp_rate=100;
-	battle_config.zeny_from_mobs = 0;
-	battle_config.zeny_penalty=0;
-}
 
-void battle_validate_conf()
-{
-	if(battle_config.flooritem_lifetime < 1000)
-		battle_config.flooritem_lifetime = LIFETIME_FLOORITEM*1000;
-	if(battle_config.restart_hp_rate > 100)
-		battle_config.restart_hp_rate = 100;
-	if(battle_config.restart_sp_rate > 100)
-		battle_config.restart_sp_rate = 100;
-	if(battle_config.natural_healhp_interval < NATURAL_HEAL_INTERVAL)
-		battle_config.natural_healhp_interval=NATURAL_HEAL_INTERVAL;
-	if(battle_config.natural_healsp_interval < NATURAL_HEAL_INTERVAL)
-		battle_config.natural_healsp_interval=NATURAL_HEAL_INTERVAL;
-	if(battle_config.natural_heal_skill_interval < NATURAL_HEAL_INTERVAL)
-		battle_config.natural_heal_skill_interval=NATURAL_HEAL_INTERVAL;
-	if(battle_config.natural_heal_weight_rate < 50)
-		battle_config.natural_heal_weight_rate = 50;
-	if(battle_config.natural_heal_weight_rate > 100)
-		battle_config.natural_heal_weight_rate = 100;
-	
-	////////////////////////////////////////////////
-	if( battle_config.monster_max_aspd< 200 )
-		battle_config.monster_max_aspd_interval = 2000 - battle_config.monster_max_aspd*10;
-	else
-		battle_config.monster_max_aspd_interval= 10;
-	if(battle_config.monster_max_aspd_interval > 1000)
-		battle_config.monster_max_aspd_interval = 1000;
-	////////////////////////////////////////////////
-	if(battle_config.max_aspd>199)
-		battle_config.max_aspd_interval = 10;
-	else if(battle_config.max_aspd<100)
-		battle_config.max_aspd_interval = 1000;
-	else
-		battle_config.max_aspd_interval = 2000 - battle_config.max_aspd*10;
-	////////////////////////////////////////////////
-	if(battle_config.max_walk_speed > MAX_WALK_SPEED)
-		battle_config.max_walk_speed = MAX_WALK_SPEED;
-
-
-	if(battle_config.hp_rate < 1)
-		battle_config.hp_rate = 1;
-	if(battle_config.sp_rate < 1)
-		battle_config.sp_rate = 1;
-	if(battle_config.max_hp > 1000000)
-		battle_config.max_hp = 1000000;
-	if(battle_config.max_hp < 100)
-		battle_config.max_hp = 100;
-	if(battle_config.max_sp > 1000000)
-		battle_config.max_sp = 1000000;
-	if(battle_config.max_sp < 100)
-		battle_config.max_sp = 100;
-	if(battle_config.max_parameter < 10)
-		battle_config.max_parameter = 10;
-	if(battle_config.max_parameter > 10000)
-		battle_config.max_parameter = 10000;
-	if(battle_config.max_cart_weight > 1000000)
-		battle_config.max_cart_weight = 1000000;
-	if(battle_config.max_cart_weight < 100)
-		battle_config.max_cart_weight = 100;
-	battle_config.max_cart_weight *= 10;
-
-	if(battle_config.min_hitrate > battle_config.max_hitrate)
-		battle_config.min_hitrate = battle_config.max_hitrate;
-		
-	if(battle_config.agi_penalty_count < 2)
-		battle_config.agi_penalty_count = 2;
-	if(battle_config.vit_penalty_count < 2)
-		battle_config.vit_penalty_count = 2;
-
-	if(battle_config.guild_exp_limit > 99)
-		battle_config.guild_exp_limit = 99;
-
-	if(battle_config.pet_support_min_friendly > 950) //Capped to 950/1000 [Skotlex]
-		battle_config.pet_support_min_friendly = 950;
-	
-	if(battle_config.pet_max_atk1 > battle_config.pet_max_atk2)	//Skotlex
-		battle_config.pet_max_atk1 = battle_config.pet_max_atk2;
-	
-	if(battle_config.castle_defense_rate > 100)
-		battle_config.castle_defense_rate = 100;
-	if(battle_config.item_drop_common_min < 1)		// Added by TyrNemesis^
-		battle_config.item_drop_common_min = 1;
-	if(battle_config.item_drop_common_max > 10000)
-		battle_config.item_drop_common_max = 10000;
-	if(battle_config.item_drop_equip_min < 1)
-		battle_config.item_drop_equip_min = 1;
-	if(battle_config.item_drop_equip_max > 10000)
-		battle_config.item_drop_equip_max = 10000;
-	if(battle_config.item_drop_card_min < 1)
-		battle_config.item_drop_card_min = 1;
-	if(battle_config.item_drop_card_max > 10000)
-		battle_config.item_drop_card_max = 10000;
-	if(battle_config.item_drop_mvp_min < 1)
-		battle_config.item_drop_mvp_min = 1;
-	if(battle_config.item_drop_mvp_max > 10000)
-		battle_config.item_drop_mvp_max = 10000;	// End Addition
-
-
-	if (battle_config.night_at_start > 1) // added by [Yor]
-		battle_config.night_at_start = 1;
-	if (battle_config.day_duration != 0 && battle_config.day_duration < 60000) // added by [Yor]
-		battle_config.day_duration = 60000;
-	if (battle_config.night_duration != 0 && battle_config.night_duration < 60000) // added by [Yor]
-		battle_config.night_duration = 60000;
-	
-
-	if (battle_config.ban_spoof_namer > 32767)
-		battle_config.ban_spoof_namer = 32767;
-
-
-	if (battle_config.hack_info_GM_level > 100)
-		battle_config.hack_info_GM_level = 100;
-
-
-	if (battle_config.any_warp_GM_min_level > 100)
-		battle_config.any_warp_GM_min_level = 100;
-
-
-	if (battle_config.night_darkness_level > 10) // Celest
-		battle_config.night_darkness_level = 10;
-
-	if (battle_config.motd_type > 1)
-		battle_config.motd_type = 1;
-
-	if (battle_config.vending_max_value > MAX_ZENY || battle_config.vending_max_value<=0) // Lupus & Kobra_k88
-		battle_config.vending_max_value = MAX_ZENY;
-
-	if (battle_config.min_skill_delay_limit < 10)
-		battle_config.min_skill_delay_limit = 10;	// minimum delay of 10ms
-
-	if (battle_config.mob_remove_delay < 15000)	//Min 15 sec
-		battle_config.mob_remove_delay = 15000;
-	if (battle_config.dynamic_mobs > 1)
-		battle_config.dynamic_mobs = 1;	//The flag will be used in assignations	
-}
-
-/*==========================================
- * 設定ファイルを読み込む
- *------------------------------------------
- */
-int battle_config_read(const char *cfgName)
-{
-	char line[1024], w1[1024], w2[1024];
-	FILE *fp;
-	static int count = 0;
-
-	if ((count++) == 0)
-		battle_set_defaults();
-
-	fp = basics::safefopen(cfgName,"r");
-	if (fp == NULL) {
-		ShowError("file not found: %s\n", cfgName);
-		return 1;
-	}
-	while(fgets(line,sizeof(line),fp)){
-		if( !get_prepared_line(line) )
-			continue;
-		if (sscanf(line, "%[^:]:%s", w1, w2) != 2)
-			continue;
-		if(strcasecmp(w1, "import") == 0)
-			battle_config_read(w2);
-		else
-		{
-			if( !battle_set_value(w1, w2) )
-				ShowWarning("(Battle Config) %s: no such option.\n", w1);
-		}
-	}
-	fclose(fp);
-
-	if (--count == 0) {
-		battle_validate_conf();
-		add_timer_func_list(battle_delay_damage_sub, "battle_delay_damage_sub");
-	}
-
-	return 0;
-}

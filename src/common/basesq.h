@@ -70,6 +70,8 @@ protected:
 	static basics::CParam< basics::string<> > tbl_homunculus;
 	static basics::CParam< basics::string<> > tbl_homunskill;
 
+	static basics::CParam< basics::string<> > tbl_variable;
+
 	static basics::CParam<bool> wipe_sql;
 	static basics::CParam< basics::string<> > sql_engine;
 
@@ -390,7 +392,7 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Homunculu Database Interface
+// Homunculi Database Interface
 class CHomunculusDB_sql : public CHomunculusDBInterface, public CSQLParameter
 {
 public:
@@ -417,6 +419,42 @@ public:
 	virtual bool removeHomunculus(uint32 hid);
 	virtual bool saveHomunculus(const CHomunculus& hom);
 };
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Variable Database Interface
+// testcase, possibly seperate into different implementations
+class CVarDB_sql : public CVarDBInterface, public CSQLParameter
+{
+public:
+	CVarDB_sql(const char *dbcfgfile) : CSQLParameter(dbcfgfile)
+	{
+		init(dbcfgfile);
+	}
+	virtual ~CVarDB_sql()
+	{
+		close();
+	}
+protected:
+	bool init(const char *dbcfgfile);
+	bool close()
+	{
+		return true;
+	}
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size() const;
+	virtual CVar& operator[](size_t i);
+
+
+	virtual bool searchVar(const char* name, CVar& var);
+	virtual bool insertVar(const char* name, const char* value);
+	virtual bool removeVar(const char* name);
+	virtual bool saveVar(const CVar& var);
+};
+
 
 #endif// defined(WITH_MYSQL)
 

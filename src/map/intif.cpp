@@ -131,13 +131,13 @@ int intif_parse_RecvHomun(int fd)
 	int len=RFIFOW(fd,2);
 	if( 5 == len || 1==RFIFOB(fd,4) )
 	{
-		if(battle_config.etc_log)
+		if(config.etc_log)
 			ShowError("intif: hom data create/request failed\n");
 
 	}
 	else if( 5+sizeof(struct homunstatus) != len )
 	{
-		if(battle_config.etc_log)
+		if(config.etc_log)
 			ShowError("intif: hom data: data size error %d %d\n",sizeof(struct homunstatus),len-5);
 	}
 	else
@@ -164,7 +164,7 @@ int intif_parse_SaveHomun(int fd)
 {
 	if(RFIFOB(fd,2) == 1)
 	{
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowError("hom data saving failed\n");
 	}
 	return 0;
@@ -184,7 +184,7 @@ int intif_parse_DeleteHomun(int fd)
 {
 	if(RFIFOB(fd,2) == 1)
 	{
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowError("hom data deletion failed\n");
 	}
 	return 0;
@@ -225,7 +225,7 @@ int intif_wis_message(struct map_session_data &sd, const char *nick, const char 
 	memcpy(WFIFOP(char_fd,52), mes, len);
 	WFIFOSET(char_fd, len + 52);
 
-	if(battle_config.etc_log)
+	if(config.etc_log)
 		ShowMessage("intif_wis_message from %s to %s (message: '%s')\n", sd.status.name, nick, mes);
 
 	return 0;
@@ -241,7 +241,7 @@ int intif_wis_replay(int id, int flag)
 	WFIFOB(char_fd,6) = flag; // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
 	WFIFOSET(char_fd,7);
 
-	if(battle_config.etc_log)
+	if(config.etc_log)
 		ShowMessage("intif_wis_replay: id: %d, flag:%d\n", id, flag);
 
 	return 0;
@@ -261,7 +261,7 @@ int intif_wis_message_to_gm(const char *Wisp_name, int min_gm_level, const char 
 	memcpy(WFIFOP(char_fd,30), mes, mes_len);
 	WFIFOSET(char_fd, WFIFOW(char_fd,2));
 
-	if(battle_config.etc_log)
+	if(config.etc_log)
 		ShowMessage("intif_wis_message_to_gm: from: '%s', min level: %d, message: '%s'.\n", Wisp_name, min_gm_level, mes);
 
 	return 0;
@@ -367,7 +367,7 @@ int intif_create_party(struct map_session_data &sd,const char *name,int item,int
 	WFIFOB(char_fd,72)= item;
 	WFIFOB(char_fd,73)= item2;
 	WFIFOSET(char_fd,74);
-//	if(battle_config.etc_log)
+//	if(config.etc_log)
 //		ShowMessage("intif: create party\n");
 	return 0;
 }
@@ -379,7 +379,7 @@ int intif_request_partyinfo(uint32 party_id)
 	WFIFOW(char_fd,0) = 0x3021;
 	WFIFOL(char_fd,2) = party_id;
 	WFIFOSET(char_fd,6);
-//	if(battle_config.etc_log)
+//	if(config.etc_log)
 //		ShowMessage("intif: request party info\n");
 	return 0;
 }
@@ -390,7 +390,7 @@ int intif_party_addmember(uint32 party_id,uint32 account_id)
 	if( !session_isActive(char_fd) )
 		return 0;
 	sd=map_id2sd(account_id);
-//	if(battle_config.etc_log)
+//	if(config.etc_log)
 //		ShowMessage("intif: party add member %d %d\n",party_id,account_id);
 	if(sd!=NULL){
 		WFIFOW(char_fd,0)=0x3022;
@@ -421,7 +421,7 @@ int intif_party_leave(uint32 party_id,uint32 account_id)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
-//	if(battle_config.etc_log)
+//	if(config.etc_log)
 //		ShowMessage("intif: party leave %d %d\n",party_id,account_id);
 	WFIFOW(char_fd,0)=0x3024;
 	WFIFOL(char_fd,2)=party_id;
@@ -443,7 +443,7 @@ int intif_party_changemap(struct map_session_data *sd,int online)
 	    WFIFOW(char_fd,27)=sd->status.base_level;
 	    WFIFOSET(char_fd,29);
 	}
-//	if(battle_config.etc_log)
+//	if(config.etc_log)
 //		ShowMessage("party: change map\n");
 	return 0;
 }
@@ -462,7 +462,7 @@ int intif_party_message(uint32 party_id,uint32 account_id,const char *mes,size_t
 {
 	if( !session_isActive(char_fd) )
 		return 0;
-//	if(battle_config.etc_log)
+//	if(config.etc_log)
 //		ShowMessage("intif_party_message: %s\n",mes);
 	if( (party_id > 0) && (party_search(party_id) != NULL) && 
 		(mes != NULL) && (len > 0) )
@@ -731,7 +731,7 @@ int intif_parse_WisMessage(int fd)
 	int id=RFIFOL(fd,4);
 	int i=0;
 
-	if(battle_config.etc_log)
+	if(config.etc_log)
 		ShowMessage("intif_parse_wismessage: %d %s %s %s\n",id,RFIFOP(fd,6),RFIFOP(fd,30),RFIFOP(fd,54) );
 	
 	sd=map_nick2sd((char*)RFIFOP(fd,32));	// 送信先を探す
@@ -762,7 +762,7 @@ int intif_parse_WisEnd(int fd)
 {
 	struct map_session_data* sd;
 
-	if(battle_config.etc_log)
+	if(config.etc_log)
 		ShowMessage("intif_parse_wisend: player: %s, flag: %d\n", (char*)RFIFOP(fd,2), (unsigned char)RFIFOB(fd,26)); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
 	sd = map_nick2sd((char*)RFIFOP(fd,2));
 	if(sd != NULL)
@@ -826,23 +826,23 @@ int intif_parse_LoadStorage(int fd) {
 	if(stor)
 	{
 		if(stor->storage_status == 1) { // Already open.. lets ignore this update
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowMessage("intif_parse_LoadStorage: storage received for a client already open\n");
 			return 0;
 		}
 
 		if(RFIFOW(fd,2)-8 != sizeof(struct pc_storage)) {
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowMessage("intif_parse_LoadStorage: data size error %d %d\n", RFIFOW(fd,2)-8, sizeof(struct pc_storage));
 			return 1;
 		}
 		sd=map_id2sd( RFIFOL(fd,4) );
 		if(sd==NULL){
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowError("intif_parse_LoadStorage: user not found %ld\n",(unsigned long)RFIFOL(fd,4));
 			return 1;
 		}
-		if(battle_config.save_log)
+		if(config.save_log)
 			ShowMessage("intif_openstorage: %ld\n",(unsigned long)RFIFOL(fd,4) );
 
 	//	memcpy(stor,RFIFOP(fd,8),sizeof(struct pc_storage));
@@ -861,7 +861,7 @@ int intif_parse_LoadStorage(int fd) {
 // 倉庫データ送信成功
 int intif_parse_SaveStorage(int fd)
 {
-	if(battle_config.save_log)
+	if(config.save_log)
 		ShowMessage("intif_savestorage: done %ld %d\n",(unsigned long)RFIFOL(fd,2),(unsigned char)RFIFOB(fd,6) );
 	return 0;
 }
@@ -875,23 +875,23 @@ int intif_parse_LoadGuildStorage(int fd)
 	if(guild_id > 0) {
 		gstor=guild2storage(guild_id);
 		if(!gstor) {
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowMessage("intif_parse_LoadGuildStorage: error guild_id %d not exist\n",guild_id);
 			return 1;
 		}
 		if( RFIFOW(fd,2)-12 != sizeof(struct guild_storage) ){
 			gstor->storage_status = 0;
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowMessage("intif_parse_LoadGuildStorage: data size error %d %d\n",RFIFOW(fd,2)-12 , sizeof(struct guild_storage));
 			return 1;
 		}
 		sd=map_id2sd( RFIFOL(fd,4) );
 		if(sd==NULL){
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowError("intif_parse_LoadGuildStorage: user not found %ld\n",(unsigned long)RFIFOL(fd,4));
 			return 1;
 		}
-		if(battle_config.save_log)
+		if(config.save_log)
 			ShowMessage("intif_open_guild_storage: %ld\n",(unsigned long)RFIFOL(fd,4) );
 
 		guild_storage_frombuffer(*gstor, RFIFOP(fd,12));
@@ -906,7 +906,7 @@ int intif_parse_LoadGuildStorage(int fd)
 }
 int intif_parse_SaveGuildStorage(int fd)
 {
-	if(battle_config.save_log) {
+	if(config.save_log) {
 		ShowMessage("intif_save_guild_storage: done %ld %ld %d\n",(unsigned long)RFIFOL(fd,2),(unsigned long)RFIFOL(fd,6),(unsigned char)RFIFOB(fd,10) );
 	}
 	return 0;
@@ -915,7 +915,7 @@ int intif_parse_SaveGuildStorage(int fd)
 // パーティ作成可否
 int intif_parse_PartyCreated(int fd)
 {
-	if(battle_config.etc_log)
+	if(config.etc_log)
 		ShowInfo("intif: party created by account %d\n\n", (uint32)RFIFOL(fd,2));
 	party_created(RFIFOL(fd,2),RFIFOB(fd,6),RFIFOL(fd,7),(char*)RFIFOP(fd,11));
 	return 0;
@@ -930,14 +930,14 @@ int intif_parse_PartyInfo(int fd)
 		party_recv_info(par);
 	}
 	else if( RFIFOW(fd,2)==8){
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("intif: party noinfo %ld\n",(unsigned long)RFIFOL(fd,4));
 		party_recv_noinfo(RFIFOL(fd,4));
 		return 0;
 	}
 	else
 	{
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("intif: party info : data size error %ld %d %d\n",(unsigned long)RFIFOL(fd,4),(unsigned short)RFIFOW(fd,2),sizeof(struct party)+4);
 	}
 	return 0;
@@ -945,7 +945,7 @@ int intif_parse_PartyInfo(int fd)
 // パーティ追加通知
 int intif_parse_PartyMemberAdded(int fd)
 {
-	if(battle_config.etc_log)
+	if(config.etc_log)
 		ShowMessage("intif: party member added %ld %ld %d\n",(unsigned long)RFIFOL(fd,2),(unsigned long)RFIFOL(fd,6),(unsigned char)RFIFOB(fd,10));
 	party_member_added(RFIFOL(fd,2),RFIFOL(fd,6),RFIFOB(fd,10));
 	return 0;
@@ -959,7 +959,7 @@ int intif_parse_PartyOptionChanged(int fd)
 // パーティ脱退通知
 int intif_parse_PartyMemberLeaved(int fd)
 {
-	if(battle_config.etc_log)
+	if(config.etc_log)
 		ShowMessage("intif: party member leaved %ld %ld %s\n",(unsigned long)RFIFOL(fd,2),(unsigned long)RFIFOL(fd,6),RFIFOP(fd,10));
 	party_member_leaved(RFIFOL(fd,2),RFIFOL(fd,6),(char*)RFIFOP(fd,10));
 	return 0;
@@ -973,7 +973,7 @@ int intif_parse_PartyBroken(int fd)
 // パーティ移動通知
 int intif_parse_PartyMove(int fd)
 {
-//	if(battle_config.etc_log)
+//	if(config.etc_log)
 //		ShowMessage("intif: party move %ld %ld %s %d %d\n",(unsigned long)RFIFOL(fd,2),(unsigned long)RFIFOL(fd,6),RFIFOP(fd,10),(unsigned char)RFIFOB(fd,26),(unsigned short)RFIFOW(fd,27));
 	party_recv_movemap(RFIFOL(fd,2),RFIFOL(fd,6),(char*)RFIFOP(fd,10),(unsigned char)RFIFOB(fd,26),(unsigned short)RFIFOW(fd,27));
 	return 0;
@@ -981,7 +981,7 @@ int intif_parse_PartyMove(int fd)
 // パーティメッセージ
 int intif_parse_PartyMessage(int fd)
 {
-//	if(battle_config.etc_log)
+//	if(config.etc_log)
 //		ShowMessage("intif_parse_PartyMessage: %s\n",RFIFOP(fd,12));
 	party_recv_message(RFIFOL(fd,4),RFIFOL(fd,8),(char*)RFIFOP(fd,12),RFIFOW(fd,2)-12);
 	return 0;
@@ -1004,14 +1004,14 @@ int intif_parse_GuildInfo(int fd)
 	}
 	else if( RFIFOW(fd,2)==8)
 	{
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("intif: guild noinfo %ld\n",(unsigned long)RFIFOL(fd,4));
 		guild_recv_noinfo(RFIFOL(fd,4));
 		return 0;
 	}
 	else
 	{
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("intif: guild info : data size error %ld %d %d\n", (unsigned long)RFIFOL(fd,4),(unsigned short)RFIFOW(fd,2),4+sizeof(struct guild));
 	}
 	return 0;
@@ -1019,7 +1019,7 @@ int intif_parse_GuildInfo(int fd)
 // ギルドメンバ追加通知
 int intif_parse_GuildMemberAdded(int fd)
 {
-	if(battle_config.etc_log)
+	if(config.etc_log)
 		ShowMessage("intif: guild member added %ld %ld %ld %d\n",(unsigned long)RFIFOL(fd,2),(unsigned long)RFIFOL(fd,6),(unsigned long)RFIFOL(fd,10),(unsigned char)RFIFOB(fd,14));
 	guild_member_added(RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10),RFIFOB(fd,14));
 	return 0;
@@ -1100,7 +1100,7 @@ int intif_parse_GuildPosition(int fd)
 	}
 	else
 	{
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("intif: guild position : data size error\n %ld %d %d",(unsigned long)RFIFOL(fd,4),(unsigned short)RFIFOW(fd,2),sizeof(struct guild_position)+12);
 	}
 	return 0;
@@ -1164,7 +1164,7 @@ int intif_parse_RecvPetData(int fd)
 {
 	int len=RFIFOW(fd,2);
 	if(sizeof(struct petstatus)!=len-9) {
-		if(battle_config.etc_log)
+		if(config.etc_log)
 			ShowMessage("intif: pet data: data size error %d %d\n",sizeof(struct petstatus),len-9);
 	}
 	else{
@@ -1179,7 +1179,7 @@ int intif_parse_RecvPetData(int fd)
 int intif_parse_SavePetOk(int fd)
 {
 	if(RFIFOB(fd,6) == 1) {
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("pet data save failure\n");
 	}
 
@@ -1189,7 +1189,7 @@ int intif_parse_SavePetOk(int fd)
 int intif_parse_DeletePetOk(int fd)
 {
 	if(RFIFOB(fd,2) == 1) {
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("pet data delete failure\n");
 	}
 
@@ -1215,7 +1215,7 @@ int intif_parse(int fd)
 			return 2;
 		packet_len = RFIFOW(fd,2);
 	}
-//	if(battle_config.etc_log)
+//	if(config.etc_log)
 //		ShowMessage("intif_parse %d %x %d %d\n",fd,cmd,packet_len,RFIFOREST(fd));
 	if(RFIFOREST(fd)<packet_len){
 		return 2;
@@ -1266,7 +1266,7 @@ int intif_parse(int fd)
 	case 0x388b:	intif_parse_DeleteHomun(fd); break;
 
 	default:
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("intif_parse : unknown packet %d %x\n",fd,(unsigned short)RFIFOW(fd,0));
 		return 0;
 	}

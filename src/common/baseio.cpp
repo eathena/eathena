@@ -324,3 +324,103 @@ CHomunculusDBInterface* CHomunculusDB::getDB(const char *dbcfgfile)
 	return NULL;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+/// conversion from saved string
+bool CVar::from_string(const char* str)
+{
+	static basics::CRegExp re("([^,]+),([^,]*),([^,]*),([^,]*),([^,\n]*)");
+	if( re.match(str) )
+	{
+		*this = re[1];			// name
+		//re[2];				// will be storage type (account/char/party/... variable)
+		//re[3];				// will be storage id (account_id/char_id/...)
+		//re[4];				// will be variable type (string/int/float/...)
+		this->cValue = re[5];	// value
+
+		return (this->name()!="" && this->cValue!="0" && this->cValue!="");
+	}
+	return false;
+}
+/// conversion to save string
+size_t CVar::to_string(char* str, size_t len) const
+{
+	if( this->name()!="" &&
+		this->cValue!="0" &&
+		this->cValue!="" )
+	{
+		int sz = snprintf(str,len, "%s,0,0,0,%s", (const char*)*this, (const char*)this->cValue);
+		return (sz>0)?sz:0;
+	}
+	return 0;
+}
+
+/// conversion from transfer buffer
+bool CVar::from_buffer(const unsigned char* buf)
+{
+	this->assign((const char*)buf,32);
+	this->cValue.assign((const char*)buf+32);
+	return true;
+}
+/// conversion to transfer buffer
+size_t CVar::to_buffer(unsigned char* buf, size_t len) const
+{
+	memcpy(buf, (const char*)this->name(), 32);
+	buf[31]=0;
+	memcpy(buf+32, (const char*)this->cValue, 1+this->cValue.size());
+	return 32+1+this->cValue.size();
+}
+
+
+
+
+
+
+
+CVarDBInterface* CVarDB::getDB(const char *dbcfgfile)
+{
+	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
+#if defined(WITH_TEXT) && defined(WITH_MYSQL)
+	if(database_engine()=="txt")
+		return new CVarDB_txt(dbcfgfile);
+	if(database_engine()=="sql")
+		return new CVarDB_sql(dbcfgfile);
+#elif defined(WITH_TEXT)
+	return new CVarDB_txt(dbcfgfile);
+#elif defined(WITH_MYSQL)
+	return new CVarDB_sql(dbcfgfile);
+#else
+#error "no database implementation specified, define 'WITH_MYSQL','WITH_TEXT' or both"
+#endif
+	return NULL;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

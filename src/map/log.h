@@ -26,7 +26,12 @@ int log_atcommand(struct map_session_data &sd, const char *message);
 int log_npc(struct map_session_data &sd, const char *message);
 int log_chat(const char *type, int type_id, int src_charid, int src_accid, const char *mapname, int x, int y, const char *dst_charname, const char *message);
 
-int log_config_read(const char *cfgName);
+
+
+int log_final(void);
+int log_init(const char *cfgName);
+
+
 
 struct LogConfig {
 	int enable_logs;

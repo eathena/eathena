@@ -54,18 +54,6 @@ static struct item_group itemgroup_db[MAX_ITEMGROUP];
  *------------------------------------------
  */
 // name = item alias, so we should find items aliases first. if not found then look for "jname" (full name)
-/*
-int itemdb_searchname_sub(void *key,void *data,va_list &ap)
-{
-	struct item_data *item=(struct item_data *)data,**dst;
-	char *str;
-	str=va_arg(ap,char *);
-	dst=va_arg(ap,struct item_data**);
-	if( strcasecmp(item->name,str)==0 ) //by lupus
-		*dst=item;
-	return 0;
-}
-*/
 class CDBItemSearchname : public CDBProcessor
 {
 	const char* str;
@@ -84,23 +72,10 @@ public:
 		return true;
 	}
 };
-
 /*==========================================
  * –¼‘O‚ÅŒŸõ—p
  *------------------------------------------
  */
-/*
-int itemdb_searchjname_sub(void *key,void *data,va_list &ap)
-{
-	struct item_data *item=(struct item_data *)data,**dst;
-	char *str;
-	str=va_arg(ap,char *);
-	dst=va_arg(ap,struct item_data**);
-	if( strcasecmp(item->jname,str)==0 )
-		*dst=item;
-	return 0;
-}
-*/
 class CDBItemSearchjname : public CDBProcessor
 {
 	const char* str;
@@ -128,7 +103,6 @@ struct item_data* itemdb_searchname(const char *str)
 {
 	struct item_data *item=NULL;
 	numdb_foreach(item_db, CDBItemSearchname(str,item) );
-//	numdb_foreach(item_db,itemdb_searchname_sub,str,&item);
 	return item;
 }
 
@@ -759,6 +733,7 @@ int itemdb_read_sqldb(void)
 	int i;	
 
 	// ----------
+	char tmp_sql[16384];
 
 	for (i = 0; i < 2; ++i)
 	{
@@ -830,7 +805,7 @@ int itemdb_read_sqldb(void)
 					id->range	= (sql_row[9] != NULL) ? atoi(sql_row[9]) : 0;
 					id->flag.slot= (sql_row[10] != NULL)	? atoi(sql_row[10])	: 0;
 					id->class_array	= (sql_row[11] != NULL) ? atoi(sql_row[11]) : 0;
-					id->flag.sex= (battle_config.ignore_items_gender && nameid!=2634 && nameid!=2635) ? 2 :
+					id->flag.sex= (config.ignore_items_gender && nameid!=2634 && nameid!=2635) ? 2 :
 									( (sql_row[12] != NULL) ? atoi(sql_row[12]) : 0);
 					id->equip	= (sql_row[13] != NULL) ? atoi(sql_row[13]) : 0;
 					id->wlv		= (sql_row[14] != NULL) ? atoi(sql_row[14]) : 0;
@@ -983,7 +958,7 @@ int itemdb_readdb(void)
 			id->flag.slot=atoi(str[10]);
 			id->class_array=atoi(str[11]);
 			id->flag.sex=atoi(str[12]);
-			id->flag.sex= (battle_config.ignore_items_gender && nameid!=2634 && nameid!=2635) ? 2 : atoi(str[12]);
+			id->flag.sex= (config.ignore_items_gender && nameid!=2634 && nameid!=2635) ? 2 : atoi(str[12]);
 			if(id->equip != atoi(str[13])){
 				id->equip=atoi(str[13]);
 			}
@@ -1027,11 +1002,8 @@ void itemdb_read(void)
 		itemdb_read_sqldb();
 	}
 	else
-	{
-		itemdb_readdb();	
-	}
 #else
-	itemdb_readdb();
+		itemdb_readdb();
 #endif
 
 	itemdb_read_itemgroup();
@@ -1039,13 +1011,13 @@ void itemdb_read(void)
 	itemdb_read_itemavail();
 	itemdb_read_noequip();
 	itemdb_read_itemtrade();
-	if (battle_config.cardillust_read_grffile)
+	if (config.cardillust_read_grffile)
 		itemdb_read_cardillustnametable();
-	if (battle_config.item_equip_override_grffile)
+	if (config.item_equip_override_grffile)
 		itemdb_read_itemslottable();
-	if (battle_config.item_slots_override_grffile)
+	if (config.item_slots_override_grffile)
 		itemdb_read_itemslotcounttable();
-	if (battle_config.item_name_override_grffile)
+	if (config.item_name_override_grffile)
 		itemdb_read_itemnametable();
 }
 
@@ -1053,25 +1025,6 @@ void itemdb_read(void)
  * Initialize / Finalize
  *------------------------------------------
  */
-/*
-int itemdb_final_sub (void *key,void *data,va_list &ap)
-{
-	struct item_data *id = (struct item_data *)data;
-
-	if( id )
-	{
-		int flag = va_arg(ap, int);
-		if (id->use_script)
-			aFree(id->use_script);
-		if (id->equip_script)
-			aFree(id->equip_script);
-		// Whether to clear the item data
-		if (flag)
-			aFree(id);
-	}
-	return 0;
-}
-*/
 class CDBItemFinal : public CDBProcessor
 {
 	int flag;
@@ -1085,12 +1038,12 @@ public:
 		{
 			if(id->use_script)
 			{
-				delete[] id->use_script;
+				id->use_script->release();
 				id->use_script = NULL;
 			}
 			if (id->equip_script)
 			{
-				delete[] id->equip_script;
+				id->equip_script->release();
 				id->equip_script = NULL;
 			}
 			// Whether to clear the item data
@@ -1108,6 +1061,93 @@ void itemdb_reload(void)
 	itemdb_read();
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+#if defined(WITH_MYSQL)
+
+MYSQL mmysql_handle;
+MYSQL_RES* 	sql_res ;
+MYSQL_ROW	sql_row ;
+
+unsigned short map_server_port = 3306;
+char map_server_ip[16] = "127.0.0.1";
+char map_server_id[32] = "ragnarok";
+char map_server_pw[32] = "ragnarok";
+char map_server_db[32] = "ragnarok";
+int db_use_sqldbs = 0;
+
+
+char item_db_db[32] = "item_db";
+char item_db2_db[32] = "item_db2";
+char mob_db_db[32] = "mob_db";
+char mob_db2_db[32] = "mob_db2";
+
+char *INTER_CONF_NAME="conf/inter_athena.conf";
+
+int inter_config_read(const char *cfgName)
+{
+	int i;
+	char line[1024],w1[1024],w2[1024];
+	FILE *fp;
+
+	fp=basics::safefopen(cfgName,"r");
+	if(fp==NULL){
+		ShowError("File not found: '%s'.\n",cfgName);
+		return 1;
+	}
+	while(fgets(line,sizeof(line),fp)){
+		if( !get_prepared_line(line) )
+			continue;
+		i=sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
+		if(i!=2)
+			continue;
+
+		if(strcasecmp(w1,"import")==0){
+		//support the import command, just like any other config
+			inter_config_read(w2);
+		}
+		  else if(strcasecmp(w1,"item_db_db")==0){
+			strcpy(item_db_db,w2);
+		} else if(strcasecmp(w1,"mob_db_db")==0){
+			strcpy(mob_db_db,w2);
+		} else if(strcasecmp(w1,"item_db2_db")==0){
+			strcpy(item_db2_db,w2);
+		} else if(strcasecmp(w1,"mob_db2_db")==0){
+			strcpy(mob_db2_db,w2);
+		//Map Server SQL DB
+		} else if(strcasecmp(w1,"map_server_ip")==0){
+			strcpy(map_server_ip, w2);
+		} else if(strcasecmp(w1,"map_server_port")==0){
+			map_server_port=atoi(w2);
+		} else if(strcasecmp(w1,"map_server_id")==0){
+			strcpy(map_server_id, w2);
+		} else if(strcasecmp(w1,"map_server_pw")==0){
+			strcpy(map_server_pw, w2);
+		} else if(strcasecmp(w1,"map_server_db")==0){
+			strcpy(map_server_db, w2);
+		} else if(strcasecmp(w1,"use_sql_db")==0){
+			db_use_sqldbs = config_switch(w2);
+			ShowMessage ("Using SQL dbs: %s\n",w2);
+		}
+	}
+	fclose(fp);
+
+	return 0;
+}
+#endif//defined(WITH_MYSQL)
+
+
 void do_final_itemdb(void)
 {
 	if (item_db)
@@ -1115,10 +1155,41 @@ void do_final_itemdb(void)
 		numdb_final(item_db, CDBItemFinal(1) );
 		item_db = NULL;
 	}
+
+#if defined(WITH_MYSQL)
+	if(db_use_sqldbs)
+	{
+		mysql_close(&mmysql_handle);
+		ShowMessage("Close Map DB Connection....\n");
+	}
+#endif//WITH_MYSQL
 }
 
 int do_init_itemdb(void)
 {
+
+#if defined(WITH_MYSQL)
+	inter_config_read(INTER_CONF_NAME);
+
+	if(db_use_sqldbs)
+	{
+		mysql_init(&mmysql_handle);
+		//DB connection start
+		ShowMessage("Connect Database Server on %s:%u....(Map Server)\n", map_server_ip, map_server_port);
+		if( !mysql_real_connect(&mmysql_handle, map_server_ip, map_server_id, map_server_pw, map_server_db ,map_server_port, (char *)NULL, 0))
+		{
+				//pointer check
+				ShowMessage("%s\n",mysql_error(&mmysql_handle));
+				exit(1);
+		}
+		else
+		{
+			ShowMessage ("connect success! (Map Server)\n");
+		}
+	}
+#endif//WITH_MYSQL
+
+
 	if(item_db)
 	{
 		numdb_final(item_db, CDBItemFinal(1) );

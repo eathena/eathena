@@ -60,8 +60,8 @@ struct item_data
 		{}
 	} flag;
 
-	char *use_script;	// ‰ñ•œ‚Æ‚©‚à‘S•”‚±‚Ì’†‚Å‚â‚ë‚¤‚©‚È‚Æ
-	char *equip_script;	// UŒ‚,–hŒä‚Ì‘®«Ý’è‚à‚±‚Ì’†‚Å‰Â”\‚©‚È?
+	script_object* use_script;		// ‰ñ•œ‚Æ‚©‚à‘S•”‚±‚Ì’†‚Å‚â‚ë‚¤‚©‚È‚Æ
+	script_object* equip_script;	// UŒ‚,–hŒä‚Ì‘®«Ý’è‚à‚±‚Ì’†‚Å‰Â”\‚©‚È?
 
 
 	unsigned char getType()	{ return (type==7) ? 4 : type; } // pet eggs are handled as weapons by the client
@@ -81,7 +81,9 @@ struct item_data
 		look(0),
 		elv(0),
 		wlv(0),
-		view_id(0)
+		view_id(0),
+		use_script(NULL),
+		equip_script(NULL)
 	{
 		name[0]=0;
 		jname[0]=0;
@@ -110,8 +112,18 @@ struct item_data* itemdb_exists(unsigned short nameid);
 #define itemdb_look(n) itemdb_search(n)->look
 #define itemdb_weight(n) itemdb_search(n)->weight
 #define itemdb_equip(n) itemdb_search(n)->equip
-#define itemdb_usescript(n) itemdb_search(n)->use_script
-#define itemdb_equipscript(n) itemdb_search(n)->equip_script
+
+inline const char* itemdb_usescript(unsigned short n)
+{
+	item_data* it = itemdb_exists(n);
+	return ( it && it->use_script && it->use_script->script )?it->use_script->script:NULL; 
+}
+inline const char* itemdb_equipscript(unsigned short n)
+{
+	item_data* it = itemdb_exists(n);
+	return ( it && it->equip_script && it->equip_script->script )?it->equip_script->script:NULL; 
+}
+
 #define itemdb_wlv(n) itemdb_search(n)->wlv
 #define itemdb_range(n) itemdb_search(n)->range
 #define itemdb_slot(n) itemdb_search(n)->slot

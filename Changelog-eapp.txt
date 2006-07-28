@@ -1,4 +1,23 @@
 Date	Added
+07/28
+	* the promised "bug reporting" capability of the ea board is
+	  ridiculous, from the 5 very obviously placed functional bugs
+	  in the code, only one has been vaguely mentioned, however, 
+	  it was not reported in bug report or support forums 
+	  but only mentioned in an international forum that I just
+	  accidently came accross. I actually didn't expect much
+	  but this even falls short of my little expectations
+	* concentrated map server's sql code to the files that are 
+	  actually using it, still, there are no functional changes
+	  since I'm actually waiting for the announced mob_db/item_db
+	  modification, but if this is not happening very soon,
+	  I'll consider this topic as finally terminated
+	* moved battle_conf to a seperated file and renamed it
+	* added first part of Hinoko's variable system
+	  it currently should already replace mapreg 
+	  but is working in parallel the old system until approved
+	* converting scripts parsing outputs into structures
+	  compatible to the outputs of the new engine
 07/20
 	* enabled some already prepared virtual interfaces
 	* removed the old walk implementations 
@@ -15,7 +34,7 @@ Date	Added
 	  destroy the rest of the code
 	* start on cleaning clif, lot's of functions are redundant,
 	  and using hardwired switches inside is just stupid,
-	  also try to tweak it for more flexibility in in terms of
+	  also try to tweak it for more flexibility in terms of
 	  changing to the new socket layer (this will unfortuantely
 	  need a new packetdb for the dynamic packet creation)
 07/05

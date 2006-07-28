@@ -7,11 +7,16 @@ USING_NAMESPACE(basics)
 
 char* strtok_r( char *strToken, const char *strDelimit, char**pt)
 {
-	if(pt && strDelimit)
+	if(strDelimit)
 	{
+		static char* intern=NULL;
+		if( NULL==pt )
+			pt  = &intern;
+
 		if(strToken)
 			*pt = strToken;
-		if(*pt)
+
+		if(*pt && **pt )
 		{	
 			char*ret = *pt;
 			while( *(*pt) )

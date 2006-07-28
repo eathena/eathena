@@ -56,7 +56,7 @@ void npc_data::do_stop_walking()
 		this->changestate(MS_IDLE,0);
 }
 /// do object depending stuff for the walk step.
-void npc_data::do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy)
+bool npc_data::do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy)
 {
 	// ontouch fix for moving npcs with ontouch area
 	if(this->class_>=0 && this->u.scr.xs>0 && this->u.scr.ys>0)
@@ -107,6 +107,7 @@ void npc_data::do_walkstep(unsigned long tick, const coordinate &target, int dx,
 	}
 
 	this->state.state = MS_WALK;
+	return true;
 }
 
 /// do object depending stuff for changestate
@@ -367,12 +368,12 @@ int npc_event_enqueue(struct map_session_data &sd, const char *eventname)
 	}
 	if(i==MAX_EVENTQUEUE)
 	{
-		if (battle_config.error_log)
+		if (config.error_log)
 			ShowMessage("npc_event: event queue is full !\n");
 	}
 	else
 	{
-//		if (battle_config.etc_log)
+//		if (config.etc_log)
 //			ShowMessage("npc_event: enqueue\n");
 		safestrcpy(sd.eventqueue[i],eventname,sizeof(sd.eventqueue[i]));
 	}
@@ -396,7 +397,7 @@ int npc_event_timer(int tid, unsigned long tick, int id, basics::numptr data)
 
 		if((ev==NULL || (nd=ev->nd)==NULL))
 		{
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowWarning("npc_event_timer: event not found [%s]\n",eventname);
 		}	
 		else if(sd)
@@ -408,7 +409,7 @@ int npc_event_timer(int tid, unsigned long tick, int id, basics::numptr data)
 					break;
 				}
 			}
-			if(i==MAX_EVENTTIMER && battle_config.error_log)
+			if(i==MAX_EVENTTIMER && config.error_log)
 				ShowWarning("npc_event_timer: event timer not found [%s]!\n",eventname);
 		}
 		delete[] eventname;
@@ -460,7 +461,7 @@ int npc_event_export(void *key,void *data,va_list &ap)
 			sprintf(buf,"%s::%s",nd->exname,lname);
 			*p=':';
 			strdb_insert(ev_db,buf,ev);
-//			if (battle_config.etc_log)
+//			if (config.etc_log)
 //				ShowMessage("npc_event_export: export [%s]\n",buf);
 		}
 	}
@@ -836,11 +837,12 @@ int npc_timerevent_start(struct npc_data &nd, uint32 rid)
 	if( nd.u.scr.nexttimer>=0 || n==0 )
 		return 0;
 
-	for(j=0;j<n;++j){
+	for(j=0;j<n;++j)
+	{
 		if( nd.u.scr.timer_event[j].timer > nd.u.scr.timer )
 			break;
 	}
-	if(j>=n) // check if there is a timer to use !!BEFORE!! you write stuff to the structures [Shinomori]
+	if(j>=n)
 		return 0;
 
 	nd.u.scr.nexttimer=j;
@@ -858,7 +860,8 @@ int npc_timerevent_start(struct npc_data &nd, uint32 rid)
  */
 int npc_timerevent_stop(struct npc_data &nd)
 {
-	if( nd.u.scr.nexttimer>=0 ){
+	if( nd.u.scr.nexttimer>=0 )
+	{
 		nd.u.scr.nexttimer = -1;
 		nd.u.scr.timer += (int)(gettick() - nd.u.scr.timertick);
 		if(nd.u.scr.timerid!=-1)
@@ -923,7 +926,7 @@ int npc_event(struct map_session_data &sd,const char *eventname,int mob_kill)
 				return 0;
 			}
 		} else {
-			if (battle_config.error_log)
+			if (config.error_log)
 				ShowError("npc_event: event not found [%s]\n", eventname);
 			return 0;
 		}
@@ -943,7 +946,7 @@ int npc_event(struct map_session_data &sd,const char *eventname,int mob_kill)
 */
 //	if( sd.ScriptEngine.isRunning() )
 //	{
-//		if (battle_config.error_log)
+//		if (config.error_log)
 //			ShowMessage("npc_event: npc_id != 0\n");
 //		npc_event_enqueue(sd, eventname);
 //		return 1;
@@ -1051,7 +1054,7 @@ int npc_touch_areanpc(struct map_session_data &sd, unsigned short m, int x,int y
 	}
 	if (i==maps[m].npc_num) {
 		if (f) {
-			if (battle_config.error_log)
+			if (config.error_log)
 				ShowMessage("npc_touch_areanpc : some bug \n");
 		}
 		return 1;
@@ -1088,7 +1091,7 @@ int npc_touch_areanpc(struct map_session_data &sd, unsigned short m, int x,int y
 bool npc_isNear(struct map_session_data &sd, struct npc_data &nd)
 {
 	if( nd.block_list::type!=BL_NPC ) {
-		if (battle_config.error_log)
+		if (config.error_log)
 			ShowMessage("not a npc: id=%d\n",nd.block_list::id);
 		return false;
 	}
@@ -1138,7 +1141,7 @@ int npc_click(struct map_session_data &sd,uint32 npcid)
 	struct npc_data *nd;
 
 	if( sd.ScriptEngine.isRunning() ) {
-		if (battle_config.error_log)
+		if (config.error_log)
 			ShowWarning("npc_click: already running a script\n");
 		return 1;
 	}
@@ -1185,7 +1188,7 @@ int npc_buysellsel(struct map_session_data &sd,uint32 id,int type)
 		return 1;
 
 	if (nd->block_list::subtype!=SHOP) {
-		if (battle_config.error_log)
+		if (config.error_log)
 			ShowMessage("no such shop npc : %d\n",id);
 		return 1;
 	}
@@ -1224,7 +1227,7 @@ int npc_buylist(struct map_session_data &sd,unsigned short n,unsigned char *buff
 	for(i=0,w=0,z=0;i<n;++i) {
 
 		// amount fix
-		if( (uint32)RBUFW(buffer,2*(i*2)) > battle_config.vending_max_value )
+		if( (uint32)RBUFW(buffer,2*(i*2)) > config.vending_max_value )
 			RBUFW(buffer,2*(i*2)) = 0;	// clear it directly in the buffer
 
 		amount = RBUFW(buffer,2*(i*2));
@@ -1284,14 +1287,14 @@ int npc_buylist(struct map_session_data &sd,unsigned short n,unsigned char *buff
 
 	//商人経験値
 /*	if ((sd->status.class_ == 5) || (sd->status.class_ == 10) || (sd->status.class_ == 18)) {
-		z = z * pc_checkskill(sd,MC_DISCOUNT) / ((1 + 300 / itemamount) * 4000) * battle_config.shop_exp;
+		z = z * pc_checkskill(sd,MC_DISCOUNT) / ((1 + 300 / itemamount) * 4000) * config.shop_exp;
 		pc_gainexp(sd,0,z);
 	}*/
-	if (battle_config.shop_exp > 0 && z > 0 && (skill = pc_checkskill(sd,MC_DISCOUNT)) > 0) {
+	if (config.shop_exp > 0 && z > 0 && (skill = pc_checkskill(sd,MC_DISCOUNT)) > 0) {
 		if (sd.status.skill[MC_DISCOUNT].flag != 0)
 			skill = sd.status.skill[MC_DISCOUNT].flag - 2;
 		if (skill > 0) {
-			z = z * skill * battle_config.shop_exp/10000;
+			z = z * skill * config.shop_exp/10000;
 			if (z < 1)
 				z = 1;
 			pc_gainexp(sd,0,z);
@@ -1320,7 +1323,7 @@ int npc_selllist(struct map_session_data &sd,unsigned short n,unsigned char *buf
 	for(i=0,z=0;i<n;++i)
 	{
 		// amount fix
-		if( (uint32)RBUFW(buffer,2*(i*2+1)) > battle_config.vending_max_value )
+		if( (uint32)RBUFW(buffer,2*(i*2+1)) > config.vending_max_value )
 			RBUFW(buffer,2*(i*2+1)) = 0;	// clear the amount
 		
 		amount = RBUFW(buffer,2*(i*2+1));
@@ -1354,11 +1357,11 @@ int npc_selllist(struct map_session_data &sd,unsigned short n,unsigned char *buf
 	}
 
 	//商人経験値
-	if (battle_config.shop_exp > 0 && z > 0 && (skill = pc_checkskill(sd,MC_OVERCHARGE)) > 0) {
+	if (config.shop_exp > 0 && z > 0 && (skill = pc_checkskill(sd,MC_OVERCHARGE)) > 0) {
 		if (sd.status.skill[MC_OVERCHARGE].flag != 0)
 			skill = sd.status.skill[MC_OVERCHARGE].flag - 2;
 		if (skill > 0) {
-			z = z * skill * battle_config.shop_exp/10000;
+			z = z * skill * config.shop_exp/10000;
 			if (z < 1)
 				z = 1;
 			pc_gainexp(sd,0,z);
@@ -1507,7 +1510,7 @@ bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
 	memcpy(nd->exname, w3, 24);
 
 	nd->chat_id = 0;
-	if (!battle_config.warp_point_debug)
+	if (!config.warp_point_debug)
 		nd->class_ = WARP_CLASS;
 	else
 		nd->class_ = WARP_DEBUG_CLASS;
@@ -1638,91 +1641,6 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 	return 0;
 }
 
-/*==========================================
- * NPCのラベルデータコンバート
- *------------------------------------------
- */
-/*
-int npc_convertlabel_db(void *key, void *data, va_list &ap)
-{
-	char *lname = (char *)key;
-	size_t pos = (size_t)data;
-	struct npc_data *nd;
-	struct npc_label_list *lst;
-	int num;
-
-	char *p = strchr(lname,':');
-
-	if(NULL==p)	return 0;
-	
-	nullpo_retr(0, ap);
-	nd = va_arg(ap, struct npc_data *);
-
-	nullpo_retr(0, nd);
-
-	if(NULL==nd->u.scr.ref) return 0;
-
-	lst= nd->u.scr.ref->label_list;
-	num= nd->u.scr.ref->label_list_num;
-	if (!lst) {
-		lst=(struct npc_label_list *)aMalloc(sizeof(struct npc_label_list));
-		num = 0;
-	}else{
-		lst=(struct npc_label_list *)aRealloc(lst,(num+1)*sizeof(struct npc_label_list));
-	}
-	*p = '\0';
-	
-	if (strlen(lname) > 23) { 
-		ShowError("npc_parse_script: label name longer than 23 chars! '%s'\n", lname);
-		exit(1);
-	}
-	memcpy(lst[num].labelname,lname,strlen(lname)+1);
-	
-	*p = ':';
-	lst[num].pos = pos;
-	nd->u.scr.ref->label_list    = lst;
-	nd->u.scr.ref->label_list_num= num+1;
-
-	return 0;
-}
-*/
-class CDBNPCconverlabel : public CDBProcessor
-{
-	struct npc_data &nd;
-public:
-	CDBNPCconverlabel(struct npc_data &n) : nd(n)	{}
-	virtual ~CDBNPCconverlabel()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		const char *lname = (const char *)key;
-		size_t pos = (size_t)data;
-		struct npc_label_list *lst;
-		int num;
-		const char *p = strchr(lname,':');
-		if(NULL==p)	return true;
-
-		if(NULL==nd.u.scr.ref)
-			return true;
-		
-		lst= nd.u.scr.ref->label_list;
-		num= nd.u.scr.ref->label_list_num;
-
-		new_realloc(lst,num,1);
-				
-		if( (p-lname) > 23)
-		{
-			ShowError("npc_parse_script: label name longer than 23 chars! '%s'\n", lname);
-			exit(1);
-		}
-		memcpy(lst[num].labelname,lname,p-lname);
-		lst[num].labelname[p-lname] = 0; // add eos
-		lst[num].pos = pos;
-		nd.u.scr.ref->label_list    = lst;
-		nd.u.scr.ref->label_list_num= num+1;
-
-		return true;
-	}
-};
 
 /*==========================================
  * script行解析
@@ -1740,7 +1658,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 	struct npc_data *nd;
 	int evflag = 0;
 	const char *p;
-	struct npc_reference *ref=NULL;
+	struct script_object *ref=NULL;
 
 	if(strcmp(w1,"-")==0)
 	{
@@ -1802,14 +1720,12 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 				strcat((char*)srcbuf,(char*)line);
 		}//end while
 
-		char *tmp = parse_script(srcbuf,startline);
-		if(!tmp)
+		ref = parse_script(srcbuf,startline);
+		if(!ref)
 		{	// script parse error?
 			delete[] srcbuf;
 			return 1;
 		}
-		// create a script reference
-		ref = new struct npc_reference(tmp);
 	}
 	else
 	{
@@ -1835,7 +1751,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 			ShowError("nothing to duplicate! : %s\n",srcname);
 			return 1;
 		}
-		ref = nd2->u.scr.ref;
+		ref = nd2->u.scr.ref->clone();
 	}// end of スクリプト解析
 
 	nd = new npc_data();
@@ -1902,8 +1818,9 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 	nd->flag = 0;
 	nd->class_ = class_;
 	nd->speed = 200;
+
 	nd->u.scr.ref=ref;
-	(nd->u.scr.ref->refcnt)++;
+
 	nd->u.scr.timer_event=NULL;
 	nd->chat_id = 0;
 	nd->option = 0;
@@ -1937,66 +1854,41 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 	//-----------------------------------------
 	// ラベルデータの準備
 	if(srcbuf)
-	{	// script本体がある場合の処理
-		// ラベルデータのコンバート
-		if(!dummy_npc)
-		{
-			strdb_foreach(script_get_label_db(), CDBNPCconverlabel(*nd) );
-//			strdb_foreach(script_get_label_db(), npc_convertlabel_db, nd);
-		}
+	{
 		// もう使わないのでバッファ解放
 		delete[] srcbuf;
 	}
-	else
-	{
-		// duplicate
-		// labels placed in npc_reference
-		// get copied automatically
-	}
+
 
 	//-----------------------------------------
 	// イベント用ラベルデータのエクスポート
 	if(!dummy_npc)
-	for(i=0;i<nd->u.scr.ref->label_list_num;++i)
+	for(i=0;i<nd->u.scr.ref->label_count();++i)
 	{
-		char *lname=nd->u.scr.ref->label_list[i].labelname;
-		int pos=nd->u.scr.ref->label_list[i].pos;
+		const script_object::script_label& label = nd->u.scr.ref->get_label(i);
 
-		if ((lname[0]=='O' || lname[0]=='o')&&(lname[1]=='N' || lname[1]=='n')) 
+		// export event labels (all labels starting with "On")
+		if( basics::upcase(label.name[0])=='O' && basics::upcase(label.name[1])=='N' ) 
 		{
 			// エクスポートされる
-			if (strlen(lname)>23) 
-			{ 
-				ShowError("npc_parse_script: label name longer than 23 chars! '%s'\n", lname);
-				exit(1);
-			}	
+			char *buf=new char[(3+strlen(nd->exname)+strlen(label.name))];
+			sprintf(buf,"%s::%s",nd->exname,label.name); // buffer size is exact, so snprintf is unnecesary
+			struct event_data *ev = (struct event_data *)strdb_search(ev_db,buf);
+			if(ev != NULL)
+			{
+				delete[] buf;
+				ShowError("npc_parse_script : duplicate event %s\n",buf);
+			}
 			else
 			{
-				char *buf=new char[(3+strlen(nd->exname)+strlen(lname))];
-				sprintf(buf,"%s::%s",nd->exname,lname);
-				struct event_data *ev = (struct event_data *)strdb_search(ev_db,buf);
-				if(ev != NULL)
-				{
-					delete[] buf;
-					ShowError("npc_parse_script : duplicate event %s\n",buf);
-				}
-				else
-				{
-					ev = new struct event_data(nd,pos);
-					strdb_insert(ev_db,buf,ev);
-				}
+				ev = new struct event_data(nd,label.pos);
+				strdb_insert(ev_db,buf,ev);
 			}
 		}
-	}
-	//-----------------------------------------
-	// ラベルデータからタイマーイベント取り込み
-	if(!dummy_npc)
-	for(i=0;i<nd->u.scr.ref->label_list_num;++i)
-	{
+
+		// ラベルデータからタイマーイベント取り込み
 		int t = 0, k = 0;
-		char *lname=nd->u.scr.ref->label_list[i].labelname;
-		int pos=nd->u.scr.ref->label_list[i].pos;
-		if(sscanf(lname,"OnTimer%d%n",&t,&k)==1 && lname[k]=='\0')
+		if(sscanf(label.name,"OnTimer%d%n",&t,&k)==1 && label.name[k]=='\0')
 		{
 			// タイマーイベント
 			struct npc_timerevent_list *te = nd->u.scr.timer_event;
@@ -2012,12 +1904,12 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 				}
 			}
 			te[j].timer = t;
-			te[j].pos = pos;
+			te[j].pos = label.pos;
 			nd->u.scr.timer_event = te;
 			nd->u.scr.timeramount = k+1;
 		}
-	}
 
+	}
 	return 0;
 }
 
@@ -2025,20 +1917,20 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
  * function行解析
  *------------------------------------------
  */
-int npc_parse_function(const char *w1,const char *w2,const char *w3,const char *w4,const char *first_line,FILE *fp,int *lines)
+bool npc_parse_function(const char *w1,const char *w2,const char *w3,const char *w4,const char *first_line,FILE *fp,int *lines)
 {
-	char *srcbuf, *script, *p;
-	size_t srcsize=65536;
-	int startline = 0;
+	bool ret = false;
+	int i, startline = 0;
 	char line[1024];
-	int i;
-
-	// スクリプトの解析
-	srcbuf= new char[srcsize];
-	if (strchr(first_line,'{')) {
+	size_t srcsize=65536;
+	char *srcbuf= new char[srcsize];
+	
+	if (strchr(first_line,'{'))
+	{
 		strcpy(srcbuf, strchr(first_line,'{'));
 		startline = *lines;
-	} else
+	}
+	else
 		srcbuf[0] = 0;
 
 	while (1)
@@ -2052,7 +1944,7 @@ int npc_parse_function(const char *w1,const char *w2,const char *w3,const char *
 			break;
 		if (strlen(srcbuf)+strlen(line)+1 >= srcsize)
 		{
-			new_realloc(srcbuf, srcsize, 65536);
+			srcsize = new_realloc(srcbuf, srcsize, 65536);
 		}
 		if (srcbuf[0]!='{') {
 			if (strchr(line,'{')) {
@@ -2062,21 +1954,27 @@ int npc_parse_function(const char *w1,const char *w2,const char *w3,const char *
 		} else
 			strcat(srcbuf,line);
 	}
-	script=parse_script((unsigned char*)(srcbuf),startline);
-	if (script == NULL) {
-		// script parse error?
-		delete[] srcbuf;
-		return 1;
+	if( strdb_search(script_get_userfunc_db(), w3) )
+	{
+		ShowMessage("\n");
+		ShowWarning("Duplicate function [%s] (line %d)\n", w3, (lines)?*lines:0);
 	}
-
-	p= new char[(strlen(w3)+1)];
-	memcpy(p,w3,strlen(w3)+1);
-	strdb_insert(script_get_userfunc_db(), p, script);
+	else
+	{
+		
+		script_object *script=parse_script((unsigned char*)(srcbuf),startline);
+		if(script)
+		{
+			char *p= new char[1+strlen(w3)];
+			memcpy(p,w3,1+strlen(w3));
+			strdb_insert(script_get_userfunc_db(), p, script);
+			ret = true;
+		}
+	}
 
 	// もう使わないのでバッファ解放
 	delete[] srcbuf;
-//	ShowMessage("function %s => %p\n",p,script);
-	return 0;
+	return ret;
 }
 
 
@@ -2172,9 +2070,9 @@ int npc_parse_mob(const char *w1, const char *w2, const char *w3, const char *w4
 	dynmob->delay1	= v7;
 	dynmob->delay2	= v8;
 
-	if( dynmob->num > 1 && battle_config.mob_count_rate != 100)
+	if( dynmob->num > 1 && config.mob_count_rate != 100)
 	{
-		if((dynmob->num = dynmob->num * battle_config.mob_count_rate / 100) < 1)
+		if((dynmob->num = dynmob->num * config.mob_count_rate / 100) < 1)
 			dynmob->num = 1;
 	}
 	
@@ -2188,7 +2086,7 @@ int npc_parse_mob(const char *w1, const char *w2, const char *w3, const char *w4
 		memcpy(dynmob->mobname, mobname, 24);
 	memcpy(dynmob->eventname, eventname, 24);
 
-	if( dynmob->delay1 || dynmob->delay2 || !battle_config.dynamic_mobs )
+	if( dynmob->delay1 || dynmob->delay2 || !config.dynamic_mobs )
 	{	// delayed mobs are always created
 	    npc_parse_mob2(*dynmob);
 		npc_delay_mob += v6;
@@ -2319,7 +2217,7 @@ int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const char *w
 	else if (strcasecmp(w3,"noskill")==0) {
 		maps[m].flag.noskill=1;
 	}
-	else if (battle_config.pk_mode && strcasecmp(w3,"nopvp")==0) { // nopvp for pk mode [Valaris]
+	else if (config.pk_mode && strcasecmp(w3,"nopvp")==0) { // nopvp for pk mode [Valaris]
 		maps[m].flag.nopvp=1;
 		maps[m].flag.pvp=0;
 	}
@@ -2797,15 +2695,7 @@ int npc_unload(struct npc_data *nd, bool erase_strdb)//erase_strdb is default tr
 		}
 		if(nd->u.scr.ref)
 		{
-			nd->u.scr.ref->refcnt--;
-			if(0==nd->u.scr.ref->refcnt)
-			{
-				if(nd->u.scr.ref->script)
-					delete[] (nd->u.scr.ref->script);
-				if(nd->u.scr.ref->label_list)
-					delete[] (nd->u.scr.ref->label_list);
-				delete (nd->u.scr.ref);
-			}
+			nd->u.scr.ref->release();
 			nd->u.scr.ref=NULL;
 		}
 		//Clean up all events related.
@@ -2904,7 +2794,7 @@ int do_init_npc(void)
 {
 
 	// indoorrswtable.txt and etcinfo.txt [Celest]
-	if (battle_config.indoors_override_grffile)
+	if (config.indoors_override_grffile)
 		npc_read_indoors();
 
 	ev_db=strdb_init(50);

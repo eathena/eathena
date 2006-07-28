@@ -387,8 +387,6 @@ int CNpcChat::process(block_list &bl) const
 {
     struct npc_data &nd = (struct npc_data &)bl;
     struct npc_parse *npcParse = (struct npc_parse *)nd.chatdb;
-    int pos, i;
-    struct npc_label_list *lst;
     struct pcrematch_set *pcreset;
 
     // Not interested in anything you might have to say...
@@ -405,22 +403,11 @@ int CNpcChat::process(block_list &bl) const
         // interate across all patterns in that set
         while (e != NULL)
 		{
-
-           // find the target label.. this sucks..
-			if( nd.u.scr.ref )
+			if( nd.u.scr.ref && nd.u.scr.ref->script )
 			{
-				pos = -1;
-				lst=nd.u.scr.ref->label_list;           
-				for (i = 0; (size_t)i < nd.u.scr.ref->label_list_num; ++i)
-				{
-					if( strcmp(lst[i].labelname, e->label_ ) == 0) {
-						pos = lst[i].pos;
-						break;
-					}
-				}
-				if (pos == -1)
-				{
-					// unable to find label... do something..
+				size_t pos = nd.u.scr.ref->get_labelpos(e->label_);
+				if( pos==0 )
+				{	// unable to find label... do something..
 					ShowMessage("Unable to find label: %s", e->label_);
 				}
 				else
@@ -512,7 +499,7 @@ int CNpcChat::process(block_list &bl) const
 						}
 
 						// run the npc script
-						CScriptEngine::run(nd.u.scr.ref->script,pos,sd.block_list::id,nd.block_list::id);
+						CScriptEngine::run(nd.u.scr.ref->script, pos,sd.block_list::id,nd.block_list::id);
 						// and return
 						return 0;
 					}

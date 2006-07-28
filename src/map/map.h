@@ -7,6 +7,7 @@
 #include "script.h"
 #include "coordinate.h"
 #include "path.h"
+#include "config.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 #define MAX_PC_CLASS 4050
@@ -15,7 +16,7 @@
 #define PC_CLASS_BASE3 (PC_CLASS_BASE2 + 22)
 #define MAX_NPC_PER_MAP 512
 #define BLOCK_SIZE 8
-#define AREA_SIZE ((int)battle_config.area_size)
+#define AREA_SIZE ((int)config.area_size)
 #define LOCAL_REG_NUM 16
 #define LIFETIME_FLOORITEM 60
 #define DAMAGELOG_SIZE 30
@@ -285,7 +286,8 @@ struct block_list : public coordinate
 	virtual ~block_list()	
 	{
 		// not yet removed from map
-		if(this->prev) this->map_delblock();
+		if(this->prev)
+			this->map_delblock();
 		// and just to be sure that it's removed from iddb
 		this->map_deliddb();
 	}
@@ -502,11 +504,13 @@ struct block_list : public coordinate
 	// attack functions
 
 	/// starts attack
-	virtual bool start_attack(uint32 target_id, bool cont)	{ return false; }
+	virtual bool start_attack(uint32 target_id, bool cont)		{ return false; }
+	/// starts attack
+	virtual bool start_attack(const block_list& target_bl, bool cont)	{ return false; }
 	/// stops attack
-	virtual bool stop_attack()								{ return false; }
+	virtual bool stop_attack()									{ return false; }
 	/// stops skill
-	virtual bool stop_skill()								{ return false; }
+	virtual bool stop_skill()									{ return false; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// targeting functions
@@ -1135,7 +1139,9 @@ struct map_session_data : public fightable, public session_data
 	/// do object depending stuff for ending the walk.
 	virtual void do_stop_walking()	{}
 	/// do object depending stuff for the walk step.
-	virtual void do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
+	virtual bool do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
+	/// do object depending stuff at the end of the walk step.
+	virtual void do_walkend();
 	/// do object depending stuff for the walkto
 	virtual void do_walkto();
 	/// do object depending stuff for changestate
@@ -1233,31 +1239,7 @@ struct npc_item_list
 //		value(0)
 //	{}
 };
-struct npc_label_list
-{
-	char labelname[24];
-	size_t pos;
 
-	npc_label_list() : 
-		pos(0)
-	{
-		labelname[0]=0;
-	}
-};
-struct npc_reference
-{
-	char *script;
-	struct npc_label_list *label_list;
-	size_t label_list_num;	
-	size_t refcnt;			//reference counter
-
-	npc_reference(char *sc, struct npc_label_list *ll=NULL, size_t lc=0) :
-		script(sc),
-		label_list(ll),
-		label_list_num(lc),
-		refcnt(0)
-	{}
-};
 struct npc_data : public movable
 {
 	short n;
@@ -1283,7 +1265,7 @@ struct npc_data : public movable
 
 	union {
 		struct {
-			struct npc_reference *ref; // char pointer with reference counter
+			struct script_object *ref; // pointer with reference counter
 			short xs;
 			short ys;
 			int guild_id;
@@ -1324,7 +1306,7 @@ struct npc_data : public movable
 	/// do object depending stuff for ending the walk.
 	virtual void do_stop_walking();
 	/// do object depending stuff for the walk step.
-	virtual void do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
+	virtual bool do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
 	/// do object depending stuff for the walkto
 	virtual void do_walkto() {}
 	/// do object depending stuff for changestate
@@ -1606,35 +1588,17 @@ struct mob_data : public fightable
 	/// do object depending stuff for ending the walk.
 	virtual void do_stop_walking();
 	/// do object depending stuff for the walk step.
-	virtual void do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
+	virtual bool do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
 	/// do object depending stuff for the walkto
 	virtual void do_walkto() {}
 	/// do object depending stuff for changestate
 	virtual void do_changestate(int state,int type);
 
-	/// timer function.
-	/// called from walktimer_entry
-//	virtual bool walktimer_func(unsigned long tick);
-
 	/// checks for walking state
 	virtual bool is_walking() const		{ return this->movable::is_walking()||(state.state==MS_WALK); }
 
-
 	/// special target unlocking with standby time
 	void unlock_target(unsigned long tick);
-
-
-	/// timer function.
-	/// called from walktimer_entry
-	virtual bool walktimer_func(unsigned long tick)
-	{	// does standard walking by default
-		const bool ret = this->walkstep(tick);
-
-		if( this->walktimer == -1 && this->attacktimer == -1 && this->skilltimer == -1 )
-			this->changestate(MS_WALK,0);
-
-		return ret;
-	}
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1855,7 +1819,7 @@ struct pet_data : public fightable
 	/// do object depending stuff for ending the walk.
 	virtual void do_stop_walking();
 	/// do object depending stuff for the walk step.
-	virtual void do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
+	virtual bool do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
 	/// do object depending stuff for the walkto
 	virtual void do_walkto() {}
 	/// do object depending stuff for changestate

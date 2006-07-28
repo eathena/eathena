@@ -46,7 +46,7 @@ static const int packet_len_table[] = {
 	10,	// 2b12: Incomming, chrif_divorce -> 'divorce a wedding of charid X and partner id X'
 	 6,	// 2b13: Incomming, chrif_accountdeletion -> 'Delete acc XX, if the player is on, kick ....'
 	11,	// 2b14: Incomming, chrif_accountban -> 'not sure: kick the player with message XY'
--1,	// 2b15: Incomming, 
+	-1,	// 2b15: Incomming, 
 	 0,	// 2b16: Outgoing, chrif_ragsrvinfo -> 'sends motd / rates ....'
 	 0,	// 2b17: Outgoing, chrif_char_offline -> 'tell the charserver that the char is now offline'
 	-1,	// 2b18: Outgoing, chrif_char_reset_offline -> 'set all players OFF!'
@@ -65,6 +65,33 @@ static const int packet_len_table[] = {
 	-1,	// 2b25: read mail in/out
 	-1,	// 2b26: delete mail in/out
 	-1,	// 2b27: send mail in/out
+
+	-1,	// 2b28: get mail appendix in/out (in not used)
+	-1,	// 2b29:
+	-1,	// 2b2a:
+	-1,	// 2b2b:
+	-1,	// 2b2c:
+	-1,	// 2b2d:
+	-1,	// 2b2e:
+	-1,	// 2b2f:
+
+	-1,	// 2b30: req variable out
+	-1,	// 2b31: transports variables in/out
+	-1,	// 2b32: 
+	-1,	// 2b33: 
+	-1,	// 2b34: 
+	-1,	// 2b35: 
+	-1,	// 2b36: 
+	-1,	// 2b37: 
+
+	-1,	// 2b38: irc announce in/out
+	-1,	// 2b39:
+	-1,	// 2b3a:
+	-1,	// 2b3b:
+	-1,	// 2b3c:
+	-1,	// 2b3d:
+	-1,	// 2b3e:
+	-1,	// 2b3f:
 };
 
 
@@ -422,7 +449,7 @@ int chrif_recvmap(int fd)
 	{
 		map_setipport((char*)RFIFOP(fd,i), mapset);
 	}
-	if (battle_config.etc_log)
+	if (config.etc_log)
 		ShowStatus("recv maps from %s (%d maps)\n", mapset.tostring(NULL), j);
 
 	return 0;
@@ -444,7 +471,7 @@ int chrif_removemap(int fd)
 	{
 		map_eraseipport((char*)RFIFOP(fd, i), mapset);
 	}
-	if(battle_config.etc_log)
+	if(config.etc_log)
 		ShowStatus("remove maps of server %s (%d maps)\n", mapset.tostring(NULL), j);
 
 	return 0;	
@@ -514,7 +541,7 @@ int chrif_changemapserverack(int fd)
 
 	if( RFIFOL(fd,6) == 1 )
 	{
-		if (battle_config.error_log)
+		if (config.error_log)
 			ShowMessage("map server change failed.\n");
 		pc_authfail(sd->fd);
 		return 0;
@@ -680,7 +707,7 @@ int chrif_searchcharid(uint32 id)
  */
 int chrif_changegm(uint32 id, const char *pass, size_t len)
 {
-	if (battle_config.etc_log)
+	if (config.etc_log)
 		ShowMessage("chrif_changegm: account: %d, password: '%s'.\n", id, pass);
 
 	if( !session_isActive(char_fd) || !chrif_isconnect() )
@@ -701,7 +728,7 @@ int chrif_changegm(uint32 id, const char *pass, size_t len)
  */
 int chrif_changeemail(uint32 id, const char *actual_email, const char *new_email)
 {
-	if (battle_config.etc_log)
+	if (config.etc_log)
 		ShowMessage("chrif_changeemail: account: %d, actual_email: '%s', new_email: '%s'.\n", id, actual_email, new_email);
 
 	if( !session_isActive(char_fd) || !chrif_isconnect() )
@@ -905,7 +932,7 @@ int chrif_changedgm(int fd)
 
 	sd = map_id2sd(acc);
 
-	if (battle_config.etc_log)
+	if (config.etc_log)
 		ShowMessage("chrif_changedgm: account: %d, GM level 0 -> %d.\n", acc, level);
 	if (sd != NULL) {
 		if (level > 0)
@@ -931,7 +958,7 @@ int chrif_changedsex(int fd)
 
 	acc = RFIFOL(fd,2);
 	sex = RFIFOL(fd,6);
-	if (battle_config.etc_log)
+	if (config.etc_log)
 		ShowMessage("chrif_changedsex %d.\n", acc);
 	sd = map_id2sd(acc);
 	if (acc > 0)
@@ -1080,7 +1107,7 @@ int chrif_accountdeletion(int fd)
 		return -1;
 
 	acc = RFIFOL(fd,2);
-	if (battle_config.etc_log)
+	if (config.etc_log)
 		ShowMessage("chrif_accountdeletion %d.\n", acc);
 	sd = map_id2sd(acc);
 	if (acc > 0) {
@@ -1110,7 +1137,7 @@ int chrif_accountban(int fd)
 		return -1;
 
 	acc = RFIFOL(fd,2);
-	if (battle_config.etc_log)
+	if (config.etc_log)
 		ShowMessage("chrif_accountban %d.\n", acc);
 	sd = map_id2sd(acc);
 	if (acc > 0) {
@@ -1310,7 +1337,7 @@ int chrif_recvfamelist(int fd)
 		CFameList &fl = famelists[type];
 
 		fl.frombuffer(RFIFOP(fd,6));
-		if(battle_config.etc_log)
+		if(config.etc_log)
 			ShowInfo("Receiving %s Fame List of '"CL_WHITE"%d"CL_RESET"' characters.\n", 
 				which[type], fl.count() );
 	}
@@ -1449,9 +1476,6 @@ int chrif_char_online(struct map_session_data &sd)
 //	2b26: delete mail=> deletes specified mail returns ok/fail, param: msg_id
 //	2b27: send mail  => sends mail returns ok/fail, param: target, header, body
 ///////////////////////////////////////////////////////////////////////////////
-
-
-
 
 /// temporary mail storage helper
 class CMailDummy
@@ -1785,6 +1809,127 @@ int chrif_parse_mail_getappend(int fd)
 	}
 	return 0;
 }
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// chrif variable system
+///////////////////////////////////////////////////////////////////////////////
+//	2b31: transfer a variable
+///////////////////////////////////////////////////////////////////////////////
+int chrif_var_save(const char* name, const char* value)
+{
+	if( session_isActive(char_fd) )
+	{
+		CVar var(name, value);
+//		ShowMessage("saving var '%s' = '%s'\n", (const char*)var.name(), (const char*)var.value());
+
+		size_t sz = var.to_buffer(WFIFOP(char_fd,4), 0); //## len parameter is ignored here
+		WFIFOW(char_fd, 0) = 0x2b31;
+		WFIFOW(char_fd, 2) = 4+sz;
+		WFIFOSET(char_fd, 4+sz);
+	}
+	return 0;
+}
+int chrif_var_save(const char* name, uint32 value)
+{
+	if( session_isActive(char_fd) )
+	{
+		CVar var(name, basics::string<>(value));
+//		ShowMessage("saving var '%s' = '%s'\n", (const char*)var.name(), (const char*)var.value());
+
+		size_t sz = var.to_buffer(WFIFOP(char_fd,4), 0); //## len parameter is ignored here
+		WFIFOW(char_fd, 0) = 0x2b31;
+		WFIFOW(char_fd, 2) = 4+sz;
+		WFIFOSET(char_fd, 4+sz);
+	}
+	return 0;
+}
+int chrif_parse_var_recv(int fd)
+{
+	if( session_isActive(fd) )
+	{
+		CVar var;
+		var.from_buffer( RFIFOP(fd, 4) );
+
+//		ShowMessage("receiving var '%s' = '%s'\n", (const char*)var.name(), (const char*)var.value());
+		
+		const char postfix = var.name().size() ? var.name()[var.name().size()-1] : '\0';
+		set_var((const char *)var.name(), 		
+			(postfix=='$') ?
+			((void *)(const char*)var.value()) :
+			((void *)(ssize_t)atol(var.value())) );
+
+	}
+	return 0;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// chrif irc system
+///////////////////////////////////////////////////////////////////////////////
+// 2b28: irc_announce in/out
+///////////////////////////////////////////////////////////////////////////////
+int chrif_irc_announce(const char* message, size_t sz)
+{
+	if( message && session_isActive(char_fd) )
+	{
+		if(sz==0) sz = 1+strlen(message);
+		if(sz>1)
+		{
+			session_checkbuffer(char_fd, 4+sz);
+			WFIFOW(char_fd, 0) = 0x2b38;
+			WFIFOW(char_fd, 2) = 4+sz;
+			memcpy(WFIFOP(char_fd, 4),message, sz);
+			WFIFOSET(char_fd, 4+sz);
+		}
+	}
+	return 0;
+}
+int chrif_parse_irc_announce(int fd)
+{
+	if( session_isActive(fd) )
+	{
+		unsigned short len = RFIFOW(char_fd, 2);
+		if(len>5) // 4 byte header + 1 byte terminator
+		{
+			char* str = (char*)RFIFOP(char_fd, 4);
+			len -= 4;
+			str[len-1] = 0; // force a terminator
+			intif_GMmessage(str,len,0);
+		}
+	}
+	return 0;
+}
+int chrif_irc_announce_jobchange(struct map_session_data &sd)
+{
+	char message[1024];
+	int len = 1+snprintf(message, sizeof(message), "%s has changed into a %s.", sd.status.name, job_name(sd.status.class_));
+	return chrif_irc_announce(message,len);
+}
+int chrif_irc_announce_shop(struct map_session_data &sd, int flag)
+{
+	char message[1024];
+	char mapname[32];
+	safestrcpy(mapname, maps[sd.block_list::m].mapname, sizeof(mapname));
+	mapname[0] = basics::upcase(mapname[0]);
+	size_t len = (flag) ?
+		snprintf(message, sizeof(message), "%s has opened the shop '%s' at <%d,%d> in %s.", sd.status.name, sd.message, sd.block_list::x,sd.block_list::y, mapname) :
+		snprintf(message, sizeof(message), "%s has closed their shop in %s.", sd.status.name, mapname);
+	return chrif_irc_announce(message,len);
+}
+int chrif_irc_announce_mvp(const map_session_data &sd, const mob_data &md)
+{
+	char message[1024];
+	char mapname[32];
+	safestrcpy(mapname, maps[sd.block_list::m].mapname, sizeof(mapname));
+	mapname[0] = basics::upcase(mapname[0]);
+
+	size_t len = 1+sprintf(message,"%s the %s has MVP'd %s in %s.", sd.status.name, job_name(sd.status.class_), md.name, mapname);
+	return chrif_irc_announce(message,len);
+}
+
+
 /*==========================================
  *
  *------------------------------------------
@@ -1912,9 +2057,14 @@ case 0x2b15: break;
 		case 0x2b25: chrif_parse_mail_read(fd); break;
 		case 0x2b26: chrif_parse_mail_delete(fd); break;
 		case 0x2b27: chrif_parse_mail_send(fd); break;
+		//case 0x2b28: inbound get appendix is not used
+
+		case 0x2b31: chrif_parse_var_recv(fd); break;
+
+		case 0x2b38: chrif_parse_irc_announce(fd); break;
 
 		default:
-			if (battle_config.error_log)
+			if (config.error_log)
 				ShowMessage("chrif_parse : unknown packet %d %d\n", fd, (unsigned short)RFIFOW(fd,0));
 			session_Remove(fd);
 			return 0;
@@ -1941,7 +2091,7 @@ int send_users_tochar(int tid, unsigned long tick, int id, basics::numptr data) 
 	WFIFOW(char_fd,0) = 0x2aff;
 	for (i = 0; i < fd_max; ++i) {
 		if (session[i] && (sd = (struct map_session_data*)session[i]->user_session) && sd->state.auth &&
-		    !((battle_config.hide_GM_session || (sd->status.option & OPTION_HIDE)) && sd->isGM())) {
+		    !((config.hide_GM_session || (sd->status.option & OPTION_HIDE)) && sd->isGM())) {
 			WFIFOL(char_fd,6+4*users) = sd->status.char_id;
 			users++;
 		}
@@ -1973,7 +2123,7 @@ int check_connect_char_server(int tid, unsigned long tick, int id, basics::numpt
 			realloc_fifo(char_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 
 			chrif_connect(char_fd);
-			chrif_ragsrvinfo(battle_config.base_exp_rate, battle_config.job_exp_rate, battle_config.item_rate_common);
+			chrif_ragsrvinfo(config.base_exp_rate, config.job_exp_rate, config.item_rate_common);
 		}
 	}
 	check_connect_map_port();

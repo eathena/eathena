@@ -148,7 +148,7 @@ int party_check_member(struct party &p)
 				if(f)
 				{
 					sd->status.party_id=0;
-					if(battle_config.error_log)
+					if(config.error_log)
 						ShowMessage("party: check_member %d[%s] is not member\n",sd->status.account_id,sd->status.name);
 				}
 			}
@@ -218,7 +218,7 @@ int party_invite(struct map_session_data &sd,uint32 account_id)
 	
 	if(tsd==NULL || p==NULL)
 		return 0;
-	if(!battle_config.invite_request_check) {
+	if(!config.invite_request_check) {
 		if (tsd->guild_invite>0 || tsd->trade_partner) {	// ‘ŠŽè‚ªŽæˆø’†‚©‚Ç‚¤‚©
 			clif_party_inviteack(sd,tsd->status.name,0);
 			return 0;
@@ -267,7 +267,7 @@ int party_member_added(uint32 party_id,uint32 account_id,int flag)
 	if(sd == NULL){
 		if(flag==0)
 		{
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowMessage("party: member added error %d is not online\n",account_id);
 			intif_party_leave(party_id,account_id); // ƒLƒƒƒ‰‘¤‚É“o˜^‚Å‚«‚È‚©‚Á‚½‚½‚ß’E‘Þ—v‹‚ðo‚·
 		}
@@ -432,7 +432,7 @@ int party_recv_movemap(uint32 party_id,uint32 account_id,const char *mapname,int
 
 	}
 	if(i==MAX_PARTY){
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowError("party: not found member %d on %d[%s]",account_id,party_id,p->name);
 		return 0;
 	}
@@ -663,8 +663,8 @@ int party_exp_share(struct party &p,unsigned short map, uint32 base_exp,uint32 j
 	{	
 		if((sd=p.member[i].sd)!=NULL && p.member[i].online && sd->block_list::m==map && session[sd->fd] != NULL )
 		{
-			if( !( sd->chatID                            && battle_config.party_share_mode>=2 ) &&	// don't count chatting
-				!( difftime(last_tick, sd->idletime)>120 && battle_config.party_share_mode>=1) &&	// don't count idle
+			if( !( sd->chatID                            && config.party_share_mode>=2 ) &&	// don't count chatting
+				!( difftime(last_tick, sd->idletime)>120 && config.party_share_mode>=1) &&	// don't count idle
 				!pc_isdead(*sd) )
 				memberpos[c++] = i;
 		}
@@ -673,7 +673,7 @@ int party_exp_share(struct party &p,unsigned short map, uint32 base_exp,uint32 j
 	if(c==0)
 		return 0;
 	
-	if( battle_config.party_bonus )
+	if( config.party_bonus )
 	{	// bonus formula, originally [Valaris]
 		// 1    2    3    4    5    6    7    8    9    10   11   12
 		// 1.00 1.05 1.15 1.30 1.50 1.75 2.05 2.40 2.80 3.25 3.75 4.30
@@ -703,7 +703,7 @@ int party_exp_share(struct party &p,unsigned short map, uint32 base_exp,uint32 j
 		if( (sd=p.member[memberpos[i]].sd)!=NULL )
 		{
 			pc_gainexp(*sd,base_exp,job_exp);
-			if (battle_config.zeny_from_mobs) // zeny from mobs [Valaris]
+			if (config.zeny_from_mobs) // zeny from mobs [Valaris]
 				pc_getzeny(*sd,zeny);
 		}
 	}
@@ -729,8 +729,8 @@ int party_exp_share2(struct party &p, unsigned short map, uint32 base_exp, uint3
 	{	
 		if((sd=p.member[i].sd)!=NULL && p.member[i].online && sd->block_list::m==map && session[sd->fd] != NULL)
 		{
-			if( !( sd->chatID                             && battle_config.party_share_mode>=2 ) &&	// don't count chatting
-				!( difftime(last_tick, sd->idletime)>120  && battle_config.party_share_mode>=1) &&	// don't count idle
+			if( !( sd->chatID                             && config.party_share_mode>=2 ) &&	// don't count chatting
+				!( difftime(last_tick, sd->idletime)>120  && config.party_share_mode>=1) &&	// don't count idle
 				!pc_isdead(*sd) )
 				memberpos[c++] = i;
 				lvlsum += p.member[i].lv;
@@ -744,7 +744,7 @@ int party_exp_share2(struct party &p, unsigned short map, uint32 base_exp, uint3
 	job_exp_div  = (double)job_exp  /(double)lvlsum;
 	zeny_div     = (double)zeny     /(double)lvlsum;
 
-	if( battle_config.party_bonus )
+	if( config.party_bonus )
 	{	// bonus formula
 		// 1    2    3    4    5    6    7    8    9    10   11   12
 		// 1.00 1.05 1.15 1.30 1.50 1.75 2.05 2.40 2.80 3.25 3.75 4.30
@@ -761,7 +761,7 @@ int party_exp_share2(struct party &p, unsigned short map, uint32 base_exp, uint3
 		if( (sd=p.member[memberpos[i]].sd)!=NULL )
 		{
 			pc_gainexp(*sd,(uint32)(base_exp_div * p.member[i].lv),(uint32)(job_exp_div * p.member[i].lv));
-			if(battle_config.zeny_from_mobs) // zeny from mobs [Valaris]
+			if(config.zeny_from_mobs) // zeny from mobs [Valaris]
 				pc_getzeny(*sd,(uint32)(zeny_div*p.member[i].lv));
 		}
 	}

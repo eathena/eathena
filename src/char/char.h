@@ -46,6 +46,7 @@ int char_log(char *fmt, ...);
 
 
 
+extern char server_name[20];
 
 
 

@@ -186,7 +186,7 @@ bool charcommand_config_read(const char *cfgName)
  */
 CharCommandType charcommand(struct CharCommandInfo &info, const char* message, unsigned int level)
 {
-	if (battle_config.atc_gmonly != 0 && !level)
+	if (config.atc_gmonly != 0 && !level)
 		return CharCommand_None;
 
 	if (!message || !*message)
@@ -444,7 +444,7 @@ bool charcommand_petfriendly(int fd, struct map_session_data &sd,const char *com
 					pl_sd->pet.intimate = friendly;
 					clif_send_petstatus(*pl_sd);
 					clif_pet_emotion(*pl_sd->pd,0);
-					if (battle_config.pet_status_support) {
+					if (config.pet_status_support) {
 						if ((pl_sd->pet.intimate > 0 && t <= 0) ||
 						    (pl_sd->pet.intimate <= 0 && t > 0)) {
 							if (pl_sd->block_list::prev != NULL)
@@ -668,7 +668,7 @@ bool charcommand_save(int fd, struct map_session_data &sd,const char *command, c
 				clif_displaymessage(fd, msg_txt(1)); // Map not found.
 				return false;
 			} else {
-				if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
+				if (m >= 0 && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
 					clif_displaymessage(fd, "You are not authorised to set this map as a save map.");
 					return false;
 				}
@@ -1131,11 +1131,11 @@ bool charcommand_warp(int fd, struct map_session_data &sd,const char *command, c
 		if (sd.isGM() >= pl_sd->isGM()) { // you can rura+ only lower or same GM level
 			if (x > 0 && x < 400 && y > 0 && y < 400) {
 				m = map_mapname2mapid(mapname);
-				if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
+				if (m >= 0 && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
 					clif_displaymessage(fd, "You are not authorised to warp someone to this map.");
 					return false;
 				}
-				if(pl_sd->block_list::m <map_num && maps[pl_sd->block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
+				if(pl_sd->block_list::m <map_num && maps[pl_sd->block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
 					clif_displaymessage(fd, "You are not authorised to warp this player from its actual map.");
 					return false;
 				}
@@ -1324,12 +1324,12 @@ bool charcommand_baselevel(int fd, struct map_session_data &sd,const char *comma
 		if (sd.isGM() >= pl_sd->isGM()) { // you can change base level only lower or same gm level
 
 			if (level > 0) {
-				if (pl_sd->status.base_level == battle_config.max_base_level) {	// check for max level by Valaris
+				if (pl_sd->status.base_level == config.max_base_level) {	// check for max level by Valaris
 					clif_displaymessage(fd, msg_txt(91)); // Character's base level can't go any higher.
 					return 0;
 				}	// End Addition
-				if ((unsigned int)level > battle_config.max_base_level || (unsigned int)level > (battle_config.max_base_level - pl_sd->status.base_level)) // fix positiv overflow
-					level = battle_config.max_base_level - pl_sd->status.base_level;
+				if ((unsigned int)level > config.max_base_level || (unsigned int)level > (config.max_base_level - pl_sd->status.base_level)) // fix positiv overflow
+					level = config.max_base_level - pl_sd->status.base_level;
 				for (i = 1; i <= level; ++i)
 					pl_sd->status.status_point += (pl_sd->status.base_level + i + 14) / 5;
 				pl_sd->status.base_level += level;
@@ -1345,7 +1345,7 @@ bool charcommand_baselevel(int fd, struct map_session_data &sd,const char *comma
 					clif_displaymessage(fd, msg_txt(193)); // Character's base level can't go any lower.
 					return false;
 				}
-				if (level < -(int)battle_config.max_base_level || level < (1 - (int)pl_sd->status.base_level)) // fix negativ overflow
+				if (level < -(int)config.max_base_level || level < (1 - (int)pl_sd->status.base_level)) // fix negativ overflow
 					level = 1 - pl_sd->status.base_level;
 				if (pl_sd->status.status_point > 0) {
 					for (i = 0; i > level; i--)
@@ -1382,7 +1382,7 @@ bool charcommand_baselevel(int fd, struct map_session_data &sd,const char *comma
 bool charcommand_joblevel(int fd, struct map_session_data &sd,const char *command, const char *message)
 {
 	struct map_session_data *pl_sd;
-	unsigned int max_level = battle_config.max_job_level;
+	unsigned int max_level = config.max_job_level;
 	char player[64];
 	int level = 0;
 	//g]?÷,a^\{Z(q,I`?e^?ö,I`OE^(3),I`?E<?,?Z(Z?o,?,e'
@@ -1400,9 +1400,9 @@ bool charcommand_joblevel(int fd, struct map_session_data &sd,const char *comman
 				max_level = 10; //Novice
 			// super novices can go up to 99 [celest]
 			else if (pl_s_class.job == 23)
-				max_level = battle_config.max_sn_level; //S. Novice
+				max_level = config.max_sn_level; //S. Novice
 			else if (pl_sd->status.class_ > 4007 && pl_sd->status.class_ < 4023)
-				max_level = battle_config.max_adv_level; //Adv. Class
+				max_level = config.max_adv_level; //Adv. Class
 
 			if (level > 0) {
 				if (pl_sd->status.job_level == max_level) {

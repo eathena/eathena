@@ -171,7 +171,7 @@ protected:
 
 	///////////////////////////////////////////////////////////////////////////
 	basics::TMultiListP<CCharCharacter, 2>	cCharList;
-	basics::TslistDCT<CCharCharAccount>		cAccountList;
+	basics::slist<CCharCharAccount>			cAccountList;
 	///////////////////////////////////////////////////////////////////////////
 	// data for alternative interface
 	basics::Mutex	cMx;
@@ -425,7 +425,7 @@ public:
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	// data
-	basics::TslistDST<CPCStorage>	cPCStorList;
+	basics::slist<CPCStorage>	cPCStorList;
 
 	///////////////////////////////////////////////////////////////////////////
 	// normal function
@@ -467,7 +467,7 @@ public:
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	// data
-	basics::TslistDST<CGuildStorage> cGuildStorList;
+	basics::slist<CGuildStorage> cGuildStorList;
 
 	///////////////////////////////////////////////////////////////////////////
 	// normal function
@@ -507,7 +507,7 @@ public:
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	// data
-	basics::TslistDST<CPet> cPetList;
+	basics::slist<CPet> cPetList;
 
 	///////////////////////////////////////////////////////////////////////////
 	// normal function
@@ -548,7 +548,7 @@ public:
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	// data
-	basics::TslistDST<CHomunculus> cHomunculusList;
+	basics::slist<CHomunculus> cHomunculusList;
 
 	///////////////////////////////////////////////////////////////////////////
 	// normal function
@@ -566,6 +566,50 @@ public:
 	virtual bool removeHomunculus(uint32 hid);
 	virtual bool saveHomunculus(const CHomunculus& hom);
 };
+
+
+
+
+class CVarDB_mem : public CVarDBInterface
+{
+protected:
+	virtual bool do_readVars()=0;
+	virtual bool do_saveVars()=0;
+	virtual void do_createVar(const CVar& var)=0;
+	virtual void do_saveVar(const CVar& var)=0;
+	virtual void do_removeVar(const CVar& Var)=0;
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CVarDB_mem(const char *dbcfgfile=NULL);
+public:
+	virtual ~CVarDB_mem();
+
+	///////////////////////////////////////////////////////////////////////////
+	// data
+	basics::slist<CVar> cVarList;
+
+public:
+
+	///////////////////////////////////////////////////////////////////////////
+	// normal function
+	virtual bool init(const char* configfile)=0;
+	virtual bool close()=0;
+
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size() const;
+	virtual CVar& operator[](size_t i);
+
+	virtual bool searchVar(const char* name, CVar& var);
+	virtual bool insertVar(const char* name, const char* value);
+	virtual bool removeVar(const char* name);
+	virtual bool saveVar(const CVar& var);
+};
+
+
+
 
 
 
@@ -933,6 +977,43 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	// timer function
 	virtual bool timeruserfunc(unsigned long tick);
+};
+
+
+
+class CVarDB_txt : public basics::CTimerBase, public CVarDB_mem
+{
+protected:
+	virtual bool do_readVars();
+	virtual bool do_saveVars();
+	virtual void do_createVar(const CVar& var)		{ ++this->savecount; }
+	virtual void do_saveVar(const CVar& var)		{ ++this->savecount; }
+	virtual void do_removeVar(const CVar& Var)		{ ++this->savecount; }
+
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CVarDB_txt(const char *dbcfgfile=NULL);
+	virtual ~CVarDB_txt();
+
+public:
+
+protected:
+	///////////////////////////////////////////////////////////////////////////
+	// data
+	basics::CParam< basics::string<> > variable_filename;
+	uint savecount;
+
+	///////////////////////////////////////////////////////////////////////////
+	// normal function
+	virtual bool init(const char* configfile);
+	virtual bool close();
+
+	///////////////////////////////////////////////////////////////////////////
+	// timer function
+	virtual bool timeruserfunc(unsigned long tick);
+
 };
 
 

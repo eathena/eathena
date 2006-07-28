@@ -8,29 +8,19 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 /// stores a walkpath.
-/// len is the overall path, pos is the current position inside the path,
-/// path_half marks when the path section is just used and the path itself
-/// contains the directions that have to be walked to sequentially
-/// also add the target destination here since it is always used
-/// when a walkpath is used
+/// len is the overall path, pos is the current position inside the path, 
+/// the path itself contains the directions that have to be walked to sequentially, 
+/// also add the target destination here since it is always used when a walkpath is used
 struct walkpath_data
 {										// necessary sizes:
-//	unsigned char path_len;				// 0...MAX_WALKPATH-1	->currently 5bit
-//	unsigned char path_pos;				// 0...MAX_WALKPATH-1	->currently 5bit
-//	unsigned char path_half;			// 0/1					->1bit
-//	unsigned char path[MAX_WALKPATH];	// 0..7					->3bit each
-										//						-----------------
-										//						107bit
-										// currently used:		280bit
 
 private:
 	unsigned char path_len		: 6;	// more than necessary but it fills the 
 	unsigned char path_pos		: 6;	// struct to a 16bit boundary
 public:
-	unsigned char path_half		: 1;	// can be removed on new walk
-	unsigned char change_target	: 1;	
-	unsigned char walk_easy		: 1;
-	unsigned char _dummy		: 1;
+	unsigned char change_target	: 1;	// need to recalculate
+	unsigned char walk_easy		: 1;	// only walk in line-of-sight
+	unsigned char _dummy		: 2;
 
 	unsigned char path[MAX_WALKPATH];
 
@@ -38,7 +28,6 @@ public:
 	walkpath_data() : 
 		path_len(0),
 		path_pos(0),
-		path_half(0),
 		change_target(0),
 		walk_easy(0)
 	{
@@ -53,7 +42,6 @@ public:
 		memcpy(this->path,wp.path, sizeof(this->path));
 		this->path_len = wp.path_len;
 		this->path_pos = wp.path_pos;
-		this->path_half= wp.path_half;
 		return *this;
 	}
 
@@ -67,7 +55,7 @@ public:
 
 	void clear()
 	{
-		this->path_pos = this->path_len = this->path_half = 0;
+		this->path_pos = this->path_len = change_target = 0;
 	}
 
 	bool next()

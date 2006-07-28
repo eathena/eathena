@@ -11,6 +11,21 @@ struct LogConfig log_config;
 
 
 #if defined(WITH_MYSQL)
+
+
+MYSQL logmysql_handle; //For the log database - fix by [Maeki]
+MYSQL_RES* logsql_res ;
+MYSQL_ROW  logsql_row ;
+
+char log_db[32] = "log";
+char log_db_ip[16] = "127.0.0.1";
+char log_db_id[32] = "ragnarok";
+char log_db_pw[32] = "ragnarok";
+int log_db_port = 3306;
+
+
+
+
 inline const char* escape_string(char *target, const char* source)
 {
 	if(source && target)
@@ -71,6 +86,7 @@ int log_branch(struct map_session_data &sd)
 	if(db_use_sqldbs && log_config.sql_logs > 0)
 	{
 		char t_name[64];
+		char tmp_sql[16384];
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`branch_date`, `account_id`, `char_id`, `char_name`, `map`) VALUES (NOW(), '%ld', '%ld', '%s', '%s')",
 			log_config.log_branch_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), sd.mapname);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
@@ -109,6 +125,7 @@ int log_drop(struct map_session_data &sd, uint32 monster_id, int log_drop[])
 #if defined(WITH_MYSQL)
 	if(db_use_sqldbs && log_config.sql_logs > 0)
 	{
+		char tmp_sql[16384];
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`drop_date`, `kill_char_id`, `monster_id`, `item1`, `item2`, `item3`, `item4`, `item5`, `item6`, `item7`, `item8`, `item9`, `itemCard`, `map`) VALUES (NOW(), '%ld', '%ld', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s') ", log_config.log_drop_db, (unsigned long)sd.status.char_id, (unsigned long)monster_id, log_drop[0], log_drop[1], log_drop[2], log_drop[3], log_drop[4], log_drop[5], log_drop[6], log_drop[7], log_drop[8], log_drop[9], sd.mapname);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
@@ -139,6 +156,7 @@ int log_mvpdrop(struct map_session_data &sd, uint32 monster_id, int log_mvp[])
 #if defined(WITH_MYSQL)
 	if(db_use_sqldbs && log_config.sql_logs > 0)
 	{
+		char tmp_sql[16384];
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`mvp_date`, `kill_char_id`, `monster_id`, `prize`, `mvpexp`, `map`) VALUES (NOW(), '%ld', '%ld', '%d', '%d', '%s') ", log_config.log_mvpdrop_db, (unsigned long)sd.status.char_id, (unsigned long)monster_id, log_mvp[0], log_mvp[1], sd.mapname);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
@@ -170,6 +188,7 @@ int log_present(struct map_session_data &sd, int source_type, unsigned short nam
 #if defined(WITH_MYSQL)
 	if(db_use_sqldbs && log_config.sql_logs > 0)
 	{
+		char tmp_sql[16384];
 		char t_name[64];
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`present_date`, `src_id`, `account_id`, `char_id`, `char_name`, `nameid`, `map`) VALUES (NOW(), '%d', '%ld', '%ld', '%s', '%d', '%s') ",
 			log_config.log_present_db, source_type, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), nameid, sd.mapname);
@@ -204,6 +223,7 @@ int log_produce(struct map_session_data &sd, unsigned short nameid, int slot1, i
 #if defined(WITH_MYSQL)
 	if(db_use_sqldbs && log_config.sql_logs > 0)
 	{
+		char tmp_sql[16384];
 		char t_name[64];
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`produce_date`, `account_id`, `char_id`, `char_name`, `nameid`, `slot1`, `slot2`, `slot3`, `map`, `success`) VALUES (NOW(), '%ld', '%ld', '%s', '%d', '%d', '%d', '%d', '%s', '%d') ",
 			log_config.log_produce_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), nameid, slot1, slot2, slot3, sd.mapname, success);
@@ -248,6 +268,7 @@ int log_refine(struct map_session_data &sd, int n, int success)
 #if defined(WITH_MYSQL)
 	if(db_use_sqldbs && log_config.sql_logs > 0)
 	{
+		char tmp_sql[16384];
 		char t_name[64];
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`refine_date`, `account_id`, `char_id`, `char_name`, `nameid`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`, `success`, `item_level`) VALUES (NOW(), '%ld', '%ld', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%d', '%d')",
 			log_config.log_refine_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), sd.status.inventory[n].nameid, sd.status.inventory[n].refine, log_card[0], log_card[1], log_card[2], log_card[3], sd.mapname, success, item_level);
@@ -362,6 +383,7 @@ int log_trade(struct map_session_data &sd, struct map_session_data &target_sd, i
 #if defined(WITH_MYSQL)
 	if(db_use_sqldbs && log_config.sql_logs > 0)
 	{
+		char tmp_sql[16384];
 		char t_name[64],t_name2[64];
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`trade_date`, `src_account_id`, `src_char_id`, `src_char_name`, `des_account_id`, `des_char_id`, `des_char_name`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`) VALUES (NOW(), '%ld', '%ld', '%s', '%ld', '%ld', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s')",
 			log_config.log_trade_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), (unsigned long)target_sd.status.account_id, (unsigned long)target_sd.status.char_id, escape_string(t_name2, target_sd.status.name), log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], sd.mapname);
@@ -406,6 +428,7 @@ int log_vend(struct map_session_data &sd,struct map_session_data &vsd,int n,int 
 #if defined(WITH_MYSQL)
 	if(db_use_sqldbs && log_config.sql_logs > 0)
 	{
+		char tmp_sql[16384];
 		char t_name[64],t_name2[64];
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`vend_date`, `vend_account_id`, `vend_char_id`, `vend_char_name`, `buy_account_id`, `buy_char_id`, `buy_char_name`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`, `zeny`) VALUES (NOW(), '%ld', '%ld', '%s', '%ld', '%ld', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%d')",
 			log_config.log_vend_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), (unsigned long)vsd.status.account_id, (unsigned long)vsd.status.char_id, escape_string(t_name2, vsd.status.name), log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], sd.mapname, zeny);
@@ -439,6 +462,7 @@ int log_zeny(struct map_session_data &sd, struct map_session_data &target_sd,int
 #if defined(WITH_MYSQL)
 	if(db_use_sqldbs && log_config.sql_logs > 0)
 	{
+		char tmp_sql[16384];
 		char t_name[64],t_name2[64];
 		snprintf(tmp_sql, sizeof(tmp_sql),"INSERT DELAYED INTO `%s` (`trade_date`, `src_account_id`, `src_char_id`, `src_char_name`, `des_account_id`, `des_char_id`, `des_char_name`, `map`, `zeny`) VALUES (NOW(), '%ld', '%ld', '%s', '%ld', '%ld', '%s', '%s', '%ld')",
 			log_config.log_trade_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), (unsigned long)target_sd.status.account_id, (unsigned long)target_sd.status.char_id, escape_string(t_name2, target_sd.status.name), sd.mapname, (unsigned long)sd.deal_zeny);
@@ -472,6 +496,7 @@ int log_atcommand(struct map_session_data &sd, const char *message)
 #if defined(WITH_MYSQL)
 	if(db_use_sqldbs && log_config.sql_logs > 0)
 	{
+		char tmp_sql[16384];
 		char t_name[64];
 		char t_msg[100]; //These are the contents of an @ call, so there shouldn't be overflow danger here?
 
@@ -506,6 +531,7 @@ int log_npc(struct map_session_data &sd, const char *message)
 #if defined(WITH_MYSQL)
 	if(db_use_sqldbs && log_config.sql_logs > 0)
 	{
+		char tmp_sql[16384];
 		char t_name[64];
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`npc_date`, `account_id`, `char_id`, `char_name`, `map`, `mes`) VALUES(NOW(), '%ld', '%ld', '%s', '%s', '%s') ",
 			log_config.log_npc_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), sd.mapname, message);
@@ -555,6 +581,7 @@ int log_chat(const char *type, int type_id, int src_charid, int src_accid, const
 #if defined(WITH_MYSQL)
 	if( db_use_sqldbs && log_config.sql_logs > 0)
 	{
+		char tmp_sql[16384];
 		char t_msg[100]; //The chat line, 100 should be high enough above overflow...
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`time`, `type`, `type_id`, `src_charid`, `src_accountid`, `src_map`, `src_map_x`, `src_map_y`, `dst_charname`, `message`) VALUES (NOW(), '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%s', '%s')", 
 		 	log_config.log_chat_db, type, type_id, src_charid, src_accid, mapname, x, y, dst_charname, escape_string(t_msg, message));
@@ -583,6 +610,19 @@ int log_chat(const char *type, int type_id, int src_charid, int src_accid, const
 	}
 	return -1;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 void log_set_defaults(void)
@@ -720,6 +760,18 @@ int log_config_read(const char *cfgName)
 				strcpy(log_config.log_chat_db, w2);
 				if(log_config.chat > 0)
 					ShowInfo("Logging CHAT to table `%s`\n", w2);
+		} else if(strcasecmp(w1,"log_db")==0) {
+			strcpy(log_db, w2);
+		} else if(strcasecmp(w1,"log_db_ip")==0) {
+			strcpy(log_db_ip, w2);
+		} else if(strcasecmp(w1,"log_db")==0) {
+			strcpy(log_db, w2);
+		} else if(strcasecmp(w1,"log_db_id")==0) {
+			strcpy(log_db_id, w2);
+		} else if(strcasecmp(w1,"log_db_pw")==0) {
+			strcpy(log_db_pw, w2);
+		} else if(strcasecmp(w1,"log_db_port")==0) {
+			log_db_port = atoi(w2);
 			}
 #endif
 
@@ -788,3 +840,44 @@ int log_config_read(const char *cfgName)
 	fclose(fp);
 	return 0;
 }
+
+
+
+
+
+
+int log_final(void)
+{
+#if defined(WITH_MYSQL)
+	mysql_close(&logmysql_handle);
+	ShowMessage("Close Log DB Connection....\n");
+#endif
+	return 0;
+}
+
+int log_init(const char *cfgName)
+{
+	log_config_read(cfgName);
+
+#if defined(WITH_MYSQL)
+	if( db_use_sqldbs && log_config.sql_logs && (log_config.branch || log_config.drop || log_config.mvpdrop ||
+		log_config.present || log_config.produce || log_config.refine || log_config.trade))
+	{
+		mysql_init(&logmysql_handle);
+
+		//DB connection start
+		ShowMessage(""CL_WHITE"[SQL]"CL_RESET": Connecting to Log Database "CL_WHITE"%s"CL_RESET" At "CL_WHITE"%s"CL_RESET"...\n",log_db,log_db_ip);
+		if(!mysql_real_connect(&logmysql_handle, log_db_ip, log_db_id, log_db_pw,
+			log_db ,log_db_port, (char *)NULL, 0)) {
+				//pointer check
+				ShowError(""CL_WHITE"[SQL Error]"CL_RESET": %s\n",mysql_error(&logmysql_handle));
+				exit(1);
+		} else {
+			ShowStatus(""CL_WHITE"[SQL]"CL_RESET": Successfully '"CL_BT_GREEN"connected"CL_RESET"' to Database '"CL_WHITE"%s"CL_RESET"'.\n", log_db);
+		}
+	}
+#endif
+	return 0;
+}
+
+

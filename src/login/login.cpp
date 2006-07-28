@@ -2428,46 +2428,62 @@ int parse_login(int fd)
 		{
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < ((RFIFOW(fd,2) == 0) ? 28 : 20))
 				return 0;
+
 			WFIFOW(fd,0) = 0x7919;
 			WFIFOB(fd,2) = 1;
-			if (!check_ladminip( session[fd]->client_ip )) {
+			if (!check_ladminip( session[fd]->client_ip ))
+			{
 				login_log("'ladmin'-login: Connection in administration mode refused: IP isn't authorised (ladmin_allow, ip: %s)." RETCODE, ip_str);
-			} else {
+			}
+			else
+			{
 				login_session_data *ld = (login_session_data*)session[fd]->user_session;
-				if (RFIFOW(fd,2) == 0) {	// non encrypted password
+				if (RFIFOW(fd,2) == 0)
+				{	// non encrypted password
 					char password[64];
 					memcpy(password, RFIFOP(fd,4), 24);
 					password[23] = '\0';
 					remove_control_chars(password);
 					// If remote administration is enabled and password sent by client matches password read from login server configuration file
-					if ((admin_state == 1) && (strcmp(password, admin_pass) == 0)) {
+					if ((admin_state == 1) && (strcmp(password, admin_pass) == 0))
+					{
 						login_log("'ladmin'-login: Connection in administration mode accepted (non encrypted password: %s, ip: %s)" RETCODE, password, ip_str);
 						ShowStatus("Connection of a remote administration accepted (non encrypted password).\n");
 						WFIFOB(fd,2) = 0;
 						session[fd]->func_parse = parse_admin;
-					} else if (admin_state != 1)
+						session[fd]->rdata_tick = 0;
+					}
+					else if (admin_state != 1)
 						login_log("'ladmin'-login: Connection in administration mode REFUSED - remote administration is disabled (non encrypted password: %s, ip: %s)" RETCODE, password, ip_str);
 					else
 						login_log("'ladmin'-login: Connection in administration mode REFUSED - invalid password (non encrypted password: %s, ip: %s)" RETCODE, password, ip_str);
-				} else {	// encrypted password
+				}
+				else
+				{	// encrypted password
 					if (!ld)
 						ShowError("'ladmin'-login: error! MD5 key not created/requested for an administration login.\n");
-					else {
+					else
+					{
 						char md5str[64] = "", md5bin[32];
-						if (RFIFOW(fd,2) == 1) {
+						if (RFIFOW(fd,2) == 1)
+						{
 							snprintf(md5str, sizeof(md5str),"%s%s", ld->md5key, admin_pass); // 20 24
-						} else if (RFIFOW(fd,2) == 2) {
+						}
+						else if (RFIFOW(fd,2) == 2)
+						{
 							snprintf(md5str, sizeof(md5str),"%s%s", admin_pass, ld->md5key); // 24 20
 						}
 						MD5_String2binary(md5str, md5bin);
 						// If remote administration is enabled and password hash sent by client matches hash of password read from login server configuration file
-						if ((admin_state == 1) && (memcmp(md5bin, RFIFOP(fd,4), 16) == 0)) {
+						if ((admin_state == 1) && (memcmp(md5bin, RFIFOP(fd,4), 16) == 0))
+						{
 							login_log("'ladmin'-login: Connection in administration mode accepted (encrypted password, ip: %s)" RETCODE, ip_str);
 							ShowStatus("Connection of a remote administration accepted (encrypted password).\n");
 							WFIFOB(fd,2) = 0;
 							session[fd]->func_parse = parse_admin;
 							session[fd]->rdata_tick = 0;
-						} else if (admin_state != 1)
+						}
+						else if (admin_state != 1)
 							login_log("'ladmin'-login: Connection in administration mode REFUSED - remote administration is disabled (encrypted password, ip: %s)" RETCODE, ip_str);
 						else
 							login_log("'ladmin'-login: Connection in administration mode REFUSED - invalid password (encrypted password, ip: %s)" RETCODE, ip_str);

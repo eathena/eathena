@@ -308,7 +308,7 @@ int guild_payexp_timer(int tid, unsigned long tick, int id, basics::numptr data)
 //	numdb_foreach(guild_expcache_db, guild_payexp_timer_sub, dellist, &delp);
 	for (i = 0; i < delp; ++i)
 		numdb_erase(guild_expcache_db, dellist[i]);
-	if(battle_config.etc_log && delp)
+	if(config.etc_log && delp)
 		ShowMessage("guild exp %d charactor's exp flushed !\n",delp);
 	return 0;
 }
@@ -320,7 +320,7 @@ int guild_create(struct map_session_data &sd,const char *name)
 {
 	if(sd.status.guild_id==0)
 	{
-		if(!battle_config.guild_emperium_check || pc_search_inventory(sd,714) >= 0)
+		if(!config.guild_emperium_check || pc_search_inventory(sd,714) >= 0)
 		{
 			struct guild_member m;
 			guild_makemember(m,sd);
@@ -356,7 +356,7 @@ int guild_created(uint32 account_id,uint32 guild_id)
 		sd->guild_sended=0;
 
 		clif_guild_created(*sd,0);
-		if(battle_config.guild_emperium_check)
+		if(config.guild_emperium_check)
 			pc_delitem(*sd,pc_search_inventory(*sd,714),1,0);	// ƒGƒ“ƒyƒŠƒEƒ€Á–Õ
 
 		guild_request_info(guild_id);
@@ -371,7 +371,7 @@ int guild_created(uint32 account_id,uint32 guild_id)
 // î•ñ—v‹
 int guild_request_info(uint32 guild_id)
 {
-//	if(battle_config.etc_log)
+//	if(config.etc_log)
 //		ShowMessage("guild_request_info\n");
 	return intif_guild_request_info(guild_id);
 }
@@ -424,7 +424,7 @@ bool guild_check_member(const struct guild &g)
 				sd->status.guild_id=0;
 				sd->guild_sended=0;
 				sd->guild_emblem_id=0;
-				if(battle_config.error_log)
+				if(config.error_log)
 					ShowMessage("guild: check_member %d[%s] is not member\n",sd->status.account_id,sd->status.name);
 			}
 		}
@@ -558,7 +558,7 @@ int guild_invite(struct map_session_data &sd,uint32 account_id)
 	if(tsd==NULL || g==NULL)
 		return 0;
 
-	if(!battle_config.invite_request_check)
+	if(!config.invite_request_check)
 	{
 		if (tsd->party_invite>0 || tsd->trade_partner)
 		{	// ‘ŠŽè‚ªŽæˆø’†‚©‚Ç‚¤‚©
@@ -643,7 +643,7 @@ int guild_member_added(uint32 guild_id,uint32 account_id,uint32 char_id,int flag
 
 	if(sd==NULL || sd->guild_invite==0){ // ƒLƒƒƒ‰‘¤‚É“o˜^‚Å‚«‚È‚©‚Á‚½‚½‚ß’E‘Þ—v‹‚ðo‚·
 		if (flag == 0) {
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowMessage("guild: member added error %d is not online\n",account_id);
  			intif_guild_leave(guild_id,account_id,char_id,0,"**“o˜^Ž¸”s**");
 		}
@@ -832,7 +832,7 @@ int guild_recv_memberinfoshort(uint32 guild_id,uint32 account_id,uint32 char_id,
 			sd->guild_emblem_id=0;
 			sd->guild_sended=0;
 		}
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowError("guild: not found member %d,%d on %d[%s]\n",	account_id,char_id,guild_id,g->name);
 		return 0;
 	}
@@ -903,8 +903,8 @@ int guild_memberposition_changed(struct guild &g,unsigned short idx,unsigned sho
 int guild_change_position(struct map_session_data &sd,uint32 idx,int mode,int exp_mode,const char *name)
 {
 	struct guild_position p;
-	if(exp_mode > (int)battle_config.guild_exp_limit)
-		exp_mode=battle_config.guild_exp_limit;
+	if(exp_mode > (int)config.guild_exp_limit)
+		exp_mode=config.guild_exp_limit;
 	if(exp_mode<0)exp_mode=0;
 	p.mode=mode;
 	p.exp_mode=exp_mode;
@@ -958,7 +958,7 @@ int guild_notice_changed(uint32 guild_id,const char *mes1,const char *mes2)
 int guild_change_emblem(struct map_session_data &sd,int len,const unsigned char *data)
 {
 	struct guild *g;
-	if (battle_config.require_glory_guild &&
+	if (config.require_glory_guild &&
 		!((g = guild_search(sd.status.guild_id)) &&
 		guild_checkskill(*g, GD_GLORYGUILD)>0) )
 	{
@@ -1297,7 +1297,7 @@ int guild_allianceack(uint32 guild_id1,uint32 guild_id2,uint32 account_id1,uint3
 				clif_guild_allianceack(*sd[i],((flag>>4)==i+1)?3:4);
 		return 0;
 	}
-//	if(battle_config.etc_log)
+//	if(config.etc_log)
 //		ShowMessage("guild alliance_ack %d %d %d %d %d %s %s\n",guild_id1,guild_id2,account_id1,account_id2,flag,name1,name2);
 
 	if(!(flag&0x08)){	// ŠÖŒW’Ç‰Á
@@ -1740,7 +1740,7 @@ int guild_agit_break(struct mob_data &md)
 	memcpy(evname,md.npc_event, 1+strlen(md.npc_event));
 	//      int c = npc_event_do(evname);
 	if(!agit_flag) return 0;	// Agit already End
-	add_timer(gettick()+battle_config.gvg_eliminate_time,guild_gvg_eliminate_timer,md.block_list::m, basics::numptr(evname), false);
+	add_timer(gettick()+config.gvg_eliminate_time,guild_gvg_eliminate_timer,md.block_list::m, basics::numptr(evname), false);
 	return 0;
 }
 

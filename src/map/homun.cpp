@@ -187,7 +187,7 @@ int homun_delete_data(struct map_session_data &sd)
 	if(hd)
 	{
 		//親密度保存
-//		if(battle_config.save_homun_temporal_intimate)
+//		if(config.save_homun_temporal_intimate)
 //			pc_setglobalreg(sd,"HOM_TEMP_INTIMATE",2000);//初期値に
 	
 		hd->status.incubate = 0;
@@ -209,7 +209,7 @@ int homun_delete_data(struct map_session_data &sd)
 
 void homun_data::save_data()
 {
-//	if(battle_config.save_homun_temporal_intimate)
+//	if(config.save_homun_temporal_intimate)
 //		pc_setglobalreg(sd,"HOM_TEMP_INTIMATE",hd->intimate);
 	intif_save_homdata(this->status.account_id, this->status.char_id, *this);
 }
@@ -229,7 +229,7 @@ int homun_hungry_cry(int tid, unsigned long tick, int id, basics::numptr data)
 		
 		if( hd->hungry_cry_timer != tid )
 		{
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowError("homun_hungry_cry_timer %d != %d\n", hd->hungry_cry_timer, tid);
 			return 0;
 		}
@@ -255,7 +255,7 @@ int homun_hungry(int tid, unsigned long tick, int id, basics::numptr data)
 		
 		if(hd->hungry_timer != tid)
 		{
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowError("homun_hungry_timer %d != %d\n", hd->hungry_timer, tid);
 			return 0;
 		}
@@ -268,7 +268,7 @@ int homun_hungry(int tid, unsigned long tick, int id, basics::numptr data)
 			int f=0;
 			if( hd->intimate == hd->status.intimate )
 				f=1;
-			hd->status.intimate -= 20*battle_config.homun_intimate_rate/100;
+			hd->status.intimate -= 20*config.homun_intimate_rate/100;
 			clif_emotion(*hd,28);
 			clif_send_homdata(*hd, *hd->msd, 0x100, hd->intimate/100);
 			if( hd->status.intimate <= 0 )
@@ -457,7 +457,7 @@ void homun_data::calc_status()
 		}
 	}
 	// ステータス変化による基本パラメータ補正
-	if(battle_config.allow_homun_status_change && hd.sc_data)
+	if(config.allow_homun_status_change && hd.sc_data)
 	{
 		//ゴスペルALL+20
 		if(hd.sc_data[SC_INCALLSTATUS].timer!=-1){
@@ -645,7 +645,7 @@ homun_data *homun_data::create_homunculus(struct map_session_data &sd, unsigned 
 	hd->status.incubate = 0;
 	hd->status.rename_flag = 0;
 	
-//	if(battle_config.save_homun_temporal_intimate)
+//	if(config.save_homun_temporal_intimate)
 //		pc_setglobalreg(sd,"HOM_TEMP_INTIMATE", hd->intimate);
 
 	intif_create_homdata(sd.status.account_id, sd.status.char_id, *hd);
@@ -658,7 +658,7 @@ bool homun_data::return_to_embryo(struct map_session_data &sd)
 	homun_data *hd = homun_data::get_homunculus(sd);
 	if( hd && !hd->is_dead() )
 	{	//親密度保存
-//		if(battle_config.save_homun_temporal_intimate)
+//		if(config.save_homun_temporal_intimate)
 //			pc_setglobalreg(sd,"HOM_TEMP_INTIMATE", hd->intimate);
 		hd->status.incubate = 0;
 		hd->save_data();
@@ -710,32 +710,32 @@ int homun_food(struct map_session_data &sd)
 	t = hd->status.hungry;
 	if(t > 90)
 	{
-		hd->status.intimate -= 50*battle_config.homun_intimate_rate/100;
-		hd->intimate -= 50*battle_config.homun_intimate_rate/100;
+		hd->status.intimate -= 50*config.homun_intimate_rate/100;
+		hd->intimate -= 50*config.homun_intimate_rate/100;
 		emotion = 16;
 	}
 	else if(t > 75)
 	{
-		hd->status.intimate -= 30*battle_config.homun_intimate_rate/100;
-		hd->intimate -= 30*battle_config.homun_intimate_rate/100;
+		hd->status.intimate -= 30*config.homun_intimate_rate/100;
+		hd->intimate -= 30*config.homun_intimate_rate/100;
 		emotion = 19;
 	}
 	else if(t > 25)
 	{
-		hd->status.intimate += 80*battle_config.homun_intimate_rate/100;
-		hd->intimate += 80*battle_config.homun_intimate_rate/100;
+		hd->status.intimate += 80*config.homun_intimate_rate/100;
+		hd->intimate += 80*config.homun_intimate_rate/100;
 		emotion = 2;
 	}
 	else if(t > 10)
 	{
-		hd->status.intimate +=100*battle_config.homun_intimate_rate/100;
-		hd->intimate +=100*battle_config.homun_intimate_rate/100;
+		hd->status.intimate +=100*config.homun_intimate_rate/100;
+		hd->intimate +=100*config.homun_intimate_rate/100;
 		emotion = 2;
 	}
 	else
 	{
-		hd->status.intimate += 50*battle_config.homun_intimate_rate/100;
-		hd->intimate += 50*battle_config.homun_intimate_rate/100;
+		hd->status.intimate += 50*config.homun_intimate_rate/100;
+		hd->intimate += 50*config.homun_intimate_rate/100;
 		emotion = 2;
 	}
 	if( hd->status.intimate <= 0 )
@@ -801,7 +801,7 @@ void homun_data::return_to_master(struct map_session_data &sd)
 bool homun_data::change_name(struct map_session_data &sd, const char *name)
 {
 	homun_data *hd = homun_data::get_homunculus(sd);
-	if(hd && (hd->status.rename_flag == 0 || battle_config.pet_rename == 1) )
+	if(hd && (hd->status.rename_flag == 0 || config.pet_rename == 1) )
 	{
 		int i;
 		for(i=0;i<24 && name[i];i++)
@@ -952,15 +952,15 @@ void homun_data::gain_exp(uint32 base_exp, uint32 job_exp, struct block_list &ob
 	base_exp = (bexp>0x7fffffff)? 0x7fffffff: (int)bexp;
 	job_exp  = (jexp>0x7fffffff)? 0x7fffffff: (int)jexp;
 
-	if(battle_config.master_get_homun_base_exp)
+	if(config.master_get_homun_base_exp)
 		mbexp = base_exp;
-	if(battle_config.master_get_homun_job_exp)
+	if(config.master_get_homun_job_exp)
 		mjexp = job_exp;
 
 	if(this->msd)	// 主人へ同じだけ経験値
 		pc_gainexp(*this->msd,mbexp,mjexp);
 
-	per = 150;//battle_config.next_exp_limit;
+	per = 150;//config.next_exp_limit;
 	if(base_exp>0)
 	{
 		next=this->next_baseexp();
@@ -1038,7 +1038,7 @@ int homun_data::damage(struct block_list &src, uint32 damage)
 	// 死亡していた
 	if(hd.status.hp<=0)
 	{
-//		if(battle_config.save_homun_temporal_intimate)
+//		if(config.save_homun_temporal_intimate)
 //			pc_setglobalreg(sd,"HOM_TEMP_INTIMATE",hd->intimate);
 		// スキルユニットからの離脱
 		hd.status.hp = 1;
@@ -1098,7 +1098,7 @@ int homun_natural_heal_hp(int tid, unsigned long tick, int id, basics::numptr da
 	{
 		if(hd->natural_heal_hp_timer != tid)
 		{
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowError("natural_heal_hp_timer %d != %d\n",hd->natural_heal_hp_timer, tid);
 			return 0;
 		}
@@ -1125,7 +1125,7 @@ int homun_natural_heal_sp(int tid, unsigned long tick, int id, basics::numptr da
 	{
 		if(hd->natural_heal_sp_timer != tid)
 		{
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowError("natural_heal_sp_timer %d != %d\n",hd->natural_heal_sp_timer,tid);
 			return 0;
 		}
@@ -1135,7 +1135,7 @@ int homun_natural_heal_sp(int tid, unsigned long tick, int id, basics::numptr da
 
 		if(hd->intimate < hd->status.intimate)
 		{
-			hd->intimate+=battle_config.homun_temporal_intimate_resilience;
+			hd->intimate+=config.homun_temporal_intimate_resilience;
 			if(hd->status.intimate<hd->intimate)
 				hd->intimate = hd->status.intimate;
 			clif_send_homdata(*hd,*hd->msd,0x100,hd->intimate/100);
@@ -1219,7 +1219,7 @@ bool homun_data::call_homunculus(struct map_session_data &sd)
 			for(i=0;i<MAX_HOMSKILL;i++)
 				hd->homskillstatictimer[i] = tick;
 			////親密度
-//			if(battle_config.save_homun_temporal_intimate)
+//			if(config.save_homun_temporal_intimate)
 //			{
 //				hd->intimate = pc_readglobalreg(sd,"HOM_TEMP_INTIMATE");
 //				if(hd->intimate==0)//旧互換
@@ -1266,7 +1266,7 @@ bool homun_data::call_homunculus(struct map_session_data &sd)
 			if(sd.status.inventory[i].nameid==7142)
 			{	// エンブリオ所持を確認
 				pc_delitem(sd,i,1,0);	// エンブリオ消去
-				if( battle_config.homun_creation_rate >=100 || rand()%100<(int)battle_config.homun_creation_rate )
+				if( config.homun_creation_rate >=100 || rand()%100<(int)config.homun_creation_rate )
 					homun_data::create_homunculus(sd, create_homunculus_id());
 				return true;
 			}
@@ -1298,7 +1298,7 @@ int read_homundb(void)
 	{
 		if(homun_db[i].script)
 		{
-			delete[] homun_db[i].script;
+			homun_db[i].script->release();
 			homun_db[i].script = NULL;
 		}
 	}
@@ -1385,7 +1385,8 @@ int read_homundb(void)
 				continue;
 
 			if(homun_db[j].script)
-				delete[] homun_db[j].script;
+				homun_db[j].script->release();
+
 			homun_db[j].script = parse_script((uchar*)np,lines);
 			homun_count++;
 		}
@@ -1485,7 +1486,7 @@ int homun_read_embryodb(void)
 
 	if( (fp=fopen("db/embryo_db.txt","r"))==NULL )
 	{
-		puts("can't read db/embryo_db.txt");
+		ShowError("can't read db/embryo_db.txt");
 		return 1;
 	}
 
@@ -1571,7 +1572,8 @@ int do_final_homun(void)
 	{
 		if(homun_db[i].script)
 		{
-			delete[] homun_db[i].script;
+			homun_db[i].script->release();
+			homun_db[i].script=NULL;
 		}
 	}
 	if(homun_id_db)

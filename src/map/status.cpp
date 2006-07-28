@@ -350,9 +350,9 @@ int status_calc_pet(struct map_session_data &sd, bool first)
 
 	pd = sd.pd;
 	
-	if (battle_config.pet_lv_rate && pd->status)
+	if (config.pet_lv_rate && pd->status)
 	{
-		sd.pet.level = sd.status.base_level*battle_config.pet_lv_rate/100;
+		sd.pet.level = sd.status.base_level*config.pet_lv_rate/100;
 		if (sd.pet.level < 0)
 			sd.pet.level = 1;
 		if( first || pd->status && pd->status->level != sd.pet.level)
@@ -369,20 +369,20 @@ int status_calc_pet(struct map_session_data &sd, bool first)
 			pd->status->dex = (mob_db[pd->class_].dex*pd->status->level)/mob_db[pd->class_].lv;
 			pd->status->luk = (mob_db[pd->class_].luk*pd->status->level)/mob_db[pd->class_].lv;
 		
-			if (pd->status->atk1 > battle_config.pet_max_atk1) pd->status->atk1 = battle_config.pet_max_atk1;
-			if (pd->status->atk2 > battle_config.pet_max_atk2) pd->status->atk2 = battle_config.pet_max_atk2;
+			if (pd->status->atk1 > config.pet_max_atk1) pd->status->atk1 = config.pet_max_atk1;
+			if (pd->status->atk2 > config.pet_max_atk2) pd->status->atk2 = config.pet_max_atk2;
 
-			if (pd->status->str > battle_config.pet_max_stats) pd->status->str = battle_config.pet_max_stats;
+			if (pd->status->str > config.pet_max_stats) pd->status->str = config.pet_max_stats;
 			else if (pd->status->str < 1) pd->status->str = 1;
-			if (pd->status->agi > battle_config.pet_max_stats) pd->status->agi = battle_config.pet_max_stats;
+			if (pd->status->agi > config.pet_max_stats) pd->status->agi = config.pet_max_stats;
 			else if (pd->status->agi < 1) pd->status->agi = 1;
-			if (pd->status->vit > battle_config.pet_max_stats) pd->status->vit = battle_config.pet_max_stats;
+			if (pd->status->vit > config.pet_max_stats) pd->status->vit = config.pet_max_stats;
 			else if (pd->status->vit < 1) pd->status->vit = 1;
-			if (pd->status->int_ > battle_config.pet_max_stats) pd->status->int_ = battle_config.pet_max_stats;
+			if (pd->status->int_ > config.pet_max_stats) pd->status->int_ = config.pet_max_stats;
 			else if (pd->status->int_ < 1) pd->status->int_ = 1;
-			if (pd->status->dex > battle_config.pet_max_stats) pd->status->dex = battle_config.pet_max_stats;
+			if (pd->status->dex > config.pet_max_stats) pd->status->dex = config.pet_max_stats;
 			else if (pd->status->dex < 1) pd->status->dex = 1;
-			if (pd->status->luk > battle_config.pet_max_stats) pd->status->luk = battle_config.pet_max_stats;
+			if (pd->status->luk > config.pet_max_stats) pd->status->luk = config.pet_max_stats;
 			else if (pd->status->luk < 1) pd->status->luk = 1;
 
 			if (!first)	//Not done the first time because the pet is not visible yet
@@ -390,9 +390,9 @@ int status_calc_pet(struct map_session_data &sd, bool first)
 		}
 	}
 	//Support rate modifier (1000 = 100%)
-	pd->rate_fix = 1000*(sd.pet.intimate - battle_config.pet_support_min_friendly)/(1000- battle_config.pet_support_min_friendly) +500;
-	if(battle_config.pet_support_rate != 100)
-		pd->rate_fix = pd->rate_fix*battle_config.pet_support_rate/100;
+	pd->rate_fix = 1000*(sd.pet.intimate - config.pet_support_min_friendly)/(1000- config.pet_support_min_friendly) +500;
+	if(config.pet_support_rate != 100)
+		pd->rate_fix = pd->rate_fix*config.pet_support_rate/100;
 	return 0;
 }	
 
@@ -469,7 +469,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 					continue;
 				sd.weight += sd.inventory_data[i]->weight*sd.status.inventory[i].amount;
 			}
-			sd.cart_max_weight=battle_config.max_cart_weight;
+			sd.cart_max_weight=config.max_cart_weight;
 			sd.cart_weight=0;
 			sd.cart_max_num=MAX_CART;
 			sd.cart_num=0;
@@ -505,8 +505,8 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		sd.matk1 = 0;
 		sd.matk2 = 0;
 		sd.speed = DEFAULT_WALK_SPEED ;
-		sd.hprate=battle_config.hp_rate;
-		sd.sprate=battle_config.sp_rate;
+		sd.hprate=config.hp_rate;
+		sd.sprate=config.sp_rate;
 		sd.castrate=100;
 		sd.delayrate=100;
 		sd.dsprate=100;
@@ -693,7 +693,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 
 		if(sd.status.pet_id > 0) { // Pet
 			struct pet_data *pd=sd.pd;
-			if((pd && battle_config.pet_status_support) && (!battle_config.pet_equip_required || pd->equip_id > 0))
+			if((pd && config.pet_status_support) && (!config.pet_equip_required || pd->equip_id > 0))
 			{
 				if(sd.pet.intimate > 0 && pd->state.skillbonus == 1 && pd->bonus)
 				{	//Skotlex: Readjusted for pets
@@ -719,59 +719,69 @@ int status_calc_pc(struct map_session_data& sd, int first)
 				continue;
 			if(sd.inventory_data[index]) {
 				sd.def += sd.inventory_data[index]->def;
-				if(sd.inventory_data[index]->type == 4) {
+				
+				if(sd.inventory_data[index]->type == 4)
+				{
 					int r,wlv = sd.inventory_data[index]->wlv;
 					if (wlv >= MAX_REFINE_BONUS) 
 						wlv = MAX_REFINE_BONUS - 1;
-					if(i == 8 && sd.status.inventory[index].equip == 0x20) { // Left-hand weapon
+
+					sd.state.lr_flag = (i == 8 && sd.status.inventory[index].equip == 0x20);
+					if( sd.state.lr_flag )
+					{	// Left-hand weapon
 						sd.left_weapon.watk += sd.inventory_data[index]->atk;
 						sd.left_weapon.watk2 = (r=sd.status.inventory[index].refine)*	// 精?攻?力
 							refinebonus[wlv][0];
 						if( (r-=refinebonus[wlv][2])>0 )	// 過?精?ボ?ナス
 							sd.left_weapon.overrefine = r*refinebonus[wlv][1];
 
-						if(sd.status.inventory[index].card[0]==0x00ff){	// Forged weapon
+						if(sd.status.inventory[index].card[0]==0x00ff)
+						{	// Forged weapon
 							sd.left_weapon.star = (sd.status.inventory[index].card[1]>>8);	// 星のかけら
 							if(sd.left_weapon.star >= 15) sd.left_weapon.star = 50; // 3 Star Crumbs now give +50 dmg
 							wele_= (sd.status.inventory[index].card[1]&0x0f);	// ? 性
 							sd.left_weapon.fameflag = chrif_istop10fame( basics::MakeDWord(sd.status.inventory[index].card[2],sd.status.inventory[index].card[3]), FAME_SMITH);
 						}
 						sd.attackrange_ += sd.inventory_data[index]->range;
-						sd.state.lr_flag = 1;
-						CScriptEngine::run(sd.inventory_data[index]->equip_script,0,sd.block_list::id,0);
-						sd.state.lr_flag = 0;
 					}
-					else {	// Right-hand weapon
+					else
+					{	// Right-hand weapon
 						sd.right_weapon.watk += sd.inventory_data[index]->atk;
 						sd.right_weapon.watk2 += (r=sd.status.inventory[index].refine)*	// 精?攻?力
 							refinebonus[wlv][0];
 						if( (r-=refinebonus[wlv][2])>0 )	// 過?精?ボ?ナス
 							sd.right_weapon.overrefine += r*refinebonus[wlv][1];
 
-						if(sd.status.inventory[index].card[0]==0x00ff){	// Forged weapon
+						if(sd.status.inventory[index].card[0]==0x00ff)
+						{	// Forged weapon
 							sd.right_weapon.star += (sd.status.inventory[index].card[1]>>8);	// 星のかけら
 							if(sd.right_weapon.star >= 15) sd.right_weapon.star = 50; // 3 Star Crumbs now give +50 dmg
 							wele = (sd.status.inventory[index].card[1]&0x0f);	// ? 性
 							sd.right_weapon.fameflag = chrif_istop10fame( basics::MakeDWord(sd.status.inventory[index].card[2],sd.status.inventory[index].card[3]), FAME_SMITH);
 						}
 						sd.attackrange += sd.inventory_data[index]->range;
-						CScriptEngine::run(sd.inventory_data[index]->equip_script,0,sd.block_list::id,0);
 					}
+					if( sd.inventory_data[index]->equip_script && sd.inventory_data[index]->equip_script->script)
+						CScriptEngine::run(sd.inventory_data[index]->equip_script->script,0,sd.block_list::id,0);
+					sd.state.lr_flag = 0;
 				}
-				else if(sd.inventory_data[index]->type == 5) {
+				else if(sd.inventory_data[index]->type == 5)
+				{
 					sd.right_weapon.watk += sd.inventory_data[index]->atk;
 					refinedef += sd.status.inventory[index].refine*refinebonus[0][0];
-					CScriptEngine::run(sd.inventory_data[index]->equip_script,0,sd.block_list::id,0);
+					if( sd.inventory_data[index]->equip_script && sd.inventory_data[index]->equip_script->script)
+						CScriptEngine::run(sd.inventory_data[index]->equip_script->script,0,sd.block_list::id,0);
 				}
 			}
 		}
 
-		if(sd.equip_index[10] < MAX_INVENTORY){ // 矢
+		if(sd.equip_index[10] < MAX_INVENTORY)
+		{	// 矢
 			index = sd.equip_index[10];
-			if(sd.inventory_data[index])
+			if(sd.inventory_data[index] && sd.inventory_data[index]->equip_script && sd.inventory_data[index]->equip_script->script)
 			{	// Arrows
 				sd.state.lr_flag = 2;
-				CScriptEngine::run(sd.inventory_data[index]->equip_script,0,sd.block_list::id,0);
+				CScriptEngine::run(sd.inventory_data[index]->equip_script->script,0,sd.block_list::id,0);
 				sd.state.lr_flag = 0;
 				sd.arrow_atk += sd.inventory_data[index]->atk;
 			}
@@ -790,7 +800,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 			sd.left_weapon.atk_ele = wele_;
 		if(def_ele > 0)
 			sd.def_ele = def_ele;
-		if(battle_config.pet_status_support) {
+		if(config.pet_status_support) {
 			if(pele > 0 && !sd.right_weapon.atk_ele)
 				sd.right_weapon.atk_ele = pele;
 			if(pdef_ele > 0 && !sd.def_ele)
@@ -1124,10 +1134,10 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		if(sd.hprate!=100)
 			sd.status.max_hp = sd.status.max_hp * sd.hprate/100;
 
-		if(sd.status.hp > (long)battle_config.max_hp)
-			sd.status.hp = battle_config.max_hp;
-		if(sd.status.max_hp > (long)battle_config.max_hp)
-			sd.status.max_hp = battle_config.max_hp;
+		if(sd.status.hp > (long)config.max_hp)
+			sd.status.hp = config.max_hp;
+		if(sd.status.max_hp > (long)config.max_hp)
+			sd.status.max_hp = config.max_hp;
 		if(sd.status.max_hp <= 0) sd.status.max_hp = 1; // end
 
 		// 最大SP計算
@@ -1149,8 +1159,8 @@ int status_calc_pc(struct map_session_data& sd, int first)
 			sd.sprate = 1;
 		if(sd.sprate!=100)
 			sd.status.max_sp = sd.status.max_sp*sd.sprate/100;
-		if(sd.status.max_sp < 0 || sd.status.max_sp > (long)battle_config.max_sp)
-			sd.status.max_sp = battle_config.max_sp;
+		if(sd.status.max_sp < 0 || sd.status.max_sp > (long)config.max_sp)
+			sd.status.max_sp = config.max_sp;
 
 		//自然回復HP
 		sd.nhealhp = 1 + (sd.paramc[2]/5) + (sd.status.max_hp/200);
@@ -1319,7 +1329,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 			aspd_rate -= 30;
 		if(sd.sc_data[SC_ADRENALINE].timer != -1 && sd.sc_data[SC_TWOHANDQUICKEN].timer == -1 &&
 			sd.sc_data[SC_QUAGMIRE].timer == -1 && sd.sc_data[SC_DONTFORGETME].timer == -1) {	// アドレナリンラッシュ
-			if(sd.sc_data[SC_ADRENALINE].val2.num || !battle_config.party_skill_penalty)
+			if(sd.sc_data[SC_ADRENALINE].val2.num || !config.party_skill_penalty)
 				aspd_rate -= 30;
 			else
 				aspd_rate -= 25;
@@ -1406,19 +1416,19 @@ int status_calc_pc(struct map_session_data& sd, int first)
 			sd.status.max_hp +=
 					(5 + sd.sc_data[SC_APPLEIDUN].val1.num * 2 + sd.sc_data[SC_APPLEIDUN].val2.num
 					+ sd.sc_data[SC_APPLEIDUN].val3.num / 10) * sd.status.max_hp / 100;
-			if(sd.status.max_hp < 0 || sd.status.max_hp > (long)battle_config.max_hp)
-				sd.status.max_hp = battle_config.max_hp;
+			if(sd.status.max_hp < 0 || sd.status.max_hp > (long)config.max_hp)
+				sd.status.max_hp = config.max_hp;
 		}
 		if(sd.sc_data[SC_DELUGE].timer!=-1 && sd.def_ele==1){	// デリュ?ジ
 			sd.status.max_hp += sd.status.max_hp * deluge_eff[sd.sc_data[SC_DELUGE].val1.num-1]/100;
-			if(sd.status.max_hp < 0 || sd.status.max_hp > (long)battle_config.max_hp)
-				sd.status.max_hp = battle_config.max_hp;
+			if(sd.status.max_hp < 0 || sd.status.max_hp > (long)config.max_hp)
+				sd.status.max_hp = config.max_hp;
 		}
 		if(sd.sc_data[SC_SERVICE4U].timer!=-1) {	// サ?ビスフォ?ユ?
 			sd.status.max_sp += sd.status.max_sp*(10+sd.sc_data[SC_SERVICE4U].val1.num+sd.sc_data[SC_SERVICE4U].val2.num
 						+sd.sc_data[SC_SERVICE4U].val3.num)/100;
-			if(sd.status.max_sp < 0 || sd.status.max_sp > (long)battle_config.max_sp)
-				sd.status.max_sp = battle_config.max_sp;
+			if(sd.status.max_sp < 0 || sd.status.max_sp > (long)config.max_sp)
+				sd.status.max_sp = config.max_sp;
 			sd.dsprate-=(10+sd.sc_data[SC_SERVICE4U].val1.num*3+sd.sc_data[SC_SERVICE4U].val2.num
 					+sd.sc_data[SC_SERVICE4U].val3.num);			
 		}
@@ -1508,13 +1518,13 @@ int status_calc_pc(struct map_session_data& sd, int first)
 				{
 				case 4:
 					sd.status.max_hp += sd.status.max_hp * 25 / 100;
-					if(sd.status.max_hp > (long)battle_config.max_hp)
-						sd.status.max_hp = battle_config.max_hp;
+					if(sd.status.max_hp > (long)config.max_hp)
+						sd.status.max_hp = config.max_hp;
 					break;
 				case 5:
 					sd.status.max_sp += sd.status.max_sp * 25 / 100;
-					if(sd.status.max_sp > (long)battle_config.max_sp)
-						sd.status.max_sp = battle_config.max_sp;
+					if(sd.status.max_sp > (long)config.max_sp)
+						sd.status.max_sp = config.max_sp;
 					break;
 				case 11:
 					sd.def += sd.def * 25 / 100;
@@ -1563,8 +1573,8 @@ int status_calc_pc(struct map_session_data& sd, int first)
 			sd.speed = sd.speed*(175 - skill*5)/100;
 		}
 
-		if(sd.speed < MAX_WALK_SPEED/battle_config.max_walk_speed)
-			sd.speed = MAX_WALK_SPEED/battle_config.max_walk_speed;
+		if(sd.speed < MAX_WALK_SPEED/config.max_walk_speed)
+			sd.speed = MAX_WALK_SPEED/config.max_walk_speed;
 
 		if(pc_isriding(sd))
 			sd.aspd += sd.aspd * 10*(5 - pc_checkskill(sd,KN_CAVALIERMASTERY))/100;
@@ -1572,7 +1582,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 			sd.aspd = sd.aspd*aspd_rate/100;
 		if(pc_isriding(sd))							// 騎兵修練
 			sd.aspd = sd.aspd*(100 + 10*(5 - pc_checkskill(sd,KN_CAVALIERMASTERY)))/ 100;
-		if(sd.aspd < battle_config.max_aspd_interval) sd.aspd = battle_config.max_aspd_interval;
+		if(sd.aspd < config.max_aspd_interval) sd.aspd = config.max_aspd_interval;
 		sd.amotion = sd.aspd;
 		if( sd.paramc[1] < 100 )
 			sd.dmotion = 800-sd.paramc[1]*4;
@@ -1607,8 +1617,8 @@ int status_calc_pc(struct map_session_data& sd, int first)
 			clif_changelook(sd,LOOK_WEAPON,0);
 #endif
 		//Restoring cloth dye color after the view class changes. [Skotlex]
-		if(battle_config.save_clothcolor && sd.status.clothes_color > 0 &&
-			(sd.view_class != 22 || !battle_config.wedding_ignorepalette))
+		if(config.save_clothcolor && sd.status.clothes_color > 0 &&
+			(sd.view_class != 22 || !config.wedding_ignorepalette))
 				clif_changelook(sd,LOOK_CLOTHES_COLOR,sd.status.clothes_color);
 		}
 
@@ -1807,8 +1817,8 @@ printf("speed set to %i (%i)\n",sd.speed, val);
 		break;
 	}
 
-	if(sd.speed < MAX_WALK_SPEED/battle_config.max_walk_speed)
-		sd.speed = MAX_WALK_SPEED/battle_config.max_walk_speed;
+	if(sd.speed < MAX_WALK_SPEED/config.max_walk_speed)
+		sd.speed = MAX_WALK_SPEED/config.max_walk_speed;
 
 	if(b_speed != sd.speed)
 		clif_updatestatus(sd,SP_SPEED);
@@ -1836,7 +1846,7 @@ int status_recalc_speed(struct block_list *bl)
 		if(bl->type==BL_MOB)
 		{
 			speed = ((struct mob_data *)bl)->speed;
-			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
+			if(config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				speed-=((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
 		}
 		else if(bl->type==BL_PET)
@@ -2015,7 +2025,7 @@ int status_get_max_hp(struct block_list *bl)
 			nullpo_retr(1, md = (struct mob_data *)bl);
 			max_hp = md->max_hp;
 
-			if(battle_config.mobs_level_up) // mobs leveling up increase [Valaris]
+			if(config.mobs_level_up) // mobs leveling up increase [Valaris]
 				max_hp += (md->level - mob_db[md->class_].lv) * status_get_vit(bl);
 		}
 		else if(bl->type == BL_PET) {
@@ -2058,7 +2068,7 @@ int status_get_str(struct block_list *bl)
 
 		if(bl->type == BL_MOB && ((struct mob_data *)bl)) {
 			str = mob_db[((struct mob_data *)bl)->class_].str;
-			if(battle_config.mobs_level_up) // mobs leveling up increase [Valaris]
+			if(config.mobs_level_up) // mobs leveling up increase [Valaris]
 				str += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
 			if(((struct mob_data*)bl)->state.size==1) // change for sized monsters [Valaris]
 				str/=2;
@@ -2067,7 +2077,7 @@ int status_get_str(struct block_list *bl)
 		}
 		else if(bl->type == BL_PET && ((struct pet_data *)bl))
 		{	//<Skotlex> Use pet's stats
-			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				str = ((struct pet_data *)bl)->status->str;
 			else
 				str = mob_db[((struct pet_data *)bl)->class_].str;
@@ -2110,7 +2120,7 @@ int status_get_agi(struct block_list *bl)
 		sc_data = status_get_sc_data(bl);
 		if(bl->type == BL_MOB && (struct mob_data *)bl) {
 			agi = mob_db[((struct mob_data *)bl)->class_].agi;
-			if(battle_config.mobs_level_up) // increase of mobs leveling up [Valaris]
+			if(config.mobs_level_up) // increase of mobs leveling up [Valaris]
 				agi += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
 			if(((struct mob_data*)bl)->state.size==1) // change for sized monsters [Valaris]
 				agi/=2;
@@ -2119,7 +2129,7 @@ int status_get_agi(struct block_list *bl)
 		}
 		else if(bl->type == BL_PET && (struct pet_data *)bl)
 		{	//<Skotlex> Use pet's stats
-			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				agi = ((struct pet_data *)bl)->status->agi;
 			else
 				agi = mob_db[((struct pet_data *)bl)->class_].agi;
@@ -2167,7 +2177,7 @@ int status_get_vit(struct block_list *bl)
 		sc_data = status_get_sc_data(bl);
 		if(bl->type == BL_MOB && (struct mob_data *)bl) {
 			vit = mob_db[((struct mob_data *)bl)->class_].vit;
-			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
+			if(config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				vit += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
 			if(((struct mob_data*)bl)->state.size==1) // change for sized monsters [Valaris]
 				vit/=2;
@@ -2176,7 +2186,7 @@ int status_get_vit(struct block_list *bl)
 		}	
 		else if(bl->type == BL_PET && (struct pet_data *)bl)
 		{	//<Skotlex> Use pet's stats
-			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				vit = ((struct pet_data *)bl)->status->vit;
 			else
 				vit = mob_db[((struct pet_data *)bl)->class_].vit;
@@ -2212,7 +2222,7 @@ int status_get_int(struct block_list *bl)
 		sc_data = status_get_sc_data(bl);
 		if(bl->type == BL_MOB && (struct mob_data *)bl){
 			int_ = mob_db[((struct mob_data *)bl)->class_].int_;
-			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
+			if(config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				int_ += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
 			if(((struct mob_data*)bl)->state.size==1) // change for sized monsters [Valaris]
 				int_/=2;
@@ -2221,7 +2231,7 @@ int status_get_int(struct block_list *bl)
 		}		
 		else if(bl->type == BL_PET && (struct pet_data *)bl)
 		{	//<Skotlex> Use pet's stats
-			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				int_ = ((struct pet_data *)bl)->status->int_;
 			else
 				int_ = mob_db[((struct pet_data *)bl)->class_].int_;
@@ -2265,7 +2275,7 @@ int status_get_dex(struct block_list *bl)
 		sc_data = status_get_sc_data(bl);
 		if(bl->type == BL_MOB && (struct mob_data *)bl) {
 			dex = mob_db[((struct mob_data *)bl)->class_].dex;
-			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
+			if(config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				dex += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
 			if(((struct mob_data*)bl)->state.size==1) // change for sized monsters [Valaris]
 				dex/=2;
@@ -2274,7 +2284,7 @@ int status_get_dex(struct block_list *bl)
 		}		
 		else if(bl->type == BL_PET && (struct pet_data *)bl)
 		{	//<Skotlex> Use pet's stats
-			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				dex = ((struct pet_data *)bl)->status->dex;
 			else
 				dex = mob_db[((struct pet_data *)bl)->class_].dex;
@@ -2323,7 +2333,7 @@ int status_get_luk(struct block_list *bl)
 		sc_data = status_get_sc_data(bl);
 		if(bl->type == BL_MOB && (struct mob_data *)bl) {
 			luk = mob_db[((struct mob_data *)bl)->class_].luk;
-			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
+			if(config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				luk += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
 			if(((struct mob_data*)bl)->state.size==1) // change for sized monsters [Valaris]
 				luk/=2;
@@ -2332,7 +2342,7 @@ int status_get_luk(struct block_list *bl)
 		}		
 		else if(bl->type == BL_PET)
 		{	//<Skotlex> Use pet's stats
-			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				luk = ((struct pet_data *)bl)->status->luk;
 			else
 				luk = mob_db[((struct pet_data *)bl)->class_].luk;
@@ -2570,7 +2580,7 @@ int status_get_atk(struct block_list *bl)
 		}
 		else if(bl->type == BL_PET)
 		{	//<Skotlex> Use pet's stats
-			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				atk = ((struct pet_data *)bl)->status->atk1;
 			else
 				atk = mob_db[((struct pet_data*)bl)->class_].atk1;
@@ -2647,7 +2657,7 @@ int status_get_atk2(struct block_list *bl)
 		}
 		else if( bl->type==BL_PET )
 		{	//<Skotlex> Use pet's stats
-			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				atk2 = ((struct pet_data *)bl)->status->atk2;
 			else
 				atk2 = mob_db[((struct pet_data*)bl)->class_].atk2;
@@ -2877,7 +2887,7 @@ int status_get_def2(struct block_list *bl)
 			def2 = mob_db[((struct mob_data *)bl)->class_].vit;
 		else if(bl->type==BL_PET)
 		{	//<Skotlex> Use pet's stats
-			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				def2 = ((struct pet_data *)bl)->status->vit;
 			else
 				def2 = mob_db[((struct pet_data *)bl)->class_].vit;
@@ -2929,7 +2939,7 @@ int status_get_mdef2(struct block_list *bl)
 			mdef2 = mob_db[((struct mob_data *)bl)->class_].int_ + (mob_db[((struct mob_data *)bl)->class_].vit>>1);
 		else if(bl->type == BL_PET)
 		{	//<Skotlex> Use pet's stats
-			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				mdef2 = ((struct pet_data *)bl)->status->int_ +(((struct pet_data *)bl)->status->vit>>1);
 			else
 				mdef2 = mob_db[((struct pet_data *)bl)->class_].int_ + (mob_db[((struct pet_data *)bl)->class_].vit>>1);
@@ -2984,7 +2994,7 @@ int status_get_adelay(struct block_list *bl)
 			if(sc_data[SC_ADRENALINE].timer != -1 && sc_data[SC_TWOHANDQUICKEN].timer == -1 &&
 				sc_data[SC_QUAGMIRE].timer == -1 && sc_data[SC_DONTFORGETME].timer == -1) {	// アドレナリンラッシュ
 				//使用者とパーティメンバーで格差が出る設定でなければ3割減算
-				if(sc_data[SC_ADRENALINE].val2.num || !battle_config.party_skill_penalty)
+				if(sc_data[SC_ADRENALINE].val2.num || !config.party_skill_penalty)
 					aspd_rate -= 30;
 				//そうでなければ2.5割減算
 				else
@@ -3027,7 +3037,7 @@ int status_get_adelay(struct block_list *bl)
 		}
 		if(aspd_rate != 100)
 			adelay = adelay*aspd_rate/100;
-		if(adelay < 2*(int)battle_config.monster_max_aspd_interval) adelay = 2*battle_config.monster_max_aspd_interval;
+		if(adelay < 2*(int)config.monster_max_aspd_interval) adelay = 2*config.monster_max_aspd_interval;
 		return adelay;
 	}
 }
@@ -3062,7 +3072,7 @@ int status_get_amotion(const block_list *bl)
 				aspd_rate -= 30;
 			if(sc_data[SC_ADRENALINE].timer != -1 && sc_data[SC_TWOHANDQUICKEN].timer == -1 &&
 				sc_data[SC_QUAGMIRE].timer == -1 && sc_data[SC_DONTFORGETME].timer == -1) {	// アドレナリンラッシュ
-				if(sc_data[SC_ADRENALINE].val2.num || !battle_config.party_skill_penalty)
+				if(sc_data[SC_ADRENALINE].val2.num || !config.party_skill_penalty)
 					aspd_rate -= 30;
 				else
 					aspd_rate -= 25;
@@ -3087,7 +3097,7 @@ int status_get_amotion(const block_list *bl)
 		}
 		if(aspd_rate != 100)
 			amotion = amotion*aspd_rate/100;
-		if(amotion < (int)battle_config.monster_max_aspd_interval) amotion = battle_config.monster_max_aspd_interval;
+		if(amotion < (int)config.monster_max_aspd_interval) amotion = config.monster_max_aspd_interval;
 		return amotion;
 	}
 }
@@ -3103,13 +3113,13 @@ int status_get_dmotion(struct block_list *bl)
 	if(bl->type==BL_MOB)
 	{
 		ret=mob_db[((struct mob_data *)bl)->class_].dmotion;
-		if(battle_config.monster_damage_delay_rate != 100)
-			ret = ret*battle_config.monster_damage_delay_rate/100;
+		if(config.monster_damage_delay_rate != 100)
+			ret = ret*config.monster_damage_delay_rate/100;
 	}
 	else if(bl->type==BL_PC){
 		ret=((struct map_session_data *)bl)->dmotion;
-		if(battle_config.pc_damage_delay_rate != 100)
-			ret = ret*battle_config.pc_damage_delay_rate/100;
+		if(config.pc_damage_delay_rate != 100)
+			ret = ret*config.pc_damage_delay_rate/100;
 	}
 	else if(bl->type==BL_PET)
 		ret=mob_db[((struct pet_data *)bl)->class_].dmotion;
@@ -3207,7 +3217,7 @@ int status_get_attack_element2(struct block_list *bl)
 	return 0;
 }
 
-uint32 status_get_party_id(struct block_list *bl)
+uint32 status_get_party_id(const block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type==BL_PC)
@@ -3231,7 +3241,7 @@ uint32 status_get_party_id(struct block_list *bl)
 	else
 		return 0;
 }
-uint32 status_get_guild_id(struct block_list *bl)
+uint32 status_get_guild_id(const block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type==BL_PC)
@@ -3278,10 +3288,10 @@ int status_get_size(struct block_list *bl)
 
 		//Baby Class Peco Rider + enabled option -> size = 1, else 0
 		if (pc_calc_upper(sd->status.class_)==2)			
-			return (pc_isriding(*sd)!=0 && battle_config.character_size&2); 
+			return (pc_isriding(*sd)!=0 && config.character_size&2); 
 		
 		//Peco Rider + enabled option -> size = 2, else 1
-		return 1+(pc_isriding(*sd)!=0 && battle_config.character_size&1);
+		return 1+(pc_isriding(*sd)!=0 && config.character_size&1);
 	} else
 		return 1;
 }
@@ -3313,16 +3323,6 @@ int status_get_race2(struct block_list *bl)
 		return mob_db[((struct mob_data *)bl)->class_].race2;
 	else if(bl->type==BL_PET)
 		return mob_db[((struct pet_data *)bl)->class_].race2;
-	else
-		return 0;
-}
-int status_isdead(struct block_list *bl)
-{
-	nullpo_retr(0, bl);
-	if(bl->type == BL_MOB)
-		return ((struct mob_data *)bl)->state.state == MS_DEAD;
-	else if(bl->type==BL_PC)
-		return pc_isdead(*((struct map_session_data *)bl));
 	else
 		return 0;
 }
@@ -3480,7 +3480,7 @@ int status_change_start(struct block_list *bl,int type, basics::numptr val1,basi
 	if(bl->type == BL_SKILL)
 		return 0;
 	if(bl->type == BL_MOB)
-		if (status_isdead(bl)) return 0;
+		if( bl->is_dead() ) return 0;
 	if(bl->type == BL_PET)	//Pets cannot have status effects
 		return 0;
 
@@ -3529,7 +3529,7 @@ int status_change_start(struct block_list *bl,int type, basics::numptr val1,basi
 
 		if(SC_STONE<=type && type<=SC_BLIND){	/* カ?ドによる耐性 */
 			if( sd && sd->reseff[type-SC_STONE] > 0 && rand()%10000<sd->reseff[type-SC_STONE]){
-				if(battle_config.battle_log)
+				if(config.battle_log)
 					ShowMessage("PC %d skill_sc_start: cardによる異常耐性?動\n",sd->block_list::id);
 				return 0;
 			}
@@ -3538,7 +3538,7 @@ int status_change_start(struct block_list *bl,int type, basics::numptr val1,basi
 	else if(bl->type == BL_MOB) {		
 	}
 	else {
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("status_change_start: neither MOB nor PC !\n");
 		return 0;
 	}
@@ -3911,7 +3911,7 @@ int status_change_start(struct block_list *bl,int type, basics::numptr val1,basi
 			{
 				time_t timer;
 
-				if(!battle_config.muting_players)
+				if(!config.muting_players)
 					break;
 
 				tick = 60000;
@@ -4262,12 +4262,12 @@ int status_change_start(struct block_list *bl,int type, basics::numptr val1,basi
 			break;
 
 		default:
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowMessage("UnknownStatusChange [%d]\n", type);
 			return 0;
 	}
 
-	if (bl->type == BL_PC && (battle_config.display_hallucination || type != SC_HALLUCINATION))
+	if (bl->type == BL_PC && (config.display_hallucination || type != SC_HALLUCINATION))
 		clif_status_change(*bl,type,1);	/* アイコン表示 */
 
 	/* optionの?更 */
@@ -4411,7 +4411,7 @@ int status_change_end( struct block_list* bl, int type, int tid )
 
 	nullpo_retr(0, bl);
 	if(bl->type!=BL_PC && bl->type!=BL_MOB) {
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("status_change_end: neither MOB nor PC !\n");
 		return 0;
 	}
@@ -4632,7 +4632,7 @@ int status_change_end( struct block_list* bl, int type, int tid )
 				break;
 			}
 
-		if (bl->type == BL_PC && (battle_config.display_hallucination || type != SC_HALLUCINATION))
+		if (bl->type == BL_PC && (config.display_hallucination || type != SC_HALLUCINATION))
 			clif_status_change(*bl,type,0);	/* アイコン消去 */
 
 		switch(type){	/* 正常に?るときなにか?理が必要 */
@@ -4758,7 +4758,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 	nullpo_retr(0, sc_data=status_get_sc_data(bl));
 
 	if(sc_data[type].timer != tid) {
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("status_change_timer %d != %d\n",tid,sc_data[type].timer);
 		return 0;
 	}
@@ -4907,7 +4907,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 				md->hp -= hp;
 			}
 		}
-		if (sc_data[type].val3.num > 0 && !status_isdead(bl))
+		if( sc_data[type].val3.num > 0 && !bl->is_dead() )
 		{
 			sc_data[type].timer = add_timer (1000 + tick, status_change_timer, bl->id, data );
 			return 0;
@@ -4943,7 +4943,8 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 			{
 				md->hp -= hp;
 			}
-			if (!status_isdead(bl)) {
+			if( !bl->is_dead() )
+			{
 				// walking and casting effect is lost
 				bl->stop_walking(1);
 				skill_castcancel (bl, 0);
@@ -5060,7 +5061,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 		}
 		break;
 	case SC_NOCHAT:	//チャット禁止?態
-		if(sd && battle_config.muting_players){
+		if(sd && config.muting_players){
 			time_t timer;
 			if((++sd->status.manner) && time(&timer) < ((sc_data[type].val2.num) + 60*(0-sd->status.manner))){	//開始からstatus.manner分?ってないので??
 				clif_updatestatus(*sd,SP_MANNER);

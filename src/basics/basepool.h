@@ -124,7 +124,7 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// object for automates aquire/release of pool objects
+/// object for automated aquire/release of pool objects
 template<class T> class TPoolObj
 {
 	TPool<T>& cPool;

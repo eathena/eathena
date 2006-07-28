@@ -2410,7 +2410,8 @@ int changestatesub(char* name, int state, char* error_message7) {
 //-------------------------------------------------------
 // Sub-function: Asking to modify the state of an account
 //-------------------------------------------------------
-int changestate(char* param) {
+int changestate(char* param)
+{
 	char name[1023], error_message[1023];
 	int state;
 

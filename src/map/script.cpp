@@ -1372,27 +1372,27 @@ void CScript::init(const basics::string<>& name)
 int CScript::getInt(unsigned int &pos)
 {
 	int i=0,j=0;
-	while( cScript->cProgramm[pos]>=0xc0 )
+	while( this->cScript->cProgramm[(size_t)pos]>=0xc0 )
 	{
-		i+=( cScript->cProgramm[pos++]&0x7f )<<j;
+		i+=( this->cScript->cProgramm[(size_t)(pos++)]&0x7f )<<j;
 		j+=6;
 	}
-	return i+((cScript->cProgramm[pos++]&0x7f)<<j);
+	return i+((this->cScript->cProgramm[(size_t)(pos++)]&0x7f)<<j);
 }
 
 int CScript::getCommand(unsigned int &pos)
 {
-	if(cScript->cProgramm[pos]>=0x80){
+	if(this->cScript->cProgramm[(size_t)(pos)]>=0x80){
 		return CScriptEngine::C_INT;
 	}
 	else
 	{
 		int i=0, j=0;
-		while(cScript->cProgramm[pos]>=0x40){
-			i=cScript->cProgramm[pos++]<<j;
+		while(this->cScript->cProgramm[(size_t)(pos)]>=0x40){
+			i=this->cScript->cProgramm[(size_t)(pos++)]<<j;
 			j+=6;
 		}
-		return i+(cScript->cProgramm[pos++]<<j);
+		return i+(this->cScript->cProgramm[(size_t)(pos++)]<<j);
 	}
 }
 
@@ -1443,7 +1443,6 @@ char mapreg_txt[256]="save/mapreg.txt";
 static struct dbt *scriptlabel_db=NULL;
 static struct dbt *userfunc_db=NULL;
 
-struct dbt* script_get_label_db(){ return scriptlabel_db; }
 struct dbt* script_get_userfunc_db(){ if(!userfunc_db) userfunc_db=strdb_init(50); return userfunc_db; }
 
 int scriptlabel_final(void *k,void *d){ return 0; }
@@ -1703,7 +1702,7 @@ static int unget_com_data=-1;
 void unget_com(int c)
 {
 	if(unget_com_data!=-1){
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("unget_com can back only 1 data\n");
 	}
 	unget_com_data=c;
@@ -1844,7 +1843,7 @@ char* parse_simpleexpr(char *p)
 	p=skip_space(p);
 
 #ifdef DEBUG_FUNCIN
-	if(battle_config.etc_log)
+	if(config.etc_log)
 		ShowMessage("parse_simpleexpr %s\n",p);
 #endif
 	if(*p==';' || *p==','){
@@ -1927,7 +1926,7 @@ char* parse_simpleexpr(char *p)
 	}
 
 #ifdef DEBUG_FUNCIN
-	if(battle_config.etc_log)
+	if(config.etc_log)
 		ShowMessage("parse_simpleexpr end %s\n",p);
 #endif
 	return p;
@@ -1943,7 +1942,7 @@ char* parse_subexpr(char *p,int limit)
 	char *tmpp;
 
 #ifdef DEBUG_FUNCIN
-	if(battle_config.etc_log)
+	if(config.etc_log)
 		ShowMessage("parse_subexpr %s\n",p);
 #endif
 	p=skip_space(p);
@@ -2028,7 +2027,7 @@ char* parse_subexpr(char *p,int limit)
 		p=skip_space(p);
 	}
 #ifdef DEBUG_FUNCIN
-	if(battle_config.etc_log)
+	if(config.etc_log)
 		ShowMessage("parse_subexpr end %s\n",p);
 #endif
 	return p;  /* return first untreated operator */
@@ -2041,7 +2040,7 @@ char* parse_subexpr(char *p,int limit)
 char* parse_expr(char *p)
 {
 #ifdef DEBUG_FUNCIN
-	if(battle_config.etc_log)
+	if(config.etc_log)
 		ShowMessage("parse_expr %s\n",p);
 #endif
 	switch(*p){
@@ -2052,7 +2051,7 @@ char* parse_expr(char *p)
 	}
 	p=parse_subexpr(p,-1);
 #ifdef DEBUG_FUNCIN
-	if(battle_config.etc_log)
+	if(config.etc_log)
 		ShowMessage("parse_expr end %s\n",p);
 #endif
 	return p;
@@ -2187,11 +2186,65 @@ void debug_script(const char*script, size_t i, size_t sz)
 	ShowMessage("\n");
 }
 
+///////////////////////////////////////////////////////////////////////////////
+size_t script_object::get_labelpos(const char* labelname) const
+{
+	size_t i;
+	for(i=0; i<label_list_num; ++i)
+	{
+		if(0==strcmp(label_list[i].name, labelname) )
+		{
+			return label_list[i].pos;
+		}
+	}
+	return 0;
+}
+///////////////////////////////////////////////////////////////////////////////
+void script_object::insert_label(const char* labelname, size_t len, size_t pos)
+{
+	if( len > 23)
+	{
+		ShowMessage("\n");
+		ShowError("parse_script: label '%s' longer than 23 chars, ignoring it.\n", labelname);
+	}
+	else
+	{
+		size_t num = this->label_list_num;
+		this->label_list_num = new_realloc(this->label_list, this->label_list_num, 1);
+		memcpy(this->label_list[num].name, labelname, len);
+		this->label_list[num].name[len] = 0; // add eos
+		this->label_list[num].pos = pos;
+	}
+}
+
+/*==========================================
+ * Scriptのラベルデータコンバート
+ *------------------------------------------
+ */
+class CDBLabelConvert : public CDBProcessor
+{
+	script_object &scr;
+public:
+	CDBLabelConvert(script_object &s) : scr(s)	{}
+	virtual ~CDBLabelConvert()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		const char *lname = (const char *)key;
+		size_t pos = (size_t)data;
+		const char *p = strchr(lname,':');
+		if(NULL==p)	return true;
+
+		scr.insert_label(lname, (p-lname), pos);
+
+		return true;
+	}
+};
+
 /*==========================================
  * スクリプトの解析
  *------------------------------------------
  */
-char* parse_script(unsigned char *src, size_t line)
+script_object* parse_script(unsigned char *src, size_t line)
 {
 	char *p,*tmpp;
 	int i;
@@ -2358,9 +2411,12 @@ char* parse_script(unsigned char *src, size_t line)
 	}
 */
 
-	char *local = script_buf;
+	script_object *scr = new script_object(script_buf);
 	script_buf = NULL;
-	return local;
+
+	strdb_foreach(scriptlabel_db, CDBLabelConvert(*scr) );
+
+	return scr;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2389,10 +2445,12 @@ int set_var(const char *name, void *v)
 		{
 			if( postfix=='$' )
 			{
+				chrif_var_save(name, (const char*)v);
 				mapreg_setregstr(num,(const char*)v);
 			}
 			else
 			{
+				chrif_var_save(name, (ssize_t)((size_t)v));
 				mapreg_setregnum(num,(ssize_t)((size_t)v));
 			}
 		}
@@ -2445,12 +2503,15 @@ int set_reg(CScriptEngine &st,int num,const char *name, void *v)
 				if(st.sd)
 					pc_setregstr(*st.sd,num,str);
 				else
+				{
+					chrif_var_save(name,str);
 					mapreg_setregstr(num,str);
 					//ShowError("set_reg error name?:%s\n",name);
-					
+				}		
 			}
 			else if(prefix=='$')
 			{
+				chrif_var_save(name,str);
 				mapreg_setregstr(num,str);
 			}
 			else
@@ -2471,12 +2532,15 @@ int set_reg(CScriptEngine &st,int num,const char *name, void *v)
 				if(st.sd)
 					pc_setreg(*st.sd,num,val);
 				else
+				{
+					chrif_var_save(name,val);
 					mapreg_setregnum(num,val);
 					//ShowError("set_reg error name?:%s\n",name);
-					
+				}
 			}
 			else if(prefix=='$')
 			{
+				chrif_var_save(name,val);
 				mapreg_setregnum(num,val);
 			}
 			else if(prefix=='#')
@@ -2754,7 +2818,7 @@ int CScriptEngine::GetInt(CScriptEngine::CValue &data)
 void CScriptEngine::push_val(int type,int val)
 {
 	alloc();
-//	if(battle_config.etc_log)
+//	if(config.etc_log)
 //		ShowMessage("push (%d,%d)-> %d\n",type,val,stack_ptr);
 
 	// previous stack value needs clearing
@@ -2771,7 +2835,7 @@ void CScriptEngine::push_val(int type,int val)
 void CScriptEngine::push_str(int type, const char *str)
 {
 	alloc();
-//	if(battle_config.etc_log)
+//	if(config.etc_log)
 //		ShowMessage("push (%d,%x)-> %d\n",type,str,stack_ptr);
 
 	// previous stack value needs clearing
@@ -3019,7 +3083,7 @@ int CScriptEngine::run_func()
 	for(i=end_sp-1;i>=0 && stack_data[i].type!=C_ARG;i--);
 	if(i==0)
 	{
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowError("function not found\n");
 		state=END;
 		return 0;
@@ -3036,7 +3100,7 @@ int CScriptEngine::run_func()
 		return 0;
 	}
 #ifdef DEBUG_RUN
-	if(battle_config.etc_log) {
+	if(config.etc_log) {
 		ShowMessage("run_func : %s? (%d(%d))\n",str_buf+str_data[func].str,func,str_data[func].type);
 		ShowMessage("stack dump :");
 		for(i=0;i<end_sp;++i){
@@ -3066,7 +3130,7 @@ int CScriptEngine::run_func()
 	}
 	else
 	{
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowError("run_func : %s? (%d(%d))\n",str_buf+str_data[func].str,func,str_data[func].type);
 		push_val(C_INT,0);
 	}
@@ -3127,7 +3191,7 @@ int CScriptEngine::run_main()
 				if(stack_ptr!=defsp)
 				{	// possibly the function pushed a value on the heap which is not used
 					// just clear silently in this case, print error log otherwise
-					if(stack_ptr!=defsp+1 && battle_config.error_log)
+					if(stack_ptr!=defsp+1 && config.error_log)
 					{
 						ShowMessage("stack_ptr(%d) != default(%d)\n",stack_ptr,defsp);
 						//!!
@@ -3230,7 +3294,7 @@ int CScriptEngine::run_main()
 			}
 			default:
 			{
-				if(battle_config.error_log)
+				if(config.error_log)
 					ShowMessage("unknown command : %d @ %d\n",c,pos);
 				state=END;
 				break;
@@ -3251,7 +3315,7 @@ int CScriptEngine::run_main()
 ///////////////////////////////////////////////////////////////////////////////
 // スクリプトの実行
 // script entry point
-int CScriptEngine::run(const char *rootscript, size_t pos, uint32 rid, uint32 oid)
+int CScriptEngine::run(const char*rootscript, size_t pos, uint32 rid, uint32 oid)
 {
 	static CScriptEngine defaultengine;	
 	//!! change to nonstatic and give attention to attachrid on a multithread scheme
@@ -3321,13 +3385,16 @@ int CScriptEngine::run(const char *rootscript, size_t pos, uint32 rid, uint32 oi
 
 					// copy the run parameter
 					engine.sd->ScriptEngine.script = engine.script;
-					engine.sd->ScriptEngine.pos = engine.pos;
-					engine.sd->ScriptEngine.sd  = engine.sd;
-					engine.sd->ScriptEngine.rid = engine.rid;
-					engine.sd->ScriptEngine.oid = engine.oid;
+					engine.sd->ScriptEngine.pos    = engine.pos;
+					engine.sd->ScriptEngine.sd     = engine.sd;
+					engine.sd->ScriptEngine.rid    = engine.rid;
+					engine.sd->ScriptEngine.oid    = engine.oid;
 
 					// and run the copied script
-					CScriptEngine::run(engine.script, engine.pos, engine.rid, engine.oid);
+					CScriptEngine::run(	engine.sd->ScriptEngine.script, 
+										engine.sd->ScriptEngine.pos, 
+										engine.sd->ScriptEngine.rid, 
+										engine.sd->ScriptEngine.oid);
 				}
 
 				// and end this script here
@@ -3347,7 +3414,7 @@ int CScriptEngine::run(const char *rootscript, size_t pos, uint32 rid, uint32 oi
 			if( STOP!=engine.state )
 			{	// any state other then STOP will terminate the script
 				engine.state	= OFF;
-				engine.script	= NULL;
+				engine.script   = NULL;
 				engine.oid		= 0;
 				
 				// dequeue the next script caller if any
@@ -3687,10 +3754,10 @@ int buildin_goto(CScriptEngine &st)
  */
 int buildin_callfunc(CScriptEngine &st)
 {
-	char *scr;
 	const char *str=st.GetString(st[2]);
+	script_object *scr = (script_object *)strdb_search(script_get_userfunc_db(),str);
 
-	if( (scr=(char *) strdb_search(script_get_userfunc_db(),str)) )
+	if(scr)
 	{
 		size_t i,j;
 		for(i=st.start+3,j=0; i<st.end; ++i,++j)
@@ -3702,7 +3769,7 @@ int buildin_callfunc(CScriptEngine &st)
 		st.push_val(CScriptEngine::C_RETINFO,st.pos);		// 現在のスクリプト位置をプッシュ
 
 		st.pos=0;
-		st.script=scr;
+		st.script=scr->script;
 		st.defsp=st.start+4+j;
 		st.state=CScriptEngine::GOTO;
 	}
@@ -4396,7 +4463,7 @@ int buildin_countitem(CScriptEngine &st)
 					count+=st.sd->status.inventory[i].amount;
 			}
 		}
-		else if(battle_config.error_log)
+		else if(config.error_log)
 			ShowMessage("wrong item ID : countitem(%i)\n",nameid);
 	}
 	st.push_val(CScriptEngine::C_INT,count);
@@ -5536,7 +5603,7 @@ int buildin_getgdskilllv(CScriptEngine &st)
  */
 int buildin_basicskillcheck(CScriptEngine &st)
 {
-	st.push_val(CScriptEngine::C_INT, battle_config.basic_skill_check);
+	st.push_val(CScriptEngine::C_INT, config.basic_skill_check);
 	return 0;
 }
 /*==========================================
@@ -6378,7 +6445,7 @@ int buildin_getusersname(CScriptEngine &st)
 		{
 			if(session[i] && (pl_sd=(struct map_session_data *) session[i]->user_session) && pl_sd->state.auth)
 			{
-				if( !(battle_config.hide_GM_session && pl_sd->isGM()) )
+				if( !(config.hide_GM_session && pl_sd->isGM()) )
 				{
 					if((disp_num++)%10==0)
 						clif_scriptnext(*st.sd,st.oid);
@@ -6672,7 +6739,7 @@ int buildin_sc_end(CScriptEngine &st)
 			bl = map_id2bl(st.sd->skilltarget);
 
 		status_change_end(bl,type,-1);
-//		if(battle_config.etc_log)
+//		if(config.etc_log)
 //			ShowMessage("sc_end : %d %d\n",st.rid,type);
 	}
 	return 0;
@@ -6789,7 +6856,7 @@ int buildin_changebase(CScriptEngine &st)
 
 	vclass = st.GetInt(st[2]);
 	if( vclass == 22 && 
-		(!battle_config.wedding_modifydisplay ||					// Do not show the wedding sprites
+		(!config.wedding_modifydisplay ||					// Do not show the wedding sprites
 		(sd->status.class_ >= 4023 && sd->status.class_ <= 4045)) )	// Baby classes screw up when showing wedding sprites. [Skotlex]
 		return 0;
 
@@ -7305,7 +7372,7 @@ int buildin_pvpon(CScriptEngine &st)
 		maps[m].flag.pvp = 1;
 		clif_send0199(m,1);
 
-		if(battle_config.pk_mode) // disable ranking functions if pk_mode is on [Valaris]
+		if(config.pk_mode) // disable ranking functions if pk_mode is on [Valaris]
 			return 0;
 
 		for(i=0;i<fd_max;++i){	//人数分ループ
@@ -7338,7 +7405,7 @@ int buildin_pvpoff(CScriptEngine &st)
 		maps[m].flag.pvp = 0;
 		clif_send0199(m,0);
 
-		if(battle_config.pk_mode) // disable ranking options if pk_mode is on [Valaris]
+		if(config.pk_mode) // disable ranking options if pk_mode is on [Valaris]
 			return 0;
 
 		for(i=0;i<fd_max;++i){	//人数分ループ
@@ -8177,7 +8244,7 @@ int buildin_petskillbonus(CScriptEngine &st)
 			pd->state.skillbonus=0;	// waiting state
 
 		// wait for timer to start
-		if (battle_config.pet_equip_required && pd->equip_id == 0)
+		if (config.pet_equip_required && pd->equip_id == 0)
 			pd->bonus->timer=-1;
 		else
 			pd->bonus->timer=add_timer(gettick()+pd->bonus->delay*1000, pet_skill_bonus_timer, st.sd->block_list::id, 0);
@@ -8426,7 +8493,7 @@ int buildin_petheal(CScriptEngine &st)
 	pd->s_skill->sp=st.GetInt(st[5]);
 
 	//Use delay as initial offset to avoid skill/heal exploits
-	if (battle_config.pet_equip_required && pd->equip_id == 0)
+	if (config.pet_equip_required && pd->equip_id == 0)
 		pd->s_skill->timer=-1;
 	else
 		pd->s_skill->timer=add_timer(gettick()+pd->s_skill->delay*1000,pet_heal_timer,st.sd->block_list::id,0);
@@ -8520,7 +8587,7 @@ int buildin_petskillsupport(CScriptEngine &st)
 	pd->s_skill->sp=st.GetInt(st[6]);
 
 	//Use delay as initial offset to avoid skill/heal exploits
-	if (battle_config.pet_equip_required && pd->equip_id == 0)
+	if (config.pet_equip_required && pd->equip_id == 0)
 		pd->s_skill->timer=-1;
 	else
 		pd->s_skill->timer=add_timer(gettick()+pd->s_skill->delay*1000,pet_skill_support_timer,sd->block_list::id,0);
@@ -9826,7 +9893,7 @@ int buildin_regex(CScriptEngine &st)
  * マップ変数の変更
  *------------------------------------------
  */
-int mapreg_setregnum(int num,int val)
+int mapreg_setregnum(int num, int val)
 {
 	if(val!=0)
 		numdb_insert(mapreg_db,num,val);

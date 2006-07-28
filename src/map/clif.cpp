@@ -366,27 +366,27 @@ void check_fake_id(int fd, struct map_session_data &sd, uint32 target_id)
 	{
 		char message_to_gm[1024];
 		snprintf(message_to_gm, sizeof(message_to_gm), "Character '%s' (account: %d) try to use a bot", sd.status.name, sd.status.account_id);
-		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
+		intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message_to_gm);
 		
 		// if we block people
-		if (battle_config.ban_bot < 0)
+		if (config.ban_bot < 0)
 		{
 			chrif_char_ask_name(-1, sd.status.name, 1, 0, 0, 0, 0, 0, 0); // type: 1 - block
 			session_SetWaitClose(sd.fd, 1000); // forced to disconnect because of the hack
 			// message about the ban
 		}
 		// if we ban people
-		else if (battle_config.ban_bot > 0)
+		else if (config.ban_bot > 0)
 		{
-			chrif_char_ask_name(-1, sd.status.name, 2, 0, 0, 0, 0, battle_config.ban_bot, 0); // type: 2 - ban (year, month, day, hour, minute, second)
+			chrif_char_ask_name(-1, sd.status.name, 2, 0, 0, 0, 0, config.ban_bot, 0); // type: 2 - ban (year, month, day, hour, minute, second)
 			session_SetWaitClose(sd.fd, 1000); // forced to disconnect because of the hack
 			// message about the ban
 		}
 		else
-		{	// impossible to display: we don't send fake player if battle_config.ban_bot is == 0
+		{	// impossible to display: we don't send fake player if config.ban_bot is == 0
 			// message about the ban
 		}
-		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
+		intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message_to_gm);
 
 		// send this info cause the bot ask until get an answer, damn spam
 		memset(WFIFOP(fd,0), 0, packet_db[sd.packet_ver][0x95].len);
@@ -413,26 +413,26 @@ void check_fake_id(int fd, struct map_session_data &sd, uint32 target_id)
 	{
 		char message_to_gm[1024];
 		snprintf(message_to_gm, sizeof(message_to_gm), "Character '%s' (account: %d) try to use a bot", sd.status.name, sd.status.account_id);
-		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
+		intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message_to_gm);
 		// if we block people
-		if (battle_config.ban_bot < 0)
+		if (config.ban_bot < 0)
 		{
 			chrif_char_ask_name(-1, sd.status.name, 1, 0, 0, 0, 0, 0, 0); // type: 1 - block
 			session_SetWaitClose(sd.fd, 1000); // forced to disconnect because of the hack
 			// message about the ban
 		}
 		// if we ban people
-		else if (battle_config.ban_bot > 0)
+		else if (config.ban_bot > 0)
 		{
-			chrif_char_ask_name(-1, sd.status.name, 2, 0, 0, 0, 0, battle_config.ban_bot, 0); // type: 2 - ban (year, month, day, hour, minute, second)
+			chrif_char_ask_name(-1, sd.status.name, 2, 0, 0, 0, 0, config.ban_bot, 0); // type: 2 - ban (year, month, day, hour, minute, second)
 			session_SetWaitClose(sd.fd, 1000); // forced to disconnect because of the hack
 			// message about the ban
 		}
 		else
-		{	// impossible to display: we don't send fake player if battle_config.ban_bot is == 0
+		{	// impossible to display: we don't send fake player if config.ban_bot is == 0
 			// message about the ban
 		}
-		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
+		intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message_to_gm);
 
 		// send this info cause the bot ask until get an answer, damn spam
 		memset(WFIFOP(fd,0), 0, packet_db[sd.packet_ver][0x95].len);
@@ -457,7 +457,7 @@ void check_fake_id(int fd, struct map_session_data &sd, uint32 target_id)
 }
 void send_fake_id(int fd, struct map_session_data &sd)
 {	// if we try to detect bot
-	if (battle_config.ban_bot)
+	if (config.ban_bot)
 	{	// don't send fake player if we would not detect bot
 		// send fake player (exactly same of the player, with HIDE option and char_id of the wisp server name)
 #if PACKETVER < 4
@@ -486,7 +486,7 @@ void send_fake_id(int fd, struct map_session_data &sd)
 		WFIFOB(fd,49) = 5;
 		WFIFOB(fd,50) = 5;
 		WFIFOB(fd,51) = sd.state.dead_sit;
-		WFIFOW(fd,52) = (sd.status.base_level > battle_config.max_lv) ? battle_config.max_lv : sd.status.base_level;
+		WFIFOW(fd,52) = (sd.status.base_level > config.max_lv) ? config.max_lv : sd.status.base_level;
 		SENDPACKET(sd.fd, packet_db[sd.packet_ver][0x78].len);
 #else
 		unsigned short level;
@@ -528,7 +528,7 @@ void send_fake_id(int fd, struct map_session_data &sd)
 		WFIFOB(fd,49) = 5;
 		WFIFOB(fd,50) = 5;
 		WFIFOB(fd,51) = sd.state.dead_sit;
-		WFIFOW(fd,52) = ((level = status_get_lv(&sd)) > battle_config.max_job_level) ? battle_config.max_job_level : level;
+		WFIFOW(fd,52) = ((level = status_get_lv(&sd)) > config.max_job_level) ? config.max_job_level : level;
 		WFIFOSET(sd.fd, packet_db[sd.packet_ver][0x1d8].len);
 #endif
 		// send a fake monster
@@ -592,7 +592,7 @@ int clif_countusers(void)
 		if( session[i] && 
 			(sd = (struct map_session_data*)session[i]->user_session) && 
 			sd->state.auth &&
-		    !(battle_config.hide_GM_session && sd->isGM()) )
+		    !(config.hide_GM_session && sd->isGM()) )
 			users++;
 	}
 	return users;
@@ -798,7 +798,7 @@ int clif_send (unsigned char *buf, size_t len, const block_list *bl, int type)
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
 					}
-//					if(battle_config.etc_log)
+//					if(config.etc_log)
 //						ShowMessage("send party %d %d %d\n",p->party_id,i,flag)
 
 				}
@@ -900,7 +900,7 @@ int clif_send (unsigned char *buf, size_t len, const block_list *bl, int type)
 		}
 		break;
 	default:
-		if (battle_config.error_log)
+		if (config.error_log)
 			ShowMessage("clif_send まだ作ってないよー\n");
 		return -1;
 	}
@@ -1032,7 +1032,7 @@ void clif_send_party(const block_list& bl, unsigned char *buf, size_t len, int t
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
 					}
-//					if(battle_config.etc_log)
+//					if(config.etc_log)
 //						ShowMessage("send party %d %d %d\n",p->party_id,i,flag)
 
 				}
@@ -1152,7 +1152,7 @@ void clif_send_guild(const block_list& bl, unsigned char *buf, size_t len, int t
 		}
 		break;
 	default:
-		if (battle_config.error_log)
+		if (config.error_log)
 			ShowMessage("clif_send まだ作ってないよー\n");
 		return -1;
 	}
@@ -1379,7 +1379,7 @@ int clif_set0078(const map_session_data &sd, unsigned char *buf)
 		WBUFB(buf,49) = 5;
 		WBUFB(buf,50) = 5;
 		WBUFB(buf,51) = 0;
-		WBUFW(buf,52) = ((level = status_get_lv(&sd)) > battle_config.max_base_level) ? battle_config.max_base_level : level;
+		WBUFW(buf,52) = ((level = status_get_lv(&sd)) > config.max_base_level) ? config.max_base_level : level;
 
 		return packet_len_table[0x78];
 	}
@@ -1418,7 +1418,7 @@ int clif_set0078(const map_session_data &sd, unsigned char *buf)
 	WBUFB(buf,49)=5;
 	WBUFB(buf,50)=5;
 	WBUFB(buf,51)= sd.state.dead_sit;
-	WBUFW(buf,52)=(sd.status.base_level>battle_config.max_lv)?battle_config.max_lv:sd.status.base_level;
+	WBUFW(buf,52)=(sd.status.base_level>config.max_lv)?config.max_lv:sd.status.base_level;
 
 	return packet_len_table[0x78];
 #else
@@ -1468,7 +1468,7 @@ int clif_set0078(const map_session_data &sd, unsigned char *buf)
 	WBUFB(buf,49)=5;
 	WBUFB(buf,50)=5;
 	WBUFB(buf,51) = sd.state.dead_sit;
-	WBUFW(buf,52)=(sd.status.base_level>battle_config.max_base_level)?battle_config.max_base_level:sd.status.base_level;
+	WBUFW(buf,52)=(sd.status.base_level>config.max_base_level)?config.max_base_level:sd.status.base_level;
 
 	return packet_len_table[0x1d8];
 #endif
@@ -1540,7 +1540,7 @@ int clif_set007b(const map_session_data &sd,unsigned char *buf)
 	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
-	WBUFW(buf,58)=(sd.status.base_level>battle_config.max_lv)?battle_config.max_lv:sd.status.base_level;
+	WBUFW(buf,58)=(sd.status.base_level>config.max_lv)?config.max_lv:sd.status.base_level;
 
 	return packet_len_table[0x7b];
 #else
@@ -1590,7 +1590,7 @@ int clif_set007b(const map_session_data &sd,unsigned char *buf)
 	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
-	WBUFW(buf,58)=(sd.status.base_level>battle_config.max_base_level)?battle_config.max_base_level:sd.status.base_level;
+	WBUFW(buf,58)=(sd.status.base_level>config.max_base_level)?config.max_base_level:sd.status.base_level;
 
 	return packet_len_table[0x1da];
 #endif
@@ -1710,7 +1710,7 @@ int clif_mob0078(const mob_data &md, unsigned char *buf)
 		WBUFB(buf,49)=5;
 		WBUFB(buf,50)=5;
 		WBUFB(buf,51)=0; // dead or sit state
-		WBUFW(buf,52)=(level>battle_config.max_base_level)? battle_config.max_base_level:level;
+		WBUFW(buf,52)=(level>config.max_base_level)? config.max_base_level:level;
 
 		return packet_len_table[0x1d8];
 	}
@@ -1742,7 +1742,7 @@ int clif_mob0078(const mob_data &md, unsigned char *buf)
 		WBUFB(buf,49)=5;
 		WBUFB(buf,50)=5;
 		level = status_get_lv(&md);
-		WBUFW(buf,52)=((level = status_get_lv(&md))>battle_config.max_base_level)? battle_config.max_base_level:level;
+		WBUFW(buf,52)=((level = status_get_lv(&md))>config.max_base_level)? config.max_base_level:level;
 
 		return packet_len_table[0x78];
 	}
@@ -1790,7 +1790,7 @@ int clif_mob007b(const mob_data &md, unsigned char *buf)
 		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 		WBUFB(buf,56)=5;
 		WBUFB(buf,57)=5;
-		WBUFW(buf,58)=(level>battle_config.max_base_level)? battle_config.max_base_level:level;
+		WBUFW(buf,58)=(level>config.max_base_level)? config.max_base_level:level;
 
 		return packet_len_table[0x1da];
 	}
@@ -1827,7 +1827,7 @@ int clif_mob007b(const mob_data &md, unsigned char *buf)
 		WBUFB(buf,56)=5;
 		WBUFB(buf,57)=5;
 		level = status_get_lv(&md);
-		WBUFW(buf,58)=((level = status_get_lv(&md))>battle_config.max_base_level)? battle_config.max_base_level:level;
+		WBUFW(buf,58)=((level = status_get_lv(&md))>config.max_base_level)? config.max_base_level:level;
 
 		return packet_len_table[0x7b];
 	}
@@ -1925,7 +1925,7 @@ int clif_pet0078(const pet_data &pd, unsigned char *buf)
 		WBUFB(buf,49)=5;
 		WBUFB(buf,50)=5;
 		WBUFB(buf,51)=0; // dead or sit state
-		WBUFW(buf,52)=((level = status_get_lv(&pd))>battle_config.max_base_level)? battle_config.max_base_level:level;
+		WBUFW(buf,52)=((level = status_get_lv(&pd))>config.max_base_level)? config.max_base_level:level;
 
 		return packet_len_table[0x1d8];
 	}
@@ -1937,7 +1937,7 @@ int clif_pet0078(const pet_data &pd, unsigned char *buf)
 		WBUFL(buf,2)=pd.block_list::id;
 		WBUFW(buf,6)=pd.speed;
 		WBUFW(buf,14)=pd.get_viewclass();
-		WBUFW(buf,16)=battle_config.pet_hair_style;
+		WBUFW(buf,16)=config.pet_hair_style;
 		if((view = itemdb_viewid(pd.equip_id)) > 0)
 			WBUFW(buf,20)=view;
 		else
@@ -1947,7 +1947,7 @@ int clif_pet0078(const pet_data &pd, unsigned char *buf)
 		WBUFB(buf,49)=0;
 		WBUFB(buf,50)=0;
 
-		WBUFW(buf,52)=((level = status_get_lv(&pd))>battle_config.max_base_level)? battle_config.max_base_level:level;
+		WBUFW(buf,52)=((level = status_get_lv(&pd))>config.max_base_level)? config.max_base_level:level;
 
 		return packet_len_table[0x78];
 	}
@@ -1995,7 +1995,7 @@ int clif_pet007b(const pet_data &pd, unsigned char *buf)
 		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 		WBUFB(buf,56)=0;
 		WBUFB(buf,57)=0;
-		WBUFW(buf,58)=(level>battle_config.max_base_level)? battle_config.max_base_level:level;
+		WBUFW(buf,58)=(level>config.max_base_level)? config.max_base_level:level;
 
 		return packet_len_table[0x1da];
 	}
@@ -2007,7 +2007,7 @@ int clif_pet007b(const pet_data &pd, unsigned char *buf)
 		WBUFL(buf,2)=pd.block_list::id;
 		WBUFW(buf,6)=pd.speed;
 		WBUFW(buf,14)=pd.get_viewclass();
-		WBUFW(buf,16)=battle_config.pet_hair_style;
+		WBUFW(buf,16)=config.pet_hair_style;
 		if ((view = itemdb_viewid(pd.equip_id)) > 0)
 			WBUFW(buf,20)=view;
 		else
@@ -2019,7 +2019,7 @@ int clif_pet007b(const pet_data &pd, unsigned char *buf)
 		WBUFB(buf,56)=0;
 		WBUFB(buf,57)=0;
 
-		WBUFW(buf,58)=(level>battle_config.max_base_level)? battle_config.max_base_level:level;
+		WBUFW(buf,58)=(level>config.max_base_level)? config.max_base_level:level;
 
 		return packet_len_table[0x7b];
 	}
@@ -2041,7 +2041,7 @@ int clif_hom0078(const homun_data &hd, unsigned char *buf)
 	else
 		WBUFW(buf,14)=hd.status.class_;
 
-	WBUFW(buf,16)=24;//battle_config.pet0078_hair_id;
+	WBUFW(buf,16)=24;//config.pet0078_hair_id;
 	WBUFW(buf,20)=0;
 
 	WBUFPOS(buf,46,hd.block_list::x,hd.block_list::y,hd.get_dir());
@@ -2064,7 +2064,7 @@ int clif_hom007b(const homun_data &hd, unsigned char *buf)
 		WBUFW(buf,14)=hd.view_class;
 	else
 		WBUFW(buf,14)=hd.status.class_;
-	WBUFW(buf,16)=24;//battle_config.pet0078_hair_id;
+	WBUFW(buf,16)=24;//config.pet0078_hair_id;
 	if((view = itemdb_viewid(hd.equip)) > 0)
 		WBUFW(buf,20)=view;
 	else
@@ -2235,11 +2235,11 @@ int clif_spawnpc(struct map_session_data &sd)
 
 #if PACKETVER < 4
 	WBUFW(buf, 0) = 0x79;
-	WBUFW(buf,51) = (sd.status.base_level > battle_config.max_lv) ? battle_config.max_lv : sd.status.base_level;
+	WBUFW(buf,51) = (sd.status.base_level > config.max_lv) ? config.max_lv : sd.status.base_level;
 	clif_send(buf, packet_len_table[0x79], &sd, AREA_WOS);
 #else
 	WBUFW(buf, 0) = 0x1d9;
-	WBUFW(buf,51) = (sd.status.base_level > battle_config.max_base_level) ? battle_config.max_base_level : sd.status.base_level;
+	WBUFW(buf,51) = (sd.status.base_level > config.max_base_level) ? config.max_base_level : sd.status.base_level;
 	clif_send(buf, packet_len_table[0x1d9], &sd, AREA_WOS);
 #endif
 
@@ -2699,9 +2699,9 @@ int clif_moveobject(const block_list& bl)
 		}
 
 		//Stupid client that needs this resent every time someone walks :X
-		if(battle_config.save_clothcolor &&
+		if(config.save_clothcolor &&
 			sd.status.clothes_color > 0 &&
-			(sd.view_class != 22 || !battle_config.wedding_ignorepalette) )
+			(sd.view_class != 22 || !config.wedding_ignorepalette) )
 			clif_changelook(sd, LOOK_CLOTHES_COLOR, sd.status.clothes_color);
 
 		if(sd.state.viewsize==2) // tiny/big players [Valaris]
@@ -3537,7 +3537,7 @@ int clif_updatestatus(struct map_session_data &sd,unsigned short type)
 		clif_changestatus(sd,SP_MANNER,sd.status.manner);
 	else if(type==SP_WEIGHT)
 		pc_checkweighticon(sd);
-	else if(type==SP_HP && battle_config.disp_hpmeter)
+	else if(type==SP_HP && config.disp_hpmeter)
 		clif_hpmeter(sd);
 
 	// send update things
@@ -3713,7 +3713,7 @@ int clif_updatestatus(struct map_session_data &sd,unsigned short type)
 		break;
 
 	default:
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("clif_updatestatus : make %d routine\n",type);
 		return 1;
 	}
@@ -3734,7 +3734,7 @@ int clif_changestatus(struct block_list &bl, unsigned short type, uint32 val)
 			WBUFL(buf,8)=val;
 			break;
 		default:
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowMessage("clif_changestatus : make %d routine\n",type);
 			return 1;
 		}
@@ -4661,8 +4661,8 @@ int clif_getareachar_pc(struct map_session_data &sd, struct map_session_data &ds
 		clif_set01e1(dstsd,WFIFOP(sd.fd,0));
 		WFIFOSET(sd.fd,packet_len_table[0x1e1]);
 	}
-	if( battle_config.save_clothcolor && dstsd.status.clothes_color > 0 &&
-		(dstsd.view_class != 22 || !battle_config.wedding_ignorepalette) )
+	if( config.save_clothcolor && dstsd.status.clothes_color > 0 &&
+		(dstsd.view_class != 22 || !config.wedding_ignorepalette) )
 		clif_changelook(dstsd,LOOK_CLOTHES_COLOR,dstsd.status.clothes_color);
 	if(sd.status.manner < 0)
 		clif_changestatus(sd,SP_MANNER,sd.status.manner);
@@ -5103,7 +5103,7 @@ public:
 				clif_getareachar_skillunit(sd, ((struct skill_unit&)bl));
 				break;
 			default:
-				if(battle_config.error_log)
+				if(config.error_log)
 					ShowMessage("get area char ??? (bl.type=%d)\n",bl.type);
 				break;
 			}
@@ -5612,8 +5612,8 @@ int clif_skillinfo(struct map_session_data &sd, unsigned short skillid, short ty
 	memset(WFIFOP(fd,14), 0, 24);
 	//safestrcpy((char*)WFIFOP(fd,14), skill_get_name(id), 24);
 	inf2 = skill_get_inf2(id);
-	if( ((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) && !(inf2&INF2_WEDDING_SKILL)) ||
-		(battle_config.gm_allskill && sd.isGM() >= battle_config.gm_allskill) )
+	if( ((!(inf2&INF2_QUEST_SKILL) || config.quest_skill_learn) && !(inf2&INF2_WEDDING_SKILL)) ||
+		(config.gm_allskill && sd.isGM() >= config.gm_allskill) )
 		//WFIFOB(fd,38)= (sd.status.skill[skillid].lv < skill_get_max(id) && sd.status.skill[skillid].flag ==0 )? 1:0;
 		WFIFOB(fd,38)= (sd.status.skill[skillid].lv < skill_tree_get_max(id, sd.status.class_) && sd.status.skill[skillid].flag ==0 )? 1:0;
 	else
@@ -5650,8 +5650,8 @@ int clif_skillinfoblock(struct map_session_data &sd)
 			WFIFOW(fd,len+10)= range;
 			memset(WFIFOP(fd,len+12),0,24);
 			inf2 = skill_get_inf2(id);
-			if( ((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) && !(inf2&INF2_WEDDING_SKILL)) ||
-				(battle_config.gm_allskill && sd.isGM() >= battle_config.gm_allskill) )
+			if( ((!(inf2&INF2_QUEST_SKILL) || config.quest_skill_learn) && !(inf2&INF2_WEDDING_SKILL)) ||
+				(config.gm_allskill && sd.isGM() >= config.gm_allskill) )
 				//WFIFOB(fd,len+36)= (sd.status.skill[i].lv < skill_get_max(id) && sd.status.skill[i].flag ==0 )? 1:0;
 				WFIFOB(fd,len+36)= (sd.status.skill[i].lv < skill_tree_get_max(id, sd.status.class_) && sd.status.skill[i].flag ==0 )? 1:0;
 			else
@@ -5739,7 +5739,7 @@ int clif_skill_fail(struct map_session_data &sd,unsigned short skill_id,unsigned
 	sd.skillid   = sd.skilllv     = 0xFFFF;
 	sd.skillitem = sd.skillitemlv = 0xFFFF;
 
-	if(type==0x4 && (battle_config.display_delay_skill_fail==0 || sd.state.nodelay)){
+	if(type==0x4 && (config.display_delay_skill_fail==0 || sd.state.nodelay)){
 		return 0;
 	}
 
@@ -7059,7 +7059,7 @@ int clif_party_inviteack(struct map_session_data &sd,const char *nick,unsigned c
 int clif_party_option(struct party &p,struct map_session_data *sd, int flag)
 {
 	unsigned char buf[16];
-//	if(battle_config.etc_log)
+//	if(config.etc_log)
 //		ShowMessage("clif_party_option: %d %d %d\n",p->exp,p->item,flag);
 	if(sd==NULL && flag==0){
 		int i;
@@ -7219,7 +7219,7 @@ int clif_hpmeter(struct map_session_data &sd)
 			sd2->block_list::m == sd.block_list::m &&
 			sd2->block_list::x > x0 && sd2->block_list::x < x1 &&
 			sd2->block_list::y > y0 && sd2->block_list::y < y1 &&
-			sd2->isGM() >= battle_config.disp_hpmeter &&
+			sd2->isGM() >= config.disp_hpmeter &&
 			sd2->isGM() >= sd.isGM() &&
 			&sd != sd2 && 
 			sd2->state.auth)
@@ -7357,7 +7357,7 @@ int clif_sendegg(struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if(agit_flag && battle_config.pet_no_gvg && maps[sd.block_list::m].flag.gvg)
+	if(agit_flag && config.pet_no_gvg && maps[sd.block_list::m].flag.gvg)
 	{	//Disable pet hatching in GvG grounds during Guild Wars [Skotlex]
 		clif_displaymessage(fd, "Pets are not allowed in Guild Wars.");
 		return 0;
@@ -7403,7 +7403,7 @@ int clif_send_petstatus(struct map_session_data &sd)
 
 	WFIFOW(fd,0)=0x1a2;
 	memcpy(WFIFOP(fd,2),sd.pet.name,24);
-	WFIFOB(fd,26)=(battle_config.pet_rename == 1)? 0:sd.pet.rename_flag;
+	WFIFOB(fd,26)=(config.pet_rename == 1)? 0:sd.pet.rename_flag;
 	WFIFOW(fd,27)=sd.pet.level;
 	WFIFOW(fd,29)=sd.pet.hungry;
 	WFIFOW(fd,31)=sd.pet.intimate;
@@ -8081,12 +8081,12 @@ int clif_guild_skillinfo(struct map_session_data &sd)
 						break;
 					case GD_LEADERSHIP:
 						//Glory skill requirements -- Pretty sure correct [Sara]
-						up = (battle_config.require_glory_guild) ?
+						up = (config.require_glory_guild) ?
 							guild_checkskill(*g,GD_GLORYGUILD) > 0 : 1;
 						// what skill does it need now that glory guild was removed? [celest]
 						break;
 					case GD_GLORYWOUNDS:
-						up = (battle_config.require_glory_guild) ?
+						up = (config.require_glory_guild) ?
 							guild_checkskill(*g,GD_GLORYGUILD) > 0 : 1;
 						break;
 					case GD_SOULCOLD:
@@ -8111,7 +8111,7 @@ int clif_guild_skillinfo(struct map_session_data &sd)
 							guild_checkskill(*g,GD_REGENERATION) > 0;
 						break;
 					case GD_GLORYGUILD:
-						up = (battle_config.require_glory_guild) ? 1 : 0;
+						up = (config.require_glory_guild) ? 1 : 0;
 						break;
 					default:
 						up = 1;
@@ -8751,7 +8751,7 @@ int clif_charnameack(int fd, struct block_list &bl, bool clear)
 				// we can not ban automaticly, because if there is lag, hidden player could be not hidden when other player ask for name.
 				char message_to_gm[1024];
 				snprintf(message_to_gm, sizeof(message_to_gm), "Possible use of BOT (99%% of chance) or modified client by '%s' (account: %ld, char_id: %ld). This player ask your name when you are hidden.", sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id);
-				intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
+				intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message_to_gm);
 			}
 		}
 
@@ -8856,7 +8856,7 @@ int clif_charnameack(int fd, struct block_list &bl, bool clear)
 				memcpy(WBUFP(buf,78), gc->castle_name, 24);
 			}
 		}
-		else if(battle_config.show_mob_hp)
+		else if(config.show_mob_hp)
 		{
 			char mobhp[64];
 			cmd = 0x195;
@@ -8873,7 +8873,7 @@ int clif_charnameack(int fd, struct block_list &bl, bool clear)
 		break;
 	}
 	default:
-		if (battle_config.error_log)
+		if (config.error_log)
 			ShowError("clif_parse_GetCharNameRequest : bad type %d(%ld)\n", bl.type, (unsigned long)bl.id);
 		return 0;
 	}
@@ -9537,11 +9537,11 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 	// 119
 	// 78
 
-	if(battle_config.pc_invincible_time > 0) {
+	if(config.pc_invincible_time > 0) {
 		if(maps[sd.block_list::m].flag.gvg)
-			pc_setinvincibletimer(sd,battle_config.pc_invincible_time<<1);
+			pc_setinvincibletimer(sd,config.pc_invincible_time<<1);
 		else
-			pc_setinvincibletimer(sd,battle_config.pc_invincible_time);
+			pc_setinvincibletimer(sd,config.pc_invincible_time);
 	}
 
 	sd.map_addblock();	// ブロック登録
@@ -9552,13 +9552,13 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 	clif_updatestatus(sd,SP_WEIGHT);
 
 	// pvp
-	if(sd.pvp_timer!=-1 && !battle_config.pk_mode)
+	if(sd.pvp_timer!=-1 && !config.pk_mode)
 	{
 		delete_timer(sd.pvp_timer,pc_calc_pvprank_timer);
 		sd.pvp_timer = -1;
 	}
 	if(maps[sd.block_list::m].flag.pvp){
-		if(!battle_config.pk_mode) { // remove pvp stuff for pk_mode [Valaris]
+		if(!config.pk_mode) { // remove pvp stuff for pk_mode [Valaris]
 			sd.pvp_timer=add_timer(gettick()+200,pc_calc_pvprank_timer,sd.block_list::id,0);
 			sd.pvp_rank=0;
 			sd.pvp_lastusers=0;
@@ -9579,7 +9579,7 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 		sd.pd->map_addblock();
 		clif_spawnpet(*sd.pd);
 		clif_send_petdata(sd,0,0);
-		clif_send_petdata(sd,5,battle_config.pet_hair_style);
+		clif_send_petdata(sd,5,config.pet_hair_style);
 		clif_send_petstatus(sd);
 	}
 
@@ -9604,9 +9604,9 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 #else
 	clif_changelook(sd,LOOK_WEAPON,0);
 #endif
-	if(battle_config.save_clothcolor &&
+	if(config.save_clothcolor &&
 		sd.status.clothes_color > 0 &&
-		(sd.view_class != 22 || !battle_config.wedding_ignorepalette) )
+		(sd.view_class != 22 || !config.wedding_ignorepalette) )
 		clif_changelook(sd,LOOK_CLOTHES_COLOR,sd.status.clothes_color);
 
 	//if(sd.status.hp<sd.status.max_hp>>2 && pc_checkskill(sd,SM_AUTOBERSERK)>0 &&
@@ -9618,11 +9618,11 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 //	if(time(&timer) < ((weddingtime=pc_readglobalreg(sd,"PC_WEDDING_TIME")) + 3600))
 //		status_change_start(&sd,SC_WEDDING,0,weddingtime,0,0,36000,0);
 
-	if(battle_config.muting_players && sd.status.manner < 0)
+	if(config.muting_players && sd.status.manner < 0)
 		status_change_start(&sd,SC_NOCHAT,0,0,0,0,0,0);
 
 	if (night_flag && !maps[sd.block_list::m].flag.indoors)
-		clif_weather1(sd.fd, 474 + battle_config.night_darkness_level);
+		clif_weather1(sd.fd, 474 + config.night_darkness_level);
 
 	// option
 	clif_changeoption(sd);
@@ -9764,7 +9764,7 @@ int clif_parse_QuitGame(int fd, struct map_session_data &sd)
 	}
 
 	/*	Rovert's prevent logout option fixed [Valaris]	*/
-	if( ((gettick() - sd.canlog_tick) >= 10000) || (!battle_config.prevent_logout) || !pc_isdead(sd))
+	if( ((gettick() - sd.canlog_tick) >= 10000) || (!config.prevent_logout) || !pc_isdead(sd))
 	{
 		session_SetWaitClose(fd, 1000);
 		WFIFOW(fd,2)=0;
@@ -9830,24 +9830,24 @@ int clif_parse_GlobalMessage(int fd, struct map_session_data &sd)
 		snprintf(message,size+16, "Hack on global message (normal message): character '%s' (account: %ld) uses another name.", sd.status.name, (unsigned long)sd.status.account_id);
 		// information is send to all online GM
 		ShowMessage(message);
-		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message);
+		intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message);
 
 		if( strlen((char*)RFIFOP(fd,4)) == 0 )
 			snprintf(message,sizeof(message), " Player sends a void name and a void message.");
 		else
 			snprintf(message,sizeof(message), " Player sends (name:message): '%s'.", RFIFOP(fd,4));
-		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message);
+		intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message);
 
 		// message about the ban
-		if (battle_config.ban_spoof_namer > 0)
-			snprintf(message,sizeof(message), " Player has been banned for %ld minute(s).", (unsigned long)battle_config.ban_spoof_namer);
+		if (config.ban_spoof_namer > 0)
+			snprintf(message,sizeof(message), " Player has been banned for %ld minute(s).", (unsigned long)config.ban_spoof_namer);
 		else
 			snprintf(message,sizeof(message), " Player hasn't been banned (Ban option is disabled).");
-		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message);
+		intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message);
 
 		// if we ban people
-		if (battle_config.ban_spoof_namer > 0) {
-			chrif_char_ask_name(-1, sd.status.name, 2, 0, 0, 0, 0, battle_config.ban_spoof_namer, 0); // type: 2 - ban (year, month, day, hour, minute, second)
+		if (config.ban_spoof_namer > 0) {
+			chrif_char_ask_name(-1, sd.status.name, 2, 0, 0, 0, 0, config.ban_spoof_namer, 0); // type: 2 - ban (year, month, day, hour, minute, second)
 			session_SetWaitClose(fd, 1000); // forced to disconnect because of the hack
 		}
 		// but for the hacker, we display on his screen (he see/look no difference).
@@ -9931,7 +9931,7 @@ int clif_parse_MapMove(int fd, struct map_session_data &sd)
 	char output[32];
 	char mapname[32], *ip;
 
-	if( (battle_config.atc_gmonly == 0 || sd.isGM()) &&
+	if( (config.atc_gmonly == 0 || sd.isGM()) &&
 	    sd.isGM() >= get_atcommand_level(AtCommand_MapMove) )
 	{
 		safestrcpy(mapname, (const char*)RFIFOP(fd,2), sizeof(mapname));
@@ -9999,7 +9999,7 @@ int clif_parse_Emotion(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if(battle_config.basic_skill_check == 0 || pc_checkskill(sd, NV_BASIC) >= 2)
+	if(config.basic_skill_check == 0 || pc_checkskill(sd, NV_BASIC) >= 2)
 	{
 		if(RFIFOB(fd,2) == 34)
 		{	// prevent use of the mute emote [Valaris]
@@ -10078,7 +10078,7 @@ int clif_parse_ActionRequest(int fd, struct map_session_data &sd)
 			return 0;
 		if (sd.vender_id != 0)
 			return 0;
-		if (!battle_config.skill_delay_attack_enable && pc_checkskill(sd, SA_FREECAST) <= 0) {
+		if (!config.skill_delay_attack_enable && pc_checkskill(sd, SA_FREECAST) <= 0) {
 			if (DIFF_TICK(tick, sd.canact_tick) < 0) {
 				return clif_skill_fail(sd, 1, 4, 0);
 			}
@@ -10090,7 +10090,7 @@ int clif_parse_ActionRequest(int fd, struct map_session_data &sd)
 		pc_attack(sd, target_id, action_type != 0);
 		break;
 	case 0x02: // sitdown
-		if (battle_config.basic_skill_check == 0 || pc_checkskill(sd, NV_BASIC) >= 3) {
+		if (config.basic_skill_check == 0 || pc_checkskill(sd, NV_BASIC) >= 3) {
 			if (sd.skilltimer != -1) //No sitting while casting :P
 				break;
 			sd.stop_attack();
@@ -10144,7 +10144,7 @@ int clif_parse_Restart(int fd, struct map_session_data &sd)
 			return 0;
 
 		/*	Rovert's Prevent logout option - Fixed [Valaris]	*/
-		if (!battle_config.prevent_logout ||
+		if (!config.prevent_logout ||
 			(gettick() - sd.canlog_tick) >= 10000 ||
 			pc_isdead(sd))	//Allow dead characters to logout [Skotlex]
 		{
@@ -10289,7 +10289,7 @@ int clif_parse_GMmessage(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if( (battle_config.atc_gmonly == 0 || sd.isGM()) &&
+	if( (config.atc_gmonly == 0 || sd.isGM()) &&
 	    sd.isGM() >= get_atcommand_level(AtCommand_Broadcast) )
 		intif_GMmessage((char*)RFIFOP(fd,4),RFIFOW(fd,2)-4, 0);
 	return 0;
@@ -10534,7 +10534,7 @@ int clif_parse_CreateChatRoom(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if(battle_config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 4){
+	if(config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 4){
 		chat_createchat(sd,RFIFOW(fd,4),RFIFOB(fd,6),(char*)RFIFOP(fd,7),(char*)RFIFOP(fd,15),RFIFOW(fd,2)-15);
 	} else
 		clif_skill_fail(sd,1,0,3);
@@ -10615,7 +10615,7 @@ int clif_parse_TradeRequest(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if(battle_config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 1){
+	if(config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 1){
 		trade_traderequest(sd,RFIFOL(sd.fd,2));
 	} else
 		clif_skill_fail(sd,1,0,0);
@@ -11177,7 +11177,7 @@ int clif_parse_ResetChar(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if( (battle_config.atc_gmonly == 0 || sd.isGM()) &&
+	if( (config.atc_gmonly == 0 || sd.isGM()) &&
 		sd.isGM() >= get_atcommand_level(AtCommand_ResetState) )
 	{
 		switch(RFIFOW(fd,2)){
@@ -11202,7 +11202,7 @@ int clif_parse_LGMmessage(int fd, struct map_session_data &sd) {
 	if( !session_isActive(fd) )
 		return 0;
 
-	if( (battle_config.atc_gmonly == 0 || sd.isGM()) &&
+	if( (config.atc_gmonly == 0 || sd.isGM()) &&
 	    sd.isGM() >= get_atcommand_level(AtCommand_LocalBroadcast) )
 	{
 		WBUFW(buf,0) = 0x9a;
@@ -11322,7 +11322,7 @@ int clif_parse_CreateParty(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if (battle_config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 7) {
+	if (config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 7) {
 		party_create(sd,(const char*)RFIFOP(fd,2),0,0);
 	} else
 		clif_skill_fail(sd,1,0,4);
@@ -11338,7 +11338,7 @@ int clif_parse_CreateParty2(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if (battle_config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 7){
+	if (config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 7){
 		party_create(sd,(const char*)RFIFOP(fd,2),RFIFOB(fd,26),RFIFOB(fd,27));
 	} else
 		clif_skill_fail(sd,1,0,4);
@@ -11367,7 +11367,7 @@ int clif_parse_ReplyPartyInvite(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if(battle_config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 5){
+	if(config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 5){
 		party_reply_invite(sd,RFIFOL(fd,2),RFIFOL(fd,6));
 	} else {
 		party_reply_invite(sd,RFIFOL(fd,2),-1);
@@ -11494,7 +11494,7 @@ int clif_parse_GM_Monster_Item(int fd, struct map_session_data &sd)
 
 	if( !session_isActive(fd) )
 		return 0;
-	if(battle_config.atc_gmonly == 0 || sd.isGM())
+	if(config.atc_gmonly == 0 || sd.isGM())
 	{
 		memcpy(monster_item_name, RFIFOP(fd,2), 24);
 		if(mobdb_searchname(monster_item_name) != 0) {
@@ -11561,7 +11561,7 @@ int clif_parse_GuildRequestInfo(int fd, struct map_session_data &sd)
 		clif_guild_explusionlist(sd);
 		break;
 	default:
-		if (battle_config.error_log)
+		if (config.error_log)
 			ShowMessage("clif: guild request info: unknown type %ld\n", (unsigned long)RFIFOL(fd,2));
 		break;
 	}
@@ -11834,7 +11834,7 @@ int clif_parse_GMKick(int fd, struct map_session_data &sd)
 
 	int tid = RFIFOL(fd,2);
 
-	if ((battle_config.atc_gmonly == 0 || sd.isGM()) &&
+	if ((config.atc_gmonly == 0 || sd.isGM()) &&
 	    (sd.isGM() >= get_atcommand_level(AtCommand_Kick))) {
 		target = map_id2bl(tid);
 		if (target) {
@@ -11867,7 +11867,7 @@ int clif_parse_Shift(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if( (battle_config.atc_gmonly == 0 || sd.isGM()) &&
+	if( (config.atc_gmonly == 0 || sd.isGM()) &&
 	    sd.isGM() >= get_atcommand_level(AtCommand_JumpTo) )
 	{
 		memcpy(player_name, RFIFOP(fd,2), 24);
@@ -11888,7 +11888,7 @@ int clif_parse_Recall(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if( (battle_config.atc_gmonly == 0 || sd.isGM()) &&
+	if( (config.atc_gmonly == 0 || sd.isGM()) &&
 		sd.isGM() >= get_atcommand_level(AtCommand_Recall) )
 	{
 		memcpy(player_name, RFIFOP(fd,2), 24);
@@ -11902,7 +11902,7 @@ int clif_parse_GMHide(int fd, struct map_session_data &sd)
 {	// Modified by [Yor]
 
 	//ShowMessage("%2x %2x %2x\n", (unsigned short)RFIFOW(fd,0), (unsigned short)RFIFOW(fd,2), (unsigned short)RFIFOW(fd,4)); // R 019d <Option_value>.2B <flag>.2B
-	if( (battle_config.atc_gmonly == 0 || sd.isGM()) &&
+	if( (config.atc_gmonly == 0 || sd.isGM()) &&
 	    sd.isGM() >= get_atcommand_level(AtCommand_Hide) )
 	{
 		if (sd.status.option & OPTION_HIDE) { // OPTION_HIDE = 0x40
@@ -11935,7 +11935,7 @@ int clif_parse_GMReqNoChat(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if(!battle_config.muting_players) {
+	if(!config.muting_players) {
 		clif_displaymessage(fd, "Muting is disabled.");
 		return 0;
 	}
@@ -12032,7 +12032,7 @@ int clif_parse_PMIgnore(int fd, struct map_session_data &sd)
 				if (strcmp(wisp_server_name, nick) == 0)
 				{	// to find possible bot users who automaticaly ignore people.
 					snprintf(output, sizeof(output), "Character '%s' (account: %ld) has tried AGAIN to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
-					intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, output);
+					intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, output);
 				}
 			}
 			else if( i>=MAX_IGNORE_LIST )
@@ -12042,7 +12042,7 @@ int clif_parse_PMIgnore(int fd, struct map_session_data &sd)
 				clif_wis_message(fd, wisp_server_name, "You can not block more people.", strlen("You can not block more people.") + 1);
 				if (strcmp(wisp_server_name, nick) == 0) { // to found possible bot users who automaticaly ignore people.
 					snprintf(output, sizeof(output), "Character '%s' (account: %ld) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
-					intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, output);
+					intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, output);
 				}
 			}
 			else
@@ -12053,7 +12053,7 @@ int clif_parse_PMIgnore(int fd, struct map_session_data &sd)
 				if (strcmp(wisp_server_name, nick) == 0)
 				{	// to find possible bot users who automaticaly ignore people.
 					snprintf(output, sizeof(output), "Character '%s' (account: %ld) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
-					intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, output);
+					intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, output);
 					// send something to be inform and force bot to ignore twice... ifGM receiving block + block again, it's a bot :)
 					clif_wis_message(fd, wisp_server_name, "Add me in your ignore list, doesn't block my wisps.", 1+strlen("Add me in your ignore list, doesn't block my wisps."));
 				}
@@ -12176,7 +12176,7 @@ int clif_parse_NoviceExplosionSpirits(int fd, struct map_session_data &sd)
 {
 		int nextbaseexp=pc_nextbaseexp(sd);
 	struct pc_base_job s_class = pc_calc_base_job(sd.status.class_);
-		if (battle_config.etc_log){
+		if (config.etc_log){
 			if(nextbaseexp != 0)
 			ShowMessage("SuperNovice explosionspirits!! %d %d %d %d\n",sd.block_list::id,s_class.job,sd.status.base_exp,1000*sd.status.base_exp/nextbaseexp);
 			else
@@ -12514,7 +12514,7 @@ int clif_parse_SendMail(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if(!battle_config.mailsystem)
+	if(!config.mailsystem)
 	{	
 		clif_res_sendmail(sd, false);
 		return 0;
@@ -12997,20 +12997,20 @@ int clif_parse(int fd)
 				(!sd && packet_db[packet_ver][cmd].func != clif_parse_WantToConnection) || // should not happen
 
 				// check client version
-				(battle_config.packet_ver_flag &&
-				((packet_ver <=  5 && (battle_config.packet_ver_flag & 0x00001) == 0) ||
-				(packet_ver ==  6 && (battle_config.packet_ver_flag & 0x00002) == 0) ||	
-				(packet_ver ==  7 && (battle_config.packet_ver_flag & 0x00004) == 0) ||	
-				(packet_ver ==  8 && (battle_config.packet_ver_flag & 0x00008) == 0) ||	
-				(packet_ver ==  9 && (battle_config.packet_ver_flag & 0x00010) == 0) ||
-				(packet_ver == 10 && (battle_config.packet_ver_flag & 0x00020) == 0) ||
-				(packet_ver == 11 && (battle_config.packet_ver_flag & 0x00040) == 0) ||
-				(packet_ver == 12 && (battle_config.packet_ver_flag & 0x00080) == 0) ||
-				(packet_ver == 13 && (battle_config.packet_ver_flag & 0x00100) == 0) ||
-				(packet_ver == 14 && (battle_config.packet_ver_flag & 0x00200) == 0) ||
-				(packet_ver == 15 && (battle_config.packet_ver_flag & 0x00400) == 0) ||
-				(packet_ver == 16 && (battle_config.packet_ver_flag & 0x00800) == 0) ||
-				(packet_ver == 17 && (battle_config.packet_ver_flag & 0x01000) == 0)) ) )
+				(config.packet_ver_flag &&
+				((packet_ver <=  5 && (config.packet_ver_flag & 0x00001) == 0) ||
+				(packet_ver ==  6 && (config.packet_ver_flag & 0x00002) == 0) ||	
+				(packet_ver ==  7 && (config.packet_ver_flag & 0x00004) == 0) ||	
+				(packet_ver ==  8 && (config.packet_ver_flag & 0x00008) == 0) ||	
+				(packet_ver ==  9 && (config.packet_ver_flag & 0x00010) == 0) ||
+				(packet_ver == 10 && (config.packet_ver_flag & 0x00020) == 0) ||
+				(packet_ver == 11 && (config.packet_ver_flag & 0x00040) == 0) ||
+				(packet_ver == 12 && (config.packet_ver_flag & 0x00080) == 0) ||
+				(packet_ver == 13 && (config.packet_ver_flag & 0x00100) == 0) ||
+				(packet_ver == 14 && (config.packet_ver_flag & 0x00200) == 0) ||
+				(packet_ver == 15 && (config.packet_ver_flag & 0x00400) == 0) ||
+				(packet_ver == 16 && (config.packet_ver_flag & 0x00800) == 0) ||
+				(packet_ver == 17 && (config.packet_ver_flag & 0x01000) == 0)) ) )
 			{
 				ShowMessage("clif_parse: session #%d, packet 0x%x ver. %i (%d bytes received) -> disconnected (unknown packetver).\n", fd, cmd, packet_ver, RFIFOREST(fd));
 				WFIFOW(fd,0) = 0x6a;
@@ -13057,7 +13057,7 @@ int clif_parse(int fd)
 
 			if( sd && packet_db[packet_ver][cmd].func==clif_parse_WantToConnection )
 			{
-				if (battle_config.error_log)
+				if (config.error_log)
 					ShowMessage("clif_parse_WantToConnection : invalid request?\n");
 			}
 			else

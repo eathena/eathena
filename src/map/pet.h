@@ -5,7 +5,8 @@
 #define MAX_PET_DB	300
 #define MAX_PETLOOT_SIZE	30 // [Valaris] - Changed to MAX_PETLOOT_SIZE [Skotlex]
 
-struct petdb {
+struct petdb
+{
 	char	name[24];
 	char	jname[24];
 	short	class_;
@@ -26,7 +27,7 @@ struct petdb {
 	int defence_attack_rate;
 	int change_target_rate;
 	char s_perfor;
-	char *script;
+	script_object*script;
 };
 extern struct petdb pet_db[MAX_PET_DB];
 

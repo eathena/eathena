@@ -80,6 +80,7 @@ struct fightable : public movable
 	///////////////////////////////////////////////////////////////////////////
 	// status functions
 
+	virtual bool is_movable();
 	/// checks if this is attackable
 	virtual bool is_attackable() const	{ return true; }
 	/// checks for attack state
@@ -112,6 +113,8 @@ struct fightable : public movable
 
 	/// starts attack
 	virtual bool start_attack(uint32 target_id, bool cont);
+	/// starts attack
+	virtual bool start_attack(const block_list& target_bl, bool cont);
 	/// stops attack
 	virtual bool stop_attack();
 

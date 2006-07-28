@@ -1498,7 +1498,7 @@ protected:
 	/////////////////////////////////////////////////////////////////
 	virtual ptrstring *createpointer() const throw()
 	{
-		return new ptrstring;
+		return new ptrstring();
 	}
 	virtual ptrstring *createpointer(const ptrstring& old) const throw()
 	{
@@ -1515,10 +1515,10 @@ protected:
 	}
 	virtual       basestring<T>& writeaccess(bool keep=true)
 	{
-		if(!this->cCountObj)
-			this->cCountObj = createpointer();
-		else
+		if(this->cCountObj)
 			this->make_unique(keep);
+		else
+			this->cCountObj = createpointer();	
 		return *this->cCountObj;
 	}
 	/////////////////////////////////////////////////////////////////

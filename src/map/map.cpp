@@ -33,59 +33,8 @@
 #include "atcommand.h"
 #include "charcommand.h"
 #include "log.h"
-#include "datasq.h"
-
-#if defined(WITH_MYSQL)
-
-MYSQL mmysql_handle;
-MYSQL_RES* 	sql_res ;
-MYSQL_ROW	sql_row ;
-char tmp_sql[65535]="";
-
-MYSQL lmysql_handle;
-MYSQL_RES* lsql_res ;
-MYSQL_ROW  lsql_row ;
-char tmp_lsql[65535]="";
-
-MYSQL logmysql_handle; //For the log database - fix by [Maeki]
-MYSQL_RES* logsql_res ;
-MYSQL_ROW  logsql_row ;
-
-MYSQL mail_handle; // mail system [Valaris]
-MYSQL_RES* 	mail_res ;
-MYSQL_ROW	mail_row ;
-char tmp_msql[65535]="";
-
-unsigned short map_server_port = 3306;
-char map_server_ip[16] = "127.0.0.1";
-char map_server_id[32] = "ragnarok";
-char map_server_pw[32] = "ragnarok";
-char map_server_db[32] = "ragnarok";
-int db_use_sqldbs = 0;
-
-unsigned short login_server_port = 3306;
-char login_server_ip[16] = "127.0.0.1";
-char login_server_id[32] = "ragnarok";
-char login_server_pw[32] = "ragnarok";
-char login_server_db[32] = "ragnarok";
-
-char item_db_db[32] = "item_db";
-char item_db2_db[32] = "item_db2";
-char mob_db_db[32] = "mob_db";
-char mob_db2_db[32] = "mob_db2";
-
-char log_db[32] = "log";
-char log_db_ip[16] = "127.0.0.1";
-char log_db_id[32] = "ragnarok";
-char log_db_pw[32] = "ragnarok";
-int log_db_port = 3306;
 
 
-
-
-#endif//TXT_OMLY
-
-char *INTER_CONF_NAME="conf/inter_athena.conf";
 char *LOG_CONF_NAME="conf/log_athena.conf";
 char *MAP_CONF_NAME = "conf/map_athena.conf";
 char *BATTLE_CONF_FILENAME = "conf/battle_athena.conf";
@@ -217,15 +166,15 @@ bool block_list::map_addblock()
 {
 	if(this->prev != NULL)
 	{
-		if(battle_config.error_log)
-			ShowMessage("map_addblock error : bl->prev!=NULL\n");
+		if(config.error_log)
+			ShowMessage("map_addblock error : bl->prev!=NULL (id=%lu)\n",(ulong)this->id);
 	}
-	else if( this->m<map_num && this->x<maps[m].xs && this->y<maps[m].ys )
+	else if( this->m<map_num && this->x<maps[this->m].xs && this->y<maps[this->m].ys )
 	{
 		const size_t pos = this->x/BLOCK_SIZE+(this->y/BLOCK_SIZE)*maps[this->m].bxs;
 		map_data::_objects &obj = maps[this->m].objects[pos];
 
-		if( this->type == BL_MOB)
+		if( this->type == BL_MOB )
 		{
 			this->next = obj.root_mob;
 			this->prev = &bl_head;
@@ -244,15 +193,16 @@ bool block_list::map_addblock()
 			if( this->type == BL_PC )
 			{
 				struct map_session_data& sd = (struct map_session_data&)(*this);
-				if( agit_flag && battle_config.pet_no_gvg && maps[this->m].flag.gvg && sd.pd)
+				if( agit_flag && config.pet_no_gvg && maps[this->m].flag.gvg && sd.pd)
 				{	//Return the pet to egg. [Skotlex]
 					clif_displaymessage(sd.fd, "Pets are not allowed in Guild Wars.");
-					pet_menu(sd, 3); //Option 3 is return to egg.
+					pet_menu(sd, 3); // Option 3 is return to egg.
 				}
-				if(maps[this->m].users++ == 0 && battle_config.dynamic_mobs)	//Skotlex
+				if(maps[this->m].users++ == 0 && config.dynamic_mobs)	// Skotlex
 					map_spawnmobs(this->m);
 			}
 		}
+
 		return true;
 	}
 	return false;
@@ -268,20 +218,21 @@ bool block_list::map_delblock()
 	{
 		if(this->next!=NULL)
 		{	// prevがNULLでnextがNULLでないのは有ってはならない
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowError("map_delblock error : bl->next!=NULL, (type=%i)\n", this->type);
 		}
 	}
-	else if( map_num && this->m < map_num)
+	else if( this->m < map_num )
 	{
 		const size_t pos = this->x/BLOCK_SIZE+(this->y/BLOCK_SIZE)*maps[this->m].bxs;
 		map_data::_objects &obj = maps[this->m].objects[pos];
 
 		if( this->type == BL_PC )
 		{
-			if( maps[this->m].users>0 && --maps[this->m].users == 0 && battle_config.dynamic_mobs)	//[Skotlex]
+			if( maps[this->m].users>0 && --maps[this->m].users == 0 && config.dynamic_mobs)
 				map_removemobs(this->m);
 		}
+
 		if(this->type==BL_MOB)
 		{
 			if( obj.cnt_mob > 0 )
@@ -328,7 +279,7 @@ int block_list::map_freeblock()
 	{
 		if (block_free_count >= block_free_max)
 		{
-			if (battle_config.error_log)
+			if (config.error_log)
 				ShowWarning("map_freeblock: too many free block! %d %d\n",
 					block_free_count, block_free_lock);
 		}
@@ -365,7 +316,7 @@ int block_list::map_freeblock_unlock (void)
 	}
 	else if (block_free_lock < 0)
 	{
-		if (battle_config.error_log)
+		if (config.error_log)
 			ShowError("map_freeblock_unlock: lock count < 0 !\n");
 		block_free_lock = 0; // 次回以降のロックに支障が出てくるのでリセット
 	}
@@ -693,7 +644,7 @@ int CMap::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y
 
 
 	if(bl_list_count>=BL_LIST_MAX) {
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowWarning("map_foreachinpath: *WARNING* block count too many!\n");
 	}
 
@@ -817,7 +768,7 @@ int CMap::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y
 	}//end for index
 
 	if(bl_list_count>=BL_LIST_MAX) {
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowWarning("map_foreachinpath: *WARNING* block count too many!\n");
 	}
 
@@ -966,7 +917,7 @@ int CMap::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y
 	}while( t++ <= tmax );
 
 	if(bl_list_count>=BL_LIST_MAX) {
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowWarning("map_foreachinpath: *WARNING* block count too many!\n");
 	}
 
@@ -1020,7 +971,7 @@ int CMap::foreachincell(const CMapProcessor& elem, unsigned short m,int x,int y,
 	}
 
 	if(bl_list_count>=BL_LIST_MAX) {
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("map_foreachincell: *WARNING* block count too many!\n");
 	}
 
@@ -1125,7 +1076,7 @@ int CMap::foreachinmovearea(const CMapProcessor& elem, unsigned short m,int x0,i
 	}
 
 	if(bl_list_count>=BL_LIST_MAX) {
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("map_foreachinarea: *WARNING* block count too many!\n");
 	}
 
@@ -1190,7 +1141,7 @@ int CMap::foreachinarea(const CMapProcessor& elem, unsigned short m, int x0,int 
 		}
 
 	if(bl_list_count>=BL_LIST_MAX) {
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("map_foreachinarea: *WARNING* block count too many!\n");
 	}
 
@@ -1261,7 +1212,7 @@ int CMap::foreachobject(const CMapProcessor& elem,int type)
 				continue;
 			if(bl_list_count>=BL_LIST_MAX)
 			{
-				if(battle_config.error_log)
+				if(config.error_log)
 					ShowMessage("map_foreachobject: too many block !\n");
 				break;
 			}
@@ -1387,7 +1338,7 @@ int map_foreachinarea(int (*func)(struct block_list&,va_list &),unsigned short m
 		}
 
 	if(bl_list_count>=BL_LIST_MAX) {
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("map_foreachinarea: *WARNING* block count too many!\n");
 	}
 
@@ -1501,7 +1452,7 @@ int map_foreachinmovearea(int (*func)(struct block_list&,va_list &),unsigned sho
 	}
 
 	if(bl_list_count>=BL_LIST_MAX) {
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("map_foreachinarea: *WARNING* block count too many!\n");
 	}
 
@@ -1565,7 +1516,7 @@ int map_foreachincell(int (*func)(struct block_list&,va_list &),unsigned short m
 	}
 
 	if(bl_list_count>=BL_LIST_MAX) {
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("map_foreachincell: *WARNING* block count too many!\n");
 	}
 
@@ -1774,7 +1725,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m
 
 
 	if(bl_list_count>=BL_LIST_MAX) {
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowWarning("map_foreachinpath: *WARNING* block count too many!\n");
 	}
 
@@ -1901,7 +1852,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m
 	}//end for index
 
 	if(bl_list_count>=BL_LIST_MAX) {
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowWarning("map_foreachinpath: *WARNING* block count too many!\n");
 	}
 
@@ -2045,7 +1996,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m
 	}while( t++ <= tmax );
 
 	if(bl_list_count>=BL_LIST_MAX) {
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowWarning("map_foreachinpath: *WARNING* block count too many!\n");
 	}
 
@@ -2086,7 +2037,7 @@ void map_foreachobject(int (*func)(struct block_list*,va_list &),int type,...)
 				continue;
 			if(bl_list_count>=BL_LIST_MAX)
 			{
-				if(battle_config.error_log)
+				if(config.error_log)
 					ShowMessage("map_foreachobject: too many block !\n");
 			}
 			else
@@ -2125,7 +2076,7 @@ int map_addobject(struct block_list &bl)
 		if(objects[i]==NULL)
 			break;
 	if(i>=MAX_FLOORITEM){
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("no free object id\n");
 		return 0;
 	}
@@ -2194,7 +2145,7 @@ int map_clearflooritem_timer(int tid, unsigned long tick, int id, basics::numptr
 {
 	flooritem_data *fitem = (flooritem_data *)objects[id];
 	if(fitem==NULL || fitem->block_list::type!=BL_ITEM || (!data.num && fitem->cleartimer != tid)){
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("map_clearflooritem_timer : error\n");
 		return 1;
 	}
@@ -2322,30 +2273,30 @@ int map_addflooritem(struct item &item_data,unsigned short amount,unsigned short
 	if(first_sd) {
 		fitem->first_get_id = first_sd->block_list::id;
 		if(type)
-			fitem->first_get_tick = tick + battle_config.mvp_item_first_get_time;
+			fitem->first_get_tick = tick + config.mvp_item_first_get_time;
 		else
-			fitem->first_get_tick = tick + battle_config.item_first_get_time;
+			fitem->first_get_tick = tick + config.item_first_get_time;
 	}
 	if(second_sd) {
 		fitem->second_get_id = second_sd->block_list::id;
 		if(type)
-			fitem->second_get_tick = tick + battle_config.mvp_item_first_get_time + battle_config.mvp_item_second_get_time;
+			fitem->second_get_tick = tick + config.mvp_item_first_get_time + config.mvp_item_second_get_time;
 		else
-			fitem->second_get_tick = tick + battle_config.item_first_get_time + battle_config.item_second_get_time;
+			fitem->second_get_tick = tick + config.item_first_get_time + config.item_second_get_time;
 	}
 	if(third_sd) {
 		fitem->third_get_id = third_sd->block_list::id;
 		if(type)
-			fitem->third_get_tick = tick + battle_config.mvp_item_first_get_time + battle_config.mvp_item_second_get_time + battle_config.mvp_item_third_get_time;
+			fitem->third_get_tick = tick + config.mvp_item_first_get_time + config.mvp_item_second_get_time + config.mvp_item_third_get_time;
 		else
-			fitem->third_get_tick = tick + battle_config.item_first_get_time + battle_config.item_second_get_time + battle_config.item_third_get_time;
+			fitem->third_get_tick = tick + config.item_first_get_time + config.item_second_get_time + config.item_third_get_time;
 	}
 
 	memcpy(&fitem->item_data,&item_data,sizeof(struct item));
 	fitem->item_data.amount=amount;
 	fitem->subx=(r&3)*3+3;
 	fitem->suby=((r>>2)&3)*3+3;
-	fitem->cleartimer=add_timer(gettick()+battle_config.flooritem_lifetime,map_clearflooritem_timer,fitem->block_list::id,0);
+	fitem->cleartimer=add_timer(gettick()+config.flooritem_lifetime,map_clearflooritem_timer,fitem->block_list::id,0);
 
 	fitem->map_addblock();
 	clif_dropflooritem(*fitem);
@@ -2694,7 +2645,7 @@ int map_addnpc(unsigned short m, struct npc_data *nd)
 		if(maps[m].npc[i]==NULL)
 			break;
 	if(i==MAX_NPC_PER_MAP){
-		if(battle_config.error_log)
+		if(config.error_log)
 			ShowMessage("too many NPCs in one map %s\n",maps[m].mapname);
 		return -1;
 	}
@@ -2766,7 +2717,7 @@ void map_spawnmobs(unsigned short m)
 			npc_parse_mob2(*maps[m].moblist[i]);
 		}
 	}
-	if (battle_config.etc_log && k > 0)
+	if (config.etc_log && k > 0)
 		ShowStatus("Map %s: Spawned '"CL_WHITE"%d"CL_RESET"' mobs.\n",maps[m].mapname, k);
 }
 /*
@@ -2786,7 +2737,7 @@ int mob_cache_cleanup_sub(struct block_list &bl, va_list &ap)
 		return 0;
 	
 	// hurt enemies	
-	if ( (md.hp != md.max_hp) && !battle_config.mob_remove_damaged )
+	if ( (md.hp != md.max_hp) && !config.mob_remove_damaged )
 		return 0;
 
 	// cleaning a master will also clean its slaves
@@ -2816,7 +2767,7 @@ public:
 			// cached, not delayed and not already on delete schedule
 			(md.cache && !md.cache->delay1 && !md.cache->delay2 && -1==md.deletetimer) &&
 			// unhurt enemies	
-			(battle_config.mob_remove_damaged || (md.hp == md.max_hp)) )
+			(config.mob_remove_damaged || (md.hp == md.max_hp)) )
 		{
 			// cleaning a master will also clean its slaves
 			if( md.state.is_master )
@@ -2836,13 +2787,13 @@ int map_removemobs_timer(int tid, unsigned long tick, int id, basics::numptr dat
 	unsigned short m = id;
 	if(m >= map_num)
 	{	//Incorrect map id!
-		if (battle_config.error_log)
+		if (config.error_log)
 			ShowError("map_removemobs_timer error: timer %d points to invalid map %d\n",tid, m);
 		return 0;
 	}
 	if (maps[m].mob_delete_timer != tid)
 	{	//Incorrect timer call!
-		if (battle_config.error_log)
+		if (config.error_log)
 			ShowError("map_removemobs_timer mismatch: %d != %d (map %s)\n",maps[m].mob_delete_timer, tid, maps[m].mapname);
 		return 0;
 	}
@@ -2855,7 +2806,7 @@ int map_removemobs_timer(int tid, unsigned long tick, int id, basics::numptr dat
 //	k = map_foreachinarea(mob_cache_cleanup_sub, 
 //		m, 0, 0, maps[m].xs-1, maps[m].ys-1, BL_MOB);
 
-	if (battle_config.etc_log && k > 0)
+	if (config.etc_log && k > 0)
 		ShowStatus("Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n",maps[m].mapname, k);
 	return 1;
 }
@@ -2865,7 +2816,7 @@ void map_removemobs(unsigned short m)
 	if (maps[m].mob_delete_timer != -1)
 		return; //Mobs are already scheduled for removal
 
-	maps[m].mob_delete_timer = add_timer(gettick()+battle_config.mob_remove_delay, map_removemobs_timer, m, 0);
+	maps[m].mob_delete_timer = add_timer(gettick()+config.mob_remove_delay, map_removemobs_timer, m, 0);
 }
 
 /*==========================================
@@ -3656,7 +3607,7 @@ bool map_readafm(struct map_data& cmap, const char *fn=NULL)
 		cmap.users=0;
 		memset(&cmap.flag,0,sizeof(cmap.flag));
 
-		if(battle_config.pk_mode) cmap.flag.pvp = 1; // make all maps pvp for pk_mode [Valaris]
+		if(config.pk_mode) cmap.flag.pvp = 1; // make all maps pvp for pk_mode [Valaris]
 
 		cmap.gat = new struct mapgat[cmap.xs*cmap.ys];
 		for (y = 0; y < ys; ++y)
@@ -3865,7 +3816,7 @@ int map_readallmap(void)
 			maps[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
 
 			memset(&maps[i].flag,0,sizeof(maps[i].flag));
-			if(battle_config.pk_mode)
+			if(config.pk_mode)
 				maps[i].flag.pvp = 1; // make all maps pvp for pk_mode [Valaris]
 
 			maps[i].npc_num=0;
@@ -4109,162 +4060,6 @@ else if (strcasecmp(w1, "map_port") == 0) {
 	return 0;
 }
 
-int inter_config_read(const char *cfgName)
-{
-	int i;
-	char line[1024],w1[1024],w2[1024];
-	FILE *fp;
-
-	fp=basics::safefopen(cfgName,"r");
-	if(fp==NULL){
-		ShowError("File not found: '%s'.\n",cfgName);
-		return 1;
-	}
-	while(fgets(line,sizeof(line),fp)){
-		if( !get_prepared_line(line) )
-			continue;
-		i=sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
-		if(i!=2)
-			continue;
-
-		if(strcasecmp(w1,"import")==0){
-		//support the import command, just like any other config
-			inter_config_read(w2);
-		}
-	#if defined(WITH_MYSQL)
-		  else if(strcasecmp(w1,"item_db_db")==0){
-			strcpy(item_db_db,w2);
-		} else if(strcasecmp(w1,"mob_db_db")==0){
-			strcpy(mob_db_db,w2);
-		} else if(strcasecmp(w1,"item_db2_db")==0){
-			strcpy(item_db2_db,w2);
-		} else if(strcasecmp(w1,"mob_db2_db")==0){
-			strcpy(mob_db2_db,w2);
-		//Map Server SQL DB
-		} else if(strcasecmp(w1,"map_server_ip")==0){
-			strcpy(map_server_ip, w2);
-		} else if(strcasecmp(w1,"map_server_port")==0){
-			map_server_port=atoi(w2);
-		} else if(strcasecmp(w1,"map_server_id")==0){
-			strcpy(map_server_id, w2);
-		} else if(strcasecmp(w1,"map_server_pw")==0){
-			strcpy(map_server_pw, w2);
-		} else if(strcasecmp(w1,"map_server_db")==0){
-			strcpy(map_server_db, w2);
-		} else if(strcasecmp(w1,"use_sql_db")==0){
-			db_use_sqldbs = config_switch(w2);
-			ShowMessage ("Using SQL dbs: %s\n",w2);
-		//Login Server SQL DB
-		} else if(strcasecmp(w1,"login_server_ip")==0){
-			strcpy(login_server_ip, w2);
-        } else if(strcasecmp(w1,"login_server_port")==0){
-			login_server_port = atoi(w2);
-		} else if(strcasecmp(w1,"login_server_id")==0){
-			strcpy(login_server_id, w2);
-		} else if(strcasecmp(w1,"login_server_pw")==0){
-			strcpy(login_server_pw, w2);
-		} else if(strcasecmp(w1,"login_server_db")==0){
-			strcpy(login_server_db, w2);
-		} else if(strcasecmp(w1,"log_db")==0) {
-			strcpy(log_db, w2);
-		} else if(strcasecmp(w1,"log_db_ip")==0) {
-			strcpy(log_db_ip, w2);
-		} else if(strcasecmp(w1,"log_db")==0) {
-			strcpy(log_db, w2);
-		} else if(strcasecmp(w1,"log_db_id")==0) {
-			strcpy(log_db_id, w2);
-		} else if(strcasecmp(w1,"log_db_pw")==0) {
-			strcpy(log_db_pw, w2);
-		} else if(strcasecmp(w1,"log_db_port")==0) {
-			log_db_port = atoi(w2);
-		}
-	#endif
-		}
-	fclose(fp);
-
-	return 0;
-}
-
-#if defined(WITH_MYSQL)
-/*=======================================
- *  MySQL Init
- *---------------------------------------
- */
-
-int map_sql_init(void)
-{
-    mysql_init(&mmysql_handle);
-
-	//DB connection start
-	ShowMessage("Connect Database Server on %s:%u....(Map Server)\n", map_server_ip, map_server_port);
-	if(!mysql_real_connect(&mmysql_handle, map_server_ip, map_server_id, map_server_pw,
-		map_server_db ,map_server_port, (char *)NULL, 0)) {
-			//pointer check
-			ShowMessage("%s\n",mysql_error(&mmysql_handle));
-			exit(1);
-	}
-	else {
-		ShowMessage ("connect success! (Map Server)\n");
-	}
-
-    mysql_init(&lmysql_handle);
-
-    //DB connection start
-    ShowMessage("Connect Database Server on %s:%u....(Map Server)\n",login_server_ip,login_server_port);
-    if(!mysql_real_connect(&lmysql_handle, login_server_ip, login_server_id, login_server_pw,
-        login_server_db ,login_server_port, (char *)NULL, 0)) {
-	        //pointer check
-			ShowMessage("%s\n",mysql_error(&lmysql_handle));
-			exit(1);
-	}
-	 else {
-		ShowMessage ("connect success! (Login Server)\n");
-	 }
-
-	return 0;
-}
-
-int map_sql_close(void)
-{
-	mysql_close(&mmysql_handle);
-	ShowMessage("Close Map DB Connection....\n");
-
-	mysql_close(&lmysql_handle);
-	ShowMessage("Close Login DB Connection....\n");
-
-	if (log_config.sql_logs)
-//Updating this if each time there's a log_config addition is too much of a hassle.	[Skotlex]
-		/*&& (log_config.branch || log_config.drop || log_config.mvpdrop ||
-		log_config.present || log_config.produce || log_config.refine || log_config.trade))*/
-	{
-		mysql_close(&logmysql_handle);
-		ShowMessage("Close Log DB Connection....\n");
-	}
-	return 0;
-}
-
-int log_sql_init(void)
-{
-	if(db_use_sqldbs)
-	{
-		mysql_init(&logmysql_handle);
-
-		//DB connection start
-		ShowMessage(""CL_WHITE"[SQL]"CL_RESET": Connecting to Log Database "CL_WHITE"%s"CL_RESET" At "CL_WHITE"%s"CL_RESET"...\n",log_db,log_db_ip);
-		if(!mysql_real_connect(&logmysql_handle, log_db_ip, log_db_id, log_db_pw,
-			log_db ,log_db_port, (char *)NULL, 0)) {
-				//pointer check
-				ShowError(""CL_WHITE"[SQL Error]"CL_RESET": %s\n",mysql_error(&logmysql_handle));
-				exit(1);
-		} else {
-			ShowStatus(""CL_WHITE"[SQL]"CL_RESET": Successfully '"CL_BT_GREEN"connected"CL_RESET"' to Database '"CL_WHITE"%s"CL_RESET"'.\n", log_db);
-		}
-	}
-	return 0;
-}
-#endif//WITH_MYSQL
-
-
 void char_online_check(void)
 {
 	size_t i;
@@ -4277,7 +4072,7 @@ void char_online_check(void)
 		if( session[i] &&
 			(sd = (struct map_session_data*)session[i]->user_session) && 
 			sd->state.auth &&
-			!(battle_config.hide_GM_session && sd->isGM()) &&
+			!(config.hide_GM_session && sd->isGM()) &&
 			sd->status.char_id)
 		{
 			chrif_char_online(*sd);
@@ -4312,35 +4107,8 @@ int charid_db_final(void *k,void *d)
 	if (p) delete p;
 	return 0;
 }
-/*
-int cleanup_sub(struct block_list &bl, va_list &ap) 
-{
-	switch(bl.type)
-	{
-		case BL_PC:
-			map_quit( (struct map_session_data &)bl );
-			break;
-		case BL_NPC:
-			npc_unload( (struct npc_data *)&bl );
-			break;
-		case BL_MOB:
-			mob_unload( (struct mob_data &)bl);
-			break;
-		case BL_PET:
-			pet_remove_map( (struct map_session_data &)bl );
-			break;
-		case BL_ITEM:
-			map_clearflooritem(bl.id);
-			break;
-		case BL_SKILL:
-			skill_delunit( (struct skill_unit *)&bl);
-			break;
-		default:
-			ShowError("cleanup_sub unhandled block, type%i\n", bl.type);
-	}
-	return 0;
-}
-*/
+
+
 class CMapCleanup : public CMapProcessor
 {
 public:
@@ -4418,7 +4186,6 @@ void do_final(void)
 	{
 		if (maps[i].m >= 0)
 			CMap::foreachinarea( CMapCleanup(), i, 0, 0, maps[i].xs-1, maps[i].ys-1, 0);
-//			map_foreachinarea(cleanup_sub, i, 0, 0, maps[i].xs-1, maps[i].ys-1, 0);
 	}
 	// and a check
 	map_checknpcsleft();
@@ -4463,10 +4230,8 @@ void do_final(void)
 	}
 
 
-#if defined(WITH_MYSQL)
-	if(db_use_sqldbs)
-		map_sql_close();
-#endif//WITH_MYSQL
+	log_final();
+
 
 	///////////////////////////////////////////////////////////////////////////
 	// delete sessions
@@ -4483,24 +4248,24 @@ void do_final(void)
  *------------------------------------------------------
  */
 void map_helpscreen(int flag) { // by MC Cameri
-	puts("Usage: map-server [options]");
-	puts("Options:");
-	puts(CL_WHITE"  Commands\t\t\tDescription"CL_RESET);
-	puts("-----------------------------------------------------------------------------");
-	puts("  --help, --h, --?, /?		Displays this help screen");
-	puts("  --map-config <file>		Load map-server configuration from <file>");
-	puts("  --battle-config <file>	Load battle configuration from <file>");
-	puts("  --atcommand-config <file>	Load atcommand configuration from <file>");
-	puts("  --charcommand-config <file>	Load charcommand configuration from <file>");
-	puts("  --script-config <file>	Load script configuration from <file>");
-	puts("  --msg-config <file>		Load message configuration from <file>");
-	puts("  --grf-path-file <file>	Load grf path file configuration from <file>");
-	puts("  --sql-config <file>		Load inter-server configuration from <file>");
-	puts("				(SQL Only)");
-	puts("  --log-config <file>		Load logging configuration from <file>");
-	puts("				(SQL Only)");
-	puts("  --version, --v, -v, /v	Displays the server's version");
-	puts("\n");
+	ShowMessage("Usage: map-server [options]");
+	ShowMessage("Options:");
+	ShowMessage(CL_WHITE"  Commands\t\t\tDescription"CL_RESET);
+	ShowMessage("-----------------------------------------------------------------------------");
+	ShowMessage("  --help, --h, --?, /?		Displays this help screen");
+	ShowMessage("  --map-config <file>		Load map-server configuration from <file>");
+	ShowMessage("  --battle-config <file>	Load battle configuration from <file>");
+	ShowMessage("  --atcommand-config <file>	Load atcommand configuration from <file>");
+	ShowMessage("  --charcommand-config <file>	Load charcommand configuration from <file>");
+	ShowMessage("  --script-config <file>	Load script configuration from <file>");
+	ShowMessage("  --msg-config <file>		Load message configuration from <file>");
+	ShowMessage("  --grf-path-file <file>	Load grf path file configuration from <file>");
+	ShowMessage("  --sql-config <file>		Load inter-server configuration from <file>");
+	ShowMessage("				(SQL Only)");
+	ShowMessage("  --log-config <file>		Load logging configuration from <file>");
+	ShowMessage("				(SQL Only)");
+	ShowMessage("  --version, --v, -v, /v	Displays the server's version");
+	ShowMessage("\n");
 	if (flag) exit(1);
 }
 
@@ -4510,12 +4275,11 @@ void map_helpscreen(int flag) { // by MC Cameri
  */
 void map_versionscreen(int flag) {
 	ShowMessage(CL_WHITE"eAthena version %d.%02d.%02d, Athena Mod version %d"CL_RESET"\n",
-		ATHENA_MAJOR_VERSION, ATHENA_MINOR_VERSION, ATHENA_REVISION,
-		ATHENA_MOD_VERSION);
-	puts(CL_BT_GREEN "Website/Forum:" CL_RESET "\thttp://eathena.deltaanime.net/");
-	puts(CL_BT_GREEN "Download URL:" CL_RESET "\thttp://eathena.systeminplace.net/");
-	puts(CL_BT_GREEN "IRC Channel:" CL_RESET "\tirc://irc.deltaanime.net/#athena");
-	puts("\nOpen " CL_WHITE "readme.html" CL_RESET " for more information.");
+		ATHENA_MAJOR_VERSION, ATHENA_MINOR_VERSION, ATHENA_REVISION, ATHENA_MOD_VERSION);
+	ShowMessage(CL_BT_GREEN "Website/Forum:" CL_RESET "\thttp://eathena.deltaanime.net/");
+	ShowMessage(CL_BT_GREEN "Download URL:" CL_RESET "\thttp://eathena.systeminplace.net/");
+	ShowMessage(CL_BT_GREEN "IRC Channel:" CL_RESET "\tirc://irc.deltaanime.net/#athena");
+	ShowMessage("\nOpen " CL_WHITE "readme.html" CL_RESET " for more information.");
 	if (ATHENA_RELEASE_FLAG) ShowNotice("This version is not for release.\n");
 	if (flag) exit(1);
 }
@@ -4550,7 +4314,7 @@ int do_init(int argc, char *argv[])
 			map_versionscreen(1);
 		else if (strcmp(argv[i], "--map_config") == 0 || strcmp(argv[i], "--map-config") == 0)
 			MAP_CONF_NAME=argv[i+1];
-		else if (strcmp(argv[i],"--battle_config") == 0 || strcmp(argv[i],"--battle-config") == 0)
+		else if (strcmp(argv[i],"--config") == 0 || strcmp(argv[i],"--battle-config") == 0)
 			BATTLE_CONF_FILENAME = argv[i+1];
 		else if (strcmp(argv[i],"--atcommand_config") == 0 || strcmp(argv[i],"--atcommand-config") == 0)
 			ATCOMMAND_CONF_FILENAME = argv[i+1];
@@ -4577,25 +4341,23 @@ int do_init(int argc, char *argv[])
 
 	if (SHOW_DEBUG_MSG)
 		ShowNotice("Server running in '"CL_WHITE"Debug Mode"CL_RESET"'.\n");
-	battle_config_read(BATTLE_CONF_FILENAME);
+	config_read(BATTLE_CONF_FILENAME);
 	msg_config_read(MSG_CONF_NAME);
 	atcommand_config_read(ATCOMMAND_CONF_FILENAME);
 	charcommand_config_read(CHARCOMMAND_CONF_FILENAME);
 	script_config_read(SCRIPT_CONF_NAME);
-	inter_config_read(INTER_CONF_NAME);
-	log_config_read(LOG_CONF_NAME);
+
+
+	log_init(LOG_CONF_NAME);
 
 	id_db = numdb_init();
 	map_db = strdb_init(24);
 	nick_db = strdb_init(24);
 	charid_db = numdb_init();
-#if defined(WITH_MYSQL)
-	if(db_use_sqldbs)
-		map_sql_init();
-#endif//WITH_MYSQL
 
 	grfio_init(GRF_PATH_FILENAME);
 
+	battle_init();
 	map_readallmap();
 
 	add_timer_func_list(map_freeblock_timer, "map_freeblock_timer");
@@ -4622,13 +4384,7 @@ int do_init(int argc, char *argv[])
 	do_init_clif();
 	do_init_chrif();
 
-#if defined(WITH_MYSQL)
-	if (db_use_sqldbs && log_config.sql_logs && (log_config.branch || log_config.drop || log_config.mvpdrop ||
-		log_config.present || log_config.produce || log_config.refine || log_config.trade))
-	{
-		log_sql_init();
-	}
-#endif//WITH_MYSQL
+
 
 	npc_event_do_oninit();	// npcのOnInitイベント?行
 
@@ -4637,7 +4393,7 @@ int do_init(int argc, char *argv[])
 		start_console();
 	}
 
-	if (battle_config.pk_mode == 1)
+	if (config.pk_mode == 1)
 		ShowNotice("Server is running on '"CL_WHITE"PK Mode"CL_RESET"'.\n");
 
 	return 0;

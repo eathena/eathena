@@ -127,7 +127,7 @@ int storage_storageopen(struct map_session_data &sd)
 {
 	struct pc_storage *stor;
 
-	if(sd.isGM() && sd.isGM() < battle_config.gm_can_drop_lv)
+	if(sd.isGM() && sd.isGM() < config.gm_can_drop_lv)
 	{
 		clif_displaymessage(sd.fd, msg_txt(246));
 		return 1;

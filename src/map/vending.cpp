@@ -140,7 +140,7 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
 		vsd->vending[vend_list[i]].amount -= amount;
 		pc_cart_delitem(*vsd, index, amount, 0);
 		clif_vendingreport(*vsd, index, amount);
-		if(battle_config.buyer_name)
+		if(config.buyer_name)
 		{
 			char temp[256];
 			snprintf(temp, sizeof(temp),msg_txt(265), sd.status.name);
@@ -173,8 +173,8 @@ void vending_openvending(struct map_session_data &sd,unsigned short len,const ch
 			sd.vending[i].index = RBUFW(buffer,8*i) - 2;
 			sd.vending[i].amount= RBUFW(buffer,2+8*i);
 			sd.vending[i].value = RBUFL(buffer,4+8*i);
-			if(sd.vending[i].value>battle_config.vending_max_value)
-				sd.vending[i].value=battle_config.vending_max_value;
+			if(sd.vending[i].value>config.vending_max_value)
+				sd.vending[i].value=config.vending_max_value;
 			else if(sd.vending[i].value == 0)
 				sd.vending[i].value = 1000000;	// auto set to 1 million [celest]
 			// カート内のアイテム数と販売するアイテム数に相違があったら中止

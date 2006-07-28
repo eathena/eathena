@@ -815,7 +815,7 @@ bool atcommand_config_read(const char *cfgName)
 
 AtCommandType atcommand(AtCommandInfo& info, const char* message, struct map_session_data &sd, unsigned char level)
 {
-	if (battle_config.atc_gmonly != 0 && !level) // level = sd.isGM()
+	if (config.atc_gmonly != 0 && !level) // level = sd.isGM()
 		return AtCommand_None;
 	if (!message || !*message)
 	{
@@ -866,7 +866,7 @@ AtCommandType is_atcommand(const int fd, struct map_session_data &sd, const char
 	AtCommandInfo info = {AtCommand_None,NULL,0,NULL};
 	AtCommandType type;
 
-	if (!battle_config.allow_atcommand_when_mute &&
+	if (!config.allow_atcommand_when_mute &&
 		sd.sc_data[SC_NOCHAT].timer != -1)
 	{
 		return AtCommand_Unknown;
@@ -982,12 +982,12 @@ bool atcommand_rura(int fd, struct map_session_data &sd, const char* command, co
 		if(ip) *ip=0;
 
 		m = map_mapname2mapid(mapname);
-		if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM())
+		if (m >= 0 && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM())
 		{
 			clif_displaymessage(fd, msg_table[247]);
 			return false;
 		}
-		if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM())
+		if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
 		{
 			clif_displaymessage(fd, msg_table[248]);
 			return false;
@@ -1026,7 +1026,7 @@ bool atcommand_where(int fd, struct map_session_data &sd, const char* command, c
 	if(strncmp(sd.status.name,player_name,24)==0)
 		return false;
 	
-	if( battle_config.hide_GM_session && !(battle_config.who_display_aid > 0 && sd.isGM()>=battle_config.who_display_aid) )
+	if( config.hide_GM_session && !(config.who_display_aid > 0 && sd.isGM()>=config.who_display_aid) )
 	{
 		return false;
 	}
@@ -1063,11 +1063,11 @@ bool atcommand_jumpto(int fd, struct map_session_data &sd, const char* command, 
 		return false;
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL) {
-		if (pl_sd->block_list::m <map_num  && maps[pl_sd->block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
+		if (pl_sd->block_list::m <map_num  && maps[pl_sd->block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
 			clif_displaymessage(fd, msg_table[247]);
 			return false;
 		}
-		if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
+		if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
 			clif_displaymessage(fd, msg_table[248]);
 			return false;
 		}
@@ -1097,7 +1097,7 @@ bool atcommand_jump(int fd, struct map_session_data &sd, const char* command, co
 
 	if( sd.block_list::m >= map_num || 
 		maps[sd.block_list::m].flag.nowarp || 
-		(maps[sd.block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) )
+		(maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) )
 	{
 		clif_displaymessage(fd, msg_table[248]);
 		return false;
@@ -1144,11 +1144,11 @@ bool atcommand_who(int fd, struct map_session_data &sd, const char* command, con
 		if( session[i] && (pl_sd = (struct map_session_data *)session[i]->user_session) && pl_sd->state.auth)
 		{
 			pl_GM_level = pl_sd->isGM();
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				strcpytolower(player_name,pl_sd->status.name);
 				if(strstr(player_name, match_text) != NULL)
 				{	// search with no case sensitive
-					if (battle_config.who_display_aid > 0 && sd.isGM() >= battle_config.who_display_aid) {
+					if (config.who_display_aid > 0 && sd.isGM() >= config.who_display_aid) {
 						if (pl_GM_level > 0)
 							snprintf(output, sizeof(output), "(CID:%ld/AID:%ld) Name: %s (GM:%d) | Location: %s %d %d", (unsigned long)pl_sd->status.char_id, (unsigned long)pl_sd->status.account_id, pl_sd->status.name, pl_GM_level, pl_sd->mapname, pl_sd->block_list::x, pl_sd->block_list::y);
 						else
@@ -1202,7 +1202,7 @@ bool atcommand_who2(int fd, struct map_session_data &sd, const char* command, co
 	for (i = 0; i < fd_max; ++i) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
 			pl_GM_level = pl_sd->isGM();
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				strcpytolower(player_name,pl_sd->status.name);
 				if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
 					if (pl_GM_level > 0)
@@ -1255,7 +1255,7 @@ bool atcommand_who3(int fd, struct map_session_data &sd, const char* command, co
 	for (i = 0; i < fd_max; ++i) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
 			pl_GM_level = pl_sd->isGM();
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				strcpytolower(player_name,pl_sd->status.name);
 				if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
 					g = guild_search(pl_sd->status.guild_id);
@@ -1319,7 +1319,7 @@ bool atcommand_whomap(int fd, struct map_session_data &sd, const char* command, 
 	for (i = 0; i < fd_max; ++i) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
 			pl_GM_level = pl_sd->isGM();
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				if (pl_sd->block_list::m == map_id) {
 					if (pl_GM_level > 0)
 						snprintf(output, sizeof(output), "Name: %s (GM:%d) | Location: %s %d %d", pl_sd->status.name, pl_GM_level, pl_sd->mapname, pl_sd->block_list::x, pl_sd->block_list::y);
@@ -1373,7 +1373,7 @@ bool atcommand_whomap2(int fd, struct map_session_data &sd, const char* command,
 	for (i = 0; i < fd_max; ++i) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
 			pl_GM_level = pl_sd->isGM();
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				if (pl_sd->block_list::m == map_id) {
 					if (pl_GM_level > 0)
 						snprintf(output, sizeof(output), "Name: %s (GM:%d) | BLvl: %d | Job: %s (Lvl: %d)", pl_sd->status.name, pl_GM_level, pl_sd->status.base_level, job_name(pl_sd->status.class_), pl_sd->status.job_level);
@@ -1431,7 +1431,7 @@ bool atcommand_whomap3(int fd, struct map_session_data &sd, const char* command,
 	for (i = 0; i < fd_max; ++i) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
 			pl_GM_level = pl_sd->isGM();
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				if (pl_sd->block_list::m == map_id) {
 					g = guild_search(pl_sd->status.guild_id);
 					if (g == NULL)
@@ -1492,7 +1492,7 @@ bool atcommand_whogm(int fd, struct map_session_data &sd, const char* command, c
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
 			pl_GM_level = pl_sd->isGM();
 			if (pl_GM_level > 0) {
-				if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+				if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 					strcpytolower(player_name, pl_sd->status.name);
 					if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
 						snprintf(output, sizeof(output), "Name: %s (GM:%d) | Location: %s %d %d", pl_sd->status.name, pl_GM_level, pl_sd->mapname, pl_sd->block_list::x, pl_sd->block_list::y);
@@ -1645,11 +1645,11 @@ bool atcommand_load(int fd, struct map_session_data &sd, const char* command, co
 	int m;
 
 	m = map_mapname2mapid(sd.status.save_point.mapname);
-	if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
+	if (m >= 0 && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
 		clif_displaymessage(fd, msg_table[249]);
 		return false;
 	}
-	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
+	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
 		clif_displaymessage(fd, msg_table[248]);
 		return false;
 	}
@@ -2038,8 +2038,8 @@ bool atcommand_alive(int fd, struct map_session_data &sd, const char* command, c
 		sd.status.sp = sd.status.max_sp;
 		clif_skill_nodamage(sd,sd,ALL_RESURRECTION,4,1);
 	pc_setstand(sd);
-	if (battle_config.pc_invincible_time > 0)
-		pc_setinvincibletimer(sd, battle_config.pc_invincible_time);
+	if (config.pc_invincible_time > 0)
+		pc_setinvincibletimer(sd, config.pc_invincible_time);
 	clif_updatestatus(sd, SP_HP);
 	clif_updatestatus(sd, SP_SP);
 		clif_resurrection(sd, 1);
@@ -2286,12 +2286,12 @@ bool atcommand_baselevelup(int fd, struct map_session_data &sd, const char* comm
 
 
 	if (level > 0) {
-		if (sd.status.base_level == battle_config.maximum_level) {	// check for max level by Valaris
+		if (sd.status.base_level == config.maximum_level) {	// check for max level by Valaris
 			clif_displaymessage(fd, msg_table[47]); // Base level can't go any higher.
 			return false;
 		}	// End Addition
-		if((size_t)level > battle_config.maximum_level || (size_t)level > (battle_config.maximum_level - sd.status.base_level)) // fix positiv overflow
-			level = battle_config.maximum_level - sd.status.base_level;
+		if((size_t)level > config.maximum_level || (size_t)level > (config.maximum_level - sd.status.base_level)) // fix positiv overflow
+			level = config.maximum_level - sd.status.base_level;
 		for (i = 1; i <= level; ++i)
 			sd.status.status_point += (sd.status.base_level + i + 14) / 5;
 		sd.status.base_level += level;
@@ -2307,7 +2307,7 @@ bool atcommand_baselevelup(int fd, struct map_session_data &sd, const char* comm
 			clif_displaymessage(fd, msg_table[158]); // Base level can't go any lower.
 			return false;
 		}
-		if((size_t)(-level) > battle_config.maximum_level || sd.status.base_level < (size_t)(1 - level)) 
+		if((size_t)(-level) > config.maximum_level || sd.status.base_level < (size_t)(1 - level)) 
 			level = 1 - sd.status.base_level;
 		if( sd.status.status_point > 0 )
 		{
@@ -2462,7 +2462,7 @@ bool atcommand_pvpoff(int fd, struct map_session_data &sd, const char* command, 
 	size_t i;
 
 
-	if (battle_config.pk_mode) { //disable command if server is in PK mode [Valaris]
+	if (config.pk_mode) { //disable command if server is in PK mode [Valaris]
 		clif_displaymessage(fd, msg_table[52]); // This option cannot be used in PK Mode.
 		return false;
 	}
@@ -2499,7 +2499,7 @@ bool atcommand_pvpon(int fd, struct map_session_data &sd, const char* command, c
 	size_t i;
 
 
-	if (battle_config.pk_mode) { //disable command if server is in PK mode [Valaris]
+	if (config.pk_mode) { //disable command if server is in PK mode [Valaris]
 		clif_displaymessage(fd, msg_table[52]); // This option cannot be used in PK Mode.
 		return false;
 	}
@@ -2829,12 +2829,12 @@ bool atcommand_go(int fd, struct map_session_data &sd, const char* command, cons
 			if (sd.status.memo_point[-town-1].mapname[0])
 			{
 				m = map_mapname2mapid(sd.status.memo_point[-town-1].mapname);
-				if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM())
+				if (m >= 0 && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM())
 				{
 					clif_displaymessage(fd, msg_table[247]);
 					return false;
 				}
-				else if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM())
+				else if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
 				{
 					clif_displaymessage(fd, msg_table[248]);
 					return false;
@@ -2859,11 +2859,11 @@ bool atcommand_go(int fd, struct map_session_data &sd, const char* command, cons
 		else if (town >= 0 && town < (int)(sizeof(data) / sizeof(data[0])))
 		{
 			m = map_mapname2mapid(data[town].map);
-			if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
+			if (m >= 0 && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
 				clif_displaymessage(fd, msg_table[247]);
 				return false;
 			}
-			if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
+			if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
 				clif_displaymessage(fd, msg_table[248]);
 				return false;
 			}
@@ -2928,10 +2928,10 @@ bool atcommand_monster(int fd, struct map_session_data &sd, const char* command,
 		strcpy(name, "--ja--");
 
 	// If value of atcommand_spawn_quantity_limit directive is greater than or equal to 1 and quantity of monsters is greater than value of the directive
-	if (battle_config.atc_spawn_quantity_limit >= 1 && number > battle_config.atc_spawn_quantity_limit)
-		number = battle_config.atc_spawn_quantity_limit;
+	if (config.atc_spawn_quantity_limit >= 1 && number > config.atc_spawn_quantity_limit)
+		number = config.atc_spawn_quantity_limit;
 
-	if (battle_config.etc_log)
+	if (config.etc_log)
 		ShowMessage("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, x, y);
 
 	count = 0;
@@ -3013,10 +3013,10 @@ bool atcommand_spawn(int fd, struct map_session_data &sd, const char* command, c
 		strcpy(name, "--ja--");
 
 	// If value of atcommand_spawn_quantity_limit directive is greater than or equal to 1 and quantity of monsters is greater than value of the directive
-	if (battle_config.atc_spawn_quantity_limit >= 1 && number > battle_config.atc_spawn_quantity_limit)
-		number = battle_config.atc_spawn_quantity_limit;
+	if (config.atc_spawn_quantity_limit >= 1 && number > config.atc_spawn_quantity_limit)
+		number = config.atc_spawn_quantity_limit;
 
-	if (battle_config.etc_log)
+	if (config.etc_log)
 		ShowMessage("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, x, y);
 
 	count = 0;
@@ -3108,8 +3108,8 @@ bool atcommand_monstersmall(int fd, struct map_session_data &sd, const char* com
 		strcpy(name, "--ja--");
 
 	// If value of atcommand_spawn_quantity_limit directive is greater than or equal to 1 and quantity of monsters is greater than value of the directive
-	if (battle_config.atc_spawn_quantity_limit >= 1 && number > battle_config.atc_spawn_quantity_limit)
-		number = battle_config.atc_spawn_quantity_limit;
+	if (config.atc_spawn_quantity_limit >= 1 && number > config.atc_spawn_quantity_limit)
+		number = config.atc_spawn_quantity_limit;
 
 	count = 0;
 	for (i = 0; i < number; ++i) {
@@ -3185,8 +3185,8 @@ bool atcommand_monsterbig(int fd, struct map_session_data &sd, const char* comma
 		strcpy(name, "--ja--");
 
 	// If value of atcommand_spawn_quantity_limit directive is greater than or equal to 1 and quantity of monsters is greater than value of the directive
-	if (battle_config.atc_spawn_quantity_limit >= 1 && number > battle_config.atc_spawn_quantity_limit)
-		number = battle_config.atc_spawn_quantity_limit;
+	if (config.atc_spawn_quantity_limit >= 1 && number > config.atc_spawn_quantity_limit)
+		number = config.atc_spawn_quantity_limit;
 
 	count = 0;
 	for (i = 0; i < number; ++i) {
@@ -3380,7 +3380,7 @@ bool atcommand_produce(int fd, struct map_session_data &sd, const char* command,
 		if ((flag = pc_additem(sd, tmp_item, 1)))
 			clif_additem(sd, 0, 0, flag);
 	} else {
-		if (battle_config.error_log)
+		if (config.error_log)
 			ShowMessage("@produce NOT WEAPON [%d]\n", item_id);
 		if (item_id != 0 && itemdb_exists(item_id))
 			snprintf(output, sizeof(output), msg_table[169], item_id, item_data->name); // This item (%d: '%s') is not an equipment.
@@ -3427,7 +3427,7 @@ bool atcommand_memo(int fd, struct map_session_data &sd, const char* command, co
 		if (position >= MIN_PORTAL_MEMO && position <= MAX_PORTAL_MEMO) {
 			if( sd.block_list::m < map_num && 
 				(maps[sd.block_list::m].flag.nowarpto || maps[sd.block_list::m].flag.nomemo) && 
-				battle_config.any_warp_GM_min_level > sd.isGM() )
+				config.any_warp_GM_min_level > sd.isGM() )
 			{
 				clif_displaymessage(fd, msg_table[253]);
 				return false;
@@ -3663,9 +3663,9 @@ bool atcommand_param(int fd, struct map_session_data &sd, const char* command, c
 	}
 
 	new_value = (int)*status[index] + value;
-	if(value > 0 && (value > (int)battle_config.max_parameter || new_value > (int)battle_config.max_parameter)) // fix positiv overflow
-		new_value = battle_config.max_parameter;
-	else if(value < 0 && (value < -((int)battle_config.max_parameter) || new_value < 1)) // fix negativ overflow
+	if(value > 0 && (value > (int)config.max_parameter || new_value > (int)config.max_parameter)) // fix positiv overflow
+		new_value = config.max_parameter;
+	else if(value < 0 && (value < -((int)config.max_parameter) || new_value < 1)) // fix negativ overflow
 		new_value = 1;
 
 	if (new_value != (int)*status[index]) {
@@ -3698,15 +3698,15 @@ bool atcommand_stat_all(int fd, struct map_session_data &sd, const char* command
 
 
 	if (!message || !*message || sscanf(message, "%d", &value) < 1 || value == 0)
-		value = battle_config.max_parameter;
+		value = config.max_parameter;
 
 	count = 0;
 	for (index = 0; index < (int)(sizeof(status) / sizeof(status[0])); ++index) {
 
 		new_value = (int)*status[index] + value;
-		if(value > 0 && (value > (int)battle_config.max_parameter || new_value > (int)battle_config.max_parameter)) // fix positiv overflow
-			new_value = battle_config.max_parameter;
-		else if(value < 0 && (value < -((int)battle_config.max_parameter) || new_value < 1)) // fix negativ overflow
+		if(value > 0 && (value > (int)config.max_parameter || new_value > (int)config.max_parameter)) // fix positiv overflow
+			new_value = config.max_parameter;
+		else if(value < 0 && (value < -((int)config.max_parameter) || new_value < 1)) // fix negativ overflow
 			new_value = 1;
 
 		if (new_value != (int)*status[index]) {
@@ -3845,7 +3845,7 @@ bool atcommand_petfriendly(int fd, struct map_session_data &sd, const char* comm
 				t = sd.pet.intimate;
 				sd.pet.intimate = friendly;
 				clif_send_petstatus(sd);
-				if (battle_config.pet_status_support) {
+				if (config.pet_status_support) {
 					if ((sd.pet.intimate > 0 && t <= 0) ||
 					    (sd.pet.intimate <= 0 && t > 0)) {
 						if (sd.block_list::prev != NULL)
@@ -3954,11 +3954,11 @@ bool atcommand_recall(int fd, struct map_session_data &sd, const char* command, 
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL) {
 		if (sd.isGM() >= pl_sd->isGM()) { // you can recall only lower or same level
-			if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
+			if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
 				clif_displaymessage(fd, "You are not authorised to warp somenone to your actual map.");
 				return false;
 			}
-			if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
+			if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
 				clif_displaymessage(fd, "You are not authorised to warp this player from its actual map.");
 				return false;
 			}
@@ -3998,8 +3998,8 @@ bool atcommand_revive(int fd, struct map_session_data &sd, const char* command, 
 			pl_sd->status.hp = pl_sd->status.max_hp;
 			clif_skill_nodamage(sd,sd,ALL_RESURRECTION,4,1);
 			pc_setstand(*pl_sd);
-			if (battle_config.pc_invincible_time > 0)
-				pc_setinvincibletimer(*pl_sd, battle_config.pc_invincible_time);
+			if (config.pc_invincible_time > 0)
+				pc_setinvincibletimer(*pl_sd, config.pc_invincible_time);
 			clif_updatestatus(*pl_sd, SP_HP);
 			clif_updatestatus(*pl_sd, SP_SP);
 			clif_resurrection(*pl_sd, 1);
@@ -4304,8 +4304,8 @@ void atcommand_raise_sub(struct map_session_data& sd)
 		clif_updatestatus(sd, SP_HP);
 		clif_updatestatus(sd, SP_SP);
 		clif_resurrection(sd, 1);
-		if (battle_config.pc_invincible_time > 0)
-			pc_setinvincibletimer(sd, battle_config.pc_invincible_time);
+		if (config.pc_invincible_time > 0)
+			pc_setinvincibletimer(sd, config.pc_invincible_time);
 		clif_displaymessage(sd.fd, msg_table[63]); // Mercy has been shown.
 	}
 }
@@ -4363,12 +4363,12 @@ bool atcommand_character_baselevel(int fd, struct map_session_data &sd, const ch
 		if (sd.isGM() >= pl_sd->isGM()) { // you can change base level only lower or same gm level
 
 			if (level > 0) {
-				if (pl_sd->status.base_level == battle_config.maximum_level) {	// check for max level by Valaris
+				if (pl_sd->status.base_level == config.maximum_level) {	// check for max level by Valaris
 					clif_displaymessage(fd, msg_table[91]); // Character's base level can't go any higher.
 					return true;
 				}	// End Addition
-				if((size_t)level > battle_config.maximum_level || (size_t)level > (battle_config.maximum_level - pl_sd->status.base_level)) // fix positiv overflow
-					level = battle_config.maximum_level - pl_sd->status.base_level;
+				if((size_t)level > config.maximum_level || (size_t)level > (config.maximum_level - pl_sd->status.base_level)) // fix positiv overflow
+					level = config.maximum_level - pl_sd->status.base_level;
 				for (i = 1; i <= level; ++i)
 					pl_sd->status.status_point += (pl_sd->status.base_level + i + 14) / 5;
 				pl_sd->status.base_level += level;
@@ -4384,7 +4384,7 @@ bool atcommand_character_baselevel(int fd, struct map_session_data &sd, const ch
 					clif_displaymessage(fd, msg_table[193]); // Character's base level can't go any lower.
 					return false;
 }
-				if( battle_config.maximum_level < (size_t)(-level) || pl_sd->status.base_level < (size_t)(1 - level)) // fix negativ overflow
+				if( config.maximum_level < (size_t)(-level) || pl_sd->status.base_level < (size_t)(1 - level)) // fix negativ overflow
 					level = 1 - pl_sd->status.base_level;
 				if (pl_sd->status.status_point > 0)
 				{
@@ -4782,10 +4782,10 @@ bool atcommand_guild(int fd, struct map_session_data &sd, const char* command, c
 		return false;
 	}
 
-	prev = battle_config.guild_emperium_check;
-	battle_config.guild_emperium_check = 0;
+	prev = config.guild_emperium_check;
+	config.guild_emperium_check = 0;
 	guild_create(sd, guild);
-	battle_config.guild_emperium_check = prev;
+	config.guild_emperium_check = prev;
 
 	return true;
 }
@@ -5091,7 +5091,7 @@ bool atcommand_recallall(int fd, struct map_session_data &sd, const char* comman
 
 
 
-	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
+	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
 		clif_displaymessage(fd, "You are not authorised to warp somenone to your actual map.");
 		return false;
 	}
@@ -5100,7 +5100,7 @@ bool atcommand_recallall(int fd, struct map_session_data &sd, const char* comman
 	for (i = 0; i < fd_max; ++i) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth && sd.status.account_id != pl_sd->status.account_id &&
 		    sd.isGM() >= pl_sd->isGM()) { // you can recall only lower or same level
-			if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM())
+			if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
 				count++;
 			else
 				pc_setpos(*pl_sd, sd.mapname, sd.block_list::x, sd.block_list::y, 2);
@@ -5135,7 +5135,7 @@ bool atcommand_guildrecall(int fd, struct map_session_data &sd, const char* comm
 		return false;
 	}
 
-	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
+	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
 		clif_displaymessage(fd, "You are not authorised to warp somenone to your actual map.");
 		return false;
 	}
@@ -5147,7 +5147,7 @@ bool atcommand_guildrecall(int fd, struct map_session_data &sd, const char* comm
 			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 			    sd.status.account_id != pl_sd->status.account_id &&
 			    pl_sd->status.guild_id == g->guild_id) {
-				if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM())
+				if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
 					count++;
 				else
 					pc_setpos(*pl_sd, sd.mapname, sd.block_list::x, sd.block_list::y, 2);
@@ -5186,7 +5186,7 @@ bool atcommand_partyrecall(int fd, struct map_session_data &sd, const char* comm
 		return false;
 	}
 
-	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
+	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
 		clif_displaymessage(fd, "You are not authorised to warp somenone to your actual map.");
 		return false;
 	}
@@ -5198,7 +5198,7 @@ bool atcommand_partyrecall(int fd, struct map_session_data &sd, const char* comm
 			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 			    sd.status.account_id != pl_sd->status.account_id &&
 			    pl_sd->status.party_id == p->party_id) {
-				if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM())
+				if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
 					count++;
 				else
 					pc_setpos(*pl_sd, sd.mapname, sd.block_list::x, sd.block_list::y, 2);
@@ -5274,7 +5274,7 @@ bool atcommand_reloadatcommand(int fd, struct map_session_data &sd, const char* 
  */
 bool atcommand_reloadbattleconf(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	battle_config_read(BATTLE_CONF_FILENAME);
+	config_read(BATTLE_CONF_FILENAME);
 	clif_displaymessage(fd, msg_table[255]);
 	return true;
 }
@@ -5949,12 +5949,12 @@ bool atcommand_servertime(int fd, struct map_session_data &sd, const char* comma
 	strftime(temp, sizeof(temp)-1, msg_table[230], datetime); // Server time (normal time): %A, %B %d %Y %X.
 	clif_displaymessage(fd, temp);
 
-	if (battle_config.night_duration == 0 && battle_config.day_duration == 0) {
+	if (config.night_duration == 0 && config.day_duration == 0) {
 		if (night_flag == 0)
 			clif_displaymessage(fd, msg_table[231]); // Game time: The game is in permanent daylight.
 		else
 			clif_displaymessage(fd, msg_table[232]); // Game time: The game is in permanent night.
-	} else if (battle_config.night_duration == 0)
+	} else if (config.night_duration == 0)
 		if (night_flag == 1) { // we start with night
 			timer_data = get_timer(day_timer_tid);
 			snprintf(temp, sizeof(temp), msg_table[233], txt_time((timer_data->tick - gettick()) / 1000)); // Game time: The game is actualy in night for %s.
@@ -5962,7 +5962,7 @@ bool atcommand_servertime(int fd, struct map_session_data &sd, const char* comma
 			clif_displaymessage(fd, msg_table[234]); // Game time: After, the game will be in permanent daylight.
 		} else
 			clif_displaymessage(fd, msg_table[231]); // Game time: The game is in permanent daylight.
-	else if (battle_config.day_duration == 0)
+	else if (config.day_duration == 0)
 		if (night_flag == 0) { // we start with day
 			timer_data = get_timer(night_timer_tid);
 			snprintf(temp, sizeof(temp), msg_table[235], txt_time((timer_data->tick - gettick()) / 1000)); // Game time: The game is actualy in daylight for %s.
@@ -7839,7 +7839,7 @@ bool atcommand_trade(int fd, struct map_session_data &sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 /// @setbattleflag by [MouseJstr]
-/// set a battle_config flag without having to reboot
+/// set a config flag without having to reboot
 ///
 bool atcommand_setbattleflag(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
@@ -7851,13 +7851,13 @@ bool atcommand_setbattleflag(int fd, struct map_session_data &sd, const char* co
         	return false;
     	}
 
-	if( battle_set_value(flag, value) )
+	if( config_set_value(flag, value) )
 	{
-		clif_displaymessage(fd, "battle_config set as requested");
-		battle_validate_conf();
+		clif_displaymessage(fd, "config set as requested");
+		config_validate();
 	}
 	else
-		clif_displaymessage(fd, "unknown battle_config flag");
+		clif_displaymessage(fd, "unknown config flag");
 	return true;
 }
 
@@ -7871,7 +7871,7 @@ bool atcommand_unmute(int fd, struct map_session_data &sd, const char* command, 
 	struct map_session_data *pl_sd = NULL;
 
 	
-	if(!battle_config.muting_players) {
+	if(!config.muting_players) {
 		clif_displaymessage(fd, "Please enable the muting system before using it.");
 		return true;
 	}
@@ -7930,7 +7930,7 @@ bool atcommand_changesex(int fd, struct map_session_data &sd, const char* comman
 bool atcommand_mute(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char player_name[128]="";
-	if(!battle_config.muting_players) {
+	if(!config.muting_players) {
 		clif_displaymessage(fd, "Please enable the muting system before using it.");
 		return true;
 	}
@@ -8143,11 +8143,11 @@ bool atcommand_jumptoid(int fd, struct map_session_data &sd, const char* command
 
 	if((session_id=charid2sessionid(cid))!=0){
       if ((pl_sd = (struct map_session_data *) session[session_id]->user_session) != NULL) {
-         if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
+         if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
             clif_displaymessage(fd, msg_table[247]);
             return false;
          }
-         if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
+         if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
             clif_displaymessage(fd, msg_table[248]);
             return false;
          }
@@ -8187,11 +8187,11 @@ bool atcommand_jumptoid2(int fd, struct map_session_data &sd, const char* comman
 
 	if((session_id=accountid2sessionid(aid))!=0) {
       if ((pl_sd = (struct map_session_data *) session[session_id]->user_session) != NULL) {
-         if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
+         if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
             clif_displaymessage(fd, msg_table[247]);
             return false;
          }
-         if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
+         if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
             clif_displaymessage(fd, msg_table[248]);
             return false;
          }
@@ -8232,11 +8232,11 @@ bool atcommand_recallid(int fd, struct map_session_data &sd, const char* command
 	if((session_id=charid2sessionid(cid))!=0){
       if ((pl_sd = (struct map_session_data *) session[session_id]->user_session) != NULL) {
          if (sd.isGM() >= pl_sd->isGM()) { // you can recall only lower or same level
-            if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
+            if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
                clif_displaymessage(fd, msg_table[247]);
                return false;
             }
-            if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
+            if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
                clif_displaymessage(fd, msg_table[248]);
                return false;
             }
@@ -8281,11 +8281,11 @@ bool atcommand_recallid2(int fd, struct map_session_data &sd, const char* comman
 	if((session_id=accountid2sessionid(aid))!=0) {
       if ((pl_sd = (struct map_session_data *) session[session_id]->user_session) != NULL) {
          if (sd.isGM() >= pl_sd->isGM()) { // you can recall only lower or same level
-            if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarpto && battle_config.any_warp_GM_min_level > sd.isGM()) {
+            if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
 				clif_displaymessage(fd, msg_table[247]);
 				return false;
             }
-            if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && battle_config.any_warp_GM_min_level > sd.isGM()) {
+            if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
                clif_displaymessage(fd, msg_table[248]);
                return false;
             }
@@ -8403,8 +8403,8 @@ bool atcommand_reviveid(int fd, struct map_session_data &sd, const char* command
       if ((pl_sd = (struct map_session_data *) session[session_id]->user_session) != NULL) {
          pl_sd->status.hp = pl_sd->status.max_hp;
          pc_setstand(*pl_sd);
-         if (battle_config.pc_invincible_time > 0)
-            pc_setinvincibletimer(sd, battle_config.pc_invincible_time);
+         if (config.pc_invincible_time > 0)
+            pc_setinvincibletimer(sd, config.pc_invincible_time);
          clif_updatestatus(*pl_sd, SP_HP);
          clif_updatestatus(*pl_sd, SP_SP);
          clif_resurrection(*pl_sd, 1);
@@ -8442,8 +8442,8 @@ bool atcommand_reviveid2(int fd, struct map_session_data &sd, const char* comman
       if ((pl_sd = (struct map_session_data *) session[session_id]->user_session) != NULL) {
          pl_sd->status.hp = pl_sd->status.max_hp;
          pc_setstand(*pl_sd);
-         if (battle_config.pc_invincible_time > 0)
-            pc_setinvincibletimer(sd, battle_config.pc_invincible_time);
+         if (config.pc_invincible_time > 0)
+            pc_setinvincibletimer(sd, config.pc_invincible_time);
          clif_updatestatus(*pl_sd, SP_HP);
          clif_updatestatus(*pl_sd, SP_SP);
          clif_resurrection(*pl_sd, 1);
@@ -8930,7 +8930,7 @@ bool atcommand_mutearea(int fd, struct map_session_data &sd, const char* command
 {
 	int time;
 
-	if(!battle_config.muting_players) {
+	if(!config.muting_players) {
 		clif_displaymessage(fd, "Please enable the muting system before using it.");
 		return true;
 	}
@@ -8996,7 +8996,7 @@ bool atcommand_rates(int fd, struct map_session_data &sd, const char* command, c
 {
 	char buf[256];
 	snprintf(buf, sizeof(buf), "Experience rates: Base %lf.1x / Job %lf.1x",
-		(double)battle_config.base_exp_rate/100., (double)battle_config.job_exp_rate/100.);
+		(double)config.base_exp_rate/100., (double)config.job_exp_rate/100.);
 	clif_displaymessage(fd, buf);
 	return true;
 }

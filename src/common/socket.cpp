@@ -792,7 +792,8 @@ int recv_to_fifo(int fd)
 
 		// if there is more on the socket, limit the read size
 		// fifo should be sized that the message with max expected len fit in
-		if( arg > (unsigned long)RFIFOSPACE(fd) ) arg = RFIFOSPACE(fd);
+		unsigned long sz = RFIFOSPACE(fd);
+		if( arg > sz ) arg = sz;
 
 		len=read(SessionGetSocket(fd),(char*)(session[fd]->rdata+session[fd]->rdata_size),arg);
 
@@ -1021,8 +1022,6 @@ int realloc_fifo(int fd, size_t rfifo_size, size_t wfifo_size)
 	//printf("realloc all %d,%d\n", rfifo_size, wfifo_size);fflush(stdout);
 	if( s->rdata_max != rfifo_size && s->rdata_size < rfifo_size)
 	{
-//		RECREATE(s->rdata, unsigned char, rfifo_size);
-//		s->rdata_max  = rfifo_size;
 		unsigned char *temp = new unsigned char[rfifo_size];
 		if(session[fd]->rdata)
 		{
@@ -1035,8 +1034,6 @@ int realloc_fifo(int fd, size_t rfifo_size, size_t wfifo_size)
 
 	}
 	if( s->wdata_max != wfifo_size && s->wdata_size < wfifo_size){
-//		RECREATE(s->wdata, unsigned char, wfifo_size);
-//		s->wdata_max  = wfifo_size;
 		unsigned char *temp = new unsigned char[wfifo_size];
 		if(session[fd]->wdata)
 		{
@@ -1050,6 +1047,30 @@ int realloc_fifo(int fd, size_t rfifo_size, size_t wfifo_size)
 	}
 	return 0;
 }
+
+bool session_checkbuffer(int fd, size_t sz)
+{
+	if( session_isActive(fd) )
+	{
+		struct socket_data *s =session[fd];
+		
+		sz += s->wdata_size;
+		if( sz > s->wdata_max)
+		{
+			unsigned char *temp = new unsigned char[sz];
+			if(session[fd]->wdata)
+			{
+				if(session[fd]->wdata_size)
+					memcpy(temp, session[fd]->wdata, session[fd]->wdata_size);
+				delete[] session[fd]->wdata;
+			}
+			session[fd]->wdata = temp;
+			session[fd]->wdata_max  = sz;
+		}
+	}
+	return true;
+}
+
 
 int WFIFOSET(int fd,size_t len)
 {
@@ -1781,9 +1802,9 @@ bool session_Delete(int fd)
 			session[fd]->func_term(fd);
 
 		// and clean up
-		if(session[fd]->rdata)			delete[] session[fd]->rdata;
-		if(session[fd]->wdata)			delete[] session[fd]->wdata;
-		if(session[fd]->user_session)	delete session[fd]->user_session;
+		if(session[fd]->rdata){			delete[] session[fd]->rdata; session[fd]->rdata=NULL; }
+		if(session[fd]->wdata){			delete[] session[fd]->wdata; session[fd]->wdata=NULL;  }
+		if(session[fd]->user_session){	delete session[fd]->user_session; session[fd]->user_session=NULL;  }
 		delete session[fd];
 		session[fd]=NULL;
 

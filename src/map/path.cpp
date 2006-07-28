@@ -256,12 +256,12 @@ void path_blownpos(unsigned short m,int x0,int y0,int dx,int dy,int count, int& 
 		}
 
 		if(count>15){	// Å‘å10ƒ}ƒX‚É§ŒÀ
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowMessage("path_blownpos: count too many %d !\n",count);
 			count=15;
 		}
 		if(dx>1 || dx<-1 || dy>1 || dy<-1){
-			if(battle_config.error_log)
+			if(config.error_log)
 				ShowMessage("path_blownpos: illeagal dx=%d or dy=%d !\n",dx,dy);
 			dx=(dx>=0)?1:((dx<0)?-1:0);
 			dy=(dy>=0)?1:((dy<0)?-1:0);
@@ -543,13 +543,11 @@ bool walkpath_data::path_search(unsigned short m,int x0,int y0,int x1,int y1,int
 //			this->path_pos=0;
 //		}
 //		this->path_len=1;
-//		// leave path_half as it is
 //	}
 //	else
 	{	// start a new path
 		this->path_len=0;
 		this->path_pos=0;
-		this->path_half=0;
 	}
 
 	// check if going straight is possible

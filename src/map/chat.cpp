@@ -71,7 +71,7 @@ int chat_joinchat(struct map_session_data &sd,uint32 chatid,const char* pass)
 	}
 
 	//Allows Gm access to protected room with any password they want by valaris
-	if( (cd->pub == 0 && 0!=strncmp(pass, (char *)cd->pass, 8) && (sd.isGM()<battle_config.gm_join_chat || !battle_config.gm_join_chat)) 
+	if( (cd->pub == 0 && 0!=strncmp(pass, (char *)cd->pass, 8) && (sd.isGM()<config.gm_join_chat || !config.gm_join_chat)) 
 		|| chatid == sd.chatID ) //Double Chat fix by Alex14, thx CHaNGeTe
 	{
 		clif_joinchatfail(sd,1);
@@ -234,7 +234,7 @@ int chat_kickchat(struct map_session_data &sd, const char *kickusername)
 		if( cd->usersd[kickuser] && 
 			0==strcmp(cd->usersd[kickuser]->status.name, kickusername) )
 		{
-			if( cd->usersd[kickuser]->isGM() < battle_config.gm_kick_chat )
+			if( cd->usersd[kickuser]->isGM() < config.gm_kick_chat )
 				chat_leavechat( *(cd->usersd[kickuser]) );
 			return 0;
 		}

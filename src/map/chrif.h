@@ -51,8 +51,7 @@ int chrif_updatefame(struct map_session_data &sd, fame_t type, int delta);
 bool chrif_istop10fame(uint32 char_id, fame_t type);
 
 
-
-
+// mail
 void chrif_mail_cancel(struct map_session_data &sd);
 bool chrif_mail_setitem(struct map_session_data &sd, ushort index, uint32 amount);
 void chrif_mail_removeitem(struct map_session_data &sd, int flag);
@@ -63,8 +62,16 @@ bool chrif_mail_getappend(struct map_session_data &sd, uint32 msgid);
 bool chrif_mail_delete(struct map_session_data &sd, uint32 msgid);
 bool chrif_mail_send(struct map_session_data &sd, const char *target, const char *header, const char *body);
 
+// irc
+int chrif_irc_announce(const char* message, size_t sz);
+int chrif_irc_announce_jobchange(struct map_session_data &sd);
+int chrif_irc_announce_shop(struct map_session_data &sd, int flag);
+int chrif_irc_announce_mvp(const map_session_data &sd, const mob_data &md);
 
 
+// variables
+int chrif_var_save(const char* name, const char* value);
+int chrif_var_save(const char* name, uint32 value);
 
 
 #endif

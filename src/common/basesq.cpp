@@ -63,6 +63,8 @@ basics::CParam< basics::string<> > CSQLParameter::tbl_pet("tbl_pet", "pet", Para
 basics::CParam< basics::string<> > CSQLParameter::tbl_homunculus("tbl_homunculus", "homunculus", ParamCallback_Tables);
 basics::CParam< basics::string<> > CSQLParameter::tbl_homunskill("tbl_homunskill", "homunskill", ParamCallback_Tables);
 
+basics::CParam< basics::string<> > CSQLParameter::tbl_variable("tbl_variable", "variable", ParamCallback_Tables);
+
 
 basics::CParam<bool> CSQLParameter::wipe_sql("wipe_sql", false);
 basics::CParam< basics::string<> > CSQLParameter::sql_engine("sql_engine", "InnoDB");
@@ -147,6 +149,10 @@ void CSQLParameter::rebuild()
 	// drop all tables, drop child tables first
 	if( CSQLParameter::wipe_sql )
 	{
+		///////////////////////////////////////////////////////////////////////
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_variable) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
 		///////////////////////////////////////////////////////////////////////
 		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_homunskill) << "`";
 		dbcon1.PureQuery(query);
@@ -894,6 +900,22 @@ void CSQLParameter::rebuild()
 	dbcon1.PureQuery(query);
 	query.clear();
 
+
+	///////////////////////////////////////////////////////////////////////////
+	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_variable) << "` ("
+			 "`name`			VARCHAR(32) NOT NULL default '',"
+			 "`stortype`		SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`storid`			INTEGER UNSIGNED NOT NULL default '0',"
+			 "`vartype`			SMALLINT UNSIGNED NOT NULL default '0',"
+			 "`value`			SMALLINT UNSIGNED NOT NULL default '0',"
+		 
+			 "PRIMARY KEY (`name`,`stortype`,`storid`),"
+			 "KEY `name` (`name`),"
+			 "KEY `storid` (`storid`),"
+			 ") "
+			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
+	dbcon1.PureQuery(query);
+	query.clear();
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -4160,6 +4182,132 @@ bool CHomunculusDB_sql::saveHomunculus(const CHomunculus& hom)
 		return ret;
 	}
 }
+
+
+
+
+
+
+
+////////
+// Variables
+////
+bool CVarDB_sql::init(const char *dbcfgfile)
+{
+	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
+	return true;
+}
+
+size_t CVarDB_sql::size() const
+{
+	return this->get_table_size(this->tbl_variable);
+}
+CVar& CVarDB_sql::operator[](size_t i)
+{	// not threadsafe
+	static CVar var;
+
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+
+	query << "SELECT "
+			 "`name`,"
+			 "`stortype`,"
+			 "`storid`,"
+			 "`vartype`,"
+			 "`value`"
+			 "FROM `" << dbcon1.escaped(this->tbl_variable) << "` "
+			 "ORDER BY `name`"
+			 "LIMIT "<< i << ",1 ";
+
+	if( dbcon1.ResultQuery(query) && dbcon1 )
+	{
+		var = CVar(
+				dbcon1[0],		// name
+				//dbcon1[1],	// stortype
+				//dbcon1[2],	// storid
+				//dbcon1[3],	// vartype
+				dbcon1[4] );	// value
+	}
+	else
+		var = CVar("","");
+	return var;
+}
+
+bool CVarDB_sql::searchVar(const char* name, CVar& var)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+
+	query << "SELECT "
+			 "`name`,"
+			 "`stortype`,"
+			 "`storid`,"
+			 "`vartype`,"
+			 "`value`"
+			 "FROM `" << dbcon1.escaped(this->tbl_variable) << "` "
+			 "WHERE `name` = " << dbcon1.escaped(var.name());
+	dbcon1.ResultQuery(query);
+	if(dbcon1)
+	{
+		var = CVar(
+				dbcon1[0],		// name
+				//dbcon1[1],	// stortype
+				//dbcon1[2],	// storid
+				//dbcon1[3],	// vartype
+				dbcon1[4] );	// value
+		return true;
+	}
+	return false;
+}
+bool CVarDB_sql::insertVar(const char* name, const char* value)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+	query << "INSERT INTO `" << dbcon1.escaped(this->tbl_variable) << "` "
+			 "("
+			 "`name`,"
+			 "`stortype`,"
+			 "`storid`,"
+			 "`vartype`,"
+			 "`value`"
+			 ") "
+			 "VALUES "
+			 "(" 
+			 "'" << dbcon1.escaped(name) << "',"
+			 "'" << 0 << "',"
+			 "'" << 0 << "',"
+			 "'" << 0 << "',"
+			 "'" << dbcon1.escaped(value) << "'"
+			 ")";
+	return dbcon1.PureQuery( query );
+}
+bool CVarDB_sql::removeVar(const char* name)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+
+	query << "DELETE "
+			 "FROM `" << dbcon1.escaped(this->tbl_variable) << "` "
+			 "WHERE `name` = '" << dbcon1.escaped(name) <<"'";
+	return dbcon1.PureQuery( query );
+}
+bool CVarDB_sql::saveVar(const CVar& var)
+{
+	basics::CMySQLConnection dbcon1(this->sqlbase);
+	basics::string<> query;
+
+	query << "UPDATE `" << dbcon1.escaped(this->tbl_variable) << "` "
+			 "SET "
+			 "`name` = '"		<< dbcon1.escaped(var.name()) << "',"
+			 "`stortype` = '"	<< 0 << "',"
+			 "`storid` = '"		<< 0 << "',"
+			 "`vartype` = '"	<< 0 << "',"
+			 "`value` = '"		<< dbcon1.escaped(var.value()) << "',"
+
+			 "WHERE `name` = '" << dbcon1.escaped(var.name()) << "'";
+	return dbcon1.PureQuery( query );
+}
+
 
 #endif//WITH_MYSQL
 

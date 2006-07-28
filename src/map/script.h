@@ -4,6 +4,11 @@
 
 #include "basestring.h"
 
+
+
+
+
+
 // predeclaration
 struct map_session_data;
 class CScriptEngine;
@@ -42,13 +47,16 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// constructors/destructor
-	CLabel()	{}
-	CLabel(const basics::string<>& s) : basics::string<>(s)	{}
+	CLabel():cPos(0)	{}
+	CLabel(const basics::string<>& s) : basics::string<>(s), cPos(0)	{}
 	CLabel(const basics::string<>& s, size_t p) : basics::string<>(s), cPos(p)	{}
 	~CLabel()	{}
 	///////////////////////////////////////////////////////////////////////////
-	// compare operators for sorting derived from MiniString
+	// compare operators for sorting derived from string
+	const char* name()	{ return *this; }
+	const size_t pos()	{ return this->cPos; }
 };
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // a script data stub
@@ -67,8 +75,8 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	// class data
 	basics::string<>			cName;		// name of the script
-	basics::TArrayDST<uchar>	cProgramm;	// the programm
-	basics::TslistDCT<CLabel>	cLabels;	// list of labels (sorted by name)
+	basics::vector<uchar>		cProgramm;	// the programm
+	basics::slist<CLabel>		cLabels;	// list of labels (sorted by name)
 
 	///////////////////////////////////////////////////////////////////////////
 	// construction, only friends are allowed to create
@@ -139,10 +147,11 @@ class CScript : public basics::global
 
 			// unused but necessary for list template
 			bool operator==(const CStrData a) const { return this->str==a.str; }
+			bool operator< (const CStrData a) const { return this->str< a.str; }
 		};
 
 		int							cStrHash[16];
-		basics::TArrayDCT<CStrData>	cStrData;
+		basics::vector<CStrData>	cStrData;
 	public:
 		CStringBuffer();
 		~CStringBuffer()
@@ -626,7 +635,7 @@ private:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// main entry points
-	static int run(const char *rootscript, size_t pos, uint32 rid, uint32 oid);
+	static int run(const char* rootscript, size_t pos, uint32 rid, uint32 oid);
 	int restart(uint32 npcid)
 	{	
 		if( this->state==STOP && (npcid == this->oid || npcid == this->defoid) )
@@ -729,13 +738,95 @@ struct script_regstr
 
 
 
+/// temporary script object.
+/// is used as conversion vehicle toward the new script engine
+struct script_object
+{
+	struct script_label
+	{
+		char name[24];
+		size_t pos;
 
-char *parse_script(unsigned char *src, size_t line);
+		script_label() : 
+			pos(0)
+		{
+			name[0]=0;
+		}
+	};
+private:
+	size_t refcnt;			//reference counter
+public:
+	char *script;
+private:
+	struct script_label *label_list;
+	size_t label_list_num;	
+public:
+
+	script_object(char *sc, struct script_label *ll=NULL, size_t lc=0) :
+		refcnt(1),
+		script(sc),
+		label_list(ll),
+		label_list_num(lc)
+	{}
+protected:
+	/// destructor. 
+	/// destructor is protected to prevent external destruction
+	/// to destroy this object, use the release function
+	/// having this destructor private will result in the false gcc warning
+	/// "only defines a private destructor and has no friends", 
+	//// which is a bug since I'm using gcc...
+	~script_object()
+	{
+		if(script) delete[] script;
+		if(label_list) delete[] label_list;
+	}
+public:
+
+	script_object* clone()
+	{
+		++this->refcnt;
+		return this;
+	}
+	void release()
+	{
+		--this->refcnt;
+		if(0==this->refcnt)
+			delete this;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// inserts a script label.
+	/// len is used to chop the labelname from the source buffer string
+	void insert_label(const char* labelname, size_t len, size_t pos);
+	///////////////////////////////////////////////////////////////////////////
+	/// number of script labels.
+	size_t label_count() const { return label_list_num; }
+	///////////////////////////////////////////////////////////////////////////
+	/// directly access a label.
+	const script_label& get_label(size_t i)
+	{
+		return label_list[i];
+		// just crash on out of bound access
+	}
+	///////////////////////////////////////////////////////////////////////////
+	/// access on a script label name by index.
+	const char* get_labelname(size_t i) const { return (i<label_list_num)?label_list[i].name:""; }
+	///////////////////////////////////////////////////////////////////////////
+	/// access on a script label position by index.
+	size_t get_labelpos(size_t i) const { return (i<label_list_num)?label_list[i].pos:0; }
+	///////////////////////////////////////////////////////////////////////////
+	/// access on a script label position by name.
+	/// returns the entry position of the label or 0 when not existing
+	size_t get_labelpos(const char* labelname) const;
+
+};
+
+
+script_object* parse_script(unsigned char *src, size_t line);
 
 int set_var(const char *name, void *v);
 int set_var(struct map_session_data &sd, const char *name, void *v);
 
-struct dbt* script_get_label_db();
 struct dbt* script_get_userfunc_db();
 
 int script_config_read(const char *cfgName);
@@ -743,6 +834,10 @@ int do_init_script();
 int do_final_script();
 
 extern char mapreg_txt[256];
+
+
+
+
 
 #endif
 

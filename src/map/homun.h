@@ -43,7 +43,7 @@ struct homun_db
 	unsigned short evo_class;
 	unsigned short exp_table;
 	unsigned short skillpoint;
-	char *script;
+	script_object* script;
 };
 extern struct homun_db homun_db[MAX_HOMUN_DB];
 
