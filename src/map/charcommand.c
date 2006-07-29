@@ -1308,7 +1308,7 @@ int charcommand_baselevel(
 				clif_updatestatus(pl_sd, SP_NEXTBASEEXP);
 				clif_updatestatus(pl_sd, SP_STATUSPOINT);
 				status_calc_pc(pl_sd, 0);
-				pc_heal(pl_sd, pl_sd->status.max_hp, pl_sd->status.max_sp);
+				status_percent_heal(&pl_sd->bl, 100, 100);
 				clif_misceffect(&pl_sd->bl, 0);
 				clif_displaymessage(fd, msg_table[65]); // Character's base level raised.
 			} else {

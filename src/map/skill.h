@@ -95,8 +95,9 @@ enum {
 	UF_NOPC		= 0x0010,	//May not target players
 	UF_NOMOB		= 0x0020,	//May not target mobs
 	UF_SKILL		= 0x0080,	//May target skills
-	UF_DANCE			= 0x0100,	// ダンススキル
-	UF_ENSEMBLE			= 0x0200,	// 合奏スキル
+	UF_DANCE			= 0x0100,	//Dance
+	UF_ENSEMBLE			= 0x0200,	//Duet
+	UF_SONG		= 0x0400,	//Song
 	UF_DUALMODE	= 0x0800,	//Spells should trigger both ontimer and onplace/onout/onleft effects.
 };
 
@@ -188,7 +189,7 @@ int skill_blown( struct block_list *src, struct block_list *target,int count);
 int skill_break_equip(struct block_list *bl, unsigned short where, int rate, int flag);
 // ユニットスキル
 struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,int skilllv,int x,int y,int flag);
-struct skill_unit *skill_initunit(struct skill_unit_group *group,int idx,int x,int y);
+struct skill_unit *skill_initunit (struct skill_unit_group *group, int idx, int x, int y, int val1, int val2);
 int skill_delunit(struct skill_unit *unit);
 struct skill_unit_group *skill_initunitgroup(struct block_list *src,
 	int count,int skillid,int skilllv,int unit_id, int limit, int interval);
@@ -231,8 +232,7 @@ int skill_autospell(struct map_session_data *md,int skillid);
 
 int skill_calc_heal(struct block_list *bl, int skill_lv);
 
-// その他
-int skill_check_cloaking(struct block_list *bl);
+int skill_check_cloaking(struct block_list *bl, struct status_change *sc);
 
 // ステ?タス異常
 int skill_enchant_elemental_end(struct block_list *bl, int type);
@@ -935,10 +935,11 @@ enum {
 	UNT_SPIDERWEB,
 	UNT_GRAVITATION,
 	UNT_HERMODE,
-	//0xba
+	UNT_TATAMIGAESHI, //0xba //Temporary setting until correct value is found.
 	UNT_SUITON = 0xbb,
-	UNT_DESPERADO,
-	//0xbd, 0xbe, 0xc0, 0xc1 //Maybe the other elements of Ground Drift?
+	UNT_DESPERADO, //NJ_TATAMIGAESHI is 0xbc as well?
+	UNT_KAENSIN,
+	//0xbe, 0xc0, 0xc1 //Maybe the other elements of Ground Drift?
 	UNT_GROUNDDRIFT = 0xc2,
 };
 

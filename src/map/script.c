@@ -3103,11 +3103,15 @@ int buildin_warpguild(struct script_state *st)
  */
 int buildin_heal(struct script_state *st)
 {
+	struct map_session_data *sd;
 	int hp,sp;
-
+	
+	sd = script_rid2sd(st);
+	if (!sd) return 0;
+	
 	hp=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	sp=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	pc_heal(script_rid2sd(st),hp,sp);
+	status_heal(&sd->bl, hp, sp, 1);
 	return 0;
 }
 /*==========================================
@@ -3116,6 +3120,7 @@ int buildin_heal(struct script_state *st)
  */
 int buildin_itemheal(struct script_state *st)
 {
+	struct map_session_data *sd;
 	int hp,sp;
 
 	hp=conv_num(st,& (st->stack->stack_data[st->start+2]));
@@ -3126,8 +3131,10 @@ int buildin_itemheal(struct script_state *st)
 		potion_sp = sp;
 		return 0;
 	}
-
-	pc_itemheal(script_rid2sd(st),hp,sp);
+	
+	sd = script_rid2sd(st);
+	if (!sd) return 0;
+	pc_itemheal(sd,sd->itemid,hp,sp);
 	return 0;
 }
 /*==========================================
@@ -5538,7 +5545,7 @@ int buildin_killmonsterall(struct script_state *st)
  */
 int buildin_clone(struct script_state *st) {
 	struct map_session_data *sd, *msd=NULL;
-	int char_id,master_id=0,x,y, mode = 0, flag = 0;
+	int char_id,master_id=0,x,y, mode = 0, flag = 0, m;
 	unsigned int duration = 0;
 	char *map,*event="";
 
@@ -5560,7 +5567,11 @@ int buildin_clone(struct script_state *st) {
 	if( st->end>st->start+10 )
 		duration=conv_num(st,& (st->stack->stack_data[st->start+10]));
 
+	m = map_mapname2mapid(map);
+	if (m < 0) return 0;
+
 	sd = map_charid2sd(char_id);
+
 	if (master_id) {
 		msd = map_charid2sd(master_id);
 		if (msd)
@@ -5569,7 +5580,7 @@ int buildin_clone(struct script_state *st) {
 			master_id = 0;
 	}
 	if (sd) //Return ID of newly crafted clone.
-		push_val(st->stack,C_INT,mob_clone_spawn(sd, map, x, y, event, master_id, mode, flag, 1000*duration));
+		push_val(st->stack,C_INT,mob_clone_spawn(sd, m, x, y, event, master_id, mode, flag, 1000*duration));
 	else //Failed to create clone.
 		push_val(st->stack,C_INT,0);
 
@@ -7679,33 +7690,19 @@ int buildin_strmobinfo(struct script_state *st)
 
 	switch (num) {
 	case 1:
-		{
-			char *buf;
-			buf=(char *) aCallocA(NAME_LENGTH, sizeof(char));
-//			buf=mob_db(class_)->name;
-// for string assignments you would need to go for c++ [Shinomori]
-			memcpy(buf, mob_db(class_)->name, NAME_LENGTH-1);
-			push_str(st->stack,C_STR,(unsigned char *) buf);
-			break;
-		}
+		push_str(st->stack,C_CONSTSTR,(unsigned char *) mob_db(class_)->name);
+		break;
 	case 2:
-		{
-			char *buf;
-			buf=(char *) aCallocA(NAME_LENGTH, sizeof(char));
-//			buf=mob_db(class_).jname;
-// for string assignments you would need to go for c++ [Shinomori]
-			memcpy(buf,mob_db(class_)->jname, NAME_LENGTH-1);
-			push_str(st->stack,C_STR,(unsigned char *) buf);
-			break;
-		}
+		push_str(st->stack,C_CONSTSTR,(unsigned char *) mob_db(class_)->jname);
+		break;
 	case 3:
 		push_val(st->stack,C_INT,mob_db(class_)->lv);
 		break;
 	case 4:
-		push_val(st->stack,C_INT,mob_db(class_)->max_hp);
+		push_val(st->stack,C_INT,mob_db(class_)->status.max_hp);
 		break;
 	case 5:
-		push_val(st->stack,C_INT,mob_db(class_)->max_sp);
+		push_val(st->stack,C_INT,mob_db(class_)->status.max_sp);
 		break;
 	case 6:
 		push_val(st->stack,C_INT,mob_db(class_)->base_exp);
@@ -9136,28 +9133,28 @@ int buildin_summon(struct script_state *st)
 	char *str,*event="";
 	struct map_session_data *sd;
 	struct mob_data *md;
+	int tick = gettick();
 
 	sd=script_rid2sd(st);
-	if (sd) {
-		int tick = gettick();
-		str	=conv_str(st,& (st->stack->stack_data[st->start+2]));
-		_class=conv_num(st,& (st->stack->stack_data[st->start+3]));
-		if( st->end>st->start+4 )
-			timeout=conv_num(st,& (st->stack->stack_data[st->start+4]));
-		if( st->end>st->start+5 )
-			event=conv_str(st,& (st->stack->stack_data[st->start+5]));
+	if (!sd) return 0;
+	
+	str	=conv_str(st,& (st->stack->stack_data[st->start+2]));
+	_class=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	if( st->end>st->start+4 )
+		timeout=conv_num(st,& (st->stack->stack_data[st->start+4]));
+	if( st->end>st->start+5 )
+		event=conv_str(st,& (st->stack->stack_data[st->start+5]));
 
-		id=mob_once_spawn(sd, "this", 0, 0, str,_class,1,event);
-		if((md=(struct mob_data *)map_id2bl(id))){
-			md->master_id=sd->bl.id;
-			md->special_state.ai=1;
-			md->mode=mob_db(md->class_)->mode|0x04;
-			md->deletetimer=add_timer(tick+(timeout>0?timeout*1000:60000),mob_timer_delete,id,0);
-			clif_misceffect2(&md->bl,344);
-		}
-		clif_skill_poseffect(&sd->bl,AM_CALLHOMUN,1,sd->bl.x,sd->bl.y,tick);
-	}
 
+	clif_skill_poseffect(&sd->bl,AM_CALLHOMUN,1,sd->bl.x,sd->bl.y,tick);
+	id=mob_once_spawn(sd, "this", 0, 0, str,_class,1,event);
+	md=(struct mob_data *)map_id2bl(id);
+	if (!md) return 0;
+	md->master_id=sd->bl.id;
+	md->special_state.ai=1;
+	md->deletetimer=add_timer(tick+(timeout>0?timeout*1000:60000),mob_timer_delete,id,0);
+	clif_misceffect2(&md->bl,344);
+	sc_start4(&md->bl, SC_MODECHANGE, 100, 1, 0, MD_AGGRESSIVE, 0, 60000);
 	return 0;
 }
 
@@ -9878,7 +9875,7 @@ int buildin_getmonsterinfo(struct script_state *st)
 			push_val(st->stack,C_INT, mob->lv);
 			break;
 		case 2: //MaxHP
-			push_val(st->stack,C_INT, mob->max_hp);
+			push_val(st->stack,C_INT, mob->status.max_hp);
 			break;
 		case 3: //Base EXP
 			push_val(st->stack,C_INT, mob->base_exp);
@@ -9887,37 +9884,37 @@ int buildin_getmonsterinfo(struct script_state *st)
 			push_val(st->stack,C_INT, mob->job_exp);
 			break;
 		case 5: //Atk1
-			push_val(st->stack,C_INT, mob->atk1);
+			push_val(st->stack,C_INT, mob->status.rhw.atk);
 			break;
 		case 6: //Atk2
-			push_val(st->stack,C_INT, mob->atk2);
+			push_val(st->stack,C_INT, mob->status.rhw.atk2);
 			break;
 		case 7: //Def
-			push_val(st->stack,C_INT, mob->def);
+			push_val(st->stack,C_INT, mob->status.def);
 			break;
 		case 8: //Mdef
-			push_val(st->stack,C_INT, mob->mdef);
+			push_val(st->stack,C_INT, mob->status.mdef);
 			break;
 		case 9: //Str
-			push_val(st->stack,C_INT, mob->str);
+			push_val(st->stack,C_INT, mob->status.str);
 			break;
 		case 10: //Agi
-			push_val(st->stack,C_INT, mob->agi);
+			push_val(st->stack,C_INT, mob->status.agi);
 			break;
 		case 11: //Vit
-			push_val(st->stack,C_INT, mob->vit);
+			push_val(st->stack,C_INT, mob->status.vit);
 			break;
 		case 12: //Int
-			push_val(st->stack,C_INT, mob->int_);
+			push_val(st->stack,C_INT, mob->status.int_);
 			break;
 		case 13: //Dex
-			push_val(st->stack,C_INT, mob->dex);
+			push_val(st->stack,C_INT, mob->status.dex);
 			break;
 		case 14: //Luk
-			push_val(st->stack,C_INT, mob->luk);
+			push_val(st->stack,C_INT, mob->status.luk);
 			break;
 		case 15: //Range
-			push_val(st->stack,C_INT, mob->range);
+			push_val(st->stack,C_INT, mob->status.rhw.range);
 			break;
 		case 16: //Range2
 			push_val(st->stack,C_INT, mob->range2);
@@ -9926,16 +9923,16 @@ int buildin_getmonsterinfo(struct script_state *st)
 			push_val(st->stack,C_INT, mob->range3);
 			break;
 		case 18: //Size
-			push_val(st->stack,C_INT, mob->size);
+			push_val(st->stack,C_INT, mob->status.size);
 			break;
 		case 19: //Race
-			push_val(st->stack,C_INT, mob->race);
+			push_val(st->stack,C_INT, mob->status.race);
 			break;
 		case 20: //Element
-			push_val(st->stack,C_INT, mob->element);
+			push_val(st->stack,C_INT, mob->status.def_ele);
 			break;
 		case 21: //Mode
-			push_val(st->stack,C_INT, mob->mode);
+			push_val(st->stack,C_INT, mob->status.mode);
 			break;
 		default: //wrong Index
 			push_val(st->stack,C_INT,-1);

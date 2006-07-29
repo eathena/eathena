@@ -490,9 +490,9 @@ int guild_npc_request_info(int guild_id,const char *event)
 }
 
 // 所属キャラの確認
-int guild_check_member(const struct guild *g)
+int guild_check_member(struct guild *g)
 {
-	int i, users;
+	int i, j, users;
 	struct map_session_data *sd, **all_sd;
 
 	nullpo_retr(0, g);
@@ -500,21 +500,15 @@ int guild_check_member(const struct guild *g)
 	all_sd = map_getallusers(&users);
 	
 	for(i=0;i<users;i++){
-		if((sd=all_sd[i])){
-			if(sd->status.guild_id==g->guild_id){
-				int j,f=1;
-				for(j=0;j<MAX_GUILD;j++){	// データがあるか
-					if(	g->member[j].account_id==sd->status.account_id &&
-						g->member[j].char_id==sd->status.char_id)
-						f=0;
-				}
-				if(f){
-					sd->status.guild_id=0;
-					sd->state.guild_sent=0;
-					sd->guild_emblem_id=0;
-					if(battle_config.error_log)
-						ShowWarning("guild: check_member %d[%s] is not member\n",sd->status.account_id,sd->status.name);
-				}
+		sd=all_sd[i];
+		if(sd->status.guild_id==g->guild_id){
+			j=guild_getindex(g,sd->status.account_id,sd->status.char_id);
+			if (j < 0) {
+				sd->status.guild_id=0;
+				sd->state.guild_sent=0;
+				sd->guild_emblem_id=0;
+				if(battle_config.error_log)
+					ShowWarning("guild: check_member %d[%s] is not member\n",sd->status.account_id,sd->status.name);
 			}
 		}
 	}
@@ -874,50 +868,41 @@ int guild_member_leaved(int guild_id,int account_id,int char_id,int flag,
 }
 
 int guild_send_memberinfoshort(struct map_session_data *sd,int online)
-{
+{ // cleaned up [LuzZza]
 	struct guild *g;
-	int  i;
 	
 	nullpo_retr(0, sd);
-
-	if(sd->status.guild_id<=0)
+		
+	if(!(g = guild_search(sd->status.guild_id)))
 		return 0;
-	g=guild_search(sd->status.guild_id);
-	if(g==NULL)
+
+	//Moved to place before intif_guild_memberinfoshort because
+	//If it's not a member, needn't send it's info to intif. [LuzZza]
+	guild_check_member(g);
+	
+	if(sd->status.guild_id <= 0)
 		return 0;
 
 	intif_guild_memberinfoshort(g->guild_id,
 		sd->status.account_id,sd->status.char_id,online,sd->status.base_level,sd->status.class_);
 
-	if( !online ){	// ログアウトするならsdをクリアして終了
-		i=guild_getindex(g,sd->status.account_id,sd->status.char_id);
+	if(!online){
+		int i=guild_getindex(g,sd->status.account_id,sd->status.char_id);
 		if(i>=0)
 			g->member[i].sd=NULL;
 		return 0;
-	} else if (sd->fd) {
-		//Send XY dot updates. [Skotlex]
-		for(i=0; i < MAX_GUILD; i++) {
-			if (!g->member[i].sd || g->member[i].sd == sd ||
-				g->member[i].sd->bl.m != sd->bl.m)
-				continue;
-			clif_guild_xy_single(sd->fd, g->member[i].sd);
-		}
 	}
-
-	if( sd->state.guild_sent!=0 )	// ギルド初期送信データは送信済み
+	
+	
+	if(sd->state.guild_sent)
 		return 0;
 
-	// 競合確認
-	guild_check_conflict(sd);
-
-	// あるならギルド初期送信データ送信
-	guild_check_member(g);	// 所属を確認する
-	if(sd->status.guild_id==g->guild_id){
-		clif_guild_belonginfo(sd,g);
-		clif_guild_notice(sd,g);
-		sd->state.guild_sent=1;
-		sd->guild_emblem_id=g->emblem_id;
-	}
+	clif_guild_belonginfo(sd,g);
+	clif_guild_notice(sd,g);
+	
+	sd->state.guild_sent = 1;
+	sd->guild_emblem_id = g->emblem_id;
+	
 	return 0;
 }
 
@@ -1215,8 +1200,6 @@ int guild_skillup(struct map_session_data *sd,int skill_num,int flag)
 		g->skill[idx].lv < guild_skill_get_max(skill_num) ){
 		intif_guild_skillup(g->guild_id,skill_num,sd->status.account_id,flag);
 	}
-	status_calc_pc (sd, 0); // Celest
-
 	return 0;
 }
 // スキルポイント割り振り通知
@@ -1694,7 +1677,7 @@ int guild_addcastleinfoevent(int castle_id,int index,const char *name)
 	if( name==NULL || *name==0 )
 		return 0;
 
-	ev=(struct eventlist *)aCalloc(1,sizeof(struct eventlist));
+	ev=(struct eventlist *)aMalloc(sizeof(struct eventlist));
 	memcpy(ev->name,name,sizeof(ev->name));
 	//The next event becomes whatever was currently stored.
 	ev->next= idb_put(guild_castleinfoevent_db,code,ev);
@@ -1918,7 +1901,7 @@ int guild_agit_break(struct mob_data *md)
 
 	nullpo_retr(0, md);
 
-	evname=(char *)aCallocA(strlen(md->npc_event) + 1, sizeof(char));
+	evname=(char *)aMallocA((strlen(md->npc_event) + 1)*sizeof(char));
 
 	strcpy(evname,md->npc_event);
 // Now By User to Run [OnAgitBreak] NPC Event...

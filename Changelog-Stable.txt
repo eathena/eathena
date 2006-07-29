@@ -5,6 +5,32 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/28
+	* Merged the status_data update. status.c got pretty much a complete
+	  rewrite, and several other hp/sp related codes were updated. The following
+	  is a brief list of changes. NOTE that this is a pretty massive merge from
+	  trunk, and even though most of the merged code has been in trunk for
+	  weeks->months, it is highly probably previously unknown bugs will pop up,
+	  so YOU ARE WARNED: [Skotlex]
+	- Following skills were synced (rewrote, modified, updated, etc): Energy
+	  Coat, Fog Wall, Venom splasher, Cart Termination, Poison React,
+	  Volcano/Deluge/V.Gale, Soul Change,
+	  Freedom of Casting, Magic Power, Ankle Snare, Land Protector, Cloaking,
+	  Marionette Control
+	- Merged Gunslinger skills, the class should be usable on stable now.
+	- Merged rewrite of battle_calc_misc_attack
+	- Merged check to prevent you from firing with wrong ammo type (no grenades
+	  usable with guns)
+	- Battle config settings: Removed enemy_str/enemy_perfect_flee, added
+	  enable_baseatk, enable_perfect_flee (battle.conf)
+	- Memory leak fix when redefining user functions.
+	- Merged bexp and jexp mapflags to have map-specific rates.
+	- Merged rewrites of the natural healing and saving functions.
+	- Merged use of pc_check_weapontype to enable dagger-type skills to work on
+	  dual-wielders.
+	- Various cleanups and improvements on the mob logic and code.
+	- Merged improved clone code which takes into account base status (so that
+	  being buffed before spawning a clone will not make them stronger)
+2006/07/28
 	* Merged config setting party_hp_mode so you can specify how party-hp bars
 	  are updated. Defaults to Aegis style (instant update) [Skotlex]
 	* Merged config setting party_update_interval which determine rate at which

@@ -40,6 +40,15 @@ enum {
 	MAX_WEAPON_TYPE
 } weapon_type;
 
+enum {
+	A_ARROW = 1,
+	A_DAGGER,    //2
+	A_BULLET,   //3
+	A_SHELL,    //4
+	A_GRENADE,  //5
+	A_SHURIKEN, //6
+	A_KUNAI     //7
+} ammo_type;
 //Equip position constants
 enum {
 	EQP_HEAD_LOW = 0x0001, 
@@ -97,6 +106,9 @@ enum {
 #define pc_stop_attack(sd) { if (sd->ud.attacktimer!=-1) { unit_stop_attack(&sd->bl); sd->ud.target = 0; } }
 #define pc_stop_walking(sd, type) { if (sd->ud.walktimer!=-1) unit_stop_walking(&sd->bl, type); }
 
+//Weapon check considering dual wielding.
+#define pc_check_weapontype(sd, type) ((type)&((sd)->status.weapon < MAX_WEAPON_TYPE? \
+	1<<(sd)->status.weapon:(1<<(sd)->weapontype1)|(1<<(sd)->weapontype2)))
 //Checks if the given class value corresponds to a player class. [Skotlex]
 #define pcdb_checkid(class_) (class_ <= JOB_XMAS || (class_ >= JOB_NOVICE_HIGH && class_ <= JOB_SOUL_LINKER))
 
@@ -122,8 +134,8 @@ int pc_calc_skilltree(struct map_session_data *sd);
 int pc_calc_skilltree_normalize_job(struct map_session_data *sd);
 int pc_clean_skilltree(struct map_session_data *sd);
 
-int pc_checkoverhp(struct map_session_data*);
-int pc_checkoversp(struct map_session_data*);
+#define pc_checkoverhp(sd) (sd->battle_status.hp == sd->battle_status.max_hp)
+#define pc_checkoversp(sd) (sd->battle_status.sp == sd->battle_status.max_sp)
 
 int pc_setpos(struct map_session_data*,unsigned short,int,int,int);
 int pc_setsavepoint(struct map_session_data*,short,int,int);
@@ -138,7 +150,6 @@ int pc_payzeny(struct map_session_data*,int);
 int pc_additem(struct map_session_data*,struct item*,int);
 int pc_getzeny(struct map_session_data*,int);
 int pc_delitem(struct map_session_data*,int,int,int);
-int pc_checkitem(struct map_session_data*);
 
 int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amount);
 int pc_cart_delitem(struct map_session_data *sd,int n,int amount,int type);
@@ -190,10 +201,11 @@ int pc_unequipitem(struct map_session_data*,int,int);
 int pc_checkitem(struct map_session_data*);
 int pc_useitem(struct map_session_data*,int);
 
-int pc_damage_sp(struct map_session_data *, int, int);
-int pc_damage(struct block_list *,struct map_session_data*,int);
-int pc_heal(struct map_session_data *,int,int);
-int pc_itemheal(struct map_session_data *sd,int hp,int sp);
+void pc_damage(struct map_session_data *sd,struct block_list *src,unsigned int hp, unsigned int sp);
+int pc_dead(struct map_session_data *sd,struct block_list *src);
+void pc_revive(struct map_session_data *sd,unsigned int hp, unsigned int sp);
+void pc_heal(struct map_session_data *sd,unsigned int hp,unsigned int sp, int type);
+int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp);
 int pc_percentheal(struct map_session_data *sd,int,int);
 int pc_jobchange(struct map_session_data *,int, int);
 int pc_setoption(struct map_session_data *,int);

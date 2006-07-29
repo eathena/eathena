@@ -843,7 +843,7 @@ int npc_touch_areanpc(struct map_session_data *sd,int m,int x,int y)
 
 			if( npc_event(sd,name,0)>0 ) {
 				pc_stop_walking(sd,1); //Make it stop walking!
-				npc_click(sd,map[m].npc[i]->bl.id);
+				npc_click(sd,map[m].npc[i]);
 			}
 			//aFree(name);
 			break;
@@ -889,29 +889,42 @@ int npc_touch_areanpc2(struct block_list *bl)
  * 近くかどうかの判定
  *------------------------------------------
  */
-int npc_checknear(struct map_session_data *sd,int id)
+int npc_checknear2(struct map_session_data *sd,struct block_list *bl)
 {
-	struct npc_data *nd;
+	nullpo_retr(1, sd);
+	if(bl == NULL) return 1;
+	
 
-	nullpo_retr(0, sd);
-
-	nd=(struct npc_data *)map_id2bl(id);
-	if (nd==NULL || nd->bl.type!=BL_NPC) {
-		if (battle_config.error_log)
-			ShowWarning("no such npc : %d\n",id);
-		return 1;
-	}
-
-	if (nd->class_<0)	// イベント系は常にOK
+	if (status_get_class(bl)<0) //Class-less npc, enable click from anywhere.
 		return 0;
 
-	// エリア判定
-	if (nd->bl.m!=sd->bl.m ||
-	   nd->bl.x<sd->bl.x-AREA_SIZE-1 || nd->bl.x>sd->bl.x+AREA_SIZE+1 ||
-	   nd->bl.y<sd->bl.y-AREA_SIZE-1 || nd->bl.y>sd->bl.y+AREA_SIZE+1)
+	if (bl->m!=sd->bl.m ||
+	   bl->x<sd->bl.x-AREA_SIZE-1 || bl->x>sd->bl.x+AREA_SIZE+1 ||
+	   bl->y<sd->bl.y-AREA_SIZE-1 || bl->y>sd->bl.y+AREA_SIZE+1)
 		return 1;
 
 	return 0;
+}
+
+TBL_NPC *npc_checknear(struct map_session_data *sd,struct block_list *bl)
+{
+	struct npc_data *nd;
+
+	nullpo_retr(NULL, sd);
+	if(bl == NULL) return NULL;
+	if(bl->type != BL_NPC) return NULL;
+	nd = (TBL_NPC*)bl;
+
+
+	if (nd->class_<0) //Class-less npc, enable click from anywhere.
+		return nd;
+
+	if (bl->m!=sd->bl.m ||
+	   bl->x<sd->bl.x-AREA_SIZE-1 || bl->x>sd->bl.x+AREA_SIZE+1 ||
+	   bl->y<sd->bl.y-AREA_SIZE-1 || bl->y>sd->bl.y+AREA_SIZE+1)
+		return NULL;
+
+	return nd;
 }
 
 /*==========================================
@@ -936,10 +949,8 @@ int npc_globalmessage(const char *name,char *mes)
  * クリック時のNPC処理
  *------------------------------------------
  */
-int npc_click(struct map_session_data *sd,int id)
+int npc_click(struct map_session_data *sd,struct npc_data *nd)
 {
-	struct npc_data *nd;
-
 	nullpo_retr(1, sd);
 
 	if (sd->npc_id != 0) {
@@ -948,23 +959,21 @@ int npc_click(struct map_session_data *sd,int id)
 		return 1;
 	}
 
-	if (npc_checknear(sd,id))
+	if(!nd) return 1;
+	if ((nd = npc_checknear(sd,&nd->bl)) == NULL)
 		return 1;
-
-	nd=(struct npc_data *)map_id2bl(id);
-
 	//Hidden/Disabled npc.
 	if (nd->class_ < 0 || nd->sc.option&OPTION_INVISIBLE)
 		return 1;
 
-	sd->npc_id=id;
+	sd->npc_id=nd->bl.id;
 	switch(nd->bl.subtype) {
 	case SHOP:
-		clif_npcbuysell(sd,id);
+		clif_npcbuysell(sd,nd->bl.id);
 		npc_event_dequeue(sd);
 		break;
 	case SCRIPT:
-		sd->npc_pos=run_script(nd->u.scr.script,0,sd->bl.id,id);
+		sd->npc_pos=run_script(nd->u.scr.script,0,sd->bl.id,nd->bl.id);
 		break;
 	}
 
@@ -985,7 +994,7 @@ int npc_scriptcont(struct map_session_data *sd,int id)
 		ShowWarning("npc_scriptcont: sd->npc_id (%d) is not id (%d).\n", sd->npc_id, id);
 		return 1;
 	}
-	if (npc_checknear(sd,id)){
+	if (npc_checknear(sd,map_id2bl(id))==NULL){
 		ShowWarning("npc_scriptcont: failed npc_checknear test.\n");
 		return 1;
 	}
@@ -1007,14 +1016,14 @@ int npc_buysellsel(struct map_session_data *sd,int id,int type)
 
 	nullpo_retr(1, sd);
 
-	if (npc_checknear(sd,id))
+	if ((nd = npc_checknear(sd,map_id2bl(id))) == NULL)
 		return 1;
-
-	nd=(struct npc_data *)map_id2bl(id);
+	
 	if (nd->bl.subtype!=SHOP) {
 		if (battle_config.error_log)
 			ShowError("no such shop npc : %d\n",id);
-		sd->npc_id=0;
+		if (sd->npc_id == id)
+			sd->npc_id=0;
 		return 1;
 	}
 	if (nd->sc.option&OPTION_INVISIBLE)	// 無効化されている
@@ -1042,10 +1051,9 @@ int npc_buylist(struct map_session_data *sd,int n,unsigned short *item_list)
 	nullpo_retr(3, sd);
 	nullpo_retr(3, item_list);
 
-	if (npc_checknear(sd,sd->npc_shopid))
+	if ((nd = npc_checknear(sd,map_id2bl(sd->npc_shopid))) == NULL)
 		return 3;
 
-	nd=(struct npc_data*)map_id2bl(sd->npc_shopid);
 	if (nd->bl.subtype!=SHOP)
 		return 3;
 
@@ -1136,8 +1144,9 @@ int npc_selllist(struct map_session_data *sd,int n,unsigned short *item_list)
 	nullpo_retr(1, sd);
 	nullpo_retr(1, item_list);
 
-	//if (npc_checknear(sd,sd->npc_shopid))
-	//	return 1;
+	if (npc_checknear(sd,map_id2bl(sd->npc_shopid)) == NULL)
+		return 1;
+
 	for(i=0,z=0;i<n;i++) {
 		int nameid, idx, qty;
 		idx = item_list[i*2]-2;
@@ -1251,6 +1260,8 @@ static int npc_unload_ev(DBKey key,void *data,va_list ap) {
 
 int npc_unload (struct npc_data *nd)
 {
+	nullpo_ret(nd);
+
 	npc_remove_map (nd);
 	map_deliddb(&nd->bl);
 
@@ -1673,7 +1684,6 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 	unsigned char line[1024];
 	int i;
 	struct npc_data *nd;
-	int evflag = 0;
 	struct dbt *label_db;
 	char *p;
 	struct npc_label_list *label_dup = NULL;
@@ -1779,10 +1789,6 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 		nd->u.scr.ys = 0;
 	}
 
-	if (class_ < 0 && m >= 0) {	// イベント型NPC
-		evflag = 1;
-	}
-
 	while ((p = strchr(w3,':'))) {
 		if (p[1] == ':') break;
 	}
@@ -1813,18 +1819,21 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 		nd->eventtimer[i] = -1;
 	if (m >= 0) {
 		nd->n = map_addnpc(m, nd);
-		if (class_ >= 0)
-			status_set_viewdata(&nd->bl, nd->class_);
 		status_change_init(&nd->bl);
 		unit_dataset(&nd->bl);
 		nd->ud.dir = dir;
 		map_addblock(&nd->bl);
-		if (evflag) {	// イベント型
+		// Unused. You can always use xxx::OnXXXX events. Have this removed to improve perfomance.
+		/*if (evflag) {	// イベント型
 			struct event_data *ev = (struct event_data *)aCalloc(1, sizeof(struct event_data));
 			ev->nd = nd;
 			ev->pos = 0;
 			strdb_put(ev_db, nd->exname, ev);
 		} else {
+			clif_spawn(&nd->bl);
+		}*/
+		if (class_ >= 0){
+			status_set_viewdata(&nd->bl, nd->class_);
 			clif_spawn(&nd->bl);
 		}
 	} else {
@@ -1968,7 +1977,13 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 	strncpy(p, w3, 50);
 
 	user_db = script_get_userfunc_db();
-	strdb_put(user_db, p, script);
+	if(strdb_get(user_db, p) != NULL) {
+		printf("\r"); //Carriage return to clear the 'loading..' line. [Skotlex]
+		ShowWarning("parse_function: Duplicate user function [%s] (%s:%d)\n", p, current_file, *lines);
+		aFree(p);
+		aFree(script);
+	} else
+		strdb_put(user_db, p, script);
 
 	// もう使わないのでバッファ解放
 	aFree(srcbuf);
@@ -2057,7 +2072,7 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 	}
 
 	//Apply the spawn delay fix [Skotlex]
-	mode = mob_db(class_)->mode;
+	mode = mob_db(class_)->status.mode;
 	if (mode & MD_BOSS) {	//Bosses
 		if (battle_config.boss_spawn_delay != 100)
 		{
@@ -2080,7 +2095,7 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 	if (sscanf(w3, "%23[^,],%d", mobname, &level) > 1)
 		mob.level = level;
 
-	if( mob.delay1<0 || mob.delay2<0 || mob.delay1>0xfffffff || mob.delay2>0xfffffff) {
+	if(mob.delay1>0xfffffff || mob.delay2>0xfffffff) {
 		ShowError("wrong monsters spawn delays : %s %s (file %s)\n", w3, w4, current_file);
 		return 1;
 	}
@@ -2340,6 +2355,16 @@ static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 			map[m].flag.restricted=0;
 			map[m].zone = 0;
 		}
+	}
+	else if (strcmpi(w3,"jexp")==0) {
+		map[m].jexp = (state) ? atoi(w4) : 100;
+		if( map[m].jexp < 0 ) map[m].jexp = 100;
+		map[m].flag.nojobexp = (map[m].jexp==0)?1:0;
+	}
+	else if (strcmpi(w3,"bexp")==0) {
+		map[m].bexp = (state) ? atoi(w4) : 100;
+		if( map[m].bexp < 0 ) map[m].bexp = 100;
+		 map[m].flag.nobaseexp = (map[m].bexp==0)?1:0;
 	}
 	else if (strcmpi(w3,"loadevent")==0) { // Skotlex
 		map[m].flag.loadevent=state;
@@ -2723,6 +2748,39 @@ int do_final_npc(void)
 	return 0;
 }
 
+static void npc_debug_warps_sub(struct npc_data *nd)
+{
+	int m;
+	if (nd->bl.type != BL_NPC || nd->bl.subtype != WARP || nd->bl.m < 0)
+		return;
+
+	m = map_mapindex2mapid(nd->u.warp.mapindex);
+	if (m < 0) return; //Warps to another map, nothing to do about it.
+
+	if (map_getcell(m, nd->u.warp.x, nd->u.warp.y, CELL_CHKNPC)) {
+		ShowWarning("Warp %s at %s(%d,%d) warps directly on top of an area npc at %s(%d,%d)\n",
+			nd->name,
+			map[nd->bl.m].name, nd->bl.x, nd->bl.y,
+			map[m].name, nd->u.warp.x, nd->u.warp.y
+			);
+	}
+	if (map_getcell(m, nd->u.warp.x, nd->u.warp.y, CELL_CHKNOPASS)) {
+		ShowWarning("Warp %s at %s(%d,%d) warps to a non-walkable tile at %s(%d,%d)\n",
+			nd->name,
+			map[nd->bl.m].name, nd->bl.x, nd->bl.y,
+			map[m].name, nd->u.warp.x, nd->u.warp.y
+			);
+	}
+}
+
+static void npc_debug_warps(void)
+{
+	int m, i;
+	for (m = 0; m < map_num; m++)
+		for (i = 0; i < map[m].npc_num; i++)
+			npc_debug_warps_sub(map[m].npc[i]);
+}
+
 /*==========================================
  * npc初期化
  *------------------------------------------
@@ -2784,6 +2842,10 @@ int do_init_npc(void)
 
 	memset(script_event, 0, sizeof(script_event));
 	npc_read_event_script();
+	//Debug function to locate all endless loop warps.
+	if (battle_config.warp_point_debug)
+		npc_debug_warps();
+	
 	add_timer_func_list(npc_event_timer,"npc_event_timer");
 	add_timer_func_list(npc_event_do_clock,"npc_event_do_clock");
 	add_timer_func_list(npc_timerevent,"npc_timerevent");

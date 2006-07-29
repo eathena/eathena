@@ -360,6 +360,39 @@ struct unit_data {
 	} state;
 };
 
+//Basic damage info of a weapon
+//Required because players have two of these, one in status_data and another
+//for their left hand weapon.
+struct weapon_atk {
+	unsigned short atk, atk2;
+	unsigned short range;
+	unsigned char ele;
+};
+
+//For holding basic status (which can be modified by status changes)
+struct status_data {
+	unsigned int
+		hp, sp,
+		max_hp, max_sp;
+	unsigned short
+		str, agi, vit, int_, dex, luk,
+		batk,
+		matk_min, matk_max,
+		speed,
+		amotion, adelay, dmotion,
+		mode;
+	short 
+		hit, flee, cri, flee2,
+		def2, mdef2,
+		aspd_rate;
+	unsigned char
+		def_ele, ele_lv,
+		size, race;
+	signed char
+		def, mdef;
+	struct weapon_atk rhw, *lhw; //Right Hand/Left Hand Weapon. Only players have a lhw (hence it's a pointer)
+};
+
 struct script_reg {
 	int index;
 	int data;
@@ -392,9 +425,6 @@ struct weapon_data {
 	// all the variables except atkmods get zero'ed in each call of status_calc_pc
 	// NOTE: if you want to add a non-zeroed variable, you need to update the memset call
 	//  in status_calc_pc as well! All the following are automatically zero'ed. [Skotlex]
-	int watk;
-	int watk2;
-	int atk_ele;
 	int overrefine;
 	int star;
 	int ignore_def_ele;
@@ -461,6 +491,8 @@ struct map_session_data {
 	struct block_list bl;
 	struct unit_data ud;
 	struct view_data vd;
+	struct status_data base_status, battle_status;
+	struct weapon_atk base_lhw, battle_lhw; //Left-hand weapon atk data.
 	struct status_change sc;
 	//NOTE: When deciding to add a flag to state or special_state, take into consideration that state is preserved in
 	//status_calc_pc, while special_state is recalculated in each call. [Skotlex]
@@ -531,7 +563,7 @@ struct map_session_data {
 	int cart_weight,cart_max_weight,cart_num,cart_max_num;
 	int fd;
 	unsigned short mapindex;
-	short speed,prev_speed;
+	unsigned short prev_speed,prev_adelay;
 	unsigned char head_dir;
 	unsigned int client_tick;
 	int npc_id,areanpc_id,npc_shopid;
@@ -574,16 +606,11 @@ struct map_session_data {
 	short weapontype1,weapontype2;
 	short disguise; // [Valaris]
 
-	struct weapon_data right_weapon;
-	struct weapon_data left_weapon;
+	struct weapon_data right_weapon, left_weapon;
 	
-	int paramc[6],paramcard[6];
-
 	// here start arrays to be globally zeroed at the beginning of status_calc_pc()
-
-	int paramb[6];
-	int parame[6];
-	int subele[10];
+	int param_bonus[6],param_equip[6]; //Stores card/equipment bonuses.
+	int subele[ELE_MAX];
 	int subrace[RC_MAX];
 	int subrace2[RC_MAX];
 	int subsize[3];
@@ -624,16 +651,7 @@ struct map_session_data {
 	} add_drop[MAX_PC_BONUS];
 	// zeroed structures end here
 	// zeroed vars start here.
-	int hit;
-	int flee, flee2;
-	int critical;
-	int aspd;
-	int def, def2;
-	int mdef, mdef2;
-	int def_ele;
-	int matk1, matk2;
-	int base_atk;
-	int arrow_atk,arrow_ele,arrow_cri,arrow_hit,arrow_range;
+	int arrow_atk,arrow_ele,arrow_cri,arrow_hit;
 	int nhealhp,nhealsp,nshealhp,nshealsp,nsshealhp,nsshealsp;
 	int critical_def,double_rate;
 	int long_attack_atk_rate; //Long range atk rate, not weapon based. [Skotlex]
@@ -653,9 +671,9 @@ struct map_session_data {
 	int hp_loss_rate;
 	int sp_loss_rate;
 	int classchange; // [Valaris]
+	int speed_add_rate, aspd_add_rate;
 	unsigned int setitem_hash, setitem_hash2; //Split in 2 because shift operations only work on int ranges. [Skotlex]
-
-	short attackrange,attackrange_;
+	
 	short splash_range, splash_add_range;
 	short add_steal_rate;
 	short hp_loss_value;
@@ -674,13 +692,11 @@ struct map_session_data {
 
 	// zeroed vars end here.
 
-	int amotion,dmotion;
 	int castrate,delayrate,hprate,sprate,dsprate;
 	int atk_rate;
-	int aspd_rate,speed_rate,hprecov_rate,sprecov_rate;
+	int speed_rate,hprecov_rate,sprecov_rate;
 	int matk_rate;
 	int critical_rate,hit_rate,flee_rate,flee2_rate,def_rate,def2_rate,mdef_rate,mdef2_rate;
-	int speed_add_rate, aspd_add_rate;
 
 	int hp_loss_tick;
 	int sp_loss_tick;
@@ -849,6 +865,7 @@ struct mob_data {
 	struct block_list bl;
 	struct unit_data  ud;
 	struct view_data *vd;
+	struct status_data status, *base_status; //Second one is in case of leveling up mobs, or tiny/large mobs.
 	struct status_change sc;
 	struct mob_db *db;	//For quick data access (saves doing mob_db(md->class_) all the time) [Skotlex]
 	char name[NAME_LENGTH];
@@ -878,13 +895,11 @@ struct mob_data {
 	struct spawn_data *spawn; //Spawn data.
 	struct item *lootitem;
 	short spawn_n;	//Spawn data index on the map server.
-	short class_,mode;
-	short speed;
+	short class_;
 	short attacked_count;
-	unsigned short level;
 	unsigned char attacked_players;
 	unsigned int tdmg; //Stores total damage given to the mob, for exp calculations. [Skotlex]
-	int hp, max_hp;
+	int level;
 	int target_id,attacked_id;
 	unsigned int next_walktime;
 	unsigned int last_deadtime,last_spawntime,last_thinktime,last_linktime;
@@ -893,7 +908,6 @@ struct mob_data {
 	short min_chase;
 	
 	int deletetimer;
-	int def_ele;
 	int master_id,master_dist;
 	
 	short skillidx;
@@ -905,27 +919,21 @@ struct pet_data {
 	struct block_list bl;
 	struct unit_data ud;
 	struct view_data vd;
+	struct status_data status;
 	struct mob_db *db;
 	struct pet_db *petDB;
 	int pet_hungry_timer;
 	int target_id;
 	short n;
 	short class_;
-	short speed;
+	short equip;
 	char name[NAME_LENGTH];
 	struct {
-		unsigned skillstate : 8 ;
-		short skillbonus;
+		unsigned skillbonus : 1;
 	} state;
-	short equip;
 	int move_fail_count;
 	unsigned int next_walktime,last_thinktime;
 	short rate_fix;	//Support rate as modified by intimacy (1000 = 100%) [Skotlex]
-	struct pet_status { //Pet Status data
-		short level;
-		short atk1,atk2;
-		short str,agi,vit,int_,dex,luk;
-	} *status;  //[Skotlex]
 
 	struct pet_recovery { //Stat recovery
 		unsigned short type;	//Status Change id
@@ -1045,6 +1053,8 @@ struct map_data {
 	struct spawn_data *moblist[MAX_MOB_LIST_PER_MAP]; // [Wizputer]
 	int mob_delete_timer;	// [Skotlex]
 	int zone;	// [Komurka]
+	int jexp;	// map experience multiplicator
+	int bexp;	// map experience multiplicator
 };
 
 struct map_data_other_server {
@@ -1282,6 +1292,7 @@ int map_eraseallipport(void);
 void map_addiddb(struct block_list *);
 void map_deliddb(struct block_list *bl);
 struct map_session_data** map_getallusers(int *users);
+void map_foreachpc(int (*func)(DBKey,void*,va_list),...);
 int map_foreachiddb(int (*)(DBKey,void*,va_list),...);
 void map_addnickdb(struct map_session_data *);
 struct map_session_data * map_nick2sd(char*);

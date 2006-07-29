@@ -669,10 +669,10 @@ int party_send_xy_timer_sub(DBKey key,void *data,va_list ap)
 			p->data[i].y = sd->bl.y;
 		}
 		if (battle_config.party_hp_mode &&
-			p->data[i].hp != sd->status.hp)
+			p->data[i].hp != sd->battle_status.hp)
 		{
 			clif_party_hp(sd);
-			p->data[i].hp = sd->status.hp;
+			p->data[i].hp = sd->battle_status.hp;
 		}
 	}
 	return 0;

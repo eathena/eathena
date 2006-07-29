@@ -103,7 +103,7 @@ struct mmo_charstatus *charsave_loadchar(int charid){
          c->child = atoi(charsql_row[45]);
          c->fame = atoi(charsql_row[46]);
 
-        	mysql_free_result(charsql_res);
+			mysql_free_result(charsql_res);
 
 	//Check for '0' Savepoint / LastPoint
 	if (c->last_point.x == 0 || c->last_point.y == 0 || c->last_point.map == 0){
@@ -237,8 +237,9 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 				c->global_reg_num = i;
          }
 */
+	
 	//Shamelessly stolen from its_sparky (ie: thanks) and then assimilated by [Skotlex]
-	//Friend list 
+	//Friend list
 	sprintf(tmp_sql, "SELECT f.friend_account, f.friend_id, c.name FROM friends f LEFT JOIN `char` c ON f.friend_account=c.account_id AND f.friend_id=c.char_id WHERE f.char_id='%d'", charid);
 
 	if(mysql_query(&charsql_handle, tmp_sql)){
@@ -248,7 +249,7 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 	}
 	else
 		sql_res = mysql_store_result(&charsql_handle);
-	
+
 	if(sql_res)
 	{
 		for(i = 0; (sql_row = mysql_fetch_row(sql_res)) && i<MAX_FRIENDS; i++)
@@ -311,16 +312,16 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
 				str_p += sprintf(str_p, "INSERT INTO `inventory` (`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
 			for (j = 0; j < MAX_SLOTS; j++)
 				str_p += sprintf(str_p, ", `card%d`", j);
-				
+
 			str_p += sprintf(str_p, ") VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d'",
 				charid, c->inventory[i].nameid, c->inventory[i].amount, c->inventory[i].equip,
 				c->inventory[i].identify, c->inventory[i].refine, c->inventory[i].attribute);
 
 			for (j = 0; j < MAX_SLOTS; j++)
 				str_p += sprintf(str_p, ", '%d'", c->inventory[i].card[j]);
-			
+
 			strcat(tmp_sql,")");
-			
+
 			if(mysql_query(&charsql_handle, tmp_sql)){
 				ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -340,16 +341,16 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
 				str_p += sprintf(str_p, "INSERT INTO `cart_inventory` (`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
 				for (j = 0; j < MAX_SLOTS; j++)
 					str_p += sprintf(str_p, ", `card%d`", j);
-				
+
 				str_p += sprintf(str_p, ") VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d'",
 					charid, c->cart[i].nameid, c->cart[i].amount, c->cart[i].equip,
 					c->cart[i].identify, c->cart[i].refine, c->cart[i].attribute);
 
 				for (j = 0; j < MAX_SLOTS; j++)
 					str_p += sprintf(str_p, ", '%d'", c->cart[i].card[j]);
-			
+
 				strcat(tmp_sql,")");
-				
+
 				if(mysql_query(&charsql_handle, tmp_sql)){
 					ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));
 					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -436,7 +437,7 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
 int charsave_load_scdata(int account_id, int char_id)
 {	//Loads character's sc_data
 	struct map_session_data *sd;
-	
+
 	sd = map_id2sd(account_id);
 	if (!sd)
 	{
@@ -450,7 +451,7 @@ int charsave_load_scdata(int account_id, int char_id)
 	}
 	sprintf(tmp_sql, "SELECT `type`, `tick`, `val1`, `val2`, `val3`, `val4` FROM `sc_data`"
 		"WHERE `account_id`='%d' AND `char_id`='%d'", account_id, char_id);
-	
+
 	if(mysql_query(&charsql_handle, tmp_sql)){
 		ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -490,7 +491,7 @@ void charsave_save_scdata(int account_id, int char_id, struct status_change* sc_
 	char *p = tmp_sql;
 
 	p += sprintf(p, "INSERT INTO `sc_data` (`account_id`, `char_id`, `type`, `tick`, `val1`, `val2`, `val3`, `val4`) VALUES ");
-			
+
 	for(i = 0; i < max_sc; i++)
 	{
 		if (sc_data->data[i].timer == -1)
@@ -498,10 +499,10 @@ void charsave_save_scdata(int account_id, int char_id, struct status_change* sc_
 		timer = get_timer(sc_data->data[i].timer);
 		if (timer == NULL || timer->func != status_change_timer || DIFF_TICK(timer->tick,tick) < 0)
 			continue;
-		
+
 		p += sprintf(p, " ('%d','%d','%hu','%d','%d','%d','%d','%d'),", account_id, char_id,
 			i, DIFF_TICK(timer->tick,tick), sc_data->data[i].val1, sc_data->data[i].val2, sc_data->data[i].val3, sc_data->data[i].val4);
-		
+
 		count++;
 	}
 	if (count > 0)

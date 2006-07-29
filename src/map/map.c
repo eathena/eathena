@@ -496,6 +496,8 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick) {
 				status_change_end(bl, SC_CLOSECONFINE, -1);
 			if (sc->data[SC_CLOSECONFINE2].timer != -1)
 				status_change_end(bl, SC_CLOSECONFINE2, -1);
+			if (sc->data[SC_BLADESTOP].timer != -1)
+				status_change_end(bl, SC_BLADESTOP, -1);
 		}
 	}
 	if (moveblock) map_delblock_sub(bl,0);
@@ -513,7 +515,7 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick) {
 		if (sc) {
 			if (sc->count) {
 				if (sc->data[SC_CLOAKING].timer != -1)
-					skill_check_cloaking(bl);
+					skill_check_cloaking(bl, sc);
 				if (sc->data[SC_DANCING].timer != -1) {
 					//Cancel Moonlight Petals if moved from casting position. [Skotlex]
 					if (sc->data[SC_DANCING].val1 == CG_MOONLIT)
@@ -573,21 +575,20 @@ int map_count_oncell(int m, int x, int y, int type) {
 	bx = x/BLOCK_SIZE;
 	by = y/BLOCK_SIZE;
 
-	if (type == 0 || type != BL_MOB)
+	if (type&~BL_MOB)
 	{
 		bl = map[m].block[bx+by*map[m].bxs];
 		c = map[m].block_count[bx+by*map[m].bxs];
 		for(i=0;i<c && bl;i++,bl=bl->next)
-			if(bl->x == x && bl->y == y && bl->type == (type?type:BL_PC)) count++;
+			if(bl->x == x && bl->y == y && bl->type&type) count++;
 	}
 	
-	if (type == 0 || type == BL_MOB)
+	if (type&BL_MOB)
 	{
 		bl = map[m].block_mob[bx+by*map[m].bxs];
 		c = map[m].block_mob_count[bx+by*map[m].bxs];
-		for(i=0;i<c && bl;i++,bl=bl->next){
+		for(i=0;i<c && bl;i++,bl=bl->next)
 			if(bl->x == x && bl->y == y) count++;
-		}
 	}
 	return count;
 }
@@ -1981,7 +1982,7 @@ int mob_cache_cleanup_sub(struct block_list *bl, va_list ap) {
 	if (!md->special_state.cached)
 		return 0;
 	if (!battle_config.mob_remove_damaged && 
-		md->hp < md->db->max_hp) //don't use status_get_maxhp for speed (by the time you have to remove a mob, their status changes should have expired anyway)
+		md->status.hp < md->status.max_hp)
 		return 0; //Do not remove damaged mobs.
 	
 	unit_free(&md->bl);
@@ -3154,7 +3155,11 @@ int map_readallmaps (void)
 
 				map[i].bxs = (map[i].xs + BLOCK_SIZE - 1) / BLOCK_SIZE;
 				map[i].bys = (map[i].ys + BLOCK_SIZE - 1) / BLOCK_SIZE;
-
+				
+				// default experience multiplicator
+				map[i].jexp = 100;
+				map[i].bexp = 100;
+				
 				size = map[i].bxs * map[i].bys * sizeof(struct block_list*);
 				map[i].block = (struct block_list**)aCalloc(size, 1);
 				map[i].block_mob = (struct block_list**)aCalloc(size, 1);

@@ -1476,7 +1476,7 @@ int clif_movepc(struct map_session_data *sd) {
 		memset(buf,0,packet_len_table[0x7b]);
 		WBUFW(buf,0)=0x7b;
 		WBUFL(buf,2)=-10;
-		WBUFW(buf,6)=sd->speed;
+		WBUFW(buf,6)=sd->battle_status.speed;
 		WBUFW(buf,8)=0;
 		WBUFW(buf,10)=0;
 		WBUFW(buf,12)=OPTION_INVISIBLE;
@@ -2384,7 +2384,7 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 		WFIFOL(fd,4)=sd->max_weight;
 		break;
 	case SP_SPEED:
-		WFIFOL(fd,4)=sd->speed;
+		WFIFOL(fd,4)=sd->battle_status.speed;
 		break;
 	case SP_BASELEVEL:
 		WFIFOL(fd,4)=sd->status.base_level;
@@ -2406,66 +2406,64 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 		WFIFOL(fd,4)=sd->status.skill_point;
 		break;
 	case SP_HIT:
-		WFIFOL(fd,4)=sd->hit;
+		WFIFOL(fd,4)=sd->battle_status.hit;
 		break;
 	case SP_FLEE1:
-		WFIFOL(fd,4)=sd->flee;
+		WFIFOL(fd,4)=sd->battle_status.flee;
 		break;
 	case SP_FLEE2:
-		WFIFOL(fd,4)=sd->flee2/10;
+		WFIFOL(fd,4)=sd->battle_status.flee2/10;
 		break;
 	case SP_MAXHP:
-		WFIFOL(fd,4)=sd->status.max_hp;
+		WFIFOL(fd,4)=sd->battle_status.max_hp;
 		break;
 	case SP_MAXSP:
-		WFIFOL(fd,4)=sd->status.max_sp;
+		WFIFOL(fd,4)=sd->battle_status.max_sp;
 		break;
 	case SP_HP:
-		WFIFOL(fd,4)=sd->status.hp;
+		WFIFOL(fd,4)=sd->battle_status.hp;
 		if (battle_config.disp_hpmeter)
 			clif_hpmeter(sd);
 		if (!battle_config.party_hp_mode && sd->status.party_id)
 			clif_party_hp(sd);
 		break;
 	case SP_SP:
-		WFIFOL(fd,4)=sd->status.sp;
+		WFIFOL(fd,4)=sd->battle_status.sp;
 		break;
 	case SP_ASPD:
-		WFIFOL(fd,4)=sd->aspd;
+		WFIFOL(fd,4)=sd->battle_status.amotion;
 		break;
 	case SP_ATK1:
-		WFIFOL(fd,4)=sd->base_atk+sd->right_weapon.watk+sd->left_weapon.watk;
+		WFIFOL(fd,4)=sd->battle_status.batk +sd->battle_status.rhw.atk +sd->battle_status.lhw->atk;
 		break;
 	case SP_DEF1:
-		WFIFOL(fd,4)=sd->def;
+		WFIFOL(fd,4)=sd->battle_status.def;
 		break;
 	case SP_MDEF1:
-		WFIFOL(fd,4)=sd->mdef;
+		WFIFOL(fd,4)=sd->battle_status.mdef;
 		break;
 	case SP_ATK2:
-		WFIFOL(fd,4)=sd->right_weapon.watk2 + sd->left_weapon.watk2;
+		WFIFOL(fd,4)=sd->battle_status.rhw.atk2 + sd->battle_status.lhw->atk2;
 		break;
 	case SP_DEF2:
-		WFIFOL(fd,4)=sd->def2;
+		WFIFOL(fd,4)=sd->battle_status.def2;
 		break;
 	case SP_MDEF2:
-		WFIFOL(fd,4)=sd->mdef2;
+		WFIFOL(fd,4)=sd->battle_status.mdef2;
 		break;
 	case SP_CRITICAL:
-		WFIFOL(fd,4)=sd->critical/10;
+		WFIFOL(fd,4)=sd->battle_status.cri/10;
 		break;
 	case SP_MATK1:
-		WFIFOL(fd,4)=sd->matk1;
+		WFIFOL(fd,4)=sd->battle_status.matk_max;
 		break;
 	case SP_MATK2:
-		WFIFOL(fd,4)=sd->matk2;
+		WFIFOL(fd,4)=sd->battle_status.matk_min;
 		break;
 
 
 	case SP_ZENY:
 		WFIFOW(fd,0)=0xb1;
-		if(sd->status.zeny < 0)
-			sd->status.zeny = 0;
 		WFIFOL(fd,4)=sd->status.zeny;
 		break;
 	case SP_BASEEXP:
@@ -2500,7 +2498,7 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 		// 013a I—¹
 	case SP_ATTACKRANGE:
 		WFIFOW(fd,0)=0x13a;
-		WFIFOW(fd,2)=sd->attackrange;
+		WFIFOW(fd,2)=sd->battle_status.rhw.range;
 		len=4;
 		break;
 
@@ -2509,42 +2507,42 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 		WFIFOW(fd,0)=0x141;
 		WFIFOL(fd,2)=type;
 		WFIFOL(fd,6)=sd->status.str;
-		WFIFOL(fd,10)=sd->paramb[0] + sd->parame[0];
+		WFIFOL(fd,10)=sd->battle_status.str - sd->status.str;
 		len=14;
 		break;
 	case SP_AGI:
 		WFIFOW(fd,0)=0x141;
 		WFIFOL(fd,2)=type;
 		WFIFOL(fd,6)=sd->status.agi;
-		WFIFOL(fd,10)=sd->paramb[1] + sd->parame[1];
+		WFIFOL(fd,10)=sd->battle_status.agi - sd->status.agi;
 		len=14;
 		break;
 	case SP_VIT:
 		WFIFOW(fd,0)=0x141;
 		WFIFOL(fd,2)=type;
 		WFIFOL(fd,6)=sd->status.vit;
-		WFIFOL(fd,10)=sd->paramb[2] + sd->parame[2];
+		WFIFOL(fd,10)=sd->battle_status.vit - sd->status.vit;
 		len=14;
 		break;
 	case SP_INT:
 		WFIFOW(fd,0)=0x141;
 		WFIFOL(fd,2)=type;
 		WFIFOL(fd,6)=sd->status.int_;
-		WFIFOL(fd,10)=sd->paramb[3] + sd->parame[3];
+		WFIFOL(fd,10)=sd->battle_status.int_ - sd->status.int_;
 		len=14;
 		break;
 	case SP_DEX:
 		WFIFOW(fd,0)=0x141;
 		WFIFOL(fd,2)=type;
 		WFIFOL(fd,6)=sd->status.dex;
-		WFIFOL(fd,10)=sd->paramb[4] + sd->parame[4];
+		WFIFOL(fd,10)=sd->battle_status.dex - sd->status.dex;
 		len=14;
 		break;
 	case SP_LUK:
 		WFIFOW(fd,0)=0x141;
 		WFIFOL(fd,2)=type;
 		WFIFOL(fd,6)=sd->status.luk;
-		WFIFOL(fd,10)=sd->paramb[5] + sd->parame[5];
+		WFIFOL(fd,10)=sd->battle_status.luk - sd->status.luk;
 		len=14;
 		break;
 
@@ -2769,18 +2767,18 @@ int clif_initialstatus(struct map_session_data *sd)
 	WBUFB(buf,14)=(sd->status.luk > UCHAR_MAX)? UCHAR_MAX:sd->status.luk;
 	WBUFB(buf,15)=pc_need_status_point(sd,SP_LUK);
 
-	WBUFW(buf,16) = sd->base_atk + sd->right_weapon.watk + sd->left_weapon.watk;
-	WBUFW(buf,18) = sd->right_weapon.watk2 + sd->left_weapon.watk2; //atk bonus
-	WBUFW(buf,20) = sd->matk1;
-	WBUFW(buf,22) = sd->matk2;
-	WBUFW(buf,24) = sd->def; // def
-	WBUFW(buf,26) = sd->def2;
-	WBUFW(buf,28) = sd->mdef; // mdef
-	WBUFW(buf,30) = sd->mdef2;
-	WBUFW(buf,32) = sd->hit;
-	WBUFW(buf,34) = sd->flee;
-	WBUFW(buf,36) = sd->flee2/10;
-	WBUFW(buf,38) = sd->critical/10;
+	WBUFW(buf,16) = sd->battle_status.batk + sd->battle_status.rhw.atk + sd->battle_status.lhw->atk;
+	WBUFW(buf,18) = sd->battle_status.rhw.atk2 + sd->battle_status.lhw->atk2; //atk bonus
+	WBUFW(buf,20) = sd->battle_status.matk_max;
+	WBUFW(buf,22) = sd->battle_status.matk_min;
+	WBUFW(buf,24) = sd->battle_status.def; // def
+	WBUFW(buf,26) = sd->battle_status.def2;
+	WBUFW(buf,28) = sd->battle_status.mdef; // mdef
+	WBUFW(buf,30) = sd->battle_status.mdef2;
+	WBUFW(buf,32) = sd->battle_status.hit;
+	WBUFW(buf,34) = sd->battle_status.flee;
+	WBUFW(buf,36) = sd->battle_status.flee2/10;
+	WBUFW(buf,38) = sd->battle_status.cri/10;
 	WBUFW(buf,40) = sd->status.karma;
 	WBUFW(buf,42) = sd->status.manner;
 
@@ -4627,7 +4625,7 @@ int clif_skill_teleportmessage(struct map_session_data *sd,int flag)
  */
 int clif_skill_estimation(struct map_session_data *sd,struct block_list *dst)
 {
-	struct mob_data *md;
+	struct status_data *status;
 	unsigned char buf[64];
 	int i;//, fix;
 
@@ -4636,27 +4634,27 @@ int clif_skill_estimation(struct map_session_data *sd,struct block_list *dst)
 
 	if(dst->type!=BL_MOB )
 		return 0;
-	if((md=(struct mob_data *)dst) == NULL)
-		return 0;
+
+	status = status_get_status_data(dst);
 
 	WBUFW(buf, 0)=0x18c;
-	WBUFW(buf, 2)=md->vd->class_;
-	WBUFW(buf, 4)=md->level;
-	WBUFW(buf, 6)=md->db->size;
-	WBUFL(buf, 8)=md->hp;
-	WBUFW(buf,12)= (battle_config.estimation_type&1?status_get_def(&md->bl):0)
-		+(battle_config.estimation_type&2?status_get_def2(&md->bl):0);
-	WBUFW(buf,14)=md->db->race;
-	WBUFW(buf,16)= (battle_config.estimation_type&1?status_get_mdef(&md->bl):0)
-  		+(battle_config.estimation_type&2?status_get_mdef2(&md->bl) - (md->db->vit>>1):0);
-	WBUFW(buf,18)=status_get_elem_type(&md->bl);
+	WBUFW(buf, 2)=status_get_class(dst);
+	WBUFW(buf, 4)=status_get_lv(dst);
+	WBUFW(buf, 6)=status->size;
+	WBUFL(buf, 8)=status->hp;
+	WBUFW(buf,12)= (battle_config.estimation_type&1?status->def:0)
+		+(battle_config.estimation_type&2?status->def2:0);
+	WBUFW(buf,14)=status->race;
+	WBUFW(buf,16)= (battle_config.estimation_type&1?status->mdef:0)
+  		+(battle_config.estimation_type&2?status->mdef2 - (status->vit>>1):0);
+	WBUFW(buf,18)= status->def_ele;
 	for(i=0;i<9;i++)
-		WBUFB(buf,20+i)= (unsigned char)battle_attr_fix(NULL,dst,100,i+1,md->def_ele);
+		WBUFB(buf,20+i)= (unsigned char)battle_attr_fix(NULL,dst,100,i+1,status->def_ele, status->ele_lv);
 //		The following caps negative attributes to 0 since the client displays them as 255-fix. [Skotlex]
-//		WBUFB(buf,20+i)= (unsigned char)((fix=battle_attr_fix(NULL,dst,100,i+1,md->def_ele))<0?0:fix);
+//		WBUFB(buf,20+i)= (unsigned char)((fix=battle_attr_fix(NULL,dst,100,i+1,status->def_ele, status->ele_lv))<0?0:fix);
 
 	if(sd->status.party_id>0)
-		clif_send(buf,packet_len_table[0x18c],&sd->bl,PARTY_AREA);
+		clif_send(buf,packet_len_table[0x18c],&sd->bl,PARTY_SAMEMAP);
 	else{
 		WFIFOHEAD(sd->fd,packet_len_table[0x18c]);
 		memcpy(WFIFOP(sd->fd,0),buf,packet_len_table[0x18c]);
@@ -4760,7 +4758,7 @@ int clif_displaymessage(const int fd, char* mes)
 		int len_mes = strlen(mes);
 
 		if (len_mes > 0) { // don't send a void message (it's not displaying on the client chat). @help can send void line.
-                        WFIFOHEAD(fd, 5 + len_mes);
+			WFIFOHEAD(fd, 5 + len_mes);
 			WFIFOW(fd,0) = 0x8e;
 			WFIFOW(fd,2) = 5 + len_mes; // 4 + len + NULL teminate
 			memcpy(WFIFOP(fd,4), mes, len_mes + 1);
@@ -5837,12 +5835,12 @@ int clif_party_hp(struct map_session_data *sd)
 
 	WBUFW(buf,0)=0x106;
 	WBUFL(buf,2)=sd->status.account_id;
-	if (sd->status.max_hp > SHRT_MAX) { //To correctly display the %hp bar. [Skotlex]
-		WBUFW(buf,6) = sd->status.hp/(sd->status.max_hp/100);
+	if (sd->battle_status.max_hp > SHRT_MAX) { //To correctly display the %hp bar. [Skotlex]
+		WBUFW(buf,6) = sd->battle_status.hp/(sd->battle_status.max_hp/100);
 		WBUFW(buf,8) = 100;
 	} else {
-		WBUFW(buf,6) = sd->status.hp;
-		WBUFW(buf,8) = sd->status.max_hp;
+		WBUFW(buf,6) = sd->battle_status.hp;
+		WBUFW(buf,8) = sd->battle_status.max_hp;
 	}
 	clif_send(buf,packet_len_table[0x106],&sd->bl,PARTY_AREA_WOS);
 	return 0;
@@ -5857,12 +5855,12 @@ static void clif_hpmeter_single(int fd, struct map_session_data *sd)
 	WFIFOHEAD(fd,packet_len_table[0x106]);
 	WFIFOW(fd,0) = 0x106;
 	WFIFOL(fd,2) = sd->status.account_id;
-	if (sd->status.max_hp > SHRT_MAX) { //To correctly display the %hp bar. [Skotlex]
-		WFIFOW(fd,6) = sd->status.hp/(sd->status.max_hp/100);
+	if (sd->battle_status.max_hp > SHRT_MAX) { //To correctly display the %hp bar. [Skotlex]
+		WFIFOW(fd,6) = sd->battle_status.hp/(sd->battle_status.max_hp/100);
 		WFIFOW(fd,8) = 100;
 	} else {
-		WFIFOW(fd,6) = sd->status.hp;
-		WFIFOW(fd,8) = sd->status.max_hp;
+		WFIFOW(fd,6) = sd->battle_status.hp;
+		WFIFOW(fd,8) = sd->battle_status.max_hp;
 	}
 	WFIFOSET (fd, packet_len_table[0x106]);
 }
@@ -5887,12 +5885,12 @@ int clif_hpmeter(struct map_session_data *sd)
 
 	WBUFW(buf,0) = 0x106;
 	WBUFL(buf,2) = sd->status.account_id;
-	if (sd->status.max_hp > SHRT_MAX) { //To correctly display the %hp bar. [Skotlex]
-		WBUFW(buf,6) = sd->status.hp/(sd->status.max_hp/100);
+	if (sd->battle_status.max_hp > SHRT_MAX) { //To correctly display the %hp bar. [Skotlex]
+		WBUFW(buf,6) = sd->battle_status.hp/(sd->battle_status.max_hp/100);
 		WBUFW(buf,8) = 100;
 	} else {
-		WBUFW(buf,6) = sd->status.hp;
-		WBUFW(buf,8) = sd->status.max_hp;
+		WBUFW(buf,6) = sd->battle_status.hp;
+		WBUFW(buf,8) = sd->battle_status.max_hp;
 	}
 	for (i = 0; i < fd_max; i++) {
 		if (session[i] && session[i]->func_parse == clif_parse &&	
@@ -5955,7 +5953,7 @@ int clif_movetoattack(struct map_session_data *sd,struct block_list *bl)
 	WFIFOW(fd, 8)=bl->y;
 	WFIFOW(fd,10)=sd->bl.x;
 	WFIFOW(fd,12)=sd->bl.y;
-	WFIFOW(fd,14)=sd->attackrange;
+	WFIFOW(fd,14)=sd->battle_status.rhw.range;
 	WFIFOSET(fd,packet_len_table[0x139]);
 	return 0;
 }
@@ -7567,7 +7565,7 @@ int clif_charnameack (int fd, struct block_list *bl)
 			} else if (battle_config.show_mob_hp) {
 				char mobhp[50];
 				WBUFW(buf, 0) = cmd = 0x195;
-				sprintf(mobhp, "HP: %d/%d", md->hp, md->max_hp);
+				sprintf(mobhp, "HP: %u/%u", md->status.hp, md->status.max_hp);
 				//Even thought mobhp ain't a name, we send it as one so the client
 				//can parse it. [Skotlex]
 				memcpy(WBUFP(buf,30), mobhp, NAME_LENGTH);
@@ -8395,7 +8393,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 				if (skillnotok(MO_EXPLOSIONSPIRITS,sd))
 					break; //Do not override the noskill mapflag. [Skotlex]
 				clif_skill_nodamage(&sd->bl,&sd->bl,MO_EXPLOSIONSPIRITS,-1,
-					sc_start(&sd->bl,SkillStatusChangeTable[MO_EXPLOSIONSPIRITS],100,
+					sc_start(&sd->bl,SkillStatusChangeTable(MO_EXPLOSIONSPIRITS),100,
 						17,skill_get_time(MO_EXPLOSIONSPIRITS,1))); //Lv17-> +50 critical (noted by Poki) [Skotlex]
 				sd->state.snovice_flag = 0;
 				break;
@@ -8637,7 +8635,7 @@ void clif_parse_Restart(int fd, struct map_session_data *sd) {
 			pc_setpos(sd, sd->status.save_point.map, sd->status.save_point.x, sd->status.save_point.y, 2);
 		}
 		// in case the player's status somehow wasn't updated yet [Celest]
-		else if (sd->status.hp <= 0)
+		else if (sd->battle_status.hp <= 0)
 			pc_setdead(sd);
 		break;
 	case 0x01:
@@ -9025,6 +9023,7 @@ void clif_parse_UnequipItem(int fd,struct map_session_data *sd)
  */
 void clif_parse_NpcClicked(int fd,struct map_session_data *sd)
 {
+	struct block_list *bl;
 	RFIFOHEAD(fd);
 
 	if(pc_isdead(sd)) {
@@ -9034,10 +9033,21 @@ void clif_parse_NpcClicked(int fd,struct map_session_data *sd)
 
 	if (clif_cant_act(sd))
 		return;
-	//Clicked on a negative ID? Player disguised as NPC! [Skotlex]
-	if (RFIFOL(fd,2) < 0)
-		return;
-	npc_click(sd,RFIFOL(fd,2));
+
+	bl = map_id2bl(RFIFOL(fd,2));
+	if (!bl) return;
+	switch (bl->type) {
+		case BL_MOB:
+			clif_parse_ActionRequest_sub(sd, 0x07, bl->id, gettick());
+			break;
+		case BL_PC:
+			clif_parse_ActionRequest_sub(sd, 0x07, bl->id, gettick());
+			break;
+		case BL_NPC:
+			npc_click(sd,(TBL_NPC*)bl);
+			break;
+	}
+	return;
 }
 
 /*==========================================
@@ -10328,8 +10338,7 @@ void clif_parse_GMKick(int fd, struct map_session_data *sd) {
 				else
 					clif_GM_kickack(sd, 0);
 			} else if (target->type == BL_MOB) {
-				struct mob_data *md = (struct mob_data *)target;
-				mob_damage(&sd->bl, md, md->hp, 2);
+				status_percent_damage(&sd->bl, target, 100, 0);
 			} else
 				clif_GM_kickack(sd, 0);
 		} else
@@ -10670,7 +10679,7 @@ void clif_parse_NoviceDoriDori(int fd, struct map_session_data *sd) {
 	
 	if ((sd->class_&MAPID_BASEMASK) == MAPID_TAEKWON
 		&& sd->state.rest && (level = pc_checkskill(sd,TK_SPTIME)))
-		sc_start(&sd->bl,SkillStatusChangeTable[TK_SPTIME],100,level,skill_get_time(TK_SPTIME, level));
+		sc_start(&sd->bl,SkillStatusChangeTable(TK_SPTIME),100,level,skill_get_time(TK_SPTIME, level));
 	return;
 }
 /*==========================================
@@ -10689,7 +10698,7 @@ void clif_parse_NoviceExplosionSpirits(int fd, struct map_session_data *sd)
 		}
 		if((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && sd->status.base_exp > 0 && nextbaseexp > 0 && (int)((double)1000*sd->status.base_exp/nextbaseexp)%100==0){
 			clif_skill_nodamage(&sd->bl,&sd->bl,MO_EXPLOSIONSPIRITS,5,
-				sc_start(&sd->bl,SkillStatusChangeTable[MO_EXPLOSIONSPIRITS],100,
+				sc_start(&sd->bl,SkillStatusChangeTable(MO_EXPLOSIONSPIRITS),100,
 					5,skill_get_time(MO_EXPLOSIONSPIRITS,5)));
 		}
 	}
