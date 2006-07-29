@@ -1,3 +1,11 @@
+07/29
+	* Merged item_db, mob_db, mob_skill_db and skill_require_db [Playtester]
+	- fixed Teddy Bear Card, Solace Card and some other items
+	- added most of the missing X.4 / 11.1 drops
+	- adjusted the drop rates of Odin Temple and Kiel's Mechanical Doll Factory
+	- removed beret drop
+	- fixed Grandcross when used by mobs
+	- shockwave, flasher and freezing trap now consume 2 traps like claymore trap
 07/25
 	* Merged exp, exp2, item_db, item_misc, mob_db, mob_race2_db, mob_skill_db, produce_db [Playtester]
 	- fixed some problems with exp.txt and exp2.txt
