@@ -1,4 +1,5 @@
 07/30
+	* Corrected the defense of puppy band [MasterOfMuppets]
 	* Merged mob_db [Playtester]
 	- adjusted some drop rates and removed Yoyo's Animal Skin drop
 	- fixed element of Abyss Lake monsters
