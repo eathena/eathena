@@ -1,3 +1,7 @@
+07/30
+	* Merged mob_db [Playtester]
+	- adjusted some drop rates and removed Yoyo's Animal Skin drop
+	- fixed element of Abyss Lake monsters
 07/29
 	* Merged item_db, mob_db, mob_skill_db and skill_require_db [Playtester]
 	- fixed Teddy Bear Card, Solace Card and some other items
