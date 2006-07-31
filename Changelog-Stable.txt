@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/30
+	* Corrected a status_get_race call which should be status_get_race2 in misc
+	  attacks. [Skotlex]
 	* Added missing mob_db2.sql [Toms]
 2006/07/28
 	* Merged the status_data update. status.c got pretty much a complete

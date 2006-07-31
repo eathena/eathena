@@ -2556,7 +2556,7 @@ struct Damage  battle_calc_misc_attack(
 
 	if(md.damage && flag.cardfix && tsd){
 		int cardfix = 10000;
-		int race2 = status_get_race(src);
+		int race2 = status_get_race2(src);
 		cardfix=cardfix*(100-tsd->subele[s_ele])/100;
 		cardfix=cardfix*(100-tsd->subsize[sstatus->size])/100;
 		cardfix=cardfix*(100-tsd->subrace2[race2])/100;
