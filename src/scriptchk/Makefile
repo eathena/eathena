@@ -1,5 +1,3 @@
-all scriptchk: eascriptchk
-
 ##########################################################
 # stupid make does not know .cpp suffix by default
 .SUFFIXES: .cpp
@@ -20,8 +18,10 @@ include $(BP)/Makefile.dep
 
 
 
-eascriptchk: eacompiler.o scriptchk.o $(BASE_OBJ)
-	$(CCC) $> $(LIBS) -o $(RETURN_PATH)/$@
+all scriptchk: $(RETURN_PATH)/eascriptchk
+
+$(RETURN_PATH)/eascriptchk: eacompiler.o scriptchk.o $(BASE_OBJ)
+	$(CCC) $> $(LIBS) -o $@
 
 eacompiler.o: eacompiler.cpp eascript.engine.txt $(BASE_H)
 scriptchk.o: scriptchk.cpp $(BASE_H)

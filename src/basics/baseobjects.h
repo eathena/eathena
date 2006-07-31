@@ -12,7 +12,9 @@ NAMESPACE_BEGIN(basics)
 int unixerrno();
 const char* unixerrmsg(int code);
 
+
 // possibly undefined error numbers on win32
+#ifdef WIN32
 #ifndef ENOTBLK
 #define ENOTBLK 15
 #endif
@@ -22,7 +24,7 @@ const char* unixerrmsg(int code);
 #ifndef ETXTBSY
 #define ETXTBSY 26
 #endif
-
+#endif
 
 
 //////////////////////////////////////////////////////////////////////////

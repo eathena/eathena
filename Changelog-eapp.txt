@@ -1,4 +1,8 @@
 Date	Added
+07/31
+	* new make flow, but might be not fully idiot proof 
+	* seperated map's sql links and changed the directions of the data
+	* start to remove db_foreach since not necessary anymore
 07/28
 	* the promised "bug reporting" capability of the ea board is
 	  ridiculous, from the 5 very obviously placed functional bugs

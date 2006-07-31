@@ -68,7 +68,7 @@ basics::CParam< basics::string<> > CSQLParameter::tbl_variable("tbl_variable", "
 
 basics::CParam<bool> CSQLParameter::wipe_sql("wipe_sql", false);
 basics::CParam< basics::string<> > CSQLParameter::sql_engine("sql_engine", "InnoDB");
-//CParam< string<> > CSQLParameter::sql_engine("sql_engine", "MyISAM");
+//basics::CParam< basics::string<> > CSQLParameter::sql_engine("sql_engine", "MyISAM");
 
 basics::CParam<bool> CSQLParameter::log_login("log_login", true);
 basics::CParam<bool> CSQLParameter::log_char("log_char", true);

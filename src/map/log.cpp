@@ -5,12 +5,21 @@
 #include "showmsg.h"
 #include "utils.h"
 #include "log.h"
-#include "datasq.h"
 
 struct LogConfig log_config;
 
 
 #if defined(WITH_MYSQL)
+#include <mysql.h>
+
+
+static inline int mysql_SendQuery(MYSQL *mysql, const char* q)
+{
+#ifdef TWILIGHT
+	ShowSQL("%s:%d# %s\n", __FILE__, __LINE__, q);
+#endif
+	return mysql_real_query(mysql, q, strlen(q));
+}
 
 
 MYSQL logmysql_handle; //For the log database - fix by [Maeki]
@@ -83,7 +92,7 @@ int log_branch(struct map_session_data &sd)
 		return 0;
 
 #if defined(WITH_MYSQL)
-	if(db_use_sqldbs && log_config.sql_logs > 0)
+	if(log_config.sql_logs > 0)
 	{
 		char t_name[64];
 		char tmp_sql[16384];
@@ -123,7 +132,7 @@ int log_drop(struct map_session_data &sd, uint32 monster_id, int log_drop[])
 	if (flag==0) return 0; //we skip logging this items set - they doesn't met our logging conditions [Lupus]
 
 #if defined(WITH_MYSQL)
-	if(db_use_sqldbs && log_config.sql_logs > 0)
+	if(log_config.sql_logs > 0)
 	{
 		char tmp_sql[16384];
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`drop_date`, `kill_char_id`, `monster_id`, `item1`, `item2`, `item3`, `item4`, `item5`, `item6`, `item7`, `item8`, `item9`, `itemCard`, `map`) VALUES (NOW(), '%ld', '%ld', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s') ", log_config.log_drop_db, (unsigned long)sd.status.char_id, (unsigned long)monster_id, log_drop[0], log_drop[1], log_drop[2], log_drop[3], log_drop[4], log_drop[5], log_drop[6], log_drop[7], log_drop[8], log_drop[9], sd.mapname);
@@ -154,7 +163,7 @@ int log_mvpdrop(struct map_session_data &sd, uint32 monster_id, int log_mvp[])
 		return 0;
 
 #if defined(WITH_MYSQL)
-	if(db_use_sqldbs && log_config.sql_logs > 0)
+	if(log_config.sql_logs > 0)
 	{
 		char tmp_sql[16384];
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`mvp_date`, `kill_char_id`, `monster_id`, `prize`, `mvpexp`, `map`) VALUES (NOW(), '%ld', '%ld', '%d', '%d', '%s') ", log_config.log_mvpdrop_db, (unsigned long)sd.status.char_id, (unsigned long)monster_id, log_mvp[0], log_mvp[1], sd.mapname);
@@ -186,7 +195,7 @@ int log_present(struct map_session_data &sd, int source_type, unsigned short nam
 
 	if(!should_log_item(log_config.present,nameid)) return 0;	//filter [Lupus]
 #if defined(WITH_MYSQL)
-	if(db_use_sqldbs && log_config.sql_logs > 0)
+	if(log_config.sql_logs > 0)
 	{
 		char tmp_sql[16384];
 		char t_name[64];
@@ -221,7 +230,7 @@ int log_produce(struct map_session_data &sd, unsigned short nameid, int slot1, i
 
 	if(!should_log_item(log_config.produce,nameid)) return 0;	//filter [Lupus]
 #if defined(WITH_MYSQL)
-	if(db_use_sqldbs && log_config.sql_logs > 0)
+	if(log_config.sql_logs > 0)
 	{
 		char tmp_sql[16384];
 		char t_name[64];
@@ -266,7 +275,7 @@ int log_refine(struct map_session_data &sd, int n, int success)
 		log_card[i] = sd.status.inventory[n].card[i];
 
 #if defined(WITH_MYSQL)
-	if(db_use_sqldbs && log_config.sql_logs > 0)
+	if(log_config.sql_logs > 0)
 	{
 		char tmp_sql[16384];
 		char t_name[64];
@@ -381,7 +390,7 @@ int log_trade(struct map_session_data &sd, struct map_session_data &target_sd, i
 		log_card[i] = sd.status.inventory[n].card[i];
 
 #if defined(WITH_MYSQL)
-	if(db_use_sqldbs && log_config.sql_logs > 0)
+	if(log_config.sql_logs > 0)
 	{
 		char tmp_sql[16384];
 		char t_name[64],t_name2[64];
@@ -426,7 +435,7 @@ int log_vend(struct map_session_data &sd,struct map_session_data &vsd,int n,int 
 		log_card[i] = sd.status.inventory[n].card[i];
 
 #if defined(WITH_MYSQL)
-	if(db_use_sqldbs && log_config.sql_logs > 0)
+	if(log_config.sql_logs > 0)
 	{
 		char tmp_sql[16384];
 		char t_name[64],t_name2[64];
@@ -460,7 +469,7 @@ int log_zeny(struct map_session_data &sd, struct map_session_data &target_sd,int
 		return 0;
 
 #if defined(WITH_MYSQL)
-	if(db_use_sqldbs && log_config.sql_logs > 0)
+	if(log_config.sql_logs > 0)
 	{
 		char tmp_sql[16384];
 		char t_name[64],t_name2[64];
@@ -494,7 +503,7 @@ int log_atcommand(struct map_session_data &sd, const char *message)
 		return 0;
 
 #if defined(WITH_MYSQL)
-	if(db_use_sqldbs && log_config.sql_logs > 0)
+	if(log_config.sql_logs > 0)
 	{
 		char tmp_sql[16384];
 		char t_name[64];
@@ -529,7 +538,7 @@ int log_npc(struct map_session_data &sd, const char *message)
 		return 0;
 
 #if defined(WITH_MYSQL)
-	if(db_use_sqldbs && log_config.sql_logs > 0)
+	if(log_config.sql_logs > 0)
 	{
 		char tmp_sql[16384];
 		char t_name[64];
@@ -579,7 +588,7 @@ int log_chat(const char *type, int type_id, int src_charid, int src_accid, const
 		return 0; //Deactivated
 
 #if defined(WITH_MYSQL)
-	if( db_use_sqldbs && log_config.sql_logs > 0)
+	if(log_config.sql_logs > 0)
 	{
 		char tmp_sql[16384];
 		char t_msg[100]; //The chat line, 100 should be high enough above overflow...
@@ -593,7 +602,7 @@ int log_chat(const char *type, int type_id, int src_charid, int src_accid, const
 			return 0;
 		}
 	}
-	else if(!db_use_sqldbs && (logfp = fopen(log_config.log_chat, "a+")) != NULL)
+	else if( (logfp = fopen(log_config.log_chat, "a+")) != NULL)
 #else
 	if( (logfp = fopen(log_config.log_chat, "a+")) != NULL )
 #endif
@@ -860,7 +869,7 @@ int log_init(const char *cfgName)
 	log_config_read(cfgName);
 
 #if defined(WITH_MYSQL)
-	if( db_use_sqldbs && log_config.sql_logs && (log_config.branch || log_config.drop || log_config.mvpdrop ||
+	if( log_config.sql_logs && (log_config.branch || log_config.drop || log_config.mvpdrop ||
 		log_config.present || log_config.produce || log_config.refine || log_config.trade))
 	{
 		mysql_init(&logmysql_handle);

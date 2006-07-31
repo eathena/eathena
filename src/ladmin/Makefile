@@ -1,5 +1,3 @@
-all txt sql: ladmin
-
 ##########################################################
 # stupid make does not know .cpp suffix by default
 .SUFFIXES: .cpp
@@ -27,9 +25,10 @@ CP = $(RETURN_PATH)/$(COMMON_PATH)
 include $(CP)/Makefile.dep
 
 
+all ladmin: $(RETURN_PATH)/ladmin
 
-ladmin: ladmin.o $(COMMON_OBJ) $(BASE_OBJ)
-	$(CCC) $> $(LIBS) -o $(RETURN_PATH)/$@
+$(RETURN_PATH)/ladmin: ladmin.o $(COMMON_OBJ) $(BASE_OBJ)
+	$(CCC) $> $(LIBS) -o $@
 
 ladmin.o: ladmin.cpp ladmin.h $(COMMON_H)  $(BASE_H)
 

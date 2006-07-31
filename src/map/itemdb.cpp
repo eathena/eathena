@@ -1,4 +1,6 @@
-// $Id: itemdb.c,v 1.3 2004/09/25 05:32:18 MouseJstr Exp $
+#include "baseparam.h"
+#include "basemysql.h"
+
 #include "db.h"
 #include "nullpo.h"
 #include "malloc.h"
@@ -11,8 +13,6 @@
 #include "itemdb.h"
 #include "script.h"
 #include "pc.h"
-
-#include "datasq.h"
 
 
 #define MAX_RANDITEM	2000
@@ -505,20 +505,20 @@ int itemdb_read_itemnametable(void)
 		return -1;
 
 	buf[s]=0;
-	for(p=buf;p-buf<s;){
+	for(p=buf;p-buf<s;)
+	{
 		int nameid;
 		char buf2[64];
 
-		if(	sscanf(p,"%d#%[^#]#",&nameid,buf2)==2 ){
-
+		if(	sscanf(p,"%d#%[^#]#",&nameid,buf2)==2 )
+		{
 #ifdef ITEMDB_OVERRIDE_NAME_VERBOSE
-			if( itemdb_exists(nameid) &&
-				strncmp(itemdb_search(nameid)->jname,buf2,24)!=0 ){
-				ShowMessage("[override] %d %s => %s\n",nameid
-					,itemdb_search(nameid)->jname,buf2);
+			item_data* item = itemdb_exists(nameid);
+			if( item && strncmp(item->jname,buf2,24)!=0 )
+			{
+				ShowMessage("[override] %d %s => %s\n",nameid, item->jname, buf2);
 			}
 #endif
-
 			memcpy(itemdb_search(nameid)->jname,buf2,24);
 		}
 
@@ -717,158 +717,6 @@ int itemdb_read_itemtrade(void)
 	return 0;
 }
 
-#if defined(WITH_MYSQL)
-
-/*======================================
-* SQL
-*===================================
-*/
-int itemdb_read_sqldb(void)
-{
-	unsigned short nameid;
-	struct item_data *id;
-	char script[65535 + 2 + 1]; // Maximum length of MySQL TEXT type (65535) + 2 bytes for curly brackets + 1 byte for terminator
-	char *item_db_name[] = { item_db_db, item_db2_db };
-	long unsigned int ln = 0;
-	int i;	
-
-	// ----------
-	char tmp_sql[16384];
-
-	for (i = 0; i < 2; ++i)
-	{
-		snprintf(tmp_sql, sizeof(tmp_sql), "SELECT * FROM `%s`", item_db_name[i]);
-
-		// Execute the query; if the query execution succeeded...
-		if (mysql_SendQuery(&mmysql_handle, tmp_sql) == 0)
-		{
-			sql_res = mysql_store_result(&mmysql_handle);
-			// If the storage of the query result succeeded...
-			if (sql_res)
-			{
-				// Parse each row in the query result into sql_row
-				while ((sql_row = mysql_fetch_row(sql_res)))
-				{
-					/* +----+--------------+---------------+------+-----------+------------+--------+--------+---------+-------+-------+------------+---------------+-----------------+--------------+-------------+------+------------+--------------+
-					   |  0 |            1 |             2 |    3 |         4 |          5 |      6 |      7 |       8 |     9 |    10 |         11 |            12 |              13 |           14 |          15 |   16       |   17 |         18 |           19 |
-					   +----+--------------+---------------+------+-----------+------------+--------+--------+---------+-------+-------+------------+---------------+-----------------+--------------+-------------+------+------------+--------------+
-					   | id | name_english | name_japanese | type | price_buy | price_sell | weight | attack | defence | range | slots | equip_jobs | equip_genders | equip_locations | weapon_level | equip_level | refineable | view | script_use | script_equip |
-					   +----+--------------+---------------+------+-----------+------------+--------+--------+---------+-------+-------+------------+---------------+-----------------+--------------+-------------+------+------------+--------------+ */
-
-					nameid = atoi(sql_row[0]);
-
-					// If the identifier is not within the valid range, process the next row
-					if(nameid == 0 || nameid >= MAX_ITEMS)
-						continue;
-
-					ln++;
-
-					// ----------
-					id = itemdb_search(nameid);
-					
-					memcpy(id->name, sql_row[1], 24);
-					memcpy(id->jname, sql_row[2], 24);
-
-					id->type = atoi(sql_row[3]);
-					if (id->type == 11)
-					{	//Items that are consumed upon target confirmation
-						//(yggdrasil leaf, spells & pet lures) [Skotlex]
-						id->type = 2;
-						id->flag.delay_consume=1;
-					}
-
-					if ((sql_row[4] != NULL) && (sql_row[5] != NULL))
-					{	// If price_buy is not NULL and price_sell is not NULL...
-						id->value_buy = atoi(sql_row[4]);
-						id->value_sell = atoi(sql_row[5]);
-					}
-					
-					else if ((sql_row[4] != NULL) && (sql_row[5] == NULL))
-					{	// If price_buy is not NULL and price_sell is NULL...
-						id->value_buy = atoi(sql_row[4]);
-						id->value_sell = atoi(sql_row[4]) / 2;
-					}
-					else if ((sql_row[4] == NULL) && (sql_row[5] != NULL))
-					{	// If price_buy is NULL and price_sell is not NULL...
-						id->value_buy = atoi(sql_row[5]) * 2;
-						id->value_sell = atoi(sql_row[5]);
-					}
-					else// if ((sql_row[4] == NULL) && (sql_row[5] == NULL))
-					{	// If price_buy is NULL and price_sell is NULL...
-						id->value_buy = 0;
-						id->value_sell = 0;
-					}
-
-					id->weight	= atoi(sql_row[6]);
-					id->atk		= (sql_row[7] != NULL) ? atoi(sql_row[7]) : 0;
-					id->def		= (sql_row[8] != NULL) ? atoi(sql_row[8]) : 0;
-					id->range	= (sql_row[9] != NULL) ? atoi(sql_row[9]) : 0;
-					id->flag.slot= (sql_row[10] != NULL)	? atoi(sql_row[10])	: 0;
-					id->class_array	= (sql_row[11] != NULL) ? atoi(sql_row[11]) : 0;
-					id->flag.sex= (config.ignore_items_gender && nameid!=2634 && nameid!=2635) ? 2 :
-									( (sql_row[12] != NULL) ? atoi(sql_row[12]) : 0);
-					id->equip	= (sql_row[13] != NULL) ? atoi(sql_row[13]) : 0;
-					id->wlv		= (sql_row[14] != NULL) ? atoi(sql_row[14]) : 0;
-					id->elv		= (sql_row[15] != NULL)	? atoi(sql_row[15]) : 0;
-					id->flag.no_refine = (sql_row[16] == NULL || atoi(sql_row[16]) == 1)?0:1;
-					id->look	= (sql_row[17] != NULL) ? atoi(sql_row[17]) : 0;
-					id->view_id	= 0;
-					// ----------
-
-					if (sql_row[18] != NULL) {
-						if (sql_row[18][0] == '{')
-							id->use_script = parse_script((unsigned char *) sql_row[18], 0);
-						else
-						{
-							snprintf(script, sizeof(script), "{%s}", sql_row[18]);
-							id->use_script = parse_script((unsigned char *) script, 0);
-						}
-					}
-					else
-						id->use_script = NULL;
-
-					if (sql_row[19] != NULL) {
-						if (sql_row[19][0] == '{')
-							id->equip_script = parse_script((unsigned char *) sql_row[19], 0);
-						else
-						{
-							snprintf(script, sizeof(script), "{%s}", sql_row[19]);
-							id->equip_script = parse_script((unsigned char *) script, 0);
-						}
-					}
-					else
-						id->equip_script = NULL;
-					// ----------
-
-					id->flag.available		= 1;
-					id->flag.value_notdc	= 0;
-					id->flag.value_notoc	= 0;
-				}
-
-				// If the retrieval failed, output an error
-				if (mysql_errno(&mmysql_handle))
-				{
-					ShowError("Database server error (retrieving rows from %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
-				}
-				else
-				{
-					ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", (unsigned long)ln, item_db_name[i]);
-				}
-				ln = 0;
-			}
-			else
-			{
-				ShowError("MySQL error (storing query result for %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
-			}
-			// Free the query result
-			mysql_free_result(sql_res);
-	}
-		else
-			ShowError("Database server error (executing query for %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
-	}
-	return 0;
-}
-#endif//WITH_MYSQL
 
 /*==========================================
  * アイテムデータベースの読み込み
@@ -990,22 +838,158 @@ int itemdb_readdb(void)
 	return 0;
 }
 
+
+
+/////////////////
+/// update the item entries in sql database, 
+/// since this data is not used for any other purpose 
+/// than having fancy diplays on some websites, 
+/// a bit more data preprocessing might be usefull beside the pure dump
+void itemdb_sqlupdate()
+{
+#if defined(WITH_MYSQL)
+	basics::CParam< basics::string<> > update_sqldbs("update_sqldbs", true);
+	if( update_sqldbs() )
+	{
+		///////////////////////////////////////////////////////////////////////
+		// sql access paraemter
+		basics::CParam< basics::string<> > mysqldb_id("sql_username", "ragnarok");
+		basics::CParam< basics::string<> > mysqldb_pw("sql_password", "ragnarok");
+		basics::CParam< basics::string<> > mysqldb_db("sql_database", "ragnarok");
+		basics::CParam< basics::string<> > mysqldb_ip("sql_ip",       "127.0.0.1");
+		basics::CParam< ushort   >         mysqldb_port("sql_port",   3306);
+
+		// sql control parameter
+		basics::CParam< basics::string<> > sql_engine("sql_engine", "InnoDB");
+		//basics::CParam< basics::string<> > sql_engine("sql_engine", "MyISAM");
+
+		// sql table names
+		basics::CParam< basics::string<> > tbl_item_db("tbl_item_db", "item_db");
+
+		// sql access object
+		basics::CMySQL sqlbase(mysqldb_id, mysqldb_pw,mysqldb_db,mysqldb_ip,mysqldb_port);
+
+		// query handler
+		basics::CMySQLConnection dbcon1(sqlbase);
+		basics::string<> query;
+
+		///////////////////////////////////////////////////////////////////////
+		// disable foreign keys
+		query << "SET FOREIGN_KEY_CHECKS=0";
+		dbcon1.PureQuery(query);
+		query.clear();
+
+		///////////////////////////////////////////////////////////////////////////
+		// drop tables
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(tbl_item_db) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+
+		///////////////////////////////////////////////////////////////////////////
+		query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(tbl_item_db) << "` "
+				 "("
+				 "`id`			SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`name`		VARCHAR(24) NOT NULL default '',"
+				 "`jname`		VARCHAR(24) NOT NULL default '',"
+				 "`type`		TINYINT UNSIGNED NOT NULL default '0',"
+				 "`value_buy`	INTEGER UNSIGNED NOT NULL default '0',"
+				 "`value_sell`	INTEGER UNSIGNED NOT NULL default '0',"
+				 "`weight`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`attack`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`defence`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`slots`		TINYINT UNSIGNED NOT NULL default '0',"
+				 "`class_array`	INTEGER UNSIGNED NOT NULL default '0',"
+				 "`equip`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`range`		TINYINT UNSIGNED NOT NULL default '0',"
+				 "`wlv`			TINYINT UNSIGNED NOT NULL default '0',"
+				 "`elv`			TINYINT UNSIGNED NOT NULL default '0',"
+				 "`refineable`	TINYINT UNSIGNED NOT NULL default '0',"
+				 "`view_id`		SMALLINT UNSIGNED NOT NULL default '0',"
+
+				 "PRIMARY KEY  (`id`)"
+				 ") "
+				 "ENGINE = " << dbcon1.escaped(sql_engine);
+
+		dbcon1.PureQuery(query);
+		query.clear();
+
+		///////////////////////////////////////////////////////////////////////
+		// enable foreign keys
+		query << "SET FOREIGN_KEY_CHECKS=1";
+		dbcon1.PureQuery(query);
+		query.clear();
+
+
+		///////////////////////////////////////////////////////////////////////
+		// insert entries
+		db_iterator iter(item_db);
+		for(; iter; ++iter)
+		{
+			size_t id = (size_t)iter.key();
+			const item_data *item=(const item_data *)iter.data();
+			//printf("%i %s\n", id, item->name);
+
+			// don't dump items from overwrites
+			if(!item || item->name[0]==0)
+				continue;
+
+			query << "REPLACE INTO `" << dbcon1.escaped(tbl_item_db) << "` "
+					 "("
+					 "`id`,"
+					 "`name`,"
+					 "`jname`,"
+					 "`type`,"
+					 "`value_buy`,"
+					 "`value_sell`,"
+					 "`weight`,"
+					 "`attack`,"
+					 "`defence`,"
+					 "`slots`,"
+					 "`class_array`,"
+					 "`equip`,"
+					 "`range`,"
+					 "`wlv`,"
+					 "`elv`,"
+					 "`refineable`,"
+					 "`view_id`"
+					 ") "
+					 "VALUES "
+					 "("
+					 "'" << id << "',"	// id
+					 "'" << dbcon1.escaped(item->name) << "',"	// name
+					 "'" << dbcon1.escaped(item->jname) << "',"	// jname
+					 "'" << item->type << "',"					// type
+					 "'" << item->value_buy << "',"				// value_buy
+					 "'" << item->value_sell << "',"			// value_sell
+					 "'" << item->weight << "',"				// weight
+					 "'" << item->atk << "',"					// attack
+					 "'" << item->def << "',"					// defence
+					 "'" << item->flag.slot << "',"				// slots
+					 "'" << item->class_array << "',"			// class_array
+					 "'" << item->equip << "',"					// equip
+					 "'" << item->range << "',"					// range
+					 "'" << item->wlv << "',"					// wlv
+					 "'" << item->elv << "',"					// elv
+					 "'" << !item->flag.no_refine << "',"		// refineable
+					 "'" << item->view_id << "'"				// view_id
+					 ")";
+			dbcon1.PureQuery(query);
+			query.clear();
+		}
+		///////////////////////////////////////////////////////////////////////
+	}
+#endif
+}
+
+
+
 /*====================================
  * Removed item_value_db, don't re-add
  *------------------------------------
  */
 void itemdb_read(void)
 {
-#if defined(WITH_MYSQL)
-	if (db_use_sqldbs)
-	{
-		itemdb_read_sqldb();
-	}
-	else
-#else
-		itemdb_readdb();
-#endif
-
+	itemdb_readdb();
 	itemdb_read_itemgroup();
 	itemdb_read_randomitem();
 	itemdb_read_itemavail();
@@ -1019,6 +1003,8 @@ void itemdb_read(void)
 		itemdb_read_itemslotcounttable();
 	if (config.item_name_override_grffile)
 		itemdb_read_itemnametable();
+
+	itemdb_sqlupdate();
 }
 
 /*==========================================
@@ -1061,93 +1047,6 @@ void itemdb_reload(void)
 	itemdb_read();
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-#if defined(WITH_MYSQL)
-
-MYSQL mmysql_handle;
-MYSQL_RES* 	sql_res ;
-MYSQL_ROW	sql_row ;
-
-unsigned short map_server_port = 3306;
-char map_server_ip[16] = "127.0.0.1";
-char map_server_id[32] = "ragnarok";
-char map_server_pw[32] = "ragnarok";
-char map_server_db[32] = "ragnarok";
-int db_use_sqldbs = 0;
-
-
-char item_db_db[32] = "item_db";
-char item_db2_db[32] = "item_db2";
-char mob_db_db[32] = "mob_db";
-char mob_db2_db[32] = "mob_db2";
-
-char *INTER_CONF_NAME="conf/inter_athena.conf";
-
-int inter_config_read(const char *cfgName)
-{
-	int i;
-	char line[1024],w1[1024],w2[1024];
-	FILE *fp;
-
-	fp=basics::safefopen(cfgName,"r");
-	if(fp==NULL){
-		ShowError("File not found: '%s'.\n",cfgName);
-		return 1;
-	}
-	while(fgets(line,sizeof(line),fp)){
-		if( !get_prepared_line(line) )
-			continue;
-		i=sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
-		if(i!=2)
-			continue;
-
-		if(strcasecmp(w1,"import")==0){
-		//support the import command, just like any other config
-			inter_config_read(w2);
-		}
-		  else if(strcasecmp(w1,"item_db_db")==0){
-			strcpy(item_db_db,w2);
-		} else if(strcasecmp(w1,"mob_db_db")==0){
-			strcpy(mob_db_db,w2);
-		} else if(strcasecmp(w1,"item_db2_db")==0){
-			strcpy(item_db2_db,w2);
-		} else if(strcasecmp(w1,"mob_db2_db")==0){
-			strcpy(mob_db2_db,w2);
-		//Map Server SQL DB
-		} else if(strcasecmp(w1,"map_server_ip")==0){
-			strcpy(map_server_ip, w2);
-		} else if(strcasecmp(w1,"map_server_port")==0){
-			map_server_port=atoi(w2);
-		} else if(strcasecmp(w1,"map_server_id")==0){
-			strcpy(map_server_id, w2);
-		} else if(strcasecmp(w1,"map_server_pw")==0){
-			strcpy(map_server_pw, w2);
-		} else if(strcasecmp(w1,"map_server_db")==0){
-			strcpy(map_server_db, w2);
-		} else if(strcasecmp(w1,"use_sql_db")==0){
-			db_use_sqldbs = config_switch(w2);
-			ShowMessage ("Using SQL dbs: %s\n",w2);
-		}
-	}
-	fclose(fp);
-
-	return 0;
-}
-#endif//defined(WITH_MYSQL)
-
-
 void do_final_itemdb(void)
 {
 	if (item_db)
@@ -1155,41 +1054,10 @@ void do_final_itemdb(void)
 		numdb_final(item_db, CDBItemFinal(1) );
 		item_db = NULL;
 	}
-
-#if defined(WITH_MYSQL)
-	if(db_use_sqldbs)
-	{
-		mysql_close(&mmysql_handle);
-		ShowMessage("Close Map DB Connection....\n");
-	}
-#endif//WITH_MYSQL
 }
 
 int do_init_itemdb(void)
 {
-
-#if defined(WITH_MYSQL)
-	inter_config_read(INTER_CONF_NAME);
-
-	if(db_use_sqldbs)
-	{
-		mysql_init(&mmysql_handle);
-		//DB connection start
-		ShowMessage("Connect Database Server on %s:%u....(Map Server)\n", map_server_ip, map_server_port);
-		if( !mysql_real_connect(&mmysql_handle, map_server_ip, map_server_id, map_server_pw, map_server_db ,map_server_port, (char *)NULL, 0))
-		{
-				//pointer check
-				ShowMessage("%s\n",mysql_error(&mmysql_handle));
-				exit(1);
-		}
-		else
-		{
-			ShowMessage ("connect success! (Map Server)\n");
-		}
-	}
-#endif//WITH_MYSQL
-
-
 	if(item_db)
 	{
 		numdb_final(item_db, CDBItemFinal(1) );
@@ -1197,6 +1065,12 @@ int do_init_itemdb(void)
 	}
 	item_db = numdb_init();
 	itemdb_read();
+	itemdb_sqlupdate();
 
 	return 0;
 }
+
+
+
+
+

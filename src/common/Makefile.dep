@@ -1,7 +1,10 @@
 ##########################################################
 COMMON_OBJ = $(CP)/core.o $(CP)/db.o $(CP)/plugins.o $(CP)/lock.o $(CP)/malloc.o $(CP)/md5calc.o $(CP)/mmo.o $(CP)/nullpo.o $(CP)/showmsg.o $(CP)/socket.o $(CP)/timer.o $(CP)/utils.o
-COMMON_TXT = $(CP)/txtobj/baseio.o $(CP)/txtobj/basesq.o $(CP)/txtobj/basetx.o 
-COMMON_SQL = $(CP)/sqlobj/baseio.o $(CP)/sqlobj/basesq.o $(CP)/sqlobj/basetx.o 
+ifeq ($(findstring -DWITH_MYSQL,$(CPPFLAGS)), -DWITH_MYSQL)
+COMMON_OBJ += $(CP)/sqlobj/baseio.o $(CP)/sqlobj/basesq.o $(CP)/sqlobj/basetx.o 
+else
+COMMON_OBJ += $(CP)/txtobj/baseio.o $(CP)/txtobj/basesq.o $(CP)/txtobj/basetx.o
+endif
 ##########################################################
 COMMON_H = $(CP)/baseio.h $(CP)/basesq.h $(CP)/basetx.h $(CP)/core.h $(CP)/db.h $(CP)/plugins.h $(CP)/lock.h $(CP)/malloc.h $(CP)/md5calc.h $(CP)/mmo.h $(CP)/nullpo.h $(CP)/showmsg.h $(CP)/socket.h $(CP)/timer.h $(CP)/utils.h $(CP)/version.h
 ##########################################################

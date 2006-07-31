@@ -1440,7 +1440,6 @@ static int mapreg_dirty=-1;
 char mapreg_txt[256]="save/mapreg.txt";
 #define MAPREG_AUTOSAVE_INTERVAL	(10*1000)
 
-static struct dbt *scriptlabel_db=NULL;
 static struct dbt *userfunc_db=NULL;
 
 struct dbt* script_get_userfunc_db(){ if(!userfunc_db) userfunc_db=strdb_init(50); return userfunc_db; }
@@ -2149,12 +2148,13 @@ void read_constdb(void)
 		ShowError("can't read %s\n","db/const.txt");
 		return ;
 	}
-	while(fgets(line,sizeof(line),fp)){
+	while(fgets(line,sizeof(line),fp))
+	{
 		if( !get_prepared_line(line) )
 			continue;
 		type=0;
-		if(sscanf(line,"%[A-Za-z0-9_],%d,%d",name,&val,&type)>=2 ||
-		   sscanf(line,"%[A-Za-z0-9_] %d %d",name,&val,&type)>=2)
+		if(sscanf(line,"%1024[A-Za-z0-9_],%d,%d",name,&val,&type)>=2 ||
+		   sscanf(line,"%1024[A-Za-z0-9_] %d %d",name,&val,&type)>=2)
 		{
 			basics::tolower(name);
 			n=add_str(name);
@@ -2202,43 +2202,26 @@ size_t script_object::get_labelpos(const char* labelname) const
 ///////////////////////////////////////////////////////////////////////////////
 void script_object::insert_label(const char* labelname, size_t len, size_t pos)
 {
-	if( len > 23)
+	if(labelname)
 	{
-		ShowMessage("\n");
-		ShowError("parse_script: label '%s' longer than 23 chars, ignoring it.\n", labelname);
-	}
-	else
-	{
-		size_t num = this->label_list_num;
-		this->label_list_num = new_realloc(this->label_list, this->label_list_num, 1);
-		memcpy(this->label_list[num].name, labelname, len);
-		this->label_list[num].name[len] = 0; // add eos
-		this->label_list[num].pos = pos;
+		const char *p = strchr(labelname,':');	// double check; should not happen
+		if(p) len = (p-labelname);
+		if( len>23 )
+		{
+			basics::basestring<> label(labelname, len);
+			ShowMessage("\n");
+			ShowError("parse_script: label '%s' longer than 23 chars, ignoring it.\n", (const char*)label);
+		}
+		else
+		{
+			size_t num = this->label_list_num;
+			this->label_list_num = new_realloc(this->label_list, this->label_list_num, 1);
+			memcpy(this->label_list[num].name, labelname, len);
+			this->label_list[num].name[len] = 0; // add eos
+			this->label_list[num].pos = pos;
+		}
 	}
 }
-
-/*==========================================
- * Scriptのラベルデータコンバート
- *------------------------------------------
- */
-class CDBLabelConvert : public CDBProcessor
-{
-	script_object &scr;
-public:
-	CDBLabelConvert(script_object &s) : scr(s)	{}
-	virtual ~CDBLabelConvert()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		const char *lname = (const char *)key;
-		size_t pos = (size_t)data;
-		const char *p = strchr(lname,':');
-		if(NULL==p)	return true;
-
-		scr.insert_label(lname, (p-lname), pos);
-
-		return true;
-	}
-};
 
 /*==========================================
  * スクリプトの解析
@@ -2273,7 +2256,10 @@ script_object* parse_script(unsigned char *src, size_t line)
 	}
 	//////////////////////////////////////////////
 
+	// the returnning script object 
+	script_object *scr = new script_object(NULL);
 
+	// the global script buffer
 	if(script_buf) delete[] script_buf;
 	script_buf = new char[SCRIPT_BLOCK_SIZE];
 	memset(script_buf,0,sizeof(char)*SCRIPT_BLOCK_SIZE);
@@ -2283,18 +2269,15 @@ script_object* parse_script(unsigned char *src, size_t line)
 	str_data[LABEL_NEXTLINE].type = CScriptEngine::C_NOP;
 	str_data[LABEL_NEXTLINE].backpatch = -1;
 	str_data[LABEL_NEXTLINE].label = -1;
-	for (i = LABEL_START; i < str_num; ++i) {
-		if (str_data[i].type == CScriptEngine::C_POS || str_data[i].type == CScriptEngine::C_NAME) {
+	for (i = LABEL_START; i < str_num; ++i)
+	{
+		if (str_data[i].type == CScriptEngine::C_POS || str_data[i].type == CScriptEngine::C_NAME)
+		{
 			str_data[i].type = CScriptEngine::C_NOP;
 			str_data[i].backpatch = -1;
 			str_data[i].label = -1;
 		}
 	}
-
-	// 外部用label dbの初期化
-	if (scriptlabel_db)
-		strdb_final (scriptlabel_db, scriptlabel_final);
-	scriptlabel_db = strdb_init(50);
 
 	// for error message
 	startptr = (char*)src;
@@ -2306,10 +2289,10 @@ script_object* parse_script(unsigned char *src, size_t line)
 		// labelだけ特殊処理
 		tmpp = skip_space(skip_word(p));
 		if(*tmpp==':')
-		{
-			int l, c;
-			c = *skip_word(p);
-			*skip_word(p) = 0;
+		{	
+			char* label_end = skip_word(p);
+			int l, c = *label_end;
+			*label_end = 0;
 			l = add_str(p);
 			if (str_data[l].label != -1)
 			{
@@ -2318,8 +2301,10 @@ script_object* parse_script(unsigned char *src, size_t line)
 				exit(1);
 			}
 			set_label(l, script_pos);
-			strdb_insert(scriptlabel_db,p,script_pos);
-			*skip_word(p) = c;
+
+			scr->insert_label(p, label_end-p, script_pos);
+
+			*label_end = c;
 			p = tmpp + 1;
 		}
 		else
@@ -2410,12 +2395,9 @@ script_object* parse_script(unsigned char *src, size_t line)
 		}
 	}
 */
-
-	script_object *scr = new script_object(script_buf);
+	// setup the return object
+	scr->script = script_buf;
 	script_buf = NULL;
-
-	strdb_foreach(scriptlabel_db, CDBLabelConvert(*scr) );
-
 	return scr;
 }
 
@@ -10183,10 +10165,6 @@ int mapregstr_db_final(void *key,void *data)
 	delete[] ((char*)data);
 	return 0;
 }
-int scriptlabel_db_final(void *key,void *data)
-{
-	return 0;
-}
 int userfunc_db_final(void *key,void *data)
 {
 	delete[] ((char*)key);
@@ -10207,11 +10185,6 @@ int do_final_script()
 	{
 		strdb_final(mapregstr_db,mapregstr_db_final);
 		mapregstr_db=NULL;
-	}
-	if(scriptlabel_db)
-	{
-		strdb_final(scriptlabel_db,scriptlabel_db_final);
-		scriptlabel_db=NULL;
 	}
 	if(userfunc_db)
 	{
@@ -10263,7 +10236,5 @@ int do_init_script()
 	add_timer_func_list(script_autosave_mapreg,"script_autosave_mapreg");
 	add_timer_interval(gettick()+MAPREG_AUTOSAVE_INTERVAL,MAPREG_AUTOSAVE_INTERVAL,script_autosave_mapreg,0,0);
 
-	if (scriptlabel_db == NULL)
-	  scriptlabel_db=strdb_init(50);
 	return 0;
 }

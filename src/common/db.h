@@ -98,12 +98,17 @@ void db_final(struct dbt*&table, int(*)(void*,void*));
 void db_free_lock(struct dbt *table);
 void db_free_unlock(struct dbt *table);
 
-class iterator
+
+
+
+
+
+class db_iterator
 {
 	struct dbt* table;
 	struct dbn *curr;
 public:
-	iterator(struct dbt* t) : table(t), curr(NULL)
+	db_iterator(struct dbt* t) : table(t), curr(NULL)
 	{
 		if(table)
 		{
@@ -111,12 +116,12 @@ public:
 			curr = table->head;
 		}
 	}
-	iterator(const iterator& iter) : table(iter.table), curr(iter.curr)
+	db_iterator(const db_iterator& iter) : table(iter.table), curr(iter.curr)
 	{
 		if(table)
 			db_free_lock(table);
 	}
-	const iterator& operator=(const iterator& iter)
+	const db_iterator& operator=(const db_iterator& iter)
 	{
 		if(table)
 			db_free_unlock(table);
@@ -126,23 +131,23 @@ public:
 			db_free_lock(table);
 		return *this;
 	}
-	~iterator()
+	~db_iterator()
 	{
 		if(table)
 			db_free_unlock(table);
 	}
-	iterator  operator++(int)	{ iterator temp(*this); next(); return temp; }
-	iterator& operator++()		{ next(); return *this; }
-	iterator  operator--(int)	{ iterator temp(*this); prev(); return temp; }
-	iterator& operator--()		{ prev(); return *this;}
-	bool next()					{ if(curr) curr=curr->next; return NULL!=curr; }
-	bool prev()					{ if(curr) curr=curr->prev; return NULL!=curr; }
+	db_iterator  operator++(int)	{ db_iterator temp(*this); next(); return temp; }
+	db_iterator& operator++()		{ next(); return *this; }
+	db_iterator  operator--(int)	{ db_iterator temp(*this); prev(); return temp; }
+	db_iterator& operator--()		{ prev(); return *this;}
+	bool next()						{ if(curr) curr=curr->next; return NULL!=curr; }
+	bool prev()						{ if(curr) curr=curr->prev; return NULL!=curr; }
 
-	operator const bool() const { return NULL!=curr; }
-	bool isValid() const		{ return NULL!=curr; }
+	operator const bool() const		{ return NULL!=curr; }
+	bool isValid() const			{ return NULL!=curr; }
 
-	void* key() const			{ return (curr) ? curr->key  : NULL; }
-	void* data() const			{ return (curr) ? curr->data : NULL; }
+	void* key() const				{ return (curr) ? curr->key  : NULL; }
+	void* data() const				{ return (curr) ? curr->data : NULL; }
 };
 
 

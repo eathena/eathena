@@ -7671,14 +7671,13 @@ public:
 		return true;
 	}
 };
-int atcommand_users_sub2(iterator iter, struct map_session_data& sd)
+int atcommand_users_sub2(db_iterator iter, struct map_session_data& sd)
 {
 	char buf[256];
-	while(iter)
+	for( ;iter; ++iter)
 	{
 		snprintf(buf,sizeof(buf), "%s : %ld (%ld%%)",(char *)iter.key(),(unsigned long)((ssize_t)((size_t)iter.data())),(unsigned long)((ssize_t)((size_t)iter.data())* 100 / users_all));
 		clif_displaymessage(sd.fd,buf);
-		iter++;
 	}
 	return 0;
 }

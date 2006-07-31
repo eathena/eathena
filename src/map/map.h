@@ -1567,7 +1567,7 @@ struct mob_data : public fightable
 
 	/// constructor.
 	/// prepares the minimum data set for MOB spawning
-	mob_data(const char *mobname, int class_);
+	mob_data(const char *mobname, int cl);
 	virtual ~mob_data()	{}
 
 
@@ -2258,7 +2258,6 @@ void clear_moblist(unsigned short m);
 void map_spawnmobs(unsigned short m);		// [Wizputer]
 void map_removemobs(unsigned short m);		// [Wizputer]
 
-extern char *INTER_CONF_NAME;
 extern char *LOG_CONF_NAME;
 extern char *MAP_CONF_NAME;
 extern char *BATTLE_CONF_FILENAME;

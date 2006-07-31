@@ -162,7 +162,7 @@ void CMySQL::DBConnection::close()
 string<> CMySQL::DBConnection::escaped(const string<>& source)
 {
 	basestring<> str;	// use it just as expandable container
-	if( this->startup() && str.checksize(2*source.size()) )
+	if( source.length()>0 && this->startup() && str.checksize(2*source.size()) )
 	{	// keep enough space to hold all chars with escape
 		char* ptr = str.begin();
 		// call the mysql escaper

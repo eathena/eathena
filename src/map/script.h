@@ -740,7 +740,7 @@ struct script_regstr
 
 /// temporary script object.
 /// is used as conversion vehicle toward the new script engine
-struct script_object
+struct script_object : public basics::noncopyable
 {
 	struct script_label
 	{
@@ -796,7 +796,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// inserts a script label.
-	/// len is used to chop the labelname from the source buffer string
+	/// labelname is a pointer to the source buffer string
+	/// so it chops the actual label on it's own
 	void insert_label(const char* labelname, size_t len, size_t pos);
 	///////////////////////////////////////////////////////////////////////////
 	/// number of script labels.

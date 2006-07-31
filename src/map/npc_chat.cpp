@@ -11,7 +11,7 @@
 #include "battle.h"
 
 
-#ifdef PCRE_SUPPORT
+#ifdef WITH_PCRE
 
 #include <pcre.h>
 

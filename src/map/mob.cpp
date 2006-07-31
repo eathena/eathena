@@ -1,4 +1,6 @@
-// $Id: mob.c,v 1.7 2004/09/25 05:32:18 MouseJstr Exp $
+#include "baseparam.h"
+#include "basemysql.h"
+
 #include "timer.h"
 #include "socket.h"
 #include "db.h"
@@ -22,7 +24,7 @@
 #include "npc.h"
 #include "log.h"
 #include "script.h"
-#include "datasq.h"
+
 
 #define MIN_MOBTHINKTIME 100
 
@@ -51,9 +53,9 @@ int mobskill_use_id(struct mob_data &md,struct block_list *target,unsigned short
 
 /// constructor.
 /// prepares the minimum data set for MOB spawning
-mob_data::mob_data(const char *mobname, int class_) :
-	base_class(class_),
-	class_(class_),
+mob_data::mob_data(const char *mobname, int cl) :
+	base_class(cl),
+	class_(cl),
 	mode(0),
 	speed(0),
 	dir(0),
@@ -96,9 +98,9 @@ mob_data::mob_data(const char *mobname, int class_) :
 	this->block_list::type = BL_MOB;
 
 	if(strcmp(mobname,"--en--")==0)
-		safestrcpy(this->name,mob_db[class_].name,24);
+		safestrcpy(this->name,mob_db[this->class_].name,24);
 	else if(strcmp(mobname,"--ja--")==0)
-		safestrcpy(this->name,mob_db[class_].jname,24);
+		safestrcpy(this->name,mob_db[this->class_].jname,24);
 	else
 		safestrcpy(this->name,mobname,24);
 
@@ -106,13 +108,13 @@ mob_data::mob_data(const char *mobname, int class_) :
 	memset(skilldelay, 0, sizeof(skilldelay));
 
 	// large/tiny mobs [Valaris]
-	if(class_ > 2*MAX_MOB_DB)
+	if(this->class_ > 2*MAX_MOB_DB)
 	{	
 		this->state.size = 2;
 		this->class_ -= (2*MAX_MOB_DB);
 		this->base_class = this->class_;
 	}
-	else if (class_ > MAX_MOB_DB)
+	else if (this->class_ > MAX_MOB_DB)
 	{
 		this->state.size = 1;
 		this->class_-= MAX_MOB_DB;
@@ -575,14 +577,14 @@ int mobdb_searchname(const char *str)
 {
 	size_t i;
 	if(str)
-	for(i=0;i<sizeof(mob_db)/sizeof(mob_db[0]);++i){
+	for(i=0;i<sizeof(mob_db)/sizeof(mob_db[0]);++i)
+	{
 		if( strcasecmp(mob_db[i].name,str)==0 || 
-			strcmp(mob_db[i].jname,str)==0 ||
+			strcasecmp(mob_db[i].jname,str)==0 ||
 			memcmp(mob_db[i].name,str,strlen(str))==0 || 
 			memcmp(mob_db[i].jname,str,strlen(str))==0 )
 			return i;
 	}
-
 	return 0;
 }
 
@@ -4336,208 +4338,275 @@ int mob_readdb_race(void)
 
 
 
-#if defined(WITH_MYSQL)
-/*==========================================
- * SQL reading
- *------------------------------------------
- */
-int mob_read_sqldb(void)
+
+/////////////////
+/// update the mob entries in sql database, 
+/// since this data is not used for any other purpose 
+/// than having fancy diplays on some websites, 
+/// a bit more data preprocessing might be usefull beside the pure dump
+void mobdb_sqlupdate()
 {
-	char line[1024];
-	int i, j, class_;
-	double exp, maxhp;
-	uint32 ln=0;
-	char *str[60], *p, *np; // 55->60 Lupus
-	char *mob_db_name[] = { mob_db_db, mob_db2_db };
-	char tmp_sql[16384];
+#if defined(WITH_MYSQL)
+	basics::CParam< basics::string<> > update_sqldbs("update_sqldbs", true);
 
-	memset(mob_db,0,sizeof(mob_db));
-
-    for (i = 0; i < 2; ++i)
+	if( update_sqldbs() )
 	{
-		snprintf (tmp_sql, sizeof(tmp_sql), "SELECT * FROM `%s`", mob_db_name[i]);
-		if(mysql_SendQuery(&mmysql_handle, tmp_sql) )
+		// sql access paraemter
+		basics::CParam< basics::string<> > mysqldb_id("sql_username", "ragnarok");
+		basics::CParam< basics::string<> > mysqldb_pw("sql_password", "ragnarok");
+		basics::CParam< basics::string<> > mysqldb_db("sql_database", "ragnarok");
+		basics::CParam< basics::string<> > mysqldb_ip("sql_ip",       "127.0.0.1");
+		basics::CParam< ushort   >         mysqldb_port("sql_port",   3306);
+
+		// sql control parameter
+		basics::CParam< basics::string<> > sql_engine("sql_engine", "InnoDB");
+		//basics::CParam< basics::string<> > sql_engine("sql_engine", "MyISAM");
+
+		// sql table names
+		basics::CParam< basics::string<> > tbl_mob_db("tbl_mob_db", "mob_db");
+
+		// sql access object
+		basics::CMySQL sqlbase(mysqldb_id, mysqldb_pw,mysqldb_db,mysqldb_ip,mysqldb_port);
+
+		// query handler
+		basics::CMySQLConnection dbcon1(sqlbase);
+		basics::string<> query;
+
+		///////////////////////////////////////////////////////////////////////
+		// disable foreign keys
+		query << "SET FOREIGN_KEY_CHECKS=0";
+		dbcon1.PureQuery(query);
+		query.clear();
+
+		///////////////////////////////////////////////////////////////////////////
+		// drop tables
+		query << "DROP TABLE IF EXISTS `" << dbcon1.escaped(tbl_mob_db) << "`";
+		dbcon1.PureQuery(query);
+		query.clear();
+
+		///////////////////////////////////////////////////////////////////////////
+		query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(tbl_mob_db) << "` "
+				 "("
+				 "`ID`			SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`name`		VARCHAR(24) NOT NULL default '',"
+				 "`jname`		VARCHAR(24) NOT NULL default '',"
+				 "`LV`			TINYINT	UNSIGNED NOT NULL default '0',"
+				 "`HP`			INTEGER UNSIGNED NOT NULL default '0',"
+				 "`SP`			INTEGER UNSIGNED NOT NULL default '0',"
+				 "`EXP`			INTEGER UNSIGNED NOT NULL default '0',"
+				 "`JEXP`		INTEGER UNSIGNED NOT NULL default '0',"
+				 "`ATK1`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`ATK2`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`DEF`			SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`MDEF`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`STR`			SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`AGI`			SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`VIT`			SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`INT`			SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`DEX`			SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`LUK`			SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Range1`		TINYINT	UNSIGNED NOT NULL default '0',"
+				 "`Range2`		TINYINT UNSIGNED NOT NULL default '0',"
+				 "`Range3`		TINYINT UNSIGNED NOT NULL default '0',"
+				 "`Scale`		TINYINT UNSIGNED NOT NULL default '0',"
+				 "`Race`		TINYINT UNSIGNED NOT NULL default '0',"
+				 "`Element`		TINYINT UNSIGNED NOT NULL default '0',"
+				 "`Mode`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Speed`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`ADelay`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`aMotion`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`dMotion`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`MEXP`		INTEGER UNSIGNED NOT NULL default '0',"
+				 "`ExpPer`		SMALLINT UNSIGNED NOT NULL default '0',"
+			/////////////////
+			// move to stand-alone drop table
+				 "`Drop1id`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Drop1per`	SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Drop2id`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Drop2per`	SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Drop3id`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Drop3per`	SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Drop4id`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Drop4per`	SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Drop5id`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Drop5per`	SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Drop6id`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Drop6per`	SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Drop7id`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Drop7per`	SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Drop8id`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Drop8per`	SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Drop9id`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`Drop9per`	SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`DropCardid`	SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`DropCardper`	SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`MVP1id`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`MVP1per`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`MVP2id`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`MVP2per`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`MVP3id`		SMALLINT UNSIGNED NOT NULL default '0',"
+				 "`MVP3per`		SMALLINT UNSIGNED NOT NULL default '0',"
+			////////////////
+				 "PRIMARY KEY  (`ID`)"
+				 ") "
+				 "ENGINE = " << dbcon1.escaped(sql_engine);
+		dbcon1.PureQuery(query);
+		query.clear();
+
+		///////////////////////////////////////////////////////////////////////
+		// enable foreign keys
+		query << "SET FOREIGN_KEY_CHECKS=1";
+		dbcon1.PureQuery(query);
+		query.clear();
+
+
+		///////////////////////////////////////////////////////////////////////
+		// insert entries
+		size_t i;
+		for(i=0; i<sizeof(mob_db)/sizeof(mob_db[0]); ++i)
 		{
-			ShowError("DB server Error (select %s to Memory)- %s\n", mob_db_name[i], mysql_error(&mmysql_handle));
-		}
-		sql_res = mysql_store_result(&mmysql_handle);
-		if (sql_res)
-		{
-			while((sql_row = mysql_fetch_row(sql_res)))
+			if( mob_db[i].name[0] != '\0' )
 			{
-				snprintf(line,sizeof(line),
-					"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"
-					"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"
-					"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-					sql_row[0],sql_row[1],sql_row[2],sql_row[3],sql_row[4],
-					sql_row[5],sql_row[6],sql_row[7],sql_row[8],sql_row[9],
-					sql_row[10],sql_row[11],sql_row[12],sql_row[13],sql_row[14],
-					sql_row[15],sql_row[16],sql_row[17],sql_row[18],sql_row[19],
-					sql_row[20],sql_row[21],sql_row[22],sql_row[23],sql_row[24],
-					sql_row[25],sql_row[26],sql_row[27],sql_row[28],sql_row[29],
-					sql_row[30],sql_row[31],sql_row[32],sql_row[33],sql_row[34],
-					sql_row[35],sql_row[36],sql_row[37],sql_row[38],sql_row[39],
-					sql_row[40],sql_row[41],sql_row[42],sql_row[43],sql_row[44],
-					sql_row[45],sql_row[46],sql_row[47],sql_row[48],sql_row[49],
-					sql_row[50],sql_row[51],sql_row[52],sql_row[53],sql_row[54],
-					sql_row[55],sql_row[56]);
-				
-				for (j = 0, p = line; j < 57; ++j)
-				{
-					if((np=strchr(p,','))!=NULL)
-					{
-						str[j] = p;
-						*np = 0;
-						p = np+1;
-					}
-					else
-						str[j] = p;
-				}
-				class_ = atoi(str[0]);
-
-				if (class_ <= 1000 || class_ > MAX_MOB_DB)
-					continue;
-
-				ln++;
-
-				mob_db[class_].view_class = class_;
-				memcpy(mob_db[class_].name, str[1], 24);
-				memcpy(mob_db[class_].jname, str[2], 24);
-				mob_db[class_].lv = atoi(str[3]);
-				mob_db[class_].max_hp = atoi(str[4]);
-				mob_db[class_].max_sp = atoi(str[5]);
-
-				exp = atof(str[6]) * config.base_exp_rate / 100;
-				if (exp < 0)
-					exp = 0;
-				else if (exp > INT_MAX)
-					exp = INT_MAX;
-				mob_db[class_].base_exp = (int)exp;
-
-				exp = atof(str[7]) * (double)config.job_exp_rate / 100;
-				if (exp < 0)
-					exp = 0;
-				else if (exp > INT_MAX)
-					exp = INT_MAX;
-				mob_db[class_].job_exp = (int)exp;
-				
-				mob_db[class_].range = atoi(str[8]);
-				mob_db[class_].atk1 = atoi(str[9]);
-				mob_db[class_].atk2 = atoi(str[10]);
-				mob_db[class_].def = atoi(str[11]);
-				mob_db[class_].mdef = atoi(str[12]);
-				mob_db[class_].str = atoi(str[13]);
-				mob_db[class_].agi = atoi(str[14]);
-				mob_db[class_].vit = atoi(str[15]);
-				mob_db[class_].int_ = atoi(str[16]);
-				mob_db[class_].dex = atoi(str[17]);
-				mob_db[class_].luk = atoi(str[18]);
-				mob_db[class_].range2 = atoi(str[19]);
-				mob_db[class_].range3 = atoi(str[20]);
-				mob_db[class_].size = atoi(str[21]);
-				mob_db[class_].race = atoi(str[22]);
-				mob_db[class_].element = atoi(str[23]);
-				mob_db[class_].mode = atoi(str[24]);
-				mob_db[class_].speed = atoi(str[25]);
-				mob_db[class_].adelay = atoi(str[26]);
-				mob_db[class_].amotion = atoi(str[27]);
-				mob_db[class_].dmotion = atoi(str[28]);
-
-				for (j = 0; j < 10; ++j)
-				{	// 8 -> 10 Lupus
-					int rate = 0, type, ratemin, ratemax;
-					mob_db[class_].dropitem[j].nameid=atoi(str[29+j*2]);
-					type = itemdb_type(mob_db[class_].dropitem[j].nameid);
-					if (type == 0)
-					{	// Added by Valaris
-						rate = config.item_rate_heal * atoi(str[30+j*2]) / 100;
-						ratemin = config.item_drop_heal_min;
-						ratemax = config.item_drop_heal_max;
-					}
-					else if (type == 2)
-					{
-						rate = config.item_rate_use * atoi(str[30+j*2]) / 100;
-						ratemin = config.item_drop_use_min;
-						ratemax = config.item_drop_use_max;	// End
-					}
-					else if (type == 4 || type == 5 || type == 8)
-					{	// Changed to include Pet Equip
-						rate = config.item_rate_equip * atoi(str[30+j*2]) / 100;
-						ratemin = config.item_drop_equip_min;
-						ratemax = config.item_drop_equip_max;
-					}
-					else if (type == 6)
-					{
-						rate = config.item_rate_card * atoi(str[30+j*2]) / 100;
-						ratemin = config.item_drop_card_min;
-						ratemax = config.item_drop_card_max;
-					}
-					else
-					{
-						rate = config.item_rate_common * atoi(str[30+j*2]) / 100;
-						ratemin = config.item_drop_common_min;
-						ratemax = config.item_drop_common_max;
-					}
-					mob_db[class_].dropitem[j].p = (rate < ratemin) ? ratemin : (rate > ratemax) ? ratemax: rate;
-				}
-				// MVP EXP Bonus, Chance: MEXP,ExpPer
-				mob_db[class_].mexp = atoi(str[49]) * config.mvp_exp_rate / 100;
-				mob_db[class_].mexpper = atoi(str[50]);
-				//Now that we know if it is an mvp or not,
-				//apply config modifiers [Skotlex]
-				maxhp = (double)mob_db[class_].max_hp;
-				if (mob_db[class_].mexp > 0)
-				{	//Mvp
-					if (config.mvp_hp_rate != 100) 
-						maxhp = maxhp * (double)config.mvp_hp_rate /100.;
-				} else if (config.monster_hp_rate != 100) //Normal mob
-					maxhp = maxhp * (double)config.monster_hp_rate /100.;
-				if (maxhp < 0)
-					maxhp = 1;
-				else if (maxhp > INT_MAX)
-					maxhp = INT_MAX;
-				mob_db[class_].max_hp = (int)maxhp;
-
-				// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
-				for (j = 0; j < 3; ++j)
-				{
-					mob_db[class_].mvpitem[j].nameid = atoi(str[51+j*2]);
-					mob_db[class_].mvpitem[j].p = atoi(str[52+j*2]) * config.mvp_item_rate / 100;
-				}
-				for (j = 0; j < MAX_RANDOMMONSTER; ++j)
-					mob_db[class_].summonper[j] = 0;
-				mob_db[class_].maxskill = 0;
-
-				mob_db[class_].sex = 0;
-				mob_db[class_].hair = 0;
-				mob_db[class_].hair_color = 0;
-				mob_db[class_].weapon = 0;
-				mob_db[class_].shield = 0;
-				mob_db[class_].head_top = 0;
-				mob_db[class_].head_mid = 0;
-				mob_db[class_].head_buttom = 0;
+				query.clear();
+				query << "REPLACE INTO `" << dbcon1.escaped(tbl_mob_db) << "` "
+						 "("
+						 "`ID`,"
+						 "`name`,"
+						 "`jname`,"
+						 "`LV`,"
+						 "`HP`,"
+						 "`SP`,"
+						 "`EXP`,"
+						 "`JEXP`,"
+						 "`ATK1`,"
+						 "`ATK2`,"
+						 "`DEF`,"
+						 "`MDEF`,"
+						 "`STR`,"
+						 "`AGI`,"
+						 "`VIT`,"
+						 "`INT`,"
+						 "`DEX`,"
+						 "`LUK`,"
+						 "`Range1`,"
+						 "`Range2`,"
+						 "`Range3`,"
+						 "`Scale`,"
+						 "`Race`,"
+						 "`Element`,"
+						 "`Mode`,"
+						 "`Speed`,"
+						 "`ADelay`,"
+						 "`aMotion`,"
+						 "`dMotion`,"
+						 "`MEXP`,"
+						 "`ExpPer`,"
+						 "`Drop1id`,"
+						 "`Drop1per`,"
+						 "`Drop2id`,"
+						 "`Drop2per`,"
+						 "`Drop3id`,"
+						 "`Drop3per`,"
+						 "`Drop4id`,"
+						 "`Drop4per`,"
+						 "`Drop5id`,"
+						 "`Drop5per`,"
+						 "`Drop6id`,"
+						 "`Drop6per`,"
+						 "`Drop7id`,"
+						 "`Drop7per`,"
+						 "`Drop8id`,"
+						 "`Drop8per`,"
+						 "`Drop9id`,"
+						 "`Drop9per`,"
+						 "`DropCardid`,"
+						 "`DropCardper`,"
+						 "`MVP1id`,"
+						 "`MVP1per`,"
+						 "`MVP2id`,"
+						 "`MVP2per`,"
+						 "`MVP3id`,"
+						 "`MVP3per`"
+						 ") "
+						 "VALUES "
+						 "("
+						 "'" << i << "',"								// ID
+						 "'" << dbcon1.escaped(mob_db[i].name) << "',"	// name
+						 "'" << dbcon1.escaped(mob_db[i].jname) << "',"	// jname
+						 "'" << mob_db[i].lv << "',"					// LV
+						 "'" << mob_db[i].max_hp << "',"				// HP
+						 "'" << mob_db[i].max_sp << "',"				// SP
+						 "'" << mob_db[i].base_exp << "',"				// EXP
+						 "'" << mob_db[i].job_exp << "',"				// JEXP
+						 "'" << mob_db[i].atk1 << "',"					// ATK1
+						 "'" << mob_db[i].atk2 << "',"					// ATK2
+						 "'" << mob_db[i].def << "',"					// DEF
+						 "'" << mob_db[i].mdef << "',"					// MDEF
+						 "'" << mob_db[i].str << "',"					// STR
+						 "'" << mob_db[i].agi << "',"					// AGI
+						 "'" << mob_db[i].vit << "',"					// VIT
+						 "'" << mob_db[i].int_ << "',"					// INT
+						 "'" << mob_db[i].dex << "',"					// DEX
+						 "'" << mob_db[i].luk << "',"					// LUK
+						 "'" << mob_db[i].range << "',"					// Range1
+						 "'" << mob_db[i].range2 << "',"				// Range2
+						 "'" << mob_db[i].range3 << "',"				// Range3
+						 "'" << mob_db[i].size << "',"					// Scale
+						 "'" << mob_db[i].race << "',"					// Race
+						 "'" << mob_db[i].element << "',"				// Element
+						 "'" << mob_db[i].mode << "',"					// Mode
+						 "'" << mob_db[i].speed << "',"					// Speed
+						 "'" << mob_db[i].adelay << "',"				// ADelay
+						 "'" << mob_db[i].amotion << "',"				// aMotion
+						 "'" << mob_db[i].dmotion << "',"				// dMotion
+						 "'" << mob_db[i].mexp << "',"					// MEXP
+						 "'" << mob_db[i].mexpper << "',"				// ExpPer
+						 "'" << mob_db[i].dropitem[0].nameid << "',"	// Drop1id
+						 "'" << mob_db[i].dropitem[0].p << "',"			// Drop1per
+						 "'" << mob_db[i].dropitem[1].nameid << "',"	// Drop2id
+						 "'" << mob_db[i].dropitem[1].p << "',"			// Drop2per
+						 "'" << mob_db[i].dropitem[2].nameid << "',"	// Drop3id
+						 "'" << mob_db[i].dropitem[2].p << "',"			// Drop3per
+						 "'" << mob_db[i].dropitem[3].nameid << "',"	// Drop4id
+						 "'" << mob_db[i].dropitem[3].p << "',"			// Drop4per
+						 "'" << mob_db[i].dropitem[4].nameid << "',"	// Drop5id
+						 "'" << mob_db[i].dropitem[4].p << "',"			// Drop5per
+						 "'" << mob_db[i].dropitem[5].nameid << "',"	// Drop6id
+						 "'" << mob_db[i].dropitem[5].p << "',"			// Drop6per
+						 "'" << mob_db[i].dropitem[6].nameid << "',"	// Drop7id
+						 "'" << mob_db[i].dropitem[6].p << "',"			// Drop7per
+						 "'" << mob_db[i].dropitem[7].nameid << "',"	// Drop8id
+						 "'" << mob_db[i].dropitem[7].p << "',"			// Drop8per
+						 "'" << mob_db[i].dropitem[8].nameid << "',"	// Drop9id
+						 "'" << mob_db[i].dropitem[8].p << "',"			// Drop9per
+						 "'" << mob_db[i].dropitem[9].nameid << "',"	// DropCardid
+						 "'" << mob_db[i].dropitem[9].p << "',"			// DropCardper
+						 "'" << mob_db[i].mvpitem[0].nameid << "',"		// MVP1id
+						 "'" << mob_db[i].mvpitem[0].p << "',"			// MVP1per
+						 "'" << mob_db[i].mvpitem[1].nameid << "',"		// MVP2id
+						 "'" << mob_db[i].mvpitem[1].p << "',"			// MVP2per
+						 "'" << mob_db[i].mvpitem[2].nameid << "',"		// MVP3id
+						 "'" << mob_db[i].mvpitem[2].p << "'"			// MVP3per
+						 ")";
+				dbcon1.PureQuery(query);
+				query.clear();
 			}
-			mysql_free_result(sql_res);
-			ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", (unsigned long)ln, mob_db_name[i]);
-			ln = 0;
 		}
+		///////////////////////////////////////////////////////////////////////
 	}
-	return 0;
+#endif
 }
-#endif//WITH_MYSQL
+
 
 void mob_reload(void)
 {
-#if defined(WITH_MYSQL)
-    if(db_use_sqldbs)
-        mob_read_sqldb();
-    else
-#endif
 	mob_readdb();
 	mob_readdb_mobavail();
 	mob_read_randommonster();
 	mob_readskilldb();
 	mob_readdb_race();
+
+	mobdb_sqlupdate();
 }
 
 
@@ -4547,18 +4616,6 @@ void mob_reload(void)
  */
 int do_init_mob(void)
 {
-#if defined(WITH_MYSQL)
-    if(db_use_sqldbs)
-        mob_read_sqldb();
-    else
-#endif
-	mob_readdb();
-
-	mob_readdb_mobavail();
-	mob_read_randommonster();
-	mob_readskilldb();
-	mob_readdb_race();
-
 	add_timer_func_list(mob_delayspawn,"mob_delayspawn");
 	add_timer_func_list(mob_delay_item_drop,"mob_delay_item_drop");
 	add_timer_func_list(mob_delay_item_drop2,"mob_delay_item_drop2");
@@ -4570,5 +4627,13 @@ int do_init_mob(void)
 	add_timer_interval(gettick()+MIN_MOBTHINKTIME,MIN_MOBTHINKTIME,mob_ai_hard,0,0);
 	add_timer_interval(gettick()+MIN_MOBTHINKTIME*10,MIN_MOBTHINKTIME*10,mob_ai_lazy,0,0);
 
+	mob_readdb();
+	mob_readdb_mobavail();
+	mob_read_randommonster();
+	mob_readskilldb();
+	mob_readdb_race();
+
+	mobdb_sqlupdate();
 	return 0;
 }
+

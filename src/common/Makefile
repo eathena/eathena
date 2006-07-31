@@ -1,18 +1,3 @@
-all: txt sql
-common txt: txtobj  txtobj/baseio.o txtobj/basesq.o txtobj/basetx.o obj
-common_sql sql: sqlobj sqlobj/baseio.o sqlobj/basesq.o  sqlobj/basetx.o obj
-
-obj: core.o db.o plugins.o grfio.o lock.o malloc.o md5calc.o mmo.o nullpo.o showmsg.o socket.o timer.o utils.o
-
-txtobj:
-	mkdir txtobj
-sqlobj:
-	mkdir sqlobj
-
-txtobj/%.o: %.cpp
-	$(CCC) $(CPPFLAGS) $(OUTPUT_OPTION) -c $<
-sqlobj/%.o: %.cpp
-	$(CCC) $(CPPFLAGS) $(OUTPUT_OPTION) -c $<
 
 ##########################################################
 # stupid make does not know .cpp suffix by default
@@ -41,6 +26,33 @@ include $(BP)/Makefile.dep
 CP = $(RETURN_PATH)/$(COMMON_PATH)
 ##########################################################
 include $(CP)/Makefile.dep
+
+
+
+##########################################################
+depends = core.o db.o plugins.o lock.o malloc.o md5calc.o mmo.o nullpo.o showmsg.o socket.o timer.o utils.o
+
+ifeq ($(findstring -DWITH_MYSQL,$(CPPFLAGS)), -DWITH_MYSQL)
+depends += sqlobj sqlobj/baseio.o sqlobj/basesq.o sqlobj/basetx.o 
+else
+depends += txtobj txtobj/baseio.o txtobj/basesq.o txtobj/basetx.o
+endif
+
+depends += grfio.o
+
+
+all common: $(depends)
+
+txtobj:
+	mkdir txtobj
+sqlobj:
+	mkdir sqlobj
+
+txtobj/%.o: %.cpp
+	$(CCC) $(CPPFLAGS) $(OUTPUT_OPTION) -c $<
+sqlobj/%.o: %.cpp
+	$(CCC) $(CPPFLAGS) $(OUTPUT_OPTION) -c $<
+
 
 core.o: core.cpp mmo.h socket.h malloc.h timer.h utils.h core.h version.h db.h showmsg.h plugins.h $(BASE_H)
 db.o: db.cpp db.h malloc.h showmsg.h mmo.h socket.h timer.h utils.h $(BASE_H)

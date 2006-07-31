@@ -1173,11 +1173,15 @@ public:
 	{
 		this->TString< T, allocator_ws_dy<T> >::assign(t);
 	}
-	basestring<T>(const char* t) : TString< T, allocator_ws_dy<T> >()
+	basestring<T>(const T* t) : TString< T, allocator_ws_dy<T> >()
 	{
 		this->TString< T, allocator_ws_dy<T> >::assign(t);
 	}
-	explicit basestring<T>(char t) : TString< T, allocator_ws_dy<T> >()
+	basestring<T>(const T* t, size_t sz) : TString< T, allocator_ws_dy<T> >()
+	{
+		this->TString< T, allocator_ws_dy<T> >::assign(t, sz);
+	}
+	explicit basestring<T>(T t) : TString< T, allocator_ws_dy<T> >()
 	{
 		this->TString< T, allocator_ws_dy<T> >::assign(t);
 	}

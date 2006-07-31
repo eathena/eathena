@@ -324,62 +324,6 @@ void ev_release(struct dbn *db, int which)
 		db->data=NULL;
 	}
 }
-/*
-//==========================================
-// イベントキューのイベント処理
-//------------------------------------------
-//
-int npc_event_dequeue(struct map_session_data &sd)
-{
-	if (sd.eventqueue[0][0])
-	{	// キューのイベント処理
-		size_t ev;
-
-		// find an empty place in eventtimer list
-		for(ev=0; ev<MAX_EVENTTIMER; ++ev)
-			if( sd.eventtimer[ev]==-1 )
-				break;
-		if(ev<MAX_EVENTTIMER)
-		{	// generate and insert the timer
-			size_t i;
-			// copy the first event
-			char *name=(char *)aMalloc(50*sizeof(char));
-			safestrcpy(name,sd.eventqueue[0],50);
-			// shift queued events down by one
-			for(i=1;i<MAX_EVENTQUEUE;++i)
-				memcpy(sd.eventqueue[i-1],sd.eventqueue[i],50);
-			// clear the last event
-			sd.eventqueue[MAX_EVENTQUEUE-1][0]=0; 
-			// add the timer
-			sd.eventtimer[ev]=add_timer(gettick()+100,pc_eventtimer,sd.block_list::id,name, false);
-
-		}else
-			ShowMessage("npc_event_dequeue: event timer is full !\n");
-	}
-	return 0;
-}
-int npc_event_enqueue(struct map_session_data &sd, const char *eventname)
-{
-	size_t i;
-	for(i=0;i<MAX_EVENTQUEUE;++i)
-	{
-		if( !sd.eventqueue[i][0] )
-			break;
-	}
-	if(i==MAX_EVENTQUEUE)
-	{
-		if (config.error_log)
-			ShowMessage("npc_event: event queue is full !\n");
-	}
-	else
-	{
-//		if (config.etc_log)
-//			ShowMessage("npc_event: enqueue\n");
-		safestrcpy(sd.eventqueue[i],eventname,sizeof(sd.eventqueue[i]));
-	}
-	return (i!=MAX_EVENTQUEUE);
-}
-*/
 
 /*==========================================
  * イベントの遅延実行
@@ -438,69 +382,7 @@ int npc_timer_event(const char *eventname)	// Added by RoVeRT
  * npc_parse_script->strdb_foreachから呼ばれる
  *------------------------------------------
  */
-/*
-int npc_event_export(void *key,void *data,va_list &ap)
-{
-	char *lname=(char *)key;
-	size_t pos=(size_t)data;
-	struct npc_data *nd=va_arg(ap,struct npc_data*);
 
-	if ((lname[0]=='O' || lname[0]=='o')&&(lname[1]=='N' || lname[1]=='n')) {
-		char *p=strchr(lname,':');
-		// エクスポートされる
-		if (p==NULL || (p-lname)>24) {
-			ShowError("npc_event_export: label name longer than 23 chars!\n");
-			exit(1);
-		}else{
-			char *buf;
-			struct event_data *ev = (struct event_data *)aCalloc(1, sizeof(struct event_data));
-			ev->nd=nd;
-			ev->pos=pos;
-			*p='\0';
-			buf = (char *)aMalloc( (3+strlen(nd->exname)+strlen(lname)) * sizeof(char));
-			sprintf(buf,"%s::%s",nd->exname,lname);
-			*p=':';
-			strdb_insert(ev_db,buf,ev);
-//			if (config.etc_log)
-//				ShowMessage("npc_event_export: export [%s]\n",buf);
-		}
-	}
-	return 0;
-}
-*/
-/*==========================================
- * 全てのNPCのOn*イベント実行
- *------------------------------------------
- */
-/*
-int npc_event_doall_sub(void *key,void *data,va_list &ap)
-{
-	char *p=(char *)key;
-	struct event_data *ev=(struct event_data *)data;
-	int *c, rid, map;
-
-	const char *name;
-
-	nullpo_retr(0, ev);
-	nullpo_retr(0, ev->nd);
-	nullpo_retr(0, ap);
-
-	c=va_arg(ap,int *);
-	name=va_arg(ap,const char *);
-	rid=va_arg(ap, int);
-	map=va_arg(ap, int);
-
-	nullpo_retr(0, c);
-
-	if( (p=strchr(p,':')) && p && strcasecmp(name,p)==0 && (map<0 || ev->nd->block_list::m>=map_num || map==ev->nd->block_list::m))
-	{
-		if(ev->nd->u.scr.ref)
-			CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos, rid, ev->nd->block_list::id);
-		(*c)++;
-	}
-	return 0;
-}
-*/
 class CDBNPCevent_doall : public CDBProcessor
 {
 	const char *name;
@@ -535,7 +417,6 @@ int npc_event_doall(const char *name)
 	char buf[128]="::";
 	safestrcpy(buf+2,name,sizeof(buf)-2);
 	strdb_foreach(ev_db, CDBNPCevent_doall(buf, 0, -1, c) );
-//	strdb_foreach(ev_db,npc_event_doall_sub,&c,buf, 0, -1);
 	return c;
 }
 int npc_event_doall_id(const char *name, int rid, int map)
@@ -544,29 +425,10 @@ int npc_event_doall_id(const char *name, int rid, int map)
 	char buf[128]="::";
 	safestrcpy(buf+2,name,sizeof(buf)-2);
 	strdb_foreach(ev_db, CDBNPCevent_doall(buf, rid, map, c) );
-//	strdb_foreach(ev_db,npc_event_doall_sub,&c,buf,rid, map);
 	return c;
 }
-/*
-int npc_event_do_sub(void *key,void *data,va_list &ap)
-{
-	char *p=(char *)key;
-	struct event_data *ev=(struct event_data *)data;
-	int *c          =va_arg(ap,int *);
-	const char *name=va_arg(ap,const char *);
 
-	nullpo_retr(0, ev);
-	nullpo_retr(0, ap);
-	nullpo_retr(0, c);
 
-	if (p && strcasecmp(name,p)==0 ) {
-		if(ev->nd && ev->nd->u.scr.ref)
-		CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos,0,ev->nd->block_list::id);
-		(*c)++;
-	}
-	return 0;
-}
-*/
 class CDBNPCevent_do : public CDBProcessor
 {
 	const char *name;
@@ -598,7 +460,6 @@ int npc_event_do(const char *name)
 		return npc_event_doall(name+2);
 	}
 	strdb_foreach(ev_db, CDBNPCevent_do(name,c) );
-//	strdb_foreach(ev_db,npc_event_do_sub,&c,name);
 	return c;
 }
 

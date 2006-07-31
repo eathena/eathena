@@ -1,8 +1,3 @@
-all: txt sql
-txt: char-server
-sql: char-server_sql
-
-
 ##########################################################
 # stupid make does not know .cpp suffix by default
 .SUFFIXES: .cpp
@@ -30,11 +25,11 @@ CP = $(RETURN_PATH)/$(COMMON_PATH)
 ##########################################################
 include $(CP)/Makefile.dep
 
-char-server: char.o inter.o int_party.o int_guild.o int_storage.o int_pet.o irc.o $(COMMON_TXT) $(COMMON_OBJ) $(BASE_OBJ)
-	$(CCC) $> $(LIBS) -o $(RETURN_PATH)/$@
 
-char-server_sql: char.o inter.o int_party.o int_guild.o int_storage.o int_pet.o $(COMMON_SQL) $(COMMON_OBJ) $(BASE_OBJ)
-	$(CCC) $> $(LIBS) -o $(RETURN_PATH)/$@
+all char-server: $(RETURN_PATH)/char-server
+
+$(RETURN_PATH)/char-server: char.o inter.o int_party.o int_guild.o int_storage.o int_pet.o irc.o $(COMMON_OBJ) $(BASE_OBJ)
+	$(CCC) $> $(LIBS) -o $@
 
 
 char.o: char.cpp char.h inter.h int_pet.h $(COMMON_H) $(BASE_H)
@@ -46,4 +41,4 @@ int_pet.o: int_pet.cpp int_pet.h inter.h char.h $(COMMON_H) $(BASE_H)
 irc.o: irc.cpp irc.h char.h $(COMMON_H) $(BASE_H)
 
 clean:
-	rm -rf *.o $(RETURN_PATH)/char-server $(RETURN_PATH)/char-server_sql GNUmakefile
+	rm -rf *.o $(RETURN_PATH)/char-server GNUmakefile

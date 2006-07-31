@@ -131,8 +131,7 @@ EDOM         33          Math argument
 ERANGE       34          Result too large
 EUCLEAN      35          File system needs cleaning
 EDEADLK      36          Resource deadlock would occur
-EDEADLOCK    36          Resource deadlock would occur
-
+EDEADLOCK    37          Resource deadlock would occur
 ENAMETOOLONG 38
 ENOLCK       39
 ENOSYS       40
@@ -159,7 +158,9 @@ const char* unixerrmsg(int code)
 	case ENOMEM:     return "Not enough memory";
 	case EACCES:     return "Access denied";
 	case EFAULT:     return "Bad address";
+#ifndef ENOTBLK
 	case ENOTBLK:    return "Block device required";
+#endif
 	case EBUSY:      return "Mount device busy";
 	case EEXIST:     return "File already exists";
 	case EXDEV:      return "Cross-device link";
@@ -170,7 +171,9 @@ const char* unixerrmsg(int code)
 	case ENFILE:     return "File table overflow";
 	case EMFILE:     return "Too many open files";
 	case ENOTTY:     return "Not a teletype";
+#ifdef ETXTBSY
 	case ETXTBSY:    return "Text file busy";
+#endif
 	case EFBIG:      return "File too large";
 	case ENOSPC:     return "No space left on device";
 	case ESPIPE:     return "Can not seek on this device";
@@ -179,7 +182,9 @@ const char* unixerrmsg(int code)
 	case EPIPE:      return "Broken pipe";
 	case EDOM:       return "Math argument";
 	case ERANGE:     return "Result too large";
+#ifdef EUCLEAN
 	case EUCLEAN:    return "File system needs cleaning";
+#endif
 	case EDEADLK:    return "Resource deadlock would occur";
 	default:         return "";
 	}
