@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/30
+	* Fixed mob-caused damage experience not being given to their master
+	  (summoned mobs) [Skotlex]
 	* Corrected a status_get_race call which should be status_get_race2 in misc
 	  attacks. [Skotlex]
 	* Added missing mob_db2.sql [Toms]

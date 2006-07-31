@@ -1554,8 +1554,7 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 			struct mob_data* md2 = (TBL_MOB*)src;
 			if(md2->special_state.ai && md2->master_id) {
 				struct map_session_data* msd = map_id2sd(md2->master_id);
-//				if (msd) id = msd->status.char_id;
-				if (msd) id = msd->bl.id;	//[orn]
+				if (msd) id = msd->status.char_id;
 			}
 			if(rand()%1000 < 1000/md->attacked_players)
 			{	//Let players decide whether to retaliate versus the master or the mob. [Skotlex]
