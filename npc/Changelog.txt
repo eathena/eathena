@@ -38,6 +38,13 @@ Playtester
 
 Date		Added
 ======
+07/31
+	* Implemented the Sign Quest. [MasterOfMuppets]
+	- Note that this quest will be "enable only"
+	  You'll have to uncomment it in scripts_athena.conf
+	  There are some things you might have to do before imlementing it.
+	  You can read more about it in the comments in the header
+	  of npc/quests/The_Sign_Quest.txt
 07/29
 	* Fixed a mixed up mob id in Thanatos spawns [Playtester]
 	* Added temporary Beholder and Gremlin spawns [Playtester]
