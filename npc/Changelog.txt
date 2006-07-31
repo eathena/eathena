@@ -39,6 +39,7 @@ Playtester
 Date		Added
 ======
 07/31
+	* Updated the Geffenia spawns. [MasterOfMuppets]
 	* Implemented the Sign Quest. [MasterOfMuppets]
 	- Note that this quest will be "enable only"
 	  You'll have to uncomment it in scripts_athena.conf
