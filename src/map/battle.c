@@ -223,7 +223,6 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,int div_,int skill_num,int skill_lv,int flag)
 {
 	struct map_session_data *sd = NULL;
-	struct mob_data *md = NULL;
 	struct status_change *sc;
 	struct status_change_entry *sci;
 
@@ -232,9 +231,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 	if (!damage)
 		return 0;
 	
-	if (bl->type == BL_MOB) {
-		md=(struct mob_data *)bl;
-	} else if (bl->type == BL_PC) {
+	if (bl->type == BL_PC) {
 		sd=(struct map_session_data *)bl;
 		//Special no damage states
 		if(flag&BF_WEAPON && sd->special_state.no_weapon_damage)
@@ -243,8 +240,14 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		if(flag&BF_MAGIC && sd->special_state.no_magic_damage)
 			damage -= damage*sd->special_state.no_magic_damage/100;
 
+		if(flag&BF_MISC && sd->special_state.no_misc_damage)
+			damage -= damage*sd->special_state.no_misc_damage/100;
+
 		if(!damage) return 0;
 	}
+	
+	if (skill_num == PA_PRESSURE || skill_num == NJ_ZENYNAGE)
+		return damage; //These two bypass everything else.
 
 	sc = status_get_sc(bl);
 
@@ -268,9 +271,6 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			status_change_end(bl,SC_SAFETYWALL,-1);
 		}
 	
-		if(sc->data[SC_LANDPROTECTOR].timer!=-1 && flag&BF_MAGIC)
-			return 0;
-		
 		if(sc->data[SC_AUTOGUARD].timer != -1 && flag&BF_WEAPON &&
 			rand()%100 < sc->data[SC_AUTOGUARD].val2) {
 			int delay;
@@ -347,6 +347,10 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		if(sc->data[SC_DEFENDER].timer != -1 &&
 			(flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON))
 			damage=damage*(100-sc->data[SC_DEFENDER].val2)/100;
+
+		if(sc->data[SC_ADJUSTMENT].timer != -1 &&
+			(flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON))
+			damage=damage*80/100;
 
 		if(sc->data[SC_FOGWALL].timer != -1) {
 			if(flag&BF_SKILL) //25% reduction
@@ -432,11 +436,11 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			damage = div_;
 	}
 
-	if( md && !status_isdead(bl) && src != bl) {
+	if( bl->type == BL_MOB && !status_isdead(bl) && src != bl) {
 	  if (damage > 0 )
-			mobskill_event(md,src,gettick(),flag);
+			mobskill_event((TBL_MOB*)bl,src,gettick(),flag);
 	  if (skill_num)
-			mobskill_event(md,src,gettick(),MSC_SKILLUSED|(skill_num<<16));
+			mobskill_event((TBL_MOB*)bl,src,gettick(),MSC_SKILLUSED|(skill_num<<16));
 	}
 
 	return damage;
@@ -614,7 +618,8 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 				damage += (skill * 3);
 			break;
 	}
-	return (damage);
+
+	return damage;
 }
 /*==========================================
  * Calculates the standard damage of a normal attack assuming it hits,
@@ -811,7 +816,7 @@ static struct Damage battle_calc_weapon_attack(
 	//Set miscellaneous data that needs be filled regardless of hit/miss
 	if(
 		(sd && sd->state.arrow_atk) ||
-		(!sd && ((skill_num && skill_get_ammotype(skill_num)) || status_get_range(src)>3))
+		(!sd && ((skill_num && skill_get_ammotype(skill_num)) || sstatus->rhw.range>3))
 	) {	
 		wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 		flag.arrow = 1;
@@ -1343,7 +1348,7 @@ static struct Damage battle_calc_weapon_attack(
 						//You'd need something like 6K SP to reach this max, so should be fine for most purposes.
 						if (ratio > 60000) ratio = 60000; //We leave some room here in case skillratio gets further increased.
 						skillratio = (unsigned short)ratio;
-						status_zap(src, 0, sstatus->sp);
+						status_set_sp(src, 0, 0);
 						flag.idef= flag.idef2= 1;
 					}
 					break;
@@ -2586,8 +2591,7 @@ struct Damage  battle_calc_misc_attack(
 	
 	md.damage=battle_attr_fix(src, target, md.damage, s_ele, tstatus->def_ele, tstatus->ele_lv);
 
-	if (skill_num != PA_PRESSURE) //Pressure ignores all these things...
-		md.damage=battle_calc_damage(src,target,md.damage,md.div_,skill_num,skill_lv,md.flag);
+	md.damage=battle_calc_damage(src,target,md.damage,md.div_,skill_num,skill_lv,md.flag);
 	if (map_flag_gvg(target->m))
 		md.damage=battle_calc_gvg_damage(src,target,md.damage,md.div_,skill_num,skill_lv,md.flag);
 
