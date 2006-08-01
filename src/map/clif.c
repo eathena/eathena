@@ -8969,8 +8969,8 @@ void clif_parse_EquipItem(int fd,struct map_session_data *sd)
 	if(sd->npc_id) {
 		if (sd->npc_id != sd->npc_item_flag)
 			return;
-	} else if (sd->state.storage_flag)
-		; //You can equip/unequip stuff while storage is open.
+	} else if (sd->state.storage_flag || sd->sc.opt1)
+		; //You can equip/unequip stuff while storage is open/under status changes
 	else if (clif_cant_act(sd))
 		return;
 		

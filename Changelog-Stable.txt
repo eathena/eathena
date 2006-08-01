@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/31
+	* Merged being able to change equipment while frozen/stunned/sleep/etc
+	  [Skotlex]
 	* Bladestop will no longer stop when you push either of the characters
 	  around. [Skotlex]
 	* Enchant Deadly Poison won't stack with Spirit of Assassin (only the
