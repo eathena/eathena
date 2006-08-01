@@ -15,6 +15,7 @@
 #include "npc.h"
 #include "mob.h"
 #include "pet.h"
+#include "homun.h"
 #include "itemdb.h"
 #include "script.h"
 #include "battle.h"
@@ -3419,7 +3420,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 	if(sd.status.option&16384)
 		status_change_end(&sd, SC_CHASEWALK, -1);
 
-	if(sd.status.pet_id > 0 && sd.pd && sd.pet.intimate > 0) {
+	if(sd.status.pet_id > 0 && sd.pd && sd.pd->pet.intimate > 0) {
 		sd.pd->stop_attack();
 		sd.pd->changestate(MS_IDLE,0);
 	}
@@ -3438,7 +3439,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 		{
 			if(sd.status.pet_id > 0 && sd.pd)
 			{
-				if(sd.pd->block_list::m != m && sd.pet.intimate <= 0)
+				if(sd.pd->block_list::m != m && sd.pd->pet.intimate <= 0)
 				{
 					pet_remove_map(sd);
 					intif_delete_petdata(sd.status.pet_id);
@@ -3447,7 +3448,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 					if(config.pet_status_support)
 						status_calc_pc(sd,2);
 				}
-				else if(sd.pet.intimate > 0)
+				else if(sd.pd->pet.intimate > 0)
 				{
 					sd.pd->stop_attack();
 					sd.pd->changestate(MS_IDLE,0);
@@ -3456,6 +3457,13 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 				}
 			}
 
+			if(sd.hd)
+			{
+				sd.hd->stop_attack();
+				sd.hd->changestate(MS_IDLE,0);
+				clif_clearchar_area(*sd.hd,clrtype);
+				sd.hd->map_delblock();
+			}
 			skill_unit_move(sd,gettick(),0);
 			skill_gangsterparadise(&sd,0);
 			
@@ -3477,7 +3485,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 			pc_clean_skilltree(sd);
 			pc_makesavestatus(sd);
 			if(sd.status.pet_id > 0 && sd.pd)
-				intif_save_petdata(sd.status.account_id,sd.pet);
+				intif_save_petdata(sd.status.account_id,sd.pd->pet);
 			chrif_save(sd);
 			storage_storage_save(sd);
 			storage_delete(sd.status.account_id);
@@ -3523,7 +3531,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 
 		if(sd.status.pet_id > 0 && sd.pd)
 		{
-			if(sd.pd->block_list::m != m && sd.pet.intimate <= 0)
+			if(sd.pd->block_list::m != m && sd.pd->pet.intimate <= 0)
 			{
 				pet_remove_map(sd);
 				intif_delete_petdata(sd.status.pet_id);
@@ -3536,13 +3544,20 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 				chrif_save(sd);
 				storage_storage_save(sd);
 			}
-			else if(sd.pet.intimate > 0)
+			else if(sd.pd->pet.intimate > 0)
 			{
 				sd.pd->stop_attack();
 				sd.pd->changestate(MS_IDLE,0);
 				clif_clearchar_area(*sd.pd,clrtype);
 				sd.pd->map_delblock();
 			}
+		}
+		if(sd.hd)
+		{
+			sd.hd->stop_attack();
+			sd.hd->changestate(MS_IDLE,0);
+			clif_clearchar_area(*sd.hd,clrtype);
+			sd.hd->map_delblock();
 		}
 
 		clif_clearchar_area(sd,clrtype);
@@ -3560,14 +3575,25 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 	sd.block_list::x = sd.walktarget.x = x;
 	sd.block_list::y = sd.walktarget.y = y;
 
-	if(sd.status.pet_id > 0 && sd.pd && sd.pet.intimate > 0)
+	if(sd.status.pet_id > 0 && sd.pd && sd.pd->pet.intimate > 0)
 	{
 		sd.pd->block_list::m = m;
 		sd.pd->block_list::x = sd.pd->walktarget.x = x;
 		sd.pd->block_list::y = sd.pd->walktarget.y = y;
+		sd.pd->calc_pos(sd);
+		sd.pd->block_list::x = sd.pd->walktarget.x;
+		sd.pd->block_list::y = sd.pd->walktarget.y;
 		sd.pd->dir  = sd.dir;
 	}
-
+	if(sd.hd)
+	{
+		sd.hd->block_list::m = m;
+		sd.hd->block_list::x = sd.hd->walktarget.x = x;
+		sd.hd->block_list::y = sd.hd->walktarget.y = y;
+		sd.hd->calc_pos(sd);
+		sd.hd->block_list::x = sd.hd->walktarget.x;
+		sd.hd->block_list::y = sd.hd->walktarget.y;
+	}
 	// warp is closing a text window opend by script
 	sd.ScriptEngine.clearMessage();
 
@@ -4669,11 +4695,11 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 
 	if(sd.status.pet_id > 0 && sd.pd)
 	{
-		if(sd.pet.intimate > sd.pd->petDB.die)
-			sd.pet.intimate	-= sd.pd->petDB.die;
+		if(sd.pd->pet.intimate > sd.pd->petDB.die)
+			sd.pd->pet.intimate	-= sd.pd->petDB.die;
 		else
-			sd.pet.intimate = 0;
-		clif_send_petdata(sd,1,sd.pet.intimate);
+			sd.pd->pet.intimate = 0;
+		clif_send_petdata(sd,1,sd.pd->pet.intimate);
 	}
 
 	pc_setglobalreg(sd,"PC_DIE_COUNTER",++sd.die_counter); //€‚ÉƒJƒEƒ“ƒ^?‘‚«?‚İ
@@ -7112,7 +7138,7 @@ public:
 	//			ShowMessage("autosave %d\n",sd->fd);
 			// pet
 			if(sd.status.pet_id > 0 && sd.pd)
-				intif_save_petdata(sd.status.account_id,sd.pet);
+				intif_save_petdata(sd.status.account_id,sd.pd->pet);
 			pc_makesavestatus(sd);
 			chrif_save(sd);
 			storage_storage_dirty(sd);

@@ -1902,7 +1902,7 @@ int clif_pet0078(const pet_data &pd, unsigned char *buf)
 		WBUFW(buf,6)=pd.speed;
 		WBUFW(buf,8)=0; // opt1
 		WBUFW(buf,10)=0; // opt2
-		WBUFW(buf,12)=mob_db[pd.class_].option;
+		WBUFW(buf,12)=mob_db[pd.pet.class_].option;
 		WBUFW(buf,14)=pd.get_viewclass();
 
 
@@ -1938,10 +1938,10 @@ int clif_pet0078(const pet_data &pd, unsigned char *buf)
 		WBUFW(buf,6)=pd.speed;
 		WBUFW(buf,14)=pd.get_viewclass();
 		WBUFW(buf,16)=config.pet_hair_style;
-		if((view = itemdb_viewid(pd.equip_id)) > 0)
+		if((view = itemdb_viewid(pd.pet.equip_id)) > 0)
 			WBUFW(buf,20)=view;
 		else
-			WBUFW(buf,20)=pd.equip_id;
+			WBUFW(buf,20)=pd.pet.equip_id;
 
 		WBUFPOS(buf,46,pd.block_list::x,pd.block_list::y,pd.dir);
 		WBUFB(buf,49)=0;
@@ -1971,7 +1971,7 @@ int clif_pet007b(const pet_data &pd, unsigned char *buf)
 		WBUFW(buf,6)=pd.speed;
 		WBUFW(buf,8)=0; // opt1
 		WBUFW(buf,10)=0; // opt2
-		WBUFW(buf,12)=mob_db[pd.class_].option;
+		WBUFW(buf,12)=mob_db[pd.pet.class_].option;
 		WBUFW(buf,14)=pd.get_viewclass();
 
 
@@ -2008,10 +2008,10 @@ int clif_pet007b(const pet_data &pd, unsigned char *buf)
 		WBUFW(buf,6)=pd.speed;
 		WBUFW(buf,14)=pd.get_viewclass();
 		WBUFW(buf,16)=config.pet_hair_style;
-		if ((view = itemdb_viewid(pd.equip_id)) > 0)
+		if ((view = itemdb_viewid(pd.pet.equip_id)) > 0)
 			WBUFW(buf,20)=view;
 		else
-			WBUFW(buf,20)=pd.equip_id;
+			WBUFW(buf,20)=pd.pet.equip_id;
 		WBUFL(buf,22)=gettick();
 
 		WBUFPOS2(buf,50,pd.block_list::x,pd.block_list::y,pd.walktarget.x,pd.walktarget.y);
@@ -2476,15 +2476,15 @@ int clif_spawnhom(const homun_data &hd)
  *
  *------------------------------------------
  */
-int clif_send_homdata(const homun_data &hd, const map_session_data &sd, unsigned short type, uint32 param)
+int clif_send_homdata(const map_session_data &sd, unsigned short type, uint32 param)
 {
 	int fd = sd.fd;
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.hd)
 		return 0;
 
 	WFIFOW(fd,0) = 0x230;
 	WFIFOW(fd,2) = type;
-	WFIFOL(fd,4) = hd.block_list::id;
+	WFIFOL(fd,4) = sd.hd->block_list::id;
 	WFIFOL(fd,8) = param;
 	WFIFOSET(fd, packet_db[sd.packet_ver][0x230].len);
 	return 0;
@@ -2503,35 +2503,35 @@ int clif_movehom(const homun_data &hd)
 	return 0;
 }
 
-int clif_send_homstatus(const homun_data &hd, const map_session_data &sd, int flag)
+int clif_send_homstatus(const map_session_data &sd, int flag)
 {
 	int fd=sd.fd;
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.hd )
 		return 0;
 	
 	WFIFOW(fd,0)=0x22e;
-	memcpy(WFIFOP(fd,2), hd.status.name, 24);
-	WFIFOB(fd,26) = hd.status.rename_flag*2;	// 名前付けたフラグ 2で変更不可
-	WFIFOW(fd,27) = hd.status.base_level;	// Lv
-	WFIFOW(fd,29) = hd.status.hungry;		// 満腹度
-	WFIFOW(fd,31) = hd.intimate/100;	// 新密度
-	WFIFOW(fd,33) = hd.status.equip;			// equip id
-	WFIFOW(fd,35) = hd.atk;					// Atk
-	WFIFOW(fd,37) = hd.matk;					// MAtk
-	WFIFOW(fd,39) = hd.hit;					// Hit
-	WFIFOW(fd,41) = hd.critical;				// Cri
-	WFIFOW(fd,43) = hd.def;					// Def
-	WFIFOW(fd,45) = hd.mdef;					// Mdef
-	WFIFOW(fd,47) = hd.flee;					// Flee
-	WFIFOW(fd,49) =(flag)?0:status_get_amotion(&hd)+200;	// Aspd
-	WFIFOW(fd,51) = hd.status.hp;			// HP
-	WFIFOW(fd,53) = hd.max_hp;		// MHp
-	WFIFOW(fd,55) = hd.status.sp;			// SP
-	WFIFOW(fd,57) = hd.max_sp;		// MSP
-	WFIFOL(fd,59) = hd.status.base_exp;		// Exp
-	WFIFOL(fd,63) = hd.next_baseexp();	// NextExp
-	WFIFOW(fd,67) = hd.status.skill_point;	// skill point
-	WFIFOW(fd,69) = hd.atackable;			// 攻撃可否フラグ	0:不可/1:許可
+	memcpy(WFIFOP(fd,2), sd.hd->status.name, 24);
+	WFIFOB(fd,26) = sd.hd->status.rename_flag*2;	// 名前付けたフラグ 2で変更不可
+	WFIFOW(fd,27) = sd.hd->status.base_level;	// Lv
+	WFIFOW(fd,29) = sd.hd->status.hungry;		// 満腹度
+	WFIFOW(fd,31) = sd.hd->intimate/100;	// 新密度
+	WFIFOW(fd,33) = sd.hd->status.equip;			// equip id
+	WFIFOW(fd,35) = sd.hd->atk;					// Atk
+	WFIFOW(fd,37) = sd.hd->matk;					// MAtk
+	WFIFOW(fd,39) = sd.hd->hit;					// Hit
+	WFIFOW(fd,41) = sd.hd->critical;				// Cri
+	WFIFOW(fd,43) = sd.hd->def;					// Def
+	WFIFOW(fd,45) = sd.hd->mdef;					// Mdef
+	WFIFOW(fd,47) = sd.hd->flee;					// Flee
+	WFIFOW(fd,49) =(flag)?0:status_get_amotion(sd.hd)+200;	// Aspd
+	WFIFOW(fd,51) = sd.hd->status.hp;			// HP
+	WFIFOW(fd,53) = sd.hd->max_hp;		// MHp
+	WFIFOW(fd,55) = sd.hd->status.sp;			// SP
+	WFIFOW(fd,57) = sd.hd->max_sp;		// MSP
+	WFIFOL(fd,59) = sd.hd->status.base_exp;		// Exp
+	WFIFOL(fd,63) = sd.hd->next_baseexp();	// NextExp
+	WFIFOW(fd,67) = sd.hd->status.skill_point;	// skill point
+	WFIFOW(fd,69) = sd.hd->atackable;			// 攻撃可否フラグ	0:不可/1:許可
 	WFIFOSET(fd,packet_db[sd.packet_ver][0x22e].len);
 
 	return 0;
@@ -2552,31 +2552,31 @@ int clif_hom_food(const map_session_data &sd, unsigned short foodid, int fail)
  * ホムのスキルリストを送信する
  *------------------------------------------
  */
-int clif_homskillinfoblock(const homun_data &hd, const map_session_data &sd)
+int clif_homskillinfoblock(const map_session_data &sd)
 {
 	int fd=sd.fd;
 	int i,c,len=4,id,range,skill_lv;
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.hd)
 		return 0;
 	
 	WFIFOW(fd,0)=0x235;
 	for ( i=c=0; i<MAX_HOMSKILL; ++i)
 	{
-		id=hd.status.skill[i].id;
-		if( id && hd.status.skill[i].lv )
+		id=sd.hd->status.skill[i].id;
+		if( id && sd.hd->status.skill[i].lv )
 		{
 			WFIFOW(fd,len  ) = id;
 			WFIFOL(fd,len+2) = skill_get_inf(id);
-			skill_lv = hd.status.skill[i].lv;
+			skill_lv = sd.hd->status.skill[i].lv;
 			WFIFOW(fd,len+6) = skill_lv;
 			WFIFOW(fd,len+8) = skill_get_sp(id,skill_lv);
 			range = skill_get_range(id,skill_lv);
 			if(range < 0)
-				range = status_get_range(&hd) - (range + 1);
+				range = status_get_range(sd.hd) - (range + 1);
 			WFIFOW(fd,len+10)= range;
 			memset(WFIFOP(fd,len+12),0,24);
 			if(!(skill_get_inf2(id)&0x01))
-				WFIFOB(fd,len+36)= (skill_lv < skill_get_max(id) && hd.status.skill[i].flag ==0 )? 1:0;
+				WFIFOB(fd,len+36)= (skill_lv < skill_get_max(id) && sd.hd->status.skill[i].flag ==0 )? 1:0;
 			else
 				WFIFOB(fd,len+36) = 0;
 
@@ -2592,22 +2592,22 @@ int clif_homskillinfoblock(const homun_data &hd, const map_session_data &sd)
  * スキル割り振り通知
  *------------------------------------------
  */
-int clif_homskillup(const homun_data &hd, const map_session_data &sd, unsigned short skill_num)
+int clif_homskillup(const map_session_data &sd, unsigned short skill_num)
 {
 	int range, fd=sd.fd;
 	unsigned short skillid = skill_num-HOM_SKILLID;
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.hd)
 		return 0;
 	
 	WFIFOW(fd,0) = 0x10e;
 	WFIFOW(fd,2) = skill_num;
-	WFIFOW(fd,4) = hd.status.skill[skillid].lv;
-	WFIFOW(fd,6) = skill_get_sp(skill_num, hd.status.skill[skillid].lv);
-	range = skill_get_range(skill_num,hd.status.skill[skillid].lv);
+	WFIFOW(fd,4) = sd.hd->status.skill[skillid].lv;
+	WFIFOW(fd,6) = skill_get_sp(skill_num, sd.hd->status.skill[skillid].lv);
+	range = skill_get_range(skill_num, sd.hd->status.skill[skillid].lv);
 	if(range < 0)
-		range = status_get_range(&hd) - (range + 1);
+		range = status_get_range(sd.hd) - (range + 1);
 	WFIFOW(fd,8) = range;
-	WFIFOB(fd,10) = (hd.status.skill[skillid].lv < skill_get_max(hd.status.skill[skillid].id)) ? 1 : 0;
+	WFIFOB(fd,10) = (sd.hd->status.skill[skillid].lv < skill_get_max(sd.hd->status.skill[skillid].id)) ? 1 : 0;
 	WFIFOSET(fd,packet_db[sd.packet_ver][0x10e].len);
 	return 0;
 }
@@ -7398,16 +7398,16 @@ int clif_send_petdata(struct map_session_data &sd,unsigned char type,uint32 para
 int clif_send_petstatus(struct map_session_data &sd)
 {
 	int fd=sd.fd;
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.pd )
 		return 0;
 
 	WFIFOW(fd,0)=0x1a2;
-	memcpy(WFIFOP(fd,2),sd.pet.name,24);
-	WFIFOB(fd,26)=(config.pet_rename == 1)? 0:sd.pet.rename_flag;
-	WFIFOW(fd,27)=sd.pet.level;
-	WFIFOW(fd,29)=sd.pet.hungry;
-	WFIFOW(fd,31)=sd.pet.intimate;
-	WFIFOW(fd,33)=sd.pet.equip_id;
+	memcpy(WFIFOP(fd,2),sd.pd->pet.name,24);
+	WFIFOB(fd,26)=(config.pet_rename == 1)? 0:sd.pd->pet.rename_flag;
+	WFIFOW(fd,27)=sd.pd->pet.level;
+	WFIFOW(fd,29)=sd.pd->pet.hungry;
+	WFIFOW(fd,31)=sd.pd->pet.intimate;
+	WFIFOW(fd,33)=sd.pd->pet.equip_id;
 	WFIFOSET(fd,packet_len_table[0x1a2]);
 
 	return 0;
@@ -7424,11 +7424,13 @@ int clif_pet_emotion(struct pet_data &pd, uint32 param)
 
 	WBUFW(buf,0)=0x1aa;
 	WBUFL(buf,2)=pd.block_list::id;
-	if( param >= 100 && pd.petDB.talk_convert_class) {
+	if( param >= 100 && pd.petDB.talk_convert_class)
+	{
 		if(pd.petDB.talk_convert_class < 0)
 			return 0;
-		else if(pd.petDB.talk_convert_class > 0) {
-			param -= (pd.class_ - 100)*100;
+		else if(pd.petDB.talk_convert_class > 0)
+		{
+			param -= (pd.pet.class_ - 100)*100;
 			param += (pd.petDB.talk_convert_class - 100)*100;
 		}
 	}
@@ -7451,7 +7453,7 @@ int clif_pet_performance(struct block_list &bl,uint32 param)
 	return clif_send(buf,packet_len_table[0x1a4],&bl,AREA);
 }
 
-int clif_pet_equip(struct pet_data &pd,unsigned short nameid)
+int clif_pet_equip(struct pet_data &pd)
 {
 	unsigned char buf[16];
 	unsigned short view;
@@ -7461,10 +7463,10 @@ int clif_pet_equip(struct pet_data &pd,unsigned short nameid)
 	WBUFW(buf,0)=0x1a4;
 	WBUFB(buf,2)=3;
 	WBUFL(buf,3)=pd.block_list::id;
-	if((view = itemdb_viewid(nameid)) > 0)
+	if((view = itemdb_viewid(pd.pet.equip_id)) > 0)
 		WBUFL(buf,7)=view;
 	else
-		WBUFL(buf,7)=nameid;
+		WBUFL(buf,7)=pd.pet.equip_id;
 
 	return clif_send(buf,packet_len_table[0x1a4],&pd,AREA);
 }
@@ -8814,7 +8816,7 @@ int clif_charnameack(int fd, struct block_list &bl, bool clear)
 	case BL_PET:
 	{
 		struct pet_data& pd = (struct pet_data&)bl;
-		memcpy(WBUFP(buf,6), pd.namep, 24);
+		memcpy(WBUFP(buf,6), pd.pet.name, 24);
 		if(pd.msd)
 		{
 			char nameextra[32];
@@ -9575,21 +9577,29 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 	}
 
 	// pet
-	if(sd.status.pet_id > 0 && sd.pd && sd.pet.intimate > 0) {
+	if(sd.status.pet_id > 0 && sd.pd && sd.pd->pet.intimate > 0)
+	{
 		sd.pd->map_addblock();
 		clif_spawnpet(*sd.pd);
 		clif_send_petdata(sd,0,0);
 		clif_send_petdata(sd,5,config.pet_hair_style);
 		clif_send_petstatus(sd);
 	}
-
+	if(sd.hd)
+	{
+		sd.hd->map_addblock();
+		clif_spawnhom(*sd.hd);
+		clif_send_homdata(sd,0,0);
+		clif_send_homstatus(sd,1);
+		clif_send_homstatus(sd,0);
+	}
 	if(sd.state.connect_new)
 	{
 		sd.state.connect_new = 0;
 		if(sd.status.class_ != sd.view_class)
 			clif_changelook(sd,LOOK_BASE,sd.view_class);
-		if(sd.status.pet_id > 0 && sd.pd && sd.pet.intimate > 900)
-			clif_pet_emotion(*sd.pd,(sd.pd->class_ - 100)*100 + 50 + pet_hungry_val(sd));
+		if(sd.status.pet_id > 0 && sd.pd && sd.pd->pet.intimate > 900)
+			clif_pet_emotion(*sd.pd,(sd.pd->pet.class_ - 100)*100 + 50 + pet_hungry_val(sd));
 
 		// Stop players from spawning inside castles [Valaris]
 		struct guild_castle *gc=guild_mapname2gc(maps[sd.block_list::m].mapname);
@@ -12657,7 +12667,7 @@ int clif_parse_HomWalkMaster(int fd, struct map_session_data &sd)
 
 	uint32 id = RFIFOL(fd,2);
 	if( id != sd.status.homun_id )
-		printf("clif_parse_HomWalkToXY: %lu %lu", (ulong)id, (ulong)sd.status.homun_id);
+		printf("clif_parse_HomWalkMaster: %lu %lu", (ulong)id, (ulong)sd.status.homun_id);
 
 	homun_data::return_to_master(sd);
 	return 0;
@@ -12666,14 +12676,12 @@ int clif_parse_HomWalkToXY(int fd, struct map_session_data &sd)
 {
 	if( !session_isActive(fd) )
 		return 0;
-	//## change to virtual overloads for the walk interface
-	homun_data *hd = homun_data::get_homunculus(sd);
-	if( hd )
+	if( sd.hd )
 	{
 		const unsigned short cmd = RFIFOW(fd,0);
 		uint32 id = RFIFOL(fd,2);
-		if( id != hd->status.homun_id )
-			printf("clif_parse_HomWalkToXY: %lu %lu", (ulong)id, (ulong)hd->status.homun_id);
+		if( id != sd.hd->status.homun_id )
+			printf("clif_parse_HomWalkToXY: %lu %lu", (ulong)id, (ulong)sd.hd->status.homun_id);
 
 		const uchar v0 = RFIFOB(fd,0+packet_db[sd.packet_ver][cmd].pos[0]);
 		const uchar v1 = RFIFOB(fd,1+packet_db[sd.packet_ver][cmd].pos[0]);
@@ -12682,7 +12690,7 @@ int clif_parse_HomWalkToXY(int fd, struct map_session_data &sd)
 		const int x = ( v0      <<2) | (v1>>6);	// inverse to position encoding
 		const int y = ((v1&0x3f)<<4) | (v2>>4);
 
-		hd->walktoxy(x,y);
+		sd.hd->walktoxy(x,y);
 	}
 	return 0;
 }
@@ -12691,20 +12699,23 @@ int clif_parse_HomActionRequest(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	homun_data *hd = homun_data::get_homunculus(sd);
-	if(hd)
+	if(sd.hd)
 	{
-		if( hd->is_dead() )
+		if( sd.hd->is_dead() )
 		{
-			clif_clearchar_area(*hd,1);
+			clif_clearchar_area(*sd.hd,1);
 			return 0;
 		}
-		if(hd->status.option&2)
+		if(sd.hd->status.option&2)
 			return 0;
 
 		const unsigned short cmd = RFIFOW(fd,0);
 
-		//nt32 homun_id = RFIFOL(fd,2);
+		uint32 id = RFIFOL(fd,2);
+
+		if( id != sd.hd->status.homun_id )
+			printf("clif_parse_HomActionRequest: %lu %lu", (ulong)id, (ulong)sd.hd->status.homun_id);
+
 		uint32 target_id = RFIFOL(fd,packet_db[sd.packet_ver][cmd].pos[0]);	// pos 6
 		int action_type = RFIFOB(fd,packet_db[sd.packet_ver][cmd].pos[1]);	// pos 10 -> len 11
 		
@@ -12717,8 +12728,8 @@ int clif_parse_HomActionRequest(int fd, struct map_session_data &sd)
 			target_id = RFIFOL(fd,pos);
 		}
 
-		hd->stop_walking(1);
-		hd->stop_attack();
+		sd.hd->stop_walking(1);
+		sd.hd->stop_attack();
 		
 		// end decode
 		switch(action_type)
@@ -12729,7 +12740,7 @@ int clif_parse_HomActionRequest(int fd, struct map_session_data &sd)
 				block_list*bl=map_id2bl(target_id);
 				if(bl && !mob_gvmobcheck(sd,*bl))
 					return 0;
-				hd->start_attack(target_id, action_type!=0);
+				sd.hd->start_attack(target_id, action_type!=0);
 			}
 			break;
 		}

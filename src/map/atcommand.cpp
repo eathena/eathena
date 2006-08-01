@@ -1624,11 +1624,9 @@ bool atcommand_happyhappyjoyjoy(int fd, struct map_session_data &sd, const char*
 ///
 bool atcommand_save(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-
-
 	pc_setsavepoint(sd, sd.mapname, sd.block_list::x, sd.block_list::y);
 	if (sd.status.pet_id > 0 && sd.pd)
-		intif_save_petdata(sd.status.account_id, sd.pet);
+		intif_save_petdata(sd.status.account_id, sd.pd->pet);
 	pc_makesavestatus(sd);
 	chrif_save(sd);
 	storage_storage_save(sd);
@@ -3841,13 +3839,13 @@ bool atcommand_petfriendly(int fd, struct map_session_data &sd, const char* comm
 
 	if (sd.status.pet_id > 0 && sd.pd) {
 		if (friendly >= 0 && friendly <= 1000) {
-			if (friendly != sd.pet.intimate) {
-				t = sd.pet.intimate;
-				sd.pet.intimate = friendly;
+			if (friendly != sd.pd->pet.intimate) {
+				t = sd.pd->pet.intimate;
+				sd.pd->pet.intimate = friendly;
 				clif_send_petstatus(sd);
 				if (config.pet_status_support) {
-					if ((sd.pet.intimate > 0 && t <= 0) ||
-					    (sd.pet.intimate <= 0 && t > 0)) {
+					if ((sd.pd->pet.intimate > 0 && t <= 0) ||
+					    (sd.pd->pet.intimate <= 0 && t > 0)) {
 						if (sd.block_list::prev != NULL)
 							status_calc_pc(sd, 0);
 						else
@@ -3886,8 +3884,8 @@ bool atcommand_pethungry(int fd, struct map_session_data &sd, const char* comman
 
 	if (sd.status.pet_id > 0 && sd.pd) {
 		if (hungry >= 0 && hungry <= 100) {
-			if (hungry != sd.pet.hungry) {
-				sd.pet.hungry = hungry;
+			if (hungry != sd.pd->pet.hungry) {
+				sd.pd->pet.hungry = hungry;
 				clif_send_petstatus(sd);
 				clif_displaymessage(fd, msg_table[185]); // Pet hungry value changed!
 			} else {
@@ -3913,9 +3911,9 @@ bool atcommand_petrename(int fd, struct map_session_data &sd, const char* comman
 {
 	
 	if (sd.status.pet_id > 0 && sd.pd) {
-		if (sd.pet.rename_flag != 0) {
-			sd.pet.rename_flag = 0;
-			intif_save_petdata(sd.status.account_id, sd.pet);
+		if (sd.pd->pet.rename_flag != 0) {
+			sd.pd->pet.rename_flag = 0;
+			intif_save_petdata(sd.status.account_id, sd.pd->pet);
 			clif_send_petstatus(sd);
 			clif_displaymessage(fd, msg_table[187]); // You can now rename your pet.
 		} else {
@@ -7630,7 +7628,7 @@ bool atcommand_pettalk(int fd, struct map_session_data &sd, const char* command,
 	if (sscanf(message, "%99[^\n]", mes) < 1)
 		return false;
 
-	snprintf(temp, sizeof(temp), "%s : %s", sd.pet.name, mes);
+	snprintf(temp, sizeof(temp), "%s : %s", sd.pd->pet.name, mes);
 	clif_message(*sd.pd, temp);
 
 	return true;

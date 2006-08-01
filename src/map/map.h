@@ -1081,8 +1081,9 @@ struct map_session_data : public fightable, public session_data
 	struct vending vending[MAX_VENDING];
 
 	long catch_target_class;
-	struct petstatus pet;
-	struct pet_data *pd;
+
+	struct pet_data		*pd;
+	struct homun_data	*hd;
 
 	uint32 pvp_won;
 	uint32 pvp_lost;
@@ -1642,7 +1643,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 struct pet_data : public fightable
 {
-	const char *namep;
+	struct petstatus pet;
 
 	const struct petdb &petDB;
 
@@ -1663,10 +1664,8 @@ struct pet_data : public fightable
 		{}
 	} state;
 
-	unsigned short class_;
 	unsigned short dir;
 	unsigned short speed;
-	unsigned short equip_id;
 
 	unsigned short target_lv;
 	short rate_fix;	//Support rate as modified by intimacy (1000 = 100%) [Skotlex]
@@ -1780,13 +1779,11 @@ struct pet_data : public fightable
 	struct map_session_data *msd;
 	int hungry_timer;
 
-	pet_data(const char *n, const struct petdb &pdb) :
-		namep(n),
+	pet_data(const petstatus &p, const struct petdb &pdb) :
+		pet(p),
 		petDB(pdb),
-		class_(0),
 		dir(0),
 		speed(0),
-		equip_id(0),
 		target_lv(0),
 		rate_fix(0),
 		move_fail_count(0),

@@ -210,8 +210,8 @@ public:
 	void recalc_status();
 	void save_data();
 
-	static homun_data *get_homunculus(uint32 char_id);
-	static homun_data *get_homunculus(const map_session_data &sd);
+//	static homun_data *get_homunculus(uint32 char_id);
+//	static homun_data *get_homunculus(const map_session_data &sd);
 	static homun_data *create_homunculus(struct map_session_data &sd, unsigned short homunid);
 	static void clear_homunculus(struct map_session_data &sd);
 	static bool call_homunculus(struct map_session_data &sd);

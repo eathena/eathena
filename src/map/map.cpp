@@ -168,8 +168,11 @@ bool block_list::map_addblock()
 	{
 		if(config.error_log)
 			ShowMessage("map_addblock error : bl->prev!=NULL (id=%lu)\n",(ulong)this->id);
+
+		this->map_delblock();
 	}
-	else if( this->m<map_num && this->x<maps[this->m].xs && this->y<maps[this->m].ys )
+
+	if( this->m<map_num && this->x<maps[this->m].xs && this->y<maps[this->m].ys )
 	{
 		const size_t pos = this->x/BLOCK_SIZE+(this->y/BLOCK_SIZE)*maps[this->m].bxs;
 		map_data::_objects &obj = maps[this->m].objects[pos];
@@ -2446,14 +2449,14 @@ int map_quit(struct map_session_data &sd)
 	{
 		pet_lootitem_drop(*(sd.pd),&sd);
 			pet_remove_map(sd);
-		if(sd.pet.intimate <= 0)
+		if(sd.pd->pet.intimate <= 0)
 		{
 			intif_delete_petdata(sd.status.pet_id);
 			sd.status.pet_id = 0;
 			sd.pd = NULL;
 		}
 		else
-			intif_save_petdata(sd.status.account_id,sd.pet);
+			intif_save_petdata(sd.status.account_id,sd.pd->pet);
 	}
 	if(pc_isdead(sd))
 		pc_setrestartvalue(sd,2);

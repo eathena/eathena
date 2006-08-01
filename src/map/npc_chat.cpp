@@ -15,6 +15,13 @@
 
 #include <pcre.h>
 
+///////////////////////////////////////////////////////////////////////////////
+// library includes
+#ifdef _MSC_VER
+#pragma comment(lib, "pcre.lib")
+#endif
+
+
 /**
  *  Written by MouseJstr in a vision... (2/21/2005)
  *

@@ -794,7 +794,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 	}
 	if(atkmin > atkmax) basics::swap(atkmin,atkmax);
 
-	if(mob_db[pd->class_].range>3 )
+	if(mob_db[pd->pet.class_].range>3 )
 		flag=(flag&~BF_RANGEMASK)|BF_LONG;
 
 	cri = status_get_critical(src);

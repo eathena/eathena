@@ -1163,15 +1163,15 @@ int intif_parse_CreatePet(int fd)
 int intif_parse_RecvPetData(int fd)
 {
 	int len=RFIFOW(fd,2);
-	if(sizeof(struct petstatus)!=len-9) {
+	if(sizeof(struct petstatus)!=len-9)
+	{
 		if(config.etc_log)
 			ShowMessage("intif: pet data: data size error %d %d\n",sizeof(struct petstatus),len-9);
 	}
-	else{
+	else
+	{
 		struct petstatus pet;
-//		memcpy(&p,RFIFOP(fd,9),sizeof(struct petstatus));
 		s_pet_frombuffer(pet, RFIFOP(fd,9));
-
 		pet_recv_petdata(RFIFOL(fd,4), pet, RFIFOB(fd,8));
 	}
 	return 0;

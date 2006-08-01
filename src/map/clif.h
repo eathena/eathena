@@ -364,17 +364,17 @@ int clif_send_petdata(struct map_session_data &sd,unsigned char type,uint32 para
 int clif_send_petstatus(struct map_session_data &sd);
 int clif_pet_emotion(struct pet_data &pd,uint32 param);
 int clif_pet_performance(struct block_list &bl,uint32 param);
-int clif_pet_equip(struct pet_data &pd,unsigned short nameid);
+int clif_pet_equip(struct pet_data &pd);
 int clif_pet_food(struct map_session_data &sd,unsigned short foodid,unsigned char fail);
 
 //homun
-int clif_send_homdata(const homun_data &hd, const map_session_data &sd, unsigned short type, uint32 param);
+int clif_send_homdata(const map_session_data &sd, unsigned short type, uint32 param);
+int clif_send_homstatus(const map_session_data &sd, int flag);
 int clif_spawnhom(const homun_data &hd);
 int clif_movehom(const homun_data &hd);
-int clif_send_homstatus(const homun_data &hd, const map_session_data &sd, int flag);
 int clif_hom_food(const map_session_data &sd, unsigned short foodid, int fail);
-int clif_homskillinfoblock(const homun_data &hd, const map_session_data &sd);
-int clif_homskillup(const homun_data &hd, const map_session_data &sd, unsigned short skill_num);
+int clif_homskillinfoblock(const map_session_data &sd);
+int clif_homskillup(const map_session_data &sd, unsigned short skill_num);
 
 //friends list
 int clif_friend_send_info(struct map_session_data &sd);

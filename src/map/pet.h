@@ -42,8 +42,6 @@ int pet_timer(int tid, unsigned long tick, int id, basics::numptr data);
 int search_petDB_index(int key,int type);
 
 int pet_remove_map(struct map_session_data &sd);
-int pet_data_init(struct map_session_data &sd);
-int pet_birth_process(struct map_session_data &sd);
 int pet_recv_petdata(uint32 account_id,struct petstatus &p,int flag);
 int pet_select_egg(struct map_session_data &sd,short egg_index);
 int pet_catch_process1(struct map_session_data &sd,int target_class);

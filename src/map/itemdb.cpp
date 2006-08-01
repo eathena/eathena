@@ -848,7 +848,7 @@ int itemdb_readdb(void)
 void itemdb_sqlupdate()
 {
 #if defined(WITH_MYSQL)
-	basics::CParam< basics::string<> > update_sqldbs("update_sqldbs", true);
+	basics::CParam< bool > update_sqldbs("update_sqldbs", true);
 	if( update_sqldbs() )
 	{
 		///////////////////////////////////////////////////////////////////////

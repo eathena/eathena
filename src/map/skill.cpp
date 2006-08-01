@@ -8433,10 +8433,9 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		break;
 	case AM_CALLHOMUN:			/* コールホムンクルス */
 	{	//作成済みで安息時
-		homun_data *hd = homun_data::get_homunculus(*sd);
-		if(hd && hd->status.homun_id > 0 && hd->status.homun_id == sd->status.homun_id && !hd->status.incubate)
+		if(sd->hd && sd->hd->status.homun_id > 0 && sd->hd->status.homun_id == sd->status.homun_id && !sd->hd->status.incubate)
 			break;
-		if( hd && !hd->is_dead() && hd->block_list::prev!=NULL )
+		if( sd->hd && !sd->hd->is_dead() && sd->hd->block_list::prev!=NULL )
 		{
 			clif_skill_fail(*sd,skill,0,0);
 			return 0;
@@ -8455,8 +8454,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	}
 	case AM_REST:			/* 安息 */
 	{
-		homun_data *hd = homun_data::get_homunculus(*sd);
-		if( !hd || hd->is_dead() || hd->status.hp < hd->status.max_hp*80/100 )
+		if( !sd->hd || sd->hd->is_dead() || sd->hd->status.hp < sd->hd->status.max_hp*80/100 )
 		{	// ホムのHPがMHPの80%以上であること
 			clif_skill_fail(*sd,skill,0,0);
 			return 0;
@@ -8465,8 +8463,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	}
 	case AM_RESURRECTHOMUN:			/* リザレクションホムンクルス */
 	{
-		homun_data *hd = homun_data::get_homunculus(*sd);
-		if(hd || hd->status.hp > 0)
+		if(sd->hd || sd->hd->status.hp > 0)
 		{
 			clif_skill_fail(*sd,skill,0,0);
 			return 0;

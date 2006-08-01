@@ -352,22 +352,22 @@ int status_calc_pet(struct map_session_data &sd, bool first)
 	
 	if (config.pet_lv_rate && pd->status)
 	{
-		sd.pet.level = sd.status.base_level*config.pet_lv_rate/100;
-		if (sd.pet.level < 0)
-			sd.pet.level = 1;
-		if( first || pd->status && pd->status->level != sd.pet.level)
+		sd.pd->pet.level = sd.status.base_level*config.pet_lv_rate/100;
+		if( pd->pet.level <= 0 )
+			pd->pet.level = 1;
+		if( first || pd->status && pd->status->level != pd->pet.level)
 		{
 			if (!first) //Lv Up animation
 				clif_misceffect(*pd, 0);
-			pd->status->level = sd.pet.level;
-			pd->status->atk1 = (mob_db[pd->class_].atk1*pd->status->level)/mob_db[pd->class_].lv;
-			pd->status->atk2 = (mob_db[pd->class_].atk2*pd->status->level)/mob_db[pd->class_].lv;
-			pd->status->str = (mob_db[pd->class_].str*pd->status->level)/mob_db[pd->class_].lv;
-			pd->status->agi = (mob_db[pd->class_].agi*pd->status->level)/mob_db[pd->class_].lv;
-			pd->status->vit = (mob_db[pd->class_].vit*pd->status->level)/mob_db[pd->class_].lv;
-			pd->status->int_ = (mob_db[pd->class_].int_*pd->status->level)/mob_db[pd->class_].lv;
-			pd->status->dex = (mob_db[pd->class_].dex*pd->status->level)/mob_db[pd->class_].lv;
-			pd->status->luk = (mob_db[pd->class_].luk*pd->status->level)/mob_db[pd->class_].lv;
+			pd->status->level = pd->pet.level;
+			pd->status->atk1 = (mob_db[pd->pet.class_].atk1*pd->status->level)/mob_db[pd->pet.class_].lv;
+			pd->status->atk2 = (mob_db[pd->pet.class_].atk2*pd->status->level)/mob_db[pd->pet.class_].lv;
+			pd->status->str = (mob_db[pd->pet.class_].str*pd->status->level)/mob_db[pd->pet.class_].lv;
+			pd->status->agi = (mob_db[pd->pet.class_].agi*pd->status->level)/mob_db[pd->pet.class_].lv;
+			pd->status->vit = (mob_db[pd->pet.class_].vit*pd->status->level)/mob_db[pd->pet.class_].lv;
+			pd->status->int_ = (mob_db[pd->pet.class_].int_*pd->status->level)/mob_db[pd->pet.class_].lv;
+			pd->status->dex = (mob_db[pd->pet.class_].dex*pd->status->level)/mob_db[pd->pet.class_].lv;
+			pd->status->luk = (mob_db[pd->pet.class_].luk*pd->status->level)/mob_db[pd->pet.class_].lv;
 		
 			if (pd->status->atk1 > config.pet_max_atk1) pd->status->atk1 = config.pet_max_atk1;
 			if (pd->status->atk2 > config.pet_max_atk2) pd->status->atk2 = config.pet_max_atk2;
@@ -390,7 +390,7 @@ int status_calc_pet(struct map_session_data &sd, bool first)
 		}
 	}
 	//Support rate modifier (1000 = 100%)
-	pd->rate_fix = 1000*(sd.pet.intimate - config.pet_support_min_friendly)/(1000- config.pet_support_min_friendly) +500;
+	pd->rate_fix = 1000*(pd->pet.intimate - config.pet_support_min_friendly)/(1000- config.pet_support_min_friendly) +500;
 	if(config.pet_support_rate != 100)
 		pd->rate_fix = pd->rate_fix*config.pet_support_rate/100;
 	return 0;
@@ -693,9 +693,9 @@ int status_calc_pc(struct map_session_data& sd, int first)
 
 		if(sd.status.pet_id > 0) { // Pet
 			struct pet_data *pd=sd.pd;
-			if((pd && config.pet_status_support) && (!config.pet_equip_required || pd->equip_id > 0))
+			if((pd && config.pet_status_support) && (!config.pet_equip_required || pd->pet.equip_id > 0))
 			{
-				if(sd.pet.intimate > 0 && pd->state.skillbonus == 1 && pd->bonus)
+				if(pd->pet.intimate > 0 && pd->state.skillbonus == 1 && pd->bonus)
 				{	//Skotlex: Readjusted for pets
 					pc_bonus(sd,pd->bonus->type, pd->bonus->val);
 				}
@@ -1950,7 +1950,7 @@ int status_get_class(struct block_list *bl)
 	else if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->status.class_;
 	else if(bl->type==BL_PET)
-		return ((struct pet_data *)bl)->class_;
+		return ((struct pet_data *)bl)->pet.class_;
 	else
 		return 0;
 }
@@ -1968,7 +1968,7 @@ int status_get_lv(const block_list *bl)
 	else if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->status.base_level;
 	else if(bl->type==BL_PET)
-		return ((struct pet_data *)bl)->msd->pet.level;
+		return ((struct pet_data *)bl)->pet.level;
 	else
 		return 0;
 }
@@ -1986,7 +1986,7 @@ int status_get_range(const block_list *bl)
 	else if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->attackrange;
 	else if(bl->type==BL_PET)
-		return mob_db[((struct pet_data *)bl)->class_].range;
+		return mob_db[((struct pet_data *)bl)->pet.class_].range;
 	else
 		return 0;
 }
@@ -2031,7 +2031,7 @@ int status_get_max_hp(struct block_list *bl)
 		else if(bl->type == BL_PET) {
 			struct pet_data *pd;
 			nullpo_retr(1, pd = (struct pet_data*)bl);
-			max_hp = mob_db[pd->class_].max_hp;
+			max_hp = mob_db[pd->pet.class_].max_hp;
 		}
 
 		sc_data = status_get_sc_data(bl);
@@ -2080,7 +2080,7 @@ int status_get_str(struct block_list *bl)
 			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				str = ((struct pet_data *)bl)->status->str;
 			else
-				str = mob_db[((struct pet_data *)bl)->class_].str;
+				str = mob_db[((struct pet_data *)bl)->pet.class_].str;
 		}
 		if(sc_data) {
 			if(sc_data[SC_LOUD].timer != -1)
@@ -2132,7 +2132,7 @@ int status_get_agi(struct block_list *bl)
 			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				agi = ((struct pet_data *)bl)->status->agi;
 			else
-				agi = mob_db[((struct pet_data *)bl)->class_].agi;
+				agi = mob_db[((struct pet_data *)bl)->pet.class_].agi;
 		}
 		if(sc_data) {
 			if(sc_data[SC_INCREASEAGI].timer!=-1 && sc_data[SC_QUAGMIRE].timer == -1 && sc_data[SC_DONTFORGETME].timer == -1)	// 速度増加(PCはpc.cで)
@@ -2189,7 +2189,7 @@ int status_get_vit(struct block_list *bl)
 			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				vit = ((struct pet_data *)bl)->status->vit;
 			else
-				vit = mob_db[((struct pet_data *)bl)->class_].vit;
+				vit = mob_db[((struct pet_data *)bl)->pet.class_].vit;
 		}
 		if(sc_data) {
 			if(sc_data[SC_STRIPARMOR].timer != -1)
@@ -2234,7 +2234,7 @@ int status_get_int(struct block_list *bl)
 			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				int_ = ((struct pet_data *)bl)->status->int_;
 			else
-				int_ = mob_db[((struct pet_data *)bl)->class_].int_;
+				int_ = mob_db[((struct pet_data *)bl)->pet.class_].int_;
 		}
 
 		if(sc_data) {
@@ -2287,7 +2287,7 @@ int status_get_dex(struct block_list *bl)
 			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				dex = ((struct pet_data *)bl)->status->dex;
 			else
-				dex = mob_db[((struct pet_data *)bl)->class_].dex;
+				dex = mob_db[((struct pet_data *)bl)->pet.class_].dex;
 		}
 
 		if(sc_data) {
@@ -2345,7 +2345,7 @@ int status_get_luk(struct block_list *bl)
 			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				luk = ((struct pet_data *)bl)->status->luk;
 			else
-				luk = mob_db[((struct pet_data *)bl)->class_].luk;
+				luk = mob_db[((struct pet_data *)bl)->pet.class_].luk;
 		}
 		if(sc_data) {
 			if(sc_data[SC_GLORIA].timer!=-1)	// グロリア(PCはpc.cで)
@@ -2583,7 +2583,7 @@ int status_get_atk(struct block_list *bl)
 			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				atk = ((struct pet_data *)bl)->status->atk1;
 			else
-				atk = mob_db[((struct pet_data*)bl)->class_].atk1;
+				atk = mob_db[((struct pet_data*)bl)->pet.class_].atk1;
 		}
 		if(sc_data) {
 			if(sc_data[SC_PROVOKE].timer!=-1)
@@ -2660,7 +2660,7 @@ int status_get_atk2(struct block_list *bl)
 			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				atk2 = ((struct pet_data *)bl)->status->atk2;
 			else
-				atk2 = mob_db[((struct pet_data*)bl)->class_].atk2;
+				atk2 = mob_db[((struct pet_data*)bl)->pet.class_].atk2;
 		}		  
 		if(sc_data) {
 			if( sc_data[SC_IMPOSITIO].timer!=-1)
@@ -2772,7 +2772,7 @@ int status_get_def(struct block_list *bl)
 		skillid = ((struct mob_data *)bl)->skillid;
 	}
 	else if(bl->type==BL_PET)
-		def = mob_db[((struct pet_data *)bl)->class_].def;
+		def = mob_db[((struct pet_data *)bl)->pet.class_].def;
 
 	if(sc_data) {
 		//凍結、石化時は右シフト
@@ -2851,7 +2851,7 @@ int status_get_mdef(struct block_list *bl)
 	else if(bl->type==BL_MOB)
 		mdef = mob_db[((struct mob_data *)bl)->class_].mdef;
 	else if(bl->type==BL_PET)
-		mdef = mob_db[((struct pet_data *)bl)->class_].mdef;
+		mdef = mob_db[((struct pet_data *)bl)->pet.class_].mdef;
 
 	if(sc_data) {
 		if(sc_data[SC_BERSERK].timer!=-1)
@@ -2890,7 +2890,7 @@ int status_get_def2(struct block_list *bl)
 			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				def2 = ((struct pet_data *)bl)->status->vit;
 			else
-				def2 = mob_db[((struct pet_data *)bl)->class_].vit;
+				def2 = mob_db[((struct pet_data *)bl)->pet.class_].vit;
 		}
 		sc_data = status_get_sc_data(bl);
 		if(sc_data) {
@@ -2942,7 +2942,7 @@ int status_get_mdef2(struct block_list *bl)
 			if (config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				mdef2 = ((struct pet_data *)bl)->status->int_ +(((struct pet_data *)bl)->status->vit>>1);
 			else
-				mdef2 = mob_db[((struct pet_data *)bl)->class_].int_ + (mob_db[((struct pet_data *)bl)->class_].vit>>1);
+				mdef2 = mob_db[((struct pet_data *)bl)->pet.class_].int_ + (mob_db[((struct pet_data *)bl)->pet.class_].vit>>1);
 		}
 		if(sc_data) {
 			if(sc_data[SC_MINDBREAKER].timer!=-1)
@@ -2983,7 +2983,7 @@ int status_get_adelay(struct block_list *bl)
 			}
 		}
 		else if(bl->type==BL_PET)
-			adelay = mob_db[((struct pet_data *)bl)->class_].adelay;
+			adelay = mob_db[((struct pet_data *)bl)->pet.class_].adelay;
 
 		if(sc_data)
 		{
@@ -3065,7 +3065,7 @@ int status_get_amotion(const block_list *bl)
 			}
 		}
 		else if(bl->type==BL_PET)
-			amotion = mob_db[((struct pet_data *)bl)->class_].amotion;
+			amotion = mob_db[((struct pet_data *)bl)->pet.class_].amotion;
 
 		if(sc_data) {
 			if(sc_data[SC_TWOHANDQUICKEN].timer != -1 && sc_data[SC_QUAGMIRE].timer == -1 && sc_data[SC_DONTFORGETME].timer == -1)	// 2HQ
@@ -3122,7 +3122,7 @@ int status_get_dmotion(struct block_list *bl)
 			ret = ret*config.pc_damage_delay_rate/100;
 	}
 	else if(bl->type==BL_PET)
-		ret=mob_db[((struct pet_data *)bl)->class_].dmotion;
+		ret=mob_db[((struct pet_data *)bl)->pet.class_].dmotion;
 	else
 		return 2000;
 
@@ -3147,7 +3147,7 @@ int status_get_element(struct block_list *bl)
 	else if(bl->type==BL_PC)
 		ret=20+((struct map_session_data *)bl)->def_ele;	// 防御属性Lv1
 	else if(bl->type==BL_PET)
-		ret = mob_db[((struct pet_data *)bl)->class_].element;
+		ret = mob_db[((struct pet_data *)bl)->pet.class_].element;
 
 	if(sc_data) {
 		if( sc_data[SC_BENEDICTIO].timer!=-1 )	// 聖体降福
@@ -3271,7 +3271,7 @@ int status_get_race(struct block_list *bl)
 	else if(bl->type==BL_PC)
 		return 7;
 	else if(bl->type==BL_PET)
-		return mob_db[((struct pet_data *)bl)->class_].race;
+		return mob_db[((struct pet_data *)bl)->pet.class_].race;
 	else
 		return 0;
 }
@@ -3281,7 +3281,7 @@ int status_get_size(struct block_list *bl)
 	if(bl->type==BL_MOB)
 		return mob_db[((struct mob_data *)bl)->class_].size;
 	else if(bl->type==BL_PET)
-		return mob_db[((struct pet_data *)bl)->class_].size;
+		return mob_db[((struct pet_data *)bl)->pet.class_].size;
 	else if(bl->type==BL_PC)
 	{
 		struct map_session_data *sd = (struct map_session_data *)bl;
@@ -3301,7 +3301,7 @@ int status_get_mode(struct block_list *bl)
 	if(bl->type==BL_MOB)
 		return mob_db[((struct mob_data *)bl)->class_].mode;
 	else if(bl->type==BL_PET)
-		return mob_db[((struct pet_data *)bl)->class_].mode;
+		return mob_db[((struct pet_data *)bl)->pet.class_].mode;
 	else
 		return 0x01;	// とりあえず動くということで1
 }
@@ -3312,7 +3312,7 @@ int status_get_mexp(struct block_list *bl)
 	if(bl->type==BL_MOB)
 		return mob_db[((struct mob_data *)bl)->class_].mexp;
 	else if(bl->type==BL_PET)
-		return mob_db[((struct pet_data *)bl)->class_].mexp;
+		return mob_db[((struct pet_data *)bl)->pet.class_].mexp;
 	else
 		return 0;
 }
@@ -3322,7 +3322,7 @@ int status_get_race2(struct block_list *bl)
 	if(bl->type == BL_MOB && (struct mob_data *)bl)
 		return mob_db[((struct mob_data *)bl)->class_].race2;
 	else if(bl->type==BL_PET)
-		return mob_db[((struct pet_data *)bl)->class_].race2;
+		return mob_db[((struct pet_data *)bl)->pet.class_].race2;
 	else
 		return 0;
 }

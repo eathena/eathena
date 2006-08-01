@@ -2014,7 +2014,6 @@ fi
 		echo "configure: warning: make process will fail if the libraries are not available" 1>&2
 	fi
 	CPPFLAGS="$CPPFLAGS -DWITH_MYSQL"
-        SQLFLAG=1
 	if test "$MESSAGE" != "configured with"; then
 		MESSAGE="$MESSAGE,"
 	fi
@@ -2032,17 +2031,17 @@ fi
 if test "$enable_pcre" != "no"; then
 	ac_safe=`echo "pcre.h" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for pcre.h""... $ac_c" 1>&6
-echo "configure:2036: checking for pcre.h" >&5
+echo "configure:2035: checking for pcre.h" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2041 "configure"
+#line 2040 "configure"
 #include "confdefs.h"
 #include <pcre.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2046: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2045: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2067,7 +2066,7 @@ fi
 		{ echo "configure: error: mysql headers not available" 1>&2; exit 1; }
 	fi
 	echo $ac_n "checking for pcre_compile in -lpcre""... $ac_c" 1>&6
-echo "configure:2071: checking for pcre_compile in -lpcre" >&5
+echo "configure:2070: checking for pcre_compile in -lpcre" >&5
 ac_lib_var=`echo pcre'_'pcre_compile | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2075,7 +2074,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lpcre  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2079 "configure"
+#line 2078 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2086,7 +2085,7 @@ int main() {
 pcre_compile()
 ; return 0; }
 EOF
-if { (eval echo configure:2090: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2089: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2114,6 +2113,7 @@ fi
 		MESSAGE="$MESSAGE,"
 	fi
 	MESSAGE="$MESSAGE PCRE support"
+	LIBS="$LIBS -lpcre"
 fi
 
 if test "$enable_64bit" != "no"; then
@@ -2286,7 +2286,6 @@ s%@CPP@%$CPP%g
 s%@SET_MAKE@%$SET_MAKE%g
 s%@LIBOBJS@%$LIBOBJS%g
 s%@MESSAGE@%$MESSAGE%g
-s%@SQLFLAG@%$SQLFLAG%g
 
 CEOF
 EOF

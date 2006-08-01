@@ -8226,7 +8226,7 @@ int buildin_petskillbonus(CScriptEngine &st)
 			pd->state.skillbonus=0;	// waiting state
 
 		// wait for timer to start
-		if (config.pet_equip_required && pd->equip_id == 0)
+		if (config.pet_equip_required && pd->pet.equip_id == 0)
 			pd->bonus->timer=-1;
 		else
 			pd->bonus->timer=add_timer(gettick()+pd->bonus->delay*1000, pet_skill_bonus_timer, st.sd->block_list::id, 0);
@@ -8475,7 +8475,7 @@ int buildin_petheal(CScriptEngine &st)
 	pd->s_skill->sp=st.GetInt(st[5]);
 
 	//Use delay as initial offset to avoid skill/heal exploits
-	if (config.pet_equip_required && pd->equip_id == 0)
+	if (config.pet_equip_required && pd->pet.equip_id == 0)
 		pd->s_skill->timer=-1;
 	else
 		pd->s_skill->timer=add_timer(gettick()+pd->s_skill->delay*1000,pet_heal_timer,st.sd->block_list::id,0);
@@ -8569,7 +8569,7 @@ int buildin_petskillsupport(CScriptEngine &st)
 	pd->s_skill->sp=st.GetInt(st[6]);
 
 	//Use delay as initial offset to avoid skill/heal exploits
-	if (config.pet_equip_required && pd->equip_id == 0)
+	if (config.pet_equip_required && pd->pet.equip_id == 0)
 		pd->s_skill->timer=-1;
 	else
 		pd->s_skill->timer=add_timer(gettick()+pd->s_skill->delay*1000,pet_skill_support_timer,sd->block_list::id,0);
@@ -8751,34 +8751,27 @@ int buildin_getpetinfo(CScriptEngine &st)
 	struct map_session_data *sd=st.sd;
 	int type=st.GetInt(st[2]);
 
-	if(sd && sd->status.pet_id){
+	if(sd && sd->status.pet_id && sd->pd)
+	{
 		switch(type){
 			case 0:
 				st.push_val(CScriptEngine::C_INT,sd->status.pet_id);
 				break;
 			case 1:
-				if(sd->pet.class_)
-					st.push_val(CScriptEngine::C_INT,sd->pet.class_);
-				else
-					st.push_val(CScriptEngine::C_INT,0);
+				st.push_val(CScriptEngine::C_INT,sd->pd->pet.class_);
 				break;
 			case 2:
-				if(sd->pet.name)
-				{	
-					char *buf = new char[24];
-					memcpy(buf,sd->pet.name, 24);//EOS included
-					st.push_str(CScriptEngine::C_STR, buf);
-				}
-				else
-					st.push_str(CScriptEngine::C_CONSTSTR, "");
+			{
+				char *buf = new char[24];
+				memcpy(buf,sd->pd->pet.name, 24);//EOS included
+				st.push_str(CScriptEngine::C_STR, buf);
 				break;
+			}
 			case 3:
-				//if(sd->pet.intimate)
-				st.push_val(CScriptEngine::C_INT,sd->pet.intimate);
+				st.push_val(CScriptEngine::C_INT,sd->pd->pet.intimate);
 				break;
 			case 4:
-				//if(sd->pet.hungry)
-				st.push_val(CScriptEngine::C_INT,sd->pet.hungry);
+				st.push_val(CScriptEngine::C_INT,sd->pd->pet.hungry);
 				break;
 			default:
 				st.push_val(CScriptEngine::C_INT,0);

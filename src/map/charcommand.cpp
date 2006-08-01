@@ -396,9 +396,9 @@ bool charcommand_petrename(int fd, struct map_session_data &sd,const char *comma
 
 	if ((pl_sd = map_nick2sd(character)) != NULL) {
 		if (pl_sd->status.pet_id > 0 && pl_sd->pd) {
-			if (pl_sd->pet.rename_flag != 0) {
-				pl_sd->pet.rename_flag = 0;
-				intif_save_petdata(pl_sd->status.account_id, pl_sd->pet);
+			if (pl_sd->pd->pet.rename_flag != 0) {
+				pl_sd->pd->pet.rename_flag = 0;
+				intif_save_petdata(pl_sd->status.account_id, pl_sd->pd->pet);
 				clif_send_petstatus(*pl_sd);
 				clif_displaymessage(fd, msg_txt(189)); // This player can now rename his/her pet.
 			} else {
@@ -439,14 +439,14 @@ bool charcommand_petfriendly(int fd, struct map_session_data &sd,const char *com
 	if (((pl_sd = map_nick2sd(character)) != NULL) && sd.isGM()>pl_sd->isGM()) {
 		if (pl_sd->status.pet_id > 0 && pl_sd->pd) {
 			if (friendly >= 0 && friendly <= 1000) {
-				if (friendly != pl_sd->pet.intimate) {
-					t = pl_sd->pet.intimate;
-					pl_sd->pet.intimate = friendly;
+				if (friendly != pl_sd->pd->pet.intimate) {
+					t = pl_sd->pd->pet.intimate;
+					pl_sd->pd->pet.intimate = friendly;
 					clif_send_petstatus(*pl_sd);
 					clif_pet_emotion(*pl_sd->pd,0);
 					if (config.pet_status_support) {
-						if ((pl_sd->pet.intimate > 0 && t <= 0) ||
-						    (pl_sd->pet.intimate <= 0 && t > 0)) {
+						if ((pl_sd->pd->pet.intimate > 0 && t <= 0) ||
+						    (pl_sd->pd->pet.intimate <= 0 && t > 0)) {
 							if (pl_sd->block_list::prev != NULL)
 								status_calc_pc(*pl_sd, 0);
 							else

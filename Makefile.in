@@ -1,6 +1,6 @@
 CCC = g++
 OPT = -pipe -Wall -g -O3 -ffast-math -D_REENTRANT @CPPFLAGS@
-LIBS = -lpthread -lz -lpcre
+LIBS = -lpthread -lz @LIBS@
 
 ##########################################################
 PLATFORM = $(shell uname)
@@ -30,35 +30,30 @@ COMMON_PATH = src/common
 ##########################################################
 CPPFLAGS = $(OPT) -I$(RETURN_PATH)/$(COMMON_PATH) -I$(RETURN_PATH)/$(BASE_PATH) $(OS_TYPE)
 
-SQLFLAG = @SQLFLAG@
+
 
 ##########################################################
-ifdef SQLFLAG
+ifeq ($(findstring -DWITH_MYSQL,$(CPPFLAGS)), -DWITH_MYSQL)
 
 # my defaults for mysql libs
 MYSQL_INCLUDE = -I../../../mysql/include/ 
 MYSQL_LIB     = -L../../../mysql/lib -lmysqlclient -lposix4 -lcrypt -lgen -lnsl -lm
 
-MYSQLFLAG_CONFIG = $(shell which mysql_config)
+MYSQL_CONFIG = $(shell which mysql_config)
 
-ifeq ($(findstring /mysql_config,$(MYSQLFLAG_CONFIG)), /mysql_config)
+ifeq ($(findstring /mysql_config,$(MYSQL_CONFIG)), /mysql_config)
 
-MYSQLFLAG_VERSION = $(shell $(MYSQLFLAG_CONFIG) --version | sed s:\\..*::) 
+MYSQL_VERSION = $(shell $(MYSQL_CONFIG) --version | sed s:\\..*::) 
 
-ifeq ($(findstring 4,$(MYSQLFLAG_VERSION)), 4)
-MYSQLFLAG_CONFIG_ARGUMENT = --cflags
+MYSQL_CONFIG_ARGUMENT = --cflags
+
+ifeq ($(findstring 5,$(MYSQL_VERSION)), 5)
+MYSQL_CONFIG_ARGUMENT = --include
 endif
 
-ifeq ($(findstring 5,$(MYSQLFLAG_VERSION)), 5)
-MYSQLFLAG_CONFIG_ARGUMENT = --include
-endif
 
-ifndef MYSQLFLAG_CONFIG_ARGUMENT
-MYSQLFLAG_CONFIG_ARGUMENT = --cflags
-endif
-
-MYSQL_INCLUDE = $(shell $(MYSQLFLAG_CONFIG) $(MYSQLFLAG_CONFIG_ARGUMENT)) 
-MYSQL_LIB     = $(shell $(MYSQLFLAG_CONFIG) --libs)
+MYSQL_INCLUDE = $(shell $(MYSQL_CONFIG) $(MYSQL_CONFIG_ARGUMENT)) 
+MYSQL_LIB     = $(shell $(MYSQL_CONFIG) --libs)
 endif
 
 endif
