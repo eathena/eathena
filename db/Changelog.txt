@@ -1,3 +1,5 @@
+08/01
+	* Some minor item fixes [Playtester]
 07/31
 	* Fixed NPC_STOP id value in skill_cast_db, merged skill_cast_db as well.
 07/30
