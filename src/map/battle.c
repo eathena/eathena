@@ -1511,8 +1511,8 @@ static struct Damage battle_calc_weapon_attack(
 				skillratio += 150 +50*sc->data[SC_EDP].val1;
 		}
 		switch (skill_num) {
-			case AS_SONICBLOW:
-				if (sc && sc->data[SC_SPIRIT].timer != -1 && sc->data[SC_SPIRIT].val2 == SL_ASSASIN)
+			case AS_SONICBLOW: //EDP will not stack with Soul Link bonus.
+				if (sc && sc->data[SC_EDP].timer == -1 && sc->data[SC_SPIRIT].timer != -1 && sc->data[SC_SPIRIT].val2 == SL_ASSASIN)
 					skillratio += (map_flag_gvg(src->m))?25:100; //+25% dmg on woe/+100% dmg on nonwoe
 				if(sd && pc_checkskill(sd,AS_SONICACCEL)>0)
 					skillratio += 10;
@@ -1537,6 +1537,7 @@ static struct Damage battle_calc_weapon_attack(
 		{
 			if (skill_num != PA_SACRIFICE && skill_num != MO_INVESTIGATE
 				&& skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS
+				&& skill_num != PA_SHIELDCHAIN
 			  	&& !flag.cri)
 			{	//Elemental/Racial adjustments
 				if(sd->right_weapon.def_ratio_atk_ele & (1<<tstatus->def_ele) ||
@@ -2033,7 +2034,7 @@ struct Damage battle_calc_magic_attack(
 	//Initial Values
 	ad.damage = 1;
 	ad.div_=skill_get_num(skill_num,skill_lv);
-	ad.amotion=skill_get_inf(skill_num)&INF_GROUND_SKILL?0:status_get_amotion(src); //Amotion should be 0 for ground skills.
+	ad.amotion=skill_get_inf(skill_num)&INF_GROUND_SKILL?0:sstatus->amotion; //Amotion should be 0 for ground skills.
 	ad.dmotion=tstatus->dmotion;
 	ad.blewcount = skill_get_blewcount(skill_num,skill_lv);
 	ad.flag=BF_MAGIC|BF_LONG|BF_SKILL;
@@ -2703,16 +2704,16 @@ void battle_drain(TBL_PC *sd, TBL_PC* tsd, int rdamage, int ldamage, int race, i
 			tsp += sp;
 		}
 	}
+
+	if (tsd && rand()%1000 < sd->sp_vanish_rate)
+		status_percent_damage(&sd->bl, &tsd->bl, 0, (unsigned char)sd->sp_vanish_per);
+
 	if (!thp && !tsp) return;
 
 	status_heal(&sd->bl, thp, tsp, battle_config.show_hp_sp_drain?3:1);
 	
-	if (tsd) {
-		if (rhp || rsp)
-			status_zap(&tsd->bl, rhp, rsp);
-		if (rand()%1000 < sd->sp_vanish_rate)
-			status_percent_damage(&sd->bl, &tsd->bl, 0, (unsigned char)sd->sp_vanish_per);
-	}
+	if (rhp || rsp)
+		status_zap(&tsd->bl, rhp, rsp);
 }
 /*==========================================
  * ’Ê?í?UŒ‚?ˆ—?‚Ü‚Æ‚ß

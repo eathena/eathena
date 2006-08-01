@@ -1,3 +1,5 @@
+07/31
+	* Fixed NPC_STOP id value in skill_cast_db, merged skill_cast_db as well.
 07/30
 	* Corrected the defense of puppy band [MasterOfMuppets]
 	* Merged mob_db [Playtester]
