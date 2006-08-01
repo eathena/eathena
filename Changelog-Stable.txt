@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/07/31
+	* Fixed the subnet 0 mask being reset to 0 when someone goes up on the fame
+	  rankings. [Skotlex]
 	* Merged bNoMiscDamage bonus. [Skotlex]
 	* Added the missing 20% ranged damage reduction to adjustment. [Skotlex]
 	* Merged being able to change equipment while frozen/stunned/sleep/etc
