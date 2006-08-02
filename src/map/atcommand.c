@@ -2479,26 +2479,26 @@ int atcommand_heal(
 
 	if (hp == 0 && sp == 0) {
 		if (!status_percent_heal(&sd->bl, 100, 100))
-		hp = sd->status.max_hp - sd->status.hp;
-		sp = sd->status.max_sp - sd->status.sp;
-	} else {
-		if (hp > 0 && (hp > sd->status.max_hp || hp > (sd->status.max_hp - sd->status.hp))) // fix positiv overflow
-			hp = sd->status.max_hp - sd->status.hp;
-		else if (hp < 0 && (hp < -sd->status.max_hp || hp < (1 - sd->status.hp))) // fix negativ overflow
-			hp = 1 - sd->status.hp;
-		if (sp > 0 && (sp > sd->status.max_sp || sp > (sd->status.max_sp - sd->status.sp))) // fix positiv overflow
-			sp = sd->status.max_sp - sd->status.sp;
-		else if (sp < 0 && (sp < -sd->status.max_sp || sp < (1 - sd->status.sp))) // fix negativ overflow
-			sp = 1 - sd->status.sp;
+			clif_displaymessage(fd, msg_table[157]); // HP and SP are already with the good value.
+		else
+			clif_displaymessage(fd, msg_table[17]); // HP, SP recovered.
+		return 0;
+	}
+	
+	if(hp > 0 && sp >= 0) {
+		if(!status_heal(&sd->bl, hp, sp, 0))
+			clif_displaymessage(fd, msg_table[157]); // HP and SP are already with the good value.
+		else
+			clif_displaymessage(fd, msg_table[17]); // HP, SP recovered.
+		return 0;
 	}
 
-	if (hp > 0) // display like heal
-		clif_heal(fd, SP_HP, hp);
-	else if (hp < 0) // display like damage
+	if(hp < 0 && sp <= 0) {
+		status_damage(NULL, &sd->bl, -hp, -sp, 0, 0);
 		clif_damage(&sd->bl,&sd->bl, gettick(), 0, 0, -hp, 0 , 4, 0);
 		clif_displaymessage(fd, msg_table[156]); // HP or/and SP modified.
-	if (sp > 0) // no display when we lost SP
-		clif_heal(fd, SP_SP, sp);
+		return 0;
+	}
 
 	//Opposing signs.
 	if (hp) {

@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/02
+	* Merged @heal, no wonder it wasn't working right when it wasn't merged..
+	  [Skotlex]
 	* Fixed failing to create Deadly Poison Bottles damaging 50% of your max
 	  life instead of 25% [Skotlex]
 	* Added the missing status-change flags to SC_FREEZE to signal it should
