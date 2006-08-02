@@ -5,6 +5,10 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/02
+	* Fixed failing to create Deadly Poison Bottles damaging 50% of your max
+	  life instead of 25% [Skotlex]
+	* Added the missing status-change flags to SC_FREEZE to signal it should
+	  modify def and magic def [Skotlex]
 	* Merged Sacrifice's damage cap fix. [Skotlex]
 	* Merged flag&16 on battle_calc_base_damage so that Venom Knives and the
 	  like won't get the dex damage bonus of ranged weapons. [Skotlex]
