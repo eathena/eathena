@@ -631,6 +631,7 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
  * &2: Arrow attack
  * &4: Skill is Magic Crasher
  * &8: Skip target size adjustment (Extremity Fist?)
+ *&16: Arrow attack but BOW, REVOLVER, RIFLE, SHOTGUN, GATLING or GRENADE type weapon not equipped (i.e. shuriken, kunai and venom knives not affected by DEX)
  */
 static int battle_calc_base_damage(struct status_data *status, struct weapon_atk *wa, struct status_change *sc, unsigned short t_size, struct map_session_data *sd, int flag)
 {
@@ -664,7 +665,7 @@ static int battle_calc_base_damage(struct status_data *status, struct weapon_atk
 			if (atkmin > atkmax)
 				atkmin = atkmax;
 			
-			if(flag&2)
+			if(flag&2 && !(flag&16))
 			{	//Bows
 				atkmin = atkmin*atkmax/100;
 				if (atkmin > atkmax)
@@ -1114,11 +1115,9 @@ static struct Damage battle_calc_weapon_attack(
 		switch (skill_num)
 		{	//Calc base damage according to skill
 			case PA_SACRIFICE:
-				skill = sstatus->max_hp* 9/100;
-				status_zap(src, skill, 0);//Damage to self is always 9%
-				clif_damage(src,src, gettick(), 0, 0, skill, 0 , 0, 0);
-				
-				wd.damage = skill;
+				wd.damage = sstatus->max_hp* 9/100;
+				status_zap(src, wd.damage, 0);//Damage to self is always 9%
+				clif_damage(src,src, gettick(), 0, 0, wd.damage, 0 , 0, 0);
 				wd.damage2 = 0;
 
 				if (sc && sc->data[SC_SACRIFICE].timer != -1)
@@ -1169,6 +1168,17 @@ static struct Damage battle_calc_weapon_attack(
 			default:
 			{
 				i = (flag.cri?1:0)|(flag.arrow?2:0)|(skill_num == HW_MAGICCRASHER?4:0)|(skill_num == MO_EXTREMITYFIST?8:0);
+				if (flag.arrow && sd)
+				switch(sd->status.weapon) {
+				case W_BOW:
+				case W_REVOLVER:
+				case W_SHOTGUN:
+				case W_GATLING:
+				case W_GRENADE:
+				  break;
+				default:
+				  i |= 16; // for ex. shuriken must not be influenced by DEX
+				}
 				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, i);
 				if (sstatus->lhw)
 					wd.damage2 = battle_calc_base_damage(sstatus, sstatus->lhw, sc, tstatus->size, sd, i);
