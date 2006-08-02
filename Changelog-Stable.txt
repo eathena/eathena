@@ -5,6 +5,22 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/01
+	* Merged the cleanup routine which removes players from memory when you are
+	  shutting down the map-server (said players were sent to save but are not
+	  removed from memory due to the save-ack never returning from the
+	  char-server) [Skotlex]
+	* Moved functions and pieces of code around script.c to make it easier to
+	  merge with trunk later on. [Skotlex]
+	* Merged some missing features on script.c: [Skotlex]
+	- Being able to set/unset via scripts the bexp/jexp mapflags
+	- Some mob killing functions using unit_remove_map instead of status_kill
+	  (mobs would not respawn).
+	- Merged setting the guardian's HP to 0 will kill them if they are alive.
+	- Fixed recovery not healing.
+	- Merged code for movenpc, the script command should work now. Usage is
+	  "movenpc <npc name>, <x>, <y>
+	- Merged the declaration of waitingroomkickall (code has always been there,
+	  but it was never parsed/usable)
 	* Should have fixed the cooking sets not displaying all cooking available
 	  items. [Skotlex]
 	* Figured out and fixed the issue with Volcano/Deluge/Violent Gale not
