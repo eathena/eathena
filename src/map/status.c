@@ -3018,7 +3018,7 @@ static signed short status_calc_hit(struct block_list *bl, struct status_change 
 	if(sc->data[SC_BLIND].timer != -1)
 		hit -= hit * 25/100;
 	if(sc->data[SC_ADJUSTMENT].timer!=-1)
-		hit += 30;
+		hit -= 30;
 	if(sc->data[SC_INCREASING].timer!=-1)
 		hit += 20; // RockmanEXE; changed based on updated [Reddozen]
 	
@@ -3233,7 +3233,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 	if(sc->data[SC_DONTFORGETME].timer!=-1)
 		speed = speed * 100/sc->data[SC_DONTFORGETME].val3;
 	if(sc->data[SC_DEFENDER].timer!=-1)
-		speed = speed * 100/sc->data[SC_DEFENDER].val4;
+		speed = speed * 100/sc->data[SC_DEFENDER].val3;
 	if(sc->data[SC_GOSPEL].timer!=-1 && sc->data[SC_GOSPEL].val4 == BCT_ENEMY)
 		speed = speed * 100/75;
 	if(sc->data[SC_JOINTBEAT].timer!=-1) {
@@ -3343,7 +3343,7 @@ static short status_calc_aspd_rate(struct block_list *bl, struct status_change *
 	if(sc->data[SC_SKA].timer!=-1)
 		aspd_rate += 250;
 	if(sc->data[SC_DEFENDER].timer != -1)
-		aspd_rate += sc->data[SC_DEFENDER].val3;
+		aspd_rate += sc->data[SC_DEFENDER].val4;
 	if(sc->data[SC_GOSPEL].timer!=-1 && sc->data[SC_GOSPEL].val4 == BCT_ENEMY)
 		aspd_rate += 250;
 	if(sc->data[SC_GRAVITATION].timer!=-1)
@@ -4694,8 +4694,8 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				struct map_session_data *tsd;
 				int i;
 				val2 = 5 + 15*val1; //Damage reduction
-				val3 = 250 - 50*val1; //Aspd adjustment 
-				val4 = 135 - 5*val1; //Speed adjustment
+				val3 = 65 + 5*val1; //Speed adjustment
+				val4 = 250 - 50*val1; //Aspd adjustment 
 
 				if (sd)
 				for (i = 0; i < 5; i++)
@@ -5141,6 +5141,17 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			break;	
 		case SC_KAAHI:
 			val4 = -1;
+			break;
+		//In case the speed reduction comes loaded incorrectly,
+		//prevent division by 0.
+		case SC_DONTFORGETME:
+		case SC_CLOAKING:
+		case SC_LONGING:
+		case SC_HIDING:
+		case SC_CHASEWALK:
+		case SC_DEFENDER:
+			if (!val3)
+				return 0;
 			break;
 	}
 	//Those that make you stop attacking/walking....
