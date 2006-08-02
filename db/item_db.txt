@@ -143,7 +143,7 @@
 // ASPD Potions
 645,Concentration_Potion,Concentration Potion,2,800,,100,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_ASPDPOTION0,1800000,0; },{},{}
 656,Awakening_Potion,Awakening Potion,2,1500,,150,,,,,0xFFF7FEEF,7,2,,,40,,,{ sc_end SC_Sleep; sc_start SC_ASPDPOTION1,1800000,0; },{},{}
-657,Berserk_Potion,Berserk Potion,2,3000,,200,,,,,0x00E646A6,7,2,,,85,,,{ sc_start SC_ASPDPOTION2,1800000,0; },{},{}
+657,Berserk_Potion,Berserk Potion,2,3000,,200,,,,,0x01E646A6,7,2,,,85,,,{ sc_start SC_ASPDPOTION2,1800000,0; },{},{}
 658,Tribal_Solidarity,Tribal Solidarity,2,1000,,500,,,,,0xFFFFFFFF,7,2,,,,,,{ guildgetexp rand(600000,1200000); },{},{}
 // New Pet Tames
 659,Her_Heart,Her Heart,11,500,,50,,,,,0xFFFFFFFF,7,2,,,,,,{ pet 1188; },{},{}
@@ -1035,6 +1035,9 @@
 2358,Angel's_Dress,Angel's Dress,5,,10,1000,,5,,0,0xFFFFFFFF,7,2,16,,0,1,,{ bonus bLuk,4; },{},{}
 2359,Ninja_Suit_,Ninja Suit,5,,10,1500,,7,,1,0x00021040,7,2,16,,50,1,0,{ bonus bAgi,1; bonus bMdef,3; },{},{}
 2360,Robe_of_Cast_,Robe of Cast,5,,10,1100,,5,,1,0x00810200,7,2,16,,75,1,0,{ bonus bCastrate,-3; },{},{}
+2361,Blue_Robe,Blue Robe,5,,10,500,,0,,0,0xFFFFFFFE,7,2,16,,75,1,0,{ bonus bAllStats,5; bonus bMdef,5; },{},{}
+2362,Red_Robe,Red Robe,5,,10,500,,0,,0,0xFFFFFFFE,7,2,16,,75,1,0,{ bonus bAllStats,5; bonus bMdef,5; },{},{}
+2363,White_Robe,White Robe,5,,10,500,,0,,0,0x00000001,7,2,16,,75,1,0,{ bonus bAllStats,3; bonus bMdef,5; },{},{}
 // Footgears
 //===================================================================
 2401,Sandals,Sandals,5,400,,200,,1,,0,0xFFFFFFFF,7,2,64,,0,1,0,{},{},{}
@@ -1435,7 +1438,7 @@
 4273,Shell_Fish_Card,Shell Fish Card,6,,10,10,,,,,,,,2,,,,,{ bonus bBaseAtk,5; bonus2 bAddDamageClass,1073,30; },{},{}
 4274,Zombie_Master_Card,Zombie Master Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bSPGainRace,RC_Undead,5; },{ },{ heal 0,-5; }
 4275,Zombie_Prisoner_Card,Zombie Prisoner Card,6,,10,10,,,,,,,,64,,,,,{ bonus2 bSubRace,RC_Undead,-20; bonus2 bExpAddRace,RC_Undead,10; },{},{}
-4276,Lord_of_Death_Card,Lord of Death Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddEff,Eff_Stun,100; bonus2 bAddEff,Eff_Curse,100; bonus2 bAddEff,Eff_Silence,100; bonus2 bAddEff,Eff_Poison,100; bonus2 bAddEff,Eff_Bleeding,100; bonus2 bWeaponComaRace,RC_NonBoss,30; },{},{}
+4276,Lord_of_Death_Card,Lord of Death Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddEff,Eff_Stun,500; bonus2 bAddEff,Eff_Curse,500; bonus2 bAddEff,Eff_Silence,500; bonus2 bAddEff,Eff_Poison,500; bonus2 bAddEff,Eff_Bleeding,500; bonus2 bWeaponComaRace,RC_NonBoss,10; },{},{}
 4277,Zherlthsh_Card,Zherlthsh Card,6,,10,10,,,,,,,,32,,,,,{ bonus bLuk,2; bonus2 bSkillAtk,316,10; bonus2 bSkillAtk,324,10; },{},{}
 4278,Gibbet_Card,Gibbet Card,6,,10,10,,,,,,,,769,,,,,{ if(getrefine()<6) bonus bMdef,5; },{},{}
 4279,Earth_Deleter_Card,Earth Deleter Card,6,,10,10,,,,,,,,16,,,,,{ bonus bSPrecovRate,-100; bonus bSPGainValue,10; },{ },{ heal 0,-100; }
@@ -1759,6 +1762,13 @@
 5188,Wandering_Minstrel_Hat,Wandering Minstrel Hat,5,,10,500,,2,,0,0xFFFFFFFF,7,2,256,,50,1,240,{ bonus bInt,1; bonus bDex,1; },{},{}
 5189,Autumn_Leaves,Autumn Leaves,5,,10,100,,0,,0,0xFFFFFFFF,7,2,256,,,1,241,{ bonus bMaxHP,40; bonus bMaxSP,40; },{},{}
 5190,Independence_Memorial_Hat,Independence Memorial Hat,5,,10,0,,3,,0,0xFFFFFFFF,7,2,256,,,1,242,{},{},{}
+5191,Black_Ribbon,Black Ribbon,5,,10,100,,1,,0,0xFFFFFFFF,7,2,256,,,1,243,{ bonus bMdef,3; },{},{}
+5192,Yellow_Ribbon,Black Ribbon,5,,10,100,,1,,0,0xFFFFFFFF,7,2,256,,,1,244,{ bonus bMdef,3; },{},{}
+5193,Green_Ribbon,Black Ribbon,5,,10,100,,1,,0,0xFFFFFFFF,7,2,256,,,1,245,{ bonus bMdef,3; },{},{}
+5194,Pink_Ribbon,Black Ribbon,5,,10,100,,1,,0,0xFFFFFFFF,7,2,256,,,1,246,{ bonus bMdef,3; },{},{}
+5195,Red_Ribbon,Black Ribbon,5,,10,100,,1,,0,0xFFFFFFFF,7,2,256,,,1,247,{ bonus bMdef,3; },{},{}
+5196,Orange_Ribbon,Black Ribbon,5,,10,100,,1,,0,0xFFFFFFFF,7,2,256,,,1,248,{ bonus bMdef,3; },{},{}
+5197,White_Ribbon,Black Ribbon,5,,10,100,,1,,0,0xFFFFFFFF,7,2,256,,,1,249,{ bonus bMdef,3; },{},{}
 // More Etc Items
 //===================================================================
 7001,Mold_Powder,Mould Powder,3,,340,10,,,,,,,,,,,,,{},{},{}
@@ -1917,7 +1927,7 @@
 7154,Poisonous_Powder,Poisonous Powder,3,,80,10,,,,,,,,,,,,,{},{},{}
 7155,Poisonous_Toad_Skin,Poisonous Toad Skin,3,,140,10,,,,,,,,,,,,,{},{},{}
 7156,Broken_Shuriken,Broken Shuriken,3,,235,10,,,,,,,,,,,,,{},{},{}
-7157,Dark_Mask,Dark Mask,3,,10,10,,,,,,,,,,,,,{},{},{}
+7157,Dark_Mask,Dark Mask,3,,157,10,,,,,,,,,,,,,{},{},{}
 7158,Broken_Liquor_Jar,Broken Liquor Jar,3,,80,10,,,,,,,,,,,,,{},{},{}
 7159,Tengu_Nose,Tengu Nose,3,,200,10,,,,,,,,,,,,,{},{},{}
 7160,Feudal_Lord_Permit,Feudal Lord Permit,3,,10,10,,,,,,,,,,,,,{},{},{}
@@ -2346,6 +2356,12 @@
 7585,Guard's_Second_Proof,Guard's Second Proof,3,,10,10,,,,,,,,,,,,,{},{},{}
 7586,Guard's_Third_Proof,Guard's Third Proof,3,,10,10,,,,,,,,,,,,,{},{},{}
 7587,Guard's_Fourth_Proof,Guard's Fourth Proof,3,,10,10,,,,,,,,,,,,,{},{},{}
+7588,IPOD_Coupon,IPOD Coupon,3,,10,10,,,,,,,,,,,,,{},{},{}
+7589,Lettered_Moon_Snack_01,Lettered Moon Snack 01,3,,10,10,,,,,,,,,,,,,{},{},{}
+7590,Lettered_Moon_Snack_02,Lettered Moon Snack 02,3,,10,10,,,,,,,,,,,,,{},{},{}
+7591,Lettered_Moon_Snack_03,Lettered Moon Snack 03,3,,10,10,,,,,,,,,,,,,{},{},{}
+7592,Lettered_Moon_Snack_04,Lettered Moon Snack 04,3,,10,10,,,,,,,,,,,,,{},{},{}
+7593,Lettered_Moon_Snack_05,Lettered Moon Snack 05,3,,10,10,,,,,,,,,,,,,{},{},{}
 // Pet Eggs
 //===================================================================
 9001,Poring_Egg,Poring Egg,7,,10,0,,,,,,,,,,,,,{},{},{}
@@ -2599,6 +2615,10 @@
 12183,Holy_Arrow_Quiver,Holy Arrow Quiver,2,,10,100,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 1772,500; },{},{}
 12184,Mercenary's_Red_Potion,Mercenary's Red Potion,2,,10,100,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
 12185,Mercenary's_Blue_Potion,Mercenary's Blue Potion,2,,10,100,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
+12186,Old_Red_Box,Old Red Box,2,,10,200,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
+12187,Old_Green_Box,Old Green Box,2,,10,200,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
+12188,Fantastic_Moon_Snack,Fantastic Moon Snack,2,,10,300,,,,,0xFFFFFFFF,7,2,,,,,,{ percentheal 50,50; },{},{}
+12189,Old_Red_Box,Old Red Box,2,,10,200,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
 // More Weapons
 //===================================================================
 // Daggers
@@ -2631,7 +2651,7 @@
 13103,Crimson_Bolt_,Crimson Bolt,4,20000,,450,45,,9,2,0x01000000,7,2,34,2,35,1,17,{ bonus bHit,-10; },{},{}
 13104,Garrison,Garrison,4,48000,,500,70,,9,1,0x01000000,7,2,34,2,55,1,17,{ bonus bHit,-10; },{},{}
 13105,Garrison_,Garrison,4,48000,,500,70,,9,2,0x01000000,7,2,34,2,55,1,17,{ bonus bHit,-10; },{},{}
-13106,Gold_Lux,Gold Lux,4,100000,,500,20,,9,0,0x01000000,7,2,2,3,12,1,17,{ bonus bHit,-10; },{},{}
+13106,Gold_Lux,Gold Lux,4,100000,,500,20,,9,0,0x01000000,7,2,34,3,12,1,17,{ bonus bHit,-10; if(getskilllv(500)>0) bonus3 bAutoSpell,500,getskilllv(500),10; },{},{}
 13150,Branch,Branch,4,3000,,500,50,,9,3,0x01000000,7,2,34,1,1,1,18,{},{},{}
 13151,Cyclone,Cyclone,4,17500,,700,120,,9,1,0x01000000,7,2,34,2,24,1,18,{ bonus bHit,10; bonus bCritical,10; },{},{}
 13152,Cyclone_,Cyclone,4,17500,,700,120,,9,2,0x01000000,7,2,34,2,24,1,18,{ bonus bHit,10; bonus bCritical,10; },{},{}

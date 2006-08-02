@@ -1,4 +1,15 @@
 08/02
+	* Merged create_arrow_db, item_db, mob_db, mob_skill_db, refine_db, skill_cast_db [Playtester]
+	- Updated Arrow Crafting to X.4
+	- Added new items and modified Berserk Potion and Gold Lux
+	- Changed Lord of Death Card's effect back to what Aegis says for now
+	- Updated Thanatos Odium and Rachel Field mobs
+	- Updated Abyss Lake drops
+	- Changed Marine Sphere's NPC_RUN to go 7 tiles rather than 5
+	- Updated Retribution's and Solace's skills to behave like official servers
+	- Reduced level 4 weapon's overrefine bonus to 13
+	- Reduced Fire Pillar's aftercast delay to 1 second
+	- Updated/Fixed various Ninja skills
 	* Merged Stun time of Scream/Hammerfall -> 5 secs [Skotlex]
 08/01
 	* Some minor item fixes [Playtester]
