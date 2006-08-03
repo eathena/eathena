@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/02
+	* Fixed a bug in int_storage.c, temp array doesn't have the good size [Toms]
 	* Some merges from trunk. [Skotlex]
 	- Merged the marine sphere code to make them correctly move/detonate and
 	  stop them from following their master around.
