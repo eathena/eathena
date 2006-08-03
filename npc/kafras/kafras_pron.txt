@@ -3,7 +3,7 @@
 //===== By: =========================
 //= eAthena Dev Team
 //===== Current Version: ===================
-//= 2.4
+//= 2.5
 //===== Compatible With: =====================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -22,11 +22,12 @@
 //= 2.3b One Kafra's been moved to Prontera, thx to Vicious_Pucca [Lupus]
 //= 2.4 Updated Kafras locations for the mini-map [Lupus]
 //= 2.41 New prices [Evera]
+//= 2.5 Can't save outside city [Evera]
 //=====================================================================
 
 
 // North ==================================
-prontera.gat,152,326,4	script	Kafra	112,{
+prontera.gat,152,326,4	script	Kafra::kaf_prontera	112,{
 	cutin "kafra_06",2;
 	callfunc "F_Kafra",0,1,1;
 
@@ -36,58 +37,40 @@ M_Save:
 }
 
 // SOUTH ======================================
-prontera.gat,151,29,8	script	Kafra	116,{
+prontera.gat,151,29,8	script	Kafra::kaf_prontera2	116,{
 	cutin "kafra_02",2;
 	callfunc "F_KafSetPront";
 	callfunc "F_Kafra",0,0,0;
 
 	M_Save:
-		menu "-Save outside city.",sM_Out,"-Save inside city.",sM_In;
-		
-		sM_Out:
-			savepoint "prt_fild08.gat",170,369;
-			callfunc "F_KafEnd",0,1;
-		sM_In:
-			savepoint "prontera.gat",150,33;
-			callfunc "F_KafEnd",0,1;
+		savepoint "prontera.gat",150,33;
+		callfunc "F_KafEnd",0,1;
 }
 
 //WEST=========================================
-prontera.gat,29,207,6	script	Kafra	113,{
+prontera.gat,29,207,6	script	Kafra::kaf_prontera3	113,{
 	cutin "kafra_05",2;
 	callfunc "F_KafSetPront";
 	callfunc "F_Kafra",0,0,0;
 
 	M_Save:
-		menu "-Save outside city.",sM_Out,"-Save inside city.",sM_In;
-		
-		sM_Out:
-			savepoint "prt_fild05.gat",367,205;
-			callfunc "F_KafEnd",0,1;
-		sM_In:
-			savepoint "prontera.gat",33,208;
-			callfunc "F_KafEnd",0,1;
+		savepoint "prontera.gat",33,208;
+		callfunc "F_KafEnd",0,1;
 }
 
 // East ===========================================
-prontera.gat,282,200,4	script	Kafra	115,{
+prontera.gat,282,200,4	script	Kafra::kaf_prontera4	115,{
 	cutin "kafra_03",2;
 	callfunc "F_KafSetPront";
 	callfunc "F_Kafra",0,0,0;
 
 	M_Save:
-		menu "-Save outside city.",sM_Out,"-Save inside city.",sM_In;
-		
-		sM_Out:
-			savepoint "prt_fild06.gat",31,192;
-			callfunc "F_KafEnd",0,1;
-		sM_In:
-			savepoint "prontera.gat",281,203;
-			callfunc "F_KafEnd",0,1;
+		savepoint "prontera.gat",281,203;
+		callfunc "F_KafEnd",0,1;
 }
 
 // Center ===========================================
-prontera.gat,146,86,6	script	Kafra	117,{
+prontera.gat,146,86,6	script	Kafra::kaf_prontera5	117,{
 	cutin "kafra_01",2;
 	callfunc "F_KafSetPront";
 	callfunc "F_Kafra",0,0,0;

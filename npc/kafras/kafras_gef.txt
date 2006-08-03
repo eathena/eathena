@@ -3,7 +3,7 @@
 //===== By: =========================
 //= eAthena Dev Team
 //===== Current Version: ===================
-//= 2.2
+//= 2.3
 //===== Compatible With: =====================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -18,11 +18,12 @@
 //= v2.1b Minor changes to function calls. Using arguments.
 //= This version uses arrays .[kobra_k88]
 //= 2.2 New warps and prices [Evera]
+//= 2.3 Can't save outside city [Evera]
 //=====================================================================
 
 
 // South =====================================
-geffen.gat,120,62,8	script	Kafra	115,{
+geffen.gat,120,62,8	script	Kafra::kaf_geffen	115,{
 	cutin "kafra_03",2;
 	callfunc "F_KafSetGef";
 	callfunc "F_Kafra",0,0,0;
@@ -33,54 +34,36 @@ geffen.gat,120,62,8	script	Kafra	115,{
 }
 
 // East ==============================================
-geffen.gat,203,123,3	script	Kafra	114,{
+geffen.gat,203,123,3	script	Kafra::geffen2	114,{
 	cutin "kafra_04",2;
 	callfunc "F_KafSetGef";
 	callfunc "F_Kafra",0,0,0;
 
 	M_Save:
-		menu "-Save outside city.",sM_Out, "-Save inside city.",sM_In;
-
-		sM_Out:
-			savepoint "gef_fild00.gat",51,194;
-			callfunc "F_KafEnd",0,1;
-		sM_In:
-			savepoint "geffen.gat",200,124;
-			callfunc "F_KafEnd",0,1;
+		savepoint "geffen.gat",200,124;
+		callfunc "F_KafEnd",0,1;
 }
 
 // North ==============================================
-geffen.gat,116,202,3	script	Kafra	116,{
+geffen.gat,116,202,3	script	Kafra::geffen3	116,{
 	cutin "kafra_02",2;
 	callfunc "F_KafSetGef";
 	callfunc "F_Kafra",0,0,0;
 
 	M_Save:
-		menu "-Save outside city.",sM_Out, "-Save inside city.",sM_In;
-
-		sM_Out:
-			savepoint "gef_fild04.gat",192,49;
-			callfunc "F_KafEnd",0,1;
-		sM_In:
-			savepoint "geffen.gat",110,199;
-			callfunc "F_KafEnd",0,1;
+		savepoint "geffen.gat",110,199;
+		callfunc "F_KafEnd",0,1;
 }
 
 // West =========================================
-geffen.gat,37,116,6	script	Kafra	117,{
+geffen.gat,37,116,6	script	Kafra::geffen4	117,{
 	cutin "kafra_01",2;
 	callfunc "F_KafSetGef";
 	callfunc "F_Kafra",0,0,0;
 
 	M_Save:
-		menu "-Save outside city.",sM_Out, "-Save inside city.",sM_In;
-
-		sM_Out:
-			savepoint "gef_fild07.gat",330,192;
-			callfunc "F_KafEnd",0,1;
-		sM_In:
-			savepoint "geffen.gat",43,108;
-			callfunc "F_KafEnd",0,1;
+		savepoint "geffen.gat",43,108;
+		callfunc "F_KafEnd",0,1;
 }
 
 

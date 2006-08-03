@@ -34,6 +34,9 @@ Playtester
 Date		Added
 ======
 08/02
+	* Merged Kafras from Trunk [Evera]
+	- Can't save outside city from inside city
+	- Reenabled Culvert Save
 	* Added official success chances of the socket enchant npc [Playtester]
 	* Fixed Sharon's abuse at Hunter Job Quest 8) Thanks to mike04 for pointing it out [Lupus]
 07/31

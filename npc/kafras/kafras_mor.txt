@@ -3,7 +3,7 @@
 //===== By: =========================
 //= eAthena Dev Team
 //===== Current Version: ===================
-//= 2.2
+//= 2.3
 //===== Compatible With: =====================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -18,11 +18,12 @@
 //= v2.1b Minor changes to function calls. Using arguments.
 //= This version uses arrays .[kobra_k88]
 //= 2.2 New teleport destinations, prices [Lupus]
+//= 2.3 Can't save outside city [Evera[
 //=====================================================================
 
 
 // South ================================
-morocc.gat,156,97,4	script	Kafra	115,{
+morocc.gat,156,97,4	script	Kafra::kaf_morocc	115,{
 	cutin "kafra_03",2;
 	callfunc "F_KafSetMoc";
 	callfunc "F_Kafra",0,0,0;
@@ -33,54 +34,36 @@ morocc.gat,156,97,4	script	Kafra	115,{
 }
 
 // North =================================
-morocc.gat,162,271,4	script	Kafra	114,{
+morocc.gat,162,271,4	script	Kafra::kaf_morocc2	114,{
 	cutin "kafra_04",2;
 	callfunc "F_KafSetMoc";
 	callfunc "F_Kafra",0,0,0;
 
 	M_Save:
-		menu "-Save outside city.",sM_Out,"-Save inside city.",sM_In;
-
-		sM_Out:
-			savepoint "moc_fild07.gat",212,30;
-			callfunc "F_KafEnd",0,1;
-		sM_In:
-			savepoint "morocc.gat",157,272;
-			callfunc "F_KafEnd",0,1;
+		savepoint "morocc.gat",157,272;
+		callfunc "F_KafEnd",0,1;
 }
 
 // West  =================================
-morocc.gat,28,167,6	script	Kafra	116,{
+morocc.gat,28,167,6	script	Kafra::kaf_morocc3	116,{
 	cutin "kafra_02",2;
 	callfunc "F_KafSetMoc";
 	callfunc "F_Kafra",0,0,0;
 
 	M_Save:
-		menu "-Save outside city.",sM_Out,"-Save inside city.",sM_In;
-
-		sM_Out:
-			savepoint "moc_fild19.gat",164,107;
-			callfunc "F_KafEnd",0,1;
-		sM_In:
-			savepoint "morocc.gat",31,164;
-			callfunc "F_KafEnd",0,1;
+		savepoint "morocc.gat",31,164;
+		callfunc "F_KafEnd",0,1;
 }
 
 // East =================================
-morocc.gat,292,211,4	script	Kafra	112,{
+morocc.gat,292,211,4	script	Kafra::kaf_morocc4	112,{
 	cutin "kafra_06",2;
 	callfunc "F_KafSetMoc";
 	callfunc "F_Kafra",0,0,0;
 
 	M_Save:
-		menu "-Save outside city.",sM_Out,"-Save inside city.",sM_In;
-
-		sM_Out:
-			savepoint "moc_fild10.gat",24,107;
-			callfunc "F_KafEnd",0,1;
-		sM_In:
-			savepoint "morocc.gat",294,207;
-			callfunc "F_KafEnd",0,1;
+		savepoint "morocc.gat",294,207;
+		callfunc "F_KafEnd",0,1;
 }
 
 // Function: Sets variables for Morroc Kafras --------------------------------
