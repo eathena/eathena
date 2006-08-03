@@ -1,4 +1,9 @@
 Date	Added
+08/03
+	* Added solution/project files for Microsoft Visual C++ [DracoRPG]
+	  - Currently the TXT configuration seems to be working, SQL won't
+	    as I have to work a bit more with those damn libraries and all
+	  - Beware of Shino's intended bugs, errors/warnings aren't my fault 
 07/31
 	* new make flow, but might be not fully idiot proof 
 	* seperated map's sql links and changed the directions of the data
