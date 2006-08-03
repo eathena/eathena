@@ -34,6 +34,7 @@ Playtester
 Date		Added
 ======
 08/03
+	* Merged DTS warper from Trunk, fixed zeny bug. [EVera]
 	* Added Gunslinger Job Quest from Trunk. And enabled it. [Lupus]
 08/02
 	* Merged Kafras from Trunk [Evera]
