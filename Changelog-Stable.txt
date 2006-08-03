@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/03
+	* Now you can teleport at thana_boss but you can't relog there [Playtester]
 	* Merged the fix which was making cooking-sets unable to cook anything.
 	  [Skotlex]
 2006/08/02
