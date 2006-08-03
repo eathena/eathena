@@ -1032,9 +1032,10 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	
 		if (sc && sc->count) {	
 		// Enchant Poison gives a chance to poison attacked enemies
-			if(sc->data[SC_ENCPOISON].timer != -1)
-				sc_start(bl,SC_POISON,10*sc->data[SC_ENCPOISON].val2,sc->data[SC_ENCPOISON].val1,
-					skill_get_time2(AS_ENCHANTPOISON,sc->data[SC_ENCPOISON].val1));
+			if(sc->data[SC_ENCPOISON].timer != -1) //Don't use sc_start since chance comes in 1/10000 rate.
+				status_change_start(bl,SC_POISON,sc->data[SC_ENCPOISON].val2,
+					sc->data[SC_ENCPOISON].val1,0,0,0,
+					skill_get_time2(AS_ENCHANTPOISON,sc->data[SC_ENCPOISON].val1),0);
 			// Enchant Deadly Poison gives a chance to deadly poison attacked enemies
 			if(sc->data[SC_EDP].timer != -1)
 				sc_start4(bl,SC_DPOISON,sc->data[SC_EDP].val2,
@@ -1305,7 +1306,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		sc_start(bl,SC_BLEEDING,(skilllv*3),skilllv,skill_get_time2(skillid,skilllv));
 		break;
 	case GS_FULLBUSTER:
-		sc_start(bl,SC_BLIND,(2*skilllv),skilllv,skill_get_time2(skillid,1));
+		sc_start(src,SC_BLIND,(2*skilllv),skilllv,skill_get_time2(skillid,1));
 		break;
 	case NJ_HYOUSYOURAKU:
 		sc_start(bl,SC_FREEZE,(10+10*skilllv),skilllv,skill_get_time2(skillid,skilllv));
@@ -2124,20 +2125,6 @@ static int skill_check_unit_range_sub (struct block_list *bl, va_list ap)
 			if(g_skillid != MG_SAFETYWALL && g_skillid != AL_PNEUMA)
 				return 0;
 			break;
-		//Cannot stack among themselves.
-		case SA_VOLCANO:
-		case SA_DELUGE:
-		case SA_VIOLENTGALE:
-			switch (g_skillid)
-			{
-				case SA_VOLCANO:
-				case SA_DELUGE:
-				case SA_VIOLENTGALE:
-					break;
-				default:
-					return 0;
-			}
-			break;
 		case AL_WARP:
 		case HT_SKIDTRAP:
 		case HT_LANDMINE:
@@ -2934,10 +2921,14 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case CR_ACIDDEMONSTRATION:
 	case TF_THROWSTONE:
 	case NPC_SMOKING:
-	case NPC_SELFDESTRUCTION:
 	case GS_FLING:
 	case NJ_ZENYNAGE:
 		skill_attack(BF_MISC,src,src,bl,skillid,skilllv,tick,flag);
+		break;
+
+	case NPC_SELFDESTRUCTION:
+		if (src != bl)
+			skill_attack(BF_MISC,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 
 	// Celest
@@ -3064,15 +3055,11 @@ if(src!=bl && status_isdead(bl) && skillid != ALL_RESURRECTION && skillid != PR_
  		case AL_HEAL:
 		case ALL_RESURRECTION:
 		case PR_ASPERSIO:
-			if (battle_check_undead(tstatus->race,tstatus->def_ele)) {
+			//Apparently only player casted skills can be offensive like this.
+			if (sd && battle_check_undead(tstatus->race,tstatus->def_ele)) {
 				if (battle_check_target(src, bl, BCT_ENEMY) < 1) {
 				  	//Offensive heal does not works on non-enemies. [Skotlex]
-					if (sd) clif_skill_fail(sd,skillid,0,0);
-					return 0;
-				}
-				if(!sd) {
-					//Prevent non-players from casting offensive heal. [Skotlex]
-					clif_emotion(src, 4); 
+					clif_skill_fail(sd,skillid,0,0);
 					return 0;
 				}
 				return skill_castend_damage_id (src, bl, skillid, skilllv, tick, flag);
@@ -3851,10 +3838,13 @@ if(src!=bl && status_isdead(bl) && skillid != ALL_RESURRECTION && skillid != PR_
 
 	case NPC_SELFDESTRUCTION:
 		//Self Destruction hits everyone in range (allies+enemies)
+		//Except for Summoned Marine spheres on non-versus maps, where it's just enemy.
+		i = (md && md->special_state.ai == 2 && !map_flag_vs(src->m))?
+			BCT_ENEMY:BCT_ALL;
 		clif_skill_nodamage(src, src, skillid, -1, 1);
 		map_foreachinrange(skill_area_sub, bl,
 			skill_get_splash(skillid, skilllv), BL_CHAR,
-			src, skillid, skilllv, tick, flag|BCT_ALL,
+			src, skillid, skilllv, tick, flag|i,
 			skill_castend_damage_id);
 		status_damage(src, src, sstatus->max_hp,0,0,1);
 		break;
@@ -4676,8 +4666,9 @@ if(src!=bl && status_isdead(bl) && skillid != ALL_RESURRECTION && skillid != PR_
 			const int mask[8][2] = {{0,-1},{1,-1},{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1}};
 			int dir = (bl == src)?unit_getdir(src):map_calc_dir(src,bl->x,bl->y); //If cast on self, run forward, else run away.
 			unit_stop_attack(src);
-			//Run skillv tiles.
-			unit_walktoxy(src, bl->x + skilllv * mask[dir][0], bl->y + skilllv * mask[dir][1], 0);
+			//Run skillv tiles overriding the can-move check.
+			if (unit_walktoxy(src, src->x + skilllv * mask[dir][0], src->y + skilllv * mask[dir][1], 2) && md)
+				md->state.skillstate = MSS_WALK; //Otherwise it isn't updated in the ai.
 		}
 		break;
 
@@ -4726,9 +4717,10 @@ if(src!=bl && status_isdead(bl) && skillid != ALL_RESURRECTION && skillid != PR_
 		break;
 
 	case NPC_INVISIBLE:
-		//val4 passed as 1 is for "infinite cloak".
+		//On level 1, use level 10 cloaking (no speed penalty) 
+		//with val4 passed as 1 is for "infinite cloak".
 		clif_skill_nodamage(src,bl,skillid,skilllv,
-			sc_start4(bl,type,100,skilllv,0,0,1,skill_get_time(skillid,skilllv)));
+			sc_start4(bl,type,100,9+skilllv,0,0,1,skill_get_time(skillid,skilllv)));
 		break;
 		
 	case NPC_SIEGEMODE:
@@ -4873,6 +4865,13 @@ if(src!=bl && status_isdead(bl) && skillid != ALL_RESURRECTION && skillid != PR_
 				return 1;
 			}
 	
+			if (tsc && tsc->data[type].timer != -1)
+			{	//HelloKitty2 (?) explained that this silently fails when target is
+				//already inflicted. [Skotlex]
+				map_freeblock_unlock();
+				return 1;
+			}
+
 			//Has a 55% + skilllv*5% success chance.
 			if (!clif_skill_nodamage(src,bl,skillid,skilllv,
 				sc_start(bl,type,55+5*skilllv,skilllv,skill_get_time(skillid,skilllv))))
@@ -6339,6 +6338,11 @@ struct skill_unit_group *skill_unitsetting (struct block_list *src, int skillid,
 				map_foreachincell(skill_unit_effect,unit->bl.m,
 					unit->bl.x,unit->bl.y,group->bl_flag,&unit->bl,gettick(),1);
 		}
+	}
+	if (!group->alive_count)
+	{	//No cells? Something that was blocked completely by Land Protector?
+		skill_delunitgroup(src, group);
+		return NULL;
 	}
 	
 	return group;
@@ -8760,19 +8764,43 @@ int skill_landprotector (struct block_list *bl, va_list ap)
 	if (unit == NULL || unit->group == NULL)
 		return 0;
 
-	if (skillid == SA_LANDPROTECTOR && unit->group->skill_id == SA_LANDPROTECTOR
-		&& battle_check_target(bl, src, BCT_ENEMY) > 0)
-	{	//Check for offensive Land Protector to delete both. [Skotlex]
-		(*alive) = 0;
-		skill_delunit(unit);
-		return 1;
-	}	
-
-	if((skillid == SA_LANDPROTECTOR || skillid == HW_GANBANTEIN) &&
-		skill_get_type(unit->group->skill_id) == BF_MAGIC)
-	{	//Delete Magical effects
-		skill_delunit(unit);
-		return 1;
+	switch (skillid)
+	{
+		case SA_LANDPROTECTOR:
+			if (unit->group->skill_id == SA_LANDPROTECTOR &&
+				battle_check_target(bl, src, BCT_ENEMY) > 0)
+			{	//Check for offensive Land Protector to delete both. [Skotlex]
+				(*alive) = 0;
+				skill_delunit(unit);
+				return 1;
+			}
+			//Delete the rest of types.
+		case HW_GANBANTEIN:
+			if(skill_get_type(unit->group->skill_id) == BF_MAGIC)
+			{	//Delete Magical effects
+				skill_delunit(unit);
+				return 1;
+			}
+			break;
+		case SA_VOLCANO:
+		case SA_DELUGE:
+		case SA_VIOLENTGALE:
+			switch (unit->group->skill_id)
+			{	//These override each other.
+				case SA_VOLCANO:
+				case SA_DELUGE:
+				case SA_VIOLENTGALE:
+					skill_delunit(unit);
+					return 1;
+			}
+			break;
+		case HP_BASILICA:
+			if (unit->group->skill_id == HP_BASILICA)
+			{	//Basilica can't be placed on top of itself to avoid map-cell stacking problems. [Skotlex]
+				(*alive) = 0;
+				return 1;
+			}
+			break;
 	}
 	if (unit->group->skill_id == SA_LANDPROTECTOR &&
 		skill_get_type(skillid) == BF_MAGIC)
@@ -8780,11 +8808,7 @@ int skill_landprotector (struct block_list *bl, va_list ap)
 		(*alive) = 0;
 		return 1;
 	}
-	if (skillid == HP_BASILICA && unit->group->skill_id == HP_BASILICA)
-	{	//Basilica can't be placed on top of itself to avoid map-cell stacking problems. [Skotlex]
-		(*alive) = 0;
-		return 1;
-	}
+
 	return 0;
 }
 

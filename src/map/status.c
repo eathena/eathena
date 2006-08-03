@@ -557,6 +557,17 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 
 	if (hp && !(flag&1)) {
 		if (sc) {
+			if (sc->data[SC_DEVOTION].val1 && src && battle_getcurrentskill(src) != PA_PRESSURE)
+			{	//Devotion prevents any of the other ailments from ending.
+				struct map_session_data *sd2 = map_id2sd(sc->data[SC_DEVOTION].val1);
+				if (sd2 && sd2->devotion[sc->data[SC_DEVOTION].val2] == target->id)
+				{
+					clif_damage(&sd2->bl, &sd2->bl, gettick(), 0, 0, hp, 0, 0, 0);
+					status_fix_damage(NULL, &sd2->bl, hp, 0);
+					return 0;
+				}
+				status_change_end(target, SC_DEVOTION, -1);
+			}
 			if (sc->data[SC_FREEZE].timer != -1)
 				status_change_end(target,SC_FREEZE,-1);
 			if (sc->data[SC_STONE].timer!=-1 && sc->opt1 == OPT1_STONE)
@@ -590,17 +601,6 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 					sc->data[SC_GRAVITATION].val4 = 0;
 					status_change_end(target, SC_GRAVITATION, -1);
 				}
-			}
-			if (sc->data[SC_DEVOTION].val1 && src && battle_getcurrentskill(src) != PA_PRESSURE)
-			{
-				struct map_session_data *sd2 = map_id2sd(sc->data[SC_DEVOTION].val1);
-				if (sd2 && sd2->devotion[sc->data[SC_DEVOTION].val2] == target->id)
-				{
-					clif_damage(&sd2->bl, &sd2->bl, gettick(), 0, 0, hp, 0, 0, 0);
-					status_fix_damage(NULL, &sd2->bl, hp, 0);
-					return 0;
-				}
-				status_change_end(target, SC_DEVOTION, -1);
 			}
 			if(sc->data[SC_DANCING].timer != -1 && hp > (signed int)status->max_hp>>2)
 				skill_stop_dancing(target);
@@ -1211,7 +1211,6 @@ int status_calc_mob(struct mob_data* md, int first)
 		{	// different levels of HP according to skill level
 			if (ud->skillid == AM_SPHEREMINE) {
 				status->max_hp = 2000 + 400*ud->skilllv;
-				status->mode|= MD_CANMOVE; //Needed for the skill
 			} else { //AM_CANNIBALIZE
 				status->max_hp = 1500 + 200*ud->skilllv + 10*status_get_lv(mbl);
 				status->mode|= MD_CANATTACK|MD_AGGRESSIVE;
@@ -2585,10 +2584,13 @@ void status_calc_bl(struct block_list *bl, unsigned long flag)
 	}
 
 	if(flag&SCB_SPEED) {
-		struct unit_data *ud = unit_bl2ud(bl);
 		status->speed = status_calc_speed(bl, sc, b_status->speed);
-		if (ud && ud->walktimer != -1) //Re-walk to adjust speed. [Skotlex]
+		if (!sd)
+	  	{	//Player speed is updated on calc_bl_sub_pc
+			struct unit_data *ud = unit_bl2ud(bl);
+		  	if (ud && ud->walktimer != -1) //Re-walk to adjust speed. [Skotlex]
 			unit_walktoxy(bl, ud->to_x, ud->to_y, ud->state.walk_easy);
+		}
 	}
 	if(flag&SCB_CRI && b_status->cri) {
 		if (status->luk == b_status->luk)
@@ -4409,8 +4411,8 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			val2 = val1 + 2; //Chance to Poison enemies.
 			break;
 		case SC_POISONREACT:
-			val2=val1/2 + val1%2; // Number of counters [Celest]
-			val3=50 + 5*val1; //Chance to counter. [Skotlex]
+			val2=(val1+1)/2 + val1/10; // Number of counters [Skotlex]
+			val3=50; // + 5*val1; //Chance to counter. [Skotlex]
 			break;
 		case SC_MAGICROD:
 			val2 = val1*20; //SP gained
@@ -4429,7 +4431,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			val2 = 5; //Lasts 5 hits
 			break;
 		case SC_ENCPOISON:
-			val2= 25+5*val1;	//Poisoning Chance (2.5+5%)
+			val2= 250+50*val1;	//Poisoning Chance (2.5+0.5%) in 1/10000 rate
 		case SC_ASPERSIO:
 		case SC_FIREWEAPON:
 		case SC_WATERWEAPON:
@@ -4514,7 +4516,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 					val2 = 3*((val1+1)/3);
 				break;
 				}
-			};
+			}
 			break;
 		case SC_ONEHAND:
 		case SC_TWOHANDQUICKEN:

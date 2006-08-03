@@ -202,8 +202,13 @@ static int unit_walktoxy_timer(int tid,unsigned int tick,int id,int data)
 			!(ud->walk_count%WALK_SKILL_INTERVAL) &&
 			mobskill_use(md, tick, -1))
 	  	{
-			clif_fixpos(bl); //Fix position as walk has been cancelled.
-			return 0;
+			if (!(ud->skillid == NPC_SELFDESTRUCTION && ud->skilltimer != -1))
+			{	//Skill used, abort walking
+				clif_fixpos(bl); //Fix position as walk has been cancelled.
+				return 0;
+			}
+			//Resend walk packet for proper Self Destruction display.
+			clif_move(bl);
 		}
 	}
 
@@ -253,6 +258,7 @@ static int unit_walktoxy_timer(int tid,unsigned int tick,int id,int data)
 	return 0;
 }
 
+//Easy parameter: &1 -> 1/2 = easy/hard, &2 -> force walking.
 int unit_walktoxy( struct block_list *bl, int x, int y, int easy) {
 	struct unit_data        *ud = NULL;
 	struct status_change		*sc = NULL;
@@ -263,11 +269,10 @@ int unit_walktoxy( struct block_list *bl, int x, int y, int easy) {
 	
 	if( ud == NULL) return 0;
 
-	// 移動出来ないユニットは弾く
-	if(!(status_get_mode(bl)&MD_CANMOVE) || !unit_can_move(bl))
+	if(!(easy&2) && (!status_get_mode(bl)&MD_CANMOVE || !unit_can_move(bl)))
 		return 0;
-
-	ud->state.walk_easy = easy;
+	
+	ud->state.walk_easy = easy&1;
 	ud->target = 0;
 	ud->to_x = x;
 	ud->to_y = y;
@@ -1671,9 +1676,10 @@ int unit_free(struct block_list *bl) {
 		}
 	} else if(bl->type == BL_MOB) {
 		struct mob_data *md = (struct mob_data*)bl;
-		if(md->deletetimer!=-1)
+		if(md->deletetimer!=-1) {
 			delete_timer(md->deletetimer,mob_timer_delete);
-		md->deletetimer=-1;
+			md->deletetimer=-1;
+		}
 		if(md->lootitem) {
 			aFree(md->lootitem);
 			md->lootitem=NULL;

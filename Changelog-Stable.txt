@@ -5,6 +5,29 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/02
+	* Some merges from trunk. [Skotlex]
+	- Merged the marine sphere code to make them correctly move/detonate and
+	  stop them from following their master around.
+	- Merged corrected Enchant Poison rate.
+	- Merged Full Buster blinding the caster rather than target.
+	- Merged the Violent Gale/Volcano/Deluge code that makes them delete each
+	  other's cells when casted on the same area.
+	- Merged the self-destruction update to prevent it hitting and knocking
+	  back the source, as well as damaging everyone except when the caster is a
+	  marine sphere on a non-versus map.
+	- Merged only player-casted Heal/Sanctuary being offensive.
+	- Merged NPC_INVISIBLE update where level1 invokes level10 cloaking to
+	  eliminate walk penalties.
+	- Merged MindBreaker failing when the target already has the MindBreaker
+	  state.
+	- Merged deleting a group when placing it down if it has no alive-cells
+	  (prevents stuff like Pneumas on top of land Protector counting against your
+	  total that can be placed)
+	- Merged devotion being triggered first, so that when you are
+	  sleep/confused/frozen/etc and you are hit, the status won't end.
+	- Merged fix to prevent double-sending walk-to packets when a player's
+	  speed is changed.
+	- Merged Poison-React update on number of counters and counter-chance.
 	* Merged @heal, no wonder it wasn't working right when it wasn't merged..
 	  [Skotlex]
 	* Fixed failing to create Deadly Poison Bottles damaging 50% of your max
