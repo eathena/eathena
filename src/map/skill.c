@@ -2811,7 +2811,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 
-	case WZ_WATERBALL:			/* ウォ?タ?ボ?ル */
+	case WZ_WATERBALL:
 		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
 		if (skilllv>1) {
 			int range = skilllv/2;
@@ -9649,7 +9649,7 @@ int skill_can_produce_mix (struct map_session_data *sd, int nameid, int trigger,
 			if(skill_produce_db[i].itemlv!=trigger)
 				return 0;
 		} else if(trigger>10) { // Food (any item level between 10 and 20 will do)
-			if(skill_produce_db[i].itemlv>10 && skill_produce_db[i].itemlv<=20)
+			if(skill_produce_db[i].itemlv<=10 || skill_produce_db[i].itemlv>20)
 				return 0;
 		} else { // Weapon (itemlv must be higher or equal)
 			if(skill_produce_db[i].itemlv>trigger)
