@@ -1,3 +1,7 @@
+08/03
+	* Merged item_db and mob_db [Playtester]
+	- fixed some items I added yesterday
+	- updated monster stats to X.4
 08/02
 	* Merged create_arrow_db, item_db, mob_db, mob_skill_db, refine_db, skill_cast_db [Playtester]
 	- Updated Arrow Crafting to X.4
