@@ -33,6 +33,8 @@ Playtester
 
 Date		Added
 ======
+08/03
+	* Added Gunslinger Job Quest from Trunk. And enabled it. [Lupus]
 08/02
 	* Merged Kafras from Trunk [Evera]
 	- Can't save outside city from inside city
