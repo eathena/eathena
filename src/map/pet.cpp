@@ -283,7 +283,6 @@ int pet_data::get_equip() const
 
 bool pet_data::stop_attack()
 {
-	this->target_id=0;
 	if(this->state.state == MS_ATTACK)
 		this->changestate(MS_IDLE,0);
 	return this->fightable::stop_attack();
@@ -1429,7 +1428,7 @@ int pet_lootitem_drop(struct pet_data &pd,struct map_session_data *sd)
 			else
 			{	// create a delay drop structure
 				struct delay_item_drop2 *ditem;
-				ditem = new struct delay_item_drop2(pd.block_list::m, pd.block_list::x, pd.block_list::y, pd.loot->item[i]);
+				ditem = new delay_item_drop2(pd, pd.loot->item[i]);
 				add_timer(gettick()+540+i,pet_delay_item_drop2,0, basics::numptr(ditem), false);
 			}
 		}

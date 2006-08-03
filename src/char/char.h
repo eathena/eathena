@@ -3,9 +3,9 @@
 #define _CHAR_H_
 
 
-#include "baseio.h"
-#include "mmo.h"
 
+#include "mmo.h"
+#include "baseio.h"
 
 #define MAX_MAP_SERVERS 30
 #define CHAR_CONF_NAME	"conf/char_athena.conf"

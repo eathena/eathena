@@ -447,7 +447,6 @@ void mob_data::unlock_target(unsigned long tick)
  */
 bool mob_data::stop_attack()
 {
-	this->target_id = 0;
 	this->state.targettype = NONE_ATTACKABLE;
 	this->attacked_id = 0;
 	this->attacked_count = 0;
@@ -1655,6 +1654,7 @@ public:
 			{
 				md.unlock_target(tick);
 				md.stop_walking(1);
+				clif_emotion(md, 1);
 				return 0;
 			}
 		}
@@ -2470,7 +2470,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 		int drop_ore = -1, drop_items = 0; //slot N for DROP LOG, number of dropped items
 		for (i = 0; i < 10; ++i)
 		{ // 8 -> 10 Lupus
-			struct delay_item_drop *ditem;
+			delay_item_drop *ditem;
 			int drop_rate;
 			
 			if( (maps[md.block_list::m].flag.nomobloot) ||
@@ -2505,9 +2505,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 
 			log_item[i] = mob_db[md.class_].dropitem[i].nameid;
 
-			ditem = new struct delay_item_drop(md.block_list::m, md.block_list::x, md.block_list::y,
-												mob_db[md.class_].dropitem[i].nameid,
-												mvp_sd,second_sd,third_sd);
+			ditem = new delay_item_drop(md, mob_db[md.class_].dropitem[i].nameid,mvp_sd,second_sd,third_sd);
 			add_timer(tick+500+i,mob_delay_item_drop,0,basics::numptr(ditem),false);
 
 			//Rare Drop Global Announce by Lupus
@@ -2528,10 +2526,8 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 		// Ore Discovery [Celest]
 		if(sd && sd == mvp_sd && maps[md.block_list::m].flag.nomobloot==0 && pc_checkskill(*sd,BS_FINDINGORE)>0 && config.finding_ore_rate/100 >= (uint32)(rand()%1000))
 		{
-			struct delay_item_drop *ditem;
-			ditem = new struct delay_item_drop(md.block_list::m, md.block_list::x,md.block_list::y,
-												itemdb_searchrandomid(6),
-												mvp_sd,second_sd,third_sd);
+			delay_item_drop *ditem;
+			ditem = new delay_item_drop(md, itemdb_searchrandomid(6),mvp_sd,second_sd,third_sd);
 			if (drop_ore<0) drop_ore=8; //we have only 10 slots in LOG, there's a check to not overflow (9th item usually a card, so we use 8th slot)
 			log_item[drop_ore] = ditem->nameid; //it's for logging only
 
@@ -2559,9 +2555,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 					itemid = (sd->monster_drop_itemid[i] > 0) ? sd->monster_drop_itemid[i] :
 						itemdb_searchrandomgroup(sd->monster_drop_itemgroup[i]);
 
-					ditem=new struct delay_item_drop(md.block_list::m, md.block_list::x,md.block_list::y,
-													itemid,
-													mvp_sd,second_sd,third_sd);
+					ditem=new delay_item_drop(md,itemid,mvp_sd,second_sd,third_sd);
 					add_timer(tick+520+i,mob_delay_item_drop,0,basics::numptr(ditem),false);
 				}
 			}
@@ -2573,9 +2567,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 			for(i=0; i<md.lootitem_count; ++i)
 			{
 				struct delay_item_drop2 *ditem 
-					= new struct delay_item_drop2(md.block_list::m,md.block_list::x,md.block_list::y,
-													md.lootitem[i],
-													mvp_sd,second_sd,third_sd);
+					= new delay_item_drop2(md,md.lootitem[i],mvp_sd,second_sd,third_sd);
 				add_timer(tick+540+i,mob_delay_item_drop2,0, basics::numptr(ditem), false);
 			}
 		}

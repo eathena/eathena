@@ -136,6 +136,8 @@ bool movable::walktimer_func(unsigned long tick)
 			else
 			{	// otherwise fail to walk
 				clif_fixobject(*this);
+				this->walkpath.clear();
+				this->walktarget = *this;
 				this->do_stop_walking();
 				return false;
 			}
@@ -204,12 +206,14 @@ bool movable::walktimer_func(unsigned long tick)
 	// the normal walking flow will end here
 	// when the target is reached
 
-
 //	clif_fixobject(*this);	
 // it might be not necessary to force the client to sync with the current position
 // this might cause small walk irregularities when server and client are slightly out of sync
 
+	this->walkpath.clear();
+	this->walktarget = *this;
 	this->do_stop_walking();
+
 	return true;
 }
 
@@ -409,9 +413,6 @@ bool movable::walktoxy(const coordinate& pos, bool easy)
 
 bool movable::stop_walking(int type)
 {
-	this->walkpath.clear();
-	this->walktarget = *this;
-
 	if( this->walktimer != -1 )
 	{
 		delete_timer(this->walktimer, this->walktimer_entry);
@@ -432,6 +433,8 @@ bool movable::stop_walking(int type)
 				this->canmove_tick = tick + delay;
 		}
 
+		this->walkpath.clear();
+		this->walktarget = *this;
 		this->do_stop_walking();
 	}
 	return true;

@@ -145,10 +145,11 @@ bool fightable::stop_attack()
 	{
 		delete_timer(this->attacktimer, fightable::attacktimer_entry);
 		this->attacktimer = -1;
+		this->target_id=0;
+		this->attack_continue=0;
+		return true;
 	}
-	this->target_id=0;
-	this->attack_continue=0;
-	return true;
+	return false;
 }
 
 /// stops skill
@@ -221,8 +222,9 @@ int fightable::attacktimer_func(int tid, unsigned long tick, int id, basics::num
 			this->attacktimer=add_timer(this->attackable_tick,fightable::attacktimer_entry,this->block_list::id,0);
 	}
 	else
-	{	// otherwise failed, so just stop it
-		this->stop_attack();
+	{	// otherwise failed, so just stop further attacks
+		this->target_id=0;
+		this->attack_continue=0;
 	}
 	return 0;
 }

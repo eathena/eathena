@@ -161,7 +161,7 @@ void homun_data::recv_homunculus(struct homunstatus &p, int flag)
 	// apply the received data
 	sd->hd->status = p;
 
-	if( sd->hd->status.homun_id > 0 )
+	if( sd->status.homun_id > 0 )
 	{	
 		// if there is no bioethics skill, homunculus cannot be hatched
 		if(!pc_checkskill(*sd, AM_BIOETHICS))
@@ -518,7 +518,7 @@ void homun_data::calc_status()
 	hd.flee		+= hd.agi + bl;
 	hd.def		+= hd.vit + hd.vit / 5 + bl / 10;
 	hd.mdef		+= hd.int_/ 5 + bl / 10;
-	hd.critica	+= hd.luk / 3 + 1;
+	hd.critical	+= hd.luk / 3 + 1;
 	hd.aspd		 = aspd_k - (aspd_k * hd.agi / 250 + aspd_k * hd.dex / 1000);
 	hd.aspd		-= 200;
 	

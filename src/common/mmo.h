@@ -1173,7 +1173,6 @@ extern inline void mmo_charstatus_frombuffer(struct mmo_charstatus &p, const uch
 ///////////////////////////////////////////////////////////////////////////////
 
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // Authentification
 ///////////////////////////////////////////////////////////////////////////////
@@ -1246,7 +1245,7 @@ public:
 	time_t ban_until;
 	time_t valid_until;
 
-	CMapAccount():CAuth(0)	{}
+	CMapAccount()	{}
 	~CMapAccount()	{}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1310,12 +1309,12 @@ public:
 	~CLoginAccount()	{}
 	///////////////////////////////////////////////////////////////////////////
 	// creation of a new account
-	CLoginAccount(uint32 accid, const char* uid, const char* pwd, unsigned char s, const char* em)
+	CLoginAccount(uint32 accid, const char* uid, const char* pwd, unsigned char sx, const char* em)
+		: CCharAccount(accid)
 	{	// init account data
-		this->account_id = accid;
 		safestrcpy(this->userid, uid, 24);
 		safestrcpy(this->passwd, pwd, 34);
-		this->sex = s;
+		this->sex = sx;
 		if( !email_check(em) )
 			safestrcpy(this->email, "a@a.com", 40);
 		else

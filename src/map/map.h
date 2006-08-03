@@ -1374,17 +1374,15 @@ struct delay_item_drop
 	struct map_session_data *third_sd;
 
 	delay_item_drop(
-		unsigned short mi,
-		unsigned short xi,
-		unsigned short yi,
+		const block_list& bl,
 		unsigned short idi,
 		struct map_session_data *sd1=NULL,
 		struct map_session_data *sd2=NULL,
 		struct map_session_data *sd3=NULL
 		) :
-		m(mi),
-		x(xi),
-		y(yi),
+		m(bl.m),
+		x(bl.x),
+		y(bl.y),
 		nameid(idi),
 		amount(1),
 		first_sd(sd1),
@@ -1404,17 +1402,15 @@ struct delay_item_drop2
 	struct map_session_data *third_sd;
 
 	delay_item_drop2(
-		unsigned short mi,
-		unsigned short xi,
-		unsigned short yi,
+		const block_list& bl,
 		const struct item& itemi,
 		struct map_session_data *sd1=NULL,
 		struct map_session_data *sd2=NULL,
 		struct map_session_data *sd3=NULL
 		) :
-		m(mi),
-		x(xi),
-		y(yi),
+		m(bl.m),
+		x(bl.x),
+		y(bl.y),
 		item_data(itemi),
 		first_sd(sd1),
 		second_sd(sd2),
@@ -2128,7 +2124,7 @@ extern int autosave_interval;
 extern int agit_flag;
 extern int night_flag; // 0=day, 1=night [Yor]
 
-extern int map_read_flag; // 0: grf«Õ«¡«¤«ë 1: «­«ã«Ã«·«å 2: «­«ã«Ã«·«å(?õê)
+extern int map_read_flag; // 0: grf«Õ«¡«¤«E1: «­«ã«Ã«·«E2: «­«ã«Ã«·«E?õê)
 enum {
 	READ_FROM_GAT, 
 	READ_FROM_AFM,
@@ -2228,7 +2224,7 @@ int map_searchrandfreecell(unsigned short m, unsigned short x, unsigned short y,
 // ƒLƒƒƒ‰id„ƒLƒƒƒ‰–¼ •ÏŠ·ŠÖ˜A
 void map_addchariddb(uint32 charid,const char *name);
 void map_delchariddb(uint32 charid);
-int map_reqchariddb(struct map_session_data &sd,uint32 charid);
+int map_reqchariddb(const map_session_data &sd,uint32 charid);
 char * map_charid2nick(uint32 id);
 struct map_session_data * map_charid2sd(uint32 id);
 struct map_session_data * map_id2sd(uint32 id);

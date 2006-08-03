@@ -11,19 +11,19 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Debug-TXT|Win32"
+			Name="Debug-Hybrid|Win32"
 			OutputDirectory="$(ProjectDir).."
-			IntermediateDirectory="Debug"
+			IntermediateDirectory="$(ProjectDir)$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src\basics;..\src\common"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;WITH_TEXT"
+				AdditionalIncludeDirectories="..\src\basics; ..\src\common; ..\src\mysql"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;WITH_TEXT;WITH_MYSQL"
 				MinimalRebuild="TRUE"
-				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
+				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
@@ -33,56 +33,9 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="WSOCK32.lib"
+				LinkIncremental="2"
 				GenerateDebugInformation="TRUE"
-				SubSystem="1"
-				TargetMachine="1"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
-		</Configuration>
-		<Configuration
-			Name="Debug-SQL|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="2">
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="..\src\basics;..\src\common"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;WITH_MYSQL"
-				MinimalRebuild="TRUE"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="5"
-				UsePrecompiledHeader="0"
-				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="WSOCK32.lib"
-				GenerateDebugInformation="TRUE"
-				SubSystem="1"
-				TargetMachine="1"/>
+				SubSystem="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
@@ -299,6 +252,16 @@
 			</File>
 			<File
 				RelativePath="..\src\map\vending.h">
+			</File>
+		</Filter>
+		<Filter
+			Name="Library files"
+			Filter="">
+			<File
+				RelativePath="..\src\mysql-lib\visual-c\libmysql.lib">
+			</File>
+			<File
+				RelativePath="..\src\zlib-compiled-libs\visual-c\zlib1.lib">
 			</File>
 		</Filter>
 	</Files>

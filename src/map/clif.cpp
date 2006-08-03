@@ -9539,7 +9539,8 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 	// 119
 	// 78
 
-	if(config.pc_invincible_time > 0) {
+	if(config.pc_invincible_time > 0)
+	{
 		if(maps[sd.block_list::m].flag.gvg)
 			pc_setinvincibletimer(sd,config.pc_invincible_time<<1);
 		else
@@ -9559,8 +9560,10 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 		delete_timer(sd.pvp_timer,pc_calc_pvprank_timer);
 		sd.pvp_timer = -1;
 	}
-	if(maps[sd.block_list::m].flag.pvp){
-		if(!config.pk_mode) { // remove pvp stuff for pk_mode [Valaris]
+	if(maps[sd.block_list::m].flag.pvp)
+	{
+		if(!config.pk_mode)
+		{	// remove pvp stuff for pk_mode [Valaris]
 			sd.pvp_timer=add_timer(gettick()+200,pc_calc_pvprank_timer,sd.block_list::id,0);
 			sd.pvp_rank=0;
 			sd.pvp_lastusers=0;
@@ -9569,10 +9572,13 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 			sd.pvp_lost=0;
 		}
 		clif_set0199(sd.fd,1);
-	} else {
+	}
+	else
+	{
 		sd.pvp_timer=-1;
 	}
-	if(maps[sd.block_list::m].flag.gvg) {
+	if(maps[sd.block_list::m].flag.gvg)
+	{
 		clif_set0199(sd.fd,3);
 	}
 
@@ -9587,6 +9593,7 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 	}
 	if(sd.hd)
 	{
+		sd.hd->map_delblock();
 		sd.hd->map_addblock();
 		clif_spawnhom(*sd.hd);
 		clif_send_homdata(sd,0,0);
@@ -13009,19 +13016,26 @@ int clif_parse(int fd)
 
 				// check client version
 				(config.packet_ver_flag &&
-				((packet_ver <=  5 && (config.packet_ver_flag & 0x00001) == 0) ||
-				(packet_ver ==  6 && (config.packet_ver_flag & 0x00002) == 0) ||	
-				(packet_ver ==  7 && (config.packet_ver_flag & 0x00004) == 0) ||	
-				(packet_ver ==  8 && (config.packet_ver_flag & 0x00008) == 0) ||	
-				(packet_ver ==  9 && (config.packet_ver_flag & 0x00010) == 0) ||
-				(packet_ver == 10 && (config.packet_ver_flag & 0x00020) == 0) ||
-				(packet_ver == 11 && (config.packet_ver_flag & 0x00040) == 0) ||
-				(packet_ver == 12 && (config.packet_ver_flag & 0x00080) == 0) ||
-				(packet_ver == 13 && (config.packet_ver_flag & 0x00100) == 0) ||
-				(packet_ver == 14 && (config.packet_ver_flag & 0x00200) == 0) ||
-				(packet_ver == 15 && (config.packet_ver_flag & 0x00400) == 0) ||
-				(packet_ver == 16 && (config.packet_ver_flag & 0x00800) == 0) ||
-				(packet_ver == 17 && (config.packet_ver_flag & 0x01000) == 0)) ) )
+				((packet_ver <=  5 && (config.packet_ver_flag & 0x00000001) == 0) ||
+				 (packet_ver ==  6 && (config.packet_ver_flag & 0x00000002) == 0) ||	
+				 (packet_ver ==  7 && (config.packet_ver_flag & 0x00000004) == 0) ||	
+				 (packet_ver ==  8 && (config.packet_ver_flag & 0x00000008) == 0) ||	
+				 (packet_ver ==  9 && (config.packet_ver_flag & 0x00000010) == 0) ||
+				 (packet_ver == 10 && (config.packet_ver_flag & 0x00000020) == 0) ||
+				 (packet_ver == 11 && (config.packet_ver_flag & 0x00000040) == 0) ||
+				 (packet_ver == 12 && (config.packet_ver_flag & 0x00000080) == 0) ||
+				 (packet_ver == 13 && (config.packet_ver_flag & 0x00000100) == 0) ||
+				 (packet_ver == 14 && (config.packet_ver_flag & 0x00000200) == 0) ||
+				 (packet_ver == 15 && (config.packet_ver_flag & 0x00000400) == 0) ||
+				 (packet_ver == 16 && (config.packet_ver_flag & 0x00000800) == 0) ||
+				 (packet_ver == 17 && (config.packet_ver_flag & 0x00001000) == 0) ||
+				 (packet_ver == 18 && (config.packet_ver_flag & 0x00002000) == 0) ||
+				 (packet_ver == 19 && (config.packet_ver_flag & 0x00004000) == 0) ||
+				 (packet_ver == 20 && (config.packet_ver_flag & 0x00008000) == 0) ||
+				 (packet_ver == 21 && (config.packet_ver_flag & 0x00010000) == 0) ||
+				 (packet_ver == 22 && (config.packet_ver_flag & 0x00020000) == 0) ||
+				 (packet_ver == 23 && (config.packet_ver_flag & 0x00040000) == 0) ||
+				 (packet_ver == 24 && (config.packet_ver_flag & 0x00080000) == 0)) ) )
 			{
 				ShowMessage("clif_parse: session #%d, packet 0x%x ver. %i (%d bytes received) -> disconnected (unknown packetver).\n", fd, cmd, packet_ver, RFIFOREST(fd));
 				WFIFOW(fd,0) = 0x6a;

@@ -140,7 +140,7 @@ bool CAccountDB_mem::insertAccount(const char* userid, const char* passwd, unsig
 	if( 0==p || cList[0].account_id>accid )
 	{	// take the start value
 	}
-	else if( cList[0].account_id+p == cList[p-1].account_id )
+	else if( cList[0].account_id+p-1 == cList[p-1].account_id )
 	{	// increment last id when range is fully used
 		accid = this->cList[p-1].account_id++;
 	}
@@ -150,7 +150,7 @@ bool CAccountDB_mem::insertAccount(const char* userid, const char* passwd, unsig
 		while( b > a+1 )
 		{
 			c=(a+b)/2;
-			if( this->cList[c].account_id >= accid && 
+			if( this->cList[c].account_id > accid && 
 				(this->cList[c].account_id-this->cList[a].account_id) > (c-a) )
 				b=c;
 			else
@@ -313,7 +313,7 @@ bool CCharDB_mem::make_new_char(CCharCharAccount& account, const char *n, unsign
 	if( 0==p || cCharList[0].char_id > char_id)
 	{	// take the start value
 	}
-	else if( cCharList[0].char_id+p == cCharList[p-1].char_id )
+	else if( cCharList[0].char_id+p-1 == cCharList[p-1].char_id )
 	{	// increment last id when range is fully used
 		char_id = cCharList[p-1].char_id++;
 	}
@@ -323,7 +323,7 @@ bool CCharDB_mem::make_new_char(CCharCharAccount& account, const char *n, unsign
 		while( b > a+1 )
 		{
 			c=(a+b)/2;
-			if( cCharList[c].char_id >= char_id && 
+			if( cCharList[c].char_id > char_id && 
 				(cCharList[c].char_id-cCharList[a].char_id) > (c-a) )
 				b=c;
 			else
@@ -726,7 +726,7 @@ bool CGuildDB_mem::insertGuild(const struct guild_member &member, const char *na
 		if( 0==p || cGuilds[0].guild_id > guild_id)
 		{	// take the start value
 		}
-		else if( cGuilds[0].guild_id+p == cGuilds[p-1].guild_id )
+		else if( cGuilds[0].guild_id+p-1 == cGuilds[p-1].guild_id )
 		{	// increment last id when range is fully used
 			guild_id = cGuilds[p-1].guild_id++;
 		}
@@ -736,7 +736,7 @@ bool CGuildDB_mem::insertGuild(const struct guild_member &member, const char *na
 			while( b > a+1 )
 			{
 				c=(a+b)/2;
-				if( cGuilds[c].guild_id >= guild_id && 
+				if( cGuilds[c].guild_id > guild_id && 
 					(cGuilds[c].guild_id-cGuilds[a].guild_id) > (c-a) )
 					b=c;
 				else
@@ -1005,7 +1005,7 @@ bool CPartyDB_mem::insertParty(uint32 accid, const char *nick, const char *mapna
 		if( 0==p || cParties[0].party_id > party_id)
 		{	// take the start value
 		}
-		else if( cParties[0].party_id+p == cParties[p-1].party_id )
+		else if( cParties[0].party_id+p-1 == cParties[p-1].party_id )
 		{	// increment last id when range is fully used
 			party_id = cParties[p-1].party_id++;
 		}
@@ -1015,7 +1015,7 @@ bool CPartyDB_mem::insertParty(uint32 accid, const char *nick, const char *mapna
 			while( b > a+1 )
 			{
 				c=(a+b)/2;
-				if( cParties[c].party_id >= party_id && 
+				if( cParties[c].party_id > party_id && 
 					(cParties[c].party_id-cParties[a].party_id) > (c-a) )
 					b=c;
 				else
@@ -1271,7 +1271,7 @@ bool CPetDB_mem::insertPet(uint32 accid, uint32 cid, short pet_class, short pet_
 	if( 0==p || this->cPetList[0].pet_id > pet_id)
 	{	// take the start value
 	}
-	else if( this->cPetList[0].pet_id+p == this->cPetList[p-1].pet_id )
+	else if( this->cPetList[0].pet_id+p-1 == this->cPetList[p-1].pet_id )
 	{	// increment last id when range is fully used
 		pet_id = this->cPetList[p-1].pet_id++;
 	}
@@ -1281,7 +1281,7 @@ bool CPetDB_mem::insertPet(uint32 accid, uint32 cid, short pet_class, short pet_
 		while( b > a+1 )
 		{
 			c=(a+b)/2;
-			if( this->cPetList[c].pet_id >= pet_id && 
+			if( this->cPetList[c].pet_id > pet_id && 
 				(this->cPetList[c].pet_id-this->cPetList[a].pet_id) > (c-a) )
 				b=c;
 			else
@@ -1378,7 +1378,7 @@ bool CHomunculusDB_mem::insertHomunculus(CHomunculus& hom)
 	if( 0==p || this->cHomunculusList[0].homun_id > homun_id)
 	{	// take the start value
 	}
-	else if( cHomunculusList[0].homun_id+p == cHomunculusList[p-1].homun_id )
+	else if( cHomunculusList[0].homun_id+p-1 == cHomunculusList[p-1].homun_id )
 	{	// increment last id when range is fully used
 		homun_id = this->cHomunculusList[p-1].homun_id++;
 	}
@@ -1388,7 +1388,7 @@ bool CHomunculusDB_mem::insertHomunculus(CHomunculus& hom)
 		while( b > a+1 )
 		{
 			c=(a+b)/2;
-			if( this->cHomunculusList[c].homun_id >= homun_id && 
+			if( this->cHomunculusList[c].homun_id > homun_id && 
 				(this->cHomunculusList[c].homun_id-this->cHomunculusList[a].homun_id) > (c-a) )
 				b=c;
 			else

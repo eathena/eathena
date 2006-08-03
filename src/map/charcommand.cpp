@@ -229,7 +229,7 @@ CharCommandType is_charcommand(int fd, struct map_session_data &sd, const char* 
 {
 	const char* str = message;
 	int s_flag = 0;
-	CharCommandInfo info;
+	CharCommandInfo info = {CharCommand_Unknown,NULL,0,NULL};
 	CharCommandType type;
 
 	if (!message || !*message)

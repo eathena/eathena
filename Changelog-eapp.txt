@@ -1,5 +1,9 @@
 Date	Added
 08/03
+	* Refined VC++ stuff, everything should work flawlessly [DracoRPG]
+	  - There's only one debug build configuration, SQL/TXT hybrid
+	  - Intended bugs were also removed, so all what you should have to
+	    do is open the solution and click "Build"... isn't it nice?
 	* Added solution/project files for Microsoft Visual C++ [DracoRPG]
 	  - Currently the TXT configuration seems to be working, SQL won't
 	    as I have to work a bit more with those damn libraries and all

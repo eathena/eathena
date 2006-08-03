@@ -19,6 +19,140 @@ extern time_t last_tick;
 typedef int (*socket_function)(int);
 typedef int (*console_function )(const char*);
 
+
+
+
+
+/// abstract session data declaration.
+/// user defined session data have to be derived from this class
+class session_data
+{
+protected:
+	session_data()				{}
+public:
+	virtual ~session_data()		{}
+};
+
+// socket data declaration
+struct socket_data
+{
+	struct _flag{
+		bool connected : 1;		// true when connected
+		bool remove : 1;		// true when to be removed
+		bool marked : 1;		// true when deleayed removal is initiated (optional)
+
+		_flag() : connected(true),remove(false),marked(false)
+		{}
+	}flag;
+
+	time_t rdata_tick;			// tick of last read, zero when timout restriction is disabled
+
+	unsigned char *rdata;		// buffer
+	size_t rdata_max;			// size of buffer
+	size_t rdata_size;			// size of data
+	size_t rdata_pos;			// iterator within data
+
+	unsigned char *wdata;		// buffer
+	size_t wdata_max;			// size of buffer
+	size_t wdata_size;			// size of data
+
+	basics::ipaddress client_ip;
+
+	socket_function func_recv;
+	socket_function func_send;
+	socket_function func_parse;
+	socket_function func_term;
+	console_function func_console;
+
+	session_data*	user_session;
+};
+
+// Data prototype declaration
+
+extern struct socket_data *session[FD_SETSIZE];
+extern size_t fd_max;
+
+
+static inline bool session_isValid(int fd)
+{
+	return ( (fd>=0) && (fd<FD_SETSIZE) && (NULL!=session[fd]) );
+}
+static inline bool session_isActive(int fd)
+{
+	return ( session_isValid(fd) && session[fd]->flag.connected );
+}	
+	
+static inline bool session_isRemoved(int fd)
+{
+	return ( session_isValid(fd) && session[fd]->flag.remove );
+}
+static inline bool session_isMarked(int fd)
+{
+	return ( session_isValid(fd) && session[fd]->flag.marked );
+}
+static inline bool session_Remove(int fd)
+{	// force removal
+	if( session_isValid(fd)	)
+	{
+		session[fd]->flag.connected = false;
+		session[fd]->flag.marked	= false;
+		session[fd]->flag.remove	= true;
+	}
+	return true;
+}
+static inline bool session_SetTermFunction(int fd, int (*term)(int))
+{
+	if( session_isValid(fd) )
+		session[fd]->func_term = term;
+	return true;
+}
+
+bool session_SetWaitClose(int fd, unsigned long timeoffset);
+bool session_Delete(int fd);
+
+bool session_checkbuffer(int fd, size_t sz);
+
+
+// Function prototype declaration
+
+int make_listen    (unsigned long ip, unsigned short port);
+int make_connection(unsigned long ip, unsigned short port);
+
+int realloc_fifo(int fd, size_t rfifo_size,size_t wfifo_size);
+
+int WFIFOSET(int fd, size_t len);
+int RFIFOSKIP(int fd, size_t len);
+
+int do_sendrecv(int next);
+void do_final_socket(void);
+
+void socket_init(void);
+void socket_final(void);
+
+void flush_fifos();
+
+int start_console(void);
+
+void set_defaultparse(int (*defaultparse)(int));
+void set_defaultconsoleparse(int (*defaultparse)(const char*));
+
+bool detect_WAN(basics::ipaddress& wanip);
+bool dropped_WAN(const basics::ipaddress& wanip, const ushort wanport);
+bool initialize_WAN(basics::ipset& set, const ushort defaultport);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Class for assigning/reading words from a buffer
 class objW
 {
@@ -233,30 +367,30 @@ public:
 // define declaration
 
 #define RFIFOP(fd,pos) ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL))
-#define RFIFOB(fd,pos) (objB( ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL)) ))
-#define RFIFOW(fd,pos) (objW( ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL)) ))
-#define RFIFOL(fd,pos) (objL( ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL)) ))
-#define RFIFOLIP(fd,pos) (objLIP( ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL)) ))
+#define RFIFOB(fd,pos) ((objB( ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL)) )))
+#define RFIFOW(fd,pos) ((objW( ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL)) )))
+#define RFIFOL(fd,pos) ((objL( ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL)) )))
+#define RFIFOLIP(fd,pos) ((objLIP( ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL)) )))
 #define RFIFOREST(fd) ((int)((session[fd]&&session[fd]->rdata)?(session[fd]->rdata_size-session[fd]->rdata_pos):0))
 #define RFIFOSPACE(fd) ((int)((session[fd]&&session[fd]->rdata)?(session[fd]->rdata_max-session[fd]->rdata_size):0))
-#define RBUFP(p,pos) (((unsigned char*)(p))+(pos))
-#define RBUFB(p,pos) (*((unsigned char*)RBUFP((p),(pos))))
-#define RBUFW(p,pos) (objW((p),(pos)))
-#define RBUFL(p,pos) (objL((p),(pos)))
-#define RBUFLIP(p,pos) (objLIP((p),(pos)))
+#define RBUFP(p,pos) ((((unsigned char*)(p))+(pos)))
+#define RBUFB(p,pos) ((*((unsigned char*)RBUFP((p),(pos)))))
+#define RBUFW(p,pos) ((objW((p),(pos))))
+#define RBUFL(p,pos) ((objL((p),(pos))))
+#define RBUFLIP(p,pos) ((objLIP((p),(pos))))
 
-#define WFIFOSPACE(fd) ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata_max-session[fd]->wdata_size):0)
+#define WFIFOSPACE(fd) (((session[fd]&&session[fd]->wdata)?(session[fd]->wdata_max-session[fd]->wdata_size):0))
 
-#define WFIFOP(fd,pos) ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL))
-#define WFIFOB(fd,pos) (objB( ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL)) ))
-#define WFIFOW(fd,pos) (objW( ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL)) ))
-#define WFIFOL(fd,pos) (objL( ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL)) ))
-#define WFIFOLIP(fd,pos) (objLIP( ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL)) ))
+#define WFIFOP(fd,pos) (((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL)))
+#define WFIFOB(fd,pos) ((objB( ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL)) )))
+#define WFIFOW(fd,pos) ((objW( ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL)) )))
+#define WFIFOL(fd,pos) ((objL( ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL)) )))
+#define WFIFOLIP(fd,pos) ((objLIP( ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL)) )))
 #define WBUFP(p,pos) (((unsigned char*)(p))+(pos))
 #define WBUFB(p,pos) (*((unsigned char*)WBUFP((p),(pos))))
-#define WBUFW(p,pos) (objW((p),(pos)))
-#define WBUFL(p,pos) (objL((p),(pos)))
-#define WBUFLIP(p,pos) (objLIP((p),(pos)))
+#define WBUFW(p,pos) ((objW((p),(pos))))
+#define WBUFL(p,pos) ((objL((p),(pos))))
+#define WBUFLIP(p,pos) ((objLIP((p),(pos))))
 
 
 
@@ -264,121 +398,11 @@ public:
 
 
 
-/// abstract session data declaration.
-/// user defined session data have to be derived from this class
-class session_data
-{
-protected:
-	session_data()				{}
-public:
-	virtual ~session_data()		{}
-};
-
-// socket data declaration
-struct socket_data
-{
-	struct _flag{
-		bool connected : 1;		// true when connected
-		bool remove : 1;		// true when to be removed
-		bool marked : 1;		// true when deleayed removal is initiated (optional)
-
-		_flag() : connected(true),remove(false),marked(false)
-		{}
-	}flag;
-
-	time_t rdata_tick;			// tick of last read, zero when timout restriction is disabled
-
-	unsigned char *rdata;		// buffer
-	size_t rdata_max;			// size of buffer
-	size_t rdata_size;			// size of data
-	size_t rdata_pos;			// iterator within data
-
-	unsigned char *wdata;		// buffer
-	size_t wdata_max;			// size of buffer
-	size_t wdata_size;			// size of data
-
-	basics::ipaddress client_ip;	// just an ip in host byte order is enough (4byte instead of 16)
-
-	socket_function func_recv;
-	socket_function func_send;
-	socket_function func_parse;
-	socket_function func_term;
-	console_function func_console;
-
-	session_data*	user_session;
-};
-
-// Data prototype declaration
-
-extern struct socket_data *session[FD_SETSIZE];
-extern size_t fd_max;
 
 
-static inline bool session_isValid(int fd)
-{
-	return ( (fd>=0) && (fd<FD_SETSIZE) && (NULL!=session[fd]) );
-}
-static inline bool session_isActive(int fd)
-{
-	return ( session_isValid(fd) && session[fd]->flag.connected );
-}	
-	
-static inline bool session_isRemoved(int fd)
-{
-	return ( session_isValid(fd) && session[fd]->flag.remove );
-}
-static inline bool session_isMarked(int fd)
-{
-	return ( session_isValid(fd) && session[fd]->flag.marked );
-}
-static inline bool session_Remove(int fd)
-{	// force removal
-	if( session_isValid(fd)	)
-	{
-		session[fd]->flag.connected = false;
-		session[fd]->flag.marked	= false;
-		session[fd]->flag.remove	= true;
-	}
-	return true;
-}
-static inline bool session_SetTermFunction(int fd, int (*term)(int))
-{
-	if( session_isValid(fd) )
-		session[fd]->func_term = term;
-	return true;
-}
-
-bool session_SetWaitClose(int fd, unsigned long timeoffset);
-bool session_Delete(int fd);
-
-bool session_checkbuffer(int fd, size_t sz);
 
 
-// Function prototype declaration
 
-int make_listen    (unsigned long ip, unsigned short port);
-int make_connection(unsigned long ip, unsigned short port);
 
-int realloc_fifo(int fd, size_t rfifo_size,size_t wfifo_size);
-
-int WFIFOSET(int fd, size_t len);
-int RFIFOSKIP(int fd, size_t len);
-
-int do_sendrecv(int next);
-void do_final_socket(void);
-
-void socket_init(void);
-void socket_final(void);
-
-void flush_fifos();
-
-int start_console(void);
-
-void set_defaultparse(int (*defaultparse)(int));
-void set_defaultconsoleparse(int (*defaultparse)(const char*));
-
-bool detect_WAN(basics::ipaddress& wanip);
-bool dropped_WAN(const basics::ipaddress& wanip, const ushort wanport);
-bool initialize_WAN(basics::ipset& set, const ushort defaultport);
 
 #endif	// _SOCKET_H_

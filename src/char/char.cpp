@@ -241,7 +241,7 @@ void create_online_files(void)
 	uint32 sv;
 	size_t players;    // count the number of players
 	FILE *fptext;       // for the txt file
-	FILE *fphtmö;      // for the html file
+	FILE *fphtmE      // for the html file
 	char temp[256];      // to prepare what we must display
 	time_t time_server;  // for number of seconds
 	struct tm *datetime; // variable for time in structure ->tm_mday, ->tm_sec, ...
@@ -1308,6 +1308,7 @@ int parse_tologin(int fd)
 			// send authentification down to maps
 			unsigned char buf[16+sizeof(account)]; // larger then necessary
 			WBUFW(buf,0) = 0x2b21;
+			// VC7.1 bug, does not determin correct inheritance
 			WBUFW(buf,2) = 4+account.CAuth::size();
 			account.CAuth::tobuffer(WBUFP(buf, 4));
 			mapif_sendall(buf, 4+account.CAuth::size() );
@@ -1513,8 +1514,8 @@ int parse_frommap(int fd)
 			break;
 		}
 		///////////////////////////////////////////////////////////////////////
-		// ”FØ—v‹
-		// Send character data to map-server
+		// ”FØ—vE
+		// Send character data to map-serverE
 		case 0x2afc:
 		{
 			if (RFIFOREST(fd) < 22)

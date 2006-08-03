@@ -81,8 +81,9 @@ int imalive_time=60;
 int flush_on=1;
 int flush_time=100;
 
-struct charid2nick
+class charid2nick
 {
+public:
 	char nick[24];
 	uint32 req_id;
 
@@ -2345,17 +2346,17 @@ void map_addchariddb(uint32 charid, const char *name)
  * charid_db‚Ö’Ç‰Ái•ÔM—v‹‚Ì‚İj
  *------------------------------------------
  */
-int map_reqchariddb(struct map_session_data &sd, uint32 charid) 
+int map_reqchariddb(const map_session_data &sd, uint32 charid) 
 {
-	struct charid2nick *p= (struct charid2nick*)numdb_search(charid_db,charid);
+	charid2nick *p= (charid2nick*)numdb_search(charid_db,charid);
 	if(p==NULL)
 	{	// not in database -> create new
-		p = new struct charid2nick(sd.block_list::id);
+		// explititly using the basetype of sd here since of an ugly VC7 bug
+		p = new charid2nick(sd.map_session_data::block_list::id);
 		numdb_insert(charid_db,charid,p);
 	}
 	return 0;
 }
-
 
 
 /*==========================================
@@ -4167,7 +4168,7 @@ void map_checknpcsleft(void)
 }
 
 /*==========================================
- * mapII—¹—
+ * mapII—¹E—
  *------------------------------------------
  */
 void do_final(void)
@@ -4301,12 +4302,6 @@ int do_init(int argc, char *argv[])
 {
 	int i;
 
-
-#ifdef GCOLLECT
-	GC_enable_incremental();
-#endif
-
-
 	// just clear all maps
 	memset(maps, 0, MAX_MAP_PER_SERVER*sizeof(struct map_data));
 
@@ -4370,7 +4365,7 @@ int do_init(int argc, char *argv[])
 
 	do_init_script();
 	do_init_itemdb();
-	do_init_mob();	// npc‚Ì‰Šú‰»‚Åmob_spawn‚µ‚ÄAmob_db‚ğ?Æ‚·‚é‚Ì‚Åinit_npc‚æ‚èæ
+	do_init_mob();	// npc‚Ì‰Šú‰»E‚Åmob_spawn‚µ‚ÄAmob_db‚ğ?Æ‚·‚é‚Ì‚Åinit_npc‚æ‚èæ
 	do_init_pc();
 	do_init_status();
 	do_init_party();

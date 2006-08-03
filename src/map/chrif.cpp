@@ -1858,7 +1858,7 @@ int chrif_parse_var_recv(int fd)
 		set_var((const char *)var.name(), 		
 			(postfix=='$') ?
 			((void *)(const char*)var.value()) :
-			((void *)(ssize_t)atol(var.value())) );
+			((void *)(size_t)(ssize_t)atol(var.value())) );
 
 	}
 	return 0;

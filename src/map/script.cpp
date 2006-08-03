@@ -570,9 +570,7 @@ struct {
 
 
 
-
 enum { LABEL_NEXTLINE=1, LABEL_START };
-
 
 
 
@@ -1419,7 +1417,8 @@ size_t str_size;
 
 
 
-static struct s_str_data {
+static struct s_str_data
+{
 	int type;
 	int str;
 	int backpatch;
@@ -1428,7 +1427,6 @@ static struct s_str_data {
 	int val;
 	int next;
 } *str_data = NULL;
-
 
 
 int str_num=LABEL_START,str_data_size;
@@ -1469,6 +1467,26 @@ int mapreg_setregnum(int num,int val);
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+void debug_script(const char*script, size_t i, size_t sz)
+{
+	sz += i&15;
+	i &= ~15;
+	while(sz>0)
+	{
+		if((i&15)==0) ShowMessage("%04x : ",i);
+		ShowMessage("%02x ", 0xFF&script[i]);
+		if((i&15)==15) ShowMessage("\n");
+
+		sz--;
+		i++;
+	}
+	ShowMessage("\n");
+}
+
+
+
+
 /*==========================================
  * 文字列のハッシュを計算
  *------------------------------------------
@@ -1481,7 +1499,7 @@ unsigned char calc_hash(const char *str)
 		while(*str)
 		{	// calculate hash on lowercase inputs
 			h=(h<<1)+(h>>3)+(h>>5)+(h>>8);
-			h+= tolower( (unsigned char)(*str++) );
+			h+= (unsigned char)(tolower(*str++));
 		}
 	}
 	return h&0xF;
@@ -1833,6 +1851,60 @@ void disp_error_message(const char *mes,const char *pos)
 	}
 }
 
+
+
+/*==========================================
+ * 組み込み関数の追加
+ *------------------------------------------
+ */
+void add_buildin_func(void)
+{
+	int i,n;
+	for(i=0;buildin_func[i].func;++i){
+		n=add_str(buildin_func[i].name);
+		str_data[n].type=CScriptEngine::C_FUNC;
+		str_data[n].val=i;
+		str_data[n].func=buildin_func[i].func;
+	}
+}
+
+/*==========================================
+ * 定数データベースの読み込み
+ *------------------------------------------
+ */
+void read_constdb(void)
+{
+	FILE *fp;
+	char line[1024];
+	char name[1024];
+	int val,n,type;
+
+	fp=basics::safefopen("db/const.txt","r");
+	if(fp==NULL){
+		ShowError("can't read %s\n","db/const.txt");
+		return ;
+	}
+	while(fgets(line,sizeof(line),fp))
+	{
+		if( !get_prepared_line(line) )
+			continue;
+		type=0;
+		if(sscanf(line,"%1024[A-Za-z0-9_],%d,%d",name,&val,&type)>=2 ||
+		   sscanf(line,"%1024[A-Za-z0-9_] %d %d",name,&val,&type)>=2)
+		{
+			basics::tolower(name);
+			n=add_str(name);
+			if(type==0)
+				str_data[n].type=CScriptEngine::C_INT;
+			else
+				str_data[n].type=CScriptEngine::C_PARAM;
+			str_data[n].val=val;
+		}
+	}
+	fclose(fp);
+}
+
+
 /*==========================================
  * 項の解析
  *------------------------------------------
@@ -2117,74 +2189,6 @@ char* parse_line(char *p)
 	return p;
 }
 
-/*==========================================
- * 組み込み関数の追加
- *------------------------------------------
- */
-void add_buildin_func(void)
-{
-	int i,n;
-	for(i=0;buildin_func[i].func;++i){
-		n=add_str(buildin_func[i].name);
-		str_data[n].type=CScriptEngine::C_FUNC;
-		str_data[n].val=i;
-		str_data[n].func=buildin_func[i].func;
-	}
-}
-
-/*==========================================
- * 定数データベースの読み込み
- *------------------------------------------
- */
-void read_constdb(void)
-{
-	FILE *fp;
-	char line[1024];
-	char name[1024];
-	int val,n,type;
-
-	fp=basics::safefopen("db/const.txt","r");
-	if(fp==NULL){
-		ShowError("can't read %s\n","db/const.txt");
-		return ;
-	}
-	while(fgets(line,sizeof(line),fp))
-	{
-		if( !get_prepared_line(line) )
-			continue;
-		type=0;
-		if(sscanf(line,"%1024[A-Za-z0-9_],%d,%d",name,&val,&type)>=2 ||
-		   sscanf(line,"%1024[A-Za-z0-9_] %d %d",name,&val,&type)>=2)
-		{
-			basics::tolower(name);
-			n=add_str(name);
-			if(type==0)
-				str_data[n].type=CScriptEngine::C_INT;
-			else
-				str_data[n].type=CScriptEngine::C_PARAM;
-			str_data[n].val=val;
-		}
-	}
-	fclose(fp);
-}
-
-
-
-void debug_script(const char*script, size_t i, size_t sz)
-{
-	sz += i&15;
-	i &= ~15;
-	while(sz>0)
-	{
-		if((i&15)==0) ShowMessage("%04x : ",i);
-		ShowMessage("%02x ", 0xFF&script[i]);
-		if((i&15)==15) ShowMessage("\n");
-
-		sz--;
-		i++;
-	}
-	ShowMessage("\n");
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 size_t script_object::get_labelpos(const char* labelname) const
@@ -2336,12 +2340,12 @@ script_object* parse_script(unsigned char *src, size_t line)
 			j = str_data[i].backpatch;
 			while(j>0 && j != 0x00ffffff)
 			{
-				next = (0xFF&script_buf[j])
-					 | (0xFF&script_buf[j+1])<<8
-					 | (0xFF&script_buf[j+2])<<16;
-				script_buf[j] = i;
-				script_buf[j+1] = i>>8;
-				script_buf[j+2] = i>>16;
+				next = ((0xFF&script_buf[j])      )
+					 | ((0xFF&script_buf[j+1])<< 8)
+					 | ((0xFF&script_buf[j+2])<<16);
+				script_buf[j  ] = (uchar)(i    );
+				script_buf[j+1] = (uchar)(i>> 8);
+				script_buf[j+2] = (uchar)(i>>16);
 				j = next;
 			}
 		}
@@ -2400,6 +2404,9 @@ script_object* parse_script(unsigned char *src, size_t line)
 	script_buf = NULL;
 	return scr;
 }
+
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////

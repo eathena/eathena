@@ -793,7 +793,7 @@ int recv_to_fifo(int fd)
 		// if there is more on the socket, limit the read size
 		// fifo should be sized that the message with max expected len fit in
 		unsigned long sz = RFIFOSPACE(fd);
-		if( arg > sz ) arg = sz;
+		if( arg >= sz ) arg = sz;
 
 		len=read(SessionGetSocket(fd),(char*)(session[fd]->rdata+session[fd]->rdata_size),arg);
 

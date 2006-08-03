@@ -863,7 +863,7 @@ AtCommandType is_atcommand(const int fd, struct map_session_data &sd, const char
 {
 	const char* str = message;
 	int s_flag = 0;
-	AtCommandInfo info = {AtCommand_None,NULL,0,NULL};
+	AtCommandInfo info = {AtCommand_Unknown,NULL,0,NULL};
 	AtCommandType type;
 
 	if (!config.allow_atcommand_when_mute &&

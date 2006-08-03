@@ -14,6 +14,8 @@ struct map_session_data;
 class CScriptEngine;
 
 
+///////////////////////////////////////////////////////////////////////////////
+/// script configuration structure
 extern struct Script_Config
 {
 	unsigned verbose_mode : 1;
@@ -33,6 +35,10 @@ extern struct Script_Config
 	char logout_event_name[24];
 	char mapload_event_name[24];
 } script_config;
+
+
+
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -738,6 +744,7 @@ struct script_regstr
 
 
 
+///////////////////////////////////////////////////////////////////////////////
 /// temporary script object.
 /// is used as conversion vehicle toward the new script engine
 struct script_object : public basics::noncopyable
