@@ -842,6 +842,10 @@ static struct Damage battle_calc_weapon_attack(
 				flag.arrow = 1;
 				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 				break;
+			case GS_DESPERADO:
+				//This one is the opposite, it consumes ammo, but should count as short range.
+				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_SHORT;
+				break;
 			case CR_SHIELDBOOMERANG:
 			case PA_SHIELDCHAIN:
 				flag.weapon = 0;
@@ -4003,7 +4007,7 @@ void battle_set_defaults() {
 	
 	battle_config.duel_enable = 1;
 	battle_config.duel_allow_pvp = 0;
-	battle_config.duel_allow_pvp = 0;
+	battle_config.duel_allow_gvg = 0;
 	battle_config.duel_allow_teleport = 0;
 	battle_config.duel_autoleave_when_die = 1;
 	battle_config.duel_time_interval = 60;

@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/04
+	* Merged Desperado being a short-range attack. [Skotlex]
 	* Merged correction so that Deluge/Volcano/V.Gale when casted on top of
 	  each other will "fail" on the overlapping cells rather than overriding
 	  them. [Skotlex]
