@@ -4,6 +4,15 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/08/04
+	* Merged correction so that Deluge/Volcano/V.Gale when casted on top of
+	  each other will "fail" on the overlapping cells rather than overriding
+	  them. [Skotlex]
+	* Merged Soul Destroyer no longer applying mastery damage. [Skotlex]
+	* Merged Skill require db, which removes shell restriction from skills, all
+	  gun/shotgun skills just use normal bullets. [Skotlex]
+	* Merged TK Ranker Combo fix where sometimes you couldn't start the combo
+	  with the same skill of the last stance. [Skotlex]
 2006/08/03
 	* Fixed Shotgun not working with bullets [Lupus]
 	* Fixed NPC_CRITICALSLASH not being considered as a Critical hit by the
