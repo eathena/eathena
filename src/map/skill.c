@@ -765,7 +765,7 @@ int skill_get_range2 (struct block_list *bl, int id, int lv)
 	case SN_SHARPSHOOTING:
 	case HT_POWER:
 		if (bl->type == BL_PC)
-			range += pc_checkskill((struct map_session_data *)bl, AC_VULTURE);
+			range += pc_checkskill((TBL_PC*)bl, AC_VULTURE);
 		else
 			range += 10; //Assume level 10?
 		break;
@@ -777,7 +777,7 @@ int skill_get_range2 (struct block_list *bl, int id, int lv)
 	case GS_SPREADATTACK:
 	case GS_GROUNDDRIFT:
 		if (bl->type == BL_PC)
-			range += pc_checkskill((struct map_session_data *)bl, GS_SNAKEEYE);
+			range += pc_checkskill((TBL_PC*)bl, GS_SNAKEEYE);
 		else
 			range += 10; //Assume level 10?
 		break;
@@ -1305,9 +1305,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	case GS_PIERCINGSHOT:
 		sc_start(bl,SC_BLEEDING,(skilllv*3),skilllv,skill_get_time2(skillid,skilllv));
 		break;
-	case GS_FULLBUSTER:
-		sc_start(src,SC_BLIND,(2*skilllv),skilllv,skill_get_time2(skillid,1));
-		break;
 	case NJ_HYOUSYOURAKU:
 		sc_start(bl,SC_FREEZE,(10+10*skilllv),skilllv,skill_get_time2(skillid,skilllv));
 		break;
@@ -1445,6 +1442,9 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		break;
 	case MO_EXTREMITYFIST:
 		sc_start(src,SkillStatusChangeTable(skillid),100,skilllv,skill_get_time2(skillid,skilllv));
+		break;
+	case GS_FULLBUSTER:
+		sc_start(src,SC_BLIND,(2*skilllv),skilllv,skill_get_time2(skillid,skilllv));
 		break;
 	}
 
@@ -2035,9 +2035,9 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 	if(sd && dmg.flag&BF_WEAPON && src != bl && src == dsrc && damage > 0) {
 		if (battle_config.left_cardfix_to_right)
-			battle_drain(sd, tsd, dmg.damage, dmg.damage, tstatus->race, tstatus->mode&MD_BOSS);
+			battle_drain(sd, bl, dmg.damage, dmg.damage, tstatus->race, tstatus->mode&MD_BOSS);
 		else
-			battle_drain(sd, tsd, dmg.damage, dmg.damage2, tstatus->race, tstatus->mode&MD_BOSS);
+			battle_drain(sd, bl, dmg.damage, dmg.damage2, tstatus->race, tstatus->mode&MD_BOSS);
 	}
 
 	if (rdamage>0) {
