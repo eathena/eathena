@@ -33,6 +33,9 @@ Playtester
 
 Date		Added
 ======
+08/04
+	* Enabled Socket Enchanter, it's official thus enabled by default [Playtester]
+	- comment it on your OWN server if you don't want it
 08/03
 	* Merged DTS warper from Trunk, fixed zeny bug. [EVera]
 	* Added Gunslinger Job Quest from Trunk. And enabled it. [Lupus]
