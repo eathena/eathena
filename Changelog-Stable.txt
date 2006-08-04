@@ -5,6 +5,10 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/04
+	* Fixed flag.elefix not being respected in battle_calc_misc_damage.
+	  [Skotlex]
+	* Merged a missing damage adjustment check on Bowling Bash (so that it does
+	  more damage when it isn't a splash attack) [Skotlex]
 	* Merged Desperado being a short-range attack. [Skotlex]
 	* Merged correction so that Deluge/Volcano/V.Gale when casted on top of
 	  each other will "fail" on the overlapping cells rather than overriding

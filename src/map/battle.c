@@ -1279,7 +1279,8 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				}
 				case KN_BOWLINGBASH:
-					skillratio+= 40*skill_lv;
+					//When mflag, this is a no-splash attack, damage gets a bonus of 100% at lv 10.
+					skillratio+= (wflag?50:40)*skill_lv;
 					break;
 				case KN_AUTOCOUNTER:
 				case LK_SPIRALPIERCE:
@@ -2584,7 +2585,8 @@ struct Damage  battle_calc_misc_attack(
 	if(md.damage && flag.cardfix && tsd){
 		int cardfix = 10000;
 		int race2 = status_get_race2(src);
-		cardfix=cardfix*(100-tsd->subele[s_ele])/100;
+		if (flag.elefix)
+			cardfix=cardfix*(100-tsd->subele[s_ele])/100;
 		cardfix=cardfix*(100-tsd->subsize[sstatus->size])/100;
 		cardfix=cardfix*(100-tsd->subrace2[race2])/100;
 		cardfix=cardfix*(100-tsd->subrace[sstatus->race])/100;
@@ -2609,8 +2611,9 @@ struct Damage  battle_calc_misc_attack(
 		md.damage = 0;
 	else if(md.damage && tstatus->mode&MD_PLANT && skill_num != PA_PRESSURE) //Pressure can vaporize plants.
 		md.damage = 1;
-	
-	md.damage=battle_attr_fix(src, target, md.damage, s_ele, tstatus->def_ele, tstatus->ele_lv);
+
+	if(flag.elefix)
+		md.damage=battle_attr_fix(src, target, md.damage, s_ele, tstatus->def_ele, tstatus->ele_lv);
 
 	md.damage=battle_calc_damage(src,target,md.damage,md.div_,skill_num,skill_lv,md.flag);
 	if (map_flag_gvg(target->m))
