@@ -34,6 +34,7 @@ Playtester
 Date		Added
 ======
 08/04
+	* Added some official spawn locations from Aegis [Playtester]
 	* Enabled Socket Enchanter, it's official thus enabled by default [Playtester]
 	- comment it on your OWN server if you don't want it
 08/03
