@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/04
+	* Updated @mobinfo to display slots in the drop information. [Skotlex]
 	* Fixed flag.elefix not being respected in battle_calc_misc_damage.
 	  [Skotlex]
 	* Merged a missing damage adjustment check on Bowling Bash (so that it does
