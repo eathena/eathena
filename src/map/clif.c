@@ -8080,6 +8080,9 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
   	// If player is dead, and is spawned (such as @refresh) send death packet. [Valaris]
 	if(pc_isdead(sd))
 		clif_clearchar_area(&sd->bl,1);
+// Uncomment if you want to make player face in the same direction he was facing right before warping. [Skotlex]
+//	else
+//		clif_changed_dir(&sd->bl, SELF);
 }
 
 /*==========================================
@@ -8445,7 +8448,7 @@ void clif_parse_MapMove(int fd, struct map_session_data *sd) {
  *
  *------------------------------------------
  */
-void clif_changed_dir(struct block_list *bl) {
+void clif_changed_dir(struct block_list *bl, int type) {
 	unsigned char buf[64];
 
 	WBUFW(buf,0) = 0x9c;
@@ -8453,7 +8456,7 @@ void clif_changed_dir(struct block_list *bl) {
 	WBUFW(buf,6) = bl->type==BL_PC?((TBL_PC*)bl)->head_dir:0;
 	WBUFB(buf,8) = unit_getdir(bl);
 
-	clif_send(buf, packet_len_table[0x9c], bl, AREA_WOS);
+	clif_send(buf, packet_len_table[0x9c], bl, type);
 	if (disguised(bl)) {
 		WBUFL(buf,2) = -bl->id;
 		WBUFW(buf,6) = 0;
@@ -8475,7 +8478,7 @@ void clif_parse_ChangeDir(int fd, struct map_session_data *sd) {
 	dir = RFIFOB(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]);
 	pc_setdir(sd, dir, headdir);
 
-	clif_changed_dir(&sd->bl);
+	clif_changed_dir(&sd->bl, AREA_WOS);
 	return;
 }
 

@@ -461,7 +461,7 @@ int unit_setdir(struct block_list *bl,unsigned char dir)
 	ud->dir = dir;
 	if (bl->type == BL_PC) 
 		((TBL_PC *)bl)->head_dir = dir;
-	clif_changed_dir(bl);
+	clif_changed_dir(bl, AREA);
 	return 0;
 }
 
