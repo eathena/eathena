@@ -5,6 +5,11 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/07
+	* SC_GUILDAURA is now removed on logout. [Skotlex]
+	* Merged updated debuff_on_logout setting which enables you to determine
+	  whether negative/positive/both status changes get cleared on logout.
+	  [Skotlex]
+	* Merged ending the Cooking status changes on respawn. [Skotlex]
 	* Merged set_label update where the script engine will error-out and quit
 	  if you try to use a label with an invalid name. [Skotlex]
 	* Moved Adv katar mastery outside the mastery function so that normal
