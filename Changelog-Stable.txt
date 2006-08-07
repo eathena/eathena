@@ -4,6 +4,18 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/08/07
+	* Merged the status change icon corrections to: Guild Auras, Land Endow
+	  effects and Chasewalk. [Skotlex]
+	* Merged SC_SILENCE behaviour, and it is also affected by
+	  status_cast_cancel now. [Skotlex]
+	* Merged SC_SPEEDUP0 stacking with other speed bonuses. [Skotlex]
+	* Merged status change packets using view-class as criteria whether the
+	  packets should be sent or not.  [Skotlex]
+	* Merged Soul of Rogue's 10% speed bonus on chasewalk [Skotlex]
+	* Merged food-stats not being dispelled on death. [Skotlex]
+	* Merged rewritten pc_payzeny which won't use doubles to detect
+	  over/underflows. [Skotlex]
 2006/08/04
 	* Updated @mobinfo to display slots in the drop information. [Skotlex]
 	* Fixed flag.elefix not being respected in battle_calc_misc_damage.

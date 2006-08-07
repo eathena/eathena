@@ -112,7 +112,7 @@ enum {
 	SC_DELUGE,
 	SC_VIOLENTGALE,
 	SC_WATK_ELEMENT,
-	SC_LANDPROTECTOR,
+	SC_LANDPROTECTOR, //Available
 	SC_ARMOR_ELEMENT,
 	SC_NOCHAT,
 	SC_BABY,
@@ -243,13 +243,14 @@ enum {
 	SC_GATLINGFEVER,
 	SC_TATAMIGAESHI,
 	SC_UTSUSEMI,
+	SC_BUNSINJYUTSU,
 	SC_KAENSIN,
 	SC_SUITON,
 	SC_NEN,
 	SC_KNOWLEDGE,
 	SC_SMA,
-	SC_FLING,
-	SC_AVOID,	//240
+	SC_FLING,	//240
+	SC_AVOID,
 	SC_CHANGE,
 	SC_BLOODLUST,
 	SC_FLEET,
@@ -307,8 +308,8 @@ enum {
 	//38: Again Aspd Potion
 	//39: Again Aspd Potion
 	//40: Again Aspd Potion
-	SI_SPEEDPOTION		= 41,
-	//42: Again Speed Up
+	SI_SPEEDPOTION1	= 41,
+	SI_SPEEDPOTION2	= 42,
 	SI_STRIPWEAPON		= 50,
 	SI_STRIPSHIELD		= 51,
 	SI_STRIPARMOR		= 52,
@@ -336,13 +337,14 @@ enum {
 	SI_TENSIONRELAX		= 106,
 	SI_BERSERK		= 107,
 	SI_ASSUMPTIO		= 110,
-	SI_GUILDAURA		= 112,
+	SI_LANDENDOW	= 112,
 	SI_MAGICPOWER		= 113,
 	SI_EDP			= 114,
 	SI_TRUESIGHT		= 115,
 	SI_WINDWALK		= 116,
 	SI_MELTDOWN		= 117,
 	SI_CARTBOOST		= 118,
+	//119, blank
 	SI_REJECTSWORD		= 120,
 	SI_MARIONETTE		= 121,
 	SI_MARIONETTE2		= 122,
@@ -351,7 +353,7 @@ enum {
 	SI_JOINTBEAT		= 125,
 	SI_DEVOTION		= 130,
 	SI_STEELBODY		= 132,
-	SI_CHASEWALK		= 134,
+	//134 - Soullink-like effect which makes the character get wavy.
 	SI_READYSTORM		= 135,
 	SI_READYDOWN		= 137,
 	SI_READYTURN		= 139,
@@ -379,7 +381,7 @@ enum {
 	SI_MOON_COMFORT		= 170,	
 	SI_STAR_COMFORT		= 171,	
 	SI_PRESERVE		= 181,
-	SI_BATTLEORDERS		= 182,
+	SI_INCSTR	= 182,
 	SI_INTRAVISION	= 184, //WTF?? creates the black shape of 4_m_02 NPC, with NPC talk cursor. Supposedly intravision shows this.
 	SI_DOUBLECAST		= 186,
 	SI_MAXOVERTHRUST	= 188,
@@ -392,8 +394,8 @@ enum {
 	SI_MADNESSCANCEL	= 203,	//[blackhole89]
 	SI_GATLINGFEVER		= 204,
 	SI_TKREST = 205, // 205 = Gloria again (but TK- Happy State looks like it)
-	SI_MAEMI			= 206,
-	// 207 = crash
+	SI_UTSUSEMI			= 206,
+	SI_BUNSINJYUTSU		= 207,
 	SI_NEN				= 208,
 	SI_ADJUSTMENT		= 209,
 	SI_ACCURACY			= 210
