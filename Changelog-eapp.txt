@@ -1,4 +1,10 @@
 Date	Added
+08/07
+	* some renaming of external header/lib folders before moving them
+	* gcc4 errors/warnings removed (at least the important ones)
+	* moved cygwin's nonexisting wcs timer function warning/fix to proper place
+	* added a general solution for the VC7 parser bug at map.cpp
+	* some changes on config line preperation but not finished yet
 08/03
 	* Refined VC++ stuff, everything should work flawlessly [DracoRPG]
 	  - There's only one debug build configuration, SQL/TXT hybrid

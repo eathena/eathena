@@ -79,7 +79,7 @@ template<class T> const T* toupper(T* str)
 	{
 		T *src=str;
 		while(*src)
-			*src++ = upcase(*src);
+			*src = upcase(*src), ++src;
 	}
 	return str;
 }
@@ -94,7 +94,7 @@ template<class T> const T* tolower(T* str)
 	{
 		T *src=str;
 		while(*src)
-			*src++ = locase(*src);
+			*src = locase(*src), ++src;
 	}
 	return str;
 }

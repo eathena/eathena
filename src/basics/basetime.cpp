@@ -2,29 +2,6 @@
 #include "basetime.h"
 
 
-///////////////////////////////////////////////////////////////////////////////
-/// missing wchar time defines (ie. cygwin)
-#if defined(__CYGWIN__) && !defined(_WTIME_DEFINED)
-
-#ifdef __GNUC__ 
-// message convention for gnu compilers
-#warning "there are no WTIME system function defined, using empty stubs"
-#else // no __GNUC__ 
-// message convention for visual c compilers
-#pragma message ( "there are no WTIME system function defined, using empty stubs" )
-#endif
-
-// have a rudimentary definition
-inline wchar_t * __cdecl _wasctime(const struct tm *)	{ return NULL; }
-inline wchar_t * __cdecl _wctime(const time_t *)		{ return NULL; }
-inline size_t __cdecl wcsftime(wchar_t *, size_t, const wchar_t *, const struct tm *)	{ return 0; }
-inline wchar_t * __cdecl _wstrdate(wchar_t *)		{ return NULL; }
-inline wchar_t * __cdecl _wstrtime(wchar_t *)		{ return NULL; }
-
-#define _WTIME_DEFINED
-#endif
-
-
 NAMESPACE_BEGIN(basics)
 
 //////////////////////////////////////////////////////////////////////////

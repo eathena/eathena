@@ -6,20 +6,19 @@
 
 class Variant
 {
+	typedef enum _value_type
+	{
+		VAR_NONE = 0,
+		VAR_INTEGER,
+		VAR_STRING,
+		VAR_FLOAT,
+		VAR_ARRAY,
+	} var_t;
+
 	class _value
 	{
 		friend class Variant;
-
-		typedef enum _value_type
-		{
-			VAR_NONE = 0,
-			VAR_INTEGER,
-			VAR_STRING,
-			VAR_FLOAT,
-			VAR_ARRAY,
-		} VARTYPE;
-
-		VARTYPE			cType;
+		var_t			cType;
 		union
 		{	// integer
 			int64		cInteger;
@@ -336,22 +335,22 @@ public:
 	// local conversions
 	void convert2string()
 	{
-		if(cValue->cType!=_value::VAR_STRING)
+		if(cValue->cType!=VAR_STRING)
 		{
 			switch(cValue->cType)
 			{
-			case _value::VAR_NONE:
+			case VAR_NONE:
 				assign("");
 				break;
-			case _value::VAR_INTEGER:
+			case VAR_INTEGER:
 				assign( string<>((int)(cValue->cInteger)) );
 				break;
-			case _value::VAR_FLOAT:
+			case VAR_FLOAT:
 				assign( string<>(cValue->cFloat) );
 				break;
-			case _value::VAR_STRING:
+			case VAR_STRING:
 				break;
-			case _value::VAR_ARRAY:
+			case VAR_ARRAY:
 				assign( cValue->cArray[0].getString() );
 				break;
 			}
@@ -359,21 +358,21 @@ public:
 	}
 	void convert2float()
 	{
-		if(cValue->cType!=_value::VAR_FLOAT)
+		if(cValue->cType!=VAR_FLOAT)
 		{
 			assign( this->getFloat() );
 		}
 	}
 	void convert2int()
 	{
-		if(cValue->cType!=_value::VAR_INTEGER)
+		if(cValue->cType!=VAR_INTEGER)
 		{
 			assign( this->getInt() );
 		}
 	}
 	void convert2number()
 	{
-		if(cValue->cType!=_value::VAR_INTEGER && cValue->cType!=_value::VAR_FLOAT)
+		if(cValue->cType!=VAR_INTEGER && cValue->cType!=VAR_FLOAT)
 		{
 			if( this->getFloat() != floor(this->getFloat()) )
 				assign( this->getFloat() );
@@ -399,15 +398,15 @@ public:
 	{
 		switch(cValue->cType)
 		{
-		case _value::VAR_NONE:
+		case VAR_NONE:
 			break;
-		case _value::VAR_INTEGER:
+		case VAR_INTEGER:
 			return string<>((int)(cValue->cInteger));
-		case _value::VAR_FLOAT:
+		case VAR_FLOAT:
 			return string<>(cValue->cFloat);
-		case _value::VAR_STRING:
+		case VAR_STRING:
 			return *((string<>*)(cValue->cString));
-		case _value::VAR_ARRAY:
+		case VAR_ARRAY:
 			return cValue->cArray[0].getString();
 		}	
 		return string<>("");
@@ -416,15 +415,15 @@ public:
 	{
 		switch(cValue->cType)
 		{
-		case _value::VAR_NONE:
+		case VAR_NONE:
 			break;
-		case _value::VAR_INTEGER:
+		case VAR_INTEGER:
 			return (int)(cValue->cInteger);
-		case _value::VAR_FLOAT:
+		case VAR_FLOAT:
 			return cValue->cFloat;
-		case _value::VAR_STRING:
+		case VAR_STRING:
 			return atof(*((string<>*)(cValue->cString)));
-		case _value::VAR_ARRAY:
+		case VAR_ARRAY:
 			return cValue->cArray[0].getFloat();
 		}	
 		return 0.0;
@@ -433,15 +432,15 @@ public:
 	{
 		switch(cValue->cType)
 		{
-		case _value::VAR_NONE:
+		case VAR_NONE:
 			break;
-		case _value::VAR_INTEGER:
+		case VAR_INTEGER:
 			return (int)(cValue->cInteger);
-		case _value::VAR_FLOAT:
+		case VAR_FLOAT:
 			return (int)( floor(0.5+cValue->cFloat) );
-		case _value::VAR_STRING:
+		case VAR_STRING:
 			return atoi(*((string<>*)(cValue->cString)));
-		case _value::VAR_ARRAY:
+		case VAR_ARRAY:
 			return cValue->cArray[0].getInt();
 		}	
 		return 0;
@@ -1184,7 +1183,6 @@ public:
 	{
 		return 0>=compare(*this,v);
 	}
-
 };
 
 ///////////////////////////////////////////////////////////////////////////////

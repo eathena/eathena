@@ -186,7 +186,6 @@ const char *get_prepared_line(const char *line)
 	// and return NULL on EOF or following "//"
 	if(line)
 	{
-		//while( stringcheck::isspace(*line) ) line++; // not that stable as hoped
 		while( *line==0x20 || (*line>=0x09 && *line<=0x0D) ) line++;
 		if(*line && (line[0]!='/' || line[1]!='/'))
 			return line;

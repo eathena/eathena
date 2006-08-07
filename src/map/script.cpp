@@ -564,13 +564,13 @@ struct {
 
 
 
-
-
-
-
-
-
 enum { LABEL_NEXTLINE=1, LABEL_START };
+
+
+
+struct Script_Config script_config;
+
+
 
 
 
@@ -1411,13 +1411,97 @@ int CScript::getCommand(unsigned int &pos)
 static char * script_buf = NULL;
 static size_t script_pos, script_size;
 
-char *str_buf;
-size_t str_pos;
-size_t str_size;
 
 
+///////////////////////////////////////////////////////////////////////////////
+/// linear string buffer. returns position offsets of inserted strings
+/// could be replaced by basics::dbstring<> later
+class CStringBuffer
+{
+	char*	cBuf;
+	char*	cWpp;
+	char*	cEnd;
+public:
+	CStringBuffer() : cBuf(NULL),cWpp(NULL),cEnd(NULL)
+	{	// add an default empty string in front
+		this->insert("");	
+	}
+	~CStringBuffer()
+	{
+		clear();
+	}
 
-static struct s_str_data
+	void clear()
+	{
+		if(this->cBuf)
+		{
+			delete[] this->cBuf;
+			this->cBuf=NULL;
+			this->cWpp=NULL;
+			this->cEnd=NULL;
+		}
+	}
+	bool realloc(size_t addition)
+	{
+		if( (size_t)(this->cEnd-this->cWpp)< addition )
+		{
+			size_t cn = this->cWpp-this->cBuf;
+			size_t sz = this->cEnd-this->cBuf;
+			sz += (sz<addition)?addition:sz;
+
+			char* tmp = new char[sz];
+			if(NULL==tmp)
+				return false;
+			if(this->cBuf)
+			{
+				memcpy(tmp, this->cBuf, cn);
+				delete[] this->cBuf;
+			}
+			this->cBuf = tmp;
+			this->cWpp = tmp+cn;
+			this->cEnd = tmp+sz;
+		}
+		return true;
+	}
+
+	size_t insert(const char* str)
+	{
+		if(str)
+		{
+			size_t ret= cWpp-cBuf;
+			size_t sz = 1+strlen(str);
+			if( realloc(sz) )
+			{
+				// doing the obvious way
+				//while( *str ) *cWpp++ = *str++;	// copy the string
+				//*cWpp++ = 0;						// add the terminator
+
+				// memcopy is faster because it copies full bus width 
+				// and we already did our log(n) operation with counting the string
+				memcpy(cWpp,str,sz);
+				cWpp+=sz;
+			}
+			return ret;
+		}
+		// the default empty string
+		return 0;
+	}
+
+	const char* get(size_t ofs)
+	{
+		if( (size_t)(this->cWpp-this->cBuf) > ofs )
+		{
+			return cBuf+ofs;
+		}
+		return cBuf;
+	}
+
+	const char* operator()(size_t ofs)	{ return this->get(ofs); }
+
+};
+
+
+struct s_str_data
 {
 	int type;
 	int str;
@@ -1426,7 +1510,40 @@ static struct s_str_data
 	int (*func)(CScriptEngine &);
 	int val;
 	int next;
-} *str_data = NULL;
+
+
+private:
+	static CStringBuffer cStrbuf;
+
+public:
+	s_str_data() : 
+		type(CScriptEngine::C_NOP),
+		str(0),
+		next(0),
+		func(NULL),
+		backpatch(-1),
+		label(-1)
+	{}
+
+	const char*string()
+	{
+		return this->cStrbuf.get(this->str);
+	}
+	void insert(const char* str)
+	{
+		this->str = this->cStrbuf.insert(str);
+		this->type=CScriptEngine::C_NOP;
+		this->next=0;
+		this->func=NULL;
+		this->backpatch=-1;
+		this->label=-1;
+	}
+};
+
+CStringBuffer s_str_data::cStrbuf;
+
+
+static  s_str_data* str_data = NULL;
 
 
 int str_num=LABEL_START,str_data_size;
@@ -1442,10 +1559,9 @@ static struct dbt *userfunc_db=NULL;
 
 struct dbt* script_get_userfunc_db(){ if(!userfunc_db) userfunc_db=strdb_init(50); return userfunc_db; }
 
-int scriptlabel_final(void *k,void *d){ return 0; }
 static char positions[11][64] = {"頭","体","左手","右手","ローブ","靴","アクセサリー1","アクセサリー2","頭2","頭3","装着していない"};
 
-struct Script_Config script_config;
+
 
 static int parse_cmd_if=0;
 static int parse_cmd;
@@ -1518,7 +1634,7 @@ int search_str(const char *p)
 	{	// function names could be case-insensitive
 		//bool casesens = (str_data[i].type!=CScriptEngine::C_FUNC);
 		bool casesens = false;
-		if( 0==( (casesens)?strcmp(str_buf+str_data[i].str, p):strcasecmp(str_buf+str_data[i].str, p) ) )
+		if( 0==( (casesens)?strcmp(str_data[i].string(), p):strcasecmp(str_data[i].string(), p) ) )
 			return i;
 		i=str_data[i].next;
 	}
@@ -1550,7 +1666,7 @@ int add_str(const char *p)
 		i=str_hash[i];
 		for(;;)
 		{
-			if(strcmp(str_buf+str_data[i].str,p)==0)
+			if(strcmp(str_data[i].string(),p)==0)
 				return i;
 			if(str_data[i].next==0)
 				break;
@@ -1563,20 +1679,8 @@ int add_str(const char *p)
 	{
 		str_data_size = new_realloc(str_data, str_data_size, 128);
 	}
-	while(str_pos+strlen(p)+1>=str_size)
-	{
-		str_size = new_realloc(str_buf, str_size, 256);
-	}
-	memcpy(str_buf+str_pos,p,strlen(p)+1);
 
-	str_data[str_num].type=CScriptEngine::C_NOP;
-	str_data[str_num].str=str_pos; // next inserting position
-	str_data[str_num].next=0;
-	str_data[str_num].func=NULL;
-	str_data[str_num].backpatch=-1;
-	str_data[str_num].label=-1;
-	
-	str_pos += strlen(p)+1;
+	str_data[str_num].insert(p);
 	return str_num++;
 }
 
@@ -2691,9 +2795,9 @@ void CScriptEngine::ConvertName(CScriptEngine::CValue &data)
 	if(data.type==CScriptEngine::C_NAME)
 	{
 		int datanum = data.num;
-		char *name=str_buf+str_data[data.num&0x00ffffff].str;
-		char prefix=*name;
-		char postfix=name[strlen(name)-1];
+		const char *name=str_data[data.num&0x00ffffff].string();
+		const char prefix=*name;
+		const char postfix=name[strlen(name)-1];
 
 		if(postfix=='$')
 		{
@@ -2777,7 +2881,7 @@ const char* CScriptEngine::GetString(CScriptEngine::CValue &data)
 	else if(data.type==CScriptEngine::C_NAME)
 	{	// テンポラリ。本来無いはず
 		data.type=CScriptEngine::C_CONSTSTR;
-		data.str=str_buf+str_data[data.num].str;
+		data.str=str_data[data.num].string();
 	}
 	return (data.str)?data.str:"";
 }
@@ -3084,7 +3188,7 @@ int CScriptEngine::run_func()
 	if( stack_data[this->start].type!=C_NAME || str_data[func].type!=C_FUNC )
 	{
 		ShowMessage ("run_func: '"CL_WHITE"%s"CL_RESET"' (type %d) is not function and command!\n",
-			str_buf + str_data[func].str, str_data[func].type);
+			str_data[func].string(), str_data[func].type);
 		state=END;
 		return 0;
 	}
@@ -3120,7 +3224,7 @@ int CScriptEngine::run_func()
 	else
 	{
 		if(config.error_log)
-			ShowError("run_func : %s? (%d(%d))\n",str_buf+str_data[func].str,func,str_data[func].type);
+			ShowError("run_func : %s? (%d(%d))\n",str_data[func].string(),func,str_data[func].type);
 		push_val(C_INT,0);
 	}
 	pop_stack(start_sp, end_sp);
@@ -3660,8 +3764,8 @@ int buildin_input(CScriptEngine &st)
 	if( st.sd )
 	{
 		int num=(st.end>st.start+2)?st[2].num:0;
-		char *name=(st.end>st.start+2)?str_buf+str_data[num&0x00ffffff].str:(char*)"";
-		char postfix=name[strlen(name)-1];
+		const char *name=(st.end>st.start+2)?str_data[num&0x00ffffff].string():"";
+		const char postfix=name[strlen(name)-1];
 		if( st.Rerun() )
 		{
 			uint32 id = st.send_defaultnpc();
@@ -3729,7 +3833,7 @@ int buildin_goto(CScriptEngine &st)
 	if(st[2].type != CScriptEngine::C_POS)
 	{
 		int func = st.GetInt(st[2]);
-		ShowMessage("script: goto '"CL_WHITE"%s"CL_RESET"': not label!\n", str_buf + str_data[func].str);
+		ShowMessage("script: goto '"CL_WHITE"%s"CL_RESET"': not label!\n", str_data[func].string());
 		st.Quit();
 		return 0;
 	}
@@ -3969,8 +4073,8 @@ int buildin_set(CScriptEngine &st)
 	int num=st[2].num;
 	if( (num&0x00ffffff) < str_num )
 	{
-		char *name=str_buf+str_data[num&0x00ffffff].str;
-		char postfix=name[strlen(name)-1];
+		const char *name=str_data[num&0x00ffffff].string();
+		const char postfix=name[strlen(name)-1];
 
 		if( st[2].type!=CScriptEngine::C_NAME )
 		{
@@ -4000,9 +4104,9 @@ int buildin_setarray(CScriptEngine &st)
 	int num=st[2].num;
 	if( (num&0x00ffffff) < str_num )
 	{
-		char *name=str_buf+str_data[num&0x00ffffff].str;
-		char prefix=*name;
-		char postfix=name[strlen(name)-1];
+		const char *name=str_data[num&0x00ffffff].string();
+		const char prefix=*name;
+		const char postfix=name[strlen(name)-1];
 		size_t i,j;
 
 		if( prefix!='$' && prefix!='@' )
@@ -4032,9 +4136,9 @@ int buildin_cleararray(CScriptEngine &st)
 	int num=st[2].num;
 	if( (num&0x00ffffff) < str_num )
 	{
-		char *name=str_buf+str_data[num&0x00ffffff].str;
-		char prefix=*name;
-		char postfix=name[strlen(name)-1];
+		const char *name=str_data[num&0x00ffffff].string();
+		const char prefix=*name;
+		const char postfix=name[strlen(name)-1];
 		int sz=st.GetInt(st[4]);
 		int i;
 		void *v;
@@ -4066,12 +4170,12 @@ int buildin_copyarray(CScriptEngine &st)
 	int num2=st[3].num;
 	if( (num&0x00ffffff) < str_num && (num2&0x00ffffff) < str_num )
 	{
-		char *name=str_buf+str_data[num&0x00ffffff].str;
-		char prefix=*name;
-		char postfix=name[strlen(name)-1];
-		char *name2=str_buf+str_data[num2&0x00ffffff].str;
-		char prefix2=*name2;
-		char postfix2=name2[strlen(name2)-1];
+		const char *name=str_data[num&0x00ffffff].string();
+		const char prefix=*name;
+		const char postfix=name[strlen(name)-1];
+		const char *name2=str_data[num2&0x00ffffff].string();
+		const char prefix2=*name2;
+		const char postfix2=name2[strlen(name2)-1];
 		int sz=st.GetInt(st[4]);
 		int i;
 
@@ -4110,9 +4214,9 @@ int buildin_getarraysize(CScriptEngine &st)
 	int num=st[2].num;
 	if( (num&0x00ffffff) < str_num )
 	{
-		char *name=str_buf+str_data[num&0x00ffffff].str;
-		char prefix=*name;
-		char postfix=name[strlen(name)-1];
+		const char *name=str_data[num&0x00ffffff].string();
+		const char prefix=*name;
+		const char postfix=name[strlen(name)-1];
 
 		if( prefix!='$' && prefix!='@' )
 		{
@@ -4134,9 +4238,9 @@ int buildin_deletearray(CScriptEngine &st)
 	int num=st[2].num;
 	if( (num&0x00ffffff) < str_num )
 	{
-		char *name=str_buf+str_data[num&0x00ffffff].str;
-		char prefix=*name;
-		char postfix=name[strlen(name)-1];
+		const char *name=str_data[num&0x00ffffff].string();
+		const char prefix=*name;
+		const char postfix=name[strlen(name)-1];
 		int count=1;
 		int i,sz=getarraysize(st,num,postfix)-(num>>24)-count+1;
 
@@ -9077,9 +9181,9 @@ int buildin_getmapxy(CScriptEngine &st)
 		struct npc_data *nd;
 		struct pet_data *pd;
 		int num;
-		char *name;
+		const char *name;
 		int x,y,type;
-		char *mapname=NULL;
+		const char *mapname=NULL;
 
 		if( st[2].type!=CScriptEngine::C_NAME )
 		{
@@ -9164,15 +9268,15 @@ int buildin_getmapxy(CScriptEngine &st)
 	
 		//Set MapName$
 		num=st[2].num;
-		name=(char *)(str_buf+str_data[num&0x00ffffff].str);
-		set_reg(st,num,name,mapname);
+		name=str_data[num&0x00ffffff].string();
+		set_reg(st,num,name,(void*)mapname);
 		//Set MapX
 		num=st[3].num;
-		name=(char *)(str_buf+str_data[num&0x00ffffff].str);
+		name=str_data[num&0x00ffffff].string();
 		set_reg(st,num,name,(void*)((size_t)x));
 		//Set MapY
 		num=st[4].num;
-		name=(char *)(str_buf+str_data[num&0x00ffffff].str);
+		name=str_data[num&0x00ffffff].string();
 		set_reg(st,num,name,(void*)((size_t)y));
 		//Return Success value
 		ret = 0;
@@ -9990,7 +10094,7 @@ public:
 	virtual bool process(void *key, void *data) const
 	{
 		int num=((size_t)key)&0x00FFFFFF, i=(((size_t)key)>>24)&0xFF;
-		char *name=str_buf+str_data[num].str;
+		const char *name=str_data[num].string();
 		if( name[1]!='@' ){
 			if(i==0)
 				fprintf(fp,"%s\t%d\n", name, (int)((size_t)data));
@@ -10009,7 +10113,7 @@ public:
 	virtual bool process(void *key, void *data) const
 	{
 		int num=((size_t)key)&0x00FFFFFF, i=(((size_t)key)>>24)&0xFF;
-		char *name=str_buf+str_data[num].str;
+		const char *name=str_data[num].string();
 		if( name[1]!='@' ){
 			if(i==0)
 				fprintf(fp,"%s\t%s\n", name, (char *)data);
@@ -10196,11 +10300,6 @@ int do_final_script()
 	{
 		delete[] str_data;
 		str_data=NULL;
-	}
-	if(str_buf)
-	{
-		delete[] str_buf;
-		str_buf=NULL;
 	}
 
 	return 0;

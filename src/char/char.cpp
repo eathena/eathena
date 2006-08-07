@@ -2846,8 +2846,9 @@ int char_config_read(const char *cfgName)
 		return 0;
 	}
 
-	while(fgets(line, sizeof(line), fp)) {
-		if( !get_prepared_line(line) )
+	while(fgets(line, sizeof(line), fp))
+	{
+		if( !prepare_line(line) )
 			continue;
 
 		line[sizeof(line)-1] = '\0';

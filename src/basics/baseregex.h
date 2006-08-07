@@ -126,11 +126,41 @@ private:
 			uint	cMultiLineSE : 1;
 			uint	cPCREconform : 1;
 			uint	cParenDisable : 1;
-			uint	_unused : 12;
+			uint	_unused : 10;
+			/// constructor
 			_config(bool stat=true, bool icase=true, bool multidt=true, bool multise=true, bool conform=true)
 				: cStatus(stat),cCaseInSensitive(icase),cMultiLineDT(multidt),cMultiLineSE(multise),cPCREconform(conform),
 				cParenDisable(false)
 			{}
+			/// config data to integer conversion.
+			ushort get() const
+			{
+				return	(0x0001 * cStatus) |
+						(0x0002 * cCaseInSensitive) |
+						(0x0004 * cMultiLineDT) |
+						(0x0008 * cMultiLineSE) |
+						(0x0010 * cPCREconform) |
+						(0x0020 * cParenDisable);
+			}
+			operator ushort() const
+			{
+				return this->get();
+			}
+			/// integer to config data conversion.
+			void set(ushort v)
+			{
+				cStatus				= (v&0x0001)==0x0001;
+				cCaseInSensitive	= (v&0x0002)==0x0002;
+				cMultiLineDT		= (v&0x0004)==0x0004;
+				cMultiLineSE		= (v&0x0008)==0x0008;
+				cPCREconform		= (v&0x0010)==0x0010;
+				cParenDisable		= (v&0x0020)==0x0020;
+			}
+			const _config& operator =(ushort v)
+			{
+				this->set(v);
+				return *this;
+			}
 		} cConfig;
 #ifdef DEBUG
 		string<> cExpression;		///< the regex itself

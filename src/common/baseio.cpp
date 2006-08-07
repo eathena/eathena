@@ -10,6 +10,22 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
+// database implementation selection
+// compile switches are:
+// WITH_MYSQL	- for MySQL support available
+// WITH_TEXT	- for text support available
+// when both defined at compilation, it is swichable
+// using command line option or config file entry named "database_engine"
+// usable values are "sql" or "txt"
+///////////////////////////////////////////////////////////////////////////////
+#if !defined(WITH_MYSQL) && !defined(WITH_TEXT)
+#error "no database implementation specified, define 'WITH_MYSQL','WITH_TEXT' or both"
+#endif
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
 // for simplicity have global database selection parameters. 
 // move to the database wrapper class when debugging is finished
 basics::Mutex									_parammtx;	///< lock

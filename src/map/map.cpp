@@ -2351,8 +2351,14 @@ int map_reqchariddb(const map_session_data &sd, uint32 charid)
 	charid2nick *p= (charid2nick*)numdb_search(charid_db,charid);
 	if(p==NULL)
 	{	// not in database -> create new
-		// explititly using the basetype of sd here since of an ugly VC7 bug
-		p = new charid2nick(sd.map_session_data::block_list::id);
+
+		// explicitly using this way since of an ugly VC7 bug
+		// that errors on statements like new typename(var.baseclass::baseelement)
+		// if baseclass is deeper than one inheritance
+		// specifying the full inheritance again does not work on VC6
+		const size_t id =sd.block_list::id;
+		p = new charid2nick(id);
+
 		numdb_insert(charid_db,charid,p);
 	}
 	return 0;

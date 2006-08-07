@@ -113,7 +113,7 @@ class _tmpbuf
 	size_t sz;
 	char* storage;
 public:
-	_tmpbuf() : sz(4096), storage(new char[sz])
+	_tmpbuf() : sz(256), storage(new char[sz])
 	{ }
 	~_tmpbuf()
 	{
@@ -144,17 +144,9 @@ int	VPRINTF(const char *fmt, va_list argptr)
 	if (!handle)
 		handle = GetStdHandle(STD_OUTPUT_HANDLE);
 
-	do
-	{
-		// print
-		if( vsnprintf(tempbuf, tempbuf.size(), fmt, argptr) >=0 ) // returns -1 in case of error
-			break; // print ok, can break
-		// otherwise
-		tempbuf.realloc();
-		// which doubled the size of the buffer
-		// and loop in again
-	} while(1); 
-
+	for(; vsnprintf(tempbuf, tempbuf.size(), fmt, argptr)<0; tempbuf.realloc());
+	// vsnprintf returns -1 in case of insufficient buffer size
+	// tempbuf.realloc doubles the size of the buffer in this case
 
 	// start with processing
 	p = tempbuf;
@@ -162,7 +154,6 @@ int	VPRINTF(const char *fmt, va_list argptr)
 	{	// find the escape character
 		if( 0==WriteConsole(handle, p, q-p, &written, 0) ) // write up to the escape
 			WriteFile(handle, p, q-p, &written, 0);
-
 
 		if( q[1]!='[' )
 		{	// write the escape char (whatever purpose it has) 
@@ -208,7 +199,7 @@ int	VPRINTF(const char *fmt, va_list argptr)
 					// and next number
 					continue;
 				}
-				else if( q[0] == 'm' )
+				else if( *q == 'm' )
 				{	// \033[#;...;#m - Set Graphics Rendition (SGR)
 					uint i;
 					for(i=0; i<= numpoint; ++i)
@@ -336,7 +327,7 @@ int	VPRINTF(const char *fmt, va_list argptr)
 					FillConsoleOutputAttribute(handle, info.wAttributes, cnt, origin, NULL);
 					FillConsoleOutputCharacter(handle, ' ',              cnt, origin, NULL);
 				}
-				else if( *q == 'H' || q[0] == 'f' )
+				else if( *q == 'H' || *q == 'f' )
 				{	// \033[#;#H - Cursor Position (CUP)
 					// \033[#;#f - Horizontal & Vertical Position
 					// The first # specifies the line number, the second # specifies the column. 

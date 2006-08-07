@@ -490,7 +490,7 @@ typedef uint64 identifier;
 
 // predeclaration
 class CIDClient;
-
+class CIDVal;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// server for dynamic id's.

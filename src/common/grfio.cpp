@@ -824,7 +824,7 @@ int grfio_entryread(const char *gfname, int gentry)
 				aentry.srcpos         = getlong(grf_filelist+ofs2+13)+0x2e;
 				aentry.cycle          = srccount;
 				aentry.type           = type;
-				safestrcpy(aentry.fn,(char*)fname,sizeof(aentry.fn)-1);
+				safestrcpy(aentry.fn,fname,sizeof(aentry.fn)-1);
 #ifdef	GRFIO_LOCAL
 				aentry.gentry         = -(gentry+1);	// As Flag for making it a negative number carrying out the first time LocalFileCheck
 #else
@@ -902,10 +902,11 @@ int grfio_entryread(const char *gfname, int gentry)
 				{
 					srccount = 0;
 				}
-				else
-				{	// if (grf_filelist[ofs2+12]==1) {
+				else// if (grf_filelist[ofs2+12]==1)
+				{	
 					srccount = -1;
 				}
+
 				aentry.srclen         = srclen;
 				aentry.srclen_aligned = getlong(grf_filelist+ofs2+4);
 				aentry.declen         = getlong(grf_filelist+ofs2+8);
@@ -1082,17 +1083,22 @@ void grfio_init(const char *fname)
 	{
 		while(fgets(line, sizeof(line), data_conf))
 		{
-			if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2)
+			if( !prepare_line(line) )
+				continue;
+			if( sscanf(line, "%1024[^:]:%1024[^\r\n]", w1, w2) == 2 ||
+				sscanf(line, "%1024[^:]=%1024[^\r\n]", w1, w2) == 2 )
 			{
-			// Entry table reading
-			if( strcmp(w1, "grf") == 0 ||
-				strcmp(w1, "data") == 0 ||	// Primary data file
-				strcmp(w1, "sdata") == 0 ||	// Sakray data file
-				strcmp(w1, "adata") == 0)	// Alpha version data file
-				// increment if successfully loaded
-				result += (grfio_add(w2) == 0);
-			else if(strcmp(w1,"data_dir") == 0)	// Data directory
-				strcpy(data_dir, w2);
+				basics::trim(w1);
+				basics::trim(w2);
+				// Entry table reading
+				if( strcmp(w1, "grf") == 0 ||
+					strcmp(w1, "data") == 0 ||	// Primary data file
+					strcmp(w1, "sdata") == 0 ||	// Sakray data file
+					strcmp(w1, "adata") == 0)	// Alpha version data file
+					// increment if successfully loaded
+					result += (grfio_add(w2) == 0);
+				else if(strcmp(w1,"data_dir") == 0)	// Data directory
+					strcpy(data_dir, w2);
 			}
 		}
 		fclose(data_conf);

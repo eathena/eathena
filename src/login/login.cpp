@@ -2553,7 +2553,7 @@ int login_config_read(const char *cfgName)
 	ShowStatus("Reading Login Configuration %s\n", cfgName);
 	while( fgets(line, sizeof(line), fp) )
 	{
-		if( !get_prepared_line(line) )
+		if( !prepare_line(line) )
 			continue;
 		
 		line[sizeof(line)-1] = '\0';

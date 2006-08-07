@@ -693,7 +693,7 @@ bool msg_config_read(const char *cfgName)
 	}
 	while(fgets(line, sizeof(line), fp))
 	{
-		if( !get_prepared_line(line) )
+		if( !prepare_line(line) )
 			continue;
 		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2)
 		{
@@ -779,7 +779,7 @@ bool atcommand_config_read(const char *cfgName)
 	}
 
 	while (fgets(line, sizeof(line), fp)) {
-		if( !get_prepared_line(line) )
+		if( !prepare_line(line) )
 			continue;
 
 		if (sscanf(line, "%1023[^:]:%1023s", w1, w2) != 2)

@@ -1116,10 +1116,7 @@ struct map_session_data : public fightable, public session_data
 		if(p) free(p);
 	}
 
-	map_session_data(int fdi=0, int packver=0, uint32 account_id=0, uint32 char_id=0, uint32 login_id1=0, uint32 client_tick=0, unsigned char sex=0)
-	{
-		this->init(fdi, packver, account_id, char_id, login_id1, client_tick, sex);
-	}
+	map_session_data(int fdi=0, int packver=0, uint32 account_id=0, uint32 char_id=0, uint32 login_id1=0, uint32 login_id2=0, uint32 client_tick=0, unsigned char sex=0);
 	virtual ~map_session_data()
 	{}
 
@@ -1165,56 +1162,8 @@ private:
 	map_session_data(const map_session_data& m);
 	const map_session_data& operator=(const map_session_data& m);
 
-protected:
-	void init(int fdi=0, int packver=0, uint32 account_id=0, uint32 char_id=0, uint32 login_id1=0, uint32 client_tick=0, unsigned char sex=0)
-	{
-		size_t i;
-		unsigned long tick = gettick();
-
-		this->fd				= fdi;
-		this->packet_ver		= packver;
-
-		this->block_list::id	= account_id;
-		this->block_list::type	= BL_PC;
-
-		this->status.char_id	= char_id;
-		this->status.sex		= sex;
-
-		this->login_id1			= login_id1;
-		this->login_id2			= 0;
-		this->state.auth		= 0;
-		this->speed = DEFAULT_WALK_SPEED;
-		this->client_tick		= client_tick;
-		
-		this->skillitem = 0xFFFF;
-		this->skillitemlv = 0xFFFF;
-		
-		this->party_x = 0xFFFF;
-		this->party_y = 0xFFFF;
-		this->party_hp = -1;
-
-		// ticks
-		this->canact_tick		= tick;
-		this->canmove_tick		= tick;
-		this->canlog_tick		= tick;
-		this->canregen_tick = tick;
-		this->attackable_tick = tick;
-
-		// timers
-		this->followtimer = -1;
-		this->invincible_timer = -1;
-		this->pvp_timer = -1;
-		
-		for(i = 0; i < MAX_EVENTTIMER; ++i)
-			this->eventtimer[i] = -1;
-		for(i = 0; i < MAX_SKILL_LEVEL; ++i)
-			this->spirit_timer[i] = -1;
-	}
-
-private:
 	void* operator new[](size_t);	// forbidden
 	void  operator delete[](void*);	// forbidden
-
 };
 
 

@@ -9424,7 +9424,7 @@ int clif_getPacketVer(int fd)
 		unsigned short cmd = RFIFOW(fd,0);
 		CAuth auth;
 		
-		for(i=MAX_PACKET_VER; i>0; i--)
+		for(i=MAX_PACKET_VER; i>0; --i)
 		{
 			if( cmd==packet_db[i].connect_cmd &&
 				getAthentification( RFIFOL(fd, packet_db[i][cmd].pos[0]) ,auth) &&
@@ -9458,6 +9458,7 @@ int clif_parse_WantToConnection(int fd, struct map_session_data &sd)
 	uint32 login_id1	= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[2]);
 	uint32 client_tick	= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[3]);
 	unsigned char sex	= RFIFOB(fd, packet_db[sd.packet_ver][cmd].pos[4]);
+	CAuth auth;
 
 	//ShowMessage("WantToConnection: Received %d bytes with packet 0x%X -> ver %i\n", RFIFOREST(fd), cmd, sd.packet_ver);
 
@@ -9472,8 +9473,9 @@ int clif_parse_WantToConnection(int fd, struct map_session_data &sd)
 	}
 	else
 	{
-
-		struct map_session_data *plsd = new struct map_session_data(fd, account_id, char_id, login_id1, client_tick, sex);
+		
+		getAthentification(account_id, auth);
+		struct map_session_data *plsd = new struct map_session_data(fd, account_id, char_id, login_id1, auth.login_id2, client_tick, sex);
 
 		session[fd]->user_session = plsd;
 		plsd->fd = fd;
@@ -9481,7 +9483,6 @@ int clif_parse_WantToConnection(int fd, struct map_session_data &sd)
 
 		plsd->ScriptEngine.temporaty_init(); //!! call constructor explicitely until switched to c++ allocation
 
-		pc_setnewpc(fd, *plsd, account_id, char_id, login_id1, client_tick, sex);
 		WFIFOL(fd,0) = plsd->block_list::id;
 		WFIFOSET(fd,4);
 
@@ -14124,7 +14125,7 @@ int packetdb_readdb(void)
 	while( fgets(line,sizeof(line),fp) )
 	{
 		ln++;
-		if( !get_prepared_line(line) )
+		if( !prepare_line(line) )
 			continue;
 
 		if (sscanf(line,"%[^:]: %[^\r\n]",w1,w2) == 2)

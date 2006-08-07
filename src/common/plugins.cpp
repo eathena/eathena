@@ -328,7 +328,7 @@ int plugins_config_read(const char *cfgName)
 	}
 	while (fgets(line, sizeof(line), fp))
 	{
-		if( !get_prepared_line(line) )
+		if( !prepare_line(line) )
 			continue;
 		if (sscanf(line,"%[^:]: %[^\r\n]", w1, w2) != 2)
 			continue;

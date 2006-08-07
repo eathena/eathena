@@ -27,7 +27,6 @@ int pc_getrefinebonus(int lv,int type);
 
 int pc_setrestartvalue(struct map_session_data &sd,int type);
 int pc_makesavestatus(struct map_session_data &sd);
-int pc_setnewpc(int fd, struct map_session_data &sd, uint32 account_id, uint32 char_id, uint32 login_id1, uint32 client_tick, unsigned char sex);
 int pc_authok(uint32 id, uint32 login_id2, time_t connect_until_time, unsigned char *buf);
 int pc_authfail(int fd);
 

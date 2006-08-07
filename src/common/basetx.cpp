@@ -36,7 +36,7 @@ bool CAccountDB_mem::readGMAccount(basics::slist<CAccountDB_mem::CMapGM> &gmlist
 		while( fgets(line, sizeof(line), fp) )
 		{
 			line_counter++;
-			if( !get_prepared_line(line) )
+			if( !prepare_line(line) )
 				continue;
 			is_range = (sscanf(line, "%lu%*[-~]%lu %d",&start_range,&end_range,&level)==3); // ID Range [MC Cameri]
 			if (!is_range && sscanf(line, "%lu %d", &account_id, &level) != 2 && sscanf(line, "%ld: %d", &account_id, &level) != 2)
@@ -1565,7 +1565,7 @@ bool CAccountDB_txt::do_readAccounts()
 
 		while( fgets(line, sizeof(line), fp) )
 		{
-			if( !get_prepared_line(line) )
+			if( !prepare_line(line) )
 				continue;
 			*userid=0;
 			*pass=0;
@@ -2549,7 +2549,7 @@ bool CCharDB_txt::read_friends()
 
 		while(fgets(line, sizeof(line), fp))
 		{
-			if( !get_prepared_line(line) )
+			if( !prepare_line(line) )
 				continue;
 
 			memset(friendlist,0,sizeof(friendlist));

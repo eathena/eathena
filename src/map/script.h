@@ -42,7 +42,7 @@ extern struct Script_Config
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// a label marks a position within a script with a name
+/// a label marks a position within a script with a name
 class CLabel : public basics::string<>
 {
 public:
@@ -65,8 +65,8 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// a script data stub
-// contains the parsed programm and a label list
+/// a script data stub.
+/// contains the parsed programm and a label list
 class _CScript : public basics::global
 {
 protected:
@@ -211,8 +211,8 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Script Parser
-// behaves like a script internally
+/// Script Parser.
+/// behaves like a script internally
 class CParser : private CScript
 {
 private:
@@ -256,6 +256,7 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
+/// script engine.
 // simple class only since we use c-style allocation and clearing at the moment
 class CScriptEngine : public basics::noncopyable
 {
@@ -545,15 +546,12 @@ public:
 	CScriptEngine() : queue(NULL), stack_ptr(0),stack_max(0),stack_data(NULL),
 		rerun_flag(false), messageopen(false), npcstate(NONE), state(OFF), script(NULL), sd(NULL)
 	{ }
-	CScriptEngine::~CScriptEngine()
+	~CScriptEngine()
 	{
-		if(queue) { delete(queue); queue=NULL; }
-		if(stack_data) { delete[] stack_data; stack_data=NULL; }
-		stack_ptr=0;
-		stack_max=0;
+		clear();
 	}
 
-	void temporaty_close() //!! remove when c++ allocation is enabled
+	void clear()
 	{
 		if(queue) { delete(queue); queue=NULL; }
 		if(stack_data) { delete[] stack_data; stack_data=NULL; }

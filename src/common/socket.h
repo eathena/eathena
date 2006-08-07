@@ -392,6 +392,8 @@ public:
 #define WBUFL(p,pos) ((objL((p),(pos))))
 #define WBUFLIP(p,pos) ((objLIP((p),(pos))))
 
+// explicitly using doubled parenthesis here because of an ugly VC7 bug
+// which permits the usage of inheritance specification in assignment following this macro
 
 
 

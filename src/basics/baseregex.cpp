@@ -2073,8 +2073,7 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 			case REGEX_CONFIG:
 			{
 				// safe the current config
-				ushort *cp = (ushort *)(&this->cConfig);
-				imap[scan] = *cp;
+				imap[scan] = this->cConfig.get();
 				
 				// set the new config
 				char c = *this->operand(scan);
@@ -2089,7 +2088,7 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 				bool ret = MatchMain(base, str, finds, next, reginput, imap);
 
 				// restore the former config
-				*cp = imap[scan];
+				const_cast<CRegExp::CRegProgram*>(this)->cConfig = imap[scan];
 				return ret;
 			}
 			case REGEX_RESTORE:
@@ -2100,9 +2099,8 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 				// offset is backwards so the position of the associated config is:
 				no = scan-no;
 				if( imap.exists(no) )
-				{
-					ushort *cp = (ushort *)(&this->cConfig);
-					*cp = imap[no];
+				{	// restore the config
+					const_cast<CRegExp::CRegProgram*>(this)->cConfig = imap[no];
 				}
 				// otherwise something went wrong
 

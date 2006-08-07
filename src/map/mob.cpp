@@ -3877,8 +3877,8 @@ int mob_readdb(void)
 				continue;
 
 			mob_db[class_].view_class = class_;
-			memcpy(mob_db[class_].name, str[1], 24);
-			memcpy(mob_db[class_].jname, str[2], 24);
+			safestrcpy(mob_db[class_].name,  str[1], sizeof(mob_db[class_].name));
+			safestrcpy(mob_db[class_].jname, str[2], sizeof(mob_db[class_].jname));
 			mob_db[class_].lv = atoi(str[3]);
 			mob_db[class_].max_hp = atoi(str[4]);
 			mob_db[class_].max_sp = atoi(str[5]);

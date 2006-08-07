@@ -500,7 +500,6 @@ int itemdb_read_itemnametable(void)
 	int s;
 
 	buf=(char *) grfio_reads("data\\idnum2itemdisplaynametable.txt", s);
-
 	if(buf==NULL)
 		return -1;
 
@@ -767,8 +766,8 @@ int itemdb_readdb(void)
 			if(!id)
 				continue;
 
-			memcpy(id->name,str[1],24);
-			memcpy(id->jname,str[2],24);
+			safestrcpy(id->name, str[1], sizeof(id->name));
+			safestrcpy(id->jname,str[2], sizeof(id->jname));
 			id->type=atoi(str[3]);
 			if (id->type == 11)
 			{	//Items that are consumed upon target confirmation

@@ -53,6 +53,53 @@ static unsigned int equip_pos[11]={0x0080,0x0008,0x0040,0x0004,0x0001,0x0200,0x0
 
 
 
+/// constructor.
+/// builds on having nulled memory already (overloaded operator new)
+map_session_data::map_session_data(int fdi, int packver, uint32 accid, uint32 chrid, uint32 logid1, uint32 logid2, uint32 client_tick, unsigned char sex)
+{
+	size_t i;
+	unsigned long tick = gettick();
+
+	this->fd				= fdi;
+	this->packet_ver		= packver;
+	this->client_tick		= client_tick;
+
+	this->block_list::id	= accid;
+	this->block_list::type	= BL_PC;
+
+	this->status.account_id = accid;
+	this->status.char_id	= chrid;
+	this->status.sex		= sex;
+
+	this->login_id1			= logid1;
+	this->login_id2			= logid2;
+	this->speed				= DEFAULT_WALK_SPEED;
+	
+	this->skillitem			= 0xFFFF;
+	this->skillitemlv		= 0xFFFF;
+	
+	this->party_x			= 0xFFFF;
+	this->party_y			= 0xFFFF;
+	this->party_hp			= -1;
+
+	// ticks
+	this->canact_tick		= tick;
+	this->canmove_tick		= tick;
+	this->canlog_tick		= tick;
+	this->canregen_tick		= tick;
+	this->attackable_tick	= tick;
+
+	// timers
+	this->followtimer		= -1;
+	this->invincible_timer	= -1;
+	this->pvp_timer			= -1;
+	
+	for(i = 0; i < MAX_EVENTTIMER; ++i)
+		this->eventtimer[i] = -1;
+	for(i = 0; i < MAX_SKILL_LEVEL; ++i)
+		this->spirit_timer[i] = -1;
+}
+
 unsigned char map_session_data::isGM() const
 {
 	//For console [Wizputer]
@@ -860,110 +907,7 @@ bool pc_break_equip(struct map_session_data &sd, unsigned short where)
 }
 
 
-/*==========================================
- * 接?暫ﾌ初期化
- *------------------------------------------
- */
-int pc_setnewpc(int fd, struct map_session_data &sd, uint32 account_id, uint32 char_id, uint32 login_id1, uint32 client_tick, unsigned char sex)
-{
-	size_t i;
-	unsigned long tick = gettick();
 
-	sd.block_list::id			= account_id;
-	sd.status.char_id	= char_id;
-	sd.login_id1		= login_id1;
-	sd.login_id2		= 0; // at this point, we can not know the value :(
-	sd.client_tick		= client_tick;
-	sd.status.sex		= sex;
-	sd.state.auth		= 0;
-	sd.block_list::type			= BL_PC;
-	sd.canact_tick		= sd.canmove_tick = sd.canlog_tick  = tick;
-
-//	memset(&sd->state, 0, sizeof(sd->state));
-//	sd.weapontype1 = sd.weapontype2 = 0;
-	
-	sd.speed = DEFAULT_WALK_SPEED;
-//	sd.state.dead_sit = 0;
-//	sd.dir = 0;
-//	sd.head_dir = 0;
-//	sd.next_walktime = 0;
-
-	sd.followtimer = -1; // [MouseJstr]
-	sd.skilltimer = -1;
-	sd.skillitem = 0xFFFF;
-	sd.skillitemlv = 0xFFFF;
-	sd.invincible_timer = -1;
-	
-//	sd.deal_locked = 0;
-//	sd.trade_partner = 0;
-
-//	sd.inchealhptick = 0;
-//	sd.inchealsptick = 0;
-//	sd.hp_sub = 0;
-//	sd.sp_sub = 0;
-//	sd.inchealspirithptick = 0;
-//	sd.inchealspiritsptick = 0;
-	sd.canact_tick = tick;
-	sd.canmove_tick = tick;
-	sd.canregen_tick = tick;
-	sd.attackable_tick = tick;
-//	sd.reg_num = 0;
-//	sd.doridori_counter = 0;
-//	sd.mail_counter = 0;
-
-//	sd.spiritball = 0;
-	for(i = 0; i < MAX_SKILL_LEVEL; ++i)
-		sd.spirit_timer[i] = -1;
-	for(i = 0; i < MAX_SKILLTIMERSKILL; ++i)
-		sd.skilltimerskill[i].timer = -1;
-
-//	memset(sd.blockskill,0,sizeof(sd.blockskill));
-
-//	memset(&sd.dev,0,sizeof(struct square));
-//	for(i = 0; i < 5; ++i) {
-//		sd.dev.val1[i] = 0;
-//		sd.dev.val2[i] = 0;
-//	}
-	// pet
-//	sd.petDB = NULL;
-//	sd.pd = NULL;
-//	memset(&sd.pet, 0, sizeof(struct petstatus));
-
-	// ステ?タス異常の初期化
-	for(i = 0; i < MAX_STATUSCHANGE; ++i) {
-		sd.sc_data[i].timer=-1;
-//		sd.sc_data[i].val1 = sd.sc_data[i].val2 = sd.sc_data[i].val3 = sd.sc_data[i].val4 = 0;
-	}
-	// スキルユニット?係の初期化
-//	memset(sd.skillunit, 0, sizeof(sd.skillunit));
-//	memset(sd.skillunittick, 0, sizeof(sd.skillunittick));	
-
-	// パ?ティ??係の初期化
-//	sd.party_sended = 0;
-//	sd.party_invite = 0;
-	sd.party_x = 0xFFFF;
-	sd.party_y = 0xFFFF;
-	sd.party_hp = -1;
-
-	// ギルド?係の初期化
-//	sd.guild_sended = 0;
-//	sd.guild_invite = 0;
-//	sd.guild_alliance = 0;
-
-	// イベント?係の初期化
-//	memset(sd.eventqueue, 0, sizeof(sd.eventqueue));
-	for(i = 0; i < MAX_EVENTTIMER; ++i)
-		sd.eventtimer[i] = -1;
-//	sd.eventcount=0;
-	// pvpの設定
-//	sd.pvp_rank = 0;
-//	sd.pvp_point = 0;
-	sd.pvp_timer = -1;
-//	sd.pvp_won = 0;
-//	sd.pvp_lost = 0;
-
-	return 0;
-}
 
 /*==========================================
  * session idに問題無し
@@ -1865,7 +1809,6 @@ int pc_bonus(struct map_session_data &sd,int type,int val)
 	case SP_DAMAGE_WHEN_UNEQUIP:
 		if(!sd.state.lr_flag) {
 			for (i=0; i<MAX_EQUIP; ++i) {
-				//if (sd->inventory_data[current_equip_item_index]->equip & equip_pos[i]) {
 				if(sd.status.inventory[current_equip_item_index].equip & equip_pos[i]) {				
 				
 					sd.unequip_losehp[i] += val;
@@ -1877,7 +1820,6 @@ int pc_bonus(struct map_session_data &sd,int type,int val)
 	case SP_LOSESP_WHEN_UNEQUIP:
 		if(!sd.state.lr_flag) {
 			for (i=0; i<MAX_EQUIP; ++i) {
-				//if (sd.inventory_data[current_equip_item_index]->equip & equip_pos[i]) {
 				if (sd.status.inventory[current_equip_item_index].equip & equip_pos[i]) {
 					sd.unequip_losesp[i] += val;
 					break;
