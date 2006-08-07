@@ -251,12 +251,10 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 
 	sc = status_get_sc(bl);
 
-	if(flag&BF_LONG && map_getcell(bl->m, bl->x, bl->y, CELL_CHKPNEUMA) &&
-		((flag&BF_WEAPON && skill_num != NPC_GUIDEDATTACK) ||
-		(flag&BF_MISC && skill_num != PA_PRESSURE)
-		)){
+	if((flag&(BF_MAGIC|BF_LONG)) == BF_LONG &&
+		map_getcell(bl->m, bl->x, bl->y, CELL_CHKPNEUMA) &&
+		skill_num != NPC_GUIDEDATTACK)
 		return 0;
-	}
 	
 	if (sc && sc->count) {
 		//First, sc_*'s that reduce damage to 0.
@@ -324,7 +322,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		}
 
 		//Now damage increasing effects
-		if(sc->data[SC_AETERNA].timer!=-1 && skill_num != PA_PRESSURE && skill_num != PF_SOULBURN){
+		if(sc->data[SC_AETERNA].timer!=-1 && skill_num != PF_SOULBURN){
 			damage<<=1;
 			status_change_end( bl,SC_AETERNA,-1 );
 		}
@@ -611,9 +609,6 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 				damage += (skill * 3);
 			break;
 		case W_KATAR:
-			if((skill = pc_checkskill(sd,ASC_KATAR)) > 0)
-				//Advanced Katar Research by zanetheinsane
-				damage += damage*(10 +skill * 2)/100;
 			if((skill = pc_checkskill(sd,AS_KATAR)) > 0)
 				damage += (skill * 3);
 			break;
@@ -636,7 +631,7 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 static int battle_calc_base_damage(struct status_data *status, struct weapon_atk *wa, struct status_change *sc, unsigned short t_size, struct map_session_data *sd, int flag)
 {
 	unsigned short atkmin=0, atkmax=0;
-	short type;
+	short type = 0;
 	int damage = 0;
 
 	if (!sd)
@@ -653,12 +648,12 @@ static int battle_calc_base_damage(struct status_data *status, struct weapon_atk
 			atkmin = atkmax;
 	} else {	//PCs
 		atkmax = wa->atk;
+		type = (wa == status->lhw)?EQI_HAND_L:EQI_HAND_R;
 
 		if (!(flag&1) || (flag&2))
 		{	//Normal attacks
 			atkmin = status->dex;
 			
-			type = (wa == status->lhw)?8:9;
 			if (sd->equip_index[type] >= 0 && sd->inventory_data[sd->equip_index[type]])
 				atkmin = atkmin*(80 + sd->inventory_data[sd->equip_index[type]]->wlv*20)/100;
 
@@ -690,13 +685,10 @@ static int battle_calc_base_damage(struct status_data *status, struct weapon_atk
 			damage += ((flag&1)?sd->arrow_atk:rand()%sd->arrow_atk);
 
 		//SizeFix only for players
-		if (!(
-			sd->special_state.no_sizefix ||
-			(sc && sc->data[SC_WEAPONPERFECTION].timer!=-1) ||
-			(pc_isriding(sd) && (sd->status.weapon==W_1HSPEAR || sd->status.weapon==W_2HSPEAR) && t_size==1) ||
-			(flag&8)
-		))
-			damage = damage*(sd->right_weapon.atkmods[t_size])/100;
+		if (!(sd->special_state.no_sizefix || (flag&8)))
+			damage = damage*(type==EQI_HAND_L?
+				sd->left_weapon.atkmods[t_size]:
+				sd->right_weapon.atkmods[t_size])/100;
 	}
 	
 	//Finally, add baseatk
@@ -1175,7 +1167,11 @@ static struct Damage battle_calc_weapon_attack(
 				}
 			default:
 			{
-				i = (flag.cri?1:0)|(flag.arrow?2:0)|(skill_num == HW_MAGICCRASHER?4:0)|(skill_num == MO_EXTREMITYFIST?8:0);
+				i = (flag.cri?1:0)|
+					(flag.arrow?2:0)|
+					(skill_num == HW_MAGICCRASHER?4:0)|
+					(skill_num == MO_EXTREMITYFIST?8:0)|
+					(sc && sc->data[SC_WEAPONPERFECTION].timer!=-1?8:0);
 				if (flag.arrow && sd)
 				switch(sd->status.weapon) {
 				case W_BOW:
@@ -1685,12 +1681,18 @@ static struct Damage battle_calc_weapon_attack(
 		if (sd && flag.weapon &&
 			skill_num != MO_INVESTIGATE &&
 		  	skill_num != MO_EXTREMITYFIST &&
-		  	skill_num != CR_GRANDCROSS &&
-		  	skill_num != ASC_BREAKER)
+		  	skill_num != CR_GRANDCROSS)
 		{	//Add mastery damage
+			if(skill_num != ASC_BREAKER && sd->status.weapon == W_KATAR &&
+				(skill=pc_checkskill(sd,ASC_KATAR)) > 0)
+		  	{	//Adv Katar Mastery is does not applies to ASC_BREAKER,
+				// but other masteries DO apply >_>
+				ATK_ADDRATE(10+ 2*skill);
+			}
+
 			wd.damage = battle_addmastery(sd,target,wd.damage,0);
 			if (flag.lh) wd.damage2 = battle_addmastery(sd,target,wd.damage2,1);
-		
+
 			if((skill=pc_checkskill(sd,SG_STAR_ANGER)) >0 && (t_class == sd->hate_mob[2] || (sc && sc->data[SC_MIRACLE].timer!=-1)))
 			{
 				skillratio = (sd->status.base_level + sstatus->str + sstatus->dex + sstatus->luk)/(skill<4?12-3*skill:1);
@@ -2525,6 +2527,10 @@ struct Damage  battle_calc_misc_attack(
 	case CR_ACIDDEMONSTRATION: // updated the formula based on a Japanese formula found to be exact [Reddozen]
 		md.damage = 7*tstatus->vit*sstatus->int_*sstatus->int_ / (10*(tstatus->vit+sstatus->int_));
 		if (tsd) md.damage>>=1;
+		if (md.damage < 0 || md.damage > INT_MAX>>1)
+	  	//Overflow prevention, will anyone whine if I cap it to a few billion?
+		//Not capped to INT_MAX to give some room for further damage increase.
+			md.damage = INT_MAX>>1;
 		break;
 	case NJ_ZENYNAGE:
 		md.damage = skill_get_zeny(skill_num ,skill_lv);

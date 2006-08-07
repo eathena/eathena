@@ -1768,6 +1768,14 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	sd->left_weapon.atkmods[1] = atkmods[1][sd->weapontype2];
 	sd->left_weapon.atkmods[2] = atkmods[2][sd->weapontype2];
 
+	if(pc_isriding(sd) &&
+		(sd->status.weapon==W_1HSPEAR || sd->status.weapon==W_2HSPEAR))
+	{	//When Riding with spear, damage modifier to mid-class becomes 
+		//same as versus large size.
+		sd->right_weapon.atkmods[1] = sd->right_weapon.atkmods[2];
+		sd->left_weapon.atkmods[1] = sd->left_weapon.atkmods[2];
+	}
+
 // ----- STATS CALCULATION -----
 
 	// Job bonuses

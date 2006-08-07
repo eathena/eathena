@@ -5,6 +5,15 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/07
+	* Moving Adv katar mastery outside the mastery function so that normal
+	  mastery applies on soul-breaker but akm doesn't. [Skotlex]
+	* Cleaned up battle_calc_base_damage, moved the riding+spear property of
+	  having large damage modifier on mid-sized enemies to status_calc_pc.
+	  [Skotlex]
+	* Fixed applying Right hand modifier to both hands when dual-wielding.
+	  [Skotlex]
+	* Merged Acid Demonstration damage cap to INT_MAX/2 to prevent it from
+	  overflowing and causing 1 dmg. [Skotlex]
 	* Merged the status change icon corrections to: Guild Auras, Land Endow
 	  effects and Chasewalk. [Skotlex]
 	* Merged SC_SILENCE behaviour, and it is also affected by
