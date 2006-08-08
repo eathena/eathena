@@ -1,3 +1,8 @@
+08/08
+	* Merged item_db and mob_db [Playtester]
+	- fixed selling price of Sharp Leaf
+	- slightly raised drop rate of some low-level guns
+	- reduced drop rate of Armor Charm back to 0.01%
 08/06
 	* Merged const, item_db, item_misc, mob_db, size_fix [Playtester]
 	- changed IG_Jellopy to IG_Resist
