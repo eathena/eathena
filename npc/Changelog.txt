@@ -33,6 +33,9 @@ Playtester
 
 Date		Added
 ======
+08/08
+	* Added official spawn areas for the Yuno Fields [Playtester]
+	- note that it is still discussed if those areas are double size or not
 08/05
 	* Fixed NPC event parameter deprecated of Adoption. [Lupus]
 	* Fixed the Socket Enchanter thinking some items are Class C [Playtester]
