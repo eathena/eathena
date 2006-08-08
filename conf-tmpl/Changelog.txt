@@ -1,0 +1,29 @@
+Date	Added
+
+2006/08/08
+	* Removed setting enemy_critical_rate, added settings enable_critical
+	  (defaults to players only), mob_critical_rate and critical_rate
+	  (battle/battle.conf) [Skotlex]
+	* Removed settings mob_warpportal and mob_npc_warp, replaced with mob_warp
+	  (battle/monster.conf) [Skotlex]
+	* Corrected skill.conf having the old skill_limit config instead of the
+	  current ones. [Skotlex]
+2006/08/07
+	* Merged updated debuff_on_logout setting which enables you to determine
+	  whether negative/positive/both status changes get cleared on logout.
+	  [Skotlex]
+2006/07/28
+	* Battle config settings: Removed enemy_str/enemy_perfect_flee, added
+	  enable_baseatk, enable_perfect_flee (battle.conf)
+2006/07/28
+	* Merged config setting party_hp_mode so you can specify how party-hp bars
+	  are updated. Defaults to Aegis style (instant update) [Skotlex]
+	* Merged config setting party_update_interval which determine rate at which
+	  mini-dots are updated. (defaults to 1sec)
+	* Merged config setting update to party_share_type so you can use it to
+	  specify that party share loot should only trigger on mob drops. [Skotlex]
+2006/07/26
+	* Merged battle config settings agi_penalty_target/vit_penalty_target
+	  (battle.conf) [Skotlex]
+	* Merged use_weapon_skill_range change to type 4 setting. Default is
+	  non-players. [Skotlex]

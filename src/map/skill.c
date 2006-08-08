@@ -1607,8 +1607,8 @@ int skill_break_equip (struct block_list *bl, unsigned short where, int rate, in
 				case EQI_HAND_R: //Left/Right hands
 				case EQI_HAND_L:
 					flag = (
-						(where&EQP_WEAPON && sd->inventory_data[j]->type == 4) ||
-						(where&EQP_SHIELD && sd->inventory_data[j]->type == 5));
+						(where&EQP_WEAPON && sd->inventory_data[j]->type == IT_WEAPON) ||
+						(where&EQP_SHIELD && sd->inventory_data[j]->type == IT_ARMOR));
 					break;
 				default:
 					continue;
@@ -1647,6 +1647,8 @@ int skill_blown (struct block_list *src, struct block_list *target, int count)
 	switch (target->type) {
 		case BL_MOB:
 			if (((TBL_MOB*)target)->class_ == MOBID_EMPERIUM)
+				return 0;
+			if(src != target && is_boss(target)) //Bosses can't be knocked-back
 				return 0;
 			break;
 		case BL_SKILL:
@@ -1716,7 +1718,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	struct Damage dmg;
 	struct status_data *sstatus, *tstatus;
 	struct status_change *sc;
-	struct map_session_data *sd=NULL, *tsd=NULL;
+	struct map_session_data *sd, *tsd;
 	int type,lv,damage,rdamage=0;
 
 	if(skillid > 0 && skilllv <= 0) return 0;
@@ -1734,11 +1736,9 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		if (!status_check_skilluse(dsrc, bl, skillid, 2))
 			return 0;
 	}
-	
-	if (dsrc->type == BL_PC)
-		sd = (struct map_session_data *)dsrc;
-	if (bl->type == BL_PC)
-		tsd = (struct map_session_data *)bl;
+
+	BL_CAST(BL_PC, dsrc, sd);
+	BL_CAST(BL_PC, bl, tsd);
 
 	sstatus = status_get_status_data(dsrc);
 	tstatus = status_get_status_data(bl);
@@ -2623,15 +2623,15 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		}
 		break;
 	
-	case KN_CHARGEATK:
 	case MO_EXTREMITYFIST:
-		if (skillid == MO_EXTREMITYFIST && sc && sc->count)
+		if (sc && sc->count)
 		{
 			if (sc->data[SC_EXPLOSIONSPIRITS].timer != -1)
 				status_change_end(src, SC_EXPLOSIONSPIRITS, -1);
 			if (sc->data[SC_BLADESTOP].timer != -1)
 				status_change_end(src,SC_BLADESTOP,-1);
 		}
+	case KN_CHARGEATK:
 		if(!check_distance_bl(src, bl, 2)) { //Need to move to target.
 			int dx,dy;
 
@@ -4235,7 +4235,7 @@ if(src!=bl && status_isdead(bl) && skillid != ALL_RESURRECTION && skillid != PR_
 					}
 					//Continue to weapon
 				case EQI_HAND_R:
-					if (equip &EQP_HAND_R &&
+					if (equip&EQP_HAND_R &&
 						!(dstsd->unstripable_equip&EQP_WEAPON) &&
 				  		!(tsc && tsc->data[SC_CP_WEAPON].timer != -1)
 					) {
@@ -4423,7 +4423,7 @@ if(src!=bl && status_isdead(bl) && skillid != ALL_RESURRECTION && skillid != PR_
 					|| i==SC_CP_WEAPON || i==SC_CP_SHIELD || i==SC_CP_ARMOR || i==SC_CP_HELM
 					|| i==SC_COMBO || i==SC_DANCING || i==SC_GUILDAURA || i==SC_EDP
 					|| i==SC_AUTOBERSERK  || i==SC_CARTBOOST || i==SC_MELTDOWN || i==SC_MOONLIT
-					|| i==SC_SAFETYWALL || i==SC_SMA
+					|| i==SC_SAFETYWALL || i==SC_SMA || i==SC_SPEEDUP0
 					)
 					continue;
 				if(i==SC_BERSERK) tsc->data[i].val2=0; //Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
@@ -6399,8 +6399,13 @@ int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, unsigned 
 						skill_delunitgroup(NULL, sg);
 				}
 			}
-		} else if(battle_config.mob_warpportal && bl->type != BL_PET)
-			unit_warp(bl,map_mapindex2mapid(sg->val3),sg->val2>>16,sg->val2&0xffff,3);
+		} else
+		if(bl->type == BL_MOB && battle_config.mob_warp&2)
+		{
+			int m = map_mapindex2mapid(sg->val3);
+			if (m < 0) break; //Map not available on this map-server.
+			unit_warp(bl,m,sg->val2>>16,sg->val2&0xffff,3);
+		}
 		break;
 
 	case UNT_QUAGMIRE:
@@ -8071,7 +8076,7 @@ int skill_delayfix (struct block_list *bl, int skill_id, int skill_lv)
 		else
 			time = battle_config.default_skill_delay;
 	} else if (time < 0)
-		time = -time + status_get_adelay(bl);	// if set to <0, the attack delay is added.
+		time = -time + status_get_amotion(bl);	// if set to <0, the attack motion is added.
 
 	if (battle_config.delay_dependon_dex && !(delaynodex&1))
 	{	// if skill casttime is allowed to be reduced by dex

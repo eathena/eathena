@@ -25,8 +25,6 @@
 #include "guild.h"
 #include "party.h"
 
-#define	is_boss(bl)	status_get_mexp(bl)	// Can refine later [Aru]
-
 int attr_fix_table[4][ELE_MAX][ELE_MAX];
 
 struct Battle_Config battle_config;
@@ -3292,7 +3290,9 @@ static const struct battle_data_short {
 	unsigned short *val;
 } battle_data_short[] = {	//List here battle_athena options which are type unsigned short!
 	{ "warp_point_debug",                  &battle_config.warp_point_debug			},
-	{ "enemy_critical_rate",               &battle_config.enemy_critical_rate		},
+	{ "enable_critical",                   &battle_config.enable_critical	},
+	{ "mob_critical_rate",                 &battle_config.mob_critical_rate		},
+	{ "critical_rate",                     &battle_config.critical_rate		},
 	{ "enable_baseatk",                    &battle_config.enable_baseatk				},
 	{ "enable_perfect_flee",               &battle_config.enable_perfect_flee		},
 	{ "casting_rate",                      &battle_config.cast_rate				},
@@ -3460,8 +3460,7 @@ static const struct battle_data_short {
 	{ "display_delay_skill_fail",          &battle_config.display_delay_skill_fail	},
 	{ "display_snatcher_skill_fail",       &battle_config.display_snatcher_skill_fail	},
 	{ "chat_warpportal",                   &battle_config.chat_warpportal			},
-	{ "mob_warpportal",                    &battle_config.mob_warpportal			},
-	{ "mob_npc_warp",                      &battle_config.mob_npc_warp },
+	{ "mob_warp",                          &battle_config.mob_warp	},
 	{ "dead_branch_active",                &battle_config.dead_branch_active			},
 	{ "show_steal_in_same_party",          &battle_config.show_steal_in_same_party		},
 	{ "party_hp_mode",                     &battle_config.party_hp_mode },
@@ -3685,7 +3684,9 @@ int battle_get_value(char *w1) {
 
 void battle_set_defaults() {
 	battle_config.warp_point_debug=0;
-	battle_config.enemy_critical_rate=0;
+	battle_config.enable_critical=BL_PC;
+	battle_config.mob_critical_rate=100;
+	battle_config.critical_rate=100;
 	battle_config.enable_baseatk = BL_ALL;
 	battle_config.enable_perfect_flee = BL_PC|BL_PET;
 	battle_config.cast_rate=100;
@@ -3695,8 +3696,8 @@ void battle_set_defaults() {
 	battle_config.left_cardfix_to_right=0;
 	battle_config.skill_add_range=0;
 	battle_config.skill_out_range_consume=1;
-	battle_config.skillrange_by_distance=BL_MOB|BL_PET;
-	battle_config.use_weapon_skill_range=BL_MOB|BL_PET;
+	battle_config.skillrange_by_distance=~BL_PC;
+	battle_config.use_weapon_skill_range=~BL_PC;
 	battle_config.pc_damage_delay_rate=100;
 	battle_config.defnotenemy=0;
 	battle_config.vs_traps_bctall=BL_PC;
@@ -3872,8 +3873,7 @@ void battle_set_defaults() {
 	battle_config.display_delay_skill_fail = 1;
 	battle_config.display_snatcher_skill_fail = 1;
 	battle_config.chat_warpportal = 0;
-	battle_config.mob_warpportal = 0;
-	battle_config.mob_npc_warp = 0;
+	battle_config.mob_warp = 0;
 	battle_config.dead_branch_active = 0;
 	battle_config.vending_max_value = 10000000;
 	battle_config.show_steal_in_same_party = 0;

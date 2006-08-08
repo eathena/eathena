@@ -1722,8 +1722,6 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		if(battle_config.mobs_level_up && md->level > md->db->lv) // [Valaris]
 			bonus += (md->level-md->db->lv)*battle_config.mobs_level_up_exp_rate;
 
-		if (bonus > 400) bonus = 400; //Limit gained exp to quadro the mob's exp. [3->4 Komurka]
-
 		if(battle_config.zeny_from_mobs && md->level) {
 			 // zeny calculation moblv + random moblv [Valaris]
 			zeny=(int) ((md->level+rand()%md->level)*per*bonus/100.);
@@ -3104,10 +3102,6 @@ static int mob_readdb(void)
 
 			status_calc_misc(status, BL_MOB, mob_db_data[class_]->lv);
 				
-			if(battle_config.enemy_critical_rate != 100)
-				status->cri = status->cri*battle_config.enemy_critical_rate/100;
-			if(!status->cri && battle_config.enemy_critical_rate) status->cri = 1;
-
 			// MVP EXP Bonus, Chance: MEXP,ExpPer
 			mob_db_data[class_]->mexp=atoi(str[30])*battle_config.mvp_exp_rate/100;
 			mob_db_data[class_]->mexpper=atoi(str[31]);
@@ -3780,10 +3774,6 @@ static int mob_read_sqldb(void)
 
 				status_calc_misc(status, BL_MOB, mob_db_data[class_]->lv);
 				
-				if(battle_config.enemy_critical_rate != 100)
-					status->cri = status->cri*battle_config.enemy_critical_rate/100;
-				if(!status->cri && battle_config.enemy_critical_rate) status->cri = 1;
-
 				// MVP EXP Bonus, Chance: MEXP,ExpPer
 				mob_db_data[class_]->mexp = TO_INT(30) * battle_config.mvp_exp_rate / 100;
 				mob_db_data[class_]->mexpper = TO_INT(31);
