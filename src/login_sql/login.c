@@ -878,7 +878,7 @@ int parse_fromchar(int fd){
 	MYSQL_RES* sql_res;
 	MYSQL_ROW  sql_row = NULL;
 
-	unsigned char *p = (unsigned char *) &session[fd]->client_addr.sin_addr;
+	unsigned char *p = (unsigned char *) &session[fd]->client_addr.sin_addr.s_addr;
 	char ip[16];
 
 	sprintf(ip, "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
@@ -914,7 +914,7 @@ int parse_fromchar(int fd){
 		case 0x2709:
 			if (log_login)
 			{
-				sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%lu', '%s','%s', 'GM reload request')", loginlog_db, *((ulong *)p),server[id].name, RETCODE);
+				sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%u', '%s','%s', 'GM reload request')", loginlog_db, *((unsigned int*)p),server[id].name, RETCODE);
 				if (mysql_query(&mysql_handle, tmpsql)) {
 					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -1215,10 +1215,10 @@ int parse_fromchar(int fd){
 			}
 
 			if (strcmpi(sql_row[0], "M") == 0)
-				sex = 1;
+				sex = 0; //Change to female
 			else
-				sex = 0;
-			sprintf(tmpsql,"UPDATE `%s` SET `sex` = '%c' WHERE `%s` = '%d'", login_db, (sex==0?'M':'F'), login_db_account_id, acc);
+				sex = 1; //Change to make
+			sprintf(tmpsql,"UPDATE `%s` SET `sex` = '%c' WHERE `%s` = '%d'", login_db, (sex?'M':'F'), login_db_account_id, acc);
 			//query
 			if(mysql_query(&mysql_handle, tmpsql)) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -1292,7 +1292,7 @@ int parse_fromchar(int fd){
 					sql_row = mysql_fetch_row(sql_res);	//row fetching
 				}
 				if (atol(sql_row[0]) != 0) {
-					sprintf(tmpsql,"UPDATE `%s` SET `ban_until` = '0', `state`='0' WHERE `%s` = '%d'", login_db,login_db_account_id,acc);
+					sprintf(tmpsql,"UPDATE `%s` SET `ban_until` = '0' WHERE `%s` = '%d'", login_db,login_db_account_id,acc);
 					//query
 					if(mysql_query(&mysql_handle, tmpsql)) {
 						ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -1402,14 +1402,14 @@ int parse_fromchar(int fd){
 // Test to know if an IP come from LAN or WAN.
 // Rewrote: Adnvanced subnet check [LuzZza]
 //--------------------------------------------
-int lan_subnetcheck(long *p) {
+int lan_subnetcheck(long p) {
 
 	int i;
-	unsigned char *sbn, *msk, *src = (unsigned char *)p;
+	unsigned char *sbn, *msk, *src = (unsigned char *)&p;
 
 	for(i=0; i<subnet_count; i++) {
 
-		if(subnet[i].subnet == (*p & subnet[i].mask)) {
+		if(subnet[i].subnet == (p & subnet[i].mask)) {
 
 			sbn = (unsigned char *)&subnet[i].subnet;
 			msk = (unsigned char *)&subnet[i].mask;
@@ -1456,7 +1456,7 @@ int login_ip_ban_check(unsigned char *p)
 
 	if (log_login)
 	{
-		sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%lu', 'unknown','-3', 'ip banned')", loginlog_db, *((ulong *)p));
+		sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%u', 'unknown','-3', 'ip banned')", loginlog_db, *((unsigned int *)p));
 		// query
 		if(mysql_query(&mysql_handle, tmpsql)) {
 			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -1481,7 +1481,8 @@ int parse_login(int fd) {
 	int packet_len;
 
 	int result, i;
-	unsigned char *p = (unsigned char *) &session[fd]->client_addr.sin_addr;
+	unsigned char *p = (unsigned char *) &session[fd]->client_addr.sin_addr.s_addr;
+	unsigned long ipl = session[fd]->client_addr.sin_addr.s_addr;
 	char ip[16];
 
 	sprintf(ip, "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
@@ -1497,7 +1498,7 @@ int parse_login(int fd) {
 	}
 
 	while(RFIFOREST(fd)>=2 && !session[fd]->eof){
-		ShowDebug("parse_login : %d %d packet case=%x\n", fd, RFIFOREST(fd), RFIFOW(fd,0));
+//		ShowDebug("parse_login : %d %d packet case=%x\n", fd, RFIFOREST(fd), RFIFOW(fd,0));
 
 		switch(RFIFOW(fd,0)){
 		case 0x200:		// New alive packet: structure: 0x200 <account.userid>.24B. used to verify if client is always alive.
@@ -1515,8 +1516,9 @@ int parse_login(int fd) {
 		case 0x277: // New login packet
 		case 0x64:		// request client login
 		case 0x01dd:	// request client login with encrypt
-		{
-			int packet_len = RFIFOREST(fd);
+
+			packet_len = RFIFOREST(fd);
+
 			//Perform ip-ban check ONLY on login packets
 			if (ipban > 0 && login_ip_ban_check(p))
 			{
@@ -1525,7 +1527,7 @@ int parse_login(int fd) {
 				break;
 			}
 
-			switch(RFIFOW(fd, 0)){
+			switch(RFIFOW(fd,0)){
 				case 0x64:
 					if(packet_len < 55)
 						return 0;
@@ -1541,6 +1543,7 @@ int parse_login(int fd) {
 			}
 
 			account.version = RFIFOL(fd, 2);
+			if (!account.version) account.version = 1; //Force some version...
 			memcpy(account.userid,RFIFOP(fd, 6),NAME_LENGTH);
 			account.userid[23] = '\0';
 			memcpy(account.passwd,RFIFOP(fd, 30),NAME_LENGTH);
@@ -1567,7 +1570,7 @@ int parse_login(int fd) {
 				} else {
 
 					if (p[0] != 127 && log_login) {
-						sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%lu', '%s','100', 'login ok')", loginlog_db, *((ulong *)p), t_uid);
+						sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%u', '%s','100', 'login ok')", loginlog_db, (unsigned int)ntohl(ipl), t_uid);
 						//query
 						if(mysql_query(&mysql_handle, tmpsql)) {
 							ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -1582,7 +1585,7 @@ int parse_login(int fd) {
 					for(i = 0; i < MAX_SERVERS; i++) {
 						if (server_fd[i] >= 0) {
 							// Advanced subnet check [LuzZza]
-							if((subnet_char_ip = lan_subnetcheck((long *)p)))
+							if((subnet_char_ip = lan_subnetcheck(ipl)))
 								WFIFOL(fd,47+server_num*32) = subnet_char_ip;
 							else
 								WFIFOL(fd,47+server_num*32) = server[i].ip;
@@ -1625,7 +1628,7 @@ int parse_login(int fd) {
 				char error[64];
 				if (log_login)
 				{
-					sprintf(tmp_sql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%lu', '%s', '%d','login failed : %%s')", loginlog_db, *((ulong *)p), t_uid, result);
+					sprintf(tmp_sql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%u', '%s', '%d','login failed : %%s')", loginlog_db, (unsigned int)ntohl(ipl), t_uid, result);
 					switch((result + 1)) {
 					case -2:	//-3 = Account Banned
 						sprintf(tmpsql,tmp_sql,"Account banned.");
@@ -1735,8 +1738,8 @@ int parse_login(int fd) {
 					}
 				} //End login log of error.
 				if ((result == 1) && (dynamic_pass_failure_ban != 0) && log_login){	// failed password
-					sprintf(tmpsql,"SELECT count(*) FROM `%s` WHERE `ip` = '%lu' AND `rcode` = '1' AND `time` > NOW() - INTERVAL %d MINUTE",
-						loginlog_db,*((ulong *)p), dynamic_pass_failure_ban_time);	//how many times filed account? in one ip.
+					sprintf(tmpsql,"SELECT count(*) FROM `%s` WHERE `ip` = '%u' AND `rcode` = '1' AND `time` > NOW() - INTERVAL %d MINUTE",
+						loginlog_db,(unsigned int)ntohl(ipl), dynamic_pass_failure_ban_time);	//how many times filed account? in one ip.
 					if(mysql_query(&mysql_handle, tmpsql)) {
 						ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 						ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -1792,7 +1795,7 @@ int parse_login(int fd) {
 			}
 			RFIFOSKIP(fd,packet_len);
 			break;
-		}
+
 		case 0x01db:	// request password key
 			if (session[fd]->session_data) {
 				ShowWarning("login: abnormal request of MD5 key (already opened session).\n");

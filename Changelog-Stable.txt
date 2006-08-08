@@ -5,6 +5,12 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/07
+	* Fixed the login-sql server replying to the change-sex packet with the
+	  wrong gender, causing the char-server to screw-up job-change updates.
+	  [Skotlex]
+	* Merged most of the login-sql server from trunk. Mostly cleanups to the IP
+	  login on the loginlog table, and fixing unblocking a char clearing it's
+	  ban-until field. [Skotlex]
 	* Minor changes meant to fix Strip weapon/shield divesting both. [Skotlex]
 	* SC_GUILDAURA is now removed on logout. [Skotlex]
 	* Merged updated debuff_on_logout setting which enables you to determine
