@@ -770,9 +770,10 @@ bool config_read(const char *cfgName)
 		{
 			if( !prepare_line(line) )
 				continue;
-			if( sscanf(line, "%1024[^:]:%1024[^\r\n]", w1, w2) != 2 ||
-				sscanf(line, "%1024[^=]=%1024[^\r\n]", w1, w2) != 2	)
+			if( sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) != 2 )
 				continue;
+			basics::itrim(w1);
+			basics::itrim(w2);
 			if(strcasecmp(w1, "import") == 0)
 				config_read(w2);
 			else

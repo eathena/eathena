@@ -74,12 +74,7 @@ int autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
 int agit_flag = 0;
 int night_flag = 0; // 0=day, 1=night [Yor]
 
-//Added for Mugendai's I'm Alive mod
-int imalive_on=0;
-int imalive_time=60;
-//Added by Mugendai for GUI
-int flush_on=1;
-int flush_time=100;
+
 
 class charid2nick
 {
@@ -2477,7 +2472,7 @@ int map_quit(struct map_session_data &sd)
 	sd.map_delblock();
 
 	
-	sd.ScriptEngine.temporaty_close(); //!! calling the destructor here directly since still c-style allocation
+	sd.ScriptEngine.clear();
 
 	chrif_char_offline(sd);
 
@@ -3170,13 +3165,14 @@ public:
 		while( n < MAX_MAP_PER_SERVER && fgets(line,sizeof(line),fp) )
 		{
 			int wh,count;
-			if( !get_prepared_line(line) )
+			if( !is_valid_line(line) )
 				continue;
-			if((count=sscanf(line,"%s%d",w1,&wh)) < 1){
+			if((count=sscanf(line,"%1024s %d",w1,&wh)) < 1){
 				continue;
 			}
 			char*ip=strchr(w1,'.');
 			if(ip) *ip=0;
+			basics::itrim(w1);
 			memcpy(cWaterlist[n].mapname, w1, sizeof(cWaterlist[n].mapname));
 			cWaterlist[n].mapname[sizeof(cWaterlist[n].mapname)-1]=0;
 
@@ -3233,7 +3229,7 @@ public:
 			strcat(buf, ".rsw");
 
 			//Load water height from file
-			uchar *dat = (uchar *)grfio_read(buf);
+			uchar *dat = grfio_read(buf);
 			if(dat)
 			{	
 				const uchar *p = dat+166;
@@ -3715,7 +3711,7 @@ bool map_readgrf(struct map_data& cmap, const char *fn=NULL)
 	}
 
 
-	gat = (unsigned char *)grfio_read(buf);
+	gat = grfio_read(buf);
 	if( gat )
 	{
 		const unsigned char *p = gat+14;
@@ -3729,39 +3725,13 @@ bool map_readgrf(struct map_data& cmap, const char *fn=NULL)
 		
 		for(y=0;y<cmap.ys;++y)
 		for(x=0;x<cmap.xs;++x)
-		{
-			// faster and typesafe
+		{	// faster and typesafe
 			_F_frombuffer(pp.high[0], p);
 			_F_frombuffer(pp.high[1], p);
 			_F_frombuffer(pp.high[2], p);
 			_F_frombuffer(pp.high[3], p);
 			_L_frombuffer(pp.type, p);
 			// buffer increment is done automatically 
-/*
-			struct gat_1cell px;
-			memcpy(&px, p, sizeof(struct gat_1cell));	// copy all stuff
-			p += sizeof(struct gat_1cell);				// set pointer to next section
-
-			if(MSB_FIRST==CheckByteOrder()) // little/big endian
-			{	// need to correct the whole struct since we have no suitable buffer assigns
-				// gat_1cell contains 4 floats and one int (4byte each) so swapping these is enough
-				// the structure is memory alligned so it is safe to use just the pointers
-				SwapFourBytes(((char*)(&px)) + sizeof(float)*0);
-				SwapFourBytes(((char*)(&px)) + sizeof(float)*1);
-				SwapFourBytes(((char*)(&px)) + sizeof(float)*2);
-				SwapFourBytes(((char*)(&px)) + sizeof(float)*3);
-				SwapFourBytes(((char*)(&px)) + sizeof(int)*4);
-			}
-		// debugcompare
-			if( px.high[0]!=pp.high[0] || 
-				px.high[1]!=pp.high[1] || 
-				px.high[2]!=pp.high[2] || 
-				px.high[3]!=pp.high[3] || 
-				px.type   !=pp.type )
-			{
-				printf("\nMaploaderror\n");
-			}
-*/
 /*
 if(pp.type!=1 && pp.type!=5)
 {
@@ -3928,9 +3898,9 @@ int parse_console(const char *buf)
 	sd.fd = 0;
 	strcpy( sd.status.name , "console");
 
-	if ( ( n = sscanf(buf, "%[^:]:%[^:]:%99s %d %d[^\n]", type , command , map , &x , &y )) < 5 )
-		if ( ( n = sscanf(buf, "%[^:]:%[^\n]", type , command )) < 2 )
-			n = sscanf(buf,"%[^\n]",type);
+	if ( ( n = sscanf(buf, "%64[^:]:%64[^:]:%64s %d %d[^\n]", type , command , map , &x , &y )) < 5 )
+		if ( ( n = sscanf(buf, "%64[^:]:%64[^\n]", type , command )) < 2 )
+			n = sscanf(buf,"%64[^\n]",type);
 
 	if ( n == 5 ) {
 		if (x <= 0) {
@@ -3997,10 +3967,14 @@ int map_config_read(const char *cfgName)
 		return 0;
 	}
 	
-	while(fgets(line, sizeof(line), fp)) {
-		if( !get_prepared_line(line) )
+	while(fgets(line, sizeof(line), fp))
+	{
+		if( !prepare_line(line) )
 			continue;
-		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2) {
+		if (sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2)
+		{
+			basics::itrim(w1);
+			basics::itrim(w2);
 			if (strcasecmp(w1, "userid")==0){
 				chrif_setuserid(w2);
 			} else if (strcasecmp(w1, "passwd") == 0) {

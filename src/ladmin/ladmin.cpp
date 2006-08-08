@@ -1062,7 +1062,7 @@ void display_help(char* param, int language)
 //-----------------------------
 int addaccount(char* param, int emailflag)
 {
-	char name[1023], sex[1023], email[1023], password[1023];
+	char name[1024], sex[1024], email[1024], password[1024];
 
 	memset(name, '\0', sizeof(name));
 	memset(sex, '\0', sizeof(sex));
@@ -1070,9 +1070,9 @@ int addaccount(char* param, int emailflag)
 	memset(password, '\0', sizeof(password));
 
 	if (emailflag == 0) { // add command
-		if (sscanf(param, "\"%[^\"]\" %s %[^\r\n]", name, sex, password) < 2 && // password can be void
-		    sscanf(param, "'%[^']' %s %[^\r\n]", name, sex, password) < 2 && // password can be void
-		    sscanf(param, "%s %s %[^\r\n]", name, sex, password) < 2) { // password can be void
+		if (sscanf(param, "\"%1024[^\"]\" %1024s %1024[^\r\n]", name, sex, password) < 2 && // password can be void
+		    sscanf(param, "'%1024[^']' %1024s %1024[^\r\n]", name, sex, password) < 2 && // password can be void
+		    sscanf(param, "%1024s %1024s %1024[^\r\n]", name, sex, password) < 2) { // password can be void
 			if (defaultlanguage == 'F') {
 				ShowMessage("Entrez un nom de compte, un sexe et un mot de passe svp.\n");
 				ShowMessage("<exemple> add nomtest Male motdepassetest\n");
@@ -1086,9 +1086,9 @@ int addaccount(char* param, int emailflag)
 		}
 		strcpy(email, "a@a.com"); // default email
 	} else { // 1: create command
-		if (sscanf(param, "\"%[^\"]\" %s %s %[^\r\n]", name, sex, email, password) < 3 && // password can be void
-		    sscanf(param, "'%[^']' %s %s %[^\r\n]", name, sex, email, password) < 3 && // password can be void
-		    sscanf(param, "%s %s %s %[^\r\n]", name, sex, email, password) < 3) { // password can be void
+		if (sscanf(param, "\"%1024[^\"]\" %1024s %1024s %1024[^\r\n]", name, sex, email, password) < 3 && // password can be void
+		    sscanf(param, "'%1024[^']' %1024s %1024s %1024[^\r\n]", name, sex, email, password) < 3 && // password can be void
+		    sscanf(param, "%1024s %1024s %1024s %1024[^\r\n]", name, sex, email, password) < 3) { // password can be void
 			if (defaultlanguage == 'F') {
 				ShowMessage("Entrez un nom de compte, un sexe et un mot de passe svp.\n");
 				ShowMessage("<exemple> create nomtest Male mo@mail.com motdepassetest\n");
@@ -1190,7 +1190,7 @@ int addaccount(char* param, int emailflag)
 //---------------------------------------------------------------------------------
 int banaddaccount(char* param)
 {
-	char name[1023], modif[1023];
+	char name[1024], modif[1024];
 	int year, month, day, hour, minute, second;
 	char * p_modif;
 	int value;
@@ -1199,9 +1199,9 @@ int banaddaccount(char* param)
 	memset(modif, '\0', sizeof(modif));
 	year = month = day = hour = minute = second = 0;
 
-	if (sscanf(param, "\"%[^\"]\" %[^\r\n]", name, modif) < 2 &&
-	    sscanf(param, "'%[^']' %[^\r\n]", name, modif) < 2 &&
-	    sscanf(param, "%s %[^\r\n]", name, modif) < 2) {
+	if (sscanf(param, "\"%1024[^\"]\" %1024[^\r\n]", name, modif) < 2 &&
+	    sscanf(param, "'%1024[^']' %1024[^\r\n]", name, modif) < 2 &&
+	    sscanf(param, "%1024s %1024[^\r\n]", name, modif) < 2) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte et un modificateur svp.\n");
 			ShowMessage("  <exemple> banadd nomtest +1m-2mn1s-6y\n");
@@ -1535,15 +1535,15 @@ int bansetaccountsub(char* name, char* date, char* time) {
 // Sub-function: Set the final date of a banishment of an account (ban)
 //---------------------------------------------------------------------
 int banaccount(char* param) {
-	char name[1023], date[1023], time[1023];
+	char name[1024], date[1024], time[1024];
 
 	memset(name, '\0', sizeof(name));
 	memset(date, '\0', sizeof(date));
 	memset(time, '\0', sizeof(time));
 
-	if (sscanf(param, "%s %s \"%[^\"]\"", date, time, name) < 3 &&
-	    sscanf(param, "%s %s '%[^']'", date, time, name) < 3 &&
-	    sscanf(param, "%s %s %[^\r\n]", date, time, name) < 3) {
+	if (sscanf(param, "%1024s %1024s \"%1024[^\"]\"", date, time, name) < 3 &&
+	    sscanf(param, "%1024s %1024s '%1024[^']'", date, time, name) < 3 &&
+	    sscanf(param, "%1024s %1024s %1024[^\r\n]", date, time, name) < 3) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte, une date et une heure svp.\n");
 			ShowMessage("<exemple>: banset <nom_du_compte> aaaa/mm/jj [hh:mm:ss]\n");
@@ -1571,15 +1571,15 @@ int banaccount(char* param) {
 // Sub-function: Set the final date of a banishment of an account (banset)
 //------------------------------------------------------------------------
 int bansetaccount(char* param) {
-	char name[1023], date[1023], time[1023];
+	char name[1024], date[1024], time[1024];
 
 	memset(name, '\0', sizeof(name));
 	memset(date, '\0', sizeof(date));
 	memset(time, '\0', sizeof(time));
 
-	if (sscanf(param, "\"%[^\"]\" %s %[^\r\n]", name, date, time) < 2 && // if date = 0, time can be void
-	    sscanf(param, "'%[^']' %s %[^\r\n]", name, date, time) < 2 && // if date = 0, time can be void
-	    sscanf(param, "%s %s %[^\r\n]", name, date, time) < 2) { // if date = 0, time can be void
+	if (sscanf(param, "\"%1024[^\"]\" %1024s %1024[^\r\n]", name, date, time) < 2 && // if date = 0, time can be void
+	    sscanf(param, "'%1024[^']' %1024s %1024[^\r\n]", name, date, time) < 2 && // if date = 0, time can be void
+	    sscanf(param, "%1024s %1024s %1024[^\r\n]", name, date, time) < 2) { // if date = 0, time can be void
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte, une date et une heure svp.\n");
 			ShowMessage("<exemple>: banset <nom_du_compte> aaaa/mm/jj [hh:mm:ss]\n");
@@ -1610,14 +1610,14 @@ int bansetaccount(char* param) {
 // Sub-function: unbanishment of an account (unban)
 //-------------------------------------------------
 int unbanaccount(char* param) {
-	char name[1023];
+	char name[1024];
 
 	memset(name, '\0', sizeof(name));
 
 	if (strlen(param) == 0 ||
-	    (sscanf(param, "\"%[^\"]\"", name) < 1 &&
-	     sscanf(param, "'%[^']'", name) < 1 &&
-	     sscanf(param, "%[^\r\n]", name) < 1) ||
+	    (sscanf(param, "\"%1024[^\"]\"", name) < 1 &&
+	     sscanf(param, "'%1024[^']'", name) < 1 &&
+	     sscanf(param, "%1024[^\r\n]", name) < 1) ||
 	     strlen(name) == 0) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte svp.\n");
@@ -1647,14 +1647,14 @@ int unbanaccount(char* param) {
 // (Note: never send back a password with login-server!! security of passwords)
 //---------------------------------------------------------
 int checkaccount(char* param) {
-	char name[1023], password[1023];
+	char name[1024], password[1024];
 
 	memset(name, '\0', sizeof(name));
 	memset(password, '\0', sizeof(password));
 
-	if (sscanf(param, "\"%[^\"]\" %[^\r\n]", name, password) < 1 && // password can be void
-	    sscanf(param, "'%[^']' %[^\r\n]", name, password) < 1 && // password can be void
-	    sscanf(param, "%s %[^\r\n]", name, password) < 1) { // password can be void
+	if (sscanf(param, "\"%1024[^\"]\" %1024[^\r\n]", name, password) < 1 && // password can be void
+	    sscanf(param, "'%1024[^']' %1024[^\r\n]", name, password) < 1 && // password can be void
+	    sscanf(param, "%1024s %1024[^\r\n]", name, password) < 1) { // password can be void
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte svp.\n");
 			ShowMessage("<exemple> check testname motdepasse\n");
@@ -1697,17 +1697,17 @@ int checkaccount(char* param) {
 // Sub-function: Asking for deletion of an account
 //------------------------------------------------
 int delaccount(char* param) {
-	char name[1023];
+	char name[1024];
 	char letter;
-	char confirm[1023];
+	char confirm[1024];
 	int i;
 
 	memset(name, '\0', sizeof(name));
 
 	if (strlen(param) == 0 ||
-	    (sscanf(param, "\"%[^\"]\"", name) < 1 &&
-	     sscanf(param, "'%[^']'", name) < 1 &&
-	     sscanf(param, "%[^\r\n]", name) < 1) ||
+	    (sscanf(param, "\"%1024[^\"]\"", name) < 1 &&
+	     sscanf(param, "'%1024[^']'", name) < 1 &&
+	     sscanf(param, "%1024[^\r\n]", name) < 1) ||
 	     strlen(name) == 0) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte svp.\n");
@@ -1767,14 +1767,14 @@ int delaccount(char* param) {
 // Sub-function: Asking to modification of an account e-mail
 //----------------------------------------------------------
 int changeemail(char* param) {
-	char name[1023], email[1023];
+	char name[1024], email[1024];
 
 	memset(name, '\0', sizeof(name));
 	memset(email, '\0', sizeof(email));
 
-	if (sscanf(param, "\"%[^\"]\" %[^\r\n]", name, email) < 2 &&
-	    sscanf(param, "'%[^']' %[^\r\n]", name, email) < 2 &&
-	    sscanf(param, "%s %[^\r\n]", name, email) < 2) {
+	if (sscanf(param, "\"%1024[^\"]\" %1024[^\r\n]", name, email) < 2 &&
+	    sscanf(param, "'%1024[^']' %1024[^\r\n]", name, email) < 2 &&
+	    sscanf(param, "%1024s %1024[^\r\n]", name, email) < 2) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte et une email svp.\n");
 			ShowMessage("<exemple> email testname nouveauemail\n");
@@ -1858,15 +1858,15 @@ int getlogincount() {
 // Sub-function: Asking to modify the GM level of an account
 //----------------------------------------------------------
 int changegmlevel(char* param) {
-	char name[1023];
+	char name[1024];
 	int GM_level;
 
 	memset(name, '\0', sizeof(name));
 	GM_level = 0;
 
-	if (sscanf(param, "\"%[^\"]\" %d", name, &GM_level) < 1 &&
-	    sscanf(param, "'%[^']' %d", name, &GM_level) < 1 &&
-	    sscanf(param, "%s %d", name, &GM_level) < 1) {
+	if (sscanf(param, "\"%1024[^\"]\" %d", name, &GM_level) < 1 &&
+	    sscanf(param, "'%1024[^']' %d", name, &GM_level) < 1 &&
+	    sscanf(param, "%1024s %d", name, &GM_level) < 1) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte et un niveau de GM svp.\n");
 			ShowMessage("<exemple> gm nomtest 80\n");
@@ -1913,14 +1913,14 @@ int changegmlevel(char* param) {
 // Sub-function: Asking to obtain an account id
 //---------------------------------------------
 int idaccount(char* param) {
-	char name[1023];
+	char name[1024];
 
 	memset(name, '\0', sizeof(name));
 
 	if (strlen(param) == 0 ||
-	    (sscanf(param, "\"%[^\"]\"", name) < 1 &&
-	     sscanf(param, "'%[^']'", name) < 1 &&
-	     sscanf(param, "%[^\r\n]", name) < 1) ||
+	    (sscanf(param, "\"%1024[^\"]\"", name) < 1 &&
+	     sscanf(param, "'%1024[^']'", name) < 1 &&
+	     sscanf(param, "%1024[^\r\n]", name) < 1) ||
 	     strlen(name) == 0) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte svp.\n");
@@ -2113,14 +2113,14 @@ int listaccount(char* param, int type)
 // Sub-function: Asking to modify a memo field
 //--------------------------------------------
 int changememo(char* param) {
-	char name[1023], memo[1023];
+	char name[1024], memo[1024];
 
 	memset(name, '\0', sizeof(name));
 	memset(memo, '\0', sizeof(memo));
 
-	if (sscanf(param, "\"%[^\"]\" %[^\r\n]", name, memo) < 1 && // memo can be void
-	    sscanf(param, "'%[^']' %[^\r\n]", name, memo) < 1 && // memo can be void
-	    sscanf(param, "%s %[^\r\n]", name, memo) < 1) { // memo can be void
+	if (sscanf(param, "\"%1024[^\"]\" %1024[^\r\n]", name, memo) < 1 && // memo can be void
+	    sscanf(param, "'%1024[^']' %1024[^\r\n]", name, memo) < 1 && // memo can be void
+	    sscanf(param, "%1024s %1024[^\r\n]", name, memo) < 1) { // memo can be void
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte et un mémo svp.\n");
 			ShowMessage("<exemple> memo nomtest nouveau memo\n");
@@ -2200,14 +2200,14 @@ int nameaccount(int id) {
 // (Note: never send back a password with login-server!! security of passwords)
 //------------------------------------------
 int changepasswd(char* param) {
-	char name[1023], password[1023];
+	char name[1024], password[1024];
 
 	memset(name, '\0', sizeof(name));
 	memset(password, '\0', sizeof(password));
 
-	if (sscanf(param, "\"%[^\"]\" %[^\r\n]", name, password) < 1 &&
-	    sscanf(param, "'%[^']' %[^\r\n]", name, password) < 1 &&
-	    sscanf(param, "%s %[^\r\n]", name, password) < 1) {
+	if (sscanf(param, "\"%1024[^\"]\" %1024[^\r\n]", name, password) < 1 &&
+	    sscanf(param, "'%1024[^']' %1024[^\r\n]", name, password) < 1 &&
+	    sscanf(param, "%1024s %1024[^\r\n]", name, password) < 1) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte svp.\n");
 			ShowMessage("<exemple> passwd nomtest nouveaumotdepasse\n");
@@ -2273,14 +2273,14 @@ int reloadGM() {
 // Sub-function: Asking to modify the sex of an account
 //-----------------------------------------------------
 int changesex(char* param) {
-	char name[1023], sex[1023];
+	char name[1024], sex[1024];
 
 	memset(name, '\0', sizeof(name));
 	memset(sex, '\0', sizeof(sex));
 
-	if (sscanf(param, "\"%[^\"]\" %[^\r\n]", name, sex) < 2 &&
-	    sscanf(param, "'%[^']' %[^\r\n]", name, sex) < 2 &&
-	    sscanf(param, "%s %[^\r\n]", name, sex) < 2) {
+	if (sscanf(param, "\"%1024[^\"]\" %1024[^\r\n]", name, sex) < 2 &&
+	    sscanf(param, "'%1024[^']' %1024[^\r\n]", name, sex) < 2 &&
+	    sscanf(param, "%1024s %1024[^\r\n]", name, sex) < 2) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte et un sexe svp.\n");
 			ShowMessage("<exemple> sex nomtest Male\n");
@@ -2412,15 +2412,15 @@ int changestatesub(char* name, int state, char* error_message7) {
 //-------------------------------------------------------
 int changestate(char* param)
 {
-	char name[1023], error_message[1023];
+	char name[1024], error_message[1024];
 	int state;
 
 	memset(name, '\0', sizeof(name));
 	memset(error_message, '\0', sizeof(error_message));
 
-	if (sscanf(param, "\"%[^\"]\" %d %[^\r\n]", name, &state, error_message) < 2 &&
-	    sscanf(param, "'%[^']' %d %[^\r\n]", name, &state, error_message) < 2 &&
-	    sscanf(param, "%s %d %[^\r\n]", name, &state, error_message) < 2) {
+	if (sscanf(param, "\"%1024[^\"]\" %d %1024[^\r\n]", name, &state, error_message) < 2 &&
+	    sscanf(param, "'%1024[^']' %d %1024[^\r\n]", name, &state, error_message) < 2 &&
+	    sscanf(param, "%1024s %d %1024[^\r\n]", name, &state, error_message) < 2) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte et un statut svp.\n");
 			ShowMessage("<exemples> state nomtest 5\n");
@@ -2446,14 +2446,14 @@ int changestate(char* param)
 // Sub-function: Asking to unblock an account
 //-------------------------------------------
 int unblockaccount(char* param) {
-	char name[1023];
+	char name[1024];
 
 	memset(name, '\0', sizeof(name));
 
 	if (strlen(param) == 0 ||
-	    (sscanf(param, "\"%[^\"]\"", name) < 1 &&
-	     sscanf(param, "'%[^']'", name) < 1 &&
-	     sscanf(param, "%[^\r\n]", name) < 1) ||
+	    (sscanf(param, "\"%1024[^\"]\"", name) < 1 &&
+	     sscanf(param, "'%1024[^']'", name) < 1 &&
+	     sscanf(param, "%1024[^\r\n]", name) < 1) ||
 	     strlen(name) == 0) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte svp.\n");
@@ -2480,14 +2480,14 @@ int unblockaccount(char* param) {
 // Sub-function: Asking to unblock an account
 //-------------------------------------------
 int blockaccount(char* param) {
-	char name[1023];
+	char name[1024];
 
 	memset(name, '\0', sizeof(name));
 
 	if (strlen(param) == 0 ||
-	    (sscanf(param, "\"%[^\"]\"", name) < 1 &&
-	     sscanf(param, "'%[^']'", name) < 1 &&
-	     sscanf(param, "%[^\r\n]", name) < 1) ||
+	    (sscanf(param, "\"%1024[^\"]\"", name) < 1 &&
+	     sscanf(param, "'%1024[^']'", name) < 1 &&
+	     sscanf(param, "%1024[^\r\n]", name) < 1) ||
 	     strlen(name) == 0) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte svp.\n");
@@ -2515,7 +2515,7 @@ int blockaccount(char* param) {
 //---------------------------------------------------------------------
 int timeaddaccount(char* param)
 {
-	char name[1023], modif[1023];
+	char name[1024], modif[1024];
 	int year, month, day, hour, minute, second;
 	char * p_modif;
 	int value;
@@ -2524,9 +2524,9 @@ int timeaddaccount(char* param)
 	memset(modif, '\0', sizeof(modif));
 	year = month = day = hour = minute = second = 0;
 
-	if (sscanf(param, "\"%[^\"]\" %[^\r\n]", name, modif) < 2 &&
-	    sscanf(param, "'%[^']' %[^\r\n]", name, modif) < 2 &&
-	    sscanf(param, "%s %[^\r\n]", name, modif) < 2) {
+	if (sscanf(param, "\"%1024[^\"]\" %1024[^\r\n]", name, modif) < 2 &&
+	    sscanf(param, "'%1024[^']' %1024[^\r\n]", name, modif) < 2 &&
+	    sscanf(param, "%1024s %1024[^\r\n]", name, modif) < 2) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte et un modificateur svp.\n");
 			ShowMessage("  <exemple> timeadd nomtest +1m-2mn1s-6y\n");
@@ -2716,7 +2716,7 @@ int timeaddaccount(char* param)
 // Sub-function: Set a validity limit of an account
 //-------------------------------------------------
 int timesetaccount(char* param) {
-	char name[1023], date[1023], time[1023];
+	char name[1024], date[1024], time[1024];
 	int year, month, day, hour, minute, second;
 	time_t connect_until_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
 	struct tm *tmtime;
@@ -2728,9 +2728,9 @@ int timesetaccount(char* param) {
 	connect_until_time = 0;
 	tmtime = localtime(&connect_until_time); // initialize
 
-	if (sscanf(param, "\"%[^\"]\" %s %[^\r\n]", name, date, time) < 2 && // if date = 0, time can be void
-	    sscanf(param, "'%[^']' %s %[^\r\n]", name, date, time) < 2 && // if date = 0, time can be void
-	    sscanf(param, "%s %s %[^\r\n]", name, date, time) < 2) { // if date = 0, time can be void
+	if (sscanf(param, "\"%1024[^\"]\" %1024s %1024[^\r\n]", name, date, time) < 2 && // if date = 0, time can be void
+	    sscanf(param, "'%1024[^']' %1024s %1024[^\r\n]", name, date, time) < 2 && // if date = 0, time can be void
+	    sscanf(param, "%1024s %1024s %1024[^\r\n]", name, date, time) < 2) { // if date = 0, time can be void
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte, une date et une heure svp.\n");
 			ShowMessage("<exemple>: timeset <nom_du_compte> aaaa/mm/jj [hh:mm:ss]\n");
@@ -2881,14 +2881,14 @@ int timesetaccount(char* param) {
 // Sub-function: Asking to displaying information about an account (by its name)
 //------------------------------------------------------------------------------
 int whoaccount(char* param) {
-	char name[1023];
+	char name[1024];
 
 	memset(name, '\0', sizeof(name));
 
 	if (strlen(param) == 0 ||
-	    (sscanf(param, "\"%[^\"]\"", name) < 1 &&
-	     sscanf(param, "'%[^']'", name) < 1 &&
-	     sscanf(param, "%[^\r\n]", name) < 1) ||
+	    (sscanf(param, "\"%1024[^\"]\"", name) < 1 &&
+	     sscanf(param, "'%1024[^']'", name) < 1 &&
+	     sscanf(param, "%1024[^\r\n]", name) < 1) ||
 	     strlen(name) == 0) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Entrez un nom de compte svp.\n");
@@ -3005,7 +3005,7 @@ int prompt() {
 		// extract command name and parameters
 		memset(command, '\0', sizeof(command));
 		memset(parameters, '\0', sizeof(parameters));
-		sscanf(buf, "%1023s %[^\n]", command, parameters);
+		sscanf(buf, "%1024s %1024[^\n]", command, parameters);
 		command[1023] = '\0';
 		parameters[1023] = '\0';
 
@@ -4155,14 +4155,18 @@ int ladmin_config_read(const char *cfgName) {
 	} else {
 		ShowMessage(CL_NORM"---Start reading of Ladmin configuration file (%s)\n", cfgName);
 	}
-	while(fgets(line, sizeof(line), fp)) {
-		if( !get_prepared_line(line) )
+	while(fgets(line, sizeof(line), fp))
+	{
+		if( !prepare_line(line) )
 			continue;
 
 		line[sizeof(line)-1] = '\0';
-		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2) {
+		if (sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2)
+		{
 			remove_control_chars(w1);
 			remove_control_chars(w2);
+			basics::itrim(w1);
+			basics::itrim(w2);
 
 			if(strcasecmp(w1,"login_ip")==0){
 				struct hostent *h = gethostbyname (w2);

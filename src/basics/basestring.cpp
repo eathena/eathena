@@ -109,7 +109,7 @@ template<class T> const T* ltrim(T* str)
 	{
 		T *src=str, *tar=str, *mk=NULL;
 		while(*src && stringcheck::isspace(*src) )
-			src++;
+			++src;
 		while(*src)
 		{
 			mk = ( stringcheck::isspace(*src) )?mk?mk:tar:NULL;
@@ -133,7 +133,7 @@ template<class T> const T* rtrim(T* str)
 	{
 		T *src=str, *tar=str, *mk=NULL;
 		while(*src && stringcheck::isspace(*src) )
-			src++;
+			++src;
 		while(*src)
 		{
 			mk = ( stringcheck::isspace(*src) )?mk?mk:tar:NULL;
@@ -157,7 +157,7 @@ template<class T> const T* trim(T* str)
 	{
 		T *src=str, *tar=str, *mk=NULL;
 		while(*src && stringcheck::isspace(*src) )
-			src++;
+			++src;
 		while(*src)
 		{
 			mk = ( stringcheck::isspace(*src) )?mk?mk:tar:NULL;
@@ -185,7 +185,7 @@ template<class T> const T* itrim(T* str, bool removeall)
 		while(*src)
 		{
 			if( stringcheck::isspace(*src) )
-				mk=' ', src++;
+				mk=' ', ++src;
 			else
 			{
 				if( mk && !removeall )

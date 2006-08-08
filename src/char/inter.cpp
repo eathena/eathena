@@ -111,7 +111,7 @@ int inter_accreg_fromstr(const char *str, struct accreg *reg) {
 
 	reg->account_id = accid;
 	for(j = 0, p += n; j < ACCOUNT_REG_NUM; j++, p += n) {
-		if (sscanf(p, "%[^,],%d %n", buf, &v, &n) != 2)
+		if (sscanf(p, "%128[^,],%d %n", buf, &v, &n) != 2)
 			break;
 		memcpy(reg->reg[j].str, buf, 32);
 		reg->reg[j].value = v;
@@ -222,13 +222,16 @@ int inter_config_read(const char *cfgName) {
 		ShowError("file not found: %s\n", line);
 		return 1;
 	}
-	while(fgets(line, sizeof(line), fp)) {
+	while(fgets(line, sizeof(line), fp))
+	{
 		if( !prepare_line(line) )
 			continue;
 		line[sizeof(line)-1] = '\0';
 
-		if (sscanf(line,"%[^:]: %[^\r\n]", w1, w2) != 2)
+		if (sscanf(line,"%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) != 2)
 			continue;
+		basics::itrim(w1);
+		basics::itrim(w2);
 
 //		if (strcasecmp(w1, "storage_txt") == 0) {
 //			safestrcpy(storage_txt, w2, sizeof(storage_txt));

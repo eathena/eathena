@@ -5438,7 +5438,7 @@ int status_readdb(void) {
 	i=0;
 	while(fgets(line, sizeof(line), fp)){
 		char *split[50];
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		for(j=0,p=line;j<21 && p;++j){
 			split[j]=p;
@@ -5471,10 +5471,12 @@ int status_readdb(void) {
 		return 1;
 	}
 	i=0;
-	while(fgets(line, sizeof(line), fp)){
-		if( !get_prepared_line(line) )
+	while(fgets(line, sizeof(line), fp))
+	{
+		if( !is_valid_line(line) )
 			continue;
-		for(j=0,p=line;j<MAX_LEVEL && p;++j){
+		for(j=0,p=line;j<MAX_LEVEL && p;++j)
+		{
 			if(sscanf(p,"%d",&k)==0)
 				break;
 			job_bonus[0][i][j]=k;
@@ -5499,10 +5501,12 @@ int status_readdb(void) {
 		return 1;
 	}
 	i=0;
-	while(fgets(line, sizeof(line), fp)){
-		if( !get_prepared_line(line) )
+	while(fgets(line, sizeof(line), fp))
+	{
+		if( !is_valid_line(line) )
 			continue;
-		for(j=0,p=line;j<MAX_LEVEL && p;++j){
+		for(j=0,p=line;j<MAX_LEVEL && p;++j)
+		{
 			if(sscanf(p,"%d",&k)==0)
 				break;
 			job_bonus[1][i][j]=k;
@@ -5526,14 +5530,16 @@ int status_readdb(void) {
 		return 1;
 	}
 	i=0;
-	while(fgets(line, sizeof(line), fp)){
+	while(fgets(line, sizeof(line), fp))
+	{
 		char *split[20];
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		if(atoi(line)<=0)
 			continue;
 		memset(split,0,sizeof(split));
-		for(j=0,p=line;j<20 && p;++j){
+		for(j=0,p=line;j<20 && p;++j)
+		{
 			split[j]=p;
 			p=strchr(p,',');
 			if(p) *p++=0;
@@ -5560,14 +5566,16 @@ int status_readdb(void) {
 		return 1;
 	}
 	i=0;
-	while(fgets(line, sizeof(line), fp) && i<MAX_REFINE_BONUS){
+	while(fgets(line, sizeof(line), fp) && i<MAX_REFINE_BONUS)
+	{
 		char *split[16];
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		if(atoi(line)<=0)
 			continue;
 		memset(split,0,sizeof(split));
-		for(j=0,p=line;j<16 && p;++j){
+		for(j=0,p=line;j<16 && p;++j)
+		{
 			split[j]=p;
 			p=strchr(p,',');
 			if(p) *p++=0;

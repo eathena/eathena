@@ -2514,7 +2514,8 @@ int parse_console(const char *buf)
 
 	memset(command,0,sizeof(command));
 
-	sscanf(buf, "%[^\n]", command);
+	sscanf(buf, "%256[^\n]", command);
+	basics::itrim(command);
 
 	login_log("Console command :%s" RETCODE, command);
 
@@ -2558,10 +2559,12 @@ int login_config_read(const char *cfgName)
 		
 		line[sizeof(line)-1] = '\0';
 		memset(w2, 0, sizeof(w2));
-		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2)
+		if (sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2)
 		{
 			remove_control_chars(w1);
 			remove_control_chars(w2);
+			basics::itrim(w1);
+			basics::itrim(w2);
 			
 			if (strcasecmp(w1, "admin_state") == 0)
 			{

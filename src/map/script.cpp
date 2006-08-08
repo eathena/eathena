@@ -228,7 +228,6 @@ int buildin_petskillbonus(CScriptEngine &st); // petskillbonus [Valaris]
 int buildin_petrecovery(CScriptEngine &st); // pet skill for curing status [Valaris]
 int buildin_petloot(CScriptEngine &st); // pet looting [Valaris]
 int buildin_petheal(CScriptEngine &st); // pet healing [Valaris]
-//int buildin_petmag(CScriptEngine &st); // pet magnificat [Valaris]
 int buildin_petskillattack(CScriptEngine &st); // pet skill attacks [Skotlex]
 int buildin_petskillattack2(CScriptEngine &st); // pet skill attacks [Skotlex]
 int buildin_petskillsupport(CScriptEngine &st); // pet support skill [Valaris]
@@ -489,7 +488,6 @@ struct {
 	{buildin_petrecovery,"petrecovery","ii"}, // [Valaris]
 	{buildin_petloot,"petloot","i"}, // [Valaris]
 	{buildin_petheal,"petheal","iiii"}, // [Valaris]
-//	{buildin_petmag,"petmag","iiii"}, // [Valaris]
 	{buildin_petskillattack,"petskillattack","iiii"}, // [Skotlex]
 	{buildin_petskillattack2,"petskillattack2","iiiii"}, // [Valaris]
 	{buildin_petskillsupport,"petskillsupport","iiiii"}, // [Skotlex]
@@ -557,8 +555,6 @@ struct {
 	{buildin_getiteminfo,"getiteminfo","i"},
 	{buildin_callshop,"callshop","si"}, // [Skotlex]
 	{buildin_regex,"regex","ss"},
-	// array terminator
-	{NULL,NULL,NULL},
 };
 
 
@@ -569,832 +565,6 @@ enum { LABEL_NEXTLINE=1, LABEL_START };
 
 
 struct Script_Config script_config;
-
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// Script Parser Class Implementation
-//
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-CScript::CStringBuffer	CScript::cStrData;
-
-///////////////////////////////////////////////////////////////////////////
-// initialisation members
-///////////////////////////////////////////////////////////////////////////
-void CScript::CStringBuffer::loadBuildinFunc(void)
-{
-	size_t i,n;
-	for(i=0; buildin_func[i].func; ++i)
-	{
-		n=addString(buildin_func[i].name);
-		cStrData[n].type=CScriptEngine::C_FUNC;
-		cStrData[n].val=i;
-		cStrData[n].func=buildin_func[i].func;
-	}
-}
-void CScript::CStringBuffer::loadConstDB(void)
-{
-	FILE *fp;
-	char line[1024];
-	char name[1024];
-	int val,n,type;
-
-	fp=basics::safefopen("db/const.txt","r");
-	if(fp==NULL)
-	{
-		ShowError("can't read %s\n","db/const.txt");
-	}
-	else
-	{
-		while(fgets(line,sizeof(line),fp))
-		{
-			if( !get_prepared_line(line) )
-				continue;
-			type=0;
-			if( sscanf(line,"%[A-Za-z0-9_],%d,%d",name,&val,&type)>=2 ||
-				sscanf(line,"%[A-Za-z0-9_] %d %d",name,&val,&type)>=2 )
-			{
-				basics::tolower(name);
-				n=addString(name);
-				if(type==0)
-					cStrData[n].type=CScriptEngine::C_INT;
-				else
-					cStrData[n].type=CScriptEngine::C_PARAM;
-				cStrData[n].val=val;
-			}
-		}
-		fclose(fp);
-	}
-}
-void CScript::CStringBuffer::loadMapReg(void)
-{
-	char line[1024];
-	FILE *fp=basics::safefopen(mapreg_txt,"rt");
-
-	if( fp )
-	{
-		while(fgets(line,sizeof(line),fp))
-		{
-			char buf1[256],buf2[1024];
-			int n,v,s,i;
-			if( sscanf(line,"%255[^,],%d\t%n",buf1,&i,&n)!=2 &&
-				(i=0,sscanf(line,"%[^\t]\t%n",buf1,&n)!=1) )
-				continue;
-			if( buf1[strlen(buf1)-1]=='$' )
-			{
-				if( sscanf(line+n,"%[^\n\r]",buf2)!=1 ){
-					ShowMessage("%s: %s broken data !\n",mapreg_txt,buf1);
-					continue;
-				}
-				s= addString(buf1);
-
-//				char* p = new char[1+strlen(buf2)];
-//				memcpy(p,buf2,1+strlen(buf2));
-//!!				numdb_insert(mapregstr_db,(i<<24)|s,p);
-			}
-			else
-			{
-				if( sscanf(line+n,"%d",&v)!=1 )
-				{
-					ShowMessage("%s: %s broken data !\n",mapreg_txt,buf1);
-					continue;
-				}
-				s= addString(buf1);
-//!!				numdb_insert(mapreg_db,(i<<24)|s,v);
-			}
-		}
-		fclose(fp);
-	}
-	return;
-}
-
-CScript::CStringBuffer::CStringBuffer()
-{
-	memset(cStrHash,0, sizeof(cStrHash));
-	// strdata starts with two label elements
-	cStrData.resize(LABEL_START);	
-
-	loadMapReg();
-
-	// then insert the buildin functions
-	loadBuildinFunc();
-	// then inser the script constants/parameters
-	loadConstDB();
-	
-}
-void CScript::CStringBuffer::init()
-{
-	size_t i;
-	cStrData[LABEL_NEXTLINE].type = CScriptEngine::C_NOP;
-	cStrData[LABEL_NEXTLINE].backpatch = -1;
-	cStrData[LABEL_NEXTLINE].label = -1;
-	for(i=LABEL_START; i<cStrData.size(); ++i)
-	{
-		if( cStrData[i].type==CScriptEngine::C_POS || cStrData[i].type==CScriptEngine::C_NAME )
-		{
-			cStrData[i].type = CScriptEngine::C_NOP;
-			cStrData[i].backpatch = -1;
-			cStrData[i].label = -1;
-		}
-	}
-}
-///////////////////////////////////////////////////////////////////////////
-// StrData members
-///////////////////////////////////////////////////////////////////////////
-unsigned char CScript::CStringBuffer::calcHash(const char *str)
-{
-	size_t h=0;
-	if(str)
-	{	
-		while(*str)
-		{	// do hash calculation with lower case inputs
-			h=(h<<1)+(h>>3)+(h>>5)+(h>>8);
-			h+= tolower((unsigned char)(*str++));
-		}
-	}
-	// returns values in interval [0..15] only
-	return h&0xF;
-}
-
-int CScript::CStringBuffer::searchString(const char *p)
-{
-	size_t i=cStrHash[calcHash(p)];
-	while(i && i<cStrData.size())
-	{	// function names could be case-insensitive
-		//bool casesens = (cStrData[i].type!=CScriptEngine::C_FUNC);
-		bool casesens = false;
-		if( 0==( (casesens)?strcmp(cStrData[i].str, p):strcasecmp(cStrData[i].str, p) ) )
-			return i;
-		i=cStrData[i].next;
-	}
-	return -1;
-}
-
-int CScript::CStringBuffer::addString(const basics::string<>& str)
-{
-	// try a case-insensitive search
-	int i=searchString(str);
-	if(i < 0)
-	{	// not found; need to insert
-		i=calcHash(str);
-		if(cStrHash[i]==0)
-		{	// the new string starts a hash entry
-			cStrHash[i]=cStrData.size();
-		}
-		else
-		{	// reusing hash index variable for strdata index here
-			i=cStrHash[i];
-			for(;;)
-			{
-				if( cStrData[i].str==str )
-					return i;
-				if(cStrData[i].next && cStrData[i].next<(int)cStrData.size())
-					i=cStrData[i].next;
-				else
-					break;
-			}
-			// the new string is appended at an existing hash entry
-			cStrData[i].next=cStrData.size();
-		}
-
-		// return the insertion position
-		i=cStrData.size();
-		// append the strdata
-		cStrData.append( CStrData(	CScriptEngine::C_NOP,	// type
-									str,					// str
-									-1,						// backpatch
-									-1,						// label
-									0,						// val
-									0,						// next
-									NULL					// func
-									) );
-	}
-	return i;
-}
-///////////////////////////////////////////////////////////////////////////
-// parsing members
-///////////////////////////////////////////////////////////////////////////
-void CParser::appendCommand(int a)
-{
-	while(a>=0x40){
-		this->appendByte((a&0x3f)|0x40);
-		a=(a-0x40)>>6;
-	}
-	this->appendByte(a&0x3f);
-}
-
-void CParser::appendInt(int a)
-{
-	while(a>=0x40){
-		this->appendByte(a|0xc0);
-		a=(a-0x40)>>6;
-	}
-	this->appendByte(a|0x80);
-}
-
-void CParser::appendLabel(int l)
-{
-	int backpatch = cStrData[l].backpatch;
-
-	switch(cStrData[l].type)
-	{
-	// we have a jump position already, append it
-	case CScriptEngine::C_POS:		
-		this->appendCommand(CScriptEngine::C_POS);
-		this->appendByte(cStrData[l].label);
-		this->appendByte(cStrData[l].label>>8);
-		this->appendByte(cStrData[l].label>>16);
-		break;
-	// we don't have a jump position yet
-	// so form a list of all waiting jumps
-	// put this address into the strdata and 
-	// append the address of the previous waiting position
-	case CScriptEngine::C_NOP:
-		// ラベルの可能性があるのでbackpatch用データ埋め込み
-		this->appendCommand(CScriptEngine::C_NAME);
-		cStrData[l].backpatch = this->cScript->getCurrentPos();
-		this->appendByte(backpatch);
-		this->appendByte(backpatch>>8);
-		this->appendByte(backpatch>>16);
-		break;
-	// we add a value, so just append it
-	case CScriptEngine::C_INT:
-		this->appendInt(cStrData[l].val);
-		break;
-	// otherwise we append the reference to a name
-	default:
-		// もう他の用途と確定してるので数字をそのまま
-		this->appendCommand(CScriptEngine::C_NAME);
-		this->appendByte(l);
-		this->appendByte(l>>8);
-		this->appendByte(l>>16);
-		break;
-	}
-}
-
-void CParser::setLabel(size_t l, size_t pos)
-{
-	sint32 i,next;
-
-	// we can set the jump position now
-	cStrData[l].type=CScriptEngine::C_POS;
-	cStrData[l].label=pos;
-
-	// and store a text label at the script
-	// if it is an "On..." Label
-	if(cStrData[l].str && tolower( ((uchar)cStrData[l].str[0]) ) == 'o' && tolower( ((uchar)cStrData[l].str[1]) ) == 'n' )
-		this->cScript->cLabels.append( CLabel(cStrData[l].str,pos) );
-
-	// if there are waiting jumps already, 
-	// put the correct jump positions into the script
-	i=cStrData[l].backpatch;
-	while(i>0 && i!=0x00ffffff)
-	{
-		next = (0xFF&cScript->cProgramm[i  ])
-			 | (0xFF&cScript->cProgramm[i+1])<<8
-			 | (0xFF&cScript->cProgramm[i+2])<<16;
-		cScript->cProgramm[i-1]=CScriptEngine::C_POS;
-		cScript->cProgramm[i  ]=pos;
-		cScript->cProgramm[i+1]=pos>>8;
-		cScript->cProgramm[i+2]=pos>>16;
-		i=next;
-	}
-	// mark that the label has been processed
-	cStrData[l].backpatch = -1;
-}
-
-bool CParser::skipSpaceComment(const char *&p)
-{
-	while(p)
-	{
-		while( isspace((int)((unsigned char)*p)) )
-			p++;
-		if(p[0]=='/' && p[1]=='/')
-		{
-			while(*p && *p!='\n')
-				p++;
-		}
-		else if(p[0]=='/' && p[1]=='*')
-		{
-			p++;
-			while(*p && (p[-1]!='*' || p[0]!='/'))
-				p++;
-			if(*p) p++;
-		}
-		else
-			break;
-	}
-	return true;
-}
-
-bool CParser::skipWord(const char *&p)
-{
-	const char *tmp=p;
-	if(p)
-	{	// prefix
-		if(*p=='$') p++;	// MAP鯖内共有変数用
-		if(*p=='@') p++;	// 一時的変数用(like weiss)
-		if(*p=='#') p++;	// account変数用
-		if(*p=='#') p++;	// ワールドaccount変数用
-
-		while( isalnum((int)((unsigned char)*p)) || *p=='_' || *p&0x80 )
-		{	// this is for skipping multibyte characters
-			// might possibly produce errors in specific cases for latin encoding, though
-			if( *p&0x80 && p[1] && p[1]!='$' && !isspace((int)((unsigned char)p[1])) )
-				p+=2;
-			else
-				p++;
-		}
-		// postfix
-		if(*p=='$') p++;	// 文字列変数
-	}
-	// true when skipping was successful
-	return (tmp!=p);
-}
-
-void CParser::ErrorMessage(const char *mes, const char *pos)
-{
-	int on=0, line=cStartLine;
-	const char *lineend, *linestart=cStartPtr;
-	
-	while(linestart && *linestart)
-	{
-		lineend=strchr(linestart,'\n');
-		if(lineend==NULL || pos<lineend)
-		{
-			ShowMessage("\n%s at line "CL_WHITE"\'%d\'"CL_RESET" :\n", mes, line);
-			while( *linestart!='\r' && *linestart!='\n' && *linestart )
-			{
-				if(linestart==pos)
-				{
-					on=1;
-					ShowMessage("\'"CL_BT_RED);
-				}
-				else if( on && !(*linestart=='_' || isalnum(((unsigned char)*linestart))) )
-				{
-					on=0;
-					ShowMessage(CL_RESET"\'");
-				}
-				ShowMessage("%c",*linestart);
-				
-				linestart++;
-			}
-			ShowMessage(CL_RESET"\a\n");
-			break;
-		}
-		linestart=lineend+1;
-		line++;
-	}
-}
-
-bool CParser::parseSimpleExpr(const char *&p)
-{
-	if(p)
-	{
-		skipSpaceComment(p);
-
-		if(*p==';' || *p==',')
-		{
-			this->ErrorMessage("unexpected expr end", p);
-			return false;
-		}
-		if(*p=='(')
-		{	// new expression
-			p++;
-			parseSubExpr(p,-1);
-			skipSpaceComment(p);
-			if((*p++)!=')')
-			{
-				this->ErrorMessage("unmatch ')'",p);
-				return false;
-			}
-		}
-		else if( isdigit((int)((unsigned char)*p)) || ((*p=='-' || *p=='+') && isdigit((int)((unsigned char)p[1]))))
-		{	// number
-			char *np;
-			int i=strtol(p,&np,0);
-			appendInt(i);
-			p= np;
-		}
-		else if(*p=='"')
-		{	// string
-			appendCommand(CScriptEngine::C_STR);
-			p++;	// skip the leading '"'
-			while(*p && *p!='"')
-			{
-				if(p[-1]<=0x7e && *p=='\\')
-					p++;
-				else if(*p=='\n')
-				{
-					ErrorMessage("unexpected newline @ string", p);
-					return false;
-				}
-				appendByte(*p++);
-			}
-			if(!*p)
-			{
-				ErrorMessage("unexpected eof @ string", p);
-				return false;
-			}
-			appendByte(0);
-			p++;	// skip the trailing '"'
-		}
-		else
-		{	// label, register, function etc
-			int l;
-			const char *p2=p;
-			skipWord(p2);
-			if( p2==p && !(*p==')' && p[-1]=='(') )
-			{
-				ErrorMessage("unexpected character", p);
-				return false;
-			}
-			l=cStrData.addString( basics::string<>(p, p2-p) );
-			p=p2;
-
-			cParseCommand=l;	// warn_*_mismatch_paramnumのために必要
-			if(l==cStrData.searchString("if"))	// warn_cmd_no_commaのために必要
-				cParseCommandIf++;
-
-			if( cStrData[l].type!=CScriptEngine::C_FUNC && *p=='[' )
-			{	// array(name[i] => getelementofarray(name,i) )
-				appendLabel( cStrData.searchString("getelementofarray") );
-				appendCommand(CScriptEngine::C_ARG);
-				appendLabel(l);
-				p++;
-				parseSubExpr(p,-1);
-				skipSpaceComment(p);
-				if((*p++)!=']')
-				{
-					ErrorMessage("unmatch ']'",p);
-					return false;
-				}
-				appendCommand(CScriptEngine::C_FUNC);
-			}
-			else
-				appendLabel(l);
-		}
-		return true;
-	}
-	return false;
-}
-
-bool CParser::parseSubExpr(const char *&p, int limit)
-{
-	int op,opl,len;
-	const char *tmpp;
-
-	if( !p )
-		return false;
-
-	skipSpaceComment(p);
-	
-	if(*p=='-')
-	{
-		tmpp = p+1;
-		skipSpaceComment(tmpp);
-		if(*tmpp==';' || *tmpp==',')
-		{
-			appendLabel(LABEL_NEXTLINE);
-			p++;
-			return skipSpaceComment(p);
-		}
-	}
-	tmpp = p;
-	if((op=CScriptEngine::C_NEG,*p=='-') || (op=CScriptEngine::C_LNOT,*p=='!') || (op=CScriptEngine::C_NOT,*p=='~'))
-	{
-		p++;
-		parseSubExpr(p,8);
-		appendCommand(op);
-	}
-	else
-		parseSimpleExpr(p);
-
-	skipSpaceComment(p);
-	while(((op=CScriptEngine::C_ADD,opl=6,len=1,*p=='+') ||
-		   (op=CScriptEngine::C_SUB,opl=6,len=1,*p=='-') ||
-		   (op=CScriptEngine::C_MUL,opl=7,len=1,*p=='*') ||
-		   (op=CScriptEngine::C_DIV,opl=7,len=1,*p=='/') ||
-		   (op=CScriptEngine::C_MOD,opl=7,len=1,*p=='%') ||
-		   (op=CScriptEngine::C_FUNC,opl=9,len=1,*p=='(') ||
-		   (op=CScriptEngine::C_LAND,opl=1,len=2,*p=='&' && p[1]=='&') ||
-		   (op=CScriptEngine::C_AND,opl=5,len=1,*p=='&') ||
-		   (op=CScriptEngine::C_LOR,opl=0,len=2,*p=='|' && p[1]=='|') ||
-		   (op=CScriptEngine::C_OR,opl=4,len=1,*p=='|') ||
-		   (op=CScriptEngine::C_XOR,opl=3,len=1,*p=='^') ||
-		   (op=CScriptEngine::C_EQ,opl=2,len=2,*p=='=' && p[1]=='=') ||
-		   (op=CScriptEngine::C_NE,opl=2,len=2,*p=='!' && p[1]=='=') ||
-		   (op=CScriptEngine::C_R_SHIFT,opl=5,len=2,*p=='>' && p[1]=='>') ||
-		   (op=CScriptEngine::C_GE,opl=2,len=2,*p=='>' && p[1]=='=') ||
-		   (op=CScriptEngine::C_GT,opl=2,len=1,*p=='>') ||
-		   (op=CScriptEngine::C_L_SHIFT,opl=5,len=2,*p=='<' && p[1]=='<') ||
-		   (op=CScriptEngine::C_LE,opl=2,len=2,*p=='<' && p[1]=='=') ||
-		   (op=CScriptEngine::C_LT,opl=2,len=1,*p=='<')) && opl>limit)
-	{
-		p+=len;
-		if(op==CScriptEngine::C_FUNC)
-		{
-			int i=0,func=cParseCommand;
-			const char *plist[128];
-
-			if( cStrData[func].type!=CScriptEngine::C_FUNC )
-			{
-				ErrorMessage("expect function",tmpp);
-				return false;
-			}
-			appendCommand(CScriptEngine::C_ARG);
-			do
-			{
-				plist[i]=p;
-				parseSubExpr(p,-1);
-				skipSpaceComment(p);
-				if(*p==',')
-				{
-					p++;
-					skipSpaceComment(p);
-				}
-				else if(*p!=')' && script_config.warn_func_no_comma)
-				{
-					ErrorMessage("expect ',' or ')' at func params", p);
-					return false;
-				}
-				i++;
-			}
-			while(*p && *p!=')' && i<128);
-			plist[i]=p;
-			if(*(p++)!=')')
-			{
-				ErrorMessage("func request '(' ')'",p);
-				return false;;
-			}
-
-			if (cStrData[func].type == CScriptEngine::C_FUNC && script_config.warn_func_mismatch_paramnum)
-			{
-				const char *arg = buildin_func[cStrData[func].val].arg;
-				int j = 0;
-				for (; arg[j]; ++j) if (arg[j] == '*') break;
-				if (!(i <= 1 && j == 0) && ((arg[j] == 0 && i != j) || (arg[j] == '*' && i < j))) {
-					ErrorMessage("illegal number of parameters",plist[(i<j)?i:j]);
-				}
-			}
-		}
-		else
-		{
-			parseSubExpr(p,opl);
-		}
-		appendCommand(op);
-		skipSpaceComment(p);
-	}
-	return true;
-}
-
-bool CParser::parseExpr(const char *&p)
-{
-	switch(*p)
-	{
-	case ')':
-	case ';':
-	case ':':
-	case '[':
-	case ']':
-	case '}':
-		ErrorMessage("unexpected char",p);
-		return false;
-	}
-	return parseSubExpr(p,-1);
-}
-
-bool CParser::parseLine(const char *&p)
-{
-	size_t i=0;
-	int cmd;
-	const char *plist[128];
-	const char *p2;
-
-	if( !p )
-		return false;
-
-	skipSpaceComment(p);
-
-	// empty command
-	if(*p==';')
-	{	p++;
-		return true;
-	}
-
-	// lefthand expression
-	// 最初は関数名
-	cParseCommandIf=0;	// warn_cmd_no_commaのために必要
-	p2 = p;
-	if( !parseSimpleExpr(p) )
-		return false;
-	cmd=cParseCommand;
-	if( cStrData[cmd].type!=CScriptEngine::C_FUNC )
-	{
-		this->ErrorMessage("expect command", p2);
-		return false;
-	}
-	
-	// arguments
-	this->appendCommand(CScriptEngine::C_ARG);
-	skipSpaceComment(p);
-	while(p && *p && *p!=';' && i<128)
-	{
-		plist[i]=p;
-		// each argment consits of an expression, parse it
-		if( !parseExpr(p) )
-			return false;
-		skipSpaceComment(p);
-
-		// check for next argument or end of argument list
-		// 引数区切りの,処理
-		if(*p==',')
-		{
-			p++;
-			skipSpaceComment(p);
-		}
-		else if( *p!=';' && script_config.warn_cmd_no_comma && cParseCommandIf*2<=i )
-		{
-			ErrorMessage("expect ',' or ';' at cmd params",p);
-			return false;
-		}
-		i++;
-	}
-	plist[i] = p;
-	if( !p || *(p++)!=';' )
-	{
-		ErrorMessage("need ';'",p);
-		return false;
-	}
-	// chech the argument count
-	if( cStrData[cmd].type==CScriptEngine::C_FUNC && script_config.warn_cmd_mismatch_paramnum)
-	{
-		const char *arg=buildin_func[cStrData[cmd].val].arg;
-		size_t j;
-		for(j=0; arg[j]; ++j) if(arg[j]=='*') break;
-		if( (arg[j]==0 && i!=j) || (arg[j]=='*' && i<j) )
-		{
-			ErrorMessage("illegal number of parameters", plist[(i<j)?i:j]);
-			return false;
-		}
-	}
-
-	// all ok, append the execution command
-	appendCommand(CScriptEngine::C_FUNC);
-	return true;
-}
-
-CScript CParser::parseScript(const char *name, const char *src, size_t line)
-{
-	if(src)
-	{
-		const char *p, *tmpp, *cp;
-		size_t i;
-
-		//////////////////////////////////////////////
-		// check the input to filter empty scripts ("{}" and "{ }") 
-		p = src;
-		skipSpaceComment(p);
-		if(*p!='{')
-		{
-			ErrorMessage("script block start '{' not found", p);
-			// just return an empty script
-			return CScript();
-		}
-		p++;
-		skipSpaceComment(p);
-		if(*p=='}')
-		{	// an empty function, just return without filling something to the script
-			return CScript();
-		}
-
-		//////////////////////////////////////////////
-		// start a new script
-		CScript::init(name);
-
-		// set members for displaying error messages
-		cStartPtr  = src;
-		cStartLine = line;
-
-		// the parsing loop
-		while(p && *p && *p!='}')
-		{
-			skipSpaceComment(p);
-			// labelだけ特殊処理
-			tmpp = p;
-			skipWord(tmpp);
-			cp = tmpp;
-			skipSpaceComment(tmpp);
-			if(*tmpp==':')
-			{	// a label
-				int label = cStrData.addString( basics::string<>(p, cp-p) );
-				if( cStrData[label].label != -1)
-				{
-					ErrorMessage("duplicated label", p);
-					return CScript();
-				}
-				setLabel(label, cScript->getCurrentPos());
-				p = tmpp+1;
-			}
-			else
-			{	// 他は全部一緒くた
-				if( !parseLine(p) )
-					return CScript();
-				skipSpaceComment(p);
-				// eol equals the pop_stack command
-				appendCommand(CScriptEngine::C_EOL);
-				// set the next jump target for the '-' label
-				setLabel(LABEL_NEXTLINE, cScript->getCurrentPos());
-				cStrData[LABEL_NEXTLINE].type = CScriptEngine::C_NOP;
-				cStrData[LABEL_NEXTLINE].backpatch = -1;
-				cStrData[LABEL_NEXTLINE].label = -1;
-			}
-		}
-		// finalizing with a nop command
-		appendCommand(CScriptEngine::C_NOP);
-		
-		// fill in targets of unprocessed strings,
-		// they are used as variable names now
-		for(i=LABEL_START; i<cStrData.size(); ++i)
-		{
-			if (cStrData[i].type == CScriptEngine::C_NOP)
-			{
-				sint32 j, next;
-				cStrData[i].type = CScriptEngine::C_NAME;
-				cStrData[i].label = i;
-				j = cStrData[i].backpatch;
-				while(j>0 && j!=0x00ffffff)
-				{
-					next = (0xFF&cScript->cProgramm[j  ])
-						 | (0xFF&cScript->cProgramm[j+1])<<8
-						 | (0xFF&cScript->cProgramm[j+2])<<16;
-					cScript->cProgramm[j  ] = i;
-					cScript->cProgramm[j+1] = i>>8;
-					cScript->cProgramm[j+2] = i>>16;
-					j = next;
-				}
-				cStrData[i].backpatch = -1;
-			}
-		}
-		// finalize the script and return it
-		cScript->finalize();
-		return *this;
-	}
-	return CScript();
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Script implementation
-///////////////////////////////////////////////////////////////////////////////
-
-void CScript::init(const basics::string<>& name)
-{
-	// start a new script
-	this->cScript.make_unique();
-	this->cScript->clear();
-
-	// set script name
-	this->cScript->cName = name;
-
-	// init the string buffer
-	CScript::cStrData.init();
-}
-
-int CScript::getInt(unsigned int &pos)
-{
-	int i=0,j=0;
-	while( this->cScript->cProgramm[(size_t)pos]>=0xc0 )
-	{
-		i+=( this->cScript->cProgramm[(size_t)(pos++)]&0x7f )<<j;
-		j+=6;
-	}
-	return i+((this->cScript->cProgramm[(size_t)(pos++)]&0x7f)<<j);
-}
-
-int CScript::getCommand(unsigned int &pos)
-{
-	if(this->cScript->cProgramm[(size_t)(pos)]>=0x80){
-		return CScriptEngine::C_INT;
-	}
-	else
-	{
-		int i=0, j=0;
-		while(this->cScript->cProgramm[(size_t)(pos)]>=0x40){
-			i=this->cScript->cProgramm[(size_t)(pos++)]<<j;
-			j+=6;
-		}
-		return i+(this->cScript->cProgramm[(size_t)(pos++)]<<j);
-	}
-}
-
-
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1511,7 +681,6 @@ struct s_str_data
 	int val;
 	int next;
 
-
 private:
 	static CStringBuffer cStrbuf;
 
@@ -1519,10 +688,11 @@ public:
 	s_str_data() : 
 		type(CScriptEngine::C_NOP),
 		str(0),
-		next(0),
-		func(NULL),
 		backpatch(-1),
-		label(-1)
+		label(-1),
+		func(NULL),
+		val(0),
+		next(0)
 	{}
 
 	const char*string()
@@ -1963,12 +1133,16 @@ void disp_error_message(const char *mes,const char *pos)
  */
 void add_buildin_func(void)
 {
-	int i,n;
-	for(i=0;buildin_func[i].func;++i){
-		n=add_str(buildin_func[i].name);
-		str_data[n].type=CScriptEngine::C_FUNC;
-		str_data[n].val=i;
-		str_data[n].func=buildin_func[i].func;
+	size_t i,n;
+	for(i=0; i<sizeof(buildin_func)/sizeof(*buildin_func); ++i)
+	{
+		if(buildin_func[i].name && buildin_func[i].func)
+		{
+			n=add_str(buildin_func[i].name);
+			str_data[n].type=CScriptEngine::C_FUNC;
+			str_data[n].val=i;
+			str_data[n].func=buildin_func[i].func;
+		}
 	}
 }
 
@@ -1990,13 +1164,14 @@ void read_constdb(void)
 	}
 	while(fgets(line,sizeof(line),fp))
 	{
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		type=0;
 		if(sscanf(line,"%1024[A-Za-z0-9_],%d,%d",name,&val,&type)>=2 ||
 		   sscanf(line,"%1024[A-Za-z0-9_] %d %d",name,&val,&type)>=2)
 		{
 			basics::tolower(name);
+			basics::itrim(name);
 			n=add_str(name);
 			if(type==0)
 				str_data[n].type=CScriptEngine::C_INT;
@@ -3545,11 +2720,8 @@ int CScriptEngine::run(const char*rootscript, size_t pos, uint32 rid, uint32 oid
 					engine.send_defaultnpc(false);
 
 				// clear the default engine completely
-				//!! necessary at the moment of mixed c and c++ allocation
-				//!! the static defaultengine is cleared at program exit and
-				//!! might still hold elements from the already cleard memory manager
-				//!! remove when c++ allocation
-				if(!sd)	engine.temporaty_close();
+				// might be not necessary
+				//if(!sd)	engine.clear();
 
 				//!! ... other necessary clearing
 
@@ -10028,11 +9200,14 @@ int script_load_mapreg()
 	while(fgets(line,sizeof(line),fp)){
 		char buf1[256],buf2[1024],*p;
 		int n,v,s,i;
-		if( sscanf(line,"%255[^,],%d\t%n",buf1,&i,&n)!=2 &&
-			(i=0,sscanf(line,"%[^\t]\t%n",buf1,&n)!=1) )
+		if( sscanf(line,"%256[^,],%d\t%n",buf1,&i,&n)!=2 &&
+			(i=0,sscanf(line,"%256[^\t]\t%n",buf1,&n)!=1) )
 			continue;
-		if( buf1[strlen(buf1)-1]=='$' ){
-			if( sscanf(line+n,"%[^\n\r]",buf2)!=1 ){
+		basics::itrim(buf1);
+		if( buf1[strlen(buf1)-1]=='$' )
+		{
+			if( sscanf(line+n,"%1024[^\n\r]",buf2)!=1 )
+			{
 				ShowMessage("%s: %s broken data !\n",mapreg_txt,buf1);
 				continue;
 			}
@@ -10040,8 +9215,11 @@ int script_load_mapreg()
 			strcpy(p,buf2);
 			s= add_str( buf1);
 			numdb_insert(mapregstr_db,(i<<24)|s,p);
-		}else{
-			if( sscanf(line+n,"%d",&v)!=1 ){
+		}
+		else
+		{
+			if( sscanf(line+n,"%d",&v)!=1 )
+			{
 				ShowMessage("%s: %s broken data !\n",mapreg_txt,buf1);
 				continue;
 			}
@@ -10174,7 +9352,6 @@ int set_posword(const char *p)
 
 int script_config_read(const char *cfgName)
 {
-	int i;
 	char line[1024],w1[1024],w2[1024];
 	FILE *fp;
 
@@ -10195,12 +9372,16 @@ int script_config_read(const char *cfgName)
 		ShowError("file not found: %s\n",cfgName);
 		return 1;
 	}
-	while (fgets(line, sizeof(line), fp)) {
-		if( !get_prepared_line(line) )
+	while (fgets(line, sizeof(line), fp))
+	{
+		if( !prepare_line(line) )
 			continue;
-		i = sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
-		if (i != 2)
+
+		if( sscanf(line,"%1024[^:=]%*[:=]%1024[^\r\n]",w1,w2) < 2 )
 			continue;
+		basics::itrim(w1);
+		basics::itrim(w2);
+
 		if(strcasecmp(w1,"refine_posword")==0) {
 			set_posword(w2);
 		}

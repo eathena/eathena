@@ -330,8 +330,10 @@ int plugins_config_read(const char *cfgName)
 	{
 		if( !prepare_line(line) )
 			continue;
-		if (sscanf(line,"%[^:]: %[^\r\n]", w1, w2) != 2)
+		if (sscanf(line,"%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) != 2)
 			continue;
+		basics::itrim(w1);
+		basics::itrim(w2);
 
 		if (strcasecmp(w1, "auto_search") == 0)
 		{

@@ -20,7 +20,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src\zlib; ..\src\mysql"
+				AdditionalIncludeDirectories="..\src\zlib-headers; ..\src\mysql-headers"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;WITH_TEXT;WITH_MYSQL"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="5"

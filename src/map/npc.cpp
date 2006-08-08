@@ -522,34 +522,6 @@ int npc_event_do_oninit(void)
 	return 0;
 }
 
-/*
-int npc_do_ontimer_sub(void *key,void *data,va_list &ap)
-{
-	char *p = (char *)key;
-	struct event_data *ev = (struct event_data *)data;
-	int *c = va_arg(ap,int *);
-	struct map_session_data *sd=va_arg(ap,struct map_session_data*);
-	int option = va_arg(ap,int);
-	unsigned long tick=0;
-	char temp[10];
-	char event[50];
-
-	if(ev->nd->block_list::id==(uint32)*c && (p=strchr(p,':')) && p && strncasecmp("::OnTimer",p,8)==0 ){
-		sscanf(&p[9], "%s", temp);
-		tick = atoi(temp);
-
-		strcpy(event, ev->nd->name);
-		strcat(event, p);
-
-		if (option!=0) {
-			pc_addeventtimer(*sd,tick,event);
-		} else {
-			pc_deleventtimer(*sd,event);
-		}
-	}
-	return 0;
-}
-*/
 class CDBNPContimer : public CDBProcessor
 {
 	uint32 npc_id;
@@ -564,12 +536,12 @@ public:
 		char *p = (char *)key;
 		struct event_data *ev = (struct event_data *)data;
 		unsigned long tick=0;
-		char temp[10];
+		char temp[16];
 		char event[50];
 
 		if(ev->nd->block_list::id==npc_id && (p=strchr(p,':')) && p && strncasecmp("::OnTimer",p,8)==0 )
 		{
-			sscanf(&p[9], "%s", temp);
+			sscanf(&p[9], "%16s", temp);
 			tick = atoi(temp);
 			strcpy(event, ev->nd->name);
 			strcat(event, p);
@@ -593,37 +565,6 @@ int npc_do_ontimer(uint32 npc_id, struct map_session_data &sd, int option)
  * npc_parse_script->strdb_foreachから呼ばれる
  *------------------------------------------
  */
-/*
-int npc_timerevent_import(void *key,void *data,va_list &ap)
-{
-	char *lname=(char *)key;
-	size_t pos=(size_t)data;
-	struct npc_data *nd = va_arg(ap,struct npc_data*);
-	int t=0,i=0;
-
-	if(sscanf(lname,"OnTimer%d%n",&t,&i)==1 && lname[i]==':') {
-		// タイマーイベント
-		struct npc_timerevent_list *te=nd->u.scr.timer_event;
-		int j,i=nd->u.scr.timeramount;
-		if(te==NULL) 
-			te = (struct npc_timerevent_list*)aMalloc( sizeof(struct npc_timerevent_list) );
-		else 
-			te = (struct npc_timerevent_list*)aRealloc( te, (i+1)*sizeof(struct npc_timerevent_list) );
-
-		for(j=0;j<i;++j){
-			if(te[j].timer>t){
-				memmove(te+j+1,te+j,sizeof(struct npc_timerevent_list)*(i-j));
-				break;
-			}
-		}
-		te[j].timer=t;
-		te[j].pos=pos;
-		nd->u.scr.timer_event=te;
-		nd->u.scr.timeramount=i+1;
-	}
-	return 0;
-}
-*/
 class CDBNPCtimerevent_import : public CDBProcessor
 {
 	struct npc_data &nd;
@@ -823,28 +764,7 @@ int npc_event(struct map_session_data &sd,const char *eventname,int mob_kill)
 	return 0;
 }
 
-/*
-int npc_command_sub(void *key,void *data,va_list &ap)
-{
-	char *p=(char *)key;
-	struct event_data *ev=(struct event_data *)data;
-	char *npcname=va_arg(ap,char *);
-	char *command=va_arg(ap,char *);
-	char temp[100];
 
-	if(NULL==ev)		return 1;
-	if(NULL==ev->nd)	return 1;
-	
-	if(strcmp(ev->nd->name,npcname)==0 && (p=strchr(p,':')) && p && strncasecmp("::OnCommand",p,10)==0 ){
-		sscanf(&p[11],"%s",temp);
-
-		if( (strcmp(command,temp)==0) && ev->nd->u.scr.ref)
-			CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos,0,ev->nd->block_list::id);
-	}
-
-	return 0;
-}
-*/
 class CDBNPCcommand : public CDBProcessor
 {
 	const char *npcname;
@@ -856,13 +776,13 @@ public:
 	{
 		char *p=(char *)key;
 		struct event_data *ev=(struct event_data *)data;
-		char temp[100];
+		char temp[128];
 
 		if(NULL==ev)		return true;
 		if(NULL==ev->nd)	return true;
 		
 		if(strcmp(ev->nd->name,npcname)==0 && (p=strchr(p,':')) && p && strncasecmp("::OnCommand",p,10)==0 ){
-			sscanf(&p[11],"%s",temp);
+			sscanf(&p[11],"%128s",temp);
 
 			if( (strcmp(command,temp)==0) && ev->nd->u.scr.ref)
 				CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos,0,ev->nd->block_list::id);
@@ -1345,16 +1265,18 @@ bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
 	struct npc_data *nd;
 
 	// 引数の個数チェック
-	if( sscanf(w1, "%[^,],%d,%d", mapname, &x, &y) != 3 ||
-		sscanf(w4, "%d,%d,%[^,],%d,%d", &xs, &ys, to_mapname, &xt, &yt) != 5)
+	if( sscanf(w1, "%32[^,],%d,%d", mapname, &x, &y) != 3 ||
+		sscanf(w4, "%d,%d,%32[^,],%d,%d", &xs, &ys, to_mapname, &xt, &yt) != 5)
 	{
 		ShowError("bad warp line : %s\n", w3);
 		return false;
 	}
 	ip = strchr(mapname, '.');
 	if(ip) *ip=0;
+	basics::itrim(mapname);
 	ip = strchr(to_mapname, '.');
 	if(ip) *ip=0;
+	basics::itrim(to_mapname);
 
 	m = map_mapname2mapid(mapname);
 
@@ -1425,13 +1347,14 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 	}
 	else
 	{	// 引数の個数チェック
-		if (sscanf(w1, "%[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4 ||
+		if (sscanf(w1, "%32[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4 ||
 			strchr(w4, ',') == NULL) {
 			ShowError("bad shop line : %s\n", w3);
 			return 1;
 		}
 		ip = strchr(mapname, '.');
 		if(ip) *ip=0;
+		basics::itrim(mapname);
 		m = map_mapname2mapid(mapname);
 	}
 
@@ -1530,7 +1453,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 	else
 	{
 		// 引数の個数チェック
-		if (sscanf(w1, "%[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4 ||
+		if (sscanf(w1, "%32[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4 ||
 		   ( strcmp(w2,"script")==0 && strchr(w4,',')==NULL) ) 
 		{
 			ShowMessage("bad script line : %s\n",w3);
@@ -1538,6 +1461,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 		}
 		ip = strchr(mapname, '.');
 		if(ip) *ip=0;
+		basics::itrim(mapname);
 		m = map_mapname2mapid(mapname);
 	}
 
@@ -1597,7 +1521,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 		// duplication not on this map server, can skip
 		if(m<0)	return 1;
 
-		if( sscanf(w2,"duplicate(%[^)])",srcname)!=1 )
+		if( sscanf(w2,"duplicate(%128[^)])",srcname)!=1 )
 		{
 			ShowError("bad duplicate name! : %s",w2);
 			return 1;
@@ -1892,21 +1816,22 @@ int npc_parse_mob2(struct mob_list &mob)
 int npc_parse_mob(const char *w1, const char *w2, const char *w3, const char *w4)
 {
 	int level;
-	char mapname[64], *ip;
-	char mobname[64];
-	char eventname[64];
+	char *ip;
+	char mapname[64]="", mobname[64]="", eventname[64]="";
 	int v1,v2,v3,v4,v5,v6,v7,v8;
 	unsigned short m;
 
 	
 	// 引数の個数チェック
-	if (sscanf(w1, "%[^,],%d,%d,%d,%d", mapname, &v1, &v2, &v3, &v4) < 3 ||
-		sscanf(w4, "%d,%d,%d,%d,%s", &v5, &v6, &v7, &v8, eventname) < 2 ) {
+	if (sscanf(w1, "%64[^,],%d,%d,%d,%d", mapname, &v1, &v2, &v3, &v4) < 3 ||
+		sscanf(w4, "%d,%d,%d,%d,%64s", &v5, &v6, &v7, &v8, eventname) < 2 ) {
 		ShowError("bad monster line : %s\n", w3);
 		return 1;
 	}
 	ip = strchr(mapname, '.');
 	if(ip) *ip=0;
+	basics::itrim(mapname);
+	basics::itrim(eventname);
 
 	m = map_mapname2mapid(mapname);
 	if(m >= MAX_MAP_PER_SERVER)
@@ -1937,7 +1862,7 @@ int npc_parse_mob(const char *w1, const char *w2, const char *w3, const char *w4
 			dynmob->num = 1;
 	}
 	
-	if (sscanf(w3, "%[^,],%d", mobname, &level) > 1)
+	if (sscanf(w3, "%64[^,],%d", mobname, &level) > 1)
 		dynmob->level = level;
 	if (strcmp(mobname, "--en--") == 0)
 		memcpy(dynmob->mobname, mob_db[dynmob->class_].name, 24);
@@ -1970,23 +1895,24 @@ int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const char *w
 	char mapname[32], *ip;
 
 	// 引数の個数チェック
-	if (sscanf(w1, "%[^,]",mapname) != 1)
+	if (sscanf(w1, "%32[^,]",mapname) != 1)
 		return 1;
 	ip = strchr(mapname,'.');
 	if(ip) *ip=0;
+	basics::itrim(mapname);
 	m = map_mapname2mapid(mapname);
 	if (m < 0)
 		return 1;
 
 	//マップフラグ
 	if ( strcasecmp(w3,"nosave")==0) {
-		char savemap[16];
+		char savemap[32];
 		int savex, savey;
 		if (strcmp(w4, "SavePoint") == 0) {
 			safestrcpy(maps[m].save.mapname, "SavePoint", sizeof(maps[m].save.mapname));
 			maps[m].save.x = -1;
 			maps[m].save.y = -1;
-		} else if (sscanf(w4, "%[^,],%d,%d", savemap, &savex, &savey) == 3) {
+		} else if (sscanf(w4, "%32[^,],%d,%d", savemap, &savex, &savey) == 3) {
 			char*ip = strchr(savemap, '.');
 			if(ip) *ip=0;
 			safestrcpy(maps[m].save.mapname, savemap, sizeof(maps[m].save.mapname));			
@@ -2031,8 +1957,12 @@ int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const char *w
 	else if (strcasecmp(w3,"pvp_nightmaredrop")==0) {
 		char drop_arg1[16], drop_arg2[16];
 		int drop_id = 0, drop_type = 0, drop_per = 0;
-		if (sscanf(w4, "%[^,],%[^,],%d", drop_arg1, drop_arg2, &drop_per) == 3) {
+		if( sscanf(w4, "%16[^,],%16[^,],%d", drop_arg1, drop_arg2, &drop_per) == 3 )
+		{
 			int i;
+			basics::itrim(drop_arg1);
+			basics::itrim(drop_arg2);
+			
 			if (strcmp(drop_arg1, "random") == 0)
 				drop_id = -1;
 			else if (itemdb_exists((drop_id = atoi(drop_arg1))) == NULL)
@@ -2148,16 +2078,17 @@ int npc_parse_mapcell(const char *w1,const char *w2,const char *w3,const char *w
 	int m, cell, x, y, x0, y0, x1, y1;
 	char type[32], mapname[32], *ip;
 
-	if (sscanf(w1, "%[^,]", mapname) != 1)
+	if (sscanf(w1, "%32[^,]", mapname) != 1)
 		return 1;
 
 	ip = strchr(mapname,'.');
 	if(ip) *ip=0;
+	basics::itrim(mapname);
 	m = map_mapname2mapid(mapname);
 	if (m < 0)
 		return 1;
 
-	if (sscanf(w3, "%[^,],%d,%d,%d,%d", type, &x0, &y0, &x1, &y1) < 4) {
+	if (sscanf(w3, "%32[^,],%d,%d,%d,%d", type, &x0, &y0, &x1, &y1) < 4) {
 		ShowError("Bad setcell line : %s\n",w3);
 		return 1;
 	}
@@ -2197,7 +2128,7 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 		while( fgets(line, sizeof(line), fp) )
 		{
 			lines++;
-			if( !get_prepared_line(line) )
+			if( !is_valid_line(line) )
 				continue;
 
 			// 不要なスペースやタブの連続は詰める
@@ -2219,18 +2150,23 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 			}
 			line[j]=0;
 			// 最初はタブ区切りでチェックしてみて、ダメならスペース区切りで確認
-			if ((count = sscanf(line,"%[^\t]\t%[^\t]\t%[^\t\r\n]\t%n%[^\t\r\n]", w1, w2, w3, &w4pos, w4)) < 3 &&
-					(count = sscanf(line,"%s%s%s%n%s", w1, w2, w3, &w4pos, w4)) < 3)
+			if( (count = sscanf(line,"%1024[^\t]\t%1024[^\t]\t%1024[^\t\r\n]\t%n%1024[^\t\r\n]", w1, w2, w3, &w4pos, w4)) < 3 &&
+				(count = sscanf(line,"%1024s%1024s%1024s%n%1024s", w1, w2, w3, &w4pos, w4)) < 3)
 			{
 				continue;
 			}
+			basics::itrim(w1);
+			basics::itrim(w2);
+			basics::itrim(w3);
+			basics::itrim(w4);
 
 			// マップの存在確認
 			if( strcmp(w1,"-")!=0 && strcasecmp(w1,"function")!=0 )
 			{
-				sscanf(w1,"%[^,]",mapname);
+				sscanf(w1,"%1024[^,]",mapname);
 				ip = strchr(mapname,'.');
 				if(ip) *ip=0;
+				basics::itrim(mapname);
 				m = map_mapname2mapid(mapname);
 				if( strlen(mapname)>16 || m<0 )
 				{	// "mapname" is not assigned to this server
@@ -2372,7 +2308,7 @@ int npc_read_indoors (void)
 		while( p && *p && (p<buf+s) )
 		{
 		char mapname[64];
-		if (sscanf(p, "%[^#]#", mapname) == 1)
+		if (sscanf(p, "%64[^#]#", mapname) == 1)
 		{
 			char* ip = strchr(mapname, '.');
 			if(ip) *ip=0;

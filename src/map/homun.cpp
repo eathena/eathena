@@ -1318,7 +1318,7 @@ int read_homundb(void)
 			char *str[50],*p,*np;
 			lines++;
 
-			if( !get_prepared_line(line) )
+			if( !is_valid_line(line) )
 				continue;
 
 			for(i=0,p=line;i<32;i++)
@@ -1410,7 +1410,7 @@ int homun_readdb(void)
 	while( fgets(line,sizeof(line),fp) )
 	{
 		int b0,b1,b2,b3,b4,b5;
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		if(sscanf(line,"%d,%d,%d,%d,%d,%d",&b0,&b1,&b2,&b3,&b4,&b5)!=6)
 			continue;
@@ -1437,7 +1437,7 @@ int homun_readdb(void)
 	while( fgets(line,sizeof(line),fp) )
 	{
 		char *split[50];
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		for(j=0,p=line;j<15 && p;j++){
 			split[j]=p;
@@ -1488,7 +1488,7 @@ int homun_read_embryodb(void)
 
 	while( fgets(line,sizeof(line),fp) )
 	{
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		memset(str,0,sizeof(str));
 		for(j=0,p=line;j<3 && p;j++){

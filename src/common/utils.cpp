@@ -181,12 +181,13 @@ const char *mapname2buffer(unsigned char *buffer, const char *mapname, size_t cn
 	return (const char *)buffer;
 }
 
-const char *get_prepared_line(const char *line)
-{	// skip whitespaces and returns (0x09-0x0D or 0x20) 
+const char *is_valid_line(const char *line)
+{	// does not process the string
+	// skip whitespaces and returns (0x09-0x0D or 0x20) 
 	// and return NULL on EOF or following "//"
 	if(line)
 	{
-		while( *line==0x20 || (*line>=0x09 && *line<=0x0D) ) line++;
+		while( *line==0x20 || (*line>=0x09 && *line<=0x0D) ) ++line;
 		if(*line && (line[0]!='/' || line[1]!='/'))
 			return line;
 	}
@@ -194,23 +195,26 @@ const char *get_prepared_line(const char *line)
 }
 
 size_t prepare_line(char *line)
-{	// skip whitespaces and returns (0x09-0x0D or 0x20) 
-	// and return 0 on EOF or following "//"
+{	// process the string
+	// does itrim behaviour internally also breaks on "//"
 	if(line)
-	{	char *ip=line, *kp=line;
-		while( *ip )
+	{	
+		char *ip=line, *kp=line, mk=0;
+		while(*ip && basics::stringcheck::isspace(*ip) )
+			++ip;
+		while(*ip)
 		{
-			if(*ip>=0x09 && *ip<=0x0D)
-				ip++;
-			else if(*ip==0x20 && kp>line && kp[-1]==0x20)
-				ip++;
+			if( basics::stringcheck::isspace(*ip) )
+				mk=' ', ++ip;
 			else if(ip[0]=='/' && ip[1]=='/')
 				break;
 			else
+			{
+				if( mk )
+					*kp++=mk, mk=0;
 				*kp++ = *ip++;
+			}
 		}
-		if(kp>line && kp[-1]==0x20)
-			kp--;
 		*kp=0;
 		return kp-line;
 	}

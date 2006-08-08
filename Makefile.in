@@ -1,5 +1,5 @@
-CCC = g++
-OPT = -pipe -Wall -g -O3 -ffast-math -D_REENTRANT @CPPFLAGS@
+CCC = g++ -pipe @OPT@
+CPPFLAGS = -Wall -g -O3 -ffast-math -D_REENTRANT @CPPFLAGS@
 LIBS = -lpthread -lz @LIBS@
 
 ##########################################################
@@ -28,7 +28,7 @@ BASE_PATH   = src/basics
 COMMON_PATH = src/common
 
 ##########################################################
-CPPFLAGS = $(OPT) -I$(RETURN_PATH)/$(COMMON_PATH) -I$(RETURN_PATH)/$(BASE_PATH) $(OS_TYPE)
+CPPFLAGS += -I$(RETURN_PATH)/$(COMMON_PATH) -I$(RETURN_PATH)/$(BASE_PATH) $(OS_TYPE)
 
 
 

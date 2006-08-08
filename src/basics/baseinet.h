@@ -512,17 +512,170 @@ template<class T> inline string<T>& operator <<(string<T>& str, const ipset& ip)
 
 
 
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // some variables
 extern ipaddress	iplocal;	///< stores local ip on startup, does not refresh automatically
 const ipaddress		ipany((uint32)INADDR_ANY);
-const ipaddress		iploopback(INADDR_LOOPBACK);
-const ipaddress		ipnone(INADDR_NONE);
+const ipaddress		iploopback((uint32)INADDR_LOOPBACK);
+const ipaddress		ipnone((uint32)INADDR_NONE);
 
 
 ipaddress hostbyname(const char* name);
 string<> hostbyaddr(ipaddress ip);
 string<> hostname(const char* name);
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// ip filter class.
+/// contains a vector of allow/deny rules based on ip/mask,
+/// setup is done by sequential inserting the rule strings
+class ipfilter : public global
+{
+	///////////////////////////////////////////////////////////////////////////
+	/// ip rule entry.
+	struct ipentry
+	{
+		bool		allow;
+		ipaddress	address;
+		ipaddress	mask;
+
+		ipentry()
+		{}
+		ipentry(const ipaddress& ip, const ipaddress& mk, bool a=true)
+			: allow(a), address(ip), mask(mk)
+		{}
+
+		bool operator==(const ipaddress& ip) const
+		{
+			return (this->address & this->mask) == (ip & this->mask);
+		}
+		bool operator==(const ipentry& a) const
+		{
+			return (this->address == a.address) && (this->mask==a.mask) && (this->allow==a.allow);
+		}
+		bool operator< (const ipentry& a) const
+		{
+			return (this < &a);
+		}
+	};
+
+	vector<ipentry> iplist;
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// constructor.
+	ipfilter()
+	{}
+	///////////////////////////////////////////////////////////////////////////
+	/// destructor.
+	~ipfilter()
+	{}
+	///////////////////////////////////////////////////////////////////////////
+	/// test ip on allowance.
+	bool is_allowed(const ipaddress& ip) const
+	{
+		basics::vector<ipentry>::iterator iter(this->iplist);
+
+		for(; iter; ++iter)
+		{
+			if( *iter == ip )
+				return iter->allow;
+		}
+		// not allowed by default
+		return false;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	/// insert ip rule string.
+	/// format is:
+	/// "clear"			- clears all entries
+	/// "all"			- allows all addesses
+	/// "allow <ip>"	- allows an ip
+	/// "deny <ip>"		- denies an ip
+	/// with <ip> beeing "ip" or "ip/mask" or "ip/mask bit count"
+	void insert(const char* ipstr)
+	{
+		if( 0==strcasecmp(ipstr, "all") )
+		{
+			this->iplist.clear();
+			this->iplist.append( ipentry(ipany, ipany) );
+		}
+		else if( 0==strcasecmp(ipstr, "clear") || 0==strcasecmp(ipstr, "none") )
+		{
+			this->iplist.clear();
+		}
+		else
+		{	
+			const bool a = (0==memcmp(ipstr,"allow", 5));
+			const bool b = (a)?false:(0==memcmp(ipstr,"deny", 4));
+			if( a ^ b )
+			{
+				const char* str = ipstr + ((a)?(5):(4));
+				while(*str && *str==' ') ++str;
+				// format is "ip" or "ip/mask" or "ip/mask bit count"
+				//basics::CRegExp re("(\\d+.\\d+.\\d+.\\d+)\\s*\\/\\s*(?:(\\d+.\\d+.\\d+.\\d+)|(\\d+))?");
+				subnetaddress addr(str);
+				if( addr.mask() == ipany )	// don't allow 0.0.0.0 masks
+					addr.mask() =  ipnone;	// set them to 255.255.255.255
+				this->iplist.append( ipentry(addr.addr(), addr.mask(), a) );
+			}
+			else
+			{	// some dummy default entry
+				this->iplist.append( ipentry(ipany, ipnone, false) );
+			}
+		}
+	}
+	void insert(const basics::ipaddress& ip, const basics::ipaddress& mk, bool allow=false)
+	{
+		if( ip != ipany && mk != ipany )
+			this->iplist.append( ipentry(ip, mk, allow) );
+	}
+	void insert(const basics::ipaddress& ip, bool allow=false)
+	{
+		if( ip != ipany )
+			this->iplist.append( ipentry(ip, ipnone, allow) );
+	}
+	///////////////////////////////////////////////////////////////////////////
+	/// assign ip rule string.
+	const ipfilter& operator=(const char* str)	{ this->insert(str); return *this; }
+
+
+	///////////////////////////////////////////////////////////////////////////
+	/// explicit compare operator.
+	/// for usage in parameters
+	friend bool operator==(const ipfilter& a, const ipfilter& b)	{ return false; } 
+	///////////////////////////////////////////////////////////////////////////
+	/// explicit assignment operator.
+	/// does basically append the assigned filter to this one
+	/// for usage in parameters (copy constructor is default),
+	const ipfilter& operator=(const ipfilter& ipf)
+	{
+		if( ipf.iplist.size() == 0 )
+		{	// no entry in list, so there was a clear command
+			this->iplist.clear();
+		}
+		else
+		{	// otherwise append addresses but the dummy address
+			basics::vector<ipentry>::iterator iter(ipf.iplist);
+			for(; iter; ++iter)
+			{
+				if( iter->allow || iter->address!=ipany || iter->mask!=ipnone )
+					this->iplist.append(*iter);
+			}
+		}
+		return *this;
+	}
+
+
+};
+
+
+
+
 
 NAMESPACE_END(basics)
 

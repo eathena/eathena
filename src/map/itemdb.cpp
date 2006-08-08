@@ -353,11 +353,13 @@ int itemdb_read_randomitem()
 			continue;
 		}
 
-		while(fgets(line,sizeof(line),fp)){
-			if( !get_prepared_line(line) )
+		while(fgets(line,sizeof(line),fp))
+		{
+			if( !is_valid_line(line) )
 				continue;
 			memset(str,0,sizeof(str));
-			for(j=0,p=line;j<3 && p; ++j){
+			for(j=0,p=line;j<3 && p; ++j)
+			{
 				str[j]=p;
 				p=strchr(p,',');
 				if(p) *p++=0;
@@ -413,7 +415,7 @@ int itemdb_read_itemavail(void)
 	}
 
 	while (fgets(line, sizeof(line), fp)) {
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		memset(str,0,sizeof(str));
 		for(j=0,p=line;j<2 && p; ++j){
@@ -459,7 +461,7 @@ int itemdb_read_itemgroup(void)
 	}
 
 	while(fgets(line,sizeof(line),fp)){
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		memset(str,0,sizeof(str));
 		for(j=0,p=line;j<31 && p; ++j){
@@ -509,7 +511,7 @@ int itemdb_read_itemnametable(void)
 		int nameid;
 		char buf2[64];
 
-		if(	sscanf(p,"%d#%[^#]#",&nameid,buf2)==2 )
+		if(	sscanf(p,"%d#%64[^#]#",&nameid,buf2)==2 )
 		{
 #ifdef ITEMDB_OVERRIDE_NAME_VERBOSE
 			item_data* item = itemdb_exists(nameid);
@@ -550,7 +552,7 @@ int itemdb_read_cardillustnametable(void)
 		int nameid;
 		char buf2[64];
 
-		if(	sscanf(p,"%d#%[^#]#",&nameid,buf2)==2 ){
+		if(	sscanf(p,"%d#%64[^#]#",&nameid,buf2)==2 ){
 			strcat(buf2,".bmp");
 			memcpy(itemdb_search(nameid)->cardillustname,buf2,64);
 //			ShowMessage("%d %s\n",nameid,itemdb_search(nameid)->cardillustname);
@@ -644,7 +646,7 @@ int itemdb_read_noequip(void)
 		return -1;
 	}
 	while(fgets(line,sizeof(line),fp)){
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		memset(str,0,sizeof(str));
 		for(j=0,p=line;j<2 && p; ++j){
@@ -687,7 +689,7 @@ int itemdb_read_itemtrade(void)
 	}
 
 	while (fgets(line, sizeof(line), fp)) {
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		memset(str, 0, sizeof(str));
 		for (j=0, p=line; j < 3 && p; ++j) {
@@ -745,7 +747,7 @@ int itemdb_readdb(void)
 		lines=0;
 		while(fgets(line,sizeof(line),fp)){
 			lines++;
-			if( !get_prepared_line(line) )
+			if( !is_valid_line(line) )
 				continue;
 			memset(str,0,sizeof(str));
 			for(j=0,np=p=line;j<18 && p; ++j){

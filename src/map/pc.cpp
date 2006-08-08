@@ -6077,13 +6077,6 @@ int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short 
 		pc_calcweapontype(sd);
 		clif_changelook(sd,LOOK_SHIELD,sd.status.shield);
 	}
-	if(sd.status.inventory[inx].equip & 0x0001) {
-		if(sd.inventory_data[inx])
-			sd.status.head_bottom = sd.inventory_data[inx]->look;
-		else
-			sd.status.head_bottom = 0;
-		clif_changelook(sd,LOOK_HEAD_BOTTOM,sd.status.head_bottom);
-	}
 	if(sd.status.inventory[inx].equip & 0x0100) {
 		if(sd.inventory_data[inx])
 			sd.status.head_top = sd.inventory_data[inx]->look;
@@ -6092,11 +6085,18 @@ int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short 
 		clif_changelook(sd,LOOK_HEAD_TOP,sd.status.head_top);
 	}
 	if(sd.status.inventory[inx].equip & 0x0200) {
-		if(sd.inventory_data[inx])
+		if(sd.inventory_data[inx] && (sd.status.inventory[inx].equip & 0x0100)==0 )
 			sd.status.head_mid = sd.inventory_data[inx]->look;
 		else
 			sd.status.head_mid = 0;
 		clif_changelook(sd,LOOK_HEAD_MID,sd.status.head_mid);
+	}
+	if(sd.status.inventory[inx].equip & 0x0001) {
+		if(sd.inventory_data[inx] && (sd.status.inventory[inx].equip & 0x0300)==0 )
+			sd.status.head_bottom = sd.inventory_data[inx]->look;
+		else
+			sd.status.head_bottom = 0;
+		clif_changelook(sd,LOOK_HEAD_BOTTOM,sd.status.head_bottom);
 	}
 	if(sd.status.inventory[inx].equip & 0x0040)
 		clif_changelook(sd,LOOK_SHOES,0);
@@ -7214,7 +7214,7 @@ int pc_readdb(void)
 	i=0;
 	while(fgets(line, sizeof(line), fp)){
 		int bn,b1,b2,b3,b4,b5,b6,jn,j1,j2,j3,j4,j5,j6;
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		if(sscanf(line,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",&bn,&b1,&b2,&b3,&b4,&b5,&b6,&jn,&j1,&j2,&j3,&j4,&j5,&j6)!=14)
 			continue;
@@ -7252,7 +7252,7 @@ int pc_readdb(void)
 	{
 		char *split[50];
 		int f=0, m=3, jobid;
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		memset(split,0,sizeof(split));
 		for(j=0,p=line;j<14 && p;++j)
@@ -7305,7 +7305,7 @@ int pc_readdb(void)
 	while(fgets(line, sizeof(line), fp)){
 		char *split[10];
 		size_t lv,n;
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		for(j=0,p=line;j<3 && p;++j){
 			split[j]=p;
@@ -7319,7 +7319,7 @@ int pc_readdb(void)
 		for(i=0;i<n;){
 			if( !fgets(line, sizeof(line), fp) )
 				break;
-			if( !get_prepared_line(line) )
+			if( !is_valid_line(line) )
 				continue;
 
 			for(j=0,p=line;j<n && p;++j){
@@ -7348,7 +7348,7 @@ int pc_readdb(void)
 		//return 1;
 	} else {
 		while(fgets(line, sizeof(line), fp)){
-			if( !get_prepared_line(line) )
+			if( !is_valid_line(line) )
 				continue;
 			if ((j=atoi(line))<0)
 				j=0;

@@ -11108,7 +11108,7 @@ int skill_readdb(void)
 	}
 	while(fgets(line,sizeof(line),fp)){
 		char *split[50];
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		j = skill_split_str(line,split,14);
 		if(j < 14 || split[13]==NULL)
@@ -11166,7 +11166,7 @@ int skill_readdb(void)
 	}
 	while(fgets(line,sizeof(line),fp)){
 		char *split[50];
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		j = skill_split_str(line,split,30);
 		if(j < 30 || split[29]==NULL)
@@ -11248,7 +11248,7 @@ int skill_readdb(void)
 	while(fgets(line,sizeof(line),fp)){
 		char *split[50];
 		memset(split,0,sizeof(split));	// [Valaris] thanks to fov
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		j = skill_split_str(line,split,5);
 		if(split[4]==NULL || j<5)
@@ -11278,7 +11278,7 @@ int skill_readdb(void)
         k = 0;
 	while (fgets(line,sizeof(line),fp)) {
 		char *split[50];
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		j = skill_split_str(line,split,8);
 		if (split[7]==NULL || j<8)
@@ -11327,7 +11327,7 @@ int skill_readdb(void)
 		while(fgets(line,sizeof(line),fp)){
 			char *split[6 + MAX_PRODUCE_RESOURCE * 2];
 			int x,y;
-			if( !get_prepared_line(line) )
+			if( !is_valid_line(line) )
 				continue;
 			memset(split,0,sizeof(split));
 			j = skill_split_str(line,split,(3 + MAX_PRODUCE_RESOURCE * 2));
@@ -11363,7 +11363,7 @@ int skill_readdb(void)
 	while(fgets(line,sizeof(line),fp)){
 		char *split[16];
 		int x,y;
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		memset(split,0,sizeof(split));
 		j = skill_split_str(line,split,13);
@@ -11395,7 +11395,7 @@ int skill_readdb(void)
 	k=0;
 	while(fgets(line,sizeof(line),fp)){
 		char *split[16];
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		memset(split,0,sizeof(split));
 		j = skill_split_str(line,split,13);
@@ -11422,7 +11422,7 @@ int skill_readdb(void)
 	}
 	while(fgets(line,sizeof(line),fp)){
 		char *split[50];
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		memset(split,0,sizeof(split));
 		j = skill_split_str(line,split,3);
@@ -11450,7 +11450,7 @@ int skill_readdb(void)
 	k=0;
 	while(fgets(line,sizeof(line),fp)){
 		char *split[16];
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		memset(split,0,sizeof(split));
 		j = skill_split_str(line,split,2);
@@ -11486,21 +11486,29 @@ int skill_read_skillspamount(void)
 		return -1;
 
 	buf[s]=0;
-	for(p=buf;p-buf<s;){
+	for(p=buf;p-buf<s;)
+	{
 		char buf2[64];
 
-		if (sscanf(p,"%[@]",buf2) == 1) {
+		if (sscanf(p,"%64[@]",buf2) == 1)
+		{
 			level = 1;
 			new_flag = 1;
-		} else if (new_flag && sscanf(p,"%[^#]#",buf2) == 1) {
-			for (idx=0; skill_names[idx].id != 0; ++idx) {
-				if (strstr(buf2, skill_names[idx].name) != NULL) {
+		}
+		else if (new_flag && sscanf(p,"%64[^#]#",buf2) == 1)
+		{
+			for (idx=0; skill_names[idx].id != 0; ++idx)
+			{
+				if (strstr(buf2, skill_names[idx].name) != NULL)
+				{
 					skill = &skill_db[ skill_names[idx].id ];
 					new_flag = 0;
 					break;
 				}
 			}
-		} else if (!new_flag && sscanf(p,"%d#",&sp) == 1) {
+		}
+		else if (!new_flag && sscanf(p,"%d#",&sp) == 1)
+		{
 			skill->sp[level-1]=sp;
 			++level;
 		}

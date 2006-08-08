@@ -36,10 +36,10 @@ bool CAccountDB_mem::readGMAccount(basics::slist<CAccountDB_mem::CMapGM> &gmlist
 		while( fgets(line, sizeof(line), fp) )
 		{
 			line_counter++;
-			if( !prepare_line(line) )
+			if( !is_valid_line(line) )
 				continue;
 			is_range = (sscanf(line, "%lu%*[-~]%lu %d",&start_range,&end_range,&level)==3); // ID Range [MC Cameri]
-			if (!is_range && sscanf(line, "%lu %d", &account_id, &level) != 2 && sscanf(line, "%ld: %d", &account_id, &level) != 2)
+			if ( !is_range && sscanf(line, "%lu%*[:=]%d", &account_id, &level)  != 2 && sscanf(line, "%lu %d", &account_id, &level)  != 2)
 				ShowError("read_gm_account: file [%s], invalid 'acount_id|range level' format (line #%d).\n", (const char*)GM_account_filename(), line_counter);
 			else if (level <= 0)
 				ShowError("read_gm_account: file [%s] %dth account (line #%d) (invalid level [0 or negative]: %d).\n", (const char*)GM_account_filename(), gmlist.size()+1, line_counter, level);
@@ -1565,7 +1565,7 @@ bool CAccountDB_txt::do_readAccounts()
 
 		while( fgets(line, sizeof(line), fp) )
 		{
-			if( !prepare_line(line) )
+			if( !is_valid_line(line) )
 				continue;
 			*userid=0;
 			*pass=0;
@@ -2549,7 +2549,7 @@ bool CCharDB_txt::read_friends()
 
 		while(fgets(line, sizeof(line), fp))
 		{
-			if( !prepare_line(line) )
+			if( !is_valid_line(line) )
 				continue;
 
 			memset(friendlist,0,sizeof(friendlist));
@@ -2620,7 +2620,7 @@ bool CCharDB_txt::do_readChars(void)
 		int j;
 		line_count++;
 
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		line[sizeof(line)-1] = '\0';
 
@@ -3270,7 +3270,7 @@ bool CGuildDB_txt::do_readGuildsCastles()
 	while(fgets(line, sizeof(line), fp))
 	{
 		c++;
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 
 		CGuild g;
@@ -3321,7 +3321,7 @@ bool CGuildDB_txt::do_readGuildsCastles()
 	{
 		c++;
 
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 
 		size_t pos;
@@ -3509,7 +3509,7 @@ bool CPartyDB_txt::do_readParties()
 	while(fgets(line, sizeof(line), fp))
 	{
 		c++;
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 
 		j = 0;
@@ -3714,7 +3714,7 @@ bool CPCStorageDB_txt::do_readPCStorage()
 	while(fgets(line,sizeof(line),fp))
 	{
 		c++;
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 
 		sscanf(line,"%ld",&tmp);
@@ -3900,7 +3900,7 @@ bool CGuildStorageDB_txt::do_readGuildStorage()
 	while(fgets(line,sizeof(line),fp))
 	{
 		c++;
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 
 		sscanf(line,"%ld",&tmp);
@@ -4063,7 +4063,7 @@ bool CPetDB_txt::do_readPets()
 	while(fgets(line,sizeof(line),fp))
 	{
 		c++;
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 
 		if( pet_from_string(line,pet) )
@@ -4290,7 +4290,7 @@ bool CHomunculusDB_txt::do_readHomunculus()
 	while(fgets(line,sizeof(line),fp))
 	{
 		c++;
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 
 		if( homunculus_from_string(line,hom) )
@@ -4384,7 +4384,7 @@ bool CVarDB_txt::do_readVars()
 	while(fgets(line,sizeof(line),fp))
 	{
 		c++;
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 
 		if( var.from_string(line) )

@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src\basics; ..\src\common; ..\src\mysql"
+				AdditionalIncludeDirectories="..\src\basics; ..\src\common; ..\src\mysql-headers"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;WITH_TEXT;WITH_MYSQL"
 				RuntimeLibrary="5"
 				EnableFunctionLevelLinking="TRUE"
@@ -115,7 +115,7 @@
 			Name="Library Files"
 			Filter="">
 			<File
-				RelativePath="..\src\mysql-lib\visual-c\libmysql.lib">
+				RelativePath="..\src\mysql-libs\visual-c\libmysql.lib">
 			</File>
 		</Filter>
 	</Files>

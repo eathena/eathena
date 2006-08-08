@@ -535,11 +535,11 @@ const char* grfio_resnametable(const char* fname, char *lfname, size_t sz)
 
 	while(fgets(line,sizeof(line),fp))
 	{
-		if( (sscanf(line,"%[^#]#%[^#]#",w1,w2)==2) && 
+		if( (sscanf(line,"%256[^#]#%256[^#]#",w1,w2)==2) && 
 			(sscanf(fname,"%*5s%s",lfname)==1) &&  
-			(!strcasecmp(w1,lfname)))
+			(!strcasecmp(basics::itrim(w1),lfname)))
 		{
-			snprintf(lfname,sz,"%sdata\\%s",data_dir,w2);
+			snprintf(lfname,sz,"%sdata\\%s",data_dir,basics::itrim(w2));
 			fclose(fp);
 			return lfname;
 		}
@@ -957,11 +957,17 @@ void grfio_resourcecheck()
 	buf[size] = 0;
 
 	for(ptr=buf;ptr-buf<size;) {
-		if(sscanf((char*)ptr,"%[^#]#%[^#]#",w1,w2)==2){
-			if(strstr(w2,"bmp")){
+		if(sscanf((char*)ptr,"%256[^#]#%256[^#]#",w1,w2)==2)
+		{
+			basics::itrim(w1);
+			basics::itrim(w2);
+			if(strstr(w2,"bmp"))
+			{
 				snprintf(src,sizeof(src),"%sdata\\texture\\%s",data_dir,w1);
 				snprintf(dst,sizeof(dst),"%sdata\\texture\\%s",data_dir,w2);
-			} else {
+			}
+			else
+			{
 				snprintf(src,sizeof(src),"%sdata\\%s",data_dir,w1);
 				snprintf(dst,sizeof(dst),"%sdata\\%s",data_dir,w2);
 			}
@@ -1085,8 +1091,7 @@ void grfio_init(const char *fname)
 		{
 			if( !prepare_line(line) )
 				continue;
-			if( sscanf(line, "%1024[^:]:%1024[^\r\n]", w1, w2) == 2 ||
-				sscanf(line, "%1024[^:]=%1024[^\r\n]", w1, w2) == 2 )
+			if( sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2 )
 			{
 				basics::trim(w1);
 				basics::trim(w2);

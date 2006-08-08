@@ -2117,13 +2117,13 @@ fi
 fi
 
 if test "$enable_64bit" != "no"; then
-	CPPFLAGS="$CPPFLAGS -m64"
+	OPT="$OPT -m64"
 	if test "$MESSAGE" != "configured with"; then
 		MESSAGE="$MESSAGE,"
 	fi
 	MESSAGE="$MESSAGE 64bit compiling"
 else
-	CPPFLAGS="$CPPFLAGS -m32"
+	OPT="$OPT -m32"
 	if test "$MESSAGE" != "configured with"; then
 		MESSAGE="$MESSAGE,"
 	fi
@@ -2132,6 +2132,7 @@ fi
 
 
 # substitutions to perform
+
 
 
 
@@ -2286,6 +2287,7 @@ s%@CPP@%$CPP%g
 s%@SET_MAKE@%$SET_MAKE%g
 s%@LIBOBJS@%$LIBOBJS%g
 s%@MESSAGE@%$MESSAGE%g
+s%@OPT@%$OPT%g
 
 CEOF
 EOF

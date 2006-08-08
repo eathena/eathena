@@ -97,9 +97,8 @@ ipaddress hostbyname(const char* name)
     hostent* hp;
 
     if ((ip = ntohl(::inet_addr(name))) != ipaddress(INADDR_NONE))
-    {
-        if (ip[0] == 0) // network address?
-            return ipaddress(INADDR_NONE);
+    {	// don't test ip[0]==0 to also allow network addresses to pass here
+        return ip;
     }
     else
     {
@@ -438,24 +437,34 @@ bool ipaddress::str2ip(const char* str, ipaddress &addr, ipaddress &mask, ushort
 		char buffer[1024];
 		const char *kp=NULL, *mp=NULL;
 		kp = strchr(str,'/'); // the first ip/mask seperator
-		mp=strchr(str,':'); // the second ip/port seperator
+		mp=strchr(kp?kp:str,':'); // the second ip/port seperator
 		if(kp && mp)
 		{	// all data given
 			// <ip>
-			memcpy(buffer, str, kp-str);
-			buffer[kp-str]=0;
+			const uint len = ((size_t)(kp-str)>=sizeof(buffer))?(sizeof(buffer)-1):(kp-str);
+			memcpy(buffer, str, len);
+			buffer[len]=0;
 			addr = ipaddress::str2ip(buffer);
 			// <mask>
 			if(kp<mp)
 			{	// format is ok
 				kp++;
-				memcpy(buffer, kp, mp-kp);
-				buffer[mp-kp]=0;
-				mask = ipaddress::str2ip(buffer);
+				const uint len = ((size_t)(mp-kp)>=sizeof(buffer))?(sizeof(buffer)-1):(mp-kp);
+				memcpy(buffer, kp, len);
+				buffer[len]=0;
+				if( strchr(buffer, '.') )
+				{	// mask given as ip
+					mask = ipaddress::str2ip(buffer);
+				}
+				else
+				{	// mask given as number of mask bits
+					const uint num = atoi(buffer);
+					mask = (uint32)(0xFFFFFFFF << ((num<32)?(32-num):0));
+				}
 			}
 			else
 			{	// the mask seperator placement is wrong
-				mask = (uint32)INADDR_ANY;
+				mask = (uint32)INADDR_NONE; // 255.255.255.255
 			}
 			// <port>
 			port = atoi(mp+1);
@@ -463,25 +472,33 @@ bool ipaddress::str2ip(const char* str, ipaddress &addr, ipaddress &mask, ushort
 		else if(!kp && mp)
 		{	// mo mask given
 			// <ip>
-			memcpy(buffer, str, mp-str);
-			buffer[mp-str]=0;
+			const uint len = ((size_t)(mp-str)>=sizeof(buffer))?(sizeof(buffer)-1):(mp-str);
+			memcpy(buffer, str, len);
+			buffer[len]=0;
 			addr = ipaddress::str2ip(buffer);
 			// default mask
-			mask = (uint32)INADDR_ANY; // 0.0.0.0
+			mask = (uint32)INADDR_NONE; // 255.255.255.255
 			// <port>
 			port = atoi(mp+1);
 		}
 		else if(kp && !mp)
 		{	// no port given
 			// <ip>
-			memcpy(buffer, str, kp-str);
-			buffer[kp-str]=0;
+			const uint len = ((size_t)(kp-str)>=sizeof(buffer))?(sizeof(buffer)-1):(kp-str);
+			memcpy(buffer, str, len);
+			buffer[len]=0;
 			addr = ipaddress::str2ip(buffer);
 			// <mask>
 			kp++;
-			memcpy(buffer, kp, mp-kp);
-			buffer[mp-kp]=0;
-			mask = ipaddress::str2ip(buffer);
+			if( strchr(kp, '.') )
+			{	// maske given as ip
+				mask = ipaddress::str2ip(kp);
+			}
+			else
+			{	// mask given as number of mask bits
+				const uint num = atoi(kp);
+				mask = (uint32)(0xFFFFFFFF << ((num<32)?(32-num):0));
+			}
 			// don't change the port
 		}
 		else
@@ -489,7 +506,7 @@ bool ipaddress::str2ip(const char* str, ipaddress &addr, ipaddress &mask, ushort
 			// <ip>
 			addr = ipaddress::str2ip(str);
 			// default mask
-			mask = (uint32)INADDR_ANY; // 0.0.0.0
+			mask = (uint32)INADDR_NONE; // 255.255.255.255
 			// don't change the port
 		}
 		ret = true;

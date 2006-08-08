@@ -662,11 +662,13 @@ int log_config_read(const char *cfgName)
 
 	while(fgets(line, sizeof(line), fp))
 	{
-		if( !get_prepared_line(line) )
+		if( !prepare_line(line) )
 			continue;
 
-		if(sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2)
+		if(sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2)
 		{
+			basics::itrim(w1);
+			basics::itrim(w2);
 			if(strcasecmp(w1,"enable_logs") == 0) {
 				log_config.enable_logs = (atoi(w2));
 			} else if(strcasecmp(w1,"sql_logs") == 0) {

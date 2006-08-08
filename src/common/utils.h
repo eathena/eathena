@@ -35,7 +35,7 @@ const char *strcpytolower(char *tar, size_t sz, const char *str);
 const char *safestrcpy(char *tar, const char *src, size_t cnt);
 const char *replacecpy(char *tar, const char* src, size_t sz, char rplc='\t', char with=' ');
 const char *mapname2buffer(unsigned char *buffer, const char *mapname, size_t cnt);
-const char *get_prepared_line(const char *line);
+const char *is_valid_line(const char *line);
 size_t prepare_line(char *line);
 
 

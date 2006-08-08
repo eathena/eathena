@@ -1,4 +1,10 @@
 Date	Added
+08/08
+	* missing uploads from previous submit
+	* rearranged some makefile parameters
+	* some functional unification of config file reading 
+	  now accepts ':' and '=' as seperator and is independend to whitespaces
+	  still need conversion of static configs into parameters
 08/07
 	* some renaming of external header/lib folders before moving them
 	* gcc4 errors/warnings removed (at least the important ones)

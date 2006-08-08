@@ -117,7 +117,7 @@ int guild_read_castledb(void)
 
 	while(fgets(line,sizeof(line),fp))
 	{
-		if( !get_prepared_line(line) )
+		if( !is_valid_line(line) )
 			continue;
 		memset(str,0,sizeof(str));
 		for(j=0,p=line;j<6 && p; ++j)

@@ -2,6 +2,16 @@
 #include "basetime.h"
 
 
+#if defined(_WTIME_DEFINED_WARNING)
+#ifdef __GNUC__ 
+// message convention for gnu compilers
+#warning "there are no WTIME system function defined, using empty stubs"
+#else // no __GNUC__ 
+// message convention for visual c compilers
+#pragma message ( "there are no WTIME system function defined, using empty stubs, wide char time support not available" )
+#endif
+#endif
+
 NAMESPACE_BEGIN(basics)
 
 //////////////////////////////////////////////////////////////////////////

@@ -695,8 +695,10 @@ bool msg_config_read(const char *cfgName)
 	{
 		if( !prepare_line(line) )
 			continue;
-		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2)
+		if (sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2)
 		{
+			basics::itrim(w1);
+			basics::itrim(w2);
 			if(strcasecmp(w1, "import") == 0)
 			{
 				msg_config_read(w2);
@@ -778,12 +780,15 @@ bool atcommand_config_read(const char *cfgName)
 		return false;
 	}
 
-	while (fgets(line, sizeof(line), fp)) {
+	while (fgets(line, sizeof(line), fp))
+	{
 		if( !prepare_line(line) )
 			continue;
 
-		if (sscanf(line, "%1023[^:]:%1023s", w1, w2) != 2)
+		if (sscanf(line, "%1023[^:=]%*[:=]%1023[^\r\n]", w1, w2) != 2)
 			continue;
+		basics::itrim(w1);
+		basics::itrim(w2);
 
 		if(strcasecmp(w1, "import") == 0)
 			atcommand_config_read(w2);
@@ -825,10 +830,11 @@ AtCommandType atcommand(AtCommandInfo& info, const char* message, struct map_ses
 
 	if(*message == command_symbol)
 	{	// check first char.
-		char command[101];
+		char command[128];
 		
-		sscanf(message, "%100s", command);
+		sscanf(message, "%128s", command);
 		command[sizeof(command)-1] = '\0';
+		basics::itrim(command);
 
 		size_t i;
 		for (i = 0; atcommand_info[i].type < AtCommand_Unknown; ++i)
@@ -966,7 +972,7 @@ bool atcommand_rura(int fd, struct map_session_data &sd, const char* command, co
 	int x = 0, y = 0;
 	int m;
 
-	if (!message || !*message || sscanf(message, "%99s %d %d", mapname, &x, &y) < 1) {
+	if (!message || !*message || sscanf(message, "%128s %d %d", mapname, &x, &y) < 1) {
 		clif_displaymessage(fd, "Please, enter a map (usage: @warp/@rura/@mapmove <mapname> <x> <y>).");
 		return false;
 	}
@@ -1021,7 +1027,7 @@ bool atcommand_where(int fd, struct map_session_data &sd, const char* command, c
 	if (!message || !*message)
 		return false;
 		
-	if(sscanf(message, "%99[^\n]", player_name) < 1)
+	if(sscanf(message, "%128[^\n]", player_name) < 1)
 		return false;
 	if(strncmp(sd.status.name,player_name,24)==0)
 		return false;
@@ -1053,11 +1059,11 @@ bool atcommand_jumpto(int fd, struct map_session_data &sd, const char* command, 
 	char player_name[128]="";
 	char output[128];
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @jumpto/@warpto/@goto <char name>).");
 		return false;
 	}
-	if(sscanf(message, "%99[^\n]", player_name) < 1)
+	if(sscanf(message, "%128[^\n]", player_name) < 1)
 		return false;
 	if(strncmp(sd.status.name,player_name,24)==0) //Yourself mate? Tsk tsk tsk.
 		return false;
@@ -1130,10 +1136,10 @@ bool atcommand_who(int fd, struct map_session_data &sd, const char* command, con
 	size_t i, count;
 	int pl_GM_level, GM_level;
 	char output[128]="";
-	char match_text[104]="";
+	char match_text[128]="";
 	char player_name[24]="";
 
-	if (sscanf(message, "%99[^\n]", match_text) < 1)
+	if (sscanf(message, "%128[^\n]", match_text) < 1)
 		*match_text = 0;
 	basics::tolower(match_text);
 
@@ -1193,7 +1199,7 @@ bool atcommand_who2(int fd, struct map_session_data &sd, const char* command, co
 
 
 
-	if (sscanf(message, "%99[^\n]", match_text) < 1)
+	if (sscanf(message, "%128[^\n]", match_text) < 1)
 		*match_text = 0;
 	basics::tolower(match_text);
 
@@ -1246,7 +1252,7 @@ bool atcommand_who3(int fd, struct map_session_data &sd, const char* command, co
 
 
 
-	if (sscanf(message, "%99[^\n]", match_text) < 1)
+	if (sscanf(message, "%128[^\n]", match_text) < 1)
 		*match_text = 0;
 	basics::tolower(match_text);
 
@@ -1307,7 +1313,7 @@ bool atcommand_whomap(int fd, struct map_session_data &sd, const char* command, 
 	if (!message || !*message)
 		map_id = sd.block_list::m;
 	else {
-		sscanf(message, "%99s", mapname);
+		sscanf(message, "%128s", mapname);
 		ip=strchr(mapname, '.');
 		if(ip) *ip=0;
 		if ((map_id = map_mapname2mapid(mapname)) < 0)
@@ -1361,7 +1367,7 @@ bool atcommand_whomap2(int fd, struct map_session_data &sd, const char* command,
 	if (!message || !*message)
 		map_id = sd.block_list::m;
 	else {
-		sscanf(message, "%99s", mapname);
+		sscanf(message, "%128s", mapname);
 		ip=strchr(mapname, '.');
 		if(ip) *ip=0;
 		if ((map_id = map_mapname2mapid(mapname)) < 0)
@@ -1419,7 +1425,7 @@ bool atcommand_whomap3(int fd, struct map_session_data &sd, const char* command,
 	if (!message || !*message)
 		map_id = sd.block_list::m;
 	else {
-		sscanf(message, "%99s", mapname);
+		sscanf(message, "%128s", mapname);
 		ip=strchr(mapname, '.');
 		if(ip) *ip=0;
 		if ((map_id = map_mapname2mapid(mapname)) < 0)
@@ -1482,7 +1488,7 @@ bool atcommand_whogm(int fd, struct map_session_data &sd, const char* command, c
 	struct guild *g;
 	struct party *p;
 
-	if (sscanf(message, "%99[^\n]", match_text) < 1)
+	if (sscanf(message, "%128[^\n]", match_text) < 1)
 		*match_text = 0;
 	basics::tolower(match_text);
 
@@ -1543,7 +1549,7 @@ bool atcommand_whozeny(int fd, struct map_session_data &sd, const char* command,
 	CREATE_BUFFER(zeny, uint32, clif_countusers());
 	CREATE_BUFFER(counted, size_t, clif_countusers());
 
-	if (sscanf(message, "%99[^\n]", match_text) < 1)
+	if (sscanf(message, "%128[^\n]", match_text) < 1)
 		*match_text = 0;
 	basics::tolower(match_text);
 
@@ -2003,7 +2009,7 @@ bool atcommand_kill(int fd, struct map_session_data &sd, const char* command, co
 
 
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @kill <char name>).");
 		return false;
 	}
@@ -2058,7 +2064,7 @@ bool atcommand_kami(int fd, struct map_session_data &sd, const char* command, co
 		clif_displaymessage(fd, "Please, enter a message (usage: @kami <message>).");
 		return false;
 	}
-	sscanf(message, "%199[^\n]", output);
+	sscanf(message, "%128[^\n]", output);
 	intif_GMmessage(output, 1+strlen(output), (command[5]=='b') ? 0x10 : 0);
 	return true;
 }
@@ -2123,7 +2129,7 @@ bool atcommand_item(int fd, struct map_session_data &sd, const char* command, co
 	struct item_data *item_data;
 	int get_count, i, pet_id;
 
-	if( !message || !*message || sscanf(message, "%99s %d", item_name, &number) < 1)
+	if( !message || !*message || sscanf(message, "%128s %d", item_name, &number) < 1)
 	{
 		clif_displaymessage(fd, "Please, enter an item name/id (usage: @item <item name or ID> [quantity]).");
 		return false;
@@ -2187,7 +2193,7 @@ bool atcommand_item2(int fd, struct map_session_data &sd, const char* command, c
 	int flag;
 	int loop, get_count, i;
 
-	if (!message || !*message || sscanf(message, "%99s %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4) < 1)
+	if (!message || !*message || sscanf(message, "%128s %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4) < 1)
 	{
 		clif_displaymessage(fd, "Please, enter all informations (usage: @item2 <item name or ID> <quantity>");
 		clif_displaymessage(fd, "  <Identify_flag> <refine> <attribut> <Card1> <Card2> <Card3> <Card4>).");
@@ -2394,32 +2400,26 @@ bool atcommand_joblevelup(int fd, struct map_session_data &sd, const char* comma
 ///
 bool atcommand_help(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	char buf[2048], w1[2048], w2[2048];
-	int i, gm_level;
 	FILE* fp;
-
-
-	memset(buf, '\0', sizeof(buf));
-
-	if((fp = basics::safefopen(help_txt, "r")) != NULL) {
+	if((fp = basics::safefopen(help_txt, "r")) != NULL)
+	{
+		char line[2048], w1[2048], w2[2048];
+		int gm_level = sd.isGM();
 		clif_displaymessage(fd, msg_table[26]); // Help commands:
-		gm_level = sd.isGM();
-		while(fgets(buf, sizeof(buf), fp) != NULL) {
-			if (buf[0] == '/' && buf[1] == '/')
+
+		while(fgets(line, sizeof(line), fp) != NULL)
+		{
+			if( !is_valid_line(line) )
 				continue;
-			for (i = 0; buf[i] != '\0'; ++i) {
-				if (buf[i] == '\r' || buf[i] == '\n') {
-					buf[i] = '\0';
-					break;
-				}
-			}
-			if (sscanf(buf, "%2047[^:]:%2047[^\n]", w1, w2) < 2)
-				clif_displaymessage(fd, buf);
+			if (sscanf(line, "%2048[^:=]%*[:=]%2048[^\r\n]", w1, w2) < 2)
+				clif_displaymessage(fd, line);
 			else if (gm_level >= atoi(w1))
 				clif_displaymessage(fd, w2);
 		}
 		fclose(fp);
-	} else {
+	}
+	else
+	{
 		clif_displaymessage(fd, msg_table[27]); // File help.txt not found.
 		return false;
 	}
@@ -2437,7 +2437,7 @@ bool atcommand_gm(int fd, struct map_session_data &sd, const char* command, cons
 
 	memset(password, '\0', sizeof(password));
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", password) < 1) {
+	if (!message || !*message || sscanf(message, "%128[^\n]", password) < 1) {
 		clif_displaymessage(fd, "Please, enter a password (usage: @gm <password>).");
 		return false;
 	}
@@ -2750,7 +2750,7 @@ bool atcommand_go(int fd, struct map_session_data &sd, const char* command, cons
 	town = atoi(message);
 
 	// if no value, display all value
-	if (!message || !*message || sscanf(message, "%99s", mapname) < 1 || town < -3 || town >= (int)(sizeof(data) / sizeof(data[0]))) {
+	if (!message || !*message || sscanf(message, "%128s", mapname) < 1 || town < -3 || town >= (int)(sizeof(data) / sizeof(data[0]))) {
 		clif_displaymessage(fd, msg_table[38]); // Invalid location number or name.
 		clif_displaymessage(fd, msg_table[82]); // Please, use one of this number/name:
 		clif_displaymessage(fd, "  0=Prontera         1=Morroc       2=Geffen");
@@ -2900,9 +2900,9 @@ bool atcommand_monster(int fd, struct map_session_data &sd, const char* command,
 
 
 	if (!message || !*message ||
-	    (sscanf(message, "\"%[^\"]\" %99s %d %d %d", name, monster, &number, &x, &y) < 2 &&
-	     sscanf(message, "%99s \"%[^\"]\" %d %d %d", monster, name, &number, &x, &y) < 2 &&
-	     sscanf(message, "%99s %99s %d %d %d", name, monster, &number, &x, &y) < 2)) {
+	    (sscanf(message, "\"%128[^\"]\" %128s %d %d %d", name, monster, &number, &x, &y) < 2 &&
+	     sscanf(message, "%128s \"%128[^\"]\" %d %d %d", monster, name, &number, &x, &y) < 2 &&
+	     sscanf(message, "%128s %128s %d %d %d", name, monster, &number, &x, &y) < 2)) {
 		clif_displaymessage(fd, msg_table[80]); // Give a display name and monster name/id please.
 		return false;
 	}
@@ -2983,9 +2983,9 @@ bool atcommand_spawn(int fd, struct map_session_data &sd, const char* command, c
 
 
 	if (!message || !*message ||
-	    (sscanf(message, "\"%[^\"]\" %99s %d %d %d", name, monster, &number, &x, &y) < 2 &&
-	     sscanf(message, "%99s \"%[^\"]\" %d %d %d", monster, name, &number, &x, &y) < 2 &&
-	     sscanf(message, "%99s %d %99s %d %d", monster, &number, name, &x, &y) < 1)) {
+	    (sscanf(message, "\"%128[^\"]\" %128s %d %d %d", name, monster, &number, &x, &y) < 2 &&
+	     sscanf(message, "%128s \"%128[^\"]\" %d %d %d", monster, name, &number, &x, &y) < 2 &&
+	     sscanf(message, "%128s %d %128s %d %d", monster, &number, name, &x, &y) < 1)) {
 		clif_displaymessage(fd, msg_table[143]); // Give a monster name/id please.
 		return false;
 	}
@@ -3073,9 +3073,9 @@ bool atcommand_monstersmall(int fd, struct map_session_data &sd, const char* com
 		return true;
 	}
 
-	if (sscanf(message, "\"%[^\"]\" %99s %d %d %d", name, monster, &number, &x, &y) < 2 &&
-	    sscanf(message, "%99s \"%[^\"]\" %d %d %d", monster, name, &number, &x, &y) < 2 &&
-	    sscanf(message, "%99s %d %99s %d %d", monster, &number, name, &x, &y) < 1) {
+	if (sscanf(message, "\"%128[^\"]\" %128s %d %d %d", name, monster, &number, &x, &y) < 2 &&
+	    sscanf(message, "%128s \"%128[^\"]\" %d %d %d", monster, name, &number, &x, &y) < 2 &&
+	    sscanf(message, "%128s %d %128s %d %d", monster, &number, name, &x, &y) < 1) {
 		clif_displaymessage(fd, "Give a monster name/id please.");
 		return true;
 	}
@@ -3150,9 +3150,9 @@ bool atcommand_monsterbig(int fd, struct map_session_data &sd, const char* comma
 		return true;
 	}
 
-	if (sscanf(message, "\"%[^\"]\" %99s %d %d %d", name, monster, &number, &x, &y) < 2 &&
-	    sscanf(message, "%99s \"%[^\"]\" %d %d %d", monster, name, &number, &x, &y) < 2 &&
-	    sscanf(message, "%99s %d %99s %d %d", monster, &number, name, &x, &y) < 1) {
+	if (sscanf(message, "\"%128[^\"]\" %128s %d %d %d", name, monster, &number, &x, &y) < 2 &&
+	    sscanf(message, "%128s \"%128[^\"]\" %d %d %d", monster, name, &number, &x, &y) < 2 &&
+	    sscanf(message, "%128s %d %128s %d %d", monster, &number, name, &x, &y) < 1) {
 		clif_displaymessage(fd, "Give a monster name/id please.");
 		return true;
 	}
@@ -3235,7 +3235,7 @@ bool atcommand_killmonster_sub(int fd, struct map_session_data &sd, const char* 
 
 	memset(mapname, '\0', sizeof(mapname));
 
-	if (!message || !*message || sscanf(message, "%99s", mapname) < 1)
+	if (!message || !*message || sscanf(message, "%128s", mapname) < 1)
 		map_id = sd.block_list::m;
 	else
 	{
@@ -3346,7 +3346,7 @@ bool atcommand_produce(int fd, struct map_session_data &sd, const char* command,
 	struct item tmp_item;
 
 
-	if (!message || !*message || sscanf(message, "%99s %d %d", item_name, &attribute, &star) < 1) {
+	if (!message || !*message || sscanf(message, "%128s %d %d", item_name, &attribute, &star) < 1) {
 		clif_displaymessage(fd, "Please, enter at least an item name/id (usage: @produce <equip name or equip ID> <element> <# of very's>).");
 		return false;
 	}
@@ -3939,13 +3939,13 @@ bool atcommand_recall(int fd, struct map_session_data &sd, const char* command, 
 
 
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @recall <char name>).");
 		return false;
 	}
 
 	memset(player_name, '\0', sizeof player_name);
-	if(sscanf(message, "%99[^\n]", player_name) < 1)
+	if(sscanf(message, "%128[^\n]", player_name) < 1)
 		return false;
 	if(strncmp(sd.status.name,player_name,24)==0)
 		return false;
@@ -3984,7 +3984,7 @@ bool atcommand_revive(int fd, struct map_session_data &sd, const char* command, 
 	struct map_session_data *pl_sd;
 
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @revive <char name>).");
 		return false;
 	}
@@ -4020,7 +4020,7 @@ bool atcommand_char_change_sex(int fd, struct map_session_data &sd, const char* 
 	char player_name[128];
 
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charchangesex <name>).");
 		return false;
 }
@@ -4049,7 +4049,7 @@ bool atcommand_char_block(int fd, struct map_session_data &sd, const char* comma
 	char player_name[128]="";
 
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charblock/@block <name>).");
 		return false;
 	}
@@ -4094,7 +4094,7 @@ bool atcommand_char_ban(int fd, struct map_session_data &sd, const char* command
 
 
 
-	if(!message || !*message || sscanf(message, "%s %99[^\n]", output, player_name) < 2) {
+	if(!message || !*message || sscanf(message, "%128s %128[^\n]", output, player_name) < 2) {
 		clif_displaymessage(fd, "Please, enter ban time and a player name (usage: @charban/@ban/@banish/@charbanish <time> <name>).");
 		return false;
 	}
@@ -4162,7 +4162,7 @@ bool atcommand_char_unblock(int fd, struct map_session_data &sd, const char* com
 	char player_name[128]="";
 
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charunblock <player_name>).");
 		return false;
 	}
@@ -4192,7 +4192,7 @@ bool atcommand_char_unban(int fd, struct map_session_data &sd, const char* comma
 	char player_name[128]="";
 
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charunban <player_name>).");
 		return false;
 	}
@@ -4352,7 +4352,7 @@ bool atcommand_character_baselevel(int fd, struct map_session_data &sd, const ch
 	int level = 0, i;
 
 
-	if(!message || !*message || sscanf(message, "%d %99[^\n]", &level, player_name) < 2 || level == 0) {
+	if(!message || !*message || sscanf(message, "%d %128[^\n]", &level, player_name) < 2 || level == 0) {
 		clif_displaymessage(fd, "Please, enter a level adjustement and a player name (usage: @charbaselvl <#> <nickname>).");
 		return false;
 	}
@@ -4424,7 +4424,7 @@ bool atcommand_character_joblevel(int fd, struct map_session_data &sd, const cha
 	struct pc_base_job pl_s_class;
 
 
-	if(!message || !*message || sscanf(message, "%d %99[^\n]", &level, player_name) < 2 || level == 0) {
+	if(!message || !*message || sscanf(message, "%d %128[^\n]", &level, player_name) < 2 || level == 0) {
 		clif_displaymessage(fd, "Please, enter a level adjustement and a player name (usage: @charjlvl <#> <nickname>).");
 		return false;
 	}
@@ -4496,7 +4496,7 @@ bool atcommand_kick(int fd, struct map_session_data &sd, const char* command, co
 	struct map_session_data *pl_sd;
 
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @kick <charname>).");
 		return false;
 	}
@@ -4596,7 +4596,7 @@ bool atcommand_charquestskill(int fd, struct map_session_data &sd, const char* c
 	int skill_id = 0;
 
 
-	if(!message || !*message || sscanf(message, "%d %99[^\n]", &skill_id, player_name) < 2 || skill_id < 0) {
+	if(!message || !*message || sscanf(message, "%d %128[^\n]", &skill_id, player_name) < 2 || skill_id < 0) {
 		clif_displaymessage(fd, "Please, enter a quest skill number and a player name (usage: @charquestskill <#:0+> <char_name>).");
 		return false;
 	}
@@ -4673,7 +4673,7 @@ bool atcommand_charlostskill(int fd, struct map_session_data &sd, const char* co
 	int skill_id = 0;
 
 
-	if(!message || !*message || sscanf(message, "%d %99[^\n]", &skill_id, player_name) < 2 || skill_id < 0) {
+	if(!message || !*message || sscanf(message, "%d %128[^\n]", &skill_id, player_name) < 2 || skill_id < 0) {
 		clif_displaymessage(fd, "Please, enter a quest skill number and a player name (usage: @charlostskill <#:0+> <char_name>).");
 		return false;
 	}
@@ -4754,7 +4754,7 @@ bool atcommand_party(int fd, struct map_session_data &sd, const char* command, c
 
 	memset(party, '\0', sizeof(party));
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", party) < 1) {
+	if (!message || !*message || sscanf(message, "%128[^\n]", party) < 1) {
 		clif_displaymessage(fd, "Please, enter a party name (usage: @party <party_name>).");
 		return false;
 	}
@@ -4775,7 +4775,7 @@ bool atcommand_guild(int fd, struct map_session_data &sd, const char* command, c
 
 	memset(guild, '\0', sizeof(guild));
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", guild) < 1) {
+	if (!message || !*message || sscanf(message, "%128[^\n]", guild) < 1) {
 		clif_displaymessage(fd, "Please, enter a guild name (usage: @guild <guild_name>).");
 		return false;
 	}
@@ -4858,7 +4858,7 @@ bool atcommand_idsearch(int fd, struct map_session_data &sd, const char* command
 	struct item_data *item;
 
 
-	if (!message || !*message || sscanf(message, "%99s", item_name) < 0) {
+	if (!message || !*message || sscanf(message, "%128s", item_name) < 0) {
 		clif_displaymessage(fd, "Please, enter a part of item name (usage: @idsearch <part_of_item_name>).");
 		return false;
 	}
@@ -4890,7 +4890,7 @@ bool atcommand_charskreset(int fd, struct map_session_data &sd, const char* comm
 	char output[128];
 	char player_name[128]="";
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charskreset <charname>).");
 		return false;
 	}
@@ -4924,7 +4924,7 @@ bool atcommand_charstreset(int fd, struct map_session_data &sd, const char* comm
 
 
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charstreset <charname>).");
 		return false;
 	}
@@ -4958,7 +4958,7 @@ bool atcommand_charmodel(int fd, struct map_session_data &sd, const char* comman
 	char player_name[128];
 
 
-	if(!message || !*message || sscanf(message, "%d %d %d %99[^\n]", &hair_style, &hair_color, &cloth_color, player_name) < 4 || hair_style < 0 || hair_color < 0 || cloth_color < 0) {
+	if(!message || !*message || sscanf(message, "%d %d %d %128[^\n]", &hair_style, &hair_color, &cloth_color, player_name) < 4 || hair_style < 0 || hair_color < 0 || cloth_color < 0) {
 		snprintf(output, sizeof(output), "Please, enter a valid model and a player name (usage: @charmodel <hair ID: %ld-%ld> <hair color: %ld-%ld> <clothes color: %ld-%ld> <name>).",
 		        (unsigned long)MIN_HAIR_STYLE, (unsigned long)MAX_HAIR_STYLE, (unsigned long)MIN_HAIR_COLOR, (unsigned long)MAX_HAIR_COLOR, (unsigned long)MIN_CLOTH_COLOR, (unsigned long)MAX_CLOTH_COLOR);
 		clif_displaymessage(fd, output);
@@ -5005,7 +5005,7 @@ bool atcommand_charskpoint(int fd, struct map_session_data &sd, const char* comm
 	int point = 0;
 
 
-	if(!message || !*message || sscanf(message, "%d %99[^\n]", &point, player_name) < 2 || point == 0) {
+	if(!message || !*message || sscanf(message, "%d %128[^\n]", &point, player_name) < 2 || point == 0) {
 		clif_displaymessage(fd, "Please, enter a number and a player name (usage: @charskpoint <amount> <name>).");
 		return false;
 	}
@@ -5047,7 +5047,7 @@ bool atcommand_charstpoint(int fd, struct map_session_data &sd, const char* comm
 	int point = 0;
 
 
-	if(!message || !*message || sscanf(message, "%d %99[^\n]", &point, player_name) < 2 || point == 0) {
+	if(!message || !*message || sscanf(message, "%d %128[^\n]", &point, player_name) < 2 || point == 0) {
 		clif_displaymessage(fd, "Please, enter a number and a player name (usage: @charstpoint <amount> <name>).");
 		return false;
 	}
@@ -5128,7 +5128,7 @@ bool atcommand_guildrecall(int fd, struct map_session_data &sd, const char* comm
 
 
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", guild_name) < 1) {
+	if (!message || !*message || sscanf(message, "%128[^\n]", guild_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a guild name/id (usage: @guildrecall <guild_name/id>).");
 		return false;
 	}
@@ -5179,7 +5179,7 @@ bool atcommand_partyrecall(int fd, struct map_session_data &sd, const char* comm
 
 
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", party_name) < 1) {
+	if (!message || !*message || sscanf(message, "%128[^\n]", party_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a party name/id (usage: @partyrecall <party_name/id>).");
 		return false;
 	}
@@ -5358,7 +5358,7 @@ bool atcommand_mapinfo(int fd, struct map_session_data &sd, const char* command,
 	size_t i;
 
 
-	sscanf(message, "%d %99[^\n]", &list, mapname);
+	sscanf(message, "%d %128[^\n]", &list, mapname);
 
 	if (list < 0 || list > 3) {
 		clif_displaymessage(fd, "Please, enter at least a valid list number (usage: @mapinfo <0-3> [map]).");
@@ -5599,7 +5599,7 @@ bool atcommand_char_mount_peco(int fd, struct map_session_data &sd, const char* 
 	struct map_session_data *pl_sd;
 
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charmountpeco <char_name>).");
 		return false;
 	}
@@ -5660,7 +5660,7 @@ bool atcommand_guildspy(int fd, struct map_session_data &sd, const char* command
 	struct guild *g;
 
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", guild_name) < 1) {
+	if (!message || !*message || sscanf(message, "%128[^\n]", guild_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a guild name/id (usage: @guildspy <guild_name/id>).");
 		return false;
 	}
@@ -5695,7 +5695,7 @@ bool atcommand_partyspy(int fd, struct map_session_data &sd, const char* command
 
 
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", party_name) < 1) {
+	if (!message || !*message || sscanf(message, "%128[^\n]", party_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a party name/id (usage: @partyspy <party_name/id>).");
 		return false;
 	}
@@ -5758,7 +5758,7 @@ bool atcommand_nuke(int fd, struct map_session_data &sd, const char* command, co
 	struct map_session_data *pl_sd;
 
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @nuke <char name>).");
 		return false;
 	}
@@ -5787,7 +5787,7 @@ bool atcommand_shownpc(int fd, struct map_session_data &sd, const char* command,
 {
 	char NPCname[128]="";
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", NPCname) < 1) {
+	if (!message || !*message || sscanf(message, "%128[^\n]", NPCname) < 1) {
 		clif_displaymessage(fd, "Please, enter a NPC name (usage: @enablenpc <NPC_name>).");
 		return false;
 	}
@@ -5813,7 +5813,7 @@ bool atcommand_hidenpc(int fd, struct map_session_data &sd, const char* command,
 
 	memset(NPCname, '\0', sizeof(NPCname));
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", NPCname) < 1) {
+	if (!message || !*message || sscanf(message, "%128[^\n]", NPCname) < 1) {
 		clif_displaymessage(fd, "Please, enter a NPC name (usage: @npcoff <NPC_name>).");
 		return false;
 	}
@@ -5863,12 +5863,12 @@ bool atcommand_loadnpc(int fd, struct map_session_data &sd, const char* command,
 bool atcommand_unloadnpc(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	struct npc_data *nd;
-	char NPCname[100];
+	char NPCname[128];
 
 
 	memset(NPCname, '\0', sizeof(NPCname));
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", NPCname) < 1) {
+	if (!message || !*message || sscanf(message, "%128[^\n]", NPCname) < 1) {
 		clif_displaymessage(fd, "Please, enter a NPC name (usage: @npcoff <NPC_name>).");
 		return false;
 	}
@@ -6016,7 +6016,7 @@ bool atcommand_chardelitem(int fd, struct map_session_data &sd, const char* comm
 	struct item_data *item_data;
 
 
-	if(!message || !*message || sscanf(message, "%s %d %99[^\n]", item_name, &number, player_name) < 3 || number < 1) {
+	if(!message || !*message || sscanf(message, "%128s %d %128[^\n]", item_name, &number, player_name) < 3 || number < 1) {
 		clif_displaymessage(fd, "Please, enter an item name/id, a quantity and a player name (usage: @chardelitem <item_name_or_ID> <quantity> <player>).");
 		return false;
 	}
@@ -6076,7 +6076,7 @@ bool atcommand_jail(int fd, struct map_session_data &sd, const char* command, co
 	int x, y;
 
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @jail <char_name>).");
 		return false;
 	}
@@ -6123,7 +6123,7 @@ bool atcommand_unjail(int fd, struct map_session_data &sd, const char* command, 
 	char player_name[128]="";
 	struct map_session_data *pl_sd;
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @unjail/@discharge <char_name>).");
 		return false;
 	}
@@ -6328,7 +6328,7 @@ bool atcommand_chardisguise(int fd, struct map_session_data &sd, const char* com
 
 
 
-	if(!message || !*message || sscanf(message, "%s %99[^\n]", mob_name, player_name) < 2) {
+	if(!message || !*message || sscanf(message, "%128s %128[^\n]", mob_name, player_name) < 2) {
 		clif_displaymessage(fd, "Please, enter a Monster/NPC name/id and a player name (usage: @chardisguise <monster_name_or_monster_ID> <char name>).");
 		return false;
 	}
@@ -6378,7 +6378,7 @@ bool atcommand_charundisguise(int fd, struct map_session_data &sd, const char* c
 
 
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charundisguise <char name>).");
 		return false;
 	}
@@ -6426,7 +6426,7 @@ bool atcommand_email(int fd, struct map_session_data &sd, const char* command, c
 	char actual_email[128]="";
 	char new_email[128]="";
 
-	if (!message || !*message || sscanf(message, "%99s %99s", actual_email, new_email) < 2) {
+	if (!message || !*message || sscanf(message, "%128s %128s", actual_email, new_email) < 2) {
 		clif_displaymessage(fd, "Please enter 2 emails (usage: @email <actual@email> <new@email>).");
 		return false;
 	}
@@ -6497,7 +6497,7 @@ bool atcommand_character_storage_list(int fd, struct map_session_data &sd, const
 	char outputtmp[256];
 	
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", character) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", character) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charitemlist <char name>).");
 		return false;
 	}
@@ -6578,7 +6578,7 @@ bool atcommand_character_cart_list(int fd, struct map_session_data &sd, const ch
 
 
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charitemlist <char name>).");
 		return false;
 	}
@@ -6743,7 +6743,7 @@ bool atcommand_npcmove(int fd, struct map_session_data &sd, const char* command,
 	if (!message || !*message)
 		return false;
 
-	if(sscanf(message, "%d %d %99[^\n]", &x, &y, player_name) < 3) {
+	if(sscanf(message, "%d %d %128[^\n]", &x, &y, player_name) < 3) {
 		clif_displaymessage(fd, "Usage: @npcmove <X> <Y> <npc_name>");
 		return false;
 	}
@@ -6775,7 +6775,7 @@ bool atcommand_addwarp(int fd, struct map_session_data &sd, const char* command,
 	if (!message || !*message)
 		return false;
 
-	if(sscanf(message, "%99s %d %d[^\n]", mapname, &x, &y ) < 3)
+	if(sscanf(message, "%128s %d %d[^\n]", mapname, &x, &y ) < 3)
 		return false;
 
 	snprintf(w1,sizeof(w1), "%s,%d,%d", sd.mapname, sd.block_list::x, sd.block_list::y);
@@ -6971,7 +6971,7 @@ bool atcommand_useskill(int fd, struct map_session_data &sd, const char* command
 
 	if (!message || !*message)
 		return false;
-	if(sscanf(message, "%d %d %99[^\n]", &skillnum, &skilllv, target) != 3) {
+	if(sscanf(message, "%d %d %128[^\n]", &skillnum, &skilllv, target) != 3) {
 		clif_displaymessage(fd, "Usage: @useskill <skillnum> <skillv> <target>");
 		return false;
 	}
@@ -7005,7 +7005,7 @@ bool atcommand_skilltree(int fd, struct map_session_data &sd, const char* comman
 	
 	if (!message || !*message)
 		return false;
-	if(sscanf(message, "%d %[^\r\n]", &skillnum, target) != 2)
+	if(sscanf(message, "%d %256[^\r\n]", &skillnum, target) != 2)
 	{
 		clif_displaymessage(fd, "Usage: @skilltree <skillnum> <target>");
 		return false;
@@ -7096,9 +7096,9 @@ bool atcommand_marry(int fd, struct map_session_data &sd, const char* command, c
 {
   struct map_session_data *pl_sd1 = NULL;
   struct map_session_data *pl_sd2 = NULL;
-  char player1[255], player2[255];
+  char player1[128], player2[128];
 
-	if (!message || !*message || sscanf(message, "%[^,],%[^\r\n]", player1, player2) != 2)
+	if (!message || !*message || sscanf(message, "%128[^,],%128[^\r\n]", player1, player2) != 2)
 	{
     clif_displaymessage(fd, "Usage: @marry <player1>,<player2>.");
 		return false;
@@ -7138,7 +7138,7 @@ bool atcommand_divorce(int fd, struct map_session_data &sd, const char* command,
 	char player_name[128]="";
   struct map_session_data *pl_sd = NULL;
 
-	if(!message || !*message || sscanf(message, "%[^\r\n]", player_name) != 1)
+	if(!message || !*message || sscanf(message, "%128[^\r\n]", player_name) != 1)
 	{
     clif_displaymessage(fd, "Usage: @divorce <player>.");
 		return false;
@@ -7193,12 +7193,12 @@ bool atcommand_grind(int fd, struct map_session_data &sd, const char* command, c
 	struct map_session_data *pl_sd = NULL;
 	int skillnum;
 	int inf;
-	char target[255];
+	char target[128];
 
 
 	if (!message || !*message)
 		return false;
-	if(sscanf(message, "%s", target) != 1) {
+	if(sscanf(message, "%128s", target) != 1) {
 		clif_displaymessage(fd, "Usage: @grind <target>");
 		return false;
 	}
@@ -7481,12 +7481,12 @@ bool atcommand_sound(int fd, struct map_session_data &sd, const char *command, c
 {
 	char sound_file[128]="";
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", sound_file) < 1) {
+	if(!message || !*message || sscanf(message, "%128[^\n]", sound_file) < 1) {
 		clif_displaymessage(fd, "Please, enter a sound filename. (usage: @sound <filename>)");
 		return false;
 	}
 
-	if(sscanf(message, "%99[^\n]", sound_file) < 1)
+	if(sscanf(message, "%128[^\n]", sound_file) < 1)
 		return false;
 
 	if(strstr(sound_file, ".wav") == NULL)
@@ -7531,7 +7531,7 @@ bool atcommand_mobsearch(int fd, struct map_session_data& sd, const char* comman
 
 
 
-	if (sscanf(message, "%99[^\n]", mob_name) < 0)
+	if (sscanf(message, "%128[^\n]", mob_name) < 0)
 		return false;
 
 	if ((mob_id = atoi(mob_name)) == 0)
@@ -7598,17 +7598,15 @@ bool atcommand_npctalk(int fd, struct map_session_data &sd, const char* command,
 	char name[128],mes[128],output[256];
 	struct npc_data *nd;
 
-//	if(sscanf(message, "%s %99[^\n]", name, mes) < 2)
-//		return false;
-	if( (sscanf(message, "\"%[^\"]\" %99[^\n]", name, mes) < 2) && //orn
-		(sscanf(message, "%99s %99[^\n]", name, mes) < 2))
+	if( (sscanf(message, "\"%128[^\"]\" %128[^\n]", name, mes) < 2) && //orn
+		(sscanf(message, "%128s %128[^\n]", name, mes) < 2))
 		return false;
 
 	if (!(nd = npc_name2id(name)))
 		return false;
 	
 //	clif_message(&nd->bl, mes);
-	sscanf(name, "%[^#]#[^\n]", name);
+	sscanf(name, "%128[^#]#[^\n]", name);
 	snprintf(output, sizeof(output), "%s: %s", name, mes);
 	clif_message(*nd, output);
 
@@ -7625,7 +7623,7 @@ bool atcommand_pettalk(int fd, struct map_session_data &sd, const char* command,
 	if(!sd.status.pet_id || !sd.pd)
 		return false;
 
-	if (sscanf(message, "%99[^\n]", mes) < 1)
+	if (sscanf(message, "%128[^\n]", mes) < 1)
 		return false;
 
 	snprintf(temp, sizeof(temp), "%s : %s", sd.pd->pet.name, mes);
@@ -7714,7 +7712,7 @@ bool atcommand_summon(int fd, struct map_session_data &sd, const char* command, 
 
 	if(!message || !*message)
 		return false;
-	if(sscanf(message, "%99s %u", name, &duration) < 1)
+	if(sscanf(message, "%128s %u", name, &duration) < 1)
 		return false;
 
 	if (duration < 1)
@@ -7759,7 +7757,7 @@ bool atcommand_adjcmdlvl(int fd, struct map_session_data &sd, const char* comman
     char cmd[128];
 
 
-    if (!message || !*message || sscanf(message, "%d %s", &newlev, cmd) != 2) {
+    if (!message || !*message || sscanf(message, "%d %128s", &newlev, cmd) != 2) {
         clif_displaymessage(fd, "Usage: @adjcmdlvl <lvl> <command>.");
         return false;
     }
@@ -7787,7 +7785,7 @@ bool atcommand_adjgmlvl(int fd, struct map_session_data &sd, const char* command
 	struct map_session_data *pl_sd;
 
 	*user = 0;
-    if (!message || !*message || sscanf(message, "%d %[^\r\n]", &newlev, user) != 2) {
+    if (!message || !*message || sscanf(message, "%d %128[^\r\n]", &newlev, user) != 2) {
         clif_displaymessage(fd, "Usage: @adjgmlvl <lvl> <user>.");
     }
 	else if( sd.status.gm_level <= newlev )
@@ -7843,7 +7841,7 @@ bool atcommand_setbattleflag(int fd, struct map_session_data &sd, const char* co
 	char flag[128];
 	char value[128];
 
-	if (!message || !*message || sscanf(message, "%s %s", flag, value) != 2) {
+	if (!message || !*message || sscanf(message, "%128s %128s", flag, value) != 2) {
         	clif_displaymessage(fd, "Usage: @setbattleflag <flag> <value>.");
         	return false;
     	}
@@ -7935,7 +7933,7 @@ bool atcommand_mute(int fd, struct map_session_data &sd, const char* command, co
 	struct map_session_data *pl_sd = NULL;
 	int manner;
 	
-	if(!message || !*message || sscanf(message, "%d %99[^\n]", &manner, player_name) < 1) {
+	if(!message || !*message || sscanf(message, "%d %128[^\n]", &manner, player_name) < 1) {
 		clif_displaymessage(fd, "Usage: @mute <time> <character name>.");
 		return false;
 	}
@@ -7989,7 +7987,7 @@ bool atcommand_petid(int fd, struct map_session_data &sd, const char* command, c
 
 	if (!message || !*message)
 		return false;
-	if (sscanf(message, "%99s", searchtext) < 1)
+	if (sscanf(message, "%128s", searchtext) < 1)
 		return false;
 	basics::tolower(searchtext);
 	snprintf(temp0, sizeof(temp0), "Search results for: %s", searchtext);
@@ -8132,7 +8130,7 @@ bool atcommand_jumptoid(int fd, struct map_session_data &sd, const char* command
    int session_id=0;
    struct map_session_data *pl_sd;
 
-	if(!message || (cid = atoi(message)) == 0 || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || (cid = atoi(message)) == 0 || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
       clif_displaymessage(fd, "Please, enter a player CID (usage: @jumptoid/@warptoid/@gotoid <char id>).");
       return false;
    }
@@ -8176,7 +8174,7 @@ bool atcommand_jumptoid2(int fd, struct map_session_data &sd, const char* comman
    int session_id=0;
    struct map_session_data *pl_sd;
 
-	if(!message || (aid = atoi(message)) == 0 || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || (aid = atoi(message)) == 0 || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
       clif_displaymessage(fd, "Please, enter a player AID (usage: @jumptoid/@warptoid/@gotoid <account id>).");
       return false;
    }
@@ -8220,7 +8218,7 @@ bool atcommand_recallid(int fd, struct map_session_data &sd, const char* command
    int session_id=0;
    struct map_session_data *pl_sd;
 
-	if(!message || (cid = atoi(message)) == 0 || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || (cid = atoi(message)) == 0 || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
       clif_displaymessage(fd, "Please, enter a player CID (usage: @recallid <char id>).");
       return false;
    }
@@ -8269,7 +8267,7 @@ bool atcommand_recallid2(int fd, struct map_session_data &sd, const char* comman
    int session_id=0;
    struct map_session_data *pl_sd;
 
-	if(!message || (aid = atoi(message)) == 0 || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || (aid = atoi(message)) == 0 || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
       clif_displaymessage(fd, "Please, enter a player AID (usage: @recallid2 <account id>).");
       return false;
    }
@@ -8316,7 +8314,7 @@ bool atcommand_kickid(int fd, struct map_session_data &sd, const char* command, 
    struct map_session_data *pl_sd;
    int cid=0;
    int session_id=0;
-	if(!message || (cid = atoi(message)) == 0 || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || (cid = atoi(message)) == 0 || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
       clif_displaymessage(fd, "Please, enter a player CID (usage: @kickid <char id>).");
       return false;
    }
@@ -8353,7 +8351,7 @@ bool atcommand_kickid2(int fd, struct map_session_data &sd, const char* command,
    struct map_session_data *pl_sd;
    int aid=0;
    int session_id=0;
-	if(!message || (aid = atoi(message)) == 0 || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || (aid = atoi(message)) == 0 || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
       clif_displaymessage(fd, "Please, enter a player AID (usage: @kickid2 <account id>).");
       return false;
    }
@@ -8390,7 +8388,7 @@ bool atcommand_reviveid(int fd, struct map_session_data &sd, const char* command
    int cid=0;
    int session_id=0;
    struct map_session_data *pl_sd;
-	if(!message || (cid = atoi(message)) == 0 || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || (cid = atoi(message)) == 0 || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
       clif_displaymessage(fd, "Please, enter a player CID (usage: @reviveid <char id>).");
       return false;
    }
@@ -8429,7 +8427,7 @@ bool atcommand_reviveid2(int fd, struct map_session_data &sd, const char* comman
    int aid=0;
    int session_id=0;
    struct map_session_data *pl_sd;
-	if(!message || (aid = atoi(message)) == 0 || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || (aid = atoi(message)) == 0 || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
       clif_displaymessage(fd, "Please, enter a player AID (usage: @reviveid2 <account id>).");
       return false;
    }
@@ -8468,7 +8466,7 @@ bool atcommand_killid(int fd, struct map_session_data &sd, const char* command, 
    int cid=0;
    int session_id=0;
    struct map_session_data *pl_sd;
-	if(!message || (cid = atoi(message)) == 0 || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || (cid = atoi(message)) == 0 || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
       clif_displaymessage(fd, "Please, enter a player CID (usage: @killid <char id>).");
       return false;
    }
@@ -8506,7 +8504,7 @@ bool atcommand_killid2(int fd, struct map_session_data &sd, const char* command,
    int session_id=0;
    struct map_session_data *pl_sd;
 
-	if(!message || (aid = atoi(message)) == 0 || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
+	if(!message || (aid = atoi(message)) == 0 || !*message || sscanf(message, "%128[^\n]", player_name) < 1) {
       clif_displaymessage(fd, "Please, enter a player AID (usage: @killid2 <account id>).");
       return false;
    }
@@ -8658,8 +8656,8 @@ bool atcommand_sendmail(int fd, struct map_session_data &sd, const char* command
 		return true;
 	}
 
-	if ((sscanf(message, "\"%[^\"]\" %79[^\n]", name, text) < 2) &&
-		(sscanf(message, "%23s %79[^\n]", name, text) < 2)) {
+	if ((sscanf(message, "\"%32[^\"]\" %128[^\n]", name, text) < 2) &&
+		(sscanf(message, "%32s %128[^\n]", name, text) < 2)) {
 		clif_displaymessage(sd.fd,"You must specify a recipient and a message.");
 		return true;
 	}
@@ -8840,7 +8838,7 @@ bool atcommand_adopt(int fd, struct map_session_data &sd, const char* command, c
 	
 	if (!message || !*message)
 		return false;
-	if (sscanf(message, "%[^,],%[^,],%[^\r\n]", player1, player2, player3) != 3)
+	if (sscanf(message, "%128[^,],%128[^,],%128[^\r\n]", player1, player2, player3) != 3)
 	{
 		clif_displaymessage(fd, "usage: @adopt <player1>,<player2>,<player3>.");
 		return false;
@@ -9014,7 +9012,7 @@ bool atcommand_me(int fd, struct map_session_data &sd, const char* command, cons
 		clif_displaymessage(fd, "Please, enter a message (usage: @me <message>).");
 		return false;
 	}
-	sscanf(message, "%199[^\n]", tempmes);
+	sscanf(message, "%256[^\n]", tempmes);
 	snprintf(output, 256, "** %s %s **", sd.status.name, tempmes);
     clif_disp_overhead(sd, output);
 	return true;
@@ -9069,7 +9067,7 @@ bool atcommand_fakename(int fd, struct map_session_data &sd, const char* command
 	}
 
 
-	if (sscanf(message, "%23[^\n]", name) < 1) {
+	if (sscanf(message, "%24[^\n]", name) < 1) {
 		return true;
 	}
 	

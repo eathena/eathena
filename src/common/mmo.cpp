@@ -162,7 +162,7 @@ void CGuildExp::init(const char* filename)
 		size_t c=0;
 		while(fgets(line,sizeof(line),fp) && c<sizeof(exp)/sizeof(exp[0]))
 		{
-			if( !prepare_line(line) )
+			if( !is_valid_line(line) )
 				continue;
 			exp[c]=atoi(line);
 			c++;

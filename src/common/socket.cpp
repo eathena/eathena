@@ -604,7 +604,6 @@ private:
 public:
 	int socket_config_read(const char *cfgName)
 	{
-		int i;
 		char line[1024],w1[1024],w2[1024];
 		FILE *fp;
 
@@ -613,12 +612,15 @@ public:
 			ShowError("socket config file not found: %s\n", cfgName);
 			return 1;
 		}
-		while(fgets(line,sizeof(line),fp)){
+		while(fgets(line,sizeof(line),fp))
+		{
 			if( !prepare_line(line) )
 				continue;
-			i=sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
-			if(i!=2)
+			if( sscanf(line,"%1024[^:=]%*[:=]%1024[^\r\n]",w1,w2) != 2 )
 				continue;
+			basics::itrim(w1);
+			basics::itrim(w2);
+
 			if(strcasecmp(w1,"stall_time")==0){
 				stall_time_ = atoi(w2);
 			} else if(strcasecmp(w1,"order")==0){

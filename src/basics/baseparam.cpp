@@ -45,8 +45,8 @@ bool CConfig::LoadConfig(const char* cfgName)
 		// does not check for escapes or string markers 
 		// as a appropiate config grammer needs to be defined first
 		for(kp=ip; *kp; ++kp)
-		{	// cut of trailing comments
-			if(kp[0]=='/' && kp[1]=='/')
+		{	// cut of trailing comments/newlines
+			if(kp[0]=='\r' || kp[0]=='\n' || (kp[0]=='/' && kp[1]=='/') )
 			{
 				kp[0] = 0;
 				break;
@@ -59,8 +59,7 @@ bool CConfig::LoadConfig(const char* cfgName)
 
 		memset(w2, 0, sizeof(w2));
 		// format: "name:value" or "name=value"
-		if( sscanf(ip, "%1024[^=]=%1024[^\r\n]", w1, w2) == 2 ||
-			sscanf(ip, "%1024[^:]:%1024[^\r\n]", w1, w2) == 2 )
+		if( sscanf(ip, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2 )
 		{
 			CleanControlChars(w1);
 			CleanControlChars(w2);
@@ -233,10 +232,8 @@ void parseCommandline(int argc, char **argv)
 			// just try with the concatinated commandline
 			// until something matches or the line runs out
 			//## check effort with regex
-			if( sscanf(argv[i], "%1024[^=]= %1024[^\r\n]", w1, w2) == 2 ||
-				sscanf(argv[i], "%1024[^:]: %1024[^\r\n]", w1, w2) == 2 ||
-				sscanf(str,     "%1024[^=]= %1024[^\r\n]", w1, w2) == 2 ||
-				sscanf(str,     "%1024[^:]: %1024[^\r\n]", w1, w2) == 2 )
+			if( sscanf(argv[i], "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2 ||
+				sscanf(str,     "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2 )
 			{
 				CConfig::CleanControlChars(w1);
 				CConfig::CleanControlChars(w2);

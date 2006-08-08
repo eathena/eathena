@@ -156,8 +156,10 @@ bool charcommand_config_read(const char *cfgName)
 		if( !prepare_line(line) )
 			continue;
 
-		if (sscanf(line, "%1023[^:]:%1023s", w1, w2) != 2)
+		if (sscanf(line, "%1023[^:=]%*[:=]%1023[^\r\n]", w1, w2) != 2)
 			continue;
+		basics::itrim(w1);
+		basics::itrim(w2);
 
 		if (strcasecmp(w1, "import") == 0)
 			charcommand_config_read(w2);
@@ -194,9 +196,9 @@ CharCommandType charcommand(struct CharCommandInfo &info, const char* message, u
 
 	if( *message == command_symbol )
 	{	// check first char.
-		char command[101];
+		char command[128];
 
-		sscanf(message, "%100s", command);
+		sscanf(message, "%128s", command);
 		command[sizeof(command)-1] = '\0';
 
 		size_t i;
@@ -294,7 +296,7 @@ CharCommandType is_charcommand(int fd, struct map_session_data &sd, const char* 
  */
 bool charcommand_jobchange(int fd, struct map_session_data &sd,const char *command, const char *message)
 {
-	char character[100]="";
+	char character[128]="";
 	struct map_session_data* pl_sd;
 	int job = 0, upper = -1;
 
@@ -303,9 +305,9 @@ bool charcommand_jobchange(int fd, struct map_session_data &sd,const char *comma
 		return false;
 	}
 
-	if (sscanf(message, "%d %d %99[^\n]", &job, &upper, character) < 3) { //upper指定してある
+	if (sscanf(message, "%d %d %128[^\n]", &job, &upper, character) < 3) { //upper指定してある
 		upper = -1;
-		if (sscanf(message, "%d %99[^\n]", &job, character) < 2) { //upper指定してない上に何か足りない
+		if (sscanf(message, "%d %128[^\n]", &job, character) < 2) { //upper指定してない上に何か足りない
 			clif_displaymessage(fd, "Please, enter a job and a player name (usage: #job/#jobchange <job ID> <char name>).");
 			return false;
 		}
@@ -384,12 +386,12 @@ bool charcommand_jobchange(int fd, struct map_session_data &sd,const char *comma
  */
 bool charcommand_petrename(int fd, struct map_session_data &sd,const char *command, const char *message)
 {
-	char character[100];
+	char character[128];
 	struct map_session_data *pl_sd;
 
 	memset(character, '\0', sizeof(character));
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", character) < 1) {
+	if (!message || !*message || sscanf(message, "%128[^\n]", character) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: #petrename <char name>).");
 		return false;
 	}
@@ -426,11 +428,11 @@ bool charcommand_petfriendly(int fd, struct map_session_data &sd,const char *com
 {
 	int friendly = 0;
 	int t = 0;
-	char character[100];
+	char character[128];
 	struct map_session_data *pl_sd;
 
 	memset(character, '\0', sizeof(character));
-	if (!message || !*message || sscanf(message,"%d %s",&friendly,character) < 2) {
+	if (!message || !*message || sscanf(message,"%d %128s",&friendly,character) < 2) {
 		clif_displaymessage(fd, "Please, enter a valid value (usage: "
 			"#petfriendly <0-1000> <player>).");
 		return false;
@@ -490,7 +492,7 @@ bool charcommand_stats(int fd, struct map_session_data &sd,const char *command, 
 	memset(job_jobname, '\0', sizeof(job_jobname));
 	memset(output, '\0', sizeof(output));
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", character) < 1) {
+	if (!message || !*message || sscanf(message, "%128[^\n]", character) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: #stats <char name>).");
 		return false;
 	}
@@ -536,14 +538,14 @@ bool charcommand_stats(int fd, struct map_session_data &sd,const char *command, 
  */
 bool charcommand_reset(int fd, struct map_session_data &sd,const char *command, const char *message)
 {
-	char character[100];
-	char output[200];
+	char character[128];
+	char output[256];
 	struct map_session_data *pl_sd;
 
 	memset(character, '\0', sizeof(character));
 	memset(output, '\0', sizeof(output));
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", character) < 1) {
+	if (!message || !*message || sscanf(message, "%128[^\n]", character) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: #reset <charname>).");
 		return false;
 	}
@@ -572,14 +574,14 @@ bool charcommand_reset(int fd, struct map_session_data &sd,const char *command, 
  */
 bool charcommand_option(int fd, struct map_session_data &sd,const char *command, const char *message)
 {
-	char character[100];
+	char character[128];
 	int opt1 = 0, opt2 = 0, opt3 = 0;
 	struct map_session_data* pl_sd;
 
 	memset(character, '\0', sizeof(character));
 
 	if (!message || !*message ||
-		sscanf(message, "%d %d %d %99[^\n]", &opt1, &opt2, &opt3, character) < 4 ||
+		sscanf(message, "%d %d %d %128[^\n]", &opt1, &opt2, &opt3, character) < 4 ||
 		opt1 < 0 || opt2 < 0 || opt3 < 0) {
 		clif_displaymessage(fd, "Please, enter valid options and a player name (usage: #option <param1> <param2> <param3> <charname>).");
 		return false;
@@ -654,7 +656,7 @@ bool charcommand_save(int fd, struct map_session_data &sd,const char *command, c
 	memset(mapname, '\0', sizeof(mapname));
 	memset(character, '\0', sizeof(character));
 
-	if (!message || !*message || sscanf(message, "%99s %d %d %99[^\n]", mapname, &x, &y, character) < 4 || x < 0 || y < 0) {
+	if (!message || !*message || sscanf(message, "%128s %d %d %128[^\n]", mapname, &x, &y, character) < 4 || x < 0 || y < 0) {
 		clif_displaymessage(fd, "Please, enter a valid save point and a player name (usage: #save <map> <x> <y> <charname>).");
 		return false;
 	}
@@ -738,12 +740,12 @@ bool charcommand_stats_all(int fd, struct map_session_data &sd,const char *comma
 bool charcommand_spiritball(int fd, struct map_session_data &sd,const char *command, const char *message)
 {
 	struct map_session_data *pl_sd;
-	char character[100];
+	char character[128];
 	int spirit = 0;
 
 	memset(character, '\0', sizeof(character));
 
-	if(!message || !*message || sscanf(message, "%d %99[^\n]", &spirit, character) < 2 || spirit < 0 || spirit > 1000) {
+	if(!message || !*message || sscanf(message, "%d %128[^\n]", &spirit, character) < 2 || spirit < 0 || spirit > 1000) {
 		clif_displaymessage(fd, "Usage: @spiritball <number: 0-1000>) <CHARACTER_NAME>.");
 		return false;
 	}
@@ -782,14 +784,14 @@ bool charcommand_itemlist(int fd, struct map_session_data &sd,const char *comman
 	struct map_session_data *pl_sd;
 	struct item_data *item_data, *item_temp;
 	size_t i, j, equip, count, counter, counter2;
-	char character[100], output[200], equipstr[100], outputtmp[200];
+	char character[128], output[256], equipstr[128], outputtmp[256];
 
 	memset(character, '\0', sizeof(character));
 	memset(output, '\0', sizeof(output));
 	memset(equipstr, '\0', sizeof(equipstr));
 	memset(outputtmp, '\0', sizeof(outputtmp));
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", character) < 1) {
+	if (!message || !*message || sscanf(message, "%128[^\n]", character) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: #itemlist <char name>).");
 		return false;
 	}
@@ -892,10 +894,10 @@ bool charcommand_itemlist(int fd, struct map_session_data &sd,const char *comman
 bool charcommand_effect(int fd, struct map_session_data &sd,const char *command, const char *message)
 {
 	struct map_session_data *pl_sd = NULL;
-	char target[255];
+	char target[256];
 	int type = 0;
 
-	if (!message || !*message || sscanf(message, "%d %s", &type, target) != 2) {
+	if (!message || !*message || sscanf(message, "%d %256s", &type, target) != 2) {
 		clif_displaymessage(fd, "usage: #effect <type+> <target>.");
 		return false;
 	}
@@ -925,7 +927,7 @@ bool charcommand_storagelist(int fd, struct map_session_data &sd,const char *com
 	memset(output, '\0', sizeof(output));
 	memset(outputtmp, '\0', sizeof(outputtmp));
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", character) < 1) {
+	if (!message || !*message || sscanf(message, "%128[^\n]", character) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: #itemlist <char name>).");
 		return false;
 	}
@@ -1018,8 +1020,8 @@ charcommand_giveitem_sub(struct map_session_data &sd,struct item_data &item_data
  */
 bool charcommand_item(int fd, struct map_session_data &sd,const char *command, const char *message)
 {
-	char item_name[100];
-	char character[100];
+	char item_name[128];
+	char character[128];
 	struct map_session_data *pl_sd;
 	struct item item_tmp;
 	struct item_data *item_data;
@@ -1030,7 +1032,7 @@ bool charcommand_item(int fd, struct map_session_data &sd,const char *command, c
 
 	memset(item_name, '\0', sizeof(item_name));
 
-	if (!message || !*message || sscanf(message, "%99s %d %99[^\n]", item_name, &number, character) < 3) {
+	if (!message || !*message || sscanf(message, "%128s %d %128[^\n]", item_name, &number, character) < 3) {
 		clif_displaymessage(fd, "Please, enter an item name/id (usage: #item <item name or ID> <quantity> <char name>).");
 		return false;
 	}
@@ -1115,7 +1117,7 @@ bool charcommand_warp(int fd, struct map_session_data &sd,const char *command, c
 	memset(mapname, '\0', sizeof(mapname));
 	memset(character, '\0', sizeof(character));
 
-	if (!message || !*message || sscanf(message, "%99s %d %d %99[^\n]", mapname, &x, &y, character) < 4) {
+	if (!message || !*message || sscanf(message, "%128s %d %d %128[^\n]", mapname, &x, &y, character) < 4) {
 		clif_displaymessage(fd, "Usage: #warp/#rura/#rura+ <mapname> <x> <y> <char name>");
 		return false;
 	}
@@ -1181,7 +1183,7 @@ bool charcommand_zeny(int fd, struct map_session_data &sd,const char *command, c
 	long zeny;
 	unsigned long new_zeny;
 
-	if (!message || !*message || sscanf(message, "%ld %99[^\n]", &zeny, character) < 2 || zeny == 0) {
+	if (!message || !*message || sscanf(message, "%ld %128[^\n]", &zeny, character) < 2 || zeny == 0) {
 		clif_displaymessage(fd, "Please, enter a number and a player name (usage: #zeny <zeny> <name>).");
 		return false;
 	}
@@ -1265,7 +1267,7 @@ bool charcommand_fakename(int fd, struct map_session_data &sd,const char *comman
 		return 0;
 	}
 	
-	if (sscanf(message, "%23s %23[^\n]", name, char_name) < 1) {
+	if (sscanf(message, "%64s %64[^\n]", name, char_name) < 1) {
 		return 0;
 	}
 	
@@ -1315,7 +1317,7 @@ bool charcommand_baselevel(int fd, struct map_session_data &sd,const char *comma
 	char player[64];
 	int level = 0, i;
 
-	if (!message || !*message || sscanf(message, "%d %23[^\n]", &level, player) < 2 || level == 0) {
+	if (!message || !*message || sscanf(message, "%d %64[^\n]", &level, player) < 2 || level == 0) {
 		clif_displaymessage(fd, "Please, enter a level adjustement and a player name (usage: #baselvl <#> <nickname>).");
 		return false;
 	}
@@ -1388,7 +1390,7 @@ bool charcommand_joblevel(int fd, struct map_session_data &sd,const char *comman
 	//“]?¶,a^―{Z(q,I`?e^?‡,I`OE^(3),I`?E<?,?Z(Z?o,?,e'
 	struct pc_base_job pl_s_class;
 
-	if (!message || !*message || sscanf(message, "%d %23[^\n]", &level, player) < 2 || level == 0) {
+	if (!message || !*message || sscanf(message, "%d %64[^\n]", &level, player) < 2 || level == 0) {
 		clif_displaymessage(fd, "Please, enter a level adjustement and a player name (usage: #joblvl <#> <nickname>).");
 		return false;
 	}
@@ -1466,7 +1468,7 @@ bool charcommand_questskill(int fd, struct map_session_data &sd,const char *comm
 	char player[64];
 	int skill_id = 0;
 
-	if (!message || !*message || sscanf(message, "%d %23[^\n]", &skill_id, player) < 2 || skill_id < 0) {
+	if (!message || !*message || sscanf(message, "%d %64[^\n]", &skill_id, player) < 2 || skill_id < 0) {
 		clif_displaymessage(fd, "Please, enter a quest skill number and a player name (usage: #questskill <#:0+> <nickname>).");
 		return false;
 	}
@@ -1508,7 +1510,7 @@ bool charcommand_lostskill(int fd, struct map_session_data &sd,const char *comma
 	char player[64];
 	int skill_id = 0;
 
-	if (!message || !*message || sscanf(message, "%d %23[^\n]", &skill_id, player) < 2 || skill_id < 0) {
+	if (!message || !*message || sscanf(message, "%d %64[^\n]", &skill_id, player) < 2 || skill_id < 0) {
 		clif_displaymessage(fd, "Please, enter a quest skill number and a player name (usage: @charlostskill <#:0+> <char_name>).");
 		return false;
 	}
@@ -1551,7 +1553,7 @@ bool charcommand_skreset(int fd, struct map_session_data &sd,const char *command
 	char player[64];
 	char output[128];
 
-	if (!message || !*message || sscanf(message, "%23[^\n]", player) < 1) {
+	if (!message || !*message || sscanf(message, "%64[^\n]", player) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charskreset <charname>).");
 		return false;
 	}
@@ -1583,7 +1585,7 @@ bool charcommand_streset(int fd, struct map_session_data &sd,const char *command
 	char player[64];
 	char output[128];
 
-	if (!message || !*message || sscanf(message, "%23[^\n]", player) < 1) {
+	if (!message || !*message || sscanf(message, "%64[^\n]", player) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charstreset <charname>).");
 		return false;
 	}
@@ -1616,7 +1618,7 @@ bool charcommand_model(int fd, struct map_session_data &sd,const char *command, 
 	char player[64];
 	char output[128];
 
-	if (!message || !*message || sscanf(message, "%ld %ld %ld %23[^\n]", &hair_style, &hair_color, &cloth_color, player) < 4 || hair_style < 0 || hair_color < 0 || cloth_color < 0) {
+	if (!message || !*message || sscanf(message, "%ld %ld %ld %64[^\n]", &hair_style, &hair_color, &cloth_color, player) < 4 || hair_style < 0 || hair_color < 0 || cloth_color < 0) {
 		snprintf(output, sizeof(output), "Please, enter a valid model and a player name (usage: @charmodel <hair ID: %d-%d> <hair color: %d-%d> <clothes color: %d-%d> <name>).",
 				MIN_HAIR_STYLE, MAX_HAIR_STYLE, MIN_HAIR_COLOR, MAX_HAIR_COLOR, MIN_CLOTH_COLOR, MAX_CLOTH_COLOR);
 		clif_displaymessage(fd, output);
@@ -1662,7 +1664,7 @@ bool charcommand_skpoint(int fd, struct map_session_data &sd,const char *command
 	int new_skill_point;
 	int point = 0;
 
-	if (!message || !*message || sscanf(message, "%d %23[^\n]", &point, player) < 2 || point == 0) {
+	if (!message || !*message || sscanf(message, "%d %64[^\n]", &point, player) < 2 || point == 0) {
 		clif_displaymessage(fd, "Please, enter a number and a player name (usage: @charskpoint <amount> <name>).");
 		return false;
 	}
@@ -1703,7 +1705,7 @@ bool charcommand_stpoint(int fd, struct map_session_data &sd,const char *command
 	int new_status_point;
 	int point = 0;
 
-	if (!message || !*message || sscanf(message, "%d %23[^\n]", &point, player) < 2 || point == 0) {
+	if (!message || !*message || sscanf(message, "%d %64[^\n]", &point, player) < 2 || point == 0) {
 		clif_displaymessage(fd, "Please, enter a number and a player name (usage: @charstpoint <amount> <name>).");
 		return false;
 	}
@@ -1741,7 +1743,7 @@ bool charcommand_changesex(int fd, struct map_session_data &sd,const char *comma
 {
 	char player[64];
 
-	if (!message || !*message || sscanf(message, "%23[^\n]", player) < 1) {
+	if (!message || !*message || sscanf(message, "%64[^\n]", player) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charchangesex <name>).");
 		return false;
 	}

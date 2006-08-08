@@ -13952,7 +13952,7 @@ int packetdb_readdb(void)
 	int cmd;
 	size_t j, packet_ver;
 	int k;
-	char *str[64],*p,*str2[64],*p2,w1[64],w2[64];
+	char *str[64],*p,*str2[64],*p2,w1[256],w2[256];
 
 	static const struct {
 		int (*func)(int, struct map_session_data &);
@@ -14128,8 +14128,11 @@ int packetdb_readdb(void)
 		if( !prepare_line(line) )
 			continue;
 
-		if (sscanf(line,"%[^:]: %[^\r\n]",w1,w2) == 2)
+		if (sscanf(line,"%256[^:=]%*[:=]%256[^\r\n]",w1,w2) == 2)
 		{
+			basics::itrim(w1);
+			basics::itrim(w2);
+
 			if(strcasecmp(w1,"packet_ver")==0)
 			{	// start of a new version
 				size_t i, prev_ver = packet_ver;

@@ -2658,12 +2658,12 @@ int parse_char(int fd)
 // Console Command Parser [Wizputer]
 int parse_console(const char *buf)
 {
-    char type[64], command[64];
+    char type[64]="", command[64]="";
 
     ShowMessage("Console: %s\n",buf);
 
-    if ( sscanf(buf, "%[^:]:%[^\n]", type , command ) < 2 )
-        sscanf(buf,"%[^\n]",type);
+    if( sscanf(buf, "%64[^:]:%64[^\n]", type , command ) < 2 )
+        sscanf(buf,"%64[^\n]",type);
 
     ShowMessage("Type of command: %s || Command: %s \n",type,command);
 
@@ -2852,11 +2852,12 @@ int char_config_read(const char *cfgName)
 			continue;
 
 		line[sizeof(line)-1] = '\0';
-		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) != 2)
+		if (sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) != 2)
 			continue;
-
 		remove_control_chars(w1);
 		remove_control_chars(w2);
+		basics::itrim(w1);
+		basics::itrim(w2);
 		if(strcasecmp(w1, "userid") == 0) {
 			memcpy(userid, w2, 24);
 		} else if(strcasecmp(w1, "passwd") == 0) {
