@@ -4199,7 +4199,7 @@ if(src!=bl && status_isdead(bl) && skillid != ALL_RESURRECTION && skillid != PR_
 		int sclist[4] = {0,0,0,0};
 
 		if (skillid == RG_STRIPWEAPON || skillid == ST_FULLSTRIP || skillid == GS_DISARM)
-		   equip |= EQP_WEAPON;
+		   equip |= EQP_HAND_R;
 		if (skillid == RG_STRIPSHIELD || skillid == ST_FULLSTRIP)
 		   equip |= EQP_SHIELD;
 		if (skillid == RG_STRIPARMOR || skillid == ST_FULLSTRIP)
@@ -4235,7 +4235,7 @@ if(src!=bl && status_isdead(bl) && skillid != ALL_RESURRECTION && skillid != PR_
 					}
 					//Continue to weapon
 				case EQI_HAND_R:
-					if (equip &EQP_WEAPON &&
+					if (equip &EQP_HAND_R &&
 						!(dstsd->unstripable_equip&EQP_WEAPON) &&
 				  		!(tsc && tsc->data[SC_CP_WEAPON].timer != -1)
 					) {
