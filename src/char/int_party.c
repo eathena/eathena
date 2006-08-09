@@ -529,8 +529,10 @@ int mapif_parse_PartyInfo(int fd, int party_id) {
 	p = idb_get(party_db, party_id);
 	if (p != NULL)
 		mapif_party_info(fd, &p->party);
-	else
+	else {
 		mapif_party_noinfo(fd, party_id);
+		char_clearparty(party_id);
+	}
 
 	return 0;
 }
@@ -552,12 +554,13 @@ int mapif_parse_PartyAddMember(int fd, int party_id, struct party_member *member
 			p->party.member[i].leader = 0;
 			if (p->party.member[i].online) p->party.count++;
 			p->size++;
-			if (member->lv < p->min_lv || member->lv > p->max_lv || p->family)
-			{
+			if (p->size == 3) //Check family state.
+				int_party_calc_state(p);
+			else //Check even share range.
+			if (member->lv < p->min_lv || member->lv > p->max_lv || p->family) {
 				if (p->family) p->family = 0; //Family state broken.
 				int_party_check_lv(p);
-			} else if (p->size == 3) //Check family state.
-				int_party_calc_state(p);
+			}
 			mapif_party_memberadded(fd, party_id, member->account_id, member->char_id, 0);
 			mapif_party_info(-1, &p->party);
 			return 0;

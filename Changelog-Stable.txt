@@ -5,6 +5,14 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/08
+	* Fixed the char-server not invoking the party_calc_state function when the
+	  third party-member is added to a party, hence failing to check for families
+	  and disabling even share from them unless all three relog first (state is
+	  correctly calculated when party is first loaded). [Skotlex]
+	* Merged char_clearparty (char-TXT) which clears out the party-id of all
+	  characters when their related party isn't found (minimzes error reporting
+	  if you decide to remove the party file, like when the format changes)
+	  [Skotlex]
 	* Added back missing state set to prevent Ankle-Snare from being retrieved
 	  after the target dies. [Skotlex]
 	* Merged setting all character offline when the char-server-SQL starts.
