@@ -173,7 +173,7 @@ enum {
 	BL_PC = 0x001,
 	BL_MOB = 0x002,
 	BL_PET = 0x004,
-	BL_HOMUNCULUS = 0x008,	//[blackhole89]
+	BL_HOM = 0x008,	//[blackhole89]
 	BL_ITEM = 0x010,
 	BL_SKILL = 0x020,
 	BL_NPC = 0x040,
@@ -181,7 +181,7 @@ enum {
 };
 
 //For common mapforeach calls. Since pets cannot be affected, they aren't included here yet.
-#define BL_CHAR (BL_PC|BL_MOB|BL_HOMUNCULUS)
+#define BL_CHAR (BL_PC|BL_MOB)
 #define BL_ALL 0xfff
 
 enum { WARP, SHOP, SCRIPT, MONS };
@@ -627,7 +627,7 @@ struct map_session_data {
 	int magic_addsize[3];
 	int critaddrace[RC_MAX];
 	int expaddrace[RC_MAX];
-	int itemhealrate[MAX_ITEMGROUP];
+	int itemgrouphealrate[MAX_ITEMGROUP];
 	short sp_gain_race[RC_MAX];
 	// zeroed arrays end here.
 	// zeroed structures start here
@@ -649,6 +649,10 @@ struct map_session_data {
 		short id, group;
 		int race, rate;
 	} add_drop[MAX_PC_BONUS];
+	struct {
+		int nameid;
+		int rate;
+	} itemhealrate[MAX_PC_BONUS];
 	// zeroed structures end here
 	// zeroed vars start here.
 	int arrow_atk,arrow_ele,arrow_cri,arrow_hit;

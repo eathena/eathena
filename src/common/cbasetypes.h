@@ -56,14 +56,22 @@
 //////////////////////////////////////////////////////////////////////////
 // useful typedefs
 //////////////////////////////////////////////////////////////////////////
+#define HAVE_UCHAR
 typedef unsigned char	uchar;
 typedef   signed char	schar;
 typedef   signed short	sshort;
-typedef unsigned short	ushort;
-typedef   signed int	sint;	// don't use (only for ie. scanf)
-typedef unsigned int	uint;	// don't use
-typedef   signed long	slong;	// don't use (only for ie. file-io)
-typedef unsigned long	ulong;	// don't use
+
+#if !defined(__FREEBSD__) && !defined(_SYS_TYPES_H)
+	typedef unsigned short  ushort;
+#endif
+typedef   signed int    sint;   // don't use (only for ie. scanf)
+#if !defined(__FREEBSD__) && !defined(_SYS_TYPES_H)
+	typedef unsigned int    uint;   // don't use
+#endif
+typedef   signed long   slong;  // don't use (only for ie. file-io)
+#ifndef _SYS_TYPES_H
+	typedef unsigned long   ulong;  // don't use
+#endif
 
 #ifndef WIN32
 typedef char*           pchar;
@@ -87,6 +95,9 @@ typedef int*			pint;
 //////////////////////////////
 #ifdef WIN32
 //////////////////////////////
+#define SIZEOF_LONG 4
+#define SIZEOF_INT 4
+#define HAVE_INT_8_16_32
 typedef          __int8		int8;
 typedef          __int16	int16;
 typedef          __int32	int32;

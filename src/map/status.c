@@ -1509,7 +1509,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		+ sizeof(sd->magic_addsize)
 		+ sizeof(sd->critaddrace)
 		+ sizeof(sd->expaddrace)
-		+ sizeof(sd->itemhealrate)
+		+ sizeof(sd->itemgrouphealrate)
 		+ sizeof(sd->sp_gain_race)
 		);
 
@@ -1548,6 +1548,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		+ sizeof(sd->add_dmg)
 		+ sizeof(sd->add_mdmg)
 		+ sizeof(sd->add_drop)
+		+ sizeof(sd->itemhealrate)
 	);
 	
 	// vars zeroing. ints, shorts, chars. in that order.

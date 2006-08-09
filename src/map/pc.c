@@ -1444,7 +1444,7 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		break;
 	case SP_ASPD:	//Raw increase
 		if(sd->state.lr_flag != 2)
-			status->adelay -= val*10;
+			status->amotion -= val*10;
 		break;
 	case SP_ASPD_RATE:	//Non stackable increase
 		if(sd->state.lr_flag != 2 && status->aspd_rate > 1000-val*10)
@@ -2156,10 +2156,18 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 	case SP_ADD_ITEM_HEAL_RATE:
 		if(sd->state.lr_flag == 2)
 			break;
-		if (type2 < MAX_ITEMGROUP)
-			sd->itemhealrate[type2] += val;
-		else
-			ShowWarning("pc_bonus2: AddItemHealRate: Group %d is beyond limit (%d).\n", type2, MAX_ITEMGROUP);
+		if (type2 < MAX_ITEMGROUP) {	//Group bonus
+			sd->itemgrouphealrate[type2] += val;
+			break;
+		}
+		//Standard item bonus.
+		for(i=0; i < MAX_PC_BONUS && sd->itemhealrate[i].nameid && sd->itemhealrate[i].nameid != type2; i++);
+		if(i == MAX_PC_BONUS) {
+			ShowWarning("pc_bonus2: Reached max (%d) number of item heal bonuses per character!\n", MAX_PC_BONUS);
+			break;
+		}
+		sd->itemhealrate[i].nameid = type2;
+		sd->itemhealrate[i].rate += val;
 		break;
 	case SP_EXP_ADDRACE:
 		if(sd->state.lr_flag != 2)
@@ -5276,7 +5284,7 @@ void pc_heal(struct map_session_data *sd,unsigned int hp,unsigned int sp, int ty
  */
 int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 {
-	int bonus, type;
+	int i, bonus;
 
 	if(hp) {
 		bonus = 100 + (sd->battle_status.vit<<1)
@@ -5284,8 +5292,16 @@ int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5;
 		// A potion produced by an Alchemist in the Fame Top 10 gets +50% effect [DracoRPG]
 		bonus += (potion_flag==2)?50:(potion_flag==3?100:0);
-		if ((type = itemdb_group(itemid)) > 0 && type < MAX_ITEMGROUP && sd->itemhealrate[type])
-			bonus += bonus * sd->itemhealrate[type] / 100;
+		//Item Group bonuses
+		bonus += bonus*itemdb_group_bonus(sd, itemid)/100;
+		//Individual item bonuses.
+		for(i = 0; i < MAX_PC_BONUS && sd->itemhealrate[i].nameid; i++)
+		{
+			if (sd->itemhealrate[i].nameid == itemid) {
+				bonus += bonus*sd->itemhealrate[i].rate/100;
+				break;
+			}
+		}
 		if(bonus!=100)
 			hp = hp * bonus / 100;
 	}
@@ -6182,7 +6198,7 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 
 	sd->status.inventory[n].equip=pos;
 
-	if(sd->status.inventory[n].equip & EQP_HAND_R) {
+	if(pos & EQP_HAND_R) {
 		if(sd->inventory_data[n])
 			sd->weapontype1 = sd->inventory_data[n]->look;
 		else
@@ -6190,16 +6206,17 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 		pc_calcweapontype(sd);
 		clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
 	}
-	if(sd->status.inventory[n].equip & EQP_HAND_L) {
+	if(pos & EQP_HAND_L) {
 		if(sd->inventory_data[n]) {
-			if(sd->inventory_data[n]->type == 4) {
+			if(sd->inventory_data[n]->type == IT_WEAPON) {
 				sd->status.shield = 0;
 				if(sd->status.inventory[n].equip == EQP_HAND_L)
 					sd->weapontype2 = sd->inventory_data[n]->look;
 				else
 					sd->weapontype2 = 0;
 			}
-			else if(sd->inventory_data[n]->type == 5) {
+			else
+			if(sd->inventory_data[n]->type == IT_ARMOR) {
 				sd->status.shield = sd->inventory_data[n]->look;
 				sd->weapontype2 = 0;
 			}
@@ -6209,28 +6226,28 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 		pc_calcweapontype(sd);
 		clif_changelook(&sd->bl,LOOK_SHIELD,sd->status.shield);
 	}
-	if(sd->status.inventory[n].equip & EQP_HEAD_LOW) {
+	if(pos & EQP_HEAD_LOW) {
 		if(sd->inventory_data[n])
 			sd->status.head_bottom = sd->inventory_data[n]->look;
 		else
 			sd->status.head_bottom = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_BOTTOM,sd->status.head_bottom);
 	}
-	if(sd->status.inventory[n].equip & EQP_HEAD_TOP) {
+	if(pos & EQP_HEAD_TOP) {
 		if(sd->inventory_data[n])
 			sd->status.head_top = sd->inventory_data[n]->look;
 		else
 			sd->status.head_top = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
 	}
-	if(sd->status.inventory[n].equip & EQP_HEAD_MID) {
+	if(pos & EQP_HEAD_MID) {
 		if(sd->inventory_data[n])
 			sd->status.head_mid = sd->inventory_data[n]->look;
 		else
 			sd->status.head_mid = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
 	}
-	if(sd->status.inventory[n].equip & EQP_SHOES)
+	if(pos & EQP_SHOES)
 		clif_changelook(&sd->bl,LOOK_SHOES,0);
 
 	pc_checkallowskill(sd); //Check if status changes should be halted.

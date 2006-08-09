@@ -4,6 +4,13 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/08/09
+	* Merged cbasetypes.c, may fix those benign redefined warnings and what
+	  not. [Skotlex]
+	* Merged itemdb_group_bonus function, itemgrouphealrate/itemhealrate
+	  structures. Group-healing bonuses should work correctly now, as well as
+	  enabling the heal-bonuses to be specified on a per-item basis without a
+	  need for a group. [Skotlex]
 2006/08/08
 	* Fixed the char-server not invoking the party_calc_state function when the
 	  third party-member is added to a party, hence failing to check for families
