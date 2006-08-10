@@ -1171,7 +1171,7 @@ int npc_selllist(struct map_session_data *sd,int n,unsigned short *item_list)
 		}
 
 		if(log_config.pick) //Logs items, Sold to NPC (S)hop [Lupus]
-			log_pick(sd, "S", 0, nameid, qty, &sd->status.inventory[idx]);
+			log_pick(sd, "S", 0, nameid, -qty, &sd->status.inventory[idx]);
 
 		itemamount+=qty;
 		pc_delitem(sd,idx,qty,0);

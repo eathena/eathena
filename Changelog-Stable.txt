@@ -10,6 +10,8 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 	* Should have fixed the login-sql crash when passed user-name's length is
 	  beyond the limit. [Skotlex]
 2006/08/09
+	* Fixed sign of picklog "S"ell to NPC. It should be "-"
+	  (because u lose items). [Lupus]
 	* Merged cbasetypes.c, may fix those benign redefined warnings and what
 	  not. [Skotlex]
 	* Merged itemdb_group_bonus function, itemgrouphealrate/itemhealrate
