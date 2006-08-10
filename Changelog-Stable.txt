@@ -5,6 +5,9 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/10
+	* Hopefully fixed family-party-even-share not breaking when a member logs
+	  out. [Skotlex]
+	* Corrected Advanced Jobs HP bonus from 30% -> 25% [Skotlex]
 	* Merged the trade cleanups (being unable to trade-request if either one is
 	  unable to act, some cleaning on the trade accept functions) [Skotlex]
 	* Should have fixed the login-sql crash when passed user-name's length is
