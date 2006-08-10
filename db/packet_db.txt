@@ -748,7 +748,7 @@ packet_ver: 18
 0x25d,-1
 0x25e,4
 
-//2006-04-04aSakexe by blackhole89
+//2006-04-03aSakexe by blackhole89
 packet_ver: 19
 0x009b,37,wanttoconnection,9:21:28:32:36
 0x00a2,11,solvecharname,7
@@ -764,6 +764,46 @@ packet_ver: 19
 0x0094,23,movetokafra,5:19
 0x00f7,26,movefromkafra,11:22
 0x0190,18,actionrequest,7:17
+
+//2006-06-07aSakexe
+0x025F,6
+0x0260,6
+0x0261,11
+0x0262,11
+0x0263,11
+0x0264,14
+0x0265,20
+0x0266,30
+0x0267,4
+0x0268,4
+0x0269,4
+0x026A,4
+0x026B,4
+0x026C,4
+0x026D,4
+0x026F,2
+0x0270,2
+0x0271,40
+0x0272,44
+0x0273,30
+0x0274,8
+0x0277,84
+0x0278,2
+0x0279,2
+0x027A,-1
+
+//2006-07-03aSakexe
+0x027D,62
+0x027B,14
+0x027C,60
+
+//2006-07-24aSakexe
+//0x025B,-1
+0x027E,-1
+
+//2006-08-07aSakexe
+0x025B,6
+0x027F,4
 
 // Add new packets here
 packet_ver: 20
