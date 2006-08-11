@@ -1,5 +1,7 @@
 Date	Added
 
+2006/08/11
+	* Merged maps_athena.conf from TRUNK [Lupus]
 2006/08/08
 	* Removed setting enemy_critical_rate, added settings enable_critical
 	  (defaults to players only), mob_critical_rate and critical_rate

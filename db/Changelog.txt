@@ -1,4 +1,5 @@
 08/10
+	* Merged map_index.txt from TRUNK [Lupus]
 	* Updated the Packet DB up to the 2006-08-07aSakexe client. [Zephiris]
 08/08
 	* Merged item_db and mob_db [Playtester]
