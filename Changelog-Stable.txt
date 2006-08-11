@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/10
+	* Fixed the item group bonus not working. [Skotlex]
 	* Hopefully fixed family-party-even-share not breaking when a member logs
 	  out. [Skotlex]
 	* Corrected Advanced Jobs HP bonus from 30% -> 25% [Skotlex]
