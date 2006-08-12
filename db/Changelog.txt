@@ -1,3 +1,19 @@
+08/12
+	* Merged item_db, mob_db, produce_db, skill_cast_db, skill_nocast_db and skill_require_db [Playtester]
+	- changed the code item names to official aegis db names
+	- reduced weight of Thanatos Tower quest item to 0
+	- Aloevera and Anodyne now cast on self
+	- fixed view id of some new headgears
+	- added two missing braces to Yellow Novus card script
+	- fixed Green Ferus card combo
+	- removed bonus range of some bows (there is a range column for that)
+	- reverted sidewinder card, the chance is handled in the code
+	- raised drop rate of Six Shooter[2] to 0.03%
+	- fixed Royal Tea requiring Sweet Sauce rather than Yellow Spice
+	- removed cast time of Flip Coin
+	- Shadow Jump can't be used in jail anymore
+	- Rapid Shower should now consume 5 bullets
+	(note: I didn't merge the skills I haven't fixed myself)
 08/10
 	* Merged map_index.txt from TRUNK [Lupus]
 	* Updated the Packet DB up to the 2006-08-07aSakexe client. [Zephiris]
