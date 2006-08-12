@@ -33,6 +33,9 @@ Playtester
 
 Date		Added
 ======
+08/12
+	* Added Violin[3] to the Comodo Weapon seller [Playtester]
+	* Optimized a warp near Gunslinger weapon shop [Playtester]
 08/10
 	* Some Einbroch respawn time fixes [Playtester]
 08/09
