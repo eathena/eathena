@@ -33,6 +33,8 @@ Playtester
 
 Date		Added
 ======
+08/13
+	* The Sign Quest: moved #aldesignwarp to fix enless warp [Lupus]
 08/12
 	* Added Violin[3] to the Comodo Weapon seller [Playtester]
 	* Optimized a warp near Gunslinger weapon shop [Playtester]
