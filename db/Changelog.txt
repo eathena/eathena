@@ -1,3 +1,11 @@
+08/14
+	* Merged item_db, job_db1, skill_cast_db, skill_db and skill_require_db [Playtester]
+	- fixed Destroyer giving Hit-10 rather than breaking the armor
+	- added official ASPD values for Gunslingers according to Ragnarok Monthly
+	- technically halved aftercast delay of Envenom
+	- some Full Buster fix(duration2=10000ms and required bullets = even number)
+	- fixed elements of Gunslinger skills
+	- hopefully fixed Fling not working
 08/12
 	* Merged item_db, mob_db, produce_db, skill_cast_db, skill_nocast_db and skill_require_db [Playtester]
 	- changed the code item names to official aegis db names
