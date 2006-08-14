@@ -259,8 +259,7 @@ extern struct Battle_Config {
 	unsigned short making_arrow_name_input;
 	unsigned short holywater_name_input;
 	unsigned short cdp_name_input;
-	unsigned short display_delay_skill_fail;
-	unsigned short display_snatcher_skill_fail;
+	unsigned short display_skill_fail;
 	unsigned short chat_warpportal;
 	unsigned short mob_warp;
 	unsigned short dead_branch_active;
@@ -269,7 +268,6 @@ extern struct Battle_Config {
 	unsigned short party_share_type;
 	unsigned short party_hp_mode;
 	unsigned short party_show_share_picker;
-	unsigned short mob_ghostring_fix;
 	unsigned short attack_attr_none;
 	int item_rate_mvp, item_rate_common, item_rate_common_boss, item_rate_card, item_rate_card_boss,	// added support for MVP drops [Reddozen]
 		item_rate_equip, item_rate_equip_boss, item_rate_heal, item_rate_heal_boss, item_rate_use,

@@ -1000,8 +1000,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				(skill*15 + 55) + pc_checkskill(sd,TF_STEAL)*10 > rand()%1000) {
 				if(pc_steal_item(sd,bl))
 					clif_skill_nodamage(src,bl,TF_STEAL,skill,1);
-				else if (battle_config.display_snatcher_skill_fail)
-					clif_skill_fail(sd,skillid,0,0);
+				else
+					clif_skill_fail(sd,RG_SNATCHER,0,0);
 			}
 			// Chance to trigger Taekwon kicks [Dralnu]
 			if(sd->sc.count && sd->sc.data[SC_COMBO].timer == -1) {
@@ -2650,13 +2650,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 				break;
 			}
 			clif_slide(src,src->x,src->y);
-			if (skillid != MO_EXTREMITYFIST || battle_check_target(src, bl, BCT_ENEMY) > 0) //Check must be done here because EF should be broken this way.. [Skotlex]
-				skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-			else if (sd)
-				clif_skill_fail(sd,skillid,0,0);
-		}
-		else //Assume minimum distance of 1 for Charge.
-			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,skillid == KN_CHARGEATK?1:flag);
+		} else //Assume minimum distance of 1 for Charge.
+			flag = 1;
+		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 
 	//Splash attack skills.
@@ -2750,14 +2746,14 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		if(flag&1){
 			if (bl->id==skill_area_temp[1])
 				break;
-			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0x0500) && !status_get_mexp(bl))
+			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0x0500))
 				skill_blown(src,bl,skill_area_temp[2]);
 		} else {
 			int x=bl->x,y=bl->y,i,dir;
 			dir = map_calc_dir(bl,src->x,src->y);
 			skill_area_temp[1] = bl->id;
 			skill_area_temp[2] = skill_get_blewcount(skillid,skilllv)|dir<<20;
-			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0) && !status_get_mexp(bl))
+			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0))
 				skill_blown(src,bl,skill_area_temp[2]);
 			for (i=0;i<4;i++) {
 				map_foreachincell(skill_area_sub,bl->m,x,y,BL_CHAR,
@@ -3044,7 +3040,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		return 1;
 	if(status_isdead(src))
 		return 1;
-if(src!=bl && status_isdead(bl) && skillid != ALL_RESURRECTION && skillid != PR_REDEMPTIO)
+	if(src!=bl && status_isdead(bl) && skillid != ALL_RESURRECTION && skillid != PR_REDEMPTIO)
 		return 1;
 
 	tstatus = status_get_status_data(bl);
@@ -4198,14 +4194,24 @@ if(src!=bl && status_isdead(bl) && skillid != ALL_RESURRECTION && skillid != PR_
 		int strip_fix, equip = 0;
 		int sclist[4] = {0,0,0,0};
 
-		if (skillid == RG_STRIPWEAPON || skillid == ST_FULLSTRIP || skillid == GS_DISARM)
-		   equip |= EQP_HAND_R;
-		if (skillid == RG_STRIPSHIELD || skillid == ST_FULLSTRIP)
-		   equip |= EQP_SHIELD;
-		if (skillid == RG_STRIPARMOR || skillid == ST_FULLSTRIP)
-		   equip |= EQP_ARMOR;
-		if (skillid == RG_STRIPHELM || skillid == ST_FULLSTRIP)
-		   equip |= EQP_HELM;
+		switch (skillid) {
+		case RG_STRIPWEAPON:
+		case GS_DISARM:
+		   equip = EQP_WEAPON;
+			break;
+		case RG_STRIPSHIELD:
+		   equip = EQP_SHIELD;
+			break;
+		case RG_STRIPARMOR:
+		   equip = EQP_ARMOR;
+			break;
+		case RG_STRIPHELM:
+		   equip = EQP_HELM;
+			break;
+		case ST_FULLSTRIP:
+		   equip = EQP_WEAPON|EQP_SHIELD|EQP_ARMOR|EQP_HELM;
+			break;
+		}
 
 		strip_fix = sstatus->dex - tstatus->dex;
 		if(strip_fix < 0)
@@ -4222,7 +4228,7 @@ if(src!=bl && status_isdead(bl) && skillid != ALL_RESURRECTION && skillid != PR_
 					continue;
 				switch (i) {
 				case EQI_HAND_L: //Shield / left-hand weapon
-					if(dstsd->inventory_data[dstsd->equip_index[EQI_HAND_L]]->type == IT_ARMOR)
+					if(dstsd->inventory_data[dstsd->equip_index[i]]->type == IT_ARMOR)
 					{ //Shield
 						if (equip&EQP_SHIELD &&
 							!(dstsd->unstripable_equip&EQP_SHIELD) &&
@@ -4235,7 +4241,7 @@ if(src!=bl && status_isdead(bl) && skillid != ALL_RESURRECTION && skillid != PR_
 					}
 					//Continue to weapon
 				case EQI_HAND_R:
-					if (equip&EQP_HAND_R &&
+					if (equip&EQP_WEAPON &&
 						!(dstsd->unstripable_equip&EQP_WEAPON) &&
 				  		!(tsc && tsc->data[SC_CP_WEAPON].timer != -1)
 					) {
@@ -5432,6 +5438,37 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 		return 1;
 	} while(0);
 	//Skill failed.
+	if (ud->skillid == MO_EXTREMITYFIST && sd &&
+		!(sc && sc->count && sc->data[SC_FOGWALL].timer != -1))
+  	{	//When Asura fails... (except when it fails from Fog of Wall)
+		//Consume SP/spheres
+		skill_check_condition(sd,ud->skillid, ud->skilllv,1);
+		status_set_sp(src, 0, 0);
+		sc = &sd->sc;
+		if (sc->count)
+		{	//End states
+			if (sc->data[SC_EXPLOSIONSPIRITS].timer != -1)
+				status_change_end(src, SC_EXPLOSIONSPIRITS, -1);
+			if (sc->data[SC_BLADESTOP].timer != -1)
+				status_change_end(src,SC_BLADESTOP,-1);
+		}
+		if (target && target->m == src->m &&
+			(tid == -1 || status_check_skilluse(src, target, ud->skillid, 1))
+		)	{	//Move character to target anyway.
+			int dx,dy;
+			dx = target->x - src->x;
+			dy = target->y - src->y;
+			if(dx > 0) dx++;
+			else if(dx < 0) dx--;
+			if (dy > 0) dy++;
+			else if(dy < 0) dy--;
+			
+			if (unit_movepos(src, src->x+dx, src->y+dy, 1, 1))
+				clif_slide(src,src->x,src->y);
+
+			clif_skill_fail(sd,ud->skillid,0,0);
+		}
+	}
 	ud->skillid = ud->skilllv = ud->skilltarget = 0;
 	ud->canact_tick = tick;
 	if(sd) sd->skillitem = sd->skillitemlv = -1;
@@ -5689,9 +5726,7 @@ int skill_castend_pos2 (struct block_list *src, int x, int y, int skillid, int s
 	case HP_BASILICA:
 		skill_clear_unitgroup(src);
 		sg = skill_unitsetting(src,skillid,skilllv,x,y,0);
-		sc_start4(src,type,100,
-			skilllv,0,BCT_SELF,sg->group_id,
-			skill_get_time(skillid,skilllv));
+		sc_start(src,type,100,skilllv,skill_get_time(skillid,skilllv));
 		flag|=1;
 		break;
 	case CG_HERMODE:
@@ -6429,7 +6464,8 @@ int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, unsigned 
 	case UNT_SIEGFRIED:
 	case UNT_HERMODE:
 		 //Needed to check when a dancer/bard leaves their ensemble area.
-		if (sg->src_id==bl->id && (!sc || sc->data[SC_SPIRIT].timer == -1 || sc->data[SC_SPIRIT].val2 != SL_BARDDANCER))
+		if (sg->src_id==bl->id &&
+			!(sc && sc->data[SC_SPIRIT].timer != -1 && sc->data[SC_SPIRIT].val2 == SL_BARDDANCER))
 			return sg->skill_id;
 		if (sc && sc->data[type].timer==-1)
 			sc_start4(bl,type,100,sg->skill_lv,sg->val1,sg->val2,0,sg->limit);
@@ -6878,7 +6914,6 @@ int skill_unit_onout (struct skill_unit *src, struct block_list *bl, unsigned in
 		if (sc && sc->data[type].timer!=-1)
 			status_change_end(bl,type,-1);
 		break;
-	case UNT_BASILICA: //Clear basilica if the owner moved [Skotlex]
 	case UNT_HERMODE:	//Clear Hermode if the owner moved.
 		if (sc && sc->data[type].timer!=-1 && sc->data[type].val3 == BCT_SELF && sc->data[type].val4 == sg->group_id)
 			status_change_end(bl,type,-1);

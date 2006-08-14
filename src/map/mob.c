@@ -41,6 +41,9 @@
 #define MOB_LAZYWARPPERC 20	// Warp probability in the negligent mode MOB (rate of 1000 minute)
 
 #define MAX_MINCHASE 30	//Max minimum chase value to use for mobs.
+
+#define RUDE_ATTACKED_COUNT 2	//After how many rude-attacks should the skill be used?
+
 //Dynamic mob database, allows saving of memory when there's big gaps in the mob_db [Skotlex]
 struct mob_db *mob_db_data[MAX_MOB_DB+1];
 struct mob_db *mob_dummy = NULL;	//Dummy mob to be returned when a non-existant one is requested.
@@ -982,7 +985,7 @@ int mob_randomwalk(struct mob_data *md,int tick)
 		md->move_fail_count++;
 		if(md->move_fail_count>1000){
 			if(battle_config.error_log)
-				ShowWarning("MOB cant move. random spawn %d, class = %d\n",md->bl.id,md->class_);
+				ShowWarning("MOB cant move. random spawn %d, class = %d, at %s (%d,%d)\n",md->bl.id,md->class_,map[md->bl.m].name, md->bl.x, md->bl.y);
 			md->move_fail_count=0;
 			mob_spawn(md);
 		}
@@ -1069,7 +1072,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				!battle_check_range(&md->bl, tbl, md->status.rhw.range))
 			{	//Rude-attacked (avoid triggering due to can-walk delay).
 				if (DIFF_TICK(tick, md->ud.canmove_tick) > 0 &&
-				  	md->attacked_count++ > 3)
+				  	md->attacked_count++ >= RUDE_ATTACKED_COUNT)
 					mobskill_use(md, tick, MSC_RUDEATTACKED);
 			}
 		} else
@@ -1084,7 +1087,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					((TBL_PC*)abl)->state.gangsterparadise
 				)
 			)	{	//Can't attack back
-				if (md->attacked_count++ > 3) {
+				if (md->attacked_count++ >= RUDE_ATTACKED_COUNT) {
 					if (mobskill_use(md, tick, MSC_RUDEATTACKED) == 0 && can_move)
 					{
 						int dist = rand() % 10 + 1;//Œã‘Þ‚·‚é‹——£
@@ -1592,8 +1595,8 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 		}
 	}
 	
-	if(md->special_state.ai==2 && md->master_id == src->id)
-	{
+	if(md->special_state.ai==2/* && md->master_id == src->id*/)
+	{	//LOne WOlf explained that ANYONE can trigger the marine countdown skill. [Skotlex]
 		md->state.alchemist = 1;
 		mobskill_use(md, gettick(), MSC_ALCHEMIST);
 	}
@@ -1699,6 +1702,9 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		double per; //Your share of the mob's exp
 		int bonus; //Bonus on top of your share.
 		
+		if (status_isdead(&tmpsd[i]->bl) || tmpsd[i]->bl.m != md->bl.m)
+			continue; //When someone is dead or on another map, their share of exp is gone.
+
 		if (!battle_config.exp_calc_type && md->tdmg)
 			//jAthena's exp formula based on total damage.
 			per = (double)md->dmglog[i].dmg/(double)md->tdmg;
@@ -2558,7 +2564,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				case MSC_SKILLUSED:		// specificated skill used
 					flag = ((event & 0xffff) == MSC_SKILLUSED && ((event >> 16) == c2 || c2 == 0)); break;
 				case MSC_RUDEATTACKED:
-					flag = (md->attacked_count >= 3);
+					flag = (md->attacked_count >= RUDE_ATTACKED_COUNT);
 					if (flag) md->attacked_count = 0;	//Rude attacked count should be reset after the skill condition is met. Thanks to Komurka [Skotlex]
 					break;
 				case MSC_MASTERHPLTMAXRATE:
@@ -3001,8 +3007,7 @@ static int mob_readdb(void)
 				} else
 					str[i]=p;
 			}
-
-			class_ = atoi(str[0]);
+			class_ = str[0]?atoi(str[0]):0;
 			if (class_ == 0)
 				continue; //Leave blank lines alone... [Skotlex]
 
@@ -3013,6 +3018,10 @@ static int mob_readdb(void)
 			} else if (pcdb_checkid(class_))
 			{
 				ShowWarning("Mob with ID: %d not loaded. That ID is reserved for player classes.\n");
+				continue;
+			}
+			if(i < 38+2*MAX_MOB_DROP) {
+				ShowWarning("mob_readdb: Insufficient columns for mob with ID: %d\n", class_);
 				continue;
 			}
 			if (mob_db_data[class_] == NULL)
@@ -3226,7 +3235,8 @@ static int mob_readdb(void)
 					if (k == MAX_SEARCH)
 						continue;
 				
-					memmove(&id->mob[k+1], &id->mob[k], (MAX_SEARCH-k-1)*sizeof(id->mob[0]));
+					if (id->mob[k].id != class_)
+						memmove(&id->mob[k+1], &id->mob[k], (MAX_SEARCH-k-1)*sizeof(id->mob[0]));
 					id->mob[k].chance = mob_db_data[class_]->dropitem[i].p;
 					id->mob[k].id = class_;
 				}
@@ -3895,8 +3905,8 @@ static int mob_read_sqldb(void)
 						}
 						if (k == MAX_SEARCH)
 							continue;
-					
-						memmove(&id->mob[k+1], &id->mob[k], (MAX_SEARCH-k-1)*sizeof(id->mob[0]));
+						if (id->mob[k].id != class_)
+							memmove(&id->mob[k+1], &id->mob[k], (MAX_SEARCH-k-1)*sizeof(id->mob[0]));
 						id->mob[k].chance = mob_db_data[class_]->dropitem[i].p;
 						id->mob[k].id = class_;
 					}

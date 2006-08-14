@@ -4,6 +4,30 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/08/14
+	* Fixed script engine allowing scripts to set a player's zeny to negative
+	  values. [Skotlex]
+	* Fixed setting hide_woe_damage making even "miss" attacks seem to connect.
+	  [Skotlex]
+	* Merged setting attack type to miss when it does no damage for magic/misc
+	  attacks, prevents additional effects from triggering when damage is
+	  blocked. [Skotlex]
+	* Merged the Asura Strike "fail" code, so that when it fails it still moves
+	  you to target and takes SP/Spheres/Fury state away. [Skotlex]
+	* merged Basilica fix so that it should end when you move. [Skotlex]
+	* Merged fix to prevent setting more than one position to the headgear's
+	  view-id for multi-piece headgears, fixes the client redrawing the sprites
+	  multiple times. [Skotlex]
+	* Merged mdef2 being sent without removing first the vit "secret bonus"
+	  [Skotlex]
+	* Merged enabling ANYONE to activate a marine's sphere
+	  countdown/self-destruction. [Skotlex]
+	* Merged discarding the exp earned by characters who are dead or on another
+	  map at the time the mob dies. [Skotlex]
+	* Merged warning to prevent crashing when the txt mob_db has insufficient
+	  columns. [Skotlex]
+	* Merged fix which makes the @whodrops logs get duplicate entries when
+	  reloading the mob_db [Skotlex]
 2006/08/13
 	* Merged party data not correctly updating it's share-range when characters
 	  log on/off. [Skotlex]

@@ -519,9 +519,9 @@ int pc_isequip(struct map_session_data *sd,int n)
 		return 0;
 	if (sd->sc.count) {
 			
-		if(item->equip & EQP_WEAPON && item->type == 4 && sd->sc.data[SC_STRIPWEAPON].timer != -1) // Also works with left-hand weapons [DracoRPG]
+		if(item->equip & EQP_ARMS && item->type == IT_WEAPON && sd->sc.data[SC_STRIPWEAPON].timer != -1) // Also works with left-hand weapons [DracoRPG]
 			return 0;
-		if(item->equip & EQP_SHIELD && item->type == 5 && sd->sc.data[SC_STRIPSHIELD].timer != -1)
+		if(item->equip & EQP_SHIELD && item->type == IT_ARMOR && sd->sc.data[SC_STRIPSHIELD].timer != -1)
 			return 0;
 		if(item->equip & EQP_ARMOR && sd->sc.data[SC_STRIPARMOR].timer != -1)
 			return 0;
@@ -533,7 +533,7 @@ int pc_isequip(struct map_session_data *sd,int n)
 			if (sd->status.base_level > 90 && item->equip & EQP_HELM)
 				return 1; //Can equip all helms
 
-			if (sd->status.base_level > 96 && item->equip & EQP_WEAPON && item->type == IT_WEAPON)
+			if (sd->status.base_level > 96 && item->equip & EQP_ARMS && item->type == IT_WEAPON)
 				switch(item->look) { //In weapons, the look determines type of weapon.
 					case W_DAGGER: //Level 4 Knives are equippable.. this means all knives, I'd guess?
 					case W_1HSWORD: //All 1H swords
@@ -613,7 +613,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	if (battle_config.disp_zeny)
 		sd->state.showzeny = 1;
 	
-	if (battle_config.display_delay_skill_fail)
+	if (!battle_config.display_skill_fail&2)
 		sd->state.showdelay = 1;
 		
 	// Request all registries.
@@ -5172,25 +5172,7 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 		sd->status.status_point = val;
 		break;
 	case SP_ZENY:
-		if(val <= MAX_ZENY) {
-			// MAX_ZENY 以下なら代入
-			sd->status.zeny = val;
-		} else {
-			sd->status.zeny = MAX_ZENY;
-			/* Could someone explain the comments below? I have no idea what they are trying to do... 
-			 * if you want to give someone so much zeny, just set their zeny to the max. [Skotlex]
-			if(sd->status.zeny > val) {
-				// Zeny が減少しているなら代入
-				sd->status.zeny = val;
-			} else if(sd->status.zeny <= MAX_ZENY) {
-				// Zeny が増加していて、現在の値がMAX_ZENY 以下ならMAX_ZENY
-				sd->status.zeny = MAX_ZENY;
-			} else {
-				// Zeny が増加していて、現在の値がMAX_ZENY より下なら増加分を無視
-				;
-			}
-			*/
-		}
+		sd->status.zeny = cap_value(val, 0, MAX_ZENY);
 		break;
 	case SP_BASEEXP:
 		if(pc_nextbaseexp(sd) > 0) {
@@ -6162,12 +6144,12 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 			pos = sd->equip_index[EQI_ACC_L] >= 0 ? EQP_ACC_R : EQP_ACC_L;
 	}
 
-	if(pos == EQP_WEAPON && id->equip == EQP_HAND_R &&
+	if(pos == EQP_ARMS && id->equip == EQP_HAND_R &&
 		(pc_checkskill(sd, AS_LEFT) > 0 ||
 		(sd->class_&MAPID_UPPERMASK) == MAPID_ASSASSIN)
 	) {	//Dual wield capable weapon.
-	  	pos = (req_pos&EQP_WEAPON);
-		if (pos == EQP_WEAPON) //User specified both slots, pick one for them.
+	  	pos = (req_pos&EQP_ARMS);
+		if (pos == EQP_ARMS) //User specified both slots, pick one for them.
 			pos = sd->equip_index[EQI_HAND_R] >= 0 ? EQP_HAND_L : EQP_HAND_R;
 	}
 
@@ -6226,8 +6208,10 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 		pc_calcweapontype(sd);
 		clif_changelook(&sd->bl,LOOK_SHIELD,sd->status.shield);
 	}
+	//Added check to prevent sending the same look on multiple slots ->
+	//causes client to redraw item on top of itself. (suggested by Lupus)
 	if(pos & EQP_HEAD_LOW) {
-		if(sd->inventory_data[n])
+		if(sd->inventory_data[n] && !(pos&(EQP_HEAD_TOP|EQP_HEAD_MID)))
 			sd->status.head_bottom = sd->inventory_data[n]->look;
 		else
 			sd->status.head_bottom = 0;
@@ -6241,7 +6225,7 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 		clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
 	}
 	if(pos & EQP_HEAD_MID) {
-		if(sd->inventory_data[n])
+		if(sd->inventory_data[n] && !(pos&EQP_HEAD_TOP))
 			sd->status.head_mid = sd->inventory_data[n]->look;
 		else
 			sd->status.head_mid = 0;
@@ -6349,7 +6333,7 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag)
 
 	clif_unequipitemack(sd,n,sd->status.inventory[n].equip,1);
 
-	if((sd->status.inventory[n].equip & EQP_WEAPON) && 
+	if((sd->status.inventory[n].equip & EQP_ARMS) && 
 		sd->weapontype1 == 0 && sd->weapontype2 == 0)
 		skill_enchant_elemental_end(&sd->bl,-1);
 	

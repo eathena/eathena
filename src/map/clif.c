@@ -889,7 +889,7 @@ static int clif_set0078(struct block_list *bl, struct view_data *vd, unsigned ch
 			WBUFW(buf,8)=sc->opt1;
 			WBUFW(buf,10)=sc->opt2;
 			WBUFL(buf,12)=sc->option;
-			WBUFL(buf,42)=sc->opt3;
+			WBUFL(buf,44)=sc->opt3;
 		}
 		WBUFW(buf,16)=vd->class_;
 		WBUFW(buf,18)=vd->hair_style;
@@ -904,7 +904,7 @@ static int clif_set0078(struct block_list *bl, struct view_data *vd, unsigned ch
 		WBUFL(buf,36)=guild_id;
 		WBUFW(buf,40)=emblem_id;
 		if (sd) {
-			WBUFW(buf,46)=sd->status.manner;
+			WBUFW(buf,42)=sd->status.manner;
 			WBUFB(buf,48)=sd->status.karma;
 		}
 		WBUFB(buf,49)=vd->sex;
@@ -2449,7 +2449,7 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 		WFIFOL(fd,4)=sd->battle_status.def2;
 		break;
 	case SP_MDEF2:
-		WFIFOL(fd,4)=sd->battle_status.mdef2;
+		WFIFOL(fd,4)=sd->battle_status.mdef2 - (sd->battle_status.vit>>1);
 		break;
 	case SP_CRITICAL:
 		WFIFOL(fd,4)=sd->battle_status.cri/10;
@@ -2774,7 +2774,7 @@ int clif_initialstatus(struct map_session_data *sd)
 	WBUFW(buf,24) = sd->battle_status.def; // def
 	WBUFW(buf,26) = sd->battle_status.def2;
 	WBUFW(buf,28) = sd->battle_status.mdef; // mdef
-	WBUFW(buf,30) = sd->battle_status.mdef2;
+	WBUFW(buf,30) = sd->battle_status.mdef2 - (sd->battle_status.vit>>1);
 	WBUFW(buf,32) = sd->battle_status.hit;
 	WBUFW(buf,34) = sd->battle_status.flee;
 	WBUFW(buf,36) = sd->battle_status.flee2/10;
@@ -3623,18 +3623,22 @@ void clif_getareachar_char(struct map_session_data* sd,struct block_list *bl)
 	ud = unit_bl2ud(bl);
 	if (ud && ud->walktimer != -1)
 	{
-#if PACKETVER < 4
-		WFIFOHEAD(sd->fd, packet_len_table[0x7b]);
-#else
+#if PACKETVER > 6
+		WFIFOHEAD(sd->fd, packet_len_table[0x22c]);
+#elif PACKETVER > 3
 		WFIFOHEAD(sd->fd, packet_len_table[0x1da]);
+#else
+		WFIFOHEAD(sd->fd, packet_len_table[0x7b]);
 #endif
 		len = clif_set007b(bl,vd,ud,WFIFOP(sd->fd,0));
 		WFIFOSET(sd->fd,len);
 	} else {
-#if PACKETVER < 4
-		WFIFOHEAD(sd->fd,packet_len_table[0x78]);
-#else
+#if PACKETVER > 6
+		WFIFOHEAD(sd->fd,packet_len_table[0x22a]);
+#elif PACKETVER > 3
 		WFIFOHEAD(sd->fd,packet_len_table[0x1d8]);
+#else
+		WFIFOHEAD(sd->fd,packet_len_table[0x78]);
 #endif
 		len = clif_set0078(bl,vd,WFIFOP(sd->fd,0));
 		WFIFOSET(sd->fd,len);
@@ -3761,7 +3765,7 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 	WBUFL(buf,14)=sdelay;
 	WBUFL(buf,18)=ddelay;
 	if (battle_config.hide_woe_damage && map_flag_gvg(src->m)) {
-		WBUFW(buf,22)=div;
+		WBUFW(buf,22)=damage?div:0;
 		WBUFW(buf,27)=damage2?div:0;
 	} else {
 		WBUFW(buf,22)=(damage > SHRT_MAX)?SHRT_MAX:damage;
@@ -4231,11 +4235,16 @@ int clif_skill_fail(struct map_session_data *sd,int skill_id,int type,int btype)
 	
 	fd=sd->fd;
 
-	// reset all variables [celest]
-	// Should be handled now by the unit_* code.
-	sd->skillitem = sd->skillitemlv = -1;
+	if(battle_config.display_skill_fail&1)
+		return 0; //Disable all skill failed messages
 
 	if(type==0x4 && !sd->state.showdelay)
+		return 0; //Disable delay failed messages
+	
+	if(skill_id == RG_SNATCHER && battle_config.display_skill_fail&4)
+		return 0;
+
+	if(skill_id == TF_POISON && battle_config.display_skill_fail&8)
 		return 0;
 
 	WFIFOHEAD(fd,packet_len_table[0x110]);
@@ -4247,7 +4256,7 @@ int clif_skill_fail(struct map_session_data *sd,int skill_id,int type,int btype)
 	WFIFOB(fd,9) = type;
 	WFIFOSET(fd,packet_len_table[0x110]);
 
-	return 0;
+	return 1;
 }
 
 /*==========================================
@@ -4281,7 +4290,7 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 	WBUFL(buf,16)=sdelay;
 	WBUFL(buf,20)=ddelay;
 	if (battle_config.hide_woe_damage && map_flag_gvg(src->m)) {
-		WBUFW(buf,24)=div;
+		WBUFW(buf,24)=damage?div:0;
 	} else {
 		WBUFW(buf,24)=damage;
 	}
@@ -4312,7 +4321,7 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 	WBUFL(buf,16)=sdelay;
 	WBUFL(buf,20)=ddelay;
 	if (battle_config.hide_woe_damage && map_flag_gvg(src->m)) {
-		WBUFL(buf,24)=div;
+		WBUFL(buf,24)=damage?div:0;
 	} else {
 		WBUFL(buf,24)=damage;
 	}
@@ -4372,7 +4381,7 @@ int clif_skill_damage2(struct block_list *src,struct block_list *dst,
 	WBUFW(buf,24)=dst->x;
 	WBUFW(buf,26)=dst->y;
 	if (battle_config.hide_woe_damage && map_flag_gvg(src->m)) {
-		WBUFW(buf,28)=div;
+		WBUFW(buf,28)=damage?div:0;
 	} else {
 		WBUFW(buf,28)=damage;
 	}

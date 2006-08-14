@@ -1,5 +1,12 @@
 Date	Added
 
+2006/08/14
+	* Merged attack_attr_none now applying only to neutral-type attacks,
+	  removed setting mob_ghostring_fix as it's no longer needed (battle.conf)
+	  [Skotlex]
+	* Removed settings display_delay_skill_fail and
+	  display_snatcher_skill_fail, replaced them by display_skill_fail
+	  (skill.conf) [Skotlex]
 2006/08/11
 	* Merged maps_athena.conf from TRUNK [Lupus]
 2006/08/08
