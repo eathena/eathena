@@ -34,6 +34,11 @@ Playtester
 Date		Added
 ======
 08/14
+	* Merged the 2006 headgears quest [Playtester]
+	* Moved the Gunslinger quest NPCs to gunslinger_quests.txt [Playtester]
+	- put erKURITA's version of the Garrison quest into another file since I already
+	  added a complete version, use it if you like it more
+	- also gave the NPCs their official names
 	* Added (finally) the official Inn Maid of Rachel. Save and warp points
 	  are official aswell, thanks to RockmanEXE [erKURITA]
 	* Added (finally) the Garrison quest npc. Item requirements are the official ones,
