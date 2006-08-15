@@ -1,3 +1,9 @@
+08/15
+	* Merged item_db, job_db2, mob_db [Playtester]
+	- fixed ASPD bonus of Masamune and Kamaitachi
+	- fixed attack power of Dusk
+	- merged job bonus for Ninja
+	- updated some more mob stats according to official kRO website
 08/14
 	* Merged item_db, job_db1, skill_cast_db, skill_db and skill_require_db [Playtester]
 	- fixed Destroyer giving Hit-10 rather than breaking the armor
