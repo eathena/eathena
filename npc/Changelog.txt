@@ -34,6 +34,9 @@ Playtester
 
 Date		Added
 ======
+08/15
+	* Updated Gunslinger quest NPCs [Playtester]
+	- removed erKURITA's version
 08/14
 	* Merged quests/quests_lighthalzen.txt from trunk [Evera]
 	- Bug fix for Bio Labs Quest [Evera]
