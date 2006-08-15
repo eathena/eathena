@@ -823,13 +823,10 @@ int can_copy (struct map_session_data *sd, int skillid)
 // [MouseJstr] - skill ok to cast? and when?
 int skillnotok (int skillid, struct map_session_data *sd)
 {	
-	int i = skillid;
+	int i = skillid,m;
 	nullpo_retr (1, sd);
-	//if (sd == 0)
-		//return 0; 
-		//return 1;
-	// I think it was meant to be "no skills allowed when not a valid sd"
-	
+	m = sd->bl.m;
+
 	if (skillid >= GD_SKILLRANGEMIN && skillid <= GD_SKILLRANGEMAX)
 		return 1;
 
@@ -846,33 +843,33 @@ int skillnotok (int skillid, struct map_session_data *sd)
 		return 0;  // gm's can do anything damn thing they want
 
 	// Check skill restrictions [Celest]
-	if(!map_flag_vs(sd->bl.m) && skill_get_nocast (skillid) & 1)
+	if(!map_flag_vs(m) && skill_get_nocast (skillid) & 1)
 		return 1;
-	if(map[sd->bl.m].flag.pvp && skill_get_nocast (skillid) & 2)
+	if(map[m].flag.pvp && skill_get_nocast (skillid) & 2)
 		return 1;
-	if(map_flag_gvg(sd->bl.m) && skill_get_nocast (skillid) & 4)
+	if(map_flag_gvg(m) && skill_get_nocast (skillid) & 4)
 		return 1;
 	if(agit_flag && skill_get_nocast (skillid) & 8)
 		return 1;
-	if(map[sd->bl.m].flag.restricted && map[sd->bl.m].zone && skill_get_nocast (skillid) & (8*map[sd->bl.m].zone))
+	if(map[m].flag.restricted && map[m].zone && skill_get_nocast (skillid) & (8*map[m].zone))
 		return 1;
 
 	switch (skillid) {
 		case AL_WARP:
-			if(map[sd->bl.m].flag.nowarp) {
+			if(map[m].flag.nowarp) {
 				clif_skill_teleportmessage(sd,0);
 				return 1;
 			}
 			return 0;
 		break;
 		case AL_TELEPORT:
-			if(map[sd->bl.m].flag.noteleport) {
+			if(map[m].flag.noteleport) {
 				clif_skill_teleportmessage(sd,0);
 				return 1;
 			}
 			return 0;
 		case TK_HIGHJUMP:
-			if(map[sd->bl.m].flag.noteleport && !map_flag_vs(sd->bl.m))
+			if(map[m].flag.noteleport && !map_flag_vs(m))
 		  	{	//Can't be used on noteleport maps, except for vs maps [Skotlex]
 				clif_skill_fail(sd,skillid,0,0);
 				return 1;
@@ -881,7 +878,7 @@ int skillnotok (int skillid, struct map_session_data *sd)
 		case WE_CALLPARTNER:
 		case WE_CALLPARENT:
 		case WE_CALLBABY:
-			if (map[sd->bl.m].flag.nomemo) {
+			if (map[m].flag.nomemo) {
 				clif_skill_teleportmessage(sd,1);
 				return 1;
 			}
@@ -891,7 +888,7 @@ int skillnotok (int skillid, struct map_session_data *sd)
 			return 0; // always allowed
 		case WZ_ICEWALL:
 			// noicewall flag [Valaris]
-			if (map[sd->bl.m].flag.noicewall) {
+			if (map[m].flag.noicewall) {
 				clif_skill_fail(sd,skillid,0,0);
 				return 1;
 			}
@@ -905,7 +902,7 @@ int skillnotok (int skillid, struct map_session_data *sd)
 			}
 			break;
 	}
-	return (map[sd->bl.m].flag.noskill);
+	return (map[m].flag.noskill);
 }
 
 struct skill_unit_layout skill_unit_layout[MAX_SKILL_UNIT_LAYOUT];
@@ -1397,6 +1394,32 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			break; //Only one auto skill comes off at a time.
 		}
 	}
+
+	//Polymorph
+	if(sd && sd->classchange && attack_type&BF_WEAPON &&
+		dstmd && !(tstatus->mode&MD_BOSS) && !dstmd->guardian_data &&
+	  	(dstmd->class_ < 1324 || dstmd->class_ > 1363) && //Treasure boxes
+	  	!mob_is_clone(dstmd->class_) && 
+	  	(rand()%10000 < sd->classchange)) 
+	{
+		struct mob_db *mob;
+		int class_;
+		skill = 0;
+		do {
+			do {
+				class_ = rand() % MAX_MOB_DB;
+			} while (!mobdb_checkid(class_));
+			
+			rate = rand() % 1000000;
+			mob = mob_db(class_);
+		} while (
+			(mob->status.mode&(MD_BOSS|MD_PLANT) || mob->summonper[0] <= rate) &&
+		  	(skill++) < 2000);
+		if (skill < 2000)
+			mob_class_change(dstmd,class_);
+	}
+	
+
 	return 0;
 }
 
@@ -1770,9 +1793,9 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 	if (attack_type&BF_MAGIC) {
 	 	if(sc && sc->data[SC_KAITE].timer != -1 && (dmg.damage || dmg.damage2)
-			&& !(sstatus->mode&MD_BOSS) && (sd || status_get_lv(dsrc) <= 80) 
-		) {	//Works on players or mobs with level under 80.
-			clif_skill_nodamage(bl,bl,SL_KAITE,sc->data[SC_KAITE].val1,1);
+			&& !(sstatus->mode&MD_BOSS) && (sd || status_get_lv(src) <= 80) )
+		{	//Works on players or mobs with level under 80.
+			clif_specialeffect(bl, 438, AREA);
 			if (--sc->data[SC_KAITE].val2 <= 0)
 				status_change_end(bl, SC_KAITE, -1);
 			bl = src; //Just make the skill attack yourself @.@
@@ -1949,7 +1972,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			if (ud && ud->skilltarget == bl->id)
 				dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion, damage, dmg.div_, skillid, (lv!=0)?lv:skilllv, type);
 			else
-				dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion, damage, dmg.div_, skillid, -1, 5);
+				dmg.dmotion = clif_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,8,dmg.damage2); // can't know why 8, but it works for all skills...
 			break;
 		}
 	case PA_GOSPEL: //Should look like Holy Cross [Skotlex]
@@ -5452,9 +5475,8 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 			if (sc->data[SC_BLADESTOP].timer != -1)
 				status_change_end(src,SC_BLADESTOP,-1);
 		}
-		if (target && target->m == src->m &&
-			(tid == -1 || status_check_skilluse(src, target, ud->skillid, 1))
-		)	{	//Move character to target anyway.
+		if (target && target->m == src->m)
+		{	//Move character to target anyway.
 			int dx,dy;
 			dx = target->x - src->x;
 			dy = target->y - src->y;
@@ -5464,8 +5486,10 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 			else if(dy < 0) dy--;
 			
 			if (unit_movepos(src, src->x+dx, src->y+dy, 1, 1))
+			{	//Display movement + animation.
 				clif_slide(src,src->x,src->y);
-
+				clif_skill_damage(src,target,tick,sd->battle_status.amotion,0,0,1,ud->skillid, ud->skilllv, 5);
+			}
 			clif_skill_fail(sd,ud->skillid,0,0);
 		}
 	}
@@ -7040,9 +7064,7 @@ int skill_unit_effect (struct block_list *bl, va_list ap)
 	int flag;
 	unsigned int tick;
 
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
-	nullpo_retr(0, unit=va_arg(ap,struct skill_unit*));
+	unit=va_arg(ap,struct skill_unit*);
 	tick = va_arg(ap,unsigned int);
 	flag = va_arg(ap,unsigned int);
 
@@ -8672,8 +8694,8 @@ int skill_attack_area (struct block_list *bl, va_list ap)
 	int atk_type,skillid,skilllv,flag,type;
 	unsigned int tick;
 
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
+	if(status_isdead(bl))
+		return 0;
 
 	atk_type = va_arg(ap,int);
 	if((src=va_arg(ap,struct block_list*)) == NULL)
@@ -9360,8 +9382,6 @@ int skill_unit_timer_sub_onplace (struct block_list *bl, va_list ap)
 	struct skill_unit_group *group;
 	unsigned int tick;
 
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
 	unit = va_arg(ap,struct skill_unit *);
 	tick = va_arg(ap,unsigned int);
 
@@ -9392,9 +9412,7 @@ int skill_unit_timer_sub (struct block_list *bl, va_list ap)
 	struct skill_unit_group *group;
 	unsigned int tick;
 
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
-	nullpo_retr(0, unit=(struct skill_unit *)bl);
+	unit=(struct skill_unit *)bl;
 	tick=va_arg(ap,unsigned int);
 
 	if(!unit->alive)

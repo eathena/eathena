@@ -5,6 +5,15 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/15
+	* Merged visual effect fixes for Kaupe and Kaite [Skotlex]
+	* Moved the classchange code to skill_additional_effect to enable summoned
+	  mobs to polymorph enemies. [Skotlex]
+	* Merged usage of the clif_damage packet for splash skills (prevent
+	  displaying skill animation multiple times) [Skotlex]
+	* Merged Asura Strike moving you to target always when it fails (except
+	  when there's a wall on the way), also merging it displaying a skill
+	  animation even when failed. [Skotlex]
+	* Merged skill_attack_area checking for dead targets [Skotlex]
 	* Should have fixed dual-wielding. [Skotlex]
 	* Merged function pc_skill, which should make the skill script command
 	  behave as specified on the script commands reference (this should fix
