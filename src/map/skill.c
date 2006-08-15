@@ -5307,7 +5307,7 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 	struct map_session_data* sd = NULL;
 	struct mob_data* md = NULL;
 	struct unit_data* ud = unit_bl2ud(src);
-	struct status_change *sc;
+	struct status_change *sc = NULL;
 	int inf,inf2;
 
 	nullpo_retr(0, ud);
