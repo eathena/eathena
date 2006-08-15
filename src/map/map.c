@@ -1675,10 +1675,6 @@ int map_quit(struct map_session_data *sd) {
 				unit_remove_map(&sd->pd->bl, 0);
 		}
 	}
-	if (sd->stack) {
-		script_free_stack(sd->stack);
-		sd->stack= NULL;
-	}
 
 	//Do we really need to remove the name?
 	idb_remove(charid_db,sd->status.char_id);
@@ -1696,6 +1692,17 @@ int map_quit(struct map_session_data *sd) {
 		sd->regstr = NULL;
 		sd->regstr_num = 0;
 	}
+	if (sd->stack) {
+		script_free_stack(sd->stack);
+		sd->stack= NULL;
+	}
+#ifndef TXT_ONLY
+	if(charsave_method)
+	{	//Let player be free'd on closing the connection.
+		idb_remove(pc_db,sd->status.account_id);
+		return 0;	
+	}
+#endif
 	if(sd->fd)
   	{	//Player will be free'd on save-ack. [Skotlex]
 		if (session[sd->fd])

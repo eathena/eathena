@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/15
+	* Merged the fix for the charsave_method:1 causing crashes and whatnot.
+	  [Skotlex]
 	* Merged visual effect fixes for Kaupe and Kaite [Skotlex]
 	* Moved the classchange code to skill_additional_effect to enable summoned
 	  mobs to polymorph enemies. [Skotlex]
