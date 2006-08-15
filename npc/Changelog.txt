@@ -20,9 +20,10 @@ erKURITA
 	* Warps maintainment
 Evera
 	* Everything.
-	* Dungeon Teleport System NPCs
+	* Dungeon Teleport System NPCs.
 	* iRO information gathering.
 	* Kafra maintainment.
+	* Taking requests.
 Musashiden
 	*Scripting iRO latest towns (warps, NPCs, ect.)
 	*iRO information gathering.
@@ -34,6 +35,13 @@ Playtester
 Date		Added
 ======
 08/14
+	* Merged quests/quests_lighthalzen.txt from trunk [Evera]
+	- Bug fix for Bio Labs Quest [Evera]
+	- Bio Ethics Quest [Evera]
+	* Merged other/dts_warper.txt from trunk [Evera]
+	- Uses MISC_QUEST bit 128 instead of dtseligible 2 to store voted status [Evera]
+	* Merged other/Global_Functions.txt from trunk [Evera]
+	- Added dtseligible 2 to be set to MISC_QUEST bit 128 [Evera]
 	* Fixed 2006 headgears npc giving you Lion Mask rather than Lion Masquerade [Playtester]
 	* Merged the 2006 headgears quest [Playtester]
 	* Moved the Gunslinger quest NPCs to gunslinger_quests.txt [Playtester]
