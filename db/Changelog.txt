@@ -1,3 +1,10 @@
+08/16
+	* Merged item_db, skill_cast_db, skill_db, skill_require_db, skill_tree [Playtester]
+	- fixed bullets, spheres and kunais
+	- fixed Gatling Fever duration
+	- fixed Disarm not working
+	- added NJ_NEN item requirements
+	- added WE_CALLBABY to Gunslinger and Ninja
 08/15
 	* Merged item_db, job_db2, mob_db [Playtester]
 	- fixed ASPD bonus of Masamune and Kamaitachi
