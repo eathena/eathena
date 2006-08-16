@@ -34,6 +34,11 @@ Playtester
 
 Date		Added
 ======
+08/16
+	* Various merchant updates [Playtester]
+	- added Ammo Casing Maker Kenny
+	- added Ammo Dealer Tony
+	- added Holy Arrow Quiver to Inventor Jaax
 08/15
 	* Updated Gunslinger quest NPCs [Playtester]
 	- removed erKURITA's version
