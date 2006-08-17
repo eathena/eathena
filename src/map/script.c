@@ -3264,10 +3264,8 @@ int buildin_escape_sql(struct script_state *st);
 int buildin_atoi(struct script_state *st);
 int buildin_axtoi(struct script_state *st);
 // [zBuffer] List of player cont commands --->
-int buildin_rid2name(struct script_state *st);
 int buildin_pcfollow(struct script_state *st);
 int buildin_pcstopfollow(struct script_state *st);
-int buildin_pcblockmove(struct script_state *st);
 // <--- [zBuffer] List of player cont commands
 int buildin_setitemscript(struct script_state *st);
 int buildin_disguise(struct script_state *st);
@@ -3572,10 +3570,8 @@ struct script_function buildin_func[] = {
 #endif
 	{buildin_atoi,"atoi","s"},
 	// [zBuffer] List of player cont commands --->
-	{buildin_rid2name,"rid2name","i"},
 	{buildin_pcfollow,"pcfollow","ii"},
 	{buildin_pcstopfollow,"pcstopfollow","i"},
-	{buildin_pcblockmove,"pcblockmove","ii"},
 	// <--- [zBuffer] List of player cont commands
 	{NULL,NULL,NULL},
 };
@@ -10735,75 +10731,41 @@ int buildin_setd(struct script_state *st)
 
 #ifndef TXT_ONLY
 int buildin_query_sql(struct script_state *st) {
-	char *name = NULL, *query;
-	int num, i = 0,j, nb_rows;
-	struct { char * dst_var_name; char type; } row[32];
+	char *name, *query;
+	int num, i = 0;
 	struct map_session_data *sd = (st->rid)? script_rid2sd(st) : NULL;
 
 	query = conv_str(st,& (st->stack->stack_data[st->start+2]));
-	strcpy(tmp_sql, query);
+    strcpy(tmp_sql, query);
 	if(mysql_query(&mmysql_handle,tmp_sql)){
 		ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		push_val(st->stack,C_INT,0);
 		return 1;
 	}
 
-	// If some data was returned
-	if((sql_res = mysql_store_result(&mmysql_handle))){
-		// Count the number of rows to store
-		nb_rows = mysql_num_fields(sql_res);
-
-		// Can't store more row than variable
-		if (nb_rows > st->end - (st->start+3))
-			nb_rows = st->end - (st->start+3);
-
-		if (!nb_rows)
-		{
-			push_val(st->stack,C_INT,0);
-			return 0; // Nothing to store
-		}
-
-		if (nb_rows > 32)
-		{
-			ShowWarning("buildin_query_sql: too much rows!\n");
-			push_val(st->stack,C_INT,0);
-			return 1;
-		}
-
-		memset(row, 0, sizeof(row));
-		// Verify argument types
-		for(j=0; j < nb_rows; j++)
-		{
-			if(st->stack->stack_data[st->start+3+j].type != C_NAME){
-				ShowWarning("buildin_query_sql: Parameter %d is not a variable!\n", j);
-				push_val(st->stack,C_INT,0);
-				return 0;
-			} else {
-				// Store type of variable (string = 0/int = 1)
-				num=st->stack->stack_data[st->start+3+j].u.num;
-				name=(char *)(str_buf+str_data[num&0x00ffffff].str);
+	if(st->end > st->start+3) {
+		if(st->stack->stack_data[st->start+3].type != C_NAME){
+			ShowWarning("buildin_query_sql: 2nd parameter is not a variable!\n");
+		} else {
+			num=st->stack->stack_data[st->start+3].u.num;
+			name=(char *)(str_buf+str_data[num&0x00ffffff].str);
+			if((sql_res = mysql_store_result(&mmysql_handle))){
 				if(name[strlen(name)-1] != '$') {
-					row[j].type = 1;
+					while(i<128 && (sql_row = mysql_fetch_row(sql_res))){
+						setd_sub(sd, name, i, (void *)atoi(sql_row[0]));
+						i++;
+					}
+				} else {
+					while(i<128 && (sql_row = mysql_fetch_row(sql_res))){
+						setd_sub(sd, name, i, (void *)sql_row[0]);
+						i++;
+					}
 				}
-				row[j].dst_var_name = name;
+				mysql_free_result(sql_res);
 			}
 		}
-		// Store data
-		while(i<128 && (sql_row = mysql_fetch_row(sql_res))){
-			for(j=0; j < nb_rows; j++)
-			{
-				if (row[j].type == 1)
-					setd_sub(st,sd, row[j].dst_var_name, i, (void *)atoi(sql_row[j]),st->stack->stack_data[st->start+3+j].ref);
-				else
-					setd_sub(st,sd, row[j].dst_var_name, i, (void *)sql_row[j],st->stack->stack_data[st->start+3+j].ref);
-			}
-			i++;
-		}
-		// Free data
-		mysql_free_result(sql_res);
 	}
-	push_val(st->stack, C_INT, i);
+
 	return 0;
 }
 
@@ -10812,7 +10774,7 @@ int buildin_escape_sql(struct script_state *st) {
 	char *t_query, *query;
 	query = conv_str(st,& (st->stack->stack_data[st->start+2]));
 	
-	t_query = aMallocA((strlen(query)*2+1)*sizeof(char));
+	t_query = aCallocA(strlen(query)*2+1,sizeof(char));
 	jstrescapecpy(t_query,query);
 	push_str(st->stack,C_STR,(unsigned char *)t_query);
 	return 0;
@@ -11109,56 +11071,6 @@ int buildin_axtoi(struct script_state *st)
 }
 
 // [zBuffer] List of player cont commands --->
-int buildin_rid2name(struct script_state *st){
-	struct block_list *bl = NULL;
-	int rid = conv_num(st, & (st->stack->stack_data[st->start + 2]));
-	if((bl = map_id2bl(rid))){
-		switch(bl->type){
-			case BL_MOB:
-				push_str(st->stack,C_CONSTSTR,((struct mob_data *)bl)->name);
-				break;
-			case BL_PC:
-				push_str(st->stack,C_CONSTSTR,((struct map_session_data *)bl)->status.name);
-				break;
-			case BL_NPC:
-				push_str(st->stack,C_CONSTSTR,((struct npc_data *)bl)->exname);
-				break;
-			case BL_PET:
-				push_str(st->stack,C_CONSTSTR,((struct pet_data *)bl)->pet.name);
-				break;
-			case BL_HOM:
-				push_str(st->stack,C_CONSTSTR,((struct homun_data *)bl)->master->homunculus.name);
-				break;
-			default:
-				ShowError("buildin_rid2name: BL type unknown.\n");
-				push_str(st->stack,C_CONSTSTR,"");
-				break;
-		}
-	} else {
-		ShowError("buildin_rid2name: invalid RID\n");
-		push_str(st->stack,C_CONSTSTR,"(null)");
-	}
-	return 0;
-}
-
-int buildin_pcblockmove(struct script_state *st){
-	int id, flag;
-	struct map_session_data *sd = NULL;
-
-	id = conv_num(st, & (st->stack->stack_data[st->start + 2]));
-	flag = conv_num(st, & (st->stack->stack_data[st->start + 3]));
-
-	if(id)
-		sd = map_id2sd(id);
-	else
-		sd = script_rid2sd(st);
-
-	if(sd)
-		sd->state.blockedmove = flag > 0;
-
-	return 0;
-}
-
 int buildin_pcfollow(struct script_state *st) {
 	int id, targetid;
 	struct map_session_data *sd = NULL;

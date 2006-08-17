@@ -4,6 +4,9 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/08/17
+	* Reverted 'query_sql' update and 'rid2name', 'pcblockmove' addition because 
+	  they are incompatible with Stable [Toms]
 2006/08/16
 	* TRUNK Merge: script function 'query_sql'. Supports more than 1 row [Lupus]
 	- zBuffer's commands: rid2name, pcfollow, pcstopfollow, pcblockmove
