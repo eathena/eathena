@@ -3263,6 +3263,12 @@ int buildin_escape_sql(struct script_state *st);
 #endif
 int buildin_atoi(struct script_state *st);
 int buildin_axtoi(struct script_state *st);
+// [zBuffer] List of player cont commands --->
+int buildin_rid2name(struct script_state *st);
+int buildin_pcfollow(struct script_state *st);
+int buildin_pcstopfollow(struct script_state *st);
+int buildin_pcblockmove(struct script_state *st);
+// <--- [zBuffer] List of player cont commands
 int buildin_setitemscript(struct script_state *st);
 int buildin_disguise(struct script_state *st);
 int buildin_undisguise(struct script_state *st);
@@ -3565,6 +3571,12 @@ struct script_function buildin_func[] = {
 	{buildin_escape_sql, "escape_sql", "s"},
 #endif
 	{buildin_atoi,"atoi","s"},
+	// [zBuffer] List of player cont commands --->
+	{buildin_rid2name,"rid2name","i"},
+	{buildin_pcfollow,"pcfollow","ii"},
+	{buildin_pcstopfollow,"pcstopfollow","i"},
+	{buildin_pcblockmove,"pcblockmove","ii"},
+	// <--- [zBuffer] List of player cont commands
 	{NULL,NULL,NULL},
 };
 
@@ -11096,5 +11108,91 @@ int buildin_axtoi(struct script_state *st)
 	return 0;
 }
 
+// [zBuffer] List of player cont commands --->
+int buildin_rid2name(struct script_state *st){
+	struct block_list *bl = NULL;
+	int rid = conv_num(st, & (st->stack->stack_data[st->start + 2]));
+	if((bl = map_id2bl(rid))){
+		switch(bl->type){
+			case BL_MOB:
+				push_str(st->stack,C_CONSTSTR,((struct mob_data *)bl)->name);
+				break;
+			case BL_PC:
+				push_str(st->stack,C_CONSTSTR,((struct map_session_data *)bl)->status.name);
+				break;
+			case BL_NPC:
+				push_str(st->stack,C_CONSTSTR,((struct npc_data *)bl)->exname);
+				break;
+			case BL_PET:
+				push_str(st->stack,C_CONSTSTR,((struct pet_data *)bl)->pet.name);
+				break;
+			case BL_HOM:
+				push_str(st->stack,C_CONSTSTR,((struct homun_data *)bl)->master->homunculus.name);
+				break;
+			default:
+				ShowError("buildin_rid2name: BL type unknown.\n");
+				push_str(st->stack,C_CONSTSTR,"");
+				break;
+		}
+	} else {
+		ShowError("buildin_rid2name: invalid RID\n");
+		push_str(st->stack,C_CONSTSTR,"(null)");
+	}
+	return 0;
+}
+
+int buildin_pcblockmove(struct script_state *st){
+	int id, flag;
+	struct map_session_data *sd = NULL;
+
+	id = conv_num(st, & (st->stack->stack_data[st->start + 2]));
+	flag = conv_num(st, & (st->stack->stack_data[st->start + 3]));
+
+	if(id)
+		sd = map_id2sd(id);
+	else
+		sd = script_rid2sd(st);
+
+	if(sd)
+		sd->state.blockedmove = flag > 0;
+
+	return 0;
+}
+
+int buildin_pcfollow(struct script_state *st) {
+	int id, targetid;
+	struct map_session_data *sd = NULL;
 
 
+	id = conv_num(st, & (st->stack->stack_data[st->start + 2]));
+	targetid = conv_num(st, & (st->stack->stack_data[st->start + 3]));
+
+	if(id)
+		sd = map_id2sd(id);
+	else
+		sd = script_rid2sd(st);
+
+	if(sd)
+		pc_follow(sd, targetid);
+
+    return 0;
+}
+
+int buildin_pcstopfollow(struct script_state *st) {
+	int id;
+	struct map_session_data *sd = NULL;
+
+
+	id = conv_num(st, & (st->stack->stack_data[st->start + 2]));
+
+	if(id)
+		sd = map_id2sd(id);
+	else
+		sd = script_rid2sd(st);
+
+	if(sd)
+		pc_stop_following(sd);
+
+	return 0;
+}
+// <--- [zBuffer] List of player cont commands
