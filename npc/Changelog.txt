@@ -35,6 +35,7 @@ Playtester
 Date		Added
 ======
 08/16
+	* Fixed Kellasus giving extra skills in Bio Ethics Quest [Evera]
 	* Various merchant updates [Playtester]
 	- added Ammo Casing Maker Kenny
 	- added Ammo Dealer Tony
