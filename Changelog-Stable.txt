@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/16
+	* TRUNK Merge: script function 'query_sql'. Supports more than 1 row [Lupus]
 	* Merged the db converter perl scripts [Playtester]
 2006/08/15
 	* Merged the fix for the charsave_method:1 causing crashes and whatnot.
