@@ -1,293 +1,251 @@
-// $Id: atcommand.h 148 2004-09-30 14:05:37Z MouseJstr $
+
 #ifndef _ATCOMMAND_H_
 #define _ATCOMMAND_H_
 
-enum AtCommandType {
-	AtCommand_None = -1,
-	AtCommand_Broadcast = 0,
-	AtCommand_LocalBroadcast,
-	AtCommand_MapMove,
-	AtCommand_ResetState,
-	AtCommand_RuraP,
-	AtCommand_Rura,
-	AtCommand_Warp,
-	AtCommand_Where,
-	AtCommand_JumpTo,
+#include "utils.h"
+
+
+enum AtCommandType
+{
+	AtCommand_AddWarp = 0,
+	AtCommand_AdjCmdLvl,
+	AtCommand_AdjGmLvl,
+	AtCommand_Adopt,
+	AtCommand_AgitEnd,
+	AtCommand_AgitStart,
+	AtCommand_Alive,
+	AtCommand_AllSkill,
+	AtCommand_AutoLoot,
+	AtCommand_BaseLevelUp,
+	AtCommand_Broadcast,
+	AtCommand_CartList,
+	AtCommand_ChangeLook,
+	AtCommand_ChangeSex,
+	AtCommand_CharBan,
+	AtCommand_CharBlock,
+	AtCommand_CharReset,
+	AtCommand_CharUnBan,
+	AtCommand_CharUnBlock,
+	AtCommand_CheckMail,
+	AtCommand_CleanMap,
+	AtCommand_ClearWeather,
+	AtCommand_Clouds,
+	AtCommand_Clouds2,
+	AtCommand_Day,
+	AtCommand_DeleteMail,
+	AtCommand_DeleteItem,
+	AtCommand_Die,
+	AtCommand_Disguise,
+	AtCommand_DisguiseAll,
+	AtCommand_Divorce,
+	AtCommand_DMStart,
+	AtCommand_DMTick,
+	AtCommand_Doom,
+	AtCommand_DoomMap,
+	AtCommand_Dropall,
+	AtCommand_Dye,
+	AtCommand_Effect,
+	AtCommand_EMail,
+	AtCommand_FakeName,
+	AtCommand_Fireworks,
+	AtCommand_Fog,
+	AtCommand_Follow,
+	AtCommand_GAT,
+	AtCommand_GM,
+	AtCommand_Gmotd,
+	AtCommand_Go,
+	AtCommand_Grind,
+	AtCommand_Grind2,
+	AtCommand_Guild,
+	AtCommand_GuildLevelUp,
+	AtCommand_GuildRecall,
+	AtCommand_GuildSpy,
+	AtCommand_GuildStorage,
+	AtCommand_GvGOff,
+	AtCommand_GvGOn,
+	AtCommand_HappyHappyJoyJoy,
+	AtCommand_Hatch,
+	AtCommand_Hcolor,
+	AtCommand_Heal,
+	AtCommand_Help,
+	AtCommand_Hide,
+	AtCommand_Hidenpc,
+	AtCommand_Hstyle,
+	AtCommand_Identify,
+	AtCommand_IDSearch,
+	AtCommand_Item,
+	AtCommand_ItemCheck,
+	AtCommand_ItemInfo,
+	AtCommand_ItemList,
+	AtCommand_ItemReset,
+	AtCommand_Jail,
+	AtCommand_JobChange,
+	AtCommand_JobLevelUp,
 	AtCommand_Jump,
+	AtCommand_JumpTo,
+	AtCommand_Kami,
+	AtCommand_Kick,
+	AtCommand_KickAll,
+	AtCommand_Kill,
+	AtCommand_Killable,
+	AtCommand_Killer,
+	AtCommand_KillMonster,
+	AtCommand_Leaves,
+	AtCommand_ListMail,
+	AtCommand_ListNewMail,
+	AtCommand_Load,
+	AtCommand_Loadnpc,
+	AtCommand_LocalBroadcast,
+	AtCommand_LostSkill,
+	AtCommand_MakeEgg,
+	AtCommand_MapExit,
+	AtCommand_MapFlag,
+	AtCommand_MapInfo,
+	AtCommand_MapMove,
+	AtCommand_Marry,
+	AtCommand_Me,
+	AtCommand_Memo,
+	AtCommand_MiscEffect,
+	AtCommand_MobInfo,
+	AtCommand_MobSearch,
+	AtCommand_Model,
+	AtCommand_Monster,
+	AtCommand_MonsterBig,
+	AtCommand_MonsterIgnore,
+	AtCommand_MonsterSmall,
+	AtCommand_MountPeco,
+	AtCommand_Mute,
+	AtCommand_MuteArea,
+	AtCommand_Night,
+	AtCommand_NpcMove,
+	AtCommand_NpcTalk,
+	AtCommand_Nuke,
+	AtCommand_Option,
+	AtCommand_Packet,
+	AtCommand_Param,
+	AtCommand_Party,
+	AtCommand_PartyRecall,
+	AtCommand_PartySpy,
+	AtCommand_PetFriendly,
+	AtCommand_PetHungry,
+	AtCommand_PetId,
+	AtCommand_PetRename,
+	AtCommand_PetTalk,
+	AtCommand_PrintStats,
+	AtCommand_Produce,
+	AtCommand_PvPOff,
+	AtCommand_PvPOn,
+	AtCommand_QuestSkill,
+	AtCommand_Rain,
+	AtCommand_Raise,
+	AtCommand_RaiseMap,
+	AtCommand_Rates,
+	AtCommand_ReadMail,
+	AtCommand_Recall,
+	AtCommand_RecallAll,
+	AtCommand_Refine,
+	AtCommand_Refresh,
+	AtCommand_RefreshOnline,
+	AtCommand_ReloadAtcommand,
+	AtCommand_ReloadBattleConf,
+	AtCommand_ReloadItemDB,
+	AtCommand_ReloadMobDB,
+	AtCommand_ReloadPcDB,
+	AtCommand_ReloadScript,
+	AtCommand_ReloadSkillDB,
+	AtCommand_ReloadStatusDB,
+	AtCommand_RepairAll,
+	AtCommand_Revive,
+	AtCommand_RuraP,
+	AtCommand_Sakura,
+	AtCommand_Save,
+	AtCommand_Send,
+	AtCommand_SendMail,
+	AtCommand_ServerTime,
+	AtCommand_SetBattleFlag,
+	AtCommand_ShowDelay,
+	AtCommand_ShowExp,
+	AtCommand_Shownpc,
+	AtCommand_Shuffle,
+	AtCommand_Size,
+	AtCommand_Skillid,
+	AtCommand_SkillOff,
+	AtCommand_SkillOn,
+	AtCommand_SkillPoint,
+	AtCommand_SkillReset,
+	AtCommand_SkillTree,
+	AtCommand_Snow,
+	AtCommand_Sound,
+	AtCommand_Spawn,
+	AtCommand_Speed,
+	AtCommand_SpiritBall,
+	AtCommand_StatAll,
+	AtCommand_Status,
+	AtCommand_StatusPoint,
+	AtCommand_StatusReset,
+	AtCommand_Storage,
+	AtCommand_StorageList,
+	AtCommand_Storeall,
+	AtCommand_Summon,
+	AtCommand_Trade,
+	AtCommand_UnDisguise,
+	AtCommand_UndisguiseAll,
+	AtCommand_UnJail,
+	AtCommand_Unloadnpc,
+	AtCommand_UnMute,
+	AtCommand_UpTime,
+	AtCommand_Users,
+	AtCommand_Useskill,
+	AtCommand_Version,
+	AtCommand_Where,
 	AtCommand_Who,
 	AtCommand_Who2,
 	AtCommand_Who3,
+	AtCommand_WhoGM,
 	AtCommand_WhoMap,
 	AtCommand_WhoMap2,
 	AtCommand_WhoMap3,
-	AtCommand_WhoGM,
-	AtCommand_Save,
-	AtCommand_Load,
-	AtCommand_Speed,
-	AtCommand_Storage,
-	AtCommand_GuildStorage,
-	AtCommand_Option,
-	AtCommand_Hide,
-	AtCommand_JobChange,
-	AtCommand_JobChange2,
-	AtCommand_JobChange3,
-	AtCommand_Die,
-	AtCommand_Kill,
-	AtCommand_Alive,
-	AtCommand_Kami,
-	AtCommand_KamiB,
-	AtCommand_Heal,
-	AtCommand_Item,
-	AtCommand_Item2,
-	AtCommand_ItemReset,
-	AtCommand_ItemCheck,
-	AtCommand_BaseLevelUp,
-	AtCommand_JobLevelUp,
-	AtCommand_H,
-	AtCommand_Help,
-	AtCommand_GM,
-	AtCommand_PvPOff,
-	AtCommand_PvPOn,
-	AtCommand_GvGOff,
-	AtCommand_GvGOn,
-	AtCommand_Model,
-	AtCommand_Go,
-	AtCommand_Spawn,
-	AtCommand_Monster,
-	AtCommand_MonsterSmall,
-	AtCommand_MonsterBig,
-	AtCommand_KillMonster,
-	AtCommand_KillMonster2,
-	AtCommand_Refine,
-	AtCommand_Produce,
-	AtCommand_Memo,
-	AtCommand_GAT,
-	AtCommand_Packet,
-	AtCommand_StatusPoint,
-	AtCommand_SkillPoint,
+	AtCommand_WhoZeny,
 	AtCommand_Zeny,
-	AtCommand_Param,
-	AtCommand_Strength,
-	AtCommand_Agility,
-	AtCommand_Vitality,
-	AtCommand_Intelligence,
-	AtCommand_Dexterity,
-	AtCommand_Luck,
-	AtCommand_GuildLevelUp,
-	AtCommand_MakeEgg,
-	AtCommand_PetFriendly,
-	AtCommand_PetHungry,
-	AtCommand_PetRename,
-	AtCommand_Recall,
-	AtCommand_Revive,
-	AtCommand_CharacterStatsAll,
-	AtCommand_CharacterLoad,
-	AtCommand_Night,
-	AtCommand_Day,
-	AtCommand_Doom,
-	AtCommand_DoomMap,
-	AtCommand_Raise,
-	AtCommand_RaiseMap,
-	AtCommand_Kick,
-	AtCommand_KickAll,
-	AtCommand_AllSkill,
-	AtCommand_QuestSkill,
-	AtCommand_LostSkill,
-	AtCommand_SpiritBall,
-	AtCommand_Party,
-	AtCommand_Guild,
-	AtCommand_AgitStart,
-	AtCommand_AgitEnd,
-	AtCommand_MapExit,
-	AtCommand_IDSearch,
-	AtCommand_CharSkReset,
-	AtCommand_CharStReset,
-	//by chbrules
-	AtCommand_CharModel, 
-	AtCommand_CharSKPoint,
-	AtCommand_CharSTPoint, 
-//	AtCommand_CharZeny, //now #zeny
-	AtCommand_RecallAll,
-	AtCommand_ReloadItemDB,
-	AtCommand_ReloadMobDB,
-	AtCommand_ReloadSkillDB,
-	AtCommand_ReloadScript,
-	AtCommand_ReloadGMDB,
-	AtCommand_ReloadAtcommand,
-	AtCommand_ReloadBattleConf,
-	AtCommand_ReloadStatusDB,
-	AtCommand_ReloadPcDB,
-	AtCommand_MapInfo,
-	AtCommand_Dye,
-	AtCommand_Hstyle,
-	AtCommand_Hcolor,
-	AtCommand_StatAll,
-	AtCommand_CharBlock, // by Yor
-	AtCommand_CharBan, // by Yor
-	AtCommand_CharUnBlock, // by Yor
-	AtCommand_CharUnBan, // by Yor
-	AtCommand_MountPeco, // by Valaris
-	AtCommand_CharMountPeco, // by Yor
-	AtCommand_GuildSpy, // [Syrus22]
-	AtCommand_PartySpy, // [Syrus22]
-	AtCommand_RepairAll, // [Valaris]
-	AtCommand_GuildRecall, // by Yor
-	AtCommand_PartyRecall, // by Yor
-	AtCommand_Nuke,	// [Valaris]
-	AtCommand_Shownpc,
-	AtCommand_Hidenpc,
-	AtCommand_Loadnpc,
-	AtCommand_Unloadnpc,
-	AtCommand_ServerTime, // by Yor
-	AtCommand_CharDelItem, // by Yor
-	AtCommand_Jail, // by Yor
-	AtCommand_UnJail, // by Yor
-	AtCommand_Disguise, // [Valaris]
-	AtCommand_UnDisguise, // by Yor
-	AtCommand_CharDisguise, // Kalaspuff
-	AtCommand_CharUnDisguise, // Kalaspuff
-	AtCommand_EMail, // by Yor
-	AtCommand_Hatch,
-	AtCommand_Effect, // by Apple
-// 	AtCommand_Char_Item_List, // by Yor, now #itemlist
-//	AtCommand_Char_Storage_List, // by Yor, now #storagelist
-	AtCommand_Char_Cart_List, // by Yor
-	AtCommand_AddWarp, // by MouseJstr
-	AtCommand_Follow, // by MouseJstr
-	AtCommand_SkillOn, // by MouseJstr
-	AtCommand_SkillOff, // by MouseJstr
-	AtCommand_Killer, // by MouseJstr
-	AtCommand_NpcMove, // by MouseJstr
-	AtCommand_Killable, // by MouseJstr
-	AtCommand_CharKillable, // by MouseJstr
-//	AtCommand_Chareffect, // by MouseJstr, now #effect
-	AtCommand_Dropall, // by MouseJstr
-	AtCommand_Chardropall, // by MouseJstr
-	AtCommand_Storeall, // by MouseJstr
-	AtCommand_Charstoreall, // by MouseJstr
-	AtCommand_Skillid, // by MouseJstr
-	AtCommand_Useskill, // by MouseJstr
-	AtCommand_Summon,
-	AtCommand_Rain,
-	AtCommand_Snow,
-	AtCommand_Sakura,
-	AtCommand_Clouds,
-	AtCommand_Clouds2,
-	AtCommand_Fog,
-	AtCommand_Fireworks,
-	AtCommand_Leaves,
-	AtCommand_AdjGmLvl, // MouseJstr
-	AtCommand_AdjCmdLvl, // MouseJstr
-	AtCommand_Trade, // MouseJstr
-	AtCommand_Send,
-	AtCommand_SetBattleFlag,
-	AtCommand_UnMute,
-	AtCommand_Clearweather, // by Dexity
-	AtCommand_UpTime, // by MC Cameri
-	AtCommand_ChangeSex, // by MC Cameri
-	AtCommand_Mute, // [celest]
-	AtCommand_WhoZeny, // [Valaris] <-- LOL...(MC Cameri) worth it.
-	AtCommand_HappyHappyJoyJoy, // [Valaris]
-	AtCommand_Refresh, // by MC Cameri
-	AtCommand_PetId, // by MC Cameri
-	AtCommand_Identify, // by MC Cameri
-	AtCommand_Gmotd, // Added by MC Cameri, created by davidsiaw
-	AtCommand_MiscEffect, // by MC Cameri
-	AtCommand_MobSearch,
-	AtCommand_CleanMap,
-	AtCommand_NpcTalk,
-	AtCommand_PetTalk,
-	AtCommand_Users,
-
-	AtCommand_CheckMail, // [Valaris]
-	AtCommand_ListMail, // [Valaris]
-	AtCommand_ListNewMail, // [Valaris]
-	AtCommand_ReadMail, // [Valaris]
-	AtCommand_SendMail, // [Valaris]
-	AtCommand_DeleteMail, // [Valaris]
-	AtCommand_SendPriorityMail, // [Valaris]
-	AtCommand_RefreshOnline, // [Valaris]
-
-	AtCommand_SkillTree, // by MouseJstr
-	AtCommand_Marry, // by MouseJstr
-	AtCommand_Divorce, // by MouseJstr
-	AtCommand_Grind, // by MouseJstr
-	AtCommand_Grind2, // by MouseJstr
-
-	AtCommand_Me, //added by massdriller, code by lordalfa
-
-	AtCommand_DMStart, // by MouseJstr
-	AtCommand_DMTick, // by MouseJstr
-
-	AtCommand_JumpToId, // by Dino9021
-	AtCommand_JumpToId2, // by Dino9021
-	AtCommand_RecallId, // by Dino9021
-	AtCommand_RecallId2, // by Dino9021
-	AtCommand_KickId, // by Dino9021
-	AtCommand_KickId2, // by Dino9021
-	AtCommand_ReviveId, // by Dino9021
-	AtCommand_ReviveId2, // by Dino9021
-	AtCommand_KillId, // by Dino9021
-	AtCommand_KillId2, // by Dino9021
-	AtCommand_CharKillableId, // by Dino9021
-	AtCommand_CharKillableId2, // by Dino9021
-	AtCommand_Sound,
-	AtCommand_UndisguiseAll,
-	AtCommand_DisguiseAll,
-	AtCommand_ChangeLook,
-	AtCommand_AutoLoot, //by Upa-Kun
-	AtCommand_MobInfo, //by Lupus
-	AtCommand_Adopt, // by Veider
-	AtCommand_Version, // by Ancyker
-	AtCommand_MuteArea, // MouseJstr
-	AtCommand_Shuffle, // MouseJstr
-	AtCommand_Rates, // MouseJstr
-
-	AtCommand_ItemInfo, // Lupus
-	AtCommand_MapFlag, // Lupus
-
-	AtCommand_FakeName, // [Valaris]
-	AtCommand_Size, // [Valaris]
-	AtCommand_ShowDelay,
-	AtCommand_ShowExp,
-	AtCommand_MonsterIgnore,
-
-
-
-	// End. No more commans after this line.
+	
 	AtCommand_Unknown,
 	AtCommand_MAX
 };
-typedef bool (*atcommand_function)(int, struct map_session_data&, const char* command, const char* message);
 
+///////////////////////////////////////////////////////////////////////////////
+/// function proto
+typedef bool (*atcommand_function)(int fd, struct map_session_data& sd, const char* command, const CParameterList& param);
+
+///////////////////////////////////////////////////////////////////////////////
+/// stores command entries
 struct AtCommandInfo
 {
-	AtCommandType type;
-	const char* command;
-	unsigned char level;
-	atcommand_function proc;
+	AtCommandType type;			///< for searching by type
+	const char* command;		///< for searching by name
+	unsigned char level;		///< required execution level
+	unsigned char param;		///< number input parameters (including optional)
+	unsigned char option;		///< can process a different char
+	// still 1 char left
+	atcommand_function proc;	///< function pointer
+
+	static char command_symbol;
 };
 
 
 
-AtCommandType is_atcommand(int fd, struct map_session_data &sd, const char* message, unsigned char gmlvl);
+bool is_atcommand(int fd, struct map_session_data &sd, const char* message, unsigned char gmlvl_override=0);
 unsigned char get_atcommand_level(const AtCommandType type);
 
 bool atcommand_config_read(const char *cfgName);
 
-bool atcommand_item(int fd, struct map_session_data &sd, const char* command, const char* message); // [Valaris]
-bool atcommand_rura(int fd, struct map_session_data &sd, const char* command, const char* message); // [Yor]
-bool atcommand_spawn(int fd, struct map_session_data &sd, const char* command, const char* message); // [Valaris]
-bool atcommand_jumpto(int fd, struct map_session_data &sd, const char* command, const char* message); // [Yor]
-bool atcommand_recall(int fd, struct map_session_data &sd, const char* command, const char* message); // [Yor]
 
 
-const char* job_name(int class_);
-
-#define MAX_MSG 1000
-const char *msg_txt(size_t msg_number); // [Yor]
-bool msg_config_read(const char *cfgName);
-void do_final_msg();
+bool atcommand_item(int fd, struct map_session_data& sd, const char* command, const CParameterList& param);
+bool atcommand_mapmove(int fd, struct map_session_data& sd, const char* command, const CParameterList& param);
+bool atcommand_spawn(int fd, struct map_session_data& sd, const char* command, const CParameterList& param);
+bool atcommand_jumpto(int fd, struct map_session_data &sd, const char* command, const CParameterList& param);
+bool atcommand_recall(int fd, struct map_session_data &sd, const char* command, const CParameterList& param);
+bool atcommand_kickall(int fd, struct map_session_data& sd, const char* command, const CParameterList& param);
 
 
 

@@ -136,23 +136,23 @@ protected:
 	string<> mysqldb_pw;	///< password
 	string<> mysqldb_db;	///< database
 	string<> mysqldb_ip;	///< server ip
+	string<> mysqldb_cp;	///< code page
 	ushort   mysqldb_port;	///< server port
 
 public:
 	/// constructor.
 	CMySQL();
 	/// constructor with initialisation.
-	CMySQL(const string<>& id, const string<>& pw, const string<>& db, const string<>& ip, const ushort port)
+	CMySQL(const string<>& id, const string<>& pw, const string<>& db, const string<>& ip, const ushort port, const string<>& cp=nullstring)
 		: cDBPool(*this)	// initialize the first database object
 	{
-		this->init(id, pw, db, ip, port);
+		this->init(id, pw, db, ip, port, cp);
 	}
 	/// destructor.
 	virtual ~CMySQL();
 	
 	/// initialisation.
-	bool init(const string<>& id, const string<>& pw, const string<>& db, const string<>& ip, const ushort port);
-
+	bool init(const string<>& id, const string<>& pw, const string<>& db, const string<>& ip, const ushort port, const string<>& cp=nullstring);
 
 	/// aquire a database connection.
 	DBConnection& aquire()				{ return this->cDBPool.aquire(); }

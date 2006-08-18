@@ -120,11 +120,11 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-#define OPTION_MASK 0xd7b8
-#define CART_MASK 0x788
-#define STATE_BLIND 0x10
-#define MAX_SKILL_TREE 53
-#define MOBID_EMPERIUM 1288
+#define OPTION_MASK		0xd7b8
+#define CART_MASK		0x788
+#define STATE_BLIND		0x10
+#define MAX_SKILL_TREE	53
+#define MOBID_EMPERIUM	1288
 
 ///////////////////////////////////////////////////////////////////////////////
 #define EFFECT_FOG		515
@@ -1116,7 +1116,7 @@ struct map_session_data : public fightable, public session_data
 		if(p) free(p);
 	}
 
-	map_session_data(int fdi=0, int packver=0, uint32 account_id=0, uint32 char_id=0, uint32 login_id1=0, uint32 login_id2=0, uint32 client_tick=0, unsigned char sex=0);
+	map_session_data(int fdi, int packver, uint32 account_id, uint32 char_id, uint32 login_id1, uint32 login_id2, uint32 client_tick, unsigned char sex);
 	virtual ~map_session_data()
 	{}
 
@@ -1903,6 +1903,10 @@ struct mapgat // values from .gat &
 	unsigned char moonlit : 1;	// 1bit for moonlit
 	unsigned char regen : 1;	// 1bit for regen
 	unsigned char _unused : 6;	// 6 bits left
+
+	mapgat() :
+		type(0),npc(0),basilica(0),moonlit(0),regen(0),_unused(0)
+	{}
 };
 // will alloc a short now
 
@@ -1927,10 +1931,6 @@ struct map_data
 			cnt_mob(0)
 		{}
 	} *objects;
-//	struct block_list **block;
-//	struct block_list **block_mob;
-//	int *block_count;
-//	int *block_mob_count;
 	int m;
 	unsigned short xs;
 	unsigned short ys;
@@ -1939,7 +1939,7 @@ struct map_data
 	int wh;
 	size_t npc_num;
 	size_t users;
-	struct
+	struct mapflags
 	{
 		unsigned nomemo : 1;					//  0
 		unsigned noteleport : 1;				//  1
@@ -1955,7 +1955,7 @@ struct map_data
 		unsigned pvp_nocalcrank : 1;			// 11
 		unsigned gvg : 1;						// 12
 		unsigned gvg_noparty : 1;				// 13
-		unsigned gvg_dungeon : 1;				// 14 // celest
+		unsigned gvg_dungeon : 1;				// 14
 		unsigned nozenypenalty : 1;				// 15 (byte 2)
 		unsigned notrade : 1;					// 16
 		unsigned noskill : 1;					// 17
@@ -1964,19 +1964,19 @@ struct map_data
 		unsigned nopvp : 1;						// 20
 		unsigned noicewall : 1;					// 21
 		unsigned snow : 1;						// 22
-		unsigned rain : 1;						// 23
+		unsigned rain : 1;						// 23 (byte 3)
 		unsigned sakura : 1;					// 24
 		unsigned leaves : 1;					// 25
-		unsigned clouds : 1;					// 26 (byte 3)
+		unsigned clouds : 1;					// 26
 		unsigned clouds2 : 1;					// 27
 		unsigned fog : 1;						// 28
 		unsigned fireworks : 1;					// 29
 		unsigned indoors : 1;					// 30
-		unsigned nogo : 1;						// 31
-		unsigned nobaseexp	: 1;				// 32 (byte 4) // [Lorky] added by Lupus
-		unsigned nojobexp	: 1;				// 33 // [Lorky]
-		unsigned nomobloot	: 1;				// 34 // [Lorky]				
-		unsigned nomvploot	: 1;				// 35 // [Lorky]		
+		unsigned nogo : 1;						// 31 (byte 4)
+		unsigned nobaseexp	: 1;				// 32
+		unsigned nojobexp	: 1;				// 33
+		unsigned nomobloot	: 1;				// 34
+		unsigned nomvploot	: 1;				// 35
 		unsigned _unused : 4;					// 36-39 (byte 5)
 	} flag;
 	struct point save;
@@ -2200,14 +2200,14 @@ void clear_moblist(unsigned short m);
 void map_spawnmobs(unsigned short m);		// [Wizputer]
 void map_removemobs(unsigned short m);		// [Wizputer]
 
-extern char *LOG_CONF_NAME;
-extern char *MAP_CONF_NAME;
-extern char *BATTLE_CONF_FILENAME;
-extern char *ATCOMMAND_CONF_FILENAME;
-extern char *CHARCOMMAND_CONF_FILENAME;
-extern char *SCRIPT_CONF_NAME;
-extern char *MSG_CONF_NAME;
-extern char *GRF_PATH_FILENAME;
+extern const char *LOG_CONF_NAME;
+extern const char *MAP_CONF_NAME;
+extern const char *BATTLE_CONF_FILENAME;
+extern const char *ATCOMMAND_CONF_FILENAME;
+extern const char *CHARCOMMAND_CONF_FILENAME;
+extern const char *SCRIPT_CONF_NAME;
+extern const char *MSG_CONF_NAME;
+extern const char *GRF_PATH_FILENAME;
 
 
 void char_online_check(void); // [Valaris]

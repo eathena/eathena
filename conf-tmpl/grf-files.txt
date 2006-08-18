@@ -12,3 +12,44 @@ grf: C:\Program Files\Gravity\RO\sdata.grf
 
 // Data Directory
 //data_dir: C:\Program Files\Gravity\RO\
+
+
+//data_dir_priority = 0
+
+// some new behaviour
+//
+// in general archives are loaded with increasing priority
+// so the first given grf has lowest (priority=0)
+// and it's data will be shaddowed by any succeeding archives
+// same is true with all other archives
+// 
+// the data_dir is no longer dominant,
+// but the priority can be specified explicitely or implicitely
+//
+// explicit specification is by the parameter "data_dir_priority" 
+//
+// so a setup like:
+//
+// data_dir = ./
+// data_dir_priority = 2
+//
+// grf      = data1.grf  // gets priority 0
+// grf      = data2.grf  // gets priority 1
+// grf      = data3.grf  // gets priority 2
+//
+// allowes the datafolder to shaddow data from the data0 and data1 archive
+// but not from data2, since datafolder priority is not larger
+// than the data2 priority
+//
+//
+// implicit specification is done by order of lines, without specifying
+// the parameter "data_dir_priority" 
+//
+// so a setup like:
+//
+// grf      = data1.grf  // gets priority 0
+// grf      = data2.grf  // gets priority 1
+// data_dir = ./         // automatically gets priority 2 when inserted here
+// grf      = data3.grf  // gets priority 2
+//
+// would have the same outcome than the explicit specification

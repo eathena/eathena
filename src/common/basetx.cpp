@@ -750,10 +750,10 @@ bool CGuildDB_mem::insertGuild(const struct guild_member &member, const char *na
 
 		tmp.guild_id = guild_id;
 		tmp.member[0] = member;
-		safestrcpy(tmp.master, member.name, sizeof(tmp.master));
+		safestrcpy(tmp.master, sizeof(tmp.master), member.name);
 		tmp.position[0].mode=0x11;
-		safestrcpy(tmp.position[0].name,"GuildMaster", sizeof(tmp.position[0].name));
-		safestrcpy(tmp.position[MAX_GUILDPOSITION-1].name,"Newbie", sizeof(tmp.position[0].name));
+		safestrcpy(tmp.position[0].name, sizeof(tmp.position[0].name),"GuildMaster");
+		safestrcpy(tmp.position[MAX_GUILDPOSITION-1].name, sizeof(tmp.position[0].name),"Newbie");
 		for(i=1; i<MAX_GUILDPOSITION-1; ++i)
 			snprintf(tmp.position[i].name,sizeof(tmp.position[0].name),"Position %ld",(unsigned long)(i+1));
 
@@ -1031,8 +1031,8 @@ bool CPartyDB_mem::insertParty(uint32 accid, const char *nick, const char *mapna
 		temp.expshare = 0;
 		temp.itemshare = 0;
 		temp.member[0].account_id = accid;
-		safestrcpy(temp.member[0].name, nick, sizeof(temp.member[0].name));
-		safestrcpy(temp.member[0].mapname, mapname, sizeof(temp.member[0].mapname));
+		safestrcpy(temp.member[0].name, sizeof(temp.member[0].name), nick);
+		safestrcpy(temp.member[0].mapname, sizeof(temp.member[0].mapname), mapname);
 		char*ip = strchr(temp.member[0].mapname,'.');
 		if(ip) *ip=0;
 
@@ -1652,11 +1652,11 @@ bool CAccountDB_txt::do_readAccounts()
 				CLoginAccount temp;
 
 				temp.account_id = account_id;
-				safestrcpy(temp.userid, userid, sizeof(temp.userid));
+				safestrcpy(temp.userid, sizeof(temp.userid), userid);
 
 				pass[23] = '\0';
 				remove_control_chars(pass);
-				safestrcpy(temp.passwd, pass, sizeof(temp.passwd));
+				safestrcpy(temp.passwd, sizeof(temp.passwd), pass);
 				temp.sex = (basics::upcase(sex) == 'S') ? 2 : (basics::upcase(sex) == 'M');
 				if (temp.sex == 2)
 					server_count++;
@@ -1665,10 +1665,10 @@ bool CAccountDB_txt::do_readAccounts()
 				if( !email_check(email) )
 				{
 					ShowWarning("Account %s (%d): invalid e-mail (replaced with a@a.com).\n", userid, account_id);
-					safestrcpy(temp.email, "a@a.com", sizeof(temp.email));
+					safestrcpy(temp.email, sizeof(temp.email), "a@a.com");
 				}
 				else
-					safestrcpy(temp.email, email, sizeof(temp.email));
+					safestrcpy(temp.email, sizeof(temp.email), email);
 
 				if( gmlist.find( CMapGM(account_id),0,pos) )
 				{	// gm list value overwrites stored values from db
@@ -1688,7 +1688,7 @@ bool CAccountDB_txt::do_readAccounts()
 					lastlogin[0] = 0;// remove defaults
 				else
 					remove_control_chars(lastlogin);
-				safestrcpy(temp.last_login, lastlogin, sizeof(temp.last_login));
+				safestrcpy(temp.last_login, sizeof(temp.last_login), lastlogin);
 
 				last_ip[15] = '\0';
 				remove_control_chars(last_ip);
@@ -1724,7 +1724,7 @@ bool CAccountDB_txt::do_readAccounts()
 					}
 					memo[31] = '\0';
 					remove_control_chars(memo);
-					safestrcpy(temp.account_reg2[j].str, memo, sizeof(temp.account_reg2[0].str));
+					safestrcpy(temp.account_reg2[j].str, sizeof(temp.account_reg2[0].str), memo);
 					temp.account_reg2[j].value = v;
 				}
 				temp.account_reg2_num = j;
@@ -1939,8 +1939,9 @@ int CCharDB_txt::char_to_str(char *str, size_t sz, const CCharCharacter &p)
 
 	point last_point = p.last_point;
 
-	if (last_point.mapname[0] == '\0') {
-		safestrcpy(last_point.mapname, "prontera", 16);
+	if (last_point.mapname[0] == '\0')
+	{
+		safestrcpy(last_point.mapname, sizeof(last_point.mapname), "prontera");
 		last_point.x = 273;
 		last_point.y = 354;
 	}
@@ -2483,7 +2484,7 @@ bool CCharDB_txt::char_from_str(const char *str)
 			}
 			if( i<GLOBAL_REG_NUM )
 			{
-				safestrcpy(p.global_reg[i].str, valstr, sizeof(p.global_reg[i].str));
+				safestrcpy(p.global_reg[i].str, sizeof(p.global_reg[i].str), valstr);
 				p.global_reg[i].value = val;
 			}
 			next += len;
@@ -2820,7 +2821,7 @@ bool CCharDB_txt::readMail(uint32 cid, uint32 mid, CMail& mail)
 
 	if(ret)
 	{	
-		safestrcpy(mail.name, (cid==tid)?sname:tname, sizeof(mail.name));
+		safestrcpy(mail.name, sizeof(mail.name), (cid==tid)?sname:tname);
 		mail.msgid = mmid;
 		mail.read = iter.Flag();
 		mail.sendtime = stime;
@@ -2883,10 +2884,10 @@ bool CCharDB_txt::sendMail(uint32 senderid, const char* sendername, const char* 
 			time_t stime = time(NULL);
 			stime = mktime(localtime(&stime));
 
-			replacecpy(sname, sendername, 24);
-			replacecpy(tname, targetname, 24);
-			replacecpy(h,     head,       32);
-			replacecpy(b,     body,       80);
+			replacecpy(sname, 24, sendername);
+			replacecpy(tname, 24, targetname);
+			replacecpy(h,     32, head);
+			replacecpy(b,     80, body);
 			
 			// sscanf cannot handle empty/whitespaced strings
 			// so just put in something harmless
@@ -2947,10 +2948,10 @@ bool CGuildDB_txt::string2guild(const char *str, CGuild &g)
 	g.exp = tmp_int[3];
 	g.skill_point = tmp_int[4];
 	//g.castle_id = tmp_int[5]; just skip it
-	safestrcpy(g.name, tmp_str[0], sizeof(g.name));
-	safestrcpy(g.master, tmp_str[1], sizeof(g.master));
-	safestrcpy(g.mes1, tmp_str[2], sizeof(g.mes1));
-	safestrcpy(g.mes2, tmp_str[3], sizeof(g.mes2));
+	safestrcpy(g.name, sizeof(g.name), tmp_str[0]);
+	safestrcpy(g.master, sizeof(g.master), tmp_str[1]);
+	safestrcpy(g.mes1, sizeof(g.mes1), tmp_str[2]);
+	safestrcpy(g.mes2, sizeof(g.mes2), tmp_str[3]);
 
 	// remove the default chars
 	for(pstr = g.mes1+strlen(g.mes1)-1; pstr>=g.mes1 && *pstr=='#'; --pstr) *pstr=0;
@@ -2980,7 +2981,7 @@ bool CGuildDB_txt::string2guild(const char *str, CGuild &g)
 		g.member[i].exp			= tmp_int[7];
 		g.member[i].exp_payper	= tmp_int[8];
 		g.member[i].position	= tmp_int[9];
-		safestrcpy(g.member[i].name, tmp_str[0], sizeof(g.member[i].name));
+		safestrcpy(g.member[i].name, sizeof(g.member[i].name), tmp_str[0]);
 
 		for(j=0; j<2 && str!=NULL; ++j)	// 位置スキップ
 			str = strchr(str+1, '\t');
@@ -2996,7 +2997,7 @@ bool CGuildDB_txt::string2guild(const char *str, CGuild &g)
 			return false;
 		g.position[i].mode		= tmp_int[0];
 		g.position[i].exp_mode	= tmp_int[1];
-		safestrcpy(g.position[i].name, tmp_str[0], sizeof(g.position[i].name));
+		safestrcpy(g.position[i].name, sizeof(g.position[i].name), tmp_str[0]);
 
 		for(pstr = g.position[i].name+strlen(g.position[i].name)-1; pstr>=g.position[i].name && *pstr=='#'; --pstr) *pstr=0;
 
@@ -3049,7 +3050,7 @@ bool CGuildDB_txt::string2guild(const char *str, CGuild &g)
 			return false;
 		g.alliance[i].guild_id		= tmp_int[0];
 		g.alliance[i].opposition	= tmp_int[1];
-		safestrcpy(g.alliance[i].name, tmp_str[0], sizeof(g.alliance[i].name));
+		safestrcpy(g.alliance[i].name, sizeof(g.alliance[i].name), tmp_str[0]);
 
 		for(j=0; j<2 && str!=NULL; ++j)	// 位置スキップ
 			str = strchr(str + 1, '\t');
@@ -3071,9 +3072,9 @@ bool CGuildDB_txt::string2guild(const char *str, CGuild &g)
 		g.explusion[i].rsv1 = tmp_int[1];
 		g.explusion[i].rsv2 = tmp_int[2];
 		g.explusion[i].rsv3 = tmp_int[3];
-		safestrcpy(g.explusion[i].name, tmp_str[0], sizeof(g.explusion[i].name));
-		safestrcpy(g.explusion[i].acc, tmp_str[1], sizeof(g.explusion[i].acc));
-		safestrcpy(g.explusion[i].mes, tmp_str[2], sizeof(g.explusion[i].mes));
+		safestrcpy(g.explusion[i].name, sizeof(g.explusion[i].name), tmp_str[0]);
+		safestrcpy(g.explusion[i].acc, sizeof(g.explusion[i].acc), tmp_str[1]);
+		safestrcpy(g.explusion[i].mes, sizeof(g.explusion[i].mes), tmp_str[2]);
 
 		for(j=0; j<4 && str!=NULL; ++j)	// 位置スキップ
 			str = strchr(str+1, '\t');
@@ -3472,7 +3473,7 @@ bool CPartyDB_txt::party_from_string(const char *str, CParty &p)
 		return false;
 
 	p.party_id = tmp_int[0];
-	safestrcpy(p.name, tmp_str, sizeof(p.name));
+	safestrcpy(p.name, sizeof(p.name), tmp_str);
 	p.expshare = tmp_int[1];
 	p.itemshare = tmp_int[2];
 	for(j=0; j<3 && str != NULL; ++j)
@@ -3488,7 +3489,7 @@ bool CPartyDB_txt::party_from_string(const char *str, CParty &p)
 
 		m.account_id = tmp_int[0];
 		m.leader = tmp_int[1];
-		safestrcpy(m.name, tmp_str, sizeof(m.name));
+		safestrcpy(m.name, sizeof(m.name), tmp_str);
 		for(j=0; j<2 && str != NULL; ++j)
 			str = strchr(str + 1, '\t');
 	}
@@ -4025,7 +4026,7 @@ bool CPetDB_txt::pet_from_string(const char *str, CPet &pet)
 	{
 		pet.pet_id = tmp_int[0];
 		pet.class_ = tmp_int[1];
-		safestrcpy(pet.name,tmp_str,24);
+		safestrcpy(pet.name, sizeof(pet.name), tmp_str);
 		pet.account_id = tmp_int[2];
 		pet.char_id = tmp_int[3];
 		pet.level = tmp_int[4];
@@ -4217,7 +4218,7 @@ bool CHomunculusDB_txt::homunculus_from_string(const char *str, CHomunculus &hom
 		hom.account_id		= tmp_int[ 1];
 		hom.char_id			= tmp_int[ 2];
 		hom.base_exp		= tmp_int[ 3];
-		safestrcpy(hom.name, tmp_str, sizeof(hom.name));
+		safestrcpy(hom.name, sizeof(hom.name), tmp_str);
 		hom.hp				= tmp_int[ 4];
 		hom.max_hp			= tmp_int[ 5];
 		hom.sp				= tmp_int[ 6];

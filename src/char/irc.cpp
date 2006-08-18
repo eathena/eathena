@@ -280,7 +280,7 @@ if(ll)
 								// send irc_announce to map servers
 								WBUFW(buffer,0) = 0x2b38;
 								WBUFW(buffer,2) = 4+sz;
-								safestrcpy((char*)WBUFP(buffer, 4), send_string, sz);
+								safestrcpy((char*)WBUFP(buffer, 4), sz, send_string);
 								mapif_sendall(buffer, 4+sz);
 
 								snprintf(send_string, sizeof(send_string), "%s :Message Sent", header);

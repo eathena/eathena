@@ -7,7 +7,6 @@
 
 
 static inline void pc_setdead(struct map_session_data &sd)	{ sd.state.dead_sit = 1; }
-static inline bool pc_isdead(struct map_session_data &sd)	{ return sd.state.dead_sit == 1; }
 static inline void pc_setsit(struct map_session_data &sd)	{ sd.state.dead_sit = 2; }
 static inline bool pc_issit(struct map_session_data &sd)	{ return sd.state.dead_sit == 2; }
 static inline void pc_setchatid(struct map_session_data &sd, unsigned int chatid)	{ sd.chatID = chatid; }

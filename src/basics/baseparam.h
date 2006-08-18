@@ -28,13 +28,16 @@ public:
 	CConfig(){}
 	virtual ~CConfig(){}
 
-	virtual bool LoadConfig(const char* cfgName);					// Load and parse config
-	virtual bool ProcessConfig(const char*w1,const char*w2) = 0;	// Proccess config
-
-	static int SwitchValue(const char *str, int defaultmin=INT_MIN, int defaultmax=INT_MAX);  // Return 0/1 for no/yes
-	static bool Switch(const char *str, bool defaultval=false);		// Return true/false for yes/no, if unknown return defaultval
-	
-	static bool CleanControlChars(char *str);						// Replace control chars with '_' and return location of change
+	/// load and parse config file.
+	virtual bool LoadConfig(const char* cfgName);
+	// proccess a config entry.
+	virtual bool ProcessConfig(const char*w1,const char*w2) = 0;
+	/// process a value. return 0/1 for no/yes....
+	static int SwitchValue(const char *str, int defaultmin=INT_MIN, int defaultmax=INT_MAX);
+	/// process a boolean. return true/false for yes/no, if unknown return defaultval
+	static bool Switch(const char *str, bool defaultval=false);
+	/// clean a string.
+	static const char* CleanString(char *str);
 };
 
 

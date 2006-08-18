@@ -80,7 +80,7 @@ input @bot;
 next;
 if(@bot == $@bot) goto Lfree;
 mes "Your Answer was incorrect.";
-atcommand strcharinfo(0)+":@kick "+strcharinfo(0);
+gmcommand "kick "+strcharinfo(0);
 end;
 
 Lfree:

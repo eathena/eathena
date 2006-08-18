@@ -151,86 +151,7 @@ int mmo_char_sync_timer(int tid, unsigned long tick, int id, basics::numptr data
 	return 0;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// This function return the name of the job (by [Yor])
-const char* job_name(size_t inx)
-{
-	static const char* names[] ={
-		"Novice",
-		"Swordsman",
-		"Mage",
-		"Archer",
-		"Acolyte",
-		"Merchant",
-		"Thief",
-		"Knight",
-		"Priest",
-		"Wizard",
-		"Blacksmith",
-		"Hunter",
-		"Assassin",
-		"Knight 2",
-		"Crusader",
-		"Monk",
-		"Sage",
-		"Rogue",
-		"Alchemist",
-		"Bard",
-		"Dancer",
-		"Crusader 2",
-		"Wedding",
-		"Super Novice",
-		"Novice High",
-		"Swordsman High",
-		"Mage High",
-		"Archer High",
-		"Acolyte High",
-		"Merchant High",
-		"Thief High",
-		"Lord Knight",
-		"High Priest",
-		"High Wizard",
-		"Whitesmith",
-		"Sniper",
-		"Assassin Cross",
-		"Peko Knight",
-		"Paladin",
-		"Champion",
-		"Professor",
-		"Stalker",
-		"Creator",
-		"Clown",
-		"Gypsy",
-		"Peko Paladin",
-		"Baby Novice",
-		"Baby Swordsman",
-		"Baby Mage",
-		"Baby Archer",
-		"Baby Acolyte",
-		"Baby Merchant",
-		"Baby Thief",
-		"Baby Knight",
-		"Baby Priest",
-		"Baby Wizard",
-		"Baby Blacksmith",
-		"Baby Hunter",
-		"Baby Assassin",
-		"Baby Peco Knight",
-		"Baby Crusader",
-		"Baby Monk",
-		"Baby Sage",
-		"Baby Rogue",
-		"Baby Alchemist",
-		"Baby Bard",
-		"Baby Dancer",
-		"Baby Peco Crusader",
-		"Super Baby"
-		};
 
-	if(inx < sizeof(names)/sizeof(names[0]))
-		return names[inx];
-	return "Unknown Job";
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Function to create the online files (txt and html). by [Yor]
@@ -2262,7 +2183,7 @@ int parse_char(int fd)
 			if (sd == NULL)
 			{
 				session[fd]->user_session = sd = new char_session_data;
-				safestrcpy(sd->email, "no mail", 40); // put here a mail without '@' to refuse deletion if we don't receive the e-mail
+				safestrcpy(sd->email, sizeof(sd->email), "no mail"); // put here a mail without '@' to refuse deletion if we don't receive the e-mail
 				sd->valid_until = 0; // unknow or unlimited (not displaying on map-server)
 			}
 			// send back account_id
@@ -2357,27 +2278,27 @@ int parse_char(int fd)
 						if(j < 0)
 						{
 							if((j = search_mapserver("prontera")) >= 0) { // check is done without 'gat'.
-								safestrcpy(character.last_point.mapname, "prontera", sizeof(character.last_point.mapname));
+								safestrcpy(character.last_point.mapname, sizeof(character.last_point.mapname), "prontera");
 								character.last_point.x = 273; // savepoint coordonates
 								character.last_point.y = 354;
 							} else if((j = search_mapserver("geffen")) >= 0) { // check is done without 'gat'.
-								safestrcpy(character.last_point.mapname, "geffen", 16);
+								safestrcpy(character.last_point.mapname, sizeof(character.last_point.mapname), "geffen");
 								character.last_point.x = 120; // savepoint coordonates
 								character.last_point.y = 100;
 							} else if((j = search_mapserver("morocc")) >= 0) { // check is done without 'gat'.
-								safestrcpy(character.last_point.mapname, "morocc", sizeof(character.last_point.mapname));
+								safestrcpy(character.last_point.mapname, sizeof(character.last_point.mapname), "morocc");
 								character.last_point.x = 160; // savepoint coordonates
 								character.last_point.y = 94;
 							} else if((j = search_mapserver("alberta")) >= 0) { // check is done without 'gat'.
-								safestrcpy(character.last_point.mapname, "alberta", sizeof(character.last_point.mapname));
+								safestrcpy(character.last_point.mapname, sizeof(character.last_point.mapname), "alberta");
 								character.last_point.x = 116; // savepoint coordonates
 								character.last_point.y = 57;
 							} else if((j = search_mapserver("payon")) >= 0) { // check is done without 'gat'.
-								safestrcpy(character.last_point.mapname, "payon", sizeof(character.last_point.mapname));
+								safestrcpy(character.last_point.mapname, sizeof(character.last_point.mapname), "payon");
 								character.last_point.x = 87; // savepoint coordonates
 								character.last_point.y = 117;
 							} else if((j = search_mapserver("izlude")) >= 0) { // check is done without 'gat'.
-								safestrcpy(character.last_point.mapname, "izlude", sizeof(character.last_point.mapname));
+								safestrcpy(character.last_point.mapname, sizeof(character.last_point.mapname), "izlude");
 								character.last_point.x = 94; // savepoint coordonates
 								character.last_point.y = 103;
 							} else {
@@ -2386,7 +2307,7 @@ int parse_char(int fd)
 								{
 									if( session_isActive(server[j].fd) && server[j].map[0][0])
 									{	// change save point to one of map found on the server (the first)
-										safestrcpy(character.last_point.mapname, server[j].map[0], sizeof(character.last_point.mapname));
+										safestrcpy(character.last_point.mapname, sizeof(character.last_point.mapname), server[j].map[0]);
 										ShowMessage("Map-server #%d found with a map: '%s'.\n", j, server[j].map[0]);
 										// coordonates are unknown
 										break;
@@ -2406,7 +2327,7 @@ int parse_char(int fd)
 
 						WFIFOW(fd,0) = 0x71;
 						WFIFOL(fd,2) = character.char_id;
-						mapname2buffer(WFIFOP(fd,6), character.last_point.mapname, 16);
+						mapname2buffer(WFIFOP(fd,6), 16, character.last_point.mapname);
 
 
 						ShowMessage("Character selection '%s' (account: %ld, charid: %ld, slot: %d).\n", 
@@ -2532,7 +2453,7 @@ int parse_char(int fd)
 			char* email = (char*)RFIFOP(fd,6);
 			email[39]=0;
 			if( !email_check(email) )
-				safestrcpy(email, "a@a.com", 40); // default e-mail if incorrect
+				safestrcpy(email, 40, "a@a.com"); // default e-mail if incorrect
 			
 			if( email_creation && session_isActive(login_fd) &&
 				0!=strcmp(email, "a@a.com") && 0==strcmp(sd->email, "a@a.com") )
@@ -2540,7 +2461,7 @@ int parse_char(int fd)
 				// and a non-default email comes in
 				
 				// we save new e-mail
-				safestrcpy(sd->email, email, 40);
+				safestrcpy(sd->email, sizeof(sd->email), email);
 
 				// send changed authentification to login
 				WFIFOW(fd,0) = 0x2750;

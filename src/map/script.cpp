@@ -33,7 +33,7 @@
 #include "party.h"
 #include "guild.h"
 #include "atcommand.h"
-#include "charcommand.h"
+
 
 
 /*==========================================
@@ -237,8 +237,6 @@ int buildin_specialeffect(CScriptEngine &st); // special effect script [Valaris]
 int buildin_specialeffect2(CScriptEngine &st); // special effect script [Valaris]
 int buildin_nude(CScriptEngine &st); // nude [Valaris]
 int buildin_gmcommand(CScriptEngine &st); // [MouseJstr]
-int buildin_atcommand(CScriptEngine &st); // [MouseJstr]
-int buildin_charcommand(CScriptEngine &st); // [MouseJstr]
 int buildin_movenpc(CScriptEngine &st); // [MouseJstr]
 int buildin_message(CScriptEngine &st); // [MouseJstr]
 int buildin_npctalk(CScriptEngine &st); // [Valaris]
@@ -500,8 +498,7 @@ struct {
 	{buildin_inittimer,"inittimer",""},
 	{buildin_stoptimer,"stoptimer",""},
 	{buildin_cmdothernpc,"cmdothernpc","ss"},
-	{buildin_atcommand,"atcommand","*"}, // [MouseJstr]
-	{buildin_charcommand,"charcommand","*"}, // [MouseJstr]
+	{buildin_gmcommand,"gmcommand","*"}, // [MouseJstr]
 	{buildin_movenpc,"movenpc","siis"}, // [MouseJstr]
 	{buildin_message,"message","s*"}, // [MouseJstr]
 	{buildin_npctalk,"npctalk","*"}, // [Valaris]
@@ -1639,45 +1636,6 @@ script_object* parse_script(unsigned char *src, size_t line)
 	ShowMessage("\n");
 #endif
 
-/*
-//!! 
-	{
-	
-		CParser parser;
-		CScript scr = parser.parseScript("",(char*)src,startline);
-
-		size_t i, err=0;
-		for(i=0;i<scr.size(); ++i)
-		{
-			if((unsigned char)script_buf[i] != scr[i])
-			{
-				err=1;
-				break;
-			}
-		}
-		if(err)
-		{
-			ShowMessage("\n");
-			err = min(scr.size(),(size_t)26);
-			for(i=0;i<err; ++i)
-			{
-				if((unsigned char)script_buf[i] != scr[i])
-				ShowMessage(CL_BT_RED"%2X "CL_RESET, (unsigned char)script_buf[i]);
-				else
-				ShowMessage("%2X ", (unsigned char)script_buf[i]);
-			}
-			ShowMessage("\n");
-			for(i=0;i<err; ++i)
-			{
-				if((unsigned char)script_buf[i] != scr[i])
-				ShowMessage(CL_BT_RED"%2X "CL_RESET, scr[i]);
-				else
-				ShowMessage("%2X ", scr[i]);
-			}
-			ShowMessage("\n");
-		}
-	}
-*/
 	// setup the return object
 	scr->script = script_buf;
 	script_buf = NULL;
@@ -2070,7 +2028,7 @@ int CScriptEngine::GetInt(CScriptEngine::CValue &data)
 	ConvertName(data);
 	if( data.isString() )
 	{
-		int val = atoi( data.str );
+		int val = strtol( data.str, NULL, 0 );
 		data.clear();
 
 		data.type=CScriptEngine::C_INT;
@@ -3351,7 +3309,7 @@ int buildin_copyarray(CScriptEngine &st)
 		int sz=st.GetInt(st[4]);
 		int i;
 
-		if( prefix!='$' && prefix!='@' && prefix2!='$' && prefix2!='@' )
+		if( (prefix!='$' && prefix!='@') || (prefix2!='$' && prefix2!='@') )
 		{
 			ShowMessage("buildin_copyarray: illegal scope !\n");
 		}
@@ -4342,7 +4300,7 @@ int buildin_pcstrcharinfo(CScriptEngine &st)
 	else if(num==0)
 	{
 		buf=new char[24];
-		safestrcpy(buf,sd->status.name, 24);
+		safestrcpy(buf,24, sd->status.name);
 		st.push_str(CScriptEngine::C_STR,buf);
 	}
 	else if(num==1)
@@ -6040,7 +5998,7 @@ int buildin_getscrate(CScriptEngine &st)
  */
 int buildin_debugmes(CScriptEngine &st)
 {
-	ShowMessage("script debug : %d %d : %s\n", st.rid, st.oid, st.GetString(st[2]));
+	ShowMessage("script debug (rid=%d oid=%d) : %s\n", st.rid, st.oid, st.GetString(st[2]));
 	return 0;
 }
 
@@ -6425,7 +6383,7 @@ int buildin_setmapflagnosave(CScriptEngine &st)
 //!! broadcast command if not on this mapserver
 	if(m >= 0) {
 		maps[m].flag.nosave=1;
-		safestrcpy(maps[m].save.mapname,str2,16);
+		safestrcpy(maps[m].save.mapname, sizeof(maps[m].save.mapname), str2);
 		char*ip=strchr(maps[m].save.mapname,'.');
 		if(ip) *ip=0;
 		maps[m].save.x=x;
@@ -6878,7 +6836,7 @@ int buildin_getcastlename(CScriptEngine &st)
 			if( strcasecmp(mapname,gc->mapname)==0 )
 			{
 				buf= new char[24];
-				safestrcpy(buf,gc->castle_name,24);//EOS included
+				safestrcpy(buf,24,gc->castle_name);//EOS included
 				break;
 			}
 		}
@@ -7944,40 +7902,53 @@ int buildin_nude(CScriptEngine &st)
 
 /*==========================================
  * gmcommand [MouseJstr]
- *
- * suggested on the forums...
- * splitted into atcommand & charcommand by [Skotlex]
  *------------------------------------------
  */
 int buildin_gmcommand(CScriptEngine &st)
 {
-	struct map_session_data *sd;
-	const char *cmd;
-
-	sd = st.sd;
-	if (!sd)
-		return 0;
-	cmd = st.GetString(st[2]);
-	is_atcommand(sd->fd, *sd, cmd, 99);
-	return 0;
-}
-
-int buildin_atcommand(CScriptEngine &st)
-{
 	if(st.sd)
 	{
 		const char *cmd = st.GetString(st[2]);
-		is_atcommand(st.sd->fd, *st.sd, cmd, 99);
-	}
-	return 0;
-}
+		char buffer[512];
 
-int buildin_charcommand(CScriptEngine &st)
-{
-	if(st.sd)
-	{
-		const char *cmd = st.GetString(st[2]);
-		is_charcommand(st.sd->fd, *st.sd, cmd, 99);
+		//////////////////////////////
+		// security for new command format
+		//## remove at the latest by 12/2006
+		const char *ip = strchr(cmd, ':');
+		if(ip)
+		{
+			cmd = ip;
+			++cmd;
+			while( basics::stringcheck::isspace(*cmd) ) ++cmd;
+		}
+		if( *cmd == '@' || *cmd == '#'  || *cmd == '/' )
+		{
+			ip = cmd;
+			++cmd;
+		}
+		if(ip)
+		{	
+			ShowWarning("invalid use of \"%s\"\n"
+						CL_SPACE"new calling format for gmcommand function is\n"
+						CL_SPACE"\"<command without leading command char> {parameter}\"\n"
+						CL_SPACE"for example: \"summon poring\"\n", st.GetString(st[2]));
+		}
+		//////////////////////////////
+
+		// build the command string
+		int ret = snprintf(buffer, sizeof(buffer), "%s : %c%s", st.sd->status.name, AtCommandInfo::command_symbol, cmd);
+		// add the rest of the script parameters to the string
+		size_t i, sz=0;
+		for(i=3; i<st.Arguments() && ret>=0; ++i)
+		{
+			sz+=ret;
+			ret = snprintf(buffer+sz, sizeof(buffer)-sz, " %s", st.GetString(st[i]));
+		}
+		// make sure it's terminated enven when buffer limit was hit
+		buffer[sizeof(buffer)-1]=0;
+
+		// and call the command processor
+		is_atcommand(st.sd->fd, *st.sd, buffer, 99);
 	}
 	return 0;
 }
@@ -8013,7 +7984,8 @@ int buildin_recovery(CScriptEngine &st)
 				sd->status.sp = sd->status.max_sp;
 				clif_updatestatus(*sd, SP_HP);
 				clif_updatestatus(*sd, SP_SP);
-				if(pc_isdead(*sd)){
+				if( sd->is_dead() )
+				{
 					pc_setstand(*sd);
 					clif_resurrection(*sd, 1);
 				}
@@ -8308,7 +8280,7 @@ int buildin_getsavepoint(CScriptEngine &st)
 	case 0:
 	{
 		char *mapname= new char[24];
-		safestrcpy(mapname,st.sd ? st.sd->status.save_point.mapname : "unknown", 24);
+		safestrcpy(mapname,24,st.sd ? st.sd->status.save_point.mapname : "unknown");
 		st.push_str(CScriptEngine::C_STR,mapname);
 		break;
 	}
@@ -9410,19 +9382,19 @@ int script_config_read(const char *cfgName)
 			script_config.event_script_type = config_switch(w2);
 		}
 		else if(strcasecmp(w1,"die_event_name")==0) {			
-			safestrcpy(script_config.die_event_name, w2,sizeof(script_config.die_event_name));
+			safestrcpy(script_config.die_event_name, sizeof(script_config.die_event_name), w2);
 		}
 		else if(strcasecmp(w1,"kill_event_name")==0) {
-			safestrcpy(script_config.kill_event_name, w2,sizeof(script_config.kill_event_name));
+			safestrcpy(script_config.kill_event_name, sizeof(script_config.kill_event_name), w2);
 		}
 		else if(strcasecmp(w1,"login_event_name")==0) {
-			safestrcpy(script_config.login_event_name, w2,sizeof(script_config.login_event_name));
+			safestrcpy(script_config.login_event_name, sizeof(script_config.login_event_name), w2);
 		}
 		else if(strcasecmp(w1,"logout_event_name")==0) {
-			safestrcpy(script_config.logout_event_name, w2, sizeof(script_config.logout_event_name));
+			safestrcpy(script_config.logout_event_name, sizeof(script_config.logout_event_name), w2);
 		}
 		else if(strcasecmp(w1,"mapload_event_name")==0) {
-			safestrcpy(script_config.mapload_event_name, w2, sizeof(script_config.mapload_event_name));
+			safestrcpy(script_config.mapload_event_name, sizeof(script_config.mapload_event_name), w2);
 		}
 		else if(strcasecmp(w1,"event_requires_trigger")==0) {
 			script_config.event_requires_trigger = config_switch(w2);
@@ -9493,11 +9465,11 @@ int do_init_script()
 {
 	memset(&script_config, 0, sizeof(script_config));
 
-	safestrcpy(script_config.die_event_name    ,"PCDieEvent",sizeof(script_config.die_event_name));
-	safestrcpy(script_config.kill_event_name   ,"PCKillEvent",sizeof(script_config.kill_event_name));
-	safestrcpy(script_config.login_event_name  ,"PCLoginEvent",sizeof(script_config.login_event_name));
-	safestrcpy(script_config.logout_event_name ,"PCLogoutEvent",sizeof(script_config.logout_event_name));
-	safestrcpy(script_config.mapload_event_name,"PCLoadMapEvent",sizeof(script_config.mapload_event_name));
+	safestrcpy(script_config.die_event_name,sizeof(script_config.die_event_name)        ,"PCDieEvent");
+	safestrcpy(script_config.kill_event_name,sizeof(script_config.kill_event_name)      ,"PCKillEvent");
+	safestrcpy(script_config.login_event_name,sizeof(script_config.login_event_name)    ,"PCLoginEvent");
+	safestrcpy(script_config.logout_event_name,sizeof(script_config.logout_event_name)  ,"PCLogoutEvent");
+	safestrcpy(script_config.mapload_event_name,sizeof(script_config.mapload_event_name),"PCLoadMapEvent");
 	script_config.verbose_mode = 0;
 	script_config.warn_func_no_comma = 1;
 	script_config.warn_cmd_no_comma = 1;

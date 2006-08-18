@@ -336,8 +336,8 @@ int mapif_parse_PartyAddMember(int fd, uint32 party_id, uint32 account_id, const
 			if( p.member[i].account_id == 0)
 			{
 				p.member[i].account_id = account_id;
-				safestrcpy(p.member[i].name, nick, 24);
-				safestrcpy(p.member[i].mapname, mapname, 24);
+				safestrcpy(p.member[i].name, sizeof(p.member[i].name), nick);
+				safestrcpy(p.member[i].mapname, sizeof(p.member[i].mapname), mapname);
 				char* ip=strchr(p.member[i].mapname,'.');
 				if(ip) *ip=0;
 
@@ -446,7 +446,7 @@ int mapif_parse_PartyChangeMap(int fd, uint32 party_id, uint32 account_id, const
 		{
 			if (p.member[i].account_id == account_id)
 			{
-				safestrcpy(p.member[i].mapname, mapname, 24);
+				safestrcpy(p.member[i].mapname, sizeof(p.member[i].mapname), mapname);
 				char* ip=strchr(p.member[i].mapname,'.');
 				if(ip) *ip=0;
 

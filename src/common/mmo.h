@@ -15,7 +15,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 #define FIFOSIZE_SERVERLINK	128*1024
 
-#define CMP_AUTHFIFO_IP 1		// set to 0 to not check IP of player between each server.
 #define CMP_AUTHFIFO_LOGIN2 1
 
 #define MAX_MAP_PER_SERVER 1024
@@ -69,14 +68,12 @@ enum fame_t{ FAME_PK=0, FAME_SMITH, FAME_CHEM, FAME_TEAK };
 #define MIN_PORTAL_MEMO 0
 #define MAX_PORTAL_MEMO 2
 
-#define MAX_STATUS_TYPE 5
 
 #define WEDDING_RING_M 2634
 #define WEDDING_RING_F 2635
 
 
 
-#define CHAR_CONF_NAME  "conf/char_athena.conf"
 
 /////////////////////////////////////////////////////////////////////////////
 // guild enums
@@ -117,6 +114,15 @@ enum
 #define MAX_HOM_SKILLID (HOM_SKILLID+MAX_HOMSKILL)	// ホムスキルIDの最大値
 #define MAX_HOMSKILL 16
 
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// class_id to jobname conversion
+const char* job_name(unsigned short class_);
+/// jobname to class_id conversion
+unsigned short job_id(const char *jobname);
+/// is valid jobid
+bool job_isvalid(unsigned short class_);
 
 /////////////////////////////////////////////////////////////////////////////
 // simplified buffer functions with moving buffer pointer 
@@ -536,7 +542,7 @@ struct point
 		{	
 			char *ip=strchr(nbuf, '.');
 			if( ip != NULL ) *ip=0;
-			safestrcpy(mapname, nbuf, sizeof(mapname));
+			safestrcpy(mapname, sizeof(mapname), nbuf);
 			x = nx;
 			y = ny;
 		}
@@ -1312,13 +1318,13 @@ public:
 	CLoginAccount(uint32 accid, const char* uid, const char* pwd, unsigned char sx, const char* em)
 		: CCharAccount(accid)
 	{	// init account data
-		safestrcpy(this->userid, uid, 24);
-		safestrcpy(this->passwd, pwd, 34);
+		safestrcpy(this->userid, sizeof(this->userid), uid);
+		safestrcpy(this->passwd, sizeof(this->passwd), pwd);
 		this->sex = sx;
 		if( !email_check(em) )
-			safestrcpy(this->email, "a@a.com", 40);
+			safestrcpy(this->email, sizeof(this->email), "a@a.com");
 		else
-			safestrcpy(this->email, em, 40);
+			safestrcpy(this->email, sizeof(this->email), em);
 		this->gm_level=0;
 		this->login_count=0;
 		*this->last_login= 0;
@@ -1326,7 +1332,7 @@ public:
 		this->valid_until = 0;
 		this->account_reg2_num=0;
 	}
-	CLoginAccount(const char* uid)		{ safestrcpy(this->userid, uid, sizeof(this->userid));  }
+	CLoginAccount(const char* uid)		{ safestrcpy(this->userid, sizeof(this->userid), uid);  }
 	CLoginAccount(uint32 accid)	{ this->account_id=accid; }
 
 	const CLoginAccount& operator=(const CCharAccount&a)
@@ -1367,8 +1373,8 @@ public:
 	}
 	CMailHead(uint32 id, unsigned char r, const char *n, time_t t, const char *h) : msgid(id), read(r), sendtime(t)
 	{
-		safestrcpy(name,	n, sizeof(name));
-		safestrcpy(head,	h, sizeof(head));
+		safestrcpy(name, sizeof(name),	n);
+		safestrcpy(head, sizeof(head),	h);
 	}
 	~CMailHead()	{}
 	///////////////////////////////////////////////////////////////////////////
@@ -1412,7 +1418,7 @@ public:
 	CMail(uint32 id, unsigned char r, const char *n, const char *h, time_t t, uint32 z, const struct item& i, const char *b)
 		: CMailHead(id, r, n, t, h), zeny(z), item(i)
 	{
-		safestrcpy(body,	b, sizeof(body));
+		safestrcpy(body, sizeof(body),	b);
 	}
 	~CMail()	{}
 
@@ -1483,7 +1489,7 @@ public:
 	~CCharCharacter()		{}
 
 
-	CCharCharacter(const char* n)	{ memset(this, 0, sizeof(CCharCharacter)); server=-1; safestrcpy(this->name, n, sizeof(this->name)); }
+	CCharCharacter(const char* n)	{ memset(this, 0, sizeof(CCharCharacter)); server=-1; safestrcpy(this->name, sizeof(this->name), n); }
 	CCharCharacter(uint32 cid)	{ memset(this, 0, sizeof(CCharCharacter)); server=-1; this->char_id=cid; }
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1540,7 +1546,7 @@ public:
 		{}
 		_fameentry(uint32 c, const char *n, uint32 f) : char_id(c), fame_points(f)
 		{
-			safestrcpy(name,n,sizeof(name));
+			safestrcpy(name,sizeof(name),n);
 		}
 	} fameentry;
 
@@ -1882,7 +1888,7 @@ struct party
 		itemshare(0),
 		itemc(0)
 	{
-		safestrcpy(this->name, n, sizeof(this->name));
+		safestrcpy(this->name,sizeof(this->name), n);
 	}
 };
 extern inline void _party_tobuffer(const struct party &p, uchar *&buf)
@@ -2381,7 +2387,7 @@ public:
 	static CGuildExp cGuildExp;
 
 	CGuild()					{  }
-	CGuild(const char* n)		{ memset(this, 0, sizeof(CGuild)); safestrcpy(this->name, n, sizeof(this->name)); }
+	CGuild(const char* n)		{ memset(this, 0, sizeof(CGuild)); safestrcpy(this->name, sizeof(this->name), n); }
 	CGuild(uint32 gid)			{ memset(this, 0, sizeof(CGuild)); this->guild_id=gid; }
 
 	///////////////////////////////////////////////////////////////////////////

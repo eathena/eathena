@@ -8,7 +8,7 @@ void grfio_init(const char*);					// GRFIO Initialize
 void grfio_final(void);
 int grfio_add(const char*);						// GRFIO Resource file add
 unsigned char* grfio_read(const char*);			// GRFIO data file read
-unsigned char* grfio_reads(const char*, int&);	// GRFIO data file read & size get
+unsigned char* grfio_read(const char*, int&);	// GRFIO data file read & size get
 int grfio_size(const char*);					// GRFIO data file size get
 
 int decode_zip(unsigned char *dest, unsigned long& destLen, const unsigned char* source, unsigned long sourceLen);

@@ -1,22 +1,64 @@
 #include "basetypes.h"
 #include "basesync.h"	// for mutex
+#include "baseparam.h"	// for behavioral parameters
+#include "basefile.h"	// for is_console
 
 #include "showmsg.h"
 
-
-
+///////////////////////////////////////////////////////////////////////////////
 #ifdef __GNUC__ 
 // message convention for gnu compilers
 #warning "INFO: build with gnu compiler, using defines with variable arguments"
-
-#define VPRINTF	vprintf
-#define PRINTF	printf
 
 #else // no __GNUC__ 
 // message convention for visual c compilers
 #pragma message ( "INFO: no gnu compiler, using variable argument functions" )
 
+#endif
+///////////////////////////////////////////////////////////////////////////////
 
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// behavioral parameter.
+/// when true, prints ansi sequences also when redirecting outputs to file
+/// otherwise remove them
+basics::CParam<bool> stdout_with_ansisequence("stdout_with_ansisequence", false);
+
+///////////////////////////////////////////////////////////////////////////////
+/// printing mutex
+static basics::Mutex	mtx;
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// small reallocating temporary printer buffer
+class _tmpbuf
+{
+	size_t sz;
+	char* storage;
+public:
+	_tmpbuf() : sz(256), storage(new char[sz])
+	{ }
+	~_tmpbuf()
+	{
+		delete[] storage;
+	}
+	void realloc()
+	{
+		delete[] storage;
+		sz <<= 1;
+		storage = new char[sz];
+	}
+
+	operator char*()	{ return storage; }
+	size_t size()		{ return sz; }
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+#ifdef WIN32
+///////////////////////////////////////////////////////////////////////////////
 //  ansi compatible printf with control sequence parser for windows
 //  fast hack, handle with care, not everything implemented
 //
@@ -108,41 +150,27 @@ Escape sequences for Select Character Set
 */
 
 
-class _tmpbuf
-{
-	size_t sz;
-	char* storage;
-public:
-	_tmpbuf() : sz(256), storage(new char[sz])
-	{ }
-	~_tmpbuf()
-	{
-		delete[] storage;
-	}
-	void realloc()
-	{
-		delete[] storage;
-		sz <<= 1;
-		storage = new char[sz];
-	}
-
-	operator char*()	{ return storage; }
-	size_t size()		{ return sz; }
-};
-
-
+///////////////////////////////////////////////////////////////////////////////
 int	VPRINTF(const char *fmt, va_list argptr)
 {
-	static HANDLE	handle;
+	/////////////////////////////////////////////////////////////////
+	static HANDLE	handle = GetStdHandle(STD_OUTPUT_HANDLE);;
 	static _tmpbuf tempbuf;
 	static COORD saveposition = {0,0};
-	static basics::Mutex	mtx;
+
+	/////////////////////////////////////////////////////////////////
 	basics::ScopeLock		sl(mtx);
 	unsigned long	written;
 	char *p, *q;
 
-	if (!handle)
-		handle = GetStdHandle(STD_OUTPUT_HANDLE);
+	if(!fmt || !*fmt)
+		return 0;
+
+	if( !basics::is_console(stdout) && stdout_with_ansisequence() )
+	{
+		vfprintf(stdout, fmt, argptr);
+		return 0;
+	}
 
 	for(; vsnprintf(tempbuf, tempbuf.size(), fmt, argptr)<0; tempbuf.realloc());
 	// vsnprintf returns -1 in case of insufficient buffer size
@@ -414,6 +442,9 @@ int	VPRINTF(const char *fmt, va_list argptr)
 						info.dwCursorPosition.X = info.dwSize.X-1;
 					SetConsoleCursorPosition(handle, info.dwCursorPosition);
 				}
+				else if( *q == 'L' || *q == 'M' || *q == '@' || *q == 'P')
+				{	// not implemented, just skip
+				}
 				else
 				{	// no number nor valid sequencer
 					// something is fishy, we break and give the current char free
@@ -441,7 +472,147 @@ int	PRINTF(const char *fmt, ...)
 	return ret;
 }
 
-#endif// no __GNUC__ 
+#else // not WIN32
+
+
+//#define VPRINTF	vprintf
+//#define PRINTF	printf
+
+//vprintf_without_ansiformats
+int	VPRINTF(const char *fmt, va_list argptr)
+{
+	static _tmpbuf tempbuf;
+	basics::ScopeLock		sl(mtx);
+	char *p, *q;
+
+	if(!fmt || !*fmt)
+		return 0;
+
+	if( !basics::is_console(stdout) && stdout_with_ansisequence() )
+	{
+		vfprintf(stdout, fmt, argptr);
+		return 0;
+	}
+
+	for(; vsnprintf(tempbuf, tempbuf.size(), fmt, argptr)<0; tempbuf.realloc());
+	// vsnprintf returns -1 in case of insufficient buffer size
+	// tempbuf.realloc doubles the size of the buffer in this case
+
+	// start with processing
+	p = tempbuf;
+	while ((q = strchr(p, 0x1b)) != NULL)
+	{	// find the escape character
+		fprintf(stdout, "%.*s", q-p, p); // write up to the escape
+		if( q[1]!='[' )
+		{	// write the escape char (whatever purpose it has) 
+			fprintf(stdout, "%.*s", 1, q);
+			p=q+1;	//and start searching again
+		}
+		else
+		{	// from here, we will skip the '\033['
+			// we break at the first unprocessible position
+			// assuming regular text is starting there
+
+			// skip escape and bracket
+			q=q+2;	
+			while(1)
+			{
+				if( isdigit((int)((unsigned char)*q)) ) 
+				{					
+					++q;
+					// and next character
+					continue;
+				}
+				else if( *q == ';' )
+				{	// delimiter
+					++q;
+					// and next number
+					continue;
+				}
+				else if( *q == 'm' )
+				{	// \033[#;...;#m - Set Graphics Rendition (SGR)
+					// set the attributes
+				}
+				else if( *q=='J' )
+				{	// \033[#J - Erase Display (ED)
+				}
+				else if( *q=='K' )
+				{	// \033[K  : clear line from actual position to end of the line
+				}
+				else if( *q == 'H' || *q == 'f' )
+				{	// \033[#;#H - Cursor Position (CUP)
+					// \033[#;#f - Horizontal & Vertical Position
+				}
+				else if( *q=='s' )
+				{	// \033[s - Save Cursor Position (SCP)
+				}
+				else if( *q=='u' )
+				{	// \033[u - Restore cursor position (RCP)
+				}
+				else if( *q == 'A' )
+				{	// \033[#A - Cursor Up (CUU)
+					// Moves the cursor UP # number of lines
+				}
+				else if( *q == 'B' )
+				{	// \033[#B - Cursor Down (CUD)
+					// Moves the cursor DOWN # number of lines
+				}
+				else if( *q == 'C' )
+				{	// \033[#C - Cursor Forward (CUF)
+					// Moves the cursor RIGHT # number of columns
+				}
+				else if( *q == 'D' )
+				{	// \033[#D - Cursor Backward (CUB)
+					// Moves the cursor LEFT # number of columns
+				}
+				else if( *q == 'E' )
+				{	// \033[#E - Cursor Next Line (CNL)
+					// Moves the cursor down the indicated # of rows, to column 1
+				}
+				else if( *q == 'F' )
+				{	// \033[#F - Cursor Preceding Line (CPL)
+					// Moves the cursor up the indicated # of rows, to column 1.
+				}
+				else if( *q == 'G' )
+				{	// \033[#G - Cursor Horizontal Absolute (CHA)
+					// Moves the cursor to indicated column in current row.
+				}
+				else if( *q == 'L' || *q == 'M' || *q == '@' || *q == 'P')
+				{	// not implemented, just skip
+				}
+				else
+				{	// no number nor valid sequencer
+					// something is fishy, we break and give the current char free
+					--q;
+				}
+				// skip the sequencer and search again
+				p = q+1; 
+				break;
+			}// end while
+		}
+	}
+	if (*p)	// write the rest of the buffer
+		fprintf(stdout, "%s", p);
+	return 0;
+}
+int	PRINTF(const char *fmt, ...)
+{	
+	int ret;
+	va_list argptr;
+	va_start(argptr, fmt);
+	ret = VPRINTF(fmt,argptr);
+	va_end(argptr);
+	return ret;
+}
+
+#endif// not WIN32
+
+
+
+
+
+
+
 
 
 
@@ -491,8 +662,13 @@ int _vShowMessage(enum msg_type flag, const char *str, va_list ap)
 			return 1;
 	}
 
+	basics::ScopeLock		sl(mtx);
 	if(flag!=MSG_NONE)
+	{	// print leading returns of the message before the prefix
+		while( *str=='\n' || *str=='\r' )
+			PRINTF("%c", *str++);
 		PRINTF("%s ", prefix);
+	}
 	VPRINTF(str, ap);
 	fflush(stdout);
 

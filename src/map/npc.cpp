@@ -415,7 +415,7 @@ int npc_event_doall(const char *name)
 {
 	int c=0;
 	char buf[128]="::";
-	safestrcpy(buf+2,name,sizeof(buf)-2);
+	safestrcpy(buf+2, sizeof(buf)-2, name);
 	strdb_foreach(ev_db, CDBNPCevent_doall(buf, 0, -1, c) );
 	return c;
 }
@@ -423,7 +423,7 @@ int npc_event_doall_id(const char *name, int rid, int map)
 {
 	int c=0;
 	char buf[128]="::";
-	safestrcpy(buf+2,name,sizeof(buf)-2);
+	safestrcpy(buf+2, sizeof(buf)-2, name);
 	strdb_foreach(ev_db, CDBNPCevent_doall(buf, rid, map, c) );
 	return c;
 }
@@ -717,17 +717,22 @@ int npc_event(struct map_session_data &sd,const char *eventname,int mob_kill)
 	if (ev == NULL && eventname && strcmp(((eventname)+strlen(eventname)-9),"::OnTouch") == 0)
 		return 1;
 
-	if (ev == NULL || (nd = ev->nd) == NULL) {
-		if (mob_kill) {
+	if (ev == NULL || (nd = ev->nd) == NULL)
+	{
+		if (mob_kill)
+		{
 			strcpy( mobevent, eventname);
 			strcat( mobevent, "::OnMyMobDead");
 			ev = (struct event_data *) strdb_search(ev_db, mobevent);
-			if (ev == NULL || (nd = ev->nd) == NULL) {
+			if (ev == NULL || (nd = ev->nd) == NULL)
+			{
 				if (strncasecmp(eventname,"GM_MONSTER",10)!=0)
 					ShowError("npc_event: event not found [%s]\n", mobevent);
 				return 0;
 			}
-		} else {
+		}
+		else
+		{
 			if (config.error_log)
 				ShowError("npc_event: event not found [%s]\n", eventname);
 			return 0;
@@ -903,7 +908,7 @@ int npc_globalmessage(const char *name, const char *mes)
 	if(nd==NULL) return 0;
 	if(name==NULL) return 0;
 
-	safestrcpy(ntemp,name,sizeof(ntemp));	// copy the name
+	safestrcpy(ntemp,sizeof(ntemp),name);	// copy the name
 	ltemp=strchr(ntemp,'#');				// check for a # numerator
 	if(ltemp) *ltemp=0;						// and remove it
 
@@ -1909,13 +1914,13 @@ int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const char *w
 		char savemap[32];
 		int savex, savey;
 		if (strcmp(w4, "SavePoint") == 0) {
-			safestrcpy(maps[m].save.mapname, "SavePoint", sizeof(maps[m].save.mapname));
+			safestrcpy(maps[m].save.mapname, sizeof(maps[m].save.mapname), "SavePoint");
 			maps[m].save.x = -1;
 			maps[m].save.y = -1;
 		} else if (sscanf(w4, "%32[^,],%d,%d", savemap, &savex, &savey) == 3) {
 			char*ip = strchr(savemap, '.');
 			if(ip) *ip=0;
-			safestrcpy(maps[m].save.mapname, savemap, sizeof(maps[m].save.mapname));			
+			safestrcpy(maps[m].save.mapname, sizeof(maps[m].save.mapname), savemap);			
 			maps[m].save.x = savex;
 			maps[m].save.y = savey;
 		}
@@ -2300,7 +2305,7 @@ int npc_read_indoors (void)
 	int s, m;
 	char *p, *buf;
 
-	buf = (char *)grfio_reads("data\\indoorrswtable.txt", s);
+	buf = (char *)grfio_read("data\\indoorrswtable.txt", s);
 	if(buf)
 	{
 		buf[s] = 0;
@@ -2646,7 +2651,7 @@ int npc_changename(const char *name, const char *newname, unsigned short look)
 	struct npc_data *nd= (struct npc_data *) strdb_search(npcname_db,name);
 	if(nd==NULL)
 		return 0;
-	safestrcpy(nd->name, newname, 24);
+	safestrcpy(nd->name, sizeof(nd->name), newname);
 	nd->class_ = look;
 	npc_enable(name,0);
 	npc_enable(name,1);

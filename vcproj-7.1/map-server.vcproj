@@ -72,9 +72,6 @@
 				RelativePath="..\src\map\battle.cpp">
 			</File>
 			<File
-				RelativePath="..\src\map\charcommand.cpp">
-			</File>
-			<File
 				RelativePath="..\src\map\chat.cpp">
 			</File>
 			<File
@@ -168,9 +165,6 @@
 			</File>
 			<File
 				RelativePath="..\src\map\battle.h">
-			</File>
-			<File
-				RelativePath="..\src\map\charcommand.h">
 			</File>
 			<File
 				RelativePath="..\src\map\chat.h">

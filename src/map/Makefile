@@ -27,7 +27,7 @@ include $(CP)/Makefile.dep
 COMMON_OBJ += $(CP)/grfio.o
 COMMON_H   += $(CP)/grfio.h
 
-MAP_OBJ = txtobj/map.o txtobj/chrif.o txtobj/coordinate.o txtobj/fightable.o txtobj/movable.o txtobj/pc.o txtobj/npc.o txtobj/chat.o txtobj/path.o txtobj/script.o txtobj/storage.o txtobj/skill.o txtobj/atcommand.o txtobj/charcommand.o txtobj/battle.o txtobj/intif.o txtobj/trade.o txtobj/party.o txtobj/vending.o txtobj/guild.o txtobj/pet.o txtobj/homun.o txtobj/status.o txtobj/npc_chat.o txtobj/mercenary.o txtobj/config.o txtobj/clif.o
+MAP_OBJ = txtobj/map.o txtobj/chrif.o txtobj/coordinate.o txtobj/fightable.o txtobj/movable.o txtobj/pc.o txtobj/npc.o txtobj/chat.o txtobj/path.o txtobj/script.o txtobj/storage.o txtobj/skill.o txtobj/atcommand.o txtobj/battle.o txtobj/intif.o txtobj/trade.o txtobj/party.o txtobj/vending.o txtobj/guild.o txtobj/pet.o txtobj/homun.o txtobj/status.o txtobj/npc_chat.o txtobj/mercenary.o txtobj/config.o txtobj/clif.o
 ifeq ($(findstring -DWITH_MYSQL,$(CPPFLAGS)), -DWITH_MYSQL)
 MAP_OBJ += sqlobj/itemdb.o sqlobj/log.o sqlobj/mob.o 
 else
@@ -55,10 +55,9 @@ sqlobj/%.o: %.cpp
 
 txtobj/atcommand.o: txtobj atcommand.cpp atcommand.h itemdb.h pc.h map.h skill.h clif.h mob.h intif.h battle.h config.h storage.h guild.h pet.h log.h $(COMMON_H) $(BASE_H)
 txtobj/battle.o: txtobj battle.cpp battle.h config.h skill.h map.h mob.h pc.h pet.h guild.h $(COMMON_H) $(BASE_H)
-txtobj/charcommand.o: txtobj charcommand.cpp charcommand.h itemdb.h pc.h map.h skill.h clif.h mob.h intif.h battle.h config.h storage.h guild.h pet.h log.h $(COMMON_H) $(BASE_H)
 txtobj/chat.o: txtobj chat.cpp map.h clif.h pc.h chat.h $(COMMON_H) $(BASE_H)
 txtobj/chrif.o: txtobj chrif.cpp map.h battle.h config.h chrif.h clif.h intif.h pc.h npc.h $(COMMON_H) $(BASE_H)
-txtobj/clif.o: txtobj clif.cpp map.h chrif.h clif.h mob.h intif.h pc.h npc.h itemdb.h chat.h script.h storage.h party.h guild.h atcommand.h pet.h charcommand.h $(COMMON_H) $(BASE_H)
+txtobj/clif.o: txtobj clif.cpp map.h chrif.h clif.h mob.h intif.h pc.h npc.h itemdb.h chat.h script.h storage.h party.h guild.h atcommand.h pet.h $(COMMON_H) $(BASE_H)
 txtobj/config.o: txtobj config.cpp config.h $(COMMON_H) $(BASE_H)
 txtobj/coordinate.o: txtobj coordinate.cpp coordinate.h $(COMMON_H) $(BASE_H)
 txtobj/fightable.o: txtobj fightable.cpp fightable.h movable.h map.h $(COMMON_H) $(BASE_H)

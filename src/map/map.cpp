@@ -31,18 +31,17 @@
 #include "pet.h"
 #include "homun.h"
 #include "atcommand.h"
-#include "charcommand.h"
 #include "log.h"
 
 
-char *LOG_CONF_NAME="conf/log_athena.conf";
-char *MAP_CONF_NAME = "conf/map_athena.conf";
-char *BATTLE_CONF_FILENAME = "conf/battle_athena.conf";
-char *ATCOMMAND_CONF_FILENAME = "conf/atcommand_athena.conf";
-char *CHARCOMMAND_CONF_FILENAME = "conf/charcommand_athena.conf";
-char *SCRIPT_CONF_NAME = "conf/script_athena.conf";
-char *MSG_CONF_NAME = "conf/msg_athena.conf";
-char *GRF_PATH_FILENAME = "conf/grf-files.txt";
+const char *LOG_CONF_NAME="conf/log_athena.conf";
+const char *MAP_CONF_NAME = "conf/map_athena.conf";
+const char *BATTLE_CONF_FILENAME = "conf/battle_athena.conf";
+const char *ATCOMMAND_CONF_FILENAME = "conf/atcommand_athena.conf";
+const char *CHARCOMMAND_CONF_FILENAME = "conf/charcommand_athena.conf";
+const char *SCRIPT_CONF_NAME = "conf/script_athena.conf";
+const char *MSG_CONF_NAME = "conf/msg_athena.conf";
+const char *GRF_PATH_FILENAME = "conf/grf-files.txt";
 
 #define USE_AFM
 #define USE_AF2
@@ -2170,20 +2169,22 @@ int map_searchrandfreecell(unsigned short m, unsigned short x, unsigned short y,
 {
 	int free_cell,i,j;
 
-	if (range > 15)
+	if (range > 15 || m>=map_num)
 		return -1;
 	
-	CREATE_BUFFER(free_cells, int, (2*range+1)*(2*range+1));
+	CREATE_BUFFER(free_cells, uint32, (2*range+1)*(2*range+1));
 
-	for(free_cell=0,i=-range;i<=range;++i){
+	for(free_cell=0,i=-range;i<=range;++i)
+	{
 		if(i+y<0 || i+y>=maps[m].ys)
 			continue;
-		for(j=-range;j<=range; ++j){
+		for(j=-range;j<=range; ++j)
+		{
 			if(j+x<0 || j+x>=maps[m].xs)
 				continue;
 			if(map_getcell(m,j+x,i+y,CELL_CHKNOPASS))
 				continue;
-			if(map_count_oncell(m,j+x,i+y, BL_ITEM) > 1) //Avoid item stacking to prevent against exploits. [Skotlex]
+			if(map_count_oncell(m,j+x,i+y, BL_ITEM) > 1)
 				continue;
 			free_cells[free_cell++] = j+x+((i+y)<<16);
 		}
@@ -2191,45 +2192,6 @@ int map_searchrandfreecell(unsigned short m, unsigned short x, unsigned short y,
 	free_cell = (free_cell==0)?-1:free_cells[rand()%free_cell];
 	DELETE_BUFFER(free_cells);
 	return free_cell;
-/*
-	int free_cell,i,j;
-
-	if(m<map_num)
-	{
-		for(free_cell=0,i=-range;i<=range;++i){
-			if(i+y<0 || i+y>=maps[m].ys)
-				continue;
-			for(j=-range;j<=range; ++j){
-				if(j+x<0 || j+x>=maps[m].xs)
-					continue;
-				if(map_getcell(m,j+x,i+y,CELL_CHKNOPASS))
-					continue;
-				free_cell++;
-			}
-		}
-		if(free_cell==0)
-			return -1;
-		free_cell=rand()%free_cell;
-		for(i=-range;i<=range;++i){
-			if(i+y<0 || i+y>=maps[m].ys)
-				continue;
-			for(j=-range;j<=range; ++j){
-				if(j+x<0 || j+x>=maps[m].xs)
-					continue;
-				if(map_getcell(m,j+x,i+y,CELL_CHKNOPASS))
-					continue;
-				if(free_cell==0){
-					x+=j;
-					y+=i;
-					i=range+1;
-					break;
-				}
-				free_cell--;
-			}
-		}
-	}
-	return x+(y<<16);
-*/
 }
 
 /*==========================================
@@ -2460,7 +2422,7 @@ int map_quit(struct map_session_data &sd)
 		else
 			intif_save_petdata(sd.status.account_id,sd.pd->pet);
 	}
-	if(pc_isdead(sd))
+	if( sd.is_dead() )
 		pc_setrestartvalue(sd,2);
 
 	homun_data::clear_homunculus(sd);
@@ -2576,6 +2538,43 @@ struct map_session_data * map_charid2sd(uint32 id)
 			return sd;
 
 	return NULL;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///
+///
+int charid2sessionid(uint32 charid)
+{
+	size_t session_id;
+	struct map_session_data *pl_sd = NULL;
+	for(session_id=0;session_id<fd_max;++session_id)
+	{
+		if(session[session_id] && (pl_sd=(struct map_session_data *)session[session_id]->user_session) && pl_sd->state.auth)
+		{
+			if(pl_sd->status.char_id==charid)
+				break;
+		}
+	}
+	return session_id;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///
+///
+int accountid2sessionid(uint32 accountid)
+{
+	size_t session_id;
+	struct map_session_data *pl_sd = NULL;
+
+	for(session_id=0;session_id<fd_max;++session_id)
+	{
+		if(session[session_id] && (pl_sd=(struct map_session_data *)session[session_id]->user_session) && pl_sd->state.auth)
+		{
+			if(pl_sd->status.account_id==accountid)
+				break;
+		}
+	}
+	return session_id;
 }
 
 /*==========================================
@@ -2830,8 +2829,16 @@ void map_removemobs(unsigned short m)
  */
 int map_mapname2mapid(const char *name)
 {
-	struct map_data *md=NULL;
-	md = (struct map_data*)strdb_search(map_db,name);
+	char finename[32], *wpp=finename;
+	const char *rpp=name, *epp=finename+sizeof(finename)-1;
+
+	// make a copy in order to cut off the extension
+	if(rpp)
+	while(*rpp && *rpp!='.' && wpp<epp) *wpp++ = *rpp++;
+	*wpp=0;
+
+	// lookup
+	struct map_data *md = (struct map_data*)strdb_search(map_db, finename);
 	if(md==NULL || md->gat==NULL)
 		return -1;
 	return md->m;
@@ -2843,9 +2850,15 @@ int map_mapname2mapid(const char *name)
  */
 bool map_mapname2ipport(const char *name, basics::ipset &mapset)
 {
-	struct map_data_other_server *mdos=NULL;
+	char finename[32], *wpp=finename;
+	const char *rpp=name, *epp=finename+sizeof(finename)-1;
 
-	mdos = (struct map_data_other_server*)strdb_search(map_db, name);
+	// make a copy in order to cut off the extension
+	if(rpp)
+	while(*rpp && *rpp!='.' && wpp<epp) *wpp++ = *rpp++;
+	*wpp=0;
+
+	struct map_data_other_server *mdos = (struct map_data_other_server*)strdb_search(map_db, finename);
 	if(mdos==NULL || mdos->gat)
 		return false;
 	mapset = mdos->mapset;
@@ -3042,23 +3055,6 @@ int map_setipport(const char *name, basics::ipset &mapset)
  * 他鯖管理のマップを全て削除
  *------------------------------------------
  */
-/*
-int map_eraseallipport_sub(void *key,void *data,va_list &va)
-{
-	struct map_data_other_server *mdos = (struct map_data_other_server*)data;
-	if(mdos->gat == NULL)
-	{
-		struct map_data *md = mdos->map;
-		strdb_erase(map_db,key);
-		aFree(mdos);
-		if( md )
-		{	// real mapdata exists
-			strdb_insert(map_db,md->mapname, md);
-		}
-	}
-	return 0;
-}
-*/
 class CDBMapEraseallipport : public CDBProcessor
 {
 public:
@@ -3378,10 +3374,6 @@ bool map_cache_read(struct map_data &cmap)
 				cmap.ys = 0;
 				return false;
 			}
-			else
-			{	// 成功
-				return true;
-			}
 		}
 		else if(map_cache.map[i].compressed == 1)
 		{	//zlib compressed
@@ -3419,9 +3411,22 @@ bool map_cache_read(struct map_data &cmap)
 				delete[] buf;
 				buf=NULL;
 			}
-			return true;
 		}
 		// might add other compressions here
+
+		// clear dynamic field entries
+		const size_t sz = cmap.xs*cmap.ys;
+		for(i=0; i<sz; ++i)
+		{
+			if( cmap.gat[i].npc || cmap.gat[i].basilica || cmap.gat[i].moonlit || cmap.gat[i].regen )
+				printf("x");
+
+			cmap.gat[i].npc = 0;
+			cmap.gat[i].basilica = 0;
+			cmap.gat[i].moonlit = 0;
+			cmap.gat[i].regen = 0;
+		}
+		return true;
 	}
 	return false;
 }
@@ -3439,7 +3444,7 @@ bool map_cache_write(struct map_data &cmap)
 	{
 		if( (0==strcmp(cmap.mapname,map_cache.map[i].fn)) || (map_cache.map[i].fn[0] == 0) )
 			break;
-			}
+	}
 	if(i<map_cache.head.nmaps) 
 	{	// should always be valid but better check it
 		int compress = 0;
@@ -3596,7 +3601,7 @@ bool map_readafm(struct map_data& cmap, const char *fn=NULL)
 		strcat(buf, ".afm");
 	}
 	else
-		safestrcpy(buf, fn, sizeof(buf));
+		safestrcpy(buf, sizeof(buf), fn);
 
 	afm_file = basics::safefopen(buf, "r");
 	if (afm_file != NULL)
@@ -3657,7 +3662,7 @@ bool map_readaf2(struct map_data& cmap, const char*fn=NULL)
 		strcat(buf, ".af2");
 	}
 	else
-		safestrcpy(buf, fn, sizeof(buf));
+		safestrcpy(buf, sizeof(buf), fn);
 
 	af2_file = basics::safefopen(buf, "r");
 	if( af2_file != NULL )
@@ -3704,7 +3709,7 @@ bool map_readgrf(struct map_data& cmap, const char *fn=NULL)
 	}
 	else
 	{	
-		safestrcpy(buf, fn, sizeof(buf));
+		safestrcpy(buf, sizeof(buf), fn);
 		// append ".gat" if not already exist
 		if( NULL == strstr(buf,".gat") )
 			strcat(buf, ".gat");
@@ -3789,7 +3794,7 @@ int map_readallmap(void)
 			map_readaf2(maps[i]) ||
 			map_readgrf(maps[i]) )
 		{	
-			ShowMessage("\rLoading Maps [%d/%d]: %s, size (%d %d)(%i)"CL_CLL, i,map_num, maps[i].mapname, maps[i].xs,maps[i].ys, maps[i].wh);
+			ShowMessage("Loading Maps [%d/%d]: %s, size (%d %d)(%i)"CL_CLL"\r", i,map_num, maps[i].mapname, maps[i].xs,maps[i].ys, maps[i].wh);
 	
 			// initialize
 			memset(maps[i].moblist, 0, sizeof(maps[i].moblist));	
@@ -3813,7 +3818,7 @@ int map_readallmap(void)
 		}
 		else
 		{
-			ShowMessage("\rRemoving Map [%d/%d]: %s"CL_CLL, i,map_num, maps[i].mapname);
+			ShowMessage("Removing Map [%d/%d]: %s"CL_CLL"\r", i,map_num, maps[i].mapname);
 			map_delmap(maps[i].mapname);
 			maps_removed++;
 			i--;
@@ -3846,7 +3851,7 @@ int map_addmap(const char *mapname)
 		ShowError("Could not add map '"CL_WHITE"%s"CL_RESET"', the limit of maps has been reached.\n",mapname);
 		return 1;
 	}
-	safestrcpy(maps[map_num].mapname, mapname, sizeof(maps[map_num].mapname));
+	safestrcpy(maps[map_num].mapname, sizeof(maps[map_num].mapname), mapname);
 	char *ip = strchr(maps[map_num].mapname, '.');
 	if(ip) *ip=0;
 
@@ -3875,7 +3880,7 @@ int map_delmap(const char *mapname)
 		for(i=0; i<map_num; ++i)
 		{
 			if (strcmp(maps[i].mapname, buffer) == 0) {
-				ShowMessage("Removing map [ %s ] from maplist\n", buffer);
+				ShowMessage("Removing map [ %s ] from maplist"CL_CLL"\n", buffer);
 				memmove(maps+i, maps+i+1, sizeof(maps[0])*(map_num-i-1));
 				map_num--;
 			}
@@ -3893,16 +3898,17 @@ int parse_console(const char *buf)
 	char type[64], command[64],map[64], buf2[128];
 	int x = 0, y = 0;
 	int m, n;
-	struct map_session_data sd;
-
+	static struct map_session_data sd(0,0,0,0,0,0,0,0);
 	sd.fd = 0;
-	strcpy( sd.status.name , "console");
+
+	safestrcpy(sd.status.name, sizeof(sd.status.name), "console");
 
 	if ( ( n = sscanf(buf, "%64[^:]:%64[^:]:%64s %d %d[^\n]", type , command , map , &x , &y )) < 5 )
 		if ( ( n = sscanf(buf, "%64[^:]:%64[^\n]", type , command )) < 2 )
 			n = sscanf(buf,"%64[^\n]",type);
 
-	if ( n == 5 ) {
+	if ( n == 5 )
+	{
 		if (x <= 0) {
 			x = rand() % 399 + 1;
 			sd.block_list::x = x;
@@ -3928,16 +3934,22 @@ int parse_console(const char *buf)
 
     ShowMessage("Type of command: %s || Command: %s || Map: %s Coords: %d %d\n",type,command,map,x,y);
 
-    if ( strcasecmp("admin",type) == 0 && n == 5 ) {
+    if ( strcasecmp("admin",type) == 0 && n == 5 )
+	{
 		sprintf(buf2,"console: %s",command);
-        if( is_atcommand(sd.fd, sd, buf2, 99) == AtCommand_None )
+		if( !is_atcommand(sd.fd, sd, buf2, 99) )
 			ShowConsole(CL_BOLD"no valid atcommand\n"CL_NORM);
-    } else if ( strcasecmp("server",type) == 0 && n == 2 ) {
-        if ( strcasecmp("shutdown", command) == 0 || strcasecmp("exit",command) == 0 || strcasecmp("quit",command) == 0 ) {
-            core_stoprunning();
+	}
+	else if ( strcasecmp("server",type) == 0 && n == 2 )
+	{
+		if ( strcasecmp("shutdown", command) == 0 || strcasecmp("exit",command) == 0 || strcasecmp("quit",command) == 0 )
+		{
+			core_stoprunning();
 		}
-    } else if ( strcasecmp("help",type) == 0 ) {
-        ShowMessage("To use GM commands:\n");
+	}
+	else if ( strcasecmp("help",type) == 0 )
+	{
+		ShowMessage("To use GM commands:\n");
         ShowMessage("admin:<gm command>:<map of \"gm\"> <x> <y>\n");
         ShowMessage("You can use any GM command that doesn't require the GM.\n");
         ShowMessage("No using @item or @warp however you can use @charwarp\n");
@@ -4015,11 +4027,11 @@ else if (strcasecmp(w1, "map_port") == 0) {
 				if (autosave_interval <= 0)
 					autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
 			} else if (strcasecmp(w1, "motd_txt") == 0) {
-				safestrcpy(motd_txt, w2, sizeof(motd_txt));
+				safestrcpy(motd_txt, sizeof(motd_txt), w2);
 			} else if (strcasecmp(w1, "help_txt") == 0) {
-				safestrcpy(help_txt, w2, sizeof(help_txt));
+				safestrcpy(help_txt, sizeof(help_txt), w2);
 			} else if (strcasecmp(w1, "mapreg_txt") == 0) {
-				safestrcpy(mapreg_txt, w2, sizeof(mapreg_txt));
+				safestrcpy(mapreg_txt, sizeof(mapreg_txt), w2);
 			}else if(strcasecmp(w1,"read_map_from_cache")==0){
 				if (atoi(w2) == 2)
 					map_read_flag = READ_FROM_BITMAP_COMPRESSED;
@@ -4028,9 +4040,9 @@ else if (strcasecmp(w1, "map_port") == 0) {
 				else
 					map_read_flag = READ_FROM_GAT;
 			}else if(strcasecmp(w1,"map_cache_file")==0){
-				safestrcpy(map_cache_file,w2,sizeof(map_cache_file));
+				safestrcpy(map_cache_file,sizeof(map_cache_file),w2);
 			} else if(strcasecmp(w1,"afm_dir") == 0) {
-				safestrcpy(afm_dir, w2,sizeof(afm_dir));
+				safestrcpy(afm_dir,sizeof(afm_dir), w2);
 			} else if (strcasecmp(w1, "import") == 0) {
 				map_config_read(w2);
 			} else if (strcasecmp(w1, "console") == 0) {
@@ -4182,7 +4194,6 @@ void do_final(void)
 	do_final_script();
 	do_final_itemdb();
 	do_final_storage();
-	do_final_msg();
 	do_final_chrif(); // この内部でキャラを全て切断する
 
 
@@ -4212,10 +4223,7 @@ void do_final(void)
 		numdb_final(charid_db, charid_db_final);
 		charid_db=NULL;
 	}
-
-
 	log_final();
-
 
 	///////////////////////////////////////////////////////////////////////////
 	// delete sessions
@@ -4231,7 +4239,8 @@ void do_final(void)
  * Map-Server Version Screen [MC Cameri]
  *------------------------------------------------------
  */
-void map_helpscreen(int flag) { // by MC Cameri
+void map_helpscreen(int flag)
+{	// by MC Cameri
 	ShowMessage("Usage: map-server [options]");
 	ShowMessage("Options:");
 	ShowMessage(CL_WHITE"  Commands\t\t\tDescription"CL_RESET);
@@ -4257,7 +4266,8 @@ void map_helpscreen(int flag) { // by MC Cameri
  * Map-Server Version Screen [MC Cameri]
  *------------------------------------------------------
  */
-void map_versionscreen(int flag) {
+void map_versionscreen(int flag)
+{
 	ShowMessage(CL_WHITE"eAthena version %d.%02d.%02d, Athena Mod version %d"CL_RESET"\n",
 		ATHENA_MAJOR_VERSION, ATHENA_MINOR_VERSION, ATHENA_REVISION, ATHENA_MOD_VERSION);
 	ShowMessage(CL_BT_GREEN "Website/Forum:" CL_RESET "\thttp://eathena.deltaanime.net/");
@@ -4277,35 +4287,34 @@ unsigned char getServerType()
 	return ATHENA_SERVER_MAP | ATHENA_SERVER_CORE;
 }
 
-
 int do_init(int argc, char *argv[])
 {
 	int i;
-
 	// just clear all maps
 	memset(maps, 0, MAX_MAP_PER_SERVER*sizeof(struct map_data));
 
-	for (i = 1; i < argc ; ++i) {
+	for (i = 1; i < argc ; ++i)
+	{
 		if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "--h") == 0 || strcmp(argv[i], "--?") == 0 || strcmp(argv[i], "/?") == 0)
 			map_helpscreen(1);
 		else if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "--v") == 0 || strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "/v") == 0)
 			map_versionscreen(1);
 		else if (strcmp(argv[i], "--map_config") == 0 || strcmp(argv[i], "--map-config") == 0)
-			MAP_CONF_NAME=argv[i+1];
+			MAP_CONF_NAME=argv[++i];
 		else if (strcmp(argv[i],"--config") == 0 || strcmp(argv[i],"--battle-config") == 0)
-			BATTLE_CONF_FILENAME = argv[i+1];
+			BATTLE_CONF_FILENAME = argv[++i];
 		else if (strcmp(argv[i],"--atcommand_config") == 0 || strcmp(argv[i],"--atcommand-config") == 0)
-			ATCOMMAND_CONF_FILENAME = argv[i+1];
+			ATCOMMAND_CONF_FILENAME = argv[++i];
 		else if (strcmp(argv[i],"--charcommand_config") == 0 || strcmp(argv[i],"--charcommand-config") == 0)
-			CHARCOMMAND_CONF_FILENAME = argv[i+1];
+			CHARCOMMAND_CONF_FILENAME = argv[++i];
 		else if (strcmp(argv[i],"--script_config") == 0 || strcmp(argv[i],"--script-config") == 0)
-			SCRIPT_CONF_NAME = argv[i+1];
+			SCRIPT_CONF_NAME = argv[++i];
 		else if (strcmp(argv[i],"--msg_config") == 0 || strcmp(argv[i],"--msg-config") == 0)
-			MSG_CONF_NAME = argv[i+1];
+			MSG_CONF_NAME = argv[++i];
 		else if (strcmp(argv[i],"--grf_path_file") == 0 || strcmp(argv[i],"--grf-path-file") == 0)
-			GRF_PATH_FILENAME = argv[i+1];
+			GRF_PATH_FILENAME = argv[++i];
 		else if (strcmp(argv[i],"--log_config") == 0 || strcmp(argv[i],"--log-config") == 0)
-			LOG_CONF_NAME = argv[i+1];
+			LOG_CONF_NAME = argv[++i];
 		else if (strcmp(argv[i],"--run_once") == 0)	// close the map-server as soon as its done.. for testing [Celest]
 			core_stoprunning();
 	}
@@ -4315,12 +4324,10 @@ int do_init(int argc, char *argv[])
 
 	if (SHOW_DEBUG_MSG)
 		ShowNotice("Server running in '"CL_WHITE"Debug Mode"CL_RESET"'.\n");
-	config_read(BATTLE_CONF_FILENAME);
-	msg_config_read(MSG_CONF_NAME);
+	config.read(BATTLE_CONF_FILENAME);
+	msg_txt.read(MSG_CONF_NAME);
 	atcommand_config_read(ATCOMMAND_CONF_FILENAME);
-	charcommand_config_read(CHARCOMMAND_CONF_FILENAME);
 	script_config_read(SCRIPT_CONF_NAME);
-
 
 	log_init(LOG_CONF_NAME);
 
@@ -4357,8 +4364,6 @@ int do_init(int argc, char *argv[])
 	do_init_npc();
 	do_init_clif();
 	do_init_chrif();
-
-
 
 	npc_event_do_oninit();	// npcのOnInitイベント?行
 

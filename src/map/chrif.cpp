@@ -640,7 +640,7 @@ int chrif_authreq(struct map_session_data &sd)
 	if(i < fd_max)
 	{
 		WFIFOW(char_fd, 0) = 0x2afc;
-		WFIFOL(char_fd, 2) = sd.block_list::id;
+		WFIFOL(char_fd, 2) = sd.status.account_id;
 		WFIFOL(char_fd, 6) = sd.status.char_id;
 		WFIFOL(char_fd,10) = sd.login_id1;
 		WFIFOL(char_fd,14) = sd.login_id2;
@@ -1079,7 +1079,7 @@ int chrif_divorce(uint32 char_id, uint32 partner_id)
 	if (!char_id || !partner_id)
 		return 0;
 
-	nullpo_retr(0, sd = map_nick2sd(map_charid2nick(partner_id)));
+	nullpo_retr(0, sd = map_charid2sd(partner_id));
 	if (sd->status.partner_id == char_id) {
 		int i;
 		//—£¥(‘Š•û‚ÍŠù‚ÉƒLƒƒƒ‰‚ªÁ‚¦‚Ä‚¢‚é”¤‚È‚Ì‚Å)
@@ -1095,7 +1095,7 @@ int chrif_divorce(uint32 char_id, uint32 partner_id)
 }
 
 /*==========================================
- * Disconnection of a player (account has been deleted in login-server) by [Yor]
+ * Disconnection of a player
  *------------------------------------------
  */
 int chrif_accountdeletion(int fd)
@@ -1718,10 +1718,10 @@ bool chrif_mail_send(struct map_session_data &sd, const char *target, const char
 		WFIFOW(char_fd, 0) = 0x2b27;
 		WFIFOW(char_fd, 2) = len;
 		WFIFOL(char_fd, 4) = sd.status.char_id;
-		safestrcpy((char*)WFIFOP(char_fd, 8), sd.status.name, 24);
-		safestrcpy((char*)WFIFOP(char_fd, 32), target, 24);
-		safestrcpy((char*)WFIFOP(char_fd, 56), header, 40);
-		safestrcpy((char*)WFIFOP(char_fd, 96), body, 512);
+		safestrcpy((char*)WFIFOP(char_fd,  8), 24, sd.status.name);
+		safestrcpy((char*)WFIFOP(char_fd, 32), 24, target);
+		safestrcpy((char*)WFIFOP(char_fd, 56), 40, header);
+		safestrcpy((char*)WFIFOP(char_fd, 96), 512, body);
 
 		// put zeny and item to buffer, do final checking
 		basics::ScopeLock sl(mailmx);
@@ -1911,7 +1911,7 @@ int chrif_irc_announce_shop(struct map_session_data &sd, int flag)
 {
 	char message[1024];
 	char mapname[32];
-	safestrcpy(mapname, maps[sd.block_list::m].mapname, sizeof(mapname));
+	safestrcpy(mapname, sizeof(mapname), maps[sd.block_list::m].mapname);
 	mapname[0] = basics::upcase(mapname[0]);
 	size_t len = (flag) ?
 		snprintf(message, sizeof(message), "%s has opened the shop '%s' at <%d,%d> in %s.", sd.status.name, sd.message, sd.block_list::x,sd.block_list::y, mapname) :
@@ -1922,7 +1922,7 @@ int chrif_irc_announce_mvp(const map_session_data &sd, const mob_data &md)
 {
 	char message[1024];
 	char mapname[32];
-	safestrcpy(mapname, maps[sd.block_list::m].mapname, sizeof(mapname));
+	safestrcpy(mapname, sizeof(mapname), maps[sd.block_list::m].mapname);
 	mapname[0] = basics::upcase(mapname[0]);
 
 	size_t len = 1+sprintf(message,"%s the %s has MVP'd %s in %s.", sd.status.name, job_name(sd.status.class_), md.name, mapname);

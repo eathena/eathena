@@ -1,763 +1,799 @@
+#include "config.h"
 #include "showmsg.h"
 #include "utils.h"
-#include "config.h"
 #include "map.h"
 
-struct CConfig config;
 
-static struct _config_map
+///////////////////////////////////////////////////////////////////////////////
+/// instanciation of the configration
+CConfig config;
+CMessageTable msg_txt;
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// internal name->value map
+CConfig::_config_map CConfig::config_map[] =
 {
-	const char *str;
-	uint32 *val;
-}
-config_map[] =
-{
-	{ "agi_penalty_count",					&config.agi_penalty_count					},
-	{ "agi_penalty_count_lv",				&config.agi_penalty_count_lv				},
-	{ "agi_penalty_num",					&config.agi_penalty_num						},
-	{ "agi_penalty_type",					&config.agi_penalty_type					},
-	{ "alchemist_summon_reward",			&config.alchemist_summon_reward				},	
-	{ "allow_atcommand_when_mute",			&config.allow_atcommand_when_mute			},
-	{ "allow_homun_status_change",			&config.allow_homun_status_change			},
-	{ "any_warp_GM_min_level",				&config.any_warp_GM_min_level				},
-	{ "area_size",							&config.area_size							},
-	{ "arrow_decrement",					&config.arrow_decrement						},
-	{ "atcommand_gm_only",					&config.atc_gmonly							},
-	{ "atcommand_spawn_quantity_limit",		&config.atc_spawn_quantity_limit			},
-	{ "attribute_recover",					&config.attr_recover						},
-	{ "backstab_bow_penalty",				&config.backstab_bow_penalty				},
-	{ "ban_bot",							&config.ban_bot								},	
-	{ "ban_spoof_namer",					&config.ban_spoof_namer						},
-	{ "base_exp_rate",						&config.base_exp_rate						},
-	{ "basic_skill_check",					&config.basic_skill_check					},
-	{ "battle_log",							&config.battle_log							},
-	{ "berserk_candels_buffs",				&config.berserk_cancels_buffs				},
-	{ "bone_drop",							&config.bone_drop							},
-	{ "boss_spawn_delay",					&config.boss_spawn_delay					},
-	{ "buyer_name",							&config.buyer_name							},
-	{ "cardillust_read_grffile",			&config.cardillust_read_grffile				},	
-	{ "casting_rate",						&config.cast_rate							},
-	{ "castle_defense_rate",				&config.castle_defense_rate					},
-	{ "castrate_dex_scale",					&config.castrate_dex_scale					},
-	{ "character_size",						&config.character_size						},
-	{ "chat_warpportal",					&config.chat_warpportal						},
-	{ "combo_delay_rate",					&config.combo_delay_rate					},
-	{ "copyskill_restrict",					&config.copyskill_restrict					},
-	{ "day_duration",						&config.day_duration						},
-	{ "dead_branch_active",					&config.dead_branch_active					},
-	{ "death_penalty_base",					&config.death_penalty_base					},
-	{ "death_penalty_job",					&config.death_penalty_job					},
-	{ "death_penalty_type",					&config.death_penalty_type					},
-	{ "defunit_not_enemy",					&config.defnotenemy							},
-	{ "delay_battle_damage",				&config.delay_battle_damage					},
-	{ "delay_dependon_dex",					&config.delay_dependon_dex					},
-	{ "delay_rate",							&config.delay_rate							},
-	{ "devotion_level_difference",			&config.devotion_level_difference			},
-	{ "disp_experience",					&config.disp_experience						},
-	{ "disp_hpmeter",						&config.disp_hpmeter						},
-	{ "display_delay_skill_fail",			&config.display_delay_skill_fail			},
-	{ "display_hallucination",				&config.display_hallucination				},
-	{ "display_snatcher_skill_fail",		&config.display_snatcher_skill_fail			},
-	{ "display_version",					&config.display_version						},
-	{ "drop_rate0item",						&config.drop_rate0item						},
-	{ "drop_rare_announce",					&config.drop_rare_announce					},
-	{ "drops_by_luk",						&config.drops_by_luk						},	
-	{ "dynamic_mobs",						&config.dynamic_mobs						},
-	{ "enemy_critical",						&config.enemy_critical						},
-	{ "enemy_critical_rate",				&config.enemy_critical_rate					},
-	{ "enemy_perfect_flee",					&config.enemy_perfect_flee					},
-	{ "enemy_str",							&config.enemy_str							},
-	{ "equip_natural_break_rate",			&config.equip_natural_break_rate			},
-	{ "equip_self_break_rate",				&config.equip_self_break_rate				},
-	{ "equip_skill_break_rate",				&config.equip_skill_break_rate				},
-	{ "error_log",							&config.error_log							},
-	{ "etc_log",							&config.etc_log								},
-	{ "exp_calc_type",						&config.exp_calc_type						},
-	{ "finding_ore_rate",					&config.finding_ore_rate					},
-	{ "finger_offensive_type",				&config.finger_offensive_type				},
-	{ "flooritem_lifetime",					&config.flooritem_lifetime					},
-	{ "gm_all_equipment",					&config.gm_allequip							},
-	{ "gm_all_skill",						&config.gm_allskill							},
-	{ "gm_all_skill_add_abra",				&config.gm_allskill_addabra					},
-	{ "gm_can_drop_lv",						&config.gm_can_drop_lv						},
-	{ "gm_join_chat",						&config.gm_join_chat						},
-	{ "gm_kick_chat",						&config.gm_kick_chat						},
-	{ "gm_skill_unconditional",				&config.gm_skilluncond						},
-	{ "gtb_pvp_only",						&config.gtb_pvp_only						},
-	{ "guild_emperium_check",				&config.guild_emperium_check				},
-	{ "guild_exp_limit",					&config.guild_exp_limit						},
-	{ "guild_max_castles",					&config.guild_max_castles					},
-	{ "gvg_eliminate_time",					&config.gvg_eliminate_time					},
-	{ "gvg_long_attack_damage_rate",		&config.gvg_long_damage_rate				},
-	{ "gvg_magic_attack_damage_rate",		&config.gvg_magic_damage_rate				},
-	{ "gvg_misc_attack_damage_rate",		&config.gvg_misc_damage_rate				},
-	{ "gvg_short_attack_damage_rate",		&config.gvg_short_damage_rate				},
-	{ "gvg_weapon_damage_rate",				&config.gvg_weapon_damage_rate				},
-	{ "gx_allhit",							&config.gx_allhit							},
-	{ "gx_cardfix",							&config.gx_cardfix							},
-	{ "gx_disptype",						&config.gx_disptype							},
-	{ "gx_dupele",							&config.gx_dupele							},
-	{ "hack_info_GM_level",					&config.hack_info_GM_level					},
-	{ "headset_block_music",				&config.headset_block_music					},
-	{ "heal_exp",							&config.heal_exp							},
-	{ "hide_GM_session",					&config.hide_GM_session						},
-	{ "holywater_name_input",				&config.holywater_name_input				},
-	{ "homun_creation_rate",				&config.homun_creation_rate					},
-	{ "homun_intimate_rate",				&config.homun_intimate_rate					},
-	{ "homun_temporal_intimate_resilience",	&config.homun_temporal_intimate_resilience	},
-	{ "hp_rate",							&config.hp_rate								},
-	{ "idle_no_share",						&config.idle_no_share						},
-	{ "ignore_items_gender",				&config.ignore_items_gender					},
-	{ "indoors_override_grffile",			&config.indoors_override_grffile			},	
-	{ "invite_request_check",				&config.invite_request_check				},
-	{ "item_auto_get",						&config.item_auto_get						},
-	{ "item_check",							&config.item_check							},
-	{ "item_drop_card_max",					&config.item_drop_card_max					},
-	{ "item_drop_card_min",					&config.item_drop_card_min					},
-	{ "item_drop_common_max",				&config.item_drop_common_max				},
-	{ "item_drop_common_min",				&config.item_drop_common_min				},	
-	{ "item_drop_equip_max",				&config.item_drop_equip_max					},
-	{ "item_drop_equip_min",				&config.item_drop_equip_min					},
-	{ "item_drop_heal_max",					&config.item_drop_heal_max					},
-	{ "item_drop_heal_min",					&config.item_drop_heal_min					},
-	{ "item_drop_mvp_max",					&config.item_drop_mvp_max					},	
-	{ "item_drop_mvp_min",					&config.item_drop_mvp_min					},
-	{ "item_drop_use_max",					&config.item_drop_use_max					},
-	{ "item_drop_use_min",					&config.item_drop_use_min					},
-	{ "item_equip_override_grffile",		&config.item_equip_override_grffile			},	
-	{ "item_first_get_time",				&config.item_first_get_time					},
-	{ "item_name_override_grffile",			&config.item_name_override_grffile			},
-	{ "item_rate_card",						&config.item_rate_card						},	
-	{ "item_rate_common",					&config.item_rate_common					},	
-	{ "item_rate_equip",					&config.item_rate_equip						},
-	{ "item_rate_heal",						&config.item_rate_heal						},	
-	{ "item_rate_use",						&config.item_rate_use						},	
-	{ "item_second_get_time",				&config.item_second_get_time				},
-	{ "item_slots_override_grffile",		&config.item_slots_override_grffile			},	
-	{ "item_third_get_time",				&config.item_third_get_time					},
-	{ "item_use_interval",					&config.item_use_interval					},
-	{ "job_exp_rate",						&config.job_exp_rate						},
-	{ "left_cardfix_to_right",				&config.left_cardfix_to_right				},
-	{ "magic_defense_type",					&config.magic_defense_type					},
-	{ "mailsystem",							&config.mailsystem							},
-	{ "making_arrow_name_input",			&config.making_arrow_name_input				},
-	{ "master_get_homun_base_exp",			&config.master_get_homun_base_exp			},
-	{ "master_get_homun_job_exp",			&config.master_get_homun_job_exp			},
-	{ "max_adv_level",						&config.max_adv_level						},
-	{ "max_aspd",							&config.max_aspd							},
-	{ "max_base_level",						&config.max_base_level						},
-	{ "max_cart_weight",					&config.max_cart_weight						},
-	{ "max_cloth_color",					&config.max_cloth_color						},
-	{ "max_hair_color",						&config.max_hair_color						},
-	{ "max_hair_style",						&config.max_hair_style						},
-	{ "max_hitrate",						&config.max_hitrate							},
-	{ "max_hp",								&config.max_hp								},
-	{ "max_job_level",						&config.max_job_level						},
-	{ "max_parameter",						&config.max_parameter						},
-	{ "max_sn_level",						&config.max_sn_level						},
-	{ "max_sp",								&config.max_sp								},
-	{ "max_walk_speed",						&config.max_walk_speed						},
-	{ "maximum_level",						&config.maximum_level						},	
-	{ "min_cloth_color",					&config.min_cloth_color						},
-	{ "min_hair_color",						&config.min_hair_color						},
-	{ "min_hair_style",						&config.min_hair_style						},
-	{ "min_hitrate",						&config.min_hitrate							},
-	{ "min_skill_delay_limit",				&config.min_skill_delay_limit				},
-	{ "mob_attack_attr_none",				&config.mob_attack_attr_none				},
-	{ "mob_changetarget_byskill",			&config.mob_changetarget_byskill			},
-	{ "mob_clear_delay",					&config.mob_clear_delay						},
-	{ "mob_count_rate",						&config.mob_count_rate						},
-	{ "mob_ghostring_fix",					&config.mob_ghostring_fix					},
-	{ "mob_remove_damaged",					&config.mob_remove_damaged					},
-	{ "mob_remove_delay",					&config.mob_remove_delay					},
-	{ "mob_skill_delay",					&config.mob_skill_delay						},
-	{ "mob_skill_rate",						&config.mob_skill_rate						},
-	{ "mob_slaves_inherit_speed",			&config.mob_slaves_inherit_speed			},
-	{ "mob_spawn_delay",					&config.mob_spawn_delay						},
-	{ "mob_warpportal",						&config.mob_warpportal						},
-	{ "mobs_level_up",						&config.mobs_level_up						},
-	{ "monster_active_enable",				&config.monster_active_enable				},
-	{ "monster_attack_direction_change",	&config.monster_attack_direction_change		},
-	{ "monster_auto_counter_type",			&config.monster_auto_counter_type			},
-	{ "monster_class_change_full_recover",	&config.monster_class_change_full_recover 	},
-	{ "monster_cloak_check_type",			&config.monster_cloak_check_type			},
-	{ "monster_damage_delay",				&config.monster_damage_delay				},
-	{ "monster_damage_delay_rate",			&config.monster_damage_delay_rate			},
-	{ "monster_defense_type",				&config.monster_defense_type				},
-	{ "monster_hp_rate",					&config.monster_hp_rate						},
-	{ "monster_land_skill_limit",			&config.monster_land_skill_limit			},
-	{ "monster_loot_type",					&config.monster_loot_type					},
-	{ "monster_max_aspd",					&config.monster_max_aspd					},
-	{ "monster_skill_add_range",			&config.mob_skill_add_range					},
-	{ "monster_skill_log",					&config.mob_skill_log						},
-	{ "monster_skill_nofootset",			&config.monster_skill_nofootset				},
-	{ "monster_skill_reiteration",			&config.monster_skill_reiteration			},
-	{ "monsters_ignore_gm",					&config.monsters_ignore_gm					},	
-	{ "motd_type",							&config.motd_type							},
-	{ "multi_level_up",						&config.multi_level_up						},
-	{ "muting_players",						&config.muting_players						},
-	{ "mvp_exp_rate",						&config.mvp_exp_rate						},
-	{ "mvp_hp_rate",						&config.mvp_hp_rate							},
-	{ "mvp_item_first_get_time",			&config.mvp_item_first_get_time				},
-	{ "mvp_item_rate",						&config.mvp_item_rate						},
-	{ "mvp_item_second_get_time",			&config.mvp_item_second_get_time			},
-	{ "mvp_item_third_get_time",			&config.mvp_item_third_get_time				},
-	{ "natural_heal_skill_interval",		&config.natural_heal_skill_interval			},
-	{ "natural_heal_weight_rate",			&config.natural_heal_weight_rate			},
-	{ "natural_healhp_interval",			&config.natural_healhp_interval				},
-	{ "natural_healsp_interval",			&config.natural_healsp_interval				},
-	{ "night_at_start",						&config.night_at_start						},
-	{ "night_darkness_level",				&config.night_darkness_level				},
-	{ "night_duration",						&config.night_duration						},
-	{ "packet_ver_flag",					&config.packet_ver_flag						},
-	{ "party_bonus",						&config.party_bonus							},
-	{ "party_share_mode",					&config.party_share_mode					},
-	{ "party_skill_penalty",				&config.party_skill_penalty					},
-	{ "pc_attack_attr_none",				&config.pc_attack_attr_none					},
-	{ "pet_attack_attr_none",				&config.pet_attack_attr_none				},
-	{ "pet_attack_exp_rate",				&config.pet_attack_exp_rate					},
-	{ "pet_attack_exp_to_master",			&config.pet_attack_exp_to_master			},
-	{ "pet_attack_support",					&config.pet_attack_support					},
-	{ "pet_catch_rate",						&config.pet_catch_rate						},
-	{ "pet_damage_support",					&config.pet_damage_support					},
-	{ "pet_defense_type",					&config.pet_defense_type					},
-	{ "pet_equip_required",					&config.pet_equip_required					},	
-	{ "pet_friendly_rate",					&config.pet_friendly_rate					},
-	{ "pet_hair_style",						&config.pet_hair_style						},
-	{ "pet_hungry_delay_rate",				&config.pet_hungry_delay_rate				},
-	{ "pet_hungry_friendly_decrease",		&config.pet_hungry_friendly_decrease		},
-	{ "pet_lv_rate",						&config.pet_lv_rate							},	
-	{ "pet_max_atk1",						&config.pet_max_atk1						},	
-	{ "pet_max_atk2",						&config.pet_max_atk2						},	
-	{ "pet_max_stats",						&config.pet_max_stats						},	
-	{ "pet_no_gvg",							&config.pet_no_gvg							},	
-	{ "pet_random_move",					&config.pet_random_move						},
-	{ "pet_rename",							&config.pet_rename							},
-	{ "pet_status_support",					&config.pet_status_support					},
-	{ "pet_str",							&config.pet_str								},
-	{ "pet_support_min_friendly",			&config.pet_support_min_friendly			},
-	{ "pet_support_rate",					&config.pet_support_rate					},
-	{ "pk_min_level",						&config.pk_min_level						},
-	{ "pk_mode",							&config.pk_mode								},	
-	{ "plant_spawn_delay",					&config.plant_spawn_delay					},
-	{ "player_attack_direction_change",		&config.pc_attack_direction_change			},
-	{ "player_auto_counter_type",			&config.pc_auto_counter_type				},
-	{ "player_cloak_check_type",			&config.pc_cloak_check_type					},
-	{ "player_damage_delay",				&config.pc_damage_delay						},
-	{ "player_damage_delay_rate",			&config.pc_damage_delay_rate				},
-	{ "player_defense_type",				&config.player_defense_type					},
-	{ "player_invincible_time",				&config.pc_invincible_time					},
-	{ "player_land_skill_limit",			&config.pc_land_skill_limit					},
-	{ "player_skill_add_range",				&config.pc_skill_add_range					},
-	{ "player_skill_log",					&config.pc_skill_log						},
-	{ "player_skill_nofootset",				&config.pc_skill_nofootset					},
-	{ "player_skill_partner_check",			&config.player_skill_partner_check			},
-	{ "player_skill_reiteration",			&config.pc_skill_reiteration				},
-	{ "player_skillfree",					&config.skillfree							},
-	{ "player_skillup_limit",				&config.skillup_limit						},
-	{ "potion_produce_rate",				&config.pp_rate								},
-	{ "prevent_logout",						&config.prevent_logout						},	
-	{ "produce_item_name_input",			&config.produce_item_name_input				},
-	{ "produce_potion_name_input",			&config.produce_potion_name_input			},
-	{ "pvp_exp",							&config.pvp_exp								},
-	{ "quest_skill_learn",					&config.quest_skill_learn					},
-	{ "quest_skill_reset",					&config.quest_skill_reset					},
-	{ "rainy_waterball",					&config.rainy_waterball						},
-	{ "random_monster_checklv",				&config.random_monster_checklv				},
-	{ "require_glory_guild",				&config.require_glory_guild					},
-	{ "restart_hp_rate",					&config.restart_hp_rate						},
-	{ "restart_sp_rate",					&config.restart_sp_rate						},
-	{ "resurrection_exp",					&config.resurrection_exp					},
-	{ "save_clothcolor",					&config.save_clothcolor						},
-	{ "save_log",							&config.save_log							},
-	{ "serverside_friendlist",				&config.serverside_friendlist				},
-	{ "shop_exp",							&config.shop_exp							},
-	{ "show_hp_sp_drain",					&config.show_hp_sp_drain					},
-	{ "show_hp_sp_gain",					&config.show_hp_sp_gain						},
-	{ "show_mob_hp",						&config.show_mob_hp							},
-	{ "show_steal_in_same_party",			&config.show_steal_in_same_party			},
-	{ "skill_delay_attack_enable",			&config.skill_delay_attack_enable			},
-	{ "skill_min_damage",					&config.skill_min_damage					},
-	{ "skill_out_range_consume",			&config.skill_out_range_consume				},
-	{ "skill_removetrap_type",				&config.skill_removetrap_type				},
-	{ "skill_sp_override_grffile",			&config.skill_sp_override_grffile			},	
-	{ "skill_steal_rate",					&config.skill_steal_rate					},
-	{ "skill_steal_type",					&config.skill_steal_type					},
-	{ "sp_rate",							&config.sp_rate								},
-	{ "undead_detect_type",					&config.undead_detect_type					},
-	{ "unit_movement_type",					&config.unit_movement_type					},
-	{ "use_statpoint_table",				&config.use_statpoint_table					},
-	{ "vending_max_value",					&config.vending_max_value					},
-	{ "vit_penalty_count",					&config.vit_penalty_count					},
-	{ "vit_penalty_count_lv",				&config.vit_penalty_count_lv				},
-	{ "vit_penalty_num",					&config.vit_penalty_num						},
-	{ "vit_penalty_type",					&config.vit_penalty_type					},
-	{ "warp_point_debug",					&config.warp_point_debug					},
-	{ "weapon_produce_rate",				&config.wp_rate								},
-	{ "wedding_ignorepalette",				&config.wedding_ignorepalette				},
-	{ "wedding_modifydisplay",				&config.wedding_modifydisplay				},
-	{ "who_display_aid",					&config.who_display_aid						},
-	{ "zeny_from_mobs",						&config.zeny_from_mobs						},
-	{ "zeny_penalty",						&config.zeny_penalty						},
+	{ "agi_penalty_count",					&CConfig::agi_penalty_count						},
+	{ "agi_penalty_count_lv",				&CConfig::agi_penalty_count_lv					},
+	{ "agi_penalty_num",					&CConfig::agi_penalty_num						},
+	{ "agi_penalty_type",					&CConfig::agi_penalty_type						},
+	{ "alchemist_summon_reward",			&CConfig::alchemist_summon_reward				},
+	{ "allow_atcommand_when_mute",			&CConfig::allow_atcommand_when_mute				},
+	{ "allow_homun_status_change",			&CConfig::allow_homun_status_change				},
+	{ "any_warp_GM_min_level",				&CConfig::any_warp_GM_min_level					},
+	{ "area_size",							&CConfig::area_size								},
+	{ "arrow_decrement",					&CConfig::arrow_decrement						},
+	{ "atcommand_gm_only",					&CConfig::atc_gmonly							},
+	{ "atcommand_spawn_quantity_limit",		&CConfig::atc_spawn_quantity_limit				},
+	{ "attribute_recover",					&CConfig::attr_recover							},
+	{ "backstab_bow_penalty",				&CConfig::backstab_bow_penalty					},
+	{ "ban_bot",							&CConfig::ban_bot								},
+	{ "ban_spoof_namer",					&CConfig::ban_spoof_namer						},
+	{ "base_exp_rate",						&CConfig::base_exp_rate							},
+	{ "basic_skill_check",					&CConfig::basic_skill_check						},
+	{ "battle_log",							&CConfig::battle_log							},
+	{ "berserk_canc	els_buffs",				&CConfig::berserk_cancels_buffs					},
+	{ "bone_drop",							&CConfig::bone_drop								},
+	{ "boss_spawn_delay",					&CConfig::boss_spawn_delay						},
+	{ "buyer_name",							&CConfig::buyer_name							},
+	{ "cardillust_read_grffile",			&CConfig::cardillust_read_grffile				},
+	{ "casting_rate",						&CConfig::cast_rate								},
+	{ "castle_defense_rate",				&CConfig::castle_defense_rate					},
+	{ "castrate_dex_scale",					&CConfig::castrate_dex_scale					},
+	{ "character_size",						&CConfig::character_size						},
+	{ "chat_warpportal",					&CConfig::chat_warpportal						},
+	{ "combo_delay_rate",					&CConfig::combo_delay_rate						},
+	{ "copyskill_restrict",					&CConfig::copyskill_restrict					},
+	{ "day_duration",						&CConfig::day_duration							},
+	{ "dead_branch_active",					&CConfig::dead_branch_active					},
+	{ "death_penalty_base",					&CConfig::death_penalty_base					},
+	{ "death_penalty_job",					&CConfig::death_penalty_job						},
+	{ "death_penalty_type",					&CConfig::death_penalty_type					},
+	{ "defunit_not_enemy",					&CConfig::defnotenemy							},
+	{ "delay_battle_damage",				&CConfig::delay_battle_damage					},
+	{ "delay_dependon_dex",					&CConfig::delay_dependon_dex					},
+	{ "delay_rate",							&CConfig::delay_rate							},
+	{ "devotion_level_difference",			&CConfig::devotion_level_difference				},
+	{ "disp_experience",					&CConfig::disp_experience						},
+	{ "disp_hpmeter",						&CConfig::disp_hpmeter							},
+	{ "display_delay_skill_fail",			&CConfig::display_delay_skill_fail				},
+	{ "display_hallucination",				&CConfig::display_hallucination					},
+	{ "display_snatcher_skill_fail",		&CConfig::display_snatcher_skill_fail			},
+	{ "display_version",					&CConfig::display_version						},
+	{ "drop_rate0item",						&CConfig::drop_rate0item						},
+	{ "drop_rare_announce",					&CConfig::drop_rare_announce					},
+	{ "drops_by_luk",						&CConfig::drops_by_luk							},
+	{ "dynamic_mobs",						&CConfig::dynamic_mobs							},
+	{ "enemy_critical",						&CConfig::enemy_critical						},
+	{ "enemy_critical_rate",				&CConfig::enemy_critical_rate					},
+	{ "enemy_perfect_flee",					&CConfig::enemy_perfect_flee					},
+	{ "enemy_str",							&CConfig::enemy_str								},
+	{ "equip_natural_break_rate",			&CConfig::equip_natural_break_rate				},
+	{ "equip_self_break_rate",				&CConfig::equip_self_break_rate					},
+	{ "equip_skill_break_rate",				&CConfig::equip_skill_break_rate				},
+	{ "error_log",							&CConfig::error_log								},
+	{ "etc_log",							&CConfig::etc_log								},
+	{ "exp_calc_type",						&CConfig::exp_calc_type							},
+	{ "finding_ore_rate",					&CConfig::finding_ore_rate						},
+	{ "finger_offensive_type",				&CConfig::finger_offensive_type					},
+	{ "flooritem_lifetime",					&CConfig::flooritem_lifetime					},
+	{ "gm_all_equipment",					&CConfig::gm_allequip							},
+	{ "gm_all_skill",						&CConfig::gm_allskill							},
+	{ "gm_all_skill_add_abra",				&CConfig::gm_allskill_addabra					},
+	{ "gm_can_drop_lv",						&CConfig::gm_can_drop_lv						},
+	{ "gm_join_chat",						&CConfig::gm_join_chat							},
+	{ "gm_kick_chat",						&CConfig::gm_kick_chat							},
+	{ "gm_skill_unconditional",				&CConfig::gm_skilluncond						},
+	{ "gtb_pvp_only",						&CConfig::gtb_pvp_only							},
+	{ "guild_emperium_check",				&CConfig::guild_emperium_check					},
+	{ "guild_exp_limit",					&CConfig::guild_exp_limit						},
+	{ "guild_max_castles",					&CConfig::guild_max_castles						},
+	{ "gvg_eliminate_time",					&CConfig::gvg_eliminate_time					},
+	{ "gvg_long_attack_damage_rate",		&CConfig::gvg_long_damage_rate					},
+	{ "gvg_magic_attack_damage_rate",		&CConfig::gvg_magic_damage_rate					},
+	{ "gvg_misc_attack_damage_rate",		&CConfig::gvg_misc_damage_rate					},
+	{ "gvg_short_attack_damage_rate",		&CConfig::gvg_short_damage_rate					},
+	{ "gvg_weapon_damage_rate",				&CConfig::gvg_weapon_damage_rate				},
+	{ "gx_allhit",							&CConfig::gx_allhit								},
+	{ "gx_cardfix",							&CConfig::gx_cardfix							},
+	{ "gx_disptype",						&CConfig::gx_disptype							},
+	{ "gx_dupele",							&CConfig::gx_dupele								},
+	{ "hack_info_GM_level",					&CConfig::hack_info_GM_level					},
+	{ "headset_block_music",				&CConfig::headset_block_music					},
+	{ "heal_exp",							&CConfig::heal_exp								},
+	{ "hide_GM_session",					&CConfig::hide_GM_session						},
+	{ "holywater_name_input",				&CConfig::holywater_name_input					},
+	{ "homun_creation_rate",				&CConfig::homun_creation_rate					},
+	{ "homun_intimate_rate",				&CConfig::homun_intimate_rate					},
+	{ "homun_temporal_intimate_resilience",	&CConfig::homun_temporal_intimate_resilience	},
+	{ "hp_rate",							&CConfig::hp_rate								},
+	{ "idle_no_share",						&CConfig::idle_no_share							},
+	{ "ignore_items_gender",				&CConfig::ignore_items_gender					},
+	{ "indoors_override_grffile",			&CConfig::indoors_override_grffile				},
+	{ "invite_request_check",				&CConfig::invite_request_check					},
+	{ "item_auto_get",						&CConfig::item_auto_get							},
+	{ "item_check",							&CConfig::item_check							},
+	{ "item_drop_card_max",					&CConfig::item_drop_card_max					},
+	{ "item_drop_card_min",					&CConfig::item_drop_card_min					},
+	{ "item_drop_common_max",				&CConfig::item_drop_common_max					},
+	{ "item_drop_common_min",				&CConfig::item_drop_common_min					},
+	{ "item_drop_equip_max",				&CConfig::item_drop_equip_max					},
+	{ "item_drop_equip_min",				&CConfig::item_drop_equip_min					},
+	{ "item_drop_heal_max",					&CConfig::item_drop_heal_max					},
+	{ "item_drop_heal_min",					&CConfig::item_drop_heal_min					},
+	{ "item_drop_mvp_max",					&CConfig::item_drop_mvp_max						},
+	{ "item_drop_mvp_min",					&CConfig::item_drop_mvp_min						},
+	{ "item_drop_use_max",					&CConfig::item_drop_use_max						},
+	{ "item_drop_use_min",					&CConfig::item_drop_use_min						},
+	{ "item_equip_override_grffile",		&CConfig::item_equip_override_grffile			},
+	{ "item_first_get_time",				&CConfig::item_first_get_time					},
+	{ "item_name_override_grffile",			&CConfig::item_name_override_grffile			},
+	{ "item_rate_card",						&CConfig::item_rate_card						},
+	{ "item_rate_common",					&CConfig::item_rate_common						},
+	{ "item_rate_equip",					&CConfig::item_rate_equip						},
+	{ "item_rate_heal",						&CConfig::item_rate_heal						},
+	{ "item_rate_use",						&CConfig::item_rate_use							},
+	{ "item_second_get_time",				&CConfig::item_second_get_time					},
+	{ "item_slots_override_grffile",		&CConfig::item_slots_override_grffile			},
+	{ "item_third_get_time",				&CConfig::item_third_get_time					},
+	{ "item_use_interval",					&CConfig::item_use_interval						},
+	{ "job_exp_rate",						&CConfig::job_exp_rate							},
+	{ "left_cardfix_to_right",				&CConfig::left_cardfix_to_right					},
+	{ "magic_defense_type",					&CConfig::magic_defense_type					},
+	{ "mailsystem",							&CConfig::mailsystem							},
+	{ "making_arrow_name_input",			&CConfig::making_arrow_name_input				},
+	{ "master_get_homun_base_exp",			&CConfig::master_get_homun_base_exp				},
+	{ "master_get_homun_job_exp",			&CConfig::master_get_homun_job_exp				},
+	{ "max_adv_level",						&CConfig::max_adv_level							},
+	{ "max_aspd",							&CConfig::max_aspd								},
+	{ "max_base_level",						&CConfig::max_base_level						},
+	{ "max_cart_weight",					&CConfig::max_cart_weight						},
+	{ "max_cloth_color",					&CConfig::max_cloth_color						},
+	{ "max_hair_color",						&CConfig::max_hair_color						},
+	{ "max_hair_style",						&CConfig::max_hair_style						},
+	{ "max_hitrate",						&CConfig::max_hitrate							},
+	{ "max_hp",								&CConfig::max_hp								},
+	{ "max_job_level",						&CConfig::max_job_level							},
+	{ "max_parameter",						&CConfig::max_parameter							},
+	{ "max_sn_level",						&CConfig::max_sn_level							},
+	{ "max_sp",								&CConfig::max_sp								},
+	{ "max_walk_speed",						&CConfig::max_walk_speed						},
+	{ "maximum_level",						&CConfig::maximum_level							},
+	{ "min_cloth_color",					&CConfig::min_cloth_color						},
+	{ "min_hair_color",						&CConfig::min_hair_color						},
+	{ "min_hair_style",						&CConfig::min_hair_style						},
+	{ "min_hitrate",						&CConfig::min_hitrate							},
+	{ "min_skill_delay_limit",				&CConfig::min_skill_delay_limit					},
+	{ "mob_attack_attr_none",				&CConfig::mob_attack_attr_none					},
+	{ "mob_changetarget_byskill",			&CConfig::mob_changetarget_byskill				},
+	{ "mob_clear_delay",					&CConfig::mob_clear_delay						},
+	{ "mob_count_rate",						&CConfig::mob_count_rate						},
+	{ "mob_ghostring_fix",					&CConfig::mob_ghostring_fix						},
+	{ "mob_remove_damaged",					&CConfig::mob_remove_damaged					},
+	{ "mob_remove_delay",					&CConfig::mob_remove_delay						},
+	{ "mob_skill_delay",					&CConfig::mob_skill_delay						},
+	{ "mob_skill_rate",						&CConfig::mob_skill_rate						},
+	{ "mob_slaves_inherit_speed",			&CConfig::mob_slaves_inherit_speed				},
+	{ "mob_spawn_delay",					&CConfig::mob_spawn_delay						},
+	{ "mob_warpportal",						&CConfig::mob_warpportal						},
+	{ "mobs_level_up",						&CConfig::mobs_level_up							},
+	{ "monster_active_enable",				&CConfig::monster_active_enable					},
+	{ "monster_attack_direction_change",	&CConfig::monster_attack_direction_change		},
+	{ "monster_auto_counter_type",			&CConfig::monster_auto_counter_type				},
+	{ "monster_class_change_full_recover",	&CConfig::monster_class_change_full_recover 	},
+	{ "monster_cloak_check_type",			&CConfig::monster_cloak_check_type				},
+	{ "monster_damage_delay",				&CConfig::monster_damage_delay					},
+	{ "monster_damage_delay_rate",			&CConfig::monster_damage_delay_rate				},
+	{ "monster_defense_type",				&CConfig::monster_defense_type					},
+	{ "monster_hp_rate",					&CConfig::monster_hp_rate						},
+	{ "monster_land_skill_limit",			&CConfig::monster_land_skill_limit				},
+	{ "monster_loot_type",					&CConfig::monster_loot_type						},
+	{ "monster_max_aspd",					&CConfig::monster_max_aspd						},
+	{ "monster_skill_add_range",			&CConfig::mob_skill_add_range					},
+	{ "monster_skill_log",					&CConfig::mob_skill_log							},
+	{ "monster_skill_nofootset",			&CConfig::monster_skill_nofootset				},
+	{ "monster_skill_reiteration",			&CConfig::monster_skill_reiteration				},
+	{ "monsters_ignore_gm",					&CConfig::monsters_ignore_gm					},
+	{ "motd_type",							&CConfig::motd_type								},
+	{ "multi_level_up",						&CConfig::multi_level_up						},
+	{ "muting_players",						&CConfig::muting_players						},
+	{ "mvp_exp_rate",						&CConfig::mvp_exp_rate							},
+	{ "mvp_hp_rate",						&CConfig::mvp_hp_rate							},
+	{ "mvp_item_first_get_time",			&CConfig::mvp_item_first_get_time				},
+	{ "mvp_item_rate",						&CConfig::mvp_item_rate							},
+	{ "mvp_item_second_get_time",			&CConfig::mvp_item_second_get_time				},
+	{ "mvp_item_third_get_time",			&CConfig::mvp_item_third_get_time				},
+	{ "natural_heal_skill_interval",		&CConfig::natural_heal_skill_interval			},
+	{ "natural_heal_weight_rate",			&CConfig::natural_heal_weight_rate				},
+	{ "natural_healhp_interval",			&CConfig::natural_healhp_interval				},
+	{ "natural_healsp_interval",			&CConfig::natural_healsp_interval				},
+	{ "night_at_start",						&CConfig::night_at_start						},
+	{ "night_darkness_level",				&CConfig::night_darkness_level					},
+	{ "night_duration",						&CConfig::night_duration						},
+	{ "packet_ver_flag",					&CConfig::packet_ver_flag						},
+	{ "party_bonus",						&CConfig::party_bonus							},
+	{ "party_share_mode",					&CConfig::party_share_mode						},
+	{ "party_skill_penalty",				&CConfig::party_skill_penalty					},
+	{ "pc_attack_attr_none",				&CConfig::pc_attack_attr_none					},
+	{ "pet_attack_attr_none",				&CConfig::pet_attack_attr_none					},
+	{ "pet_attack_exp_rate",				&CConfig::pet_attack_exp_rate					},
+	{ "pet_attack_exp_to_master",			&CConfig::pet_attack_exp_to_master				},
+	{ "pet_attack_support",					&CConfig::pet_attack_support					},
+	{ "pet_catch_rate",						&CConfig::pet_catch_rate						},
+	{ "pet_damage_support",					&CConfig::pet_damage_support					},
+	{ "pet_defense_type",					&CConfig::pet_defense_type						},
+	{ "pet_equip_required",					&CConfig::pet_equip_required					},
+	{ "pet_friendly_rate",					&CConfig::pet_friendly_rate						},
+	{ "pet_hair_style",						&CConfig::pet_hair_style						},
+	{ "pet_hungry_delay_rate",				&CConfig::pet_hungry_delay_rate					},
+	{ "pet_hungry_friendly_decrease",		&CConfig::pet_hungry_friendly_decrease			},
+	{ "pet_lv_rate",						&CConfig::pet_lv_rate							},
+	{ "pet_max_atk1",						&CConfig::pet_max_atk1							},
+	{ "pet_max_atk2",						&CConfig::pet_max_atk2							},
+	{ "pet_max_stats",						&CConfig::pet_max_stats							},
+	{ "pet_no_gvg",							&CConfig::pet_no_gvg							},
+	{ "pet_random_move",					&CConfig::pet_random_move						},
+	{ "pet_rename",							&CConfig::pet_rename							},
+	{ "pet_status_support",					&CConfig::pet_status_support					},
+	{ "pet_str",							&CConfig::pet_str								},
+	{ "pet_support_min_friendly",			&CConfig::pet_support_min_friendly				},
+	{ "pet_support_rate",					&CConfig::pet_support_rate						},
+	{ "pk_min_level",						&CConfig::pk_min_level							},
+	{ "pk_mode",							&CConfig::pk_mode								},
+	{ "plant_spawn_delay",					&CConfig::plant_spawn_delay						},
+	{ "player_attack_direction_change",		&CConfig::pc_attack_direction_change			},
+	{ "player_auto_counter_type",			&CConfig::pc_auto_counter_type					},
+	{ "player_cloak_check_type",			&CConfig::pc_cloak_check_type					},
+	{ "player_damage_delay",				&CConfig::pc_damage_delay						},
+	{ "player_damage_delay_rate",			&CConfig::pc_damage_delay_rate					},
+	{ "player_defense_type",				&CConfig::player_defense_type					},
+	{ "player_invincible_time",				&CConfig::pc_invincible_time					},
+	{ "player_land_skill_limit",			&CConfig::pc_land_skill_limit					},
+	{ "player_skill_add_range",				&CConfig::pc_skill_add_range					},
+	{ "player_skill_log",					&CConfig::pc_skill_log							},
+	{ "player_skill_nofootset",				&CConfig::pc_skill_nofootset					},
+	{ "player_skill_partner_check",			&CConfig::player_skill_partner_check			},
+	{ "player_skill_reiteration",			&CConfig::pc_skill_reiteration					},
+	{ "player_skillfree",					&CConfig::skillfree								},
+	{ "player_skillup_limit",				&CConfig::skillup_limit							},
+	{ "potion_produce_rate",				&CConfig::pp_rate								},
+	{ "prevent_logout",						&CConfig::prevent_logout						},
+	{ "produce_item_name_input",			&CConfig::produce_item_name_input				},
+	{ "produce_potion_name_input",			&CConfig::produce_potion_name_input				},
+	{ "pvp_exp",							&CConfig::pvp_exp								},
+	{ "quest_skill_learn",					&CConfig::quest_skill_learn						},
+	{ "quest_skill_reset",					&CConfig::quest_skill_reset						},
+	{ "rainy_waterball",					&CConfig::rainy_waterball						},
+	{ "random_monster_checklv",				&CConfig::random_monster_checklv				},
+	{ "require_glory_guild",				&CConfig::require_glory_guild					},
+	{ "restart_hp_rate",					&CConfig::restart_hp_rate						},
+	{ "restart_sp_rate",					&CConfig::restart_sp_rate						},
+	{ "resurrection_exp",					&CConfig::resurrection_exp						},
+	{ "save_clothcolor",					&CConfig::save_clothcolor						},
+	{ "save_log",							&CConfig::save_log								},
+	{ "serverside_friendlist",				&CConfig::serverside_friendlist					},
+	{ "shop_exp",							&CConfig::shop_exp								},
+	{ "show_hp_sp_drain",					&CConfig::show_hp_sp_drain						},
+	{ "show_hp_sp_gain",					&CConfig::show_hp_sp_gain						},
+	{ "show_mob_hp",						&CConfig::show_mob_hp							},
+	{ "show_steal_in_same_party",			&CConfig::show_steal_in_same_party				},
+	{ "skill_delay_attack_enable",			&CConfig::skill_delay_attack_enable				},
+	{ "skill_min_damage",					&CConfig::skill_min_damage						},
+	{ "skill_out_range_consume",			&CConfig::skill_out_range_consume				},
+	{ "skill_removetrap_type",				&CConfig::skill_removetrap_type					},
+	{ "skill_sp_override_grffile",			&CConfig::skill_sp_override_grffile				},
+	{ "skill_steal_rate",					&CConfig::skill_steal_rate						},
+	{ "skill_steal_type",					&CConfig::skill_steal_type						},
+	{ "sp_rate",							&CConfig::sp_rate								},
+	{ "undead_detect_type",					&CConfig::undead_detect_type					},
+	{ "unit_movement_type",					&CConfig::unit_movement_type					},
+	{ "use_statpoint_table",				&CConfig::use_statpoint_table					},
+	{ "vending_max_value",					&CConfig::vending_max_value						},
+	{ "vit_penalty_count",					&CConfig::vit_penalty_count						},
+	{ "vit_penalty_count_lv",				&CConfig::vit_penalty_count_lv					},
+	{ "vit_penalty_num",					&CConfig::vit_penalty_num						},
+	{ "vit_penalty_type",					&CConfig::vit_penalty_type						},
+	{ "warp_point_debug",					&CConfig::warp_point_debug						},
+	{ "weapon_produce_rate",				&CConfig::wp_rate								},
+	{ "wedding_ignorepalette",				&CConfig::wedding_ignorepalette					},
+	{ "wedding_modifydisplay",				&CConfig::wedding_modifydisplay					},
+	{ "who_display_aid",					&CConfig::who_display_aid						},
+	{ "zeny_from_mobs",						&CConfig::zeny_from_mobs						},
+	{ "zeny_penalty",						&CConfig::zeny_penalty							},
 };
 
 
+///////////////////////////////////////////////////////////////////////////////
+/// constructor
+CConfig::CConfig()
+{
+}
 
+///////////////////////////////////////////////////////////////////////////////
+/// destructor.
+CConfig::~CConfig()
+{
+}
 
-bool config_set_value(const char *w1, const char *w2)
+///////////////////////////////////////////////////////////////////////////////
+/// set a config value by name.
+/// since the namelist is sorted we actually could do a binary search...
+bool CConfig::set_value(const char *name, const char *value)
 {
 	size_t i;
 	for(i=0; i< sizeof(config_map)/(sizeof(config_map[0])); ++i)
 	{
-		if(config_map[i].val && config_map[i].str && 0==strcasecmp(w1, config_map[i].str) )
+		if(config_map[i].val && config_map[i].str && 0==strcasecmp(name, config_map[i].str) )
 		{
-			*(config_map[i].val) = config_switch(w2);
+			this->*(config_map[i].val) = config_switch(value);
 			return true;
 		}
 	}
 	return false;
 }
 
-void config_defaults()
+///////////////////////////////////////////////////////////////////////////////
+/// map-like access. returns a dummy value when name does not exist
+/// since the namelist is sorted we actually could do a binary search...
+uint32& CConfig::operator[](const char *name)
 {
-	config.agi_penalty_count = 3;
-	config.agi_penalty_count_lv = ATK_FLEE;
-	config.agi_penalty_num = 10;
-	config.agi_penalty_type = 1;
-	config.alchemist_summon_reward = 0;
-	config.allow_atcommand_when_mute = 0;
-	config.allow_homun_status_change = 0;
-	config.any_warp_GM_min_level = 60;
-	config.area_size = 14;
-	config.arrow_decrement=1;
-	config.atc_gmonly=0;
-	config.atc_spawn_quantity_limit=0;
-	config.attr_recover=1;
-	config.backstab_bow_penalty = 0;
-	config.ban_bot=1;
-	config.ban_hack_trade=1;
-	config.ban_spoof_namer = 5;
-	config.base_exp_rate=100;
-	config.basic_skill_check=1;
-	config.battle_log = 0;
-	config.berserk_cancels_buffs = 0;
-	config.bone_drop = 0;
-	config.boss_spawn_delay=100;	
-	config.buyer_name = 1;
-	config.character_size = 3; //3: Peco riders Size=2, Baby Class Riders Size=1
-	config.cardillust_read_grffile=0;
-	config.cast_rate=100;
-	config.castle_defense_rate = 100;
-	config.castrate_dex_scale = 150;
-	config.chat_warpportal = 0;
-	config.combo_delay_rate=100;
-	config.copyskill_restrict=0;
-	config.day_duration = 2*60*60*1000;
-	config.dead_branch_active = 0;
-	config.death_penalty_base=0;
-	config.death_penalty_job=0;
-	config.death_penalty_type=0;
-	config.defnotenemy=0;
-	config.delay_battle_damage = 1;
-	config.delay_dependon_dex=0;
-	config.delay_rate=100;
-	config.devotion_level_difference = 10;
-	config.disp_experience = 0;
-	config.disp_hpmeter = 60;
-	config.display_delay_skill_fail = 1;
-	config.display_hallucination = 1;
-	config.display_snatcher_skill_fail = 1;
-	config.display_version = 1;
-	config.drop_rate0item=0;
-	config.drop_rare_announce=10;//show global announces for rare items drops (<= 0.1% chance)
-	config.drops_by_luk = 0;
-	config.dynamic_mobs = 1;
-	config.enemy_critical_rate=100;
-	config.enemy_critical=0;
-	config.enemy_perfect_flee=0;
-	config.enemy_str=1;
-	config.equip_natural_break_rate = 1;
-	config.equip_self_break_rate = 100;
-	config.equip_skill_break_rate = 100;
-	config.error_log = 1;
-	config.etc_log = 1;
-	config.exp_calc_type = 1;
-	config.finding_ore_rate = 100;
-	config.finger_offensive_type=0;
-	config.flooritem_lifetime=LIFETIME_FLOORITEM*1000;
-	config.gm_allequip=0;
-	config.gm_allskill=0;
-	config.gm_allskill_addabra=0;
-	config.gm_can_drop_lv = 0;
-	config.gm_join_chat=0;
-	config.gm_kick_chat=0;
-	config.gm_skilluncond=0;
-	config.gtb_pvp_only=0;
-	config.guild_emperium_check=1;
-	config.guild_exp_limit=50;
-	config.guild_max_castles=0;
-	config.gvg_eliminate_time = 7000;
-	config.gvg_long_damage_rate = 80;
-	config.gvg_magic_damage_rate = 60;
-	config.gvg_misc_damage_rate = 60;
-	config.gvg_short_damage_rate = 100;
-	config.gvg_weapon_damage_rate = 60;
-	config.gx_allhit = 1;
-	config.gx_cardfix = 0;
-	config.gx_disptype = 1;
-	config.gx_dupele = 1;
-	config.hack_info_GM_level = 60;
-	config.headset_block_music = 0; //Do headsets block some sound skills like Frost Joke
-	config.heal_exp=0;
-	config.hide_GM_session = 0;
-	config.holywater_name_input = 1;
-	config.homun_creation_rate = 100;
-	config.homun_intimate_rate = 100;
-	config.homun_temporal_intimate_resilience = 50;
-	config.hp_rate = 100;
-	config.idle_no_share = 0;
-	config.ignore_items_gender = 1;
-	config.indoors_override_grffile=0;
-	config.invite_request_check = 1;
-	config.item_auto_get=0;
-	config.item_check=1;
-	config.item_drop_card_max=10000;
-	config.item_drop_card_min=1;
-	config.item_drop_common_max=10000;
-	config.item_drop_common_min=1;
-	config.item_drop_equip_max=10000;
-	config.item_drop_equip_min=1;
-	config.item_drop_heal_max=10000;
-	config.item_drop_heal_min=1;
-	config.item_drop_mvp_max=10000;
-	config.item_drop_mvp_min=1;
-	config.item_drop_use_max=10000;
-	config.item_drop_use_min=1;
-	config.item_equip_override_grffile=0;
-	config.item_first_get_time=3000;
-	config.item_name_override_grffile=1;
-	config.item_rate_card = 100;
-	config.item_rate_common = 100;
-	config.item_rate_equip = 100;
-	config.item_rate_heal = 100;
-	config.item_rate_use = 100;
-	config.item_second_get_time=1000;
-	config.item_slots_override_grffile=0;
-	config.item_third_get_time=1000;
-	config.item_use_interval=500;
-	config.job_exp_rate=100;
-	config.left_cardfix_to_right=0;
-	config.magic_defense_type = 0;
-	config.mailsystem=1;
-	config.making_arrow_name_input = 1;
-	config.master_get_homun_base_exp =0;
-	config.master_get_homun_job_exp =0;
-	config.max_adv_level=70;
-	config.max_aspd = 199;
-	config.max_aspd_interval=10;
-	config.max_base_level = 99;
-	config.max_cart_weight = 8000;
-	config.max_cloth_color = 4;
-	config.max_hair_color = 9;
-	config.max_hair_style = 23;
-	config.max_hitrate = 95;
-	config.max_hp = 32500;
-	config.max_job_level = 50;
-	config.max_parameter = 99;
-	config.max_sn_level = 70;
-	config.max_sp = 32500;
-	config.max_walk_speed = 300;
-	config.maximum_level = 255;
-	config.min_cloth_color = 0;
-	config.min_hair_color = 0;
-	config.min_hair_style = 0;
-	config.min_hitrate = 5;
-	config.min_skill_delay_limit = 100;
-	config.mob_attack_attr_none = 1;
-	config.mob_changetarget_byskill = 0;
-	config.mob_clear_delay=0;
-	config.mob_count_rate=100;
-	config.mob_ghostring_fix = 0;
-	config.mob_remove_damaged = 0;
-	config.mob_remove_delay = 60000;
-	config.mob_skill_add_range=0;
-	config.mob_skill_delay=100;
-	config.mob_skill_log = 0;
-	config.mob_skill_rate=100;
-	config.mob_slaves_inherit_speed=1;
-	config.mob_spawn_delay=100;
-	config.mob_warpportal = 0;
-	config.mobs_level_up = 0;
-	config.monster_active_enable=1;
-	config.monster_attack_direction_change = 1;
-	config.monster_auto_counter_type = 1;
-	config.monster_class_change_full_recover = 0;
-	config.monster_cloak_check_type = 0;
-	config.monster_damage_delay = 1;
-	config.monster_damage_delay_rate=100;
-	config.monster_defense_type = 0;
-	config.monster_hp_rate=100;
-	config.monster_land_skill_limit = 1;
-	config.monster_loot_type=0;
-	config.monster_max_aspd=199;
-	config.monster_skill_nofootset = 0;
-	config.monster_skill_reiteration = 0;
-	config.monsters_ignore_gm=0;
-	config.motd_type = 0;
-	config.multi_level_up = 0;
-	config.muting_players=0;
-	config.mvp_exp_rate=100;
-	config.mvp_hp_rate=100;
-	config.mvp_item_first_get_time=10000;
-	config.mvp_item_rate=100;
-	config.mvp_item_second_get_time=10000;
-	config.mvp_item_third_get_time=2000;
-	config.natural_heal_skill_interval=10000;
-	config.natural_heal_weight_rate=50;
-	config.natural_healhp_interval=6000;
-	config.natural_healsp_interval=8000;
-	config.night_at_start = 0;
-	config.night_darkness_level = 9;
-	config.night_duration = 30*60*1000; 
-	config.packet_ver_flag = 0; 
-	config.party_bonus = 0;
-	config.party_share_mode = 2; // 0 exclude none, 1 exclude idle, 2 exclude idle+chatting
-	config.party_skill_penalty = 1;
-	config.pc_attack_attr_none = 0;
-	config.pc_attack_direction_change = 1;
-	config.pc_auto_counter_type = 1;
-	config.pc_cloak_check_type = 0;
-	config.pc_damage_delay_rate=100;
-	config.pc_damage_delay=1;
-	config.pc_invincible_time = 5000;
-	config.pc_land_skill_limit = 1;
-	config.pc_skill_add_range=0;
-	config.pc_skill_log = 1;
-	config.pc_skill_nofootset = 0;
-	config.pc_skill_reiteration = 0;
-	config.pet_attack_attr_none = 0;
-	config.pet_attack_exp_rate=100;
-	config.pet_attack_exp_to_master=0;
-	config.pet_attack_support=0;
-	config.pet_catch_rate=100;
-	config.pet_damage_support=0;
-	config.pet_defense_type = 0;
-	config.pet_equip_required = 0;
-	config.pet_friendly_rate=100;
-	config.pet_hair_style = 100;
-	config.pet_hungry_delay_rate=100;
-	config.pet_hungry_friendly_decrease=5;
-	config.pet_lv_rate=0;
-	config.pet_max_atk1=750;
-	config.pet_max_atk2=1000;
-	config.pet_max_stats=99;
-	config.pet_no_gvg = 0;
-	config.pet_random_move=1;
-	config.pet_rename=0;
-	config.pet_status_support=0;
-	config.pet_str=1;
-	config.pet_support_min_friendly=900;
-	config.pet_support_rate=100;
-	config.pk_min_level = 55;
-	config.pk_mode = 0;
-	config.plant_spawn_delay=100;
-	config.player_defense_type = 0;
-	config.player_skill_partner_check = 1;
-	config.pp_rate=100;
-	config.prevent_logout = 1;
-	config.produce_item_name_input = 1;
-	config.produce_potion_name_input = 1;
-	config.pvp_exp=1;
-	config.quest_skill_learn=0;
-	config.quest_skill_reset=1;
-	config.rainy_waterball = 1;
-	config.random_monster_checklv=1;
-	config.require_glory_guild = 0;
-	config.restart_hp_rate=0;
-	config.restart_sp_rate=0;
-	config.resurrection_exp=0;
-	config.save_clothcolor = 0;
-	config.save_log = 0;
-	config.serverside_friendlist=1;
-	config.shop_exp=100;
-	config.show_hp_sp_drain = 0;
-	config.show_hp_sp_gain = 1;
-	config.show_mob_hp = 0;
-	config.show_steal_in_same_party = 0;
-	config.skill_delay_attack_enable=0;
-	config.skill_min_damage=0;
-	config.skill_out_range_consume=1;
-	config.skill_removetrap_type = 0;
-	config.skill_sp_override_grffile=0;
-	config.skill_steal_rate = 100;
-	config.skill_steal_type = 1;
-	config.skillfree = 0;
-	config.skillup_limit = 0;
-	config.sp_rate = 100;
-	config.undead_detect_type = 0;
-	config.unit_movement_type = 0;
-	config.use_statpoint_table = 1;
-	config.vending_max_value = 10000000;
-	config.vit_penalty_count = 3;
-	config.vit_penalty_count_lv = ATK_DEF;
-	config.vit_penalty_num = 5;
-	config.vit_penalty_type = 1;
-	config.warp_point_debug=0;
-	config.wedding_ignorepalette=0;
-	config.wedding_modifydisplay=0;
-	config.who_display_aid = 0;
-	config.wp_rate=100;
-	config.zeny_from_mobs = 0;
-	config.zeny_penalty=0;
+	size_t i;
+	for(i=0; i< sizeof(config_map)/(sizeof(config_map[0])); ++i)
+	{
+		if(config_map[i].val && config_map[i].str && 0==strcasecmp(name, config_map[i].str) )
+		{
+			return this->*(config_map[i].val);
+		}
+	}
+	// name not found, return a dummy
+	static uint32 dummy;
+	dummy=0;
+	return dummy;
 }
 
-void config_validate()
+///////////////////////////////////////////////////////////////////////////////
+/// set all values to defaults
+void CConfig::defaults()
 {
-	if(config.flooritem_lifetime < 1000)
-		config.flooritem_lifetime = LIFETIME_FLOORITEM*1000;
-	if(config.restart_hp_rate > 100)
-		config.restart_hp_rate = 100;
-	if(config.restart_sp_rate > 100)
-		config.restart_sp_rate = 100;
-	if(config.natural_healhp_interval < NATURAL_HEAL_INTERVAL)
-		config.natural_healhp_interval=NATURAL_HEAL_INTERVAL;
-	if(config.natural_healsp_interval < NATURAL_HEAL_INTERVAL)
-		config.natural_healsp_interval=NATURAL_HEAL_INTERVAL;
-	if(config.natural_heal_skill_interval < NATURAL_HEAL_INTERVAL)
-		config.natural_heal_skill_interval=NATURAL_HEAL_INTERVAL;
-	if(config.natural_heal_weight_rate < 50)
-		config.natural_heal_weight_rate = 50;
-	if(config.natural_heal_weight_rate > 100)
-		config.natural_heal_weight_rate = 100;
+	this->agi_penalty_count = 3;
+	this->agi_penalty_count_lv = ATK_FLEE;
+	this->agi_penalty_num = 10;
+	this->agi_penalty_type = 1;
+	this->alchemist_summon_reward = 0;
+	this->allow_atcommand_when_mute = 0;
+	this->allow_homun_status_change = 0;
+	this->any_warp_GM_min_level = 60;
+	this->area_size = 14;
+	this->arrow_decrement=1;
+	this->atc_gmonly=0;
+	this->atc_spawn_quantity_limit=0;
+	this->attr_recover=1;
+	this->backstab_bow_penalty = 0;
+	this->ban_bot=1;
+	this->ban_hack_trade=1;
+	this->ban_spoof_namer = 5;
+	this->base_exp_rate=100;
+	this->basic_skill_check=1;
+	this->battle_log = 0;
+	this->berserk_cancels_buffs = 0;
+	this->bone_drop = 0;
+	this->boss_spawn_delay=100;	
+	this->buyer_name = 1;
+	this->character_size = 3; //3: Peco riders Size=2, Baby Class Riders Size=1
+	this->cardillust_read_grffile=0;
+	this->cast_rate=100;
+	this->castle_defense_rate = 100;
+	this->castrate_dex_scale = 150;
+	this->chat_warpportal = 0;
+	this->combo_delay_rate=100;
+	this->copyskill_restrict=0;
+	this->day_duration = 2*60*60*1000;
+	this->dead_branch_active = 0;
+	this->death_penalty_base=0;
+	this->death_penalty_job=0;
+	this->death_penalty_type=0;
+	this->defnotenemy=0;
+	this->delay_battle_damage = 1;
+	this->delay_dependon_dex=0;
+	this->delay_rate=100;
+	this->devotion_level_difference = 10;
+	this->disp_experience = 0;
+	this->disp_hpmeter = 60;
+	this->display_delay_skill_fail = 1;
+	this->display_hallucination = 1;
+	this->display_snatcher_skill_fail = 1;
+	this->display_version = 1;
+	this->drop_rate0item=0;
+	this->drop_rare_announce=10;//show global announces for rare items drops (<= 0.1% chance)
+	this->drops_by_luk = 0;
+	this->dynamic_mobs = 1;
+	this->enemy_critical_rate=100;
+	this->enemy_critical=0;
+	this->enemy_perfect_flee=0;
+	this->enemy_str=1;
+	this->equip_natural_break_rate = 1;
+	this->equip_self_break_rate = 100;
+	this->equip_skill_break_rate = 100;
+	this->error_log = 1;
+	this->etc_log = 1;
+	this->exp_calc_type = 1;
+	this->finding_ore_rate = 100;
+	this->finger_offensive_type=0;
+	this->flooritem_lifetime=LIFETIME_FLOORITEM*1000;
+	this->gm_allequip=0;
+	this->gm_allskill=0;
+	this->gm_allskill_addabra=0;
+	this->gm_can_drop_lv = 0;
+	this->gm_join_chat=0;
+	this->gm_kick_chat=0;
+	this->gm_skilluncond=0;
+	this->gtb_pvp_only=0;
+	this->guild_emperium_check=1;
+	this->guild_exp_limit=50;
+	this->guild_max_castles=0;
+	this->gvg_eliminate_time = 7000;
+	this->gvg_long_damage_rate = 80;
+	this->gvg_magic_damage_rate = 60;
+	this->gvg_misc_damage_rate = 60;
+	this->gvg_short_damage_rate = 100;
+	this->gvg_weapon_damage_rate = 60;
+	this->gx_allhit = 1;
+	this->gx_cardfix = 0;
+	this->gx_disptype = 1;
+	this->gx_dupele = 1;
+	this->hack_info_GM_level = 60;
+	this->headset_block_music = 0; //Do headsets block some sound skills like Frost Joke
+	this->heal_exp=0;
+	this->hide_GM_session = 0;
+	this->holywater_name_input = 1;
+	this->homun_creation_rate = 100;
+	this->homun_intimate_rate = 100;
+	this->homun_temporal_intimate_resilience = 50;
+	this->hp_rate = 100;
+	this->idle_no_share = 0;
+	this->ignore_items_gender = 1;
+	this->indoors_override_grffile=0;
+	this->invite_request_check = 1;
+	this->item_auto_get=0;
+	this->item_check=1;
+	this->item_drop_card_max=10000;
+	this->item_drop_card_min=1;
+	this->item_drop_common_max=10000;
+	this->item_drop_common_min=1;
+	this->item_drop_equip_max=10000;
+	this->item_drop_equip_min=1;
+	this->item_drop_heal_max=10000;
+	this->item_drop_heal_min=1;
+	this->item_drop_mvp_max=10000;
+	this->item_drop_mvp_min=1;
+	this->item_drop_use_max=10000;
+	this->item_drop_use_min=1;
+	this->item_equip_override_grffile=0;
+	this->item_first_get_time=3000;
+	this->item_name_override_grffile=1;
+	this->item_rate_card = 100;
+	this->item_rate_common = 100;
+	this->item_rate_equip = 100;
+	this->item_rate_heal = 100;
+	this->item_rate_use = 100;
+	this->item_second_get_time=1000;
+	this->item_slots_override_grffile=0;
+	this->item_third_get_time=1000;
+	this->item_use_interval=500;
+	this->job_exp_rate=100;
+	this->left_cardfix_to_right=0;
+	this->magic_defense_type = 0;
+	this->mailsystem=1;
+	this->making_arrow_name_input = 1;
+	this->master_get_homun_base_exp =0;
+	this->master_get_homun_job_exp =0;
+	this->max_adv_level=70;
+	this->max_aspd = 199;
+	this->max_aspd_interval=10;
+	this->max_base_level = 99;
+	this->max_cart_weight = 8000;
+	this->max_cloth_color = 4;
+	this->max_hair_color = 9;
+	this->max_hair_style = 23;
+	this->max_hitrate = 95;
+	this->max_hp = 32500;
+	this->max_job_level = 50;
+	this->max_parameter = 99;
+	this->max_sn_level = 70;
+	this->max_sp = 32500;
+	this->max_walk_speed = 300;
+	this->maximum_level = 255;
+	this->min_cloth_color = 0;
+	this->min_hair_color = 0;
+	this->min_hair_style = 0;
+	this->min_hitrate = 5;
+	this->min_skill_delay_limit = 100;
+	this->mob_attack_attr_none = 1;
+	this->mob_changetarget_byskill = 0;
+	this->mob_clear_delay=0;
+	this->mob_count_rate=100;
+	this->mob_ghostring_fix = 0;
+	this->mob_remove_damaged = 0;
+	this->mob_remove_delay = 60000;
+	this->mob_skill_add_range=0;
+	this->mob_skill_delay=100;
+	this->mob_skill_log = 0;
+	this->mob_skill_rate=100;
+	this->mob_slaves_inherit_speed=1;
+	this->mob_spawn_delay=100;
+	this->mob_warpportal = 0;
+	this->mobs_level_up = 0;
+	this->monster_active_enable=1;
+	this->monster_attack_direction_change = 1;
+	this->monster_auto_counter_type = 1;
+	this->monster_class_change_full_recover = 0;
+	this->monster_cloak_check_type = 0;
+	this->monster_damage_delay = 1;
+	this->monster_damage_delay_rate=100;
+	this->monster_defense_type = 0;
+	this->monster_hp_rate=100;
+	this->monster_land_skill_limit = 1;
+	this->monster_loot_type=0;
+	this->monster_max_aspd=199;
+	this->monster_skill_nofootset = 0;
+	this->monster_skill_reiteration = 0;
+	this->monsters_ignore_gm=0;
+	this->motd_type = 0;
+	this->multi_level_up = 0;
+	this->muting_players=0;
+	this->mvp_exp_rate=100;
+	this->mvp_hp_rate=100;
+	this->mvp_item_first_get_time=10000;
+	this->mvp_item_rate=100;
+	this->mvp_item_second_get_time=10000;
+	this->mvp_item_third_get_time=2000;
+	this->natural_heal_skill_interval=10000;
+	this->natural_heal_weight_rate=50;
+	this->natural_healhp_interval=6000;
+	this->natural_healsp_interval=8000;
+	this->night_at_start = 0;
+	this->night_darkness_level = 9;
+	this->night_duration = 30*60*1000; 
+	this->packet_ver_flag = 0; 
+	this->party_bonus = 0;
+	this->party_share_mode = 2; // 0 exclude none, 1 exclude idle, 2 exclude idle+chatting
+	this->party_skill_penalty = 1;
+	this->pc_attack_attr_none = 0;
+	this->pc_attack_direction_change = 1;
+	this->pc_auto_counter_type = 1;
+	this->pc_cloak_check_type = 0;
+	this->pc_damage_delay_rate=100;
+	this->pc_damage_delay=1;
+	this->pc_invincible_time = 5000;
+	this->pc_land_skill_limit = 1;
+	this->pc_skill_add_range=0;
+	this->pc_skill_log = 1;
+	this->pc_skill_nofootset = 0;
+	this->pc_skill_reiteration = 0;
+	this->pet_attack_attr_none = 0;
+	this->pet_attack_exp_rate=100;
+	this->pet_attack_exp_to_master=0;
+	this->pet_attack_support=0;
+	this->pet_catch_rate=100;
+	this->pet_damage_support=0;
+	this->pet_defense_type = 0;
+	this->pet_equip_required = 0;
+	this->pet_friendly_rate=100;
+	this->pet_hair_style = 100;
+	this->pet_hungry_delay_rate=100;
+	this->pet_hungry_friendly_decrease=5;
+	this->pet_lv_rate=0;
+	this->pet_max_atk1=750;
+	this->pet_max_atk2=1000;
+	this->pet_max_stats=99;
+	this->pet_no_gvg = 0;
+	this->pet_random_move=1;
+	this->pet_rename=0;
+	this->pet_status_support=0;
+	this->pet_str=1;
+	this->pet_support_min_friendly=900;
+	this->pet_support_rate=100;
+	this->pk_min_level = 55;
+	this->pk_mode = 0;
+	this->plant_spawn_delay=100;
+	this->player_defense_type = 0;
+	this->player_skill_partner_check = 1;
+	this->pp_rate=100;
+	this->prevent_logout = 1;
+	this->produce_item_name_input = 1;
+	this->produce_potion_name_input = 1;
+	this->pvp_exp=1;
+	this->quest_skill_learn=0;
+	this->quest_skill_reset=1;
+	this->rainy_waterball = 1;
+	this->random_monster_checklv=1;
+	this->require_glory_guild = 0;
+	this->restart_hp_rate=0;
+	this->restart_sp_rate=0;
+	this->resurrection_exp=0;
+	this->save_clothcolor = 0;
+	this->save_log = 0;
+	this->serverside_friendlist=1;
+	this->shop_exp=100;
+	this->show_hp_sp_drain = 0;
+	this->show_hp_sp_gain = 1;
+	this->show_mob_hp = 0;
+	this->show_steal_in_same_party = 0;
+	this->skill_delay_attack_enable=0;
+	this->skill_min_damage=0;
+	this->skill_out_range_consume=1;
+	this->skill_removetrap_type = 0;
+	this->skill_sp_override_grffile=0;
+	this->skill_steal_rate = 100;
+	this->skill_steal_type = 1;
+	this->skillfree = 0;
+	this->skillup_limit = 0;
+	this->sp_rate = 100;
+	this->undead_detect_type = 0;
+	this->unit_movement_type = 0;
+	this->use_statpoint_table = 1;
+	this->vending_max_value = 10000000;
+	this->vit_penalty_count = 3;
+	this->vit_penalty_count_lv = ATK_DEF;
+	this->vit_penalty_num = 5;
+	this->vit_penalty_type = 1;
+	this->warp_point_debug=0;
+	this->wedding_ignorepalette=0;
+	this->wedding_modifydisplay=0;
+	this->who_display_aid = 0;
+	this->wp_rate=100;
+	this->zeny_from_mobs = 0;
+	this->zeny_penalty=0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// validate all values
+void CConfig::validate()
+{
+	if(this->flooritem_lifetime < 1000)
+		this->flooritem_lifetime = LIFETIME_FLOORITEM*1000;
+	if(this->restart_hp_rate > 100)
+		this->restart_hp_rate = 100;
+	if(this->restart_sp_rate > 100)
+		this->restart_sp_rate = 100;
+	if(this->natural_healhp_interval < NATURAL_HEAL_INTERVAL)
+		this->natural_healhp_interval=NATURAL_HEAL_INTERVAL;
+	if(this->natural_healsp_interval < NATURAL_HEAL_INTERVAL)
+		this->natural_healsp_interval=NATURAL_HEAL_INTERVAL;
+	if(this->natural_heal_skill_interval < NATURAL_HEAL_INTERVAL)
+		this->natural_heal_skill_interval=NATURAL_HEAL_INTERVAL;
+	if(this->natural_heal_weight_rate < 50)
+		this->natural_heal_weight_rate = 50;
+	if(this->natural_heal_weight_rate > 100)
+		this->natural_heal_weight_rate = 100;
 	
 	////////////////////////////////////////////////
-	if( config.monster_max_aspd< 200 )
-		config.monster_max_aspd_interval = 2000 - config.monster_max_aspd*10;
+	if( this->monster_max_aspd< 200 )
+		this->monster_max_aspd_interval = 2000 - this->monster_max_aspd*10;
 	else
-		config.monster_max_aspd_interval= 10;
-	if(config.monster_max_aspd_interval > 1000)
-		config.monster_max_aspd_interval = 1000;
+		this->monster_max_aspd_interval= 10;
+	if(this->monster_max_aspd_interval > 1000)
+		this->monster_max_aspd_interval = 1000;
 	////////////////////////////////////////////////
-	if(config.max_aspd>199)
-		config.max_aspd_interval = 10;
-	else if(config.max_aspd<100)
-		config.max_aspd_interval = 1000;
+	if(this->max_aspd>199)
+		this->max_aspd_interval = 10;
+	else if(this->max_aspd<100)
+		this->max_aspd_interval = 1000;
 	else
-		config.max_aspd_interval = 2000 - config.max_aspd*10;
+		this->max_aspd_interval = 2000 - this->max_aspd*10;
 	////////////////////////////////////////////////
-	if(config.max_walk_speed > MAX_WALK_SPEED)
-		config.max_walk_speed = MAX_WALK_SPEED;
+	if(this->max_walk_speed > MAX_WALK_SPEED)
+		this->max_walk_speed = MAX_WALK_SPEED;
 
 
-	if(config.hp_rate < 1)
-		config.hp_rate = 1;
-	if(config.sp_rate < 1)
-		config.sp_rate = 1;
-	if(config.max_hp > 1000000)
-		config.max_hp = 1000000;
-	if(config.max_hp < 100)
-		config.max_hp = 100;
-	if(config.max_sp > 1000000)
-		config.max_sp = 1000000;
-	if(config.max_sp < 100)
-		config.max_sp = 100;
-	if(config.max_parameter < 10)
-		config.max_parameter = 10;
-	if(config.max_parameter > 10000)
-		config.max_parameter = 10000;
-	if(config.max_cart_weight > 1000000)
-		config.max_cart_weight = 1000000;
-	if(config.max_cart_weight < 100)
-		config.max_cart_weight = 100;
-	config.max_cart_weight *= 10;
+	if(this->hp_rate < 1)
+		this->hp_rate = 1;
+	if(this->sp_rate < 1)
+		this->sp_rate = 1;
+	if(this->max_hp > 1000000)
+		this->max_hp = 1000000;
+	if(this->max_hp < 100)
+		this->max_hp = 100;
+	if(this->max_sp > 1000000)
+		this->max_sp = 1000000;
+	if(this->max_sp < 100)
+		this->max_sp = 100;
+	if(this->max_parameter < 10)
+		this->max_parameter = 10;
+	if(this->max_parameter > 10000)
+		this->max_parameter = 10000;
+	if(this->max_cart_weight > 1000000)
+		this->max_cart_weight = 1000000;
+	if(this->max_cart_weight < 100)
+		this->max_cart_weight = 100;
+	this->max_cart_weight *= 10;
 
-	if(config.min_hitrate > config.max_hitrate)
-		config.min_hitrate = config.max_hitrate;
+	if(this->min_hitrate > this->max_hitrate)
+		this->min_hitrate = this->max_hitrate;
 		
-	if(config.agi_penalty_count < 2)
-		config.agi_penalty_count = 2;
-	if(config.vit_penalty_count < 2)
-		config.vit_penalty_count = 2;
+	if(this->agi_penalty_count < 2)
+		this->agi_penalty_count = 2;
+	if(this->vit_penalty_count < 2)
+		this->vit_penalty_count = 2;
 
-	if(config.guild_exp_limit > 99)
-		config.guild_exp_limit = 99;
+	if(this->guild_exp_limit > 99)
+		this->guild_exp_limit = 99;
 
-	if(config.pet_support_min_friendly > 950)
-		config.pet_support_min_friendly = 950;
+	if(this->pet_support_min_friendly > 950)
+		this->pet_support_min_friendly = 950;
 	
-	if(config.pet_max_atk1 > config.pet_max_atk2)
-		config.pet_max_atk1 = config.pet_max_atk2;
+	if(this->pet_max_atk1 > this->pet_max_atk2)
+		this->pet_max_atk1 = this->pet_max_atk2;
 	
-	if(config.castle_defense_rate > 100)
-		config.castle_defense_rate = 100;
-	if(config.item_drop_common_min < 1)	
-		config.item_drop_common_min = 1;
-	if(config.item_drop_common_max > 10000)
-		config.item_drop_common_max = 10000;
-	if(config.item_drop_equip_min < 1)
-		config.item_drop_equip_min = 1;
-	if(config.item_drop_equip_max > 10000)
-		config.item_drop_equip_max = 10000;
-	if(config.item_drop_card_min < 1)
-		config.item_drop_card_min = 1;
-	if(config.item_drop_card_max > 10000)
-		config.item_drop_card_max = 10000;
-	if(config.item_drop_mvp_min < 1)
-		config.item_drop_mvp_min = 1;
-	if(config.item_drop_mvp_max > 10000)
-		config.item_drop_mvp_max = 10000;
+	if(this->castle_defense_rate > 100)
+		this->castle_defense_rate = 100;
+	if(this->item_drop_common_min < 1)	
+		this->item_drop_common_min = 1;
+	if(this->item_drop_common_max > 10000)
+		this->item_drop_common_max = 10000;
+	if(this->item_drop_equip_min < 1)
+		this->item_drop_equip_min = 1;
+	if(this->item_drop_equip_max > 10000)
+		this->item_drop_equip_max = 10000;
+	if(this->item_drop_card_min < 1)
+		this->item_drop_card_min = 1;
+	if(this->item_drop_card_max > 10000)
+		this->item_drop_card_max = 10000;
+	if(this->item_drop_mvp_min < 1)
+		this->item_drop_mvp_min = 1;
+	if(this->item_drop_mvp_max > 10000)
+		this->item_drop_mvp_max = 10000;
 
 
-	if (config.night_at_start > 1)
-		config.night_at_start = 1;
-	if (config.day_duration != 0 && config.day_duration < 60000)
-		config.day_duration = 60000;
-	if (config.night_duration != 0 && config.night_duration < 60000)
-		config.night_duration = 60000;
+	if (this->night_at_start > 1)
+		this->night_at_start = 1;
+	if (this->day_duration != 0 && this->day_duration < 60000)
+		this->day_duration = 60000;
+	if (this->night_duration != 0 && this->night_duration < 60000)
+		this->night_duration = 60000;
 	
 
-	if (config.ban_spoof_namer > 32767)
-		config.ban_spoof_namer = 32767;
+	if (this->ban_spoof_namer > 32767)
+		this->ban_spoof_namer = 32767;
 
 
-	if (config.hack_info_GM_level > 100)
-		config.hack_info_GM_level = 100;
+	if (this->hack_info_GM_level > 100)
+		this->hack_info_GM_level = 100;
 
 
-	if (config.any_warp_GM_min_level > 100)
-		config.any_warp_GM_min_level = 100;
+	if (this->any_warp_GM_min_level > 100)
+		this->any_warp_GM_min_level = 100;
 
 
-	if (config.night_darkness_level > 10)
-		config.night_darkness_level = 10;
+	if (this->night_darkness_level > 10)
+		this->night_darkness_level = 10;
 
-	if (config.motd_type > 1)
-		config.motd_type = 1;
+	if (this->motd_type > 1)
+		this->motd_type = 1;
 
-	if (config.vending_max_value > MAX_ZENY || config.vending_max_value<=0)
-		config.vending_max_value = MAX_ZENY;
+	if (this->vending_max_value > MAX_ZENY || this->vending_max_value<=0)
+		this->vending_max_value = MAX_ZENY;
 
-	if (config.min_skill_delay_limit < 10)
-		config.min_skill_delay_limit = 10;	// minimum delay of 10ms
+	if (this->min_skill_delay_limit < 10)
+		this->min_skill_delay_limit = 10;	// minimum delay of 10ms
 
-	if (config.mob_remove_delay < 15000)	//Min 15 sec
-		config.mob_remove_delay = 15000;
-	if (config.dynamic_mobs > 1)
-		config.dynamic_mobs = 1;	//The flag will be used in assignations	
+	if (this->mob_remove_delay < 15000)	//Min 15 sec
+		this->mob_remove_delay = 15000;
+	if (this->dynamic_mobs > 1)
+		this->dynamic_mobs = 1;	//The flag will be used in assignations	
 }
 
-/*==========================================
- * Ý’èƒtƒ@ƒCƒ‹‚ð“Ç‚Ýž‚Þ
- *------------------------------------------
- */
-bool config_read(const char *cfgName)
+///////////////////////////////////////////////////////////////////////////////
+/// read in a configuration file
+bool CConfig::read(const char *cfgName)
 {
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
 	static int count = 0;
 
 	if ((count++) == 0)
-		config_defaults();
+		this->defaults();
 
 	fp = basics::safefopen(cfgName,"r");
 	if (fp == NULL)
@@ -775,19 +811,108 @@ bool config_read(const char *cfgName)
 			basics::itrim(w1);
 			basics::itrim(w2);
 			if(strcasecmp(w1, "import") == 0)
-				config_read(w2);
+				this->read(w2);
 			else
 			{
-				if( !config_set_value(w1, w2) )
+				if( !this->set_value(w1, w2) )
 					ShowWarning("(Config) %s: no such option.\n", w1);
 			}
 		}
 		fclose(fp);
 		if( --count == 0 )
 		{
-			config_validate();
+			this->validate();
 		}
 		return true;
 	}
 	return false;
+}
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// server messages
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// constructor.
+CMessageTable::CMessageTable()
+{
+	memset(msg_table, 0, sizeof(msg_table));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// destructor.
+CMessageTable::~CMessageTable()
+{
+	size_t i;
+	for (i=0; i<MAX_MSG; ++i)
+	{
+		if(msg_table[i])
+		{
+			delete[] msg_table[i];
+			msg_table[i] = NULL;
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// return the message string of the specified number
+const char *CMessageTable::operator()(size_t msg_number)
+{
+	if( msg_number < MAX_MSG && this->msg_table[msg_number] && *this->msg_table[msg_number] )
+		return msg_table[msg_number];
+	return "??";
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// read config file
+bool CMessageTable::read(const char *cfgName)
+{
+	size_t msg_number;
+	char line[1024], w1[1024], w2[1024];
+	FILE *fp;
+
+	if((fp = basics::safefopen(cfgName, "r")) == NULL)
+	{
+		ShowError("Messages file not found: %s\n", cfgName);
+		return false;
+	}
+
+	while(fgets(line, sizeof(line), fp))
+	{
+		if( !prepare_line(line) )
+			continue;
+		if (sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2)
+		{
+			basics::itrim(w1);
+			basics::itrim(w2);
+			if(strcasecmp(w1, "import") == 0)
+			{
+				this->read(w2);
+			}
+			else
+			{
+				msg_number = atoi(w1);
+				if(msg_number < MAX_MSG)
+				{
+					if (msg_table[msg_number] != NULL)
+						delete[] msg_table[msg_number];
+					msg_table[msg_number] = new char[(1+strlen(w2))];
+					memcpy(msg_table[msg_number],w2,1+strlen(w2));
+				}
+			}
+		}
+	}
+	fclose(fp);
+	return true;
 }

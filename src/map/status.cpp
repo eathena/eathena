@@ -1675,7 +1675,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 
 		//if(sd.status.hp<sd.status.max_hp>>2 && pc_checkskill(*sd,SM_AUTOBERSERK)>0 &&
 		if(sd.status.hp<sd.status.max_hp>>2 && sd.sc_data[SC_AUTOBERSERK].timer != -1 &&
-			(sd.sc_data[SC_PROVOKE].timer==-1 || sd.sc_data[SC_PROVOKE].val2.num==0 ) && !pc_isdead(sd))
+			(sd.sc_data[SC_PROVOKE].timer==-1 || sd.sc_data[SC_PROVOKE].val2.num==0 ) && !sd.is_dead() )
 			// オ?トバ?サ?ク?動
 			status_change_start(&sd,SC_PROVOKE,10,1,0,0,0,0);
 

@@ -3,6 +3,200 @@
 
 
 
+
+///////////////////////////////////////////////////////////////////////////////
+/// class_id 2 jobname conversion
+const char * job_name(unsigned short class_)
+{
+	switch (class_) {
+	case 0:    return "Novice";
+	case 1:    return "Swordsman";
+	case 2:    return "Mage";
+	case 3:    return "Archer";
+	case 4:    return "Acolyte";
+	case 5:    return "Merchant";
+	case 6:    return "Thief";
+	case 7:    return "Knight";
+	case 8:    return "Priest";
+	case 9:    return "Wizard";
+	case 10:   return "Blacksmith";
+	case 11:   return "Hunter";
+	case 12:   return "Assassin";
+	case 13:   return "Peco Knight";
+	case 14:   return "Crusader";
+	case 15:   return "Monk";
+	case 16:   return "Sage";
+	case 17:   return "Rogue";
+	case 18:   return "Alchemist";
+	case 19:   return "Bard";
+	case 20:   return "Dancer";
+	case 21:   return "Peco Crusader";
+	case 22:   return "Wedding";
+	case 23:   return "Super Novice";
+	case 4001: return "Novice High";
+	case 4002: return "Swordsman High";
+	case 4003: return "Mage High";
+	case 4004: return "Archer High";
+	case 4005: return "Acolyte High";
+	case 4006: return "Merchant High";
+	case 4007: return "Thief High";
+	case 4008: return "Lord Knight";
+	case 4009: return "High Priest";
+	case 4010: return "High Wizard";
+	case 4011: return "Whitesmith";
+	case 4012: return "Sniper";
+	case 4013: return "Assassin Cross";
+	case 4014: return "Peko Knight";
+	case 4015: return "Paladin";
+	case 4016: return "Champion";
+	case 4017: return "Professor";
+	case 4018: return "Stalker";
+	case 4019: return "Creator";
+	case 4020: return "Clown";
+	case 4021: return "Gypsy";
+	case 4022: return "Peko Paladin";
+	case 4023: return "Baby Novice";
+	case 4024: return "Baby Swordsman";
+	case 4025: return "Baby Mage";
+	case 4026: return "Baby Archer";
+	case 4027: return "Baby Acolyte";
+	case 4028: return "Baby Merchant";
+	case 4029: return "Baby Thief";
+	case 4030: return "Baby Knight";
+	case 4031: return "Baby Priest";
+	case 4032: return "Baby Wizard";
+	case 4033: return "Baby Blacksmith";
+	case 4034: return "Baby Hunter";
+	case 4035: return "Baby Assassin";
+	case 4036: return "Baby Peco Knight";
+	case 4037: return "Baby Crusader";
+	case 4038: return "Baby Monk";
+	case 4039: return "Baby Sage";
+	case 4040: return "Baby Rogue";
+	case 4041: return "Baby Alchemist";
+	case 4042: return "Baby Bard";
+	case 4043: return "Baby Dancer";
+	case 4044: return "Baby Peco Crusader";
+	case 4045: return "Super Baby";
+	case 4046: return "Taekwon";
+	case 4047: return "Star Gladiator";
+	case 4048: return "Flying Star Gladiator";
+	case 4049: return "Soul Linker";
+	}
+	return "Unknown Job";
+}
+///////////////////////////////////////////////////////////////////////////////
+/// jobname to class_id conversion
+unsigned short job_id(const char *jobname)
+{
+	const struct 
+	{
+		const char *name;
+		int id; 
+	} jobs[] =
+	{
+		{ "novice",				0 },
+		{ "swordsman",			1 },
+		{ "mage",				2 },
+		{ "archer",				3 },
+		{ "acolyte",			4 },
+		{ "merchant",			5 },
+		{ "thief",				6 },
+		{ "knight",				7 },
+		{ "priest",				8 },
+		{ "priestess",			8 },
+		{ "wizard",				9 },
+		{ "blacksmith",			10 },
+		{ "hunter",				11 },
+		{ "assassin",			12 },
+		{ "peco knight",		13 },
+		{ "crusader",			14 },
+		{ "monk",				15 },
+		{ "sage",				16 },
+		{ "rogue",				17 },
+		{ "alchemist",			18 },
+		{ "bard",				19 },
+		{ "dancer",				20 },
+		{ "peco crusader",		21 },
+		{ "wedding",			22 },
+		{ "super novice",		23 },
+		{ "supernovice",		23 },
+		{ "high novice",		4001 },
+		{ "swordsman high",		4002 },
+		{ "mage high",			4003 },
+		{ "archer high",		4004 },
+		{ "acolyte high",		4005 },
+		{ "merchant high",		4006 },
+		{ "thief high",			4007 },
+		{ "lord knight",		4008 },
+		{ "high priest",		4009 },
+		{ "high priestess",		4009 },
+		{ "high wizard",		4010 },
+		{ "whitesmith",			4011 },
+		{ "sniper",				4012 },
+		{ "assassin cross",		4013 },
+		{ "high peko knight",	4014 },
+		{ "paladin",			4015 },
+		{ "champion",			4016 },
+		{ "professor",			4017 },
+		{ "stalker",			4018 },
+		{ "creator",			4019 },
+		{ "clown",				4020 },
+		{ "gypsy",				4021 },
+		{ "peko paladin",		4022 },
+		{ "baby novice",		4023 },
+		{ "baby swordsman",		4024 },
+		{ "baby mage",			4025 },
+		{ "baby archer",		4026 },
+		{ "baby acolyte",		4027 },
+		{ "baby merchant",		4028 },
+		{ "baby thief",			4029 },
+		{ "baby knight",		4030 },
+		{ "baby priest",		4031 },
+		{ "baby priestess",		4031 },
+		{ "baby wizard",		4032 },
+		{ "baby blacksmith",	4033 },
+		{ "baby hunter",		4034 },
+		{ "baby assassin",		4035 },
+		{ "baby peco knight",	4036 },
+		{ "baby crusader",		4037 },
+		{ "baby monk",			4038 },
+		{ "baby sage",			4039 },
+		{ "baby rogue",			4040 },
+		{ "baby alchemist",		4041 },
+		{ "baby bard",			4042 },
+		{ "baby dancer",		4043 },
+		{ "baby peco crusader",	4044 },
+		{ "super baby",			4045 },
+		{ "taekwon",			4046 },
+		{ "taekwon boy",		4046 },
+		{ "taekwon girl",		4046 },
+		{ "star gladiator",		4047 },
+		{ "flying star gladiator",4048 },
+		{ "soul linker",		4049 },
+	};
+
+	if(jobname && *jobname)
+	{
+		size_t i;
+		size_t len = strlen(jobname);
+		for (i=0; i<(sizeof(jobs)/sizeof(*jobs)); ++i)
+		{
+			if( 0==strncasecmp(jobname, jobs[i].name, len) )
+				return jobs[i].id;
+		}
+	}
+	return 0xFFFF;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// is valid jobid
+bool job_isvalid(unsigned short class_)
+{
+	return class_<=23 || (class_>=4001 && class_<=4049);
+}
+
+
 ////////////////////////////////////////////////////
 // CAuth Class
 ////////////////////////////////////////////////////

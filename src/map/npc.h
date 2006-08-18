@@ -17,12 +17,12 @@ void npc_chat_finalize(struct npc_data *nd);
 
 class CNpcChat : public CMapProcessor
 {
-    char *msg;
+    const char *msg;
     size_t len;
     struct map_session_data &sd;
 public:
-	CNpcChat(char *m, size_t l, struct map_session_data &s)
-		: msg(m), len(l), sd(s)
+	CNpcChat(const char *m, struct map_session_data &s)
+		: msg(m), len(m?strlen(m):0), sd(s)
 	{}
 	~CNpcChat()	{}
 	virtual int process(struct block_list& bl) const;

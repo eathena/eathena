@@ -103,6 +103,7 @@ struct item_data* itemdb_searchname(const char *str)
 {
 	struct item_data *item=NULL;
 	numdb_foreach(item_db, CDBItemSearchname(str,item) );
+	if(!item) numdb_foreach(item_db, CDBItemSearchjname(str,item) );
 	return item;
 }
 
@@ -501,7 +502,7 @@ int itemdb_read_itemnametable(void)
 	char *buf,*p;
 	int s;
 
-	buf=(char *) grfio_reads("data\\idnum2itemdisplaynametable.txt", s);
+	buf=(char *) grfio_read("data\\idnum2itemdisplaynametable.txt", s);
 	if(buf==NULL)
 		return -1;
 
@@ -542,7 +543,7 @@ int itemdb_read_cardillustnametable(void)
 	char *buf,*p;
 	int s;
 
-	buf=(char *) grfio_reads("data\\num2cardillustnametable.txt", s);
+	buf=(char *) grfio_read("data\\num2cardillustnametable.txt", s);
 
 	if(buf==NULL)
 		return -1;
@@ -580,7 +581,7 @@ int itemdb_read_itemslottable(void)
 	char *buf, *p;
 	int s;
 
-	buf = (char *)grfio_reads("data\\itemslottable.txt", s);
+	buf = (char *)grfio_read("data\\itemslottable.txt", s);
 	if (buf == NULL)
 		return -1;
 	buf[s] = 0;
@@ -608,7 +609,7 @@ int itemdb_read_itemslotcounttable(void)
 	char *buf, *p;
 	int s;
 
-	buf = (char *)grfio_reads("data\\itemslotcounttable.txt", s);
+	buf = (char *)grfio_read("data\\itemslotcounttable.txt", s);
 	if (buf == NULL)
 		return -1;
 	buf[s] = 0;
@@ -768,8 +769,8 @@ int itemdb_readdb(void)
 			if(!id)
 				continue;
 
-			safestrcpy(id->name, str[1], sizeof(id->name));
-			safestrcpy(id->jname,str[2], sizeof(id->jname));
+			safestrcpy(id->name, sizeof(id->name), str[1]);
+			safestrcpy(id->jname, sizeof(id->jname), str[2]);
 			id->type=atoi(str[3]);
 			if (id->type == 11)
 			{	//Items that are consumed upon target confirmation
@@ -858,17 +859,17 @@ void itemdb_sqlupdate()
 		basics::CParam< basics::string<> > mysqldb_pw("sql_password", "ragnarok");
 		basics::CParam< basics::string<> > mysqldb_db("sql_database", "ragnarok");
 		basics::CParam< basics::string<> > mysqldb_ip("sql_ip",       "127.0.0.1");
+		basics::CParam< basics::string<> > mysqldb_cp("sql_codepage", "DEFAULT");
 		basics::CParam< ushort   >         mysqldb_port("sql_port",   3306);
 
 		// sql control parameter
-		basics::CParam< basics::string<> > sql_engine("sql_engine", "InnoDB");
-		//basics::CParam< basics::string<> > sql_engine("sql_engine", "MyISAM");
+		basics::CParam< basics::string<> > sql_engine("sql_engine", "InnoDB"); // or "MyISAM"
 
 		// sql table names
 		basics::CParam< basics::string<> > tbl_item_db("tbl_item_db", "item_db");
 
 		// sql access object
-		basics::CMySQL sqlbase(mysqldb_id, mysqldb_pw,mysqldb_db,mysqldb_ip,mysqldb_port);
+		basics::CMySQL sqlbase(mysqldb_id, mysqldb_pw,mysqldb_db,mysqldb_ip,mysqldb_port, mysqldb_cp);
 
 		// query handler
 		basics::CMySQLConnection dbcon1(sqlbase);

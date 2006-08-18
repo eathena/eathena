@@ -8,15 +8,16 @@
 
 NAMESPACE_BEGIN(basics)
 
-//////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // basic interface for reading configs from file
-//////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
-/////////////////////////////////////////////////////////////////
-// Loading a file, stripping lines,
-// splitting it to "part1 : part2" or "part1 = part2"
-// calling the derived function for processing
-/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+/// load and parse config file.
+/// loads a file, strips lines,
+/// splitts it to "part1 : part2" or "part1 = part2"
+/// cleans leading/trailing whitespaces
+/// and calls the derived function for processing
 bool CConfig::LoadConfig(const char* cfgName)
 {
 	char line[1024], w1[1024], w2[1024], *ip, *kp;
@@ -57,14 +58,12 @@ bool CConfig::LoadConfig(const char* cfgName)
 		if( !ip[0] )
 			continue;
 
-		memset(w2, 0, sizeof(w2));
 		// format: "name:value" or "name=value"
 		if( sscanf(ip, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2 )
 		{
-			CleanControlChars(w1);
-			CleanControlChars(w2);
-			itrim(w1);
-			itrim(w2);
+			CleanString(w1);
+			CleanString(w2);
+
 			if( strcasecmp(w1, "import") == 0 ||
 				strcasecmp(w1, "include") == 0 )
 			{	// call recursive, prevent infinity loop (first order only)
@@ -82,7 +81,8 @@ bool CConfig::LoadConfig(const char* cfgName)
 	return true;
 }
 
-// Return 0/1 for no/yes
+/////////////////////////////////////////////////////////////////////
+/// process a value. return 0/1 for no/yes....
 int CConfig::SwitchValue(const char *str, int defaultmin, int defaultmax)
 {
 	if( str )
@@ -101,7 +101,8 @@ int CConfig::SwitchValue(const char *str, int defaultmin, int defaultmax)
 		return 0;
 }
 
-// Return true/false for yes/no, if unknown return defaultval
+/////////////////////////////////////////////////////////////////////
+/// process a boolean. return true/false for yes/no, if unknown return defaultval
 bool CConfig::Switch(const char *str, bool defaultval)
 {
 	if( str )
@@ -119,22 +120,32 @@ bool CConfig::Switch(const char *str, bool defaultval)
 	return defaultval;
 }
 
-// Replace control chars with '_' and return if changed
-bool CConfig::CleanControlChars(char *str)
+/////////////////////////////////////////////////////////////////////
+/// clean a string.
+/// remove leading/trailing whitespaces, concatinate multiple whitespaces
+/// replace control chars with '_'
+const char* CConfig::CleanString(char *str)
 {
-	bool change = false;
 	if(str)
-	while( *str )
-	{	// replace control chars
-		// but skip chars >0x7F which are negative in char representations
-		if ( (*str<32) && (*str>0) )
+	{
+		char *src=str, *tar=str, mk=0;
+		while(*src && stringcheck::isspace(*src) )
+			src++;
+		while(*src)
 		{
-			*str = '_';
-			change = true;
+			if( stringcheck::isspace(*src) )
+				mk=' ', ++src;
+			else
+			{
+				if( mk )
+					*tar++=mk, mk=0;
+				*tar = ( stringcheck::iscntrl(*src) ) ? '_' : *src;
+				++tar, ++src;
+			}
 		}
-		str++;
+		*tar=0;
 	}
-	return change;
+	return str;
 }
 
 
@@ -235,10 +246,8 @@ void parseCommandline(int argc, char **argv)
 			if( sscanf(argv[i], "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2 ||
 				sscanf(str,     "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2 )
 			{
-				CConfig::CleanControlChars(w1);
-				CConfig::CleanControlChars(w2);
-				itrim(w1);
-				itrim(w2);
+				CConfig::CleanString(w1);
+				CConfig::CleanString(w2);
 
 				if( strcasecmp(w1, "import") == 0 ||
 					strcasecmp(w1, "include") == 0 ||
@@ -540,8 +549,9 @@ TObjPtr<CParamObj> CParamBase::createParam(const string<>& name, const string<>&
 	if( sd.cParams[pos]->isFixed() )
 	{	// don't overwrite fixed parameters with creation command
 		// maybe print a warning
-		printf("parameter '%s'='%s' is fixed, ignoring new assignment of '%s'\n",
-			(const char*)name, (const char*)sd.cParams[pos]->value(), (const char*)value);
+		if( sd.cParams[pos]->value() != value )
+			printf("parameter '%s'='%s' is fixed, ignoring assignment of '%s'\n",
+				(const char*)name, (const char*)sd.cParams[pos]->value(), (const char*)value);
 	}
 	else
 	{	

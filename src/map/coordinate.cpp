@@ -83,7 +83,7 @@ dir_t direction(int x0,int y0,int x1,int y1)
 		else				dir=DIR_SW;	// ‰E‰º
 	}
 	else if( dx<=0 && dy<=0 )
-	{ // •ûŒü“I‚É¶‰º
+	{	// •ûŒü“I‚É¶‰º
 		if( dx*2+1>dy )		dir=DIR_S;	// ‰º
 		else if( dx<dy*2 )	dir=DIR_E;	// ¶
 		else				dir=DIR_SE;	// ¶‰º

@@ -34,7 +34,7 @@ struct eventlist
 	eventlist(const char *n, struct eventlist *nx) :
 		next(nx)
 	{
-		safestrcpy(name,n,sizeof(name));
+		safestrcpy(name,sizeof(name),n);
 	}
 };
 

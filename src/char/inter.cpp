@@ -233,27 +233,14 @@ int inter_config_read(const char *cfgName) {
 		basics::itrim(w1);
 		basics::itrim(w2);
 
-//		if (strcasecmp(w1, "storage_txt") == 0) {
-//			safestrcpy(storage_txt, w2, sizeof(storage_txt));
-//		} else if (strcasecmp(w1, "party_txt") == 0) {
-//			safestrcpy(party_txt, w2, sizeof(party_txt));
-//		} else if (strcasecmp(w1, "guild_txt") == 0) {
-//			safestrcpy(guild_txt, w2, sizeof(guild_txt));
-//		} else if (strcasecmp(w1, "pet_txt") == 0) {
-//			safestrcpy(pet_txt, w2, sizeof(pet_txt));
-//		} else if (strcasecmp(w1, "castle_txt") == 0) {
-//			safestrcpy(castle_txt, w2, sizeof(castle_txt));
-//		} else 
 			if (strcasecmp(w1, "accreg_txt") == 0) {
-			safestrcpy(accreg_txt, w2, sizeof(accreg_txt));
-//		} else if (strcasecmp(w1, "guild_storage_txt") == 0) {
-//			safestrcpy(guild_storage_txt, w2, sizeof(guild_storage_txt));
+			safestrcpy(accreg_txt, sizeof(accreg_txt), w2);
 		} else if (strcasecmp(w1, "party_share_level") == 0) {
 			party_share_level = atoi(w2);
 			if (party_share_level < 0)
 				party_share_level = 0;
 		} else if (strcasecmp(w1, "inter_log_filename") == 0) {
-			safestrcpy(inter_log_filename, w2, sizeof(inter_log_filename));
+			safestrcpy(inter_log_filename, sizeof(inter_log_filename), w2);
 		} else if (strcasecmp(w1, "import") == 0) {
 			inter_config_read(w2);
 		} else if(strcasecmp(w1,"log_inter")==0) {
@@ -347,7 +334,8 @@ int inter_mapif_init(int fd) {
 // sended packets to map-server
 
 // GMメッセージ送信
-int mapif_GMmessage(unsigned char *mes, int len, int sfd) {
+int mapif_GMmessage(unsigned char *mes, int len, int sfd)
+{
 	CREATE_BUFFER(buf,unsigned char,len);
 
 	WBUFW(buf,0) = 0x3800;

@@ -2331,7 +2331,7 @@ int changesex(char* param) {
 int changestatesub(char* name, int state, char* error_message7) {
 	char error_message[1023]; // need to use, because we can modify error_message7
 
-	safestrcpy(error_message, error_message7, sizeof(error_message)-1);
+	safestrcpy(error_message, sizeof(error_message), error_message7);
 
 	if ((state < 0 || state > 9) && state != 100) { // Valid values: 0: ok, or value of the 0x006a packet + 1
 		if (defaultlanguage == 'F') {
@@ -3923,7 +3923,7 @@ int parse_fromlogin(int fd)
 			connect_until_time = (time_t)RFIFOL(fd,140);
 			ban_until_time = (time_t)RFIFOL(fd,144);
 			memset(memo, '\0', sizeof(memo));
-			safestrcpy(memo, (char*)RFIFOP(fd,150), RFIFOW(fd,148));
+			safestrcpy(memo, RFIFOW(fd,148), (char*)RFIFOP(fd,150));
 			if( (int)RFIFOL(fd,2) == -1 ) {
 				if (defaultlanguage == 'F') {
 					ShowMessage("Impossible de trouver le compte [%s]. Le compte n'existe pas.\n", parameters);
@@ -4182,7 +4182,7 @@ int ladmin_config_read(const char *cfgName) {
 			} else if (strcasecmp(w1, "login_port") == 0) {
 				loginserverport = atoi(w2);
 			} else if (strcasecmp(w1, "admin_pass") == 0) {
-				safestrcpy(loginserveradminpassword, w2, sizeof(loginserveradminpassword));
+				safestrcpy(loginserveradminpassword, sizeof(loginserveradminpassword), w2);
 			} else if (strcasecmp(w1, "passenc") == 0) {
 				passenc = atoi(w2);
 				if (passenc < 0 || passenc > 2)
@@ -4191,7 +4191,7 @@ int ladmin_config_read(const char *cfgName) {
 				if (w2[0] == 'F' || w2[0] == 'E')
 					defaultlanguage = w2[0];
 			} else if (strcasecmp(w1, "ladmin_log_filename") == 0) {
-				safestrcpy(ladmin_log_filename, w2, sizeof(ladmin_log_filename));
+				safestrcpy(ladmin_log_filename, sizeof(ladmin_log_filename), w2);
 			} else if (strcasecmp(w1, "date_format") == 0) { // note: never have more than 19 char for the date!
 				switch (atoi(w2)) {
 				case 0:

@@ -125,7 +125,7 @@ const char *strcpytolower(char *tar, size_t sz, const char *str)
 	return tar;
 }
 
-const char *safestrcpy(char *tar, const char *src, size_t cnt)
+const char *safestrcpy(char *tar, size_t cnt, const char *src)
 {
 	if(tar)
 	{
@@ -140,7 +140,7 @@ const char *safestrcpy(char *tar, const char *src, size_t cnt)
 	}
 	return tar;
 }
-const char *replacecpy(char *tar, const char* src, size_t sz, char rplc, char with)
+const char *replacecpy(char *tar, size_t sz, const char* src, char rplc, char with)
 {
 	if(tar)
 	{	char *strtmp=tar;
@@ -160,7 +160,7 @@ const char *replacecpy(char *tar, const char* src, size_t sz, char rplc, char wi
 	return tar;
 }
 
-const char *mapname2buffer(unsigned char *buffer, const char *mapname, size_t cnt)
+const char *mapname2buffer(unsigned char *buffer, size_t cnt, const char *mapname)
 {
 	if(buffer)
 	{

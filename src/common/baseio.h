@@ -631,7 +631,7 @@ public:
 class CPet : public petstatus
 {public:
 	CPet()					{}
-	CPet(const char* n)		{ memset(this, 0, sizeof(CPet)); safestrcpy(this->name, n, sizeof(this->name)); }
+	CPet(const char* n)		{ memset(this, 0, sizeof(CPet)); safestrcpy(this->name, sizeof(this->name), n); }
 	CPet(uint32 pid)		{ memset(this, 0, sizeof(CPet)); this->pet_id=pid; }
 	CPet(uint32 pid, uint32 accid, uint32 cid, short pet_class, short pet_lv, short pet_egg_id, ushort pet_equip, short intimate, short hungry, char renameflag, char incuvat, char *pet_name)
 	{
@@ -646,7 +646,7 @@ class CPet : public petstatus
 		this->hungry		= hungry;
 		this->rename_flag	= renameflag;
 		this->incuvate		= incuvat;
-		safestrcpy(this->name, pet_name, sizeof(this->name));
+		safestrcpy(this->name, sizeof(this->name), pet_name);
 	}
 
 	///////////////////////////////////////////////////////////////////////////

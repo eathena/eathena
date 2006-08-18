@@ -655,7 +655,7 @@ int parse_fromchar(int fd)
 			}
 			else
 			{	// everything ok
-				safestrcpy(account.email, new_email, sizeof(account.email));
+				safestrcpy(account.email, sizeof(account.email), new_email);
 				login_log("Char-server '%s': Modify an e-mail on an account (@email GM command) (account: %d (%s), new e-mail: %s, ip: %s)." RETCODE,
 					server[id].name, accid, account.userid, new_email, ip_str);
 				// Save
@@ -1186,7 +1186,7 @@ int parse_admin(int fd)
 				pass[23] = '\0';
 				remove_control_chars(pass);
 				
-				safestrcpy(account.passwd, pass, sizeof(account.passwd));
+				safestrcpy(account.passwd, sizeof(account.passwd), pass);
 				account_db.saveAccount(account);
 				
 				memcpy(WFIFOP(fd,6), account.userid, 24);
@@ -1255,7 +1255,7 @@ int parse_admin(int fd)
 						account.login_id1++; // to avoid reconnection error when come back from map-server (char-server will ask again the authentification)
 					}
 					account.state = status;
-					safestrcpy(account.error_message, error_message, sizeof(account.error_message));
+					safestrcpy(account.error_message, sizeof(account.error_message), error_message);
 					account_db.saveAccount(account);
 					*/
 				}
@@ -1483,7 +1483,7 @@ int parse_admin(int fd)
 				CLoginAccount account;
 				if( account_db.searchAccount(userid, account) )
 				{
-					safestrcpy(account.email, email, sizeof(account.email));
+					safestrcpy(account.email, sizeof(account.email), email);
 					account_db.saveAccount(account);
 					
 					WFIFOL(fd,2) = account.account_id;
@@ -1529,7 +1529,7 @@ int parse_admin(int fd)
 				{
 					char *buf = (char*)RFIFOP(fd,28);
 					remove_control_chars(buf);
-//					safestrcpy(account.memo, buf, sizeof(account.memo));
+//					safestrcpy(account.memo, sizeof(account.memo), buf);
 				}
 //				account_db.saveAccount(account);
 				
@@ -2004,7 +2004,7 @@ int parse_admin(int fd)
 			{
 				login_log("'ladmin': Attempt to obtain information (by the id) of an unknown account (id: %d, ip: %s)" RETCODE,
 					(uint32)RFIFOL(fd,2), ip_str);
-				safestrcpy((char*)WFIFOP(fd,7), "", 24);
+				safestrcpy((char*)WFIFOP(fd,7), 24, "");
 				WFIFOW(fd,148) = 0;
 				WFIFOSET(fd,150);
 			}
@@ -2572,7 +2572,7 @@ int login_config_read(const char *cfgName)
 			}
 			else if (strcasecmp(w1, "admin_pass") == 0)
 			{
-				safestrcpy(admin_pass, w2, sizeof(admin_pass));
+				safestrcpy(admin_pass, sizeof(admin_pass), w2);
 			}
 			else if (strcasecmp(w1, "ladminallowip") == 0)
 			{
@@ -2599,12 +2599,12 @@ int login_config_read(const char *cfgName)
 					else if (w2[0] && !(access_ladmin_allownum == 1 && access_ladmin_allow[0] == '\0'))
 					{	// don't add IP if already 'all'
 						new_realloc(access_ladmin_allow, access_ladmin_allownum*ACO_STRSIZE, ACO_STRSIZE);
-						safestrcpy(access_ladmin_allow + (access_ladmin_allownum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
+						safestrcpy(access_ladmin_allow + (access_ladmin_allownum++) * ACO_STRSIZE, ACO_STRSIZE, w2);
 					}
 				}
 			} else if (strcasecmp(w1, "gm_pass") == 0)
 			{
-				safestrcpy(gm_pass, w2, sizeof(gm_pass));
+				safestrcpy(gm_pass, sizeof(gm_pass), w2);
 			}
 			else if (strcasecmp(w1, "level_new_gm") == 0)
 			{
@@ -2628,7 +2628,7 @@ int login_config_read(const char *cfgName)
 			}
 			else if (strcasecmp(w1, "login_log_filename") == 0)
 			{
-				safestrcpy(login_log_filename, w2, sizeof(login_log_filename));
+				safestrcpy(login_log_filename, sizeof(login_log_filename), w2);
 			}
 			else if (strcasecmp(w1, "log_login") == 0)
 			{
@@ -2636,7 +2636,7 @@ int login_config_read(const char *cfgName)
 			}
 			else if (strcasecmp(w1, "login_log_unknown_packets_filename") == 0)
 			{
-				safestrcpy(login_log_unknown_packets_filename, w2, sizeof(login_log_unknown_packets_filename));
+				safestrcpy(login_log_unknown_packets_filename, sizeof(login_log_unknown_packets_filename), w2);
 			}
 			else if (strcasecmp(w1, "save_unknown_packets") == 0)
 			{
@@ -2722,7 +2722,7 @@ int login_config_read(const char *cfgName)
 					} else if (w2[0] && !(access_allownum == 1 && access_allow[0] == '\0'))
 					{	// don't add IP if already 'all'
 						new_realloc(access_allow,access_allownum*ACO_STRSIZE,ACO_STRSIZE);
-						safestrcpy(access_allow + (access_allownum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
+						safestrcpy(access_allow + (access_allownum++) * ACO_STRSIZE, ACO_STRSIZE, w2);
 					}
 				}
 			} else if (strcasecmp(w1, "deny") == 0)
@@ -2750,7 +2750,7 @@ int login_config_read(const char *cfgName)
 					else if (w2[0] && !(access_denynum == 1 && access_deny[0] == '\0'))
 					{	// don't add IP if already 'all'
 						new_realloc(access_deny, access_denynum*ACO_STRSIZE,ACO_STRSIZE);
-						safestrcpy(access_deny + (access_denynum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
+						safestrcpy(access_deny + (access_denynum++) * ACO_STRSIZE, ACO_STRSIZE, w2);
 					}
 				}
 				// dynamic password error ban

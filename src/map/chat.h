@@ -38,11 +38,6 @@ public:
 	void kickall();
 	void enable_event();
 	void disable_event();
-
-private:
-	// no copy/assign since of the bl reference
-	chat_data(const chat_data&);
-	const chat_data& operator=(const chat_data&);
 };
 
 

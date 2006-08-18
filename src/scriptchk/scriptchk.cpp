@@ -231,8 +231,6 @@ int buildin_specialeffect(CScriptEngine &st) { return 0; } // special effect scr
 int buildin_specialeffect2(CScriptEngine &st) { return 0; } // special effect script [Valaris]
 int buildin_nude(CScriptEngine &st) { return 0; } // nude [Valaris]
 int buildin_gmcommand(CScriptEngine &st) { return 0; } // [MouseJstr]
-int buildin_atcommand(CScriptEngine &st) { return 0; } // [MouseJstr]
-int buildin_charcommand(CScriptEngine &st) { return 0; } // [MouseJstr]
 int buildin_movenpc(CScriptEngine &st) { return 0; } // [MouseJstr]
 int buildin_message(CScriptEngine &st) { return 0; } // [MouseJstr]
 int buildin_npctalk(CScriptEngine &st) { return 0; } // [Valaris]
@@ -490,8 +488,7 @@ struct _buildin_func{
 	{buildin_inittimer,"inittimer",""},
 	{buildin_stoptimer,"stoptimer",""},
 	{buildin_cmdothernpc,"cmdothernpc","ss"},
-	{buildin_atcommand,"atcommand","*"}, // [MouseJstr]
-	{buildin_charcommand,"charcommand","*"}, // [MouseJstr]
+	{buildin_gmcommand,"gmcommand","*"}, // [MouseJstr]
 	{buildin_movenpc,"movenpc","siis"}, // [MouseJstr]
 	{buildin_message,"message","s*"}, // [MouseJstr]
 	{buildin_npctalk,"npctalk","*"}, // [Valaris]

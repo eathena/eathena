@@ -1129,78 +1129,6 @@ public:
  * 範??キャラ存在確認判定?理(foreachinarea)
  *------------------------------------------
  */
-/*
-int skill_check_condition_char_sub (struct block_list &blx, va_list &ap)
-{
-	struct block_list *bl = &blx;
-	int *c, skillid;
-	struct block_list *src;
-	struct map_session_data *sd;
-	struct map_session_data *tsd;
-	struct pc_base_job s_class;
-	unsigned int tick = gettick();
-
-	nullpo_retr(0, ap);
-	nullpo_retr(0, sd=(struct map_session_data*)bl);
-	src=va_arg(ap,struct block_list*);
-	nullpo_retr(0, src);
-	nullpo_retr(0, tsd=(struct map_session_data*)src);
-	nullpo_retr(0, c=va_arg(ap,int *));
-	skillid = va_arg(ap,int);
-	
-	s_class = pc_calc_base_job(sd->status.class_);
-	//チェックしない設定ならcにありえない大きな?字を返して終了
-	if(!config.player_skill_partner_check)
-	{	//本?はforeachの前にやりたいけど設定適用箇所をまとめるためにここへ
-		(*c) = 99;
-		return 0;
-	}
-
-	if(bl == src)
-		return 0;
-
-	switch(skillid)
-	{
-	case PR_BENEDICTIO:				// 聖?降福 /
-	{
-		if ((s_class.job == 4 || s_class.job == 8 || s_class.job == 15) &&
-				(sd->block_list::x == tsd->block_list::x - 1 || sd->block_list::x == tsd->block_list::x + 1) &&
-				sd->status.sp >= 10)
-			(*c)++;
-		break;
-	}
-	case BD_LULLABY:				// 子守歌 
-	case BD_RICHMANKIM:				// ニヨルドの宴 
-	case BD_ETERNALCHAOS:			// 永遠の混沌 
-	case BD_DRUMBATTLEFIELD:		// ?太鼓の響き 
-	case BD_RINGNIBELUNGEN:			// ニ?ベルングの指輪 
-	case BD_ROKISWEIL:				// ロキの叫び 
-	case BD_INTOABYSS:				// 深淵の中に 
-	case BD_SIEGFRIED:				// 不死身のジ?クフリ?ド 
-	case BD_RAGNAROK:				// 神?の?昏 
-	case CG_MOONLIT:				// 月明りの泉に落ちる花びら 
-	{
-		struct pc_base_job t_class = pc_calc_base_job(tsd->status.class_);
-		int skilllv;
-		if (((t_class.job == 19 && s_class.job == 20) ||
-				(t_class.job == 20 && s_class.job == 19)) &&
-		(skilllv = pc_checkskill(*sd, skillid)) > 0 &&
-				sd->status.party_id && tsd->status.party_id &&
-				sd->status.party_id == tsd->status.party_id &&
-				!pc_issit(*sd) && !pc_isdead(*sd) &&
-				(*c) == 0 &&
-				sd->skilltimer==-1 &&
-				sd->canmove_tick < tick && // added various missing ensemble checks [Valaris]
-				sd->sc_data[SC_DANCING].timer == -1)
-		{
-			(*c) = skilllv;
-		}
-		break;
-	}
-	}//end switch
-	return 0;
-}
-*/
 class CSkillCheckConditionChar : public CMapProcessor
 {
 	struct map_session_data& tsd;
@@ -1253,7 +1181,7 @@ public:
 			(skilllv = pc_checkskill(sd, skillid)) > 0 &&
 					sd.status.party_id && tsd.status.party_id &&
 					sd.status.party_id == tsd.status.party_id &&
-					!pc_issit(sd) && !pc_isdead(sd) &&
+					!pc_issit(sd) && !sd.is_dead() &&
 					c == 0 &&
 					sd.skilltimer==-1 &&
 					sd.canmove_tick < tick && // added various missing ensemble checks [Valaris]
@@ -1271,84 +1199,7 @@ public:
  * 範??キャラ存在確認判定後スキル使用?理(foreachinarea)
  *------------------------------------------
  */
-/*
-int skill_check_condition_use_sub(struct block_list &bl,va_list &ap)
-{
-	int *c;
-	struct block_list *src;
-	struct map_session_data *sd;
-	struct map_session_data *ssd;
-	struct pc_base_job s_class;
-	struct pc_base_job ss_class;
-	int skillid,skilllv;
-	unsigned int tick = gettick();
 
-	nullpo_retr(0, ap);
-	nullpo_retr(0, sd=(struct map_session_data*)&bl);
-	src=va_arg(ap,struct block_list*);
-	nullpo_retr(0, src);
-	nullpo_retr(0, c=va_arg(ap,int *));
-	nullpo_retr(0, ssd=(struct map_session_data*)src);
-
-	s_class = pc_calc_base_job(sd->status.class_);
-
-	//チェックしない設定ならcにありえない大きな?字を返して終了
-	if(!config.player_skill_partner_check){	//本?はforeachの前にやりたいけど設定適用箇所をまとめるためにここへ
-		(*c)=99;
-		return 0;
-	}
-
-	ss_class = pc_calc_base_job(ssd->status.class_);
-	skillid=ssd->skillid;
-	skilllv=ssd->skilllv;
-	//if(skilllv <= 0) return 0;
-	if(skillid > 0 && skilllv <= 0) return 0;	// celest
-	switch(skillid){
-	case PR_BENEDICTIO:				// 聖?降福 
-		if (sd != ssd && (s_class.job == 4 || s_class.job == 8 || s_class.job == 15) &&
-			(sd->block_list::x == ssd->block_list::x - 1 || sd->block_list::x == ssd->block_list::x + 1) && sd->status.sp >= 10){
-			sd->status.sp -= 10;
-			clif_updatestatus(*sd,SP_SP);
-			(*c)++;
-		}
-		break;
-	case BD_LULLABY:				// 子守歌 
-	case BD_RICHMANKIM:				// ニヨルドの宴 
-	case BD_ETERNALCHAOS:			// 永遠の混沌 
-	case BD_DRUMBATTLEFIELD:		// ?太鼓の響き 
-	case BD_RINGNIBELUNGEN:			// ニ?ベルングの指輪 
-	case BD_ROKISWEIL:				// ロキの叫び 
-	case BD_INTOABYSS:				// 深淵の中に 
-	case BD_SIEGFRIED:				// 不死身のジ?クフリ?ド 
-	case BD_RAGNAROK:				// 神?の?昏 
-	case CG_MOONLIT:				// 月明りの泉に落ちる花びら 
-		if(sd != ssd && //本人以外で
-		  ((ss_class.job==19 && s_class.job==20) || //自分がバ?ドならダンサ?で
-		   (ss_class.job==20 && s_class.job==19)) && //自分がダンサ?ならバ?ドで
-			pc_checkskill(*sd,skillid) > 0 && //スキルを持っていて
-		   (*c)==0 && //最初の一人で
-		   (sd->weapontype1==13 || sd->weapontype1==14) &&
-		   (ssd->weapontype1==13 || ssd->weapontype1==14) &&
-		   sd->status.party_id && ssd->status.party_id &&
-		   sd->status.party_id == ssd->status.party_id && //パ?ティ?が同じで
-			!pc_issit(*sd) && !pc_isdead(*sd) && //座ってない
-			sd->sc_data[SC_DANCING].timer==-1 && //ダンス中じゃない
-		   sd->skilltimer==-1 &&
-		   DIFF_TICK(sd->canmove_tick,tick)<0  // added various missing ensemble checks [Valaris]
-			)
-		{
-			ssd->sc_data[SC_DANCING].val4=bl.id;
-			clif_skill_nodamage(bl,*src,skillid,skilllv,1);
-			status_change_start(&bl,SC_DANCING,skillid,ssd->sc_data[SC_DANCING].val2,0,src->id,skill_get_time(skillid,skilllv)+1000,0);
-			sd->skillid_dance=sd->skillid=skillid;
-			sd->skilllv_dance=sd->skilllv=skilllv;
-			(*c)++;
-		}
-		break;
-	}
-	return 0;
-}
-*/
 class CSkillCheckConditionUse : public CMapProcessor
 {
 	struct map_session_data& ssd;
@@ -1404,7 +1255,7 @@ public:
 			   (ssd.weapontype1==13 || ssd.weapontype1==14) &&
 			   sd.status.party_id && ssd.status.party_id &&
 			   sd.status.party_id == ssd.status.party_id && //パ?ティ?が同じで
-				!pc_issit(sd) && !pc_isdead(sd) && //座ってない
+				!pc_issit(sd) && !sd.is_dead() && //座ってない
 				sd.sc_data[SC_DANCING].timer==-1 && //ダンス中じゃない
 			   sd.skilltimer==-1 &&
 			   DIFF_TICK(sd.canmove_tick,tick)<0  // added various missing ensemble checks [Valaris]
@@ -2584,11 +2435,11 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 		return 0;
 	if(src->prev == NULL || dsrc->prev == NULL || bl->prev == NULL) //prevよくわからない※
 		return 0;
-	if(src->type == BL_PC && pc_isdead(*((struct map_session_data *)src))) //術者？がPCですでに死んでいたら何もしない
+	if(src->type == BL_PC && ((struct map_session_data *)src)->is_dead()) //術者？がPCですでに死んでいたら何もしない
 		return 0;
-	if(src != dsrc && dsrc->type == BL_PC && pc_isdead(*((struct map_session_data *)dsrc))) //術者？がPCですでに死んでいたら何もしない
+	if(src != dsrc && dsrc->type == BL_PC && ((struct map_session_data *)dsrc)->is_dead() ) //術者？がPCですでに死んでいたら何もしない
 		return 0;
-	if(bl->type == BL_PC && pc_isdead(*((struct map_session_data *)bl))) //?象がPCですでに死んでいたら何もしない
+	if(bl->type == BL_PC && ((struct map_session_data *)bl)->is_dead() ) //?象がPCですでに死んでいたら何もしない
 		return 0;
 	if(src->type == BL_PC && skillnotok(skillid, *((struct map_session_data *)src)))
 	        return 0; // [MouseJstr]
@@ -3130,41 +2981,7 @@ int skill_check_unit_range(int m,int x,int y,unsigned short skillid,unsigned sho
 	range += layout_type;
 	return CMap::foreachinarea( CSkillCheckUnitrange(skillid),
 		m,x-range,y-range,x+range,y+range,BL_SKILL);
-
-//	map_foreachinarea(skill_check_unit_range_sub,
-//		m,x-range,y-range,x+range,y+range,BL_SKILL,
-//		&c,skillid);
-//	return c;
 }
-/*
-int skill_check_unit_range2_sub(struct block_list &bl,va_list &ap )
-{
-	int *c;
-	unsigned short skillid;
-
-
-	nullpo_retr(0, ap);
-	nullpo_retr(0, c = va_arg(ap,int *));
-
-	if(bl.prev == NULL || (bl.type != BL_PC && bl.type != BL_MOB))
-		return 0;
-
-	if(bl.type == BL_PC && pc_isdead(((struct map_session_data &)bl)))
-		return 0;
-
-	skillid = (unsigned short)va_arg(ap,int);
-
-	if (skillid==HP_BASILICA && bl.type==BL_PC)
-		return 0;
-
-	if (skillid==AM_DEMONSTRATION && bl.type==BL_MOB && ((struct mob_data&)bl).class_ == MOBID_EMPERIUM)
-		return 0; //Allow casting Bomb/Demonstration Right under emperium
-	
-	++(*c);
-
-	return 0;
-}
-*/
 class CSkillCheckUnitrange2 : public CMapProcessor
 {
 	unsigned short skillid;
@@ -3177,7 +2994,7 @@ public:
 		if(bl.prev == NULL || (bl.type != BL_PC && bl.type != BL_MOB))
 			return 0;
 
-		if(bl.type == BL_PC && pc_isdead(((struct map_session_data &)bl)))
+		if(bl.type == BL_PC && bl.is_dead())
 			return 0;
 
 		if (skillid==HP_BASILICA && bl.type==BL_PC)
@@ -3371,9 +3188,9 @@ int skill_timerskill(int tid, unsigned long tick, int id, basics::numptr data)
 			return 0;
 		if(src->m != target->m)
 			return 0;
-		if(sd && pc_isdead(*sd))
+		if(sd && sd->is_dead())
 			return 0;
-		if(target->type == BL_PC && pc_isdead(*((struct map_session_data *)target)) && skl->skill_id != RG_INTIMIDATE)
+		if(target->type == BL_PC && ((struct map_session_data *)target)->is_dead() && skl->skill_id != RG_INTIMIDATE)
 			return 0;
 
 		switch(skl->skill_id) {
@@ -3397,7 +3214,7 @@ int skill_timerskill(int tid, unsigned long tick, int id, basics::numptr data)
 						y = sd->block_list::y;
 					}
 					if(target->prev != NULL) {
-						if(target->type == BL_PC && !pc_isdead(*((struct map_session_data *)target)))
+						if(target->type == BL_PC && !((struct map_session_data *)target)->is_dead())
 							pc_setpos(*((struct map_session_data *)target),maps[sd->block_list::m].mapname,x,y,3);
 						else if(target->type == BL_MOB)
 							mob_warp(*((struct mob_data *)target),-1,x,y,3);
@@ -3419,7 +3236,7 @@ int skill_timerskill(int tid, unsigned long tick, int id, basics::numptr data)
 						y = md->block_list::y;
 					}
 					if(target->prev != NULL) {
-						if(target->type == BL_PC && !pc_isdead(*((struct map_session_data *)target)))
+						if(target->type == BL_PC && !((struct map_session_data *)target)->is_dead())
 							pc_setpos(*((struct map_session_data *)target),maps[md->block_list::m].mapname,x,y,3);
 						else if(target->type == BL_MOB)
 							mob_warp(*((struct mob_data *)target),-1,x,y,3);
@@ -3640,7 +3457,7 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl, unsi
 	if (src->type == BL_PC) {
 		nullpo_retr(1, sd = (struct map_session_data *)src);
 	}
-	if (sd && pc_isdead(*sd))
+	if (sd && sd->is_dead())
 		return 1;
 
 	if (bl->prev == NULL)
@@ -3648,7 +3465,7 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl, unsi
 	if (bl->type == BL_PC) {
 		nullpo_retr(1, tsd = (struct map_session_data *)bl);
 	}
-	if (tsd && pc_isdead(*tsd))
+	if (tsd && tsd->is_dead())
 		return 1;
 
 	if ((skillid == CR_GRANDCROSS || skillid == NPC_GRANDDARKNESS) && src != bl)
@@ -4385,9 +4202,9 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 
 	if(bl->prev == NULL)
 		return 1;
-	if(sd && pc_isdead(*sd))
+	if(sd && sd->is_dead())
 		return 1;
-	if(dstsd && pc_isdead(*dstsd) && skillid != ALL_RESURRECTION)
+	if(dstsd && dstsd->is_dead() && skillid != ALL_RESURRECTION)
 		return 1;
 	if(status_get_class(bl) == MOBID_EMPERIUM)
 		return 1;
@@ -4425,13 +4242,14 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		}
 		break;
 
-	case ALL_RESURRECTION:		/* リザレクション */
+	case ALL_RESURRECTION:		// リザレクション 
 		if(dstsd) {
 			int per = 0;
 			if (maps[bl->m].flag.pvp && dstsd->pvp_point < 0)
-				break;			/* PVPで復活不可能?態 */
+				break;			// PVPで復活不可能?態 
 
-			if (pc_isdead(*dstsd)) {	/* 死亡判定 */
+			if( dstsd->is_dead() )
+			{	// 死亡判定 
 				clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 				switch(skilllv){
 				case 1: per=10; break;
@@ -6664,7 +6482,7 @@ int skill_castend_id(int tid, unsigned long tick, int id, basics::numptr data)
 	if(sd->skillid != SA_CASTCANCEL)
 		sd->skilltimer=-1;
 
-	if( (bl=map_id2bl(sd->skilltarget))==NULL || bl->prev==NULL || sd->block_list::m != bl->m || pc_isdead(*sd) )
+	if( (bl=map_id2bl(sd->skilltarget))==NULL || bl->prev==NULL || sd->block_list::m != bl->m || sd->is_dead() )
 	{	//マップが違うか自分が死んでいる
 		sd->canact_tick = tick;
 		sd->canmove_tick = tick;
@@ -6814,7 +6632,8 @@ int skill_castend_pos(int tid, unsigned long tick, int id, basics::numptr data)
 		status_calc_speed(*sd, SA_FREECAST, range, 0); 
 
 	sd->skilltimer=-1;
-	if(pc_isdead(*sd)) {
+	if( sd->is_dead() )
+	{
 		sd->canact_tick = tick;
 		sd->canmove_tick = tick;
 		sd->skillitem = sd->skillitemlv = 0xFFFF;
@@ -7216,7 +7035,7 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 	int x=0,y=0;
 
 	nullpo_retr(0, sd);
-	if( sd->block_list::prev == NULL || pc_isdead(*sd) )
+	if( sd->block_list::prev == NULL || sd->is_dead() )
 		return 0;
 
 	if(skillnotok(skill_num, *sd))
@@ -7567,7 +7386,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned lon
 	nullpo_retr(0, bl);
 	
 	if(bl->prev==NULL || !src->alive ||
-		(bl->type == BL_PC && pc_isdead(*((struct map_session_data *)bl))))
+		(bl->type == BL_PC && ((struct map_session_data *)bl)->is_dead()))
 		return 0;
 
 	sg = src->group;
@@ -7744,7 +7563,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		return 0;
 	
 	if (bl->prev==NULL || !src->alive ||
-			(bl->type==BL_PC && pc_isdead(*((struct map_session_data *)bl))))
+			(bl->type==BL_PC && ((struct map_session_data *)bl)->is_dead()) )
 		return 0;
 
 	nullpo_retr(0, sg=src->group);
@@ -8846,7 +8665,7 @@ int skill_use_id(struct map_session_data *sd, uint32 target_id, unsigned short s
 //			ShowError("skill target not found %d\n",target_id); */
 		return 0;
 	}
-	if(sd->block_list::m != bl->m || pc_isdead(*sd))
+	if(sd->block_list::m != bl->m || sd->is_dead())
 		return 0;
 	if(sd->skilltimer != -1 && skill_num != SA_CASTCANCEL) //Normally not needed because clif.c checks for it, but the at/char/script commands don't! [Skotlex]
 		return 0;
@@ -8859,7 +8678,7 @@ int skill_use_id(struct map_session_data *sd, uint32 target_id, unsigned short s
 		target_sd = (struct map_session_data*)bl;
 		nullpo_retr(0, target_sd);
 	}
-	if( target_sd && skill_num == ALL_RESURRECTION && !pc_isdead(*target_sd))
+	if( target_sd && skill_num == ALL_RESURRECTION && !target_sd->is_dead())
 		return 0;
 
 	sc_data = sd->sc_data;
@@ -9236,7 +9055,7 @@ int skill_use_pos( struct map_session_data *sd, int skill_x, int skill_y, unsign
 	unsigned long tick = gettick();
 	nullpo_retr(0, sd);
 
-	if (pc_isdead(*sd))
+	if( sd->is_dead() )
 		return 0;
 	if (sd->skilltimer != -1) //Normally not needed since clif.c checks for it, but at/char/script commands don't! [Skotlex]
 		return 0;
@@ -11480,7 +11299,7 @@ int skill_read_skillspamount(void)
 	struct skill_db *skill = NULL;
 	int s, idx, new_flag=1, level=1, sp=0;
 
-	buf=(char *)grfio_reads("data\\leveluseskillspamount.txt", s);
+	buf=(char *)grfio_read("data\\leveluseskillspamount.txt", s);
 
 	if(buf==NULL)
 		return -1;

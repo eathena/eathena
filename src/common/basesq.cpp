@@ -17,6 +17,7 @@ basics::CParam< basics::string<> > CSQLParameter::mysqldb_id("sql_username", "ra
 basics::CParam< basics::string<> > CSQLParameter::mysqldb_pw("sql_password", "ragnarok",  &ParamCallback_Database_string);
 basics::CParam< basics::string<> > CSQLParameter::mysqldb_db("sql_database", "ragnarok",  &ParamCallback_Database_string);
 basics::CParam< basics::string<> > CSQLParameter::mysqldb_ip("sql_ip",       "127.0.0.1", &ParamCallback_Database_string);
+basics::CParam< basics::string<> > CSQLParameter::mysqldb_cp("sql_codepage", "DEFAULT", &ParamCallback_Database_string);
 basics::CParam< ushort   >         CSQLParameter::mysqldb_port("sql_port",   3306,        &ParamCallback_Database_ushort);
 
 
@@ -67,8 +68,7 @@ basics::CParam< basics::string<> > CSQLParameter::tbl_variable("tbl_variable", "
 
 
 basics::CParam<bool> CSQLParameter::wipe_sql("wipe_sql", false);
-basics::CParam< basics::string<> > CSQLParameter::sql_engine("sql_engine", "InnoDB");
-//basics::CParam< basics::string<> > CSQLParameter::sql_engine("sql_engine", "MyISAM");
+basics::CParam< basics::string<> > CSQLParameter::sql_engine("sql_engine", "InnoDB"); // or "MyISAM"
 
 basics::CParam<bool> CSQLParameter::log_login("log_login", true);
 basics::CParam<bool> CSQLParameter::log_char("log_char", true);
@@ -77,12 +77,12 @@ basics::CParam<bool> CSQLParameter::log_map("log_map", true);
 
 bool CSQLParameter::ParamCallback_Database_string(const basics::string<>& name, basics::string<>& newval, const basics::string<>& oldval)
 {
-	sqlbase.init(mysqldb_id, mysqldb_pw,mysqldb_db,mysqldb_ip,mysqldb_port);
+	sqlbase.init(mysqldb_id, mysqldb_pw,mysqldb_db,mysqldb_ip,mysqldb_port, mysqldb_cp);
 	return true;
 }
 bool CSQLParameter::ParamCallback_Database_ushort(const basics::string<>& name, ushort& newval, const ushort& oldval)
 {
-	sqlbase.init(mysqldb_id, mysqldb_pw,mysqldb_db,mysqldb_ip,mysqldb_port);
+	sqlbase.init(mysqldb_id, mysqldb_pw,mysqldb_db,mysqldb_ip,mysqldb_port, mysqldb_cp);
 	return true;
 }
 bool CSQLParameter::ParamCallback_Tables(const basics::string<>& name, basics::string<>& newval, const basics::string<>& oldval)
@@ -999,17 +999,17 @@ bool CAccountDB_sql::sql2struct(const basics::string<>& querycondition, CLoginAc
 	if( dbcon1.ResultQuery(query) )
 	{
 		account.account_id	= atol(dbcon1[0]);
-		safestrcpy(account.userid, dbcon1[1], sizeof(account.userid));
-		safestrcpy(account.passwd, dbcon1[2], sizeof(account.passwd));
+		safestrcpy(account.userid, sizeof(account.userid), dbcon1[1]);
+		safestrcpy(account.passwd, sizeof(account.passwd), dbcon1[2]);
 		account.sex			= ((dbcon1[3][0]=='S') ? (2) : (dbcon1[3][0]=='M'));
 		account.gm_level	= atol(dbcon1[4]);
 		account.online		= atol(dbcon1[5]);
-		safestrcpy(account.email, dbcon1[6] , sizeof(account.email));
+		safestrcpy(account.email, sizeof(account.email), dbcon1[6]);
 		account.login_id1	= atol(dbcon1[7]);
 		account.login_id2	= atol(dbcon1[8]);
 		account.client_ip	= basics::ipaddress(dbcon1[9]);
-		safestrcpy(account.last_ip, dbcon1[9] , sizeof(account.last_ip));
-		safestrcpy(account.last_login, dbcon1[10] , sizeof(account.last_login));
+		safestrcpy(account.last_ip, sizeof(account.last_ip), dbcon1[9]);
+		safestrcpy(account.last_login, sizeof(account.last_login), dbcon1[10]);
 		account.login_count	= atol(dbcon1[11]);
 		account.ban_until	= (time_t)(atol(dbcon1[12]));
 		account.valid_until	= (time_t)(atol(dbcon1[13]));
@@ -1021,7 +1021,7 @@ bool CAccountDB_sql::sql2struct(const basics::string<>& querycondition, CLoginAc
 		dbcon1.ResultQuery(query);
 		for(i=0; dbcon1 && i<ACCOUNT_REG2_NUM; ++dbcon1, ++i)
 		{
-			safestrcpy(account.account_reg2[i].str, dbcon1[0], sizeof(account.account_reg2[0].str));
+			safestrcpy(account.account_reg2[i].str, sizeof(account.account_reg2[0].str), dbcon1[0]);
 			account.account_reg2[i].value = atoi(dbcon1[1]);
 		}
 		account.account_reg2_num = i;
@@ -1335,7 +1335,7 @@ bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 		p.char_id 			= atoi(dbcon1[0]);
 		p.account_id 		= atoi(dbcon1[1]);
 		p.slot 				= atoi(dbcon1[2]);
-		safestrcpy(p.name,         dbcon1[3], sizeof(p.name));
+		safestrcpy(p.name, sizeof(p.name),         dbcon1[3]);
 		p.class_ 			= atoi(dbcon1[4]);
 		p.base_level 		= atoi(dbcon1[5]);
 		p.job_level 		= atoi(dbcon1[6]);
@@ -1369,10 +1369,10 @@ bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 		p.head_top			= atoi(dbcon1[34]);
 		p.head_mid			= atoi(dbcon1[35]);
 		p.head_bottom		= atoi(dbcon1[36]);
-		safestrcpy(p.last_point.mapname,dbcon1[37], sizeof(p.last_point.mapname));
+		safestrcpy(p.last_point.mapname, sizeof(p.last_point.mapname),dbcon1[37]);
 		p.last_point.x		= atoi(dbcon1[38]);
 		p.last_point.y		= atoi(dbcon1[39]);
-		safestrcpy(p.save_point.mapname,dbcon1[40], sizeof(p.save_point.mapname));
+		safestrcpy(p.save_point.mapname, sizeof(p.save_point.mapname),dbcon1[40]);
 		p.save_point.x		= atoi(dbcon1[41]);
 		p.save_point.y		= atoi(dbcon1[42]);
 		p.partner_id		= atoi(dbcon1[43]);
@@ -1407,7 +1407,7 @@ bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 		{
 			for( ; dbcon1 && i<MAX_MEMO; ++dbcon1, ++i)
 			{
-				safestrcpy(p.memo_point[i].mapname, dbcon1[0], sizeof(p.memo_point[i].mapname));
+				safestrcpy(p.memo_point[i].mapname, sizeof(p.memo_point[i].mapname), dbcon1[0]);
 				p.memo_point[i].x=atoi(dbcon1[1]);
 				p.memo_point[i].y=atoi(dbcon1[2]);
 			}
@@ -1552,7 +1552,7 @@ bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 		{
 			for( ; dbcon1 && i<GLOBAL_REG_NUM; ++dbcon1, ++i)
 			{
-				safestrcpy(p.global_reg[i].str, dbcon1[0], sizeof(p.global_reg[i].str));
+				safestrcpy(p.global_reg[i].str, sizeof(p.global_reg[i].str), dbcon1[0]);
 				p.global_reg[i].value = atoi(dbcon1[1]);
 			}
 		}
@@ -1576,7 +1576,7 @@ bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 			for( ; dbcon1 && i<MAX_FRIENDLIST; ++dbcon1, ++i)
 			{
 				p.friendlist[i].friend_id = atoi(dbcon1[0]);
-				safestrcpy(p.friendlist[i].friend_name, dbcon1[1], sizeof(p.friendlist[i].friend_name));
+				safestrcpy(p.friendlist[i].friend_name, sizeof(p.friendlist[i].friend_name), dbcon1[1]);
 			}
 		}
 		for( ; i<MAX_FRIENDLIST; ++i)
@@ -2047,7 +2047,7 @@ bool CCharDB_sql::searchAccount(uint32 accid, CCharCharAccount& account)
 			account.account_id	= atol(dbcon1[0]);
 			account.sex			= dbcon1[1][0] == 'S' ? 2 : dbcon1[1][0]=='M';
 			account.gm_level	= atol(dbcon1[2]);
-			safestrcpy(account.email, dbcon1[3] , sizeof(account.email));
+			safestrcpy(account.email, sizeof(account.email), dbcon1[3]);
 			account.login_id1	= atol(dbcon1[4]);
 			account.login_id2	= atol(dbcon1[5]);
 			account.client_ip	= basics::ipaddress(dbcon1[6]);
@@ -2086,7 +2086,7 @@ bool CCharDB_sql::searchAccount(uint32 accid, CCharCharAccount& account)
 			{
 				for( ; dbcon1 && i<ACCOUNT_REG2_NUM; ++dbcon1, ++i)
 				{
-					safestrcpy(account.account_reg2[i].str, dbcon1[0], sizeof(account.account_reg2[0].str));
+					safestrcpy(account.account_reg2[i].str, sizeof(account.account_reg2[0].str), dbcon1[0]);
 					account.account_reg2[i].value = atoi(dbcon1[1]);
 				}
 			}
@@ -2508,10 +2508,10 @@ bool CGuildDB_sql::searchGuild(uint32 guild_id, CGuild& g)
 		g.exp			= atoi(dbcon1[5]);
 		g.next_exp		= atoi(dbcon1[6]);
 		g.skill_point	= atoi(dbcon1[7]);
-		safestrcpy(g.name, dbcon1[8], sizeof(g.name)-1);
-		safestrcpy(g.master, dbcon1[9], sizeof(g.name)-1);
-		safestrcpy(g.mes1, dbcon1[10], sizeof(g.mes1)-1);
-		safestrcpy(g.mes2, dbcon1[11], sizeof(g.mes2)-1);
+		safestrcpy(g.name, sizeof(g.name), dbcon1[8]);
+		safestrcpy(g.master, sizeof(g.name), dbcon1[9]);
+		safestrcpy(g.mes1, sizeof(g.mes1), dbcon1[10]);
+		safestrcpy(g.mes2, sizeof(g.mes2), dbcon1[11]);
 		g.emblem_id		= atoi(dbcon1[12]);
 		g.emblem_len	= atoi(dbcon1[13]);
 		g.chaos = 0;
@@ -2592,7 +2592,7 @@ bool CGuildDB_sql::searchGuild(uint32 guild_id, CGuild& g)
 			g.member[i].position = atoi(dbcon1[10]);
 			g.member[i].rsv1 = atoi(dbcon1[11]);
 			g.member[i].rsv2 = atoi(dbcon1[12]);
-			safestrcpy(g.member[i].name, dbcon1[13], sizeof(g.member[i].name));
+			safestrcpy(g.member[i].name, sizeof(g.member[i].name), dbcon1[13]);
 		}
 		for( ; i<MAX_GUILD; ++i)
 		{
@@ -2629,7 +2629,7 @@ bool CGuildDB_sql::searchGuild(uint32 guild_id, CGuild& g)
 		// get as much as we can from the DB and fill that in.
 		for(i=0; dbcon1 && i<MAX_GUILDPOSITION; ++dbcon1, ++i)
 		{
-			safestrcpy(g.position[i].name, dbcon1[0], sizeof(g.position[i].name));
+			safestrcpy(g.position[i].name, sizeof(g.position[i].name), dbcon1[0]);
 			g.position[i].mode = atoi(dbcon1[1]);
 			g.position[i].exp_mode = atoi(dbcon1[2]);
 		}
@@ -2638,7 +2638,7 @@ bool CGuildDB_sql::searchGuild(uint32 guild_id, CGuild& g)
 		{
 			basics::string<> position_name;
 			position_name << "Position " << i+1;
-			safestrcpy(g.position[i].name, position_name, sizeof(g.position[i].name));
+			safestrcpy(g.position[i].name, sizeof(g.position[i].name), position_name);
 			g.position[i].mode = 0;
 			g.position[i].exp_mode = 0;
 		}
@@ -2656,7 +2656,7 @@ bool CGuildDB_sql::searchGuild(uint32 guild_id, CGuild& g)
 		{
 			g.alliance[i].opposition = atoi(dbcon1[0]);
 			g.alliance[i].guild_id = atoi(dbcon1[1]);
-			safestrcpy(g.alliance[i].name, dbcon1[2], sizeof(g.alliance[i].name));
+			safestrcpy(g.alliance[i].name, sizeof(g.alliance[i].name), dbcon1[2]);
 		}
 		for( ; i<MAX_GUILDALLIANCE; ++i)
 		{
@@ -2675,9 +2675,9 @@ bool CGuildDB_sql::searchGuild(uint32 guild_id, CGuild& g)
 		dbcon1.ResultQuery(query);
 		for(i=0; dbcon1 && i<MAX_GUILDEXPLUSION; ++dbcon1, ++i)
 		{
-			safestrcpy(g.explusion[i].name, dbcon1[0], sizeof(g.explusion[i].name));
-			safestrcpy(g.explusion[i].mes, dbcon1[1], sizeof(g.explusion[i].mes));
-			safestrcpy(g.explusion[i].acc, dbcon1[2], sizeof(g.explusion[i].acc));
+			safestrcpy(g.explusion[i].name, sizeof(g.explusion[i].name), dbcon1[0]);
+			safestrcpy(g.explusion[i].mes, sizeof(g.explusion[i].mes), dbcon1[1]);
+			safestrcpy(g.explusion[i].acc, sizeof(g.explusion[i].acc), dbcon1[2]);
 			g.explusion[i].account_id = atoi(dbcon1[3]);
 			g.explusion[i].char_id = atoi(dbcon1[4]);
 			g.explusion[i].rsv1 = atoi(dbcon1[5]);
@@ -2728,10 +2728,10 @@ bool CGuildDB_sql::insertGuild(const struct guild_member &m, const char *name, C
 	// construct initial guild
 	g = CGuild(name);
 	g.member[0] = m;
-	safestrcpy(g.master, m.name, sizeof(g.master));
+	safestrcpy(g.master, sizeof(g.master), m.name);
 	g.position[0].mode=0x11;
-	safestrcpy(g.position[0].name,"GuildMaster", sizeof(g.position[0].name));
-	safestrcpy(g.position[MAX_GUILDPOSITION-1].name,"Newbie", sizeof(g.position[0].name));
+	safestrcpy(g.position[0].name, sizeof(g.position[0].name),"GuildMaster");
+	safestrcpy(g.position[MAX_GUILDPOSITION-1].name, sizeof(g.position[0].name),"Newbie");
 	for(i=1; i<MAX_GUILDPOSITION-1; ++i)
 		snprintf(g.position[i].name,sizeof(g.position[0].name),"Position %ld",(unsigned long)(i+1));
 
@@ -3261,7 +3261,7 @@ bool CPartyDB_sql::searchParty(uint32 pid, CParty& p)
 	if( dbcon1.ResultQuery(query) )
 	{
 		p.party_id = atol( dbcon1[0] );
-		safestrcpy(p.name, dbcon1[1], sizeof(p.name));
+		safestrcpy(p.name, sizeof(p.name), dbcon1[1]);
 		p.expshare = atol( dbcon1[2] );
 		p.itemshare= atol( dbcon1[3] );
 		p.itemc    = atol( dbcon1[4] );
@@ -3279,7 +3279,7 @@ bool CPartyDB_sql::searchParty(uint32 pid, CParty& p)
 		{
 			struct party_member &m = p.member[i];
 			m.account_id = atol( dbcon1[0] );
-			safestrcpy(m.name, dbcon1[1], sizeof(m.name));
+			safestrcpy(m.name, sizeof(m.name), dbcon1[1]);
 			m.lv = atol( dbcon1[2] );
 
 			found |= m.leader = (leader==m.name);
@@ -3314,13 +3314,13 @@ bool CPartyDB_sql::insertParty(uint32 accid, const char* nick, const char* mapna
 {	// insert into party values (*party)
 	if( !searchParty(name,p) )
 	{	// not in the database, better create the entry and insert into the database
-		safestrcpy(p.name,name,sizeof(p.name));
+		safestrcpy(p.name,sizeof(p.name),name);
 		p.expshare = 0;
 		p.itemshare= 0;
 		p.itemc    = 0;
 		p.member[0].account_id = accid;
-		safestrcpy( p.member[0].name, nick, sizeof(p.member[0].name) );
-		safestrcpy( p.member[0].mapname, mapname, sizeof(p.member[0].mapname) );
+		safestrcpy( p.member[0].name, sizeof(p.member[0].name), nick );
+		safestrcpy( p.member[0].mapname, sizeof(p.member[0].mapname), mapname );
 		p.member[0].leader = 1;
 		p.member[0].online = 1;
 		p.member[0].lv = lv;
@@ -3675,7 +3675,7 @@ CPet& CPetDB_sql::operator[](size_t i)
 		pet.equip_id = atoi(dbcon1[6]);
 		pet.intimate = atoi(dbcon1[7]);
 		pet.hungry = atoi(dbcon1[8]);
-		safestrcpy(pet.name, dbcon1[9], sizeof(pet.name));
+		safestrcpy(pet.name, sizeof(pet.name), dbcon1[9]);
 		pet.rename_flag = atoi(dbcon1[10]);
 		pet.incuvate = atoi(dbcon1[11]);
 	}
@@ -3709,7 +3709,7 @@ bool CPetDB_sql::searchPet(uint32 pid, CPet& pet)
 		pet.equip_id = atoi(dbcon1[6]);
 		pet.intimate = atoi(dbcon1[7]);
 		pet.hungry = atoi(dbcon1[8]);
-		safestrcpy(pet.name, dbcon1[9], sizeof(pet.name));
+		safestrcpy(pet.name, sizeof(pet.name), dbcon1[9]);
 		pet.rename_flag = atoi(dbcon1[10]);
 		pet.incuvate = atoi(dbcon1[11]);
 		return true;
@@ -3761,7 +3761,7 @@ bool CPetDB_sql::insertPet(uint32 accid, uint32 cid, short pet_class, short pet_
 		pd.equip_id = pet_equip;
 		pd.intimate = intimate;
 		pd.hungry = hungry;
-		safestrcpy(pd.name, pet_name, sizeof(pd.name));
+		safestrcpy(pd.name, sizeof(pd.name), pet_name);
 		pd.rename_flag = renameflag;
 		pd.incuvate = incuvat;
 		return true;
@@ -3859,7 +3859,7 @@ CHomunculus& CHomunculusDB_sql::operator[](size_t i)
 		hom.account_id		= atoi(dbcon1[ 1]);
 		hom.char_id			= atoi(dbcon1[ 2]);
 		hom.base_exp		= atoi(dbcon1[ 3]);
-		safestrcpy(hom.name, dbcon1[ 4], sizeof(hom.name));
+		safestrcpy(hom.name, sizeof(hom.name), dbcon1[ 4]);
 		hom.hp				= atoi(dbcon1[ 5]);
 		hom.max_hp			= atoi(dbcon1[ 6]);
 		hom.sp				= atoi(dbcon1[ 7]);
@@ -3944,7 +3944,7 @@ bool CHomunculusDB_sql::searchHomunculus(uint32 hid, CHomunculus& hom)
 		hom.account_id		= atoi(dbcon1[ 1]);
 		hom.char_id			= atoi(dbcon1[ 2]);
 		hom.base_exp		= atoi(dbcon1[ 3]);
-		safestrcpy(hom.name, dbcon1[ 4], sizeof(hom.name));
+		safestrcpy(hom.name, sizeof(hom.name), dbcon1[ 4]);
 		hom.hp				= atoi(dbcon1[ 5]);
 		hom.max_hp			= atoi(dbcon1[ 6]);
 		hom.sp				= atoi(dbcon1[ 7]);

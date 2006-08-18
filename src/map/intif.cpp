@@ -223,6 +223,7 @@ int intif_wis_message(struct map_session_data &sd, const char *nick, const char 
 	memcpy(WFIFOP(char_fd,4), sd.status.name, 24);
 	memcpy(WFIFOP(char_fd,28), nick, 24);
 	memcpy(WFIFOP(char_fd,52), mes, len);
+	WFIFOB(char_fd,52+len-1) = 0;
 	WFIFOSET(char_fd, len + 52);
 
 	if(config.etc_log)
@@ -1222,7 +1223,7 @@ int intif_parse(int fd)
 	}
 	// ˆ—•ªŠò
 	switch(cmd){
-	case 0x3800:	clif_GMmessage(NULL,(char*)RFIFOP(fd,4),packet_len-4,0); break;
+	case 0x3800:	clif_GMmessage(NULL,(char*)RFIFOP(fd,4),packet_len-4, 0); break;
 	case 0x3801:	intif_parse_WisMessage(fd); break;
 	case 0x3802:	intif_parse_WisEnd(fd); break;
 	case 0x3803:	mapif_parse_WisToGM(fd); break;

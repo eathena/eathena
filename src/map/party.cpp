@@ -665,7 +665,7 @@ int party_exp_share(struct party &p,unsigned short map, uint32 base_exp,uint32 j
 		{
 			if( !( sd->chatID                            && config.party_share_mode>=2 ) &&	// don't count chatting
 				!( difftime(last_tick, sd->idletime)>120 && config.party_share_mode>=1) &&	// don't count idle
-				!pc_isdead(*sd) )
+				!sd->is_dead() )
 				memberpos[c++] = i;
 		}
 	}
@@ -731,7 +731,7 @@ int party_exp_share2(struct party &p, unsigned short map, uint32 base_exp, uint3
 		{
 			if( !( sd->chatID                             && config.party_share_mode>=2 ) &&	// don't count chatting
 				!( difftime(last_tick, sd->idletime)>120  && config.party_share_mode>=1) &&	// don't count idle
-				!pc_isdead(*sd) )
+				!sd->is_dead() )
 				memberpos[c++] = i;
 				lvlsum += p.member[i].lv;
 		}

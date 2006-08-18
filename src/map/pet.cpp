@@ -40,7 +40,7 @@ int pet_data::attacktimer_func(int tid, unsigned long tick, int id, basics::nump
 
 	if (pd.msd == NULL) //Is this even possible?
 		return 0;
-	if (pc_isdead(*pd.msd))
+	if( pd.msd->is_dead() )
 	{	//Stop attacking when master died.
 		pd.stop_attack();
 		return 0;
@@ -1550,7 +1550,7 @@ int pet_heal_timer(int tid, unsigned long tick, int id, basics::numptr data)
 		return 0;
 	}
 	
-	if(pc_isdead(*sd) ||
+	if( sd->is_dead() ||
 		(rate = sd->status.sp*100/sd->status.max_sp) > pd->s_skill->sp ||
 		(rate = sd->status.hp*100/sd->status.max_hp) > pd->s_skill->hp ||
 		(rate = pd->state.casting_flag) || //Another skill is in effect
@@ -1595,7 +1595,7 @@ int pet_skill_support_timer(int tid, unsigned long tick, int id, basics::numptr 
 		return 0;
 	}
 	
-	if(pc_isdead(*sd) ||
+	if( sd->is_dead() ||
 		(rate = sd->status.sp*100/sd->status.max_sp) > pd->s_skill->sp ||
 		(rate = sd->status.hp*100/sd->status.max_hp) > pd->s_skill->hp ||
 		(rate = pd->state.casting_flag) || //Another skill is in effect

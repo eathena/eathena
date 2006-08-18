@@ -257,7 +257,7 @@ int battle_heal(struct block_list *bl,struct block_list *target,int hp,int sp,in
 
 	if (target->type == BL_PET)
 		return 0;
-	if (target->type == BL_PC && pc_isdead(*((struct map_session_data *)target)) )
+	if (target->type == BL_PC && ((struct map_session_data *)target)->is_dead() )
 		return 0;
 	if (hp == 0 && sp == 0)
 		return 0;
@@ -4782,14 +4782,14 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 	if(src->type == BL_PC)
 	{
 		sd = (struct map_session_data *)src;
-		if( pc_isdead(*sd) )
+		if( sd->is_dead() )
 		return 0;
 	}
 
 	if (target->type == BL_PC)
 	{
 		tsd = (struct map_session_data *)target;
-		if( pc_isdead(*tsd) )
+		if( tsd->is_dead() )
 		return 0;
 	}
 
@@ -5527,7 +5527,7 @@ int battle_check_target(const block_list *src, const block_list *target, int fla
 		return 1;
 
 	if (src->prev == NULL ||	// Ž€‚ñ‚Å‚é‚È‚çƒGƒ‰[
-		(srcsd && pc_isdead(*srcsd)))
+		(srcsd && srcsd->is_dead()))
 		return -1;
 
 	if ((ss->type == BL_PC && target->type == BL_MOB) ||

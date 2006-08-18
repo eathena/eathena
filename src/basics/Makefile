@@ -35,6 +35,7 @@ baseparser.o: baseparser.cpp basetypes.h baseobjects.h basesafeptr.h basememory.
 basereentrant.o: basereentrant.cpp basesync.h basetypes.h baseobjects.h baseexceptions.h basememory.h basealgo.h basetime.h basestring.h basearray.h basesafeptr.h basestrformat.h basereentrant.h
 baseregex.o: baseregex.cpp basetypes.h baseregex.h basestring.h baseobjects.h basememory.h basealgo.h basetime.h basearray.h basesafeptr.h basestrformat.h
 basesocket.o: basesocket.cpp basearray.h basetypes.h baseobjects.h basesafeptr.h basememory.h basealgo.h baseinet.h basetime.h basestring.h basestrformat.h basebuffer.h basesync.h baseexceptions.h basethreads.h basesocket.h baseregex.h
+basesort.o: basesort.cpp basetypes.h basealgo.h basesort.h basearray.h baseobjects.h basesafeptr.h basememory.h
 basestrformat.o: basestrformat.cpp basestrformat.h basetypes.h basestring.h baseobjects.h basememory.h basealgo.h basetime.h basearray.h basesafeptr.h baseinet.h
 basestring.o: basestring.cpp basetypes.h baseobjects.h basesafeptr.h basememory.h basealgo.h basetime.h basestring.h basearray.h basestrformat.h baseexceptions.h basestrsearch.h baseministring.h
 basestrsearch.o: basestrsearch.cpp basestrsearch.h basestring.h basetypes.h baseobjects.h basememory.h basealgo.h basetime.h basearray.h basesafeptr.h basestrformat.h

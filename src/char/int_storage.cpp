@@ -7,7 +7,7 @@
 #include "malloc.h"
 #include "showmsg.h"
 
-
+#include "char.h"
 #include "inter.h"
 #include "int_storage.h"
 

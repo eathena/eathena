@@ -39,6 +39,7 @@ NAMESPACE_BEGIN(basics)
 
 ////////////////////////////////////////////////////////////////////////////////
 /// basic file system functions
+bool is_console(FILE* file);
 bool is_present(const char*name);
 bool is_folder(const char*name);
 bool is_file(const char*name);
@@ -315,10 +316,6 @@ public:
 	}
 
 };
-
-
-
-
 
 
 NAMESPACE_END(basics)

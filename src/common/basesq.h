@@ -22,6 +22,7 @@ protected:
 	static basics::CParam< basics::string<> > mysqldb_pw;	///< password
 	static basics::CParam< basics::string<> > mysqldb_db;	///< database
 	static basics::CParam< basics::string<> > mysqldb_ip;	///< server ip
+	static basics::CParam< basics::string<> > mysqldb_cp;	///< server code page
 	static basics::CParam< ushort   >         mysqldb_port;	///< server port
 
 	///////////////////////////////////////////////////////////////////////////

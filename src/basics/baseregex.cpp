@@ -153,6 +153,8 @@ enum {
 	REGEX_BOS		=	34,			//	no			\A, matches beginning of string, does not match begin of line
 	REGEX_EOS2		=	35,			//	no			\Z, matches end of string, does not match end of line, exect when the EOS is after the EOL
 	REGEX_EOS		=	36,			//	no			\z, matches end of string, does not match end of line
+	REGEX_WCHAR		=	58,			//	no			/b
+	REGEX_NOWCHAR	=	59,			//	no			/B
 
 	///////////////////////////////////////////////////////////////////////////
 	// length matching nodes
@@ -178,8 +180,6 @@ enum {
 	REGEX_PUNCT		=	55,			//	no			[:punct:]	-> \p ??
 	REGEX_NOPUNCT	=	56,			//	no			^[:punct:]	-> \P ??
 	REGEX_CNTRL		=	57,			//	no			[:cntrl:]
-	REGEX_WCHAR		=	58,			//	no			/b
-	REGEX_NOWCHAR	=	59,			//	no			/B
 	REGEX_LETTER	=	60,			//	no			\l
 	REGEX_NOLETTER	=	61,			//	no			\L
 
@@ -284,7 +284,6 @@ enum
 	REGERR_INTERNAL_UNEXPECTED_CHAR, 
 	REGERR_OP_FOLLOWS_NOTHING,
 	REGERR_TRAILING_ESC, 
-	REGERR_INTERNAL_STRSCSPN, 
 	REGERR_INVALID_BACKREF,
 	REGERR_NO_REGEXP
 };
@@ -306,16 +305,16 @@ struct regErr
 	const char* m_err;
 } errors[] = {
 	{ REGERR_NULLARG,					( "NULL argument to regexec" ) },
-	{ REGERR_CORRUPTED,					( "corrupted CRegExpWorker" ) },
-	{ REGERR_CORRUPTION,				( "CRegExpWorker corruption" ) },
-	{ REGERR_CORRUPTED_POINTERS,		( "corrupted pointers" ) },
+	{ REGERR_CORRUPTED,					( "internal error: corrupted programm" ) },
+	{ REGERR_CORRUPTION,				( "internal error: CRegExpWorker corruption" ) },
+	{ REGERR_CORRUPTED_POINTERS,		( "internal error: corrupted pointers" ) },
 	{ REGERR_BAD_REGREPEAT,				( "internal error: bad call of regrepeat" ) },
-	{ REGERR_CORRUPTED_OPCODE,			( "corrupted opcode" ) },
-	{ REGERR_NULL_TO_REGSUB,			( "NULL parm to regsub" ) },
-	{ REGERR_DAMAGED_REGEXP_REGSUB,		( "damaged CRegExpWorker fed to regsub" ) },
+	{ REGERR_CORRUPTED_OPCODE,			( "internal error: corrupted opcode" ) },
+	{ REGERR_NULL_TO_REGSUB,			( "NULL argument to regsub" ) },
+	{ REGERR_DAMAGED_REGEXP_REGSUB,		( "empty regular expression fed to regsub" ) },
 	{ REGERR_DAMAGED_MATCH_STRING,		( "damaged match string" ) },
 	{ REGERR_NULL_TO_REGCOMP,			( "NULL argument to regcomp" ) },
-	{ REGERR_TO_BIG,					( "CRegExpWorker too big" ) },
+	{ REGERR_TO_BIG,					( "internal error: CRegExpWorker too big" ) },
 	{ REGERR_TO_MANY_PAREN,				( "too many ()" ) },
 	{ REGERR_UNTERMINATED_PAREN,		( "unterminated ()" ) },
 	{ REGERR_UNMATCHED_PAREN,			( "unmatched ()" ) },
@@ -328,11 +327,10 @@ struct regErr
 	{ REGERR_INTERNAL_UNEXPECTED_CHAR,	( "internal error: \\0|) unexpected" ) },
 	{ REGERR_OP_FOLLOWS_NOTHING,		( "?+* follows nothing" ) },
 	{ REGERR_TRAILING_ESC,				( "trailing \\" ) },
-	{ REGERR_INTERNAL_STRSCSPN,			( "internal error: strcspn 0" ) },
 	{ REGERR_INVALID_BACKREF,			( "invalid backreference count" ) },
-	{ REGERR_NO_REGEXP,					( "NULL CRegExpWorker" ) },
+	{ REGERR_NO_REGEXP,					( "no regular expression" ) },
 	// must be last value
-	{ REGERR_SENTINEL_VALUE,			( "Unknown error") }	
+	{ REGERR_SENTINEL_VALUE,			( "unknown error") }	
 };
 
 
@@ -1436,6 +1434,12 @@ size_t CRegExp::CRegProgram::ParseAtom(const char*&parsestr, int &parcnt, int &f
 						case 'Z':
 							ret = AddNode(REGEX_EOS2);
 							break;
+						case 'b':
+							ret = AddNode(REGEX_WCHAR);
+							break;
+						case 'B':
+							ret = AddNode(REGEX_NOWCHAR);
+							break;
 						case 's':
 							ret = AddNode(REGEX_SPACE);
 							flag |= REGEX_HASWIDTH|REGEX_SIMPLE;
@@ -1458,14 +1462,6 @@ size_t CRegExp::CRegProgram::ParseAtom(const char*&parsestr, int &parcnt, int &f
 							break;
 						case 'W':
 							ret = AddNode(REGEX_NOWORD);
-							flag |= REGEX_HASWIDTH|REGEX_SIMPLE;
-							break;
-						case 'b':
-							ret = AddNode(REGEX_WCHAR);
-							flag |= REGEX_HASWIDTH|REGEX_SIMPLE;
-							break;
-						case 'B':
-							ret = AddNode(REGEX_NOWCHAR);
 							flag |= REGEX_HASWIDTH|REGEX_SIMPLE;
 							break;
 						case 'h':
@@ -1783,21 +1779,21 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 				break;
 			}
 			case REGEX_WCHAR:
-			{
-				// Matches at the position between a word character (anything matched by \w) 
+			{	// Matches the position between a word character (anything matched by \w) 
 				// and a non-word character (only one direction )
 
-				// true when BOL or nonword
+				// false when BOL or nonword
 				bool prev = ( reginput != base     && reginput[-1] != '\r' && reginput[-1] != '\n' &&
 					(stringcheck::isalnum(reginput[-1]) || reginput[-1] == '_') );
-				// true when EOL or nonword
-				bool next = ( reginput[ 1] != '\0' && reginput[ 1] != '\r' && reginput[ 1] != '\n' &&
-					(stringcheck::isalnum(reginput[ 1]) || reginput[ 1] == '_') );
 
-				if( !prev ^ next )
+				// false when EOL  or nonword
+				bool curr = ( reginput[ 0] != '\0' && reginput[ 0] != '\r' && reginput[ 0] != '\n' &&
+					(stringcheck::isalnum(reginput[ 0]) || reginput[ 0] == '_') );
+
+
+				if( !prev ^ curr )
 					return false;
 								
-				reginput++;
 				break;
 			}
 			case REGEX_NOWCHAR:
@@ -1805,17 +1801,17 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 				// Matches at the position between two word characters (i.e the position between \w\w) 
 				// as well as at the position between two non-word characters
 
-				// true when BOL or nonword
+				// false when BOL or nonword
 				bool prev = ( reginput != base     && reginput[-1] != '\r' && reginput[-1] != '\n' &&
 					(stringcheck::isalnum(reginput[-1]) || reginput[-1] == '_') );
-				// true when EOL or nonword
-				bool next = ( reginput[ 1] != '\0' && reginput[ 1] != '\r' && reginput[ 1] != '\n' &&
-					(stringcheck::isalnum(reginput[ 1]) || reginput[ 1] == '_') );
 
-				if( prev^next )
+				// false when EOL  or nonword
+				bool curr = ( reginput[ 0] != '\0' && reginput[ 0] != '\r' && reginput[ 0] != '\n' &&
+					(stringcheck::isalnum(reginput[ 0]) || reginput[ 0] == '_') );
+
+				if( prev^curr )
 					return false;
 
-				reginput++;
 				break;
 			}
 			///////////////////////////////////////////////////////////////////
@@ -2469,6 +2465,8 @@ printf("imap r %i = %i\n", scan, imap[scan]);
 	}
 
 	return true;
+	// the rest is actually not needed, since we fall through here on success also
+	// but I leave the rest as reference
 	// We get here only if there's trouble -- normally "case END" is
 	// the terminating point.
 	regerror( REGERR_CORRUPTED_POINTERS );
@@ -2550,33 +2548,6 @@ size_t CRegExp::CRegProgram::MatchRepeat(const char* base, size_t node, const ch
 		case REGEX_NOLETTER:
 			while( !stringcheck::isalpha(*scan) ) ++scan;
 			break;
-		case REGEX_WCHAR:
-			// Matches at the position between a word character (anything matched by \w) 
-			// and a non-word character (only one direction )
-			while(
-					( scan != base     && scan[-1] != '\r' && scan[-1] != '\n' &&
-					(stringcheck::isalnum(scan[-1]) || scan[-1] == '_') )
-				^
-					( scan[ 1] != '\0' && scan[ 1] != '\r' && scan[ 1] != '\n' &&
-					(stringcheck::isalnum(scan[ 1]) || scan[ 1] == '_') )
-				)
-				scan++;
-			break;
-		case REGEX_NOWCHAR:
-		{
-			// Matches at the position between two word characters (i.e the position between \w\w) 
-			// as well as at the position between two non-word characters
-			while(
-				!	( scan != base     && scan[-1] != '\r' && scan[-1] != '\n' &&
-					(stringcheck::isalnum(scan[-1]) || scan[-1] == '_') )
-				^
-					( scan[ 1] != '\0' && scan[ 1] != '\r' && scan[ 1] != '\n' &&
-					(stringcheck::isalnum(scan[ 1]) || scan[ 1] == '_') )
-				)
-				scan++;
-			break;
-		}
-
 		default:		// Oh dear.  Called inappropriately. 
 			regerror( REGERR_BAD_REGREPEAT );
 			return(0);	// Best compromise. 
@@ -2901,6 +2872,10 @@ bool CRegExp::CRegProgram::Compile(const char* exp)
 		}
 		cConfig.cStatus = true;
 	}
+	else
+	{	// error
+		cProgramm.clear();
+	}
 	return cConfig.cStatus;
 }
 ///////////////////////////////////////////////////////////////////////////////
@@ -2915,14 +2890,14 @@ bool CRegExp::CRegProgram::Execute( const char* str, vector< vector<CRegExp::CFi
 		regerror( REGERR_NULLARG );
 		return false;
 	}
-	if( cProgramm.size()<1 )
+	if( !cConfig.cStatus || cProgramm.size()<1 )
 	{
 		regerror( REGERR_NO_REGEXP );
 		return false;
 	}
 
 	// Check validity of program. 
-	if( cProgramm[0] != REGEX_MAGIC)
+	if( cProgramm[0] != REGEX_MAGIC )
 	{
 		regerror( REGERR_CORRUPTED );
 		return false;
@@ -3168,7 +3143,7 @@ string<> CRegExp::replacestring( const char* sReplaceExp ) const
 	{
 		cProg->regerror( REGERR_NULL_TO_REGSUB  );
 	}
-	else if( cProg->cProgramm.size()<=0 || cProg->cProgramm[0] != REGEX_MAGIC )
+	else if( !cProg->cConfig.cStatus || cProg->cProgramm.size()<=0 || cProg->cProgramm[0] != REGEX_MAGIC )
 	{
 		cProg->regerror( REGERR_DAMAGED_REGEXP_REGSUB );
 	}

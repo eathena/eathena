@@ -110,6 +110,9 @@
 				RelativePath="..\src\basics\basesocket.cpp">
 			</File>
 			<File
+				RelativePath="..\src\basics\basesort.cpp">
+			</File>
+			<File
 				RelativePath="..\src\basics\basestrformat.cpp">
 			</File>
 			<File
@@ -208,6 +211,9 @@
 			</File>
 			<File
 				RelativePath="..\src\basics\basesocket.h">
+			</File>
+			<File
+				RelativePath="..\src\basics\basesort.h">
 			</File>
 			<File
 				RelativePath="..\src\basics\basestrformat.h">

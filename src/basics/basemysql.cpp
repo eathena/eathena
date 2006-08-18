@@ -26,13 +26,14 @@ CMySQL::~CMySQL()
 
 ///////////////////////////////////////////////////////////////////////////////
 /// initialisation.
-bool CMySQL::init(const string<>& id, const string<>& pw, const string<>& db, const string<>& ip, const ushort port)
+bool CMySQL::init(const string<>& id, const string<>& pw, const string<>& db, const string<>& ip, const ushort port, const string<>& cp)
 {
 	// set the new connection info
 	this->mysqldb_id	= id;
 	this->mysqldb_pw	= pw;
 	this->mysqldb_db	= db;
 	this->mysqldb_ip	= ip;
+	this->mysqldb_cp	= cp;
 	this->mysqldb_port	= port;
 
 	// close all existing database objects in the pool
@@ -40,8 +41,6 @@ bool CMySQL::init(const string<>& id, const string<>& pw, const string<>& db, co
 	this->cDBPool.call( &DBConnection::close );	
 	return true;
 }
-
-
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -57,7 +56,8 @@ bool CMySQL::DBConnection::startup(void)
 		printf("Connect Database Server on %s%u....", cMySQL.mysqldb_ip.c_str(), cMySQL.mysqldb_port);
 		if( mysql_real_connect(&(this->cHandle), cMySQL.mysqldb_ip, cMySQL.mysqldb_id, cMySQL.mysqldb_pw, cMySQL.mysqldb_db, cMySQL.mysqldb_port, (char *)NULL, 0) )
 		{
-			printf("success!\n");
+			const bool cpset = ( cMySQL.mysqldb_cp.length() && this->PureQuery( "SET NAMES " + cMySQL.mysqldb_cp ) );
+			printf( ((cpset) ? "success!\n" : "success! (cp set to '%s')\n"), (const char*)cMySQL.mysqldb_cp);
 			this->cInit = true;
 		}
 		else

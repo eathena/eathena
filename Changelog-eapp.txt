@@ -1,4 +1,9 @@
 Date	Added
+08/18
+	* trashed useless charcommand and restructured atcommand handling
+	* prepared grf rewrite, already changed some behaviour
+	* moved message table to config.cpp, possibly combining both later
+	* some allignments of function layouts and exchange of some calls
 08/08
 	* missing uploads from previous submit
 	* rearranged some makefile parameters

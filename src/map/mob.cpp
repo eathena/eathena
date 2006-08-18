@@ -98,11 +98,11 @@ mob_data::mob_data(const char *mobname, int cl) :
 	this->block_list::type = BL_MOB;
 
 	if(strcmp(mobname,"--en--")==0)
-		safestrcpy(this->name,mob_db[this->class_].name,24);
+		safestrcpy(this->name, sizeof(this->name), mob_db[this->class_].name);
 	else if(strcmp(mobname,"--ja--")==0)
-		safestrcpy(this->name,mob_db[this->class_].jname,24);
+		safestrcpy(this->name, sizeof(this->name), mob_db[this->class_].jname);
 	else
-		safestrcpy(this->name,mobname,24);
+		safestrcpy(this->name, sizeof(this->name), mobname);
 
 	npc_event[0]=0;
 	memset(skilldelay, 0, sizeof(skilldelay));
@@ -169,8 +169,9 @@ int mob_data::attacktimer_func(int tid, unsigned long tick, int id, basics::nump
 	else
 		return 0;
 
-	if(tsd){
-		if( pc_isdead(*tsd) || tsd->invincible_timer != -1 ||  pc_isinvisible(*tsd) || md.block_list::m != tbl->m || tbl->prev == NULL || distance(md,*tbl)>=13 ){
+	if(tsd)
+	{
+		if( tsd->is_dead() || tsd->invincible_timer != -1 ||  pc_isinvisible(*tsd) || md.block_list::m != tbl->m || tbl->prev == NULL || distance(md,*tbl)>=13 ){
 			md.stop_attack(); //Stop attacking once target has been defeated/unreachable.[Skotlex]
 			return 0;
 		}
@@ -686,7 +687,7 @@ int mob_once_spawn (struct map_session_data *sd, const char *mapname,
 		if(random && config.dead_branch_active)
 			md->mode |= 0x1 | 0x4 | 0x80; 
 		
-		safestrcpy(md->npc_event, event, sizeof(md->npc_event));
+		safestrcpy(md->npc_event, sizeof(md->npc_event), event);
 
 		mob_spawn(md->block_list::id);
 
@@ -722,25 +723,36 @@ int mob_once_spawn_area(struct map_session_data *sd,const char *mapname,
 	if(m<0 || m>(int)map_num || amount<=0 || (class_>=0 && class_<=1000) || class_>MAX_MOB_DB)	
 		return 0;
 
+	if(x0>x1) basics::swap(x0,x1);
+	if(y0>y1) basics::swap(y0,y1);
+	if(x0<0)			x0=0;
+	if(x1>=maps[m].xs)	x1=maps[m].xs-1;
+	if(y0<0)			y0=0;
+	if(y1>=maps[m].ys)	y1=maps[m].ys-1;
+
 	max=(y1-y0+1)*(x1-x0+1)*3;
 	if(max>1000) max=1000;
 
-	for(i=0;i<amount;++i){
+	for(i=0;i<amount;++i)
+	{
 		int j=0;
-		do{
+		do
+		{
 			x=rand()%(x1-x0+1)+x0;
 			y=rand()%(y1-y0+1)+y0;
 		} while(map_getcell(m,x,y,CELL_CHKNOPASS_NPC) && (++j)<max);
-
-		if(j>=max){
-			if(dx>=0){	// Since reference went wrong, the place which boiled before is used.
+		if(j>=max)
+		{
+			if(dx>=0)
+			{
 				x=dx;
 				y=dy;
-			}else
-				return 0;	// Since reference of the place which boils first went wrong, it stops.
+			}
+			else
+				return 0;
 		}
-		if(x==0||y==0) 
-			ShowMessage("xory=0, x=%d,y=%d,x0=%d,x1=%d,y0=%d,y1=%d\n",x,y,x0,x1,y0,y1);
+//		if(x==0||y==0)
+//			ShowMessage("x/y == 0: x=%d,y=%d,x0=%d,x1=%d,y0=%d,y1=%d\n",x,y,x0,x1,y0,y1);
 		id=mob_once_spawn(sd,mapname,x,y,mobname,class_,1,event);
 		dx=x;
 		dy=y;
@@ -791,7 +803,7 @@ int mob_spawn_guardian(struct map_session_data *sd,const char *mapname,
 		md->block_list::y = y;
 		md->map_addiddb();
 
-		safestrcpy(md->npc_event,event, sizeof(md->npc_event));
+		safestrcpy(md->npc_event, sizeof(md->npc_event), event);
 		mob_spawn(md->block_list::id);
 
 		gc=guild_mapname2gc(maps[m].mapname);
@@ -1049,7 +1061,7 @@ public:
 			{	//対象がPCの場合
 				struct map_session_data &tsd=(struct map_session_data &)bl;
 
-				if( !pc_isdead(tsd) &&
+				if( !tsd.is_dead() &&
 					tsd.block_list::m == smd.block_list::m &&
 					tsd.invincible_timer == -1 &&
 					!pc_isinvisible(tsd) &&
@@ -1274,7 +1286,7 @@ int mob_ai_sub_hard_slavemob(struct mob_data &md,unsigned long tick)
 	// There is the master, the master locks a target and he does not lock.
 	if( (mmd->target_id>0 && mmd->state.targettype == ATTACKABLE) && (!md.target_id || md.state.targettype == NONE_ATTACKABLE) ){
 		struct map_session_data *sd=map_id2sd(mmd->target_id);
-		if(sd!=NULL && !pc_isdead(*sd) && sd->invincible_timer == -1 && !pc_isinvisible(*sd)){
+		if( sd!=NULL && !sd->is_dead() && sd->invincible_timer == -1 && !pc_isinvisible(*sd)){
 
 			race=mob_db[md.class_].race;
 			if(mode&0x20 ||
@@ -1292,7 +1304,7 @@ int mob_ai_sub_hard_slavemob(struct mob_data &md,unsigned long tick)
 	// There is the master, the master locks a target and he does not lock.
 /*	if( (md.target_id>0 && mmd->state.targettype == ATTACKABLE) && (!mmd->target_id || mmd->state.targettype == NONE_ATTACKABLE) ){
 		struct map_session_data *sd=map_id2sd(md.target_id);
-		if(sd!=NULL && !pc_isdead(sd) && sd->invincible_timer == -1 && !pc_isinvisible(sd)){
+		if(sd!=NULL && !sd->is_dead() && sd->invincible_timer == -1 && !pc_isinvisible(sd)){
 
 			race=mob_db[mmd->class_].race;
 			if(mode&0x20 ||
@@ -1501,7 +1513,7 @@ public:
 				{	// pc or mob
 					if( tbl->m != md.block_list::m || tbl->prev == NULL || 
 						(dist = distance(md.block_list::x, md.block_list::y, tbl->x, tbl->y)) >= search_size || 
-						(tsd && pc_isdead(*tsd)) )
+						(tsd && tsd->is_dead()) )
 					{
 						md.unlock_target(tick);	// 別マップか、視界外
 					}
@@ -2292,7 +2304,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 			continue;
 
 		count++;
-		if(tmpsd[i]->block_list::m != md.block_list::m || pc_isdead(*tmpsd[i]))
+		if( tmpsd[i]->block_list::m != md.block_list::m || tmpsd[i]->is_dead() )
 			continue;
 
 		// make a list of all that attackers
@@ -2339,7 +2351,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 		int flag=1,zeny=0;
 		double per;
 		struct party *p;
-		if(tmpsd[i]==NULL || tmpsd[i]->block_list::m != md.block_list::m || pc_isdead(*tmpsd[i]))
+		if(tmpsd[i]==NULL || tmpsd[i]->block_list::m != md.block_list::m || tmpsd[i]->is_dead())
 			continue;
 
 		if (config.exp_calc_type == 0) {
@@ -3877,8 +3889,8 @@ int mob_readdb(void)
 				continue;
 
 			mob_db[class_].view_class = class_;
-			safestrcpy(mob_db[class_].name,  str[1], sizeof(mob_db[class_].name));
-			safestrcpy(mob_db[class_].jname, str[2], sizeof(mob_db[class_].jname));
+			safestrcpy(mob_db[class_].name,  sizeof(mob_db[class_].name),  str[1]);
+			safestrcpy(mob_db[class_].jname, sizeof(mob_db[class_].jname), str[2]);
 			mob_db[class_].lv = atoi(str[3]);
 			mob_db[class_].max_hp = atoi(str[4]);
 			mob_db[class_].max_sp = atoi(str[5]);
@@ -4351,17 +4363,17 @@ void mobdb_sqlupdate()
 		basics::CParam< basics::string<> > mysqldb_pw("sql_password", "ragnarok");
 		basics::CParam< basics::string<> > mysqldb_db("sql_database", "ragnarok");
 		basics::CParam< basics::string<> > mysqldb_ip("sql_ip",       "127.0.0.1");
+		basics::CParam< basics::string<> > mysqldb_cp("sql_codepage", "DEFAULT");
 		basics::CParam< ushort   >         mysqldb_port("sql_port",   3306);
 
 		// sql control parameter
-		basics::CParam< basics::string<> > sql_engine("sql_engine", "InnoDB");
-		//basics::CParam< basics::string<> > sql_engine("sql_engine", "MyISAM");
+		basics::CParam< basics::string<> > sql_engine("sql_engine", "InnoDB"); // or "MyISAM"
 
 		// sql table names
 		basics::CParam< basics::string<> > tbl_mob_db("tbl_mob_db", "mob_db");
 
 		// sql access object
-		basics::CMySQL sqlbase(mysqldb_id, mysqldb_pw,mysqldb_db,mysqldb_ip,mysqldb_port);
+		basics::CMySQL sqlbase(mysqldb_id, mysqldb_pw,mysqldb_db,mysqldb_ip,mysqldb_port, mysqldb_cp);
 
 		// query handler
 		basics::CMySQLConnection dbcon1(sqlbase);

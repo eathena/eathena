@@ -127,7 +127,7 @@ int map_session_data::attacktimer_func(int tid, unsigned long tick, int id, basi
 
 	if(bl->type == BL_PC)
 	{
-		if (pc_isdead(*((struct map_session_data *)bl)))
+		if( ((struct map_session_data *)bl)->is_dead() )
 			return 0;
 		else if (pc_ishiding(*((struct map_session_data *)bl)))
 			return 0;
@@ -135,7 +135,7 @@ int map_session_data::attacktimer_func(int tid, unsigned long tick, int id, basi
 
 	// 同じmapでないなら攻?しない
 	// PCが死んでても攻?しない
-	if(sd->block_list::m != bl->m || pc_isdead(*sd))
+	if( sd->block_list::m != bl->m || sd->is_dead() )
 		return 0;
 
 	if( sd->opt1>0 || sd->status.option&2 || pc_ischasewalk(*sd))	// 異常などで攻?できない
@@ -636,7 +636,7 @@ int pc_makesavestatus(struct map_session_data &sd)
 		sd.status.clothes_color=0;
 
 	// 死亡?態だったのでhpを1、位置をセ?ブ場所に?更
-	if(pc_isdead(sd))
+	if( sd.is_dead() )
 	{
 		pc_setrestartvalue(sd,0);
 		sd.status.last_point = sd.status.save_point;
@@ -3368,7 +3368,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 	}
 
 
-	safestrcpy(mapname, mapname_org, sizeof(mapname));
+	safestrcpy(mapname, sizeof(mapname), mapname_org);
 	ip = strchr(mapname, '.');
 	if(ip) *ip=0;
 
@@ -3825,9 +3825,9 @@ int pc_follow_timer(int tid, unsigned long tick, int id, basics::numptr data)
 
 	bl = map_id2bl(sd->followtarget);
 	
-	if( bl && sd->block_list::prev && bl->prev && !pc_isdead(*sd) )
+	if( bl && sd->block_list::prev && bl->prev && !sd->is_dead() )
 	{
-		if( bl->type == BL_PC && pc_isdead( *((struct map_session_data *)bl)) )
+		if( bl->type == BL_PC && ((struct map_session_data *)bl)->is_dead() )
 			return 0;
 
 		if( sd->skilltimer == -1 && sd->attacktimer == -1 && !sd->is_walking() && sd->block_list::m == bl->m)
@@ -3960,7 +3960,7 @@ int pc_gainexp(struct map_session_data &sd,uint32 base_exp,uint32 job_exp)
 	char output[256];
 	uint32 nextb=0, nextj=0;
 
-	if(sd.block_list::prev == NULL || pc_isdead(sd))
+	if(sd.block_list::prev == NULL || sd.is_dead() )
 		return 0;
 
 	if((config.pvp_exp == 0) && maps[sd.block_list::m].flag.pvp)  // [MouseJstr]
@@ -4536,7 +4536,7 @@ int pc_resetskill(struct map_session_data &sd)
 int pc_respawn(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	struct map_session_data *sd = map_id2sd(id);
-	if (sd && pc_isdead(*sd))
+	if (sd && sd->is_dead() )
 	{	//Auto-respawn [Skotlex]
 		pc_setstand(*sd);
 		pc_setrestartvalue(*sd,3);
@@ -4555,7 +4555,7 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 	struct pc_base_job s_class;
 
 	// ?に死んでいたら無?
-	if(pc_isdead(sd))
+	if( sd.is_dead() )
 		return 0;
 	// 座ってたら立ち上がる
 	if(pc_issit(sd)) {
@@ -5656,7 +5656,7 @@ int pc_setregstr(struct map_session_data &sd,int reg,const char *str)
 			sd.regstr_num = new_realloc(sd.regstr, sd.regstr_num, 1);
 		}
 		sd.regstr[i].index=reg;
-		safestrcpy(sd.regstr[i].data,str,sizeof(sd.regstr[i].data));
+		safestrcpy(sd.regstr[i].data,sizeof(sd.regstr[i].data),str);
 	}
 	return 0;
 }
@@ -5724,7 +5724,7 @@ int pc_setglobalreg(struct map_session_data &sd,const char *reg,int val)
 	}
 	else if(sd.status.global_reg_num<GLOBAL_REG_NUM)
 	{	// append new value
-		safestrcpy(sd.status.global_reg[i].str,reg, sizeof(sd.status.global_reg[i].str));
+		safestrcpy(sd.status.global_reg[i].str, sizeof(sd.status.global_reg[i].str), reg);
 		sd.status.global_reg[i].value=val;
 		sd.status.global_reg_num++;
 	}
@@ -5784,7 +5784,7 @@ int pc_setaccountreg(struct map_session_data &sd,const char *reg,int val)
 		}
 	}
 	if(sd.status.account_reg_num<ACCOUNT_REG_NUM){
-		safestrcpy(sd.status.account_reg[i].str,reg,sizeof(sd.status.account_reg[i].str));
+		safestrcpy(sd.status.account_reg[i].str, sizeof(sd.status.account_reg[i].str), reg);
 		sd.status.account_reg[i].value=val;
 		sd.status.account_reg_num++;
 		intif_saveaccountreg(sd);
@@ -5836,7 +5836,7 @@ int pc_setaccountreg2(struct map_session_data &sd,const char *reg,int val)
 		}
 	}
 	if(sd.status.account_reg2_num<ACCOUNT_REG2_NUM){
-		safestrcpy(sd.status.account_reg2[i].str,reg,sizeof(sd.status.account_reg2[i].str));
+		safestrcpy(sd.status.account_reg2[i].str, sizeof(sd.status.account_reg2[i].str), reg);
 		sd.status.account_reg2[i].value=val;
 		sd.status.account_reg2_num++;
 		chrif_saveaccountreg2(sd);
@@ -6917,51 +6917,6 @@ int pc_bleeding (struct map_session_data *sd)
  * HP/SP 自然回復 各クライアント
  *------------------------------------------
  */
-/*
-int pc_natural_heal_sub(struct map_session_data &sd,va_list &ap)
-{
-	int skill;
-	unsigned long tick;
-
-	nullpo_retr(0, ap);
-	tick = va_arg(ap,unsigned long);
-
-// -- moonsoul (if conditions below altered to disallow natural healing if under berserk status)
-	if((config.natural_heal_weight_rate > 100 || sd.weight*100 < sd.max_weight * config.natural_heal_weight_rate) &&
-		!pc_isdead(sd) &&
-		!pc_ishiding(sd) &&
-	//-- cannot regen for 5 minutes after using Berserk --- [Celest]
-		DIFF_TICK (tick, sd.canregen_tick)>=0 &&
-		(sd.sc_data && !(sd.sc_data[SC_POISON].timer != -1 && sd.sc_data[SC_SLOWPOISON].timer == -1) &&
-		sd.sc_data[SC_BERSERK].timer == -1 ))
-	{
-		pc_natural_heal_hp(&sd);
-		if( sd.sc_data && sd.sc_data[SC_EXTREMITYFIST].timer == -1 &&	//阿修羅?態ではSPが回復しない
-			sd.sc_data[SC_DANCING].timer == -1 && //ダンス?態ではSPが回復しない
-			sd.sc_data[SC_BERSERK].timer == -1 )   //バ?サ?ク?態ではSPが回復しない
-			pc_natural_heal_sp(&sd);
-		sd.canregen_tick = tick;
-	} else {
-		sd.hp_sub = sd.inchealhptick = 0;
-		sd.sp_sub = sd.inchealsptick = 0;
-	}
-	if((skill = pc_checkskill(sd,MO_SPIRITSRECOVERY)) > 0 && !pc_ishiding(sd) &&
-		sd.sc_data[SC_POISON].timer == -1 && sd.sc_data[SC_BERSERK].timer == -1){
-		pc_spirit_heal_hp(&sd);
-		pc_spirit_heal_sp(&sd);
-	}
-	else {
-		sd.inchealspirithptick = 0;
-		sd.inchealspiritsptick = 0;
-	}
-	if (sd.hp_loss_value > 0 || sd.sp_loss_value > 0)
-		pc_bleeding(&sd);
-	else
-		sd.hp_loss_tick = sd.sp_loss_tick = 0;
-
-	return 0;
-}
-*/
 class CClifpc_natural_heal : public CClifProcessor
 {
 	unsigned long tick;
@@ -6973,7 +6928,7 @@ public:
 		int skill;
 		// -- moonsoul (if conditions below altered to disallow natural healing if under berserk status)
 		if((config.natural_heal_weight_rate > 100 || sd.weight*100 < sd.max_weight * config.natural_heal_weight_rate) &&
-			!pc_isdead(sd) &&
+			!sd.is_dead() &&
 			!pc_ishiding(sd) &&
 		//-- cannot regen for 5 minutes after using Berserk --- [Celest]
 			DIFF_TICK (tick, sd.canregen_tick)>=0 &&
@@ -7030,7 +6985,7 @@ int pc_natural_heal(int tid, unsigned long tick, int id, basics::numptr data)
  */
 int pc_setsavepoint(struct map_session_data &sd, const char *mapname, unsigned short x, unsigned short y)
 {
-	safestrcpy(sd.status.save_point.mapname, mapname, sizeof(sd.status.save_point.mapname));
+	safestrcpy(sd.status.save_point.mapname, sizeof(sd.status.save_point.mapname), mapname);
 	sd.status.save_point.x = x;
 	sd.status.save_point.y = y;
 

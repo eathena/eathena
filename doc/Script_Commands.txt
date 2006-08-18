@@ -2893,14 +2893,14 @@ Can be used when changing Jobs, it will remove all equipment and they will be ab
 
 *gmcommand
 
-Allows an NPC to use any GM atcommand, the NPC thinks it is a lvl 99 GM with no restrictions
+Allows an NPC to use any GM command, the NPC thinks it is a lvl 99 GM with no restrictions
 
-	gmcommand strcharinfo(0)+"@command argument"	// You need to specify who this will effect, or who is using it, followed by the @ command, and then any extra arguments required for that command to work
+	gmcommand "command argument"			// specify the command (without the command char), and then any extra arguments required for that command to work
 
-	gmcommand strcharinfo(0)+"@summon poring"	// This would summon a poring that would fight for you against your enemies, can be placed on a use bonus of an item (try having a dark lord fight for you :D )
+	gmcommand "summon poring"			// This would summon a poring that would fight for you against your enemies, can be placed on a use bonus of an item (try having a dark lord fight for you :D )
 
 	input $player$;
-	gmcommand $player$+"@die"			// Will cause the person that is set under the variable "$player$" to die misteriously
+	gmcommand "die "+$player$			// Will cause the person that is set under the variable "$player$" to die misteriously
 
 This command has so many good uses, I am sure you can have some fun with this one
 
