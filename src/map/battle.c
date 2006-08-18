@@ -1112,7 +1112,6 @@ static struct Damage battle_calc_weapon_attack(
 			case PA_SACRIFICE:
 				wd.damage = sstatus->max_hp* 9/100;
 				status_zap(src, wd.damage, 0);//Damage to self is always 9%
-				clif_damage(src,src, gettick(), 0, 0, wd.damage, 0 , 0, 0);
 				wd.damage2 = 0;
 
 				if (sc && sc->data[SC_SACRIFICE].timer != -1)
@@ -1866,23 +1865,23 @@ static struct Damage battle_calc_weapon_attack(
 	
 	if(sd && !skill_num && !flag.cri)
 	{	//Check for double attack.
-		if(( (skill_lv = 5*pc_checkskill(sd,TF_DOUBLE)) > 0 && sd->weapontype1 == W_DAGGER) ||
-			sd->double_rate > 0) //Success chance is not added, the higher one is used? [Skotlex]
-		{
-			if (rand()%100 < (skill_lv>sd->double_rate?skill_lv:sd->double_rate))
+		if(((skill_lv = pc_checkskill(sd,TF_DOUBLE)) > 0 && sd->weapontype1 == W_DAGGER) || sd->double_rate > 0)
+		{	//Success chance is not added, the higher one is used [Skotlex]
+			if (rand()%100 < (5*skill_lv>sd->double_rate?5*skill_lv:sd->double_rate))
 			{
-				wd.div_=skill_get_num(TF_DOUBLE,skill_lv?skill_lv/5:1);
+				wd.div_=skill_get_num(TF_DOUBLE,skill_lv?skill_lv:1);
 				damage_div_fix(wd.damage, wd.div_);
 				wd.type = 0x08;
 			}
-		} else if ((skill_lv = pc_checkskill(sd,GS_CHAINACTION)) > 0 && sd->weapontype1 == W_REVOLVER)
+		} else
+	  	if (sd->weapontype1 == W_REVOLVER &&
+			(skill_lv = pc_checkskill(sd,GS_CHAINACTION)) > 0 &&
+			(rand()%100 < 5*skill_lv)
+			)
 		{
-			if (rand()%100 < 5*skill_lv)
-			{
-				wd.div_=skill_get_num(GS_CHAINACTION,skill_lv);
-				damage_div_fix(wd.damage, wd.div_);
-				wd.type = 0x08;
-			}
+			wd.div_=skill_get_num(GS_CHAINACTION,skill_lv);
+			damage_div_fix(wd.damage, wd.div_);
+			wd.type = 0x08;
 		}
 	}
 	
@@ -2169,20 +2168,12 @@ struct Damage battle_calc_magic_attack(
 
 				switch(skill_num){
 					case MG_NAPALMBEAT:
+					case MG_FIREBALL:
 						skillratio += skill_lv*10-30;
 						break;
 					case MG_SOULSTRIKE:
 						if (battle_check_undead(tstatus->race,tstatus->def_ele))
 							skillratio += 5*skill_lv;
-						break;
-					case MG_FIREBALL:
-						if(mflag>2)
-							ad.damage = 0;
-						else {
-							int drate[]={100,90,70};
-							MATK_RATE(drate[mflag]);
-							skillratio += 70+10*skill_lv;
-						}
 						break;
 					case MG_FIREWALL:
 						skillratio -= 50;
@@ -3343,6 +3334,7 @@ static const struct battle_data_short {
 	{ "mob_count_rate",                    &battle_config.mob_count_rate			},
 	{ "mob_spawn_delay",                   &battle_config.mob_spawn_delay			},
 	{ "no_spawn_on_player",                &battle_config.no_spawn_on_player	},
+	{ "force_random_spawn",                &battle_config.force_random_spawn	},
 	{ "plant_spawn_delay",                 &battle_config.plant_spawn_delay			},
 	{ "boss_spawn_delay",                  &battle_config.boss_spawn_delay			},
 	{ "slaves_inherit_mode",               &battle_config.slaves_inherit_mode	},
@@ -3744,6 +3736,7 @@ void battle_set_defaults() {
 	battle_config.mob_count_rate=100;
 	battle_config.mob_spawn_delay=100;
 	battle_config.no_spawn_on_player=0;
+	battle_config.force_random_spawn=0;
 	battle_config.plant_spawn_delay=100;
 	battle_config.boss_spawn_delay=100;
 	battle_config.slaves_inherit_mode=1;

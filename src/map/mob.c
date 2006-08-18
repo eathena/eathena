@@ -631,28 +631,18 @@ int mob_spawn (struct mob_data *md)
 
 	if (md->spawn) { //Respawn data
 		md->bl.m = md->spawn->m;
+		md->bl.x = md->spawn->x;
+		md->bl.y = md->spawn->y;
 
-		if ((md->spawn->x == 0 && md->spawn->y == 0) || md->spawn->xs || md->spawn->ys)
+		if ((md->bl.x == 0 && md->bl.y == 0) || md->spawn->xs || md->spawn->ys)
 		{	//Monster can be spawned on an area.
-			short x, y, xs, ys;
-			if (md->spawn->x == 0 && md->spawn->y == 0)
-				x = y = xs = ys = -1;
-			else {
-				x = md->spawn->x;
-				y = md->spawn->y;
-				xs = md->spawn->xs/2;
-				ys = md->spawn->ys/2;
-			}
-			if (!map_search_freecell(NULL, md->spawn->m, &x, &y, xs, ys, battle_config.no_spawn_on_player?5:1)) {
+			if (!map_search_freecell(&md->bl, -1,
+			  	&md->bl.x, &md->bl.y, md->spawn->xs, md->spawn->ys,
+			  	battle_config.no_spawn_on_player?4:0)) {
 				// retry again later
 				add_timer(tick+5000,mob_delayspawn,md->bl.id,0);
 				return 1;
 			}
-			md->bl.x = x;
-			md->bl.y = y;
-		} else {
-			md->bl.x = md->spawn->x;
-			md->bl.y = md->spawn->y;
 		}
 	}
 	memset(&md->state, 0, sizeof(md->state));
@@ -1068,8 +1058,9 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	{
 		if (md->attacked_id == md->target_id)
 		{
-			if (!can_move && (battle_config.mob_ai&2) &&
-				!battle_check_range(&md->bl, tbl, md->status.rhw.range))
+			if (!battle_check_range(&md->bl, tbl, md->status.rhw.range) &&
+				((!can_move && battle_config.mob_ai&2) ||
+				(!mob_can_reach(md, tbl, md->min_chase, MSS_RUSH))))
 			{	//Rude-attacked (avoid triggering due to can-walk delay).
 				if (DIFF_TICK(tick, md->ud.canmove_tick) > 0 &&
 				  	md->attacked_count++ >= RUDE_ATTACKED_COUNT)
@@ -1106,7 +1097,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					//or if the previous target is not attacking the mob. [Skotlex]
 					md->target_id = md->attacked_id; // set target
 					md->state.aggressive = 0; //Retaliating.
-					md->attacked_count = 0;
+					if (md->attacked_count)
+					  md->attacked_count--; //Should we reset rude attack count?
 					md->min_chase = dist+md->db->range3;
 					if(md->min_chase>MAX_MINCHASE)
 						md->min_chase=MAX_MINCHASE;

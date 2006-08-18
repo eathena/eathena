@@ -1,5 +1,9 @@
 Date	Added
 
+2006/08/17
+	* Merged the force_random_spawn battle option (monster.conf) [Skotlex]
+	* Merged the updated config option for emergency_call (skill.conf)
+	  [Skotlex]
 2006/08/14
 	* Merged attack_attr_none now applying only to neutral-type attacks,
 	  removed setting mob_ghostring_fix as it's no longer needed (battle.conf)

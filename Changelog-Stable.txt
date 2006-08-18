@@ -5,6 +5,27 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/17
+	* Sacrifice won't display the damage to self now. [Skotlex]
+	* Merged the force_random_spawn battle option (monster.conf) [Skotlex]
+	* Merged the updated implementation of the Guild Aura. [Skotlex]
+	* Merged the new code for splash-damage skills and the new NK 4 value.
+	  [Skotlex]
+	* Merged the conditional check on summon flora to make it fail when you
+	  already have out other types of flora. [Skotlex]
+	* Merged the updated config option for emergency_call (skill.conf)
+	  [Skotlex]
+	* Merged Gatling fever's batk bonus [Skotlex]
+	* Merged TK_RUN giving a 50% speed increase rather than 25%, it also now
+	  gives you "Endure" effect. [Skotlex]
+	* Hopefully fixed Basilica still not ending when the caster moves.
+	  [Skotlex]
+	* Merged the mob spawn lines using xs/ys as spawn ratio rather than area.
+	  [Skotlex]
+	* Merged mobs being able to use their rude-attacked skill when attached
+	  from beyond their range by their current target. [Skotlex]
+	* Merged charsave_method:1 fix to store experience as unsigned ints rather
+	  than signed. [Skotlex]
+	* Merged Dispell being usable in party/guildmates and enemies. [Skotlex]
 	* Updated SQL files [Playtester]
 	* Reverted 'query_sql' update and 'rid2name', 'pcblockmove' addition because 
 	  they are incompatible with Stable [Toms]

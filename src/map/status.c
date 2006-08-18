@@ -304,7 +304,7 @@ void initChangeTables(void) {
 	add_sc(PF_FOGWALL, SC_FOGWALL);
 	set_sc(PF_SPIDERWEB, SC_SPIDERWEB, SI_BLANK, SCB_FLEE);
 	add_sc(WE_BABY, SC_BABY);
-	set_sc(TK_RUN, SC_RUN, SI_RUN, SCB_SPEED);
+	set_sc(TK_RUN, SC_RUN, SI_RUN, SCB_SPEED|SCB_DSPD);
 	set_sc(TK_RUN, SC_SPURT, SI_SPURT, SCB_STR);
 	set_sc(TK_READYSTORM, SC_READYSTORM, SI_READYSTORM, SCB_NONE);
 	set_sc(TK_READYDOWN, SC_READYDOWN, SI_READYDOWN, SCB_NONE);
@@ -674,20 +674,19 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 		skill_clear_unitgroup(target);
 	status_change_clear(target,0);
 
-	if(flag&2) //remove the unit from the map.
+	if(flag&4) //Delete from memory. (also invokes map removal code)
+		unit_free(target);
+	else
+	if(flag&2) //remove from map
 		unit_remove_map(target,1);
-	else { //These are handled by unit_remove_map.
+	else
+	{ //Some death states that would normally be handled by unit_remove_map
 		unit_stop_attack(target);
 		unit_stop_walking(target,0);
 		unit_skillcastcancel(target,0);
 		clif_clearchar_area(target,1);
 		skill_unit_move(target,gettick(),4);
 		skill_cleartimerskill(target);
-	}
-
-	if(flag&4) { //Delete from memory.
-		map_delblock(target);
-		unit_free(target);
 	}
 		
 	return hp+sp;
@@ -825,7 +824,8 @@ int status_revive(struct block_list *bl, unsigned char per_hp, unsigned char per
 	status->hp += hp;
 	status->sp += sp;
 
-	clif_resurrection(bl, 1);
+	if (bl->prev) //Animation only if character is already on a map.
+		clif_resurrection(bl, 1);
 	switch (bl->type) {
 		case BL_MOB:
 			mob_revive((TBL_MOB*)bl, hp);
@@ -924,7 +924,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 				default: return 0;
 			}
 		}
-		
+
 		if (sc->data[SC_DANCING].timer != -1 && flag!=2)
 		{
 			if(sc->data[SC_LONGING].timer != -1)
@@ -2690,8 +2690,8 @@ static unsigned short status_calc_str(struct block_list *bl, struct status_chang
 		str += sc->data[SC_STRFOOD].val1;
 	if(sc->data[SC_BATTLEORDERS].timer!=-1)
 		str += 5;
-	if(sc->data[SC_GUILDAURA].timer != -1 && ((sc->data[SC_GUILDAURA].val4>>12)&0xF))
-		str += (sc->data[SC_GUILDAURA].val4>>12)&0xF;
+	if(sc->data[SC_GUILDAURA].timer != -1 && sc->data[SC_GUILDAURA].val3>>16)
+		str += sc->data[SC_GUILDAURA].val3>>16;
 	if(sc->data[SC_LOUD].timer!=-1)
 		str += 4;
 	if(sc->data[SC_TRUESIGHT].timer!=-1)
@@ -2731,8 +2731,8 @@ static unsigned short status_calc_agi(struct block_list *bl, struct status_chang
 		agi += sc->data[SC_INCAGI].val1;
 	if(sc->data[SC_AGIFOOD].timer!=-1)
 		agi += sc->data[SC_AGIFOOD].val1;
-	if(sc->data[SC_GUILDAURA].timer != -1 && ((sc->data[SC_GUILDAURA].val4>>4)&0xF))
-		agi += (sc->data[SC_GUILDAURA].val4>>4)&0xF;
+	if(sc->data[SC_GUILDAURA].timer != -1 && sc->data[SC_GUILDAURA].val4>>16)
+		agi += sc->data[SC_GUILDAURA].val4>>16;
 	if(sc->data[SC_TRUESIGHT].timer!=-1)
 		agi += 5;
 	if(sc->data[SC_INCREASEAGI].timer!=-1)
@@ -2766,8 +2766,8 @@ static unsigned short status_calc_vit(struct block_list *bl, struct status_chang
 		vit += sc->data[SC_INCVIT].val1;
 	if(sc->data[SC_VITFOOD].timer!=-1)
 		vit += sc->data[SC_VITFOOD].val1;
-	if(sc->data[SC_GUILDAURA].timer != -1 && ((sc->data[SC_GUILDAURA].val4>>8)&0xF))
-		vit += (sc->data[SC_GUILDAURA].val4>>8)&0xF;
+	if(sc->data[SC_GUILDAURA].timer != -1 && sc->data[SC_GUILDAURA].val3&0xFFFF)
+		vit += sc->data[SC_GUILDAURA].val3&0xFFFF;
 	if(sc->data[SC_TRUESIGHT].timer!=-1)
 		vit += 5;
 	if(sc->data[SC_STRIPARMOR].timer!=-1)
@@ -2837,8 +2837,8 @@ static unsigned short status_calc_dex(struct block_list *bl, struct status_chang
 		dex += sc->data[SC_DEXFOOD].val1;
 	if(sc->data[SC_BATTLEORDERS].timer!=-1)
 		dex += 5;
-	if(sc->data[SC_GUILDAURA].timer != -1 && (sc->data[SC_GUILDAURA].val4&0xF))
-		dex += sc->data[SC_GUILDAURA].val4&0xF;
+	if(sc->data[SC_GUILDAURA].timer != -1 && sc->data[SC_GUILDAURA].val4&0xFFFF)
+		dex += sc->data[SC_GUILDAURA].val4&0xFFFF;
 	if(sc->data[SC_TRUESIGHT].timer!=-1)
 		dex += 5;
 	if(sc->data[SC_QUAGMIRE].timer!=-1)
@@ -2914,6 +2914,8 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 //Curse shouldn't effect on this?  <- Curse OR Bleeding??
 //	if(sc->data[SC_BLEEDING].timer != -1)
 //		batk -= batk * 25/100;
+	if(sc->data[SC_GATLINGFEVER].timer!=-1)
+		batk += sc->data[SC_GATLINGFEVER].val3;
 	if(sc->data[SC_MADNESSCANCEL].timer!=-1)
 		batk += 100;
 	return cap_value(batk,0,USHRT_MAX);
@@ -3057,7 +3059,7 @@ static signed short status_calc_flee(struct block_list *bl, struct status_change
 	if(sc->data[SC_ADJUSTMENT].timer!=-1)
 		flee += 30;
 	if(sc->data[SC_GATLINGFEVER].timer!=-1)
-		flee -= sc->data[SC_GATLINGFEVER].val1*5;
+		flee -= sc->data[SC_GATLINGFEVER].val4;
 	if(sc->data[SC_SPEED].timer!=-1)
 		flee += 10 + sc->data[SC_SPEED].val1 * 10 ;
 
@@ -3201,11 +3203,11 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 	//% increases (they don't stack, with the exception of Speedup1? @.@)
 	if(sc->data[SC_SPEEDUP1].timer!=-1)
 		speed -= speed * 50/100;
-	if(sc->data[SC_SPEEDUP0].timer!=-1)
+	if(sc->data[SC_RUN].timer!=-1)
+		speed -= speed * 50/100;
+	else if(sc->data[SC_SPEEDUP0].timer!=-1)
 		speed -= speed * 25/100;
 	else if(sc->data[SC_INCREASEAGI].timer!=-1)
-		speed -= speed * 25/100;
-	else if(sc->data[SC_RUN].timer!=-1)
 		speed -= speed * 25/100;
 	else if(sc->data[SC_FUSION].timer != -1)
 		speed -= speed * 25/100;
@@ -3365,8 +3367,11 @@ static unsigned short status_calc_dmotion(struct block_list *bl, struct status_c
 	if(!sc || !sc->count || map_flag_gvg(bl->m))
 		return cap_value(dmotion,0,USHRT_MAX);
 		
-	if (sc->data[SC_ENDURE].timer!=-1 ||
-		sc->data[SC_CONCENTRATION].timer!=-1)
+	if (sc->data[SC_ENDURE].timer!=-1)
+		return 0;
+	if (sc->data[SC_CONCENTRATION].timer!=-1)
+		return 0;
+	if(sc->data[SC_RUN].timer!=-1)
 		return 0;
 
 	return cap_value(dmotion,0,USHRT_MAX);
@@ -5081,7 +5086,8 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 		// gs_something1 [Vicious]
 		case SC_GATLINGFEVER:
 			val2 = 20*val1; //Aspd increase
-			val3 = 5*val1; //Flee decrease
+			val3 = 20+10*val1; //Batk increase
+			val4 = 5*val1; //Flee decrease
 			break;
 
 		case SC_FLING:
@@ -5117,6 +5123,17 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			break;  
 		case SC_JAILED:
 			tick = val1>0?1000:250;
+			if (sd && sd->mapindex != val2)
+			{
+				int pos =  (bl->x&0xFFFF)|(bl->y<<16), //Current Coordinates
+				map =  sd->mapindex; //Current Map
+				//1. Place in Jail (val2 -> Jail Map, val3 -> x, val4 -> y
+				if (pc_setpos(sd,(unsigned short)val2,val3,val4, 3) == 0)
+					pc_setsavepoint(sd, (unsigned short)val2,val3,val4);
+				//2. Set restore point (val3 -> return map, val4 return coords
+				val3 = map;
+				val4 = pos;
+			}
 			break;
 		default:
 			if (calc_flag == SCB_NONE && StatusSkillChangeTable[type]==0)
@@ -5326,11 +5343,6 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 	
 	if(sd && sd->pd)
 		pet_sc_check(sd, type); //Skotlex: Pet Status Effect Healing
-
-	if (type==SC_JAILED && sd && sd->mapindex != val2) {
-		if (pc_setpos(sd,(unsigned short)val2,0, 0, 3) == 0)
-			pc_setsavepoint(sd, (unsigned short)val2, 0, 0);
-	}
 
 	if (type==SC_BERSERK) {
 		sc->data[type].val2 = 5*status->max_hp/100;
@@ -5647,10 +5659,12 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			}
 			break;
 		case SC_HERMODE: 
-		case SC_BASILICA: //Clear the skill area. [Skotlex]
 			if(sc->data[type].val3 == BCT_SELF)
 				skill_clear_unitgroup(bl);
 			break;
+		case SC_BASILICA: //Clear the skill area. [Skotlex]
+				skill_clear_unitgroup(bl);
+				break;
 		case SC_MOONLIT: //Clear the unit effect. [Skotlex]
 			skill_setmapcell(bl,CG_MOONLIT, sc->data[SC_MOONLIT].val1, CELL_CLRMOONLIT);
 			break;
@@ -5677,8 +5691,8 @@ int status_change_end( struct block_list* bl , int type,int tid )
 		  	//natural expiration.
 			if(sd && sd->mapindex == sc->data[type].val2)
 			{
-				if (pc_setpos(sd,(unsigned short)sc->data[type].val3,0, 0, 3) == 0)
-					pc_setsavepoint(sd, (unsigned short)sc->data[type].val3, 0, 0);
+				if (pc_setpos(sd,(unsigned short)sc->data[type].val3,sc->data[type].val4&0xFFFF, sc->data[type].val4>>16, 3) == 0)
+					pc_setsavepoint(sd, sd->mapindex, bl->x, bl->y);
 			}
 			break; //guess hes not in jail :P
 		}
