@@ -1,3 +1,7 @@
+08/18
+	* Merged skill_unit_db [Playtester]
+	- Gospel is no longer stackable
+	- updated Deluge, Volcano and Violentgale
 08/17
 	* Merged most of the skill_db [Skotlex]
 08/16
