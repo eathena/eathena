@@ -1666,16 +1666,16 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 
 	for(temp=0,i=0,mvp_damage=0;i<DAMAGELOG_SIZE && md->dmglog[i].id;i++)
 	{
-		tmpsd[i] = map_charid2sd(md->dmglog[i].id);
-		if(tmpsd[i] == NULL)
+		tmpsd[temp] = map_charid2sd(md->dmglog[i].id);
+		if(tmpsd[temp] == NULL)
 			continue;
-		if(tmpsd[i]->bl.m != md->bl.m || pc_isdead(tmpsd[i]))
+		if(tmpsd[temp]->bl.m != md->bl.m || pc_isdead(tmpsd[temp]))
 			continue;
 
 		if(mvp_damage<(unsigned int)md->dmglog[i].dmg){
 			third_sd = second_sd;
 			second_sd = mvp_sd;
-			mvp_sd=tmpsd[i];
+			mvp_sd=tmpsd[temp];
 			mvp_damage=md->dmglog[i].dmg;
 		}
 		temp++; // [Lance]

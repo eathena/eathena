@@ -4,6 +4,14 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/08/18
+	* Fixed Energy Coat consuming 10x less SP than it should per hit. [Skotlex]
+	* Merged a missing piece of code from the Guild Aura merge... sorry about
+	  that. [Skotlex]
+	* Fixed Adrenaline Rush not being able to be recasted to extend duration.
+	  [Skotlex]
+	* Merged a fix in mob_dead which explains why sometimes people would not
+	  get their share of the exp. [Skotlex]
 2006/08/17
 	* Sacrifice won't display the damage to self now. [Skotlex]
 	* Merged the force_random_spawn battle option (monster.conf) [Skotlex]

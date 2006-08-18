@@ -2535,11 +2535,11 @@ int pc_payzeny(struct map_session_data *sd,int zeny)
 	if(sd->state.finalsave)
 		return 1;
 
-	if (zeny > 0 && sd->status.zeny < zeny)
-		return 1; //Not enough.
+	if (zeny < 0)
+	  	return pc_getzeny(sd, -zeny);
 
-	if (zeny < 0 && sd->status.zeny > MAX_ZENY +zeny)
-		return 1; //Overflow
+	if (sd->status.zeny < zeny)
+		return 1; //Not enough.
 
 	sd->status.zeny-=zeny;
 	clif_updatestatus(sd,SP_ZENY);
@@ -2553,23 +2553,25 @@ int pc_payzeny(struct map_session_data *sd,int zeny)
  */
 int pc_getzeny(struct map_session_data *sd,int zeny)
 {
-	double z;
-
 	nullpo_retr(0, sd);
 
-	z = (double)sd->status.zeny;
-	if(z + (double)zeny > MAX_ZENY) {
-		zeny = 0;
-		sd->status.zeny = MAX_ZENY;
-	}
+	if(sd->state.finalsave)
+		return 1;
+
+	if(zeny < 0)
+		return pc_payzeny(sd, -zeny);
+
+	if (sd->status.zeny > MAX_ZENY -zeny)
+		return 1; //Overflow
+
 	sd->status.zeny+=zeny;
 	clif_updatestatus(sd,SP_ZENY);
+
 	if(zeny > 0 && sd->state.showzeny){
 		char output[255];
 		sprintf(output, "Gained %dz.", zeny);
 		clif_disp_onlyself(sd,output,strlen(output));
 	}
-
 	return 0;
 }
 
@@ -3273,8 +3275,8 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 				sd->state.waitingdisconnect=1;
 				pc_clean_skilltree(sd);
 				if(sd->status.pet_id > 0 && sd->pd) {
-					unit_remove_map(&sd->pd->bl, clrtype);
 					intif_save_petdata(sd->status.account_id,&sd->pet);
+					unit_remove_map(&sd->pd->bl, clrtype);
 				}
 				chrif_save(sd,2);
 				chrif_changemapserver(sd, mapindex, x, y, ip, (short)port);
