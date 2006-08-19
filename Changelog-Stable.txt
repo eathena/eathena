@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/19
+	* Fixed GS_GROUNDDRIFT [Skotlex]
 	* Fixed battle_calc_base_damage being called for the left hand even for
 	  non-dual-wielding attacks. left-hand damage was being set to 0 later
 	  anyway, so no exploit existed. [Skotlex]
