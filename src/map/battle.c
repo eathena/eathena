@@ -1178,7 +1178,7 @@ static struct Damage battle_calc_weapon_attack(
 				  i |= 16; // for ex. shuriken must not be influenced by DEX
 				}
 				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, i);
-				if (sstatus->lhw)
+				if (sstatus->lhw && flag.lh)
 					wd.damage2 = battle_calc_base_damage(sstatus, sstatus->lhw, sc, tstatus->size, sd, i);
 
 				//Add any bonuses that modify the base baseatk+watk (pre-skills)
