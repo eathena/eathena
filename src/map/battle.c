@@ -3723,7 +3723,7 @@ void battle_set_defaults() {
 	battle_config.gm_join_chat=0;
 	battle_config.gm_kick_chat=0;
 	battle_config.guild_max_castles=0;
-	battle_config.emergency_call=2;
+	battle_config.emergency_call=15;
 	battle_config.skillfree = 0;
 	battle_config.skillup_limit = 0;
 	battle_config.wp_rate=100;
