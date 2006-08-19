@@ -11443,7 +11443,7 @@ int clif_parse_PartyMessage(int fd, struct map_session_data &sd)
 		sd.sc_data[SC_NOCHAT].timer!=-1 )		//ƒ`ƒƒƒbƒg‹Ö~
 		return 0;
 
-	party_send_message(sd, (message, buffersize-4);
+	party_send_message(sd, message, buffersize-4);
 	return 0;
 }
 

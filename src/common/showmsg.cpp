@@ -488,7 +488,7 @@ int	VPRINTF(const char *fmt, va_list argptr)
 	if(!fmt || !*fmt)
 		return 0;
 
-	if( !basics::is_console(stdout) && stdout_with_ansisequence() )
+	if( basics::is_console(stdout) || stdout_with_ansisequence() )
 	{
 		vfprintf(stdout, fmt, argptr);
 		return 0;

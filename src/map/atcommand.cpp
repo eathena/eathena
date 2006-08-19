@@ -609,7 +609,7 @@ bool is_atcommand(const int fd, struct map_session_data &sd, const char* message
 	{	// return as processed
 		return true;
 	}
-	else if( message && *message && (!config.atc_gmonly || gmlvl) )
+	else if( message && *message && (!config.atc_gmonly || gmlvl_override) )
 	{	// format of the input string is "<name> : <command string>"
 		char output[512];
 
@@ -671,11 +671,11 @@ bool is_atcommand(const int fd, struct map_session_data &sd, const char* message
 				log_atcommand(sd, message);
 			}
 
-			gmlvl = gmlvl?gmlvl:sd.isGM();
-			if(cmd.type == AtCommand_Unknown || cmd.proc == NULL  || gmlvl<cmd.level )
+			gmlvl_override = gmlvl_override?gmlvl_override:sd.isGM();
+			if(cmd.type == AtCommand_Unknown || cmd.proc == NULL  || gmlvl_override<cmd.level )
 			{	// return false if player is normal player 
 				// (display the text, not display: unknown command)
-				if( gmlvl == 0 )
+				if( gmlvl_override == 0 )
 					return false;
 
 				snprintf(output, sizeof(output), msg_txt(153), command); // %s is Unknown Command.
