@@ -1,3 +1,6 @@
+08/19
+	* Merged skill_unit_db [Playtester]
+	- now Desperado should be working again
 08/18
 	* Merged skill_unit_db [Playtester]
 	- Gospel is no longer stackable
