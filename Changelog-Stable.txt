@@ -4,6 +4,9 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/08/19
+	* Fixed job-mask 0x100000 in the item_db enabling Dancers/Bards to use the
+	  items (0x80000 should be for them and 0x100000 should be currently unused)
 2006/08/18
 	* Fixed Energy Coat consuming 10x less SP than it should per hit. [Skotlex]
 	* Merged a missing piece of code from the Guild Aura merge... sorry about
