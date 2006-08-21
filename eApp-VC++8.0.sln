@@ -1,0 +1,47 @@
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "basics", "vcproj-8.0\basics.vcproj", "{D356871D-58E1-450B-967A-E4E9646175AF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "vcproj-8.0\common.vcproj", "{2BF8A844-6752-489E-AA0E-26FBA54D0D2A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D356871D-58E1-450B-967A-E4E9646175AF} = {D356871D-58E1-450B-967A-E4E9646175AF}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "char-server", "vcproj-8.0\char-server.vcproj", "{E867A8A1-0A02-4ADB-A48E-30FC103310A7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D356871D-58E1-450B-967A-E4E9646175AF} = {D356871D-58E1-450B-967A-E4E9646175AF}
+		{2BF8A844-6752-489E-AA0E-26FBA54D0D2A} = {2BF8A844-6752-489E-AA0E-26FBA54D0D2A}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "login-server", "vcproj-8.0\login-server.vcproj", "{9A33BBC1-145A-4A20-90AD-F8B02DCE0E6A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D356871D-58E1-450B-967A-E4E9646175AF} = {D356871D-58E1-450B-967A-E4E9646175AF}
+		{2BF8A844-6752-489E-AA0E-26FBA54D0D2A} = {2BF8A844-6752-489E-AA0E-26FBA54D0D2A}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "map-server", "vcproj-8.0\map-server.vcproj", "{D71213C7-3562-4523-A67F-B270404118BB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D356871D-58E1-450B-967A-E4E9646175AF} = {D356871D-58E1-450B-967A-E4E9646175AF}
+		{2BF8A844-6752-489E-AA0E-26FBA54D0D2A} = {2BF8A844-6752-489E-AA0E-26FBA54D0D2A}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug-Hybrid|Win32 = Debug-Hybrid|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D356871D-58E1-450B-967A-E4E9646175AF}.Debug-Hybrid|Win32.ActiveCfg = Debug-Hybrid|Win32
+		{D356871D-58E1-450B-967A-E4E9646175AF}.Debug-Hybrid|Win32.Build.0 = Debug-Hybrid|Win32
+		{2BF8A844-6752-489E-AA0E-26FBA54D0D2A}.Debug-Hybrid|Win32.ActiveCfg = Debug-Hybrid|Win32
+		{2BF8A844-6752-489E-AA0E-26FBA54D0D2A}.Debug-Hybrid|Win32.Build.0 = Debug-Hybrid|Win32
+		{E867A8A1-0A02-4ADB-A48E-30FC103310A7}.Debug-Hybrid|Win32.ActiveCfg = Debug-Hybrid|Win32
+		{E867A8A1-0A02-4ADB-A48E-30FC103310A7}.Debug-Hybrid|Win32.Build.0 = Debug-Hybrid|Win32
+		{9A33BBC1-145A-4A20-90AD-F8B02DCE0E6A}.Debug-Hybrid|Win32.ActiveCfg = Debug-Hybrid|Win32
+		{9A33BBC1-145A-4A20-90AD-F8B02DCE0E6A}.Debug-Hybrid|Win32.Build.0 = Debug-Hybrid|Win32
+		{D71213C7-3562-4523-A67F-B270404118BB}.Debug-Hybrid|Win32.ActiveCfg = Debug-Hybrid|Win32
+		{D71213C7-3562-4523-A67F-B270404118BB}.Debug-Hybrid|Win32.Build.0 = Debug-Hybrid|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,4 +1,7 @@
 Date	Added
+08/21	
+	* Added VC++8.0 project files [Toms]
+	* Added some svn:ignore properties [Toms]
 08/18
 	* trashed useless charcommand and restructured atcommand handling
 	* prepared grf rewrite, already changed some behaviour
