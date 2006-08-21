@@ -5,6 +5,9 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/21
+	* Fixed a confusion in skill_attack using the src instead of dsrc for some
+	  calls, which was causing some problems with the KAITE check from AoE
+	  spells. [Skotlex]
 	* Merged fix which applies weapon atk rate to left/right hand weapons
 	  independently so that they work correctly when dual wielding. [Skotlex]
 	* Merged returned damage invoking the Hp/Sp leeching/draining functions.
