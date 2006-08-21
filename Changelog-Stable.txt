@@ -5,6 +5,17 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/21
+	* Merged fix which applies weapon atk rate to left/right hand weapons
+	  independently so that they work correctly when dual wielding. [Skotlex]
+	* Merged returned damage invoking the Hp/Sp leeching/draining functions.
+	  [Skotlex]
+	* Merged GS_SPREADATTACK using the default skill damage packet so it
+	  displays an animation. [Skotlex]
+	* Merged Guild Aura not affecting Guild Master. [Skotlex]
+	* Reduced GS_GLITTERING success rate to 20+10*lv% [Skotlex]
+	* Merged GS_DESPERADO hit chance increase to 20% [Skotlex]
+	* Fixed WS_WEAPONREFINE always failing when at less than job level 50.
+	  [Skotlex]
 	* Fixed the Autosave routine not working when there's only one player
 	  online. [Skotlex]
 	* Fixed delitem not checking for the first slot's card, also optimized it

@@ -1966,7 +1966,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	case SM_MAGNUM:
 	case AS_SPLASHER:
 	case ASC_METEORASSAULT:
-	case GS_SPREADATTACK:
+//	case GS_SPREADATTACK: <- as it is, it shows no animation at all.
 		dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion, damage, dmg.div_, skillid, -1, 5);
 		break;
 	case KN_BRANDISHSPEAR:
@@ -2073,6 +2073,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			status_fix_damage(bl,src,rdamage,0);
 		clif_damage(src,src,tick, dmg.amotion,0,rdamage,1,4,0);
 		//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
+		if (tsd && src != bl)
+			battle_drain(tsd, src, rdamage, rdamage, sstatus->race, is_boss(src));
 		skill_additional_effect(bl,src,CR_REFLECTSHIELD, 1,BF_WEAPON,tick);
 	}
 
@@ -2253,6 +2255,10 @@ int skill_guildaura_sub (struct block_list *bl, va_list ap)
 	gid = va_arg(ap,int);
 	if (sd->status.guild_id != gid)
 		return 0;
+
+	if(id == sd->bl.id)
+		return 0;
+
 	strvit = va_arg(ap,int);
 	agidex = va_arg(ap,int);
 
@@ -5122,7 +5128,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case GD_REGENERATION:
 		if(flag&1) {
 			if (status_get_guild_id(src) == status_get_guild_id(bl))
-				sc_start(bl,SC_REGENERATION,100,skilllv,skill_get_time(skillid, skilllv));
+				sc_start(bl,type,100,skilllv,skill_get_time(skillid, skilllv));
 		} else if (status_get_guild_id(src)) {
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			map_foreachinrange(skill_area_sub, src,
@@ -5157,12 +5163,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			g = sd?sd->state.gmaster_flag:guild_search(status_get_guild_id(src));
 			if (!g)
 				break;
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			for(i = 0; i < g->max_member; i++, j++) {
 				if (j>8) j=0;
 				if ((dstsd = g->member[i].sd) != NULL && sd != dstsd) {
 					 if (map[dstsd->bl.m].flag.nowarp && !map_flag_gvg(dstsd->bl.m))
 						 continue;
-					clif_skill_nodamage(src,bl,skillid,skilllv,1);
 					if(map_getcell(src->m,src->x+dx[j],src->y+dy[j],CELL_CHKNOREACH))
 						dx[j] = dy[j] = 0;
 					pc_setpos(dstsd, map[src->m].index, src->x+dx[j], src->y+dy[j], 2);
@@ -5233,7 +5239,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case GS_GLITTERING:
 		if(sd) {
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if(rand()%100 < (50+10*skilllv))
+			if(rand()%100 < (20+10*skilllv))
 				pc_addspiritball(sd,skill_get_time(skillid,skilllv),10);
 			else if(sd->spiritball > 0)
 				pc_delspiritball(sd,1,0);
@@ -6847,7 +6853,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 
 		case UNT_DESPERADO:
-			if (!(rand()%10)) //Has a low chance of connecting. [Skotlex]
+			if (!(rand()%5)) //Has a low chance of connecting. [Skotlex]
 				skill_attack(BF_WEAPON,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 			break;
 
@@ -8365,11 +8371,11 @@ void skill_weaponrefine (struct map_session_data *sd, int idx)
 			}
 
 			per = percentrefinery [ditem->wlv][(int)item->refine];
-			per += (sd->status.job_level-50)/2; //Updated per the new kro descriptions. [Skotlex]
+			per += (((signed int)sd->status.job_level)-50)/2; //Updated per the new kro descriptions. [Skotlex]
 
+			pc_delitem(sd, i, 1, 0);
 			if (per > rand() % 100) {
 				item->refine++;
-				pc_delitem(sd, i, 1, 0);
 				if(item->equip) {
 					ep = item->equip;
 					pc_unequipitem(sd,idx,3);
@@ -8395,7 +8401,6 @@ void skill_weaponrefine (struct map_session_data *sd, int idx)
 					}
 				}
 			} else {
-				pc_delitem(sd, i, 1, 0);
 				item->refine = 0;
 				if(item->equip)
 					pc_unequipitem(sd,idx,3);

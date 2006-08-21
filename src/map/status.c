@@ -361,6 +361,7 @@ void initChangeTables(void) {
 
 	set_sc(GD_LEADERSHIP, SC_GUILDAURA, SI_BLANK, SCB_STR|SCB_AGI|SCB_VIT|SCB_DEX);
 	set_sc(GD_BATTLEORDER, SC_BATTLEORDERS, SI_BLANK, SCB_STR|SCB_INT|SCB_DEX);
+	set_sc(GD_REGENERATION, SC_REGENERATION, SI_BLANK, SCB_NONE);
 
 	// Storing the target job rather than simply SC_SPIRIT simplifies code later on.
 	SkillStatusChangeTableArray[SL_ALCHEMIST] =   MAPID_ALCHEMIST,
@@ -2807,8 +2808,6 @@ static unsigned short status_calc_int(struct block_list *bl, struct status_chang
 		int_ -= int_ * sc->data[SC_STRIPHELM].val2/100;
 	if(sc->data[SC_NEN].timer!=-1)
 		int_ += sc->data[SC_NEN].val1;
-	if(sc->data[SC_CHANGE].timer!=-1)
-		int_ += 60;
 	if(sc->data[SC_MARIONETTE].timer!=-1)
 		int_ -= (sc->data[SC_MARIONETTE].val4>>16)&0xFF;
 	if(sc->data[SC_MARIONETTE2].timer!=-1)
@@ -5572,11 +5571,8 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				status_change_end(bl,SC_LONGING,-1);				
 			break;
 		case SC_NOCHAT:
-			if (sd && battle_config.manner_system)
-			{
-				//Why set it to 0? Can't we use good manners for something? [Skotlex]
-//					if (sd->status.manner >= 0) // weeee ^^ [celest]
-//						sd->status.manner = 0;
+			if (sd) {
+				if (sd->status.manner < 0) sd->status.manner = 0;
 				clif_updatestatus(sd,SP_MANNER);
 			}
 			break;

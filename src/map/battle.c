@@ -696,10 +696,19 @@ static int battle_calc_base_damage(struct status_data *status, struct weapon_atk
 		damage += status->batk;
 	
 	//rodatazone says that Overrefine bonuses are part of baseatk
+	//Here we also apply the weapon_atk_rate bonus so it is correctly applied on left/right hands.
 	if(sd) {
-		type = (wa == status->lhw)?sd->left_weapon.overrefine:sd->right_weapon.overrefine;
-		if (type > 0)
-			damage += rand()%type+1;
+		if (type == EQI_HAND_L) {
+			if(sd->left_weapon.overrefine)
+				damage += rand()%sd->left_weapon.overrefine+1;
+			if (sd->weapon_atk_rate[sd->weapontype2])
+				damage += damage*sd->weapon_atk_rate[sd->weapontype2]/100;;
+		} else { //Right hand
+			if(sd->right_weapon.overrefine)
+				damage += rand()%sd->right_weapon.overrefine+1;
+			if (sd->weapon_atk_rate[sd->weapontype1])
+				damage += damage*sd->weapon_atk_rate[sd->weapontype1]/100;;
+		}
 	}
 	return damage;
 }
@@ -727,6 +736,9 @@ void battle_consume_ammo(TBL_PC*sd, int skill, int lv)
 	if(sd->equip_index[10]>=0) //Qty check should have been done in skill_check_condition
 		pc_delitem(sd,sd->equip_index[10],qty,0);
 }
+
+struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int mflag);
+struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int mflag);
 
 //For quick div adjustment.
 #define damage_div_fix(dmg, div) { if (div > 1) (dmg)*=div; else if (div < 0) (div)*=-1; }
@@ -1184,8 +1196,8 @@ static struct Damage battle_calc_weapon_attack(
 				//Add any bonuses that modify the base baseatk+watk (pre-skills)
 				if(sd)
 				{
-					if (sd->status.weapon < MAX_WEAPON_TYPE && (sd->atk_rate != 100 || sd->weapon_atk_rate[sd->status.weapon] != 0))
-						ATK_RATE(sd->atk_rate + sd->weapon_atk_rate[sd->status.weapon]);
+					if (sd->atk_rate != 100)
+						ATK_RATE(sd->atk_rate);
 
 					if(flag.cri && sd->crit_atk_rate)
 						ATK_ADDRATE(sd->crit_atk_rate);
@@ -1402,7 +1414,7 @@ static struct Damage battle_calc_weapon_attack(
 				case AS_SPLASHER:
 					i = 400+50*skill_lv;
 					if (sd) i += 20*pc_checkskill(sd,AS_POISONREACT);
-					if (wflag) i/=2; //Splash damage is half.
+					if (wflag>1) i/=wflag; //Splash damage is half.
 					skillratio += i;
 					flag.cardfix = 0;
 					break;
@@ -2621,8 +2633,8 @@ int battle_calc_return_damage(struct block_list *bl, int *damage, int flag) {
 	struct map_session_data *sd=NULL;
 	struct status_change *sc;
 	int rdamage = 0;
-	
-	if (bl->type == BL_PC) sd = (struct map_session_data*)bl;
+
+	BL_CAST(BL_PC, bl, sd);
 	sc = status_get_sc(bl);
 
 	if(flag&BF_WEAPON) {
@@ -2905,8 +2917,11 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				battle_drain(sd, target, wd.damage, wd.damage2, tstatus->race, is_boss(target));
 		}
 	}
-	if (rdamage > 0) //By sending attack type "none" skill_additional_effect won't be invoked. [Skotlex]
+	if (rdamage > 0) { //By sending attack type "none" skill_additional_effect won't be invoked. [Skotlex]
+		if(tsd && src != target)
+			battle_drain(tsd, src, rdamage, rdamage, sstatus->race, is_boss(src));
 		battle_delay_damage(tick+wd.amotion, target, src, 0, 0, 0, rdamage, ATK_DEF, rdelay);
+	}
 
 	if (tsc) {
 		if (tsc->data[SC_POISONREACT].timer != -1 && 
