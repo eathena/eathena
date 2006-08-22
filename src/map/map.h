@@ -173,7 +173,7 @@ enum {
 	BL_PC = 0x001,
 	BL_MOB = 0x002,
 	BL_PET = 0x004,
-	BL_HOM = 0x008,	//[blackhole89]
+//	BL_HOM = 0x008,	//[blackhole89]
 	BL_ITEM = 0x010,
 	BL_SKILL = 0x020,
 	BL_NPC = 0x040,
@@ -536,13 +536,13 @@ struct map_session_data {
 		unsigned night :1; //Holds whether or not the player currently has the SI_NIGHT effect on. [Skotlex]
 		unsigned finalsave :1; //Signals whether the final save for the char was done or not yet. Meant to prevent exploits and the like. [Skotlex]
 		unsigned rewarp :1; //Signals that a player should warp as soon as he is done loading a map. [Skotlex]
+		unsigned killer : 1;
+		unsigned killable : 1;
 		unsigned short autoloot;
 		struct guild *gmaster_flag;
 	} state;
 	struct {
 		unsigned char no_weapon_damage, no_magic_damage, no_misc_damage;
-		unsigned killer : 1;
-		unsigned killable : 1;
 		unsigned restart_full_recover : 1;
 		unsigned no_castcancel : 1;
 		unsigned no_castcancel2 : 1;
@@ -1210,6 +1210,7 @@ struct chat_data {
 extern struct map_data map[];
 extern int map_num;
 extern int autosave_interval;
+extern int minsave_interval;
 extern int save_settings;
 extern int agit_flag;
 extern int night_flag; // 0=day, 1=night [Yor]

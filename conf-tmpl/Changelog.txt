@@ -1,5 +1,9 @@
 Date	Added
 
+2006/08/22
+	* Merged config setting minsave_interval which specifies minimum time
+	  between saves, useful to prevent hammering the char-server with character
+	  saves on high population maps. Defaults to 100ms (map_athena.txt) [Skotlex]
 2006/08/17
 	* Merged the force_random_spawn battle option (monster.conf) [Skotlex]
 	* Merged the updated config option for emergency_call (skill.conf)

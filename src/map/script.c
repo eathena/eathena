@@ -2979,10 +2979,10 @@ int script_reload()
 		script_save_mapreg();
 	
 	mapreg_db->clear(mapreg_db, NULL);
-	mapregstr_db->clear(mapreg_db, NULL);
-	userfunc_db->clear(mapreg_db, NULL);
-	scriptlabel_db->clear(mapreg_db, NULL);
-	
+	mapregstr_db->clear(mapregstr_db, NULL);
+	userfunc_db->clear(userfunc_db, NULL);
+	scriptlabel_db->clear(scriptlabel_db, NULL);
+
 	script_load_mapreg();
 	return 0;
 }

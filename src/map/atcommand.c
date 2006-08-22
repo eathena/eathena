@@ -6883,12 +6883,12 @@ atcommand_killer(
 	const char* command, const char* message)
 {
 	nullpo_retr(-1, sd);
-	sd->special_state.killer = !sd->special_state.killer;
+	sd->state.killer = !sd->state.killer;
 
-	if(sd->special_state.killer)
-	  clif_displaymessage(fd, msg_table[241]);
-        else
-	  clif_displaymessage(fd, msg_table[242]);
+	if(sd->state.killer)
+	  clif_displaymessage(fd, msg_txt(241));
+	else
+	  clif_displaymessage(fd, msg_txt(287));
 
 	return 0;
 }
@@ -6904,12 +6904,12 @@ atcommand_killable(
 	const char* command, const char* message)
 {
 	nullpo_retr(-1, sd);
-	sd->special_state.killable = !sd->special_state.killable;
+	sd->state.killable = !sd->state.killable;
 
-	if(sd->special_state.killable)
-	  clif_displaymessage(fd, msg_table[242]);
-        else
-	  clif_displaymessage(fd, msg_table[241]);
+	if(sd->state.killable)
+	  clif_displaymessage(fd, msg_txt(242));
+	else
+	  clif_displaymessage(fd, msg_txt(288));
 
 	return 0;
 }
@@ -6931,14 +6931,14 @@ atcommand_charkillable(
 		return -1;
 
 	if((pl_sd=map_nick2sd((char *) message)) == NULL)
-                return -1;
+		return -1;
 
-	pl_sd->special_state.killable = !pl_sd->special_state.killable;
+	pl_sd->state.killable = !pl_sd->state.killable;
 
-	if(pl_sd->special_state.killable)
-	  clif_displaymessage(fd, "The player is now killable");
-        else
-	  clif_displaymessage(fd, "The player is no longer killable");
+	if(pl_sd->state.killable)
+		clif_displaymessage(fd, msg_txt(289));
+	else
+		clif_displaymessage(fd, msg_txt(290));
 
 	return 0;
 }
@@ -9187,17 +9187,15 @@ atcommand_charkillableid(
       if((pl_sd= (struct map_session_data *) session[session_id]->session_data) == NULL)
                    return -1;
 
-      pl_sd->special_state.killable = !pl_sd->special_state.killable;
+      pl_sd->state.killable = !pl_sd->state.killable;
 
-      if(pl_sd->special_state.killable)
-        clif_displaymessage(fd, "The player is now killable");
-           else
-        clif_displaymessage(fd, "The player is no longer killable");
+      if(pl_sd->state.killable)
+			clif_displaymessage(fd, msg_txt(289));
+		else
+  			clif_displaymessage(fd, msg_txt(290));
    }
    else
-   {
-      clif_displaymessage(fd,msg_table[3]);
-   }
+      clif_displaymessage(fd,msg_txt(3));
    //printf("Session_id = %d, cid = %d\n",session_id,cid);
    return 0;
 }
@@ -9226,19 +9224,17 @@ atcommand_charkillableid2(
    if ((session_id=accountid2sessionid(aid))!=0)
    {
       if((pl_sd= (struct map_session_data *) session[session_id]->session_data) == NULL)
-                   return -1;
+			return -1;
 
-      pl_sd->special_state.killable = !pl_sd->special_state.killable;
+      pl_sd->state.killable = !pl_sd->state.killable;
 
-      if(pl_sd->special_state.killable)
-        clif_displaymessage(fd, "The player is now killable");
+      if(pl_sd->state.killable)
+        clif_displaymessage(fd, msg_txt(289));
            else
-        clif_displaymessage(fd, "The player is no longer killable");
+        clif_displaymessage(fd, msg_txt(290));
    }
    else
-   {
-      clif_displaymessage(fd,msg_table[3]);
-   }
+      clif_displaymessage(fd,msg_txt(3));
    //printf("Session_id = %d, aid = %d\n",session_id,aid);
    return 0;
 }

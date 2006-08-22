@@ -5,6 +5,16 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/22
+	* Corrected battle_calc_weapon_attack so that all skills ignore your
+	  left-hand weapon, and that the Katar's double-attack damage bonus for the
+	  offhand damage applies ONLY on normal attacks. [Skotlex]
+	* Merged states killable/killer being placed on state rather than
+	  special_state, now the killer/killable commands won't end prematurely.
+	  [Skotlex]
+	* Fixed @reloadscript not clearing some dbs correctly. [Skotlex]
+	* Merged update to battle_check_target which uses battle_get_master to do
+	  checks between the actual object and the object's master. [Skotlex]
+	* Merged config setting minsave_interval (map_athena.txt) [Skotlex]
 	* Merged a fix in SQL-Guild Creation, guild name was escaped 2 times [Toms]
 	* Added SQL update which should remove \' from guild names [Toms]
 2006/08/21
