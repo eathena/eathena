@@ -1,6 +1,7 @@
 Date	Added
 
 2006/08/22
+	* Removed useless atcommands @itemcheck and @rain [Skotlex]
 	* Merged config setting minsave_interval which specifies minimum time
 	  between saves, useful to prevent hammering the char-server with character
 	  saves on high population maps. Defaults to 100ms (map_athena.txt) [Skotlex]

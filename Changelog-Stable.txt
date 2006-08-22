@@ -5,6 +5,14 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/22
+	* Removed useless atcommands @itemcheck and @rain [Skotlex]
+	* Merged moving of the pet status structure from the player to the pet
+	  (involves some cleanups of the pet code in various files) [Skotlex]
+	* Merged Madness Canceller blocking you from moving. [Skotlex]
+	* Merged Madness Canceller stacking with other speed bonuses. [Skotlex]
+	* Merged Gravitation blocking item usage only on the caster. [Skotlex]
+	* Merged offensive pet skills using self as target when the skill is
+	  self-targetted. [Skotlex]
 	* Corrected battle_calc_weapon_attack so that all skills ignore your
 	  left-hand weapon, and that the Katar's double-attack damage bonus for the
 	  offhand damage applies ONLY on normal attacks. [Skotlex]

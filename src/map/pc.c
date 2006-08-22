@@ -2607,6 +2607,9 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount)
 	nullpo_retr(1, sd);
 	nullpo_retr(1, item_data);
 
+	if(sd->state.finalsave)
+		return 1;
+
 	if(item_data->nameid <= 0 || amount <= 0)
 		return 1;
 	if(amount > MAX_AMOUNT)
@@ -2895,9 +2898,9 @@ int pc_useitem(struct map_session_data *sd,int n)
 	if (sd->sc.count && (
 		sd->sc.data[SC_BERSERK].timer!=-1 ||
 		sd->sc.data[SC_MARIONETTE].timer!=-1 ||
-		sd->sc.data[SC_GRAVITATION].timer!=-1 ||
+		(sd->sc.data[SC_GRAVITATION].timer!=-1 && sd->sc.data[SC_GRAVITATION].val3 == BCT_SELF) ||
 		//Cannot use Potions/Healing items while under Gospel.
-		(sd->sc.data[SC_GOSPEL].timer!=-1 && sd->sc.data[SC_GOSPEL].val4 == BCT_SELF && sd->inventory_data[n]->type == 0)
+		(sd->sc.data[SC_GOSPEL].timer!=-1 && sd->sc.data[SC_GOSPEL].val4 == BCT_SELF && sd->inventory_data[n]->type == IT_HEALING)
 	))
 		return 0;
 	
@@ -3275,7 +3278,7 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 				sd->state.waitingdisconnect=1;
 				pc_clean_skilltree(sd);
 				if(sd->status.pet_id > 0 && sd->pd) {
-					intif_save_petdata(sd->status.account_id,&sd->pet);
+					intif_save_petdata(sd->status.account_id,&sd->pd->pet);
 					unit_remove_map(&sd->pd->bl, clrtype);
 				}
 				chrif_save(sd,2);
@@ -3320,7 +3323,7 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 	sd->bl.x = sd->ud.to_x = x;
 	sd->bl.y = sd->ud.to_y = y;
 
-	if(sd->status.pet_id > 0 && sd->pd && sd->pet.intimate > 0) {
+	if(sd->status.pet_id > 0 && sd->pd && sd->pd->pet.intimate > 0) {
 		sd->pd->bl.m = m;
 		sd->pd->bl.x = sd->pd->ud.to_x = x;
 		sd->pd->bl.y = sd->pd->ud.to_y = y;
@@ -3417,7 +3420,7 @@ int pc_memo(struct map_session_data *sd, int i) {
 int pc_checkskill(struct map_session_data *sd,int skill_id)
 {
 	if(sd == NULL) return 0;
-	if( skill_id>=10000 ){
+	if( skill_id>=GD_SKILLBASE){
 		struct guild *g;
 		if( sd->status.guild_id>0 && (g=guild_search(sd->status.guild_id))!=NULL)
 			return guild_checkskill(g,skill_id);
@@ -4729,11 +4732,12 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 
 	if(sd->status.pet_id > 0 && sd->pd)
 	{
+		struct s_pet *pet = &sd->pd->pet;
 		if(!map[sd->bl.m].flag.nopenalty){
-			sd->pet.intimate -= sd->pd->petDB->die;
-			if(sd->pet.intimate < 0)
-				sd->pet.intimate = 0;
-			clif_send_petdata(sd,1,sd->pet.intimate);
+			pet->intimate -= sd->pd->petDB->die;
+			if(pet->intimate < 0)
+				pet->intimate = 0;
+			clif_send_petdata(sd,1,pet->intimate);
 		}
 		if(sd->pd->target_id) // Unlock all targets...
 			pet_unlocktarget(sd->pd);
@@ -7100,7 +7104,7 @@ static int pc_autosave_sub(DBKey key,void * data,va_list app)
 
 	// pet
 	if(sd->status.pet_id > 0 && sd->pd)
-		intif_save_petdata(sd->status.account_id,&sd->pet);
+		intif_save_petdata(sd->status.account_id,&sd->pd->pet);
 
 	if(sd->state.finalsave)
   	{	//Save ack hasn't returned from char-server yet? Retry.

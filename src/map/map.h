@@ -747,7 +747,6 @@ struct map_session_data {
 	char message[MESSAGE_SIZE];
 	struct vending vending[MAX_VENDING];
 
-	struct s_pet pet;
 	struct pet_data *pd;
 
 	struct{
@@ -924,15 +923,13 @@ struct pet_data {
 	struct block_list bl;
 	struct unit_data ud;
 	struct view_data vd;
+	struct s_pet pet;
 	struct status_data status;
 	struct mob_db *db;
 	struct pet_db *petDB;
 	int pet_hungry_timer;
 	int target_id;
 	short n;
-	short class_;
-	short equip;
-	char name[NAME_LENGTH];
 	struct {
 		unsigned skillbonus : 1;
 	} state;
@@ -1133,7 +1130,6 @@ enum {
 	SP_ADD_SKILL_BLOW, SP_SP_VANISH_RATE //2041
 	//Before adding another, note that
 	//1077 (SP_FREE, previously disguise),
-	//2007 (SP_FREE2, previously Infinite Endure)
 	//are available!
 };
 

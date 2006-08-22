@@ -28,8 +28,8 @@
 #include "intif.h"
 #include "chrif.h"
 
-static int dirx[8]={0,-1,-1,-1,0,1,1,1};
-static int diry[8]={1,1,0,-1,-1,-1,0,1};
+const int dirx[8]={0,-1,-1,-1,0,1,1,1};
+const int diry[8]={1,1,0,-1,-1,-1,0,1};
 
 struct unit_data* unit_bl2ud(struct block_list *bl) {
 	if( bl == NULL) return NULL;
@@ -433,7 +433,7 @@ int unit_movepos(struct block_list *bl,int dst_x,int dst_y, int easy, int checkp
 				return 0;
 		} else
 			sd->areanpc_id=0;
-		if(sd->status.pet_id > 0 && sd->pd && sd->pet.intimate > 0)
+		if(sd->status.pet_id > 0 && sd->pd && sd->pd->pet.intimate > 0)
 		{	//Check if pet needs to be teleported. [Skotlex]
 			int flag = 0;
 			bl = &sd->pd->bl; //Note that bl now points to the pet! 
@@ -641,23 +641,24 @@ int unit_can_move(struct block_list *bl)
 			return 0;
 
 		if (sc->count && (
-			sc->data[SC_ANKLE].timer != -1 ||
-			sc->data[SC_AUTOCOUNTER].timer !=-1 ||
-			sc->data[SC_TRICKDEAD].timer !=-1 ||
-			sc->data[SC_BLADESTOP].timer !=-1 ||
-			sc->data[SC_BLADESTOP_WAIT].timer !=-1 ||
-			sc->data[SC_SPIDERWEB].timer !=-1 ||
-			(sc->data[SC_DANCING].timer !=-1 && (
+			sc->data[SC_ANKLE].timer != -1
+			|| sc->data[SC_AUTOCOUNTER].timer !=-1
+			|| sc->data[SC_TRICKDEAD].timer !=-1
+			|| sc->data[SC_BLADESTOP].timer !=-1
+			|| sc->data[SC_BLADESTOP_WAIT].timer !=-1
+			|| sc->data[SC_SPIDERWEB].timer !=-1
+			|| (sc->data[SC_DANCING].timer !=-1 && (
 				(sc->data[SC_DANCING].val4 && sc->data[SC_LONGING].timer == -1) ||
 				sc->data[SC_DANCING].val1 == CG_HERMODE	//cannot move while Hermod is active.
-			)) ||
-			sc->data[SC_MOONLIT].timer != -1 ||
-			(sc->data[SC_GOSPEL].timer !=-1 && sc->data[SC_GOSPEL].val4 == BCT_SELF) ||	// cannot move while gospel is in effect
-			sc->data[SC_STOP].timer != -1 ||
-			sc->data[SC_CLOSECONFINE].timer != -1 ||
-			sc->data[SC_CLOSECONFINE2].timer != -1 ||
-			(sc->data[SC_CLOAKING].timer != -1 && //Need wall at level 1-2
-			 sc->data[SC_CLOAKING].val1 < 3 && !(sc->data[SC_CLOAKING].val4&1))
+			))
+			|| sc->data[SC_MOONLIT].timer != -1
+			|| (sc->data[SC_GOSPEL].timer !=-1 && sc->data[SC_GOSPEL].val4 == BCT_SELF)	// cannot move while gospel is in effect
+			|| sc->data[SC_STOP].timer != -1
+			|| sc->data[SC_CLOSECONFINE].timer != -1
+			|| sc->data[SC_CLOSECONFINE2].timer != -1
+			|| (sc->data[SC_CLOAKING].timer != -1 && //Need wall at level 1-2
+				sc->data[SC_CLOAKING].val1 < 3 && !(sc->data[SC_CLOAKING].val4&1))
+			|| sc->data[SC_MADNESSCANCEL].timer != -1
 		))
 			return 0;
 	}
@@ -710,9 +711,9 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 	if(status_isdead(src))
 		return 0; // Ž€‚ñ‚Å‚¢‚È‚¢‚©
 
-	if( BL_CAST( BL_PC,  src, sd ) ) {
+	if( BL_CAST( BL_PC,  src, sd ) )
 		ud = &sd->ud;
-	} else
+	else 
 		ud = unit_bl2ud(src);
 
 	if(ud == NULL) return 0;
@@ -1459,7 +1460,6 @@ int unit_remove_map(struct block_list *bl, int clrtype) {
 		unit_skillcastcancel(bl,0);
 // Do not reset can-act delay. [Skotlex]
 	ud->attackabletime = ud->canmove_tick /*= ud->canact_tick*/ = gettick();
-	clif_clearchar_area(bl,clrtype);
 	
 	if(sc && sc->count ) { //map-change/warp dispells.
 		if(sc->data[SC_BLADESTOP].timer!=-1)
@@ -1548,26 +1548,15 @@ int unit_remove_map(struct block_list *bl, int clrtype) {
 		md->state.skillstate= MSS_IDLE;
 	} else if (bl->type == BL_PET) {
 		struct pet_data *pd = (struct pet_data*)bl;
-		struct map_session_data *sd = pd->msd;
-		
-		if(!sd) {
-			map_delblock(bl);
-			unit_free(bl);
-			map_freeblock_unlock();
-			return 0;
-		}
-		if (sd->pet.intimate <= 0)
-		{	//Remove pet.
-			intif_delete_petdata(sd->status.pet_id);
-			sd->status.pet_id = 0;
-			sd->pd = NULL;
-			pd->msd = NULL;
+		if(pd->pet.intimate <= 0) {
+			clif_clearchar_area(bl,clrtype);
 			map_delblock(bl);
 			unit_free(bl);
 			map_freeblock_unlock();
 			return 0;
 		}
 	}
+	clif_clearchar_area(bl,clrtype);
 	map_delblock(bl);
 	map_freeblock_unlock();
 	return 1;
@@ -1698,11 +1687,14 @@ int unit_free(struct block_list *bl) {
 			aFree (pd->loot);
 			pd->loot = NULL;
 		}
-		if (sd) {
-			if(sd->pet.intimate > 0)
-				intif_save_petdata(sd->status.account_id,&sd->pet);
-			sd->pd = NULL;
+		if(pd->pet.intimate > 0)
+			intif_save_petdata(pd->pet.account_id,&pd->pet);
+		else
+		{	//Remove pet.
+			intif_delete_petdata(pd->pet.pet_id);
+			if (sd) sd->status.pet_id = 0;
 		}
+		if (sd) sd->pd = NULL;
 	} else if(bl->type == BL_MOB) {
 		struct mob_data *md = (struct mob_data*)bl;
 		if(md->deletetimer!=-1) {

@@ -75,7 +75,6 @@ ACMD_FUNC(heal);
 ACMD_FUNC(item);
 ACMD_FUNC(item2);
 ACMD_FUNC(itemreset);
-ACMD_FUNC(itemcheck);
 ACMD_FUNC(baselevelup);
 ACMD_FUNC(joblevelup);
 ACMD_FUNC(help);
@@ -343,7 +342,6 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Item,				"@item",			60, atcommand_item },
 	{ AtCommand_Item2,			"@item2",			60, atcommand_item2 },
 	{ AtCommand_ItemReset,			"@itemreset",		40, atcommand_itemreset },
-	{ AtCommand_ItemCheck,			"@itemcheck",		60, atcommand_itemcheck },
 	{ AtCommand_BaseLevelUp,		"@lvup",			60, atcommand_baselevelup },
 	{ AtCommand_BaseLevelUp,		"@blevel",			60, atcommand_baselevelup },
 	{ AtCommand_BaseLevelUp,		"@baselvlup",		60, atcommand_baselevelup },
@@ -495,7 +493,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Charstoreall,		"@charstoreall",		40, atcommand_charstoreall }, // MouseJstr
 	{ AtCommand_Skillid,			"@skillid",			40, atcommand_skillid }, // MouseJstr
 	{ AtCommand_Useskill,			"@useskill",		40, atcommand_useskill }, // MouseJstr
-	{ AtCommand_Rain,				"@rain",			99, atcommand_rain },
+//	{ AtCommand_Rain,				"@rain",			99, atcommand_rain }, //Client no longer supports rain!
 	{ AtCommand_Snow,				"@snow",			99, atcommand_snow },
 	{ AtCommand_Sakura,			"@sakura",			99, atcommand_sakura },
 	{ AtCommand_Clouds,			"@clouds",			99, atcommand_clouds },
@@ -675,27 +673,27 @@ char * player_title_txt(int level) {
 		return ""; //w/o any titles
 
 	if (level >= battle_config.title_lvl8)
-		sprintf(atcmd_temp, msg_table[332], level);
+		sprintf(atcmd_temp, msg_txt(332), level);
 	else
 	if (level >= battle_config.title_lvl7)
-		sprintf(atcmd_temp, msg_table[331], level);
+		sprintf(atcmd_temp, msg_txt(331), level);
 	else
 	if (level >= battle_config.title_lvl6)
-		sprintf(atcmd_temp, msg_table[330], level);
+		sprintf(atcmd_temp, msg_txt(330), level);
 	else
 	if (level >= battle_config.title_lvl5)
-		sprintf(atcmd_temp, msg_table[329], level);
+		sprintf(atcmd_temp, msg_txt(329), level);
 	else
 	if (level >= battle_config.title_lvl4)
-		sprintf(atcmd_temp, msg_table[328], level);
+		sprintf(atcmd_temp, msg_txt(328), level);
 	else
 	if (level >= battle_config.title_lvl3)
-		sprintf(atcmd_temp, msg_table[327], level);
+		sprintf(atcmd_temp, msg_txt(327), level);
 	else
 	if (level >= battle_config.title_lvl2)
-		sprintf(atcmd_temp, msg_table[326], level);
+		sprintf(atcmd_temp, msg_txt(326), level);
 	else
-		sprintf(atcmd_temp, msg_table[325], level); //lvl1
+		sprintf(atcmd_temp, msg_txt(325), level); //lvl1
 	return atcmd_temp;
 }
 
@@ -2044,11 +2042,11 @@ int atcommand_save(
 
 	pc_setsavepoint(sd, sd->mapindex, sd->bl.x, sd->bl.y);
 	if (sd->status.pet_id > 0 && sd->pd)
-		intif_save_petdata(sd->status.account_id, &sd->pet);
+		intif_save_petdata(sd->status.account_id, &sd->pd->pet);
 
 	chrif_save(sd,0);
 	
-	clif_displaymessage(fd, msg_table[6]); // Character data respawn point saved.
+	clif_displaymessage(fd, msg_txt(6)); // Character data respawn point saved.
 
 	return 0;
 }
@@ -2686,20 +2684,6 @@ int atcommand_itemreset(
 		}
 	}
 	clif_displaymessage(fd, msg_table[20]); // All of your items have been removed.
-
-	return 0;
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
-int atcommand_itemcheck(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
-{
-	nullpo_retr(-1, sd);
-	pc_checkitem(sd);
 
 	return 0;
 }
@@ -4380,6 +4364,7 @@ int atcommand_petfriendly(
 	const char* command, const char* message)
 {
 	int friendly;
+	struct pet_data *pd;
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message || (friendly = atoi(message)) < 0) {
@@ -4387,24 +4372,25 @@ int atcommand_petfriendly(
 		return -1;
 	}
 
-	if (!sd->pd) {
-		clif_displaymessage(fd, msg_table[184]); // Sorry, but you have no pet.
+	pd = sd->pd;
+	if (!pd) {
+		clif_displaymessage(fd, msg_txt(184)); // Sorry, but you have no pet.
 		return -1;
 	}
 	
 	if (friendly < 0 || friendly > 1000)
 	{
-		clif_displaymessage(fd, msg_table[37]); // An invalid number was specified.
+		clif_displaymessage(fd, msg_txt(37)); // An invalid number was specified.
 		return -1;
 	}
 	
-	if (friendly == sd->pet.intimate) {
-		clif_displaymessage(fd, msg_table[183]); // Pet friendly is already the good value.
+	if (friendly == pd->pet.intimate) {
+		clif_displaymessage(fd, msg_txt(183)); // Pet friendly is already the good value.
 		return -1;
 	}
-	sd->pet.intimate = friendly;
+	pd->pet.intimate = friendly;
 	clif_send_petstatus(sd);
-	clif_displaymessage(fd, msg_table[182]); // Pet friendly value changed!
+	clif_displaymessage(fd, msg_txt(182)); // Pet friendly value changed!
 	return 0;
 }
 
@@ -4417,6 +4403,7 @@ int atcommand_pethungry(
 	const char* command, const char* message)
 {
 	int hungry;
+	struct pet_data *pd;
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message || (hungry = atoi(message)) < 0) {
@@ -4424,24 +4411,23 @@ int atcommand_pethungry(
 		return -1;
 	}
 
-	if (sd->status.pet_id > 0 && sd->pd) {
-		if (hungry >= 0 && hungry <= 100) {
-			if (hungry != sd->pet.hungry) {
-				sd->pet.hungry = hungry;
-				clif_send_petstatus(sd);
-				clif_displaymessage(fd, msg_table[185]); // Pet hungry value changed!
-			} else {
-				clif_displaymessage(fd, msg_table[186]); // Pet hungry is already the good value.
-				return -1;
-			}
-		} else {
-			clif_displaymessage(fd, msg_table[37]); // An invalid number was specified.
-			return -1;
-		}
-	} else {
-		clif_displaymessage(fd, msg_table[184]); // Sorry, but you have no pet.
+	pd = sd->pd;
+	if (!sd->status.pet_id || !pd) {
+		clif_displaymessage(fd, msg_txt(184)); // Sorry, but you have no pet.
 		return -1;
 	}
+	if (hungry < 0 || hungry > 100) {
+		clif_displaymessage(fd, msg_txt(37)); // An invalid number was specified.
+		return -1;
+	}
+	if (hungry == pd->pet.hungry) {
+		clif_displaymessage(fd, msg_txt(186)); // Pet hungry is already the good value.
+		return -1;
+	}
+
+	pd->pet.hungry = hungry;
+	clif_send_petstatus(sd);
+	clif_displaymessage(fd, msg_txt(185)); // Pet hungry value changed!
 
 	return 0;
 }
@@ -4454,21 +4440,22 @@ int atcommand_petrename(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
+	struct pet_data *pd;
 	nullpo_retr(-1, sd);
-	if (sd->status.pet_id > 0 && sd->pd) {
-		if (sd->pet.rename_flag != 0) {
-			sd->pet.rename_flag = 0;
-			intif_save_petdata(sd->status.account_id, &sd->pet);
-			clif_send_petstatus(sd);
-			clif_displaymessage(fd, msg_table[187]); // You can now rename your pet.
-		} else {
-			clif_displaymessage(fd, msg_table[188]); // You can already rename your pet.
-			return -1;
-		}
-	} else {
-		clif_displaymessage(fd, msg_table[184]); // Sorry, but you have no pet.
+	if (!sd->status.pet_id || !sd->pd) {
+		clif_displaymessage(fd, msg_txt(184)); // Sorry, but you have no pet.
 		return -1;
 	}
+	pd = sd->pd;
+	if (pd->pet.rename_flag) {
+		clif_displaymessage(fd, msg_txt(188)); // You can already rename your pet.
+		return -1;
+	}
+
+	pd->pet.rename_flag = 0;
+	intif_save_petdata(sd->status.account_id, &pd->pet);
+	clif_send_petstatus(sd);
+	clif_displaymessage(fd, msg_txt(187)); // You can now rename your pet.
 
 	return 0;
 }
@@ -4508,14 +4495,14 @@ atcommand_recall(
 				return -1;
 			}
 			pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, 2);
-			sprintf(atcmd_output, msg_table[46], atcmd_player_name); // %s recalled!
+			sprintf(atcmd_output, msg_txt(46), atcmd_player_name); // %s recalled!
 			clif_displaymessage(fd, atcmd_output);
 		} else {
-			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
+			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
 			return -1;
 		}
 	} else {
-		clif_displaymessage(fd, msg_table[3]); // Character not found.
+		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
 	}
 
@@ -4543,7 +4530,7 @@ int atcommand_revive(
 	pl_sd = map_nick2sd(atcmd_player_name);
 	
 	if (!pl_sd) {
-		clif_displaymessage(fd, msg_table[3]); // Character not found.
+		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
 	}
 	
@@ -4551,7 +4538,7 @@ int atcommand_revive(
 		return -1;
 	
 	clif_skill_nodamage(&sd->bl,&sd->bl,ALL_RESURRECTION,4,1);
-	clif_displaymessage(fd, msg_table[51]); // Character revived.
+	clif_displaymessage(fd, msg_txt(51)); // Character revived.
 	return 0;
 }
 
@@ -8158,7 +8145,7 @@ atcommand_pettalk(
 	if (sscanf(message, "%99[^\n]", mes) < 1)
 		return -1;
 
-	snprintf(temp, sizeof temp ,"%s : %s",sd->pet.name,mes);
+	snprintf(temp, sizeof temp ,"%s : %s",pd->pet.name,mes);
 	clif_message(&pd->bl, temp);
 
 	return 0;
@@ -8212,7 +8199,7 @@ atcommand_reset(
 {
 	pc_resetstate(sd);
 	pc_resetskill(sd,1);
-	sprintf(atcmd_output, msg_table[208], sd->status.name); // '%s' skill and stats points reseted!
+	sprintf(atcmd_output, msg_txt(208), sd->status.name); // '%s' skill and stats points reseted!
 	clif_displaymessage(fd, atcmd_output);
 	return 0;
 }
