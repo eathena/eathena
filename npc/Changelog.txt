@@ -34,6 +34,9 @@ Playtester
 
 Date		Added
 ======
+08/21
+	* Merged DTS Warper from Trunk [Evera]
+	- New $dtsday system and counts weeks from voting, so people can revote [Evera]
 08/20
 	* Implemented the Einbroch polution script. [MasterOfMuppets]
 	* Implemented the official 2005 headgear quests. [MasterOfMuppets]
