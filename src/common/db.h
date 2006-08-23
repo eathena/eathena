@@ -103,7 +103,7 @@ void db_free_unlock(struct dbt *table);
 
 
 
-class db_iterator
+template<typename KEY, typename DATA> class db_iterator
 {
 	struct dbt* table;
 	struct dbn *curr;
@@ -146,8 +146,8 @@ public:
 	operator const bool() const		{ return NULL!=curr; }
 	bool isValid() const			{ return NULL!=curr; }
 
-	void* key() const				{ return (curr) ? curr->key  : NULL; }
-	void* data() const				{ return (curr) ? curr->data : NULL; }
+	KEY  key() const				{ return (KEY) ((curr) ? curr->key  : NULL); }
+	DATA data() const				{ return (DATA)((curr) ? curr->data : NULL); }
 };
 
 

@@ -13,7 +13,7 @@
 
 void npc_chat_finalize(struct npc_data *nd);
 
-//int npc_chat_sub(struct block_list &bl, va_list &ap);
+//int npc_chat_sub(block_list &bl, va_list &ap);
 
 class CNpcChat : public CMapProcessor
 {
@@ -25,7 +25,7 @@ public:
 		: msg(m), len(m?strlen(m):0), sd(s)
 	{}
 	~CNpcChat()	{}
-	virtual int process(struct block_list& bl) const;
+	virtual int process(block_list& bl) const;
 };
 
 

@@ -4161,8 +4161,9 @@ int CHomunculusDB_txt::homunculus_to_string(char *str, size_t sz, CHomunculus &h
 	int len=0, i;
 
 	len=snprintf(str, sz, 
-		"%lu,%lu,%lu,"
-		"%lu,%.24s,"
+		"%lu,%lu,%lu"
+		"\t%.24s\t"
+		"%lu,"
 		"%lu,%lu,"
 		"%lu,%lu,"
 		"%u,%u,%u,"
@@ -4170,7 +4171,8 @@ int CHomunculusDB_txt::homunculus_to_string(char *str, size_t sz, CHomunculus &h
 		"%u,%u,"
 		"%lu,%u,%u,%u,%u\t",
 		(ulong)hom.homun_id, (ulong)hom.account_id, (ulong)hom.char_id,
-		(ulong)hom.base_exp, (hom.name && hom.name[0])?hom.name:"dummy", 
+		(hom.name && hom.name[0])?hom.name:"dummy", 
+		(ulong)hom.base_exp,
 		(ulong)hom.hp,(ulong)hom.max_hp,
 		(ulong)hom.sp,(ulong)hom.max_sp,
 		hom.class_,hom.status_point,hom.skill_point,
@@ -4195,22 +4197,26 @@ bool CHomunculusDB_txt::homunculus_from_string(const char *str, CHomunculus &hom
 	char tmp_str[256];
 	int len;
 	int s=sscanf(str,
-		"%u,%u,%u,"
-		"%u,%256[^,],"
+		"%u,%u,%u"
+		"\t%256[^\t]\t"
+		"%u,"
 		"%u,%u,"
 		"%u,%u,"
 		"%u,%u,%u,"
 		"%u,%u,%u,%u,%u,%u,"
 		"%u,%u,"
-		"%u,%u,%u,%u,%u\t%n",
+		"%u,%u,%u,%u,%u\t"
+		"%n",
 		&tmp_int[ 0],&tmp_int[ 1],&tmp_int[ 2],
-		&tmp_int[ 3],tmp_str,
+		tmp_str,
+		&tmp_int[ 3],
 		&tmp_int[ 4],&tmp_int[ 5],
 		&tmp_int[ 6],&tmp_int[ 7],
 		&tmp_int[ 8],&tmp_int[ 9],&tmp_int[10],
 		&tmp_int[11],&tmp_int[12],&tmp_int[13],&tmp_int[14],&tmp_int[15],&tmp_int[16],
 		&tmp_int[17],&tmp_int[18],
-		&tmp_int[19],&tmp_int[20],&tmp_int[21],&tmp_int[22],&tmp_int[23],&len);
+		&tmp_int[19],&tmp_int[20],&tmp_int[21],&tmp_int[22],&tmp_int[23],
+		&len);
 
 	if(s==25)
 	{

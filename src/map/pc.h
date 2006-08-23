@@ -9,7 +9,6 @@
 static inline void pc_setdead(struct map_session_data &sd)	{ sd.state.dead_sit = 1; }
 static inline void pc_setsit(struct map_session_data &sd)	{ sd.state.dead_sit = 2; }
 static inline bool pc_issit(struct map_session_data &sd)	{ return sd.state.dead_sit == 2; }
-static inline void pc_setchatid(struct map_session_data &sd, unsigned int chatid)	{ sd.chatID = chatid; }
 static inline bool pc_ishiding(struct map_session_data &sd) { return 0 != (sd.status.option&0x4006); }
 static inline bool pc_iscloaking(struct map_session_data &sd) { return 0==(sd.status.option&0x4000) && 0!=(sd.status.option&0x0004); }
 static inline bool pc_ischasewalk(struct map_session_data &sd) { return 0 != (sd.status.option&0x4000); }
@@ -26,7 +25,7 @@ int pc_getrefinebonus(int lv,int type);
 
 int pc_setrestartvalue(struct map_session_data &sd,int type);
 int pc_makesavestatus(struct map_session_data &sd);
-int pc_authok(uint32 id, uint32 login_id2, time_t connect_until_time, unsigned char *buf);
+int pc_authok(uint32 charid, uint32 login_id2, time_t connect_until_time, unsigned char *buf);
 int pc_authfail(int fd);
 
 bool pc_isequipable(struct map_session_data &sd, unsigned short inx);
@@ -84,18 +83,18 @@ void pc_blockskill_start (struct map_session_data &sd, unsigned short skillid, u
 
 int pc_insert_card(struct map_session_data &sd, unsigned short idx_card, unsigned short idx_equip);
 
-int pc_item_identify(struct map_session_data &sd, unsigned short idx);
-int pc_item_repair(struct map_session_data &sd, unsigned short idx); // [Celest]
-int pc_item_refine(struct map_session_data &sd, unsigned short idx); // [Celest]
-int pc_steal_item(struct map_session_data &sd,struct block_list *bl);
-int pc_steal_coin(struct map_session_data &sd,struct block_list *bl);
+int pc_item_identify(map_session_data &sd, unsigned short idx);
+int pc_item_repair(map_session_data &sd, unsigned short idx); // [Celest]
+int pc_item_refine(map_session_data &sd, unsigned short idx); // [Celest]
+int pc_steal_item(map_session_data &sd, block_list *bl);
+int pc_steal_coin(map_session_data &sd, block_list *bl);
 
-int pc_modifybuyvalue(struct map_session_data &sd,size_t orig_value);
-int pc_modifysellvalue(struct map_session_data &sd,size_t orig_value);
+int pc_modifybuyvalue(map_session_data &sd,size_t orig_value);
+int pc_modifysellvalue(map_session_data &sd,size_t orig_value);
 
-int pc_attack(struct map_session_data &sd,uint32 target_id,int type);
+int pc_attack(map_session_data &sd,uint32 target_id,int type);
 
-int pc_follow(struct map_session_data &sd, uint32 target_id); // [MouseJstr]
+int pc_follow(map_session_data &sd, uint32 target_id); // [MouseJstr]
 int pc_stop_following(struct map_session_data &sd);
 
 int pc_checkbaselevelup(struct map_session_data &sd);
@@ -118,7 +117,7 @@ int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short 
 int pc_unequipitem(struct map_session_data &sd,unsigned short inx, int flag);
 int pc_useitem(struct map_session_data &sd,unsigned short inx);
 
-int pc_damage(struct map_session_data &sd, long damage, struct block_list *src);
+int pc_damage(map_session_data &sd, long damage, block_list *src);
 int pc_heal(struct map_session_data &sd,long hp,long sp);
 int pc_itemheal(struct map_session_data &sd,long hp,long sp);
 int pc_percentheal(struct map_session_data &sd,long hp,long sp);
@@ -199,11 +198,6 @@ void do_final_pc(void);
 
 enum {ADDITEM_EXIST,ADDITEM_NEW,ADDITEM_OVERAMOUNT};
 
-// timer for night.day
-extern int day_timer_tid;
-extern int night_timer_tid;
-int map_day_timer(int tid, unsigned long tick, int id, basics::numptr data); // by [yor]
-int map_night_timer(int tid, unsigned long tick, int id, basics::numptr data); // by [yor]
 
 #endif
 

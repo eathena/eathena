@@ -1,4 +1,18 @@
 Date	Added
+08/23
+	* fixed mysql connection bug
+	* added overflow protection to config reading
+	* templated the db_iterator to prevent extra casting on access level
+	* some more simplification on command storage and changed some command
+	   behaviour (ie. allowing a map parameter for weather commands)
+	* moving id storages to their intended places, 
+	  still allowing external access until finally wrapping them
+	* removed the old blabla2something functions and provided some static members
+	  for accessing given objects from ids
+	* extracted and compound some behavioral elements formaly distributed all 
+	  over the code (like day/night cyle or the permanent char name storage)
+	* changed the static initializers, although code is correct and working,
+	  gcc is erroneously convinced to give warnings there [Shinomori]
 08/21	
 	* Added VC++8.0 project files [Toms]
 	* Added some svn:ignore properties [Toms]

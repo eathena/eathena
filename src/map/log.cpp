@@ -86,33 +86,32 @@ int should_log_item(int filter, unsigned short nameid)
 
 int log_branch(struct map_session_data &sd)
 {
-	FILE *logfp;
-
-	if(log_config.enable_logs <= 0)
-		return 0;
-
+	if( log_config.enable_logs )
+	{
 #if defined(WITH_MYSQL)
-	if(log_config.sql_logs > 0)
-	{
-		char t_name[64];
-		char tmp_sql[16384];
-		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`branch_date`, `account_id`, `char_id`, `char_name`, `map`) VALUES (NOW(), '%ld', '%ld', '%s', '%s')",
-			log_config.log_branch_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), sd.mapname);
-		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
-			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
-	}
-	else
-#endif
-	{
-		if((logfp=basics::safefopen(log_config.log_branch,"a+")) != NULL)
+		if(log_config.sql_logs)
 		{
-			char timestring[128];
-			time_t curtime;
+			char t_name[64];
+			char tmp_sql[16384];
+			snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`branch_date`, `account_id`, `char_id`, `char_name`, `map`) VALUES (NOW(), '%ld', '%ld', '%s', '%s')",
+				log_config.log_branch_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), sd.mapname);
+			if(mysql_SendQuery(&logmysql_handle, tmp_sql))
+				ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
+		}
+		else
+#endif
+		{
+			FILE *logfp;
+			if((logfp=basics::safefopen(log_config.log_branch,"a+")) != NULL)
+			{
+				char timestring[128];
+				time_t curtime;
 
-			time(&curtime);
-			strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-			fprintf(logfp,"%s - %s[%ld:%ld]\t%s"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, sd.mapname);
-			fclose(logfp);
+				time(&curtime);
+				strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
+				fprintf(logfp,"%s - %s[%ld:%ld]\t%s"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, sd.mapname);
+				fclose(logfp);
+			}
 		}
 	}
 	return 0;
@@ -123,7 +122,7 @@ int log_drop(struct map_session_data &sd, uint32 monster_id, int log_drop[])
 	FILE *logfp;
 	int i,flag = 0;
 
-	if(log_config.enable_logs <= 0)
+	if( !log_config.enable_logs )
 		return 0;
 
 	for (i = 0; i<10; ++i) { //Should we log these items? [Lupus]
@@ -132,7 +131,7 @@ int log_drop(struct map_session_data &sd, uint32 monster_id, int log_drop[])
 	if (flag==0) return 0; //we skip logging this items set - they doesn't met our logging conditions [Lupus]
 
 #if defined(WITH_MYSQL)
-	if(log_config.sql_logs > 0)
+	if(log_config.sql_logs)
 	{
 		char tmp_sql[16384];
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`drop_date`, `kill_char_id`, `monster_id`, `item1`, `item2`, `item3`, `item4`, `item5`, `item6`, `item7`, `item8`, `item9`, `itemCard`, `map`) VALUES (NOW(), '%ld', '%ld', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s') ", log_config.log_drop_db, (unsigned long)sd.status.char_id, (unsigned long)monster_id, log_drop[0], log_drop[1], log_drop[2], log_drop[3], log_drop[4], log_drop[5], log_drop[6], log_drop[7], log_drop[8], log_drop[9], sd.mapname);
@@ -159,11 +158,11 @@ int log_mvpdrop(struct map_session_data &sd, uint32 monster_id, int log_mvp[])
 {
 	FILE *logfp;
 
-	if(log_config.enable_logs <= 0)
+	if( !log_config.enable_logs )
 		return 0;
 
 #if defined(WITH_MYSQL)
-	if(log_config.sql_logs > 0)
+	if(log_config.sql_logs)
 	{
 		char tmp_sql[16384];
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`mvp_date`, `kill_char_id`, `monster_id`, `prize`, `mvpexp`, `map`) VALUES (NOW(), '%ld', '%ld', '%d', '%d', '%s') ", log_config.log_mvpdrop_db, (unsigned long)sd.status.char_id, (unsigned long)monster_id, log_mvp[0], log_mvp[1], sd.mapname);
@@ -190,12 +189,12 @@ int log_present(struct map_session_data &sd, int source_type, unsigned short nam
 {
 	FILE *logfp;
 
-	if(log_config.enable_logs <= 0)
+	if( !log_config.enable_logs )
 		return 0;
 
 	if(!should_log_item(log_config.present,nameid)) return 0;	//filter [Lupus]
 #if defined(WITH_MYSQL)
-	if(log_config.sql_logs > 0)
+	if(log_config.sql_logs)
 	{
 		char tmp_sql[16384];
 		char t_name[64];
@@ -225,12 +224,12 @@ int log_produce(struct map_session_data &sd, unsigned short nameid, int slot1, i
 {
 	FILE *logfp;
 
-	if(log_config.enable_logs <= 0)
+	if( !log_config.enable_logs )
 		return 0;
 
 	if(!should_log_item(log_config.produce,nameid)) return 0;	//filter [Lupus]
 #if defined(WITH_MYSQL)
-	if(log_config.sql_logs > 0)
+	if(log_config.sql_logs)
 	{
 		char tmp_sql[16384];
 		char t_name[64];
@@ -263,7 +262,7 @@ int log_refine(struct map_session_data &sd, int n, int success)
 	int item_level;
 	int i;
 
-	if(log_config.enable_logs <= 0)
+	if( !log_config.enable_logs )
 		return 0;
 
 	if(success == 0)
@@ -275,7 +274,7 @@ int log_refine(struct map_session_data &sd, int n, int success)
 		log_card[i] = sd.status.inventory[n].card[i];
 
 #if defined(WITH_MYSQL)
-	if(log_config.sql_logs > 0)
+	if(log_config.sql_logs)
 	{
 		char tmp_sql[16384];
 		char t_name[64];
@@ -305,7 +304,7 @@ int log_tostorage(struct map_session_data &sd,int n, int guild)
 {
   FILE *logfp;
 
-  if(log_config.enable_logs <= 0 || log_config.storage == 0 || log_config.log_storage[0] == '\0')
+  if(!log_config.enable_logs || log_config.storage == 0 || log_config.log_storage[0] == '\0')
     return 0;
 	if(sd.status.inventory[n].nameid==0 || sd.inventory_data[n] == NULL)
     return 1;
@@ -338,7 +337,7 @@ int log_fromstorage(struct map_session_data &sd,int n, int guild)
 {
   FILE *logfp;
 
-  if(log_config.enable_logs <= 0 || log_config.storage == 0 || log_config.log_storage[0] == '\0')
+  if( !log_config.enable_logs || log_config.storage == 0 || log_config.log_storage[0] == '\0')
     return 0;
 	if(sd.status.inventory[n].nameid==0 || sd.inventory_data[n] == NULL)
     return 1;
@@ -372,7 +371,7 @@ int log_trade(struct map_session_data &sd, struct map_session_data &target_sd, i
 	FILE *logfp;
 	int log_nameid, log_amount, log_refine, log_card[4];
 	int i;
-	if(log_config.enable_logs <= 0)
+	if( !log_config.enable_logs )
 		return 0;
 
 
@@ -390,7 +389,7 @@ int log_trade(struct map_session_data &sd, struct map_session_data &target_sd, i
 		log_card[i] = sd.status.inventory[n].card[i];
 
 #if defined(WITH_MYSQL)
-	if(log_config.sql_logs > 0)
+	if(log_config.sql_logs)
 	{
 		char tmp_sql[16384];
 		char t_name[64],t_name2[64];
@@ -420,7 +419,7 @@ int log_vend(struct map_session_data &sd,struct map_session_data &vsd,int n,int 
 	FILE *logfp;
 	int log_nameid, log_amount, log_refine, log_card[4];
 	int i;
-	if(log_config.enable_logs <= 0)
+	if( !log_config.enable_logs )
 		return 0;
 
 	if(sd.status.inventory[n].nameid==0 || amount <= 0 || sd.status.inventory[n].amount<amount || sd.inventory_data[n] == NULL)
@@ -435,7 +434,7 @@ int log_vend(struct map_session_data &sd,struct map_session_data &vsd,int n,int 
 		log_card[i] = sd.status.inventory[n].card[i];
 
 #if defined(WITH_MYSQL)
-	if(log_config.sql_logs > 0)
+	if(log_config.sql_logs)
 	{
 		char tmp_sql[16384];
 		char t_name[64],t_name2[64];
@@ -465,11 +464,11 @@ int log_zeny(struct map_session_data &sd, struct map_session_data &target_sd,int
 {
 	FILE *logfp;
 
-	if(log_config.enable_logs <= 0)
+	if( !log_config.enable_logs )
 		return 0;
 
 #if defined(WITH_MYSQL)
-	if(log_config.sql_logs > 0)
+	if(log_config.sql_logs)
 	{
 		char tmp_sql[16384];
 		char t_name[64],t_name2[64];
@@ -495,15 +494,13 @@ int log_zeny(struct map_session_data &sd, struct map_session_data &target_sd,int
 	return 0;
 }
 
-int log_atcommand(struct map_session_data &sd, const char *message)
+int log_atcommand(const map_session_data &sd, const char *message, unsigned cmdlvl)
 {
-	FILE *logfp;
-
-	if(log_config.enable_logs <= 0)
+	if( !log_config.enable_logs || cmdlvl < log_config.gmlevel )
 		return 0;
 
 #if defined(WITH_MYSQL)
-	if(log_config.sql_logs > 0)
+	if(log_config.sql_logs)
 	{
 		char tmp_sql[16384];
 		char t_name[64];
@@ -517,6 +514,7 @@ int log_atcommand(struct map_session_data &sd, const char *message)
 	else
 #endif
 	{
+		FILE *logfp;
 		if((logfp=basics::safefopen(log_config.log_gm,"a+")) != NULL) {
 			char timestring[128];
 			time_t curtime;
@@ -534,11 +532,11 @@ int log_npc(struct map_session_data &sd, const char *message)
 {	//[Lupus]
 	FILE *logfp;
 
-	if(log_config.enable_logs <= 0)
+	if( !log_config.enable_logs )
 		return 0;
 
 #if defined(WITH_MYSQL)
-	if(log_config.sql_logs > 0)
+	if(log_config.sql_logs)
 	{
 		char tmp_sql[16384];
 		char t_name[64];
@@ -588,7 +586,7 @@ int log_chat(const char *type, int type_id, int src_charid, int src_accid, const
 		return 0; //Deactivated
 
 #if defined(WITH_MYSQL)
-	if(log_config.sql_logs > 0)
+	if(log_config.sql_logs)
 	{
 		char tmp_sql[16384];
 		char t_msg[100]; //The chat line, 100 should be high enough above overflow...
@@ -662,85 +660,134 @@ int log_config_read(const char *cfgName)
 
 	while(fgets(line, sizeof(line), fp))
 	{
-		if( !prepare_line(line) )
-			continue;
-
-		if(sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2)
+		if( prepare_line(line) && 2==sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
 		{
 			basics::itrim(w1);
+			if(!*w1) continue;
 			basics::itrim(w2);
-			if(strcasecmp(w1,"enable_logs") == 0) {
-				log_config.enable_logs = (atoi(w2));
-			} else if(strcasecmp(w1,"sql_logs") == 0) {
-				log_config.sql_logs = (atoi(w2));
+
+			if(strcasecmp(w1,"enable_logs") == 0)
+			{
+				log_config.enable_logs = config_switch(w2);
+			}
+			else if(strcasecmp(w1,"sql_logs") == 0)
+			{
+				log_config.sql_logs = config_switch(w2);
 //start of common filter settings
-			} else if(strcasecmp(w1,"rare_items_log") == 0) {
+			}
+			else if(strcasecmp(w1,"rare_items_log") == 0)
+			{
 				log_config.rare_items_log = (atoi(w2));
-			} else if(strcasecmp(w1,"refine_items_log") == 0) {
+			}
+			else if(strcasecmp(w1,"refine_items_log") == 0)
+			{
 				log_config.refine_items_log = (atoi(w2));
-			} else if(strcasecmp(w1,"price_items_log") == 0) {
+			}
+			else if(strcasecmp(w1,"price_items_log") == 0)
+			{
 				log_config.price_items_log = (atoi(w2));
-			} else if(strcasecmp(w1,"amount_items_log") == 0) {
+			}
+			else if(strcasecmp(w1,"amount_items_log") == 0)
+			{
 				log_config.amount_items_log = (atoi(w2));
 //end of common filter settings
-			} else if(strcasecmp(w1,"log_branch") == 0) {
+			}
+			else if(strcasecmp(w1,"log_branch") == 0)
+			{
 				log_config.branch = (atoi(w2));
-			} else if(strcasecmp(w1,"log_drop") == 0) {
+			}
+			else if(strcasecmp(w1,"log_drop") == 0)
+			{
 				log_config.drop = (atoi(w2));
-			} else if(strcasecmp(w1,"log_mvpdrop") == 0) {
+			}
+			else if(strcasecmp(w1,"log_mvpdrop") == 0)
+			{
 				log_config.mvpdrop = (atoi(w2));
-			} else if(strcasecmp(w1,"log_present") == 0) {
+			}
+			else if(strcasecmp(w1,"log_present") == 0)
+			{
 				log_config.present = (atoi(w2));
-			} else if(strcasecmp(w1,"log_produce") == 0) {
+			}
+			else if(strcasecmp(w1,"log_produce") == 0)
+			{
 				log_config.produce = (atoi(w2));
-			} else if(strcasecmp(w1,"log_refine") == 0) {
+			}
+			else if(strcasecmp(w1,"log_refine") == 0)
+			{
 				log_config.refine = (atoi(w2));
-			} else if(strcasecmp(w1,"log_trade") == 0) {
+			}
+			else if(strcasecmp(w1,"log_trade") == 0)
+			{
 				log_config.trade = (atoi(w2));
-			} else if(strcasecmp(w1,"log_storage") == 0) {
+			}
+			else if(strcasecmp(w1,"log_storage") == 0)
+			{
 				log_config.storage = (atoi(w2));
-			} else if(strcasecmp(w1,"log_vend") == 0) {
+			}
+			else if(strcasecmp(w1,"log_vend") == 0)
+			{
 				log_config.vend = (atoi(w2));
-			} else if(strcasecmp(w1,"log_zeny") == 0) {
+			}
+			else if(strcasecmp(w1,"log_zeny") == 0)
+			{
 				if(log_config.trade != 1)
 					log_config.zeny = 0;
 				else
 					log_config.zeny = (atoi(w2));
-			} else if(strcasecmp(w1,"log_gm") == 0) {				
-				log_config.gm = (atoi(w2));
-			} else if(strcasecmp(w1,"log_npc") == 0) {
+			}
+			else if(strcasecmp(w1,"log_gm") == 0)
+			{				
+				log_config.gmlevel = config_switch(w2,0,100);
+			}
+			else if(strcasecmp(w1,"log_npc") == 0)
+			{
 				log_config.npc = (atoi(w2));
-			} else if(strcasecmp(w1, "log_chat") == 0) {
+			}
+			else if(strcasecmp(w1, "log_chat") == 0)
+			{
 				log_config.chat = (atoi(w2));
 			}
 
 #if defined(WITH_MYSQL)
-			else if(strcasecmp(w1, "log_branch_db") == 0) {
-				strcpy(log_config.log_branch_db, w2);
+			else if(strcasecmp(w1, "log_branch_db") == 0)
+			{
+				safestrcpy(log_config.log_branch_db, sizeof(log_config.log_branch_db), w2);
 				if(log_config.branch == 1)
 					ShowInfo("Logging Dead Branch Usage to table `%s`\n", w2);
-			} else if(strcasecmp(w1, "log_drop_db") == 0) {
-				strcpy(log_config.log_drop_db, w2);
+			}
+			else if(strcasecmp(w1, "log_drop_db") == 0)
+			{
+				safestrcpy(log_config.log_drop_db, sizeof(log_config.log_drop_db), w2);
 				if(log_config.drop == 1)
 					ShowInfo("Logging Item Drops to table `%s`\n", w2);
-			} else if(strcasecmp(w1, "log_mvpdrop_db") == 0) {
-				strcpy(log_config.log_mvpdrop_db, w2);
+			}
+			else if(strcasecmp(w1, "log_mvpdrop_db") == 0)
+			{
+				safestrcpy(log_config.log_mvpdrop_db, sizeof(log_config.log_mvpdrop_db), w2);
 				if(log_config.mvpdrop == 1)
 					ShowInfo("Logging MVP Drops to table `%s`\n", w2);
-			} else if(strcasecmp(w1, "log_present_db") == 0) {
-				strcpy(log_config.log_present_db, w2);
+			}
+			else if(strcasecmp(w1, "log_present_db") == 0)
+			{
+				safestrcpy(log_config.log_present_db, sizeof(log_config.log_present_db), w2);
 				if(log_config.present == 1)
 					ShowInfo("Logging Present Usage & Results to table `%s`\n", w2);
-			} else if(strcasecmp(w1, "log_produce_db") == 0) {
-				strcpy(log_config.log_produce_db, w2);
+			}
+			else if(strcasecmp(w1, "log_produce_db") == 0)
+			{
+				safestrcpy(log_config.log_produce_db, sizeof(log_config.log_produce_db), w2);
 				if(log_config.produce == 1)
 					ShowInfo("Logging Producing to table `%s`\n", w2);
-			} else if(strcasecmp(w1, "log_refine_db") == 0) {
-				strcpy(log_config.log_refine_db, w2);
+			}
+			else if(strcasecmp(w1, "log_refine_db") == 0)
+			{
+				safestrcpy(log_config.log_refine_db, sizeof(log_config.log_refine_db), w2);
 				if(log_config.refine == 1)
 					ShowInfo("Logging Refining to table `%s`\n", w2);
-			} else if(strcasecmp(w1, "log_trade_db") == 0) {
-				strcpy(log_config.log_trade_db, w2);
+			}
+			else if(strcasecmp(w1, "log_trade_db") == 0)
+			{
+				safestrcpy(log_config.log_trade_db, sizeof(log_config.log_trade_db), w2);
 				if(log_config.trade == 1)
 				{
 					ShowInfo("Logging Item Trades");
@@ -748,102 +795,148 @@ int log_config_read(const char *cfgName)
 						ShowMessage("and Zeny Trades");
 					ShowMessage(" to table `%s`\n", w2);
 				}
-//			} else if(strcasecmp(w1, "log_storage_db") == 0) {
-//				strcpy(log_config.log_storage_db, w2);
+			}
+//			else if(strcasecmp(w1, "log_storage_db") == 0)
+//			{
+//				safestrcpy(log_config.log_storage_db, sizeof(log_config.log_storage_db), w2);
 //				if(log_config.storage == 1)
 //				{
 //					ShowInfo("Logging Item Storages");
 //					ShowMessage(" to table `%s`\n", w2);
 //				}
-			} else if(strcasecmp(w1, "log_vend_db") == 0) {
-				strcpy(log_config.log_vend_db, w2);
+//			}
+			else if(strcasecmp(w1, "log_vend_db") == 0)
+			{
+				safestrcpy(log_config.log_vend_db, sizeof(log_config.log_vend_db), w2);
 				if(log_config.vend == 1)
 					ShowInfo("Logging Vending to table `%s`\n", w2);
-			} else if(strcasecmp(w1, "log_gm_db") == 0) {
-				strcpy(log_config.log_gm_db, w2);
-				if(log_config.gm > 0)
-					ShowInfo("Logging GM Level %d Commands to table `%s`\n", log_config.gm, w2);
-			} else if(strcasecmp(w1, "log_npc_db") == 0) {
-				strcpy(log_config.log_npc_db, w2);
+			}
+			else if(strcasecmp(w1, "log_gm_db") == 0)
+			{
+				safestrcpy(log_config.log_gm_db, sizeof(log_config.log_gm_db), w2);
+				if(log_config.gmlevel < 100)
+					ShowInfo("Logging GM Level %d Commands to table `%s`\n", log_config.gmlevel, w2);
+			}
+			else if(strcasecmp(w1, "log_npc_db") == 0)
+			{
+				safestrcpy(log_config.log_npc_db, sizeof(log_config.log_npc_db), w2);
 				if(log_config.npc > 0)
 					ShowInfo("Logging NPC 'logmes' to table `%s`\n", w2);
-			} else if(strcasecmp(w1, "log_chat_db") == 0) {
-				strcpy(log_config.log_chat_db, w2);
+			}
+			else if(strcasecmp(w1, "log_chat_db") == 0)
+			{
+				safestrcpy(log_config.log_chat_db, sizeof(log_config.log_chat_db), w2);
 				if(log_config.chat > 0)
 					ShowInfo("Logging CHAT to table `%s`\n", w2);
-		} else if(strcasecmp(w1,"log_db")==0) {
-			strcpy(log_db, w2);
-		} else if(strcasecmp(w1,"log_db_ip")==0) {
-			strcpy(log_db_ip, w2);
-		} else if(strcasecmp(w1,"log_db")==0) {
-			strcpy(log_db, w2);
-		} else if(strcasecmp(w1,"log_db_id")==0) {
-			strcpy(log_db_id, w2);
-		} else if(strcasecmp(w1,"log_db_pw")==0) {
-			strcpy(log_db_pw, w2);
-		} else if(strcasecmp(w1,"log_db_port")==0) {
-			log_db_port = atoi(w2);
+			}
+			else if(strcasecmp(w1,"log_db")==0)
+			{
+				safestrcpy(log_db, sizeof(log_db), w2);
+			}
+			else if(strcasecmp(w1,"log_db_ip")==0)
+			{
+				safestrcpy(log_db_ip, sizeof(log_db_ip), w2);
+			}
+			else if(strcasecmp(w1,"log_db")==0)
+			{
+				safestrcpy(log_db, sizeof(log_db), w2);
+			}
+			else if(strcasecmp(w1,"log_db_id")==0)
+			{
+				safestrcpy(log_db_id, sizeof(log_db_id), w2);
+			}
+			else if(strcasecmp(w1,"log_db_pw")==0)
+			{
+				safestrcpy(log_db_pw, sizeof(log_db_pw), w2);
+			}
+			else if(strcasecmp(w1,"log_db_port")==0)
+			{
+				log_db_port = atoi(w2);
 			}
 #endif
-
-			else if(strcasecmp(w1, "log_branch_file") == 0) {
-				strcpy(log_config.log_branch, w2);
-				if(log_config.branch > 0 && log_config.sql_logs < 1)
+			else if(strcasecmp(w1, "log_branch_file") == 0)
+			{
+				safestrcpy(log_config.log_branch, sizeof(log_config.log_branch), w2);
+				if(log_config.branch > 0 && !log_config.sql_logs )
 					ShowInfo("Logging Dead Branch Usage to file `%s`.txt\n", w2);
-			} else if(strcasecmp(w1, "log_drop_file") == 0) {
-				strcpy(log_config.log_drop, w2);
-				if(log_config.drop > 0 && log_config.sql_logs < 1)
+			}
+			else if(strcasecmp(w1, "log_drop_file") == 0)
+			{
+				safestrcpy(log_config.log_drop, sizeof(log_config.log_drop), w2);
+				if(log_config.drop > 0 && !log_config.sql_logs )
 					ShowInfo("Logging Item Drops to file `%s`.txt\n", w2);
-			} else if(strcasecmp(w1, "log_mvpdrop_file") == 0) {
-				strcpy(log_config.log_mvpdrop, w2);
-				if(log_config.mvpdrop > 0 && log_config.sql_logs < 1)
+			}
+			else if(strcasecmp(w1, "log_mvpdrop_file") == 0)
+			{
+				safestrcpy(log_config.log_mvpdrop, sizeof(log_config.log_mvpdrop), w2);
+				if(log_config.mvpdrop > 0 && !log_config.sql_logs )
 					ShowInfo("Logging MVP Drops to file `%s`.txt\n", w2);
-			} else if(strcasecmp(w1, "log_present_file") == 0) {
-				strcpy(log_config.log_present, w2);
-				if(log_config.present > 0 && log_config.sql_logs < 1)
+			}
+			else if(strcasecmp(w1, "log_present_file") == 0)
+			{
+				safestrcpy(log_config.log_present, sizeof(log_config.log_present), w2);
+				if(log_config.present > 0 && !log_config.sql_logs )
 					ShowInfo("Logging Present Usage & Results to file `%s`.txt\n", w2);
-			} else if(strcasecmp(w1, "log_produce_file") == 0) {
-				strcpy(log_config.log_produce, w2);
-				if(log_config.produce > 0 && log_config.sql_logs < 1)
+			}
+			else if(strcasecmp(w1, "log_produce_file") == 0)
+			{
+				safestrcpy(log_config.log_produce, sizeof(log_config.log_produce), w2);
+				if(log_config.produce > 0 && !log_config.sql_logs )
 					ShowInfo("Logging Producing to file `%s`.txt\n", w2);
-			} else if(strcasecmp(w1, "log_refine_file") == 0) {
-				strcpy(log_config.log_refine, w2);
-				if(log_config.refine > 0 && log_config.sql_logs < 1)
+			}
+			else if(strcasecmp(w1, "log_refine_file") == 0)
+			{
+				safestrcpy(log_config.log_refine, sizeof(log_config.log_refine), w2);
+				if(log_config.refine > 0 && !log_config.sql_logs )
 					ShowInfo("Logging Refining to file `%s`.txt\n", w2);
-			} else if(strcasecmp(w1, "log_trade_file") == 0) {
-				strcpy(log_config.log_trade, w2);
-				if(log_config.trade > 0 && log_config.sql_logs < 1)
+			}
+			else if(strcasecmp(w1, "log_trade_file") == 0)
+			{
+				safestrcpy(log_config.log_trade, sizeof(log_config.log_trade), w2);
+				if(log_config.trade > 0 && !log_config.sql_logs )
 				{
 					ShowInfo("Logging Item Trades");
 					if(log_config.zeny > 0)
 						ShowMessage("and Zeny Trades");
 					ShowMessage(" to file `%s`.txt\n", w2);
 				}
-			} else if(strcasecmp(w1, "log_storage_file") == 0) {
-				strcpy(log_config.log_storage, w2);
-				if(log_config.storage > 0 && log_config.sql_logs < 1)
+			}
+			else if(strcasecmp(w1, "log_storage_file") == 0)
+			{
+				safestrcpy(log_config.log_storage, sizeof(log_config.log_storage), w2);
+				if(log_config.storage > 0 && !log_config.sql_logs )
 				{
 					ShowInfo("Logging Item Storages");
 					ShowMessage(" to file `%s`.txt\n", w2);
 				}
-			} else if(strcasecmp(w1, "log_vend_file") == 0) {
-				strcpy(log_config.log_vend, w2);
-				if(log_config.vend > 0  && log_config.sql_logs < 1)
+			}
+			else if(strcasecmp(w1, "log_vend_file") == 0)
+			{
+				safestrcpy(log_config.log_vend, sizeof(log_config.log_vend), w2);
+				if(log_config.vend > 0  && !log_config.sql_logs)
 					ShowInfo("Logging Vending to file `%s`.txt\n", w2);
-			} else if(strcasecmp(w1, "log_gm_file") == 0) {
-				strcpy(log_config.log_gm, w2);
-				if(log_config.gm > 0 && log_config.sql_logs < 1)
-					ShowInfo("Logging GM Level %d Commands to file `%s`.txt\n", log_config.gm, w2);
-			} else if(strcasecmp(w1, "log_npc_file") == 0) {
-				strcpy(log_config.log_npc, w2);
-				if(log_config.npc > 0 && log_config.sql_logs < 1)
+			}
+			else if(strcasecmp(w1, "log_gm_file") == 0)
+			{
+				safestrcpy(log_config.log_gm, sizeof(log_config.log_gm), w2);
+				if(log_config.gmlevel < 100 && !log_config.sql_logs )
+					ShowInfo("Logging GM Level %d Commands to file `%s`.txt\n", log_config.gmlevel, w2);
+			}
+			else if(strcasecmp(w1, "log_npc_file") == 0)
+			{
+				safestrcpy(log_config.log_npc, sizeof(log_config.log_npc), w2);
+				if(log_config.npc > 0 && !log_config.sql_logs )
 					ShowInfo("Logging NPC 'logmes' to file `%s`.txt\n", w2);
-			} else if(strcasecmp(w1, "log_chat_file") == 0) {
-				strcpy(log_config.log_chat, w2);
-				if(log_config.chat > 0 && log_config.sql_logs < 1)					
+			}
+			else if(strcasecmp(w1, "log_chat_file") == 0)
+			{
+				safestrcpy(log_config.log_chat, sizeof(log_config.log_chat), w2);
+				if(log_config.chat > 0 && !log_config.sql_logs )
 					ShowInfo("Logging CHAT to file `%s`.txt\n", w2);
 			//support the import command, just like any other config
-			} else if(strcasecmp(w1,"import") == 0) {
+			}
+			else if(strcasecmp(w1,"import") == 0)
+			{
 				log_config_read(w2);
 			}
 		}

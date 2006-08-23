@@ -114,13 +114,13 @@ enum {
 
 struct castend_delay
 {
-	struct block_list &src;
+	block_list &src;
 	uint32 target_id;
 	unsigned short skill_id;
 	unsigned short skill_lv;
 	int flag;
 
-	castend_delay(struct block_list &s, uint32 tid, unsigned short skid, unsigned short  sklv, int f) :
+	castend_delay(block_list &s, uint32 tid, unsigned short skid, unsigned short  sklv, int f) :
 	 	src(s),
 		target_id(tid),
 		skill_id(skid),
@@ -200,38 +200,38 @@ int skill_use_pos( struct map_session_data *sd,int skill_x, int skill_y, unsigne
 
 int skill_castend_map( struct map_session_data *sd,int skill_num, const char *manname);
 
-int skill_cleartimerskill(struct block_list *src);
-int skill_addtimerskill(struct block_list *src,unsigned long tick,int target,int x,int y,unsigned short skill_id,unsigned short skill_lv,int type,int flag);
+int skill_cleartimerskill(block_list *src);
+int skill_addtimerskill(block_list *src,unsigned long tick,int target,int x,int y,unsigned short skill_id,unsigned short skill_lv,int type,int flag);
 
 // 追加?果
-int skill_additional_effect( struct block_list* src, struct block_list *bl,unsigned short skillid,unsigned short skilllv,int attack_type,unsigned long tick);
+int skill_additional_effect( block_list* src, block_list *bl,unsigned short skillid,unsigned short skilllv,int attack_type,unsigned long tick);
 
 // ユニットスキル
-struct skill_unit_group *skill_unitsetting( struct block_list *src, unsigned short skillid,unsigned short skilllv,int x,int y,int flag);
+struct skill_unit_group *skill_unitsetting( block_list *src, unsigned short skillid,unsigned short skilllv,int x,int y,int flag);
 struct skill_unit *skill_initunit(struct skill_unit_group *group,int idx,int x,int y);
 int skill_delunit(struct skill_unit *unit);
-struct skill_unit_group *skill_initunitgroup(struct block_list *src,int count,unsigned short skillid,unsigned short skilllv,int unit_id);
+struct skill_unit_group *skill_initunitgroup(block_list *src,int count,unsigned short skillid,unsigned short skilllv,int unit_id);
 int skill_delunitgroup(struct skill_unit_group &group);
-int skill_clear_unitgroup(struct block_list *src);
+int skill_clear_unitgroup(block_list *src);
 
-int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,int damage,unsigned long tick);
+int skill_unit_ondamaged(struct skill_unit *src,block_list *bl,int damage,unsigned long tick);
 
-int skill_castfix(struct block_list *bl, long time);
-int skill_delayfix(struct block_list *bl, long time);
+int skill_castfix(block_list *bl, long time);
+int skill_delayfix(block_list *bl, long time);
 int skill_check_unit_range(int m,int x,int y,unsigned short skillid, unsigned short skilllv);
 int skill_check_unit_range2(int m,int x,int y,unsigned short skillid, unsigned short skilllv, int type);
 
 // -- moonsoul	(added skill_check_unit_cell)
 //int skill_check_unit_cell(int skillid,int m,int x,int y,int unit_id);
-//int skill_unit_out_all( struct block_list *bl,unsigned long tick,int range);
-int skill_unit_move(struct block_list &bl,unsigned long tick,int flag);
+//int skill_unit_out_all( block_list *bl,unsigned long tick,int range);
+int skill_unit_move(block_list &bl,unsigned long tick,int flag);
 int skill_unit_move_unit_group(struct skill_unit_group& group, unsigned short m, int dx,int dy);
 
-struct skill_unit_group *skill_check_dancing( struct block_list *src );
-void skill_stop_dancing(struct block_list *src, int flag);
+struct skill_unit_group *skill_check_dancing( block_list *src );
+void skill_stop_dancing(block_list *src, int flag);
 
 // Guild skills [celest]
-//int skill_guildaura_sub (struct block_list &bl,va_list &ap);
+//int skill_guildaura_sub (block_list &bl,va_list &ap);
 class CSkillGuildaura : public CMapProcessor
 {
 	uint32 id;
@@ -240,30 +240,30 @@ class CSkillGuildaura : public CMapProcessor
 public:
 	CSkillGuildaura(uint32 i, uint32 g, int f) : id(i), gid(g), flag(f)	{}
 	~CSkillGuildaura()	{}
-	virtual int process(struct block_list& bl) const;
+	virtual int process(block_list& bl) const;
 };
 
 // 詠唱キャンセル
-int skill_castcancel(struct block_list *bl,int type);
+int skill_castcancel(block_list *bl,int type);
 
 int skill_gangsterparadise(struct map_session_data *sd ,int type);
 int skill_rest(struct map_session_data &sd ,int type);
-int skill_check_moonlit (struct block_list *bl, int dx, int dy);
+int skill_check_moonlit (block_list *bl, int dx, int dy);
 void skill_brandishspear_first(struct square *tc,int dir,int x,int y);
 void skill_brandishspear_dir(struct square *tc,int dir,int are);
 int skill_autospell(struct map_session_data *md,int skillid);
 void skill_devotion(struct map_session_data *md,uint32 target);
-void skill_devotion2(struct block_list *bl,uint32 crusader);
-int skill_devotion3(struct block_list *bl,uint32 target);
+void skill_devotion2(block_list *bl,uint32 crusader);
+int skill_devotion3(block_list *bl,uint32 target);
 void skill_devotion_end(struct map_session_data *md,struct map_session_data *sd,uint32 target);
 
 #define skill_calc_heal(bl,skill_lv) (( status_get_lv(bl)+status_get_int(bl) )/8 *(4+ skill_lv*8))
 
 // その他
-int skill_check_cloaking(struct block_list *bl);
+int skill_check_cloaking(block_list *bl);
 
 // ステ?タス異常
-int skill_enchant_elemental_end(struct block_list *bl, int type);
+int skill_enchant_elemental_end(block_list *bl, int type);
 int skillnotok(int skillid, struct map_session_data &sd);
 
 // アイテム作成
@@ -273,12 +273,12 @@ int skill_produce_mix( struct map_session_data &sd, unsigned short nameid, unsig
 int skill_arrow_create( struct map_session_data *sd,unsigned short nameid);
 
 // mobスキルのため
-int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag );
-int skill_castend_damage_id  ( struct block_list* src, struct block_list *bl,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag );
-int skill_castend_pos2       ( struct block_list *src, int x,int y,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag);
+int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag );
+int skill_castend_damage_id  ( block_list* src, block_list *bl,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag );
+int skill_castend_pos2       ( block_list *src, int x,int y,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag);
 
 // スキル攻?一括?理
-int skill_attack(int attack_type, struct block_list* src, struct block_list *dsrc,struct block_list *bl,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag );
+int skill_attack(int attack_type, block_list* src, block_list *dsrc,block_list *bl,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag );
 
 void skill_reload(void);
 

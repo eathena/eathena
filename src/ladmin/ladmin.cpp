@@ -4157,57 +4157,76 @@ int ladmin_config_read(const char *cfgName) {
 	}
 	while(fgets(line, sizeof(line), fp))
 	{
-		if( !prepare_line(line) )
-			continue;
-
-		line[sizeof(line)-1] = '\0';
-		if (sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2)
+		if( prepare_line(line) && 2==sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
 		{
 			remove_control_chars(w1);
-			remove_control_chars(w2);
 			basics::itrim(w1);
+			if(!*w1) continue;
+			
+			remove_control_chars(w2);
 			basics::itrim(w2);
-
-			if(strcasecmp(w1,"login_ip")==0){
+			
+			if(0==strcasecmp(w1,"login_ip"))
+			{
 				struct hostent *h = gethostbyname (w2);
-				if (h != NULL) {
-					if (defaultlanguage == 'F') {
+				if(h != NULL)
+				{
+					if (defaultlanguage == 'F')
+					{
 						ShowMessage("Adresse du serveur de logins: %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-					} else {
+					}
+					else
+					{
 						ShowMessage("Login server IP address: %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 					}
 					snprintf(loginserverip, sizeof(loginserverip), "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-				} else
-					memcpy(loginserverip, w2, 16);
-			} else if (strcasecmp(w1, "login_port") == 0) {
+				}
+				else
+					safestrcpy(loginserverip, sizeof(loginserverip), w2);
+			}
+			else if (strcasecmp(w1, "login_port") == 0)
+			{
 				loginserverport = atoi(w2);
-			} else if (strcasecmp(w1, "admin_pass") == 0) {
+			}
+			else if (strcasecmp(w1, "admin_pass") == 0)
+			{
 				safestrcpy(loginserveradminpassword, sizeof(loginserveradminpassword), w2);
-			} else if (strcasecmp(w1, "passenc") == 0) {
+			}
+			else if (strcasecmp(w1, "passenc") == 0)
+			{
 				passenc = atoi(w2);
 				if (passenc < 0 || passenc > 2)
 					passenc = 0;
-			} else if (strcasecmp(w1, "defaultlanguage") == 0) {
+			}
+			else if (strcasecmp(w1, "defaultlanguage") == 0)
+			{
 				if (w2[0] == 'F' || w2[0] == 'E')
 					defaultlanguage = w2[0];
-			} else if (strcasecmp(w1, "ladmin_log_filename") == 0) {
+			}
+			else if (strcasecmp(w1, "ladmin_log_filename") == 0)
+			{
 				safestrcpy(ladmin_log_filename, sizeof(ladmin_log_filename), w2);
-			} else if (strcasecmp(w1, "date_format") == 0) { // note: never have more than 19 char for the date!
-				switch (atoi(w2)) {
+			}
+			else if (strcasecmp(w1, "date_format") == 0)
+			{	// note: never have more than 19 char for the date!
+				switch (atoi(w2))
+				{
 				case 0:
-					strcpy(date_format, "%d-%m-%Y %H:%M:%S"); // 31-12-2004 23:59:59
+					safestrcpy(date_format, sizeof(date_format), "%d-%m-%Y %H:%M:%S"); // 31-12-2004 23:59:59
 					break;
 				case 1:
-					strcpy(date_format, "%m-%d-%Y %H:%M:%S"); // 12-31-2004 23:59:59
+					safestrcpy(date_format, sizeof(date_format), "%m-%d-%Y %H:%M:%S"); // 12-31-2004 23:59:59
 					break;
 				case 2:
-					strcpy(date_format, "%Y-%d-%m %H:%M:%S"); // 2004-31-12 23:59:59
+					safestrcpy(date_format, sizeof(date_format), "%Y-%d-%m %H:%M:%S"); // 2004-31-12 23:59:59
 					break;
 				case 3:
-					strcpy(date_format, "%Y-%m-%d %H:%M:%S"); // 2004-12-31 23:59:59
+					safestrcpy(date_format, sizeof(date_format), "%Y-%m-%d %H:%M:%S"); // 2004-12-31 23:59:59
 					break;
 				}
-			} else if (strcasecmp(w1, "import") == 0) {
+			}
+			else if (strcasecmp(w1, "import") == 0)
+			{
 				ladmin_config_read(w2);
 			}
 		}

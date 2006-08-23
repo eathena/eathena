@@ -528,7 +528,7 @@ int buildin_defpattern(CScriptEngine &st)
     int setid=st.GetInt(st[2]);
     const char *pattern=st.GetString(st[3]);
     const char *label=st.GetString(st[4]);
-    struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
+    npc_data *nd= npc_data::from_blid(st.oid);
 	if(nd) 
 		npc_chat_def_pattern(nd, setid, pattern, label);
     return 0;
@@ -536,7 +536,7 @@ int buildin_defpattern(CScriptEngine &st)
 int buildin_activatepset(CScriptEngine &st)
 {
     int setid=st.GetInt(st[2]);
-    struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
+    npc_data *nd= npc_data::from_blid(st.oid);
 	if(nd)
 		activate_pcreset(nd, setid);
 
@@ -545,7 +545,7 @@ int buildin_activatepset(CScriptEngine &st)
 int buildin_deactivatepset(CScriptEngine &st)
 {
     int setid=st.GetInt(st[2]);
-    struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
+    npc_data *nd=npc_data::from_blid(st.oid);
 	if(nd)
 		deactivate_pcreset(nd, setid);
 
@@ -554,7 +554,7 @@ int buildin_deactivatepset(CScriptEngine &st)
 int buildin_deletepset(CScriptEngine &st)
 {
     int setid=st.GetInt(st[2]);
-    struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
+    npc_data *nd= npc_data::from_blid(st.oid);
 	if(nd)
 		delete_pcreset(nd, setid);
     return 0;
@@ -564,7 +564,7 @@ int buildin_deletepset(CScriptEngine &st)
 
 void npc_chat_finalize(struct npc_data *nd)			{}
 
-//int npc_chat_sub(struct block_list &bl, va_list &ap){ return 0; }
+//int npc_chat_sub(block_list &bl, va_list &ap)		{ return 0; }
 int CNpcChat::process(block_list &bl) const			{ return 0; }
 int buildin_defpattern(CScriptEngine &st)			{ return 0; }
 int buildin_activatepset(CScriptEngine &st)			{ return 0; }

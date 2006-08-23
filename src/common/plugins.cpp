@@ -118,8 +118,8 @@ int register_plugin_func (char *name)
 	if (name)
 	{
 		evl = new Plugin_Event_List;
-		evl->name = new char[1+strlen(name)];
 		evl->next = event_head;
+		evl->name = new char[1+strlen(name)];
 		strcpy(evl->name, name);
 		evl->events = NULL;
 		event_head = evl;
@@ -328,25 +328,28 @@ int plugins_config_read(const char *cfgName)
 	}
 	while (fgets(line, sizeof(line), fp))
 	{
-		if( !prepare_line(line) )
-			continue;
-		if (sscanf(line,"%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) != 2)
-			continue;
-		basics::itrim(w1);
-		basics::itrim(w2);
-
-		if (strcasecmp(w1, "auto_search") == 0)
+		if( prepare_line(line) && 2==sscanf(line,"%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
 		{
-			auto_search = config_switch(w2);
+			basics::itrim(w1);
+			if(!*w1) continue;
+			
+			basics::itrim(w2);
+			
+			if (strcasecmp(w1, "auto_search") == 0)
+			{
+				auto_search = config_switch(w2);
+			}
+			else if (strcasecmp(w1, "plugin") == 0)
+			{
+				char filename[128];
+				snprintf(filename, sizeof(filename), "addons%c%s%s", PATHSEP, w2, DLL_EXT);
+				plugin_open(filename, true);
+			}
+			else if (strcasecmp(w1, "import") == 0)
+			{
+				plugins_config_read(w2);
+			}
 		}
-		else if (strcasecmp(w1, "plugin") == 0)
-		{
-			char filename[128];
-			snprintf(filename, sizeof(filename), "addons%c%s%s", PATHSEP, w2, DLL_EXT);
-			plugin_open(filename, true);
-		}
-		else if (strcasecmp(w1, "import") == 0)
-			plugins_config_read(w2);
 	}
 	fclose(fp);
 	return 0;

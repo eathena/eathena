@@ -62,6 +62,7 @@ bool CConfig::LoadConfig(const char* cfgName)
 		if( sscanf(ip, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2 )
 		{
 			CleanString(w1);
+			if(!*w1) continue;
 			CleanString(w2);
 
 			if( strcasecmp(w1, "import") == 0 ||

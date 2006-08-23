@@ -934,9 +934,10 @@ void grfio_resourcecheck()
 
 		for(ptr=buf; ptr-buf<size;)
 		{
-			if(sscanf(ptr,"%256[^#]#%256[^#]#",w1,w2)==2)
+			if( 2==sscanf(ptr,"%256[^#]#%256[^#]#",w1,w2) )
 			{
 				basics::itrim(w1);
+				if(!*w1) continue;
 				basics::itrim(w2);
 				if(strstr(w2,"bmp"))
 				{
@@ -1062,11 +1063,10 @@ void grfio_init(const char *fname)
 
 		while(fgets(line, sizeof(line), data_conf))
 		{
-			if( !prepare_line(line) )
-				continue;
-			if( sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2 )
+			if( prepare_line(line) && 2==sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
 			{
 				basics::trim(w1);
+				if(!*w1) continue;
 				basics::trim(w2);
 				// Entry table reading
 				if( 0==strcasecmp(w1, "data_dir_priority") )
@@ -1074,15 +1074,15 @@ void grfio_init(const char *fname)
 					data_dir_priority = atoi(w2);
 					has_priority = true;
 				}
-				else if( strcasecmp(w1, "grf") == 0 ||
-						strcasecmp(w1, "data") == 0 ||
-						strcasecmp(w1, "sdata") == 0 ||
-						strcasecmp(w1, "adata") == 0 )
+				else if( 0==strcasecmp(w1, "grf") ||
+						 0==strcasecmp(w1, "data") ||
+						 0==strcasecmp(w1, "sdata") ||
+						 0==strcasecmp(w1, "adata") )
 				{
 					// increment if successfully loaded
 					result += (grfio_add_archive(w2) == 0);
 				}
-				else if(strcasecmp(w1,"data_dir") == 0)	// Data directory
+				else if( 0==strcasecmp(w1,"data_dir") )	// Data directory
 				{
 					safestrcpy(data_dir, sizeof(data_dir), w2);
 					// set the priority equal to the currently read archive index

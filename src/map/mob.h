@@ -129,41 +129,41 @@ enum {
 
 int mobdb_searchname(const char *str);
 int mobdb_checkid(const uint32 id);
-int mob_once_spawn(struct map_session_data *sd,const char *mapname,
+int mob_once_spawn(map_session_data *sd,const char *mapname,
 	int x,int y,const char *mobname,int class_,int amount,const char *event);
-int mob_once_spawn_area(struct map_session_data *sd,const char *mapname,
+int mob_once_spawn_area(map_session_data *sd,const char *mapname,
 	int x0,int y0,int x1,int y1,
 	const char *mobname,int class_,int amount,const char *event);
 
-int mob_spawn_guardian(struct map_session_data *sd,const char *mapname,	// Spawning Guardians [Valaris]
+int mob_spawn_guardian(map_session_data *sd,const char *mapname,	// Spawning Guardians [Valaris]
 	int x,int y,const char *mobname,int class_,int amount,const char *event,int guardian);	// Spawning Guardians [Valaris]
 
 
-int mob_target(struct mob_data &md,struct block_list *bl,int dist);
+int mob_target(mob_data &md, block_list *bl,int dist);
 int mob_spawn(uint32 id);
 int mob_setdelayspawn(uint32 id);
-int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src);
-int mob_heal(struct mob_data &md,int heal);
+int mob_damage(mob_data &md,int damage,int type, block_list *src);
+int mob_heal(mob_data &md,int heal);
 
 int do_init_mob(void);
 
-void mob_unload(struct mob_data &md);
-int mob_remove_map(struct mob_data &md, int type);
+void mob_unload(mob_data &md);
+int mob_remove_map(mob_data &md, int type);
 int mob_timer_delete(int tid, unsigned long tick, int id, basics::numptr data);
 
-int mob_deleteslave(struct mob_data &md);
+int mob_deleteslave(mob_data &md);
 
-int mob_class_change(struct mob_data &md,int value[], size_t count);
-int mob_warp(struct mob_data &md,int m,int x,int y,int type);
+int mob_class_change(mob_data &md,int value[], size_t count);
+int mob_warp(mob_data &md,int m,int x,int y,int type);
 
-int mobskill_use(struct mob_data &md,unsigned long tick,int event);
-int mobskill_event(struct mob_data &md,int flag);
+int mobskill_use(mob_data &md,unsigned long tick,int event);
+int mobskill_event(mob_data &md,int flag);
 int mobskill_castend_id(int tid, unsigned long tick, int id, basics::numptr data);
 int mobskill_castend_pos(int tid, unsigned long tick, int id, basics::numptr data);
 int mob_summonslave(struct mob_data &md2,int *value,size_t amount,unsigned short skillid);
-unsigned int mob_countslave(struct mob_data &md);
+unsigned int mob_countslave(mob_data &md);
 
-bool mob_gvmobcheck(struct map_session_data &sd, struct block_list &bl);
+bool mob_gvmobcheck(map_session_data &sd, block_list &bl);
 void mob_reload(void);
 
 #endif

@@ -31,13 +31,9 @@ void vending_closevending(struct map_session_data &sd)
  */
 void vending_vendinglistreq(struct map_session_data &sd, uint32 id)
 {
-	struct map_session_data *vsd;
-
-	if( (vsd=map_id2sd(id)) == NULL )
-		return;
-	if(vsd->vender_id==0)
-		return;
-	clif_vendinglist(sd,id,vsd->vending);
+	struct map_session_data *vsd=map_session_data::from_blid(id);
+	if( vsd && vsd->vender_id )
+		clif_vendinglist(sd,id,vsd->vending);
 }
 
 /*==========================================
@@ -51,7 +47,7 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
 	unsigned short blank, vend_list[MAX_VENDING];
 	unsigned short amount, index, new_ = 0;
 	struct vending vending[MAX_VENDING]; // against duplicate packets
-	struct map_session_data *vsd = map_id2sd(id);
+	struct map_session_data *vsd = map_session_data::from_blid(id);
 
 	if(vsd == NULL)
 		return;

@@ -339,7 +339,7 @@ int guild_create(struct map_session_data &sd,const char *name)
 // ì¬‰Â”Û
 int guild_created(uint32 account_id,uint32 guild_id)
 {
-	struct map_session_data *sd=map_id2sd(account_id);
+	struct map_session_data *sd=map_session_data::from_blid(account_id);
 
 	if(sd==NULL)
 		return 0;
@@ -462,7 +462,7 @@ int guild_recv_info(struct guild &sg)
 		before = *g;
 		//If the guild master is online the first time the guild_info is received, that means he was the first to join,
 		//and as such, his guild skills should be blocked to avoid login/logout abuse [Skotlex]
-		if( (sd = map_nick2sd(sg.master)) != NULL )
+		if( (sd = map_session_data::nick2sd(sg.master)) != NULL )
 		{
 			int skill_num[] = { GD_BATTLEORDER, GD_REGENERATION, GD_RESTORE, GD_EMERGENCYCALL };
 			for (i = 0; i < 4; ++i)
@@ -481,7 +481,7 @@ int guild_recv_info(struct guild &sg)
 	{	// sd‚Ìİ’è‚Æl”‚ÌŠm”F
 		if(g->member[i].account_id>0)
 		{
-			struct map_session_data *sd = map_id2sd(g->member[i].account_id);
+			struct map_session_data *sd = map_session_data::from_blid(g->member[i].account_id);
 			if (sd && sd->status.char_id == g->member[i].char_id &&
 				sd->status.guild_id == g->guild_id &&
 				!sd->state.waitingdisconnect)
@@ -553,7 +553,7 @@ int guild_invite(struct map_session_data &sd,uint32 account_id)
 	struct guild *g;
 	size_t i;
 
-	tsd= map_id2sd(account_id);
+	tsd= map_session_data::from_blid(account_id);
 	g=guild_search(sd.status.guild_id);
 	if(tsd==NULL || g==NULL)
 		return 0;
@@ -589,9 +589,8 @@ int guild_invite(struct map_session_data &sd,uint32 account_id)
 // ƒMƒ‹ƒhŠ©—U‚Ö‚Ì•Ô“š
 int guild_reply_invite(struct map_session_data &sd,uint32 guild_id,int flag)
 {
-	struct map_session_data *tsd;
-
-	nullpo_retr(0, tsd= map_id2sd( sd.guild_invite_account ));
+	struct map_session_data *tsd = map_session_data::from_blid( sd.guild_invite_account );
+	nullpo_retr(0, tsd);
 
 	if(sd.guild_invite!=guild_id)	// Š©—U‚ÆƒMƒ‹ƒhID‚ªˆá‚¤
 		return 0;
@@ -635,7 +634,7 @@ int guild_reply_invite(struct map_session_data &sd,uint32 guild_id,int flag)
 // ƒMƒ‹ƒhƒƒ“ƒo‚ª’Ç‰Á‚³‚ê‚½
 int guild_member_added(uint32 guild_id,uint32 account_id,uint32 char_id,int flag)
 {
-	struct map_session_data *sd= map_id2sd(account_id),*sd2;
+	struct map_session_data *sd= map_session_data::from_blid(account_id),*sd2;
 	struct guild *g=guild_search(guild_id);
 
 	if( g==NULL )
@@ -649,7 +648,7 @@ int guild_member_added(uint32 guild_id,uint32 account_id,uint32 char_id,int flag
 		}
 		return 0;
 	}
-	sd2 = map_id2sd(sd->guild_invite_account);
+	sd2 = map_session_data::from_blid(sd->guild_invite_account);
 	if(flag==1){	// ¸”s
 		if( sd2!=NULL )
 			clif_guild_inviteack(*sd2,3);
@@ -726,7 +725,7 @@ int guild_explusion(struct map_session_data &sd,uint32 guild_id,uint32 account_i
 // ƒMƒ‹ƒhƒƒ“ƒo‚ª’E‘Ş‚µ‚½
 int guild_member_leaved(uint32 guild_id,uint32 account_id,uint32 char_id,int flag,const char *name,const char *mes)
 {
-	struct map_session_data *sd=map_charid2sd(char_id);
+	struct map_session_data *sd=map_session_data::charid2sd(char_id);
 	struct guild *g=guild_search(guild_id);
 
 	if(g!=NULL){
@@ -826,7 +825,7 @@ int guild_recv_memberinfoshort(uint32 guild_id,uint32 account_id,uint32 char_id,
 	}
 	if(idx == -1 || c == 0) {
 		// ƒMƒ‹ƒh‚Ìƒƒ“ƒo[ŠO‚È‚Ì‚Å’Ç•úˆµ‚¢‚·‚é
-		struct map_session_data *sd = map_id2sd(account_id);
+		struct map_session_data *sd = map_session_data::from_blid(account_id);
 		if(sd && sd->status.char_id == char_id) {
 			sd->status.guild_id=0;
 			sd->guild_emblem_id=0;
@@ -843,7 +842,7 @@ int guild_recv_memberinfoshort(uint32 guild_id,uint32 account_id,uint32 char_id,
 		clif_guild_memberlogin_notice(*g,idx,online);
 
 	for(i=0;i<g->max_member;++i){	// sdÄİ’è
-		struct map_session_data *sd= map_id2sd(g->member[i].account_id);
+		struct map_session_data *sd= map_session_data::from_blid(g->member[i].account_id);
 		if (sd && sd->status.char_id == g->member[i].char_id &&
 			sd->status.guild_id == g->guild_id &&
 			!sd->state.waitingdisconnect)
@@ -1075,7 +1074,7 @@ int guild_skillup(struct map_session_data &sd, unsigned short skillid,int flag)
 // ƒXƒLƒ‹ƒ|ƒCƒ“ƒgŠ„‚èU‚è’Ê’m
 int guild_skillupack(uint32 guild_id,uint32 skillid,uint32 account_id)
 {
-	struct map_session_data *sd=map_id2sd(account_id);
+	struct map_session_data *sd=map_session_data::from_blid(account_id);
 	struct guild *g=guild_search(guild_id);
 	int i;
 	if(g==NULL)
@@ -1123,7 +1122,7 @@ int guild_check_alliance(uint32 guild_id1, uint32 guild_id2, int flag)
 // ƒMƒ‹ƒh“¯–¿—v‹
 int guild_reqalliance(struct map_session_data &sd,uint32 account_id)
 {
-	struct map_session_data *tsd= map_id2sd(account_id);
+	struct map_session_data *tsd= map_session_data::from_blid(account_id);
 	struct guild *g[2];
 	int i;
 
@@ -1171,7 +1170,7 @@ int guild_reqalliance(struct map_session_data &sd,uint32 account_id)
 int guild_reply_reqalliance(struct map_session_data &sd,uint32 account_id,int flag)
 {
 	struct map_session_data *tsd;
-	nullpo_retr(0, tsd= map_id2sd( account_id ));
+	nullpo_retr(0, tsd= map_session_data::from_blid( account_id ));
 
 	if(sd.guild_alliance!=tsd->status.guild_id)	// Š©—U‚ÆƒMƒ‹ƒhID‚ªˆá‚¤
 		return 0;
@@ -1240,7 +1239,7 @@ int guild_delalliance(struct map_session_data &sd,uint32 guild_id,int flag)
 // ƒMƒ‹ƒh“G‘Î
 int guild_opposition(struct map_session_data &sd,uint32 char_id)
 {
-	struct map_session_data *tsd=map_id2sd(char_id);
+	struct map_session_data *tsd=map_session_data::from_blid(char_id);
 	struct guild *g;
 	int i;
 
@@ -1280,8 +1279,8 @@ int guild_allianceack(uint32 guild_id1,uint32 guild_id2,uint32 account_id1,uint3
 	guild_id[1] = guild_id2;
 	guild_name[0] = name1;
 	guild_name[1] = name2;
-	sd[0] = map_id2sd(account_id1);
-	sd[1] = map_id2sd(account_id2);
+	sd[0] = map_session_data::from_blid(account_id1);
+	sd[1] = map_session_data::from_blid(account_id2);
 
 	g[0]=guild_search(guild_id1);
 	g[1]=guild_search(guild_id2);

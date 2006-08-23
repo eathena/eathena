@@ -10,6 +10,18 @@
 struct movable : public block_list
 {
 public:
+	/////////////////////////////////////////////////////////////////
+	static movable* from_blid(uint32 id)
+	{
+		block_list* bl = block_list::from_blid(id);
+		return bl?bl->get_movable():NULL;
+	}
+
+	/////////////////////////////////////////////////////////////////
+
+
+
+public:
 	walkpath_data walkpath;
 	coordinate walktarget;
 

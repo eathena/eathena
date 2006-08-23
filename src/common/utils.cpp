@@ -37,14 +37,15 @@ void dump(unsigned char *buffer, size_t num)
 }
 
 
-int config_switch(const char *str)
+int config_switch(const char *str, int min, int max)
 {
 	char *ss=NULL;
 	if (strcasecmp(str, "on") == 0 || strcasecmp(str, "yes") == 0 || strcasecmp(str, "oui") == 0 || strcasecmp(str, "ja") == 0 || strcasecmp(str, "si") == 0)
 		return 1;
 	if (strcasecmp(str, "off") == 0 || strcasecmp(str, "no" ) == 0 || strcasecmp(str, "non") == 0 || strcasecmp(str, "nein") == 0)
 		return 0;
-	return strtoul(str, &ss, 0);
+	long val = strtol(str, &ss, 0);
+	return (val>=max)?max:(val<=min)?min:val;
 }
 
 
@@ -104,7 +105,7 @@ const char *strcpytolower(char *tar, const char *str)
 	if(str && p)
 	while(*str) 
 	{
-		*p = tolower( (int)((unsigned char)*str) );
+		*p = basics::stringcheck::tolower(*str);
 		p++, str++;
 	}
 	if(p) *p=0;
@@ -116,7 +117,7 @@ const char *strcpytolower(char *tar, size_t sz, const char *str)
 	if(str && p)
 	while(*str) 
 	{
-		*p = tolower( (int)((unsigned char)*str) );
+		*p = basics::stringcheck::tolower(*str);
 		p++, str++;
 		if(tar+sz-1<=p)
 			break;
@@ -160,25 +161,43 @@ const char *replacecpy(char *tar, size_t sz, const char* src, char rplc, char wi
 	return tar;
 }
 
-const char *mapname2buffer(unsigned char *buffer, size_t cnt, const char *mapname)
+const char *mapname2buffer(unsigned char *buffer, size_t sz, const char *mapname)
 {
 	if(buffer)
 	{
 		if(mapname)
 		{
-			unsigned char*ip = buffer, *ep= buffer+cnt-5; // space for ".gat<eos>"
+			unsigned char*ip = buffer, *ep= buffer+sz-5; // space for ".gat<eos>"
 			while(*mapname && *mapname!='.' && ip<ep)
-				*ip++ = *mapname++;
+				*ip++ = basics::stringcheck::tolower(*mapname++);
 			*ip++ = '.';
 			*ip++ = 'g';
 			*ip++ = 'a';
 			*ip++ = 't';
-			*ip++ = 0;
+			*ip = 0;
 		}
 		else
 			buffer[0]=0;
+		return (const char *)buffer;
 	}
-	return (const char *)buffer;
+	return "";
+}
+const char *buffer2mapname(char *mapname, size_t sz, const char *buffer)
+{
+	if(mapname)
+	{
+		if(buffer)
+		{
+			char*ip = mapname, *ep= mapname+sz-1;
+			while(*buffer && *buffer!='.' && ip<ep)
+				*ip++ = basics::stringcheck::tolower(*buffer++);
+			*ip = 0;
+		}
+		else
+			mapname[0]=0;
+		return mapname;
+	}
+	return "";
 }
 
 const char *is_valid_line(const char *line)
@@ -197,6 +216,7 @@ const char *is_valid_line(const char *line)
 size_t prepare_line(char *line)
 {	// process the string
 	// does itrim behaviour internally also breaks on "//"
+	// returns remaining number of chars in line
 	if(line)
 	{	
 		char *ip=line, *kp=line, mk=0;

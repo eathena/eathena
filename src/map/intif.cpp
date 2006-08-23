@@ -390,7 +390,7 @@ int intif_party_addmember(uint32 party_id,uint32 account_id)
 	struct map_session_data *sd;
 	if( !session_isActive(char_fd) )
 		return 0;
-	sd=map_id2sd(account_id);
+	sd=map_session_data::from_blid(account_id);
 //	if(config.etc_log)
 //		ShowMessage("intif: party add member %d %d\n",party_id,account_id);
 	if(sd!=NULL){
@@ -735,7 +735,7 @@ int intif_parse_WisMessage(int fd)
 	if(config.etc_log)
 		ShowMessage("intif_parse_wismessage: %d %s %s %s\n",id,RFIFOP(fd,6),RFIFOP(fd,30),RFIFOP(fd,54) );
 	
-	sd=map_nick2sd((char*)RFIFOP(fd,32));	// ‘—Mæ‚ð’T‚·
+	sd=map_session_data::nick2sd((char*)RFIFOP(fd,32));	// ‘—Mæ‚ð’T‚·
 	if(sd!=NULL && strcmp(sd->status.name, (char*)RFIFOP(fd,32)) == 0){
 		if(sd->state.ignoreAll == 1){
 			intif_wis_replay(id,2);	// ŽóM‹‘”Û
@@ -765,7 +765,7 @@ int intif_parse_WisEnd(int fd)
 
 	if(config.etc_log)
 		ShowMessage("intif_parse_wisend: player: %s, flag: %d\n", (char*)RFIFOP(fd,2), (unsigned char)RFIFOB(fd,26)); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
-	sd = map_nick2sd((char*)RFIFOP(fd,2));
+	sd = map_session_data::nick2sd((char*)RFIFOP(fd,2));
 	if(sd != NULL)
 		clif_wis_end(sd->fd, RFIFOB(fd,26));
 
@@ -805,7 +805,7 @@ int intif_parse_AccountReg(int fd) {
 	int j,p;
 	struct map_session_data *sd;
 
-	if( (sd=map_id2sd(RFIFOL(fd,4)))==NULL )
+	if( (sd=map_session_data::from_blid(RFIFOL(fd,4)))==NULL )
 		return 1;
 	for(p=8,j=0; p<RFIFOW(fd,2) && j<ACCOUNT_REG_NUM; p+=36,++j){
 		memcpy(sd->status.account_reg[j].str,RFIFOP(fd,p),32);
@@ -837,7 +837,7 @@ int intif_parse_LoadStorage(int fd) {
 				ShowMessage("intif_parse_LoadStorage: data size error %d %d\n", RFIFOW(fd,2)-8, sizeof(struct pc_storage));
 			return 1;
 		}
-		sd=map_id2sd( RFIFOL(fd,4) );
+		sd=map_session_data::from_blid( RFIFOL(fd,4) );
 		if(sd==NULL){
 			if(config.error_log)
 				ShowError("intif_parse_LoadStorage: user not found %ld\n",(unsigned long)RFIFOL(fd,4));
@@ -886,7 +886,7 @@ int intif_parse_LoadGuildStorage(int fd)
 				ShowMessage("intif_parse_LoadGuildStorage: data size error %d %d\n",RFIFOW(fd,2)-12 , sizeof(struct guild_storage));
 			return 1;
 		}
-		sd=map_id2sd( RFIFOL(fd,4) );
+		sd=map_session_data::from_blid( RFIFOL(fd,4) );
 		if(sd==NULL){
 			if(config.error_log)
 				ShowError("intif_parse_LoadGuildStorage: user not found %ld\n",(unsigned long)RFIFOL(fd,4));

@@ -67,6 +67,16 @@ struct random_homun_data
 class homun_data : public fightable
 {
 public:
+	/////////////////////////////////////////////////////////////////
+	static homun_data* from_blid(uint32 id)
+	{
+		block_list* bl = block_list::from_blid(id);
+		return bl?bl->get_hd():NULL;
+	}
+
+	/////////////////////////////////////////////////////////////////
+
+public:
 	struct homunstatus status;
 	struct _state
 	{
@@ -197,10 +207,10 @@ public:
 	int checkskill(unsigned short skill_id);
 	bool check_baselevelup();
 
-	void gain_exp(uint32 base_exp, uint32 job_exp, struct block_list &obj);
+	void gain_exp(uint32 base_exp, uint32 job_exp, block_list &obj);
 	int next_baseexp() const;
 	
-	int damage(struct block_list &src, uint32 damage);
+	int damage(block_list &src, uint32 damage);
 	int heal(int hp, int sp);
 	void delete_natural_heal_timer();
 	void delete_hungry_timer();

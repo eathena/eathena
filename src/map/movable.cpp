@@ -29,7 +29,12 @@ movable::movable() :
 	headdir(DIR_S),
 	speed(DEFAULT_WALK_SPEED)
 {
-	static bool initialiser = (_movable_init(), true);
+	static bool initialiser = true;
+	if(initialiser)
+	{
+		_movable_init();
+		initialiser = false;
+	}
 }
 
 
@@ -78,11 +83,9 @@ void movable::set_headdir(dir_t d)
 /// object interal handler, which formally was pc_timer, mob_timer, etc.
 int movable::walktimer_entry(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	block_list* bl = map_id2bl(id);
-	movable* mv;
-	if( bl && (mv=bl->get_movable()) )
+	movable* mv = movable::from_blid(id);;
+	if( mv )
 	{
-
 		if( mv->get_sd() )
 			mv->get_sd();
 
@@ -157,26 +160,26 @@ bool movable::walktimer_func(unsigned long tick)
 			this->set_dir( d );
 
 			// signal out-of-sight
-			CMap::foreachinmovearea( CClifOutsight(*this),
+			block_list::foreachinmovearea( CClifOutsight(*this),
 				this->block_list::m,this->block_list::x-AREA_SIZE,this->block_list::y-AREA_SIZE,this->block_list::x+AREA_SIZE,this->block_list::y+AREA_SIZE,dx,dy,this->get_sd()?0:BL_PC);
 
 
 			skill_unit_move(*this,tick,0);
 
 			// remove from blocklist when crossing a block border
-			if(moveblock) this->map_delblock();
+			if(moveblock) this->delblock();
 
 			// assign the new coordinate
 			this->block_list::x = x;
 			this->block_list::y = y;
 
 			// reinsert to blocklist when crossing a block border
-			if(moveblock) this->map_addblock();
+			if(moveblock) this->addblock();
 
 			skill_unit_move(*this,tick,1);
 
 			// signal in-sight
-			CMap::foreachinmovearea( CClifInsight(*this),
+			block_list::foreachinmovearea( CClifInsight(*this),
 				this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,this->get_sd()?0:BL_PC);
 
 			// do object depending stuff at the end of the walk step.
@@ -260,7 +263,7 @@ bool movable::can_reach(unsigned short x, unsigned short y) const
 
 ///////////////////////////////////////////////////////////////////////////////
 /// check for reachability with limiting range, but don't build a path
-bool movable::can_reach(const struct block_list &bl, size_t range) const
+bool movable::can_reach(const block_list &bl, size_t range) const
 {
 	if( this->block_list::m == bl.m &&
 		(range==0 || distance(*this, bl) <= (int)range) )
@@ -380,7 +383,7 @@ bool movable::set_walktimer(unsigned long tick)
 
 bool movable::walktoxy(const coordinate& pos, bool easy)
 {
-	if( this->block_list::prev != NULL )
+	if( this->is_on_map() )
 	{
 		if( this->get_sd() )
 			this->get_sd();
@@ -513,17 +516,17 @@ bool movable::movepos(const coordinate &target)
 	{
 		bool moveblock = ( this->block_list::x/BLOCK_SIZE != target.x/BLOCK_SIZE || this->block_list::y/BLOCK_SIZE != target.y/BLOCK_SIZE);
 
-		CMap::foreachinmovearea( CClifOutsight(*this),
+		block_list::foreachinmovearea( CClifOutsight(*this),
 			this->block_list::m,((int)this->block_list::x)-AREA_SIZE,((int)this->block_list::y)-AREA_SIZE,((int)this->block_list::x)+AREA_SIZE,((int)this->block_list::y)+AREA_SIZE,dx,dy,0);
 
 		skill_unit_move(*this,tick,0);
-		if(moveblock) this->map_delblock();
+		if(moveblock) this->delblock();
 		this->block_list::x = target.x;
 		this->block_list::y = target.y;
-		if(moveblock) this->map_addblock();
+		if(moveblock) this->addblock();
 		skill_unit_move(*this,tick,1);
 
-		CMap::foreachinmovearea( CClifInsight(*this),
+		block_list::foreachinmovearea( CClifInsight(*this),
 			this->block_list::m,((int)this->block_list::x)-AREA_SIZE,((int)this->block_list::y)-AREA_SIZE,((int)this->block_list::x)+AREA_SIZE,((int)this->block_list::y)+AREA_SIZE,-dx,-dy,0);
 	}
 	return true;
@@ -535,7 +538,7 @@ bool movable::movepos(const coordinate &target)
 /// it respects the no warp flags, so it is safe to call this without doing nowarpto/nowarp checks.
 bool movable::warp(unsigned short m, unsigned short x, unsigned short y, int type)
 {
-	if(this->block_list::prev==NULL)
+	if( !this->is_on_map() )
 		return false;
 
 	if(type < 0 || type == 1)
@@ -560,13 +563,13 @@ bool movable::warp(unsigned short m, unsigned short x, unsigned short y, int typ
 	}
 
 	clif_clearchar_area(*this, 0);
-	this->map_delblock();
+	this->delblock();
 
 	this->block_list::x = this->walktarget.x = x;
 	this->block_list::y = this->walktarget.y = y;
 	this->block_list::m = m;
 
-	this->map_addblock();
+	this->addblock();
 	clif_spawn(*this);
 
 	skill_unit_move(*this,gettick(),1);

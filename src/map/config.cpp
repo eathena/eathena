@@ -798,24 +798,25 @@ bool CConfig::read(const char *cfgName)
 	fp = basics::safefopen(cfgName,"r");
 	if (fp == NULL)
 	{
-		ShowError("file not found: %s\n", cfgName);
+		ShowError("Configuration file not found: %s\n", cfgName);
 	}
 	else
 	{
 		while(fgets(line,sizeof(line),fp))
 		{
-			if( !prepare_line(line) )
-				continue;
-			if( sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) != 2 )
-				continue;
-			basics::itrim(w1);
-			basics::itrim(w2);
-			if(strcasecmp(w1, "import") == 0)
-				this->read(w2);
-			else
+			if( prepare_line(line) && 2==sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
 			{
-				if( !this->set_value(w1, w2) )
-					ShowWarning("(Config) %s: no such option.\n", w1);
+				basics::itrim(w1);
+				if(!*w1) continue;
+				basics::itrim(w2);
+				
+				if(strcasecmp(w1, "import") == 0)
+					this->read(w2);
+				else
+				{
+					if( !this->set_value(w1, w2) )
+						ShowWarning("(Config) %s: no such option.\n", w1);
+				}
 			}
 		}
 		fclose(fp);
@@ -823,6 +824,7 @@ bool CConfig::read(const char *cfgName)
 		{
 			this->validate();
 		}
+		ShowStatus("Configuration file '%s' read.\n", cfgName);
 		return true;
 	}
 	return false;
@@ -885,34 +887,37 @@ bool CMessageTable::read(const char *cfgName)
 	if((fp = basics::safefopen(cfgName, "r")) == NULL)
 	{
 		ShowError("Messages file not found: %s\n", cfgName);
-		return false;
 	}
-
-	while(fgets(line, sizeof(line), fp))
+	else
 	{
-		if( !prepare_line(line) )
-			continue;
-		if (sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2)
+		while(fgets(line, sizeof(line), fp))
 		{
-			basics::itrim(w1);
-			basics::itrim(w2);
-			if(strcasecmp(w1, "import") == 0)
+			if( prepare_line(line) && 2==sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
 			{
-				this->read(w2);
-			}
-			else
-			{
-				msg_number = atoi(w1);
-				if(msg_number < MAX_MSG)
+				basics::itrim(w1);
+				if(!*w1) continue;
+				basics::itrim(w2);
+
+				if(strcasecmp(w1, "import") == 0)
 				{
-					if (msg_table[msg_number] != NULL)
-						delete[] msg_table[msg_number];
-					msg_table[msg_number] = new char[(1+strlen(w2))];
-					memcpy(msg_table[msg_number],w2,1+strlen(w2));
+					this->read(w2);
+				}
+				else
+				{
+					msg_number = atoi(w1);
+					if(msg_number < MAX_MSG)
+					{
+						if (msg_table[msg_number] != NULL)
+							delete[] msg_table[msg_number];
+						msg_table[msg_number] = new char[(1+strlen(w2))];
+						memcpy(msg_table[msg_number],w2,1+strlen(w2));
+					}
 				}
 			}
 		}
+		fclose(fp);
+		ShowStatus("Messages configuration file '%s' read.\n", cfgName);
+		return true;
 	}
-	fclose(fp);
-	return true;
+	return false;
 }

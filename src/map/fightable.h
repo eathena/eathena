@@ -27,10 +27,23 @@
 
 struct fightable : public movable
 {
+public:
+	/////////////////////////////////////////////////////////////////
+	static fightable* from_blid(uint32 id)
+	{
+		block_list* bl = block_list::from_blid(id);
+		return bl?bl->get_fightable():NULL;
+	}
+
+	/////////////////////////////////////////////////////////////////
+
+
+
 	int attacktimer;
 	int skilltimer;
 	unsigned long attackable_tick;
 	uint32 target_id;
+	unsigned short target_lv;
 	unsigned char attack_continue : 1 ;	// could be part of the attack object
 
 /*

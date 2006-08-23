@@ -22,7 +22,7 @@ void trade_traderequest(struct map_session_data &sd, uint32 target_id)
 	struct map_session_data *target_sd;
 	unsigned char level, level2;
 
-	if ((target_sd = map_id2sd(target_id)) != NULL)
+	if ((target_sd = map_session_data::from_blid(target_id)) != NULL)
 	{
 		if (!config.invite_request_check)
 		{
@@ -73,7 +73,7 @@ void trade_traderequest(struct map_session_data &sd, uint32 target_id)
 void trade_tradeack(struct map_session_data &sd, int type)
 {
 	struct pc_storage *stor;
-	struct map_session_data *target_sd = map_id2sd(sd.trade_partner);
+	struct map_session_data *target_sd = map_session_data::from_blid(sd.trade_partner);
 
 	if( target_sd != NULL )
 	{
@@ -136,26 +136,8 @@ int impossible_trade_check(struct map_session_data &sd)
 				intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message_to_gm);
 				snprintf(message_to_gm, sizeof(message_to_gm),msg_txt(539), sd.status.inventory[index].amount, sd.status.inventory[index].nameid, sd.status.inventory[index].amount - inventory[index].amount); // This player has %d of a kind of item (id: %d), and try to trade %d of them.
 				intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message_to_gm);
-				
-				if(config.ban_hack_trade < 0)
-				{	// if we block people
-					chrif_char_ask_name(-1, sd.status.name, 1, 0, 0, 0, 0, 0, 0); // type: 1 - block
-					session_Remove(sd.fd); // forced to disconnect because of the hack
-					// message about the ban
-					snprintf(message_to_gm, sizeof(message_to_gm),msg_txt(540), config.ban_spoof_namer); //  This player has been definitivly blocked.
-				}
-				else if(config.ban_hack_trade > 0)
-				{	// if we ban people
-					chrif_char_ask_name(-1, sd.status.name, 2, 0, 0, 0, 0, config.ban_hack_trade, 0); // type: 2 - ban (year, month, day, hour, minute, second)
-					session_Remove(sd.fd); // forced to disconnect because of the hack
-					// message about the ban
-					snprintf(message_to_gm, sizeof(message_to_gm),msg_txt(507), config.ban_spoof_namer); //  This player has been banned for %d minute(s).
-				}
-				else
-				{	// message about the ban
-					snprintf(message_to_gm, sizeof(message_to_gm),msg_txt(508)); //  This player hasn't been banned (Ban option is disabled).
-				}
-				intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message_to_gm);
+
+				clif_ban_player(sd, config.ban_hack_trade);
 				return 1;
 			}
 			else
@@ -176,7 +158,7 @@ void trade_tradeadditem(struct map_session_data &sd, unsigned short index, uint3
 	size_t trade_i, trade_weight = 0;
 	size_t c;
 	unsigned char level;
-	struct map_session_data *target_sd = map_id2sd(sd.trade_partner);
+	struct map_session_data *target_sd = map_session_data::from_blid(sd.trade_partner);
 
 	if( (target_sd != NULL) && (sd.deal_locked < 1) )
 	{
@@ -282,7 +264,7 @@ void trade_tradeok(struct map_session_data &sd)
 		return;
 	}
 
-	if ((target_sd = map_id2sd(sd.trade_partner)) != NULL)
+	if ((target_sd = map_session_data::from_blid(sd.trade_partner)) != NULL)
 	{
 		sd.deal_locked = 1;
 		clif_tradeitemok(sd, 0, 0);
@@ -300,7 +282,7 @@ void trade_tradecancel(struct map_session_data &sd)
 	struct map_session_data *target_sd;
 	int trade_i;
 
-	if ((target_sd = map_id2sd(sd.trade_partner)) != NULL)
+	if ((target_sd = map_session_data::from_blid(sd.trade_partner)) != NULL)
 	{
 		for(trade_i = 0; trade_i < MAX_TRADING; ++trade_i)
 		{	// give items back (only virtual)
@@ -345,7 +327,7 @@ void trade_tradecommit(struct map_session_data &sd)
 	struct map_session_data *target_sd;
 	int trade_i;
 	int flag;
-	if ((target_sd = map_id2sd(sd.trade_partner)) != NULL)
+	if ((target_sd = map_session_data::from_blid(sd.trade_partner)) != NULL)
 	{
 		if( (sd.deal_locked >= 1) && (target_sd->deal_locked >= 1) )
 		{	// both have pressed 'ok'

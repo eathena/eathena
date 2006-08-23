@@ -53,12 +53,12 @@ bool CMySQL::DBConnection::startup(void)
 		mysql_init(&(this->cHandle));
 
 		// DB connection start
-		printf("Connect Database Server on %s%u....", cMySQL.mysqldb_ip.c_str(), cMySQL.mysqldb_port);
+		printf("Connect Database Server on %s%u...", cMySQL.mysqldb_ip.c_str(), cMySQL.mysqldb_port);
 		if( mysql_real_connect(&(this->cHandle), cMySQL.mysqldb_ip, cMySQL.mysqldb_id, cMySQL.mysqldb_pw, cMySQL.mysqldb_db, cMySQL.mysqldb_port, (char *)NULL, 0) )
 		{
-			const bool cpset = ( cMySQL.mysqldb_cp.length() && this->PureQuery( "SET NAMES " + cMySQL.mysqldb_cp ) );
-			printf( ((cpset) ? "success!\n" : "success! (cp set to '%s')\n"), (const char*)cMySQL.mysqldb_cp);
 			this->cInit = true;
+			const bool cpset = ( cMySQL.mysqldb_cp.length() && this->PureQuery( "SET NAMES " + cMySQL.mysqldb_cp ) );
+			printf( ((cpset) ? "success! (cp is '%s')\n" : "success!\n"), (const char*)cMySQL.mysqldb_cp);
 		}
 		else
 		{	// pointer check

@@ -422,8 +422,11 @@ void db_free_unlock(struct dbt *table)
 			// need to free it now
 			if(table->cmp == strdb_cmp)
 			{
-				delete[] ((char*)table->free_list[i].z->key);
-				table->free_list[i].z->key=NULL;
+				if(table->free_list[i].z->key)
+				{
+					delete[] ((char*)table->free_list[i].z->key);
+					table->free_list[i].z->key=NULL;
+				}
 			}
 			free_dbn(table->free_list[i].z);
 			table->item_count--;
@@ -643,9 +646,9 @@ void db_final(struct dbt *&table,int (*func)(void*,void*))
 		db_free_lock(table);
 		while(p)
 		{
-			if(func && !p->deleted)
+			if(!p->deleted)
 			{
-				func(p->key,p->data);
+				if(func) func(p->key,p->data);
 				p->key=NULL;
 				p->data=NULL;
 			}

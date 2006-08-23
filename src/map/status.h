@@ -609,88 +609,88 @@ extern int SkillStatusChangeTable[];
 extern int current_equip_item_index;
 
 
-int status_recalc_speed(struct block_list *bl);
+int status_recalc_speed(block_list *bl);
 
 // パラメータ所得系 battle.c より移動
-int status_get_class(struct block_list *bl);
+int status_get_class(block_list *bl);
 int status_get_lv(const block_list *bl);
 int status_get_range(const block_list *bl);
-int status_get_hp(struct block_list *bl);
-int status_get_max_hp(struct block_list *bl);
-int status_get_str(struct block_list *bl);
-int status_get_agi(struct block_list *bl);
-int status_get_vit(struct block_list *bl);
-int status_get_int(struct block_list *bl);
-int status_get_dex(struct block_list *bl);
-int status_get_luk(struct block_list *bl);
-int status_get_hit(struct block_list *bl);
-int status_get_flee(struct block_list *bl);
-int status_get_def(struct block_list *bl);
-int status_get_mdef(struct block_list *bl);
-int status_get_flee2(struct block_list *bl);
-int status_get_def2(struct block_list *bl);
-int status_get_mdef2(struct block_list *bl);
-int status_get_baseatk(struct block_list *bl);
-int status_get_atk(struct block_list *bl);
-int status_get_atk2(struct block_list *bl);
-int status_get_adelay(struct block_list *bl);
+int status_get_hp(block_list *bl);
+int status_get_max_hp(block_list *bl);
+int status_get_str(block_list *bl);
+int status_get_agi(block_list *bl);
+int status_get_vit(block_list *bl);
+int status_get_int(block_list *bl);
+int status_get_dex(block_list *bl);
+int status_get_luk(block_list *bl);
+int status_get_hit(block_list *bl);
+int status_get_flee(block_list *bl);
+int status_get_def(block_list *bl);
+int status_get_mdef(block_list *bl);
+int status_get_flee2(block_list *bl);
+int status_get_def2(block_list *bl);
+int status_get_mdef2(block_list *bl);
+int status_get_baseatk(block_list *bl);
+int status_get_atk(block_list *bl);
+int status_get_atk2(block_list *bl);
+int status_get_adelay(block_list *bl);
 int status_get_amotion(const block_list *bl);
-int status_get_dmotion(struct block_list *bl);
-int status_get_element(struct block_list *bl);
-int status_get_attack_element(struct block_list *bl);
-int status_get_attack_element2(struct block_list *bl);  //左手武器属性取得
+int status_get_dmotion(block_list *bl);
+int status_get_element(block_list *bl);
+int status_get_attack_element(block_list *bl);
+int status_get_attack_element2(block_list *bl);  //左手武器属性取得
 #define status_get_elem_type(bl)	(status_get_element(bl)%10)
 #define status_get_elem_level(bl)	(status_get_element(bl)/10/2)
 uint32 status_get_party_id(const block_list *bl);
 uint32 status_get_guild_id(const block_list *bl);
-int status_get_race(struct block_list *bl);
-int status_get_size(struct block_list *bl);
-int status_get_mode(struct block_list *bl);
-int status_get_mexp(struct block_list *bl);
-int status_get_race2(struct block_list *bl);
+int status_get_race(block_list *bl);
+int status_get_size(block_list *bl);
+int status_get_mode(block_list *bl);
+int status_get_mexp(block_list *bl);
+int status_get_race2(block_list *bl);
 
-struct status_change *status_get_sc_data(struct block_list *bl);
-short *status_get_opt1(struct block_list *bl);
-short *status_get_opt2(struct block_list *bl);
-short *status_get_opt3(struct block_list *bl);
-short *status_get_option(struct block_list *bl);
+struct status_change *status_get_sc_data(block_list *bl);
+short *status_get_opt1(block_list *bl);
+short *status_get_opt2(block_list *bl);
+short *status_get_opt3(block_list *bl);
+short *status_get_option(block_list *bl);
 
-int status_get_matk1(struct block_list *bl);
-int status_get_matk2(struct block_list *bl);
-int status_get_critical(struct block_list *bl);
-int status_get_atk_(struct block_list *bl);
-int status_get_atk_2(struct block_list *bl);
-int status_get_atk2(struct block_list *bl);
+int status_get_matk1(block_list *bl);
+int status_get_matk2(block_list *bl);
+int status_get_critical(block_list *bl);
+int status_get_atk_(block_list *bl);
+int status_get_atk_2(block_list *bl);
+int status_get_atk2(block_list *bl);
 
-int status_isimmune(struct block_list *bl);
+int status_isimmune(block_list *bl);
 
-int status_get_sc_def(struct block_list *bl, int type);
+int status_get_sc_def(block_list *bl, int type);
 #define status_get_sc_def_mdef(bl)	(status_get_sc_def(bl, SP_MDEF1))
 #define status_get_sc_def_vit(bl)	(status_get_sc_def(bl, SP_DEF2))
 #define status_get_sc_def_int(bl)	(status_get_sc_def(bl, SP_MDEF2))
 #define status_get_sc_def_luk(bl)	(status_get_sc_def(bl, SP_LUK))
 
 // 状態異常関連 skill.c より移動
-int status_change_start(struct block_list *bl,int type,basics::numptr val1,basics::numptr val2,basics::numptr val3,basics::numptr val4,unsigned long tick,int flag);
-int status_change_end(struct block_list* bl, int type,int tid );
+int status_change_start(block_list *bl,int type,basics::numptr val1,basics::numptr val2,basics::numptr val3,basics::numptr val4,unsigned long tick,int flag);
+int status_change_end(block_list* bl, int type,int tid );
 int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data);
 
 class CStatusChangetimer : public CMapProcessor
 {
-	struct block_list &src;
+	block_list &src;
 	int type;
 	unsigned long tick;
 public:
-	CStatusChangetimer(struct block_list &s, int ty, unsigned long t)
+	CStatusChangetimer(block_list &s, int ty, unsigned long t)
 		: src(s), type(ty), tick(t)
 	{}
 	~CStatusChangetimer()	{}
-	virtual int process(struct block_list& bl) const;
+	virtual int process(block_list& bl) const;
 };
 
-int status_change_clear(struct block_list *bl,int type);
-int status_change_clear_buffs(struct block_list *bl);
-int status_change_clear_debuffs(struct block_list *bl);
+int status_change_clear(block_list *bl,int type);
+int status_change_clear_buffs(block_list *bl);
+int status_change_clear_debuffs(block_list *bl);
 
 int status_calc_pet(struct map_session_data &sd, bool first); // [Skotlex]
 // ステータス計算 pc.c から分離

@@ -614,50 +614,65 @@ public:
 		}
 		while(fgets(line,sizeof(line),fp))
 		{
-			if( !prepare_line(line) )
-				continue;
-			if( sscanf(line,"%1024[^:=]%*[:=]%1024[^\r\n]",w1,w2) != 2 )
-				continue;
-			basics::itrim(w1);
-			basics::itrim(w2);
-
-			if(strcasecmp(w1,"stall_time")==0){
-				stall_time_ = atoi(w2);
-			} else if(strcasecmp(w1,"order")==0){
-				access_order=atoi(w2);
-				if(strcasecmp(w2,"deny,allow")==0) access_order=ACO_DENY_ALLOW;
-				if(strcasecmp(w2,"allow,deny")==0) access_order=ACO_ALLOW_DENY;
-				if(strcasecmp(w2,"mutual-failture")==0) access_order=ACO_MUTUAL_FAILTURE;
-			}
-			else if(strcasecmp(w1,"allow")==0)
+			if( prepare_line(line) && 2==sscanf(line,"%1024[^:=]%*[:=]%1024[^\r\n]",w1,w2) )
 			{
-				struct _access_control tmp;
-				if( access_ipmask(w2,tmp) )
+				basics::itrim(w1);
+				if(!*w1) continue;
+				
+				basics::itrim(w2);
+				
+				if(0==strcasecmp(w1,"stall_time"))
 				{
-					new_realloc(access_allow, access_allownum, 1);
-					access_allow[access_allownum] = tmp;
-					++access_allownum;
+					stall_time_ = atoi(w2);
+				}
+				else if(0==strcasecmp(w1,"order"))
+				{
+					access_order=atoi(w2);
+					if(0==strcasecmp(w2,"deny,allow"))				access_order=ACO_DENY_ALLOW;
+					else if(0==strcasecmp(w2,"allow,deny"))			access_order=ACO_ALLOW_DENY;
+					else if(0==strcasecmp(w2,"mutual-failture"))	access_order=ACO_MUTUAL_FAILTURE;
+				}
+				else if(0==strcasecmp(w1,"allow"))
+				{
+					struct _access_control tmp;
+					if( access_ipmask(w2,tmp) )
+					{
+						new_realloc(access_allow, access_allownum, 1);
+						access_allow[access_allownum] = tmp;
+						++access_allownum;
+					}
+				}
+				else if(0==strcasecmp(w1,"deny"))
+				{
+					struct _access_control tmp;
+					if( access_ipmask(w2, tmp) )
+					{
+						new_realloc(access_deny, access_denynum, 1);
+						access_deny[access_denynum] = tmp;
+						++access_denynum;
+					}
+				}
+				else if(0==strcasecmp(w1,"ddos_interval"))
+				{
+					ddos_interval = atoi(w2);
+				}
+				else if(0==strcasecmp(w1,"ddos_count"))
+				{
+					ddos_count = atoi(w2);
+				}
+				else if(0==strcasecmp(w1,"ddos_autoreset"))
+				{
+					ddos_autoreset = atoi(w2);
+				}
+				else if(0==strcasecmp(w1,"debug"))
+				{
+					access_debug = (config_switch(w2)!=0);
+				}
+				else if (strcasecmp(w1, "import") == 0)
+				{
+					socket_config_read(w2);
 				}
 			}
-			else if(strcasecmp(w1,"deny")==0)
-			{
-				struct _access_control tmp;
-				if( access_ipmask(w2, tmp) )
-				{
-					new_realloc(access_deny, access_denynum, 1);
-					access_deny[access_denynum] = tmp;
-					++access_denynum;
-				}
-			} else if(!strcasecmp(w1,"ddos_interval")){
-				ddos_interval = atoi(w2);
-			} else if(!strcasecmp(w1,"ddos_count")){
-				ddos_count = atoi(w2);
-			} else if(!strcasecmp(w1,"ddos_autoreset")){
-				ddos_autoreset = atoi(w2);
-			} else if(!strcasecmp(w1,"debug")){
-				access_debug = (config_switch(w2)!=0);
-			} else if (strcasecmp(w1, "import") == 0)
-				socket_config_read(w2);
 		}
 		fclose(fp);
 		return 0;

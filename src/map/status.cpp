@@ -918,7 +918,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 			}
 			if(sd.sc_data[SC_MARIONETTE].timer!=-1){
 				// skip partner checking -- should be handled in status_change_timer
-				//struct map_session_data *psd = map_id2sd(sd.sc_data[SC_MARIONETTE2].val3);
+				//struct map_session_data *psd = map_session_data::from_blid(sd.sc_data[SC_MARIONETTE2].val3);
 				//if (psd) {	// if partner is found
 					sd.paramb[0]-= sd.status.str/2;	// bonuses not included
 					sd.paramb[1]-= sd.status.agi/2;
@@ -929,7 +929,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 				//}
 			}
 			else if(sd.sc_data[SC_MARIONETTE2].timer!=-1){
-				struct map_session_data *psd = map_id2sd(sd.sc_data[SC_MARIONETTE2].val3.num);
+				struct map_session_data *psd = map_session_data::from_blid(sd.sc_data[SC_MARIONETTE2].val3.num);
 				if (psd) {	// if partner is found
 					sd.paramb[0] += sd.status.str+psd->status.str/2 > 99 ? 99-sd.status.str : psd->status.str/2;
 					sd.paramb[1] += sd.status.agi+psd->status.agi/2 > 99 ? 99-sd.status.agi : psd->status.agi/2;
@@ -1831,7 +1831,7 @@ printf("speed set to %i (%i)\n",sd.speed, val);
  * Speedは小さいほうが移動速度が速い
  *------------------------------------------
  */
-int status_recalc_speed(struct block_list *bl)
+int status_recalc_speed(block_list *bl)
 {
 	int speed;
 	nullpo_retr(1000, bl);
@@ -1942,7 +1942,7 @@ int status_recalc_speed(struct block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_class(struct block_list *bl)
+int status_get_class(block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type==BL_MOB)
@@ -1995,7 +1995,7 @@ int status_get_range(const block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_hp(struct block_list *bl)
+int status_get_hp(block_list *bl)
 {
 	nullpo_retr(1, bl);
 	if(bl->type==BL_MOB)
@@ -2010,7 +2010,7 @@ int status_get_hp(struct block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_max_hp(struct block_list *bl)
+int status_get_max_hp(block_list *bl)
 {
 	nullpo_retr(1, bl);
 
@@ -2055,7 +2055,7 @@ int status_get_max_hp(struct block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_str(struct block_list *bl)
+int status_get_str(block_list *bl)
 {
 	int str = 0;
 	nullpo_retr(0, bl);
@@ -2108,7 +2108,7 @@ int status_get_str(struct block_list *bl)
  *------------------------------------------
  */
 
-int status_get_agi(struct block_list *bl)
+int status_get_agi(block_list *bl)
 {
 	int agi=0;
 	nullpo_retr(0, bl);
@@ -2165,7 +2165,7 @@ int status_get_agi(struct block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_vit(struct block_list *bl)
+int status_get_vit(block_list *bl)
 {
 	int vit = 0;
 	nullpo_retr(0, bl);
@@ -2210,7 +2210,7 @@ int status_get_vit(struct block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_int(struct block_list *bl)
+int status_get_int(block_list *bl)
 {
 	int int_=0;
 	nullpo_retr(0, bl);
@@ -2263,7 +2263,7 @@ int status_get_int(struct block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_dex(struct block_list *bl)
+int status_get_dex(block_list *bl)
 {
 	int dex = 0;
 	nullpo_retr(0, bl);
@@ -2321,7 +2321,7 @@ int status_get_dex(struct block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_luk(struct block_list *bl)
+int status_get_luk(block_list *bl)
 {
 	int luk = 0;
 	nullpo_retr(0, bl);
@@ -2369,7 +2369,7 @@ int status_get_luk(struct block_list *bl)
  * 戻りは整数で1以上
  *------------------------------------------
  */
-int status_get_flee(struct block_list *bl)
+int status_get_flee(block_list *bl)
 {
 	int flee = 1;
 	nullpo_retr(1, bl);
@@ -2409,7 +2409,7 @@ int status_get_flee(struct block_list *bl)
  * 戻りは整数で1以上
  *------------------------------------------
  */
-int status_get_hit(struct block_list *bl)
+int status_get_hit(block_list *bl)
 {
 	int hit = 1;
 	nullpo_retr(1, bl);
@@ -2448,7 +2448,7 @@ int status_get_hit(struct block_list *bl)
  * 戻りは整数で1以上
  *------------------------------------------
  */
-int status_get_flee2(struct block_list *bl)
+int status_get_flee2(block_list *bl)
 {
 	int flee2 = 1;
 	nullpo_retr(1, bl);
@@ -2472,7 +2472,7 @@ int status_get_flee2(struct block_list *bl)
  * 戻りは整数で1以上
  *------------------------------------------
  */
-int status_get_critical(struct block_list *bl)
+int status_get_critical(block_list *bl)
 {
 	int critical = 1;
 	nullpo_retr(1, bl);
@@ -2501,7 +2501,7 @@ int status_get_critical(struct block_list *bl)
  * 戻りは整数で1以上
  *------------------------------------------
  */
-int status_get_baseatk(struct block_list *bl)
+int status_get_baseatk(block_list *bl)
 {
 	int batk = 1;
 	nullpo_retr(1, bl);
@@ -2551,7 +2551,7 @@ int status_get_baseatk(struct block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_atk(struct block_list *bl)
+int status_get_atk(block_list *bl)
 {
 	int atk = 0;
 	nullpo_retr(0, bl);
@@ -2616,7 +2616,7 @@ int status_get_atk(struct block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_atk_(struct block_list *bl)
+int status_get_atk_(block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type==BL_PC){
@@ -2631,7 +2631,7 @@ int status_get_atk_(struct block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_atk2(struct block_list *bl)
+int status_get_atk2(block_list *bl)
 {
 	int atk2=0;
 	nullpo_retr(0, bl);
@@ -2688,7 +2688,7 @@ int status_get_atk2(struct block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_atk_2(struct block_list *bl)
+int status_get_atk_2(block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type==BL_PC)
@@ -2701,7 +2701,7 @@ int status_get_atk_2(struct block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_matk1(struct block_list *bl)
+int status_get_matk1(block_list *bl)
 {
 	int matk = 0;
 	nullpo_retr(0, bl);
@@ -2728,7 +2728,7 @@ int status_get_matk1(struct block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_matk2(struct block_list *bl)
+int status_get_matk2(block_list *bl)
 {
 	int matk = 0;
 	nullpo_retr(0, bl);
@@ -2754,7 +2754,7 @@ int status_get_matk2(struct block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_def(struct block_list *bl)
+int status_get_def(block_list *bl)
 {
 	struct status_change *sc_data;
 	int def=0,skilltimer=-1,skillid=0;
@@ -2839,7 +2839,7 @@ int status_get_def(struct block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_mdef(struct block_list *bl)
+int status_get_mdef(block_list *bl)
 {
 	struct status_change *sc_data;
 	int mdef=0;
@@ -2873,7 +2873,7 @@ int status_get_mdef(struct block_list *bl)
  * 戻りは整数で1以上
  *------------------------------------------
  */
-int status_get_def2(struct block_list *bl)
+int status_get_def2(block_list *bl)
 {
 	int def2 = 1;
 	nullpo_retr(1, bl);
@@ -2926,7 +2926,7 @@ int status_get_def2(struct block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_mdef2(struct block_list *bl)
+int status_get_mdef2(block_list *bl)
 {
 	int mdef2 = 0;
 	nullpo_retr(0, bl);
@@ -2960,7 +2960,7 @@ int status_get_mdef2(struct block_list *bl)
  * aDelayは小さいほうが攻撃速度が速い
  *------------------------------------------
  */
-int status_get_adelay(struct block_list *bl)
+int status_get_adelay(block_list *bl)
 {
 	nullpo_retr(4000, bl);
 	if(bl->type==BL_PC)
@@ -3103,7 +3103,7 @@ int status_get_amotion(const block_list *bl)
 }
 
 
-int status_get_dmotion(struct block_list *bl)
+int status_get_dmotion(block_list *bl)
 {
 	int ret=0;
 	struct status_change *sc_data;
@@ -3135,7 +3135,7 @@ int status_get_dmotion(struct block_list *bl)
 	return ret;
 }
 
-int status_get_element(struct block_list *bl)
+int status_get_element(block_list *bl)
 {
 	int ret = 20;
 	struct status_change *sc_data;
@@ -3161,7 +3161,7 @@ int status_get_element(struct block_list *bl)
 	return ret;
 }
 
-int status_get_attack_element(struct block_list *bl)
+int status_get_attack_element(block_list *bl)
 {
 	int ret = 0;
 	struct status_change *sc_data=status_get_sc_data(bl);
@@ -3191,7 +3191,7 @@ int status_get_attack_element(struct block_list *bl)
 
 	return ret;
 }
-int status_get_attack_element2(struct block_list *bl)
+int status_get_attack_element2(block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type==BL_PC) {
@@ -3230,7 +3230,7 @@ uint32 status_get_party_id(const block_list *bl)
 		if( md->master_id>0 )
 		{
 			struct map_session_data *msd;
-			if(md->state.special_mob_ai >= 1 && (msd = map_id2sd(md->master_id)) != NULL)
+			if(md->state.special_mob_ai >= 1 && (msd = map_session_data::from_blid(md->master_id)) != NULL)
 				return msd->status.party_id;
 			return md->master_id;
 		}
@@ -3254,7 +3254,7 @@ uint32 status_get_guild_id(const block_list *bl)
 		struct mob_data *md = (struct mob_data *)bl;
 		if (md->guild_id)	//Guardian's guild [Skotlex]
 			return md->guild_id;
-		if (md->state.special_mob_ai >= 1 && (msd = map_id2sd(md->master_id)) != NULL)
+		if (md->state.special_mob_ai >= 1 && (msd = map_session_data::from_blid(md->master_id)) != NULL)
 			return msd->status.guild_id; //Alchemist's mobs [Skotlex]
 		return md->class_;
 	}
@@ -3263,7 +3263,7 @@ uint32 status_get_guild_id(const block_list *bl)
 	else
 		return 0;
 }
-int status_get_race(struct block_list *bl)
+int status_get_race(block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type==BL_MOB)
@@ -3275,7 +3275,7 @@ int status_get_race(struct block_list *bl)
 	else
 		return 0;
 }
-int status_get_size(struct block_list *bl)
+int status_get_size(block_list *bl)
 {
 	nullpo_retr(1, bl);
 	if(bl->type==BL_MOB)
@@ -3295,7 +3295,7 @@ int status_get_size(struct block_list *bl)
 	} else
 		return 1;
 }
-int status_get_mode(struct block_list *bl)
+int status_get_mode(block_list *bl)
 {
 	nullpo_retr(0x01, bl);
 	if(bl->type==BL_MOB)
@@ -3306,7 +3306,7 @@ int status_get_mode(struct block_list *bl)
 		return 0x01;	// とりあえず動くということで1
 }
 
-int status_get_mexp(struct block_list *bl)
+int status_get_mexp(block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type==BL_MOB)
@@ -3316,7 +3316,7 @@ int status_get_mexp(struct block_list *bl)
 	else
 		return 0;
 }
-int status_get_race2(struct block_list *bl)
+int status_get_race2(block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type == BL_MOB && (struct mob_data *)bl)
@@ -3326,7 +3326,7 @@ int status_get_race2(struct block_list *bl)
 	else
 		return 0;
 }
-int status_isimmune(struct block_list *bl)
+int status_isimmune(block_list *bl)
 {
 	struct map_session_data *sd = NULL;
 	
@@ -3341,7 +3341,7 @@ int status_isimmune(struct block_list *bl)
 }
 
 // StatusChange系の所得
-struct status_change *status_get_sc_data(struct block_list *bl)
+struct status_change *status_get_sc_data(block_list *bl)
 {
 	nullpo_retr(NULL, bl);
 	if(bl->type==BL_MOB)
@@ -3351,7 +3351,7 @@ struct status_change *status_get_sc_data(struct block_list *bl)
 	return NULL;
 }
 
-short *status_get_opt1(struct block_list *bl)
+short *status_get_opt1(block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type==BL_MOB)
@@ -3362,7 +3362,7 @@ short *status_get_opt1(struct block_list *bl)
 		return &((struct npc_data*)bl)->opt1;
 	return 0;
 }
-short *status_get_opt2(struct block_list *bl)
+short *status_get_opt2(block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type==BL_MOB)
@@ -3373,7 +3373,7 @@ short *status_get_opt2(struct block_list *bl)
 		return &((struct npc_data*)bl)->opt2;
 	return 0;
 }
-short *status_get_opt3(struct block_list *bl)
+short *status_get_opt3(block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type==BL_MOB)
@@ -3384,7 +3384,7 @@ short *status_get_opt3(struct block_list *bl)
 		return &((struct npc_data*)bl)->opt3;
 	return 0;
 }
-short *status_get_option(struct block_list *bl)
+short *status_get_option(block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type==BL_MOB)
@@ -3396,7 +3396,7 @@ short *status_get_option(struct block_list *bl)
 	return 0;
 }
 
-int status_get_sc_def(struct block_list *bl, int type)
+int status_get_sc_def(block_list *bl, int type)
 {
 	int sc_def;
 	nullpo_retr(0, bl);
@@ -3468,7 +3468,7 @@ int status_get_sc_def(struct block_list *bl, int type)
  * ステータス異常開始
  *------------------------------------------
  */
-int status_change_start(struct block_list *bl,int type, basics::numptr val1,basics::numptr val2,basics::numptr val3,basics::numptr val4,unsigned long tick,int flag)
+int status_change_start(block_list *bl,int type, basics::numptr val1,basics::numptr val2,basics::numptr val3,basics::numptr val4,unsigned long tick,int flag)
 {
 	struct map_session_data *sd = NULL;
 	struct status_change* sc_data;
@@ -3785,7 +3785,7 @@ int status_change_start(struct block_list *bl,int type, basics::numptr val1,basi
 
 		case SC_BLADESTOP:		/* 白刃取り */
 			if(val2.num==2 && val3.isptr && val4.isptr)
-				clif_bladestop(*((struct block_list *)val3.ptr),*((struct block_list *)val4.ptr),1);
+				clif_bladestop(*((block_list *)val3.ptr),*((block_list *)val4.ptr),1);
 			*opt3 |= 32;
 			break;
 
@@ -4369,7 +4369,7 @@ int status_change_start(struct block_list *bl,int type, basics::numptr val1,basi
  * ステータス異常全解除
  *------------------------------------------
  */
-int status_change_clear(struct block_list *bl,int type)
+int status_change_clear(block_list *bl,int type)
 {
 	struct status_change* sc_data;
 	short *option, *opt1, *opt2, *opt3;
@@ -4403,7 +4403,7 @@ int status_change_clear(struct block_list *bl,int type)
  * ステータス異常終了
  *------------------------------------------
  */
-int status_change_end( struct block_list* bl, int type, int tid )
+int status_change_end( block_list* bl, int type, int tid )
 {
 	struct status_change* sc_data;
 	int opt_flag=0, calc_flag = 0;
@@ -4528,7 +4528,7 @@ int status_change_end( struct block_list* bl, int type, int tid )
 				break;
 			case SC_DEVOTION:		/* ディボ?ション */
 				{
-					struct map_session_data *md = map_id2sd(sc_data[type].val1.num);
+					struct map_session_data *md = map_session_data::from_blid(sc_data[type].val1.num);
 					sc_data[type].val1=sc_data[type].val2=0;
 					if(md) skill_devotion(md,bl->id);
 					calc_flag = 1;
@@ -4536,20 +4536,20 @@ int status_change_end( struct block_list* bl, int type, int tid )
 				break;
 			case SC_BLADESTOP:
 				{
-					struct status_change *t_sc_data = status_get_sc_data((struct block_list *)sc_data[type].val4.ptr);
+					struct status_change *t_sc_data = status_get_sc_data((block_list *)sc_data[type].val4.ptr);
 					//片方が切れたので相手の白刃?態が切れてないのなら解除
 					if(t_sc_data && t_sc_data[SC_BLADESTOP].timer!=-1 && sc_data[type].val4.isptr)
-						status_change_end((struct block_list *)sc_data[type].val4.ptr,SC_BLADESTOP,-1);
+						status_change_end((block_list *)sc_data[type].val4.ptr,SC_BLADESTOP,-1);
 
 					if(sc_data[type].val2.num==2 && sc_data[type].val3.isptr && sc_data[type].val4.isptr)
-						clif_bladestop(*((struct block_list *)sc_data[type].val3.ptr),*((struct block_list *)sc_data[type].val4.ptr),0);
+						clif_bladestop(*((block_list *)sc_data[type].val3.ptr),*((block_list *)sc_data[type].val4.ptr),0);
 				}
 				break;
 			case SC_DANCING:
 				{
 					struct map_session_data *dsd;
 					struct status_change *d_sc_data;
-					if(sc_data[type].val4.num && (dsd=map_id2sd(sc_data[type].val4.num))){
+					if(sc_data[type].val4.num && (dsd=map_session_data::from_blid(sc_data[type].val4.num))){
 						d_sc_data = dsd->sc_data;
 						//合奏で相手がいる場合相手のval4を0にする
 						if(d_sc_data && d_sc_data[type].timer!=-1)
@@ -4572,7 +4572,7 @@ int status_change_end( struct block_list* bl, int type, int tid )
 				break;
 			case SC_SPLASHER:		/* ベナムスプラッシャ? */
 				{
-					struct block_list *src=map_id2bl(sc_data[type].val3.num);
+					block_list *src=block_list::from_blid(sc_data[type].val3.num);
 					if(src && tid!=-1){
 						//自分にダメ?ジ＆周?3*3にダメ?ジ
 						skill_castend_damage_id(src, bl,(unsigned short)sc_data[type].val2.num,(unsigned short)sc_data[type].val1.num,gettick(),0 );
@@ -4601,7 +4601,7 @@ int status_change_end( struct block_list* bl, int type, int tid )
 				{
 					// check for partner and end their marionette status as well
 					int type2 = (type == SC_MARIONETTE) ? SC_MARIONETTE2 : SC_MARIONETTE;
-					struct block_list *pbl = map_id2bl(sc_data[type].val3.num);
+					block_list *pbl = block_list::from_blid(sc_data[type].val3.num);
 					if (pbl) {
 						struct status_change* sc_data;
 						if(//*status_get_sc_count(pbl) > 0 &&
@@ -4747,7 +4747,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 	struct status_change *sc_data;
 	struct map_session_data *sd=NULL;
 	struct mob_data *md=NULL;
-	struct block_list *bl=map_id2bl(id);
+	block_list *bl=block_list::from_blid(id);
 
 #ifdef nullpo_retr_f
 	nullpo_retr_f(0, bl, "id=%d data=%ld",id,(unsigned long)data.num);
@@ -4824,7 +4824,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 			int range = 5;
 			if ( type == SC_SIGHT ) range = 7;
 
-			CMap::foreachinarea( CStatusChangetimer(*bl,type,tick),
+			block_list::foreachinarea( CStatusChangetimer(*bl,type,tick),
 				bl->m, ((int)bl->x)-range, ((int)bl->y)-range, ((int)bl->x)+range,((int)bl->y)+range,0);
 //			map_foreachinarea( status_change_timer_sub,
 //				bl->m, ((int)bl->x)-range, ((int)bl->y)-range, ((int)bl->x)+range,((int)bl->y)+range,0,
@@ -5087,7 +5087,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 	case SC_MARIONETTE:		/* マリオネットコントロ?ル */
 	case SC_MARIONETTE2:
 		{
-			struct block_list *pbl = map_id2bl(sc_data[type].val3.num);
+			block_list *pbl = block_list::from_blid(sc_data[type].val3.num);
 			if(pbl && battle_check_range(bl, pbl, 7) && (sc_data[type].val2.num -= 1000)>0) {
 				sc_data[type].timer = add_timer(1000 + tick, status_change_timer,bl->id, data);
 					return 0;
@@ -5148,7 +5148,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 				switch ((i = rand() % 12)) {
 				case 1: // heal between 100-1000
 					{
-						struct block_list tbl;
+						block_list tbl;
 						int heal = rand() % 900 + 100;
 						tbl.id = 0;
 						tbl.m = bl->m;
@@ -5176,7 +5176,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 					break;
 				case 7: // level 5 bless
 					{
-						struct block_list tbl;
+						block_list tbl;
 						tbl.id = 0;
 						tbl.m = bl->m;
 						tbl.x = bl->x;
@@ -5187,7 +5187,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 					break;
 				case 8: // level 5 increase agility
 					{
-						struct block_list tbl;
+						block_list tbl;
 						tbl.id = 0;
 						tbl.m = bl->m;
 						tbl.x = bl->x;
@@ -5198,7 +5198,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 					break;
 				case 9: // holy element to weapon
 					{
-						struct block_list tbl;
+						block_list tbl;
 						tbl.id = 0;
 						tbl.m = bl->m;
 						tbl.x = bl->x;
@@ -5209,7 +5209,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 					break;
 				case 10: // holy element to armour
 					{
-						struct block_list tbl;
+						block_list tbl;
 						tbl.id = 0;
 						tbl.m = bl->m;
 						tbl.x = bl->x;
@@ -5239,7 +5239,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 					break;
 				case 4: // level 10 provoke
 					{
-						struct block_list tbl;
+						block_list tbl;
 						tbl.id = 0;
 						tbl.m = bl->m;
 						tbl.x = bl->x;
@@ -5266,7 +5266,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 
 	case SC_GUILDAURA:
 		{
-			struct block_list *tbl = map_id2bl(sc_data[type].val2.num);
+			block_list *tbl = block_list::from_blid(sc_data[type].val2.num);
 			if( tbl && battle_check_range(bl, tbl, 2) )
 			{
 				sc_data[type].timer = add_timer(1000 + tick, status_change_timer,bl->id, data);
@@ -5288,14 +5288,14 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
  *------------------------------------------
  */
  /*
-int status_change_timer_sub(struct block_list &bl, va_list &ap )
+int status_change_timer_sub(block_list &bl, va_list &ap )
 {
-	struct block_list *src;
+	block_list *src;
 	int type;
 	unsigned long tick;
 
 	nullpo_retr(0, ap);
-	src=va_arg(ap,struct block_list*);
+	src=va_arg(ap,block_list*);
 	nullpo_retr(0, src);
 	type=va_arg(ap,int);
 	tick=va_arg(ap,unsigned long);
@@ -5327,7 +5327,7 @@ int status_change_timer_sub(struct block_list &bl, va_list &ap )
 	return 0;
 }
 */
-int CStatusChangetimer::process(struct block_list& bl) const
+int CStatusChangetimer::process(block_list& bl) const
 {
 	if(bl.type==BL_PC || bl.type==BL_MOB)
 	{
@@ -5359,7 +5359,7 @@ int CStatusChangetimer::process(struct block_list& bl) const
 	return 0;
 }
 
-int status_change_clear_buffs (struct block_list *bl)
+int status_change_clear_buffs (block_list *bl)
 {
 	int i;
 	struct status_change *sc_data = status_get_sc_data(bl);
@@ -5395,7 +5395,7 @@ int status_change_clear_buffs (struct block_list *bl)
 	}
 	return 0;
 }
-int status_change_clear_debuffs (struct block_list *bl)
+int status_change_clear_debuffs (block_list *bl)
 {
 	int i;
 	struct status_change *sc_data = status_get_sc_data(bl);

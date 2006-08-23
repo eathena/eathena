@@ -190,10 +190,10 @@ int chrif_save(struct map_session_data &sd)
 }
 int chrif_save_sc(struct map_session_data &sd)
 {
-	static const unsigned short sc_array[] = 
+/*	static const unsigned short sc_array[] = 
 	{
 		0
-/*		// non-saveable because using pointers to other structures
+		// non-saveable because using pointers to other structures
 		SC_BLADESTOP,
 		SC_DANCING,
 		SC_BASILICA,
@@ -320,8 +320,8 @@ int chrif_save_sc(struct map_session_data &sd)
 		SC_MAXOVERTHRUST,
 		SC_LONGING,
 		SC_HERMODE
-*/			};
-	if( !session_isActive(char_fd) || !chrif_isconnect() )
+	};
+*/	if( !session_isActive(char_fd) || !chrif_isconnect() )
 		return -1;
 	size_t i, cnt, p;
 	struct TimerData *td;
@@ -368,7 +368,7 @@ int chrif_parse_ReadSC(int fd)
 	if( !session_isActive(fd) || !chrif_isconnect() )
 		return -1;
 
-	struct map_session_data *sd = map_charid2sd( RFIFOL(fd,8) );
+	struct map_session_data *sd = map_session_data::charid2sd( RFIFOL(fd,8) );
 	if(sd && sd->block_list::id==RFIFOL(fd,4))
 	{
 		size_t i, p, count = RFIFOW(fd,12); //sc_count
@@ -534,7 +534,7 @@ int chrif_changemapserverack(int fd)
 	if( !session_isActive(fd)  )
 		return -1;
 
-	struct map_session_data *sd = map_id2sd(RFIFOL(fd,2));
+	struct map_session_data *sd = map_session_data::from_blid(RFIFOL(fd,2));
 
 	if( sd == NULL || RFIFOL(fd,14) != sd->status.char_id )
 		return -1;
@@ -826,7 +826,7 @@ int chrif_char_ask_name_answer(int fd)
 	memcpy(player_name, RFIFOP(fd,6), sizeof(player_name));
 	player_name[sizeof(player_name)-1] = '\0';
 
-	sd = map_id2sd(acc);
+	sd = map_session_data::from_blid(acc);
 	if (acc >= 0 && sd != NULL)
 	{
 		if (RFIFOW(fd, 32) == 1) // player not found
@@ -930,7 +930,7 @@ int chrif_changedgm(int fd)
 	acc = RFIFOL(fd,2);
 	level = RFIFOL(fd,6);
 
-	sd = map_id2sd(acc);
+	sd = map_session_data::from_blid(acc);
 
 	if (config.etc_log)
 		ShowMessage("chrif_changedgm: account: %d, GM level 0 -> %d.\n", acc, level);
@@ -960,7 +960,7 @@ int chrif_changedsex(int fd)
 	sex = RFIFOL(fd,6);
 	if (config.etc_log)
 		ShowMessage("chrif_changedsex %d.\n", acc);
-	sd = map_id2sd(acc);
+	sd = map_session_data::from_blid(acc);
 	if (acc > 0)
 	{
 		if (sd != NULL && sd->status.sex != sex) {
@@ -1056,7 +1056,7 @@ int chrif_accountreg2(int fd)
 	if( !session_isActive(fd) )
 		return -1;
 
-	if ((sd = map_id2sd(RFIFOL(fd,4))) == NULL)
+	if ((sd = map_session_data::from_blid(RFIFOL(fd,4))) == NULL)
 		return 1;
 
 	for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 36, ++j) {
@@ -1079,7 +1079,7 @@ int chrif_divorce(uint32 char_id, uint32 partner_id)
 	if (!char_id || !partner_id)
 		return 0;
 
-	nullpo_retr(0, sd = map_charid2sd(partner_id));
+	nullpo_retr(0, sd = map_session_data::charid2sd(partner_id));
 	if (sd->status.partner_id == char_id) {
 		int i;
 		//—£¥(‘Š•û‚ÍŠù‚ÉƒLƒƒƒ‰‚ªÁ‚¦‚Ä‚¢‚é”¤‚È‚Ì‚Å)
@@ -1109,7 +1109,7 @@ int chrif_accountdeletion(int fd)
 	acc = RFIFOL(fd,2);
 	if (config.etc_log)
 		ShowMessage("chrif_accountdeletion %d.\n", acc);
-	sd = map_id2sd(acc);
+	sd = map_session_data::from_blid(acc);
 	if (acc > 0) {
 		if (sd != NULL) {
 			sd->login_id1++; // change identify, because if player come back in char within the 5 seconds, he can change its characters
@@ -1139,7 +1139,7 @@ int chrif_accountban(int fd)
 	acc = RFIFOL(fd,2);
 	if (config.etc_log)
 		ShowMessage("chrif_accountban %d.\n", acc);
-	sd = map_id2sd(acc);
+	sd = map_session_data::from_blid(acc);
 	if (acc > 0) {
 		if (sd != NULL) {
 			sd->login_id1++; // change identify, because if player come back in char within the 5 seconds, he can change its characters
@@ -1203,7 +1203,7 @@ int chrif_disconnectplayer(int fd)
 {
 	struct map_session_data *sd;
 	
-	sd = map_id2sd(RFIFOL(fd, 2));
+	sd = map_session_data::from_blid(RFIFOL(fd, 2));
 	
 	if(RFIFOL(fd, 2) <= 0 || sd == NULL){
 		return -1;
@@ -1575,7 +1575,7 @@ int chrif_parse_mail_check(int fd)
 		uint32 all    = RFIFOL(fd,8);
 		uint32 unread = RFIFOL(fd,12);
 		uchar showall = RFIFOB(fd,16);
-		map_session_data *sd = map_charid2sd(charid);
+		map_session_data *sd = map_session_data::charid2sd(charid);
 		if(sd)
 		{
 			char message[512];
@@ -1615,7 +1615,7 @@ int chrif_parse_mail_fetch(int fd)
 	{
 		uint32 charid = RFIFOL(fd,4);
 		uint32 count  = RFIFOL(fd,8);
-		map_session_data *sd = map_charid2sd(charid);
+		map_session_data *sd = map_session_data::charid2sd(charid);
 		if(sd)
 		{
 			clif_send_mailbox(*sd, count, RFIFOP(fd,12));
@@ -1640,7 +1640,7 @@ int chrif_parse_mail_read(int fd)
 	if( session_isActive(fd) )
 	{
 		uint32 charid = RFIFOL(fd,4);
-		map_session_data *sd = map_charid2sd(charid);
+		map_session_data *sd = map_session_data::charid2sd(charid);
 		if(sd)
 		{
 			CMail mail;
@@ -1694,7 +1694,7 @@ int chrif_parse_mail_delete(int fd)
 		uint32 charid = RFIFOL(fd,4);
 		uint32 msgid  = RFIFOL(fd,8);
 		uchar ok      = RFIFOB(fd,12);
-		map_session_data *sd = map_charid2sd(charid);
+		map_session_data *sd = map_session_data::charid2sd(charid);
 		if(sd) clif_deletemail_res(*sd, msgid, ok);
 	}
 	return 0;
@@ -1756,7 +1756,7 @@ int chrif_parse_mail_send(int fd)
 		uint32 charid = RFIFOL(fd,4);
 		// uint32 msgid  = RFIFOL(fd,8); // not needed
 		char ok       = RFIFOB(fd,12);
-		map_session_data *sd = map_charid2sd(charid);
+		map_session_data *sd = map_session_data::charid2sd(charid);
 		if(sd)
 		{
 			basics::ScopeLock sl(mailmx);
@@ -1792,7 +1792,7 @@ int chrif_parse_mail_getappend(int fd)
 	if( session_isActive(fd) )
 	{
 		uint32 charid = RFIFOL(fd,4);
-		map_session_data *sd = map_charid2sd(charid);
+		map_session_data *sd = map_session_data::charid2sd(charid);
 		if(sd)
 		{
 			CMail mail;
@@ -2034,7 +2034,7 @@ int chrif_parse(int fd)
 		case 0x2b03: clif_charselectok(RFIFOL(fd,2)); break;
 		case 0x2b04: chrif_recvmap(fd); break;
 		case 0x2b06: chrif_changemapserverack(fd); break;
-		case 0x2b09: map_addchariddb(RFIFOL(fd,2), (char*)RFIFOP(fd,6)); break;
+		case 0x2b09: map_add_namedb(RFIFOL(fd,2), (char*)RFIFOP(fd,6)); break;
 		case 0x2b0b: chrif_changedgm(fd); break;
 		case 0x2b0d: chrif_changedsex(fd); break;
 		case 0x2b0f: chrif_char_ask_name_answer(fd); break;

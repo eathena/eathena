@@ -1460,7 +1460,7 @@ int parse_frommap(int fd)
 			{
 				WFIFOW(fd,0) = 0x2afd;
 				WFIFOW(fd,2) = 16 + sizeof(struct mmo_charstatus);
-				WFIFOL(fd,4) = RFIFOL(fd,2);
+				WFIFOL(fd,4) = RFIFOL(fd,6); // send char_id!!
 				WFIFOL(fd,8) = account.login_id2;
 				WFIFOL(fd,12) = (uint32)account.valid_until;
 				character.sex = account.sex;
@@ -2769,94 +2769,135 @@ int char_config_read(const char *cfgName)
 
 	while(fgets(line, sizeof(line), fp))
 	{
-		if( !prepare_line(line) )
-			continue;
+		if( prepare_line(line) && 2==sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
+		{
+			remove_control_chars(w1);
+			basics::itrim(w1);
+			if(!*w1) continue;
 
-		line[sizeof(line)-1] = '\0';
-		if (sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) != 2)
-			continue;
-		remove_control_chars(w1);
-		remove_control_chars(w2);
-		basics::itrim(w1);
-		basics::itrim(w2);
-		if(strcasecmp(w1, "userid") == 0) {
-			memcpy(userid, w2, 24);
-		} else if(strcasecmp(w1, "passwd") == 0) {
-			memcpy(passwd, w2, 24);
-		} else if(strcasecmp(w1, "server_name") == 0) {
-			memcpy(server_name, w2, sizeof(server_name));
-			server_name[sizeof(server_name) - 1] = '\0';
-			ShowStatus("%s server has been initialized\n", w2);
-		} else if(strcasecmp(w1, "wisp_server_name") == 0) {
-			if (strlen(w2) >= 4) {
-				memcpy(wisp_server_name, w2, sizeof(wisp_server_name));
-				wisp_server_name[sizeof(wisp_server_name) - 1] = '\0';
+			remove_control_chars(w2);
+			basics::itrim(w2);
+
+			if(strcasecmp(w1, "userid") == 0)
+			{
+				safestrcpy(userid, sizeof(userid), w2);
+			}
+			else if(strcasecmp(w1, "passwd") == 0)
+			{
+				safestrcpy(passwd, sizeof(passwd), w2);
+			}
+			else if(strcasecmp(w1, "server_name") == 0)
+			{
+				safestrcpy(server_name, sizeof(server_name), w2);
+				ShowStatus("%s server has been initialized\n", server_name);
+			}
+			else if(strcasecmp(w1, "wisp_server_name") == 0)
+			{
+				if(strlen(w2) >= 4)
+					safestrcpy(wisp_server_name, sizeof(wisp_server_name), w2);
+			}
+			else if(strcasecmp(w1, "login_ip") == 0)
+			{
+				loginaddress = w2;
+				ShowInfo("Expecting login server at %s\n", loginaddress.tostring(NULL));
+			}
+			else if(strcasecmp(w1, "login_port") == 0)
+			{
+				loginaddress.port() = atoi(w2);
+			}
+			else if(strcasecmp(w1, "char_ip") == 0)
+			{
+				charaddress = w2;
+				ShowInfo("Using char server with %s\n", loginaddress.tostring(NULL));
+			}
+			else if(strcasecmp(w1, "char_port") == 0)
+			{
+				charaddress.LANPort() = atoi(w2);
+			}
+			else if(strcasecmp(w1, "char_maintenance") == 0)
+			{
+				char_maintenance = atoi(w2);
+			}
+			else if (strcasecmp(w1, "char_new_display") == 0)
+			{
+				char_new_display = atoi(w2);
+			}
+			else if (strcasecmp(w1, "email_creation") == 0)
+			{
+				email_creation = config_switch(w2);
+			}
+			else if(strcasecmp(w1, "max_connect_user") == 0)
+			{
+				max_connect_user = atoi(w2);
+				if (max_connect_user < 0)
+					max_connect_user = 0; // unlimited online players
+			}
+			else if(strcasecmp(w1, "gm_allow_level") == 0)
+			{
+				gm_allow_level = atoi(w2);
+				if(gm_allow_level < 0)
+					gm_allow_level = 99;
+			}
+			else if(strcasecmp(w1, "check_ip_flag") == 0)
+			{
+				check_ip_flag = config_switch(w2);
+			}
+			else if(strcasecmp(w1, "autosave_time") == 0)
+			{
+				autosave_interval = atoi(w2)*1000;
+				if (autosave_interval <= 0)
+					autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
+			}
+			else if(strcasecmp(w1,"log_char")==0)
+			{	//log char or not [devil]
+				log_char = atoi(w2);
+			}
+			else if(strcasecmp(w1, "unknown_char_name") == 0)
+			{
+				safestrcpy(unknown_char_name, sizeof(unknown_char_name), w2);
+			}
+			else if(strcasecmp(w1, "char_log_filename") == 0)
+			{
+				safestrcpy(char_log_filename, sizeof(char_log_filename), w2);
+			}
+			else if(strcasecmp(w1, "online_txt_filename") == 0)
+			{
+				safestrcpy(online_txt_filename, sizeof(online_txt_filename), w2);
+			}
+			else if(strcasecmp(w1, "online_html_filename") == 0)
+			{
+				safestrcpy(online_html_filename, sizeof(online_html_filename), w2);
+			}
+			else if(strcasecmp(w1, "online_sorting_option") == 0)
+			{
+				online_sorting_option = atoi(w2);
+			}
+			else if(strcasecmp(w1, "online_display_option") == 0)
+			{
+				online_display_option = atoi(w2);
+			}
+			else if(strcasecmp(w1, "online_gm_display_min_level") == 0)
+			{	// minimum GM level to display 'GM' when we want to display it
+				online_gm_display_min_level = atoi(w2);
+				// send online file every 5 seconds to player is enough
+				if(online_gm_display_min_level < 5)
+					online_gm_display_min_level = 5;
+			}
+			else if(strcasecmp(w1, "online_refresh_html") == 0)
+			{
+				online_refresh_html = atoi(w2);
+				if (online_refresh_html < 1)
+					online_refresh_html = 1;
+			}
+			else if(strcasecmp(w1, "console") == 0)
+			{
+				console = config_switch(w2);
+			}
+			else if(strcasecmp(w1, "import") == 0)
+			{
+				char_config_read(w2);
 			}
 		}
-		else if(strcasecmp(w1, "login_ip") == 0) {
-			loginaddress = w2;
-			ShowInfo("Expecting login server at %s\n", loginaddress.tostring(NULL));
-		}
-else if(strcasecmp(w1, "login_port") == 0) {
-	loginaddress.port() = atoi(w2);
-}
-		else if(strcasecmp(w1, "char_ip") == 0) {
-			charaddress = w2;
-			ShowInfo("Using char server with %s\n", loginaddress.tostring(NULL));
-		}
-else if(strcasecmp(w1, "char_port") == 0) {
-	charaddress.LANPort() = atoi(w2);
-}
-
-		else if(strcasecmp(w1, "char_maintenance") == 0) {
-			char_maintenance = atoi(w2);
-		} else if (strcasecmp(w1, "char_new_display") == 0) {
-			char_new_display = atoi(w2);
-		} else if (strcasecmp(w1, "email_creation") == 0) {
-			email_creation = config_switch(w2);
-		} else if(strcasecmp(w1, "max_connect_user") == 0) {
-			max_connect_user = atoi(w2);
-			if (max_connect_user < 0)
-				max_connect_user = 0; // unlimited online players
-		} else if(strcasecmp(w1, "gm_allow_level") == 0) {
-			gm_allow_level = atoi(w2);
-			if(gm_allow_level < 0)
-				gm_allow_level = 99;
-		} else if(strcasecmp(w1, "check_ip_flag") == 0) {
-			check_ip_flag = config_switch(w2);
-		} else if(strcasecmp(w1, "autosave_time") == 0) {
-			autosave_interval = atoi(w2)*1000;
-			if (autosave_interval <= 0)
-				autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
-		} else if(strcasecmp(w1,"log_char")==0) {		//log char or not [devil]
-			log_char = atoi(w2);
-		} else if(strcasecmp(w1, "unknown_char_name") == 0) {
-			strcpy(unknown_char_name, w2);
-			unknown_char_name[24] = 0;
-		} else if(strcasecmp(w1, "char_log_filename") == 0) {
-			strcpy(char_log_filename, w2);
-// online files options
-		} else if(strcasecmp(w1, "online_txt_filename") == 0) {
-			strcpy(online_txt_filename, w2);
-		} else if(strcasecmp(w1, "online_html_filename") == 0) {
-			strcpy(online_html_filename, w2);
-		} else if(strcasecmp(w1, "online_sorting_option") == 0) {
-			online_sorting_option = atoi(w2);
-		} else if(strcasecmp(w1, "online_display_option") == 0) {
-			online_display_option = atoi(w2);
-		} else if(strcasecmp(w1, "online_gm_display_min_level") == 0) { // minimum GM level to display 'GM' when we want to display it
-			online_gm_display_min_level = atoi(w2);
-			if (online_gm_display_min_level < 5) // send online file every 5 seconds to player is enough
-				online_gm_display_min_level = 5;
-		} else if(strcasecmp(w1, "online_refresh_html") == 0) {
-			online_refresh_html = atoi(w2);
-			if (online_refresh_html < 1)
-				online_refresh_html = 1;
-		} else if(strcasecmp(w1, "import") == 0) {
-			char_config_read(w2);
-		} else if(strcasecmp(w1, "console") == 0) {
-	        console = config_switch(w2);
-        }
 	}
 	fclose(fp);
 

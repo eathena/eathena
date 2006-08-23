@@ -4,6 +4,7 @@
 
 #include "mmo.h"
 #include "socket.h"
+#include "db.h"
 #include "script.h"
 #include "coordinate.h"
 #include "path.h"
@@ -249,6 +250,7 @@ player/homun	client contolled  move/battle interface, socket processor
 
 ///////////////////////////////////////////////////////////////////////////////
 // predeclarations
+struct block_list;
 struct skill_unit_group;
 struct item_data;
 struct pet_db;
@@ -264,16 +266,61 @@ class chat_data;
 struct skill_unit;
 class homun_data;
 
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// processing base class.
+/// process member is called for each block
+///////////////////////////////////////////////////////////////////////////////
+class CMapProcessor : public basics::noncopyable
+{
+protected:
+	CMapProcessor()				{}
+public:
+	virtual ~CMapProcessor()	{}
+	virtual int process(block_list& bl) const = 0;
+};
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// object on a map
 struct block_list : public coordinate
 {
+	/////////////////////////////////////////////////////////////////
+	static dbt* id_db;
+
+	/// returns blocklist from given id
+	static block_list* from_blid(uint32 id);
+
+	// functions that work on block_lists
+	static int foreachinarea(const CMapProcessor& elem, unsigned short m, int x0,int y0,int x1,int y1,int type);
+	static int foreachincell(const CMapProcessor& elem, unsigned short m,int x,int y,int type);
+	static int foreachinmovearea(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type);
+	static int foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int range,int type);
+	static int foreachpartymemberonmap(const CMapProcessor& elem, struct map_session_data &sd, int type);
+	static int foreachobject(const CMapProcessor& elem,int type);
+
+
+	/////////////////////////////////////////////////////////////////
 	unsigned short m;
+//private:
 	unsigned char type;
+public:
 	unsigned char subtype;
 	uint32 id;
+//private:
 	block_list *next;
 	block_list *prev;
+public:
+
+	/////////////////////////////////////////////////////////////////
 	/// default constructor.
 	block_list(uint32 i=0, unsigned char t=0, unsigned char s=0) : 
 		m(0),
@@ -283,15 +330,16 @@ struct block_list : public coordinate
 		next(NULL),
 		prev(NULL)
 	{}
+	/////////////////////////////////////////////////////////////////
+	/// destructor.
 	virtual ~block_list()	
 	{
 		// not yet removed from map
 		if(this->prev)
-			this->map_delblock();
+			this->delblock();
 		// and just to be sure that it's removed from iddb
-		this->map_deliddb();
+		this->deliddb();
 	}
-
 
 	// missing:
 	// all interactions with map 
@@ -302,18 +350,26 @@ struct block_list : public coordinate
 	// just move the basic functions here for the moment
 	// and take care for the necessary refinements [Shinomori]
 
-	// block identifier database
-	void map_addiddb();
-	void map_deliddb();
+	/// add block to identifier database
+	void addiddb();
+	/// remove block from identifier database
+	void deliddb();
 
-	// block on a map
-	bool map_addblock();
-	bool map_delblock();
+	/// add block to map
+	bool addblock();
+	/// remove block from map
+	bool delblock();
+
+	/// check if a block in on a map
+	bool is_on_map() const
+	{
+		return this->prev!=NULL;
+	}
 
 	// collision free deleting of blocks
-	int map_freeblock();
-	static int map_freeblock_lock(void);
-	static int map_freeblock_unlock(void);
+	int freeblock();
+	static int freeblock_lock(void);
+	static int freeblock_unlock(void);
 
 
 
@@ -742,9 +798,39 @@ struct skill_timerskill
 };
 
 
+
 struct map_session_data : public fightable, public session_data
 {
-	struct {
+	/////////////////////////////////////////////////////////////////
+private:
+	static dbt* nick_db;		///< sessions ordered by char name
+	static dbt* accid_db;		///< sessions ordered by account_id
+	static dbt* charid_db;		///< sessions ordered by char_id
+public:
+
+	/// initialize all static elements.
+	static void initialize();
+	/// finalize all static elements.
+	static void finalize();
+
+	/// search session data by block_list::id.
+	static map_session_data* from_blid(uint32 id);
+	/// search session data by char_id.
+	static map_session_data* charid2sd(uint32 id);
+	/// search session data by account_id.
+	//## remove for modified account authentification
+	static map_session_data* accid2sd(uint32 id);
+	/// search session data by name.
+	/// exact match only
+	static map_session_data* nick2sd(const char *nick);
+
+	/// return number of valid sessions
+	static size_t count_users(void);
+
+
+	/////////////////////////////////////////////////////////////////
+	struct
+	{
 		unsigned auth : 1;							// 0
 		unsigned monster_ignore :1;					// 3
 		unsigned dead_sit : 2;						// 4, 5
@@ -822,15 +908,13 @@ struct map_session_data : public fightable, public session_data
 	uint32 npc_shopid;
 
 	CScriptEngine ScriptEngine;
-	
-	uint32 chatID;
+	chat_data*	chat;
+
 	time_t idletime;
 
 	struct{
 		char name[24];
 	} ignore[MAX_IGNORE_LIST];
-
-	unsigned short attacktarget_lv;
 
 
 	uint32 followtarget;
@@ -1117,8 +1201,7 @@ struct map_session_data : public fightable, public session_data
 	}
 
 	map_session_data(int fdi, int packver, uint32 account_id, uint32 char_id, uint32 login_id1, uint32 login_id2, uint32 client_tick, unsigned char sex);
-	virtual ~map_session_data()
-	{}
+	virtual ~map_session_data();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// upcasting overloads.
@@ -1126,6 +1209,22 @@ struct map_session_data : public fightable, public session_data
 	virtual const map_session_data* get_sd() const			{ return this; }
 
 
+	///////////////////////////////////////////////////////////////////////////
+	// databases/maintainance
+	
+	/// insert to nick_db.
+	//## move this to the assignment of the status data
+	void add_nickdb();
+
+	/// clean all entries of this object in dbs
+	//## could be placed only at the destructor
+	void clean_db();
+	
+	
+	///////////////////////////////////////////////////////////////////////////
+	// normal object access
+
+	
 	/// returns GM level
 	unsigned char isGM() const;
 
@@ -1156,6 +1255,26 @@ struct map_session_data : public fightable, public session_data
 
 	/// do object depending stuff for attacking
 	virtual void do_attack();
+
+
+
+
+
+
+
+
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// chat functions
+
+
+	/// create a chat.
+	bool createchat(unsigned short limit, unsigned char pub, const char* pass, const char* title);
+
+	/// leave a chat.
+	bool leavechat();
+
 
 private:
 	// no copy/assign since of the bl reference
@@ -1192,6 +1311,15 @@ struct npc_item_list
 
 struct npc_data : public movable
 {
+	/////////////////////////////////////////////////////////////////
+	static npc_data* from_blid(uint32 id)
+	{
+		block_list *bl = block_list::from_blid(id);
+		return (bl)?bl->get_nd():NULL;
+	}
+
+	/////////////////////////////////////////////////////////////////
+
 	short n;
 	short class_;
 	short dir;
@@ -1410,6 +1538,16 @@ struct mob_list
 
 struct mob_data : public fightable
 {
+	/////////////////////////////////////////////////////////////////
+	static mob_data* from_blid(uint32 id)
+	{
+		block_list *bl = block_list::from_blid(id);
+		return (bl)?bl->get_md():NULL;
+	}
+	/////////////////////////////////////////////////////////////////
+
+
+
 	unsigned short base_class;
 	unsigned short class_;
 	unsigned short mode;
@@ -1459,7 +1597,7 @@ struct mob_data : public fightable
 	unsigned short level;
 	unsigned short attacked_count;
 	unsigned short target_dir;
-	unsigned short target_lv;
+
 
 	uint32 provoke_id; // Celest
 	uint32 attacked_id;
@@ -1588,6 +1726,15 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 struct pet_data : public fightable
 {
+	/////////////////////////////////////////////////////////////////
+	static pet_data* from_blid(uint32 id)
+	{
+		block_list *bl = block_list::from_blid(id);
+		return (bl)?bl->get_pd():NULL;
+	}
+	/////////////////////////////////////////////////////////////////
+
+
 	struct petstatus pet;
 
 	const struct petdb &petDB;
@@ -1612,7 +1759,7 @@ struct pet_data : public fightable
 	unsigned short dir;
 	unsigned short speed;
 
-	unsigned short target_lv;
+
 	short rate_fix;	//Support rate as modified by intimacy (1000 = 100%) [Skotlex]
 	uint32 move_fail_count;
 	unsigned long next_walktime;
@@ -1729,7 +1876,6 @@ struct pet_data : public fightable
 		petDB(pdb),
 		dir(0),
 		speed(0),
-		target_lv(0),
 		rate_fix(0),
 		move_fail_count(0),
 		next_walktime(0),
@@ -1808,6 +1954,16 @@ private:
 class flooritem_data : public block_list
 {
 public:
+
+	/////////////////////////////////////////////////////////////////
+	static flooritem_data* from_blid(uint32 id)
+	{
+		block_list *bl = block_list::from_blid(id);
+		return (bl)?bl->get_fd():NULL;
+	}
+	/////////////////////////////////////////////////////////////////
+
+
 	unsigned char subx;
 	unsigned char suby;
 	int cleartimer;
@@ -1920,8 +2076,8 @@ struct map_data
 
 	struct _objects
 	{
-		struct block_list*	root_blk;
-		struct block_list*	root_mob;
+		block_list*	root_blk;
+		block_list*	root_mob;
 		uint				cnt_blk;
 		uint				cnt_mob;
 		_objects() :
@@ -2071,7 +2227,7 @@ extern struct map_data maps[];
 extern size_t map_num;
 extern int autosave_interval;
 extern int agit_flag;
-extern int night_flag; // 0=day, 1=night [Yor]
+
 
 extern int map_read_flag; // 0: grfｫﾕｫ｡ｫ､ｫ・1: ｫｭｫ罩ﾃｫｷｫ・2: ｫｭｫ罩ﾃｫｷｫ・?)
 enum {
@@ -2107,61 +2263,21 @@ int map_getusers(void);
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// new foreach... implementation without needing varargs
-//!! integrate to mapdata and spare giving the map argument
-///////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////
-// virtual base class which is called for each block
-///////////////////////////////////////////////////////////////////////////////
-class CMapProcessor : public basics::noncopyable
-{
-public:
-	CMapProcessor()			{}
-	virtual ~CMapProcessor()	{}
-	virtual int process(struct block_list& bl) const = 0;
-};
-
-class CMap
-{
-public:
-	CMap()	{}
-	~CMap()	{}
-static int foreachinarea(const CMapProcessor& elem, unsigned short m, int x0,int y0,int x1,int y1,int type);
-static int foreachincell(const CMapProcessor& elem, unsigned short m,int x,int y,int type);
-static int foreachinmovearea(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type);
-static int foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int range,int type);
-static int foreachpartymemberonmap(const CMapProcessor& elem, struct map_session_data &sd, int type);
-static int foreachobject(const CMapProcessor& elem,int type);
-};
 
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-
-//int map_foreachinarea(int (*func)(struct block_list&,va_list &),unsigned short m,int x0,int y0,int x1,int y1,int type,...);
-// -- moonsoul (added map_foreachincell)
-//int map_foreachincell(int (*func)(struct block_list&,va_list &),unsigned short m,int x,int y,int type,...);
-//int map_foreachinmovearea(int (*func)(struct block_list&,va_list &),unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type,...);
-//int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m,int x0,int y0,int x1,int y1,int range,int type,...); // Celest
-//void party_foreachsamemap(int (*func)(struct block_list&,va_list &),struct map_session_data &sd,int type,...);
-//void map_foreachobject(int (*)(struct block_list*,va_list &),int,...);
-
-int map_countnearpc(unsigned short m, int x, int y);
 //block関連に追加
 int map_count_oncell(unsigned short m,int x,int y, int type);
-struct skill_unit *map_find_skill_unit_oncell(struct block_list &target,int x,int y,unsigned short skill_id,struct skill_unit *out_unit);
+struct skill_unit *map_find_skill_unit_oncell(block_list &target,int x,int y,unsigned short skill_id, skill_unit *out_unit);
 // 一時的object関連
-int map_addobject(struct block_list &bl);
+int map_addobject(block_list &bl);
 int map_delobject(int);
 int map_delobjectnofree(int id);
 //
-int map_quit(struct map_session_data &sd);
+int map_quit(map_session_data &sd);
 // npc
-int map_addnpc(unsigned short m, struct npc_data *nd);
+int map_addnpc(unsigned short m, npc_data *nd);
 
 // 床アイテム関連
 int map_clearflooritem_timer(int tid, unsigned long tick, int id, basics::numptr data);
@@ -2170,23 +2286,13 @@ int map_removemobs_timer(int tid, unsigned long tick, int id, basics::numptr dat
 int map_addflooritem(struct item &item_data,unsigned short amount,unsigned short m,unsigned short x,unsigned short y,struct map_session_data *first_sd,struct map_session_data *second_sd,struct map_session_data *third_sd,int type);
 int map_searchrandfreecell(unsigned short m, unsigned short x, unsigned short y, unsigned short range);
 
-// キャラid＝＞キャラ名 変換関連
-void map_addchariddb(uint32 charid,const char *name);
-void map_delchariddb(uint32 charid);
-int map_reqchariddb(const map_session_data &sd,uint32 charid);
-char * map_charid2nick(uint32 id);
-struct map_session_data * map_charid2sd(uint32 id);
-struct map_session_data * map_id2sd(uint32 id);
-struct block_list * map_id2bl(uint32 id);
 
 int map_mapname2mapid(const char *name);
 bool map_mapname2ipport(const char *name, basics::ipset &mapset);
 int map_setipport(const char *name, basics::ipset &mapset);
 int map_eraseipport(const char *name, basics::ipset &mapset);
 int map_eraseallipport(void);
-dbt* get_iddb();
-void map_addnickdb(struct map_session_data &sd);
-struct map_session_data * map_nick2sd(const char *nick);
+
 
 
 
@@ -2210,12 +2316,25 @@ extern const char *MSG_CONF_NAME;
 extern const char *GRF_PATH_FILENAME;
 
 
-void char_online_check(void); // [Valaris]
+void char_online_check(void);
 void char_offline(struct map_session_data *sd);
 
 
 
 
+///////////////////////////////////////////////////////////////////////////////
+// day-night cycle
+extern int daynight_flag;		// 0=day, 1=night
+extern int daynight_timer_tid;	// timer for night.day
+int map_daynight_timer(int tid, unsigned long tick, int id, basics::numptr data);
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// permanent name storage
+const char*	map_src_namedb(uint32 charid);
+bool		map_req_namedb(const map_session_data &sd, uint32 charid);
+void		map_add_namedb(uint32 charid, const char *name);
 
 #endif
 

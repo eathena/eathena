@@ -1848,7 +1848,6 @@ v18 xxxx-xx-xx	text & input ok
 			defnpc.block_list::id = this->defoid;
 			defnpc.block_list::type = BL_NPC;
 			defnpc.block_list::subtype = 0;
-			defnpc.block_list::prev = defnpc.block_list::next = NULL;
 			defnpc.block_list::id = defoid;
 			defnpc.dir = 0;
 			defnpc.flag = 0;
@@ -1870,7 +1869,7 @@ v18 xxxx-xx-xx	text & input ok
 		{
 			if( NONE==this->npcstate )
 			{	// determine what npc is to be used
-				struct npc_data* nd = (struct npc_data*)map_id2bl(this->oid);
+				npc_data* nd = npc_data::from_blid(this->oid);
 				if( nd && npc_isNear(*(this->sd), *nd) )
 				{	// npc is ok
 //printf("npc ok ");
@@ -2421,7 +2420,7 @@ int CScriptEngine::run_main()
 					{
 						ShowMessage("stack_ptr(%d) != default(%d)\n",stack_ptr,defsp);
 						//!!
-						struct npc_data* nd = (struct npc_data*)map_id2bl(this->oid);
+						struct npc_data* nd = npc_data::from_blid(this->oid);
 						if(nd)
 						{
 							printf("npc script '%s'/'%s' , map %s, ", nd->name?nd->name:"", nd->exname?nd->exname:"", maps[nd->block_list::m].mapname);
@@ -2550,7 +2549,7 @@ int CScriptEngine::run(const char*rootscript, size_t pos, uint32 rid, uint32 oid
 	if( rootscript )
 	{	// threadlock
 		mx.lock();
-		struct map_session_data *sd=map_id2sd(rid);
+		struct map_session_data *sd=map_session_data::from_blid(rid);
 		CScriptEngine &engine = (sd)? sd->ScriptEngine : defaultengine;
 
 		if( engine.script && (engine.script != rootscript || engine.pos != pos) )
@@ -3078,7 +3077,7 @@ int buildin_attachrid(CScriptEngine &st)
 {
 	int val = 0;
 	uint32 rid = st.GetInt(st[2]);
-	map_session_data *sd = map_id2sd(rid);
+	map_session_data *sd = map_session_data::from_blid(rid);
 	if(sd)
 	{	// need to swap the environment if not in the targeted context already
 		if(st.sd != sd)
@@ -3111,7 +3110,7 @@ int buildin_detachrid(CScriptEngine &st)
  */
 int buildin_isloggedin(CScriptEngine &st)
 {
-	st.push_val(CScriptEngine::C_INT, map_id2sd( st.GetInt(st[2]) )!=NULL );
+	st.push_val(CScriptEngine::C_INT, map_session_data::from_blid( st.GetInt(st[2]) )!=NULL );
 	return 0;
 }
 
@@ -3463,7 +3462,7 @@ int buildin_warp(CScriptEngine &st)
  *------------------------------------------
  */
 /*
-int buildin_areawarp_sub(struct block_list &bl,va_list &ap)
+int buildin_areawarp_sub(block_list &bl,va_list &ap)
 {
 	int x,y;
 	char *map;
@@ -3487,7 +3486,7 @@ public:
 		: map(m), x(xx), y(yy)
 	{}
 	~CBuildinAreawarpXY()	{}
-	virtual int process(struct block_list& bl) const
+	virtual int process(block_list& bl) const
 	{
 		if(bl.type==BL_PC)
 		{
@@ -3504,7 +3503,7 @@ class CBuildinAreawarpRnd : public CMapProcessor
 public:
 	CBuildinAreawarpRnd()	{}
 	~CBuildinAreawarpRnd()	{}
-	virtual int process(struct block_list& bl) const
+	virtual int process(block_list& bl) const
 	{
 		if(bl.type==BL_PC)
 		{
@@ -3531,10 +3530,10 @@ int buildin_areawarp(CScriptEngine &st)
 	{	//!! broadcast command if not on this mapserver
 
 		if( 0==strcmp(targetmap,"Random") )
-			CMap::foreachinarea( CBuildinAreawarpRnd(),
+			block_list::foreachinarea( CBuildinAreawarpRnd(),
 				m,x0,y0,x1,y1,BL_PC);
 		else
-			CMap::foreachinarea( CBuildinAreawarpXY(targetmap,x,y),
+			block_list::foreachinarea( CBuildinAreawarpXY(targetmap,x,y),
 				m,x0,y0,x1,y1,BL_PC);
 //		map_foreachinarea(buildin_areawarp_sub,
 //			m,x0,y0,x1,y1,BL_PC, 
@@ -3773,7 +3772,7 @@ int buildin_getitem(CScriptEngine &st)
 		else
 			item_tmp.identify = !itemdb_isEquipment(nameid);
 		if( st.Arguments() > 5 ) //アイテムを指定したIDに渡す
-			sd=map_id2sd(st.GetInt( (st[5])));
+			sd=map_session_data::from_blid(st.GetInt( (st[5])));
 		if(sd == NULL) //アイテムを渡す相手がいなかったらお帰り
 			return 0;
 		if((flag = pc_additem(*sd,item_tmp,amount)))
@@ -3823,7 +3822,7 @@ int buildin_getitem2(CScriptEngine &st)
 	c3=st.GetInt(st[9]);
 	c4=st.GetInt(st[10]);
 	if( st.Arguments() > 11 ) //アイテムを指定したIDに渡す
-		sd=map_id2sd( st.GetInt(st[11]) );
+		sd=map_session_data::from_blid( st.GetInt(st[11]) );
 	if(sd == NULL) //アイテムを渡す相手がいなかったらお帰り
 		return 0;
 
@@ -3916,9 +3915,9 @@ int buildin_getnameditem(CScriptEngine &st)
 	data = st[3];
 	st.ConvertName(data);
 	if( data.isString() )	//Char Name
-		tsd=map_nick2sd(st.GetString(data));
+		tsd=map_session_data::nick2sd(st.GetString(data));
 	else	//Char Id was given
-		tsd=map_charid2sd(st.GetInt(data));
+		tsd=map_session_data::charid2sd(st.GetInt(data));
 	
 	if( tsd == NULL )
 	{	//Failed
@@ -4098,7 +4097,7 @@ int buildin_readparam(CScriptEngine &st)
 
 	type=st.GetInt(st[2]);
 	if( st.Arguments() > 3 )
-		sd=map_nick2sd(st.GetString((st[3])));
+		sd=map_session_data::nick2sd(st.GetString((st[3])));
 	else
 		sd=st.sd;
 
@@ -4116,7 +4115,7 @@ int buildin_getcharid(CScriptEngine &st)
 
 	num=st.GetInt(st[2]);
 	if( st.Arguments() > 3 )
-		sd=map_nick2sd(st.GetString((st[3])));
+		sd=map_session_data::nick2sd(st.GetString((st[3])));
 	else
 		sd=st.sd;
 
@@ -4251,7 +4250,7 @@ int buildin_getguildmasterid(CScriptEngine &st)
 	int val=0;
 	int guild_id=st.GetInt(st[2]);
 	master=buildin_getguildmaster_sub(guild_id);
-	if( master &&  (sd=map_nick2sd(master)) != NULL )
+	if( master &&  (sd=map_session_data::nick2sd(master)) != NULL )
 		val = sd->status.char_id;
 
 	st.push_val(CScriptEngine::C_INT,val);
@@ -4292,7 +4291,7 @@ int buildin_pcstrcharinfo(CScriptEngine &st)
 	char *buf=NULL;
 	int aid=st.GetInt(st[2]);
 	int num=st.GetInt(st[3]);
-	struct map_session_data *sd=map_id2sd(aid);
+	struct map_session_data *sd=map_session_data::from_blid(aid);
 
 	if(sd==NULL)
 	{	// nothing
@@ -5234,7 +5233,7 @@ int buildin_areamonster(CScriptEngine &st)
  *------------------------------------------
  */
 /*
-int buildin_killmonster_sub(struct block_list &bl,va_list &ap)
+int buildin_killmonster_sub(block_list &bl,va_list &ap)
 {
 	struct mob_data &md =(struct mob_data&)bl;
 	char *event=va_arg(ap,char *);
@@ -5252,7 +5251,7 @@ int buildin_killmonster_sub(struct block_list &bl,va_list &ap)
 	}
 	return 0;
 }
-int buildin_killmonsterall_sub(struct block_list &bl,va_list &ap)
+int buildin_killmonsterall_sub(block_list &bl,va_list &ap)
 {
 	mob_remove_map((struct mob_data &)bl, 1);
 	return 0;
@@ -5263,7 +5262,7 @@ class CBuildinKillSummonedmob : public CMapProcessor
 public:
 	CBuildinKillSummonedmob()	{}
 	~CBuildinKillSummonedmob()	{}
-	virtual int process(struct block_list& bl) const
+	virtual int process(block_list& bl) const
 	{
 		struct mob_data &md =(struct mob_data&)bl;
 		
@@ -5281,7 +5280,7 @@ class CBuildinKillEventmob : public CMapProcessor
 public:
 	CBuildinKillEventmob(const char*&e) : event(e)	{}
 	~CBuildinKillEventmob()	{}
-	virtual int process(struct block_list& bl) const
+	virtual int process(block_list& bl) const
 	{
 		struct mob_data &md =(struct mob_data&)bl;
 		if(bl.type==BL_MOB && 0==strcmp(event, md.npc_event))
@@ -5297,7 +5296,7 @@ class CBuildinKillallmob : public CMapProcessor
 public:
 	CBuildinKillallmob()	{}
 	~CBuildinKillallmob()	{}
-	virtual int process(struct block_list& bl) const
+	virtual int process(block_list& bl) const
 	{
 		struct mob_data &md =(struct mob_data&)bl;
 		if(bl.type==BL_MOB )
@@ -5317,10 +5316,10 @@ int buildin_killmonster(CScriptEngine &st)
 	if( m < map_num )
 	{	//!! broadcast command if not on this mapserver
 		if(strcmp(event,"All")==0)
-			CMap::foreachinarea( CBuildinKillSummonedmob(),
+			block_list::foreachinarea( CBuildinKillSummonedmob(),
 				m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
 		else
-			CMap::foreachinarea( CBuildinKillEventmob(event),
+			block_list::foreachinarea( CBuildinKillEventmob(event),
 				m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
 
 //		if(strcmp(event,"All")==0)
@@ -5337,7 +5336,7 @@ int buildin_killmonsterall(CScriptEngine &st)
 	ushort m =map_mapname2mapid(mapname);
 	if( m < map_num )
 	{	//!! broadcast command if not on this mapserver
-		CMap::foreachinarea( CBuildinKillallmob(),
+		block_list::foreachinarea( CBuildinKillallmob(),
 			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
 
 //		map_foreachinarea(buildin_killmonsterall_sub,
@@ -5423,7 +5422,7 @@ int buildin_initnpctimer(CScriptEngine &st)
 	if( st.Arguments() > 2 )
 		nd=npc_name2id(st.GetString(st[2]));
 	else
-		nd=(struct npc_data *)map_id2bl(st.oid);
+		nd= npc_data::from_blid(st.oid);
 
 	if(nd)
 	{
@@ -5442,7 +5441,7 @@ int buildin_startnpctimer(CScriptEngine &st)
 	if( st.Arguments() > 2 )
 		nd=npc_name2id(st.GetString(st[2]));
 	else
-		nd=(struct npc_data *)map_id2bl(st.oid);
+		nd=npc_data::from_blid(st.oid);
 
 	if(nd)
 	{
@@ -5460,7 +5459,7 @@ int buildin_stopnpctimer(CScriptEngine &st)
 	if( st.Arguments() > 2 )
 		nd=npc_name2id(st.GetString( (st[2])));
 	else
-		nd=(struct npc_data *)map_id2bl(st.oid);
+		nd=npc_data::from_blid(st.oid);
 
 	if(nd) npc_timerevent_stop(*nd);
 	return 0;
@@ -5471,13 +5470,13 @@ int buildin_stopnpctimer(CScriptEngine &st)
  */
 int buildin_getnpctimer(CScriptEngine &st)
 {
-	struct npc_data *nd;
+	npc_data *nd;
 	int type=st.GetInt(st[2]);
 	int val=0;
 	if( st.Arguments() > 3 )
 		nd=npc_name2id(st.GetString( (st[3])));
 	else
-		nd=(struct npc_data *)map_id2bl(st.oid);
+		nd= npc_data::from_blid(st.oid);
 
 	if(nd)
 	{
@@ -5498,11 +5497,11 @@ int buildin_getnpctimer(CScriptEngine &st)
 int buildin_setnpctimer(CScriptEngine &st)
 {
 	unsigned long tick=st.GetInt(st[2]);
-	struct npc_data *nd;
+	npc_data *nd;
 	if( st.Arguments() > 3 )
 		nd=npc_name2id(st.GetString( (st[3])));
 	else
-		nd=(struct npc_data *)map_id2bl(st.oid);
+		nd= npc_data::from_blid(st.oid);
 
 	if(nd)
 	{
@@ -5517,14 +5516,8 @@ int buildin_setnpctimer(CScriptEngine &st)
  */
 int buildin_attachnpctimer(CScriptEngine &st)
 {
-	
-	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
-	struct map_session_data *sd= st.sd;
-	if( st.Arguments() > 2 )
-	{
-		const char *name = st.GetString(st[2]);
-		sd=map_nick2sd(name);
-	}
+	npc_data *nd = npc_data::from_blid(st.oid);
+	map_session_data *sd = ( st.Arguments() > 2 ) ? map_session_data::nick2sd(st.GetString(st[2])) : st.sd;
 	if(sd && nd)
 		nd->u.scr.rid = sd->block_list::id;
 	return 0;
@@ -5536,11 +5529,11 @@ int buildin_attachnpctimer(CScriptEngine &st)
  */
 int buildin_detachnpctimer(CScriptEngine &st)
 {
-	struct npc_data *nd;
+	npc_data *nd;
 	if( st.Arguments() > 2 )
 		nd=npc_name2id(st.GetString( (st[2])));
 	else
-		nd=(struct npc_data *)map_id2bl(st.oid);
+		nd= npc_data::from_blid(st.oid);
 	if(nd)
 		nd->u.scr.rid = 0;
 	return 0;
@@ -5558,7 +5551,7 @@ int buildin_announce(CScriptEngine &st)
 
 	if(flag&0x0f)
 	{
-		struct block_list *bl=(flag&0x08) ? map_id2bl(st.oid) : st.sd;
+		block_list *bl=(flag&0x08) ? block_list::from_blid(st.oid) : st.sd;
 		clif_GMmessage(bl, str, len, flag);
 	}
 	else
@@ -5570,7 +5563,7 @@ int buildin_announce(CScriptEngine &st)
  *------------------------------------------
  */
 /*
-int buildin_mapannounce_sub(struct block_list &bl,va_list &ap)
+int buildin_mapannounce_sub(block_list &bl,va_list &ap)
 {
 	char *str;
 	int len,flag;
@@ -5590,7 +5583,7 @@ public:
 	CBuildinMapannounce(const char*&s, size_t l, int f)
 		: str(s),len(l),flag(f|3)	{}
 	~CBuildinMapannounce()	{}
-	virtual int process(struct block_list& bl) const
+	virtual int process(block_list& bl) const
 	{
 		if(bl.type==BL_PC)
 			clif_GMmessage(&bl,str,len,flag);
@@ -5605,7 +5598,7 @@ int buildin_mapannounce(CScriptEngine &st)
 	ushort m=map_mapname2mapid(mapname);
 	if( m<map_num )
 	{	//!! broadcast command if not on this mapserver
-		CMap::foreachinarea( CBuildinMapannounce(str,1+strlen(str),flag),
+		block_list::foreachinarea( CBuildinMapannounce(str,1+strlen(str),flag),
 			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_PC);
 //		map_foreachinarea(buildin_mapannounce_sub,
 //			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_PC,
@@ -5629,7 +5622,7 @@ int buildin_areaannounce(CScriptEngine &st)
 	ushort m=map_mapname2mapid(mapname);
 	if( m<map_num )
 	{	//!! broadcast command if not on this mapserver
-		CMap::foreachinarea( CBuildinMapannounce(str,1+strlen(str),flag&0x10),
+		block_list::foreachinarea( CBuildinMapannounce(str,1+strlen(str),flag&0x10),
 			m,x0,y0,x1,y1,BL_PC);
 //		map_foreachinarea(buildin_mapannounce_sub,
 //			m,x0,y0,x1,y1,BL_PC, 
@@ -5644,7 +5637,7 @@ int buildin_areaannounce(CScriptEngine &st)
 int buildin_getusers(CScriptEngine &st)
 {
 	int flag=st.GetInt(st[2]);
-	struct block_list *bl = (flag&0x08)?map_id2bl(st.oid):st.sd;
+	block_list *bl = (flag&0x08)?block_list::from_blid(st.oid):st.sd;
 	int val=0;
 	switch(flag&0x07)
 	{
@@ -5698,7 +5691,7 @@ int buildin_getmapusers(CScriptEngine &st)
  *------------------------------------------
  */
 /*
-int buildin_getareausers_sub(struct block_list &bl,va_list &ap)
+int buildin_getareausers_sub(block_list &bl,va_list &ap)
 {
 	int *users=va_arg(ap,int *);
 	(*users)++;
@@ -5711,7 +5704,7 @@ class CBuildinCountObject : public CMapProcessor
 public:
 	CBuildinCountObject(int t) : type(t)	{}
 	~CBuildinCountObject()	{}
-	virtual int process(struct block_list& bl) const
+	virtual int process(block_list& bl) const
 	{
 		return (bl.type==type);
 	}
@@ -5726,7 +5719,7 @@ int buildin_getareausers(CScriptEngine &st)
 	ushort m=map_mapname2mapid(mapname);
 	//!! broadcast command if not on this mapserver
 	int users = ( m>=map_num )? -1 : 
-		CMap::foreachinarea( CBuildinCountObject(BL_PC), m,x0,y0,x1,y1,BL_PC);
+		block_list::foreachinarea( CBuildinCountObject(BL_PC), m,x0,y0,x1,y1,BL_PC);
 //	map_foreachinarea(buildin_getareausers_sub,
 //		m,x0,y0,x1,y1,BL_PC,&users);
 	st.push_val(CScriptEngine::C_INT,users);
@@ -5738,7 +5731,7 @@ int buildin_getareausers(CScriptEngine &st)
  *------------------------------------------
  */
 /*
-int buildin_getareadropitem_sub(struct block_list &bl,va_list &ap)
+int buildin_getareadropitem_sub(block_list &bl,va_list &ap)
 {
 	int item=va_arg(ap,int);
 	int *amount=va_arg(ap,int *);
@@ -5756,7 +5749,7 @@ class CBuildinCountDropitem : public CMapProcessor
 public:
 	CBuildinCountDropitem(int i):item(i)	{}
 	~CBuildinCountDropitem()	{}
-	virtual int process(struct block_list& bl) const
+	virtual int process(block_list& bl) const
 	{
 		flooritem_data &drop=(flooritem_data &)bl;
 		return (drop.item_data.nameid==item) ? drop.item_data.amount : 0;
@@ -5788,7 +5781,7 @@ int buildin_getareadropitem(CScriptEngine &st)
 		else
 			item=st.GetInt(data);
 
-		amount = CMap::foreachinarea( CBuildinCountDropitem(item),
+		amount = block_list::foreachinarea( CBuildinCountDropitem(item),
 			m,x0,y0,x1,y1,BL_ITEM);
 
 //		map_foreachinarea(buildin_getareadropitem_sub,
@@ -5820,10 +5813,10 @@ int buildin_disablenpc(CScriptEngine &st)
 
 int buildin_enablearena(CScriptEngine &st)	// Added by RoVeRT
 {
-	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
+	struct npc_data *nd= npc_data::from_blid(st.oid);
 	chat_data *cd;
 
-	if( nd && (cd=(chat_data *)map_id2bl(nd->chat_id)) )
+	if( nd && (cd=chat_data::from_blid(nd->chat_id)) )
 	{
 		npc_enable(nd->name,1);
 		nd->arenaflag=1;
@@ -5835,7 +5828,7 @@ int buildin_enablearena(CScriptEngine &st)	// Added by RoVeRT
 }
 int buildin_disablearena(CScriptEngine &st)	// Added by RoVeRT
 {
-	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
+	npc_data *nd= npc_data::from_blid(st.oid);
 	if(nd)
 		nd->arenaflag=0;
 
@@ -5867,7 +5860,7 @@ int buildin_hideonnpc(CScriptEngine &st)
  */
 int buildin_sc_start(CScriptEngine &st)
 {
-	struct block_list *bl;
+	block_list *bl;
 	int type;
 	unsigned long tick;
 	int val1;
@@ -5875,15 +5868,16 @@ int buildin_sc_start(CScriptEngine &st)
 	tick=st.GetInt(st[3]);
 	val1=st.GetInt(st[4]);
 	if( st.Arguments() > 5 ) //指定したキャラを状態異常にする
-		bl = map_id2bl(st.GetInt(st[5]));
+		bl = block_list::from_blid(st.GetInt(st[5]));
 	else
 		bl = st.sd;
 
 	if(bl)
 	{
-		if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
+		map_session_data* sd = bl->get_sd();
+		if( sd && sd->state.potion_flag==1 )
 		{
-			bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
+			bl = block_list::from_blid(sd->skilltarget);
 			tick/=2; //Thrown potions only last half.
 		}
 		if(bl) status_change_start(bl,type,val1,0,0,0,tick,0);
@@ -5897,7 +5891,7 @@ int buildin_sc_start(CScriptEngine &st)
  */
 int buildin_sc_start2(CScriptEngine &st)
 {
-	struct block_list *bl;
+	block_list *bl;
 	int type;
 	unsigned long tick;
 	int val1,per;
@@ -5906,13 +5900,14 @@ int buildin_sc_start2(CScriptEngine &st)
 	val1=st.GetInt(st[4]);
 	per=st.GetInt(st[5]);
 	if( st.Arguments() > 6 ) //指定したキャラを状態異常にする
-		bl = map_id2bl(st.GetInt(st[6]));
+		bl = block_list::from_blid(st.GetInt(st[6]));
 	else
 		bl = st.sd;
 	if(bl)
 	{
-		if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
-			bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
+		map_session_data *sd = bl->get_sd();
+		if( sd && sd->state.potion_flag==1 )
+			bl = block_list::from_blid(sd->skilltarget);
 		if(rand()%10000 < per)
 			status_change_start(bl,type,val1,0,0,0,tick,0);
 	}
@@ -5932,16 +5927,17 @@ int buildin_sc_start4(CScriptEngine &st)
 	int val2=st.GetInt(st[5]);
 	int val3=st.GetInt(st[6]);
 	int val4=st.GetInt(st[7]);
-	struct block_list *bl;
+	block_list *bl;
 	if( st.Arguments() > 8 )
-		bl = map_id2bl( st.GetInt(st[8]) );
+		bl = block_list::from_blid( st.GetInt(st[8]) );
 	else
 		bl = st.sd;
 
 	if (bl)
 	{
-		if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
-			bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
+		map_session_data*sd = bl->get_sd();
+		if(sd && sd->state.potion_flag==1 )
+			bl = block_list::from_blid(sd->skilltarget);
 		status_change_start(bl,type,val1,val2,val3,val4,tick,0);
 	}
 	return 0;
@@ -5955,12 +5951,11 @@ int buildin_sc_end(CScriptEngine &st)
 {
 	if(st.sd)
 	{
-		struct block_list *bl = st.sd;
-
 		int type=st.GetInt(st[2]);
-		if(st.sd->block_list::type == BL_PC && st.sd->state.potion_flag==1)
-			bl = map_id2bl(st.sd->skilltarget);
-
+		block_list *bl = st.sd;
+		
+		if( st.sd->state.potion_flag==1 )
+			bl = block_list::from_blid(st.sd->skilltarget);
 		status_change_end(bl,type,-1);
 //		if(config.etc_log)
 //			ShowMessage("sc_end : %d %d\n",st.rid,type);
@@ -5973,13 +5968,13 @@ int buildin_sc_end(CScriptEngine &st)
  */
 int buildin_getscrate(CScriptEngine &st)
 {
-	struct block_list *bl;
+	block_list *bl;
 	int sc_def,type,rate;
 
 	type=st.GetInt(st[2]);
 	rate=st.GetInt(st[3]);
 	if( st.Arguments() > 4 ) //指定したキャラの耐性を計算する
-		bl = map_id2bl(st.GetInt(st[6]));
+		bl = block_list::from_blid(st.GetInt(st[6]));
 	else
 		bl = st.sd;
 
@@ -6072,7 +6067,7 @@ int buildin_changebase(CScriptEngine &st)
 	int vclass;
 
 	if( st.Arguments() > 3 )
-		sd=map_id2sd(st.GetInt( (st[3])));
+		sd=map_session_data::from_blid(st.GetInt( (st[3])));
 
 	if(sd == NULL)
 		return 0;
@@ -6150,7 +6145,7 @@ int buildin_waitingroom(CScriptEngine &st)
 		if( st.Arguments() > 4 )
 			ev=st.GetString(st[4]);
 	}
-	struct npc_data *nd = (struct npc_data *)map_id2bl(st.oid);
+	npc_data *nd = npc_data::from_blid(st.oid);
 	if(nd)
 		chat_createnpcchat(*nd,limit,pub,trigger,name,strlen(name)+1,ev);
 	return 0;
@@ -6172,7 +6167,7 @@ int buildin_globalmes(CScriptEngine &st)
 		}
 		else
 		{
-			struct npc_data *nd = (struct npc_data *)map_id2bl(st.oid);
+			npc_data *nd = npc_data::from_blid(st.oid);
 			name=nd->name;
 		}
 
@@ -6190,7 +6185,7 @@ int buildin_delwaitingroom(CScriptEngine &st)
 	if( st.Arguments() > 2 )
 		nd=npc_name2id(st.GetString( (st[2])));
 	else
-		nd=(struct npc_data *)map_id2bl(st.oid);
+		nd= npc_data::from_blid(st.oid);
 	if(nd) chat_deletenpcchat(*nd);
 	return 0;
 }
@@ -6206,9 +6201,9 @@ int buildin_waitingroomkickall(CScriptEngine &st)
 	if( st.Arguments() > 2 )
 		nd=npc_name2id(st.GetString( (st[2])));
 	else
-		nd=(struct npc_data *)map_id2bl(st.oid);
+		nd= npc_data::from_blid(st.oid);
 
-	if(nd && (cd=(chat_data *)map_id2bl(nd->chat_id)) )
+	if(nd && (cd= chat_data::from_blid(nd->chat_id)) )
 		cd->kickall();
 	return 0;
 }
@@ -6225,9 +6220,9 @@ int buildin_enablewaitingroomevent(CScriptEngine &st)
 	if( st.Arguments() > 2 )
 		nd=npc_name2id(st.GetString( (st[2])));
 	else
-		nd=(struct npc_data *)map_id2bl(st.oid);
+		nd= npc_data::from_blid(st.oid);
 
-	if(nd && (cd=(chat_data *)map_id2bl(nd->chat_id)) )
+	if(nd && (cd= chat_data::from_blid(nd->chat_id)) )
 		cd->enable_event();
 	return 0;
 }
@@ -6244,9 +6239,9 @@ int buildin_disablewaitingroomevent(CScriptEngine &st)
 	if( st.Arguments() > 2 )
 		nd=npc_name2id(st.GetString( (st[2])));
 	else
-		nd=(struct npc_data *)map_id2bl(st.oid);
+		nd= npc_data::from_blid(st.oid);
 
-	if(nd && (cd=(chat_data *)map_id2bl(nd->chat_id)) )
+	if(nd && (cd= chat_data::from_blid(nd->chat_id)) )
 		cd->disable_event();
 	return 0;
 }
@@ -6263,9 +6258,9 @@ int buildin_getwaitingroomstate(CScriptEngine &st)
 	if( st.Arguments() > 3 )
 		nd=npc_name2id(st.GetString( (st[3])));
 	else
-		nd=(struct npc_data *)map_id2bl(st.oid);
+		nd=npc_data::from_blid(st.oid);
 
-	if(nd==NULL || (cd=(chat_data *)map_id2bl(nd->chat_id))==NULL ){
+	if(nd==NULL || (cd = chat_data::from_blid(nd->chat_id))==NULL ){
 		st.push_val(CScriptEngine::C_INT,-1);
 		return 0;
 	}
@@ -6300,10 +6295,10 @@ int buildin_warpwaitingpc(CScriptEngine &st)
 {
 	int x,y,i,n;
 	const char *str;
-	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
+	struct npc_data *nd= npc_data::from_blid(st.oid);
 	chat_data *cd;
 
-	if(nd==NULL || (cd=(chat_data *)map_id2bl(nd->chat_id))==NULL )
+	if(nd==NULL || (cd=chat_data::from_blid(nd->chat_id))==NULL )
 		return 0;
 
 	n=cd->trigger&0x7f;
@@ -6395,15 +6390,17 @@ int buildin_setmapflagnosave(CScriptEngine &st)
 
 int buildin_setmapflag(CScriptEngine &st)
 {
-	int m,i;
+	unsigned int m,i;
 	const char *str;
 
 	str=st.GetString(st[2]);
 	i=st.GetInt(st[3]);
 	m = map_mapname2mapid(str);
 //!! broadcast command if not on this mapserver
-	if(m >= 0) {
-		switch(i) {
+	if(m < map_num)
+	{
+		switch(i)
+		{
 			case MF_NOMEMO:
 				maps[m].flag.nomemo=1;
 				break;
@@ -6483,21 +6480,34 @@ int buildin_setmapflag(CScriptEngine &st)
 				maps[m].flag.nogo=1;
 				break;
 		}
+
+		if( i==MF_SNOW ||
+			i==MF_CLOUDS ||
+			i==MF_CLOUDS2 ||
+			i==MF_FOG ||
+			i==MF_FIREWORKS ||
+			i==MF_SAKURA ||
+			i==MF_LEAVES ||
+			i==MF_RAIN ||
+			i==MF_INDOORS )
+		clif_updateweather(m);
 	}
 	return 0;
 }
 
 int buildin_removemapflag(CScriptEngine &st)
 {
-	int m,i;
+	unsigned int m,i;
 	const char *str;
 
 	str=st.GetString(st[2]);
 	i=st.GetInt(st[3]);
 	m = map_mapname2mapid(str);
 //!! broadcast command if not on this mapserver
-	if(m >= 0) {
-		switch(i) {
+	if(m < map_num)
+	{
+		switch(i)
+		{
 			case MF_NOMEMO:
 				maps[m].flag.nomemo=0;
 				break;
@@ -6577,6 +6587,16 @@ int buildin_removemapflag(CScriptEngine &st)
 				maps[m].flag.nogo=0;
 				break;
 		}
+		if( i==MF_SNOW ||
+			i==MF_CLOUDS ||
+			i==MF_CLOUDS2 ||
+			i==MF_FOG ||
+			i==MF_FIREWORKS ||
+			i==MF_SAKURA ||
+			i==MF_LEAVES ||
+			i==MF_RAIN ||
+			i==MF_INDOORS )
+		clif_updateweather(m);
 	}
 	return 0;
 }
@@ -6692,19 +6712,19 @@ int buildin_emotion(CScriptEngine &st)
 			player=st.GetInt(st[3]);
 		if (player)
 		{
-			struct map_session_data *sd = map_id2sd(player);
+			struct map_session_data *sd = map_session_data::from_blid(player);
 			if (sd) clif_emotion(*sd,type);
 		}
 		else
 		{
-			block_list *bl = map_id2bl(st.oid);
+			block_list *bl = block_list::from_blid(st.oid);
 			if(bl) clif_emotion(*bl,type);
 		}
 	}
 	return 0;
 }
 /*
-int buildin_maprespawnguildid_sub(struct block_list &bl,va_list &ap)
+int buildin_maprespawnguildid_sub(block_list &bl,va_list &ap)
 {
 	uint32 g_id=va_arg(ap,uint32);
 	int flag=va_arg(ap,int);
@@ -6738,7 +6758,7 @@ class CBuildinRespawnGuild : public CMapProcessor
 public:
 	CBuildinRespawnGuild(uint32 g, int f) : g_id(g), flag(f)	{}
 	~CBuildinRespawnGuild()	{}
-	virtual int process(struct block_list& bl) const
+	virtual int process(block_list& bl) const
 	{
 		if(bl.type == BL_PC)
 		{
@@ -6768,7 +6788,7 @@ int buildin_maprespawnguildid(CScriptEngine &st)
 	ushort m=map_mapname2mapid(mapname);
 	if( m<map_num )
 	{
-		CMap::foreachinarea( CBuildinRespawnGuild(g_id,flag),
+		block_list::foreachinarea( CBuildinRespawnGuild(g_id,flag),
 			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_NUL);
 //		map_foreachinarea(buildin_maprespawnguildid_sub,
 //			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_NUL,g_id,flag);
@@ -6818,7 +6838,9 @@ int buildin_flagemblem(CScriptEngine &st)
 	if(g_id < 0) return 0;
 
 //	ShowMessage("Script.c: [FlagEmblem] GuildID=%d, Emblem=%d.\n", g->guild_id, g->emblem_id);
-	((struct npc_data *)map_id2bl(st.oid))->u.scr.guild_id = g_id;
+
+	npc_data *nd = npc_data::from_blid(st.oid);
+	if(nd) nd->u.scr.guild_id = g_id;
 	return 1;
 }
 
@@ -7163,10 +7185,10 @@ int buildin_mapwarp(CScriptEngine &st)	// Added by RoVeRT
 		int y1=maps[m].ys;
 
 		if( 0==strcmp(targetmap,"Random") )
-			CMap::foreachinarea( CBuildinAreawarpRnd(),
+			block_list::foreachinarea( CBuildinAreawarpRnd(),
 				m,x0,y0,x1,y1,BL_PC);
 		else
-			CMap::foreachinarea( CBuildinAreawarpXY(targetmap,x,y),
+			block_list::foreachinarea( CBuildinAreawarpXY(targetmap,x,y),
 				m,x0,y0,x1,y1,BL_PC);
 //		map_foreachinarea(buildin_areawarp_sub,
 //			m,x0,y0,x1,y1,BL_PC, str,x,y );
@@ -7187,7 +7209,7 @@ int buildin_cmdothernpc(CScriptEngine &st)	// Added by RoVeRT
 
 int buildin_inittimer(CScriptEngine &st)	// Added by RoVeRT
 {
-//	struct npc_data *nd=(struct npc_data*)map_id2bl(st.oid);
+//	npc_data *nd = npc_data::from_blid(st.oid);
 //	nd->lastaction=nd->timer=gettick();
 	if(st.sd)
 		npc_do_ontimer(st.oid, *st.sd, 1);
@@ -7196,7 +7218,7 @@ int buildin_inittimer(CScriptEngine &st)	// Added by RoVeRT
 
 int buildin_stoptimer(CScriptEngine &st)	// Added by RoVeRT
 {
-//	struct npc_data *nd=(struct npc_data*)map_id2bl(st.oid);
+//	npc_data *nd= npc_data::from_blid(st.oid);
 //	nd->lastaction=nd->timer=-1;
 	if(st.sd)
 		npc_do_ontimer(st.oid, *st.sd, 0);
@@ -7204,7 +7226,7 @@ int buildin_stoptimer(CScriptEngine &st)	// Added by RoVeRT
 	return 0;
 }
 /*
-int buildin_mobcount_sub(struct block_list &bl,va_list &ap)	// Added by RoVeRT
+int buildin_mobcount_sub(block_list &bl,va_list &ap)	// Added by RoVeRT
 {
 	char *event=va_arg(ap,char *);
 	int *c=va_arg(ap,int *);
@@ -7221,7 +7243,7 @@ class CBuildinMapCount : public CMapProcessor
 public:
 	CBuildinMapCount(int t, const char *e) : type(t), event(e)	{}
 	~CBuildinMapCount()	{}
-	virtual int process(struct block_list& bl) const
+	virtual int process(block_list& bl) const
 	{
 		struct mob_data &md = (struct mob_data &)bl;
 		if(	bl.type==type && 
@@ -7238,7 +7260,7 @@ int buildin_mobcount(CScriptEngine &st)
 	int amount = -1;
 	if( m<map_num )
 	{	//!! broadcast if not on this mapserver
-		amount = CMap::foreachinarea( CBuildinMapCount(BL_MOB,event),
+		amount = block_list::foreachinarea( CBuildinMapCount(BL_MOB,event),
 			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
 //		map_foreachinarea(buildin_mobcount_sub,
 //			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB, event,&c );
@@ -7251,7 +7273,7 @@ int buildin_marriage(CScriptEngine &st)
 {
 	const char *partner=st.GetString(st[2]);
 	struct map_session_data *sd=st.sd;
-	struct map_session_data *p_sd=map_nick2sd(partner);
+	struct map_session_data *p_sd=map_session_data::nick2sd(partner);
 
 	st.push_val(CScriptEngine::C_INT, (sd!=NULL && p_sd!=NULL && pc_marriage(*sd,*p_sd)) );
 
@@ -7260,11 +7282,7 @@ int buildin_marriage(CScriptEngine &st)
 
 int buildin_wedding_effect(CScriptEngine &st)
 {
-	struct block_list *bl;
-	if(st.sd==NULL) {
-		bl=map_id2bl(st.oid);
-	} else
-		bl=st.sd;
+	block_list *bl = (st.sd) ? st.sd : block_list::from_blid(st.oid);
 	if(bl) clif_wedding_effect(*bl);
 	return 0;
 }
@@ -7278,7 +7296,7 @@ int buildin_ispartneron(CScriptEngine &st)
 {
 	st.push_val(CScriptEngine::C_INT,
 		(st.sd && pc_ismarried(*st.sd) &&
-		NULL!=map_nick2sd(map_charid2nick(st.sd->status.partner_id)))
+		NULL!=map_session_data::charid2sd(st.sd->status.partner_id))
 		);
 	return 0;
 }
@@ -7306,7 +7324,7 @@ int buildin_warppartner(CScriptEngine &st)
 	int val=0;
 	struct map_session_data *p_sd;
 	if( st.sd && pc_ismarried(*st.sd) &&
-		(p_sd=map_nick2sd(map_charid2nick(st.sd->status.partner_id))) )
+		(p_sd=map_session_data::charid2sd(st.sd->status.partner_id)) )
 	{
 		const char *str=st.GetString(st[2]);
 		int x=st.GetInt(st[3]);
@@ -7582,7 +7600,7 @@ int buildin_clearitem(CScriptEngine &st)
 int buildin_classchange(CScriptEngine &st)
 {
 	int class_,type;
-	struct block_list *bl=map_id2bl(st.oid);
+	block_list *bl=block_list::from_blid(st.oid);
 	if(bl)
 	{
 		class_=st.GetInt(st[2]);
@@ -7598,18 +7616,10 @@ int buildin_classchange(CScriptEngine &st)
  */
 int buildin_misceffect(CScriptEngine &st)
 {
-	int type;
-	type=st.GetInt(st[2]);
-	if(st.oid)
-	{	block_list *bl = map_id2bl(st.oid);
-		if(bl) clif_misceffect2(*bl,type);
-	}
-	else
-	{
-		struct map_session_data *sd=st.sd;
-		if(sd) clif_misceffect2(*sd,type);
-//!! broadcast command if not on this mapserver
-	}
+	int effect = st.GetInt(st[2]);
+	block_list *bl = (st.oid) ? block_list::from_blid(st.oid) : st.sd;
+	if(bl)
+		clif_setareaeffect(*bl, effect);
 	return 0;
 }
 /*==========================================
@@ -7623,7 +7633,8 @@ int buildin_soundeffect(CScriptEngine &st)
 		const char *name=st.GetString(st[2]);
 		int type=st.GetInt(st[3]);
 		if(st.oid)
-		{	block_list *bl = map_id2bl(st.oid);
+		{
+			block_list *bl = block_list::from_blid(st.oid);
 			if(bl) clif_soundeffect(*st.sd,*bl,name,type);
 		}
 		else
@@ -7644,7 +7655,7 @@ int buildin_soundeffectall(CScriptEngine &st)
 	name=st.GetString(st[2]);
 	type=st.GetInt(st[3]);
 	
-	if(st.oid && (bl=map_id2bl(st.oid))!=NULL)
+	if(st.oid && (bl=block_list::from_blid(st.oid))!=NULL)
 		clif_soundeffectall(*bl,name,type);
 	else if(sd)
 		clif_soundeffectall(*sd,name,type);
@@ -7841,7 +7852,7 @@ int buildin_skilleffect(CScriptEngine &st)
  */
 int buildin_npcskilleffect(CScriptEngine &st)
 {
-	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
+	struct npc_data *nd = npc_data::from_blid(st.oid);
 
 	int skillid=st.GetInt(st[2]);
 	int skilllv=st.GetInt(st[3]);
@@ -7859,10 +7870,8 @@ int buildin_npcskilleffect(CScriptEngine &st)
  */
 int buildin_specialeffect(CScriptEngine &st)
 {
-	struct block_list *bl=map_id2bl(st.oid);
-
+	block_list *bl=block_list::from_blid(st.oid);
 	if(bl) clif_specialeffect(*bl,st.GetInt( (st[2])), 0);
-
 	return 0;
 }
 
@@ -7900,56 +7909,60 @@ int buildin_nude(CScriptEngine &st)
 	return 0;
 }
 
-/*==========================================
- * gmcommand [MouseJstr]
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+/// gmcommand.
+/// uses the a dummy mapsession when running without attached player.
+/// note the modified calling convention
 int buildin_gmcommand(CScriptEngine &st)
 {
-	if(st.sd)
+	// operator new is cleaning the whole structure
+	map_session_data *obj = (st.sd)?st.sd : new map_session_data(0,0,0,0,0,0,0,0);
+	const char *cmd = st.GetString(st[2]);
+	char buffer[512];
+
+	//////////////////////////////
+	// security for new command format
+	//## remove at the latest by 12/2006
+	const char *ip = strchr(cmd, ':');
+	if(ip)
 	{
-		const char *cmd = st.GetString(st[2]);
-		char buffer[512];
-
-		//////////////////////////////
-		// security for new command format
-		//## remove at the latest by 12/2006
-		const char *ip = strchr(cmd, ':');
-		if(ip)
-		{
-			cmd = ip;
-			++cmd;
-			while( basics::stringcheck::isspace(*cmd) ) ++cmd;
-		}
-		if( *cmd == '@' || *cmd == '#'  || *cmd == '/' )
-		{
-			ip = cmd;
-			++cmd;
-		}
-		if(ip)
-		{	
-			ShowWarning("invalid use of \"%s\"\n"
-						CL_SPACE"new calling format for gmcommand function is\n"
-						CL_SPACE"\"<command without leading command char> {parameter}\"\n"
-						CL_SPACE"for example: \"summon poring\"\n", st.GetString(st[2]));
-		}
-		//////////////////////////////
-
-		// build the command string
-		int ret = snprintf(buffer, sizeof(buffer), "%s : %c%s", st.sd->status.name, AtCommandInfo::command_symbol, cmd);
-		// add the rest of the script parameters to the string
-		size_t i, sz=0;
-		for(i=3; i<st.Arguments() && ret>=0; ++i)
-		{
-			sz+=ret;
-			ret = snprintf(buffer+sz, sizeof(buffer)-sz, " %s", st.GetString(st[i]));
-		}
-		// make sure it's terminated enven when buffer limit was hit
-		buffer[sizeof(buffer)-1]=0;
-
-		// and call the command processor
-		is_atcommand(st.sd->fd, *st.sd, buffer, 99);
+		cmd = ip;
+		++cmd;
+		while( basics::stringcheck::isspace(*cmd) ) ++cmd;
 	}
+	while( !basics::stringcheck::isalpha(*cmd) )
+	{
+		ip = cmd;
+		++cmd;
+	}
+	if(ip)
+	{	
+		ShowWarning("invalid use of \"%s\"\n"
+					CL_SPACE"new calling format for gmcommand function is\n"
+					CL_SPACE"\"<command without leading command char> {parameter}\"\n"
+					CL_SPACE"for example: \"summon poring\"\n"
+					CL_SPACE"now using: \"%s\" as command\n", st.GetString(st[2]), cmd);
+	}
+	//////////////////////////////
+
+	// build the command string
+	int ret = snprintf(buffer, sizeof(buffer), "%s : %c%s", obj->status.name, AtCommandInfo::command_symbol, cmd);
+	// add the rest of the script parameters to the string
+	size_t i, sz=0;
+	for(i=3; i<st.Arguments() && ret>=0; ++i)
+	{
+		sz+=ret;
+		ret = snprintf(buffer+sz, sizeof(buffer)-sz, " %s", st.GetString(st[i]));
+	}
+	// make sure it's terminated even when buffer limit was hit
+	buffer[sizeof(buffer)-1]=0;
+
+	// and call the command processor
+	is_atcommand(obj->fd, *obj, buffer, 99);
+
+	if(!st.sd)
+		delete obj;
+
 	return 0;
 }
 
@@ -8088,7 +8101,7 @@ int buildin_getmapmobs(CScriptEngine &st)
 		m=map_mapname2mapid(str);
 	if(m < map_num)
 	{
-		count = CMap::foreachinarea( CBuildinMapCount(BL_MOB,NULL),
+		count = block_list::foreachinarea( CBuildinMapCount(BL_MOB,NULL),
 			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
 	}
 	st.push_val(CScriptEngine::C_INT,count);
@@ -8132,7 +8145,7 @@ int buildin_message(CScriptEngine &st)
 	player = st.GetString(st[2]);
 	msg = st.GetString(st[3]);
 
-	if((pl_sd=map_nick2sd((char *) player)) == NULL)
+	if((pl_sd=map_session_data::nick2sd((char *) player)) == NULL)
              return 1;
 	clif_displaymessage(pl_sd->fd, msg);
 
@@ -8150,7 +8163,7 @@ int buildin_npctalk(CScriptEngine &st)
 	const char *str;
 	char message[1024];
 
-	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
+	struct npc_data *nd = npc_data::from_blid(st.oid);
 	str=st.GetString(st[2]);
 
 	if(nd) {
@@ -8189,7 +8202,7 @@ int buildin_hasitems(CScriptEngine &st)
 // change npc walkspeed [Valaris]
 int buildin_npcspeed(CScriptEngine &st)
 {
-	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
+	struct npc_data *nd= npc_data::from_blid(st.oid);
 	int x=0;
 
 	x=st.GetInt(st[2]);
@@ -8203,7 +8216,7 @@ int buildin_npcspeed(CScriptEngine &st)
 // make an npc walk to a position [Valaris]
 int buildin_npcwalkto(CScriptEngine &st)
 {
-	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
+	struct npc_data *nd= npc_data::from_blid(st.oid);
 	int x=0,y=0;
 
 	x=st.GetInt(st[2]);
@@ -8217,7 +8230,7 @@ int buildin_npcwalkto(CScriptEngine &st)
 // stop an npc's movement [Valaris]
 int buildin_npcstop(CScriptEngine &st)
 {
-	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
+	struct npc_data *nd = npc_data::from_blid(st.oid);
 
 	if( nd )
 		nd->stop_walking(1);
@@ -8353,7 +8366,7 @@ int buildin_getmapxy(CScriptEngine &st)
 		{
 		case 0:	//Get Character Position
 			if( st.Arguments() > 6 )
-				sd=map_nick2sd( st.GetString(st[6]) );
+				sd=map_session_data::nick2sd( st.GetString(st[6]) );
 			else
 				sd=st.sd;
 			if( sd==NULL )
@@ -8370,7 +8383,7 @@ int buildin_getmapxy(CScriptEngine &st)
 			if( st.Arguments() > 6 )
 				nd=npc_name2id( st.GetString(st[6]) );
 			else
-				nd=(struct npc_data *)map_id2bl(st.oid);
+				nd= npc_data::from_blid(st.oid);
 			if( nd==NULL )
 			{	//wrong npc name or char offline
 				st.push_val(CScriptEngine::C_INT,-1);
@@ -8383,7 +8396,7 @@ int buildin_getmapxy(CScriptEngine &st)
 			break;
 		case 2:	//Get Pet Position
 			if( st.Arguments() > 6 )
-				sd=map_nick2sd( st.GetString(st[6]) );
+				sd=map_session_data::nick2sd( st.GetString(st[6]) );
 			else
 				sd=st.sd;
 			if( sd==NULL )
@@ -8488,12 +8501,13 @@ int buildin_summon(CScriptEngine &st)
 			event=st.GetString(st[4]);
 
 		id=mob_once_spawn(sd, "this", 0, 0, str,class_,1,event);
-		if((md=(struct mob_data *)map_id2bl(id))){
+		if( (md = mob_data::from_blid(id)) )
+		{
 			md->master_id=sd->block_list::id;
 			md->state.special_mob_ai=1;
 			md->mode=mob_db[md->class_].mode|0x04;
 			md->deletetimer=add_timer(tick+60000,mob_timer_delete,id,0);
-			clif_misceffect2(*md,344);
+			clif_setareaeffect(*md,344);
 		}
 		clif_skill_poseffect(*sd,AM_CALLHOMUN,1,sd->block_list::x,sd->block_list::y,tick);
 	}
@@ -8507,13 +8521,13 @@ int buildin_summon(CScriptEngine &st)
  */
 int buildin_isnight(CScriptEngine &st)
 {
-	st.push_val(CScriptEngine::C_INT, (night_flag == 1));
+	st.push_val(CScriptEngine::C_INT, (daynight_flag == 1));
 	return 0;
 }
 
 int buildin_isday(CScriptEngine &st)
 {
-	st.push_val(CScriptEngine::C_INT, (night_flag == 0));
+	st.push_val(CScriptEngine::C_INT, (daynight_flag == 0));
 	return 0;
 }
 
@@ -8748,9 +8762,9 @@ int buildin_adopt(CScriptEngine &st)
 {
 	int ret=0;
 	
-	struct map_session_data *p1_sd = map_nick2sd( st.GetString(st[2]) );
-	struct map_session_data *p2_sd = map_nick2sd( st.GetString(st[3]) );
-	struct map_session_data *c_sd  = map_nick2sd( st.GetString(st[4]) );
+	struct map_session_data *p1_sd = map_session_data::nick2sd( st.GetString(st[2]) );
+	struct map_session_data *p2_sd = map_session_data::nick2sd( st.GetString(st[3]) );
+	struct map_session_data *c_sd  = map_session_data::nick2sd( st.GetString(st[4]) );
 
 	if( p1_sd && p2_sd && c_sd &&
 		p1_sd->status.base_level >= 70 &&
@@ -8767,14 +8781,14 @@ int buildin_adopt(CScriptEngine &st)
  */
 int buildin_night(CScriptEngine &st)
 {
-	if(night_flag != 1)
-		map_night_timer(night_timer_tid, 0, 0, 1);
+	if(!daynight_flag)
+		map_daynight_timer(-1, 0, 0, 1);
 	return 0;
 }
 int buildin_day(CScriptEngine &st)
 {
-	if(night_flag != 0)
-		map_day_timer(day_timer_tid, 0, 0, 1);
+	if(daynight_flag)
+		map_daynight_timer(-1, 0, 0, 0);
 	return 0;
 }
 
@@ -9282,8 +9296,6 @@ int script_save_mapreg()
 
 	numdb_foreach(mapreg_db,    CDBScriptSaveMapregInt(fp) );
 	numdb_foreach(mapregstr_db, CDBScriptSaveMapregStr(fp) );
-//	numdb_foreach(mapreg_db,script_save_mapreg_intsub,fp);
-//	numdb_foreach(mapregstr_db,script_save_mapreg_strsub,fp);
 
 	lock_fclose(fp,mapreg_txt, lock);
 	mapreg_dirty=0;
@@ -9346,61 +9358,76 @@ int script_config_read(const char *cfgName)
 	}
 	while (fgets(line, sizeof(line), fp))
 	{
-		if( !prepare_line(line) )
-			continue;
+		if( prepare_line(line) && 2==sscanf(line,"%1024[^:=]%*[:=]%1024[^\r\n]",w1,w2) )
+		{
+			basics::itrim(w1);
+			if(!*w1) continue;
+			basics::itrim(w2);
 
-		if( sscanf(line,"%1024[^:=]%*[:=]%1024[^\r\n]",w1,w2) < 2 )
-			continue;
-		basics::itrim(w1);
-		basics::itrim(w2);
-
-		if(strcasecmp(w1,"refine_posword")==0) {
-			set_posword(w2);
-		}
-		else if(strcasecmp(w1,"verbose_mode")==0) {
-			script_config.verbose_mode = config_switch(w2);
-		}
-		else if(strcasecmp(w1,"warn_func_no_comma")==0) {
-			script_config.warn_func_no_comma = config_switch(w2);
-		}
-		else if(strcasecmp(w1,"warn_cmd_no_comma")==0) {
-			script_config.warn_cmd_no_comma = config_switch(w2);
-		}
-		else if(strcasecmp(w1,"warn_func_mismatch_paramnum")==0) {
-			script_config.warn_func_mismatch_paramnum = config_switch(w2);
-		}
-		else if(strcasecmp(w1,"warn_cmd_mismatch_paramnum")==0) {
-			script_config.warn_cmd_mismatch_paramnum = config_switch(w2);
-		}
-		else if(strcasecmp(w1,"check_cmdcount")==0) {
-			script_config.check_cmdcount = config_switch(w2);
-		}
-		else if(strcasecmp(w1,"check_gotocount")==0) {
-			script_config.check_gotocount = config_switch(w2);
-		}
-		else if(strcasecmp(w1,"event_script_type")==0) {
-			script_config.event_script_type = config_switch(w2);
-		}
-		else if(strcasecmp(w1,"die_event_name")==0) {			
-			safestrcpy(script_config.die_event_name, sizeof(script_config.die_event_name), w2);
-		}
-		else if(strcasecmp(w1,"kill_event_name")==0) {
-			safestrcpy(script_config.kill_event_name, sizeof(script_config.kill_event_name), w2);
-		}
-		else if(strcasecmp(w1,"login_event_name")==0) {
-			safestrcpy(script_config.login_event_name, sizeof(script_config.login_event_name), w2);
-		}
-		else if(strcasecmp(w1,"logout_event_name")==0) {
-			safestrcpy(script_config.logout_event_name, sizeof(script_config.logout_event_name), w2);
-		}
-		else if(strcasecmp(w1,"mapload_event_name")==0) {
-			safestrcpy(script_config.mapload_event_name, sizeof(script_config.mapload_event_name), w2);
-		}
-		else if(strcasecmp(w1,"event_requires_trigger")==0) {
-			script_config.event_requires_trigger = config_switch(w2);
-		}
-		else if(strcasecmp(w1,"import")==0){
-			script_config_read(w2);
+			if(strcasecmp(w1,"refine_posword")==0)
+			{
+				set_posword(w2);
+			}
+			else if(strcasecmp(w1,"verbose_mode")==0)
+			{
+				script_config.verbose_mode = config_switch(w2);
+			}
+			else if(strcasecmp(w1,"warn_func_no_comma")==0)
+			{
+				script_config.warn_func_no_comma = config_switch(w2);
+			}
+			else if(strcasecmp(w1,"warn_cmd_no_comma")==0)
+			{
+				script_config.warn_cmd_no_comma = config_switch(w2);
+			}
+			else if(strcasecmp(w1,"warn_func_mismatch_paramnum")==0)
+			{
+				script_config.warn_func_mismatch_paramnum = config_switch(w2);
+			}
+			else if(strcasecmp(w1,"warn_cmd_mismatch_paramnum")==0)
+			{
+				script_config.warn_cmd_mismatch_paramnum = config_switch(w2);
+			}
+			else if(strcasecmp(w1,"check_cmdcount")==0)
+			{
+				script_config.check_cmdcount = config_switch(w2);
+			}
+			else if(strcasecmp(w1,"check_gotocount")==0)
+			{
+				script_config.check_gotocount = config_switch(w2);
+			}
+			else if(strcasecmp(w1,"event_script_type")==0)
+			{
+				script_config.event_script_type = config_switch(w2);
+			}
+			else if(strcasecmp(w1,"die_event_name")==0)
+			{			
+				safestrcpy(script_config.die_event_name, sizeof(script_config.die_event_name), w2);
+			}
+			else if(strcasecmp(w1,"kill_event_name")==0)
+			{
+				safestrcpy(script_config.kill_event_name, sizeof(script_config.kill_event_name), w2);
+			}
+			else if(strcasecmp(w1,"login_event_name")==0)
+			{
+				safestrcpy(script_config.login_event_name, sizeof(script_config.login_event_name), w2);
+			}
+			else if(strcasecmp(w1,"logout_event_name")==0)
+			{
+				safestrcpy(script_config.logout_event_name, sizeof(script_config.logout_event_name), w2);
+			}
+			else if(strcasecmp(w1,"mapload_event_name")==0)
+			{
+				safestrcpy(script_config.mapload_event_name, sizeof(script_config.mapload_event_name), w2);
+			}
+			else if(strcasecmp(w1,"event_requires_trigger")==0)
+			{
+				script_config.event_requires_trigger = config_switch(w2);
+			}
+			else if(strcasecmp(w1,"import")==0)
+			{
+				script_config_read(w2);
+			}
 		}
 	}
 	fclose(fp);

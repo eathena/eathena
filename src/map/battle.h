@@ -25,19 +25,19 @@ struct block_list;
 // ダメージ計算
 
 struct Damage battle_calc_attack(	int attack_type,
-	struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int flag);
+	block_list *bl,block_list *target,int skill_num,int skill_lv,int flag);
 struct Damage battle_calc_weapon_attack(
-	struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int flag);
+	block_list *bl,block_list *target,int skill_num,int skill_lv,int flag);
 struct Damage battle_calc_magic_attack(
-	struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int flag);
+	block_list *bl,block_list *target,int skill_num,int skill_lv,int flag);
 struct Damage  battle_calc_misc_attack(
-	struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int flag);
+	block_list *bl,block_list *target,int skill_num,int skill_lv,int flag);
 
 // 属性修正計算
 int battle_attr_fix(int damage,int atk_elem,int def_elem);
 
 // ダメージ最終計算
-int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,int div_,int skill_num,short skill_lv,int flag);
+int battle_calc_damage(block_list *src,block_list *bl,int damage,int div_,int skill_num,short skill_lv,int flag);
 enum {	// 最終計算のフラグ
 	BF_WEAPON	= 0x0001,
 	BF_MAGIC	= 0x0002,
@@ -52,17 +52,17 @@ enum {	// 最終計算のフラグ
 };
 
 // 実際にHPを増減
-int battle_delay_damage(unsigned long tick, struct block_list &src, struct block_list &target, int damage, int flag);
-int battle_damage(struct block_list *bl,struct block_list *target,int damage,int flag);
-int battle_heal(struct block_list *bl,struct block_list *target,int hp,int sp,int flag);
+int battle_delay_damage(unsigned long tick, block_list &src, block_list &target, int damage, int flag);
+int battle_damage(block_list *bl,block_list *target,int damage,int flag);
+int battle_heal(block_list *bl,block_list *target,int hp,int sp,int flag);
 
 
 // 通常攻撃処理まとめ
-int battle_weapon_attack( struct block_list *bl,struct block_list *target,unsigned long tick,int flag);
+int battle_weapon_attack( block_list *bl,block_list *target,unsigned long tick,int flag);
 
 // 各種パラメータを得る
-unsigned int battle_counttargeted(struct block_list &bl,struct block_list *src, unsigned short target_lv);
-struct block_list* battle_gettargeted(struct block_list &target);
+unsigned int battle_counttargeted(block_list &bl,block_list *src, unsigned short target_lv);
+block_list* battle_gettargeted(block_list &target);
 
 
 enum {

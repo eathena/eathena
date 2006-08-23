@@ -22,7 +22,7 @@ int log_fromstorage(struct map_session_data &sd,int n, uint32 guild);
 
 int log_vend(struct map_session_data &sd,struct map_session_data &vsd,int n,int amount,int zeny);
 int log_zeny(struct map_session_data &sd, struct map_session_data &target_sd,int amount);
-int log_atcommand(struct map_session_data &sd, const char *message);
+int log_atcommand(const map_session_data &sd, const char *message, unsigned cmdlvl);
 int log_npc(struct map_session_data &sd, const char *message);
 int log_chat(const char *type, int type_id, int src_charid, int src_accid, const char *mapname, int x, int y, const char *dst_charname, const char *message);
 
@@ -33,9 +33,10 @@ int log_init(const char *cfgName);
 
 
 
-struct LogConfig {
-	int enable_logs;
-	int sql_logs;
+struct LogConfig
+{
+	bool enable_logs;
+	bool sql_logs;
 	int rare_items_log;
 	int refine_items_log;
 	int price_items_log;
@@ -49,7 +50,7 @@ struct LogConfig {
 	int trade;
 	int vend;
 	int zeny;
-	int gm;
+	unsigned char gmlevel;
 	int npc;
 	int storage;
 	int chat;

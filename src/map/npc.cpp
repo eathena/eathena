@@ -29,9 +29,9 @@ struct npc_src_list {
 // single liked list of pointers to npc structures
 struct npc_mark
 {
-	struct npc_data *nd;
+	npc_data *nd;
 	struct npc_mark *next;
-	npc_mark(struct npc_data*n, struct npc_mark *nx) :
+	npc_mark(npc_data*n, struct npc_mark *nx) :
 		nd(n), next(nx)
 	{}
 };
@@ -161,9 +161,9 @@ static struct dbt *npcname_db=NULL;
 
 struct event_data
 {
-	struct npc_data *nd;
+	npc_data *nd;
 	size_t pos;
-	event_data(struct npc_data *n, size_t p) :
+	event_data(npc_data *n, size_t p) :
 		nd(n), pos(p)
 	{}
 };
@@ -234,8 +234,20 @@ int npc_event_doall_attached(const char *name, struct map_session_data &sd)
 		memcpy(nad.buf+2,name,len);
 		nad.buf[sizeof(nad.buf)-1]=0;//force EOS
 		nad.sd=&sd;
-		strdb_foreach(ev_db, CDBNPCevent_doall_attached(nad,c) );
-//		strdb_foreach(ev_db, npc_event_doall_attached_sub, &c, &nad);
+//		strdb_foreach(ev_db, CDBNPCevent_doall_attached(nad,c) );
+
+		db_iterator<const char*,event_data *> iter(ev_db);
+		for(; iter; ++iter)
+		{
+			const char *p =iter.key();
+			event_data *ev=iter.data();
+			nullpo_retr(0, ev);
+			if( p && (p=strchr(p,':')) && strcasecmp(nad.buf, p)==0 && ev->nd && ev->nd->u.scr.ref)
+			{
+				CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos,nad.sd->block_list::id,ev->nd->block_list::id);
+				++c;
+			}
+		}
 	}
 	return c;   
 }
@@ -249,32 +261,32 @@ int npc_event_doall_attached(const char *name, struct map_session_data &sd)
  */
 class CNpcEnable : public CMapProcessor
 {
-	struct npc_data &nd;
+	npc_data &nd;
 public:
-	CNpcEnable(struct npc_data &n) : nd(n)	{}
+	CNpcEnable(npc_data &n) : nd(n)	{}
 	~CNpcEnable()	{}
-	virtual int process(struct block_list& bl) const
+	virtual int process(block_list& bl) const
 	{
-		if(bl.type == BL_PC )
+		struct map_session_data *sd=bl.get_sd();
+		if(sd)
 		{
-			struct map_session_data &sd=(struct map_session_data &)bl;
 			char name[64];
 
 			if (nd.flag&1)	// 無効化されている
 				return 1;
-			if(sd.areanpc_id==nd.block_list::id)
+			if(sd->areanpc_id==nd.block_list::id)
 				return 1;
-			sd.areanpc_id=nd.block_list::id;
+			sd->areanpc_id=nd.block_list::id;
 
 			snprintf(name,sizeof(name),"%s::OnTouch", nd.name);
-			npc_event(sd,name,0);
+			npc_event(*sd,name,0);
 		}
 		return 0;
 	}
 };
 int npc_enable(const char *name,int flag)
 {
-	struct npc_data *nd= (struct npc_data *) strdb_search(npcname_db,name);
+	npc_data *nd= (npc_data *) strdb_search(npcname_db,name);
 	if (nd==NULL)
 		return 0;
 
@@ -295,7 +307,7 @@ int npc_enable(const char *name,int flag)
 	}
 	if(flag&3 && (nd->u.scr.xs > 0 || nd->u.scr.ys >0))
 	{
-		CMap::foreachinarea( CNpcEnable(*nd),
+		block_list::foreachinarea( CNpcEnable(*nd),
 			nd->block_list::m, ((int)nd->block_list::x)-nd->u.scr.xs,((int)nd->block_list::y)-nd->u.scr.ys, ((int)nd->block_list::x)+nd->u.scr.xs,((int)nd->block_list::y)+nd->u.scr.ys,BL_PC);
 	}
 
@@ -306,9 +318,9 @@ int npc_enable(const char *name,int flag)
  * NPCを名前で探す
  *------------------------------------------
  */
-struct npc_data* npc_name2id(const char *name)
+npc_data* npc_name2id(const char *name)
 {
-	return (struct npc_data *) strdb_search(npcname_db,name);
+	return (npc_data *) strdb_search(npcname_db,name);
 }
 
 void ev_release(struct dbn *db, int which)
@@ -335,8 +347,8 @@ int npc_event_timer(int tid, unsigned long tick, int id, basics::numptr data)
 	if(eventname)
 	{
 		struct event_data *ev = (struct event_data *)strdb_search(ev_db,eventname);
-		struct npc_data *nd;
-		struct map_session_data *sd=map_id2sd(id);
+		npc_data *nd;
+		struct map_session_data *sd=map_session_data::from_blid(id);
 		size_t i;
 
 		if((ev==NULL || (nd=ev->nd)==NULL))
@@ -365,7 +377,7 @@ int npc_event_timer(int tid, unsigned long tick, int id, basics::numptr data)
 int npc_timer_event(const char *eventname)	// Added by RoVeRT
 {
 	struct event_data *ev=(struct event_data *) strdb_search(ev_db,eventname);
-	struct npc_data *nd;
+	npc_data *nd;
 
 	if((ev==NULL || (nd=ev->nd)==NULL)){
 		ShowError("npc_timer_event: event not found [%s]\n",eventname);
@@ -567,9 +579,9 @@ int npc_do_ontimer(uint32 npc_id, struct map_session_data &sd, int option)
  */
 class CDBNPCtimerevent_import : public CDBProcessor
 {
-	struct npc_data &nd;
+	npc_data &nd;
 public:
-	CDBNPCtimerevent_import(struct npc_data &n) : nd(n)	{}
+	CDBNPCtimerevent_import(npc_data &n) : nd(n)	{}
 	virtual ~CDBNPCtimerevent_import()	{}
 	virtual bool process(void *key, void *data) const
 	{
@@ -607,7 +619,7 @@ public:
 int npc_timerevent(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	int next,t;
-	struct npc_data* nd=(struct npc_data *)map_id2bl(id);
+	npc_data* nd= npc_data::from_blid(id);
 	struct npc_timerevent_list *te;
 	if( nd==NULL || nd->u.scr.nexttimer<0 ){
 		ShowMessage("npc_timerevent: ??\n");
@@ -631,7 +643,7 @@ int npc_timerevent(int tid, unsigned long tick, int id, basics::numptr data)
  * タイマーイベント開始
  *------------------------------------------
  */
-int npc_timerevent_start(struct npc_data &nd, uint32 rid)
+int npc_timerevent_start(npc_data &nd, uint32 rid)
 {
 	int j,n, next;
 
@@ -660,7 +672,7 @@ int npc_timerevent_start(struct npc_data &nd, uint32 rid)
  * タイマーイベント終了
  *------------------------------------------
  */
-int npc_timerevent_stop(struct npc_data &nd)
+int npc_timerevent_stop(npc_data &nd)
 {
 	if( nd.u.scr.nexttimer>=0 )
 	{
@@ -677,7 +689,7 @@ int npc_timerevent_stop(struct npc_data &nd)
  * タイマー値の所得
  *------------------------------------------
  */
-int npc_gettimerevent_tick(struct npc_data &nd)
+int npc_gettimerevent_tick(npc_data &nd)
 {
 	unsigned long tick=nd.u.scr.timer;
 	if( nd.u.scr.nexttimer>=0 )
@@ -688,7 +700,7 @@ int npc_gettimerevent_tick(struct npc_data &nd)
  * タイマー値の設定
  *------------------------------------------
  */
-int npc_settimerevent_tick(struct npc_data &nd,int newtimer)
+int npc_settimerevent_tick(npc_data &nd,int newtimer)
 {
 	int flag;
 	uint32 rid;
@@ -710,7 +722,7 @@ int npc_settimerevent_tick(struct npc_data &nd,int newtimer)
 int npc_event(struct map_session_data &sd,const char *eventname,int mob_kill)
 {
 	struct event_data *ev=(struct event_data *) strdb_search(ev_db,eventname);
-	struct npc_data *nd;
+	npc_data *nd;
 //	int xs,ys;
 	char mobevent[128];
 
@@ -874,15 +886,9 @@ int npc_touch_areanpc(struct map_session_data &sd, unsigned short m, int x,int y
  * 近くかどうかの判定
  *------------------------------------------
  */
-bool npc_isNear(struct map_session_data &sd, struct npc_data &nd)
+bool npc_isNear(struct map_session_data &sd, npc_data &nd)
 {
-	if( nd.block_list::type!=BL_NPC ) {
-		if (config.error_log)
-			ShowMessage("not a npc: id=%d\n",nd.block_list::id);
-		return false;
-	}
-
-	if (nd.class_<0)	// イベント系は常にOK
+	if( nd.class_<0 )	// イベント系は常にOK
 		return true;
 
 	// エリア判定
@@ -900,7 +906,7 @@ bool npc_isNear(struct map_session_data &sd, struct npc_data &nd)
  */
 int npc_globalmessage(const char *name, const char *mes)
 {
-	struct npc_data *nd=(struct npc_data *)strdb_search(npcname_db,name);
+	npc_data *nd=(npc_data *)strdb_search(npcname_db,name);
 	char temp[128];
 	char ntemp[64];
 	char *ltemp;
@@ -924,7 +930,7 @@ int npc_globalmessage(const char *name, const char *mes)
  */
 int npc_click(struct map_session_data &sd,uint32 npcid)
 {
-	struct npc_data *nd;
+	npc_data *nd;
 
 	if( sd.ScriptEngine.isRunning() ) {
 		if (config.error_log)
@@ -932,7 +938,7 @@ int npc_click(struct map_session_data &sd,uint32 npcid)
 		return 1;
 	}
 
-	nd=(struct npc_data *)map_id2bl(npcid);
+	nd= npc_data::from_blid(npcid);
 
 	if( !nd || nd->flag&1 || !npc_isNear(sd,*nd) )
 		return 1;
@@ -967,9 +973,7 @@ int npc_scriptcont(struct map_session_data &sd, uint32 id)
  */
 int npc_buysellsel(struct map_session_data &sd,uint32 id,int type)
 {
-	struct npc_data *nd;
-
-	nd=(struct npc_data *)map_id2bl(id);
+	npc_data *nd= npc_data::from_blid(id);
 	if( !nd || !npc_isNear(sd,*nd) )
 		return 1;
 
@@ -996,14 +1000,14 @@ int npc_buysellsel(struct map_session_data &sd,uint32 id,int type)
  */
 int npc_buylist(struct map_session_data &sd,unsigned short n,unsigned char *buffer)
 {
-	struct npc_data *nd;
+	npc_data *nd;
 	uint32 z;
 	size_t i,j,w,skill,itemamount=0,new_=0;
 	unsigned short amount, itemid;
 
 	nullpo_retr(3, buffer);
 
-	nd=(struct npc_data*)map_id2bl(sd.npc_shopid);
+	nd= npc_data::from_blid(sd.npc_shopid);
 	if( !nd || !npc_isNear(sd,*nd) )
 		return 3;
 
@@ -1102,7 +1106,7 @@ int npc_selllist(struct map_session_data &sd,unsigned short n,unsigned char *buf
 
 	nullpo_retr(1, buffer);
 
-	struct npc_data *nd=(struct npc_data*)map_id2bl(sd.npc_shopid);
+	npc_data *nd=npc_data::from_blid(sd.npc_shopid);
 	if( !nd || !npc_isNear(sd,*nd) )
 		return 1;
 	
@@ -1267,7 +1271,7 @@ bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
 	int x, y, xs, ys, xt, yt, m;
 	int i, j;
 	char mapname[32], to_mapname[32], *ip;
-	struct npc_data *nd;
+	npc_data *nd;
 
 	// 引数の個数チェック
 	if( sscanf(w1, "%32[^,],%d,%d", mapname, &x, &y) != 3 ||
@@ -1327,7 +1331,7 @@ bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
 	npc_warp++;
 	nd->block_list::type = BL_NPC;
 	nd->block_list::subtype = WARP;
-	nd->map_addblock();
+	nd->addblock();
 	clif_spawnnpc(*nd);
 	strdb_insert(npcname_db, nd->name, nd);
 
@@ -1343,7 +1347,7 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 	const char *p;
 	int x, y, dir, m, i, pos = 0;
 	char mapname[32], *ip;
-	struct npc_data *nd;
+	npc_data *nd;
 	struct npc_item_list shopitems[MAX_SHOPITEM];
 
 	if (strcmp(w1, "-") == 0)
@@ -1391,7 +1395,7 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 
 	// create a npc with extra space for items using a special operator new
 	nd = new(pos) npc_data; 
-	// possible gcc bug, errors on "new (pos) struct npc_data" with "no forward declaration of type npc_data"
+	// possible gcc bug, errors on "new (pos) npc_data" with "no forward declaration of type npc_data"
 
 	for(i=0; i<pos; ++i)
 		nd->u.shop_item[i] = shopitems[i];
@@ -1420,11 +1424,11 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 	nd->n = map_addnpc(m,nd);
 	if (m >= 0)
 	{
-		nd->map_addblock();
+		nd->addblock();
 		clif_spawnnpc(*nd);
 	}
 	else
-		nd->map_addiddb();
+		nd->addiddb();
 	strdb_insert(npcname_db, nd->name,nd);
 
 	return 0;
@@ -1435,7 +1439,7 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
  * script行解析
  *------------------------------------------
  */
-int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4,const char *first_line,FILE *fp,int *lines, struct npc_data **dummy_npc)
+int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4,const char *first_line,FILE *fp,int *lines, npc_data **dummy_npc)
 {
 	int x, y, dir = 0, m, xs = 0, ys = 0, class_ = 0;	// [Valaris] thanks to fov
 	char mapname[32], *ip;
@@ -1444,7 +1448,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 	int startline = 0;
 	unsigned char line[1024];
 	size_t i;
-	struct npc_data *nd;
+	npc_data *nd;
 	int evflag = 0;
 	const char *p;
 	struct script_object *ref=NULL;
@@ -1521,7 +1525,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 	{
 		// duplicateする
 		char srcname[128];
-		struct npc_data *nd2;
+		npc_data *nd2;
 
 		// duplication not on this map server, can skip
 		if(m<0)	return 1;
@@ -1628,7 +1632,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 	if(m>=0 && !dummy_npc)
 	{
 		nd->n = map_addnpc(m, nd);
-		nd->map_addblock();
+		nd->addblock();
 
 		if (evflag) 
 		{	// イベント型
@@ -1787,7 +1791,7 @@ int npc_parse_mob2(struct mob_list &mob)
 		md->block_list::m = mob.m;
 		md->block_list::x = mob.x0;
 		md->block_list::y = mob.y0;
-		md->map_addiddb();
+		md->addiddb();
 
 		md->level = mob.level;
 
@@ -2201,7 +2205,7 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 						npc_parse_script(w1,w2,w3,w4,line+w4pos,fp,&lines, NULL);
 					else
 					{	// pre-load the npc, delete it if not used
-						struct npc_data *nd=NULL;
+						npc_data *nd=NULL;
 						int ret = npc_parse_script(w1,w2,w3,w4,line+w4pos,fp,&lines, &nd);
 						// mark loaded scripts that not reside on this map server
 						if(0==ret && nd)
@@ -2347,7 +2351,7 @@ int ev_db_final (void *key,void *data)
 
 int npcname_db_final (void *key,void *data)
 {
-	struct npc_data *nd = (struct npc_data *) data;
+	npc_data *nd = (npc_data *) data;
 	npc_unload(nd, false);// we are inside the db function and cannot call erase from here
 	return 0;
 }
@@ -2357,11 +2361,11 @@ int npcname_db_final (void *key,void *data)
  *------------------------------------------
  */
 /*
-int npc_cleanup_sub (struct block_list &bl, va_list &ap)
+int npc_cleanup_sub (block_list &bl, va_list &ap)
 {
 	switch(bl.type) {
 	case BL_NPC:
-		npc_unload((struct npc_data *)&bl);
+		npc_unload((npc_data *)&bl);
 		break;
 	case BL_MOB:
 		mob_unload((struct mob_data &)bl);
@@ -2375,11 +2379,11 @@ class CNpcCleanup : public CMapProcessor
 public:
 	CNpcCleanup()	{}
 	~CNpcCleanup()	{}
-	virtual int process(struct block_list& bl) const
+	virtual int process(block_list& bl) const
 	{
 		switch(bl.type) {
 		case BL_NPC:
-			npc_unload((struct npc_data *)&bl);
+			npc_unload((npc_data *)&bl);
 			break;
 		case BL_MOB:
 			mob_unload((struct mob_data &)bl);
@@ -2394,7 +2398,7 @@ int npc_reload (void)
 
 	for (m = 0; m < map_num; ++m)
 	{
-		CMap::foreachinarea( CNpcCleanup(), m, 0, 0, maps[m].xs-1, maps[m].ys-1, 0);
+		block_list::foreachinarea( CNpcCleanup(), m, 0, 0, maps[m].xs-1, maps[m].ys-1, 0);
 //		map_foreachinarea(npc_cleanup_sub, m, 0, 0, maps[m].xs-1, maps[m].ys-1, 0);
 		clear_moblist(m);
 		maps[m].npc_num = 0;
@@ -2425,9 +2429,9 @@ int npc_reload (void)
  * 終了
  *------------------------------------------
  */
-int npc_remove_map (struct npc_data *nd)
+int npc_remove_map (npc_data *nd)
 {
-    if(!nd || nd->block_list::prev == NULL)
+    if(!nd || !nd->is_on_map() )
 		return 1;
 
 	//Remove corresponding NPC CELLs
@@ -2448,8 +2452,8 @@ int npc_remove_map (struct npc_data *nd)
 	}
 
     clif_clearchar_area(*nd,2);
-    nd->map_delblock();
-	nd->map_deliddb();
+    nd->delblock();
+	nd->deliddb();
 
     return 0;
 }
@@ -2476,7 +2480,7 @@ public:
 	}
 };
 
-int npc_unload(struct npc_data *nd, bool erase_strdb)//erase_strdb is default true 
+int npc_unload(npc_data *nd, bool erase_strdb)//erase_strdb is default true 
 {
 	if(!nd) return 0;
 
@@ -2484,10 +2488,8 @@ int npc_unload(struct npc_data *nd, bool erase_strdb)//erase_strdb is default tr
     npc_chat_finalize(nd);
 
 	if (nd->chat_id)
-	{
-		chat_data *cd=(chat_data*)map_id2bl(nd->chat_id);
-		if(cd) delete cd;
-	}
+		chat_deletenpcchat(*nd);
+
 	if (nd->block_list::subtype == SCRIPT)
 	{
 		if (nd->u.scr.timer_event)
@@ -2528,7 +2530,7 @@ int npc_unload(struct npc_data *nd, bool erase_strdb)//erase_strdb is default tr
 		else
 			maps[nd->block_list::m].npc[nd->n]=NULL;
 	}
-	nd->map_freeblock(); 
+	nd->freeblock(); 
 	return 0;
 }
 
@@ -2539,8 +2541,8 @@ int npc_unload(struct npc_data *nd, bool erase_strdb)//erase_strdb is default tr
 int do_final_npc(void)
 {
 	size_t i, n=0, m=0;
-	struct block_list *bl;
-	struct npc_data *nd;
+	block_list *bl;
+	npc_data *nd;
 	struct mob_data *md;
 	struct pet_data *pd;
 
@@ -2554,24 +2556,23 @@ int do_final_npc(void)
 
 	for (i = START_NPC_NUM; i < get_npc_id(); ++i)
 	{
-		bl = map_id2bl(i);
+		bl = block_list::from_blid(i);
 		if( bl )
 		{
-			if(bl->type == BL_NPC && (nd = (struct npc_data *)bl))
+			if( (nd = bl->get_nd()) )
 			{
 				npc_unload(nd);
 				nd = NULL;
 				n++;
 			}
-			else if(bl->type == BL_MOB && (md = (struct mob_data *)bl))
+			else if( (md = bl->get_md()) )
 			{
 				mob_unload(*md);
 				m++;
 			}
-			else if(bl->type == BL_PET && (pd = (struct pet_data *)bl))
+			else if( (pd = bl->get_pd()) )
 			{	// hmm, should never happen
-				// might miss to free the loot
-				delete pd;
+				pd->freeblock();
 			}
 		}
 	}
@@ -2608,7 +2609,7 @@ int do_init_npc(void)
 
 /*
 	{
-		CStrDB<struct npc_data*> xxxxx(false, false);
+		CStrDB<npc_data*> xxxxx(false, false);
 
 
 		iterator iter(npcname_db);
@@ -2616,7 +2617,7 @@ int do_init_npc(void)
 
 		while(iter)
 		{
-			xxxxx.insert((char*)iter.key(), (struct npc_data*)iter.data());
+			xxxxx.insert((char*)iter.key(), (npc_data*)iter.data());
 			if(5==rand()%10)
 			{
 				k = (const char*)iter.key();
@@ -2648,7 +2649,7 @@ int do_init_npc(void)
 // [Lance]
 int npc_changename(const char *name, const char *newname, unsigned short look)
 {
-	struct npc_data *nd= (struct npc_data *) strdb_search(npcname_db,name);
+	npc_data *nd= (npc_data *) strdb_search(npcname_db,name);
 	if(nd==NULL)
 		return 0;
 	safestrcpy(nd->name, sizeof(nd->name), newname);

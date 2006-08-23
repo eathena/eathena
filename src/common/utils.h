@@ -27,7 +27,7 @@
 
 void dump(unsigned char *buffer, size_t num);
 
-int config_switch(const char *str);
+int config_switch(const char *str, int min=INT_MIN, int max=INT_MAX);
 bool email_check(const char *email);
 bool remove_control_chars(char *str);
 const char *strcpytolower(char *tar, const char *str);
@@ -35,6 +35,7 @@ const char *strcpytolower(char *tar, size_t sz, const char *str);
 const char *safestrcpy(char *tar, size_t sz, const char *src);
 const char *replacecpy(char *tar, size_t sz, const char* src, char rplc='\t', char with=' ');
 const char *mapname2buffer(unsigned char *buffer, size_t sz, const char *mapname);
+const char *buffer2mapname(char *mapname, size_t sz, const char *buffer);
 const char *is_valid_line(const char *line);
 size_t prepare_line(char *line);
 

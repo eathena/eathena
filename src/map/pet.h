@@ -34,8 +34,8 @@ extern struct petdb pet_db[MAX_PET_DB];
 enum { PET_CLASS,PET_CATCH,PET_EGG,PET_EQUIP,PET_FOOD };
 
 int pet_hungry_val(struct map_session_data &sd);
-int pet_target_check(struct map_session_data &sd,struct block_list *bl,int type);
-int pet_sc_check(struct map_session_data &sd, int type); //Skotlex
+int pet_target_check(map_session_data &sd, block_list *bl,int type);
+int pet_sc_check(map_session_data &sd, int type); //Skotlex
 int pet_stopattack(struct pet_data &pd);
 int pet_timer(int tid, unsigned long tick, int id, basics::numptr data);
 
@@ -54,7 +54,7 @@ int pet_unequipitem(struct map_session_data &sd);
 int pet_food(struct map_session_data &sd);
 int pet_lootitem_drop(struct pet_data &pd,struct map_session_data *sd);
 int pet_delay_item_drop2(int tid, unsigned long tick, int id, basics::numptr data);
-int petskill_use(struct pet_data &pd, struct block_list &target, short skill_id, short skill_lv, unsigned int tick);
+int petskill_use(pet_data &pd, block_list &target, short skill_id, short skill_lv, unsigned int tick);
 int pet_skill_support_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Skotlex]
 int pet_skill_bonus_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
 int pet_recovery_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]

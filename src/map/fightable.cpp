@@ -26,9 +26,16 @@ fightable::fightable() :
 	attacktimer(-1),
 	skilltimer(-1),
 	attackable_tick(0),
-	target_id(0)
+	target_id(0),
+	target_lv(0),
+	attack_continue(0)
 {
-	static bool initialiser = (_fightable_init(), true);
+	static bool initialiser = true;
+	if(initialiser)
+	{	
+		_fightable_init();
+		initialiser=true;
+	}
 }
 
 
@@ -103,7 +110,7 @@ bool fightable::is_movable()
 /// starts attack
 bool fightable::start_attack(uint32 target_id, bool cont)
 {
-	struct block_list *bl=map_id2bl(target_id);
+	block_list *bl=block_list::from_blid(target_id);
 	return (bl)?this->start_attack(*bl,cont):false;
 }
 /// starts attack
@@ -166,9 +173,8 @@ bool fightable::stop_skill()
 // old timer entry function
 int fightable::attacktimer_entry(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	block_list* bl = map_id2bl(id);
-	fightable* mv;
-	if( bl && (mv=bl->get_fightable()) )
+	fightable* mv = fightable::from_blid(id);
+	if( mv )
 	{
 		if(mv->attacktimer != tid)
 		{
@@ -190,12 +196,11 @@ int fightable::attacktimer_entry(int tid, unsigned long tick, int id, basics::nu
 // needs combining with other object functions since those are very similar
 int fightable::attacktimer_func(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	block_list *target_bl = map_id2bl(this->target_id);
-	fightable *target_fi;
 	short range;
-	if( NULL != target_bl &&												// target exists
-		target_bl->prev != NULL &&											// and is spawned
-		NULL != (target_fi=target_bl->get_fightable()) &&					// and is fightable
+	fightable* target_fi = fightable::from_blid(this->target_id);
+	
+	if( NULL != target_fi &&												// target exists
+		target_fi->is_on_map() &&											// and is spawned
 		target_fi->block_list::m == this->block_list::m &&					// and is on the same map as we are
 		distance(*this, *target_fi) <= (range = this->get_attackrange()) &&	// and is within attack range
 		target_fi->is_attackable() &&										// and is attackable
@@ -240,9 +245,8 @@ int fightable::skilltimer_entry(int tid, unsigned long tick, int id, basics::num
 
 	// also need to seperate between target and ground skills here
 
-	block_list* bl = map_id2bl(id);
-	fightable* mv;
-	if( bl && (mv=bl->get_fightable()) )
+	fightable* mv = fightable::from_blid(id);
+	if( mv )
 	{
 		if(mv->skilltimer != tid)
 		{
@@ -265,7 +269,7 @@ int fightable::skilltimer_entry(int tid, unsigned long tick, int id, basics::num
 /*
 
 
-int unit_skilluse_id(struct block_list *src, int target_id, int skill_num, int skill_lv) {
+int unit_skilluse_id(block_list *src, int target_id, int skill_num, int skill_lv) {
 
 	if(skill_num < 0) return 0;
 
@@ -276,12 +280,12 @@ int unit_skilluse_id(struct block_list *src, int target_id, int skill_num, int s
 	);
 }
 
-int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int skill_lv, int casttime, int castcancel) {
+int unit_skilluse_id2(block_list *src, int target_id, int skill_num, int skill_lv, int casttime, int castcancel) {
 	struct unit_data *ud;
 	struct status_data *tstatus;
 	struct status_change *sc;
 	struct map_session_data *sd = NULL;
-	struct block_list * target = NULL;
+	block_list * target = NULL;
 	unsigned int tick = gettick();
 	int temp;
 
@@ -313,7 +317,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 		{	//Check for skills that auto-select target
 		case MO_CHAINCOMBO:
 			if (sc && sc->data[SC_BLADESTOP].timer != -1){
-				if ((target=(struct block_list *)sc->data[SC_BLADESTOP].val4) == NULL)
+				if ((target=(block_list *)sc->data[SC_BLADESTOP].val4) == NULL)
 					return 0;
 			}
 			break;
@@ -327,7 +331,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 		case WE_FEMALE:
 			if (!sd->status.partner_id)
 				return 0;
-			target = (struct block_list*)map_charid2sd(sd->status.partner_id);
+			target = map_session_data::charid2sd(sd->status.partner_id);
 			if (!target) {
 				clif_skill_fail(sd,skill_num,0,0);
 				return 0;
@@ -337,7 +341,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 		if (target)
 			target_id = target->id;
 	}
-	if(!target && (target=map_id2bl(target_id)) == NULL )
+	if(!target && (target=block_list::from_blid(target_id)) == NULL )
 		return 0;
 	if(src->m != target->m)
 		return 0; // “¯‚¶ƒ}ƒbƒv‚©‚Ç‚¤‚©
@@ -512,7 +516,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 	return 1;
 }
 
-int unit_skilluse_pos(struct block_list *src, int skill_x, int skill_y, int skill_num, int skill_lv) {
+int unit_skilluse_pos(block_list *src, int skill_x, int skill_y, int skill_num, int skill_lv) {
 	if(skill_num < 0)
 		return 0;
 	return unit_skilluse_pos2(
@@ -522,11 +526,11 @@ int unit_skilluse_pos(struct block_list *src, int skill_x, int skill_y, int skil
 	);
 }
 
-int unit_skilluse_pos2( struct block_list *src, int skill_x, int skill_y, int skill_num, int skill_lv, int casttime, int castcancel) {
+int unit_skilluse_pos2( block_list *src, int skill_x, int skill_y, int skill_num, int skill_lv, int casttime, int castcancel) {
 	struct map_session_data *sd = NULL;
 	struct unit_data        *ud = NULL;
 	struct status_change *sc;
-	struct block_list    bl;
+	block_list    bl;
 	unsigned int tick = gettick();
 
 	nullpo_retr(0, src);
@@ -615,7 +619,7 @@ int unit_skilluse_pos2( struct block_list *src, int skill_x, int skill_y, int sk
 
 static int unit_attack_timer(int tid,unsigned int tick,int id,int data);
 
-int unit_stop_attack(struct block_list *bl)
+int unit_stop_attack(block_list *bl)
 {
 	struct unit_data *ud = unit_bl2ud(bl);
 	nullpo_retr(0, bl);
@@ -630,7 +634,7 @@ int unit_stop_attack(struct block_list *bl)
 }
 
 //Means current target is unattackable. For now only unlocks mobs.
-int unit_unattackable(struct block_list *bl) {
+int unit_unattackable(block_list *bl) {
 	struct unit_data *ud = unit_bl2ud(bl);
 	if (ud) {
 		ud->target = 0;
@@ -645,14 +649,14 @@ int unit_unattackable(struct block_list *bl) {
 }
 
 
-int unit_attack(struct block_list *src,int target_id,int type)
+int unit_attack(block_list *src,int target_id,int type)
 {
-	struct block_list *target;
+	block_list *target;
 	struct unit_data  *ud;
 
 	nullpo_retr(0, ud = unit_bl2ud(src));
 
-	target=map_id2bl(target_id);
+	target=block_list::from_blid(target_id);
 	if(target==NULL || target->is_dead()) {
 		unit_unattackable(src);
 		return 1;
@@ -690,9 +694,9 @@ int unit_attack(struct block_list *src,int target_id,int type)
 
 
 
-static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int tick)
+static int unit_attack_timer_sub(block_list* src, int tid, unsigned int tick)
 {
-	struct block_list *target;
+	block_list *target;
 	struct unit_data *ud;
 	struct status_data *sstatus;
 	struct map_session_data *sd = NULL;
@@ -709,7 +713,7 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 	BL_CAST( BL_PC , src, sd);
 	BL_CAST( BL_MOB, src, md);
 	ud->attacktimer=-1;
-	target=map_id2bl(ud->target);
+	target=block_list::from_blid(ud->target);
 
 	if(src->prev == NULL || target==NULL || target->prev == NULL)
 		return 0;
@@ -807,14 +811,14 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 }
 
 static int unit_attack_timer(int tid,unsigned int tick,int id,int data) {
-	struct block_list *bl;
-	bl = map_id2bl(id);
+	block_list *bl;
+	bl = block_list::from_blid(id);
 	if(bl && unit_attack_timer_sub(bl, tid, tick) == 0)
 		unit_unattackable(bl);
 	return 0;
 }
 
-int unit_skillcastcancel(struct block_list *bl,int type)
+int unit_skillcastcancel(block_list *bl,int type)
 {
 	struct map_session_data *sd = NULL;
 	struct unit_data *ud = unit_bl2ud( bl);
@@ -861,7 +865,7 @@ int unit_skillcastcancel(struct block_list *bl,int type)
 }
 
 // unit_data ‚Ì‰Šú‰»ˆ—
-void unit_dataset(struct block_list *bl) {
+void unit_dataset(block_list *bl) {
 	struct unit_data *ud;
 	nullpo_retv(ud = unit_bl2ud(bl));
 
@@ -875,7 +879,7 @@ void unit_dataset(struct block_list *bl) {
 	ud->canmove_tick   = gettick();
 }
 
-static int unit_counttargeted_sub(struct block_list *bl, va_list ap)
+static int unit_counttargeted_sub(block_list *bl, va_list ap)
 {
 	int id, target_lv;
 	struct unit_data *ud;
@@ -892,7 +896,7 @@ static int unit_counttargeted_sub(struct block_list *bl, va_list ap)
 	return 0;	
 }
 
-int unit_fixdamage(struct block_list *src,struct block_list *target,unsigned int tick,int sdelay,int ddelay,int damage,int div,int type,int damage2)
+int unit_fixdamage(block_list *src,block_list *target,unsigned int tick,int sdelay,int ddelay,int damage,int div,int type,int damage2)
 {
 	nullpo_retr(0, target);
 
@@ -902,7 +906,7 @@ int unit_fixdamage(struct block_list *src,struct block_list *target,unsigned int
 	return status_fix_damage(src,target,damage+damage2,clif_damage(target,target,tick,sdelay,ddelay,damage,div,type,damage2));
 }
 
-int unit_counttargeted(struct block_list *bl,int target_lv)
+int unit_counttargeted(block_list *bl,int target_lv)
 {
 	nullpo_retr(0, bl);
 	return (map_foreachinrange(unit_counttargeted_sub, bl, AREA_SIZE, BL_CHAR,
@@ -910,7 +914,7 @@ int unit_counttargeted(struct block_list *bl,int target_lv)
 }
 
 
-int unit_remove_map(struct block_list *bl, int clrtype)
+int unit_remove_map(block_list *bl, int clrtype)
 {
 	struct unit_data *ud = unit_bl2ud(bl);
 	struct status_change *sc = status_get_sc(bl);
@@ -975,7 +979,7 @@ int unit_remove_map(struct block_list *bl, int clrtype)
 		struct map_session_data *sd = (struct map_session_data*)bl;
 
 		//Leave/reject all invitations.
-		if(sd->chatID)
+		if(sd->chat)
 			chat_leavechat(sd);
 		if(sd->trade_partner)
 			trade_tradecancel(sd);
@@ -1041,7 +1045,7 @@ int unit_remove_map(struct block_list *bl, int clrtype)
 }
 
 
-int unit_free(struct block_list *bl) {
+int unit_free(block_list *bl) {
 	struct unit_data *ud = unit_bl2ud( bl );
 	nullpo_retr(0, ud);
 
@@ -1177,7 +1181,7 @@ int unit_free(struct block_list *bl) {
 }
 
 
-int unit_run(struct block_list *bl)
+int unit_run(block_list *bl)
 {
 	struct status_change *sc = status_get_sc(bl);
 	int i,to_x,to_y,dir_x,dir_y;

@@ -40,9 +40,7 @@ static unsigned short statp[MAX_LEVEL];
 
 
 
-// timer for night.day implementation
-int day_timer_tid;
-int night_timer_tid;
+
 
 const static char dirx[8] = { 0, 1, 1, 1, 0,-1,-1,-1};
 const static char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
@@ -53,8 +51,109 @@ static unsigned int equip_pos[11]={0x0080,0x0008,0x0040,0x0004,0x0001,0x0200,0x0
 
 
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// map_session_data members
+//
+///////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////
+// static elements and members
+dbt* map_session_data::accid_db=NULL;
+dbt* map_session_data::charid_db=NULL;
+dbt* map_session_data::nick_db=NULL;
+
+
+
+/// initialize all static elements
+void map_session_data::initialize()
+{
+	map_session_data::finalize();
+
+	map_session_data::accid_db = numdb_init();
+	map_session_data::charid_db = numdb_init();
+	map_session_data::nick_db = strdb_init(24);
+	
+}
+
+
+/// finalize all static elements
+void map_session_data::finalize()
+{
+	if(map_session_data::accid_db)
+	{
+		numdb_final(map_session_data::accid_db, NULL);
+		map_session_data::accid_db=NULL;
+	}
+	if(map_session_data::charid_db)
+	{
+		numdb_final(map_session_data::charid_db, NULL);
+		map_session_data::charid_db=NULL;
+	}
+	if(map_session_data::nick_db)
+	{
+		strdb_final(map_session_data::nick_db, NULL);
+		map_session_data::nick_db=NULL;
+	}
+}
+
+
+
+
+/// search session data by block_list::id.
+map_session_data* map_session_data::from_blid(uint32 id)
+{
+	block_list* bl = block_list::from_blid(id);
+	return (bl)?bl->get_sd():NULL;
+}
+/// search session data by char_id.
+map_session_data* map_session_data::charid2sd(uint32 id)
+{
+	return (map_session_data *)numdb_search(map_session_data::charid_db, id);
+}
+/// search session data by account_id.
+map_session_data* map_session_data::accid2sd(uint32 id)
+{
+	return (map_session_data *)numdb_search(map_session_data::accid_db, id);
+}
+/// search session data by name.
+/// exact match only
+map_session_data* map_session_data::nick2sd(const char *nick)
+{
+	return (map_session_data *)strdb_search(map_session_data::nick_db, nick);
+}
+
+/// return number of valid sessions
+size_t map_session_data::count_users(void)
+{	// nick_db contains only authentified sessions
+	// so can use this directly
+
+	if( config.hide_GM_session )
+	{	// have to go through the list
+		db_iterator<const char*, map_session_data*> iter(map_session_data::nick_db);
+		size_t c=0;
+		for(; iter; ++iter)
+		{
+			if( iter.data() && !iter.data()->isGM() )
+				++c;
+		}
+		return c;
+	}
+	else
+	{	// otherwise just return the element count
+		return (map_session_data::nick_db)?map_session_data::nick_db->item_count:0;
+	}
+}
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
 /// constructor.
-/// builds on having nulled memory already (overloaded operator new)
+/// builds on having nulled memory already (overloaded operator new),
+/// although this is not true for plain instances
 map_session_data::map_session_data(int fdi, int packver, uint32 accid, uint32 chrid, uint32 logid1, uint32 logid2, uint32 client_tick, unsigned char sex)
 {
 	size_t i;
@@ -70,6 +169,7 @@ map_session_data::map_session_data(int fdi, int packver, uint32 accid, uint32 ch
 	this->status.account_id = accid;
 	this->status.char_id	= chrid;
 	this->status.sex		= sex;
+	this->status.name[0]	= 0;
 
 	this->login_id1			= logid1;
 	this->login_id2			= logid2;
@@ -98,7 +198,42 @@ map_session_data::map_session_data(int fdi, int packver, uint32 accid, uint32 ch
 		this->eventtimer[i] = -1;
 	for(i = 0; i < MAX_SKILL_LEVEL; ++i)
 		this->spirit_timer[i] = -1;
+
+
+	if( this->status.account_id )
+		numdb_insert(map_session_data::accid_db, this->status.account_id, this);
+	if( this->status.char_id )
+		numdb_insert(map_session_data::charid_db, this->status.char_id, this);
 }
+
+/// destructor.
+map_session_data::~map_session_data()
+{
+	clean_db();
+}
+
+
+
+/// insert to nick_db.
+void map_session_data::add_nickdb()
+{
+	if( *this->status.name )
+		strdb_insert(map_session_data::nick_db, this->status.name, this);
+}
+
+/// clean all entries of this object in dbs
+void map_session_data::clean_db()
+{
+	if( *this->status.name )
+		strdb_erase(map_session_data::nick_db, this->status.name);
+	if( this->status.account_id )
+		numdb_erase(map_session_data::accid_db, this->status.account_id );
+	if( this->status.char_id )
+		numdb_erase(map_session_data::charid_db, this->status.char_id );
+}
+
+
+
 
 unsigned char map_session_data::isGM() const
 {
@@ -118,11 +253,11 @@ int map_session_data::attacktimer_func(int tid, unsigned long tick, int id, basi
 	int dist,skill,range;
 
 	sd->idletime = last_tick;
-	if( sd->block_list::prev == NULL )
+	if( !sd->is_on_map() )
 		return 0;
 
-	block_list* bl=map_id2bl(sd->target_id);
-	if(bl==NULL || bl->prev == NULL)
+	block_list* bl=block_list::from_blid(sd->target_id);
+	if( bl==NULL || !bl->is_on_map() )
 		return 0;
 
 	if(bl->type == BL_PC)
@@ -197,14 +332,14 @@ int map_session_data::attacktimer_func(int tid, unsigned long tick, int id, basi
 
 		if(sd->sc_data[SC_COMBO].timer == -1)
 		{
-			block_list::map_freeblock_lock();
-			sd->attacktarget_lv = battle_weapon_attack(sd,bl,tick,0);
+			block_list::freeblock_lock();
+			sd->target_lv = battle_weapon_attack(sd,bl,tick,0);
 			// &2 = ? - Celest
 			if(!(config.pc_cloak_check_type&2) && sd->sc_data[SC_CLOAKING].timer != -1)
 				status_change_end(sd,SC_CLOAKING,-1);
-			if(sd->attacktarget_lv >0 && sd->status.pet_id > 0 && sd->pd && config.pet_attack_support)
+			if(sd->target_lv >0 && sd->status.pet_id > 0 && sd->pd && config.pet_attack_support)
 				pet_target_check(*sd,bl,0);
-			block_list::map_freeblock_unlock();
+			block_list::freeblock_unlock();
 			if(sd->skilltimer != -1 && (skill = pc_checkskill(*sd,SA_FREECAST)) > 0 ) // フリ?キャスト
 				sd->attackable_tick = tick + ((sd->aspd<<1)*(150 - skill*5)/100);
 			else
@@ -267,7 +402,7 @@ bool map_session_data::do_walkstep(unsigned long tick, const coordinate &target,
 		if (p != NULL) {
 			int p_flag = 0;
 
-			CMap::foreachinmovearea(CPartySendHP(this->status.party_id, p_flag),
+			block_list::foreachinmovearea(CPartySendHP(this->status.party_id, p_flag),
 				this->block_list::m, target.x-AREA_SIZE, target.y-AREA_SIZE, target.x+AREA_SIZE, target.y+AREA_SIZE, -dx, -dy, BL_PC);
 			if (p_flag)
 				this->party_hp = -1;
@@ -342,7 +477,7 @@ void map_session_data::do_walkto()
 
 			if (guildflag)
 			{	
-				CMap::foreachinarea( CSkillGuildaura(this->block_list::id, this->status.guild_id, guildflag),
+				block_list::foreachinarea( CSkillGuildaura(this->block_list::id, this->status.guild_id, guildflag),
 					this->block_list::m,((int)this->block_list::x)-2, ((int)this->block_list::y)-2, ((int)this->block_list::x)+2, ((int)this->block_list::y)+2, BL_PC);
 			}
 		}
@@ -363,6 +498,57 @@ void map_session_data::do_attack()
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////
+// chat functions
+
+
+/// create a chat.
+/// actually calls the chat member to do this
+bool map_session_data::createchat(unsigned short limit, unsigned char pub, const char* pass, const char* title)
+{
+	return chat_data::create(*this, limit, pub, pass, title);
+}
+
+/// leave a chat.
+/// actually calls the chat member to get removed from there
+bool map_session_data::leavechat()
+{
+	return ( this->chat ) ? this->chat->remove(*this) : true;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*==========================================
  * 攻?要求
  * typeが1なら??攻?
@@ -370,17 +556,18 @@ void map_session_data::do_attack()
  */
 int pc_attack(struct map_session_data &sd, uint32 target_id, int type)
 {
-	struct block_list *bl;
+	block_list *bl;
 	int d;
 
-	bl=map_id2bl(target_id);
+	bl=block_list::from_blid(target_id);
 	if(bl==NULL)
 		return 1;
 
 	sd.idletime = last_tick;
 
-	if(bl->type==BL_NPC) { // monster npcs [Valaris]
-		npc_click(sd,target_id); // submitted by leinsirk10 [Celest]
+	if(bl->type==BL_NPC)
+	{
+		npc_click(sd,target_id);
 		return 0;
 	}
 
@@ -447,12 +634,13 @@ bool pc_iskiller(struct map_session_data &src, struct map_session_data &target)
 
 int pc_invincible_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	struct map_session_data *sd;
+	struct map_session_data *sd=map_session_data::from_blid(id);
 
-	if( (sd=(struct map_session_data *)map_id2sd(id)) == NULL || sd->block_list::type!=BL_PC )
+	if( sd == NULL )
 		return 1;
 
-	if(sd->invincible_timer != tid){
+	if(sd->invincible_timer != tid)
+	{
 		if(config.error_log)
 			ShowMessage("invincible_timer %d != %d\n",sd->invincible_timer,tid);
 		return 0;
@@ -485,7 +673,7 @@ int pc_spiritball_timer(int tid, unsigned long tick, int id, basics::numptr data
 {
 	struct map_session_data *sd;
 
-	if( (sd=(struct map_session_data *)map_id2sd(id)) == NULL || sd->block_list::type!=BL_PC )
+	if( (sd=map_session_data::from_blid(id)) == NULL )
 		return 1;
 
 	if(sd->spirit_timer[0] != tid){
@@ -914,16 +1102,16 @@ bool pc_break_equip(struct map_session_data &sd, unsigned short where)
  * char鯖から送られてきたステ?タスを設定
  *------------------------------------------
  */
-int pc_authok(uint32 id, uint32 login_id2, time_t connect_until_time, unsigned char *buf)
+int pc_authok(uint32 charid, uint32 login_id2, time_t connect_until_time, unsigned char *buf)
 {
 	struct party *p;
 	struct guild *g;
 	size_t i;
 
-	struct map_session_data *sd = map_id2sd(id);
+	map_session_data *sd = map_session_data::charid2sd(charid);
 
 	nullpo_retr(1, sd);
-	sd->login_id2 = login_id2;
+	sd->login_id2 = login_id2; // actually have this already
 	mmo_charstatus_frombuffer(sd->status, buf);
 
 	sd->view_class = sd->status.class_;
@@ -943,7 +1131,7 @@ int pc_authok(uint32 id, uint32 login_id2, time_t connect_until_time, unsigned c
 	pc_checkitem(*sd);
 
 	if ((config.atc_gmonly == 0 || sd->isGM()) &&
-	    (sd->isGM() >= get_atcommand_level(AtCommand_Hide)))
+	    (sd->isGM() >= get_atcommand_level(atcommand_hide)))
 		sd->status.option &= (OPTION_MASK | OPTION_HIDE);
 	else
 		sd->status.option &= OPTION_MASK;
@@ -1011,9 +1199,8 @@ int pc_authok(uint32 id, uint32 login_id2, time_t connect_until_time, unsigned c
 
 	// 通知
 	clif_authok(*sd);
-	map_addnickdb(*sd);
-	if (map_charid2nick(sd->status.char_id) == NULL)
-		map_addchariddb(sd->status.char_id, sd->status.name);
+	sd->add_nickdb();
+	map_add_namedb(sd->status.char_id, sd->status.name);
 
 	//スパノビ用死にカウンタ?のスクリプト??からの?み出しとsdへのセット
 	sd->die_counter = pc_readglobalreg(*sd,"PC_DIE_COUNTER");
@@ -1033,16 +1220,17 @@ int pc_authok(uint32 id, uint32 login_id2, time_t connect_until_time, unsigned c
 	// init sd mmbers from script variables
 	sd->mission_target = pc_readglobalreg(*sd,"PC_MISSION_TARGET");
 
-	if (night_flag == 1 && !maps[sd->block_list::m].flag.indoors) {
-		char tmpstr[1024];
-		strcpy(tmpstr, msg_txt(500)); // Actually, it's the night...
-		clif_wis_message(sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
-		clif_weather1(sd->fd, 474 + config.night_darkness_level);
+	if(daynight_flag && !maps[sd->block_list::m].flag.indoors)
+	{
+		const char *str = msg_txt(500); // Actually, it's the night...
+		clif_wis_message(sd->fd, wisp_server_name, str, strlen(str)+1);
+		clif_seteffect(*sd, sd->block_list::id, 474 + config.night_darkness_level);
 	}
 
 	// Send friends list
 	clif_friend_send_info(*sd);
-	if (config.display_version == 1){
+	if (config.display_version == 1)
+	{
 		char buf[256];
 		snprintf(buf, sizeof(buf),"eAthena SVN version: %s", get_svn_revision());
 		clif_displaymessage(sd->fd, buf);
@@ -1120,9 +1308,7 @@ int pc_authok(uint32 id, uint32 login_id2, time_t connect_until_time, unsigned c
  */
 int pc_authfail(int id)
 {
-	struct map_session_data *sd;
-
-	sd = map_id2sd(id);
+	struct map_session_data *sd = map_session_data::from_blid(id);
 	if (sd == NULL)
 		return 1;
 
@@ -2361,7 +2547,7 @@ int pc_skill(struct map_session_data &sd,unsigned short skillid,unsigned short s
  */
 int pc_blockskill_end(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	struct map_session_data *sd = map_id2sd(id);
+	struct map_session_data *sd = map_session_data::from_blid(id);
 	if (sd && data.num > 0 && data.num < MAX_SKILL)
 	{
 		sd->blockskill[data.num] = 0;
@@ -2686,7 +2872,7 @@ int pc_takeitem(struct map_session_data &sd, flooritem_data &fitem)
 
 	if(fitem.first_get_id > 0)
 	{
-		first_sd = map_id2sd(fitem.first_get_id);
+		first_sd = map_session_data::from_blid(fitem.first_get_id);
 		if(tick < fitem.first_get_tick)
 		{
 			if(fitem.first_get_id != sd.block_list::id && !(first_sd && first_sd->status.party_id == sd.status.party_id))
@@ -2697,7 +2883,7 @@ int pc_takeitem(struct map_session_data &sd, flooritem_data &fitem)
 		}
 		else if( fitem.second_get_id > 0 )
 		{
-			second_sd = map_id2sd(fitem.second_get_id);
+			second_sd = map_session_data::from_blid(fitem.second_get_id);
 			if(tick < fitem.second_get_tick)
 			{
 				if( fitem.first_get_id != sd.block_list::id && fitem.second_get_id != sd.block_list::id &&
@@ -2709,7 +2895,7 @@ int pc_takeitem(struct map_session_data &sd, flooritem_data &fitem)
 			}
 			else if(fitem.third_get_id > 0)
 			{
-				third_sd = map_id2sd(fitem.third_get_id);
+				third_sd = map_session_data::from_blid(fitem.third_get_id);
 				if(tick < fitem.third_get_tick)
 				{
 					if(fitem.first_get_id != sd.block_list::id && fitem.second_get_id != sd.block_list::id && fitem.third_get_id != sd.block_list::id &&
@@ -3124,7 +3310,7 @@ int pc_item_refine(struct map_session_data &sd, unsigned short idx)
  *------------------------------------------
  */
 /*
-int pc_show_steal(struct block_list &bl,va_list &ap)
+int pc_show_steal(block_list &bl,va_list &ap)
 {
 	struct map_session_data *sd;
 	int itemid;
@@ -3164,7 +3350,7 @@ public:
 		: sd(s), itemid(iid), type(ty)
 	{}
 	~CPcShowSteal()	{}
-	virtual int process(struct block_list& bl) const
+	virtual int process(block_list& bl) const
 	{
 		struct map_session_data& ssd = (struct map_session_data &)bl;
 		if( session_isActive(ssd.fd) )
@@ -3192,7 +3378,7 @@ public:
  *------------------------------------------
  */
 //** pc.c: Small Steal Item fix by fritz
-int pc_steal_item(struct map_session_data &sd,struct block_list *bl)
+int pc_steal_item(struct map_session_data &sd,block_list *bl)
 {
 	int flag=0;
 	if(bl != NULL && bl->type == BL_MOB)
@@ -3233,7 +3419,7 @@ int pc_steal_item(struct map_session_data &sd,struct block_list *bl)
 					tmp_item.identify = !itemdb_isEquipment(itemid);
 					flag = pc_additem(sd,tmp_item,1);
 					if(config.show_steal_in_same_party)
-						CMap::foreachpartymemberonmap( CPcShowSteal(sd,tmp_item.nameid,0), sd, flag);
+						block_list::foreachpartymemberonmap( CPcShowSteal(sd,tmp_item.nameid,0), sd, flag);
 					if(flag)
 					{
 						clif_additem(sd,0,0,flag);
@@ -3250,7 +3436,7 @@ int pc_steal_item(struct map_session_data &sd,struct block_list *bl)
  *
  *------------------------------------------
  */
-int pc_steal_coin(struct map_session_data &sd,struct block_list *bl)
+int pc_steal_coin(struct map_session_data &sd,block_list *bl)
 {
 	if(bl != NULL && bl->type == BL_MOB)
 	{
@@ -3284,8 +3470,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 	nullpo_retr(false, mapname_org);
 
 	// チャットから出る
-	if(sd.chatID)
-		chat_leavechat(sd);
+	sd.leavechat();
 
 	// 取引を中断する
 	if(sd.trade_partner)
@@ -3323,7 +3508,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 	{
 		if(sd.dev.val1[i])
 		{
-			struct map_session_data *tsd = map_id2sd(sd.dev.val1[i]);
+			struct map_session_data *tsd = map_session_data::from_blid(sd.dev.val1[i]);
 			skill_devotion_end(&sd,tsd,i);
 		}
 	}
@@ -3395,7 +3580,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 					sd.pd->stop_attack();
 					sd.pd->changestate(MS_IDLE,0);
 					clif_clearchar_area(*sd.pd,clrtype);
-					sd.pd->map_delblock();
+					sd.pd->delblock();
 				}
 			}
 
@@ -3404,7 +3589,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 				sd.hd->stop_attack();
 				sd.hd->changestate(MS_IDLE,0);
 				clif_clearchar_area(*sd.hd,clrtype);
-				sd.hd->map_delblock();
+				sd.hd->delblock();
 			}
 			skill_unit_move(sd,gettick(),0);
 			skill_gangsterparadise(&sd,0);
@@ -3433,7 +3618,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 			storage_delete(sd.status.account_id);
 
 			clif_clearchar_area(sd,clrtype);
-			sd.map_delblock();
+			sd.delblock();
 
 			chrif_changemapserver(sd, mapname, x, y, mapset);
 			return true;
@@ -3467,7 +3652,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 		skill_stop_dancing(&sd, 1);
 	}
 		
-	if(sd.block_list::prev != NULL)
+	if( sd.is_on_map() )
 	{
 		skill_gangsterparadise(&sd,0);
 
@@ -3491,7 +3676,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 				sd.pd->stop_attack();
 				sd.pd->changestate(MS_IDLE,0);
 				clif_clearchar_area(*sd.pd,clrtype);
-				sd.pd->map_delblock();
+				sd.pd->delblock();
 			}
 		}
 		if(sd.hd)
@@ -3499,11 +3684,11 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 			sd.hd->stop_attack();
 			sd.hd->changestate(MS_IDLE,0);
 			clif_clearchar_area(*sd.hd,clrtype);
-			sd.hd->map_delblock();
+			sd.hd->delblock();
 		}
 
 		clif_clearchar_area(sd,clrtype);
-		sd.map_delblock();
+		sd.delblock();
 
 		clif_changemap(sd,maps[m].mapname,x,y); // [MouseJstr]
 		clif_changed_dir(sd);
@@ -3539,7 +3724,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 	// warp is closing a text window opend by script
 	sd.ScriptEngine.clearMessage();
 
-//	map_addblock(sd);	/// ブロック登?とspawnは
+//	sd.addblock();	/// ブロック登?とspawnは
 //	clif_spawnpc(&sd);
 
 	return true;
@@ -3814,18 +3999,18 @@ int pc_calc_upper(int b_class)
 
 int pc_follow_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	struct map_session_data *sd;
-	struct block_list *bl;
+	block_list *bl;
+	struct map_session_data *sd=map_session_data::from_blid(id);
 	
-	sd=map_id2sd(id);
+	
 	if(sd == NULL || sd->followtimer != tid)
 		return 0;
 
 	sd->followtimer=-1;
 
-	bl = map_id2bl(sd->followtarget);
+	bl = block_list::from_blid(sd->followtarget);
 	
-	if( bl && sd->block_list::prev && bl->prev && !sd->is_dead() )
+	if( bl && sd->is_on_map() && bl->prev && !sd->is_dead() )
 	{
 		if( bl->type == BL_PC && ((struct map_session_data *)bl)->is_dead() )
 			return 0;
@@ -3858,7 +4043,7 @@ int pc_stop_following (struct map_session_data &sd)
 
 int pc_follow(struct map_session_data &sd, uint32 target_id)
 {
-	struct block_list *bl=map_id2bl(target_id);
+	block_list *bl=block_list::from_blid(target_id);
 	if(bl==NULL)
 		return 1;
 
@@ -3960,7 +4145,7 @@ int pc_gainexp(struct map_session_data &sd,uint32 base_exp,uint32 job_exp)
 	char output[256];
 	uint32 nextb=0, nextj=0;
 
-	if(sd.block_list::prev == NULL || sd.is_dead() )
+	if( !sd.is_on_map() || sd.is_dead() )
 		return 0;
 
 	if((config.pvp_exp == 0) && maps[sd.block_list::m].flag.pvp)  // [MouseJstr]
@@ -4535,7 +4720,7 @@ int pc_resetskill(struct map_session_data &sd)
 
 int pc_respawn(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	struct map_session_data *sd = map_id2sd(id);
+	struct map_session_data *sd = map_session_data::from_blid(id);
 	if (sd && sd->is_dead() )
 	{	//Auto-respawn [Skotlex]
 		pc_setstand(*sd);
@@ -4549,7 +4734,7 @@ int pc_respawn(int tid, unsigned long tick, int id, basics::numptr data)
  * pcにダメ?ジを?える
  *------------------------------------------
  */
-int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
+int pc_damage(struct map_session_data &sd, long damage, block_list *src)
 {
 	size_t i=0,j=0;
 	struct pc_base_job s_class;
@@ -4758,7 +4943,7 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 
 	for(i = 0; i < 5; ++i)
 		if (sd.dev.val1[i]){
-			struct map_session_data *devsd = map_id2sd(sd.dev.val1[i]);
+			struct map_session_data *devsd = map_session_data::from_blid(sd.dev.val1[i]);
 			if (devsd) status_change_end( devsd,SC_DEVOTION,-1);
 			sd.dev.val1[i] = sd.dev.val2[i]=0;
 		}
@@ -5854,7 +6039,7 @@ int pc_setaccountreg2(struct map_session_data &sd,const char *reg,int val)
  */
 int pc_eventtimer(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	struct map_session_data *sd=map_id2sd(id);
+	struct map_session_data *sd=map_session_data::from_blid(id);
 	if(sd != NULL)
 	{
 		int i;
@@ -6350,7 +6535,7 @@ int pc_checkoversp(struct map_session_data &sd)
  *------------------------------------------
  */
 /*
-int pc_calc_pvprank_sub(struct block_list &bl,va_list &ap)
+int pc_calc_pvprank_sub(block_list &bl,va_list &ap)
 {
 	struct map_session_data *sd1,*sd2=NULL;
 
@@ -6370,7 +6555,7 @@ class CPcCalcPvprank : public CMapProcessor
 public:
 	CPcCalcPvprank(struct map_session_data &s) : sd2(s)	{}
 	~CPcCalcPvprank()	{}
-	virtual int process(struct block_list& bl) const
+	virtual int process(block_list& bl) const
 	{
 		struct map_session_data &sd1=(struct map_session_data &)bl;
 		if( bl.type==BL_PC && sd1.pvp_point > sd2.pvp_point )
@@ -6390,7 +6575,7 @@ int pc_calc_pvprank(struct map_session_data &sd)
 		uint32 old=sd.pvp_rank;
 		sd.pvp_rank=1;
 
-		CMap::foreachinarea( CPcCalcPvprank(sd),
+		block_list::foreachinarea( CPcCalcPvprank(sd),
 			sd.block_list::m,0,0,m.xs-1,m.ys-1,BL_PC);
 //		map_foreachinarea(pc_calc_pvprank_sub,sd.block_list::m,0,0,m.xs-1,m.ys-1,BL_PC,&sd);
 
@@ -6410,7 +6595,7 @@ int pc_calc_pvprank_timer(int tid, unsigned long tick, int id, basics::numptr da
 	if(config.pk_mode) // disable pvp ranking if pk_mode on [Valaris]
 		return 0;
 
-	sd=map_id2sd(id);
+	sd=map_session_data::from_blid(id);
 	if(sd==NULL)
 		return 0;
 	sd->pvp_timer=-1;
@@ -6453,7 +6638,7 @@ bool pc_divorce(struct map_session_data &sd)
 	if( !pc_ismarried(sd) )
 		return false;
 
-	if( (p_sd = map_charid2sd(sd.status.partner_id)) != NULL )
+	if( (p_sd = map_session_data::charid2sd(sd.status.partner_id)) != NULL )
 	{
 		size_t i;
 		if (p_sd->status.partner_id != sd.status.char_id || sd.status.partner_id != p_sd->status.char_id)
@@ -6529,24 +6714,24 @@ bool pc_adoption(struct map_session_data &sd1,struct map_session_data &sd2, stru
 struct map_session_data *pc_get_partner(struct map_session_data &sd)
 {
 	if( pc_ismarried(sd) )
-		// charid2sd returns NULL if not found
-		return map_charid2sd(sd.status.partner_id);
+		// charid2sd returns NULL if not online
+		return map_session_data::charid2sd(sd.status.partner_id);
 	return NULL;
 }
 
 struct map_session_data *pc_get_father (struct map_session_data &sd)
 {
 	if( pc_calc_upper(sd.status.class_) == 2 && sd.status.father_id > 0)
-		// charid2sd returns NULL if not found
-		return map_charid2sd(sd.status.father_id);
+		// charid2sd returns NULL if not online
+		return map_session_data::charid2sd(sd.status.father_id);
 	return NULL;
 }
 
 struct map_session_data *pc_get_mother (struct map_session_data &sd)
 {
 	if( pc_calc_upper(sd.status.class_) == 2 && sd.status.mother_id > 0)
-		// charid2sd returns NULL if not found
-		return map_charid2sd(sd.status.mother_id);
+		// charid2sd returns NULL if not online
+		return map_session_data::charid2sd(sd.status.mother_id);
 
 	return NULL;
 }
@@ -6554,8 +6739,8 @@ struct map_session_data *pc_get_mother (struct map_session_data &sd)
 struct map_session_data *pc_get_child (struct map_session_data &sd)
 {
 	if( pc_ismarried(sd) && sd.status.child_id > 0)
-		// charid2sd returns NULL if not found
-		return map_charid2sd(sd.status.child_id);
+		// charid2sd returns NULL if not online
+		return map_session_data::charid2sd(sd.status.child_id);
 
 	return NULL;
 }
@@ -7072,66 +7257,6 @@ int pc_autosave(int tid, unsigned long tick, int id, basics::numptr data)
 }
 
 
-/*================================================
- * timer to do the day [Yor]
- * data: 0 = called by timer, 1 = gmcommand/script
- *------------------------------------------------
- */
-int map_day_timer(int tid, unsigned long tick, int id, basics::numptr data) { // by [yor]
-	struct map_session_data *pl_sd = NULL;
-	char tmpstr[1024];
-	
-	if (data.num == 0 && config.day_duration <= 0)	// if we want a day
-		return 0;
-	
-	if(night_flag != 0)
-	{
-		size_t i;
-		strcpy(tmpstr, (data.num == 0) ? msg_txt(502) : msg_txt(60)); // The day has arrived!
-		night_flag = 0; // 0=day, 1=night [Yor]
-		for(i = 0; i < fd_max; ++i)
-		{
-			if(session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth)
-			{
-				if (config.night_darkness_level > 0)
-					clif_refresh (*pl_sd);
-				else
-				{
-					pl_sd->opt2 &= ~STATE_BLIND;
-					clif_changeoption(*pl_sd);
-				}
-				clif_wis_message(pl_sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
-			}
-		}
-	}
-	return 0;
-}
-
-/*================================================
- * timer to do the night [Yor]
- * data: 0 = called by timer, 1 = gmcommand/script
- *------------------------------------------------
- */
-int map_night_timer(int tid, unsigned long tick, int id, basics::numptr data) { // by [yor]
-	struct map_session_data *pl_sd = NULL;
-	char tmpstr[1024];
-
-	if (data.num == 0 && config.night_duration <= 0)	// if we want a night
-		return 0;
-	
-	if(night_flag == 0)
-	{
-		size_t i;
-		strcpy(tmpstr, (data.num == 0) ? msg_txt(503) : msg_txt(59)); // The night has fallen...
-		night_flag = 1; // 0=day, 1=night [Yor]
-		for(i = 0; i < fd_max; ++i) {
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth  && !maps[pl_sd->block_list::m].flag.indoors)
-				clif_weather1(i, 474 + config.night_darkness_level);
-		}
-	}
-	return 0;
-}
-
 void pc_setstand(struct map_session_data &sd)
 {
 	if( sd.sc_data[SC_TENSIONRELAX].timer!=-1)
@@ -7346,24 +7471,6 @@ int do_init_pc(void)
 
 	add_timer_interval((natural_heal_prev_tick = gettick() + NATURAL_HEAL_INTERVAL), NATURAL_HEAL_INTERVAL, pc_natural_heal, 0, 0);
 	add_timer(gettick() + autosave_interval, pc_autosave, 0, 0);
-
-	if (config.day_duration > 0 && config.night_duration > 0) {
-		int day_duration = config.day_duration;
-		int night_duration = config.night_duration;
-		// add night/day timer (by [yor])
-		add_timer_func_list(map_day_timer, "map_day_timer"); // by [yor]
-		add_timer_func_list(map_night_timer, "map_night_timer"); // by [yor]
-
-		if (!config.night_at_start) {
-			night_flag = 0; // 0=day, 1=night [Yor]
-			day_timer_tid = add_timer_interval(gettick() + day_duration + night_duration, day_duration + night_duration, map_day_timer, 0, 0);
-			night_timer_tid = add_timer_interval(gettick() + day_duration, day_duration + night_duration, map_night_timer, 0, 0);
-		} else {
-			night_flag = 1; // 0=day, 1=night [Yor]
-			day_timer_tid = add_timer_interval(gettick() + night_duration, day_duration + night_duration, map_day_timer, 0, 0);
-			night_timer_tid = add_timer_interval(gettick() + day_duration + night_duration, day_duration + night_duration, map_night_timer, 0, 0);
-		}
-	}
 
 	return 0;
 }

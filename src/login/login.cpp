@@ -2554,16 +2554,13 @@ int login_config_read(const char *cfgName)
 	ShowStatus("Reading Login Configuration %s\n", cfgName);
 	while( fgets(line, sizeof(line), fp) )
 	{
-		if( !prepare_line(line) )
-			continue;
-		
-		line[sizeof(line)-1] = '\0';
-		memset(w2, 0, sizeof(w2));
-		if (sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2)
+		if( prepare_line(line) && 2==sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
 		{
 			remove_control_chars(w1);
-			remove_control_chars(w2);
 			basics::itrim(w1);
+			if(!*w1) continue;
+			
+			remove_control_chars(w2);
 			basics::itrim(w2);
 			
 			if (strcasecmp(w1, "admin_state") == 0)
@@ -2602,7 +2599,8 @@ int login_config_read(const char *cfgName)
 						safestrcpy(access_ladmin_allow + (access_ladmin_allownum++) * ACO_STRSIZE, ACO_STRSIZE, w2);
 					}
 				}
-			} else if (strcasecmp(w1, "gm_pass") == 0)
+			}
+			else if (strcasecmp(w1, "gm_pass") == 0)
 			{
 				safestrcpy(gm_pass, sizeof(gm_pass), w2);
 			}
@@ -2660,16 +2658,16 @@ int login_config_read(const char *cfgName)
 				switch (atoi(w2))
 				{
 				case 0:
-					strcpy(date_format, "%d-%m-%Y %H:%M:%S"); // 31-12-2004 23:59:59
+					safestrcpy(date_format, sizeof(date_format), "%d-%m-%Y %H:%M:%S"); // 31-12-2004 23:59:59
 					break;
 				case 1:
-					strcpy(date_format, "%m-%d-%Y %H:%M:%S"); // 12-31-2004 23:59:59
+					safestrcpy(date_format, sizeof(date_format), "%m-%d-%Y %H:%M:%S"); // 12-31-2004 23:59:59
 					break;
 				case 2:
-					strcpy(date_format, "%Y-%d-%m %H:%M:%S"); // 2004-31-12 23:59:59
+					safestrcpy(date_format, sizeof(date_format), "%Y-%d-%m %H:%M:%S"); // 2004-31-12 23:59:59
 					break;
 				case 3:
-					strcpy(date_format, "%Y-%m-%d %H:%M:%S"); // 2004-12-31 23:59:59
+					safestrcpy(date_format, sizeof(date_format), "%Y-%m-%d %H:%M:%S"); // 2004-12-31 23:59:59
 					break;
 				}
 			}
@@ -2725,7 +2723,8 @@ int login_config_read(const char *cfgName)
 						safestrcpy(access_allow + (access_allownum++) * ACO_STRSIZE, ACO_STRSIZE, w2);
 					}
 				}
-			} else if (strcasecmp(w1, "deny") == 0)
+			}
+			else if (strcasecmp(w1, "deny") == 0)
 			{
 				if (strcasecmp(w2, "clear") == 0)
 				{
@@ -2754,21 +2753,37 @@ int login_config_read(const char *cfgName)
 					}
 				}
 				// dynamic password error ban
-			} else if (strcasecmp(w1, "dynamic_pass_failure_ban") == 0) {
+			}
+			else if (strcasecmp(w1, "dynamic_pass_failure_ban") == 0)
+			{
 				dynamic_pass_failure_ban = config_switch(w2);
-			} else if (strcasecmp(w1, "dynamic_pass_failure_ban_time") == 0) {
+			}
+			else if (strcasecmp(w1, "dynamic_pass_failure_ban_time") == 0)
+			{
 				dynamic_pass_failure_ban_time = atoi(w2);
-			} else if (strcasecmp(w1, "dynamic_pass_failure_ban_how_many") == 0) {
+			}
+			else if (strcasecmp(w1, "dynamic_pass_failure_ban_how_many") == 0)
+			{
 				dynamic_pass_failure_ban_how_many = atoi(w2);
-			} else if (strcasecmp(w1, "dynamic_pass_failure_ban_how_long") == 0) {
+			}
+			else if (strcasecmp(w1, "dynamic_pass_failure_ban_how_long") == 0)
+			{
 				dynamic_pass_failure_ban_how_long = atoi(w2);
-			} else if (strcasecmp(w1, "import") == 0) {
+			}
+			else if (strcasecmp(w1, "import") == 0)
+			{
 				login_config_read(w2);
-			} else if (strcasecmp(w1, "console") == 0) {
+			}
+			else if (strcasecmp(w1, "console") == 0)
+			{
 				console = config_switch(w2);
-			} else if (strcasecmp(w1, "allowed_regs") == 0) {			
+			}
+			else if (strcasecmp(w1, "allowed_regs") == 0)
+			{			
 				allowed_regs = atoi(w2);
-			} else if (strcasecmp(w1, "time_allowed") == 0) {
+			}
+			else if (strcasecmp(w1, "time_allowed") == 0)
+			{
 				time_allowed = atoi(w2);			
 			}
 		}

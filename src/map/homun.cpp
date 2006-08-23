@@ -96,14 +96,14 @@ homun_data::homun_data(uint32 char_id) :
 	// check if local database already contains an element
 	// (should actually not happen, but just to be sure)
 	struct homun_data *hd = (struct homun_data *)numdb_search(homun_id_db, char_id);
-	block_list::map_freeblock_lock();
+	block_list::freeblock_lock();
 	
 	if(hd)
 	{
 		intif_delete_homdata(hd->status.account_id, hd->status.char_id, hd->status.homun_id);
-		delete hd;
+		hd->freeblock();
 	}
-	block_list::map_freeblock_unlock();
+	block_list::freeblock_unlock();
 
 	// insert to local database
 	numdb_insert(homun_id_db, char_id, this);
@@ -135,16 +135,14 @@ void homun_data::clear_homunculus(struct map_session_data &sd)
 	if( sd.hd )
 	{
 		sd.hd->save_data();
-		block_list::map_freeblock_lock();
-		delete sd.hd;
-		block_list::map_freeblock_unlock();
+		sd.hd->freeblock();
 		sd.hd=NULL;
 	}
 }
 
 void homun_data::recv_homunculus(struct homunstatus &p, int flag)
 {
-	struct map_session_data *sd = map_id2sd(p.account_id);
+	struct map_session_data *sd = map_session_data::charid2sd(p.char_id);
 
 	if(sd == NULL || !pc_checkskill(*sd, AM_CALLHOMUN ) )
 		return;
@@ -194,9 +192,9 @@ int homun_delete_data(struct map_session_data &sd)
 
 		intif_delete_homdata(sd.status.account_id, sd.status.char_id, sd.hd->status.homun_id);
 
-		sd.hd->map_delblock();
-		sd.hd->map_deliddb();
-		delete sd.hd;
+		sd.hd->delblock();
+		sd.hd->deliddb();
+		sd.hd->freeblock();
 		sd.hd=NULL;
 
 		sd.status.homun_id = 0;
@@ -216,9 +214,8 @@ void homun_data::save_data()
 
 int homun_hungry_cry(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	struct block_list *bl = map_id2bl(id);
-	homun_data * hd;
-	if(bl && (hd = bl->get_hd()) )
+	homun_data *hd = homun_data::from_blid(id);
+	if( hd )
 	{
 		if( hd->msd==NULL )
 		{
@@ -242,7 +239,7 @@ int homun_hungry_cry(int tid, unsigned long tick, int id, basics::numptr data)
 
 int homun_hungry(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	struct block_list *bl = map_id2bl(id);
+	block_list *bl = homun_data::from_blid(id);
 	homun_data * hd;
 	if(bl && (hd = bl->get_hd()) )
 	{
@@ -664,9 +661,9 @@ bool homun_data::return_to_embryo(struct map_session_data &sd)
 		sd.hd->status.incubate = 0;
 		sd.hd->save_data();
 
-		sd.hd->map_delblock();
-		sd.hd->map_deliddb();
-		delete sd.hd;
+		sd.hd->delblock();
+		sd.hd->deliddb();
+		sd.hd->freeblock();
 		sd.hd=NULL;
 		return true;
 	}
@@ -917,7 +914,7 @@ bool homun_data::check_baselevelup()
 		homun_upstatus2(this->status);	// ステアップ計算
 		this->calc_status();			// ステータス計算
 		this->heal(this->max_hp,this->max_sp);
-		clif_misceffect2(*this,568);
+		clif_setareaeffect(*this,568);
 		if(this->msd)
 		{
 			clif_send_homstatus(*this->msd, 0);
@@ -929,14 +926,14 @@ bool homun_data::check_baselevelup()
 	return false;
 }
 
-void homun_data::gain_exp(uint32 base_exp, uint32 job_exp, struct block_list &obj)
+void homun_data::gain_exp(uint32 base_exp, uint32 job_exp, block_list &obj)
 {
 	int next;
 	uint64 bexp=base_exp, jexp=job_exp;
 	int mbexp=0,mjexp=0;
 	uint64 per;
 
-	if( this->block_list::prev == NULL || this->is_dead() )
+	if( !this->is_on_map() || this->is_dead() )
 		return;
 
 	mob_data *md = obj.get_md();
@@ -1001,11 +998,11 @@ int homun_data::next_baseexp() const
 }
 
 
-int homun_data::damage(struct block_list &src, uint32 damage)
+int homun_data::damage(block_list &src, uint32 damage)
 {
 	homun_data &hd = *this;
 	// 既に死んでいたら無効
-	if( hd.block_list::prev==NULL || hd.is_dead() )
+	if( !hd.is_on_map() || hd.is_dead() )
 		return 0;
 
 	// 歩いていたら足を止める
@@ -1044,8 +1041,8 @@ int homun_data::damage(struct block_list &src, uint32 damage)
 		hd.status.incubate = 0;
 		hd.save_data();
 
-		hd.map_delblock();
-		hd.map_deliddb();
+		hd.delblock();
+		hd.deliddb();
 	}
 	return damage;
 }
@@ -1088,7 +1085,7 @@ int homun_data::heal(int hp, int sp)
 
 int homun_natural_heal_hp(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	homun_data *hd = (homun_data *)map_id2bl(id);
+	homun_data *hd = homun_data::from_blid(id);
 	uint32 bhp;
 	if(hd)
 	{
@@ -1115,7 +1112,7 @@ int homun_natural_heal_hp(int tid, unsigned long tick, int id, basics::numptr da
 
 int homun_natural_heal_sp(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	homun_data *hd = (homun_data *)map_id2bl(id);
+	homun_data *hd = homun_data::from_blid(id);
 	uint32 bsp;
 	if(hd)
 	{
@@ -1188,7 +1185,7 @@ bool homun_data::call_homunculus(struct map_session_data &sd)
 			clif_skill_fail(sd,AM_CALLHOMUN,0,0);
 			return false;
 		}
-		else if( NULL==sd.hd->block_list::prev )
+		else if( !sd.hd->is_on_map() )
 		{	// not spawned yet, so initialize and create map object
 			size_t i;
 			unsigned long tick = gettick();
@@ -1241,8 +1238,8 @@ bool homun_data::call_homunculus(struct map_session_data &sd)
 
 			sd.hd->view_size =  0;
 
-			sd.hd->map_addiddb();
-			sd.hd->map_addblock();
+			sd.hd->addiddb();
+			sd.hd->addblock();
 
 			clif_spawnhom(*sd.hd);
 			clif_send_homdata(sd,0,0);
@@ -1536,7 +1533,7 @@ int homun_id_db_final(void* kex, void*data)
 	if(data)
 	{
 		homun_data *hd = (homun_data *)data;
-		delete hd;
+		hd->freeblock();
 	}
 	return 0;
 }

@@ -149,8 +149,7 @@ int inter_accreg_init(void)
 		c++;
 	}
 	fclose(fp);
-//	ShowMessage("inter: %s read done (%d)\n", accreg_txt, c);
-
+	//ShowStatus("inter: %s read done (%d)\n", accreg_txt, c);
 	return 0;
 }
 
@@ -191,19 +190,34 @@ public:
 };
 
 // アカウント変数のセーブ
-int inter_accreg_save(void) {
-	FILE *fp;
+int inter_accreg_save(void)
+{
 	int lock;
-
-	if ((fp = lock_fopen(accreg_txt, lock)) == NULL) {
-		ShowMessage("int_accreg: cant write [%s] !!! data is lost !!!\n", accreg_txt);
+	FILE *fp = lock_fopen(accreg_txt, lock);
+	if(!fp)
+	{
+		ShowError("int_accreg: cant write [%s] !!! data is lost !!!\n", accreg_txt);
 		return 1;
 	}
-	numdb_foreach(accreg_db, CDBAccregSave(fp) );
-//	numdb_foreach(accreg_db, inter_accreg_save_sub,fp);
-	lock_fclose(fp, accreg_txt, lock);
-//	ShowMessage("inter: %s saved.\n", accreg_txt);
-
+	else
+	{
+		////
+		db_iterator<size_t,struct accreg *> iter(accreg_db);
+		char line[8192];
+		accreg *reg;
+		for(; iter; ++iter)
+		{
+			reg = iter.data();
+			if(reg && reg->reg_num > 0)
+			{
+				inter_accreg_tostr(line, reg);
+				fprintf(fp, "%s" RETCODE, line);
+			}
+		}
+		////numdb_foreach(accreg_db, CDBAccregSave(fp) );
+		lock_fclose(fp, accreg_txt, lock);
+		//ShowStatus("inter: %s saved.\n", accreg_txt);
+	}
 	return 0;
 }
 
@@ -224,27 +238,35 @@ int inter_config_read(const char *cfgName) {
 	}
 	while(fgets(line, sizeof(line), fp))
 	{
-		if( !prepare_line(line) )
-			continue;
-		line[sizeof(line)-1] = '\0';
-
-		if (sscanf(line,"%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) != 2)
-			continue;
-		basics::itrim(w1);
-		basics::itrim(w2);
-
-			if (strcasecmp(w1, "accreg_txt") == 0) {
-			safestrcpy(accreg_txt, sizeof(accreg_txt), w2);
-		} else if (strcasecmp(w1, "party_share_level") == 0) {
-			party_share_level = atoi(w2);
-			if (party_share_level < 0)
-				party_share_level = 0;
-		} else if (strcasecmp(w1, "inter_log_filename") == 0) {
-			safestrcpy(inter_log_filename, sizeof(inter_log_filename), w2);
-		} else if (strcasecmp(w1, "import") == 0) {
-			inter_config_read(w2);
-		} else if(strcasecmp(w1,"log_inter")==0) {
-			log_inter = atoi(w2);
+		if( prepare_line(line) && 2==sscanf(line,"%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
+		{
+			basics::itrim(w1);
+			if(!*w1) continue;
+			
+			basics::itrim(w2);
+			
+			if (strcasecmp(w1, "accreg_txt") == 0)
+			{
+				safestrcpy(accreg_txt, sizeof(accreg_txt), w2);
+			}
+			else if (strcasecmp(w1, "party_share_level") == 0)
+			{
+				party_share_level = atoi(w2);
+				if (party_share_level < 0)
+					party_share_level = 0;
+			}
+			else if (strcasecmp(w1, "inter_log_filename") == 0)
+			{
+				safestrcpy(inter_log_filename, sizeof(inter_log_filename), w2);
+			}
+			else if (strcasecmp(w1, "import") == 0)
+			{
+				inter_config_read(w2);
+			}
+			else if(strcasecmp(w1,"log_inter")==0)
+			{
+				log_inter = atoi(w2);
+			}
 		}
 	}
 	fclose(fp);

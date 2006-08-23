@@ -21,7 +21,7 @@
 #include "utils.h"
 
 int petskill_castend(struct pet_data &pd,unsigned long tick, struct castend_delay *dat);
-int petskill_castend2(struct pet_data &pd, struct block_list &target, unsigned short skill_id, unsigned short skill_lv, unsigned short skill_x, unsigned short skill_y, unsigned long tick);
+int petskill_castend2(struct pet_data &pd, block_list &target, unsigned short skill_id, unsigned short skill_lv, unsigned short skill_x, unsigned short skill_y, unsigned long tick);
 int pet_attackskill(struct pet_data &pd, unsigned long tick, int data);
 
 
@@ -65,10 +65,10 @@ int pet_data::attacktimer_func(int tid, unsigned long tick, int id, basics::nump
 		return 0;
 	}
 	
-	struct mob_data *md=(struct mob_data *)map_id2bl(pd.target_id);
+	mob_data *md = mob_data::from_blid(pd.target_id);
 	short range;
 
-	if(md == NULL || pd.block_list::m != md->block_list::m || md->block_list::prev == NULL ||
+	if(md == NULL || pd.block_list::m != md->block_list::m || !md->is_on_map() ||
 		distance(pd, *md) > 13)
 	{
 		pd.unlock_target();
@@ -329,9 +329,8 @@ int pet_hungry_val(struct map_session_data &sd)
 int pet_attackskill(struct pet_data &pd, unsigned long tick, int data)
 {
 
-	struct block_list *bl;
-	bl = map_id2bl(pd.target_id);
-	if(bl == NULL || pd.block_list::m != bl->m || bl->prev == NULL ||
+	block_list *bl = block_list::from_blid(pd.target_id);
+	if(bl == NULL || pd.block_list::m != bl->m || !bl->is_on_map() ||
 		NULL==pd.a_skill ||
 		distance(pd,*bl) > 13)
 	{
@@ -346,7 +345,7 @@ int pet_attackskill(struct pet_data &pd, unsigned long tick, int data)
  * Pet Skill Use [Skotlex]
  *------------------------------------------
  */
-int petskill_use(struct pet_data &pd, struct block_list &target, short skill_id, short skill_lv, unsigned int tick)
+int petskill_use(struct pet_data &pd, block_list &target, short skill_id, short skill_lv, unsigned int tick)
 {
 	int casttime;
 
@@ -397,10 +396,10 @@ int petskill_castend(struct pet_data &pd,unsigned long tick, struct castend_dela
 {
 	if(dat)
 	{
-		struct block_list *target = map_id2bl(dat->target_id);
+		block_list *target = block_list::from_blid(dat->target_id);
 		pd.state.state = MS_IDLE;
 		pd.state.casting_flag = 0;
-		if (target && dat->src.id == pd.block_list::id && target->prev != NULL)
+		if (target && dat->src.id == pd.block_list::id && target->is_on_map() )
 			petskill_castend2(pd, *target, dat->skill_id, dat->skill_lv, target->x, target->y, tick);
 		delete dat;
 	}
@@ -411,7 +410,7 @@ int petskill_castend(struct pet_data &pd,unsigned long tick, struct castend_dela
  * Pet Attack Cast End2 [Skotlex]
  *------------------------------------------
  */
-int petskill_castend2(struct pet_data &pd, struct block_list &target, unsigned short skill_id, unsigned short skill_lv, unsigned short skill_x, unsigned short skill_y, unsigned long tick)
+int petskill_castend2(struct pet_data &pd, block_list &target, unsigned short skill_id, unsigned short skill_lv, unsigned short skill_x, unsigned short skill_y, unsigned long tick)
 {	//Invoked after the casting time has passed.
 	short delaytime =0, range;
 
@@ -461,22 +460,19 @@ int petskill_castend2(struct pet_data &pd, struct block_list &target, unsigned s
 
 
 
-int pet_target_check(struct map_session_data &sd,struct block_list *bl,int type)
+int pet_target_check(struct map_session_data &sd,block_list *bl,int type)
 {
 	struct pet_data *pd= sd.pd;
-	struct mob_data *md;
-	int rate,mode,race;
-
-	if( bl && pd && bl->type == BL_MOB && 
+	struct mob_data *md= (bl)?bl->get_md():NULL;
+	if( md && pd && 
 		pd->pet.intimate >= (short)config.pet_support_min_friendly &&
 		pd->pet.hungry >= 1 &&
 		pd->pet.class_ != status_get_class(bl) &&
 		pd->state.state != MS_DELAY )
 	{
-		mode = mob_db[pd->pet.class_].mode;
-		race = mob_db[pd->pet.class_].race;
-
-		md=(struct mob_data *)bl;
+		int rate;
+		int mode = mob_db[pd->pet.class_].mode;
+		int race = mob_db[pd->pet.class_].race;
 
 		if(pd->block_list::m != md->block_list::m ||
 			distance(*pd, *md) > 13 || 
@@ -534,9 +530,8 @@ int pet_hungry(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	int interval, t;
 
-	block_list *bl = map_id2bl(id);
-	pet_data *pd;
-	if( bl==NULL || (pd = bl->get_pd())==NULL )
+	pet_data *pd = pet_data::from_blid(id);
+	if( pd==NULL )
 		return 1;
 
 	if(pd->hungry_timer != tid)
@@ -578,8 +573,9 @@ int pet_hungry(int tid, unsigned long tick, int id, basics::numptr data)
 		sd->pd->pet.intimate -= config.pet_hungry_friendly_decrease;
 		if(sd->pd->pet.intimate <= 0) {
 			sd->pd->pet.intimate = 0;
-			if(config.pet_status_support && t > 0) {
-				if(sd->block_list::prev != NULL)
+			if(config.pet_status_support && t > 0)
+			{
+				if( sd->is_on_map() )
 					status_calc_pc(*sd,0);
 				else
 					status_calc_pc(*sd,2);
@@ -699,10 +695,10 @@ int pet_remove_map(struct map_session_data &sd)
 		}
 
 		clif_clearchar_area(*sd.pd,0);
-		sd.pd->map_delblock();
+		sd.pd->delblock();
 
-		sd.pd->map_deliddb();
-		sd.pd->map_freeblock();
+		sd.pd->deliddb();
+		sd.pd->freeblock();
 		sd.pd = NULL;
 	}
 	return 0;
@@ -750,7 +746,7 @@ int pet_return_egg(struct map_session_data &sd)
 
 		if(config.pet_status_support && sd.pd->pet.intimate > 0)
 		{
-			if(sd.block_list::prev != NULL)
+			if( sd.is_on_map() )
 				status_calc_pc(sd,0);
 			else
 				status_calc_pc(sd,2);
@@ -808,8 +804,8 @@ int pet_data_init(struct map_session_data &sd, const petstatus &p)
 	for(i=0;i<MAX_MOBSKILLTIMERSKILL;++i)
 		pd->skilltimerskill[i].timer = -1;
 
-	pd->map_addiddb();
-	pd->map_addblock();
+	pd->addiddb();
+	pd->addblock();
 	// initialise
 	if (config.pet_lv_rate)	//[Skotlex]
 	{
@@ -843,7 +839,7 @@ int pet_recv_petdata(uint32 account_id, struct petstatus &p,int flag)
 {
 	struct map_session_data *sd;
 
-	sd = map_id2sd(account_id);
+	sd = map_session_data::from_blid(account_id);
 	if(sd == NULL)
 		return 1;
 
@@ -851,7 +847,7 @@ int pet_recv_petdata(uint32 account_id, struct petstatus &p,int flag)
 	{
 		if(sd->pd)
 		{
-			delete sd->pd;
+			sd->pd->freeblock();
 			sd->pd = NULL;
 		}
 		sd->status.pet_id = 0;
@@ -860,7 +856,7 @@ int pet_recv_petdata(uint32 account_id, struct petstatus &p,int flag)
 
 	pet_data_init(*sd, p);
 
-	if(sd->pd && sd->block_list::prev != NULL)
+	if(sd->pd && sd->is_on_map() )
 	{
 		clif_spawnpet(*sd->pd);
 		clif_send_petdata(*sd,0,0);
@@ -868,8 +864,9 @@ int pet_recv_petdata(uint32 account_id, struct petstatus &p,int flag)
 		clif_pet_equip(*sd->pd);
 		clif_send_petstatus(*sd);
 
-		if(config.pet_status_support && sd->pd->pet.intimate > 0) {
-			if(sd->block_list::prev != NULL)
+		if(config.pet_status_support && sd->pd->pet.intimate > 0)
+		{
+			if( sd->is_on_map() )
 				status_calc_pc(*sd,0);
 			else
 				status_calc_pc(*sd,2);
@@ -918,8 +915,9 @@ int pet_catch_process2(struct map_session_data &sd,uint32 target_id)
 	pc_delitem(sd,sd.itemindex,1,0);
 	sd.itemid = sd.itemindex = 0xFFFF;
 	
-	md=(struct mob_data*)map_id2bl(target_id);
-	if(!md || md->block_list::type != BL_MOB || md->block_list::prev == NULL){
+	md= mob_data::from_blid(target_id);
+	if(!md || !md->is_on_map() )
+	{
 		clif_pet_rulet(sd,0);
 		sd.catch_target_class = -1;
 		return 1;
@@ -976,7 +974,7 @@ int pet_get_egg(uint32 account_id, uint32 pet_id, int flag)
 
 	if(flag==0)
 	{
-		sd = map_id2sd(account_id);
+		sd = map_session_data::from_blid(account_id);
 		if(sd == NULL)
 			return 1;
 
@@ -1167,7 +1165,7 @@ int pet_food(struct map_session_data &sd)
 	if(sd.pd->pet.intimate <= 0) {
 		sd.pd->pet.intimate = 0;
 		if(config.pet_status_support && t > 0) {
-			if(sd.block_list::prev != NULL)
+			if( sd.is_on_map() )
 				status_calc_pc(sd,0);
 			else
 				status_calc_pc(sd,2);
@@ -1194,7 +1192,7 @@ public:
 	mutable int itc;
 	CPetAiHardLootsearch(struct pet_data& p) : pd(p), itc(0)	{}
 	~CPetAiHardLootsearch()	{}
-	virtual int process(struct block_list& bl) const
+	virtual int process(block_list& bl) const
 	{
 		int dist;
 		if( !pd.target_id )
@@ -1203,7 +1201,7 @@ public:
 			struct map_session_data *sd = NULL;
 			// ルート権無し
 			if(fitem && fitem->first_get_id>0)
-				sd = map_id2sd(fitem->first_get_id);
+				sd = map_session_data::from_blid(fitem->first_get_id);
 
 			if( pd.loot == NULL || pd.loot->item == NULL || (pd.loot->count >= pd.loot->max) || 
 				(sd && sd->pd && sd->pd->block_list::id != pd.block_list::id) )
@@ -1227,7 +1225,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 	int dist,i=0,dx=-1,dy=-1;
 	int mode,race;
 
-	if( pd.block_list::prev == NULL || sd == NULL || sd->block_list::prev == NULL )
+	if( !pd.is_on_map() || sd == NULL || !sd->is_on_map() )
 		return 0;
 
 	if( sd->status.pet_id == 0 || sd->pd == NULL || sd->pd->msd != sd)
@@ -1246,7 +1244,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 	{
 		CPetAiHardLootsearch pal(pd);
 
-		CMap::foreachinarea( pal,
+		block_list::foreachinarea( pal,
 			pd.block_list::m, ((int)pd.block_list::x)-AREA_SIZE/2,((int)pd.block_list::y)-AREA_SIZE/2, ((int)pd.block_list::x)+AREA_SIZE/2,((int)pd.block_list::y)+AREA_SIZE/2,BL_ITEM);
 		i=pal.itc;
 	}
@@ -1271,9 +1269,9 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 		{	//Mob targeted
 			mode=mob_db[pd.pet.class_].mode;
 			race=mob_db[pd.pet.class_].race;
-			md=(struct mob_data *)map_id2bl(pd.target_id);
+			md= mob_data::from_blid(pd.target_id);
 			if( md == NULL /*|| md->block_list::type != BL_MOB*/ || 
-				pd.block_list::m != md->block_list::m || md->block_list::prev == NULL ||
+				pd.block_list::m != md->block_list::m || !md->is_on_map() ||
 				distance(pd, *md) > 13)
 			{
 				pd.unlock_target();
@@ -1329,23 +1327,18 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 		}
 		else if(pd.target_id > 0 && pd.loot)
 		{	//Item Targeted, attempt loot
-			struct block_list *bl_item = map_id2bl(pd.target_id);
-			if( bl_item == NULL || bl_item->type != BL_ITEM || bl_item->m != pd.block_list::m || 
-				(dist=distance(pd,*bl_item))>=5 )
-			{
-				 // 遠すぎるかアイテムがなくなった
+			flooritem_data *fitem = flooritem_data::from_blid(pd.target_id);
+			if( fitem == NULL || fitem->m != pd.block_list::m || (dist=distance(pd,*fitem))>=5 )
+			{	// 遠すぎるかアイテムがなくなった
  				pd.unlock_target();
 			}
 			else if(dist)
 			{
-				if( pd.walktimer != -1 && pd.state.state!=MS_ATTACK && (DIFF_TICK(pd.next_walktime,tick)<0 || distance(*bl_item, pd.walktarget) == 0) )
+				if( pd.walktimer != -1 && pd.state.state!=MS_ATTACK && (DIFF_TICK(pd.next_walktime,tick)<0 || distance(*fitem, pd.walktarget) == 0) )
 					return 0; // 既に移動中
 
 				pd.next_walktime=tick+500;
-				//dx=bl_item->x - pd.block_list::x;
-				//dy=bl_item->y - pd.block_list::y;
-				//pd.walktoxy(pd->block_list::x+dx,pd->block_list::y+dy);
-				pd.walktoxy( bl_item->x, bl_item->y);
+				pd.walktoxy( fitem->x, fitem->y);
 			}
 			else
 			{	// アイテムまでたどり着いた
@@ -1356,10 +1349,9 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 
 				if(pd.loot && pd.loot->count < pd.loot->max)
 				{
-					flooritem_data *fitem = (flooritem_data *)bl_item;
-					memcpy(&pd.loot->item[pd.loot->count++], &fitem->item_data, sizeof(struct item));
+					pd.loot->item[pd.loot->count++] = fitem->item_data;
 					pd.loot->weight += itemdb_search(fitem->item_data.nameid)->weight*fitem->item_data.amount;
-					map_clearflooritem(bl_item->id);
+					map_clearflooritem(fitem->id);
 				}
 				pd.unlock_target();		
 			}
@@ -1441,9 +1433,7 @@ int pet_lootitem_drop(struct pet_data &pd,struct map_session_data *sd)
 
 int pet_delay_item_drop2(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	struct delay_item_drop2 *ditem;
-
-	ditem=(struct delay_item_drop2 *)data.ptr;
+	delay_item_drop2 *ditem=(delay_item_drop2 *)data.ptr;
 	if(ditem)
 	{
 		map_addflooritem(ditem->item_data,ditem->item_data.amount,ditem->m,ditem->x,ditem->y,ditem->first_sd,ditem->second_sd,ditem->third_sd,0);
@@ -1459,7 +1449,7 @@ int pet_delay_item_drop2(int tid, unsigned long tick, int id, basics::numptr dat
  */ 
 int pet_skill_bonus_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	struct map_session_data *sd=map_id2sd(id);
+	struct map_session_data *sd=map_session_data::from_blid(id);
 	struct pet_data *pd;
 	int timer = 0;
 
@@ -1497,7 +1487,7 @@ int pet_skill_bonus_timer(int tid, unsigned long tick, int id, basics::numptr da
 
 int pet_recovery_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	struct map_session_data *sd=(struct map_session_data*)map_id2bl(id);
+	struct map_session_data *sd= map_session_data::from_blid(id);
 	struct pet_data *pd;
 	
 	if(sd==NULL || sd->pd == NULL || sd->pd->recovery == NULL)
@@ -1530,11 +1520,11 @@ int pet_recovery_timer(int tid, unsigned long tick, int id, basics::numptr data)
 
 int pet_heal_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	struct map_session_data *sd=(struct map_session_data*)map_id2bl(id);
+	struct map_session_data *sd= map_session_data::from_blid(id);
 	struct pet_data *pd;
 	short rate = 100;
 	
-	if(sd==NULL || sd->block_list::type!=BL_PC || sd->pd == NULL)
+	if(sd==NULL || sd->pd == NULL)
 		return 1;
 	
 	pd=sd->pd;
@@ -1576,10 +1566,10 @@ int pet_heal_timer(int tid, unsigned long tick, int id, basics::numptr data)
  */ 
 int pet_skill_support_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	struct map_session_data *sd=(struct map_session_data*)map_id2bl(id);
+	struct map_session_data *sd = map_session_data::from_blid(id);
 	struct pet_data *pd;
 	short rate = 100;	
-	if(sd==NULL || sd->block_list::type!=BL_PC || sd->pd == NULL)
+	if(sd==NULL || sd->pd == NULL)
 		return 1;
 	
 	pd=sd->pd;

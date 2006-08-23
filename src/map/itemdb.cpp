@@ -924,7 +924,7 @@ void itemdb_sqlupdate()
 
 		///////////////////////////////////////////////////////////////////////
 		// insert entries
-		db_iterator iter(item_db);
+		db_iterator<size_t,const item_data *> iter(item_db);
 		for(; iter; ++iter)
 		{
 			size_t id = (size_t)iter.key();
