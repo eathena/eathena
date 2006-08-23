@@ -34,6 +34,8 @@ Playtester
 
 Date		Added
 ======
+08/22
+	* Fixed exploit in Bio Ethics Quest, letting anyone get Homunculus [Evera]
 08/21
 	* Merged DTS Warper from Trunk [Evera]
 	- New $dtsday system and counts weeks from voting, so people can revote [Evera]
