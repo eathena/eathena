@@ -1,3 +1,5 @@
+08/23
+	* Corrected the healing value of novice pots. [MasterOfMuppets]
 08/20
 	* Merged item_db, skill_cast_db [Playtester]
 	- removed event bonus from 4 year anniversary hat
