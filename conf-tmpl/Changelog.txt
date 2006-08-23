@@ -1,5 +1,8 @@
 Date	Added
 
+2006/08/23
+	* Made the default for sql ping interval 7 hours rather than disabled.
+	  (inter_athena) [Skotlex]
 2006/08/22
 	* Removed useless atcommands @itemcheck and @rain [Skotlex]
 	* Merged config setting minsave_interval which specifies minimum time

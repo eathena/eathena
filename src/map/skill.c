@@ -2630,25 +2630,21 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case MO_FINGEROFFENSIVE:
-		{
-			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-			if (battle_config.finger_offensive_type && sd) {
-				int i;
-				for (i = 1; i < sd->spiritball_old; i++)
-					skill_addtimerskill(src, tick + i * 200, bl->id, 0, 0, skillid, skilllv, BF_WEAPON, flag);
+		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+		if (battle_config.finger_offensive_type && sd) {
+			int i;
+			for (i = 1; i < sd->spiritball_old; i++)
+				skill_addtimerskill(src, tick + i * 200, bl->id, 0, 0, skillid, skilllv, BF_WEAPON, flag);
 //				sd->canmove_tick = tick + (sd->spiritball_old - 1) * 200; Should be handled by the canmove delay on skill_cast_db [Skotlex]
-			}
-			if (sc && sc->data[SC_BLADESTOP].timer != -1)
-				status_change_end(src,SC_BLADESTOP,-1);
 		}
+		if (sc && sc->data[SC_BLADESTOP].timer != -1)
+			status_change_end(src,SC_BLADESTOP,-1);
 		break;
 
 	case MO_CHAINCOMBO:
-		{
-			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-			if (sc && sc->data[SC_BLADESTOP].timer != -1)
-				status_change_end(src,SC_BLADESTOP,-1);
-		}
+		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+		if (sc && sc->data[SC_BLADESTOP].timer != -1)
+			status_change_end(src,SC_BLADESTOP,-1);
 		break;
 	
 	case MO_EXTREMITYFIST:
@@ -7838,7 +7834,7 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 			return 0;
 		}
 		if(ammo) { //Skill requires stuff equipped in the arrow slot.
-			if((i=sd->equip_index[10]) < 0 ||
+			if((i=sd->equip_index[EQI_AMMO]) < 0 ||
 				!sd->inventory_data[i] ||
 				sd->status.inventory[i].amount < ammo_qty
 			) {
