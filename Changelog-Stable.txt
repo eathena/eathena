@@ -4,6 +4,12 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/08/23
+	* Merged npc-shop price-exploits (selling items for less than they cost)
+	  printing out the file which contains the shop. [Skotlex]
+	* Merged unit_free taking the clr_type to use when removing objects from
+	  the map (fixes non-respawning mobs just "vanishing" in front of you)
+	  [Skotlex]
 2006/08/22
 	* Removed useless atcommands @itemcheck and @rain [Skotlex]
 	* Merged moving of the pet status structure from the player to the pet

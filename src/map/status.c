@@ -676,7 +676,7 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 	status_change_clear(target,0);
 
 	if(flag&4) //Delete from memory. (also invokes map removal code)
-		unit_free(target);
+		unit_free(target,1);
 	else
 	if(flag&2) //remove from map
 		unit_remove_map(target,1);
