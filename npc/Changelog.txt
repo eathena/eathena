@@ -34,6 +34,10 @@ Playtester
 
 Date		Added
 ======
+08/24
+	* Upd:Bio Ethics Quest to let Creators+Baby Alchemists learn the skill, too [Lupus]
+	- Moved it to Alchemist Skill Quests
+	- Added NO LOOT, NO EXP mapflags to Lighthalzen (Gangsters exploit fix)
 08/22
 	* Fixed exploit in Bio Ethics Quest, letting anyone get Homunculus [Evera]
 08/21

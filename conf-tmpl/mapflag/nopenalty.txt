@@ -29,6 +29,7 @@ geffen_in.gat	mapflag	nopenalty
 gonryun.gat	mapflag	nopenalty
 gon_in.gat	mapflag	nopenalty
 gon_test.gat	mapflag	nopenalty
+hugel.gat	mapflag	nopenalty
 in_orcs01.gat	mapflag	nopenalty
 izlude.gat	mapflag	nopenalty
 izlude_in.gat	mapflag	nopenalty
@@ -73,7 +74,12 @@ lhz_airport.gat	mapflag	nopenalty
 lhz_in01.gat	mapflag	nopenalty
 lhz_in02.gat	mapflag	nopenalty
 lhz_in03.gat	mapflag	nopenalty
-hugel.gat	mapflag	nopenalty
+rachel.gat	mapflag	nopenalty
+ra_in01.gat	mapflag	nopenalty
+ra_temin.gat	mapflag	nopenalty
+ra_temple.gat	mapflag	nopenalty
+ra_temsky.gat	mapflag	nopenalty
+que_rachel.gat	mapflag	nopenalty
 airplane.gat	mapflag	nopenalty
 airport.gat	mapflag	nopenalty
 einbech.gat	mapflag	nopenalty
