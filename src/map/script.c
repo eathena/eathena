@@ -7143,6 +7143,14 @@ int buildin_sc_start(struct script_state *st)
 		tick/=2; //Thrown potions only last half.
 		val4 = 1; //Mark that this was a thrown sc_effect
 	}
+	if (type >= 0 && type < SC_MAX && val1 && !tick)
+	{	//When there isn't a duration specified, try to get it from the skill_db
+		tick = StatusSkillChangeTable[type];
+		if (tick)
+			tick = skill_get_time(tick,val1);
+		else	//Failed to retrieve duration, reset to what it was.
+			tick = 0;
+	}
 	if (bl)
 		status_change_start(bl,type,10000,val1,0,0,val4,tick,11);
 	return 0;
@@ -7164,6 +7172,15 @@ int buildin_sc_start2(struct script_state *st)
 		bl = map_id2bl(conv_num(st,& (st->stack->stack_data[st->start+6])));
 	else
 		bl = map_id2bl(st->rid);
+
+	if (type >= 0 && type < SC_MAX && val1 && !tick)
+	{	//When there isn't a duration specified, try to get it from the skill_db
+		tick = StatusSkillChangeTable[type];
+		if (tick)
+			tick = skill_get_time(tick,val1);
+		else	//Failed to retrieve duration, reset to what it was.
+			tick = 0;
+	}
 
 	if (potion_flag==1 && potion_target) {
 		bl = map_id2bl(potion_target);
@@ -7196,6 +7213,15 @@ int buildin_sc_start4(struct script_state *st)
 		bl = map_id2bl(conv_num(st,& (st->stack->stack_data[st->start+8])));
 	else
 		bl = map_id2bl(st->rid);
+
+	if (type >= 0 && type < SC_MAX && val1 && !tick)
+	{	//When there isn't a duration specified, try to get it from the skill_db
+		tick = StatusSkillChangeTable[type];
+		if (tick)
+			tick = skill_get_time(tick,val1);
+		else	//Failed to retrieve duration, reset to what it was.
+			tick = 0;
+	}
 
 	if (potion_flag==1 && potion_target) {
 		bl = map_id2bl(potion_target);
@@ -8119,7 +8145,8 @@ int buildin_maprespawnguildid(struct script_state *st)
 
 	int m=map_mapname2mapid(mapname);
 
-	if(m) map_foreachinmap(buildin_maprespawnguildid_sub,m,BL_CHAR,g_id,flag);
+	if(m != -1)
+		map_foreachinmap(buildin_maprespawnguildid_sub,m,BL_CHAR,g_id,flag);
 	return 0;
 }
 
@@ -10350,6 +10377,8 @@ int buildin_isequipped(struct script_state *st)
 	int i, j, k, id = 1;
 	int index, flag;
 	int ret = -1;
+	//Original hash to reverse it when full check fails.
+	unsigned int setitem_hash = 0, setitem_hash2 = 0;
 
 	sd = script_rid2sd(st);
 	
@@ -10357,7 +10386,9 @@ int buildin_isequipped(struct script_state *st)
 		push_val(st->stack,C_INT,0);
 		return 0;
 	}
-	
+
+	setitem_hash = sd->setitem_hash;
+	setitem_hash2 = sd->setitem_hash2;
 	for (i=0; id!=0; i++)
 	{
 		FETCH (i+2, id) else id = 0;
@@ -10414,7 +10445,11 @@ int buildin_isequipped(struct script_state *st)
 			ret &= flag;
 		if (!ret) break;
 	}
-	
+	if (!ret)
+  	{	//When check fails, restore original hash values. [Skotlex]
+		sd->setitem_hash = setitem_hash;
+		sd->setitem_hash2 = setitem_hash2;
+	}
 	push_val(st->stack,C_INT,ret);
 	return 0;
 }

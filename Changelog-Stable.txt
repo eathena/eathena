@@ -5,6 +5,13 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/24
+	* Merged sc_start trying to extract the duration from the skill_db when you
+	  pass a duration of 0 (that is, sc_start SC_STEELBODY, 5, 0; will attempt
+	  try to auto-fetch the duration of MO_STEELBODY level 5 and use that).
+	  [Skotlex]
+	* Merged update on isequipped() so that unless the whole combo is met, the
+	  cards that were checked for will not be counted as used. This fixes the
+	  case where the same cards belong to different combos. [Skotlex]
 	* Merged command @charspeed [Skotlex]
 	* merged the expanded use of the enable_logs setting  [Skotlex]
 	* merged nameditem script command working on stackable items. [Skotlex]
