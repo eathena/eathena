@@ -1228,7 +1228,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			fitem = (struct flooritem_data *)tbl;
 			if (md->lootitem_count < LOOTITEM_SIZE) {
 				memcpy (&md->lootitem[md->lootitem_count++], &fitem->item_data, sizeof(md->lootitem[0]));
-				if(log_config.pick > 0)	//Logs items, taken by (L)ooter Mobs [Lupus]
+				if(log_config.enable_logs&0x10)	//Logs items, taken by (L)ooter Mobs [Lupus]
 					log_pick((struct map_session_data*)md, "L", md->class_, md->lootitem[md->lootitem_count-1].nameid, md->lootitem[md->lootitem_count-1].amount, &md->lootitem[md->lootitem_count-1]);
 			} else {	//Destroy first looted item...
 				if (md->lootitem[0].card[0] == (short)0xff00)
@@ -1433,7 +1433,7 @@ static int mob_delay_item_drop(int tid,unsigned int tick,int id,int data)
  */
 static void mob_item_drop(struct mob_data *md, struct item_drop_list *dlist, struct item_drop *ditem, int loot, int drop_rate)
 {
-	if(log_config.pick > 0)
+	if(log_config.enable_logs&0x10)
 	{	//Logs items, dropped by mobs [Lupus]
 		if (loot)
 			log_pick((struct map_session_data*)md, "L", md->class_, ditem->item_data.nameid, -ditem->item_data.amount, &ditem->item_data);
@@ -2001,7 +2001,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				map_addflooritem(&item,1,mvp_sd->bl.m,mvp_sd->bl.x,mvp_sd->bl.y,mvp_sd,second_sd,third_sd,1);
 			}
 			
-			if(log_config.pick > 0)	{//Logs items, MVP prizes [Lupus]
+			if(log_config.enable_logs&0x200)	{//Logs items, MVP prizes [Lupus]
 				log_pick((struct map_session_data*)md, "M", md->class_, item.nameid, -1, NULL);
 				log_pick(mvp_sd, "P", 0, item.nameid, 1, NULL);
 			}
@@ -2162,7 +2162,6 @@ int mob_class_change (struct mob_data *md, int class_)
 
 	hp_rate = md->status.hp*100/md->status.max_hp;
 	md->db = mob_db(class_);
-	
 	if (battle_config.override_mob_names==1)
 		memcpy(md->name,md->db->name,NAME_LENGTH-1);
 	else
@@ -2747,7 +2746,9 @@ int mob_clone_spawn(struct map_session_data *sd, int m, int x, int y, const char
 	mob_db_data[class_]->status.rhw.atk2+=
 		sd->base_status.rhw.atk + sd->base_status.rhw.atk2 +
 		sd->base_status.lhw->atk + sd->base_status.lhw->atk2; //Max ATK
-	if (flag&1) //Friendly Character, remove looting.
+	if (mode) //User provided mode.
+		mob_db_data[class_]->status.mode = mode; 
+	else if (flag&1) //Friendly Character, remove looting.
 		mob_db_data[class_]->status.mode &= ~MD_LOOTER; 
 	mob_db_data[class_]->status.hp = mob_db_data[class_]->status.max_hp;
 	mob_db_data[class_]->status.sp = mob_db_data[class_]->status.max_sp;

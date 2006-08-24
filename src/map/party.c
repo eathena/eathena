@@ -704,7 +704,7 @@ int party_exp_share(struct party_data *p,struct block_list *src,unsigned int bas
 {
 	struct map_session_data* sd[MAX_PARTY];
 	int i;
-	short c, bonus =100; // modified [Valaris]
+	unsigned short c, bonus =100; // modified [Valaris]
 
 	nullpo_retr(0, p);
 
@@ -800,7 +800,7 @@ int party_share_loot(struct party_data *p, TBL_PC *sd, struct item *item_data, i
 			return i;
 	}
 
-	if(log_config.pick) //Logs items, taken by (P)layers [Lupus]
+	if(log_config.enable_logs&0x8) //Logs items, taken by (P)layers [Lupus]
 		log_pick(target, "P", 0, item_data->nameid, item_data->amount, item_data);
 	//Logs
 	if(battle_config.party_show_share_picker && target != sd){

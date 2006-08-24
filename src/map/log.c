@@ -71,7 +71,7 @@ int log_branch(struct map_session_data *sd)
 #endif
 	FILE *logfp;
 
-	if(log_config.enable_logs <= 0)
+	if(!log_config.enable_logs)
 		return 0;
 	nullpo_retr(0, sd);
 #ifndef TXT_ONLY
@@ -105,11 +105,9 @@ int log_pick(struct map_session_data *sd, char *type, int mob_id, int nameid, in
 	char *mapname;
 	int obj_id;
 
-	if(log_config.enable_logs <= 0)
-		return 0;
 	nullpo_retr(0, sd);
 	//Should we log this item? [Lupus]
-	if (!should_log_item(log_config.pick,nameid, amount))
+	if (!should_log_item(log_config.filter,nameid, amount))
 		return 0; //we skip logging this items set - they doesn't met our logging conditions [Lupus]
 
 	//either PLAYER or MOB (here we get map name and objects ID)
@@ -170,7 +168,7 @@ int log_pick(struct map_session_data *sd, char *type, int mob_id, int nameid, in
 int log_zeny(struct map_session_data *sd, char *type, struct map_session_data *src_sd, int amount)
 {
 //	FILE *logfp;
-	if(log_config.enable_logs <= 0 || (log_config.zeny!=1 && abs(amount)<log_config.zeny))
+	if(!log_config.enable_logs || (log_config.zeny!=1 && abs(amount)<log_config.zeny))
 		return 0;
 
 	nullpo_retr(0, sd);
@@ -202,7 +200,7 @@ int log_mvpdrop(struct map_session_data *sd, int monster_id, int *log_mvp)
 {
 	FILE *logfp;
 
-	if(log_config.enable_logs <= 0)
+	if(!log_config.enable_logs)
 		return 0;
 	nullpo_retr(0, sd);
 #ifndef TXT_ONLY
@@ -237,7 +235,7 @@ int log_atcommand(struct map_session_data *sd, const char *message)
 		char t_msg[MESSAGE_SIZE*2+1]; //These are the contents of an @ call, so there shouldn't be overflow danger here?
 #endif
 
-	if(log_config.enable_logs <= 0)
+	if(!log_config.enable_logs)
 		return 0;
 	nullpo_retr(0, sd);
 #ifndef TXT_ONLY
@@ -272,7 +270,7 @@ int log_npc(struct map_session_data *sd, const char *message)
 		char t_msg[255+1]; //it's 255 chars MAX. 
 	#endif
 
-	if(log_config.enable_logs <= 0)
+	if(!log_config.enable_logs)
 		return 0;
 	nullpo_retr(0, sd);
 #ifndef TXT_ONLY
@@ -396,6 +394,8 @@ int log_config_read(char *cfgName)
 		{
 			if(strcmpi(w1,"enable_logs") == 0) {
 				log_config.enable_logs = (atoi(w2));
+				if (log_config.enable_logs&1) //Log everything.
+					log_config.enable_logs=0xFFFFFFFF;
 			} else if(strcmpi(w1,"sql_logs") == 0) {
 				log_config.sql_logs = (atoi(w2));
 //start of common filter settings
@@ -410,8 +410,8 @@ int log_config_read(char *cfgName)
 //end of common filter settings
 			} else if(strcmpi(w1,"log_branch") == 0) {
 				log_config.branch = (atoi(w2));
-			} else if(strcmpi(w1,"log_pick") == 0) {
-				log_config.pick = (atoi(w2));
+			} else if(strcmpi(w1,"log_filter") == 0) {
+				log_config.filter = (atoi(w2));
 			} else if(strcmpi(w1,"log_zeny") == 0) {
 				log_config.zeny = (atoi(w2));
 			} else if(strcmpi(w1,"log_gm") == 0) {
@@ -431,7 +431,7 @@ int log_config_read(char *cfgName)
 					ShowNotice("Logging Dead Branch Usage to table `%s`\n", w2);
 			} else if(strcmpi(w1, "log_pick_db") == 0) {
 				strcpy(log_config.log_pick_db, w2);
-				if(log_config.pick == 1)
+				if(log_config.filter)
 					ShowNotice("Logging Item Picks to table `%s`\n", w2);
 			} else if(strcmpi(w1, "log_zeny_db") == 0) {
 				strcpy(log_config.log_zeny_db, w2);
@@ -462,7 +462,7 @@ int log_config_read(char *cfgName)
 					ShowNotice("Logging Dead Branch Usage to file `%s`.txt\n", w2);
 			} else if(strcmpi(w1, "log_pick_file") == 0) {
 				strcpy(log_config.log_pick, w2);
-				if(log_config.pick > 0 && log_config.sql_logs < 1)
+				if(log_config.filter > 0 && log_config.sql_logs < 1)
 					ShowNotice("Logging Item Picks to file `%s`.txt\n", w2);
 			} else if(strcmpi(w1, "log_zeny_file") == 0) {
 				strcpy(log_config.log_zeny, w2);

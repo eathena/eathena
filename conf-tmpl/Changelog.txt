@@ -1,5 +1,12 @@
 Date	Added
 
+2006/08/24
+	* Merged command @charspeed [Skotlex]
+	* Merged the expanded use of the enable_logs setting. [Skotlex]
+	- enable_logs is not a 0/1 setting now, but it can be used to specify which
+	  types of events are to be logged. logpick has been removed, or more
+	  specifically, it has been renamed to log_filter. Using both together you
+	  can get more specific rules of which stuff to log (log_athena.conf)
 2006/08/23
 	* Made the default for sql ping interval 7 hours rather than disabled.
 	  (inter_athena) [Skotlex]
