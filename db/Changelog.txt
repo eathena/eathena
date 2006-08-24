@@ -1,3 +1,12 @@
+08/24
+	* Merged item_db, mob_skill_db, skill_cast_db, skill_require_db and skill_tree [Playtester]
+	- fixed Grand Cross weapon
+	- item updates according to new kRO patches
+	- updated gun ranges to more accurate "guessed" values
+	- made Kiel MVP's skills uninteruptable
+	- Disarm now has a duration of 30 seconds
+	- updated sp costs of GS/NJ skills
+	- updated skill tree of GS/NJ
 08/23
 	* Corrected the healing value of novice pots. [MasterOfMuppets]
 08/20
