@@ -4194,6 +4194,17 @@ int buildin_jobchange(struct script_state *st)
  *
  *------------------------------------------
  */
+int buildin_jobname(struct script_state *st)
+{
+	int class_=conv_num(st,& (st->stack->stack_data[st->start+2]));
+	push_str(st->stack,C_CONSTSTR,job_name(class_));
+	return 0;
+}
+
+/*==========================================
+ *
+ *------------------------------------------
+ */
 int buildin_input(struct script_state *st)
 {
 	struct map_session_data *sd=NULL;
