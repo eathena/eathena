@@ -34,6 +34,8 @@ Playtester
 
 Date		Added
 ======
+08/26
+	* Various fixes on Headgear 2006 quests [Playtester]
 08/25
 	* Reverted the mapflag changes to Lighthalzen. [MasterOfMuppets]
 08/24
