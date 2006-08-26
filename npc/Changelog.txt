@@ -35,6 +35,7 @@ Playtester
 Date		Added
 ======
 08/26
+	* Added official effects to the Socket Enchant NPC [Playtester]
 	* Various fixes on Headgear 2006 quests [Playtester]
 08/25
 	* Reverted the mapflag changes to Lighthalzen. [MasterOfMuppets]
