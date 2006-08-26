@@ -36,9 +36,6 @@ Date		Added
 ======
 08/25
 	* Reverted the mapflag changes to Lighthalzen. [MasterOfMuppets]
-	- Don't just assume everything is what you think Lupus
-	  I've been there myself on iRO and they DO drop items and give exp.
-	  [Another thing, all the job quest monsters do drop items and give exp too]
 08/24
 	* Upd:Bio Ethics Quest to let Creators+Baby Alchemists learn the skill, too [Lupus]
 	- Moved it to Alchemist Skill Quests
