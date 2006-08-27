@@ -1221,7 +1221,7 @@ OnStart:
 	set $@WzUsers, getareausers("job_wiz.gat", 98, 154, 129, 185);			// get user count for first lvl
 	set $@WzUsers, $@WzUsers + getareausers("job_wiz.gat", 100, 82, 131, 113);		// get user count for second lvl + first lvl
 	set $@WzUsers, $@WzUsers + getareausers("job_wiz.gat", 30, 82, 61, 113);		// get user count for third lvl + second lvl + first lvl
-//	if ($@WzUsers > 0) end;
+	if ($@WzUsers > 0) end;
 
 	if ((getwaitingroomstate(33)) == 0) end;		// finds out if there is anyone in the waiting room
 	disablenpc "waterwrp";		//disables the warps
