@@ -1,3 +1,6 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 // Homunculus and future Mercenary system code go here [Celest]
 
 #ifndef _MERCENARY_H_

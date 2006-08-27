@@ -1,4 +1,5 @@
-// $Id: atcommand.c 148 2004-09-30 14:05:37Z MouseJstr $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 
 #include "socket.h"
 #include "timer.h"
@@ -677,7 +678,7 @@ bool is_atcommand(const int fd, struct map_session_data &sd, const char* message
 				if( gmlvl_override == 0 )
 					return false;
 
-				snprintf(output, sizeof(output), msg_txt(153), command); // %s is Unknown Command.
+				snprintf(output, sizeof(output), msg_txt(MSG_S_IS_UNKNOWN_COMMAND), command); // %s is Unknown Command.
 				clif_displaymessage(fd, output);
 			}
 			else
@@ -699,15 +700,15 @@ bool is_atcommand(const int fd, struct map_session_data &sd, const char* message
 
 				if( !psd )
 				{
-					clif_displaymessage(fd, msg_txt(3)); // Character not found.
+					clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND)); // Character not found.
 				}
 				else if( psd != &sd && sd.isGM() <= psd->isGM() )
 				{	// Your GM level don't authorise you to do this action on this player.
-					clif_displaymessage(fd, msg_txt(81)); 
+					clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW)); 
 				}
 				else if( !cmd.func(fd, *psd, command, param) )
 				{	// Command could not be executed
-					snprintf(output, sizeof(output), msg_txt(154), command); // %s failed.
+					snprintf(output, sizeof(output), msg_txt(MSG_S_FAILED), command); // %s failed.
 					clif_displaymessage(fd, output);
 				}
 				else
@@ -827,11 +828,11 @@ bool atcommand_adjgmlvl(int fd, struct map_session_data& sd, const char* command
 	}
 	else if( NULL==(psd = atcommand_param2sd(user)) )
 	{
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
+		clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND)); // Character not found.
 	}
 	else if( psd==&sd || sd.isGM() <= psd->isGM() )
 	{	// not authorized
-		clif_displaymessage(fd, msg_txt(81));	
+		clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW));	
 	}
 	else
 	{
@@ -898,13 +899,13 @@ bool atcommand_agitend(int fd, struct map_session_data& sd, const char* command,
 {
 	if( !agit_flag )
 	{
-		clif_displaymessage(fd, msg_txt(75)); // Siege warfare hasn't started yet.
+		clif_displaymessage(fd, msg_txt(MSG_NOT_SIEGE)); // Siege warfare hasn't started yet.
 	}
 	else
 	{
 		agit_flag = 0;
 		guild_agit_end();
-		clif_displaymessage(fd, msg_txt(74)); // Guild siege warfare end!
+		clif_displaymessage(fd, msg_txt(MSG_SIEGE_END)); // Guild siege warfare end!
 		return true;
 	}
 	return false;
@@ -918,13 +919,13 @@ bool atcommand_agitstart(int fd, struct map_session_data& sd, const char* comman
 {
 	if( agit_flag )
 	{
-		clif_displaymessage(fd, msg_txt(73)); // Already it has started siege warfare.
+		clif_displaymessage(fd, msg_txt(MSG_ALREADY_SIEGE)); // Already it has started siege warfare.
 	}
 	else
 	{
 		agit_flag = 1;
 		guild_agit_start();
-		clif_displaymessage(fd, msg_txt(72)); // Guild siege warfare start!
+		clif_displaymessage(fd, msg_txt(MSG_SIEGE_START)); // Guild siege warfare start!
 		return true;
 	}
 	return false;
@@ -947,7 +948,7 @@ bool atcommand_alive(int fd, struct map_session_data& sd, const char* command, c
 		clif_updatestatus(sd, SP_HP);
 		clif_updatestatus(sd, SP_SP);
 		clif_resurrection(sd, 1);
-		clif_displaymessage(sd.fd, msg_txt(16)); // You've been revived! It's a miracle!
+		clif_displaymessage(sd.fd, msg_txt(MSG_YOUVE_BEEN_REVIVED)); // You've been revived! It's a miracle!
 		return true;
 	}
 	return false;
@@ -961,7 +962,7 @@ bool atcommand_allskill(int fd, struct map_session_data& sd, const char* command
 	pc_allskillup(sd); // all skills
 	sd.status.skill_point = 0; // 0 skill points
 	clif_updatestatus(sd, SP_SKILLPOINT); // update
-	clif_displaymessage(sd.fd, msg_txt(76)); // You have received all skills.
+	clif_displaymessage(sd.fd, msg_txt(MSG_YOU_RECEIVED_ALL_SKILLS)); // You have received all skills.
 	return true;
 }
 
@@ -998,7 +999,7 @@ bool atcommand_baselevelup(int fd, struct map_session_data& sd, const char* comm
 	{	
 		if( sd.status.base_level >= config.maximum_level)
 		{	// check for max level
-			clif_displaymessage(fd, msg_txt(47)); // Base level can't go any higher.
+			clif_displaymessage(fd, msg_txt(MSG_BASE_LV_MAX)); // Base level can't go any higher.
 		}
 		else
 		{
@@ -1014,7 +1015,7 @@ bool atcommand_baselevelup(int fd, struct map_session_data& sd, const char* comm
 			status_calc_pc(sd, 0);
 			pc_heal(sd, sd.status.max_hp, sd.status.max_sp);
 			clif_misceffect(sd, 0);
-			clif_displaymessage(sd.fd, msg_txt(21)); // Base level raised.
+			clif_displaymessage(sd.fd, msg_txt(MSG_BASE_LV_RAISED)); // Base level raised.
 			return true;
 		}
 	}
@@ -1022,7 +1023,7 @@ bool atcommand_baselevelup(int fd, struct map_session_data& sd, const char* comm
 	{
 		if (sd.status.base_level <= 1)
 		{
-			clif_displaymessage(fd, msg_txt(158)); // Base level can't go any lower.
+			clif_displaymessage(fd, msg_txt(MSG_BASE_LEVEL_CANT_GO_ANY_LOWER)); // Base level can't go any lower.
 		}
 		else
 		{
@@ -1040,7 +1041,7 @@ bool atcommand_baselevelup(int fd, struct map_session_data& sd, const char* comm
 			clif_updatestatus(sd, SP_BASELEVEL);
 			clif_updatestatus(sd, SP_NEXTBASEEXP);
 			status_calc_pc(sd, 0);
-			clif_displaymessage(sd.fd, msg_txt(22)); // Base level lowered.
+			clif_displaymessage(sd.fd, msg_txt(MSG_BASE_LV_LOWERED)); // Base level lowered.
 			return true;
 		}
 	}
@@ -1128,16 +1129,16 @@ bool atcommand_changesex(int fd, struct map_session_data& sd, const char* comman
 	const char* name = (param.size()<1) ? sd.status.name : (const char*)param[0];
 	if(strlen(name) < 4)
 	{
-		clif_displaymessage(fd, msg_txt(86)); // Sorry, but a player name have at least 4 characters.
+		clif_displaymessage(fd, msg_txt(MSG_PLY_NAME_MIN_4_CHARS)); // Sorry, but a player name have at least 4 characters.
 	}
 	else if(strlen(name) > 23)
 	{
-		clif_displaymessage(fd, msg_txt(87)); // Sorry, but a player name have 23 characters maximum.
+		clif_displaymessage(fd, msg_txt(MSG_PLY_NAME_MAX_23_CHARS)); // Sorry, but a player name have 23 characters maximum.
 	}
 	else
 	{
 		chrif_char_ask_name(sd.status.account_id, name, 5, 0, 0, 0, 0, 0, 0); // type: 5 - changesex
-		clif_displaymessage(fd, msg_txt(88)); // Character name sends to char-server to ask it.
+		clif_displaymessage(fd, msg_txt(MSG_NAME_SEND_TO_CHAR_SERVER)); // Character name sends to char-server to ask it.
 		return true;
 	}
 	return false;
@@ -1435,25 +1436,25 @@ bool atcommand_char_ban(int fd, struct map_session_data& sd, const char* command
 	}
 	if (year == 0 && month == 0 && day == 0 && hour == 0 && minute == 0 && second == 0)
 	{
-		clif_displaymessage(fd, msg_txt(85)); // Invalid time for ban command.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_BAN_TIME)); // Invalid time for ban command.
 		return false;
 	}
 
 	// check player name
 	if(strlen(player_name) < 4)
 	{
-		clif_displaymessage(fd, msg_txt(86)); // Sorry, but a player name have at least 4 characters.
+		clif_displaymessage(fd, msg_txt(MSG_PLY_NAME_MIN_4_CHARS)); // Sorry, but a player name have at least 4 characters.
 		return false;
 	}
 	else if(strlen(player_name) > 23)
 	{
-		clif_displaymessage(fd, msg_txt(87)); // Sorry, but a player name have 23 characters maximum.
+		clif_displaymessage(fd, msg_txt(MSG_PLY_NAME_MAX_23_CHARS)); // Sorry, but a player name have 23 characters maximum.
 		return false;
 	}
 	else
 	{
 		chrif_char_ask_name(sd.status.account_id, player_name, 2, year, month, day, hour, minute, second); // type: 2 - ban
-		clif_displaymessage(fd, msg_txt(88)); // Character name sends to char-server to ask it.
+		clif_displaymessage(fd, msg_txt(MSG_NAME_SEND_TO_CHAR_SERVER)); // Character name sends to char-server to ask it.
 	}
 	return true;
 }
@@ -1475,18 +1476,18 @@ bool atcommand_char_block(int fd, struct map_session_data& sd, const char* comma
 	// check player name
 	if(strlen(player_name) < 4)
 	{
-		clif_displaymessage(fd, msg_txt(86)); // Sorry, but a player name have at least 4 characters.
+		clif_displaymessage(fd, msg_txt(MSG_PLY_NAME_MIN_4_CHARS)); // Sorry, but a player name have at least 4 characters.
 		return false;
 	}
 	else if(strlen(player_name) > 23)
 	{
-		clif_displaymessage(fd, msg_txt(87)); // Sorry, but a player name have 23 characters maximum.
+		clif_displaymessage(fd, msg_txt(MSG_PLY_NAME_MAX_23_CHARS)); // Sorry, but a player name have 23 characters maximum.
 		return false;
 	}
 	else
 	{
 		chrif_char_ask_name(sd.status.account_id, player_name, 1, 0, 0, 0, 0, 0, 0); // type: 1 - block
-		clif_displaymessage(fd, msg_txt(88)); // Character name sends to char-server to ask it.
+		clif_displaymessage(fd, msg_txt(MSG_NAME_SEND_TO_CHAR_SERVER)); // Character name sends to char-server to ask it.
 	}
 	return true;
 }
@@ -1521,11 +1522,11 @@ bool atcommand_delitem(int fd, struct map_session_data& sd, const char* command,
 
 	if( item_id<500 )
 	{
-		clif_displaymessage(fd, msg_txt(19)); // Invalid item ID or name.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_ITEM)); // Invalid item ID or name.
 	}
 	else if( (item_position = pc_search_inventory(sd, item_id)) < 0 )
 	{
-		clif_displaymessage(fd, msg_txt(116)); // Character does not have the item.
+		clif_displaymessage(fd, msg_txt(MSG_CHARACTER_DOES_NOT_HAVE_THE_ITEM)); // Character does not have the item.
 	}
 	else
 	{
@@ -1536,12 +1537,12 @@ bool atcommand_delitem(int fd, struct map_session_data& sd, const char* command,
 			count++;
 			item_position = pc_search_inventory(sd, item_id); // for next loop
 		}
-		snprintf(output, sizeof(output), msg_txt(113), count); // %d item(s) removed by a GM.
+		snprintf(output, sizeof(output), msg_txt(MSG_D_ITEM_REMOVED_BY_A_GM), count); // %d item(s) removed by a GM.
 		clif_displaymessage(sd.fd, output);
 		if (number == count)
-			snprintf(output, sizeof(output), msg_txt(114), count); // %d item(s) removed from the player.
+			snprintf(output, sizeof(output), msg_txt(MSG_D_ITEM_REMOVED_FROM_THE_PLAYER), count); // %d item(s) removed from the player.
 		else
-			snprintf(output, sizeof(output), msg_txt(115), count, count, number); // %d item(s) removed. Player had only %d on %d items.
+			snprintf(output, sizeof(output), msg_txt(MSG_D_ITEM_REMOVED_HAD_ONLY_D_ON_D), count, count, number); // %d item(s) removed. Player had only %d on %d items.
 		clif_displaymessage(fd, output);
 		return true;
 	}
@@ -1563,15 +1564,15 @@ bool atcommand_char_unban(int fd, struct map_session_data& sd, const char* comma
 
 	// check player name
 	if(strlen(player_name) < 4) {
-		clif_displaymessage(fd, msg_txt(86)); // Sorry, but a player name have at least 4 characters.
+		clif_displaymessage(fd, msg_txt(MSG_PLY_NAME_MIN_4_CHARS)); // Sorry, but a player name have at least 4 characters.
 		return false;
 	} else if(strlen(player_name) > 23) {
-		clif_displaymessage(fd, msg_txt(87)); // Sorry, but a player name have 23 characters maximum.
+		clif_displaymessage(fd, msg_txt(MSG_PLY_NAME_MAX_23_CHARS)); // Sorry, but a player name have 23 characters maximum.
 		return false;
 	} else {
 		// send answer to login server via char-server
 		chrif_char_ask_name(sd.status.account_id, player_name, 4, 0, 0, 0, 0, 0, 0); // type: 4 - unban
-		clif_displaymessage(fd, msg_txt(88)); // Character name sends to char-server to ask it.
+		clif_displaymessage(fd, msg_txt(MSG_NAME_SEND_TO_CHAR_SERVER)); // Character name sends to char-server to ask it.
 	}
 
 	return true;
@@ -1592,15 +1593,15 @@ bool atcommand_char_unblock(int fd, struct map_session_data& sd, const char* com
 
 	// check player name
 	if(strlen(player_name) < 4) {
-		clif_displaymessage(fd, msg_txt(86)); // Sorry, but a player name have at least 4 characters.
+		clif_displaymessage(fd, msg_txt(MSG_PLY_NAME_MIN_4_CHARS)); // Sorry, but a player name have at least 4 characters.
 		return false;
 	} else if(strlen(player_name) > 23) {
-		clif_displaymessage(fd, msg_txt(87)); // Sorry, but a player name have 23 characters maximum.
+		clif_displaymessage(fd, msg_txt(MSG_PLY_NAME_MAX_23_CHARS)); // Sorry, but a player name have 23 characters maximum.
 		return false;
 	} else {
 		// send answer to login server via char-server
 		chrif_char_ask_name(sd.status.account_id, player_name, 3, 0, 0, 0, 0, 0, 0); // type: 3 - unblock
-		clif_displaymessage(fd, msg_txt(88)); // Character name sends to char-server to ask it.
+		clif_displaymessage(fd, msg_txt(MSG_NAME_SEND_TO_CHAR_SERVER)); // Character name sends to char-server to ask it.
 	}
 
 	return true;
@@ -1652,7 +1653,7 @@ bool atcommand_clearweather(int fd, struct map_session_data& sd, const char* com
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(1)); // Map not found.
+		clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
 	}
 	return true;
 }
@@ -1681,7 +1682,7 @@ bool atcommand_clouds(int fd, struct map_session_data& sd, const char* command, 
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(1)); // Map not found.
+		clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
 	}
 	return true;
 }
@@ -1709,7 +1710,7 @@ bool atcommand_clouds2(int fd, struct map_session_data& sd, const char* command,
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(1)); // Map not found.
+		clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
 	}
 	return true;
 }
@@ -1738,7 +1739,7 @@ bool atcommand_rain(int fd, struct map_session_data& sd, const char* command, co
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(1)); // Map not found.
+		clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
 	}
 	return true;
 }
@@ -1767,7 +1768,7 @@ bool atcommand_snow(int fd, struct map_session_data& sd, const char* command, co
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(1)); // Map not found.
+		clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
 	}
 	return true;
 }
@@ -1796,7 +1797,7 @@ bool atcommand_sakura(int fd, struct map_session_data& sd, const char* command, 
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(1)); // Map not found.
+		clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
 	}
 	return true;
 }
@@ -1825,7 +1826,7 @@ bool atcommand_fog(int fd, struct map_session_data& sd, const char* command, con
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(1)); // Map not found.
+		clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
 	}
 	return true;
 }
@@ -1854,7 +1855,7 @@ bool atcommand_leaves(int fd, struct map_session_data& sd, const char* command, 
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(1)); // Map not found.
+		clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
 	}
 	return true;
 }
@@ -1883,7 +1884,7 @@ bool atcommand_fireworks(int fd, struct map_session_data& sd, const char* comman
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(1)); // Map not found.
+		clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
 	}
 	return true;
 }
@@ -1900,7 +1901,7 @@ bool atcommand_night(int fd, struct map_session_data& sd, const char* command, c
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(89)); // Sorry, it's already the night. Impossible to execute the command.
+		clif_displaymessage(fd, msg_txt(MSG_ALREADY_NIGHT)); // Sorry, it's already the night. Impossible to execute the command.
 		return false;
 	}
 }
@@ -1917,7 +1918,7 @@ bool atcommand_day(int fd, struct map_session_data& sd, const char* command, con
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(90)); // Sorry, it's already the day. Impossible to execute the command.
+		clif_displaymessage(fd, msg_txt(MSG_ALREADY_DAY)); // Sorry, it's already the day. Impossible to execute the command.
 		return false;
 	}
 }
@@ -1997,7 +1998,7 @@ bool atcommand_die(int fd, struct map_session_data& sd, const char* command, con
 {
 	clif_specialeffect(sd,450,1);
 	pc_damage(sd, sd.status.hp + 1,NULL);
-	clif_displaymessage(sd.fd, msg_txt(13)); // A pity! You've died.
+	clif_displaymessage(sd.fd, msg_txt(MSG_A_PITY_YOUVE_DIED)); // A pity! You've died.
 	return true;
 }
 
@@ -2029,11 +2030,11 @@ bool atcommand_disguise(int fd, struct map_session_data& sd, const char* command
 		sd.disguise_id = mob_id;
 		clif_changeoption(sd);
 		clif_spawnpc(sd);
-		clif_displaymessage(fd, msg_txt(122)); // Disguise applied.
+		clif_displaymessage(fd, msg_txt(MSG_DISGUISE_APPLIED)); // Disguise applied.
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(123)); // Monster/NPC name/id hasn't been found.
+		clif_displaymessage(fd, msg_txt(MSG__NAMEID_HASNT_BEEN_FOUND)); // Monster/NPC name/id hasn't been found.
 		return false;
 	}
 
@@ -2073,7 +2074,7 @@ bool atcommand_disguiseall(int fd, struct map_session_data& sd, const char* comm
 				clif_spawnpc(*pl_sd);
 			}
 		}
-		clif_displaymessage(fd, msg_txt(122)); // Disguise applied.
+		clif_displaymessage(fd, msg_txt(MSG_DISGUISE_APPLIED)); // Disguise applied.
 		return true;
 	}
 	return false;
@@ -2092,11 +2093,11 @@ bool atcommand_undisguise(int fd, struct map_session_data& sd, const char* comma
 		sd.disguise_id = 0;
 		clif_changeoption(sd);
 		clif_spawnpc(sd);
-		clif_displaymessage(fd, msg_txt(124)); // Undisguise applied.
+		clif_displaymessage(fd, msg_txt(MSG_UNDISGUISE_APPLIED)); // Undisguise applied.
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(125)); // You're not disguised.
+		clif_displaymessage(fd, msg_txt(MSG_YOURE_NOT_DISGUISED)); // You're not disguised.
 		return false;
 	}
 	return true;
@@ -2121,7 +2122,7 @@ bool atcommand_undisguiseall(int fd, struct map_session_data& sd, const char* co
 			clif_spawnpc(*pl_sd);
 		}
 	}
-	clif_displaymessage(fd, msg_txt(124)); // Undisguise applied.
+	clif_displaymessage(fd, msg_txt(MSG_UNDISGUISE_APPLIED)); // Undisguise applied.
 
 	return true;
 }
@@ -2244,10 +2245,10 @@ bool atcommand_doom(int fd, struct map_session_data& sd, const char* command, co
 		    sd.isGM() >= pl_sd->isGM())
 		{
 			pc_damage(*pl_sd, pl_sd->status.hp + 1,NULL);
-			clif_displaymessage(pl_sd->fd, msg_txt(61)); // The holy messenger has given judgement.
+			clif_displaymessage(pl_sd->fd, msg_txt(MSG_HAS_GIVEN_JUDGEMENT)); // The holy messenger has given judgement.
 		}
 	}
-	clif_displaymessage(fd, msg_txt(62)); // Judgement was made.
+	clif_displaymessage(fd, msg_txt(MSG_JUDGEMENT_WAS_MADE)); // Judgement was made.
 
 	return true;
 }
@@ -2268,10 +2269,10 @@ bool atcommand_doommap(int fd, struct map_session_data& sd, const char* command,
 		    sd.isGM() >= pl_sd->isGM())
 		{
 			pc_damage(*pl_sd, pl_sd->status.hp + 1,NULL);
-			clif_displaymessage(pl_sd->fd, msg_txt(61)); // The holy messenger has given judgement.
+			clif_displaymessage(pl_sd->fd, msg_txt(MSG_HAS_GIVEN_JUDGEMENT)); // The holy messenger has given judgement.
 		}
 	}
-	clif_displaymessage(fd, msg_txt(62)); // Judgement was made.
+	clif_displaymessage(fd, msg_txt(MSG_JUDGEMENT_WAS_MADE)); // Judgement was made.
 
 	return true;
 }
@@ -2318,12 +2319,12 @@ bool atcommand_dye(int fd, struct map_session_data& sd, const char* command, con
 	else if (cloth_color >= MIN_CLOTH_COLOR && cloth_color <= MAX_CLOTH_COLOR)
 	{
 		pc_changelook(sd, LOOK_CLOTHES_COLOR, cloth_color);
-		clif_displaymessage(fd, msg_txt(36)); // Appearence changed.
+		clif_displaymessage(fd, msg_txt(MSG_APPEARENCE_CHANGED)); // Appearence changed.
 		return true;
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(37)); // An invalid number was specified.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_NUMBER)); // An invalid number was specified.
 
 	}
 	return false;
@@ -2350,14 +2351,14 @@ bool atcommand_model(int fd, struct map_session_data& sd, const char* command, c
 	}
 	else if (cloth_color != 0 && sd.status.sex == 1 && (sd.status.class_ == 12 ||  sd.status.class_ == 17))
 	{
-		clif_displaymessage(fd, msg_txt(35)); // You can't use this command with this class_.
+		clif_displaymessage(fd, msg_txt(MSG_CMD_INVALID_CLASS)); // You can't use this command with this class_.
 	}
 	else
 	{
 		pc_changelook(sd, LOOK_HAIR, hair_style);
 		pc_changelook(sd, LOOK_HAIR_COLOR, hair_color);
 		pc_changelook(sd, LOOK_CLOTHES_COLOR, cloth_color);
-		clif_displaymessage(fd, msg_txt(36)); // Appearence changed.
+		clif_displaymessage(fd, msg_txt(MSG_APPEARENCE_CHANGED)); // Appearence changed.
 		return true;
 	}
 	return false;
@@ -2381,18 +2382,18 @@ bool atcommand_hair_style(int fd, struct map_session_data& sd, const char* comma
 	{
 		if (hair_style != 0 && sd.status.sex == 1 && (sd.status.class_ == 12 || sd.status.class_ == 17))
 		{
-			clif_displaymessage(fd, msg_txt(35)); // You can't use this command with this class_.
+			clif_displaymessage(fd, msg_txt(MSG_CMD_INVALID_CLASS)); // You can't use this command with this class_.
 		}
 		else
 		{
 			pc_changelook(sd, LOOK_HAIR, hair_style);
-			clif_displaymessage(fd, msg_txt(36)); // Appearence changed.
+			clif_displaymessage(fd, msg_txt(MSG_APPEARENCE_CHANGED)); // Appearence changed.
 			return true;
 		}
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(37)); // An invalid number was specified.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_NUMBER)); // An invalid number was specified.
 	}
 	return false;
 }
@@ -2413,18 +2414,18 @@ bool atcommand_hair_color(int fd, struct map_session_data& sd, const char* comma
 	{
 		if (hair_color != 0 && sd.status.sex == 1 && (sd.status.class_ == 12 || sd.status.class_ == 17))
 		{
-			clif_displaymessage(fd, msg_txt(35)); // You can't use this command with this class_.
+			clif_displaymessage(fd, msg_txt(MSG_CMD_INVALID_CLASS)); // You can't use this command with this class_.
 		}
 		else
 		{
 			pc_changelook(sd, LOOK_HAIR_COLOR, hair_color);
-			clif_displaymessage(fd, msg_txt(36)); // Appearence changed.
+			clif_displaymessage(fd, msg_txt(MSG_APPEARENCE_CHANGED)); // Appearence changed.
 			return true;
 		}
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(37)); // An invalid number was specified.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_NUMBER)); // An invalid number was specified.
 	}
 	return false;
 }
@@ -2445,11 +2446,11 @@ bool atcommand_effect(int fd, struct map_session_data& sd, const char* command, 
 	}
 	else if ( param.size()>=2 && !(all=(param[1]=="all")) && NULL==(psd = atcommand_param2sd(param[1])) )
 	{
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
+		clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND)); // Character not found.
 	}
 	else if( sd.isGM() <  psd->isGM())
 	{	// Your GM level don't authorise you to do this action on this player.
-		clif_displaymessage(fd, msg_txt(81));
+		clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW));
 	}
 	else if( all )
 	{
@@ -2458,7 +2459,7 @@ bool atcommand_effect(int fd, struct map_session_data& sd, const char* command, 
 	else
 	{
 		clif_specialeffect(*psd, type, 1);	// 1 = self
-		clif_displaymessage(psd->fd, msg_txt(229)); // Your effect has changed.
+		clif_displaymessage(psd->fd, msg_txt(MSG_YOUR_EFFECT_HAS_CHANGED)); // Your effect has changed.
 	}
 	return true;
 }
@@ -2492,24 +2493,24 @@ bool atcommand_email(int fd, struct map_session_data& sd, const char* command, c
 
 	if( !email_check(actual_email) )
 	{
-		clif_displaymessage(fd, msg_txt(144)); // Invalid actual email. If you have default e-mail, give a@a.com.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_ACTUAL_EMAIL)); // Invalid actual email. If you have default e-mail, give a@a.com.
 	}
 	else if( !email_check(new_email) )
 	{
-		clif_displaymessage(fd, msg_txt(145)); // Invalid new email. Please enter a real e-mail.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_NEW_EMAIL)); // Invalid new email. Please enter a real e-mail.
 	}
 	else if(strcasecmp(new_email, "a@a.com") == 0)
 	{
-		clif_displaymessage(fd, msg_txt(146)); // New email must be a real e-mail.
+		clif_displaymessage(fd, msg_txt(MSG_EMAIL_MUST_BE_VALID)); // New email must be a real e-mail.
 	}
 	else if(strcasecmp(actual_email, new_email) == 0)
 	{
-		clif_displaymessage(fd, msg_txt(147)); // New email must be different of the actual e-mail.
+		clif_displaymessage(fd, msg_txt(MSG_EMAIL_MUST_BE_DIFFERENT)); // New email must be different of the actual e-mail.
 	}
 	else
 	{
 		chrif_changeemail(sd.status.account_id, actual_email, new_email);
-		clif_displaymessage(fd, msg_txt(148)); // Information sended to login-server via char-server.
+		clif_displaymessage(fd, msg_txt(MSG_SENDED_TO_LOGIN_VIA_CHAR)); // Information sended to login-server via char-server.
 		return true;
 	}
 	return false;
@@ -2614,7 +2615,7 @@ bool atcommand_gm(int fd, struct map_session_data& sd, const char* command, cons
 	}
 	if (sd.isGM())
 	{	// a GM can not use this function. only a normal player (become gm is not for gm!)
-		clif_displaymessage(fd, msg_txt(50)); // You already have some GM powers.
+		clif_displaymessage(fd, msg_txt(MSG_ALREADY_GM)); // You already have some GM powers.
 		return false;
 	}
 	else
@@ -2692,8 +2693,8 @@ bool atcommand_go(int fd, struct map_session_data& sd, const char* command, cons
 
 	// if no value, display all value
 	if (param.size() < 1 || town < -3 || town >= (int)(sizeof(data) / sizeof(data[0]))) {
-		clif_displaymessage(fd, msg_txt(38)); // Invalid location number or name.
-		clif_displaymessage(fd, msg_txt(82)); // Please, use one of this number/name:
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_LOCATION)); // Invalid location number or name.
+		clif_displaymessage(fd, msg_txt(MSG_USE_ONE_OF_THIS)); // Please, use one of this number/name:
 		clif_displaymessage(fd, "  0=Prontera         1=Morroc       2=Geffen");
 		clif_displaymessage(fd, "  3=Payon            4=Alberta      5=Izlude");
 		clif_displaymessage(fd, "  6=Aldebaran        7=Lutie        8=Comodo");
@@ -2770,27 +2771,27 @@ bool atcommand_go(int fd, struct map_session_data& sd, const char* command, cons
 				m = map_mapname2mapid(sd.status.memo_point[-town-1].mapname);
 				if (m >= 0 && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM())
 				{
-					clif_displaymessage(fd, msg_txt(247));
+					clif_displaymessage(fd, msg_txt(247)); // FIXME: Not in the enum!
 					return false;
 				}
 				else if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
 				{
-					clif_displaymessage(fd, msg_txt(248));
+					clif_displaymessage(fd, msg_txt(248)); // FIXME: Not in the enum!
 					return false;
 				}
 				else if( pc_setpos(sd, sd.status.memo_point[-town-1].mapname, sd.status.memo_point[-town-1].x, sd.status.memo_point[-town-1].y, 3) )
 				{
-					clif_displaymessage(fd, msg_txt(0)); // Warped.
+					clif_displaymessage(fd, msg_txt(MSG_WARPED)); // Warped.
 				}
 				else
 				{
-					clif_displaymessage(fd, msg_txt(1)); // Map not found.
+					clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
 					return false;
 				}
 			}
 			else
 			{
-				snprintf(output, sizeof(output), msg_txt(164), -town-1); // Your memo point #%d doesn't exist.
+				snprintf(output, sizeof(output), msg_txt(MSG_YOUR_MEMO_POINT_D_DOESNT_EXIST), -town-1); // Your memo point #%d doesn't exist.
 				clif_displaymessage(fd, output);
 				return false;
 			}
@@ -2799,23 +2800,23 @@ bool atcommand_go(int fd, struct map_session_data& sd, const char* command, cons
 		{
 			m = map_mapname2mapid(data[town].map);
 			if (m >= 0 && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
-				clif_displaymessage(fd, msg_txt(247));
+				clif_displaymessage(fd, msg_txt(247)); // FIXME: Not in the enum!
 				return false;
 			}
 			if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
-				clif_displaymessage(fd, msg_txt(248));
+				clif_displaymessage(fd, msg_txt(248)); // FIXME: Not in the enum!
 				return false;
 			}
 			if( pc_setpos(sd, (char *)data[town].map, data[town].x, data[town].y, 3) ) {
-				clif_displaymessage(fd, msg_txt(0)); // Warped.
+				clif_displaymessage(fd, msg_txt(MSG_WARPED)); // Warped.
 			} else {
-				clif_displaymessage(fd, msg_txt(1)); // Map not found.
+				clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
 				return false;
 			}
 		}
 		else
 		{	// if you arrive here, you have an error in town variable when reading of names
-			clif_displaymessage(fd, msg_txt(38)); // Invalid location number or name.
+			clif_displaymessage(fd, msg_txt(MSG_INVALID_LOCATION)); // Invalid location number or name.
 			return false;
 		}
 	}
@@ -2904,11 +2905,11 @@ bool atcommand_guildlevelup(int fd, struct map_session_data& sd, const char* com
 	}
 
 	if (sd.status.guild_id <= 0 || (guild_info = guild_search(sd.status.guild_id)) == NULL) {
-		clif_displaymessage(fd, msg_txt(43)); // You're not in a guild.
+		clif_displaymessage(fd, msg_txt(MSG_NOT_IN_GUILD)); // You're not in a guild.
 		return false;
 	}
 	if (strcmp(sd.status.name, guild_info->master) != 0) {
-		clif_displaymessage(fd, msg_txt(44)); // You're not the master of your guild.
+		clif_displaymessage(fd, msg_txt(MSG_NOT_GUILDMASTER)); // You're not the master of your guild.
 		return false;
 	}
 
@@ -2920,9 +2921,9 @@ bool atcommand_guildlevelup(int fd, struct map_session_data& sd, const char* com
 
 	if (added_level != 0) {
 		intif_guild_change_basicinfo(guild_info->guild_id, GBI_GUILDLV, added_level);
-		clif_displaymessage(fd, msg_txt(179)); // Guild level changed.
+		clif_displaymessage(fd, msg_txt(MSG_GUILD_LEVEL_CHANGED)); // Guild level changed.
 	} else {
-		clif_displaymessage(fd, msg_txt(45)); // Guild level change failed.
+		clif_displaymessage(fd, msg_txt(MSG_GLV_FAILED)); // Guild level change failed.
 		return false;
 	}
 
@@ -2966,14 +2967,14 @@ bool atcommand_guildrecall(int fd, struct map_session_data& sd, const char* comm
 					pc_setpos(*pl_sd, sd.mapname, sd.block_list::x, sd.block_list::y, 2);
 			}
 		}
-		snprintf(output, sizeof(output), msg_txt(93), g->name); // All online characters of the %s guild are near you.
+		snprintf(output, sizeof(output), msg_txt(MSG_ALL_ON_CHARS_S_GUILD_NEAR), g->name); // All online characters of the %s guild are near you.
 		clif_displaymessage(fd, output);
 		if (count) {
 			snprintf(output, sizeof(output), "Because you are not authorised to warp from some maps, %ld player(s) have not been recalled.", (unsigned long)(count));
 			clif_displaymessage(fd, output);
 		}
 	} else {
-		clif_displaymessage(fd, msg_txt(94)); // Incorrect name/ID, or no one from the guild is online.
+		clif_displaymessage(fd, msg_txt(MSG_NONE_OF_GUILD_ON)); // Incorrect name/ID, or no one from the guild is online.
 		return false;
 	}
 
@@ -2991,14 +2992,14 @@ bool atcommand_guildstorage(int fd, struct map_session_data& sd, const char* com
 		if( sd.state.storage_flag == 1 ||
 			((stor = account2storage2(sd.status.account_id)) != NULL && stor->storage_status == 1) )
 		{
-			clif_displaymessage(fd, msg_txt(251));
+			clif_displaymessage(fd, msg_txt(251)); // FIXME: Not in the enum!
 			return false;
 		}
 		storage_guild_storageopen(sd);
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(252));
+		clif_displaymessage(fd, msg_txt(252)); // FIXME: Not in the enum!
 		return false;
 	}
 	return true;
@@ -3022,15 +3023,15 @@ bool atcommand_guildspy(int fd, struct map_session_data& sd, const char* command
 	    (g = guild_search(atoi(guild_name))) != NULL) {
 		if (sd.guildspy == g->guild_id) {
 			sd.guildspy = 0;
-			snprintf(output, sizeof(output), msg_txt(103), g->name); // No longer spying on the %s guild.
+			snprintf(output, sizeof(output), msg_txt(MSG_NO_LONGER_SPYING_ON_THE_S_GUILD), g->name); // No longer spying on the %s guild.
 			clif_displaymessage(fd, output);
 		} else {
 			sd.guildspy = g->guild_id;
-			snprintf(output, sizeof(output), msg_txt(104), g->name); // Spying on the %s guild.
+			snprintf(output, sizeof(output), msg_txt(MSG_SPYING_ON_THE_S_GUILD), g->name); // Spying on the %s guild.
 			clif_displaymessage(fd, output);
 		}
 	} else {
-		clif_displaymessage(fd, msg_txt(94)); // Incorrect name/ID, or no one from the guild is online.
+		clif_displaymessage(fd, msg_txt(MSG_NONE_OF_GUILD_ON)); // Incorrect name/ID, or no one from the guild is online.
 		return false;
 	}
 
@@ -3056,15 +3057,15 @@ bool atcommand_partyspy(int fd, struct map_session_data& sd, const char* command
 	    (p = party_search(atoi(party_name))) != NULL) {
 		if (sd.partyspy == p->party_id) {
 			sd.partyspy = 0;
-			snprintf(output, sizeof(output), msg_txt(105), p->name); // No longer spying on the %s party.
+			snprintf(output, sizeof(output), msg_txt(MSG_NO_LONGER_SPYING_ON_THE_S_PARTY), p->name); // No longer spying on the %s party.
 			clif_displaymessage(fd, output);
 		} else {
 			sd.partyspy = p->party_id;
-			snprintf(output, sizeof(output), msg_txt(106), p->name); // Spying on the %s party.
+			snprintf(output, sizeof(output), msg_txt(MSG_SPYING_ON_THE_S_PARTY), p->name); // Spying on the %s party.
 			clif_displaymessage(fd, output);
 		}
 	} else {
-		clif_displaymessage(fd, msg_txt(96)); // Incorrect name or ID, or no one from the party is online.
+		clif_displaymessage(fd, msg_txt(MSG_NONE_OF_PARTY_ON)); // Incorrect name or ID, or no one from the party is online.
 		return false;
 	}
 
@@ -3080,9 +3081,9 @@ bool atcommand_gvgoff(int fd, struct map_session_data& sd, const char* command, 
 	if (maps[sd.block_list::m].flag.gvg) {
 		maps[sd.block_list::m].flag.gvg = 0;
 		clif_send0199(sd.block_list::m, 0);
-		clif_displaymessage(fd, msg_txt(33)); // GvG: Off.
+		clif_displaymessage(fd, msg_txt(MSG_GVG_OFF)); // GvG: Off.
 	} else {
-		clif_displaymessage(fd, msg_txt(162)); // GvG is already Off.
+		clif_displaymessage(fd, msg_txt(MSG_GVG_IS_ALREADY_OFF)); // GvG is already Off.
 		return false;
 	}
 
@@ -3098,9 +3099,9 @@ bool atcommand_gvgon(int fd, struct map_session_data& sd, const char* command, c
 	if (!maps[sd.block_list::m].flag.gvg) {
 		maps[sd.block_list::m].flag.gvg = 1;
 		clif_send0199(sd.block_list::m, 3);
-		clif_displaymessage(fd, msg_txt(34)); // GvG: On.
+		clif_displaymessage(fd, msg_txt(MSG_GVG_ON)); // GvG: On.
 	} else {
-		clif_displaymessage(fd, msg_txt(163)); // GvG is already On.
+		clif_displaymessage(fd, msg_txt(MSG_GVG_IS_ALREADY_ON)); // GvG is already On.
 		return false;
 	}
 
@@ -3118,7 +3119,7 @@ bool atcommand_help(int fd, struct map_session_data& sd, const char* command, co
 	{
 		char line[2048], w1[2048], w2[2048];
 		int gm_level = sd.isGM();
-		clif_displaymessage(fd, msg_txt(26)); // Help commands:
+		clif_displaymessage(fd, msg_txt(MSG_HELP_COMMANDS)); // Help commands:
 
 		while(fgets(line, sizeof(line), fp) != NULL)
 		{
@@ -3133,7 +3134,7 @@ bool atcommand_help(int fd, struct map_session_data& sd, const char* command, co
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(27)); // File help.txt not found.
+		clif_displaymessage(fd, msg_txt(MSG_HELPTXT_NOT_FOUND)); // File help.txt not found.
 		return false;
 	}
 
@@ -3148,12 +3149,12 @@ bool atcommand_hide(int fd, struct map_session_data& sd, const char* command, co
 	if (sd.status.option & OPTION_HIDE)
 	{
 		sd.status.option &= ~OPTION_HIDE;
-		clif_displaymessage(fd, msg_txt(10)); // Invisible: Off
+		clif_displaymessage(fd, msg_txt(MSG_INVISIBLE_OFF)); // Invisible: Off
 	}
 	else
 	{
 		sd.status.option |= OPTION_HIDE;
-		clif_displaymessage(fd, msg_txt(11)); // Invisible: On
+		clif_displaymessage(fd, msg_txt(MSG_INVISIBLE_ON)); // Invisible: On
 	}
 	clif_changeoption(sd);
 	return true;
@@ -3173,11 +3174,11 @@ bool atcommand_hidenpc(int fd, struct map_session_data& sd, const char* command,
 	if (npc_name2id(NPCname) != NULL)
 	{
 		npc_enable(NPCname, 0);
-		clif_displaymessage(fd, msg_txt(112)); // Npc Disabled.
+		clif_displaymessage(fd, msg_txt(MSG_NPC_DISABLED)); // Npc Disabled.
 	} 
 	else 
 	{
-		clif_displaymessage(fd, msg_txt(111)); // This NPC doesn't exist.
+		clif_displaymessage(fd, msg_txt(MSG_THIS_NPC_DOESNT_EXIST)); // This NPC doesn't exist.
 		return false;
 	}
 	return true;
@@ -3197,9 +3198,9 @@ bool atcommand_shownpc(int fd, struct map_session_data& sd, const char* command,
 
 	if (npc_name2id(NPCname) != NULL) {
 		npc_enable(NPCname, 1);
-		clif_displaymessage(fd, msg_txt(110)); // Npc Enabled.
+		clif_displaymessage(fd, msg_txt(MSG_NPC_ENABLED)); // Npc Enabled.
 	} else {
-		clif_displaymessage(fd, msg_txt(111)); // This NPC doesn't exist.
+		clif_displaymessage(fd, msg_txt(MSG_THIS_NPC_DOESNT_EXIST)); // This NPC doesn't exist.
 		return false;
 	}
 
@@ -3220,7 +3221,7 @@ bool atcommand_loadnpc(int fd, struct map_session_data& sd, const char* command,
 
 	// check if script file exists
 	if ((fp = basics::safefopen(param[0], "r")) == NULL) {
-		clif_displaymessage(fd, msg_txt(261));
+		clif_displaymessage(fd, msg_txt(261)); // FIXME: Not in the enum!
 		return false;
 	}
 	fclose(fp);
@@ -3229,7 +3230,7 @@ bool atcommand_loadnpc(int fd, struct map_session_data& sd, const char* command,
 	npc_addsrcfile(param[0]);
 	npc_parsesrcfile(param[0]);
 
-	clif_displaymessage(fd, msg_txt(262));
+	clif_displaymessage(fd, msg_txt(262)); // FIXME: Not in the enum!
 
 	return true;
 }
@@ -3251,11 +3252,11 @@ bool atcommand_unloadnpc(int fd, struct map_session_data& sd, const char* comman
 	if( nd != NULL )
 	{
 		npc_remove_map(nd);
-		clif_displaymessage(fd, msg_txt(112)); // Npc Disabled.
+		clif_displaymessage(fd, msg_txt(MSG_NPC_DISABLED)); // Npc Disabled.
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(111)); // This NPC doesn't exist.
+		clif_displaymessage(fd, msg_txt(MSG_THIS_NPC_DOESNT_EXIST)); // This NPC doesn't exist.
 		return false;
 	}
 
@@ -3293,7 +3294,7 @@ bool atcommand_hatch(int fd, struct map_session_data& sd, const char* command, c
 		clif_sendegg(sd);
 	else
 	{
-		clif_displaymessage(fd, msg_txt(181)); // You already have a pet.
+		clif_displaymessage(fd, msg_txt(MSG_YOU_ALREADY_HAVE_A_PET)); // You already have a pet.
 		return false;
 	}
 	return true;
@@ -3334,13 +3335,13 @@ bool atcommand_heal(int fd, struct map_session_data& sd, const char* command, co
 	{
 		pc_heal(sd, hp, sp);
 		if (hp >= 0 && sp >= 0)
-			clif_displaymessage(fd, msg_txt(17)); // HP, SP recovered.
+			clif_displaymessage(fd, msg_txt(MSG_HP_SP_RECOVERED)); // HP, SP recovered.
 		else
-			clif_displaymessage(fd, msg_txt(156)); // HP or/and SP modified.
+			clif_displaymessage(fd, msg_txt(MSG_HP_SP_MODIFIED)); // HP or/and SP modified.
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(157)); // HP and SP are already with the good value.
+		clif_displaymessage(fd, msg_txt(MSG_HP_AND_SP_ARE_ALREADY_GOOD)); // HP and SP are already with the good value.
 		return false;
 	}
 	return true;
@@ -3388,17 +3389,17 @@ bool atcommand_idsearch(int fd, struct map_session_data& sd, const char* command
 	unsigned int i, match;
 	struct item_data *item;
 
-	snprintf(output, sizeof(output), msg_txt(77), item_name); // The reference result of '%s' (name: id):
+	snprintf(output, sizeof(output), msg_txt(MSG_REFERENCE_RESULT_S), item_name); // The reference result of '%s' (name: id):
 	clif_displaymessage(fd, output);
 	match = 0;
 	for(i=0; i < MAX_ITEMS; ++i) {
 		if ((item = itemdb_exists(i)) != NULL && strstr(item->jname, item_name) != NULL) {
 			match++;
-			snprintf(output, sizeof(output), msg_txt(78), item->jname, item->nameid); // %s: %d
+			snprintf(output, sizeof(output), msg_txt(MSG_S_D), item->jname, item->nameid); // %s: %d
 			clif_displaymessage(fd, output);
 		}
 	}
-	snprintf(output, sizeof(output), msg_txt(79), match); // It is %d affair above.
+	snprintf(output, sizeof(output), msg_txt(MSG_D_AFFAIR_ABOVE), match); // It is %d affair above.
 	clif_displaymessage(fd, output);
 
 	return true;
@@ -3505,11 +3506,11 @@ bool atcommand_item(int fd, struct map_session_data& sd, const char* command, co
 		{
 			atcommand_item_sub(sd, item_tmp, pet_id, number, inc);
 		}
-		clif_displaymessage(fd, msg_txt(18)); // Item created.
+		clif_displaymessage(fd, msg_txt(MSG_ITEM_CREATED)); // Item created.
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(19)); // Invalid item ID or name.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_ITEM)); // Invalid item ID or name.
 		return false;
 	}
 	return true;
@@ -3579,7 +3580,7 @@ bool atcommand_itemreset(int fd, struct map_session_data& sd, const char* comman
 		if (sd.status.inventory[i].amount && sd.status.inventory[i].equip == 0)
 			pc_delitem(sd, i, sd.status.inventory[i].amount, 0);
 	}
-	clif_displaymessage(sd.fd, msg_txt(20)); // All of your items have been removed.
+	clif_displaymessage(sd.fd, msg_txt(MSG_ITEMS_REMOVED)); // All of your items have been removed.
 	return true;
 }
 
@@ -3619,24 +3620,24 @@ bool atcommand_jail(int fd, struct map_session_data& sd, const char* command, co
 			if( pc_setpos(*pl_sd, "sec_pri.gat", x, y, 3) )
 			{
 				pc_setsavepoint(*pl_sd, "sec_pri.gat", x, y); // Save Char Respawn Point in the jail room
-				clif_displaymessage(pl_sd->fd, msg_txt(117)); // GM has send you in jails.
-				clif_displaymessage(fd, msg_txt(118)); // Player warped in jails.
+				clif_displaymessage(pl_sd->fd, msg_txt(MSG_GM_HAS_SEND_YOU_IN_JAILS)); // GM has send you in jails.
+				clif_displaymessage(fd, msg_txt(MSG_PLAYER_WARPED_IN_JAILS)); // Player warped in jails.
 			}
 			else
 			{
-				clif_displaymessage(fd, msg_txt(1)); // Map not found.
+				clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
 				return false;
 			}
 		}
 		else
 		{
-			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW)); // Your GM level don't authorise you to do this action on this player.
 			return false;
 		}
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
+		clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND)); // Character not found.
 		return false;
 	}
 	return true;
@@ -3663,30 +3664,30 @@ bool atcommand_unjail(int fd, struct map_session_data& sd, const char* command, 
 		{	// you can jail only lower or same GM
 			if (pl_sd->block_list::m != map_mapname2mapid("sec_pri.gat"))
 			{
-				clif_displaymessage(fd, msg_txt(119)); // This player is not in jails.
+				clif_displaymessage(fd, msg_txt(MSG_THIS_PLAYER_IS_NOT_IN_JAILS)); // This player is not in jails.
 				return false;
 			}
 			else if (pc_setpos(*pl_sd, "prontera.gat", 156,191, 3) == 0)
 			{
 				pc_setsavepoint(*pl_sd, "prontera.gat", 156,191); // Save char respawn point in Prontera
-				clif_displaymessage(pl_sd->fd, msg_txt(120)); // GM has discharge you.
-				clif_displaymessage(fd, msg_txt(121)); // Player warped to Prontera.
+				clif_displaymessage(pl_sd->fd, msg_txt(MSG_GM_HAS_DISCHARGE_YOU)); // GM has discharge you.
+				clif_displaymessage(fd, msg_txt(MSG_PLAYER_WARPED_TO_PRONTERA)); // Player warped to Prontera.
 			}
 			else
 			{
-				clif_displaymessage(fd, msg_txt(1)); // Map not found.
+				clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
 				return false;
 			}
 		}
 		else
 		{
-			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW)); // Your GM level don't authorise you to do this action on this player.
 			return false;
 		}
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
+		clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND)); // Character not found.
 		return false;
 	}
 	return true;
@@ -3795,7 +3796,7 @@ bool atcommand_joblevelup(int fd, struct map_session_data& sd, const char* comma
 	{
 		if (sd.status.job_level == up_level)
 		{
-			clif_displaymessage(fd, msg_txt(23)); // Job level can't go any higher.
+			clif_displaymessage(fd, msg_txt(MSG_JOB_LV_MAX)); // Job level can't go any higher.
 			return false;
 		}
 		if( level > up_level || level+sd.status.job_level > up_level) // fix positiv overflow
@@ -3807,13 +3808,13 @@ bool atcommand_joblevelup(int fd, struct map_session_data& sd, const char* comma
 		clif_updatestatus(sd, SP_SKILLPOINT);
 		status_calc_pc(sd, 0);
 		clif_misceffect(sd, 1);
-		clif_displaymessage(fd, msg_txt(24)); // Job level raised.
+		clif_displaymessage(fd, msg_txt(MSG_JOB_LV_RAISED)); // Job level raised.
 	}
 	else
 	{
 		if (sd.status.job_level == 1)
 		{
-			clif_displaymessage(fd, msg_txt(159)); // Job level can't go any lower.
+			clif_displaymessage(fd, msg_txt(MSG_JOB_LEVEL_CANT_GO_ANY_LOWER)); // Job level can't go any lower.
 			return false;
 		}
 		if (level < -up_level || level < (1 - (int)sd.status.job_level)) // fix negativ overflow
@@ -3830,7 +3831,7 @@ bool atcommand_joblevelup(int fd, struct map_session_data& sd, const char* comma
 			clif_updatestatus(sd, SP_SKILLPOINT);
 		} // to add: remove status points from skills
 		status_calc_pc(sd, 0);
-		clif_displaymessage(fd, msg_txt(25)); // Job level lowered.
+		clif_displaymessage(fd, msg_txt(MSG_JOB_LV_LOWERED)); // Job level lowered.
 	}
 
 	return true;
@@ -3848,7 +3849,7 @@ bool atcommand_jump(int fd, struct map_session_data& sd, const char* command, co
 		maps[sd.block_list::m].flag.nowarp ||
 		(maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) )
 	{
-		clif_displaymessage(fd, msg_txt(248));
+		clif_displaymessage(fd, msg_txt(248)); // FIXME: Not in the enum!
 		return false;
 	}
 	if (x <= 0)
@@ -3858,12 +3859,12 @@ bool atcommand_jump(int fd, struct map_session_data& sd, const char* command, co
 	if (x > 0 && x < maps[sd.block_list::m].xs && y > 0 && y < maps[sd.block_list::m].ys)
 	{
 		pc_setpos(sd, sd.mapname, x, y, 3);
-		snprintf(output, sizeof(output), msg_txt(5), x, y); // Jump to %d %d
+		snprintf(output, sizeof(output), msg_txt(MSG_JUMP_TO_D_D), x, y); // Jump to %d %d
 		clif_displaymessage(fd, output);
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(2)); // Coordinates out of range.
+		clif_displaymessage(fd, msg_txt(MSG_COORD_OUT_OF_RANGE)); // Coordinates out of range.
 		return false;
 	}
 
@@ -3891,20 +3892,20 @@ bool atcommand_jumpto(int fd, struct map_session_data& sd, const char* command, 
 			return false;
 
 		if (pl_sd->block_list::m <map_num  && maps[pl_sd->block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
-			clif_displaymessage(fd, msg_txt(247));
+			clif_displaymessage(fd, msg_txt(247)); // FIXME: Not in the enum!
 			return false;
 		}
 		if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
-			clif_displaymessage(fd, msg_txt(248));
+			clif_displaymessage(fd, msg_txt(248)); // FIXME: Not in the enum!
 			return false;
 		}
 		pc_setpos(sd, pl_sd->mapname, pl_sd->block_list::x, pl_sd->block_list::y, 3);
-		snprintf(output, sizeof(output), msg_txt(4), pl_sd->status.name); // Jump to %s
+		snprintf(output, sizeof(output), msg_txt(MSG_JUMP_TO_S), pl_sd->status.name); // Jump to %s
 		clif_displaymessage(fd, output);
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
+		clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND)); // Character not found.
 		return false;
 	}
 
@@ -3952,13 +3953,13 @@ bool atcommand_kick(int fd, struct map_session_data& sd, const char* command, co
 		}
 		else
 		{
-			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW)); // Your GM level don't authorise you to do this action on this player.
 			return false;
 		}
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
+		clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND)); // Character not found.
 		return false;
 	}
 	return true;
@@ -3981,7 +3982,7 @@ bool atcommand_kickall(int fd, struct map_session_data& sd, const char* command,
 			}
 		}
 
-	clif_displaymessage(fd, msg_txt(195)); // All players have been kicked!
+	clif_displaymessage(fd, msg_txt(MSG_ALL_PLAYERS_HAVE_BEEN_KICKED)); // All players have been kicked!
 
 	return true;
 }
@@ -4007,17 +4008,17 @@ bool atcommand_kill(int fd, struct map_session_data& sd, const char* command, co
 		if (sd.isGM() >= pl_sd->isGM())
 		{	// you can kill only lower or same level
 			pc_damage(*pl_sd, pl_sd->status.hp + 1,NULL);
-			clif_displaymessage(fd, msg_txt(14)); // Character killed.
+			clif_displaymessage(fd, msg_txt(MSG_CHARACTER_KILLED)); // Character killed.
 		}
 		else
 		{
-			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW)); // Your GM level don't authorise you to do this action on this player.
 			return false;
 		}
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
+		clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND)); // Character not found.
 		return false;
 	}
 
@@ -4044,7 +4045,7 @@ bool atcommand_killable(int fd, struct map_session_data& sd, const char* command
 bool atcommand_killer(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
 {
 	sd.state.killer = ( param.size() )?(bool)param[0] : !sd.state.killer;
-	clif_displaymessage(fd, msg_txt((sd.state.killer)?241:242));
+	clif_displaymessage(fd, msg_txt((sd.state.killer)?MSG_YOU_BE_A_KILLA:MSG_YOU_GONNA_BE_OWN3D));
 	return true;
 }
 
@@ -4079,7 +4080,7 @@ bool atcommand_killmonster(int fd, struct map_session_data& sd, const char* comm
 	{
 		block_list::foreachinarea( CAtKillMonster(drop),
 			map_id, 0, 0, maps[map_id].xs-1, maps[map_id].ys-1, BL_MOB);
-		clif_displaymessage(fd, msg_txt(165)); // All monsters killed!
+		clif_displaymessage(fd, msg_txt(MSG_ALL_MONSTERS_KILLED)); // All monsters killed!
 		return true;
 	}
 	return false;
@@ -4092,16 +4093,16 @@ bool atcommand_load(int fd, struct map_session_data& sd, const char* command, co
 {
 	int m = map_mapname2mapid(sd.status.save_point.mapname);
 	if (m >= 0 && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
-		clif_displaymessage(fd, msg_txt(249));
+		clif_displaymessage(fd, msg_txt(249)); // FIXME: Not in the enum!
 		return false;
 	}
 	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
-		clif_displaymessage(fd, msg_txt(248));
+		clif_displaymessage(fd, msg_txt(248)); // FIXME: Not in the enum!
 		return false;
 	}
 
 	pc_setpos(sd, sd.status.save_point.mapname, sd.status.save_point.x, sd.status.save_point.y, 0);
-	clif_displaymessage(fd, msg_txt(7)); // Warping to respawn point.
+	clif_displaymessage(fd, msg_txt(MSG_WARPING_TO_RESPAWN)); // Warping to respawn point.
 
 	return true;
 }
@@ -4128,23 +4129,23 @@ bool atcommand_lostskill(int fd, struct map_session_data& sd, const char* comman
 				sd.status.skill[skill_id].lv = 0;
 				sd.status.skill[skill_id].flag = 0;
 				clif_skillinfoblock(sd);
-				clif_displaymessage(fd, msg_txt(71)); // You have forgotten the skill.
+				clif_displaymessage(fd, msg_txt(MSG_YOU_FORGOT_SKILL)); // You have forgotten the skill.
 			}
 			else
 			{
-				clif_displaymessage(fd, msg_txt(201)); // You don't have this quest skill.
+				clif_displaymessage(fd, msg_txt(MSG_YOU_DONT_HAVE_THIS_QUEST_SKILL)); // You don't have this quest skill.
 				return false;
 			}
 		} 
 		else 
 		{
-			clif_displaymessage(fd, msg_txt(197)); // This skill number doesn't exist or isn't a quest skill.
+			clif_displaymessage(fd, msg_txt(MSG_SKILL_NOT_EXIST_OR_NO_QUEST_SKILL)); // This skill number doesn't exist or isn't a quest skill.
 			return false;
 		}
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(198)); // This skill number doesn't exist.
+		clif_displaymessage(fd, msg_txt(MSG_SKILL_NOT_EXIST)); // This skill number doesn't exist.
 		return false;
 	}
 	return true;
@@ -4180,7 +4181,7 @@ bool atcommand_makeegg(int fd, struct map_session_data& sd, const char* command,
 			pet_db[pet_id].EggID, 0, pet_db[pet_id].intimate,
 			100, 0, 1, pet_db[pet_id].jname);
 	} else {
-		clif_displaymessage(fd, msg_txt(180)); // The monter/egg name/id doesn't exist.
+		clif_displaymessage(fd, msg_txt(MSG_MONTER_EGG_NAME_DOESNT_EXIST)); // The monter/egg name/id doesn't exist.
 		return false;
 	}
 
@@ -4304,7 +4305,7 @@ bool atcommand_mapinfo(int fd, struct map_session_data& sd, const char* command,
 
 	if((m_id = map_mapname2mapid(mapname)) < 0)
 	{
-		clif_displaymessage(fd, msg_txt(1)); // Map not found.
+		clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
 		return false;
 	}
 
@@ -4495,15 +4496,15 @@ bool atcommand_mapmove(int fd, struct map_session_data& sd, const char* command,
 	}
 	else if( (m = map_mapname2mapid(mapname)) >= map_num )
 	{
-		clif_displaymessage(fd, msg_txt(1)); // Map not found.
+		clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
 	}
 	else if( maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM() )
 	{
-		clif_displaymessage(fd, msg_txt(247));
+		clif_displaymessage(fd, msg_txt(247)); // FIXME: Not in the enum!
 	}
 	else if( sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM() )
 	{
-		clif_displaymessage(fd, msg_txt(248));
+		clif_displaymessage(fd, msg_txt(248)); // FIXME: Not in the enum!
 	}
 	else
 	{
@@ -4516,13 +4517,13 @@ bool atcommand_mapmove(int fd, struct map_session_data& sd, const char* command,
 		{
 			if( pc_setpos(sd, mapname, x, y, 3) )
 			{
-				clif_displaymessage(fd, msg_txt(0)); // Warped.
+				clif_displaymessage(fd, msg_txt(MSG_WARPED)); // Warped.
 				return true;
 			}
 		}
 		else
 		{
-			clif_displaymessage(fd, msg_txt(2)); // Coordinates out of range.
+			clif_displaymessage(fd, msg_txt(MSG_COORD_OUT_OF_RANGE)); // Coordinates out of range.
 		}
 	}
 	return false;
@@ -4565,11 +4566,11 @@ bool atcommand_memo(int fd, struct map_session_data& sd, const char* command, co
 				(maps[sd.block_list::m].flag.nowarpto || maps[sd.block_list::m].flag.nomemo) &&
 				config.any_warp_GM_min_level > sd.isGM() )
 			{
-				clif_displaymessage(fd, msg_txt(253));
+				clif_displaymessage(fd, msg_txt(253)); // FIXME: Not in the enum!
 				return false;
 			}
 			if (sd.status.memo_point[position].mapname[0]) {
-				snprintf(output, sizeof(output), msg_txt(172), position, sd.status.memo_point[position].mapname, sd.status.memo_point[position].x, sd.status.memo_point[position].y); // You replace previous memo position %d - %s (%d,%d).
+				snprintf(output, sizeof(output), msg_txt(MSG_REPLACE_MEMO_D_S), position, sd.status.memo_point[position].mapname, sd.status.memo_point[position].x, sd.status.memo_point[position].y); // You replace previous memo position %d - %s (%d,%d).
 				clif_displaymessage(fd, output);
 			}
 			memcpy(sd.status.memo_point[position].mapname, maps[sd.block_list::m].mapname, 24);
@@ -4577,7 +4578,7 @@ bool atcommand_memo(int fd, struct map_session_data& sd, const char* command, co
 			sd.status.memo_point[position].y = sd.block_list::y;
 			clif_skill_memo(sd, 0);
 			if (pc_checkskill(sd, AL_WARP) <= (position + 1))
-				clif_displaymessage(fd, msg_txt(173)); // Note: you don't have the 'Warp' skill level to use it.
+				clif_displaymessage(fd, msg_txt(MSG_DONT_HAVE_WARP_SKILL)); // Note: you don't have the 'Warp' skill level to use it.
 			ret = true;
 		}
 		else
@@ -4594,7 +4595,7 @@ bool atcommand_memo(int fd, struct map_session_data& sd, const char* command, co
 		if (sd.status.memo_point[i].mapname[0])
 			snprintf(output, sizeof(output), "%d - %s (%d,%d)", i, sd.status.memo_point[i].mapname, sd.status.memo_point[i].x, sd.status.memo_point[i].y);
 		else
-			snprintf(output, sizeof(output), msg_txt(171), i); // %d - void
+			snprintf(output, sizeof(output), msg_txt(MSG_D___VOID), i); // %d - void
 		clif_displaymessage(sd.fd, output);
 	}
 	return ret;
@@ -4628,7 +4629,7 @@ bool atcommand_mobinfo(int fd, struct map_session_data& sd, const char* command,
 		mob_id = mobdb_checkid(atoi(param[0]));
 
 	if (mob_id == 0) {
-		clif_displaymessage(fd, msg_txt(40)); // Invalid monster ID or name.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_MONSTER)); // Invalid monster ID or name.
 		return false;
 	}
 
@@ -4763,7 +4764,7 @@ bool atcommand_monster(int fd, struct map_session_data& sd, const char* command,
 {
 	if( param.size()<2 )
 	{
-		clif_displaymessage(fd, msg_txt(80)); // Give a display name and monster name/id please.
+		clif_displaymessage(fd, msg_txt(MSG_NAME_MONSTER_ID)); // Give a display name and monster name/id please.
 		return false;
 	}
 
@@ -4785,12 +4786,12 @@ bool atcommand_monster(int fd, struct map_session_data& sd, const char* command,
 
 	if (mob_id == 0 || mob_id>2000)
 	{
-		clif_displaymessage(fd, msg_txt(40)); // Invalid monster ID or name.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_MONSTER)); // Invalid monster ID or name.
 		return false;
 	}
 	if (mob_id == MOBID_EMPERIUM)
 	{
-		clif_displaymessage(fd, msg_txt(83)); // Cannot spawn emperium.
+		clif_displaymessage(fd, msg_txt(MSG_CANNOT_SPAWN_EMPERIUM)); // Cannot spawn emperium.
 		return false;
 	}
 
@@ -4828,13 +4829,13 @@ bool atcommand_monster(int fd, struct map_session_data& sd, const char* command,
 
 	if (count != 0)
 		if (number == count)
-			clif_displaymessage(fd, msg_txt(39)); // All monster summoned!
+			clif_displaymessage(fd, msg_txt(MSG_ALL_MONSTER_SUMMONED)); // All monster summoned!
 		else {
-			snprintf(output, sizeof(output), msg_txt(240), count); // %d monster(s) summoned!
+			snprintf(output, sizeof(output), msg_txt(MSG_D_MONSTER_SUMMONED), count); // %d monster(s) summoned!
 			clif_displaymessage(fd, output);
 		}
 	else {
-		clif_displaymessage(fd, msg_txt(40)); // Invalid monster ID or name.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_MONSTER)); // Invalid monster ID or name.
 		return false;
 	}
 
@@ -4848,7 +4849,7 @@ bool atcommand_spawn(int fd, struct map_session_data& sd, const char* command, c
 {
 	if( param.size()<1 )
 	{
-		clif_displaymessage(fd, msg_txt(143)); // Give a monster name/id please.
+		clif_displaymessage(fd, msg_txt(MSG_GIVE_A_MONSTER_NAME)); // Give a monster name/id please.
 		return false;
 	}
 
@@ -4871,12 +4872,12 @@ bool atcommand_spawn(int fd, struct map_session_data& sd, const char* command, c
 
 	if (mob_id == 0 || mob_id>2000)
 	{
-		clif_displaymessage(fd, msg_txt(40)); // Invalid monster ID or name.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_MONSTER)); // Invalid monster ID or name.
 		return false;
 	}
 	if (mob_id == MOBID_EMPERIUM)
 	{
-		clif_displaymessage(fd, msg_txt(83)); // Cannot spawn emperium.
+		clif_displaymessage(fd, msg_txt(MSG_CANNOT_SPAWN_EMPERIUM)); // Cannot spawn emperium.
 		return false;
 	}
 
@@ -4914,16 +4915,16 @@ bool atcommand_spawn(int fd, struct map_session_data& sd, const char* command, c
 	if (count != 0)
 	{
 		if (number == count)
-			clif_displaymessage(fd, msg_txt(39)); // All monster summoned!
+			clif_displaymessage(fd, msg_txt(MSG_ALL_MONSTER_SUMMONED)); // All monster summoned!
 		else
 		{
-			snprintf(output, sizeof(output), msg_txt(240), count); // %d monster(s) summoned!
+			snprintf(output, sizeof(output), msg_txt(MSG_D_MONSTER_SUMMONED), count); // %d monster(s) summoned!
 			clif_displaymessage(fd, output);
 		}
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(40)); // Invalid monster ID or name.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_MONSTER)); // Invalid monster ID or name.
 		return false;
 	}
 	return true;
@@ -4936,7 +4937,7 @@ bool atcommand_monsterbig(int fd, struct map_session_data& sd, const char* comma
 {
 	if( param.size()<1 )
 	{
-		clif_displaymessage(fd, msg_txt(143)); // Give a monster name/id please.
+		clif_displaymessage(fd, msg_txt(MSG_GIVE_A_MONSTER_NAME)); // Give a monster name/id please.
 		return false;
 	}
 
@@ -4958,12 +4959,12 @@ bool atcommand_monsterbig(int fd, struct map_session_data& sd, const char* comma
 
 	if (mob_id == 0 || mob_id>2000)
 	{
-		clif_displaymessage(fd, msg_txt(40)); // Invalid monster ID or name.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_MONSTER)); // Invalid monster ID or name.
 		return false;
 	}
 	if (mob_id == MOBID_EMPERIUM)
 	{
-		clif_displaymessage(fd, msg_txt(83)); // Cannot spawn emperium.
+		clif_displaymessage(fd, msg_txt(MSG_CANNOT_SPAWN_EMPERIUM)); // Cannot spawn emperium.
 		return false;
 	}
 
@@ -4991,9 +4992,9 @@ bool atcommand_monsterbig(int fd, struct map_session_data& sd, const char* comma
 	}
 
 	if (count != 0)
-		clif_displaymessage(fd, msg_txt(39)); // Monster Summoned!!
+		clif_displaymessage(fd, msg_txt(MSG_ALL_MONSTER_SUMMONED)); // Monster Summoned!!
 	else
-		clif_displaymessage(fd, msg_txt(40)); // Invalid Monster ID.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_MONSTER)); // Invalid Monster ID.
 
 	return true;
 }
@@ -5005,7 +5006,7 @@ bool atcommand_monstersmall(int fd, struct map_session_data& sd, const char* com
 {
 	if( param.size()<1 )
 	{
-		clif_displaymessage(fd, msg_txt(143)); // Give a monster name/id please.
+		clif_displaymessage(fd, msg_txt(MSG_GIVE_A_MONSTER_NAME)); // Give a monster name/id please.
 		return false;
 	}
 	uint32 mob_id;
@@ -5026,12 +5027,12 @@ bool atcommand_monstersmall(int fd, struct map_session_data& sd, const char* com
 
 	if (mob_id == 0 || mob_id>2000)
 	{
-		clif_displaymessage(fd, msg_txt(40)); // Invalid monster ID or name.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_MONSTER)); // Invalid monster ID or name.
 		return false;
 	}
 	if (mob_id == MOBID_EMPERIUM)
 	{
-		clif_displaymessage(fd, msg_txt(83)); // Cannot spawn emperium.
+		clif_displaymessage(fd, msg_txt(MSG_CANNOT_SPAWN_EMPERIUM)); // Cannot spawn emperium.
 		return false;
 	}
 
@@ -5059,9 +5060,9 @@ bool atcommand_monstersmall(int fd, struct map_session_data& sd, const char* com
 	}
 
 	if (count != 0)
-		clif_displaymessage(fd, msg_txt(39)); // Monster Summoned!!
+		clif_displaymessage(fd, msg_txt(MSG_ALL_MONSTER_SUMMONED)); // Monster Summoned!!
 	else
-		clif_displaymessage(fd, msg_txt(40)); // Invalid Monster ID.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_MONSTER)); // Invalid Monster ID.
 
 	return true;
 }
@@ -5102,9 +5103,9 @@ bool atcommand_mount_peco(int fd, struct map_session_data& sd, const char* comma
 			else if (sd.status.class_ == 4037) //baby Crusader
 				sd.status.class_ = sd.view_class = 4044;
 			pc_setoption(sd, sd.status.option | 0x0020);
-			clif_displaymessage(fd, msg_txt(102)); // Mounted Peco.
+			clif_displaymessage(fd, msg_txt(MSG_MOUNTED_PECO)); // Mounted Peco.
 		} else {
-			clif_displaymessage(fd, msg_txt(213)); // You can not mount a peco with your job.
+			clif_displaymessage(fd, msg_txt(MSG_YOU_NOT_MOUNT_WITH_JOB)); // You can not mount a peco with your job.
 			return false;
 		}
 	} else {
@@ -5122,7 +5123,7 @@ bool atcommand_mount_peco(int fd, struct map_session_data& sd, const char* comma
 			sd.status.class_ = sd.view_class = 4037;
 
 		pc_setoption(sd, sd.status.option & ~0x0020);
-		clif_displaymessage(fd, msg_txt(214)); // Unmounted Peco.
+		clif_displaymessage(fd, msg_txt(MSG_UNMOUNTED_PECO)); // Unmounted Peco.
 	}
 
 	return true;
@@ -5285,17 +5286,17 @@ bool atcommand_nuke(int fd, struct map_session_data& sd, const char* command, co
 		if (sd.isGM() >= pl_sd->isGM())
 		{	// you can kill only lower or same GM level
 			skill_castend_damage_id(pl_sd, pl_sd, NPC_SELFDESTRUCTION, 99, gettick(), 0);
-			clif_displaymessage(fd, msg_txt(109)); // Player has been nuked!
+			clif_displaymessage(fd, msg_txt(MSG_PLAYER_HAS_BEEN_NUKED)); // Player has been nuked!
 		}
 		else
 		{
-			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW)); // Your GM level don't authorise you to do this action on this player.
 			return false;
 		}
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
+		clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND)); // Character not found.
 		return false;
 	}
 	return true;
@@ -5367,7 +5368,7 @@ bool atcommand_option(int fd, struct map_session_data& sd, const char* command, 
 	}
 	clif_changeoption(sd);
 	status_calc_pc(sd, 0);
-	clif_displaymessage(fd, msg_txt(9)); // Options changed.
+	clif_displaymessage(fd, msg_txt(MSG_OPTIONS_CHANGED)); // Options changed.
 	return true;
 }
 
@@ -5467,7 +5468,7 @@ bool atcommand_partyrecall(int fd, struct map_session_data& sd, const char* comm
 					pc_setpos(*pl_sd, sd.mapname, sd.block_list::x, sd.block_list::y, 2);
 			}
 		}
-		snprintf(output, sizeof(output), msg_txt(95), p->name); // All online characters of the %s party are near you.
+		snprintf(output, sizeof(output), msg_txt(MSG_ALL_ON_CHARS_S_PARTY_NEAR), p->name); // All online characters of the %s party are near you.
 		clif_displaymessage(fd, output);
 		if (count) {
 			snprintf(output, sizeof(output), "Because you are not authorised to warp from some maps, %ld player(s) have not been recalled.", (unsigned long)(count));
@@ -5476,7 +5477,7 @@ bool atcommand_partyrecall(int fd, struct map_session_data& sd, const char* comm
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(96)); // Incorrect name or ID, or no one from the party is online.
+		clif_displaymessage(fd, msg_txt(MSG_NONE_OF_PARTY_ON)); // Incorrect name or ID, or no one from the party is online.
 		return false;
 	}
 	return true;
@@ -5515,23 +5516,23 @@ bool atcommand_petfriendly(int fd, struct map_session_data& sd, const char* comm
 							status_calc_pc(sd, 2);
 					}
 				}
-				clif_displaymessage(fd, msg_txt(182)); // Pet friendly value changed!
+				clif_displaymessage(fd, msg_txt(MSG_PET_FRIENDLY_VALUE_CHANGED)); // Pet friendly value changed!
 			}
 			else
 			{
-				clif_displaymessage(fd, msg_txt(183)); // Pet friendly is already the good value.
+				clif_displaymessage(fd, msg_txt(MSG_PET_FRIENDLY_GOOD)); // Pet friendly is already the good value.
 				return false;
 			}
 		}
 		else
 		{
-			clif_displaymessage(fd, msg_txt(37)); // An invalid number was specified.
+			clif_displaymessage(fd, msg_txt(MSG_INVALID_NUMBER)); // An invalid number was specified.
 			return false;
 		}
 	} 
 	else
 	{
-		clif_displaymessage(fd, msg_txt(184)); // Sorry, but you have no pet.
+		clif_displaymessage(fd, msg_txt(MSG_SORRY_BUT_YOU_HAVE_NO_PET)); // Sorry, but you have no pet.
 		return false;
 	}
 	return true;
@@ -5555,18 +5556,18 @@ bool atcommand_pethungry(int fd, struct map_session_data& sd, const char* comman
 		{
 			sd.pd->pet.hungry = hungry;
 			clif_send_petstatus(sd);
-			clif_displaymessage(fd, msg_txt(185)); // Pet hungry value changed!
+			clif_displaymessage(fd, msg_txt(MSG_PET_HUNGRY_VALUE_CHANGED)); // Pet hungry value changed!
 		}
 		else
 		{
-			clif_displaymessage(fd, msg_txt(186)); // Pet hungry is already the good value.
+			clif_displaymessage(fd, msg_txt(MSG_PET_HUNGRY_GOOD)); // Pet hungry is already the good value.
 			return false;
 		}
 
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(184)); // Sorry, but you have no pet.
+		clif_displaymessage(fd, msg_txt(MSG_SORRY_BUT_YOU_HAVE_NO_PET)); // Sorry, but you have no pet.
 		return false;
 	}
 	return true;
@@ -5584,17 +5585,17 @@ bool atcommand_petrename(int fd, struct map_session_data& sd, const char* comman
 			sd.pd->pet.rename_flag = 0;
 			intif_save_petdata(sd.status.account_id, sd.pd->pet);
 			clif_send_petstatus(sd);
-			clif_displaymessage(sd.fd, msg_txt(187)); // You can now rename your pet.
+			clif_displaymessage(sd.fd, msg_txt(MSG_YOU_CAN_NOW_RENAME_YOUR_PET)); // You can now rename your pet.
 		}
 		else
 		{
-			clif_displaymessage(sd.fd, msg_txt(188)); // You can already rename your pet.
+			clif_displaymessage(sd.fd, msg_txt(MSG_YOU_CAN_ALREADY_RENAME_YOUR_PET)); // You can already rename your pet.
 			return false;
 		}
 	}
 	else 
 	{
-		clif_displaymessage(fd, msg_txt(184)); // Sorry, but you have no pet.
+		clif_displaymessage(fd, msg_txt(MSG_SORRY_BUT_YOU_HAVE_NO_PET)); // Sorry, but you have no pet.
 		return false;
 	}
 	return true;
@@ -5693,9 +5694,9 @@ bool atcommand_produce(int fd, struct map_session_data& sd, const char* command,
 		if (config.error_log)
 			ShowMessage("produce NOT WEAPON [%d]\n", item_id);
 		if (item_id != 0 && itemdb_exists(item_id))
-			snprintf(output, sizeof(output), msg_txt(169), item_id, item_data->name); // This item (%d: '%s') is not an equipment.
+			snprintf(output, sizeof(output), msg_txt(MSG_THIS_ITEM_D_S_IS_NOT_AN_EQUIPMENT), item_id, item_data->name); // This item (%d: '%s') is not an equipment.
 		else
-			snprintf(output, sizeof(output), msg_txt(170)); // This item is not an equipment.
+			snprintf(output, sizeof(output), msg_txt(MSG_THIS_ITEM_IS_NOT_AN_EQUIPMENT)); // This item is not an equipment.
 		clif_displaymessage(fd, output);
 		return false;
 	}
@@ -5712,7 +5713,7 @@ bool atcommand_pvpoff(int fd, struct map_session_data& sd, const char* command, 
 
 
 	if (config.pk_mode) { //disable command if server is in PK mode
-		clif_displaymessage(fd, msg_txt(52)); // This option cannot be used in PK Mode.
+		clif_displaymessage(fd, msg_txt(MSG_NOT_IN_PK)); // This option cannot be used in PK Mode.
 		return false;
 	}
 
@@ -5730,9 +5731,9 @@ bool atcommand_pvpoff(int fd, struct map_session_data& sd, const char* command, 
 				}
 			}
 		}
-		clif_displaymessage(fd, msg_txt(31)); // PvP: Off.
+		clif_displaymessage(fd, msg_txt(MSG_PVP_OFF)); // PvP: Off.
 	} else {
-		clif_displaymessage(fd, msg_txt(160)); // PvP is already Off.
+		clif_displaymessage(fd, msg_txt(MSG_PVP_IS_ALREADY_OFF)); // PvP is already Off.
 		return false;
 	}
 
@@ -5749,7 +5750,7 @@ bool atcommand_pvpon(int fd, struct map_session_data& sd, const char* command, c
 
 
 	if (config.pk_mode) { //disable command if server is in PK mode
-		clif_displaymessage(fd, msg_txt(52)); // This option cannot be used in PK Mode.
+		clif_displaymessage(fd, msg_txt(MSG_NOT_IN_PK)); // This option cannot be used in PK Mode.
 		return false;
 	}
 
@@ -5771,9 +5772,9 @@ bool atcommand_pvpon(int fd, struct map_session_data& sd, const char* command, c
 				}
 			}
 		}
-		clif_displaymessage(fd, msg_txt(32)); // PvP: On.
+		clif_displaymessage(fd, msg_txt(MSG_PVP_ON)); // PvP: On.
 	} else {
-		clif_displaymessage(fd, msg_txt(161)); // PvP is already On.
+		clif_displaymessage(fd, msg_txt(MSG_PVP_IS_ALREADY_ON)); // PvP is already On.
 		return false;
 	}
 
@@ -5798,23 +5799,23 @@ bool atcommand_questskill(int fd, struct map_session_data& sd, const char* comma
 			if (pc_checkskill(sd, skill_id) == 0)
 			{
 				pc_skill(sd, skill_id, 1, 0);
-				clif_displaymessage(fd, msg_txt(70)); // You have learned the skill.
+				clif_displaymessage(fd, msg_txt(MSG_YOU_LEARNED_SKILL)); // You have learned the skill.
 			}
 			else
 			{
-				clif_displaymessage(fd, msg_txt(196)); // You already have this quest skill.
+				clif_displaymessage(fd, msg_txt(MSG_YOU_ALREADY_HAVE_THIS_QUEST_SKILL)); // You already have this quest skill.
 				return false;
 			}
 		}
 		else
 		{
-			clif_displaymessage(fd, msg_txt(197)); // This skill number doesn't exist or isn't a quest skill.
+			clif_displaymessage(fd, msg_txt(MSG_SKILL_NOT_EXIST_OR_NO_QUEST_SKILL)); // This skill number doesn't exist or isn't a quest skill.
 			return false;
 		}
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(198)); // This skill number doesn't exist.
+		clif_displaymessage(fd, msg_txt(MSG_SKILL_NOT_EXIST)); // This skill number doesn't exist.
 		return false;
 	}
 	return true;
@@ -5837,7 +5838,7 @@ void atcommand_raise_sub(struct map_session_data& sd)
 		clif_resurrection(sd, 1);
 		if (config.pc_invincible_time > 0)
 			pc_setinvincibletimer(sd, config.pc_invincible_time);
-		clif_displaymessage(sd.fd, msg_txt(63)); // Mercy has been shown.
+		clif_displaymessage(sd.fd, msg_txt(MSG_MERCY_HAS_BEEN_SHOWN)); // Mercy has been shown.
 	}
 }
 bool atcommand_raise(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
@@ -5849,7 +5850,7 @@ bool atcommand_raise(int fd, struct map_session_data& sd, const char* command, c
 		if(session[i] && (pl_sd=(struct map_session_data *)session[i]->user_session) && pl_sd->state.auth && sd.block_list::m == pl_sd->block_list::m)
 			atcommand_raise_sub(*pl_sd);
 	}
-	clif_displaymessage(fd, msg_txt(64)); // Mercy has been granted.
+	clif_displaymessage(fd, msg_txt(MSG_MERCY_HAS_BEEN_GRANTED)); // Mercy has been granted.
 
 	return true;
 }
@@ -5900,18 +5901,18 @@ bool atcommand_recall(int fd, struct map_session_data& sd, const char* command, 
 				return false;
 			}
 			pc_setpos(*pl_sd, sd.mapname, sd.block_list::x, sd.block_list::y, 2);
-			snprintf(output, sizeof(output), msg_txt(46), pl_sd->status.name); // %s recalled!
+			snprintf(output, sizeof(output), msg_txt(MSG_S_RECALLED), pl_sd->status.name); // %s recalled!
 			clif_displaymessage(fd, output);
 		}
 		else
 		{
-			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW)); // Your GM level don't authorise you to do this action on this player.
 			return false;
 		}
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
+		clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND)); // Character not found.
 		return false;
 	}
 	return true;
@@ -5944,7 +5945,7 @@ bool atcommand_recallall(int fd, struct map_session_data& sd, const char* comman
 				pc_setpos(*pl_sd, sd.mapname, sd.block_list::x, sd.block_list::y, 2);
 		}
 	}
-	clif_displaymessage(fd, msg_txt(92)); // All characters recalled!
+	clif_displaymessage(fd, msg_txt(MSG_ALL_CHARS_RECALLED)); // All characters recalled!
 	if (count)
 	{
 		snprintf(output, sizeof(output), "Because you are not authorised to warp from some maps, %ld player(s) have not been recalled.", (unsigned long)(count));
@@ -6003,12 +6004,12 @@ bool atcommand_refine(int fd, struct map_session_data& sd, const char* command, 
 		}
 	}
 	if (count == 0)
-		clif_displaymessage(fd, msg_txt(166)); // No item has been refined!
+		clif_displaymessage(fd, msg_txt(MSG_NO_ITEM_HAS_BEEN_REFINED)); // No item has been refined!
 	else if (count == 1)
-		clif_displaymessage(fd, msg_txt(167)); // 1 item has been refined!
+		clif_displaymessage(fd, msg_txt(MSG_1_ITEM_HAS_BEEN_REFINED)); // 1 item has been refined!
 	else
 	{
-		snprintf(output, sizeof(output), msg_txt(168), count); // %d items have been refined!
+		snprintf(output, sizeof(output), msg_txt(MSG_D_ITEMS_HAVE_BEEN_REFINED), count); // %d items have been refined!
 		clif_displaymessage(fd, output);
 	}
 	return true;
@@ -6043,7 +6044,7 @@ bool atcommand_refreshonline(int fd, struct map_session_data& sd, const char* co
 bool atcommand_reloadatcommand(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
 {
 	atcommand_config_read(ATCOMMAND_CONF_FILENAME);
-	clif_displaymessage(fd, msg_txt(254));
+	clif_displaymessage(fd, msg_txt(254)); // FIXME: Not in the enum!
 	return true;
 }
 
@@ -6054,7 +6055,7 @@ bool atcommand_reloadatcommand(int fd, struct map_session_data& sd, const char* 
 bool atcommand_reloadbattleconf(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
 {
 	config.read(BATTLE_CONF_FILENAME);
-	clif_displaymessage(fd, msg_txt(255));
+	clif_displaymessage(fd, msg_txt(255)); // FIXME: Not in the enum!
 	return true;
 }
 
@@ -6065,7 +6066,7 @@ bool atcommand_reloaditemdb(int fd, struct map_session_data& sd, const char* com
 {
 
 	itemdb_reload();
-	clif_displaymessage(fd, msg_txt(97)); // Item database reloaded.
+	clif_displaymessage(fd, msg_txt(MSG_ITEM_DATABASE_RELOADED)); // Item database reloaded.
 
 	return true;
 }
@@ -6079,7 +6080,7 @@ bool atcommand_reloadmobdb(int fd, struct map_session_data& sd, const char* comm
 	mob_reload();
 	do_final_pet();
 	read_petdb();
-	clif_displaymessage(fd, msg_txt(98)); // Monster database reloaded.
+	clif_displaymessage(fd, msg_txt(MSG_MONSTER_DATABASE_RELOADED)); // Monster database reloaded.
 
 	return true;
 }
@@ -6092,7 +6093,7 @@ bool atcommand_reloadmobdb(int fd, struct map_session_data& sd, const char* comm
 bool atcommand_reloadpcdb(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
 {
 	pc_readdb();
-	clif_displaymessage(fd, msg_txt(257));
+	clif_displaymessage(fd, msg_txt(257)); // FIXME: Not in the enum!
 	return true;
 }
 
@@ -6111,7 +6112,7 @@ bool atcommand_reloadscript(int fd, struct map_session_data& sd, const char* com
 	npc_reload();
 	npc_event_do_oninit();
 
-	clif_displaymessage(fd, msg_txt(128)); // Scripts reloaded.
+	clif_displaymessage(fd, msg_txt(MSG_REFUSE_ALL_WISPS)); // Scripts reloaded.
 
 	return true;
 }
@@ -6123,7 +6124,7 @@ bool atcommand_reloadskilldb(int fd, struct map_session_data& sd, const char* co
 {
 
 	skill_reload();
-	clif_displaymessage(fd, msg_txt(99)); // Skill database reloaded.
+	clif_displaymessage(fd, msg_txt(MSG_SKILL_DATABASE_RELOADED)); // Skill database reloaded.
 
 	return true;
 }
@@ -6137,7 +6138,7 @@ bool atcommand_reloadskilldb(int fd, struct map_session_data& sd, const char* co
 bool atcommand_reloadstatusdb(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
 {
 	status_readdb();
-	clif_displaymessage(fd, msg_txt(256));
+	clif_displaymessage(fd, msg_txt(256)); // FIXME: Not in the enum!
 	return true;
 }
 
@@ -6163,11 +6164,11 @@ bool atcommand_repairall(int fd, struct map_session_data& sd, const char* comman
 	{
 		clif_misceffect(sd, 3);
 		clif_equiplist(sd);
-		clif_displaymessage(fd, msg_txt(107)); // All items have been repaired.
+		clif_displaymessage(fd, msg_txt(MSG_ALL_ITEMS_HAVE_BEEN_REPAIRED)); // All items have been repaired.
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(108)); // No item need to be repaired.
+		clif_displaymessage(fd, msg_txt(MSG_NO_ITEM_NEED_TO_BE_REPAIRED)); // No item need to be repaired.
 		return false;
 	}
 
@@ -6199,12 +6200,12 @@ bool atcommand_revive(int fd, struct map_session_data& sd, const char* command, 
 			clif_updatestatus(*pl_sd, SP_HP);
 			clif_updatestatus(*pl_sd, SP_SP);
 			clif_resurrection(*pl_sd, 1);
-			clif_displaymessage(fd, msg_txt(51)); // Character revived.
+			clif_displaymessage(fd, msg_txt(MSG_CHAR_REVIVED)); // Character revived.
 			return true;
 		}
 	}
 	else
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
+		clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND)); // Character not found.
 
 	return false;
 }
@@ -6236,7 +6237,7 @@ bool atcommand_save(int fd, struct map_session_data& sd, const char* command, co
 		pc_makesavestatus(sd);
 		chrif_save(sd);
 		storage_storage_save(sd);
-		clif_displaymessage(fd, msg_txt(6)); // Character data respawn point saved.
+		clif_displaymessage(fd, msg_txt(MSG_CHAR_RESPAWN_SAVED)); // Character data respawn point saved.
 	}
 	return true;
 }
@@ -6263,12 +6264,12 @@ bool atcommand_send(int fd, struct map_session_data& sd, const char* command, co
 
 	if( clif_packetsend(fd, sd, type, info, sizeof(info)) )
 	{
-		snprintf(output, sizeof(output), msg_txt(258), type, type);
+		snprintf(output, sizeof(output), msg_txt(258), type, type); // FIXME: Not in the enum!
 		clif_displaymessage(fd, output);
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(259));
+		clif_displaymessage(fd, msg_txt(259)); // FIXME: Not in the enum!
 	}
 	return true;
 }
@@ -6293,10 +6294,10 @@ const char* txt_time(char* buffer, size_t sz, unsigned long duration)
 		seconds = duration - (60 * minutes);
 
 		snprintf(buffer, sz, "%ld %s %ld %s %ld %s %ld %s",
-				days, (days==1)?"day":"days",
-				hours, (hours==1)?"hour":"hours",
-				minutes, (minutes==1)?"minute":"minutes",
-				seconds, (seconds==1)?"second":"seconds");
+				days, (days==1)?MSG_DAY:MSG_DAYS,
+				hours, (hours==1)?MSG_HOUR:MSG_HOURS,
+				minutes, (minutes==1)?MSG_MINUTE:MSG_MINUTES,
+				seconds, (seconds==1)?MSG_SECOND:MSG_SECONDS);
 		buffer[sz-1]=0;
 	}
 	return buffer;
@@ -6317,7 +6318,7 @@ bool atcommand_servertime(int fd, struct map_session_data& sd, const char* comma
 	time(&time_server);  // get time in seconds since 1/1/1970
 	datetime = localtime(&time_server); // convert seconds in structure
 	// like sprintf, but only for date/time (Sunday, November 02 2003 15:12:52)
-	strftime(temp, sizeof(temp)-1, msg_txt(230), datetime); // Server time (normal time): %A, %B %d %Y %X.
+	strftime(temp, sizeof(temp)-1, msg_txt(MSG_SERVER_TIME__A_B_D_Y_X), datetime); // Server time (normal time): %A, %B %d %Y %X.
 	clif_displaymessage(fd, temp);
 
 
@@ -6332,43 +6333,43 @@ bool atcommand_servertime(int fd, struct map_session_data& sd, const char* comma
 		if (daynight_flag == 1)
 		{	// we have night
 			timer_data = get_timer(daynight_timer_tid);
-			snprintf(temp, sizeof(temp), msg_txt(233), txt_time(temp2, sizeof(temp2), (timer_data->tick - gettick()) / 1000)); // Game time: The game is actualy in night for %s.
+			snprintf(temp, sizeof(temp), msg_txt(MSG_CURRENTLY_IN_NIGHT_FOR_S), txt_time(temp2, sizeof(temp2), (timer_data->tick - gettick()) / 1000)); // Game time: The game is actualy in night for %s.
 			clif_displaymessage(fd, temp);
-			clif_displaymessage(fd, msg_txt(234)); // Game time: After, the game will be in permanent daylight.
+			clif_displaymessage(fd, msg_txt(MSG_AFTER_PERMANENT_DAYLIGHT)); // Game time: After, the game will be in permanent daylight.
 		}
 		else
-			clif_displaymessage(fd, msg_txt(231)); // Game time: The game is in permanent daylight.
+			clif_displaymessage(fd, msg_txt(MSG_PERMANENT_DAYLIGHT)); // Game time: The game is in permanent daylight.
 	}
 	else if (config.day_duration == 0)
 	{
 		if (daynight_flag == 0)
 		{	// we have day
 			timer_data = get_timer(daynight_timer_tid);
-			snprintf(temp, sizeof(temp), msg_txt(235), txt_time(temp2, sizeof(temp2), (timer_data->tick - gettick()) / 1000)); // Game time: The game is actualy in daylight for %s.
+			snprintf(temp, sizeof(temp), msg_txt(MSG_CURRENTLY_IN_DAYLIGHT_FOR_S), txt_time(temp2, sizeof(temp2), (timer_data->tick - gettick()) / 1000)); // Game time: The game is actualy in daylight for %s.
 			clif_displaymessage(fd, temp);
-			clif_displaymessage(fd, msg_txt(236)); // Game time: After, the game will be in permanent night.
+			clif_displaymessage(fd, msg_txt(MSG_AFTER_PERMANENT_NIGHT)); // Game time: After, the game will be in permanent night.
 		} else
-			clif_displaymessage(fd, msg_txt(232)); // Game time: The game is in permanent night.
+			clif_displaymessage(fd, msg_txt(MSG_PERMANENT_NIGHT)); // Game time: The game is in permanent night.
 	}
 	else
 	{
 		timer_data = get_timer(daynight_timer_tid);
 		if (daynight_flag == 0)
 		{	// we have day
-			snprintf(temp, sizeof(temp), msg_txt(235), txt_time(temp2, sizeof(temp2), (timer_data->tick - gettick()) / 1000)); // Game time: The game is actualy in daylight for %s.
+			snprintf(temp, sizeof(temp), msg_txt(MSG_CURRENTLY_IN_DAYLIGHT_FOR_S), txt_time(temp2, sizeof(temp2), (timer_data->tick - gettick()) / 1000)); // Game time: The game is actualy in daylight for %s.
 			clif_displaymessage(fd, temp);
-			snprintf(temp, sizeof(temp), msg_txt(237), txt_time(temp2, sizeof(temp2), config.night_duration / 1000)); // Game time: After, the game will be in night for %s.
+			snprintf(temp, sizeof(temp), msg_txt(MSG_AFTER_NIGHT_FOR_S), txt_time(temp2, sizeof(temp2), config.night_duration / 1000)); // Game time: After, the game will be in night for %s.
 			clif_displaymessage(fd, temp);
-			snprintf(temp, sizeof(temp), msg_txt(238), txt_time(temp2, sizeof(temp2), (config.day_duration+config.night_duration) / 1000)); // Game time: A day cycle has a normal duration of %s.
+			snprintf(temp, sizeof(temp), msg_txt(MSG_DAY_CYCLE_DURATION_OF_S), txt_time(temp2, sizeof(temp2), (config.day_duration+config.night_duration) / 1000)); // Game time: A day cycle has a normal duration of %s.
 			clif_displaymessage(fd, temp);
 		}
 		else
 		{
-			snprintf(temp, sizeof(temp), msg_txt(233), txt_time(temp2, sizeof(temp2), (timer_data->tick - gettick()) / 1000)); // Game time: The game is actualy in night for %s.
+			snprintf(temp, sizeof(temp), msg_txt(MSG_CURRENTLY_IN_NIGHT_FOR_S), txt_time(temp2, sizeof(temp2), (timer_data->tick - gettick()) / 1000)); // Game time: The game is actualy in night for %s.
 			clif_displaymessage(fd, temp);
-			snprintf(temp, sizeof(temp), msg_txt(239), txt_time(temp2, sizeof(temp2), config.day_duration / 1000)); // Game time: After, the game will be in daylight for %s.
+			snprintf(temp, sizeof(temp), msg_txt(MSG_AFTER_DAYLIGHT_FOR_S), txt_time(temp2, sizeof(temp2), config.day_duration / 1000)); // Game time: After, the game will be in daylight for %s.
 			clif_displaymessage(fd, temp);
-			snprintf(temp, sizeof(temp), msg_txt(238), txt_time(temp2, sizeof(temp2), (config.day_duration+config.night_duration) / 1000)); // Game time: A day cycle has a normal duration of %s.
+			snprintf(temp, sizeof(temp), msg_txt(MSG_DAY_CYCLE_DURATION_OF_S), txt_time(temp2, sizeof(temp2), (config.day_duration+config.night_duration) / 1000)); // Game time: A day cycle has a normal duration of %s.
 			clif_displaymessage(fd, temp);
 		}
 	}
@@ -6534,7 +6535,7 @@ bool atcommand_skillon(int fd, struct map_session_data& sd, const char* command,
 {
 
 	maps[sd.block_list::m].flag.noskill = 0;
-	clif_displaymessage(fd, msg_txt(244));
+	clif_displaymessage(fd, msg_txt(MSG_MAP_SKILLS_ARE_ON));
 	return true;
 }
 
@@ -6547,7 +6548,7 @@ bool atcommand_skilloff(int fd, struct map_session_data& sd, const char* command
 {
 
 	maps[sd.block_list::m].flag.noskill = 1;
-	clif_displaymessage(fd, msg_txt(243));
+	clif_displaymessage(fd, msg_txt(MSG_MAP_SKILLS_ARE_OFF));
 	return true;
 }
 
@@ -6573,14 +6574,14 @@ bool atcommand_skillpoint(int fd, struct map_session_data& sd, const char* comma
 		{
 			sd.status.skill_point = (short)new_skill_point;
 			clif_updatestatus(sd, SP_SKILLPOINT);
-			clif_displaymessage(fd, msg_txt(175)); // Number of skill points changed!
+			clif_displaymessage(fd, msg_txt(MSG_SKILL_POINTS_CHANGED)); // Number of skill points changed!
 			return true;
 		}
 		else
 		{
 			// Impossible to decrease the number/value.
 			// Impossible to increase the number/value.
-			clif_displaymessage(fd, msg_txt((point < 0)?41:149)); 
+			clif_displaymessage(fd, msg_txt((point < 0)?MSG_IMPOSSIBLE_TO_DECREASE:MSG_IMPOSSIBLE_TO_INCREASE)); 
 		}
 	}
 	return false;
@@ -6718,7 +6719,7 @@ bool atcommand_speed(int fd, struct map_session_data& sd, const char* command, c
 	{
 		sd.speed = speed;
 		clif_updatestatus(sd, SP_SPEED);
-		clif_displaymessage(fd, msg_txt(8)); // Speed changed.
+		clif_displaymessage(fd, msg_txt(MSG_SPEED_CHANGED)); // Speed changed.
 	}
 	else
 	{
@@ -6742,18 +6743,18 @@ bool atcommand_spiritball(int fd, struct map_session_data& sd, const char* comma
 	}
 	else if(number < 0 || number > 0x7FFF)
 	{
-		clif_displaymessage(fd, msg_txt(37)); // An invalid number was specified.
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_NUMBER)); // An invalid number was specified.
 	}
 	else if (sd.spiritball == number)
 	{
-		clif_displaymessage(fd, msg_txt(205)); // You already have this number of spiritballs.
+		clif_displaymessage(fd, msg_txt(MSG_ALREADY_HAS_SPIRITBALLS)); // You already have this number of spiritballs.
 	}
 	else
 	{
 		if (number > 500)
 		{	 // WARNING: more than 1000 spiritballs can CRASH your server and/or client!
 			number = 500;
-			clif_displaymessage(fd, msg_txt(204));
+			clif_displaymessage(fd, msg_txt(MSG_TOO_MANY_SPIRITBALLS));
 		}
 		if (sd.spiritball > 0)
 			pc_delspiritball(sd, sd.spiritball, 1);
@@ -6799,14 +6800,14 @@ bool atcommand_status(int fd, struct map_session_data& sd, const char* command, 
 				clif_updatestatus(sd, SP_STR + i);
 				clif_updatestatus(sd, SP_USTR + i);
 				status_calc_pc(sd, 0);
-				clif_displaymessage(fd, msg_txt(42)); // Stat changed.
+				clif_displaymessage(fd, msg_txt(MSG_STAT_CHANGED)); // Stat changed.
 				return true;
 			}
 			else
 			{
 				// Impossible to decrease the number/value.
 				// Impossible to increase the number/value.
-				clif_displaymessage(fd, msg_txt( (value < 0)?41:149));
+				clif_displaymessage(fd, msg_txt((value < 0)?MSG_IMPOSSIBLE_TO_DECREASE:MSG_IMPOSSIBLE_TO_INCREASE));
 				return false;
 			}
 		}
@@ -6850,12 +6851,12 @@ bool atcommand_stat_all(int fd, struct map_session_data& sd, const char* command
 	}
 
 	if (count > 0) // if at least 1 stat modified
-		clif_displaymessage(fd, msg_txt(84)); // All stats changed!
+		clif_displaymessage(fd, msg_txt(MSG_ALL_STATS_CHANGED)); // All stats changed!
 	else {
 		if (value < 0)
-			clif_displaymessage(fd, msg_txt(177)); // Impossible to decrease a stat.
+			clif_displaymessage(fd, msg_txt(MSG_IMPOSSIBLE_TO_DECREASE_A_STAT)); // Impossible to decrease a stat.
 		else
-			clif_displaymessage(fd, msg_txt(178)); // Impossible to increase a stat.
+			clif_displaymessage(fd, msg_txt(MSG_IMPOSSIBLE_TO_INCREASE_A_STAT)); // Impossible to increase a stat.
 		return false;
 	}
 
@@ -6875,7 +6876,7 @@ bool atcommand_printstats(int fd, struct map_session_data& sd, const char* comma
 		pl_sd = atcommand_param2sd(param[0]);
 		if( !pl_sd )
 		{
-			clif_displaymessage(fd, msg_txt(3)); // Character not found.
+			clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND)); // Character not found.
 			return false;
 		}
 		else
@@ -6904,7 +6905,7 @@ bool atcommand_printstats(int fd, struct map_session_data& sd, const char* comma
 				{ NULL, 0 }
 			};
 			snprintf(job_jobname, sizeof(job_jobname), "Job - %s %s", job_name(pl_sd->status.class_), "(level %d)");
-			snprintf(output, sizeof(output), msg_txt(53), pl_sd->status.name); // '%s' stats:
+			snprintf(output, sizeof(output), msg_txt(MSG_S_STATS), pl_sd->status.name); // '%s' stats:
 			clif_displaymessage(fd, output);
 			for (i = 0; output_table[i].format != NULL; ++i)
 			{
@@ -6934,15 +6935,15 @@ bool atcommand_printstats(int fd, struct map_session_data& sd, const char* comma
 		}
 		if (count == 0)
 		{
-			clif_displaymessage(fd, msg_txt(28)); // No player found.
+			clif_displaymessage(fd, msg_txt(MSG_NO_PLAYER_FOUND)); // No player found.
 		}
 		else if (count == 1)
 		{
-			clif_displaymessage(fd, msg_txt(29)); // 1 player found.
+			clif_displaymessage(fd, msg_txt(MSG_ONE_PLAYER_FOUND)); // 1 player found.
 		}
 		else
 		{
-			snprintf(output, sizeof(output), msg_txt(30), count); // %d players found.
+			snprintf(output, sizeof(output), msg_txt(MSG_D_PLAYERS_FOUND), count); // %d players found.
 			clif_displaymessage(fd, output);
 		}
 	}
@@ -6973,14 +6974,14 @@ bool atcommand_statuspoint(int fd, struct map_session_data& sd, const char* comm
 		{
 			sd.status.status_point = (short)new_status_point;
 			clif_updatestatus(sd, SP_STATUSPOINT);
-			clif_displaymessage(fd, msg_txt(174)); // Number of status points changed!
+			clif_displaymessage(fd, msg_txt(MSG_STATUS_POINTS_CHANGED)); // Number of status points changed!
 			return true;
 		}
 		else
 		{
 			// Impossible to decrease the number/value.
 			// Impossible to increase the number/value.
-			clif_displaymessage(fd, msg_txt((point < 0)?41:149)); 
+			clif_displaymessage(fd, msg_txt((point < 0)?MSG_IMPOSSIBLE_TO_DECREASE:MSG_IMPOSSIBLE_TO_INCREASE)); 
 		}
 	}
 	return false;
@@ -6995,7 +6996,7 @@ bool atcommand_storage(int fd, struct map_session_data& sd, const char* command,
 	if( sd.state.storage_flag == 1 ||
 		((stor = account2storage2(sd.status.account_id)) != NULL && stor->storage_status == 1) )
 	{
-		clif_displaymessage(fd, msg_txt(250));
+		clif_displaymessage(fd, msg_txt(250)); // FIXME: Not in the enum!
 		return false;
 	}
 	storage_storageopen(sd);
@@ -7133,7 +7134,7 @@ bool atcommand_uptime(int fd, struct map_session_data& sd, const char* command, 
 	unsigned long days, hours, minutes,seconds;
 
 	uptime::getvalues(days, hours, minutes,seconds);
-	snprintf(output, sizeof(output), msg_txt(245), days, hours, minutes, seconds);
+	snprintf(output, sizeof(output), msg_txt(MSG_SERVER_UPTIME), days, hours, minutes, seconds);
 	clif_displaymessage(fd,output);
 
 	return true;
@@ -7285,11 +7286,11 @@ bool atcommand_who(int fd, struct map_session_data& sd, const char* command, con
 	}
 
 	if (count == 0)
-		clif_displaymessage(fd, msg_txt(28)); // No player found.
+		clif_displaymessage(fd, msg_txt(MSG_NO_PLAYER_FOUND)); // No player found.
 	else if (count == 1)
-		clif_displaymessage(fd, msg_txt(29)); // 1 player found.
+		clif_displaymessage(fd, msg_txt(MSG_ONE_PLAYER_FOUND)); // 1 player found.
 	else {
-		snprintf(output, sizeof(output), msg_txt(30), count); // %d players found.
+		snprintf(output, sizeof(output), msg_txt(MSG_D_PLAYERS_FOUND), count); // %d players found.
 		clif_displaymessage(fd, output);
 	}
 
@@ -7330,11 +7331,11 @@ bool atcommand_who2(int fd, struct map_session_data& sd, const char* command, co
 		}
 	}
 	if (count == 0)
-		clif_displaymessage(fd, msg_txt(28)); // No player found.
+		clif_displaymessage(fd, msg_txt(MSG_NO_PLAYER_FOUND)); // No player found.
 	else if (count == 1)
-		clif_displaymessage(fd, msg_txt(29)); // 1 player found.
+		clif_displaymessage(fd, msg_txt(MSG_ONE_PLAYER_FOUND)); // 1 player found.
 	else {
-		snprintf(output, sizeof(output), msg_txt(30), count); // %d players found.
+		snprintf(output, sizeof(output), msg_txt(MSG_D_PLAYERS_FOUND), count); // %d players found.
 		clif_displaymessage(fd, output);
 	}
 
@@ -7389,11 +7390,11 @@ bool atcommand_who3(int fd, struct map_session_data& sd, const char* command, co
 	}
 
 	if (count == 0)
-		clif_displaymessage(fd, msg_txt(28)); // No player found.
+		clif_displaymessage(fd, msg_txt(MSG_NO_PLAYER_FOUND)); // No player found.
 	else if (count == 1)
-		clif_displaymessage(fd, msg_txt(29)); // 1 player found.
+		clif_displaymessage(fd, msg_txt(MSG_ONE_PLAYER_FOUND)); // 1 player found.
 	else {
-		snprintf(output, sizeof(output), msg_txt(30), count); // %d players found.
+		snprintf(output, sizeof(output), msg_txt(MSG_D_PLAYERS_FOUND), count); // %d players found.
 		clif_displaymessage(fd, output);
 	}
 
@@ -7433,11 +7434,11 @@ bool atcommand_whomap(int fd, struct map_session_data& sd, const char* command, 
 	}
 
 	if (count == 0)
-		snprintf(output, sizeof(output), msg_txt(54), maps[map_id].mapname); // No player found in map '%s'.
+		snprintf(output, sizeof(output), msg_txt(MSG_NO_PLAYER_IN_MAP_S), maps[map_id].mapname); // No player found in map '%s'.
 	else if (count == 1)
-		snprintf(output, sizeof(output), msg_txt(55), maps[map_id].mapname); // 1 player found in map '%s'.
+		snprintf(output, sizeof(output), msg_txt(MSG_ONE_PLAYER_IN_MAP_S), maps[map_id].mapname); // 1 player found in map '%s'.
 	else {
-		snprintf(output, sizeof(output), msg_txt(56), count, maps[map_id].mapname); // %d players found in map '%s'.
+		snprintf(output, sizeof(output), msg_txt(MSG_D_PLAYERS_IN_MAP_S), count, maps[map_id].mapname); // %d players found in map '%s'.
 	}
 	clif_displaymessage(fd, output);
 
@@ -7477,11 +7478,11 @@ bool atcommand_whomap2(int fd, struct map_session_data& sd, const char* command,
 	}
 
 	if (count == 0)
-		snprintf(output, sizeof(output), msg_txt(54), maps[map_id].mapname); // No player found in map '%s'.
+		snprintf(output, sizeof(output), msg_txt(MSG_NO_PLAYER_IN_MAP_S), maps[map_id].mapname); // No player found in map '%s'.
 	else if (count == 1)
-		snprintf(output, sizeof(output), msg_txt(55), maps[map_id].mapname); // 1 player found in map '%s'.
+		snprintf(output, sizeof(output), msg_txt(MSG_ONE_PLAYER_IN_MAP_S), maps[map_id].mapname); // 1 player found in map '%s'.
 	else {
-		snprintf(output, sizeof(output), msg_txt(56), count, maps[map_id].mapname); // %d players found in map '%s'.
+		snprintf(output, sizeof(output), msg_txt(MSG_D_PLAYERS_IN_MAP_S), count, maps[map_id].mapname); // %d players found in map '%s'.
 	}
 	clif_displaymessage(fd, output);
 
@@ -7535,11 +7536,11 @@ bool atcommand_whomap3(int fd, struct map_session_data& sd, const char* command,
 	}
 
 	if (count == 0)
-		snprintf(output, sizeof(output), msg_txt(54), maps[map_id].mapname); // No player found in map '%s'.
+		snprintf(output, sizeof(output), msg_txt(MSG_NO_PLAYER_IN_MAP_S), maps[map_id].mapname); // No player found in map '%s'.
 	else if (count == 1)
-		snprintf(output, sizeof(output), msg_txt(55), maps[map_id].mapname); // 1 player found in map '%s'.
+		snprintf(output, sizeof(output), msg_txt(MSG_ONE_PLAYER_IN_MAP_S), maps[map_id].mapname); // 1 player found in map '%s'.
 	else {
-		snprintf(output, sizeof(output), msg_txt(56), count, maps[map_id].mapname); // %d players found in map '%s'.
+		snprintf(output, sizeof(output), msg_txt(MSG_D_PLAYERS_IN_MAP_S), count, maps[map_id].mapname); // %d players found in map '%s'.
 	}
 	clif_displaymessage(fd, output);
 
@@ -7597,11 +7598,11 @@ bool atcommand_whogm(int fd, struct map_session_data& sd, const char* command, c
 	}
 
 	if (count == 0)
-		clif_displaymessage(fd, msg_txt(150)); // No GM found.
+		clif_displaymessage(fd, msg_txt(MSG_NO_GM_FOUND)); // No GM found.
 	else if (count == 1)
-		clif_displaymessage(fd, msg_txt(151)); // 1 GM found.
+		clif_displaymessage(fd, msg_txt(MSG_1_GM_FOUND)); // 1 GM found.
 	else {
-		snprintf(output, sizeof(output), msg_txt(152), count); // %d GMs found.
+		snprintf(output, sizeof(output), msg_txt(MSG_D_GMS_FOUND), count); // %d GMs found.
 		clif_displaymessage(fd, output);
 	}
 
@@ -7651,12 +7652,12 @@ bool atcommand_whozeny(int fd, struct map_session_data& sd, const char* command,
 		clif_displaymessage(fd, output);
 	}
 	if (count == 0)
-		clif_displaymessage(fd, msg_txt(28)); // No player found.
+		clif_displaymessage(fd, msg_txt(MSG_NO_PLAYER_FOUND)); // No player found.
 	else if (count == 1)
-		clif_displaymessage(fd, msg_txt(29)); // 1 player found.
+		clif_displaymessage(fd, msg_txt(MSG_ONE_PLAYER_FOUND)); // 1 player found.
 	else
 	{
-		snprintf(output, sizeof(output), msg_txt(30), count); // %d players found.
+		snprintf(output, sizeof(output), msg_txt(MSG_D_PLAYERS_FOUND), count); // %d players found.
 		clif_displaymessage(fd, output);
 	}
 	return true;
@@ -7687,14 +7688,14 @@ bool atcommand_zeny(int fd, struct map_session_data& sd, const char* command, co
 		{
 			sd.status.zeny = new_zeny;
 			clif_updatestatus(sd, SP_ZENY);
-			clif_displaymessage(fd, msg_txt(176)); // Number of zenys changed!
+			clif_displaymessage(fd, msg_txt(MSG_ZENYS_CHANGED)); // Number of zenys changed!
 			return true;
 		}
 		else
 		{
 			// Impossible to decrease the number/value.
 			// Impossible to increase the number/value.
-			clif_displaymessage(fd, msg_txt( (zeny<0)?41:149));
+			clif_displaymessage(fd, msg_txt( (zeny<0)?MSG_IMPOSSIBLE_TO_DECREASE:MSG_IMPOSSIBLE_TO_INCREASE));
 		}
 	}
 	return false;

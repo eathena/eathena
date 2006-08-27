@@ -1,4 +1,6 @@
-// $Id: skill.h,v 1.5 2004/12/23 7:43:16 PM Celestia $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #ifndef _SKILL_H_
 #define _SKILL_H_
 

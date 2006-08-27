@@ -1,4 +1,6 @@
-// $Id: mob.h,v 1.4 2004/09/25 05:32:18 MouseJstr Exp $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #ifndef _MOB_H_
 #define _MOB_H_
 

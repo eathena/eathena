@@ -1,4 +1,6 @@
-// $Id: char.c,v 1.3 2004/09/13 16:52:16 Yor Exp $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 // original : char2.c 2003/03/14 11:58:35 Rev.1.5
 
 #include "core.h"

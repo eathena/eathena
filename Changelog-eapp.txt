@@ -1,4 +1,7 @@
 Date	Added
+08/27
+	* Added the same GPL licence notice trunk has in every file [DracoRPG]
+	* Replaced every msg_txt(x) with the matching MSG_ constant [DracoRPG]
 08/23
 	* fixed mysql connection bug
 	* added overflow protection to config reading

@@ -1,3 +1,6 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 
 #ifndef	_PLUGIN_H_
 #define _PLUGIN_H_

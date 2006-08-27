@@ -1,4 +1,5 @@
-// $Id: pc.c 101 2004-12-13 7:23:07 PM Celestia $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 #include "socket.h" // [Valaris]
 #include "timer.h"
 #include "db.h"
@@ -1202,8 +1203,9 @@ int pc_authok(uint32 charid, uint32 login_id2, time_t connect_until_time, unsign
 	sd->add_nickdb();
 	map_add_namedb(sd->status.char_id, sd->status.name);
 
-	//スパノビ用死にカウンタ?のスクリプト??からの?み出しとsdへのセット
+	// init sd members from script variables
 	sd->die_counter = pc_readglobalreg(*sd,"PC_DIE_COUNTER");
+	sd->mission_target = pc_readglobalreg(*sd,"PC_MISSION_TARGET");
 	if ((i = pc_checkskill(*sd,RG_PLAGIARISM)) > 0) {
 		sd->cloneskill_id = pc_readglobalreg(*sd,"CLONE_SKILL");
 		if (sd->cloneskill_id > 0) {
@@ -1217,12 +1219,9 @@ int pc_authok(uint32 charid, uint32 login_id2, time_t connect_until_time, unsign
 		}
 	}
 
-	// init sd mmbers from script variables
-	sd->mission_target = pc_readglobalreg(*sd,"PC_MISSION_TARGET");
-
 	if(daynight_flag && !maps[sd->block_list::m].flag.indoors)
 	{
-		const char *str = msg_txt(500); // Actually, it's the night...
+		const char *str = msg_txt(MSG_CURRENTLY_ITS_THE_NIGHT); // Currently, it's the night...
 		clif_wis_message(sd->fd, wisp_server_name, str, strlen(str)+1);
 		clif_seteffect(*sd, sd->block_list::id, 474 + config.night_darkness_level);
 	}
@@ -1236,7 +1235,7 @@ int pc_authok(uint32 charid, uint32 login_id2, time_t connect_until_time, unsign
 		clif_displaymessage(sd->fd, buf);
 	}
 
-	// Message of the Dayの送信
+	// Message of the day
 	{
 		char buf[256];
 		size_t sl;
@@ -1270,7 +1269,7 @@ int pc_authok(uint32 charid, uint32 login_id2, time_t connect_until_time, unsign
 	{	// don't display if it's unlimited
 		char tmpstr[1024];
 		// strftime counts the trailing EOS
-		size_t sz = strftime(tmpstr, sizeof(tmpstr) - 1, msg_txt(501), localtime(&connect_until_time)); // "Your account time limit is: %d-%m-%Y %H:%M:%S."
+		size_t sz = strftime(tmpstr, sizeof(tmpstr) - 1, msg_txt(MSG_ACCOUNT_TIME_LIMIT_IS_DMY_HMS), localtime(&connect_until_time)); // "Your account time limit is: %d-%m-%Y %H:%M:%S."
 		clif_wis_message(sd->fd, wisp_server_name, tmpstr, sz);
 	}
 
@@ -2846,7 +2845,7 @@ int pc_dropitem(struct map_session_data &sd,unsigned short inx, size_t amount)
 	if( !itemdb_isdropable(sd.status.inventory[inx].nameid, sd.isGM()) )
 	{	//The client does not likes being silently ignored, so we send it a del of 0 qty
 		clif_delitem(sd,inx,0);
-		clif_displaymessage (sd.fd, msg_txt(263));
+		clif_displaymessage (sd.fd, msg_txt(263)); // FIXME: Not in the enum!
 		return 1;
 	}
 
@@ -3029,7 +3028,7 @@ int pc_cart_additem(struct map_session_data &sd, struct item &item_data, size_t 
 
 	if(!itemdb_cancartstore(item_data.nameid, sd.isGM()))
 	{	//Check item trade restrictions	[Skotlex]
-		clif_displaymessage (sd.fd, msg_txt(264));
+		clif_displaymessage (sd.fd, msg_txt(264)); // FIXME: Not in the enum!
 		return 1;
 	}
 
@@ -6693,14 +6692,14 @@ bool pc_adoption(struct map_session_data &sd1,struct map_session_data &sd2, stru
 	{	//Success, and give Junior the Baby skills. [Skotlex]
 		pc_skill(sd3,WE_BABY,1,0);
 		pc_skill(sd3,WE_CALLPARENT,1,0);
-		clif_displaymessage(sd3.fd, msg_txt(12)); // Your job has been changed.
+		clif_displaymessage(sd3.fd, msg_txt(MSG_YOUR_JOB_CHANGED)); // Your job has been changed.
 		//We should also grant the parent skills to the parents [Skotlex]
 		pc_skill(sd1,WE_CALLBABY,1,0);
 		pc_skill(sd2,WE_CALLBABY,1,0);
 	}
 	else
 	{
-		clif_displaymessage(sd3.fd, msg_txt(155)); // Impossible to change your job.
+		clif_displaymessage(sd3.fd, msg_txt(MSG_IMPOSSIBLE_TO_CHANGE_YOUR_JOB)); // Impossible to change your job.
 		return false;
 	}
 
@@ -7255,7 +7254,6 @@ int pc_autosave(int tid, unsigned long tick, int id, basics::numptr data)
 
 	return 0;
 }
-
 
 void pc_setstand(struct map_session_data &sd)
 {

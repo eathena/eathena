@@ -1,4 +1,6 @@
-// $Id: chrif.h,v 1.3 2004/09/25 11:39:17 MouseJstr Exp $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #ifndef _CHRIF_H_
 #define _CHRIF_H_
 

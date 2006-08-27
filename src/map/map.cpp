@@ -1,4 +1,5 @@
-// $Id: map.c,v 1.6 2004/09/25 17:37:01 MouseJstr Exp $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 
 #include "core.h"
 #include "timer.h"

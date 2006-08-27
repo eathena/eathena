@@ -1,3 +1,5 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 
 // ステータス計算、状態異常処理
 #include "pc.h"

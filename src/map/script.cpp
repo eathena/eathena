@@ -1,4 +1,5 @@
-// $Id: script.c 148 2004-09-30 14:05:37Z MouseJstr $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 //#define DEBUG_FUNCIN
 //#define DEBUG_DISP
 //#define DEBUG_RUN

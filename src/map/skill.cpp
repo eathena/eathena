@@ -1,4 +1,5 @@
-// $Id: skill.c,v 1.8 2004/02/27 5:34:51 PM Celestia $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 /* ƒXƒLƒ‹?ŒW */
 
 #include "timer.h"

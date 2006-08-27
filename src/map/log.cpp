@@ -1,3 +1,5 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 // Logging functions by Azndragon & Codemaster
 #include "nullpo.h"
 #include "itemdb.h"

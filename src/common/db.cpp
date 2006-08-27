@@ -1,4 +1,6 @@
-// $Id: db.c,v 1.2 2004/09/23 14:43:06 MouseJstr Exp $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 
 
 

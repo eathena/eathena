@@ -1,4 +1,6 @@
-// $Id: clif.h 1952 2004-10-23 14:05:01Z Yor $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #ifndef _CLIF_H_
 #define _CLIF_H_
 

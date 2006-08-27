@@ -1,4 +1,5 @@
-// $Id: clif.c 2200 2004-11-07 11:49:58Z Yor $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 
 #define DUMP_UNKNOWN_PACKET
 //#define	DUMP_ALL_PACKETS
@@ -352,7 +353,7 @@ void clif_ban_player(const map_session_data &sd, uint32 banoption, const char* r
 		chrif_char_ask_name(-1, sd.status.name, 1, 0, 0, 0, 0, 0, 0); // type: 1 - block
 		session_Remove(sd.fd); // forced to disconnect because of the hack
 		// message about the ban
-		snprintf(message, sizeof(message),msg_txt(540), config.ban_spoof_namer); //  This player has been definitivly blocked.
+		snprintf(message, sizeof(message),msg_txt(MSG_GUARDIAN_ANGEL), config.ban_spoof_namer); //  This player has been definitivly blocked.
 	}
 	else
 	{	// positive value -> gives minutes of ban time
@@ -9743,16 +9744,16 @@ int clif_parse_GlobalMessage(int fd, struct map_session_data &sd)
 		int next = pc_nextbaseexp(sd) > 0 ? pc_nextbaseexp(sd) : sd.status.base_exp;
 		if (next > 0 && (sd.status.base_exp * 100 / next) % 10 == 0)
 		{
-			if (sd.state.snovice_flag == 0 && strstr(message, msg_txt(504)))
+			if (sd.state.snovice_flag == 0 && strstr(message, msg_txt(504))) // FIXME: Magic sentences not in the enum!
 				sd.state.snovice_flag = 1;
 			else if (sd.state.snovice_flag == 1)
 			{
 				char output[512];
-				snprintf(output, sizeof(output), msg_txt(505), sd.status.name);
+				snprintf(output, sizeof(output), msg_txt(505), sd.status.name); // FIXME: Magic sentences not in the enum!
 				if( strstr(message, output) )
 					sd.state.snovice_flag = 2;
 			}
-			else if (sd.state.snovice_flag == 2 && strstr(message, msg_txt(506)))
+			else if (sd.state.snovice_flag == 2 && strstr(message, msg_txt(506))) // FIXME: Magic sentences not in the enum!
 			{
 				sd.state.snovice_flag = 3;
 			}
@@ -12144,7 +12145,7 @@ int clif_parse_FriendsListAdd(int fd, struct map_session_data &sd)
 
 	if(f_sd == NULL)
 	{	// Friend doesn't exist (no player with this name)
-		clif_displaymessage(fd, msg_txt(3));
+		clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND));
 	}
 	else
 	{

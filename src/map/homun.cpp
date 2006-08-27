@@ -1,3 +1,5 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 /* homun.c
 	関数名：homun_*		*hom*
 	ホムンクルス ID 6001-6016	※2006/03/14現在

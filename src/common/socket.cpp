@@ -1,3 +1,6 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 // original : core.c 2003/02/26 18:03:12 Rev 1.7
 
 

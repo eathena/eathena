@@ -1,4 +1,6 @@
-// $Id: int_pet.h,v 1.1.1.1 2004/09/10 17:26:51 MagicalTux Exp $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #ifndef _INT_PET_H_
 #define _INT_PET_H_
 

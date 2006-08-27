@@ -1,4 +1,6 @@
-// $Id: mmo.h,v 1.3 2004/09/25 20:12:25 PoW Exp $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 // Original : mmo.h 2003/03/14 12:07:02 Rev.1.7
 
 #ifndef	_MMO_H_

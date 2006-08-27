@@ -1,4 +1,5 @@
-// $Id: storage.c,v 1.3 2004/09/25 02:05:22 MouseJstr Exp $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 #include "nullpo.h"
 #include "showmsg.h"
 #include "utils.h"
@@ -129,7 +130,7 @@ int storage_storageopen(struct map_session_data &sd)
 
 	if(sd.isGM() && sd.isGM() < config.gm_can_drop_lv)
 	{
-		clif_displaymessage(sd.fd, msg_txt(246));
+		clif_displaymessage(sd.fd, msg_txt(246)); // FIXME: Not in the enum!
 		return 1;
 	}
 	stor = (pc_storage *)numdb_search(storage_db,sd.status.account_id);
@@ -169,7 +170,7 @@ int storage_additem(struct map_session_data &sd, struct pc_storage &stor, struct
 
 	if( !itemdb_canstore(item_data.nameid, sd.isGM()) )
 	{	//Check if item is storable. [Skotlex]
-		clif_displaymessage (sd.fd, msg_txt(264));
+		clif_displaymessage (sd.fd, msg_txt(264)); // FIXME: Not in the enum!
 		return 1;
 	}
 	
@@ -457,7 +458,7 @@ int guild_storage_additem(struct map_session_data &sd,struct guild_storage &stor
 
 	if( !itemdb_canguildstore(item_data.nameid, sd.isGM()) )
 	{	//Check if item is storable. [Skotlex]
-		clif_displaymessage (sd.fd, msg_txt(264));
+		clif_displaymessage (sd.fd, msg_txt(264)); // FIXME: Not in the enum!
 		return 1;
 	}
 

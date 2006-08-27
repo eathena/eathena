@@ -1,3 +1,5 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 
 #include "clif.h"
 #include "itemdb.h"
@@ -43,7 +45,7 @@ void trade_traderequest(struct map_session_data &sd, uint32 target_id)
 			(level > 0 && level  < config.gm_can_drop_lv) ||
 			(level2> 0 && level2 < config.gm_can_drop_lv) )
 		{
-			clif_displaymessage(sd.fd, msg_txt(246));
+			clif_displaymessage(sd.fd, msg_txt(246)); // FIXME: Not in the enum!
 			trade_tradecancel(sd); // GM is not allowed to trade		
 		}
 		else  if ( !level && 
@@ -132,11 +134,10 @@ int impossible_trade_check(struct map_session_data &sd)
 			index = sd.deal_item_index[i] - 2;
 			if( index>=MAX_INVENTORY || inventory[index].amount < sd.deal_item_amount[i] )
 			{	// wrong index or more than the player have -> hack
-				snprintf(message_to_gm, sizeof(message_to_gm),msg_txt(538), sd.status.name, sd.status.account_id); // Hack on trade: character '%s' (account: %d) try to trade more items that he has.
+				snprintf(message_to_gm, sizeof(message_to_gm),msg_txt(538), sd.status.name, sd.status.account_id); // Hack on trade: character '%s' (account: %d) try to trade more items that he has. // FIXME: Not in the enum!
 				intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message_to_gm);
-				snprintf(message_to_gm, sizeof(message_to_gm),msg_txt(539), sd.status.inventory[index].amount, sd.status.inventory[index].nameid, sd.status.inventory[index].amount - inventory[index].amount); // This player has %d of a kind of item (id: %d), and try to trade %d of them.
+				snprintf(message_to_gm, sizeof(message_to_gm),msg_txt(539), sd.status.inventory[index].amount, sd.status.inventory[index].nameid, sd.status.inventory[index].amount - inventory[index].amount); // This player has %d of a kind of item (id: %d), and try to trade %d of them. // FIXME: Not in the enum!
 				intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message_to_gm);
-
 				clif_ban_player(sd, config.ban_hack_trade);
 				return 1;
 			}
@@ -189,7 +190,7 @@ void trade_tradeadditem(struct map_session_data &sd, unsigned short index, uint3
 					trade_weight += sd.inventory_data[index-2]->weight * amount;
 					if( !itemdb_isdropable(sd.inventory_data[index-2]->nameid,level) && pc_get_partner(sd) != target_sd )
 					{
-						clif_displaymessage (sd.fd, msg_txt(260));
+						clif_displaymessage (sd.fd, msg_txt(260)); // FIXME: Not in the enum!
 						amount = 0;
 					}
 					else if (target_sd->weight + trade_weight > target_sd->max_weight)

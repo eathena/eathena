@@ -1,4 +1,6 @@
-// $Id: vending.h,v 1.2 2004/09/25 05:32:19 MouseJstr Exp $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #ifndef	_VENDING_H_
 #define	_VENDING_H_
 

@@ -1,4 +1,5 @@
-// $Id: vending.c,v 1.2 2004/09/25 05:32:19 MouseJstr Exp $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 
 #include "socket.h"
 #include "showmsg.h"
@@ -139,7 +140,7 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
 		if(config.buyer_name)
 		{
 			char temp[256];
-			snprintf(temp, sizeof(temp),msg_txt(265), sd.status.name);
+			snprintf(temp, sizeof(temp),msg_txt(265), sd.status.name); // FIXME: Not in the enum!
 			clif_disp_onlyself(*vsd,temp);
 		}
 		//log added by Lupus

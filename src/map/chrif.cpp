@@ -1,4 +1,5 @@
-// $Id: chrif.c,v 1.6 2004/09/25 11:39:17 MouseJstr Exp $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 #include "socket.h"
 #include "timer.h"
 #include "nullpo.h"
@@ -1586,12 +1587,12 @@ int chrif_parse_mail_check(int fd)
 			}
 			else if(unread>0)
 			{
-				snprintf(message, sizeof(message), msg_txt(514), unread);
+				snprintf(message, sizeof(message), msg_txt(MSG_YOU_HAVE_D_NEW_MESSAGES), unread);
 				clif_disp_onlyself(*sd, message);
 			}
 			else
 			{
-				clif_disp_onlyself(*sd, msg_txt(516));
+				clif_disp_onlyself(*sd, msg_txt(MSG_YOU_HAVE_NO_NEW_MESSAGES));
 			}
 		}
 	}
@@ -1705,12 +1706,12 @@ bool chrif_mail_send(struct map_session_data &sd, const char *target, const char
 	if(sd.isGM() < 80 && DIFF_TICK(gettick(), sd.mail_tick) < 10*60*1000)
 	{
 		//clif_displaymessage(sd.fd,"You must wait 10 minutes before sending another message");
-		clif_disp_onlyself(sd,msg_txt(522));
+		clif_disp_onlyself(sd,msg_txt(MSG_10_MIN_BEFORE_SENDING));
 	}
 	else if( (sd.isGM() < 80 && 0==strcmp(target,"*")) || (0==strcmp(target,sd.status.name)) )
 	{
 		//clif_displaymessage(sd.fd, "Access Denied.");
-		clif_disp_onlyself(sd, msg_txt(523));
+		clif_disp_onlyself(sd, msg_txt(MSG_ACCESS_DENIED));
 	}
 	else if( session_isActive(char_fd) )
 	{

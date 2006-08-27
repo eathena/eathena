@@ -1,4 +1,6 @@
-// $Id: version.h,v 1.2 2004/09/22 09:49:06 PoW Exp $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #ifndef _VERSION_H_
 #define _VERSION_H_
 

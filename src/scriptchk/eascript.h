@@ -1,3 +1,6 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #define PT_EOF              0 /* (EOF) */
 #define PT_ERROR            1 /* (Error) */
 #define PT_WHITESPACE       2 /* (Whitespace) */
