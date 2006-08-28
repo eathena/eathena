@@ -475,13 +475,20 @@ enum {
 #define OPTION_WEDDING 0x00001000
 #define OPTION_RUWACH 0x00002000
 #define OPTION_CHASEWALK 0x00004000
-#define OPTION_XMAS 0x00008000
-//Note that clientside Flying is 0x8000, the SAME as Xmas!!
-#define OPTION_FLYING 0x0020000
+//Note that clientside Flying and Xmas are 0x8000!!
+#define OPTION_XMAS 0x00020000
+#define OPTION_FLYING 0x0008000
 //TODO: Get these Missing options...
 #define OPTION_SIGHTTRASHER 0x00010000
 
 #define OPTION_CART (OPTION_CART1|OPTION_CART2|OPTION_CART3|OPTION_CART4|OPTION_CART5)
+
+//Defines for the manner system [Skotlex]
+#define MANNER_NOCHAT 0x01
+#define MANNER_NOSKILL 0x02
+#define MANNER_NOCOMMAND 0x04
+#define MANNER_NOITEM 0x08
+#define MANNER_NOROOM 0x10
 
 //Define flags for the status_calc_bl function. [Skotlex]
 #define SCB_NONE	0x00000000

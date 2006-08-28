@@ -333,7 +333,6 @@ extern struct Battle_Config {
 	unsigned short hack_info_GM_level; // added by [Yor]
 	unsigned short any_warp_GM_min_level; // added by [Yor]
 	unsigned short packet_ver_flag; // added by [Yor]
-	unsigned short muting_players; // added by [PoW]
 	
 	unsigned short min_hair_style; // added by [MouseJstr]
 	unsigned short max_hair_style; // added by [MouseJstr]
@@ -412,6 +411,7 @@ extern struct Battle_Config {
 	unsigned short duel_allow_teleport; // [LuzZza]
 	unsigned short duel_autoleave_when_die; // [LuzZza]
 	unsigned short duel_time_interval; // [LuzZza]
+	unsigned short duel_only_on_same_map; // [Toms]
 	
 	unsigned short skip_teleport_lv1_menu; // possibility to disable (skip) Teleport Lv1 menu, that have only two lines `Random` and `Cancel` [LuzZza]
 

@@ -2945,6 +2945,9 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 	nullpo_retr(1, sd);
 	nullpo_retr(1, item_data);
 
+	if(sd->state.finalsave)
+		return 1;
+
 	if(item_data->nameid <= 0 || amount <= 0)
 		return 1;
 	data = itemdb_search(item_data->nameid);
@@ -2998,6 +3001,9 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 int pc_cart_delitem(struct map_session_data *sd,int n,int amount,int type)
 {
 	nullpo_retr(1, sd);
+
+	if(sd->state.finalsave)
+		return 1;
 
 	if(sd->status.cart[n].nameid==0 ||
 	   sd->status.cart[n].amount<amount)
@@ -3211,9 +3217,9 @@ int pc_steal_coin(struct map_session_data *sd,struct block_list *target)
 		return 0;
 
 	skill = pc_checkskill(sd,RG_STEALCOIN)*10;
-	rate = skill + (sd->status.base_level - md->db->lv)*3 + sd->battle_status.dex*2 + sd->battle_status.luk*2;
+	rate = skill + (sd->status.base_level - md->level)*3 + sd->battle_status.dex*2 + sd->battle_status.luk*2;
 	if(rand()%1000 < rate) {
-		pc_getzeny(sd,md->db->lv*10 + rand()%100);
+		pc_getzeny(sd,md->level*10 + rand()%100);
 		md->state.steal_coin_flag = 1;
 		return 1;
 	}
@@ -3249,7 +3255,6 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 	{	//Misc map-changing settings
 		party_send_dot_remove(sd); //minimap dot fix [Kevin]
 		guild_send_dot_remove(sd);
-		skill_clear_group(&sd->bl, 1|(battle_config.traps_setting&2));
 		if (sd->sc.count)
 		{ //Cancel some map related stuff.
 			if (sd->sc.data[SC_WARM].timer != -1)
@@ -3265,6 +3270,7 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 				sd->sc.data[SC_KNOWLEDGE].timer = add_timer(gettick() + skill_get_time(SG_KNOWLEDGE, sd->sc.data[SC_KNOWLEDGE].val1), status_change_timer, sd->bl.id, SC_KNOWLEDGE);
 			}
 		}
+		skill_clear_group(&sd->bl, 1|(battle_config.traps_setting&2));
 	}
 
 	if(m<0){
@@ -3594,7 +3600,8 @@ int pc_jobid2mapid(unsigned short b_class)
 			class_ = MAPID_XMAS;
 			break;
 		default:
-			ShowError("pc_jobid2mapid: Unrecognized job %d!\n", b_class);
+			if (battle_config.error_log)
+				ShowError("pc_jobid2mapid: Unrecognized job %d!\n", b_class);
 			return -1;
 	}
 	return class_;
@@ -3744,7 +3751,8 @@ int pc_mapid2jobid(unsigned short class_, int sex) {
 		case MAPID_BABY_ROGUE:
 			return JOB_BABY_ROGUE;
 		default:
-			ShowError("pc_mapid2jobid: Unrecognized job %d!\n", class_);
+			if (battle_config.error_log)
+				ShowError("pc_mapid2jobid: Unrecognized job %d!\n", class_);
 			return -1;
 	}
 }
@@ -4789,11 +4797,11 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			pc_setglobalreg(ssd, "killedrid", sd->bl.id);
 			npc_script_event(ssd, NPCE_KILLPC);
 		}
-		if (battle_config.pk_mode && ssd->status.manner >= 0 && battle_config.manner_system) {
+		if (battle_config.pk_mode&2) {
 			ssd->status.manner -= 5;
 			if(ssd->status.manner < 0)
 				sc_start(src,SC_NOCHAT,100,0,0);
-
+		
 		// PK/Karma system code (not enabled yet) [celest]
 		// originally from Kade Online, so i don't know if any of these is correct ^^;
 		// note: karma is measured REVERSE, so more karma = more 'evil' / less honourable,
@@ -5428,9 +5436,8 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 	if(sd->vd.cloth_color)
 		clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->vd.cloth_color);
 	
-	if(battle_config.muting_players && sd->status.manner < 0 && battle_config.manner_system)
+	if(sd->status.manner < 0)
 		clif_changestatus(&sd->bl,SP_MANNER,sd->status.manner);
-
 	
 	if(pc_isriding(sd)) //Remove Peco Status to prevent display <> class problems.
 		pc_setoption(sd,sd->sc.option&~OPTION_RIDING);

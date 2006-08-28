@@ -4,6 +4,30 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/08/28
+	* Merges from trunk:[Skotlex]
+	- atcommands @jailfor, @jailtime, @charjailtime.
+	- New manner/muting system. Where muting is always allowed, but
+	  you use manner_system to specify what does being muted blocks (and
+	  muting_players setting is no more).
+	- pk_mode setting update so you can enable/disable the manner penalty when
+	  killing other players
+	- @produce enabling one to create armors.
+	- Breaker's int-based damage becoming now a MISC type skill.
+	- Added config setting "duel_only_on_same_map"
+	- Skill/dance overlap code update which causes overlapping songs to
+	  cause dissonance, and overlapping dances to cause ugly-dance on the
+	  affected tiles. This cleanup also should fix longing for freedom not ending
+	  correctly when you step out of a few encores.
+	- Spirit-ball requiring skills are now never being converted to ammo-type
+	  (and thus, forcing a ammo requirement)
+	- Overflow protection on status percent changing functions, so to no
+	  matter how much HP someone has, a percent_damage with 100% should always
+	  work.
+	- Added missing additions of SC_ARMOR_ELEMENT, should fix elemental potions
+	  appearingly not working.
+	- Inverted OPTION_FLYING and OPTION_XMAS: Flying Star Gladiators should
+	  appear flying now (even if they appear in Xmas suit briefly)
 2006/08/26
 	* Small adjustment on the mob_ai code which could fix mobs not chasing you
 	  if you hit them from the maximum possible diagonal distance. [Skotlex]

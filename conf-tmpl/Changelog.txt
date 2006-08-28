@@ -1,5 +1,15 @@
 Date	Added
 
+2006/08/28
+	* Merged atcommands @jailfor, @jailtime, @charjailtime (atcommand_conf)
+	  [Skotlex]
+	* New manner/muting system. Where muting is always allowed, but
+	  you use manner_system to specify what does being muted blocks (misc.conf)
+	  [Skotlex]
+	* Removed setting muting_players as it's always enabled now. [Skotlex]
+	* pk_mode setting update so you can enable/disable the manner penalty when
+	  killing other players (misc.conf) [Skotlex]
+	* Added config setting "duel_only_on_same_map" (misc.conf) [Skotlex]
 2006/08/24
 	* Merged command @charspeed [Skotlex]
 	* Merged the expanded use of the enable_logs setting. [Skotlex]

@@ -244,8 +244,8 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		if(!damage) return 0;
 	}
 	
-	if (skill_num == PA_PRESSURE || skill_num == NJ_ZENYNAGE)
-		return damage; //These two bypass everything else.
+	if (skill_num == PA_PRESSURE)
+		return damage; //This skill bypass everything else.
 
 	sc = status_get_sc(bl);
 
@@ -261,7 +261,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			struct skill_unit_group *group = (struct skill_unit_group *)sc->data[SC_SAFETYWALL].val3;
 			if (group) {
 				if (--group->val2<=0)
-					skill_delunitgroup(NULL,group);
+					skill_delunitgroup(NULL,group,0);
 				return 0;
 			}
 			status_change_end(bl,SC_SAFETYWALL,-1);
@@ -1456,6 +1456,7 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case GS_BULLSEYE:
 					skillratio += 400;
+					flag.cardfix = 0;
 					break;
 				case GS_TRACKING:
 					skillratio += 60*skill_lv;
@@ -1471,16 +1472,16 @@ static struct Damage battle_calc_weapon_attack(
 					skillratio += 10*skill_lv;
 					break;
 				case GS_DESPERADO:
-					skillratio += 50*skill_lv - 50;
+					skillratio += 50*(skill_lv-1);
 					break;
 				case GS_DUST:
 					skillratio += 50*skill_lv;
 					break;
 				case GS_FULLBUSTER:
-					skillratio += 200 + 100*skill_lv;
+					skillratio += 100*(skill_lv+2);
 					break;
 				case GS_SPREADATTACK:
-					skillratio += 20*skill_lv-20;
+					skillratio += 20*(skill_lv-1);
 					break;
 				case KN_CHARGEATK:
 					skillratio += wflag*15; //FIXME: How much is the actual bonus? [Skotlex]
@@ -1742,10 +1743,6 @@ static struct Damage battle_calc_weapon_attack(
 		}
 	}
 
-	//Breaker's int-based damage (applies after attribute modifiers)
-	if(skill_num==ASC_BREAKER)
-		ATK_ADD(rand()%500 + 500 + skill_lv * sstatus->int_ * 5);
-
 	if ((!flag.rh || !wd.damage) && (!flag.lh || !wd.damage2))
 		flag.cardfix = 0;	//When the attack does no damage, avoid doing %bonuses
 
@@ -1954,6 +1951,12 @@ static struct Damage battle_calc_weapon_attack(
 			if(wd.damage > 1 && wd.damage2 < 1) wd.damage2=1;
 			wd.damage-=wd.damage2;
 		}
+	}
+
+	if(skill_num==ASC_BREAKER)
+	{	//Breaker's int-based damage (a misc attack?)
+		struct Damage md = battle_calc_misc_attack(src, target, skill_num, skill_lv, wflag);
+		wd.damage += md.damage;
 	}
 
 	if (wd.damage || wd.damage2) {
@@ -2937,7 +2940,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				tsc->data[SC_POISONREACT].val2 = 0;
 				skill_attack(BF_WEAPON,target,target,src,AS_POISONREACT,tsc->data[SC_POISONREACT].val1,tick,0);
 			} else {
-				skill_attack(BF_WEAPON,target,target,src,TF_POISON, 5, tick, flag);
+				skill_attack(BF_WEAPON,target,target,src,TF_POISON, 5, tick, 0);
 				--tsc->data[SC_POISONREACT].val2;
 			}
 			if (tsc->data[SC_POISONREACT].val2 <= 0)
@@ -3545,7 +3548,6 @@ static const struct battle_data_short {
 	{ "pet_hair_style",                    &battle_config.pet_hair_style	}, // added by [Skotlex]
 	{ "castrate_dex_scale",                &battle_config.castrate_dex_scale	}, // added by [MouseJstr]
 	{ "area_size",                         &battle_config.area_size	}, // added by [MouseJstr]
-	{ "muting_players",                    &battle_config.muting_players}, // added by [Apple]
 	{ "zeny_from_mobs",                    &battle_config.zeny_from_mobs}, // [Valaris]
 	{ "mobs_level_up",                     &battle_config.mobs_level_up}, // [Valaris]
 	{ "mobs_level_up_exp_rate",		   &battle_config.mobs_level_up_exp_rate}, // [Valaris]
@@ -3602,7 +3604,7 @@ static const struct battle_data_short {
 	{ "duel_allow_teleport",				&battle_config.duel_allow_teleport}, // [LuzZza]
 	{ "duel_autoleave_when_die",			&battle_config.duel_autoleave_when_die}, //[LuzZza]
 	{ "duel_time_interval",					&battle_config.duel_time_interval}, // [LuzZza]
-	
+	{ "duel_only_on_same_map",				&battle_config.duel_only_on_same_map}, // [Toms]
 	{ "skip_teleport_lv1_menu",			&battle_config.skip_teleport_lv1_menu}, // [LuzZza]
 	{ "allow_skill_without_day",			&battle_config.allow_skill_without_day}, // [Komurka]
 	{ "allow_es_magic_player",				&battle_config.allow_es_magic_pc },
@@ -3951,7 +3953,7 @@ void battle_set_defaults() {
 	battle_config.equip_skill_break_rate = 100; // [Valaris], adapted by [Skotlex]
 	battle_config.pk_mode = 0; // [Valaris]
 	battle_config.pk_level_range = 0; // [Skotlex]
-	battle_config.manner_system = 1; // [Valaris]
+	battle_config.manner_system = 0xFFF; // [Valaris]
 	battle_config.pet_equip_required = 0; // [Valaris]
 	battle_config.multi_level_up = 0; // [Valaris]
 	battle_config.max_exp_gain_rate	= 0; // [Skotlex]
@@ -4029,6 +4031,7 @@ void battle_set_defaults() {
 	battle_config.duel_allow_teleport = 0;
 	battle_config.duel_autoleave_when_die = 1;
 	battle_config.duel_time_interval = 60;
+	battle_config.duel_only_on_same_map = 0;
 	
 	battle_config.skip_teleport_lv1_menu = 0;
 	battle_config.allow_skill_without_day = 0;

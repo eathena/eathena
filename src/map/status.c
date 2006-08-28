@@ -344,6 +344,9 @@ void initChangeTables(void) {
 	set_sc(SL_HIGH, SC_SPIRIT, SI_SPIRIT, SCB_PC);
 	set_sc(KN_ONEHAND, SC_ONEHAND, SI_ONEHAND, SCB_ASPD);
 	set_sc(GS_FLING, SC_FLING, SI_BLANK, SCB_DEF|SCB_DEF2);
+	add_sc(GS_CRACKER, SC_STUN);
+	add_sc(GS_DISARM, SC_STRIPWEAPON);
+	add_sc(GS_PIERCINGSHOT, SC_BLEEDING);
 	set_sc(GS_MADNESSCANCEL, SC_MADNESSCANCEL, SI_MADNESSCANCEL, SCB_BATK|SCB_ASPD);
 	set_sc(GS_ADJUSTMENT, SC_ADJUSTMENT, SI_ADJUSTMENT, SCB_HIT|SCB_FLEE);
 	set_sc(GS_INCREASING, SC_INCREASING, SI_ACCURACY, SCB_AGI|SCB_DEX|SCB_HIT);
@@ -598,7 +601,7 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 				sc->data[SC_GRAVITATION].val3 == BCT_SELF) {
 				struct skill_unit_group *sg = (struct skill_unit_group *)sc->data[SC_GRAVITATION].val4;
 				if (sg) {
-					skill_delunitgroup(target,sg);
+					skill_delunitgroup(target,sg, 0);
 					sc->data[SC_GRAVITATION].val4 = 0;
 					status_change_end(target, SC_GRAVITATION, -1);
 				}
@@ -768,16 +771,34 @@ int status_percent_change(struct block_list *src,struct block_list *target,signe
 	unsigned int hp  =0, sp = 0;
 
 	status = status_get_status_data(target);
-	
-	if (hp_rate > 0)
-		hp = (hp_rate*status->hp)/100;
+
+	//Change the equation when the values are high enough to discard the
+	//imprecision in exchange of overflow protection [Skotlex]
+	//Also add 100% checks since those are the most used cases where we don't 
+	//want aproximation errors.
+	if (hp_rate > 99)
+		hp = status->hp;
+	else if (hp_rate > 0)
+		hp = status->hp>10000?
+			hp_rate*(status->hp/100):
+			(hp_rate*status->hp)/100;
+	else if (hp_rate < -99)
+		hp = status->max_hp;
 	else if (hp_rate < 0)
-		hp = (-hp_rate)*status->max_hp/100;
+		hp = status->max_hp>10000?
+			(-hp_rate)*(status->max_hp/100):
+			(-hp_rate*status->max_hp)/100;
 	if (hp_rate && !hp)
 		hp = 1;
 
-	if (sp_rate > 0)
+	//Should be safe to not do overflow protection here, noone should have
+	//millions upon millions of SP
+	if (sp_rate > 99)
+		sp = status->sp;
+	else if (sp_rate > 0)
 		sp = (sp_rate*status->sp)/100;
+	else if (sp_rate < -99)
+		sp = status->max_sp;
 	else if (sp_rate < 0)
 		sp = (-sp_rate)*status->max_sp/100;
 	if (sp_rate && !sp)
@@ -959,7 +980,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 				(sc->data[SC_VOLCANO].timer != -1 && skill_num == WZ_ICEWALL) ||
 				(sc->data[SC_ROKISWEIL].timer != -1 && skill_num != BD_ADAPTATION && !(status->mode&MD_BOSS)) ||
 				(sc->data[SC_HERMODE].timer != -1 && skill_get_inf(skill_num) & INF_SUPPORT_SKILL) ||
-				sc->data[SC_NOCHAT].timer != -1
+				(sc->data[SC_NOCHAT].timer != -1 && sc->data[SC_NOCHAT].val1&MANNER_NOSKILL)
 			)
 				return 0;
 
@@ -2417,14 +2438,16 @@ void status_calc_bl_sub_pc(struct map_session_data *sd, unsigned long flag)
 
 		if(status->flee2 < 10) status->flee2 = 10;
 	}
-	if (flag == SCB_ALL)
-		return; //Refresh is done on invoking function (status_calc_pc)
 
 	if(flag&SCB_SPEED) {
 		clif_updatestatus(sd,SP_SPEED);
 		if (sd->ud.walktimer != -1) //Re-walk to adjust speed. [Skotlex]
 			unit_walktoxy(&sd->bl, sd->ud.to_x, sd->ud.to_y, sd->ud.state.walk_easy);
 	}
+	
+	if (flag == SCB_ALL)
+		return; //Refresh is done on invoking function (status_calc_pc)
+	
 	if(flag&SCB_STR)
 		clif_updatestatus(sd,SP_STR);
 	if(flag&SCB_AGI)
@@ -3667,6 +3690,7 @@ int status_get_race2(struct block_list *bl)
 		return ((struct pet_data *)bl)->db->race2;
 	return 0;
 }
+
 int status_isdead(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
@@ -4347,6 +4371,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			case SC_CLOSECONFINE2: //Can't be re-closed in.
 			case SC_MARIONETTE:
 			case SC_MARIONETTE2:
+			case SC_NOCHAT:
 				return 0;
 			case SC_DANCING:
 			case SC_DEVOTION:
@@ -4357,6 +4382,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			case SC_ATKPOTION:
 			case SC_MATKPOTION:
 			case SC_JAILED:
+			case SC_ARMOR_ELEMENT:
 				break;
 			case SC_GOSPEL:
 				 //Must not override a casting gospel char.
@@ -4575,11 +4601,8 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			clif_changelook(bl,LOOK_CLOTHES_COLOR,vd->cloth_color);
 			break;
 		case SC_NOCHAT:
-			if(!battle_config.muting_players) { 
-				sd->status.manner = 0; //Zido
-				return 0;
-			}
 			tick = 60000;
+			val1 = battle_config.manner_system; //Mute filters.
 			if (sd) clif_updatestatus(sd,SP_MANNER);
 			break;
 
@@ -5110,7 +5133,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			break;
 		case SC_FLEET:
 			val2 = 30*val1; //Aspd change
-			val3 = 5+5*val1; //Atk rate change
+			val3 = 5+5*val1; //bAtk/wAtk rate change
 			break;
 		case SC_MINDBREAKER:
 			val2 = 20*val1; //matk increase.
@@ -5135,6 +5158,9 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				val4 = pos;
 			}
 			break;
+		case SC_ARMOR_ELEMENT:
+			break; // It just change the armor element of the player (used by battle_attr_fix)
+				   // So it has no SCB and no skill associated (used by potion scripts)
 		default:
 			if (calc_flag == SCB_NONE && StatusSkillChangeTable[type]==0)
 			{	//Status change with no calc, and no skill associated...? unknown?
@@ -5553,7 +5579,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				{
 					group = (struct skill_unit_group *)sc->data[type].val2;
 					sc->data[type].val2 = 0;
-					skill_delunitgroup(bl, group);
+					skill_delunitgroup(bl, group, 0);
 				}
 				if(sc->data[type].val4 && sc->data[type].val4 != BCT_SELF && (dsd=map_id2sd(sc->data[type].val4))){
 					dsc = &dsd->sc;
@@ -5652,7 +5678,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			if (sc->data[type].val3) { //Clear the group.
 				struct skill_unit_group *group = (struct skill_unit_group *)sc->data[type].val3;
 				sc->data[type].val3 = 0;
-				skill_delunitgroup(bl, group);
+				skill_delunitgroup(bl, group, 0);
 			}
 			break;
 		case SC_HERMODE: 
@@ -5672,7 +5698,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			if (sc->data[type].val4) { //Clear the group.
 				struct skill_unit_group *group = (struct skill_unit_group *)sc->data[type].val4;
 				sc->data[type].val4 = 0;
-				skill_delunitgroup(bl, group);
+				skill_delunitgroup(bl, group, 0);
 			}
 			break;
 		case SC_KAAHI:
@@ -6147,7 +6173,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 			sd->canregen_tick = gettick() + 300000;
 		break;
 	case SC_NOCHAT:
-		if(sd && battle_config.manner_system){
+		if(sd){
 			sd->status.manner++;
 			clif_updatestatus(sd,SP_MANNER);
 			if (sd->status.manner < 0)
