@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/28
+	* Corrected skill-related exp bonuses being applied twice to job
+	  experience. [Skotlex]
 	* Merges from trunk:[Skotlex]
 	- atcommands @jailfor, @jailtime, @charjailtime.
 	- New manner/muting system. Where muting is always allowed, but
