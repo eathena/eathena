@@ -13,19 +13,25 @@
 // separating also timed attacks would be no problem
 // {my answer: no, thus can compound attack and skill execution interface [Hinoko]}
 // {not sure, but I don't see a reason of having casting in parallel to attacking exept for the auto spells maybe [Shinomori]}
+// {autoskill behaviour: triggered from physical attack, does instant cast when all cast conditions are met and adds the cooldowntime [Shinomori]}
+// {"no" as final answer [Shinomori]}
 //
 // do we need seperated target markers for attack and skill usage?
 // {my answer: no [Hinoko]}
+// {"no" as final answer [Shinomori]}
 //
 // can multiple skills be casted in parallel aka do we need arrays for skill_timerskill
 // {my answer: no [Hinoko]}
+// {"no" as final answer [Shinomori]}
 //
 // is a separated set of skill casting parameters necessary at the object itself
 // {my answer: no [Hinoko]}
+// {"no" as final answer [Shinomori]}
 //
 // do we need arrays of unitgroups (or would a linked list be sufficient)
 // or even better, have no unitgroup saving at the char but completely outside
 // {my answer: set up everything externally, no extra data at the casting object at all [Hinoko]}
+// {suggest to have the root node of a doubled linked list at the object [Shinomori]}
 //
 
 struct fightable : public movable
@@ -45,10 +51,11 @@ public:
 	int attacktimer;
 	int skilltimer;
 	unsigned long attackable_tick;
+	unsigned long canact_tick;
 	uint32 target_id;
 	unsigned short target_lv;
 	unsigned char attack_continue : 1 ;	// could be part of the attack object
-
+	
 /*
 	struct skill_timerskill *skilltimerskill[MAX_SKILLTIMERSKILL];
 	struct skill_unit_group *skillunit[MAX_SKILLUNITGROUP];
@@ -59,7 +66,7 @@ public:
 	short skillid,skilllv;
 	int   skilltarget;
 
-	unsigned int canact_tick;
+	
 	unsigned char running : 1;
 
 	unsigned short skillx;
@@ -107,8 +114,17 @@ public:
 	/// checks for idle state (alive+not sitting+not blocked by skill)
 	virtual bool is_idle() const		{ return !is_attacking() && !is_skilling() && this->movable::is_idle(); }
 
+	bool can_act() const	{ return DIFF_TICK(gettick(), this->canact_tick)>0; }
+
 	/// sets the object to idle state
 	virtual bool set_idle();
+	/// sets the object delay
+	virtual void set_delay(ulong delaytick);
+
+
+	/// sets the object to dead state.
+	/// force the objects to have an implementation right now, combine it later
+	virtual bool set_dead()=0;
 
 	///////////////////////////////////////////////////////////////////////////
 	// targeting functions
@@ -131,6 +147,9 @@ public:
 	virtual bool start_attack(uint32 target_id, bool cont);
 	/// starts attack
 	virtual bool start_attack(const block_list& target_bl, bool cont);
+	/// start attack without changing target
+	virtual bool start_attack(int type=0);
+
 	/// stops attack
 	virtual bool stop_attack();
 
@@ -158,6 +177,31 @@ public:
 
 
 
+/*
+	proposed flow:
+
+	skill/attack execution is requested
+	->
+	check if execution is possible
+	->
+	previous skill/attack is stopped (by removing the object)
+	->
+	a suitable battle object is constructed, 
+	containing all necessary data for the action
+	->
+	construction also triggers the execution 
+	which either does the action or starts timers or 
+	do the action and start timers or whatever
+	->
+	on finishing the object removes itself
+	and sets the specified cooldown time
+
+
+	necessary external access:
+	* is doing an action
+	* stop the action (considering a possible cooldown time also on stopped skils)
+
+*/
 
 
 

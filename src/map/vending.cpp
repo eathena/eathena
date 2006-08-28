@@ -140,7 +140,7 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
 		if(config.buyer_name)
 		{
 			char temp[256];
-			snprintf(temp, sizeof(temp),msg_txt(265), sd.status.name); // FIXME: Not in the enum!
+			snprintf(temp, sizeof(temp),msg_txt(MSG_S_HAS_BOUGHT), sd.status.name);
 			clif_disp_onlyself(*vsd,temp);
 		}
 		//log added by Lupus

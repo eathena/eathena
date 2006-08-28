@@ -27,7 +27,7 @@ include $(CP)/Makefile.dep
 COMMON_OBJ += $(CP)/grfio.o
 COMMON_H   += $(CP)/grfio.h
 
-MAP_OBJ = txtobj/map.o txtobj/chrif.o txtobj/coordinate.o txtobj/fightable.o txtobj/movable.o txtobj/pc.o txtobj/npc.o txtobj/chat.o txtobj/path.o txtobj/script.o txtobj/storage.o txtobj/skill.o txtobj/atcommand.o txtobj/battle.o txtobj/intif.o txtobj/trade.o txtobj/party.o txtobj/vending.o txtobj/guild.o txtobj/pet.o txtobj/homun.o txtobj/status.o txtobj/npc_chat.o txtobj/mercenary.o txtobj/config.o txtobj/clif.o
+MAP_OBJ = txtobj/map.o txtobj/chrif.o txtobj/coordinate.o txtobj/fightable.o txtobj/movable.o txtobj/pc.o txtobj/npc.o txtobj/chat.o txtobj/path.o txtobj/script.o txtobj/storage.o txtobj/skill.o txtobj/atcommand.o txtobj/battle.o txtobj/intif.o txtobj/trade.o txtobj/party.o txtobj/vending.o txtobj/guild.o txtobj/pet.o txtobj/homun.o txtobj/status.o txtobj/npclisten.o txtobj/mercenary.o txtobj/config.o txtobj/clif.o
 ifeq ($(findstring -DWITH_MYSQL,$(CPPFLAGS)), -DWITH_MYSQL)
 MAP_OBJ += sqlobj/itemdb.o sqlobj/log.o sqlobj/mob.o 
 else
@@ -71,7 +71,7 @@ txtobj/mercenary.o: txtobj mercenary.cpp mercenary.h $(COMMON_H) $(BASE_H)
 txtobj/mob.o: txtobj mob.cpp map.h clif.h intif.h pc.h mob.h skill.h battle.h config.h npc.h itemdb.h $(COMMON_H) $(BASE_H)
 txtobj/movable.o: txtobj movable.cpp movable.h map.h $(COMMON_H) $(BASE_H)
 txtobj/npc.o: txtobj npc.cpp map.h npc.h clif.h pc.h script.h mob.h itemdb.h battle.h config.h $(COMMON_H) $(BASE_H)
-txtobj/npc_chat.o: txtobj npc_chat.cpp map.h npc.h clif.h pc.h script.h mob.h itemdb.h battle.h config.h $(COMMON_H) $(BASE_H)
+txtobj/npclisten.o: txtobj npclisten.cpp npclisten.h map.h npc.h clif.h pc.h script.h mob.h itemdb.h battle.h config.h $(COMMON_H) $(BASE_H)
 txtobj/party.o: txtobj party.cpp party.h clif.h intif.h pc.h map.h battle.h config.h $(COMMON_H) $(BASE_H)
 txtobj/path.o: txtobj path.cpp map.h battle.h config.h $(COMMON_H) $(BASE_H)
 txtobj/pc.o: txtobj pc.cpp map.h clif.h intif.h pc.h npc.h mob.h itemdb.h battle.h config.h skill.h script.h party.h guild.h pet.h trade.h storage.h chat.h vending.h $(COMMON_H) $(BASE_H)

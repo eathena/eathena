@@ -89,10 +89,10 @@ int pet_data::attacktimer_func(int tid, unsigned long tick, int id, basics::nump
 	pd.attackable_tick = tick + status_get_adelay(&pd);
 
 	if( pd.is_walking() || pd.is_attacking() )
-		pd.changestate(MS_IDLE,0);
+		pd.set_idle();
 
 	pd.attacktimer=add_timer(pd.attackable_tick,fightable::attacktimer_entry,pd.block_list::id,0);
-	pd.state.state=MS_ATTACK;
+
 	return 0;
 }
 
@@ -105,19 +105,16 @@ int pet_data::skilltimer_func(int tid, unsigned long tick, int id, basics::numpt
 /// do object depending stuff for ending the walk.
 void pet_data::do_stop_walking()
 {
-	if(this->state.state == MS_WALK)
-		this->changestate(MS_IDLE,0);
-//	if(type&~0xff)
-//		this->changestate(MS_DELAY,type>>8);
-//	else
-//		this->changestate(MS_IDLE,0);
+//	if( this->state.state == MS_WALK)
+//		this->set_idle();
 }
 /// do object depending stuff for the walk step.
 bool pet_data::do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy)
 {
-	this->state.state=MS_WALK;
+//	this->state.state=MS_WALK;
 	return true;
 }
+/*
 /// do object depending stuff for changestate
 void pet_data::do_changestate(int state,int type)
 {
@@ -178,7 +175,7 @@ void pet_data::do_changestate(int state,int type)
 			break;
 	}
 }
-
+*/
 
 
 
@@ -218,7 +215,7 @@ bool pet_data::randomwalk(unsigned long tick)
 			if(config.error_log)
 				ShowMessage("PET cant move. hold position %d, class_ = %d\n",pd.block_list::id,pd.pet.class_);
 			pd.move_fail_count=0;
-			pd.changestate(MS_DELAY,60000);
+			pd.set_delay(tick+60000);
 		}
 		else
 		{
@@ -284,8 +281,8 @@ int pet_data::get_equip() const
 
 bool pet_data::stop_attack()
 {
-	if(this->state.state == MS_ATTACK)
-		this->changestate(MS_IDLE,0);
+//	if(this->state.state == MS_ATTACK)
+//		this->set_idle();
 	return this->fightable::stop_attack();
 }
 
@@ -354,7 +351,7 @@ int petskill_use(struct pet_data &pd, block_list &target, short skill_id, short 
 		return 1;	//Will not interrupt an already casting skill.
 
 	if( pd.is_walking() )	//Cancel whatever else the pet is doing.
-		pd.changestate(MS_IDLE,0);
+		pd.set_idle();
 
 	
 	if(config.monster_attack_direction_change)
@@ -366,12 +363,10 @@ int petskill_use(struct pet_data &pd, block_list &target, short skill_id, short 
 		
 	pd.stop_walking(1);
 	pd.attackable_tick = tick;
-	pd.state.state=MS_ATTACK;
 
 	if (casttime > 0)
 	{
 		pd.attackable_tick += casttime;
-		pd.state.state=MS_ATTACK;
 		pd.state.casting_flag = 1;
 
 		if (skill_get_inf(skill_id) & INF_GROUND_SKILL)
@@ -398,7 +393,6 @@ int petskill_castend(struct pet_data &pd,unsigned long tick, struct castend_dela
 	if(dat)
 	{
 		block_list *target = block_list::from_blid(dat->target_id);
-		pd.state.state = MS_IDLE;
 		pd.state.casting_flag = 0;
 		if (target && dat->src.id == pd.block_list::id && target->is_on_map() )
 			petskill_castend2(pd, *target, dat->skill_id, dat->skill_lv, target->x, target->y, tick);
@@ -415,8 +409,6 @@ int petskill_castend2(struct pet_data &pd, block_list &target, unsigned short sk
 {	//Invoked after the casting time has passed.
 	short delaytime =0, range;
 
-	pd.state.state=MS_IDLE;
-	
 	if (skill_get_inf(skill_id) & INF_GROUND_SKILL)
 	{	//Area skill
 		skill_castend_pos2(&pd, skill_x, skill_y, skill_id, skill_lv, tick,0);
@@ -452,8 +444,6 @@ int petskill_castend2(struct pet_data &pd, block_list &target, unsigned short sk
 	if (delaytime < MIN_PETTHINKTIME)
 		delaytime = status_get_adelay(&pd);
 	pd.attackable_tick = tick + delaytime; 
-	if (pd.target_id) //Resume attacking
-		pd.state.state=MS_ATTACK;
 	pd.attacktimer=add_timer(pd.attackable_tick,fightable::attacktimer_entry,pd.block_list::id,0);
 
 	return 0;
@@ -469,7 +459,7 @@ int pet_target_check(struct map_session_data &sd,block_list *bl,int type)
 		pd->pet.intimate >= (short)config.pet_support_min_friendly &&
 		pd->pet.hungry >= 1 &&
 		pd->pet.class_ != status_get_class(bl) &&
-		pd->state.state != MS_DELAY )
+		pd->can_act() )
 	{
 		int rate;
 		int mode = mob_db[pd->pet.class_].mode;
@@ -687,7 +677,7 @@ int pet_remove_map(struct map_session_data &sd)
 		pd->state.skillbonus=-1;
 		sd.state.perfect_hiding=0;	// end additions
 
-		sd.pd->changestate(MS_IDLE,0);
+		sd.pd->set_idle();
 
 		if(sd.pd->hungry_timer != -1)
 		{
@@ -790,7 +780,7 @@ int pet_data_init(struct map_session_data &sd, const petstatus &p)
 	pd->block_list::m = sd.block_list::m;
 	pd->block_list::x = pd->walktarget.x = sd.block_list::x;
 	pd->block_list::y = pd->walktarget.y = sd.block_list::y;
-	pd->calc_pos(sd);
+	pd->random_position(sd);
 	pd->block_list::x = pd->walktarget.x;
 	pd->block_list::y = pd->walktarget.y;
 	pd->block_list::id = npc_get_new_npc_id();
@@ -798,7 +788,6 @@ int pet_data_init(struct map_session_data &sd, const petstatus &p)
 	pd->speed = pd->petDB.speed;
 	pd->block_list::subtype = MONS;
 	pd->block_list::type = BL_PET;
-	pd->state.state = MS_IDLE;
 	pd->next_walktime = pd->attackable_tick = pd->last_thinktime = gettick();
 	pd->msd = &sd;
 	
@@ -1237,7 +1226,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 
 	pd.last_thinktime=tick;
 
-	if(pd.state.state == MS_DELAY || pd.block_list::m != sd->block_list::m)
+	if( !pd.can_act() || pd.block_list::m != sd->block_list::m)
 		return 0;
 
 	// ペットによるルート
@@ -1262,7 +1251,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 			pd.speed = sd->speed *3/4; // be faster than master
 			if( pd.speed <= 10 )
 				pd.speed = 10;
-			pd.calc_pos(*sd);
+			pd.random_position(*sd);
 			if( !pd.walktoxy(pd.walktarget.x,pd.walktarget.y) )
 				pd.randomwalk(tick);
 		}
@@ -1321,9 +1310,9 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 			else
 			{
 				pd.stop_walking(1);
-				if(pd.state.state==MS_ATTACK)
+				if( pd.is_attacking() )
 					return 0;
-				pd.changestate(MS_ATTACK,0);
+				pd.start_attack();
 			}
 		}
 		else if(pd.target_id > 0 && pd.loot)
@@ -1335,7 +1324,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 			}
 			else if(dist)
 			{
-				if( pd.walktimer != -1 && pd.state.state!=MS_ATTACK && (DIFF_TICK(pd.next_walktime,tick)<0 || distance(*fitem, pd.walktarget) == 0) )
+				if( pd.walktimer != -1 && !pd.is_attacking() && (DIFF_TICK(pd.next_walktime,tick)<0 || distance(*fitem, pd.walktarget) == 0) )
 					return 0; // 既に移動中
 
 				pd.next_walktime=tick+500;
@@ -1343,7 +1332,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 			}
 			else
 			{	// アイテムまでたどり着いた
-				if(pd.state.state==MS_ATTACK)
+				if( pd.is_attacking() )
 					return 0; // 攻撃中
 
 				pd.stop_walking(1);
@@ -1368,7 +1357,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 				return 0;
 			}
 			pd.calc_speed();
-			pd.calc_pos(*sd);
+			pd.random_position(*sd);
 			if( !pd.walktoxy(pd.walktarget.x,pd.walktarget.y) )
 				pd.randomwalk(tick);
 		}
@@ -1376,8 +1365,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 	else
 	{
 		pd.calc_speed();
-		if(pd.state.state == MS_ATTACK)
-			pd.stop_attack();
+		pd.stop_attack();
 		pd.randomwalk(tick);
 	}
 	return 0;
@@ -1545,14 +1533,13 @@ int pet_heal_timer(int tid, unsigned long tick, int id, basics::numptr data)
 		(rate = sd->status.sp*100/sd->status.max_sp) > pd->s_skill->sp ||
 		(rate = sd->status.hp*100/sd->status.max_hp) > pd->s_skill->hp ||
 		(rate = pd->state.casting_flag) || //Another skill is in effect
-		(rate = pd->state.state) == MS_WALK) //Better wait until the pet stops moving (MS_WALK is 2)
+		(rate = pd->is_walking())) //Better wait until the pet stops moving (MS_WALK is 2)
 	{  //Wait (how long? 1 sec for every 10% of remaining)
 		pd->s_skill->timer=add_timer(gettick()+(rate>10?rate:10)*100,pet_heal_timer,sd->block_list::id,0);
 		return 0;
 	}
 
-	if (pd->state.state == MS_ATTACK)
-			pd->stop_attack();
+	pd->stop_attack();
 	clif_skill_nodamage(*pd,*sd,AL_HEAL,pd->s_skill->lv,1);
 	pc_heal(*sd,pd->s_skill->lv,0);
 	
@@ -1590,14 +1577,13 @@ int pet_skill_support_timer(int tid, unsigned long tick, int id, basics::numptr 
 		(rate = sd->status.sp*100/sd->status.max_sp) > pd->s_skill->sp ||
 		(rate = sd->status.hp*100/sd->status.max_hp) > pd->s_skill->hp ||
 		(rate = pd->state.casting_flag) || //Another skill is in effect
-		(rate = pd->state.state) == MS_WALK) //Better wait until the pet stops moving (MS_WALK is 2)
+		(rate = pd->is_walking()) ) //Better wait until the pet stops moving (MS_WALK is 2)
 	{  //Wait (how long? 1 sec for every 10% of remaining)
 		pd->s_skill->timer=add_timer(gettick()+(rate>10?rate:10)*100,pet_skill_support_timer,sd->block_list::id,0);
 		return 0;
 	}
 	
-	if (pd->state.state == MS_ATTACK)
-		pd->stop_attack();
+	pd->stop_attack();
 	petskill_use(*pd, *sd, pd->s_skill->id, pd->s_skill->lv, tick);
 
 	pd->s_skill->timer=add_timer(tick+pd->s_skill->delay*1000,pet_skill_support_timer,sd->block_list::id,0);

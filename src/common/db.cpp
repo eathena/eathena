@@ -3,7 +3,6 @@
 
 
 
-
 #include "db.h"
 #include "utils.h"
 #include "showmsg.h"
@@ -640,7 +639,7 @@ void db_foreach(struct dbt* table, const CDBProcessor& elem)
 	}
 }
 
-void db_final(struct dbt *&table,int (*func)(void*,void*))
+void db_final(struct dbt *&table, void (*func)(void*,void*))
 {
 	if(table)
 	{

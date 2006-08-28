@@ -56,17 +56,15 @@ void sortage_gsortitem(struct guild_storage& gstor)
  * ‰Šú‰»‚Æ‚©
  *------------------------------------------
  */
-int guild_storage_db_final(void *key,void *data)
+void guild_storage_db_final(void *key,void *data)
 {
 	struct guild_storage *gstor = (struct guild_storage *)data;
 	if(gstor) delete gstor;
-	return 0;
 }
-int storage_db_final(void *key,void *data)
+void storage_db_final(void *key,void *data)
 {
 	struct pc_storage *stor = (struct pc_storage *)data;
 	if(stor) delete stor;
-	return 0;
 }
 void do_final_storage(void) // by [MC Cameri]
 {
@@ -130,7 +128,7 @@ int storage_storageopen(struct map_session_data &sd)
 
 	if(sd.isGM() && sd.isGM() < config.gm_can_drop_lv)
 	{
-		clif_displaymessage(sd.fd, msg_txt(246)); // FIXME: Not in the enum!
+		clif_displaymessage(sd.fd, msg_txt(MSG_GM_LV_TOO_LOW));
 		return 1;
 	}
 	stor = (pc_storage *)numdb_search(storage_db,sd.status.account_id);
@@ -170,7 +168,7 @@ int storage_additem(struct map_session_data &sd, struct pc_storage &stor, struct
 
 	if( !itemdb_canstore(item_data.nameid, sd.isGM()) )
 	{	//Check if item is storable. [Skotlex]
-		clif_displaymessage (sd.fd, msg_txt(264)); // FIXME: Not in the enum!
+		clif_displaymessage (sd.fd, msg_txt(MSG_ITEM_CANNOT_BE_STORED));
 		return 1;
 	}
 	
@@ -458,7 +456,7 @@ int guild_storage_additem(struct map_session_data &sd,struct guild_storage &stor
 
 	if( !itemdb_canguildstore(item_data.nameid, sd.isGM()) )
 	{	//Check if item is storable. [Skotlex]
-		clif_displaymessage (sd.fd, msg_txt(264)); // FIXME: Not in the enum!
+		clif_displaymessage (sd.fd, msg_txt(MSG_ITEM_CANNOT_BE_STORED));
 		return 1;
 	}
 

@@ -870,9 +870,9 @@ CMessageTable::~CMessageTable()
 
 ///////////////////////////////////////////////////////////////////////////////
 /// return the message string of the specified number
-const char *CMessageTable::operator()(size_t msg_number)
+const char *CMessageTable::operator()(msg_t msg_number)
 {
-	if( msg_number < MAX_MSG && this->msg_table[msg_number] && *this->msg_table[msg_number] )
+	if( (int)msg_number < MAX_MSG && this->msg_table[msg_number] && *this->msg_table[msg_number] )
 		return msg_table[msg_number];
 	return "??";
 }

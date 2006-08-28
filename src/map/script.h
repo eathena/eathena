@@ -620,8 +620,8 @@ public:
 
 script_object* parse_script(unsigned char *src, size_t line);
 
-int set_var(const char *name, void *v);
-int set_var(struct map_session_data &sd, const char *name, void *v);
+int set_var(const char *name, const void *v);
+int set_var(struct map_session_data &sd, const char *name, const void *v);
 
 struct dbt* script_get_userfunc_db();
 

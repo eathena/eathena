@@ -13,22 +13,7 @@
 #define INVISIBLE_CLASS 32767
 
 
-void npc_chat_finalize(struct npc_data *nd);
 
-//int npc_chat_sub(block_list &bl, va_list &ap);
-
-class CNpcChat : public CMapProcessor
-{
-    const char *msg;
-    size_t len;
-    struct map_session_data &sd;
-public:
-	CNpcChat(const char *m, struct map_session_data &s)
-		: msg(m), len(m?strlen(m):0), sd(s)
-	{}
-	~CNpcChat()	{}
-	virtual int process(block_list& bl) const;
-};
 
 
 
@@ -66,9 +51,9 @@ int do_init_npc(void);
 int npc_event_do_oninit(void);
 int npc_do_ontimer(uint32 npc_id, struct map_session_data &sd, int option);
 
-int npc_event_doall(const char *name);
+
 int npc_event_do(const char *name);
-int npc_event_doall_id(const char *name, int rid, int map);
+int npc_event_doall(const char *name, int rid=0, int map=-1);
 
 int npc_timerevent_start(struct npc_data &nd, uint32 rid);
 int npc_timerevent_stop(struct npc_data &nd);

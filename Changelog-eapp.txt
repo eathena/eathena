@@ -1,4 +1,9 @@
 Date	Added
+08/28
+	* replaced all db_foreach with iterators
+	* renamed npc_chat to npclisten because this is what they do
+	  and because of experiments with chat_data object
+	* removed the changestate stuff, integrated it into the map objects [Shinomori]
 08/27
 	* Added the same GPL licence notice trunk has in every file [DracoRPG]
 	* Replaced every msg_txt(x) with the matching MSG_ constant [DracoRPG]

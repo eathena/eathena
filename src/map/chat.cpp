@@ -11,204 +11,8 @@
 #include "pc.h"
 #include "npc.h"
 
-int chat_triggerevent(chat_data &cd);
 
 
-///////////////////////////////////////////////////////////////////////////////
-/// 既存チャットルームに参加
-int chat_joinchat(struct map_session_data &sd, uint32 chatid, const char* pass)
-{
-	chat_data *cd = chat_data::from_blid(chatid);
-
-	if( !cd || cd->block_list::m != sd.block_list::m || sd.chat || cd->limit <= cd->users )
-	{
-		clif_joinchatfail(sd,0);
-		return 0;
-	}
-
-	//Allows Gm access to protected room with any password they want by valaris
-	if( (cd->pub == 0 && 0!=strncmp(pass, (char *)cd->pass, 8) && 
-		(sd.isGM()<config.gm_join_chat || !config.gm_join_chat)) )
-	{
-		clif_joinchatfail(sd,1);
-		return 0;
-	}
-
-	cd->usersd[cd->users] = &sd;
-	cd->users++;
-
-	sd.chat = cd;
-
-	clif_joinchatok(sd,*cd);	// 新たに参加した人には全員のリスト
-	clif_addchat(*cd,sd);	// 既に中に居た人には追加した人の報告
-	clif_dispchat(*cd,0);	// 周囲の人には人数変化報告
-
-	chat_triggerevent(*cd); // イベント
-
-	return 0;
-}
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-/// チャットルームの持ち主を譲る
-int chat_changechatowner(struct map_session_data &sd, const char *nextownername)
-{
-	chat_data *cd=sd.chat;
-	struct map_session_data *tmp_sd;
-	size_t nextowner;
-
-	if(cd==NULL || &sd!=cd->owner)
-		return 1;
-
-	for(nextowner=1; nextowner<cd->users; ++nextowner){
-		if(strcmp(cd->usersd[nextowner]->status.name,nextownername)==0){
-			break;
-		}
-	}
-	if(nextowner>=cd->users) // そんな人は居ない
-		return -1;
-
-	clif_changechatowner(*cd,*cd->usersd[nextowner]);
-	// 一旦消す
-	clif_clearchat(*cd,0);
-
-	// userlistの順番変更 (0が所有者なので)
-	if( (tmp_sd = cd->usersd[0]) == NULL )
-		return 1; //ありえるのかな？
-	cd->usersd[0] = cd->usersd[nextowner];
-	cd->usersd[nextowner] = tmp_sd;
-
-	// 新しい所有者の位置へ変更
-	cd->block_list::x=cd->usersd[0]->block_list::x;
-	cd->block_list::y=cd->usersd[0]->block_list::y;
-
-	// 再度表示
-	clif_dispchat(*cd,0);
-
-	return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// チャットの状態(タイトル等)を変更
-int chat_changechatstatus(struct map_session_data &sd,unsigned short limit,unsigned char pub,const char* pass,const char* title, size_t titlelen)
-{
-	chat_data *cd = sd.chat;
-
-	if(cd==NULL || &sd!=cd->owner)
-		return 1;
-
-	cd->limit = limit;
-	cd->pub = pub;
-	memcpy(cd->pass,pass,sizeof(pass)-1);
-	cd->pass[sizeof(pass)-1]=0;
-
-	if(titlelen+1>=sizeof(cd->title)) titlelen=sizeof(cd->title)-1;
-	memcpy(cd->title,title,titlelen);
-	cd->title[titlelen]=0;
-
-	clif_changechatstatus(*cd);
-	clif_dispchat(*cd,0);
-
-	return 0;
-}
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-/// npcチャットルーム作成
-int chat_createnpcchat(struct npc_data &nd,unsigned short limit,unsigned char pub, int trigger,const char* title, unsigned short titlelen,const char *ev)
-{
-	chat_data *cd;
-
-	cd = new chat_data;
-
-	cd->limit = cd->trigger = limit;
-	if(trigger>0)
-		cd->trigger = trigger;
-	cd->pub = pub;
-	cd->users = 0;
-	memcpy(cd->pass,"",1);
-	if((size_t)titlelen+1>=sizeof(cd->title)) titlelen=sizeof(cd->title)-1;
-	memcpy(cd->title,title,titlelen);
-	cd->title[titlelen]=0;
-
-	cd->block_list::m = nd.block_list::m;
-	cd->block_list::x = nd.block_list::x;
-	cd->block_list::y = nd.block_list::y;
-	cd->block_list::type = BL_CHAT;
-	cd->owner = &nd;
-	memcpy(cd->npc_event,ev,strlen(ev));
-
-	cd->block_list::id = map_addobject(*cd);	
-	if(cd->block_list::id==0)
-	{
-		delete cd;
-		return 0;
-	}
-	nd.chat_id=cd->block_list::id;
-
-	clif_dispchat(*cd,0);
-
-	return 0;
-}
-///////////////////////////////////////////////////////////////////////////////
-/// npcチャットルーム削除
-int chat_deletenpcchat(struct npc_data &nd)
-{
-	chat_data *cd;
-
-	nullpo_retr(0, cd=chat_data::from_blid(nd.chat_id));
-	
-	cd->kickall();
-	clif_clearchat(*cd,0);
-	map_delobject(cd->block_list::id);	// freeまでしてくれる
-	nd.chat_id=0;
-	
-	return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// 規定人数以上でイベントが定義されてるなら実行
-int chat_triggerevent(chat_data &cd)
-{
-	if(cd.users>=cd.trigger && cd.npc_event[0])
-		npc_event_do(cd.npc_event);
-	return 0;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-/// イベントの有効化
-void chat_data::enable_event()
-{
-	this->trigger&=0x7f;
-	chat_triggerevent(*this);
-}
-///////////////////////////////////////////////////////////////////////////////
-/// イベントの無効化
-void chat_data::disable_event()
-{
-	this->trigger|=0x80;
-}
-///////////////////////////////////////////////////////////////////////////////
-/// チャットルームから全員蹴り出す
-void chat_data::kickall()
-{
-	while( this->users>0 && this->usersd[this->users-1] )
-		this->remove( *this->usersd[this->users-1] );
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// create a chat.
@@ -239,8 +43,8 @@ bool chat_data::create(map_session_data& sd, unsigned short limit, unsigned char
 		cd->pub = pub;
 		cd->users = 1;
 
-		safestrcpy(cd->pass, sizeof(pass), pass);
-		safestrcpy(cd->title,sizeof(title),title);
+		safestrcpy(cd->pass, sizeof(cd->pass), pass);
+		safestrcpy(cd->title,sizeof(cd->title),title);
 
 		sd.chat = cd;
 		clif_createchat(sd,0);
@@ -249,6 +53,47 @@ bool chat_data::create(map_session_data& sd, unsigned short limit, unsigned char
 	}
 	return false;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// 既存チャットルームに参加
+bool chat_data::join(struct map_session_data &sd, uint32 chatid, const char* pass)
+{
+	chat_data *cd = chat_data::from_blid(chatid);
+
+	if( !cd || cd->block_list::m != sd.block_list::m || sd.chat || cd->limit <= cd->users )
+	{
+		clif_joinchatfail(sd,0);
+	}
+	else if( (cd->pub == 0 && 0!=strncmp(pass, (char *)cd->pass, 8) && 
+		(sd.isGM()<config.gm_join_chat || !config.gm_join_chat)) )
+	{	// Allows Gm access to protected room with any password they want by valaris
+		clif_joinchatfail(sd,1);
+	}
+	else
+	{
+		cd->usersd[cd->users] = &sd;
+		cd->users++;
+
+		sd.chat = cd;
+
+		clif_joinchatok(sd,*cd);	// 新たに参加した人には全員のリスト
+		clif_addchat(*cd,sd);	// 既に中に居た人には追加した人の報告
+		clif_dispchat(*cd,0);	// 周囲の人には人数変化報告
+
+		cd->trigger_event(); // イベント
+
+		return true;
+	}
+	return false;
+}
+
+
+
+
+
+
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// kick user from chat
@@ -268,6 +113,15 @@ bool chat_data::kick(const char *kickusername)
 	}
 	return false;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// チャットルームから全員蹴り出す
+void chat_data::kickall()
+{
+	while( this->users>0 && this->usersd[this->users-1] )
+		this->remove( *this->usersd[this->users-1] );
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// removes session from chat.
 /// チャットルームから抜ける
@@ -277,6 +131,9 @@ bool chat_data::remove(map_session_data &sd)
 	{
 		size_t i;
 		
+		// in all cases, remove the chat pointer from the session
+		sd.chat = NULL;
+
 		for(i=0; i<this->users; ++i)
 		{
 			if(this->usersd[i] == &sd)
@@ -315,12 +172,153 @@ bool chat_data::remove(map_session_data &sd)
 				break;
 			}
 		}
-		// in all cases, remove the chat pointer from the session
-		sd.chat = NULL;
-
 		return true;
 	}
 	return false;
 }
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// チャットルームの持ち主を譲る
+bool chat_data::change_owner(struct map_session_data &sd, const char *nextownername)
+{
+	if( sd.chat==this && &sd==this->owner )
+	{
+		size_t i;
+		for(i=0; i<this->users; ++i)
+		{
+			if( this->usersd[i] && &sd!=this->usersd[i] && 0==strcmp(this->usersd[i]->status.name, nextownername) )
+			{
+				clif_changechatowner(*this, *this->usersd[i]);
+				clif_clearchat(*this,0);
+
+				basics::swap(this->usersd[0], this->usersd[i]);
+
+				// 新しい所有者の位置へ変更
+				this->block_list::x = this->usersd[0]->block_list::x;
+				this->block_list::y = this->usersd[0]->block_list::y;
+
+				clif_dispchat(*this,0);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// チャットの状態(タイトル等)を変更
+bool chat_data::change_status(struct map_session_data &sd, unsigned short limit, unsigned char pub, const char* pass,const char* title)
+{
+	if( sd.chat==this && &sd==this->owner )
+	{
+		this->limit = limit;
+		this->pub = pub;
+		safestrcpy(this->pass, sizeof(this->pass), pass);
+		safestrcpy(this->title, sizeof(this->title), title);
+
+		clif_changechatstatus(*this);
+		clif_dispchat(*this,0);
+		return true;
+	}
+	return false;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// npcチャットルーム作成
+bool npcchat_data::create(struct npc_data &nd, unsigned short limit, unsigned char pub, int trigger, const char* title, const char *ev)
+{
+	npcchat_data *cd = new npcchat_data();
+	cd->block_list::id = map_addobject(*cd);
+	if(cd->block_list::id==0)
+	{
+		delete cd;
+	}
+	else
+	{
+		cd->limit = cd->trigger = limit;
+
+		if(trigger>0)
+			cd->trigger = trigger;
+
+		cd->pub = pub;
+		cd->users = 0;
+
+		*cd->pass = 0;
+
+		safestrcpy(cd->title,sizeof(cd->title),title);
+
+		cd->block_list::m = nd.block_list::m;
+		cd->block_list::x = nd.block_list::x;
+		cd->block_list::y = nd.block_list::y;
+		cd->block_list::type = BL_CHAT;
+		cd->owner = &nd;
+		safestrcpy(cd->npc_event, sizeof(cd->npc_event), ev);
+
+
+		nd.chat = cd;
+
+		clif_dispchat(*cd,0);
+		return false;
+	}
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// npcチャットルーム削除
+bool npcchat_data::erase(struct npc_data &nd)
+{
+	if(nd.chat)
+	{
+		npcchat_data* cd = nd.chat;
+
+		cd->kickall();
+		clif_clearchat(*cd,0);
+		map_delobject(cd->block_list::id);	// freeまでしてくれる
+		nd.chat = NULL;
+		return true;
+	}
+	return false;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// イベントの有効化
+void npcchat_data::enable_event()
+{
+	this->trigger&=0x7f;
+	this->trigger_event();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// イベントの無効化
+void npcchat_data::disable_event()
+{
+	this->trigger|=0x80;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// 規定人数以上でイベントが定義されてるなら実行
+void npcchat_data::trigger_event()
+{
+	if( this->users >= this->trigger && this->npc_event[0] )
+		npc_event_do(this->npc_event);
+}
+
+
+
 
 

@@ -181,11 +181,10 @@ static struct _namereq_db
 		this->clean();
 	}
 
-	static int final(void *k,void *d)
+	static void final(void *k,void *d)
 	{
 		struct CNameStorageBase *p = (struct CNameStorageBase *) d;
 		if (p) delete p;
-		return 0;
 	}
 
 	void clean()
@@ -357,7 +356,7 @@ int map_daynight_timer(int tid, unsigned long tick, int id, basics::numptr data)
 		daynight_flag = new_flag;
 
 		// set clients and send messages
-		const char *str = msg_txt((daynight_flag)?59:60);
+		const char *str = msg_txt((daynight_flag)?MSG_NIGHT_HAS_FALLEN:MSG_DAY_HAS_ARRIVED);
 		size_t sz = 1+strlen(str);
 		struct map_session_data *psd = NULL;
 		size_t i;
@@ -1758,7 +1757,7 @@ int map_quit(struct map_session_data &sd)
 		}
 		else
 		{
-			int evt = npc_event_doall_id("OnPCLogoutEvent", sd.block_list::id, sd.block_list::m);
+			int evt = npc_event_doall("OnPCLogoutEvent", sd.block_list::id, sd.block_list::m);
 			if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCLogoutEvent");
 		}
 	}
@@ -2281,31 +2280,27 @@ int map_setipport(const char *name, basics::ipset &mapset)
  * 他鯖管理のマップを全て削除
  *------------------------------------------
  */
-class CDBMapEraseallipport : public CDBProcessor
-{
-public:
-	CDBMapEraseallipport()	{}
-	virtual ~CDBMapEraseallipport()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		struct map_data_other_server *mdos = (struct map_data_other_server*)data;
-		if(mdos && mdos->gat == NULL)
-		{
-			struct map_data *md = mdos->map;
-			strdb_erase(map_db,key);
-			delete mdos;
-			if( md )
-			{	// real mapdata exists
-				strdb_insert(map_db,md->mapname, md);
-			}
-		}
-		return true;
-	}
-};
-
 int map_eraseallipport(void)
 {
-	strdb_foreach(map_db, CDBMapEraseallipport() );
+	db_iterator<const char*, map_data_other_server*> iter(map_db);
+	for(;iter; ++iter)
+	{
+		map_data_other_server *mdos = iter.data();
+		// decision between map_data and map_data_other_server 
+		// is currently done with having member ->gat == NULL
+		if(mdos && mdos->gat == NULL)
+		{	
+			map_data *md = mdos->map;
+			
+			strdb_erase(map_db, iter.key());
+			delete mdos;
+
+			if( md )
+			{	// real mapdata exists
+				strdb_insert(map_db, md->mapname, md);
+			}
+		}
+	}
 	return 1;
 }
 
@@ -3349,15 +3344,6 @@ int online_timer(int tid, unsigned long tick, int id, basics::numptr data)
 	return 0;
 }
 
-int id_db_final(void *k,void *d) 
-{
-	return 0; 
-}
-
-int map_db_final(void *k,void *d) 
-{
-	return 0; 
-}
 
 
 
@@ -3463,12 +3449,12 @@ void do_final(void)
 	}
 	if(block_list::id_db)
 	{
-		numdb_final(block_list::id_db, id_db_final);
+		numdb_final(block_list::id_db);
 		block_list::id_db=NULL;
 	}
 	if(map_db)
 	{
-		strdb_final(map_db, map_db_final);
+		strdb_final(map_db);
 		map_db=NULL;
 	}
 

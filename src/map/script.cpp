@@ -1661,7 +1661,7 @@ script_object* parse_script(unsigned char *src, size_t line)
  *------------------------------------------
  */
 
-int set_var(const char *name, void *v)
+int set_var(const char *name, const void *v)
 {
 	if(name)
 	{
@@ -1688,7 +1688,7 @@ int set_var(const char *name, void *v)
 	}
     return 0;
 }
-int set_var(struct map_session_data &sd, const char *name, void *v)
+int set_var(struct map_session_data &sd, const char *name, const void *v)
 {
 	if(name)
 	{
@@ -1856,7 +1856,7 @@ v18 xxxx-xx-xx	text & input ok
 			defnpc.speed = 200;
 			defnpc.u.scr.ref=NULL;
 			defnpc.u.scr.timer_event=NULL;
-			defnpc.chat_id = 0;
+			defnpc.chat = NULL;
 			defnpc.option = 0;
 			defnpc.opt1 = 0;
 			defnpc.opt2 = 0;
@@ -2704,7 +2704,16 @@ int CScriptEngine::run(const char*rootscript, size_t pos, uint32 rid, uint32 oid
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// display message
+//
+// script user gui functions
+//
+///////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// user gui message. 
+/// display a message, opens a test window if not exist
+/// otherwise display text in the existing text window
 int buildin_mes(CScriptEngine &st)
 {
 	if(st.sd)
@@ -2714,10 +2723,12 @@ int buildin_mes(CScriptEngine &st)
 	}
 	return 0;
 }
+
 ///////////////////////////////////////////////////////////////////////////////
-// display next button on the client
-// continue the script when button is pressed
-// skip command if no message window exists
+/// user gui next button. 
+/// display next button on the client.
+/// continue the script when button is pressed
+/// skip command if no message window exists
 int buildin_next(CScriptEngine &st)
 {
 	if(st.sd && st.isMessage())
@@ -2729,9 +2740,10 @@ int buildin_next(CScriptEngine &st)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// display close button which closes the window on the client
-// terminate the script when pressed 
-// or terminate immediately if no message window exists
+/// user gui close button. 
+/// display close button which closes the window on the client
+/// terminate the script when pressed 
+/// or terminate immediately if no message window exists
 int buildin_close(CScriptEngine &st)
 {
 	if(st.sd && st.isMessage() )
@@ -2752,9 +2764,10 @@ int buildin_close(CScriptEngine &st)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// display close button which closes the window on the client
-// continue the script when button is pressed
-// skip the command if no message window exists
+/// user gui close button. 
+/// displays a close button which closes the window on the client
+/// but continue the script when button is pressed,
+/// skip the command if no message window exists
 int buildin_close2(CScriptEngine &st)
 {
 	if(st.sd && st.isMessage() )
@@ -2772,10 +2785,10 @@ int buildin_close2(CScriptEngine &st)
 	return 0;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+/// user gui selection menu.
+/// does a goto command to the label at selected position or quits the script
+/// when cancel has been selected. returns nothing
 int buildin_menu(CScriptEngine &st)
 {
 	if(st.sd)
@@ -2804,29 +2817,25 @@ int buildin_menu(CScriptEngine &st)
 		}
 		else
 		{
-			size_t menu = st.GetInt( st.cExtData );
-			if(menu==0xff)
-			{	// cancel
-				st.clearMessage();
-				st.Quit();
-			}
-			else
+			size_t menu = 0xFF & st.GetInt( st.cExtData );
+			if( menu>0 && menu<(st.end-st.start)/2 && st[menu*2+1].type==CScriptEngine::C_POS )
 			{	// goto動作
 				// ragemu互換のため
 				pc_setreg(*st.sd,add_str("l15"),menu);
 				pc_setreg(*st.sd,add_str("@menu"),menu);
-				if(menu>0 && menu<(st.end-st.start)/2)
-				{
-					if( st[menu*2+1].type==CScriptEngine::C_POS )
-					{
-						st.Goto( st[menu*2+1].num );
-					}
-					else
-					{
-						ShowMessage("script: menu point %i is not a label !\n", menu);
-						st.Quit();
-					}
+				// do the goto
+				st.Goto( st[menu*2+1].num );
+				// and
+			}
+			else 
+			{	// canceled or wrong values
+				if(menu!=0xFF)
+				{	// some error when not canceled
+					ShowMessage("script: menu point %i is not a label !\n", menu);
+					st.clearMessage();
 				}
+				// quit the script
+				st.Quit();
 			}
 		}
 	}
@@ -2837,6 +2846,9 @@ int buildin_menu(CScriptEngine &st)
 	return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// user gui selection menu.
+/// returns number of selected entry, -1 when cancel has been pressed
 int buildin_select(CScriptEngine &st)
 {
 	if(st.sd)
@@ -2864,19 +2876,15 @@ int buildin_select(CScriptEngine &st)
 			delete[] buf;
 		}
 		else
-		{
-			size_t menu = st.GetInt( st.cExtData );
-			if(menu==0xff)
+		{	// client only sends a byte, so onyl use a byte
+			int menu = 0xFF & st.GetInt( st.cExtData );
+			if(menu==0xFF)
 			{	// cancel
-				st.clearMessage();
-				st.Quit();
+				menu = -1;
 			}
-			else 
-			{
-				pc_setreg(*st.sd,add_str( "l15"),menu);
-				pc_setreg(*st.sd,add_str( "@menu"),menu);
-				st.push_val(CScriptEngine::C_INT,menu);
-			}
+			pc_setreg(*st.sd,add_str( "l15"),menu);
+			pc_setreg(*st.sd,add_str( "@menu"),menu);
+			st.push_val(CScriptEngine::C_INT,menu);
 		}
 	}
 	else
@@ -2885,10 +2893,10 @@ int buildin_select(CScriptEngine &st)
 	}
 	return 0;
 }
-/*==========================================
- *
- *------------------------------------------
- */
+
+///////////////////////////////////////////////////////////////////////////////
+/// user gui input box.
+/// returns entered string/number depending on the type of given variable.
 int buildin_input(CScriptEngine &st)
 {
 	if( st.sd )
@@ -2934,30 +2942,43 @@ int buildin_input(CScriptEngine &st)
 	}
 	return 0;
 }
-/*==========================================
- *
- *------------------------------------------
- */
-int buildin_viewpoint(CScriptEngine &st)
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// script flow control functions
+//
+///////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// 
+///
+int buildin_if(CScriptEngine &st)
 {
-	if(st.sd)
-	{
-		int type=st.GetInt(st[2]);
-		int x	=st.GetInt(st[3]);
-		int y	=st.GetInt(st[4]);
-		int id	=st.GetInt(st[5]);
-		int color=st.GetInt(st[6]);
-		
-		clif_viewpoint(*st.sd, st.send_defaultnpc(), type, x, y, id, color);
+	size_t sel,i;
+
+	sel=st.GetInt(st[2]);
+	if(!sel)
+		return 0;
+
+	// 関数名をコピー
+	st.push_copy(st.start+3);
+	// 間に引数マーカを入れて
+	st.push_val(CScriptEngine::C_ARG,0);
+	// 残りの引数をコピー
+	for(i=st.start+4;i<st.end;++i){
+		st.push_copy(i);
 	}
+	st.run_func();
+
 	return 0;
 }
 
-
-/*==========================================
- *
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
 int buildin_goto(CScriptEngine &st)
 {
 	if(st[2].type != CScriptEngine::C_POS)
@@ -2971,10 +2992,35 @@ int buildin_goto(CScriptEngine &st)
 	return 0;
 }
 
-/*==========================================
- * ユーザー定義関数の呼び出し
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+///
+///
+int buildin_jump_zero(CScriptEngine &st)
+{
+	int sel;
+	sel=st.GetInt(st[2]);
+	if(!sel)
+	{
+		if( st[3].type!=CScriptEngine::C_POS )
+		{
+			ShowMessage("script: jump_zero: not label !\n");
+			st.Quit();
+		}
+		else
+		{
+			st.Goto( st.GetInt(st[3]) );
+			// ShowMessage("script: jump_zero: jumpto : %d\n",pos);
+		}
+	}
+	else
+	{
+		// ShowMessage("script: jump_zero: fail\n");
+	}
+	return 0;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// ユーザー定義関数の呼び出し
+///
 int buildin_callfunc(CScriptEngine &st)
 {
 	const char *str=st.GetString(st[2]);
@@ -3003,10 +3049,9 @@ int buildin_callfunc(CScriptEngine &st)
 	}
 	return 0;
 }
-/*==========================================
- * サブルーティンの呼び出し
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+/// サブルーティンの呼び出し
+///
 int buildin_callsub(CScriptEngine &st)
 {
 	int pos=st.GetInt(st[2]);
@@ -3027,8 +3072,8 @@ int buildin_callsub(CScriptEngine &st)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// 引数の所得
-// gets an argument from callfunc
+/// gets an argument from callfunc.
+/// 引数の所得
 int buildin_getarg(CScriptEngine &st)
 {
 	if( st.defsp<4 || st.stack_data[st.defsp-1].type!=CScriptEngine::C_RETINFO )
@@ -3058,8 +3103,8 @@ int buildin_getarg(CScriptEngine &st)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// サブルーチン/ユーザー定義関数の終了
-// returns a value from callfunction
+/// returns a value from callfunction.
+/// サブルーチン/ユーザー定義関数の終了
 int buildin_return(CScriptEngine &st)
 {
 	if( st.Arguments() > 2 )
@@ -3070,10 +3115,9 @@ int buildin_return(CScriptEngine &st)
 	return 0;
 }
 
-/*==========================================
- * RIDのアタッチ
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+/// RIDのアタッチ
+///
 int buildin_attachrid(CScriptEngine &st)
 {
 	int val = 0;
@@ -3094,15 +3138,43 @@ int buildin_attachrid(CScriptEngine &st)
 	st.push_val(CScriptEngine::C_INT, val);
 	return 0;
 }
-/*==========================================
- * RIDのデタッチ
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+/// RIDのデタッチ
+///
 int buildin_detachrid(CScriptEngine &st)
 {	// just clear the environment, 
 	// script will behave like a server script from this point
 	// even if it still runs within a player context
 	st.sd=NULL;
+	return 0;
+}
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// other script functions
+//
+///////////////////////////////////////////////////////////////////////////////
+
+
+/*==========================================
+ *
+ *------------------------------------------
+ */
+int buildin_viewpoint(CScriptEngine &st)
+{
+	if(st.sd)
+	{
+		int type=st.GetInt(st[2]);
+		int x	=st.GetInt(st[3]);
+		int y	=st.GetInt(st[4]);
+		int id	=st.GetInt(st[5]);
+		int color=st.GetInt(st[6]);
+		
+		clif_viewpoint(*st.sd, st.send_defaultnpc(), type, x, y, id, color);
+	}
 	return 0;
 }
 /*==========================================
@@ -3115,54 +3187,6 @@ int buildin_isloggedin(CScriptEngine &st)
 	return 0;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
-int buildin_if(CScriptEngine &st)
-{
-	size_t sel,i;
-
-	sel=st.GetInt(st[2]);
-	if(!sel)
-		return 0;
-
-	// 関数名をコピー
-	st.push_copy(st.start+3);
-	// 間に引数マーカを入れて
-	st.push_val(CScriptEngine::C_ARG,0);
-	// 残りの引数をコピー
-	for(i=st.start+4;i<st.end;++i){
-		st.push_copy(i);
-	}
-	st.run_func();
-
-	return 0;
-}
-
-int buildin_jump_zero(CScriptEngine &st)
-{
-	int sel;
-	sel=st.GetInt(st[2]);
-	if(!sel)
-	{
-		if( st[3].type!=CScriptEngine::C_POS )
-		{
-			ShowMessage("script: jump_zero: not label !\n");
-			st.Quit();
-		}
-		else
-		{
-			st.Goto( st.GetInt(st[3]) );
-			// ShowMessage("script: jump_zero: jumpto : %d\n",pos);
-		}
-	}
-	else
-	{
-		// ShowMessage("script: jump_zero: fail\n");
-	}
-	return 0;
-}
 /*==========================================
  *
  *------------------------------------------
@@ -5815,9 +5839,9 @@ int buildin_disablenpc(CScriptEngine &st)
 int buildin_enablearena(CScriptEngine &st)	// Added by RoVeRT
 {
 	struct npc_data *nd= npc_data::from_blid(st.oid);
-	chat_data *cd;
+	npcchat_data *cd;
 
-	if( nd && (cd=chat_data::from_blid(nd->chat_id)) )
+	if( nd && (cd=nd->chat) )
 	{
 		npc_enable(nd->name,1);
 		nd->arenaflag=1;
@@ -6148,7 +6172,10 @@ int buildin_waitingroom(CScriptEngine &st)
 	}
 	npc_data *nd = npc_data::from_blid(st.oid);
 	if(nd)
-		chat_createnpcchat(*nd,limit,pub,trigger,name,strlen(name)+1,ev);
+	{	
+		npcchat_data::erase(*nd);
+		npcchat_data::create(*nd,limit,pub,trigger,name,ev);
+	}
 	return 0;
 }
 /*==========================================
@@ -6184,10 +6211,11 @@ int buildin_delwaitingroom(CScriptEngine &st)
 {
 	struct npc_data *nd;
 	if( st.Arguments() > 2 )
-		nd=npc_name2id(st.GetString( (st[2])));
+		nd = npc_name2id(st.GetString( (st[2])));
 	else
-		nd= npc_data::from_blid(st.oid);
-	if(nd) chat_deletenpcchat(*nd);
+		nd = npc_data::from_blid(st.oid);
+	if( nd )
+		npcchat_data::erase(*nd);
 	return 0;
 }
 /*==========================================
@@ -6197,15 +6225,14 @@ int buildin_delwaitingroom(CScriptEngine &st)
 int buildin_waitingroomkickall(CScriptEngine &st)
 {
 	struct npc_data *nd;
-	chat_data *cd;
 
 	if( st.Arguments() > 2 )
-		nd=npc_name2id(st.GetString( (st[2])));
+		nd = npc_name2id(st.GetString( (st[2])));
 	else
-		nd= npc_data::from_blid(st.oid);
+		nd = npc_data::from_blid(st.oid);
 
-	if(nd && (cd= chat_data::from_blid(nd->chat_id)) )
-		cd->kickall();
+	if( nd && nd->chat )
+		nd->chat->kickall();
 	return 0;
 }
 
@@ -6216,15 +6243,14 @@ int buildin_waitingroomkickall(CScriptEngine &st)
 int buildin_enablewaitingroomevent(CScriptEngine &st)
 {
 	struct npc_data *nd;
-	chat_data *cd;
 
 	if( st.Arguments() > 2 )
-		nd=npc_name2id(st.GetString( (st[2])));
+		nd = npc_name2id(st.GetString( (st[2])));
 	else
-		nd= npc_data::from_blid(st.oid);
+		nd = npc_data::from_blid(st.oid);
 
-	if(nd && (cd= chat_data::from_blid(nd->chat_id)) )
-		cd->enable_event();
+	if(nd && nd->chat )
+		nd->chat->enable_event();
 	return 0;
 }
 
@@ -6235,15 +6261,14 @@ int buildin_enablewaitingroomevent(CScriptEngine &st)
 int buildin_disablewaitingroomevent(CScriptEngine &st)
 {
 	struct npc_data *nd;
-	chat_data *cd;
 
 	if( st.Arguments() > 2 )
-		nd=npc_name2id(st.GetString( (st[2])));
+		nd = npc_name2id(st.GetString( (st[2])));
 	else
-		nd= npc_data::from_blid(st.oid);
+		nd = npc_data::from_blid(st.oid);
 
-	if(nd && (cd= chat_data::from_blid(nd->chat_id)) )
-		cd->disable_event();
+	if(nd && nd->chat )
+		nd->chat->disable_event();
 	return 0;
 }
 /*==========================================
@@ -6252,37 +6277,34 @@ int buildin_disablewaitingroomevent(CScriptEngine &st)
  */
 int buildin_getwaitingroomstate(CScriptEngine &st)
 {
-	struct npc_data *nd;
-	chat_data *cd;
-	int val=0,type;
+	const npc_data *nd;
+	int val=-1, type;
 	type=st.GetInt(st[2]);
 	if( st.Arguments() > 3 )
 		nd=npc_name2id(st.GetString( (st[3])));
 	else
 		nd=npc_data::from_blid(st.oid);
 
-	if(nd==NULL || (cd = chat_data::from_blid(nd->chat_id))==NULL ){
-		st.push_val(CScriptEngine::C_INT,-1);
-		return 0;
-	}
-
-	switch(type){
-	case 0: val=cd->users; break;
-	case 1: val=cd->limit; break;
-	case 2: val=cd->trigger&0x7f; break;
-	case 3: val=((cd->trigger&0x80)>0); break;
-	case 32: val=(cd->users >= cd->limit); break;
-	case 33: val=(cd->users >= cd->trigger); break;
-
-	case 4:
-		st.push_str(CScriptEngine::C_CONSTSTR, cd->title);
-		return 0;
-	case 5:
-		st.push_str(CScriptEngine::C_CONSTSTR, cd->pass);
-		return 0;
-	case 16:
-		st.push_str(CScriptEngine::C_CONSTSTR, cd->npc_event);
-		return 0;
+	if( nd && nd->chat )
+	{
+		switch(type)
+		{
+		case 0: val=nd->chat->users; break;
+		case 1: val=nd->chat->limit; break;
+		case 2: val=nd->chat->trigger&0x7f; break;
+		case 3: val=((nd->chat->trigger&0x80)>0); break;
+		case 32: val=(nd->chat->users >= nd->chat->limit); break;
+		case 33: val=(nd->chat->users >= nd->chat->trigger); break;
+		case 4:
+			st.push_str(CScriptEngine::C_CONSTSTR, nd->chat->title);
+			return 0;
+		case 5:
+			st.push_str(CScriptEngine::C_CONSTSTR, nd->chat->pass);
+			return 0;
+		case 16:
+			st.push_str(CScriptEngine::C_CONSTSTR, nd->chat->npc_event);
+			return 0;
+		}
 	}
 	st.push_val(CScriptEngine::C_INT,val);
 	return 0;
@@ -6294,38 +6316,38 @@ int buildin_getwaitingroomstate(CScriptEngine &st)
  */
 int buildin_warpwaitingpc(CScriptEngine &st)
 {
-	int x,y,i,n;
-	const char *str;
-	struct npc_data *nd= npc_data::from_blid(st.oid);
-	chat_data *cd;
+	const npc_data *nd= npc_data::from_blid(st.oid);
+	if( nd && nd->chat )
+	{
+		int i;
+		const npcchat_data *cd = nd->chat;
+		const char *str	= st.GetString(st[2]);
+		int x			= st.GetInt(st[3]);
+		int y			= st.GetInt(st[4]);
+		int n			= ( st.Arguments() > 5 ) ? st.GetInt(st[5]) : cd->trigger&0x7f;
+		struct map_session_data *sd;
 
-	if(nd==NULL || (cd=chat_data::from_blid(nd->chat_id))==NULL )
-		return 0;
-
-	n=cd->trigger&0x7f;
-	str=st.GetString(st[2]);
-	x=st.GetInt(st[3]);
-	y=st.GetInt(st[4]);
-
-	if( st.Arguments() > 5 )
-		n=st.GetInt(st[5]);
-
-	for(i=0;i<n;++i){
-		struct map_session_data *sd=cd->usersd[0];	// リスト先頭のPCを次々に。
-
-		mapreg_setregnum(add_str( "$@warpwaitingpc")+(i<<24),sd->block_list::id);
-
-		if(strcmp(str,"Random")==0)
-			pc_randomwarp(*sd,3);
-		else if(strcmp(str,"SavePoint")==0){
-			if(maps[sd->block_list::m].flag.noteleport)	// テレポ禁止
-				return 0;
-
-			pc_setpos(*sd,sd->status.save_point.mapname,sd->status.save_point.x,sd->status.save_point.y,3);
-		}else
-			pc_setpos(*sd,str,x,y,0);
+		for(i=0, sd=cd->usersd[0]; sd && i<n; ++i, sd=cd->usersd[0])
+		{
+			mapreg_setregnum(add_str("$@warpwaitingpc")+(i<<24),sd->block_list::id);
+			
+			if(strcmp(str,"Random")==0)
+			{
+				pc_randomwarp(*sd,3);
+			}
+			else if(strcmp(str,"SavePoint")==0)
+			{
+				if(maps[sd->block_list::m].flag.noteleport)	// テレポ禁止
+					return 0;
+				pc_setpos(*sd,sd->status.save_point.mapname,sd->status.save_point.x,sd->status.save_point.y,3);
+			}
+			else
+			{
+				pc_setpos(*sd,str,x,y,0);
+			}
+		}
+		mapreg_setregnum(add_str( "$@warpwaitingpcnum"), n);
 	}
-	mapreg_setregnum(add_str( "$@warpwaitingpcnum"),n);
 	return 0;
 }
 
@@ -9222,72 +9244,6 @@ int script_load_mapreg()
  * 永続的マップ変数の書き込み
  *------------------------------------------
  */
-/*
-int script_save_mapreg_intsub(void *key,void *data,va_list &ap)
-{
-	FILE *fp=va_arg(ap,FILE*);
-	int num=((size_t)key)&0x00FFFFFF, i=(((size_t)key)>>24)&0xFF;
-	char *name=str_buf+str_data[num].str;
-	if( name[1]!='@' ){
-		if(i==0)
-			fprintf(fp,"%s\t%d\n", name, (size_t)data);
-		else
-			fprintf(fp,"%s,%d\t%d\n", name, i, (size_t)data);
-	}
-	return 0;
-}
-int script_save_mapreg_strsub(void *key,void *data,va_list &ap)
-{
-	FILE *fp=va_arg(ap,FILE*);
-	int num=((size_t)key)&0x00FFFFFF, i=(((size_t)key)>>24)&0xFF;
-	char *name=str_buf+str_data[num].str;
-	if( name[1]!='@' ){
-		if(i==0)
-			fprintf(fp,"%s\t%s\n", name, (char *)data);
-		else
-			fprintf(fp,"%s,%d\t%s\n", name, i, (char *)data);
-	}
-	return 0;
-}
-*/
-class CDBScriptSaveMapregInt : public CDBProcessor
-{
-	FILE* &fp;
-public:
-	CDBScriptSaveMapregInt(FILE* &f) : fp(f)	{}
-	virtual ~CDBScriptSaveMapregInt()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		int num=((size_t)key)&0x00FFFFFF, i=(((size_t)key)>>24)&0xFF;
-		const char *name=str_data[num].string();
-		if( name[1]!='@' ){
-			if(i==0)
-				fprintf(fp,"%s\t%d\n", name, (int)((size_t)data));
-			else
-				fprintf(fp,"%s,%d\t%d\n", name, i, (int)((size_t)data));
-		}
-		return true;
-	}	
-};
-class CDBScriptSaveMapregStr : public CDBProcessor
-{
-	FILE* &fp;
-public:
-	CDBScriptSaveMapregStr(FILE* &f) : fp(f)	{}
-	virtual ~CDBScriptSaveMapregStr()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		int num=((size_t)key)&0x00FFFFFF, i=(((size_t)key)>>24)&0xFF;
-		const char *name=str_data[num].string();
-		if( name[1]!='@' ){
-			if(i==0)
-				fprintf(fp,"%s\t%s\n", name, (char *)data);
-			else
-				fprintf(fp,"%s,%d\t%s\n", name, i, (char *)data);
-		}
-		return true;
-	}
-};
 int script_save_mapreg()
 {
 	FILE *fp;
@@ -9295,13 +9251,42 @@ int script_save_mapreg()
 	if( (fp=lock_fopen(mapreg_txt, lock))==NULL )
 		return -1;
 
-	numdb_foreach(mapreg_db,    CDBScriptSaveMapregInt(fp) );
-	numdb_foreach(mapregstr_db, CDBScriptSaveMapregStr(fp) );
+	db_iterator<size_t, int> iteri(mapreg_db);
+	for(; iteri; ++iteri)
+	{
+		int num=iteri.key()&0x00FFFFFF;
+		int i  =(iteri.key()>>24)&0xFF;
+		const char *name=str_data[num].string();
+		if( name[1]!='@' )
+		{
+			if(i==0)
+				fprintf(fp,"%s\t%d\n", name, iteri.data());
+			else
+				fprintf(fp,"%s,%d\t%d\n", name, i, iteri.data());
+		}
+	}
+
+	db_iterator<size_t, const char*> iters(mapregstr_db);
+	for(; iters; ++iters)
+	{
+		int num=iters.key()&0x00FFFFFF;
+		int i  =(iters.key()>>24)&0xFF;
+		const char *name=str_data[num].string();
+		if( name[1]!='@' )
+		{
+			if(i==0)
+				fprintf(fp,"%s\t%s\n", name, iters.data());
+			else
+				fprintf(fp,"%s,%d\t%s\n", name, i, iters.data());
+		}
+	}
 
 	lock_fclose(fp,mapreg_txt, lock);
 	mapreg_dirty=0;
 	return 0;
 }
+
+
 int script_autosave_mapreg(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	if(mapreg_dirty)
@@ -9440,21 +9425,15 @@ int script_config_read(const char *cfgName)
  * 終了
  *------------------------------------------
  */
-int mapreg_db_final(void *key,void *data)
-{
-	return 0;
-}
-int mapregstr_db_final(void *key,void *data)
+void mapregstr_db_final(void *key,void *data)
 {
 
 	delete[] ((char*)data);
-	return 0;
 }
-int userfunc_db_final(void *key,void *data)
+void userfunc_db_final(void *key,void *data)
 {
 	delete[] ((char*)key);
 	delete[] ((unsigned char*)data);
-	return 0;
 }
 int do_final_script()
 {
@@ -9463,7 +9442,7 @@ int do_final_script()
 
 	if(mapreg_db)
 	{
-		numdb_final(mapreg_db,mapreg_db_final);
+		numdb_final(mapreg_db);
 		mapreg_db=NULL;
 	}
 	if(mapregstr_db)

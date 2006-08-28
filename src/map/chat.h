@@ -6,10 +6,11 @@
 
 #include "map.h"
 
-
+//## TODO: rename the npc_chat stuff to maybe npc_listen and have this stuff here be more seperated 
 
 
 ///////////////////////////////////////////////////////////////////////////////
+/// a (player) chat object
 class chat_data : public block_list
 {
 public:
@@ -24,20 +25,19 @@ public:
 	char title[61];			// room title (max 60)
 	unsigned short limit;	// join limit
 	unsigned short users;	// current users
-	unsigned char trigger;
 	unsigned char pub;		// room attribute
 	map_session_data *usersd[20];
 	block_list *owner;
-	char npc_event[50];
-
+protected:
 	/////////////////////////////////////////////////////////////////
 	/// constructor.
+	/// cannot be only constructed via create function
 	chat_data() :
-		limit(0), users(0), trigger(0), pub(0), owner(NULL)
+		limit(0), users(0), pub(0), owner(NULL)
 	{
 		memset(usersd,0,sizeof(usersd));
-		memset(npc_event,0,sizeof(npc_event));
 	}
+public:
 	/////////////////////////////////////////////////////////////////
 	/// destructor.
 	virtual ~chat_data()	{}
@@ -54,36 +54,81 @@ public:
 	{
 		return (owner)?owner->id==sd.block_list::id:false;
 	}
-	/////////////////////////////////////////////////////////////////
-	/// 
-	void kickall();
-	/////////////////////////////////////////////////////////////////
-	///
-	void enable_event();
-	/////////////////////////////////////////////////////////////////
-	///
-	void disable_event();
+
 	/////////////////////////////////////////////////////////////////
 	/// create a chat.
 	static bool create(map_session_data& sd, unsigned short limit, unsigned char pub, const char* pass, const char* title);
+	static bool join(map_session_data &sd, uint32 chatid, const char* pass);
+
+
 	/////////////////////////////////////////////////////////////////
 	/// kick user from chat
 	bool kick(const char *kickusername);
 	/////////////////////////////////////////////////////////////////
+	/// 
+	void kickall();
+	/////////////////////////////////////////////////////////////////
 	/// removes session from chat
 	bool remove(map_session_data &sd);
-
-
-
-
+	/////////////////////////////////////////////////////////////////
+	/// change the owner.
+	bool change_owner(map_session_data &sd, const char *nextownername);
+	/////////////////////////////////////////////////////////////////
+	/// change the status.
+	bool change_status(map_session_data &sd, unsigned short limit, unsigned char pub, const char* pass, const char* title);
+	/////////////////////////////////////////////////////////////////
+	///
+	virtual void enable_event()		{}
+	/////////////////////////////////////////////////////////////////
+	///
+	virtual void disable_event()	{}
+	/////////////////////////////////////////////////////////////////
+	///
+	virtual void trigger_event()	{}
 };
 
 
 
-int chat_joinchat(map_session_data &sd,uint32 chatid,const char* pass);
-int chat_changechatowner(map_session_data &sd,const char *nextownername);
-int chat_changechatstatus(map_session_data &sd,unsigned short limit,unsigned char pub,const char* pass,const char* title, size_t titlelen);
-int chat_createnpcchat(npc_data &nd,unsigned short limit,unsigned char pub, int trigger,const char* title, unsigned short titlelen,const char *ev);
-int chat_deletenpcchat(npc_data &nd);
+///////////////////////////////////////////////////////////////////////////////
+/// a npc chat object.
+/// created via script, inherits from chat_data
+class npcchat_data : public chat_data
+{
+public:
+	char npc_event[50];
+	unsigned char trigger;
+	
+private:
+	/////////////////////////////////////////////////////////////////
+	/// constructor.
+	/// cannot be only constructed via create function
+	npcchat_data() : trigger(0)
+	{
+		memset(npc_event,0,sizeof(npc_event));
+	}
+public:
+	/////////////////////////////////////////////////////////////////
+	/// destructor.
+	virtual ~npcchat_data()	{}
+
+	/////////////////////////////////////////////////////////////////
+	///
+	static bool create(npc_data &nd, unsigned short limit, unsigned char pub, int trigger, const char* title, const char *ev);
+	/////////////////////////////////////////////////////////////////
+	///
+	static bool erase(npc_data &nd);
+
+
+	/////////////////////////////////////////////////////////////////
+	///
+	virtual void enable_event();
+	/////////////////////////////////////////////////////////////////
+	///
+	virtual void disable_event();
+	/////////////////////////////////////////////////////////////////
+	///
+	virtual void trigger_event();
+};
+
 
 #endif

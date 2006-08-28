@@ -346,21 +346,21 @@ void clif_ban_player(const map_session_data &sd, uint32 banoption, const char* r
 
 	if( banoption == 0)
 	{	// ban/block disabled
-		snprintf(message, sizeof(message),msg_txt(508)); //  This player hasn't been banned (Ban option is disabled).
+		snprintf(message, sizeof(message),msg_txt(MSG_BAN_DISABLED));
 	}
 	else if( config.ban_bot & 0x80000000 )
 	{	// value was negative -> block
 		chrif_char_ask_name(-1, sd.status.name, 1, 0, 0, 0, 0, 0, 0); // type: 1 - block
 		session_Remove(sd.fd); // forced to disconnect because of the hack
 		// message about the ban
-		snprintf(message, sizeof(message),msg_txt(MSG_GUARDIAN_ANGEL), config.ban_spoof_namer); //  This player has been definitivly blocked.
+		snprintf(message, sizeof(message),msg_txt(MSG_BLOCKED), config.ban_spoof_namer);
 	}
 	else
 	{	// positive value -> gives minutes of ban time
 		chrif_char_ask_name(-1, sd.status.name, 2, 0, 0, 0, 0, config.ban_bot, 0); // type: 2 - ban (year, month, day, hour, minute, second)
 		session_Remove(sd.fd); // forced to disconnect because of the hack
 		// message about the ban
-		snprintf(message, sizeof(message),msg_txt(507), config.ban_spoof_namer); //  This player has been banned for %d minute(s).
+		snprintf(message, sizeof(message),msg_txt(MSG_BANNED_D_MINUTES), config.ban_spoof_namer);
 	}
 	intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message);
 }
@@ -4654,9 +4654,9 @@ int clif_getareachar_npc(struct map_session_data &sd,struct npc_data &nd)
 		len = clif_npc0078(nd,WFIFOP(sd.fd,0));
 	WFIFOSET(sd.fd,len);
 
-	if(nd.chat_id)
+	if(nd.chat)
 	{
-		chat_data *cd = chat_data::from_blid(nd.chat_id);
+		npcchat_data *cd = nd.chat;
 		if(cd) clif_dispchat(*cd, sd.fd);
 	}
 	return 0;
@@ -4856,11 +4856,7 @@ int clif_getareachar_pet(struct map_session_data &sd,struct pet_data &pd)
 	if( !session_isActive(sd.fd) )
 		return 0;
 
-	if(pd.state.state == MS_WALK){
-		len = clif_pet007b(pd,WFIFOP(sd.fd,0));
-	} else {
-		len = clif_pet0078(pd,WFIFOP(sd.fd,0));
-	}
+	len = pd.is_walking() ? clif_pet007b(pd,WFIFOP(sd.fd,0)) :  clif_pet0078(pd,WFIFOP(sd.fd,0));
 	WFIFOSET(sd.fd,len);
 	return 0;
 }
@@ -5370,6 +5366,9 @@ int CClifInsight::process(block_list& bl) const
 
 	map_session_data *sd = (tsd) ? tsd : bl.get_sd();
 	block_list* object   = (tsd) ? &bl : &tbl;
+
+	if(!tsd && object->get_md() )
+		object->get_md();
 
 	if( sd && session_isActive(sd->fd) )
 	{	//Tell sd that object entered into his view
@@ -9561,7 +9560,7 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 	}
 	else
 	{
-		int evt = npc_event_doall_id("OnPCLoadMapEvent", sd.block_list::id, sd.block_list::m);
+		int evt = npc_event_doall("OnPCLoadMapEvent", sd.block_list::id, sd.block_list::m);
 		if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCLoadMapEvent");
 		// ============================================ 
 	}
@@ -9744,16 +9743,16 @@ int clif_parse_GlobalMessage(int fd, struct map_session_data &sd)
 		int next = pc_nextbaseexp(sd) > 0 ? pc_nextbaseexp(sd) : sd.status.base_exp;
 		if (next > 0 && (sd.status.base_exp * 100 / next) % 10 == 0)
 		{
-			if (sd.state.snovice_flag == 0 && strstr(message, msg_txt(504))) // FIXME: Magic sentences not in the enum!
+			if (sd.state.snovice_flag == 0 && strstr(message, msg_txt(MSG_GUARDIAN_ANGEL)))
 				sd.state.snovice_flag = 1;
 			else if (sd.state.snovice_flag == 1)
 			{
 				char output[512];
-				snprintf(output, sizeof(output), msg_txt(505), sd.status.name); // FIXME: Magic sentences not in the enum!
+				snprintf(output, sizeof(output), msg_txt(MSG_NAME_IS_S_AND_SUPER_NOVICE), sd.status.name);
 				if( strstr(message, output) )
 					sd.state.snovice_flag = 2;
 			}
-			else if (sd.state.snovice_flag == 2 && strstr(message, msg_txt(506))) // FIXME: Magic sentences not in the enum!
+			else if (sd.state.snovice_flag == 2 && strstr(message, msg_txt(MSG_PLEASE_HELP_ME)))
 			{
 				sd.state.snovice_flag = 3;
 			}
@@ -10006,7 +10005,7 @@ int clif_parse_Restart(int fd, struct map_session_data &sd)
 		}
 		// in case the player's status somehow wasn't updated yet [Celest]
 		else if (sd.status.hp <= 0)
-			pc_setdead(sd);
+			sd.set_dead();
 		break;
 	}
 	case 0x01:
@@ -10425,7 +10424,7 @@ int clif_parse_ChatAddMember(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	chat_joinchat(sd, RFIFOL(fd,2), (char*)RFIFOP(fd,6));
+	chat_data::join(sd, RFIFOL(fd,2), (char*)RFIFOP(fd,6));
 	return 0;
 }
 
@@ -10437,8 +10436,12 @@ int clif_parse_ChatRoomStatusChange(int fd, struct map_session_data &sd)
 {
 	if( !session_isActive(fd) )
 		return 0;
-
-	chat_changechatstatus(sd,RFIFOW(fd,4),RFIFOB(fd,6),(char*)RFIFOP(fd,7),(char*)RFIFOP(fd,15),RFIFOW(fd,2)-15);
+	if(sd.chat)
+	{	// force string termination inside the buffer
+		RFIFOB(fd, 14) = 0;
+		RFIFOB(fd, RFIFOW(fd,2)-1) = 0;
+		sd.chat->change_status(sd, RFIFOW(fd,4), RFIFOB(fd,6),(const char*)RFIFOP(fd,7), (const char*)RFIFOP(fd,15));
+	}
 	return 0;
 }
 
@@ -10450,8 +10453,8 @@ int clif_parse_ChangeChatOwner(int fd, struct map_session_data &sd)
 {
 	if( !session_isActive(fd) )
 		return 0;
-
-	chat_changechatowner(sd,(const char*)RFIFOP(fd,6));
+	if(sd.chat)
+		sd.chat->change_owner(sd, (const char*)RFIFOP(fd,6));
 	return 0;
 }
 

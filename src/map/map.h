@@ -158,8 +158,14 @@
 
 
 
-
-enum { MS_IDLE,MS_WALK,MS_ATTACK,MS_DEAD,MS_DELAY };
+/*
+enum { 
+	MS_IDLE,
+	MS_WALK,
+	MS_ATTACK,
+	MS_DEAD,
+	MS_DELAY };
+*/
 
 enum { NONE_ATTACKABLE,ATTACKABLE };
 
@@ -265,6 +271,7 @@ struct mob_data;
 struct pet_data;
 class flooritem_data;
 class chat_data;
+class npcchat_data;
 struct skill_unit;
 class homun_data;
 
@@ -538,7 +545,12 @@ public:
 	virtual bool is_attackable() const	{ return false; }
 
 	/// sets the object to idle state
-	virtual bool set_idle()				{ return false; }
+	virtual bool set_idle(ulong delaytick=0){ return false; }
+	/// sets the object to idle state
+	virtual bool set_dead()				{ return false; }
+
+
+
 
 	///////////////////////////////////////////////////////////////////////////
 	// walking functions
@@ -948,7 +960,6 @@ public:
 	uint32 potion_per_sp;
 
 	int invincible_timer;
-	unsigned long canact_tick;
 	unsigned long canlog_tick;
 	unsigned long canregen_tick;
 	uint32 hp_sub;
@@ -1243,8 +1254,6 @@ public:
 	virtual void do_walkend();
 	/// do object depending stuff for the walkto
 	virtual void do_walkto();
-	/// do object depending stuff for changestate
-	virtual void do_changestate(int state,int type);
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1253,7 +1262,7 @@ public:
 	/// checks for dead state
 	virtual bool is_dead() const		{ return (this->state.dead_sit == 1); }
 
-
+	virtual bool set_dead()				{ this->state.dead_sit = 1; return true; }
 
 	/// do object depending stuff for attacking
 	virtual void do_attack();
@@ -1311,6 +1320,10 @@ struct npc_item_list
 //	{}
 };
 
+
+#include "npclisten.h"
+
+
 struct npc_data : public movable
 {
 	/////////////////////////////////////////////////////////////////
@@ -1328,20 +1341,15 @@ struct npc_data : public movable
 	short speed;
 	char name[24];
 	char exname[24];
-	int chat_id;
+	npcchat_data* chat;
 	short opt1;
 	short opt2;
 	short opt3;
 	short option;
 	short flag;
 
-	struct { // [Valaris]
-		unsigned state : 8;
-	} state;
-
-
 	short arenaflag;
-	void *chatdb;
+	npc_parse *listendb;
 
 	union {
 		struct {
@@ -1389,11 +1397,6 @@ struct npc_data : public movable
 	virtual bool do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
 	/// do object depending stuff for the walkto
 	virtual void do_walkto() {}
-	/// do object depending stuff for changestate
-	virtual void do_changestate(int state,int type);
-
-	/// checks for walking state
-	virtual bool is_walking() const		{ return this->movable::is_walking()||(state.state==MS_WALK); }
 
 
 private:
@@ -1561,7 +1564,7 @@ struct mob_data : public fightable
 	mob_list* cache;
 
 	struct _state {
-		unsigned state : 8;						//b1
+//		unsigned state : 8;						//b1
 		unsigned skillstate : 8;				//b2
 		unsigned targettype : 1;
 		unsigned steal_flag : 1;
@@ -1577,7 +1580,7 @@ struct mob_data : public fightable
 		unsigned _unused : 1;
 
 		_state() :
-			state(0),
+//			state(0),
 			skillstate(0),
 			targettype(0),
 			steal_flag(0),
@@ -1677,11 +1680,7 @@ struct mob_data : public fightable
 	virtual bool do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
 	/// do object depending stuff for the walkto
 	virtual void do_walkto() {}
-	/// do object depending stuff for changestate
-	virtual void do_changestate(int state,int type);
 
-	/// checks for walking state
-	virtual bool is_walking() const		{ return this->movable::is_walking()||(state.state==MS_WALK); }
 
 	/// special target unlocking with standby time
 	void unlock_target(unsigned long tick);
@@ -1716,7 +1715,7 @@ struct mob_data : public fightable
 
 	/// checks for dead state
 	virtual bool is_dead() const		{ return (this->hp<=0); }
-
+	virtual bool set_dead();
 
 
 private:
@@ -1744,14 +1743,14 @@ struct pet_data : public fightable
 
 	struct _state
 	{
-		unsigned state : 8 ;
+//		unsigned state : 8 ;
 		unsigned skillstate : 8 ;
 		
 		unsigned casting_flag : 1; //Skotlex: Used to identify when we are casting. I want a state.state value for that....
 
 		signed skillbonus : 2;
 		_state() : 
-			state(0),
+//			state(0),
 			skillstate(0),
 			casting_flag(0),
 			skillbonus(0)
@@ -1912,11 +1911,6 @@ struct pet_data : public fightable
 	virtual bool do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
 	/// do object depending stuff for the walkto
 	virtual void do_walkto() {}
-	/// do object depending stuff for changestate
-	virtual void do_changestate(int state,int type);
-
-	/// checks for walking state
-	virtual bool is_walking() const		{ return this->movable::is_walking()||(state.state==MS_WALK); }
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1938,6 +1932,9 @@ struct pet_data : public fightable
 	virtual ushort get_head_buttom() const;
 	virtual ushort get_clothes_color() const;
 	virtual int get_equip() const;
+
+
+	virtual bool set_dead()	{ return false; }// cannot die
 
 private:
 	pet_data(const pet_data&);					// forbidden

@@ -484,10 +484,6 @@ void map_session_data::do_walkto()
 		}
 	}
 }
-/// do object depending stuff for changestate
-void map_session_data::do_changestate(int state,int type)
-{
-}
 
 /// do object depending stuff for attacking
 void map_session_data::do_attack()
@@ -1294,7 +1290,7 @@ int pc_authok(uint32 charid, uint32 login_id2, time_t connect_until_time, unsign
 	}
 	else
 	{
-		int evt = npc_event_doall_id("OnPCLoginEvent", sd->block_list::id, sd->block_list::m);
+		int evt = npc_event_doall("OnPCLoginEvent", sd->block_list::id, sd->block_list::m);
 		if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCLoginEvent");
 	}
 
@@ -2845,7 +2841,7 @@ int pc_dropitem(struct map_session_data &sd,unsigned short inx, size_t amount)
 	if( !itemdb_isdropable(sd.status.inventory[inx].nameid, sd.isGM()) )
 	{	//The client does not likes being silently ignored, so we send it a del of 0 qty
 		clif_delitem(sd,inx,0);
-		clif_displaymessage (sd.fd, msg_txt(263)); // FIXME: Not in the enum!
+		clif_displaymessage (sd.fd, msg_txt(MSG_ITEM_CANNOT_BE_DROPPED));
 		return 1;
 	}
 
@@ -3028,7 +3024,7 @@ int pc_cart_additem(struct map_session_data &sd, struct item &item_data, size_t 
 
 	if(!itemdb_cancartstore(item_data.nameid, sd.isGM()))
 	{	//Check item trade restrictions	[Skotlex]
-		clif_displaymessage (sd.fd, msg_txt(264)); // FIXME: Not in the enum!
+		clif_displaymessage (sd.fd, msg_txt(MSG_ITEM_CANNOT_BE_STORED));
 		return 1;
 	}
 
@@ -3548,7 +3544,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 
 	if(sd.status.pet_id > 0 && sd.pd && sd.pd->pet.intimate > 0) {
 		sd.pd->stop_attack();
-		sd.pd->changestate(MS_IDLE,0);
+		sd.pd->set_idle();
 	}
 
 
@@ -3577,7 +3573,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 				else if(sd.pd->pet.intimate > 0)
 				{
 					sd.pd->stop_attack();
-					sd.pd->changestate(MS_IDLE,0);
+					sd.pd->set_idle();
 					clif_clearchar_area(*sd.pd,clrtype);
 					sd.pd->delblock();
 				}
@@ -3586,7 +3582,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 			if(sd.hd)
 			{
 				sd.hd->stop_attack();
-				sd.hd->changestate(MS_IDLE,0);
+				sd.hd->set_idle();
 				clif_clearchar_area(*sd.hd,clrtype);
 				sd.hd->delblock();
 			}
@@ -3673,7 +3669,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 			else if(sd.pd->pet.intimate > 0)
 			{
 				sd.pd->stop_attack();
-				sd.pd->changestate(MS_IDLE,0);
+				sd.pd->set_idle();
 				clif_clearchar_area(*sd.pd,clrtype);
 				sd.pd->delblock();
 			}
@@ -3681,7 +3677,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 		if(sd.hd)
 		{
 			sd.hd->stop_attack();
-			sd.hd->changestate(MS_IDLE,0);
+			sd.hd->set_idle();
 			clif_clearchar_area(*sd.hd,clrtype);
 			sd.hd->delblock();
 		}
@@ -3706,7 +3702,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 		sd.pd->block_list::m = m;
 		sd.pd->block_list::x = sd.pd->walktarget.x = x;
 		sd.pd->block_list::y = sd.pd->walktarget.y = y;
-		sd.pd->calc_pos(sd);
+		sd.pd->random_position(sd);
 		sd.pd->block_list::x = sd.pd->walktarget.x;
 		sd.pd->block_list::y = sd.pd->walktarget.y;
 		sd.pd->dir  = sd.dir;
@@ -3716,7 +3712,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 		sd.hd->block_list::m = m;
 		sd.hd->block_list::x = sd.hd->walktarget.x = x;
 		sd.hd->block_list::y = sd.hd->walktarget.y = y;
-		sd.hd->calc_pos(sd);
+		sd.hd->random_position(sd);
 		sd.hd->block_list::x = sd.hd->walktarget.x;
 		sd.hd->block_list::y = sd.hd->walktarget.y;
 	}
@@ -4103,7 +4099,7 @@ int pc_checkbaselevelup(struct map_session_data &sd)
 		}
 		else
 		{
-			int evt = npc_event_doall_id("OnPCBaseUpEvent", sd.block_list::id, sd.block_list::m);
+			int evt = npc_event_doall("OnPCBaseUpEvent", sd.block_list::id, sd.block_list::m);
 			if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "PCBaseUpEvent");
 		}
 		//LORDALFA - LVLUPEVENT
@@ -4855,7 +4851,7 @@ int pc_damage(struct map_session_data &sd, long damage, block_list *src)
 			}
 			else
 			{
-				int evt = npc_event_doall_id("OnPCKillEvent", sd.block_list::id, sd.block_list::m);
+				int evt = npc_event_doall("OnPCKillEvent", sd.block_list::id, sd.block_list::m);
 				if(evt) ShowStatus ("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCKillEvent");
 			}
 		}
@@ -4916,7 +4912,7 @@ int pc_damage(struct map_session_data &sd, long damage, block_list *src)
 		}
 		else
 		{
-			int evt = npc_event_doall_id("OnPCDieEvent", sd.block_list::id, sd.block_list::m);
+			int evt = npc_event_doall("OnPCDieEvent", sd.block_list::id, sd.block_list::m);
 			if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCDieEvent");
 		}
 	}
@@ -4947,7 +4943,7 @@ int pc_damage(struct map_session_data &sd, long damage, block_list *src)
 			sd.dev.val1[i] = sd.dev.val2[i]=0;
 		}
 
-	pc_setdead(sd);
+	sd.set_dead();
 	sd.ScriptEngine.clearAll();
 
 	skill_unit_move(sd,gettick(),0);
@@ -4997,9 +4993,9 @@ int pc_damage(struct map_session_data &sd, long damage, block_list *src)
 		if(md && md->target_id != 0 && md->target_id==sd.block_list::id)
 		{	// reset target id when player dies
 			md->target_id=0;
-			md->changestate(MS_WALK,0);
+			md->randomwalk(200);
 		}
-		if( config.mobs_level_up && md && md->state.state!=MS_DEAD && 
+		if( config.mobs_level_up && md && !md->is_dead() && 
 			md->level < config.max_base_level &&
 			(md->class_ < 1285 || md->class_ > 1288) )
 		{	// monster level up [Valaris]
@@ -5077,7 +5073,7 @@ int pc_damage(struct map_session_data &sd, long damage, block_list *src)
 					ssd->pvp_point++; ssd->pvp_won++;
 				}
 			}
-			pc_setdead(sd);
+			sd.set_dead();
 		}
 		// ?§‘—ŠÒ
 		if( sd.pvp_point < 0 ){

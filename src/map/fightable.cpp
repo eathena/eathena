@@ -49,6 +49,12 @@ bool fightable::set_idle()
 	return this->movable::set_idle();
 }
 
+void fightable::set_delay(ulong delay)
+{
+	this->canact_tick = this->attackable_tick = delay;
+	this->movable::set_delay(delay);
+}
+
 bool fightable::is_movable()
 {
 	if( DIFF_TICK(this->canmove_tick, gettick()) > 0 )
@@ -147,6 +153,22 @@ bool fightable::start_attack(const block_list& target_bl, bool cont)
 	}
 	return true;
 }
+
+bool fightable::start_attack(int type)
+{
+	ulong tick = gettick();
+	long i=DIFF_TICK(this->attackable_tick,tick);
+	if( type && (i<=0 || i>=2000) )
+		this->attackable_tick = tick + status_get_amotion(this);
+	if( this->attacktimer != -1 )
+	{
+		delete_timer(this->attacktimer, fightable::attacktimer_entry);
+		this->attacktimer = -1;
+	}
+	this->attacktimer=add_timer(this->attackable_tick, fightable::attacktimer_entry, this->block_list::id, 0);
+	return true;
+}
+
 /// stops attack
 bool fightable::stop_attack()
 {

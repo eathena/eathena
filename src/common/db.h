@@ -95,8 +95,8 @@ public:
 };
 
 void db_foreach(struct dbt* table, const CDBProcessor& elem);
-void db_final(struct dbt*&table, const CDBProcessor& elem=CDBProcessor());
-void db_final(struct dbt*&table, int(*)(void*,void*));
+void db_final(struct dbt*&table, const CDBProcessor& elem);
+void db_final(struct dbt*&table, void(*)(void*,void*)=NULL);
 
 void db_free_lock(struct dbt *table);
 void db_free_unlock(struct dbt *table);
@@ -111,13 +111,26 @@ template<typename KEY, typename DATA> class db_iterator
 	struct dbt* table;
 	struct dbn *curr;
 public:
-	db_iterator(struct dbt* t) : table(t), curr(NULL)
+	db_iterator(struct dbt* t=NULL) : table(t), curr(NULL)
 	{
 		if(table)
 		{
 			db_free_lock(table);
 			curr = table->head;
 		}
+	}
+	const db_iterator& operator=(dbt* t)
+	{
+		if(table)
+			db_free_unlock(table);
+		table = t;
+		curr  = NULL;
+		if(table)
+		{
+			db_free_lock(table);
+			curr = table->head;
+		}
+		return *this;
 	}
 	db_iterator(const db_iterator& iter) : table(iter.table), curr(iter.curr)
 	{
@@ -149,8 +162,8 @@ public:
 	operator const bool() const		{ return NULL!=curr; }
 	bool isValid() const			{ return NULL!=curr; }
 
-	KEY  key() const				{ return (KEY) ((curr) ? curr->key  : NULL); }
-	DATA data() const				{ return (DATA)((curr) ? curr->data : NULL); }
+	KEY  key() const				{ return (KEY) (size_t)((curr) ? curr->key  : NULL); }
+	DATA data() const				{ return (DATA)(size_t)((curr) ? curr->data : NULL); }
 };
 
 

@@ -53,8 +53,6 @@ static size_t npc_cache_mob=0;
 /// do object depending stuff for ending the walk.
 void npc_data::do_stop_walking()
 {
-	if( this->state.state == MS_WALK )
-		this->changestate(MS_IDLE,0);
 }
 /// do object depending stuff for the walk step.
 bool npc_data::do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy)
@@ -106,11 +104,9 @@ bool npc_data::do_walkstep(unsigned long tick, const coordinate &target, int dx,
 			}
 		}
 	}
-
-	this->state.state = MS_WALK;
 	return true;
 }
-
+/*
 /// do object depending stuff for changestate
 void npc_data::do_changestate(int state,int type)
 {
@@ -139,7 +135,7 @@ void npc_data::do_changestate(int state,int type)
 		break;
 	}
 }
-
+*/
 
 
 
@@ -169,59 +165,12 @@ struct event_data
 	{}
 };
 
-static struct tm ev_tm_b;	// 時計イベント用
-
 
 
 
 
 // ============================================
 // ADDITION Qamera death/disconnect/connect event mod
-/*
-int npc_event_doall_attached_sub(void *key,void *data,va_list &ap)
-{
-	char *p=(char *)key;
-	struct event_data *ev;
-	int *c;
-	struct npc_att_data *nad;
-
-	nullpo_retr(0, ev=(struct event_data *)data);
-	nullpo_retr(0, ap);
-	nullpo_retr(0, c=va_arg(ap,int *));
-	nad=va_arg(ap,struct npc_att_data*);
-
-	if( (p=strchr(p,':')) && p && strcasecmp(nad->buf,p)==0 )
-	if(c && ev && ev->nd && ev->nd->u.scr.ref)
-	{
-		CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos,nad->sd->block_list::id,ev->nd->block_list::id);
-		(*c)++;
-	}
-	return 0;
-}
-*/
-class CDBNPCevent_doall_attached : public CDBProcessor
-{
-	struct npc_att_data &nad;
-	int &c;
-public:
-	CDBNPCevent_doall_attached(struct npc_att_data &n, int &cc) : nad(n), c(cc)	{}
-	virtual ~CDBNPCevent_doall_attached()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		char *p=(char *)key;
-		struct event_data *ev=(struct event_data *)data;
-		nullpo_retr(0, ev);
-
-		if( (p=strchr(p,':')) && p && strcasecmp(nad.buf,p)==0 )
-		if(ev->nd && ev->nd->u.scr.ref)
-		{
-			CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos,nad.sd->block_list::id,ev->nd->block_list::id);
-			c++;
-		}
-		return true;
-	}
-};
-
 int npc_event_doall_attached(const char *name, struct map_session_data &sd)
 {
 	int c=0;
@@ -235,7 +184,6 @@ int npc_event_doall_attached(const char *name, struct map_session_data &sd)
 		memcpy(nad.buf+2,name,len);
 		nad.buf[sizeof(nad.buf)-1]=0;//force EOS
 		nad.sd=&sd;
-//		strdb_foreach(ev_db, CDBNPCevent_doall_attached(nad,c) );
 
 		db_iterator<const char*,event_data *> iter(ev_db);
 		for(; iter; ++iter)
@@ -390,90 +338,54 @@ int npc_timer_event(const char *eventname)	// Added by RoVeRT
 	return 0;
 }
 
-/*==========================================
- * イベント用ラベルのエクスポート
- * npc_parse_script->strdb_foreachから呼ばれる
- *------------------------------------------
- */
-
-class CDBNPCevent_doall : public CDBProcessor
+///////////////////////////////////////////////////////////////////////////////
+/// イベント用ラベルのエクスポート
+/// defaults: rid=0, map=-1
+int npc_event_doall(const char *name, int rid, int map)
 {
-	const char *name;
-	uint32 rid;
-	int map;
-	int& c;
-public:
-	CDBNPCevent_doall(const char *n, uint32 id, int m, int& cc)
-		: name(n), rid(id), map(m), c(cc)
-	{}
-	virtual ~CDBNPCevent_doall()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		char *p=(char *)key;
-		struct event_data *ev=(struct event_data *)data;
-		nullpo_retr(0, ev);
-		nullpo_retr(0, ev->nd);
+	int c=0;
+	char buf[128]="::";
+	safestrcpy(buf+2, sizeof(buf)-2, name);
 
-		if( (p=strchr(p,':')) && p && strcasecmp(name,p)==0 && (map<0 || ev->nd->block_list::m>=map_num || map==ev->nd->block_list::m))
+	db_iterator<const char*,event_data*> iter(ev_db);
+	for(; iter; ++iter)
+	{
+		const char *p= iter.key();
+		event_data *ev=iter.data();
+		if( ev && ev->nd && 
+			(p=strchr(p,':')) && strcasecmp(buf,p)==0 && (map<0 || ev->nd->block_list::m>=map_num || map==ev->nd->block_list::m) )
 		{
 			if(ev->nd->u.scr.ref)
 				CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos, rid, ev->nd->block_list::id);
-			c++;
+			++c;
 		}
-		return true;
 	}
-};
-
-int npc_event_doall(const char *name)
-{
-	int c=0;
-	char buf[128]="::";
-	safestrcpy(buf+2, sizeof(buf)-2, name);
-	strdb_foreach(ev_db, CDBNPCevent_doall(buf, 0, -1, c) );
-	return c;
-}
-int npc_event_doall_id(const char *name, int rid, int map)
-{
-	int c=0;
-	char buf[128]="::";
-	safestrcpy(buf+2, sizeof(buf)-2, name);
-	strdb_foreach(ev_db, CDBNPCevent_doall(buf, rid, map, c) );
 	return c;
 }
 
-
-class CDBNPCevent_do : public CDBProcessor
-{
-	const char *name;
-	int& c;
-public:
-	CDBNPCevent_do(const char *n, int& cc)
-		: name(n), c(cc)
-	{}
-	virtual ~CDBNPCevent_do()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		char *p=(char *)key;
-		struct event_data *ev=(struct event_data *)data;
-		nullpo_retr(0, ev);
-		if (p && strcasecmp(name,p)==0 ) {
-			if(ev->nd && ev->nd->u.scr.ref)
-			CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos,0,ev->nd->block_list::id);
-			c++;
-		}
-		return true;
-	}
-};
 
 int npc_event_do(const char *name)
 {
-	int c=0;
-
-	if (*name==':' && name[1]==':') {
+	if (*name==':' && name[1]==':')
+	{
 		return npc_event_doall(name+2);
 	}
-	strdb_foreach(ev_db, CDBNPCevent_do(name,c) );
-	return c;
+	else
+	{
+		int c=0;
+		db_iterator<const char*, event_data*> iter(ev_db);
+		for(; iter; ++iter)
+		{
+			const char *p=iter.key();
+			event_data *ev=iter.data();
+			if(ev && p && 0==strcasecmp(name,p) && ev->nd && ev->nd->u.scr.ref)
+			{
+				CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos,0,ev->nd->block_list::id);
+				++c;
+			}
+		}
+		return c;
+	}
 }
 
 /*==========================================
@@ -482,26 +394,17 @@ int npc_event_do(const char *name)
  */
 int npc_event_do_clock(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	time_t timer;
-	struct tm *t;
+	static const char* days[] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat", ""};
+	static struct tm ev_tm    = {-1,-1,-1,-1,-1,-1,-1,-1,-1};	// 時計イベント用
+
 	char buf[64];
-        char *day="";
 	int c=0;
+	time_t timer	= time(NULL);
+	struct tm *t	= localtime(&timer);
+	const char *day	= days[t->tm_wday&0x07];
 
-	time(&timer);
-	t=localtime(&timer);
-
-        switch (t->tm_wday) {
-	case 0: day = "Sun"; break;
-	case 1: day = "Mon"; break;
-	case 2: day = "Tue"; break;
-	case 3: day = "Wed"; break;
-	case 4: day = "Thu"; break;
-	case 5: day = "Fri"; break;
-	case 6: day = "Sat"; break;
-	}
-
-	if (t->tm_min != ev_tm_b.tm_min ) {
+	if (t->tm_min != ev_tm.tm_min )
+	{
 		snprintf(buf,sizeof(buf),"OnMinute%02d",t->tm_min);
 		c+=npc_event_doall(buf);
 		snprintf(buf,sizeof(buf),"OnClock%02d%02d",t->tm_hour,t->tm_min);
@@ -509,15 +412,17 @@ int npc_event_do_clock(int tid, unsigned long tick, int id, basics::numptr data)
 		snprintf(buf,sizeof(buf),"On%s%02d%02d",day,t->tm_hour,t->tm_min);
 		c+=npc_event_doall(buf);
 	}
-	if (t->tm_hour!= ev_tm_b.tm_hour) {
+	if (t->tm_hour!= ev_tm.tm_hour)
+	{
 		snprintf(buf,sizeof(buf),"OnHour%02d",t->tm_hour);
 		c+=npc_event_doall(buf);
 	}
-	if (t->tm_mday!= ev_tm_b.tm_mday) {
+	if (t->tm_mday!= ev_tm.tm_mday)
+	{
 		snprintf(buf,sizeof(buf),"OnDay%02d%02d",t->tm_mon+1,t->tm_mday);
 		c+=npc_event_doall(buf);
 	}
-	memcpy(&ev_tm_b,t,sizeof(ev_tm_b));
+	ev_tm = *t;
 	return c;
 }
 /*==========================================
@@ -535,82 +440,31 @@ int npc_event_do_oninit(void)
 	return 0;
 }
 
-class CDBNPContimer : public CDBProcessor
+int npc_do_ontimer(uint32 npc_id, struct map_session_data &sd, int option)
 {
-	uint32 npc_id;
-	struct map_session_data &sd;
-	int option;
-public:
-	CDBNPContimer(uint32 id, struct map_session_data &s, int o)
-		: npc_id(id), sd(s), option(o)	{}
-	virtual ~CDBNPContimer()	{}
-	virtual bool process(void *key, void *data) const
+	db_iterator<const char*, event_data*> iter(ev_db);
+	for(; iter; ++iter)
 	{
-		char *p = (char *)key;
-		struct event_data *ev = (struct event_data *)data;
+		const char *p = iter.key();
+		event_data *ev = iter.data();
 		unsigned long tick=0;
-		char temp[16];
 		char event[50];
 
-		if(ev->nd->block_list::id==npc_id && (p=strchr(p,':')) && p && strncasecmp("::OnTimer",p,8)==0 )
+		if( ev && ev->nd && ev->nd->block_list::id==npc_id && 
+			(p=strchr(p,':')) && strncasecmp("::OnTimer",p,8)==0 )
 		{
-			sscanf(&p[9], "%16s", temp);
-			tick = atoi(temp);
-			strcpy(event, ev->nd->name);
-			strcat(event, p);
+			tick = atoi(p+9);
+			snprintf(event, sizeof(event), "%s%s", ev->nd->name, p);	// name::event
 			if (option!=0)
 				pc_addeventtimer(sd,tick,event);
 			else
 				pc_deleventtimer(sd,event);
 		}
-		return true;
 	}
-};
 
-int npc_do_ontimer(uint32 npc_id, struct map_session_data &sd, int option)
-{
-	strdb_foreach(ev_db, CDBNPContimer(npc_id,sd,option) );
-//	strdb_foreach(ev_db,npc_do_ontimer_sub,&npc_id,&sd,option);
 	return 0;
 }
-/*==========================================
- * タイマーイベント用ラベルの取り込み
- * npc_parse_script->strdb_foreachから呼ばれる
- *------------------------------------------
- */
-class CDBNPCtimerevent_import : public CDBProcessor
-{
-	npc_data &nd;
-public:
-	CDBNPCtimerevent_import(npc_data &n) : nd(n)	{}
-	virtual ~CDBNPCtimerevent_import()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		char *lname=(char *)key;
-		size_t pos=(size_t)data;
-		int t=0,i=0;
 
-		if(sscanf(lname,"OnTimer%d%n",&t,&i)==1 && lname[i]==':')
-		{	// タイマーイベント
-			struct npc_timerevent_list *te=nd.u.scr.timer_event;
-			int j,i=nd.u.scr.timeramount;
-
-			new_realloc(te,i,1);
-
-			for(j=0;j<i;++j){
-				if(te[j].timer>t){
-					memmove(te+j+1,te+j,sizeof(struct npc_timerevent_list)*(i-j));
-					break;
-				}
-			}
-			te[j].timer=t;
-			te[j].pos=pos;
-			nd.u.scr.timer_event=te;
-			nd.u.scr.timeramount=i+1;
-		}
-		return true;
-	}
-};
 
 
 /*==========================================
@@ -782,37 +636,20 @@ int npc_event(struct map_session_data &sd,const char *eventname,int mob_kill)
 	return 0;
 }
 
-
-class CDBNPCcommand : public CDBProcessor
+int npc_command(struct map_session_data &sd, const char *npcname, const char *command)
 {
-	const char *npcname;
-	const char *command;
-public:
-	CDBNPCcommand(const char *n, const char *c) : 	npcname(n),command(c)	{}
-	virtual ~CDBNPCcommand()	{}
-	virtual bool process(void *key, void *data) const
+	db_iterator<const char*, event_data*> iter(ev_db);
+	for(; iter; ++iter)
 	{
-		char *p=(char *)key;
-		struct event_data *ev=(struct event_data *)data;
-		char temp[128];
-
-		if(NULL==ev)		return true;
-		if(NULL==ev->nd)	return true;
-		
-		if(strcmp(ev->nd->name,npcname)==0 && (p=strchr(p,':')) && p && strncasecmp("::OnCommand",p,10)==0 ){
-			sscanf(&p[11],"%128s",temp);
-
-			if( (strcmp(command,temp)==0) && ev->nd->u.scr.ref)
-				CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos,0,ev->nd->block_list::id);
+		const char *p=iter.key();
+		event_data *ev=iter.data();
+		if( ev && ev->nd &&
+			strcmp(ev->nd->name,npcname)==0 && (p=strchr(p,':')) && 0==strncasecmp("::OnCommand",p,10) )
+		{
+			if( 0==strcasecmp(command,p+11) && ev->nd->u.scr.ref)
+				CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos, 0, ev->nd->block_list::id);
 		}
-		return true;
 	}
-};
-
-int npc_command(struct map_session_data &sd,const char *npcname, const char *command)
-{
-	strdb_foreach(ev_db, CDBNPCcommand(npcname,command) );
-//	strdb_foreach(ev_db,npc_command_sub,npcname,command);
 	return 0;
 }
 /*==========================================
@@ -1302,7 +1139,7 @@ bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
 	memcpy(nd->name, w3, 24);
 	memcpy(nd->exname, w3, 24);
 
-	nd->chat_id = 0;
+	nd->chat = NULL;
 	if (!config.warp_point_debug)
 		nd->class_ = WARP_CLASS;
 	else
@@ -1412,7 +1249,7 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 	memcpy(nd->name, w3, 24);
 	nd->class_ = (m==-1)?0:atoi(w4);
 	nd->speed = 200;
-	nd->chat_id = 0;
+	nd->chat = NULL;
 	nd->option = 0;
 	nd->opt1 = 0;
 	nd->opt2 = 0;
@@ -1617,7 +1454,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 	nd->u.scr.ref=ref;
 
 	nd->u.scr.timer_event=NULL;
-	nd->chat_id = 0;
+	nd->chat = NULL;
 	nd->option = 0;
 	nd->opt1 = 0;
 	nd->opt2 = 0;
@@ -2336,7 +2173,7 @@ int npc_read_indoors (void)
 	return -1;
 }
 
-int ev_db_final (void *key,void *data)
+void ev_db_final (void *key,void *data)
 {
 	if(data)
 	{
@@ -2346,15 +2183,13 @@ int ev_db_final (void *key,void *data)
 	{
 		delete[] ((char*)key);
 	}
-	return 0;
 }
 
 
-int npcname_db_final (void *key,void *data)
+void npcname_db_final (void *key,void *data)
 {
 	npc_data *nd = (npc_data *) data;
 	npc_unload(nd, false);// we are inside the db function and cannot call erase from here
-	return 0;
 }
 
 /*==========================================
@@ -2460,36 +2295,13 @@ int npc_remove_map (npc_data *nd)
 }
 
 
-class CDBNPCunloadevents : public CDBProcessor
-{
-	const char *npcname;
-public:
-	CDBNPCunloadevents(const char *n) 
-		: npcname(n)	{}
-	virtual ~CDBNPCunloadevents()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		struct event_data *ev=(struct event_data *)data;
-		if(ev && strcmp(ev->nd->exname,npcname)==0)
-		{
-			strdb_erase(ev_db, key);
-			delete ev;
-			if (strstr((char *)key,"::") != NULL)
-				delete[] ((char *)key);
-		}
-		return true;
-	}
-};
-
 int npc_unload(npc_data *nd, bool erase_strdb)//erase_strdb is default true 
 {
 	if(!nd) return 0;
 
 	npc_remove_map(nd);
-    npc_chat_finalize(nd);
-
-	if (nd->chat_id)
-		chat_deletenpcchat(*nd);
+    npclisten_finalize(nd);
+	npcchat_data::erase(*nd);
 
 	if (nd->block_list::subtype == SCRIPT)
 	{
@@ -2503,8 +2315,20 @@ int npc_unload(npc_data *nd, bool erase_strdb)//erase_strdb is default true
 			nd->u.scr.ref->release();
 			nd->u.scr.ref=NULL;
 		}
-		//Clean up all events related.
-		strdb_foreach(ev_db, CDBNPCunloadevents(nd->exname) );
+		//Clean up all related events.
+		db_iterator<char*, event_data *> iter(ev_db);
+		for(; iter; ++iter)
+		{
+			char * key     = iter.key();
+			event_data *ev = iter.data();
+			if( key && ev && ev->nd == nd )
+			{
+				strdb_erase(ev_db, key);
+				delete ev;
+				if( strstr(key,"::") != NULL )
+					delete[] (key);
+			}
+		}
 
 		// quite inconsistent, but:
 		// script npc's have 'exname' in the db
@@ -2604,7 +2428,6 @@ int do_init_npc(void)
 	ev_db=strdb_init(50);
 	npcname_db = strdb_init(24);
 	ev_db->release = ev_release;
-	memset(&ev_tm_b, -1, sizeof(ev_tm_b));
 
 	npc_parsesrcfiles( );
 

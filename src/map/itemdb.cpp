@@ -51,51 +51,6 @@ static int finding_ore_default = 0;
 
 static struct item_group itemgroup_db[MAX_ITEMGROUP];
 
-/*==========================================
- * 名前で検索用
- *------------------------------------------
- */
-// name = item alias, so we should find items aliases first. if not found then look for "jname" (full name)
-class CDBItemSearchname : public CDBProcessor
-{
-	const char* str;
-	item_data*& dst;
-public:
-	CDBItemSearchname(const char* s, item_data*& d) : str(s), dst(d)	{}
-	virtual ~CDBItemSearchname()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		struct item_data *item=(struct item_data *)data;
-		if( strcasecmp(item->name,str)==0 )
-		{
-			dst = item;
-			return false;
-		}
-		return true;
-	}
-};
-/*==========================================
- * 名前で検索用
- *------------------------------------------
- */
-class CDBItemSearchjname : public CDBProcessor
-{
-	const char* str;
-	item_data*& dst;
-public:
-	CDBItemSearchjname(const char* s, item_data*& d) : str(s), dst(d)	{}
-	virtual ~CDBItemSearchjname()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		struct item_data *item=(struct item_data *)data;
-		if( strcasecmp(item->jname,str)==0 )
-		{
-			dst = item;
-			return false;
-		}
-		return true;
-	}
-};
 
 /*==========================================
  * 名前で検索
@@ -103,10 +58,22 @@ public:
  */
 struct item_data* itemdb_searchname(const char *str)
 {
-	struct item_data *item=NULL;
-	numdb_foreach(item_db, CDBItemSearchname(str,item) );
-	if(!item) numdb_foreach(item_db, CDBItemSearchjname(str,item) );
-	return item;
+	db_iterator<size_t, item_data*> iter(item_db);
+	for(; iter; ++iter)
+	{
+		item_data *item = iter.data();
+		if( strcasecmp(item->name,str)==0 )
+			return item;
+	}
+	// search again for jname if failed
+	// possibly integrate into previous loopo
+	for(iter=item_db; iter; ++iter)
+	{
+		item_data *item = iter.data();
+		if( strcasecmp(item->jname,str)==0 )
+			return item;
+	}
+	return NULL;
 }
 
 /*==========================================
@@ -1015,47 +982,35 @@ void itemdb_read(void)
  * Initialize / Finalize
  *------------------------------------------
  */
-class CDBItemFinal : public CDBProcessor
-{
-	int flag;
-public:
-	CDBItemFinal(int f) : flag(f)	{}
-	virtual ~CDBItemFinal()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		struct item_data *id = (struct item_data *)data;
-		if( id )
-		{
-			if(id->use_script)
-			{
-				id->use_script->release();
-				id->use_script = NULL;
-			}
-			if (id->equip_script)
-			{
-				id->equip_script->release();
-				id->equip_script = NULL;
-			}
-			// Whether to clear the item data
-			if (flag)
-				delete id;
-		}
-		return true;
-	}
-};
+
 
 void itemdb_reload(void)
 {
 	// free up all item scripts first
-	numdb_foreach(item_db, CDBItemFinal(0) );
+	db_iterator<size_t, item_data *> iter(item_db);
+	for(; iter; ++iter)
+	{
+		item_data *id =iter.data();
+		if( id )
+			id->clean_scripts();
+	}
 	itemdb_read();
+}
+
+
+
+void item_db_final(void *key, void *data)
+{
+	struct item_data *id = (struct item_data *)data;
+	if( id )
+		delete id;
 }
 
 void do_final_itemdb(void)
 {
 	if (item_db)
 	{
-		numdb_final(item_db, CDBItemFinal(1) );
+		numdb_final(item_db, item_db_final );
 		item_db = NULL;
 	}
 }
@@ -1064,7 +1019,7 @@ int do_init_itemdb(void)
 {
 	if(item_db)
 	{
-		numdb_final(item_db, CDBItemFinal(1) );
+		numdb_final(item_db, item_db_final );
 		item_db=NULL;
 	}
 	item_db = numdb_init();

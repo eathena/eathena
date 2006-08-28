@@ -789,7 +789,7 @@ void homun_data::return_to_master(struct map_session_data &sd)
 {
 	if(sd.hd)
 	{
-		sd.hd->calc_pos(sd);
+		sd.hd->random_position(sd);
 		sd.hd->walktoxy(sd.hd->walktarget.x,sd.hd->walktarget.y);
 	}
 }
@@ -1033,18 +1033,7 @@ int homun_data::damage(block_list &src, uint32 damage)
 	// 死亡していた
 	if(hd.status.hp<=0)
 	{
-//		if(config.save_homun_temporal_intimate)
-//			pc_setglobalreg(sd,"HOM_TEMP_INTIMATE",hd->intimate);
-		// スキルユニットからの離脱
-		hd.status.hp = 1;
-		skill_unit_move(hd,gettick(),0);
-		hd.status.hp = 0;
-
-		hd.status.incubate = 0;
-		hd.save_data();
-
-		hd.delblock();
-		hd.deliddb();
+		this->set_dead();
 	}
 	return damage;
 }
@@ -1062,28 +1051,43 @@ int homun_data::heal(int hp, int sp)
 	if(hp+hd.status.hp > hd.max_hp)
 		hp = hd.max_hp - hd.status.hp;
 	else if(hp<0 && ((uint32)(-hp)) > hd.status.hp)
-		hp = hd.status.hp;
+		hp = 0-hd.status.hp;
+
 	if(sp+hd.status.sp > hd.max_sp)
 		sp = hd.max_sp - hd.status.sp;
 	else if(sp<0 && ((uint32)(-sp)) > hd.status.sp)
-		sp = hd.status.sp;
+		sp = 0-hd.status.sp;
 
 	hd.status.hp+=hp;
-	if(hd.status.hp <= 0)
-	{	// killed by negative heal
-		hd.damage(hd,1);
-		hp=0;
-	}
-
 	hd.status.sp+=sp;
 
 	if((hp || sp) && hd.msd)
 		clif_send_homstatus(*hd.msd,0);
 
+	if( hd.status.hp <= 0)
+	{	// killed by negative heal
+		this->set_dead();
+	}
 	return hp + sp;
 }
 
+bool homun_data::set_dead()
+{
+	homun_data &hd = *this;
+//	if(config.save_homun_temporal_intimate && hd.msd)
+//		pc_setglobalreg(*hd.msd,"HOM_TEMP_INTIMATE",hd.intimate);
+	// スキルユニットからの離脱
+	hd.status.hp = 1;
+	skill_unit_move(hd,gettick(),0);
+	hd.status.hp = 0;
 
+	hd.status.incubate = 0;
+	hd.save_data();
+
+	hd.delblock();
+	hd.deliddb();
+	return true;
+}
 
 int homun_natural_heal_hp(int tid, unsigned long tick, int id, basics::numptr data)
 {
@@ -1197,7 +1201,7 @@ bool homun_data::call_homunculus(struct map_session_data &sd)
 			sd.hd->block_list::m = sd.block_list::m;
 			sd.hd->block_list::x = sd.hd->walktarget.x = sd.block_list::x;
 			sd.hd->block_list::y = sd.hd->walktarget.y = sd.block_list::y;
-			sd.hd->calc_pos(sd);
+			sd.hd->random_position(sd);
 			sd.hd->block_list::x = sd.hd->walktarget.x;
 			sd.hd->block_list::y = sd.hd->walktarget.y;
 			sd.hd->set_dir(sd.get_dir());
@@ -1530,14 +1534,13 @@ void homun_reload(void)
 	homun_read_embryodb();
 }
 
-int homun_id_db_final(void* kex, void*data)
+void homun_id_db_final(void* kex, void*data)
 {
 	if(data)
 	{
 		homun_data *hd = (homun_data *)data;
 		hd->freeblock();
 	}
-	return 0;
 }
 
 int do_init_homun(void)

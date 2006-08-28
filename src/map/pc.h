@@ -8,7 +8,6 @@
 #include "map.h"
 
 
-static inline void pc_setdead(struct map_session_data &sd)	{ sd.state.dead_sit = 1; }
 static inline void pc_setsit(struct map_session_data &sd)	{ sd.state.dead_sit = 2; }
 static inline bool pc_issit(struct map_session_data &sd)	{ return sd.state.dead_sit == 2; }
 static inline bool pc_ishiding(struct map_session_data &sd) { return 0 != (sd.status.option&0x4006); }

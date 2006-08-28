@@ -141,7 +141,6 @@ int mob_data::attacktimer_func(int tid, unsigned long tick, int id, basics::nump
 
 	md.min_chase=13;
 	md.set_idle();
-	md.changestate(MS_IDLE,0);
 	md.state.skillstate=MSS_IDLE;
 
 	if( md.skilltimer!=-1 )	// スキル使用中
@@ -230,7 +229,6 @@ int mob_data::attacktimer_func(int tid, unsigned long tick, int id, basics::nump
 		md.attacktimer=-1;
 	}
 	md.attacktimer=add_timer(md.attackable_tick,fightable::attacktimer_entry,md.block_list::id,0);
-	md.state.state=MS_ATTACK;
 
 	block_list::freeblock_unlock();
 
@@ -274,8 +272,6 @@ public:
 /// do object depending stuff for ending the walk.
 void mob_data::do_stop_walking()
 {
-	if(this->state.state == MS_WALK)
-		this->changestate(MS_IDLE,0);
 }
 /// do object depending stuff for the walk step.
 bool mob_data::do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy)
@@ -298,9 +294,10 @@ bool mob_data::do_walkstep(unsigned long tick, const coordinate &target, int dx,
 	if(this->option&4)
 		skill_check_cloaking(this);
 
-	this->state.state=MS_WALK;
 	return true;
 }
+
+/*
 /// do object depending stuff for changestate
 void mob_data::do_changestate(int state,int type)
 {
@@ -371,6 +368,29 @@ void mob_data::do_changestate(int state,int type)
 		md.state.targettype = NONE_ATTACKABLE;
 		break;
 	}
+}
+*/
+
+bool mob_data::set_dead()
+{
+	skill_castcancel(this,0);
+	mobskill_deltimer(*this);
+	this->state.skillstate=MSS_DEAD;
+	this->last_deadtime=gettick();
+	// Since it died, all aggressors' attack to this mob is stopped.
+
+	clif_foreachclient( CClifMobStopattacked(this->block_list::id) );
+
+	skill_unit_move(*this,gettick(),0);
+	status_change_clear(this,2);	// ステータス異常を解除する
+	skill_clear_unitgroup(this);	// 全てのスキルユニットグループを削除する
+	skill_cleartimerskill(this);
+	if(this->deletetimer!=-1)
+		delete_timer(this->deletetimer, mob_timer_delete);
+	this->deletetimer=-1;
+	this->hp = this->target_id = this->attacked_id = this->attacked_count = 0;
+	this->state.targettype = NONE_ATTACKABLE;
+	return true; 
 }
 
 // Random walk
@@ -930,7 +950,6 @@ int mob_spawn(uint32 id)
 	md->master_id = 0;
 	md->master_dist = 0;
 
-	md->state.state = MS_IDLE;
 	md->state.skillstate = MSS_IDLE;
 	md->last_thinktime = tick;
 	md->next_walktime = tick+rand()%4000+1000;
@@ -1357,7 +1376,7 @@ public:
 		}
 
 		// Abnormalities
-		if((md.opt1 > 0 && md.opt1 != 6) || md.state.state == MS_DELAY || md.sc_data[SC_BLADESTOP].timer != -1)
+		if((md.opt1 > 0 && md.opt1 != 6) || !md.can_act() || md.sc_data[SC_BLADESTOP].timer != -1)
 			return 0;
 
 		if (md.sc_data && md.sc_data[SC_BLIND].timer != -1)
@@ -1541,7 +1560,7 @@ public:
 							return 0;
 						md.state.skillstate = MSS_CHASE;	// 突撃時スキル
 						mobskill_use (md, tick, -1);
-						if( md.walktimer!=-1 && md.state.state != MS_ATTACK &&
+						if( md.walktimer!=-1 && !md.is_attacking() &&
 							(DIFF_TICK (md.next_walktime, tick) < 0 ||
 							distance(md.walktarget, *tbl) < 2) )
 						{
@@ -1586,9 +1605,9 @@ public:
 					{	// 攻撃射程範囲内
 						md.state.skillstate = MSS_ATTACK;
 						md.stop_walking(1);	// 歩行中なら停止
-						if (md.state.state == MS_ATTACK)
+						if( md.is_attacking() )
 							return 0; // 既に攻撃中
-						md.changestate(MS_ATTACK, attack_type);
+						md.start_attack(attack_type);
 					}
 					return 0;
 				}
@@ -1614,7 +1633,7 @@ public:
 							return 0;
 						md.state.skillstate = MSS_LOOT;	// ルート時スキル使用
 						mobskill_use(md, tick, -1);
-						if( md.walktimer!=-1 && md.state.state != MS_ATTACK &&
+						if( md.is_walking() && !md.is_attacking() &&
 							(DIFF_TICK(md.next_walktime,tick) < 0 ||
 							 distance(md.walktarget, *tbl) <= 0) )
 						{
@@ -1628,7 +1647,7 @@ public:
 					}
 					else
 					{	// アイテムまでたどり着いた
-						if (md.state.state == MS_ATTACK)
+						if( md.is_attacking() )
 							return 0; // 攻撃中
 						md.stop_walking(1);	// 歩行中なら停止
 						fitem = (flooritem_data *)tbl;
@@ -1714,78 +1733,6 @@ int mob_ai_hard(int tid, unsigned long tick, int id, basics::numptr data)
 	return 0;
 }
 
-/*==========================================
- * Negligent mode MOB AI (PC is not in near)
- *------------------------------------------
- */
-class CDBMobAiLazy : public CDBProcessor
-{
-	unsigned long tick;
-public:
-	CDBMobAiLazy(unsigned long t) : tick(t)	{}
-	virtual ~CDBMobAiLazy()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		if(NULL==data)
-		{
-			ShowError("md NULL pointer, key=%p\n", key);
-			return 0;
-		}
-		block_list *bl=(block_list *)data;
-		mob_data *md=(mob_data *)data;
-		mob_data *mmd=NULL;
-
-		if(bl->type!=BL_MOB)
-			return true;
-
-		if (md->master_id > 0)
-		{
-			mmd = mob_data::from_blid(md->master_id);
-		}
-
-		if(DIFF_TICK(tick,md->last_thinktime)<MIN_MOBTHINKTIME*10)
-			return true;
-		md->last_thinktime=tick;
-
-		if(md->block_list::prev==NULL || md->skilltimer!=-1){
-			if(DIFF_TICK(tick,md->next_walktime)>MIN_MOBTHINKTIME*10)
-				md->next_walktime=tick;
-			return true;
-		}
-
-		// 取り巻きモンスターの処理（呼び戻しされた時）
-		//if(mmd && md->state.special_mob_ai == 0 && mmd->state.recall_flag == 1) {
-		if(md->master_id > 0) {
-			mob_ai_sub_hard_slavemob (*md,tick);
-			return true;
-		}
-
-		if( DIFF_TICK(md->next_walktime,tick)<0 &&
-			(mob_db[md->class_].mode&1) && md->is_movable() )
-		{
-			if( maps[md->block_list::m].users>0 )
-			{	// Since PC is in the same map, somewhat better negligent processing is carried out.
-				// It sometimes moves.
-				if(rand()%1000<MOB_LAZYMOVEPERC)
-					md->randomwalk(tick);
-
-				// MOB which is not not the summons MOB but BOSS, either sometimes reboils.
-				else if( rand()%1000<MOB_LAZYWARPPERC && md->master_id!=0 &&
-					mob_db[md->class_].mexp <= 0 && !(mob_db[md->class_].mode & 0x20))
-					mob_spawn(md->block_list::id);
-			}
-			else
-			{	// Since PC is not even in the same map, suitable processing is carried out even if it takes.
-				// MOB which is not BOSS which is not Summons MOB, either -- a case -- sometimes -- leaping
-				if( rand()%1000<MOB_LAZYWARPPERC && md->master_id!=0 &&
-					mob_db[md->class_].mexp <= 0 && !(mob_db[md->class_].mode & 0x20))
-					mob_warp(*md,-1,-1,-1,-1);
-			}
-			md->next_walktime = tick+(unsigned long)rand()%10000+5000;
-		}
-		return true;
-	}
-};
 
 /*==========================================
  * Negligent processing for mob outside PC field of view   (interval timer function)
@@ -1793,7 +1740,48 @@ public:
  */
 int mob_ai_lazy(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	numdb_foreach(block_list::id_db, CDBMobAiLazy(tick) );
+	db_iterator<size_t, block_list*> iter(block_list::id_db);
+	for(; iter; ++iter)
+	{
+		mob_data *md = (iter.data())? iter.data()->get_md() : NULL;
+		if(md && DIFF_TICK(tick,md->last_thinktime)>=MIN_MOBTHINKTIME*10)
+		{
+			md->last_thinktime=tick;
+			
+			if( !md->is_on_map() || md->skilltimer!=-1)
+			{
+				if(DIFF_TICK(tick,md->next_walktime)>MIN_MOBTHINKTIME*10)
+					md->next_walktime=tick;
+			}
+			else if(md->master_id)
+			{
+				mob_ai_sub_hard_slavemob (*md,tick);
+			}
+			else if( DIFF_TICK(md->next_walktime,tick)<0 &&
+					 (mob_db[md->class_].mode&1) && md->is_movable() )
+			{
+				if( maps[md->block_list::m].users>0 )
+				{	// Since PC is in the same map, somewhat better negligent processing is carried out.
+					// It sometimes moves.
+					if(rand()%1000<MOB_LAZYMOVEPERC)
+						md->randomwalk(tick);
+
+					// MOB which is not not the summons MOB but BOSS, either sometimes reboils.
+					else if( rand()%1000<MOB_LAZYWARPPERC && md->master_id!=0 &&
+						mob_db[md->class_].mexp <= 0 && !(mob_db[md->class_].mode & 0x20))
+						mob_spawn(md->block_list::id);
+				}
+				else
+				{	// Since PC is not even in the same map, suitable processing is carried out even if it takes.
+					// MOB which is not BOSS which is not Summons MOB, either -- a case -- sometimes -- leaping
+					if( rand()%1000<MOB_LAZYWARPPERC && md->master_id!=0 &&
+						mob_db[md->class_].mexp <= 0 && !(mob_db[md->class_].mode & 0x20))
+						mob_warp(*md,-1,-1,-1,-1);
+				}
+				md->next_walktime = tick+(unsigned long)rand()%10000+5000;
+			}
+		}
+	}
 	return 0;
 }
 
@@ -1935,7 +1923,7 @@ int mob_remove_map(mob_data &md, int type)
 		(md.get_viewclass() >= 4001 && md.get_viewclass() <= 4045))
 		clif_clearchar_delay(gettick()+3000,md,0);
 	
-	md.changestate(MS_DEAD,0);
+	md.set_dead();
 	mob_deleteslave(md);
 	clif_clearchar_area(md,type);
 	md.delblock();
@@ -1946,7 +1934,7 @@ int mob_remove_map(mob_data &md, int type)
 }
 void mob_unload(mob_data &md)
 {
-	md.changestate(MS_DEAD,0);
+	md.set_dead();
 	mob_deleteslave(md);
 	clif_clearchar_area(md, 0);
 	md.delblock();
@@ -2055,12 +2043,12 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 		return 0;
 	}
 
-	if(md.state.state==MS_DEAD || md.hp<=0)
+	if( md.is_dead() )
 	{
 		if( md.is_on_map() )
 		{	// It is skill at the time of death.
 			mobskill_use(md,tick,-1);
-			md.changestate(MS_DEAD,0);
+			md.set_dead();
 			clif_clearchar_area(md,1);
 			md.delblock();
 			mob_setdelayspawn(md.block_list::id);
@@ -2213,7 +2201,7 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 
 	block_list::freeblock_lock();
 	mobskill_use(md,tick,-1);	// 死亡時スキル
-	md.changestate(MS_DEAD,0);
+	md.set_dead();
 
 	memset(tmpsd,0,sizeof(tmpsd));
 	memset(pt,0,sizeof(pt));
@@ -2680,7 +2668,7 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 		}
 		else
 		{
-			int evt = npc_event_doall_id("OnNPCKillEvent", mvp_sd->block_list::id, mvp_sd->block_list::m);
+			int evt = npc_event_doall("OnNPCKillEvent", mvp_sd->block_list::id, mvp_sd->block_list::m);
 			if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnNPCKillEvent");
 		}
 	}
@@ -2753,7 +2741,7 @@ int mob_class_change(mob_data &md, int value[], size_t count)
 	md.speed = mob_db[md.class_].speed;
 	md.def_ele = mob_db[md.class_].element;
 
-	md.changestate(MS_IDLE,0);
+	md.set_idle();
 	skill_castcancel(&md,0);
 	md.state.skillstate = MSS_IDLE;
 	md.last_thinktime = tick;
@@ -2921,7 +2909,7 @@ int mob_warp(mob_data &md,int m,int x,int y,int type)
 	md.state.targettype=NONE_ATTACKABLE;
 	md.attacked_id=0;
 	md.state.skillstate=MSS_IDLE;
-	md.changestate(MS_IDLE,0);
+	md.set_idle();
 
 	if(type>0 && i==1000) {
 		if(config.battle_log)

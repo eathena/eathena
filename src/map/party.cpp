@@ -23,10 +23,9 @@ int party_send_xyhp_timer(int tid, unsigned long tick, int id, basics::numptr da
  * 終了
  *------------------------------------------
  */
-int party_db_final(void *key,void *data)
+void party_db_final(void *key,void *data)
 {
 	delete ((struct party*)data);
-	return 0;
 }
 void do_final_party(void)
 {
@@ -50,35 +49,19 @@ struct party *party_search(uint32 party_id)
 	return (struct party *)numdb_search(party_db,party_id);
 }
 
-
-class CDBPartySearchname : public CDBProcessor
-{
-	const char *str;
-	struct party*& dsp;
-public:
-	CDBPartySearchname(const char *s, struct party*& p) : str(s),dsp(p)	{}
-	virtual ~CDBPartySearchname()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		struct party *p=(struct party *)data;
-		if(strcasecmp(p->name,str)==0)
-		{
-			dsp=p;
-			// found -> stop db traverse
-			return false;
-		}
-		return true;
-	}
-
-};
 // パーティ名検索
 struct party* party_searchname(const char *str)
 {
-	struct party *p=NULL;
-	numdb_foreach(party_db, CDBPartySearchname(str,p) );
-	//numdb_foreach(party_db,party_searchname_sub,str,&p);
-	return p;
+	db_iterator<size_t, party*> iter(party_db);
+	for(; iter; ++iter)
+	{
+		party *p=iter.data();
+		if( p && 0==strcasecmp(p->name,str) )
+			return p;
+	}
+	return NULL;
 }
+
 // 作成要求
 int party_create(struct map_session_data &sd,const char *name,int item,int item2)
 {
@@ -527,83 +510,39 @@ int party_check_conflict(struct map_session_data &sd)
 }
 
 
-// 位置やＨＰ通知用
-/*
-int party_send_xyhp_timer_sub(void *key,void *data,va_list &ap)
-{
-	struct party *p=(struct party *)data;
-	int i;
-
-	nullpo_retr(0, p);
-
-	for(i=0;i<MAX_PARTY; ++i)
-	{
-		struct map_session_data *sd=p->member[i].sd;
-		if(sd!=NULL)
-		{
-			// 座標通知
-			if(sd->party_x!=sd->block_list::x || sd->party_y!=sd->block_list::y)
-			{
-				clif_party_xy(*p,*sd);
-				if(sd->status.guild_id)
-					clif_guild_xy(*sd);
-				sd->party_x=sd->block_list::x;
-				sd->party_y=sd->block_list::y;
-			}
-			// ＨＰ通知
-			if(sd->party_hp!=sd->status.hp)
-			{
-				clif_party_hp(*p,*sd);
-				sd->party_hp=sd->status.hp;
-			}
-		}
-	}
-	return 0;
-}
-*/
-class CDBPartySendXYHP : public CDBProcessor
-{
-	unsigned long tick;
-public:
-	CDBPartySendXYHP(unsigned long t) : tick(t)	{}
-	virtual ~CDBPartySendXYHP()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		struct party *p=(struct party *)data;
-		int i;
-
-		nullpo_retr(true, p);
-
-		for(i=0;i<MAX_PARTY; ++i)
-		{
-			struct map_session_data *sd=p->member[i].sd;
-			if(sd!=NULL)
-			{
-				// 座標通知
-				if(sd->party_x!=sd->block_list::x || sd->party_y!=sd->block_list::y)
-				{
-					clif_party_xy(*p,*sd);
-					if(sd->status.guild_id)
-						clif_guild_xy(*sd);
-					sd->party_x=sd->block_list::x;
-					sd->party_y=sd->block_list::y;
-				}
-				// ＨＰ通知
-				if(sd->party_hp!=sd->status.hp)
-				{
-					clif_party_hp(*p,*sd);
-					sd->party_hp=sd->status.hp;
-				}
-			}
-		}
-		return true;
-	}
-};
 // 位置やＨＰ通知
 int party_send_xyhp_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	numdb_foreach(party_db, CDBPartySendXYHP(tick) );
-//	numdb_foreach(party_db,party_send_xyhp_timer_sub,tick);
+	db_iterator<size_t, party*> iter(party_db);
+	for(; iter; ++iter)
+	{
+		party *p=iter.data();
+		if(p)
+		{
+			size_t i;
+			for(i=0; i<MAX_PARTY; ++i)
+			{
+				struct map_session_data *sd=p->member[i].sd;
+				if(sd!=NULL)
+				{	// 座標通知
+					if(sd->party_x!=sd->block_list::x || sd->party_y!=sd->block_list::y)
+					{
+						clif_party_xy(*p,*sd);
+						if(sd->status.guild_id)
+							clif_guild_xy(*sd);
+						sd->party_x=sd->block_list::x;
+						sd->party_y=sd->block_list::y;
+					}
+					// ＨＰ通知
+					if(sd->party_hp!=sd->status.hp)
+					{
+						clif_party_hp(*p,*sd);
+						sd->party_hp=sd->status.hp;
+					}
+				}
+			}
+		}
+	}
 	guild_send_xy(tick);
 	return 0;
 }

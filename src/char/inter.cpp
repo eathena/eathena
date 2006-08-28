@@ -20,7 +20,6 @@
 
 #define WISDATA_TTL (60*1000)	// Existence time of Wisp/page data (60 seconds)
                              	// that is the waiting time of answers of all map-servers
-#define WISDELLIST_MAX 256   	// Number of elements of Wisp/page data deletion list
 
 char inter_log_filename[1024] = "log/inter.log";
 
@@ -83,7 +82,6 @@ struct WisData
 	char msg[512];
 };
 static struct dbt * wis_db = NULL;
-static int wis_dellist[WISDELLIST_MAX], wis_delnum;
 
 
 //--------------------------------------------------------
@@ -155,42 +153,6 @@ int inter_accreg_init(void)
 	return 0;
 }
 
-// アカウント変数のセーブ用
-/*
-int inter_accreg_save_sub(void *key, void *data, va_list &ap)
-{
-	char line[8192];
-	FILE *fp;
-	struct accreg *reg = (struct accreg *)data;
-
-	if (reg->reg_num > 0) {
-		inter_accreg_tostr(line,reg);
-		fp = va_arg(ap, FILE *);
-		fprintf(fp, "%s" RETCODE, line);
-	}
-
-	return 0;
-}
-*/
-class CDBAccregSave : public CDBProcessor
-{
-	FILE *&fp;
-public:
-	CDBAccregSave(FILE *&f) : fp(f)			{}
-	virtual ~CDBAccregSave()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		char line[8192];
-		struct accreg *reg = (struct accreg *)data;
-		if(reg && reg->reg_num > 0)
-		{
-			inter_accreg_tostr(line,reg);
-			fprintf(fp, "%s" RETCODE, line);
-		}
-		return true;
-	}
-};
-
 // アカウント変数のセーブ
 int inter_accreg_save(void)
 {
@@ -203,7 +165,6 @@ int inter_accreg_save(void)
 	}
 	else
 	{
-		////
 		db_iterator<size_t,struct accreg *> iter(accreg_db);
 		char line[8192];
 		accreg *reg;
@@ -216,7 +177,6 @@ int inter_accreg_save(void)
 				fprintf(fp, "%s" RETCODE, line);
 			}
 		}
-		////numdb_foreach(accreg_db, CDBAccregSave(fp) );
 		lock_fclose(fp, accreg_txt, lock);
 		//ShowStatus("inter: %s saved.\n", accreg_txt);
 	}
@@ -315,17 +275,15 @@ int inter_init(const char *file) {
 }
 
 // finalize
-int accreg_db_final (void *k, void *data)
+void accreg_db_final (void *k, void *data)
 {	
 	struct accreg *p = (struct accreg *) data;
 	if (p) delete p;
-	return 0;
 }
-int wis_db_final (void *k, void *data)
+void wis_db_final (void *k, void *data)
 {
 	struct WisData *p = (struct WisData *) data;
 	if(p) delete p;
-	return 0;
 }
 void inter_final()
 {
@@ -439,55 +397,26 @@ int mapif_account_reg_reply(int fd, uint32 account_id) {
 	return 0;
 }
 
-//--------------------------------------------------------
-
-// Existence check of WISP data
-/*
-int check_ttl_wisdata_sub(void *key, void *data, va_list &ap)
+///////////////////////////////////////////////////////////////////////////////
+/// check ttl of wisper messages
+///
+int check_ttl_wisdata(void)
 {
-	unsigned long tick;
-	struct WisData *wd = (struct WisData *)data;
-	tick = (unsigned long)va_arg(ap, unsigned long);
-
-	if (DIFF_TICK(tick, wd->tick) > WISDATA_TTL && wis_delnum < WISDELLIST_MAX)
-		wis_dellist[wis_delnum++] = wd->id;
-
-	return 0;
-}
-*/
-class CDBttl_wisdata : public CDBProcessor
-{
-	unsigned long tick;
-public:
-	CDBttl_wisdata(unsigned long t) : tick(t)			{}
-	virtual ~CDBttl_wisdata()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		struct WisData *wd = (struct WisData *)data;
-		if( wd && DIFF_TICK(tick, wd->tick) > WISDATA_TTL && wis_delnum < WISDELLIST_MAX)
-			wis_dellist[wis_delnum++] = wd->id;
-		return true;
-	}
-};
-
-int check_ttl_wisdata(void) {
 	unsigned long tick = gettick();
-	int i;
-
-	do {
-		wis_delnum = 0;
-		numdb_foreach(wis_db, CDBttl_wisdata(tick) );
-//		numdb_foreach(wis_db, check_ttl_wisdata_sub, tick);
-		for(i = 0; i < wis_delnum; ++i) {
-			struct WisData *wd = (struct WisData*)numdb_search(wis_db, wis_dellist[i]);
+	db_iterator<size_t, WisData*> iter(wis_db);
+	for(; iter; ++iter)
+	{
+		WisData *wd = iter.data();
+		if( wd && DIFF_TICK(tick, wd->tick) > WISDATA_TTL )
+		{
 			ShowMessage("inter: wis data id=%d time out : from %s to %s\n", wd->id, wd->src, wd->dst);
 			// removed. not send information after a timeout. Just no answer for the player
-			//mapif_wis_end(wd, 1); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
-			numdb_erase(wis_db, wd->id);
-			delete wd;
-		}
-	} while(wis_delnum >= WISDELLIST_MAX);
+			mapif_wis_end(wd, 1); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
 
+			delete wd;
+			numdb_erase(wis_db, iter.key());
+		}
+	}
 	return 0;
 }
 

@@ -39,14 +39,6 @@ movable::movable() :
 	}
 }
 
-
-
-/// change object state
-int movable::changestate(int state,int type)
-{
-	do_changestate(state,type);
-	return 0;
-}
 ///////////////////////////////////////////////////////////////////////////////
 /// set directions seperately.
 void movable::set_dir(dir_t b, dir_t h)
@@ -54,12 +46,14 @@ void movable::set_dir(dir_t b, dir_t h)
 	const bool ch = this->bodydir == b || this->headdir == h;
 	if(ch) this->bodydir = b, this->headdir = h, clif_changed_dir(*this); 
 }
+///////////////////////////////////////////////////////////////////////////////
 /// set both directions equally.
 void movable::set_dir(dir_t d)
 {
 	const bool ch = this->bodydir == d || this->headdir == d;
 	if(ch) this->bodydir = this->headdir = d, clif_changed_dir(*this);
 }
+///////////////////////////////////////////////////////////////////////////////
 /// set directions to look at target
 void movable::set_dir(const coordinate& to)
 {
@@ -67,30 +61,29 @@ void movable::set_dir(const coordinate& to)
 	const bool ch = this->bodydir == d || this->headdir == d;
 	if(ch) this->bodydir = this->headdir = d, clif_changed_dir(*this);
 }
+///////////////////////////////////////////////////////////////////////////////
 /// set body direction only.
 void movable::set_bodydir(dir_t d)
 {
 	const bool ch = this->bodydir == d;
 	if(ch) this->bodydir=d, clif_changed_dir(*this);
 }
+///////////////////////////////////////////////////////////////////////////////
 /// set head direction only.
 void movable::set_headdir(dir_t d)
 {
 	const bool ch = this->headdir == d;
 	if(ch) this->headdir=d, clif_changed_dir(*this);
 }
-
+///////////////////////////////////////////////////////////////////////////////
 /// walktimer entry function.
 /// it actually combines the extraction of the object and calling the 
 /// object interal handler, which formally was pc_timer, mob_timer, etc.
 int movable::walktimer_entry(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	movable* mv = movable::from_blid(id);;
+	movable* mv = movable::from_blid(id);
 	if( mv )
 	{
-		if( mv->get_sd() )
-			mv->get_sd();
-
 		if(mv->walktimer != tid)
 		{
 			if(config.error_log)
@@ -98,6 +91,7 @@ int movable::walktimer_entry(int tid, unsigned long tick, int id, basics::numptr
 			return 0;
 		}
 		// timer was executed, clear it
+		// have it temporarily set for clif functions
 		mv->walktimer = -1;
 		// and call the actual timer function
 		mv->walktimer_func(tick);
@@ -162,8 +156,10 @@ bool movable::walktimer_func(unsigned long tick)
 			this->set_dir( d );
 
 			// signal out-of-sight
+			this->walktimer=1;
 			block_list::foreachinmovearea( CClifOutsight(*this),
 				this->block_list::m,this->block_list::x-AREA_SIZE,this->block_list::y-AREA_SIZE,this->block_list::x+AREA_SIZE,this->block_list::y+AREA_SIZE,dx,dy,this->get_sd()?0:BL_PC);
+			this->walktimer=-1;
 
 
 			skill_unit_move(*this,tick,0);
@@ -181,8 +177,10 @@ bool movable::walktimer_func(unsigned long tick)
 			skill_unit_move(*this,tick,1);
 
 			// signal in-sight
+			this->walktimer=1;
 			block_list::foreachinmovearea( CClifInsight(*this),
 				this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,this->get_sd()?0:BL_PC);
+			this->walktimer=-1;
 
 			// do object depending stuff at the end of the walk step.
 			this->do_walkend();
@@ -219,7 +217,7 @@ bool movable::walktimer_func(unsigned long tick)
 	this->walktarget = *this;
 	this->do_stop_walking();
 
-	return true;
+	return false;
 }
 
 
@@ -298,12 +296,55 @@ bool movable::can_reach(const block_list &bl, size_t range) const
 	return false;
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////
-/// speed calculation
-int movable::calc_next_walk_step()
+/// retrive the actual speed of the object
+int movable::calc_speed()
+{	// current default is using the status functions 
+	// which will be split up later into the objects itself
+	// and also merging with the seperated calc_pc
+	// possibly combine it into set_walktimer 
+	// for only doing map position specific speed modifications,
+	// the other speed modification should go into the status code anyway
+	this->speed = status_recalc_speed(this);
+	return this->speed;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// sets the object to idle state
+bool movable::set_idle()
+{
+	this->stop_walking();
+	return this->is_idle();
+}
+///////////////////////////////////////////////////////////////////////////////
+///
+void movable::set_delay(ulong delay)
+{
+	this->canmove_tick = delay;
+}
+///////////////////////////////////////////////////////////////////////////////
+///
+bool movable::can_walk(unsigned short m, unsigned short x, unsigned short y)
+{	// default only checks for non-passable cells
+	return !map_getcell(m,x,y,CELL_CHKNOPASS);
+}
+///////////////////////////////////////////////////////////////////////////////
+/// initialize walkpath. uses current target position as walk target
+bool movable::init_walkpath()
+{
+	if( this->walkpath.path_search(this->block_list::m,this->block_list::x,this->block_list::y,this->walktarget.x,this->walktarget.y,this->walkpath.walk_easy) )
+	{
+		clif_moveobject(*this);
+		return true;
+	}
+	return false;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// activates the walktimer
+bool movable::set_walktimer(unsigned long tick)
 {
 	if( this->walkpath.finished() )
-		return -1;
+		return false;
 
 	// update the object speed
 	unsigned short old_speed = this->speed;
@@ -320,69 +361,18 @@ int movable::calc_next_walk_step()
 		clif_moveobject(*this);
 	}
 
+	if( this->walktimer != -1)
+	{
+		delete_timer(this->walktimer, walktimer_entry);
+		//this->walktimer=-1;
+	}
 	// walking diagonally takes sqrt(2) longer, otherwise take the speed directly
-	return (this->walkpath.get_current_step()&1 ) ? this->speed*14/10 : this->speed;
+	const size_t sp = (this->walkpath.get_current_step()&1 ) ? this->speed*14/10 : this->speed;
+	this->walktimer = add_timer(tick+sp, this->walktimer_entry, this->block_list::id, basics::numptr(this) );
+	return true;
 }
-
 ///////////////////////////////////////////////////////////////////////////////
-/// retrive the actual speed of the object
-int movable::calc_speed()
-{	// current default is using the status functions 
-	// which will be split up later into the objects itself
-	// and also merging with the seperated calc_pc
-	// possibly combine it with calc_next_walk_step into set_walktimer 
-	// for only doing map position specific speed modifications,
-	// the other speed modification should go into the status code anyway
-	this->speed = status_recalc_speed(this);
-	return this->speed;
-}
-
-/// sets the object to idle state
-bool movable::set_idle()
-{
-	this->stop_walking();
-	return this->is_idle();
-}
-
-bool movable::can_walk(unsigned short m, unsigned short x, unsigned short y)
-{	// default only checks for non-passable cells
-	return !map_getcell(m,x,y,CELL_CHKNOPASS);
-}
-
-/// initialize walkpath. uses current target position as walk target
-bool movable::init_walkpath()
-{
-	if( this->walkpath.path_search(this->block_list::m,this->block_list::x,this->block_list::y,this->walktarget.x,this->walktarget.y,this->walkpath.walk_easy) )
-	{
-		clif_moveobject(*this);
-		return true;
-	}
-	return false;
-}
-
-/// activates the walktimer
-bool movable::set_walktimer(unsigned long tick)
-{
-	//
-	// this place will contain the map tile depending speed recalculation
-	// and the calc_next_walk_step code
-
-	const int i = this->calc_next_walk_step();
-	if( i>0 )
-	{
-		if( this->walktimer != -1)
-		{
-			delete_timer(this->walktimer, walktimer_entry);
-			//this->walktimer=-1;
-		}
-		this->walktimer = add_timer(tick+i, this->walktimer_entry, this->block_list::id, basics::numptr(this) );
-		return true;
-	}
-	return false;
-}
-
-
-
+///
 bool movable::walktoxy(const coordinate& pos, bool easy)
 {
 	if( this->is_on_map() )
@@ -415,7 +405,8 @@ bool movable::walktoxy(const coordinate& pos, bool easy)
 	}
 	return false;
 }
-
+///////////////////////////////////////////////////////////////////////////////
+///
 bool movable::stop_walking(int type)
 {
 	if( this->walktimer != -1 )
@@ -446,8 +437,8 @@ bool movable::stop_walking(int type)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// calculate a position around the target coordiantes
-bool movable::calc_pos(const block_list &target_bl)
+/// calculate a random position around the target coordiantes
+bool movable::random_position(const block_list &target_bl)
 {
 	dir_t default_dir = target_bl.get_dir();
 	int x,y,dx,dy;

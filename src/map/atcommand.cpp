@@ -704,7 +704,7 @@ bool is_atcommand(const int fd, struct map_session_data &sd, const char* message
 				}
 				else if( psd != &sd && sd.isGM() <= psd->isGM() )
 				{	// Your GM level don't authorise you to do this action on this player.
-					clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW)); 
+					clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW_FOR_PCACTION)); 
 				}
 				else if( !cmd.func(fd, *psd, command, param) )
 				{	// Command could not be executed
@@ -832,7 +832,7 @@ bool atcommand_adjgmlvl(int fd, struct map_session_data& sd, const char* command
 	}
 	else if( psd==&sd || sd.isGM() <= psd->isGM() )
 	{	// not authorized
-		clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW));	
+		clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW_FOR_PCACTION));	
 	}
 	else
 	{
@@ -2450,7 +2450,7 @@ bool atcommand_effect(int fd, struct map_session_data& sd, const char* command, 
 	}
 	else if( sd.isGM() <  psd->isGM())
 	{	// Your GM level don't authorise you to do this action on this player.
-		clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW));
+		clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW_FOR_PCACTION));
 	}
 	else if( all )
 	{
@@ -2771,21 +2771,21 @@ bool atcommand_go(int fd, struct map_session_data& sd, const char* command, cons
 				m = map_mapname2mapid(sd.status.memo_point[-town-1].mapname);
 				if (m >= 0 && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM())
 				{
-					clif_displaymessage(fd, msg_txt(247)); // FIXME: Not in the enum!
+					clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_TO));
 					return false;
 				}
 				else if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
 				{
-					clif_displaymessage(fd, msg_txt(248)); // FIXME: Not in the enum!
+					clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_FROM));
 					return false;
 				}
 				else if( pc_setpos(sd, sd.status.memo_point[-town-1].mapname, sd.status.memo_point[-town-1].x, sd.status.memo_point[-town-1].y, 3) )
 				{
-					clif_displaymessage(fd, msg_txt(MSG_WARPED)); // Warped.
+					clif_displaymessage(fd, msg_txt(MSG_WARPED));
 				}
 				else
 				{
-					clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
+					clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND));
 					return false;
 				}
 			}
@@ -2800,11 +2800,11 @@ bool atcommand_go(int fd, struct map_session_data& sd, const char* command, cons
 		{
 			m = map_mapname2mapid(data[town].map);
 			if (m >= 0 && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
-				clif_displaymessage(fd, msg_txt(247)); // FIXME: Not in the enum!
+				clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_TO));
 				return false;
 			}
 			if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
-				clif_displaymessage(fd, msg_txt(248)); // FIXME: Not in the enum!
+				clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_FROM));
 				return false;
 			}
 			if( pc_setpos(sd, (char *)data[town].map, data[town].x, data[town].y, 3) ) {
@@ -2992,14 +2992,14 @@ bool atcommand_guildstorage(int fd, struct map_session_data& sd, const char* com
 		if( sd.state.storage_flag == 1 ||
 			((stor = account2storage2(sd.status.account_id)) != NULL && stor->storage_status == 1) )
 		{
-			clif_displaymessage(fd, msg_txt(251)); // FIXME: Not in the enum!
+			clif_displaymessage(fd, msg_txt(MSG_GUILD_STORAGE_ALREADY_OPEN));
 			return false;
 		}
 		storage_guild_storageopen(sd);
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(252)); // FIXME: Not in the enum!
+		clif_displaymessage(fd, msg_txt(MSG_NOT_IN_GUILD));
 		return false;
 	}
 	return true;
@@ -3221,7 +3221,7 @@ bool atcommand_loadnpc(int fd, struct map_session_data& sd, const char* command,
 
 	// check if script file exists
 	if ((fp = basics::safefopen(param[0], "r")) == NULL) {
-		clif_displaymessage(fd, msg_txt(261)); // FIXME: Not in the enum!
+		clif_displaymessage(fd, msg_txt(MSG_SCRIPT_NOT_LOADED));
 		return false;
 	}
 	fclose(fp);
@@ -3230,7 +3230,7 @@ bool atcommand_loadnpc(int fd, struct map_session_data& sd, const char* command,
 	npc_addsrcfile(param[0]);
 	npc_parsesrcfile(param[0]);
 
-	clif_displaymessage(fd, msg_txt(262)); // FIXME: Not in the enum!
+	clif_displaymessage(fd, msg_txt(MSG_SCRIPT_LOADED));
 
 	return true;
 }
@@ -3631,7 +3631,7 @@ bool atcommand_jail(int fd, struct map_session_data& sd, const char* command, co
 		}
 		else
 		{
-			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW)); // Your GM level don't authorise you to do this action on this player.
+			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW_FOR_PCACTION)); // Your GM level don't authorise you to do this action on this player.
 			return false;
 		}
 	}
@@ -3681,7 +3681,7 @@ bool atcommand_unjail(int fd, struct map_session_data& sd, const char* command, 
 		}
 		else
 		{
-			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW)); // Your GM level don't authorise you to do this action on this player.
+			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW_FOR_PCACTION)); // Your GM level don't authorise you to do this action on this player.
 			return false;
 		}
 	}
@@ -3849,7 +3849,7 @@ bool atcommand_jump(int fd, struct map_session_data& sd, const char* command, co
 		maps[sd.block_list::m].flag.nowarp ||
 		(maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) )
 	{
-		clif_displaymessage(fd, msg_txt(248)); // FIXME: Not in the enum!
+		clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_FROM));
 		return false;
 	}
 	if (x <= 0)
@@ -3892,11 +3892,11 @@ bool atcommand_jumpto(int fd, struct map_session_data& sd, const char* command, 
 			return false;
 
 		if (pl_sd->block_list::m <map_num  && maps[pl_sd->block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
-			clif_displaymessage(fd, msg_txt(247)); // FIXME: Not in the enum!
+			clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_TO));
 			return false;
 		}
 		if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
-			clif_displaymessage(fd, msg_txt(248)); // FIXME: Not in the enum!
+			clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_FROM));
 			return false;
 		}
 		pc_setpos(sd, pl_sd->mapname, pl_sd->block_list::x, pl_sd->block_list::y, 3);
@@ -3953,7 +3953,7 @@ bool atcommand_kick(int fd, struct map_session_data& sd, const char* command, co
 		}
 		else
 		{
-			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW)); // Your GM level don't authorise you to do this action on this player.
+			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW_FOR_PCACTION)); // Your GM level don't authorise you to do this action on this player.
 			return false;
 		}
 	}
@@ -4012,7 +4012,7 @@ bool atcommand_kill(int fd, struct map_session_data& sd, const char* command, co
 		}
 		else
 		{
-			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW)); // Your GM level don't authorise you to do this action on this player.
+			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW_FOR_PCACTION)); // Your GM level don't authorise you to do this action on this player.
 			return false;
 		}
 	}
@@ -4093,16 +4093,16 @@ bool atcommand_load(int fd, struct map_session_data& sd, const char* command, co
 {
 	int m = map_mapname2mapid(sd.status.save_point.mapname);
 	if (m >= 0 && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
-		clif_displaymessage(fd, msg_txt(249)); // FIXME: Not in the enum!
+		clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_SAVE));
 		return false;
 	}
 	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
-		clif_displaymessage(fd, msg_txt(248)); // FIXME: Not in the enum!
+		clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_FROM));
 		return false;
 	}
 
 	pc_setpos(sd, sd.status.save_point.mapname, sd.status.save_point.x, sd.status.save_point.y, 0);
-	clif_displaymessage(fd, msg_txt(MSG_WARPING_TO_RESPAWN)); // Warping to respawn point.
+	clif_displaymessage(fd, msg_txt(MSG_WARPING_TO_RESPAWN));
 
 	return true;
 }
@@ -4500,11 +4500,11 @@ bool atcommand_mapmove(int fd, struct map_session_data& sd, const char* command,
 	}
 	else if( maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM() )
 	{
-		clif_displaymessage(fd, msg_txt(247)); // FIXME: Not in the enum!
+		clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_TO));
 	}
 	else if( sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM() )
 	{
-		clif_displaymessage(fd, msg_txt(248)); // FIXME: Not in the enum!
+		clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_FROM));
 	}
 	else
 	{
@@ -4566,7 +4566,7 @@ bool atcommand_memo(int fd, struct map_session_data& sd, const char* command, co
 				(maps[sd.block_list::m].flag.nowarpto || maps[sd.block_list::m].flag.nomemo) &&
 				config.any_warp_GM_min_level > sd.isGM() )
 			{
-				clif_displaymessage(fd, msg_txt(253)); // FIXME: Not in the enum!
+				clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_MEMO));
 				return false;
 			}
 			if (sd.status.memo_point[position].mapname[0]) {
@@ -5290,7 +5290,7 @@ bool atcommand_nuke(int fd, struct map_session_data& sd, const char* command, co
 		}
 		else
 		{
-			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW)); // Your GM level don't authorise you to do this action on this player.
+			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW_FOR_PCACTION)); // Your GM level don't authorise you to do this action on this player.
 			return false;
 		}
 	}
@@ -5906,7 +5906,7 @@ bool atcommand_recall(int fd, struct map_session_data& sd, const char* command, 
 		}
 		else
 		{
-			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW)); // Your GM level don't authorise you to do this action on this player.
+			clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW_FOR_PCACTION)); // Your GM level don't authorise you to do this action on this player.
 			return false;
 		}
 	}
@@ -6044,7 +6044,7 @@ bool atcommand_refreshonline(int fd, struct map_session_data& sd, const char* co
 bool atcommand_reloadatcommand(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
 {
 	atcommand_config_read(ATCOMMAND_CONF_FILENAME);
-	clif_displaymessage(fd, msg_txt(254)); // FIXME: Not in the enum!
+	clif_displaymessage(fd, msg_txt(MSG_GM_COMMANDS_RELOADED));
 	return true;
 }
 
@@ -6055,7 +6055,7 @@ bool atcommand_reloadatcommand(int fd, struct map_session_data& sd, const char* 
 bool atcommand_reloadbattleconf(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
 {
 	config.read(BATTLE_CONF_FILENAME);
-	clif_displaymessage(fd, msg_txt(255)); // FIXME: Not in the enum!
+	clif_displaymessage(fd, msg_txt(MSG_BATTLE_CONFIG_RELOADED));
 	return true;
 }
 
@@ -6093,7 +6093,7 @@ bool atcommand_reloadmobdb(int fd, struct map_session_data& sd, const char* comm
 bool atcommand_reloadpcdb(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
 {
 	pc_readdb();
-	clif_displaymessage(fd, msg_txt(257)); // FIXME: Not in the enum!
+	clif_displaymessage(fd, msg_txt(MSG_PLAYER_CONFIG_RELOADED));
 	return true;
 }
 
@@ -6138,7 +6138,7 @@ bool atcommand_reloadskilldb(int fd, struct map_session_data& sd, const char* co
 bool atcommand_reloadstatusdb(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
 {
 	status_readdb();
-	clif_displaymessage(fd, msg_txt(256)); // FIXME: Not in the enum!
+	clif_displaymessage(fd, msg_txt(MSG_STATUS_CONFIG_RELOADED));
 	return true;
 }
 
@@ -6264,12 +6264,12 @@ bool atcommand_send(int fd, struct map_session_data& sd, const char* command, co
 
 	if( clif_packetsend(fd, sd, type, info, sizeof(info)) )
 	{
-		snprintf(output, sizeof(output), msg_txt(258), type, type); // FIXME: Not in the enum!
+		snprintf(output, sizeof(output), msg_txt(MSG_SEND_PACKET_X_D), type, type);
 		clif_displaymessage(fd, output);
 	}
 	else
 	{
-		clif_displaymessage(fd, msg_txt(259)); // FIXME: Not in the enum!
+		clif_displaymessage(fd, msg_txt(MSG_INVALID_PACKET));
 	}
 	return true;
 }
@@ -6294,10 +6294,10 @@ const char* txt_time(char* buffer, size_t sz, unsigned long duration)
 		seconds = duration - (60 * minutes);
 
 		snprintf(buffer, sz, "%ld %s %ld %s %ld %s %ld %s",
-				days, (days==1)?MSG_DAY:MSG_DAYS,
-				hours, (hours==1)?MSG_HOUR:MSG_HOURS,
-				minutes, (minutes==1)?MSG_MINUTE:MSG_MINUTES,
-				seconds, (seconds==1)?MSG_SECOND:MSG_SECONDS);
+				days,		msg_txt((days==1)	?MSG_DAY   :MSG_DAYS   ),
+				hours,		msg_txt((hours==1)	?MSG_HOUR  :MSG_HOURS  ),
+				minutes,	msg_txt((minutes==1)?MSG_MINUTE:MSG_MINUTES),
+				seconds,	msg_txt((seconds==1)?MSG_SECOND:MSG_SECONDS) );
 		buffer[sz-1]=0;
 	}
 	return buffer;
@@ -6324,7 +6324,7 @@ bool atcommand_servertime(int fd, struct map_session_data& sd, const char* comma
 
 	if (config.night_duration == 0 && config.day_duration == 0)
 	{
-		clif_displaymessage(fd, msg_txt((daynight_flag == 0)?231:232)); 
+		clif_displaymessage(fd, msg_txt((daynight_flag == 0)?MSG_PERMANENT_DAYLIGHT:MSG_PERMANENT_NIGHT)); 
 		// Game time: The game is in permanent daylight.
 		// Game time: The game is in permanent night.
 	}
@@ -6996,7 +6996,7 @@ bool atcommand_storage(int fd, struct map_session_data& sd, const char* command,
 	if( sd.state.storage_flag == 1 ||
 		((stor = account2storage2(sd.status.account_id)) != NULL && stor->storage_status == 1) )
 	{
-		clif_displaymessage(fd, msg_txt(250)); // FIXME: Not in the enum!
+		clif_displaymessage(fd, msg_txt(MSG_STORAGE_ALREADY_OPEN));
 		return false;
 	}
 	storage_storageopen(sd);

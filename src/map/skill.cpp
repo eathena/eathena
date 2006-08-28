@@ -2260,7 +2260,7 @@ int skill_blown( block_list *src, block_list *target,int count)
 	int dx=0,dy=0,nx,ny;
 	int x=target->x,y=target->y;
 	dir_t dir;
-	int prev_state=MS_IDLE;
+//	int prev_state=MS_IDLE;
 	int moveblock;
 	struct map_session_data *sd=NULL;
 	struct mob_data *md=NULL;
@@ -2310,15 +2310,15 @@ int skill_blown( block_list *src, block_list *target,int count)
 		else if(md) {
 			md->walktarget.x=nx;
 			md->walktarget.y=ny;
-			prev_state = md->state.state;
-			md->state.state = MS_WALK;
+//			prev_state = md->state.state;
+//			md->state.state = MS_WALK;
 			clif_fixobject(*md);
 		}
 		else if(pd) {
 			pd->walktarget.x=nx;
 			pd->walktarget.y=ny;
-			prev_state = pd->state.state;
-			pd->state.state = MS_WALK;
+			//prev_state = pd->state.state;
+			//pd->state.state = MS_WALK;
 			clif_fixobject(*pd);
 		}
 	}
@@ -2376,15 +2376,15 @@ int skill_blown( block_list *src, block_list *target,int count)
 	{
 		block_list::foreachinmovearea( CClifMobInsight(*md),
 			target->m,nx-AREA_SIZE,ny-AREA_SIZE,nx+AREA_SIZE,ny+AREA_SIZE,-dx,-dy,BL_PC);
-		if(count&0x20000)
-			md->state.state = prev_state;
+//		if(count&0x20000)
+//			md->state.state = prev_state;
 	}
 	else if(pd)
 	{
 		block_list::foreachinmovearea( CClifPetInsight(*pd),
 			target->m,nx-AREA_SIZE,ny-AREA_SIZE,nx+AREA_SIZE,ny+AREA_SIZE,-dx,-dy,BL_PC);
-		if(count&0x20000)
-			pd->state.state = prev_state;
+		//if(count&0x20000)
+		//	pd->state.state = prev_state;
 	}
 	return 0;
 }
@@ -4035,10 +4035,7 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 	case NPC_GRANDDARKNESS:		/*闇グランドクロス*/
 		/* スキルユニット配置 */
 		skill_castend_pos2(src,bl->x,bl->y,skillid,skilllv,tick,0);
-		if(sd)
-			sd->canmove_tick = tick + 1000;
-		else if(src->type == BL_MOB)
-			((struct mob_data *)src)->changestate(MS_DELAY,1000);
+		src->set_idle(1000);
 		break;
 
 	case TF_THROWSTONE:			/* 石投げ */
@@ -5688,14 +5685,14 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_time,0 );
 			if (md)
-				md->changestate(MS_DELAY,skill_time);
+				md->set_delay(tick + skill_time);
 			else if (sd)
-				sd->attackable_tick = sd->canmove_tick = tick + skill_time;
+				sd->set_delay(tick + skill_time);
 		}
 		break;
 
 	case NPC_REBIRTH:
-		if (md && md->state.state == MS_DEAD)
+		if( md && md->is_dead() )
 			mob_setdelayspawn (md->block_list::id);
 		break;
 
@@ -9257,7 +9254,7 @@ int skill_castcancel(block_list *bl, int type)
 		pd->state.casting_flag = 0;
 		clif_skillcastcancel(*bl);
 		if( pd->is_walking() )
-			pd->changestate(MS_IDLE,0);
+			pd->set_idle();
 
 		//The timer is not deleted as the pet's attack will be resumed.
 		return 0;

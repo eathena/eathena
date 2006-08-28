@@ -93,6 +93,26 @@ struct item_data
 		suffix[0]=0;
 		cardillustname[0]=0;
 	}
+
+	~item_data()
+	{
+		clean_scripts();
+	}
+
+	void clean_scripts()
+	{
+		if(this->use_script)
+		{
+			this->use_script->release();
+			this->use_script = NULL;
+		}
+		if (this->equip_script)
+		{
+			this->equip_script->release();
+			this->equip_script = NULL;
+		}
+	}
+
 };
 
 

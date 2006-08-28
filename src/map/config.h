@@ -435,7 +435,7 @@ typedef enum
 	MSG_S_D									= 78,
 	MSG_D_AFFAIR_ABOVE						= 79,
 	MSG_NAME_MONSTER_ID						= 80,
-	MSG_GM_LV_TOO_LOW						= 81,
+	MSG_GM_LV_TOO_LOW_FOR_PCACTION			= 81,
 	MSG_USE_ONE_OF_THIS						= 82,
 	MSG_CANNOT_SPAWN_EMPERIUM				= 83,
 	MSG_ALL_STATS_CHANGED					= 84,
@@ -600,10 +600,38 @@ typedef enum
 	MSG_MAP_SKILLS_ARE_OFF					=243,
 	MSG_MAP_SKILLS_ARE_ON					=244,
 	MSG_SERVER_UPTIME						=245,
+	MSG_GM_LV_TOO_LOW						=246,
+
+	MSG_NOT_AUTHORIZED_TO_WARP_TO			=247,
+	MSG_NOT_AUTHORIZED_TO_WARP_FROM			=248,
+	MSG_NOT_AUTHORIZED_TO_WARP_SAVE			=249,
+	MSG_STORAGE_ALREADY_OPEN				=250,
+	MSG_GUILD_STORAGE_ALREADY_OPEN			=251,
+	MSG_NOT_AUTHORIZED_TO_MEMO				=253,
+	MSG_GM_COMMANDS_RELOADED				=254,
+	MSG_BATTLE_CONFIG_RELOADED				=255,
+	MSG_STATUS_CONFIG_RELOADED				=256,
+	MSG_PLAYER_CONFIG_RELOADED				=257,
+	MSG_SEND_PACKET_X_D						=258,
+	MSG_INVALID_PACKET						=259,
+	
+	MSG_SCRIPT_NOT_LOADED					=261,
+	MSG_SCRIPT_LOADED						=262,
+	MSG_ITEM_CANNOT_BE_DROPPED				=263,
+	MSG_ITEM_CANNOT_BE_STORED				=264,
+	MSG_ITEM_CANNOT_BE_TRADED				=265,
+	MSG_S_HAS_BOUGHT						=265,
+
+
 	MSG_CURRENTLY_ITS_THE_NIGHT				=500,
 	MSG_ACCOUNT_TIME_LIMIT_IS_DMY_HMS		=501,
 	MSG_THE_DAY_HAS_ARRIVED					=502,
 	MSG_THE_NIGHT_HAS_FALLEN				=503,
+
+	MSG_BANNED_D_MINUTES					=507,
+	MSG_BAN_DISABLED						=508,
+	MSG_BLOCKED								=509,
+
 	MSG_YOU_HAVE_NO_MESSAGES				=510,
 	MSG_D_FROM_S_PRIORITY					=511,
 	MSG_D_FROM_S_NEW						=512,
@@ -621,6 +649,11 @@ typedef enum
 	MSG_CHARACTER_DOES_NOT_EXIST			=524,
 	MSG_MAIL_HAS_BEEN_SENT					=525,
 	MSG_YOU_HAVE_NEW_MAIL					=526,
+
+	MSG_HACKTRADE_S_D_OVERTRADE				=538,
+	MSG_HAS_D_OF_D_TRY_D					=539,
+
+
 	MSG_GUARDIAN_ANGEL						=540,
 	MSG_NAME_IS_S_AND_SUPER_NOVICE			=541,
 	MSG_PLEASE_HELP_ME						=542
@@ -643,9 +676,8 @@ public:
 	/// destructor.
 	~CMessageTable();
 
-	/// return the message string by the specified number.
-	const char *operator()(size_t msg_number);
-	//const char *operator()(msg_t msg_id);
+	/// return the message string by specified message id.
+	const char *operator()(msg_t msg_id);
 
 	/// read config file.
 	bool read(const char *cfgName);

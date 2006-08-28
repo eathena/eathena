@@ -5107,7 +5107,6 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 			} 
 			else if(md && md->mode&1 && md->is_movable()) 
 			{
-				md->state.state=MS_WALK;
 				if( DIFF_TICK(md->next_walktime,tick) > 7000 && md->walkpath.finished() )
 				{
 					i = 3000 + rand()%2000;

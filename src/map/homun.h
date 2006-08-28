@@ -146,6 +146,8 @@ public:
 	/// checks for dead state
 	virtual bool is_dead() const		{ return (this->status.hp<=0); }
 
+	virtual bool set_dead();
+
 	
 	///////////////////////////////////////////////////////////////////////////
 	// walking functions
@@ -180,7 +182,7 @@ public:
 		return 0;
 	}
 
-
+	
 
 
 	void* operator new(size_t sz)

@@ -74,8 +74,19 @@ public:
 
 
 	///////////////////////////////////////////////////////////////////////////
+	// status functions
+
+	/// checks for walking state
+	virtual bool is_walking() const		{ return (walktimer!=-1); }
+	/// checks for idle state (alive+not sitting+not blocked by skill)
+	virtual bool is_idle() const		{ return !is_walking(); }
+
+
+
+
+	///////////////////////////////////////////////////////////////////////////
 	/// get randomized move coordinates with same distance
-	bool random_position(unsigned short &x, unsigned short &y) const; // [Skotlex]
+	bool random_position(unsigned short &x, unsigned short &y) const;
 	/// get randomized move coordinates with same distance
 	bool random_position(coordinate &pos) const
 	{
@@ -94,12 +105,10 @@ public:
 	bool can_reach(const block_list &bl, size_t range=0) const;
 
 	///////////////////////////////////////////////////////////////////////////
-	/// calculate a position around the target coordiantes
-	bool calc_pos(const block_list &target_bl);
+	/// calculate a random position around the target coordiantes
+	bool random_position(const block_list &target_bl);
 
 	///////////////////////////////////////////////////////////////////////////
-	/// get the speed for the next walkstep
-	int calc_next_walk_step();
 	/// retrive the actual speed of the object
 	int get_speed() const { return this->speed; }
 	/// (re)-calculate the actual speed of the object.
@@ -113,14 +122,14 @@ public:
 	// compound of the old interface with modified timer callback
 	// clean up when new interface is debugged
 
-	/// change object state
-	int changestate(int state,int type);
 	/// walk to a random target
 	/// is ignored by default
 	virtual bool randomwalk(unsigned long tick)	{ return false; }
 
 	/// sets the object to idle state
 	virtual bool set_idle();
+	/// sets the object delay
+	virtual void set_delay(ulong delaytick=0);
 	
 
 	///////////////////////////////////////////////////////////////////////////
@@ -141,10 +150,6 @@ public:
 	virtual void do_walkend()	{}
 	/// do object depending stuff for the walkto
 	virtual void do_walkto()	{}
-	/// do object depending stuff for changestate
-	// -> possibly remove this at all
-	virtual void do_changestate(int state,int type)	{}
-
 
 
 	/// walk to position
@@ -166,7 +171,6 @@ public:
 	/// warps to a given map/position. 
 	virtual bool warp(unsigned short m, unsigned short x, unsigned short y, int type);
 
-
 	/// walktimer entry point.
 	/// call back function for the timer
 	static int walktimer_entry(int tid, unsigned long tick, int id, basics::numptr data);
@@ -175,13 +179,10 @@ public:
 	/// called from walktimer_entry
 	virtual bool walktimer_func(unsigned long tick);
 
-
 	/// initialize walkpath. uses current target position as walk target
 	bool init_walkpath();
 	/// activates the walktimer
 	bool set_walktimer(unsigned long tick);
-
-
 };
 
 
