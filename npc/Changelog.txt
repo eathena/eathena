@@ -35,6 +35,8 @@ Playtester
 Date		Added
 ======
 08/29
+	* Merged the god item quest from trunk. [MasterOfMuppets]
+	- Thanks to SinSloth for script it.
 	* Some preparations for the upcoming Izlude Arena [MasterOfMuppets]
 08/27
 	* After big discussion at the board, by default we decided to disable CUSTOM
