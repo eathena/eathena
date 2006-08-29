@@ -34,6 +34,8 @@ Playtester
 
 Date		Added
 ======
+08/29
+	* Some preparations for the upcoming Izlude Arena [MasterOfMuppets]
 08/27
 	* After big discussion at the board, by default we decided to disable CUSTOM
 	  Guild Storage option in Guild Kafras. You can uncomment it in functions_kafras.txt [Lupus]
