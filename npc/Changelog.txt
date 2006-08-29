@@ -35,6 +35,7 @@ Playtester
 Date		Added
 ======
 08/29
+	* Fixed a bug in the sign quest that prevented people from advancing in it. [MasterOfMuppets]
 	* Merged the god item quest from trunk. [MasterOfMuppets]
 	- Thanks to SinSloth for script it.
 	* Some preparations for the upcoming Izlude Arena [MasterOfMuppets]
