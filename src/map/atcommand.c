@@ -6124,7 +6124,7 @@ int atcommand_hidenpc(const int fd, struct map_session_data* sd,
 	memset(NPCname, '\0', sizeof(NPCname));
 
 	if (!message || !*message || sscanf(message, "%23[^\n]", NPCname) < 1) {
-		clif_displaymessage(fd, "Please, enter a NPC name (usage: @npcoff <NPC_name>).");
+		clif_displaymessage(fd, "Please, enter a NPC name (usage: @hidenpc <NPC_name>).");
 		return -1;
 	}
 

@@ -5,6 +5,9 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/30
+	* Fixed @hidenpc saying it's name is @npcoff [Skotlex]
+	* Merged the regen_data structure which has an unified regeneration code
+	  for any object that should have so. [Skotlex]
 	* Merged KarLaeda's @showmobs. It shows selected mobs on your mini-map
 	  (excluding mini-bosses & MVP) [Lupus]
 2006/08/28
