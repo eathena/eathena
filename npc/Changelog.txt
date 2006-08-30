@@ -34,6 +34,8 @@ Playtester
 
 Date		Added
 ======
+08/30
+	* A small fix to the 2006 headgears quest, thanks to Belle for telling me about the problem. [MasterOfMuppets]
 08/29
 	* Fixed a bug in the sign quest that prevented people from advancing in it. [MasterOfMuppets]
 	* Merged the god item quest from trunk. [MasterOfMuppets]
