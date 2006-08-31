@@ -2079,6 +2079,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	}
 
 	if(sd->dsprate < 0) sd->dsprate = 0;
+	if(sd->hprate<0) sd->hprate = 0;
+	if(sd->sprate<0) sd->sprate = 0;
 
 	// Anti-element and anti-race
 	if((skill=pc_checkskill(sd,CR_TRUST))>0)
