@@ -5,6 +5,15 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/08/31
+	* Merged TK_RUN giving you bare-fist mastery damage. [Skotlex]
+	* Merged various Gunslinger skill updates. [Skotlex]
+	* Merged config setting clear_skills_on_warp (skill.conf) [Skotlex]
+	* Merged the updated splash-attack code and the SD_LEVEL/SD_ANIMATION
+	  constants. [Skotlex] 
+	* Misc attacks with no delay will take now the weapon's attack delay as
+	  well. [Skotlex]
+	* Merged skipping setting a timer for skill_pcblockstart when the duration
+	  is 0. [Skotlex]
 	* Fixed @summon's delete timer being screwed up. [Skotlex]
 	* Fixed the clone script command's delete-timer being screwed up. [Skotlex]
 2006/08/30

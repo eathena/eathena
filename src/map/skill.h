@@ -47,6 +47,10 @@
 //Walk intervals at which chase-skills are attempted to be triggered.
 #define WALK_SKILL_INTERVAL 5
 
+// To be passed to skill_attack, whether the skill damage should disable level or animation. [Skotlex]
+#define SD_LEVEL 0x1000
+#define SD_ANIMATION	0x2000
+
 // スキルデ?タベ?ス
 struct skill_db {
 	char *name;
@@ -940,8 +944,11 @@ enum {
 	UNT_SUITON = 0xbb,
 	UNT_TATAMIGAESHI,
 	UNT_KAENSIN,
-	//0xbe, 0xc0, 0xc1 //Maybe the other elements of Ground Drift?
-	UNT_GROUNDDRIFT = 0xc2,
+	UNT_GROUNDDRIFT_WIND,
+	UNT_GROUNDDRIFT_DARK,
+	UNT_GROUNDDRIFT_POISON,
+	UNT_GROUNDDRIFT_WATER,
+	UNT_GROUNDDRIFT_FIRE,
 };
 
 #endif

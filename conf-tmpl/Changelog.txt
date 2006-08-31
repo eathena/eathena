@@ -1,6 +1,11 @@
 Date	Added
 
 2006/08/31
+	* Merged config setting clear_skills_on_warp (skill.conf), specifies
+	  whether ground-skills should be removed when the caster warps to another
+	  map (defaults to all) [Skotlex]
+	* Made the default for clear_skills_on_death 0. [Skotlex]
+	* Removed trap_settings&2 as it's no longer required [Skotlex]
 	* Corrected battle config name max_walk_rate, it should be named
 	  max_walk_speed. [Skotlex]
 2006/08/28

@@ -3273,7 +3273,8 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 				sd->sc.data[SC_KNOWLEDGE].timer = add_timer(gettick() + skill_get_time(SG_KNOWLEDGE, sd->sc.data[SC_KNOWLEDGE].val1), status_change_timer, sd->bl.id, SC_KNOWLEDGE);
 			}
 		}
-		skill_clear_group(&sd->bl, 1|(battle_config.traps_setting&2));
+		if (battle_config.clear_unit_onwarp&BL_PC)
+			skill_clear_unitgroup(&sd->bl);
 	}
 
 	if(m<0){

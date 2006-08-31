@@ -588,6 +588,9 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 				damage += (skill * 3);
 			break;
 		case W_FIST:
+			if((skill = pc_checkskill(sd,TK_RUN)) > 0)
+				damage += (skill * 10);
+			// No break, fallthrough to Knuckles
 		case W_KNUCKLE:
 			if((skill = pc_checkskill(sd,MO_IRONHAND)) > 0)
 				damage += (skill * 3);
@@ -597,12 +600,10 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 				damage += (skill * 3);
 			break;
 		case W_WHIP:
-			// Dance Lesson Skill Effect(+3 damage for every lvl = +30)
 			if((skill = pc_checkskill(sd,DC_DANCINGLESSON)) > 0)
 				damage += (skill * 3);
 			break;
 		case W_BOOK:
-			// Advance Book Skill Effect(+3 damage for every lvl = +30)
 			if((skill = pc_checkskill(sd,SA_ADVANCEDBOOK)) > 0)
 				damage += (skill * 3);
 			break;
@@ -838,7 +839,6 @@ static struct Damage battle_calc_weapon_attack(
 				}
 				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 				break;
-			case GS_MAGICALBULLET:
 			case HT_PHANTASMIC:
 				//Since these do not consume ammo, they need to be explicitly set as arrow attacks.
 				flag.arrow = 1;
@@ -860,6 +860,10 @@ static struct Damage battle_calc_weapon_attack(
 			case ITM_TOMAHAWK:	//Tomahawk is a ranged attack! [Skotlex]
 			case CR_GRANDCROSS:
 			case NPC_GRANDDARKNESS:
+			case GS_FLING:
+			case GS_TRIPLEACTION:
+			case GS_BULLSEYE:
+			case GS_MAGICALBULLET:
 				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 				break;
 
@@ -1459,11 +1463,7 @@ static struct Damage battle_calc_weapon_attack(
 					flag.cardfix = 0;
 					break;
 				case GS_TRACKING:
-					skillratio += 60*skill_lv;
-					if (skill_lv == 2) skillratio += 20;
-					if (skill_lv == 3) skillratio += 80;
-					if (skill_lv >= 4) skillratio += 60*(skill_lv-3);
-					if (skill_lv == 10) skillratio += 80;
+					skillratio += 100 *(skill_lv+1);
 					break;
 				case GS_PIERCINGSHOT:
 					skillratio += 20*skill_lv;
@@ -2503,14 +2503,6 @@ struct Damage  battle_calc_misc_attack(
 		//Not capped to INT_MAX to give some room for further damage increase.
 			md.damage = INT_MAX>>1;
 		break;
-	case NJ_ZENYNAGE:
-		md.damage = skill_get_zeny(skill_num ,skill_lv);
-		if (!md.damage) md.damage = 2;
-		md.damage = md.damage/2 + rand()%md.damage;
-		if (sd) pc_payzeny(sd, md.damage);
-		if(map_flag_vs(target->m) || is_boss(target))
-			md.damage>>=1; //temp value
-		break;
 	case GS_FLING:
 		md.damage = sd?sd->status.job_level:status_get_lv(src);
 		break;
@@ -2589,7 +2581,7 @@ struct Damage  battle_calc_misc_attack(
 
 	if(md.damage < 0)
 		md.damage = 0;
-	else if(md.damage && tstatus->mode&MD_PLANT && skill_num != PA_PRESSURE) //Pressure can vaporize plants.
+	else if(md.damage && tstatus->mode&MD_PLANT && skill_num != PA_PRESSURE) //Pressure can vaporize plants
 		md.damage = 1;
 
 	if(flag.elefix)
@@ -3323,6 +3315,7 @@ static const struct battle_data_short {
 	{ "gvg_traps_target_all",	            &battle_config.vs_traps_bctall			},
 	{ "traps_setting",	                  &battle_config.traps_setting	},
 	{ "clear_skills_on_death",             &battle_config.clear_unit_ondeath },
+	{ "clear_skills_on_warp",              &battle_config.clear_unit_onwarp },
 	{ "random_monster_checklv",            &battle_config.random_monster_checklv	},
 	{ "attribute_recover",                 &battle_config.attr_recover				},
 	{ "flooritem_lifetime",                &battle_config.flooritem_lifetime		},
@@ -3715,6 +3708,7 @@ void battle_set_defaults() {
 	battle_config.vs_traps_bctall=BL_PC;
 	battle_config.traps_setting=0;
 	battle_config.clear_unit_ondeath=BL_ALL;
+	battle_config.clear_unit_onwarp=BL_ALL;
 	battle_config.random_monster_checklv=1;
 	battle_config.attr_recover=1;
 	battle_config.flooritem_lifetime=LIFETIME_FLOORITEM*1000;
