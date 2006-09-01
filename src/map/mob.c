@@ -523,8 +523,8 @@ int mob_spawn_guardian(struct map_session_data *sd,char *mapname,
  * Reachability to a Specification ID existence place
  * state indicates type of 'seek' mob should do:
  * - MSS_LOOT: Looking for item, path must be easy.
- * - MSS_RUSH: Chasing attacking player, path is determined by mob_ai&1
- * - MSS_FOLLOW: Initiative/support seek, path must be easy.
+ * - MSS_RUSH: Chasing attacking player, path is complex
+ * - MSS_FOLLOW: Initiative/support seek, path is complex
  *------------------------------------------
  */
 int mob_can_reach(struct mob_data *md,struct block_list *bl,int range, int state)
@@ -535,10 +535,10 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range, int state
 	nullpo_retr(0, bl);
 	switch (state) {
 		case MSS_RUSH:
-			easy = (battle_config.mob_ai&1?0:1);
+		case MSS_FOLLOW:
+			easy = 0; //(battle_config.mob_ai&1?0:1);
 			break;
 		case MSS_LOOT:
-		case MSS_FOLLOW:
 		default:
 			easy = 1;
 			break;
@@ -778,7 +778,8 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 			return 0; //Gangster paradise protection.
 	default:
 
-		if((dist=distance_bl(&md->bl, bl)) < md->db->range2 &&
+		dist = distance_bl(&md->bl, bl);
+		if(dist < md->db->range2 &&
 			((*target) == NULL || !check_distance_bl(&md->bl, *target, dist)) &&
 			battle_check_range(&md->bl,bl,md->db->range2)
 		) { //Pick closest target?
@@ -1179,14 +1180,14 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				md->state.skillstate = md->state.aggressive?MSS_FOLLOW:MSS_RUSH;
 				if (md->ud.walktimer != -1 && md->ud.target == tbl->id &&
 					(
-						!battle_config.mob_ai&1 ||
+						!(battle_config.mob_ai&1) ||
 						check_distance_blxy(tbl, md->ud.to_x, md->ud.to_y, md->status.rhw.range)
 				)) //Current target tile is still within attack range.
 					return 0;
 
 				//Follow up
 				if (!mob_can_reach(md, tbl, md->min_chase, MSS_RUSH) ||
-					!unit_walktobl(&md->bl, tbl, md->status.rhw.range, 2|(!battle_config.mob_ai&1)))
+					!unit_walktobl(&md->bl, tbl, md->status.rhw.range, 2))
 					//Give up.
 					mob_unlocktarget(md,tick);
 				return 0;
@@ -1921,7 +1922,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			}
 				
 			if(sd->get_zeny_num && rand()%100 < sd->get_zeny_rate) //Gets get_zeny_num per level +/-10% [Skotlex]
-				pc_getzeny(sd,md->db->lv*sd->get_zeny_num*(90+rand()%21)/100);
+				pc_getzeny(sd,md->level*sd->get_zeny_num*(90+rand()%21)/100);
 		}
 		if(md->lootitem) {
 			for(i=0;i<md->lootitem_count;i++)

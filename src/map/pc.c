@@ -343,7 +343,6 @@ int pc_makesavestatus(struct map_session_data *sd)
 		else
 			memcpy(&sd->status.last_point,&sd->status.save_point,sizeof(sd->status.last_point));
 	}
-
 	return 0;
 }
 
@@ -3303,10 +3302,10 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 		x=y=0;
 	if((x==0 && y==0) ||
 		(map_getcell(m, x, y, CELL_CHKNOPASS) &&
-		!map_getcell(m, x, y, CELL_CHKICEWALL) &&
 #ifdef CELL_NOSTACK
 		!map_getcell(m, x, y, CELL_CHKSTACK) &&
 #endif
+		!map_getcell(m, x, y, CELL_CHKICEWALL) &&
 		!map_getcell(m, x, y, CELL_CHKMOONLIT))
 	){ //It is allowed on top of Moonlight/icewall tiles to prevent force-warping 'cheats' [Skotlex]
 		if(x||y) {
@@ -4009,10 +4008,10 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 		sc_start(&sd->bl,SkillStatusChangeTable(PR_GLORIA),100,1,skill_get_time(PR_GLORIA,1));
 		sc_start(&sd->bl,SkillStatusChangeTable(PR_SUFFRAGIUM),100,1,skill_get_time(PR_SUFFRAGIUM,1));
 	} else
-	if((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON)
+	if((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON || (sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR)
 	{
-		sc_start(&sd->bl,SkillStatusChangeTable(AL_INCAGI),100,10,skill_get_time(AL_INCAGI,10));
-		sc_start(&sd->bl,SkillStatusChangeTable(AL_BLESSING),100,10,skill_get_time(AL_BLESSING,10));
+		sc_start(&sd->bl,SkillStatusChangeTable(AL_INCAGI),100,10,600000);
+		sc_start(&sd->bl,SkillStatusChangeTable(AL_BLESSING),100,10,600000);
 	}
 	clif_misceffect(&sd->bl,0);
 	//LORDALFA - LVLUPEVENT

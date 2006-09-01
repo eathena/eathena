@@ -4170,39 +4170,14 @@ void battle_validate_conf() {
 	if (battle_config.night_duration != 0 && battle_config.night_duration < 60000) // added by [Yor]
 		battle_config.night_duration = 60000;
 	
-/*	if (battle_config.ban_spoof_namer < 0) // added by [Yor]
-		battle_config.ban_spoof_namer = 0;
-	else*/ if (battle_config.ban_spoof_namer > 32767)
-		battle_config.ban_spoof_namer = 32767;
+	if (battle_config.ban_spoof_namer > SHRT_MAX)
+		battle_config.ban_spoof_namer = SHRT_MAX;
 
-/*	if (battle_config.hack_info_GM_level < 0) // added by [Yor]
-		battle_config.hack_info_GM_level = 0;
-	else*/ if (battle_config.hack_info_GM_level > 100)
+	if (battle_config.hack_info_GM_level > 100)
 		battle_config.hack_info_GM_level = 100;
 
-/*	if (battle_config.any_warp_GM_min_level < 0) // added by [Yor]
-		battle_config.any_warp_GM_min_level = 0;
-	else*/ if (battle_config.any_warp_GM_min_level > 100)
+	if (battle_config.any_warp_GM_min_level > 100)
 		battle_config.any_warp_GM_min_level = 100;
-
-/*	//This is a hassle to keep updated each time there's a new limit to packet_ver_flag.... [Skotlex]
-	// at least 1 client must be accepted
-	if ((battle_config.packet_ver_flag & 255) == 0) // added by [Yor]
-		battle_config.packet_ver_flag = 255; // accept all clients
-*/
-/* Deprecated by dynamix's new night system (using SI_NIGHT)
-	if (battle_config.night_darkness_level <= 0)
-		battle_config.night_darkness_level = 9;
-	else if (battle_config.night_darkness_level > 10) // Celest
-		battle_config.night_darkness_level = 10;
-*/
-/*	if (battle_config.motd_type < 0)
-		battle_config.motd_type = 0;
-	else if (battle_config.motd_type > 1)
-		battle_config.motd_type = 1;
-*/
-//	if (battle_config.finding_ore_rate < 0)
-//		battle_config.finding_ore_rate = 0;
 
 	if (battle_config.vending_max_value > MAX_ZENY || battle_config.vending_max_value==0)
 		battle_config.vending_max_value = MAX_ZENY;
@@ -4210,14 +4185,6 @@ void battle_validate_conf() {
 	if (battle_config.min_skill_delay_limit < 10)
 		battle_config.min_skill_delay_limit = 10;	// minimum delay of 10ms
 
-	//Spawn delays [Skotlex]
-/*	if (battle_config.mob_spawn_delay < 0)
-		battle_config.mob_spawn_delay = 0;
-	if (battle_config.boss_spawn_delay < 0)
-		battle_config.boss_spawn_delay = 0;
-	if (battle_config.plant_spawn_delay < 0)
-		battle_config.plant_spawn_delay = 0;
-*/	
 	if (battle_config.no_spawn_on_player > 100)
 		battle_config.no_spawn_on_player = 100;
 	if (battle_config.mob_remove_delay < 15000)	//Min 15 sec
@@ -4246,8 +4213,8 @@ void battle_validate_conf() {
 	if (battle_config.sg_miracle_skill_ratio > 10000)
 		battle_config.sg_miracle_skill_ratio = 10000;
 
-	if (battle_config.skill_steal_max_tries > 254)
-		battle_config.skill_steal_max_tries = 254;	
+	if (battle_config.skill_steal_max_tries > UCHAR_MAX)
+		battle_config.skill_steal_max_tries = UCHAR_MAX;	
 
 #ifdef CELL_NOSTACK
 	if (battle_config.cell_stack_limit < 1)
