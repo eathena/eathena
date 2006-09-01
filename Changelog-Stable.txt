@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/01
+	* Fixed a memory leak when using charsave_method:1 [Skotlex]
 	* Merged spirit of wizard blocking bounced off spells only if you have a
 	  Crystal Fragment (7321) in your inventory. [Skotlex]
 	* Merged Magic Rod not having any delay once triggered. [Skotlex]
