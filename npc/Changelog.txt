@@ -34,6 +34,8 @@ Playtester
 
 Date		Added
 ======
+09/01
+	* Merged Rogue Job quest from TRUNK (for Meginjyard quest) [Lupus]
 08/31
 	* Removed a warp from Izlude to make sure people won't get stuck until [MasterOfMuppets]
 	  the arena has been finished.
