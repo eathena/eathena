@@ -3061,6 +3061,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			} else	//Excepting traps and icewall, you should not be able to target skills.
 				return 0;
 		}
+			break;
 		//Valid targets with no special checks here.
 //		case BL_HOM:
 //			break;
