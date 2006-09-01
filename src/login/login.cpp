@@ -81,19 +81,18 @@ int dynamic_pass_failure_ban_how_long = 1;
 
 ///////////////////////////////////////////////////////////////////////////////
 // connection stuff
-int min_level_to_connect = 0;		// minimum level of player/GM (0: player, 1-99: gm) to connect on the server
-int add_to_unlimited_account = 0;	// Give possibility or not to adjust (ladmin command: timeadd) the time of an unlimited account.
-int start_limited_time = -1;		// Starting additional sec from now for the limited time at creation of accounts (-1: unlimited time, 0 or more: additional sec from now)
-int check_ip_flag = 1;				// It's to check IP of a player between login-server and char-server (part of anti-hacking system)
-int use_md5_passwds = 0;
+int min_level_to_connect = 0;			// minimum level of player/GM (0: player, 1-99: gm) to connect on the server
+bool add_to_unlimited_account = false;	// Give possibility or not to adjust (ladmin command: timeadd) the time of an unlimited account.
+int start_limited_time = -1;			// Starting additional sec from now for the limited time at creation of accounts (-1: unlimited time, 0 or more: additional sec from now)
+bool check_ip_flag = true;					// It's to check IP of a player between login-server and char-server (part of anti-hacking system)
 
 ///////////////////////////////////////////////////////////////////////////////
 // enable console
-int console = 0;
+bool console = false;
 
 ///////////////////////////////////////////////////////////////////////////////
 // admin/gm stuff
-int admin_state = 0;
+bool admin_state = false;
 char admin_pass[24] = "";
 char gm_pass[64] = "";
 int level_new_gm = 60;
@@ -103,12 +102,12 @@ int level_new_gm = 60;
 // logging (txt)
 //!! todo compound to class with sql logging
 FILE *log_fp = NULL;
-int log_login = 1;
+bool log_login = true;
 char login_log_filename[1024] = "log/login.log";
 char date_format[32] = "%Y-%m-%d %H:%M:%S";
 
-int display_parse_login = 0; // 0: no, 1: yes
-int display_parse_admin = 0; // 0: no, 1: yes
+bool display_parse_login = 0;
+bool display_parse_admin = 0;
 int display_parse_fromchar = 0; // 0: no, 1: yes (without packet 0x2714), 2: all packets
 
 //------------------------------
@@ -116,7 +115,7 @@ int display_parse_fromchar = 0; // 0: no, 1: yes (without packet 0x2714), 2: all
 //------------------------------
 int login_log(char *fmt, ...)
 {
-	if (log_login)
+	if(log_login)
 	{		
 		time_t unixtime;
 		struct timeval tv;
@@ -150,7 +149,7 @@ int login_log(char *fmt, ...)
 
 ///////////////////////////////////////////////////////////////////////////////
 // unknown packets
-int save_unknown_packets = 0;
+bool save_unknown_packets = false;
 char login_log_unknown_packets_filename[1024] = "log/login_unknown_packets.log";
 
 int save_packet(int fd, const char* str, const char* ip_str)
@@ -969,7 +968,7 @@ int parse_admin(int fd)
 	while(RFIFOREST(fd) >= 2)
 	{
 		unsigned short command = RFIFOW(fd,0);
-		if (display_parse_admin == 1)
+		if (display_parse_admin)
 			ShowMessage("parse_admin: connection #%d, packet: 0x%x (with being read: %d).\n", fd, command, RFIFOREST(fd));
 
 		switch( command )
@@ -1867,7 +1866,7 @@ int parse_admin(int fd)
 				WFIFOL(fd,2) = account.account_id;
 				memcpy(WFIFOP(fd,6), account.userid, 24);
 				timestamp = account.valid_until;
-				if(add_to_unlimited_account == 0 && timestamp == 0)
+				if( !add_to_unlimited_account || timestamp == 0 )
 				{
 					login_log("'ladmin': Attempt to adjust the validity limit of an unlimited account (account: %s, ip: %s)" RETCODE,
 						account.userid, ip_str);
@@ -2053,7 +2052,7 @@ int parse_login(int fd)
 	while(RFIFOREST(fd) >= 2)
 	{
 		unsigned short command = RFIFOW(fd,0);
-		if (display_parse_login == 1)
+		if (display_parse_login)
 		{
 			if( command == 0x64 || command == 0x01dd)
 			{
@@ -2448,18 +2447,18 @@ int parse_login(int fd)
 					password[23] = '\0';
 					remove_control_chars(password);
 					// If remote administration is enabled and password sent by client matches password read from login server configuration file
-					if ((admin_state == 1) && (strcmp(password, admin_pass) == 0))
+					if( !admin_state )
+						login_log("'ladmin'-login: Connection in administration mode REFUSED - remote administration is disabled (non encrypted password: %s, ip: %s)" RETCODE, password, ip_str);
+					else if( 0!=strcmp(password, admin_pass) )
+						login_log("'ladmin'-login: Connection in administration mode REFUSED - invalid password (non encrypted password: %s, ip: %s)" RETCODE, password, ip_str);
+					else
 					{
 						login_log("'ladmin'-login: Connection in administration mode accepted (non encrypted password: %s, ip: %s)" RETCODE, password, ip_str);
 						ShowStatus("Connection of a remote administration accepted (non encrypted password).\n");
 						WFIFOB(fd,2) = 0;
 						session[fd]->func_parse = parse_admin;
 						session[fd]->rdata_tick = 0;
-					}
-					else if (admin_state != 1)
-						login_log("'ladmin'-login: Connection in administration mode REFUSED - remote administration is disabled (non encrypted password: %s, ip: %s)" RETCODE, password, ip_str);
-					else
-						login_log("'ladmin'-login: Connection in administration mode REFUSED - invalid password (non encrypted password: %s, ip: %s)" RETCODE, password, ip_str);
+					}					
 				}
 				else
 				{	// encrypted password
@@ -2478,7 +2477,11 @@ int parse_login(int fd)
 						}
 						MD5_String2binary(md5str, md5bin);
 						// If remote administration is enabled and password hash sent by client matches hash of password read from login server configuration file
-						if ((admin_state == 1) && (memcmp(md5bin, RFIFOP(fd,4), 16) == 0))
+						if( !admin_state )
+							login_log("'ladmin'-login: Connection in administration mode REFUSED - remote administration is disabled (encrypted password, ip: %s)" RETCODE, ip_str);
+						else if( 0!=memcmp(md5bin, RFIFOP(fd,4), 16) )
+							login_log("'ladmin'-login: Connection in administration mode REFUSED - invalid password (encrypted password, ip: %s)" RETCODE, ip_str);
+						else
 						{
 							login_log("'ladmin'-login: Connection in administration mode accepted (encrypted password, ip: %s)" RETCODE, ip_str);
 							ShowStatus("Connection of a remote administration accepted (encrypted password).\n");
@@ -2486,10 +2489,6 @@ int parse_login(int fd)
 							session[fd]->func_parse = parse_admin;
 							session[fd]->rdata_tick = 0;
 						}
-						else if (admin_state != 1)
-							login_log("'ladmin'-login: Connection in administration mode REFUSED - remote administration is disabled (encrypted password, ip: %s)" RETCODE, ip_str);
-						else
-							login_log("'ladmin'-login: Connection in administration mode REFUSED - invalid password (encrypted password, ip: %s)" RETCODE, ip_str);
 					}
 				}
 			}
@@ -2568,7 +2567,7 @@ int login_config_read(const char *cfgName)
 			
 			if (strcasecmp(w1, "admin_state") == 0)
 			{
-				admin_state = config_switch(w2);
+				admin_state = basics::config_switch<bool>(w2);
 			}
 			else if (strcasecmp(w1, "admin_pass") == 0)
 			{
@@ -2613,7 +2612,7 @@ int login_config_read(const char *cfgName)
 			}
 			else if (strcasecmp(w1, "new_account") == 0)
 			{
-				new_account_flag = config_switch(w2);
+				new_account_flag = basics::config_switch<bool>(w2);
 			}
 			else if (strcasecmp(w1, "login_ip") == 0) {
 				loginaddress = w2;
@@ -2621,11 +2620,7 @@ int login_config_read(const char *cfgName)
 			}
 			else if (strcasecmp(w1, "login_port") == 0)
 			{
-				loginaddress.port() = atoi(w2);
-			}
-			else if (strcasecmp(w1, "use_MD5_passwords") == 0)
-			{
-				use_md5_passwds = config_switch(w2);
+				loginaddress.port() = basics::config_switch<ushort>(w2);
 			}
 			else if (strcasecmp(w1, "login_log_filename") == 0)
 			{
@@ -2633,7 +2628,7 @@ int login_config_read(const char *cfgName)
 			}
 			else if (strcasecmp(w1, "log_login") == 0)
 			{
-				log_login = atoi(w2);
+				log_login = basics::config_switch<bool>(w2);
 			}
 			else if (strcasecmp(w1, "login_log_unknown_packets_filename") == 0)
 			{
@@ -2641,19 +2636,19 @@ int login_config_read(const char *cfgName)
 			}
 			else if (strcasecmp(w1, "save_unknown_packets") == 0)
 			{
-				save_unknown_packets = config_switch(w2);
+				save_unknown_packets = basics::config_switch<bool>(w2);
 			}
 			else if (strcasecmp(w1, "display_parse_login") == 0)
 			{
-				display_parse_login = config_switch(w2); // 0: no, 1: yes
+				display_parse_login = basics::config_switch<bool>(w2);
 			}
 			else if (strcasecmp(w1, "display_parse_admin") == 0)
 			{
-				display_parse_admin = config_switch(w2); // 0: no, 1: yes
+				display_parse_admin = basics::config_switch<bool>(w2);
 			}
 			else if (strcasecmp(w1, "display_parse_fromchar") == 0)
 			{
-				display_parse_fromchar = config_switch(w2); // 0: no, 1: yes (without packet 0x2714), 2: all packets
+				display_parse_fromchar = basics::config_switch<int>(w2,0,2); // 0: no, 1: yes (without packet 0x2714), 2: all packets
 			}
 			else if (strcasecmp(w1, "date_format") == 0)
 			{	// note: never have more than 19 char for the date!
@@ -2676,19 +2671,19 @@ int login_config_read(const char *cfgName)
 			}
 			else if (strcasecmp(w1, "min_level_to_connect") == 0)
 			{
-				min_level_to_connect = atoi(w2);
+				min_level_to_connect = basics::config_switch<int>(w2);
 			}
 			else if (strcasecmp(w1, "add_to_unlimited_account") == 0)
 			{
-				add_to_unlimited_account = config_switch(w2);
+				add_to_unlimited_account = basics::config_switch<bool>(w2);
 			} 
 			else if (strcasecmp(w1, "start_limited_time") == 0)
 			{
-				start_limited_time = atoi(w2);
+				start_limited_time = basics::config_switch<int>(w2);
 			}
 			else if (strcasecmp(w1, "check_ip_flag") == 0)
 			{
-				check_ip_flag = config_switch(w2);
+				check_ip_flag = basics::config_switch<bool>(w2);
 			} 
 			else if (strcasecmp(w1, "order") == 0)
 			{
@@ -2759,19 +2754,19 @@ int login_config_read(const char *cfgName)
 			}
 			else if (strcasecmp(w1, "dynamic_pass_failure_ban") == 0)
 			{
-				dynamic_pass_failure_ban = config_switch(w2);
+				dynamic_pass_failure_ban = basics::config_switch<int>(w2);
 			}
 			else if (strcasecmp(w1, "dynamic_pass_failure_ban_time") == 0)
 			{
-				dynamic_pass_failure_ban_time = atoi(w2);
+				dynamic_pass_failure_ban_time = basics::config_switch<int>(w2);
 			}
 			else if (strcasecmp(w1, "dynamic_pass_failure_ban_how_many") == 0)
 			{
-				dynamic_pass_failure_ban_how_many = atoi(w2);
+				dynamic_pass_failure_ban_how_many = basics::config_switch<int>(w2);
 			}
 			else if (strcasecmp(w1, "dynamic_pass_failure_ban_how_long") == 0)
 			{
-				dynamic_pass_failure_ban_how_long = atoi(w2);
+				dynamic_pass_failure_ban_how_long = basics::config_switch<int>(w2);
 			}
 			else if (strcasecmp(w1, "import") == 0)
 			{
@@ -2779,15 +2774,15 @@ int login_config_read(const char *cfgName)
 			}
 			else if (strcasecmp(w1, "console") == 0)
 			{
-				console = config_switch(w2);
+				console = basics::config_switch<bool>(w2);
 			}
 			else if (strcasecmp(w1, "allowed_regs") == 0)
 			{			
-				allowed_regs = atoi(w2);
+				allowed_regs = basics::config_switch<bool>(w2);
 			}
 			else if (strcasecmp(w1, "time_allowed") == 0)
 			{
-				time_allowed = atoi(w2);			
+				time_allowed = basics::config_switch<unsigned long>(w2);			
 			}
 		}
 	}
@@ -2798,16 +2793,16 @@ int login_config_read(const char *cfgName)
 //-------------------------------------
 // Displaying of configuration warnings
 //-------------------------------------
-void display_conf_warnings(void) {
-	if (admin_state != 0 && admin_state != 1) {
-		ShowWarning("***WARNING: Invalid value for admin_state parameter -> set to 0 (no remote admin).\n");
-		admin_state = 0;
-	}
-
-	if (admin_state == 1) {
-		if (admin_pass[0] == '\0') {
+void display_conf_warnings(void)
+{
+	if(admin_state)
+	{
+		if (admin_pass[0] == '\0')
+		{
 			ShowWarning("***WARNING: Administrator password is void (admin_pass).\n");
-		} else if (strcmp(admin_pass, "admin") == 0) {
+		}
+		else if (strcmp(admin_pass, "admin") == 0)
+		{
 			ShowWarning("***WARNING: You are using the default administrator password (admin_pass).\n");
 			ShowMessage("            We highly recommend that you change it.\n");
 		}
@@ -2826,37 +2821,9 @@ void display_conf_warnings(void) {
 		level_new_gm = 60;
 	}
 
-	if (new_account_flag != 0 && new_account_flag != 1) {
-		ShowWarning("***WARNING: Invalid value for new_account parameter -> set to 0 (no new account).\n");
-		new_account_flag = 0;
-	}
-
 	if (loginaddress.port() < 1024) {
 		ShowWarning("***WARNING: Invalid value for login_port parameter -> set to 6900 (default).\n");
 		loginaddress.port() = 6900;
-	}
-
-	if (save_unknown_packets != 0 && save_unknown_packets != 1) {
-		ShowWarning("WARNING: Invalid value for save_unknown_packets parameter -> set to 0-no save.\n");
-		save_unknown_packets = 0;
-	}
-
-	if (display_parse_login != 0 && display_parse_login != 1) { // 0: no, 1: yes
-		ShowWarning("***WARNING: Invalid value for display_parse_login parameter\n");
-		ShowMessage("            -> set to 0 (no display).\n");
-		display_parse_login = 0;
-	}
-
-	if (display_parse_admin != 0 && display_parse_admin != 1) { // 0: no, 1: yes
-		ShowWarning("***WARNING: Invalid value for display_parse_admin parameter\n");
-		ShowMessage("            -> set to 0 (no display).\n");
-		display_parse_admin = 0;
-	}
-
-	if (display_parse_fromchar < 0 || display_parse_fromchar > 2) { // 0: no, 1: yes (without packet 0x2714), 2: all packets
-		ShowWarning("***WARNING: Invalid value for display_parse_fromchar parameter\n");
-		ShowMessage("            -> set to 0 (no display).\n");
-		display_parse_fromchar = 0;
 	}
 
 	if (min_level_to_connect < 0) { // 0: all players, 1-99 at least gm level x
@@ -2869,22 +2836,10 @@ void display_conf_warnings(void) {
 		min_level_to_connect = 99;
 	}
 
-	if (add_to_unlimited_account != 0 && add_to_unlimited_account != 1) { // 0: no, 1: yes
-		ShowWarning("***WARNING: Invalid value for add_to_unlimited_account parameter\n");
-		ShowMessage("            -> set to 0 (impossible to add a time to an unlimited account).\n");
-		add_to_unlimited_account = 0;
-	}
-
 	if (start_limited_time < -1) { // -1: create unlimited account, 0 or more: additionnal sec from now to create limited time
 		ShowWarning("***WARNING: Invalid value for start_limited_time parameter\n");
 		ShowMessage("            -> set to -1 (new accounts are created with unlimited time).\n");
 		start_limited_time = -1;
-	}
-
-	if (check_ip_flag != 0 && check_ip_flag != 1) { // 0: no, 1: yes
-		ShowWarning("***WARNING: Invalid value for check_ip_flag parameter\n");
-		ShowMessage("            -> set to 1 (check players ip between login-server & char-server).\n");
-		check_ip_flag = 1;
 	}
 
 	if (access_order == ACO_DENY_ALLOW) {
@@ -2933,7 +2888,8 @@ void display_conf_warnings(void) {
 //-------------------------------
 // Save configuration in log file
 //-------------------------------
-void save_config_in_log(void) {
+void save_config_in_log(void)
+{
 	int i;
 
 	// a newline in the log...
@@ -2943,7 +2899,7 @@ void save_config_in_log(void) {
 	// save configuration in log file
 	login_log("The configuration of the server is set:" RETCODE);
 
-	if (admin_state != 1)
+	if( !admin_state )
 		login_log("- with no remote administration." RETCODE);
 	else if (admin_pass[0] == '\0')
 		login_log("- with a remote administration with a VOID password." RETCODE);
@@ -2970,16 +2926,12 @@ void save_config_in_log(void) {
 	else
 		login_log("- to create GM with level '%d' when @gm is used." RETCODE, level_new_gm);
 
-	if (new_account_flag == 1)
+	if( new_account_flag )
 		login_log("- to ALLOW new users (with _F/_M)." RETCODE);
 	else
 		login_log("- to NOT ALLOW new users (with _F/_M)." RETCODE);
 	login_log("- with port: %d." RETCODE, loginaddress.port());
 
-	if (use_md5_passwds == 0)
-		login_log("- to save password in plain text." RETCODE);
-	else
-		login_log("- to save password with MD5 encrypting." RETCODE);
 
 	// not necessary to log the 'login_log_filename', we are inside :)
 

@@ -119,10 +119,27 @@ map_session_data* map_session_data::accid2sd(uint32 id)
 	return (map_session_data *)numdb_search(map_session_data::accid_db, id);
 }
 /// search session data by name.
-/// exact match only
+/// also tests for a given incomplete nick
 map_session_data* map_session_data::nick2sd(const char *nick)
-{
-	return (map_session_data *)strdb_search(map_session_data::nick_db, nick);
+{	// try exact match first, it's only O(ld(N))
+	map_session_data* psd = (map_session_data *)strdb_search(map_session_data::nick_db, nick);
+	if( !psd )
+	{	// test if nick is the beginning of a charname,
+		// although this is O(N)
+		db_iterator<const char*, map_session_data*> iter(map_session_data::nick_db);
+		size_t len = strlen(nick);
+		for(; iter; ++iter)
+		{	
+			if( 0==strncasecmp(iter.key(), nick, len) == 0)
+			{	// found a possible match
+				if(psd)
+					return NULL;		// double match found -> return failure
+				else 
+					psd = iter.data();	// store found match
+			}
+		}
+	}
+	return psd;
 }
 
 /// return number of valid sessions
@@ -485,16 +502,24 @@ void map_session_data::do_walkto()
 	}
 }
 
-/// do object depending stuff for attacking
-void map_session_data::do_attack()
+
+/// sets the object to standing state
+bool map_session_data::set_stand()
 {
-	this->idletime = last_tick;
+	if( this->sc_data[SC_TENSIONRELAX].timer!=-1)
+		status_change_end(this,SC_TENSIONRELAX,-1);
+	this->state.dead_sit = 0;
+	return true;
 }
 
 
 
 
-
+/// do object depending stuff for attacking
+void map_session_data::do_attack()
+{
+	this->idletime = last_tick;
+}
 
 
 
@@ -1128,7 +1153,7 @@ int pc_authok(uint32 charid, uint32 login_id2, time_t connect_until_time, unsign
 	pc_checkitem(*sd);
 
 	if ((config.atc_gmonly == 0 || sd->isGM()) &&
-	    (sd->isGM() >= get_atcommand_level(atcommand_hide)))
+	    (sd->isGM() >= CommandInfo::get_level(command_hide)))
 		sd->status.option &= (OPTION_MASK | OPTION_HIDE);
 	else
 		sd->status.option &= OPTION_MASK;
@@ -2975,7 +3000,7 @@ int pc_useitem(struct map_session_data &sd, unsigned short inx)
 			sd.sc_data[SC_BERSERK].timer!=-1 ||
 			sd.sc_data[SC_MARIONETTE].timer!=-1 ||
 			sd.sc_data[SC_GRAVITATION].timer!=-1 ||
-			(pc_issit(sd) && (sd.itemid == 605 || sd.itemid == 606)) ||
+			(sd.is_sitting() && (sd.itemid == 605 || sd.itemid == 606)) ||
 			//added item_noequip.txt items check by Maya&[Lupus]
 			(maps[sd.block_list::m].flag.pvp && (sd.inventory_data[inx]->flag.no_equip&1) ) || // PVP
 			(maps[sd.block_list::m].flag.gvg && (sd.inventory_data[inx]->flag.no_equip>1) ) || // GVG
@@ -3508,8 +3533,9 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 		}
 	}
 
-	if(pc_issit(sd)) {
-		pc_setstand(sd);
+	if( sd.is_sitting() )
+	{
+		sd.set_stand();
 		skill_gangsterparadise(&sd,0);
 	}
 
@@ -4718,7 +4744,7 @@ int pc_respawn(int tid, unsigned long tick, int id, basics::numptr data)
 	struct map_session_data *sd = map_session_data::from_blid(id);
 	if (sd && sd->is_dead() )
 	{	//Auto-respawn [Skotlex]
-		pc_setstand(*sd);
+		sd->set_stand();
 		pc_setrestartvalue(*sd,3);
 		pc_setpos(*sd,sd->status.save_point.mapname,sd->status.save_point.x,sd->status.save_point.y,0);
 	}
@@ -4738,8 +4764,9 @@ int pc_damage(struct map_session_data &sd, long damage, block_list *src)
 	if( sd.is_dead() )
 		return 0;
 	// 座ってたら立ち上がる
-	if(pc_issit(sd)) {
-		pc_setstand(sd);
+	if( sd.is_sitting() )
+	{
+		sd.set_stand();
 		skill_gangsterparadise(&sd,0);
 	}
 	//?生や養子の場合の元の職業を算出する
@@ -6755,7 +6782,7 @@ int pc_spheal(struct map_session_data *sd)
 	
 	nullpo_retr(0, sd);
 	
-	if(pc_issit(*sd))
+	if( sd->is_sitting() )
 		a += a;
 	{
 		if (sd->sc_data[SC_MAGNIFICAT].timer!=-1)	// マグニフィカ?ト
@@ -6792,7 +6819,7 @@ int pc_hpheal(struct map_session_data *sd)
 
 	nullpo_retr(0, sd);
 
-	if(pc_issit(*sd))
+	if( sd->is_sitting() )
 		a += a;
 
 	if (sd->sc_data[SC_MAGNIFICAT].timer != -1)	// Modified by RoVeRT
@@ -6992,7 +7019,8 @@ int pc_spirit_heal_hp(struct map_session_data *sd)
 	if(sd->inchealspirithptick >= interval) {
 		bonus_hp = sd->nsshealhp;
 		while(sd->inchealspirithptick >= interval) {
-			if(pc_issit(*sd)) {
+			if( sd->is_sitting() )
+			{
 				sd->inchealspirithptick -= interval;
 				if(sd->status.hp < sd->status.max_hp) {
 					if(sd->status.hp + bonus_hp <= sd->status.max_hp)
@@ -7033,7 +7061,8 @@ int pc_spirit_heal_sp(struct map_session_data *sd)
 	if(sd->inchealspiritsptick >= interval) {
 		bonus_sp = sd->nsshealsp;
 		while(sd->inchealspiritsptick >= interval) {
-			if(pc_issit(*sd)) {
+			if( sd->is_sitting() )
+			{
 				sd->inchealspiritsptick -= interval;
 				if(sd->status.sp < sd->status.max_sp) {
 					if(sd->status.sp + bonus_sp <= sd->status.max_sp)
@@ -7251,12 +7280,6 @@ int pc_autosave(int tid, unsigned long tick, int id, basics::numptr data)
 	return 0;
 }
 
-void pc_setstand(struct map_session_data &sd)
-{
-	if( sd.sc_data[SC_TENSIONRELAX].timer!=-1)
-		status_change_end(&sd,SC_TENSIONRELAX,-1);
-	sd.state.dead_sit = 0;
-}
 
 //
 // 初期化物

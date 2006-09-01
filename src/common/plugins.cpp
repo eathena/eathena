@@ -2,7 +2,7 @@
 // For more information, see LICENCE in the main folder
 
 #include "baselib.h"
-
+#include "baseparam.h"
 #include "core.h"
 #include "utils.h"
 #include "version.h"
@@ -340,7 +340,7 @@ int plugins_config_read(const char *cfgName)
 			
 			if (strcasecmp(w1, "auto_search") == 0)
 			{
-				auto_search = config_switch(w2);
+				auto_search = basics::config_switch<bool>(w2);
 			}
 			else if (strcasecmp(w1, "plugin") == 0)
 			{

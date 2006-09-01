@@ -31,713 +31,20 @@
 #include "trade.h"
 
 
-
-char AtCommandInfo::command_symbol = '@'; // first char of the commands
-
-
-
-#define ACMD_FUNC(x) bool atcommand_ ## x (int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
-ACMD_FUNC(addwarp);
-ACMD_FUNC(adjcmdlvl);
-ACMD_FUNC(adjgmlvl);
-ACMD_FUNC(adopt);
-ACMD_FUNC(agitend);
-ACMD_FUNC(agitstart);
-ACMD_FUNC(alive);
-ACMD_FUNC(allskill);
-ACMD_FUNC(autoloot);
-ACMD_FUNC(baselevelup);
-ACMD_FUNC(battleoption);
-ACMD_FUNC(broadcast);
-ACMD_FUNC(cartlist);
-ACMD_FUNC(changelook);
-ACMD_FUNC(changesex);
-ACMD_FUNC(char_ban);
-ACMD_FUNC(char_block);
-ACMD_FUNC(char_unban);
-ACMD_FUNC(char_unblock);
-ACMD_FUNC(chardelitem);
-ACMD_FUNC(charreset);
-ACMD_FUNC(checkmail);
-ACMD_FUNC(cleanmap);
-ACMD_FUNC(clearweather);
-ACMD_FUNC(clouds);
-ACMD_FUNC(clouds2);
-ACMD_FUNC(day);
-ACMD_FUNC(deletemail);
-ACMD_FUNC(delitem);
-ACMD_FUNC(die);
-ACMD_FUNC(disguise);
-ACMD_FUNC(disguiseall);
-ACMD_FUNC(divorce);
-ACMD_FUNC(doom);
-ACMD_FUNC(doommap);
-ACMD_FUNC(dropall);
-ACMD_FUNC(dye);
-ACMD_FUNC(effect);
-ACMD_FUNC(email);
-ACMD_FUNC(fakename);
-ACMD_FUNC(fireworks);
-ACMD_FUNC(fog);
-ACMD_FUNC(follow);
-ACMD_FUNC(gat);
-ACMD_FUNC(gm);
-ACMD_FUNC(gmotd);
-ACMD_FUNC(go);
-ACMD_FUNC(grind);
-ACMD_FUNC(grind2);
-ACMD_FUNC(guild);
-ACMD_FUNC(guildlevelup);
-ACMD_FUNC(guildrecall);
-ACMD_FUNC(guildspy);
-ACMD_FUNC(guildstorage);
-ACMD_FUNC(gvgoff);
-ACMD_FUNC(gvgon);
-ACMD_FUNC(hair_color);
-ACMD_FUNC(hair_style);
-ACMD_FUNC(happyhappyjoyjoy);
-ACMD_FUNC(hatch);
-ACMD_FUNC(heal);
-ACMD_FUNC(help);
-ACMD_FUNC(hide);
-ACMD_FUNC(hidenpc);
-ACMD_FUNC(identify);
-ACMD_FUNC(idsearch);
-ACMD_FUNC(item);
-ACMD_FUNC(itemcheck);
-ACMD_FUNC(iteminfo);
-ACMD_FUNC(itemlist);
-ACMD_FUNC(itemreset);
-ACMD_FUNC(jail);
-ACMD_FUNC(jobchange);
-ACMD_FUNC(joblevelup);
-ACMD_FUNC(jump);
-ACMD_FUNC(jumpto);
-ACMD_FUNC(kami);
-ACMD_FUNC(kick);
-ACMD_FUNC(kickall);
-ACMD_FUNC(kill);
-ACMD_FUNC(killable);
-ACMD_FUNC(killer);
-ACMD_FUNC(killmonster);
-ACMD_FUNC(killmonster2);
-ACMD_FUNC(leaves);
-ACMD_FUNC(listmail);
-ACMD_FUNC(listnewmail);
-ACMD_FUNC(load);
-ACMD_FUNC(loadnpc);
-ACMD_FUNC(localbroadcast);
-ACMD_FUNC(lostskill);
-ACMD_FUNC(makeegg);
-ACMD_FUNC(mapexit);
-ACMD_FUNC(mapflag);
-ACMD_FUNC(mapinfo);
-ACMD_FUNC(mapmove);
-ACMD_FUNC(marry);
-ACMD_FUNC(me);
-ACMD_FUNC(memo);
-ACMD_FUNC(misceffect);
-ACMD_FUNC(mobinfo);
-ACMD_FUNC(mobsearch);
-ACMD_FUNC(model);
-ACMD_FUNC(monster);
-ACMD_FUNC(monsterbig);
-ACMD_FUNC(monsterignore);
-ACMD_FUNC(monstersmall);
-ACMD_FUNC(mount_peco);
-ACMD_FUNC(mute);
-ACMD_FUNC(mutearea);
-ACMD_FUNC(night);
-ACMD_FUNC(npcmove);
-ACMD_FUNC(npctalk);
-ACMD_FUNC(nuke);
-ACMD_FUNC(option);
-ACMD_FUNC(packet);
-ACMD_FUNC(party);
-ACMD_FUNC(partyrecall);
-ACMD_FUNC(partyspy);
-ACMD_FUNC(petfriendly);
-ACMD_FUNC(pethungry);
-ACMD_FUNC(petid);
-ACMD_FUNC(petrename);
-ACMD_FUNC(pettalk);
-ACMD_FUNC(printstats);
-ACMD_FUNC(produce);
-ACMD_FUNC(pvpoff);
-ACMD_FUNC(pvpon);
-ACMD_FUNC(questskill);
-ACMD_FUNC(rain);
-ACMD_FUNC(raise);
-ACMD_FUNC(raisemap);
-ACMD_FUNC(rates);
-ACMD_FUNC(readmail);
-ACMD_FUNC(recall);
-ACMD_FUNC(recallall);
-ACMD_FUNC(refine);
-ACMD_FUNC(refresh);
-ACMD_FUNC(refreshonline);
-ACMD_FUNC(reloadatcommand);
-ACMD_FUNC(reloadbattleconf);
-ACMD_FUNC(reloadgmdb);
-ACMD_FUNC(reloaditemdb);
-ACMD_FUNC(reloadmobdb);
-ACMD_FUNC(reloadpcdb);
-ACMD_FUNC(reloadscript);
-ACMD_FUNC(reloadskilldb);
-ACMD_FUNC(reloadstatusdb);
-ACMD_FUNC(repairall);
-ACMD_FUNC(revive);
-ACMD_FUNC(sakura);
-ACMD_FUNC(save);
-ACMD_FUNC(send);
-ACMD_FUNC(savepoint);
-ACMD_FUNC(sendmail);
-ACMD_FUNC(sendprioritymail);
-ACMD_FUNC(servertime);
-ACMD_FUNC(setbattleflag);
-ACMD_FUNC(showdelay);
-ACMD_FUNC(showexp);
-ACMD_FUNC(shownpc);
-ACMD_FUNC(shuffle);
-ACMD_FUNC(size);
-ACMD_FUNC(skillid);
-ACMD_FUNC(skilloff);
-ACMD_FUNC(skillon);
-ACMD_FUNC(skillpoint);
-ACMD_FUNC(skillreset);
-ACMD_FUNC(skilltree);
-ACMD_FUNC(snow);
-ACMD_FUNC(sound);
-ACMD_FUNC(spawn);
-ACMD_FUNC(speed);
-ACMD_FUNC(spiritball);
-ACMD_FUNC(stat_all);
-ACMD_FUNC(stats);
-ACMD_FUNC(status);
-ACMD_FUNC(statuspoint);
-ACMD_FUNC(statusreset);
-ACMD_FUNC(storage);
-ACMD_FUNC(storagelist);
-ACMD_FUNC(storeall);
-ACMD_FUNC(summon);
-ACMD_FUNC(trade);
-ACMD_FUNC(undisguise);
-ACMD_FUNC(undisguiseall);
-ACMD_FUNC(unjail);
-ACMD_FUNC(unloadnpc);
-ACMD_FUNC(unmute);
-ACMD_FUNC(uptime);
-ACMD_FUNC(users);
-ACMD_FUNC(useskill);
-ACMD_FUNC(version);
-ACMD_FUNC(where);
-ACMD_FUNC(who);
-ACMD_FUNC(who2);
-ACMD_FUNC(who3);
-ACMD_FUNC(whogm);
-ACMD_FUNC(whomap);
-ACMD_FUNC(whomap2);
-ACMD_FUNC(whomap3);
-ACMD_FUNC(whozeny);
-ACMD_FUNC(zeny);
-
-#ifdef DMALLOC
-ACMD_FUNC(dmstart);
-ACMD_FUNC(dmtick);
-#endif
-
-
-
-
 ///////////////////////////////////////////////////////////////////////////////
-/// CommandInfo.
-/// First char of commands is configured in atcommand_athena.conf. 
-/// to set external level, load atcommand_athena.conf.
-static AtCommandInfo atcommand_info[] =
-{
-	//<name>,<lvl>,<# param>,<optional sd>,<function>
-	{ "addwarp",			20, 3, 0, atcommand_addwarp				},
-	{ "adjcmdlvl",			99, 2, 0, atcommand_adjcmdlvl			},
-	{ "adjgmlvl",			99, 2, 0, atcommand_adjgmlvl			},
-	{ "adopt",				40, 3, 0, atcommand_adopt				},
-	{ "agitend",			60, 0, 0, atcommand_agitend				},
-	{ "agitstart",			60, 0, 0, atcommand_agitstart			},
-	{ "alive",				60, 0, 1, atcommand_alive				},
-	{ "allskill",			60, 0, 1, atcommand_allskill			},
-	{ "allskills",			60, 0, 1, atcommand_allskill			},
-	{ "skillall",			60, 0, 1, atcommand_allskill			},
-	{ "skillsall",			60, 0, 1, atcommand_allskill			},
-	{ "autoloot",			10, 1, 1, atcommand_autoloot			},
-	{ "lvup",				60, 1, 1, atcommand_baselevelup			},
-	{ "blevel",				60, 1, 1, atcommand_baselevelup			},
-	{ "baselvlup",			60, 1, 1, atcommand_baselevelup			},
-	{ "broadcast",			40, 0, 0, atcommand_broadcast			},
-	{ "cartlist",			40, 0, 1, atcommand_cartlist			},
-	{ "changelook",			99, 1, 1, atcommand_changelook			},
-	{ "changesex",			 1, 1, 0, atcommand_changesex			},
-	{ "ban",				60, 1, 0, atcommand_char_ban			},
-	{ "banish",				60, 1, 0, atcommand_char_ban			},
-	{ "charban",			60, 1, 0, atcommand_char_ban			},
-	{ "charbanish",			60, 1, 0, atcommand_char_ban			},
-	{ "block",				60, 1, 0, atcommand_char_block			},
-	{ "charblock",			60, 1, 0, atcommand_char_block			},
-	{ "reset",				40, 0, 0, atcommand_charreset			},
-	{ "unban",				60, 1, 0, atcommand_char_unban			},
-	{ "unbanish",			60, 1, 0, atcommand_char_unban			},
-	{ "charunban",			60, 1, 0, atcommand_char_unban			},
-	{ "charunbanish",		60, 1, 0, atcommand_char_unban			},
-	{ "unblock",			60, 1, 0, atcommand_char_unblock		},
-	{ "charunblock",		60, 1, 0, atcommand_char_unblock		},
-	{ "checkmail",			 1, 0, 0, atcommand_checkmail			},
-	{ "cleanmap",			 0, 0, 0, atcommand_cleanmap			},
-	{ "clearweather",		99, 1, 0, atcommand_clearweather		},
-	{ "clouds",				99, 1, 0, atcommand_clouds				},
-	{ "clouds2",			99, 1, 0, atcommand_clouds2				},
-	{ "day",				80, 0, 0, atcommand_day					},
-	{ "deletemail",			 1, 1, 0, atcommand_deletemail			},
-	{ "delitem",			60, 1, 1, atcommand_delitem				},
-	{ "die",				 1, 0, 1, atcommand_die					},
-	{ "disguise",			20, 1, 1, atcommand_disguise			},
-	{ "disguiseall",		99, 1, 0, atcommand_disguiseall			},
-	{ "divorce",			40, 1, 0, atcommand_divorce				},
-	{ "doom",				80, 0, 0, atcommand_doom				},
-	{ "doommap",			80, 0, 0, atcommand_doommap				},
-	{ "dropall",			40, 0, 1, atcommand_dropall				},
-	{ "dye",				40, 1, 1, atcommand_dye					},
-	{ "ccolor",				40, 1, 1, atcommand_dye					},
-	{ "effect",				40, 1, 0, atcommand_effect				},
-	{ "email",				 0, 1, 0, atcommand_email				},
-	{ "fakename",			20, 1, 1, atcommand_fakename			},
-	{ "fireworks",			99, 1, 0, atcommand_fireworks			},
-	{ "fog",				99, 1, 0, atcommand_fog					},
-	{ "follow",				10, 1, 1, atcommand_follow				},
-	{ "gat",				99, 0, 1, atcommand_gat					},
-	{ "gm",					100, 0, 0, atcommand_gm					},
-	{ "gmotd",				 0, 0, 0, atcommand_gmotd				},
-	{ "go",					10, 1, 0, atcommand_go					},
-	{ "grind",				99, 1, 0, atcommand_grind				},
-	{ "grind2",				99, 0, 0, atcommand_grind2				},
-	{ "guild",				50, 1, 1, atcommand_guild				},
-	{ "guildlvup",			60, 1, 0, atcommand_guildlevelup		},
-	{ "guildlvlup",			60, 1, 0, atcommand_guildlevelup		},
-	{ "guildrecall",		60, 1, 0, atcommand_guildrecall			},
-	{ "guildspy",			60, 1, 0, atcommand_guildspy			},
-	{ "gstorage",			50, 0, 0, atcommand_guildstorage		},
-	{ "gvgoff",				40, 0, 0, atcommand_gvgoff				},
-	{ "gpvpoff",			40, 0, 0, atcommand_gvgoff				},
-	{ "gvgon",				40, 0, 0, atcommand_gvgon				},
-	{ "gpvpon",				40, 0, 0, atcommand_gvgon				},
-	{ "happyhappyjoyjoy",	40, 0, 0, atcommand_happyhappyjoyjoy	},
-	{ "hatch",				60, 0, 1, atcommand_hatch				},
-	{ "haircolor",			40, 1, 1, atcommand_hair_color			},
-	{ "hcolor",				40, 1, 1, atcommand_hair_color			},
-	{ "heal",				40, 1, 1, atcommand_heal				},
-	{ "h",					20, 0, 0, atcommand_help				},
-	{ "help",				20, 0, 0, atcommand_help				},
-	{ "hide",				40, 0, 1, atcommand_hide				},
-	{ "hidenpc",			80, 1, 0, atcommand_hidenpc				},
-	{ "hairstyle", 			40, 1, 1, atcommand_hair_style			},
-	{ "hstyle",				40, 1, 1, atcommand_hair_style			},
-	{ "identify",			40, 0, 1, atcommand_identify			},
-	{ "idsearch",			60, 0, 0, atcommand_idsearch			},
-	{ "item",				60, 1, 1, atcommand_item				},
-	{ "itemcheck",			60, 0, 1, atcommand_itemcheck			},
-	{ "iteminfo",			 1, 1, 0, atcommand_iteminfo			},
-	{ "ii",					 1, 1, 0, atcommand_iteminfo			},
-	{ "itemlist",			40, 0, 1, atcommand_itemlist			},
-	{ "itemreset",			40, 0, 1, atcommand_itemreset			},
-	{ "jail",				60, 1, 0, atcommand_jail				},
-	{ "jobchange",			40, 1, 1, atcommand_jobchange			},
-	{ "job",				40, 1, 1, atcommand_jobchange			},
-	{ "jlevel",				60, 1, 1, atcommand_joblevelup			},
-	{ "joblvup",			60, 1, 1, atcommand_joblevelup			},
-	{ "joblvlup",			60, 1, 1, atcommand_joblevelup			},
-	{ "jump",				40, 2, 0, atcommand_jump				},
-	{ "jumpto",				20, 1, 0, atcommand_jumpto				},
-	{ "warpto",				20, 1, 0, atcommand_jumpto				},
-	{ "goto",				20, 1, 0, atcommand_jumpto				},
-	{ "kami",				40, 0, 0, atcommand_kami				},
-	{ "kamib",				40, 0, 0, atcommand_kami				},
-	{ "kick",				20, 1, 0, atcommand_kick				},
-	{ "kickall",			99, 0, 0, atcommand_kickall				},
-	{ "kill",				60, 1, 0, atcommand_kill				},
-	{ "killable",			40, 1, 1, atcommand_killable			},
-	{ "killer",				60, 1, 1, atcommand_killer				},
-	{ "killmonster",		60, 1, 0, atcommand_killmonster			},
-	{ "leaves",				99, 1, 0, atcommand_leaves				},
-	{ "listmail",			 1, 1, 0, atcommand_listmail			},
-	{ "listnewmail",		 1, 1, 0, atcommand_listnewmail			},
-	{ "return",				40, 0, 0, atcommand_load				},
-	{ "load",				40, 0, 0, atcommand_load				},
-	{ "loadnpc",			80, 1, 0, atcommand_loadnpc				},
-	{ "localbroadcast",		40, 0, 0, atcommand_localbroadcast		},
-	{ "lostskill",			40, 1, 1, atcommand_lostskill			},
-	{ "makeegg",			60, 1, 1, atcommand_makeegg				},
-	{ "mapexit",			99, 0, 0, atcommand_mapexit				},
-	{ "mapflag",			99, 3, 0, atcommand_mapflag				},
-	{ "mapinfo",			99, 2, 0, atcommand_mapinfo				},
-	{ "mapmove",			40, 3, 1, atcommand_mapmove				},
-	{ "rura",				40, 3, 1, atcommand_mapmove				},
-	{ "warp",				40, 3, 1, atcommand_mapmove				},
-	{ "marry",				40, 1, 0, atcommand_marry				},
-	{ "me",					20, 0, 0, atcommand_me					},
-	{ "memo",				40, 1, 0, atcommand_memo				},
-	{ "misceffect",			50, 1, 1, atcommand_misceffect			},
-	{ "mobinfo",			 1, 1, 0, atcommand_mobinfo				},
-	{ "monsterinfo",		 1, 1, 0, atcommand_mobinfo				},
-	{ "mi",					 1, 1, 0, atcommand_mobinfo				},
-	{ "mobsearch",			 0, 1, 0, atcommand_mobsearch			},
-	{ "model",				20, 3, 1, atcommand_model				},
-	{ "monster2",			50, 5, 0, atcommand_monster				},
-	{ "monsterbig",			50, 5, 0, atcommand_monsterbig			},
-	{ "monsterignore",		99, 1, 1, atcommand_monsterignore		},
-	{ "monstersmall",		50, 5, 0, atcommand_monstersmall		},
-	{ "mountpeco",			20, 0, 1, atcommand_mount_peco			},
-	{ "mute",				99, 1, 1, atcommand_mute				},
-	{ "red",				99, 1, 1, atcommand_mute				},
-	{ "mutearea",			99, 1, 0, atcommand_mutearea			},
-	{ "stfu",				99, 1, 0, atcommand_mutearea			},
-	{ "night",				80, 0, 0, atcommand_night				},
-	{ "npcmove",			20, 1, 0, atcommand_npcmove				},
-	{ "npctalk",			 0, 2, 0, atcommand_npctalk				},
-	{ "nuke",				60, 1, 0, atcommand_nuke				},
-	{ "option",				40, 3, 1, atcommand_option				},
-	{ "packet",				99, 2, 0, atcommand_packet				},
-	{ "packetmode",			99, 1, 0, atcommand_packet				},
-	{ "party",				 1, 1, 1, atcommand_party				},
-	{ "partyrecall",		60, 1, 0, atcommand_partyrecall			},
-	{ "partyspy",			60, 1, 0, atcommand_partyspy			},
-	{ "petfriendly",		40, 1, 1, atcommand_petfriendly			},
-	{ "pethungry",			40, 1, 1, atcommand_pethungry			},
-	{ "petid",				40, 1, 0, atcommand_petid				},
-	{ "petrename",			40, 1, 1, atcommand_petrename			},
-	{ "pettalk",			 0, 0, 0, atcommand_pettalk				},
-	{ "printstats",			40, 1, 0, atcommand_printstats			},
-	{ "stats",				40, 1, 0, atcommand_printstats			},
-	{ "produce",			60, 3, 1, atcommand_produce				},
-	{ "pvpoff",				40, 0, 0, atcommand_pvpoff				},
-	{ "pvpon",				40, 0, 0, atcommand_pvpon				},
-	{ "questskill",			40, 1, 1, atcommand_questskill			},
-	{ "rain",				99, 1, 0, atcommand_rain				},
-	{ "raise",				80, 0, 0, atcommand_raise				},
-	{ "raisemap",			80, 0, 0, atcommand_raise				},
-	{ "rates",				10, 0, 0, atcommand_rates				},
-	{ "readmail",			 1, 1, 0, atcommand_readmail			},
-	{ "recall",				60, 1, 0, atcommand_recall				},
-	{ "recallall",			80, 0, 0, atcommand_recallall			},
-	{ "refine",				60, 2, 1, atcommand_refine				},
-	{ "refresh",			 0, 0, 0, atcommand_refresh				},
-	{ "refreshonline",		99, 0, 0, atcommand_refreshonline		},
-	{ "reloadatcommand",	99, 0, 0, atcommand_reloadatcommand		},
-	{ "reloadbattleconf",	99, 0, 0, atcommand_reloadbattleconf	},
-	{ "reloaditemdb",		99, 0, 0, atcommand_reloaditemdb		},
-	{ "reloadmobdb",		99, 0, 0, atcommand_reloadmobdb			},
-	{ "reloadpcdb",			99, 0, 0, atcommand_reloadpcdb			},
-	{ "reloadscript",		99, 0, 0, atcommand_reloadscript		},
-	{ "reloadskilldb",		99, 0, 0, atcommand_reloadskilldb		},
-	{ "reloadstatusdb",		99, 0, 0, atcommand_reloadstatusdb		},
-	{ "repairall",			60, 0, 1, atcommand_repairall			},
-	{ "revive",				60, 1, 0, atcommand_revive				},
-	{ "sakura",				99, 1, 0, atcommand_sakura				},
-	{ "save",				40, 3, 1, atcommand_save				},
-	{ "send",				60,20, 0, atcommand_send				},
-	{ "sendmail",			 1, 2, 0, atcommand_sendmail			},
-	{ "time",				 0, 0, 0, atcommand_servertime			},
-	{ "date",				 0, 0, 0, atcommand_servertime			},
-	{ "server_date",		 0, 0, 0, atcommand_servertime			},
-	{ "serverdate",			 0, 0, 0, atcommand_servertime			},
-	{ "server_time",		 0, 0, 0, atcommand_servertime			},
-	{ "servertime",			 0, 0, 0, atcommand_servertime			},
-	{ "setbattleflag",		60, 2, 0, atcommand_setbattleflag		},
-	{ "battleoption",		60, 2, 0, atcommand_setbattleflag		},
-	{ "showexp",			20, 1, 1, atcommand_showexp				},
-	{ "showdelay",			20, 1, 1, atcommand_showdelay			},
-	{ "shownpc",			80, 1, 0, atcommand_shownpc				},
-	{ "shuffle",			40, 1, 0, atcommand_shuffle				},
-	{ "size",				20, 1, 1, atcommand_size				},
-	{ "skillid",			40, 1, 0, atcommand_skillid				},
-	{ "skilloff",			20, 0, 0, atcommand_skilloff			},
-	{ "skillon",			20, 0, 0, atcommand_skillon				},
-	{ "skpoint",			60, 1, 1, atcommand_skillpoint			},
-	{ "skreset",			60, 0, 1, atcommand_skillreset			},
-	{ "skilltree",			40, 2, 0, atcommand_skilltree			},
-	{ "snow",				99, 1, 0, atcommand_snow				},
-	{ "sound",				40, 1, 0, atcommand_sound				},
-	{ "monster",			50, 5, 0, atcommand_spawn				},
-	{ "spawn",				50, 5, 0, atcommand_spawn				},
-	{ "speed",				40, 1, 1, atcommand_speed				},
-	{ "spiritball",			40, 1, 1, atcommand_spiritball			},
-	{ "statall",			60, 0, 1, atcommand_stat_all			},
-	{ "statsall",			60, 0, 1, atcommand_stat_all			},
-	{ "allstats",			60, 0, 1, atcommand_stat_all			},
-	{ "allstat",			60, 0, 1, atcommand_stat_all			},
-	{ "agi",				60, 1, 1, atcommand_status				},
-	{ "dex",				60, 1, 1, atcommand_status				},
-	{ "int",				60, 1, 1, atcommand_status				},
-	{ "luk",				60, 1, 1, atcommand_status				},
-	{ "str",				60, 1, 1, atcommand_status				},
-	{ "vit",				60, 1, 1, atcommand_status				},
-	{ "stpoint",			60, 1, 1, atcommand_statuspoint			},
-	{ "streset",			60, 0, 1, atcommand_statusreset			},
-	{ "storage",			 1, 0, 1, atcommand_storage				},
-	{ "storagelist",		40, 0, 1, atcommand_storagelist			},
-	{ "storeall",			40, 0, 1, atcommand_storeall			},
-	{ "summon",				60, 2, 1, atcommand_summon				},
-	{ "trade",				60, 1, 1, atcommand_trade				},
-	{ "undisguise",			20, 0, 1, atcommand_undisguise			},
-	{ "undisguiseall",		99, 0, 0, atcommand_undisguiseall		},
-	{ "unjail",				60, 1, 0, atcommand_unjail				},
-	{ "discharge",			60, 1, 0, atcommand_unjail				},
-	{ "unloadnpc",			80, 1, 0, atcommand_unloadnpc			},
-	{ "unmute",				60, 0, 1, atcommand_unmute				},
-	{ "uptime",				 0, 0, 0, atcommand_uptime				},
-	{ "users",				 0, 0, 0, atcommand_users				},
-	{ "useskill",			40, 3, 0, atcommand_useskill			},
-	{ "version",			 0, 0, 0, atcommand_version				},
-	{ "where",				 1, 1, 0, atcommand_where				},
-	{ "who",				20, 1, 0, atcommand_who					},
-	{ "whois",				20, 1, 0, atcommand_who					},
-	{ "who2",				20, 1, 0, atcommand_who2				},
-	{ "who3",				20, 1, 0, atcommand_who3				},
-	{ "whogm",				20, 1, 0, atcommand_whogm				},
-	{ "whomap",				20, 1, 0, atcommand_whomap				},
-	{ "whomap2",			20, 1, 0, atcommand_whomap2				},
-	{ "whomap3",			20, 1, 0, atcommand_whomap3				},
-	{ "whozeny",			20, 1, 0, atcommand_whozeny				},
-	{ "zeny",				60, 1, 1, atcommand_zeny				},
-
-#ifdef DMALLOC
-	{ "dmstart",			99, 0, 0, atcommand_dmstart				},
-	{ "dmtick",				99, 0, 0, atcommand_dmtick				},
-#endif
-// add new commands before this line
-	{ NULL,					100,0, 0, NULL							}
-};
-
-
-
-
-
-
+//
+// command functions
+//
 ///////////////////////////////////////////////////////////////////////////////
-/// returns atcommand requirement level
-unsigned char get_atcommand_level(atcommand_function func)
-{
-	size_t i;
-	for(i=0; atcommand_info[i].func && i<sizeof(atcommand_info)/sizeof(*atcommand_info); ++i)
-		if(atcommand_info[i].func == func)
-			return atcommand_info[i].level;
-	return 100; // 100: command can not be used
-}
-///////////////////////////////////////////////////////////////////////////////
-///
-AtCommandInfo& get_atcommandinfo_byname(const char* name)
-{
-	size_t i;
-	for(i=0; atcommand_info[i].func && i<sizeof(atcommand_info)/sizeof(*atcommand_info); ++i)
-		if( strcasecmp(atcommand_info[i].command, name) == 0 )
-			break;
-	return atcommand_info[i];
-}
-
-///////////////////////////////////////////////////////////////////////////////
-///
-bool atcommand_config_read(const char *cfgName)
-{
-	char line[1024], w1[1024], w2[1024];
-	
-	FILE* fp;
-
-	if((fp = basics::safefopen(cfgName, "r")) == NULL)
-	{
-		ShowError("At commands configuration file not found: %s\n", cfgName);
-	}
-	else
-	{
-		while (fgets(line, sizeof(line), fp))
-		{
-			if( prepare_line(line) && 2==sscanf(line, "%1023[^:=]%*[:=]%1023[^\r\n]", w1, w2) )
-			{
-				basics::itrim(w1);
-				if(!*w1) continue;
-				basics::itrim(w2);
-				
-				if(strcasecmp(w1, "import") == 0)
-				{
-					atcommand_config_read(w2);
-				}
-				else if(strcasecmp(w1, "command_symbol") == 0 && w2[0] > 31 &&
-						w2[0] != '/' &&	// symbol of standard ragnarok GM commands
-						w2[0] != '%' &&	// symbol of party chat speaking
-						w2[0] != '$' )	// symbol of guild chat
-				{
-					AtCommandInfo::command_symbol = w2[0];
-				}
-				else
-				{
-					AtCommandInfo& cmd = get_atcommandinfo_byname(w1);
-					if(cmd.func)
-					{
-						const int i= strtol(w2,NULL,0);
-						cmd.level = (i>=0 && i<100) ?i:100;
-					}
-					else
-					{
-						ShowWarning("command \"%s\" does not exist\n", w1);
-					}
-				}
-			}
-		}
-		fclose(fp);
-		ShowStatus("Command configuration file '%s' read.\n", cfgName);
-		return true;
-	}
-	return false;
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-/// converts name or id to sd
-map_session_data *atcommand_param2sd(const char* str)
-{
-	struct map_session_data *psd=NULL;
-	if(str)
-	{	// try id's when string starts with digits
-		if( basics::stringcheck::isdigit(*str) )
-		{	
-			uint32 id = atoi(str);
-			(psd = map_session_data::from_blid(id)) || (psd = map_session_data::charid2sd(id));
-		}
-		// do the stringsearch when failed
-		if( !psd )
-			psd = map_session_data::nick2sd(str);
-	}
-	return psd; 
-}
-
-///////////////////////////////////////////////////////////////////////////////
-///
-bool is_atcommand(const int fd, struct map_session_data &sd, const char* message, unsigned char gmlvl_override)
-{
-	if( !config.allow_atcommand_when_mute && sd.sc_data[SC_NOCHAT].timer != -1 )
-	{	// return as processed
-		return true;
-	}
-	else if( message && *message && (!config.atc_gmonly || gmlvl_override) )
-	{	// format of the input string is "<name> : <command string>"
-		char output[512];
-
-		// compare the name
-		const char *spp = message;
-		const char *npp = sd.status.name;
-		while( *npp && *spp && *npp==*spp ) ++npp, ++spp;
-		if(*npp) // something wrong
-		{
-			snprintf(output,sizeof(output), "Hack on messages: character '%s' (account: %ld) uses another name.", sd.status.name, (unsigned long)sd.status.account_id);
-			intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, output);
-			ShowWarning(output);
-
-			snprintf(output,sizeof(output), " Player sends: '%s'.", message);
-			ShowWarning(output);
-			intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, output);
-
-			clif_ban_player(sd, config.ban_spoof_namer);
-
-			// return as processed
-			return true;
-		}
-		
-		// skip until reached the colon
-		while( *spp && *spp!=':' ) ++spp;
-		// skip the colon
-		if(*spp) ++spp;
-		// skip the spaces until normal text starts
-		while( *spp && basics::stringcheck::isspace(*spp) ) ++spp;
-
-		if(*spp && *spp == AtCommandInfo::command_symbol)
-		{	// command string starts with command symbol
-			char command[128], *ipp=command;
-
-			// skip the command symbol
-			++spp;
-
-			// copy out the command
-			while( *spp && !basics::stringcheck::isspace(*spp) ) 
-				*ipp = *spp++, (ipp>=(command+sizeof(command)-1)||++ipp);
-			*ipp=0;
-
-			// look up the command
-			AtCommandInfo& cmd = get_atcommandinfo_byname(command);
-
-			log_atcommand(sd, message, cmd.level);
-
-			gmlvl_override = gmlvl_override?gmlvl_override:sd.isGM();
-			if( cmd.func == NULL  || gmlvl_override<cmd.level )
-			{	// return false if player is normal player 
-				// (display the text, not display: unknown command)
-				if( gmlvl_override == 0 )
-					return false;
-
-				snprintf(output, sizeof(output), msg_txt(MSG_S_IS_UNKNOWN_COMMAND), command); // %s is Unknown Command.
-				clif_displaymessage(fd, output);
-			}
-			else
-			{	// build the parameter list
-				CParameterList param(spp);
-
-				// default map_session to work on
-				map_session_data *psd = &sd;
-				
-				if( cmd.option && param.size() )
-				{	// for commands with optional input
-					// check if the last parameter is a char identifier
-					// and take it when valid 
-					// or when there are more parameters than necessary for the current command
-					map_session_data *tmp = atcommand_param2sd( param.last() );
-					if(tmp || (param.size()>cmd.param) )
-						psd = tmp;
-				}
-
-				if( !psd )
-				{
-					clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND)); // Character not found.
-				}
-				else if( psd != &sd && sd.isGM() <= psd->isGM() )
-				{	// Your GM level don't authorise you to do this action on this player.
-					clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW_FOR_PCACTION)); 
-				}
-				else if( !cmd.func(fd, *psd, command, param) )
-				{	// Command could not be executed
-					snprintf(output, sizeof(output), msg_txt(MSG_S_FAILED), command); // %s failed.
-					clif_displaymessage(fd, output);
-				}
-				else
-				{	// everything fine
-					clif_displaymessage(fd, "done.");
-				}
-			}
-			return true;
-		}
-	}
-	return false;
-}
-
-
-
-
-
-
-
-
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 /// addwarp
 /// Create a new static warp point from current position to given position
-/// addwarp <mapname> <x> <y>
+/// addwarp mapname, x, y
 ///
-bool atcommand_addwarp(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_addwarp(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()< 3 )
 	{
@@ -773,7 +80,7 @@ bool atcommand_addwarp(int fd, struct map_session_data& sd, const char* command,
 /// Used during beta testing to allow players to use GM commands
 /// for short periods of time
 ///
-bool atcommand_adjcmdlvl(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_adjcmdlvl(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<2 )
 	{
@@ -783,7 +90,7 @@ bool atcommand_adjcmdlvl(int fd, struct map_session_data& sd, const char* comman
 	{
 		const char *name = param[0];
 		int newlev       = param[1];
-		AtCommandInfo& cmd = get_atcommandinfo_byname(name);
+		CommandInfo& cmd = CommandInfo::byname(name);
 		if(cmd.func == NULL)
 		{
 			clif_displaymessage(fd, "command not found.");
@@ -812,7 +119,7 @@ bool atcommand_adjcmdlvl(int fd, struct map_session_data& sd, const char* comman
 /// adjgmlvl
 /// Change GM level
 ///
-bool atcommand_adjgmlvl(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_adjgmlvl(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int newlev      = param[0];
     const char *user= param[1];
@@ -826,7 +133,7 @@ bool atcommand_adjgmlvl(int fd, struct map_session_data& sd, const char* command
 	{
 		clif_displaymessage(fd, "You cannot grant higher or equal gm_level than your own.");
 	}
-	else if( NULL==(psd = atcommand_param2sd(user)) )
+	else if( NULL==(psd = CommandInfo::param2sd(user)) )
 	{
 		clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND)); // Character not found.
 	}
@@ -846,10 +153,10 @@ bool atcommand_adjgmlvl(int fd, struct map_session_data& sd, const char* command
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// adopt <player1> <player2> <player3>
+/// usage: "adopt <player1> <player2> <player3>"
 /// adopt a novice
 ///
-bool atcommand_adopt(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_adopt(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 	struct map_session_data *pl_sd1 = NULL;
@@ -863,17 +170,17 @@ bool atcommand_adopt(int fd, struct map_session_data& sd, const char* command, c
 	{
 		clif_displaymessage(fd, "usage: adopt <player1> <player2> <player3>.");
 	}
-	else if( (pl_sd1=atcommand_param2sd(player1)) == NULL )
+	else if( (pl_sd1=CommandInfo::param2sd(player1)) == NULL )
 	{
 		snprintf(output, sizeof(output), "Cannot find player %s online", player1);
 		clif_displaymessage(fd, output);
 	}
-	else if( (pl_sd2=atcommand_param2sd(player2)) == NULL )
+	else if( (pl_sd2=CommandInfo::param2sd(player2)) == NULL )
 	{
 		snprintf(output, sizeof(output), "Cannot find player %s online", player2);
 		clif_displaymessage(fd, output);
 	}
-	else if( (pl_sd3=atcommand_param2sd(player3)) == NULL )
+	else if( (pl_sd3=CommandInfo::param2sd(player3)) == NULL )
 	{
 		snprintf(output, sizeof(output), "Cannot find player %s online", player3);
 		clif_displaymessage(fd, output);
@@ -895,7 +202,7 @@ bool atcommand_adopt(int fd, struct map_session_data& sd, const char* command, c
 ///
 ///
 ///
-bool atcommand_agitend(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_agitend(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( !agit_flag )
 	{
@@ -915,7 +222,7 @@ bool atcommand_agitend(int fd, struct map_session_data& sd, const char* command,
 ///
 ///
 ///
-bool atcommand_agitstart(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_agitstart(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( agit_flag )
 	{
@@ -935,14 +242,14 @@ bool atcommand_agitstart(int fd, struct map_session_data& sd, const char* comman
 ///
 ///
 ///
-bool atcommand_alive(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_alive(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( sd.is_dead() )
 	{
 		sd.status.hp = sd.status.max_hp;
 		sd.status.sp = sd.status.max_sp;
 		clif_skill_nodamage(sd,sd,ALL_RESURRECTION,4,1);
-		pc_setstand(sd);
+		sd.set_stand();
 		if (config.pc_invincible_time > 0)
 			pc_setinvincibletimer(sd, config.pc_invincible_time);
 		clif_updatestatus(sd, SP_HP);
@@ -957,7 +264,7 @@ bool atcommand_alive(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_allskill(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_allskill(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	pc_allskillup(sd); // all skills
 	sd.status.skill_point = 0; // 0 skill points
@@ -970,7 +277,7 @@ bool atcommand_allskill(int fd, struct map_session_data& sd, const char* command
 ///
 /// Turns on/off AutoLoot
 ///
-bool atcommand_autoloot(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_autoloot(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(sd.state.autoloot)
 	{
@@ -988,7 +295,7 @@ bool atcommand_autoloot(int fd, struct map_session_data& sd, const char* command
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_baselevelup(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_baselevelup(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int level=0, i;
 	if( param.size()<1 || (level=param[0])==0 )
@@ -1052,7 +359,7 @@ bool atcommand_baselevelup(int fd, struct map_session_data& sd, const char* comm
 ///
 /// broadcast
 ///
-bool atcommand_broadcast(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_broadcast(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 	if( param.size()<1 )
@@ -1072,7 +379,7 @@ bool atcommand_broadcast(int fd, struct map_session_data& sd, const char* comman
 ///
 /// localbroadcast
 ///
-bool atcommand_localbroadcast(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_localbroadcast(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -1092,7 +399,7 @@ bool atcommand_localbroadcast(int fd, struct map_session_data& sd, const char* c
 ///
 ///  changelook
 ///
-bool atcommand_changelook(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_changelook(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	static int pos[6] = { LOOK_HEAD_TOP,LOOK_HEAD_MID,LOOK_HEAD_BOTTOM,LOOK_WEAPON,LOOK_SHIELD,LOOK_SHOES };
 	int j = param[0];
@@ -1122,9 +429,9 @@ bool atcommand_changelook(int fd, struct map_session_data& sd, const char* comma
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// changesex [player_name]
+/// usage: "changesex [player_name]"
 ///
-bool atcommand_changesex(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_changesex(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	const char* name = (param.size()<1) ? sd.status.name : (const char*)param[0];
 	if(strlen(name) < 4)
@@ -1148,7 +455,7 @@ bool atcommand_changesex(int fd, struct map_session_data& sd, const char* comman
 ///
 /// cartlist: Displays the items list of a cart.
 ///
-bool atcommand_cartlist(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_cartlist(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 	char outputtmp[256];
@@ -1207,7 +514,7 @@ bool atcommand_cartlist(int fd, struct map_session_data& sd, const char* command
 ///
 /// itemlist : Displays the list of items.
 ///
-bool atcommand_itemlist(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_itemlist(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[256], equipstr[128], outputtmp[256];
 	struct item_data *item_data, *item_temp;
@@ -1304,7 +611,7 @@ bool atcommand_itemlist(int fd, struct map_session_data& sd, const char* command
 ///
 /// storagelist : Displays the list of items in storage.
 ///
-bool atcommand_storagelist(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_storagelist(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct pc_storage *stor;
 	
@@ -1373,7 +680,7 @@ bool atcommand_storagelist(int fd, struct map_session_data& sd, const char* comm
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// charban command (usage: charban <time> <player_name>)
+/// charban command (usage: "charban <time> <player_name>")
 /// This command do a limited ban on a player
 /// Time is done as follows:
 ///   Adjustment value (-1, 1, +1, etc...)
@@ -1387,7 +694,7 @@ bool atcommand_storagelist(int fd, struct map_session_data& sd, const char* comm
 /// <example> ban +1m-2mn1s-6y test_player
 ///           this example adds 1 month and 1 second, and substracts 2 minutes and 6 years at the same time.
 ///
-bool atcommand_char_ban(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_char_ban(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<2)
 	{
@@ -1461,10 +768,10 @@ bool atcommand_char_ban(int fd, struct map_session_data& sd, const char* command
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// charblock command (usage: charblock <player_name>)
+/// charblock command (usage: "charblock <player_name>")
 /// This command do a definitiv ban on a player
 ///
-bool atcommand_char_block(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_char_block(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -1494,12 +801,11 @@ bool atcommand_char_block(int fd, struct map_session_data& sd, const char* comma
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// delitem <item_name_or_ID> <quantity>
-/// removes <quantity> item from a character
-/// item can be equiped or not.
-/// Inspired from a old command created
+/// usage: "delitem <item_name_or_ID> <quantity>"
+/// removes given number of item from a character
+/// (item can be equiped or not).
 ///
-bool atcommand_delitem(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_delitem(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 	int i, item_position, count;
@@ -1551,9 +857,9 @@ bool atcommand_delitem(int fd, struct map_session_data& sd, const char* command,
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// charunban command (usage: charunban <player_name>)
+/// charunban command (usage: "charunban <player_name>")
 ///
-bool atcommand_char_unban(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_char_unban(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<1)
 	{
@@ -1580,9 +886,9 @@ bool atcommand_char_unban(int fd, struct map_session_data& sd, const char* comma
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// charunblock command (usage: charunblock <player_name>)
+/// charunblock command (usage: "charunblock <player_name>")
 ///
-bool atcommand_char_unblock(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_char_unblock(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<1)
 	{
@@ -1623,7 +929,7 @@ public:
 	}
 };
 
-bool atcommand_cleanmap(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_cleanmap(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	block_list::foreachinarea( CAtCleanMap(),
 		sd.block_list::m, ((int)sd.block_list::x)-AREA_SIZE*2, ((int)sd.block_list::y)-AREA_SIZE*2, ((int)sd.block_list::x)+AREA_SIZE*2, ((int)sd.block_list::y)+AREA_SIZE*2, BL_ITEM);
@@ -1635,7 +941,7 @@ bool atcommand_cleanmap(int fd, struct map_session_data& sd, const char* command
 ///
 /// Clearing Weather Effects
 ///
-bool atcommand_clearweather(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_clearweather(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -1662,7 +968,7 @@ bool atcommand_clearweather(int fd, struct map_session_data& sd, const char* com
 ///
 /// Clouds appear.
 ///
-bool atcommand_clouds(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_clouds(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -1690,7 +996,7 @@ bool atcommand_clouds(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_clouds2(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_clouds2(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -1719,7 +1025,7 @@ bool atcommand_clouds2(int fd, struct map_session_data& sd, const char* command,
 ///
 /// It is made to rain.
 ///
-bool atcommand_rain(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_rain(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -1748,7 +1054,7 @@ bool atcommand_rain(int fd, struct map_session_data& sd, const char* command, co
 ///
 /// It is made to snow.
 ///
-bool atcommand_snow(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_snow(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -1777,7 +1083,7 @@ bool atcommand_snow(int fd, struct map_session_data& sd, const char* command, co
 ///
 /// Cherry tree snowstorm is made to fall. (Sakura)
 ///
-bool atcommand_sakura(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_sakura(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -1806,7 +1112,7 @@ bool atcommand_sakura(int fd, struct map_session_data& sd, const char* command, 
 ///
 /// Fog hangs over.
 ///
-bool atcommand_fog(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_fog(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -1835,7 +1141,7 @@ bool atcommand_fog(int fd, struct map_session_data& sd, const char* command, con
 ///
 /// Fallen leaves fall.
 ///
-bool atcommand_leaves(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_leaves(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -1864,7 +1170,7 @@ bool atcommand_leaves(int fd, struct map_session_data& sd, const char* command, 
 ///
 /// Clouds appear.
 ///
-bool atcommand_fireworks(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_fireworks(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -1892,7 +1198,7 @@ bool atcommand_fireworks(int fd, struct map_session_data& sd, const char* comman
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_night(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_night(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(!daynight_flag)
 	{
@@ -1909,7 +1215,7 @@ bool atcommand_night(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_day(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_day(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(daynight_flag)
 	{
@@ -1927,22 +1233,22 @@ bool atcommand_day(int fd, struct map_session_data& sd, const char* command, con
 ///
 ///  Mail System commands
 ///
-bool atcommand_checkmail(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_checkmail(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	return chrif_mail_check(sd, true);
 }
 
-bool atcommand_listmail(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_listmail(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	return chrif_mail_fetch(sd, true);
 }
 
-bool atcommand_listnewmail(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_listnewmail(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	return chrif_mail_fetch(sd, false);
 }
 
-bool atcommand_readmail(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_readmail(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int index;
 	if (param.size()<1) {
@@ -1957,7 +1263,7 @@ bool atcommand_readmail(int fd, struct map_session_data& sd, const char* command
 	return chrif_mail_read(sd, index);
 }
 
-bool atcommand_deletemail(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_deletemail(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int index;
 	if (param.size()<1) {
@@ -1972,7 +1278,7 @@ bool atcommand_deletemail(int fd, struct map_session_data& sd, const char* comma
 	return chrif_mail_delete(sd, index);
 }
 
-bool atcommand_sendmail(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_sendmail(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<2)
 	{
@@ -1994,7 +1300,7 @@ bool atcommand_sendmail(int fd, struct map_session_data& sd, const char* command
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_die(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_die(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	clif_specialeffect(sd,450,1);
 	pc_damage(sd, sd.status.hp + 1,NULL);
@@ -2005,9 +1311,9 @@ bool atcommand_die(int fd, struct map_session_data& sd, const char* command, con
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// disguise <mob_id>
+/// usage: "disguise <mob_id>"
 ///
-bool atcommand_disguise(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_disguise(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	unsigned short mob_id = 0;
 
@@ -2045,7 +1351,7 @@ bool atcommand_disguise(int fd, struct map_session_data& sd, const char* command
 ///
 /// DisguiseAll
 ///
-bool atcommand_disguiseall(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_disguiseall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	unsigned short mob_id=0;
 	size_t i=0;
@@ -2084,7 +1390,7 @@ bool atcommand_disguiseall(int fd, struct map_session_data& sd, const char* comm
 ///
 /// undisguise
 ///
-bool atcommand_undisguise(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_undisguise(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(sd.disguise_id)
 	{
@@ -2107,7 +1413,7 @@ bool atcommand_undisguise(int fd, struct map_session_data& sd, const char* comma
 ///
 /// UndisguiseAll
 ///
-bool atcommand_undisguiseall(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_undisguiseall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd;
 	size_t i;
@@ -2157,7 +1463,7 @@ void getring(struct map_session_data &sd)
 /// marry
 /// Marry two players
 ///
-bool atcommand_marry(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_marry(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<2)
 	{
@@ -2169,13 +1475,13 @@ bool atcommand_marry(int fd, struct map_session_data& sd, const char* command, c
 	const char* player1=param[0];
 	const char* player2=param[1];
 
-	if( (pl_sd1=atcommand_param2sd(player1))== NULL )
+	if( (pl_sd1=CommandInfo::param2sd(player1))== NULL )
 	{	
 		char output[128];
 		snprintf(output, sizeof(output), "Cannot find player '%s' online", player1);
 		clif_displaymessage(fd, output);
 	}
-	else if( (pl_sd2=atcommand_param2sd(player2))== NULL )
+	else if( (pl_sd2=CommandInfo::param2sd(player2))== NULL )
 	{	
 		char output[128];
 		snprintf(output, sizeof(output), "Cannot find player '%s' online", player2);
@@ -2198,7 +1504,7 @@ bool atcommand_marry(int fd, struct map_session_data& sd, const char* command, c
 /// divorce
 /// divorce two players
 ///
-bool atcommand_divorce(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_divorce(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<1)
 	{
@@ -2210,7 +1516,7 @@ bool atcommand_divorce(int fd, struct map_session_data& sd, const char* command,
 	const char *player_name=param[0];
 	struct map_session_data *pl_sd = NULL;
 
-	if( (pl_sd=atcommand_param2sd(player_name)) != NULL )
+	if( (pl_sd=CommandInfo::param2sd(player_name)) != NULL )
 	{
 		if( !pc_divorce(*pl_sd) )
 		{
@@ -2233,7 +1539,7 @@ bool atcommand_divorce(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_doom(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_doom(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd;
 	size_t i;
@@ -2256,7 +1562,7 @@ bool atcommand_doom(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_doommap(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_doommap(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd;
 	size_t i;
@@ -2282,7 +1588,7 @@ bool atcommand_doommap(int fd, struct map_session_data& sd, const char* command,
 /// dropall
 /// Drop all your possession on the ground
 ///
-bool atcommand_dropall(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_dropall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	size_t i;
 	for (i = 0; i < MAX_INVENTORY; ++i)
@@ -2306,7 +1612,7 @@ bool atcommand_dropall(int fd, struct map_session_data& sd, const char* command,
 ///
 /// dye && ccolor
 ///
-bool atcommand_dye(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_dye(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	unsigned int cloth_color = param[0];
 
@@ -2333,7 +1639,7 @@ bool atcommand_dye(int fd, struct map_session_data& sd, const char* command, con
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_model(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_model(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 	unsigned int hair_style = param[0];
@@ -2368,7 +1674,7 @@ bool atcommand_model(int fd, struct map_session_data& sd, const char* command, c
 ///
 /// hairstyle && hstyle
 ///
-bool atcommand_hair_style(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_hair_style(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	unsigned int hair_style = param[0];
 
@@ -2401,7 +1707,7 @@ bool atcommand_hair_style(int fd, struct map_session_data& sd, const char* comma
 ///////////////////////////////////////////////////////////////////////////////
 ///
 /// haircolor && hcolor
-bool atcommand_hair_color(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_hair_color(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	unsigned int hair_color = param[0];
 	if( param.size() < 1 )
@@ -2434,7 +1740,7 @@ bool atcommand_hair_color(int fd, struct map_session_data& sd, const char* comma
 ///
 /// effect
 ///
-bool atcommand_effect(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_effect(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *psd=&sd;
 	bool all=false;
@@ -2444,7 +1750,7 @@ bool atcommand_effect(int fd, struct map_session_data& sd, const char* command, 
 	{
 		clif_displaymessage(fd, "Please, enter at least a option (usage: effect <type+> [\"all\"/char name]).");
 	}
-	else if ( param.size()>=2 && !(all=(param[1]=="all")) && NULL==(psd = atcommand_param2sd(param[1])) )
+	else if ( param.size()>=2 && !(all=(param[1]=="all")) && NULL==(psd = CommandInfo::param2sd(param[1])) )
 	{
 		clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND)); // Character not found.
 	}
@@ -2467,7 +1773,7 @@ bool atcommand_effect(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_misceffect(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_misceffect(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 		return false;
@@ -2477,9 +1783,9 @@ bool atcommand_misceffect(int fd, struct map_session_data& sd, const char* comma
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// email <actual@email> <new@email>
+/// usage: "email <actual email> <new email>"
 ///
-bool atcommand_email(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_email(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()< 2)
 	{
@@ -2518,11 +1824,11 @@ bool atcommand_email(int fd, struct map_session_data& sd, const char* command, c
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// fakename [char name/chrid/accid] [name]
+/// usage: "fakename [char name/chrid/accid] [name]"
 /// => sets fake name.
 /// usage 
 ///
-bool atcommand_fakename(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_fakename(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	const char* msg;
 	if( param.size()<1 )
@@ -2562,12 +1868,12 @@ bool atcommand_fakename(int fd, struct map_session_data& sd, const char* command
 /// follow
 /// Follow a player .. staying no more then 5 spaces away
 ///
-bool atcommand_follow(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_follow(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd = NULL;
 	if (param.size()<1)
 		return false;
-	pl_sd = atcommand_param2sd(param[0]);
+	pl_sd = CommandInfo::param2sd(param[0]);
 	if(pl_sd != NULL)
 	{
 		if (sd.followtarget == pl_sd->block_list::id)
@@ -2582,7 +1888,7 @@ bool atcommand_follow(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_gat(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_gat(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int y;
 	char output[128];
@@ -2606,7 +1912,7 @@ bool atcommand_gat(int fd, struct map_session_data& sd, const char* command, con
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_gm(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_gm(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -2628,7 +1934,7 @@ bool atcommand_gm(int fd, struct map_session_data& sd, const char* command, cons
 ///
 /// gmotd (Global MOTD)
 ///
-bool atcommand_gmotd(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_gmotd(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char buf[256];
 	size_t sl;
@@ -2649,9 +1955,9 @@ bool atcommand_gmotd(int fd, struct map_session_data& sd, const char* command, c
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// go [city_number/city_name]
+/// usage: "go [city_number/city_name]"
 ///
-bool atcommand_go(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_go(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int town;
 	char output[128];
@@ -2828,7 +2134,7 @@ bool atcommand_go(int fd, struct map_session_data& sd, const char* command, cons
 ///
 /// grind
 ///
-bool atcommand_grind(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_grind(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd = NULL;
 	int skillnum;
@@ -2840,12 +2146,12 @@ bool atcommand_grind(int fd, struct map_session_data& sd, const char* command, c
 		clif_displaymessage(fd, "Usage: grind <target>");
 		return false;
 	}
-	if((pl_sd=atcommand_param2sd(target)) == NULL)
+	if((pl_sd=CommandInfo::param2sd(target)) == NULL)
 		return false;
 	for (skillnum = 1; skillnum < 500; skillnum++)
 	{
 		sd.status.sp = sd.status.max_sp;
-		atcommand_alive(fd, sd, command, param);
+		command_alive(fd, sd, command, param);
 		inf = skill_get_inf(skillnum);
 		if ((inf == 2) || (inf == 1))
 			skill_use_pos(&sd, pl_sd->block_list::x+5, pl_sd->block_list::y+5, skillnum, 1);
@@ -2859,7 +2165,7 @@ bool atcommand_grind(int fd, struct map_session_data& sd, const char* command, c
 ///
 /// grind2
 ///
-bool atcommand_grind2(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_grind2(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int i, x, y, id;
 	for(i=1000; i<2000; ++i)
@@ -2874,7 +2180,7 @@ bool atcommand_grind2(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_guild(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_guild(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -2892,7 +2198,7 @@ bool atcommand_guild(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_guildlevelup(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_guildlevelup(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int level = 0;
 	short added_level;
@@ -2934,7 +2240,7 @@ bool atcommand_guildlevelup(int fd, struct map_session_data& sd, const char* com
 ///
 /// Recall online characters of a guild to your location
 ///
-bool atcommand_guildrecall(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_guildrecall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd;
 	size_t i, count;
@@ -2984,7 +2290,7 @@ bool atcommand_guildrecall(int fd, struct map_session_data& sd, const char* comm
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_guildstorage(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_guildstorage(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct pc_storage *stor;
 	if (sd.status.guild_id > 0)
@@ -3008,7 +2314,7 @@ bool atcommand_guildstorage(int fd, struct map_session_data& sd, const char* com
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_guildspy(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_guildspy(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1) {
 		clif_displaymessage(fd, "Please, enter a guild name/id (usage: guildspy <guild_name/id>).");
@@ -3041,7 +2347,7 @@ bool atcommand_guildspy(int fd, struct map_session_data& sd, const char* command
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_partyspy(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_partyspy(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -3075,7 +2381,7 @@ bool atcommand_partyspy(int fd, struct map_session_data& sd, const char* command
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_gvgoff(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_gvgoff(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 
 	if (maps[sd.block_list::m].flag.gvg) {
@@ -3093,7 +2399,7 @@ bool atcommand_gvgoff(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_gvgon(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_gvgon(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 
 	if (!maps[sd.block_list::m].flag.gvg) {
@@ -3112,7 +2418,7 @@ bool atcommand_gvgon(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_help(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_help(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	FILE* fp;
 	if((fp = basics::safefopen(help_txt, "r")) != NULL)
@@ -3144,7 +2450,7 @@ bool atcommand_help(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_hide(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_hide(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (sd.status.option & OPTION_HIDE)
 	{
@@ -3163,7 +2469,7 @@ bool atcommand_hide(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_hidenpc(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_hidenpc(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -3187,7 +2493,7 @@ bool atcommand_hidenpc(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_shownpc(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_shownpc(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -3210,7 +2516,7 @@ bool atcommand_shownpc(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_loadnpc(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_loadnpc(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	FILE *fp;
 
@@ -3238,7 +2544,7 @@ bool atcommand_loadnpc(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_unloadnpc(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_unloadnpc(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -3268,7 +2574,7 @@ bool atcommand_unloadnpc(int fd, struct map_session_data& sd, const char* comman
 ///
 /// cause random emote on all online players
 ///
-bool atcommand_happyhappyjoyjoy(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_happyhappyjoyjoy(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd;
 	size_t i,e;
@@ -3288,7 +2594,7 @@ bool atcommand_happyhappyjoyjoy(int fd, struct map_session_data& sd, const char*
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_hatch(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_hatch(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (sd.status.pet_id <= 0)
 		clif_sendegg(sd);
@@ -3304,7 +2610,7 @@ bool atcommand_hatch(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_heal(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_heal(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	long hp = param[0], sp = param[1];
 	if (hp == 0 && sp == 0)
@@ -3351,7 +2657,7 @@ bool atcommand_heal(int fd, struct map_session_data& sd, const char* command, co
 ///
 /// identify
 ///
-bool atcommand_identify(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_identify(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int i,num;
 	for(i=num=0; i<MAX_INVENTORY; ++i)
@@ -3374,9 +2680,9 @@ bool atcommand_identify(int fd, struct map_session_data& sd, const char* command
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// idsearch <part_of_name>
+/// usage: "idsearch <part_of_name>"
 ///
-bool atcommand_idsearch(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_idsearch(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -3407,9 +2713,9 @@ bool atcommand_idsearch(int fd, struct map_session_data& sd, const char* command
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// item command (usage: item <name/id_of_item> <quantity>) (modified for pet_egg)
+/// item command (usage: "item <name/id_of_item> <quantity>")
 ///
-static void  atcommand_item_sub(struct map_session_data& sd, item& item_tmp, int pet_id, size_t number, size_t inc)
+static void  command_item_sub(struct map_session_data& sd, item& item_tmp, int pet_id, size_t number, size_t inc)
 {
 	size_t i;
 	for(i=0; i<number; i+=inc)
@@ -3431,7 +2737,7 @@ static void  atcommand_item_sub(struct map_session_data& sd, item& item_tmp, int
 	}
 }
 
-bool atcommand_item(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_item(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1)
 	{
@@ -3496,7 +2802,7 @@ bool atcommand_item(int fd, struct map_session_data& sd, const char* command, co
 			{
 				if( session[i] && (psd = (map_session_data *)session[i]->user_session) )
 				{
-					atcommand_item_sub(*psd, item_tmp, pet_id, number, inc);
+					command_item_sub(*psd, item_tmp, pet_id, number, inc);
 					snprintf(output, sizeof(output), "You got %lu %s.", (unsigned long)number, item_data->jname);
 					clif_displaymessage(psd->fd, output);
 				}
@@ -3504,7 +2810,7 @@ bool atcommand_item(int fd, struct map_session_data& sd, const char* command, co
 		}
 		else
 		{
-			atcommand_item_sub(sd, item_tmp, pet_id, number, inc);
+			command_item_sub(sd, item_tmp, pet_id, number, inc);
 		}
 		clif_displaymessage(fd, msg_txt(MSG_ITEM_CREATED)); // Item created.
 	}
@@ -3519,7 +2825,7 @@ bool atcommand_item(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_itemcheck(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_itemcheck(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	pc_checkitem(sd);
 	return true;
@@ -3530,7 +2836,7 @@ bool atcommand_itemcheck(int fd, struct map_session_data& sd, const char* comman
 ///
 /// Show Items DB Info
 ///
-bool atcommand_iteminfo(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_iteminfo(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char *itype[12] = {"Potion/Food", "BUG!", "Usable", "Etc", "Weapon", "Protection", "Card", "Egg", "Pet Acessory", "BUG!", "Arrow", "Lure/Scroll"};
 	char output[128];
@@ -3572,7 +2878,7 @@ bool atcommand_iteminfo(int fd, struct map_session_data& sd, const char* command
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_itemreset(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_itemreset(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	size_t i;
 	for(i = 0; i < MAX_INVENTORY; ++i)
@@ -3587,10 +2893,10 @@ bool atcommand_itemreset(int fd, struct map_session_data& sd, const char* comman
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// jail <char_name>
+/// jail char_name
 /// Special warp! No check with nowarp and nowarpto flag
 ///
-bool atcommand_jail(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_jail(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<1)
 	{
@@ -3599,7 +2905,7 @@ bool atcommand_jail(int fd, struct map_session_data& sd, const char* command, co
 	}
 
 	const char *player_name = param[0];
-	struct map_session_data *pl_sd = atcommand_param2sd(player_name);
+	struct map_session_data *pl_sd = CommandInfo::param2sd(player_name);
 	int x, y;
 
 	if(pl_sd != NULL)
@@ -3645,10 +2951,10 @@ bool atcommand_jail(int fd, struct map_session_data& sd, const char* command, co
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// unjail/discharge <char_name>
+/// unjail/discharge char_name
 /// Special warp! No check with nowarp and nowarpto flag
 ///
-bool atcommand_unjail(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_unjail(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<1)
 	{
@@ -3656,7 +2962,7 @@ bool atcommand_unjail(int fd, struct map_session_data& sd, const char* command, 
 		return false;
 	}
 	const char *player_name = param[0];
-	struct map_session_data *pl_sd = atcommand_param2sd(player_name);
+	struct map_session_data *pl_sd = CommandInfo::param2sd(player_name);
 
 	if( pl_sd != NULL )
 	{
@@ -3697,7 +3003,7 @@ bool atcommand_unjail(int fd, struct map_session_data& sd, const char* command, 
 ///
 ///
 ///
-bool atcommand_jobchange(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_jobchange(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int job = param[0];
 	if(job == 0)
@@ -3772,7 +3078,7 @@ bool atcommand_jobchange(int fd, struct map_session_data& sd, const char* comman
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_joblevelup(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_joblevelup(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct pc_base_job s_class = pc_calc_base_job(sd.status.class_);
 	int up_level = 50;
@@ -3840,7 +3146,7 @@ bool atcommand_joblevelup(int fd, struct map_session_data& sd, const char* comma
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_jump(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_jump(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 	int x = param[1], y = param[2];
@@ -3874,7 +3180,7 @@ bool atcommand_jump(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_jumpto(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_jumpto(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 
@@ -3884,7 +3190,7 @@ bool atcommand_jumpto(int fd, struct map_session_data& sd, const char* command, 
 		return false;
 	}
 
-	struct map_session_data *pl_sd = atcommand_param2sd(param[0]);
+	struct map_session_data *pl_sd = CommandInfo::param2sd(param[0]);
 
 	if( pl_sd != NULL )
 	{
@@ -3915,7 +3221,7 @@ bool atcommand_jumpto(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_kami(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_kami(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -3929,7 +3235,7 @@ bool atcommand_kami(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_kick(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_kick(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -3937,7 +3243,7 @@ bool atcommand_kick(int fd, struct map_session_data& sd, const char* command, co
 		return false;
 	}
 
-	struct map_session_data *pl_sd = atcommand_param2sd(param[0]);
+	struct map_session_data *pl_sd = CommandInfo::param2sd(param[0]);
 
 	if( pl_sd != NULL )
 	{
@@ -3968,7 +3274,7 @@ bool atcommand_kick(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_kickall(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_kickall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd;
 	size_t i;
@@ -3990,7 +3296,7 @@ bool atcommand_kickall(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_kill(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_kill(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -3998,7 +3304,7 @@ bool atcommand_kill(int fd, struct map_session_data& sd, const char* command, co
 		return false;
 	}
 
-	struct map_session_data *pl_sd = atcommand_param2sd(param[0]);
+	struct map_session_data *pl_sd = CommandInfo::param2sd(param[0]);
 
 	if( pl_sd != NULL )
 	{
@@ -4030,7 +3336,7 @@ bool atcommand_kill(int fd, struct map_session_data& sd, const char* command, co
 /// killable
 /// enable other people killing you even when not in pvp
 ///
-bool atcommand_killable(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_killable(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	sd.state.killable = ( param.size() )?(bool)param[0] : !sd.state.killable;
 	clif_displaymessage(fd, (sd.state.killable)?"now killable":"no longer killable");
@@ -4042,7 +3348,7 @@ bool atcommand_killable(int fd, struct map_session_data& sd, const char* command
 /// killer
 /// enable killing players even when not in pvp
 ///
-bool atcommand_killer(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_killer(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	sd.state.killer = ( param.size() )?(bool)param[0] : !sd.state.killer;
 	clif_displaymessage(fd, msg_txt((sd.state.killer)?MSG_YOU_BE_A_KILLA:MSG_YOU_GONNA_BE_OWN3D));
@@ -4052,7 +3358,7 @@ bool atcommand_killer(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_killmonster(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_killmonster(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	class CAtKillMonster : public CMapProcessor
 	{
@@ -4089,7 +3395,7 @@ bool atcommand_killmonster(int fd, struct map_session_data& sd, const char* comm
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_load(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_load(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int m = map_mapname2mapid(sd.status.save_point.mapname);
 	if (m >= 0 && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
@@ -4111,7 +3417,7 @@ bool atcommand_load(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_lostskill(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_lostskill(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	short skill_id=0;
 	if (param.size()<1 || (skill_id = param[0]) < 0)
@@ -4154,7 +3460,7 @@ bool atcommand_lostskill(int fd, struct map_session_data& sd, const char* comman
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_makeegg(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_makeegg(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct item_data *item_data;
 	int id, pet_id;
@@ -4192,7 +3498,7 @@ bool atcommand_makeegg(int fd, struct map_session_data& sd, const char* command,
 ///
 /// mapexit?A?}?b?v?T?[?o?[?d?I?1?3?1?e
 
-bool atcommand_mapexit(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_mapexit(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd;
 	size_t i;
@@ -4212,11 +3518,11 @@ bool atcommand_mapexit(int fd, struct map_session_data& sd, const char* command,
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// mapflag [flagap name] [1|0|on|off] [map name]
+/// usage: "mapflag [flagap name] [1|0|on|off] [map name]"
 /// => Shows information about the map flags [map name]
 /// Also set flags
 ///
-bool atcommand_mapflag(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_mapflag(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{	// show flags of current map
@@ -4247,14 +3553,14 @@ bool atcommand_mapflag(int fd, struct map_session_data& sd, const char* command,
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// mapinfo [map name] [0-3/player/npc/chat]
+/// usage: "mapinfo [map name] [0-3/player/npc/chat]"
 /// => Shows information about the map [map name]
 /// 0 = no additional information
 /// 1 = Show users in that map and their location
 /// 2 = Shows NPCs in that map
 /// 3 = Shows the shops/chats in that map (not implemented)
 ///
-bool atcommand_mapinfo(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_mapinfo(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd;
 	struct npc_data *nd = NULL;
@@ -4482,9 +3788,9 @@ bool atcommand_mapinfo(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 /// mapmove.
 ///
-/// parameters: <mapname> <x> <y>
+/// parameters: mapname, x, y
 ///
-bool atcommand_mapmove(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_mapmove(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	const char *mapname=param[0];
 	int x = param[1], y = param[2];
@@ -4535,7 +3841,7 @@ bool atcommand_mapmove(int fd, struct map_session_data& sd, const char* command,
 /// => Displays the OUTPUT string on top of
 ///    the Visible players Heads.
 ///
-bool atcommand_me(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_me(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -4551,7 +3857,7 @@ bool atcommand_me(int fd, struct map_session_data& sd, const char* command, cons
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_memo(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_memo(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 	size_t i;
@@ -4605,7 +3911,7 @@ bool atcommand_memo(int fd, struct map_session_data& sd, const char* command, co
 ///
 ///  Show Monster DB Info
 ///
-bool atcommand_mobinfo(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_mobinfo(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	unsigned char msize[3][7] = {"Small", "Medium", "Large"};
 	unsigned char mrace[12][11] = {"Formless", "Undead", "Beast", "Plant", "Insect", "Fish", "Demon", "Demi-Human", "Angel", "Dragon", "Boss", "Non-Boss"};
@@ -4727,7 +4033,7 @@ public:
 	}
 };
 
-bool atcommand_mobsearch(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_mobsearch(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 	const char *mob_name=param[0];
@@ -4760,7 +4066,7 @@ bool atcommand_mobsearch(int fd, struct map_session_data& sd, const char* comman
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_monster(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_monster(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<2 )
 	{
@@ -4801,7 +4107,7 @@ bool atcommand_monster(int fd, struct map_session_data& sd, const char* command,
 	if( strlen(name) < 1 )
 		name = "--ja--";
 	
-	// If value of atcommand_spawn_quantity_limit directive is greater than or equal to 1 and quantity of monsters is greater than value of the directive
+	// If value of command_spawn_quantity_limit directive is greater than or equal to 1 and quantity of monsters is greater than value of the directive
 	if (config.atc_spawn_quantity_limit >= 1 && number > config.atc_spawn_quantity_limit)
 		number = config.atc_spawn_quantity_limit;
 
@@ -4845,7 +4151,7 @@ bool atcommand_monster(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_spawn(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_spawn(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -4886,7 +4192,7 @@ bool atcommand_spawn(int fd, struct map_session_data& sd, const char* command, c
 	if (strlen(name) < 1)
 		name = "--ja--";
 
-	// If value of atcommand_spawn_quantity_limit directive is greater than or equal to 1 and quantity of monsters is greater than value of the directive
+	// If value of command_spawn_quantity_limit directive is greater than or equal to 1 and quantity of monsters is greater than value of the directive
 	if (config.atc_spawn_quantity_limit >= 1 && number > config.atc_spawn_quantity_limit)
 		number = config.atc_spawn_quantity_limit;
 
@@ -4933,7 +4239,7 @@ bool atcommand_spawn(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///  big monster spawning
-bool atcommand_monsterbig(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_monsterbig(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -4973,7 +4279,7 @@ bool atcommand_monsterbig(int fd, struct map_session_data& sd, const char* comma
 	if (strlen(name) < 1)
 		name = "--ja--";
 
-	// If value of atcommand_spawn_quantity_limit directive is greater than or equal to 1 and quantity of monsters is greater than value of the directive
+	// If value of command_spawn_quantity_limit directive is greater than or equal to 1 and quantity of monsters is greater than value of the directive
 	if (config.atc_spawn_quantity_limit >= 1 && number > config.atc_spawn_quantity_limit)
 		number = config.atc_spawn_quantity_limit;
 
@@ -5002,7 +4308,7 @@ bool atcommand_monsterbig(int fd, struct map_session_data& sd, const char* comma
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///  small monster spawning
-bool atcommand_monstersmall(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_monstersmall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -5041,7 +4347,7 @@ bool atcommand_monstersmall(int fd, struct map_session_data& sd, const char* com
 	if (strlen(name) < 1)
 		name = "--ja--";
 
-	// If value of atcommand_spawn_quantity_limit directive is greater than or equal to 1 and quantity of monsters is greater than value of the directive
+	// If value of command_spawn_quantity_limit directive is greater than or equal to 1 and quantity of monsters is greater than value of the directive
 	if (config.atc_spawn_quantity_limit >= 1 && number > config.atc_spawn_quantity_limit)
 		number = config.atc_spawn_quantity_limit;
 
@@ -5072,7 +4378,7 @@ bool atcommand_monstersmall(int fd, struct map_session_data& sd, const char* com
 /// monsterignore
 /// => Makes monsters ignore you.
 ///
-bool atcommand_monsterignore(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_monsterignore(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	sd.state.monster_ignore = 
 		(param.size())? (bool)param[0] : !sd.state.monster_ignore;
@@ -5086,7 +4392,7 @@ bool atcommand_monsterignore(int fd, struct map_session_data& sd, const char* co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_mount_peco(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_mount_peco(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (!pc_isriding(sd)) { // if actually no peco
 		if (sd.status.class_ == 7 || sd.status.class_ == 14 || sd.status.class_ == 4008 || sd.status.class_ == 4015 || sd.status.class_ == 4030 || sd.status.class_ == 4036 || sd.status.class_ == 4037 || sd.status.class_ == 4044) {
@@ -5134,7 +4440,7 @@ bool atcommand_mount_peco(int fd, struct map_session_data& sd, const char* comma
 ///
 /// mute - Mutes a player for a set amount of time
 ///
-bool atcommand_mute(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_mute(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(!config.muting_players)
 	{
@@ -5182,7 +4488,7 @@ public:
 		return 1;
 	}
 };
-bool atcommand_mutearea(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_mutearea(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(!config.muting_players)
 	{
@@ -5202,7 +4508,7 @@ bool atcommand_mutearea(int fd, struct map_session_data& sd, const char* command
 /// npcmove
 /// move a npc
 ///
-bool atcommand_npcmove(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_npcmove(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<3)
 	{
@@ -5233,7 +4539,7 @@ bool atcommand_npcmove(int fd, struct map_session_data& sd, const char* command,
 ///
 /// NPC/PET
 ///
-bool atcommand_npctalk(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_npctalk(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<2 )
 		return false;
@@ -5255,7 +4561,7 @@ bool atcommand_npctalk(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_pettalk(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_pettalk(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(!sd.status.pet_id || !sd.pd)
 		return false;
@@ -5271,7 +4577,7 @@ bool atcommand_pettalk(int fd, struct map_session_data& sd, const char* command,
 ///
 /// Removed nuke for now in favor of alchemist marine sphere skill
 ///
-bool atcommand_nuke(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_nuke(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<1)
 	{
@@ -5281,7 +4587,7 @@ bool atcommand_nuke(int fd, struct map_session_data& sd, const char* command, co
 	const char *player_name=param[0];
 	struct map_session_data *pl_sd;
 
-	if((pl_sd = atcommand_param2sd(player_name)) != NULL)
+	if((pl_sd = CommandInfo::param2sd(player_name)) != NULL)
 	{
 		if (sd.isGM() >= pl_sd->isGM())
 		{	// you can kill only lower or same GM level
@@ -5305,7 +4611,7 @@ bool atcommand_nuke(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_option(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_option(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -5375,7 +4681,7 @@ bool atcommand_option(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_packet(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_packet(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	static int packet_mode = 0;
 	if (strstr(command, "packetmode"))
@@ -5419,7 +4725,7 @@ bool atcommand_packet(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_party(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_party(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -5434,7 +4740,7 @@ bool atcommand_party(int fd, struct map_session_data& sd, const char* command, c
 ///
 /// Recall online characters of a party to your location
 ///
-bool atcommand_partyrecall(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_partyrecall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	size_t i, count;
 	struct map_session_data *pl_sd;
@@ -5487,7 +4793,7 @@ bool atcommand_partyrecall(int fd, struct map_session_data& sd, const char* comm
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_petfriendly(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_petfriendly(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int friendly=0;
 	int t;
@@ -5541,7 +4847,7 @@ bool atcommand_petfriendly(int fd, struct map_session_data& sd, const char* comm
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_pethungry(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_pethungry(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	unsigned hungry=0;
 	if( param.size()<1 || (hungry=param[0]) > 100 )
@@ -5576,7 +4882,7 @@ bool atcommand_pethungry(int fd, struct map_session_data& sd, const char* comman
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_petrename(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_petrename(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (sd.status.pet_id > 0 && sd.pd)
 	{
@@ -5602,10 +4908,10 @@ bool atcommand_petrename(int fd, struct map_session_data& sd, const char* comman
 }
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// petid <part of pet name>
+/// "petid <part of pet name>"
 /// => Displays a list of matching pets.
 ///
-bool atcommand_petid(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_petid(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 		return false;
@@ -5646,7 +4952,7 @@ bool atcommand_petid(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_produce(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_produce(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -5706,7 +5012,7 @@ bool atcommand_produce(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_pvpoff(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_pvpoff(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd;
 	size_t i;
@@ -5743,7 +5049,7 @@ bool atcommand_pvpoff(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_pvpon(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_pvpon(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd;
 	size_t i;
@@ -5784,7 +5090,7 @@ bool atcommand_pvpon(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_questskill(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_questskill(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	short skill_id=0;
 	if (param.size()<1 || (skill_id = param[0]) < 0)
@@ -5825,14 +5131,14 @@ bool atcommand_questskill(int fd, struct map_session_data& sd, const char* comma
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-void atcommand_raise_sub(struct map_session_data& sd)
+void command_raise_sub(struct map_session_data& sd)
 {
 	if( sd.state.auth && sd.is_dead() )
 	{
 		clif_skill_nodamage(sd,sd,ALL_RESURRECTION,4,1);
 		sd.status.hp = sd.status.max_hp;
 		sd.status.sp = sd.status.max_sp;
-		pc_setstand(sd);
+		sd.set_stand();
 		clif_updatestatus(sd, SP_HP);
 		clif_updatestatus(sd, SP_SP);
 		clif_resurrection(sd, 1);
@@ -5841,14 +5147,14 @@ void atcommand_raise_sub(struct map_session_data& sd)
 		clif_displaymessage(sd.fd, msg_txt(MSG_MERCY_HAS_BEEN_SHOWN)); // Mercy has been shown.
 	}
 }
-bool atcommand_raise(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_raise(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd;
 	size_t i;
 	for (i = 0; i < fd_max; ++i)
 	{
 		if(session[i] && (pl_sd=(struct map_session_data *)session[i]->user_session) && pl_sd->state.auth && sd.block_list::m == pl_sd->block_list::m)
-			atcommand_raise_sub(*pl_sd);
+			command_raise_sub(*pl_sd);
 	}
 	clif_displaymessage(fd, msg_txt(MSG_MERCY_HAS_BEEN_GRANTED)); // Mercy has been granted.
 
@@ -5858,7 +5164,7 @@ bool atcommand_raise(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_rates(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_rates(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char buf[256];
 	snprintf(buf, sizeof(buf), "Experience rates: Base %lf.1x / Job %lf.1x",
@@ -5871,7 +5177,7 @@ bool atcommand_rates(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_recall(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_recall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 
@@ -5881,7 +5187,7 @@ bool atcommand_recall(int fd, struct map_session_data& sd, const char* command, 
 		return false;
 	}
 
-	struct map_session_data *pl_sd = atcommand_param2sd(param[0]);
+	struct map_session_data *pl_sd = CommandInfo::param2sd(param[0]);
 	
 	if( pl_sd != NULL )
 	{
@@ -5922,7 +5228,7 @@ bool atcommand_recall(int fd, struct map_session_data& sd, const char* command, 
 ///
 /// Recall All Characters Online To Your Location
 
-bool atcommand_recallall(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_recallall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd;
 	char output[128];
@@ -5957,7 +5263,7 @@ bool atcommand_recallall(int fd, struct map_session_data& sd, const char* comman
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_refine(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_refine(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<2 )
 	{
@@ -6017,9 +5323,9 @@ bool atcommand_refine(int fd, struct map_session_data& sd, const char* command, 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// refresh (like jumpto <<yourself>>)
+/// refresh (like "jumpto <yourself>")
 ///
-bool atcommand_refresh(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_refresh(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	clif_refresh(sd);
 	return true;
@@ -6031,7 +5337,7 @@ bool atcommand_refresh(int fd, struct map_session_data& sd, const char* command,
 /// Will refresh and check online column of
 /// players and set correctly.
 ///
-bool atcommand_refreshonline(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_refreshonline(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char_online_check();
 	return true;
@@ -6039,11 +5345,11 @@ bool atcommand_refreshonline(int fd, struct map_session_data& sd, const char* co
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// reloadatcommand atcommand_athena.conf
+/// reloadatcommand command_athena.conf
 ///
-bool atcommand_reloadatcommand(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_reloadatcommand(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	atcommand_config_read(ATCOMMAND_CONF_FILENAME);
+	CommandInfo::config_read(ATCOMMAND_CONF_FILENAME);
 	clif_displaymessage(fd, msg_txt(MSG_GM_COMMANDS_RELOADED));
 	return true;
 }
@@ -6052,7 +5358,7 @@ bool atcommand_reloadatcommand(int fd, struct map_session_data& sd, const char* 
 ///
 /// reloadbattleconf battle_athena.conf
 ///
-bool atcommand_reloadbattleconf(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_reloadbattleconf(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	config.read(BATTLE_CONF_FILENAME);
 	clif_displaymessage(fd, msg_txt(MSG_BATTLE_CONFIG_RELOADED));
@@ -6062,7 +5368,7 @@ bool atcommand_reloadbattleconf(int fd, struct map_session_data& sd, const char*
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_reloaditemdb(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_reloaditemdb(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 
 	itemdb_reload();
@@ -6074,7 +5380,7 @@ bool atcommand_reloaditemdb(int fd, struct map_session_data& sd, const char* com
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_reloadmobdb(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_reloadmobdb(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 
 	mob_reload();
@@ -6090,7 +5396,7 @@ bool atcommand_reloadmobdb(int fd, struct map_session_data& sd, const char* comm
 /// reloadpcdb
 ///  exp.txt skill_tree.txt attr_fix.txt
 ///
-bool atcommand_reloadpcdb(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_reloadpcdb(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	pc_readdb();
 	clif_displaymessage(fd, msg_txt(MSG_PLAYER_CONFIG_RELOADED));
@@ -6100,11 +5406,11 @@ bool atcommand_reloadpcdb(int fd, struct map_session_data& sd, const char* comma
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_reloadscript(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_reloadscript(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	atcommand_broadcast( fd, sd, "broadcast", CParameterList("\"eAthena Server is Rehashing...\""));
-	atcommand_broadcast( fd, sd, "broadcast", CParameterList("\"You will feel a bit of lag at this point !\""));
-	atcommand_broadcast( fd, sd, "broadcast", CParameterList("\"Reloading NPCs...\""));
+	command_broadcast( fd, sd, "broadcast", basics::CParameterList("\"eAthena Server is Rehashing...\""));
+	command_broadcast( fd, sd, "broadcast", basics::CParameterList("\"You will feel a bit of lag at this point !\""));
+	command_broadcast( fd, sd, "broadcast", basics::CParameterList("\"Reloading NPCs...\""));
 
 	flush_fifos();
 
@@ -6120,7 +5426,7 @@ bool atcommand_reloadscript(int fd, struct map_session_data& sd, const char* com
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_reloadskilldb(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_reloadskilldb(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 
 	skill_reload();
@@ -6135,7 +5441,7 @@ bool atcommand_reloadskilldb(int fd, struct map_session_data& sd, const char* co
 ///  job_db1.txt job_db2.txt job_db2-2.txt
 ///  refine_db.txt size_fix.txt
 ///  
-bool atcommand_reloadstatusdb(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_reloadstatusdb(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	status_readdb();
 	clif_displaymessage(fd, msg_txt(MSG_STATUS_CONFIG_RELOADED));
@@ -6147,7 +5453,7 @@ bool atcommand_reloadstatusdb(int fd, struct map_session_data& sd, const char* c
 ///
 /// repairall
 ///
-bool atcommand_repairall(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_repairall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int count, i;
 	count = 0;
@@ -6178,7 +5484,7 @@ bool atcommand_repairall(int fd, struct map_session_data& sd, const char* comman
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_revive(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_revive(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -6186,7 +5492,7 @@ bool atcommand_revive(int fd, struct map_session_data& sd, const char* command, 
 		return false;
 	}
 
-	struct map_session_data *pl_sd = atcommand_param2sd(param[0]);
+	struct map_session_data *pl_sd = CommandInfo::param2sd(param[0]);
 
 	if( pl_sd != NULL )
 	{
@@ -6194,7 +5500,7 @@ bool atcommand_revive(int fd, struct map_session_data& sd, const char* command, 
 		{
 			pl_sd->status.hp = pl_sd->status.max_hp;
 			clif_skill_nodamage(sd,sd,ALL_RESURRECTION,4,1);
-			pc_setstand(*pl_sd);
+			pl_sd->set_stand();
 			if (config.pc_invincible_time > 0)
 				pc_setinvincibletimer(*pl_sd, config.pc_invincible_time);
 			clif_updatestatus(*pl_sd, SP_HP);
@@ -6213,7 +5519,7 @@ bool atcommand_revive(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_save(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_save(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	unsigned short m = sd.block_list::m;
 	unsigned short x = sd.block_list::x;
@@ -6245,9 +5551,9 @@ bool atcommand_save(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 /// send. (used for testing packet sends from the client)
 ///
-/// parameters: <hex digit> <decimal digit>{20,20}
+/// usage: "send <hex digit> <decimal digit>{20,20}"
 ///
-bool atcommand_send(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_send(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
    	if( param.size() < 1 )
 	{
@@ -6308,7 +5614,7 @@ const char* txt_time(char* buffer, size_t sz, unsigned long duration)
 /// time/date/server_date/serverdate/server_time/servertime: Display the date/time of the server (
 /// Calculation management of GM modification (day/night GM commands) is done
 ///
-bool atcommand_servertime(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_servertime(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct TimerData * timer_data;
 	time_t time_server;  // variable for number of seconds (used with time() function)
@@ -6381,7 +5687,7 @@ bool atcommand_servertime(int fd, struct map_session_data& sd, const char* comma
 /// setbattleflag
 /// set a config flag without having to reboot
 ///
-bool atcommand_setbattleflag(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_setbattleflag(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	const char *flag = param[0];
 	const char *value= param[1];
@@ -6404,7 +5710,7 @@ bool atcommand_setbattleflag(int fd, struct map_session_data& sd, const char* co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_showexp(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_showexp(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	sd.state.noexp = (param.size()) ?
 		!((bool)param[0]) : !sd.state.noexp;
@@ -6417,7 +5723,7 @@ bool atcommand_showexp(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_showdelay(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_showdelay(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	sd.state.nodelay = (param.size()) ?
 		!((bool)param[0]) : !sd.state.nodelay;
@@ -6444,7 +5750,7 @@ public:
 		return 0;
 	}
 };
-bool atcommand_shuffle(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_shuffle(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	const char* message = param[0];
 	if(strcmp(message, "area")== 0)
@@ -6477,7 +5783,7 @@ bool atcommand_shuffle(int fd, struct map_session_data& sd, const char* command,
 ///
 /// size
 ///
-bool atcommand_size(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_size(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int size=param[0];
 	if(size==0 && sd.state.viewsize)
@@ -6503,7 +5809,7 @@ bool atcommand_size(int fd, struct map_session_data& sd, const char* command, co
 /// skillid
 /// lookup a skill by name
 ///
-bool atcommand_skillid(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_skillid(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 		return false;
@@ -6531,7 +5837,7 @@ bool atcommand_skillid(int fd, struct map_session_data& sd, const char* command,
 /// skillon
 /// turn skills on for the map
 ///
-bool atcommand_skillon(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_skillon(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 
 	maps[sd.block_list::m].flag.noskill = 0;
@@ -6544,7 +5850,7 @@ bool atcommand_skillon(int fd, struct map_session_data& sd, const char* command,
 /// skilloff
 /// Turn skills off on the map
 ///
-bool atcommand_skilloff(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_skilloff(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 
 	maps[sd.block_list::m].flag.noskill = 1;
@@ -6556,7 +5862,7 @@ bool atcommand_skilloff(int fd, struct map_session_data& sd, const char* command
 ///
 /// skpoint
 ///
-bool atcommand_skillpoint(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_skillpoint(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int point=0;
 	if( param.size()<1 || (point = param[0]) == 0 )
@@ -6591,7 +5897,7 @@ bool atcommand_skillpoint(int fd, struct map_session_data& sd, const char* comma
 ///
 /// Character Skill Reset
 ///
-bool atcommand_skillreset(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_skillreset(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	pc_resetskill(sd);
 	clif_displaymessage(fd, "skill points reseted");
@@ -6601,7 +5907,7 @@ bool atcommand_skillreset(int fd, struct map_session_data& sd, const char* comma
 ///////////////////////////////////////////////////////////////////////////////
 ///
 /// Character Stat Reset
-bool atcommand_statusreset(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_statusreset(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	pc_resetstate(sd);
 	clif_displaymessage(fd, "stats points reseted");
@@ -6612,7 +5918,7 @@ bool atcommand_statusreset(int fd, struct map_session_data& sd, const char* comm
 ///
 /// Character Reset
 ///
-bool atcommand_charreset(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_charreset(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	pc_resetstate(sd);
 	pc_resetskill(sd);
@@ -6625,14 +5931,14 @@ bool atcommand_charreset(int fd, struct map_session_data& sd, const char* comman
 /// skilltree
 /// prints the skill tree for a player required to get to a skill
 ///
-bool atcommand_skilltree(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_skilltree(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<2)
 		return false;
 
 	int skillnum       = param[0];
 	const char *target = param[1];
-	struct map_session_data *pl_sd = atcommand_param2sd(target);
+	struct map_session_data *pl_sd = CommandInfo::param2sd(target);
 	if( pl_sd == NULL )
 		return false;
 
@@ -6692,7 +5998,7 @@ bool atcommand_skilltree(int fd, struct map_session_data& sd, const char* comman
 ///
 /// Sound Command - plays a sound for everyone!
 ///
-bool atcommand_sound(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_sound(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -6710,7 +6016,7 @@ bool atcommand_sound(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_speed(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_speed(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int speed = param[0];
 	char output[128];
@@ -6734,7 +6040,7 @@ bool atcommand_speed(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_spiritball(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_spiritball(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int number = param[0];
 	if( param.size()<1 )
@@ -6768,7 +6074,7 @@ bool atcommand_spiritball(int fd, struct map_session_data& sd, const char* comma
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_status(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_status(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	size_t i;
 	int value = 0, new_value;
@@ -6821,7 +6127,7 @@ bool atcommand_status(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///  Stat all
-bool atcommand_stat_all(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_stat_all(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int index, count, value = 0, new_value;
 	unsigned short* status[] = {
@@ -6865,7 +6171,7 @@ bool atcommand_stat_all(int fd, struct map_session_data& sd, const char* command
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-bool atcommand_printstats(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_printstats(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[1024], gmlevel[1024];
 	struct map_session_data *pl_sd;
@@ -6873,7 +6179,7 @@ bool atcommand_printstats(int fd, struct map_session_data& sd, const char* comma
 
 	if( param.size() && param[0]!="all" )
 	{	// given a player name, so only display this
-		pl_sd = atcommand_param2sd(param[0]);
+		pl_sd = CommandInfo::param2sd(param[0]);
 		if( !pl_sd )
 		{
 			clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND)); // Character not found.
@@ -6955,7 +6261,7 @@ bool atcommand_printstats(int fd, struct map_session_data& sd, const char* comma
 ///
 /// stpoint
 ///
-bool atcommand_statuspoint(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_statuspoint(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int point=0;
 	if( param.size()<1 || (point = param[0]) == 0 )
@@ -6990,7 +6296,7 @@ bool atcommand_statuspoint(int fd, struct map_session_data& sd, const char* comm
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_storage(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_storage(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct pc_storage *stor;
 	if( sd.state.storage_flag == 1 ||
@@ -7005,10 +6311,10 @@ bool atcommand_storage(int fd, struct map_session_data& sd, const char* command,
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// storeall [charname/chrid/accid]
+/// usage: "storeall [charname/chrid/accid]"
 /// Put everything into storage to simplify your inventory to make debugging easier
 ///
-bool atcommand_storeall(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_storeall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (storage_storageopen(sd) == 1)
 	{
@@ -7041,7 +6347,7 @@ bool atcommand_storeall(int fd, struct map_session_data& sd, const char* command
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_summon(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_summon(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<1)
 		return false;
@@ -7089,11 +6395,11 @@ bool atcommand_summon(int fd, struct map_session_data& sd, const char* command, 
 /// trade
 /// Open a trade window with a remote player
 ///
-bool atcommand_trade(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_trade(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
     if (param.size()<1)
         return false;
-    struct map_session_data *pl_sd =atcommand_param2sd(param[0]);
+    struct map_session_data *pl_sd =CommandInfo::param2sd(param[0]);
     if( pl_sd != NULL )
 	{
 		trade_traderequest(sd, pl_sd->block_list::id);
@@ -7106,7 +6412,7 @@ bool atcommand_trade(int fd, struct map_session_data& sd, const char* command, c
 ///
 /// unmute
 ///
-bool atcommand_unmute(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_unmute(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(!config.muting_players)
 	{
@@ -7128,7 +6434,7 @@ bool atcommand_unmute(int fd, struct map_session_data& sd, const char* command, 
 ///
 /// uptime
 ///
-bool atcommand_uptime(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_uptime(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 	unsigned long days, hours, minutes,seconds;
@@ -7144,7 +6450,7 @@ bool atcommand_uptime(int fd, struct map_session_data& sd, const char* command, 
 ///
 /// display number of users on maps
 ///
-bool atcommand_users(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_users(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char buf[256];
 	size_t i, all;
@@ -7169,7 +6475,7 @@ bool atcommand_users(int fd, struct map_session_data& sd, const char* command, c
 /// useskill
 /// A way of using skills without having to find them in the skills menu
 ///
-bool atcommand_useskill(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_useskill(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<3)
 	{
@@ -7180,7 +6486,7 @@ bool atcommand_useskill(int fd, struct map_session_data& sd, const char* command
 	int skillnum       = param[0];
 	int skilllv        = param[1];
 	const char *target = param[2];
-	struct map_session_data *pl_sd = atcommand_param2sd(target);
+	struct map_session_data *pl_sd = CommandInfo::param2sd(target);
 	if( pl_sd )
 	{
 		int inf = skill_get_inf(skillnum);
@@ -7196,7 +6502,7 @@ bool atcommand_useskill(int fd, struct map_session_data& sd, const char* command
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_version(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_version(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	const char * revision;
 	char tmp[200];
@@ -7214,7 +6520,7 @@ bool atcommand_version(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_where(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_where(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	const char *player_name = param[1];
 	char output[128]="";
@@ -7224,7 +6530,7 @@ bool atcommand_where(int fd, struct map_session_data& sd, const char* command, c
 
 	if(player_name && *player_name)
 	{
-		map_session_data *pl_sd = atcommand_param2sd(player_name);
+		map_session_data *pl_sd = CommandInfo::param2sd(player_name);
 
 		if( !config.hide_GM_session || sd.isGM()<pl_sd->isGM() )
 			snprintf(output, sizeof(output), "%s %s %d %d", player_name, pl_sd->mapname, pl_sd->block_list::x, pl_sd->block_list::y);
@@ -7244,7 +6550,7 @@ bool atcommand_where(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_who(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_who(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd;
 	size_t i, count;
@@ -7300,7 +6606,7 @@ bool atcommand_who(int fd, struct map_session_data& sd, const char* command, con
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_who2(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_who2(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd;
 	size_t i, count;
@@ -7345,7 +6651,7 @@ bool atcommand_who2(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_who3(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_who3(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char temp0[128];
 	char temp1[128];
@@ -7404,7 +6710,7 @@ bool atcommand_who3(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_whomap(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_whomap(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd;
 	size_t i, count;
@@ -7448,7 +6754,7 @@ bool atcommand_whomap(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_whomap2(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_whomap2(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct map_session_data *pl_sd;
 	size_t i, count;
@@ -7492,7 +6798,7 @@ bool atcommand_whomap2(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_whomap3(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_whomap3(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char temp0[128];
 	char temp1[128];
@@ -7550,7 +6856,7 @@ bool atcommand_whomap3(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_whogm(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_whogm(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char temp0[128];
 	char temp1[128];
@@ -7612,7 +6918,7 @@ bool atcommand_whogm(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool atcommand_whozeny(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_whozeny(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	const uint MAX = 50; /// limit the list to 50 since only 50 get displayed anyway
 	struct map_session_data *pl_sd;
@@ -7668,7 +6974,7 @@ bool atcommand_whozeny(int fd, struct map_session_data& sd, const char* command,
 ///
 /// zeny
 ///
-bool atcommand_zeny(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_zeny(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	long zeny=0;
 	uint32 new_zeny;
@@ -7705,14 +7011,14 @@ bool atcommand_zeny(int fd, struct map_session_data& sd, const char* command, co
 
 #ifdef DMALLOC
 staic unsigned long dmark_;
-bool atcommand_dmstart(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_dmstart(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	dmark_ = dmalloc_mark();
 	clif_displaymessage(fd, "debug mark set");
 	return true;
 }
 
-bool atcommand_dmtick(int fd, struct map_session_data& sd, const char* command, const CParameterList& param)
+bool command_dmtick(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	dmalloc_log_changed ( dmark_, 1, 0, 1 ) ;
 	dmark_ = dmalloc_mark();
@@ -7720,4 +7026,494 @@ bool atcommand_dmtick(int fd, struct map_session_data& sd, const char* command, 
 	return true;
 }
 #endif
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// command control structures
+//
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+char CommandInfo::command_symbol = '@'; // first char of the commands
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// CommandInfo.
+/// First char of commands is configured in command_athena.conf. 
+/// to set external level, load command_athena.conf.
+static CommandInfo command_info[] =
+{
+	//<name>,<lvl>,<# param>,<optional sd>,<function>
+	{ "addwarp",			20, 3, 0, command_addwarp				},
+	{ "adjcmdlvl",			99, 2, 0, command_adjcmdlvl				},
+	{ "adjgmlvl",			99, 2, 0, command_adjgmlvl				},
+	{ "adopt",				40, 3, 0, command_adopt					},
+	{ "agitend",			60, 0, 0, command_agitend				},
+	{ "agitstart",			60, 0, 0, command_agitstart				},
+	{ "alive",				60, 0, 1, command_alive					},
+	{ "allskill",			60, 0, 1, command_allskill				},
+	{ "allskills",			60, 0, 1, command_allskill				},
+	{ "skillall",			60, 0, 1, command_allskill				},
+	{ "skillsall",			60, 0, 1, command_allskill				},
+	{ "autoloot",			10, 1, 1, command_autoloot				},
+	{ "lvup",				60, 1, 1, command_baselevelup			},
+	{ "blevel",				60, 1, 1, command_baselevelup			},
+	{ "baselvlup",			60, 1, 1, command_baselevelup			},
+	{ "broadcast",			40, 0, 0, command_broadcast				},
+	{ "cartlist",			40, 0, 1, command_cartlist				},
+	{ "changelook",			99, 1, 1, command_changelook			},
+	{ "changesex",			 1, 1, 0, command_changesex				},
+	{ "ban",				60, 1, 0, command_char_ban				},
+	{ "banish",				60, 1, 0, command_char_ban				},
+	{ "charban",			60, 1, 0, command_char_ban				},
+	{ "charbanish",			60, 1, 0, command_char_ban				},
+	{ "block",				60, 1, 0, command_char_block			},
+	{ "charblock",			60, 1, 0, command_char_block			},
+	{ "reset",				40, 0, 0, command_charreset				},
+	{ "unban",				60, 1, 0, command_char_unban			},
+	{ "unbanish",			60, 1, 0, command_char_unban			},
+	{ "charunban",			60, 1, 0, command_char_unban			},
+	{ "charunbanish",		60, 1, 0, command_char_unban			},
+	{ "unblock",			60, 1, 0, command_char_unblock			},
+	{ "charunblock",		60, 1, 0, command_char_unblock			},
+	{ "checkmail",			 1, 0, 0, command_checkmail				},
+	{ "cleanmap",			 0, 0, 0, command_cleanmap				},
+	{ "clearweather",		99, 1, 0, command_clearweather			},
+	{ "clouds",				99, 1, 0, command_clouds				},
+	{ "clouds2",			99, 1, 0, command_clouds2				},
+	{ "day",				80, 0, 0, command_day					},
+	{ "deletemail",			 1, 1, 0, command_deletemail			},
+	{ "delitem",			60, 1, 1, command_delitem				},
+	{ "die",				 1, 0, 1, command_die					},
+	{ "disguise",			20, 1, 1, command_disguise				},
+	{ "disguiseall",		99, 1, 0, command_disguiseall			},
+	{ "divorce",			40, 1, 0, command_divorce				},
+	{ "doom",				80, 0, 0, command_doom					},
+	{ "doommap",			80, 0, 0, command_doommap				},
+	{ "dropall",			40, 0, 1, command_dropall				},
+	{ "dye",				40, 1, 1, command_dye					},
+	{ "ccolor",				40, 1, 1, command_dye					},
+	{ "effect",				40, 1, 0, command_effect				},
+	{ "email",				 0, 1, 0, command_email					},
+	{ "fakename",			20, 1, 1, command_fakename				},
+	{ "fireworks",			99, 1, 0, command_fireworks				},
+	{ "fog",				99, 1, 0, command_fog					},
+	{ "follow",				10, 1, 1, command_follow				},
+	{ "gat",				99, 0, 1, command_gat					},
+	{ "gm",					100, 0, 0, command_gm					},
+	{ "gmotd",				 0, 0, 0, command_gmotd					},
+	{ "go",					10, 1, 0, command_go					},
+	{ "grind",				99, 1, 0, command_grind					},
+	{ "grind2",				99, 0, 0, command_grind2				},
+	{ "guild",				50, 1, 1, command_guild					},
+	{ "guildlvup",			60, 1, 0, command_guildlevelup			},
+	{ "guildlvlup",			60, 1, 0, command_guildlevelup			},
+	{ "guildrecall",		60, 1, 0, command_guildrecall			},
+	{ "guildspy",			60, 1, 0, command_guildspy				},
+	{ "gstorage",			50, 0, 0, command_guildstorage			},
+	{ "gvgoff",				40, 0, 0, command_gvgoff				},
+	{ "gpvpoff",			40, 0, 0, command_gvgoff				},
+	{ "gvgon",				40, 0, 0, command_gvgon					},
+	{ "gpvpon",				40, 0, 0, command_gvgon					},
+	{ "happyhappyjoyjoy",	40, 0, 0, command_happyhappyjoyjoy		},
+	{ "hatch",				60, 0, 1, command_hatch					},
+	{ "haircolor",			40, 1, 1, command_hair_color			},
+	{ "hcolor",				40, 1, 1, command_hair_color			},
+	{ "heal",				40, 1, 1, command_heal					},
+	{ "h",					20, 0, 0, command_help					},
+	{ "help",				20, 0, 0, command_help					},
+	{ "hide",				40, 0, 1, command_hide					},
+	{ "hidenpc",			80, 1, 0, command_hidenpc				},
+	{ "hairstyle", 			40, 1, 1, command_hair_style			},
+	{ "hstyle",				40, 1, 1, command_hair_style			},
+	{ "identify",			40, 0, 1, command_identify				},
+	{ "idsearch",			60, 0, 0, command_idsearch				},
+	{ "item",				60, 1, 1, command_item					},
+	{ "itemcheck",			60, 0, 1, command_itemcheck				},
+	{ "iteminfo",			 1, 1, 0, command_iteminfo				},
+	{ "ii",					 1, 1, 0, command_iteminfo				},
+	{ "itemlist",			40, 0, 1, command_itemlist				},
+	{ "itemreset",			40, 0, 1, command_itemreset				},
+	{ "jail",				60, 1, 0, command_jail					},
+	{ "jobchange",			40, 1, 1, command_jobchange				},
+	{ "job",				40, 1, 1, command_jobchange				},
+	{ "jlevel",				60, 1, 1, command_joblevelup			},
+	{ "joblvup",			60, 1, 1, command_joblevelup			},
+	{ "joblvlup",			60, 1, 1, command_joblevelup			},
+	{ "jump",				40, 2, 0, command_jump					},
+	{ "jumpto",				20, 1, 0, command_jumpto				},
+	{ "warpto",				20, 1, 0, command_jumpto				},
+	{ "goto",				20, 1, 0, command_jumpto				},
+	{ "kami",				40, 0, 0, command_kami					},
+	{ "kamib",				40, 0, 0, command_kami					},
+	{ "kick",				20, 1, 0, command_kick					},
+	{ "kickall",			99, 0, 0, command_kickall				},
+	{ "kill",				60, 1, 0, command_kill					},
+	{ "killable",			40, 1, 1, command_killable				},
+	{ "killer",				60, 1, 1, command_killer				},
+	{ "killmonster",		60, 1, 0, command_killmonster			},
+	{ "leaves",				99, 1, 0, command_leaves				},
+	{ "listmail",			 1, 1, 0, command_listmail				},
+	{ "listnewmail",		 1, 1, 0, command_listnewmail			},
+	{ "return",				40, 0, 0, command_load					},
+	{ "load",				40, 0, 0, command_load					},
+	{ "loadnpc",			80, 1, 0, command_loadnpc				},
+	{ "localbroadcast",		40, 0, 0, command_localbroadcast		},
+	{ "lostskill",			40, 1, 1, command_lostskill				},
+	{ "makeegg",			60, 1, 1, command_makeegg				},
+	{ "mapexit",			99, 0, 0, command_mapexit				},
+	{ "mapflag",			99, 3, 0, command_mapflag				},
+	{ "mapinfo",			99, 2, 0, command_mapinfo				},
+	{ "mapmove",			40, 3, 1, command_mapmove				},
+	{ "rura",				40, 3, 1, command_mapmove				},
+	{ "warp",				40, 3, 1, command_mapmove				},
+	{ "marry",				40, 1, 0, command_marry					},
+	{ "me",					20, 0, 0, command_me					},
+	{ "memo",				40, 1, 0, command_memo					},
+	{ "misceffect",			50, 1, 1, command_misceffect			},
+	{ "mobinfo",			 1, 1, 0, command_mobinfo				},
+	{ "monsterinfo",		 1, 1, 0, command_mobinfo				},
+	{ "mi",					 1, 1, 0, command_mobinfo				},
+	{ "mobsearch",			 0, 1, 0, command_mobsearch				},
+	{ "model",				20, 3, 1, command_model					},
+	{ "monster2",			50, 5, 0, command_monster				},
+	{ "monsterbig",			50, 5, 0, command_monsterbig			},
+	{ "monsterignore",		99, 1, 1, command_monsterignore			},
+	{ "monstersmall",		50, 5, 0, command_monstersmall			},
+	{ "mountpeco",			20, 0, 1, command_mount_peco			},
+	{ "mute",				99, 1, 1, command_mute					},
+	{ "red",				99, 1, 1, command_mute					},
+	{ "mutearea",			99, 1, 0, command_mutearea				},
+	{ "stfu",				99, 1, 0, command_mutearea				},
+	{ "night",				80, 0, 0, command_night					},
+	{ "npcmove",			20, 1, 0, command_npcmove				},
+	{ "npctalk",			 0, 2, 0, command_npctalk				},
+	{ "nuke",				60, 1, 0, command_nuke					},
+	{ "option",				40, 3, 1, command_option				},
+	{ "packet",				99, 2, 0, command_packet				},
+	{ "packetmode",			99, 1, 0, command_packet				},
+	{ "party",				 1, 1, 1, command_party					},
+	{ "partyrecall",		60, 1, 0, command_partyrecall			},
+	{ "partyspy",			60, 1, 0, command_partyspy				},
+	{ "petfriendly",		40, 1, 1, command_petfriendly			},
+	{ "pethungry",			40, 1, 1, command_pethungry				},
+	{ "petid",				40, 1, 0, command_petid					},
+	{ "petrename",			40, 1, 1, command_petrename				},
+	{ "pettalk",			 0, 0, 0, command_pettalk				},
+	{ "printstats",			40, 1, 0, command_printstats			},
+	{ "stats",				40, 1, 0, command_printstats			},
+	{ "produce",			60, 3, 1, command_produce				},
+	{ "pvpoff",				40, 0, 0, command_pvpoff				},
+	{ "pvpon",				40, 0, 0, command_pvpon					},
+	{ "questskill",			40, 1, 1, command_questskill			},
+	{ "rain",				99, 1, 0, command_rain					},
+	{ "raise",				80, 0, 0, command_raise					},
+	{ "raisemap",			80, 0, 0, command_raise					},
+	{ "rates",				10, 0, 0, command_rates					},
+	{ "readmail",			 1, 1, 0, command_readmail				},
+	{ "recall",				60, 1, 0, command_recall				},
+	{ "recallall",			80, 0, 0, command_recallall				},
+	{ "refine",				60, 2, 1, command_refine				},
+	{ "refresh",			 0, 0, 0, command_refresh				},
+	{ "refreshonline",		99, 0, 0, command_refreshonline			},
+	{ "reloadatcommand",	99, 0, 0, command_reloadatcommand		},
+	{ "reloadbattleconf",	99, 0, 0, command_reloadbattleconf		},
+	{ "reloaditemdb",		99, 0, 0, command_reloaditemdb			},
+	{ "reloadmobdb",		99, 0, 0, command_reloadmobdb			},
+	{ "reloadpcdb",			99, 0, 0, command_reloadpcdb			},
+	{ "reloadscript",		99, 0, 0, command_reloadscript			},
+	{ "reloadskilldb",		99, 0, 0, command_reloadskilldb			},
+	{ "reloadstatusdb",		99, 0, 0, command_reloadstatusdb		},
+	{ "repairall",			60, 0, 1, command_repairall				},
+	{ "revive",				60, 1, 0, command_revive				},
+	{ "sakura",				99, 1, 0, command_sakura				},
+	{ "save",				40, 3, 1, command_save					},
+	{ "send",				60,20, 0, command_send					},
+	{ "sendmail",			 1, 2, 0, command_sendmail				},
+	{ "time",				 0, 0, 0, command_servertime			},
+	{ "date",				 0, 0, 0, command_servertime			},
+	{ "server_date",		 0, 0, 0, command_servertime			},
+	{ "serverdate",			 0, 0, 0, command_servertime			},
+	{ "server_time",		 0, 0, 0, command_servertime			},
+	{ "servertime",			 0, 0, 0, command_servertime			},
+	{ "setbattleflag",		60, 2, 0, command_setbattleflag			},
+	{ "battleoption",		60, 2, 0, command_setbattleflag			},
+	{ "showexp",			20, 1, 1, command_showexp				},
+	{ "showdelay",			20, 1, 1, command_showdelay				},
+	{ "shownpc",			80, 1, 0, command_shownpc				},
+	{ "shuffle",			40, 1, 0, command_shuffle				},
+	{ "size",				20, 1, 1, command_size					},
+	{ "skillid",			40, 1, 0, command_skillid				},
+	{ "skilloff",			20, 0, 0, command_skilloff				},
+	{ "skillon",			20, 0, 0, command_skillon				},
+	{ "skpoint",			60, 1, 1, command_skillpoint			},
+	{ "skreset",			60, 0, 1, command_skillreset			},
+	{ "skilltree",			40, 2, 0, command_skilltree				},
+	{ "snow",				99, 1, 0, command_snow					},
+	{ "sound",				40, 1, 0, command_sound					},
+	{ "monster",			50, 5, 0, command_spawn					},
+	{ "spawn",				50, 5, 0, command_spawn					},
+	{ "speed",				40, 1, 1, command_speed					},
+	{ "spiritball",			40, 1, 1, command_spiritball			},
+	{ "statall",			60, 0, 1, command_stat_all				},
+	{ "statsall",			60, 0, 1, command_stat_all				},
+	{ "allstats",			60, 0, 1, command_stat_all				},
+	{ "allstat",			60, 0, 1, command_stat_all				},
+	{ "agi",				60, 1, 1, command_status				},
+	{ "dex",				60, 1, 1, command_status				},
+	{ "int",				60, 1, 1, command_status				},
+	{ "luk",				60, 1, 1, command_status				},
+	{ "str",				60, 1, 1, command_status				},
+	{ "vit",				60, 1, 1, command_status				},
+	{ "stpoint",			60, 1, 1, command_statuspoint			},
+	{ "streset",			60, 0, 1, command_statusreset			},
+	{ "storage",			 1, 0, 1, command_storage				},
+	{ "storagelist",		40, 0, 1, command_storagelist			},
+	{ "storeall",			40, 0, 1, command_storeall				},
+	{ "summon",				60, 2, 1, command_summon				},
+	{ "trade",				60, 1, 1, command_trade					},
+	{ "undisguise",			20, 0, 1, command_undisguise			},
+	{ "undisguiseall",		99, 0, 0, command_undisguiseall			},
+	{ "unjail",				60, 1, 0, command_unjail				},
+	{ "discharge",			60, 1, 0, command_unjail				},
+	{ "unloadnpc",			80, 1, 0, command_unloadnpc				},
+	{ "unmute",				60, 0, 1, command_unmute				},
+	{ "uptime",				 0, 0, 0, command_uptime				},
+	{ "users",				 0, 0, 0, command_users					},
+	{ "useskill",			40, 3, 0, command_useskill				},
+	{ "version",			 0, 0, 0, command_version				},
+	{ "where",				 1, 1, 0, command_where					},
+	{ "who",				20, 1, 0, command_who					},
+	{ "whois",				20, 1, 0, command_who					},
+	{ "who2",				20, 1, 0, command_who2					},
+	{ "who3",				20, 1, 0, command_who3					},
+	{ "whogm",				20, 1, 0, command_whogm					},
+	{ "whomap",				20, 1, 0, command_whomap				},
+	{ "whomap2",			20, 1, 0, command_whomap2				},
+	{ "whomap3",			20, 1, 0, command_whomap3				},
+	{ "whozeny",			20, 1, 0, command_whozeny				},
+	{ "zeny",				60, 1, 1, command_zeny					},
+
+#ifdef DMALLOC
+	{ "dmstart",			99, 0, 0, command_dmstart				},
+	{ "dmtick",				99, 0, 0, command_dmtick				},
+#endif
+// add new commands before this line
+	{ NULL,					100,0, 0, NULL							}
+};
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// returns command requirement level.
+unsigned char CommandInfo::get_level(command_function func)
+{
+	size_t i;
+	for(i=0; command_info[i].func && i<sizeof(command_info)/sizeof(*command_info); ++i)
+		if(command_info[i].func == func)
+			return command_info[i].level;
+	return 100; // 100: command can not be used
+}
+///////////////////////////////////////////////////////////////////////////////
+/// returns command info by command name.
+CommandInfo& CommandInfo::byname(const char* name)
+{
+	size_t i;
+	for(i=0; command_info[i].func && i<sizeof(command_info)/sizeof(*command_info); ++i)
+		if( strcasecmp(command_info[i].command, name) == 0 )
+			break;
+	return command_info[i];
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// read configuration file.
+bool CommandInfo::config_read(const char *cfgName)
+{
+	char line[1024], w1[1024], w2[1024];
+	
+	FILE* fp;
+
+	if((fp = basics::safefopen(cfgName, "r")) == NULL)
+	{
+		ShowError("At commands configuration file not found: %s\n", cfgName);
+	}
+	else
+	{
+		while (fgets(line, sizeof(line), fp))
+		{
+			if( prepare_line(line) && 2==sscanf(line, "%1023[^:=]%*[:=]%1023[^\r\n]", w1, w2) )
+			{
+				basics::itrim(w1);
+				if(!*w1) continue;
+				basics::itrim(w2);
+				
+				if(strcasecmp(w1, "import") == 0)
+				{
+					CommandInfo::config_read(w2);
+				}
+				else if(strcasecmp(w1, "command_symbol") == 0 && w2[0] > 31 &&
+						w2[0] != '/' &&	// symbol of standard ragnarok GM commands
+						w2[0] != '%' &&	// symbol of party chat speaking
+						w2[0] != '$' )	// symbol of guild chat
+				{
+					CommandInfo::command_symbol = w2[0];
+				}
+				else
+				{
+					CommandInfo& cmd = CommandInfo::byname(w1);
+					if(cmd.func)
+					{
+						const int i= strtol(w2,NULL,0);
+						cmd.level = (i>=0 && i<100) ?i:100;
+					}
+					else
+					{
+						ShowWarning("command \"%s\" does not exist\n", w1);
+					}
+				}
+			}
+		}
+		fclose(fp);
+		ShowStatus("Command configuration file '%s' read.\n", cfgName);
+		return true;
+	}
+	return false;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// converts name or id to sd
+map_session_data *CommandInfo::param2sd(const char* str)
+{
+	struct map_session_data *psd=NULL;
+	if(str)
+	{	// try id's when string starts with digits
+		if( basics::stringcheck::isdigit(*str) )
+		{	
+			uint32 id = atoi(str);
+			(psd = map_session_data::from_blid(id)) || (psd = map_session_data::charid2sd(id));
+		}
+		// do explicit stringsearch when no id or failed on exact match 
+		if( !psd )
+			psd = map_session_data::nick2sd(str);
+	}
+	return psd; 
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// checks and executes a command.
+bool CommandInfo::is_command(const int fd, struct map_session_data &sd, const char* message, unsigned char gmlvl_override)
+{
+	if( !config.allow_atcommand_when_mute && sd.sc_data[SC_NOCHAT].timer != -1 )
+	{	// return as processed
+		return true;
+	}
+	else if( message && *message && (!config.atc_gmonly || gmlvl_override) )
+	{	// format of the input string is "<name> : <command string>"
+		char output[512];
+
+		// compare the name
+		const char *spp = message;
+		const char *npp = sd.status.name;
+		while( *npp && *spp && *npp==*spp ) ++npp, ++spp;
+		if(*npp) // something wrong
+		{
+			snprintf(output,sizeof(output), "Hack on messages: character '%s' (account: %ld) uses another name.", sd.status.name, (unsigned long)sd.status.account_id);
+			intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, output);
+			ShowWarning(output);
+
+			snprintf(output,sizeof(output), " Player sends: '%s'.", message);
+			ShowWarning(output);
+			intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, output);
+
+			clif_ban_player(sd, config.ban_spoof_namer);
+
+			// return as processed
+			return true;
+		}
+		
+		// skip until reached the colon
+		while( *spp && *spp!=':' ) ++spp;
+		// skip the colon
+		if(*spp) ++spp;
+		// skip the spaces until normal text starts
+		while( *spp && basics::stringcheck::isspace(*spp) ) ++spp;
+
+		if(*spp && *spp == CommandInfo::command_symbol)
+		{	// command string starts with command symbol
+			char command[128], *ipp=command;
+
+			// skip the command symbol
+			++spp;
+
+			// copy out the command
+			while( *spp && !basics::stringcheck::isspace(*spp) ) 
+				*ipp = *spp++, (ipp>=(command+sizeof(command)-1)||++ipp);
+			*ipp=0;
+
+			// look up the command
+			CommandInfo& cmd = CommandInfo::byname(command);
+
+			log_atcommand(sd, message, cmd.level);
+
+			gmlvl_override = gmlvl_override?gmlvl_override:sd.isGM();
+			if( cmd.func == NULL  || gmlvl_override<cmd.level )
+			{	// return false if player is normal player 
+				// (display the text, not display: unknown command)
+				if( gmlvl_override == 0 )
+					return false;
+
+				snprintf(output, sizeof(output), msg_txt(MSG_S_IS_UNKNOWN_COMMAND), command); // %s is Unknown Command.
+				clif_displaymessage(fd, output);
+			}
+			else
+			{	// build the parameter list
+				basics::CParameterList param(spp);
+
+				// default map_session to work on
+				map_session_data *psd = &sd;
+				
+				if( cmd.option && param.size() )
+				{	// for commands with optional input
+					// check if the last parameter is a char identifier
+					// and take it when valid 
+					// or when there are more parameters than necessary for the current command
+					map_session_data *tmp = CommandInfo::param2sd( param.last() );
+					if(tmp || (param.size()>cmd.param) )
+						psd = tmp;
+				}
+
+				if( !psd )
+				{
+					clif_displaymessage(fd, msg_txt(MSG_CHAR_NOT_FOUND)); // Character not found.
+				}
+				else if( psd != &sd && sd.isGM() <= psd->isGM() )
+				{	// Your GM level don't authorise you to do this action on this player.
+					clif_displaymessage(fd, msg_txt(MSG_GM_LV_TOO_LOW_FOR_PCACTION)); 
+				}
+				else if( !cmd.func(fd, *psd, command, param) )
+				{	// Command could not be executed
+					snprintf(output, sizeof(output), msg_txt(MSG_S_FAILED), command); // %s failed.
+					clif_displaymessage(fd, output);
+				}
+				else
+				{	// everything fine
+					clif_displaymessage(fd, "done.");
+				}
+			}
+			return true;
+		}
+	}
+	return false;
+}
 

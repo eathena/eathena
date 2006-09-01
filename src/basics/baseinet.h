@@ -594,9 +594,9 @@ public:
 	/// format is:
 	/// "clear"			- clears all entries
 	/// "all"			- allows all addesses
-	/// "allow <ip>"	- allows an ip
-	/// "deny <ip>"		- denies an ip
-	/// with <ip> beeing "ip" or "ip/mask" or "ip/mask bit count"
+	/// "allow [ip]"	- allows an ip
+	/// "deny [ip]"		- denies an ip
+	/// with [ip] beeing "ip" or "ip/mask" or "ip/mask bit count"
 	void insert(const char* ipstr)
 	{
 		if( 0==strcasecmp(ipstr, "all") )

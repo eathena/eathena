@@ -66,8 +66,7 @@ bool fightable::is_movable()
 	homun_data *hd = this->get_hd();
 	if( sd )
 	{
-		if( sd->skilltimer != -1 && !pc_checkskill(*sd, SA_FREECAST) ||
-			pc_issit(*sd) )
+		if( sd->skilltimer != -1 && !pc_checkskill(*sd, SA_FREECAST) || sd->is_sitting() )
 			return false;
 	}
 	else if( md )
@@ -1029,8 +1028,8 @@ int unit_remove_map(block_list *bl, int clrtype)
 			sd->pvp_timer = -1;
 		}
 
-		if(pc_issit(sd)) {
-			pc_setstand(sd);
+		if( sd.is_sitting() ) {
+			sd.set_stand();
 			skill_gangsterparadise(sd,0);
 			skill_rest(sd,0);
 		}

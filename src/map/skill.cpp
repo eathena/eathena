@@ -1180,7 +1180,7 @@ public:
 			(skilllv = pc_checkskill(sd, skillid)) > 0 &&
 					sd.status.party_id && tsd.status.party_id &&
 					sd.status.party_id == tsd.status.party_id &&
-					!pc_issit(sd) && !sd.is_dead() &&
+					!sd.is_sitting() && !sd.is_dead() &&
 					c == 0 &&
 					sd.skilltimer==-1 &&
 					sd.canmove_tick < tick && // added various missing ensemble checks [Valaris]
@@ -1254,7 +1254,7 @@ public:
 			   (ssd.weapontype1==13 || ssd.weapontype1==14) &&
 			   sd.status.party_id && ssd.status.party_id &&
 			   sd.status.party_id == ssd.status.party_id && //パ?ティ?が同じで
-				!pc_issit(sd) && !sd.is_dead() && //座ってない
+				!sd.is_sitting() && !sd.is_dead() && //座ってない
 				sd.sc_data[SC_DANCING].timer==-1 && //ダンス中じゃない
 			   sd.skilltimer==-1 &&
 			   DIFF_TICK(sd.canmove_tick,tick)<0  // added various missing ensemble checks [Valaris]
@@ -1344,20 +1344,7 @@ public:
  * ギャングスタ?パラダイス判定?理(foreachinarea)
  *------------------------------------------
  */
-/*
-int skill_gangster_count(block_list &bl,va_list &ap)
-{
-	int *c;
-	struct map_session_data &sd = (struct map_session_data&)bl;
 
-	nullpo_retr(0, ap);
-
-	c=va_arg(ap,int *);
-	if(c && pc_issit(sd) && pc_checkskill(sd,RG_GANGSTER) > 0)
-		(*c)++;
-	return 0;
-}
-*/
 class CSkillGangsterCount : public CMapProcessor
 {
 public:
@@ -1366,24 +1353,12 @@ public:
 	virtual int process(block_list& bl) const
 	{
 		struct map_session_data &sd = (struct map_session_data&)bl;
-		if( pc_issit(sd) && pc_checkskill(sd,RG_GANGSTER) > 0)
+		if( sd.is_sitting() && pc_checkskill(sd,RG_GANGSTER) > 0)
 			return 1;
 		return 0;
 	}
 };
-/*
-int skill_gangster_in(block_list &bl,va_list &ap)
-{
-	struct map_session_data *sd;
 
-	nullpo_retr(0, ap);
-
-	sd=(struct map_session_data*)&bl;
-	if(sd && pc_issit(*sd) && pc_checkskill(*sd,RG_GANGSTER) > 0)
-		sd->state.gangsterparadise=1;
-	return 0;
-}
-*/
 class CSkillGangsterIn : public CMapProcessor
 {
 public:
@@ -1392,23 +1367,12 @@ public:
 	virtual int process(block_list& bl) const
 	{
 		struct map_session_data &sd=(struct map_session_data&)bl;
-		if(pc_issit(sd) && pc_checkskill(sd,RG_GANGSTER) > 0)
+		if( sd.is_sitting() && pc_checkskill(sd,RG_GANGSTER) > 0 )
 			sd.state.gangsterparadise=1;
 		return 0;
 	}
 };
-/*
-int skill_gangster_out(block_list &bl,va_list &ap)
-{
-	struct map_session_data &sd=(struct map_session_data&)bl;
 
-	nullpo_retr(0, ap);
-
-	if(sd.state.gangsterparadise)
-		sd.state.gangsterparadise=0;
-	return 0;
-}
-*/
 class CSkillGangsterOut : public CMapProcessor
 {
 public:
@@ -1429,31 +1393,6 @@ public:
  * スキルユニットタイマ??動?理用(foreachinarea)
  *------------------------------------------
  */
-/*
-int skill_unit_timer_sub_onplace( block_list &bl, va_list &ap )
-{
-	struct skill_unit *unit;
-	struct skill_unit_group *group;
-	unsigned long tick;
-
-	nullpo_retr(0, ap);
-	unit = va_arg(ap,struct skill_unit*);
-	tick = va_arg(ap,unsigned long);
-
-	if( !unit || bl.type!=BL_PC && bl.type!=BL_MOB ||
-		!unit->alive || bl.prev==NULL)
-		return 0;
-
-	nullpo_retr(0, group=unit->group);
-
-	if (battle_check_target(&unit->bl,&bl,group->target_flag)<=0)
-		return 0;
-
-	skill_unit_onplace_timer(unit,&bl,tick);
-
-	return 0;
-}
-*/
 class CSkillUnitTimerOnplace : public CMapProcessor
 {
 	struct skill_unit& unit;
@@ -1525,9 +1464,6 @@ public:
 
 			block_list::foreachinarea( CSkillIdunheal(unit),
 				src->m,((int)src->x)-range,((int)src->y)-range,((int)src->x)+range,((int)src->y)+range,0);
-//			map_foreachinarea(skill_idun_heal,
-//				src->m,((int)src->x)-range,((int)src->y)-range,((int)src->x)+range,((int)src->y)+range,0,
-//				unit);
 			group->val3++;
 		}
 		// 時間切れ削除 
@@ -4255,7 +4191,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 					dstsd->status.hp = dstsd->status.max_hp;
 					dstsd->status.sp = dstsd->status.max_sp;
 				}
-				pc_setstand(*dstsd);
+				dstsd->set_stand();
 				if(config.pc_invincible_time > 0)
 					pc_setinvincibletimer(*dstsd, config.pc_invincible_time);
 				clif_updatestatus(*dstsd, SP_HP);
@@ -4638,7 +4574,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 
 	case LK_TENSIONRELAX:	/* テンションリラックス */
 		clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
-		pc_setsit(*sd);
+		sd->set_sit();
 		clif_sitting(*sd);
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 		break;
@@ -9533,15 +9469,10 @@ int skill_gangsterparadise(struct map_session_data *sd ,int type)
 
 		c = block_list::foreachinarea( CSkillGangsterCount(),
 			sd->block_list::m,((int)sd->block_list::x)-range,((int)sd->block_list::y)-range,((int)sd->block_list::x)+range,((int)sd->block_list::y)+range,BL_PC);
-//		map_foreachinarea(skill_gangster_count,
-//			sd->block_list::m,((int)sd->block_list::x)-range,((int)sd->block_list::y)-range,((int)sd->block_list::x)+range,((int)sd->block_list::y)+range,BL_PC,
-//			&c);
 		if(c > 1)
 		{	// ギャングスタ?成功したら自分にもギャングスタ??性付?
 			block_list::foreachinarea( CSkillGangsterIn(),
 				sd->block_list::m,((int)sd->block_list::x)-range,((int)sd->block_list::y)-range,((int)sd->block_list::x)+range,((int)sd->block_list::y)+range,BL_PC);
-//			map_foreachinarea(skill_gangster_in,
-//				sd->block_list::m,((int)sd->block_list::x)-range,((int)sd->block_list::y)-range,((int)sd->block_list::x)+range,((int)sd->block_list::y)+range,BL_PC);
 			sd->state.gangsterparadise = 1;
 		}
 		return 0;
@@ -9550,15 +9481,10 @@ int skill_gangsterparadise(struct map_session_data *sd ,int type)
 	{	// 立ち上がったときの?理 
 		c = block_list::foreachinarea( CSkillGangsterCount(),
 			sd->block_list::m,((int)sd->block_list::x)-range,((int)sd->block_list::y)-range,((int)sd->block_list::x)+range,((int)sd->block_list::y)+range,BL_PC);
-//		map_foreachinarea(skill_gangster_count,
-//			sd->block_list::m,((int)sd->block_list::x)-range,((int)sd->block_list::y)-range,((int)sd->block_list::x)+range,((int)sd->block_list::y)+range,BL_PC,
-//			&c);
 		if(c < 2)
 		{
 			block_list::foreachinarea( CSkillGangsterOut(),
 				sd->block_list::m,((int)sd->block_list::x)-range,((int)sd->block_list::y)-range,((int)sd->block_list::x)+range,((int)sd->block_list::y)+range,BL_PC);
-//			map_foreachinarea(skill_gangster_out,
-//				sd->block_list::m,((int)sd->block_list::x)-range,((int)sd->block_list::y)-range,((int)sd->block_list::x)+range,((int)sd->block_list::y)+range,BL_PC);
 		}
 		sd->state.gangsterparadise = 0;
 		return 0;
@@ -9569,19 +9495,7 @@ int skill_gangsterparadise(struct map_session_data *sd ,int type)
  * Taekwon TK_HPTIME and TK_SPTIME skills [Dralnu]
  *------------------------------------------
  */
-/*
-int skill_rest_count(block_list &bl,va_list &ap)
-{
-	int *c_r;
-	struct map_session_data &sd=(struct map_session_data&)bl;
-	nullpo_retr(0, ap);
-	c_r=va_arg(ap,int *);
 
-	if(c_r && pc_issit(sd) && (pc_checkskill(sd,TK_HPTIME) > 0 || pc_checkskill(sd,TK_SPTIME) > 0) )
-		++(*c_r);
-	return 0;
-}
-*/
 class CSkillRestCount : public CMapProcessor
 {
 public:
@@ -9590,25 +9504,12 @@ public:
 	virtual int process(block_list& bl) const
 	{
 		struct map_session_data &sd=(struct map_session_data&)bl;
-		if(pc_issit(sd) && (pc_checkskill(sd,TK_HPTIME) > 0 || pc_checkskill(sd,TK_SPTIME) > 0) )
+		if( sd.is_sitting() && (pc_checkskill(sd,TK_HPTIME) > 0 || pc_checkskill(sd,TK_SPTIME) > 0) )
 			return 1;
 		return 0;
 	}
 };
-/*
-int skill_rest_in(block_list &bl,va_list &ap)
-{
-	struct map_session_data &sd=(struct map_session_data&)bl;
-	nullpo_retr(0, ap);
-	
-	if( pc_issit(sd) && (pc_checkskill(sd,TK_HPTIME) > 0 || pc_checkskill(sd,TK_SPTIME) > 0 ))
-	{
-		sd.state.rest=1;
-		status_calc_pc(sd,0);
-	}		
-	return 0;
-}
-*/
+
 class CSkillRestIn : public CMapProcessor
 {
 public:
@@ -9617,7 +9518,7 @@ public:
 	virtual int process(block_list& bl) const
 	{
 		struct map_session_data &sd=(struct map_session_data&)bl;
-		if( pc_issit(sd) && (pc_checkskill(sd,TK_HPTIME) > 0 || pc_checkskill(sd,TK_SPTIME) > 0 ))
+		if( sd.is_sitting() && (pc_checkskill(sd,TK_HPTIME) > 0 || pc_checkskill(sd,TK_SPTIME) > 0 ))
 		{
 			sd.state.rest=1;
 			status_calc_pc(sd,0);
@@ -9625,18 +9526,6 @@ public:
 		return 0;
 	}
 };
-/*
-int skill_rest_out(block_list &bl,va_list &ap)
-{
-	struct map_session_data &sd=(struct map_session_data&)bl;
-	nullpo_retr(0, ap);
-
-	if(sd.state.rest != 0){
-		sd.state.rest=0;
-	}		
-	return 0;
-}
-*/
 class CSkillRestOut : public CMapProcessor
 {
 public:
@@ -9663,15 +9552,10 @@ int skill_rest(struct map_session_data &sd ,int type)
 	{	//When you sit down
 		c_r = block_list::foreachinarea( CSkillRestCount(),
 			sd.block_list::m,sd.block_list::x-range,sd.block_list::y-range,sd.block_list::x+range,sd.block_list::y+range,BL_PC);
-//		map_foreachinarea(skill_rest_count,
-//			sd.block_list::m,sd.block_list::x-range,sd.block_list::y-range,sd.block_list::x+range,sd.block_list::y+range,BL_PC,
-//			&c_r);
 		if(c_r > 1)
 		{
 			block_list::foreachinarea( CSkillRestIn(),
 				sd.block_list::m,sd.block_list::x-range,sd.block_list::y-range,sd.block_list::x+range,sd.block_list::y+range,BL_PC);
-//			map_foreachinarea(skill_rest_in,
-//				sd.block_list::m,sd.block_list::x-range,sd.block_list::y-range,sd.block_list::x+range,sd.block_list::y+range,BL_PC);
 			sd.state.rest = 1;
 			status_calc_pc(sd,0);
 		}
@@ -9681,15 +9565,10 @@ int skill_rest(struct map_session_data &sd ,int type)
 	{	//When you stand up
 		c_r = block_list::foreachinarea( CSkillRestCount(),
 			sd.block_list::m,sd.block_list::x-range,sd.block_list::y-range,sd.block_list::x+range,sd.block_list::y+range,BL_PC);
-//		map_foreachinarea(skill_rest_count,
-//			sd.block_list::m,sd.block_list::x-range,sd.block_list::y-range,sd.block_list::x+range,sd.block_list::y+range,BL_PC,
-//			&c_r);
 		if(c_r < 2)
 		{
 			block_list::foreachinarea( CSkillRestIn(),
 				sd.block_list::m,sd.block_list::x-range,sd.block_list::y-range,sd.block_list::x+range,sd.block_list::y+range,BL_PC);
-//			map_foreachinarea(skill_rest_out,
-//				sd.block_list::m,sd.block_list::x-range,sd.block_list::y-range,sd.block_list::x+range,sd.block_list::y+range,BL_PC);
 		}
 		sd.state.rest = 0;
 		status_calc_pc(sd,0);
@@ -9724,8 +9603,6 @@ int skill_check_moonlit (block_list *bl, int dx, int dy)
 
 	c = block_list::foreachinarea( CSkillMoonlitCount(bl->id),
 		bl->m,dx-1,dy-1,dx+1,dy+1,BL_PC);
-//	map_foreachinarea(skill_moonlit_count,
-//		bl->m,dx-1,dy-1,dx+1,dy+1,BL_PC,bl->id,&c);
 	return (c>0);
 }
 

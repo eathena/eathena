@@ -9596,7 +9596,7 @@ int clif_parse_WalkToXY(int fd, struct map_session_data &sd)
 	if( sd.is_dead() )
 		return clif_clearchar_area(sd, 1);
 
-	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.chat || pc_issit(sd) )
+	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.chat || sd.is_sitting() )
 		return 0;
 
 	if (sd.skilltimer != -1 && pc_checkskill(sd, SA_FREECAST) <= 0) // フリーキャスト
@@ -9715,7 +9715,7 @@ int clif_parse_GlobalMessage(int fd, struct map_session_data &sd)
 
 	//ShowMessage("clif_parse_GlobalMessage: message: '%s'.\n", message);
 
-	if( is_atcommand(fd, sd, message) ||
+	if( CommandInfo::is_command(fd, sd, message) ||
 	    sd.sc_data[SC_BERSERK].timer != -1 || //バーサーク時は会話も不可
 		sd.sc_data[SC_NOCHAT].timer != -1 ) //チャット禁止
 		return 0;
@@ -9796,13 +9796,13 @@ int clif_parse_MapMove(int fd, struct map_session_data &sd)
 	char mapname[32], *ip;
 
 	if( (config.atc_gmonly == 0 || sd.isGM()) &&
-	    sd.isGM() >= get_atcommand_level(atcommand_mapmove) )
+	    sd.isGM() >= CommandInfo::get_level(command_mapmove) )
 	{
 		safestrcpy(mapname, sizeof(mapname), (const char*)RFIFOP(fd,2));
 		ip = strchr(mapname, '.');
 		if(ip) *ip=0;
 		snprintf(output, sizeof(output), "%s %d %d", mapname, (unsigned char)RFIFOW(fd,18), (unsigned char)RFIFOW(fd,20));
-		atcommand_mapmove(fd, sd, "@mapmove", CParameterList(output));
+		command_mapmove(fd, sd, "@mapmove", basics::CParameterList(output));
 	}
 
 	return 0;
@@ -9960,7 +9960,7 @@ int clif_parse_ActionRequest(int fd, struct map_session_data &sd)
 				break;
 			sd.stop_attack();
 			sd.stop_walking(1);
-			pc_setsit(sd);
+			sd.set_sit();
 			skill_gangsterparadise(&sd, 1); // ギャングスターパラダイス設定 fixed Valaris
 			skill_rest(sd, 1); // TK_HPTIME sitting down mode [Dralnu]
 			clif_sitting(sd);
@@ -9968,7 +9968,7 @@ int clif_parse_ActionRequest(int fd, struct map_session_data &sd)
 			clif_skill_fail(sd, 1, 0, 2);
 		break;
 	case 0x03: // standup
-		pc_setstand(sd);
+		sd.set_stand();
 		skill_gangsterparadise(&sd, 0); // ギャングスターパラダイス解除 fixed Valaris
 		skill_rest(sd, 0); // TK_HPTIME standing up mode [Dralnu]
 		WBUFW(buf, 0) = 0x8a;
@@ -9997,9 +9997,9 @@ int clif_parse_Restart(int fd, struct map_session_data &sd)
 	{
 	case 0x00:
 	{
-		if ( sd.is_dead() )
+		if( sd.is_dead() )
 		{
-			pc_setstand(sd);
+			sd.set_stand();
 			pc_setrestartvalue(sd, 3);
 			pc_setpos(sd, sd.status.save_point.mapname, sd.status.save_point.x, sd.status.save_point.y, 2);
 		}
@@ -10064,7 +10064,7 @@ int clif_parse_Wis(int fd, struct map_session_data &sd)
 	basics::string<> gm_command;
 
 	gm_command << sd.status.name << " : " << message;
-	if( is_atcommand(fd, sd, gm_command) ||
+	if( CommandInfo::is_command(fd, sd, gm_command) ||
 		sd.sc_data[SC_BERSERK].timer!=-1 || //バーサーク時は会話も不可
 		sd.sc_data[SC_NOCHAT].timer != -1 ) //チャット禁止
 	{
@@ -10171,7 +10171,7 @@ int clif_parse_GMmessage(int fd, struct map_session_data &sd)
 		return 0;
 
 	if( (config.atc_gmonly == 0 || sd.isGM()) &&
-	    sd.isGM() >= get_atcommand_level(atcommand_broadcast) )
+	    sd.isGM() >= CommandInfo::get_level(command_broadcast) )
 		intif_GMmessage((char*)RFIFOP(fd,4),RFIFOW(fd,2)-4, 0);
 	return 0;
 }
@@ -10675,7 +10675,7 @@ int clif_parse_UseSkillToId(int fd, struct map_session_data &sd) {
 	if( !session_isActive(fd) )
 		return 0;
 
-	if( sd.ScriptEngine.isRunning() || sd.chat || sd.vender_id != 0 || pc_issit(sd) || sd.is_dead())
+	if( sd.ScriptEngine.isRunning() || sd.chat || sd.vender_id != 0 || sd.is_sitting() || sd.is_dead())
 		return 0;
 
 	skilllv = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]);
@@ -10781,7 +10781,7 @@ int clif_parse_UseSkillToPos(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if(sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.chat || pc_issit(sd) || sd.is_dead() )
+	if(sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.chat || sd.is_sitting() || sd.is_dead() )
 		return 0;
 
 	skilllv = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]);
@@ -10794,7 +10794,7 @@ int clif_parse_UseSkillToPos(int fd, struct map_session_data &sd)
 	if(packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[4] > 0)
 	{
 		int skillmoreinfo = packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[4];
-		if( pc_issit(sd) )
+		if( sd.is_sitting() )
 		{
 			clif_skill_fail(sd, skillnum, 0, 0);
 			return 0;
@@ -11060,11 +11060,11 @@ int clif_parse_ResetChar(int fd, struct map_session_data &sd)
 		switch(RFIFOW(fd,2))
 		{
 		case 0:
-			if( sd.isGM() >= get_atcommand_level(atcommand_statusreset) )
+			if( sd.isGM() >= CommandInfo::get_level(command_statusreset) )
 				pc_resetstate(sd);
 			break;
 		case 1:
-			if( sd.isGM() >= get_atcommand_level(atcommand_skillreset) )
+			if( sd.isGM() >= CommandInfo::get_level(command_skillreset) )
 				pc_resetskill(sd);
 			break;
 		}
@@ -11083,7 +11083,7 @@ int clif_parse_LGMmessage(int fd, struct map_session_data &sd) {
 		return 0;
 
 	if( (config.atc_gmonly == 0 || sd.isGM()) &&
-	    sd.isGM() >= get_atcommand_level(atcommand_localbroadcast) )
+	    sd.isGM() >= CommandInfo::get_level(command_localbroadcast) )
 	{
 		WBUFW(buf,0) = 0x9a;
 		WBUFW(buf,2) = RFIFOW(fd,2);
@@ -11314,7 +11314,7 @@ int clif_parse_PartyMessage(int fd, struct map_session_data &sd)
 	const char* message = (const char*)RFIFOP(fd,4);
 
 
-	if( is_atcommand(fd, sd, message) ||
+	if( CommandInfo::is_command(fd, sd, message) ||
 		sd.sc_data[SC_BERSERK].timer!=-1 ||	//バーサーク時は会話も不可
 		sd.sc_data[SC_NOCHAT].timer!=-1 )		//チャット禁止
 		return 0;
@@ -11388,13 +11388,13 @@ int clif_parse_GM_Monster_Item(int fd, struct map_session_data &sd)
 		monster_item_name[23] = 0;
 		if(mobdb_searchname(monster_item_name) != 0)
 		{
-			if(sd.isGM() >= get_atcommand_level(atcommand_spawn))
-				atcommand_spawn(fd, sd, "@spawn", CParameterList(monster_item_name)); // as @spawn
+			if(sd.isGM() >= CommandInfo::get_level(command_spawn))
+				command_spawn(fd, sd, "@spawn", basics::CParameterList(monster_item_name)); // as @spawn
 		}
 		else if(itemdb_searchname(monster_item_name) != NULL)
 		{
-			if(sd.isGM() >= get_atcommand_level(atcommand_item))
-				atcommand_item(fd, sd, "@item", CParameterList(monster_item_name)); // as @item
+			if(sd.isGM() >= CommandInfo::get_level(command_item))
+				command_item(fd, sd, "@item", basics::CParameterList(monster_item_name)); // as @item
 		}
 
 	}
@@ -11605,7 +11605,7 @@ int clif_parse_GuildMessage(int fd, struct map_session_data &sd)
 	const char* message = (const char*)RFIFOP(fd,4);
 
 
-	if( is_atcommand(fd, sd, message) ||
+	if( CommandInfo::is_command(fd, sd, message) ||
 		sd.sc_data[SC_BERSERK].timer!=-1 ||	//バーサーク時は会話も不可
 		sd.sc_data[SC_NOCHAT].timer!=-1 )		//チャット禁止
 		return 0;
@@ -11732,7 +11732,7 @@ int clif_parse_GMKick(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if( (config.atc_gmonly == 0 || sd.isGM()) && sd.isGM() >= get_atcommand_level(atcommand_kick) )
+	if( (config.atc_gmonly == 0 || sd.isGM()) && sd.isGM() >= CommandInfo::get_level(command_kick) )
 	{
 		map_session_data *tsd;
 		mob_data *tmd;
@@ -11768,11 +11768,11 @@ int clif_parse_Shift(int fd, struct map_session_data &sd)
 		return 0;
 
 	if( (config.atc_gmonly == 0 || sd.isGM()) &&
-	    sd.isGM() >= get_atcommand_level(atcommand_jumpto) )
+	    sd.isGM() >= CommandInfo::get_level(command_jumpto) )
 	{
 		memcpy(player_name, RFIFOP(fd,2), 24);
 		player_name[23]=0;
-		atcommand_jumpto(fd, sd, "@jumpto", CParameterList(player_name)); // as @jumpto
+		command_jumpto(fd, sd, "@jumpto", basics::CParameterList(player_name)); // as @jumpto
 	}
 
 	return 0;
@@ -11790,11 +11790,11 @@ int clif_parse_Recall(int fd, struct map_session_data &sd)
 		return 0;
 
 	if( (config.atc_gmonly == 0 || sd.isGM()) &&
-		sd.isGM() >= get_atcommand_level(atcommand_recall) )
+		sd.isGM() >= CommandInfo::get_level(command_recall) )
 	{
 		memcpy(player_name, RFIFOP(fd,2), 24);
 		player_name[23]=0;
-		atcommand_recall(fd, sd, "@recall", CParameterList(player_name)); // as @recall
+		command_recall(fd, sd, "@recall", basics::CParameterList(player_name)); // as @recall
 	}
 
 	return 0;
@@ -11805,7 +11805,7 @@ int clif_parse_GMHide(int fd, struct map_session_data &sd)
 
 	//ShowMessage("%2x %2x %2x\n", (unsigned short)RFIFOW(fd,0), (unsigned short)RFIFOW(fd,2), (unsigned short)RFIFOW(fd,4)); // R 019d <Option_value>.2B <flag>.2B
 	if( (config.atc_gmonly == 0 || sd.isGM()) &&
-	    sd.isGM() >= get_atcommand_level(atcommand_hide) )
+	    sd.isGM() >= CommandInfo::get_level(command_hide) )
 	{
 		if (sd.status.option & OPTION_HIDE) { // OPTION_HIDE = 0x40
 			sd.status.option &= ~OPTION_HIDE; // OPTION_HIDE = 0x40
@@ -11842,7 +11842,7 @@ int clif_parse_GMReqNoChat(int fd, struct map_session_data &sd)
 	struct map_session_data *dstsd = map_session_data::from_blid(tid);
 
 	if( dstsd && sd.block_list::id != dstsd->block_list::id &&
-		sd.isGM()>dstsd->isGM() && sd.isGM() >= get_atcommand_level(atcommand_mute) )
+		sd.isGM()>dstsd->isGM() && sd.isGM() >= CommandInfo::get_level(command_mute) )
 	{
 		int dstfd = dstsd->fd;
 		if( session_isActive(dstfd) )
@@ -12262,9 +12262,9 @@ int clif_parse_GMKillAll(int fd, struct map_session_data &sd)
 {
 	
 	if( (config.atc_gmonly == 0 || sd.isGM()) &&
-	    sd.isGM() >= get_atcommand_level(atcommand_kickall) )
+	    sd.isGM() >= CommandInfo::get_level(command_kickall) )
 	{
-		atcommand_kickall(fd, sd, "kickall", CParameterList());
+		command_kickall(fd, sd, "kickall", basics::CParameterList());
 	}
 	return 0;
 }
@@ -14030,13 +14030,13 @@ int packetdb_readdb(void)
 			}
 			else if(strcasecmp(w1,"enable_packet_db")==0)
 			{	// only working when found in the beginning of the packet_db file
-				if( !config_switch(w2) )
+				if( !basics::config_switch<bool>(w2) )
 					return 0;
 				continue;
 			}
 			else if(strcasecmp(w1,"default_packet_ver")==0)
 			{	// use this when in daubt, but pretty useless
-				packet_db.default_ver = config_switch(w2);
+				packet_db.default_ver = basics::config_switch<int>(w2,0,MAX_PACKET_VER);
 				// check for invalid version
 				if( packet_db.default_ver > MAX_PACKET_VER ||
 					packet_db.default_ver < 0 )

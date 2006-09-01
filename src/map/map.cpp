@@ -59,7 +59,7 @@ int CHECK_INTERVAL = 3600000;
 
 int autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
 int agit_flag = 0;
-int console = 0;
+bool console = false;
 
 
 
@@ -3166,7 +3166,7 @@ int parse_console(const char *buf)
     if ( strcasecmp("admin",type) == 0 && n == 5 )
 	{
 		sprintf(buf2,"console: %s",command);
-		if( !is_atcommand(sd.fd, sd, buf2, 99) )
+		if( !CommandInfo::is_command(sd.fd, sd, buf2, 99) )
 			ShowConsole(CL_BOLD"no valid command\n"CL_NORM);
 	}
 	else if ( strcasecmp("server",type) == 0 && n == 2 )
@@ -3310,7 +3310,7 @@ int map_config_read(const char *cfgName)
 			}
 			else if (strcasecmp(w1, "console") == 0)
 			{
-				console = config_switch(w2);
+				console = basics::config_switch<bool>(w2);
 			}
 		}
 	}
@@ -3567,7 +3567,7 @@ int do_init(int argc, char *argv[])
 		ShowNotice("Server running in '"CL_WHITE"Debug Mode"CL_RESET"'.\n");
 	config.read(BATTLE_CONF_FILENAME);
 	msg_txt.read(MSG_CONF_NAME);
-	atcommand_config_read(ATCOMMAND_CONF_FILENAME);
+	CommandInfo::config_read(ATCOMMAND_CONF_FILENAME);
 	script_config_read(SCRIPT_CONF_NAME);
 
 	log_init(LOG_CONF_NAME);

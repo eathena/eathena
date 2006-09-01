@@ -8,8 +8,7 @@
 #include "map.h"
 
 
-static inline void pc_setsit(struct map_session_data &sd)	{ sd.state.dead_sit = 2; }
-static inline bool pc_issit(struct map_session_data &sd)	{ return sd.state.dead_sit == 2; }
+
 static inline bool pc_ishiding(struct map_session_data &sd) { return 0 != (sd.status.option&0x4006); }
 static inline bool pc_iscloaking(struct map_session_data &sd) { return 0==(sd.status.option&0x4000) && 0!=(sd.status.option&0x0004); }
 static inline bool pc_ischasewalk(struct map_session_data &sd) { return 0 != (sd.status.option&0x4000); }
@@ -160,7 +159,7 @@ struct map_session_data *pc_get_father(struct map_session_data &sd);
 struct map_session_data *pc_get_mother(struct map_session_data &sd);
 struct map_session_data *pc_get_child(struct map_session_data &sd);
 
-void pc_setstand(struct map_session_data &sd);
+
 bool pc_break_equip(struct map_session_data &sd, unsigned short where);
 
 struct pc_base_job{

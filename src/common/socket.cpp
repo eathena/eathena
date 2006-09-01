@@ -3,7 +3,7 @@
 
 // original : core.c 2003/02/26 18:03:12 Rev 1.7
 
-
+#include "baseparam.h"
 #include "socket.h"
 #include "mmo.h"	// [Valaris] thanks to fov
 #include "utils.h"
@@ -669,7 +669,7 @@ public:
 				}
 				else if(0==strcasecmp(w1,"debug"))
 				{
-					access_debug = (config_switch(w2)!=0);
+					access_debug = basics::config_switch<bool>(w2);
 				}
 				else if (strcasecmp(w1, "import") == 0)
 				{

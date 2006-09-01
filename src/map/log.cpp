@@ -1,6 +1,7 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 // Logging functions by Azndragon & Codemaster
+#include "baseparam.h"
 #include "nullpo.h"
 #include "itemdb.h"
 #include "map.h"
@@ -670,84 +671,81 @@ int log_config_read(const char *cfgName)
 
 			if(strcasecmp(w1,"enable_logs") == 0)
 			{
-				log_config.enable_logs = config_switch(w2);
+				log_config.enable_logs = basics::config_switch<bool>(w2);
 			}
 			else if(strcasecmp(w1,"sql_logs") == 0)
 			{
-				log_config.sql_logs = config_switch(w2);
+				log_config.sql_logs = basics::config_switch<bool>(w2);
 //start of common filter settings
 			}
 			else if(strcasecmp(w1,"rare_items_log") == 0)
 			{
-				log_config.rare_items_log = (atoi(w2));
+				log_config.rare_items_log = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"refine_items_log") == 0)
 			{
-				log_config.refine_items_log = (atoi(w2));
+				log_config.refine_items_log = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"price_items_log") == 0)
 			{
-				log_config.price_items_log = (atoi(w2));
+				log_config.price_items_log = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"amount_items_log") == 0)
 			{
-				log_config.amount_items_log = (atoi(w2));
+				log_config.amount_items_log = basics::config_switch<int>(w2);
 //end of common filter settings
 			}
 			else if(strcasecmp(w1,"log_branch") == 0)
 			{
-				log_config.branch = (atoi(w2));
+				log_config.branch = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"log_drop") == 0)
 			{
-				log_config.drop = (atoi(w2));
+				log_config.drop = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"log_mvpdrop") == 0)
 			{
-				log_config.mvpdrop = (atoi(w2));
+				log_config.mvpdrop = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"log_present") == 0)
 			{
-				log_config.present = (atoi(w2));
+				log_config.present = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"log_produce") == 0)
 			{
-				log_config.produce = (atoi(w2));
+				log_config.produce = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"log_refine") == 0)
 			{
-				log_config.refine = (atoi(w2));
+				log_config.refine = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"log_trade") == 0)
 			{
-				log_config.trade = (atoi(w2));
+				log_config.trade = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"log_storage") == 0)
 			{
-				log_config.storage = (atoi(w2));
+				log_config.storage = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"log_vend") == 0)
 			{
-				log_config.vend = (atoi(w2));
+				log_config.vend = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"log_zeny") == 0)
 			{
-				if(log_config.trade != 1)
-					log_config.zeny = 0;
-				else
-					log_config.zeny = (atoi(w2));
+				log_config.zeny = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"log_gm") == 0)
 			{				
-				log_config.gmlevel = config_switch(w2,0,100);
+				log_config.gmlevel = basics::config_switch<int>(w2,0,100);
 			}
 			else if(strcasecmp(w1,"log_npc") == 0)
 			{
-				log_config.npc = (atoi(w2));
+				log_config.npc = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1, "log_chat") == 0)
 			{
-				log_config.chat = (atoi(w2));
+				log_config.chat = basics::config_switch<int>(w2);
 			}
 
 #if defined(WITH_MYSQL)

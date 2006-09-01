@@ -19,6 +19,241 @@ NAMESPACE_BEGIN(basics)
 void test_parameter(void);
 
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Parameter class helpers
+///////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// command line parser.
+void parseCommandline(int argc, char **argv);
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// predefined conversion functions for common data types.
+bool paramconvert(sint64 &t, const char* str);
+bool paramconvert(uint64 &t, const char* str);
+bool paramconvert(double &t, const char* s);
+
+inline bool paramconvert( long           &t, const char* s) { sint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
+inline bool paramconvert( unsigned long  &t, const char* s) { uint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
+inline bool paramconvert( int            &t, const char* s) { sint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
+inline bool paramconvert( unsigned int   &t, const char* s) { uint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
+inline bool paramconvert( short          &t, const char* s) { sint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
+inline bool paramconvert( unsigned short &t, const char* s) { uint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
+inline bool paramconvert( char           &t, const char* s) { sint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
+inline bool paramconvert( unsigned char  &t, const char* s) { uint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
+inline bool paramconvert( bool           &t, const char* s) { sint64 val; bool ret=paramconvert(val, s); t=(0!=val); return ret; }
+inline bool paramconvert( float          &t, const char* s) { double val; bool ret=paramconvert(val, s); t=val; return ret; }
+
+///////////////////////////////////////////////////////////////////////////////
+/// template conversion for the rest.
+/// usable types need an assignment operator of string<> or const char* 
+template <typename T> inline bool paramconvert( T &t, const char* s)
+{
+	t = (s) ? s : "";
+	return true;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// clean a string.
+/// remove leading/trailing whitespaces, concatinate multiple whitespaces and
+/// replace control chars with '_'
+const char* config_clean(char *str);
+
+
+///////////////////////////////////////////////////////////////////////////////
+// parameter converter in function form
+/// parameter converter with upper/lower bound.
+template <typename T> inline T config_switch(const char *str, const T& defaultmin, const T& defaultmax)
+{
+	T val;
+	paramconvert(val, str);
+	return (val<=defaultmin)? defaultmin : (val>=defaultmax)? defaultmax : val;
+}
+/// parameter converter with default value.
+template <typename T> inline T config_switch(const char *str, const T& defaultval)
+{
+	T val;
+	return ( paramconvert(val, str) ) ? val : defaultval;
+}
+/// plain parameter converter.
+template <typename T> inline T config_switch(const char *str)
+{
+	T val;
+	paramconvert(val, str);
+	return val;
+}
+
+template<> inline bool config_switch<bool>(const char *str, const bool& defaultval)
+{
+	int val;
+	paramconvert(val, str);
+	return (val==0 || val==1) ? val : defaultval;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// predeclaration
+class CParameterList;
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// read only string/number conversion variant.
+/// used for resolving target types on assignment
+class CParameter
+{
+	// only the CParameterList is allowed to create
+	friend class CParameterList;
+
+	const char* cStr;
+
+	/// private constructor.
+	/// only friends can create
+	CParameter(const char* str) : cStr(str)	{}
+public:
+	/// public destructor.
+	~CParameter()	{}
+
+	// explicit access on string
+	const char*string() const		{ return this->cStr; }
+	// explicit access on integer
+	int64 integer() const			{ return config_switch<int64>(this->cStr); }
+	// explicit access on floating point
+	double floating() const			{ return config_switch<double>(this->cStr); }
+
+	// type resolving on assign
+	operator const char*() const	{ return this->string(); }
+	operator bool() const			{ return this->integer(); }
+	operator char() const			{ return this->integer(); }
+	operator unsigned char() const	{ return this->integer(); }
+	operator short() const			{ return this->integer(); }
+	operator unsigned short() const	{ return this->integer(); }
+	operator int() const			{ return this->integer(); }
+	operator unsigned int() const	{ return this->integer(); }
+	operator long() const			{ return this->integer(); }
+	operator unsigned long() const	{ return this->integer(); }
+	operator int64() const			{ return this->integer(); }
+	operator uint64() const			{ return this->integer(); }
+	operator double() const			{ return this->floating(); }
+	operator float() const			{ return this->floating(); }
+
+	// compare with string
+	// only do lowercase compare
+	int compare(const char* str) const
+	{	
+		const char*ipp = this->cStr;
+		if(ipp && str)
+		{
+			while( *ipp && *str && basics::locase(*ipp) == basics::locase(*str) )
+				++ipp, ++str;
+			return basics::locase(*ipp) - basics::locase(*str);
+		}
+		return (str)?-*str:ipp?*ipp:0;
+	}
+
+	friend bool operator==(const CParameter& p, const char* str)	{ return 0==p.compare(str); }
+	friend bool operator!=(const CParameter& p, const char* str)	{ return 0!=p.compare(str); }
+	friend bool operator< (const CParameter& p, const char* str)	{ return 0< p.compare(str); }
+
+	friend bool operator==(const char* str, const CParameter& p)	{ return 0==p.compare(str); }
+	friend bool operator!=(const char* str, const CParameter& p)	{ return 0!=p.compare(str); }
+	friend bool operator< (const char* str, const CParameter& p)	{ return 0> p.compare(str); }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// commandline 2 list conversion.
+/// splits a string on whitespaces or comma 
+/// with accepting doubled comma as emtpy value
+/// but keeping quoted strings together (it just strips off the quotes)
+/// and also does automatic number conversion on access
+/// together with on/off/yes/no detection.
+/// limited to fixed string size
+class CParameterList
+{
+private:
+
+	char cTemp[1024];
+	char cBuf[1024];
+	char *cParam[128];
+	size_t cCnt;
+public:
+
+	/// constructor
+	CParameterList() : cCnt(0)
+	{
+		*this->cTemp=0;
+	}
+	// using default destructor/copy/assing
+
+	/// constructing constructor
+	CParameterList(const char* line) : cCnt(0)			{ this->add_commandline(line); }
+	/// constructing assignment
+	const CParameterList& operator=(const char* line)	{ this->add_commandline(line); return *this; }
+
+	/// add a new commandline
+	bool add_commandline(const char* line);
+
+	/// get the original line
+	const char* line() const
+	{
+		return this->cTemp;
+	}
+	/// get parameter from index
+	const CParameter operator[](int inx) const
+	{
+		return CParameter(this->string((size_t)inx));
+	}
+	/// get parameter from index
+	const CParameter first() const
+	{
+		return CParameter(this->string(0));
+	}
+	/// get parameter from index
+	const CParameter last() const
+	{
+		return CParameter(this->cCnt?this->string(this->cCnt-1):"");
+	}
+	/// get explicit string from index
+	const char* string(size_t inx) const
+	{
+		return (inx<this->cCnt) ? this->cParam[inx] : "";
+	}
+	/// get explicit integer from index
+	long integer(size_t inx) const
+	{
+		return (inx<this->cCnt) ? strtol(this->cParam[inx],NULL,0) : 0;
+	}
+	/// get number of parameters
+	size_t size() const
+	{
+		return this->cCnt;
+	}
+
+	/// remove entries from list.
+	void erase(size_t st=0, size_t num=1);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //////////////////////////////////////////////////////////////////////////
 /// basic interface for reading configs from file.
 //////////////////////////////////////////////////////////////////////////
@@ -32,12 +267,6 @@ public:
 	virtual bool LoadConfig(const char* cfgName);
 	// proccess a config entry.
 	virtual bool ProcessConfig(const char*w1,const char*w2) = 0;
-	/// process a value. return 0/1 for no/yes....
-	static int SwitchValue(const char *str, int defaultmin=INT_MIN, int defaultmax=INT_MAX);
-	/// process a boolean. return true/false for yes/no, if unknown return defaultval
-	static bool Switch(const char *str, bool defaultval=false);
-	/// clean a string.
-	static const char* CleanString(char *str);
 };
 
 
@@ -67,58 +296,7 @@ protected:
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-// Parameter class helpers
-///////////////////////////////////////////////////////////////////////////////
 
-
-///////////////////////////////////////////////////////////////////////////////
-/// command line parser.
-void parseCommandline(int argc, char **argv);
-
-
-///////////////////////////////////////////////////////////////////////////////
-/// predefined conversion functions for common data types.
-inline bool paramconvert(long &t, const char* str)
-{
-	char *ss=NULL;
-	t = (!str || strcasecmp(str, "false") == 0 || strcasecmp(str, "off") == 0 || strcasecmp(str, "no" ) == 0 || strcasecmp(str, "non") == 0 || strcasecmp(str, "nein") == 0) ? 0 :
-		(        strcasecmp(str, "true" ) == 0 || strcasecmp(str, "on" ) == 0 || strcasecmp(str, "yes") == 0 || strcasecmp(str, "oui") == 0 || strcasecmp(str, "ja"  ) == 0 || strcasecmp(str, "si") == 0) ? 1 : 
-		strtol(str, &ss, 0);
-	return true;
-}
-inline bool paramconvert(ulong &t, const char* str)
-{
-	char *ss=NULL;
-	t = (!str || strcasecmp(str, "false") == 0 || strcasecmp(str, "off") == 0 || strcasecmp(str, "no" ) == 0 || strcasecmp(str, "non") == 0 || strcasecmp(str, "nein") == 0) ? 0 :
-		(        strcasecmp(str, "true" ) == 0 || strcasecmp(str, "on" ) == 0 || strcasecmp(str, "yes") == 0 || strcasecmp(str, "oui") == 0 || strcasecmp(str, "ja"  ) == 0 || strcasecmp(str, "si") == 0) ? 1 : 
-		strtoul(str, &ss, 0);
-	return true;
-}
-inline bool paramconvert(double &t, const char* s) 
-{
-	char *ss=0;
-	t= (s) ? strtod(s, &ss) : 0;
-	return true;
-}
-
-inline bool paramconvert( int            &t, const char* s) {  long val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( unsigned       &t, const char* s) { ulong val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( short          &t, const char* s) {  long val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( unsigned short &t, const char* s) { ulong val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( char           &t, const char* s) {  long val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( unsigned char  &t, const char* s) { ulong val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( bool           &t, const char* s) {  long val; bool ret=paramconvert(val, s); t=(0!=val); return ret; }
-inline bool paramconvert( float          &t, const char* s) { double val; bool ret=paramconvert( val, s); t=val; return ret; }
-
-///////////////////////////////////////////////////////////////////////////////
-/// template conversion for the rest.
-/// usable types need an assignment operator of string<> or const char* 
-template <class T> inline bool paramconvert( T &t, const char* s)
-{
-	t = (s) ? s : "";
-	return true;
-}
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1084,7 +1262,6 @@ template <typename T> string<>& operator << (string<>& str, const CParam<T>& par
 	(*str) << (const T&)param;
 	return str;
 }
-
 
 
 NAMESPACE_END(basics)

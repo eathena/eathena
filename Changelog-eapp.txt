@@ -1,4 +1,12 @@
 Date	Added
+09/01
+	* added a doxygen template, so just load it with doxygen and 
+	  it will generate a 30MB code documentation, 
+	  although the original code is not documented at all 
+	  it might be helpful for looking through the code
+	* some more replacements of pc status functions
+	* moved some code around (atcommand/config/utils) 
+	  and had some renamings [Shinomori]
 08/28
 	* replaced all db_foreach with iterators
 	* renamed npc_chat to npclisten because this is what they do

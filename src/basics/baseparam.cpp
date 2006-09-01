@@ -8,9 +8,139 @@
 
 NAMESPACE_BEGIN(basics)
 
+
+
+
+/////////////////////////////////////////////////////////////////////
+/// clean a string.
+/// remove leading/trailing whitespaces, concatinate multiple whitespaces
+/// replace control chars with '_'
+const char* config_clean(char *str)
+{
+	if(str)
+	{
+		char *src=str, *tar=str, mk=0;
+		while(*src && stringcheck::isspace(*src) )
+			src++;
+		while(*src)
+		{
+			if( stringcheck::isspace(*src) )
+				mk=' ', ++src;
+			else
+			{
+				if( mk )
+					*tar++=mk, mk=0;
+				*tar = ( stringcheck::iscntrl(*src) ) ? '_' : *src;
+				++tar, ++src;
+			}
+		}
+		*tar=0;
+		return str;
+	}
+	return "";
+}
+
+bool paramconvert(sint64 &t, const char* str)
+{
+	t = (!str || strcasecmp(str, "false") == 0 || strcasecmp(str, "off") == 0 || strcasecmp(str, "no" ) == 0 || strcasecmp(str, "non") == 0 || strcasecmp(str, "nein") == 0) ? 0 :
+		(        strcasecmp(str, "true" ) == 0 || strcasecmp(str, "on" ) == 0 || strcasecmp(str, "yes") == 0 || strcasecmp(str, "oui") == 0 || strcasecmp(str, "ja"  ) == 0 || strcasecmp(str, "si") == 0) ? 1 : 
+		strtol(str, NULL, 0);
+	return true;
+}
+bool paramconvert(uint64 &t, const char* str)
+{
+	t = (!str || strcasecmp(str, "false") == 0 || strcasecmp(str, "off") == 0 || strcasecmp(str, "no" ) == 0 || strcasecmp(str, "non") == 0 || strcasecmp(str, "nein") == 0) ? 0 :
+		(        strcasecmp(str, "true" ) == 0 || strcasecmp(str, "on" ) == 0 || strcasecmp(str, "yes") == 0 || strcasecmp(str, "oui") == 0 || strcasecmp(str, "ja"  ) == 0 || strcasecmp(str, "si") == 0) ? 1 : 
+		strtoul(str, NULL, 0);
+	return true;
+}
+bool paramconvert(double &t, const char* s) 
+{
+	if( !s)
+		t = 0;
+	else if( s[0]=='0' && locase(s[1])=='x' ) // test for hex numbers, skip octals
+		t = strtoul(s, NULL, 0);
+	else
+		t= strtod(s, NULL);
+	return true;
+}
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// commandline 2 list conversion.
+///////////////////////////////////////////////////////////////////////////////
+
+/// add a new commandline
+bool CParameterList::add_commandline(const char* line)
+{
+	char *wpp = this->cBuf, delim, sep;
+	const char *epp=this->cBuf+sizeof(this->cBuf)-1;
+	const char* rpp = line;
+
+	// skip all leading spaces
+	while( *rpp && (basics::stringcheck::isspace(*rpp)||*rpp==',') ) ++rpp;
+
+	// copy the whole line for testing purpose
+	strncpy(this->cTemp, rpp, sizeof(this->cTemp));
+	this->cTemp[sizeof(this->cTemp)-1]=0;
+
+	// clear previously command line
+	this->cCnt=0;
+
+	while( *rpp && wpp<epp && this->cCnt<sizeof(this->cParam)/sizeof(*this->cParam) )
+	{
+		// skip all leading spaces
+		while( *rpp && basics::stringcheck::isspace(*rpp) ) ++rpp;
+		// skip comma seperator when used
+		if( (sep=*rpp)==',') 
+		{
+			++rpp;
+			// skip spaces following the comma
+			while( *rpp && basics::stringcheck::isspace(*rpp) ) ++rpp;
+		}
+		// delimiter decision
+		// skip the quote when string parameter
+		delim = (*rpp=='"') ? *rpp++ : 0;
+
+		// save the parameter start pointer
+		this->cParam[this->cCnt] = wpp;
+
+		// copy into the buffer up to a finishing delimiter
+		while( *rpp && wpp<epp && ((delim && *rpp!=delim) || (!delim && !basics::stringcheck::isspace(*rpp) && *rpp!=',')) )
+			*wpp++ = *rpp++;
+
+		// terminate the copied string
+		// either when there is something or when coma seperation
+		if( wpp<epp && (wpp>this->cParam[this->cCnt] || (sep==',')) )
+		{
+			*wpp++=0;
+			++this->cCnt;
+		}
+	}
+	return this->cCnt>0;
+}
+/// remove entries from list.
+void CParameterList::erase(size_t st, size_t num)
+{
+	if( st<this->cCnt )
+	{
+		if(st+num>this->cCnt)
+			num = this->cCnt-st;
+		this->cCnt -= num;
+		size_t mvcnt = this->cCnt-st-num;
+		if(mvcnt)
+			memmove(this->cParam+st, this->cParam+st+num, mvcnt*sizeof(*cParam));
+	}
+}
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // basic interface for reading configs from file
 ///////////////////////////////////////////////////////////////////////////////
+
 
 /////////////////////////////////////////////////////////////////////
 /// load and parse config file.
@@ -61,9 +191,9 @@ bool CConfig::LoadConfig(const char* cfgName)
 		// format: "name:value" or "name=value"
 		if( sscanf(ip, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2 )
 		{
-			CleanString(w1);
+			config_clean(w1);
 			if(!*w1) continue;
-			CleanString(w2);
+			config_clean(w2);
 
 			if( strcasecmp(w1, "import") == 0 ||
 				strcasecmp(w1, "include") == 0 )
@@ -82,82 +212,11 @@ bool CConfig::LoadConfig(const char* cfgName)
 	return true;
 }
 
-/////////////////////////////////////////////////////////////////////
-/// process a value. return 0/1 for no/yes....
-int CConfig::SwitchValue(const char *str, int defaultmin, int defaultmax)
-{
-	if( str )
-	{
-		if( strcasecmp(str, "true")==0 || strcasecmp(str, "on") == 0 || strcasecmp(str, "yes") == 0 || strcasecmp(str, "oui") == 0 || strcasecmp(str, "ja") == 0 || strcasecmp(str, "si") == 0)
-			return 1;
-		else if( strcasecmp(str, "false")==0 || strcasecmp(str, "off") == 0 || strcasecmp(str, "no" ) == 0 || strcasecmp(str, "non") == 0 || strcasecmp(str, "nein") == 0)
-			return 0;
-		else
-		{
-			int ret = atoi(str);
-			return (ret<defaultmin) ? defaultmin : (ret>defaultmax) ? defaultmax : ret;
-		}
-	}
-	else
-		return 0;
-}
 
-/////////////////////////////////////////////////////////////////////
-/// process a boolean. return true/false for yes/no, if unknown return defaultval
-bool CConfig::Switch(const char *str, bool defaultval)
-{
-	if( str )
-	{
-		if( strcasecmp(str, "true")==0 || strcasecmp(str, "on") == 0 || strcasecmp(str, "yes") == 0 || strcasecmp(str, "oui") == 0 || strcasecmp(str, "ja") == 0 || strcasecmp(str, "si") == 0)
-			return 1;
-		else if( strcasecmp(str, "false")==0 || strcasecmp(str, "off") == 0 || strcasecmp(str, "no" ) == 0 || strcasecmp(str, "non") == 0 || strcasecmp(str, "nein") == 0)
-			return 0;
-		else
-		{
-			const int ret = atoi(str);
-			if(ret==0 || ret==1) return ret;
-		}
-	}
-	return defaultval;
-}
-
-/////////////////////////////////////////////////////////////////////
-/// clean a string.
-/// remove leading/trailing whitespaces, concatinate multiple whitespaces
-/// replace control chars with '_'
-const char* CConfig::CleanString(char *str)
-{
-	if(str)
-	{
-		char *src=str, *tar=str, mk=0;
-		while(*src && stringcheck::isspace(*src) )
-			src++;
-		while(*src)
-		{
-			if( stringcheck::isspace(*src) )
-				mk=' ', ++src;
-			else
-			{
-				if( mk )
-					*tar++=mk, mk=0;
-				*tar = ( stringcheck::iscntrl(*src) ) ? '_' : *src;
-				++tar, ++src;
-			}
-		}
-		*tar=0;
-	}
-	return str;
-}
-
-
-
-
-
-
+#if defined(LOCAL_TIMER)
 ///////////////////////////////////////////////////////////////////////////////
 // basic class for using the old way timers
 ///////////////////////////////////////////////////////////////////////////////
-/*
 bool CTimerBase::init(unsigned long interval)
 {
 	if(interval<1000)
@@ -192,7 +251,7 @@ void CTimerBase::timerfinalize()
 		cTimer = -1;
 	}
 }
-*/
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // parse the commandline for parameters
@@ -247,8 +306,8 @@ void parseCommandline(int argc, char **argv)
 			if( sscanf(argv[i], "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2 ||
 				sscanf(str,     "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2 )
 			{
-				CConfig::CleanString(w1);
-				CConfig::CleanString(w2);
+				config_clean(w1);
+				config_clean(w2);
 
 				if( strcasecmp(w1, "import") == 0 ||
 					strcasecmp(w1, "include") == 0 ||

@@ -9,15 +9,15 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 /// config data.
-class CConfig
+class CBattleConfig
 {
 private:
 	/////////////////////////////////////////////////////////////////
 	/// internal name->value map
 	static struct _config_map
 	{
-		const char *		str;
-		uint32 CConfig::*	val;
+		const char *			str;
+		uint32 CBattleConfig::*	val;
 
 /*		/////////////////////////////////////////////////////////////
 		/// map internal compare
@@ -330,9 +330,9 @@ public:
 
 	/////////////////////////////////////////////////////////////////
 	/// constructor
-	CConfig();
+	CBattleConfig();
 	/// destructor.
-	~CConfig();
+	~CBattleConfig();
 
 	/////////////////////////////////////////////////////////////////
 	/// read in a configuration file
@@ -692,7 +692,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 /// direct access on the instanciated config/msgtable, 
 /// instanciationf should actually not be placed here
-extern CConfig config;
+extern CBattleConfig config;
 extern CMessageTable msg_txt;
 
 

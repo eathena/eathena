@@ -190,7 +190,7 @@ public:
 			const size_t bit = fd&0x1F;	// equals %32
 #endif
 			checksize(pos);
-			cArray[pos] |= (1<<bit);
+			cArray[pos] |= (1ul<<bit);
 		}
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -215,7 +215,7 @@ public:
 			const size_t bit = fd&0x1F;	// equals %32
 #endif
 			checksize(pos);
-			cArray[pos] &= ~(1<<bit);
+			cArray[pos] &= ~(1ul<<bit);
 		}
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -239,7 +239,7 @@ public:
 			const size_t pos = fd>>5;	// equals /32
 			const size_t bit = fd&0x1F;	// equals %32
 #endif
-			return (pos<cSZ) && (0!=(cArray[pos] & (1<<bit)));
+			return (pos<cSZ) && (0!=(cArray[pos] & (1ul<<bit)));
 		}
 	}
 	///////////////////////////////////////////////////////////////////////////

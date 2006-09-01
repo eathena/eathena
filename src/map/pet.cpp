@@ -1352,7 +1352,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 				return 0;
 			if(dist<=3)
 			{
-				if(config.pet_random_move && !pc_issit(*sd) )
+				if(config.pet_random_move && !sd->is_sitting() )
 					pd.randomwalk(tick);
 				return 0;
 			}

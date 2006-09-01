@@ -12,7 +12,6 @@ NAMESPACE_BEGIN(basics)
 
 class streamtest
 {
-
 	buffer ba;
 
 public:
@@ -69,6 +68,7 @@ public:
 
 void test_buffer(void)
 {
+
 #if defined(DEBUG)
 
 	{

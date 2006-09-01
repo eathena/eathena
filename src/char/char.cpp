@@ -48,7 +48,7 @@ int char_new_display;
 int email_creation = 0; // disabled by default
 char unknown_char_name[1024] = "Unknown";
 
-int check_ip_flag = 1; // It's to check IP of a player between char-server and other servers (part of anti-hacking system)
+bool check_ip_flag = true;
 
 int max_connect_user = 0;
 int gm_allow_level = 99;
@@ -69,7 +69,7 @@ size_t online_gm_display_min_level = 20; // minimum GM level to display 'GM' whe
 
 time_t update_online; // to update online files when we receiving information from a server (not less than 8 seconds)
 
-int console = 0;
+bool console = false;
 
 
 
@@ -2258,7 +2258,7 @@ int parse_char(int fd)
 			if(sd)
 			{	size_t slot;
 				// if we activated email creation and email is default email
-				if(email_creation != 0 && 0==strcmp(sd->email, "a@a.com") && session_isActive(login_fd) )
+				if(email_creation && 0==strcmp(sd->email, "a@a.com") && session_isActive(login_fd) )
 				{	
 					WFIFOW(fd, 0) = 0x70;
 					WFIFOB(fd, 2) = 0; // 00 = Incorrect Email address
@@ -2805,7 +2805,7 @@ int char_config_read(const char *cfgName)
 			}
 			else if(strcasecmp(w1, "login_port") == 0)
 			{
-				loginaddress.port() = atoi(w2);
+				loginaddress.port() = basics::config_switch<ushort>(w2);
 			}
 			else if(strcasecmp(w1, "char_ip") == 0)
 			{
@@ -2814,45 +2814,41 @@ int char_config_read(const char *cfgName)
 			}
 			else if(strcasecmp(w1, "char_port") == 0)
 			{
-				charaddress.LANPort() = atoi(w2);
+				charaddress.LANPort() = basics::config_switch<ushort>(w2);
 			}
 			else if(strcasecmp(w1, "char_maintenance") == 0)
 			{
-				char_maintenance = atoi(w2);
+				char_maintenance = basics::config_switch<bool>(w2);
 			}
 			else if (strcasecmp(w1, "char_new_display") == 0)
 			{
-				char_new_display = atoi(w2);
+				char_new_display = basics::config_switch<bool>(w2);
 			}
 			else if (strcasecmp(w1, "email_creation") == 0)
 			{
-				email_creation = config_switch(w2);
+				email_creation = basics::config_switch<bool>(w2);
 			}
 			else if(strcasecmp(w1, "max_connect_user") == 0)
 			{
-				max_connect_user = atoi(w2);
-				if (max_connect_user < 0)
-					max_connect_user = 0; // unlimited online players
+				max_connect_user = basics::config_switch<int>(w2,0);
 			}
 			else if(strcasecmp(w1, "gm_allow_level") == 0)
 			{
-				gm_allow_level = atoi(w2);
-				if(gm_allow_level < 0)
-					gm_allow_level = 99;
+				gm_allow_level = basics::config_switch<int>(w2,0,99);
 			}
 			else if(strcasecmp(w1, "check_ip_flag") == 0)
 			{
-				check_ip_flag = config_switch(w2);
+				check_ip_flag = basics::config_switch<bool>(w2);
 			}
 			else if(strcasecmp(w1, "autosave_time") == 0)
 			{
-				autosave_interval = atoi(w2)*1000;
+				autosave_interval = basics::config_switch<int>(w2)*1000;
 				if (autosave_interval <= 0)
 					autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
 			}
 			else if(strcasecmp(w1,"log_char")==0)
 			{	//log char or not [devil]
-				log_char = atoi(w2);
+				log_char = basics::config_switch<bool>(w2);
 			}
 			else if(strcasecmp(w1, "unknown_char_name") == 0)
 			{
@@ -2893,7 +2889,7 @@ int char_config_read(const char *cfgName)
 			}
 			else if(strcasecmp(w1, "console") == 0)
 			{
-				console = config_switch(w2);
+				console = basics::config_switch<bool>(w2);
 			}
 			else if(strcasecmp(w1, "import") == 0)
 			{

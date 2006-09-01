@@ -24,7 +24,7 @@ void CFDSET::checksize(size_t pos)
 	if( pos >= cSZ )
 	{	// need to reallocate
 		size_t sz = (this->cSZ)?this->cSZ:2;
-		while(sz >= pos) sz *= 2;
+		while(sz <= pos) sz *= 2;
 
 		unsigned long* temp= new unsigned long[sz];
 
@@ -87,7 +87,7 @@ size_t CFDSET::foreach1( void(*func)(SOCKET), size_t max) const
 				// when only a few bits are set in the field
 				// which usually happens on read events
 				val = log2( bits );
-				bits ^= (1<<val);	
+				bits ^= (1ul<<val);	
 				// build the socket number
 				sock = nfd*NFDBITS + val;
 
@@ -164,7 +164,7 @@ void CFDSET::checksize()
 	if( cSet->fd_count >= this->cSZ )
 	{	// need to reallocate
 		size_t sz = (this->cSZ)?this->cSZ:2;
-		while(sz >= cSet->fd_count) sz *= 2;
+		while(sz <= cSet->fd_count) sz *= 2;
 
 		struct winfdset *temp= (struct winfdset *)new char[sizeof(struct winfdset)+sz*sizeof(SOCKET)];
 
@@ -661,5 +661,285 @@ void test_socket()
 #endif//DEBUG
 }
 
+
+
+
+
+
+
+
+
+
+
+#ifdef DEBUG
+#include "basearray.h"
+#include "baseinet.h"
+#include "basesync.h"
+#include "basesocket.h"
+
+USING_NAMESPACE(basics)
+
+// complete client server testcase
+
+
+class socketprocessor : public noncopyable
+{
+public:
+	SOCKET sock;
+	socketprocessor(SOCKET s=INVALID_SOCKET) : sock(s)	{}
+	virtual ~socketprocessor()								{}
+
+	virtual int run()=0;
+};
+
+class testproc;
+class testserver : public socketprocessor
+{
+	friend class testproc;
+public:
+	CFDSET fds;
+	static smap<SOCKET, socketprocessor*> sessionmap;
+	static void processor(SOCKET s)
+	{
+		if( sessionmap.exists(s) )
+		{
+			//printf("process %i\n", s);
+			sessionmap[s]->run();
+			//printf("done %i\n", s);
+		}
+	}
+	static void processorprint(SOCKET s)
+	{
+		printf("%i ", s);
+	}
+
+	testserver(const unsigned short port)
+	{
+		this->sock = socket( AF_INET, SOCK_STREAM, 0 );
+		if( this->sock!= INVALID_SOCKET )
+		{
+			struct sockaddr_in server_address;
+			server_address.sin_family      = AF_INET;
+			server_address.sin_addr.s_addr = htonl( ipany );
+			server_address.sin_port        = htons( port );
+
+			if( -1 != bind(this->sock, (struct sockaddr*)&server_address, sizeof(server_address)) &&
+				-1 != ::listen(this->sock, SOMAXCONN) )
+			{
+				this->fds.set_bit(this->sock);
+				this->sessionmap[this->sock] = this;
+				printf("listening at port %i\n", port);
+			}
+			else
+			{
+				closesocket(this->sock);
+				perror("bind");
+			}
+		}
+	}
+
+	virtual ~testserver()	{}
+
+	virtual int run();
+
+
+
+	void listen()
+	{
+
+		for(;;)
+		{
+			CFDSET tmp = this->fds;
+			struct timeval timeout = {1,0};
+			int i;
+			
+			//printf("start select %i with ", (int)tmp.size());
+			//tmp.foreach1(&this->processorprint, this->fds.size());
+			//printf("\n");
+			
+			if( (i=::select(tmp.size(), tmp, NULL, NULL, &timeout))>0 )
+			{
+				//printf("select %i: ",i);
+				//tmp.foreach1(&this->processorprint, this->fds.size());
+				//printf("\n");
+				tmp.foreach1(&this->processor, this->fds.size());
+			}
+			else
+			{
+				printf("[%5i]\r", (int)this->sessionmap.size());fflush(stdout);
+			}
+		}
+	}
+};
+smap<SOCKET, socketprocessor*> testserver::sessionmap;
+
+class testproc : public socketprocessor
+{
+	testserver& server;
+public:
+
+	testproc(SOCKET s, testserver& t) : socketprocessor(s), server(t)
+	{
+		server.sessionmap[this->sock] = this;
+		server.fds.set_bit(this->sock);
+
+	}
+	virtual ~testproc()
+	{
+		if(this->sock!=INVALID_SOCKET)
+		{
+			server.sessionmap.erase(this->sock);
+			server.fds.clear_bit(this->sock);
+			closesocket(this->sock);
+		}
+	}
+
+	virtual int run()
+	{
+		//printf("run testproc %p (socket %i) ", this, this->sock); fflush(stdout);
+		unsigned long arg=0, len;
+		int rv = ioctlsocket(this->sock, FIONREAD, &arg);
+		//printf("(ioctlsocket %i len=%lu) ", rv, arg); fflush(stdout);
+		
+		char* buffer=NULL;
+		if( (rv == 0) && (arg > 0) && 
+			(buffer=new char[1+arg]) &&
+			(len=read(this->sock,buffer,arg)) )
+		{
+			buffer[len]=0;
+			printf("[%5i]recv %p,%i (len=%lu): '%s' \n", (int)server.sessionmap.size(), this, this->sock, len, buffer); fflush(stdout);
+		}
+		else
+		{
+			printf("terminating\n"); fflush(stdout);
+			delete this;
+		}
+		if(buffer) delete[] buffer;
+		return arg;
+	}
+};
+
+int testserver::run()
+{
+	struct sockaddr_in client_address;
+	socklen_t len = sizeof(client_address);
+	SOCKET s = accept(this->sock,(struct sockaddr*)&client_address,&len);
+	//printf("accept %i\n", s);
+	
+	if(s!=INVALID_SOCKET) 
+	{
+		testproc* p = new testproc(s, *this);
+		printf("incoming from %X (%p = #%i)(socket %i)\n", ntohl(client_address.sin_addr.s_addr), p, (int)this->sessionmap.size(),s );
+	}
+	else
+	{
+		printf("error: %s\n", sockerrmsg(sockerrno()) );
+	}
+	return 0;
+}
+
+class testclient : public socketprocessor
+{
+public:
+	netaddress ipaddr;
+	testclient(const netaddress& ip) : ipaddr(ip)
+	{
+		this->reconnect();
+	}
+	virtual ~testclient()
+	{
+		if( this->sock!=INVALID_SOCKET )
+			closesocket(this->sock);
+	}
+	virtual int run()
+	{
+		//printf("run testproc %p (socket %i) ", this, this->sock); fflush(stdout);
+		unsigned long arg=0, len;
+		int rv = ioctlsocket(this->sock, FIONREAD, &arg);
+		//printf("(ioctlsocket %i len=%lu) ", rv, arg); fflush(stdout);
+		
+		char* buffer=NULL;
+		if( (rv == 0) && (arg > 0) && 
+			(buffer=new char[1+arg]) &&
+			(len=read(this->sock,buffer,arg)) )
+		{
+			buffer[len]=0;
+			printf("[%5i]recv %p,%i (len=%lu): '%s' \n", 0, this, this->sock, len, buffer); fflush(stdout);
+		}
+		else
+		{
+			printf("terminating\n"); fflush(stdout);
+			this->sock=INVALID_SOCKET;
+		}
+		if(buffer) delete[] buffer;
+		return arg;
+	}
+
+	bool reconnect()
+	{
+		this->sock = socket( AF_INET, SOCK_STREAM, 0 );
+		if(this->sock!=INVALID_SOCKET) 
+		{
+			struct sockaddr_in addr;
+			addr.sin_family			= AF_INET;
+			addr.sin_addr.s_addr	= htonl( ipaddr.addr() );
+			addr.sin_port			= htons( ipaddr.port() );
+			if( 0 > connect(this->sock, (struct sockaddr *)(&addr),sizeof(struct sockaddr_in)) )
+			{
+				closesocket(this->sock);
+				this->sock = INVALID_SOCKET;
+				printf("connect failed\n");
+			}
+			else
+				return true;
+		}
+		return false;
+	}
+	int send(const char* str)
+	{
+		return ( str && (this->sock!=INVALID_SOCKET || this->reconnect()) ) ? write(this->sock, (char*)str, strlen(str)) : 0;
+	}
+};
+
+
+int testsocket(int argc, char *argv[])
+{
+
+	if(argc>2)
+	{
+		if( 0==strcasecmp(argv[1],"server") )
+		{	// start with "server <port>"
+			unsigned short port = atoi(argv[2]);
+			testserver serv(port);
+			serv.listen();
+
+		}
+		else if( 0==strcasecmp(argv[1],"client") && argc>3 )
+		{	// start with "client <number of connections> <address:port>"
+			size_t i,count= atoi(argv[2]);
+			netaddress ip = argv[3];
+
+			vector<testclient*> clients;
+			for(i=0; i<count; ++i)
+			{
+				clients.push( new testclient(ip) );
+			}
+
+			for(;;)
+			{
+				for(i=0; i<clients.size(); ++i)
+					clients[i]->send("...test..."), sleep(100);
+				sleep(500);
+			}
+
+		}
+
+	}
+
+
+	return 0;
+}
+
+#endif//DEBUG
 
 NAMESPACE_END(basics)

@@ -548,6 +548,10 @@ public:
 	virtual bool set_idle(ulong delaytick=0){ return false; }
 	/// sets the object to idle state
 	virtual bool set_dead()				{ return false; }
+	/// sets the object to sitting state
+	virtual bool set_sit()				{ return false; }
+	/// sets the object to standing state
+	virtual bool set_stand()			{ return false; }
 
 
 
@@ -835,7 +839,6 @@ public:
 	//## remove for modified account authentification
 	static map_session_data* accid2sd(uint32 id);
 	/// search session data by name.
-	/// exact match only
 	static map_session_data* nick2sd(const char *nick);
 
 	/// return number of valid sessions
@@ -1261,8 +1264,18 @@ public:
 
 	/// checks for dead state
 	virtual bool is_dead() const		{ return (this->state.dead_sit == 1); }
-
+	/// sets the object to dead state
 	virtual bool set_dead()				{ this->state.dead_sit = 1; return true; }
+
+	/// checks for sitting state
+	virtual bool is_sitting() const		{ return (this->state.dead_sit == 2); }
+	/// sets the object to sitting state
+	virtual bool set_sit()				{ if(!this->state.dead_sit) this->state.dead_sit=2; return this->is_sitting(); }
+	/// sets the object to standing state
+	virtual bool set_stand();
+
+
+
 
 	/// do object depending stuff for attacking
 	virtual void do_attack();

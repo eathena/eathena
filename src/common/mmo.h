@@ -528,14 +528,14 @@ struct point
 	}
 
 	// create point from string
-	// format is <mapname>,<x>,<y>
+	// format is mapname, x, y
 	explicit point(const char* str)
 	{
 		*this = str;
 	}
 
 	// create point from string
-	// format is <mapname>,<x>,<y>
+	// format is mapname, x, y
 	const point& operator=(const char* str)
 	{
 		char nbuf[32]="";
@@ -551,7 +551,7 @@ struct point
 		return *this;
 	}
 	// create string from point
-	// format is <mapname>,<x>,<y>
+	// format is mapname, x, y
 	friend basics::string<>& operator<<(basics::string<>& str, const struct point& p)
 	{
 		str << p.mapname << "," << p.x << "," << p.y;

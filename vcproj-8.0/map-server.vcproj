@@ -177,7 +177,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\npc_chat.cpp"
+				RelativePath="..\src\map\npclisten.cpp"
 				>
 			</File>
 			<File
@@ -300,6 +300,10 @@
 			</File>
 			<File
 				RelativePath="..\src\map\npc.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\npclisten.h"
 				>
 			</File>
 			<File

@@ -123,7 +123,7 @@
 				RelativePath="..\src\map\npc.cpp">
 			</File>
 			<File
-				RelativePath="..\src\map\npc_chat.cpp">
+				RelativePath="..\src\map\npclisten.cpp">
 			</File>
 			<File
 				RelativePath="..\src\map\party.cpp">
@@ -216,6 +216,9 @@
 			</File>
 			<File
 				RelativePath="..\src\map\npc.h">
+			</File>
+			<File
+				RelativePath="..\src\map\npclisten.h">
 			</File>
 			<File
 				RelativePath="..\src\map\party.h">

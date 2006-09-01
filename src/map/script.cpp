@@ -7969,7 +7969,7 @@ int buildin_gmcommand(CScriptEngine &st)
 	//////////////////////////////
 
 	// build the command string
-	int ret = snprintf(buffer, sizeof(buffer), "%s : %c%s", obj->status.name, AtCommandInfo::command_symbol, cmd);
+	int ret = snprintf(buffer, sizeof(buffer), "%s : %c%s", obj->status.name, CommandInfo::command_symbol, cmd);
 	// add the rest of the script parameters to the string
 	size_t i, sz=0;
 	for(i=3; i<st.Arguments() && ret>=0; ++i)
@@ -7981,7 +7981,7 @@ int buildin_gmcommand(CScriptEngine &st)
 	buffer[sizeof(buffer)-1]=0;
 
 	// and call the command processor
-	is_atcommand(obj->fd, *obj, buffer, 99);
+	CommandInfo::is_command(obj->fd, *obj, buffer, 99);
 
 	if(!st.sd)
 		delete obj;
@@ -7996,11 +7996,8 @@ int buildin_gmcommand(CScriptEngine &st)
  */
 int buildin_dispbottom(CScriptEngine &st)
 {
-	struct map_session_data *sd=st.sd;
-	const char *message;
-	message=st.GetString(st[2]);
-	if(sd)
-		clif_disp_onlyself(*sd,message);
+	if(st.sd)
+		clif_disp_onlyself(*st.sd, st.GetString(st[2]));
 	return 0;
 }
 
@@ -8022,7 +8019,7 @@ int buildin_recovery(CScriptEngine &st)
 				clif_updatestatus(*sd, SP_SP);
 				if( sd->is_dead() )
 				{
-					pc_setstand(*sd);
+					sd->set_stand();
 					clif_resurrection(*sd, 1);
 				}
 				clif_displaymessage(sd->fd,"You have been recovered!");
@@ -9356,35 +9353,35 @@ int script_config_read(const char *cfgName)
 			}
 			else if(strcasecmp(w1,"verbose_mode")==0)
 			{
-				script_config.verbose_mode = config_switch(w2);
+				script_config.verbose_mode = basics::config_switch<bool>(w2);
 			}
 			else if(strcasecmp(w1,"warn_func_no_comma")==0)
 			{
-				script_config.warn_func_no_comma = config_switch(w2);
+				script_config.warn_func_no_comma = basics::config_switch<bool>(w2);
 			}
 			else if(strcasecmp(w1,"warn_cmd_no_comma")==0)
 			{
-				script_config.warn_cmd_no_comma = config_switch(w2);
+				script_config.warn_cmd_no_comma = basics::config_switch<bool>(w2);
 			}
 			else if(strcasecmp(w1,"warn_func_mismatch_paramnum")==0)
 			{
-				script_config.warn_func_mismatch_paramnum = config_switch(w2);
+				script_config.warn_func_mismatch_paramnum = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"warn_cmd_mismatch_paramnum")==0)
 			{
-				script_config.warn_cmd_mismatch_paramnum = config_switch(w2);
+				script_config.warn_cmd_mismatch_paramnum = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"check_cmdcount")==0)
 			{
-				script_config.check_cmdcount = config_switch(w2);
+				script_config.check_cmdcount = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"check_gotocount")==0)
 			{
-				script_config.check_gotocount = config_switch(w2);
+				script_config.check_gotocount = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"event_script_type")==0)
 			{
-				script_config.event_script_type = config_switch(w2);
+				script_config.event_script_type = basics::config_switch<int>(w2);
 			}
 			else if(strcasecmp(w1,"die_event_name")==0)
 			{			
@@ -9408,7 +9405,7 @@ int script_config_read(const char *cfgName)
 			}
 			else if(strcasecmp(w1,"event_requires_trigger")==0)
 			{
-				script_config.event_requires_trigger = config_switch(w2);
+				script_config.event_requires_trigger = basics::config_switch<bool>(w2);
 			}
 			else if(strcasecmp(w1,"import")==0)
 			{
