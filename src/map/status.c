@@ -2369,8 +2369,8 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		|| sc->data[SC_DANCING].timer != -1
 		|| (sc->data[SC_EXPLOSIONSPIRITS].timer != -1
 			&& (sc->data[SC_SPIRIT].timer==-1 || sc->data[SC_SPIRIT].val2 != SL_MONK))
-	)	//No SP regen
-		regen->flag &=~(RGN_SP|RGN_SSP);
+	)	//No natural SP regen
+		regen->flag &=~RGN_SP;
 
 	if(
 		sc->data[SC_TENSIONRELAX].timer!=-1

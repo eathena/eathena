@@ -5,6 +5,9 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/02
+	* SC_EXTREMITYFIST/SC_DANCING/SC_EXPLOSIONSPIRITS will only block natural
+	  sp regen and not skill regen [Skotlex]
+	* SC_REGENERATION blocking will be cancelled on logout now. [Skotlex]
 	* Corrected SCB_LUK not updating SCB_BATK as well. [Skotlex]
 2006/09/01
 	* Some merges in the doc/script_commands.txt file. [Skotlex]
