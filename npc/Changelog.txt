@@ -34,6 +34,9 @@ Playtester
 
 Date		Added
 ======
+09/02
+	* Fixed some Thanatos Tower warps [Playtester]
+	- I hope Ishizu fixes up the quest soon
 09/01
 	* Added missing next;'s in Payon City NPCs (Thanks $ephiroth) [Evera]
 	* Merged Rogue Job quest from TRUNK (for Meginjyard quest) [Lupus]
