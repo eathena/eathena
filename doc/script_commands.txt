@@ -2079,7 +2079,8 @@ Example:
 
 *getpartyleader <party id>,[<type>];
 
-This function returns some information about the given party-id's leader. When type is ommitted, the default information retrieved is Character name of the party leader. Possible types are:
+This function returns some information about the given party-id's leader. When type is ommitted,
+the default information retrieved is Character name of the party leader. Possible types are:
 
 	1: Leader account id
 	2: Leader character id
@@ -2088,7 +2089,8 @@ This function returns some information about the given party-id's leader. When t
 	5: Leader's current level as stored on the party structure (may not be
 	   current level if leader leveled up recently).
 
-If retrieval fails (leader not found or party does not exists), "null" is returned instead of character name, and -1 is returned for the other types.
+If retrieval fails (leader not found or party does not exists), "null" is returned instead of character name,
+and -1 is returned for the other types.
 
 ---------------------------------------
 *getguildname(<guild id>)
@@ -2167,7 +2169,7 @@ returned when requesting that information.
 *getequipid(<equipment slot>)
 
 This function returns the item ID of the item equipped in the equipment slot 
-specified on the invoking character. If nothing is equpped there, it returns 0. 
+specified on the invoking character. If nothing is equpped there, it returns -1. 
 Valid equipment slots are:
 
 1  - Upper head gear
@@ -2724,7 +2726,8 @@ being present at the same time in one go.
 
 'setoption' will set options on the invoking character. There are no second and 
 third versions of this command, so you can only change the values in the last
-list (cloak, cart, ruwach, etc). if flag is 1 (default when omitted), the option will be added to what the character currently has; if 0, the option is removed. 
+list (cloak, cart, ruwach, etc). if flag is 1 (default when omitted),
+the option will be added to what the character currently has; if 0, the option is removed. 
 
 This is definitely not a complete list of available option flag numbers. Ask a 
 core developer for the full list.
@@ -5142,7 +5145,8 @@ if (Zeny > 50) && (BaseLevel > 50) {
 } else
 
 set @needed,50-BaseLevel;
-mes "You either are Level "+BaseLevel+", thus you need "+@needed+" more levels to be able to use this npc; or you don't have enough zeny, so get some please";
+mes "You either are Level "+BaseLevel+", thus you need "+@needed+" more levels";
+mes "to be able to use this npc; or you don't have enough zeny, so get some please";
 close;
 
 function SF_Selling {
