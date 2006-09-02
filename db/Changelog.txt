@@ -1,3 +1,11 @@
+09/02
+	* Merged item_db, mob_db [Playtester]
+	- added new items
+	- updated various item names to official ones
+	- fixed some items
+	- updated gun ranges
+	- updated some mob stats
+	- updated various mob names to official ones
 08/24
 	* Merged item_db, mob_skill_db, skill_cast_db, skill_require_db and skill_tree [Playtester]
 	- fixed Grand Cross weapon
