@@ -2924,7 +2924,9 @@ int parse_frommap(int fd) {
 					}
 					// If the player's already in the list, remove the entry and shift the following ones 1 step up
 					memmove(list+pos, list+pos+1, (size-pos-1) * sizeof(struct fame_list));
-					list[size-1].fame = 0; // At worst, the guy'll end up last (shouldn't happen if fame only goes up)
+					//Clear out last entry.
+					list[size-1].id = 0;
+					list[size-1].fame = 0;
 				}
 
 				// Find the position where the player has to be inserted
@@ -3561,9 +3563,11 @@ int parse_char(int fd) {
 				if(delete_char_sql(cid, char_pid)<0){
 					//can't delete the char
 					//either SQL error or can't delete by some CONFIG conditions
+					//del fail
 					WFIFOW(fd, 0) = 0x70;
 					WFIFOB(fd, 2) = 0;
 					WFIFOSET(fd, 3);
+					RFIFOSKIP(fd, 46);
 					break;
 				}
 				if (char_pid != 0)
@@ -4008,6 +4012,10 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 		}else if(strcmpi(w1,"use_sql_db")==0){ // added for sql item_db read for char server [Valaris]
 			db_use_sqldbs = config_switch(w2);
 			ShowStatus("Using SQL dbs: %s\n",w2);
+		}else if(strcmpi(w1,"item_db_db")==0){
+			strcpy(item_db_db,w2);
+		}else if(strcmpi(w1,"item_db2_db")==0){
+			strcpy(item_db2_db,w2);
 		} else if(strcmpi(w1,"connection_ping_interval")==0) {
 			connection_ping_interval = config_switch(w2);
 		//custom columns for login database

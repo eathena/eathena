@@ -5,6 +5,9 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/04
+	* Merged char_sql itemdb update. char_sql now also reads item_db2, as well
+	  as respecting the config settings in inter_athena.txt which specify where
+	  the tables should be located at. [Skotlex]
 	* Merged update to produce_db, where now skill-lv required can also be
 	  specified. [Skotlex]
 	* Merged all of produce_db [Skotlex]
