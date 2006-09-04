@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/04
+	* Merged Reflect Shield passing on to devoted characters. [Skotlex]
+	* Merged fix to prevent manner being reset to 0 on logout. [Skotlex]
 	* Fixed mob-kill experience getting screwed up when characters who did
 	  damage die/logout at the moment the mob dies. [Skotlex]
 	* Merged char_sql itemdb update. char_sql now also reads item_db2, as well

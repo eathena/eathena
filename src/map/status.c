@@ -1162,17 +1162,22 @@ static int status_base_atk(struct block_list *bl, struct status_data *status)
 	return str + dstr*dstr + dex/5 + status->luk/5;
 }
 
+#define status_base_matk_max(status) (status->int_+(status->int_/5)*(status->int_/5))
+#define status_base_matk_min(status) (status->int_+(status->int_/7)*(status->int_/7))
 
 //Fills in the misc data that can be calculated from the other status info (except for level)
 void status_calc_misc(struct status_data *status, int type, int level)
 {
 	//Non players get the value set, players need to stack with previous bonuses.
 	if (type != BL_PC)
-		status->matk_min = status->matk_max = status->hit = status->flee =
-		status->def2 = status->mdef2 = status->cri = status->flee2 = 0;
+		status->matk_min = status->matk_max =
+		status->hit = status->flee =
+		status->def2 = status->mdef2 =
+		status->cri = status->flee2 = 0;
 
-	status->matk_min += status->int_+(status->int_/7)*(status->int_/7);
-	status->matk_max += status->int_+(status->int_/5)*(status->int_/5);
+	status->matk_min += status_base_matk_min(status);
+	status->matk_max += status_base_matk_max(status);
+
 	status->hit += level + status->dex;
 	status->flee += level + status->agi;
 	status->def2 += status->vit;
@@ -1670,7 +1675,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 				return 1;
 		}
 
-		if(sd->inventory_data[index]->type == 4) {
+		if(sd->inventory_data[index]->type == IT_WEAPON) {
 			int r,wlv = sd->inventory_data[index]->wlv;
 			struct weapon_data *wd;
 			struct weapon_atk *wa;
@@ -1712,7 +1717,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 					wa->ele = (sd->status.inventory[index].card[1]&0x0f);
 			}
 		}
-		else if(sd->inventory_data[index]->type == 5) {
+		else if(sd->inventory_data[index]->type == IT_ARMOR) {
 			refinedef += sd->status.inventory[index].refine*refinebonus[0][0];
 			if(sd->inventory_data[index]->script) {
 				run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
@@ -2455,12 +2460,12 @@ void status_calc_bl_sub_pc(struct map_session_data *sd, unsigned long flag)
 
 	if(flag&SCB_MATK) {
 		//New matk
-		status->matk_min = status->int_+(status->int_/7)*(status->int_/7);
-		status->matk_max = status->int_+(status->int_/5)*(status->int_/5);
+ 		status->matk_min = status_base_matk_min(status);
+		status->matk_max = status_base_matk_max(status);
 
 		//Bonuses from previous matk
-		status->matk_max += b_status->matk_max - (b_status->int_+(b_status->int_/5)*(b_status->int_/5));
-		status->matk_min += b_status->matk_min - (b_status->int_+(b_status->int_/7)*(b_status->int_/7));
+		status->matk_max += b_status->matk_max - status_base_matk_max(b_status);
+		status->matk_min += b_status->matk_min - status_base_matk_min(b_status);
 
 		status->matk_min = status_calc_matk(&sd->bl, &sd->sc, status->matk_min);
 		status->matk_max = status_calc_matk(&sd->bl, &sd->sc, status->matk_max);
@@ -2822,8 +2827,8 @@ void status_calc_bl(struct block_list *bl, unsigned long flag)
 	}
 
 	if(flag&SCB_MATK) {
-		status->matk_min = status->int_+(status->int_/7)*(status->int_/7);
-		status->matk_max = status->int_+(status->int_/5)*(status->int_/5);
+		status->matk_min = status_base_matk_min(status);
+		status->matk_max = status_base_matk_max(status);
 		status->matk_min = status_calc_matk(bl, sc, status->matk_min);
 		status->matk_max = status_calc_matk(bl, sc, status->matk_max);
 		if(sc->data[SC_MAGICPOWER].timer!=-1) { //Store current matk values
@@ -2844,11 +2849,12 @@ void status_calc_bl(struct block_list *bl, unsigned long flag)
 	if(flag&SCB_DSPD)
 		status->dmotion = status_calc_dmotion(bl, sc, b_status->dmotion);
 
-	if(bl->type&BL_REGEN && flag&(SCB_VIT|SCB_MAXHP|SCB_INT|SCB_MAXSP))
-		status_calc_regen(bl, status, status_get_regen_data(bl));
-	
-	if(flag&SCB_REGEN && bl->type&BL_REGEN)
-		status_calc_regen_rate(bl, status_get_regen_data(bl), sc);
+	if(bl->type&BL_REGEN) {
+		if(flag&(SCB_VIT|SCB_MAXHP|SCB_INT|SCB_MAXSP))
+			status_calc_regen(bl, status, status_get_regen_data(bl));
+		if(flag&SCB_REGEN)
+			status_calc_regen_rate(bl, status_get_regen_data(bl), sc);
+	}
 }
 /*==========================================
  * Apply shared stat mods from status changes [DracoRPG]
@@ -4643,6 +4649,16 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			break;
 		case SC_REFLECTSHIELD:
 			val2=10+val1*3; //% Dmg reflected
+			if (sd)
+			{	//Pass it to devoted chars.
+				struct map_session_data *tsd;
+				int i;
+				for (i = 0; i < 5; i++)
+				{	//Pass the status to the other affected chars. [Skotlex]
+					if (sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])))
+						status_change_start(&tsd->bl,SC_AUTOGUARD,10000,val1,val2,0,0,tick,1);
+				}
+			}
 			break;
 		case SC_STRIPWEAPON:
 			if (bl->type != BL_PC) //Watk reduction
@@ -5739,7 +5755,8 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			break;
 		case SC_NOCHAT:
 			if (sd) {
-				if (sd->status.manner < 0) sd->status.manner = 0;
+				if (sd->status.manner < 0 && tid != -1)
+				  	sd->status.manner = 0;
 				clif_updatestatus(sd,SP_MANNER);
 			}
 			break;
@@ -5806,7 +5823,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				status_set_hp(bl, 100, 0); 
 			if(sc->data[SC_ENDURE].timer != -1)
 				status_change_end(bl, SC_ENDURE, -1);
-			sc_start4(bl, SC_REGENERATION, 100, 10,0,0,1,
+			sc_start4(bl, SC_REGENERATION, 100, 10,0,0,(RGN_HP|RGN_SP),
 				skill_get_time(LK_BERSERK, sc->data[type].val1));
 			break;
 		case SC_GRAVITATION:
