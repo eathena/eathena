@@ -4,7 +4,7 @@
 //= Nana (1.0)
 //= Sara-chan (1.1)
 //===== Current Version: =====================================
-//= 1.4
+//= 1.5
 //===== Compatible With: =====================================
 //= Any Athena Version; RO Episode 5+
 //===== Description: =========================================
@@ -14,6 +14,9 @@
 //= 1.2 Moved all airports to Airplane Warps [Lupus]
 //= 1.3 Dr.Evil's yuno_05 warps update [Lupus]
 //= 1.4 optimized [Lupus]
+//= 1.5 Added Missing Juno warps [musashiden]
+//= 1.6 Corrected duplicate warps [Musashiden]
+//= 1.7 Yet another missing warp [Musashiden]
 //============================================================
 
 //= Yuno City ================================================
@@ -32,8 +35,8 @@ yuno.gat,196,138,0	warp	yun11	1,1,yuno_in01.gat,32,33
 yuno_in01.gat,32,36,0	warp	yun12	1,1,yuno.gat,193,142
 yuno.gat,264,87,0	warp	yun13	1,1,yuno_in01.gat,168,101
 yuno_in01.gat,168,104,0	warp	yun14	1,1,yuno.gat,264,90
-yuno.gat,342,203,0	warp	yun15	1,1,yuno_in04.gat,32,58
-yuno_in04.gat,28,58,0	warp	yun16	1,1,yuno.gat,338,203
+yuno.gat,341,203,0	warp	yun15	1,1,yuno_in04.gat,32,58
+yuno_in04.gat,29,58,0	warp	yun16	1,1,yuno.gat,338,203
 yuno_in04.gat,52,58,0	warp	yun17	1,1,yuno_in04.gat,97,58
 yuno_in04.gat,95,58,0	warp	yun18	1,1,yuno_in04.gat,50,58
 yuno_in04.gat,103,64,0	warp	yun19	1,1,yuno_in04.gat,103,95
@@ -80,6 +83,11 @@ yuno_in01.gat,88,36,0	warp	yun59	1,1,yuno_in01.gat,173,34
 yuno_in01.gat,176,34,0	warp	yun60	1,1,yuno_in01.gat,91,36
 yuno_in02.gat,82,14,0	warp	yun61	1,1,yuno_in05.gat,192,194
 yuno_in05.gat,196,194,0	warp	yun62	1,1,yuno_in02.gat,85,14
+yuno.gat,157,320,0	warp	yun63	1,1,yuno_pre.gat,69,13
+yuno_pre.gat,69,10,0	warp	yun64	1,1,yuno.gat,157,317
+yuno.gat,245,147,0	warp	yun65	1,1,yuno_in01.gat,101,88
+yuno_in01.gat,101,85,0	warp	yun66	1,1,yuno.gat,245,144
+
 // Yuno In05 (Entering Random Warps) -------------------------------------------
 yuno_in05.gat,153,141,0	script	#yun63	45,1,1,{
 	if(rand(2)){
