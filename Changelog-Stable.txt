@@ -5,6 +5,34 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/05
+	* Merged most of the script engine from trunk. WARNING: Changes are
+	  substantial, in particular some script commands were removed (skill use
+	  ones) and were replaced for others, so test your custom scripts! [Skotlex]
+	* Merged features of the script engine include:
+	- State-check error-reporting, restores script-engine state instead of
+	  quitting server.
+	- Check_event merge, tells you when you are using invalid npc event names.
+	- Support for npc-side variables ('.')
+	- Support for hexadecimal values in db/const.txt
+	- Support for sleep/sleep2/awake commands
+	- Support for player-dependant npc timers (by using attachnpctimer)
+	- Support for 'fake npc id', which enables input/menu dialogues to work
+	  correctly with invisible npcs.
+	- Merged in commands jobname, roclass, eaclass, checkcell, equip, rid2name,
+	  warpportal, getvariableofnpc
+	- "useskillid", "useskillpos", "doskill" are obsolete now, replaced by
+	  unitskilluseid and unitskillusepos.
+	- Merged npc-controlled shop commands "npcshopitem", "npcshopadditem",
+	  "npcshopdelitem"
+	* Merged reloadbattleconf which only rereads mobs and resends rates to
+	  char-server when needed. [Skotlex]
+	* Merged @clearweather telling you that changes are not instant. [Skotlex]
+	* Merged Lex Aeterna not ending on the first half of breaker. [Skotlex]
+	* Merged config setting 'partial_name_scan' (gm.conf) [Skotlex]
+	* Merged config setting 'attack_walk_delay' (battle.conf) [Skotlex]
+	* Merged deleting Spheres when you die (Gunslinger only) [Skotlex]
+	* Merged preserving a character's exp/job-level when being adopted. [Skotlex]
+	* Merged string size checks on the mail-reading functions. [Skotlex]
 	* Fixed dispell removing SC_NOCHAT [Skotlex]
 	* Small fix which should correct skill_attack damaging hidden characters
 	  when it shouldn't. [Skotlex]

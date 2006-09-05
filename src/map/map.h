@@ -582,6 +582,7 @@ struct map_session_data {
 		unsigned size :2; // for tiny/large types
 		unsigned night :1; //Holds whether or not the player currently has the SI_NIGHT effect on. [Skotlex]
 		unsigned finalsave :1; //Signals whether the final save for the char was done or not yet. Meant to prevent exploits and the like. [Skotlex]
+		unsigned using_fake_npc :1;
 		unsigned rewarp :1; //Signals that a player should warp as soon as he is done loading a map. [Skotlex]
 		unsigned killer : 1;
 		unsigned killable : 1;
@@ -615,13 +616,11 @@ struct map_session_data {
 	unsigned int client_tick;
 	int npc_id,areanpc_id,npc_shopid;
 	int npc_item_flag; //Marks the npc_id with which you can use items during interactions with said npc (see script command enable_itemuse)
-	int npc_pos;
 	int npc_menu;
 	int npc_amount;
-	struct script_stack *stack;
-	unsigned char *npc_script,*npc_scriptroot;
-	int  npc_scriptstate;
+	struct script_state *st;
 	char npc_str[256];
+	int npc_timer_id; //For player attached npc timers. [Skotlex]
 	unsigned int chatID;
 	time_t idletime;
 
@@ -858,13 +857,14 @@ struct npc_data {
 	short arenaflag;
 
 	void *chatdb;
+	struct npc_data *master_nd;
 
 	union {
 		struct {
-			unsigned char *script;
+			struct script_code *script;
 			short xs,ys;
 			int guild_id;
-			int timer,timerid,timeramount,nexttimer,rid;
+			int timer,timerid,timeramount,rid;
 			unsigned int timertick;
 			struct npc_timerevent_list *timer_event;
 			int label_list_num;
@@ -1399,6 +1399,7 @@ extern char *GRF_PATH_FILENAME;
 
 
 extern int charsave_method; //needed ..
+extern char *map_server_dns;
 
 #ifndef TXT_ONLY
 

@@ -34,7 +34,7 @@ int chat_createchat(struct map_session_data *sd,int limit,int pub,char* pass,cha
 		return 0; //Can't create chatrooms on this map.
 	}
 	pc_stop_walking(sd,1);
-	cd = (struct chat_data *) aCalloc(1,sizeof(struct chat_data));
+	cd = (struct chat_data *) aMalloc(sizeof(struct chat_data));
 
 	cd->limit = limit;
 	cd->pub = pub;
@@ -51,7 +51,7 @@ int chat_createchat(struct map_session_data *sd,int limit,int pub,char* pass,cha
 	cd->bl.x = sd->bl.x;
 	cd->bl.y = sd->bl.y;
 	cd->bl.type = BL_CHAT;
-
+	cd->bl.next = cd->bl.prev = NULL;
 	cd->bl.id = map_addobject(&cd->bl);	
 	if(cd->bl.id==0){
 		clif_createchat(sd,1);
@@ -272,7 +272,7 @@ int chat_createnpcchat(struct npc_data *nd,int limit,int pub,int trigger,char* t
 
 	nullpo_retr(1, nd);
 
-	cd = (struct chat_data *) aCalloc(1,sizeof(struct chat_data));
+	cd = (struct chat_data *) aMalloc(sizeof(struct chat_data));
 
 	cd->limit = cd->trigger = limit;
 	if(trigger>0)
@@ -288,6 +288,7 @@ int chat_createnpcchat(struct npc_data *nd,int limit,int pub,int trigger,char* t
 	cd->bl.x = nd->bl.x;
 	cd->bl.y = nd->bl.y;
 	cd->bl.type = BL_CHAT;
+	cd->bl.prev= cd->bl.next = NULL;
 	cd->owner_ = (struct block_list *)nd;
 	cd->owner = &cd->owner_;
 	if (strlen(ev) > 49)

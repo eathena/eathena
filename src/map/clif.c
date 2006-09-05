@@ -1821,12 +1821,37 @@ int clif_scriptclose(struct map_session_data *sd, int npcid) {
  *
  *------------------------------------------
  */
+void clif_sendfakenpc(struct map_session_data *sd, int npcid) {
+	int fd = sd->fd;
+	//sd->npc_id = npcid;
+	sd->state.using_fake_npc = 1;
+	memset(WFIFOP(fd,0), 0, packet_len_table[0x78]);
+	WFIFOW(fd,0)=0x78;
+	WFIFOL(fd,2)=npcid;
+	WFIFOW(fd,14)=111;
+	WFIFOPOS(fd,46,sd->bl.x,sd->bl.y);
+	WFIFOB(fd,49)=5;
+	WFIFOB(fd,50)=5;
+	WFIFOSET(fd, packet_len_table[0x78]);
+	return;
+}
+
+/*==========================================
+ *
+ *------------------------------------------
+ */
 int clif_scriptmenu(struct map_session_data *sd, int npcid, char *mes) {
 	int fd;
 	int slen = strlen(mes) + 8;
+	struct block_list *bl = NULL;
 	WFIFOHEAD(fd, slen);
 
 	nullpo_retr(0, sd);
+
+	if (!sd->state.using_fake_npc && (npcid == fake_nd->bl.id || ((bl = map_id2bl(npcid)) && (bl->m!=sd->bl.m ||
+	   bl->x<sd->bl.x-AREA_SIZE-1 || bl->x>sd->bl.x+AREA_SIZE+1 ||
+	   bl->y<sd->bl.y-AREA_SIZE-1 || bl->y>sd->bl.y+AREA_SIZE+1))))
+	   clif_sendfakenpc(sd, npcid);
 
 	fd=sd->fd;
 	WFIFOW(fd,0)=0xb7;
@@ -1844,8 +1869,14 @@ int clif_scriptmenu(struct map_session_data *sd, int npcid, char *mes) {
  */
 int clif_scriptinput(struct map_session_data *sd, int npcid) {
 	int fd;
+	struct block_list *bl = NULL;
 
 	nullpo_retr(0, sd);
+
+	if (!sd->state.using_fake_npc && (npcid == fake_nd->bl.id || ((bl = map_id2bl(npcid)) && (bl->m!=sd->bl.m ||
+	   bl->x<sd->bl.x-AREA_SIZE-1 || bl->x>sd->bl.x+AREA_SIZE+1 ||
+	   bl->y<sd->bl.y-AREA_SIZE-1 || bl->y>sd->bl.y+AREA_SIZE+1))))
+	   clif_sendfakenpc(sd, npcid);
 	
 	fd=sd->fd;
 	WFIFOHEAD(fd, packet_len_table[0x142]);
@@ -1862,8 +1893,14 @@ int clif_scriptinput(struct map_session_data *sd, int npcid) {
  */
 int clif_scriptinputstr(struct map_session_data *sd, int npcid) {
 	int fd;
+	struct block_list *bl = NULL;
 
 	nullpo_retr(0, sd);
+
+	if (!sd->state.using_fake_npc && (npcid == fake_nd->bl.id || ((bl = map_id2bl(npcid)) && (bl->m!=sd->bl.m ||
+	   bl->x<sd->bl.x-AREA_SIZE-1 || bl->x>sd->bl.x+AREA_SIZE+1 ||
+	   bl->y<sd->bl.y-AREA_SIZE-1 || bl->y>sd->bl.y+AREA_SIZE+1))))
+	   clif_sendfakenpc(sd, npcid);
 
 	fd=sd->fd;
 	WFIFOHEAD(fd, packet_len_table[0x1d4]);
@@ -4867,7 +4904,7 @@ void clif_MainChatMessage(char* message) {
 int clif_announce(struct block_list *bl, char* mes, int len, unsigned long color, int flag)
 {
 	unsigned char *buf;
-	buf = (unsigned char*)aCallocA(len + 16, sizeof(unsigned char));
+	buf = (unsigned char*)aMallocA((len + 16)*sizeof(unsigned char));
 	WBUFW(buf,0) = 0x1c3;
 	WBUFW(buf,2) = len + 16;
 	WBUFL(buf,4) = color;
@@ -6057,7 +6094,7 @@ int clif_sendegg(struct map_session_data *sd)
 	if(sd->status.pet_id <= 0) {
 		for(i=0,n=0;i<MAX_INVENTORY;i++){
 			if(sd->status.inventory[i].nameid<=0 || sd->inventory_data[i] == NULL ||
-			   sd->inventory_data[i]->type!=7 ||
+			   sd->inventory_data[i]->type!=IT_PETEGG ||
 			   sd->status.inventory[i].amount<=0)
 				continue;
 			WFIFOW(fd,n*2+4)=i+2;
@@ -6970,7 +7007,7 @@ int clif_guild_message(struct guild *g,int account_id,const char *mes,int len)
 	struct map_session_data *sd;
 	unsigned char *buf;
 
-	buf = (unsigned char*)aCallocA(len + 4, sizeof(unsigned char));
+	buf = (unsigned char*)aMallocA((len + 4)*sizeof(unsigned char));
 
 	WBUFW(buf, 0) = 0x17f;
 	WBUFW(buf, 2) = len + 4;
@@ -7983,6 +8020,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	// Show hp after displacement [LuzZza]
 	if(sd->status.party_id)
 	    clif_party_hp(sd);
+
+	sd->state.using_fake_npc = 0;
 
 	// pvp
 	//if(sd->pvp_timer!=-1 && !battle_config.pk_mode) /PVP Client crash fix* Removed timer deletion
@@ -11342,7 +11381,38 @@ int clif_parse(int fd) {
 		return 0; // まだ1パケット分データが揃ってない
 
 	#if DUMP_ALL_PACKETS
+	{
+		int i;
+		FILE *fp;
+		char packet_txt[256] = "save/packet.txt";
+		time_t now;
 		dump = 1;
+
+		if ((fp = fopen(packet_txt, "a")) == NULL) {
+			ShowError("clif.c: cant write [%s] !!! data is lost !!!\n", packet_txt);
+			return 1;
+		} else {
+			time(&now);
+			if (sd && sd->state.auth) {
+				if (sd->status.name != NULL)
+					fprintf(fp, "%sPlayer with account ID %d (character ID %d, player name %s) sent packet:\n",
+							  asctime(localtime(&now)), sd->status.account_id, sd->status.char_id, sd->status.name);
+				else
+					fprintf(fp, "%sPlayer with account ID %d sent wrong packet:\n", asctime(localtime(&now)), sd->bl.id);
+			} else if (sd) // not authentified! (refused by char-server or disconnect before to be authentified)
+				fprintf(fp, "%sPlayer with account ID %d sent wrong packet:\n", asctime(localtime(&now)), sd->bl.id);
+
+			fprintf(fp, "\tsession #%d, packet 0x%04x, length %d, version %d\n", fd, cmd, packet_len, packet_ver);
+			fprintf(fp, "\t---- 00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F");
+			for(i = 0; i < packet_len; i++) {
+				if ((i & 15) == 0)
+					fprintf(fp, "\n\t%04X ", i);
+				fprintf(fp, "%02X ", RFIFOB(fd,i));
+			}
+			fprintf(fp, "\n\n");
+			fclose(fp);
+		}
+	}
 	#endif
 
 	if (sd && sd->state.auth == 1 && sd->state.waitingdisconnect == 1) { // 切断待ちの場合パケットを処理しない

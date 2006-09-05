@@ -322,7 +322,9 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		//Now damage increasing effects
 		if(sc->data[SC_AETERNA].timer!=-1 && skill_num != PF_SOULBURN){
 			damage<<=1;
-			status_change_end( bl,SC_AETERNA,-1 );
+			//Shouldn't end until Breaker's non-weapon part connects.
+			if (skill_num != ASC_BREAKER || flag&BF_WEAPON)
+				status_change_end( bl,SC_AETERNA,-1 );
 		}
 
 		if(sc->data[SC_SPIDERWEB].timer!=-1)	// [Celest]
@@ -1566,13 +1568,13 @@ static struct Damage battle_calc_weapon_attack(
 			{	//Elemental/Racial adjustments
 				if(sd->right_weapon.def_ratio_atk_ele & (1<<tstatus->def_ele) ||
 					sd->right_weapon.def_ratio_atk_race & (1<<tstatus->race) ||
-					sd->right_weapon.def_ratio_atk_race & (is_boss(target)?1<<10:1<<11)
+					sd->right_weapon.def_ratio_atk_race & (1<<(is_boss(target)?RC_BOSS:RC_NONBOSS))
 				)
 					flag.pdef = 1;
 
 				if(sd->left_weapon.def_ratio_atk_ele & (1<<tstatus->def_ele) ||
 					sd->left_weapon.def_ratio_atk_race & (1<<tstatus->race) ||
-					sd->left_weapon.def_ratio_atk_race & (is_boss(target)?1<<10:1<<11)
+					sd->left_weapon.def_ratio_atk_race & (1<<(is_boss(target)?RC_BOSS:RC_NONBOSS))
 				) {	//Pass effect onto right hand if configured so. [Skotlex]
 					if (battle_config.left_cardfix_to_right && flag.rh)
 						flag.pdef = 1;
@@ -3339,6 +3341,7 @@ static const struct battle_data_short {
 	{ "atcommand_gm_only",                 &battle_config.atc_gmonly				},
 	{ "atcommand_spawn_quantity_limit",    &battle_config.atc_spawn_quantity_limit	},
 	{ "atcommand_slave_clone_limit",       &battle_config.atc_slave_clone_limit},
+	{ "partial_name_scan",                 &battle_config.partial_name_scan	},
 	{ "gm_all_skill",                      &battle_config.gm_allskill				},
 	{ "gm_all_skill_add_abra",	            &battle_config.gm_allskill_addabra		},
 	{ "gm_all_equipment",                  &battle_config.gm_allequip				},
@@ -3557,6 +3560,7 @@ static const struct battle_data_short {
 	{ "min_skill_delay_limit",             &battle_config.min_skill_delay_limit}, // [celest]
 	{ "default_skill_delay",               &battle_config.default_skill_delay}, // [Skotlex]
 	{ "no_skill_delay",                    &battle_config.no_skill_delay}, // [Skotlex]
+	{ "attack_walk_delay",                 &battle_config.attack_walk_delay }, // [Skotlex]
 	{ "require_glory_guild",               &battle_config.require_glory_guild}, // [celest]
 	{ "idle_no_share",                     &battle_config.idle_no_share}, // [celest], for a feature by [MouseJstr]
 	{ "party_even_share_bonus",            &battle_config.party_even_share_bonus}, 
@@ -3741,6 +3745,7 @@ void battle_set_defaults() {
 	battle_config.atc_gmonly=0;
 	battle_config.atc_spawn_quantity_limit=0;
 	battle_config.atc_slave_clone_limit=0;
+	battle_config.partial_name_scan=0;
 	battle_config.gm_allskill=0;
 	battle_config.gm_allequip=0;
 	battle_config.gm_skilluncond=0;
@@ -3985,6 +3990,7 @@ void battle_set_defaults() {
 	battle_config.min_skill_delay_limit = 100;
 	battle_config.default_skill_delay = 300; //Default skill delay according to official servers.
 	battle_config.no_skill_delay = BL_MOB;
+	battle_config.attack_walk_delay = 0;
 	battle_config.require_glory_guild = 0;
 	battle_config.idle_no_share = 0;
 	battle_config.party_even_share_bonus = 0;

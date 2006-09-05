@@ -17,6 +17,7 @@
 
 #ifdef PCRE_SUPPORT
 void npc_chat_finalize(struct npc_data *nd);
+int mob_chat_sub(struct block_list *bl, va_list ap);
 #endif
 
 //Script NPC events.
@@ -72,6 +73,7 @@ int npc_event_doall_id(const unsigned char *name, int id);
 
 int npc_timerevent_start(struct npc_data *nd, int rid);
 int npc_timerevent_stop(struct npc_data *nd);
+void npc_timerevent_quit(struct map_session_data *sd);
 int npc_gettimerevent_tick(struct npc_data *nd);
 int npc_settimerevent_tick(struct npc_data *nd,int newtimer);
 int npc_remove_map(struct npc_data *nd);
@@ -80,6 +82,8 @@ int npc_reload(void);
 int npc_script_event(TBL_PC* sd, int type);
 
 extern char *current_file;
+
+struct npc_data *fake_nd;
 
 #endif
 

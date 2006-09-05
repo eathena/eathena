@@ -944,35 +944,35 @@ static int itemdb_read_sqldb(void)
 					// ----------
 					
 					if (id->script)
-						aFree(id->script);
+						script_free_code(id->script);
 					if (sql_row[19] != NULL) {
 						if (sql_row[19][0] == '{')
-							id->script = parse_script((unsigned char *) sql_row[19], 0);
+							id->script = parse_script((unsigned char *) sql_row[19],item_db_name[i], 0);
 						else {
 							sprintf(script, "{%s}", sql_row[19]);
-							id->script = parse_script((unsigned char *) script, 0);
+							id->script = parse_script((unsigned char *) script, item_db_name[i], 0);
 						}
 					} else id->script = NULL;
 	
 					if (id->equip_script)
-						aFree(id->equip_script);
+						script_free_code(id->equip_script);
 					if (sql_row[20] != NULL) {
 						if (sql_row[20][0] == '{')
-							id->equip_script = parse_script((unsigned char *) sql_row[20], 0);
+							id->equip_script = parse_script((unsigned char *) sql_row[20], item_db_name[i], 0);
 						else {
 							sprintf(script, "{%s}", sql_row[20]);
-							id->equip_script = parse_script((unsigned char *) script, 0);
+							id->equip_script = parse_script((unsigned char *) script, item_db_name[i], 0);
 						}
 					} else id->equip_script = NULL;
 	
 					if (id->unequip_script)
-						aFree(id->unequip_script);
+						script_free_code(id->unequip_script);
 					if (sql_row[21] != NULL) {
 						if (sql_row[21][0] == '{')
-							id->unequip_script = parse_script((unsigned char *) sql_row[21], 0);
+							id->unequip_script = parse_script((unsigned char *) sql_row[21],item_db_name[i], 0);
 						else {
 							sprintf(script, "{%s}", sql_row[21]);
-							id->unequip_script = parse_script((unsigned char *) script, 0);
+							id->unequip_script = parse_script((unsigned char *) script, item_db_name[i], 0);
 						}
 					} else id->unequip_script = NULL;
 				
@@ -1117,15 +1117,15 @@ static int itemdb_readdb(void)
 			id->sex = itemdb_gendercheck(id); //Apply gender filtering.
 
 			if (id->script) {
-				aFree(id->script);
+				script_free_code(id->script);
 				id->script=NULL;
 			}
 			if (id->equip_script) {
-				aFree(id->equip_script);
+				script_free_code(id->equip_script);
 				id->equip_script=NULL;
 			}
 			if (id->unequip_script) {
-				aFree(id->unequip_script);
+				script_free_code(id->unequip_script);
 				id->unequip_script=NULL;
 			}
 
@@ -1139,11 +1139,11 @@ static int itemdb_readdb(void)
 				np = strchr(np+1,'}'); //Jump close brackets until the next field is found.
 			if (!np || !np[1]) {
 				//Couldn't find the end of the script field.
-				id->script = parse_script((unsigned char *) str[19],lines);
+				id->script = parse_script((unsigned char *) str[19],filename[i],lines);
 				continue;
 			}
 			np[1] = '\0'; //Set end of script
-			id->script = parse_script((unsigned char *) str[19],lines);
+			id->script = parse_script((unsigned char *) str[19],filename[i],lines);
 			np+=2; //Skip to next field
 			
 			if(!np || (p=strchr(np,'{'))==NULL)
@@ -1156,18 +1156,18 @@ static int itemdb_readdb(void)
 				np = strchr(np+1,'}'); //Jump close brackets until the next field is found.
 			if (!np || !np[1]) {
 				//Couldn't find the end of the script field.
-				id->equip_script = parse_script((unsigned char *) str[20],lines);
+				id->equip_script = parse_script((unsigned char *) str[20],filename[i],lines);
 				continue;
 			}
 			
 			np[1] = '\0'; //Set end of script
-			id->equip_script = parse_script((unsigned char *) str[20],lines);
+			id->equip_script = parse_script((unsigned char *) str[20],filename[i],lines);
 			np+=2; //Skip comma, to next field
 			
 			if(!np || (p=strchr(np,'{'))==NULL)
 				continue;
 			//Unequip script, last column.
-			id->unequip_script = parse_script((unsigned char *) p,lines);
+			id->unequip_script = parse_script((unsigned char *) p,filename[i],lines);
 		}
 		fclose(fp);
 		if (ln > 0) {
@@ -1217,17 +1217,17 @@ static int itemdb_final_sub (DBKey key,void *data,va_list ap)
 	flag = va_arg(ap, int);
 	if (id->script)
 	{
-		aFree(id->script);
+		script_free_code(id->script);
 		id->script = NULL;
 	}
 	if (id->equip_script)
 	{
-		aFree(id->equip_script);
+		script_free_code(id->equip_script);
 		id->equip_script = NULL;
 	}
 	if (id->unequip_script)
 	{
-		aFree(id->unequip_script);
+		script_free_code(id->unequip_script);
 		id->unequip_script = NULL;
 	}
 	// Whether to clear the item data (exception: do not clear the dummy item data
@@ -1247,15 +1247,15 @@ void do_final_itemdb(void)
 {
 	item_db->destroy(item_db, itemdb_final_sub, 1);
 	if (dummy_item.script) {
-		aFree(dummy_item.script);
+		script_free_code(dummy_item.script);
 		dummy_item.script = NULL;
 	}
 	if (dummy_item.equip_script) {
-		aFree(dummy_item.equip_script);
+		script_free_code(dummy_item.equip_script);
 		dummy_item.equip_script = NULL;
 	}
 	if (dummy_item.unequip_script) {
-		aFree(dummy_item.unequip_script);
+		script_free_code(dummy_item.unequip_script);
 		dummy_item.unequip_script = NULL;
 	}
 }

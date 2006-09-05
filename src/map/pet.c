@@ -1341,7 +1341,7 @@ int read_petdb()
 			pet_db[j].script = NULL;
 			if((np=strchr(p,'{'))==NULL)
 				continue;
-			pet_db[j].script = parse_script((unsigned char *) np,lines);
+			pet_db[j].script = parse_script((unsigned char *) np, filename[i], lines);
 			j++;
 		}
 		if (j >= MAX_PET_DB)
@@ -1380,7 +1380,7 @@ int do_final_pet(void) {
 	int i;
 	for(i = 0;i < MAX_PET_DB; i++) {
 		if(pet_db[i].script) {
-			aFree(pet_db[i].script);
+			script_free_code(pet_db[i].script);
 			pet_db[i].script = NULL;
 		}
 	}

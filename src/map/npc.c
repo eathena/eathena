@@ -14,6 +14,8 @@
 #include "../common/malloc.h"
 #include "../common/grfio.h"
 #include "../common/showmsg.h"
+#include "../common/ers.h"
+#include "../common/db.h"
 #include "map.h"
 #include "log.h"
 #include "npc.h"
@@ -61,6 +63,7 @@ struct event_data {
 };
 static struct tm ev_tm_b;	// 時計イベント用
 
+static struct eri *timer_event_ers; //For the npc timer data. [Skotlex]
 
 //For holding the view data of npc classes. [Skotlex]
 static struct view_data npc_viewdb[MAX_NPC_CLASS];
@@ -295,7 +298,7 @@ int npc_event_export(char *lname,void *data,va_list ap)
 		unsigned char buf[51];
 		char *p=strchr(lname,':');
 		// エクスポートされる
-		ev=(struct event_data *) aCalloc(sizeof(struct event_data), 1);
+		ev=(struct event_data *) aMalloc(sizeof(struct event_data));
 		if (ev==NULL) {
 			ShowFatalError("npc_event_export: out of memory !\n");
 			exit(1);
@@ -314,6 +317,7 @@ int npc_event_export(char *lname,void *data,va_list ap)
 	return 0;
 }
 
+int npc_event_sub(struct map_session_data *, struct event_data *, const unsigned char *); //[Lance]
 /*==========================================
  * 全てのNPCのOn*イベント実行
  *------------------------------------------
@@ -332,7 +336,10 @@ int npc_event_doall_sub(DBKey key,void *data,va_list ap)
 	rid=va_arg(ap, int);
 
 	if( (p=strchr(p,':')) && p && strcmpi(name,p)==0 ){
-		run_script(ev->nd->u.scr.script,ev->pos,rid,ev->nd->bl.id);
+		if(rid)
+			npc_event_sub(((struct map_session_data *)map_id2bl(rid)),ev,key.str);
+		else
+			run_script(ev->nd->u.scr.script,ev->pos,rid,ev->nd->bl.id);
 		(*c)++;
 	}
 
@@ -455,15 +462,23 @@ int npc_event_do_oninit(void)
 int npc_addeventtimer(struct npc_data *nd,int tick,const char *name)
 {
 	int i;
+	unsigned char *evname;
+	
 	for(i=0;i<MAX_EVENTTIMER;i++)
 		if( nd->eventtimer[i]==-1 )
 			break;
 	if(i<MAX_EVENTTIMER){
-		unsigned char *evname=(unsigned char *) aCallocA(NAME_LENGTH, sizeof(char));
+		if (!strdb_get(ev_db,(unsigned char*)name)) {
+			if (battle_config.error_log)
+				ShowError("npc_addeventimer: Event %s does not exists.\n", name);
+			return 1; //Event does not exists!
+		}
+		evname =(unsigned char *) aMallocA(NAME_LENGTH*sizeof(char));
 		if(evname==NULL){
 			ShowFatalError("npc_addeventtimer: out of memory !\n");exit(1);
 		}
 		memcpy(evname,name,NAME_LENGTH-1);
+		evname[NAME_LENGTH-1] = '\0';
 		nd->eventtimer[i]=add_timer(gettick()+tick,
 			npc_event_timer,nd->bl.id,(int)evname);
 	}else
@@ -563,31 +578,72 @@ int npc_timerevent_import(char *lname,void *data,va_list ap)
 	}
 	return 0;
 }
+struct timer_event_data {
+	int rid; //Attached player for this timer.
+	int next; //timer index (starts with 0, then goes up to nd->u.scr.timeramount
+	int time; //holds total time elapsed for the script since time 0 (whenthe timers started)
+	unsigned int otick; //Holds tick value at which timer sequence was started (that is, it stores the tick value for which T= 0
+};
+
 /*==========================================
  * タイマーイベント実行
  *------------------------------------------
  */
 int npc_timerevent(int tid,unsigned int tick,int id,int data)
 {
-	int next,t;
+	int next,t,old_rid,old_timer;
+	unsigned int old_tick;
 	struct npc_data* nd=(struct npc_data *)map_id2bl(id);
 	struct npc_timerevent_list *te;
-	if( nd==NULL || nd->u.scr.nexttimer<0 ){
-		ShowError("npc_timerevent: ??\n");
+	struct timer_event_data *ted = (struct timer_event_data*)data;
+	struct map_session_data *sd=NULL;
+	
+	if( nd==NULL ){
+		ShowError("npc_timerevent: NPC not found??\n");
 		return 0;
 	}
-	nd->u.scr.timertick=tick;
-	te=nd->u.scr.timer_event+ nd->u.scr.nexttimer;
-	nd->u.scr.timerid = -1;
-
-	t = nd->u.scr.timer+=data;
-	nd->u.scr.nexttimer++;
-	if( nd->u.scr.timeramount>nd->u.scr.nexttimer ){
-		next= nd->u.scr.timer_event[ nd->u.scr.nexttimer ].timer - t;
-		nd->u.scr.timerid = add_timer(tick+next,npc_timerevent,id,next);
+	if (ted->rid) {
+		sd = map_id2sd(ted->rid);
+		if (!sd) {
+			if(battle_config.error_log)
+				ShowError("npc_timerevent: Attached player not found.\n");
+			ers_free(timer_event_ers, ted);
+			return 0;
+		}
 	}
-
+	old_rid = nd->u.scr.rid; //To restore it later.
+	nd->u.scr.rid = sd?sd->bl.id:0;
+	
+	old_tick = nd->u.scr.timertick;
+	nd->u.scr.timertick=ted->otick;
+	te=nd->u.scr.timer_event+ ted->next;
+	
+	old_timer = nd->u.scr.timer;
+	t = nd->u.scr.timer=ted->time;
+	ted->next++;
+	
+	if( nd->u.scr.timeramount> ted->next){
+		next= nd->u.scr.timer_event[ ted->next ].timer
+			- nd->u.scr.timer_event[ ted->next-1 ].timer;
+		ted->time+=next;
+		if (sd)
+			sd->npc_timer_id = add_timer(tick+next,npc_timerevent,id,(int)ted);
+		else
+			nd->u.scr.timerid = add_timer(tick+next,npc_timerevent,id,(int)ted);
+	} else {
+		if (sd)
+			sd->npc_timer_id = -1;
+		else
+			nd->u.scr.timerid = -1;
+		ers_free(timer_event_ers, ted);
+	}
 	run_script(nd->u.scr.script,te->pos,nd->u.scr.rid,nd->bl.id);
+	//Restore previous data, only if this timer is a player-attached one.
+	if (sd) {
+		nd->u.scr.rid = old_rid;
+		nd->u.scr.timer = old_timer;
+		nd->u.scr.timertick = old_tick;
+	}
 	return 0;
 }
 /*==========================================
@@ -597,11 +653,13 @@ int npc_timerevent(int tid,unsigned int tick,int id,int data)
 int npc_timerevent_start(struct npc_data *nd, int rid)
 {
 	int j,n, next;
-
+	struct map_session_data *sd=NULL; //Player to whom script is attached.
+	struct timer_event_data *ted;
+		
 	nullpo_retr(0, nd);
 
 	n=nd->u.scr.timeramount;
-	if( nd->u.scr.nexttimer>=0 || n==0 )
+	if( n==0 )
 		return 0;
 
 	for(j=0;j<n;j++){
@@ -610,14 +668,39 @@ int npc_timerevent_start(struct npc_data *nd, int rid)
 	}
 	if(j>=n) // check if there is a timer to use !!BEFORE!! you write stuff to the structures [Shinomori]
 		return 0;
+	if (nd->u.scr.rid > 0) {
+		//Try to attach timer to this player.
+		sd = map_id2sd(nd->u.scr.rid);
+		if (!sd) {
+			if(battle_config.error_log)
+				ShowError("npc_timerevent_start: Attached player not found!\n");
+			return 1;
+		}
+	}
+	//Check if timer is already started.
+	if (sd) {
+		if (sd->npc_timer_id != -1)
+			return 0;
+	} else if (nd->u.scr.timerid != -1)
+		return 0;
+		
+	ted = ers_alloc(timer_event_ers, struct timer_event_data);
+	ted->next = j;
+	nd->u.scr.timertick=ted->otick=gettick();
 
-	nd->u.scr.nexttimer=j;
-	nd->u.scr.timertick=gettick();
-	if (rid >= 0) nd->u.scr.rid=rid;	// changed to: attaching to given rid by default [Shinomori]
+	//Attach only the player if attachplayerrid was used.
+	ted->rid = sd?sd->bl.id:0;
+
+// Do not store it to make way to two types of timers: globals and personals.	
+//	if (rid >= 0) nd->u.scr.rid=rid;	// changed to: attaching to given rid by default [Shinomori]
 	// if rid is less than 0 leave it unchanged [celest]
 
 	next = nd->u.scr.timer_event[j].timer - nd->u.scr.timer;
-	nd->u.scr.timerid = add_timer(gettick()+next,npc_timerevent,nd->bl.id,next);
+	ted->time = nd->u.scr.timer_event[j].timer;
+	if (sd)
+		sd->npc_timer_id = add_timer(gettick()+next,npc_timerevent,nd->bl.id,(int)ted);
+	else
+		nd->u.scr.timerid = add_timer(gettick()+next,npc_timerevent,nd->bl.id,(int)ted);
 	return 0;
 }
 /*==========================================
@@ -626,18 +709,51 @@ int npc_timerevent_start(struct npc_data *nd, int rid)
  */
 int npc_timerevent_stop(struct npc_data *nd)
 {
+	struct map_session_data *sd =NULL;
+	struct TimerData *td = NULL;
+	int *tid;
 	nullpo_retr(0, nd);
-
-	if( nd->u.scr.nexttimer>=0 ){
-		nd->u.scr.nexttimer = -1;
-		nd->u.scr.timer += (int)(gettick() - nd->u.scr.timertick);
-		if(nd->u.scr.timerid!=-1)
-			delete_timer(nd->u.scr.timerid,npc_timerevent);
-		nd->u.scr.timerid = -1;
-		nd->u.scr.rid = 0;
+	if (nd->u.scr.rid) {
+		sd = map_id2sd(nd->u.scr.rid);
+		if (!sd) {
+			if(battle_config.error_log)
+				ShowError("npc_timerevent_stop: Attached player not found!\n");
+			return 1;
+		}
 	}
+	
+	tid = sd?&sd->npc_timer_id:&nd->u.scr.timerid;
+	
+	if (*tid == -1) //Nothing to stop
+		return 0;
+	td = get_timer(*tid);
+	if (td && td->data) 
+		ers_free(timer_event_ers, (struct event_timer_data*)td->data);
+	delete_timer(*tid,npc_timerevent);
+	*tid = -1;
+	//Set the timer tick to the time that has passed since the beginning of the timers and now.
+	nd->u.scr.timer = DIFF_TICK(gettick(),nd->u.scr.timertick);
+//	nd->u.scr.rid = 0; //Eh? why detach?
 	return 0;
 }
+/*==========================================
+ * Aborts a running npc timer that is attached to a player.
+ *------------------------------------------
+ */
+void npc_timerevent_quit(struct map_session_data *sd) {
+	struct TimerData *td;
+	if (sd->npc_timer_id == -1)
+		return;
+	td = get_timer(sd->npc_timer_id);
+	if (!td) {
+		sd->npc_timer_id = -1;
+		return; //??
+	}
+	delete_timer(sd->npc_timer_id,npc_timerevent);
+	sd->npc_timer_id = -1;
+	ers_free(timer_event_ers, (struct event_timer_data*)td->data);
+}
+
 /*==========================================
  * タイマー値の所得
  *------------------------------------------
@@ -645,7 +761,6 @@ int npc_timerevent_stop(struct npc_data *nd)
 int npc_gettimerevent_tick(struct npc_data *nd)
 {
 	int tick;
-
 	nullpo_retr(0, nd);
 
 	tick=nd->u.scr.timer;
@@ -660,14 +775,25 @@ int npc_gettimerevent_tick(struct npc_data *nd)
 int npc_settimerevent_tick(struct npc_data *nd,int newtimer)
 {
 	int flag;
+	struct map_session_data *sd=NULL;
 
 	nullpo_retr(0, nd);
 
-	flag= nd->u.scr.nexttimer;
+	if (nd->u.scr.rid) {
+		sd = map_id2sd(nd->u.scr.rid);
+		if (!sd) {
+			if(battle_config.error_log)
+				ShowError("npc_settimerevent_tick: Attached player not found!\n");
+			return 1;
+		}
+		flag= sd->npc_timer_id != -1 ;
+	} else
+		flag= nd->u.scr.timerid != -1 ;
 
-	npc_timerevent_stop(nd);
+	if(flag)
+		npc_timerevent_stop(nd);
 	nd->u.scr.timer=newtimer;
-	if(flag>=0)
+	if(flag)
 		npc_timerevent_start(nd, -1);
 	return 0;
 }
@@ -696,8 +822,7 @@ int npc_event_sub(struct map_session_data *sd, struct event_data *ev, const unsi
 		return 0;
 	}
 
-	sd->npc_id=ev->nd->bl.id;
-	sd->npc_pos=run_script(ev->nd->u.scr.script,ev->pos,sd->bl.id,ev->nd->bl.id);
+	run_script(ev->nd->u.scr.script,ev->pos,sd->bl.id,ev->nd->bl.id);
 	return 0;
 }
 
@@ -893,6 +1018,8 @@ int npc_checknear2(struct map_session_data *sd,struct block_list *bl)
 	nullpo_retr(1, sd);
 	if(bl == NULL) return 1;
 	
+	if(sd->state.using_fake_npc && sd->npc_id == bl->id)
+		return 0;
 
 	if (status_get_class(bl)<0) //Class-less npc, enable click from anywhere.
 		return 0;
@@ -914,6 +1041,8 @@ TBL_NPC *npc_checknear(struct map_session_data *sd,struct block_list *bl)
 	if(bl->type != BL_NPC) return NULL;
 	nd = (TBL_NPC*)bl;
 
+	if(sd->state.using_fake_npc && sd->npc_id == bl->id)
+		return nd;
 
 	if (nd->class_<0) //Class-less npc, enable click from anywhere.
 		return nd;
@@ -965,14 +1094,13 @@ int npc_click(struct map_session_data *sd,struct npc_data *nd)
 	if (nd->class_ < 0 || nd->sc.option&OPTION_INVISIBLE)
 		return 1;
 
-	sd->npc_id=nd->bl.id;
 	switch(nd->bl.subtype) {
 	case SHOP:
 		clif_npcbuysell(sd,nd->bl.id);
 		npc_event_dequeue(sd);
 		break;
 	case SCRIPT:
-		sd->npc_pos=run_script(nd->u.scr.script,0,sd->bl.id,nd->bl.id);
+		run_script(nd->u.scr.script,0,sd->bl.id,nd->bl.id);
 		break;
 	}
 
@@ -985,22 +1113,20 @@ int npc_click(struct map_session_data *sd,struct npc_data *nd)
  */
 int npc_scriptcont(struct map_session_data *sd,int id)
 {
-	struct npc_data *nd;
-
 	nullpo_retr(1, sd);
 
 	if (id!=sd->npc_id){
 		ShowWarning("npc_scriptcont: sd->npc_id (%d) is not id (%d).\n", sd->npc_id, id);
 		return 1;
 	}
-	if (npc_checknear(sd,map_id2bl(id))==NULL){
-		ShowWarning("npc_scriptcont: failed npc_checknear test.\n");
-		return 1;
+	
+	if(id != fake_nd->bl.id) { // Not item script
+		if ((npc_checknear(sd,map_id2bl(id))) == NULL){
+			ShowWarning("npc_scriptcont: failed npc_checknear test.\n");
+			return 1;
+		}
 	}
-
-	nd=(struct npc_data *)map_id2bl(id);
-
-	sd->npc_pos=run_script(nd->u.scr.script,sd->npc_pos,sd->bl.id,id);
+	run_script_main(sd->st);
 
 	return 0;
 }
@@ -1037,6 +1163,24 @@ int npc_buysellsel(struct map_session_data *sd,int id,int type)
 	return 0;
 }
 
+//npc_buylist for script-controlled shops.
+static int npc_buylist_sub(
+	struct map_session_data *sd,int n,
+	unsigned short *item_list, struct npc_data *nd)
+{
+	unsigned char npc_ev[51];
+	int i;
+	int regkey = add_str("@bought_nameid");
+	int regkey2 = add_str("@bought_quantity");
+	sprintf(npc_ev, "%s::OnBuyItem", nd->exname);
+	for(i=0;i<n;i++){
+		pc_setreg(sd,regkey+(i<<24),(int)item_list[i*2+1]);
+		pc_setreg(sd,regkey2+(i<<24),(int)item_list[i*2]);
+	}
+	npc_event(sd, npc_ev, 0);
+	return 0;
+}
+
 /*==========================================
  *
  *------------------------------------------
@@ -1052,6 +1196,9 @@ int npc_buylist(struct map_session_data *sd,int n,unsigned short *item_list)
 
 	if ((nd = npc_checknear(sd,map_id2bl(sd->npc_shopid))) == NULL)
 		return 3;
+
+	if (nd->master_nd) //Script-based shops.
+		return npc_buylist_sub(sd,n,item_list,nd->master_nd);
 
 	if (nd->bl.subtype!=SHOP)
 		return 3;
@@ -1139,12 +1286,14 @@ int npc_selllist(struct map_session_data *sd,int n,unsigned short *item_list)
 {
 	double z;
 	int i,skill,itemamount=0;
+	struct npc_data *nd;
 	
 	nullpo_retr(1, sd);
 	nullpo_retr(1, item_list);
 
-	if (npc_checknear(sd,map_id2bl(sd->npc_shopid)) == NULL)
+	if ((nd = npc_checknear(sd,map_id2bl(sd->npc_shopid))) == NULL)
 		return 1;
+	nd = nd->master_nd; //For OnSell triggers.
 
 	for(i=0,z=0;i<n;i++) {
 		int nameid, idx, qty;
@@ -1173,6 +1322,10 @@ int npc_selllist(struct map_session_data *sd,int n,unsigned short *item_list)
 		if(log_config.enable_logs&0x20) //Logs items, Sold to NPC (S)hop [Lupus]
 			log_pick(sd, "S", 0, nameid, -qty, &sd->status.inventory[idx]);
 
+		if(nd) {
+			pc_setreg(sd,add_str("@sold_nameid")+(i<<24),(int)sd->status.inventory[idx].nameid);
+			pc_setreg(sd,add_str("@sold_quantity")+(i<<24),qty);
+		}
 		itemamount+=qty;
 		pc_delitem(sd,idx,qty,0);
 	}
@@ -1195,6 +1348,12 @@ int npc_selllist(struct map_session_data *sd,int n,unsigned short *item_list)
 		}
 	}
 		
+	if(nd) {
+		unsigned char npc_ev[51];
+	  	sprintf(npc_ev, "%s::OnSellItem", nd->exname);
+		npc_event(sd, npc_ev, 0);
+	}
+	
 	if (i<n) {
 		//Error/Exploit... of some sort. If we return 1, the client will not mark
 		//any item as deleted even though a few were sold. In such a case, we
@@ -1278,7 +1437,7 @@ int npc_unload (struct npc_data *nd)
 			aFree(nd->u.scr.timer_event);
 		if (nd->u.scr.src_id == 0) {
 			if(nd->u.scr.script) {
-				aFree(nd->u.scr.script);
+				script_free_code(nd->u.scr.script);
 				nd->u.scr.script = NULL;
 			}
 			if (nd->u.scr.label_list) {
@@ -1334,7 +1493,7 @@ void npc_addsrcfile (char *name)
 		nsl = nsl->next;
 	}
 
-	nsl = (struct npc_src_list *) aCalloc (1, sizeof(*nsl) + strlen(name));
+	nsl = (struct npc_src_list *) aMalloc (sizeof(*nsl) + strlen(name));
 	nsl->next = NULL;
 	strncpy(nsl->name, name, strlen(name) + 1);
 	if (npc_src_first == NULL)
@@ -1641,7 +1800,7 @@ static int npc_skip_script (char *w1,char *w2,char *w3,char *w4,char *first_line
 	unsigned char line[1024];
 	int curly_count = 0;
 	
-	srcbuf = (unsigned char *)aCallocA(srcsize, sizeof(char));
+	srcbuf = (unsigned char *)aMallocA(srcsize*sizeof(char));
 	if (strchr(first_line, '{')) {
 		strcpy((char *)srcbuf, strchr(first_line, '{'));
 		startline = *lines;
@@ -1673,16 +1832,17 @@ static int npc_skip_script (char *w1,char *w2,char *w3,char *w4,char *first_line
 	return 0;
 }
 
-static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_line,FILE *fp,int *lines)
+static int npc_parse_script(char *w1,char *w2,char *w3,char *w4,char *first_line,FILE *fp,int *lines,const char* file)
 {
 	int x, y, dir = 0, m, xs = 0, ys = 0, class_ = 0;	// [Valaris] thanks to fov
 	char mapname[MAP_NAME_LENGTH];
-	unsigned char *srcbuf = NULL, *script;
+	unsigned char *srcbuf = NULL;
+	struct script_code *script;
 	int srcsize = 65536;
 	int startline = 0;
 	unsigned char line[1024];
 	int i;
-	struct npc_data *nd;
+	struct npc_data *nd, *dnd;
 	struct dbt *label_db;
 	char *p;
 	struct npc_label_list *label_dup = NULL;
@@ -1695,7 +1855,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 		// 引数の個数チェック
 		if (sscanf(w1, "%15[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4 ||
 			(strcmp(w2, "script") == 0 && strchr(w4,',') == NULL)) {
-			ShowError("bad script line (in file %s): %s\n", current_file, w3);
+			ShowError("bad script line (in file %s): %s\n", file, w3);
 			return 1;
 		}
 		m = map_mapname2mapid(mapname);
@@ -1704,7 +1864,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 	if (strcmp(w2, "script") == 0){
 		// parsing script with curly
 		int curly_count = 0;
-		srcbuf = (unsigned char *)aCallocA(srcsize, sizeof(char));
+		srcbuf = (unsigned char *)aMallocA(srcsize*sizeof(char));
 		if (strchr(first_line, '{')) {
 			strcpy((char *)srcbuf, strchr(first_line, '{'));
 			startline = *lines;
@@ -1731,11 +1891,11 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 				strcat((char *) srcbuf, (const char *) line);
 		}
 		if(curly_count > 0) {
-			ShowError("Missing right curly at file %s, line %d\n",current_file, *lines);
+			ShowError("Missing right curly at file %s, line %d\n",file, *lines);
 			script = NULL;
 		} else {
 			// printf("Ok line %d\n",*lines);
-			script = (unsigned char *) parse_script((unsigned char *) srcbuf, startline);
+			script = parse_script((unsigned char *) srcbuf, file, startline);
 		}
 		if (script == NULL) {
 			// script parse error?
@@ -1745,19 +1905,19 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 	} else {
 		// duplicateする
 		char srcname[128];
-		struct npc_data *nd2;
+		struct npc_data *dnd;
 		if (sscanf(w2, "duplicate(%[^)])", srcname) != 1) {
-			ShowError("bad duplicate name (in %s)! : %s", current_file, w2);
+			ShowError("bad duplicate name (in %s)! : %s", file, w2);
 			return 0;
 		}
-		if ((nd2 = npc_name2id(srcname)) == NULL) {
-			ShowError("bad duplicate name (in %s)! (not exist) : %s\n", current_file, srcname);
+		if ((dnd = npc_name2id(srcname)) == NULL) {
+			ShowError("bad duplicate name (in %s)! (not exist) : %s\n", file, srcname);
 			return 0;
 		}
-		script = (unsigned char *)nd2->u.scr.script;
-		label_dup = nd2->u.scr.label_list;
-		label_dupnum = nd2->u.scr.label_list_num;
-		src_id = nd2->bl.id;
+		script = dnd->u.scr.script;
+		label_dup = dnd->u.scr.label_list;
+		label_dupnum = dnd->u.scr.label_list_num;
+		src_id = dnd->bl.id;
 
 	}// end of スクリプト解析
 
@@ -1798,6 +1958,12 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 	} else {
 		memcpy(nd->name, w3, NAME_LENGTH-1);
 		memcpy(nd->exname, w3, NAME_LENGTH-1);
+	}
+
+	if((dnd = npc_name2id(nd->exname))){
+		if(battle_config.etc_log)
+			ShowInfo("npc_parse_script: Overriding NPC '%s::%s' to '%s::%d'.. in file '%s' (Duplicated System Name - Lazy scripters >_>) \n",nd->name,nd->exname,nd->name,npc_script,file);
+		sprintf(nd->exname, "%d", npc_script);
 	}
 
 	nd->bl.prev = nd->bl.next = NULL;
@@ -1868,7 +2034,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 			// and already overwritten if this is here is reached
 			// I leave the check anyway but place it correctly to npc_convertlabel_db
 			if (strlen(lname)>NAME_LENGTH-1) {
-				ShowError("npc_parse_script: label name longer than %d chars! '%s' (%s)\n", NAME_LENGTH-1, lname, current_file);
+				ShowError("npc_parse_script: label name longer than %d chars! '%s' (%s)\n", NAME_LENGTH-1, lname, file);
 				exit(1);
 			} else {
 				struct event_data *ev;
@@ -1878,11 +2044,11 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 
 				// remember the label is max 50 chars + eos; see the strdb_init below
 				// generate the data and insert it
-				ev=(struct event_data *)aCalloc(1,sizeof(struct event_data));
+				ev=(struct event_data *)aMalloc(sizeof(struct event_data));
 				ev->nd=nd;
 				ev->pos=pos;
 				if (strdb_put(ev_db,buf,ev) != NULL) //There was already another event of the same name?
-					ShowWarning("npc_parse_script : duplicate event %s (%s)\n",buf, current_file);
+					ShowWarning("npc_parse_script : duplicate event %s (%s)\n",buf, file);
 			}
 		}
 	}
@@ -1898,7 +2064,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 			struct npc_timerevent_list *te = nd->u.scr.timer_event;
 			int j, k = nd->u.scr.timeramount;
 			if (te == NULL)
-				te = (struct npc_timerevent_list *)aCallocA(1,sizeof(struct npc_timerevent_list));
+				te = (struct npc_timerevent_list *)aMallocA(sizeof(struct npc_timerevent_list));
 			else
 				te = (struct npc_timerevent_list *)aRealloc( te, sizeof(struct npc_timerevent_list) * (k+1) );
 			for (j = 0; j < k; j++){
@@ -1913,7 +2079,6 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 			nd->u.scr.timeramount++;
 		}
 	}
-	nd->u.scr.nexttimer = -1;
 	nd->u.scr.timerid = -1;
 
 	return 0;
@@ -1923,9 +2088,10 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
  * function行解析
  *------------------------------------------
  */
-static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *first_line, FILE *fp, int *lines)
+static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *first_line, FILE *fp, int *lines,const char* file)
 {
-	unsigned char *srcbuf, *script, *p;
+	unsigned char *srcbuf, *p;
+	struct script_code *script;
 	int srcsize = 65536;
 	int startline = 0;
 	char line[1024];
@@ -1933,7 +2099,7 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 	struct dbt *user_db;
 	
 	// スクリプトの解析
-	srcbuf = (unsigned char *) aCallocA (srcsize, sizeof(char));
+	srcbuf = (unsigned char *) aMallocA (srcsize*sizeof(char));
 	if (strchr(first_line,'{')) {
 		strcpy(srcbuf, strchr(first_line,'{'));
 		startline = *lines;
@@ -1961,10 +2127,10 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 			strcat(srcbuf,line);
 	}
 	if(curly_count > 0) {
-		ShowError("Missing right curly at file %s, line %d\n",current_file, *lines);
+		ShowError("Missing right curly at file %s, line %d\n",file, *lines);
 		script = NULL;
 	} else {
-		script = parse_script(srcbuf, startline);
+		script = parse_script(srcbuf, file, startline);
 	}
 	if (script == NULL) {
 		// script parse error?
@@ -1972,15 +2138,15 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 		return 1;
 	}
 
-	p = (char *) aCallocA (50, sizeof(char));
+	p = (char *) aMallocA (50*sizeof(char));
 	strncpy(p, w3, 50);
 
 	user_db = script_get_userfunc_db();
 	if(strdb_get(user_db, p) != NULL) {
 		printf("\r"); //Carriage return to clear the 'loading..' line. [Skotlex]
-		ShowWarning("parse_function: Duplicate user function [%s] (%s:%d)\n", p, current_file, *lines);
+		ShowWarning("parse_function: Duplicate user function [%s] (%s:%d)\n", p, file, *lines);
 		aFree(p);
-		aFree(script);
+		script_free_code(script);
 	} else
 		strdb_put(user_db, p, script);
 
@@ -2480,12 +2646,12 @@ void npc_parsesrcfile (char *name)
 			npc_parse_shop(w1,w2,w3,w4);
 		} else if (strcmpi(w2,"script") == 0 && count > 3) {
 			if (strcmpi(w1,"function") == 0) {
-				npc_parse_function(w1,w2,w3,w4,line+w4pos,fp,&lines);
+				npc_parse_function(w1,w2,w3,w4,line+w4pos,fp,&lines,name);
 			} else {
-				npc_parse_script(w1,w2,w3,w4,line+w4pos,fp,&lines);
+				npc_parse_script(w1,w2,w3,w4,line+w4pos,fp,&lines,name);
 			}
 		} else if ((i = 0, sscanf(w2,"duplicate%n",&i), (i > 0 && w2[i] == '(')) && count > 3) {
-			npc_parse_script(w1,w2,w3,w4,line+w4pos,fp,&lines);
+			npc_parse_script(w1,w2,w3,w4,line+w4pos,fp,&lines,name);
 		} else if (strcmpi(w2,"monster") == 0 && count > 3) {
 			npc_parse_mob(w1,w2,w3,w4);
 		} else if (strcmpi(w2,"mapflag") == 0 && count >= 3) {
@@ -2747,7 +2913,7 @@ int do_final_npc(void)
 	//There is no free function for npcname_db because at this point there shouldn't be any npcs left!
 	//So if there is anything remaining, let the memory manager catch it and report it.
 	npcname_db->destroy(npcname_db, NULL);
-
+	ers_destroy(timer_event_ers);
 	npc_clearsrcfile();
 
 	return 0;
@@ -2794,7 +2960,7 @@ int do_init_npc(void)
 {
 	struct npc_src_list *nsl;
 	time_t last_time = time(0);
-	int busy;
+	int busy, i;
 	char c = '-';
 
 	//Stock view data for normal npcs.
@@ -2813,6 +2979,7 @@ int do_init_npc(void)
 	npcname_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_BASE,NAME_LENGTH);
 
 	memset(&ev_tm_b, -1, sizeof(ev_tm_b));
+	timer_event_ers = ers_new((uint32)sizeof(struct timer_event_data));
 
 	for (nsl = npc_src_first; nsl; nsl = nsl->next) {
 		npc_parsesrcfile(nsl->name);
@@ -2854,6 +3021,32 @@ int do_init_npc(void)
 	add_timer_func_list(npc_event_timer,"npc_event_timer");
 	add_timer_func_list(npc_event_do_clock,"npc_event_do_clock");
 	add_timer_func_list(npc_timerevent,"npc_timerevent");
+
+	// Init dummy NPC
+	fake_nd = (struct npc_data *)aCalloc(sizeof(struct npc_data),1);
+	fake_nd->bl.prev = fake_nd->bl.next = NULL;
+	fake_nd->bl.m = -1;
+	fake_nd->bl.x = 0;
+	fake_nd->bl.y = 0;
+	fake_nd->bl.id = npc_get_new_npc_id();
+	fake_nd->class_ = -1;
+	fake_nd->speed = 200;
+	fake_nd->u.scr.script = NULL;
+	fake_nd->u.scr.src_id = 0;
+	fake_nd->chatdb = NULL;
+	for (i = 0; i < MAX_EVENTTIMER; i++)
+		fake_nd->eventtimer[i] = -1;
+	strcpy(fake_nd->name,"FAKE_NPC");
+	memcpy(fake_nd->exname, fake_nd->name, 9);
+
+	npc_script++;
+	fake_nd->bl.type = BL_NPC;
+	fake_nd->bl.subtype = SCRIPT;
+
+	strdb_put(npcname_db, fake_nd->exname, fake_nd);
+	fake_nd->u.scr.timerid = -1;
+	map_addiddb(&fake_nd->bl);
+	// End of initialization
 
 	return 0;
 }

@@ -1965,8 +1965,8 @@ int atcommand_whozeny(
 		clif_displaymessage(fd, msg_txt(28)); // No player found.
 		return 0;
 	}	
-	zeny = (int *)aCallocA(users, sizeof(int));
-	counted = (int *)aCallocA(users, sizeof(int));
+	zeny = (int *)aMallocA(users*sizeof(int));
+	counted = (int *)aMallocA(users*sizeof(int));
 	for (i = 0; i < users; i++) {
 		if ((pl_sd = pl_allsd[i])) {
 				memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
@@ -5512,8 +5512,48 @@ atcommand_reloadbattleconf(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
+	struct Battle_Config prev_config;
+	memcpy(&prev_config, &battle_config, sizeof(prev_config));
+
 	battle_config_read(BATTLE_CONF_FILENAME);
-	mob_reload(); //Needed as well so rate changes take effect.
+
+	if (memcmp(&prev_config.item_rate_mvp,
+		&battle_config.item_rate_mvp,
+		sizeof(battle_config.item_rate_mvp)+
+		sizeof(battle_config.item_rate_common)+
+		sizeof(battle_config.item_rate_common_boss)+
+		sizeof(battle_config.item_rate_card)+
+		sizeof(battle_config.item_rate_card_boss)+
+		sizeof(battle_config.item_rate_equip)+
+		sizeof(battle_config.item_rate_equip_boss)+
+		sizeof(battle_config.item_rate_heal)+
+		sizeof(battle_config.item_rate_heal_boss)+
+		sizeof(battle_config.item_rate_use)+
+		sizeof(battle_config.item_rate_use_boss)+
+		sizeof(battle_config.item_rate_treasure)+
+		sizeof(battle_config.item_rate_adddrop)+
+		sizeof(battle_config.logarithmic_drops)+
+		sizeof(battle_config.item_drop_common_min)+
+		sizeof(battle_config.item_drop_common_max)+
+		sizeof(battle_config.item_drop_card_min)+
+		sizeof(battle_config.item_drop_card_max)+
+		sizeof(battle_config.item_drop_equip_min)+
+		sizeof(battle_config.item_drop_equip_max)+
+		sizeof(battle_config.item_drop_mvp_min)+
+		sizeof(battle_config.item_drop_mvp_max)+
+		sizeof(battle_config.item_drop_heal_min)+
+		sizeof(battle_config.item_drop_heal_max)+
+		sizeof(battle_config.item_drop_use_min)+
+		sizeof(battle_config.item_drop_use_max)+
+		sizeof(battle_config.item_drop_treasure_min)+
+		sizeof(battle_config.item_drop_treasure_max)
+	) != 0)
+  	{	//Drop rates changed.
+		mob_reload(); //Needed as well so rate changes take effect.
+#ifndef TXT_ONLY
+		chrif_ragsrvinfo(battle_config.base_exp_rate, battle_config.job_exp_rate, battle_config.item_rate_common);
+#endif
+	}
 	clif_displaymessage(fd, msg_txt(255));
 	return 0;
 }
@@ -8247,6 +8287,7 @@ atcommand_clearweather(
 	map[sd->bl.m].flag.fireworks=0;
 	map[sd->bl.m].flag.leaves=0;
 	clif_weather(sd->bl.m);
+	clif_displaymessage(fd, msg_txt(291));
 	
 	return 0;
 }
@@ -9697,7 +9738,7 @@ int atcommand_mobinfo(
 	return 0;
 }
 
-/*==========================================
+/*=========================================
 * @showmobs by KarLaeda
 * => For 5 sec displays the mobs on minimap
 *------------------------------------------

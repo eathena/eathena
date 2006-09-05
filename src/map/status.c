@@ -1131,6 +1131,7 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 }
 
 void status_calc_bl(struct block_list *bl, unsigned long flag);
+void status_calc_regen(struct block_list *bl, struct status_data *status, struct regen_data *regen);
 
 static int status_base_atk(struct block_list *bl, struct status_data *status)
 {
@@ -2365,7 +2366,6 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		|| sc->data[SC_BERSERK].timer != -1
 		|| sc->data[SC_TRICKDEAD].timer != -1
 		|| sc->data[SC_BLEEDING].timer != -1
-		|| (sc->data[SC_REGENERATION].timer != -1 && sc->data[SC_REGENERATION].val4)
 	)	//No regen
 		regen->flag = 0;
 
@@ -2389,10 +2389,14 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		regen->rate.hp += 1;
 		regen->rate.sp += 1;
 	}
-	if (sc->data[SC_REGENERATION].timer != -1 && !sc->data[SC_REGENERATION].val4)
+	if (sc->data[SC_REGENERATION].timer != -1)
 	{
-		regen->rate.hp += sc->data[SC_REGENERATION].val2;
-		regen->rate.sp += sc->data[SC_REGENERATION].val3;
+		if (!sc->data[SC_REGENERATION].val4)
+		{
+			regen->rate.hp += sc->data[SC_REGENERATION].val2;
+			regen->rate.sp += sc->data[SC_REGENERATION].val3;
+		} else
+			regen->flag&=~sc->data[SC_REGENERATION].val4; //Remove regen as specified by val4
 	}
 }
 
@@ -2668,7 +2672,7 @@ void status_calc_bl(struct block_list *bl, unsigned long flag)
 		return;
 	}
 	
-	if( !sd && (!sc || !sc->count)) { //No difference.
+	if((!bl->type&(BL_REGEN)) && (!sc || !sc->count)) { //No difference.
 		status_cpy(status, b_status);
 		return;
 	}

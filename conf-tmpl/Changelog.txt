@@ -1,5 +1,14 @@
 Date	Added
 
+2006/09/01
+	* Merged config setting 'partial_name_scan' (gm.conf). When set to yes
+	  (default = no), you can use @ commands which require a player, and it will
+	  do a partial name match, when set to no, input name must match exactly
+	  [Skotlex]
+	* Merged config setting 'attack_walk_delay' (battle.conf). Defaults to 0.
+	  When set, it makes it so a character cannot move inmediately after
+	  attacking, on Aegis the default is 0, but this leads to sprite desyncs
+	  pretty easily; see conf file for more info. [Skotlex]
 2006/08/31
 	* Merged config setting clear_skills_on_warp (skill.conf), specifies
 	  whether ground-skills should be removed when the caster warps to another

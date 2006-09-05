@@ -779,7 +779,7 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 	default:
 
 		dist = distance_bl(&md->bl, bl);
-		if(dist < md->db->range2 &&
+		if(
 			((*target) == NULL || !check_distance_bl(&md->bl, *target, dist)) &&
 			battle_check_range(&md->bl,bl,md->db->range2)
 		) { //Pick closest target?
@@ -817,9 +817,8 @@ static int mob_ai_sub_hard_changechase(struct block_list *bl,va_list ap)
 	{
 	case BL_PC:
 	case BL_MOB:
-		if(check_distance_bl(&md->bl, bl, md->status.rhw.range) &&
-			battle_check_range (&md->bl, bl, md->status.rhw.range)
-		) {
+		if(battle_check_range (&md->bl, bl, md->status.rhw.range))
+	  	{
 			(*target) = bl;
 			md->target_id=bl->id;
 			md->min_chase= md->db->range3;
@@ -844,8 +843,8 @@ static int mob_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 	md=va_arg(ap,struct mob_data *);
 	target= va_arg(ap,struct block_list**);
 
-	if((dist=distance_bl(&md->bl, bl)) < md->db->range2 &&
-		mob_can_reach(md,bl,dist+1, MSS_LOOT) && 
+	dist=distance_bl(&md->bl, bl);
+	if(mob_can_reach(md,bl,dist+1, MSS_LOOT) && 
 		((*target) == NULL || !check_distance_bl(&md->bl, *target, dist)) //New target closer than previous one.
 	) {
 		(*target) = bl;
@@ -3035,6 +3034,9 @@ static int mob_readdb(void)
 			memcpy(mob_db_data[class_]->jname, str[2], NAME_LENGTH-1);
 			memcpy(mob_db_data[class_]->name, str[3], NAME_LENGTH-1);
 			mob_db_data[class_]->lv = atoi(str[4]);
+			if (mob_db_data[class_]->lv < 1)
+				mob_db_data[class_]->lv = 1;
+
 			status = &mob_db_data[class_]->status;
 
 			status->max_hp = atoi(str[5]);
@@ -3729,6 +3731,9 @@ static int mob_read_sqldb(void)
 				memcpy(mob_db_data[class_]->jname, TO_STR(2), NAME_LENGTH-1);
 				memcpy(mob_db_data[class_]->name, TO_STR(3), NAME_LENGTH-1);
 				mob_db_data[class_]->lv = TO_INT(4);
+				if (mob_db_data[class_]->lv < 1)
+					mob_db_data[class_]->lv = 1;
+
 				status = &mob_db_data[class_]->status;
 				status->max_hp = TO_INT(5);
 				status->max_sp = TO_INT(6);

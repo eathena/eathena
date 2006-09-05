@@ -5426,6 +5426,7 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 	ud->skillid = ud->skilllv = ud->skilltarget = 0;
 	ud->canact_tick = tick;
 	if(sd) sd->skillitem = sd->skillitemlv = -1;
+	else
 	if(md) md->skillidx = -1;
 	return 0;
 }
