@@ -11171,7 +11171,7 @@ int buildin_query_sql(struct script_state *st) {
 			return 1;
 		}
 
-		malloc_set(row, 0, sizeof(row));
+		memset(row, 0, sizeof(row));
 		// Verify argument types
 		for(j=0; j < nb_rows; j++)
 		{
