@@ -34,6 +34,8 @@ Playtester
 
 Date		Added
 ======
+09/05
+	* eAAC Update to the banker. [erKURITA]
 09/04
 	* Added missing next's in npc/custom/airplane.txt and npc/custom/quests/valhallen.txt [Evera]
 	* Fixed Bio Ethic quest typo (misspelled key phrase), thx2 mr.rkit [Lupus]
