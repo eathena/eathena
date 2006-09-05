@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/05
+	* Small fix which should correct skill_attack damaging hidden characters
+	  when it shouldn't. [Skotlex]
 	* Fixed connect_until field being a smallint rather than int in the login
 	  table (upgrade with upgrade_svn8631.sql) [Skotlex]
 2006/09/04
