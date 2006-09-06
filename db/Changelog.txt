@@ -1,3 +1,8 @@
+09/06
+	* Updated skill_require_db's entry for Abracadabra, it requires yellow 2
+	  gemstones (there's no such hardcoded yellow gemstone requirement anymore)
+	  [Skotlex]
+	* Corrected db/const.txt entry bMagicSubRace -> bMagicAddSize [Skotlex]
 09/05
 	* Merged skill_db GS skill info from trunk. [Skotlex]
 09/02
