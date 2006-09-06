@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/06
+	* Fixed the memset in status_calc_pc, corrects some mysterious bugs such as
+	  item-drop bonuses suddenly not working anymore. [Skotlex]
 	* Fixed Aex Aeterna ending on Soul Breaker's first half. [Skotlex]
 	* Merged the ea_job_system docs. [Skotlex]
 	* Updated script_commands with trunk's content. [Skotlex]
