@@ -1,3 +1,5 @@
+09/05
+	* Merged skill_db GS skill info from trunk. [Skotlex]
 09/02
 	* Merged item_db, mob_db [Playtester]
 	- added new items
