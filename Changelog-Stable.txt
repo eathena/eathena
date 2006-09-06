@@ -5,6 +5,10 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/05
+	* Distance checks are now done against squares instead of circles, Aegis
+	  style. [Skotlex]
+	* Added define CIRCULAR_AREA to map.h for anyone who wants to enable the
+	  previous "circular" area checks that eA did for ranges. [Skotlex]
 	* Corrected SC_INTRAVISION not starting. [Skotlex]
 	* Fixed possible crash when changing a chat-room's owner (thanks to End of
 	  Exam) [Skotlex]
