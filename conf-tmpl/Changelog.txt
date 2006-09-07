@@ -1,5 +1,7 @@
 Date	Added
 
+2006/09/07
+	* Changed gvg_short_attack_damage_rate to 80, as leaked X.2 [Vicious]
 2006/09/01
 	* Merged config setting 'partial_name_scan' (gm.conf). When set to yes
 	  (default = no), you can use @ commands which require a player, and it will
