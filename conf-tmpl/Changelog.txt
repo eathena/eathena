@@ -1,5 +1,7 @@
 Date	Added
 
+2006/09/09
+	* Removed noteleport flags from Geffenia maps [Playtester]
 2006/09/07
 	* Changed gvg_short_attack_damage_rate to 80, as leaked X.2 [Vicious]
 2006/09/01
