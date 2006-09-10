@@ -1,3 +1,11 @@
+09/10
+	* Merged item_db, mob_db, mob_skill_db [Playtester]
+	- updated Unholy Touch attack
+	- reorganized combo bonuses
+	- changed bCriticalRate -> bCritical
+	- small mob updates
+	- added official Rachel mob stats & skills
+	- removed NPC_POWERUP from Dimik
 09/06
 	* Updated skill_require_db's entry for Abracadabra, it requires yellow 2
 	  gemstones (there's no such hardcoded yellow gemstone requirement anymore)
