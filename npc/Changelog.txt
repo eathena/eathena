@@ -34,6 +34,9 @@ Playtester
 
 Date		Added
 ======
+09/10
+	* Updated to official new byalan spawns [Playtester]
+	- also adjusted eamobs accordingly
 09/08
 	* Fixed Einbroch headgear shop [Playtester]
 09/06
