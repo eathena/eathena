@@ -1,3 +1,5 @@
+09/11
+	* CG_MOONLIT is no longer castable in WoE grounds. [Skotlex]
 09/10
 	* Merged item_db, mob_db, mob_skill_db [Playtester]
 	- updated Unholy Touch attack
