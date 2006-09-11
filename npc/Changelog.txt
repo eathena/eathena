@@ -34,6 +34,8 @@ Playtester
 
 Date		Added
 ======
+09/11
+	* Merged divorce.txt [Lupus]
 09/10
 	* Updated to official new byalan spawns [Playtester]
 	- also adjusted eamobs accordingly
