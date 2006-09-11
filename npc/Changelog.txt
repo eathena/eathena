@@ -35,6 +35,7 @@ Playtester
 Date		Added
 ======
 09/11
+	* Added back Guild Storage. Confirmed kRO feature. [Lupus]
 	* Merged divorce.txt [Lupus]
 09/10
 	* Updated to official new byalan spawns [Playtester]
