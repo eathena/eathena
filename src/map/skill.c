@@ -5331,7 +5331,7 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 				break;
 			}
 		}
-		
+
 		//Avoid doing double checks for instant-cast skills.
 		if (tid != -1 && !status_check_skilluse(src, target, ud->skillid, 1))
 			break;

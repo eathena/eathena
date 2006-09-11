@@ -6,6 +6,8 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 =======
 2006/09/11
+	* Guild Aura will be removed on sc-load to prevent Guild Masters from
+	  getting that bonus from the old implementation. [Skotlex]
 	* Added D-Kalck's fix of the TXT -> SQL converter [Playtester]
 	* Script function 'query_sql': In the TXT version it doesn't fill the array
 	  and always return -1. Added for scripts compatibility. Your scripts

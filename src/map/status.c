@@ -5356,6 +5356,10 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			if (!val3)
 				return 0;
 			break;
+		case SC_GUILDAURA:
+			//Compatibility Upgrade due to Guild Aura code rewrite 
+			//(older saved SC versions would load up with huge bonuses)
+			return 0;
 	}
 	//Those that make you stop attacking/walking....
 	switch (type) {
