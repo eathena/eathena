@@ -48,6 +48,8 @@
 //-----------------------------------------------------
 // global variable
 //-----------------------------------------------------
+int use_dnsbl=0; // [Zido]
+char dnsbl_servs[1024];
 int server_num;
 int new_account_flag = 0; //Set from config too XD [Sirius]
 in_addr_t bind_ip= 0;
@@ -564,6 +566,7 @@ int mmo_auth( struct mmo_account* account , int fd){
 	char tmpstr[256];
 	char t_uid[256], t_pass[256];
 	char user_password[256];
+	char *dnsbl_serv;
 
 	//added for account creation _M _F
 	int len;
@@ -577,6 +580,30 @@ int mmo_auth( struct mmo_account* account , int fd){
 
 	unsigned char * sin_addr = (unsigned char *)&session[fd]->client_addr.sin_addr.s_addr;
 
+	char r_ip[16]; // [Zido]
+	char ip_dnsbl[256]; // [Zido]
+
+	// Start DNS Blacklist check [Zido]
+	if(use_dnsbl) {
+		sprintf(r_ip, "%d.%d.%d.%d", sin_addr[3], sin_addr[2], sin_addr[1], sin_addr[0]);
+
+		dnsbl_serv=strtok(dnsbl_servs,",");
+		sprintf(ip_dnsbl,"%s.%s",r_ip,dnsbl_serv);
+		if(resolve_hostbyname(ip_dnsbl, NULL, NULL)) {
+			ShowInfo("DNSBL: (%s) Blacklisted. User Kicked.\n",ip);
+			return 3;
+		}
+
+		while((dnsbl_serv=strtok(dnsbl_servs,","))!=NULL) {
+			sprintf(ip_dnsbl,"%s.%s",r_ip,dnsbl_serv);
+			if(resolve_hostbyname(ip_dnsbl, NULL, NULL)) {
+				ShowInfo("DNSBL: (%s) Blacklisted. User Kicked.\n",ip);
+				return 3;
+			}
+		}
+
+	}
+	// End DNS Blacklist check [Zido]
 
 	sprintf(ip, "%d.%d.%d.%d", sin_addr[0], sin_addr[1], sin_addr[2], sin_addr[3]);
 	//ShowInfo("auth start for %s...\n", ip);
@@ -879,6 +906,7 @@ int parse_fromchar(int fd){
 	MYSQL_ROW  sql_row = NULL;
 
 	unsigned char *p = (unsigned char *) &session[fd]->client_addr.sin_addr.s_addr;
+	unsigned long ipl = session[fd]->client_addr.sin_addr.s_addr;
 	char ip[16];
 
 	sprintf(ip, "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
@@ -914,7 +942,7 @@ int parse_fromchar(int fd){
 		case 0x2709:
 			if (log_login)
 			{
-				sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%u', '%s','%s', 'GM reload request')", loginlog_db, *((unsigned int*)p),server[id].name, RETCODE);
+				sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%u', '%s','%s', 'GM reload request')", loginlog_db, (unsigned int)ntohl(ipl),server[id].name, RETCODE);
 				if (mysql_query(&mysql_handle, tmpsql)) {
 					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -1425,7 +1453,7 @@ int lan_subnetcheck(long p) {
 	return 0;
 }
 
-int login_ip_ban_check(unsigned char *p)
+int login_ip_ban_check(unsigned char *p, unsigned long ipl)
 {
 	MYSQL_RES* sql_res;
 	MYSQL_ROW  sql_row;
@@ -1456,7 +1484,7 @@ int login_ip_ban_check(unsigned char *p)
 
 	if (log_login)
 	{
-		sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%u', 'unknown','-3', 'ip banned')", loginlog_db, *((unsigned int *)p));
+		sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%u', 'unknown','-3', 'ip banned')", loginlog_db, (unsigned int)ntohl(ipl));
 		// query
 		if(mysql_query(&mysql_handle, tmpsql)) {
 			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -1520,7 +1548,7 @@ int parse_login(int fd) {
 			packet_len = RFIFOREST(fd);
 
 			//Perform ip-ban check ONLY on login packets
-			if (ipban > 0 && login_ip_ban_check(p))
+			if (ipban > 0 && login_ip_ban_check(p,ipl))
 			{
 				RFIFOSKIP(fd,packet_len);
 				session[fd]->eof = 1;
@@ -2172,6 +2200,10 @@ int login_config_read(const char *cfgName){
 				log_login = atoi(w2);
 		} else if (strcmpi(w1, "import") == 0) {
 			login_config_read(w2);
+		} else if(strcmpi(w1,"use_dnsbl")==0) { // [Zido]
+			use_dnsbl=atoi(w2);
+		} else if(strcmpi(w1,"dnsbl_servers")==0) { // [Zido]
+			strcpy(dnsbl_servs,w2);
 		} else if(strcmpi(w1,"ip_sync_interval")==0) {
 			ip_sync_interval = 1000*60*atoi(w2); //w2 comes in minutes.
 		}
@@ -2268,6 +2300,7 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 void do_final(void) {
 	//sync account when terminating.
 	//but no need when you using DBMS (mysql)
+	ShowStatus("Terminating...\n");
 	mmo_db_close();
 	online_db->destroy(online_db, NULL);
 	if (gm_account_db)

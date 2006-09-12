@@ -54,6 +54,9 @@ struct _subnet {
 
 int subnet_count = 0;
 
+int use_dnsbl=0; // [Zido]
+char dnsbl_servs[1024]; // [Zido]
+
 char account_filename[1024] = "save/account.txt";
 char GM_account_filename[1024] = "conf/GM_account.txt";
 char login_log_filename[1024] = "log/login.log";
@@ -1136,6 +1139,7 @@ int mmo_auth_new(struct mmo_account* account, char sex, char* email) {
 // Check/authentification of a connection
 //---------------------------------------
 int mmo_auth(struct mmo_account* account, int fd) {
+	char *dnsbl_serv;
 	unsigned int i;
 	time_t raw_time;
 	char tmpstr[256];
@@ -1148,8 +1152,33 @@ int mmo_auth(struct mmo_account* account, int fd) {
 	char ip[16];
 	unsigned char *sin_addr = (unsigned char *)&session[fd]->client_addr.sin_addr;
 	char user_password[256];
+	char r_ip[16]; // [Zido]
+	char ip_dnsbl[256]; // [Zido]
 
 	sprintf(ip, "%d.%d.%d.%d", sin_addr[0], sin_addr[1], sin_addr[2], sin_addr[3]);
+
+	// Start DNS Blacklist check [Zido]
+	if(use_dnsbl) {
+		sprintf(r_ip, "%d.%d.%d.%d", sin_addr[3], sin_addr[2], sin_addr[1], sin_addr[0]);
+
+		dnsbl_serv=strtok(dnsbl_servs,",");
+		sprintf(ip_dnsbl,"%s.%s",r_ip,dnsbl_serv);
+		if(resolve_hostbyname(ip_dnsbl,NULL,NULL)) {
+			ShowInfo("DNSBL: (%s) Blacklisted. User Kicked.\n",ip);
+			return 3;
+		}
+
+		while((dnsbl_serv=strtok(dnsbl_servs,","))) {
+			sprintf(ip_dnsbl,"%s.%s",r_ip,dnsbl_serv);
+			if(resolve_hostbyname(ip_dnsbl,NULL,NULL)!=0) {
+				ShowInfo("DNSBL: (%s) Blacklisted. User Kicked.\n",ip);
+				return 3;
+			}
+		}
+
+	}
+	// End DNS Blacklist check [Zido]
+
 
 	len = strlen(account->userid) - 2;
 	// Account creation with _M/_F
@@ -3087,6 +3116,7 @@ int parse_login(int fd) {
 			}
 			
 			account.version = RFIFOL(fd, 2);	//for exe version check [Sirius]
+			if (!account.version) account.version = 1; //Force some version...
 			memcpy(account.userid,RFIFOP(fd,6),NAME_LENGTH);
 			account.userid[23] = '\0';
 			remove_control_chars((unsigned char *)account.userid);
@@ -3137,13 +3167,11 @@ int parse_login(int fd) {
 					WFIFOHEAD(fd, 47+32*MAX_SERVERS);
 					for(i = 0; i < MAX_SERVERS; i++) {
 						if (server_fd[i] >= 0) {
-						
 						    // Andvanced subnet check [LuzZza]
 							if((subnet_char_ip = lan_subnetcheck((long*)p)))
 								WFIFOL(fd,47+server_num*32) = subnet_char_ip;
 							else
 								WFIFOL(fd,47+server_num*32) = server[i].ip;
-								
 							WFIFOW(fd,47+server_num*32+4) = server[i].port;
 							memcpy(WFIFOP(fd,47+server_num*32+6), server[i].name, 20);
 							WFIFOW(fd,47+server_num*32+26) = server[i].users;
@@ -3762,6 +3790,10 @@ int login_config_read(const char *cfgName) {
 					online_check = atoi(w2);
 			} else if (strcmpi(w1, "import") == 0) {
 				login_config_read(w2);
+			} else if(strcmpi(w1,"use_dnsbl")==0) { // [Zido]
+				use_dnsbl=atoi(w2);
+			} else if(strcmpi(w1,"dnsbl_servers")==0) { // [Zido]
+				strcpy(dnsbl_servs,w2);
 			} else if(strcmpi(w1,"ip_sync_interval")==0) {
 				ip_sync_interval = 1000*60*atoi(w2); //w2 comes in minutes.
 			}
