@@ -4,8 +4,12 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
-=======
 2006/09/11
+	* Merged Tom's updated SQL Guild saving methods. Be sure to apply
+	  upgrade_svn8711.sql or you won't be able to create new guilds. [Skotlex]
+	* Merged memory leak fix on shutdown when unloading npcs with ongoing
+	  npctimers. [Skotlex]
+	* Merged main.sql (was getting kinda updated) [Skotlex]
 	* Guild Aura will be removed on sc-load to prevent Guild Masters from
 	  getting that bonus from the old implementation. [Skotlex]
 	* Added D-Kalck's fix of the TXT -> SQL converter [Playtester]

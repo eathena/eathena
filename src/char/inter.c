@@ -38,8 +38,9 @@ struct accreg {
 
 unsigned int party_share_level = 10;
 
-// 送信パケット長リスト
-int inter_send_packet_length[] = {
+// sending packet list
+// NOTE: This variable ain't used at all! And it's confusing.. where do I add that the length of packet 0x2b07 is 10? x.x [Skotlex]
+int inter_send_packet_length[]={
 	-1,-1,27,-1, -1, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3000-0x300f
 	-1, 7, 0, 0,  0, 0, 0, 0, -1,11, 0, 0,  0, 0,  0, 0,
 	35,-1,11,15, 34,29, 7,-1,  0, 0, 0, 0,  0, 0,  0, 0,
@@ -51,7 +52,7 @@ int inter_send_packet_length[] = {
 	11,-1, 7, 3, 36, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
 };
 // recv. packet list
-int inter_recv_packet_length[] = {
+int inter_recv_packet_length[]={
 	-1,-1, 7,-1, -1,13, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3000-0x300f
 	 6,-1, 0, 0,  0, 0, 0, 0, 10,-1, 0, 0,  0, 0,  0, 0, //0x3010-0x301f
 	-1, 6,-1,14, 14,19, 6,-1, 14,14, 0, 0,  0, 0,  0, 0, //0x3020-0x302f
@@ -61,6 +62,7 @@ int inter_recv_packet_length[] = {
 	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
 	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
 	48,14,-1, 6, 35, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3080-0x308f
+	68,10,-1, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0x3090 - 0x309f  Homunculus packets [albator]
 };
 
 struct WisData {
@@ -388,7 +390,7 @@ int mapif_disconnectplayer(int fd, int account_id, int char_id, int reason)
 	if (fd < 0)
 		return -1;
 	
-        WFIFOHEAD(fd, 7);
+	WFIFOHEAD(fd, 7);
 	WFIFOW(fd,0) = 0x2b1f;
 	WFIFOL(fd,2) = account_id;
 	WFIFOB(fd,6) = reason;

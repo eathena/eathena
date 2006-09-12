@@ -102,7 +102,7 @@ static const int packet_len_table[MAX_PACKET_DB] = {
 //#0x200
    26, -1,  26, 10, 18, 26, 11, 34,  14, 36, 10, 0,  0, -1, 32, 10, // 0x20c change to 0 (was 19)
    22,  0,  26, 26, 42, -1, -1,  2,   2,282,282,10, 10, -1, -1, 66,
-   10, -1,  -1,  8, 10,  2,282, 18,  18, 15, 58, 57, 64, 5, 69,  5,
+   10, -1,  -1,  8, 10,  2,282, 18,  18, 15, 58, 57, 64, 5, 71,  5,
    12, 26,   9, 11, -1, -1, 10,  2, 282, 11,  4, 36, -1,-1,  4,  2,
    -1, -1,  -1, -1, -1,  3,  4,  8,  -1,  3, 70,  4,  8,12,  4, 10,
     3, 32,  -1,  3,  3,  5,  5,  8,   2,  3, -1, -1,  4,-1,  4
@@ -6952,7 +6952,7 @@ int clif_guild_leave(struct map_session_data *sd,const char *name,const char *me
  * ギルドメンバ追放通知
  *------------------------------------------
  */
-int clif_guild_explusion(struct map_session_data *sd,const char *name,const char *mes,
+int clif_guild_expulsion(struct map_session_data *sd,const char *name,const char *mes,
 	int account_id)
 {
 	unsigned char buf[128];
@@ -6970,7 +6970,7 @@ int clif_guild_explusion(struct map_session_data *sd,const char *name,const char
  * ギルド追放メンバリスト
  *------------------------------------------
  */
-int clif_guild_explusionlist(struct map_session_data *sd)
+int clif_guild_expulsionlist(struct map_session_data *sd)
 {
 	int fd;
 	int i,c;
@@ -6982,10 +6982,10 @@ int clif_guild_explusionlist(struct map_session_data *sd)
 	g=guild_search(sd->status.guild_id);
 	if(g==NULL)
 		return 0;
-	WFIFOHEAD(fd,MAX_GUILDEXPLUSION * 88 + 4);
+	WFIFOHEAD(fd,MAX_GUILDEXPULSION * 88 + 4);
 	WFIFOW(fd,0)=0x163;
-	for(i=c=0;i<MAX_GUILDEXPLUSION;i++){
-		struct guild_explusion *e=&g->explusion[i];
+	for(i=c=0;i<MAX_GUILDEXPULSION;i++){
+		struct guild_expulsion *e=&g->expulsion[i];
 		if(e->account_id>0){
 			memcpy(WFIFOP(fd,c*88+ 4),e->name,NAME_LENGTH);
 			memcpy(WFIFOP(fd,c*88+28),e->acc,24);
@@ -10180,7 +10180,7 @@ void clif_parse_GuildRequestInfo(int fd, struct map_session_data *sd) {
 		clif_guild_skillinfo(sd);
 		break;
 	case 4:	// 追放リスト
-		clif_guild_explusionlist(sd);
+		clif_guild_expulsionlist(sd);
 		break;
 	default:
 		if (battle_config.error_log)
@@ -10288,9 +10288,9 @@ void clif_parse_GuildLeave(int fd,struct map_session_data *sd) {
  * ギルド追放
  *------------------------------------------
  */
-void clif_parse_GuildExplusion(int fd,struct map_session_data *sd) {
+void clif_parse_GuildExpulsion(int fd,struct map_session_data *sd) {
 	RFIFOHEAD(fd);
-	guild_explusion(sd,RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10),(char*)RFIFOP(fd,14));
+	guild_expulsion(sd,RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10),(char*)RFIFOP(fd,14));
 }
 
 /*==========================================
@@ -10449,7 +10449,7 @@ void clif_parse_GMKick(int fd, struct map_session_data *sd) {
  *------------------------------------------
  */
 void clif_parse_Shift(int fd, struct map_session_data *sd) {	// Rewriten by [Yor]
-	char player_name[NAME_LENGTH+1];
+	char player_name[NAME_LENGTH];
 
 	memset(player_name, '\0', sizeof(player_name));
 
@@ -10468,7 +10468,7 @@ void clif_parse_Shift(int fd, struct map_session_data *sd) {	// Rewriten by [Yor
  *------------------------------------------
  */
 void clif_parse_Recall(int fd, struct map_session_data *sd) {	// Added by RoVeRT
-	char player_name[25];
+	char player_name[NAME_LENGTH];
 
 	memset(player_name, '\0', sizeof(player_name));
 
@@ -11380,7 +11380,7 @@ int clif_parse(int fd) {
 	if ((int)RFIFOREST(fd) < packet_len)
 		return 0; // まだ1パケット分データが揃ってない
 
-	#if DUMP_ALL_PACKETS
+#if DUMP_ALL_PACKETS
 	{
 		int i;
 		FILE *fp;
@@ -11413,7 +11413,7 @@ int clif_parse(int fd) {
 			fclose(fp);
 		}
 	}
-	#endif
+#endif
 
 	if (sd && sd->state.auth == 1 && sd->state.waitingdisconnect == 1) { // 切断待ちの場合パケットを処理しない
 
@@ -11596,7 +11596,7 @@ static int packetdb_readdb(void)
 		{clif_parse_GuildInvite,"guildinvite"},
 		{clif_parse_GuildReplyInvite,"guildreplyinvite"},
 		{clif_parse_GuildLeave,"guildleave"},
-		{clif_parse_GuildExplusion,"guildexplusion"},
+		{clif_parse_GuildExpulsion,"guildexplusion"},
 		{clif_parse_GuildMessage,"guildmessage"},
 		{clif_parse_GuildRequestAlliance,"guildrequestalliance"},
 		{clif_parse_GuildReplyAlliance,"guildreplyalliance"},
