@@ -7792,7 +7792,7 @@ void clif_feel_info(struct map_session_data *sd, int feel_level)
  * Info about Star Glaldiator hate mob [Komurka]
  *------------------------------------------
  */
-void clif_hate_mob(struct map_session_data *sd, int skilllv,int mob_id)
+void clif_hate_mob(struct map_session_data *sd, int type,int mob_id)
 {
 	int fd=sd->fd;
 	WFIFOHEAD(fd,packet_len_table[0x20e]);
@@ -7804,7 +7804,7 @@ void clif_hate_mob(struct map_session_data *sd, int skilllv,int mob_id)
 	else //Really shouldn't happen...
 		memset(WFIFOP(fd,2), 0, NAME_LENGTH);
 	WFIFOL(fd,26)=sd->bl.id;
-	WFIFOW(fd,30)=0xa00+skilllv-1;
+	WFIFOW(fd,30)=0xa00+type;
 	WFIFOSET(fd, packet_len_table[0x20e]);
 }
 
@@ -8647,8 +8647,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 		)) //No sitting during these states neither.
 		break;
 		pc_setsit(sd);
-		skill_gangsterparadise(sd, 1); // ギャングスターパラダイス設定 fixed Valaris
-		skill_rest(sd, 1); // TK_HPTIME sitting down mode [Dralnu]
+		skill_sit(sd, 1);
 		clif_sitting(sd);
 		break;
 	case 0x03: // standup
@@ -8661,8 +8660,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 			return;
 		}
 		pc_setstand(sd);
-		skill_gangsterparadise(sd, 0); 
-		skill_rest(sd, 0); // TK_HPTIME standing up mode [Dralnu]
+		skill_sit(sd, 0); 
 		WBUFW(buf, 0) = 0x8a;
 		WBUFL(buf, 2) = sd->bl.id;
 		WBUFB(buf,26) = 3;
@@ -10765,14 +10763,17 @@ void clif_parse_PMIgnoreList(int fd,struct map_session_data *sd)
  *------------------------------------------
  */
 void clif_parse_NoviceDoriDori(int fd, struct map_session_data *sd) {
-	int level;
-	
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE)
-		sd->doridori_counter++;
-	
-	if ((sd->class_&MAPID_BASEMASK) == MAPID_TAEKWON
-		&& sd->state.rest && (level = pc_checkskill(sd,TK_SPTIME)))
-		sc_start(&sd->bl,SkillStatusChangeTable(TK_SPTIME),100,level,skill_get_time(TK_SPTIME, level));
+	if (sd->state.doridori) return;
+
+	switch (sd->class_&MAPID_UPPERMASK)
+	{
+		case MAPID_TAEKWON:
+			if (!sd->state.rest)
+				break;
+		case MAPID_SUPER_NOVICE:
+			sd->state.doridori=1;
+			break;	
+	}
 	return;
 }
 /*==========================================
@@ -11197,15 +11198,15 @@ void clif_parse_FeelSaveOk(int fd,struct map_session_data *sd)
 	sd->feel_map[i].index = map[sd->bl.m].index;
 	sd->feel_map[i].m = sd->bl.m;
 	pc_setglobalreg(sd,feel_var[i],map[sd->bl.m].index);
-	
+
+	clif_misceffect2(&sd->bl, 0x1b0);
+	clif_misceffect2(&sd->bl, 0x21f);
 	WFIFOHEAD(fd,packet_len_table[0x20e]);
 	WFIFOW(fd,0)=0x20e;
 	memcpy(WFIFOP(fd,2),map[sd->bl.m].name, MAP_NAME_LENGTH);
 	WFIFOL(fd,26)=sd->bl.id;
 	WFIFOW(fd,30)=i;
 	WFIFOSET(fd, packet_len_table[0x20e]);
-	
-	clif_skill_nodamage(&sd->bl,&sd->bl,sd->menuskill_id,sd->menuskill_lv,1);
 	sd->menuskill_lv = sd->menuskill_id = 0;
 }
 

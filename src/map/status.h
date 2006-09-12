@@ -136,7 +136,7 @@ enum {
 	SC_REJECTSWORD,
 	SC_MARIONETTE,
 	SC_MARIONETTE2,
-	SC_MOONLIT,
+	SC_UNUSED,	//Unused (was SC_MOONLIT)
 	SC_JOINTBEAT,
 	SC_MINDBREAKER, //130
 	SC_MEMORIZE,
@@ -635,6 +635,8 @@ int status_calc_pc(struct map_session_data* sd,int first);
 int status_calc_mob(struct mob_data* md, int first); //[Skotlex]
 
 void status_calc_misc(struct status_data *status, int type, int level);
+void status_calc_regen(struct block_list *bl, struct status_data *status, struct regen_data *regen);
+void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, struct status_change *sc);
 
 void status_freecast_switch(struct map_session_data *sd);
 int status_getrefinebonus(int lv,int type);

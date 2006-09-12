@@ -298,7 +298,6 @@ void initChangeTables(void) {
 	set_sc(ST_CHASEWALK, SC_CHASEWALK, SI_BLANK, SCB_SPEED);
 	set_sc(ST_REJECTSWORD, SC_REJECTSWORD, SI_REJECTSWORD, SCB_NONE);
 	add_sc(ST_REJECTSWORD, SC_AUTOCOUNTER);
-	set_sc(CG_MOONLIT, SC_MOONLIT, SI_MOONLIT, SCB_NONE);
 	set_sc(CG_MARIONETTE, SC_MARIONETTE, SI_MARIONETTE, SCB_STR|SCB_AGI|SCB_VIT|SCB_INT|SCB_DEX|SCB_LUK);
 	set_sc(CG_MARIONETTE, SC_MARIONETTE2, SI_MARIONETTE2, SCB_STR|SCB_AGI|SCB_VIT|SCB_INT|SCB_DEX|SCB_LUK);
 	add_sc(LK_SPIRALPIERCE, SC_STOP);
@@ -636,6 +635,9 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 			(sc->data[SC_PROVOKE].timer==-1 || !sc->data[SC_PROVOKE].val2) &&
 			status->hp < status->max_hp>>2)
 			sc_start4(target,SC_PROVOKE,100,10,1,0,0,0);
+		if (sc->data[SC_BERSERK].timer != -1 &&
+		  	status->hp <= 100)
+			status_change_end(target, SC_BERSERK, -1);
 	}
 	
 	switch (target->type)
@@ -976,7 +978,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 			if (skill_num != BD_ADAPTATION && skill_num != CG_LONGINGFREEDOM
 				&& skill_num != BA_MUSICALSTRIKE && skill_num != DC_THROWARROW)
 				return 0;
-			if (sc->data[SC_DANCING].val1 == CG_HERMODE && skill_num == BD_ADAPTATION)
+			if ((sc->data[SC_DANCING].val1&0xFFFF) == CG_HERMODE && skill_num == BD_ADAPTATION)
 				return 0;	//Can't amp out of Wand of Hermode :/ [Skotlex]
 		}
 
@@ -1051,7 +1053,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 			if (pc_isinvisible(sd))
 				return 0;
 			if (tsc->option&hide_flag && !(status->mode&MD_BOSS)
-				&& (sd->state.perfect_hiding || !(
+				&& (sd->special_state.perfect_hiding || !(
 					status->race == RC_INSECT ||
 				  	status->race == RC_DEMON ||
 				  	status->mode&MD_DETECTOR
@@ -1106,7 +1108,7 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 		{
 			if (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK)
 				&& !(status->mode&MD_BOSS) && (
-					((TBL_PC*)target)->state.perfect_hiding || !(
+					((TBL_PC*)target)->special_state.perfect_hiding || !(
 					status->race == RC_INSECT ||
 				  	status->race == RC_DEMON ||
 				  	status->mode&MD_DETECTOR
@@ -1131,7 +1133,6 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 }
 
 void status_calc_bl(struct block_list *bl, unsigned long flag);
-void status_calc_regen(struct block_list *bl, struct status_data *status, struct regen_data *regen);
 
 static int status_base_atk(struct block_list *bl, struct status_data *status)
 {
@@ -2925,11 +2926,11 @@ static unsigned short status_calc_agi(struct block_list *bl, struct status_chang
 	if(sc->data[SC_TRUESIGHT].timer!=-1)
 		agi += 5;
 	if(sc->data[SC_INCREASEAGI].timer!=-1)
-		agi += 2 + sc->data[SC_INCREASEAGI].val1;
+		agi += sc->data[SC_INCREASEAGI].val2;
 	if(sc->data[SC_INCREASING].timer!=-1)
 		agi += 4;	// added based on skill updates [Reddozen]
 	if(sc->data[SC_DECREASEAGI].timer!=-1)
-		agi -= 2 + sc->data[SC_DECREASEAGI].val1;
+		agi -= sc->data[SC_DECREASEAGI].val2;
 	if(sc->data[SC_QUAGMIRE].timer!=-1)
 		agi -= sc->data[SC_QUAGMIRE].val2;
 	if(sc->data[SC_MARIONETTE].timer!=-1)
@@ -4143,88 +4144,6 @@ int status_get_sc_def(struct block_list *bl, int type)
 	return sc_def>10000?10000:sc_def;
 }
 
-//Reduces tick delay based on type and character defenses.
-int status_get_sc_tick(struct block_list *bl, int type, int tick)
-{
-	struct map_session_data *sd;
-	struct status_data* status;
-	int rate=0, min=0;
-	//If rate is positive, it is a % reduction (10000 -> 100%)
-	//if it is negative, it is an absolute reduction in ms.
-	BL_CAST(BL_PC,bl,sd);
-	status = status_get_status_data(bl);
-	switch (type) {
-		case SC_DECREASEAGI:		/* 速度減少 */
-			if (sd)	// Celest
-				tick>>=1;
-		break;
-		case SC_ADRENALINE:
-		case SC_ADRENALINE2:
-		case SC_WEAPONPERFECTION:
-		case SC_OVERTHRUST:
-			if(sd && pc_checkskill(sd,BS_HILTBINDING)>0)
-				tick += tick / 10;
-		break;
-		case SC_DPOISON:
-		case SC_POISON:
-		case SC_STUN:
-		case SC_BLEEDING:
-		case SC_SILENCE:
-		case SC_CURSE:
-			rate = 100*status->vit;
-		break;
-		case SC_SLEEP:
-			rate = 100*status->int_;
-		break;
-		case SC_STONE:
-			rate = -200*status->mdef;
-		break;
-		case SC_FREEZE:
-			rate = 100*status->mdef;
-		break;
-		case SC_BLIND:
-			rate = 50*status->vit +50*status->int_;
-		break;
-		case SC_CONFUSION:
-			rate = 50*status->str +50*status->int_;
-		break;
-		case SC_SWOO:
-			if (status->mode&MD_BOSS)
-				tick /= 5; //TODO: Reduce skill's duration. But for how long?
-		break;
-		case SC_ANKLE:
-			if(status->mode&MD_BOSS) // Lasts 5 times less on bosses
-				tick /= 5;
-			rate = -100*status->agi;
-		// Minimum trap time of 3+0.03*skilllv seconds [celest]
-		// Changed to 3 secs and moved from skill.c [Skotlex]
-			min = 3000;
-		break;
-		case SC_SPIDERWEB:
-			if (map[bl->m].flag.pvp)
-				tick /=2;
-		break;
-	}
-	if (rate) {
-		if (bl->type == BL_PC) {
-			if (battle_config.pc_sc_def_rate != 100)
-				rate = rate*battle_config.pc_sc_def_rate/100;
-			if (battle_config.pc_max_sc_def != 10000)
-				min = tick*(10000-battle_config.pc_max_sc_def)/10000;
-		} else {
-			if (battle_config.mob_sc_def_rate != 100)
-				rate = rate*battle_config.mob_sc_def_rate/100;
-			if (battle_config.mob_max_sc_def != 10000)
-				min = tick*(10000-battle_config.mob_max_sc_def)/10000;
-		}
-		
-		if (rate >0)
-			tick -= tick*rate/10000;
-		else
-			tick += rate;
-	}
-	return tick<min?min:tick;
-}
 /*==========================================
  * Starts a status change.
  * type = type, val1~4 depend on the type.
@@ -4270,22 +4189,21 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 	}
 
 	//Check rate
-	if (!(flag&(4|1))) {
-		int def;
-		def = flag&8?0:status_get_sc_def(bl, type); //recycling race to store the sc_def value.
+	if (!(flag&(1|4))) {
+		int def = status_get_sc_def(bl, type);
 
-		if (def)
+		if (def && !(flag&8))
 			rate -= rate*def/10000;
 
 		if (!(rand()%10000 < rate))
 			return 0;
-	}
-	
-	//SC duration reduction.
-	if(!(flag&(2|4)) && tick) {
-		tick = status_get_sc_tick(bl, type, tick);
-		if (tick <= 0)
-			return 0;
+
+		if (def && tick && !(flag&2))
+		{
+			tick -= rate*def/10000;
+			if (tick <= 0)
+				return 0;
+		}
 	}
 
 	undead_flag=battle_check_undead(status->race,status->def_ele);
@@ -4526,13 +4444,6 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				if (sc->data[type].val2 > val2)
 					return 0;
 			break;
-			case SC_WARM:
-			{	//Fetch the Group, half the attack interval. [Skotlex]
-				struct skill_unit_group *group = (struct skill_unit_group *)sc->data[type].val4;
-				if (group)
-					group->interval/=2;
-				return 1;
-			}
 			case SC_STUN:
 			case SC_SLEEP:
 			case SC_POISON:
@@ -4594,7 +4505,17 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 	calc_flag = StatusChangeFlagTable[type];
 	if(!(flag&4)) //Do not parse val settings when loading SCs
 	switch(type){
-		case SC_ENDURE:				/* インデュア */
+		case SC_INCREASEAGI:
+			val2 = 2 + val1; //Agi increase
+			val3 = (5*val1)/2; //Speed increase
+			break;
+		case SC_DECREASEAGI:
+			val2 = 2 + val1; //Agi decrease
+			val3 = 100 - (5*val1)/2; //Speed decrease
+			if (val3 < 1) val3 = 1;
+			if (sd) tick>>=1; //Half duration for players.
+			break;
+		case SC_ENDURE:
 			val2 = 7; // Hit-count [Celest]
 			break;
 		case SC_AUTOBERSERK:
@@ -4604,7 +4525,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			break;
 		
 		case SC_SIGNUMCRUCIS:
-			val2 = 10 + val1*2; //Def reduction
+			val2 = 10 + 4*val1; //Def reduction
 			clif_emotion(bl,4);
 			break;
 		case SC_MAXIMIZEPOWER:
@@ -4715,14 +4636,14 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 		case SC_SPEARQUICKEN:
 			val2 = 200+10*val1;
 			break;
-		case SC_MOONLIT:
-			val2 = bl->id;
-			skill_setmapcell(bl,CG_MOONLIT, val1, CELL_SETMOONLIT);
-			break;
 		case SC_DANCING:
-			//val1 : Skill which is being danced.
+			//val1 : Skill ID + LV
 			//val2 : Skill Group of the Dance.
+			//val3 : Brings the skilllv (merged into val1 here)
 			//val4 : Partner
+			if (val1 == CG_MOONLIT)
+				clif_status_change(bl,SI_MOONLIT,1);
+			val1|= (val3<<16);
 			val3 = 0; //Tick duration/Speed penalty.
 			if (sd) { //Store walk speed change in lower part of val3
 				val3 = 500-40*pc_checkskill(sd,(sd->status.sex?BA_MUSICALLESSON:DC_DANCINGLESSON));
@@ -5231,6 +5152,10 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				val3 = 300;
 			else
 				val3 = 200;
+		case SC_WEAPONPERFECTION:
+		case SC_OVERTHRUST:
+			if(sd && pc_checkskill(sd,BS_HILTBINDING)>0)
+				tick += tick / 10;
 			break;
 		case SC_CONCENTRATION:
 			val2 = 5*val1; //Batk/Watk Increase
@@ -5317,6 +5242,28 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				val3 = map;
 				val4 = pos;
 			}
+			break;
+		case SC_SWOO:
+			if(status->mode&MD_BOSS)
+				tick /= 5; //TODO: Reduce skill's duration. But for how long?
+			break;
+		case SC_ANKLE:
+			if (sd && battle_config.pc_sc_def_rate != 100)
+				tick -= tick*status->agi*battle_config.pc_sc_def_rate/10000;
+			else if (battle_config.mob_sc_def_rate != 100)
+				tick -= tick*status->agi*battle_config.mob_sc_def_rate/10000;
+			else
+				tick -= tick*status->agi/100;
+			if(status->mode&MD_BOSS) // Lasts 5 times less on bosses
+				tick /= 5;
+			// Minimum trap time of 3+0.03*skilllv seconds [celest]
+			// Changed to 3 secs and moved from skill.c [Skotlex]
+			if (tick < 3000)
+				tick = 3000;
+			break;
+		case SC_SPIDERWEB:
+			if (map[bl->m].flag.pvp)
+				tick /=2;
 			break;
 		case SC_INTRAVISION:
 		case SC_ARMOR_ELEMENT:
@@ -5758,9 +5705,8 @@ int status_change_end( struct block_list* bl , int type,int tid )
 					}
 				}
 			}
-			//Only dance that doesn't has ground tiles... [Skotlex]
-			if(sc->data[type].val1 == CG_MOONLIT)
-				status_change_end(bl, SC_MOONLIT, -1);
+			if ((sc->data[type].val1&0xFFFF) == CG_MOONLIT)
+				clif_status_change(bl,SI_MOONLIT,0);
 
 			if (sc->data[SC_LONGING].timer!=-1)
 				status_change_end(bl,SC_LONGING,-1);				
@@ -5859,9 +5805,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 		case SC_BASILICA: //Clear the skill area. [Skotlex]
 				skill_clear_unitgroup(bl);
 				break;
-		case SC_MOONLIT: //Clear the unit effect. [Skotlex]
-			skill_setmapcell(bl,CG_MOONLIT, sc->data[SC_MOONLIT].val1, CELL_CLRMOONLIT);
-			break;
 		case SC_TRICKDEAD:
 			if (vd) vd->dead_sit = 0;
 			break;
@@ -6258,7 +6201,6 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 	case SC_RUN:
 	case SC_DODGE:
 	case SC_AUTOBERSERK: //continues until triggered off manually. [Skotlex]
-	case SC_NEN:
 	case SC_SIGNUMCRUCIS:		/* シグナムクルシス */
 		sc->data[type].timer=add_timer( 1000*600+tick,status_change_timer, bl->id, data );
 		return 0;
@@ -6272,7 +6214,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 				break;
 			sc->data[type].val3&= 0xFFFF; //Remove counter
 			sc->data[type].val3|=(counter<<16);//Reset it.
-			switch(sc->data[type].val1){
+			switch(sc->data[type].val1&0xFFFF){
 				case BD_RICHMANKIM:
 				case BD_DRUMBATTLEFIELD:
 				case BD_RINGNIBELUNGEN:
@@ -6300,7 +6242,8 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 					s=6;
 					break;
 				case CG_MOONLIT:
-					sp= 4*sc->data[SC_MOONLIT].val1; //Moonlit's cost is 4sp*skill_lv [Skotlex]
+					//Moonlit's cost is 4sp*skill_lv [Skotlex]
+					sp= 4*(sc->data[type].val1>>16);
 					//Upkeep is also every 10 secs.
 				case DC_DONTFORGETME:
 					s=10;
@@ -6741,8 +6684,16 @@ static int status_natural_heal(DBKey key,void * data,va_list app)
 		sregen->tick.sp += natural_heal_diff_tick * sregen->rate.sp;
 		while(sregen->tick.sp >= (unsigned int)battle_config.natural_heal_skill_interval)
 		{
+			val = sregen->sp;
+			if (sd && sd->state.doridori) {
+				val*=2;
+				sd->state.doridori = 0;
+				if ((rate = pc_checkskill(sd,TK_SPTIME)))
+					sc_start(bl,SkillStatusChangeTable(TK_SPTIME),
+						100,rate,skill_get_time(TK_SPTIME, rate));
+			}
 			sregen->tick.sp -= battle_config.natural_heal_skill_interval;
-			if(status_heal(bl, 0, sregen->sp, 3) < sregen->sp)
+			if(status_heal(bl, 0, val, 3) < val)
 				break; //Full
 		}
 	}

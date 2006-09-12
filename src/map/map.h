@@ -574,7 +574,6 @@ struct map_session_data {
 		// Abracadabra bugfix by Aru
 		unsigned abra_flag : 1;
 		unsigned autotrade : 1;	//By Fantik
-		unsigned perfect_hiding : 1; // [Valaris]
 		unsigned reg_dirty : 3; //By Skotlex (marks whether registry variables have been saved or not yet)
 		unsigned showdelay :1;
 		unsigned showexp :1;
@@ -593,6 +592,7 @@ struct map_session_data {
 		unsigned rewarp :1; //Signals that a player should warp as soon as he is done loading a map. [Skotlex]
 		unsigned killer : 1;
 		unsigned killable : 1;
+		unsigned doridori : 1;
 		unsigned short autoloot;
 		struct guild *gmaster_flag;
 	} state;
@@ -604,6 +604,7 @@ struct map_session_data {
 		unsigned no_sizefix : 1;
 		unsigned no_gemstone : 1;
 		unsigned intravision : 1; // Maya Purple Card effect allowing to see Hiding/Cloaking people [DracoRPG]
+		unsigned perfect_hiding : 1; // [Valaris]
 	} special_state;
 	int char_id, login_id1, login_id2, sex;
 	unsigned short class_;	//This is the internal job ID used by the map server to simplify comparisons/queries/etc. [Skotlex]
@@ -763,7 +764,6 @@ struct map_session_data {
 	int spirit_timer[MAX_SKILL_LEVEL];
 
 	int die_counter;
-	short doridori_counter;
 	char potion_success_counter;
 
 	int reg_num;
@@ -1215,7 +1215,6 @@ typedef enum {
 	CELL_CHKSAFETYWALL,
 	CELL_CHKBASILICA,	// バジリカ(セルタイプ0x40フラグ)
 	CELL_CHKLANDPROTECTOR,
-	CELL_CHKMOONLIT,
 	CELL_CHKICEWALL,
 	CELL_CHKSTACK,
 } cell_t;
@@ -1232,8 +1231,6 @@ enum {
 	CELL_CLRPNEUMA,
 	CELL_SETSAFETYWALL,
 	CELL_CLRSAFETYWALL,
-	CELL_SETMOONLIT,
-	CELL_CLRMOONLIT,
 	CELL_SETICEWALL,
 	CELL_CLRICEWALL,
 };

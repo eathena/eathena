@@ -527,13 +527,8 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick) {
 			if (sc->count) {
 				if (sc->data[SC_CLOAKING].timer != -1)
 					skill_check_cloaking(bl, sc);
-				if (sc->data[SC_DANCING].timer != -1) {
-					//Cancel Moonlight Petals if moved from casting position. [Skotlex]
-					if (sc->data[SC_DANCING].val1 == CG_MOONLIT)
-						skill_stop_dancing(bl);
-					else
-						skill_unit_move_unit_group((struct skill_unit_group *)sc->data[SC_DANCING].val2, bl->m, x1-x0, y1-y0);
-				}
+				if (sc->data[SC_DANCING].timer != -1)
+					skill_unit_move_unit_group((struct skill_unit_group *)sc->data[SC_DANCING].val2, bl->m, x1-x0, y1-y0);
 				if (sc->data[SC_WARM].timer != -1)
 					skill_unit_move_unit_group((struct skill_unit_group *)sc->data[SC_WARM].val4, bl->m, x1-x0, y1-y0);
 			}
@@ -2254,13 +2249,13 @@ int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
 			if (type3 >= battle_config.cell_stack_limit) return 0;
 #endif
 		case CELL_CHKREACH:
-			return (type!=1 && type!=5 && !(type2&(CELL_MOONLIT|CELL_ICEWALL)));
+			return (type!=1 && type!=5 && !(type2&CELL_ICEWALL));
 		case CELL_CHKNOPASS:
 #ifdef CELL_NOSTACK
 			if (type3 >= battle_config.cell_stack_limit) return 1;
 #endif
 		case CELL_CHKNOREACH:
-			return (type==1 || type==5 || type2&(CELL_MOONLIT|CELL_ICEWALL));
+			return (type==1 || type==5 || type2&CELL_ICEWALL);
 		case CELL_CHKSTACK:
 #ifdef CELL_NOSTACK
 			return (type3 >= battle_config.cell_stack_limit);
@@ -2287,8 +2282,6 @@ int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
 			return (type2&CELL_BASILICA);
 		case CELL_CHKLANDPROTECTOR:
 			return (type2&CELL_LANDPROTECTOR);
-		case CELL_CHKMOONLIT:
-			return (type2&CELL_MOONLIT);
 		case CELL_CHKREGEN:
 			return (type2&CELL_REGEN);
 		case CELL_CHKICEWALL:
@@ -2339,12 +2332,6 @@ void map_setcell(int m,int x,int y,int cell)
 			break;
 		case CELL_CLRSAFETYWALL:
 			map[m].cell[j] &= ~CELL_SAFETYWALL;
-			break;
-		case CELL_SETMOONLIT:
-			map[m].cell[j] |= CELL_MOONLIT;
-			break;
-		case CELL_CLRMOONLIT:
-			map[m].cell[j] &= ~CELL_MOONLIT;
 			break;
 		case CELL_SETLANDPROTECTOR:
 			map[m].cell[j] |= CELL_LANDPROTECTOR;
@@ -3309,7 +3296,7 @@ int parse_console(char *buf) {
  *------------------------------------------
  */
 int map_config_read(char *cfgName) {
-	char line[1024], w1[1024], w2[1024];
+	char line[1024], w1[1024], w2[1024], *ptr;
 	FILE *fp;
 
 	fp = fopen(cfgName,"r");
@@ -3320,7 +3307,17 @@ int map_config_read(char *cfgName) {
 	while(fgets(line, sizeof(line) -1, fp)) {
 		if (line[0] == '/' && line[1] == '/')
 			continue;
-		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2) {
+
+		if ((ptr = strstr(line, "//")) != NULL)
+			*ptr = '\n'; //Strip comments
+
+		if (sscanf(line, "%[^:]: %[^\t\r\n]", w1, w2) == 2) {
+			//Strip trailing spaces
+			ptr = w2 + strlen(w2);
+			while (--ptr >= w2 && *ptr == ' ');
+			ptr++;
+			*ptr = '\0';
+			
 			if(strcmpi(w1,"timestamp_format")==0){
 				strncpy(timestamp_format, w2, 20);
 			} else if(strcmpi(w1,"console_silent")==0){
@@ -3397,7 +3394,8 @@ int map_config_read(char *cfgName) {
 					enable_spy = 0;
 			} else if (strcmpi(w1, "import") == 0) {
 				map_config_read(w2);
-			}
+			} else
+				ShowWarning("Unknown setting [%s] in file %s\n", w1, cfgName);
 		}
 	}
 	fclose(fp);

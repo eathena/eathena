@@ -1700,16 +1700,21 @@ static struct Damage battle_calc_weapon_attack(
 			if (flag.lh)
 				wd.damage2 = battle_addmastery(sd,target,wd.damage2,1);
 
-			if((skill=pc_checkskill(sd,SG_STAR_ANGER)) >0 && (t_class == sd->hate_mob[2] || (sc && sc->data[SC_MIRACLE].timer!=-1)))
+			if((skill=pc_checkskill(sd,SG_STAR_ANGER)) >0 && (t_class == sd->hate_mob[2] ||
+				(sc && sc->data[SC_MIRACLE].timer!=-1)))
 			{
-				skillratio = (sd->status.base_level + sstatus->str + sstatus->dex + sstatus->luk)/(skill<4?12-3*skill:1);
+				skillratio = sd->status.base_level + sstatus->str + sstatus->dex + sstatus->luk;
+				if (skill<4)
+					skillratio /= 12-3*skill;
 				ATK_ADDRATE(skillratio);
 			} else
 			if(
 				((skill=pc_checkskill(sd,SG_SUN_ANGER)) >0 && t_class == sd->hate_mob[0]) ||
 				((skill=pc_checkskill(sd,SG_MOON_ANGER)) >0 && t_class == sd->hate_mob[1])
 			) {
-				skillratio = (sd->status.base_level + sstatus->dex+ sstatus->luk)/(skill<4?12-3*skill:1);
+				skillratio = sd->status.base_level + sstatus->dex+ sstatus->luk;
+				if (skill<4)
+					skillratio /= 12-3*skill;
 				ATK_ADDRATE(skillratio);
 			}
 		}
@@ -3697,7 +3702,7 @@ void battle_set_defaults() {
 	battle_config.enable_critical=BL_PC;
 	battle_config.mob_critical_rate=100;
 	battle_config.critical_rate=100;
-	battle_config.enable_baseatk = BL_ALL;
+	battle_config.enable_baseatk = BL_PC;
 	battle_config.enable_perfect_flee = BL_PC|BL_PET;
 	battle_config.cast_rate=100;
 	battle_config.delay_rate=100;

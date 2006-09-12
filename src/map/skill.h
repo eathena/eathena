@@ -226,8 +226,7 @@ int skill_guildaura_sub (struct block_list *bl,va_list ap);
 // ârè•ÉLÉÉÉìÉZÉã
 int skill_castcancel(struct block_list *bl,int type);
 
-int skill_gangsterparadise(struct map_session_data *sd ,int type);
-int skill_rest(struct map_session_data *sd ,int type);
+int skill_sit (struct map_session_data *sd, int type);
 void skill_brandishspear_first(struct square *tc,int dir,int x,int y);
 void skill_brandishspear_dir(struct square *tc,int dir,int are);
 void skill_repairweapon(struct map_session_data *sd, int idx);
@@ -935,7 +934,7 @@ enum {
 	UNT_CALLFAMILY,
 	UNT_GOSPEL,
 	UNT_BASILICA,
-	//0xb5
+	UNT_MOONLIT,//0xb5 //I HOPE this one doesn't shows any effects
 	UNT_FOGWALL = 0xb6,
 	UNT_SPIDERWEB,
 	UNT_GRAVITATION,

@@ -645,11 +645,11 @@ int unit_can_move(struct block_list *bl)
 			|| sc->data[SC_BLADESTOP].timer !=-1
 			|| sc->data[SC_BLADESTOP_WAIT].timer !=-1
 			|| sc->data[SC_SPIDERWEB].timer !=-1
-			|| (sc->data[SC_DANCING].timer !=-1 && (
-				(sc->data[SC_DANCING].val4 && sc->data[SC_LONGING].timer == -1) ||
-				sc->data[SC_DANCING].val1 == CG_HERMODE	//cannot move while Hermod is active.
+			|| (sc->data[SC_DANCING].timer !=-1 && sc->data[SC_DANCING].val4 && (
+				sc->data[SC_LONGING].timer == -1 ||
+				(sc->data[SC_DANCING].val1&0xFFFF) == CG_MOONLIT ||
+				(sc->data[SC_DANCING].val1&0xFFFF) == CG_HERMODE
 			))
-			|| sc->data[SC_MOONLIT].timer != -1
 			|| (sc->data[SC_GOSPEL].timer !=-1 && sc->data[SC_GOSPEL].val4 == BCT_SELF)	// cannot move while gospel is in effect
 			|| sc->data[SC_STOP].timer != -1
 			|| sc->data[SC_CLOSECONFINE].timer != -1
@@ -1104,6 +1104,27 @@ int unit_attack(struct block_list *src,int target_id,int type)
 	return 0;
 }
 
+//Cancels an ongoing combo, resets attackable time and restarts the 
+//attack timer to resume attacking after amotion time. [Skotlex]
+int unit_cancel_combo(struct block_list *bl)
+{
+	struct unit_data  *ud;
+
+	if (!status_change_end(bl, SC_COMBO, -1))
+		return 0; //Combo wasn't active.
+
+	ud = unit_bl2ud(bl);
+	nullpo_retr(0, ud);
+
+	ud->attackabletime = gettick() + status_get_amotion(bl);
+
+	if (ud->attacktimer == -1)
+		return 1; //Nothing more to do.
+	
+	delete_timer(ud->attacktimer, unit_attack_timer);
+	ud->attacktimer=add_timer(ud->attackabletime,unit_attack_timer,bl->id,0);
+	return 1;
+}
 /*==========================================
  *
  *------------------------------------------
@@ -1536,8 +1557,7 @@ int unit_remove_map(struct block_list *bl, int clrtype) {
 
 		if(pc_issit(sd)) {
 			pc_setstand(sd);
-			skill_gangsterparadise(sd,0);
-			skill_rest(sd,0);
+			skill_sit(sd,0);
 		}
 		party_send_dot_remove(sd);//minimap dot fix [Kevin]
 		guild_send_dot_remove(sd);

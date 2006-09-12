@@ -5,6 +5,31 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/12
+	* Several merges from trunk: [Skotlex]
+	- CG_MOONLIT is now a ground effect, like all other song/dances.
+	  It knockbacks now instead of preventing entry.
+	- SG_*_ANGER code cleanup.
+	- autospells now trigger only on BF_WEAPON types of attack.
+	- SC_DANCING cleanup where val1 holds both skill ID and skill LV
+	- visual effect corrections to SG_FEEL 
+	- Cleanup of SG_HATE (you can still change hate targets, this will be fixed
+	  once Angel is merged in as well)
+	- Added unit_cancel_combo, now using the wrong TK kick cancels the combo
+	  and resumes attacking.
+	- Memorize is consumed now by instant cast skills as well.
+	- Code unification of Gangster Paradise and TK Rest.
+	- Berserk ends when you are damaged and your HP is 100 or less.
+	- Moved perfect_hiding from state to special_state, so that it clears out
+	  properly when you remove your pet.
+	- Removed status_get_sc_tick, status_get_sc_def now does both chance and
+	  duration reduction.
+	- Removed the warmth 'stacking' code.
+	- Corrected Signum Crucis's def reduction.
+	- Clean up of parse doridori function, happy state will now trigger
+	  together with TK_SPTIME.
+	- Map config reading now ignores trailing comments in lines, also it will
+	  now print out unknown setting warnings.
+	- Pet capturing will now check a mob's visual class rather than base class.
 	* Merged the login servers: Merged dnsbl support and corrected a pair of
 	  wrong IP insertions to the loginlog [Skotlex]
 2006/09/11
