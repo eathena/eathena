@@ -93,11 +93,11 @@ static void setsocketopts(int fd)
 	size_t buff;
 	size_t buff_size = sizeof (buff);	
 
-	setsockopt(fd,SOL_SOCKET,SO_REUSEADDR,(char *)&yes,sizeof yes);
+	setsockopt(fd,SOL_SOCKET,SO_REUSEADDR,(char *)&yes,sizeof(yes));
 #ifdef SO_REUSEPORT
-	setsockopt(fd,SOL_SOCKET,SO_REUSEPORT,(char *)&yes,sizeof yes);
+	setsockopt(fd,SOL_SOCKET,SO_REUSEPORT,(char *)&yes,sizeof(yes));
 #endif
-	setsockopt(fd,IPPROTO_TCP,TCP_NODELAY,(char *)&yes,sizeof yes);
+	setsockopt(fd,IPPROTO_TCP,TCP_NODELAY,(char *)&yes,sizeof(yes));
 
 #ifdef __WIN32
 {	//set SO_LINGER option (from Freya)

@@ -2162,6 +2162,16 @@ int mob_class_change (struct mob_data *md, int class_)
 	if (md->bl.prev == NULL)
 		return 0;
 
+	//Disable class changing for some targets...
+	if (md->guardian_data)
+		return 0; //Guardians/Emperium
+
+	if (md->class_ >= 1324 && md->class_ <= 1363)
+		return 0; //Treasure Boxes
+
+	if (mob_is_clone(md->class_))
+		return 0; //Clones
+
 	hp_rate = md->status.hp*100/md->status.max_hp;
 	md->db = mob_db(class_);
 	if (battle_config.override_mob_names==1)
@@ -2175,7 +2185,7 @@ int mob_class_change (struct mob_data *md, int class_)
 	status_set_viewdata(&md->bl, class_);
 	clif_mob_class_change(md,class_);
 	status_calc_mob(md, 3);
-	
+
 	if (battle_config.monster_class_change_full_recover) {
 		memset(md->dmglog, 0, sizeof(md->dmglog));
 		md->tdmg = 0;
@@ -2190,8 +2200,8 @@ int mob_class_change (struct mob_data *md, int class_)
 	if(md->lootitem == NULL && md->db->status.mode&MD_LOOTER)
 		md->lootitem=(struct item *)aCalloc(LOOTITEM_SIZE,sizeof(struct item));
 
-	if (battle_config.show_mob_hp)
-		clif_charnameack(0, &md->bl);
+	//Need to update name display.
+	clif_charnameack(0, &md->bl);
 
 	return 0;
 }
