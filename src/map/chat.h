@@ -4,7 +4,7 @@
 #ifndef _CHAT_H_
 #define _CHAT_H_
 
-#include "map.h"
+#include "pc.h"
 
 //## TODO: rename the npc_chat stuff to maybe npc_listen and have this stuff here be more seperated 
 
@@ -44,6 +44,10 @@ public:
 
 	/////////////////////////////////////////////////////////////////
 	/// upcasting overloads.
+	virtual bool is_type(object_t t)
+	{
+		return t==BL_CHAT;
+	}
 	virtual chat_data*				get_cd()				{ return this; }
 	virtual const chat_data*		get_cd() const			{ return this; }
 

@@ -371,7 +371,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// number of parameters
-	size_t Arguments()	
+	size_t Arguments() const
 	{
 		return (end>start)?(end-start):0; 
 	}
@@ -443,7 +443,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// status access/query
-	bool isRunning()	{ return OFF!=this->state; }
+	bool isRunning() const 	{ return OFF!=this->state; }
 
 	bool clearAll()
 	{	// stop and clear running/queued scripts (OnDeath)
@@ -461,13 +461,13 @@ public:
 		return true;
 	}
 
-	bool isMessage()	{ return this->messageopen; }
-	bool setMessage()	{ return (this->messageopen=true); }
-	bool clearMessage()	{ return (this->messageopen=false); }
-	void Quit()			{ this->state = END; }
-	void Stop()			{ this->state = STOP; }
-	void Return()		{ this->state = RETFUNC; }
-	void EnvSwap()		{ this->state = ENVSWAP; }
+	bool isMessage() const 	{ return this->messageopen; }
+	bool setMessage()		{ return (this->messageopen=true); }
+	bool clearMessage()		{ return (this->messageopen=false); }
+	void Quit()				{ this->state = END; }
+	void Stop()				{ this->state = STOP; }
+	void Return()			{ this->state = RETFUNC; }
+	void EnvSwap()			{ this->state = ENVSWAP; }
 	void Goto(size_t p)	
 	{
 		pos = p; 

@@ -101,83 +101,15 @@ int pet_data::skilltimer_func(int tid, unsigned long tick, int id, basics::numpt
 	return 0;
 }
 
-
 /// do object depending stuff for ending the walk.
 void pet_data::do_stop_walking()
 {
-//	if( this->state.state == MS_WALK)
-//		this->set_idle();
 }
 /// do object depending stuff for the walk step.
 bool pet_data::do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy)
 {
-//	this->state.state=MS_WALK;
 	return true;
 }
-/*
-/// do object depending stuff for changestate
-void pet_data::do_changestate(int state,int type)
-{
-	pet_data &pd = *this;
-	unsigned long tick;
-	int i;
-
-	if( pd.state.casting_flag )
-		skill_castcancel(&pd, 0);
-
-	if(pd.walktimer != -1)
-	{
-		if( pd.is_walking() )
-			delete_timer(pd.walktimer,pd.walktimer_entry);
-		else
-			delete_timer(pd.walktimer,movable::walktimer_entry);
-		pd.walktimer=-1;
-	}
-	if(pd.attacktimer != -1)
-	{
-		struct TimerData *td = get_timer(pd.walktimer);
-		if(td && td->data.isptr)
-		{
-			delete ((struct castend_delay*)td->data.ptr);
-			td->data = 0;
-		}
-
-		delete_timer(pd.attacktimer,fightable::attacktimer_entry);
-		pd.attacktimer=-1;
-	}
-// not applicable since skills don't yet go this way
-//	if(pd.skilltimer != -1)
-//	{
-//		delete_timer(pd.skilltimer,fightable::skilltimer_entry);
-//		pd.skilltimer=-1;
-//	}
-
-
-
-	pd.state.state=state;
-
-	switch(state)
-	{
-		case MS_WALK:
-			if( !pd.set_walktimer( gettick() ) )
-				pd.state.state=MS_IDLE;
-			break;
-		case MS_ATTACK:
-			tick = gettick();
-			i=DIFF_TICK(pd.attackable_tick,tick);
-			if(i>0 && i<2000)
-				pd.attacktimer=add_timer(pd.attackable_tick,fightable::attacktimer_entry,pd.block_list::id,0);
-			else
-				pd.attacktimer=add_timer(tick+1,fightable::attacktimer_entry,pd.block_list::id,0);
-			break;
-		case MS_DELAY:
-				pd.walktimer=add_timer(gettick()+type,movable::walktimer_entry,pd.block_list::id,0);
-			break;
-	}
-}
-*/
-
-
 
 // Random walk
 bool pet_data::randomwalk(unsigned long tick)
@@ -669,8 +601,8 @@ int pet_remove_map(struct map_session_data &sd)
 		}
 		if (pd->loot)
 		{
-			if (pd->loot->item)
-				delete pd->loot->item;
+			if (pd->loot->itemlist)
+				delete pd->loot->itemlist;
 			delete pd->loot;
 			pd->loot = NULL;
 		}
@@ -1193,7 +1125,7 @@ public:
 			if(fitem && fitem->first_get_id>0)
 				sd = map_session_data::from_blid(fitem->first_get_id);
 
-			if( pd.loot == NULL || pd.loot->item == NULL || (pd.loot->count >= pd.loot->max) || 
+			if( pd.loot == NULL || pd.loot->itemlist == NULL || (pd.loot->count >= pd.loot->max) || 
 				(sd && sd->pd && sd->pd->block_list::id != pd.block_list::id) )
 				return 0;
 			if(bl.m == pd.block_list::m && (dist=distance(pd.block_list::x,pd.block_list::y,bl.x,bl.y))<5)
@@ -1339,7 +1271,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 
 				if(pd.loot && pd.loot->count < pd.loot->max)
 				{
-					pd.loot->item[pd.loot->count++] = fitem->item_data;
+					pd.loot->itemlist[pd.loot->count++] = fitem->item_data;
 					pd.loot->weight += itemdb_search(fitem->item_data.nameid)->weight*fitem->item_data.amount;
 					map_clearflooritem(fitem->id);
 				}
@@ -1400,16 +1332,16 @@ int pet_lootitem_drop(struct pet_data &pd,struct map_session_data *sd)
 		{	// —‚Æ‚³‚È‚¢‚Å’¼ÚPC‚ÌItem—“‚Ö
 			if(sd)
 			{	// player exists
-				if((flag = pc_additem(*sd,pd.loot->item[i],pd.loot->item[i].amount)))
+				if((flag = pc_additem(*sd, pd.loot->itemlist[i], pd.loot->itemlist[i].amount)))
 				{	// drop items on floor
 					clif_additem(*sd,0,0,flag);
-					map_addflooritem(pd.loot->item[i],pd.loot->item[i].amount,pd.block_list::m, pd.block_list::x, pd.block_list::y,NULL,NULL,NULL,0);
+					map_addflooritem(pd.loot->itemlist[i],pd.loot->itemlist[i].amount,pd.block_list::m, pd.block_list::x, pd.block_list::y,NULL,NULL,NULL,0);
 				}
 			}
 			else
 			{	// create a delay drop structure
 				struct delay_item_drop2 *ditem;
-				ditem = new delay_item_drop2(pd, pd.loot->item[i]);
+				ditem = new delay_item_drop2(pd, pd.loot->itemlist[i]);
 				add_timer(gettick()+540+i,pet_delay_item_drop2,0, basics::numptr(ditem), false);
 			}
 		}
@@ -1541,7 +1473,7 @@ int pet_heal_timer(int tid, unsigned long tick, int id, basics::numptr data)
 
 	pd->stop_attack();
 	clif_skill_nodamage(*pd,*sd,AL_HEAL,pd->s_skill->lv,1);
-	pc_heal(*sd,pd->s_skill->lv,0);
+	sd->heal(pd->s_skill->lv,0);
 	
 	pd->s_skill->timer=add_timer(tick+pd->s_skill->delay*1000,pet_heal_timer,sd->block_list::id,0);
 	

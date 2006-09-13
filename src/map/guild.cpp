@@ -928,7 +928,7 @@ int guild_change_emblem(struct map_session_data &sd,int len,const unsigned char 
 		!((g = guild_search(sd.status.guild_id)) &&
 		guild_checkskill(*g, GD_GLORYGUILD)>0) )
 	{
-		clif_skill_fail(sd,GD_GLORYGUILD,0,0);
+		sd.clif_skill_failed(GD_GLORYGUILD,0,0);
 		return 0;
 	}
 	return intif_guild_emblem(sd.status.guild_id,data,len);

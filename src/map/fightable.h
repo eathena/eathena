@@ -33,7 +33,114 @@
 // {my answer: set up everything externally, no extra data at the casting object at all [Hinoko]}
 // {suggest to have the root node of a doubled linked list at the object [Shinomori]}
 //
+/*
+	proposed new flow for skills:
+	(possibly also integrate physical attacks here)
 
+	skill/attack execution is requested
+	->
+	check if execution is possible
+	->
+	previous skill/attack is stopped when necessary (by removing the object)
+	->
+	a suitable skill object is constructed, 
+	containing all necessary data for the action
+	possible skills are: target skills, area skills, map skills
+	
+	  former calls:
+	  skill_use_pos(<caster>, <x>, <y>, <skillid>, <skilllv>, <additional parameter (talkiemsg) which is currently done via a global variable, empty on default>)
+	  skill_use_id(<caster>, <target_id>, <skillid>, <skilllv>)
+	  skill_castend_map(<caster>,<skillid>, <mapname>)
+
+	->
+	after construction the execution is triggered
+	which either does the action immediately or starts timers or 
+	do the initial action and start timers or whatever
+	->
+	on finishing the object removes itself
+	and sets the specified cooldown time
+
+	necessary external access:
+	* do an action (ie by skillid)
+	* stop the action (considering a possible cooldown time also on stopped skills)
+
+
+
+	proposed new flow for status changes:
+
+	status changes is requested
+	->
+	check if status changes is possible/stackable
+	->
+	a suitable status object is constructed, 
+	which is starting the status change
+	or
+	existing previous status updated
+	->
+	on finishing the object removes itself
+	and removes the status change from the applied object
+
+	necessary external access:
+	* start (ie by statusid)
+	* end
+	* load/save (actually some status_tobuffer/status_frombuffer equivalents)
+*/
+
+
+///////////////////////////////////////////////////////////////////////////////
+// temporary test vehicles for new skill style convention
+
+
+// predeclarations
+struct fightable;
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// virtual skill base class.
+/// declares a common interface for skills.
+class skillbase : public basics::noncopyable
+{
+public:
+	int			timerid;	///< will replace skilltimer
+	fightable	&caster;	///< casting object
+protected:
+	/// protected constructor.
+	/// only derived can create
+	skillbase(fightable &c) : timerid(-1), caster(c)	{}
+public:
+	/// destructor.
+	virtual ~skillbase();
+
+public:
+	/// identifier.
+	/// overload with specific value
+	enum {id = -1};
+
+	/// function called for initialisation.
+	/// overload with specific needs
+	virtual bool init(ulong& timeoffset)=0;
+	/// function called for execution.
+	/// overload with specific needs
+	virtual void action()=0;
+	/// function called for execution.
+	/// overload with specific needs
+	virtual void stop()=0;
+
+	// different static constructors
+	static skillbase* create(fightable& caster, ushort skillid, ushort skilllv, uint32 targetid);
+	static skillbase* create(fightable& caster, ushort skillid, ushort skilllv, ushort x, ushort y, const char*extra=NULL);
+	static skillbase* create(fightable& caster, ushort skillid, const char*mapname);
+private:
+	/// check for timed or immediate execution
+	static void process_skill(skillbase*& skill);
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// fightable object.
+/// derives from movable (thus can walk) and implements
+/// the interface to do physical attacks, skills and receive status changes
 struct fightable : public movable
 {
 public:
@@ -55,7 +162,10 @@ public:
 	uint32 target_id;
 	unsigned short target_lv;
 	unsigned char attack_continue : 1 ;	// could be part of the attack object
-	
+
+
+	skillbase*	cSkillObj;
+
 /*
 	struct skill_timerskill *skilltimerskill[MAX_SKILLTIMERSKILL];
 	struct skill_unit_group *skillunit[MAX_SKILLUNITGROUP];
@@ -169,39 +279,17 @@ public:
 	/// call back function for the skilltimer
 	virtual int skilltimer_func(int tid, unsigned long tick, int id, basics::numptr data)=0;
 
+
+	/// start a skill
+	bool start_skill(ushort skillid, ushort skilllv, uint32 targetid);
+	bool start_skill(ushort skillid, ushort skilllv, ushort x, ushort y, const char*extra=NULL);
+	bool start_skill(ushort skillid, const char*mapname);
+
 	/// stops skill
 	virtual bool stop_skill();
-
 };
 
 
-
-
-/*
-	proposed flow:
-
-	skill/attack execution is requested
-	->
-	check if execution is possible
-	->
-	previous skill/attack is stopped (by removing the object)
-	->
-	a suitable battle object is constructed, 
-	containing all necessary data for the action
-	->
-	construction also triggers the execution 
-	which either does the action or starts timers or 
-	do the action and start timers or whatever
-	->
-	on finishing the object removes itself
-	and sets the specified cooldown time
-
-
-	necessary external access:
-	* is doing an action
-	* stop the action (considering a possible cooldown time also on stopped skils)
-
-*/
 
 
 

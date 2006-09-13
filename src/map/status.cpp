@@ -7,6 +7,7 @@
 #include "pet.h"
 #include "homun.h"
 #include "mob.h"
+#include "npc.h"
 #include "clif.h"
 #include "guild.h"
 #include "skill.h"
@@ -596,7 +597,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		sd.right_weapon.hp_drain_rate = sd.right_weapon.hp_drain_per = sd.right_weapon.sp_drain_rate = sd.right_weapon.sp_drain_per = 0;
 		sd.left_weapon.hp_drain_rate = sd.left_weapon.hp_drain_per = sd.left_weapon.sp_drain_rate = sd.left_weapon.sp_drain_per = 0;
 		sd.short_weapon_damage_return = sd.long_weapon_damage_return = 0;
-		sd.magic_damage_return = 0; //AppleGirl Was Here
+		sd.magic_damage_return = 0;
 		sd.random_attack_increase_add = sd.random_attack_increase_per = 0;
 		sd.right_weapon.hp_drain_value = sd.left_weapon.hp_drain_value = sd.right_weapon.sp_drain_value = sd.left_weapon.sp_drain_value = 0;
 		sd.unbreakable_equip = 0;
@@ -2875,7 +2876,7 @@ int status_get_mdef(block_list *bl)
  * –ß‚è‚Í®”‚Å1ˆÈã
  *------------------------------------------
  */
-int status_get_def2(block_list *bl)
+int status_get_def2(const block_list *bl)
 {
 	int def2 = 1;
 	nullpo_retr(1, bl);
@@ -2928,7 +2929,7 @@ int status_get_def2(block_list *bl)
  * –ß‚è‚Í®”‚Å0ˆÈã
  *------------------------------------------
  */
-int status_get_mdef2(block_list *bl)
+int status_get_mdef2(const block_list *bl)
 {
 	int mdef2 = 0;
 	nullpo_retr(0, bl);
@@ -3137,7 +3138,7 @@ int status_get_dmotion(block_list *bl)
 	return ret;
 }
 
-int status_get_element(block_list *bl)
+int status_get_element(const block_list *bl)
 {
 	int ret = 20;
 	struct status_change *sc_data;
@@ -3343,11 +3344,11 @@ int status_isimmune(block_list *bl)
 }
 
 // StatusChangeŒn‚ÌŠ“¾
-struct status_change *status_get_sc_data(block_list *bl)
+struct status_change *status_get_sc_data(const block_list *bl)
 {
 	nullpo_retr(NULL, bl);
 	if(bl->type==BL_MOB)
-		return ((struct mob_data*)bl)->sc_data;
+		return ((struct mob_data*)bl)->sc_data;	// bad
 	else if(bl->type==BL_PC)
 		return ((struct map_session_data*)bl)->sc_data;
 	return NULL;
@@ -3960,12 +3961,15 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			int hp = status_get_hp(bl);
 			// MHP?1/4????????
 			if (hp > mhp>>2) {
-				if(bl->type == BL_PC) {
+				if(bl->type == BL_PC)
+				{
 					int diff = mhp*10/100;
 					if (hp - diff < mhp>>2)
 						hp = hp - (mhp>>2);
-					pc_heal(*((struct map_session_data *)bl), -hp, 0);
-				} else if(bl->type == BL_MOB) {
+					bl->heal(-hp, 0);
+				}
+				else if(bl->type == BL_MOB)
+				{
 					struct mob_data *md = (struct mob_data *)bl;
 					hp -= mhp*15/100;
 					if (hp > mhp>>2)
@@ -4886,8 +4890,9 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 				hp = hp/100;
 				if(hp < 1) hp = 1;
 				if(sd)
-					pc_heal(*sd,-hp,0);
-				else if(md){
+					sd->heal(-hp,0);
+				else if(md)
+				{
 					md->hp -= hp;
 				}
 			}
@@ -4903,7 +4908,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 				break;
 			if(sd) {
 				hp = (type == SC_DPOISON) ? 3 + hp/50 : 3 + hp*3/200;
-				pc_heal(*sd, -hp, 0);
+				sd->heal(-hp, 0);
 			} else if(md) {
 				hp = (type == SC_DPOISON) ? 3 + hp/100 : 3 + hp/200;
 				md->hp -= hp;
@@ -4939,7 +4944,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 			int hp = rand()%300 + 400;
 			if(sd)
 			{
-				pc_heal(*sd,-hp,0);
+				sd->heal(-hp,0);
 			}
 			else if(md)
 			{

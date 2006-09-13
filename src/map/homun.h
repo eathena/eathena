@@ -136,6 +136,10 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// upcasting overloads.
+	virtual bool is_type(object_t t)
+	{
+		return t==BL_HOM;
+	}
 	virtual homun_data*				get_hd()				{ return this; }
 	virtual const homun_data*		get_hd() const			{ return this; }
 
@@ -164,14 +168,6 @@ public:
 	virtual void do_attack()							{}
 	/// get the current attack range
 	virtual ushort get_attackrange()					{ return 1; }
-
-	/// timer callback
-//	virtual int attacktimer_func(int tid, unsigned long tick, int id, basics::numptr data)
-//	{	// don't attack, just emote for now
-//		clif_emotion(*this, 7);
-//		return 0;
-//	}
-
 
 	///////////////////////////////////////////////////////////////////////////
 	// skill functions
@@ -216,7 +212,7 @@ public:
 	int next_baseexp() const;
 	
 	int damage(block_list &src, uint32 damage);
-	int heal(int hp, int sp);
+	virtual int heal(int hp, int sp=0);
 	void delete_natural_heal_timer();
 	void delete_hungry_timer();
 	

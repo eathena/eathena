@@ -4,7 +4,7 @@
 #ifndef __MOVABLE_H__
 #define __MOVABLE_H__
 
-#include "coordinate.h"
+#include "map.h"
 #include "path.h"
 
 
@@ -181,7 +181,8 @@ public:
 
 	/// initialize walkpath. uses current target position as walk target
 	bool init_walkpath();
-	/// activates the walktimer
+private:
+	/// activates the walktimer.
 	bool set_walktimer(unsigned long tick);
 };
 

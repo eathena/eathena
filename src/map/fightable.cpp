@@ -16,6 +16,265 @@
 #include "status.h"
 
 
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// temporary skill test area
+
+
+
+/// some test class
+class dummyskill : public skillbase
+{
+	const char* msg;
+public:
+
+	dummyskill(fightable& caster, const char*m) : skillbase(caster), msg(m)
+	{
+		printf("%s created\n", msg?msg:"dummy skill");
+	}
+	virtual ~dummyskill()	{}
+
+	/// identifier.
+	enum {id = 1};
+	/// function called for initialisation.
+	virtual bool init(ulong& timeoffset)
+	{
+		timeoffset = rand()%5000;
+		return true;
+	}
+	/// function called for execution.
+	virtual void action()
+	{
+		printf("%s executed\n", msg?msg:"dummy skill");
+	}
+	/// function called when stopped
+	virtual void stop()
+	{
+		printf("%s stopped\n", msg?msg:"dummy skill");
+	}
+	static skillbase* create_newskill(fightable&fi, ushort skillid, ushort skilllv=1);
+};
+
+
+/// check for timed or immediate execution
+void skillbase::process_skill(skillbase*& skill)
+{
+	if( skill )
+	{
+		ulong timeoffset=0;
+		if( skill->init(timeoffset) )
+		{	// skill is ok
+			if( timeoffset>100 )
+			{	/// action is to be called more than 100ms from now
+				/// initialize timer.
+				skill->timerid = add_timer(gettick()+timeoffset, fightable::skilltimer_entry, skill->caster.block_list::id, basics::numptr(skill));
+				return;
+			}
+			else
+			{	// execute it immediately
+				skill->action();
+			}
+		}
+		//else
+		//	message to caster, that skill has failed
+
+		// delete the skill, either failed or already executed
+		delete skill;
+		skill=NULL;
+	}
+}
+/// create a target skill.
+skillbase* skillbase::create(fightable& caster, ushort skillid, ushort skilllv, uint32 targetid)
+{	// id2object for target skills
+	skillbase* skill = NULL;
+	switch(skillid)
+	{
+	case dummyskill::id:	skill = new dummyskill(caster,"targetskill"); break;
+	// add new target skills here
+	}
+	// check for timed or immediate execution
+	skillbase::process_skill(skill);
+	return skill;
+}
+/// create an area skill.
+skillbase* skillbase::create(fightable& caster, ushort skillid, ushort skilllv, ushort x, ushort y, const char*extra)
+{	// id2object for area skills
+	skillbase* skill = NULL;
+	switch(skillid)
+	{
+	case dummyskill::id:	skill = new dummyskill(caster,"areaskill"); break;
+	// add new area skills here
+	}
+	// check for timed or immediate execution
+	skillbase::process_skill(skill);
+	return skill;
+}
+/// create a map skill.
+skillbase* skillbase::create(fightable& caster, ushort skillid, const char*mapname)
+{	// id2object for map skills
+	skillbase* skill = NULL;
+	switch(skillid)
+	{
+	case dummyskill::id:	skill = new dummyskill(caster,"mapskill"); break;
+	// add new map skills here
+	}
+	// check for timed or immediate execution
+	skillbase::process_skill(skill);
+	return skill;
+}
+
+/// destructor.
+/// removes the timer if any
+skillbase::~skillbase()
+{
+	if(this->timerid)
+	{	// clear the timer, if not yet removed
+		delete_timer(this->timerid, fightable::skilltimer_entry);
+	}
+
+	if( this->caster.cSkillObj == this )
+	{	// clear the caster
+		this->caster.cSkillObj=NULL;
+		// cannot call stop from here 
+		// since the derived class is already destroyed
+	}
+}
+
+
+
+
+/// start a target skill
+bool fightable::start_skill(ushort skillid, ushort skilllv, uint32 targetid)
+{
+	if( !this->cSkillObj )
+	{	
+		// add more prechecks (no skill specifics)
+		
+		// create new skill
+		this->cSkillObj = skillbase::create( *this, skillid, skilllv, targetid);
+
+		// possbly more post processing
+		return (NULL!=cSkillObj);
+	}
+	return false;
+}
+/// start a area skill
+bool fightable::start_skill(ushort skillid, ushort skilllv, ushort x, ushort y, const char*extra)
+{
+	if( !this->cSkillObj )
+	{	
+		// add more prechecks (no skill specifics)
+		
+		// create new skill
+		this->cSkillObj = skillbase::create( *this, skillid, skilllv, x, y, extra);
+
+		// possbly more post processing
+		return (NULL!=cSkillObj);
+	}
+	return false;
+}
+/// start a map skill
+bool fightable::start_skill(ushort skillid, const char*mapname)
+{
+	if( !this->cSkillObj )
+	{	
+		// add more prechecks (no skill specifics)
+		
+		// create new skill
+		this->cSkillObj = skillbase::create( *this, skillid, mapname);
+
+		// possbly more post processing
+		return (NULL!=cSkillObj);
+	}
+	return false;
+}
+
+/// stops skill
+bool fightable::stop_skill()
+{
+	if(this->skilltimer!=-1)
+	{
+		delete_timer(this->skilltimer, fightable::skilltimer_entry);
+		this->skilltimer = -1;
+	}
+
+
+////////////////////////////////////////////////////////
+// new proposed skill layout
+	if(this->cSkillObj)
+	{	// 1. strip the skill from the the object
+		skillbase* sk = this->cSkillObj;
+		this->cSkillObj=NULL;
+		// 2. call the stop function
+		sk->stop();
+		// 3. delete the skill
+		delete sk;
+	}
+	return true;
+}
+
+/// old timer entry function
+int fightable::skilltimer_entry(int tid, unsigned long tick, int id, basics::numptr data)
+{
+	// pets are using timer data to transfer the castend_delay object 
+	// so we need to send the tid and the data down to the objects
+	// to allow cleaning
+	// ...at least until the pet mess got cleaned out...
+
+	// also need to seperate between target and ground skills here
+	fightable* mv = fightable::from_blid(id);
+	if( mv )
+	{
+		if(mv->skilltimer != tid)
+		{
+			if(config.error_log)
+				ShowError("skilltimer_entry %d != %d\n",mv->skilltimer,tid);
+			return 0;
+		}
+		// timer was executed, clear it
+		mv->skilltimer = -1;
+
+		// call the user function
+		mv->skilltimer_func(tid, tick, id, data);
+	}
+
+////////////////////////////////////////////////////////
+// new proposed skill layout
+	if( mv && mv->cSkillObj )
+	{
+		if(mv->cSkillObj->timerid != tid)
+		{
+			if(config.error_log)
+				ShowError("skilltimer_entry %d != %d\n",mv->cSkillObj->timerid,tid);
+			return 0;
+		}
+		mv->cSkillObj->timerid=-1;
+
+		////////////////
+		// execute the skill
+		// 1. strip the skill from the the object
+		skillbase* sk = mv->cSkillObj;
+		mv->cSkillObj=NULL;
+		// 2. call the action function
+		sk->action();
+		// 3. delete the skill
+		delete sk;
+		////////////////
+	}
+/////////////
+	return 0;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
 //## change to static initializer when timer function management got classified
 static void _fightable_init()
 {
@@ -30,7 +289,8 @@ fightable::fightable() :
 	attackable_tick(0),
 	target_id(0),
 	target_lv(0),
-	attack_continue(0)
+	attack_continue(0),
+	cSkillObj(NULL)
 {
 	static bool initialiser = true;
 	if(initialiser)
@@ -182,16 +442,6 @@ bool fightable::stop_attack()
 	return false;
 }
 
-/// stops skill
-bool fightable::stop_skill()
-{
-	if(this->skilltimer!=-1)
-	{
-		delete_timer(this->skilltimer, fightable::skilltimer_entry);
-		this->skilltimer = -1;
-	}
-	return true;
-}
 
 // old timer entry function
 int fightable::attacktimer_entry(int tid, unsigned long tick, int id, basics::numptr data)
@@ -258,34 +508,6 @@ int fightable::attacktimer_func(int tid, unsigned long tick, int id, basics::num
 }
 
 
-// old timer entry function
-int fightable::skilltimer_entry(int tid, unsigned long tick, int id, basics::numptr data)
-{
-	// pets are using timer data to transfer the castend_delay object 
-	// so we need to send the tid and the data down to the objects
-	// to allow cleaning
-	// ...at least until the pet mess got cleaned out...
-
-	// also need to seperate between target and ground skills here
-
-	fightable* mv = fightable::from_blid(id);
-	if( mv )
-	{
-		if(mv->skilltimer != tid)
-		{
-			if(config.error_log)
-				ShowError("skilltimer_entry %d != %d\n",mv->skilltimer,tid);
-			return 0;
-		}
-		// timer was executed, clear it
-		mv->skilltimer = -1;
-
-		// call the user function
-		mv->skilltimer_func(tid, tick, id, data);
-	}
-
-	return 0;
-}
 
 
 
@@ -356,7 +578,7 @@ int unit_skilluse_id2(block_list *src, int target_id, int skill_num, int skill_l
 				return 0;
 			target = map_session_data::charid2sd(sd->status.partner_id);
 			if (!target) {
-				clif_skill_fail(sd,skill_num,0,0);
+				sd.clif_skill_failed(skill_num,0,0);
 				return 0;
 			}
 			break;
@@ -394,7 +616,7 @@ int unit_skilluse_id2(block_list *src, int target_id, int skill_num, int skill_l
 		case BD_ENCORE:	
 			//Prevent using the dance skill if you no longer have the skill in your tree. 
 			if(!sd->skillid_dance || pc_checkskill(sd,sd->skillid_dance)<=0){
-				clif_skill_fail(sd,skill_num,0,0);
+				sd.clif_skill_failed(skill_num,0,0);
 				return 0;
 			}
 			sd->skillid_old = skill_num;
@@ -412,7 +634,7 @@ int unit_skilluse_id2(block_list *src, int target_id, int skill_num, int skill_l
 				(!config.gm_skilluncond || sd.isGM() < config.gm_skilluncond) &&
 				(skill_check_pc_partner(sd, skill_num, &skill_lv, 1, 0) < 1)
 			) {
-				clif_skill_fail(sd,skill_num,0,0);
+				sd.clif_skill_failed(skill_num,0,0);
 				return 0;
 			}
 			break;
@@ -585,7 +807,7 @@ int unit_skilluse_pos2( block_list *src, int skill_x, int skill_y, int skill_num
 
 	if (map_getcell(src->m, skill_x, skill_y, CELL_CHKNOREACH))
 	{	//prevent casting ground targeted spells on non-walkable areas. [Skotlex] 
-		if (sd) clif_skill_fail(sd,skill_num,0,0);
+		if (sd) sd.clif_skill_failed(skill_num,0,0);
 		return 0;
 	}
 
@@ -754,7 +976,7 @@ static int unit_attack_timer_sub(block_list* src, int tid, unsigned int tick)
 		(!sd || pc_checkskill(sd,SA_FREECAST) <= 0)
 	) {
 		if (tid == -1) { //requested attack.
-			if(sd) clif_skill_fail(sd,1,4,0);
+			if(sd) sd.clif_skill_failed(1,4,0);
 			return 0;
 		}
 		//Otherwise, we are in a combo-attack, delay this until your canact time is over. [Skotlex]

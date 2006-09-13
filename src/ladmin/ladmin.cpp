@@ -3287,11 +3287,10 @@ int parse_fromlogin(int fd)
 				else
 					ladmin_log("  Receiving of a accounts list." RETCODE);
 				for(i = 4; i < RFIFOW(fd,2); i += 38) {
-					char userid[24];
-					char lower_userid[24];
-					memcpy(userid, RFIFOP(fd,i + 5), sizeof(userid));
-					userid[sizeof(userid)-1] = '\0';
-					strcpytolower(lower_userid, userid);
+					char userid[32];
+					char lower_userid[32];
+					safestrcpy(userid, 24, (const char*)RFIFOP(fd,i + 5));
+					strcpytolower(lower_userid, sizeof(lower_userid), userid);
 					list_first = RFIFOL(fd,i) + 1;
 					// here are checks...
 					if( list_type == 0 ||

@@ -631,15 +631,15 @@ int status_get_flee(block_list *bl);
 int status_get_def(block_list *bl);
 int status_get_mdef(block_list *bl);
 int status_get_flee2(block_list *bl);
-int status_get_def2(block_list *bl);
-int status_get_mdef2(block_list *bl);
+int status_get_def2(const block_list *bl);
+int status_get_mdef2(const block_list *bl);
 int status_get_baseatk(block_list *bl);
 int status_get_atk(block_list *bl);
 int status_get_atk2(block_list *bl);
 int status_get_adelay(block_list *bl);
 int status_get_amotion(const block_list *bl);
 int status_get_dmotion(block_list *bl);
-int status_get_element(block_list *bl);
+int status_get_element(const block_list *bl);
 int status_get_attack_element(block_list *bl);
 int status_get_attack_element2(block_list *bl);  //¶è•Ší‘®«æ“¾
 #define status_get_elem_type(bl)	(status_get_element(bl)%10)
@@ -652,7 +652,7 @@ int status_get_mode(block_list *bl);
 int status_get_mexp(block_list *bl);
 int status_get_race2(block_list *bl);
 
-struct status_change *status_get_sc_data(block_list *bl);
+struct status_change *status_get_sc_data(const block_list *bl);
 short *status_get_opt1(block_list *bl);
 short *status_get_opt2(block_list *bl);
 short *status_get_opt3(block_list *bl);

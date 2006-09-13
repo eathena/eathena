@@ -21,7 +21,7 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// uptime class
+// uptime class implementation
 
 time_t uptime::starttime = time(NULL);
 
@@ -55,14 +55,14 @@ int runflag = 1;
 const char *argv0;
 
 ///////////////////////////////////////////////////////////////////////////////
-// run control
+/// run control.
 void core_stoprunning()
 {
 	runflag = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// pid stuff
+/// pid stuff.
 char pid_file[256];
 
 void pid_delete(void)
@@ -91,7 +91,7 @@ void pid_create(const char* file)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// uptime logging
+/// uptime logging.
 void log_uptime(void)
 {
 #if LOG_UPTIME
@@ -114,13 +114,10 @@ void log_uptime(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// signal and dump
-//
-// Added by Gabuzomeu
-// This is an implementation of signal() using sigaction() for portability.
-// (sigaction() is POSIX; signal() is not.)  Taken from Stevens' _Advanced
-// Programming in the UNIX Environment_.
-
+/// signal and dump.
+/// This is an implementation of signal() using sigaction() for portability.
+/// (sigaction() is POSIX; signal() is not.)  
+/// Taken from Stevens' _Advanced Programming in the UNIX Environment_.
 #ifndef POSIX
 #define compat_signal(signo, func) signal(signo, func)
 #else
@@ -142,11 +139,8 @@ sigfunc *compat_signal(int signo, sigfunc *func)
 }
 #endif
 
-/*======================================
- *	CORE : Signal Sub Function
- *--------------------------------------
- */
-
+///////////////////////////////////////////////////////////////////////////////
+/// signal handler.
 void sig_proc(int sn)
 {
 	//////////////////////////////////
@@ -172,6 +166,8 @@ void sig_proc(int sn)
 #endif
 	}
 }
+///////////////////////////////////////////////////////////////////////////////
+/// initialize system signal handling.
 void init_signal()
 {
 	///////////////////////////////////////////////////////////////////////////
@@ -192,9 +188,9 @@ void init_signal()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// revision
-// would make it inline but dll wants it on a fixed position
-// to get it's function pointer
+/// return revision number.
+/// would make it inline but plugin wants it fixed
+/// to get it's function pointer
 const char* get_svn_revision()	{ return "Shinomori's Modified Version (2006-06-25)"; }
 /*
 {
@@ -221,10 +217,7 @@ const char* get_svn_revision()	{ return "Shinomori's Modified Version (2006-06-2
 }
 */
 ///////////////////////////////////////////////////////////////////////////////
-/*======================================
- *	CORE : Display title
- *--------------------------------------
- */
+/// display title screen.
 void display_title(void)
 {
 	ShowMessage(CL_CLS); // clear screen and go up/left (0, 0 position in text)
@@ -248,11 +241,7 @@ void display_title(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/*======================================
- *	CORE : MAINROUTINE
- *--------------------------------------
- */
-
+/// main entry point
 int main (int argc, char **argv)
 {
 	///////////////////////////////////////////////////////////////////////////

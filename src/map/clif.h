@@ -238,12 +238,11 @@ int clif_skillup(map_session_data &sd,unsigned short skill_num);
 
 int clif_skillcasting(block_list &bl,uint32 src_id,uint32 dst_id,unsigned short dst_x,unsigned short dst_y,unsigned short skill_id,uint32 casttime);
 int clif_skillcastcancel(block_list &bl);
-int clif_skill_fail(map_session_data &sd,unsigned short skill_id,unsigned char type,unsigned short btype);
 int clif_skill_damage(block_list &src,block_list &dst,unsigned long tick,uint32 sdelay,uint32 ddelay,uint32 damage,unsigned short div,unsigned short skill_id,unsigned short skill_lv,int type);
 int clif_skill_damage2(block_list &src,block_list &dst,unsigned long tick,uint32 sdelay,uint32 ddelay,uint32 damage,unsigned short div,unsigned short skill_id,unsigned short skill_lv,int type);
 int clif_skill_nodamage(block_list &src,block_list &dst,unsigned short skill_id,unsigned short heal,unsigned char fail);
 int clif_skill_poseffect(block_list &src,unsigned short skill_id,unsigned short val,unsigned short x,unsigned short y,unsigned long tick);
-int clif_skill_estimation(map_session_data &sd,block_list &dst);
+int clif_skill_estimation(const map_session_data &sd, const mob_data &md);
 int clif_skill_warppoint(map_session_data &sd,unsigned short skill_id,const char *map1,const char *map2,const char *map3,const char *map4);
 int clif_skill_memo(map_session_data &sd,unsigned char flag);
 int clif_skill_teleportmessage(map_session_data &sd,unsigned short flag);
@@ -299,9 +298,9 @@ int clif_changed_dir(block_list &bl);
 int clif_openvendingreq(map_session_data &sd,unsigned short num);
 int clif_showvendingboard(block_list &bl,const char *message,int fd);
 int clif_closevendingboard(block_list &bl,int fd);
-int clif_vendinglist(map_session_data &sd,uint32 id,struct vending vending[]);
+int clif_vendinglist(map_session_data &sd,uint32 id, vending_element vend_list[]);
 int clif_buyvending(map_session_data &sd,unsigned short index,unsigned short amount,unsigned char fail);
-int clif_openvending(map_session_data &sd,uint32 id,struct vending vending[]);
+int clif_openvending(map_session_data &sd,uint32 id, vending_element vend_list[]);
 int clif_vendingreport(map_session_data &sd,unsigned short index,unsigned short amount);
 
 int clif_movetoattack(map_session_data &sd,block_list &bl);

@@ -677,7 +677,7 @@ bool homun_data::revive(struct map_session_data &sd, unsigned short skilllv)
 {
 	if( !sd.hd || sd.hd->status.hp>0 )
 	{
-		clif_skill_fail(sd,AM_RESURRECTHOMUN,0,0);
+		sd.clif_skill_failed(AM_RESURRECTHOMUN,0,0);
 		return false;
 	}
 	// ‘h¶ŽžHP = Ž€–SŽžHPi…0j+ MAXHP * (Skill Lv * 0.2)
@@ -1188,7 +1188,7 @@ bool homun_data::call_homunculus(struct map_session_data &sd)
 	{	// data exists
 		if( sd.hd->is_dead() )
 		{	// object is dead
-			clif_skill_fail(sd,AM_CALLHOMUN,0,0);
+			sd.clif_skill_failed(AM_CALLHOMUN,0,0);
 			return false;
 		}
 		else if( !sd.hd->is_on_map() )
@@ -1270,7 +1270,7 @@ bool homun_data::call_homunculus(struct map_session_data &sd)
 				return true;
 			}
 		}
-		clif_skill_fail(sd, AM_CALLHOMUN,0,0);
+		sd.clif_skill_failed(AM_CALLHOMUN,0,0);
 		return false;
 	}
 }

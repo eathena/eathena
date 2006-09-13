@@ -139,7 +139,7 @@ bool chat_data::remove(map_session_data &sd)
 			if(this->usersd[i] == &sd)
 			{	// found
 
-				if( i==0 && this->users>1 && this->owner && this->owner->type==BL_PC )
+				if( i==0 && this->users>1 && this->owner && *this->owner==BL_PC )
 				{	// 所有者だった&他に人が居る&PCのチャット
 					clif_changechatowner(*this,*this->usersd[1]);
 					clif_clearchat(*this,0);
@@ -150,14 +150,14 @@ bool chat_data::remove(map_session_data &sd)
 
 				--this->users;
 
-				if(this->users == 0 && this->owner && this->owner->type==BL_PC)
+				if(this->users == 0 && this->owner && *this->owner==BL_PC)
 				{	// all users have left
 					clif_clearchat(*this,0);
 					map_delobject(this->block_list::id);	// freeまでしてくれる
 				}
 				else
 				{
-					if(i==0 && this->owner && this->owner->type==BL_PC)
+					if(i==0 && this->owner && *this->owner==BL_PC)
 					{	// PCのチャットなので所有者が抜けたので位置変更
 						this->block_list::x = this->owner->x;
 						this->block_list::y = this->owner->y;

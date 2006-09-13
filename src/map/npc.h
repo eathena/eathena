@@ -5,12 +5,162 @@
 #define _NPC_H_
 
 #include "map.h"
+#include "movable.h"
+#include "npclisten.h"
+
 
 #define START_NPC_NUM 110000000
 
 #define WARP_CLASS 45
 #define WARP_DEBUG_CLASS 722
 #define INVISIBLE_CLASS 32767
+
+
+///////////////////////////////////////////////////////////////////////////////
+struct npc_timerevent_list
+{
+	int timer;
+	size_t pos;
+
+	npc_timerevent_list() : 
+		timer(-1),
+		pos(0)
+	{}
+};
+struct npc_item
+{
+	ushort	nameid;
+	uint32	price;
+// part of a union and cannot be default constructed
+// need to wait until new hierarchy is fully implemented
+//	npc_item_list() : 
+//		nameid(0),
+//		value(0)
+//	{}
+};
+
+
+
+
+
+struct npc_data : public movable
+{
+	/////////////////////////////////////////////////////////////////
+	static npc_data* from_blid(uint32 id)
+	{
+		block_list *bl = block_list::from_blid(id);
+		return (bl)?bl->get_nd():NULL;
+	}
+
+	/////////////////////////////////////////////////////////////////
+
+	short n;
+	short class_;
+	short dir;
+	short speed;
+	char name[24];
+	char exname[24];
+	npcchat_data* chat;
+	short opt1;
+	short opt2;
+	short opt3;
+	short option;
+	short flag;
+
+	short arenaflag;
+	npc_parse *listendb;
+
+	union {
+		struct {
+			struct script_object *ref; // pointer with reference counter
+			short xs;
+			short ys;
+			int guild_id;
+			int timer;
+			int timerid;
+			int timeramount;
+			int nexttimer;
+			uint32 rid;
+			unsigned long timertick;
+			struct npc_timerevent_list *timer_event;
+		} scr;
+		struct npc_item shop_item[1];
+		struct {
+			short xs;
+			short ys;
+			short x;
+			short y;
+			char name[16];
+		} warp;
+	} u;
+	// Ç±Ç±Ç…ÉÅÉìÉoÇí«â¡ÇµÇƒÇÕÇ»ÇÁÇ»Ç¢(shop_itemÇ™â¬ïœí∑ÇÃà◊)
+
+
+
+	// can have an empty constructor here since it is cleared at allocation
+	npc_data()
+	{}
+	virtual ~npc_data()
+	{}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	/// upcasting overloads.
+	virtual bool is_type(object_t t)
+	{
+		return t==BL_NPC;
+	}
+	virtual npc_data*				get_nd()				{ return this; }
+	virtual const npc_data*			get_nd() const			{ return this; }
+
+
+	/// do object depending stuff for ending the walk.
+	virtual void do_stop_walking();
+	/// do object depending stuff for the walk step.
+	virtual bool do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy);
+	/// do object depending stuff for the walkto
+	virtual void do_walkto() {}
+
+
+private:
+	npc_data(const npc_data&);					// forbidden
+	const npc_data& operator=(const npc_data&);	// forbidden
+
+public:
+	// provide special allocation to enable variable space for shop items
+	//
+	// change to an own shop class later that can be called from an npc
+	// to enable the old shop npc and also callable script controlled (dynamic) shops
+
+	void* operator new(size_t sz)
+	{
+		void *ret = malloc(sz);
+		memset(ret,0,sz);
+		return ret;
+	}
+	void operator delete(void *p)
+	{
+		if(p) free(p);
+	}
+	void* operator new(size_t sz, size_t shopitems)
+	{
+		void* ret = malloc(sz + shopitems*sizeof(npc_item));
+		memset(ret,0,sz + shopitems*sizeof(npc_item));
+		return ret;
+	}
+	void operator delete(void *p, size_t shopitems)
+	{
+		if(p) free(p);
+	}
+
+private:
+	void* operator new[](size_t sz);			// forbidden
+	void operator delete[](void *p, size_t sz);	// forbidden
+};
+
+
+
+
 
 
 

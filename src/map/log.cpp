@@ -4,7 +4,7 @@
 #include "baseparam.h"
 #include "nullpo.h"
 #include "itemdb.h"
-#include "map.h"
+#include "pc.h"
 #include "showmsg.h"
 #include "utils.h"
 #include "log.h"

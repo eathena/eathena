@@ -18,6 +18,7 @@
 #include "pc.h"
 #include "status.h"
 #include "mob.h"
+#include "pet.h"
 #include "guild.h"
 #include "itemdb.h"
 #include "skill.h"
@@ -297,80 +298,6 @@ bool mob_data::do_walkstep(unsigned long tick, const coordinate &target, int dx,
 	return true;
 }
 
-/*
-/// do object depending stuff for changestate
-void mob_data::do_changestate(int state,int type)
-{
-	mob_data &md = *this;
-	unsigned long tick;
-	int i;
-
-	if(md.walktimer != -1)
-	{
-		delete_timer(md.walktimer,movable::walktimer_entry);
-		md.walktimer=-1;
-	}
-	if(md.attacktimer != -1)
-	{
-		delete_timer(md.attacktimer,fightable::attacktimer_entry);
-		md.attacktimer=-1;
-	}
-// not applicable since skills don't yet go this way
-//	if(md.skilltimer != -1)
-//	{
-//		delete_timer(md.skilltimer,fightable::skilltimer_entry);
-//		md.skilltimer=-1;
-//	}
-
-	md.state.state=state;
-
-	switch(state){
-	case MS_WALK:
-		if( !md.set_walktimer( gettick() ) )
-			md.state.state=MS_IDLE;
-		break;
-	case MS_ATTACK:
-		tick = gettick();
-		i=DIFF_TICK(md.attackable_tick,tick);
-		if(i>0 && i<2000)
-			md.attacktimer=add_timer(md.attackable_tick,fightable::attacktimer_entry,md.block_list::id,0);
-		else if(type)
-		{
-			md.attackable_tick = tick + status_get_amotion(&md);
-			md.attacktimer=add_timer(md.attackable_tick,fightable::attacktimer_entry,md.block_list::id,0);
-		}
-		else
-		{
-			md.attackable_tick = tick + 1;
-			md.attacktimer=add_timer(md.attackable_tick,fightable::attacktimer_entry,md.block_list::id,0);
-		}
-		break;
-	case MS_DELAY:
-		md.walktimer=add_timer(gettick()+type,movable::walktimer_entry,md.block_list::id,0);
-		break;
-	case MS_DEAD:
-		skill_castcancel(&md,0);
-		mobskill_deltimer(md);
-		md.state.skillstate=MSS_DEAD;
-		md.last_deadtime=gettick();
-		// Since it died, all aggressors' attack to this mob is stopped.
-
-		clif_foreachclient( CClifMobStopattacked(md.block_list::id) );
-
-		skill_unit_move(md,gettick(),0);
-		status_change_clear(&md,2);	// ステータス異常を解除する
-		skill_clear_unitgroup(&md);	// 全てのスキルユニットグループを削除する
-		skill_cleartimerskill(&md);
-		if(md.deletetimer!=-1)
-			delete_timer(md.deletetimer,mob_timer_delete);
-		md.deletetimer=-1;
-		md.hp = md.target_id = md.attacked_id = md.attacked_count = 0;
-		md.state.targettype = NONE_ATTACKABLE;
-		break;
-	}
-}
-*/
-
 bool mob_data::set_dead()
 {
 	skill_castcancel(this,0);
@@ -506,16 +433,16 @@ int mob_target(mob_data &md,block_list *bl,int dist)
 		(sc_data && sc_data[SC_TRICKDEAD].timer == -1 && sc_data[SC_BASILICA].timer == -1 &&
 		 ( (option && !(*option&0x06) ) || race==4 || race==6 || mode&0x100 ) ) )
 	{
-		if(bl->type == BL_PC)
+		sd = bl->get_sd();
+		if(sd)
 		{
-			sd = (map_session_data *)bl;
 			if(sd->invincible_timer != -1 || pc_isinvisible(*sd))
 				return 0;
 			if(!(mode&0x20) && race!=4 && race!=6 && !(mode&0x100) && sd->state.gangsterparadise)
 				return 0;
 		}
 		md.target_id = bl->id;	// Since there was no disturbance, it locks on to target.
-		if(bl->type == BL_PC || bl->type == BL_MOB)
+		if(sd || bl->get_md() || bl->get_hd() )
 			md.state.targettype = ATTACKABLE;
 		else
 			md.state.targettype = NONE_ATTACKABLE;
@@ -581,7 +508,41 @@ int mob_data::get_equip() const
 
 
 
+/*==========================================
+ * mob回復
+ *------------------------------------------
+ */
+int mob_data::heal(int hp, int sp)
+{
+	mob_data& md = *this;
+	int max_hp = status_get_max_hp(&md);
 
+	if( md.hp>0 && max_hp-md.hp < md.hp )
+		hp = max_hp-md.hp;
+	
+	md.hp += hp;
+
+	if(md.class_ >= 1285 && md.class_ <=1287)
+	{	// guardian hp update [Valaris]
+		size_t k;
+		struct guild_castle *gc=guild_mapname2gc(maps[md.block_list::m].mapname);
+		if(gc)
+		{
+			for(k=0; k<MAX_GUARDIAN; ++k)
+			{
+				if(md.block_list::id==gc->guardian[k].guardian_id)
+				{
+					gc->guardian[k].guardian_hp = md.hp;
+					break;
+				}
+			}
+		}
+	}	// end addition [Valaris]
+
+	if (config.show_mob_hp)
+		clif_update_mobhp(md);
+	return hp;
+}
 
 
 
@@ -863,10 +824,9 @@ int mob_setdelayspawn(uint32 id)
 {
 	unsigned long spawntime,spawntime1,spawntime2,spawntime3;
 	unsigned short mode, delayrate = 100; //for battle config delays
-	block_list *bl = block_list::from_blid(id);
-	mob_data *md = (mob_data *)bl;
+	mob_data *md = mob_data::from_blid(id);
 
-	if( bl == NULL || bl->type != BL_MOB )
+	if( md == NULL )
 		return -1;
 
 	// Processing of MOB which is not revitalized
@@ -877,7 +837,7 @@ int mob_setdelayspawn(uint32 id)
 	}
 
 	//Apply the spawn delay fix [Skotlex]
-	mode = status_get_mode(bl);
+	mode = status_get_mode(md);
 	if (mode & 0x20) {	//Bosses
 		if (config.boss_spawn_delay != 100)
 			delayrate = delayrate*config.boss_spawn_delay/100;
@@ -2770,42 +2730,7 @@ int mob_class_change(mob_data &md, int value[], size_t count)
 	return 0;
 }
 
-/*==========================================
- * mob回復
- *------------------------------------------
- */
-int mob_heal(mob_data &md,int heal)
-{
-	int max_hp;
 
-	max_hp = status_get_max_hp(&md);
-
-	md.hp += heal;
-	if( max_hp < md.hp )
-		md.hp = max_hp;
-
-	if(md.class_ >= 1285 && md.class_ <=1287)
-	{	// guardian hp update [Valaris]
-		size_t k;
-		struct guild_castle *gc=guild_mapname2gc(maps[md.block_list::m].mapname);
-		if(gc)
-		{
-			for(k=0; k<MAX_GUARDIAN; ++k)
-			{
-				if(md.block_list::id==gc->guardian[k].guardian_id)
-				{
-					gc->guardian[k].guardian_hp = md.hp;
-					break;
-				}
-			}
-		}
-	}	// end addition [Valaris]
-
-	if (config.show_mob_hp)
-		clif_update_mobhp(md);
-
-	return 0;
-}
 
 
 /*==========================================

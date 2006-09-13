@@ -17,6 +17,7 @@ CMessageTable msg_txt;
 /// internal name->value map
 CBattleConfig::_config_map CBattleConfig::config_map[] =
 {
+	{ "_temp_",								&CBattleConfig::_temp_								},
 	{ "agi_penalty_count",					&CBattleConfig::agi_penalty_count					},
 	{ "agi_penalty_count_lv",				&CBattleConfig::agi_penalty_count_lv				},
 	{ "agi_penalty_num",					&CBattleConfig::agi_penalty_num						},

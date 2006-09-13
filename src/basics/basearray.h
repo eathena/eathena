@@ -1748,7 +1748,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assignment
-#if !defined(_MSC_VER)
+#if !defined(NO_TEMPLATED_COPY_ASSIGN)
 	ptrvector<T,E,A>(const ptrvector<T,E,A>& v)
 	{
 		this->assign(v);
@@ -1759,15 +1759,6 @@ public:
 		return *this;
 	}
 #endif
-	///////////////////////////////////////////////////////////////////////////
-	/// templated copy/assignment
-	// microsoft does not understand templated copy/assign together with default copy/assign
-	// but gnu needs them both seperated
-	// otherwise generates an own default copy/assignment which causes trouble then
-	// so could add all constructors and seperate the standard one with
-	// #if defined(__GNU__) or #if !defined(_MSC_VER) / #endif
-	// another workaround is to have a baseclass to derive the hierarchy from 
-	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
 	template<class EE, class AA> ptrvector<T,E,A>(const ptrvector<T,EE,AA>& v)
 	{
 		this->assign(v);
@@ -2972,6 +2963,21 @@ public:
 	{
 		clear();
 	}
+	map(const map& m)
+	{
+		typename ptrvector<node>::iterator iter(m.cVect);
+		for(; iter; ++iter)
+			this->insert(iter->key, iter->data);
+	}
+	const map& operator=(const map& m)
+	{
+		typename ptrvector<node>::iterator iter(m.cVect);
+		this->clear();
+		for(; iter; ++iter)
+			this->insert(iter->key, iter->data);
+		return *this;
+	}
+
 	void clear()
 	{
 		size_t i=cVect.size();
@@ -3216,6 +3222,21 @@ public:
 	{
 		clear();
 	}
+	dualmap(const dualmap& m)
+	{
+		typename ptrvector<node>::iterator iter(m.cVect1);
+		for(; iter; ++iter)
+			this->insert(iter->key1, iter->key2, iter->data);
+	}
+	const dualmap& operator=(const dualmap& m)
+	{
+		typename ptrvector<node>::iterator iter(m.cVect1);
+		this->clear();
+		for(; iter; ++iter)
+			this->insert(iter->key1, iter->key2, iter->data);
+		return *this;
+	}
+
 	void clear()
 	{
 		size_t i=cVect1.size();

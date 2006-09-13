@@ -311,7 +311,8 @@ void CSQLParameter::rebuild()
 			 "`login_count`  INTEGER UNSIGNED NOT NULL default '0',"
 			 "`ban_until`    INTEGER UNSIGNED NOT NULL default '0',"
 			 "`valid_until`  INTEGER UNSIGNED NOT NULL default '0',"
-			 "PRIMARY KEY (`account_id`)"
+			 "PRIMARY KEY (`account_id`),"
+			 "KEY `user_id` (`user_id`)"
 			 ") "
 			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine) << " AUTO_INCREMENT=" << start_account_num;
 	dbcon1.PureQuery(query);
@@ -423,6 +424,7 @@ void CSQLParameter::rebuild()
 			 "`online`			BOOL NOT NULL default '0',"
 			 "PRIMARY KEY (`char_id`),"
 			 "KEY `account_id` (`account_id`),"
+			 "KEY `name` (`name`),"
 			 "KEY `party_id` (`party_id`),"
 			 "KEY `guild_id` (`guild_id`),"
 			 "FOREIGN KEY (`account_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_account) << "` (`account_id`) ON DELETE CASCADE ON UPDATE CASCADE"
@@ -731,7 +733,6 @@ void CSQLParameter::rebuild()
 			 "KEY `guild_id` (`guild_id`),"
 			 "FOREIGN KEY (`guild_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_guild) << "` (`guild_id`) ON DELETE CASCADE ON UPDATE CASCADE,"
 			 "FOREIGN KEY (`char_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_char) << "` (`char_id`) ON DELETE CASCADE ON UPDATE CASCADE"
-			 
 			 ") "
 			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
 	dbcon1.PureQuery(query);
@@ -1064,17 +1065,15 @@ bool CAccountDB_sql::existAccount(const char* userid)
 		basics::CMySQLConnection dbcon1(this->sqlbase);
 		basics::string<> query;
 
-		query << "SELECT `user_id` "
+		query << "SELECT count(*) "
 				 "FROM `" << dbcon1.escaped(this->tbl_account) << "` "
-				 "WHERE " << (this->case_sensitive?"BINARY ":"") << "`user_id` = '" <<  dbcon1.escaped(userid) << "'";
+				 "WHERE `user_id` = " <<  (this->case_sensitive?"BINARY '":"'") << dbcon1.escaped(userid) << "'";
 		
-		if( dbcon1.ResultQuery(query) && dbcon1 )
-		{
-			ret = dbcon1.countResults()>0;
-		}
+		ret = dbcon1.ResultQuery(query) && dbcon1 && (atol(dbcon1[0])==1);
 	}
 	return ret;
 }
+
 
 bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 {	// get account by user/pass

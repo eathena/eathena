@@ -276,7 +276,7 @@ public:
 			fseek(cFile, 0, SEEK_END);
 			end = ftell(cFile);
 			fseek(cFile, pos, SEEK_SET);
-			return pos<end;
+			return pos>=end;
 		}
 		// if no file we are eof
 		return true;

@@ -1,4 +1,16 @@
 Date	Added
+09/12
+	* framework updates
+	* cleaned and documented utils
+	* more block_list::type usages removed, also provided 
+	  some convinience overloads, although all of this is to be removed
+	* moved object declarations from map.h to the appropeate headers,
+	  changed also some include orders, might split map and block code later
+	* prepared a playground for new skill system temporarily in fightable, 
+	  descriptions and example is there but need some more real data
+	* some structure renamings [Shinomori]
+	* tests with virtual overloads for clif functions finished, next is 
+	  to further check functions for overlapping and improper behaviour [Hinoko]
 09/01
 	* added a doxygen template, so just load it with doxygen and 
 	  it will generate a 30MB code documentation, 

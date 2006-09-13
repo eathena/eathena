@@ -3577,7 +3577,7 @@ int buildin_heal(CScriptEngine &st)
 	{
 		int hp=st.GetInt(st[2]);
 		int sp=st.GetInt(st[3]);
-		pc_heal(*st.sd,hp,sp);
+		st.sd->heal(hp,sp);
 	}
 	
 	return 0;
@@ -6048,7 +6048,7 @@ int buildin_birthpet(CScriptEngine &st)
 }
 
 /*==========================================
- * Added - AppleGirl For Advanced Classes, (Updated for Cleaner Script Purposes)
+ * reset player level
  *------------------------------------------
  */
 int buildin_resetlvl(CScriptEngine &st)
@@ -7537,17 +7537,17 @@ int buildin_petloot(CScriptEngine &st)
 		max = MAX_PETLOOT_SIZE;
 	
 	pd = sd->pd;
-	if(pd && pd->loot != NULL && pd->msd)
+	if(pd && pd->loot && pd->msd)
 	{	//Release whatever was there already and reallocate memory
 		pet_lootitem_drop(*pd, pd->msd);
-		delete[] pd->loot->item;
+		delete[] pd->loot->itemlist;
 	}
 	else
 	{
 		pd->loot = new pet_data::pet_loot;
 	}
 
-	pd->loot->item = new struct item[max];
+	pd->loot->itemlist = new struct item[max];
 	pd->loot->max=max;
 	pd->loot->count = 0;
 	pd->loot->weight = 0;

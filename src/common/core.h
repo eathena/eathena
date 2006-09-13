@@ -21,7 +21,7 @@ const char* get_svn_revision();
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// uptime
+/// uptime class.
 class uptime : public basics::noncopyable
 {
 	static time_t starttime;

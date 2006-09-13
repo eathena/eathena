@@ -19,10 +19,7 @@ NAMESPACE_BEGIN(basics)
 /// basic exceptions class.
 /// on windows there is already an exeption class in global namespace
 /// when including any c++ header (same with string), 
-/// so we use a Macro to rename the class completely in this case
-/// better might be to retreat to an own namespace, this would
-/// also solve problems with other packages (glibc for instance)
-/// but adding the extra burden of having a namespace around everything 
+/// so retreat to an own namespace
 class exception : public global
 {
 protected:

@@ -36,6 +36,7 @@ private:
 public:
 	/////////////////////////////////////////////////////////////////
 	/// class data
+	uint32 _temp_;
 	uint32 agi_penalty_count;
 	uint32 agi_penalty_count_lv;
 	uint32 agi_penalty_num;

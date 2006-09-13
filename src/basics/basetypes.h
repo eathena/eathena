@@ -213,6 +213,11 @@
 #include <wchar.h>
 #include <wctype.h>
 
+#if defined (_MSC_VER) && !defined (_NATIVE_WCHAR_T_DEFINED)
+#define WCHAR_T_IS_USHORT
+#endif
+
+
 
 //////////////////////////////
 #if defined(linux)
@@ -348,26 +353,36 @@ extern long altzone;
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef _MSC_VER
-#pragma warning (disable: 4099)	// "type name first seen using 'struct' now seen using 'class'"
+#pragma warning(disable : 4097) // typedef-name used as based class of (...)
+#pragma warning(disable : 4099)	// "type name first seen using 'struct' now seen using 'class'"
 #pragma warning(disable : 4100) // unreferenced formal parameter
 #pragma warning(disable : 4127)	// constant assignment
 //#pragma warning(disable : 4200)	//'...'" warning, NULL field in struct
+#pragma warning(disable : 4231) // non standard extension : 'extern' before template instanciation
 #pragma warning(disable : 4244) // converting type on return will shorten
 #pragma warning(disable : 4250) // dominant derive, is only informational
 //#pragma warning(disable : 4251)	// disable "class '...' needs to have dll-interface to be used by clients of class '...'", since the compiler may sometimes give this warning incorrectly.
 #pragma warning(disable : 4256)	// constructor for class with virtual bases has '...'; calls may not be compatible with older versions of Visual C++
 #pragma warning(disable : 4267)	// disable "argument conversion possible loss of data"
 #pragma warning(disable : 4275)	// disable VC6 "exported class was derived from a class that was not exported"
+#pragma warning(disable : 4284) // disable VC6 for -> operator
 #pragma warning(disable : 4786)	// disable VC6 "identifier string exceeded maximum allowable length and was truncated" (only affects debugger)
 #pragma warning(disable : 4290)	// ... C++-specification of exception ignored
 //   4305 - VC6, identifier type was converted to a smaller type
 //   4309 - VC6, type conversion operation caused a constant to exceeded the space allocated for it
 #pragma warning(disable : 4310)	// converting constant will shorten
 #pragma warning(disable : 4355)	// "'this' : used in base member initializer list"
+//   4389  '==' : signed/unsigned mismatch
 //   4503 - VC6, decorated name was longer than the maximum the compiler allows (only affects debugger)
 #pragma warning(disable : 4511)	// no copy constructor
 #pragma warning(disable : 4512)	// no assign operator
-#pragma warning(disable : 4514)	// unreferenced inline function
+#pragma warning(disable : 4514)	// unreferenced inline function has been removed
+#if (_MSC_VER < 1200) // VC5 and earlier
+#pragma warning(disable : 4521)	// multiple copy constructors/assignment operators specified,
+#pragma warning(disable : 4522)	// with member templates are bogus...
+#endif
+#pragma warning(disable : 4571) // catch(...) blocks compiled with /EHs do not catch or re-throw structured exceptions
+#pragma warning(disable : 4660) // template-class specialization '...' is already instantiated
 #pragma warning(disable : 4663) // new syntax for explicit template specification (comes from Microsofts own c++ headers along with a bunch of sign warnings)
 //   4675 - VC7.1, "change" in function overload resolution _might_ have altered program
 #pragma warning(disable : 4702) // disable "unreachable code" warning for throw (known compiler bug)
@@ -482,33 +497,89 @@ typedef int bool;
 // Visual studio cannot hack typename within a template instantiation parameter list
 //     this is required by gcc v3.4 and optional before that
 //     this case is handled by the definition of the TEMPLATE_TYPENAME macro
-
 #if defined(__GNUC__)
-// gcc compiler variants
-#if __GNUC__ >= 3
-// gcc v3.0 onwards
-#define TYPEDEF_TYPENAME typename
-#define PARAMETER_TYPENAME typename
-#define TEMPLATE_TYPENAME typename
-#else
-// gcc prior to v3
-#define TYPEDEF_TYPENAME
-#define PARAMETER_TYPENAME
-#define TEMPLATE_TYPENAME
+ // gcc compiler variants
+ #if __GNUC__ < 3
+  // gcc prior to v3
+  #define TYPEDEF_TYPENAME
+  #define TEMPLATE_TYPENAME
+  #define PARAMETER_TYPENAME
+ #else
+  // gcc v3.0 onwards
+  #define TYPEDEF_TYPENAME typename
+  #define TEMPLATE_TYPENAME typename
+  #define PARAMETER_TYPENAME typename
+ #endif
+#elif defined(_MSC_VER)
+ // Microsoft Visual Studio variants
+ #define TYPEDEF_TYPENAME
+ #define TEMPLATE_TYPENAME
+ #if _MSC_VER < 1300
+  // Visual Studio version 6 abd below
+  #define PARAMETER_TYPENAME
+ #else
+  // Visual Studio .NET and above
+  #define PARAMETER_TYPENAME typename
+ #endif
 #endif
-#else
-#if defined(_MSC_VER)
-// Microsoft Visual Studio variants
-#define TYPEDEF_TYPENAME
-#if _MSC_VER >= 1300
-// Visual Studio .NET
-#define PARAMETER_TYPENAME typename
-#else
-// Visual Studio version 6
-#define PARAMETER_TYPENAME
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// Problems with the partial template specialisation
+////////////////////////////////////////////////////////////////////////////////
+#if defined(__GNUC__)
+ // gcc compiler variants
+ #if (__GNUC_MINOR__ < 9)  && (__GNUC__ < 3) // below gcc 2.9
+  #define TEMPLATE_NO_PARTIAL_SPECIALIZATION
+ #endif
+#elif defined(_MSC_VER)
+ // Microsoft Visual Studio variants
+ #if (_MSC_VER <= 1300) 
+  // Visual Studio .Net and below
+  #define TEMPLATE_NO_PARTIAL_SPECIALIZATION
+ #endif
 #endif
-#define TEMPLATE_TYPENAME
+
+////////////////////////////////////////////////////////////////////////////////
+/// Problems with templated copy/assignment.
+////////////////////////////////////////////////////////////////////////////////
+// microsoft does not understand templated copy/assign together with default copy/assign
+// but gnu needs them both seperated
+// otherwise generates an own default copy/assignment which causes trouble then
+// so could add all constructors and seperate the standard one with
+// #if defined(__GNU__) or #if !defined(_MSC_VER) / #endif
+// another workaround is to have a baseclass to derive the hierarchy from 
+// and have templated copy/assignment refering the baseclass beside standard copy/assignment
+#if defined(__GNUC__)
+ // gcc compiler variants
+#elif defined(_MSC_VER)
+ // Microsoft Visual Studio variants
+ #if _MSC_VER < 1300
+  // Visual Studio version 6 and below
+  #define NO_TEMPLATED_COPY_ASSIGN
+ #else
+  // Visual Studio .NET
+ #endif
 #endif
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// Problems with member template keyword
+////////////////////////////////////////////////////////////////////////////////
+#if (__GNUC__ < 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ < 4))
+ // gcc versions before 3.4.0
+ #define NO_MEMBER_TEMPLATE_KEYWORD
+#elif (_MSC_VER < 1300) || defined (UNDER_CE)
+ // including MSVC 6.0
+ #define NO_MEMBER_TEMPLATE_KEYWORD
+#elif (__SUNPRO_CC < 0x510) || (defined (__SUNPRO_CC_COMPAT) && (__SUNPRO_CC_COMPAT < 5))
+ #define NO_MEMBER_TEMPLATE_KEYWORD
+#endif
+
+#if defined(NO_MEMBER_TEMPLATE_KEYWORD)
+#  define TEMPLATE
+#else
+#  define TEMPLATE template
 #endif
 
 
@@ -527,6 +598,13 @@ typedef int bool;
 // template behaviour on microsoft visual c++ is weird
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 #define HAS_BAD_TEMPLATES
+#endif
+
+//////////////////////////////////////////////////////////////////////////
+// 
+#if defined(_MSC_VER) && _MSC_VER < 1200
+ // before VC++ 6.0
+ #define TEMPLATES_QUALIFIED_SPECIALIZATION_BUG
 #endif
 
 
@@ -649,6 +727,13 @@ typedef int				ssize_t;
 #endif
 //////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////
+/// make sure there is a pointer difference type
+#ifndef _PTRDIFF_T_DEFINED
+#define _PTRDIFF_T_DEFINED
+typedef ssize_t ptrdiff_t;
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 /// portable 64-bit integers
@@ -828,6 +913,13 @@ inline uint64 to_unsigned(uint64 t)
 ///////////////////////////////////////////////////////////////////////////////
 
 
+///////////////////////////////////////////////////////////////////////////////
+// relops.
+//template<typename T> inline bool operator!=(const T& x, const T& y) { return !(x == y); }
+//template<typename T> inline bool operator> (const T& x, const T& y)	{ return  (y <  x); }
+//template<typename T> inline bool operator<=(const T& x, const T& y)	{ return !(y <  x); }
+//template<typename T> inline bool operator>=(const T& x, const T& y)	{ return !(x <  y); }
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -956,18 +1048,40 @@ extern inline wchar_t tolower(wchar_t c){ return ::towlower( to_unsigned(c) ); }
 #endif
 
 int FASTCALL atomicincrement(int* target);
-int FASTCALL atomicdecrement(int* target);
-int FASTCALL atomicexchange(int* target, int value);
-void* FASTCALL _atomicexchange(void** target, void* value);
-
-inline unsigned int FASTCALL atomicincrement(unsigned int* target)	{return (unsigned int)atomicincrement((int*)target);}
-inline unsigned int FASTCALL atomicdecrement(unsigned int* target)	{return (unsigned int)atomicdecrement((int*)target);}
-
-template <class T> inline T* atomicexchange(T** target, T* value)
-{	return (T*)_atomicexchange((void**)target, (void*)value); 
+inline unsigned int FASTCALL atomicincrement(unsigned int* target)
+{
+	return (unsigned int)atomicincrement((int*)target);
 }
 
+int FASTCALL atomicdecrement(int* target);
+inline unsigned int FASTCALL atomicdecrement(unsigned int* target)
+{
+	return (unsigned int)atomicdecrement((int*)target);
+}
 
+int FASTCALL atomicexchange(int* target, int value);
+inline unsigned int FASTCALL atomicexchange(unsigned int* target, unsigned int value)
+{
+	return (unsigned int)atomicexchange((int*)target, (int)value);
+}
+
+void* FASTCALL _atomicexchange(void** target, void* value);
+template <class T> inline T* atomicexchange(T** target, T* value)
+{
+	return (T*)_atomicexchange((void**)target, (void*)value); 
+}
+
+size_t FASTCALL atomiccompareexchange(size_t*target, size_t value, size_t comperand);
+inline ssize_t atomiccompareexchange(ssize_t*target, ssize_t value, ssize_t comperand)
+{	
+	return atomiccompareexchange((size_t*)target, (size_t)value, (size_t)comperand);
+}
+
+void* FASTCALL _atomiccompareexchange(void** target, void* value, void* comperand);
+template <class T> inline T* atomiccompareexchange(T**target, T* value, T* comperand)
+{	
+	return (T*)_atomiccompareexchange((void**)target, (void*)value, (void*)comperand);
+}
 
 //////////////////////////////////////////////////////////////////////////
 /// byte/word/dword access, 32bit limited

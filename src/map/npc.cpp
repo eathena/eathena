@@ -106,38 +106,6 @@ bool npc_data::do_walkstep(unsigned long tick, const coordinate &target, int dx,
 	}
 	return true;
 }
-/*
-/// do object depending stuff for changestate
-void npc_data::do_changestate(int state,int type)
-{
-	npc_data &nd = *this;
-
-	if(nd.walktimer != -1)
-	{
-		if( nd.is_walking() )
-			delete_timer(nd.walktimer,nd.walktimer_entry);
-		else
-			delete_timer(nd.walktimer,movable::walktimer_entry);
-		nd.walktimer=-1;
-	}
-
-	nd.state.state=state;
-
-	switch(state){
-	case MS_WALK:
-		if( !nd.set_walktimer( gettick() ) )
-			nd.state.state=MS_IDLE;
-		break;
-	case MS_IDLE:
-		break;
-	case MS_DELAY:
-		nd.walktimer = add_timer(gettick()+type,movable::walktimer_entry,nd.block_list::id,0);
-		break;
-	}
-}
-*/
-
-
 
 uint32 &get_npc_id()
 {
@@ -876,9 +844,9 @@ int npc_buylist(struct map_session_data &sd,unsigned short n,unsigned char *buff
 		}
 
 		if (itemdb_value_notdc(nd->u.shop_item[j].nameid))
-			z+=(nd->u.shop_item[j].value * amount);
+			z+=(nd->u.shop_item[j].price * amount);
 		else
-			z+=(pc_modifybuyvalue(sd,nd->u.shop_item[j].value) * amount);
+			z+=(pc_modifybuyvalue(sd,nd->u.shop_item[j].price) * amount);
 		itemamount+=amount;
 
 		switch(pc_checkadditem(sd,itemid,amount)) {
@@ -1186,7 +1154,7 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 	int x, y, dir, m, i, pos = 0;
 	char mapname[32], *ip;
 	npc_data *nd;
-	struct npc_item_list shopitems[MAX_SHOPITEM];
+	struct npc_item shopitems[MAX_SHOPITEM];
 
 	if (strcmp(w1, "-") == 0)
 	{
@@ -1208,20 +1176,22 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 	p = strchr(w4, ',');
 	while (p && pos < MAX_SHOPITEM)
 	{
-		int nameid, value;
+		int nameid, price;
 		struct item_data *id;
 		p++;
-		if (sscanf(p, "%d:%d", &nameid, &value) != 2)
+		if (sscanf(p, "%d:%d", &nameid, &price) != 2)
 			break;
 		shopitems[pos].nameid = nameid;
 		id = itemdb_search(nameid);
-		if (value < 0)			
-			value = id->value_buy;
-		shopitems[pos].value = value;
+		if (price < 0)			
+			price = id->value_buy;
+		shopitems[pos].price = price;
 		// check for bad prices that can possibly cause exploits
-		if (value*75/100 < id->value_sell*124/100) {
+		if (price*75/100 < id->value_sell*124/100)
+		{
 			ShowWarning ("Item %s [%d] buying price (%d) is less than selling price (%d)\n",
-				id->name, id->nameid, value*75/100, id->value_sell*124/100);
+				id->name, id->nameid, price*75/100, id->value_sell*124/100);
+
 		}
 		pos++;
 		p = strchr(p, ',');

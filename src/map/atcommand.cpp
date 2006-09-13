@@ -320,7 +320,7 @@ bool command_baselevelup(int fd, struct map_session_data& sd, const char* comman
 			clif_updatestatus(sd, SP_NEXTBASEEXP);
 			clif_updatestatus(sd, SP_STATUSPOINT);
 			status_calc_pc(sd, 0);
-			pc_heal(sd, sd.status.max_hp, sd.status.max_sp);
+			sd.heal(sd.status.max_hp, sd.status.max_sp);
 			clif_misceffect(sd, 0);
 			clif_displaymessage(sd.fd, msg_txt(MSG_BASE_LV_RAISED)); // Base level raised.
 			return true;
@@ -2639,7 +2639,7 @@ bool command_heal(int fd, struct map_session_data& sd, const char* command, cons
 
 	if (hp != 0 || sp != 0)
 	{
-		pc_heal(sd, hp, sp);
+		sd.heal(hp, sp);
 		if (hp >= 0 && sp >= 0)
 			clif_displaymessage(fd, msg_txt(MSG_HP_SP_RECOVERED)); // HP, SP recovered.
 		else
@@ -4927,8 +4927,8 @@ bool command_petid(int fd, struct map_session_data& sd, const char* command, con
 	clif_displaymessage(fd,temp0);
 	while (i < MAX_PET_DB)
 	{
-		strcpytolower(temp1,pet_db[i].name);
-		strcpytolower(temp0,pet_db[i].jname);
+		strcpytolower(temp1, sizeof(temp1), pet_db[i].name);
+		strcpytolower(temp0, sizeof(temp0), pet_db[i].jname);
 		if( strstr(temp1, searchtext) || strstr(temp0, searchtext) )
 		{
 			snprintf(temp0, sizeof(temp0), "ID: %i -- Name: %s", pet_db[i].class_, pet_db[i].jname);
@@ -6569,7 +6569,7 @@ bool command_who(int fd, struct map_session_data& sd, const char* command, const
 		{
 			pl_GM_level = pl_sd->isGM();
 			if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
-				strcpytolower(player_name,pl_sd->status.name);
+				strcpytolower(player_name, sizeof(player_name), pl_sd->status.name);
 				if(strstr(player_name, match_text) != NULL)
 				{	// search with no case sensitive
 					if (config.who_display_aid > 0 && sd.isGM() >= config.who_display_aid) {
@@ -6624,7 +6624,7 @@ bool command_who2(int fd, struct map_session_data& sd, const char* command, cons
 			pl_GM_level = pl_sd->isGM();
 
 			if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
-				strcpytolower(player_name,pl_sd->status.name);
+				strcpytolower(player_name, sizeof(player_name), pl_sd->status.name);
 				if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
 					if (pl_GM_level > 0)
 						snprintf(output, sizeof(output), "Name: %s (GM:%d) | BLvl: %d | Job: %s (Lvl: %d)", pl_sd->status.name, pl_GM_level, pl_sd->status.base_level, job_name(pl_sd->status.class_), pl_sd->status.job_level);
@@ -6672,7 +6672,7 @@ bool command_who3(int fd, struct map_session_data& sd, const char* command, cons
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
 			pl_GM_level = pl_sd->isGM();
 			if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
-				strcpytolower(player_name,pl_sd->status.name);
+				strcpytolower(player_name, sizeof(player_name), pl_sd->status.name);
 				if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
 					g = guild_search(pl_sd->status.guild_id);
 					if (g == NULL)
@@ -6878,7 +6878,7 @@ bool command_whogm(int fd, struct map_session_data& sd, const char* command, con
 			pl_GM_level = pl_sd->isGM();
 			if (pl_GM_level > 0) {
 				if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
-					strcpytolower(player_name, pl_sd->status.name);
+					strcpytolower(player_name, sizeof(player_name), pl_sd->status.name);
 					if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
 						snprintf(output, sizeof(output), "Name: %s (GM:%d) | Location: %s %d %d", pl_sd->status.name, pl_GM_level, pl_sd->mapname, pl_sd->block_list::x, pl_sd->block_list::y);
 						clif_displaymessage(fd, output);
@@ -6937,7 +6937,7 @@ bool command_whozeny(int fd, struct map_session_data& sd, const char* command, c
 	{
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth)
 		{
-			if( all || strcpytolower(player_name, pl_sd->status.name), NULL!=strstr(player_name, param[0]) )
+			if( all || strcpytolower(player_name, sizeof(player_name), pl_sd->status.name), NULL!=strstr(player_name, param[0]) )
 			{
 				zenysort *epp = zeny+(count>=MAX?MAX:count)-1;
 				// insertion sort

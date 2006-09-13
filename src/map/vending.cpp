@@ -34,7 +34,7 @@ void vending_vendinglistreq(struct map_session_data &sd, uint32 id)
 {
 	struct map_session_data *vsd=map_session_data::from_blid(id);
 	if( vsd && vsd->vender_id )
-		clif_vendinglist(sd,id,vsd->vending);
+		clif_vendinglist(sd,id,vsd->vend_list);
 }
 
 /*==========================================
@@ -45,10 +45,10 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
 {
 	size_t i, j, w;
 	uint32 z;
-	unsigned short blank, vend_list[MAX_VENDING];
+	unsigned short blank, vend_ids[MAX_VENDING];
 	unsigned short amount, index, new_ = 0;
-	struct vending vending[MAX_VENDING]; // against duplicate packets
-	struct map_session_data *vsd = map_session_data::from_blid(id);
+	vending_element vend_list[MAX_VENDING]; // against duplicate packets
+	map_session_data *vsd = map_session_data::from_blid(id);
 
 	if(vsd == NULL)
 		return;
@@ -59,8 +59,8 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
 	if( vsd->vend_num>MAX_VENDING )
 		vsd->vend_num=MAX_VENDING;
 
-	// duplicate item in vending to check hacker with multiple packets
-	memcpy(&vending, &vsd->vending, sizeof(struct vending) * MAX_VENDING); // copy vending list
+	// duplicate item in vend_list to check hacker with multiple packets
+	memcpy(&vend_list, &vsd->vend_list, sizeof(vend_list));
 
 	// number of blank entries in inventory
 	blank = pc_inventoryblank(sd);
@@ -72,11 +72,11 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
 		if(amount > MAX_AMOUNT) return; // exploit
 			
 		for(j=0; j<vsd->vend_num; ++j) {
-			if( vsd->vending[j].amount>0 && vsd->vending[j].index == index )
+			if( vsd->vend_list[j].amount>0 && vsd->vend_list[j].index == index )
 			{
-				if (amount > vsd->vending[j].amount)
+				if (amount > vsd->vend_list[j].amount)
 				{	
-					clif_buyvending(sd,index,vsd->vending[j].amount, 4);
+					clif_buyvending(sd,index,vsd->vend_list[j].amount, 4);
 					return;
 				}
 				else 
@@ -86,8 +86,8 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
 		if (j == vsd->vend_num)
 			return; // 売り切れ
 
-		vend_list[i] = j;
-		z += vsd->vending[j].value * amount;
+		vend_ids[i] = j;
+		z += vsd->vend_list[j].value * amount;
 		if (z > sd.status.zeny){
 			clif_buyvending(sd, index, amount, 1);
 			return; // zeny不足
@@ -98,16 +98,18 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
 			return; // 重量超過
 		}
 		
-		if (vending[j].amount > vsd->status.cart[index].amount) //Check to see if cart/vend info is in sync.
-			vending[j].amount = vsd->status.cart[index].amount;
+		if( vend_list[j].amount > vsd->status.cart[index].amount ) //Check to see if cart/vend info is in sync.
+			vend_list[j].amount = vsd->status.cart[index].amount;
 
 		// if they try to add packets (example: get twice or more 2 apples if marchand has only 3 apples).
 		// here, we check cumulativ amounts
-		if (vending[j].amount < amount) { // send more quantity is not a hack (an other player can have buy items just before)
-			clif_buyvending(sd, index, vsd->vending[j].amount, 4); // not enough quantity
+		if( vend_list[j].amount < amount )
+		{	// send more quantity is not a hack (an other player can have buy items just before)
+			clif_buyvending(sd, index, vsd->vend_list[j].amount, 4); // not enough quantity
 			return;
-		} else
-			vending[j].amount -= amount;
+		}
+		else
+			vend_list[j].amount -= amount;
 
 		switch( pc_checkadditem(sd, vsd->status.cart[index].nameid, amount) ) {
 		case ADDITEM_EXIST:
@@ -134,7 +136,7 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
 		index =  RBUFW(buffer, 2 + 4 * i) - 2;
 		//if (amount < 0) break; // tested at start of the function
 		pc_additem(sd,vsd->status.cart[index],amount);
-		vsd->vending[vend_list[i]].amount -= amount;
+		vsd->vend_list[vend_ids[i]].amount -= amount;
 		pc_cart_delitem(*vsd, index, amount, 0);
 		clif_vendingreport(*vsd, index, amount);
 		if(config.buyer_name)
@@ -161,29 +163,30 @@ void vending_openvending(struct map_session_data &sd,unsigned short len,const ch
 	size_t i;
 
 	if(!pc_checkskill(sd,MC_VENDING) || !pc_iscarton(sd)) {	// cart skill and cart check [Valaris]
-		clif_skill_fail(sd,MC_VENDING,0,0);
+		sd.clif_skill_failed(MC_VENDING,0,0);
 		return;
 	}
 
 	if (flag) {
 		for(i = 0; (85 + 8 * i < len) && (i < MAX_VENDING); ++i) {
-			sd.vending[i].index = RBUFW(buffer,8*i) - 2;
-			sd.vending[i].amount= RBUFW(buffer,2+8*i);
-			sd.vending[i].value = RBUFL(buffer,4+8*i);
-			if(sd.vending[i].value>config.vending_max_value)
-				sd.vending[i].value=config.vending_max_value;
-			else if(sd.vending[i].value == 0)
-				sd.vending[i].value = 1000000;	// auto set to 1 million [celest]
+			sd.vend_list[i].index = RBUFW(buffer,8*i) - 2;
+			sd.vend_list[i].amount= RBUFW(buffer,2+8*i);
+			sd.vend_list[i].value = RBUFL(buffer,4+8*i);
+			if( sd.vend_list[i].value>config.vending_max_value )
+				sd.vend_list[i].value=config.vending_max_value;
+			else if(sd.vend_list[i].value == 0)
+				sd.vend_list[i].value = 1000000;	// auto set to 1 million [celest]
 			// カート内のアイテム数と販売するアイテム数に相違があったら中止
-			if(pc_cartitem_amount(sd, sd.vending[i].index, sd.vending[i].amount) < 0 || sd.vending[i].value < 0) { // fixes by Valaris and fritz
-				clif_skill_fail(sd, MC_VENDING, 0, 0);
+			if(pc_cartitem_amount(sd, sd.vend_list[i].index, sd.vend_list[i].amount) < 0 || sd.vend_list[i].value < 0)
+			{
+				sd.clif_skill_failed(MC_VENDING, 0, 0);
 				return;
 			}
 		}
 		sd.vender_id = sd.block_list::id;
 		sd.vend_num = i;
 		strcpy(sd.message,message);
-		if (clif_openvending(sd,sd.vender_id,sd.vending) > 0)
+		if (clif_openvending(sd,sd.vender_id,sd.vend_list) > 0)
 			clif_showvendingboard(sd,message,0);
 		else
 			sd.vender_id = 0;

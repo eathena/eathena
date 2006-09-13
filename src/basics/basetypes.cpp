@@ -40,6 +40,8 @@ int FASTCALL atomicdecrement(int* target)
 	return --(*target);
 }
 
+
+
 //////////////////////////////////////////////////////////////////////////
 #else
 //////////////////////////////////////////////////////////////////////////
@@ -286,6 +288,62 @@ int FASTCALL atomicdecrement(int* target)
 #endif // plattform
 
 #endif// !SINGLETHREAD
+
+
+
+
+#if defined(SINGLETHREAD)
+
+size_t FASTCALL atomiccompareexchange(size_t*target, size_t value, size_t comperand)
+{
+	int prev = *target;
+	if(*target==comperand)
+		*target = value;
+	return prev;
+}
+void* FASTCALL _atomiccompareexchange(void** target, void* value, void* comperand)
+{
+	void* prev = *target;
+	if(*target==comperand)
+		*target = value;
+	return prev;
+}
+
+#elif defined(WIN32)
+
+size_t FASTCALL atomiccompareexchange(size_t* target, size_t value, size_t comperand)
+{
+	return (int)InterlockedCompareExchange((void**)target, (void*)value, (void*)comperand);
+}
+void* FASTCALL _atomiccompareexchange(void** target, void* value, void* comperand)
+{
+	return InterlockedCompareExchange(target, value, comperand);
+}
+//## TODO: add inline asm's
+#else
+
+size_t FASTCALL atomiccompareexchange(size_t*target, size_t value, size_t comperand)
+{
+	static Mutex m;
+	ScopeLock sl(m);
+	int prev = *target;
+	if(*target==comperand)
+		*target = value;
+	return prev;
+}
+void* FASTCALL _atomiccompareexchange(void** target, void* value, void* comperand)
+{
+	static Mutex m;
+	ScopeLock sl(m);
+	void* prev = *target;
+	if(*target==comperand)
+		*target = value;
+	return prev;
+)
+
+#endif
+
+
 
 
 NAMESPACE_END(basics)

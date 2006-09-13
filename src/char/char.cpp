@@ -988,7 +988,7 @@ int parse_tologin(int fd)
 					unsigned char buf[128];
 					char *message = (char*)RFIFOP(fd,8);
 					
-					message[RFIFOL(fd,4)] = 0;
+					message[RFIFOL(fd,4)-1] = 0;
 					remove_control_chars(message);
 					// remove all first spaces
 					p = message;

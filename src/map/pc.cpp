@@ -314,7 +314,7 @@ int map_session_data::attacktimer_func(int tid, unsigned long tick, int id, basi
 
 	if(!config.skill_delay_attack_enable && pc_checkskill(*sd,SA_FREECAST) <= 0) {
 		if(DIFF_TICK(tick, sd->canact_tick) < 0) {
-			clif_skill_fail(*sd,1,4,0);
+			sd->clif_skill_failed(1,4,0);
 			return 0;
 		}
 	}
@@ -523,8 +523,52 @@ void map_session_data::do_attack()
 
 
 
+/*==========================================
+ * HP/SP回復
+ *------------------------------------------
+ */
+int map_session_data::heal(int hp, int sp)
+{
+//	if(config.battle_log)
+//		ShowMessage("heal %d %d\n",hp,sp);
+	map_session_data& sd = *this;
 
+	if( sd.sc_data[SC_BERSERK].timer!=-1 ) //バ?サ?ク中は回復させないらしい
+		return 0;
 
+	if( hp>0 && pc_checkoverhp(sd) )
+			hp = 0;
+	else if(hp+sd.status.hp > sd.status.max_hp)
+		hp = sd.status.max_hp - sd.status.hp;
+
+	if( sp>0 && pc_checkoversp(sd) )
+			sp = 0;
+	else if(sp+sd.status.sp > sd.status.max_sp)
+		sp = sd.status.max_sp - sd.status.sp;
+
+	sd.status.hp += hp;
+	if(sd.status.hp <= 0)
+	{
+		sd.status.hp = 1;
+		pc_damage(sd,1,NULL);
+		hp = 0;
+	}
+	sd.status.sp+=sp;
+	if(sd.status.sp <= 0)
+		sd.status.sp = 0;
+
+	if(hp)
+		clif_updatestatus(sd,SP_HP);
+	if(sp)
+		clif_updatestatus(sd,SP_SP);
+
+	if( sd.status.party_id>0 )
+	{	// on-the-fly party hp updates [Valaris]
+		struct party *p=party_search(sd.status.party_id);
+		if(p!=NULL) clif_party_hp(*p,sd);
+	}	// end addition [Valaris]
+	return hp + sp;
+}
 
 
 
@@ -1885,11 +1929,11 @@ int pc_bonus(struct map_session_data &sd,int type,int val)
 		if(sd.state.lr_flag != 2)
 			sd.long_weapon_damage_return += val;
 		break;
-	case SP_MAGIC_DAMAGE_RETURN: //AppleGirl Was Here
+	case SP_MAGIC_DAMAGE_RETURN:
 		if(sd.state.lr_flag != 2)
 			sd.magic_damage_return += val;
 		break;
-	case SP_ALL_STATS:	// [Valaris]
+	case SP_ALL_STATS:
 		if(sd.state.lr_flag!=2) {
 			sd.parame[SP_STR-SP_STR]+=val;
 			sd.parame[SP_AGI-SP_STR]+=val;
@@ -3238,7 +3282,7 @@ int pc_item_repair(struct map_session_data &sd, unsigned short idx)
 					material = materials[3];
 
 				if(pc_search_inventory(sd, material) < 0 ) { //fixed by Lupus (item pos can be = 0!)
-					clif_skill_fail(sd,sd.skillid,0,0);
+					sd.clif_skill_failed(sd.skillid,0,0);
 					return 0;
 				}
 				flag=0;
@@ -3275,7 +3319,7 @@ int pc_item_refine(struct map_session_data &sd, unsigned short idx)
 				item.refine >= MAX_REFINE ||		// if it's no longer refineable
 				ditem->flag.no_refine ||	// if the item isn't refinable
 				(i = pc_search_inventory(sd, material [ditem->wlv])) < 0 ) { //fixed by Lupus (item pos can be = 0!)
-				clif_skill_fail(sd,sd.skillid,0,0);
+				sd.clif_skill_failed(sd.skillid,0,0);
 				return 0;
 			}
 			per = percentrefinery[ditem->wlv][item.refine];
@@ -4097,7 +4141,7 @@ int pc_checkbaselevelup(struct map_session_data &sd)
 		clif_updatestatus(sd,SP_BASELEVEL);
 		clif_updatestatus(sd,SP_NEXTBASEEXP);
 		status_calc_pc(sd,0);
-		pc_heal(sd,sd.status.max_hp,sd.status.max_sp);
+		sd.heal(sd.status.max_hp,sd.status.max_sp);
 
 		//スパノビはキリエ、イムポ、マニピ、グロ、サフラLv1がかかる
 		if(s_class.job == 23){
@@ -5251,7 +5295,7 @@ int pc_setparam(struct map_session_data &sd,int type,int val)
 		clif_updatestatus(sd, SP_STATUSPOINT);
 		clif_updatestatus(sd, SP_BASEEXP);
 		status_calc_pc(sd, 0);
-		pc_heal(sd, sd.status.max_hp, sd.status.max_sp);
+		sd.heal(sd.status.max_hp, sd.status.max_sp);
 		break;
 	case SP_JOBLEVEL:
 		if (s_class.job == 0) //Novice & Baby Novice have 10 Job Levels only
@@ -5365,51 +5409,7 @@ int pc_setparam(struct map_session_data &sd,int type,int val)
 	return 0;
 }
 
-/*==========================================
- * HP/SP回復
- *------------------------------------------
- */
-int pc_heal(struct map_session_data &sd,long hp,long sp)
-{
-//	if(config.battle_log)
-//		ShowMessage("heal %d %d\n",hp,sp);
 
-	if( sd.sc_data[SC_BERSERK].timer!=-1 ) //バ?サ?ク中は回復させないらしい
-		return 0;
-
-	if( hp>0 && pc_checkoverhp(sd) )
-			hp = 0;
-	else if(hp+sd.status.hp > sd.status.max_hp)
-		hp = sd.status.max_hp - sd.status.hp;
-
-	if( sp>0 && pc_checkoversp(sd) )
-			sp = 0;
-	else if(sp+sd.status.sp > sd.status.max_sp)
-		sp = sd.status.max_sp - sd.status.sp;
-
-	sd.status.hp += hp;
-	if(sd.status.hp <= 0)
-	{
-		sd.status.hp = 0;
-		pc_damage(sd,1,NULL);
-		hp = 0;
-	}
-	sd.status.sp+=sp;
-	if(sd.status.sp <= 0)
-		sd.status.sp = 0;
-
-	if(hp)
-		clif_updatestatus(sd,SP_HP);
-	if(sp)
-		clif_updatestatus(sd,SP_SP);
-
-	if( sd.status.party_id>0 )
-	{	// on-the-fly party hp updates [Valaris]
-		struct party *p=party_search(sd.status.party_id);
-		if(p!=NULL) clif_party_hp(*p,sd);
-	}	// end addition [Valaris]
-	return hp + sp;
-}
 
 /*==========================================
  * HP/SP回復
@@ -6435,7 +6435,7 @@ int pc_unequipitem(struct map_session_data &sd,unsigned short inx, int flag)
 			hp = sd.status.hp;
 		if(sp > sd.status.sp)
 			sp = sd.status.sp;
-		pc_heal(sd,-hp,-sp);
+		sd.heal(-hp,-sp);
 	}
 	return 0;
 }
@@ -7118,7 +7118,7 @@ int pc_bleeding (struct map_session_data *sd)
 	}
 
 	if (hp > 0 || sp > 0)
-		pc_heal(*sd,-hp,-sp);
+		sd->heal(-hp,-sp);
 	return 0;
 }
 

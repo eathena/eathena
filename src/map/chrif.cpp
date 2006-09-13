@@ -7,13 +7,14 @@
 #include "showmsg.h"
 
 #include "atcommand.h"
-#include "map.h"
 #include "battle.h"
 #include "chrif.h"
 #include "clif.h"
 #include "intif.h"
 #include "npc.h"
 #include "pc.h"
+#include "mob.h"
+#include "pet.h"
 #include "status.h"
 #include "itemdb.h"
 
