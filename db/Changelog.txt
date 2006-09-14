@@ -1,4 +1,9 @@
 09/14
+	* Merged item_db, mob_db, mob_skill_db [Playtester]
+	- updated drop rates to official X.3
+	- also fixed some related aegis item names
+	- made NPC_ATTRICHANGE self targeted
+	- fixed Vesper's summon behavior
 	* Corrected Smokie's pet script to use petskillbonus instead of "bonus"
 	  [Skotlex]
 09/11
