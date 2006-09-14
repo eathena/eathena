@@ -2916,7 +2916,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		if(sd) {
 			if (flag & 3){
 				if (bl->id != skill_area_temp[1])
-					skill_attack(BF_WEAPON, src, src, bl, skillid, skilllv, tick, SD_ANIMATION);
+					skill_attack(BF_WEAPON, src, src, bl, skillid, skilllv, tick, SD_ANIMATION|flag);
 			} else {
 				skill_area_temp[1] = bl->id;
 				map_foreachinrange(skill_area_sub, bl,
@@ -6621,7 +6621,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 					if(bl->type==BL_PC)
 						//Only damage SP [Skotlex]
 						status_zap(bl, 0, 60);
-					else if(status_charge(bl, 0, 2))
+					else if(status_charge(ss, 0, 2))
 						//Otherwise, Knockback attack.
 						skill_attack(BF_WEAPON,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 				break;
@@ -8538,7 +8538,7 @@ int skill_sit (struct map_session_data *sd, int type)
 		flag|=2;
 		range = skill_get_splash(TK_HPTIME, lv);
 	}
-	else if ((lv=	pc_checkskill(sd,TK_SPTIME)) > 0) {
+	else if ((lv = pc_checkskill(sd,TK_SPTIME)) > 0) {
 		flag|=2;
 		range = skill_get_splash(TK_SPTIME, lv);
 	}

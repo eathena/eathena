@@ -5,6 +5,14 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/14
+	* Merged Spider Web fix so that damage increase considers actual attack
+	  element. [Skotlex]
+	* Merged battle_config_switch update so that trailing values are ignored
+	  ("yessir" will match "yes", and "yes " will also be read as "yes", which
+	  before was not being the case). [Skotlex]
+	* Fixed warmth skills draining SP of the target, not the caster. [Skotlex]
+	* Merged some cleanups in pc.c in regards to the feel/hate variables, also
+	  merged pc_reset_hate function. [Skotlex]
 	* Merged the case_Sensitive fix to the login-sql server, so that
 	  case-insensitive lookups will not disable the login's login-name index,
 	  thus killing performance. [Skotlex]
