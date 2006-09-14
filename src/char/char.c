@@ -689,11 +689,19 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 	next++;
 
 	for(i = 0; str[next] && str[next] != '\t'; i++) {
-		if (sscanf(str+next, "%[^,],%d,%d%n", tmp_str[0], &tmp_int[0], &tmp_int[1], &len) != 3)
-			return -3;
-		p->memo_point[i].map = mapindex_name2id(tmp_str[0]);
-		p->memo_point[i].x = tmp_int[0];
-		p->memo_point[i].y = tmp_int[1];
+		//mapindex memo format
+		if (sscanf(str+next, "%d,%d,%d%n", &tmp_int[2], &tmp_int[0], &tmp_int[1], &len) != 3)
+		{	//Old string-based memo format.
+			if (sscanf(str+next, "%[^,],%d,%d%n", tmp_str[0], &tmp_int[0], &tmp_int[1], &len) != 3)
+				return -3;
+			tmp_int[2] = mapindex_name2id(tmp_str[0]);
+		}
+		if (i < MAX_MEMOPOINTS)
+	  	{	//Avoid overflowing (but we must also read through all saved memos)
+			p->memo_point[i].x = tmp_int[0];
+			p->memo_point[i].y = tmp_int[1];
+			p->memo_point[i].map = tmp_int[2];
+		}
 		next += len;
 		if (str[next] == ' ')
 			next++;
@@ -1852,6 +1860,9 @@ static int char_delete(struct mmo_charstatus *cs) {
 		// —£¥
 		char_divorce(cs);
 	}
+#ifdef ENABLE_SC_SAVING
+	status_delete_scdata(cs->account_id, cs->char_id);
+#endif
 	return 0;
 }
 
