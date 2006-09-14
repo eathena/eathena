@@ -1,3 +1,6 @@
+09/14
+	* Corrected Smokie's pet script to use petskillbonus instead of "bonus"
+	  [Skotlex]
 09/11
 	* Corrected EAJ_NINJA entry in const.txt [Skotlex]
 	* CG_MOONLIT is no longer castable in WoE grounds. [Skotlex]
