@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //=  erKURITA
 //===== Current Version: ===================================== 
-//= 0.9
+//= 1.0
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -17,7 +17,8 @@
 //= 0.6 Fixed some typos+Coordinates. [Musashiden]
 //= 0.7 Implemented some more crap NPCs and the second entrance to biolabs [MasterOfMuppets]
 //= 0.8 Removed Duplicates [Silent]
-//= 0.9 Added a missing feature to the donation NPC [MasterOfMuppets]
+//= 0.9 Removed Duplicates [Toms]
+//= 1.0 Added a missing feature to the donation NPC [MasterOfMuppets]
 //=============================================================
 
 lighthalzen.gat,198,285,5	script	Jiwon	862,{
@@ -1923,7 +1924,7 @@ lhz_in01.gat,173,28,4	script	Guard#01::LhzRekGuard	868,{
 
 }
 
-lhz_in01.gat,180,28,4	duplicate(LhzRekGuard)	Guard#02	868
+lhz_in01.gat,180,28,4	duplicate(LhzRekGuard)	Guard#03	868
 
 lhz_in01.gat,72,209,4	script	Guide#01	862,{
 
@@ -1967,7 +1968,7 @@ lhz_in01.gat,73,188,4	script	Guide#03	862,{
 
 lhz_in01.gat,34,226,4	script	Rekenber Guard#01	867,{
 
-	if(getequipid(10) == 2241 && getequipid(9) == 2243)goto s_Staff;
+	if(isequipped(2241) && isequipped(2243)) goto s_Staff;
 	mes "[Rekenber Guard]";
 	mes "This is a restricted";
 	mes "area! Please show";
@@ -2002,7 +2003,7 @@ s_Staff:
 
 lhz_in01.gat,19,129,0	script	LhzHiddenTrg1::LhzTrig	-1,1,1{
 OnTouch:
-	if(getequipid(10) == 2241 && getequipid(9) == 2243)goto s_Staff;
+	if(isequipped(2241) && isequipped(2243)) goto s_Staff;
 	mes "[Rekenber Guard]";
 	mes "This area is restricted";
 	mes "to the public! Who are you";
@@ -2030,7 +2031,7 @@ lhz_in01.gat,24,131,2	duplicate(LhzTrig)	Rekenber Guard#02	867
 
 lhz_in01.gat,25,141,4	script	Regenschirm Guard	868,{
 
-	if(getequipid(10) == 2241 && getequipid(9) == 2243)goto s_Staff;
+	if(isequipped(2241) && isequipped(2243)) goto s_Staff;
 	mes "[Regenschirm Guard]";
 	mes "This area is restricted";
 	mes "to the public! Who are you";
@@ -2053,11 +2054,11 @@ s_Staff:
 	close;
 
 s_Yes:
-	if(getequipid(7) == 2657 || getequipid(8) == 2657)goto s_Auth;
+	if(isequipped(2657)) goto s_Auth;
 	mes "[Regenschirm Guard]";
 	mes "I'm sorry but I can't let";
 	mes "staff without proper autorization";
-	mes "pass. Only staff memebers with";
+	mes "pass. Only staff members with";
 	mes "Laboratory Passports are allowed";
 	mes "to enter the underground.";
 	close;

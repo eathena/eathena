@@ -34,6 +34,10 @@ Playtester
 
 Date		Added
 ======
+09/14
+	* Fixed typos in Gunslinger & Thief Job Quest & various NPCs [Lupus]
+		thanks to cbmaster & $ephiroth
+	- Fixed Guild Defence / Economy underflow, thx2 kyoki
 09/11
 	* Added back Guild Storage. Confirmed kRO feature. [Lupus]
 	* Merged divorce.txt [Lupus]
