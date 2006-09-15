@@ -1,5 +1,9 @@
 Date	Added
 
+2006/09/14
+	* Merged the change of show_mob_hp to show_mob_info. Now you can choose to
+	  display a mob's Lv, and/or HP (Hp has two different display formats as
+	  well, see battle/monster.conf for details) [Skotlex]
 2006/09/11
 	* Corrected name of config settings pc_luk_status_def, mob_luk_status_def
 	  (status.conf) [Skotlex]

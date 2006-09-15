@@ -5,6 +5,9 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/14
+	* Merged the change of show_mob_hp to show_mob_info. Now you can choose to
+	  display a mob's Lv, and/or HP (Hp has two different display formats as
+	  well) [Skotlex]
 	* Merged saved status changes deletion on character delete (char TXT/SQL)
 	  [Skotlex]
 	* Merged the new save structure for memos, where the map index is saved
