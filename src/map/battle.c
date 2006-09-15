@@ -301,7 +301,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			if (sd && pc_issit(sd)) pc_setstand(sd); //Stand it to dodge.
 			clif_skill_nodamage(bl,bl,TK_DODGE,1,1);
 			if (sc->data[SC_COMBO].timer == -1)
-				sc_start4(bl, SC_COMBO, 100, TK_JUMPKICK, src->id, 0, 0, 2000);
+				sc_start4(bl, SC_COMBO, 100, TK_JUMPKICK, src->id, 1, 0, 2000);
 			return 0;
 		}
 
@@ -1029,6 +1029,11 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case CR_SHIELDBOOMERANG:
 					if (sc && sc->data[SC_SPIRIT].timer != -1 && sc->data[SC_SPIRIT].val2 == SL_CRUSADER)
+						flag.hit = 1;
+					break;
+				case 0:
+					//If flag, this is splash damage from Baphomet Card and it always hits.
+					if (wflag)
 						flag.hit = 1;
 					break;
 			}

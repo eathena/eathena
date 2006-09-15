@@ -1168,10 +1168,11 @@ static int status_base_atk(struct block_list *bl, struct status_data *status)
 #define status_base_matk_min(status) (status->int_+(status->int_/7)*(status->int_/7))
 
 //Fills in the misc data that can be calculated from the other status info (except for level)
-void status_calc_misc(struct status_data *status, int type, int level)
+void status_calc_misc(struct block_list *bl, struct status_data *status, int level)
 {
 	//Non players get the value set, players need to stack with previous bonuses.
-	if (type != BL_PC)
+	if (bl->type != BL_PC)
+		status->batk = 
 		status->matk_min = status->matk_max =
 		status->hit = status->flee =
 		status->def2 = status->mdef2 =
@@ -1185,18 +1186,19 @@ void status_calc_misc(struct status_data *status, int type, int level)
 	status->def2 += status->vit;
 	status->mdef2 += status->int_ + (status->vit>>1);
 
-	if (type&battle_config.enable_critical)
+	if (bl->type&battle_config.enable_critical)
 		status->cri += status->luk*3 + 10;
 	else
 		status->cri = 0;
 
-	if (type&battle_config.enable_perfect_flee)
+	if (bl->type&battle_config.enable_perfect_flee)
 		status->flee2 += status->luk + 10;
 	else
 		status->flee2 = 0;
 
+	status->batk += status_base_atk(bl, status);
 	if (status->cri)
-	switch (type) {
+	switch (bl->type) {
 	case BL_MOB:
 		if(battle_config.mob_critical_rate != 100)
 			status->cri = status->cri*battle_config.mob_critical_rate/100;
@@ -1212,6 +1214,8 @@ void status_calc_misc(struct status_data *status, int type, int level)
 		if (!status->cri && battle_config.critical_rate)
 			status->cri = 10;
 	}
+	if(bl->type&BL_REGEN)
+		status_calc_regen(bl, status, status_get_regen_data(bl));
 }
 
 //Skotlex: Calculates the initial status for the given mob
@@ -1340,8 +1344,7 @@ int status_calc_mob(struct mob_data* md, int first)
 		}
 	}
 
-	status->batk = status_base_atk(&md->bl, status);
-	status_calc_misc(status, BL_MOB, md->level);
+	status_calc_misc(&md->bl, status, md->level);
 
 	if(flag&4)
 	{	// Strengthen Guardians - custom value +10% / lv
@@ -1415,16 +1418,13 @@ int status_calc_pet(struct pet_data *pd, int first)
 			status->dex = cap_value(status->dex,1,battle_config.pet_max_stats);
 			status->luk = cap_value(status->luk,1,battle_config.pet_max_stats);
 
-			status->batk = status_base_atk(&pd->bl, &pd->status);
-			status_calc_misc(&pd->status, BL_PET, lv);
+			status_calc_misc(&pd->bl, &pd->status, lv);
 
 			if (!first)	//Not done the first time because the pet is not visible yet
 				clif_send_petstatus(sd);
 		}
-	} else if (first) {
-		pd->status.batk = status_base_atk(&pd->bl, &pd->status);
-		status_calc_misc(&pd->status, BL_PET, pd->db->lv);
-	}
+	} else if (first)
+		status_calc_misc(&pd->bl, &pd->status, pd->db->lv);
 	
 	//Support rate modifier (1000 = 100%)
 	pd->rate_fix = 1000*(pd->pet.intimate - battle_config.pet_support_min_friendly)/(1000- battle_config.pet_support_min_friendly) +500;
@@ -1905,8 +1905,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	
 // ------ BASE ATTACK CALCULATION ------
 
-	// Basic Base ATK value
-	status->batk += status_base_atk(&sd->bl,status);
+	// Base batk value is set on status_calc_misc
 	// weapon-type bonus (FIXME: Why is the weapon_atk bonus applied to base attack?)
 	if (sd->status.weapon < MAX_WEAPON_TYPE && sd->weapon_atk[sd->status.weapon])
 		status->batk += sd->weapon_atk[sd->status.weapon];
@@ -1914,8 +1913,124 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	if((skill=pc_checkskill(sd,BS_HILTBINDING))>0)
 		status->batk += 4;
 
+// ----- HP MAX CALCULATION -----
+
+	// Basic MaxHP value
+	//We hold the standard Max HP here to make it faster to recalculate on vit changes.
+	sd->status.max_hp = status_base_pc_maxhp(sd,status);
+	status->max_hp += sd->status.max_hp;
+
+	// Absolute modifiers from passive skills
+	if((skill=pc_checkskill(sd,CR_TRUST))>0)
+		status->max_hp += skill*200;
+
+	// Apply relative modifiers from equipment
+	if(sd->hprate < 0)
+		sd->hprate = 0;
+	if(sd->hprate!=100)
+		status->max_hp = status->max_hp * sd->hprate/100;
+	if(battle_config.hp_rate != 100)
+		status->max_hp = status->max_hp * battle_config.hp_rate/100;
+
+	if(status->max_hp > (unsigned int)battle_config.max_hp)
+		status->max_hp = battle_config.max_hp;
+	else if(!status->max_hp)
+		status->max_hp = 1;
+	
+// ----- SP MAX CALCULATION -----
+
+	// Basic MaxSP value
+	sd->status.max_sp = status_base_pc_maxsp(sd,status);
+	status->max_sp += sd->status.max_sp;
+
+	// Absolute modifiers from passive skills
+	if((skill=pc_checkskill(sd,SL_KAINA))>0)
+		status->max_sp += 30*skill;
+	if((skill=pc_checkskill(sd,HP_MEDITATIO))>0)
+		status->max_sp += status->max_sp * skill/100;
+	if((skill=pc_checkskill(sd,HW_SOULDRAIN))>0)
+		status->max_sp += status->max_sp * 2*skill/100;
+
+	// Apply relative modifiers from equipment
+	if(sd->sprate < 0)
+		sd->sprate = 0;
+	if(sd->sprate!=100)
+		status->max_sp = status->max_sp * sd->sprate/100;
+	if(battle_config.sp_rate != 100)
+		status->max_sp = status->max_sp * battle_config.sp_rate/100;
+
+	if(status->max_sp > (unsigned int)battle_config.max_sp)
+		status->max_sp = battle_config.max_sp;
+	else if(!status->max_sp)
+		status->max_sp = 1;
+
+// ----- RESPAWN HP/SP -----
+// 
+	//Calc respawn hp and store it on base_status
+	if (sd->special_state.restart_full_recover)
+	{
+		status->hp = status->max_hp;
+		status->sp = status->max_sp;
+	} else {
+		if((sd->class_&MAPID_BASEMASK) == MAPID_NOVICE && !(sd->class_&JOBL_2) 
+			&& battle_config.restart_hp_rate < 50) 
+			status->hp=status->max_hp>>1;
+		else 
+			status->hp=status->max_hp * battle_config.restart_hp_rate/100;
+		if(!status->hp)
+			status->hp = 1;
+
+		status->sp = status->max_sp * battle_config.restart_sp_rate /100;
+	}
+
 // ----- MISC CALCULATION -----
-	status_calc_misc(status, BL_PC, sd->status.base_level);
+	status_calc_misc(&sd->bl, status, sd->status.base_level);
+
+	//Equipment modifiers for misc settings
+	if(sd->matk_rate < 0)
+		sd->matk_rate = 0;
+	if(sd->matk_rate != 100){
+		status->matk_max = status->matk_max * sd->matk_rate/100;
+		status->matk_min = status->matk_min * sd->matk_rate/100;
+	}
+
+	if(sd->hit_rate < 0)
+		sd->hit_rate = 0;
+	if(sd->hit_rate != 100)
+		status->hit = status->hit * sd->hit_rate/100;
+
+	if(sd->flee_rate < 0)
+		sd->flee_rate = 0;
+	if(sd->flee_rate != 100)
+		status->flee = status->flee * sd->flee_rate/100;
+
+	if(sd->def2_rate < 0)
+		sd->def2_rate = 0;
+	if(sd->def2_rate != 100)
+		status->def2 = status->def2 * sd->def2_rate/100;
+
+	if(sd->mdef2_rate < 0)
+		sd->mdef2_rate = 0;
+	if(sd->mdef2_rate != 100)
+		status->mdef2 = status->mdef2 * sd->mdef2_rate/100;
+		
+	if(sd->critical_rate < 0) 
+		sd->critical_rate = 0;
+	if(sd->critical_rate != 100)
+		status->cri = status->cri * sd->critical_rate/100;
+
+	if(sd->flee2_rate < 0)
+		sd->flee2_rate = 0;
+	if(sd->flee2_rate != 100)
+		status->flee2 = status->flee2 * sd->flee2_rate/100;
+
+	if(sd->speed_rate < 0)
+		sd->speed_rate = 0;
+	if(sd->speed_rate != 100)
+		status->speed = status->speed*sd->speed_rate/100;
+
+	if(status->speed < battle_config.max_walk_speed)
+		status->speed = battle_config.max_walk_speed;
 
 // ----- HIT CALCULATION -----
 
@@ -1948,6 +2063,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 // ----- EQUIPMENT-DEF CALCULATION -----
 
 	// Apply relative modifiers from equipment
+	if(sd->def_rate < 0)
+		sd->def_rate = 0;
 	if(sd->def_rate != 100) {
 		i =  status->def * sd->def_rate/100;
 		status->def = cap_value(i, CHAR_MIN, CHAR_MAX);
@@ -1962,6 +2079,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 // ----- EQUIPMENT-MDEF CALCULATION -----
 
 	// Apply relative modifiers from equipment
+	if(sd->mdef_rate < 0)
+		sd->mdef_rate = 0;
 	if(sd->mdef_rate != 100) {
 		i =  status->mdef * sd->mdef_rate/100;
 		status->mdef = cap_value(i, CHAR_MIN, CHAR_MAX);
@@ -2019,49 +2138,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 //
 	i =  800-status->agi*4;
 	status->dmotion = cap_value(i, 400, 800);
-
-// ----- HP MAX CALCULATION -----
-
-	// Basic MaxHP value
-	//We hold the standard Max HP here to make it faster to recalculate on vit changes.
-	sd->status.max_hp = status_base_pc_maxhp(sd,status);
-	status->max_hp += sd->status.max_hp;
-
-	// Absolute modifiers from passive skills
-	if((skill=pc_checkskill(sd,CR_TRUST))>0)
-		status->max_hp += skill*200;
-
-// ----- SP MAX CALCULATION -----
-
-	// Basic MaxSP value
-	sd->status.max_sp = status_base_pc_maxsp(sd,status);
-	status->max_sp += sd->status.max_sp;
-
-	// Absolute modifiers from passive skills
-	if((skill=pc_checkskill(sd,SL_KAINA))>0)
-		status->max_sp += 30*skill;
-
-	if(status->sp>status->max_sp)
-		status->sp=status->max_sp;
-
-// ----- RESPAWN HP/SP -----
-// 
-	//Calc respawn hp and store it on base_status
-	if (sd->special_state.restart_full_recover)
-	{
-		status->hp = status->max_hp;
-		status->sp = status->max_sp;
-	} else {
-		if((sd->class_&MAPID_BASEMASK) == MAPID_NOVICE && !(sd->class_&JOBL_2) 
-			&& battle_config.restart_hp_rate < 50) 
-			status->hp=status->max_hp>>1;
-		else 
-			status->hp=status->max_hp * battle_config.restart_hp_rate/100;
-		if(!status->hp)
-			status->hp = 1;
-
-		status->sp = status->max_sp * battle_config.restart_sp_rate /100;
-	}
+	if(battle_config.pc_damage_delay_rate != 100)
+		status->dmotion = status->dmotion*battle_config.pc_damage_delay_rate/100;
 
 // ----- MISC CALCULATIONS -----
 
@@ -2088,42 +2166,16 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	}
 
 	//Underflow protections.
-	if(sd->sprate < 0)
-		sd->sprate = 0;
 	if(sd->dsprate < 0)
 		sd->dsprate = 0;
-	if(sd->hprate < 0)
-		sd->hprate = 0;
-	if(sd->sprate < 0)
-		sd->sprate = 0;
 	if(sd->castrate < 0)
 		sd->castrate = 0;
 	if(sd->delayrate < 0)
 		sd->delayrate = 0;
-	if(sd->speed_rate < 0)
-		sd->speed_rate = 0;
 	if(sd->hprecov_rate < 0)
 		sd->hprecov_rate = 0;
 	if(sd->sprecov_rate < 0)
 		sd->sprecov_rate = 0;
-	if(sd->matk_rate < 0)
-		sd->matk_rate = 0;
-	if(sd->critical_rate < 0) 
-		sd->critical_rate = 0;
-	if(sd->hit_rate < 0)
-		sd->hit_rate = 0;
-	if(sd->flee_rate < 0)
-		sd->flee_rate = 0;
-	if(sd->flee2_rate < 0)
-		sd->flee2_rate = 0;
-	if(sd->def_rate < 0)
-		sd->def_rate = 0;
-	if(sd->def2_rate < 0)
-		sd->def2_rate = 0;
-	if(sd->mdef_rate < 0)
-		sd->mdef_rate = 0;
-	if(sd->mdef2_rate < 0)
-		sd->mdef2_rate = 0;
 
 	// Anti-element and anti-race
 	if((skill=pc_checkskill(sd,CR_TRUST))>0)
@@ -2417,11 +2469,6 @@ void status_calc_bl_sub_pc(struct map_session_data *sd, unsigned long flag)
 		status->max_hp += b_status->max_hp - sd->status.max_hp;
 		
 		status->max_hp = status_calc_maxhp(&sd->bl, &sd->sc, status->max_hp);
-		// Apply relative modifiers from equipment
-		if(sd->hprate!=100)
-			status->max_hp = status->max_hp * sd->hprate/100;
-		if(battle_config.hp_rate != 100)
-			status->max_hp = status->max_hp * battle_config.hp_rate/100;
 		
 		if(status->max_hp > (unsigned int)battle_config.max_hp)
 			status->max_hp = battle_config.max_hp;
@@ -2441,18 +2488,7 @@ void status_calc_bl_sub_pc(struct map_session_data *sd, unsigned long flag)
 		status->max_sp = status_base_pc_maxsp(sd,status);
 		status->max_sp += b_status->max_sp - sd->status.max_sp;
 		
-		if((skill=pc_checkskill(sd,HP_MEDITATIO))>0)
-			status->max_sp += status->max_sp * skill/100;
-		if((skill=pc_checkskill(sd,HW_SOULDRAIN))>0)
-			status->max_sp += status->max_sp * 2*skill/100;
-
 		status->max_sp = status_calc_maxsp(&sd->bl, &sd->sc, status->max_sp);
-		
-		// Apply relative modifiers from equipment
-		if(sd->sprate!=100)
-			status->max_sp = status->max_sp * sd->sprate/100;
-		if(battle_config.sp_rate != 100)
-			status->max_sp = status->max_sp * battle_config.sp_rate/100;
 		
 		if(status->max_sp > (unsigned int)battle_config.max_sp)
 			status->max_sp = battle_config.max_sp;
@@ -2476,49 +2512,14 @@ void status_calc_bl_sub_pc(struct map_session_data *sd, unsigned long flag)
 
 		status->matk_min = status_calc_matk(&sd->bl, &sd->sc, status->matk_min);
 		status->matk_max = status_calc_matk(&sd->bl, &sd->sc, status->matk_max);
-		if(sd->matk_rate != 100){
-			status->matk_max = status->matk_max * sd->matk_rate/100;
-			status->matk_min = status->matk_min * sd->matk_rate/100;
-		}
 
 		if(sd->sc.data[SC_MAGICPOWER].timer!=-1) { //Store current matk values
 			sd->sc.data[SC_MAGICPOWER].val3 = status->matk_min;
 			sd->sc.data[SC_MAGICPOWER].val4 = status->matk_max;
 		}
 	}
-	
-	if(flag&SCB_HIT) {
-		if(sd->hit_rate != 100)
-			status->hit = status->hit * sd->hit_rate/100;
-
-		if(status->hit < 1) status->hit = 1;
-	}
-
-	if(flag&SCB_FLEE) {
-		if(sd->flee_rate != 100)
-			status->flee = status->flee * sd->flee_rate/100;
-
-		if(status->flee < 1) status->flee = 1;
-	}
-
-	if(flag&SCB_DEF2) {
-		if(sd->def2_rate != 100)
-			status->def2 = status->def2 * sd->def2_rate/100;
-
-		if(status->def2 < 1) status->def2 = 1;
-	}
-
-	if(flag&SCB_MDEF2) {
-		if(sd->mdef2_rate != 100)
-			status->mdef2 = status->mdef2 * sd->mdef2_rate/100;
-
-		if(status->mdef2 < 1) status->mdef2 = 1;
-	}
 
 	if(flag&SCB_SPEED) {
-		if(sd->speed_rate != 100)
-			status->speed = status->speed*sd->speed_rate/100;
-
 		if(status->speed < battle_config.max_walk_speed)
 			status->speed = battle_config.max_walk_speed;
 
@@ -2568,29 +2569,16 @@ void status_calc_bl_sub_pc(struct map_session_data *sd, unsigned long flag)
 	}
 	
 	if(flag&(SCB_AGI|SCB_DSPD)) {
-		//Even though people insist this is too slow, packet data reports this is the actual real equation.
-		skill = 800-status->agi*4;
-		status->dmotion = cap_value(skill, 400, 800);
-
-		if(battle_config.pc_damage_delay_rate != 100)
-			status->dmotion  = status->dmotion*battle_config.pc_damage_delay_rate/100;
-		status->dmotion = status_calc_dmotion(&sd->bl, &sd->sc, b_status->dmotion);
-	}
-
-
-	if(flag&SCB_CRI)
-	{
-		if(sd->critical_rate != 100)
-			status->cri = status->cri * sd->critical_rate/100;
-
-		if(status->cri < 10) status->cri = 10;
-	}
-
-	if(flag&SCB_FLEE2) {
-		if(sd->flee2_rate != 100)
-			status->flee2 = status->flee2 * sd->flee2_rate/100;
-
-		if(status->flee2 < 10) status->flee2 = 10;
+		if (b_status->agi == status->agi)
+			status->dmotion = status_calc_dmotion(&sd->bl, &sd->sc, b_status->dmotion);
+		else {
+			skill = 800-status->agi*4;
+			status->dmotion = cap_value(skill, 400, 800);
+			if(battle_config.pc_damage_delay_rate != 100)
+				status->dmotion = status->dmotion*battle_config.pc_damage_delay_rate/100;
+			//It's safe to ignore b_status->dmotion since no bonus affects it.
+			status->dmotion = status_calc_dmotion(&sd->bl, &sd->sc, status->dmotion);
+		}
 	}
 
 	if(flag&SCB_SPEED) {
@@ -3363,14 +3351,14 @@ static signed char status_calc_mdef(struct block_list *bl, struct status_change 
 static signed short status_calc_mdef2(struct block_list *bl, struct status_change *sc, int mdef2)
 {
 	if(!sc || !sc->count)
-		return cap_value(mdef2,0,SHRT_MAX);
+		return cap_value(mdef2,1,SHRT_MAX);
 
 	if(sc->data[SC_BERSERK].timer!=-1)
 		return 0;
 	if(sc->data[SC_MINDBREAKER].timer!=-1)
 		mdef2 -= mdef2 * sc->data[SC_MINDBREAKER].val3/100;
 
-	return cap_value(mdef2,0,SHRT_MAX);
+	return cap_value(mdef2,1,SHRT_MAX);
 }
 
 static unsigned short status_calc_speed(struct block_list *bl, struct status_change *sc, int speed)
@@ -3685,6 +3673,21 @@ void status_freecast_switch(struct map_session_data *sd)
 
 	if(b_speed != status->speed)
 		clif_updatestatus(sd,SP_SPEED);
+}
+
+const char * status_get_name(struct block_list *bl)
+{
+	nullpo_retr(0, bl);
+	switch (bl->type) {
+	case BL_MOB:
+		return ((struct mob_data *)bl)->name;
+	case BL_PC:
+		return ((struct map_session_data *)bl)->status.name;
+	case BL_PET:
+		return ((struct pet_data *)bl)->pet.name;
+	default:
+		return "Unknown";
+	}
 }
 
 /*==========================================
@@ -5091,8 +5094,12 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 
 		case SC_COMBO:
 		{
+			//val1: Skill ID
+			//val2: When given, target (for autotargetting skills)
+			//val3: When set, this combo time should NOT delay attack/movement
+			//val4: Combo time
 			struct unit_data *ud = unit_bl2ud(bl);
-			switch (val1) { //Val1 contains the skill id
+			switch (val1) {
 				case TK_STORMKICK:
 					clif_skill_nodamage(bl,bl,TK_READYSTORM,1,1);
 					break;
@@ -5106,7 +5113,8 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 					clif_skill_nodamage(bl,bl,TK_READYCOUNTER,1,1);
 					break;
 			}
-			if (ud) {
+			if (ud && !val3) 
+			{
 				ud->attackabletime = gettick()+tick;
 				unit_set_walkdelay(bl, gettick(), tick, 1);
 			}

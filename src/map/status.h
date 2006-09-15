@@ -557,6 +557,7 @@ int status_revive(struct block_list *bl, unsigned char per_hp, unsigned char per
 struct regen_data *status_get_regen_data(struct block_list *bl);
 struct status_data *status_get_status_data(struct block_list *bl);
 struct status_data *status_get_base_status(struct block_list *bl);
+const char * status_get_name(struct block_list *bl);
 int status_get_class(struct block_list *bl);
 int status_get_lv(struct block_list *bl);
 #define status_get_range(bl) status_get_status_data(bl)->rhw.range
@@ -634,7 +635,7 @@ int status_calc_pet(struct pet_data* pd, int first); // [Skotlex]
 int status_calc_pc(struct map_session_data* sd,int first);
 int status_calc_mob(struct mob_data* md, int first); //[Skotlex]
 
-void status_calc_misc(struct status_data *status, int type, int level);
+void status_calc_misc(struct block_list *bl, struct status_data *status, int level);
 void status_calc_regen(struct block_list *bl, struct status_data *status, struct regen_data *regen);
 void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, struct status_change *sc);
 
