@@ -1,3 +1,7 @@
+09/16
+	* Added NPC_CHANGEUNDEAD to the skill_cast_db, fixes it apparently doing
+	  "nothing". [Skotlex]
+	* Merged most of skill_cast_db as well. [Skotlex]
 09/14
 	* Merged item_db, mob_db, mob_skill_db [Playtester]
 	- updated drop rates to official X.3
