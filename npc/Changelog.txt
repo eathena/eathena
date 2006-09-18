@@ -34,6 +34,12 @@ Playtester
 
 Date		Added
 ======
+09/18
+	* Merged guild folder from trunk into stable. It seems someone forgot to do, on gldfunc_treasure.txt,
+	  set getarg(2),$@n;, which is what indicates the number of treasures one castle can have
+	  according ot its economy. Of course, all castles would get only 1 treasure and the treasure chest
+	  variable, $boxNumxx, would get negative each day. This merging should fix it. Thanks to Trojal over IRC
+	  for pointing out [erKURITA]
 09/14
 	* Fixed typos in Gunslinger & Thief Job Quest & various NPCs [Lupus]
 		thanks to cbmaster & $ephiroth
