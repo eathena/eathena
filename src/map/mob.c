@@ -1051,7 +1051,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		tbl = map_id2bl(md->target_id);
 		if (!tbl || tbl->m != md->bl.m ||
 			(md->ud.attacktimer == -1 && !status_check_skilluse(&md->bl, tbl, 0, 0)) ||
-			(md->ud.walktimer != -1 && !check_distance_bl(&md->bl, tbl, md->min_chase)) ||
+			(md->ud.walktimer != -1 && !(battle_config.mob_ai&1) && !check_distance_bl(&md->bl, tbl, md->min_chase)) ||
 			(
 				tbl->type == BL_PC && !(mode&MD_BOSS) &&
 				((TBL_PC*)tbl)->state.gangsterparadise
@@ -2170,6 +2170,9 @@ int mob_class_change (struct mob_data *md, int class_)
 
 	if (md->class_ >= 1324 && md->class_ <= 1363)
 		return 0; //Treasure Boxes
+
+	if (md->special_state.ai > 1)
+		return 0; //Marine Spheres and Floras.
 
 	if (mob_is_clone(md->class_))
 		return 0; //Clones
