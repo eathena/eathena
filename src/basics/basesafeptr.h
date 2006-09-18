@@ -575,9 +575,10 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////////
 /// smart pointer with embedded data.
 /// 
-/// TObjPtr implements copy-on-write & autocreate
-/// TObjPtrCount implements autocreate
-/// TObjPtrCommon is switchable
+/// TObjPtr implements copy-on-write & autocreate.
+/// TObjPtrCount implements autocreate.
+/// TObjPtrCommon is switchable.
+///
 /////////////////////////////////////////////////////////////////////////////////////////
 template <class X> class TObjPtr : public TPtr<X>
 {
@@ -777,6 +778,9 @@ public:
 	virtual bool operator ==(void *p) const			{ return this->cCntObj==p; }
 	virtual bool operator !=(void *p) const			{ return this->cCntObj!=p; }
 
+	virtual bool operator ==(const TObjPtr<X>& r) const	{ return this->cCntObj==r.cCntObj; }
+	virtual bool operator !=(const TObjPtr<X>& r) const	{ return this->cCntObj!=r.cCntObj; }
+
 	const TObjPtr<X>& create ()
 	{
 		this->clear();
@@ -900,8 +904,8 @@ public:
 	virtual void setCopyonWrite() const	{  }
 	virtual void setAutoCreate() const	{  }
 
-	virtual const X& readaccess() const	{ return this->TObjPtr<X>::autocreate(); }
-	virtual X& writeaccess()			{ return this->TObjPtr<X>::autocreate(); }
+	virtual const X& readaccess() const	{ return this->TObjPtrCount<X>::autocreate(); }
+	virtual X& writeaccess()			{ return this->TObjPtrCount<X>::autocreate(); }
 };
 
 
@@ -913,7 +917,7 @@ protected:
 
 public:
 	TObjPtrCommon<X>()
-		: fAccess(&TObjPtr<X>::copyonwrite)
+		: fAccess(&TObjPtrCommon<X>::copyonwrite)	// access protected function through through TObjPtrCommon
 	{ }
 	TObjPtrCommon<X>(const TObjPtrCommon<X>& r)
 		: fAccess(r.fAccess)
@@ -931,15 +935,15 @@ public:
 		this->acquire(r);
 	}
 	explicit TObjPtrCommon<X>(bool cpwr)
-		: fAccess(cpwr?&TObjPtr<X>::copyonwrite:&TObjPtr<X>::autocreate)
+		: fAccess(cpwr?&TObjPtrCommon<X>::copyonwrite:&TObjPtrCommon<X>::autocreate)
 	{ }
 	explicit TObjPtrCommon<X>(const TObjPtr<X>& r, bool cpwr)
-		: fAccess(cpwr?&TObjPtr<X>::copyonwrite:&TObjPtr<X>::autocreate)
+		: fAccess(cpwr?&TObjPtrCommon<X>::copyonwrite:&TObjPtrCommon<X>::autocreate)
 	{
 		this->acquire(r);
 	}
 	TObjPtrCommon<X>(const X& p, bool cpwr=false)
-		: TObjPtr<X>(p), fAccess(cpwr?&TObjPtr<X>::copyonwrite:&TObjPtr<X>::autocreate)
+		: TObjPtr<X>(p), fAccess(cpwr?&TObjPtrCommon<X>::copyonwrite:&TObjPtrCommon<X>::autocreate)
 	{ }
 	virtual ~TObjPtrCommon<X>()	
 	{ }
@@ -951,13 +955,13 @@ public:
 	}
 	const TObjPtrCommon<X>& operator=(const TObjPtr<X>& r)
 	{
-		this->fAccess = &TObjPtr<X>::copyonwrite;
+		this->fAccess = &TObjPtrCommon<X>::copyonwrite;
 		this->acquire(r);
 		return *this;
 	}
 	const TObjPtrCommon<X>& operator=(const TObjPtrCount<X>& r)
 	{
-		this->fAccess = &TObjPtr<X>::autocreate;
+		this->fAccess = &TObjPtrCommon<X>::autocreate;
 		this->acquire(r);
 		return *this;
 	}
@@ -972,33 +976,33 @@ public:
 	// otherwise gcc mixes it up with the other two parameter constructors
 	template <class P1, class P2>
 	TObjPtrCommon<X>(P1 p1, P2 p2)
-		: TObjPtr<X>(p1,p2), fAccess(&TObjPtr<X>::copyonwrite)
+		: TObjPtr<X>(p1,p2), fAccess(&TObjPtrCommon<X>::copyonwrite)
 	{ }
 	template <class P1, class P2, class P3>
 	TObjPtrCommon<X>(P1 p1, P2 p2, P3 p3)
-		: TObjPtr<X>(p1,p2,p3), fAccess(&TObjPtr<X>::copyonwrite)
+		: TObjPtr<X>(p1,p2,p3), fAccess(&TObjPtrCommon<X>::copyonwrite)
 	{ }
 	template <class P1, class P2, class P3, class P4>
 	TObjPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4)
-		: TObjPtr<X>(p1,p2,p3,p4), fAccess(&TObjPtr<X>::copyonwrite)
+		: TObjPtr<X>(p1,p2,p3,p4), fAccess(&TObjPtrCommon<X>::copyonwrite)
 	{ }
 	template <class P1, class P2, class P3, class P4, class P5>
 	TObjPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
-		: TObjPtr<X>(p1,p2,p3,p4,p5), fAccess(&TObjPtr<X>::copyonwrite)
+		: TObjPtr<X>(p1,p2,p3,p4,p5), fAccess(&TObjPtrCommon<X>::copyonwrite)
 	{ }
 	template <class P1, class P2, class P3, class P4, class P5, class P6>
 	TObjPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
-		: TObjPtr<X>(p1,p2,p3,p4,p5,p6), fAccess(&TObjPtr<X>::copyonwrite)
+		: TObjPtr<X>(p1,p2,p3,p4,p5,p6), fAccess(&TObjPtrCommon<X>::copyonwrite)
 	{ }
 	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
 	TObjPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
-		: TObjPtr<X>(p1,p2,p3,p4,p5,p6,p7), fAccess(&TObjPtr<X>::copyonwrite)
+		: TObjPtr<X>(p1,p2,p3,p4,p5,p6,p7), fAccess(&TObjPtrCommon<X>::copyonwrite)
 	{ }
 
-	virtual bool isCopyonWrite() const	{ return (this->fAccess == &TObjPtr<X>::copyonwrite); }
-	virtual bool isAutoCreate() const	{ return (this->fAccess == &TObjPtr<X>::autocreate); }
-	virtual void setCopyonWrite() const	{ this->fAccess = &TObjPtr<X>::copyonwrite; }
-	virtual void setAutoCreate() const	{ this->fAccess = &TObjPtr<X>::autocreate; }
+	virtual bool isCopyonWrite() const	{ return (this->fAccess == &TObjPtrCommon<X>::copyonwrite); }
+	virtual bool isAutoCreate() const	{ return (this->fAccess == &TObjPtrCommon<X>::autocreate); }
+	virtual void setCopyonWrite() const	{ this->fAccess = &TObjPtrCommon<X>::copyonwrite; }
+	virtual void setAutoCreate() const	{ this->fAccess = &TObjPtrCommon<X>::autocreate; }
 
 	virtual const X& readaccess() const	{ return this->autocreate(); }
 	virtual X& writeaccess()			{ return (this->*fAccess)(); }

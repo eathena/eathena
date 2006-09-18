@@ -44,7 +44,7 @@
 /// Create a new static warp point from current position to given position
 /// addwarp mapname, x, y
 ///
-bool command_addwarp(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_addwarp(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()< 3 )
 	{
@@ -80,7 +80,7 @@ bool command_addwarp(int fd, struct map_session_data& sd, const char* command, c
 /// Used during beta testing to allow players to use GM commands
 /// for short periods of time
 ///
-bool command_adjcmdlvl(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_adjcmdlvl(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<2 )
 	{
@@ -119,11 +119,11 @@ bool command_adjcmdlvl(int fd, struct map_session_data& sd, const char* command,
 /// adjgmlvl
 /// Change GM level
 ///
-bool command_adjgmlvl(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_adjgmlvl(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int newlev      = param[0];
     const char *user= param[1];
-	struct map_session_data *psd;
+	map_session_data *psd;
 
     if( param.size()<2 )
 	{
@@ -156,12 +156,12 @@ bool command_adjgmlvl(int fd, struct map_session_data& sd, const char* command, 
 /// usage: "adopt <player1> <player2> <player3>"
 /// adopt a novice
 ///
-bool command_adopt(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_adopt(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
-	struct map_session_data *pl_sd1 = NULL;
-	struct map_session_data *pl_sd2 = NULL;
-	struct map_session_data *pl_sd3 = NULL;
+	map_session_data *pl_sd1 = NULL;
+	map_session_data *pl_sd2 = NULL;
+	map_session_data *pl_sd3 = NULL;
 	const char *player1 = param[0];
 	const char *player2 = param[1];
 	const char *player3 = param[2];
@@ -202,7 +202,7 @@ bool command_adopt(int fd, struct map_session_data& sd, const char* command, con
 ///
 ///
 ///
-bool command_agitend(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_agitend(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( !agit_flag )
 	{
@@ -222,7 +222,7 @@ bool command_agitend(int fd, struct map_session_data& sd, const char* command, c
 ///
 ///
 ///
-bool command_agitstart(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_agitstart(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( agit_flag )
 	{
@@ -242,7 +242,7 @@ bool command_agitstart(int fd, struct map_session_data& sd, const char* command,
 ///
 ///
 ///
-bool command_alive(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_alive(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( sd.is_dead() )
 	{
@@ -264,7 +264,7 @@ bool command_alive(int fd, struct map_session_data& sd, const char* command, con
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_allskill(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_allskill(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	pc_allskillup(sd); // all skills
 	sd.status.skill_point = 0; // 0 skill points
@@ -277,7 +277,7 @@ bool command_allskill(int fd, struct map_session_data& sd, const char* command, 
 ///
 /// Turns on/off AutoLoot
 ///
-bool command_autoloot(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_autoloot(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(sd.state.autoloot)
 	{
@@ -295,7 +295,7 @@ bool command_autoloot(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_baselevelup(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_baselevelup(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int level=0, i;
 	if( param.size()<1 || (level=param[0])==0 )
@@ -359,7 +359,7 @@ bool command_baselevelup(int fd, struct map_session_data& sd, const char* comman
 ///
 /// broadcast
 ///
-bool command_broadcast(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_broadcast(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 	if( param.size()<1 )
@@ -379,7 +379,7 @@ bool command_broadcast(int fd, struct map_session_data& sd, const char* command,
 ///
 /// localbroadcast
 ///
-bool command_localbroadcast(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_localbroadcast(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -399,7 +399,7 @@ bool command_localbroadcast(int fd, struct map_session_data& sd, const char* com
 ///
 ///  changelook
 ///
-bool command_changelook(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_changelook(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	static int pos[6] = { LOOK_HEAD_TOP,LOOK_HEAD_MID,LOOK_HEAD_BOTTOM,LOOK_WEAPON,LOOK_SHIELD,LOOK_SHOES };
 	int j = param[0];
@@ -431,7 +431,7 @@ bool command_changelook(int fd, struct map_session_data& sd, const char* command
 ///
 /// usage: "changesex [player_name]"
 ///
-bool command_changesex(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_changesex(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	const char* name = (param.size()<1) ? sd.status.name : (const char*)param[0];
 	if(strlen(name) < 4)
@@ -455,7 +455,7 @@ bool command_changesex(int fd, struct map_session_data& sd, const char* command,
 ///
 /// cartlist: Displays the items list of a cart.
 ///
-bool command_cartlist(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_cartlist(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 	char outputtmp[256];
@@ -514,7 +514,7 @@ bool command_cartlist(int fd, struct map_session_data& sd, const char* command, 
 ///
 /// itemlist : Displays the list of items.
 ///
-bool command_itemlist(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_itemlist(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[256], equipstr[128], outputtmp[256];
 	struct item_data *item_data, *item_temp;
@@ -611,7 +611,7 @@ bool command_itemlist(int fd, struct map_session_data& sd, const char* command, 
 ///
 /// storagelist : Displays the list of items in storage.
 ///
-bool command_storagelist(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_storagelist(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct pc_storage *stor;
 	
@@ -694,7 +694,7 @@ bool command_storagelist(int fd, struct map_session_data& sd, const char* comman
 /// <example> ban +1m-2mn1s-6y test_player
 ///           this example adds 1 month and 1 second, and substracts 2 minutes and 6 years at the same time.
 ///
-bool command_char_ban(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_char_ban(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<2)
 	{
@@ -771,7 +771,7 @@ bool command_char_ban(int fd, struct map_session_data& sd, const char* command, 
 /// charblock command (usage: "charblock <player_name>")
 /// This command do a definitiv ban on a player
 ///
-bool command_char_block(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_char_block(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -805,7 +805,7 @@ bool command_char_block(int fd, struct map_session_data& sd, const char* command
 /// removes given number of item from a character
 /// (item can be equiped or not).
 ///
-bool command_delitem(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_delitem(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 	int i, item_position, count;
@@ -859,7 +859,7 @@ bool command_delitem(int fd, struct map_session_data& sd, const char* command, c
 ///
 /// charunban command (usage: "charunban <player_name>")
 ///
-bool command_char_unban(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_char_unban(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<1)
 	{
@@ -888,7 +888,7 @@ bool command_char_unban(int fd, struct map_session_data& sd, const char* command
 ///
 /// charunblock command (usage: "charunblock <player_name>")
 ///
-bool command_char_unblock(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_char_unblock(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<1)
 	{
@@ -929,7 +929,7 @@ public:
 	}
 };
 
-bool command_cleanmap(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_cleanmap(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	block_list::foreachinarea( CAtCleanMap(),
 		sd.block_list::m, ((int)sd.block_list::x)-AREA_SIZE*2, ((int)sd.block_list::y)-AREA_SIZE*2, ((int)sd.block_list::x)+AREA_SIZE*2, ((int)sd.block_list::y)+AREA_SIZE*2, BL_ITEM);
@@ -941,7 +941,7 @@ bool command_cleanmap(int fd, struct map_session_data& sd, const char* command, 
 ///
 /// Clearing Weather Effects
 ///
-bool command_clearweather(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_clearweather(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -968,7 +968,7 @@ bool command_clearweather(int fd, struct map_session_data& sd, const char* comma
 ///
 /// Clouds appear.
 ///
-bool command_clouds(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_clouds(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -996,7 +996,7 @@ bool command_clouds(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_clouds2(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_clouds2(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -1025,7 +1025,7 @@ bool command_clouds2(int fd, struct map_session_data& sd, const char* command, c
 ///
 /// It is made to rain.
 ///
-bool command_rain(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_rain(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -1054,7 +1054,7 @@ bool command_rain(int fd, struct map_session_data& sd, const char* command, cons
 ///
 /// It is made to snow.
 ///
-bool command_snow(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_snow(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -1083,7 +1083,7 @@ bool command_snow(int fd, struct map_session_data& sd, const char* command, cons
 ///
 /// Cherry tree snowstorm is made to fall. (Sakura)
 ///
-bool command_sakura(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_sakura(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -1112,7 +1112,7 @@ bool command_sakura(int fd, struct map_session_data& sd, const char* command, co
 ///
 /// Fog hangs over.
 ///
-bool command_fog(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_fog(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -1141,7 +1141,7 @@ bool command_fog(int fd, struct map_session_data& sd, const char* command, const
 ///
 /// Fallen leaves fall.
 ///
-bool command_leaves(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_leaves(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -1170,7 +1170,7 @@ bool command_leaves(int fd, struct map_session_data& sd, const char* command, co
 ///
 /// Clouds appear.
 ///
-bool command_fireworks(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_fireworks(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
 	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
@@ -1198,7 +1198,7 @@ bool command_fireworks(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_night(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_night(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(!daynight_flag)
 	{
@@ -1215,7 +1215,7 @@ bool command_night(int fd, struct map_session_data& sd, const char* command, con
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_day(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_day(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(daynight_flag)
 	{
@@ -1233,22 +1233,22 @@ bool command_day(int fd, struct map_session_data& sd, const char* command, const
 ///
 ///  Mail System commands
 ///
-bool command_checkmail(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_checkmail(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	return chrif_mail_check(sd, true);
 }
 
-bool command_listmail(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_listmail(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	return chrif_mail_fetch(sd, true);
 }
 
-bool command_listnewmail(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_listnewmail(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	return chrif_mail_fetch(sd, false);
 }
 
-bool command_readmail(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_readmail(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int index;
 	if (param.size()<1) {
@@ -1263,7 +1263,7 @@ bool command_readmail(int fd, struct map_session_data& sd, const char* command, 
 	return chrif_mail_read(sd, index);
 }
 
-bool command_deletemail(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_deletemail(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int index;
 	if (param.size()<1) {
@@ -1278,7 +1278,7 @@ bool command_deletemail(int fd, struct map_session_data& sd, const char* command
 	return chrif_mail_delete(sd, index);
 }
 
-bool command_sendmail(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_sendmail(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<2)
 	{
@@ -1300,7 +1300,7 @@ bool command_sendmail(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_die(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_die(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	clif_specialeffect(sd,450,1);
 	pc_damage(sd, sd.status.hp + 1,NULL);
@@ -1313,7 +1313,7 @@ bool command_die(int fd, struct map_session_data& sd, const char* command, const
 ///
 /// usage: "disguise <mob_id>"
 ///
-bool command_disguise(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_disguise(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	unsigned short mob_id = 0;
 
@@ -1351,11 +1351,11 @@ bool command_disguise(int fd, struct map_session_data& sd, const char* command, 
 ///
 /// DisguiseAll
 ///
-bool command_disguiseall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_disguiseall(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	unsigned short mob_id=0;
 	size_t i=0;
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 
 
 	if (param.size()<1) {
@@ -1371,7 +1371,7 @@ bool command_disguiseall(int fd, struct map_session_data& sd, const char* comman
 	    (mob_id >= 813 && mob_id <= 834) || // NPC
 	    (mob_id > 1000 && mob_id < 1582)) { // monsters
 		for(i=0; i < fd_max; ++i) {
-			if(session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth)
+			if(session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth)
 			{
 				pl_sd->stop_walking(0);
 				clif_clearchar(*pl_sd, 0);
@@ -1390,7 +1390,7 @@ bool command_disguiseall(int fd, struct map_session_data& sd, const char* comman
 ///
 /// undisguise
 ///
-bool command_undisguise(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_undisguise(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(sd.disguise_id)
 	{
@@ -1413,13 +1413,13 @@ bool command_undisguise(int fd, struct map_session_data& sd, const char* command
 ///
 /// UndisguiseAll
 ///
-bool command_undisguiseall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_undisguiseall(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i;
 	for(i=0; i < fd_max; ++i)
 	{
-		if(session[i] && (pl_sd = (struct map_session_data *)session[i]->user_session) && pl_sd->state.auth && pl_sd->disguise_id)
+		if(session[i] && (pl_sd = (map_session_data *)session[i]->user_session) && pl_sd->state.auth && pl_sd->disguise_id)
 		{
 			pl_sd->stop_walking(0);
 			clif_clearchar(*pl_sd, 0);
@@ -1439,7 +1439,7 @@ bool command_undisguiseall(int fd, struct map_session_data& sd, const char* comm
 ///
 /// Hand a ring with partners name on it to this char
 ///
-void getring(struct map_session_data &sd)
+void getring(map_session_data &sd)
 {
 	int flag;
 	unsigned short item_id = (sd.status.sex==0) ? 2635 : 2634;
@@ -1463,7 +1463,7 @@ void getring(struct map_session_data &sd)
 /// marry
 /// Marry two players
 ///
-bool command_marry(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_marry(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<2)
 	{
@@ -1471,7 +1471,7 @@ bool command_marry(int fd, struct map_session_data& sd, const char* command, con
 		return false;
 	}
 
-	struct map_session_data *pl_sd1, *pl_sd2;
+	map_session_data *pl_sd1, *pl_sd2;
 	const char* player1=param[0];
 	const char* player2=param[1];
 
@@ -1504,7 +1504,7 @@ bool command_marry(int fd, struct map_session_data& sd, const char* command, con
 /// divorce
 /// divorce two players
 ///
-bool command_divorce(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_divorce(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<1)
 	{
@@ -1514,7 +1514,7 @@ bool command_divorce(int fd, struct map_session_data& sd, const char* command, c
 	
 	char output[128];
 	const char *player_name=param[0];
-	struct map_session_data *pl_sd = NULL;
+	map_session_data *pl_sd = NULL;
 
 	if( (pl_sd=CommandInfo::param2sd(player_name)) != NULL )
 	{
@@ -1539,15 +1539,15 @@ bool command_divorce(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_doom(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_doom(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i;
 
 	clif_specialeffect(sd,450,3);
 	for(i = 0; i < fd_max; ++i)
 	{
-		if(session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth && i != (size_t)fd &&
+		if(session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth && i != (size_t)fd &&
 		    sd.isGM() >= pl_sd->isGM())
 		{
 			pc_damage(*pl_sd, pl_sd->status.hp + 1,NULL);
@@ -1562,15 +1562,15 @@ bool command_doom(int fd, struct map_session_data& sd, const char* command, cons
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_doommap(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_doommap(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i;
 
 	clif_specialeffect(sd,450,2);
 	for (i = 0; i < fd_max; ++i)
 	{
-		if(session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth && i != (size_t)fd && 
+		if(session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth && i != (size_t)fd && 
 			sd.block_list::m == pl_sd->block_list::m &&
 		    sd.isGM() >= pl_sd->isGM())
 		{
@@ -1588,7 +1588,7 @@ bool command_doommap(int fd, struct map_session_data& sd, const char* command, c
 /// dropall
 /// Drop all your possession on the ground
 ///
-bool command_dropall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_dropall(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	size_t i;
 	for (i = 0; i < MAX_INVENTORY; ++i)
@@ -1612,7 +1612,7 @@ bool command_dropall(int fd, struct map_session_data& sd, const char* command, c
 ///
 /// dye && ccolor
 ///
-bool command_dye(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_dye(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	unsigned int cloth_color = param[0];
 
@@ -1639,7 +1639,7 @@ bool command_dye(int fd, struct map_session_data& sd, const char* command, const
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_model(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_model(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 	unsigned int hair_style = param[0];
@@ -1674,7 +1674,7 @@ bool command_model(int fd, struct map_session_data& sd, const char* command, con
 ///
 /// hairstyle && hstyle
 ///
-bool command_hair_style(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_hair_style(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	unsigned int hair_style = param[0];
 
@@ -1707,7 +1707,7 @@ bool command_hair_style(int fd, struct map_session_data& sd, const char* command
 ///////////////////////////////////////////////////////////////////////////////
 ///
 /// haircolor && hcolor
-bool command_hair_color(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_hair_color(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	unsigned int hair_color = param[0];
 	if( param.size() < 1 )
@@ -1740,9 +1740,9 @@ bool command_hair_color(int fd, struct map_session_data& sd, const char* command
 ///
 /// effect
 ///
-bool command_effect(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_effect(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *psd=&sd;
+	map_session_data *psd=&sd;
 	bool all=false;
 	int type = param[0];
 
@@ -1773,7 +1773,7 @@ bool command_effect(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_misceffect(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_misceffect(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 		return false;
@@ -1785,7 +1785,7 @@ bool command_misceffect(int fd, struct map_session_data& sd, const char* command
 ///
 /// usage: "email <actual email> <new email>"
 ///
-bool command_email(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_email(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()< 2)
 	{
@@ -1828,7 +1828,7 @@ bool command_email(int fd, struct map_session_data& sd, const char* command, con
 /// => sets fake name.
 /// usage 
 ///
-bool command_fakename(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_fakename(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	const char* msg;
 	if( param.size()<1 )
@@ -1868,9 +1868,9 @@ bool command_fakename(int fd, struct map_session_data& sd, const char* command, 
 /// follow
 /// Follow a player .. staying no more then 5 spaces away
 ///
-bool command_follow(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_follow(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd = NULL;
+	map_session_data *pl_sd = NULL;
 	if (param.size()<1)
 		return false;
 	pl_sd = CommandInfo::param2sd(param[0]);
@@ -1888,7 +1888,7 @@ bool command_follow(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_gat(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_gat(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int y;
 	char output[128];
@@ -1912,7 +1912,7 @@ bool command_gat(int fd, struct map_session_data& sd, const char* command, const
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_gm(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_gm(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -1934,7 +1934,7 @@ bool command_gm(int fd, struct map_session_data& sd, const char* command, const 
 ///
 /// gmotd (Global MOTD)
 ///
-bool command_gmotd(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_gmotd(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char buf[256];
 	size_t sl;
@@ -1957,7 +1957,7 @@ bool command_gmotd(int fd, struct map_session_data& sd, const char* command, con
 ///
 /// usage: "go [city_number/city_name]"
 ///
-bool command_go(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_go(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int town;
 	char output[128];
@@ -2134,9 +2134,9 @@ bool command_go(int fd, struct map_session_data& sd, const char* command, const 
 ///
 /// grind
 ///
-bool command_grind(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_grind(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd = NULL;
+	map_session_data *pl_sd = NULL;
 	int skillnum;
 	int inf;
 	const char *target = param[0];
@@ -2165,7 +2165,7 @@ bool command_grind(int fd, struct map_session_data& sd, const char* command, con
 ///
 /// grind2
 ///
-bool command_grind2(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_grind2(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int i, x, y, id;
 	for(i=1000; i<2000; ++i)
@@ -2180,7 +2180,7 @@ bool command_grind2(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_guild(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_guild(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -2198,7 +2198,7 @@ bool command_guild(int fd, struct map_session_data& sd, const char* command, con
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_guildlevelup(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_guildlevelup(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int level = 0;
 	short added_level;
@@ -2240,9 +2240,9 @@ bool command_guildlevelup(int fd, struct map_session_data& sd, const char* comma
 ///
 /// Recall online characters of a guild to your location
 ///
-bool command_guildrecall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_guildrecall(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i, count;
 	const char *guild_name=param[0];
 	char output[128];
@@ -2264,7 +2264,7 @@ bool command_guildrecall(int fd, struct map_session_data& sd, const char* comman
 	{
 		count = 0;
 		for (i = 0; i < fd_max; ++i) {
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
+			if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 			    sd.status.account_id != pl_sd->status.account_id &&
 			    pl_sd->status.guild_id == g->guild_id) {
 				if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
@@ -2290,7 +2290,7 @@ bool command_guildrecall(int fd, struct map_session_data& sd, const char* comman
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_guildstorage(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_guildstorage(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct pc_storage *stor;
 	if (sd.status.guild_id > 0)
@@ -2314,7 +2314,7 @@ bool command_guildstorage(int fd, struct map_session_data& sd, const char* comma
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_guildspy(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_guildspy(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1) {
 		clif_displaymessage(fd, "Please, enter a guild name/id (usage: guildspy <guild_name/id>).");
@@ -2347,7 +2347,7 @@ bool command_guildspy(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_partyspy(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_partyspy(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -2381,7 +2381,7 @@ bool command_partyspy(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_gvgoff(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_gvgoff(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 
 	if (maps[sd.block_list::m].flag.gvg) {
@@ -2399,7 +2399,7 @@ bool command_gvgoff(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_gvgon(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_gvgon(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 
 	if (!maps[sd.block_list::m].flag.gvg) {
@@ -2418,7 +2418,7 @@ bool command_gvgon(int fd, struct map_session_data& sd, const char* command, con
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_help(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_help(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	FILE* fp;
 	if((fp = basics::safefopen(help_txt, "r")) != NULL)
@@ -2450,7 +2450,7 @@ bool command_help(int fd, struct map_session_data& sd, const char* command, cons
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_hide(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_hide(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (sd.status.option & OPTION_HIDE)
 	{
@@ -2469,7 +2469,7 @@ bool command_hide(int fd, struct map_session_data& sd, const char* command, cons
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_hidenpc(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_hidenpc(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -2477,23 +2477,15 @@ bool command_hidenpc(int fd, struct map_session_data& sd, const char* command, c
 		return false;
 	}
 	const char *NPCname=param[0];
-	if (npc_name2id(NPCname) != NULL)
-	{
-		npc_enable(NPCname, 0);
-		clif_displaymessage(fd, msg_txt(MSG_NPC_DISABLED)); // Npc Disabled.
-	} 
-	else 
-	{
-		clif_displaymessage(fd, msg_txt(MSG_THIS_NPC_DOESNT_EXIST)); // This NPC doesn't exist.
-		return false;
-	}
-	return true;
+	bool ok = npc_enable(NPCname, 0);
+	clif_displaymessage(fd, msg_txt(ok?MSG_NPC_DISABLED:MSG_THIS_NPC_DOESNT_EXIST));
+	return ok;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_shownpc(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_shownpc(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -2501,22 +2493,15 @@ bool command_shownpc(int fd, struct map_session_data& sd, const char* command, c
 		return false;
 	}
 	const char *NPCname=param[0];
-
-	if (npc_name2id(NPCname) != NULL) {
-		npc_enable(NPCname, 1);
-		clif_displaymessage(fd, msg_txt(MSG_NPC_ENABLED)); // Npc Enabled.
-	} else {
-		clif_displaymessage(fd, msg_txt(MSG_THIS_NPC_DOESNT_EXIST)); // This NPC doesn't exist.
-		return false;
-	}
-
-	return true;
+	bool ok = npc_enable(NPCname, 1);
+	clif_displaymessage(fd, msg_txt(ok?MSG_NPC_ENABLED:MSG_THIS_NPC_DOESNT_EXIST));
+	return ok;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_loadnpc(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_loadnpc(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	FILE *fp;
 
@@ -2544,7 +2529,7 @@ bool command_loadnpc(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_unloadnpc(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_unloadnpc(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -2552,9 +2537,7 @@ bool command_unloadnpc(int fd, struct map_session_data& sd, const char* command,
 		return false;
 	}
 	
-	const char *NPCname = param[0];
-	struct npc_data *nd = npc_name2id(NPCname);
-
+	npc_data *nd = npc_data::from_name(param[0]);
 	if( nd != NULL )
 	{
 		npc_remove_map(nd);
@@ -2565,7 +2548,6 @@ bool command_unloadnpc(int fd, struct map_session_data& sd, const char* command,
 		clif_displaymessage(fd, msg_txt(MSG_THIS_NPC_DOESNT_EXIST)); // This NPC doesn't exist.
 		return false;
 	}
-
 	return true;
 }
 
@@ -2574,13 +2556,13 @@ bool command_unloadnpc(int fd, struct map_session_data& sd, const char* command,
 ///
 /// cause random emote on all online players
 ///
-bool command_happyhappyjoyjoy(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_happyhappyjoyjoy(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i,e;
 	for(i=0; i<fd_max; ++i)
 	{
-		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth)
+		if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth)
 		{
 			e=rand()%40;
 			if(e==34)
@@ -2594,7 +2576,7 @@ bool command_happyhappyjoyjoy(int fd, struct map_session_data& sd, const char* c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_hatch(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_hatch(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (sd.status.pet_id <= 0)
 		clif_sendegg(sd);
@@ -2610,7 +2592,7 @@ bool command_hatch(int fd, struct map_session_data& sd, const char* command, con
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_heal(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_heal(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	long hp = param[0], sp = param[1];
 	if (hp == 0 && sp == 0)
@@ -2657,7 +2639,7 @@ bool command_heal(int fd, struct map_session_data& sd, const char* command, cons
 ///
 /// identify
 ///
-bool command_identify(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_identify(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int i,num;
 	for(i=num=0; i<MAX_INVENTORY; ++i)
@@ -2682,7 +2664,7 @@ bool command_identify(int fd, struct map_session_data& sd, const char* command, 
 ///
 /// usage: "idsearch <part_of_name>"
 ///
-bool command_idsearch(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_idsearch(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -2715,7 +2697,7 @@ bool command_idsearch(int fd, struct map_session_data& sd, const char* command, 
 ///
 /// item command (usage: "item <name/id_of_item> <quantity>")
 ///
-static void  command_item_sub(struct map_session_data& sd, item& item_tmp, int pet_id, size_t number, size_t inc)
+static void  command_item_sub(map_session_data& sd, item& item_tmp, int pet_id, size_t number, size_t inc)
 {
 	size_t i;
 	for(i=0; i<number; i+=inc)
@@ -2737,7 +2719,7 @@ static void  command_item_sub(struct map_session_data& sd, item& item_tmp, int p
 	}
 }
 
-bool command_item(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_item(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1)
 	{
@@ -2825,7 +2807,7 @@ bool command_item(int fd, struct map_session_data& sd, const char* command, cons
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_itemcheck(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_itemcheck(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	pc_checkitem(sd);
 	return true;
@@ -2836,7 +2818,7 @@ bool command_itemcheck(int fd, struct map_session_data& sd, const char* command,
 ///
 /// Show Items DB Info
 ///
-bool command_iteminfo(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_iteminfo(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char *itype[12] = {"Potion/Food", "BUG!", "Usable", "Etc", "Weapon", "Protection", "Card", "Egg", "Pet Acessory", "BUG!", "Arrow", "Lure/Scroll"};
 	char output[128];
@@ -2878,7 +2860,7 @@ bool command_iteminfo(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_itemreset(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_itemreset(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	size_t i;
 	for(i = 0; i < MAX_INVENTORY; ++i)
@@ -2896,7 +2878,7 @@ bool command_itemreset(int fd, struct map_session_data& sd, const char* command,
 /// jail char_name
 /// Special warp! No check with nowarp and nowarpto flag
 ///
-bool command_jail(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_jail(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<1)
 	{
@@ -2905,7 +2887,7 @@ bool command_jail(int fd, struct map_session_data& sd, const char* command, cons
 	}
 
 	const char *player_name = param[0];
-	struct map_session_data *pl_sd = CommandInfo::param2sd(player_name);
+	map_session_data *pl_sd = CommandInfo::param2sd(player_name);
 	int x, y;
 
 	if(pl_sd != NULL)
@@ -2954,7 +2936,7 @@ bool command_jail(int fd, struct map_session_data& sd, const char* command, cons
 /// unjail/discharge char_name
 /// Special warp! No check with nowarp and nowarpto flag
 ///
-bool command_unjail(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_unjail(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<1)
 	{
@@ -2962,7 +2944,7 @@ bool command_unjail(int fd, struct map_session_data& sd, const char* command, co
 		return false;
 	}
 	const char *player_name = param[0];
-	struct map_session_data *pl_sd = CommandInfo::param2sd(player_name);
+	map_session_data *pl_sd = CommandInfo::param2sd(player_name);
 
 	if( pl_sd != NULL )
 	{
@@ -3003,7 +2985,7 @@ bool command_unjail(int fd, struct map_session_data& sd, const char* command, co
 ///
 ///
 ///
-bool command_jobchange(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_jobchange(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int job = param[0];
 	if(job == 0)
@@ -3022,7 +3004,7 @@ bool command_jobchange(int fd, struct map_session_data& sd, const char* command,
 		// fix pecopeco display
 		if ((job != 13 && job != 21 && job != 4014 && job != 4022 && job != 4030 && job != 4036 && job != 4037 && job != 4044 ))
 		{
-			if (pc_isriding(sd))
+			if( sd.is_riding() )
 			{
 				if (sd.status.class_ == 13)
 					sd.status.class_ = sd.view_class = 7;
@@ -3043,7 +3025,7 @@ bool command_jobchange(int fd, struct map_session_data& sd, const char* command,
 		}
 		else
 		{
-			if (!pc_isriding(sd))
+			if (!sd.is_riding())
 			{
 				if (job == 13)
 					job = 7;
@@ -3078,7 +3060,7 @@ bool command_jobchange(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_joblevelup(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_joblevelup(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct pc_base_job s_class = pc_calc_base_job(sd.status.class_);
 	int up_level = 50;
@@ -3146,7 +3128,7 @@ bool command_joblevelup(int fd, struct map_session_data& sd, const char* command
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_jump(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_jump(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 	int x = param[1], y = param[2];
@@ -3180,7 +3162,7 @@ bool command_jump(int fd, struct map_session_data& sd, const char* command, cons
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_jumpto(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_jumpto(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 
@@ -3190,7 +3172,7 @@ bool command_jumpto(int fd, struct map_session_data& sd, const char* command, co
 		return false;
 	}
 
-	struct map_session_data *pl_sd = CommandInfo::param2sd(param[0]);
+	map_session_data *pl_sd = CommandInfo::param2sd(param[0]);
 
 	if( pl_sd != NULL )
 	{
@@ -3221,7 +3203,7 @@ bool command_jumpto(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_kami(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_kami(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -3235,7 +3217,7 @@ bool command_kami(int fd, struct map_session_data& sd, const char* command, cons
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_kick(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_kick(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -3243,7 +3225,7 @@ bool command_kick(int fd, struct map_session_data& sd, const char* command, cons
 		return false;
 	}
 
-	struct map_session_data *pl_sd = CommandInfo::param2sd(param[0]);
+	map_session_data *pl_sd = CommandInfo::param2sd(param[0]);
 
 	if( pl_sd != NULL )
 	{
@@ -3274,14 +3256,14 @@ bool command_kick(int fd, struct map_session_data& sd, const char* command, cons
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_kickall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_kickall(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i;
 
 
 	for (i = 0; i < fd_max; ++i) {
-		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
+		if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 		    sd.isGM() >= pl_sd->isGM()) { // you can kick only lower or same gm level
 			if (sd.status.account_id != pl_sd->status.account_id)
 				clif_GM_kick(sd, *pl_sd, 0);
@@ -3296,7 +3278,7 @@ bool command_kickall(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_kill(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_kill(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -3304,7 +3286,7 @@ bool command_kill(int fd, struct map_session_data& sd, const char* command, cons
 		return false;
 	}
 
-	struct map_session_data *pl_sd = CommandInfo::param2sd(param[0]);
+	map_session_data *pl_sd = CommandInfo::param2sd(param[0]);
 
 	if( pl_sd != NULL )
 	{
@@ -3336,7 +3318,7 @@ bool command_kill(int fd, struct map_session_data& sd, const char* command, cons
 /// killable
 /// enable other people killing you even when not in pvp
 ///
-bool command_killable(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_killable(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	sd.state.killable = ( param.size() )?(bool)param[0] : !sd.state.killable;
 	clif_displaymessage(fd, (sd.state.killable)?"now killable":"no longer killable");
@@ -3348,7 +3330,7 @@ bool command_killable(int fd, struct map_session_data& sd, const char* command, 
 /// killer
 /// enable killing players even when not in pvp
 ///
-bool command_killer(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_killer(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	sd.state.killer = ( param.size() )?(bool)param[0] : !sd.state.killer;
 	clif_displaymessage(fd, msg_txt((sd.state.killer)?MSG_YOU_BE_A_KILLA:MSG_YOU_GONNA_BE_OWN3D));
@@ -3358,7 +3340,7 @@ bool command_killer(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_killmonster(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_killmonster(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	class CAtKillMonster : public CMapProcessor
 	{
@@ -3395,7 +3377,7 @@ bool command_killmonster(int fd, struct map_session_data& sd, const char* comman
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_load(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_load(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int m = map_mapname2mapid(sd.status.save_point.mapname);
 	if (m >= 0 && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
@@ -3417,7 +3399,7 @@ bool command_load(int fd, struct map_session_data& sd, const char* command, cons
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_lostskill(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_lostskill(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	short skill_id=0;
 	if (param.size()<1 || (skill_id = param[0]) < 0)
@@ -3460,7 +3442,7 @@ bool command_lostskill(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_makeegg(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_makeegg(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct item_data *item_data;
 	int id, pet_id;
@@ -3498,13 +3480,13 @@ bool command_makeegg(int fd, struct map_session_data& sd, const char* command, c
 ///
 /// mapexit?A?}?b?v?T?[?o?[?d?I?1?3?1?e
 
-bool command_mapexit(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_mapexit(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i;
 	for (i = 0; i < fd_max; ++i)
 	{
-		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth)
+		if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth)
 		{
 			if (sd.status.account_id != pl_sd->status.account_id)
 				clif_GM_kick(sd, *pl_sd, 0);
@@ -3522,7 +3504,7 @@ bool command_mapexit(int fd, struct map_session_data& sd, const char* command, c
 /// => Shows information about the map flags [map name]
 /// Also set flags
 ///
-bool command_mapflag(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_mapflag(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{	// show flags of current map
@@ -3560,10 +3542,10 @@ bool command_mapflag(int fd, struct map_session_data& sd, const char* command, c
 /// 2 = Shows NPCs in that map
 /// 3 = Shows the shops/chats in that map (not implemented)
 ///
-bool command_mapinfo(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_mapinfo(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd;
-	struct npc_data *nd = NULL;
+	map_session_data *pl_sd;
+	npc_data *nd = NULL;
 	chat_data *cd = NULL;
 	char direction[12]="";
 	char mapname[128]="";
@@ -3619,7 +3601,7 @@ bool command_mapinfo(int fd, struct map_session_data& sd, const char* command, c
 	chat_num = 0;
 	for (i = 0; i < fd_max; ++i)
 	{
-		if( session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
+		if( session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 			pl_sd->chat )
 		{
 			++chat_num;
@@ -3730,7 +3712,7 @@ bool command_mapinfo(int fd, struct map_session_data& sd, const char* command, c
 	case 1:
 		clif_displaymessage(fd, "----- Players in Map -----");
 		for (i = 0; i < fd_max; ++i) {
-			if(session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth && strcmp(pl_sd->mapname, mapname) == 0) {
+			if(session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth && strcmp(pl_sd->mapname, mapname) == 0) {
 				snprintf(output, sizeof(output), "Player '%s' (session #%ld) | Location: %d,%d",
 				        pl_sd->status.name, (unsigned long)(i), pl_sd->block_list::x, pl_sd->block_list::y);
 				clif_displaymessage(fd, output);
@@ -3739,18 +3721,19 @@ bool command_mapinfo(int fd, struct map_session_data& sd, const char* command, c
 		break;
 	case 2:
 		clif_displaymessage(fd, "----- NPCs in Map -----");
-		for (i = 0; i < maps[m_id].npc_num;) {
+		for (i = 0; i < maps[m_id].npc_num;)
+		{
 			nd = maps[m_id].npc[i];
-			switch(nd->dir) {
-			case 0:  strcpy(direction, "North"); break;
-			case 1:  strcpy(direction, "North West"); break;
-			case 2:  strcpy(direction, "West"); break;
-			case 3:  strcpy(direction, "South West"); break;
-			case 4:  strcpy(direction, "South"); break;
-			case 5:  strcpy(direction, "South East"); break;
-			case 6:  strcpy(direction, "East"); break;
-			case 7:  strcpy(direction, "North East"); break;
-			case 9:  strcpy(direction, "North"); break;
+			switch(nd->get_dir())
+			{
+			case DIR_N:  strcpy(direction, "North"); break;
+			case DIR_NW: strcpy(direction, "North West"); break;
+			case DIR_W:  strcpy(direction, "West"); break;
+			case DIR_SW: strcpy(direction, "South West"); break;
+			case DIR_S:  strcpy(direction, "South"); break;
+			case DIR_SE: strcpy(direction, "South East"); break;
+			case DIR_E:  strcpy(direction, "East"); break;
+			case DIR_NE: strcpy(direction, "North East"); break;
 			default: strcpy(direction, "Unknown"); break;
 			}
 			snprintf(output, sizeof(output), "NPC %ld: %s | Direction: %s | Sprite: %d | Location: %d %d",
@@ -3762,7 +3745,7 @@ bool command_mapinfo(int fd, struct map_session_data& sd, const char* command, c
 		clif_displaymessage(fd, "----- Chats in Map -----");
 		for (i = 0; i < fd_max; ++i)
 		{
-			if( session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
+			if( session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 				(cd=pl_sd->chat) &&
 			    strcmp(pl_sd->mapname, mapname) == 0 &&
 			    cd->usersd[0] == pl_sd)
@@ -3790,7 +3773,7 @@ bool command_mapinfo(int fd, struct map_session_data& sd, const char* command, c
 ///
 /// parameters: mapname, x, y
 ///
-bool command_mapmove(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_mapmove(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	const char *mapname=param[0];
 	int x = param[1], y = param[2];
@@ -3841,7 +3824,7 @@ bool command_mapmove(int fd, struct map_session_data& sd, const char* command, c
 /// => Displays the OUTPUT string on top of
 ///    the Visible players Heads.
 ///
-bool command_me(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_me(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -3857,7 +3840,7 @@ bool command_me(int fd, struct map_session_data& sd, const char* command, const 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_memo(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_memo(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 	size_t i;
@@ -3911,7 +3894,7 @@ bool command_memo(int fd, struct map_session_data& sd, const char* command, cons
 ///
 ///  Show Monster DB Info
 ///
-bool command_mobinfo(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_mobinfo(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	unsigned char msize[3][7] = {"Small", "Medium", "Large"};
 	unsigned char mrace[12][11] = {"Formless", "Undead", "Beast", "Plant", "Insect", "Fish", "Demon", "Demi-Human", "Angel", "Dragon", "Boss", "Non-Boss"};
@@ -4033,7 +4016,7 @@ public:
 	}
 };
 
-bool command_mobsearch(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_mobsearch(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 	const char *mob_name=param[0];
@@ -4066,7 +4049,7 @@ bool command_mobsearch(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_monster(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_monster(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<2 )
 	{
@@ -4151,7 +4134,7 @@ bool command_monster(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_spawn(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_spawn(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -4239,7 +4222,7 @@ bool command_spawn(int fd, struct map_session_data& sd, const char* command, con
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///  big monster spawning
-bool command_monsterbig(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_monsterbig(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -4308,7 +4291,7 @@ bool command_monsterbig(int fd, struct map_session_data& sd, const char* command
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///  small monster spawning
-bool command_monstersmall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_monstersmall(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -4378,7 +4361,7 @@ bool command_monstersmall(int fd, struct map_session_data& sd, const char* comma
 /// monsterignore
 /// => Makes monsters ignore you.
 ///
-bool command_monsterignore(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_monsterignore(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	sd.state.monster_ignore = 
 		(param.size())? (bool)param[0] : !sd.state.monster_ignore;
@@ -4392,9 +4375,9 @@ bool command_monsterignore(int fd, struct map_session_data& sd, const char* comm
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_mount_peco(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_mount_peco(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	if (!pc_isriding(sd)) { // if actually no peco
+	if (!sd.is_riding()) { // if actually no peco
 		if (sd.status.class_ == 7 || sd.status.class_ == 14 || sd.status.class_ == 4008 || sd.status.class_ == 4015 || sd.status.class_ == 4030 || sd.status.class_ == 4036 || sd.status.class_ == 4037 || sd.status.class_ == 4044) {
 			if (sd.status.class_ == 7)
 				sd.status.class_ = sd.view_class = 13;
@@ -4440,7 +4423,7 @@ bool command_mount_peco(int fd, struct map_session_data& sd, const char* command
 ///
 /// mute - Mutes a player for a set amount of time
 ///
-bool command_mute(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_mute(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(!config.muting_players)
 	{
@@ -4474,7 +4457,7 @@ public:
 	~CAtMuteArea()	{}
 	virtual int process(block_list& bl) const
 	{
-		struct map_session_data *sd = bl.get_sd();
+		map_session_data *sd = bl.get_sd();
 		if(sd)
 		{
 			if( id != bl.id && !sd->isGM() )
@@ -4488,7 +4471,7 @@ public:
 		return 1;
 	}
 };
-bool command_mutearea(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_mutearea(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(!config.muting_players)
 	{
@@ -4508,7 +4491,7 @@ bool command_mutearea(int fd, struct map_session_data& sd, const char* command, 
 /// npcmove
 /// move a npc
 ///
-bool command_npcmove(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_npcmove(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<3)
 	{
@@ -4518,8 +4501,8 @@ bool command_npcmove(int fd, struct map_session_data& sd, const char* command, c
 
 	int x = param[0];
 	int y = param[1];
-	const char *name=param[2];
-	struct npc_data *nd = npc_name2id(name);
+	const char* name = param[2];
+	npc_data *nd = npc_data::from_name(name);
 
 	if(!nd)
 	{
@@ -4539,14 +4522,14 @@ bool command_npcmove(int fd, struct map_session_data& sd, const char* command, c
 ///
 /// NPC/PET
 ///
-bool command_npctalk(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_npctalk(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<2 )
 		return false;
 
 	const char *name = param[0];
 	const char *mes  = param[1];
-	struct npc_data *nd = npc_name2id(name);
+	npc_data *nd = npc_data::from_name(name);
 	
 	if( !nd )
 		return false;
@@ -4561,7 +4544,7 @@ bool command_npctalk(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_pettalk(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_pettalk(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(!sd.status.pet_id || !sd.pd)
 		return false;
@@ -4577,7 +4560,7 @@ bool command_pettalk(int fd, struct map_session_data& sd, const char* command, c
 ///
 /// Removed nuke for now in favor of alchemist marine sphere skill
 ///
-bool command_nuke(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_nuke(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<1)
 	{
@@ -4585,7 +4568,7 @@ bool command_nuke(int fd, struct map_session_data& sd, const char* command, cons
 		return false;
 	}
 	const char *player_name=param[0];
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 
 	if((pl_sd = CommandInfo::param2sd(player_name)) != NULL)
 	{
@@ -4611,7 +4594,7 @@ bool command_nuke(int fd, struct map_session_data& sd, const char* command, cons
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_option(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_option(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -4636,7 +4619,7 @@ bool command_option(int fd, struct map_session_data& sd, const char* command, co
 	// fix pecopeco display
 	if (sd.status.class_ == 13 || sd.status.class_ == 21 || sd.status.class_ == 4014 || sd.status.class_ == 4022 || sd.status.class_ == 4030 || sd.status.class_ == 4036 || sd.status.class_ == 4037 || sd.status.class_ == 4044)
 	{
-		if (!pc_isriding(sd))
+		if (!sd.is_riding())
 		{	// sd have the new value...
 			if (sd.status.class_ == 13)
 				sd.status.class_ = sd.view_class = 7;
@@ -4654,7 +4637,7 @@ bool command_option(int fd, struct map_session_data& sd, const char* command, co
 	}
 	else
 	{
-		if (pc_isriding(sd))
+		if (sd.is_riding())
 		{	// sd have the new value...
 			if (sd.status.class_ == 7)
 				sd.status.class_ = sd.view_class = 13;
@@ -4681,7 +4664,7 @@ bool command_option(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_packet(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_packet(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	static int packet_mode = 0;
 	if (strstr(command, "packetmode"))
@@ -4725,7 +4708,7 @@ bool command_packet(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_party(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_party(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -4740,10 +4723,10 @@ bool command_party(int fd, struct map_session_data& sd, const char* command, con
 ///
 /// Recall online characters of a party to your location
 ///
-bool command_partyrecall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_partyrecall(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	size_t i, count;
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	const char *party_name=param[0];
 	char output[128];
 	struct party *p;
@@ -4765,7 +4748,7 @@ bool command_partyrecall(int fd, struct map_session_data& sd, const char* comman
 	{
 		count = 0;
 		for (i = 0; i < fd_max; ++i) {
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
+			if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 			    sd.status.account_id != pl_sd->status.account_id &&
 			    pl_sd->status.party_id == p->party_id) {
 				if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
@@ -4793,7 +4776,7 @@ bool command_partyrecall(int fd, struct map_session_data& sd, const char* comman
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_petfriendly(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_petfriendly(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int friendly=0;
 	int t;
@@ -4847,7 +4830,7 @@ bool command_petfriendly(int fd, struct map_session_data& sd, const char* comman
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_pethungry(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_pethungry(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	unsigned hungry=0;
 	if( param.size()<1 || (hungry=param[0]) > 100 )
@@ -4882,7 +4865,7 @@ bool command_pethungry(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_petrename(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_petrename(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (sd.status.pet_id > 0 && sd.pd)
 	{
@@ -4911,7 +4894,7 @@ bool command_petrename(int fd, struct map_session_data& sd, const char* command,
 /// "petid <part of pet name>"
 /// => Displays a list of matching pets.
 ///
-bool command_petid(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_petid(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 		return false;
@@ -4952,7 +4935,7 @@ bool command_petid(int fd, struct map_session_data& sd, const char* command, con
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_produce(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_produce(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<1)
 	{
@@ -5012,9 +4995,9 @@ bool command_produce(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_pvpoff(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_pvpoff(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i;
 
 
@@ -5027,7 +5010,7 @@ bool command_pvpoff(int fd, struct map_session_data& sd, const char* command, co
 		maps[sd.block_list::m].flag.pvp = 0;
 		clif_send0199(sd.block_list::m, 0);
 		for (i = 0; i < fd_max; ++i) {	//?l??h?a???[?v
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
+			if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
 				if (sd.block_list::m == pl_sd->block_list::m) {
 					clif_pvpset(*pl_sd, 0, 0, 2);
 					if (pl_sd->pvp_timer != -1) {
@@ -5049,9 +5032,9 @@ bool command_pvpoff(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_pvpon(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_pvpon(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i;
 
 
@@ -5065,7 +5048,7 @@ bool command_pvpon(int fd, struct map_session_data& sd, const char* command, con
 		clif_send0199(sd.block_list::m, 1);
 		for (i = 0; i < fd_max; ++i)
 		{
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth)
+			if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth)
 			{
 				if (sd.block_list::m == pl_sd->block_list::m && pl_sd->pvp_timer == -1)
 				{
@@ -5090,7 +5073,7 @@ bool command_pvpon(int fd, struct map_session_data& sd, const char* command, con
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_questskill(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_questskill(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	short skill_id=0;
 	if (param.size()<1 || (skill_id = param[0]) < 0)
@@ -5131,7 +5114,7 @@ bool command_questskill(int fd, struct map_session_data& sd, const char* command
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-void command_raise_sub(struct map_session_data& sd)
+void command_raise_sub(map_session_data& sd)
 {
 	if( sd.state.auth && sd.is_dead() )
 	{
@@ -5147,13 +5130,13 @@ void command_raise_sub(struct map_session_data& sd)
 		clif_displaymessage(sd.fd, msg_txt(MSG_MERCY_HAS_BEEN_SHOWN)); // Mercy has been shown.
 	}
 }
-bool command_raise(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_raise(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i;
 	for (i = 0; i < fd_max; ++i)
 	{
-		if(session[i] && (pl_sd=(struct map_session_data *)session[i]->user_session) && pl_sd->state.auth && sd.block_list::m == pl_sd->block_list::m)
+		if(session[i] && (pl_sd=(map_session_data *)session[i]->user_session) && pl_sd->state.auth && sd.block_list::m == pl_sd->block_list::m)
 			command_raise_sub(*pl_sd);
 	}
 	clif_displaymessage(fd, msg_txt(MSG_MERCY_HAS_BEEN_GRANTED)); // Mercy has been granted.
@@ -5164,7 +5147,7 @@ bool command_raise(int fd, struct map_session_data& sd, const char* command, con
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_rates(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_rates(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char buf[256];
 	snprintf(buf, sizeof(buf), "Experience rates: Base %lf.1x / Job %lf.1x",
@@ -5177,7 +5160,7 @@ bool command_rates(int fd, struct map_session_data& sd, const char* command, con
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_recall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_recall(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 
@@ -5187,7 +5170,7 @@ bool command_recall(int fd, struct map_session_data& sd, const char* command, co
 		return false;
 	}
 
-	struct map_session_data *pl_sd = CommandInfo::param2sd(param[0]);
+	map_session_data *pl_sd = CommandInfo::param2sd(param[0]);
 	
 	if( pl_sd != NULL )
 	{
@@ -5228,9 +5211,9 @@ bool command_recall(int fd, struct map_session_data& sd, const char* command, co
 ///
 /// Recall All Characters Online To Your Location
 
-bool command_recallall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_recallall(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	char output[128];
 	size_t i, count;
 
@@ -5242,7 +5225,7 @@ bool command_recallall(int fd, struct map_session_data& sd, const char* command,
 	count = 0;
 	for (i = 0; i < fd_max; ++i)
 	{
-		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth && sd.status.account_id != pl_sd->status.account_id &&
+		if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth && sd.status.account_id != pl_sd->status.account_id &&
 			sd.isGM() >= pl_sd->isGM() )
 		{
 			if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
@@ -5263,7 +5246,7 @@ bool command_recallall(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_refine(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_refine(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<2 )
 	{
@@ -5325,7 +5308,7 @@ bool command_refine(int fd, struct map_session_data& sd, const char* command, co
 ///
 /// refresh (like "jumpto <yourself>")
 ///
-bool command_refresh(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_refresh(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	clif_refresh(sd);
 	return true;
@@ -5337,9 +5320,9 @@ bool command_refresh(int fd, struct map_session_data& sd, const char* command, c
 /// Will refresh and check online column of
 /// players and set correctly.
 ///
-bool command_refreshonline(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_refreshonline(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	char_online_check();
+	chrif_char_online_check();
 	return true;
 }
 
@@ -5347,7 +5330,7 @@ bool command_refreshonline(int fd, struct map_session_data& sd, const char* comm
 ///
 /// reloadatcommand command_athena.conf
 ///
-bool command_reloadatcommand(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_reloadatcommand(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	CommandInfo::config_read(ATCOMMAND_CONF_FILENAME);
 	clif_displaymessage(fd, msg_txt(MSG_GM_COMMANDS_RELOADED));
@@ -5358,7 +5341,7 @@ bool command_reloadatcommand(int fd, struct map_session_data& sd, const char* co
 ///
 /// reloadbattleconf battle_athena.conf
 ///
-bool command_reloadbattleconf(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_reloadbattleconf(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	config.read(BATTLE_CONF_FILENAME);
 	clif_displaymessage(fd, msg_txt(MSG_BATTLE_CONFIG_RELOADED));
@@ -5368,7 +5351,7 @@ bool command_reloadbattleconf(int fd, struct map_session_data& sd, const char* c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_reloaditemdb(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_reloaditemdb(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 
 	itemdb_reload();
@@ -5380,7 +5363,7 @@ bool command_reloaditemdb(int fd, struct map_session_data& sd, const char* comma
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_reloadmobdb(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_reloadmobdb(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 
 	mob_reload();
@@ -5396,7 +5379,7 @@ bool command_reloadmobdb(int fd, struct map_session_data& sd, const char* comman
 /// reloadpcdb
 ///  exp.txt skill_tree.txt attr_fix.txt
 ///
-bool command_reloadpcdb(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_reloadpcdb(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	pc_readdb();
 	clif_displaymessage(fd, msg_txt(MSG_PLAYER_CONFIG_RELOADED));
@@ -5406,7 +5389,7 @@ bool command_reloadpcdb(int fd, struct map_session_data& sd, const char* command
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_reloadscript(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_reloadscript(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	command_broadcast( fd, sd, "broadcast", basics::CParameterList("\"eAthena Server is Rehashing...\""));
 	command_broadcast( fd, sd, "broadcast", basics::CParameterList("\"You will feel a bit of lag at this point !\""));
@@ -5426,7 +5409,7 @@ bool command_reloadscript(int fd, struct map_session_data& sd, const char* comma
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_reloadskilldb(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_reloadskilldb(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 
 	skill_reload();
@@ -5441,7 +5424,7 @@ bool command_reloadskilldb(int fd, struct map_session_data& sd, const char* comm
 ///  job_db1.txt job_db2.txt job_db2-2.txt
 ///  refine_db.txt size_fix.txt
 ///  
-bool command_reloadstatusdb(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_reloadstatusdb(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	status_readdb();
 	clif_displaymessage(fd, msg_txt(MSG_STATUS_CONFIG_RELOADED));
@@ -5453,7 +5436,7 @@ bool command_reloadstatusdb(int fd, struct map_session_data& sd, const char* com
 ///
 /// repairall
 ///
-bool command_repairall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_repairall(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int count, i;
 	count = 0;
@@ -5484,7 +5467,7 @@ bool command_repairall(int fd, struct map_session_data& sd, const char* command,
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_revive(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_revive(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -5492,7 +5475,7 @@ bool command_revive(int fd, struct map_session_data& sd, const char* command, co
 		return false;
 	}
 
-	struct map_session_data *pl_sd = CommandInfo::param2sd(param[0]);
+	map_session_data *pl_sd = CommandInfo::param2sd(param[0]);
 
 	if( pl_sd != NULL )
 	{
@@ -5519,7 +5502,7 @@ bool command_revive(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_save(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_save(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	unsigned short m = sd.block_list::m;
 	unsigned short x = sd.block_list::x;
@@ -5553,7 +5536,7 @@ bool command_save(int fd, struct map_session_data& sd, const char* command, cons
 ///
 /// usage: "send <hex digit> <decimal digit>{20,20}"
 ///
-bool command_send(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_send(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
    	if( param.size() < 1 )
 	{
@@ -5614,7 +5597,7 @@ const char* txt_time(char* buffer, size_t sz, unsigned long duration)
 /// time/date/server_date/serverdate/server_time/servertime: Display the date/time of the server (
 /// Calculation management of GM modification (day/night GM commands) is done
 ///
-bool command_servertime(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_servertime(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct TimerData * timer_data;
 	time_t time_server;  // variable for number of seconds (used with time() function)
@@ -5687,7 +5670,7 @@ bool command_servertime(int fd, struct map_session_data& sd, const char* command
 /// setbattleflag
 /// set a config flag without having to reboot
 ///
-bool command_setbattleflag(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_setbattleflag(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	const char *flag = param[0];
 	const char *value= param[1];
@@ -5710,7 +5693,7 @@ bool command_setbattleflag(int fd, struct map_session_data& sd, const char* comm
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_showexp(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_showexp(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	sd.state.noexp = (param.size()) ?
 		!((bool)param[0]) : !sd.state.noexp;
@@ -5723,7 +5706,7 @@ bool command_showexp(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_showdelay(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_showdelay(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	sd.state.nodelay = (param.size()) ?
 		!((bool)param[0]) : !sd.state.nodelay;
@@ -5744,13 +5727,13 @@ public:
 	~CAtShuffle()	{}
 	virtual int process(block_list& bl) const
 	{
-		struct map_session_data *sd = bl.get_sd();
+		map_session_data *sd = bl.get_sd();
 		if( sd && !sd->isGM() )
 			pc_setpos(*sd, sd->mapname, rand() % maps[sd->block_list::m].xs, rand() % maps[sd->block_list::m].ys, 3);
 		return 0;
 	}
 };
-bool command_shuffle(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_shuffle(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	const char* message = param[0];
 	if(strcmp(message, "area")== 0)
@@ -5765,12 +5748,12 @@ bool command_shuffle(int fd, struct map_session_data& sd, const char* command, c
 	}
 	else if(strcmp(message, "world") == 0)
 	{
-		struct map_session_data *pl_sd;
+		map_session_data *pl_sd;
 		size_t i;
 		CAtShuffle cs;
 		for (i = 0; i < fd_max; ++i)
 		{
-			if(session[i] && (pl_sd = (struct map_session_data *)session[i]->user_session) != NULL && pl_sd->state.auth)
+			if(session[i] && (pl_sd = (map_session_data *)session[i]->user_session) != NULL && pl_sd->state.auth)
 				cs.process(*pl_sd);
 		}
 	}
@@ -5783,7 +5766,7 @@ bool command_shuffle(int fd, struct map_session_data& sd, const char* command, c
 ///
 /// size
 ///
-bool command_size(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_size(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int size=param[0];
 	if(size==0 && sd.state.viewsize)
@@ -5809,7 +5792,7 @@ bool command_size(int fd, struct map_session_data& sd, const char* command, cons
 /// skillid
 /// lookup a skill by name
 ///
-bool command_skillid(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_skillid(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 		return false;
@@ -5837,7 +5820,7 @@ bool command_skillid(int fd, struct map_session_data& sd, const char* command, c
 /// skillon
 /// turn skills on for the map
 ///
-bool command_skillon(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_skillon(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 
 	maps[sd.block_list::m].flag.noskill = 0;
@@ -5850,7 +5833,7 @@ bool command_skillon(int fd, struct map_session_data& sd, const char* command, c
 /// skilloff
 /// Turn skills off on the map
 ///
-bool command_skilloff(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_skilloff(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 
 	maps[sd.block_list::m].flag.noskill = 1;
@@ -5862,7 +5845,7 @@ bool command_skilloff(int fd, struct map_session_data& sd, const char* command, 
 ///
 /// skpoint
 ///
-bool command_skillpoint(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_skillpoint(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int point=0;
 	if( param.size()<1 || (point = param[0]) == 0 )
@@ -5897,7 +5880,7 @@ bool command_skillpoint(int fd, struct map_session_data& sd, const char* command
 ///
 /// Character Skill Reset
 ///
-bool command_skillreset(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_skillreset(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	pc_resetskill(sd);
 	clif_displaymessage(fd, "skill points reseted");
@@ -5907,7 +5890,7 @@ bool command_skillreset(int fd, struct map_session_data& sd, const char* command
 ///////////////////////////////////////////////////////////////////////////////
 ///
 /// Character Stat Reset
-bool command_statusreset(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_statusreset(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	pc_resetstate(sd);
 	clif_displaymessage(fd, "stats points reseted");
@@ -5918,7 +5901,7 @@ bool command_statusreset(int fd, struct map_session_data& sd, const char* comman
 ///
 /// Character Reset
 ///
-bool command_charreset(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_charreset(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	pc_resetstate(sd);
 	pc_resetskill(sd);
@@ -5931,14 +5914,14 @@ bool command_charreset(int fd, struct map_session_data& sd, const char* command,
 /// skilltree
 /// prints the skill tree for a player required to get to a skill
 ///
-bool command_skilltree(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_skilltree(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (param.size()<2)
 		return false;
 
 	int skillnum       = param[0];
 	const char *target = param[1];
-	struct map_session_data *pl_sd = CommandInfo::param2sd(target);
+	map_session_data *pl_sd = CommandInfo::param2sd(target);
 	if( pl_sd == NULL )
 		return false;
 
@@ -5998,7 +5981,7 @@ bool command_skilltree(int fd, struct map_session_data& sd, const char* command,
 ///
 /// Sound Command - plays a sound for everyone!
 ///
-bool command_sound(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_sound(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if( param.size()<1 )
 	{
@@ -6016,7 +5999,7 @@ bool command_sound(int fd, struct map_session_data& sd, const char* command, con
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_speed(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_speed(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int speed = param[0];
 	char output[128];
@@ -6040,7 +6023,7 @@ bool command_speed(int fd, struct map_session_data& sd, const char* command, con
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_spiritball(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_spiritball(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int number = param[0];
 	if( param.size()<1 )
@@ -6074,7 +6057,7 @@ bool command_spiritball(int fd, struct map_session_data& sd, const char* command
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_status(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_status(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	size_t i;
 	int value = 0, new_value;
@@ -6127,7 +6110,7 @@ bool command_status(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///  Stat all
-bool command_stat_all(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_stat_all(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int index, count, value = 0, new_value;
 	unsigned short* status[] = {
@@ -6171,10 +6154,10 @@ bool command_stat_all(int fd, struct map_session_data& sd, const char* command, 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///
-bool command_printstats(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_printstats(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[1024], gmlevel[1024];
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i, count;
 
 	if( param.size() && param[0]!="all" )
@@ -6224,7 +6207,7 @@ bool command_printstats(int fd, struct map_session_data& sd, const char* command
 	{	// run through all online players otherwise
 		for(count=0,i=0; i<fd_max; ++i)
 		{
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth)
+			if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth)
 			{
 				if(sd.isGM() && pl_sd->isGM())
 					snprintf(gmlevel, sizeof(gmlevel), "| GM Lvl: %d", pl_sd->isGM());
@@ -6261,7 +6244,7 @@ bool command_printstats(int fd, struct map_session_data& sd, const char* command
 ///
 /// stpoint
 ///
-bool command_statuspoint(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_statuspoint(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	int point=0;
 	if( param.size()<1 || (point = param[0]) == 0 )
@@ -6296,7 +6279,7 @@ bool command_statuspoint(int fd, struct map_session_data& sd, const char* comman
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_storage(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_storage(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	struct pc_storage *stor;
 	if( sd.state.storage_flag == 1 ||
@@ -6314,7 +6297,7 @@ bool command_storage(int fd, struct map_session_data& sd, const char* command, c
 /// usage: "storeall [charname/chrid/accid]"
 /// Put everything into storage to simplify your inventory to make debugging easier
 ///
-bool command_storeall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_storeall(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if (storage_storageopen(sd) == 1)
 	{
@@ -6347,7 +6330,7 @@ bool command_storeall(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_summon(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_summon(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<1)
 		return false;
@@ -6395,11 +6378,11 @@ bool command_summon(int fd, struct map_session_data& sd, const char* command, co
 /// trade
 /// Open a trade window with a remote player
 ///
-bool command_trade(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_trade(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
     if (param.size()<1)
         return false;
-    struct map_session_data *pl_sd =CommandInfo::param2sd(param[0]);
+    map_session_data *pl_sd =CommandInfo::param2sd(param[0]);
     if( pl_sd != NULL )
 	{
 		trade_traderequest(sd, pl_sd->block_list::id);
@@ -6412,7 +6395,7 @@ bool command_trade(int fd, struct map_session_data& sd, const char* command, con
 ///
 /// unmute
 ///
-bool command_unmute(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_unmute(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(!config.muting_players)
 	{
@@ -6434,7 +6417,7 @@ bool command_unmute(int fd, struct map_session_data& sd, const char* command, co
 ///
 /// uptime
 ///
-bool command_uptime(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_uptime(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char output[128];
 	unsigned long days, hours, minutes,seconds;
@@ -6450,7 +6433,7 @@ bool command_uptime(int fd, struct map_session_data& sd, const char* command, co
 ///
 /// display number of users on maps
 ///
-bool command_users(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_users(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char buf[256];
 	size_t i, all;
@@ -6475,7 +6458,7 @@ bool command_users(int fd, struct map_session_data& sd, const char* command, con
 /// useskill
 /// A way of using skills without having to find them in the skills menu
 ///
-bool command_useskill(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_useskill(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	if(param.size()<3)
 	{
@@ -6486,7 +6469,7 @@ bool command_useskill(int fd, struct map_session_data& sd, const char* command, 
 	int skillnum       = param[0];
 	int skilllv        = param[1];
 	const char *target = param[2];
-	struct map_session_data *pl_sd = CommandInfo::param2sd(target);
+	map_session_data *pl_sd = CommandInfo::param2sd(target);
 	if( pl_sd )
 	{
 		int inf = skill_get_inf(skillnum);
@@ -6502,7 +6485,7 @@ bool command_useskill(int fd, struct map_session_data& sd, const char* command, 
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_version(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_version(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	const char * revision;
 	char tmp[200];
@@ -6520,7 +6503,7 @@ bool command_version(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_where(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_where(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	const char *player_name = param[1];
 	char output[128]="";
@@ -6550,9 +6533,9 @@ bool command_where(int fd, struct map_session_data& sd, const char* command, con
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_who(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_who(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i, count;
 	int pl_GM_level, GM_level;
 	char output[128]="";
@@ -6565,7 +6548,7 @@ bool command_who(int fd, struct map_session_data& sd, const char* command, const
 	GM_level = sd.isGM();
 	for (i = 0; i < fd_max; ++i)
 	{
-		if( session[i] && (pl_sd = (struct map_session_data *)session[i]->user_session) && pl_sd->state.auth)
+		if( session[i] && (pl_sd = (map_session_data *)session[i]->user_session) && pl_sd->state.auth)
 		{
 			pl_GM_level = pl_sd->isGM();
 			if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
@@ -6606,9 +6589,9 @@ bool command_who(int fd, struct map_session_data& sd, const char* command, const
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_who2(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_who2(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i, count;
 	int pl_GM_level, GM_level;
 	char match_text[128]="";
@@ -6620,7 +6603,7 @@ bool command_who2(int fd, struct map_session_data& sd, const char* command, cons
 	count = 0;
 	GM_level = sd.isGM();
 	for (i = 0; i < fd_max; ++i) {
-		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
+		if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
 			pl_GM_level = pl_sd->isGM();
 
 			if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
@@ -6651,11 +6634,11 @@ bool command_who2(int fd, struct map_session_data& sd, const char* command, cons
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_who3(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_who3(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char temp0[128];
 	char temp1[128];
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i, count;
 	int pl_GM_level, GM_level;
 	char match_text[128]="";
@@ -6669,7 +6652,7 @@ bool command_who3(int fd, struct map_session_data& sd, const char* command, cons
 	count = 0;
 	GM_level = sd.isGM();
 	for (i = 0; i < fd_max; ++i) {
-		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
+		if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
 			pl_GM_level = pl_sd->isGM();
 			if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				strcpytolower(player_name, sizeof(player_name), pl_sd->status.name);
@@ -6710,9 +6693,9 @@ bool command_who3(int fd, struct map_session_data& sd, const char* command, cons
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_whomap(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_whomap(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i, count;
 	int pl_GM_level, GM_level;
 	int map_id=-1;
@@ -6724,7 +6707,7 @@ bool command_whomap(int fd, struct map_session_data& sd, const char* command, co
 	count = 0;
 	GM_level = sd.isGM();
 	for (i = 0; i < fd_max; ++i) {
-		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
+		if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
 			pl_GM_level = pl_sd->isGM();
 			if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				if (pl_sd->block_list::m == map_id) {
@@ -6754,9 +6737,9 @@ bool command_whomap(int fd, struct map_session_data& sd, const char* command, co
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_whomap2(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_whomap2(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i, count;
 	int pl_GM_level, GM_level;
 	int map_id = 0;
@@ -6768,7 +6751,7 @@ bool command_whomap2(int fd, struct map_session_data& sd, const char* command, c
 	count = 0;
 	GM_level = sd.isGM();
 	for (i = 0; i < fd_max; ++i) {
-		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
+		if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
 			pl_GM_level = pl_sd->isGM();
 			if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				if (pl_sd->block_list::m == map_id) {
@@ -6798,11 +6781,11 @@ bool command_whomap2(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_whomap3(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_whomap3(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char temp0[128];
 	char temp1[128];
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i, count;
 	int pl_GM_level, GM_level;
 	int map_id=0;
@@ -6816,7 +6799,7 @@ bool command_whomap3(int fd, struct map_session_data& sd, const char* command, c
 	count = 0;
 	GM_level = sd.isGM();
 	for (i = 0; i < fd_max; ++i) {
-		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
+		if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
 			pl_GM_level = pl_sd->isGM();
 			if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				if (pl_sd->block_list::m == map_id) {
@@ -6856,11 +6839,11 @@ bool command_whomap3(int fd, struct map_session_data& sd, const char* command, c
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_whogm(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_whogm(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char temp0[128];
 	char temp1[128];
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i, count;
 	int pl_GM_level, GM_level;
 	char match_text[128]="";
@@ -6874,7 +6857,7 @@ bool command_whogm(int fd, struct map_session_data& sd, const char* command, con
 	count = 0;
 	GM_level = sd.isGM();
 	for (i = 0; i < fd_max; ++i) {
-		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
+		if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth) {
 			pl_GM_level = pl_sd->isGM();
 			if (pl_GM_level > 0) {
 				if (!((config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
@@ -6918,10 +6901,10 @@ bool command_whogm(int fd, struct map_session_data& sd, const char* command, con
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
-bool command_whozeny(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_whozeny(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	const uint MAX = 50; /// limit the list to 50 since only 50 get displayed anyway
-	struct map_session_data *pl_sd;
+	map_session_data *pl_sd;
 	size_t i, count;
 	char player_name[24];
 	char output[128];
@@ -6935,7 +6918,7 @@ bool command_whozeny(int fd, struct map_session_data& sd, const char* command, c
 	
 	for(count=0, i=0; i<fd_max; ++i)
 	{
-		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->user_session) && pl_sd->state.auth)
+		if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth)
 		{
 			if( all || strcpytolower(player_name, sizeof(player_name), pl_sd->status.name), NULL!=strstr(player_name, param[0]) )
 			{
@@ -6974,7 +6957,7 @@ bool command_whozeny(int fd, struct map_session_data& sd, const char* command, c
 ///
 /// zeny
 ///
-bool command_zeny(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_zeny(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	long zeny=0;
 	uint32 new_zeny;
@@ -7011,14 +6994,14 @@ bool command_zeny(int fd, struct map_session_data& sd, const char* command, cons
 
 #ifdef DMALLOC
 staic unsigned long dmark_;
-bool command_dmstart(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_dmstart(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	dmark_ = dmalloc_mark();
 	clif_displaymessage(fd, "debug mark set");
 	return true;
 }
 
-bool command_dmtick(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_dmtick(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	dmalloc_log_changed ( dmark_, 1, 0, 1 ) ;
 	dmark_ = dmalloc_mark();
@@ -7395,7 +7378,7 @@ bool CommandInfo::config_read(const char *cfgName)
 /// converts name or id to sd
 map_session_data *CommandInfo::param2sd(const char* str)
 {
-	struct map_session_data *psd=NULL;
+	map_session_data *psd=NULL;
 	if(str)
 	{	// try id's when string starts with digits
 		if( basics::stringcheck::isdigit(*str) )
@@ -7412,7 +7395,7 @@ map_session_data *CommandInfo::param2sd(const char* str)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// checks and executes a command.
-bool CommandInfo::is_command(const int fd, struct map_session_data &sd, const char* message, unsigned char gmlvl_override)
+bool CommandInfo::is_command(const int fd, map_session_data &sd, const char* message, unsigned char gmlvl_override)
 {
 	if( !config.allow_atcommand_when_mute && sd.sc_data[SC_NOCHAT].timer != -1 )
 	{	// return as processed

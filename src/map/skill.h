@@ -197,10 +197,10 @@ const char*	skill_get_name( unsigned short id );
 
 
 // スキルの使用
-int skill_use_id( struct map_session_data *sd, uint32 target_id,unsigned short skill_num, unsigned short skill_lv);
-int skill_use_pos( struct map_session_data *sd,int skill_x, int skill_y, unsigned short skill_num, unsigned short skill_lv);
+int skill_use_id( map_session_data *sd, uint32 target_id,unsigned short skill_num, unsigned short skill_lv);
+int skill_use_pos( map_session_data *sd,int skill_x, int skill_y, unsigned short skill_num, unsigned short skill_lv);
 
-int skill_castend_map( struct map_session_data *sd,int skill_num, const char *manname);
+int skill_castend_map( map_session_data *sd,int skill_num, const char *manname);
 
 int skill_cleartimerskill(block_list *src);
 int skill_addtimerskill(block_list *src,unsigned long tick,int target,int x,int y,unsigned short skill_id,unsigned short skill_lv,int type,int flag);
@@ -221,7 +221,7 @@ int skill_unit_ondamaged(struct skill_unit *src,block_list *bl,int damage,unsign
 int skill_castfix(block_list *bl, long time);
 int skill_delayfix(block_list *bl, long time);
 int skill_check_unit_range(int m,int x,int y,unsigned short skillid, unsigned short skilllv);
-int skill_check_unit_range2(int m,int x,int y,unsigned short skillid, unsigned short skilllv, int type);
+int skill_check_unit_range2(int m,int x,int y,unsigned short skillid, unsigned short skilllv, object_t type);
 
 // -- moonsoul	(added skill_check_unit_cell)
 //int skill_check_unit_cell(int skillid,int m,int x,int y,int unit_id);
@@ -248,16 +248,16 @@ public:
 // 詠唱キャンセル
 int skill_castcancel(block_list *bl,int type);
 
-int skill_gangsterparadise(struct map_session_data *sd ,int type);
-int skill_rest(struct map_session_data &sd ,int type);
+int skill_gangsterparadise(map_session_data *sd ,int type);
+int skill_rest(map_session_data &sd ,int type);
 int skill_check_moonlit (block_list *bl, int dx, int dy);
 void skill_brandishspear_first(struct square *tc,int dir,int x,int y);
 void skill_brandishspear_dir(struct square *tc,int dir,int are);
-int skill_autospell(struct map_session_data *md,int skillid);
-void skill_devotion(struct map_session_data *md,uint32 target);
+int skill_autospell(map_session_data *md,int skillid);
+void skill_devotion(map_session_data *md,uint32 target);
 void skill_devotion2(block_list *bl,uint32 crusader);
 int skill_devotion3(block_list *bl,uint32 target);
-void skill_devotion_end(struct map_session_data *md,struct map_session_data *sd,uint32 target);
+void skill_devotion_end(map_session_data *md,map_session_data *sd,uint32 target);
 
 #define skill_calc_heal(bl,skill_lv) (( status_get_lv(bl)+status_get_int(bl) )/8 *(4+ skill_lv*8))
 
@@ -266,13 +266,13 @@ int skill_check_cloaking(block_list *bl);
 
 // ステ?タス異常
 int skill_enchant_elemental_end(block_list *bl, int type);
-int skillnotok(int skillid, struct map_session_data &sd);
+int skillnotok(int skillid, map_session_data &sd);
 
 // アイテム作成
-int skill_can_produce_mix(struct map_session_data &sd, unsigned short nameid, int trigger );
-int skill_produce_mix( struct map_session_data &sd, unsigned short nameid, unsigned short slot1, unsigned short slot2, unsigned short slot3 );
+int skill_can_produce_mix(map_session_data &sd, unsigned short nameid, int trigger );
+int skill_produce_mix( map_session_data &sd, unsigned short nameid, unsigned short slot1, unsigned short slot2, unsigned short slot3 );
 
-int skill_arrow_create( struct map_session_data *sd,unsigned short nameid);
+int skill_arrow_create( map_session_data *sd,unsigned short nameid);
 
 // mobスキルのため
 int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag );

@@ -172,7 +172,7 @@ int chrif_isconnect(void)
  *
  *------------------------------------------
  */
-int chrif_save(struct map_session_data &sd)
+int chrif_save(map_session_data &sd)
 {
 	if( !session_isActive(char_fd) || !chrif_isconnect() )
 		return -1;
@@ -190,7 +190,7 @@ int chrif_save(struct map_session_data &sd)
 
 	return 0;
 }
-int chrif_save_sc(struct map_session_data &sd)
+int chrif_save_sc(map_session_data &sd)
 {
 /*	static const unsigned short sc_array[] = 
 	{
@@ -370,7 +370,7 @@ int chrif_parse_ReadSC(int fd)
 	if( !session_isActive(fd) || !chrif_isconnect() )
 		return -1;
 
-	struct map_session_data *sd = map_session_data::charid2sd( RFIFOL(fd,8) );
+	map_session_data *sd = map_session_data::charid2sd( RFIFOL(fd,8) );
 	if(sd && sd->block_list::id==RFIFOL(fd,4))
 	{
 		size_t i, p, count = RFIFOW(fd,12); //sc_count
@@ -483,7 +483,7 @@ int chrif_removemap(int fd)
  * マップ鯖間移動のためのデータ準備要求
  *------------------------------------------
  */
-int chrif_changemapserver(struct map_session_data &sd, const char *name, unsigned short x, unsigned short y, basics::ipset& mapset)
+int chrif_changemapserver(map_session_data &sd, const char *name, unsigned short x, unsigned short y, basics::ipset& mapset)
 {
 	size_t i;
 	basics::ipaddress s_ip=(uint32)INADDR_ANY;
@@ -536,7 +536,7 @@ int chrif_changemapserverack(int fd)
 	if( !session_isActive(fd)  )
 		return -1;
 
-	struct map_session_data *sd = map_session_data::from_blid(RFIFOL(fd,2));
+	map_session_data *sd = map_session_data::from_blid(RFIFOL(fd,2));
 
 	if( sd == NULL || RFIFOL(fd,14) != sd->status.char_id )
 		return -1;
@@ -620,7 +620,7 @@ int chrif_sendmapack(int fd)
  *
  *------------------------------------------
  */
-int chrif_authreq(struct map_session_data &sd)
+int chrif_authreq(map_session_data &sd)
 {
 	size_t i;
 
@@ -656,7 +656,7 @@ int chrif_authreq(struct map_session_data &sd)
  *
  *------------------------------------------
  */
-int chrif_charselectreq(struct map_session_data &sd)
+int chrif_charselectreq(map_session_data &sd)
 {
 	basics::ipaddress s_ip=(uint32)INADDR_ANY;
 
@@ -817,7 +817,7 @@ int chrif_changesex(uint32 id, unsigned char sex)
 int chrif_char_ask_name_answer(int fd)
 {
 	int acc;
-	struct map_session_data *sd;
+	map_session_data *sd;
 	char output[256];
 	char player_name[24];
 
@@ -924,7 +924,7 @@ int chrif_char_ask_name_answer(int fd)
 int chrif_changedgm(int fd)
 {
 	int acc, level;
-	struct map_session_data *sd = NULL;
+	map_session_data *sd = NULL;
 
 	if( !session_isActive(fd) )
 		return -1;
@@ -952,7 +952,7 @@ int chrif_changedgm(int fd)
 int chrif_changedsex(int fd)
 {
 	int acc, sex, i;
-	struct map_session_data *sd;
+	map_session_data *sd;
 	struct pc_base_job s_class;
 
 	if( !session_isActive(fd) )
@@ -1022,7 +1022,7 @@ int chrif_changedsex(int fd)
  * アカウント変数保存要求
  *------------------------------------------
  */
-int chrif_saveaccountreg2(struct map_session_data &sd)
+int chrif_saveaccountreg2(map_session_data &sd)
 {
 	unsigned short p;
 	uint32 j;
@@ -1053,7 +1053,7 @@ int chrif_saveaccountreg2(struct map_session_data &sd)
 int chrif_accountreg2(int fd)
 {
 	int j, p;
-	struct map_session_data *sd;
+	map_session_data *sd;
 
 	if( !session_isActive(fd) )
 		return -1;
@@ -1076,7 +1076,7 @@ int chrif_accountreg2(int fd)
  */
 int chrif_divorce(uint32 char_id, uint32 partner_id)
 {
-	struct map_session_data *sd = NULL;
+	map_session_data *sd = NULL;
 
 	if (!char_id || !partner_id)
 		return 0;
@@ -1103,7 +1103,7 @@ int chrif_divorce(uint32 char_id, uint32 partner_id)
 int chrif_accountdeletion(int fd)
 {
 	int acc;
-	struct map_session_data *sd;
+	map_session_data *sd;
 
 	if( !session_isActive(fd) )
 		return -1;
@@ -1133,7 +1133,7 @@ int chrif_accountdeletion(int fd)
 int chrif_accountban(int fd)
 {
 	int acc;
-	struct map_session_data *sd;
+	map_session_data *sd;
 
 	if( !session_isActive(fd) )
 		return -1;
@@ -1203,7 +1203,7 @@ int chrif_accountban(int fd)
 //packet.w AID.L WHY.B 2+4+1 = 7byte
 int chrif_disconnectplayer(int fd)
 {
-	struct map_session_data *sd;
+	map_session_data *sd;
 	
 	sd = map_session_data::from_blid(RFIFOL(fd, 2));
 	
@@ -1268,7 +1268,7 @@ const CFameList& chrif_getfamelist(fame_t type)
  * send an update for famelist, char then decides on sending an update back
  *------------------------------------------
  */
-int chrif_updatefame(struct map_session_data &sd, fame_t type, int delta)
+int chrif_updatefame(map_session_data &sd, fame_t type, int delta)
 {
 	if( !session_isActive(char_fd) || !chrif_isconnect() )
 		return 0;
@@ -1399,7 +1399,7 @@ int chrif_ragsrvinfo(unsigned short base_rate, unsigned short job_rate, unsigned
  *-----------------------------------------
  */
 
-int chrif_char_offline(struct map_session_data &sd)
+int chrif_char_offline(map_session_data &sd)
 {
 	if( !session_isActive(char_fd) || !chrif_isconnect() )
 		return -1;
@@ -1413,18 +1413,23 @@ int chrif_char_offline(struct map_session_data &sd)
 }
 
 /*=========================================
- * Tell char-server to reset all chars offline [Wizputer]
+ * Tell char-server charcter is online [Wizputer]
  *-----------------------------------------
  */
-int chrif_flush_fifo(void)
+
+int chrif_char_online(map_session_data &sd)
 {
 	if( !session_isActive(char_fd) || !chrif_isconnect() )
 		return -1;
 
-	flush_fifos();
+	WFIFOW(char_fd,0) = 0x2b19;
+	WFIFOL(char_fd,2) = sd.status.char_id;
+	WFIFOL(char_fd,6) = sd.status.account_id;
+	WFIFOSET(char_fd,10);
 
 	return 0;
 }
+
 
 /*=========================================
  * Tell char-server to reset all chars offline [Wizputer]
@@ -1441,23 +1446,36 @@ int chrif_char_reset_offline(void)
 	return 0;
 }
 
+void chrif_char_online_check(void)
+{
+	chrif_char_reset_offline();
+
+	map_session_data::iterator iter(map_session_data::nickdb());
+	for(; iter; ++iter)
+	{
+		map_session_data *sd = iter.data();
+		if( sd &&
+			!(config.hide_GM_session && sd->isGM()) )
+		{
+			chrif_char_online(*sd);
+		}
+	}
+}
 /*=========================================
- * Tell char-server charcter is online [Wizputer]
+ * 
  *-----------------------------------------
  */
-
-int chrif_char_online(struct map_session_data &sd)
+int chrif_flush_fifo(void)
 {
 	if( !session_isActive(char_fd) || !chrif_isconnect() )
 		return -1;
 
-	WFIFOW(char_fd,0) = 0x2b19;
-	WFIFOL(char_fd,2) = sd.status.char_id;
-	WFIFOL(char_fd,6) = sd.status.account_id;
-	WFIFOSET(char_fd,10);
+	flush_fifos();
 
 	return 0;
 }
+
+
 
 
 
@@ -1496,7 +1514,7 @@ basics::Mutex mailmx;					///< access mutex
 
 
 /// clears a mail from temp storage
-void chrif_mail_cancel(struct map_session_data &sd)
+void chrif_mail_cancel(map_session_data &sd)
 {
 	basics::ScopeLock sl(mailmx);
 	if( maildb.exists(sd.status.char_id) )
@@ -1506,7 +1524,7 @@ void chrif_mail_cancel(struct map_session_data &sd)
 }
 
 /// set item or zeny to a mail
-bool chrif_mail_setitem(struct map_session_data &sd, ushort index, uint32 amount)
+bool chrif_mail_setitem(map_session_data &sd, ushort index, uint32 amount)
 {
 	basics::ScopeLock sl(mailmx);
 	CMailDummy &mail = maildb[sd.status.char_id];
@@ -1539,7 +1557,7 @@ bool chrif_mail_setitem(struct map_session_data &sd, ushort index, uint32 amount
 	return false;
 }
 /// remove item from mail
-void chrif_mail_removeitem(struct map_session_data &sd, int flag)
+void chrif_mail_removeitem(map_session_data &sd, int flag)
 {
 	basics::ScopeLock sl(mailmx);
 	if( maildb.exists(sd.status.char_id) )
@@ -1557,7 +1575,7 @@ void chrif_mail_removeitem(struct map_session_data &sd, int flag)
 	}
 }
 
-bool chrif_mail_check(struct map_session_data &sd, bool showall)
+bool chrif_mail_check(map_session_data &sd, bool showall)
 {
 	if( session_isActive(char_fd) )
 	{
@@ -1599,7 +1617,7 @@ int chrif_parse_mail_check(int fd)
 	}
 	return 0;
 }
-bool chrif_mail_fetch(struct map_session_data &sd, bool all)
+bool chrif_mail_fetch(map_session_data &sd, bool all)
 {
 	if( session_isActive(char_fd) )
 	{
@@ -1625,7 +1643,7 @@ int chrif_parse_mail_fetch(int fd)
 	}
 	return 0;
 }
-bool chrif_mail_read(struct map_session_data &sd, uint32 msgid)
+bool chrif_mail_read(map_session_data &sd, uint32 msgid)
 {
 	if( session_isActive(char_fd) )
 	{
@@ -1677,7 +1695,7 @@ int chrif_parse_mail_read(int fd)
 	}
 	return 0;
 }
-bool chrif_mail_delete(struct map_session_data &sd, uint32 msgid)
+bool chrif_mail_delete(map_session_data &sd, uint32 msgid)
 {
 	if( session_isActive(char_fd) )
 	{
@@ -1702,7 +1720,7 @@ int chrif_parse_mail_delete(int fd)
 	return 0;
 }
 
-bool chrif_mail_send(struct map_session_data &sd, const char *target, const char *header, const char *body)
+bool chrif_mail_send(map_session_data &sd, const char *target, const char *header, const char *body)
 {
 	if(sd.isGM() < 80 && DIFF_TICK(gettick(), sd.mail_tick) < 10*60*1000)
 	{
@@ -1777,7 +1795,7 @@ int chrif_parse_mail_send(int fd)
 	}
 	return 0;
 }
-bool chrif_mail_getappend(struct map_session_data &sd, uint32 msgid)
+bool chrif_mail_getappend(map_session_data &sd, uint32 msgid)
 {
 	if( session_isActive(char_fd) )
 	{
@@ -1903,13 +1921,13 @@ int chrif_parse_irc_announce(int fd)
 	}
 	return 0;
 }
-int chrif_irc_announce_jobchange(struct map_session_data &sd)
+int chrif_irc_announce_jobchange(map_session_data &sd)
 {
 	char message[1024];
 	int len = 1+snprintf(message, sizeof(message), "%s has changed into a %s.", sd.status.name, job_name(sd.status.class_));
 	return chrif_irc_announce(message,len);
 }
-int chrif_irc_announce_shop(struct map_session_data &sd, int flag)
+int chrif_irc_announce_shop(map_session_data &sd, int flag)
 {
 	char message[1024];
 	char mapname[32];
@@ -1932,37 +1950,6 @@ int chrif_irc_announce_mvp(const map_session_data &sd, const mob_data &md)
 }
 
 
-/*==========================================
- *
- *------------------------------------------
- */
-/*
-int chrif_disconnect_sub(struct map_session_data& sd, va_list &va)
-{
-	clif_authfail(sd.fd,1);
-	//map_quit(*sd);
-	return 0;
-}
-
-int chrif_disconnect(int fd)
-{
-	if(fd == char_fd)
-	{
-		ShowWarning("Map Server disconnected from Char Server.\n\n");
-		//clif_foreachclient(chrif_disconnect_sub);
-		chrif_state = 0;
-		char_fd = -1;
-		session_Remove(fd);
-		// 他のmap 鯖のデータを消す
-		map_eraseallipport();
-
-		// 倉庫キャッシュを消す
-		do_final_storage();
-		do_init_storage();
-	}
-	return 0;
-}
-*/
 /*==========================================
  *
  *------------------------------------------
@@ -2082,20 +2069,25 @@ case 0x2b15: break;
  * 今このmap鯖に繋がっているクライアント人数をchar鯖へ送る
  *------------------------------------------
  */
-int send_users_tochar(int tid, unsigned long tick, int id, basics::numptr data) {
-	size_t i;
+int send_users_tochar(int tid, unsigned long tick, int id, basics::numptr data)
+{
 	unsigned short users = 0;
-	struct map_session_data *sd;
+	map_session_data *sd;
 
 	if( !session_isActive(char_fd) || !chrif_isconnect() ) // Thanks to Toster
 		return 0;
 
 	WFIFOW(char_fd,0) = 0x2aff;
-	for (i = 0; i < fd_max; ++i) {
-		if (session[i] && (sd = (struct map_session_data*)session[i]->user_session) && sd->state.auth &&
-		    !((config.hide_GM_session || (sd->status.option & OPTION_HIDE)) && sd->isGM())) {
+
+	map_session_data::iterator iter(map_session_data::nickdb());
+	for(; iter; ++iter)
+	{
+		sd = iter.data();
+		if( sd &&
+			!((config.hide_GM_session || (sd->status.option & OPTION_HIDE)) && sd->isGM()))
+		{
 			WFIFOL(char_fd,6+4*users) = sd->status.char_id;
-			users++;
+			++users;
 		}
 	}
 	WFIFOW(char_fd,2) = 6 + 4 * users;
@@ -2114,7 +2106,6 @@ int check_connect_char_server(int tid, unsigned long tick, int id, basics::numpt
 {
 	if( !session_isActive(char_fd) )
 	{
-		//clif_foreachclient(chrif_disconnect_sub);
 		chrif_state = 0;
 
 		ShowStatus("Attempting to connect to Char Server. Please wait.\n");

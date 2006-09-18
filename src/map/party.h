@@ -37,9 +37,9 @@ int party_send_logout(map_session_data &sd);
 int party_send_message(map_session_data &sd,const char *mes,size_t len);
 int party_recv_message(uint32 party_id,uint32 account_id,const char *mes,size_t len);
 
-int party_check_conflict(struct map_session_data &sd);
+int party_check_conflict(map_session_data &sd);
 
-int party_send_xy_clear(struct party &p);
+int party_send_xy_clear(party &p);
 //int party_send_hp_check(block_list &bl,va_list &ap);
 class CPartySendHP : public CMapProcessor
 {

@@ -216,9 +216,9 @@ struct pet_data : public fightable
 
 	///////////////////////////////////////////////////////////////////////////
 	/// upcasting overloads.
-	virtual bool is_type(object_t t)
+	virtual bool is_type(object_t t) const
 	{
-		return t==BL_PET;
+		return (t==BL_ALL) || (t==BL_PET);
 	}
 	virtual pet_data*				get_pd()				{ return this; }
 	virtual const pet_data*			get_pd() const			{ return this; }

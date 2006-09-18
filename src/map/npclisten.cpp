@@ -230,7 +230,7 @@ pcrematch_set& npc_parse::lookup(int setid)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Delete everything associated with a NPC concerning the pattern matching code 
-void npclisten_finalize(npc_data *nd)
+void npclisten_finalize(npcscript_data *nd)
 {
 	if( nd && nd->listendb )
 	{
@@ -243,14 +243,14 @@ void npclisten_finalize(npc_data *nd)
 /// Handler called whenever a global message is spoken in a NPC's area
 int CNpcChat::process(block_list &bl) const
 {
-    npc_data *pnd = bl.get_nd();
+    npcscript_data *pnd = bl.get_script();
     npc_parse *npcParse = (pnd)?pnd->listendb:NULL;
 
     // Not interested in anything you might have to say...
-    if (pnd && npcParse == NULL || npcParse->cActive == NULL)
+    if(npcParse == NULL || npcParse->cActive == NULL)
         return 0;
 
-	npc_data &nd = *pnd;
+	npcscript_data &nd = *pnd;
     // grab the active list
     pcrematch_set *pcreset = npcParse->cActive;
 	pcrematch_entry *e;
@@ -258,9 +258,9 @@ int CNpcChat::process(block_list &bl) const
     for(; pcreset; pcreset=pcreset->cNext)	// interate across all active sets
     for(e=pcreset->cEntry; e; e=e->cNext)	// interate across all patterns in that set
 	{
-		if( nd.u.scr.ref && nd.u.scr.ref->script )
+		if( nd.ref && nd.ref->script )
 		{
-			size_t pos = nd.u.scr.ref->get_labelpos(e->cLabel);
+			size_t pos = nd.ref->get_labelpos(e->cLabel);
 			if( pos==0 )
 			{	// unable to find label... do something..
 				ShowWarning("Unable to find label: %s", e->cLabel);
@@ -367,7 +367,7 @@ int CNpcChat::process(block_list &bl) const
 					}
 
 					// run the npc script
-					CScriptEngine::run(nd.u.scr.ref->script, pos,sd.block_list::id,nd.block_list::id);
+					CScriptEngine::run(nd.ref->script, pos,sd.block_list::id,nd.block_list::id);
 					// and return
 					return 0;
 				}
@@ -385,7 +385,7 @@ int buildin_defpattern(CScriptEngine &st)
     int setid=st.GetInt(st[2]);
     const char *pattern=st.GetString(st[3]);
     const char *label=st.GetString(st[4]);
-    npc_data *nd= npc_data::from_blid(st.oid);
+    npcscript_data *nd= npcscript_data::from_blid(st.oid);
 	if(nd) 
 	{
 		// create a new pattern storage if not exists
@@ -403,7 +403,7 @@ int buildin_defpattern(CScriptEngine &st)
 int buildin_activatepset(CScriptEngine &st)
 {
     int setid=st.GetInt(st[2]);
-    npc_data *nd= npc_data::from_blid(st.oid);
+    npcscript_data *nd= npcscript_data::from_blid(st.oid);
 	if(nd && nd->listendb && nd->listendb->cInactive)
 	{
 		if( setid == -1 )
@@ -446,7 +446,7 @@ int buildin_activatepset(CScriptEngine &st)
 int buildin_deactivatepset(CScriptEngine &st)
 {
     int setid=st.GetInt(st[2]);
-    npc_data *nd=npc_data::from_blid(st.oid);
+    npcscript_data *nd=npcscript_data::from_blid(st.oid);
 	if(nd && nd->listendb && nd->listendb->cActive) 
 	{
 		if( setid == -1 )
@@ -488,7 +488,7 @@ int buildin_deactivatepset(CScriptEngine &st)
 int buildin_deletepset(CScriptEngine &st)
 {
     int setid=st.GetInt(st[2]);
-    npc_data *nd= npc_data::from_blid(st.oid);
+    npcscript_data *nd= npcscript_data::from_blid(st.oid);
 	if(nd && nd->listendb)
 	{
 		pcrematch_set *set;
@@ -517,7 +517,7 @@ int buildin_deletepset(CScriptEngine &st)
 
 #else
 
-void npclisten_finalize(npc_data *nd)				{}
+void npclisten_finalize(npcscript_data *nd)			{}
 
 
 int CNpcChat::process(block_list &bl) const			{ return 0; }

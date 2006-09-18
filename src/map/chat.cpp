@@ -34,7 +34,6 @@ bool chat_data::create(map_session_data& sd, unsigned short limit, unsigned char
 		cd->block_list::m		= sd.block_list::m;
 		cd->block_list::x		= sd.block_list::x;
 		cd->block_list::y		= sd.block_list::y;
-		cd->block_list::type	= BL_CHAT;
 
 		cd->owner	= &sd;
 		cd->usersd[0] = &sd;
@@ -56,7 +55,7 @@ bool chat_data::create(map_session_data& sd, unsigned short limit, unsigned char
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 既存チャットルームに参加
-bool chat_data::join(struct map_session_data &sd, uint32 chatid, const char* pass)
+bool chat_data::join(map_session_data &sd, uint32 chatid, const char* pass)
 {
 	chat_data *cd = chat_data::from_blid(chatid);
 
@@ -180,7 +179,7 @@ bool chat_data::remove(map_session_data &sd)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// チャットルームの持ち主を譲る
-bool chat_data::change_owner(struct map_session_data &sd, const char *nextownername)
+bool chat_data::change_owner(map_session_data &sd, const char *nextownername)
 {
 	if( sd.chat==this && &sd==this->owner )
 	{
@@ -208,7 +207,7 @@ bool chat_data::change_owner(struct map_session_data &sd, const char *nextownern
 
 ///////////////////////////////////////////////////////////////////////////////
 /// チャットの状態(タイトル等)を変更
-bool chat_data::change_status(struct map_session_data &sd, unsigned short limit, unsigned char pub, const char* pass,const char* title)
+bool chat_data::change_status(map_session_data &sd, unsigned short limit, unsigned char pub, const char* pass,const char* title)
 {
 	if( sd.chat==this && &sd==this->owner )
 	{
@@ -238,7 +237,7 @@ bool chat_data::change_status(struct map_session_data &sd, unsigned short limit,
 
 ///////////////////////////////////////////////////////////////////////////////
 /// npcチャットルーム作成
-bool npcchat_data::create(struct npc_data &nd, unsigned short limit, unsigned char pub, int trigger, const char* title, const char *ev)
+bool npcchat_data::create(npcscript_data &nd, unsigned short limit, unsigned char pub, int trigger, const char* title, const char *ev)
 {
 	npcchat_data *cd = new npcchat_data();
 	cd->block_list::id = map_addobject(*cd);
@@ -263,7 +262,6 @@ bool npcchat_data::create(struct npc_data &nd, unsigned short limit, unsigned ch
 		cd->block_list::m = nd.block_list::m;
 		cd->block_list::x = nd.block_list::x;
 		cd->block_list::y = nd.block_list::y;
-		cd->block_list::type = BL_CHAT;
 		cd->owner = &nd;
 		safestrcpy(cd->npc_event, sizeof(cd->npc_event), ev);
 
@@ -278,7 +276,7 @@ bool npcchat_data::create(struct npc_data &nd, unsigned short limit, unsigned ch
 
 ///////////////////////////////////////////////////////////////////////////////
 /// npcチャットルーム削除
-bool npcchat_data::erase(struct npc_data &nd)
+bool npcchat_data::erase(npcscript_data &nd)
 {
 	if(nd.chat)
 	{

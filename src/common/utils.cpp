@@ -9,36 +9,37 @@
 ///////////////////////////////////////////////////////////////////////////////
 /// dumps an uchar array as hex and ascii.
 /// for 64bit systems, the print does not fit in standard console width (80 chars)
-void dump(unsigned char *buf, size_t sz)
+void dump(const unsigned char *buf, const size_t sz, FILE* file)
 {
 	size_t icnt,jcnt;
-	ShowMessage("         Hex                                                  ASCII\n");
-	ShowMessage("         -----------------------------------------------      ----------------");
+	if(!file) file = stdout;
+	fprintf(file, "         Hex                                                  ASCII\n");
+	fprintf(file, "         -----------------------------------------------      ----------------");
 	for(icnt=0; icnt<sz; icnt+=16)
 	{
-		ShowMessage("\n%p ", &buf[icnt]);
+		fprintf(file, "\n%p ", &buf[icnt]);
 		for (jcnt=icnt; jcnt<icnt+16; ++jcnt)
 		{
 			if (jcnt < sz)
-				ShowMessage("%02hX ", buf[jcnt]);
+				fprintf(file, "%02hX ", buf[jcnt]);
 			else
-				ShowMessage("   ");
+				fprintf(file, "   ");
 		}
-		ShowMessage("  |  ");
+		fprintf(file, "  |  ");
 		for (jcnt=icnt;jcnt<icnt+16;++jcnt)
 		{
 			if (jcnt < sz)
 			{
 				if(buf[jcnt] > 31 && buf[jcnt] < 127)
-					ShowMessage("%c", buf[jcnt]);
+					fprintf(file, "%c", buf[jcnt]);
 				else
-					ShowMessage(".");
+					fprintf(file, ".");
 			}
 			else
-				ShowMessage(" ");
+				fprintf(file, " ");
 		}
 	}
-	ShowMessage("\n");
+	fprintf(file, "\n\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////

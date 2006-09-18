@@ -8,8 +8,14 @@
 #include "baseparam.h"
 
 ///////////////////////////////////////////////////////////////////////////////
+/// predeclaration
+struct map_session_data;
+
+
+///////////////////////////////////////////////////////////////////////////////
 /// function proto
-typedef bool (*command_function)(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param);
+typedef bool (*command_function)(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param);
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// stores command entries
@@ -28,7 +34,7 @@ struct CommandInfo
 	/// converts name or id to sd.
 	static map_session_data *param2sd(const char* str);
 	/// checks and executes a command.
-	static bool is_command(int fd, struct map_session_data &sd, const char* message, unsigned char gmlvl_override=0);
+	static bool is_command(int fd, map_session_data &sd, const char* message, unsigned char gmlvl_override=0);
 	/// returns command requirement level.
 	static unsigned char get_level(command_function func);
 	/// returns command info by command name.
@@ -42,19 +48,19 @@ struct CommandInfo
 
 
 // externally used commands
-bool command_item(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param);
-bool command_mapmove(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param);
-bool command_spawn(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param);
-bool command_jumpto(int fd, struct map_session_data &sd, const char* command, const basics::CParameterList& param);
-bool command_recall(int fd, struct map_session_data &sd, const char* command, const basics::CParameterList& param);
-bool command_kickall(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param);
-bool command_hide(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param);
-bool command_mute(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param);
-bool command_kick(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param);
-bool command_broadcast(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param);
-bool command_localbroadcast(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param);
-bool command_statusreset(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param);
-bool command_skillreset(int fd, struct map_session_data& sd, const char* command, const basics::CParameterList& param);
+bool command_item(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param);
+bool command_mapmove(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param);
+bool command_spawn(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param);
+bool command_jumpto(int fd, map_session_data &sd, const char* command, const basics::CParameterList& param);
+bool command_recall(int fd, map_session_data &sd, const char* command, const basics::CParameterList& param);
+bool command_kickall(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param);
+bool command_hide(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param);
+bool command_mute(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param);
+bool command_kick(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param);
+bool command_broadcast(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param);
+bool command_localbroadcast(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param);
+bool command_statusreset(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param);
+bool command_skillreset(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param);
 
 
 

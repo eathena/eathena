@@ -564,15 +564,17 @@ typedef int bool;
 
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Problems with member template keyword
+/// Problems with member template keyword and rebind
 ////////////////////////////////////////////////////////////////////////////////
-#if (__GNUC__ < 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ < 4))
+#if defined(__GNUC__) && ((__GNUC__ < 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ < 4)))
  // gcc versions before 3.4.0
  #define NO_MEMBER_TEMPLATE_KEYWORD
-#elif (_MSC_VER < 1300) || defined (UNDER_CE)
+#elif defined(_MSC_VER) && (_MSC_VER < 1300) || defined (UNDER_CE)
  // including MSVC 6.0
  #define NO_MEMBER_TEMPLATE_KEYWORD
-#elif (__SUNPRO_CC < 0x510) || (defined (__SUNPRO_CC_COMPAT) && (__SUNPRO_CC_COMPAT < 5))
+ #define DONT_SUPPORT_REBIND
+ #define HAS_BAD_TEMPLATES
+#elif (defined(__SUNPRO_CC) && (__SUNPRO_CC < 0x510)) || (defined (__SUNPRO_CC_COMPAT) && (__SUNPRO_CC_COMPAT < 5))
  #define NO_MEMBER_TEMPLATE_KEYWORD
 #endif
 
@@ -593,16 +595,9 @@ typedef int bool;
 #endif
 
 
-
-//////////////////////////////////////////////////////////////////////////
-// template behaviour on microsoft visual c++ is weird
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-#define HAS_BAD_TEMPLATES
-#endif
-
 //////////////////////////////////////////////////////////////////////////
 // 
-#if defined(_MSC_VER) && _MSC_VER < 1200
+#if defined(_MSC_VER) && (_MSC_VER < 1200)
  // before VC++ 6.0
  #define TEMPLATES_QUALIFIED_SPECIALIZATION_BUG
 #endif

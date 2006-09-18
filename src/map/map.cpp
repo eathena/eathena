@@ -123,10 +123,9 @@ public:
 	virtual ~CNameStorageBase()
 	{}
 
-	virtual bool	is_resolved()	{ return false; }
-
-	CNameRequest*	get_request()	{ return NULL; }
-	CNameStorage*	get_storage()	{ return NULL; }
+	virtual bool			is_resolved()	{ return false; }
+	virtual CNameRequest*	get_request()	{ return NULL; }
+	virtual CNameStorage*	get_storage()	{ return NULL; }
 };
 
 /// request element.
@@ -147,7 +146,7 @@ public:
 			delete next;
 	}
 
-	CNameRequest*	get_request()	{ return this; }
+	virtual CNameRequest*	get_request()	{ return this; }
 };
 
 /// name storage element.
@@ -163,8 +162,8 @@ public:
 	virtual ~CNameStorage()
 	{}
 
-	virtual bool	is_resolved()	{ return true; }
-	CNameStorage*	get_storage()	{ return this; }
+	virtual bool			is_resolved()	{ return true; }
+	virtual CNameStorage*	get_storage()	{ return this; }
 };
 
 
@@ -183,7 +182,7 @@ static struct _namereq_db
 
 	static void final(void *k,void *d)
 	{
-		struct CNameStorageBase *p = (struct CNameStorageBase *) d;
+		CNameStorageBase *p = (CNameStorageBase *) d;
 		if (p) delete p;
 	}
 
@@ -248,7 +247,7 @@ bool map_req_namedb(const map_session_data &sd, uint32 charid)
 	}
 	else if( !p->is_resolved() )
 	{	// has been requested but not yet resolved
-		CNameRequest*	pp = p->get_request();
+		CNameRequest* pp = p->get_request();
 		if(pp)
 		{
 			const size_t rid =sd.status.char_id;
@@ -258,7 +257,7 @@ bool map_req_namedb(const map_session_data &sd, uint32 charid)
 	}
 	else
 	{	// resolved entry exists
-		CNameStorage*ps = p->get_storage();
+		CNameStorage* ps = p->get_storage();
 		if(ps)
 		{
 			clif_solved_charname(sd, charid, ps->name);
@@ -271,7 +270,7 @@ bool map_req_namedb(const map_session_data &sd, uint32 charid)
 ///////////////////////////////////////////////////////////////////////////////
 /// resolve a name.
 /// request answer from char server or 
-/// or called from player entering map server
+/// called from player entering map server
 void map_add_namedb(uint32 charid, const char *name)
 {
 	CNameStorageBase *p = namereq_db.search(charid);
@@ -285,7 +284,7 @@ void map_add_namedb(uint32 charid, const char *name)
 		CNameRequest*	pp = p->get_request();
 		while(pp)
 		{
-			struct map_session_data *sd = map_session_data::charid2sd(pp->req_id);
+			map_session_data *sd = map_session_data::charid2sd(pp->req_id);
 			if(sd)
 				clif_solved_charname(*sd, charid, name);
 
@@ -358,11 +357,13 @@ int map_daynight_timer(int tid, unsigned long tick, int id, basics::numptr data)
 		// set clients and send messages
 		const char *str = msg_txt((daynight_flag)?MSG_NIGHT_HAS_FALLEN:MSG_DAY_HAS_ARRIVED);
 		size_t sz = 1+strlen(str);
-		struct map_session_data *psd = NULL;
-		size_t i;
-		for(i=0; i<fd_max; ++i)
+		map_session_data *psd = NULL;
+
+		map_session_data::iterator iter(map_session_data::nickdb());
+		for(; iter; ++iter)
 		{
-			if(session[i] && (psd = (struct map_session_data *)session[i]->user_session) && psd->state.auth)
+			psd = iter.data();
+			if(psd)
 			{
 				clif_wis_message(psd->fd, wisp_server_name, str, sz);
 
@@ -417,10 +418,12 @@ dbt* block_list::id_db=NULL;
 static block_list *objects[MAX_FLOORITEM];
 static int first_free_object_id=0,last_object_id=0;
 
+/// !! rewrite, not threadsafe
 #define block_free_max 1048576
 static block_list *block_free[block_free_max];
 static int block_free_count = 0, block_free_lock = 0;
 
+/// !! remove, highly insecure/not threadsafe
 #define BL_LIST_MAX 1048576
 static block_list *bl_list[BL_LIST_MAX];
 static int bl_list_count = 0;
@@ -440,13 +443,9 @@ block_list * block_list::from_blid(uint32 id)
 
 
 
-
-
-
-
 ///////////////////////////////////////////////////////////////////////////////
 /// process blocks standing on a path.
-int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int range,int type)
+int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int range,object_t type)
 {
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
 /*
@@ -855,7 +854,7 @@ int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0
 						bl = maps[m].objects[bx+by*maps[m].bxs].root_blk;	// a block with the elements
 						for(i=0;i<c1 && bl;++i,bl=bl->next)
 						{	// go through all elements
-							if( bl && ( !type || bl->type==type ) && bl_list_count<BL_LIST_MAX )
+							if( bl && bl->is_type(type) && bl_list_count<BL_LIST_MAX )
 							{	// check if block xy is on the line
 								for(k=0; k<save_cnt; ++k)
 								{
@@ -922,7 +921,7 @@ int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0
 }
 ///////////////////////////////////////////////////////////////////////////////
 /// process blocks standing on a exact position.
-int block_list::foreachincell(const CMapProcessor& elem, unsigned short m,int x,int y,int type)
+int block_list::foreachincell(const CMapProcessor& elem, unsigned short m,int x,int y,object_t type)
 {
 	int bx,by;
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
@@ -939,9 +938,9 @@ int block_list::foreachincell(const CMapProcessor& elem, unsigned short m,int x,
 		c = maps[m].objects[bx+by*maps[m].bxs].cnt_blk;
 		for(i=0;i<c && bl;i++,bl=bl->next)
 		{
-			if(type && bl && bl->type!=type)
+			if( bl && !bl->is_type(type) )
 				continue;
-			if(bl && bl->x==x && bl->y==y && bl_list_count<BL_LIST_MAX)
+			if( bl && bl->x==x && bl->y==y && bl_list_count<BL_LIST_MAX )
 				bl_list[bl_list_count++]=bl;
 		}
 	}
@@ -971,10 +970,50 @@ int block_list::foreachincell(const CMapProcessor& elem, unsigned short m,int x,
 	bl_list_count = blockcount;
 	return returnCount;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// count blocks standing on a exact position.
+int block_list::countoncell(unsigned short m, int x, int y, object_t type)
+{
+	int bx,by;
+	block_list *bl=NULL;
+	int i,c;
+	int count = 0;
+
+	if (x < 0 || y < 0 || (x >= maps[m].xs) || (y >= maps[m].ys))
+		return 0;
+	block_list::freeblock_lock();
+
+	bx = x/BLOCK_SIZE;
+	by = y/BLOCK_SIZE;
+
+	if( type == BL_ALL || type != BL_MOB )
+	{
+		bl = maps[m].objects[bx+by*maps[m].bxs].root_blk;
+		c = maps[m].objects[bx+by*maps[m].bxs].cnt_blk;
+		for(i=0;i<c && bl;i++,bl=bl->next)
+		{
+			if( bl->x == x && bl->y == y && *bl == BL_PC )
+				++count;
+		}
+	}
+	if( type == BL_ALL || type == BL_MOB )
+	{
+		bl = maps[m].objects[bx+by*maps[m].bxs].root_mob;
+		c = maps[m].objects[bx+by*maps[m].bxs].cnt_mob;
+		for(i=0;i<c && bl;i++,bl=bl->next)
+		{
+			if( bl->x == x && bl->y == y )
+				++count;
+		}
+	}
+	block_list::freeblock_unlock();
+	return count;
+}
 ///////////////////////////////////////////////////////////////////////////////
 /// process blocks standing inside a move area.
 /// (move area is the difference cut between the source and target area
-int block_list::foreachinmovearea(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type)
+int block_list::foreachinmovearea(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,object_t type)
 {
 	int bx,by;
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
@@ -984,7 +1023,8 @@ int block_list::foreachinmovearea(const CMapProcessor& elem, unsigned short m,in
 
 	if(x0>x1) basics::swap(x0,x1);
 	if(y0>y1) basics::swap(y0,y1);
-	if(dx==0 || dy==0){
+	if(dx==0 || dy==0)
+	{
 		// 矩形領域の場合
 		if(dx==0){
 			if(dy<0){
@@ -1011,23 +1051,25 @@ int block_list::foreachinmovearea(const CMapProcessor& elem, unsigned short m,in
 				c  = maps[m].objects[bx+by*maps[m].bxs].cnt_blk;
 				for(i=0;i<c && bl;i++,bl=bl->next)
 				{
-					if(bl && type && bl->type!=type)
+					if(bl && !bl->is_type(type) )
 						continue;
 					if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
 						bl_list[bl_list_count++]=bl;
 				}
 				bl = maps[m].objects[bx+by*maps[m].bxs].root_mob;
 				c  = maps[m].objects[bx+by*maps[m].bxs].cnt_mob;
-				for(i=0;i<c && bl;i++,bl=bl->next){
-					if(bl && type && bl->type!=type)
+				for(i=0;i<c && bl;i++,bl=bl->next)
+				{
+					if(bl && !bl->is_type(type) )
 						continue;
 					if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
 						bl_list[bl_list_count++]=bl;
 				}
 			}
 		}
-	}else{
-		// L字領域の場合
+	}
+	else
+	{	// L字領域の場合
 
 		if(x0<0) x0=0;
 		if(y0<0) y0=0;
@@ -1040,7 +1082,7 @@ int block_list::foreachinmovearea(const CMapProcessor& elem, unsigned short m,in
 			c  = maps[m].objects[bx+by*maps[m].bxs].cnt_blk;
 			for(i=0;i<c && bl;i++,bl=bl->next)
 			{
-				if(bl && type && bl->type!=type)
+				if( bl && !bl->is_type(type) )
 					continue;
 				if((bl) && !(bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1))
 					continue;
@@ -1051,8 +1093,9 @@ int block_list::foreachinmovearea(const CMapProcessor& elem, unsigned short m,in
 			}
 			bl = maps[m].objects[bx+by*maps[m].bxs].root_mob;
 			c  = maps[m].objects[bx+by*maps[m].bxs].cnt_mob;
-			for(i=0;i<c && bl;i++,bl=bl->next){
-				if(bl && type && bl->type!=type)
+			for(i=0;i<c && bl;i++,bl=bl->next)
+			{
+				if( bl && !bl->is_type(type) )
 					continue;
 				if((bl) && !(bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1))
 					continue;
@@ -1064,7 +1107,8 @@ int block_list::foreachinmovearea(const CMapProcessor& elem, unsigned short m,in
 		}
 	}
 
-	if(bl_list_count>=BL_LIST_MAX) {
+	if(bl_list_count>=BL_LIST_MAX)
+	{
 		if(config.error_log)
 			ShowMessage("map_foreachinarea: *WARNING* block count too many!\n");
 	}
@@ -1073,7 +1117,9 @@ int block_list::foreachinmovearea(const CMapProcessor& elem, unsigned short m,in
 	{
 		if(bl_list[i] && bl_list[i]->prev)
 		{	// 有?かどうかチェック
-			if( bl_list[i]->type == BL_PC && session[((struct map_session_data *) bl_list[i])->fd] == NULL )
+
+			map_session_data *sd = bl_list[i]->get_sd();
+			if( sd && !session_isActive(sd->fd) )
 				continue;
 
 			returnCount += elem.process(*bl_list[i]);
@@ -1085,7 +1131,7 @@ int block_list::foreachinmovearea(const CMapProcessor& elem, unsigned short m,in
 }
 ///////////////////////////////////////////////////////////////////////////////
 /// process blocks standing inside an area.
-int block_list::foreachinarea(const CMapProcessor& elem, unsigned short m, int x0,int y0,int x1,int y1,int type)
+int block_list::foreachinarea(const CMapProcessor& elem, unsigned short m, int x0,int y0,int x1,int y1,object_t type)
 {
 	int bx,by;
 	int returnCount =0;	//total sum of returned values of func() [Skotlex]
@@ -1104,6 +1150,7 @@ int block_list::foreachinarea(const CMapProcessor& elem, unsigned short m, int x
 	if (x1 >= maps[m].xs) x1 = maps[m].xs-1;
 	if (y1 >= maps[m].ys) y1 = maps[m].ys-1;
 	if (type == 0 || type != BL_MOB)
+	{
 		for(by = y0/BLOCK_SIZE; by <= y1/BLOCK_SIZE; ++by)
 		for(bx = x0/BLOCK_SIZE; bx <= x1/BLOCK_SIZE; ++bx)
 		{
@@ -1111,13 +1158,15 @@ int block_list::foreachinarea(const CMapProcessor& elem, unsigned short m, int x
 			c  = maps[m].objects[bx+by*maps[m].bxs].cnt_blk;
 			for(i=0;i<c && bl;i++,bl=bl->next)
 			{
-				if(bl && type && bl->type!=type)
+				if(bl && !bl->is_type(type) )
 					continue;
 				if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
 					bl_list[bl_list_count++]=bl;
 			}
 		}
+	}
 	if(type==0 || type==BL_MOB)
+	{
 		for(by = y0/BLOCK_SIZE; by <= y1/BLOCK_SIZE; ++by)
 		for(bx = x0/BLOCK_SIZE; bx <= x1/BLOCK_SIZE; ++bx)
 		{
@@ -1129,8 +1178,10 @@ int block_list::foreachinarea(const CMapProcessor& elem, unsigned short m, int x
 					bl_list[bl_list_count++]=bl;
 			}
 		}
+	}
 
-	if(bl_list_count>=BL_LIST_MAX) {
+	if(bl_list_count>=BL_LIST_MAX)
+	{
 		if(config.error_log)
 			ShowMessage("map_foreachinarea: *WARNING* block count too many!\n");
 	}
@@ -1147,7 +1198,7 @@ int block_list::foreachinarea(const CMapProcessor& elem, unsigned short m, int x
 }
 ///////////////////////////////////////////////////////////////////////////////
 /// process party members on same map.
-int block_list::foreachpartymemberonmap(const CMapProcessor& elem, struct map_session_data &sd, int type)
+int block_list::foreachpartymemberonmap(const CMapProcessor& elem, map_session_data &sd, bool area)
 {
 	int returncount=0;
 	struct party *p;
@@ -1171,7 +1222,7 @@ int block_list::foreachpartymemberonmap(const CMapProcessor& elem, struct map_se
 		{
 			if(sd.block_list::m != m->sd->block_list::m)
 				continue;
-			if(type!=0 &&
+			if(area &&
 				(m->sd->block_list::x<x0 || m->sd->block_list::y<y0 ||
 				 m->sd->block_list::x>x1 || m->sd->block_list::y>y1 ) )
 				continue;
@@ -1191,7 +1242,7 @@ int block_list::foreachpartymemberonmap(const CMapProcessor& elem, struct map_se
 }
 ///////////////////////////////////////////////////////////////////////////////
 /// process objects.
-int block_list::foreachobject(const CMapProcessor& elem,int type)
+int block_list::foreachobject(const CMapProcessor& elem, object_t type)
 {
 	int returncount=0;
 	int i;
@@ -1202,7 +1253,7 @@ int block_list::foreachobject(const CMapProcessor& elem,int type)
 	{
 		if(objects[i])
 		{
-			if(type && objects[i]->type!=type)
+			if( !objects[i]->is_type(type) )
 				continue;
 			if(bl_list_count>=BL_LIST_MAX)
 			{
@@ -1227,6 +1278,59 @@ int block_list::foreachobject(const CMapProcessor& elem,int type)
 	bl_list_count = blockcount;
 	return returncount;
 }
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// get a skillunit on a specific cell.
+skill_unit *block_list::skillunit_oncell(block_list &target, int x, int y, ushort skill_id, skill_unit *out_unit)
+{
+	int m,bx,by;
+	block_list *bl;
+	int i,c;
+	struct skill_unit *unit, *ret=NULL;
+	m = target.m;
+
+	if (x < 0 || y < 0 || (x >= maps[m].xs) || (y >= maps[m].ys))
+		return NULL;
+	block_list::freeblock_lock();
+
+	bx = x/BLOCK_SIZE;
+	by = y/BLOCK_SIZE;
+
+	bl = maps[m].objects[bx+by*maps[m].bxs].root_blk;
+	c = maps[m].objects[bx+by*maps[m].bxs].cnt_blk;
+	for(i=0;i<c && bl;i++,bl=bl->next)
+	{
+		if (bl->x != x || bl->y != y || *bl != BL_SKILL)
+			continue;
+		unit = (struct skill_unit *) bl;
+		if (unit==out_unit || !unit->alive ||
+				!unit->group || unit->group->skill_id!=skill_id)
+			continue;
+		if (battle_check_target(unit,&target,unit->group->target_flag)>0)
+		{
+			ret = unit;
+			break;
+		}
+	}
+	block_list::freeblock_unlock();
+	return ret;
+}
+
+
+/// check if withing AREA range.
+bool block_list::is_near(const block_list& bl) const
+{
+	return ( this->is_on_map() && bl.is_on_map() &&
+			 this->m == bl.m &&
+			 this->x+AREA_SIZE > bl.x &&
+			 this->x           < bl.x+AREA_SIZE &&
+			 this->y+AREA_SIZE > bl.y && 
+			 this->y           < bl.y+AREA_SIZE );
+}
+
+
+
 
 
 
@@ -1272,7 +1376,7 @@ bool block_list::addblock()
 		const size_t pos = this->x/BLOCK_SIZE+(this->y/BLOCK_SIZE)*maps[this->m].bxs;
 		map_data::_objects &obj = maps[this->m].objects[pos];
 
-		if( this->type == BL_MOB )
+		if( this->is_type(BL_MOB) )
 		{
 			this->next = obj.root_mob;
 			this->prev = &bl_head;
@@ -1288,9 +1392,9 @@ bool block_list::addblock()
 			obj.root_blk = this;
 			++obj.cnt_blk;
 
-			if( this->type == BL_PC )
+			if( this->is_type(BL_PC) )
 			{
-				struct map_session_data& sd = (struct map_session_data&)(*this);
+				map_session_data& sd = *this->get_sd();
 				if( agit_flag && config.pet_no_gvg && maps[this->m].flag.gvg && sd.pd)
 				{	//Return the pet to egg. [Skotlex]
 					clif_displaymessage(sd.fd, "Pets are not allowed in Guild Wars.");
@@ -1317,7 +1421,7 @@ bool block_list::delblock()
 		if(this->next!=NULL)
 		{	// prevがNULLでnextがNULLでないのは有ってはならない
 			if(config.error_log)
-				ShowError("map_delblock error : bl->next!=NULL, (type=%i)\n", this->type);
+				ShowError("map_delblock error : bl->next!=NULL\n");
 		}
 	}
 	else if( this->m < map_num )
@@ -1325,13 +1429,13 @@ bool block_list::delblock()
 		const size_t pos = this->x/BLOCK_SIZE+(this->y/BLOCK_SIZE)*maps[this->m].bxs;
 		map_data::_objects &obj = maps[this->m].objects[pos];
 
-		if( this->type == BL_PC )
+		if( this->is_type(BL_PC) )
 		{
 			if( maps[this->m].users>0 && --maps[this->m].users == 0 && config.dynamic_mobs)
 				map_removemobs(this->m);
 		}
-
-		if(this->type==BL_MOB)
+		
+		if( this->is_type(BL_MOB) )
 		{
 			if( obj.cnt_mob > 0 )
 				--obj.cnt_mob;
@@ -1347,7 +1451,7 @@ bool block_list::delblock()
 
 		if( this->prev == &bl_head )
 		{	// head entry
-			if(this->type==BL_MOB)
+			if( this->is_type(BL_MOB) )
 				obj.root_mob = this->next;
 			else
 				obj.root_blk = this->next;
@@ -1442,84 +1546,7 @@ int map_freeblock_timer (int tid, unsigned long tick, int id, basics::numptr dat
 
 
 
-/*==========================================
- * セル上のPCとMOBの?を?える (グランドクロス用)
- *------------------------------------------
- */
-int map_count_oncell(unsigned short m, int x, int y, int type)
-{
-	int bx,by;
-	block_list *bl=NULL;
-	int i,c;
-	int count = 0;
 
-	if (x < 0 || y < 0 || (x >= maps[m].xs) || (y >= maps[m].ys))
-		return 0;
-	block_list::freeblock_lock();
-
-	bx = x/BLOCK_SIZE;
-	by = y/BLOCK_SIZE;
-
-	if (type == 0 || type != BL_MOB)
-	{
-		bl = maps[m].objects[bx+by*maps[m].bxs].root_blk;
-		c = maps[m].objects[bx+by*maps[m].bxs].cnt_blk;
-		for(i=0;i<c && bl;i++,bl=bl->next)
-		{
-			if( bl->x == x && bl->y == y && bl->type == BL_PC )
-				count++;
-		}
-	}
-	if (type == 0 || type == BL_MOB)
-	{
-		bl = maps[m].objects[bx+by*maps[m].bxs].root_mob;
-		c = maps[m].objects[bx+by*maps[m].bxs].cnt_mob;
-		for(i=0;i<c && bl;i++,bl=bl->next)
-		{
-			if( bl->x == x && bl->y == y )
-				count++;
-		}
-	}
-	block_list::freeblock_unlock();
-	return count;
-}
-/*
- * ｫｻｫ・ｾｪﾎｪﾋﾌｸｪﾄｪｱｪｿｫｹｫｭｫ・讚ﾋｫﾃｫﾈｪｹ
- */
-struct skill_unit *map_find_skill_unit_oncell(block_list &target,int x,int y,unsigned short skill_id,struct skill_unit *out_unit)
-{
-	int m,bx,by;
-	block_list *bl;
-	int i,c;
-	struct skill_unit *unit, *ret=NULL;
-	m = target.m;
-
-	if (x < 0 || y < 0 || (x >= maps[m].xs) || (y >= maps[m].ys))
-		return NULL;
-	block_list::freeblock_lock();
-
-	bx = x/BLOCK_SIZE;
-	by = y/BLOCK_SIZE;
-
-	bl = maps[m].objects[bx+by*maps[m].bxs].root_blk;
-	c = maps[m].objects[bx+by*maps[m].bxs].cnt_blk;
-	for(i=0;i<c && bl;i++,bl=bl->next)
-	{
-		if (bl->x != x || bl->y != y || bl->type != BL_SKILL)
-			continue;
-		unit = (struct skill_unit *) bl;
-		if (unit==out_unit || !unit->alive ||
-				!unit->group || unit->group->skill_id!=skill_id)
-			continue;
-		if (battle_check_target(unit,&target,unit->group->target_flag)>0)
-		{
-			ret = unit;
-			break;
-		}
-	}
-	block_list::freeblock_unlock();
-	return ret;
-}
 
 
 
@@ -1596,6 +1623,8 @@ int map_delobject(int id)
 	return 0;
 }
 
+
+
 /*==========================================
  * 床アイテムを消す
  *
@@ -1607,8 +1636,9 @@ int map_delobject(int id)
  */
 int map_clearflooritem_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	flooritem_data *fitem = (flooritem_data *)objects[id];
-	if(fitem==NULL || fitem->block_list::type!=BL_ITEM || (!data.num && fitem->cleartimer != tid)){
+	flooritem_data *fitem = (objects[id]) ? objects[id]->get_fd() : NULL;
+	if( fitem==NULL || (!data.num && fitem->cleartimer != tid))
+	{
 		if(config.error_log)
 			ShowMessage("map_clearflooritem_timer : error\n");
 		return 1;
@@ -1650,13 +1680,19 @@ int map_searchrandfreecell(unsigned short m, unsigned short x, unsigned short y,
 				continue;
 			if(map_getcell(m,j+x,i+y,CELL_CHKNOPASS))
 				continue;
-			if(map_count_oncell(m,j+x,i+y, BL_ITEM) > 1)
+			if(block_list::countoncell(m,j+x,i+y, BL_ITEM) > 1)
 				continue;
 			free_cells[free_cell++] = j+x+((i+y)<<16);
 		}
 	}
 	free_cell = (free_cell==0)?-1:(int)free_cells[rand()%free_cell];
 	DELETE_BUFFER(free_cells);
+
+
+
+
+
+
 	return free_cell;
 }
 
@@ -1666,8 +1702,8 @@ int map_searchrandfreecell(unsigned short m, unsigned short x, unsigned short y,
  * item_dataはamount以外をcopyする
  *------------------------------------------
  */
-int map_addflooritem(struct item &item_data,unsigned short amount,unsigned short m,unsigned short x,unsigned short y,
-					 struct map_session_data *first_sd,struct map_session_data *second_sd,struct map_session_data *third_sd,int type)
+int map_addflooritem(const struct item &item_data,unsigned short amount,unsigned short m,unsigned short x,unsigned short y,
+					 map_session_data *first_sd,map_session_data *second_sd,map_session_data *third_sd,int type)
 {
 	int xy,r;
 	unsigned long tick;
@@ -1678,8 +1714,6 @@ int map_addflooritem(struct item &item_data,unsigned short amount,unsigned short
 	r=rand();
 
 	fitem = new flooritem_data;
-	fitem->block_list::type=BL_ITEM;
-	fitem->block_list::prev = fitem->block_list::next = NULL;
 	fitem->block_list::m=m;
 	fitem->block_list::x= xy&0xffff;
 	fitem->block_list::y=(xy>>16)&0xffff;
@@ -1719,7 +1753,7 @@ int map_addflooritem(struct item &item_data,unsigned short amount,unsigned short
 			fitem->third_get_tick = tick + config.item_first_get_time + config.item_second_get_time + config.item_third_get_time;
 	}
 
-	memcpy(&fitem->item_data,&item_data,sizeof(struct item));
+	fitem->item_data = item_data;
 	fitem->item_data.amount=amount;
 	fitem->subx=(r&3)*3+3;
 	fitem->suby=((r>>2)&3)*3+3;
@@ -1742,16 +1776,16 @@ int map_addflooritem(struct item &item_data,unsigned short amount,unsigned short
  * quit?理の主?が違うような?もしてきた
  *------------------------------------------
  */
-int map_quit(struct map_session_data &sd) 
+int map_quit(map_session_data &sd) 
 {
 	if( sd.state.event_disconnect )
 	{
 		if( script_config.event_script_type == 0 )
 		{
-			struct npc_data *npc = npc_name2id(script_config.logout_event_name);
-			if( npc && npc->u.scr.ref && (npc->block_list::m==0xFFFF || npc->block_list::m==sd.block_list::m) )
+			npcscript_data *sc = npcscript_data::from_name(script_config.logout_event_name);
+			if( sc && sc->ref && (sc->block_list::m==0xFFFF || sc->block_list::m==sd.block_list::m) )
 			{
-				CScriptEngine::run(npc->u.scr.ref->script,0,sd.block_list::id,npc->block_list::id); // PCLogoutNPC
+				CScriptEngine::run(sc->ref->script,0,sd.block_list::id,sc->block_list::id); // PCLogoutNPC
 				ShowStatus ("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.logout_event_name);
 			}
 		}
@@ -1865,7 +1899,7 @@ int map_quit(struct map_session_data &sd)
  * map.npcへ追加 (warp等の領域持ちのみ)
  *------------------------------------------
  */
-int map_addnpc(unsigned short m, struct npc_data *nd)
+int map_addnpc(unsigned short m, npc_data *nd)
 {
 	size_t i;
 	if(m>=map_num)
@@ -1949,37 +1983,7 @@ void map_spawnmobs(unsigned short m)
 	if (config.etc_log && k > 0)
 		ShowStatus("Map %s: Spawned '"CL_WHITE"%d"CL_RESET"' mobs.\n",maps[m].mapname, k);
 }
-/*
-int mob_cache_cleanup_sub(block_list &bl, va_list &ap)
-{
-	struct mob_data &md = (struct mob_data &)bl;
-	
-	if( bl.type!= BL_MOB )
-		return 0;
 
-	//When not to remove:
-	//1: Mob is not from a cache
-	//2: Mob is damaged 
-
-	// not cached, delayed or already on delete schedule
-	if( !md.cache || md.cache->delay1 || md.cache->delay2 || md.deletetimer != -1)
-		return 0;
-	
-	// hurt enemies	
-	if ( (md.hp != md.max_hp) && !config.mob_remove_damaged )
-		return 0;
-
-	// cleaning a master will also clean its slaves
-	if( md.state.is_master )
-		mob_deleteslave(md);
-
-	// check the mob into the cache
-	md.cache->num++;
-	// and unload it
-	mob_unload(md);	
-	return 1;
-}
-*/
 class CMapMobCacheCleanup : public CMapProcessor
 {
 public:
@@ -1987,24 +1991,24 @@ public:
 	~CMapMobCacheCleanup()	{}
 	virtual int process(block_list& bl) const
 	{
-		struct mob_data &md = (struct mob_data &)bl;
-		//When not to remove:
-		//1: Mob is not from a cache
-		//2: Mob is damaged 
+		// When not to remove:
+		//  1: Mob is not from a cache
+		//  2: Mob is damaged 
 
-		if( bl.type==BL_MOB &&
+		struct mob_data *md = bl.get_md();
+		if( md &&
 			// cached, not delayed and not already on delete schedule
-			(md.cache && !md.cache->delay1 && !md.cache->delay2 && -1==md.deletetimer) &&
+			(md->cache && !md->cache->delay1 && !md->cache->delay2 && -1==md->deletetimer) &&
 			// unhurt enemies	
-			(config.mob_remove_damaged || (md.hp == md.max_hp)) )
+			(config.mob_remove_damaged || (md->hp == md->max_hp)) )
 		{
 			// cleaning a master will also clean its slaves
-			if( md.state.is_master )
-				mob_deleteslave(md);
+			if( md->state.is_master )
+				mob_deleteslave(*md);
 			// check the mob into the cache
-			md.cache->num++;
+			md->cache->num++;
 			// and unload it
-			mob_unload(md);	
+			mob_unload(*md);	
 			return 1;
 		}
 		return 0;
@@ -3127,7 +3131,7 @@ int parse_console(const char *buf)
 	char type[64], command[64],map[64], buf2[128];
 	int x = 0, y = 0;
 	int m, n;
-	static struct map_session_data sd(0,0,0,0,0,0,0,0);
+	static map_session_data sd(0,0,0,0,0,0,0,0);
 	sd.fd = 0;
 
 	safestrcpy(sd.status.name, sizeof(sd.status.name), "console");
@@ -3318,29 +3322,10 @@ int map_config_read(const char *cfgName)
 	return 0;
 }
 
-void char_online_check(void)
-{
-	size_t i;
-	struct map_session_data *sd;
-
-	chrif_char_reset_offline();
-
-	for(i=0;i<fd_max;++i)
-	{
-		if( session[i] &&
-			(sd = (struct map_session_data*)session[i]->user_session) && 
-			sd->state.auth &&
-			!(config.hide_GM_session && sd->isGM()) &&
-			sd->status.char_id)
-		{
-			chrif_char_online(*sd);
-		}
-	}
-}
 
 int online_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	char_online_check();
+	chrif_char_online_check();
 	return 0;
 }
 
@@ -3354,29 +3339,20 @@ public:
 	~CMapCleanup()	{}
 	virtual int process(block_list& bl) const
 	{
-		switch(bl.type)
-		{
-			case BL_PC:
-				map_quit( (struct map_session_data &)bl );
-				break;
-			case BL_NPC:
-				npc_unload( (struct npc_data *)&bl );
-				break;
-			case BL_MOB:
-				mob_unload( (struct mob_data &)bl);
-				break;
-			case BL_PET:
-				pet_remove_map( (struct map_session_data &)bl );
-				break;
-			case BL_ITEM:
-				map_clearflooritem(bl.id);
-				break;
-			case BL_SKILL:
-				skill_delunit( (struct skill_unit *)&bl);
-				break;
-			default:
-				ShowError("cleanup_sub unhandled block, type%i\n", bl.type);
-		}
+		if( bl==BL_PC )
+			map_quit( (map_session_data &)bl );
+		else if( bl==BL_NPC )
+			npc_unload( (npc_data *)&bl );
+		else if( bl==BL_MOB )
+			mob_unload( (mob_data &)bl);
+		else if( bl==BL_PET )
+			pet_remove_map( (map_session_data &)bl );
+		else if( bl==BL_ITEM )
+			map_clearflooritem(bl.id);
+		else if( bl==BL_SKILL )
+			skill_delunit( (skill_unit *)&bl);
+		else
+			ShowError("cleanup_sub unhandled block type\n");
 		return 0;
 	}
 };
@@ -3425,7 +3401,7 @@ void do_final(void)
 	for (i = 0; i < map_num; ++i)
 	{
 		if (maps[i].m >= 0)
-			block_list::foreachinarea( CMapCleanup(), i, 0, 0, maps[i].xs-1, maps[i].ys-1, 0);
+			block_list::foreachinarea( CMapCleanup(), i, 0, 0, maps[i].xs-1, maps[i].ys-1, BL_ALL);
 	}
 	// and a check
 	map_checknpcsleft();
@@ -3503,21 +3479,7 @@ void map_helpscreen(int flag)
 	if (flag) exit(1);
 }
 
-/*======================================================
- * Map-Server Version Screen [MC Cameri]
- *------------------------------------------------------
- */
-void map_versionscreen(int flag)
-{
-	ShowMessage(CL_WHITE"eAthena version %d.%02d.%02d, Athena Mod version %d"CL_RESET"\n",
-		ATHENA_MAJOR_VERSION, ATHENA_MINOR_VERSION, ATHENA_REVISION, ATHENA_MOD_VERSION);
-	ShowMessage(CL_BT_GREEN "Website/Forum:" CL_RESET "\thttp://eathena.deltaanime.net/");
-	ShowMessage(CL_BT_GREEN "Download URL:" CL_RESET "\thttp://eathena.systeminplace.net/");
-	ShowMessage(CL_BT_GREEN "IRC Channel:" CL_RESET "\tirc://irc.deltaanime.net/#athena");
-	ShowMessage("\nOpen " CL_WHITE "readme.html" CL_RESET " for more information.");
-	if (ATHENA_RELEASE_FLAG) ShowNotice("This version is not for release.\n");
-	if (flag) exit(1);
-}
+
 
 /*======================================================
  * Map-Server Init and Command-line Arguments [Valaris]
@@ -3539,7 +3501,7 @@ int do_init(int argc, char *argv[])
 		if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "--h") == 0 || strcmp(argv[i], "--?") == 0 || strcmp(argv[i], "/?") == 0)
 			map_helpscreen(1);
 		else if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "--v") == 0 || strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "/v") == 0)
-			map_versionscreen(1);
+			display_version(true);
 		else if (strcmp(argv[i], "--map_config") == 0 || strcmp(argv[i], "--map-config") == 0)
 			MAP_CONF_NAME=argv[++i];
 		else if (strcmp(argv[i],"--config") == 0 || strcmp(argv[i],"--battle-config") == 0)

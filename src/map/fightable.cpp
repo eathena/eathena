@@ -385,7 +385,7 @@ bool fightable::start_attack(const block_list& target_bl, bool cont)
 {
 	if( target_bl.get_nd() && this->get_sd() )
 	{	
-		npc_click(*this->get_sd(), target_bl.block_list::id);
+		npc_data::click(*this->get_sd(), target_bl.block_list::id);
 	}
 	else if( this->get_sd() && battle_check_target(this->get_sd(), &target_bl, BCT_ENEMY) <= 0)
 		return false;
@@ -529,7 +529,7 @@ int unit_skilluse_id2(block_list *src, int target_id, int skill_num, int skill_l
 	struct unit_data *ud;
 	struct status_data *tstatus;
 	struct status_change *sc;
-	struct map_session_data *sd = NULL;
+	map_session_data *sd = NULL;
 	block_list * target = NULL;
 	unsigned int tick = gettick();
 	int temp;
@@ -772,7 +772,7 @@ int unit_skilluse_pos(block_list *src, int skill_x, int skill_y, int skill_num, 
 }
 
 int unit_skilluse_pos2( block_list *src, int skill_x, int skill_y, int skill_num, int skill_lv, int casttime, int castcancel) {
-	struct map_session_data *sd = NULL;
+	map_session_data *sd = NULL;
 	struct unit_data        *ud = NULL;
 	struct status_change *sc;
 	block_list    bl;
@@ -908,7 +908,7 @@ int unit_attack(block_list *src,int target_id,int type)
 	}
 
 	if(src->type == BL_PC && target->type==BL_NPC) { // monster npcs [Valaris]
-		npc_click((TBL_PC*)src,target); // submitted by leinsirk10 [Celest]
+		npc_data::click((TBL_PC*)src,target); // submitted by leinsirk10 [Celest]
 		return 0;
 	}
 
@@ -944,7 +944,7 @@ static int unit_attack_timer_sub(block_list* src, int tid, unsigned int tick)
 	block_list *target;
 	struct unit_data *ud;
 	struct status_data *sstatus;
-	struct map_session_data *sd = NULL;
+	map_session_data *sd = NULL;
 	struct mob_data *md = NULL;
 	int range;
 	
@@ -1065,7 +1065,7 @@ static int unit_attack_timer(int tid,unsigned int tick,int id,int data) {
 
 int unit_skillcastcancel(block_list *bl,int type)
 {
-	struct map_session_data *sd = NULL;
+	map_session_data *sd = NULL;
 	struct unit_data *ud = unit_bl2ud( bl);
 	unsigned int tick=gettick();
 	int ret=0, skill;
@@ -1221,7 +1221,7 @@ int unit_remove_map(block_list *bl, int clrtype)
 	}
 
 	if(bl->type == BL_PC) {
-		struct map_session_data *sd = (struct map_session_data*)bl;
+		map_session_data *sd = (map_session_data*)bl;
 
 		//Leave/reject all invitations.
 		if(sd->chat)
@@ -1264,7 +1264,7 @@ int unit_remove_map(block_list *bl, int clrtype)
 		md->state.skillstate= MSS_IDLE;
 	} else if (bl->type == BL_PET) {
 		struct pet_data *pd = (struct pet_data*)bl;
-		struct map_session_data *sd = pd->msd;
+		map_session_data *sd = pd->msd;
 		
 		if(!sd) {
 			map_delblock(bl);
@@ -1299,7 +1299,7 @@ int unit_free(block_list *bl) {
 		unit_remove_map(bl, bl->type==BL_PC?3:0);
 	
 	if( bl->type == BL_PC ) {
-		struct map_session_data *sd = (struct map_session_data*)bl;
+		map_session_data *sd = (map_session_data*)bl;
 		if(bl->is_dead())
 			pc_setrestartvalue(sd,2);
 
@@ -1340,7 +1340,7 @@ int unit_free(block_list *bl) {
 		pc_clean_skilltree(sd);
 	} else if( bl->type == BL_PET ) {
 		struct pet_data *pd = (struct pet_data*)bl;
-		struct map_session_data *sd = pd->msd;
+		map_session_data *sd = pd->msd;
 		pet_hungry_timer_delete(pd);
 		if (pd->a_skill)
 		{

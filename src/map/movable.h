@@ -61,6 +61,8 @@ public:
 	virtual dir_t get_dir() const			{ return (dir_t)this->bodydir; }
 
 	///////////////////////////////////////////////////////////////////////////
+	/// initialize directions seperately. dont do sends
+	virtual void init_dir(dir_t b, dir_t h);
 	/// set directions seperately.
 	virtual void set_dir(dir_t b, dir_t h);
 	/// set both directions equally.
@@ -86,12 +88,12 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// get randomized move coordinates with same distance
-	bool random_position(unsigned short &x, unsigned short &y) const;
-	/// get randomized move coordinates with same distance
-	bool random_position(coordinate &pos) const
-	{
-		return random_position(pos.x, pos.y);
-	}
+	bool random_position(coordinate &pos) const;
+
+	///////////////////////////////////////////////////////////////////////////
+	/// calculate a random walktarget within 5x5 around the target coordiantes
+	bool random_walktarget(const block_list &target_bl);
+
 
 	///////////////////////////////////////////////////////////////////////////
 	/// check for reachability, but don't build a path
@@ -103,10 +105,6 @@ public:
 	}
 	/// check for reachability with limiting range, but don't build a path
 	bool can_reach(const block_list &bl, size_t range=0) const;
-
-	///////////////////////////////////////////////////////////////////////////
-	/// calculate a random position around the target coordiantes
-	bool random_position(const block_list &target_bl);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// retrive the actual speed of the object

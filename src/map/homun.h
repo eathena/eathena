@@ -125,7 +125,7 @@ public:
 	int hungry_timer;
 	int hungry_cry_timer;
 
-	struct map_session_data *msd;
+	map_session_data *msd;
 
 
 	/// constructor. needs char_id of associated charater for creation
@@ -136,9 +136,9 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// upcasting overloads.
-	virtual bool is_type(object_t t)
+	virtual bool is_type(object_t t) const
 	{
-		return t==BL_HOM;
+		return (t==BL_ALL) || (t==BL_HOM);
 	}
 	virtual homun_data*				get_hd()				{ return this; }
 	virtual const homun_data*		get_hd() const			{ return this; }
@@ -223,17 +223,17 @@ public:
 
 //	static homun_data *get_homunculus(uint32 char_id);
 //	static homun_data *get_homunculus(const map_session_data &sd);
-	static homun_data *create_homunculus(struct map_session_data &sd, unsigned short homunid);
-	static void clear_homunculus(struct map_session_data &sd);
-	static bool call_homunculus(struct map_session_data &sd);
-	static void recv_homunculus(struct homunstatus &p, int flag);
+	static homun_data *create_homunculus(map_session_data &sd, unsigned short homunid);
+	static void clear_homunculus(map_session_data &sd);
+	static bool call_homunculus(map_session_data &sd);
+	static void recv_homunculus(homunstatus &p, int flag);
 	
-	static void menu(struct map_session_data &sd, unsigned short menunum);
-	static bool change_name(struct map_session_data &sd, const char *name);
-	static void return_to_master(struct map_session_data &sd);
-	static bool return_to_embryo(struct map_session_data &sd);
-	static bool revive(struct map_session_data &sd, unsigned short skilllv);
-	static bool skillup(struct map_session_data &sd, unsigned short skill_num);
+	static void menu(map_session_data &sd, unsigned short menunum);
+	static bool change_name(map_session_data &sd, const char *name);
+	static void return_to_master(map_session_data &sd);
+	static bool return_to_embryo(map_session_data &sd);
+	static bool revive(map_session_data &sd, unsigned short skilllv);
+	static bool skillup(map_session_data &sd, unsigned short skill_num);
 };
 
 

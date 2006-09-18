@@ -60,7 +60,7 @@ unsigned int battle_counttargeted(block_list &bl,block_list *src,  unsigned shor
 {
 	CBattleCountTargeted bct(bl.id, src, target_lv);
 	block_list::foreachinarea( bct,
-		bl.m, ((int)bl.x)-AREA_SIZE, ((int)bl.y)-AREA_SIZE, ((int)bl.x)+AREA_SIZE, ((int)bl.y)+AREA_SIZE, 0);
+		bl.m, ((int)bl.x)-AREA_SIZE, ((int)bl.y)-AREA_SIZE, ((int)bl.x)+AREA_SIZE, ((int)bl.y)+AREA_SIZE, BL_ALL);
 	return bct.c;
 }
 
@@ -97,7 +97,7 @@ block_list* battle_gettargeted(block_list &target)
 {
 	CBattleGetTargeted bgt(target);
 	block_list::foreachinarea( bgt,
-		target.m, ((int)target.x)-AREA_SIZE, ((int)target.y)-AREA_SIZE, ((int)target.x)+AREA_SIZE, ((int)target.y)+AREA_SIZE, 0);
+		target.m, ((int)target.x)-AREA_SIZE, ((int)target.y)-AREA_SIZE, ((int)target.x)+AREA_SIZE, ((int)target.y)+AREA_SIZE, BL_ALL);
 	if(bgt.c<1)
 		return NULL;
 	else
@@ -145,7 +145,7 @@ int battle_delay_damage(unsigned long tick, block_list &src, block_list &target,
 // 実際にHPを操作
 int battle_damage(block_list *bl, block_list *target, int damage, int flag)
 {
-	struct map_session_data *sd = NULL;
+	map_session_data *sd = NULL;
 	struct status_change *sc_data;
 	int i;
 
@@ -191,7 +191,7 @@ int battle_damage(block_list *bl, block_list *target, int damage, int flag)
 		map_session_data *tsd = target->get_sd();
 		if(sc_data && sc_data[SC_DEVOTION].val1.num)
 		{	// ディボーションをかけられている
-			struct map_session_data *sd2 = map_session_data::from_blid(sc_data[SC_DEVOTION].val1.num);
+			map_session_data *sd2 = map_session_data::from_blid(sc_data[SC_DEVOTION].val1.num);
 			if (sd2 && skill_devotion3(sd2, target->id))
 			{
 				skill_devotion(sd2, target->id);
@@ -411,9 +411,9 @@ int battle_calc_damage(block_list *src,block_list *bl,int damage,int div_,int sk
 		// リジェクトソード
 		if(sc_data[SC_REJECTSWORD].timer!=-1 && damage > 0 && flag&BF_WEAPON &&
 			// Fixed the condition check [Aalye]
-			(*src==BL_MOB || (*src==BL_PC && (((struct map_session_data *)src)->status.weapon == 1 ||
-			((struct map_session_data *)src)->status.weapon == 2 ||
-			((struct map_session_data *)src)->status.weapon == 3)))){
+			(*src==BL_MOB || (*src==BL_PC && (((map_session_data *)src)->status.weapon == 1 ||
+			((map_session_data *)src)->status.weapon == 2 ||
+			((map_session_data *)src)->status.weapon == 3)))){
 			if(rand()%100 < (15*sc_data[SC_REJECTSWORD].val1.num)){ //反射確率は15*Lv
 				damage = damage*50/100;
 				clif_damage(*bl,*src,gettick(),0,0,damage,0,0,0);
@@ -452,10 +452,10 @@ int battle_calc_damage(block_list *src,block_list *bl,int damage,int div_,int sk
 			damage=0;
 		if(*src == BL_PC)
 		{
-			struct guild *g=guild_search(((struct map_session_data *)src)->status.guild_id);
+			struct guild *g=guild_search(((map_session_data *)src)->status.guild_id);
 			struct guild_castle *gc=guild_mapname2gc(maps[bl->m].mapname);
 
-			if(!((struct map_session_data *)src)->status.guild_id)
+			if(!((map_session_data *)src)->status.guild_id)
 				damage=0;
 			else if(gc && agit_flag==0 && class_ != MOBID_EMPERIUM)	// guardians cannot be damaged during non-woe [Valaris]
 				damage=0;  // end woe check [Valaris]
@@ -554,7 +554,7 @@ int battle_calc_drain(int damage, int rate, int per, int val)
  * 修練ダメージ
  *------------------------------------------
  */
-int battle_addmastery(struct map_session_data *sd,block_list *target,int damage,int type)
+int battle_addmastery(map_session_data *sd,block_list *target,int damage,int type)
 {
 	int skill;
 	int race=status_get_race(target);
@@ -600,7 +600,7 @@ int battle_addmastery(struct map_session_data *sd,block_list *target,int damage,
 		{
 			// 槍修練(+4 ～ +40,+5 ～ +50) 槍
 			if((skill = pc_checkskill(*sd,KN_SPEARMASTERY)) > 0) {
-				if(!pc_isriding(*sd))
+				if( !sd->is_riding() )
 					damage += (skill * 4);	// ペコに乗ってない
 				else
 					damage += (skill * 5);	// ペコに乗ってる
@@ -1154,7 +1154,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 
 struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,int skill_num,int skill_lv,int wflag)
 {
-	struct map_session_data *tsd=NULL;
+	map_session_data *tsd=NULL;
 	struct mob_data* md=(struct mob_data *)src,*tmd=NULL;
 	int hitrate,flee,cri = 0,atkmin,atkmax;
 	int luk;
@@ -1752,7 +1752,7 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 static struct Damage battle_calc_pc_weapon_attack(
 	map_session_data *sd, block_list *target, int skill_num, int skill_lv, int wflag)
 {
-	struct map_session_data *tsd=NULL;
+	map_session_data *tsd=NULL;
 	struct mob_data *tmd=NULL;
 	int hitrate,flee,cri = 0,atkmin,atkmax;
 	int dex;
@@ -1824,7 +1824,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				t_sc_data[SC_AUTOCOUNTER].val4 = 1;
 				if(sc_data && sc_data[SC_AUTOCOUNTER].timer == -1) { //自分がオートカウンター状態
 					int range = status_get_range(target);
-					if((tsd && ((struct map_session_data *)target)->status.weapon != 11 && dist <= range+1) || //対象がPCで武器が弓矢でなく射程内
+					if((tsd && ((map_session_data *)target)->status.weapon != 11 && dist <= range+1) || //対象がPCで武器が弓矢でなく射程内
 						(tmd && range <= 3 && dist <= range+1) ) //または対象がMobで射程が3以下で射程内
 						t_sc_data[SC_AUTOCOUNTER].val3 = sd->block_list::id;
 				}
@@ -1893,7 +1893,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 	if(sd->state.no_sizefix ||
 		skill_num == MO_EXTREMITYFIST ||
 		(sc_data && sc_data[SC_WEAPONPERFECTION].timer!=-1) ||
-		(pc_isriding(*sd) && (sd->status.weapon == 4 || sd->status.weapon == 5) && t_size == 1))
+		(sd->is_riding() && (sd->status.weapon == 4 || sd->status.weapon == 5) && t_size == 1))
 	{
 		atkmax = watk;
 		atkmax_ = watk_;
@@ -2879,7 +2879,7 @@ static struct Damage battle_calc_pc_weapon_attack(
  */
 struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,int skill_num,int skill_lv,int wflag)
 {
-	struct map_session_data *sd=NULL, *tsd=NULL;
+	map_session_data *sd=NULL, *tsd=NULL;
 	struct mob_data *md=NULL, *tmd=NULL;
 	struct pet_data *pd=NULL, *tpd=NULL;
 	struct Damage wd;
@@ -3381,7 +3381,7 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 						//!tsd || //rodatazone claims that target human players don't have a size! -- I really don't believe it... removed until we find some evidence
 						sd->state.no_sizefix ||
 						(sc_data && sc_data[SC_WEAPONPERFECTION].timer!=-1) ||
-						(pc_isriding(*sd) && (sd->status.weapon==4 || sd->status.weapon==5) && t_size==1) ||
+						(sd->is_riding() && (sd->status.weapon==4 || sd->status.weapon==5) && t_size==1) ||
 						(skill_num == MO_EXTREMITYFIST)
 						))
 					{
@@ -4123,7 +4123,7 @@ struct Damage battle_calc_weapon_attack(block_list *src,block_list *target,int s
 	if( *src==BL_PC && (wd.damage > 0 || wd.damage2 > 0) &&
 		( config.equip_self_break_rate || config.equip_skill_break_rate ) )
 	{
-		struct map_session_data *sd = src->get_sd();
+		map_session_data *sd = src->get_sd();
 
 		if (config.equip_self_break_rate && sd->status.weapon != 11)
 		{	//Self weapon breaking chance (Bows exempted)
@@ -4191,7 +4191,7 @@ struct Damage battle_calc_magic_attack(block_list *src, block_list *target,int s
 	{
 	int mdef1, mdef2, matk1, matk2, damage = 0, div_ = 1, blewcount, rdamage = 0;
 	int ele=0, race=7, size=1, race2=7, t_ele=0, t_race=7, t_mode = 0, cardfix, t_class, i;
-	struct map_session_data *sd = NULL, *tsd = NULL;
+	map_session_data *sd = NULL, *tsd = NULL;
 	struct mob_data *tmd = NULL;
 	struct Damage dmg;
 	int aflag;	
@@ -4565,7 +4565,7 @@ struct Damage battle_calc_misc_attack(block_list *src,block_list *target,int ski
 //	int luk=status_get_luk(src);
 	int dex=status_get_dex(src);
 	int skill,ele,race,size,cardfix,race2,t_mode;
-	struct map_session_data *sd=NULL,*tsd=NULL;
+	map_session_data *sd=NULL,*tsd=NULL;
 	int damage=0,div_=1,blewcount=skill_get_blewcount(skill_num,skill_lv);
 	int damagefix=1;
 	int self_damage=0;
@@ -4772,15 +4772,15 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 	nullpo_retr(0, target);
 
 
-	struct map_session_data *sd = src->get_sd();
-	struct map_session_data *tsd = target->get_sd();
+	map_session_data *sd = src->get_sd();
+	map_session_data *tsd = target->get_sd();
 	struct status_change *sc_data;
 	struct status_change *tsc_data;
 	int race, ele, damage, rdamage = 0;
-	struct Damage wd = {0,0,0,0,0,0,0,0,0};
+	struct Damage wd;
 	short *opt1;
 
-	
+
 	
 	if( !src->is_on_map() || !target->is_on_map() )
 		return 0;
@@ -5222,7 +5222,7 @@ int battle_check_target(const block_list *src, const block_list *target, int fla
 	const mob_data *tmd = NULL;
 	if( (tsd = t_bl->get_sd()) )
 	{
-		if(tsd->invincible_timer != -1 || pc_isinvisible(*tsd) || tsd->ScriptEngine.isRunning())
+		if(tsd->invincible_timer != -1 || tsd->is_invisible() || tsd->ScriptEngine.isRunning())
 			return -1; //Cannot be targeted yet.
 		if(tsd->state.monster_ignore && *src == BL_MOB)
 			return 0; //option to have monsters ignore GMs [Valaris]
@@ -5361,15 +5361,6 @@ int battle_check_target(const block_list *src, const block_list *target, int fla
 	//Alliance state takes precedence over enemy one.
 	else if (state&BCT_ENEMY && state&(BCT_SELF|BCT_PARTY|BCT_GUILD))
 		state&=~BCT_ENEMY;
-/* Unneeded as aggressive mobs only search for BL_PCs to attack.
-	if (s_bl->type == BL_MOB && t_bl->type == BL_MOB && state&BCT_ENEMY)
-	{
-		if ((struct mob_data*)s_bl && ((struct mob_data*)s_bl)->state.special_mob_ai==0 &&
-			(struct mob_data*)t_bl && ((struct mob_data*)t_bl)->state.special_mob_ai==0)
-			//Do not let mobs target each other.
-			state&=~BCT_ENEMY;
-	}
-*/
 	return (flag&state)?1:-1;
 	
 /* The previous implementation is left here for reference in case something breaks :X [Skotlex]
@@ -5377,8 +5368,8 @@ int battle_check_target(const block_list *src, const block_list *target, int fla
 	block_list *ss=src;
 	struct status_change *sc_data;
 	struct status_change *tsc_data;
-	struct map_session_data *srcsd = NULL;
-	struct map_session_data *tsd = NULL;
+	map_session_data *srcsd = NULL;
+	map_session_data *tsd = NULL;
 
 	nullpo_retr(0, src);
 	nullpo_retr(0, target);
@@ -5404,10 +5395,10 @@ int battle_check_target(const block_list *src, const block_list *target, int fla
 		return -1;
 
 	if (src->type == BL_PC) {
-		nullpo_retr(-1, srcsd = (struct map_session_data *)src);
+		nullpo_retr(-1, srcsd = (map_session_data *)src);
 	}
 	if (target->type == BL_PC) {
-		nullpo_retr(-1, tsd = (struct map_session_data *)target);
+		nullpo_retr(-1, tsd = (map_session_data *)target);
 	}
 	
 	if(tsd && (tsd->invincible_timer != -1 || pc_isinvisible(*tsd)))
@@ -5541,7 +5532,7 @@ int battle_check_target(const block_list *src, const block_list *target, int fla
 //ShowMessage("p:%d %d g:%d %d\n",s_p,t_p,s_g,t_g);
 
 	if (ss->type == BL_PC && target->type == BL_PC) { // 両方PVPモードなら否定（敵）
-		struct map_session_data *ssd = (struct map_session_data *)ss;		
+		map_session_data *ssd = (map_session_data *)ss;		
 		struct skill_unit *su = NULL;
 		if (src->type == BL_SKILL)
 			su = (struct skill_unit *)src;

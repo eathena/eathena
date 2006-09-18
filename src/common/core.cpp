@@ -191,7 +191,7 @@ void init_signal()
 /// return revision number.
 /// would make it inline but plugin wants it fixed
 /// to get it's function pointer
-const char* get_svn_revision()	{ return "Shinomori's Modified Version (2006-06-25)"; }
+const char* get_svn_revision()	{ return ATHENA_MOD_STRING; }
 /*
 {
 	static char version[16]="";
@@ -239,6 +239,21 @@ void display_title(void)
 	ShowMessage(CL_WTBL"          (=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=)"CL_CLL""CL_NORM"\n\n"); // reset color
 	ShowInfo("SVN Revision: '"CL_WHITE"%s"CL_RESET"'.\n", get_svn_revision() );
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// display version screen.
+void display_version(bool quit)
+{
+	ShowMessage(CL_WHITE"eAthena version %d.%02d.%02d, Athena Mod version %d"CL_RESET"\n",
+		ATHENA_MAJOR_VERSION, ATHENA_MINOR_VERSION, ATHENA_REVISION, ATHENA_MOD_VERSION);
+	ShowMessage(CL_BT_GREEN "Website/Forum:" CL_RESET "\thttp://eathena.deltaanime.net/");
+//	ShowMessage(CL_BT_GREEN "Download URL:" CL_RESET "\thttp://eathena.systeminplace.net/");
+	ShowMessage(CL_BT_GREEN "IRC Channel:" CL_RESET "\tirc://irc.deltaanime.net/#athena");
+	ShowMessage("\nOpen " CL_WHITE "readme.html" CL_RESET " for more information.");
+	if (ATHENA_RELEASE_FLAG) ShowNotice("This version is not for release.\n");
+	if (quit) exit(1);
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// main entry point

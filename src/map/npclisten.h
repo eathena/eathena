@@ -99,15 +99,15 @@ struct npc_parse
 #endif//WITH_PCRE
 
 
-void npclisten_finalize(struct npc_data *nd);
+void npclisten_finalize(npcscript_data *nd);
 
 class CNpcChat : public CMapProcessor
 {
     const char *msg;
     size_t len;
-    struct map_session_data &sd;
+    map_session_data &sd;
 public:
-	CNpcChat(const char *m, struct map_session_data &s)
+	CNpcChat(const char *m, map_session_data &s)
 		: msg(m), len(m?strlen(m):0), sd(s)
 	{}
 	~CNpcChat()	{}

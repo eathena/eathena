@@ -8,23 +8,23 @@ int intif_parse(int fd);
 
 int intif_GMmessage(const char* mes,size_t len, int flag);
 
-int intif_wis_message(struct map_session_data &sd, const char *nick, const char *mes, size_t len);
+int intif_wis_message(map_session_data &sd, const char *nick, const char *mes, size_t len);
 int intif_wis_message_to_gm(const char *Wisp_name, int min_gm_level, const char *mes);
 
-int intif_saveaccountreg(struct map_session_data &sd);
-int intif_request_accountreg(struct map_session_data &sd);
+int intif_saveaccountreg(map_session_data &sd);
+int intif_request_accountreg(map_session_data &sd);
 
 int intif_request_storage(uint32 account_id);
 int intif_send_storage(struct pc_storage &stor);
 int intif_request_guild_storage(uint32 account_id, uint32 guild_id);
 int intif_send_guild_storage(uint32 account_id, struct guild_storage &gstor);
 
-int intif_create_party(struct map_session_data &sd,const char *name,int item,int item2);
+int intif_create_party(map_session_data &sd,const char *name,int item,int item2);
 int intif_request_partyinfo(uint32 party_id);
 int intif_party_addmember(uint32 party_id, uint32 account_id);
 int intif_party_changeoption(uint32 party_id, uint32 account_id, unsigned short expshare,unsigned short itemshare);
 int intif_party_leave(uint32 party_id, uint32 accound_id);
-int intif_party_changemap(struct map_session_data *sd, int online);
+int intif_party_changemap(map_session_data *sd, int online);
 int intif_break_party(uint32 party_id);
 int intif_party_message(uint32 party_id, uint32 account_id, const char *mes,size_t len);
 int intif_party_checkconflict(uint32 party_id, uint32 account_id, char *nick);

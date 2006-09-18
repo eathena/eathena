@@ -66,7 +66,7 @@ struct item_data
 	script_object* equip_script;	// UŒ‚,–hŒä‚Ì‘®«İ’è‚à‚±‚Ì’†‚Å‰Â”\‚©‚È?
 
 
-	unsigned char getType()	{ return (type==7) ? 4 : type; } // pet eggs are handled as weapons by the client
+	unsigned char getType() const	{ return (type==7) ? 4 : type; } // pet eggs are handled as weapons by the client
 
 	item_data(unsigned short nid=0) : 
 		nameid(nid),

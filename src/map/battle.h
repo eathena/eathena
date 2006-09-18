@@ -5,7 +5,8 @@
 #define _BATTLE_H_
 
 // ダメージ
-struct Damage {
+struct Damage
+{
 	int damage;
 	int damage2;
 	int type;
@@ -15,6 +16,18 @@ struct Damage {
 	int blewcount;
 	int flag;
 	int dmg_lv;	//囲まれ減算計算用　0:スキル攻撃 ATK_LUCKY,ATK_FLEE,ATK_DEF
+
+	Damage() :
+		damage(),
+		damage2(),
+		type(),
+		div_(),
+		amotion(),
+		dmotion(),
+		blewcount(),
+		flag(),
+		dmg_lv()
+	{}
 };
 
 // 属性表（読み込みはpc.c、battle_attr_fixで使用）

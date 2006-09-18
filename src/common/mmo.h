@@ -1813,7 +1813,7 @@ struct party_member
 	uchar leader;
 	uchar online;
 	unsigned short lv;
-	struct map_session_data *sd;
+	map_session_data *sd;
 
 	party_member() :
 		account_id(0),
@@ -1837,7 +1837,7 @@ extern inline void _party_member_tobuffer(const struct party_member &p, uchar *&
 	_B_tobuffer( (p.online),		buf);
 	_W_tobuffer( (p.lv),			buf);
 	//_L_tobuffer( &(p.sd),			buf);
-	buf+=sizeof(struct map_session_data *);
+	buf+=sizeof(map_session_data *);
 	// skip the map_session_data *
 }
 extern inline void party_member_tobuffer(const struct party_member &p, uchar *buf)
@@ -1857,7 +1857,7 @@ extern inline void _party_member_frombuffer(struct party_member &p, const uchar 
 	_B_frombuffer( (p.online),		buf);
 	_W_frombuffer( (p.lv),			buf);
 	//_L_frombuffer( (p.sd),		buf);
-	buf+=sizeof(struct map_session_data *); 
+	buf+=sizeof(map_session_data *); 
 	p.sd = NULL; 
 	// skip the map_session_data *
 }
@@ -1942,7 +1942,7 @@ struct guild_member {
 	uint32 rsv1;
 	uint32 rsv2;
 	char name[24];
-	struct map_session_data *sd;
+	map_session_data *sd;
 };
 extern inline void _guild_member_tobuffer(const struct guild_member &p, uchar *&buf)
 {
@@ -1962,8 +1962,8 @@ extern inline void _guild_member_tobuffer(const struct guild_member &p, uchar *&
 	_L_tobuffer( (p.rsv2),			buf);
 	_S_tobuffer( (p.name),			buf, 24);
 	//_L_tobuffer( &(p.sd),			buf);
-	buf+=sizeof(struct map_session_data *);
-	// skip the struct map_session_data *
+	buf+=sizeof(map_session_data *);
+	// skip the map_session_data *
 }
 extern inline void guild_member_tobuffer(const struct guild_member &p, uchar *buf)
 {
@@ -1987,9 +1987,9 @@ extern inline void _guild_member_frombuffer(struct guild_member &p, const uchar 
 	_L_frombuffer( (p.rsv2),		buf);
 	_S_frombuffer( (p.name),		buf, 24);
 	//_L_frombuffer( &(p.sd),		buf);
-	buf+=sizeof(struct map_session_data *);
+	buf+=sizeof(map_session_data *);
 	p.sd = NULL; 
-	// skip the struct map_session_data *
+	// skip the map_session_data *
 }
 extern inline void guild_member_frombuffer(struct guild_member &p, const uchar *buf)
 {

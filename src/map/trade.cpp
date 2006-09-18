@@ -19,9 +19,9 @@
  * 取引要請を相手に送る
  *------------------------------------------
  */
-void trade_traderequest(struct map_session_data &sd, uint32 target_id)
+void trade_traderequest(map_session_data &sd, uint32 target_id)
 {
-	struct map_session_data *target_sd;
+	map_session_data *target_sd;
 	unsigned char level, level2;
 
 	if ((target_sd = map_session_data::from_blid(target_id)) != NULL)
@@ -72,10 +72,10 @@ void trade_traderequest(struct map_session_data &sd, uint32 target_id)
  * 取引要請
  *------------------------------------------
  */
-void trade_tradeack(struct map_session_data &sd, int type)
+void trade_tradeack(map_session_data &sd, int type)
 {
 	struct pc_storage *stor;
-	struct map_session_data *target_sd = map_session_data::from_blid(sd.trade_partner);
+	map_session_data *target_sd = map_session_data::from_blid(sd.trade_partner);
 
 	if( target_sd != NULL )
 	{
@@ -112,7 +112,7 @@ void trade_tradeack(struct map_session_data &sd, int type)
  * normal client authorise only no equiped item and only from inventory
  *------------------------------------------
  */
-int impossible_trade_check(struct map_session_data &sd)
+int impossible_trade_check(map_session_data &sd)
 {
 	struct item inventory[MAX_INVENTORY];
 	char message_to_gm[128];
@@ -154,12 +154,12 @@ int impossible_trade_check(struct map_session_data &sd)
  * アイテム追加
  *------------------------------------------
  */
-void trade_tradeadditem(struct map_session_data &sd, unsigned short index, uint32 amount)
+void trade_tradeadditem(map_session_data &sd, unsigned short index, uint32 amount)
 {
 	size_t trade_i, trade_weight = 0;
 	size_t c;
 	unsigned char level;
-	struct map_session_data *target_sd = map_session_data::from_blid(sd.trade_partner);
+	map_session_data *target_sd = map_session_data::from_blid(sd.trade_partner);
 
 	if( (target_sd != NULL) && (sd.deal_locked < 1) )
 	{
@@ -233,9 +233,9 @@ void trade_tradeadditem(struct map_session_data &sd, unsigned short index, uint3
  * アイテム追加完了(ok押し)
  *------------------------------------------
  */
-void trade_tradeok(struct map_session_data &sd)
+void trade_tradeok(map_session_data &sd)
 {
-	struct map_session_data *target_sd;
+	map_session_data *target_sd;
 	int trade_i;
 	// check items
 	for(trade_i = 0; trade_i < MAX_TRADING; ++trade_i)
@@ -278,9 +278,9 @@ void trade_tradeok(struct map_session_data &sd)
  * 取引キャンセル
  *------------------------------------------
  */
-void trade_tradecancel(struct map_session_data &sd)
+void trade_tradecancel(map_session_data &sd)
 {
-	struct map_session_data *target_sd;
+	map_session_data *target_sd;
 	int trade_i;
 
 	if ((target_sd = map_session_data::from_blid(sd.trade_partner)) != NULL)
@@ -323,9 +323,9 @@ void trade_tradecancel(struct map_session_data &sd)
  * 取引許諾(trade押し)
  *------------------------------------------
  */
-void trade_tradecommit(struct map_session_data &sd)
+void trade_tradecommit(map_session_data &sd)
 {
-	struct map_session_data *target_sd;
+	map_session_data *target_sd;
 	int trade_i;
 	int flag;
 	if ((target_sd = map_session_data::from_blid(sd.trade_partner)) != NULL)

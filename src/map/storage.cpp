@@ -122,7 +122,7 @@ int storage_delete(uint32 account_id)
  * カプラ倉庫を開く
  *------------------------------------------
  */
-int storage_storageopen(struct map_session_data &sd)
+int storage_storageopen(map_session_data &sd)
 {
 	struct pc_storage *stor;
 
@@ -155,7 +155,7 @@ int storage_storageopen(struct map_session_data &sd)
  * カプラ倉庫へアイテム追加
  *------------------------------------------
  */
-int storage_additem(struct map_session_data &sd, struct pc_storage &stor, struct item &item_data, size_t amount)
+int storage_additem(map_session_data &sd, struct pc_storage &stor, struct item &item_data, size_t amount)
 {
 	struct item_data *data;
 	size_t i;
@@ -211,7 +211,7 @@ int storage_additem(struct map_session_data &sd, struct pc_storage &stor, struct
  * カプラ倉庫アイテムを減らす
  *------------------------------------------
  */
-int storage_delitem(struct map_session_data &sd,struct pc_storage &stor,size_t n,size_t amount)
+int storage_delitem(map_session_data &sd,struct pc_storage &stor,size_t n,size_t amount)
 {
 
 	if(n>=MAX_STORAGE || stor.storage[n].nameid==0 || stor.storage[n].amount<amount)
@@ -233,7 +233,7 @@ int storage_delitem(struct map_session_data &sd,struct pc_storage &stor,size_t n
  * カプラ倉庫へ入れる
  *------------------------------------------
  */
-int storage_storageadd(struct map_session_data &sd, size_t index, size_t amount)
+int storage_storageadd(map_session_data &sd, size_t index, size_t amount)
 {
 	struct pc_storage *stor;
 
@@ -259,7 +259,7 @@ int storage_storageadd(struct map_session_data &sd, size_t index, size_t amount)
  * カプラ倉庫から出す
  *------------------------------------------
  */
-int storage_storageget(struct map_session_data &sd, size_t index, size_t amount)
+int storage_storageget(map_session_data &sd, size_t index, size_t amount)
 {
 	struct pc_storage *stor;
 	int flag;
@@ -285,7 +285,7 @@ int storage_storageget(struct map_session_data &sd, size_t index, size_t amount)
  * カプラ倉庫へカートから入れる
  *------------------------------------------
  */
-int storage_storageaddfromcart(struct map_session_data &sd,size_t index, size_t amount)
+int storage_storageaddfromcart(map_session_data &sd,size_t index, size_t amount)
 {
 	struct pc_storage *stor;
 
@@ -309,7 +309,7 @@ int storage_storageaddfromcart(struct map_session_data &sd,size_t index, size_t 
  * カプラ倉庫からカートへ出す
  *------------------------------------------
  */
-int storage_storagegettocart(struct map_session_data &sd,size_t index,size_t amount)
+int storage_storagegettocart(map_session_data &sd,size_t index,size_t amount)
 {
 	struct pc_storage *stor;
 
@@ -336,7 +336,7 @@ int storage_storagegettocart(struct map_session_data &sd,size_t index,size_t amo
  * Modified By Valaris to save upon closing [massdriller]
  *------------------------------------------
  */
-int storage_storageclose(struct map_session_data &sd)
+int storage_storageclose(map_session_data &sd)
 {
 	struct pc_storage *stor;
 
@@ -357,7 +357,7 @@ int storage_storageclose(struct map_session_data &sd)
  * ログアウト時開いているカプラ倉庫の保存
  *------------------------------------------
  */
-int storage_storage_quit(struct map_session_data &sd)
+int storage_storage_quit(map_session_data &sd)
 {
 	struct pc_storage *stor;
 
@@ -370,7 +370,7 @@ int storage_storage_quit(struct map_session_data &sd)
 	return 0;
 }
 
-void storage_storage_dirty(struct map_session_data &sd)
+void storage_storage_dirty(map_session_data &sd)
 {
 	struct pc_storage *stor;
 
@@ -379,7 +379,7 @@ void storage_storage_dirty(struct map_session_data &sd)
 		stor->dirty = 1;
 }
 
-int storage_storage_save(struct map_session_data &sd)
+int storage_storage_save(map_session_data &sd)
 {
 	struct pc_storage *stor;
 
@@ -417,7 +417,7 @@ int guild_storage_delete(uint32 guild_id)
 	return 0;
 }
 
-int storage_guild_storageopen(struct map_session_data &sd)
+int storage_guild_storageopen(map_session_data &sd)
 {
 	struct guild_storage *gstor;
 
@@ -444,7 +444,7 @@ int storage_guild_storageopen(struct map_session_data &sd)
 	return 0;
 }
 
-int guild_storage_additem(struct map_session_data &sd,struct guild_storage &stor,struct item &item_data,size_t amount)
+int guild_storage_additem(map_session_data &sd,struct guild_storage &stor,struct item &item_data,size_t amount)
 {
 	struct item_data *data;
 	size_t i;
@@ -495,7 +495,7 @@ int guild_storage_additem(struct map_session_data &sd,struct guild_storage &stor
 	return 0;
 }
 
-int guild_storage_delitem(struct map_session_data &sd,struct guild_storage &stor,size_t n,size_t amount)
+int guild_storage_delitem(map_session_data &sd,struct guild_storage &stor,size_t n,size_t amount)
 {
 	if(n>=MAX_GUILD_STORAGE || stor.storage[n].nameid==0 || stor.storage[n].amount<amount)
 		return 1;
@@ -512,7 +512,7 @@ int guild_storage_delitem(struct map_session_data &sd,struct guild_storage &stor
 	return 0;
 }
 
-int storage_guild_storageadd(struct map_session_data &sd,size_t index, size_t amount)
+int storage_guild_storageadd(map_session_data &sd,size_t index, size_t amount)
 {
 	struct guild_storage *stor;
 
@@ -536,7 +536,7 @@ int storage_guild_storageadd(struct map_session_data &sd,size_t index, size_t am
 	return 0;
 }
 
-int storage_guild_storageget(struct map_session_data &sd,size_t index, size_t amount)
+int storage_guild_storageget(map_session_data &sd,size_t index, size_t amount)
 {
 	struct guild_storage *stor;
 	int flag;
@@ -559,7 +559,7 @@ int storage_guild_storageget(struct map_session_data &sd,size_t index, size_t am
 	return 0;
 }
 
-int storage_guild_storageaddfromcart(struct map_session_data &sd,size_t index, size_t amount)
+int storage_guild_storageaddfromcart(map_session_data &sd,size_t index, size_t amount)
 {
 	struct guild_storage *stor;
 
@@ -581,7 +581,7 @@ int storage_guild_storageaddfromcart(struct map_session_data &sd,size_t index, s
 	return 0;
 }
 
-int storage_guild_storagegettocart(struct map_session_data &sd,size_t index,size_t amount)
+int storage_guild_storagegettocart(map_session_data &sd,size_t index,size_t amount)
 {
 	struct guild_storage *stor;
 
@@ -602,7 +602,7 @@ int storage_guild_storagegettocart(struct map_session_data &sd,size_t index,size
 	return 0;
 }
 
-int storage_guild_storagesave(struct map_session_data &sd)
+int storage_guild_storagesave(map_session_data &sd)
 {
 	struct guild_storage *stor;
 
@@ -613,7 +613,7 @@ int storage_guild_storagesave(struct map_session_data &sd)
 	return 0;
 }
 
-int storage_guild_storageclose(struct map_session_data &sd)
+int storage_guild_storageclose(map_session_data &sd)
 {
 	struct guild_storage *stor;
 
@@ -629,7 +629,7 @@ int storage_guild_storageclose(struct map_session_data &sd)
 	return 0;
 }
 
-int storage_guild_storage_quit(struct map_session_data &sd,int flag)
+int storage_guild_storage_quit(map_session_data &sd,int flag)
 {
 	struct guild_storage *stor;
 

@@ -87,7 +87,7 @@ int should_log_item(int filter, unsigned short nameid)
 	return 0;
 }
 
-int log_branch(struct map_session_data &sd)
+int log_branch(map_session_data &sd)
 {
 	if( log_config.enable_logs )
 	{
@@ -120,7 +120,7 @@ int log_branch(struct map_session_data &sd)
 	return 0;
 }
 
-int log_drop(struct map_session_data &sd, uint32 monster_id, int log_drop[])
+int log_drop(map_session_data &sd, uint32 monster_id, int log_drop[])
 {
 	FILE *logfp;
 	int i,flag = 0;
@@ -157,7 +157,7 @@ int log_drop(struct map_session_data &sd, uint32 monster_id, int log_drop[])
 	return 1; //Logged
 }
 
-int log_mvpdrop(struct map_session_data &sd, uint32 monster_id, int log_mvp[])
+int log_mvpdrop(map_session_data &sd, uint32 monster_id, int log_mvp[])
 {
 	FILE *logfp;
 
@@ -188,7 +188,7 @@ int log_mvpdrop(struct map_session_data &sd, uint32 monster_id, int log_mvp[])
 	return 0;
 }
 
-int log_present(struct map_session_data &sd, int source_type, unsigned short nameid)
+int log_present(map_session_data &sd, int source_type, unsigned short nameid)
 {
 	FILE *logfp;
 
@@ -223,7 +223,7 @@ int log_present(struct map_session_data &sd, int source_type, unsigned short nam
 	return 0;
 }
 
-int log_produce(struct map_session_data &sd, unsigned short nameid, int slot1, int slot2, int slot3, int success)
+int log_produce(map_session_data &sd, unsigned short nameid, int slot1, int slot2, int slot3, int success)
 {
 	FILE *logfp;
 
@@ -258,7 +258,7 @@ int log_produce(struct map_session_data &sd, unsigned short nameid, int slot1, i
 	return 0;
 }
 
-int log_refine(struct map_session_data &sd, int n, int success)
+int log_refine(map_session_data &sd, int n, int success)
 {
 	FILE *logfp;
 	int log_card[4];
@@ -303,7 +303,7 @@ int log_refine(struct map_session_data &sd, int n, int success)
 	return 0;
 }
 
-int log_tostorage(struct map_session_data &sd,int n, int guild) 
+int log_tostorage(map_session_data &sd,int n, int guild) 
 {
   FILE *logfp;
 
@@ -336,7 +336,7 @@ int log_tostorage(struct map_session_data &sd,int n, int guild)
   return 0;
 }
 
-int log_fromstorage(struct map_session_data &sd,int n, int guild) 
+int log_fromstorage(map_session_data &sd,int n, int guild) 
 {
   FILE *logfp;
 
@@ -369,7 +369,7 @@ int log_fromstorage(struct map_session_data &sd,int n, int guild)
   return 0;
 }
 
-int log_trade(struct map_session_data &sd, struct map_session_data &target_sd, int n,int amount)
+int log_trade(map_session_data &sd, map_session_data &target_sd, int n,int amount)
 {
 	FILE *logfp;
 	int log_nameid, log_amount, log_refine, log_card[4];
@@ -417,7 +417,7 @@ int log_trade(struct map_session_data &sd, struct map_session_data &target_sd, i
 	return 0;
 }
 
-int log_vend(struct map_session_data &sd,struct map_session_data &vsd,int n,int amount, int zeny)
+int log_vend(map_session_data &sd,map_session_data &vsd,int n,int amount, int zeny)
 {
 	FILE *logfp;
 	int log_nameid, log_amount, log_refine, log_card[4];
@@ -463,7 +463,7 @@ int log_vend(struct map_session_data &sd,struct map_session_data &vsd,int n,int 
 	return 0;
 }
 
-int log_zeny(struct map_session_data &sd, struct map_session_data &target_sd,int amount)
+int log_zeny(map_session_data &sd, map_session_data &target_sd,int amount)
 {
 	FILE *logfp;
 
@@ -531,7 +531,7 @@ int log_atcommand(const map_session_data &sd, const char *message, unsigned cmdl
 	return 0;
 }
 
-int log_npc(struct map_session_data &sd, const char *message)
+int log_npc(map_session_data &sd, const char *message)
 {	//[Lupus]
 	FILE *logfp;
 

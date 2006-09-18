@@ -44,9 +44,9 @@ public:
 
 	/////////////////////////////////////////////////////////////////
 	/// upcasting overloads.
-	virtual bool is_type(object_t t)
+	virtual bool is_type(object_t t) const
 	{
-		return t==BL_CHAT;
+		return (t==BL_ALL) || (t==BL_CHAT);
 	}
 	virtual chat_data*				get_cd()				{ return this; }
 	virtual const chat_data*		get_cd() const			{ return this; }
@@ -117,10 +117,10 @@ public:
 
 	/////////////////////////////////////////////////////////////////
 	///
-	static bool create(npc_data &nd, unsigned short limit, unsigned char pub, int trigger, const char* title, const char *ev);
+	static bool create(npcscript_data &nd, unsigned short limit, unsigned char pub, int trigger, const char* title, const char *ev);
 	/////////////////////////////////////////////////////////////////
 	///
-	static bool erase(npc_data &nd);
+	static bool erase(npcscript_data &nd);
 
 
 	/////////////////////////////////////////////////////////////////

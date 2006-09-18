@@ -13,7 +13,6 @@ bool clif_packetsend(int fd, map_session_data &sd, unsigned short cmd, int info[
 basics::netaddress& getcharaddress();
 basics::ipset& getmapaddress();
 
-int clif_countusers(void);
 void clif_ban_player(const map_session_data &sd, uint32 banoption, const char* reason="");
 int clif_authok(map_session_data &sd);
 int clif_authfail(map_session_data &sd, uint32 type);
@@ -28,10 +27,10 @@ int clif_clearchar_id(const map_session_data &sd, uint32 id, unsigned char type)
 
 bool clif_spawn(block_list& bl);
 int clif_spawnpc(map_session_data &sd);	//area
-int clif_spawnnpc(struct npc_data &nd);	// area
-int clif_spawnnpc(map_session_data &sd, struct npc_data &nd);	// self
+int clif_spawnnpc(npc_data &nd);	// area
+int clif_spawnnpc(map_session_data &sd, npc_data &nd);	// self
 int clif_spawnmob(mob_data &md);	// area
-int clif_spawnpet(struct pet_data &pd);	// area
+int clif_spawnpet(pet_data &pd);	// area
 
 
 int clif_fixpos(const block_list &bl);
@@ -43,7 +42,7 @@ int clif_changemapserver(map_session_data &sd, const char *mapname, unsigned sho
 
 
 int clif_npcbuysell(map_session_data &sd, uint32 id);	//self
-int clif_buylist(map_session_data&,struct npc_data&);	//self
+int clif_buylist(map_session_data&, npc_data&);	//self
 int clif_selllist(map_session_data&);	//self
 int clif_scriptmes(map_session_data &sd, uint32 npcid, const char *mes);	//self
 int clif_scriptnext(map_session_data &sd,uint32 npcid);	//self
@@ -126,82 +125,6 @@ int clif_guildstorageequiplist(map_session_data &sd,struct guild_storage &stor);
 int clif_updateguildstorageamount(map_session_data &sd,struct guild_storage &stor);
 int clif_guildstorageitemadded(map_session_data &sd,struct guild_storage &stor,unsigned short index,uint32 amount);
 
-/*
-int clif_pcinsight(block_list &bl,va_list &ap);	// map_forallinmovearea callback
-int clif_pcoutsight(block_list &bl,va_list &ap);	// map_forallinmovearea callback
-int clif_mobinsight(block_list &bl,va_list &ap);	// map_forallinmovearea callback
-int clif_moboutsight(block_list &bl,va_list &ap);	// map_forallinmovearea callback
-int clif_petoutsight(block_list &bl,va_list &ap);
-int clif_petinsight(block_list &bl,va_list &ap);
-int clif_npcoutsight(block_list &bl,va_list &ap);
-int clif_npcinsight(block_list &bl,va_list &ap);
-*/
-class CClifPCInsight : public CMapProcessor
-{
-	map_session_data &sd;
-public:
-	CClifPCInsight(map_session_data &s):sd(s)	{}
-	~CClifPCInsight()	{}
-	virtual int process(block_list& bl) const;
-};
-class CClifPCOutsight : public CMapProcessor
-{
-	map_session_data &sd;
-public:
-	CClifPCOutsight(map_session_data &s):sd(s)	{}
-	~CClifPCOutsight()	{}
-	virtual int process(block_list& bl) const;
-};
-class CClifMobInsight : public CMapProcessor
-{
-	mob_data &md;
-public:
-	CClifMobInsight(mob_data &m):md(m)	{}
-	~CClifMobInsight()	{}
-	virtual int process(block_list& bl) const;
-};
-class CClifMobOutsight : public CMapProcessor
-{
-	mob_data &md;
-public:
-	CClifMobOutsight(mob_data &m):md(m)	{}
-	~CClifMobOutsight()	{}
-	virtual int process(block_list& bl) const;
-};
-class CClifPetInsight : public CMapProcessor
-{
-	struct pet_data &pd;
-public:
-	CClifPetInsight(struct pet_data &p):pd(p)	{}
-	~CClifPetInsight()	{}
-	virtual int process(block_list& bl) const;
-};
-class CClifPetOutsight : public CMapProcessor
-{
-	struct pet_data &pd;
-public:
-	CClifPetOutsight(struct pet_data &p):pd(p)	{}
-	~CClifPetOutsight()	{}
-	virtual int process(block_list& bl) const;
-};
-class CClifNpcInsight : public CMapProcessor
-{
-	struct npc_data &nd;
-public:
-	CClifNpcInsight(struct npc_data &n):nd(n)	{}
-	~CClifNpcInsight()	{}
-	virtual int process(block_list& bl) const;
-};
-class CClifNpcOutsight : public CMapProcessor
-{
-	struct npc_data &nd;
-public:
-	CClifNpcOutsight(struct npc_data &n):nd(n)	{}
-	~CClifNpcOutsight()	{}
-	virtual int process(block_list& bl) const;
-};
-
-
 
 class CClifInsight : public CMapProcessor
 {
@@ -221,10 +144,6 @@ public:
 	~CClifOutsight()	{}
 	virtual int process(block_list& bl) const;
 };
-
-
-
-
 
 
 
@@ -414,7 +333,6 @@ public:
 	virtual bool process(map_session_data& sd) const=0;
 };
 int clif_foreachclient(const CClifProcessor& elem);
-//int clif_foreachclient(int (*)(map_session_data&,va_list &),...);
 int clif_disp_overhead(map_session_data &sd, const char* mes);
 
 

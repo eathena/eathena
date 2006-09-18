@@ -1,4 +1,9 @@
 Date	Added
+09/17
+	* removed block_list::type and block_list::subtype completely
+	* split different npc types into seperated classes,
+	  now functional enhancements can follow (eg. dynamic shop content)
+	* some smaller cleanings [Shinomori]
 09/12
 	* framework updates
 	* cleaned and documented utils

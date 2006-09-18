@@ -108,7 +108,7 @@ bool CParameterList::add_commandline(const char* line)
 		this->cParam[this->cCnt] = wpp;
 
 		// copy into the buffer up to a finishing delimiter
-		while( *rpp && wpp<epp && ((delim && *rpp!=delim) || (!delim && !basics::stringcheck::isspace(*rpp) && *rpp!=',')) )
+		while( *rpp && wpp<epp && (delim?(*rpp!=delim):(!basics::stringcheck::isspace(*rpp) && *rpp!=',')) )
 			*wpp++ = *rpp++;
 
 		// terminate the copied string

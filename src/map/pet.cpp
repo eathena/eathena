@@ -221,7 +221,7 @@ bool pet_data::stop_attack()
 
 
 
-int pet_performance_val(struct map_session_data &sd)
+int pet_performance_val(map_session_data &sd)
 {
 	if( sd.pd )
 	{
@@ -235,7 +235,7 @@ int pet_performance_val(struct map_session_data &sd)
 	return 0;
 }
 
-int pet_hungry_val(struct map_session_data &sd)
+int pet_hungry_val(map_session_data &sd)
 {
 	if( sd.pd )
 	{
@@ -383,7 +383,7 @@ int petskill_castend2(struct pet_data &pd, block_list &target, unsigned short sk
 
 
 
-int pet_target_check(struct map_session_data &sd,block_list *bl,int type)
+int pet_target_check(map_session_data &sd,block_list *bl,int type)
 {
 	struct pet_data *pd= sd.pd;
 	struct mob_data *md= (bl)?bl->get_md():NULL;
@@ -429,7 +429,7 @@ int pet_target_check(struct map_session_data &sd,block_list *bl,int type)
  * Pet SC Check [Skotlex]
  *------------------------------------------
  */
-int pet_sc_check(struct map_session_data &sd, int type)
+int pet_sc_check(map_session_data &sd, int type)
 {	
 	struct pet_data *pd;
 
@@ -556,7 +556,7 @@ int search_petDB_index(int key,int type)
 }
 
 
-int pet_remove_map(struct map_session_data &sd)
+int pet_remove_map(map_session_data &sd)
 {
 	if(sd.status.pet_id && sd.pd)
 	{
@@ -627,7 +627,7 @@ int pet_remove_map(struct map_session_data &sd)
 	return 0;
 }
 
-int pet_performance(struct map_session_data &sd)
+int pet_performance(map_session_data &sd)
 {
 	nullpo_retr(0, sd.pd);
 	struct pet_data &pd = *sd.pd;
@@ -640,7 +640,7 @@ int pet_performance(struct map_session_data &sd)
 	return 0;
 }
 
-int pet_return_egg(struct map_session_data &sd)
+int pet_return_egg(map_session_data &sd)
 {
 	struct item tmp_item;
 	int flag;
@@ -689,7 +689,7 @@ int pet_return_egg(struct map_session_data &sd)
 	return 0;
 }
 
-int pet_data_init(struct map_session_data &sd, const petstatus &p)
+int pet_data_init(map_session_data &sd, const petstatus &p)
 {
 	struct pet_data *pd;
 	int i=0,interval=0;
@@ -712,14 +712,12 @@ int pet_data_init(struct map_session_data &sd, const petstatus &p)
 	pd->block_list::m = sd.block_list::m;
 	pd->block_list::x = pd->walktarget.x = sd.block_list::x;
 	pd->block_list::y = pd->walktarget.y = sd.block_list::y;
-	pd->random_position(sd);
+	pd->random_walktarget(sd);
 	pd->block_list::x = pd->walktarget.x;
 	pd->block_list::y = pd->walktarget.y;
 	pd->block_list::id = npc_get_new_npc_id();
 	pd->dir = sd.dir;
 	pd->speed = pd->petDB.speed;
-	pd->block_list::subtype = MONS;
-	pd->block_list::type = BL_PET;
 	pd->next_walktime = pd->attackable_tick = pd->last_thinktime = gettick();
 	pd->msd = &sd;
 	
@@ -759,7 +757,7 @@ int pet_data_init(struct map_session_data &sd, const petstatus &p)
 
 int pet_recv_petdata(uint32 account_id, struct petstatus &p,int flag)
 {
-	struct map_session_data *sd;
+	map_session_data *sd;
 
 	sd = map_session_data::from_blid(account_id);
 	if(sd == NULL)
@@ -797,7 +795,7 @@ int pet_recv_petdata(uint32 account_id, struct petstatus &p,int flag)
 	return 0;
 }
 
-int pet_select_egg(struct map_session_data &sd,short egg_index)
+int pet_select_egg(map_session_data &sd,short egg_index)
 {
 	if(sd.status.inventory[egg_index].card[0] == 0xff00)
 	{
@@ -811,7 +809,7 @@ int pet_select_egg(struct map_session_data &sd,short egg_index)
 	return 0;
 }
 
-int pet_catch_process1(struct map_session_data &sd,int target_class)
+int pet_catch_process1(map_session_data &sd,int target_class)
 {
 	sd.catch_target_class = target_class;
 	clif_catch_process(sd);
@@ -819,7 +817,7 @@ int pet_catch_process1(struct map_session_data &sd,int target_class)
 	return 0;
 }
 
-int pet_catch_process2(struct map_session_data &sd,uint32 target_id)
+int pet_catch_process2(map_session_data &sd,uint32 target_id)
 {
 	struct mob_data *md;
 	int pet_catch_rate=0;
@@ -890,7 +888,7 @@ int pet_catch_process2(struct map_session_data &sd,uint32 target_id)
 
 int pet_get_egg(uint32 account_id, uint32 pet_id, int flag)
 {
-	struct map_session_data *sd;
+	map_session_data *sd;
 	struct item tmp_item;
 	int i=0,ret=0;
 
@@ -924,7 +922,7 @@ int pet_get_egg(uint32 account_id, uint32 pet_id, int flag)
 	return 0;
 }
 
-int pet_menu(struct map_session_data &sd,int menunum)
+int pet_menu(map_session_data &sd,int menunum)
 {
 	if (sd.pd == NULL)
 		return 1;
@@ -949,7 +947,7 @@ int pet_menu(struct map_session_data &sd,int menunum)
 	return 0;
 }
 
-int pet_change_name(struct map_session_data &sd, const char *name)
+int pet_change_name(map_session_data &sd, const char *name)
 {
 	int i;
 	
@@ -976,7 +974,7 @@ int pet_change_name(struct map_session_data &sd, const char *name)
 	return 0;
 }
 
-int pet_equipitem(struct map_session_data &sd,int index)
+int pet_equipitem(map_session_data &sd,int index)
 {
 	unsigned short nameid;
 
@@ -1010,7 +1008,7 @@ int pet_equipitem(struct map_session_data &sd,int index)
 	return 0;
 }
 
-int pet_unequipitem(struct map_session_data &sd)
+int pet_unequipitem(map_session_data &sd)
 {
 	struct item tmp_item;
 	unsigned short nameid;
@@ -1052,7 +1050,7 @@ int pet_unequipitem(struct map_session_data &sd)
 	return 0;
 }
 
-int pet_food(struct map_session_data &sd)
+int pet_food(map_session_data &sd)
 {
 	int i,k,t;
 
@@ -1120,7 +1118,7 @@ public:
 		if( !pd.target_id )
 		{
 			flooritem_data *fitem = (flooritem_data *)&bl;
-			struct map_session_data *sd = NULL;
+			map_session_data *sd = NULL;
 			// ƒ‹[ƒgŒ –³‚µ
 			if(fitem && fitem->first_get_id>0)
 				sd = map_session_data::from_blid(fitem->first_get_id);
@@ -1142,7 +1140,7 @@ public:
 };
 int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 {
-	struct map_session_data *sd = pd.msd;
+	map_session_data *sd = pd.msd;
 	struct mob_data *md = NULL;
 	int dist,i=0,dx=-1,dy=-1;
 	int mode,race;
@@ -1183,7 +1181,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 			pd.speed = sd->speed *3/4; // be faster than master
 			if( pd.speed <= 10 )
 				pd.speed = 10;
-			pd.random_position(*sd);
+			pd.random_walktarget(*sd);
 			if( !pd.walktoxy(pd.walktarget.x,pd.walktarget.y) )
 				pd.randomwalk(tick);
 		}
@@ -1289,7 +1287,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 				return 0;
 			}
 			pd.calc_speed();
-			pd.random_position(*sd);
+			pd.random_walktarget(*sd);
 			if( !pd.walktoxy(pd.walktarget.x,pd.walktarget.y) )
 				pd.randomwalk(tick);
 		}
@@ -1304,26 +1302,22 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 }
 
 
-class CClifpet_ai : public CClifProcessor
-{
-	unsigned long tick;
-public:
-	CClifpet_ai(unsigned long t) : tick(t)	{}
-	virtual ~CClifpet_ai()	{}
-	virtual bool process(struct map_session_data& sd) const
-	{
-		if(sd.status.pet_id && sd.pd)
-			pet_ai_sub_hard(*sd.pd, tick);
-		return 0;
-	}
-};
 int pet_ai_hard(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	clif_foreachclient( CClifpet_ai(tick) );
+	map_session_data::iterator iter(map_session_data::nickdb());
+	for(; iter; ++iter)
+	{
+		map_session_data *sd = iter.data();
+		if(sd)
+		{
+			if( sd->status.pet_id && sd->pd)
+				pet_ai_sub_hard(*sd->pd, tick);
+		}
+	}
 	return 0;
 }
 
-int pet_lootitem_drop(struct pet_data &pd,struct map_session_data *sd)
+int pet_lootitem_drop(struct pet_data &pd,map_session_data *sd)
 {
 	size_t i,flag=0;
 	if(pd.loot)
@@ -1370,7 +1364,7 @@ int pet_delay_item_drop2(int tid, unsigned long tick, int id, basics::numptr dat
  */ 
 int pet_skill_bonus_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	struct map_session_data *sd=map_session_data::from_blid(id);
+	map_session_data *sd=map_session_data::from_blid(id);
 	struct pet_data *pd;
 	int timer = 0;
 
@@ -1408,7 +1402,7 @@ int pet_skill_bonus_timer(int tid, unsigned long tick, int id, basics::numptr da
 
 int pet_recovery_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	struct map_session_data *sd= map_session_data::from_blid(id);
+	map_session_data *sd= map_session_data::from_blid(id);
 	struct pet_data *pd;
 	
 	if(sd==NULL || sd->pd == NULL || sd->pd->recovery == NULL)
@@ -1441,7 +1435,7 @@ int pet_recovery_timer(int tid, unsigned long tick, int id, basics::numptr data)
 
 int pet_heal_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	struct map_session_data *sd= map_session_data::from_blid(id);
+	map_session_data *sd= map_session_data::from_blid(id);
 	struct pet_data *pd;
 	short rate = 100;
 	
@@ -1486,7 +1480,7 @@ int pet_heal_timer(int tid, unsigned long tick, int id, basics::numptr data)
  */ 
 int pet_skill_support_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	struct map_session_data *sd = map_session_data::from_blid(id);
+	map_session_data *sd = map_session_data::from_blid(id);
 	struct pet_data *pd;
 	short rate = 100;	
 	if(sd==NULL || sd->pd == NULL)

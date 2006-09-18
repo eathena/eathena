@@ -29,7 +29,7 @@
 
 
 /// dumps an uchar array as hex and ascii
-void dump(unsigned char *buf, size_t cnt);
+void dump(const unsigned char *buf, const size_t sz, FILE* file=stdout);
 /// test for valid email structure
 bool email_check(const char *email);
 /// suppress control characters in a string.

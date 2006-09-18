@@ -26,7 +26,10 @@ struct coordinate
 	unsigned short x;
 	unsigned short y;
 
-	coordinate(unsigned short xi=0, unsigned short yi=0)
+	coordinate()
+		: x(0), y(0)
+	{}
+	coordinate(unsigned short xi, unsigned short yi)
 		: x(xi), y(yi)
 	{}
 	~coordinate()

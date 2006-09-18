@@ -737,39 +737,52 @@ int null_parse(int fd)
 
 
 
-
 ///////////////////////////////////////////////////////////////////////////////
 //
 // Socket Control
 //
 ///////////////////////////////////////////////////////////////////////////////
-
-void socket_nonblocking(SOCKET sock, unsigned long yes)
-{
-	// I don't think we need this
-	// TCP_NODELAY BOOL Disables the Nagle algorithm for send coalescing. 
-	//setsockopt(sock,IPPROTO_TCP,TCP_NODELAY,(char *)&yes,sizeof yes);
-	
-	// FIONBIO Use with a nonzero argp parameter to enable the nonblocking mode of socket s. 
-	// The argp parameter is zero if nonblocking is to be disabled. 
-	ioctlsocket(sock, FIONBIO, &yes); 
-}
-
 void socket_setopts(SOCKET sock)
 {
+	unsigned long ctlyes = 1;
+	// FIONBIO Use with a nonzero argp parameter to enable the nonblocking mode of the socket. 
+	// The argp parameter is zero if nonblocking is to be disabled. 
+	ioctlsocket(sock, FIONBIO, &ctlyes);
+	
 #ifndef WIN32
-	int yes = 1; // reuse fix
+	int optyes = 1;
+#endif
+	// I don't think we need this
+	// TCP_NODELAY BOOL Disables the Nagle algorithm for send coalescing. 
+	//if(setsockopt(sock,IPPROTO_TCP,TCP_NODELAY,(char *)&optyes,sizeof(optyes))<0)
+	//	printf("setsockopt: TCP_NODELAY failed! errno=%d: %s\n", basics::sockerrno(), basics::sockerrmsg(basics::sockerrno()));
+
+#ifndef WIN32
     // set SO_REAUSEADDR to true, unix only. on windows this option causes
     // the previous owner of the socket to give up, which is not desirable
     // in most cases, neither compatible with unix.
-	setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,(char *)&yes,sizeof(yes));
+	setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,(char *)&optyes,sizeof(optyes));
 #ifdef SO_REUSEPORT
-	setsockopt(sock,SOL_SOCKET,SO_REUSEPORT,(char *)&yes,sizeof(yes));
+	setsockopt(sock,SOL_SOCKET,SO_REUSEPORT,(char *)&optyes,sizeof(optyes));
 #endif
 #endif
-//	setsockopt(sock,IPPROTO_TCP,TCP_NODELAY,(char *)&yes,sizeof(yes));
+// not applicable since buffer size is varying
 //	setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *) &wfifo_size , sizeof(rfifo_size ));
 //	setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *) &rfifo_size , sizeof(rfifo_size ));
+
+/*	{	// set SO_LINGER option (from Freya)
+		// (http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winsock/winsock/closesocket_2.asp)
+		// quite useless since no real advantage:
+		// SO_DONTLINGER: Graceful disconnection, No waiting
+		// SO_LINGER with 0: hard disconnection, No waiting
+		// SO_LINGER with time: Graceful disconnection, waiting for time (seconds)
+		struct linger opt;
+		opt.l_onoff = 1;
+		opt.l_linger = 0;	// force disconnection, any unsent data is lost.
+		if (setsockopt(sock, SOL_SOCKET, SO_LINGER, (char*)&opt, sizeof(opt)))
+			ShowWarning("setsocketopts: Unable to set SO_LINGER mode for connection %d!\n",sock);
+	}
+*/
 }
 
 
@@ -813,7 +826,7 @@ int recv_to_fifo(int fd)
 		// if there is more on the socket, limit the read size
 		// fifo should be sized that the message with max expected len fit in
 		unsigned long sz = RFIFOSPACE(fd);
-		if( arg >= sz ) arg = sz;
+		if( arg > sz ) arg = sz;
 
 		len=read(SessionGetSocket(fd),(char*)(session[fd]->rdata+session[fd]->rdata_size),arg);
 
@@ -891,22 +904,6 @@ int send_from_fifo(int fd)
 void flush_fifos() 
 {
 	// write fifos and be sure the data in on the run
-
-	// easy method but needs a socket mode switch
-	// and processes each write individually
-/*	int fd;
-	for(fd=0; fd<fd_max; ++fd)
-	{
-		if( session_isActive(fd) && session[fd]->func_send == send_from_fifo && session[fd]->wdata_size > 0)
-		{
-
-			socket_nonblocking(SessionGetSocket(fd),0); // set blocking
-			send_from_fifo(fd); // send data
-			socket_nonblocking(SessionGetSocket(fd),1); // set non blocking
-		}
-	}
-*/
-
 	// more complex method which might be faster in the end
 	size_t fd;
 	int len, c;
@@ -936,7 +933,7 @@ void flush_fifos()
 						// we have a problem, not all data has been send
 						// so we mark that socket
 						FD_SET(SessionGetSocket(fd), &wfd);
-						c++;
+						++c;
 					}
 					else
 					{	// everything is ok and on the run
@@ -951,13 +948,13 @@ void flush_fifos()
 				else // EAGAIN
 				{	// try it again later; might lead to infinity loop when connections is generally blocked
 					FD_SET(SessionGetSocket(fd), &wfd);
-					c++;
+					++c;
 				}
 			}
 		}
 		// finish if all has been send and no need to wait longer
 		if(c==0) break; 
-		// otherwise wait until marked write sockets can exept more data 
+		// otherwise wait until marked write sockets can expect more data 
 		select(fd_max,NULL,&wfd,NULL,NULL);
 	}//end while
 }
@@ -1187,8 +1184,6 @@ int connect_client(int listen_fd)
 		return -1;
 	}
 #endif
-	socket_setopts(sock);
-	socket_nonblocking(sock,1);
 	// insert the socket to the fields and get the position
 	fd = SessionInsertSocket(sock);
 
@@ -1200,7 +1195,7 @@ int connect_client(int listen_fd)
 		ShowWarning("socket insert %i %p", fd, session[fd]);
 		return -1;
 	}
-
+	socket_setopts(sock);
 
 	session[fd] = new struct socket_data();
 	////////////////
@@ -1256,8 +1251,6 @@ int make_listen(unsigned long ip, unsigned short port)
 		return -1;
 	}
 #endif
-	socket_setopts(sock);
-	socket_nonblocking(sock,1);
 	server_address.sin_family      = AF_INET;
 	server_address.sin_addr.s_addr = htonl( ip );
 	server_address.sin_port        = htons(port);
@@ -1284,6 +1277,7 @@ int make_listen(unsigned long ip, unsigned short port)
 		ShowWarning("socket insert %i %p", fd, session[fd]);
 		return -1;
 	}
+	socket_setopts(sock);
 
 	session[fd] = new struct socket_data();
 	////////////////
@@ -1344,7 +1338,6 @@ int make_connection(unsigned long ip, unsigned short port)
 		return -1;
 	}
 #endif
-	socket_setopts(sock);
 
 	server_address.sin_family		= AF_INET;
 	server_address.sin_addr.s_addr	= htonl( ip );
@@ -1362,10 +1355,6 @@ int make_connection(unsigned long ip, unsigned short port)
 	else
 		ShowStatus("Connect ok\n");
 
-	// set nonblocking after connecting so we can use the blocking timeout
-	// connecting nonblocking sockets would need to wait until connection is established
-	socket_nonblocking(sock,1);
-
 	// insert the socket to the fields and get the position
 	fd = SessionInsertSocket(sock);
 
@@ -1375,6 +1364,10 @@ int make_connection(unsigned long ip, unsigned short port)
 		ShowWarning("socket insert %i %p", fd, session[fd]);
 		return -1;
 	}
+
+	// set nonblocking after connecting so we can use the blocking timeout
+	// connecting nonblocking sockets would need to wait until connection is established
+	socket_setopts(sock);
 
 	session[fd] = new struct socket_data();
 	////////////////

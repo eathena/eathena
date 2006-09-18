@@ -90,9 +90,6 @@ homun_data::homun_data(uint32 char_id) :
 	hungry_timer(-1),
 	hungry_cry_timer(-1)
 {
-	this->block_list::type = BL_HOM;
-	this->block_list::subtype = MONS;
-
 	this->status.char_id = char_id;
 
 	// check if local database already contains an element
@@ -132,7 +129,7 @@ homun_data *homun_data::get_homunculus(const map_session_data &sd)
 	return homun_data::get_homunculus(sd.status.char_id);
 }
 */
-void homun_data::clear_homunculus(struct map_session_data &sd)
+void homun_data::clear_homunculus(map_session_data &sd)
 {
 	if( sd.hd )
 	{
@@ -144,7 +141,7 @@ void homun_data::clear_homunculus(struct map_session_data &sd)
 
 void homun_data::recv_homunculus(struct homunstatus &p, int flag)
 {
-	struct map_session_data *sd = map_session_data::charid2sd(p.char_id);
+	map_session_data *sd = map_session_data::charid2sd(p.char_id);
 
 	if(sd == NULL || !pc_checkskill(*sd, AM_CALLHOMUN ) )
 		return;
@@ -181,7 +178,7 @@ void homun_data::recv_homunculus(struct homunstatus &p, int flag)
 	return;
 }
 
-int homun_delete_data(struct map_session_data &sd)
+int homun_delete_data(map_session_data &sd)
 {
 	if( sd.hd )
 	{
@@ -609,7 +606,7 @@ void homun_data::recalc_status()
 
 
 
-homun_data *homun_data::create_homunculus(struct map_session_data &sd, unsigned short homunid)
+homun_data *homun_data::create_homunculus(map_session_data &sd, unsigned short homunid)
 {
 	// 作成初期値　新密度:2000/100000　満腹度:50/100
 	int class_ = homunid-HOM_ID;
@@ -654,7 +651,7 @@ homun_data *homun_data::create_homunculus(struct map_session_data &sd, unsigned 
 	return sd.hd;
 }
 
-bool homun_data::return_to_embryo(struct map_session_data &sd)
+bool homun_data::return_to_embryo(map_session_data &sd)
 {
 	if( sd.hd && !sd.hd->is_dead() )
 	{	//親密度保存
@@ -673,7 +670,7 @@ bool homun_data::return_to_embryo(struct map_session_data &sd)
 }
 
 
-bool homun_data::revive(struct map_session_data &sd, unsigned short skilllv)
+bool homun_data::revive(map_session_data &sd, unsigned short skilllv)
 {
 	if( !sd.hd || sd.hd->status.hp>0 )
 	{
@@ -689,7 +686,7 @@ bool homun_data::revive(struct map_session_data &sd, unsigned short skilllv)
 }
 
 
-int homun_food(struct map_session_data &sd)
+int homun_food(map_session_data &sd)
 {
 	int i,t,food,class_,emotion;
 
@@ -765,7 +762,7 @@ int homun_food(struct map_session_data &sd)
 }
 
 
-void homun_data::menu(struct map_session_data &sd,unsigned short menunum)
+void homun_data::menu(map_session_data &sd,unsigned short menunum)
 {
 	if(sd.hd)
 	{
@@ -785,17 +782,17 @@ void homun_data::menu(struct map_session_data &sd,unsigned short menunum)
 }
 
 
-void homun_data::return_to_master(struct map_session_data &sd)
+void homun_data::return_to_master(map_session_data &sd)
 {
 	if(sd.hd)
 	{
-		sd.hd->random_position(sd);
+		sd.hd->random_walktarget(sd);
 		sd.hd->walktoxy(sd.hd->walktarget.x,sd.hd->walktarget.y);
 	}
 }
 
 
-bool homun_data::change_name(struct map_session_data &sd, const char *name)
+bool homun_data::change_name(map_session_data &sd, const char *name)
 {
 	if(sd.hd&& (sd.hd->status.rename_flag == 0 || config.pet_rename == 1) )
 	{
@@ -831,7 +828,7 @@ int homun_data::checkskill(unsigned short skill_id)
 }
 
 
-bool homun_data::skillup(struct map_session_data &sd, unsigned short skill_id)
+bool homun_data::skillup(map_session_data &sd, unsigned short skill_id)
 {
 	if(sd.hd)
 	{
@@ -1181,7 +1178,7 @@ void homun_data ::delete_hungry_timer()
 	}
 }
 
-bool homun_data::call_homunculus(struct map_session_data &sd)
+bool homun_data::call_homunculus(map_session_data &sd)
 {
 	int i;
 	if( sd.hd )
@@ -1201,7 +1198,7 @@ bool homun_data::call_homunculus(struct map_session_data &sd)
 			sd.hd->block_list::m = sd.block_list::m;
 			sd.hd->block_list::x = sd.hd->walktarget.x = sd.block_list::x;
 			sd.hd->block_list::y = sd.hd->walktarget.y = sd.block_list::y;
-			sd.hd->random_position(sd);
+			sd.hd->random_walktarget(sd);
 			sd.hd->block_list::x = sd.hd->walktarget.x;
 			sd.hd->block_list::y = sd.hd->walktarget.y;
 			sd.hd->set_dir(sd.get_dir());

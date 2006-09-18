@@ -29,7 +29,7 @@ typedef struct _Plugin_Event_Table {
 //////////////////////////////////////////////////////////////////////////
 ////// Plugin Export functions /////////////
 
-// same layout than ServerType from version.h
+// same layout than server_t from version.h
 typedef enum 
 {
 	PLUGIN_NONE	=	0x00,
@@ -42,7 +42,7 @@ typedef enum
 	PLUGIN_xxx2	=	0x40,
 	PLUGIN_xxx3	=	0x80,
 	PLUGIN_ALL	=	0xFF
-} AddonType;
+} addon_t;
 
 
 #endif	// _PLUGIN_H_

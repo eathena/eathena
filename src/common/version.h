@@ -20,9 +20,12 @@
 // あんまり信用しないこと。
 // 鯖snapshotの時や、大きな変更があった場合は設定してほしいです。
 // C言語の仕様上、最初に0を付けると8進数になるので間違えないで下さい。
-#define ATHENA_MOD_VERSION	1249	// mod version (patch No.)
 
+#define ATHENA_MOD_VERSION	1249	// mod version (patch No.)
 #define ATHENA_SVN_VERSION	2001	// svn version
+#define ATHENA_MOD_STRING	"Shinomori's Modified Version (2006-06-25)"
+
+
 
 typedef enum 
 {
@@ -36,7 +39,7 @@ typedef enum
 	ATHENA_SERVER_xxx2	=	0x40,
 	ATHENA_SERVER_xxx3	=	0x80,
 	ATHENA_SERVER_ALL	=	0xFF
-} ServerType;
+} server_t;
 
 
 

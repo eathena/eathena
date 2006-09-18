@@ -20,7 +20,7 @@
  * ˜I“X•Â½
  *------------------------------------------
 */
-void vending_closevending(struct map_session_data &sd)
+void vending_closevending(map_session_data &sd)
 {
 	sd.vender_id=0;
 	clif_closevendingboard(sd,0);
@@ -30,9 +30,9 @@ void vending_closevending(struct map_session_data &sd)
  * ˜I“XƒAƒCƒeƒ€ƒŠƒXƒg—v‹
  *------------------------------------------
  */
-void vending_vendinglistreq(struct map_session_data &sd, uint32 id)
+void vending_vendinglistreq(map_session_data &sd, uint32 id)
 {
-	struct map_session_data *vsd=map_session_data::from_blid(id);
+	map_session_data *vsd=map_session_data::from_blid(id);
 	if( vsd && vsd->vender_id )
 		clif_vendinglist(sd,id,vsd->vend_list);
 }
@@ -41,7 +41,7 @@ void vending_vendinglistreq(struct map_session_data &sd, uint32 id)
  * ˜I“XƒAƒCƒeƒ€w“ü
  *------------------------------------------
  */
-void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 id,unsigned char *buffer)
+void vending_purchasereq(map_session_data &sd,unsigned short len,uint32 id,unsigned char *buffer)
 {
 	size_t i, j, w;
 	uint32 z;
@@ -158,11 +158,12 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
  * ˜I“XŠJİ
  *------------------------------------------
  */
-void vending_openvending(struct map_session_data &sd,unsigned short len,const char *message,int flag, unsigned char *buffer)
+void vending_openvending(map_session_data &sd,unsigned short len,const char *message,int flag, unsigned char *buffer)
 {
 	size_t i;
 
-	if(!pc_checkskill(sd,MC_VENDING) || !pc_iscarton(sd)) {	// cart skill and cart check [Valaris]
+	if(!pc_checkskill(sd,MC_VENDING) || !sd.is_carton())
+	{	// cart skill and cart check [Valaris]
 		sd.clif_skill_failed(MC_VENDING,0,0);
 		return;
 	}

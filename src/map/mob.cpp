@@ -97,7 +97,6 @@ mob_data::mob_data(const char *mobname, int cl) :
 	recallcount(0)
 {
 	this->block_list::id = npc_get_new_npc_id();
-	this->block_list::type = BL_MOB;
 
 	if(strcmp(mobname,"--en--")==0)
 		safestrcpy(this->name, sizeof(this->name), mob_db[this->class_].name);
@@ -168,7 +167,7 @@ int mob_data::attacktimer_func(int tid, unsigned long tick, int id, basics::nump
 
 	if(tsd)
 	{
-		if( tsd->is_dead() || tsd->invincible_timer != -1 ||  pc_isinvisible(*tsd) || md.block_list::m != tbl->m || !tbl->is_on_map() || distance(md,*tbl)>=13 ){
+		if( tsd->is_dead() || tsd->invincible_timer != -1 ||  tsd->is_invisible() || md.block_list::m != tbl->m || !tbl->is_on_map() || distance(md,*tbl)>=13 ){
 			md.stop_attack(); //Stop attacking once target has been defeated/unreachable.[Skotlex]
 			return 0;
 		}
@@ -187,13 +186,15 @@ int mob_data::attacktimer_func(int tid, unsigned long tick, int id, basics::nump
 		mode=md.mode;
 
 	race=mob_db[md.class_].race;
-	if(!(mode&0x80)){
+	if(!(mode&0x80))
+	{
 		md.target_id=0;
 		md.state.targettype = NONE_ATTACKABLE;
 		return 0;
 	}
 	if(tsd && !(mode&0x20) && (tsd->sc_data[SC_TRICKDEAD].timer != -1 || tsd->sc_data[SC_BASILICA].timer != -1 ||
-		 ((pc_ishiding(*tsd) || tsd->state.gangsterparadise) && !((race == 4 || race == 6 || mode&0x100) && !tsd->state.perfect_hiding) ) ) ) {
+		 ((tsd->is_hiding() || tsd->state.gangsterparadise) && !((race == 4 || race == 6 || mode&0x100) && !tsd->state.perfect_hiding) ) ) )
+	{
 		md.target_id=0;
 		md.state.targettype = NONE_ATTACKABLE;
 		return 0;
@@ -244,31 +245,6 @@ int mob_data::skilltimer_func(int tid, unsigned long tick, int id, basics::numpt
 
 
 
-/*==========================================
- * The attack of PC which is attacking id is stopped.
- * The callback function of clif_foreachclient
- *------------------------------------------
- */
-class CClifMobStopattacked : public CClifProcessor
-{
-	uint32 id;
-public:
-	CClifMobStopattacked(uint32 i) : id(i)	{}
-	virtual ~CClifMobStopattacked()	{}
-	virtual bool process(map_session_data& sd) const
-	{
-		if(sd.target_id==id)
-			sd.stop_attack();
-		return 0;
-	}
-};
-
-
-
-
-
-
-
 
 /// do object depending stuff for ending the walk.
 void mob_data::do_stop_walking()
@@ -304,9 +280,19 @@ bool mob_data::set_dead()
 	mobskill_deltimer(*this);
 	this->state.skillstate=MSS_DEAD;
 	this->last_deadtime=gettick();
-	// Since it died, all aggressors' attack to this mob is stopped.
 
-	clif_foreachclient( CClifMobStopattacked(this->block_list::id) );
+	// Since it died, all aggressors' attack to this mob is stopped.
+	map_session_data::iterator iter(map_session_data::nickdb());
+	for(; iter; ++iter)
+	{
+		map_session_data *sd = iter.data();
+		if(sd)
+		{
+			if( sd->target_id == this->block_list::id )
+				sd->stop_attack();
+		}
+	}
+
 
 	skill_unit_move(*this,gettick(),0);
 	status_change_clear(this,2);	// ステータス異常を解除する
@@ -436,7 +422,7 @@ int mob_target(mob_data &md,block_list *bl,int dist)
 		sd = bl->get_sd();
 		if(sd)
 		{
-			if(sd->invincible_timer != -1 || pc_isinvisible(*sd))
+			if(sd->invincible_timer != -1 || sd->is_invisible())
 				return 0;
 			if(!(mode&0x20) && race!=4 && race!=6 && !(mode&0x100) && sd->state.gangsterparadise)
 				return 0;
@@ -1013,8 +999,7 @@ public:
 	virtual int process(block_list& bl) const
 	{
 		int mode,race,dist;
-
-		if(bl.type!=BL_PC && bl.type!=BL_MOB)
+		if(bl!=BL_PC && bl!=BL_MOB)
 			return 0;
 
 		//敵味方判定
@@ -1031,19 +1016,19 @@ public:
 		{
 			race=mob_db[smd.class_].race;
 		
-			if(bl.type==BL_PC)
+			if(bl==BL_PC)
 			{	//対象がPCの場合
 				map_session_data &tsd=(map_session_data &)bl;
 
 				if( !tsd.is_dead() &&
 					tsd.block_list::m == smd.block_list::m &&
 					tsd.invincible_timer == -1 &&
-					!pc_isinvisible(tsd) &&
+					!tsd.is_invisible() &&
 					!tsd.ScriptEngine.isRunning() &&
 					(dist=distance(smd.block_list::x,smd.block_list::y,tsd.block_list::x,tsd.block_list::y))<9 )
 				if( mode&0x20 ||
 					(tsd.sc_data[SC_TRICKDEAD].timer == -1 && tsd.sc_data[SC_BASILICA].timer == -1 &&
-					((!pc_ishiding(tsd) && !tsd.state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) 
+					((!tsd.is_hiding() && !tsd.state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) 
 					&& !tsd.state.perfect_hiding) )))
 				{	// 妨害がないか判定
 
@@ -1057,7 +1042,7 @@ public:
 					}
 				}
 			}
-			else if(bl.type==BL_MOB) 
+			else if(bl==BL_MOB) 
 			{	//対象がMobの場合
 				mob_data &tmd=(mob_data &)bl;
 				if( tmd.block_list::m == smd.block_list::m &&
@@ -1131,18 +1116,20 @@ public:
 	~CMobAiHardLinksearch()	{}
 	virtual int process(block_list& bl) const
 	{
-		mob_data &tmd = (mob_data &)bl;
-		if( bl.type==BL_MOB && 
-			md.attacked_id > 0 && mob_db[md.class_].mode&0x08)
+		mob_data *tmd = bl.get_md();
+		if( tmd && 
+			md.attacked_id > 0 && mob_db[md.class_].mode&0x08 )
 		{
-			if( tmd.class_ == md.class_ && tmd.block_list::m == md.block_list::m && (!tmd.target_id || md.state.targettype == NONE_ATTACKABLE))
+			if( tmd->class_ == md.class_ && 
+				tmd->block_list::m == md.block_list::m && 
+				(!tmd->target_id || md.state.targettype == NONE_ATTACKABLE) )
 			{
-				if( tmd.can_reach(target,12) )
+				if( tmd->can_reach(target,12) )
 				{	// Reachability judging
-					tmd.target_id = md.attacked_id;
+					tmd->target_id = md.attacked_id;
 					md.attacked_count = 0;
-					tmd.state.targettype = ATTACKABLE;
-					tmd.min_chase=13;
+					tmd->state.targettype = ATTACKABLE;
+					tmd->min_chase=13;
 				}
 			}
 		}
@@ -1155,15 +1142,13 @@ public:
  */
 int mob_ai_sub_hard_slavemob(mob_data &md,unsigned long tick)
 {
-	mob_data *mmd=NULL;
-	block_list *bl;
-	int mode,race,old_dist;
 
-
-	if((bl=mob_data::from_blid(md.master_id)) != NULL )
-		mmd=(mob_data *)bl;
-
-	mode=mob_db[md.class_].mode;
+	if(md.state.special_mob_ai>0)		// 主がPCの場合は、以降の処理は要らない
+		return 0;
+	
+	mob_data *mmd=mob_data::from_blid(md.master_id);
+	int race,old_dist;
+	int mode=mob_db[md.class_].mode;
 
 	if(!mmd || mmd->hp <= 0)
 	{	//主が死亡しているか見つからない
@@ -1173,19 +1158,17 @@ int mob_ai_sub_hard_slavemob(mob_data &md,unsigned long tick)
 			mob_damage(md,md.hp,0,NULL);
 		return 0;
 	}
-	if(md.state.special_mob_ai>0)		// 主がPCの場合は、以降の処理は要らない
-		return 0;
-
-	// It is not main monster/leader.
-	if(!mmd || mmd->block_list::type != BL_MOB || mmd->block_list::id != md.master_id)
-		return 0;
 
 	// 呼び戻し
-	if(mmd->state.recall_flag == 1){
-		if (mmd->recallcount < (mmd->recallmob_count+2) ){
+	if(mmd->state.recall_flag == 1)
+	{
+		if (mmd->recallcount < (mmd->recallmob_count+2) )
+		{
 			mob_warp(md,-1,mmd->block_list::x,mmd->block_list::y,3);
 			mmd->recallcount += 1;
-		} else{
+		}
+		else
+		{
 			mmd->state.recall_flag = 0;
 			mmd->recallcount=0;
 		}
@@ -1193,7 +1176,8 @@ int mob_ai_sub_hard_slavemob(mob_data &md,unsigned long tick)
 		return 0;
 	}
 	// Since it is in the map on which the master is not, teleport is carried out and it pursues.
-	if( mmd->block_list::m != md.block_list::m ){
+	if( mmd->block_list::m != md.block_list::m )
+	{
 		mob_warp(md,mmd->block_list::m,mmd->block_list::x,mmd->block_list::y,3);
 		md.state.master_check = 1;
 		return 0;
@@ -1221,8 +1205,8 @@ int mob_ai_sub_hard_slavemob(mob_data &md,unsigned long tick)
 			{
 				if(i<=5)
 				{
-					dx=bl->x - md.block_list::x;
-					dy=bl->y - md.block_list::y;
+					dx=mmd->block_list::x - md.block_list::x;
+					dy=mmd->block_list::y - md.block_list::y;
 					if(dx<0) dx+=(rand()%-dx);
 					else if(dx>0) dx-=(rand()%dx);
 					if(dy<0) dy+=(rand()%-dy);
@@ -1230,8 +1214,8 @@ int mob_ai_sub_hard_slavemob(mob_data &md,unsigned long tick)
 				}
 				else
 				{
-					dx=bl->x - md.block_list::x + rand()%11- 5;
-					dy=bl->y - md.block_list::y + rand()%11- 5;
+					dx=mmd->block_list::x - md.block_list::x + rand()%11- 5;
+					dy=mmd->block_list::y - md.block_list::y + rand()%11- 5;
 				}
 				if( md.walktoxy(md.block_list::x+dx,md.block_list::y+dy) )
 					break;
@@ -1260,12 +1244,13 @@ int mob_ai_sub_hard_slavemob(mob_data &md,unsigned long tick)
 	// There is the master, the master locks a target and he does not lock.
 	if( (mmd->target_id>0 && mmd->state.targettype == ATTACKABLE) && (!md.target_id || md.state.targettype == NONE_ATTACKABLE) ){
 		map_session_data *sd=map_session_data::from_blid(mmd->target_id);
-		if( sd!=NULL && !sd->is_dead() && sd->invincible_timer == -1 && !pc_isinvisible(*sd)){
+		if( sd!=NULL && !sd->is_dead() && sd->invincible_timer == -1 && !sd->is_invisible())
+		{
 
 			race=mob_db[md.class_].race;
 			if(mode&0x20 ||
 				(sd->sc_data[SC_TRICKDEAD].timer == -1 && sd->sc_data[SC_BASILICA].timer == -1 &&
-				( (!pc_ishiding(*sd) && !sd->state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) && !sd->state.perfect_hiding) ) ) ){	// 妨害がないか判定
+				( (!sd->is_hiding() && !sd->state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) && !sd->state.perfect_hiding) ) ) ){	// 妨害がないか判定
 
 				md.target_id=sd->block_list::id;
 				md.state.targettype = ATTACKABLE;
@@ -1311,7 +1296,10 @@ public:
 	~CMobAiHard()	{}
 	virtual int process(block_list& bl) const
 	{
-		mob_data &md = (mob_data&)bl;
+		if( bl!=BL_MOB )
+			return 0;
+
+		mob_data &md = *bl.get_md();
 		mob_data *tmd = NULL;
 		map_session_data *tsd = NULL;
 		block_list *tbl = NULL;
@@ -1322,14 +1310,14 @@ public:
 		int search_size = AREA_SIZE*2;
 		int blind_flag = 0;
 
-		if(bl.type!=BL_MOB)
-			return 0;
+
 
 		if( DIFF_TICK(tick, md.last_thinktime) < MIN_MOBTHINKTIME )
 			return 0;
 		md.last_thinktime = tick;
 
-		if (md.skilltimer != -1 || md.block_list::prev == NULL ){	// Casting skill, or has died
+		if (md.skilltimer != -1 || md.is_dead() )
+		{	// Casting skill, or has died
 			if( DIFF_TICK (tick, md.next_walktime) > MIN_MOBTHINKTIME )
 				md.next_walktime = tick;
 			return 0;
@@ -1356,7 +1344,7 @@ public:
 			block_list *abl = block_list::from_blid(md.attacked_id);
 			map_session_data *asd = (abl) ? abl->get_sd() : NULL;
 
-			if( abl && !abl->is_dead() && !(asd && pc_isinvisible(*asd)) )
+			if( abl && !abl->is_dead() && !(asd && asd->is_invisible()) )
 			{
 				block_list::foreachinarea(CMobAiHardLinksearch(md, *abl),
 					md.block_list::m, ((int)md.block_list::x)-AREA_SIZE, ((int)md.block_list::y)-AREA_SIZE, ((int)md.block_list::x)+AREA_SIZE, ((int)md.block_list::y)+AREA_SIZE, BL_MOB);
@@ -1378,7 +1366,7 @@ public:
 		{
 			block_list *abl = block_list::from_blid(md.attacked_id); 
 
-			if( !abl || md.block_list::m != abl->m || abl->prev == NULL ||
+			if( !abl || md.block_list::m != abl->m || abl->is_dead() ||
 				(dist = distance(md.block_list::x, md.block_list::y, abl->x, abl->y))>= 32 ||
 				battle_check_target(&bl, abl, BCT_ENEMY) <= 0 ||
 				!md.can_reach(*abl, dist) )
@@ -1453,7 +1441,7 @@ public:
 			search_size = (blind_flag) ? 3 : AREA_SIZE*2;
 			i=0;
 			block_list::foreachinarea( CMobAiHardActivesearch(md,i),
-				md.block_list::m, ((int)md.block_list::x)-search_size, ((int)md.block_list::y)-search_size, ((int)md.block_list::x)+search_size, ((int)md.block_list::y)+search_size, (md.state.special_mob_ai)?0:BL_PC);
+				md.block_list::m, ((int)md.block_list::x)-search_size, ((int)md.block_list::y)-search_size, ((int)md.block_list::x)+search_size, ((int)md.block_list::y)+search_size, (md.state.special_mob_ai)?BL_ALL:BL_PC);
 
 //			if (md.state.special_mob_ai)
 //				map_foreachinarea(mob_ai_sub_hard_activesearch, 
@@ -1483,7 +1471,7 @@ public:
 
 				if(tsd || tmd)
 				{	// pc or mob
-					if( tbl->m != md.block_list::m || tbl->prev == NULL || 
+					if( tbl->m != md.block_list::m || tbl->is_dead() || 
 						(dist = distance(md.block_list::x, md.block_list::y, tbl->x, tbl->y)) >= search_size || 
 						(tsd && tsd->is_dead()) )
 					{
@@ -1504,7 +1492,7 @@ public:
 					else if( tsd && !(mode & 0x20) &&
 						(tsd->sc_data[SC_TRICKDEAD].timer != -1 ||
 						tsd->sc_data[SC_BASILICA].timer != -1 ||
-						((pc_ishiding(*tsd) || tsd->state.gangsterparadise) &&
+						((tsd->is_hiding() || tsd->state.gangsterparadise) &&
 						!((race == 4 || race == 6 || mode&0x100) && !tsd->state.perfect_hiding))))
 					{
 						md.unlock_target(tick);	// スキルなどによる策敵妨害
@@ -1574,7 +1562,7 @@ public:
 				else
 				{	// other target types
 					// ルートモンスター処理
-					if (tbl == NULL || tbl->type != BL_ITEM || tbl->m != md.block_list::m ||
+					if (tbl == NULL || *tbl != BL_ITEM || tbl->m != md.block_list::m ||
 						(dist = distance(md.block_list::x, md.block_list::y, tbl->x, tbl->y)) >= md.min_chase || !md.lootitem ||
 						(blind_flag && dist >= 4))
 					{
@@ -1667,29 +1655,21 @@ public:
 	}
 };
 /*==========================================
- * Serious processing for mob in PC field of view (foreachclient)
- *------------------------------------------
- */
-class CClifMobAi : public CClifProcessor
-{
-	unsigned long tick;
-public:
-	CClifMobAi(unsigned long t) : tick(t)	{}
-	virtual ~CClifMobAi()	{}
-	virtual bool process(map_session_data& sd) const
-	{
-		block_list::foreachinarea( CMobAiHard(tick),
-			sd.block_list::m, ((int)sd.block_list::x)-AREA_SIZE*2,((int)sd.block_list::y)-AREA_SIZE*2, ((int)sd.block_list::x)+AREA_SIZE*2,((int)sd.block_list::y)+AREA_SIZE*2, BL_MOB);
-		return 0;
-	}
-};
-/*==========================================
  * Serious processing for mob in PC field of view   (interval timer function)
  *------------------------------------------
  */
 int mob_ai_hard(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	clif_foreachclient( CClifMobAi(tick) );
+	map_session_data::iterator iter(map_session_data::nickdb());
+	for(; iter; ++iter)
+	{
+		const map_session_data *sd = iter.data();
+		if(sd)
+		{
+			block_list::foreachinarea( CMobAiHard(tick),
+				sd->block_list::m, ((int)sd->block_list::x)-AREA_SIZE*2,((int)sd->block_list::y)-AREA_SIZE*2, ((int)sd->block_list::x)+AREA_SIZE*2,((int)sd->block_list::y)+AREA_SIZE*2, BL_MOB);
+		}
+	}
 	return 0;
 }
 
@@ -1933,10 +1913,10 @@ public:
 	~CMobDeleteSlave()	{}
 	virtual int process(block_list& bl) const
 	{
-		mob_data &md = (mob_data &)bl;
-		if(bl.type==BL_MOB && md.master_id == id )
+		mob_data *md = bl.get_md();
+		if( md && md->master_id == id )
 		{
-			mob_damage(md,md.hp,1,NULL);
+			mob_damage(*md, md->hp, 1, NULL);
 			return 1;
 		}
 		return 0;
@@ -1989,10 +1969,8 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 	max_hp = status_get_max_hp(&md);
 	race = status_get_race(&md);
 
-	if(src && src->type == BL_PC) {
-		sd = (map_session_data *)src;
-		mvp_sd = sd;
-	}
+	if( src )
+		mvp_sd = sd = src->get_sd();
 
 //	if(config.battle_log)
 //		ShowMessage("mob_damage %d %d %d\n",md->hp,max_hp,damage);
@@ -2053,11 +2031,11 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 			if(md.attacked_id <= 0 && md.state.special_mob_ai==0)
 				md.attacked_id = sd->block_list::id;
 		}
-		if(src && src->type == BL_PET && config.pet_attack_exp_to_master==1)
+		if(src && *src == BL_PET && config.pet_attack_exp_to_master==1)
 		{
-			struct pet_data *pd = (struct pet_data *)src;
-			nullpo_retr(0, pd);
-			for(i=0,minpos=0,mindmg=INT_MAX;i<DAMAGELOG_SIZE;++i){
+			pet_data *pd = src->get_pd();
+			for(i=0,minpos=0,mindmg=INT_MAX;i<DAMAGELOG_SIZE;++i)
+			{
 				if(md.dmglog[i].fromid==pd->msd->status.char_id)
 					break;
 				if(md.dmglog[i].fromid==0){
@@ -2079,9 +2057,9 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 			if(md.attacked_id <= 0 && md.state.special_mob_ai==0 && pd->msd)
 				md.attacked_id = pd->msd->block_list::id;
 		}
-		if(src && src->type == BL_MOB && ((mob_data*)src)->state.special_mob_ai)
+		if(src && *src == BL_MOB && src->get_md()->state.special_mob_ai)
 		{
-			mob_data *md2 = (mob_data *)src;
+			mob_data *md2 = src->get_md();
 			map_session_data *msd = map_session_data::from_blid(md2->master_id);
 			if(msd)
 			{
@@ -2168,7 +2146,7 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 
 	max_hp = status_get_max_hp(&md);
 
-	if(src && src->type == BL_MOB)
+	if(src && *src == BL_MOB)
 		((mob_data *)src)->unlock_target(tick);
 
 	if(sd)
@@ -2593,7 +2571,7 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 	{
 //		if(config.battle_log)
 //			ShowMessage("mob_damage : run event : %s\n",md->npc_event);
-		if(src && src->type == BL_PET)
+		if(src && *src == BL_PET)
 			sd = ((struct pet_data *)src)->msd;
 		if(sd == NULL) {
 			if(mvp_sd != NULL)
@@ -2620,10 +2598,10 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 		pc_setglobalreg(*mvp_sd,"killedrid",(md.class_));
 		if (script_config.event_script_type == 0)
 		{
-			struct npc_data *npc= npc_name2id("NPCKillEvent");
-			if(npc && npc->u.scr.ref)
+			npcscript_data *sc = npcscript_data::from_name("NPCKillEvent");
+			if(sc && sc->ref)
 			{
-				CScriptEngine::run(npc->u.scr.ref->script,0,mvp_sd->block_list::id,npc->block_list::id); // NPCKillNPC
+				CScriptEngine::run(sc->ref->script, 0, mvp_sd->block_list::id, sc->block_list::id); // NPCKillNPC
 				ShowStatus("Event '"CL_WHITE"NPCKillEvent"CL_RESET"' executed.\n");
 			}
 		}
@@ -2761,10 +2739,10 @@ public:
 	~CMobWarpSlave()	{}
 	virtual int process(block_list& bl) const
 	{
-		mob_data &md=(mob_data &)bl;
-		if( bl.type==BL_MOB && md.master_id==id )
+		mob_data *md=bl.get_md();
+		if( md && md->master_id==id )
 		{
-			mob_warp(md,-1,x,y,2);
+			mob_warp(*md,-1,x,y,2);
 			return 1;
 		}
 		return 0;
@@ -2865,8 +2843,8 @@ public:
 	~CMobCountSlave()	{}
 	virtual int process(block_list& bl) const
 	{
-		mob_data &md = (mob_data &)bl;
-		return ( bl.type==BL_MOB && md.master_id==id );
+		mob_data *md = bl.get_md();
+		return ( md && md->master_id==id );
 	}
 };
 /*==========================================
@@ -3004,11 +2982,12 @@ int mobskill_castend_id(int tid, unsigned long tick, int id, basics::numptr data
 		if(sc_data && (sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].val2.num == 0)))
 			return 0;
 	}
-	else if(md->skillid == RG_BACKSTAP) {
+	else if(md->skillid == RG_BACKSTAP)
+	{
 		dir_t dir = md->get_direction(*bl);
 		dir_t t_dir = bl->get_dir();
 		int dist = distance(*md, *bl);
-		if(bl->type != BL_SKILL && (dist == 0 || !is_same_direction(dir,t_dir)))
+		if( *bl != BL_SKILL && (dist == 0 || !is_same_direction(dir,t_dir)))
 			return 0;
 	}
 	if( ( (skill_get_inf(md->skillid)&1) || (skill_get_inf2(md->skillid)&4) ) &&	// 彼我敵対関係チェック
@@ -3030,7 +3009,7 @@ int mobskill_castend_id(int tid, unsigned long tick, int id, basics::numptr data
 	{
 	case NK_NO_DAMAGE:// 支援系
 		if(!mob_db[md->class_].skill[md->skillidx].val[0] &&
-			(md->skillid==AL_HEAL || (md->skillid==ALL_RESURRECTION && bl->type != BL_PC)) && battle_check_undead(status_get_race(bl),status_get_elem_type(bl)) )
+			(md->skillid==AL_HEAL || (md->skillid==ALL_RESURRECTION && *bl != BL_PC)) && battle_check_undead(status_get_race(bl),status_get_elem_type(bl)) )
 			skill_castend_damage_id(md,bl,md->skillid,md->skilllv,tick,0);
 		else
 			skill_castend_nodamage_id(md,bl,md->skillid,md->skilllv,tick,0);
@@ -3082,9 +3061,9 @@ int mobskill_castend_pos(int tid, unsigned long tick, int id, basics::numptr dat
 			skill_check_unit_range (md->block_list::m, md->skillx, md->skilly, md->skillid, md->skilllv))
 		return 0;
 
-	if(config.monster_skill_nofootset &&
-			skill_get_unit_flag (md->skillid) & UF_NOFOOTSET &&
-			skill_check_unit_range2(md->block_list::m, md->skillx, md->skilly, md->skillid, md->skilllv, md->block_list::type))
+	if( config.monster_skill_nofootset &&
+		(skill_get_unit_flag (md->skillid) & UF_NOFOOTSET) &&
+		skill_check_unit_range2(md->block_list::m, md->skillx, md->skilly, md->skillid, md->skilllv, BL_MOB) )
 		return 0;
 
 
@@ -3183,7 +3162,7 @@ int mobskill_use_id(mob_data &md,block_list *target,unsigned short skill_idx)
 
 	switch(skill_id){	// 何か特殊な処理が必要 
 	case ALL_RESURRECTION:	// リザレクション 
-		if(target->type != BL_PC && battle_check_undead(status_get_race(target),status_get_elem_type(target))){	/* 敵がアンデッドなら */
+		if(*target!= BL_PC && battle_check_undead(status_get_race(target),status_get_elem_type(target))){	/* 敵がアンデッドなら */
 			forcecast=1;	// ターンアンデットと同じ詠唱時間 
 			casttime=skill_castfix(&md, skill_get_cast(PR_TURNUNDEAD,skill_lv) );
 		}
@@ -3286,7 +3265,6 @@ int mobskill_use_pos( mob_data *md, int skill_x, int skill_y, unsigned short ski
 		return 0;
 
 	// 射程と障害物チェック
-	bl.type = BL_NUL;
 	bl.m = md->block_list::m;
 	bl.x = skill_x;
 	bl.y = skill_y;
@@ -3353,12 +3331,12 @@ public:
 	~CMobGetfriendhpltmaxrate()	{}
 	virtual int process(block_list& bl) const
 	{
-		mob_data &md=(mob_data &)bl;
-		if( bl.type==BL_MOB && 
+		mob_data *md=bl.get_md();
+		if( md && 
 			mmd.block_list::id != bl.id &&
 			battle_check_target(&mmd,&bl,BCT_ENEMY)<=0 &&
-			md.hp < md.max_hp * rate/100 )
-			fr = &md;
+			md->hp < md->max_hp * rate/100 )
+			fr = md;
 		return 0;
 	}
 };
@@ -3401,10 +3379,10 @@ public:
 	~CMobGetfriendstatus()	{}
 	virtual int process(block_list& bl) const
 	{
-		mob_data &md = (mob_data &)bl;
 		int flag=0;
+		mob_data *md = bl.get_md();
 
-		if( bl.type==BL_MOB &&
+		if( md &&
 			mmd.block_list::id != bl.id &&
 			battle_check_target(&mmd,&bl,BCT_ENEMY)<=0)
 		{
@@ -3412,12 +3390,12 @@ public:
 			{
 				int j;
 				for(j=SC_STONE;j<=SC_BLIND && !flag;++j)
-					flag=(md.sc_data[j].timer!=-1 );
+					flag=(md->sc_data[j].timer!=-1 );
 			}
 			else
-				flag=( md.sc_data[cond2].timer!=-1 );
+				flag=( md->sc_data[cond2].timer!=-1 );
 			if( flag^( cond1==MSC_FRIENDSTATUSOFF ) )
-				fr = &md;
+				fr = md;
 		}
 		return 0;
 	}

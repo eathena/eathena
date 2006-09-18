@@ -367,9 +367,9 @@ struct mob_data : public fightable
 
 	///////////////////////////////////////////////////////////////////////////
 	/// upcasting overloads.
-	virtual bool is_type(object_t t)
+	virtual bool is_type(object_t t) const
 	{
-		return t==BL_MOB;
+		return (t==BL_ALL) || (t==BL_MOB);
 	}
 	virtual mob_data*				get_md()				{ return this; }
 	virtual const mob_data*			get_md() const			{ return this; }

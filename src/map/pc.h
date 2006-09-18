@@ -12,6 +12,7 @@
 
 struct map_session_data : public fightable, public session_data
 {
+
 	/////////////////////////////////////////////////////////////////
 private:
 	static dbt* nick_db;		///< sessions ordered by char name
@@ -36,6 +37,16 @@ public:
 
 	/// return number of valid sessions
 	static size_t count_users(void);
+
+
+public:
+	// iterator access
+	typedef db_iterator<const char*,map_session_data*>	iterator;
+	// nick_db contains only authentified sessions
+	// so can use this directly
+	static dbt* nickdb()	{ return map_session_data::nick_db; }
+	
+
 
 
 	/////////////////////////////////////////////////////////////////
@@ -414,9 +425,9 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// upcasting overloads.
-	virtual bool is_type(object_t t)
+	virtual bool is_type(object_t t) const
 	{
-		return t==BL_PC;
+		return (t==BL_ALL) || (t==BL_PC);
 	}
 	virtual map_session_data*		get_sd()				{ return this; }
 	virtual const map_session_data* get_sd() const			{ return this; }
@@ -472,6 +483,15 @@ public:
 	virtual bool set_stand();
 
 
+	virtual bool is_hiding() const			{ return 0 != (this->status.option&0x4006); }
+	virtual bool is_cloaking() const		{ return 0==(this->status.option&0x4000) && 0!=(this->status.option&0x0004); }
+	virtual bool is_chasewalk() const		{ return 0 != (this->status.option&0x4000); }
+	virtual bool is_carton() const			{ return 0 != (this->status.option&CART_MASK); }
+	virtual bool is_falcon() const			{ return 0 != (this->status.option&0x0010); }
+	virtual bool is_riding() const			{ return 0 != (this->status.option&0x0020); }
+	virtual bool is_invisible() const		{ return 0 != (this->status.option&0x0040); }
+	virtual bool is_50overweight() const	{ return this->weight*2 >= this->max_weight; }
+	virtual bool is_90overweight() const	{ return this->weight*10 >= this->max_weight*9; }
 
 
 
@@ -521,15 +541,6 @@ private:
 
 
 
-static inline bool pc_ishiding(const map_session_data &sd) { return 0 != (sd.status.option&0x4006); }
-static inline bool pc_iscloaking(const map_session_data &sd) { return 0==(sd.status.option&0x4000) && 0!=(sd.status.option&0x0004); }
-static inline bool pc_ischasewalk(const map_session_data &sd) { return 0 != (sd.status.option&0x4000); }
-static inline bool pc_iscarton(const map_session_data &sd) { return 0 != (sd.status.option&CART_MASK); }
-static inline bool pc_isfalcon(const map_session_data &sd) { return 0 != (sd.status.option&0x0010); }
-static inline bool pc_isriding(const map_session_data &sd) { return 0 != (sd.status.option&0x0020); }
-static inline bool pc_isinvisible(const map_session_data &sd) { return 0 != (sd.status.option&0x0040); }
-static inline bool pc_is50overweight(const map_session_data &sd) { return sd.weight*2 >= sd.max_weight; }
-static inline bool pc_is90overweight(const map_session_data &sd) { return sd.weight*10 >= sd.max_weight*9; }
 
 
 bool pc_iskiller(map_session_data &src, map_session_data &target); // [MouseJstr]

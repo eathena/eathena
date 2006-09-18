@@ -703,7 +703,7 @@ public:
 
 	polygen(shuffle_func s) : fShuffle(s), poly(rand())
 	{
-		if(!poly) poly=0;
+		if(!poly) poly=(uint32)time(NULL);
 	}
 	//polygen(int width);
 

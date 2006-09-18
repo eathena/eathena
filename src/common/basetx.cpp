@@ -1985,38 +1985,52 @@ int CCharDB_txt::char_to_str(char *str, size_t sz, const CCharCharacter &p)
 		(unsigned long)p.partner_id,(unsigned long)p.father_id,(unsigned long)p.mother_id,(unsigned long)p.child_id,
 		(unsigned long)p.fame_points);
 	for(i = 0; i < MAX_MEMO; ++i)
-		if (p.memo_point[i].mapname[0]) {
-			str_p += snprintf(str_p, str+sz-str_p, "%s,%d,%d", p.memo_point[i].mapname, p.memo_point[i].x, p.memo_point[i].y);
+	{
+		if (p.memo_point[i].mapname[0])
+		{
+			str_p += snprintf(str_p, str+sz-str_p, "%s,%d,%d ", p.memo_point[i].mapname, p.memo_point[i].x, p.memo_point[i].y);
 		}
+	}
 	*(str_p++) = '\t';
 
 	for(i = 0; i < MAX_INVENTORY; ++i)
-		if (p.inventory[i].nameid) {
+	{
+		if (p.inventory[i].nameid)
+		{
 			str_p += snprintf(str_p, str+sz-str_p, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
 					 (int)i, p.inventory[i].nameid, p.inventory[i].amount, p.inventory[i].equip,
 					 p.inventory[i].identify, p.inventory[i].refine, p.inventory[i].attribute,
 					 p.inventory[i].card[0], p.inventory[i].card[1], p.inventory[i].card[2], p.inventory[i].card[3]);
 		}
+	}
 	*(str_p++) = '\t';
 
 	for(i = 0; i < MAX_CART; ++i)
-		if (p.cart[i].nameid) {
+	{
+		if (p.cart[i].nameid)
+		{
 			str_p += snprintf(str_p, str+sz-str_p, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
 					 (int)i, p.cart[i].nameid, p.cart[i].amount, p.cart[i].equip,
 					 p.cart[i].identify, p.cart[i].refine, p.cart[i].attribute,
 					 p.cart[i].card[0], p.cart[i].card[1], p.cart[i].card[2], p.cart[i].card[3]);
 		}
+	}
 	*(str_p++) = '\t';
 
 	for(i = 0; i < MAX_SKILL; ++i)
-		if (p.skill[i].id && p.skill[i].flag != 1) {
+	{
+		if (p.skill[i].id && p.skill[i].flag != 1)
+		{
 			str_p += snprintf(str_p, str+sz-str_p, "%d,%d ", p.skill[i].id, (p.skill[i].flag == 0) ? p.skill[i].lv : p.skill[i].flag-2);
 		}
+	}
 	*(str_p++) = '\t';
 
 	for(i = 0; i < p.global_reg_num; ++i)
-		if (p.global_reg[i].str[0])
+	{
+		if(p.global_reg[i].str[0])
 			str_p += snprintf(str_p, str+sz-str_p, "%s,%ld ", p.global_reg[i].str, (long)p.global_reg[i].value);
+	}
 	*(str_p++) = '\t';
 
 	*str_p = '\0';
@@ -2325,22 +2339,20 @@ bool CCharDB_txt::char_from_str(const char *str)
 
 	if(ret)
 	{	// start with the next char after the delimiter
+		char buf[32];
 		next++;
 		for(i = 0; str[next] && str[next] != '\t'&&i<MAX_MEMO; ++i)
 		{
-			if (sscanf(str+next, "%[^,],%d,%d%n", p.memo_point[i].mapname, &tmp_int[0], &tmp_int[1], &len) != 3)
+			if (sscanf(str+next, "%24[^,],%d,%d%n", buf, &tmp_int[0], &tmp_int[1], &len) != 3)
 			{
 				ShowError(CL_BT_RED"Character Memo points invalid (id #%ld, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
 				ShowMessage("           Rest skipped, line saved to log file.\n", p.name);
 				ret = false;
 				break;
 			}
-
 			if( i<MAX_MEMO )
 			{
-				char*ip = strchr(p.memo_point[i].mapname, '.');
-				if(ip) *ip=0;
-
+				buffer2mapname(p.memo_point[i].mapname, sizeof(p.memo_point[i].mapname), buf);
 				p.memo_point[i].x = tmp_int[0];
 				p.memo_point[i].y = tmp_int[1];
 			}

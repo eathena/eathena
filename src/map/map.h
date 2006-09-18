@@ -158,14 +158,6 @@
 
 
 
-/*
-enum { 
-	MS_IDLE,
-	MS_WALK,
-	MS_ATTACK,
-	MS_DEAD,
-	MS_DELAY };
-*/
 
 enum { NONE_ATTACKABLE,ATTACKABLE };
 
@@ -182,7 +174,7 @@ enum {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-enum object_t { BL_NUL, BL_PC, BL_NPC, BL_MOB, BL_ITEM, BL_CHAT, BL_SKILL, BL_PET, BL_HOM };	//xxx 0..7 -> 3bit
+enum object_t { BL_NUL=0, BL_ALL=0, BL_PC, BL_NPC, BL_MOB, BL_ITEM, BL_CHAT, BL_SKILL, BL_PET, BL_HOM };	//xxx 0..7 -> 3bit
 enum object_sub_t { WARP, SHOP, SCRIPT, MONS };											// 0..3 -> 2bit
 
 
@@ -267,6 +259,9 @@ struct movable;
 struct fightable;
 struct map_session_data;
 struct npc_data;
+struct npcscript_data;
+struct npcwarp_data;
+struct npcshop_data;
 struct mob_data;
 struct pet_data;
 class flooritem_data;
@@ -302,6 +297,7 @@ public:
 /// object on a map
 struct block_list : public coordinate
 {
+public:
 	/////////////////////////////////////////////////////////////////
 	static dbt* id_db;
 
@@ -309,32 +305,29 @@ struct block_list : public coordinate
 	static block_list* from_blid(uint32 id);
 
 	// functions that work on block_lists
-	static int foreachinarea(const CMapProcessor& elem, unsigned short m, int x0,int y0,int x1,int y1,int type);
-	static int foreachincell(const CMapProcessor& elem, unsigned short m,int x,int y,int type);
-	static int foreachinmovearea(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type);
-	static int foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int range,int type);
-	static int foreachpartymemberonmap(const CMapProcessor& elem, struct map_session_data &sd, int type);
-	static int foreachobject(const CMapProcessor& elem,int type);
+	static int foreachinarea(const CMapProcessor& elem, unsigned short m, int x0,int y0,int x1,int y1,object_t type);
+	static int foreachincell(const CMapProcessor& elem, unsigned short m,int x,int y,object_t type);
+	static int countoncell(unsigned short m, int x, int y, object_t type);
+	static int foreachinmovearea(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,object_t type);
+	static int foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int range,object_t type);
+	static int foreachpartymemberonmap(const CMapProcessor& elem, map_session_data &sd, bool area);
+	static int foreachobject(const CMapProcessor& elem,object_t type);
+	static skill_unit *block_list::skillunit_oncell(block_list &target, int x, int y, ushort skill_id, skill_unit *out_unit);
 
 
 	/////////////////////////////////////////////////////////////////
-	unsigned short m;
-//private:
-	unsigned char type;
-public:
-	unsigned char subtype;
+	unsigned short m;	// redo coordinate to also hold maps
 	uint32 id;
-//private:
+private:
+	// data for internally used double-link list
 	block_list *next;
 	block_list *prev;
 public:
 
 	/////////////////////////////////////////////////////////////////
 	/// default constructor.
-	block_list(uint32 i=0, unsigned char t=0, unsigned char s=0) : 
+	block_list(uint32 i=0) : 
 		m(0),
-		type(t),
-		subtype(s),
 		id(i),
 		next(NULL),
 		prev(NULL)
@@ -342,8 +335,7 @@ public:
 	/////////////////////////////////////////////////////////////////
 	/// destructor.
 	virtual ~block_list()	
-	{
-		// not yet removed from map
+	{	// not yet removed from map
 		if(this->prev)
 			this->delblock();
 		// and just to be sure that it's removed from iddb
@@ -454,16 +446,16 @@ public:
 
 
 	// might later replace the type compare
-	// this here can be overloaded and could also used with masks instead pure enums
-	virtual bool is_type(object_t t)
+	// this has to be overloaded and could also used with masks instead pure enums
+	virtual bool is_type(object_t t) const
 	{
-		return (t==this->type);
+		return (t==BL_NUL); // non-type
 	}
-	bool operator==(object_t t)
+	bool operator==(object_t t) const
 	{
 		return this->is_type(t);
 	}
-	bool operator!=(object_t t)
+	bool operator!=(object_t t) const
 	{
 		return !this->is_type(t);
 	}
@@ -481,6 +473,15 @@ public:
 
 	virtual npc_data*				get_nd()				{ return NULL; }
 	virtual const npc_data*			get_nd() const			{ return NULL; }
+
+	virtual npcshop_data*			get_shop()				{ return NULL; }
+	virtual const npcshop_data*		get_shop() const		{ return NULL; }
+
+	virtual npcscript_data*			get_script()			{ return NULL; }
+	virtual const npcscript_data*	get_script() const		{ return NULL; }
+
+	virtual npcwarp_data*			get_warp()				{ return NULL; }
+	virtual const npcwarp_data*		get_warp() const		{ return NULL; }
 
 	virtual homun_data*				get_hd()				{ return NULL; }
 	virtual const homun_data*		get_hd() const			{ return NULL; }
@@ -524,41 +525,55 @@ public:
 	/// set head direction only.
 	virtual void set_headdir(dir_t d)		{}
 
-
+	/// check if withing AREA reange.
+	virtual bool is_near(const block_list& bl) const;
 
 	///////////////////////////////////////////////////////////////////////////
 	// status functions
 	// overloaded at derived classes
 
 	/// checks for walking state
-	virtual bool is_walking() const		{ return false; }
+	virtual bool is_walking() const			{ return false; }
 	/// checks for attack state
-	virtual bool is_attacking() const	{ return false; }
+	virtual bool is_attacking() const		{ return false; }
 	/// checks for skill state
-	virtual bool is_skilling() const	{ return false; }
+	virtual bool is_skilling() const		{ return false; }
 	/// checks for dead state
-	virtual bool is_dead() const		{ return false; }
+	virtual bool is_dead() const			{ return false; }
 	/// checks for sitting state
-	virtual bool is_sitting() const		{ return false; }
+	virtual bool is_sitting() const			{ return false; }
 	/// checks for idle state (alive+not sitting+not blocked by skill)
-	virtual bool is_idle() const		{ return true; }
-	/// checks for flying state
-	virtual bool is_flying() const		{ return false; }
-	/// checks for invisible state
-	virtual bool is_invisible() const	{ return false; }
-	/// checks for confusion state
-	virtual bool is_confuse() const		{ return false; }
-	/// checks if this is attackable
-	virtual bool is_attackable() const	{ return false; }
+	virtual bool is_idle() const			{ return true; }
 
 	/// sets the object to idle state
 	virtual bool set_idle(ulong delaytick=0){ return false; }
 	/// sets the object to idle state
-	virtual bool set_dead()				{ return false; }
+	virtual bool set_dead()					{ return false; }
 	/// sets the object to sitting state
-	virtual bool set_sit()				{ return false; }
+	virtual bool set_sit()					{ return false; }
 	/// sets the object to standing state
-	virtual bool set_stand()			{ return false; }
+	virtual bool set_stand()				{ return false; }
+
+
+
+	/// checks for flying state
+	virtual bool is_flying() const			{ return false; }
+	/// checks for confusion state
+	virtual bool is_confuse() const			{ return false; }
+	/// checks if this is attackable
+	virtual bool is_attackable() const		{ return false; }
+
+
+	virtual bool is_hiding() const			{ return false; }
+	virtual bool is_cloaking() const		{ return false; }
+	virtual bool is_chasewalk() const		{ return false; }
+	virtual bool is_carton() const			{ return false; }
+	virtual bool is_falcon() const			{ return false; }
+	virtual bool is_riding() const			{ return false; }
+	/// checks for invisible state
+	virtual bool is_invisible() const		{ return false; }
+	virtual bool is_50overweight() const	{ return false; }
+	virtual bool is_90overweight() const	{ return false; }
 
 
 
@@ -727,9 +742,9 @@ struct skill_unit : public block_list
 
 	///////////////////////////////////////////////////////////////////////////
 	/// upcasting overloads.
-	virtual bool is_type(object_t t)
+	virtual bool is_type(object_t t) const
 	{
-		return t==BL_SKILL;
+		return (t==BL_ALL) || (t==BL_SKILL);
 	}
 	virtual skill_unit*				get_sk()				{ return this; }
 	virtual const skill_unit*		get_sk() const			{ return this; }
@@ -876,9 +891,9 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// upcasting overloads.
-	virtual bool is_type(object_t t)
+	virtual bool is_type(object_t t) const
 	{
-		return t==BL_ITEM;
+		return (t==BL_ALL) || (t==BL_ITEM);
 	}
 	virtual flooritem_data*			get_fd()				{ return this; }
 	virtual const flooritem_data*	get_fd() const			{ return this; }
@@ -1032,12 +1047,15 @@ struct map_data
 		unsigned _unused : 4;					// 36-39 (byte 5)
 	} flag;
 	struct point save;
-	struct npc_data *npc[MAX_NPC_PER_MAP];
-	struct {
+	npc_data *npc[MAX_NPC_PER_MAP];
+	struct
+	{
 		int drop_id;
 		int drop_type;
 		int drop_per;
-	} drop_list[MAX_DROP_PER_MAP];
+	}
+	drop_list[MAX_DROP_PER_MAP];
+
 	struct mob_list *moblist[MAX_MOB_LIST_PER_MAP]; // [Wizputer]
 	int mob_delete_timer;	// [Skotlex]
 };
@@ -1163,13 +1181,12 @@ int map_getusers(void);
 
 
 
-//blockŠÖ˜A‚É’Ç‰Á
-int map_count_oncell(unsigned short m,int x,int y, int type);
-struct skill_unit *map_find_skill_unit_oncell(block_list &target,int x,int y,unsigned short skill_id, skill_unit *out_unit);
+
 // ˆêŽž“IobjectŠÖ˜A
 int map_addobject(block_list &bl);
 int map_delobject(int);
 int map_delobjectnofree(int id);
+
 //
 int map_quit(map_session_data &sd);
 // npc
@@ -1179,7 +1196,7 @@ int map_addnpc(unsigned short m, npc_data *nd);
 int map_clearflooritem_timer(int tid, unsigned long tick, int id, basics::numptr data);
 int map_removemobs_timer(int tid, unsigned long tick, int id, basics::numptr data);
 #define map_clearflooritem(id) map_clearflooritem_timer(0,0,id,1)
-int map_addflooritem(struct item &item_data,unsigned short amount,unsigned short m,unsigned short x,unsigned short y,struct map_session_data *first_sd,struct map_session_data *second_sd,struct map_session_data *third_sd,int type);
+int map_addflooritem(const struct item &item_data,unsigned short amount,unsigned short m,unsigned short x,unsigned short y, map_session_data *first_sd, map_session_data *second_sd, map_session_data *third_sd,int type);
 int map_searchrandfreecell(unsigned short m, unsigned short x, unsigned short y, unsigned short range);
 
 
@@ -1212,8 +1229,7 @@ extern const char *MSG_CONF_NAME;
 extern const char *GRF_PATH_FILENAME;
 
 
-void char_online_check(void);
-void char_offline(struct map_session_data *sd);
+
 
 
 

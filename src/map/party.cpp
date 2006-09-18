@@ -63,7 +63,7 @@ struct party* party_searchname(const char *str)
 }
 
 // 作成要求
-int party_create(struct map_session_data &sd,const char *name,int item,int item2)
+int party_create(map_session_data &sd,const char *name,int item,int item2)
 {
 	if(sd.status.party_id==0)
 		intif_create_party(sd,name,item,item2);
@@ -75,7 +75,7 @@ int party_create(struct map_session_data &sd,const char *name,int item,int item2
 // 作成可否
 int party_created(uint32 account_id,int fail,uint32 party_id,const char *name)
 {
-	struct map_session_data *sd = map_session_data::from_blid(account_id);
+	map_session_data *sd = map_session_data::from_blid(account_id);
 
 	nullpo_retr(0, sd);
 	if(fail==0)
@@ -110,11 +110,11 @@ int party_request_info(uint32 party_id)
 int party_check_member(struct party &p)
 {
 	size_t i;
-	struct map_session_data *sd;
+	map_session_data *sd;
 
 	for(i=0;i<fd_max; ++i)
 	{
-		if(session[i] && (sd=(struct map_session_data *)session[i]->user_session) && sd->state.auth)
+		if(session[i] && (sd=(map_session_data *)session[i]->user_session) && sd->state.auth)
 		{
 			if(sd->status.party_id==p.party_id)
 			{
@@ -145,9 +145,9 @@ int party_check_member(struct party &p)
 int party_recv_noinfo(uint32 party_id)
 {
 	size_t i;
-	struct map_session_data *sd;
+	map_session_data *sd;
 	for(i=0;i<fd_max; ++i){
-		if(session[i] && (sd=(struct map_session_data *) session[i]->user_session) && sd->state.auth){
+		if(session[i] && (sd=(map_session_data *) session[i]->user_session) && sd->state.auth){
 			if(sd->status.party_id==party_id)
 				sd->status.party_id=0;
 		}
@@ -175,7 +175,7 @@ int party_recv_info(struct party &sp)
 	{	// sdの設定
 		if( p->member[i].account_id )
 		{
-			struct map_session_data *sd = map_session_data::from_blid(p->member[i].account_id);
+			map_session_data *sd = map_session_data::from_blid(p->member[i].account_id);
 			p->member[i].sd=(sd!=NULL && sd->status.party_id==p->party_id && !sd->state.waitingdisconnect)?sd:NULL;
 		}
 	}
@@ -184,7 +184,7 @@ int party_recv_info(struct party &sp)
 
 	for(i=0;i<MAX_PARTY; ++i)
 	{	// 設定情報の送信
-		struct map_session_data *sd = p->member[i].sd;
+		map_session_data *sd = p->member[i].sd;
 		if(sd!=NULL && sd->party_sended==0){
 			clif_party_option(*p,sd,0x100);
 			sd->party_sended=1;
@@ -194,9 +194,9 @@ int party_recv_info(struct party &sp)
 }
 
 // パーティへの勧誘
-int party_invite(struct map_session_data &sd,uint32 account_id)
+int party_invite(map_session_data &sd,uint32 account_id)
 {
-	struct map_session_data *tsd= map_session_data::from_blid(account_id);
+	map_session_data *tsd= map_session_data::from_blid(account_id);
 	struct party *p=party_search(sd.status.party_id);
 	int i;
 	
@@ -226,9 +226,9 @@ int party_invite(struct map_session_data &sd,uint32 account_id)
 	return 0;
 }
 // パーティ勧誘への返答
-int party_reply_invite(struct map_session_data &sd,uint32 account_id,int flag)
+int party_reply_invite(map_session_data &sd,uint32 account_id,int flag)
 {
-	struct map_session_data *tsd= map_session_data::from_blid(account_id);
+	map_session_data *tsd= map_session_data::from_blid(account_id);
 
 	if(flag==1){	// 承諾
 		//inter鯖へ追加要求
@@ -247,7 +247,7 @@ int party_reply_invite(struct map_session_data &sd,uint32 account_id,int flag)
 // パーティが追加された
 int party_member_added(uint32 party_id,uint32 account_id,int flag)
 {
-	struct map_session_data *sd = map_session_data::from_blid(account_id),*sd2;
+	map_session_data *sd = map_session_data::from_blid(account_id),*sd2;
 	if(sd == NULL){
 		if(flag==0)
 		{
@@ -280,7 +280,7 @@ int party_member_added(uint32 party_id,uint32 account_id,int flag)
 	return 0;
 }
 // パーティ除名要求
-int party_removemember(struct map_session_data &sd,uint32 account_id,const char *name)
+int party_removemember(map_session_data &sd,uint32 account_id,const char *name)
 {
 	struct party *p;
 	int i;
@@ -304,7 +304,7 @@ int party_removemember(struct map_session_data &sd,uint32 account_id,const char 
 }
 
 // パーティ脱退要求
-int party_leave(struct map_session_data &sd)
+int party_leave(map_session_data &sd)
 {
 	struct party *p;
 	int i;
@@ -324,7 +324,7 @@ int party_leave(struct map_session_data &sd)
 // パーティメンバが脱退した
 int party_member_leaved(uint32 party_id,uint32 account_id,const char *name)
 {
-	struct map_session_data *sd=map_session_data::from_blid(account_id);
+	map_session_data *sd=map_session_data::from_blid(account_id);
 	struct party *p=party_search(party_id);
 	if(p!=NULL){
 		int i;
@@ -362,7 +362,7 @@ int party_broken(uint32 party_id)
 	return 0;
 }
 // パーティの設定変更要求
-int party_changeoption(struct map_session_data &sd,unsigned short expshare,unsigned short itemshare)
+int party_changeoption(map_session_data &sd,unsigned short expshare,unsigned short itemshare)
 {
 	size_t i;
 	struct party *p;
@@ -385,7 +385,7 @@ int party_changeoption(struct map_session_data &sd,unsigned short expshare,unsig
 int party_optionchanged(uint32 party_id,uint32 account_id,unsigned short expshare,unsigned short itemshare,unsigned char flag)
 {
 	struct party *p;
-	struct map_session_data *sd=map_session_data::from_blid(account_id);
+	map_session_data *sd=map_session_data::from_blid(account_id);
 	if( (p=party_search(party_id))==NULL)
 		return 0;
 
@@ -422,7 +422,7 @@ int party_recv_movemap(uint32 party_id,uint32 account_id,const char *mapname,int
 	}
 	
 	for(i=0;i<MAX_PARTY; ++i){	// sd再設定
-		struct map_session_data *sd= map_session_data::from_blid(p->member[i].account_id);
+		map_session_data *sd= map_session_data::from_blid(p->member[i].account_id);
 		p->member[i].sd=(sd!=NULL && sd->status.party_id==p->party_id && !sd->state.waitingdisconnect)?sd:NULL;
 	}
 
@@ -433,7 +433,7 @@ int party_recv_movemap(uint32 party_id,uint32 account_id,const char *mapname,int
 }
 
 // パーティメンバの移動
-int party_send_movemap(struct map_session_data &sd)
+int party_send_movemap(map_session_data &sd)
 {
 	struct party *p;
 
@@ -460,7 +460,7 @@ int party_send_movemap(struct map_session_data &sd)
 	return 0;
 }
 // パーティメンバのログアウト
-int party_send_logout(struct map_session_data &sd)
+int party_send_logout(map_session_data &sd)
 {
 	struct party *p;
 
@@ -478,7 +478,7 @@ int party_send_logout(struct map_session_data &sd)
 	return 0;
 }
 // パーティメッセージ送信
-int party_send_message(struct map_session_data &sd,const char *mes,size_t len)
+int party_send_message(map_session_data &sd,const char *mes,size_t len)
 {
 	if(sd.status.party_id==0)
 		return 0;
@@ -503,7 +503,7 @@ int party_recv_message(uint32 party_id,uint32 account_id,const char *mes,size_t 
 	return 0;
 }
 // パーティ競合確認
-int party_check_conflict(struct map_session_data &sd)
+int party_check_conflict(map_session_data &sd)
 {
 	intif_party_checkconflict(sd.status.party_id,sd.status.account_id,sd.status.name);
 	return 0;
@@ -522,7 +522,7 @@ int party_send_xyhp_timer(int tid, unsigned long tick, int id, basics::numptr da
 			size_t i;
 			for(i=0; i<MAX_PARTY; ++i)
 			{
-				struct map_session_data *sd=p->member[i].sd;
+				map_session_data *sd=p->member[i].sd;
 				if(sd!=NULL)
 				{	// 座標通知
 					if(sd->party_x!=sd->block_list::x || sd->party_y!=sd->block_list::y)
@@ -552,7 +552,7 @@ int party_send_xy_clear(struct party &p)
 {
 	int i;
 	for(i=0;i<MAX_PARTY; ++i){
-		struct map_session_data *sd=p.member[i].sd;
+		map_session_data *sd=p.member[i].sd;
 		if(sd!=NULL){
 			sd->party_x=0xFFFF;
 			sd->party_y=0xFFFF;
@@ -564,7 +564,7 @@ int party_send_xy_clear(struct party &p)
 // HP通知の必要性検査用（map_foreachinmoveareaから呼ばれる）
 int CPartySendHP::process(block_list& bl) const
 {
-	struct map_session_data *sd = bl.get_sd();
+	map_session_data *sd = bl.get_sd();
 	if(sd && sd->status.party_id==party_id)
 	{
 		flag=1;
@@ -576,7 +576,7 @@ int CPartySendHP::process(block_list& bl) const
 // exp share and added zeny share [Valaris]
 int party_exp_share(party &p,unsigned short map, uint32 base_exp,uint32 job_exp,uint32 zeny)
 {
-	struct map_session_data *sd;
+	map_session_data *sd;
 	size_t i;
 	unsigned short c=0;
 	unsigned short memberpos[MAX_PARTY];
@@ -640,7 +640,7 @@ int party_exp_share(party &p,unsigned short map, uint32 base_exp,uint32 job_exp,
 ///////////////////////////////////////////////////////////////////////////////
 int party_exp_share2(struct party &p, unsigned short map, uint32 base_exp, uint32 job_exp, uint32 zeny)
 {
-	struct map_session_data *sd;
+	map_session_data *sd;
 	size_t i;
 	size_t lvlsum = 0, c=0;
 	unsigned short memberpos[MAX_PARTY];
@@ -690,7 +690,7 @@ int party_exp_share2(struct party &p, unsigned short map, uint32 base_exp, uint3
 	return 0;
 }
 
-int party_send_dot_remove(struct map_session_data &sd)
+int party_send_dot_remove(map_session_data &sd)
 {
 	return clif_party_xy_remove(sd) && clif_guild_xy_remove(sd);
 }

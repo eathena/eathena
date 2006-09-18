@@ -40,6 +40,14 @@ movable::movable() :
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+/// init directions seperately. dont do sends;
+void movable::init_dir(dir_t b, dir_t h)
+{
+	this->bodydir = b;
+	this->headdir = h;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 /// set directions seperately.
 void movable::set_dir(dir_t b, dir_t h)
 {
@@ -158,7 +166,7 @@ bool movable::walktimer_func(unsigned long tick)
 			// signal out-of-sight
 			this->walktimer=1;
 			block_list::foreachinmovearea( CClifOutsight(*this),
-				this->block_list::m,this->block_list::x-AREA_SIZE,this->block_list::y-AREA_SIZE,this->block_list::x+AREA_SIZE,this->block_list::y+AREA_SIZE,dx,dy,this->get_sd()?0:BL_PC);
+				this->block_list::m,this->block_list::x-AREA_SIZE,this->block_list::y-AREA_SIZE,this->block_list::x+AREA_SIZE,this->block_list::y+AREA_SIZE,dx,dy,this->get_sd()?BL_ALL:BL_PC);
 			this->walktimer=-1;
 
 
@@ -179,7 +187,7 @@ bool movable::walktimer_func(unsigned long tick)
 			// signal in-sight
 			this->walktimer=1;
 			block_list::foreachinmovearea( CClifInsight(*this),
-				this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,this->get_sd()?0:BL_PC);
+				this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,this->get_sd()?BL_ALL:BL_PC);
 			this->walktimer=-1;
 
 			// do object depending stuff at the end of the walk step.
@@ -225,10 +233,10 @@ bool movable::walktimer_func(unsigned long tick)
 /// Randomizes target cell.
 /// get a random walkable cell that has the same distance from object 
 /// as given coordinates do, but randomly choosen. [Skotlex]
-bool movable::random_position(unsigned short &xs, unsigned short &ys) const
+bool movable::random_position(coordinate &pos) const
 {
 	unsigned short xi, yi;
-	unsigned short dist = this->get_distance(xs, ys);
+	unsigned short dist = this->get_distance(pos);
 	size_t i;
 	if (dist < 1) dist =1;
 	
@@ -238,17 +246,98 @@ bool movable::random_position(unsigned short &xs, unsigned short &ys) const
 		yi = this->y + rand()%(2*dist) - dist;
 		if( map_getcell(this->m, xi, yi, CELL_CHKPASS) )
 		{
-			xs = xi;
-			ys = yi;
+			pos.x = xi;
+			pos.y = yi;
 			return true;
 		}
 	}
 	// keep the object position, don't move it
-	xs = this->block_list::x;
-	ys = this->block_list::y;
+	pos.x = this->block_list::x;
+	pos.y = this->block_list::y;
 	return false;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// calculate a random walktarget within 5x5 around the target coordiantes
+bool movable::random_walktarget(const block_list &target_bl)
+{
+	dir_t default_dir = target_bl.get_dir();
+	int dx,dy,x,y;
+	uint32 vary = rand();
+	
+
+	default_dir = (dir_t)((default_dir+vary&0x03-1)&0x07);	// vary the default direction
+	dx = -dirx[default_dir]*((vary&0x04)!=0)?2:1;
+	dy = -diry[default_dir]*((vary&0x08)!=0)?2:1;
+
+	x = target_bl.x + dx;
+	y = target_bl.y + dy;
+	if( !this->can_reach(x,y) )
+	{	// bunch of unnecessary code
+/*
+		int i,k;
+		if(dx > 0) x--;
+		else if(dx < 0) x++;
+		if(dy > 0) y--;
+		else if(dy < 0) y++;
+		if( !this->can_reach(x,y) )
+		{
+			for(i=0;i<12;++i)
+			{
+				k = rand()&0x07;
+				dx = -dirx[k]*2;
+				dy = -diry[k]*2;
+				x = target_bl.x + dx;
+				y = target_bl.y + dy;
+				if( this->can_reach(x,y) )
+					break;
+				else
+				{
+					if(dx > 0) x--;
+					else if(dx < 0) x++;
+					if(dy > 0) y--;
+					else if(dy < 0) y++;
+					if( this->can_reach(x,y) )
+						break;
+				}
+			}
+			if(i>=12)
+				return false;
+		}
+*/
+		// scheme using a simple multiply/modulo randomizer
+		// which covers the all elements without doing multiple checks
+		// area is 5x5, so have 25 tiles to check, so the divider is 25.
+		// divider prime is then 5, so the multiplier should not be a multiple of 5
+		// so calculate (multiplier*i)%25 with i=1..24 for shuffled indices
+		// (zero is not beeing shuffled and can be spared)
+		div_t d;
+		uint i,k;
+		uint32 multiplyer = vary;	//rand();	// reuse random value
+		if( 0==multiplyer%5 ) ++multiplyer;	// just change
+
+		for(i=1, k=multiplyer; i<25; ++i, k+=multiplyer)
+		{	// modulo shuffle
+			k = k%25;
+
+			// split delta x and delta y
+			d = div(k,5);
+			// also move the origin of the 5x5 area from lower left to center by wrapping over
+			x = target_bl.x + (d.quot>2)?d.quot-5:d.quot;
+			y = target_bl.y + (d.rem >2)?d.rem -5:d.rem;
+
+			if( this->can_reach(x,y) ) // found something usable
+				break;
+		}
+		// no free position found
+		if(i>=25)
+			return false;
+	}
+
+	this->walktarget.x = x;
+	this->walktarget.y = y;
+	return true;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// check for reachability, but don't build a path
@@ -436,59 +525,6 @@ bool movable::stop_walking(int type)
 	return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-/// calculate a random position around the target coordiantes
-bool movable::random_position(const block_list &target_bl)
-{
-	dir_t default_dir = target_bl.get_dir();
-	int x,y,dx,dy;
-	int i,k;
-	uint32 vary = rand();
-	
-
-	default_dir = (dir_t)((default_dir+vary&0x03-1)&0x07);	// vary the default direction
-
-	dx = -dirx[default_dir]*((vary&0x04)!=0)?2:1;
-	dy = -diry[default_dir]*((vary&0x08)!=0)?2:1;
-
-	x = target_bl.x + dx;
-	y = target_bl.y + dy;
-	if( !this->can_reach(x,y) )
-	{	// bunch of unnecessary code
-		if(dx > 0) x--;
-		else if(dx < 0) x++;
-		if(dy > 0) y--;
-		else if(dy < 0) y++;
-		if( !this->can_reach(x,y) )
-		{
-			for(i=0;i<12;++i)
-			{
-				k = rand()&0x07;
-				dx = -dirx[k]*2;
-				dy = -diry[k]*2;
-				x = target_bl.x + dx;
-				y = target_bl.y + dy;
-				if( this->can_reach(x,y) )
-					break;
-				else
-				{
-					if(dx > 0) x--;
-					else if(dx < 0) x++;
-					if(dy > 0) y--;
-					else if(dy < 0) y++;
-					if( this->can_reach(x,y) )
-						break;
-				}
-			}
-			if(i>=12)
-				return false;
-		}
-	}
-
-	this->walktarget.x = x;
-	this->walktarget.y = y;
-	return true;
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// instant position change
@@ -510,7 +546,7 @@ bool movable::movepos(const coordinate &target)
 		bool moveblock = ( this->block_list::x/BLOCK_SIZE != target.x/BLOCK_SIZE || this->block_list::y/BLOCK_SIZE != target.y/BLOCK_SIZE);
 
 		block_list::foreachinmovearea( CClifOutsight(*this),
-			this->block_list::m,((int)this->block_list::x)-AREA_SIZE,((int)this->block_list::y)-AREA_SIZE,((int)this->block_list::x)+AREA_SIZE,((int)this->block_list::y)+AREA_SIZE,dx,dy,0);
+			this->block_list::m,((int)this->block_list::x)-AREA_SIZE,((int)this->block_list::y)-AREA_SIZE,((int)this->block_list::x)+AREA_SIZE,((int)this->block_list::y)+AREA_SIZE,dx,dy,BL_ALL);
 
 		skill_unit_move(*this,tick,0);
 		if(moveblock) this->delblock();
@@ -520,7 +556,7 @@ bool movable::movepos(const coordinate &target)
 		skill_unit_move(*this,tick,1);
 
 		block_list::foreachinmovearea( CClifInsight(*this),
-			this->block_list::m,((int)this->block_list::x)-AREA_SIZE,((int)this->block_list::y)-AREA_SIZE,((int)this->block_list::x)+AREA_SIZE,((int)this->block_list::y)+AREA_SIZE,-dx,-dy,0);
+			this->block_list::m,((int)this->block_list::x)-AREA_SIZE,((int)this->block_list::y)-AREA_SIZE,((int)this->block_list::x)+AREA_SIZE,((int)this->block_list::y)+AREA_SIZE,-dx,-dy,BL_ALL);
 	}
 	return true;
 }
