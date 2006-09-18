@@ -5,6 +5,9 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/18
+	* Merged main.sql (which uses MyISAM for all tables) [Skotlex]
+	* Added convert_engine.sql which converts all tables from InnoDB to MyISAM
+	  (which is the preferred sql engine now) [Skotlex]
 	* GVG reductions are now done on GVG-castle maps regardless of WoE state.
 	  [Skotlex]
 	* NPC_MENTALBREAKER now does SP damage equal to skill-lv*MATK [Skotlex]

@@ -83,7 +83,7 @@ CREATE TABLE `char` (
   KEY `guild_id` (`guild_id`),
   KEY `name` (`name`),
   KEY `online` (`online`)
-) TYPE=InnoDB AUTO_INCREMENT=150000; 
+) TYPE=MyISAM AUTO_INCREMENT=150000; 
 
 --
 -- Table structure for table `charlog`
@@ -158,9 +158,8 @@ CREATE TABLE `guild` (
   `emblem_data` blob,
   PRIMARY KEY  (`guild_id`,`char_id`),
   UNIQUE KEY `guild_id` (`guild_id`),
-  KEY `char_id` (`char_id`),
-  CONSTRAINT `guild_ibfk_1` FOREIGN KEY (`char_id`) REFERENCES `char` (`char_id`) ON DELETE CASCADE
-) TYPE=InnoDB;
+  KEY `char_id` (`char_id`)
+) TYPE=MyISAM;
 
 --
 -- Table structure for table `guild_alliance`
@@ -173,10 +172,8 @@ CREATE TABLE `guild_alliance` (
   `alliance_id` int(11) unsigned NOT NULL default '0',
   `name` varchar(24) NOT NULL default '',
   PRIMARY KEY  (`guild_id`,`alliance_id`),
-  KEY `alliance_id` (`alliance_id`),
-  CONSTRAINT `guild_alliance_ibfk_1` FOREIGN KEY (`guild_id`) REFERENCES `guild` (`guild_id`) ON DELETE CASCADE,
-  CONSTRAINT `guild_alliance_ibfk_2` FOREIGN KEY (`alliance_id`) REFERENCES `guild` (`guild_id`) ON DELETE CASCADE
-) TYPE=InnoDB;
+  KEY `alliance_id` (`alliance_id`)
+) TYPE=MyISAM;
 
 --
 -- Table structure for table `guild_castle`
@@ -228,9 +225,8 @@ CREATE TABLE `guild_expulsion` (
   `rsv1` int(11) unsigned NOT NULL default '0',
   `rsv2` int(11) unsigned NOT NULL default '0',
   `rsv3` int(11) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`guild_id`,`name`),
-  CONSTRAINT `guild_expulsion_ibfk_1` FOREIGN KEY (`guild_id`) REFERENCES `guild` (`guild_id`) ON DELETE CASCADE
-) TYPE=InnoDB;
+  PRIMARY KEY  (`guild_id`,`name`)
+) TYPE=MyISAM;
 
 --
 -- Table structure for table `guild_member`
@@ -254,10 +250,8 @@ CREATE TABLE `guild_member` (
   `rsv2` int(11) unsigned NOT NULL default '0',
   `name` varchar(24) NOT NULL default '',
   PRIMARY KEY  (`guild_id`,`char_id`),
-  KEY `char_id` (`char_id`),
-  CONSTRAINT `guild_member_ibfk_1` FOREIGN KEY (`guild_id`) REFERENCES `guild` (`guild_id`) ON DELETE CASCADE,
-  CONSTRAINT `guild_member_ibfk_2` FOREIGN KEY (`char_id`) REFERENCES `char` (`char_id`) ON DELETE CASCADE
-) TYPE=InnoDB;
+  KEY `char_id` (`char_id`)
+) TYPE=MyISAM;
 
 --
 -- Table structure for table `guild_position`
@@ -271,9 +265,8 @@ CREATE TABLE `guild_position` (
   `mode` tinyint(11) unsigned NOT NULL default '0',
   `exp_mode` tinyint(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`guild_id`,`position`),
-  KEY `guild_id` (`guild_id`),
-  CONSTRAINT `guild_position_ibfk_1` FOREIGN KEY (`guild_id`) REFERENCES `guild` (`guild_id`) ON DELETE CASCADE
-) TYPE=InnoDB;
+  KEY `guild_id` (`guild_id`)
+) TYPE=MyISAM;
 
 --
 -- Table structure for table `guild_skill`
@@ -284,9 +277,8 @@ CREATE TABLE `guild_skill` (
   `guild_id` int(11) unsigned NOT NULL default '0',
   `id` smallint(11) unsigned NOT NULL default '0',
   `lv` tinyint(11) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`guild_id`,`id`),
-  CONSTRAINT `guild_skill_ibfk_1` FOREIGN KEY (`guild_id`) REFERENCES `guild` (`guild_id`) ON DELETE CASCADE
-) TYPE=InnoDB;
+  PRIMARY KEY  (`guild_id`,`id`)
+) TYPE=MyISAM;
 
 --
 -- Table structure for table `guild_storage`
@@ -307,9 +299,8 @@ CREATE TABLE `guild_storage` (
   `card2` smallint(11) NOT NULL default '0',
   `card3` smallint(11) NOT NULL default '0',
   PRIMARY KEY  (`id`),
-  KEY `guild_id` (`guild_id`),
-  CONSTRAINT `guild_storage_ibfk_1` FOREIGN KEY (`guild_id`) REFERENCES `guild` (`guild_id`) ON DELETE CASCADE
-) TYPE=InnoDB;
+  KEY `guild_id` (`guild_id`)
+) TYPE=MyISAM;
 
 -- Database: Ragnarok
 -- Table: 'interlog'
@@ -378,7 +369,7 @@ CREATE TABLE `login` (
   `state` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`account_id`),
   KEY `name` (`userid`)
-) TYPE=InnoDB AUTO_INCREMENT=2000000; 
+) TYPE=MyISAM AUTO_INCREMENT=2000000; 
 
 -- added standard accounts for servers, VERY INSECURE!!!
 -- inserted into the table called login which is above
@@ -413,10 +404,8 @@ CREATE TABLE `sc_data` (
   `val3` int(11) NOT NULL default '0',
   `val4` int(11) NOT NULL default '0',
   KEY (`account_id`),
-  KEY (`char_id`),
-  CONSTRAINT `scdata_ibfk_1` FOREIGN KEY (`account_id`) REFERENCES `login` (`account_id`) ON DELETE CASCADE,
-  CONSTRAINT `scdata_ibfk_2` FOREIGN KEY (`char_id`) REFERENCES `char` (`char_id`) ON DELETE CASCADE
-) TYPE=InnoDB;
+  KEY (`char_id`)
+) TYPE=MyISAM;
 
 --
 -- Table structure for table `loginlog`
