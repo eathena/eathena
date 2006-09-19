@@ -7466,7 +7466,7 @@ atcommand_storeall(const int fd, struct map_session_data* sd,
 			return 0;
 		case 1: //Failure
 			clif_displaymessage(fd, "You can't open the storage currently.");
-			return 1;
+			return -1;
 		}
 	}
 	for (i = 0; i < MAX_INVENTORY; i++) {

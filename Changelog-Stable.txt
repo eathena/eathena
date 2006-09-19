@@ -4,6 +4,12 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/09/19
+	* Fixed pc_set_hate_mob enabling to set hatred mob targets regardless of
+	  size. [Skotlex]
+	* Merged query_sql always returning -1 when used on a TXT server. [Skotlex]
+	* Corrected undisguise not working if you don't pass any parameters to it
+	  (which is how it should be) [Skotlex]
 2006/09/18
 	* Fixed Spider Web fire damage bonus. [Skotlex]
 	* Merged main.sql (which uses MyISAM for all tables) [Skotlex]
