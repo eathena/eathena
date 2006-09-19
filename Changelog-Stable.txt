@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/18
+	* Fixed Spider Web fire damage bonus. [Skotlex]
 	* Merged main.sql (which uses MyISAM for all tables) [Skotlex]
 	* Added convert_engine.sql which converts all tables from InnoDB to MyISAM
 	  (which is the preferred sql engine now) [Skotlex]
