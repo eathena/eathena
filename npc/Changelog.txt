@@ -34,6 +34,9 @@ Playtester
 
 Date		Added
 ======
+09/19
+	* Fixed rpsroulette.txt, giving 10 blue potions as prize instead of the 20 it said. Noticed by
+	  JTE and fixed by Warian [erKURITA]
 09/18
 	* Merged guild folder from trunk into stable. It seems someone forgot to do, on gldfunc_treasure.txt,
 	  set getarg(2),$@n;, which is what indicates the number of treasures one castle can have

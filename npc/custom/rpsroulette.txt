@@ -11,6 +11,8 @@
 //===== Additional Comments: =================================
 //= Prizes customisable, Added emotions.
 //= 1.2 Fixes by Blackthunder and me [Poki#3]
+//= 1.3 Fixed amount of blue potions given from 10 to 20, as dialogue
+//=		says. [erKURITA]
 //============================================================
 
 cmd_in02.gat,182,126,2	script	Crazy Boris	85,{
@@ -277,7 +279,7 @@ P9:
 
 P10:
 	mes "20x Blue Potion!";
-	getitem 505,10;
+	getitem 505,20;
 	close;
 
 LEAVE:
