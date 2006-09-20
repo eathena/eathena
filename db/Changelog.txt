@@ -1,4 +1,7 @@
 
+09/20
+	* Merged Spider Web being a targetted skill. [Skotlex]
+	* Merged Ki Explosion having range 1 and taking weapon's element. [Skotlex]
 09/17
 	* Changed NPC_CHANGEUNDEAD from a self skill to a targetted skill. Changed
 	  it's duration to 30 secs. [Skotlex]
