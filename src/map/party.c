@@ -826,7 +826,7 @@ int party_sub_count(struct block_list *bl, va_list ap)
 	if(((TBL_PC *)bl)->state.autotrade)
 		return 0;
 	
-	if (battle_config.idle_no_share && (sd[c]->idletime < (last_tick - battle_config.idle_no_share)))
+	if (battle_config.idle_no_share && (((TBL_PC *)bl)->idletime < (last_tick - battle_config.idle_no_share)))
 		return 0;
 
 	return 1;
