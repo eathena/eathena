@@ -5,6 +5,9 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/20
+	* A mob's HP is set temporarily to 0 before invoking it's on-death script,
+	  prevents said scripts being able to "rekill" the mob indefinitely (if stuff
+	  like killmonster is used within) [Skotlex]
 	* Fixed party_sub_count (TK_POWER) failing when the idle_no_share setting
 	  was disabled. [Skotlex]
 	* Enabled Star Gladiators and Soul Linkers to do /doridori [Skotlex]
