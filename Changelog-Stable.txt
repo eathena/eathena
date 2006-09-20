@@ -5,6 +5,10 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/19
+	* Merged nocommand mapflag update which allows you to specify min-gm level
+	  required to override the setting (eg: map.gat mapflag nocommand 30), also
+	  merged fix to prevent said mapflag from spamming the console on every
+	  single message. [Skotlex]
 	* Fixed pc_set_hate_mob enabling to set hatred mob targets regardless of
 	  size. [Skotlex]
 	* Merged query_sql always returning -1 when used on a TXT server. [Skotlex]

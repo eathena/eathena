@@ -1089,7 +1089,6 @@ struct map_data {
 		unsigned nomvploot	: 1; // [Lorky]
 		unsigned nightenabled :1; //For night display. [Skotlex]
 		unsigned restricted	: 1; // [Komurka]
-		unsigned nocommand : 1; //Blocks @/# commands for non-gms. [Skotlex]
 		unsigned nodrop : 1;
 		unsigned novending : 1;
 		unsigned loadevent : 1;
@@ -1108,6 +1107,7 @@ struct map_data {
 	int zone;	// [Komurka]
 	int jexp;	// map experience multiplicator
 	int bexp;	// map experience multiplicator
+	int nocommand; //Blocks @/# commands for non-gms. [Skotlex]
 };
 
 struct map_data_other_server {
