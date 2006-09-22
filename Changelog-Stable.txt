@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/21
+	* Fixed a bug on "select" when skipping empty entries when the selected
+	  entry is the last. [Skotlex]
 	* Merged the script command "select" fix which makes it work correctly when
 	  you pass it empty string entries. [Skotlex]
 2006/09/20
