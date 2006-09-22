@@ -34,6 +34,10 @@ Playtester
 
 Date		Added
 ======
+09/21
+	* Merged from trunk optimized Quest Skills, fixed Cube Room, Pollution Quest. [Lupus]
+		Also updated NPC with missing NEXT;, fixed typos
+		Updated Global_Functions.txt to clear your chars from outdated / garbage vars
 09/19
 	* Fixed rpsroulette.txt, giving 10 blue potions as prize instead of the 20 it said. Noticed by
 	  JTE and fixed by Warian [erKURITA]

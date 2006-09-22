@@ -567,7 +567,7 @@ force_1-1.gat,25,26,0	script	arenareturn	-1,{
 	warp "prontera.gat",156,191;
 }
 
-//Warps
+//Time Limit Mode
 force_1-1.gat,25,44,0	warp	fc101	1,1,force_1-1.gat,25,69
 force_1-1.gat,25,65,0	warp	fc101-1	1,1,force_1-1.gat,25,40
 force_1-1.gat,25,134,0	warp	fc102	1,1,force_1-1.gat,25,159
