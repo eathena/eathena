@@ -6,7 +6,6 @@
 #include "nullpo.h"
 #include "showmsg.h"
 
-
 #include "npc.h"
 #include "npclisten.h"
 #include "status.h"
@@ -375,15 +374,14 @@ int buildin_defpattern(CScriptEngine &st)
     int setid=st.GetInt(st[2]);
     const char *pattern=st.GetString(st[3]);
     const char *label=st.GetString(st[4]);
-    npcscript_data *nd= npcscript_data::from_blid(st.oid);
-	if(nd) 
+	if(st.nd) 
 	{
 		// create a new pattern storage if not exists
-		if( nd->listendb == NULL ) 
-			nd->listendb = new npc_parse;
+		if( st.nd->listendb == NULL ) 
+			st.nd->listendb = new npc_parse;
 
 		// append a new entry
-		nd->listendb->lookup(setid).append( new pcrematch_entry(pattern, label) );
+		st.nd->listendb->lookup(setid).append( new pcrematch_entry(pattern, label) );
 	}
     return 0;
 }
@@ -393,34 +391,33 @@ int buildin_defpattern(CScriptEngine &st)
 int buildin_activatepset(CScriptEngine &st)
 {
     int setid=st.GetInt(st[2]);
-    npcscript_data *nd= npcscript_data::from_blid(st.oid);
-	if(nd && nd->listendb && nd->listendb->cInactive)
+	if(st.nd && st.nd->listendb && st.nd->listendb->cInactive)
 	{
 		if( setid == -1 )
 		{	// activate all
-			if(nd->listendb->cActive)
+			if(st.nd->listendb->cActive)
 			{	
-				pcrematch_set *set = nd->listendb->cActive;
+				pcrematch_set *set = st.nd->listendb->cActive;
 				for(; set->cNext; set=set->cNext);
 
-				set->cNext = nd->listendb->cInactive;
-				nd->listendb->cInactive->cPrev = set;
+				set->cNext = st.nd->listendb->cInactive;
+				st.nd->listendb->cInactive->cPrev = set;
 			}
 			else
-				nd->listendb->cActive = nd->listendb->cInactive;
-			nd->listendb->cInactive = NULL;
+				st.nd->listendb->cActive = st.nd->listendb->cInactive;
+			st.nd->listendb->cInactive = NULL;
 		}
 		else
 		{
-			pcrematch_set *set= nd->listendb->cInactive;
+			pcrematch_set *set= st.nd->listendb->cInactive;
 			for( ; set; set = set->cNext)
 			{
 				if(set->cSetID == setid)
 				{
 					// dequeue from inactive
-					set->unlink(nd->listendb->cInactive);
+					set->unlink(st.nd->listendb->cInactive);
 					// enqueue to active
-					set->link(nd->listendb->cActive);
+					set->link(st.nd->listendb->cActive);
 					
 					break;
 				}
@@ -436,34 +433,33 @@ int buildin_activatepset(CScriptEngine &st)
 int buildin_deactivatepset(CScriptEngine &st)
 {
     int setid=st.GetInt(st[2]);
-    npcscript_data *nd=npcscript_data::from_blid(st.oid);
-	if(nd && nd->listendb && nd->listendb->cActive) 
+	if(st.nd && st.nd->listendb && st.nd->listendb->cActive) 
 	{
 		if( setid == -1 )
 		{	// deactivate all
-			if(nd->listendb->cInactive)
+			if(st.nd->listendb->cInactive)
 			{	
-				pcrematch_set *set = nd->listendb->cInactive;
+				pcrematch_set *set = st.nd->listendb->cInactive;
 				for(; set->cNext; set=set->cNext);
 
-				set->cNext = nd->listendb->cActive;
-				nd->listendb->cActive->cPrev = set;
+				set->cNext = st.nd->listendb->cActive;
+				st.nd->listendb->cActive->cPrev = set;
 			}
 			else
-				nd->listendb->cInactive = nd->listendb->cActive;
-			nd->listendb->cActive = NULL;
+				st.nd->listendb->cInactive = st.nd->listendb->cActive;
+			st.nd->listendb->cActive = NULL;
 		}
 		else
 		{
-			pcrematch_set *set = nd->listendb->cActive;
+			pcrematch_set *set = st.nd->listendb->cActive;
 			for( ; set; set = set->cNext)
 			{
 				if(set->cSetID == setid)
 				{
 					// dequeue from active
-					set->unlink(nd->listendb->cActive);
+					set->unlink(st.nd->listendb->cActive);
 					// enqueue to inactive
-					set->link(nd->listendb->cInactive);
+					set->link(st.nd->listendb->cInactive);
 
 					break;
 				}
@@ -478,25 +474,24 @@ int buildin_deactivatepset(CScriptEngine &st)
 int buildin_deletepset(CScriptEngine &st)
 {
     int setid=st.GetInt(st[2]);
-    npcscript_data *nd= npcscript_data::from_blid(st.oid);
-	if(nd && nd->listendb)
+	if(st.nd && st.nd->listendb)
 	{
 		pcrematch_set *set;
 			
-		for(set=nd->listendb->cActive; set; set=set->cNext)
+		for(set=st.nd->listendb->cActive; set; set=set->cNext)
 		{
 			if (set->cSetID == setid)
 			{
-				set->unlink(nd->listendb->cActive);
+				set->unlink(st.nd->listendb->cActive);
 				delete set;
 				return 0;
 			}
 		}
-		for(set=nd->listendb->cInactive; set; set=set->cNext)
+		for(set=st.nd->listendb->cInactive; set; set=set->cNext)
 		{
 			if (set->cSetID == setid)
 			{
-				set->unlink(nd->listendb->cInactive);
+				set->unlink(st.nd->listendb->cInactive);
 				delete set;
 				return 0;
 			}
