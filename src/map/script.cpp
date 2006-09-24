@@ -1847,30 +1847,18 @@ v18 xxxx-xx-xx	text & input ok
 			needinit = false;
 
 			defnpc.block_list::id = this->defoid;
-			defnpc.invalid = 0;
 			defnpc.class_ = 111; // hidden npc
 			defnpc.speed = 200;
-			defnpc.ref=NULL;
-			defnpc.timer_event=NULL;
-			defnpc.chat = NULL;
-			defnpc.option = 0;
-			defnpc.opt1 = 0;
-			defnpc.opt2 = 0;
-			defnpc.opt3 = 0;
-			defnpc.nexttimer=-1;
-			defnpc.timerid=-1;
-			defnpc.canmove_tick=0;
 		}
 
 		if(send)
 		{
 			if( NONE==this->npcstate )
 			{	// determine what npc is to be used
-				npc_data* nd = npc_data::from_blid(this->oid);
-				if( nd && nd->is_near(*(this->sd)) )
+				if( this->nd && this->nd->is_near(*(this->sd)) )
 				{	// npc is ok
 //printf("npc ok ");
-					ret = this->oid;
+					ret = this->nd->block_list::id;
 					this->npcstate = NPC_GIVEN;
 				}
 				else
@@ -1894,9 +1882,9 @@ v18 xxxx-xx-xx	text & input ok
 					ret = this->defoid;
 				}
 			}
-			else if( NPC_GIVEN  ==this->npcstate )
-				ret = this->oid;
-			else if( NPC_DEFAULT==this->npcstate )
+			else if( this->nd && NPC_GIVEN  ==this->npcstate )
+				ret = this->nd->block_list::id;
+			else //if( NPC_DEFAULT==this->npcstate )
 				ret = this->defoid;
 		}
 		else
@@ -2417,8 +2405,7 @@ int CScriptEngine::run_main()
 					{
 						ShowMessage("stack_ptr(%d) != default(%d)\n",stack_ptr,defsp);
 						//!!
-						npc_data* nd = npc_data::from_blid(this->oid);
-						if(nd)
+						if(this->nd)
 						{
 							printf("npc script '%s'/'%s' , map %s, ", nd->name?nd->name:"", nd->exname?nd->exname:"", maps[nd->block_list::m].mapname);
 						}
@@ -2546,10 +2533,19 @@ int CScriptEngine::run(const char*rootscript, size_t pos, uint32 rid, uint32 oid
 	if( rootscript )
 	{	// threadlock
 		mx.lock();
-		map_session_data *sd=map_session_data::from_blid(rid);
-		CScriptEngine &engine = (sd)? sd->ScriptEngine : defaultengine;
+		map_session_data *localsd = rid?map_session_data::from_blid(rid):NULL;
+		npcscript_data *localnd   = oid?npcscript_data::from_blid(oid):NULL;
+		CScriptEngine &engine = (localsd)? localsd->ScriptEngine : defaultengine;
 
-		if( engine.script && (engine.script != rootscript || engine.pos != pos) )
+		if( rid && !localsd )
+		{
+			ShowWarning("session rid=%u not available, abort script\n", rid);
+		}
+		else if( oid && !localnd )
+		{
+			ShowWarning("npc oid=%u not available, abort script\n", oid);
+		}
+		else if( engine.script && (engine.script != rootscript || engine.pos != pos) )
 		{
 //ShowWarning("PlayerScript already started, queueing %p %i %i %i\n", rootscript, pos, rid, oid);
 			// will be queued automatically
@@ -2568,9 +2564,8 @@ int CScriptEngine::run(const char*rootscript, size_t pos, uint32 rid, uint32 oid
 				engine.npcstate = NONE;
 			}
 			// else we continue the old one
-			engine.rid		= rid;
-			engine.sd		= sd;
-			engine.oid		= oid;
+			engine.sd		= localsd;
+			engine.nd		= localnd;
 
 			// start the engine;
 			mx.unlock();
@@ -2587,7 +2582,9 @@ int CScriptEngine::run(const char*rootscript, size_t pos, uint32 rid, uint32 oid
 
 					// will be queued automatically
 					new CScriptEngine::CCallStack(engine.sd->ScriptEngine.queue,				// target queue
-						engine.script, engine.pos, engine.rid, engine.oid,						// script data
+						engine.script, engine.pos, 
+						engine.sd?engine.sd->block_list::id:0, 
+						engine.nd?engine.nd->block_list::id:0,									// script data
 						engine.defsp, engine.stack_ptr, engine.stack_max, engine.stack_data);	// the stack
 					// clear this stack, it has been moved
 					engine.stack_ptr = 0;
@@ -2609,14 +2606,13 @@ int CScriptEngine::run(const char*rootscript, size_t pos, uint32 rid, uint32 oid
 					engine.sd->ScriptEngine.script = engine.script;
 					engine.sd->ScriptEngine.pos    = engine.pos;
 					engine.sd->ScriptEngine.sd     = engine.sd;
-					engine.sd->ScriptEngine.rid    = engine.rid;
-					engine.sd->ScriptEngine.oid    = engine.oid;
+					engine.sd->ScriptEngine.nd     = engine.nd;
 
 					// and run the copied script
 					CScriptEngine::run(	engine.sd->ScriptEngine.script, 
 										engine.sd->ScriptEngine.pos, 
-										engine.sd->ScriptEngine.rid, 
-										engine.sd->ScriptEngine.oid);
+										engine.sd?engine.sd->block_list::id:0,
+										engine.nd?engine.nd->block_list::id:0);
 				}
 
 				// and end this script here
@@ -2624,7 +2620,7 @@ int CScriptEngine::run(const char*rootscript, size_t pos, uint32 rid, uint32 oid
 			}
 			else if( STOP==engine.state || RERUNLINE==engine.state )
 			{	// script has stoped to wait for a player response
-				if(!sd)
+				if(!engine.sd)
 				{
 					ShowWarning("Server Script not finished with state 'End'. Terminating.\n");
 					engine.state = END;
@@ -2635,9 +2631,10 @@ int CScriptEngine::run(const char*rootscript, size_t pos, uint32 rid, uint32 oid
 
 			if( STOP!=engine.state )
 			{	// any state other then STOP will terminate the script
+
+				// set the engine to OFF state
 				engine.state	= OFF;
 				engine.script   = NULL;
-				engine.oid		= 0;
 				
 				// dequeue the next script caller if any
 				// will be dequeued automatically
@@ -2652,10 +2649,6 @@ int CScriptEngine::run(const char*rootscript, size_t pos, uint32 rid, uint32 oid
 					// delete the caller
 					delete elem;
 				}
-//				else if(sd)
-//				{	// something I dont understand yet
-//					npc_event_dequeue(*sd);
-//				}
 			}
 			if( OFF==engine.state )// clear
 			{
@@ -2673,6 +2666,10 @@ int CScriptEngine::run(const char*rootscript, size_t pos, uint32 rid, uint32 oid
 				if(engine.npcstate == NPC_DEFAULT)
 					engine.send_defaultnpc(false);
 
+				// clear possible eventtimers that have been stoped but not finished
+				if(engine.nd)
+					engine.nd->eventtimer_clear(engine.sd?engine.sd->block_list::id:0);
+
 				// clear the default engine completely
 				// might be not necessary
 				//if(!sd)	engine.clear();
@@ -2688,7 +2685,12 @@ int CScriptEngine::run(const char*rootscript, size_t pos, uint32 rid, uint32 oid
 	return 0;
 }
 
-
+int CScriptEngine::restart(uint32 npcid)
+{	
+	if( this->state==STOP && this->sd && this->nd && (npcid == this->nd->block_list::id || npcid == this->defoid) )
+		return CScriptEngine::run(this->script, this->pos, this->sd->block_list::id, this->nd->block_list::id);
+	return 0;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3123,7 +3125,6 @@ int buildin_attachrid(CScriptEngine &st)
 	{	// need to swap the environment if not in the targeted context already
 		if(st.sd != sd)
 		{
-			st.rid = rid;
 			st.sd = sd;
 			st.EnvSwap();
 		}
@@ -5377,7 +5378,7 @@ int buildin_doevent(CScriptEngine &st)
 	if(st.sd)
 	{
 		const char *event=st.GetString(st[2]);
-		npc_event(*st.sd,event,0);
+		npc_data::event(event, *st.sd);
 	}
 	return 0;
 }
@@ -5389,7 +5390,7 @@ int buildin_donpcevent(CScriptEngine &st)
 {
 	const char *event;
 	event=st.GetString(st[2]);
-	npc_event_do(event);
+	npc_data::event(event);
 	return 0;
 }
 /*==========================================
@@ -5441,15 +5442,22 @@ int buildin_addtimercount(CScriptEngine &st)
 int buildin_initnpctimer(CScriptEngine &st)
 {
 	npcscript_data *nd;
+	ushort pos=0;
 	if( st.Arguments() > 2 )
+	{
 		nd= npcscript_data::from_name(st.GetString(st[2]));
+		if( !nd && st.Arguments() == 2 )
+			pos = st.GetInt(st[2]);
+	}
 	else
-		nd= npcscript_data::from_blid(st.oid);
+		nd= st.nd;
+
+	if( st.Arguments() > 3 )
+		pos = st.GetInt(st[3]);
 
 	if(nd)
 	{
-		npc_settimerevent_tick(*nd,0);
-		npc_timerevent_start(*nd, st.rid);
+		nd->eventtimer_init(st.sd?st.sd->block_list::id:0, pos);
 	}
 	return 0;
 }
@@ -5463,12 +5471,9 @@ int buildin_startnpctimer(CScriptEngine &st)
 	if( st.Arguments() > 2 )
 		nd=npcscript_data::from_name(st.GetString(st[2]));
 	else
-		nd=npcscript_data::from_blid(st.oid);
+		nd=st.nd;
 
-	if(nd)
-	{
-		npc_timerevent_start(*nd, st.rid);
-	}
+	if(nd) nd->eventtimer_start(st.sd?st.sd->block_list::id:0);
 	return 0;
 }
 /*==========================================
@@ -5481,9 +5486,9 @@ int buildin_stopnpctimer(CScriptEngine &st)
 	if( st.Arguments() > 2 )
 		nd=npcscript_data::from_name(st.GetString( (st[2])));
 	else
-		nd=npcscript_data::from_blid(st.oid);
+		nd=st.nd;
 
-	if(nd) npc_timerevent_stop(*nd);
+	if(nd) nd->eventtimer_stop(st.sd?st.sd->block_list::id:0);
 	return 0;
 }
 /*==========================================
@@ -5498,14 +5503,13 @@ int buildin_getnpctimer(CScriptEngine &st)
 	if( st.Arguments() > 3 )
 		nd=npcscript_data::from_name(st.GetString( (st[3])));
 	else
-		nd= npcscript_data::from_blid(st.oid);
+		nd=st.nd;
 	if(nd)
 	{
 		switch(type)
 		{
-		case 0: val= npc_gettimerevent_tick(*nd); break;
-		case 1: val= (nd->nexttimer>=0); break;
-		case 2: val=  nd->timeramount; break;
+		case 0: val= nd->eventtimer_getpos(st.sd?st.sd->block_list::id:0); break;
+		case 1: val=  nd->ontimer_cnt; break;
 		}
 	}
 	st.push_val(CScriptEngine::C_INT,val);
@@ -5517,17 +5521,16 @@ int buildin_getnpctimer(CScriptEngine &st)
  */
 int buildin_setnpctimer(CScriptEngine &st)
 {
-	unsigned long tick=st.GetInt(st[2]);
+	ushort pos=st.GetInt(st[2]);
 	npcscript_data *nd;
 	if( st.Arguments() > 3 )
 		nd=npcscript_data::from_name(st.GetString( (st[3])));
 	else
-		nd=npcscript_data::from_blid(st.oid);
+		nd=st.nd;
 
-	if(nd)
-	{
-		npc_settimerevent_tick(*nd,tick);
-	}
+	// from usage in current scripts, setnpctimer works same as initnpctimer
+	// exept that it always uses the current npc
+	if(nd) nd->eventtimer_init(st.sd?st.sd->block_list::id:0, pos);
 	return 0;
 }
 
@@ -5537,11 +5540,11 @@ int buildin_setnpctimer(CScriptEngine &st)
  */
 int buildin_attachnpctimer(CScriptEngine &st)
 {
-	npc_data *nd = npc_data::from_blid(st.oid);
-	map_session_data *sd = ( st.Arguments() > 2 ) ? map_session_data::nick2sd(st.GetString(st[2])) : st.sd;
-	npcscript_data *sc= (nd)?nd->get_script():NULL;
-	if(sd && sc)
-		sc->rid = sd->block_list::id;
+	map_session_data *sd;
+	if( st.nd && st.Arguments() > 2 && (sd=map_session_data::nick2sd(st.GetString(st[2]))) && sd!=st.sd )
+	{	// attachin only makes sense when attaching it to a different pc
+		st.nd->eventtimer_attach(st.sd?st.sd->block_list::id:0, sd->block_list::id);
+	}
 	return 0;
 }
 
@@ -5551,13 +5554,15 @@ int buildin_attachnpctimer(CScriptEngine &st)
  */
 int buildin_detachnpctimer(CScriptEngine &st)
 {
+/* useless
 	npcscript_data *nd;
 	if( st.Arguments() > 2 )
 		nd=npcscript_data::from_name(st.GetString( (st[2])));
 	else
-		nd= npcscript_data::from_blid(st.oid);
+		nd=st.nd;
 	if(nd)
-		nd->rid = 0;
+		st.nd->eventtimer_attach(0);
+*/
 	return 0;
 }
 
@@ -5573,7 +5578,7 @@ int buildin_announce(CScriptEngine &st)
 
 	if(flag&0x0f)
 	{
-		block_list *bl=(flag&0x08) ? block_list::from_blid(st.oid) : st.sd;
+		block_list *bl=(flag&0x08) ? (block_list *)st.nd : (block_list *)st.sd;
 		clif_GMmessage(bl, str, len, flag);
 	}
 	else
@@ -5659,7 +5664,7 @@ int buildin_areaannounce(CScriptEngine &st)
 int buildin_getusers(CScriptEngine &st)
 {
 	int flag=st.GetInt(st[2]);
-	block_list *bl = (flag&0x08)?block_list::from_blid(st.oid):st.sd;
+	block_list *bl = (flag&0x08) ? (block_list *)st.nd : (block_list *)st.sd;
 	int val=0;
 	switch(flag&0x07)
 	{
@@ -5673,6 +5678,7 @@ int buildin_getusers(CScriptEngine &st)
  * Works like @WHO - displays all online users names in window
  *------------------------------------------
  */
+// should not work since script is not paused to wait for the next-click
 int buildin_getusersname(CScriptEngine &st)
 {
 	if(st.sd)
@@ -5686,8 +5692,8 @@ int buildin_getusersname(CScriptEngine &st)
 				if( !(config.hide_GM_session && pl_sd->isGM()) )
 				{
 					if((disp_num++)%10==0)
-						clif_scriptnext(*st.sd,st.oid);
-					clif_scriptmes(*st.sd,st.oid,pl_sd->status.name);
+						clif_scriptnext(*st.sd, st.send_defaultnpc());
+					clif_scriptmes(*st.sd,st.send_defaultnpc(),pl_sd->status.name);
 				}
 			}
 		}
@@ -5797,7 +5803,7 @@ int buildin_getareadropitem(CScriptEngine &st)
 int buildin_enablenpc(CScriptEngine &st)
 {
 	const char *str=st.GetString(st[2]);
-	st.push_val(CScriptEngine::C_INT, npc_enable(str,1) );
+	st.push_val(CScriptEngine::C_INT, npc_data::enable(str,1) );
 	return 0;
 }
 /*==========================================
@@ -5807,29 +5813,27 @@ int buildin_enablenpc(CScriptEngine &st)
 int buildin_disablenpc(CScriptEngine &st)
 {
 	const char *str=st.GetString(st[2]);
-	st.push_val(CScriptEngine::C_INT, npc_enable(str,0) );
+	st.push_val(CScriptEngine::C_INT, npc_data::enable(str,0) );
 	return 0;
 }
 
 int buildin_enablearena(CScriptEngine &st)
 {
-	npcscript_data *nd= npcscript_data::from_blid(st.oid);
-	if( nd && nd->chat )
+	if( st.nd && st.nd->chat )
 	{
-		npcchat_data &cd = *nd->chat;
-		npc_enable(nd->name,1);
-		nd->arenaflag=1;
+		npcchat_data &cd = *st.nd->chat;
+		st.nd->enable(1);
+		st.nd->arenaflag=1;
 
 		if(cd.users>=cd.trigger && cd.npc_event[0])
-			npc_timer_event(cd.npc_event);
+			npc_data::event(cd.npc_event);
 	}
 	return 0;
 }
 int buildin_disablearena(CScriptEngine &st)
 {
-	npc_data *nd= npc_data::from_blid(st.oid);
-	if(nd)
-		nd->arenaflag=0;
+	if(st.nd)
+		st.nd->arenaflag=0;
 
 	return 0;
 }
@@ -5840,7 +5844,7 @@ int buildin_disablearena(CScriptEngine &st)
 int buildin_hideoffnpc(CScriptEngine &st)
 {
 	const char *str=st.GetString(st[2]);
-	st.push_val(CScriptEngine::C_INT, npc_enable(str,2) );
+	st.push_val(CScriptEngine::C_INT, npc_data::enable(str,2) );
 	return 0;
 }
 /*==========================================
@@ -5850,7 +5854,7 @@ int buildin_hideoffnpc(CScriptEngine &st)
 int buildin_hideonnpc(CScriptEngine &st)
 {
 	const char *str=st.GetString(st[2]);
-	st.push_val(CScriptEngine::C_INT, npc_enable(str,4) );
+	st.push_val(CScriptEngine::C_INT, npc_data::enable(str,4) );
 	return 0;
 }
 /*==========================================
@@ -5992,7 +5996,8 @@ int buildin_getscrate(CScriptEngine &st)
  */
 int buildin_debugmes(CScriptEngine &st)
 {
-	ShowMessage("script debug (rid=%d oid=%d) : %s\n", st.rid, st.oid, st.GetString(st[2]));
+	ShowMessage("script debug (rid=%d oid=%d) : %s\n", 
+		st.sd?st.sd->block_list::id:0, st.nd?st.nd->block_list::id:0, st.GetString(st[2]));
 	return 0;
 }
 
@@ -6118,37 +6123,37 @@ int buildin_changesex(CScriptEngine &st)
  */
 int buildin_waitingroom(CScriptEngine &st)
 {
-	const char *name,*ev="";
-	int limit, trigger = 0,pub=1;
-	name=st.GetString(st[2]);
-	limit= st.GetInt(st[3]);
-	if(limit==0)
-		pub=3;
-
-	if( st.Arguments() > 5)
-	{
-		CScriptEngine::CValue* data=&(st[5]);
-		st.ConvertName(*data);
-		if(data->type==CScriptEngine::C_INT){
-			// 新Athena仕様(旧Athena仕様と互換性あり)
-			ev=st.GetString(st[4]);
-			trigger=st.GetInt(st[5]);
-		}else{
-			// eathena仕様
-			trigger=st.GetInt(st[4]);
-			ev=st.GetString(st[5]);
-		}
-	}
-	else
-	{	// 旧Athena仕様
-		if( st.Arguments() > 4 )
-			ev=st.GetString(st[4]);
-	}
-	npcscript_data *nd = npcscript_data::from_blid(st.oid);
-	if(nd)
+	if(st.nd)
 	{	
-		npcchat_data::erase(*nd);
-		npcchat_data::create(*nd,limit,pub,trigger,name,ev);
+		const char *name,*ev="";
+		int limit, trigger = 0,pub=1;
+		name=st.GetString(st[2]);
+		limit= st.GetInt(st[3]);
+		if(limit==0)
+			pub=3;
+
+		if( st.Arguments() > 5)
+		{
+			CScriptEngine::CValue* data=&(st[5]);
+			st.ConvertName(*data);
+			if(data->type==CScriptEngine::C_INT){
+				// 新Athena仕様(旧Athena仕様と互換性あり)
+				ev=st.GetString(st[4]);
+				trigger=st.GetInt(st[5]);
+			}else{
+				// eathena仕様
+				trigger=st.GetInt(st[4]);
+				ev=st.GetString(st[5]);
+			}
+		}
+		else
+		{	// 旧Athena仕様
+			if( st.Arguments() > 4 )
+				ev=st.GetString(st[4]);
+		}		
+		
+		npcchat_data::erase(*st.nd);
+		npcchat_data::create(*st.nd,limit,pub,trigger,name,ev);
 	}
 	return 0;
 }
@@ -6158,22 +6163,32 @@ int buildin_waitingroom(CScriptEngine &st)
  */
 int buildin_globalmes(CScriptEngine &st)
 {
-	const char *name=NULL,*mes;
-
+	const char *mes;
 	mes=st.GetString(st[2]);	// メッセージの取得
 	if(mes)
 	{
+		npc_data *nd;
 		if( st.Arguments() > 3 )
 		{	// NPC名の取得(123#456)
-			name=st.GetString(st[3]);
+			nd = npc_data::from_name( st.GetString(st[3]) );
 		}
 		else
 		{
-			npc_data *nd = npc_data::from_blid(st.oid);
-			name=nd->name;
+			nd = st.nd;
 		}
+		if( nd )
+		{
+			char temp[128];
+			char ntemp[64];
+			char *ltemp;
 
-		npc_globalmessage(name,mes);	// グローバルメッセージ送信
+			safestrcpy(ntemp,sizeof(ntemp),nd->name);	// copy the name
+			ltemp=strchr(ntemp,'#');					// check for a # numerator
+			if(ltemp) *ltemp=0;							// and remove it
+			
+			size_t sz = snprintf(temp, sizeof(temp),"%s: %s",ntemp, mes);
+			clif_GlobalMessage(*nd, temp, sz);
+		}
 	}
 	return 0;
 }
@@ -6187,7 +6202,7 @@ int buildin_delwaitingroom(CScriptEngine &st)
 	if( st.Arguments() > 2 )
 		nd = npcscript_data::from_name(st.GetString( (st[2])));
 	else
-		nd = npcscript_data::from_blid(st.oid);
+		nd = st.nd;
 	if( nd )
 		npcchat_data::erase(*nd);
 	return 0;
@@ -6203,7 +6218,7 @@ int buildin_waitingroomkickall(CScriptEngine &st)
 	if( st.Arguments() > 2 )
 		nd = npcscript_data::from_name(st.GetString( (st[2])));
 	else
-		nd = npcscript_data::from_blid(st.oid);
+		nd = st.nd;
 
 	if( nd && nd->chat )
 		nd->chat->kickall();
@@ -6221,7 +6236,7 @@ int buildin_enablewaitingroomevent(CScriptEngine &st)
 	if( st.Arguments() > 2 )
 		nd = npcscript_data::from_name(st.GetString( (st[2])));
 	else
-		nd = npcscript_data::from_blid(st.oid);
+		nd = st.nd;
 
 	if(nd && nd->chat )
 		nd->chat->enable_event();
@@ -6239,7 +6254,7 @@ int buildin_disablewaitingroomevent(CScriptEngine &st)
 	if( st.Arguments() > 2 )
 		nd = npcscript_data::from_name(st.GetString( (st[2])));
 	else
-		nd = npcscript_data::from_blid(st.oid);
+		nd = st.nd;
 
 	if(nd && nd->chat )
 		nd->chat->disable_event();
@@ -6257,7 +6272,7 @@ int buildin_getwaitingroomstate(CScriptEngine &st)
 	if( st.Arguments() > 3 )
 		nd=npcscript_data::from_name(st.GetString( (st[3])));
 	else
-		nd=npcscript_data::from_blid(st.oid);
+		nd=st.nd;
 
 	if( nd && nd->chat )
 	{
@@ -6290,11 +6305,10 @@ int buildin_getwaitingroomstate(CScriptEngine &st)
  */
 int buildin_warpwaitingpc(CScriptEngine &st)
 {
-	const npcscript_data *nd= npcscript_data::from_blid(st.oid);
-	if( nd && nd->chat )
+	if( st.nd && st.nd->chat )
 	{
 		int i;
-		const npcchat_data *cd = nd->chat;
+		const npcchat_data *cd = st.nd->chat;
 		const char *str	= st.GetString(st[2]);
 		int x			= st.GetInt(st[3]);
 		int y			= st.GetInt(st[4]);
@@ -6375,11 +6389,11 @@ int buildin_setmapflagnosave(CScriptEngine &st)
 //!! broadcast command if not on this mapserver
 	if(m >= 0) {
 		maps[m].flag.nosave=1;
-		safestrcpy(maps[m].save.mapname, sizeof(maps[m].save.mapname), str2);
-		char*ip=strchr(maps[m].save.mapname,'.');
+		safestrcpy(maps[m].nosave.mapname, sizeof(maps[m].nosave.mapname), str2);
+		char*ip=strchr(maps[m].nosave.mapname,'.');
 		if(ip) *ip=0;
-		maps[m].save.x=x;
-		maps[m].save.y=y;
+		maps[m].nosave.x=x;
+		maps[m].nosave.y=y;
 	}
 
 	return 0;
@@ -6699,23 +6713,18 @@ int buildin_gvgoff(CScriptEngine &st)
  */
 int buildin_emotion(CScriptEngine &st)
 {
-	uint32 type;
-	uint32 player=0;
-	type=st.GetInt(st[2]);
-
+	uint32 type=st.GetInt(st[2]);
 	if(type <= 100)
 	{
 		if( st.Arguments() > 3 )
-			player=st.GetInt(st[3]);
-		if (player)
 		{
-			map_session_data *sd = map_session_data::from_blid(player);
-			if (sd) clif_emotion(*sd,type);
+			map_session_data *sd = map_session_data::from_blid(st.GetInt(st[3]));
+			if (sd)
+				clif_emotion(*sd,type);
 		}
-		else
+		else if(st.nd)
 		{
-			block_list *bl = block_list::from_blid(st.oid);
-			if(bl) clif_emotion(*bl,type);
+			clif_emotion(*st.nd,type);
 		}
 	}
 	return 0;
@@ -6792,24 +6801,25 @@ int buildin_agitcheck(CScriptEngine &st)
 	if(cond == 0) {
 		if (agit_flag==1) st.push_val(CScriptEngine::C_INT,1);
 		if (agit_flag==0) st.push_val(CScriptEngine::C_INT,0);
-	} else {
-		map_session_data *sd=st.sd;
-		if (agit_flag==1) pc_setreg(*sd,add_str( "@agit_flag"),1);
-		if (agit_flag==0) pc_setreg(*sd,add_str( "@agit_flag"),0);
+	}
+	else
+	{
+		if (agit_flag==1) pc_setreg(*st.sd,add_str( "@agit_flag"),1);
+		if (agit_flag==0) pc_setreg(*st.sd,add_str( "@agit_flag"),0);
 	}
 	return 0;
 }
 
 int buildin_flagemblem(CScriptEngine &st)
 {
-	int g_id=st.GetInt(st[2]);
+	if(st.nd)
+	{
+		int g_id=st.GetInt(st[2]);
+		if(g_id > 0)
+			st.nd->guild_id = g_id;
 
-	if(g_id < 0) return 0;
-
-//	ShowMessage("Script.c: [FlagEmblem] GuildID=%d, Emblem=%d.\n", g->guild_id, g->emblem_id);
-
-	npcscript_data *sc = npcscript_data::from_blid(st.oid);
-	if(sc) sc->guild_id = g_id;
+		//ShowMessage("buildin_flagemblem: [FlagEmblem] GuildID=%d, Emblem=%d.\n", g->guild_id, g->emblem_id);
+	}
 	return 1;
 }
 
@@ -6901,11 +6911,15 @@ int buildin_setcastledata(CScriptEngine &st)
 	struct guild_castle *gc;
 	int i;
 
-	for(i=0;i<MAX_GUILDCASTLE;++i){
-		if( (gc=guild_castle_search(i)) != NULL ){
-			if(strcmp(mapname,gc->mapname)==0){
+	for(i=0;i<MAX_GUILDCASTLE;++i)
+	{
+		if( (gc=guild_castle_search(i)) != NULL )
+		{
+			if(strcmp(mapname,gc->mapname)==0)
+			{
 				// Save Data byself First
-				switch(index){
+				switch(index)
+				{
 				case 1: gc->guild_id = value; break;
 				case 2: gc->economy = value; break;
 				case 3: gc->defense = value; break;
@@ -7159,39 +7173,49 @@ int buildin_mapwarp(CScriptEngine &st)	// Added by RoVeRT
 		else
 			block_list::foreachinarea( CBuildinAreawarpXY(targetmap,x,y),
 				m,x0,y0,x1,y1,BL_PC);
-//		map_foreachinarea(buildin_areawarp_sub,
-//			m,x0,y0,x1,y1,BL_PC, str,x,y );
 	}
 	return 0;
 }
 
-int buildin_cmdothernpc(CScriptEngine &st)	// Added by RoVeRT
+int buildin_cmdothernpc(CScriptEngine &st)
 {
-	if(st.sd)
+	const char *npcname=st.GetString(st[2]);
+	const char *command=st.GetString(st[3]);
+	npcscript_data* nd = npcscript_data::from_name(npcname);
+	if(!nd)
+		ShowError("npc_command: npc not found [%s]\n", npcname);
+	else
+		nd->command(command, st.sd);
+	return 0;
+}
+
+int buildin_fakenpcname(CScriptEngine &st)
+{
+	const char *npcname = st.GetString(st[2]);
+	const char *newname = st.GetString(st[3]);
+	uint32 look = (st.Arguments() > 4) ? st.GetInt(st[4]) : 0;
+	if(look <= 0xFFFF)	// Safety measure to prevent runtime errors
 	{
-		const char *npc=st.GetString(st[2]);
-		const char *command=st.GetString(st[3]);
-		npc_command(*st.sd,npc,command);
+		npc_data* nd = npc_data::from_name(npcname);
+		if(!nd)
+			ShowError("npc_command: npc not found [%s]\n", npcname);
+		else
+			nd->changename(newname, look);
 	}
 	return 0;
 }
 
-int buildin_inittimer(CScriptEngine &st)	// Added by RoVeRT
+int buildin_inittimer(CScriptEngine &st)
 {
-//	npc_data *nd = npc_data::from_blid(st.oid);
-//	nd->lastaction=nd->timer=gettick();
-	if(st.sd)
-		npc_do_ontimer(st.oid, *st.sd, 1);
+	if(st.sd && st.nd)
+		st.nd->do_ontimer(*st.sd, true);
 	return 0;
 }
 
-int buildin_stoptimer(CScriptEngine &st)	// Added by RoVeRT
+int buildin_stoptimer(CScriptEngine &st)
 {
-//	npc_data *nd= npc_data::from_blid(st.oid);
-//	nd->lastaction=nd->timer=-1;
-	if(st.sd)
-		npc_do_ontimer(st.oid, *st.sd, 0);
-
+	if(st.sd && st.nd)
+		st.nd->do_ontimer(*st.sd, false);
 	return 0;
 }
 
@@ -7237,8 +7261,8 @@ int buildin_marriage(CScriptEngine &st)
 
 int buildin_wedding_effect(CScriptEngine &st)
 {
-	block_list *bl = (st.sd) ? st.sd : block_list::from_blid(st.oid);
-	if(bl) clif_wedding_effect(*bl);
+	if(st.nd)
+		clif_wedding_effect(*st.nd);
 	return 0;
 }
 int buildin_divorce(CScriptEngine &st)
@@ -7554,13 +7578,12 @@ int buildin_clearitem(CScriptEngine &st)
  */
 int buildin_classchange(CScriptEngine &st)
 {
-	int class_,type;
-	block_list *bl=block_list::from_blid(st.oid);
-	if(bl)
+	
+	if(st.nd)
 	{
-		class_=st.GetInt(st[2]);
-		type=st.GetInt(st[3]);
-		clif_class_change(*bl,class_,type);
+		int class_=st.GetInt(st[2]);
+		int type=st.GetInt(st[3]);
+		clif_class_change(*st.nd,class_,type);
 	}
 	return 0;
 }
@@ -7571,10 +7594,11 @@ int buildin_classchange(CScriptEngine &st)
  */
 int buildin_misceffect(CScriptEngine &st)
 {
-	int effect = st.GetInt(st[2]);
-	block_list *bl = (st.oid) ? block_list::from_blid(st.oid) : st.sd;
-	if(bl)
-		clif_setareaeffect(*bl, effect);
+	if(st.nd)
+	{
+		int effect = st.GetInt(st[2]);
+		clif_setareaeffect(*st.nd, effect);
+	}
 	return 0;
 }
 /*==========================================
@@ -7587,33 +7611,22 @@ int buildin_soundeffect(CScriptEngine &st)
 	{
 		const char *name=st.GetString(st[2]);
 		int type=st.GetInt(st[3]);
-		if(st.oid)
-		{
-			block_list *bl = block_list::from_blid(st.oid);
-			if(bl) clif_soundeffect(*st.sd,*bl,name,type);
-		}
+		if(st.nd)
+			clif_soundeffect(*st.sd,*st.nd,name,type);
 		else
-		{
 			clif_soundeffect(*st.sd,*st.sd,name,type);
-		}
 	}
 	return 0;
 }
 
 int buildin_soundeffectall(CScriptEngine &st)
 {
-	map_session_data *sd=st.sd;
-	block_list *bl;
-	const char *name;
-	int type=0;
-
-	name=st.GetString(st[2]);
-	type=st.GetInt(st[3]);
-	
-	if(st.oid && (bl=block_list::from_blid(st.oid))!=NULL)
-		clif_soundeffectall(*bl,name,type);
-	else if(sd)
-		clif_soundeffectall(*sd,name,type);
+	const char *name=st.GetString(st[2]);
+	int type=st.GetInt(st[3]);
+	if(st.nd)
+		clif_soundeffectall(*st.nd,name,type);
+	else if(st.sd)
+		clif_soundeffectall(*st.sd,name,type);
 	return 0;
 }
 /*==========================================
@@ -7807,15 +7820,15 @@ int buildin_skilleffect(CScriptEngine &st)
  */
 int buildin_npcskilleffect(CScriptEngine &st)
 {
-	npc_data *nd = npc_data::from_blid(st.oid);
+	if(st.nd)
+	{
+		int skillid=st.GetInt(st[2]);
+		int skilllv=st.GetInt(st[3]);
+		int x=st.GetInt(st[4]);
+		int y=st.GetInt(st[5]);
 
-	int skillid=st.GetInt(st[2]);
-	int skilllv=st.GetInt(st[3]);
-	int x=st.GetInt(st[4]);
-	int y=st.GetInt(st[5]);
-
-	clif_skill_poseffect(*nd,skillid,skilllv,x,y,gettick());
-
+		clif_skill_poseffect(*st.nd,skillid,skilllv,x,y,gettick());
+	}
 	return 0;
 }
 
@@ -7825,8 +7838,8 @@ int buildin_npcskilleffect(CScriptEngine &st)
  */
 int buildin_specialeffect(CScriptEngine &st)
 {
-	block_list *bl=block_list::from_blid(st.oid);
-	if(bl) clif_specialeffect(*bl,st.GetInt( (st[2])), 0);
+	if(st.nd)
+		clif_specialeffect(*st.nd,st.GetInt( (st[2])), 0);
 	return 0;
 }
 
@@ -8112,16 +8125,13 @@ int buildin_message(CScriptEngine &st)
 
 int buildin_npctalk(CScriptEngine &st)
 {
-	const char *str;
-	char message[1024];
-
-	npc_data *nd = npc_data::from_blid(st.oid);
-	str=st.GetString(st[2]);
-
-	if(nd) {
-		snprintf(message, sizeof(message), "%s: %s", nd->name, str);
+	if(st.nd)
+	{
+		const char *str=st.GetString(st[2]);
+		char message[1024];
+		snprintf(message, sizeof(message), "%s: %s", st.nd->name, str);
 		message[sizeof(message)-1]=0;
-		clif_message(*nd, message);
+		clif_message(*st.nd, message);
 	}
 
 	return 0;
@@ -8154,38 +8164,29 @@ int buildin_hasitems(CScriptEngine &st)
 // change npc walkspeed [Valaris]
 int buildin_npcspeed(CScriptEngine &st)
 {
-	npc_data *nd= npc_data::from_blid(st.oid);
-	int x=0;
-
-	x=st.GetInt(st[2]);
-
-	if(nd) {
-		nd->speed=x;
+	if(st.nd)
+	{
+		st.nd->speed=st.GetInt(st[2]);
 	}
-
 	return 0;
 }
 // make an npc walk to a position [Valaris]
 int buildin_npcwalkto(CScriptEngine &st)
 {
-	npc_data *nd= npc_data::from_blid(st.oid);
-	int x=0,y=0;
+	if(st.nd)
+	{
+		int x=st.GetInt(st[2]);
+		int y=st.GetInt(st[3]);
 
-	x=st.GetInt(st[2]);
-	y=st.GetInt(st[3]);
-
-	if(nd)
-		nd->walktoxy(x,y);
-
+		st.nd->walktoxy(x,y);
+	}
 	return 0;
 }
 // stop an npc's movement [Valaris]
 int buildin_npcstop(CScriptEngine &st)
 {
-	npc_data *nd = npc_data::from_blid(st.oid);
-
-	if( nd )
-		nd->stop_walking(1);
+	if( st.nd )
+		st.nd->stop_walking(1);
 	return 0;
 }
 
@@ -8335,7 +8336,7 @@ int buildin_getmapxy(CScriptEngine &st)
 			if( st.Arguments() > 6 )
 				nd= npc_data::from_name( st.GetString(st[6]) );
 			else
-				nd= npc_data::from_blid(st.oid);
+				nd= st.nd;
 			if( nd==NULL )
 			{	//wrong npc name or char offline
 				st.push_val(CScriptEngine::C_INT,-1);
@@ -8784,16 +8785,6 @@ int buildin_charisalpha(CScriptEngine &st)
 
 
 
-// [Lance]
-int buildin_fakenpcname(CScriptEngine &st)
-{
-	const char *name = st.GetString(st[2]);
-	const char *newname = st.GetString(st[3]);
-	uint32 look = st.GetInt(st[4]);
-	if(look <= 0xFFFF)	// Safety measure to prevent runtime errors
-		npc_changename(name, newname, look);
-	return 0;
-}
 
 int buildin_compare(CScriptEngine &st)                                 
 {

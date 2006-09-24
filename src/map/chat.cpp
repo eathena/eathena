@@ -313,7 +313,9 @@ void npcchat_data::disable_event()
 void npcchat_data::trigger_event()
 {
 	if( this->users >= this->trigger && this->npc_event[0] )
-		npc_event_do(this->npc_event);
+	{
+		npc_data::event(this->npc_event);
+	}
 }
 
 

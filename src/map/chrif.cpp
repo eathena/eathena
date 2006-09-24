@@ -559,7 +559,7 @@ int chrif_changemapserverack(int fd)
  */
 int chrif_do_onagitinit(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	ShowStatus("Event '"CL_WHITE"OnAgitInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnAgitInit"));
+	ShowStatus("Event '"CL_WHITE"OnAgitInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_data::event("OnAgitInit"));
 	return 0;
 }
 
@@ -583,11 +583,11 @@ int chrif_connectack(int fd)
 
 	chrif_sendmap(fd);
 
-	ShowStatus("Event '"CL_WHITE"OnCharIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnCharIfInit"));
-	ShowStatus("Event '"CL_WHITE"OnInterIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnInterIfInit"));
+	ShowStatus("Event '"CL_WHITE"OnCharIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_data::event("OnCharIfInit"));
+	ShowStatus("Event '"CL_WHITE"OnInterIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_data::event("OnInterIfInit"));
 	if(!char_init_done) {
 		char_init_done = 1;
-		ShowStatus("Event '"CL_WHITE"OnInterIfInitOnce"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnInterIfInitOnce"));
+		ShowStatus("Event '"CL_WHITE"OnInterIfInitOnce"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_data::event("OnInterIfInitOnce"));
 		add_timer(gettick() + 10000, chrif_do_onagitinit, 0, 0);
 	}
 	return 0;

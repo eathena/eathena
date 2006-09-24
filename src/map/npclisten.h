@@ -99,8 +99,6 @@ struct npc_parse
 #endif//WITH_PCRE
 
 
-void npclisten_finalize(npcscript_data *nd);
-
 class CNpcChat : public CMapProcessor
 {
     const char *msg;

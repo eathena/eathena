@@ -349,7 +349,7 @@ int guild_npc_request_info(uint32 guild_id,const char *event)
 
 	if( guild_search(guild_id) ){
 		if(event && *event)
-			npc_event_do(event);
+			npc_data::event(event);
 		return 0;
 	}
 
@@ -502,7 +502,7 @@ int guild_recv_info(struct guild &sg)
 		numdb_erase(guild_infoevent_db,sg.guild_id);
 		while(ev)
 		{
-			npc_event_do(ev->name);
+			npc_data::event(ev->name);
 			ev2=ev->next;
 			delete ev;
 			ev=ev2;
@@ -1476,7 +1476,7 @@ int guild_castledataloadack(unsigned short castle_id,int index,int value)
 		numdb_erase(guild_castleinfoevent_db,code);
 		while(ev)
 		{
-			npc_event_do(ev->name);
+			npc_data::event(ev->name);
 			ev2=ev->next;
 			delete ev;
 			ev=ev2;
@@ -1576,13 +1576,13 @@ int guild_castlealldataload(int len, unsigned char *buf)
 		}
 	}
 	if (ev == -1)
-		npc_event_doall("OnAgitInit");
+		npc_data::event("OnAgitInit");
 	return 0;
 }
 
 int guild_agit_start(void)
 {	// Run All NPC_Event[OnAgitStart]
-	int c = npc_event_doall("OnAgitStart");
+	int c = npc_data::event("OnAgitStart");
 	ShowMessage("NPC_Event:[OnAgitStart] Run (%d) Events by @AgitStart.\n",c);
 	// Start auto saving
 	if(guild_save_timer!=-1)
@@ -1593,7 +1593,7 @@ int guild_agit_start(void)
 
 int guild_agit_end(void)
 {	// Run All NPC_Event[OnAgitEnd]
-	int c = npc_event_doall("OnAgitEnd");
+	int c = npc_data::event("OnAgitEnd");
 	ShowMessage("NPC_Event:[OnAgitEnd] Run (%d) Events by @AgitEnd.\n",c);
 	// Stop auto saving
 	if(guild_save_timer!=-1)
@@ -1615,7 +1615,7 @@ int guild_gvg_eliminate_timer(int tid, unsigned long tick, int id, basics::numpt
 			char* evname = new char[len+5];
 			memcpy(evname,name,len-5);
 			strcpy(evname+len-5,"Eliminate");
-			ShowMessage("NPC_Event:[%s] Run (%d) Events.\n",evname, npc_event_do(evname) );
+			ShowMessage("NPC_Event:[%s] Run (%d) Events.\n", evname, npc_data::event(evname) );
 			delete[] evname;
 		}
 		delete[] name;
@@ -1656,11 +1656,12 @@ int guild_save_sub(int tid, unsigned long tick, int id, basics::numptr data)
 
 int guild_agit_break(struct mob_data &md)
 {	// Run One NPC_Event[OnAgitBreak]
-	char *evname= new char[1+strlen(md.npc_event)];
-	memcpy(evname,md.npc_event, 1+strlen(md.npc_event));
-	//      int c = npc_event_do(evname);
-	if(!agit_flag) return 0;	// Agit already End
-	add_timer(gettick()+config.gvg_eliminate_time,guild_gvg_eliminate_timer,md.block_list::m, basics::numptr(evname), false);
+	if(agit_flag)
+	{
+		char *evname= new char[1+strlen(md.npc_event)];
+		memcpy(evname,md.npc_event, 1+strlen(md.npc_event));
+		add_timer(gettick()+config.gvg_eliminate_time,guild_gvg_eliminate_timer,md.block_list::m, basics::numptr(evname), false);
+	}
 	return 0;
 }
 

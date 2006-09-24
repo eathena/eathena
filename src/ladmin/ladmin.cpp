@@ -2,7 +2,7 @@
 // For more information, see LICENCE in the main folder
 
 ///////////////////////////////////////////////////////////////////////////
-// EAthena login-server remote administration tool
+// remote administration tool
 // Ladamin in C by [Yor]
 // if you modify this software, modify ladmin in tool too.
 ///////////////////////////////////////////////////////////////////////////

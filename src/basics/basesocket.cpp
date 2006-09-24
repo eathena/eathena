@@ -677,8 +677,6 @@ void test_socket()
 #include "basesync.h"
 #include "basesocket.h"
 
-USING_NAMESPACE(basics)
-
 // complete client server testcase
 
 

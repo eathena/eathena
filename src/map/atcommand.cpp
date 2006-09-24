@@ -2477,7 +2477,7 @@ bool command_hidenpc(int fd, map_session_data& sd, const char* command, const ba
 		return false;
 	}
 	const char *NPCname=param[0];
-	bool ok = npc_enable(NPCname, 0);
+	bool ok = npc_data::enable(NPCname, 0);
 	clif_displaymessage(fd, msg_txt(ok?MSG_NPC_DISABLED:MSG_THIS_NPC_DOESNT_EXIST));
 	return ok;
 }
@@ -2493,7 +2493,7 @@ bool command_shownpc(int fd, map_session_data& sd, const char* command, const ba
 		return false;
 	}
 	const char *NPCname=param[0];
-	bool ok = npc_enable(NPCname, 1);
+	bool ok = npc_data::enable(NPCname, 1);
 	clif_displaymessage(fd, msg_txt(ok?MSG_NPC_ENABLED:MSG_THIS_NPC_DOESNT_EXIST));
 	return ok;
 }
@@ -2540,7 +2540,7 @@ bool command_unloadnpc(int fd, map_session_data& sd, const char* command, const 
 	npc_data *nd = npc_data::from_name(param[0]);
 	if( nd != NULL )
 	{
-		npc_remove_map(nd);
+		nd->remove_from_map();
 		clif_displaymessage(fd, msg_txt(MSG_NPC_DISABLED)); // Npc Disabled.
 	}
 	else
@@ -3655,11 +3655,11 @@ bool command_mapinfo(int fd, map_session_data& sd, const char* command, const ba
 	clif_displaymessage(fd, output);
 
 	if (maps[m_id].flag.nosave) {
-		if (maps[m_id].save.x == -1 || maps[m_id].save.y == -1 )
-			snprintf(output, sizeof(output), "No Save, Save Point: %s,Random",maps[m_id].save.mapname);
+		if (maps[m_id].nosave.x == -1 || maps[m_id].nosave.y == -1 )
+			snprintf(output, sizeof(output), "No Save, Save Point: %s,Random",maps[m_id].nosave.mapname);
 		else
 			snprintf(output, sizeof(output), "No Save, Save Point: %s,%d,%d",
-				maps[m_id].save.mapname,maps[m_id].save.x,maps[m_id].save.y);
+				maps[m_id].nosave.mapname,maps[m_id].nosave.x,maps[m_id].nosave.y);
 		clif_displaymessage(fd, output);
 	}
 
@@ -4510,10 +4510,10 @@ bool command_npcmove(int fd, map_session_data& sd, const char* command, const ba
 		return false;
 	}
 
-	npc_enable(name, 0);
+	nd->enable(0);
 	nd->block_list::x = x;
 	nd->block_list::y = y;
-	npc_enable(name, 1);
+	nd->enable(1);
 
 	return true;
 }
@@ -5391,7 +5391,7 @@ bool command_reloadpcdb(int fd, map_session_data& sd, const char* command, const
 ///
 bool command_reloadscript(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	command_broadcast( fd, sd, "broadcast", basics::CParameterList("\"eAthena Server is Rehashing...\""));
+	command_broadcast( fd, sd, "broadcast", basics::CParameterList("\"Server is Rehashing...\""));
 	command_broadcast( fd, sd, "broadcast", basics::CParameterList("\"You will feel a bit of lag at this point !\""));
 	command_broadcast( fd, sd, "broadcast", basics::CParameterList("\"Reloading NPCs...\""));
 
@@ -5399,7 +5399,8 @@ bool command_reloadscript(int fd, map_session_data& sd, const char* command, con
 
 	do_init_script();
 	npc_reload();
-	npc_event_do_oninit();
+	ShowStatus("Event '"CL_WHITE"OnInit"CL_RESET"' executed with '"
+		CL_WHITE"%d"CL_RESET"' NPCs.\n",npc_data::event("OnInit"));
 
 	clif_displaymessage(fd, msg_txt(MSG_REFUSE_ALL_WISPS)); // Scripts reloaded.
 
@@ -6487,16 +6488,9 @@ bool command_useskill(int fd, map_session_data& sd, const char* command, const b
 ///
 bool command_version(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	const char * revision;
-	char tmp[200];
-
- 	if( (revision = get_svn_revision()) != 0 )
-	{
-		snprintf(tmp,sizeof(tmp), "eAthena Version SVN r%s",revision);
-		clif_displaymessage(fd,tmp);
-	}
-	else
-          clif_displaymessage(fd,"Cannot determine SVN revision");
+	char tmp[256];
+	snprintf(tmp,sizeof(tmp), "Revision :%s", get_revision());
+	clif_displaymessage(fd,tmp);
 	return true;
 }
 

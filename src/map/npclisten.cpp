@@ -228,16 +228,6 @@ pcrematch_set& npc_parse::lookup(int setid)
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-// Delete everything associated with a NPC concerning the pattern matching code 
-void npclisten_finalize(npcscript_data *nd)
-{
-	if( nd && nd->listendb )
-	{
-		delete nd->listendb;
-		nd->listendb = NULL;
-	}
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Handler called whenever a global message is spoken in a NPC's area
@@ -516,9 +506,6 @@ int buildin_deletepset(CScriptEngine &st)
 }
 
 #else
-
-void npclisten_finalize(npcscript_data *nd)			{}
-
 
 int CNpcChat::process(block_list &bl) const			{ return 0; }
 int buildin_defpattern(CScriptEngine &st)			{ return 0; }

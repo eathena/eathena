@@ -376,7 +376,7 @@ void plugin_init (void)
 	export_symbol((void*)add_timer_func_list,	 9);
 //	export_symbol((void*)add_timer_interval,	 8);
 //	export_symbol((void*)add_timer,				 7);
-	export_symbol((void*)get_svn_revision,		 6);
+	export_symbol((void*)get_revision,			 6);
 	export_symbol((void*)gettick,				 5);
 //	export_symbol(&runflag,						 4);
 	export_symbol(NULL,							 4);

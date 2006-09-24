@@ -505,7 +505,7 @@ int	VPRINTF(const char *fmt, va_list argptr)
 	p = tempbuf;
 	while ((q = strchr(p, 0x1b)) != NULL)
 	{	// find the escape character
-		fprintf(stdout, "%.*s", q-p, p); // write up to the escape
+		fprintf(stdout, "%.*s", int(q-p), p); // write up to the escape
 		if( q[1]!='[' )
 		{	// write the escape char (whatever purpose it has) 
 			fprintf(stdout, "%.*s", 1, q);

@@ -778,9 +778,6 @@ public:
 	virtual bool operator ==(void *p) const			{ return this->cCntObj==p; }
 	virtual bool operator !=(void *p) const			{ return this->cCntObj!=p; }
 
-	virtual bool operator ==(const TObjPtr<X>& r) const	{ return this->cCntObj==r.cCntObj; }
-	virtual bool operator !=(const TObjPtr<X>& r) const	{ return this->cCntObj!=r.cCntObj; }
-
 	const TObjPtr<X>& create ()
 	{
 		this->clear();

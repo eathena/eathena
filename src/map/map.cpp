@@ -410,7 +410,7 @@ int map_daynight_timer(int tid, unsigned long tick, int id, basics::numptr data)
 /// block化?理
 /// maps[]のblock_listから?がっている場合に
 /// bl->prevにbl_headのアドレスを入れておく
-static block_list bl_head;
+block_list block_list::bl_head;
 
 /////////////////////////////////////////////////////////////////////
 dbt* block_list::id_db=NULL;
@@ -1791,7 +1791,7 @@ int map_quit(map_session_data &sd)
 		}
 		else
 		{
-			int evt = npc_event_doall("OnPCLogoutEvent", sd.block_list::id, sd.block_list::m);
+			int evt = npc_data::event("OnPCLogoutEvent", sd);
 			if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCLogoutEvent");
 		}
 	}
@@ -1920,7 +1920,6 @@ int map_addnpc(unsigned short m, npc_data *nd)
 
 	maps[m].npc[i]=nd;
 	nd->n = i;
-	numdb_insert(block_list::id_db, nd->block_list::id,nd);
 
 	return i;
 }
@@ -3342,7 +3341,7 @@ public:
 		if( bl==BL_PC )
 			map_quit( (map_session_data &)bl );
 		else if( bl==BL_NPC )
-			npc_unload( (npc_data *)&bl );
+			bl.freeblock();
 		else if( bl==BL_MOB )
 			mob_unload( (mob_data &)bl);
 		else if( bl==BL_PET )
@@ -3359,22 +3358,26 @@ public:
 void map_checknpcsleft(void)
 {
 	size_t i, m,n=0;
-
-	for(m=0;m<map_num;++m) {
-		for(i=0;i<maps[m].npc_num && i<MAX_NPC_PER_MAP;++i) {
-			if(maps[m].npc[i]!=NULL) {
+	block_list::freeblock_lock();
+	for(m=0;m<map_num;++m)
+	{
+		for(i=0;i<maps[m].npc_num && i<MAX_NPC_PER_MAP;++i)
+		{
+			if(maps[m].npc[i]!=NULL)
+			{
 				clif_clearchar_area(*maps[m].npc[i],2);
-				maps[m].npc[i]->delblock();
-				maps[m].npc[i]->deliddb();
-				// just unlink npc from maps
-				// npc will be deleted with do_final_npc
+				maps[m].npc[i]->freeblock();
 				maps[m].npc[i] = NULL;
-				n++;
+				++n;
 			}
 		}
+		if(n>0)
+		{
+			ShowWarning("Found '"CL_WHITE"%d"CL_RESET"' stray NPCs on map [%s].\n", n, maps[m].mapname);
+			n=0;
+		}
 	}
-	if(n>0)
-		ShowWarning("Found '"CL_WHITE"%d"CL_RESET"' stray NPCs on maps.\n", n);
+	block_list::freeblock_unlock();
 }
 
 
@@ -3397,14 +3400,21 @@ void do_final(void)
 
 	// regular removing
 	do_final_npc();
+/////////
+// possibly unnecessary
 	// additional removing
 	for (i = 0; i < map_num; ++i)
 	{
 		if (maps[i].m >= 0)
-			block_list::foreachinarea( CMapCleanup(), i, 0, 0, maps[i].xs-1, maps[i].ys-1, BL_ALL);
+		{
+			const int ll=block_list::foreachinarea( CMapCleanup(), i, 0, 0, maps[i].xs-1, maps[i].ys-1, BL_ALL);
+			if(ll)
+				ShowWarning("map cleanup '"CL_WHITE"%d"CL_RESET"' objects.\n", ll);
+		}
 	}
 	// and a check
 	map_checknpcsleft();
+/////////
 
 	do_final_pc();
 	do_final_homun();
@@ -3572,7 +3582,8 @@ int do_init(int argc, char *argv[])
 	do_init_clif();
 	do_init_chrif();
 
-	npc_event_do_oninit();	// npcのOnInitイベント?行
+	ShowStatus("Event '"CL_WHITE"OnInit"CL_RESET"' executed with '"
+		CL_WHITE"%d"CL_RESET"' NPCs.\n",npc_data::event("OnInit"));
 
 	if ( console )
 	{

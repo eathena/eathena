@@ -50,14 +50,14 @@ static size_t npc_cache_mob=0;
 
 
 // currently managed externally
-static struct dbt *npcname_db=NULL;
-
+struct dbt *npc_data::npcname_db=NULL;
 
 /// name to object
 npc_data* npc_data::from_name(const char *name)
 {
-	return (npc_data *) strdb_search(npcname_db,name);
+	return (npc_data *)strdb_search(npc_data::npcname_db,name);
 }
+
 
 
 /// do object depending stuff for ending the walk.
@@ -135,6 +135,37 @@ void npc_data::click(map_session_data &sd, uint32 npcid)
 		}
 	}
 }
+/// static function called from map_session_data::do_walkend.
+void npc_data::touch(map_session_data &sd, unsigned short m, int x,int y)
+{
+	if( !sd.ScriptEngine.isRunning() && m<map_num && map_getcell(m,x,y,CELL_CHKNPC) )
+	{
+		size_t i;
+		int xs,ys;
+		for(i=0;i<maps[m].npc_num;++i)
+		{
+			if (maps[m].npc[i]->invalid)
+				continue;
+			xs = maps[m].npc[i]->xs;
+			ys = maps[m].npc[i]->ys;
+
+			if ( (x >= (maps[m].npc[i]->block_list::x-xs/2)) && (x < (maps[m].npc[i]->block_list::x-xs/2+xs)) &&
+				 (y >= (maps[m].npc[i]->block_list::y-ys/2)) && (y < (maps[m].npc[i]->block_list::y-ys/2+ys)) )
+			{
+				maps[m].npc[i]->OnTouch(sd);
+			}
+		}
+	}
+	else
+		sd.areanpc_id = 0;
+}
+
+
+
+
+
+
+
 
 
 
@@ -159,7 +190,7 @@ void npcscript_data::OnTouch(block_list& bl)
 		snprintf(eventname,sizeof(eventname),"%s::OnTouch", this->name);
 		
 		// has ontouch label or does click
-		if( npc_event(*sd, eventname,0)!=0 )
+		if( !npc_data::event(eventname, *sd) )
 			this->OnClick(*sd);
 	}
 }
@@ -188,91 +219,429 @@ void npcshop_data::OnClick(map_session_data &sd)
 
 
 
+///////////////////////////////////////////////////////////////////////////////
+// npc eventtimer system
 
 
 
+/// constructor.
+npcscript_data::npc_timerobj::npc_timerobj(npcscript_data &n, uint32 r) :
+	next(NULL),
+	nd(n),
+	rid(r),
+	pos(0),
+	tid(-1)
+{	// queue at front
+	this->next = this->nd.eventobj;
+	this->nd.eventobj = this;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-uint32 &get_npc_id()
+/// destructor.
+/// dequeues and removes timers.
+npcscript_data::npc_timerobj::~npc_timerobj()
 {
-	// simple singleton
-	// !! change id generation to support freeing/reloading of npc's
-	static uint32 npc_id=START_NPC_NUM;
-	return npc_id;
+	// remove the timer
+	if(this->tid!=-1)
+		delete_timer(this->tid, npcscript_data::eventtimer_entry);
+
+	// dequeue
+	if( this == this->nd.eventobj )
+	{	// beeing root
+		this->nd.eventobj = this->next;
+	}
+	else
+	{	// somewhere inside the list
+		npc_timerobj *a;
+		for(a=this->nd.eventobj; a && a->next!=this; a=a->next);
+		if(a)
+		{
+			a->next = a->next->next;
+		}
+	}
 }
 
-uint32 npc_get_new_npc_id(void)
-{	// simple singleton
-	// !! change id generation to support freeing/reloading of npc's
-	return (get_npc_id()++); 
+/// aquire a timer object. 
+/// create a new object if not exists
+npcscript_data::npc_timerobj* npcscript_data::eventtimer_aquire(uint32 rid)
+{	// check if npc_timerobj already exists
+	npc_timerobj *a;
+	for(a=this->eventobj; a && a->rid!=rid; a=a->next);
+	if(a)
+	{	// in all cases, clear an existing timer
+		if(a->tid!=-1)
+		{
+			delete_timer(a->tid, npcscript_data::eventtimer_entry);
+			a->tid = -1;
+		}
+	}
+	else
+	{	// does not exist, so create it new
+		a = new npc_timerobj(*this, rid);
+	}
+	return a;
 }
+
+/// get the position inside the eventtimer list.
+/// return 0 when no timer has been started
+ushort npcscript_data::eventtimer_getpos(uint32 rid)
+{	
+	npc_timerobj *a;
+	for(a=this->eventobj; a && a->rid!=rid; a=a->next);
+	return (a)?a->pos:0;
+}
+
+/// set the position inside the eventtimer list.
+/// return the previous count. does nothing when no timer has been started
+ushort npcscript_data::eventtimer_setpos(uint32 rid, ushort pos)
+{	
+	ushort ret = 0;
+	npc_timerobj *a;
+	for(a=this->eventobj; a && a->rid!=rid; a=a->next);
+	if( a )
+	{	
+		ret = a->pos;
+		a->pos = pos;
+	}
+	return ret;
+}
+
+/// set the rid for the next call.
+/// return the previous rid. does nothing when no timer has been started
+uint32 npcscript_data::eventtimer_attach(uint32 oldrid, uint32 newrid)
+{	
+	uint32 ret = 0;
+	npc_timerobj *n, *o;
+	// get the oldrid
+	for(o=this->eventobj; o && o->rid!=oldrid; o=o->next);
+	if( o ) 
+	{
+		// test if newrid already exists and delete it
+		for(n=this->eventobj; n && n->rid!=newrid; n=n->next);
+		if( n ) delete n;
+
+		// attach the newrid
+		ret = o->rid;
+		o->rid = newrid;
+	}
+	return ret;
+}
+
+/// initialize a timer object and start the timer.
+void npcscript_data::eventtimer_init(uint32 rid, ushort pos)
+{
+	npc_timerobj *a = npcscript_data::eventtimer_aquire(rid);
+	// initialize
+	a->pos = pos;
+	// start the timer
+	ulong tick = (this->ontimer_cnt&&this->ontimer_list)?this->ontimer_list[0].tick:0;
+	a->tid = add_timer(gettick()+tick, npcscript_data::eventtimer_entry, this->block_list::id, basics::numptr(a));
+}
+
+/// start the timer.
+void npcscript_data::eventtimer_start(uint32 rid)
+{
+	npc_timerobj *a = npcscript_data::eventtimer_aquire(rid);
+	// start the timer
+	ulong tick = (this->ontimer_cnt&&this->ontimer_list)?this->ontimer_list[0].tick:0;
+	a->tid = add_timer(gettick()+tick, npcscript_data::eventtimer_entry, this->block_list::id, basics::numptr(a));
+}
+
+/// stop the timer.
+void npcscript_data::eventtimer_stop(uint32 rid)
+{
+	npcscript_data::eventtimer_aquire(rid);
+	// timer removed on aquire call
+}
+
+/// clear the timers if not in use.
+void npcscript_data::eventtimer_clear(uint32 rid)
+{
+	npc_timerobj *a;
+	for(a=this->eventobj; a && a->rid!=rid; a=a->next);
+	if( a && a->tid==-1 )
+		delete a;
+}
+
+/// timer entry funtion.
+int npcscript_data::eventtimer_entry(int tid, unsigned long tick, int id, basics::numptr data)
+{
+	npc_timerobj *eo = (npc_timerobj *)data.ptr;
+	if( !eo )
+	{
+		ShowError("eventtimer_entry: no event object\n");
+	}
+	else if( tid != eo->tid )
+	{
+		ShowError("eventtimer_entry: invalid tid\n");
+	}
+	else
+	{
+		npcscript_data *nd=NULL;
+		uint pos = 0;
+		uint32 rid = 0;
+
+		bool remove = true;
+		if( eo->pos >= eo->nd.ontimer_cnt )
+		{
+			ShowWarning("eventtimer_entry: timer position out of bound (%i>=%i)\n", eo->pos, eo->nd.ontimer_cnt);
+		}
+		else
+		{
+			// get the current event
+			struct npc_timerevent &te = eo->nd.ontimer_list[eo->pos];
+			ulong difftick = te.tick;
+
+
+			nd = &eo->nd;	// calling this npc
+			rid = eo->rid;	// with the given rid
+			pos = te.pos;	// at the script position from the current event step
+
+			// next event
+			++(eo->pos);
+			
+			if( eo->pos >= eo->nd.ontimer_cnt )
+			{	// last event has been executed, so there is nothing to do
+				eo->tid = -1;
+			}
+			else
+			{	// start with timer for the next event
+				difftick = eo->nd.ontimer_list[eo->pos].tick - difftick;
+				eo->tid = add_timer(tick+difftick, npcscript_data::eventtimer_entry, id, data);
+				// do not remove the object
+				remove = false;
+			}
+		}
+		// everything executed, so delete the object
+		if(remove) delete eo;
+
+		// execute the script with the local data
+		if(nd && nd->ref)
+			CScriptEngine::run(nd->ref->script, pos, rid, nd->block_list::id);
+	}
+	return 0;
+}
+
+void npcscript_data::do_ontimer(map_session_data &sd, bool start)
+{
+	// look for the event inside the label list of the npc
+	char event[64];
+	script_object::script_label *ptr = this->ref->label_list;
+	const script_object::script_label *end = this->ref->label_list+this->ref->label_list_num;
+	for(; ptr && ptr<end; ++ptr)
+	{
+		if( ptr->name && 
+			0==strncasecmp("OnTimer", ptr->name, 7) )
+		{	// found it
+
+			snprintf(event, sizeof(event), "%s::%s", this->name, ptr->name);// name::event
+			if( start )
+				pc_addeventtimer(sd, atoi(ptr->name+7), event);	// with tick
+			else
+				pc_deleventtimer(sd, event);
+		}
+	}
+}
+/// search and execute a script starting from a OnCommand-Label.
+/// command parameter is only the string directly following the "::OnCommand", 
+/// eg. for the label "OnCommandDie", the command parameter is "Die"
+bool npcscript_data::command(const char *command, const map_session_data *sd)
+{
+	if( !this->invalid && this->ref )
+	{	
+		// look for the event inside the label list of the npc
+		script_object::script_label *ptr = this->ref->label_list;
+		const script_object::script_label *end = this->ref->label_list+this->ref->label_list_num;
+		for(; ptr && ptr<end; ++ptr)
+		{
+			if( ptr->name && 
+				0==strncasecmp("OnCommand", ptr->name, 9) &&
+				0==strcasecmp(command, ptr->name+9) )
+			{	// found it
+				CScriptEngine::run(this->ref->script, ptr->pos, (sd)?sd->block_list::id:0, this->block_list::id);
+				// only execute one single script, so quit here
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+
+/// reverse eventname2npc lookup.
+/// replace this by a map or multimap,
+/// possibly by basics::smap< basics::string<>, basics::smap<uint32,size_t> >
+struct event_data
+{
+	/// structure containing the npc/script position values associated to the event name
+	struct event_entry
+	{
+		npcscript_data *nd;
+		size_t pos;
+		event_entry(npcscript_data *n=NULL, size_t p=0)
+			: nd(n), pos(p)
+		{}
+		bool operator==(const event_entry& e) const { return this->nd==e.nd; }
+		bool operator< (const event_entry& e) const { return this->nd< e.nd; }
+	};
+
+	basics::string<>			event_name;
+	basics::slist<event_entry>	event_list;
+
+	typedef basics::slist<event_entry>::iterator iterator;
+
+	bool insert(npcscript_data &nd, size_t pos)
+	{	// not likly but check if entry already exists
+		// only need to test the npcscript_data
+		// since there can be only one entry per event
+		size_t p;
+		event_entry tmp(&nd, pos);
+		if( !this->event_list.find(tmp,0,p) )
+		{
+			this->event_list.append(tmp);
+			return true;
+		}
+		return false;
+	}
+	bool erase(npcscript_data &nd)
+	{
+		size_t p;
+		event_entry tmp(&nd, 0);
+		if( this->event_list.find(tmp,0,p) )
+		{
+			this->event_list.erase(p);
+			return true;
+		}
+		return false;
+	}
+	bool query(npcscript_data &nd, size_t &pos)
+	{
+		size_t p;
+		event_entry tmp(&nd, 0);
+		if( this->event_list.find(tmp,0,p) )
+		{
+			pos = this->event_list[pos].pos;
+			return true;
+		}
+		return false;
+	}
+
+	size_t size() const
+	{
+		return this->event_list.size();
+	}
+
+	event_data(const char* name) : event_name(name)	{}
+	~event_data()	{}
+};
+
 
 static struct dbt *ev_db=NULL;
 
 
-struct event_data
-{
-	npcscript_data *sc;
-	size_t pos;
-	event_data(npcscript_data *s, size_t p) :
-		sc(s), pos(p)
-	{}
-};
-
-
-
-
-
-// ============================================
-// ADDITION Qamera death/disconnect/connect event mod
-int npc_event_doall_attached(const char *name, map_session_data &sd)
+/// search and execute a script starting from a On-Label.
+/// eventname parameter is the whole "<npcname>::<eventname>" string
+/// can be "mis"used for doing a allevent call by having the eventname with leading "::"
+int npc_data::_event(const char *eventname, npcscript_data *nd, map_session_data *sd)
 {
 	int c=0;
-	if(name)
-	{	
-		struct npc_att_data nad;
-		size_t len = strlen(name)+1;
-		if( len+2 > sizeof(nad.buf) ) len = sizeof(nad.buf)-2;
-		memset(&nad, 0, sizeof(struct npc_att_data));
-		memcpy(nad.buf,"::",2);
-		memcpy(nad.buf+2,name,len);
-		nad.buf[sizeof(nad.buf)-1]=0;//force EOS
-		nad.sd=&sd;
+	if(!eventname)
+	{
+		ShowError("npc_event: empty event\n");
+		return 0;
+	}
+/////////////////////////////////////////////////
+// temporary include until all event calls are rewritten
 
-		db_iterator<const char*,event_data *> iter(ev_db);
-		for(; iter; ++iter)
-		{
-			const char *p =iter.key();
-			const event_data *ev=iter.data();
-			if( ev && ev->sc && ev->sc->ref &&
-				p && (p=strchr(p,':')) && 0==strcasecmp(nad.buf, p) )
+	// possible cases for eventname: 
+	// <eventname>	 -> pure eventname, execute event label with all implementing npcs
+	// ::<eventname> -> strip '::', then execute event label with all implementing npcs
+	// <npcname>::<eventname> -> seperate, then execute single npc at event label
+	// copy the npcname
+	const char *evname=eventname;
+	char namebuffer[64], *ip;
+	for(ip=namebuffer; *evname && *evname!=':'; ++evname)
+	{	// ignore name when longer than the buffer
+		if( ip<namebuffer+sizeof(namebuffer)-1 )
+			*ip++ = *evname;
+	}
+	*ip=0;
+
+	// !*namebuffer && *evname==':'	-> ::<eventname>
+	// *namebuffer && *evname=='\n' -> <eventname>
+	// *namebuffer && *evname==':'  -> <npcname>::<eventname>
+
+	if( *evname==':' )
+	{
+		while(*evname==':') ++evname;
+		if( !*namebuffer )
+		{	// ::<eventname>
+			eventname = evname;
+		}
+		else
+		{	// <npcname>::<eventname>
+			nd = npcscript_data::from_name(namebuffer);
+			if(!nd)
 			{
-				CScriptEngine::run(ev->sc->ref->script, ev->pos, nad. sd->block_list::id, ev->sc->block_list::id);
-				++c;
+				ShowError("npc_event: npc not found [%s]\n", namebuffer);
+				return 0;
+			}
+			eventname = evname;
+		}
+	}
+/////////////////////////////////////////////////
+
+
+
+	if(nd)
+	{	// execute eventname only inside the given npc
+
+		// since an npc contains it's own label list, 
+		// look up there if it has the queried label
+		// (though there is some overhead due to the non-event labels there)
+		// instead we also could look up the event label and then
+		// check if the npc is in the list of the accociated entries 
+		
+		if( !nd->invalid && nd->ref )
+		{	
+			// look for the event inside the label list of the npc
+			script_object::script_label *ptr = nd->ref->label_list;
+			const script_object::script_label *end = nd->ref->label_list+nd->ref->label_list_num;
+			for(; ptr && ptr<end; ++ptr)
+			{
+				if( ptr->name && 0==strcasecmp(ptr->name, eventname) )
+				{	// found it
+					CScriptEngine::run(nd->ref->script, ptr->pos, (sd)?sd->block_list::id:0, nd->block_list::id);
+					// only execute one single script, so quit here
+					return 1;
+				}
+			}
+			// display event not found but on non-existing touchup
+			if( 0!=strcasecmp("OnTouch", eventname) && config.error_log)
+				ShowError("npc_event: event not found [%s]\n", eventname);
+		}
+	}
+	else
+	{	// execute eventname on all npc's that implement it
+		event_data *ev=(event_data *) strdb_search(ev_db,eventname);
+		if(ev && ev->size()>0 )
+		{
+			event_data::iterator iter(ev->event_list);
+			for(; iter; ++iter)
+			{
+				if(iter->nd && !iter->nd->invalid)
+				{
+					if(iter->nd->ref)
+						CScriptEngine::run(iter->nd->ref->script, iter->pos, (sd)?sd->block_list::id:0, iter->nd->block_list::id);
+					++c;
+				}
 			}
 		}
 	}
-	return c;   
+	return c;
 }
-// END ADDITION
+
+
 // ============================================ 
 /*==========================================
  * NPCの無効化/有効化
@@ -300,47 +669,194 @@ public:
 			sd->areanpc_id=nd.block_list::id;
 
 			snprintf(name,sizeof(name),"%s::OnTouch", nd.name);
-			npc_event(*sd,name,0);
+			npc_data::event(name, *sd);
 		}
 		return 0;
 	}
 };
-bool npc_enable(const char *name, int flag)
+
+bool npc_data::enable(const char *name, int flag)
 {
 	npc_data *nd= npc_data::from_name(name);
-	if(nd)
+	return (nd)?nd->enable(flag):false;
+}
+
+bool npc_data::enable(int flag)
+{
+	if (flag&1)
+	{	// 有効化
+		this->invalid=0;
+		clif_spawnnpc(*this);
+	}
+	else if (flag&2)
 	{
-		if (flag&1)
-		{	// 有効化
-			nd->invalid=0;
-			clif_spawnnpc(*nd);
-		}
-		else if (flag&2)
-		{
-			nd->invalid=0;
-			nd->option = 0x0000;
-			clif_changeoption(*nd);
-		}
-		else if (flag&4)
-		{
-			nd->invalid=1;
-			nd->option = 0x0002;
-			clif_changeoption(*nd);
-		}
-		else
-		{		// 無効化
-			nd->invalid=1;
-			clif_clearchar(*nd,0);
-		}
-		if( flag&3 && (nd->xs > 0 || nd->ys >0) )
-		{
-			block_list::foreachinarea( CNpcEnable(*nd),
-				nd->block_list::m, ((int)nd->block_list::x)-nd->xs,((int)nd->block_list::y)-nd->ys, ((int)nd->block_list::x)+nd->xs,((int)nd->block_list::y)+nd->ys,BL_PC);
-		}
+		this->invalid=0;
+		this->option = 0x0000;
+		clif_changeoption(*this);
+	}
+	else if (flag&4)
+	{
+		this->invalid=1;
+		this->option = 0x0002;
+		clif_changeoption(*this);
+	}
+	else
+	{		// 無効化
+		this->invalid=1;
+		clif_clearchar(*this,0);
+	}
+	if( flag&3 && (this->xs > 0 || this->ys >0) )
+	{
+		block_list::foreachinarea( CNpcEnable(*this),
+			this->block_list::m, ((int)this->block_list::x)-this->xs,((int)this->block_list::y)-this->ys, ((int)this->block_list::x)+this->xs,((int)this->block_list::y)+this->ys,BL_PC);
+	}
+	return true;
+}
+
+bool npc_data::changename(const char *newname, unsigned short look)
+{
+	if(newname)
+	{
+		this->enable(0);
+		strdb_erase(npc_data::npcname_db, this->exname);
+
+		safestrcpy(this->name, sizeof(this->name), newname);
+		if(look) this->class_ = look;
+		
+		strdb_insert(npc_data::npcname_db, this->exname, this);
+		this->enable(1);
 		return true;
 	}
 	return false;
 }
+
+
+
+void npc_data::remove_from_map()
+{
+    if( this->is_on_map() )
+	{
+		//Remove corresponding NPC CELLs
+		if( this->xs || this->ys )
+		{
+			int i,j;
+			const ushort m=this->block_list::m;
+			const int x = this->block_list::x;
+			const int y = this->block_list::y;
+			const int xs = this->xs;
+			const int ys = this->ys;
+
+			for (i = 0; i < ys; ++i)
+			for (j = 0; j < xs; ++j)
+			{
+				if (map_getcell(m, x-xs/2+j, y-ys/2+i, CELL_CHKNPC))
+					map_setcell(m, x-xs/2+j, y-ys/2+i, CELL_CLRNPC);
+			}
+		}
+
+		clif_clearchar_area(*this,2);
+		this->delblock();
+		this->deliddb();
+	}
+}
+
+
+/// destructor.
+npc_data::~npc_data()
+{
+	this->remove_from_map();
+
+	if(npc_data::npcname_db)
+		strdb_erase(npc_data::npcname_db, this->exname);
+	
+	// unlink from map, if exist there
+	map_data &map = maps[this->block_list::m];
+	if( this->block_list::m<map_num && this->n >=0 && this->n< MAX_NPC_PER_MAP &&
+		map.npc[this->n]==this )
+	{
+		--map.npc_num;
+		if(map.npc_num>0)
+		{
+			map.npc[this->n] = map.npc[map.npc_num];
+			if( map.npc[this->n] )
+				map.npc[this->n]->n = this->n;
+		}
+		else
+			map.npc[this->n]=NULL;
+	}
+}
+
+/// destructor.
+npcscript_data::~npcscript_data()
+{
+	// delete chat objects
+	npcchat_data::erase(*this);
+
+	// delete pattern matching object
+	if(this->listendb)
+	{
+		delete this->listendb;
+		this->listendb = NULL;
+	}
+	// npc_timerobj destructor is cleaning itself from the root node
+	// so delete until the last one is gone
+	while( this->eventobj ) delete eventobj;
+
+	// delete ontimers
+	if (this->ontimer_list)
+	{
+		delete (this->ontimer_list);
+		this->ontimer_list=NULL;
+		this->ontimer_cnt=0;
+	}
+	//Clean up all related events. (optimizable)
+	db_iterator<const char*, event_data *> iter(ev_db);
+	for(; iter; ++iter)
+	{
+		event_data *ev = iter.data();
+		if( ev && ev->erase(*this) && ev->size()==0 )
+		{
+			strdb_erase(ev_db, iter.key());
+			delete ev;
+		}
+	}
+	// release the script
+	if(this->ref)
+	{
+		this->ref->release();
+		this->ref=NULL;
+	}
+}
+
+
+
+
+
+
+
+uint32 &get_npc_id()
+{
+	// simple singleton
+	// !! change id generation to support freeing/reloading of npc's
+	static uint32 npc_id=START_NPC_NUM;
+	return npc_id;
+}
+
+uint32 npc_get_new_npc_id(void)
+{	// simple singleton
+	// !! change id generation to support freeing/reloading of npc's
+	return (get_npc_id()++); 
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -367,23 +883,16 @@ int npc_event_timer(int tid, unsigned long tick, int id, basics::numptr data)
 	char *eventname = (char *)data.ptr;
 	if(eventname)
 	{
-		const event_data *ev = (struct event_data *)strdb_search(ev_db,eventname);
-		map_session_data *sd=map_session_data::from_blid(id);
-		size_t i;
-
-		if( ev==NULL || ev->sc==NULL )
-		{
-			if(config.error_log)
-				ShowWarning("npc_event_timer: event not found [%s]\n",eventname);
-		}	
-		else if(sd)
-		{
-			for(i=0;i<MAX_EVENTTIMER;++i)
+		map_session_data *sd = map_session_data::from_blid(id);
+		if(sd)
+		{	
+			size_t i;
+			for(i=0; i<MAX_EVENTTIMER; ++i)
 			{
 				if( sd->eventtimer[i]==tid )
 				{
 					sd->eventtimer[i]=-1;
-					npc_event(*sd,eventname,0);
+					npc_data::event(eventname, *sd);
 					break;
 				}
 			}
@@ -396,71 +905,8 @@ int npc_event_timer(int tid, unsigned long tick, int id, basics::numptr data)
 	return 0;
 }
 
-int npc_timer_event(const char *eventname)	// Added by RoVeRT
-{
-	const event_data *ev=(const event_data *) strdb_search(ev_db,eventname);
-	if(ev && ev->sc)
-	{
-		if(ev->sc->ref)
-			CScriptEngine::run(ev->sc->ref->script, ev->pos, 0, ev->sc->block_list::id);
-	}
-	else
-	{
-		ShowError("npc_timer_event: event not found [%s]\n",eventname);
-	}
-	return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// イベント用ラベルのエクスポート
-/// defaults: rid=0, map=-1
-int npc_event_doall(const char *name, int rid, int map)
-{
-	int c=0;
-	char buf[128]="::";
-	safestrcpy(buf+2, sizeof(buf)-2, name);
-
-	db_iterator<const char*,event_data*> iter(ev_db);
-	for(; iter; ++iter)
-	{
-		const char *p= iter.key();
-		event_data *ev=iter.data();
-		if( ev && ev->sc && 
-			(p=strchr(p,':')) && strcasecmp(buf,p)==0 && 
-			(map<0 || ev->sc->block_list::m>=map_num || map==ev->sc->block_list::m) )
-		{
-			if(ev->sc->ref)
-				CScriptEngine::run(ev->sc->ref->script,ev->pos, rid, ev->sc->block_list::id);
-			++c;
-		}
-	}
-	return c;
-}
 
 
-int npc_event_do(const char *name)
-{
-	if (*name==':' && name[1]==':')
-	{
-		return npc_event_doall(name+2);
-	}
-	else
-	{
-		int c=0;
-		db_iterator<const char*, event_data*> iter(ev_db);
-		for(; iter; ++iter)
-		{
-			const char *p=iter.key();
-			event_data *ev=iter.data();
-			if(ev && p && 0==strcasecmp(name,p) && ev->sc && ev->sc->ref)
-			{
-				CScriptEngine::run(ev->sc->ref->script,ev->pos,0,ev->sc->block_list::id);
-				++c;
-			}
-		}
-		return c;
-	}
-}
 
 /*==========================================
  * 時計イベント実行
@@ -480,290 +926,36 @@ int npc_event_do_clock(int tid, unsigned long tick, int id, basics::numptr data)
 	if (t->tm_min != ev_tm.tm_min )
 	{
 		snprintf(buf,sizeof(buf),"OnMinute%02d",t->tm_min);
-		c+=npc_event_doall(buf);
+		c+=npc_data::event(buf);
 		snprintf(buf,sizeof(buf),"OnClock%02d%02d",t->tm_hour,t->tm_min);
-		c+=npc_event_doall(buf);
+		c+=npc_data::event(buf);
 		snprintf(buf,sizeof(buf),"On%s%02d%02d",day,t->tm_hour,t->tm_min);
-		c+=npc_event_doall(buf);
+		c+=npc_data::event(buf);
 	}
 	if (t->tm_hour!= ev_tm.tm_hour)
 	{
 		snprintf(buf,sizeof(buf),"OnHour%02d",t->tm_hour);
-		c+=npc_event_doall(buf);
+		c+=npc_data::event(buf);
 	}
 	if (t->tm_mday!= ev_tm.tm_mday)
 	{
 		snprintf(buf,sizeof(buf),"OnDay%02d%02d",t->tm_mon+1,t->tm_mday);
-		c+=npc_event_doall(buf);
+		c+=npc_data::event(buf);
 	}
 	ev_tm = *t;
 	return c;
 }
-/*==========================================
- * OnInitイベント実行(&時計イベント開始)
- *------------------------------------------
- */
-int npc_event_do_oninit(void)
-{
-//	int c = npc_event_doall("OnInit");
-	ShowStatus("Event '"CL_WHITE"OnInit"CL_RESET"' executed with '"
-	CL_WHITE"%d"CL_RESET"' NPCs.\n",npc_event_doall("OnInit"));
-
-	add_timer_interval(gettick()+100, 1000, npc_event_do_clock, 0, 0);
-
-	return 0;
-}
-
-int npc_do_ontimer(uint32 npc_id, map_session_data &sd, int option)
-{
-	db_iterator<const char*, event_data*> iter(ev_db);
-	for(; iter; ++iter)
-	{
-		const char *p = iter.key();
-		event_data *ev = iter.data();
-		unsigned long tick=0;
-		char event[50];
-
-		if( ev && ev->sc && ev->sc->block_list::id==npc_id && 
-			(p=strchr(p,':')) && strncasecmp("::OnTimer",p,8)==0 )
-		{
-			tick = atoi(p+9);
-			snprintf(event, sizeof(event), "%s%s", ev->sc->name, p);	// name::event
-			if (option!=0)
-				pc_addeventtimer(sd,tick,event);
-			else
-				pc_deleventtimer(sd,event);
-		}
-	}
-
-	return 0;
-}
 
 
 
-/*==========================================
- * タイマーイベント実行
- *------------------------------------------
- */
-int npc_timerevent(int tid, unsigned long tick, int id, basics::numptr data)
-{
-	npcscript_data* sc= npcscript_data::from_blid(id);
-
-	if( sc==NULL || sc->nexttimer<0 )
-	{
-		ShowMessage("npc_timerevent: ??\n");
-	}
-	else
-	{
-
-		int t;
-		npc_timerevent_list &te=sc->timer_event[sc->nexttimer];
-		sc->timertick=tick;
-		sc->timerid = -1;
-		t = sc->timer += data.num;
-		++sc->nexttimer;
-
-		if( sc->timeramount>sc->nexttimer )
-		{
-			int next= sc->timer_event[ sc->nexttimer ].timer - t;
-			sc->timerid = add_timer(tick+next, npc_timerevent, id, next);
-		}
-		if(sc->ref)
-			CScriptEngine::run(sc->ref->script, te.pos, sc->rid, sc->block_list::id);
-	}
-	return 0;
-}
-/*==========================================
- * タイマーイベント開始
- *------------------------------------------
- */
-int npc_timerevent_start(npcscript_data &sc, uint32 rid)
-{
-	int j,n, next;
-
-	n = sc.timeramount;
-	if( sc.nexttimer>=0 || n==0 )
-		return 0;
-
-	for(j=0;j<n;++j)
-	{
-		if( sc.timer_event[j].timer > sc.timer )
-			break;
-	}
-	if(j>=n)
-		return 0;
-
-	sc.nexttimer=j;
-	sc.timertick=gettick();
-	sc.rid=rid;	// changed to: attaching to given rid by default [Shinomori]
-
-	next = sc.timer_event[j].timer - sc.timer;
-	sc.timerid = add_timer(sc.timertick+next, npc_timerevent, sc.block_list::id, next);
-
-	return 0;
-}
-/*==========================================
- * タイマーイベント終了
- *------------------------------------------
- */
-int npc_timerevent_stop(npcscript_data &sc)
-{
-	if( sc.nexttimer>=0 )
-	{
-		sc.nexttimer = -1;
-		sc.timer += (int)(gettick() - sc.timertick);
-		if(sc.timerid!=-1)
-			delete_timer(sc.timerid, npc_timerevent);
-		sc.timerid = -1;
-		sc.rid = 0;
-	}
-	return 0;
-}
-/*==========================================
- * タイマー値の所得
- *------------------------------------------
- */
-int npc_gettimerevent_tick(npcscript_data &sc)
-{
-	unsigned long tick=sc.timer;
-	if( sc.nexttimer>=0 )
-		tick += gettick() - sc.timertick;
-	return tick;
-}
-/*==========================================
- * タイマー値の設定
- *------------------------------------------
- */
-int npc_settimerevent_tick(npcscript_data &sc, int newtimer)
-{
-	int flag	= sc.nexttimer;
-	uint32 rid	= sc.timerid;
-
-	npc_timerevent_stop(sc);
-	sc.timer=newtimer;
-	if(flag>=0)
-		npc_timerevent_start(sc, rid);
-
-	return 0;
-}
-
-/*==========================================
- * イベント型のNPC処理
- *------------------------------------------
- */
-int npc_event(map_session_data &sd,const char *eventname,int mob_kill)
-{
-	const event_data *ev=(const event_data *) strdb_search(ev_db,eventname);
-	char mobevent[128];
-
-	if(ev==NULL && eventname && strcmp(((eventname)+strlen(eventname)-9),"::OnTouch") == 0)
-		return 1;
-
-	if(ev==NULL || ev->sc==NULL)
-	{
-		if (mob_kill)
-		{
-			snprintf(mobevent, sizeof(mobevent), "%s%s", eventname, "::OnMyMobDead");
-			ev = (event_data *) strdb_search(ev_db, mobevent);
-			if(ev==NULL || ev->sc== NULL)
-			{
-				if (strncasecmp(eventname,"GM_MONSTER",10)!=0)
-					ShowError("npc_event: event not found [%s]\n", mobevent);
-				return 0;
-			}
-		}
-		else
-		{
-			if (config.error_log)
-				ShowError("npc_event: event not found [%s]\n", eventname);
-			return 0;
-		}
-	}
-	if( ev && ev->sc && !ev->sc->invalid && ev->sc->ref )
-		CScriptEngine::run(ev->sc->ref->script, ev->pos, sd.block_list::id, ev->sc->block_list::id);
-	return 0;
-}
-
-int npc_command(map_session_data &sd, const char *npcname, const char *command)
-{
-	db_iterator<const char*, const event_data*> iter(ev_db);
-	for(; iter; ++iter)
-	{
-		const char *p=iter.key();
-		const event_data *ev=iter.data();
-		if( ev && ev->sc &&
-			strcmp(ev->sc->name,npcname)==0 && (p=strchr(p,':')) && 0==strncasecmp("::OnCommand",p,10) )
-		{
-			if( 0==strcasecmp(command,p+11) && ev->sc->ref)
-				CScriptEngine::run(ev->sc->ref->script,ev->pos, 0, ev->sc->block_list::id);
-		}
-	}
-	return 0;
-}
-/*==========================================
- * 接触型のNPC処理
- *------------------------------------------
- */
-int npc_touch_areanpc(map_session_data &sd, unsigned short m, int x,int y)
-{
-	size_t i;
-	int xs,ys;
-
-	if( sd.ScriptEngine.isRunning() || m>=map_num )
-		return 1;
-
-	for(i=0;i<maps[m].npc_num;++i)
-	{
-		if (maps[m].npc[i]->invalid)
-			continue;
-		xs = maps[m].npc[i]->xs;
-		ys = maps[m].npc[i]->ys;
-
-		if ( (x >= (maps[m].npc[i]->block_list::x-xs/2)) && (x < (maps[m].npc[i]->block_list::x-xs/2+xs)) &&
-			 (y >= (maps[m].npc[i]->block_list::y-ys/2)) && (y < (maps[m].npc[i]->block_list::y-ys/2+ys)) )
-		{
-			maps[m].npc[i]->OnTouch(sd);
-		}
-	}
-	return 0;
-}
-
-
-/*==========================================
- * NPCのオープンチャット発言
- *------------------------------------------
- */
-int npc_globalmessage(const char *name, const char *mes)
-{
-	npc_data *nd=(npc_data *)strdb_search(npcname_db,name);
-	char temp[128];
-	char ntemp[64];
-	char *ltemp;
-
-	if(nd==NULL) return 0;
-	if(name==NULL) return 0;
-
-	safestrcpy(ntemp,sizeof(ntemp),name);	// copy the name
-	ltemp=strchr(ntemp,'#');				// check for a # numerator
-	if(ltemp) *ltemp=0;						// and remove it
-
-	size_t sz = snprintf(temp, sizeof(temp),"%s: %s",ntemp, mes);
-	clif_GlobalMessage(*nd, temp, sz);
-
-	return 0;
-}
 
 
 
-/*==========================================
- *
- *------------------------------------------
- */
-int npc_scriptcont(map_session_data &sd, uint32 id)
-{
-	sd.ScriptEngine.restart(id);
-	return 0;
-}
+
+
+
+
+
 
 /*==========================================
  *
@@ -1084,8 +1276,8 @@ bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
 	nd->block_list::x = x;
 	nd->block_list::y = y;
 	nd->invalid = 0;
-	memcpy(nd->name, w3, 24);
-	memcpy(nd->exname, w3, 24);
+	safestrcpy(nd->name,  sizeof(nd->name),  w3);
+	safestrcpy(nd->exname,sizeof(nd->exname),w3);
 
 	if (!config.warp_point_debug)
 		nd->class_ = WARP_CLASS;
@@ -1114,9 +1306,11 @@ bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
 
 //	ShowMessage("warp npc %s %d read done\n",mapname,nd->block_list::id);
 	++npc_warp;
+	nd->addiddb();
 	nd->addblock();
 	clif_spawnnpc(*nd);
-	strdb_insert(npcname_db, nd->name, nd);
+
+	strdb_insert(npc_data::npcname_db, nd->exname, nd);
 
 	return true;
 }
@@ -1186,7 +1380,8 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 	nd->block_list::id = npc_get_new_npc_id();
 	nd->init_dir(dir_t(dir&0x07),dir_t(dir&0x07));
 	nd->invalid = 0;
-	memcpy(nd->name, w3, 24);
+	safestrcpy(nd->name,  sizeof(nd->name),  w3);
+	safestrcpy(nd->exname,sizeof(nd->exname),w3);
 	nd->class_ = (m==-1)?0:atoi(w4);
 	nd->speed = 200;
 	nd->option = 0;
@@ -1197,15 +1392,14 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 	//ShowMessage("shop npc %s %d read done\n",mapname,nd->block_list::id);
 	++npc_shop;
 
+	nd->addiddb();
 	nd->n = map_addnpc(m,nd);
 	if (m >= 0)
 	{
 		nd->addblock();
 		clif_spawnnpc(*nd);
 	}
-	else
-		nd->addiddb();
-	strdb_insert(npcname_db, nd->name,nd);
+	strdb_insert(npc_data::npcname_db, nd->exname, nd);
 
 	return 0;
 }
@@ -1225,8 +1419,6 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 	unsigned char line[1024];
 	size_t i;
 
-	int evflag = 0;
-	const char *p;
 	struct script_object *ref=NULL;
 
 	if(strcmp(w1,"-")==0)
@@ -1357,66 +1549,58 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 		nd->xs = 0;
 		nd->ys = 0;
 	}
-	if (class_<0 && m>=0 && !dummy_npc)
-	{	// イベント型NPC
-		evflag = 1;
-	}
 
-	while((p=strchr(w3,':'))) 
+	// split <name>::<exname>
+	const char *rp;
+	char *wp;
+	for(rp=w3, wp=nd->name; *rp && (rp[0]!=':' || rp[1]!=':'); ++rp)
 	{
-		if (p[1] == ':') break;
+		if( wp<nd->name+sizeof(nd->name)-1)
+		{
+			*wp = *rp;
+			++wp;
+		}
 	}
-	if (p) 
-	{	
-		size_t len = p-w3;
-		memcpy(nd->name, w3, p-w3);
-		nd->name[len]=0;
-		memcpy(nd->exname, p+2, 1+strlen(p+2));
-	}
-	else
-	{
-		memcpy(nd->name, w3, 24);
-		memcpy(nd->exname, w3, 24);
-	}
+	*wp=0;
+	safestrcpy(nd->exname, sizeof(nd->exname), (*rp)?rp+2:nd->name);
+
 
 	nd->block_list::m = m;
 	nd->block_list::x = x;
 	nd->block_list::y = y;
 	nd->block_list::id = (!dummy_npc) ? npc_get_new_npc_id() : 0;
 	nd->init_dir(dir_t(dir&0x07),dir_t(dir&0x07));
-	nd->invalid = 0;
 	nd->class_ = class_;
 	nd->speed = 200;
 
 	nd->ref=ref;
 
-	nd->timer_event=NULL;
-	nd->chat = NULL;
-	nd->option = 0;
-	nd->opt1 = 0;
-	nd->opt2 = 0;
-	nd->opt3 = 0;
-	nd->nexttimer=-1;
-	nd->timerid=-1;
-
 	//ShowMessage("script npc %s %d %d read done\n",mapname,nd->block_list::id,nd->class_);
-	if(!dummy_npc) ++npc_script;
-
+	if(!dummy_npc)
+	{
+		++npc_script;
+		nd->addiddb();
+	}
 	if(m>=0 && !dummy_npc)
 	{
 		nd->n = map_addnpc(m, nd);
 		nd->addblock();
-
-		if (evflag) 
-		{	// イベント型
-			event_data *ev = new struct event_data(nd,0);
-			strdb_insert(ev_db, nd->exname, ev);
+		if( class_<0 )
+		{	// イベント型NPC
+			event_data *ev = (event_data *)strdb_search(ev_db,nd->exname);
+			if( NULL==ev )
+			{	// create new if not exists
+				ev = new struct event_data(nd->exname);
+				strdb_insert(ev_db,(const char*)ev->event_name, ev);
+			}
+			ev->insert(*nd, 0);
+			
 		}
 		else
 			clif_spawnnpc(*nd);
 	}
 	
-	strdb_insert(npcname_db, nd->exname, nd);
+	strdb_insert(npc_data::npcname_db, nd->exname, nd);
 
 	//-----------------------------------------
 	// ラベルデータの準備
@@ -1435,45 +1619,44 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 		const script_object::script_label& label = nd->ref->get_label(i);
 
 		// export event labels (all labels starting with "On")
-		if( basics::upcase(label.name[0])=='O' && basics::upcase(label.name[1])=='N' ) 
+		if( basics::locase(label.name[0])=='o' && basics::locase(label.name[1])=='n' ) 
 		{
-			// エクスポートされる
-			char *buf=new char[(3+strlen(nd->exname)+strlen(label.name))];
-			sprintf(buf,"%s::%s",nd->exname,label.name); // buffer size is exact, so snprintf is unnecesary
-			struct event_data *ev = (struct event_data *)strdb_search(ev_db,buf);
-			if(ev != NULL)
+			struct event_data *ev = (struct event_data *)strdb_search(ev_db, label.name);
+			if( ev )
 			{
-				delete[] buf;
-				ShowError("npc_parse_script : duplicate event %s\n",buf);
+				if( !ev->insert(*nd, label.pos) )
+					ShowError("npc_parse_script : duplicate event %s::%s\n", nd->exname, label.name);
 			}
 			else
 			{
-				ev = new struct event_data(nd,label.pos);
-				strdb_insert(ev_db,buf,ev);
+				ev = new struct event_data(label.name);
+				ev->insert(*nd,label.pos);
+				strdb_insert(ev_db, (const char*)ev->event_name, ev);
 			}
 		}
 
 		// ラベルデータからタイマーイベント取り込み
-		int t = 0, k = 0;
-		if(sscanf(label.name,"OnTimer%d%n",&t,&k)==1 && label.name[k]=='\0')
+		int n = 0;
+		ulong t = 0;
+		if(sscanf(label.name,"OnTimer%lu%n",&t,&n)==1 && label.name[n]=='\0')
 		{
 			// タイマーイベント
-			struct npc_timerevent_list *te = nd->timer_event;
-			int j, k = nd->timeramount;
+			struct npc_timerevent *te = nd->ontimer_list;
+			int j, k = nd->ontimer_cnt;
 
 			new_realloc(te,k,1);
 			for(j=0;j<k;++j)
 			{
-				if(te[j].timer>t)
+				if(te[j].tick>t)
 				{
-					memmove(te+j+1, te+j, sizeof(npc_timerevent_list)*(k-j));
+					memmove(te+j+1, te+j, sizeof(struct npc_timerevent)*(k-j));
 					break;
 				}
 			}
-			te[j].timer = t;
+			te[j].tick = t;
 			te[j].pos = label.pos;
-			nd->timer_event = te;
-			nd->timeramount = k+1;
+			nd->ontimer_list = te;
+			nd->ontimer_cnt = k+1;
 		}
 
 	}
@@ -1691,15 +1874,15 @@ int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const char *w
 		char savemap[32];
 		int savex, savey;
 		if (strcmp(w4, "SavePoint") == 0) {
-			safestrcpy(maps[m].save.mapname, sizeof(maps[m].save.mapname), "SavePoint");
-			maps[m].save.x = -1;
-			maps[m].save.y = -1;
+			safestrcpy(maps[m].nosave.mapname, sizeof(maps[m].nosave.mapname), "SavePoint");
+			maps[m].nosave.x = -1;
+			maps[m].nosave.y = -1;
 		} else if (sscanf(w4, "%32[^,],%d,%d", savemap, &savex, &savey) == 3) {
 			char*ip = strchr(savemap, '.');
 			if(ip) *ip=0;
-			safestrcpy(maps[m].save.mapname, sizeof(maps[m].save.mapname), savemap);			
-			maps[m].save.x = savex;
-			maps[m].save.y = savey;
+			safestrcpy(maps[m].nosave.mapname, sizeof(maps[m].nosave.mapname), savemap);			
+			maps[m].nosave.x = savex;
+			maps[m].nosave.y = savey;
 		}
 		maps[m].flag.nosave = 1;
 	}
@@ -2031,9 +2214,9 @@ void npc_parsesrcfiles()
 		npcmarkerbase = npcmarkerbase->next;
 		if(marker->nd)
 		{
-			strdb_erase(npcname_db,marker->nd->exname);
+			strdb_erase(npc_data::npcname_db,marker->nd->exname);
 			ShowMessage("\rDeleting unused NPC: %s", marker->nd->exname);
-			npc_unload(marker->nd);
+			marker->nd->freeblock();
 			// marker->nd is freed now
 			delete marker;
 		}
@@ -2065,15 +2248,14 @@ void npc_parsesrcfile(const char*filename)
 		npcmarkerbase = npcmarkerbase->next;
 		if(marker->nd)
 		{
-			strdb_erase(npcname_db,marker->nd->exname);
+			strdb_erase(npc_data::npcname_db,marker->nd->exname);
 			ShowMessage("\rDeleting unused NPC: %s", marker->nd->exname);
-			npc_unload(marker->nd);
+			marker->nd->freeblock();
 			// marker->nd is freed now
 			delete marker;
 		}
 	}
 	ShowMessage("\r"CL_CLL);
-
 	return;
 }
 
@@ -2089,22 +2271,22 @@ int npc_read_indoors (void)
 		p = buf;
 		while( p && *p && (p<buf+s) )
 		{
-		char mapname[64];
-		if (sscanf(p, "%64[^#]#", mapname) == 1)
-		{
-			char* ip = strchr(mapname, '.');
-			if(ip) *ip=0;
-			if ((m = map_mapname2mapid(mapname)) >= 0)
-				maps[m].flag.indoors = 1;
+			char mapname[64];
+			if (sscanf(p, "%64[^#]#", mapname) == 1)
+			{
+				char* ip = strchr(mapname, '.');
+				if(ip) *ip=0;
+				if ((m = map_mapname2mapid(mapname)) >= 0)
+					maps[m].flag.indoors = 1;
+			}
+				p=strchr(p, '\n');
+			if (!p) break;
+			p++;
+			delete[] buf;
 		}
-			p=strchr(p, '\n');
-		if (!p) break;
-		p++;
-		delete[] buf;
+		ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","data\\indoorrswtable.txt");
+		return 0;
 	}
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","data\\indoorrswtable.txt");
-	return 0;
-}
 	return -1;
 }
 
@@ -2114,37 +2296,18 @@ void ev_db_final (void *key,void *data)
 	{
 		delete ((struct event_data*)data);
 	}
-	if(key && strstr((char*)key,"::")!=NULL)
-	{
-		delete[] ((char*)key);
-	}
 }
-
 
 void npcname_db_final (void *key,void *data)
 {
 	npc_data *nd = (npc_data *) data;
-	npc_unload(nd, false);// we are inside the db function and cannot call erase from here
+	nd->freeblock();
 }
 
 /*==========================================
  * 
  *------------------------------------------
  */
-/*
-int npc_cleanup_sub (block_list &bl, va_list &ap)
-{
-	switch(bl.type) {
-	case BL_NPC:
-		npc_unload((npc_data *)&bl);
-		break;
-	case BL_MOB:
-		mob_unload((struct mob_data &)bl);
-		break;
-	}
-	return 0;
-}
-*/
 class CNpcCleanup : public CMapProcessor
 {
 public:
@@ -2155,7 +2318,7 @@ public:
 		npc_data *nd;
 		mob_data *md;
 		if( (nd=bl.get_nd()) )
-			npc_unload(nd);
+			nd->freeblock();
 		else if( (md=bl.get_md()) )
 			mob_unload(*md);
 		return 0;
@@ -2172,14 +2335,22 @@ int npc_reload (void)
 		maps[m].npc_num = 0;
 	}
 	if(ev_db)
+	{
 		strdb_final(ev_db,ev_db_final);
-	if(npcname_db)
-		strdb_final(npcname_db,npcname_db_final);
+		ev_db = NULL;
+	}
+	block_list::freeblock_lock();
+	if(npc_data::npcname_db)
+	{
+		strdb_final(npc_data::npcname_db,npcname_db_final);
+		npc_data::npcname_db=NULL;
+	}
+	block_list::freeblock_unlock();
 
 	// anything else we should cleanup?
 	// Reloading npc's now
 	ev_db = strdb_init(51);
-	npcname_db = strdb_init(24);
+	npc_data::npcname_db = strdb_init(24);
 	ev_db->release = ev_release;
 	npc_warp = npc_shop = npc_script = 0;
 	npc_mob = npc_cache_mob = npc_delay_mob = 0;
@@ -2188,111 +2359,12 @@ int npc_reload (void)
 
 	//Execute the OnInit event for freshly loaded npcs. [Skotlex]
 	ShowStatus("Event '"CL_WHITE"OnInit"CL_RESET"' executed with '"
-	CL_WHITE"%d"CL_RESET"' NPCs.\n",npc_event_doall("OnInit"));
+		CL_WHITE"%d"CL_RESET"' NPCs.\n",npc_data::event("OnInit"));
 
 	return 0;
-				}
-
-/*==========================================
- * 終了
- *------------------------------------------
- */
-int npc_remove_map (npc_data *nd)
-{
-    if(!nd || !nd->is_on_map() )
-		return 1;
-
-	//Remove corresponding NPC CELLs
-	if( nd->xs || nd->ys )
-	{
-		int i,j, xs, ys, x, y;
-		ushort m=nd->block_list::m;
-		x = nd->block_list::x;
-		y = nd->block_list::y;
-		xs = nd->xs;
-		ys = nd->ys;
-
-		for (i = 0; i < ys; ++i)
-		for (j = 0; j < xs; ++j)
-		{
-			if (map_getcell(m, x-xs/2+j, y-ys/2+i, CELL_CHKNPC))
-				map_setcell(m, x-xs/2+j, y-ys/2+i, CELL_CLRNPC);
-		}
-	}
-
-    clif_clearchar_area(*nd,2);
-    nd->delblock();
-	nd->deliddb();
-
-    return 0;
 }
 
 
-int npc_unload(npc_data *nd, bool erase_strdb)//erase_strdb is default true 
-{
-	if(!nd) return 0;
-
-	npc_remove_map(nd);
-
-	npcscript_data *sc = nd->get_script();
-	if(sc)
-	{
-		npcchat_data::erase(*sc);
-		npclisten_finalize(sc);
-
-		if (sc->timer_event)
-		{
-			delete (sc->timer_event);
-			sc->timer_event=NULL;
-		}
-		if(sc->ref)
-		{
-			sc->ref->release();
-			sc->ref=NULL;
-		}
-		//Clean up all related events.
-		db_iterator<char*, event_data *> iter(ev_db);
-		for(; iter; ++iter)
-		{
-			char * key     = iter.key();
-			event_data *ev = iter.data();
-			if( key && ev && ev->sc == sc )
-			{
-				strdb_erase(ev_db, key);
-				delete ev;
-				if( strstr(key,"::") != NULL )
-					delete[] (key);
-			}
-		}
-
-		// quite inconsistent, but:
-		// script npc's have 'exname' in the db
-		if(erase_strdb)
-			strdb_erase(npcname_db, sc->exname);
-	}
-	else
-	{	// shop/warp npc's have 'name' in the db
-		if(erase_strdb)
-			strdb_erase(npcname_db, nd->name);
-	}
-
-	// unlink from map, if exist there
-	if( nd->block_list::m<map_num && nd->n >=0 && nd->n< MAX_NPC_PER_MAP &&
-		maps[nd->block_list::m].npc[nd->n]==nd )
-	{
-		--maps[nd->block_list::m].npc_num;
-		if(maps[nd->block_list::m].npc_num>0)
-		{
-			maps[nd->block_list::m].npc[nd->n] = maps[nd->block_list::m].npc[maps[nd->block_list::m].npc_num];
-			if( maps[nd->block_list::m].npc[nd->n] )
-				maps[nd->block_list::m].npc[nd->n]->n = nd->n;
-		}
-		else
-			maps[nd->block_list::m].npc[nd->n]=NULL;
-	}
-	nd->freeblock(); 
-	return 0;
-}
 
 /*==========================================
  * 終了
@@ -2314,14 +2386,15 @@ int do_final_npc(void)
 		ev_db = NULL;
 	}
 
-	for (i = START_NPC_NUM; i < get_npc_id(); ++i)
+	const uint32 last = get_npc_id();
+	for (i = START_NPC_NUM; i < last; ++i)
 	{
 		bl = block_list::from_blid(i);
 		if( bl )
 		{
 			if( (nd = bl->get_nd()) )
 			{
-				npc_unload(nd);
+				nd->freeblock();
 				nd = NULL;
 				n++;
 			}
@@ -2339,10 +2412,10 @@ int do_final_npc(void)
 	ShowStatus("Successfully removed '"CL_WHITE"%d"CL_RESET"' NPCs and '"CL_WHITE"%d"CL_RESET"' Mobs.\n", n, m);
 
 	// unload all functional npcs from db
-	if(npcname_db)
+	if(npc_data::npcname_db)
 	{
-		strdb_final(npcname_db, npcname_db_final);
-		npcname_db = NULL;
+		strdb_final(npc_data::npcname_db, npcname_db_final);
+		npc_data::npcname_db = NULL;
 	}
 	npc_clearsrcfile();
 	return 0;
@@ -2355,39 +2428,22 @@ int do_final_npc(void)
 
 int do_init_npc(void)
 {
-
 	// indoorrswtable.txt and etcinfo.txt [Celest]
 	if (config.indoors_override_grffile)
 		npc_read_indoors();
 
 	ev_db=strdb_init(50);
-	npcname_db = strdb_init(24);
+	npc_data::npcname_db = strdb_init(24);
 	ev_db->release = ev_release;
 
 	npc_parsesrcfiles( );
 
+	add_timer_func_list(npcscript_data::eventtimer_entry,"npcscript_data::eventtimer_entry");
 	add_timer_func_list(npc_event_timer,"npc_event_timer");
 	add_timer_func_list(npc_event_do_clock,"npc_event_do_clock");
-	add_timer_func_list(npc_timerevent,"npc_timerevent");
+
+	add_timer_interval(gettick()+1000, 1000, npc_event_do_clock, 0, 0);
 
 	return 0;
 }
 
-
-int npc_changename(const char *name, const char *newname, unsigned short look)
-{
-	npc_data *nd= (npc_data *)strdb_search(npcname_db,name);
-	if(nd==NULL)
-		return 0;
-
-	safestrcpy(nd->name, sizeof(nd->name), newname);
-	nd->class_ = look;
-
-	strdb_erase(npcname_db,name);
-	strdb_insert(npcname_db,newname, nd);
-	
-	npc_enable(name,0);
-	npc_enable(name,1);
-
-	return 0;
-}

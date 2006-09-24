@@ -17,7 +17,7 @@ extern unsigned char getServerType();
 
 void core_stoprunning();
 
-const char* get_svn_revision();
+const char* get_revision();
 void display_version(bool quit=false);
 void display_title(void);
 

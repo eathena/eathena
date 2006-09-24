@@ -191,7 +191,7 @@ void init_signal()
 /// return revision number.
 /// would make it inline but plugin wants it fixed
 /// to get it's function pointer
-const char* get_svn_revision()	{ return ATHENA_MOD_STRING; }
+const char* get_revision()	{ return ATHENA_MOD_STRING; }
 /*
 {
 	static char version[16]="";
@@ -237,7 +237,7 @@ void display_title(void)
 	ShowMessage(CL_XXBL"          ("CL_BOLD"                                                         "CL_XXBL")"CL_CLL""CL_NORM"\n"); // yellow writing (33)
 	ShowMessage(CL_XXBL"          ("CL_BT_YELLOW"  Advanced Fusion Maps (c) 2003-2004 The Fusion Project  "CL_XXBL")"CL_CLL""CL_NORM"\n"); // yellow writing (33)
 	ShowMessage(CL_WTBL"          (=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=)"CL_CLL""CL_NORM"\n\n"); // reset color
-	ShowInfo("SVN Revision: '"CL_WHITE"%s"CL_RESET"'.\n", get_svn_revision() );
+	ShowInfo("Revision: '"CL_WHITE"%s"CL_RESET"'.\n", get_revision() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

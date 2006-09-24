@@ -9364,8 +9364,9 @@ int clif_parse_LoadEndAck(int fd, map_session_data &sd)
 
 	// ============================================
 	// ADDITION Qamera death/disconnect/connect event mod
-	if(!sd.state.event_onconnect){
-		npc_event_doall_attached("OnConnect",sd);
+	if(!sd.state.event_onconnect)
+	{
+		npc_data::event("OnConnect", sd);
 		sd.state.event_onconnect=1;
 	}
 	// ============================================ 
@@ -9381,7 +9382,7 @@ int clif_parse_LoadEndAck(int fd, map_session_data &sd)
 	}
 	else
 	{
-		int evt = npc_event_doall("OnPCLoadMapEvent", sd.block_list::id, sd.block_list::m);
+		int evt = npc_data::event("OnPCLoadMapEvent", sd);
 		if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCLoadMapEvent");
 		// ============================================ 
 	}
@@ -9926,8 +9927,7 @@ int clif_parse_Wis(int fd, map_session_data &sd)
 		}//Sets Variables to use in the NPC
 		
 		snprintf(tempmes, sizeof(tempmes), "%s::OnWhisperGlobal", npc->name);
-		if( npc_event(sd,tempmes,0) )
-			return 0;	// Calls the NPC label
+		npc_data::event(tempmes, sd); // Calls the NPC label
 	}
 	//-------------------------------------------------------//
 	//  Lordalfa - Paperboy - END - NPC Whisper Commands     //
@@ -10739,7 +10739,7 @@ int clif_parse_NpcSelectMenu(int fd, map_session_data &sd)
 		return 0;
 
 	sd.ScriptEngine.cExtData = RFIFOB(fd,6);
-	npc_scriptcont(sd, RFIFOL(fd,2));
+	sd.ScriptEngine.restart(RFIFOL(fd,2));
 	return 0;
 }
 
@@ -10752,7 +10752,7 @@ int clif_parse_NpcNextClicked(int fd, map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 	sd.ScriptEngine.cExtData = 0;
-	npc_scriptcont(sd,RFIFOL(fd,2));
+	sd.ScriptEngine.restart(RFIFOL(fd,2));
 	return 0;
 }
 
@@ -10766,7 +10766,7 @@ int clif_parse_NpcAmountInput(int fd, map_session_data &sd)
 		return 0;
 
 	sd.ScriptEngine.cExtData = RFIFOL(fd,6);
-	npc_scriptcont(sd, RFIFOL(fd,2));
+	sd.ScriptEngine.restart(RFIFOL(fd,2));
 	return 0;
 }
 
@@ -10780,7 +10780,7 @@ int clif_parse_NpcStringInput(int fd, map_session_data &sd)
 		return 0;
 
 	sd.ScriptEngine.cExtData = (char*)RFIFOP(fd,8);
-	npc_scriptcont(sd,RFIFOL(fd,4));
+	sd.ScriptEngine.restart(RFIFOL(fd,4));
 	return 0;
 }
 
@@ -10794,7 +10794,7 @@ int clif_parse_NpcCloseClicked(int fd, map_session_data &sd)
 		return 0;
 
 	sd.ScriptEngine.cExtData = 1;
-	npc_scriptcont(sd,RFIFOL(fd,2));
+	sd.ScriptEngine.restart(RFIFOL(fd,2));
 	return 0;
 }
 
@@ -12625,7 +12625,7 @@ int clif_terminate(int fd)
 		if( sd!=NULL )
 		{
 			if( sd->state.event_disconnect )
-				npc_event_doall_attached("OnDisconnect",*sd);   
+				npc_data::event("OnDisconnect", *sd);
 
 			clif_clearchar(*sd, 0);
 			if(sd->state.auth) 

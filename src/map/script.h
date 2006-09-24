@@ -13,6 +13,7 @@
 
 // predeclaration
 struct map_session_data;
+struct npcscript_data;
 class CScriptEngine;
 
 
@@ -325,16 +326,13 @@ private:
 public:
 	CValue	cExtData;			// additional data from external source
 
-	map_session_data* sd;// the mapsession of the caller
-	uint32 rid;			// bl.id of the hosting pc
-	uint32 oid;			// bl.id of the executed npc
-
-
+	map_session_data* sd;		// the mapsession of the caller
+	npcscript_data* nd;			// the executed npc
 
 	///////////////////////////////////////////////////////////////////////////
 public:
 	CScriptEngine() : queue(NULL), stack_ptr(0),stack_max(0),stack_data(NULL),
-		rerun_flag(false), messageopen(false), npcstate(NONE), state(OFF), script(NULL), sd(NULL)
+		rerun_flag(false), messageopen(false), npcstate(NONE), state(OFF), script(NULL), sd(NULL), nd(NULL)
 	{ }
 	~CScriptEngine()
 	{
@@ -426,16 +424,18 @@ private:
 
 	int run_main();
 
-public:
+
 	///////////////////////////////////////////////////////////////////////////
 	// main entry points
+public:
 	static int run(const char* rootscript, size_t pos, uint32 rid, uint32 oid);
-	int restart(uint32 npcid)
-	{	
-		if( this->state==STOP && (npcid == this->oid || npcid == this->defoid) )
-			return CScriptEngine::run(this->script, this->pos, this->rid, this->oid);
-		return 0;
-	}
+
+/*	static int run(const char* rootscript, size_t pos, map_session_data& sd, npcscript_data& nd)
+	static int run(const char* rootscript, size_t pos, map_session_data& sd)
+	static int run(const char* rootscript, size_t pos)
+*/	
+	
+	int restart(uint32 npcid);
 
 	///////////////////////////////////////////////////////////////////////////
 	// checks the npc, create a default npc and spawn it when necessary
@@ -450,9 +450,10 @@ public:
 		if( this->isRunning() )
 		{
 			if(this->queue) delete(this->queue);
-			this->state	= OFF;
+			this->state		= OFF;
 			this->script	= NULL;
-			this->oid		= 0;
+			this->sd		= NULL;
+			this->nd		= NULL;
 			this->clearMessage();
 			// clear the npc, if the default npc was used
 			if(this->npcstate == NPC_DEFAULT)
@@ -462,8 +463,8 @@ public:
 	}
 
 	bool isMessage() const 	{ return this->messageopen; }
-	bool setMessage()		{ return (this->messageopen=true); }
-	bool clearMessage()		{ return (this->messageopen=false); }
+	void setMessage()		{ this->messageopen=true; }
+	void clearMessage()		{ this->messageopen=false; }
 	void Quit()				{ this->state = END; }
 	void Stop()				{ this->state = STOP; }
 	void Return()			{ this->state = RETFUNC; }
@@ -552,7 +553,6 @@ private:
 	size_t refcnt;			//reference counter
 public:
 	char *script;
-private:
 	struct script_label *label_list;
 	size_t label_list_num;	
 public:

@@ -297,12 +297,16 @@ public:
 /// object on a map
 struct block_list : public coordinate
 {
-public:
+//private:
 	/////////////////////////////////////////////////////////////////
+	static block_list bl_head;
 	static dbt* id_db;
-
+public:
 	/// returns blocklist from given id
 	static block_list* from_blid(uint32 id);
+	/// returns blocklist from name.
+	/// only implemented  for individual block types
+	static block_list* from_name(const char *name)	{ return NULL; }
 
 	// functions that work on block_lists
 	static int foreachinarea(const CMapProcessor& elem, unsigned short m, int x0,int y0,int x1,int y1,object_t type);
@@ -341,7 +345,6 @@ public:
 		// and just to be sure that it's removed from iddb
 		this->deliddb();
 	}
-
 	// missing:
 	// all interactions with map 
 	// which should be directly wrapped into a static interface
@@ -1046,7 +1049,7 @@ struct map_data
 		unsigned nomvploot	: 1;				// 35
 		unsigned _unused : 4;					// 36-39 (byte 5)
 	} flag;
-	struct point save;
+	struct point nosave;
 	npc_data *npc[MAX_NPC_PER_MAP];
 	struct
 	{

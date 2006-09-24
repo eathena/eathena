@@ -27,6 +27,13 @@ public:
 
 	/// search session data by block_list::id.
 	static map_session_data* from_blid(uint32 id);
+
+	/// search session data by name.
+	static map_session_data* from_name(const char *name)
+	{
+		return nick2sd(name);
+	}
+
 	/// search session data by char_id.
 	static map_session_data* charid2sd(uint32 id);
 	/// search session data by account_id.

@@ -17,44 +17,24 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-struct npc_timerevent_list
-{
-	int timer;
-	size_t pos;
-
-	npc_timerevent_list() : 
-		timer(-1),
-		pos(0)
-	{}
-};
-struct npc_item
-{
-	ushort	nameid;
-	uint32	price;
-	npc_item() : 
-		nameid(0),
-		price(0)
-	{}
-};
-
-
 /// virtual npc structure.
 /// contains what all different npc objects commonly use
 struct npc_data : public movable
 {
+	static struct dbt *npcname_db;
 	/////////////////////////////////////////////////////////////////
 	static npc_data* from_blid(uint32 id)
 	{
 		block_list *bl = block_list::from_blid(id);
 		return (bl)?bl->get_nd():NULL;
 	}
+	/// returns npcdata from name.
 	static npc_data* from_name(const char *name);
 
 	/////////////////////////////////////////////////////////////////
 
 	short n;
 	short class_;
-//	short dir;
 	short speed;
 	char name[24];
 	char exname[24];
@@ -71,8 +51,7 @@ protected:
 	// can have an empty constructor here since it is cleared at allocation
 	npc_data()
 	{}
-	virtual ~npc_data()
-	{}
+	virtual ~npc_data();
 public:
 
 	///////////////////////////////////////////////////////////////////////////
@@ -84,6 +63,10 @@ public:
 	virtual npc_data*				get_nd()				{ return this; }
 	virtual const npc_data*			get_nd() const			{ return this; }
 
+
+
+	// removes object from map, but leave it in memory
+	void npc_data::remove_from_map();
 
 	/// do object depending stuff for ending the walk.
 	virtual void do_stop_walking();
@@ -115,7 +98,45 @@ public:
 
 	/// called from clif_parse_NpcClicked.
 	static void click(map_session_data &sd, uint32 npcid);
+	/// called from map_session_data::do_walkend.
+	static void touch(map_session_data &sd,unsigned short m,int x,int y);
+
+private:
+	/// internal function for executeing events.
+	static int _event(const char *eventname, npcscript_data *nd, map_session_data *sd);
+public:
+	/// search and execute all scripts implementing the given On-Label.
+	/// execute without an attached pc.
+	static int event(const char *eventname)
+	{
+		return npc_data::_event(eventname,NULL,NULL);
+	}
+	/// search and execute all scripts implementing the given On-Label.
+	static int event(const char *eventname, map_session_data &sd)
+	{
+		return npc_data::_event(eventname,NULL,&sd);
+	}
+	/// search and execute a single script at given On-Label.
+	/// execute without an attached pc.
+	static int event(const char *eventname, npcscript_data &nd)
+	{
+		return npc_data::_event(eventname,&nd,NULL);
+	}
+	/// search and execute a single script at given On-Label.
+	static int event(const char *eventname, npcscript_data &nd, map_session_data &sd)
+	{
+		return npc_data::_event(eventname,&nd,&sd);
+	}	
 	
+
+	/// enable/disable a npc via name.
+	static bool enable(const char *name, int flag);
+	/// enable/disable a npc
+	bool enable(int flag);
+	/// change name of a npc
+	bool changename(const char *newname, unsigned short look=0);
+
+
 	
 	// operator new overload for cleaning the memory
 	void* operator new(size_t sz)
@@ -134,6 +155,30 @@ private:
 };
 
 
+
+///////////////////////////////////////////////////////////////////////////////
+// timer event structure.
+// contains the tick (counted from 0) and the script position which
+// is called at the given time, when the script is started
+struct npc_timerevent
+{
+	ulong	tick;	// executing tick 
+	size_t	pos;	// position inside the script to be called
+
+	npc_timerevent() : 
+		tick(0),
+		pos(0)
+	{}
+};
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
 /// script npc.
 /// contains script object, timer stuff should be revised
 struct npcscript_data : public npc_data
@@ -150,24 +195,89 @@ struct npcscript_data : public npc_data
 		return nd?nd->get_script():NULL;
 	}
 
-	/////////////////////////////////////////////////////////////////
 
-	script_object *ref;		// pointer with reference counter
-	npc_parse *listendb;
-	npcchat_data* chat;
-	int guild_id;
-	int timer;
-	int timerid;
-	int timeramount;
-	int nexttimer;
-	uint32 rid;
-	unsigned long timertick;
-	struct npc_timerevent_list *timer_event;
+private:
+	///////////////////////////////////////////////////////////////////////////
+	/// internal npc timer object.
+	/// wrapper for a calling structure that is doing npc_timerevent.
+	/// contains the necessary data for recalling the script.
+	/// check for merging this whole thing with the new script engine pool,
+	/// since only this way also variables could be reused savely with threads
+	struct npc_timerobj : public basics::global
+	{
+		npc_timerobj*	next;	// pointer for a single linked list
+		npcscript_data	&nd;	// root to the executed npc
+		uint32			rid;	// id of the session that has called this
+		ushort			pos;	// position inside of npc_timerevent to be executed next
+		int				tid;	// the timer id, this object is running from
 
-	npcscript_data()
+		/// constructor.
+		/// queues this in.
+		npc_timerobj(npcscript_data &n, uint32 r);
+		/// destructor.
+		/// dequeues and removes timers.
+		~npc_timerobj();
+	};
+	friend struct npc_timerobj;
+
+	///////////////////////////////////////////////////////////////////////////
+
+public:
+	script_object *ref;				///< pointer with reference counter to script binary
+	npc_parse *listendb;			///< pointer to npclisten object
+	npcchat_data* chat;				///< pointer to a npcchat object
+
+	uint32 guild_id;				///< set when this npc belongs to a guild (guild kafra)
+
+	npc_timerevent *ontimer_list;	///< list of OnTimer entries
+	ushort ontimer_cnt;				///< number of OnTimer entries
+	npc_timerobj	*eventobj;		///< eventtimer root
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// eventtimer functions
+public: //## current add_timer_func_list needs public access
+	/// timer entry funtion.
+	static int eventtimer_entry(int tid, unsigned long tick, int id, basics::numptr data);
+private:
+	/// aquire a timer object. 
+	/// create a new object if not exists
+	npc_timerobj* eventtimer_aquire(uint32 rid);
+public:
+	/// get the position inside the eventtimer list.
+	/// return 0 when no timer has been started
+	ushort npcscript_data::eventtimer_getpos(uint32 rid);
+	/// set the position inside the eventtimer list.
+	/// return the previous count. does nothing when no timer has been started
+	ushort npcscript_data::eventtimer_setpos(uint32 rid, ushort pos);
+	/// set the rid for the next call.
+	/// return the previous rid. does nothing when no timer has been started
+	uint32 npcscript_data::eventtimer_attach(uint32 oldrid, uint32 newrid);
+	/// initialize a timer object and start the timer.
+	void eventtimer_init(uint32 rid, ushort pos);
+	/// start the timer.
+	void eventtimer_start(uint32 rid);
+	/// stop the timer.
+	void eventtimer_stop(uint32 rid);
+	/// clear the timers if not in use.
+	void eventtimer_clear(uint32 rid);
+
+	
+	/// start/stop ontimers
+	void do_ontimer(map_session_data &sd, bool start);
+	/// search and execute a script starting from a OnCommand-Label.
+	/// command parameter is only the string directly following the "::OnCommand", 
+	/// eg. for the label "OnCommandDie", the command parameter is "Die"
+	bool command(const char *command, const map_session_data *sd);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// constructor
+	npcscript_data() :
+		eventobj(NULL)
 	{}
-	~npcscript_data()
-	{}
+	///////////////////////////////////////////////////////////////////////////
+	/// destructor
+	~npcscript_data();
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -184,6 +294,9 @@ struct npcscript_data : public npc_data
 	virtual void OnTouch(block_list& bl);
 };
 
+
+
+///////////////////////////////////////////////////////////////////////////////
 /// warp npc.
 /// only contains target coordinates
 struct npcwarp_data : public npc_data
@@ -225,8 +338,24 @@ public:
 	virtual void OnTouch(block_list& bl);
 };
 
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// npc shop item.
+struct npc_item
+{
+	ushort	nameid;
+	uint32	price;
+	npc_item() : 
+		nameid(0),
+		price(0)
+	{}
+};
+
+///////////////////////////////////////////////////////////////////////////////
 /// shop npc.
-/// only contains shop items
+/// only contains a list of shop items
 struct npcshop_data : public npc_data
 {
 	/////////////////////////////////////////////////////////////////
@@ -279,24 +408,15 @@ struct npcshop_data : public npc_data
 
 
 
-//int npc_event_dequeue(map_session_data &sd);
-//int npc_event_enqueue(map_session_data &sd, const char *eventname);
-int npc_event_timer(int tid, unsigned long tick, int id, basics::numptr data);
-int npc_event(map_session_data &sd,const char *npcname,int);
-int npc_timer_event(const char *eventname);				// Added by RoVeRT
-int npc_command(map_session_data &sd,const char *npcname, const char *command);
-int npc_touch_areanpc(map_session_data &sd,unsigned short m,int x,int y);
-int npc_scriptcont(map_session_data &sd,uint32 id);
+
+
+
 int npc_buysellsel(map_session_data &sd,uint32 id,int type);
 int npc_buylist(map_session_data &sd,unsigned short n,unsigned char *buffer);
 int npc_selllist(map_session_data &sd,unsigned short n,unsigned char *buffer);
 int npc_parse_mob(const char *w1,const char *w2,const char *w3,const char *w4);
 int npc_parse_mob2(mob_list &mob);
 bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4);
-int npc_globalmessage(const char *name,const char *mes);
-
-bool npc_enable(const char *name,int flag);
-int npc_changename(const char *name, const char *newname, unsigned short look);
 
 
 uint32 npc_get_new_npc_id(void);
@@ -307,30 +427,10 @@ void npc_printsrcfile();
 void npc_parsesrcfile(const char *);
 int do_final_npc(void);
 int do_init_npc(void);
-int npc_event_do_oninit(void);
-int npc_do_ontimer(uint32 npc_id, map_session_data &sd, int option);
 
 
-int npc_event_do(const char *name);
-int npc_event_doall(const char *name, int rid=0, int map=-1);
 
-int npc_timerevent_start(npcscript_data &sc, uint32 rid);
-int npc_timerevent_stop(npcscript_data &nd);
-int npc_gettimerevent_tick(npcscript_data &sc);
-int npc_settimerevent_tick(npcscript_data &sc,int newtimer);
-int npc_remove_map(npc_data *nd);
-int npc_unload(npc_data *nd, bool erase_strdb=true);
 int npc_reload(void);
-
-// ============================================
-// ADDITION Qamera death/disconnect/connect event mod
-int npc_event_doall_attached(const char *name, map_session_data &sd);
-struct npc_att_data {
-	map_session_data * sd;
-	char buf[64];
-} ;
-// END ADDITION
-// ============================================ 
 
 #endif
 

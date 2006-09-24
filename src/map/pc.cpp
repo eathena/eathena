@@ -455,10 +455,8 @@ void map_session_data::do_walkend()
 	if( this->is_cloaking() )	// クロ?キングの消滅?査
 		skill_check_cloaking(this);
 
-	if( map_getcell(this->block_list::m,block_list::x,block_list::y,CELL_CHKNPC) )
-		npc_touch_areanpc(*this,this->block_list::m,block_list::x,block_list::y);
-	else
-		this->areanpc_id = 0;
+	// check for a npc_ontouch event
+	npc_data::touch(*this,this->block_list::m,block_list::x,block_list::y);
 
 	if (config.disp_hpmeter)
 	{
@@ -885,10 +883,10 @@ int pc_makesavestatus(map_session_data &sd)
 		// セ?ブ禁止マップだったので指定位置に移動
 	if(maps[sd.block_list::m].flag.nosave)
 	{
-		if( strcmp(maps[sd.block_list::m].save.mapname,"SavePoint")==0 )
+		if( strcmp(maps[sd.block_list::m].nosave.mapname,"SavePoint")==0 )
 			sd.status.last_point = sd.status.save_point;
 		else
-			sd.status.last_point = maps[sd.block_list::m].save;
+			sd.status.last_point = maps[sd.block_list::m].nosave;
 	}
 	return 0;
 }
@@ -1275,7 +1273,7 @@ int pc_authok(uint32 charid, uint32 login_id2, time_t connect_until_time, unsign
 	if (config.display_version == 1)
 	{
 		char buf[256];
-		snprintf(buf, sizeof(buf),"eAthena SVN version: %s", get_svn_revision());
+		snprintf(buf, sizeof(buf),"Revision: %s", get_revision());
 		clif_displaymessage(sd->fd, buf);
 	}
 
@@ -1338,7 +1336,7 @@ int pc_authok(uint32 charid, uint32 login_id2, time_t connect_until_time, unsign
 	}
 	else
 	{
-		int evt = npc_event_doall("OnPCLoginEvent", sd->block_list::id, sd->block_list::m);
+		int evt = npc_data::event("OnPCLoginEvent", *sd);
 		if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCLoginEvent");
 	}
 
@@ -4136,7 +4134,7 @@ int pc_checkbaselevelup(map_session_data &sd)
 		}
 		else
 		{
-			int evt = npc_event_doall("OnPCBaseUpEvent", sd.block_list::id, sd.block_list::m);
+			int evt = npc_data::event("OnPCBaseUpEvent", sd);
 			if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "PCBaseUpEvent");
 		}
 		//LORDALFA - LVLUPEVENT
@@ -4891,7 +4889,7 @@ int pc_damage(map_session_data &sd, long damage, block_list *src)
 			}
 			else
 			{
-				int evt = npc_event_doall("OnPCKillEvent", sd.block_list::id, sd.block_list::m);
+				int evt = npc_data::event("OnPCKillEvent", sd);
 				if(evt) ShowStatus ("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCKillEvent");
 			}
 		}
@@ -4952,7 +4950,7 @@ int pc_damage(map_session_data &sd, long damage, block_list *src)
 		}
 		else
 		{
-			int evt = npc_event_doall("OnPCDieEvent", sd.block_list::id, sd.block_list::m);
+			int evt = npc_data::event("OnPCDieEvent", sd);
 			if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCDieEvent");
 		}
 	}
@@ -6041,7 +6039,7 @@ int pc_eventtimer(int tid, unsigned long tick, int id, basics::numptr data)
 			if( sd->eventtimer[i]==tid )
 			{
 				sd->eventtimer[i]=-1;
-				npc_event(*sd,evname,0);
+				npc_data::event(evname, *sd);
 				break;
 			}
 		}
@@ -7193,7 +7191,7 @@ int pc_autosave(int tid, unsigned long tick, int id, basics::numptr data)
 			++c;
 		}
 	}
-	if(config.save_log)
+	if(c && config.save_log)
 		ShowStatus("autosave %d chars\n", c);
 
 	add_timer(gettick()+((autosave_interval>1000)?autosave_interval:1000),pc_autosave,0,0);

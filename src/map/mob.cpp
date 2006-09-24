@@ -2590,7 +2590,7 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 			}
 		}
 		if(sd)
-			npc_event(*sd,md.npc_event,0);
+			npc_data::event(md.npc_event, *sd);
 	}
 	//lordalfa
 	else if (mvp_sd)
@@ -2607,7 +2607,7 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 		}
 		else
 		{
-			int evt = npc_event_doall("OnNPCKillEvent", mvp_sd->block_list::id, mvp_sd->block_list::m);
+			int evt = npc_data::event("OnNPCKillEvent", *mvp_sd);
 			if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnNPCKillEvent");
 		}
 	}
@@ -3265,12 +3265,14 @@ int mobskill_use_pos( mob_data *md, int skill_x, int skill_y, unsigned short ski
 		return 0;
 
 	// 射程と障害物チェック
-	bl.m = md->block_list::m;
-	bl.x = skill_x;
-	bl.y = skill_y;
 	range = skill_get_range(skill_id,skill_lv);
 	if(range < 0)
 		range = status_get_range(md) - (range + 1);
+
+	
+	bl.m = md->block_list::m;
+	bl.x = skill_x;
+	bl.y = skill_y;
 	if(!battle_check_range(md,&bl,range))
 		return 0;
 

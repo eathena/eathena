@@ -1,4 +1,9 @@
 Date	Added
+09/24
+	* almost finished npc rewrite:
+	- new event structures, new timer structures, merged useless functions
+	- changed some script command behaviour 
+	* npcevent calls still need a revision [Shinomori]
 09/17
 	* removed block_list::type and block_list::subtype completely
 	* split different npc types into seperated classes,
