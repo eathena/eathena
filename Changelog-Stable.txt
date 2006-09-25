@@ -5,6 +5,9 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/25
+	* Fixed #baselevelup increasing stats when lowering levels, also made it
+	  reset your stats if there aren't enough points left to substract.
+	  [Skotlex]
 	* Miscellanous trunk merges: [Skotlex]
 	- the dummy item's ID is now updated to whatever ID was being requested,
 	  fixes stuff like you getting item ID 500 instead of the requested ID on
