@@ -330,7 +330,6 @@ extern struct Battle_Config {
 	unsigned short night_at_start; // added by [Yor]
 	int day_duration; // added by [Yor]
 	int night_duration; // added by [Yor]
-	unsigned short ban_spoof_namer; // added by [Yor]
 	short ban_hack_trade; // added by [Yor]
 	unsigned short hack_info_GM_level; // added by [Yor]
 	unsigned short any_warp_GM_min_level; // added by [Yor]
@@ -358,7 +357,6 @@ extern struct Battle_Config {
 	unsigned short skill_steal_max_tries; //max steal skill tries on a mob. if=256, then w/o limit [Lupus]
 //	unsigned short night_darkness_level; // [celest]
 	unsigned short motd_type; // [celest]
-	unsigned short allow_atcommand_when_mute; // [celest]
 	unsigned short finding_ore_rate; // orn
 	unsigned short exp_calc_type;
 	unsigned short min_skill_delay_limit;

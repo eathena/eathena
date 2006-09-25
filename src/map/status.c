@@ -1280,6 +1280,9 @@ int status_calc_mob(struct mob_data* md, int first)
 	if (flag&16 && mbl)
 	{	//Max HP setting from Summon Flora/marine Sphere
 		struct unit_data *ud = unit_bl2ud(mbl);
+		//Remove special AI when this is used by regular mobs.
+		if (mbl->type == BL_MOB && !((TBL_MOB*)mbl)->special_state.ai)
+			md->special_state.ai = 0;
 		if (ud)
 		{	// different levels of HP according to skill level
 			if (ud->skillid == AM_SPHEREMINE) {
@@ -3685,6 +3688,8 @@ const char * status_get_name(struct block_list *bl)
 		return ((struct map_session_data *)bl)->status.name;
 	case BL_PET:
 		return ((struct pet_data *)bl)->pet.name;
+	case BL_NPC:
+		return ((struct npc_data*)bl)->name;
 	default:
 		return "Unknown";
 	}
@@ -4112,10 +4117,6 @@ int status_get_sc_def(struct block_list *bl, int type)
 		if (battle_config.pc_sc_def_rate != 100)
 			sc_def = sc_def*battle_config.pc_sc_def_rate/100;
 
-		if(SC_COMMON_MIN<=type && type<=SC_COMMON_MAX
-			&& sd->reseff[type-SC_COMMON_MIN] > 0)
-			sc_def+= sd->reseff[type-SC_COMMON_MIN];
-
 		if (sc_def < battle_config.pc_max_sc_def)
 			sc_def += (battle_config.pc_max_sc_def - sc_def)*
 				status->luk/battle_config.pc_luk_sc_def;
@@ -4195,19 +4196,25 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 	if (!(flag&(1|4))) {
 		int def = status_get_sc_def(bl, type);
 
-		if (def && !(flag&8))
-			rate -= rate*def/10000;
-
-		if (!(rand()%10000 < rate))
-			return 0;
-
 		if (def && tick && !(flag&2))
 		{
 			tick -= tick*def/10000;
 			if (tick <= 0)
 				return 0;
 		}
+
+		//Item defenses do not reduce duration, so they go out of the function.
+		if(sd && SC_COMMON_MIN<=type && type<=SC_COMMON_MAX
+			&& sd->reseff[type-SC_COMMON_MIN] > 0)
+			def += sd->reseff[type-SC_COMMON_MIN];
+
+		if (def && !(flag&8))
+			rate -= rate*def/10000;
+
+		if (!(rand()%10000 < rate))
+			return 0;
 	}
+
 
 	undead_flag=battle_check_undead(status->race,status->def_ele);
 
@@ -4962,38 +4969,38 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 					stat =max-sd->status.luk;
 				val4 |= stat;
 			} else {
-				struct status_data *status = status_get_base_status(bl);
-				if (!status) return 0;
+				struct status_data *b_status = status_get_base_status(bl);
+				if (!b_status) return 0;
 				max = 0xFF; //Assume a 256 max parameter
 				//Str
 				stat = (psc->data[SC_MARIONETTE].val3>>16)&0xFF;
-				if (status->str+stat > max)
-					stat = max - status->str;
+				if (b_status->str+stat > max)
+					stat = max - b_status->str;
 				val3 |= stat<<16;
 				//Agi
 				stat = (psc->data[SC_MARIONETTE].val3>>8)&0xFF;
-				if (status->agi+stat > max)
-					stat = max - status->agi;
+				if (b_status->agi+stat > max)
+					stat = max - b_status->agi;
 				val3 |= stat<<8;
 				//Vit
 				stat = psc->data[SC_MARIONETTE].val3&0xFF;
-				if (status->vit+stat > max)
-					stat = max - status->vit;
+				if (b_status->vit+stat > max)
+					stat = max - b_status->vit;
 				val3 |= stat;
 				//Int
 				stat = (psc->data[SC_MARIONETTE].val4>>16)&0xFF;
-				if (status->int_+stat > max)
-					stat = max - status->int_;
+				if (b_status->int_+stat > max)
+					stat = max - b_status->int_;
 				val4 |= stat<<16;
 				//Dex
 				stat = (psc->data[SC_MARIONETTE].val4>>8)&0xFF;
-				if (status->dex+stat > max)
-					stat = max - status->dex;
+				if (b_status->dex+stat > max)
+					stat = max - b_status->dex;
 				val4 |= stat<<8;
 				//Luk
 				stat = psc->data[SC_MARIONETTE].val4&0xFF;
-				if (status->luk+stat > max)
-					stat = max - status->luk;
+				if (b_status->luk+stat > max)
+					stat = max - b_status->luk;
 				val4 |= stat;
 			}
 			tick = 1000;
@@ -5188,7 +5195,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			val2 = (status_get_lv(bl) + status->dex + status->luk)/2; //def increase
 			break;
 		case SC_MOON_COMFORT:
-			val2 = (status_get_lv(bl) + status->dex + status->luk)/10; //luk increase
+			val2 = (status_get_lv(bl) + status->dex + status->luk)/10; //flee increase
 			break;
 		case SC_STAR_COMFORT:
 			val2 = (status_get_lv(bl) + status->dex + status->luk); //Aspd increase

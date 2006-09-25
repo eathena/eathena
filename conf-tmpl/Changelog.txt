@@ -1,5 +1,10 @@
 Date	Added
 
+2006/09/25
+	* Removed the whole "alert hack on global message" thing, thus
+	  ban_spoof_namer is no more. [Skotlex]
+	* Also removed config setting allow_atcommand_when_mute as it's no longer
+	  used (see manner_system in misc.conf for it's replacement) [Skotlex]
 2006/09/14
 	* Merged the change of show_mob_hp to show_mob_info. Now you can choose to
 	  display a mob's Lv, and/or HP (Hp has two different display formats as

@@ -222,9 +222,9 @@ static void report_src(struct script_state *st) {
 		break;
 		default:
 			if (bl->m >=0)
-				ShowDebug("Source (Non-NPC): type %d at %s (%d,%d)\n", bl->type, map[bl->m].name, bl->x, bl->y);
+				ShowDebug("Source (Non-NPC type %d): name %s at %s (%d,%d)\n", bl->type, status_get_name(bl), map[bl->m].name, bl->x, bl->y);
 			else
-				ShowDebug("Source (Non-NPC): type %d (invisible/not on a map)\n", bl->type);
+				ShowDebug("Source (Non-NPC type %d): name %s (invisible/not on a map)\n", bl->type, status_get_name(bl));
 		break;
 	}
 }
@@ -1925,12 +1925,13 @@ char* conv_str(struct script_state *st,struct script_data *data)
 		snprintf(buf,ITEM_NAME_LENGTH, "%d",data->u.num);
 		data->type=C_STR;
 		data->u.str=buf;
-#if 1
+	} else if(data->type==C_POS) {
+		// Protect form crashes by passing labels to string-expected args [jA2200]
+		data->type = C_CONSTSTR;
+		data->u.str = "** SCRIPT ERROR **";
 	} else if(data->type==C_NAME){
-		// テンポラリ。本来無いはず
 		data->type=C_CONSTSTR;
 		data->u.str=str_buf+str_data[data->u.num].str;
-#endif
 	}
 	return data->u.str;
 }
@@ -11167,7 +11168,7 @@ int buildin_query_sql(struct script_state *st) {
 
 		if (nb_rows > 32)
 		{
-			ShowWarning("buildin_query_sql: too much rows!\n");
+			ShowWarning("buildin_query_sql: too many rows!\n");
 			push_val(st->stack,C_INT,0);
 			return 1;
 		}
