@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/09/25
+	* Item group reading will now complain when a line doesn't has enough
+	  fields. [Skotlex]
 	* Fixed #baselevelup increasing stats when lowering levels, also made it
 	  reset your stats if there aren't enough points left to substract.
 	  [Skotlex]

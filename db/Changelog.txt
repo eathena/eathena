@@ -1,4 +1,5 @@
-
+09/25
+	* Fixed item group 35 (lottobox) in item_misc.txt [Skotlex]
 09/20
 	* Merged Spider Web being a targetted skill. [Skotlex]
 	* Merged Ki Explosion having range 1 and taking weapon's element. [Skotlex]
