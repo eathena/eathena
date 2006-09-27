@@ -489,7 +489,7 @@
 1138,Mysteltainn_,Mysteltainn,4,,10,1000,170,,1,0,0x000654E2,7,2,2,4,40,1,2,{ bonus bAtkEle,Ele_Dark; bonus2 bAddEle,Ele_Ghost,15; bonus3 bAutoSpell,16,3,100; bonus2 bAddEff,Eff_Stone,100; bonus bDex,3; },{},{}
 1139,Tale_Fing_,Tirfing,4,,10,1000,200,,1,0,0x000654E2,7,2,2,4,40,1,2,{ bonus bAtkEle,Ele_Dark; bonus2 bHPLossRate,35,10000; },{},{}
 1140,Byeorrun_Gum,Byeollungum,4,,10,900,150,,1,0,0x000654E2,7,2,2,4,40,1,2,{ bonus2 bSubRace,RC_NonBoss,-10; bonus2 bAddRace,RC_Boss,5; bonus bAllStats,2; },{},{}
-1141,Immaterial_Sword,Immaterial Sword,4,,10,900,140,,1,0,0x000654E2,7,2,2,4,40,1,2,{ bonus bAtkEle,Ele_Ghost; bonus2 bSPDrainRate,10,30; bonus bSPDrainValue,-1; bonus bUnbreakableWeapon,0; },{},{}
+1141,Immaterial_Sword,Immaterial Sword,4,,10,900,140,,1,0,0x000654E2,7,2,2,4,40,1,2,{ bonus bAtkEle,Ele_Ghost; bonus2 bSPVanishRate,30,30; bonus bSPDrainValue,-1; bonus bUnbreakableWeapon,0; },{},{}
 1142,Jewel_Sword,Jeweled Sword,4,,10,2200,104,,1,0,0x000654E2,7,2,2,3,68,1,2,{ bonus2 bAddMonsterDropItemGroup,IG_Jewel,5; },{},{}
 1143,Gaia_Sword,Gaia Sword,4,,10,2500,115,,1,0,0x000654E2,7,2,2,3,74,1,2,{ bonus2 bAddMonsterDropItemGroup,IG_Ore,5; },{},{}
 1144,Sasimi,Sashimi,4,,10,1400,75,,1,0,0x000654E2,7,2,2,3,48,1,2,{ bonus bAtkEle,Ele_Wind; bonus3 bAddMonsterDropItem,544,RC_Fish,4000; },{},{}
@@ -1505,7 +1505,7 @@
 4340,Teddy_Bear_Card,Teddy Bear Card,6,,10,10,,,,,,,,32,,,,,{ bonus2 bSubRace,RC_Undead,30; },{},{}
 4341,Metaling_Card,Metaling Card,6,,10,10,,,,,,,,2,,,,,{ bonus3 bAutoSpell,215,1,50; },{},{}
 4342,RSX_0806_Card,RSX 0806 Card,3,,10,10,,,,,,,,,,,,,{},{},{}
-4343,Holden_Card,Holden Card,6,,10,10,,,,,,,,769,,,,,{ bonus bLuk,2; if(isequipped(4186,4281,4036,4233)) { bonus bStr,4; bonus bMaxHPrate,7; bonus bMaxSPrate,7; bonus2 bSkillAtk,42,20; bonus bSPGainValue,1; if(BaseJob == Job_Alchem) { bonus3 bAutoSpell,111,1,10; bonus2 bAddMonsterDropItem,7139,300; bonus2 bAddMonsterDropItem,905,300; } } },{},{}
+4343,Holden_Card,Holden Card,6,,10,10,,,,,,,,769,,,,,{ bonus bLuk,2; if(isequipped(4186,4281,4036,4233)) { bonus bStr,4; bonus bMaxHPrate,7; bonus bMaxSPrate,7; bonus2 bSkillAtk,42,20; bonus bSPDrainValue,1; if(BaseJob == Job_Alchem) { bonus3 bAutoSpell,111,1,10; bonus2 bAddMonsterDropItem,7139,300; bonus2 bAddMonsterDropItem,905,300; } } },{},{}
 4344,Anopheles_Card,Anopheles Card,6,,10,10,,,,,,,,136,,,,,{ bonus3 bAddMonsterDropItem,12058,RC_Insect,300; },{},{}
 4345,Hill_Wind_Card,Hill Wind Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bSkillAtk,21,2; bonus2 bSkillAtk,84,2; bonus2 bSkillAtk,85,2; },{},{}
 4346,Egnigem_Cenia_Card,Egnigem Cenia Card,6,,10,10,,,,,,,,16,,,,,{ bonus bStr,readparam(bInt)/18; },{},{}
@@ -1790,16 +1790,16 @@
 7014,Old_Portrait,Old Portrait,3,,750,100,,,,,,,,,,,,,{},{},{}
 7015,Bookclip_In_Memory,Memory Bookmark,3,,1500,20,,,,,,,,,,,,,{},{},{}
 7016,Spoon_Stub,Bent Spoon,3,,1250,20,,,,,,,,,,,,,{},{},{}
-7017,Executioner's_Mitten,Executioner's Glove,3,,2250,30,,,,,,,,,,,,,{},{},{}
+7017,Executioner's_Mitten,Executioner's Mitten,3,,2250,30,,,,,,,,,,,,,{},{},{}
 7018,Young_Twig,Young Twig,3,,25,10,,,,,,,,,,,,,{},{},{}
 7019,Loki's_Whispers,Loki's Whispers,3,,10,10,,,,,,,,,,,,,{},{},{}
 7020,Mother's_Nightmare,Mother's Nightmare,3,,10,10,,,,,,,,,,,,,{},{},{}
 7021,Foolishness_Of_Blind,Foolishness of the Blind,3,,10,10,,,,,,,,,,,,,{},{},{}
-7022,Old_Hilt,Broken Sword Handle,3,,75,30,,,,,,,,,,,,,{},{},{}
+7022,Old_Hilt,Old Hilt,3,,75,30,,,,,,,,,,,,,{},{},{}
 7023,Blade_Lost_In_Darkness,Blade of Darkness,3,,6000,40,,,,,,,,,,,,,{},{},{}
 7024,Bloody_Edge,Bloody Edge,3,,5000,40,,,,,,,,,,,,,{},{},{}
 7025,Lucifer's_Lament,Lucifer's Lament,3,,15000,50,,,,,,,,,,,,,{},{},{}
-7026,Key_Of_Clock_Tower,Clock_Tower_Key,3,,50,30,,,,,,,,,,,,,{},{},{}
+7026,Key_Of_Clock_Tower,Key of the Clock Tower,3,,50,30,,,,,,,,,,,,,{},{},{}
 7027,Underground_Key,Key of the Underground,3,,50,30,,,,,,,,,,,,,{},{},{}
 7028,Invite_For_Duel,Invite for Duel,3,,0,10,,,,,,,,,,,,,{},{},{}
 7029,Admission_For_Duel,Admission for Duel,3,,10,10,,,,,,,,,,,,,{},{},{}
