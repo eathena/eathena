@@ -1840,6 +1840,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	if(skillid == CR_GRANDCROSS||skillid == NPC_GRANDDARKNESS) {
 		if(battle_config.gx_disptype) dsrc = src;
 		if(src == bl) type = 4;
+		else flag|=SD_ANIMATION;
 	}
 
 	if(sd) {
@@ -1973,16 +1974,11 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	case SN_SHARPSHOOTING:
 		dmg.dmotion = clif_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,dmg.type,dmg.damage2);
 		break;
-	case CR_GRANDCROSS:
-	case NPC_GRANDDARKNESS:
-		//Only show animation when hitting yourself. [Skotlex]
-		if (src!=bl) {
-			dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion, damage, dmg.div_, skillid, -1, 5);
-			break;
-		}
 	default:
+		//Disabling skill animation doesn't works on multi-hit.
 		dmg.dmotion = clif_skill_damage(dsrc,bl,tick, dmg.amotion, dmg.dmotion,
-			damage, dmg.div_, skillid, flag&SD_LEVEL?-1:skilllv, type);
+			damage, dmg.div_, skillid, flag&SD_LEVEL?-1:skilllv,
+			(flag&SD_ANIMATION && dmg.div_ < 2?5:type));
 		break;
 	}
 	
@@ -3778,6 +3774,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case WZ_FROSTNOVA:
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		skill_area_temp[1] = 0;
 		map_foreachinrange(skill_attack_area, src,
 			skill_get_splash(skillid, skilllv), BL_CHAR,
