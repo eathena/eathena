@@ -34,6 +34,9 @@ Playtester
 
 Date		Added
 ======
+09/27
+	* Added Rachel Field and Ice Dungeon spawn files [Playtester]
+	- commented for now
 09/21
 	* Merged from trunk optimized Quest Skills, fixed Cube Room, Pollution Quest. [Lupus]
 		Also updated NPC with missing NEXT;, fixed typos
