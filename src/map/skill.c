@@ -1971,7 +1971,6 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	case NPC_SPLASHATTACK:
 	case TF_DOUBLE:
 	case GS_CHAINACTION:
-	case SN_SHARPSHOOTING:
 		dmg.dmotion = clif_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,dmg.type,dmg.damage2);
 		break;
 	default:
