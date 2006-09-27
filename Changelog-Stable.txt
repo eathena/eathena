@@ -4,6 +4,9 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/09/27
+	* Merged the heal cleanup which makes it display 0 when used on Berserked
+	  characters. [Skotlex]
 2006/09/26
 	* Sharp Shooting now uses the normal clif_skill_damage packet, as I've
 	  tested it, and it looks quite fine. [Skotlex]

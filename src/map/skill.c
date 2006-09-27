@@ -3040,19 +3040,22 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					heal = heal*2;
 			}
 
-			if (tsc && tsc->count && tsc->data[SC_KAITE].timer != -1 
-				&& !(sstatus->mode&MD_BOSS)
-			) { //Bounce back heal
-				if (--tsc->data[SC_KAITE].val2 <= 0)
-					status_change_end(bl, SC_KAITE, -1);
-				if (src == bl)
-				  	heal=0; //When you try to heal yourself under Kaite, the heal is voided.
-				else {
-					bl = src;
-					dstsd = sd;
-				}
+			if (tsc && tsc->count)
+			{
+				if (tsc->data[SC_KAITE].timer != -1 && !(sstatus->mode&MD_BOSS)
+				) { //Bounce back heal
+					if (--tsc->data[SC_KAITE].val2 <= 0)
+						status_change_end(bl, SC_KAITE, -1);
+					if (src == bl)
+						heal=0; //When you try to heal yourself under Kaite, the heal is voided.
+					else {
+						bl = src;
+						dstsd = sd;
+					}
+				} else
+				if (tsc->data[SC_BERSERK].timer != -1)
+					heal = 0; //Needed so that it actually displays 0 when healing.
 			}
-
 			heal_get_jobexp = status_heal(bl,heal,0,0);
 			clif_skill_nodamage (src, bl, skillid, heal, 1);
 
