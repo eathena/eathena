@@ -5668,9 +5668,9 @@ int skill_castend_pos2 (struct block_list *src, int x, int y, int skillid, int s
 		break;
 	case CG_HERMODE:
 		skill_clear_unitgroup(src);
-		sg = skill_unitsetting(src,skillid,skilllv,x,y,0);
-		sc_start4(src,SC_DANCING,100,
-			skillid,0,skilllv,sg->group_id,skill_get_time(skillid,skilllv));
+		if ((sg = skill_unitsetting(src,skillid,skilllv,x,y,0)))
+			sc_start4(src,SC_DANCING,100,
+				skillid,0,skilllv,sg->group_id,skill_get_time(skillid,skilllv));
 		flag|=1;
 		break;
 	case RG_CLEANER: // [Valaris]
