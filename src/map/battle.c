@@ -3070,8 +3070,6 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		}
 			break;
 		//Valid targets with no special checks here.
-//		case BL_HOM:
-//			break;
 		//All else not specified is an invalid target.
 		default:	
 			return 0;
@@ -3624,7 +3622,7 @@ static const struct battle_data_short {
 	{ "mob_luk_status_def",					&battle_config.mob_luk_sc_def },
 	{ "pc_max_status_def",					&battle_config.pc_max_sc_def },
 	{ "mob_max_status_def",					&battle_config.mob_max_sc_def },
-	{ "sg_miracle_skill_ratio",				&battle_config.sg_miracle_skill_ratio },
+	{ "sg_miracle_skill_ratio",			&battle_config.sg_miracle_skill_ratio },
 	{ "autospell_stacking", 				&battle_config.autospell_stacking },
 	{ "override_mob_names", 				&battle_config.override_mob_names },
 	{ "min_chat_delay",						&battle_config.min_chat_delay },
@@ -3670,7 +3668,8 @@ static const struct battle_data_int {
 	{ "night_duration",                    &battle_config.night_duration	}, // added by [Yor]
 	{ "max_heal",                          &battle_config.max_heal },
 	{ "mob_remove_delay",                  &battle_config.mob_remove_delay	},
-	{ "sg_miracle_skill_duration",				&battle_config.sg_miracle_skill_duration },
+	{ "sg_miracle_skill_min_duration",		&battle_config.sg_miracle_skill_duration_min },
+	{ "sg_miracle_skill_max_duration",		&battle_config.sg_miracle_skill_duration_max },
 
 };
 
@@ -4055,7 +4054,8 @@ void battle_set_defaults() {
 	battle_config.pc_max_sc_def = 10000;
 	battle_config.mob_max_sc_def = 5000;
 	battle_config.sg_miracle_skill_ratio=1;
-	battle_config.sg_miracle_skill_duration=600000;
+	battle_config.sg_miracle_skill_duration_min=3000000;
+	battle_config.sg_miracle_skill_duration_max=9000000;
 	battle_config.autospell_stacking = 0;
 	battle_config.override_mob_names = 0;
 	battle_config.min_chat_delay = 0;
@@ -4224,6 +4224,17 @@ void battle_validate_conf() {
 
 	if (battle_config.sg_miracle_skill_ratio > 10000)
 		battle_config.sg_miracle_skill_ratio = 10000;
+
+	
+	if (battle_config.sg_miracle_skill_duration_min < 1000)
+		battle_config.sg_miracle_skill_duration_min = 1000;
+
+	//Store duration variation in the max setting
+	battle_config.sg_miracle_skill_duration_max -=
+		battle_config.sg_miracle_skill_duration_min;
+
+	if (battle_config.sg_miracle_skill_duration_max < 2000)
+		battle_config.sg_miracle_skill_duration_max = 2000;
 
 	if (battle_config.skill_steal_max_tries > UCHAR_MAX)
 		battle_config.skill_steal_max_tries = UCHAR_MAX;	

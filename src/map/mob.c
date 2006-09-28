@@ -617,6 +617,11 @@ int mob_setdelayspawn(struct mob_data *md)
 	return 0;
 }
 
+static int mob_count_sub(struct block_list *bl,va_list ap)
+{
+	return 1;
+}
+
 /*==========================================
  * Mob spawning. Initialization is also variously here.
  *------------------------------------------
@@ -653,6 +658,11 @@ int mob_spawn (struct mob_data *md)
 				add_timer(tick+5000,mob_delayspawn,md->bl.id,0);
 				return 1;
 			}
+		} else if (battle_config.no_spawn_on_player>99 &&
+			map_foreachinrange(mob_count_sub, &md->bl, AREA_SIZE, BL_PC))
+		{	//retry again later (players on sight)
+			add_timer(tick+5000,mob_delayspawn,md->bl.id,0);
+			return 1;
 		}
 	}
 	memset(&md->state, 0, sizeof(md->state));
@@ -2508,8 +2518,8 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 	if (event < 0 && DIFF_TICK(md->ud.canact_tick, tick) > 0)
 		return 0; //Skill act delay only affects non-event skills.
 
-	//Pick a random starting position and loop from that.
-	i = rand()%md->db->maxskill;
+	//Pick a starting position and loop from that.
+	i = battle_config.mob_ai&256?rand()%md->db->maxskill:0;
 	for (n = 0; n < md->db->maxskill; i++, n++) {
 		int c2, flag = 0;		
 

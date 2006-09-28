@@ -1,3 +1,10 @@
+09/28
+	* Removed config setting sg_miracle_skill_duration, replaced it with
+	  sg_miracle_skill_min_duration and sg_miracle_skill_max_duration
+	  (skill.conf) [Skotlex]
+	* Merged monster_ai&256 (pick random starting position when using skills),
+	  since now mobs by default will always check their skill list from the
+	  beginning. [Skotlex]
 09/27
 	* Merged exp, item_db, mob_db and mob_skill_db [Playtester]
 	- separate exp chart for Ninja/Gunslinger job exp
