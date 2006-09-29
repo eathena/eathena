@@ -34,6 +34,10 @@ Playtester
 
 Date		Added
 ======
+09/29
+	* Added official Kiel Dungeon entrance [Playtester]
+	- commented the custom warps
+	- note: there's no Kiel quest requirement yet, so anybody can go there
 09/27
 	* Added Rachel Field and Ice Dungeon spawn files [Playtester]
 	- commented for now
