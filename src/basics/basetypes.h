@@ -515,7 +515,7 @@ typedef int bool;
  #define TYPEDEF_TYPENAME
  #define TEMPLATE_TYPENAME
  #if _MSC_VER < 1300
-  // Visual Studio version 6 abd below
+  // Visual Studio version 6 and below
   #define PARAMETER_TYPENAME
  #else
   // Visual Studio .NET and above
@@ -537,6 +537,11 @@ typedef int bool;
  #if (_MSC_VER <= 1300) 
   // Visual Studio .Net and below
   #define TEMPLATE_NO_PARTIAL_SPECIALIZATION
+  #define TEMPLATE_NO_CV_VOID_SPECIALIZATION
+ #endif
+#elif defined(__BORLANDC__)
+ #if (__BORLANDC__ <= 0x551)
+  #define TEMPLATE_NO_CV_VOID_SPECIALIZATION
  #endif
 #endif
 
@@ -1041,6 +1046,12 @@ extern inline wchar_t tolower(wchar_t c){ return ::towlower( to_unsigned(c) ); }
 #else
 #define FASTCALL
 #endif
+#if defined(_MSVC) || defined(__BORLANDC__)
+#define CCDECL __cdecl
+#else
+#define CCDECL
+#endif
+
 
 int FASTCALL atomicincrement(int* target);
 inline unsigned int FASTCALL atomicincrement(unsigned int* target)
@@ -1614,7 +1625,7 @@ extern inline unsigned long RoundPowerOf2(unsigned long v)
 extern inline unsigned long moduloPowerOf2(unsigned long v, unsigned long s)
 {	// Most programmers learn this trick early, but it was included for the 
 	// sake of completeness. 
-	return v & ( (1<<s) - 1); // v % 2^s
+	return v & ( (1ul<<s) - 1); // v % 2^s
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1695,7 +1706,7 @@ inline unsigned long interleave_trivial(unsigned short x, unsigned short y)
 	size_t i;
 	for(i=0; i<sizeof(x)*NBBY; ++i)// unroll for more speed...
 	{
-		z |= (x & 1 << i) << i | (y & 1 << i) << (i + 1);
+		z |= (x & 1ul << i) << i | (y & 1ul << i) << (i + 1);
 	}
 	return z;
 }
@@ -1768,7 +1779,7 @@ template<class T> static inline T isqrt(const T& n)
 {
 	if(n>0)
 	{
-		T q=0, xx = (log2(n)/2), qx = ((n>>xx) + (1<<xx))/2;
+		T q=0, xx = (log2(n)/2), qx = ((n>>xx) + (1ul<<xx))/2;
 		do
 		{
 			q  = qx;
@@ -1855,7 +1866,7 @@ template<class T> inline T imax(const T& x, const T& y)
 extern inline unsigned long pow2(unsigned long v)
 {
 	if( v < NBBY*sizeof(unsigned long) )
-		return 1<<v;
+		return 1ul<<v;
 	return 0;
 }
 

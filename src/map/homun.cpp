@@ -83,18 +83,19 @@ int homun_natural_heal_sp(int tid,unsigned long tick,int id, basics::numptr data
 
 
 /// constructor. needs char_id of associated charater for creation
-homun_data::homun_data(uint32 char_id) :
+homun_data::homun_data(map_session_data &sd) :
 	invincible_timer(-1),
 	natural_heal_hp_timer(-1),
 	natural_heal_sp_timer(-1),
 	hungry_timer(-1),
-	hungry_cry_timer(-1)
+	hungry_cry_timer(-1),
+	msd(sd)
 {
-	this->status.char_id = char_id;
+	this->status.char_id = sd.status.char_id;
 
 	// check if local database already contains an element
 	// (should actually not happen, but just to be sure)
-	struct homun_data *hd = (struct homun_data *)numdb_search(homun_id_db, char_id);
+	struct homun_data *hd = (struct homun_data *)numdb_search(homun_id_db, sd.status.char_id);
 	block_list::freeblock_lock();
 	
 	if(hd)
@@ -105,7 +106,8 @@ homun_data::homun_data(uint32 char_id) :
 	block_list::freeblock_unlock();
 
 	// insert to local database
-	numdb_insert(homun_id_db, char_id, this);
+	numdb_insert(homun_id_db, sd.status.char_id, this);
+	this->msd.hd = this;
 }
 /// destructor. does automatic cleanup
 homun_data::~homun_data()
@@ -114,9 +116,9 @@ homun_data::~homun_data()
 	this->delete_natural_heal_timer();
 	this->delete_hungry_timer();
 
-
 	// remove from local database
 	numdb_erase(homun_id_db, this->status.char_id);
+	this->msd.hd = NULL;
 }
 /*
 homun_data *homun_data::get_homunculus(uint32 char_id)
@@ -148,7 +150,7 @@ void homun_data::recv_homunculus(struct homunstatus &p, int flag)
 
 	if( !sd->hd )
 	{
-		sd->hd = new homun_data(sd->status.char_id);
+		sd->hd = new homun_data(*sd);
 	}
 	else if(sd->hd->status.homun_id != p.homun_id)
 	{
@@ -178,30 +180,26 @@ void homun_data::recv_homunculus(struct homunstatus &p, int flag)
 	return;
 }
 
-int homun_delete_data(map_session_data &sd)
+void homun_data::delete_data()
 {
-	if( sd.hd )
-	{
-		//親密度保存
-//		if(config.save_homun_temporal_intimate)
-//			pc_setglobalreg(sd,"HOM_TEMP_INTIMATE",2000);//初期値に
-	
-		sd.hd->status.incubate = 0;
-		sd.hd->save_data();
+	//親密度保存
+//	if(config.save_homun_temporal_intimate)
+//		pc_setglobalreg(this->msd,"HOM_TEMP_INTIMATE",2000);//初期値に
 
-		intif_delete_homdata(sd.status.account_id, sd.status.char_id, sd.hd->status.homun_id);
+	this->status.incubate = 0;
+	this->save_data();
 
-		sd.hd->delblock();
-		sd.hd->deliddb();
-		sd.hd->freeblock();
-		sd.hd=NULL;
+	intif_delete_homdata(this->msd.status.account_id, this->msd.status.char_id, this->status.homun_id);
 
-		sd.status.homun_id = 0;
-		pc_makesavestatus(sd);
-		chrif_save(sd);
-		storage_storage_save(sd);
-	}
-	return 0;
+	this->msd.hd=NULL;
+	this->msd.status.homun_id = 0;
+	pc_makesavestatus(this->msd);
+	chrif_save(this->msd);
+	storage_storage_save(this->msd);
+
+	this->delblock();
+	this->deliddb();
+	this->freeblock();
 }
 
 void homun_data::save_data()
@@ -216,13 +214,6 @@ int homun_hungry_cry(int tid, unsigned long tick, int id, basics::numptr data)
 	homun_data *hd = homun_data::from_blid(id);
 	if( hd )
 	{
-		if( hd->msd==NULL )
-		{
-			// remove masterless unit
-
-			return 1;
-		}
-		
 		if( hd->hungry_cry_timer != tid )
 		{
 			if(config.error_log)
@@ -242,13 +233,6 @@ int homun_hungry(int tid, unsigned long tick, int id, basics::numptr data)
 	homun_data * hd;
 	if(bl && (hd = bl->get_hd()) )
 	{
-		if( hd->msd==NULL )
-		{
-			// remove masterless unit
-
-			return 1;
-		}
-		
 		if(hd->hungry_timer != tid)
 		{
 			if(config.error_log)
@@ -266,7 +250,7 @@ int homun_hungry(int tid, unsigned long tick, int id, basics::numptr data)
 				f=1;
 			hd->status.intimate -= 20*config.homun_intimate_rate/100;
 			clif_emotion(*hd,28);
-			if(hd->msd) clif_send_homdata(*hd->msd, 0x100, hd->intimate/100);
+			clif_send_homdata(hd->msd, 0x100, hd->intimate/100);
 			if( hd->status.intimate <= 0 )
 				hd->status.intimate = 0;
 			if(f)
@@ -280,13 +264,9 @@ int homun_hungry(int tid, unsigned long tick, int id, basics::numptr data)
 			delete_timer(hd->hungry_cry_timer,homun_hungry_cry);
 			hd->hungry_cry_timer = -1;
 		}
-		
-		if(hd->msd) 
-		{
-			clif_send_homdata(*hd->msd, 2, hd->status.hungry);
-			// 本鯖ではここでステータスを送らないが、送らないと"ホムが腹ぺこです！"が出ない
-			clif_send_homstatus(*hd->msd,0);
-		}
+		clif_send_homdata(hd->msd, 2, hd->status.hungry);
+		// 本鯖ではここでステータスを送らないが、送らないと"ホムが腹ぺこです！"が出ない
+		clif_send_homstatus(hd->msd,0);
 		
 		hd->hungry_timer = add_timer(tick+60*1000, homun_hungry, hd->block_list::id, 0);
 	}
@@ -612,7 +592,7 @@ homun_data *homun_data::create_homunculus(map_session_data &sd, unsigned short h
 	int class_ = homunid-HOM_ID;
 	if( !sd.hd )
 	{
-		sd.hd = new homun_data(sd.status.char_id);
+		sd.hd = new homun_data(sd);
 	}
 
 	sd.hd->status.class_ = homunid;
@@ -651,150 +631,138 @@ homun_data *homun_data::create_homunculus(map_session_data &sd, unsigned short h
 	return sd.hd;
 }
 
-bool homun_data::return_to_embryo(map_session_data &sd)
+bool homun_data::return_to_embryo()
 {
-	if( sd.hd && !sd.hd->is_dead() )
+	if( !this->is_dead() )
 	{	//親密度保存
 //		if(config.save_homun_temporal_intimate)
 //			pc_setglobalreg(sd,"HOM_TEMP_INTIMATE", hd->intimate);
-		sd.hd->status.incubate = 0;
-		sd.hd->save_data();
+		this->status.incubate = 0;
+		this->save_data();
 
-		sd.hd->delblock();
-		sd.hd->deliddb();
-		sd.hd->freeblock();
-		sd.hd=NULL;
+		this->delblock();
+		this->deliddb();
+		this->freeblock();
 		return true;
 	}
 	return false;
 }
 
 
-bool homun_data::revive(map_session_data &sd, unsigned short skilllv)
+bool homun_data::revive(unsigned short skilllv)
 {
-	if( !sd.hd || sd.hd->status.hp>0 )
-	{
-		sd.clif_skill_failed(AM_RESURRECTHOMUN,0,0);
-		return false;
+	if( this->status.hp==0 )
+	{	// 蘇生時HP = 死亡時HP（≦0）+ MAXHP * (Skill Lv * 0.2)
+		this->status.hp = this->status.max_hp * skilllv / 5;
+		if( this->status.hp>this->status.max_hp )
+			this->status.hp = this->status.max_hp;
+		homun_data::call_homunculus(this->msd);
+		return true;
 	}
-	// 蘇生時HP = 死亡時HP（≦0）+ MAXHP * (Skill Lv * 0.2)
-	sd.hd->status.hp = sd.hd->status.max_hp * skilllv / 5;
-	if( sd.hd->status.hp>sd.hd->status.max_hp )
-		sd.hd->status.hp = sd.hd->status.max_hp;
-	homun_data::call_homunculus(sd);
-	return true;
+	return false;
 }
 
 
-int homun_food(map_session_data &sd)
+void homun_data::food()
 {
 	int i,t,food,class_,emotion;
+	class_ = this->status.class_-HOM_ID;
 
-	if(!sd.hd)
-		return 1;
-
-	class_ = sd.hd->status.class_-HOM_ID;
 	food = homun_db[class_].FoodID;
 
-	i = pc_search_inventory(sd,food);
+	i = pc_search_inventory(this->msd,food);
 	if(i < 0)
 	{
-		clif_hom_food(sd,food,0);
-		return 1;
-	}
-	pc_delitem(sd,i,1,0);
-	t = sd.hd->status.hungry;
-	if(t > 90)
-	{
-		sd.hd->status.intimate -= 50*config.homun_intimate_rate/100;
-		sd.hd->intimate -= 50*config.homun_intimate_rate/100;
-		emotion = 16;
-	}
-	else if(t > 75)
-	{
-		sd.hd->status.intimate -= 30*config.homun_intimate_rate/100;
-		sd.hd->intimate -= 30*config.homun_intimate_rate/100;
-		emotion = 19;
-	}
-	else if(t > 25)
-	{
-		sd.hd->status.intimate += 80*config.homun_intimate_rate/100;
-		sd.hd->intimate += 80*config.homun_intimate_rate/100;
-		emotion = 2;
-	}
-	else if(t > 10)
-	{
-		sd.hd->status.intimate +=100*config.homun_intimate_rate/100;
-		sd.hd->intimate +=100*config.homun_intimate_rate/100;
-		emotion = 2;
+		clif_hom_food(this->msd,food,0);
 	}
 	else
 	{
-		sd.hd->status.intimate += 50*config.homun_intimate_rate/100;
-		sd.hd->intimate += 50*config.homun_intimate_rate/100;
-		emotion = 2;
-	}
-	if( sd.hd->status.intimate <= 0 )
-		sd.hd->status.intimate = 0;
-	if( sd.hd->status.intimate > 100000 )
-		sd.hd->status.intimate = 100000;
-	if( sd.hd->intimate <= 0 )
-		sd.hd->intimate = 0;
-	if( sd.hd->intimate > 100000 )
-		sd.hd->intimate = 100000;
-	sd.hd->status.hungry += 10;
-	if(sd.hd->status.hungry > 100)
-		sd.hd->status.hungry = 100;
-
-	if(sd.hd->hungry_cry_timer != -1)
-	{
-		delete_timer(sd.hd->hungry_cry_timer,homun_hungry_cry);
-		sd.hd->hungry_cry_timer = -1;
-	}
-
-	clif_emotion(sd, emotion);
-	clif_send_homdata(sd, 2, sd.hd->status.hungry);
-	clif_send_homdata(sd, 0x100, sd.hd->intimate/100);
-	clif_send_homstatus(sd, 0);
-	clif_hom_food(sd, food, 1);
-
-	return 0;
-}
-
-
-void homun_data::menu(map_session_data &sd,unsigned short menunum)
-{
-	if(sd.hd)
-	{
-		switch(menunum)
+		pc_delitem(this->msd,i,1,0);
+		t = this->status.hungry;
+		if(t > 90)
 		{
-			case 0:
-				clif_send_homstatus(sd,0);
-				break;
-			case 1:
-				homun_food(sd);
-				break;
-			case 2:
-				homun_delete_data(sd);
-				break;
+			this->status.intimate -= 50*config.homun_intimate_rate/100;
+			this->intimate -= 50*config.homun_intimate_rate/100;
+			emotion = 16;
 		}
+		else if(t > 75)
+		{
+			this->status.intimate -= 30*config.homun_intimate_rate/100;
+			this->intimate -= 30*config.homun_intimate_rate/100;
+			emotion = 19;
+		}
+		else if(t > 25)
+		{
+			this->status.intimate += 80*config.homun_intimate_rate/100;
+			this->intimate += 80*config.homun_intimate_rate/100;
+			emotion = 2;
+		}
+		else if(t > 10)
+		{
+			this->status.intimate +=100*config.homun_intimate_rate/100;
+			this->intimate +=100*config.homun_intimate_rate/100;
+			emotion = 2;
+		}
+		else
+		{
+			this->status.intimate += 50*config.homun_intimate_rate/100;
+			this->intimate += 50*config.homun_intimate_rate/100;
+			emotion = 2;
+		}
+		if( this->status.intimate <= 0 )
+			this->status.intimate = 0;
+		if( this->status.intimate > 100000 )
+			this->status.intimate = 100000;
+		if( this->intimate <= 0 )
+			this->intimate = 0;
+		if( this->intimate > 100000 )
+			this->intimate = 100000;
+		this->status.hungry += 10;
+		if(this->status.hungry > 100)
+			this->status.hungry = 100;
+
+		if(this->hungry_cry_timer != -1)
+		{
+			delete_timer(this->hungry_cry_timer,homun_hungry_cry);
+			this->hungry_cry_timer = -1;
+		}
+
+		clif_emotion(this->msd, emotion);
+		clif_send_homdata(this->msd, 2, this->status.hungry);
+		clif_send_homdata(this->msd, 0x100, this->intimate/100);
+		clif_send_homstatus(this->msd, 0);
+		clif_hom_food(this->msd, food, 1);
 	}
 }
 
 
-void homun_data::return_to_master(map_session_data &sd)
+void homun_data::menu(unsigned short menunum)
 {
-	if(sd.hd)
+	switch(menunum)
 	{
-		sd.hd->random_walktarget(sd);
-		sd.hd->walktoxy(sd.hd->walktarget.x,sd.hd->walktarget.y);
+		case 0:
+			clif_send_homstatus(this->msd,0);
+			break;
+		case 1:
+			this->food();
+			break;
+		case 2:
+			this->delete_data();
+			break;
 	}
 }
 
 
-bool homun_data::change_name(map_session_data &sd, const char *name)
+void homun_data::return_to_master()
 {
-	if(sd.hd&& (sd.hd->status.rename_flag == 0 || config.pet_rename == 1) )
+	this->random_walktarget(this->msd);
+	this->walktoxy(this->walktarget.x,this->walktarget.y);
+}
+
+
+bool homun_data::change_name(const char *name)
+{
+	if( this->status.rename_flag == 0 || config.pet_rename == 1 )
 	{
 		int i;
 		for(i=0;i<24 && name[i];i++)
@@ -802,16 +770,16 @@ bool homun_data::change_name(map_session_data &sd, const char *name)
 			if( !(name[i]&0xe0) || name[i]==0x7f )
 				return 1;
 		}
-		sd.hd->stop_walking(1);
-		memcpy(sd.hd->status.name, name, 24);
-		sd.hd->save_data();
-		clif_clearchar_area(*sd.hd,0);
-		clif_spawnhom(*sd.hd);
-		clif_send_homstatus(sd,1);
-		clif_send_homstatus(sd,0);
-		sd.hd->status.rename_flag = 1;
-	//	clif_hom_equip(sd);
-		clif_send_homstatus(sd,0);
+		this->stop_walking(1);
+		safestrcpy(this->status.name, sizeof(this->status.name), name);
+		this->save_data();
+		clif_clearchar_area(*this,0);
+		clif_spawnhom(*this);
+		clif_send_homstatus(this->msd,1);
+		clif_send_homstatus(this->msd,0);
+		this->status.rename_flag = 1;
+	//	clif_hom_equip(this->msd);
+		clif_send_homstatus(this->msd,0);
 		return true;
 	}
 	return false;
@@ -828,27 +796,24 @@ int homun_data::checkskill(unsigned short skill_id)
 }
 
 
-bool homun_data::skillup(map_session_data &sd, unsigned short skill_id)
+bool homun_data::skillup(unsigned short skill_id)
 {
-	if(sd.hd)
+	unsigned short skill_num = skill_id;
+	if(skill_id >= HOM_SKILLID) skill_id -= HOM_SKILLID;
+	if(skill_id < MAX_HOMSKILL)
 	{
-		unsigned short skill_num = skill_id;
-		if(skill_id >= HOM_SKILLID) skill_id -= HOM_SKILLID;
-		if(skill_id < MAX_HOMSKILL)
+		if( this->status.skill_point>0 &&
+			this->status.skill[skill_id].id!=0 &&
+			this->status.skill[skill_id].lv < skill_get_max(skill_num) )
 		{
-			if( sd.hd->status.skill_point>0 &&
-				sd.hd->status.skill[skill_id].id!=0 &&
-				sd.hd->status.skill[skill_id].lv < skill_get_max(skill_num) )
-			{
-				sd.hd->status.skill[skill_id].lv++;
-				sd.hd->status.skill_point--;
-				sd.hd->calc_skilltree();
+			++this->status.skill[skill_id].lv;
+			--this->status.skill_point;
+			this->calc_skilltree();
 
-				clif_homskillup(sd,skill_num);
-				clif_send_homstatus(sd,0);
-				clif_homskillinfoblock(sd);
-				return true;
-			}
+			clif_homskillup(this->msd,skill_num);
+			clif_send_homstatus(this->msd,0);
+			clif_homskillinfoblock(this->msd);
+			return true;
 		}
 	}
 	return false;
@@ -914,11 +879,9 @@ bool homun_data::check_baselevelup()
 		this->calc_status();			// ステータス計算
 		this->heal(this->max_hp,this->max_sp);
 		clif_setareaeffect(*this,568);
-		if(this->msd)
-		{
-			clif_send_homstatus(*this->msd, 0);
-			clif_homskillinfoblock(*this->msd);
-		}
+		clif_send_homstatus(this->msd, 0);
+		clif_homskillinfoblock(this->msd);
+
 		return true;
 	}
 
@@ -949,8 +912,7 @@ void homun_data::gain_exp(uint32 base_exp, uint32 job_exp, block_list &obj)
 	if(config.master_get_homun_job_exp)
 		mjexp = job_exp;
 
-	if(this->msd)	// 主人へ同じだけ経験値
-		pc_gainexp(*this->msd,mbexp,mjexp);
+	pc_gainexp(this->msd,mbexp,mjexp);
 
 	per = 150;//config.next_exp_limit;
 	if(base_exp>0)
@@ -981,8 +943,7 @@ void homun_data::gain_exp(uint32 base_exp, uint32 job_exp, block_list &obj)
 		{
 			this->status.base_exp += base_exp;
 		}
-		if(this->msd)
-			clif_send_homstatus(*this->msd, 0);
+		clif_send_homstatus(this->msd, 0);
 	}
 }
 
@@ -1024,8 +985,7 @@ int homun_data::damage(block_list &src, uint32 damage)
 	if(hd.status.option&4 )
 		status_change_end(&hd, SC_CLOAKING, -1);
 
-	if(hd.msd)
-		clif_send_homstatus(*hd.msd, 0);
+	clif_send_homstatus(hd.msd, 0);
 
 	// 死亡していた
 	if(hd.status.hp<=0)
@@ -1058,8 +1018,8 @@ int homun_data::heal(int hp, int sp)
 	hd.status.hp+=hp;
 	hd.status.sp+=sp;
 
-	if((hp || sp) && hd.msd)
-		clif_send_homstatus(*hd.msd,0);
+	if(hp || sp)
+		clif_send_homstatus(hd.msd,0);
 
 	if( hd.status.hp <= 0)
 	{	// killed by negative heal
@@ -1105,8 +1065,8 @@ int homun_natural_heal_hp(int tid, unsigned long tick, int id, basics::numptr da
 			hd->status.hp += hd->nhealhp;
 			if(hd->status.hp > hd->max_hp)
 				hd->status.hp = hd->max_hp;
-			if(bhp != hd->status.hp && hd->msd)
-				clif_send_homstatus(*hd->msd,0);
+			if(bhp != hd->status.hp)
+				clif_send_homstatus(hd->msd,0);
 		}
 		hd->natural_heal_hp_timer = add_timer(tick+NATURAL_HEAL_HP_INTERVAL, homun_natural_heal_hp, hd->block_list::id, 0);
 	}
@@ -1134,7 +1094,7 @@ int homun_natural_heal_sp(int tid, unsigned long tick, int id, basics::numptr da
 			hd->intimate+=config.homun_temporal_intimate_resilience;
 			if(hd->status.intimate<hd->intimate)
 				hd->intimate = hd->status.intimate;
-			clif_send_homdata(*hd->msd,0x100,hd->intimate/100);
+			clif_send_homdata(hd->msd,0x100,hd->intimate/100);
 		}
 
 		if(hd->walktimer == -1)
@@ -1142,8 +1102,8 @@ int homun_natural_heal_sp(int tid, unsigned long tick, int id, basics::numptr da
 			hd->status.sp += hd->nhealsp;
 			if(hd->status.sp > hd->max_sp)
 				hd->status.sp = hd->max_sp;
-			if(bsp != hd->status.sp && hd->msd)
-				clif_send_homstatus(*hd->msd,0);
+			if(bsp != hd->status.sp)
+				clif_send_homstatus(hd->msd,0);
 		}
 		hd->natural_heal_sp_timer = add_timer(tick+NATURAL_HEAL_SP_INTERVAL, homun_natural_heal_sp, hd->block_list::id, 0);
 	}
@@ -1207,7 +1167,7 @@ bool homun_data::call_homunculus(map_session_data &sd)
 			sd.hd->target_id = 0;
 			sd.hd->atackable = 1;	// これを0にすると、クライアントから攻撃パケットを出さなくなる
 			sd.hd->limits_to_growth = 0;
-			sd.hd->msd = &sd;
+
 
 			//## range check
 			sd.hd->view_class = homun_db[sd.hd->status.class_-HOM_ID].view_class;

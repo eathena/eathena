@@ -27,8 +27,7 @@ extern struct Script_Config
 	unsigned warn_func_mismatch_paramnum : 1;
 	unsigned warn_cmd_mismatch_paramnum : 1;
 	unsigned event_requires_trigger : 1;
-	unsigned event_script_type : 1;
-	unsigned _unused7 : 1;
+	unsigned _unused : 2;
 
 	size_t check_cmdcount;
 	size_t check_gotocount;
@@ -60,7 +59,7 @@ private:
 	enum STATES		{ OFF=0,RUN, STOP,END,RERUNLINE,GOTO,RETFUNC,ENVSWAP }; // 0...6 ->3bit
 	enum NPCSTATE	{ NONE=0, NPC_GIVEN=1, NPC_DEFAULT=2 };					// 0...2 ->2bit
 public:
-	enum
+	enum operation_t
 	{
 		C_NOP=0,C_POS,C_INT,C_PARAM,C_FUNC,C_STR,C_CONSTSTR,C_ARG,
 		C_NAME,C_EOL, C_RETINFO,
@@ -538,6 +537,7 @@ struct script_regstr
 /// is used as conversion vehicle toward the new script engine
 struct script_object : public basics::noncopyable
 {
+public:
 	struct script_label
 	{
 		char name[24];
@@ -614,7 +614,6 @@ public:
 	/// access on a script label position by name.
 	/// returns the entry position of the label or 0 when not existing
 	size_t get_labelpos(const char* labelname) const;
-
 };
 
 

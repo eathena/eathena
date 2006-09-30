@@ -6,8 +6,6 @@
 
 #include "pc.h"
 
-//## TODO: rename the npc_chat stuff to maybe npc_listen and have this stuff here be more seperated 
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /// a (player) chat object

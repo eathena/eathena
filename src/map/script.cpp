@@ -870,8 +870,6 @@ void check_script_buf(int size)
  */
 void add_scriptb(int a)
 {
-	if(a==27)
-		a=27;
 	check_script_buf(1);
 	script_buf[script_pos++]=a;
 }
@@ -895,7 +893,8 @@ void add_scriptc(int a)
  */
 void add_scripti(int a)
 {
-	while(a>=0x40){
+	while(a>=0x40)
+	{
 		add_scriptb(a|0xc0);
 		a=(a-0x40)>>6;
 	}
@@ -928,7 +927,8 @@ void add_scriptl(int l)
 		add_scriptb(backpatch>>16);
 		break;
 	case CScriptEngine::C_INT:
-		add_scripti(str_data[l].val);
+		add_scripti((str_data[l].val<0)?-str_data[l].val:str_data[l].val);
+		if(str_data[l].val < 0) add_scriptc(CScriptEngine::C_NEG);
 		break;
 	default:
 		// もう他の用途と確定してるので数字をそのまま
@@ -1470,16 +1470,21 @@ char* parse_line(char *p)
 ///////////////////////////////////////////////////////////////////////////////
 size_t script_object::get_labelpos(const char* labelname) const
 {
-	size_t i;
-	for(i=0; i<label_list_num; ++i)
+	if(labelname)
 	{
-		if(0==strcmp(label_list[i].name, labelname) )
+		size_t i;
+		for(i=0; i<label_list_num; ++i)
 		{
-			return label_list[i].pos;
+			if(0==strcasecmp(label_list[i].name, labelname) )
+			{
+				return label_list[i].pos;
+			}
 		}
 	}
 	return 0;
 }
+
+
 ///////////////////////////////////////////////////////////////////////////////
 void script_object::insert_label(const char* labelname, size_t len, size_t pos)
 {
@@ -1855,14 +1860,14 @@ v18 xxxx-xx-xx	text & input ok
 		{
 			if( NONE==this->npcstate )
 			{	// determine what npc is to be used
-				if( this->nd && this->nd->is_near(*(this->sd)) )
-				{	// npc is ok
+				if( this->nd && this->nd->class_>0 && this->nd->is_near(*(this->sd)) )
+				{	// npc is ok (not floating and near the pc)
 //printf("npc ok ");
 					ret = this->nd->block_list::id;
 					this->npcstate = NPC_GIVEN;
 				}
 				else
-				{	
+				{	// not ok, so we send the defaultnpc
 					static basics::Mutex mx;
 					basics::ScopeLock sl(mx);	// lock the scope
 
@@ -5256,31 +5261,6 @@ int buildin_areamonster(CScriptEngine &st)
  * モンスター削除
  *------------------------------------------
  */
-/*
-int buildin_killmonster_sub(block_list &bl,va_list &ap)
-{
-	mob_data &md =(mob_data&)bl;
-	char *event=va_arg(ap,char *);
-	int allflag=va_arg(ap,int);
-
-	if(allflag)
-	{	// delete all script-summoned mobs
-		if( !md.cache  )
-			mob_unload(md);
-	}
-	else
-	{	// delete only mobs with same event name
-		if(strcmp(event, md.npc_event)==0)
-			mob_remove_map(md, 0);
-	}
-	return 0;
-}
-int buildin_killmonsterall_sub(block_list &bl,va_list &ap)
-{
-	mob_remove_map((mob_data &)bl, 1);
-	return 0;
-}
-*/
 class CBuildinKillSummonedmob : public CMapProcessor
 {
 public:
@@ -5291,7 +5271,7 @@ public:
 		mob_data *md = bl.get_md();
 		if( md && !md->cache)
 		{	// delete all script-summoned mobs
-			mob_unload(*md);
+			md->freeblock();
 			return 1;
 		}
 		return 0;
@@ -5308,7 +5288,7 @@ public:
 		mob_data *md = bl.get_md();
 		if( md && 0==strcmp(event, md->npc_event))
 		{	// delete only mobs with same event name
-			mob_remove_map(*md, 0);
+			md->remove_map(0);
 			return 1;
 		}
 		return 0;
@@ -5324,7 +5304,7 @@ public:
 		mob_data *md = bl.get_md();
 		if( md )
 		{	
-			mob_remove_map(*md, 1);
+			md->remove_map(1);
 			return 1;
 		}
 		return 0;
@@ -5444,14 +5424,15 @@ int buildin_initnpctimer(CScriptEngine &st)
 	npcscript_data *nd;
 	ushort pos=0;
 	if( st.Arguments() > 2 )
-	{
+	{	// try name as second operand
 		nd= npcscript_data::from_name(st.GetString(st[2]));
+		// if failed and have exactly two operands take it as starting position
 		if( !nd && st.Arguments() == 2 )
 			pos = st.GetInt(st[2]);
 	}
 	else
 		nd= st.nd;
-
+	// take third operand as position if exists
 	if( st.Arguments() > 3 )
 		pos = st.GetInt(st[3]);
 
@@ -5529,7 +5510,7 @@ int buildin_setnpctimer(CScriptEngine &st)
 		nd=st.nd;
 
 	// from usage in current scripts, setnpctimer works same as initnpctimer
-	// exept that it always uses the current npc
+	// exept that it always used the current npc
 	if(nd) nd->eventtimer_init(st.sd?st.sd->block_list::id:0, pos);
 	return 0;
 }
@@ -6753,7 +6734,7 @@ public:
 		{
 			// guardians
 			if( flag&4 && (md->class_ < 1285 || md->class_ > 1288) )
-				mob_remove_map(*md, 1);
+				md->remove_map(1);
 		}
 		return 0;
 	}
@@ -7493,9 +7474,9 @@ int buildin_petloot(CScriptEngine &st)
 		max = MAX_PETLOOT_SIZE;
 	
 	pd = sd->pd;
-	if(pd && pd->loot && pd->msd)
+	if(pd && pd->loot)
 	{	//Release whatever was there already and reallocate memory
-		pet_lootitem_drop(*pd, pd->msd);
+		pd->droploot();
 		delete[] pd->loot->itemlist;
 	}
 	else
@@ -7578,7 +7559,6 @@ int buildin_clearitem(CScriptEngine &st)
  */
 int buildin_classchange(CScriptEngine &st)
 {
-	
 	if(st.nd)
 	{
 		int class_=st.GetInt(st[2]);
@@ -7594,10 +7574,11 @@ int buildin_classchange(CScriptEngine &st)
  */
 int buildin_misceffect(CScriptEngine &st)
 {
-	if(st.nd)
+	const block_list* bl = (st.nd)?((block_list*)st.nd):(st.sd)?((block_list*)st.sd):NULL;
+	if(bl)
 	{
 		int effect = st.GetInt(st[2]);
-		clif_setareaeffect(*st.nd, effect);
+		clif_setareaeffect(*bl, effect);
 	}
 	return 0;
 }
@@ -9035,13 +9016,13 @@ int buildin_callshop(CScriptEngine &st)
 			switch (flag)
 			{
 			case 1: //Buy window
-				npc_buysellsel(*st.sd,sh->block_list::id,0);
+				sh->buywindow(*st.sd);
 				break;
 			case 2: //Sell window
-				npc_buysellsel(*st.sd,sh->block_list::id,1);
+				sh->sellwindow(*st.sd);
 				break;
 			default: //Show menu
-				clif_npcbuysell(*st.sd,sh->block_list::id);
+				sh->OnClick(*st.sd);
 				break;
 			}
 			st.sd->npc_shopid = sh->block_list::id;
@@ -9253,7 +9234,6 @@ int script_config_read(const char *cfgName)
 	script_config.check_gotocount=1024;
 
 
-	script_config.event_script_type = 0;
 	script_config.event_requires_trigger = 1;
 
 	fp=basics::safefopen(cfgName,"r");
@@ -9301,10 +9281,6 @@ int script_config_read(const char *cfgName)
 			{
 				script_config.check_gotocount = basics::config_switch<int>(w2);
 			}
-			else if(strcasecmp(w1,"event_script_type")==0)
-			{
-				script_config.event_script_type = basics::config_switch<int>(w2);
-			}
 			else if(strcasecmp(w1,"die_event_name")==0)
 			{			
 				safestrcpy(script_config.die_event_name, sizeof(script_config.die_event_name), w2);
@@ -9332,6 +9308,10 @@ int script_config_read(const char *cfgName)
 			else if(strcasecmp(w1,"import")==0)
 			{
 				script_config_read(w2);
+			}
+			else
+			{
+				ShowWarning("unknown option '%s' in '%s', ignored", w1, cfgName);
 			}
 		}
 	}
@@ -9402,7 +9382,6 @@ int do_init_script()
 	script_config.warn_func_mismatch_paramnum = 1;
 	script_config.warn_cmd_mismatch_paramnum = 1;
 	script_config.event_requires_trigger = 1;
-	script_config.event_script_type = 1;
 	script_config.check_cmdcount = 0;
 	script_config.check_gotocount = 0;
 

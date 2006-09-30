@@ -226,7 +226,9 @@ map_session_data::map_session_data(int fdi, int packver, uint32 accid, uint32 ch
 /// destructor.
 map_session_data::~map_session_data()
 {
-	clean_db();
+	if(this->pd) delete pd;
+	if(this->hd) delete hd;
+	this->clean_db();
 }
 
 
@@ -519,8 +521,8 @@ void map_session_data::do_attack()
  */
 int map_session_data::heal(int hp, int sp)
 {
-//	if(config.battle_log)
-//		ShowMessage("heal %d %d\n",hp,sp);
+	if(config.battle_log)
+		ShowMessage("heal %d %d\n",hp,sp);
 	map_session_data& sd = *this;
 
 	if( sd.sc_data[SC_BERSERK].timer!=-1 ) //バ?サ?ク中は回復させないらしい
@@ -1225,12 +1227,14 @@ int pc_authok(uint32 charid, uint32 login_id2, time_t connect_until_time, unsign
 	}
 
 	// Automated script events
-	if (script_config.event_requires_trigger) {
+	if (script_config.event_requires_trigger)
+	{
 		sd->state.event_death = pc_readglobalreg(*sd, script_config.die_event_name);
 		sd->state.event_kill = pc_readglobalreg(*sd, script_config.kill_event_name);
 		sd->state.event_disconnect = pc_readglobalreg(*sd, script_config.logout_event_name);
-	// if script triggers are not required
-	} else {
+	}
+	else
+	{	// if script triggers are not required
 		sd->state.event_death = 1;
 		sd->state.event_kill = 1;
 		sd->state.event_disconnect = 1;
@@ -1324,21 +1328,7 @@ int pc_authok(uint32 charid, uint32 login_id2, time_t connect_until_time, unsign
 	else
 		ShowInfo("Character '"CL_WHITE"%s"CL_RESET"' logged in.\n"CL_SPACE"(Account ID: '"CL_WHITE"%d"CL_RESET"') [connection %i, ver. %i].\n", sd->status.name, sd->status.account_id, sd->fd, sd->packet_ver);
 
-
-	if (script_config.event_script_type == 0)
-	{
-		npcscript_data *sc= npcscript_data::from_name(script_config.login_event_name);
-		if(sc && sc->ref && (sc->block_list::m==0xFFFF || sc->block_list::m==sd->block_list::m) )
-		{
-			CScriptEngine::run(sc->ref->script,0,sd->block_list::id,sc->block_list::id); // PCLoginNPC
-			ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.login_event_name);
-		}
-	}
-	else
-	{
-		int evt = npc_data::event("OnPCLoginEvent", *sd);
-		if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCLoginEvent");
-	}
+	npc_data::event("OnPCLoginEvent", script_config.login_event_name, *sd);
 
 	return 0;
 }
@@ -3604,8 +3594,8 @@ bool pc_setpos(map_session_data &sd, const char *mapname_org, unsigned short x, 
 			{
 				if(sd.pd->block_list::m != m && sd.pd->pet.intimate <= 0)
 				{
-					pet_remove_map(sd);
 					intif_delete_petdata(sd.status.pet_id);
+					sd.pd->freeblock();
 					sd.status.pet_id = 0;
 					sd.pd = NULL;
 					if(config.pet_status_support)
@@ -3696,8 +3686,8 @@ bool pc_setpos(map_session_data &sd, const char *mapname_org, unsigned short x, 
 		{
 			if(sd.pd->block_list::m != m && sd.pd->pet.intimate <= 0)
 			{
-				pet_remove_map(sd);
 				intif_delete_petdata(sd.status.pet_id);
+				sd.pd->freeblock();
 				sd.status.pet_id = 0;
 				sd.pd = NULL;
 				if(config.pet_status_support)
@@ -4121,24 +4111,7 @@ int pc_checkbaselevelup(map_session_data &sd)
 		//レベルアップしたのでパ?ティ?情報を更新する
 		//(公平範?チェック)
 		party_send_movemap(sd);
-
-		//LORDALFA - LVLUPEVENT
-		if (script_config.event_script_type == 0)
-		{
-			npcscript_data *sc= npcscript_data::from_name("PCBaseUpEvent");
-			if(sc && sc->ref)
-			{
-				CScriptEngine::run(sc->ref->script,0,sd.block_list::id,sc->block_list::id); // PCLvlUPNPC
-				ShowStatus("Event '"CL_WHITE"PCBaseUpEvent"CL_RESET"' executed.\n");
-			}
-		}
-		else
-		{
-			int evt = npc_data::event("OnPCBaseUpEvent", sd);
-			if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "PCBaseUpEvent");
-		}
-		//LORDALFA - LVLUPEVENT
-
+		npc_data::event("PCBaseUpEvent", "PCBaseUpEvent", sd);
 		return 1;
 	}
 
@@ -4877,22 +4850,7 @@ int pc_damage(map_session_data &sd, long damage, block_list *src)
 
 		// killevent
 		if (ssd.state.event_kill)
-		{
-			if (script_config.event_script_type == 0)
-			{
-				npcscript_data *sc= npcscript_data::from_name(script_config.kill_event_name);
-				if( sc && sc->ref && (sc->block_list::m==0xFFFF || sc->block_list::m==sd.block_list::m) )
-				{
-					CScriptEngine::run(sc->ref->script,0,sd.block_list::id,sc->block_list::id); // PCKillNPC
-					ShowStatus( "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.kill_event_name);
-				}
-			}
-			else
-			{
-				int evt = npc_data::event("OnPCKillEvent", sd);
-				if(evt) ShowStatus ("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCKillEvent");
-			}
-		}
+			npc_data::event("OnPCKillEvent", script_config.kill_event_name, ssd);
 
 		// pk points
 		if( config.pk_mode )
@@ -4938,22 +4896,7 @@ int pc_damage(map_session_data &sd, long damage, block_list *src)
 	}
 
 	if (sd.state.event_death)
-	{
-		if (script_config.event_script_type == 0)
-		{
-			npcscript_data *sc= npcscript_data::from_name(script_config.die_event_name);
-			if( sc && sc->ref && (sc->block_list::m==0xFFFF || sc->block_list::m==sd.block_list::m) )
-			{
-				CScriptEngine::run(sc->ref->script,0,sd.block_list::id,sc->block_list::id); // PCDeathNPC
-				ShowStatus( "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.die_event_name);
-			}
-		}
-		else
-		{
-			int evt = npc_data::event("OnPCDieEvent", sd);
-			if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCDieEvent");
-		}
-	}
+		npc_data::event("OnPCDieEvent", script_config.die_event_name, sd);
 
 	if(config.bone_drop==2
 		|| (config.bone_drop==1 && maps[sd.block_list::m].flag.pvp)){	// ドクロドロップ
@@ -5385,8 +5328,8 @@ int pc_setparam(map_session_data &sd,int type,int val)
 int pc_itemheal(map_session_data &sd,long hp,long sp)
 {
 	int bonus, type;
-//	if(config.battle_log)
-//		ShowMessage("heal %d %d\n",hp,sp);
+	if(config.battle_log)
+		ShowMessage("heal %d %d\n",hp,sp);
 
 	if(	sd.sc_data[SC_GOSPEL].timer!=-1 ) //バ?サ?ク中は回復させないらしい
 		return 0;
@@ -6170,7 +6113,7 @@ int pc_equipitem(map_session_data &sd,unsigned short inx, unsigned short pos)
 	pos = pc_equippoint(sd,inx);
 	if(config.battle_log)
 		ShowMessage("(char %i) equip %d(%d) %x:%x\n",
-		sd.status.char_id, nameid, inx, id->equip, pos);
+			sd.status.char_id, nameid, inx, id->equip, pos);
 
 	if( !pc_isequipable(sd,inx) || !pos || 
 		sd.status.inventory[inx].attribute==1 ||

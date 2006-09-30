@@ -66,7 +66,7 @@ int clif_statusupack(map_session_data &sd,unsigned short type,unsigned char ok,u
 int clif_equipitemack(map_session_data &sd,unsigned short n,unsigned short pos,unsigned char ok);	// self
 int clif_unequipitemack(map_session_data &sd,unsigned short n,unsigned short pos,unsigned char ok);	// self
 int clif_misceffect(block_list &bl, uint32 type);	// area
-int clif_setareaeffect(block_list &bl, uint32 effect);
+int clif_setareaeffect(const block_list &bl, uint32 effect);
 int clif_changeoption(block_list&bl);	// area
 int clif_useitemack(map_session_data &sd,unsigned short index,unsigned short amount,unsigned char ok);	// self
 int clif_GlobalMessage(block_list &bl,const char *message, size_t len);

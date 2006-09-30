@@ -22,12 +22,13 @@
 #include "socket.h"
 
 
-struct npc_src_list {
+struct npc_src_list
+{
 	struct npc_src_list * next;
 	char name[4];
 };
 
-// single liked list of pointers to npc structures
+// single linked list of pointers to npc structures
 struct npc_mark
 {
 	npc_data *nd;
@@ -174,7 +175,11 @@ void npc_data::touch(map_session_data &sd, unsigned short m, int x,int y)
 void npcscript_data::OnClick(map_session_data &sd)
 {
 	if(this->ref)
-		CScriptEngine::run(this->ref->script, 0, sd.block_list::id, this->block_list::id);
+	{
+		// run the script starting from OnClick label or from the beginning if not exists
+		const uint pos = this->ref->get_labelpos("OnClick");
+		CScriptEngine::run(this->ref->script, pos, sd.block_list::id, this->block_list::id);
+	}
 }
 
 /// try and execute touchup 
@@ -182,16 +187,14 @@ void npcscript_data::OnClick(map_session_data &sd)
 void npcscript_data::OnTouch(block_list& bl)
 {
 	map_session_data *sd=bl.get_sd();
-	if( sd && sd->areanpc_id != this->block_list::id )
+	if( sd && sd->areanpc_id != this->block_list::id &&
+		this->ref )
 	{
 		sd->areanpc_id = this->block_list::id;
 
-		char eventname[64]; // npc->name is 24 max + 9 for a possible ::OnTouch attachment
-		snprintf(eventname,sizeof(eventname),"%s::OnTouch", this->name);
-		
-		// has ontouch label or does click
-		if( !npc_data::event(eventname, *sd) )
-			this->OnClick(*sd);
+		// run the script starting from OnTouch label or from the beginning if not exists
+		const uint pos = this->ref->get_labelpos("OnTouch");
+		CScriptEngine::run(this->ref->script, pos, (sd)?sd->block_list::id:0, this->block_list::id);
 	}
 }
 
@@ -333,7 +336,7 @@ void npcscript_data::eventtimer_init(uint32 rid, ushort pos)
 	// initialize
 	a->pos = pos;
 	// start the timer
-	ulong tick = (this->ontimer_cnt&&this->ontimer_list)?this->ontimer_list[0].tick:0;
+	ulong tick = (this->ontimer_cnt>a->pos&&this->ontimer_list)?((a->pos)?(this->ontimer_list[pos].tick-this->ontimer_list[pos-1].tick):(this->ontimer_list[0].tick)):0;
 	a->tid = add_timer(gettick()+tick, npcscript_data::eventtimer_entry, this->block_list::id, basics::numptr(a));
 }
 
@@ -424,20 +427,22 @@ int npcscript_data::eventtimer_entry(int tid, unsigned long tick, int id, basics
 void npcscript_data::do_ontimer(map_session_data &sd, bool start)
 {
 	// look for the event inside the label list of the npc
-	char event[64];
-	script_object::script_label *ptr = this->ref->label_list;
-	const script_object::script_label *end = this->ref->label_list+this->ref->label_list_num;
-	for(; ptr && ptr<end; ++ptr)
+	if( this->ref )
 	{
-		if( ptr->name && 
-			0==strncasecmp("OnTimer", ptr->name, 7) )
-		{	// found it
-
-			snprintf(event, sizeof(event), "%s::%s", this->name, ptr->name);// name::event
-			if( start )
-				pc_addeventtimer(sd, atoi(ptr->name+7), event);	// with tick
-			else
-				pc_deleventtimer(sd, event);
+		script_object::script_label *ptr = this->ref->label_list;
+		const script_object::script_label *end = this->ref->label_list+this->ref->label_list_num;
+		for(; ptr && ptr<end; ++ptr)
+		{
+			char event[64];
+			if( ptr->name && 
+				0==strncasecmp("OnTimer", ptr->name, 7) )
+			{	// found it
+				snprintf(event, sizeof(event), "%s::%s", this->exname, ptr->name);// name::event
+				if( start )
+					pc_addeventtimer(sd, atoi(ptr->name+7), event);	// with tick
+				else
+					pc_deleventtimer(sd, event);
+			}
 		}
 	}
 }
@@ -591,8 +596,6 @@ int npc_data::_event(const char *eventname, npcscript_data *nd, map_session_data
 	}
 /////////////////////////////////////////////////
 
-
-
 	if(nd)
 	{	// execute eventname only inside the given npc
 
@@ -600,9 +603,12 @@ int npc_data::_event(const char *eventname, npcscript_data *nd, map_session_data
 		// look up there if it has the queried label
 		// (though there is some overhead due to the non-event labels there)
 		// instead we also could look up the event label and then
-		// check if the npc is in the list of the accociated entries 
-		
-		if( !nd->invalid && nd->ref )
+		// check if the npc is in the list of the accociated entries
+
+		// check for maps, 
+		// execute the script only if the pc is on the same map than the nd		
+		if( !nd->invalid && nd->ref &&
+			(!sd || nd->block_list::m==0xFFFF || nd->block_list::m==sd->block_list::m) )
 		{	
 			// look for the event inside the label list of the npc
 			script_object::script_label *ptr = nd->ref->label_list;
@@ -628,8 +634,10 @@ int npc_data::_event(const char *eventname, npcscript_data *nd, map_session_data
 		{
 			event_data::iterator iter(ev->event_list);
 			for(; iter; ++iter)
-			{
-				if(iter->nd && !iter->nd->invalid)
+			{	// check for maps, 
+				// execute the script only if the pc is on the same map than the nd
+				if( iter->nd && !iter->nd->invalid &&
+					(!sd || iter->nd->block_list::m==0xFFFF || iter->nd->block_list::m==sd->block_list::m) )
 				{
 					if(iter->nd->ref)
 						CScriptEngine::run(iter->nd->ref->script, iter->pos, (sd)?sd->block_list::id:0, iter->nd->block_list::id);
@@ -639,6 +647,31 @@ int npc_data::_event(const char *eventname, npcscript_data *nd, map_session_data
 		}
 	}
 	return c;
+}
+/// executes On-events via npc and/or label
+int npc_data::event(const char*onevent, const char*npcevent, map_session_data& sd)
+{
+	int evt = 0;
+	//if( script_config.event_script_type == 0 )
+	// condition removed, can do both
+
+	// event via labels
+	{
+		evt = npc_data::event(onevent, sd);
+		if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, onevent);
+		// ============================================ 
+	}
+	// event via npc name
+	{
+		npcscript_data *sc = npcscript_data::from_name(npcevent);
+		if(sc && sc->ref && (sc->block_list::m==0xFFFF || sc->block_list::m==sd.block_list::m) )
+		{
+			CScriptEngine::run(sc->ref->script, 0, sd.block_list::id, sc->block_list::id);
+			ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", npcevent);
+			++evt;
+		}
+	}
+	return evt;
 }
 
 
@@ -829,8 +862,24 @@ npcscript_data::~npcscript_data()
 }
 
 
-
-
+/// display shop buy window
+void npcshop_data::buywindow(map_session_data &sd)
+{
+	if( !this->invalid && this->is_near(sd) )
+	{
+		sd.npc_shopid=id;
+		clif_buylist(sd,*this);
+	}
+}
+/// display shop sell window
+void npcshop_data::sellwindow(map_session_data &sd)
+{
+	if( !this->invalid && this->is_near(sd) )
+	{
+		sd.npc_shopid=id;
+		clif_selllist(sd);
+	}
+}
 
 
 
@@ -956,25 +1005,6 @@ int npc_event_do_clock(int tid, unsigned long tick, int id, basics::numptr data)
 
 
 
-
-/*==========================================
- *
- *------------------------------------------
- */
-int npc_buysellsel(map_session_data &sd,uint32 id,int type)
-{
-	npcshop_data *sh= npcshop_data::from_blid(id);
-	if( !sh || !sh->is_near(sd) || sh->invalid)
-		return 1;
-
-	sd.npc_shopid=id;
-	if( type==0 )
-		clif_buylist(sd,*sh);
-	else
-		clif_selllist(sd);
-
-	return 0;
-}
 
 /*==========================================
  *
@@ -2320,7 +2350,7 @@ public:
 		if( (nd=bl.get_nd()) )
 			nd->freeblock();
 		else if( (md=bl.get_md()) )
-			mob_unload(*md);
+			md->freeblock();
 		return 0;
 	}
 };
@@ -2375,8 +2405,8 @@ int do_final_npc(void)
 	size_t i, n=0, m=0;
 	block_list *bl;
 	npc_data *nd;
-	struct mob_data *md;
-	struct pet_data *pd;
+	mob_data *md;
+	pet_data *pd;
 
 	// clear event data first, there are pointers to the npc names stored inside
 	// so we have to call this before deleting the npcs
@@ -2400,7 +2430,7 @@ int do_final_npc(void)
 			}
 			else if( (md = bl->get_md()) )
 			{
-				mob_unload(*md);
+				md->freeblock();
 				m++;
 			}
 			else if( (pd = bl->get_pd()) )

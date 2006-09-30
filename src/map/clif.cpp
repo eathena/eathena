@@ -1253,7 +1253,7 @@ int clif_seteffect(const map_session_data& sd, uint32 id, uint32 effect)
 ///
 /// activate a effect on the object for session inside the area
 ///
-int clif_setareaeffect(block_list &bl, uint32 effect)
+int clif_setareaeffect(const block_list &bl, uint32 effect)
 {
 	unsigned char buf[24];
 
@@ -8525,16 +8525,13 @@ int clif_charnameack(int fd, block_list &bl, bool clear)
 	{
 		struct pet_data& pd = (struct pet_data&)bl;
 		safestrcpy((char*)WBUFP(buf,6), 24, pd.pet.name);
-		if(pd.msd)
-		{
-			char nameextra[32];
-			safestrcpy(nameextra, 22, pd.msd->status.name);
-			// need 2 extra chars for the attachment
-			strcat(nameextra, "'s");
-			cmd = 0x195;
-			WBUFB(buf,54) = 0;
-			safestrcpy((char*)WBUFP(buf,78), 24, nameextra);
-		}
+		char nameextra[32];
+		safestrcpy(nameextra, 22, pd.msd.status.name);
+		// need 2 extra chars for the attachment
+		strcat(nameextra, "'s");
+		cmd = 0x195;
+		WBUFB(buf,54) = 0;
+		safestrcpy((char*)WBUFP(buf,78), 24, nameextra);
 	}
 	else if(bl==BL_HOM)
 	{
@@ -9362,33 +9359,16 @@ int clif_parse_LoadEndAck(int fd, map_session_data &sd)
 	block_list::foreachinarea( CClifGetAreaChar(sd),
 		sd.block_list::m,((int)sd.block_list::x)-AREA_SIZE,((int)sd.block_list::y)-AREA_SIZE,((int)sd.block_list::x)+AREA_SIZE,((int)sd.block_list::y)+AREA_SIZE,BL_ALL);
 
-	// ============================================
-	// ADDITION Qamera death/disconnect/connect event mod
+
+	
 	if(!sd.state.event_onconnect)
 	{
 		npc_data::event("OnConnect", sd);
 		sd.state.event_onconnect=1;
 	}
-	// ============================================ 
-	// Lance
-	if( script_config.event_script_type == 0 )
-	{
-		npcscript_data *sc = npcscript_data::from_name(script_config.mapload_event_name);
-		if(sc && sc->ref && (sc->block_list::m==0xFFFF || sc->block_list::m==sd.block_list::m) )
-		{
-			CScriptEngine::run(sc->ref->script, 0, sd.block_list::id, sc->block_list::id);
-			ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.mapload_event_name);
-		}
-	}
-	else
-	{
-		int evt = npc_data::event("OnPCLoadMapEvent", sd);
-		if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCLoadMapEvent");
-		// ============================================ 
-	}
+	npc_data::event("OnPCLoadMapEvent", script_config.mapload_event_name, sd);
 
 	send_fake_id(fd,sd);
-
 	return 0;
 }
 
@@ -9906,7 +9886,7 @@ int clif_parse_Wis(int fd, map_session_data &sd)
 	//-------------------------------------------------------//
 	//   Lordalfa - Paperboy - To whisper NPC commands       //
 	//-------------------------------------------------------//
-	npc_data *npc = npc_data::from_name(target);
+	npcscript_data *npc = npcscript_data::from_name(target);
 	if( npc )
 	{
 		char tempmes[128];
@@ -9925,9 +9905,7 @@ int clif_parse_Wis(int fd, map_session_data &sd)
 			snprintf(tempmes, sizeof(tempmes),"@whispervar%ld$", (unsigned long)i);
 			set_var(sd,tempmes,kp);
 		}//Sets Variables to use in the NPC
-		
-		snprintf(tempmes, sizeof(tempmes), "%s::OnWhisperGlobal", npc->name);
-		npc_data::event(tempmes, sd); // Calls the NPC label
+		npc_data::event("OnWhisperGlobal", *npc, sd); // Calls the NPC label
 	}
 	//-------------------------------------------------------//
 	//  Lordalfa - Paperboy - END - NPC Whisper Commands     //
@@ -10183,7 +10161,15 @@ int clif_parse_NpcBuySellSelected(int fd, map_session_data &sd)
 		return 0;
 	if(sd.vender_id != 0  || sd.trade_partner != 0)
 		return 0;
-	npc_buysellsel(sd,RFIFOL(fd,2),RFIFOB(fd,6));
+
+	npcshop_data *sh= npcshop_data::from_blid( RFIFOL(fd,2) );
+	if( sh ) 
+	{
+		if( 0==RFIFOB(fd,6) )
+			sh->buywindow(sd);
+		else
+			sh->sellwindow(sd);
+	}
 	return 0;
 }
 
@@ -11512,7 +11498,7 @@ int clif_parse_PetMenu(int fd, map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	pet_menu(sd,RFIFOB(fd,2));
+	if(sd.pd) sd.pd->menu(RFIFOB(fd,2));
 	return 0;
 }
 
@@ -11549,7 +11535,7 @@ int clif_parse_ChangePetName(int fd, map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	pet_change_name(sd,(const char*)RFIFOP(fd,2));
+	if(sd.pd) sd.pd->change_name( (const char*)RFIFOP(fd,2) );
 	return 0;
 }
 
@@ -12370,22 +12356,22 @@ int clif_parse_DeleteMail(int fd, map_session_data &sd)
  */
 int clif_parse_HomMenu(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.hd )
 		return 0;
 	unsigned short cmd	= RFIFOW(fd,0);
-	homun_data::menu(sd,RFIFOB(fd,packet_db[sd.packet_ver][cmd].pos[0]));
+	sd.hd->menu(RFIFOB(fd,packet_db[sd.packet_ver][cmd].pos[0]));
 	return 0;
 }
 int clif_parse_HomWalkMaster(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.hd )
 		return 0;
 
 	uint32 id = RFIFOL(fd,2);
 	if( id != sd.status.homun_id )
 		printf("clif_parse_HomWalkMaster: %lu %lu", (ulong)id, (ulong)sd.status.homun_id);
 
-	homun_data::return_to_master(sd);
+	sd.hd->return_to_master();
 	return 0;
 }
 int clif_parse_HomWalkToXY(int fd, map_session_data &sd)
@@ -12467,7 +12453,7 @@ int clif_parse_ChangeHomName(int fd, map_session_data &sd)
 {
 	if( !session_isActive(fd) )
 		return 0;
-	homun_data::change_name(sd,(const char*)RFIFOP(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]));
+	if(sd.hd) sd.hd->change_name( (const char*)RFIFOP(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]));
 	return 0;
 }
 

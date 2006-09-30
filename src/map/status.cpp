@@ -1861,9 +1861,8 @@ int status_recalc_speed(block_list *bl)
 		else if(*bl==BL_HOM)
 		{
 			homun_data *hd = bl->get_hd();
-			if(hd && hd->msd) 
-				speed = hd->msd->speed;
-
+			if(hd) 
+				speed = hd->msd.speed;
 		}
 		else if(*bl==BL_NPC)
 		{
@@ -3273,7 +3272,9 @@ uint32 status_get_party_id(const block_list *bl)
 	if(*bl==BL_PC)
 		return bl->get_sd()->status.party_id;
 	else if(*bl==BL_PET)
-		return bl->get_pd()->msd->status.party_id;
+		return bl->get_pd()->msd.status.party_id;
+	else if(*bl==BL_HOM)
+		return bl->get_hd()->msd.status.party_id;
 	else if(*bl==BL_MOB)
 	{
 		const mob_data *md=bl->get_md();
@@ -3297,7 +3298,9 @@ uint32 status_get_guild_id(const block_list *bl)
 	if(*bl==BL_PC)
 		return bl->get_sd()->status.guild_id;
 	else if(*bl==BL_PET)
-		return bl->get_pd()->msd->status.guild_id;
+		return bl->get_pd()->msd.status.guild_id;
+	else if(*bl==BL_HOM)
+		return bl->get_hd()->msd.status.guild_id;
 	else if(*bl==BL_MOB)
 	{
 		const map_session_data *msd;

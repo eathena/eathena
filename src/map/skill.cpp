@@ -3806,11 +3806,10 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			{	// [Skotlex]
 				struct pet_data *pd = (struct pet_data *)src;
 				int inf = skill_get_inf(abra_skillid);
-				if (inf&4 || inf&16) { //Self-Skills, Supportive skills
-					nullpo_retr(1,(map_session_data *)pd->msd);
-					petskill_use(*pd, *(pd->msd), abra_skillid, abra_skilllv, tick); 
-				} else //Assume offensive skills
-					petskill_use(*pd, *bl, abra_skillid, abra_skilllv, tick); 
+				if (inf&4 || inf&16)//Self-Skills, Supportive skills
+					pet_skill_use(*pd, pd->msd, abra_skillid, abra_skilllv, tick); 
+				else //Assume offensive skills
+					pet_skill_use(*pd, *bl, abra_skillid, abra_skilllv, tick); 
 			}
 		}
 		break;
@@ -4274,15 +4273,18 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 		}
 		break;
 	case AM_REST:				/* 安息 */
-		if( sd && homun_data::return_to_embryo(*sd) )
+		if( sd && sd->hd && sd->hd->return_to_embryo() )
 		{
 			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 		}
 		break;
 	case AM_RESURRECTHOMUN:				/* リザレクションホムンクルス */
-		if(sd && homun_data::revive(*sd,skilllv) )
+		if( sd && sd->hd )
 		{
-			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
+			if( sd->hd->revive(skilllv) )
+				clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
+			else
+				sd->clif_skill_failed(AM_RESURRECTHOMUN,0,0);
 		}
 		break;
 
@@ -5118,7 +5120,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 
 	case NPC_REBIRTH:
 		if( md && md->is_dead() )
-			mob_setdelayspawn (md->block_list::id);
+			md->set_spawndelay();
 		break;
 
 	case NPC_DARKBLESSING:
@@ -5164,19 +5166,14 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 	case NPC_SUMMONSLAVE:		/* 手下召喚 */
 	case NPC_SUMMONMONSTER:		/* MOB召喚 */
 		if(md)
-			mob_summonslave(*md,mob_db[md->class_].skill[md->skillidx].val,skilllv,skillid);
+			md->summon_slaves(skillid, skilllv);
 		break;
 
 	case NPC_CALLSLAVE:		//取り巻き呼び戻し
-		if(md) {
-			int mobcount;
-			md->recallcount = 0;//初期化
-			md->state.recall_flag = 0;
-			mobcount = mob_countslave(*md);
-			if(mobcount > 0) {
-				md->state.recall_flag = 1; //mob.cの[取り巻きモンスターの処理]で利用
-				md->recallmob_count = mobcount;
-			}
+		if(md)
+		{	//mob.cの[取り巻きモンスターの処理]で利用
+			md->recallmob_count = md->count_slaves();
+			md->state.recall_flag = (md->recallmob_count>0);
 		}
 		break;
 
@@ -8057,10 +8054,19 @@ int skill_use_id(map_session_data *sd, uint32 target_id, unsigned short skill_nu
 	unsigned long tick = gettick();
 
 	nullpo_retr(0, sd);
+////////////////
+// new skill code temporary entrance
+if(config._temp_)
+{
+	sd->start_skill(skill_num, skill_lv, target_id);
+	if(config._temp_>1)
+		return 0;
+}
+////////////////
 	if( (bl=block_list::from_blid(target_id)) == NULL || !bl->is_on_map() )
 	{
-//		if(config.error_log)
-//			ShowError("skill target not found %d\n",target_id); */
+		if(config.error_log)
+			ShowError("skill target not found %d\n",target_id);
 		return 0;
 	}
 	if(sd->block_list::m != bl->m || sd->is_dead())

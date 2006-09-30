@@ -1,0 +1,54 @@
+
+// only executed at given map with visible npc
+prontera.gat,150,300,1	script	GM Helper	112,{
+
+// only executed at given map without visible npc
+//prontera.gat,0,0,0	script	GM Helper	-1,{
+
+// always executed (without a visible npc)
+//-	script	GM Helper	{
+
+
+OnPCLoadMapEvent:
+	menu "Deutsch",rlanger,"English",rlangeng;
+rlanger:
+	mes "[GM Helper]";
+	mes "Da u.a. die Scriptmaschine vor kurzem diverse Modifikationen erfahren hat, waere es nett, etwas Unterstuetzung bei der Suche nach Fehlern zu erhalten.";
+	next;
+	mes "[GM Helper]";
+	mes "Das kann im einfachten Fall so aussehen, dass man auffaellige Fehler mit zusammen mit den relevanten Randbedingungen (Job, Statusaenderungen etc.) meldet.";
+	next;
+	mes "[GM Helper]";
+	mes "Das Forum dafuer ist unter http://www.eathena.ws zu finden. Danke.";
+	close;
+rlangeng:
+	mes "[GM Helper]";
+	mes "Since expecially the scripting engine has been modified recently, it would be nice to get some user contribution for bug hunting.";
+	next;
+	mes "[GM Helper]";
+	mes "Easiest method would be to give detailed error reports together with the current conditions (job, status changes, etc.)";
+	next;
+	mes "[GM Helper]";
+	mes "The suitable forum is located at http://www.eathena.ws. Tnx.";
+	close;
+
+OnPCLoginEvent:
+	mes "[Shinomori]";
+	set $@bot, rand(100000,999999);
+	mes "Welcome to eApp branch";
+	mes "For passing this simple anti-bot-script";
+	mes "please input the following six digit number.";
+	mes " ";
+	mes "Number: "+$@bot;
+	next;
+	input @bot;
+	next;
+	if(@bot == $@bot) goto Lfree;
+	mes "Your Answer was incorrect.";
+	gmcommand "@kick "+strcharinfo(0);
+	end;
+Lfree:
+	mes "You are free to go.";
+	close;
+	end;
+}

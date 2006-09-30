@@ -1398,7 +1398,7 @@ bool block_list::addblock()
 				if( agit_flag && config.pet_no_gvg && maps[this->m].flag.gvg && sd.pd)
 				{	//Return the pet to egg. [Skotlex]
 					clif_displaymessage(sd.fd, "Pets are not allowed in Guild Wars.");
-					pet_menu(sd, 3); // Option 3 is return to egg.
+					sd.pd->menu(3); // Option 3 is return to egg.
 				}
 				if(maps[this->m].users++ == 0 && config.dynamic_mobs)	// Skotlex
 					map_spawnmobs(this->m);
@@ -1469,10 +1469,14 @@ bool block_list::delblock()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// 
+/// sync object for threadsave freeblock
+static basics::Mutex mtx_blockfree;
+
+///////////////////////////////////////////////////////////////////////////////
 /// block削除の安全性確保?理
 int block_list::freeblock()
 {
+	basics::ScopeLock sl(mtx_blockfree);
 	if (block_free_lock == 0)
 	{
 		delete this;
@@ -1494,6 +1498,7 @@ int block_list::freeblock()
 /// blockのfreeを一市Iに禁止する
 int block_list::freeblock_lock (void)
 {
+	basics::ScopeLock sl(mtx_blockfree);
 	return ++block_free_lock;
 }
 
@@ -1503,18 +1508,15 @@ int block_list::freeblock_lock (void)
 /// バッファにたまっていたblockを全部削除
 int block_list::freeblock_unlock (void)
 {
+	basics::ScopeLock sl(mtx_blockfree);
 	if((--block_free_lock) == 0)
 	{
-		int i;
-		for (i = 0; i < block_free_count; ++i)
+		while(block_free_count)
 		{
-			if(block_free[i])
-			{
-				delete block_free[i];
-				block_free[i] = NULL;
-			}
+			--block_free_count;
+			if( block_free[block_free_count] )
+				delete block_free[block_free_count];
 		}
-		block_free_count = 0;
 	}
 	else if (block_free_lock < 0)
 	{
@@ -1532,6 +1534,7 @@ int block_list::freeblock_unlock (void)
 /// block_free_lock を直接いじっても支障無いはず。
 int map_freeblock_timer (int tid, unsigned long tick, int id, basics::numptr data)
 {
+	basics::ScopeLock sl(mtx_blockfree);
 	if(block_free_lock > 0)
 	{
 		ShowError("map_freeblock_timer: block_free_lock(%d) is invalid.\n", block_free_lock);
@@ -1780,20 +1783,7 @@ int map_quit(map_session_data &sd)
 {
 	if( sd.state.event_disconnect )
 	{
-		if( script_config.event_script_type == 0 )
-		{
-			npcscript_data *sc = npcscript_data::from_name(script_config.logout_event_name);
-			if( sc && sc->ref && (sc->block_list::m==0xFFFF || sc->block_list::m==sd.block_list::m) )
-			{
-				CScriptEngine::run(sc->ref->script,0,sd.block_list::id,sc->block_list::id); // PCLogoutNPC
-				ShowStatus ("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.logout_event_name);
-			}
-		}
-		else
-		{
-			int evt = npc_data::event("OnPCLogoutEvent", sd);
-			if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCLogoutEvent");
-		}
+		npc_data::event("OnPCLogoutEvent", script_config.logout_event_name, sd);
 	}
 
 	sd.leavechat();
@@ -1850,8 +1840,7 @@ int map_quit(map_session_data &sd)
 
 	if( sd.status.pet_id && sd.pd )
 	{
-		pet_lootitem_drop(*(sd.pd),&sd);
-			pet_remove_map(sd);
+		sd.pd->droploot();
 		if(sd.pd->pet.intimate <= 0)
 		{
 			intif_delete_petdata(sd.status.pet_id);
@@ -1860,6 +1849,7 @@ int map_quit(map_session_data &sd)
 		}
 		else
 			intif_save_petdata(sd.status.account_id,sd.pd->pet);
+		sd.pd->freeblock();
 	}
 	if( sd.is_dead() )
 		pc_setrestartvalue(sd,2);
@@ -2002,12 +1992,11 @@ public:
 			(config.mob_remove_damaged || (md->hp == md->max_hp)) )
 		{
 			// cleaning a master will also clean its slaves
-			if( md->state.is_master )
-				mob_deleteslave(*md);
+			md->remove_slaves();
 			// check the mob into the cache
-			md->cache->num++;
+			++md->cache->num;
 			// and unload it
-			mob_unload(*md);	
+			md->freeblock();	
 			return 1;
 		}
 		return 0;
@@ -2235,7 +2224,7 @@ int map_setipport(const char *name, basics::ipset &mapset)
 		strdb_insert(map_db,mdos->name,mdos);
 	}
 	else if(md->gat)
-	{	// exists and has is a locally loaded map
+	{	// exists and has a locally loaded map
 		if( mapset != getmapaddress() )
 		{	// a differnt server then the local one is owning the map
 			// 読み甲ﾅいたけど、担当外になったマップ
@@ -2246,6 +2235,15 @@ int map_setipport(const char *name, basics::ipset &mapset)
 			mdos->map  = md;	// safe the locally loaded map data
 			strdb_insert(map_db,mdos->name,mdos);
 			// ShowMessage("from char server : %s -> %08lx:%d\n",name,ip,port);
+
+			// warp players from this map to the new one
+			map_session_data::iterator iter(map_session_data::nickdb());
+			for(; iter; ++iter)
+			{
+				map_session_data*sd = iter.data();
+				if( sd && sd->block_list::m == md->m )
+					pc_setpos(*sd, sd->mapname, sd->block_list::x, sd->block_list::y, 3);
+			}
 		}
 		else
 		{	// nothing to do, just keep the map as it is
@@ -2707,8 +2705,7 @@ bool map_cache_write(struct map_data &block_list)
 				fwrite(write_buf,1,len_new,map_cache.fp);
 
 			// prepare the data header
-			memcpy(map_cache.map[i].fn, block_list.mapname, sizeof(map_cache.map[i].fn));
-			map_cache.map[i].fn[sizeof(map_cache.map[i].fn)-1]=0;			
+			safestrcpy(map_cache.map[i].fn, sizeof(map_cache.map[i].fn), block_list.mapname);
 
 			// update file header
 			map_cache.map[i].pos = map_cache.head.filesize;
@@ -3340,12 +3337,8 @@ public:
 	{
 		if( bl==BL_PC )
 			map_quit( (map_session_data &)bl );
-		else if( bl==BL_NPC )
+		else if( bl==BL_NPC || bl==BL_MOB || bl==BL_PET )
 			bl.freeblock();
-		else if( bl==BL_MOB )
-			mob_unload( (mob_data &)bl);
-		else if( bl==BL_PET )
-			pet_remove_map( (map_session_data &)bl );
 		else if( bl==BL_ITEM )
 			map_clearflooritem(bl.id);
 		else if( bl==BL_SKILL )

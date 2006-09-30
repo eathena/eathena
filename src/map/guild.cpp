@@ -1654,13 +1654,13 @@ int guild_save_sub(int tid, unsigned long tick, int id, basics::numptr data)
 	return 0;
 }
 
-int guild_agit_break(struct mob_data &md)
+int guild_agit_break(const char* eventname)
 {	// Run One NPC_Event[OnAgitBreak]
 	if(agit_flag)
 	{
-		char *evname= new char[1+strlen(md.npc_event)];
-		memcpy(evname,md.npc_event, 1+strlen(md.npc_event));
-		add_timer(gettick()+config.gvg_eliminate_time,guild_gvg_eliminate_timer,md.block_list::m, basics::numptr(evname), false);
+		char *evname= new char[1+strlen(eventname)];
+		memcpy(evname, eventname, 1+strlen(eventname));
+		add_timer(gettick()+config.gvg_eliminate_time,guild_gvg_eliminate_timer,0, basics::numptr(evname), false);
 	}
 	return 0;
 }

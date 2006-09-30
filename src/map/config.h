@@ -56,7 +56,6 @@ public:
 	uint32 ban_spoof_namer;
 	uint32 base_exp_rate;
 	uint32 basic_skill_check;
-	uint32 battle_log;
 	uint32 berserk_cancels_buffs;
 	uint32 bone_drop;
 	uint32 boss_spawn_delay;
@@ -96,8 +95,6 @@ public:
 	uint32 equip_natural_break_rate;
 	uint32 equip_self_break_rate;
 	uint32 equip_skill_break_rate;
-	uint32 error_log;
-	uint32 etc_log;
 	uint32 exp_calc_type;
 	uint32 finding_ore_rate;
 	uint32 finger_offensive_type;
@@ -164,6 +161,14 @@ public:
 	uint32 item_use_interval;
 	uint32 job_exp_rate;
 	uint32 left_cardfix_to_right;
+
+	uint32 battle_log;
+	uint32 error_log;
+	uint32 etc_log;
+	uint32 mob_skill_log;
+	uint32 pc_skill_log;
+	uint32 save_log;
+
 	uint32 magic_defense_type;
 	uint32 mailsystem;
 	uint32 making_arrow_name_input;
@@ -199,7 +204,6 @@ public:
 	uint32 mob_remove_delay;
 	uint32 mob_skill_add_range;
 	uint32 mob_skill_delay;
-	uint32 mob_skill_log;
 	uint32 mob_skill_rate;
 	uint32 mob_slaves_inherit_speed;
 	uint32 mob_spawn_delay;
@@ -250,7 +254,6 @@ public:
 	uint32 pc_invincible_time;
 	uint32 pc_land_skill_limit;
 	uint32 pc_skill_add_range;
-	uint32 pc_skill_log;
 	uint32 pc_skill_nofootset;
 	uint32 pc_skill_reiteration;
 	uint32 pet_attack_attr_none;
@@ -295,7 +298,6 @@ public:
 	uint32 restart_sp_rate;
 	uint32 resurrection_exp;
 	uint32 save_clothcolor;
-	uint32 save_log;
 	uint32 serverside_friendlist;
 	uint32 skill_delay_attack_enable;
 	uint32 shop_exp;

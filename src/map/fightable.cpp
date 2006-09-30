@@ -36,7 +36,7 @@ public:
 	virtual ~dummyskill()	{}
 
 	/// identifier.
-	enum {id = 1};
+	enum {id = MG_FIREBOLT};
 	/// function called for initialisation.
 	virtual bool init(ulong& timeoffset)
 	{
@@ -68,7 +68,7 @@ void skillbase::process_skill(skillbase*& skill)
 			if( timeoffset>100 )
 			{	/// action is to be called more than 100ms from now
 				/// initialize timer.
-				skill->timerid = add_timer(gettick()+timeoffset, fightable::skilltimer_entry, skill->caster.block_list::id, basics::numptr(skill));
+				skill->timerid = add_timer(gettick()+timeoffset, fightable::skilltimer_entry_new, skill->caster.block_list::id, basics::numptr(skill));
 				return;
 			}
 			else
@@ -128,7 +128,7 @@ skillbase* skillbase::create(fightable& caster, ushort skillid, const char*mapna
 /// removes the timer if any
 skillbase::~skillbase()
 {
-	if(this->timerid)
+	if(this->timerid!=-1)
 	{	// clear the timer, if not yet removed
 		delete_timer(this->timerid, fightable::skilltimer_entry);
 	}
@@ -238,9 +238,14 @@ int fightable::skilltimer_entry(int tid, unsigned long tick, int id, basics::num
 		// call the user function
 		mv->skilltimer_func(tid, tick, id, data);
 	}
+	return 0;
+}
 
+int fightable::skilltimer_entry_new(int tid, unsigned long tick, int id, basics::numptr data)
+{
 ////////////////////////////////////////////////////////
 // new proposed skill layout
+	fightable* mv = fightable::from_blid(id);
 	if( mv && mv->cSkillObj )
 	{
 		if(mv->cSkillObj->timerid != tid)

@@ -3354,7 +3354,7 @@ bool command_killmonster(int fd, map_session_data& sd, const char* command, cons
 			if(flag)
 				mob_damage(md, md.hp, 2, NULL);
 			else
-				mob_remove_map(md,1);
+				md.remove_map(1);
 			return 0;
 		}
 	};

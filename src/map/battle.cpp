@@ -4273,8 +4273,6 @@ struct Damage battle_calc_magic_attack(block_list *src, block_list *target,int s
 						status_get_int(src) + status_get_lv(src)+
 						((200 - hp * 200 / mhp));
 				if(thres > 700) thres = 700;
-//				if(config.battle_log)
-//					ShowMessage("ターンアンデッド！ 確率%d ‰(千分率)\n", thres);
 				if(rand()%1000 < thres && !(t_mode&0x20))	// 成功
 					damage = hp;
 				else					// 失敗
@@ -5273,13 +5271,11 @@ int battle_check_target(const block_list *src, const block_list *target, int fla
 	}
 	else if( (pd=s_bl->get_pd()) )
 	{
-		if (pd->msd)
-			s_bl = pd->msd; //"My master's enemies are my enemies..."
+			s_bl = &pd->msd; //"My master's enemies are my enemies..."
 	}
 	else if( (hd=s_bl->get_hd()) )
 	{
-		if (hd->msd)
-			s_bl = hd->msd; //"My master's enemies are my enemies..."
+			s_bl = &hd->msd; //"My master's enemies are my enemies..."
 	}
 	else if( s_bl->get_sk() )
 	{	//Skill with no owner? Fishy, but let it through.

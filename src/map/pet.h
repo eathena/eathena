@@ -191,10 +191,10 @@ struct pet_data : public fightable
 	skill_timerskill skilltimerskill[MAX_MOBSKILLTIMERSKILL]; // [Valaris]
 	skill_unit_group skillunit[MAX_MOBSKILLUNITGROUP]; // [Valaris]
 	skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET]; // [Valaris]
-	map_session_data *msd;
+	map_session_data &msd;
 	int hungry_timer;
 
-	pet_data(const petstatus &p, const petdb &pdb) :
+	pet_data(map_session_data& sd, const petstatus &p, const petdb &pdb) :
 		pet(p),
 		petDB(pdb),
 		dir(0),
@@ -209,10 +209,10 @@ struct pet_data : public fightable
 		a_skill(NULL),
 		s_skill(NULL),
 		loot(NULL),
-		msd(NULL),
+		msd(sd),
 		hungry_timer(-1)
 	{}
-	virtual ~pet_data()	{}
+	virtual ~pet_data();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// upcasting overloads.
@@ -262,6 +262,16 @@ struct pet_data : public fightable
 
 	virtual bool set_dead()	{ return false; }// cannot die
 
+
+
+	void menu(int menunum);
+	void food();
+	void droploot(bool drop=false);
+	void performance();
+	void return_to_egg();
+	bool change_name(const char *name);
+
+
 private:
 	pet_data(const pet_data&);					// forbidden
 	const pet_data& operator=(const pet_data&);	// forbidden
@@ -281,29 +291,27 @@ int pet_timer(int tid, unsigned long tick, int id, basics::numptr data);
 
 int search_petDB_index(int key,int type);
 
-int pet_remove_map(map_session_data &sd);
 int pet_recv_petdata(uint32 account_id, petstatus &p,int flag);
 int pet_select_egg(map_session_data &sd,short egg_index);
 int pet_catch_process1(map_session_data &sd,int target_class);
 int pet_catch_process2(map_session_data &sd,uint32 target_id);
 int pet_get_egg(uint32 account_id,uint32 pet_id,int flag);
-int pet_menu(map_session_data &sd,int menunum);
-int pet_change_name(map_session_data &sd, const char *name);
+
+
 int pet_equipitem(map_session_data &sd,int index);
 int pet_unequipitem(map_session_data &sd);
-int pet_food(map_session_data &sd);
-int pet_lootitem_drop(pet_data &pd, map_session_data *sd);
+
 int pet_delay_item_drop2(int tid, unsigned long tick, int id, basics::numptr data);
-int petskill_use(pet_data &pd, block_list &target, short skill_id, short skill_lv, unsigned int tick);
+int pet_skill_use(pet_data &pd, block_list &target, short skill_id, short skill_lv, unsigned int tick);
 int pet_skill_support_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Skotlex]
 int pet_skill_bonus_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
 int pet_recovery_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
 int pet_heal_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
 int pet_skillsupport_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Skotlex]
+int pet_hungry_timer(int tid, unsigned long tick, int id, basics::numptr data);
 
 int pet_skill_bonus_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
 int pet_recovery_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
-//int pet_mag_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
 int pet_heal_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
 int pet_skillattack_timer(int tid, unsigned long tick, int id, basics::numptr data); // [Valaris]
 int pet_skill_support_timer(int tid, unsigned long tick, int id, basics::numptr data);// [Skotlex]

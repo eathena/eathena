@@ -33,11 +33,11 @@ struct npc_data : public movable
 
 	/////////////////////////////////////////////////////////////////
 
+	char name[24];
+	char exname[24];
 	short n;
 	short class_;
 	short speed;
-	char name[24];
-	char exname[24];
 	short opt1;
 	short opt2;
 	short opt3;
@@ -126,8 +126,9 @@ public:
 	static int event(const char *eventname, npcscript_data &nd, map_session_data &sd)
 	{
 		return npc_data::_event(eventname,&nd,&sd);
-	}	
-	
+	}
+	/// executes On-events via npc and/or label
+	static int event(const char*onevent, const char*npcevent, map_session_data& sd);
 
 	/// enable/disable a npc via name.
 	static bool enable(const char *name, int flag);
@@ -254,14 +255,13 @@ public:
 	/// return the previous rid. does nothing when no timer has been started
 	uint32 npcscript_data::eventtimer_attach(uint32 oldrid, uint32 newrid);
 	/// initialize a timer object and start the timer.
-	void eventtimer_init(uint32 rid, ushort pos);
+	void eventtimer_init(uint32 rid, ushort pos=0);
 	/// start the timer.
 	void eventtimer_start(uint32 rid);
 	/// stop the timer.
 	void eventtimer_stop(uint32 rid);
 	/// clear the timers if not in use.
 	void eventtimer_clear(uint32 rid);
-
 	
 	/// start/stop ontimers
 	void do_ontimer(map_session_data &sd, bool start);
@@ -400,8 +400,14 @@ struct npcshop_data : public npc_data
 	/// bring up associated shop
 	virtual void OnClick(map_session_data &sd);
 	/// try and execute touchup 
-	/// ignored, shops do not have  touchup
+	/// ignored, shops do not implement touchup
 	virtual void OnTouch(block_list& bl, ushort x, ushort y)	{}
+
+	/// display shop buy window
+	void npcshop_data::buywindow(map_session_data &sd);
+	/// display shop sell window
+	void npcshop_data::sellwindow(map_session_data &sd);
+
 };
 
 
@@ -411,9 +417,11 @@ struct npcshop_data : public npc_data
 
 
 
-int npc_buysellsel(map_session_data &sd,uint32 id,int type);
+
 int npc_buylist(map_session_data &sd,unsigned short n,unsigned char *buffer);
 int npc_selllist(map_session_data &sd,unsigned short n,unsigned char *buffer);
+
+
 int npc_parse_mob(const char *w1,const char *w2,const char *w3,const char *w4);
 int npc_parse_mob2(mob_list &mob);
 bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4);
@@ -425,12 +433,16 @@ void npc_addsrcfile(const char *);
 void npc_delsrcfile(const char *);
 void npc_printsrcfile();
 void npc_parsesrcfile(const char *);
+
+int npc_reload(void);
+
+
 int do_final_npc(void);
 int do_init_npc(void);
 
 
 
-int npc_reload(void);
+
 
 #endif
 

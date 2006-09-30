@@ -276,6 +276,8 @@ public:
 
 	/// skilltimer entry point.
 	static int skilltimer_entry(int tid, unsigned long tick, int id, basics::numptr data);
+	static int skilltimer_entry_new(int tid, unsigned long tick, int id, basics::numptr data);
+
 	/// call back function for the skilltimer
 	virtual int skilltimer_func(int tid, unsigned long tick, int id, basics::numptr data)=0;
 

@@ -78,7 +78,7 @@ int guild_castlealldataload(int len, unsigned char *buf);
 
 int guild_agit_start(void);
 int guild_agit_end(void);
-int guild_agit_break(mob_data &md);
+int guild_agit_break(const char* eventname);
 
 void guild_send_xy(unsigned long tick);
 void do_final_guild(void);

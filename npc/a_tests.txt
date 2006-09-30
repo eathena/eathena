@@ -69,68 +69,7 @@ debugmes  $p2$;
 }
 
 
-prontera.gat,0,0,0	script	PCLoginEvent	-1,{
-set $@bot, rand(100000,999999);
-mes "Welcome to RO";
-mes "Please input the following six digit number.";
-mes " ";
-mes "Number: "+$@bot;
-next;
-input @bot;
-next;
-if(@bot == $@bot) goto Lfree;
-mes "Your Answer was incorrect.";
-gmcommand "kick "+strcharinfo(0);
-end;
 
-Lfree:
-mes "You are free to go.";
-close;
-
-}
-
-prontera.gat,150,300,1	script	Test NPC	53,{
-end;
-
-OnPCLoginEvent:
-set $@bot, rand(100000,999999);
-mes "Welcome to StarsRO";
-mes "Please input the following six digit number.";
-mes " ";
-mes "Number: "+$@bot;
-next;
-input @bot;
-next;
-if(@bot == $@bot) goto Lfree;
-mes "Your Answer was incorrect.";
-atcommand strcharinfo(0)+":@kick "+strcharinfo(0);
-end;
-
-Lfree:
-mes "You are free to go.";
-close;
-end;
-
-OnPCLoadMapEvent:
-mes "[GM Helper]";
-mes "Please they choose a language to read the rules.";
-next;
-menu "German",rlanger,"English",rlangeng;
-rlanger:
-mes "[GM Helper]";
-mes "irgendwas in deutsch";
-next;
-mes "[GM Helper]";
-mes "Blalalalala";
-close;
-rlangeng:
-mes "[GM Helper]";
-mes "some stuff in english";
-next;
-mes "[GM Helper]";
-mes "whatever";
-close;
-}
 
 function	script	testtext	{
 	mes "hallo " + rand(2);

@@ -362,7 +362,7 @@ struct mob_data : public fightable
 	/// constructor.
 	/// prepares the minimum data set for MOB spawning
 	mob_data(const char *mobname, int cl);
-	virtual ~mob_data()	{}
+	virtual ~mob_data();
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -429,6 +429,14 @@ struct mob_data : public fightable
 	virtual bool set_dead();
 
 
+	void remove_map(int type);
+	void set_spawndelay();
+	void remove_slaves() const;
+	uint count_slaves() const;
+	uint summon_slaves(unsigned short skillid, unsigned short skilllv);
+
+//	virtual bool warp(unsigned short m, unsigned short x, unsigned short y, int type);
+
 private:
 	mob_data(const mob_data&);					// forbidden
 	const mob_data& operator=(const mob_data&);	// forbidden
@@ -455,27 +463,21 @@ int mob_spawn_guardian(map_session_data *sd,const char *mapname,	// Spawning Gua
 
 int mob_target(mob_data &md, block_list *bl,int dist);
 int mob_spawn(uint32 id);
-int mob_setdelayspawn(uint32 id);
 int mob_damage(mob_data &md,int damage,int type, block_list *src);
-
+int mob_warp(mob_data &md,int m,int x,int y,int type);
 
 int do_init_mob(void);
 
-void mob_unload(mob_data &md);
-int mob_remove_map(mob_data &md, int type);
 int mob_timer_delete(int tid, unsigned long tick, int id, basics::numptr data);
 
-int mob_deleteslave(mob_data &md);
-
 int mob_class_change(mob_data &md,int value[], size_t count);
-int mob_warp(mob_data &md,int m,int x,int y,int type);
+
 
 int mobskill_use(mob_data &md,unsigned long tick,int event);
 int mobskill_event(mob_data &md,int flag);
 int mobskill_castend_id(int tid, unsigned long tick, int id, basics::numptr data);
 int mobskill_castend_pos(int tid, unsigned long tick, int id, basics::numptr data);
-int mob_summonslave(mob_data &md2,int *value,size_t amount,unsigned short skillid);
-unsigned int mob_countslave(mob_data &md);
+
 
 bool mob_gvmobcheck(map_session_data &sd, block_list &bl);
 void mob_reload(void);

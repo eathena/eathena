@@ -1,4 +1,8 @@
 Date	Added
+09/30
+	* changes at on-event behaviour (examples in gmhelper.txt)
+	* cleaned some more stray functions
+	* unified destructions for mob/pet/homun
 09/24
 	* almost finished npc rewrite:
 	- new event structures, new timer structures, merged useless functions

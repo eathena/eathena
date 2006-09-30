@@ -125,11 +125,11 @@ public:
 	int hungry_timer;
 	int hungry_cry_timer;
 
-	map_session_data *msd;
+	map_session_data &msd;
 
 
-	/// constructor. needs char_id of associated charater for creation
-	homun_data(uint32 char_id);
+	/// constructor. needs map_session_data of associated charater for creation
+	homun_data(map_session_data &sd);
 	/// destructor. does automatic cleanup
 	virtual ~homun_data();
 
@@ -221,19 +221,21 @@ public:
 	void recalc_status();
 	void save_data();
 
+	void return_to_master();
+	bool return_to_embryo();
+	void menu(unsigned short menunum);
+	void food();
+	void delete_data();
+	bool change_name(const char *name);
+	bool revive(unsigned short skilllv);
+	bool skillup(unsigned short skill_num);
+
 //	static homun_data *get_homunculus(uint32 char_id);
 //	static homun_data *get_homunculus(const map_session_data &sd);
 	static homun_data *create_homunculus(map_session_data &sd, unsigned short homunid);
 	static void clear_homunculus(map_session_data &sd);
 	static bool call_homunculus(map_session_data &sd);
 	static void recv_homunculus(homunstatus &p, int flag);
-	
-	static void menu(map_session_data &sd, unsigned short menunum);
-	static bool change_name(map_session_data &sd, const char *name);
-	static void return_to_master(map_session_data &sd);
-	static bool return_to_embryo(map_session_data &sd);
-	static bool revive(map_session_data &sd, unsigned short skilllv);
-	static bool skillup(map_session_data &sd, unsigned short skill_num);
 };
 
 
