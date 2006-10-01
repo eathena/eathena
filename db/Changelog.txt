@@ -1,3 +1,8 @@
+10/01
+	* Merged item_db, job_db, job_db2 and mob_db [Playtester]
+	- updated view ids of some headgears (beware of crash)
+	- official SG/NJ/GS aspd and job bonus
+	- updated drop rates with info from Tharis
 09/27
 	* Merged exp, item_db, mob_db and mob_skill_db [Playtester]
 	- separate exp chart for Ninja/Gunslinger job exp
