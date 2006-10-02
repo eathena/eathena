@@ -5,6 +5,9 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/10/02
+	* Merged cleanups of status_get_party/guild_id [Skotlex]
+	* Added the opt3 value to Ske [Skotlex]
+	* Running spurt state now is also available to Soul Linkers. [Skotlex]
 	* Added the restricted mapflag file. [Skotlex]
 2006/09/28
 	* Removed config setting sg_miracle_skill_duration, replaced it with

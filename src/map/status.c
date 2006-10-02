@@ -3812,12 +3812,16 @@ unsigned char status_get_attack_lelement(struct block_list *bl)
 int status_get_party_id(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_PC)
-		return ((struct map_session_data *)bl)->status.party_id;
-	if(bl->type==BL_PET)
-		return ((struct pet_data *)bl)->msd->status.party_id;
-	if(bl->type==BL_MOB){
-		struct mob_data *md=(struct mob_data *)bl;
+	switch (bl->type) {
+	case BL_PC:
+		return ((TBL_PC*)bl)->status.party_id;
+	case BL_PET:
+		if (((TBL_PET*)bl)->msd)
+			return ((TBL_PET*)bl)->msd->status.party_id;
+		break;
+	case BL_MOB:
+	{
+		struct mob_data *md=(TBL_MOB*)bl;
 		if( md->master_id>0 )
 		{
 			struct map_session_data *msd;
@@ -3825,21 +3829,25 @@ int status_get_party_id(struct block_list *bl)
 				return msd->status.party_id;
 			return -md->master_id;
 		}
-		return 0; //No party.
 	}
-	if(bl->type==BL_SKILL)
-		return ((struct skill_unit *)bl)->group->party_id;
+		break;
+	case BL_SKILL:
+		return ((TBL_SKILL*)bl)->group->party_id;
+	}
 	return 0;
 }
 
 int status_get_guild_id(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_PC)
-		return ((struct map_session_data *)bl)->status.guild_id;
-	if(bl->type==BL_PET)
-		return ((struct pet_data *)bl)->msd->status.guild_id;
-	if(bl->type==BL_MOB)
+	switch (bl->type) {
+	case BL_PC:
+		return ((TBL_PC*)bl)->status.guild_id;
+	case BL_PET:
+		if (((TBL_PET*)bl)->msd)
+			return ((TBL_PET*)bl)->msd->status.guild_id;
+		break;
+	case BL_MOB:
 	{
 		struct map_session_data *msd;
 		struct mob_data *md = (struct mob_data *)bl;
@@ -3847,12 +3855,15 @@ int status_get_guild_id(struct block_list *bl)
 			return md->guardian_data->guild_id;
 		if (md->special_state.ai && (msd = map_id2sd(md->master_id)) != NULL)
 			return msd->status.guild_id; //Alchemist's mobs [Skotlex]
-		return 0; //No guild.
 	}
-	if (bl->type == BL_NPC && bl->subtype == SCRIPT)
-		return ((TBL_NPC*)bl)->u.scr.guild_id;
-	if(bl->type==BL_SKILL)
-		return ((struct skill_unit *)bl)->group->guild_id;
+		break;
+	case BL_NPC:
+	  	if (bl->subtype == SCRIPT)
+			return ((TBL_NPC*)bl)->u.scr.guild_id;
+		break;
+	case BL_SKILL:
+		return ((TBL_SKILL*)bl)->group->guild_id;
+	}
 	return 0;
 }
 
@@ -4215,7 +4226,6 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			return 0;
 	}
 
-
 	undead_flag=battle_check_undead(status->race,status->def_ele);
 
 	//Check for inmunities / sc fails
@@ -4515,15 +4525,10 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 	calc_flag = StatusChangeFlagTable[type];
 	if(!(flag&4)) //Do not parse val settings when loading SCs
 	switch(type){
-		case SC_INCREASEAGI:
-			val2 = 2 + val1; //Agi increase
-			val3 = (5*val1)/2; //Speed increase
-			break;
 		case SC_DECREASEAGI:
-			val2 = 2 + val1; //Agi decrease
-			val3 = 100 - (5*val1)/2; //Speed decrease
-			if (val3 < 1) val3 = 1;
 			if (sd) tick>>=1; //Half duration for players.
+		case SC_INCREASEAGI:
+			val2 = 2 + val1; //Agi change
 			break;
 		case SC_ENDURE:
 			val2 = 7; // Hit-count [Celest]
@@ -5396,6 +5401,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			opt_flag = 0;
 			break;
 		case SC_ENERGYCOAT:
+		case SC_SKE:
 			sc->opt3 |= 4;
 			opt_flag = 0;
 			break;
@@ -5644,8 +5650,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			}
 			if (sc->data[type].val1 >= 7 &&
 				DIFF_TICK(gettick(), sc->data[type].val4) <= 1000 &&
-				(!sd || (sd->weapontype1 == 0 && sd->weapontype2 == 0 &&
-				(sd->class_&MAPID_UPPERMASK) != MAPID_SOUL_LINKER))
+				(!sd || (sd->weapontype1 == 0 && sd->weapontype2 == 0))
 			)
 				sc_start(bl,SC_SPURT,100,sc->data[type].val1,skill_get_time2(StatusSkillChangeTable[type], sc->data[type].val1));
 		}
@@ -5919,6 +5924,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 		opt_flag = 0;
 		break;
 	case SC_ENERGYCOAT:
+	case SC_SKE:
 		sc->opt3 &= ~4;
 		opt_flag = 0;
 		break;
