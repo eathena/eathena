@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/10/02
+	* Merged being unable to steal coins from Treasure boxes. [Skotlex]
 	* Merged cleanups of status_get_party/guild_id [Skotlex]
 	* Added the opt3 value to Ske [Skotlex]
 	* Running spurt state now is also available to Soul Linkers. [Skotlex]
