@@ -789,13 +789,14 @@ is_atcommand(const int fd, struct map_session_data* sd, const char* message, int
 	if (!*str)
 		return AtCommand_None;
 
-	type = atcommand(sd, gmlvl > 0 ? gmlvl : pc_isGM(sd), str, &info);
+	if (!gmlvl) gmlvl = pc_isGM(sd);
+	type = atcommand(sd, gmlvl, str, &info);
 	if (type != AtCommand_None) {
 		char command[100];
 		const char* p = str;
 
 		if (map[sd->bl.m].nocommand &&
-			(gmlvl > 0? gmlvl:pc_isGM(sd)) < map[sd->bl.m].nocommand)
+			gmlvl < map[sd->bl.m].nocommand)
 		{	//Command not allowed on this map.
 			sprintf(atcmd_output, msg_txt(143)); 
 			clif_displaymessage(fd, atcmd_output);
@@ -2178,21 +2179,13 @@ int atcommand_storage(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	struct storage *stor; //changes from Freya/Yor
 	nullpo_retr(-1, sd);
 
-	if (sd->state.storage_flag) {
+	if (storage_storageopen(sd) == 1)
+  	{	//Already open.
 		clif_displaymessage(fd, msg_txt(250));
 		return -1;
 	}
-
-	if ((stor = account2storage2(sd->status.account_id)) != NULL && stor->storage_status == 1) {
-		clif_displaymessage(fd, msg_txt(250));
-		return -1;
-	}
-
-	storage_storageopen(sd);
-
 	return 0;
 }
 
@@ -5468,7 +5461,6 @@ int atcommand_reloadmobdb(
 {
 	nullpo_retr(-1, sd);
 	mob_reload();
-	do_final_pet();
 	read_petdb();
 	clif_displaymessage(fd, msg_txt(98)); // Monster database reloaded.
 
@@ -5748,7 +5740,7 @@ int atcommand_mapinfo(
 		strcat(atcmd_output, "NoMemo | ");
 	clif_displaymessage(fd, atcmd_output);
 
-	sprintf(atcmd_output, "No Penalty: %s | No Zeny Penalty: %s", (map[m_id].flag.nopenalty) ? "On" : "Off", (map[m_id].flag.nozenypenalty) ? "On" : "Off");
+	sprintf(atcmd_output, "No Exp Penalty: %s | No Zeny Penalty: %s", (map[m_id].flag.noexppenalty) ? "On" : "Off", (map[m_id].flag.nozenypenalty) ? "On" : "Off");
 	clif_displaymessage(fd, atcmd_output);
 
 	if (map[m_id].flag.nosave) {

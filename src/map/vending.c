@@ -22,7 +22,6 @@
 */
 void vending_closevending(struct map_session_data *sd)
 {
-
 	nullpo_retv(sd);
 
 	sd->vender_id=0;

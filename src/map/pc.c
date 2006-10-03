@@ -1899,8 +1899,10 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			ShowWarning("pc_bonus2 (Resist Effect): %d is not supported.\n", type2);
 			break;
 		}
-		if(sd->state.lr_flag != 2)
-			sd->reseff[type2-SC_COMMON_MIN]+=val;
+		if(sd->state.lr_flag == 2)
+			break;
+		i = sd->reseff[type2-SC_COMMON_MIN]+val;
+		sd->reseff[type2-SC_COMMON_MIN]= cap_value(i, 0, 10000);
 		break;
 	case SP_MAGIC_ADDELE:
 		if(type2 >= ELE_MAX) {
@@ -4796,7 +4798,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	if(sd->status.pet_id > 0 && sd->pd)
 	{
 		struct s_pet *pet = &sd->pd->pet;
-		if(!map[sd->bl.m].flag.nopenalty){
+		if(!map[sd->bl.m].flag.noexppenalty){
 			pet->intimate -= sd->pd->petDB->die;
 			if(pet->intimate < 0)
 				pet->intimate = 0;
@@ -4939,7 +4941,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	// changed penalty options, added death by player if pk_mode [Valaris]
 	if(battle_config.death_penalty_type && sd->state.snovice_flag != 4
 		&& (sd->class_&MAPID_UPPERMASK) != MAPID_NOVICE	// only novices will receive no penalty
-		&& !map[sd->bl.m].flag.nopenalty && !map_flag_gvg(sd->bl.m)
+		&& !map[sd->bl.m].flag.noexppenalty && !map_flag_gvg(sd->bl.m)
 		&& sd->sc.data[SC_BABY].timer == -1)
 	{
 		unsigned int base_penalty =0;

@@ -203,7 +203,8 @@ enum {
 	MF_BEXP,	//40
 	MF_NOVENDING,
 	MF_LOADEVENT,
-	MF_NOCHAT
+	MF_NOCHAT,
+	MF_NOEXPPENALTY
 };
 
 //Reports on the console the src of an script error.
@@ -406,7 +407,9 @@ static void add_scriptl(int l)
 		add_scriptb(backpatch>>16);
 		break;
 	case C_INT:
-		add_scripti(str_data[l].val);
+		add_scripti(abs(str_data[l].val));
+		if(str_data[l].val < 0) //Notice that this is negative, from jA (Rayce)
+			add_scriptc(C_NEG);
 		break;
 	default:
 		// ‚à‚¤‘¼‚Ì—p“r‚ÆŠm’è‚µ‚Ä‚é‚Ì‚Å”Žš‚ð‚»‚Ì‚Ü‚Ü
@@ -669,7 +672,9 @@ unsigned char* parse_subexpr(unsigned char *p,int limit)
 				exit(0);
 			}
 			func=parse_cmd;
-
+			if( *p == '(' && *(plist[i]=(char *)skip_space(p+1)) == ')' ){
+				p=(char *)plist[i]+1; // empty argument list
+			} else
 			while(*p && *p!=')' && i<128) {
 				plist[i]=(char *) p;
 				p=parse_subexpr(p,-1);
@@ -724,12 +729,14 @@ unsigned char* parse_expr(unsigned char *p)
 		disp_error_message("unexpected char",p);
 		exit(1);
 	}
+	/*
 	if(*p == '(') {
 		unsigned char *p2 = skip_space(p + 1);
 		if(*p2 == ')') {
 			return p2 + 1;
 		}
 	}
+	*/
 	p=parse_subexpr(p,-1);
 #ifdef DEBUG_FUNCIN
 	if(battle_config.etc_log)
@@ -798,6 +805,10 @@ unsigned char* parse_line(unsigned char *p)
 	} else {
 		end = ';';
 	}
+
+	if( p && *p == '(' && *(p2=(char *)skip_space(p+1)) == ')' ){
+		p= p2+1; // empty argument list
+	} else
 	while(p && *p && *p != end && i<128){
 		plist[i]=(char *) p;
 
@@ -1489,8 +1500,8 @@ static void read_constdb(void)
 		if(line[0]=='/' && line[1]=='/')
 			continue;
 		type=0;
-		if(sscanf(line,"%[A-Za-z0-9_],%[0-9xXA-Fa-f],%d",name,val,&type)>=2 ||
-		   sscanf(line,"%[A-Za-z0-9_] %[0-9xXA-Fa-f] %d",name,val,&type)>=2){
+		if(sscanf(line,"%[A-Za-z0-9_],%[-0-9xXA-Fa-f],%d",name,val,&type)>=2 ||
+		   sscanf(line,"%[A-Za-z0-9_] %[-0-9xXA-Fa-f] %d",name,val,&type)>=2){
 			for(i=0;name[i];i++)
 				name[i]=tolower(name[i]);
 			n=add_str((const unsigned char *) name);
@@ -2721,8 +2732,14 @@ void run_script_main(struct script_state *st)
 	}
 	else if(st->state != END && sd){
 		//Resume later (st is already attached to player).
-		if(bk_st)
+		if(bk_st) {
 			ShowWarning("Unable to restore stack! Double continuation!\n");
+			//Report BOTH scripts to see if that can help somehow.
+			ShowDebug("Previous script (lost):");
+			report_src(bk_st);
+			ShowDebug("Current script:");
+			report_src(st);
+		}
 	} else {
 		//Dispose of script.
 		if (sd)
@@ -8158,7 +8175,8 @@ int buildin_setmapflag(struct script_state *st)
 				map[m].flag.nobranch=1;
 				break;
 			case MF_NOPENALTY:
-				map[m].flag.nopenalty=1;
+				map[m].flag.noexppenalty=1;
+				map[m].flag.nozenypenalty=1;
 				break;
 			case MF_NOZENYPENALTY:
 				map[m].flag.nozenypenalty=1;
@@ -8302,7 +8320,8 @@ int buildin_removemapflag(struct script_state *st)
 				map[m].flag.nobranch=0;
 				break;
 			case MF_NOPENALTY:
-				map[m].flag.nopenalty=0;
+				map[m].flag.noexppenalty=0;
+				map[m].flag.nozenypenalty=0;
 				break;
 			case MF_PVP:
 				map[m].flag.pvp=0;
@@ -9601,7 +9620,7 @@ int buildin_misceffect(struct script_state *st)
 	int type;
 
 	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	if(st->oid) {
+	if(st->oid && st->oid != fake_nd->bl.id) {
 		struct block_list *bl = map_id2bl(st->oid);
 		if (bl)
 			clif_misceffect2(bl,type);

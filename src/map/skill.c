@@ -1833,8 +1833,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	//Skill hit type
 	type=(skillid==0)?5:skill_get_hit(skillid);
 
-	if((damage <= 0 || damage < dmg.div_)
-			&& skillid != CH_PALMSTRIKE) //Palm Strike is the only skill that will knockback even if it misses. [Skotlex]
+	if(damage < dmg.div_ 
+		&& skillid != CH_PALMSTRIKE) //Palm Strike is the only skill that will knockback even if it misses. [Skotlex]
 		dmg.blewcount = 0;
 
 	if(skillid == CR_GRANDCROSS||skillid == NPC_GRANDDARKNESS) {
@@ -3084,7 +3084,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				break;
 			}
 			skill_area_temp[0] = 5 - skill_area_temp[0]; // The actual penalty...
-			if (skill_area_temp[0] > 0 && !map[src->m].flag.nopenalty) { //Apply penalty
+			if (skill_area_temp[0] > 0 && !map[src->m].flag.noexppenalty) { //Apply penalty
 				sd->status.base_exp -= pc_nextbaseexp(sd) * skill_area_temp[0] * 2/1000; //0.2% penalty per each.
 				sd->status.job_exp -= pc_nextjobexp(sd) * skill_area_temp[0] * 2/1000;
 				clif_updatestatus(sd,SP_BASEEXP);
@@ -8678,6 +8678,9 @@ int skill_attack_area (struct block_list *bl, va_list ap)
 		!status_check_skilluse(NULL, bl, skillid, 2))
 		return 0;
 	
+	if (skillid == WZ_FROSTNOVA) //Only skill that doesn't requires the animation to be removed :X
+		return skill_attack(atk_type,src,dsrc,bl,skillid,skilllv,tick,flag);
+
 	//Area-splash, disable skill animation.
 	return skill_attack(atk_type,src,dsrc,bl,skillid,skilllv,tick,flag|SD_ANIMATION);
 }

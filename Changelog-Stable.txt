@@ -5,6 +5,21 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/10/03
+	* Trunk merges: [Skotlex]
+	- Added mapflag noexppenalty. NoPenalty by default now sets both
+	  NoExpPenalty and NoZenyPenalty.
+	- Merged support for negative constants (db/const.txt)
+	- Also merged the fix for () detection messing up with script command
+	  requirements (ie: using mes(); was allowed by the engine and caused
+	  crashes)
+	- When there's a script double continuation, both scripts are reported
+	  (double continuation is when you try to run two scripts at a time which are
+	  'paused', and thus, only one of the two can be resumed)
+	- Misc effect 2 will display the effect on top of running player when the
+	  source is the fake-nd.
+	- Frost Nova skill animation on targets reanabled.
+	- @reloadscript will no longer kill monsters with no respawn data.
+	- Miscellanous small cleanups.
 	* Fixed a possible crash and a memory leak on the login-SQL server when
 	  parsing unban requests. [Skotlex]
 2006/10/02

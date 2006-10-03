@@ -2383,7 +2383,8 @@ static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 		map[m].flag.nobranch=state;
 	}
 	else if (strcmpi(w3,"nopenalty")==0) {
-		map[m].flag.nopenalty=state;
+		map[m].flag.noexppenalty=state;
+		map[m].flag.nozenypenalty=state;
 	}
 	else if (strcmpi(w3,"pvp")==0) {
 		map[m].flag.pvp=state;
@@ -2447,6 +2448,9 @@ static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 	else if (strcmpi(w3,"gvg_castle")==0) {
 		map[m].flag.gvg_castle=state;
 		if (state) map[m].flag.pvp=0;
+	}
+	else if (strcmpi(w3,"noexppenalty")==0) {
+		map[m].flag.noexppenalty=state;
 	}
 	else if (strcmpi(w3,"nozenypenalty")==0) {
 		map[m].flag.nozenypenalty=state;
@@ -2810,7 +2814,9 @@ static int npc_cleanup_sub (struct block_list *bl, va_list ap) {
 		npc_unload((struct npc_data *)bl);
 		break;
 	case BL_MOB:
-		unit_free(bl,0);
+		//This is used only on reloading npcs, so let's not free spawn-once mobs. [Skotlex]
+		if (((TBL_MOB*)bl)->spawn)
+			unit_free(bl,0);
 		break;
 	}
 
@@ -2902,21 +2908,13 @@ int do_final_npc(void)
 {
 	int i;
 	struct block_list *bl;
-	struct npc_data *nd;
-	struct mob_data *md;
-	struct pet_data *pd;
 
 	for (i = START_NPC_NUM; i < npc_id; i++){
 		if ((bl = map_id2bl(i))){
-			if (bl->type == BL_NPC && (nd = (struct npc_data *)bl)){
-				npc_unload(nd);
-			} else if (bl->type == BL_MOB && (md = (struct mob_data *)bl)){
-				if (md->lootitem)
-					aFree(md->lootitem);
-				aFree(md);
-			} else if (bl->type == BL_PET && (pd = (struct pet_data *)bl)){
-				aFree(pd);
-			}
+			if (bl->type == BL_NPC)
+				npc_unload((struct npc_data *)bl);
+			else if (bl->type&(BL_MOB|BL_PET))
+				unit_free(bl, 0);
 		}
 	}
 
