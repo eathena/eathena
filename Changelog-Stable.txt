@@ -5,6 +5,9 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/10/03
+	* Merged the status rate reduction from items being calculated apart. That
+	  is, final defense against a status change is rate * natural resist/100 *
+	  item resist/100, not rate * (natural + item resist)/100 [Skotlex]
 	* Trunk merges: [Skotlex]
 	- Added mapflag noexppenalty. NoPenalty by default now sets both
 	  NoExpPenalty and NoZenyPenalty.
