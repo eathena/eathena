@@ -1,3 +1,9 @@
+10/06
+	* Merged item_db, mob_db, mob_skill_db and size_fix [Playtester]
+	- sell price of broken pieces 10z -> 400z
+	- raised drop rates of new equips
+	- raised power of Kiel MVP skills
+	- reverted guns/shurikens to do 100% damage on all sizes
 10/01
 	* Merged item_db, job_db, job_db2 and mob_db [Playtester]
 	- updated view ids of some headgears (beware of crash)
