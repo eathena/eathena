@@ -1,3 +1,5 @@
+10/08
+	* Probably final drop rate increase of combo equip sets [Playtester]
 10/06
 	* Merged item_db, mob_db, mob_skill_db and size_fix [Playtester]
 	- sell price of broken pieces 10z -> 400z
