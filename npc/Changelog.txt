@@ -34,6 +34,8 @@ Playtester
 
 Date		Added
 ======
+10/09
+	* Merged the Juperos dungeon warps. [Skotlex]
 09/29
 	* Added official Kiel Dungeon entrance [Playtester]
 	- commented the custom warps
