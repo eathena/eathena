@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/10/10
+	* Merged a few cleanups in char-sql/char.c, including a crash fix when
+	  trying to send to a map-server with "whatever" map available. [Skotlex]
 	* Merged monk combos being unable to override the canact delay. [Skotlex]
 2006/10/09
 	* Merged trade distance being 2 rather than 5. [Skotlex]

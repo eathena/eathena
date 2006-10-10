@@ -640,71 +640,6 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		} else //Skills removed (reset?)
 			strcat(save_status, " skills");
 	}
-/* Saving of global registry values is now handled by the inter-server. [Skotlex]
-	diff = 0;
-	for(i=0;i<p->global_reg_num;i++) {
-		if ((p->global_reg[i].str == NULL) && (cp->global_reg[i].str == NULL))
-			continue;
-		if (((p->global_reg[i].str == NULL) != (cp->global_reg[i].str == NULL)) ||
-			strcmp(p->global_reg[i].value, cp->global_reg[i].value) != 0 ||
-			strcmp(p->global_reg[i].str, cp->global_reg[i].str) != 0
-		) {
-			diff = 1;
-			break;
-		}
-	}
-
-	if (diff)
-	{	//Save global registry.
-		//`global_reg_value` (`char_id`, `str`, `value`)
-		
-		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=3 AND `char_id`='%d'",reg_db, p->char_id);
-		if (mysql_query(&mysql_handle, tmp_sql))
-		{
-			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		}
-
-		//insert here.
-		tmp_ptr = tmp_sql;
-		tmp_ptr += sprintf(tmp_ptr,"INSERT INTO `%s` (`type`, `char_id`, `str`, `value`) VALUES", reg_db);
-		count = 0;
-		for(i=0;i<p->global_reg_num;i++)
-		{
-			if (p->global_reg[i].str && p->global_reg[i].value)
-			{
-				tmp_ptr += sprintf(tmp_ptr,"('3','%d','%s','%s'),",
-					char_id, jstrescapecpy(temp_str,p->global_reg[i].str), jstrescapecpy(temp_str2,p->global_reg[i].value));
-				if (++count%100 == 0)
-				{ //Save every X registers to avoid overflowing tmp_sql [Skotlex]
-					tmp_ptr[-1] = '\0';
-					if(mysql_query(&mysql_handle, tmp_sql))
-					{
-						ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-						ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-					} else
-						strcat(save_status, " global_reg");
-						
-					tmp_ptr = tmp_sql;
-					tmp_ptr += sprintf(tmp_ptr,"INSERT INTO `%s` (`type`, `char_id`, `str`, `value`) VALUES", reg_db);
-					count = 0;
-				}
-			}
-		}
-
-		if (count)
-		{
-			tmp_ptr[-1] = '\0';
-			if(mysql_query(&mysql_handle, tmp_sql))
-			{
-				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			} else
-				strcat(save_status, " global_reg");
-		} else //Values cleared.
-			strcat(save_status, " global_reg");
-	}
-*/
 	diff = 0;
 	for(i = 0; i < MAX_FRIENDS; i++){
 		if(p->friends[i].char_id != cp->friends[i].char_id ||
@@ -1393,7 +1328,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	//	fd, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
 
 	//Check Name (already in use?)
-	sprintf(tmp_sql, "SELECT `name` FROM `%s` WHERE `name` = '%s'",char_db, t_name);
+	sprintf(tmp_sql, "SELECT 1 FROM `%s` WHERE `name` = '%s'",char_db, t_name);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -1688,19 +1623,6 @@ int delete_char_sql(int char_id, int partner_id)
 }
 
 //==========================================================================================================
-
-void mmo_char_sync(void)
-{
-	ShowWarning("mmo_char_sync() - nothing to do\n");
-}
-
-// to do
-///////////////////////////
-
-int mmo_char_sync_timer(int tid, unsigned int tick, int id, int data) {
-	ShowWarning("mmo_char_sync_timer() tic - no works to do\n");
-	return 0;
-}
 
 int count_users(void) {
 	int i, users;
@@ -3353,7 +3275,7 @@ int parse_char(int fd) {
 					for(j = 0; j < MAX_MAP_SERVERS; j++)
 						if (server_fd[j] > 0 && server[j].map[0])  {
 							i = j;
-							ShowDebug("Map-server #%d found with a map: '%s'.\n", j, server[j].map[0]);
+							ShowDebug("Map-server #%d found with a map: '%s'.\n", j, mapindex_id2name(server[j].map[0]));
 							break;
 						}
 					// if no map-servers are connected, we send: server closed
