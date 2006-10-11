@@ -772,10 +772,8 @@ int pc_set_hate_mob(struct map_session_data *sd, int pos, struct block_list *bl)
 	int class_;
 	if (!sd || !bl || pos < 0 || pos > 2)
 		return 0;
-
-// TODO: Pending Angel of the blah blah merging before uncommenting this block.
-//	if (sd->hate_mob[pos] != -1)	//Can't change hate targets.
-//		return 0;
+	if (sd->hate_mob[pos] != -1)	//Can't change hate targets.
+		return 0;
 
 	class_ = status_get_class(bl);
 	if (!pcdb_checkid(class_)) {
@@ -1136,6 +1134,12 @@ int pc_disguise(struct map_session_data *sd, int class_) {
 	status_set_viewdata(&sd->bl, class_);
 	clif_changeoption(&sd->bl);
 	clif_spawn(&sd->bl);
+	if (class_ == sd->status.class_ && pc_iscarton(sd))
+	{	//It seems the cart info is lost on undisguise.
+		clif_cartlist(sd);
+		clif_updatestatus(sd,SP_CARTINFO);
+	}
+
 	return 1;
 }
 
@@ -2941,7 +2945,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 		(sd->sc.data[SC_NOCHAT].timer!=-1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOITEM)
 	))
 		return 0;
-	
+
 	sd->itemid = sd->status.inventory[n].nameid;
 	sd->itemindex = n;
 	amount = sd->status.inventory[n].amount;
@@ -5477,7 +5481,6 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 	pc_setglobalreg (sd, "jobchange_level", sd->change_level);
 
 	sd->status.class_ = job;
-	status_set_viewdata(&sd->bl, job);
 	fame_flag = pc_famerank(sd->status.char_id,sd->class_&MAPID_UPPERMASK);
 	sd->class_ = (unsigned short)b_class;
 	sd->status.job_level=1;
@@ -5492,16 +5495,19 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 				pc_unequipitem(sd,sd->equip_index[i],2);	// ?”õŠO‚µ
 	}
 
+	//Change look
+	status_set_viewdata(&sd->bl, job);
 	clif_changelook(&sd->bl,LOOK_BASE,sd->vd.class_); // move sprite update to prevent client crashes with incompatible equipment [Valaris]
-
 	if(sd->vd.cloth_color)
 		clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->vd.cloth_color);
+
+	//Update skill tree.
+	pc_calc_skilltree(sd);
+	clif_skillinfoblock(sd);
+
 	
 	if(sd->status.manner < 0)
 		clif_changestatus(&sd->bl,SP_MANNER,sd->status.manner);
-	
-	if(pc_isriding(sd)) //Remove Peco Status to prevent display <> class problems.
-		pc_setoption(sd,sd->sc.option&~OPTION_RIDING);
 
 	status_calc_pc(sd,0);
 	pc_checkallowskill(sd);

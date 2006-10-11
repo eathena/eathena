@@ -93,7 +93,7 @@ extern struct Battle_Config {
 	unsigned short critical_rate;
 	unsigned short enable_baseatk;
 	unsigned short enable_perfect_flee;
-	unsigned short cast_rate,delay_rate,delay_dependon_dex;
+	unsigned short cast_rate,delay_rate,delay_dependon_agi;
 	unsigned short sdelay_attack_enable;
 	unsigned short left_cardfix_to_right;
 	unsigned short skill_add_range;
@@ -136,7 +136,6 @@ extern struct Battle_Config {
 	unsigned short atc_slave_clone_limit;
 	unsigned short partial_name_scan;
 	unsigned short gm_allskill;
-	unsigned short gm_allskill_addabra;
 	unsigned short gm_allequip;
 	unsigned short gm_skilluncond;
 	unsigned short gm_join_chat;
@@ -429,6 +428,7 @@ extern struct Battle_Config {
 	unsigned short pc_max_sc_def;
 	unsigned short mob_max_sc_def;
 
+	unsigned short sg_angel_skill_ratio;
 	unsigned short sg_miracle_skill_ratio;
 	int sg_miracle_skill_duration_min;
 	int sg_miracle_skill_duration_max;

@@ -936,8 +936,9 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	
 	if(sc && sc->count)
 	{
-		if(sc->opt1 >0 && (battle_config.sc_castcancel || flag != 1))
-			//When sc do not cancel casting, the spell should come out.
+		if(sc->opt1 >0 && flag != 1)
+			//When sc do not cancel casting, the spell should come out, and when it does, we can never have
+			//a flag == 1 && sc->opt1 case, since cancelling should had been stopped before.
 			return 0;
 
 		if (
@@ -4710,6 +4711,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			val3 = tick/1000; //Petrified HP-damage iterations.
 			if(val3 < 1) val3 = 1; 
 			tick = 5000; //Petrifying time.
+			calc_flag = 0; //Actual status changes take effect on petrified state.
 			break;
 
 		case SC_DPOISON:
@@ -5142,10 +5144,6 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			val4 = gettick(); //Store time at which you started running.
 			break;
 		case SC_KAAHI:
-			if(flag&4) {
-				val4 = -1;
-				break;
-			}
 			val2 = 200*val1; //HP heal
 			val3 = 5*val1; //SP cost 
 			val4 = -1;	//Kaahi Timer.
@@ -5342,7 +5340,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			unit_stop_attack(bl);
 			skill_stop_dancing(bl);
 			// Cancel cast when get status [LuzZza]
-			if (battle_config.sc_castcancel)
+			if (battle_config.sc_castcancel&bl->type)
 				unit_skillcastcancel(bl, 0);
 		case SC_STOP:
 		case SC_CONFUSION:
@@ -5358,7 +5356,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			unit_stop_attack(bl);
 		break;
 		case SC_SILENCE:
-			if (battle_config.sc_castcancel)
+			if (battle_config.sc_castcancel&bl->type)
 				unit_skillcastcancel(bl, 0);
 		break;
 	}
@@ -5734,11 +5732,8 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				status_change_end(bl,SC_LONGING,-1);				
 			break;
 		case SC_NOCHAT:
-			if (sd) {
-				if (sd->status.manner < 0 && tid != -1)
-				  	sd->status.manner = 0;
-				clif_updatestatus(sd,SP_MANNER);
-			}
+			if (sd && sd->status.manner < 0 && tid != -1)
+				sd->status.manner = 0;
 			break;
 		case SC_SPLASHER:	
 			{
@@ -6149,7 +6144,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 			sc->opt1 = OPT1_STONE;
 			clif_changeoption(bl);
 			sc->data[type].timer=add_timer(1000+tick,status_change_timer, bl->id, data );
-			status_calc_bl(bl, SCB_DEF_ELE);
+			status_calc_bl(bl, StatusChangeFlagTable[type]);
 			return 0;
 		}
 		if((--sc->data[type].val3) > 0) {
@@ -6714,6 +6709,14 @@ static int status_natural_heal(DBKey key,void * data,va_list app)
 				if ((rate = pc_checkskill(sd,TK_SPTIME)))
 					sc_start(bl,SkillStatusChangeTable(TK_SPTIME),
 						100,rate,skill_get_time(TK_SPTIME, rate));
+				if (
+					(sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR &&
+					rand()%10000 < battle_config.sg_angel_skill_ratio
+				) { //Angel of the Sun/Moon/Star
+					pc_resethate(sd);
+					pc_resetfeel(sd);
+					//TODO: Figure out how to make the client-side msg show up.
+				}
 			}
 			sregen->tick.sp -= battle_config.natural_heal_skill_interval;
 			if(status_heal(bl, 0, val, 3) < val)

@@ -1,5 +1,12 @@
 Date	Added
 
+2006/10/11
+	* Renamed delay_dependon_dex to delay_dependon_agi, made agi now reduce
+	  aftercast delay instead of dex if so specified (skill.conf) [Skotlex]
+	* Added the config setting sg_angel_skill_ratio (skill.conf) [Skotlex]
+	* status_cast_cancel is now a type 4 setting instead of yes/no
+	  (status.conf) [Skotlex]
+	* Removed gm_all_skill_add_abra as it does nothing (gm.conf) [Skotlex]
 2006/09/28
 	* Removed config setting sg_miracle_skill_duration, replaced it with
 	  sg_miracle_skill_min_duration and sg_miracle_skill_max_duration

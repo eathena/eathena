@@ -1821,13 +1821,12 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				flag=0;
 			}
 		}
-		if(flag) {	// added zeny from mobs [Valaris]
+		if(flag) {
 			if(base_exp || job_exp)
 				pc_gainexp(tmpsd[i], &md->bl, base_exp,job_exp);
 			if(zeny) // zeny from mobs [Valaris]
 				pc_getzeny(tmpsd[i], zeny);
 		}
-
 	}
 	
 	for(i=0;i<pnum;i++) //Party share.

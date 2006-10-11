@@ -1284,8 +1284,7 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				}
 				case KN_BOWLINGBASH:
-					//When mflag, this is a no-splash attack, damage gets a bonus of 100% at lv 10.
-					skillratio+= (wflag?50:40)*skill_lv;
+					skillratio+= 40*skill_lv;
 					break;
 				case KN_AUTOCOUNTER:
 				case LK_SPIRALPIERCE:
@@ -3316,7 +3315,7 @@ static const struct battle_data_short {
 	{ "enable_perfect_flee",               &battle_config.enable_perfect_flee		},
 	{ "casting_rate",                      &battle_config.cast_rate				},
 	{ "delay_rate",                        &battle_config.delay_rate				},
-	{ "delay_dependon_dex",                &battle_config.delay_dependon_dex		},
+	{ "delay_dependon_agi",                &battle_config.delay_dependon_agi },
 	{ "skill_delay_attack_enable",         &battle_config.sdelay_attack_enable		},
 	{ "left_cardfix_to_right",             &battle_config.left_cardfix_to_right	},
 	{ "skill_add_range",            			&battle_config.skill_add_range		},
@@ -3353,7 +3352,6 @@ static const struct battle_data_short {
 	{ "atcommand_slave_clone_limit",       &battle_config.atc_slave_clone_limit},
 	{ "partial_name_scan",                 &battle_config.partial_name_scan	},
 	{ "gm_all_skill",                      &battle_config.gm_allskill				},
-	{ "gm_all_skill_add_abra",	            &battle_config.gm_allskill_addabra		},
 	{ "gm_all_equipment",                  &battle_config.gm_allequip				},
 	{ "gm_skill_unconditional",            &battle_config.gm_skilluncond			},
 	{ "gm_join_chat",                      &battle_config.gm_join_chat				},
@@ -3623,6 +3621,7 @@ static const struct battle_data_short {
 	{ "pc_max_status_def",					&battle_config.pc_max_sc_def },
 	{ "mob_max_status_def",					&battle_config.mob_max_sc_def },
 	{ "sg_miracle_skill_ratio",			&battle_config.sg_miracle_skill_ratio },
+	{ "sg_angel_skill_ratio",		 		&battle_config.sg_angel_skill_ratio },
 	{ "autospell_stacking", 				&battle_config.autospell_stacking },
 	{ "override_mob_names", 				&battle_config.override_mob_names },
 	{ "min_chat_delay",						&battle_config.min_chat_delay },
@@ -3710,7 +3709,7 @@ void battle_set_defaults() {
 	battle_config.enable_perfect_flee = BL_PC|BL_PET;
 	battle_config.cast_rate=100;
 	battle_config.delay_rate=100;
-	battle_config.delay_dependon_dex=0;
+	battle_config.delay_dependon_agi=0;
 	battle_config.sdelay_attack_enable=0;
 	battle_config.left_cardfix_to_right=0;
 	battle_config.skill_add_range=0;
@@ -4046,7 +4045,7 @@ void battle_set_defaults() {
 	battle_config.allow_es_magic_pc = 0;
 
 	battle_config.skill_caster_check = 1;
-	battle_config.sc_castcancel = 0;
+	battle_config.sc_castcancel = BL_NUL;
 	battle_config.pc_sc_def_rate = 100;
 	battle_config.mob_sc_def_rate = 100;
 	battle_config.pc_luk_sc_def = 300;
@@ -4054,6 +4053,7 @@ void battle_set_defaults() {
 	battle_config.pc_max_sc_def = 10000;
 	battle_config.mob_max_sc_def = 5000;
 	battle_config.sg_miracle_skill_ratio=1;
+	battle_config.sg_angel_skill_ratio=1;
 	battle_config.sg_miracle_skill_duration_min=3000000;
 	battle_config.sg_miracle_skill_duration_max=9000000;
 	battle_config.autospell_stacking = 0;

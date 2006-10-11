@@ -4,6 +4,33 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/10/11
+	* Several merges from trunk: [Skotlex]
+	- Added npc_unload_duplicates to prevent crashes when you @unloadnpc an npc
+	  which has duplicates (the duplicates are removed as well)
+	- Guild fix that would explain why sometimes you could have more
+	  than 3 alliances.
+	- Merged the following script commands: unitwalk, unitkill, unitwarp,
+	  unitattack, unitstop, unitemote.
+	- Added triggering of Angel of the Sun, Moon, Stars (but it is still
+	  lacking the animation :/)
+	- SG_HATE not being able to override current target.
+	- On-touch npcs will be triggered now on knockback.
+	- Bowling Bash now always connects twice for 500% (lv10)
+	- Merged the song overlap code update, which makes overlapping song/dances
+	  take on all the properties of dissonance/ugly-dance.
+	- Land protector now deletes all ground skills regardless of type, with the
+	  exception of song/dances.
+	- Merged the unitwalk code that fixes TK_RUN sometimes getting stuck when
+	  running in diagonals.
+	- Fixed manner displaying twice the "you can now use skills" message on
+	  expiration.
+	- Fixed SC_STONE not increasing mdef and reducing def.
+	- Merged party_sub_count (TK_POWER) notcounting in idle characters.
+	- Merged updating the cart item list when you undisguise.
+	- Merged the negative checks when sending def2 to the client, Berserk won't
+	  display negative defense now.
+	- Enabled trading while being in a chatroom.
 2006/10/10
 	* Merged a few cleanups in char-sql/char.c, including a crash fix when
 	  trying to send to a map-server with "whatever" map available. [Skotlex]

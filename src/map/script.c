@@ -3544,7 +3544,12 @@ int buildin_rid2name(struct script_state *st);
 int buildin_pcfollow(struct script_state *st);
 int buildin_pcstopfollow(struct script_state *st);
 // <--- [zBuffer] List of player cont commands
-
+int buildin_unitwalk(struct script_state *st);
+int buildin_unitkill(struct script_state *st);
+int buildin_unitwarp(struct script_state *st);
+int buildin_unitattack(struct script_state *st);
+int buildin_unitstop(struct script_state *st);
+int buildin_unitemote(struct script_state *st);
 int buildin_unitskilluseid(struct script_state *st); // originally by Qamera [celest]
 int buildin_unitskillusepos(struct script_state *st); // originally by Qamera [celest]
 
@@ -3865,6 +3870,12 @@ struct script_function buildin_func[] = {
 	{buildin_pcfollow,"pcfollow","ii"},
 	{buildin_pcstopfollow,"pcstopfollow","i"},
 	// <--- [zBuffer] List of player cont commands
+	{buildin_unitwalk,"unitwalk","i*"},
+	{buildin_unitkill,"unitkill","i"},
+	{buildin_unitwarp,"unitwarp","isii"},
+	{buildin_unitattack,"unitattack","i*"},
+	{buildin_unitstop,"unitstop","i"},
+	{buildin_unitemote,"unitemote","ii"},
 	{buildin_unitskilluseid,"unitskilluseid","iii*"}, // originally by Qamera [Celest]
 	{buildin_unitskillusepos,"unitskillusepos","iiiii"}, // [Celest]
 	{buildin_sleep,"sleep","i"},
@@ -11722,6 +11733,123 @@ int buildin_pcstopfollow(struct script_state *st) {
 	return 0;
 }
 // <--- [zBuffer] List of player cont commands
+int buildin_unitwalk(struct script_state *st){
+	int id,x,y = 0;
+	struct block_list *bl = NULL;
+
+	id = conv_num(st, & (st->stack->stack_data[st->start+2]));
+	x = conv_num(st, & (st->stack->stack_data[st->start+3]));
+	if(st->end > st->start+4)
+		y = conv_num(st, & (st->stack->stack_data[st->start+4]));
+
+	bl = map_id2bl(id);
+	if(bl){
+		if(y)
+			push_val(st->stack,C_INT,unit_walktoxy(bl,x,y,0)); // We'll use harder calculations.
+		else
+			push_val(st->stack,C_INT,unit_walktobl(bl,map_id2bl(x),65025,1));
+	} else {
+		push_val(st->stack,C_INT,0);
+	}
+
+	return 0;
+}
+
+int buildin_unitkill(struct script_state *st){
+	struct block_list *bl = map_id2bl(conv_num(st, & (st->stack->stack_data[st->start+2])));
+	if(bl)
+		status_kill(bl);
+
+	return 0;
+}
+
+int buildin_unitwarp(struct script_state *st){
+	int id,x,y,m = 0;
+	char *map;
+	struct block_list *bl = NULL;
+
+	id = conv_num(st, & (st->stack->stack_data[st->start+2]));
+	map = conv_str(st, & (st->stack->stack_data[st->start+3]));
+	x = conv_num(st, & (st->stack->stack_data[st->start+4]));
+	y = conv_num(st, & (st->stack->stack_data[st->start+5]));
+
+	bl = map_id2bl(id);
+	m = map_mapname2mapid(map);
+	if(m && bl){
+		push_val(st->stack,C_INT,unit_warp(bl, m, (short)x, (short)y, 0));
+	} else {
+		push_val(st->stack,C_INT,0);
+	}
+
+	return 0;
+}
+
+int buildin_unitattack(struct script_state *st) {
+	int id = 0, actiontype = 0;
+	char *target = NULL;
+	struct map_session_data *sd = NULL;
+	struct block_list *bl = NULL, *tbl = NULL;
+	
+	id = conv_num(st, & (st->stack->stack_data[st->start+2]));
+	target = conv_str(st, & (st->stack->stack_data[st->start+3]));
+	if(st->end > st->start + 4)
+		actiontype = conv_num(st, & (st->stack->stack_data[st->start+4]));
+
+	sd = map_nick2sd(target);
+	if(!sd)
+		tbl = map_id2bl(atoi(target));
+	else
+		tbl = &sd->bl;
+
+	if((bl = map_id2bl(id))){
+		switch (bl->type) {
+		case BL_PC:
+			clif_parse_ActionRequest_sub(((TBL_PC *)bl), actiontype > 0?0x07:0x00, tbl->id, gettick());
+			push_val(st->stack,C_INT,1);
+			return 0;
+		case BL_MOB:
+			((TBL_MOB *)bl)->target_id = tbl->id;
+			break;
+		case BL_PET:
+			((TBL_PET *)bl)->target_id = tbl->id;
+			break;
+		}
+		push_val(st->stack,C_INT,unit_walktobl(bl, tbl, 65025, 2));
+	} else {
+		push_val(st->stack,C_INT,0);
+	}
+
+	return 0;
+}
+
+int buildin_unitstop(struct script_state *st) {
+	int id;
+	struct block_list *bl = NULL;
+
+	id = conv_num(st, & (st->stack->stack_data[st->start+2]));
+
+	bl = map_id2bl(id);
+	if(bl){
+		unit_stop_attack(bl);
+		unit_stop_walking(bl,0);
+		if(bl->type == BL_MOB)
+			((TBL_MOB *)bl)->target_id = 0;
+	}
+
+	return 0;
+}
+int buildin_unitemote(struct script_state *st) {
+	int id, emo;
+	struct block_list *bl= NULL;
+	id = conv_num(st, & (st->stack->stack_data[st->start+2]));
+	emo = conv_num(st, & (st->stack->stack_data[st->start+3]));
+	if((bl = map_id2bl(id)))
+		clif_emotion(bl,emo);
+	return 0;
+}
+
+
+
 int buildin_unitskilluseid (struct script_state *st)
 {
 	int id,skid,sklv;
