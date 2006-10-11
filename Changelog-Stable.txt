@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/10/11
+	* Removed a bunch of unused connection variables in the map server.
+	  [Skotlex]
 	* Several merges from trunk: [Skotlex]
 	- Added npc_unload_duplicates to prevent crashes when you @unloadnpc an npc
 	  which has duplicates (the duplicates are removed as well)
