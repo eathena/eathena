@@ -1466,7 +1466,7 @@ int skill_additional_effect(block_list* src, block_list *bl,unsigned short skill
 					0,0,0,skill_get_time2(AS_ENCHANTPOISON,sd->sc_data[SC_ENCPOISON].val1.num),0);
 			}
 			// エンチャントデットリ?ポイズン(猛毒?果)
-			if (sd->sc_data[SC_EDP].timer != -1 && !(status_get_mode(bl) & 0x20) &&
+			if (sd->sc_data[SC_EDP].timer != -1 && !(bl->get_mode() & 0x20) &&
 				sc_data && sc_data[SC_DPOISON].timer == -1 &&
 				rand() % 100 < sd->sc_data[SC_EDP].val2.num * sc_def_vit / 100)
 				status_change_start(bl,SC_DPOISON,sd->sc_data[SC_EDP].val1.num,
@@ -1512,7 +1512,7 @@ int skill_additional_effect(block_list* src, block_list *bl,unsigned short skill
 		break;
 
 	 case HT_FLASHER:  /* Flasher */
-		if (!(status_get_mode(bl) & 0x20) && !(status_get_mode(bl)&0x40) &&
+		if (!(bl->get_mode() & 0x20) && !(bl->get_mode()&0x40) &&
 				((dstsd && md) || (dstmd && !md) || (dstsd && (maps[bl->m].flag.pvp || maps[bl->m].flag.gvg))) &&
 				rand()%100 < (10*skilllv+30)*sc_def_int/100)
 			status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
@@ -1580,8 +1580,8 @@ int skill_additional_effect(block_list* src, block_list *bl,unsigned short skill
 	case CR_GRANDCROSS:		/* グランドクロス */
 	case NPC_GRANDDARKNESS:	/*闇グランドクロス*/
 		{
-			int race = status_get_race(bl);
-			if( (battle_check_undead(race,status_get_elem_type(bl)) || race == 6) && rand()%100 < 100000*sc_def_int/100)	//?制付?だが完全耐性には無?
+			int race = bl->get_race();
+			if( (bl->is_undead() || race == 6) && rand()%100 < 100000*sc_def_int/100)	//?制付?だが完全耐性には無?
 				status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		}
 		break;
@@ -1606,13 +1606,13 @@ int skill_additional_effect(block_list* src, block_list *bl,unsigned short skill
 
 	case PA_PRESSURE:	/* プレッシャ? */
 		{	// Official servers seem to indicate this causes neither stun nor bleeding. [Skotlex]
-			int race = status_get_race(bl);
+			int race = bl->get_race();
 			int bleed_time = skill_get_time2(skillid,skilllv) - status_get_vit(bl) * 1000;
 			if (bleed_time < 60000)
 				bleed_time = 60000;	// minimum time for pressure is?
 			if (rand()%100 < 50 * sc_def_vit / 100)	// is chance 50%?
 				status_change_start(bl, SC_STAN, skilllv, 0, 0, 0, skill_get_time2(PA_PRESSURE,skilllv), 0);
-			if (!(battle_check_undead(race, status_get_elem_type(bl)) || race == 6) && rand()%100 < 50 * sc_def_vit / 100)
+			if (!(bl->is_undead() || race == 6) && rand()%100 < 50 * sc_def_vit / 100)
 				status_change_start(bl, SC_BLEEDING, skilllv, 0, 0, 0, bleed_time, 0);
 			if (dstsd) {
 				dstsd->status.sp -= dstsd->status.sp * (15 + 5 * skilllv) / 100;
@@ -1736,11 +1736,11 @@ int skill_additional_effect(block_list* src, block_list *bl,unsigned short skill
 	case LK_HEADCRUSH:				/* ヘッドクラッシュ */
 		{
 			//?件が良く分からないので適?に
-			int race = status_get_race(bl);
+			int race = bl->get_race();
 			int bleed_time = skill_get_time2(skillid,skilllv) - status_get_vit(bl) * 1000;
 			if (bleed_time < 90000)
 				bleed_time = 90000;	// minimum 90 seconds
-			if (!(battle_check_undead(race, status_get_elem_type(bl)) || race == 6) && rand()%100 < 50 * sc_def_vit/100)
+			if (!(bl->is_undead() || race == 6) && rand()%100 < 50 * sc_def_vit/100)
 				status_change_start(bl, SkillStatusChangeTable[skillid], skilllv, 0, 0, 0, bleed_time, 0);
 		}
 			break;
@@ -2321,7 +2321,7 @@ int skill_attack(int attack_type, block_list* src, block_list *dsrc,
 		else
 			battle_damage(src,bl,damage,0);
 	}
-	if(skillid == RG_INTIMIDATE && damage > 0 && !(status_get_mode(bl)&0x20) && !maps[src->m].flag.gvg ) {
+	if(skillid == RG_INTIMIDATE && damage > 0 && !(bl->get_mode()&0x20) && !maps[src->m].flag.gvg ) {
 		int s_lv = status_get_lv(src),t_lv = status_get_lv(bl);
 		int rate = 50 + skilllv * 5;
 		rate = rate + (s_lv - t_lv);
@@ -3336,7 +3336,7 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 			if(bl->id==skill_area_temp[1])
 				break;
 			if( skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0x0500) &&
-				!(maps[bl->m].flag.gvg || status_get_mexp(bl)) )
+				!(maps[bl->m].flag.gvg || bl->get_mexp()) )
 				skill_blown(src,bl,skill_area_temp[2]);
 		} else {
 			int x=bl->x,y=bl->y,i;
@@ -3346,7 +3346,7 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 			skill_area_temp[1] = bl->id;
 			skill_area_temp[2] = skill_get_blewcount(skillid,skilllv)|dir<<20;
 			if( skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0) &&
-				!(maps[bl->m].flag.gvg || status_get_mexp(bl)) )
+				!(maps[bl->m].flag.gvg || bl->get_mexp()) )
 				skill_blown(src,bl,skill_area_temp[2]);
 			for (i=0;i<4;++i)
 			{
@@ -3361,9 +3361,10 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 
 	case ALL_RESURRECTION:		/* リザレクション */
 	case PR_TURNUNDEAD:			/* タ?ンアンデッド */
-		if (*bl != BL_PC && battle_check_undead(status_get_race(bl),status_get_elem_type(bl)))
+		if (*bl != BL_PC && bl->is_undead() )
 			skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
-		else {
+		else
+		{
 			block_list::freeblock_unlock();
 			return 1;
 		}
@@ -3401,7 +3402,7 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 		break;
 
 	case PR_BENEDICTIO:			/* 聖?降福 */
-		if (status_get_race(bl) == 1 || status_get_race(bl) == 6)
+		if (bl->get_race() == 1 || bl->get_race() == 6)
 			skill_attack(BF_MAGIC, src, src, bl, skillid, skilllv, tick, flag);
 		break;
 
@@ -3744,8 +3745,9 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 
 	case AL_CRUCIS:
 		if (flag & 1) {
-			int race = status_get_race(bl), ele = status_get_elem_type (bl);
-			if (battle_check_target (src, bl, BCT_ENEMY) && (race == 6 || battle_check_undead (race, ele))) {
+			int race = bl->get_race();
+			if( battle_check_target (src, bl, BCT_ENEMY) && (race == 6 || bl->is_undead()) )
+			{
 				int slv = status_get_lv (src),tlv = status_get_lv (bl);
 				int rate = 23 + skilllv*4 + slv - tlv;
 				if (rand()%100 < rate)
@@ -4109,8 +4111,9 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 		{
 			struct status_change *sc_data = status_get_sc_data(bl);
 
-			/* MVPmobと不死には?かない */
-			if((dstmd && status_get_mode(bl)&0x20) || battle_check_undead(status_get_race(bl),status_get_elem_type(bl))) { //不死には?かない
+			// MVPmobと不死には?かない 
+			if((dstmd && bl->get_mode()&0x20) || bl->is_undead() )
+			{	//不死には?かない
 				block_list::freeblock_unlock();
 				return 1;
 			}
@@ -4578,7 +4581,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			struct status_change *sc_data = status_get_sc_data(bl);
 			// Level 6-10 doesn't consume a red gem if it fails [celest]
 			int i, gem_flag = 1, fail_flag = 0;
-			if (dstmd && status_get_mode(bl)&0x20) {
+			if (dstmd && bl->get_mode()&0x20) {
 				if(sd) sd->clif_skill_failed(sd->skillid,0,0);
 				break;
 			}
@@ -4593,7 +4596,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 					sd->clif_skill_failed(skillid,0,0);
 				}
 			}
-			else if( rand()%100 < skilllv*4+20 && !battle_check_undead(status_get_race(bl),status_get_elem_type(bl)))
+			else if( rand()%100< skilllv*4+20 && !bl->is_undead())
 			{
 				clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 				status_change_start(bl,SC_STONE,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
@@ -4627,7 +4630,8 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 		status_change_end(bl, SC_SILENCE	, -1 );
 		status_change_end(bl, SC_BLIND	, -1 );
 		status_change_end(bl, SC_CONFUSION, -1 );
-		if( battle_check_undead(status_get_race(bl),status_get_elem_type(bl)) ){//アンデッドなら暗闇?果
+		if( bl->is_undead() )
+		{	//アンデッドなら暗闇?果
 			status_change_start(bl, SC_CONFUSION,1,0,0,0,6000,0);
 		}
 		break;
@@ -4647,7 +4651,8 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			status_change_end(bl, SC_STONE	, -1 );
 			status_change_end(bl, SC_SLEEP	, -1 );
 			status_change_end(bl, SC_STAN	, -1 );
-			if( battle_check_undead(status_get_race(bl),status_get_elem_type(bl)) ){//アンデッドなら暗闇?果
+			if( bl->is_undead() )
+			{	//アンデッドなら暗闇?果
 				if(rand()%100 < (100-(status_get_int(bl)/2+status_get_vit(bl)/3+status_get_luk(bl)/10))) {
 					status_change_start(bl, SC_BLIND,1,0,0,0,
 						1000 * 30 * (100-(status_get_int(bl)+status_get_vit(bl))/2)/100,0);
@@ -4980,7 +4985,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 				}
 				else if(*bl == BL_MOB) {
 					if(dstmd && dstmd->skilltimer != -1) {
-						if (status_get_mode(bl) & 0x20)
+						if( bl->get_mode() & 0x20 )
 						{	//Only 10% success chance against bosses. [Skotlex]
 							if (rand()%100 < 90)
 							{
@@ -5129,7 +5134,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 			if(status_isimmune(bl))
 				break;
-			if(status_get_elem_type(bl) == 7 || status_get_race(bl) == 6)
+			if(status_get_elem_type(bl) == 7 || bl->get_race() == 6)
 				break;
 			if(rand()%100 < sc_def*(50+skilllv*5)/100) {
 				if(dstsd) {
@@ -5511,7 +5516,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			struct status_change *sc_data = status_get_sc_data(bl);
 
 			/* MVPmobと不死には?かない */
-			if((dstmd && status_get_mode(bl)&0x20) || battle_check_undead(status_get_race(bl),status_get_elem_type(bl))) //不死には?かない
+			if((dstmd && bl->get_mode()&0x20) || bl->is_undead()) //不死には?かない
 			{
 				block_list::freeblock_unlock();
 				return 1;
@@ -5998,7 +6003,7 @@ int skill_castend_id(int tid, unsigned long tick, int id, basics::numptr data)
 	switch( skill_get_nk(sd->skillid) )
 	{
 	case NK_NO_DAMAGE:
-		if( (sd->skillid==AL_HEAL || (sd->skillid==ALL_RESURRECTION && *bl != BL_PC) || sd->skillid==PR_ASPERSIO) && battle_check_undead(status_get_race(bl),status_get_elem_type(bl)))
+		if( (sd->skillid==AL_HEAL || (sd->skillid==ALL_RESURRECTION && *bl != BL_PC) || sd->skillid==PR_ASPERSIO) && bl->is_undead() )
 			skill_castend_damage_id(sd,bl,sd->skillid,sd->skilllv,tick,0);
 		else
 			skill_castend_nodamage_id(sd,bl,sd->skillid,sd->skilllv,tick,0);
@@ -6884,7 +6889,7 @@ int skill_unit_onplace(struct skill_unit *src,block_list *bl,unsigned long tick)
 			}
 			status_change_start(bl,type,sg->skill_lv,0,0,basics::numptr(sg),
 				skill_get_time2(sg->skill_id,sg->skill_lv),0);
-		} else if(0 != (0x20&status_get_mode(bl)))
+		} else if(0 != (0x20&bl->get_mode()))
 			skill_blown(src,bl,1);
 		break;
 
@@ -6906,7 +6911,7 @@ int skill_unit_onplace(struct skill_unit *src,block_list *bl,unsigned long tick)
 				struct skill_unit_group *sg2 = (struct skill_unit_group *)sc_data[type].val4.ptr;
 				if (sg2 && (sg2 == src->group || DIFF_TICK(sg->tick,sg2->tick)<=0))
 					break;
-				if( 0==(status_get_mode(bl)&0x20) )
+				if( 0==(bl->get_mode()&0x20) )
 					break;
 			}
 			status_change_start(bl,type,sg->skill_lv,5*sg->skill_lv,BCT_ENEMY,basics::numptr(sg),
@@ -6982,9 +6987,9 @@ int skill_unit_onplace_timer(struct skill_unit *src,block_list *bl,unsigned long
 	switch (sg->unit_id) {
 	case UNT_SANCTUARY:	/* サンクチュアリ */
 		{
-			int race = status_get_race(bl);
+			int race = bl->get_race();
 
-			if (battle_check_undead(race, status_get_elem_type(bl)) || race==6) {
+			if ( bl->is_undead() || race==6) {
 				if (skill_attack(BF_MAGIC, ss, src, bl, sg->skill_id, sg->skill_lv, tick, 0)) {
 					// reduce healing count if this was meant for damaging [hekate]
 					sg->val1 -= 2;
@@ -7008,8 +7013,8 @@ int skill_unit_onplace_timer(struct skill_unit *src,block_list *bl,unsigned long
 
 	case UNT_MAGNUS:	/* マグヌスエクソシズム */
 		{
-			int race = status_get_race(bl);
-			if (!battle_check_undead(race,status_get_elem_type(bl)) && race!=6)
+			int race = bl->get_race();
+			if (!bl->is_undead() && race!=6)
 				return 0;
 			skill_attack(BF_MAGIC,ss,src,bl,sg->skill_id,sg->skill_lv,tick,0);
 			++(src->val2);
@@ -7075,7 +7080,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,block_list *bl,unsigned long
 		if(sg->val2==0 && sc_data && sc_data[SC_ANKLE].timer==-1){
 			int moveblock = ( bl->x/BLOCK_SIZE != src->block_list::x/BLOCK_SIZE || bl->y/BLOCK_SIZE != src->block_list::y/BLOCK_SIZE);
 			int sec = skill_get_time2(sg->skill_id,sg->skill_lv) - status_get_agi(bl)*100;
-			if(status_get_mode(bl)&0x20)
+			if(bl->get_mode()&0x20)
 				sec = sec/5;
 			if (sec < 3000+30*sg->skill_lv)	// minimum time of 3 seconds [celest]
 				sec = 3000+30*sg->skill_lv;
@@ -7131,7 +7136,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,block_list *bl,unsigned long
 	// Basilica
 	case UNT_BASILICA:				/* バジリカ */
 	   	if (battle_check_target(src,bl,BCT_ENEMY)>0 &&
-			!(status_get_mode(bl)&0x20))
+			!(bl->get_mode()&0x20))
 			skill_blown(src,bl,1);
 		if (sg->src_id==bl->id)
 			break;
@@ -8263,7 +8268,8 @@ if(config._temp_)
 	switch (skill_num)
 	{	/* 何か特殊な?理が必要 */
 	case ALL_RESURRECTION:	/* リザレクション */
-		if(!target_sd && battle_check_undead(status_get_race(bl),status_get_elem_type(bl))) {	/* 敵がアンデッドなら */
+		if(!target_sd && bl->is_undead())
+		{	/* 敵がアンデッドなら */
 			forcecast = 1;	/* タ?ンアンデットと同じ詠唱時間 */
 			casttime = skill_castfix(sd, skill_get_cast(PR_TURNUNDEAD, skill_lv));
 		}

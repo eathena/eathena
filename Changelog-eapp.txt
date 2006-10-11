@@ -1,4 +1,17 @@
 Date	Added
+10/11
+	* doing a temporal upload on behalf of Shinomori (which is absent atm)
+	  so I just paste the log entries from his work packages [Hinoko]
+	* removed some status functions, embedded them at the objects
+	   and changed the code where the original call was used
+	* changed item command behaviour
+	* added a pre-version of the script converter; which is just a reduced
+	  copy of the script checker with a slightly reduced syntax set. 
+	  it should not yet be used to do a real conversion, but for error tracking 
+	  in order to make the final conversion step as smooth as possible.
+	  it can only parse/convert scripts and recognize itemdb and mobdb entries
+	  but not convert them since the new format is to be specified
+	  it is not included in the global makefile and needs to be built seperately
 09/30
 	* changes at on-event behaviour (examples in gmhelper.txt)
 	* cleaned some more stray functions

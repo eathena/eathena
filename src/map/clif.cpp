@@ -9345,7 +9345,7 @@ int clif_parse_LoadEndAck(int fd, map_session_data &sd)
 	clif_changeoption(sd);
 	if(sd.sc_data[SC_TRICKDEAD].timer != -1)
 		status_change_end(&sd,SC_TRICKDEAD,-1);
-	if(sd.sc_data[SC_SIGNUMCRUCIS].timer != -1 && !battle_check_undead(7,sd.def_ele))
+	if(sd.sc_data[SC_SIGNUMCRUCIS].timer != -1 && !sd.is_undead() )
 		status_change_end(&sd,SC_SIGNUMCRUCIS,-1);
 	if(sd.state.infinite_endure && sd.sc_data[SC_ENDURE].timer == -1)
 		status_change_start(&sd,SC_ENDURE,10,1,0,0,0,0);

@@ -577,7 +577,16 @@ public:
 	virtual bool is_50overweight() const	{ return false; }
 	virtual bool is_90overweight() const	{ return false; }
 
+	virtual int get_race() const			{ return 0; }
+	virtual int get_race2() const			{ return 0; }
+	virtual int get_mode() const			{ return 1; }// ‚Æ‚è‚ ‚¦‚¸“®‚­‚Æ‚¢‚¤‚±‚Æ‚Å1
+	virtual int get_mexp() const			{ return 0; }
+	virtual int get_size() const			{ return 1; }
 
+
+
+	bool is_boss() const					{ return 0!=this->get_mexp(); }
+	bool is_undead() const;
 
 
 	///////////////////////////////////////////////////////////////////////////

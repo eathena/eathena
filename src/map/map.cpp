@@ -441,6 +441,24 @@ block_list * block_list::from_blid(uint32 id)
 	return bl;
 }
 
+/// detect undead state.
+/// is only dependend on race/element so not overloaded
+bool block_list::is_undead() const
+{
+	if(config.undead_detect_type == 0)
+	{
+		return ( 9==status_get_elem_type(this) );
+	}
+	else if(config.undead_detect_type == 1)
+	{
+		return ( 1==this->get_race() );
+	}
+	else
+	{
+		return ( 9==status_get_elem_type(this) || 1==this->get_race() );
+	}
+}
+
 
 
 ///////////////////////////////////////////////////////////////////////////////

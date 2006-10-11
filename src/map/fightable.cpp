@@ -37,6 +37,7 @@ public:
 
 	/// identifier.
 	enum {id = MG_FIREBOLT};
+
 	/// function called for initialisation.
 	virtual bool init(ulong& timeoffset)
 	{
@@ -675,7 +676,7 @@ int unit_skilluse_id2(block_list *src, int target_id, int skill_num, int skill_l
 	
 	switch(skill_num){
 	case ALL_RESURRECTION:
-		if(battle_check_undead(tstatus->race,tstatus->def_ele)){	
+		if(target->is_undead()){	
 			temp=1;
 			casttime = skill_castfix(src, PR_TURNUNDEAD, skill_lv);
 		}

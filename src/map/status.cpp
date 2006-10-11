@@ -2094,8 +2094,8 @@ int status_get_str(block_list *bl)
 			if(sc_data[SC_LOUD].timer != -1)
 				str += 4;
 			if( sc_data[SC_BLESSING].timer != -1){	// ブレッシング
-				int race = status_get_race(bl);
-				if(battle_check_undead(race,status_get_elem_type(bl)) || race == 6)
+				int race = bl->get_race();
+				if( bl->is_undead() || race == 6)
 					str >>= 1;	// 悪 魔/不死
 				else str += sc_data[SC_BLESSING].val1.num;	// その他
 			}
@@ -2258,8 +2258,8 @@ int status_get_int(block_list *bl)
 
 		if(sc_data) {
 			if(sc_data[SC_BLESSING].timer != -1){	// ブレッシング
-				int race = status_get_race(bl);
-				if(battle_check_undead(race,status_get_elem_type(bl)) || race == 6 )
+				int race = bl->get_race();
+				if(bl->is_undead() || race == 6 )
 					int_ >>= 1;	// 悪 魔/不死
 				else
 					int_ += sc_data[SC_BLESSING].val1.num;	// その他
@@ -2317,8 +2317,8 @@ int status_get_dex(block_list *bl)
 			if(sc_data[SC_CONCENTRATE].timer!=-1 && sc_data[SC_QUAGMIRE].timer == -1)
 				dex += dex*(2+sc_data[SC_CONCENTRATE].val1.num)/100;
 			if(sc_data[SC_BLESSING].timer != -1){	// ブレッシング
-				int race = status_get_race(bl);
-				if(battle_check_undead(race,status_get_elem_type(bl)) || race == 6 )
+				int race = bl->get_race();
+				if( bl->is_undead() || race == 6 )
 					dex >>= 1;	// 悪 魔/不死
 				else dex += sc_data[SC_BLESSING].val1.num;	// その他
 			}
@@ -3206,7 +3206,6 @@ int status_get_element(const block_list *bl)
 		if( sc_data[SC_STONE].timer!=-1 && sc_data[SC_STONE].val2.num==0)
 			ret=22;
 	}
-
 	return ret;
 }
 
@@ -3316,69 +3315,12 @@ uint32 status_get_guild_id(const block_list *bl)
 	else
 		return 0;
 }
-int status_get_race(block_list *bl)
-{
-	nullpo_retr(0, bl);
-	if(*bl==BL_MOB)
-		return mob_db[bl->get_md()->class_].race;
-	else if(*bl==BL_PC)
-		return 7;
-	else if(*bl==BL_PET)
-		return mob_db[bl->get_pd()->pet.class_].race;
-	else
-		return 0;
-}
-int status_get_size(block_list *bl)
-{
-	nullpo_retr(1, bl);
-	if(*bl==BL_MOB)
-		return mob_db[bl->get_md()->class_].size;
-	else if(*bl==BL_PET)
-		return mob_db[bl->get_pd()->pet.class_].size;
-	else if(*bl==BL_PC)
-	{
-		const map_session_data *sd = bl->get_sd();
 
-		//Baby Class Peco Rider + enabled option -> size = 1, else 0
-		if (pc_calc_upper(sd->status.class_)==2)			
-			return (sd->is_riding()!=0 && config.character_size&2); 
-		
-		//Peco Rider + enabled option -> size = 2, else 1
-		return 1+(sd->is_riding()!=0 && config.character_size&1);
-	} else
-		return 1;
-}
-int status_get_mode(block_list *bl)
-{
-	nullpo_retr(0x01, bl);
-	if(*bl==BL_MOB)
-		return mob_db[bl->get_md()->class_].mode;
-	else if(*bl==BL_PET)
-		return mob_db[bl->get_pd()->pet.class_].mode;
-	else
-		return 0x01;	// とりあえず動くということで1
-}
 
-int status_get_mexp(block_list *bl)
-{
-	nullpo_retr(0, bl);
-	if(*bl==BL_MOB)
-		return mob_db[bl->get_md()->class_].mexp;
-	else if(*bl==BL_PET)
-		return mob_db[bl->get_pd()->pet.class_].mexp;
-	else
-		return 0;
-}
-int status_get_race2(block_list *bl)
-{
-	nullpo_retr(0, bl);
-	if(*bl == BL_MOB && (struct mob_data *)bl)
-		return mob_db[bl->get_md()->class_].race2;
-	else if(*bl==BL_PET)
-		return mob_db[bl->get_pd()->pet.class_].race2;
-	else
-		return 0;
-}
+
+
+
+
 int status_isimmune(block_list *bl)
 {
 	nullpo_retr(0, bl);
@@ -3543,10 +3485,10 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 	nullpo_retr(0, opt2=status_get_opt2(bl));
 	nullpo_retr(0, opt3=status_get_opt3(bl));
 
-	race=status_get_race(bl);
-	mode=status_get_mode(bl);
+	race=bl->get_race();
+	mode=bl->get_mode();
 	elem=status_get_elem_type(bl);
-	undead_flag=battle_check_undead(race,elem);
+	undead_flag=bl->is_undead();
 
 	if(type == SC_AETERNA && (sc_data[SC_STONE].timer != -1 || sc_data[SC_FREEZE].timer != -1) )
 		return 0;
@@ -4893,8 +4835,8 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 
 	case SC_SIGNUMCRUCIS:		/* シグナムクルシス */
 		{
-			int race = status_get_race(bl);
-			if(race == 6 || battle_check_undead(race,status_get_elem_type(bl))) {
+			int race = bl->get_race();
+			if( race == 6 || bl->is_undead() ) {
 				sc_data[type].timer=add_timer(1000*600+tick,status_change_timer, bl->id, data );
 				return 0;
 			}

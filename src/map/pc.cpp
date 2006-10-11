@@ -503,6 +503,14 @@ bool map_session_data::set_stand()
 	this->state.dead_sit = 0;
 	return true;
 }
+int map_session_data::get_size() const
+{
+	//Baby Class Peco Rider + enabled option -> size = 1, else 0
+	if( pc_calc_upper(this->status.class_)==2 )
+		return (this->is_riding()!=0 && config.character_size&2);
+	//Peco Rider + enabled option -> size = 2, else 1
+	return 1+(this->is_riding()!=0 && config.character_size&1);
+}
 
 
 
@@ -6236,7 +6244,7 @@ int pc_equipitem(map_session_data &sd,unsigned short inx, unsigned short pos)
 		if(	sd.sc_data[SC_ENDURE].timer != -1 && sd.sc_data[SC_ENDURE].val2.num)
 			status_change_end(&sd,SC_ENDURE,-1);
 	}
-	if (sd.sc_data[SC_SIGNUMCRUCIS].timer != -1 && !battle_check_undead(7,sd.def_ele))
+	if( sd.sc_data[SC_SIGNUMCRUCIS].timer != -1 && !sd.is_undead() )
 		status_change_end(&sd,SC_SIGNUMCRUCIS,-1);
 	if(sd.sc_data[SC_DANCING].timer!=-1 && (sd.status.weapon != 13 && sd.status.weapon !=14))
 		skill_stop_dancing(&sd,0);
@@ -6337,7 +6345,7 @@ int pc_unequipitem(map_session_data &sd,unsigned short inx, int flag)
 	if(flag&1) {
 		status_calc_pc(sd,0);
 		if(	sd.sc_data[SC_SIGNUMCRUCIS].timer != -1 && 
-			!battle_check_undead(7,sd.def_ele))
+			!sd.is_undead() )
 			status_change_end(&sd,SC_SIGNUMCRUCIS,-1);
 	}
 

@@ -269,7 +269,7 @@ bool mob_data::do_walkstep(unsigned long tick, const coordinate &target, int dx,
 {
 //---
 	if( map_getcell(this->block_list::m,target.x,target.y,CELL_CHKBASILICA) && 
-		!(status_get_mode(this)&0x20) )
+		!(this->get_mode()&0x20) )
 	{
 		return false;
 	}
@@ -587,7 +587,7 @@ void mob_data::set_spawndelay()
 	}
 	else
 	{	// Apply the spawn delay fix [Skotlex]
-		mode = status_get_mode(this);
+		mode = this->get_mode();
 		if (mode & 0x20)
 		{	//Bosses
 			if (config.boss_spawn_delay != 100)
@@ -2061,7 +2061,7 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 	//srcはNULLで呼ばれる場合もあるので、他でチェック
 
 	max_hp = status_get_max_hp(&md);
-	race = status_get_race(&md);
+	race = md.get_race();
 
 	if( src )
 		mvp_sd = sd = src->get_sd();
@@ -3011,7 +3011,7 @@ int mobskill_castend_id(int tid, unsigned long tick, int id, basics::numptr data
 	{
 	case NK_NO_DAMAGE:// 支援系
 		if(!mob_db[md->class_].skill[md->skillidx].val[0] &&
-			(md->skillid==AL_HEAL || (md->skillid==ALL_RESURRECTION && *bl != BL_PC)) && battle_check_undead(status_get_race(bl),status_get_elem_type(bl)) )
+			(md->skillid==AL_HEAL || (md->skillid==ALL_RESURRECTION && *bl != BL_PC)) && bl->is_undead() )
 			skill_castend_damage_id(md,bl,md->skillid,md->skilllv,tick,0);
 		else
 			skill_castend_nodamage_id(md,bl,md->skillid,md->skilllv,tick,0);
@@ -3164,7 +3164,8 @@ int mobskill_use_id(mob_data &md,block_list *target,unsigned short skill_idx)
 
 	switch(skill_id){	// 何か特殊な処理が必要 
 	case ALL_RESURRECTION:	// リザレクション 
-		if(*target!= BL_PC && battle_check_undead(status_get_race(target),status_get_elem_type(target))){	/* 敵がアンデッドなら */
+		if(*target!= BL_PC && target->is_undead() )
+		{	// 敵がアンデッドなら 
 			forcecast=1;	// ターンアンデットと同じ詠唱時間 
 			casttime=skill_castfix(&md, skill_get_cast(PR_TURNUNDEAD,skill_lv) );
 		}

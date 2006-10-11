@@ -502,6 +502,9 @@ public:
 
 
 
+	virtual int get_race() const			{ return 7; }
+	virtual int get_size() const;
+
 
 
 	///////////////////////////////////////////////////////////////////////////

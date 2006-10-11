@@ -94,7 +94,7 @@ enum {
 };
 
 
-bool battle_check_undead(int race,int element);
+
 int battle_check_target(const block_list *src, const block_list *target, int flag);
 bool battle_check_range(const block_list *src, const block_list *bl, unsigned int range);
 void battle_init();

@@ -272,6 +272,28 @@ int pet_data::get_equip() const
 {
 	return mob_db[this->pet.class_].equip;
 }
+int pet_data::get_race() const
+{
+	return mob_db[this->pet.class_].race;
+}
+int pet_data::get_race2() const
+{
+	return mob_db[this->pet.class_].race2;
+}
+int pet_data::get_mode() const
+{
+	return mob_db[this->pet.class_].mode;
+}
+int pet_data::get_mexp() const
+{
+	return mob_db[this->pet.class_].mexp;
+}
+int pet_data::get_size() const
+{
+	return mob_db[this->pet.class_].size;
+}
+
+
 
 
 bool pet_data::stop_attack()
@@ -574,7 +596,7 @@ int petskill_castend2(struct pet_data &pd, block_list &target, unsigned short sk
 		{
 			case NK_NO_DAMAGE:
 				if(
-				(skill_id==AL_HEAL || skill_id==ALL_RESURRECTION) && battle_check_undead(status_get_race(&target),status_get_elem_type(&target)) )
+				(skill_id==AL_HEAL || skill_id==ALL_RESURRECTION) && target.is_undead() )
 					skill_castend_damage_id(&pd, &target, skill_id, skill_lv, tick, 0);
 				else
 				{

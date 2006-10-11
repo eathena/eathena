@@ -429,6 +429,12 @@ struct mob_data : public fightable
 	virtual bool set_dead();
 
 
+	virtual int get_race() const		{ return mob_db[this->class_].race; }
+	virtual int get_race2() const		{ return mob_db[this->class_].race2; }
+	virtual int get_mode() const		{ return mob_db[this->class_].mode; }
+	virtual int get_mexp() const		{ return mob_db[this->class_].mexp; }
+	virtual int get_size() const		{ return mob_db[this->class_].size; }
+
 	void remove_map(int type);
 	void set_spawndelay();
 	void remove_slaves() const;

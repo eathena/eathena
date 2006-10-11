@@ -118,11 +118,13 @@ public:
 
 	/// function called for initialisation.
 	/// overload with specific needs
+	/// timeoffset receives the tick for delayed execution,
+	/// returns true when execution is ok
 	virtual bool init(ulong& timeoffset)=0;
-	/// function called for execution.
+	/// function called for skill execution.
 	/// overload with specific needs
 	virtual void action()=0;
-	/// function called for execution.
+	/// function called for cast cancel.
 	/// overload with specific needs
 	virtual void stop()=0;
 

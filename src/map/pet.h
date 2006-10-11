@@ -259,9 +259,15 @@ struct pet_data : public fightable
 	virtual ushort get_clothes_color() const;
 	virtual int get_equip() const;
 
+	///////////////////////////////////////////////////////////////////////////
+	// status functions
 
-	virtual bool set_dead()	{ return false; }// cannot die
-
+	virtual bool set_dead()				{ return false; }// cannot die
+	virtual int get_race() const;
+	virtual int get_race2() const;
+	virtual int get_mode() const;
+	virtual int get_mexp() const;
+	virtual int get_size() const;
 
 
 	void menu(int menunum);

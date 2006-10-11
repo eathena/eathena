@@ -2723,8 +2723,8 @@ bool command_item(int fd, map_session_data& sd, const char* command, const basic
 {
 	if( param.size()<1)
 	{
-		clif_displaymessage(fd, "Please, enter an item name/id (usage: item <item name or ID> [quantity]).");
-		clif_displaymessage(fd, "  [Identify_flag] [refine] [attribut] [Card1] [Card2] [Card3] [Card4]).");
+		clif_displaymessage(fd, "Please, enter an item name/id (usage: item <item name or ID> [quantity].");
+		clif_displaymessage(fd, "  [Identify_flag] [refine] [attribut] [Card1] [Card2] [Card3] [Card4] [player]).");
 
 		return false;
 	}
@@ -2754,6 +2754,7 @@ bool command_item(int fd, map_session_data& sd, const char* command, const basic
 		item_tmp.card[3]  = param[8];
 		bool all     = 0==strcasecmp( param.last(), "all") || 0==strcasecmp( param.last(), "everyone");
 		size_t inc = number;
+
 		if( item_data->type == 4 || item_data->type == 5 ||
 			item_data->type == 7 || item_data->type == 8)
 		{
@@ -2792,7 +2793,8 @@ bool command_item(int fd, map_session_data& sd, const char* command, const basic
 		}
 		else
 		{
-			command_item_sub(sd, item_tmp, pet_id, number, inc);
+			map_session_data* psd = CommandInfo::param2sd(param.last());
+			command_item_sub( psd?*psd:sd, item_tmp, pet_id, number, inc);
 		}
 		clif_displaymessage(fd, msg_txt(MSG_ITEM_CREATED)); // Item created.
 	}
@@ -3229,9 +3231,6 @@ bool command_kick(int fd, map_session_data& sd, const char* command, const basic
 
 	if( pl_sd != NULL )
 	{
-		if( sd.block_list::id == pl_sd->block_list::id ) //Yourself mate? Tsk tsk tsk.
-			return false;
-
 		if (sd.isGM() >= pl_sd->isGM()) // you can kick only lower or same gm level
 		{
 			char output[128];
@@ -3882,9 +3881,9 @@ bool command_memo(int fd, map_session_data& sd, const char* command, const basic
 	for (i = MIN_PORTAL_MEMO; i <= MAX_PORTAL_MEMO; ++i)
 	{
 		if (sd.status.memo_point[i].mapname[0])
-			snprintf(output, sizeof(output), "%d - %s (%d,%d)", i, sd.status.memo_point[i].mapname, sd.status.memo_point[i].x, sd.status.memo_point[i].y);
+			snprintf(output, sizeof(output), "%d - %s (%d,%d)", (uint)i, sd.status.memo_point[i].mapname, sd.status.memo_point[i].x, sd.status.memo_point[i].y);
 		else
-			snprintf(output, sizeof(output), msg_txt(MSG_D___VOID), i); // %d - void
+			snprintf(output, sizeof(output), msg_txt(MSG_D___VOID), (uint)i); // %d - void
 		clif_displaymessage(sd.fd, output);
 	}
 	return ret;
@@ -7112,7 +7111,7 @@ static CommandInfo command_info[] =
 	{ "hstyle",				40, 1, 1, command_hair_style			},
 	{ "identify",			40, 0, 1, command_identify				},
 	{ "idsearch",			60, 0, 0, command_idsearch				},
-	{ "item",				60, 1, 1, command_item					},
+	{ "item",				60, 1, 0, command_item					},
 	{ "itemcheck",			60, 0, 1, command_itemcheck				},
 	{ "iteminfo",			 1, 1, 0, command_iteminfo				},
 	{ "ii",					 1, 1, 0, command_iteminfo				},

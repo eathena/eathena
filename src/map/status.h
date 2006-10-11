@@ -646,11 +646,7 @@ int status_get_attack_element2(block_list *bl);  //¶è•Ší‘®«æ“¾
 #define status_get_elem_level(bl)	(status_get_element(bl)/10/2)
 uint32 status_get_party_id(const block_list *bl);
 uint32 status_get_guild_id(const block_list *bl);
-int status_get_race(block_list *bl);
-int status_get_size(block_list *bl);
-int status_get_mode(block_list *bl);
-int status_get_mexp(block_list *bl);
-int status_get_race2(block_list *bl);
+
 
 struct status_change *status_get_sc_data(const block_list *bl);
 short *status_get_opt1(block_list *bl);

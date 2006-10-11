@@ -1417,7 +1417,7 @@ char* parse_line(char *p)
 
 	p=skip_space(p);
 	if(*p==';')
-		return p;
+		return p+1;
 
 	parse_cmd_if=0;	// warn_cmd_no_comma‚Ì‚½‚ß‚É•K—v
 
@@ -1427,9 +1427,18 @@ char* parse_line(char *p)
 	p=skip_space(p);
 
 	cmd=parse_cmd;
-	if( str_data[cmd].type!=CScriptEngine::C_FUNC ){
+	if( str_data[cmd].type!=CScriptEngine::C_FUNC )
+	{
 		disp_error_message("expect command", p2);
-		return p;
+
+		if( 0==strcasecmp( str_data[cmd].string(), "atcommand") ||
+			0==strcasecmp( str_data[cmd].string(), "charcommand") )
+		{
+			ShowMessage("command obsolete. use \"gmcommand\" instead.\n");
+		}
+		// skip until end of command
+		p2 = strchr(p,';');
+		return p2?p2+1:p;
 	}
 
 	add_scriptc(CScriptEngine::C_ARG);
