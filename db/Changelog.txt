@@ -1,3 +1,5 @@
+10/15
+	* Fixed High Quality Sandals, Bacsojin and Chung E [Playtester]
 10/08
 	* Probably final drop rate increase of combo equip sets [Playtester]
 10/06
