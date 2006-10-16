@@ -3684,16 +3684,17 @@ const char * status_get_name(struct block_list *bl)
 	nullpo_retr(0, bl);
 	switch (bl->type) {
 	case BL_MOB:
-		return ((struct mob_data *)bl)->name;
+		return ((TBL_MOB*)bl)->name;
 	case BL_PC:
-		return ((struct map_session_data *)bl)->status.name;
+		if(strlen(((TBL_PC *)bl)->fakename)>0)
+			return ((TBL_PC*)bl)->fakename;
+		return ((TBL_PC*)bl)->status.name;
 	case BL_PET:
-		return ((struct pet_data *)bl)->pet.name;
+		return ((TBL_PET*)bl)->pet.name;
 	case BL_NPC:
-		return ((struct npc_data*)bl)->name;
-	default:
-		return "Unknown";
+		return ((TBL_NPC*)bl)->name;
 	}
+	return "Unknown";
 }
 
 /*==========================================
@@ -4476,12 +4477,12 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			case SC_BLIND:
 			case SC_BLEEDING:
 			case SC_DPOISON:
-			case SC_COMBO: //You aren't supposed to change the combo (and it gets turned off when you trigger it)
 			case SC_CLOSECONFINE2: //Can't be re-closed in.
 			case SC_MARIONETTE:
 			case SC_MARIONETTE2:
 			case SC_NOCHAT:
 				return 0;
+			case SC_COMBO: 
 			case SC_DANCING:
 			case SC_DEVOTION:
 			case SC_ASPDPOTION0:
@@ -6443,13 +6444,11 @@ int status_change_timer_sub(struct block_list *bl, va_list ap )
 		}
 		break;
 	case SC_SIGHTBLASTER:
+		if (battle_check_target( src, bl, BCT_ENEMY ) > 0 &&
+			status_check_skilluse(src, bl, WZ_SIGHTBLASTER, 2))
 		{
-			if (sc && sc->count && sc->data[type].val2 > 0 && battle_check_target( src, bl, BCT_ENEMY ) > 0 &&
-				status_check_skilluse(src, bl, WZ_SIGHTBLASTER, 2))
-			{	//sc_ check prevents a single round of Sight Blaster hitting multiple opponents. [Skotlex]
-				skill_attack(BF_MAGIC,src,src,bl,WZ_SIGHTBLASTER,1,tick,0);
-				sc->data[type].val2 = 0; //This signals it to end.
-			}
+			skill_attack(BF_MAGIC,src,src,bl,WZ_SIGHTBLASTER,1,tick,0);
+			if (sc) sc->data[type].val2 = 0; //This signals it to end.
 		}
 		break;
 	case SC_CLOSECONFINE:

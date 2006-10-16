@@ -1777,15 +1777,18 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	dmg=battle_calc_attack(attack_type,src,bl,skillid,skilllv,flag&0xFFF);
 
 	//Skotlex: Adjusted to the new system
-	if(src->type==BL_PET && (struct pet_data *)src)
+	if(src->type==BL_PET)
 	{ // [Valaris]
-		struct pet_data *pd = (struct pet_data *)src;
+		struct pet_data *pd = (TBL_PET*)src;
 		if (pd->a_skill && pd->a_skill->div_ && pd->a_skill->id == skillid)
 		{
 			int element = skill_get_pl(skillid);
 			if (skillid == -1)
 				element = sstatus->rhw.ele;
-			dmg.damage=battle_attr_fix(src, bl, skilllv, element, tstatus->def_ele, tstatus->ele_lv);
+			if (element != ELE_NEUTRAL || !(battle_config.attack_attr_none&BL_PET))
+				dmg.damage=battle_attr_fix(src, bl, skilllv, element, tstatus->def_ele, tstatus->ele_lv);
+			else
+				dmg.damage= skilllv;
 			dmg.damage2=0;
 			dmg.div_= pd->a_skill->div_;
 		}
@@ -2634,7 +2637,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		break;
 	
 	case MO_EXTREMITYFIST:
-		if (sc && sc->count)
+		if (sc)
 		{
 			if (sc->data[SC_EXPLOSIONSPIRITS].timer != -1)
 				status_change_end(src, SC_EXPLOSIONSPIRITS, -1);
@@ -2864,9 +2867,11 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 			skill_attack(BF_MAGIC, src, src, bl, skillid, skilllv, tick, flag);
 	break;
 
+	case SL_SMA:
+		if (sc && sc->data[SC_SMA].timer != -1)
+			status_change_end(src,SC_SMA,-1);
 	case SL_STIN:
 	case SL_STUN:
-	case SL_SMA:
 		if (sd && !battle_config.allow_es_magic_pc && bl->type != BL_MOB) {
 			status_change_start(src,SC_STUN,10000,skilllv,0,0,0,500,10);
 			clif_skill_fail(sd,skillid,0,0);

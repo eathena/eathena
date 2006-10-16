@@ -4,6 +4,14 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/10/16
+	* Merged battle_config.attack_attr_none applying to pet skills when using
+	  the fixed-damage pet skill scripts. [Skotlex]
+	* Merged Sight Blaster being able to hit multiple targets in a single
+	  'round' before it expires. [Skotlex]
+	* When reinvoking a combo-time, the previous combo time will be terminated.
+	  [Skotlex]
+	* Fixed Esma-state not ending after casting it. [Skotlex]
 2006/10/13
 	* Fixed the char-sql server trying to read the gms off a "gm_db" config
 	  setting instead of "login_db" [Skotlex]
