@@ -28,7 +28,7 @@ include $(CP)/Makefile.dep
 all ladmin: $(RETURN_PATH)/ladmin
 
 $(RETURN_PATH)/ladmin: ladmin.o $(COMMON_OBJ) $(BASE_OBJ)
-	$(CCC) $> $(LIBS) -o $@
+	$(CCC) $^ $(LIBS) -o $@
 
 ladmin.o: ladmin.cpp ladmin.h $(COMMON_H)  $(BASE_H)
 

@@ -116,6 +116,80 @@ struct item_data
 };
 
 
+
+
+/*
+	different item types
+	each with different additional data
+
+	virtual common_item:
+	mandatory:
+	id, name, (alternative name), type (not allocated), Price, Weight
+	optional:
+	sell
+
+	virtual basic_item : inherits common_item
+	optional:
+	gender,job,upper,eLV
+
+	
+	*Healing : inherits basic_item
+	mandatory:
+	script
+
+	*Usable : inherits basic_item
+	mandatory:
+	script
+
+	*delayed Usable : inherits basic_item
+	mandatory:
+	script
+
+	*Misc : inherits common_item
+
+	virtual equip_item : inherits basic_item
+	mandatory:
+	Loc
+	optional:
+	Slot,Refineable,view, script(s)
+
+	*Weapon : inherits equip_item
+	mandatory:
+	ATK
+	optional:
+	Range,wLV
+
+	*Armor : inherits equip_item
+	mandatory:
+	DEF
+
+	*Card : inherits basic_item
+	mandatory:
+	Loc
+
+	*Arrow : inherits basic_item
+	mandatory:
+	ATK
+
+	*Pet Egg : inherits common_item
+
+	*Pet Equipment : inherits common_item
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 struct random_item_data {
 	unsigned short nameid;
 	unsigned short per;
@@ -174,10 +248,6 @@ bool itemdb_isSingleStorage(unsigned short nameid);
 bool itemdb_isSingleStorage(struct item_data &data);
 bool itemdb_isEquipment(unsigned short nameid);
 
-// itemdb_equipマクロとitemdb_equippointとの違いは
-// 前者が鯖側dbで定義された値そのものを返すのに対し
-// 後者はsessiondataを考慮した鞍側での装備可能場所
-// すべての組み合わせを返す
 
 void itemdb_reload(void);
 

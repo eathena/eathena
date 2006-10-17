@@ -1894,7 +1894,7 @@ int skill_additional_effect(block_list* src, block_list *bl,unsigned short skill
 				}
 			}
 			if (dstsd && rand()%10000 < dstsd->addeff3[type]*sc_def_card/100){
-				if (dstsd->addeff3_type[type] != 1 && ((sd && !sd->state.arrow_atk) || (status_get_range(src)<=2)))
+				if (dstsd->addeff3_type[type] != 1 && ((sd && !sd->state.arrow_atk) || (src->get_range()<=2)))
 					continue;
 				if(config.battle_log)
 					ShowMessage("PC %d skill_addeff: card‚É‚æ‚éˆÙí?“® %d %d\n",src->id,i,dstsd->addeff3[type]);
@@ -2141,7 +2141,7 @@ int skill_attack(int attack_type, block_list* src, block_list *dsrc,
 		if(skillid == MO_TRIPLEATTACK)
 		{
 			int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
-			if (damage < status_get_hp(bl) &&
+			if (damage < bl->get_hp() &&
 				pc_checkskill(*sd, MO_CHAINCOMBO) > 0)
 				delay += 300 * config.combo_delay_rate / 100;
 			status_change_start(src,SC_COMBO,MO_TRIPLEATTACK,skilllv,0,0,delay,0);
@@ -2151,7 +2151,8 @@ int skill_attack(int attack_type, block_list* src, block_list *dsrc,
 //˜A‘Å¶(MO_CHAINCOMBO)‚±‚±‚©‚ç
 		else if(skillid == MO_CHAINCOMBO) {
 			int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src); //Šî–{ƒfƒBƒŒƒC‚ÌŒvZ
-			if(damage < status_get_hp(bl)) { //ƒ_ƒ?ƒW‚ª?Û‚ÌHP‚æ‚è¬‚³‚¢ê‡
+			if(damage < bl->get_hp())
+			{	//ƒ_ƒ?ƒW‚ª?Û‚ÌHP‚æ‚è¬‚³‚¢ê‡
 				if(pc_checkskill(*sd, MO_COMBOFINISH) > 0 && sd->spiritball > 0) //–Ò—´Œ(MO_COMBOFINISH)æ“¾•?‹…•Û‚Í+300ms
 					delay += 300 * config.combo_delay_rate /100; //’Ç‰ÁƒfƒBƒŒƒC‚ğconf‚É‚æ‚è’²®
 
@@ -2164,8 +2165,8 @@ int skill_attack(int attack_type, block_list* src, block_list *dsrc,
 //–Ò—´Œ(MO_COMBOFINISH)‚±‚±‚©‚ç
 		else if(skillid == MO_COMBOFINISH) {
 			int delay = 700 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
-			if(damage < status_get_hp(bl)) {
-				//ˆ¢C—…”e™€Œ(MO_EXTREMITYFIST)æ“¾•?‹…4ŒÂ•Û•”š—ô”g“®(MO_EXPLOSIONSPIRITS)?‘Ô‚Í+300ms
+			if(damage < bl->get_hp())
+			{	//ˆ¢C—…”e™€Œ(MO_EXTREMITYFIST)æ“¾•?‹…4ŒÂ•Û•”š—ô”g“®(MO_EXPLOSIONSPIRITS)?‘Ô‚Í+300ms
 				//•šŒÕŒ(CH_TIGERFIST)æ“¾‚à+300ms
 				if((pc_checkskill(*sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 4 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1) ||
 				(pc_checkskill(*sd, CH_TIGERFIST) > 0 && sd->spiritball > 0) ||
@@ -2181,8 +2182,8 @@ int skill_attack(int attack_type, block_list* src, block_list *dsrc,
 //•šŒÕŒ(CH_TIGERFIST)‚±‚±‚©‚ç
 		else if(skillid == CH_TIGERFIST) {
 			int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
-			if(damage < status_get_hp(bl)) {
-				//ˆ¢C—…”e™€Œ(MO_EXTREMITYFIST)æ“¾•?‹…4ŒÂ•Û•”š—ô”g“®(MO_EXPLOSIONSPIRITS)?‘Ô‚Í+300ms
+			if(damage < bl->get_hp())
+			{	//ˆ¢C—…”e™€Œ(MO_EXTREMITYFIST)æ“¾•?‹…4ŒÂ•Û•”š—ô”g“®(MO_EXPLOSIONSPIRITS)?‘Ô‚Í+300ms
 				if((pc_checkskill(*sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 3 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1) ||
 					(pc_checkskill(*sd, CH_CHAINCRUSH) > 0)) //˜A’Œ•ö?(CH_CHAINCRUSH)æ“¾‚Í+300ms
 					delay += 300 * config.combo_delay_rate /100; //’Ç‰ÁƒfƒBƒŒƒC‚ğconf‚É‚æ‚è’²®
@@ -2196,8 +2197,8 @@ int skill_attack(int attack_type, block_list* src, block_list *dsrc,
 //˜A’Œ•ö?(CH_CHAINCRUSH)‚±‚±‚©‚ç
 		else if(skillid == CH_CHAINCRUSH) {
 			int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
-			if(damage < status_get_hp(bl)) {
-				//ˆ¢C—…”e™€Œ(MO_EXTREMITYFIST)æ“¾•?‹…4ŒÂ•Û•”š—ô”g“®(MO_EXPLOSIONSPIRITS)?‘Ô‚Í+300ms
+			if(damage < bl->get_hp())
+			{	//ˆ¢C—…”e™€Œ(MO_EXTREMITYFIST)æ“¾•?‹…4ŒÂ•Û•”š—ô”g“®(MO_EXPLOSIONSPIRITS)?‘Ô‚Í+300ms
 				if(pc_checkskill(*sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 1 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1)
 					delay += 300 * config.combo_delay_rate /100; //’Ç‰ÁƒfƒBƒŒƒC‚ğconf‚É‚æ‚è’²®
 
@@ -2322,7 +2323,7 @@ int skill_attack(int attack_type, block_list* src, block_list *dsrc,
 			battle_damage(src,bl,damage,0);
 	}
 	if(skillid == RG_INTIMIDATE && damage > 0 && !(bl->get_mode()&0x20) && !maps[src->m].flag.gvg ) {
-		int s_lv = status_get_lv(src),t_lv = status_get_lv(bl);
+		int s_lv = src->get_lv(),t_lv = bl->get_lv();
 		int rate = 50 + skilllv * 5;
 		rate = rate + (s_lv - t_lv);
 		if(rand()%100 < rate)
@@ -3553,7 +3554,7 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 			else
 			{
 				skill_area_temp[1] = bl->id;
-				skill_area_temp[2] = status_get_hp(src);
+				skill_area_temp[2] = src->get_hp();
 				clif_skill_nodamage(*src,*src, NPC_SELFDESTRUCTION, 0xFFFF, 1);
 
 				block_list::foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
@@ -3651,7 +3652,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 		return 1;
 	if(dstsd && dstsd->is_dead() && skillid != ALL_RESURRECTION)
 		return 1;
-	if(status_get_class(bl) == MOBID_EMPERIUM)
+	if( bl->get_class() == MOBID_EMPERIUM )
 		return 1;
 
 	block_list::freeblock_lock();
@@ -3735,7 +3736,8 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 		if (status_isimmune(bl))
 			break;
 
-		if (rand() % 100 < (40 + skilllv * 2 + (status_get_lv(src) + status_get_int(src))/5 +(sc_def_mdef-100))) { //0 defense is sc_def_mdef == 100! [Skotlex]
+		if (rand() % 100 < (40 + skilllv * 2 + (src->get_lv() + status_get_int(src))/5 +(sc_def_mdef-100)))
+		{	//0 defense is sc_def_mdef == 100! [Skotlex]
 			int time = skill_get_time(skillid,skilllv);
 			if (*bl == BL_PC) time/=2; //Halved duration for Players
 			clif_skill_nodamage (*src, *bl, skillid, skilllv, 1);
@@ -3748,7 +3750,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			int race = bl->get_race();
 			if( battle_check_target (src, bl, BCT_ENEMY) && (race == 6 || bl->is_undead()) )
 			{
-				int slv = status_get_lv (src),tlv = status_get_lv (bl);
+				int slv = src->get_lv(),tlv = bl->get_lv();
 				int rate = 23 + skilllv*4 + slv - tlv;
 				if (rand()%100 < rate)
 					status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,0,0);
@@ -3878,7 +3880,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 		break;
 	case SA_FORTUNE:
 		clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
-		if(sd) pc_getzeny(*sd,status_get_lv(bl)*100);
+		if(sd) pc_getzeny(*sd,bl->get_lv()*100);
 		break;
 	case SA_TAMINGMONSTER:
 		clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
@@ -4119,7 +4121,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			}
 
 			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
-			if (rand()%100 > 50 + 3*skilllv + status_get_lv(src) - status_get_lv(bl)) //TODO: How much does base level affects? Dummy value of 1% per level difference used. [Skotlex]
+			if(rand()%100 > (50 + 3*skilllv + src->get_lv() - bl->get_lv())) //TODO: How much does base level affects? Dummy value of 1% per level difference used. [Skotlex]
 			{
 				if (sd) 
 					sd->clif_skill_failed(skillid,0,0);
@@ -4567,7 +4569,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			if(pc_steal_coin(*sd,bl)) {
 				int range = skill_get_range(skillid,skilllv);
 				if(range < 0)
-					range = status_get_range(src) - (range + 1);
+					range = src->get_range() - (range + 1);
 				clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 				mob_target(*((struct mob_data *)bl),src,range);
 			}
@@ -5137,8 +5139,9 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			if(status_get_elem_type(bl) == 7 || bl->get_race() == 6)
 				break;
 			if(rand()%100 < sc_def*(50+skilllv*5)/100) {
-				if(dstsd) {
-					int hp = status_get_hp(bl)-1;
+				if(dstsd)
+				{
+					int hp = bl->get_hp()-1;
 					dstsd->heal(-hp,0);
 				}
 				else if(dstmd)
@@ -5503,7 +5506,8 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 		break;
 
 	case AS_SPLASHER:		/* ƒxƒiƒ€ƒXƒvƒ‰ƒbƒVƒƒ? */
-		if( status_get_max_hp(bl)*3 < 4*status_get_hp(bl) ) { //HP‚ª3/4ˆÈã?‚Á‚Ä‚¢‚½‚ç¸”s
+		if( status_get_max_hp(bl)*3 < 4*bl->get_hp() )
+		{	//HP‚ª3/4ˆÈã?‚Á‚Ä‚¢‚½‚ç¸”s
 			block_list::freeblock_unlock();
 			return 1;
 		}
@@ -5965,7 +5969,7 @@ int skill_castend_id(int tid, unsigned long tick, int id, basics::numptr data)
 
 	range = skill_get_range(sd->skillid,sd->skilllv);
 	if(range < 0)
-		range = status_get_range(sd) - (range + 1);
+		range = sd->get_range() - (range + 1);
 	range += config.pc_skill_add_range;
 
 	if ( sd->sc_data[SC_COMBO].timer != -1 &&
@@ -6092,7 +6096,7 @@ int skill_castend_pos(int tid, unsigned long tick, int id, basics::numptr data)
 	if(sd->skilllv <= 0) return 0;
 	range = skill_get_range(sd->skillid,sd->skilllv);
 	if(range < 0)
-		range = status_get_range(sd) - (range + 1);
+		range = sd->get_range() - (range + 1);
 	range += config.pc_skill_add_range;
 
 	if(config.skill_out_range_consume) {  // changed to allow casting when target walks out of range [Valaris]
@@ -6997,7 +7001,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,block_list *bl,unsigned long
 				}
 			} else {
 				int heal = sg->val2;
-				if (status_get_hp(bl) >= status_get_max_hp(bl))
+				if( bl->get_hp() >= status_get_max_hp(bl) )
 					break;
 				if (status_isimmune(bl))
 					heal = 0;	/* ‰©‹àå³ƒJ[ƒhiƒq[ƒ‹—Ê‚Oj */
@@ -8233,7 +8237,7 @@ if(config._temp_)
 		/* Ë’ö‚ÆáŠQ•¨ƒ`ƒFƒbƒN */
 		range = skill_get_range(skill_num,skill_lv);
 		if(range < 0)
-			range = status_get_range(sd) - (range + 1);
+			range = sd->get_range() - (range + 1);
 		// be lenient if the skill was cast before we have moved to the correct position [Celest]
 		if( sd->is_walking() )
 			++range;
@@ -8527,7 +8531,7 @@ int skill_use_pos( map_session_data *sd, int skill_x, int skill_y, unsigned shor
 		/* Ë’ö‚ÆáŠQ•¨ƒ`ƒFƒbƒN */
 		range = skill_get_range(skill_num,skill_lv);
 		if(range < 0)
-			range = status_get_range(sd) - (range + 1);
+			range = sd->get_range() - (range + 1);
 		// be lenient if the skill was cast before we have moved to the correct position [Celest]
 		if( sd->is_walking() )
 			++range;

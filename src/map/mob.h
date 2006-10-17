@@ -428,6 +428,10 @@ struct mob_data : public fightable
 	virtual bool is_dead() const		{ return (this->hp<=0); }
 	virtual bool set_dead();
 
+	virtual int get_class() const		{ return this->class_; }
+	virtual int get_lv() const			{ return this->level; }
+	virtual int get_range() const		{ return mob_db[this->class_].range; }
+	virtual int get_hp() const			{ return this->hp; }
 
 	virtual int get_race() const		{ return mob_db[this->class_].race; }
 	virtual int get_race2() const		{ return mob_db[this->class_].race2; }

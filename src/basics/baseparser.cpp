@@ -90,15 +90,15 @@ printf ("print stack\n");
 }
 void CParser::print_expects()
 {
-	printf("recognized: '%s'\n", (const char*)this->cScanToken.cLexeme);
-	printf("expecting: ");
+	fprintf(stderr,"recognized: '%s'\n", (const char*)this->cScanToken.cLexeme);
+	fprintf(stderr,"expecting: ");
 	size_t i;
 	for(i=0; i<this->pconfig->lalr_state[this->lalr_state].cAction.size(); ++i)
 	{
 		CAction* action = &this->pconfig->lalr_state[this->lalr_state].cAction[i];
-		printf("'%s' ", (const char*) pconfig->sym[action->SymbolIndex].Name );
+		fprintf(stderr,"'%s' ", (const char*) pconfig->sym[action->SymbolIndex].Name );
 	}
-	printf("\n");
+	fprintf(stderr,"\n");
 }
 
 

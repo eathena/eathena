@@ -29,7 +29,7 @@ include $(CP)/Makefile.dep
 all char-server: $(RETURN_PATH)/char-server
 
 $(RETURN_PATH)/char-server: char.o inter.o int_party.o int_guild.o int_storage.o int_pet.o irc.o $(COMMON_OBJ) $(BASE_OBJ)
-	$(CCC) $> $(LIBS) -o $@
+	$(CCC) $^ $(LIBS) -o $@
 
 
 char.o: char.cpp char.h inter.h int_pet.h $(COMMON_H) $(BASE_H)

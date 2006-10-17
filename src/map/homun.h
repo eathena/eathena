@@ -236,6 +236,11 @@ public:
 	static void clear_homunculus(map_session_data &sd);
 	static bool call_homunculus(map_session_data &sd);
 	static void recv_homunculus(homunstatus &p, int flag);
+
+
+	virtual int get_class() const		{ return this->status.class_; }
+	virtual int get_lv() const			{ return this->status.base_level; }
+	virtual int get_hp() const			{ return this->status.hp; }
 };
 
 

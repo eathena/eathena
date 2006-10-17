@@ -87,7 +87,7 @@
 601,Fly_Wing,Fly Wing,2,60,0,50,,,,,10477567,2,,,,,,{ warp "Random",0,0; },{}
 602,Butterfly_Wing,Butterfly Wing,2,300,0,50,,,,,10477567,2,,,,,,{ warp "SavePoint",0,0; },{}
 603,Old_Blue_Box,Old Blue Box,2,10000,0,200,,,,,10477567,2,,,,,,{ getitem -1,1; },{}
-604,Dead_Branch,Dead Branch,2,50,0,50,,,,,10477567,2,,,,,,{ monster "this",0,0,"--ja--",-1,1,; },{}
+604,Dead_Branch,Dead Branch,2,50,0,50,,,,,10477567,2,,,,,,{ monster "this",0,0,"--ja--",-1,1; },{}
 605,Anodyne,Anodyne,11,2000,0,100,,,,,10477567,2,,,,,,{ itemskill 8,1,"Endure"; },{}
 606,Aloevera,Aloevera,11,1500,0,100,,,,,10477567,2,,,,,,{ itemskill 6,1,"Provoke"; },{}
 607,Yggdrasilberry,Yggdrasilberry,0,2,0,300,,,,,10477567,2,,,,,,{ percentheal 100,100; },{}
@@ -694,7 +694,7 @@
 1557,Book_of_the_Apocalypse,Book of the Apocalypse,4,35000,0,800,120,,1,0,65792,2,2,4,40,1,15,{},{ bonus bAtkEle,7; bonus2 bSubEle,6,-5; bonus2 bAddEle,1,7; bonus2 bAddEle,2,7; bonus2 bAddEle,3,7; bonus2 bAddEle,4,7; }
 1558,Girl's_Diary,Girl's Diary,4,20,0,300,60,,1,1,65792,2,2,4,40,1,15,{},{ bonus2 bAddDamageClass,1188,150; }
 1559,Dragon_Legacy,Legacy of Dragon,4,,,700,130,0,1,0,65792,2,2,4,70,1,15,{},{ bonus bInt,3; bonus bIgnoreDefRace,9; bonus2 bSPGainRace,9,10; }
-1560,Sage's_Diary,Sage's Diary,4,,,1100,100,0,1,0,65536,2,2,3,60,1,15,{},{ bonus bMatkRate,15; if readparam(bStr>=50) bonus bAspdRate,5; if readparam(bInt>=70) bonus bMatkRate,5; }
+1560,Sage's_Diary,Sage's Diary,4,,,1100,100,0,1,0,65536,2,2,3,60,1,15,{},{ bonus bMatkRate,15; if(readparam(bStr)>=50) bonus bAspdRate,5; if(readparam(bInt)>=70) bonus bMatkRate,5; }
 1561,Hard_Covered_Book,Hard Covered Book,4,,,1500,140,0,1,0,65792,2,2,4,55,1,15,{},{ bonus bStr,3; bonus bDex,2; }
 1599,Angra_Manyu,Angra Manyu,4,120,0,10,1,,1,5,10477567,2,2,4,2,1,8,{},{ bonus bBaseAtk,3800; bonus2 bHPDrainRate,100,100; }
 // Staffs

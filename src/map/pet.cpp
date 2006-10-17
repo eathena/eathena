@@ -272,6 +272,10 @@ int pet_data::get_equip() const
 {
 	return mob_db[this->pet.class_].equip;
 }
+int pet_data::get_range() const
+{
+	return mob_db[this->pet.class_].range;
+}
 int pet_data::get_race() const
 {
 	return mob_db[this->pet.class_].race;
@@ -589,7 +593,7 @@ int petskill_castend2(struct pet_data &pd, block_list &target, unsigned short sk
 		//Skills with inf = 4 (cast on self) have view range (assumed party skills)
 		range = (skill_get_inf(skill_id) & INF_SELF_SKILL?config.area_size:skill_get_range(skill_id, skill_lv));
 		if(range < 0)
-			range = status_get_range(&pd) - (range + 1);
+			range = pd.get_range() - (range + 1);
 		if(distance(pd, target) > range)
 			return 0; 
 		switch( skill_get_nk(skill_id) )
@@ -631,7 +635,7 @@ int pet_target_check(map_session_data &sd,block_list *bl,int type)
 	if( md && pd && 
 		pd->pet.intimate >= (short)config.pet_support_min_friendly &&
 		pd->pet.hungry >= 1 &&
-		pd->pet.class_ != status_get_class(bl) &&
+		pd->pet.class_ != bl->get_class() &&
 		pd->can_act() )
 	{
 		int rate;

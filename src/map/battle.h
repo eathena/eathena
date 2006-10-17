@@ -18,15 +18,15 @@ struct Damage
 	int dmg_lv;	//囲まれ減算計算用　0:スキル攻撃 ATK_LUCKY,ATK_FLEE,ATK_DEF
 
 	Damage() :
-		damage(),
-		damage2(),
-		type(),
-		div_(),
-		amotion(),
-		dmotion(),
-		blewcount(),
-		flag(),
-		dmg_lv()
+		damage(0),
+		damage2(0),
+		type(0),
+		div_(0),
+		amotion(0),
+		dmotion(0),
+		blewcount(0),
+		flag(0),
+		dmg_lv(0)
 	{}
 };
 

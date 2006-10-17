@@ -23,8 +23,8 @@ all scriptconv: $(RETURN_PATH)/eascriptconv
 $(RETURN_PATH)/eascriptconv: scriptengine.o scriptconv.o $(BASE_OBJ)
 	$(CCC) $^ $(LIBS) -o $@
 
-scriptengine.o: scriptengine.cpp eascript.engine.txt $(BASE_H)
-scriptconv.o: scriptconv.cpp $(BASE_H)
+scriptengine.o: scriptengine.cpp eascript.engine.txt scriptengine.h $(BASE_H)
+scriptconv.o: scriptconv.cpp scriptengine.h $(BASE_H)
 eascript.engine.txt:
 
 clean:

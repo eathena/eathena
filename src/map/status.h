@@ -615,10 +615,6 @@ extern int current_equip_item_index;
 int status_recalc_speed(block_list *bl);
 
 // ƒpƒ‰ƒ[ƒ^Š“¾Œn battle.c ‚æ‚èˆÚ“®
-int status_get_class(block_list *bl);
-int status_get_lv(const block_list *bl);
-int status_get_range(const block_list *bl);
-int status_get_hp(block_list *bl);
 int status_get_max_hp(block_list *bl);
 int status_get_str(block_list *bl);
 int status_get_agi(block_list *bl);

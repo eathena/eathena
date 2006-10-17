@@ -3289,9 +3289,6 @@ bool command_kill(int fd, map_session_data& sd, const char* command, const basic
 
 	if( pl_sd != NULL )
 	{
-		if( sd.block_list::id == pl_sd->block_list::id ) //Yourself mate? Tsk tsk tsk.
-			return false;
-
 		if (sd.isGM() >= pl_sd->isGM())
 		{	// you can kill only lower or same level
 			pc_damage(*pl_sd, pl_sd->status.hp + 1,NULL);
@@ -5173,9 +5170,6 @@ bool command_recall(int fd, map_session_data& sd, const char* command, const bas
 	
 	if( pl_sd != NULL )
 	{
-		if( sd.block_list::id == pl_sd->block_list::id ) //Yourself mate? Tsk tsk tsk.
-			return false;
-
 		if (sd.isGM() >= pl_sd->isGM())
 		{	// you can recall only lower or same level
 			if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM())

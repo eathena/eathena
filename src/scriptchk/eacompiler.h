@@ -14,7 +14,7 @@
 // terminal definitions from parse tree
 #include "eascript.h"
 
-USING_NAMESPACE(basics)
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -358,9 +358,9 @@ class CLogger
 	int do_print(const char *fmt, va_list& argptr)
 	{
 		int ret=0;
-		static char		tempbuf[4096]; // initially using a static fixed buffer size 
-		static Mutex	mtx;
-		ScopeLock		sl(mtx);
+		static char	tempbuf[4096]; // initially using a static fixed buffer size 
+		static basics::Mutex	mtx;
+		basics::ScopeLock		sl(mtx);
 		size_t sz  = 4096; // initial buffer size
 		char *ibuf = tempbuf;
 
@@ -461,7 +461,7 @@ public:
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-class parsenode : public global, public CLogger
+class parsenode : public basics::global, public CLogger
 {
 	///////////////////////////////////////////////////////////////////////////
 	// types
@@ -473,13 +473,13 @@ class parsenode : public global, public CLogger
 	size_t					cCount;
 	unsigned short			cType;
 	unsigned short			cSymbol;
-	string<>				cSymbolName;
-	string<>				cLexeme;
+	basics::string<>		cSymbolName;
+	basics::string<>		cLexeme;
 	unsigned short			cLine;
 	unsigned short			cColumn;
 
 
-	void insertnode(unsigned short t, unsigned short s, const string<>& n, const string<>& l, unsigned short line, unsigned short col)
+	void insertnode(unsigned short t, unsigned short s, const basics::string<>& n, const basics::string<>& l, unsigned short line, unsigned short col)
 	{
 		// add element to List
 		parsenodep* temp = new parsenodep[cCount+1];
@@ -497,11 +497,11 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
 	parsenode(): cList(NULL),cCount(0),cType(0),cSymbol(0)	{}
-	parsenode(unsigned short t, unsigned short s, const string<>& n, const string<>& l, unsigned short line, unsigned short col)
+	parsenode(unsigned short t, unsigned short s, const basics::string<>& n, const basics::string<>& l, unsigned short line, unsigned short col)
 		:  cList(NULL),cCount(0),cType(t),cSymbol(s),cSymbolName(n),cLexeme(l),cLine(line),cColumn(col)
 	{}
 
-	parsenode(const CParser& parser) :  cList(NULL),cCount(0),cType(0),cSymbol(0)
+	parsenode(const basics::CParser& parser) :  cList(NULL),cCount(0),cType(0),cSymbol(0)
 	{
 		parsenode temp;
 		temp.reduce_tree(parser,0, 0);
@@ -533,7 +533,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// element access
 	const char* Lexeme()	const	{ return cLexeme; }
-	const string<>& LexemeObj() const { return cLexeme; }
+	const basics::string<>& LexemeObj() const { return cLexeme; }
 	const char*SymbolName()	const	{ return cSymbolName; }
 	unsigned short Symbol()	const	{ return cSymbol; }
 	unsigned short Type()	const	{ return cType; }
@@ -560,11 +560,11 @@ public:
 			if(cList[i]) cList[i]->print_tree(level+1);
 	}
 
-	void reduce_tree(const CParser& parser, int rtpos, int flat)
+	void reduce_tree(const basics::CParser& parser, int rtpos, int flat)
 	{
 		size_t j, k;
-		const CStackElement* se = &parser.rt[rtpos];
-		const CStackElement* child;
+		const basics::CStackElement* se = &parser.rt[rtpos];
+		const basics::CStackElement* child;
 		if( se->cChildNum==1 )
 		{
 			this->reduce_tree(parser, se->cChildPos, 0);
@@ -624,7 +624,7 @@ protected:
 		int				cParam2;
 		const char*		cString;
 	} CCommand;
-	class CLabel : public string<>
+	class CLabel : public basics::string<>
 	{	
 	public:
 		uint valid : 1;		// correct address is set
@@ -632,13 +632,12 @@ protected:
 		uint pos :24;		// 24bit address inside the script
 		uint use;			// usage counter of the label
 
-		CLabel(const char* n=NULL, int p=-1) : string<>(n), valid(0), pos(p),use(0)	{}
+		CLabel(const char* n=NULL, int p=-1) : basics::string<>(n), valid(0), pos(p),use(0)	{}
 		virtual ~CLabel()	{}
 	};
 
-	slist<CLabel>			cLabelList;	// label list
-
-	vector<uchar>			cProgramm;	// the stack programm
+	basics::slist<CLabel>	cLabelList;	// label list
+	basics::vector<uchar>	cProgramm;	// the stack programm
 	size_t					cVarCnt;	// number of temporal variables
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -1100,22 +1099,22 @@ public:
 	size_t insertShort(short val, size_t &inx)
 	{	// setting a 16bit integer
 		size_t pos = inx;
-		cProgramm.insert(GetByte(val,0), 1, inx++);
-		cProgramm.insert(GetByte(val,1), 1, inx++);
+		cProgramm.insert(basics::GetByte(val,0), 1, inx++);
+		cProgramm.insert(basics::GetByte(val,1), 1, inx++);
 		return pos;
 	}
 	size_t replaceShort(short val, size_t &inx)
 	{	// setting a 16bit integer
 		size_t pos = inx;
-		cProgramm[inx++] = GetByte(val,0);
-		cProgramm[inx++] = GetByte(val,1);
+		cProgramm[inx++] = basics::GetByte(val,0);
+		cProgramm[inx++] = basics::GetByte(val,1);
 		return pos;
 	}
 	size_t appendShort(int val)
 	{	// setting a 16bit integer
 		size_t pos = cProgramm.size();
-		cProgramm.append(GetByte(val,0));
-		cProgramm.append(GetByte(val,1));
+		cProgramm.append(basics::GetByte(val,0));
+		cProgramm.append(basics::GetByte(val,1));
 		return pos;
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -1132,25 +1131,25 @@ public:
 	size_t insertAddr(int val, size_t &inx)
 	{	// setting a 24bit integer
 		size_t pos = inx;
-		cProgramm.insert(GetByte(val,0), 1, inx++);
-		cProgramm.insert(GetByte(val,1), 1, inx++);
-		cProgramm.insert(GetByte(val,2), 1, inx++);
+		cProgramm.insert(basics::GetByte(val,0), 1, inx++);
+		cProgramm.insert(basics::GetByte(val,1), 1, inx++);
+		cProgramm.insert(basics::GetByte(val,2), 1, inx++);
 		return pos;
 	}
 	size_t replaceAddr(int val, size_t &inx)
 	{	// setting a 24bit integer
 		size_t pos = inx;
-		cProgramm[inx++] = GetByte(val,0);
-		cProgramm[inx++] = GetByte(val,1);
-		cProgramm[inx++] = GetByte(val,2);
+		cProgramm[inx++] = basics::GetByte(val,0);
+		cProgramm[inx++] = basics::GetByte(val,1);
+		cProgramm[inx++] = basics::GetByte(val,2);
 		return pos;
 	}
 	size_t appendAddr(int val)
 	{	// setting a 24bit integer
 		size_t pos = cProgramm.size();
-		cProgramm.append(GetByte(val,0));
-		cProgramm.append(GetByte(val,1));
-		cProgramm.append(GetByte(val,2));
+		cProgramm.append(basics::GetByte(val,0));
+		cProgramm.append(basics::GetByte(val,1));
+		cProgramm.append(basics::GetByte(val,2));
 		return pos;
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -1168,28 +1167,28 @@ public:
 	size_t insertInt(int val, size_t &inx)
 	{	// setting a 32bit integer
 		size_t pos = inx;
-		cProgramm.insert(GetByte(val,0), 1, inx++);
-		cProgramm.insert(GetByte(val,1), 1, inx++);
-		cProgramm.insert(GetByte(val,2), 1, inx++);
-		cProgramm.insert(GetByte(val,3), 1, inx++);
+		cProgramm.insert(basics::GetByte(val,0), 1, inx++);
+		cProgramm.insert(basics::GetByte(val,1), 1, inx++);
+		cProgramm.insert(basics::GetByte(val,2), 1, inx++);
+		cProgramm.insert(basics::GetByte(val,3), 1, inx++);
 		return pos;
 	}
 	size_t replaceInt(int val, size_t &inx)
 	{	// setting a 32bit integer
 		size_t pos = inx;
-		cProgramm[inx++] = GetByte(val,0);
-		cProgramm[inx++] = GetByte(val,1);
-		cProgramm[inx++] = GetByte(val,2);
-		cProgramm[inx++] = GetByte(val,3);
+		cProgramm[inx++] = basics::GetByte(val,0);
+		cProgramm[inx++] = basics::GetByte(val,1);
+		cProgramm[inx++] = basics::GetByte(val,2);
+		cProgramm[inx++] = basics::GetByte(val,3);
 		return pos;
 	}
 	size_t appendInt(int val)
 	{	// setting a 32bit integer
 		size_t pos = cProgramm.size();
-		cProgramm.append(GetByte(val,0));
-		cProgramm.append(GetByte(val,1));
-		cProgramm.append(GetByte(val,2));
-		cProgramm.append(GetByte(val,3));
+		cProgramm.append(basics::GetByte(val,0));
+		cProgramm.append(basics::GetByte(val,1));
+		cProgramm.append(basics::GetByte(val,2));
+		cProgramm.append(basics::GetByte(val,3));
 		return pos;
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -1564,8 +1563,8 @@ public:
 
 class CBuildin
 {
-	string<>	cID;
-	size_t		cParaCnt;
+	basics::string<>	cID;
+	size_t				cParaCnt;
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct destruct
@@ -1614,8 +1613,8 @@ class CFunction : public CProgramm
 {
 	// <Func Decl>  ::= <Scalar> Id '(' <Params>  ')' <Block>	// fixed parameter count
     //                | 'function' 'script' <Name Id> <Block>	// unknown parameter
-	string<>	cID;
-	size_t		cParaCnt;
+	basics::string<>	cID;
+	size_t				cParaCnt;
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct destruct
@@ -1643,9 +1642,9 @@ class CScript : public CProgramm
 {
 	//	<Script Decl> ::= '-' 'script' <Name Id> <Sprite Id> ',' <Block>
     //                  | <File Id> ',' DecLiteral ',' DecLiteral ',' DecLiteral 'script' <Name Id> <Sprite Id> ',' <TouchUp> <Block>
-	string<> cID;
-	string<> cName;
-	string<> cMap;
+	basics::string<> cID;
+	basics::string<> cName;
+	basics::string<> cMap;
 	unsigned short cX;
 	unsigned short cY;
 	unsigned short cXs;
@@ -1674,35 +1673,35 @@ public:
 
 class CScriptEnvironment
 {
-	class CConstant : public string<>
+	class CConstant : public basics::string<>
 	{	
 	public:
 		int		cValue;	// should be a variant
 
-		CConstant(const char* n=NULL, int v=0) : string<>(n), cValue(v)	{}
+		CConstant(const char* n=NULL, int v=0) : basics::string<>(n), cValue(v)	{}
 		virtual ~CConstant()	{}
 	};
 
-	class CParameter : public string<>
+	class CParameter : public basics::string<>
 	{	
 	public:
 		size_t		cID;
 
-		CParameter(const char* n=NULL, size_t i=0) : string<>(n), cID(i)	{}
+		CParameter(const char* n=NULL, size_t i=0) : basics::string<>(n), cID(i)	{}
 		virtual ~CParameter()	{}
 	};
 
 
-	TArrayDPT<CBuildin>		cBuildinTable;		// table of buildin functions
-	TArrayDPT<CFunction>	cFunctionTable;		// table of script functions
-	TArrayDPT<CScript>		cScriptTable;		// table of scripts
+	basics::TArrayDPT<CBuildin>		cBuildinTable;		// table of buildin functions
+	basics::TArrayDPT<CFunction>	cFunctionTable;		// table of script functions
+	basics::TArrayDPT<CScript>		cScriptTable;		// table of scripts
 
 	// compile time only
-	slist<CConstant>		cConstTable;		// table of constants
-	slist<CParameter>		cParamTable;		// table of parameter keywords
+	basics::slist<CConstant>		cConstTable;		// table of constants
+	basics::slist<CParameter>		cParamTable;		// table of parameter keywords
 	
 	// actually of no real use
-	slist< string<> >		cStringTable;		// table of strings
+	basics::slist< basics::string<> >cStringTable;		// table of strings
 
 public:
 	CScriptEnvironment()	{}
@@ -1832,7 +1831,7 @@ class CScriptCompiler : public CLogger
 
 	///////////////////////////////////////////////////////
 	// variable name storage
-	class CVariable : public string<>
+	class CVariable : public basics::string<>
 	{	
 	public:
 		size_t		id;
@@ -1840,7 +1839,7 @@ class CScriptCompiler : public CLogger
 		size_t		use;
 
 		CVariable(const char* n=NULL, size_t id=0xFFFFFFFF, vartype t=VAR_TEMP)
-			: string<>(n), id(id), type(t), use(0)
+			: basics::string<>(n), id(id), type(t), use(0)
 		{}
 		virtual ~CVariable()	{}
 	};
@@ -1848,9 +1847,9 @@ class CScriptCompiler : public CLogger
 
 	///////////////////////////////////////////////////////////////////////////
 	// class data
-	slist<CVariable>		cTempVar;		// variable list
-	slist<CVariable>		cParaVar;		// parameter list
-	CScriptEnvironment		&cEnv;			// the current script environment
+	basics::slist<CVariable>	cTempVar;		// variable list
+	basics::slist<CVariable>	cParaVar;		// parameter list
+	CScriptEnvironment			&cEnv;			// the current script environment
 
 
 
@@ -2066,8 +2065,8 @@ private:
 				break;
 				
 
-			case PT_ID:
-				this->logging("PT_ID - ");
+			case PT_IDENTIFIER:
+				this->logging("PT_IDENTIFIER - ");
 				if( node.Lexeme() )
 				{
 					size_t inx;
@@ -2344,7 +2343,7 @@ private:
 					accept &= CompileMain(node[3], level+1, flags & ~CFLAG_LVALUE, prog, userval);
 				break;
 			}
-			case PT_MULTILIST:
+/*			case PT_MULTILIST:
 			{	// '{' <InitList> '}'
 				int dimension = 0;		
 				accept  = CompileMain(node[1], level+1, flags & ~CFLAG_LVALUE, prog, dimension);
@@ -2371,7 +2370,7 @@ private:
 				}
 				break;
 			}
-
+*/
 
 			///////////////////////////////////////////////////////////////////
 			// a label
@@ -2399,7 +2398,7 @@ private:
 			}
 			///////////////////////////////////////////////////////////////////
 			// goto control statements
-			case PT_GOTOSTMS:
+			case PT_GOTOSTM:
 			{	// <Goto Stms>  ::= goto Id ';'
 
 //				prog.appendCommand(VX_GOTO);
@@ -2461,96 +2460,13 @@ private:
 				}
 				break;
 			}
-			///////////////////////////////////////////////////////////////////
-			// call statement eA style without brackets
-			case PT_CALLSTM:
-			{	// call contains at least one parameter
-				// the first must be terminal PT_ID
-				if( node.count() >0 && 
-					CheckTerminal(node[0], PT_ID) )
-				{	// first terminal is ok
-					unsigned char command = OP_NOP;
-					int id = -1;
-					int paramcnt=0;
 
-					this->logging("PT_CALLSTM - ");
-
-					// go through childs now
-					if( node.count() == 3 )
-					{	// ID <something> ';'
-						// process the <something>, need values
-						accept = CompileMain(node[1], level+1,flags & ~CFLAG_LVALUE, prog, paramcnt); // need values
-
-						// if not a call list as parameter it is a single parameter
-						if( !CheckNonTerminal(node[1], PT_CALLLIST) )
-							paramcnt++;
-
-					}
-					else if( node.count() == 2 )
-					{	// ID ';'
-						accept = true;
-					}
-					if(paramcnt<0 || paramcnt>255)
-					{	
-						this->logging("number of parameters invalid (%i) - ", paramcnt);
-						accept=false;
-					}
-					if(accept)
-					{
-						id = cEnv.getFunctionID( node[0].Lexeme() );
-						if( id>=0 )
-						{	// found in function table
-							command = OP_CALLBUILDIN1;
-							if( (size_t)paramcnt < cEnv.function(id).Param() )
-							{
-								this->logging("number of parameters insufficient (%i given, %i needed) - ",paramcnt,cEnv.function(id).Param());
-								accept = false;
-							}
-						}
-						else
-						{
-							id = cEnv.getScriptID( node[0].Lexeme() );
-							if( id>=0 )
-							{
-								command = OP_CALLSCRIPT1;
-							}
-							else
-							{
-								this->logging("Function does not exist - ");
-								accept=false;
-							}
-						}
-					}
-
-					if(accept)
-					{
-						// push the command and function ID
-						prog.appendVarCommand( command, id );
-						prog.appendChar(paramcnt);
-						this->logging("accepting call statement: ");
-						PrintChildTerminals(node);
-						this->logging(" - %i arguments", paramcnt);
-						this->logging("\n");
-					}
-					else
-					{
-						this->logging("error in call statement: ");
-						PrintChildTerminals(node);
-						this->logging("\n");
-					}
-
-					// process the final ';' if exist
-					if( CheckTerminal(node[node.count()-1], PT_SEMI) )
-						accept &= CompileMain(node[node.count()-1], level+1,flags, prog, userval);
-				}
-				break;
-			}
 			///////////////////////////////////////////////////////////////////
 			// function calls
-			case PT_RETVALUES:
+			case PT_FUNCTION:
 			{
 				if( node.count() >0 && 
-					CheckTerminal(node[0], PT_ID) )
+					CheckTerminal(node[0], PT_IDENTIFIER) )
 				{	// first terminal is ok
 					unsigned char command = OP_NOP;
 					int id = -1;
@@ -2621,7 +2537,6 @@ private:
 			}
 			///////////////////////////////////////////////////////////////////
 			// comma seperated operands
-			case PT_CALLLIST:
 			case PT_EXPRLIST:
 			case PT_VARLIST:
 			{	// go through childs, spare the comma
@@ -2632,8 +2547,7 @@ private:
 					{
 						accept = CompileMain(node[i], level+1,flags, prog, userval);
 
-						if( !CheckNonTerminal(node[i], PT_CALLLIST) &&
-							!CheckNonTerminal(node[i], PT_EXPRLIST) &&
+						if( !CheckNonTerminal(node[i], PT_EXPRLIST) &&
 							!CheckNonTerminal(node[i], PT_VARLIST) )
 							userval++;
 					}
@@ -2642,7 +2556,7 @@ private:
 			}
 			///////////////////////////////////////////////////////////////////
 			// return;
-			case PT_RETURNSTMS:
+			case PT_RETURNSTM:
 			{	// <Return Stms>::= return <ArgC> ';'
 				//                | end ';'
 
@@ -2851,14 +2765,14 @@ private:
 					}
 
 					// process the case statements
-					vector<_stmlist> stmlist;
+					basics::vector<_stmlist> stmlist;
 					int hasdefault=-1;
 
 					if( accept )
 					{	// use a if-else-if struture to process the case; 
 						// but first reorder the tree to a list
 						const parsenode *casestm = &(node[5]);
-						while(casestm && casestm->Symbol()==PT_CASESTMS)
+						while(casestm && casestm->Symbol()==PT_CASESTM)
 						{
 							if( casestm->count()==5 )
 							{	// case <Value> ':' <Stm List> <Case Stms>
@@ -2945,7 +2859,7 @@ private:
 			}
 			///////////////////////////////////////////////////////////////////
 			// break/continue control statements
-			case PT_LCTRSTMS:
+			case PT_LCTRSTM:
 			{	// 'break' ';'
 				// 'continue' ';'
 				if( (node.count()>0 && node[0].Symbol() == PT_CONTINUE) && (0!=(flags & CFLAG_USE_CONT)) )
@@ -3201,7 +3115,7 @@ private:
 					// put the operands on stack
 					accept  = CompileMain(node[0], level+1,flags | CFLAG_LVALUE|CFLAG_GLOBAL, prog, userval);	// base variable
 					
-					if( CheckTerminal(node[2], PT_ID) )
+					if( CheckTerminal(node[2], PT_IDENTIFIER) )
 					{	// have to select the correct variable inside base according to the member name
 						// and put this variable on the stack
 
@@ -3211,7 +3125,7 @@ private:
 						prog.appendCommand(OP_MEMBER);
 						this->logging("PT_MEMBERACCESS variable %s\n", accept?"ok":"failed");
 					}
-					else if( CheckNonTerminal(node[2], PT_RETVALUES) )
+					else if( CheckNonTerminal(node[2], PT_FUNCTION) )
 					{
 						accept &= CompileMain(node[2], level+1,flags, prog, userval);	// member function
 						this->logging("PT_MEMBERACCESS function %s\n", accept?"ok":"failed");
@@ -3302,7 +3216,7 @@ private:
 				// put the operands on stack
 				switch( node[2].Symbol() )
 				{
-				case PT_ID:
+				case PT_IDENTIFIER:
 					accept  = CompileMain(node[0], level+1,flags | CFLAG_LVALUE, prog, userval); // put the variable itself on stack
 					prog.appendCommand(OP_SIZEOF);
 					this->logging("PT_OPSIZEOF ID, \n");
@@ -3343,7 +3257,7 @@ private:
 				}// end switch
 				break;
 			}
-			case PT_VALUE:
+			case PT_EVAL:
 			{	// '(' <Expr> ')'
 				accept  = CompileMain(node[1], level+1,flags & ~CFLAG_LVALUE, prog, userval);
 				break;
@@ -3435,7 +3349,7 @@ private:
 			{
 				if( node[i].Symbol() == PT_VARLIST ||
 					node[i].Symbol() == PT_VAR || 
-					node[i].Symbol() == PT_ID )
+					node[i].Symbol() == PT_IDENTIFIER )
 				{
 					accept &= CompileVarList(node[i], level, flags, prog, userval, type);
 				}
@@ -3449,7 +3363,7 @@ private:
 			// only do the id here
 			accept = CompileVarList(node[0], level+1, flags, prog, userval, type);
 		}
-		else if( node.Symbol()==PT_ID )
+		else if( node.Symbol()==PT_IDENTIFIER )
 		{
 			size_t id;
 			if( isVariable(node.Lexeme(), id) )
@@ -3542,19 +3456,17 @@ private:
 	bool CompileScriptExNameID(const parsenode& nameid, char name[])
 	{
 		bool ret = false;
-		if( nameid.Symbol()==PT_NAMEID)
+		if( nameid.Symbol()==PT_IDENTIFIER)
 		{	// inside a <exName Id>
 			size_t i;
 			for(i=0; i<nameid.count(); ++i)
 			{
-				if( nameid[i].Symbol()==PT_ID || nameid[i].Symbol()==PT_ID)
+				if( nameid[i].Symbol()==PT_IDENTIFIER || nameid[i].Symbol()==PT_IDENTIFIER)
 				{
 					strcat(name, nameid[i].Lexeme() );
 					strcat(name, " ");
 					ret = true;
 				}
-				else if( nameid.count() > 1 && nameid[i].Symbol()==PT_NAMEID)
-					ret &= CompileScriptExNameID(nameid[i], name);
 				else
 				{
 					ret = false;
@@ -3572,36 +3484,7 @@ private:
 		name[0]=0;
 		id[0]=0;
 
-		if(node.Symbol()== PT_NAMEID)
-		{
-			const parsenode *nameid=&node;
-			// go into the first
-			if( nameid && nameid->count()==3 && nameid->Symbol()==PT_NAMEID )
-			{
-				if( nameid->operator[](2).Symbol()==PT_ID )
-					strcpy(id,nameid->operator[](2).Lexeme());	// terminal ID
-
-				if( nameid->operator[](0).Symbol()==PT_NAMEID)
-					nameid = &(nameid->operator[](0));			// nonterminal <exName Id>
-				else
-					nameid=NULL;
-			}
-			else if(nameid->count()==1 && nameid->Symbol()==PT_NAMEID)
-			{	// non-collapsed parse tree
-				nameid = &(nameid->operator[](0));
-			}
-			
-			CompileScriptExNameID(*nameid,name);
-
-			if(strlen(name)>0)
-				name[strlen(name)-1]=0;
-
-			if( node.Symbol() != PT_NAMEID || node.count()!=3 )
-			{	// identical name and id 
-				strcpy(id,name);
-			}
-		}
-		else if( node.Symbol()== PT_ID )
+		if( node.Symbol()== PT_IDENTIFIER )
 		{	// just a simple id
 			strcpy(name, node.Lexeme() );
 			strcpy(id, node.Lexeme() );
@@ -3612,9 +3495,7 @@ private:
 	// generate the sprite number from a SpriteId node
 	unsigned short CompileScriptSpriteID(const parsenode &spriteid)
 	{
-		if( spriteid.count()==1 && spriteid.Symbol()==PT_SPRITEID)
-			return atoi(spriteid[0].Lexeme() );
-		else if( spriteid.Symbol()==PT_DECLITERAL)
+		if( spriteid.Symbol()==PT_DECLITERAL)
 			return atoi(spriteid.Lexeme());
 		else
 			return 0xFFFF;
@@ -3624,7 +3505,7 @@ private:
 	// generate a filename from a FileId node
 	bool CompileScriptFileID(const parsenode &fileid, char map[])
 	{
-		if( fileid.count()==3 && fileid.Symbol()==PT_ID )
+		if( fileid.count()==3 && fileid.Symbol()==PT_IDENTIFIER )
 		{
 			strcpy(map, fileid[0].Lexeme() );
 			strcat(map, ".");
@@ -3791,10 +3672,10 @@ public:
 				break;
 
 			}
-			case PT_FUNC:
+			case PT_FUNCDECL:
 			{	// <Scalar> Id '(' <Paramse>  ')' <Block>
 				// <Scalar> Id '(' <Paramse>  ')' ';'
-				if( CheckTerminal(node[1], PT_ID) )
+				if( CheckTerminal(node[1], PT_IDENTIFIER) )
 				{
 					cTempVar.clear(); // clear tempvars here
 					// count parameters (will return 0 when using an incorrect nonterminal, which is correct)
@@ -3927,19 +3808,7 @@ public:
 				}
 				break;
 			}
-*/
-			case PT_OLDMAPFLAG:
-			case PT_OLDDUP:
-			case PT_OLDMOB:
-			case PT_OLDSHOP:
-			case PT_OLDWARP:
-			case PT_SHOP:
-			case PT_WARP:
-			case PT_OLDMAPFLAGHEAD:
-			case PT_OLDDUPHEAD:
-			case PT_OLDSHOPHEAD:
-			case PT_OLDWARPHEAD:
-			case PT_OLDMONSTERHEAD:
+
 			{
 				this->logging("not yet supported %s functional, skip compiling\n", node.SymbolName());
 				accept = true;
@@ -4000,7 +3869,7 @@ public:
 				}
 				break;
 			}
-
+*/
 			case PT_DECLS:
 			{	// go through all declarations
 				for(i=0; i<node.count(); ++i)
@@ -4026,10 +3895,5 @@ public:
 
 
 
-
-
-
-const unsigned char* getEngine(ulong &sz);
-void buildEngine();
 ///////////////////////////////////////////////////////////////////////////////
 #endif//_EACOMPILER_

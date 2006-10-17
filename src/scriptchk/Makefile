@@ -20,11 +20,12 @@ include $(BP)/Makefile.dep
 
 all scriptchk: $(RETURN_PATH)/eascriptchk
 
-$(RETURN_PATH)/eascriptchk: eacompiler.o scriptchk.o $(BASE_OBJ)
-	$(CCC) $> $(LIBS) -o $@
+$(RETURN_PATH)/eascriptchk: eacompiler.o scriptchk.o scriptengine.o $(BASE_OBJ)
+	$(CCC) $^ $(LIBS) -o $@
 
-eacompiler.o: eacompiler.cpp eascript.engine.txt $(BASE_H)
+eacompiler.o: eacompiler.cpp $(BASE_H)
 scriptchk.o: scriptchk.cpp $(BASE_H)
+scriptengine.o: scriptengine.cpp scriptengine.h eascript.engine.txt $(BASE_H)
 eascript.engine.txt:
 
 clean:

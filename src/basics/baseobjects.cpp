@@ -12,38 +12,37 @@ global::_globalcount global::gc;
 static bool _globalfinished=false;
 global::_globalcount::_globalcount()
 {
-	printf("init counting of global objects\n");
+	fprintf(stderr, "init counting of global objects\n");
 }
 global::_globalcount::~_globalcount()
 {
-	printf("\nterminating global objects.\n");
+	fprintf(stderr, "\nterminating global objects.\n");
 #ifndef SINGLETHREAD
 	sleep(1000); //give some time to clean up
 #endif
 	if( global::getcount() > 0 )
 	{
-		printf("still not dealloced everything, may be leaky or just static/global objects.\n");
-		printf("global object count: %i\n", global::getcount());
-		printf("waiting for final check.\n");
+		fprintf(stderr, "still not dealloced everything, may be leaky or just static/global objects.\n");
+		fprintf(stderr, "global object count: %i\n", global::getcount());
+		fprintf(stderr, "waiting for final check.\n");
 	}
 	else
 	{
-		printf("global objects clear.\n");
+		fprintf(stderr, "global objects clear.\n");
 	}
 	_globalfinished = true;
 }
 void global::_globalcount::finalcheck()
 {
 	if(_globalfinished && global::sGlobalCount==0)
-		printf("final check done, everything clear\n");
-
-	if(sGlobalCount==~0)
-		printf("error, global counter underflow\n");
+		fprintf(stderr, "final check done, everything clear\n");
+	else if( global::sGlobalCount==-1)
+		fprintf(stderr, "error, global counter underflow\n");
 }
 #endif
 void global::debugprint()
 {
-	printf("global object count: %i\n", global::sGlobalCount);
+	fprintf(stderr, "global object count: %i\n", global::sGlobalCount);
 }
 #endif
 

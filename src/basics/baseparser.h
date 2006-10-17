@@ -208,8 +208,8 @@ class CParseInput : public allocator_file<char>
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// position marker
-	unsigned short	line;
-	unsigned short	column;
+	unsigned int	line;
+	unsigned int	column;
 
 	CParseInput() : line(1),column(0)	{}
 	virtual ~CParseInput()				{}

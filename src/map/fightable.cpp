@@ -928,7 +928,7 @@ int unit_attack(block_list *src,int target_id,int type)
 	ud->target = target_id;
 	ud->state.attack_continue = type;
 	if (type) //If you re to attack continously, set to auto-case character
-		ud->chaserange = status_get_range(src);
+		ud->chaserange = src->get_range();
 	
 	//Just change target/type. [Skotlex]
 	if(ud->attacktimer != -1)

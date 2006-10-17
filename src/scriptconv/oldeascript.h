@@ -10,116 +10,102 @@
 #define PT_PERCENT          9 /* '%' */
 #define PT_AMP              10 /* '&' */
 #define PT_AMPAMP           11 /* '&&' */
-#define PT_AMPEQ            12 /* '&=' */
-#define PT_LPARAN           13 /* '(' */
-#define PT_RPARAN           14 /* ')' */
-#define PT_TIMES            15 /* '*' */
-#define PT_TIMESEQ          16 /* '*=' */
-#define PT_COMMA            17 /* ',' */
-#define PT_DOT              18 /* '.' */
-#define PT_DIV              19 /* '/' */
-#define PT_DIVEQ            20 /* '/=' */
-#define PT_COLON            21 /* ':' */
-#define PT_SEMI             22 /* ';' */
-#define PT_QUESTION         23 /* '?' */
-#define PT_LBRACKET         24 /* '[' */
-#define PT_RBRACKET         25 /* ']' */
-#define PT_CARET            26 /* '^' */
-#define PT_CARETEQ          27 /* '^=' */
-#define PT_LBRACE           28 /* '{' */
-#define PT_PIPE             29 /* '|' */
-#define PT_PIPEPIPE         30 /* '||' */
-#define PT_PIPEEQ           31 /* '|=' */
-#define PT_RBRACE           32 /* '}' */
-#define PT_TILDE            33 /* '~' */
-#define PT_PLUS             34 /* '+' */
-#define PT_PLUSEQ           35 /* '+=' */
-#define PT_LT               36 /* '<' */
-#define PT_LTLT             37 /* '<<' */
-#define PT_LTLTEQ           38 /* '<<=' */
-#define PT_LTEQ             39 /* '<=' */
-#define PT_EQ               40 /* '=' */
-#define PT_MINUSEQ          41 /* '-=' */
-#define PT_EQEQ             42 /* '==' */
-#define PT_GT               43 /* '>' */
-#define PT_GTEQ             44 /* '>=' */
-#define PT_GTGT             45 /* '>>' */
-#define PT_GTGTEQ           46 /* '>>=' */
-#define PT_BREAK            47 /* break */
-#define PT_CASE             48 /* case */
-#define PT_CHARLITERAL      49 /* CharLiteral */
-#define PT_CONTINUE         50 /* continue */
-#define PT_DECLITERAL       51 /* DecLiteral */
-#define PT_DEFAULT          52 /* default */
-#define PT_DO               53 /* do */
-#define PT_ELSE             54 /* else */
-#define PT_END              55 /* end */
-#define PT_FLOATLITERAL     56 /* FloatLiteral */
-#define PT_FOR              57 /* for */
-#define PT_GOTO             58 /* goto */
-#define PT_HEXLITERAL       59 /* HexLiteral */
-#define PT_ID               60 /* Id */
-#define PT_IF               61 /* if */
-#define PT_OLDDUPHEAD       62 /* OldDupHead */
-#define PT_OLDFUNCHEAD      63 /* OldFuncHead */
-#define PT_OLDITEMDBHEAD    64 /* OldItemDBHead */
-#define PT_OLDITEMDBHEAD_EA 65 /* 'OldItemDBHead_eA' */
-#define PT_OLDMAPFLAGHEAD   66 /* OldMapFlagHead */
-#define PT_OLDMINSCRIPTHEAD 67 /* OldMinScriptHead */
-#define PT_OLDMOBDBHEAD     68 /* OldMobDBHead */
-#define PT_OLDMOBDBHEAD_EA  69 /* 'OldMobDBHead_eA' */
-#define PT_OLDMONSTERHEAD   70 /* OldMonsterHead */
-#define PT_OLDSCRIPTHEAD    71 /* OldScriptHead */
-#define PT_OLDSHOPHEAD      72 /* OldShopHead */
-#define PT_OLDWARPHEAD      73 /* OldWarpHead */
-#define PT_RETURN           74 /* return */
-#define PT_STRINGLITERAL    75 /* StringLiteral */
-#define PT_SWITCH           76 /* switch */
-#define PT_WHILE            77 /* while */
-#define PT_ARG              78 /* <Arg> */
-#define PT_BLOCK            79 /* <Block> */
-#define PT_CALLARG          80 /* <Call Arg> */
-#define PT_CALLLIST         81 /* <Call List> */
-#define PT_CALLLISTE        82 /* <Call Liste> */
-#define PT_CALLSTM          83 /* <Call Stm> */
-#define PT_CASESTMS         84 /* <Case Stms> */
-#define PT_CONDITION        85 /* <Condition> */
-#define PT_DECL             86 /* <Decl> */
-#define PT_DECLS            87 /* <Decls> */
-#define PT_EXPR             88 /* <Expr> */
-#define PT_EXPRLIST         89 /* <Expr List> */
-#define PT_FUNCTION         90 /* <function> */
-#define PT_GOTOSTMS         91 /* <Goto Stms> */
-#define PT_ID2              92 /* <ID> */
-#define PT_LABELSTM         93 /* <Label Stm> */
-#define PT_LCTRSTMS         94 /* <LCtr Stms> */
-#define PT_NORMALSTM        95 /* <Normal Stm> */
-#define PT_OLDDUP           96 /* <OldDup> */
-#define PT_OLDFUNC          97 /* <OldFunc> */
-#define PT_OLDITEMDB        98 /* <OldItemDB> */
-#define PT_OLDMAPFLAG       99 /* <OldMapFlag> */
-#define PT_OLDMOB           100 /* <OldMob> */
-#define PT_OLDMOBDB         101 /* <OldMobDB> */
-#define PT_OLDNPC           102 /* <OldNPC> */
-#define PT_OLDSCRIPT        103 /* <OldScript> */
-#define PT_OLDSHOP          104 /* <OldShop> */
-#define PT_OLDWARP          105 /* <OldWarp> */
-#define PT_OPADDSUB         106 /* <Op AddSub> */
-#define PT_OPAND            107 /* <Op And> */
-#define PT_OPASSIGN         108 /* <Op Assign> */
-#define PT_OPBINAND         109 /* <Op BinAND> */
-#define PT_OPBINOR          110 /* <Op BinOR> */
-#define PT_OPBINXOR         111 /* <Op BinXOR> */
-#define PT_OPCOMPARE        112 /* <Op Compare> */
-#define PT_OPEQUATE         113 /* <Op Equate> */
-#define PT_OPIF             114 /* <Op If> */
-#define PT_OPMULTDIV        115 /* <Op MultDiv> */
-#define PT_OPOR             116 /* <Op Or> */
-#define PT_OPPOINTER        117 /* <Op Pointer> */
-#define PT_OPSHIFT          118 /* <Op Shift> */
-#define PT_OPUNARY          119 /* <Op Unary> */
-#define PT_RANGE            120 /* <Range> */
-#define PT_RETURNSTMS       121 /* <Return Stms> */
-#define PT_STM              122 /* <Stm> */
-#define PT_STMLIST          123 /* <Stm List> */
-#define PT_VALUE            124 /* <Value> */
+#define PT_LPARAN           12 /* '(' */
+#define PT_RPARAN           13 /* ')' */
+#define PT_TIMES            14 /* '*' */
+#define PT_COMMA            15 /* ',' */
+#define PT_DIV              16 /* '/' */
+#define PT_COLON            17 /* ':' */
+#define PT_SEMI             18 /* ';' */
+#define PT_LBRACKET         19 /* '[' */
+#define PT_RBRACKET         20 /* ']' */
+#define PT_CARET            21 /* '^' */
+#define PT_LBRACE           22 /* '{' */
+#define PT_PIPE             23 /* '|' */
+#define PT_PIPEPIPE         24 /* '||' */
+#define PT_RBRACE           25 /* '}' */
+#define PT_TILDE            26 /* '~' */
+#define PT_PLUS             27 /* '+' */
+#define PT_LT               28 /* '<' */
+#define PT_LTLT             29 /* '<<' */
+#define PT_LTEQ             30 /* '<=' */
+#define PT_EQEQ             31 /* '==' */
+#define PT_GT               32 /* '>' */
+#define PT_GTEQ             33 /* '>=' */
+#define PT_GTGT             34 /* '>>' */
+#define PT_BREAK            35 /* break */
+#define PT_CASE             36 /* case */
+#define PT_CONTINUE         37 /* continue */
+#define PT_DECLITERAL       38 /* DecLiteral */
+#define PT_DEFAULT          39 /* default */
+#define PT_DO               40 /* do */
+#define PT_ELSE             41 /* else */
+#define PT_END              42 /* end */
+#define PT_FOR              43 /* for */
+#define PT_GOTO             44 /* goto */
+#define PT_HEXLITERAL       45 /* HexLiteral */
+#define PT_IDENTIFIER       46 /* identifier */
+#define PT_IF               47 /* if */
+#define PT_OLDDUPHEAD       48 /* OldDupHead */
+#define PT_OLDFUNCHEAD      49 /* OldFuncHead */
+#define PT_OLDITEMDBHEAD    50 /* OldItemDBHead */
+#define PT_OLDITEMDBHEAD_EA 51 /* 'OldItemDBHead_eA' */
+#define PT_OLDMAPFLAGHEAD   52 /* OldMapFlagHead */
+#define PT_OLDMINSCRIPTHEAD 53 /* OldMinScriptHead */
+#define PT_OLDMOBDBHEAD     54 /* OldMobDBHead */
+#define PT_OLDMOBDBHEAD_EA  55 /* 'OldMobDBHead_eA' */
+#define PT_OLDMONSTERHEAD   56 /* OldMonsterHead */
+#define PT_OLDSCRIPTHEAD    57 /* OldScriptHead */
+#define PT_OLDSHOPHEAD      58 /* OldShopHead */
+#define PT_OLDWARPHEAD      59 /* OldWarpHead */
+#define PT_RETURN           60 /* return */
+#define PT_STRINGLITERAL    61 /* StringLiteral */
+#define PT_SWITCH           62 /* switch */
+#define PT_WHILE            63 /* while */
+#define PT_ARG              64 /* <Arg> */
+#define PT_BLOCK            65 /* <Block> */
+#define PT_CALLARG          66 /* <Call Arg> */
+#define PT_CALLLIST         67 /* <Call List> */
+#define PT_CALLLISTE        68 /* <Call Liste> */
+#define PT_CALLSTM          69 /* <Call Stm> */
+#define PT_CASESTMS         70 /* <Case Stms> */
+#define PT_CONDITION        71 /* <Condition> */
+#define PT_DECL             72 /* <Decl> */
+#define PT_DECLS            73 /* <Decls> */
+#define PT_EVALUATION       74 /* <Evaluation> */
+#define PT_EXPR             75 /* <Expr> */
+#define PT_EXPRLIST         76 /* <Expr List> */
+#define PT_FUNCTION         77 /* <Function> */
+#define PT_GOTOSTMS         78 /* <Goto Stms> */
+#define PT_LABELSTM         79 /* <Label Stm> */
+#define PT_LCTRSTMS         80 /* <LCtr Stms> */
+#define PT_NORMALSTM        81 /* <Normal Stm> */
+#define PT_OLDDUP           82 /* <OldDup> */
+#define PT_OLDFUNC          83 /* <OldFunc> */
+#define PT_OLDITEMDB        84 /* <OldItemDB> */
+#define PT_OLDMAPFLAG       85 /* <OldMapFlag> */
+#define PT_OLDMOB           86 /* <OldMob> */
+#define PT_OLDMOBDB         87 /* <OldMobDB> */
+#define PT_OLDNPC           88 /* <OldNPC> */
+#define PT_OLDSCRIPT        89 /* <OldScript> */
+#define PT_OLDSHOP          90 /* <OldShop> */
+#define PT_OLDWARP          91 /* <OldWarp> */
+#define PT_OPADDSUB         92 /* <Op AddSub> */
+#define PT_OPAND            93 /* <Op And> */
+#define PT_OPASSIGN         94 /* <Op Assign> */
+#define PT_OPBINAND         95 /* <Op BinAND> */
+#define PT_OPBINOR          96 /* <Op BinOR> */
+#define PT_OPBINXOR         97 /* <Op BinXOR> */
+#define PT_OPCOMPARE        98 /* <Op Compare> */
+#define PT_OPEQUATE         99 /* <Op Equate> */
+#define PT_OPIF             100 /* <Op If> */
+#define PT_OPMULTDIV        101 /* <Op MultDiv> */
+#define PT_OPOR             102 /* <Op Or> */
+#define PT_OPPOINTER        103 /* <Op Pointer> */
+#define PT_OPSHIFT          104 /* <Op Shift> */
+#define PT_OPUNARY          105 /* <Op Unary> */
+#define PT_RANGE            106 /* <Range> */
+#define PT_RETURNSTMS       107 /* <Return Stms> */
+#define PT_STM              108 /* <Stm> */
+#define PT_STMLIST          109 /* <Stm List> */
+#define PT_VALUE            110 /* <Value> */

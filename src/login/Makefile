@@ -27,7 +27,7 @@ include $(CP)/Makefile.dep
 all login-server : $(RETURN_PATH)/login-server
 
 $(RETURN_PATH)/login-server: login.o $(COMMON_OBJ) $(BASE_OBJ)
-	$(CCC) $> $(LIBS) -o $@
+	$(CCC) $^ $(LIBS) -o $@
 
 login.o: login.cpp login.h $(COMMON_H) $(BASE_H)
 

@@ -263,6 +263,11 @@ struct pet_data : public fightable
 	// status functions
 
 	virtual bool set_dead()				{ return false; }// cannot die
+
+	virtual int get_class() const		{ return this->pet.class_; }
+	virtual int get_lv() const			{ return this->pet.level; }
+	virtual int get_range() const;
+
 	virtual int get_race() const;
 	virtual int get_race2() const;
 	virtual int get_mode() const;

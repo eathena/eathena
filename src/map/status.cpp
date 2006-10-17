@@ -1942,75 +1942,9 @@ int status_recalc_speed(block_list *bl)
 	return speed;
 }
 
-/*==========================================
- * 対象のClassを返す(汎用)
- * 戻りは整数で0以上
- *------------------------------------------
- */
-int status_get_class(block_list *bl)
-{
-	nullpo_retr(0, bl);
-	if(*bl==BL_MOB)
-		return bl->get_md()->class_;
-	else if(*bl==BL_PC)
-		return bl->get_sd()->status.class_;
-	else if(*bl==BL_PET)
-		return bl->get_pd()->pet.class_;
-	else
-		return 0;
-}
 
-/*==========================================
- * 対象のレベルを返す(汎用)
- * 戻りは整数で0以上
- *------------------------------------------
- */
-int status_get_lv(const block_list *bl)
-{
-	nullpo_retr(0, bl);
 
-	if( *bl==BL_MOB)
-		return bl->get_md()->level;
-	else if(*bl==BL_PC)
-		return bl->get_sd()->status.base_level;
-	else if(*bl==BL_PET)
-		return bl->get_pd()->pet.level;
-	else
-		return 0;
-}
 
-/*==========================================
- * 対象の射程を返す(汎用)
- * 戻りは整数で0以上
- *------------------------------------------
- */
-int status_get_range(const block_list *bl)
-{
-	nullpo_retr(0, bl);
-	if(*bl==BL_MOB)
-		return mob_db[bl->get_md()->class_].range;
-	else if(*bl==BL_PC)
-		return  bl->get_sd()->attackrange;
-	else if(*bl==BL_PET)
-		return mob_db[bl->get_pd()->pet.class_].range;
-	else
-		return 0;
-}
-/*==========================================
- * 対象のHPを返す(汎用)
- * 戻りは整数で0以上
- *------------------------------------------
- */
-int status_get_hp(block_list *bl)
-{
-	nullpo_retr(1, bl);
-	if(*bl==BL_MOB)
-		return bl->get_md()->hp;
-	else if(*bl==BL_PC)
-		return bl->get_sd()->status.hp;
-	else
-		return 1;
-}
 /*==========================================
  * 対象のMHPを返す(汎用)
  * 戻りは整数で0以上
@@ -2405,7 +2339,7 @@ int status_get_flee(block_list *bl)
 		return ((map_session_data *)bl)->flee;
 	else {
 		struct status_change *sc_data = status_get_sc_data(bl);
-		flee = status_get_agi(bl) + status_get_lv(bl);
+		flee = status_get_agi(bl) + bl->get_lv();
 
 		if(sc_data){
 			if(sc_data[SC_WHISTLE].timer!=-1)
@@ -2444,7 +2378,7 @@ int status_get_hit(block_list *bl)
 		return ((map_session_data *)bl)->hit;
 	else {
 		struct status_change *sc_data = status_get_sc_data(bl);
-		hit = status_get_dex(bl) + status_get_lv(bl);
+		hit = status_get_dex(bl) + bl->get_lv();
 
 		if (sc_data) {
 			if (sc_data[SC_HUMMING].timer != -1)
@@ -3950,7 +3884,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 		case SC_DPOISON:			/* 猛毒 */
 		{
 			int mhp = status_get_max_hp(bl);
-			int hp = status_get_hp(bl);
+			int hp = bl->get_hp();
 			// MHP?1/4????????
 			if (hp > mhp>>2) {
 				if(*bl == BL_PC)
@@ -4003,7 +3937,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 		case SC_BLIND:				/* 暗? */
 			calc_flag = 1;
 			if(!(flag&2)) {
-				int sc_def = status_get_lv(bl)/10 + status_get_int(bl)/15;
+				int sc_def = bl->get_lv()/10 + status_get_int(bl)/15;
 				tick = 30000 - sc_def;
 			}
 			break;
@@ -4875,7 +4809,8 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 		}
 		else if( (--sc_data[type].val3.num) > 0) {
 			int hp = status_get_max_hp(bl);
-			if((++sc_data[type].val4.num)%5 == 0 && status_get_hp(bl) > hp>>2) {
+			if((++sc_data[type].val4.num)%5 == 0 && bl->get_hp() > hp>>2)
+			{
 				hp = hp/100;
 				if(hp < 1) hp = 1;
 				if(sd)
@@ -4893,7 +4828,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 	case SC_DPOISON:
 		if (sc_data[SC_SLOWPOISON].timer == -1 && (--sc_data[type].val3.num) > 0) {
 			int hp = status_get_max_hp(bl);
-			if (type == SC_POISON && status_get_hp(bl) < hp>>2)
+			if( type == SC_POISON && bl->get_hp() < hp>>2)
 				break;
 			if(sd) {
 				hp = (type == SC_DPOISON) ? 3 + hp/50 : 3 + hp*3/200;

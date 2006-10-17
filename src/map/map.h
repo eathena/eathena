@@ -577,6 +577,11 @@ public:
 	virtual bool is_50overweight() const	{ return false; }
 	virtual bool is_90overweight() const	{ return false; }
 
+	virtual int get_class() const			{ return 0; }
+	virtual int get_lv() const				{ return 0; }
+	virtual int get_range() const			{ return 0; }
+	virtual int get_hp() const				{ return 1; }
+
 	virtual int get_race() const			{ return 0; }
 	virtual int get_race2() const			{ return 0; }
 	virtual int get_mode() const			{ return 1; }// ‚Æ‚è‚ ‚¦‚¸“®‚­‚Æ‚¢‚¤‚±‚Æ‚Å1

@@ -44,7 +44,7 @@ sqlobj:
 
 
 $(RETURN_PATH)/map-server: $(MAP_OBJ) $(COMMON_OBJ) $(BASE_OBJ)
-	$(CCC) $> -lm $(LIBS) -o $@
+	$(CCC) $^ -lm $(LIBS) -o $@
 
 
 txtobj/%.o: %.cpp

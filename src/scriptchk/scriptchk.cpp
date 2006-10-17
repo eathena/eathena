@@ -8,6 +8,7 @@
 #include "basefile.h"
 
 #include "eacompiler.h"
+#include "scriptengine.h"
 
 
 #include "baseparam.h"
@@ -552,44 +553,85 @@ struct _buildin_func{
 ///////////////////////////////////////////////////////////////////////////////////////
 // code beautifier
 ///////////////////////////////////////////////////////////////////////////////////////
-//FILE *output=NULL;
-bool output=true;
-void printoutput(const char* str, int scope, bool &newline, bool &limiter)
+
+struct printer : public basics::noncopyable
 {
-	if(str)
-	{
-		if(newline)
+private:
+	// internal use
+	bool newline;	// detects newline, adds scope indentation
+public:
+	FILE *output;	// output, defaults to stdout
+	size_t scope;	// scope counter
+	bool ignore_nl;	// ignores newlines (ie. for itemscripts)
+
+	printer() : newline(false),output(stdout),scope(0),ignore_nl(false)
+	{}
+
+	void put(const char c)
+	{	// ignore carriage return
+		if( c!='\r' )
 		{
-			int i;
-			for(i=0; i<scope; ++i)
-				printf("\t");
-			newline=false;
+			if(this->newline && !ignore_nl)
+			{
+				size_t i;
+				for(i=0; i<scope; ++i)
+					fputc('\t', this->output);
+			}
+
+			
+
+			this->newline = (c=='\n');
+
+			fputc( (this->newline && ignore_nl)?' ':c, this->output);
 		}
-		else if(limiter && isalnum(str[0]))
-		{
-			printf(" ");
-		}
-		printf(str);
-		limiter = 0!=isalnum( str[strlen(str)-1] );
 	}
-}
-void print_comments(CParser_CommentStore& parser, int &scope, bool &newline, bool &limiter, size_t linelimit)
+	void put(const char *str)
+	{
+		if(str)
+		{
+			for(; *str; ++str)
+				this->put(*str);
+		}
+	}
+	template<class T> void put(const T& t)
+	{
+		static basics::string<> str;
+		str.assign(t);
+		this->put((const char *)str);
+	}
+
+
+	void print_comments(basics::CParser_CommentStore& parser, size_t linelimit);
+	bool print_beautified(basics::CParser_CommentStore& parser, int rtpos);
+};
+
+printer& operator <<(printer& prn, const char t)			{ prn.put(t); return prn; }
+printer& operator <<(printer& prn, const char *t)			{ prn.put(t); return prn; }
+printer& operator <<(printer& prn, const int t)				{ prn.put(t); return prn; }
+printer& operator <<(printer& prn, const unsigned int t)	{ prn.put(t); return prn; }
+printer& operator <<(printer& prn, const long t)			{ prn.put(t); return prn; }
+printer& operator <<(printer& prn, const unsigned long t)	{ prn.put(t); return prn; }
+printer& operator <<(printer& prn, const int64 t)			{ prn.put(t); return prn; }
+printer& operator <<(printer& prn, const uint64 t)			{ prn.put(t); return prn; }
+printer& operator <<(printer& prn, const double t)			{ prn.put(t); return prn; }
+
+
+
+void printer::print_comments(basics::CParser_CommentStore& parser, size_t linelimit)
 {
+	printer &prn = *this;
 	// print comments
 	while( parser.cCommentList.size() )
 	{
 		if( parser.cCommentList[0].line < linelimit )
 		{
 			if(!newline) 
-			{
-				printoutput("\n", scope, newline, limiter);
-				newline=true;
-			}
+				prn << '\n';
+	
+			prn << (parser.cCommentList[0].multi?"/*":"// ");
+			prn << parser.cCommentList[0].content;
+			prn << (parser.cCommentList[0].multi?"*/\n":"\n");
 
-			printoutput( (parser.cCommentList[0].multi)?"/*":"// ", scope, newline, limiter);
-			printoutput( parser.cCommentList[0].content, scope, newline, limiter);
-			printoutput( (parser.cCommentList[0].multi)?"*/\n":"\n", scope, newline, limiter);
-			newline=true;
 			parser.cCommentList.removeindex(0);
 		}
 		else
@@ -597,232 +639,190 @@ void print_comments(CParser_CommentStore& parser, int &scope, bool &newline, boo
 	}
 }
 
-bool print_beautified(CParser_CommentStore& parser, int rtpos, int &scope, bool &newline, bool &limiter)
+bool printer::print_beautified(basics::CParser_CommentStore& parser, int rtpos)
 {
-	if( output )
-	{
-		bool ret = true;
+	printer &prn = *this;
+	bool ret = true;
 
-		if( parser.rt[rtpos].symbol.Type == 1 )
-		{	// terminals
+	if( parser.rt[rtpos].symbol.Type == 1 )
+	{	// terminals
 
-			print_comments(parser, scope, newline, limiter, parser.rt[rtpos].cToken.line);
+		print_comments(parser, parser.rt[rtpos].cToken.line);
 
-			switch( parser.rt[rtpos].symbol.idx )
-			{
-			case PT_RBRACE:
-				scope--;
-				if(!newline) printoutput("\n", scope, newline, limiter);
-				newline=true;
-				printoutput("}\n", scope, newline, limiter);
-				newline=true;
-				break;
-			case PT_LBRACE:
-				if(!newline) printoutput("\n", scope, newline, limiter);
-				newline=true;
-				printoutput("{\n", scope, newline, limiter);
-				newline=true;
-				scope++;
-				break;
-			case PT_SEMI:
-				printoutput(";\n", scope, newline, limiter);
-				newline=true;
-				break;
-			case PT_COMMA:
-				printoutput(", ", scope, newline, limiter);
-				break;
-			case PT_LPARAN:
-			case PT_RPARAN:
-				printoutput((const char*)parser.rt[rtpos].cToken.cLexeme, scope, newline, limiter);
-				break;
-			default:
-				// print the token
-				printoutput((const char*)parser.rt[rtpos].cToken.cLexeme, scope, newline, limiter);
-				break;
-			}
+		switch( parser.rt[rtpos].symbol.idx )
+		{
+		case PT_RBRACE:
+			scope--;
+			if(!prn.newline) prn << '\n';
+			prn << "}\n";
+			break;
+		case PT_LBRACE:
+			if(!prn.newline) prn << '\n';
+			prn << "{\n";
+			++prn.scope;
+			break;
+		case PT_SEMI:
+			prn << ";\n";
+			break;
+		case PT_COMMA:
+			prn << ", ";
+			break;
+//		case PT_LPARAN:
+//		case PT_RPARAN:
+		default:
+			// print the token
+			prn << parser.rt[rtpos].cToken.cLexeme;
+			break;
 		}
-		else if( parser.rt[rtpos].cChildNum==1 )
-		{	// only one child, just go down
-			print_beautified(parser, parser.rt[rtpos].cChildPos, scope, newline, limiter);
+	}
+	else if( parser.rt[rtpos].cChildNum==1 )
+	{	// only one child, just go down
+		print_beautified(parser, parser.rt[rtpos].cChildPos);
+	}
+	else if( parser.rt[rtpos].cChildNum>1 )
+	{	// nonterminals
+		switch( parser.rt[rtpos].symbol.idx )
+		{
+		case PT_LABELSTM:
+		{
+			int tmpscope = prn.scope;
+			prn.scope=0;
+			print_beautified(parser, parser.rt[rtpos].cChildPos);
+			prn << ":\n";
+			prn.scope = tmpscope;
+			break;
 		}
-		else if( parser.rt[rtpos].cChildNum>1 )
-		{	// nonterminals
-			switch( parser.rt[rtpos].symbol.idx )
+		case PT_NORMALSTM:
+		{	// can be:
+			// if '(' <Expr> ')' <Normal Stm>
+			// if '(' <Expr> ')' <Normal Stm> else <Normal Stm>
+			// while '(' <Expr> ')' <Normal Stm>
+			// for '(' <Arg> ';' <Arg> ';' <Arg> ')' <Normal Stm>
+			// do <Normal Stm> while '(' <Expr> ')' ';'
+			// switch '(' <Expr> ')' '{' <Case Stms> '}'
+			// <ExprList> ';'
+			// ';'              !Null statement
+			if(!prn.newline) prn << '\n';
+
+			if( PT_IF == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx ||
+				PT_WHILE == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
 			{
-			case PT_LABELSTM:
-			{
-				int tmpscope = scope;
-				scope=0;
-				print_beautified(parser, parser.rt[rtpos].cChildPos, scope, newline, limiter);
-				printoutput(":\n", scope, newline, limiter);
-				newline=true;
-				scope = tmpscope;
-				break;
+				print_beautified(parser, parser.rt[rtpos].cChildPos+0);
+				prn << "( ";
+				print_beautified(parser, parser.rt[rtpos].cChildPos+2);
+				prn << " )\n";
+
+				if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+4 ].symbol.idx )
+					++prn.scope;
+				print_beautified(parser, parser.rt[rtpos].cChildPos+4);
+				if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+4 ].symbol.idx )
+					--prn.scope;
+
+				if( parser.rt[rtpos].cChildNum==7 )
+				{
+					print_beautified(parser, parser.rt[rtpos].cChildPos+5);
+					if(!prn.newline) prn << '\n';
+
+					if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+6 ].symbol.idx )
+						++prn.scope;
+					print_beautified(parser, parser.rt[rtpos].cChildPos+6);
+					if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+6 ].symbol.idx )
+						--prn.scope;
+				}
 			}
-			case PT_CALLSTM:
-				// transform to function calls
-				print_beautified(parser, parser.rt[rtpos].cChildPos, scope, newline, limiter);
-				printoutput("(", scope, newline, limiter);
-				if( parser.rt[rtpos].cChildNum==3 )
-					print_beautified(parser, parser.rt[rtpos].cChildPos+1, scope, newline, limiter);
-				printoutput(");\n", scope, newline, limiter);
-				newline=true;
-				break;
-			case PT_NORMALSTM:
-			{	// can be:
-				// if '(' <Expr> ')' <Normal Stm>
-				// if '(' <Expr> ')' <Normal Stm> else <Normal Stm>
-				// while '(' <Expr> ')' <Normal Stm>
-				// for '(' <Arg> ';' <Arg> ';' <Arg> ')' <Normal Stm>
-				// do <Normal Stm> while '(' <Expr> ')' ';'
-				// switch '(' <Expr> ')' '{' <Case Stms> '}'
-				// <ExprList> ';'
-				// ';'              !Null statement
-				if(!newline)
+			else if( PT_DO == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
+			{	// do <Normal Stm> while '(' <Expr> ')' ';'
+				print_beautified(parser, parser.rt[rtpos].cChildPos+0);
+				prn << '\n';
+				if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+1 ].symbol.idx )
+					++prn.scope;
+				print_beautified(parser, parser.rt[rtpos].cChildPos+1);
+				if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+1 ].symbol.idx )
+					--prn.scope;
+				if(!prn.newline) prn << '\n';
+				print_beautified(parser, parser.rt[rtpos].cChildPos+2);
+				prn << "( ";
+				print_beautified(parser, parser.rt[rtpos].cChildPos+4);
+				prn << " )";
+				print_beautified(parser, parser.rt[rtpos].cChildPos+6);
+			}
+			else if( PT_SWITCH == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
+			{	// switch '(' <Expr> ')' '{' <Case Stms> '}'
+				print_beautified(parser, parser.rt[rtpos].cChildPos+0);
+				prn << "( ";
+				print_beautified(parser, parser.rt[rtpos].cChildPos+2);
+				prn << " )\n";
+				prn << "{\n";
+				print_beautified(parser, parser.rt[rtpos].cChildPos+5);
+				if(!prn.newline) prn << '\n';
+				prn << "}\n";
+			}
+			else if( PT_FOR == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
+			{	// for '(' <Arg> ';' <Arg> ';' <Arg> ')' <Normal Stm>
+				print_beautified(parser, parser.rt[rtpos].cChildPos+0);
+				prn << '(';
+				print_beautified(parser, parser.rt[rtpos].cChildPos+2);
+				prn << "; ";
+				print_beautified(parser, parser.rt[rtpos].cChildPos+4);
+				prn << "; ";
+				print_beautified(parser, parser.rt[rtpos].cChildPos+6);
+				prn << ")\n";
+				if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+8 ].symbol.idx )
+					++prn.scope;
+				print_beautified(parser, parser.rt[rtpos].cChildPos+8);
+				if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+8 ].symbol.idx )
+					--prn.scope;
+			}
+			else
+			{
+				size_t j,k;
+				k = parser.rt[rtpos].cChildPos+parser.rt[rtpos].cChildNum;
+				j = parser.rt[rtpos].cChildPos;
+				for(; j<k; ++j)
 				{
-					printoutput("\n", scope, newline, limiter);
-					newline=true;
+					print_beautified(parser, j);
 				}
-
-				if( PT_IF == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx ||
-					PT_WHILE == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
+			}
+			break;
+		}
+		case PT_CASESTM:
+		{	// <Case Stms>  ::= case <Value> ':' <Stm List> <Case Stms>
+			//			   | default ':' <Stm List> <Case Stms>
+			//			   |
+			size_t j,k;
+			int tmpscope = prn.scope;
+			k = parser.rt[rtpos].cChildPos+parser.rt[rtpos].cChildNum;
+			for(j=parser.rt[rtpos].cChildPos; j<k; ++j)
+			{	// go down
+				if( PT_COLON==parser.rt[j].symbol.idx )
 				{
-					print_beautified(parser, parser.rt[rtpos].cChildPos+0, scope, newline, limiter);
-					printoutput("( ", scope, newline, limiter);
-					print_beautified(parser, parser.rt[rtpos].cChildPos+2, scope, newline, limiter);
-					printoutput(" )\n", scope, newline, limiter);
-					newline = true;
-
-					if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+4 ].symbol.idx )
-						scope++;
-					print_beautified(parser, parser.rt[rtpos].cChildPos+4, scope, newline, limiter);
-					if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+4 ].symbol.idx )
-						scope--;
-
-					if( parser.rt[rtpos].cChildNum==7 )
-					{
-						print_beautified(parser, parser.rt[rtpos].cChildPos+5, scope, newline, limiter);
-						if(!newline)
-						{
-							printoutput("\n", scope, newline, limiter);
-							newline=true;
-						}
-						if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+6 ].symbol.idx )
-							scope++;
-						print_beautified(parser, parser.rt[rtpos].cChildPos+6, scope, newline, limiter);
-						if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+6 ].symbol.idx )
-							scope--;
-					}
-				}
-				else if( PT_DO == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
-				{	// do <Normal Stm> while '(' <Expr> ')' ';'
-					print_beautified(parser, parser.rt[rtpos].cChildPos+0, scope, newline, limiter);
-					printoutput("\n", scope, newline, limiter);
-					newline = true;
-					if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+1 ].symbol.idx )
-						scope++;
-					print_beautified(parser, parser.rt[rtpos].cChildPos+1, scope, newline, limiter);
-					if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+1 ].symbol.idx )
-						scope--;
-					if(!newline)
-					{
-						printoutput("\n", scope, newline, limiter);
-						newline=true;
-					}
-					print_beautified(parser, parser.rt[rtpos].cChildPos+2, scope, newline, limiter);
-					printoutput("( ", scope, newline, limiter);
-					print_beautified(parser, parser.rt[rtpos].cChildPos+4, scope, newline, limiter);
-					printoutput(" )", scope, newline, limiter);
-					print_beautified(parser, parser.rt[rtpos].cChildPos+6, scope, newline, limiter);
-				}
-				else if( PT_SWITCH == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
-				{	// switch '(' <Expr> ')' '{' <Case Stms> '}'
-					print_beautified(parser, parser.rt[rtpos].cChildPos+0, scope, newline, limiter);
-					printoutput("( ", scope, newline, limiter);
-					print_beautified(parser, parser.rt[rtpos].cChildPos+2, scope, newline, limiter);
-					printoutput(" )\n", scope, newline, limiter);
-					newline = true;
-					printoutput("{\n", scope, newline, limiter);
-					newline = true;
-					print_beautified(parser, parser.rt[rtpos].cChildPos+5, scope, newline, limiter);
-					if(!newline)
-					{
-						printoutput("\n", scope, newline, limiter);
-						newline=true;
-					}
-					printoutput("}\n", scope, newline, limiter);
-					newline = true;
-				}
-				else if( PT_FOR == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
-				{	// for '(' <Arg> ';' <Arg> ';' <Arg> ')' <Normal Stm>
-					print_beautified(parser, parser.rt[rtpos].cChildPos+0, scope, newline, limiter);
-					printoutput("(", scope, newline, limiter);
-					print_beautified(parser, parser.rt[rtpos].cChildPos+2, scope, newline, limiter);
-					printoutput("; ", scope, newline, limiter);
-					print_beautified(parser, parser.rt[rtpos].cChildPos+4, scope, newline, limiter);
-					printoutput("; ", scope, newline, limiter);
-					print_beautified(parser, parser.rt[rtpos].cChildPos+6, scope, newline, limiter);
-					printoutput(")\n", scope, newline, limiter);
-					newline=true;
-					if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+8 ].symbol.idx )
-						scope++;
-					print_beautified(parser, parser.rt[rtpos].cChildPos+8, scope, newline, limiter);
-					if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+8 ].symbol.idx )
-						scope--;
+					prn << ":\n";
+					++prn.scope;
 				}
 				else
 				{
-					size_t j,k;
-					k = parser.rt[rtpos].cChildPos+parser.rt[rtpos].cChildNum;
-					j = parser.rt[rtpos].cChildPos;
-					for(; j<k; ++j)
-					{
-						print_beautified(parser, j, scope, newline, limiter);
-					}
+					if( PT_CASESTM==parser.rt[j].symbol.idx )
+						--prn.scope;
+					print_beautified(parser, j);
 				}
-				break;
 			}
-			case PT_CASESTMS:
-			{	// <Case Stms>  ::= case <Value> ':' <Stm List> <Case Stms>
-				//			   | default ':' <Stm List> <Case Stms>
-				//			   |
-				size_t j,k;
-				int tmpscope = scope;
-				k = parser.rt[rtpos].cChildPos+parser.rt[rtpos].cChildNum;
-				for(j=parser.rt[rtpos].cChildPos; j<k; ++j)
-				{	// go down
-					if( PT_COLON==parser.rt[j].symbol.idx )
-					{
-						printoutput(":\n", scope, newline, limiter);
-						newline=true;
-						scope++;
-					}
-					else
-					{
-						if( PT_CASESTMS==parser.rt[j].symbol.idx )
-							scope--;
-						print_beautified(parser, j, scope, newline, limiter);
-					}
-				}
-				scope = tmpscope;
-				break;
-			}
-			default:
-			{
-				size_t j,k;
-				k = parser.rt[rtpos].cChildPos+parser.rt[rtpos].cChildNum;
-				for(j=parser.rt[rtpos].cChildPos; j<k; ++j)
-				{	// go down
-					print_beautified(parser, j, scope, newline, limiter);
-				}
-				break;
-			}// end default case
-			}// end switch
+			prn.scope = tmpscope;
+			break;
 		}
-
-		return ret;
+		default:
+		{
+			size_t j,k;
+			k = parser.rt[rtpos].cChildPos+parser.rt[rtpos].cChildNum;
+			for(j=parser.rt[rtpos].cChildPos; j<k; ++j)
+			{	// go down
+				print_beautified(parser, j);
+			}
+			break;
+		}// end default case
+		}// end switch
 	}
-	return false;
+
+	return ret;
 }
 
 
@@ -841,15 +841,16 @@ bool print_beautified(CParser_CommentStore& parser, int rtpos, int &scope, bool 
 #define OPT_COMPILEDEBUG	0x08
 #define OPT_COMPILEOUTPUT	0x10
 
-class PParser : public CFileProcessor
+class PParser : public basics::CFileProcessor
 {
-	CScriptCompiler&		compiler;
-	CParser_CommentStore*	parser;
-	int						option;
+	CScriptCompiler&				compiler;
+	basics::CParser_CommentStore*	parser;
+	int								option;
+	mutable printer					prn;
 	
 
 public:
-	PParser(CScriptCompiler& c, CParser_CommentStore* p, int o) : compiler(c), parser(p), option(o)	{}
+	PParser(CScriptCompiler& c, basics::CParser_CommentStore* p, int o) : compiler(c), parser(p), option(o)	{}
 
 	virtual bool process(const char*name) const
 	{
@@ -885,40 +886,21 @@ public:
 			
 			if( ok && parser->rt[0].symbol.idx==PT_DECL && parser->rt[0].cChildNum )
 			{
-				CStackElement *child = &(parser->rt[parser->rt[0].cChildPos]);
+				basics::CStackElement *child = &(parser->rt[parser->rt[0].cChildPos]);
 				if( child &&
 					( child->symbol.idx == PT_BLOCK ||
-					  child->symbol.idx == PT_FUNC ||
-					  child->symbol.idx == PT_SCRIPT ||
-
-					  child->symbol.idx == PT_OLDMAPFLAG ||
-					  child->symbol.idx == PT_OLDSCRIPT ||
-					  child->symbol.idx == PT_OLDFUNC ||
-					  child->symbol.idx == PT_OLDNPC ||
-					  child->symbol.idx == PT_OLDDUP ||
-					  child->symbol.idx == PT_OLDMOB ||
-					  child->symbol.idx == PT_OLDSHOP ||
-					  child->symbol.idx == PT_OLDWARP ||
-					  child->symbol.idx == PT_NPC ||
-					  child->symbol.idx == PT_MOB ||
-					  child->symbol.idx == PT_SHOP ||
-					  child->symbol.idx == PT_WARP ||
-					  
-					  child->symbol.idx == PT_OLDMAPFLAGHEAD ||
-					  child->symbol.idx == PT_OLDDUPHEAD ||
-					  child->symbol.idx == PT_OLDSHOPHEAD ||
-					  child->symbol.idx == PT_OLDWARPHEAD ||
-					  child->symbol.idx == PT_OLDMONSTERHEAD
+					  child->symbol.idx == PT_FUNCDECL ||
+					  child->symbol.idx == PT_OBJDECL ||
+					  child->symbol.idx == PT_DEFINE ||
+					  child->symbol.idx == PT_INCLUDE
 					  )
 				  )
 				{
 					if( (option&OPT_BEAUTIFY)==OPT_BEAUTIFY )
 					{
-						bool newline=true;
-						bool limiter=true;
-						int scope = 0; 
-						print_beautified(*parser, 0, scope, newline, limiter);
-						print_comments(*parser, scope, newline, limiter, 0xFFFFFFFF);
+						prn.scope = 0; 
+						prn.print_beautified(*parser, 0);
+						prn.print_comments(*parser, 0xFFFFFFFF);
 					}
 					if( (option&OPT_PRINTTREE)==OPT_PRINTTREE )
 					{
@@ -996,8 +978,8 @@ int main(int argc, char *argv[])
 //	buildEngine();
 
 	ulong tick = GetTickCount();
-	CParser_CommentStore* parser = 0;
-	CParseConfig* parser_config = 0;
+	basics::CParser_CommentStore* parser = 0;
+	basics::CParseConfig* parser_config = 0;
 	bool ok;
 
 
@@ -1008,14 +990,14 @@ int main(int argc, char *argv[])
 
 	for(i=1; i<argc; ++i)
 	{
-		if( is_file(argv[i]) )
+		if( basics::is_file(argv[i]) )
 		{
 			if(!enginefile)
 				enginefile = argv[i];
 			else 
 				inputfile = argv[i];
 		}
-		else if( is_folder(argv[i]) )
+		else if( basics::is_folder(argv[i]) )
 		{
 			inputfile = argv[i];
 		}
@@ -1025,7 +1007,7 @@ int main(int argc, char *argv[])
 		}
 	}
 	if(enginefile && !inputfile)
-		swap(enginefile, inputfile);
+		basics::swap(enginefile, inputfile);
 
 	if(!inputfile)
 	{
@@ -1037,7 +1019,7 @@ int main(int argc, char *argv[])
 	{
 		try
 		{
-			parser_config = new CParseConfig( enginefile );
+			parser_config = new basics::CParseConfig( enginefile );
 		}
 		catch(...)
 		{
@@ -1058,13 +1040,13 @@ int main(int argc, char *argv[])
 			printf("Error creating parser\n");
 			return EXIT_FAILURE;
 		}
-		parser_config = new CParseConfig(e, sz);
+		parser_config = new basics::CParseConfig(e, sz);
 		if (!parser_config)
 			printf("Could not load engine\n");
 
 	}
 
-	parser = new CParser_CommentStore(parser_config);
+	parser = new basics::CParser_CommentStore(parser_config);
 	if (!parser){
 		printf("Error creating parser\n");
 		return EXIT_FAILURE;
@@ -1082,9 +1064,9 @@ int main(int argc, char *argv[])
 
 	PParser pp(compiler, parser, option);
 
-	if( is_folder( inputfile ) )
+	if( basics::is_folder( inputfile ) )
 	{
-		ok=findFiles(inputfile, "*.txt", pp);
+		ok=basics::findFiles(inputfile, "*.txt", pp);
 	}
 	else
 	{	// single file

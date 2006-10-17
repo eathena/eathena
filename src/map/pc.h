@@ -502,6 +502,11 @@ public:
 
 
 
+	virtual int get_class() const			{ return this->status.class_; }
+	virtual int get_lv() const				{ return this->status.base_level; }
+	virtual int get_range() const			{ return this->attackrange; }
+	virtual int get_hp() const				{ return this->status.hp; }
+
 	virtual int get_race() const			{ return 7; }
 	virtual int get_size() const;
 

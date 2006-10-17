@@ -6,7 +6,7 @@
 /// array for compile-emedded script engine
 const unsigned char engine[] = 
 {
-#include "oldeascript.engine.txt"
+#include "eascript.engine.txt"
 };
 
 
@@ -32,7 +32,7 @@ void buildEngine()
 {
 	static unsigned char buffer1[128*1024];
 	static unsigned char buffer2[128*1024];
-	FILE *fp = fopen("oldeascript.cgt", "rb");
+	FILE *fp = fopen("eascript.cgt", "rb");
 	ulong sz=fread(buffer1, 1, sizeof(buffer1), fp);
 
 	ulong i, sz2=sizeof(buffer2);

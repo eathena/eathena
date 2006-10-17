@@ -508,7 +508,7 @@ void send_fake_id(int fd, map_session_data &sd)
 		WFIFOB(fd,49) = 5;
 		WFIFOB(fd,50) = 5;
 		WFIFOB(fd,51) = sd.state.dead_sit;
-		WFIFOW(fd,52) = ((level = status_get_lv(&sd)) > config.max_job_level) ? config.max_job_level : level;
+		WFIFOW(fd,52) = ((level = sd.get_lv()) > config.max_job_level) ? config.max_job_level : level;
 		WFIFOSET(sd.fd, packet_db[sd.packet_ver][0x1d8].len);
 #endif
 		// send a fake monster
@@ -1592,7 +1592,7 @@ int clif_set0078(const map_session_data &sd, unsigned char *buf)
 		WBUFB(buf,49) = 5;
 		WBUFB(buf,50) = 5;
 		WBUFB(buf,51) = 0;
-		WBUFW(buf,52) = ((level = status_get_lv(&sd)) > config.max_base_level) ? config.max_base_level : level;
+		WBUFW(buf,52) = ((level = sd.get_lv()) > config.max_base_level) ? config.max_base_level : level;
 
 		return packet_len_table[0x78];
 	}
@@ -1890,7 +1890,7 @@ int clif_mob_equip(const mob_data &md, unsigned short nameid)
  */
 int clif_mob0078(const mob_data &md, unsigned char *buf)
 {
-	unsigned short level=status_get_lv(&md);
+	unsigned short level=md.get_lv();
 	int id = md.get_viewclass();
 
 	if( id <= 23 || id >= 4001)
@@ -1954,8 +1954,8 @@ int clif_mob0078(const mob_data &md, unsigned char *buf)
 		WBUFPOS(buf,46,md.block_list::x,md.block_list::y,md.dir);
 		WBUFB(buf,49)=5;
 		WBUFB(buf,50)=5;
-		level = status_get_lv(&md);
-		WBUFW(buf,52)=((level = status_get_lv(&md))>config.max_base_level)? config.max_base_level:level;
+		level = md.get_lv();
+		WBUFW(buf,52)=(level>config.max_base_level)? config.max_base_level:level;
 
 		return packet_len_table[0x78];
 	}
@@ -1969,7 +1969,7 @@ int clif_mob0078(const mob_data &md, unsigned char *buf)
  */
 int clif_mob007b(const mob_data &md, unsigned char *buf)
 {
-	unsigned short level = status_get_lv(&md);
+	unsigned short level = md.get_lv();
 	int id = md.get_viewclass();
 
 	if(id <= 23 || id >= 4001)
@@ -2039,8 +2039,8 @@ int clif_mob007b(const mob_data &md, unsigned char *buf)
 		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 		WBUFB(buf,56)=5;
 		WBUFB(buf,57)=5;
-		level = status_get_lv(&md);
-		WBUFW(buf,58)=((level = status_get_lv(&md))>config.max_base_level)? config.max_base_level:level;
+		level = md.get_lv();
+		WBUFW(buf,58)=(level>config.max_base_level)? config.max_base_level:level;
 
 		return packet_len_table[0x7b];
 	}
@@ -2114,7 +2114,7 @@ int clif_npc007b(const npc_data &nd, unsigned char *buf)
 int clif_pet0078(const pet_data &pd, unsigned char *buf)
 {
 	int view;
-	unsigned short level = status_get_lv(&pd);
+	unsigned short level = pd.get_lv();
 	int id = pd.get_viewclass();
 
 	if(id <= 23 || id >= 4001)
@@ -2149,7 +2149,8 @@ int clif_pet0078(const pet_data &pd, unsigned char *buf)
 		WBUFB(buf,49)=5;
 		WBUFB(buf,50)=5;
 		WBUFB(buf,51)=0; // dead or sit state
-		WBUFW(buf,52)=((level = status_get_lv(&pd))>config.max_base_level)? config.max_base_level:level;
+		level = pd.get_lv();
+		WBUFW(buf,52)=(level>config.max_base_level)? config.max_base_level:level;
 
 		return packet_len_table[0x1d8];
 	}
@@ -2170,8 +2171,8 @@ int clif_pet0078(const pet_data &pd, unsigned char *buf)
 		WBUFPOS(buf,46,pd.block_list::x,pd.block_list::y,pd.dir);
 		WBUFB(buf,49)=0;
 		WBUFB(buf,50)=0;
-
-		WBUFW(buf,52)=((level = status_get_lv(&pd))>config.max_base_level)? config.max_base_level:level;
+		level = pd.get_lv();
+		WBUFW(buf,52)=(level>config.max_base_level)? config.max_base_level:level;
 
 		return packet_len_table[0x78];
 	}
@@ -2183,7 +2184,7 @@ int clif_pet0078(const pet_data &pd, unsigned char *buf)
 int clif_pet007b(const pet_data &pd, unsigned char *buf)
 {
 	int view;
-	unsigned short level = status_get_lv(&pd);
+	unsigned short level = pd.get_lv();
 	int id = pd.get_viewclass();
 
 	if(id <= 23 || id >= 4001)
@@ -2271,7 +2272,7 @@ int clif_hom0078(const homun_data &hd, unsigned char *buf)
 	WBUFPOS(buf,46,hd.block_list::x,hd.block_list::y,hd.get_dir());
 	WBUFB(buf,49)=0;
 	WBUFB(buf,50)=0;
-	WBUFW(buf,52)=status_get_lv(&hd);
+	WBUFW(buf,52)=hd.get_lv();
 
 	return packet_len_table[0x78];
 }
@@ -2298,7 +2299,7 @@ int clif_hom007b(const homun_data &hd, unsigned char *buf)
 	WBUFPOS2(buf,50,hd.block_list::x,hd.block_list::y,hd.walktarget.x,hd.walktarget.y);
 	WBUFB(buf,56)=0;
 	WBUFB(buf,57)=0;
-	level = status_get_lv(&hd);
+	level = hd.get_lv();
 	WBUFW(buf,58)=(level>99)? 99:level;
 
 	return packet_len_table[0x7b];
@@ -2665,7 +2666,7 @@ int clif_homskillinfoblock(const map_session_data &sd)
 			WFIFOW(fd,len+8) = skill_get_sp(id,skill_lv);
 			range = skill_get_range(id,skill_lv);
 			if(range < 0)
-				range = status_get_range(sd.hd) - (range + 1);
+				range = sd.hd->get_range() - (range + 1);
 			WFIFOW(fd,len+10)= range;
 			memset(WFIFOP(fd,len+12),0,24);
 			if(!(skill_get_inf2(id)&0x01))
@@ -2698,7 +2699,7 @@ int clif_homskillup(const map_session_data &sd, unsigned short skill_num)
 	WFIFOW(fd,6) = skill_get_sp(skill_num, sd.hd->status.skill[skillid].lv);
 	range = skill_get_range(skill_num, sd.hd->status.skill[skillid].lv);
 	if(range < 0)
-		range = status_get_range(sd.hd) - (range + 1);
+		range = sd.hd->get_range() - (range + 1);
 	WFIFOW(fd,8) = range;
 	WFIFOB(fd,10) = (sd.hd->status.skill[skillid].lv < skill_get_max(sd.hd->status.skill[skillid].id)) ? 1 : 0;
 	WFIFOSET(fd,packet_db[sd.packet_ver][0x10e].len);
@@ -5318,7 +5319,7 @@ int clif_skillinfo(map_session_data &sd, unsigned short skillid, short type, sho
 	if(range < 0) {
 		range = skill_get_range(id,sd.status.skill[skillid].lv);
 		if(range < 0)
-			range = status_get_range(&sd) - (range + 1);
+			range = sd.get_range() - (range + 1);
 	}
 	WFIFOW(fd,12)= range;
 
@@ -5359,7 +5360,7 @@ int clif_skillinfoblock(map_session_data &sd)
 			WFIFOW(fd,len+8) = skill_get_sp(id,sd.status.skill[i].lv);
 			range = skill_get_range(id,sd.status.skill[i].lv);
 			if(range < 0)
-				range = status_get_range(&sd) - (range + 1);
+				range = sd.get_range() - (range + 1);
 			WFIFOW(fd,len+10)= range;
 			memset(WFIFOP(fd,len+12),0,24);
 			inf2 = skill_get_inf2(id);
@@ -5397,7 +5398,7 @@ int clif_skillup(map_session_data &sd, unsigned short skill_num)
 	WFIFOW(fd,6) = skill_get_sp(skill_num,sd.status.skill[skill_num].lv);
 	range = skill_get_range(skill_num,sd.status.skill[skill_num].lv);
 	if(range < 0)
-		range = status_get_range(&sd) - (range + 1);
+		range = sd.get_range() - (range + 1);
 	WFIFOW(fd,8) = range;
 	//WFIFOB(fd,10) = (sd.status.skill[skill_num].lv < skill_get_max(sd.status.skill[skill_num].id)) ? 1 : 0;
 	WFIFOB(fd,10) = (sd.status.skill[skill_num].lv < skill_tree_get_max(sd.status.skill[skill_num].id, sd.status.class_)) ? 1 : 0;
@@ -6273,7 +6274,7 @@ int clif_item_skill(map_session_data &sd,unsigned short skillid,unsigned short s
 	WFIFOW(fd,10)=skill_get_sp(skillid,skilllv);
 	range = skill_get_range(skillid,skilllv);
 	if(range < 0)
-		range = status_get_range(&sd) - (range + 1);
+		range = sd.get_range() - (range + 1);
 	WFIFOW(fd,12)=range;
 	safestrcpy((char*)WFIFOP(fd,14),24,name);
 	WFIFOB(fd,38)=0;

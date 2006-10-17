@@ -277,7 +277,7 @@ int battle_calc_damage(block_list *src,block_list *bl,int damage,int div_,int sk
 
 	map_session_data *sd=bl->get_sd();
 	mob_data *md = md=bl->get_md();
-	int class_ = status_get_class(bl);
+	int class_ = bl->get_class();
 	status_change *sc_data, *sc;
 
 	sc_data = status_get_sc_data(bl);
@@ -1213,7 +1213,7 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 				t_sc_data[SC_AUTOCOUNTER].val4 = 1;
 				if(sc_data && sc_data[SC_AUTOCOUNTER].timer == -1)
 				{
-					int range = status_get_range(target);
+					int range = target->get_range();
 					if( (tsd && tsd->status.weapon != 11 && dist <= range+1) ||
 						(tmd && range <= 3 && dist <= range+1) )
 						t_sc_data[SC_AUTOCOUNTER].val3 = src->id;
@@ -1823,7 +1823,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				t_sc_data[SC_AUTOCOUNTER].val3 = 0;
 				t_sc_data[SC_AUTOCOUNTER].val4 = 1;
 				if(sc_data && sc_data[SC_AUTOCOUNTER].timer == -1) { //自分がオートカウンター状態
-					int range = status_get_range(target);
+					int range = target->get_range();
 					if((tsd && ((map_session_data *)target)->status.weapon != 11 && dist <= range+1) || //対象がPCで武器が弓矢でなく射程内
 						(tmd && range <= 3 && dist <= range+1) ) //または対象がMobで射程が3以下で射程内
 						t_sc_data[SC_AUTOCOUNTER].val3 = sd->block_list::id;
@@ -2620,7 +2620,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			cardfix=cardfix*(100+sd->right_weapon.addrace[11]+sd->arrow_addrace[11])/100; //ボス以外モンスターに追加ダメージ(弓矢による追加あり)
 	}
 	//特定Class用補正処理(少女の日記→ボンゴン用？)
-	t_class = status_get_class(target);
+	t_class = target->get_class();
 	for(i=0;i<sd->right_weapon.add_damage_class_count; ++i) {
 		if(sd->right_weapon.add_damage_classid[i] == t_class) {
 			cardfix=cardfix*(100+sd->right_weapon.add_damage_classrate[i])/100;
@@ -2953,7 +2953,7 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 			flag.arrow = 1;
 		}
 	}
-	else if (status_get_range(src) > 3)
+	else if( src->get_range() > 3 )
 		wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 
 	if(skill_num){
@@ -3031,7 +3031,7 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 				t_sc_data[SC_AUTOCOUNTER].val4 = 1;
 				if(sc_data && sc_data[SC_AUTOCOUNTER].timer == -1)
 				{ //How can the attacking char have Auto-counter active?
-					int range = status_get_range(target);
+					int range = target->get_range();
 					if((tsd && tsd->status.weapon != 11 && dist <= range+1) ||
 						(tmd && range <= 3 && dist <= range+1))
 						t_sc_data[SC_AUTOCOUNTER].val3 = src->id;
@@ -3887,7 +3887,7 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 		if (flag.cardfix)
 		{
 			short cardfix = 1000, cardfix_ = 1000;
-			short t_class = status_get_class(target);
+			short t_class = target->get_class();
 			short t_race2 = target->get_race2();	
 			if(sd->state.arrow_atk)
 			{
@@ -3952,7 +3952,7 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 		s_size = src->get_size();
 		s_race2 = src->get_race2();
 		s_mode = src->get_mode();
-		s_class = status_get_class(src);
+		s_class = src->get_class();
 		
 		cardfix=cardfix*(100-tsd->subrace[s_race])/100;
 		cardfix=cardfix*(100-tsd->subele[s_ele])/100;
@@ -4268,16 +4268,16 @@ struct Damage battle_calc_magic_attack(block_list *src, block_list *target,int s
 			if( *target != BL_PC && target->is_undead() )
 			{
 				int hp, mhp, thres;
-				hp = status_get_hp(target);
+				hp = target->get_hp();
 				mhp = status_get_max_hp(target);
 				thres = (skill_lv * 20) + status_get_luk(src)+
-						status_get_int(src) + status_get_lv(src)+
+						status_get_int(src) + src->get_lv()+
 						((200 - hp * 200 / mhp));
 				if(thres > 700) thres = 700;
 				if(rand()%1000 < thres && !(t_mode&0x20))	// 成功
 					damage = hp;
 				else					// 失敗
-					damage = status_get_lv(src) + status_get_int(src) + skill_lv * 10;
+					damage = src->get_lv() + status_get_int(src) + skill_lv * 10;
 			}
 			normalmagic_flag=0;
 			break;
@@ -4445,7 +4445,7 @@ struct Damage battle_calc_magic_attack(block_list *src, block_list *target,int s
 			cardfix=cardfix*(100+sd->magic_addrace[10])/100;
 		else
 			cardfix=cardfix*(100+sd->magic_addrace[11])/100;
-		t_class = status_get_class(target);
+		t_class = target->get_class();
 		for(i=0;i<sd->add_magic_damage_class_count; ++i)
 		{
 			if(sd->add_magic_damage_classid[i] == t_class)
@@ -4461,7 +4461,7 @@ struct Damage battle_calc_magic_attack(block_list *src, block_list *target,int s
 
 	if (tsd && !no_cardfix)
 	{
-		int s_class = status_get_class(src);
+		int s_class = src->get_class();
 		cardfix=100;
 		cardfix=cardfix*(100-tsd->subele[ele])/100;	// 属 性によるダメージ耐性
 		cardfix=cardfix*(100-tsd->subrace[race])/100;	// 種族によるダメージ耐性
@@ -4629,7 +4629,7 @@ struct Damage battle_calc_misc_attack(block_list *src,block_list *target,int ski
 		break;
 
 	case NPC_SELFDESTRUCTION:	// 自爆
-		damage = status_get_hp(src);
+		damage = src->get_hp();
 		damagefix = 0;
 		break;
 
@@ -4871,7 +4871,7 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 		{	//三段掌
 			int delay = 0;
 			wd.div_ = 3;
-			if(sd && wd.damage+wd.damage2 < status_get_hp(target))
+			if(sd && wd.damage+wd.damage2 < target->get_hp())
 			{
 				int skilllv = pc_checkskill(*sd, MO_CHAINCOMBO);
 				if (skilllv > 0) {
@@ -5053,7 +5053,7 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 					block_list *tbl;
 					int skillid = (tsd->autospell2_id[i] > 0) ? tsd->autospell2_id[i] : -tsd->autospell2_id[i];
 					int skilllv = (tsd->autospell2_lv[i] > 0) ? tsd->autospell2_lv[i] : 1;
-					int j, rate = ((sd && !sd->state.arrow_atk) || (status_get_range(src)<=2)) ?
+					int j, rate = ((sd && !sd->state.arrow_atk) || (src->get_range()<=2)) ?
 						tsd->autospell2_rate[i] : tsd->autospell2_rate[i] / 2;
 					
 					if (rand()%100 > rate)

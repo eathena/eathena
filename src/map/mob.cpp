@@ -2252,7 +2252,7 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 			if( sd->is_sitting() ) 
 				sd->set_stand(); //Character stuck in attacking animation while 'sitting' fix. [Skotlex]
 			clif_skill_nodamage(*src,md,HW_SOULDRAIN,i,1);
-			sp += (status_get_lv(&md))*(65+15*i)/100;
+			sp += md.get_lv()*(65+15*i)/100;
 		}
 		sp += sd->sp_gain_value;
 		sp += sd->sp_gain_race[race];
@@ -2997,7 +2997,7 @@ int mobskill_castend_id(int tid, unsigned long tick, int id, basics::numptr data
 		return 0;
 	range = skill_get_range(md->skillid,md->skilllv);
 	if(range < 0)
-		range = status_get_range(md) - (range + 1);
+		range = md->get_range() - (range + 1);
 	if(range + (int)config.mob_skill_add_range < distance(*md,*bl))
 		return 0;
 
@@ -3084,7 +3084,7 @@ int mobskill_castend_pos(int tid, unsigned long tick, int id, basics::numptr dat
 
 	range = skill_get_range(md->skillid,md->skilllv);
 	if(range < 0)
-		range = status_get_range(md) - (range + 1);
+		range = md->get_range() - (range + 1);
 	if(range + (int)config.mob_skill_add_range < md->get_distance(md->skillx,md->skilly))
 		return 0;
 	md->skilldelay[md->skillidx]=tick;
@@ -3154,7 +3154,7 @@ int mobskill_use_id(mob_data &md,block_list *target,unsigned short skill_idx)
 	// 射程と障害物チェック
 	range = skill_get_range(skill_id,skill_lv);
 	if(range < 0)
-		range = status_get_range(&md) - (range + 1);
+		range = md.get_range() - (range + 1);
 	if(!battle_check_range(&md,target,range))
 		return 0;
 
@@ -3270,7 +3270,7 @@ int mobskill_use_pos( mob_data *md, int skill_x, int skill_y, unsigned short ski
 	// 射程と障害物チェック
 	range = skill_get_range(skill_id,skill_lv);
 	if(range < 0)
-		range = status_get_range(md) - (range + 1);
+		range = md->get_range() - (range + 1);
 
 	
 	bl.m = md->block_list::m;
@@ -3362,7 +3362,7 @@ block_list *mob_getmasterhpltmaxrate(mob_data &md,int rate)
 {
 	if (md.master_id > 0) {
 		block_list *bl = block_list::from_blid(md.master_id);
-		if (status_get_hp(bl) < status_get_max_hp(bl) * rate / 100)
+		if( bl->get_hp() < status_get_max_hp(bl) * rate / 100)
 			return bl;
 	}
 

@@ -1,4 +1,15 @@
 Date	Added
+10/16
+	* removed some more status functions
+	* script converter should now be fully functional, 
+	  exept for the db files (which new format is not yet decided)
+	  it also takes over the checking of old eA script syntax
+	* updated the parse engine of the syntax checker to read
+	  the new format (exept for the db files); testing flow would be 
+	  to convert a old script ("scriptconv b <filename> ><output>"),
+	  and then test it with the checker ("scriptchk <filename> ><output>")
+	  together with manually checking the output by looking over it
+	  reporting unexpected behaviour would be helpful. [Shinomori]
 10/11
 	* doing a temporal upload on behalf of Shinomori (which is absent atm)
 	  so I just paste the log entries from his work packages [Hinoko]
