@@ -35,6 +35,7 @@ Playtester
 Date		Added
 ======
 10/16
+	* Llyr fixed The_Sign_Quest [Lupus]
 	* Official X.3 jRO spawns for the new maps [Playtester]
 10/13
 	* Merged the quests/juperos.txt file as it's required to progress in the
