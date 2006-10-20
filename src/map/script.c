@@ -2735,9 +2735,9 @@ void run_script_main(struct script_state *st)
 		if(bk_st) {
 			ShowWarning("Unable to restore stack! Double continuation!\n");
 			//Report BOTH scripts to see if that can help somehow.
-			ShowDebug("Previous script (lost):");
+			ShowDebug("Previous script (lost):\n");
 			report_src(bk_st);
-			ShowDebug("Current script:");
+			ShowDebug("Current script:\n");
 			report_src(st);
 		}
 	} else {
@@ -3549,6 +3549,7 @@ int buildin_unitkill(struct script_state *st);
 int buildin_unitwarp(struct script_state *st);
 int buildin_unitattack(struct script_state *st);
 int buildin_unitstop(struct script_state *st);
+int buildin_unittalk(struct script_state *st);
 int buildin_unitemote(struct script_state *st);
 int buildin_unitskilluseid(struct script_state *st); // originally by Qamera [celest]
 int buildin_unitskillusepos(struct script_state *st); // originally by Qamera [celest]
@@ -3875,6 +3876,7 @@ struct script_function buildin_func[] = {
 	{buildin_unitwarp,"unitwarp","isii"},
 	{buildin_unitattack,"unitattack","i*"},
 	{buildin_unitstop,"unitstop","i"},
+	{buildin_unittalk,"unittalk","is"},
 	{buildin_unitemote,"unitemote","ii"},
 	{buildin_unitskilluseid,"unitskilluseid","iii*"}, // originally by Qamera [Celest]
 	{buildin_unitskillusepos,"unitskillusepos","iiiii"}, // [Celest]
@@ -11673,16 +11675,16 @@ int buildin_rid2name(struct script_state *st){
 	if((bl = map_id2bl(rid))){
 		switch(bl->type){
 			case BL_MOB:
-				push_str(st->stack,C_CONSTSTR,((struct mob_data *)bl)->name);
+				push_str(st->stack,C_CONSTSTR,((TBL_MOB*)bl)->name);
 				break;
 			case BL_PC:
-				push_str(st->stack,C_CONSTSTR,((struct map_session_data *)bl)->status.name);
+				push_str(st->stack,C_CONSTSTR,((TBL_PC*)bl)->status.name);
 				break;
 			case BL_NPC:
-				push_str(st->stack,C_CONSTSTR,((struct npc_data *)bl)->exname);
+				push_str(st->stack,C_CONSTSTR,((TBL_NPC*)bl)->exname);
 				break;
 			case BL_PET:
-				push_str(st->stack,C_CONSTSTR,((struct pet_data *)bl)->pet.name);
+				push_str(st->stack,C_CONSTSTR,((TBL_PET*)bl)->pet.name);
 				break;
 			default:
 				ShowError("buildin_rid2name: BL type unknown.\n");
@@ -11838,6 +11840,31 @@ int buildin_unitstop(struct script_state *st) {
 
 	return 0;
 }
+
+int buildin_unittalk(struct script_state *st)
+{
+	char *str;
+	int id;
+	char message[255];
+
+	struct block_list *bl = NULL;
+
+	id = conv_num(st, & (st->stack->stack_data[st->start+2]));
+	str=conv_str(st,& (st->stack->stack_data[st->start+3]));
+
+	bl = map_id2bl(id);
+	if(bl) {
+		memcpy(message, status_get_name(bl), NAME_LENGTH);
+		strcat(message," : ");
+		strncat(message,str, 228); //Prevent overflow possibility. [Skotlex]
+		clif_message(bl, message);
+		if(bl->type == BL_PC)
+			clif_displaymessage(((TBL_PC*)bl)->fd, message);
+	}
+
+	return 0;
+}
+
 int buildin_unitemote(struct script_state *st) {
 	int id, emo;
 	struct block_list *bl= NULL;

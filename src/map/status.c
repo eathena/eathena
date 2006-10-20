@@ -109,7 +109,7 @@ void initChangeTables(void) {
 	StatusSkillChangeTable[SC_DPOISON] =   NPC_POISON;
 
 	//These are the status-change flags for the common ailments.
-	StatusChangeFlagTable[SC_STONE] =     SCB_DEF_ELE;
+	StatusChangeFlagTable[SC_STONE] =     SCB_DEF_ELE|SCB_DEF|SCB_MDEF;
 	StatusChangeFlagTable[SC_FREEZE] =    SCB_DEF_ELE|SCB_DEF|SCB_MDEF;
 //	StatusChangeFlagTable[SC_STUN] =      SCB_NONE;
 //	StatusChangeFlagTable[SC_SLEEP] =     SCB_NONE;
@@ -908,15 +908,11 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 			return 0;
 	}
 
-	if (skill_num == PA_PRESSURE && flag) {
-	//Gloria Avoids pretty much everything....
-		tsc = target?status_get_sc(target):NULL;
-		if(tsc) {
-			if (tsc->option&OPTION_HIDE)
-				return 0;
-			if (tsc->count && tsc->data[SC_TRICKDEAD].timer != -1)
-				return 0;
-		}
+	if (skill_num == PA_PRESSURE && flag && target) {
+		//Gloria Avoids pretty much everything....
+		tsc = status_get_sc(target);
+		if(tsc && tsc->option&OPTION_HIDE)
+			return 0;
 		return 1;
 	}
 
@@ -1031,7 +1027,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	
 	if(tsc && tsc->count)
 	{	
-		if (!(status->mode&MD_BOSS) && tsc->data[SC_TRICKDEAD].timer != -1)
+		if(!skill_num && !(status->mode&MD_BOSS) && tsc->data[SC_TRICKDEAD].timer != -1)
 			return 0;
 		if(skill_num == WZ_STORMGUST && tsc->data[SC_FREEZE].timer != -1)
 			return 0;
@@ -1161,8 +1157,14 @@ static int status_base_atk(struct block_list *bl, struct status_data *status)
 		str = status->str;
 		dex = status->dex;
 	}
+	//Normally only players have base-atk, but homunc have a different batk
+	// equation, hinting that perhaps non-players should use this for batk.
+	// [Skotlex]
 	dstr = str/10;
-	return str + dstr*dstr + dex/5 + status->luk/5;
+	str += dstr*dstr;
+	if (bl->type == BL_PC)
+		str+= dex/5 + status->luk/5;
+	return str;
 }
 
 #define status_base_matk_max(status) (status->int_+(status->int_/5)*(status->int_/5))
@@ -5486,6 +5488,16 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 	if(opt_flag)
 		clif_changeoption(bl);
 
+	if (calc_flag&SCB_DYE)
+	{	//Reset DYE color
+		if (vd && vd->cloth_color)
+		{
+			val4 = vd->cloth_color;
+			clif_changelook(bl,LOOK_CLOTHES_COLOR,0);
+		}
+		calc_flag&=~SCB_DYE;
+	}
+
 	if (vd && pcdb_checkid(vd->class_)) //Only for players sprites, client crashes if they receive this for a mob o.O [Skotlex]
 		clif_status_change(bl,StatusIconChangeTable[type],1);
 	else if (sd) //Send packet to self otherwise (disguised player?)
@@ -5965,6 +5977,13 @@ int status_change_end( struct block_list* bl , int type,int tid )
 		break;
 	default:
 		opt_flag = 0;
+	}
+
+	if (calc_flag&SCB_DYE)
+	{	//Restore DYE color
+		if (vd && !vd->cloth_color && sc->data[type].val4)
+			clif_changelook(bl,LOOK_CLOTHES_COLOR,sc->data[type].val4);
+		calc_flag&=~SCB_DYE;
 	}
 
 	//On Aegis, when turning off a status change, first goes the sc packet, then the option packet.

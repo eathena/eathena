@@ -1,3 +1,7 @@
+10/20
+	* Merged skill_db.txt, skill_require_db.txt, skill_cast_db.txt,
+	  skill_castnodex.txt, skill_unit_db.txt (those are mostly NJ skills, but a
+	  few GS changes went in as well)
 10/18
 	* Updated the packetdb for the 2006-10-17a client. [Zephiris]
 10/15

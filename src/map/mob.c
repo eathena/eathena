@@ -1528,7 +1528,7 @@ int mob_respawn(int tid, unsigned int tick, int id,int data )
 //Call when a mob has received damage.
 void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 {
-	int id = 0;
+	int char_id = 0;
 
 	md->tdmg+=damage; //Store total damage...
 	
@@ -1549,7 +1549,7 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 		case BL_PC: 
 		{
 			struct map_session_data *sd = (TBL_PC*)src;
-			id = sd->status.char_id;
+			char_id = sd->status.char_id;
 			if(rand()%1000 < 1000/md->attacked_players)
 				md->attacked_id = src->id;
 			break;
@@ -1557,12 +1557,12 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 		case BL_PET:
 		{
 			struct pet_data *pd = (TBL_PET*)src;
-			if (battle_config.pet_attack_exp_to_master) {
-				id = pd->msd->status.char_id;
+			if (battle_config.pet_attack_exp_to_master && pd->msd) {
+				char_id = pd->msd->status.char_id;
 				damage=(damage*battle_config.pet_attack_exp_rate)/100; //Modify logged damage accordingly.
 			}
 			//Let mobs retaliate against the pet's master [Skotlex]
-			if(rand()%1000 < 1000/md->attacked_players)
+			if(pd->msd && rand()%1000 < 1000/md->attacked_players)
 				md->attacked_id = pd->msd->bl.id;
 			break;
 		}
@@ -1571,7 +1571,7 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 			struct mob_data* md2 = (TBL_MOB*)src;
 			if(md2->special_state.ai && md2->master_id) {
 				struct map_session_data* msd = map_id2sd(md2->master_id);
-				if (msd) id = msd->status.char_id;
+				if (msd) char_id = msd->status.char_id;
 			}
 			if(rand()%1000 < 1000/md->attacked_players)
 			{	//Let players decide whether to retaliate versus the master or the mob. [Skotlex]
@@ -1587,13 +1587,13 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 				md->attacked_id = src->id;
 	}
 	//Log damage...
-	if (id && damage > 0) {
+	if (char_id && damage > 0) {
 		int i,minpos,mindmg;
 		for(i=0,minpos=DAMAGELOG_SIZE-1,mindmg=INT_MAX;i<DAMAGELOG_SIZE;i++){
-			if(md->dmglog[i].id==id)
+			if(md->dmglog[i].id==char_id)
 				break;
 			if(md->dmglog[i].id==0) {	//Store data in first empty slot.
-				md->dmglog[i].id = id;
+				md->dmglog[i].id  = char_id;
 				break;
 			}
 			if(md->dmglog[i].dmg<mindmg){
@@ -1604,8 +1604,8 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 		if(i<DAMAGELOG_SIZE)
 			md->dmglog[i].dmg+=damage;
 		else {
-			md->dmglog[minpos].id=id;
-			md->dmglog[minpos].dmg=damage;
+			md->dmglog[minpos].id  = char_id;
+			md->dmglog[minpos].dmg = damage;
 		}
 	}
 	
@@ -2044,15 +2044,15 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		md->status.hp = 0; //So that npc_event invoked functions KNOW that I am dead.
 		if(src && src->type == BL_PET)
 			sd = ((struct pet_data *)src)->msd;
-		if(sd && battle_config.mob_npc_event_type)
+		if(sd && battle_config.mob_npc_event_type) {
 			npc_event(sd,md->npc_event,0);
-		else if(mvp_sd)
+		} else if(mvp_sd) {
 			npc_event(mvp_sd,md->npc_event,0);
+		}
 		md->status.hp = 1;
-	} else if (mvp_sd) {	//lordalfa
+	} else if (mvp_sd && mvp_sd->state.event_kill_mob) {	//lordalfa
 		pc_setglobalreg(mvp_sd,"killedrid",md->class_);
-		if(mvp_sd->state.event_kill_mob)
-			npc_script_event(mvp_sd, NPCE_KILLNPC); // PCKillNPC [Lance]
+		npc_script_event(mvp_sd, NPCE_KILLNPC); // PCKillNPC [Lance]
 	}
 
 	if(md->deletetimer!=-1) {

@@ -4178,7 +4178,6 @@ int clif_skillinfoblock(struct map_session_data *sd)
 			if(((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
 				!(inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL))) ||
 				(battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill) )
-				//WFIFOB(fd,len+36)= (sd->status.skill[i].lv < skill_get_max(id) && sd->status.skill[i].flag ==0 )? 1:0;
 				WFIFOB(fd,len+36)= (sd->status.skill[i].lv < skill_tree_get_max(id, sd->status.class_) && sd->status.skill[i].flag ==0 )? 1:0;
 			else
 				WFIFOB(fd,len+36) = 0;
@@ -8388,6 +8387,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 	if ((is_atcommand(fd, sd, message, 0) != AtCommand_None) ||
 		(is_charcommand(fd, sd, message,0) != CharCommand_None))
 		return;
+
 	if (sd->sc.count &&
 		(sd->sc.data[SC_BERSERK].timer != -1 ||
 		(sd->sc.data[SC_NOCHAT].timer != -1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOCHAT)))
@@ -8399,7 +8399,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 			return;
 		sd->cantalk_tick = gettick() + battle_config.min_chat_delay;
 	}
-	
+
 	if (RFIFOW(fd,2)+4 < 128)
 		buf = buf2; //Use a static buffer.
 	else
@@ -10052,6 +10052,7 @@ void clif_parse_PartyMessage(int fd, struct map_session_data *sd) {
 	if (is_charcommand(fd, sd, (char*)RFIFOP(fd,4), 0) != CharCommand_None ||
 		is_atcommand(fd, sd, (char*)RFIFOP(fd,4), 0) != AtCommand_None)
 		return;
+
 	if	(sd->sc.count && (
 			sd->sc.data[SC_BERSERK].timer!=-1 ||
 			(sd->sc.data[SC_NOCHAT].timer!=-1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOCHAT)
@@ -10273,6 +10274,7 @@ void clif_parse_GuildMessage(int fd,struct map_session_data *sd) {
 	if (is_charcommand(fd, sd, (char*)RFIFOP(fd, 4), 0) != CharCommand_None ||
 		is_atcommand(fd, sd, (char*)RFIFOP(fd, 4), 0) != AtCommand_None)
 		return;
+
 	if (sd->sc.count && (
 		sd->sc.data[SC_BERSERK].timer!=-1 ||
 		(sd->sc.data[SC_NOCHAT].timer!=-1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOCHAT)
@@ -11167,6 +11169,7 @@ void clif_parse_FeelSaveOk(int fd,struct map_session_data *sd)
 		return;
 	i = sd->menuskill_lv-1;
 	if (i<0 || i > 2) return; //Bug?
+
 	sd->feel_map[i].index = map[sd->bl.m].index;
 	sd->feel_map[i].m = sd->bl.m;
 	pc_setglobalreg(sd,feel_var[i],map[sd->bl.m].index);

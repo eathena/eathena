@@ -857,7 +857,6 @@ static struct Damage battle_calc_weapon_attack(
 			case ITM_TOMAHAWK:	//Tomahawk is a ranged attack! [Skotlex]
 			case CR_GRANDCROSS:
 			case NPC_GRANDDARKNESS:
-			case GS_FLING:
 			case GS_TRIPLEACTION:
 			case GS_BULLSEYE:
 			case GS_MAGICALBULLET:

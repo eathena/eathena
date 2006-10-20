@@ -3184,7 +3184,8 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 	md_status= status_get_status_data(bl);
 	md = (TBL_MOB *)bl;
 
-	if(md->state.steal_flag>=battle_config.skill_steal_max_tries || md_status->mode&MD_BOSS || md->master_id ||
+	if(md->state.steal_flag>=battle_config.skill_steal_max_tries ||
+		md_status->mode&MD_BOSS || md->master_id ||
 		(md->class_>=1324 && md->class_<1364) || // prevent stealing from treasure boxes [Valaris]
 		map[md->bl.m].flag.nomobloot ||        // check noloot map flag [Lorky]
 		md->sc.data[SC_STONE].timer != -1 || md->sc.data[SC_FREEZE].timer != -1 //status change check
@@ -5508,6 +5509,17 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 	pc_calc_skilltree(sd);
 	clif_skillinfoblock(sd);
 
+	//Remove peco/cart/falcon
+	i = sd->sc.option;
+	if(i&OPTION_RIDING && !pc_checkskill(sd, KN_RIDING))
+		i&=~OPTION_RIDING;
+	if(i&OPTION_CART && !pc_checkskill(sd, MC_PUSHCART))
+		i&=~OPTION_CART;
+	if(i&OPTION_FALCON && !pc_checkskill(sd, HT_FALCON))
+		i&=~OPTION_FALCON;
+
+	if(i != sd->sc.option)
+		pc_setoption(sd, i);
 	
 	if(sd->status.manner < 0)
 		clif_changestatus(&sd->bl,SP_MANNER,sd->status.manner);

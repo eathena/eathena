@@ -1,5 +1,12 @@
 Date	Added
 
+2006/10/20
+	* Added &16 to the default emergency_call (skill.conf) setting. This means
+	  that Emergency Call fails in "no warp to" maps (mainly, maps like Lhz3)
+	  [Skotlex]
+	* Merged the commented out monster_noteleport mapflags for the GvG castles,
+	  in case someone wants to disable MVPs warping around when rude-attacked in
+	  said maps, just uncomment their mapflags in mapflags/gvg.txt [Skotlex]
 2006/10/11
 	* Removed useless inter_athena settings (they were doing absolutely
 	  nothing): read_gm_interval, gm_db, gm_db_level, gm_db_account_id,

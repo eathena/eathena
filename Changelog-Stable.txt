@@ -4,6 +4,23 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/10/20
+	- Various merges from trunk: [Skotlex]
+	* Added script function unittalk
+	* Made emergency_call setting &16 to not take effect on GVG castles.
+	* Updated Trick Dead's behaviour where it protects you from receiving
+	  damage, not buffs.
+	* Phantasmic arrow now knocks back even if it misses.
+	* Merged the Monk combo implementation, where the skill delay is specified
+	  on skill_cast_db, it CAN be reduced by agi/dex in skill_delayfix and the
+	  combo time is a fixed 300ms (adjusted by combo_delay_rate) on top of this
+	  delay.
+	* Fixed SG_FRIEND, it should trigger when Monks do Combo-Finish, not Triple
+	  Blows, and the rate increase should be based on the learned level of
+	  SG_FRIEND, not TK_COUNTER.
+	* Merged overflow protection when calculating party-exp-share bonuses.
+	* pc_jobchange now automatically removing cart/falcon/peco when the new
+	  job doesn't has the required skills.
 2006/10/16
 	* Merged battle_config.attack_attr_none applying to pet skills when using
 	  the fixed-damage pet skill scripts. [Skotlex]
