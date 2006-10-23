@@ -16,16 +16,17 @@
 
 #define DEFAULT_AUTOSAVE_INTERVAL 300*1000
 
-struct mmo_map_server{
-	long ip;
-	short port;
-	int users;
-	unsigned short map[MAX_MAP_PER_SERVER];
+struct character_data {
+	struct mmo_charstatus status;
+	int global_num;
+	struct global_reg global[GLOBAL_REG_NUM];
 };
 
 struct mmo_charstatus* search_character(int aid, int cid);
+struct mmo_charstatus* search_character_byname(char* character_name);
 int search_character_index(char* character_name);
 char * search_character_name(int index);
+int search_character_online(int aid, int cid);
 
 int mapif_sendall(unsigned char *buf, unsigned int len);
 int mapif_sendallwos(int fd,unsigned char *buf, unsigned int len);
@@ -48,4 +49,10 @@ extern char char_name_letters[];
 extern int autosave_interval;
 extern char db_path[];
 extern int guild_exp_rate;
+extern int log_inter;
+//Exported for use in the TXT-SQL converter.
+extern char char_txt[];
+int char_config_read(const char *cfgName);
+int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg, int *reg_num);
+int parse_friend_txt(struct mmo_charstatus *p);
 #endif

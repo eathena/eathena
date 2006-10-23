@@ -24,17 +24,12 @@
                              	// that is the waiting time of answers of all map-servers
 #define WISDELLIST_MAX 256   	// Number of elements of Wisp/page data deletion list
 
+char accreg_txt[1024] = "save/accreg.txt";
+#ifndef TXT_SQL_CONVERT
 char inter_log_filename[1024] = "log/inter.log";
 char main_chat_nick[16] = "Main";
 
-char accreg_txt[1024] = "save/accreg.txt";
 static struct dbt *accreg_db = NULL;
-
-struct accreg {
-	int account_id, char_id;
-	int reg_num;
-	struct global_reg reg[ACCOUNT_REG_NUM];
-};
 
 unsigned int party_share_level = 10;
 
@@ -62,7 +57,7 @@ int inter_recv_packet_length[]={
 	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
 	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
 	48,14,-1, 6, 35, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3080-0x308f
-	68,10,-1, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0x3090 - 0x309f  Homunculus packets [albator]
+	-1,10,-1, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0x3090 - 0x309f  Homunculus packets [albator]
 };
 
 struct WisData {
@@ -88,7 +83,7 @@ int inter_accreg_tostr(char *str, struct accreg *reg) {
 
 	return 0;
 }
-
+#endif //TXT_SQL_CONVERT
 // アカウント変数を文字列から変換
 int inter_accreg_fromstr(const char *str, struct accreg *reg) {
 	int j, n;
@@ -105,7 +100,7 @@ int inter_accreg_fromstr(const char *str, struct accreg *reg) {
 
 	return 0;
 }
-
+#ifndef TXT_SQL_CONVERT
 // アカウント変数の読み込み
 int inter_accreg_init(void) {
 	char line[8192];
@@ -171,12 +166,12 @@ int inter_accreg_save(void) {
 }
 
 //--------------------------------------------------------
-
+#endif //TXT_SQL_CONVERT
 /*==========================================
  * 設定ファイルを読み込む
  *------------------------------------------
  */
-int inter_config_read(const char *cfgName) {
+static int inter_config_read(const char *cfgName) {
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
 
@@ -197,16 +192,17 @@ int inter_config_read(const char *cfgName) {
 			strncpy(storage_txt, w2, sizeof(storage_txt));
 		} else if (strcmpi(w1, "party_txt") == 0) {
 			strncpy(party_txt, w2, sizeof(party_txt));
-		} else if (strcmpi(w1, "guild_txt") == 0) {
-			strncpy(guild_txt, w2, sizeof(guild_txt));
 		} else if (strcmpi(w1, "pet_txt") == 0) {
 			strncpy(pet_txt, w2, sizeof(pet_txt));
-		} else if (strcmpi(w1, "castle_txt") == 0) {
-			strncpy(castle_txt, w2, sizeof(castle_txt));
 		} else if (strcmpi(w1, "accreg_txt") == 0) {
 			strncpy(accreg_txt, w2, sizeof(accreg_txt));
+		} else if (strcmpi(w1, "guild_txt") == 0) {
+			strncpy(guild_txt, w2, sizeof(guild_txt));
+		} else if (strcmpi(w1, "castle_txt") == 0) {
+			strncpy(castle_txt, w2, sizeof(castle_txt));
 		} else if (strcmpi(w1, "guild_storage_txt") == 0) {
 			strncpy(guild_storage_txt, w2, sizeof(guild_storage_txt));
+#ifndef TXT_SQL_CONVERT
 		} else if (strcmpi(w1, "party_share_level") == 0) {
 			party_share_level = (unsigned int)atof(w2);
 		} else if (strcmpi(w1, "inter_log_filename") == 0) {
@@ -214,7 +210,8 @@ int inter_config_read(const char *cfgName) {
 		} else if(strcmpi(w1,"log_inter")==0) {
 			log_inter = atoi(w2);
 		} else if(strcmpi(w1, "main_chat_nick")==0){	// Main chat nick [LuzZza]
-			strcpy(main_chat_nick, w2);					// 
+			strcpy(main_chat_nick, w2);
+#endif //TXT_SQL_CONVERT
 		} else if (strcmpi(w1, "import") == 0) {
 			inter_config_read(w2);
 		}
@@ -223,7 +220,7 @@ int inter_config_read(const char *cfgName) {
 
 	return 0;
 }
-
+#ifndef TXT_SQL_CONVERT
 // ログ書き出し
 int inter_log(char *fmt,...) {
 	FILE *logfp;
@@ -254,11 +251,12 @@ int inter_save(void) {
 
 	return 0;
 }
-
+#endif //TXT_SQL_CONVERT
 // 初期化
-int inter_init(const char *file) {
+int inter_init_txt(const char *file) {
 	inter_config_read(file);
 
+#ifndef TXT_SQL_CONVERT
 	wis_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 
 	inter_party_init();
@@ -266,10 +264,10 @@ int inter_init(const char *file) {
 	inter_storage_init();
 	inter_pet_init();
 	inter_accreg_init();
-
+#endif //TXT_SQL_CONVERT
 	return 0;
 }
-
+#ifndef TXT_SQL_CONVERT
 // finalize
 void inter_final(void) {
 	accreg_db->destroy(accreg_db, NULL);
@@ -319,6 +317,20 @@ int mapif_GMmessage(unsigned char *mes, int len, unsigned long color, int sfd) {
 	return 0;
 }
 
+// Wisp/page transmission to one map-server
+int mapif_wis_message2(struct WisData *wd, int fd) {
+	WFIFOHEAD(fd, 56+wd->len);
+	WFIFOW(fd, 0) = 0x3801;
+	WFIFOW(fd, 2) = 56 + wd->len;
+	WFIFOL(fd, 4) = wd->id;
+	memcpy(WFIFOP(fd, 8), wd->src, NAME_LENGTH);
+	memcpy(WFIFOP(fd,32), wd->dst, NAME_LENGTH);
+	memcpy(WFIFOP(fd,56), wd->msg, wd->len);
+	wd->count = 1;
+	WFIFOSET(fd,WFIFOW(fd,2));
+	return 1;
+}
+
 // Wisp/page transmission to all map-server
 int mapif_wis_message(struct WisData *wd) {
 	unsigned char buf[2048];
@@ -333,6 +345,16 @@ int mapif_wis_message(struct WisData *wd) {
 	wd->count = mapif_sendall(buf, WBUFW(buf,2));
 
 	return 0;
+}
+
+int mapif_wis_fail(int fd, char *src) {
+	unsigned char buf[27];
+	WBUFW(buf, 0) = 0x3802;
+	memcpy(WBUFP(buf, 2), src, NAME_LENGTH);
+	WBUFB(buf,26) = 1; // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
+	mapif_send(fd, buf, 27);
+	return 0;
+
 }
 
 // Wisp/page transmission result to map-server
@@ -443,12 +465,31 @@ int mapif_parse_GMmessage(int fd) {
 	return 0;
 }
 
+static struct WisData* mapif_create_whisper(int fd, char* src, char* dst, char* mes, int meslen)
+{
+	static int wisid = 0;
+	struct WisData* wd = (struct WisData *)aCalloc(sizeof(struct WisData), 1);
+	if (wd == NULL){
+		ShowFatalError("inter: WisRequest: out of memory !\n");
+		return NULL;
+	}
+	wd->id = ++wisid;
+	wd->fd = fd;
+	wd->len= meslen;
+	memcpy(wd->src, src, NAME_LENGTH);
+	memcpy(wd->dst, dst, NAME_LENGTH);
+	memcpy(wd->msg, mes, meslen);
+	wd->tick = gettick();
+	return wd;
+}
+
 // Wisp/page request to send
 int mapif_parse_WisRequest(int fd) {
+	struct mmo_charstatus* char_status;
 	struct WisData* wd;
 	char name[NAME_LENGTH];
-	static int wisid = 0;
-	int index;
+	int fd2;
+
 	RFIFOHEAD(fd);
 
 	if (RFIFOW(fd,2)-52 >= sizeof(wd->msg)) {
@@ -462,48 +503,37 @@ int mapif_parse_WisRequest(int fd) {
 	memcpy(name, RFIFOP(fd,28), NAME_LENGTH); //Received name may be too large and not contain \0! [Skotlex]
 	name[NAME_LENGTH-1]= '\0';
 	// search if character exists before to ask all map-servers
-	if ((index = search_character_index(name)) == -1) {
-		unsigned char buf[27];
-		WBUFW(buf, 0) = 0x3802;
-		memcpy(WBUFP(buf, 2), RFIFOP(fd, 4), NAME_LENGTH);
-		WBUFB(buf,26) = 1; // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
-		mapif_send(fd, buf, 27);
-	// Character exists. So, ask all map-servers
-	} else {
-		// to be sure of the correct name, rewrite it
-		memset(name, 0, NAME_LENGTH);
-		strncpy(name, search_character_name(index), NAME_LENGTH);
-		// if source is destination, don't ask other servers.
-		if (strcmp((char*)RFIFOP(fd,4),name) == 0) {
-			unsigned char buf[27];
-			WBUFW(buf, 0) = 0x3802;
-			memcpy(WBUFP(buf, 2), RFIFOP(fd, 4), NAME_LENGTH);
-			WBUFB(buf,26) = 1; // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
-			mapif_send(fd, buf, 27);
-		} else {
+	char_status = search_character_byname(name);
+	if (char_status == NULL)
+		return mapif_wis_fail(fd, RFIFOP(fd, 4));
 
-			wd = (struct WisData *)aCalloc(sizeof(struct WisData), 1);
-			if (wd == NULL){
-				ShowFatalError("inter: WisRequest: out of memory !\n");
-				return 0;
-			}
+	// Character exists.
+	// to be sure of the correct name, rewrite it
+	memset(name, 0, NAME_LENGTH);
+	strncpy(name, char_status->name, NAME_LENGTH);
+	// if source is destination, don't ask other servers.
+	if (strcmp((char*)RFIFOP(fd,4),name) == 0)
+		return mapif_wis_fail(fd, RFIFOP(fd, 4));
 
-			// Whether the failure of previous wisp/page transmission (timeout)
-			check_ttl_wisdata();
-
-			wd->id = ++wisid;
-			wd->fd = fd;
-			wd->len= RFIFOW(fd,2)-52;
-			memcpy(wd->src, RFIFOP(fd, 4), NAME_LENGTH);
-			memcpy(wd->dst, RFIFOP(fd,28), NAME_LENGTH);
-			memcpy(wd->msg, RFIFOP(fd,52), wd->len);
-			wd->tick = gettick();
-			idb_put(wis_db, wd->id, wd);
-			mapif_wis_message(wd);
-		}
+	//Look for online character.
+	fd2 = search_character_online(char_status->account_id, char_status->char_id);
+	if (fd2 >= 0) {	//Character online, send whisper.
+		wd = mapif_create_whisper(fd, RFIFOP(fd, 4), RFIFOP(fd,28), RFIFOP(fd,52), RFIFOW(fd,2)-52);
+		if (!wd) return 1;
+		idb_put(wis_db, wd->id, wd);
+		mapif_wis_message2(wd, fd2);
+		return 0;
 	}
+	//Not found.
+	return mapif_wis_fail(fd, RFIFOP(fd, 4));
 
+/* Scrapped since now we know where characters are online in. [Skotlex]
+	wd = mapif_create_whisper(fd, RFIFOP(fd, 4), RFIFOP(fd,28), RFIFOP(fd,52), RFIFOW(fd,2)-52);
+	if (!wd) return 0;
+	idb_put(wis_db, wd->id, wd);
+	mapif_wis_message(wd);
 	return 0;
+*/
 }
 
 // Wisp/page transmission result
@@ -516,7 +546,7 @@ int mapif_parse_WisReply(int fd) {
 	wd = idb_get(wis_db, id);
 
 	if (wd == NULL)
-		return 0;	// This wisp was probably suppress before, because it was timeout of because of target was found on another map-server
+		return 0;	// This wisp was probably suppress before, because it was timeout or because of target was found on another map-server
 
 	if ((--wd->count) <= 0 || flag != 1) {
 		mapif_wis_end(wd, flag); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
@@ -650,4 +680,4 @@ int inter_check_length(int fd, int length) {
 
 	return length;
 }
-
+#endif //TXT_SQL_CONVERT

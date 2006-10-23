@@ -41,7 +41,13 @@
 #include "int_status.h"
 #endif
 
-struct mmo_map_server server[MAX_MAP_SERVERS];
+#ifndef TXT_SQL_CONVERT
+struct mmo_map_server{
+	long ip;
+	short port;
+	int users;
+	unsigned short map[MAX_MAP_PER_SERVER];
+} server[MAX_MAP_SERVERS];
 int server_fd[MAX_MAP_SERVERS];
 
 int login_fd, char_fd;
@@ -61,9 +67,11 @@ int char_maintenance;
 int char_new;
 int char_new_display;
 int email_creation = 0; // disabled by default
+#endif
 char char_txt[1024]="save/athena.txt";
 char backup_txt[1024]="save/backup.txt"; //By zanetheinsane
 char friends_txt[1024]="save/friends.txt"; // davidsiaw
+#ifndef TXT_SQL_CONVERT
 char backup_txt_flag = 0; // The backup_txt file was created because char deletion bug existed. Now it's finish and that take a lot of time to create a second file when there are a lot of characters. => option By [Yor]
 char unknown_char_name[1024] = "Unknown";
 char char_log_filename[1024] = "log/char.log";
@@ -106,11 +114,7 @@ int check_ip_flag = 1; // It's to check IP of a player between char-server and o
 static int online_check = 1; //If one, it won't let players connect when their account is already registered online and will send the relevant map server a kick user request. [Skotlex]
 
 int char_id_count = START_CHAR_NUM;
-struct character_data {
-	struct mmo_charstatus status;
-	int global_num;
-	struct global_reg global[GLOBAL_REG_NUM];
-} *char_dat;
+struct character_data *char_dat;
 
 int char_num, char_max;
 int max_connect_user = 0;
@@ -215,6 +219,13 @@ struct mmo_charstatus* search_character(int aid, int cid) {
 	return NULL;
 }
 	
+struct mmo_charstatus* search_character_byname(char* character_name)
+{
+	int i = search_character_index(character_name);
+	if (i == -1) return NULL;
+	return &char_dat[i].status;
+}
+
 //----------------------------------------------
 // Search an character id
 //   (return character index or -1 (if not found))
@@ -258,6 +269,19 @@ char * search_character_name(int index) {
 	return unknown_char_name;
 }
 
+// Searches if the given character is online, and returns the fd of the
+// map-server it is connected to.
+int search_character_online(int aid, int cid)
+{
+	//Look for online character.
+	struct online_char_data* character;
+	character = idb_get(online_char_db, aid);
+	if(character &&
+		character->char_id == cid &&
+		character->server > -1) 
+		return server_fd[character->server];
+	return -1;
+}
 static void * create_online_char_data(DBKey key, va_list args) {
 	struct online_char_data* character;
 	character = aCalloc(1, sizeof(struct online_char_data));
@@ -404,9 +428,13 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p, struct global_reg *reg, 
 		p->last_point.y = 354;
 	}
 	*/
-	str_p += sprintf(str_p, "%d\t%d,%d\t%s\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
-		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-		"\t%s,%d,%d\t%s,%d,%d,%d,%d,%d,%d,%d\t",
+	str_p += sprintf(str_p,
+		"%d\t%d,%d\t%s\t%d,%d,%d\t%u,%u,%d" //Up to Zeny field
+		"\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d" //Up to Skill Point
+		"\t%d,%d,%d\t%d,%d,%d" //Up to pet id
+		"\t%d,%d,%d\t%d,%d,%d,%d,%d" //Up to head bottom
+		"\t%s,%d,%d\t%s,%d,%d" //last point + save point
+		",%d,%d,%d,%d,%d\t",	//Family info
 		p->char_id, p->account_id, p->char_num, p->name, //
 		p->class_, p->base_level, p->job_level,
 		p->base_exp, p->job_exp, p->zeny,
@@ -420,9 +448,9 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p, struct global_reg *reg, 
 		mapindex_id2name(p->last_point.map), p->last_point.x, p->last_point.y, //
 		mapindex_id2name(p->save_point.map), p->save_point.x, p->save_point.y,
 		p->partner_id,p->father,p->mother,p->child,p->fame);
-	for(i = 0; i < 10; i++)
+	for(i = 0; i < MAX_MEMOPOINTS; i++)
 		if (p->memo_point[i].map) {
-			str_p += sprintf(str_p, "%s,%d,%d", mapindex_id2name(p->memo_point[i].map), p->memo_point[i].x, p->memo_point[i].y);
+			str_p += sprintf(str_p, "%d,%d,%d", p->memo_point[i].map, p->memo_point[i].x, p->memo_point[i].y);
 		}
 	*(str_p++) = '\t';
 
@@ -462,7 +490,7 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p, struct global_reg *reg, 
 	*str_p = '\0';
 	return 0;
 }
-
+#endif //TXT_SQL_CONVERT
 //-------------------------------------------------------------------------
 // Function to set the character from the line (at read of characters file)
 //-------------------------------------------------------------------------
@@ -493,109 +521,96 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 		tmp_str[2], &tmp_int[37], &tmp_int[38], &tmp_int[39], 
 		&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next)) != 47)
 	{
-		tmp_int[43] = 0;	
-		// If it's not char structure of version 1363 and after
-		if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
-			"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-			"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d,%d,%d,%d%n",
-			&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
-			&tmp_int[3], &tmp_int[4], &tmp_int[5],
-			&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
-			&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
-			&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
-			&tmp_int[19], &tmp_int[20],
-			&tmp_int[21], &tmp_int[22], &tmp_int[23], //
-			&tmp_int[24], &tmp_int[25], &tmp_int[26],
-			&tmp_int[27], &tmp_int[28], &tmp_int[29],
-			&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-			tmp_str[1], &tmp_int[35], &tmp_int[36], //
-			tmp_str[2], &tmp_int[37], &tmp_int[38], &tmp_int[39], 
-			&tmp_int[40], &tmp_int[41], &tmp_int[42], &next)) != 46)
-		{
-			tmp_int[40] = 0; // father
-			tmp_int[41] = 0; // mother
-			tmp_int[42] = 0; // child
-			// If it's not char structure of version 1008 and before 1363
-			if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
-				"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-				"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d%n",
-				&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
-				&tmp_int[3], &tmp_int[4], &tmp_int[5],
-				&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
-				&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
-				&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
-				&tmp_int[19], &tmp_int[20],
-				&tmp_int[21], &tmp_int[22], &tmp_int[23], //
-				&tmp_int[24], &tmp_int[25], &tmp_int[26],
-				&tmp_int[27], &tmp_int[28], &tmp_int[29],
-				&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-				tmp_str[1], &tmp_int[35], &tmp_int[36], //
-				tmp_str[2], &tmp_int[37], &tmp_int[38], &tmp_int[39], &next)) != 43)
-			{
-				tmp_int[39] = 0; // partner id
-				// If not char structure from version 384 to 1007
-				if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
-					"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-					"\t%127[^,],%d,%d\t%127[^,],%d,%d%n",
-					&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
-					&tmp_int[3], &tmp_int[4], &tmp_int[5],
-					&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
-					&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
-					&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
-					&tmp_int[19], &tmp_int[20],
-					&tmp_int[21], &tmp_int[22], &tmp_int[23], //
-					&tmp_int[24], &tmp_int[25], &tmp_int[26],
-					&tmp_int[27], &tmp_int[28], &tmp_int[29],
-					&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-					tmp_str[1], &tmp_int[35], &tmp_int[36], //
-					tmp_str[2], &tmp_int[37], &tmp_int[38], &next)) != 42)
-				{
-					// It's char structure of a version before 384
-					tmp_int[26] = 0; // pet id
-					set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
-					"\t%d,%d,%d\t%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-					"\t%127[^,],%d,%d\t%127[^,],%d,%d%n",
-					&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
-					&tmp_int[3], &tmp_int[4], &tmp_int[5],
-					&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
-					&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
-					&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
-					&tmp_int[19], &tmp_int[20],
-					&tmp_int[21], &tmp_int[22], &tmp_int[23], //
-					&tmp_int[24], &tmp_int[25], //
-					&tmp_int[27], &tmp_int[28], &tmp_int[29],
-					&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-					tmp_str[1], &tmp_int[35], &tmp_int[36], //
-					tmp_str[2], &tmp_int[37], &tmp_int[38], &next);
-					set += 2;
-					//printf("char: old char data ver.1\n");
-				// Char structure of version 1007 or older
-				} else {
-					set++;
-					//printf("char: old char data ver.2\n");
-				}
-			// Char structure of version 1008+
-			} else {
-				set += 3;
-				//printf("char: new char data ver.3\n");
-			}
-		// Char structture of version 1363+
-		} else {
-			set++;
-			//printf("char: new char data ver.4\n");
-		}
-	// Char structure of version 1488+
-	} else {
-		//printf("char: new char data ver.5\n");
-	}
-	if (set != 47)
+	tmp_int[43] = 0; //Fame
+// Char structure of version 1363 (family data addition)
+	if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
+		"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d,%d,%d,%d%n",
+		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
+		&tmp_int[3], &tmp_int[4], &tmp_int[5],
+		&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
+		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
+		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
+		&tmp_int[19], &tmp_int[20],
+		&tmp_int[21], &tmp_int[22], &tmp_int[23], //
+		&tmp_int[24], &tmp_int[25], &tmp_int[26],
+		&tmp_int[27], &tmp_int[28], &tmp_int[29],
+		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
+		tmp_str[1], &tmp_int[35], &tmp_int[36], //
+		tmp_str[2], &tmp_int[37], &tmp_int[38], &tmp_int[39], 
+		&tmp_int[40], &tmp_int[41], &tmp_int[42], &next)) != 46)
+	{
+	tmp_int[40] = 0; // father
+	tmp_int[41] = 0; // mother
+	tmp_int[42] = 0; // child
+// Char structure version 1008 (marriage partner addition)
+	if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
+		"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d%n",
+		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
+		&tmp_int[3], &tmp_int[4], &tmp_int[5],
+		&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
+		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
+		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
+		&tmp_int[19], &tmp_int[20],
+		&tmp_int[21], &tmp_int[22], &tmp_int[23], //
+		&tmp_int[24], &tmp_int[25], &tmp_int[26],
+		&tmp_int[27], &tmp_int[28], &tmp_int[29],
+		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
+		tmp_str[1], &tmp_int[35], &tmp_int[36], //
+		tmp_str[2], &tmp_int[37], &tmp_int[38], &tmp_int[39], &next)) != 43)
+	{
+	tmp_int[39] = 0; // partner id
+// Char structure version 384 (pet addition)
+	if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
+		"\t%127[^,],%d,%d\t%127[^,],%d,%d%n",
+		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
+		&tmp_int[3], &tmp_int[4], &tmp_int[5],
+		&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
+		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
+		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
+		&tmp_int[19], &tmp_int[20],
+		&tmp_int[21], &tmp_int[22], &tmp_int[23], //
+		&tmp_int[24], &tmp_int[25], &tmp_int[26],
+		&tmp_int[27], &tmp_int[28], &tmp_int[29],
+		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
+		tmp_str[1], &tmp_int[35], &tmp_int[36], //
+		tmp_str[2], &tmp_int[37], &tmp_int[38], &next)) != 42)
+	{
+	tmp_int[26] = 0; // pet id
+// Char structure of a version 1 (original data structure)
+	if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+		"\t%d,%d,%d\t%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
+		"\t%127[^,],%d,%d\t%127[^,],%d,%d%n",
+		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
+		&tmp_int[3], &tmp_int[4], &tmp_int[5],
+		&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
+		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
+		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
+		&tmp_int[19], &tmp_int[20],
+		&tmp_int[21], &tmp_int[22], &tmp_int[23], //
+		&tmp_int[24], &tmp_int[25], //
+		&tmp_int[27], &tmp_int[28], &tmp_int[29],
+		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
+		tmp_str[1], &tmp_int[35], &tmp_int[36], //
+		tmp_str[2], &tmp_int[37], &tmp_int[38], &next)) != 41)
+	{
+		ShowError("Char-loading: Unrecognized character data version, info lost!\n");
+		ShowDebug("Character info: %s\n", str);
 		return 0;
+	}
+	}	// Char structure version 384 (pet addition)
+	}	// Char structure version 1008 (marriage partner addition)
+	}	// Char structure of version 1363 (family data addition)
+	}	// Char structure of version 1488 (fame field addition)
 
 	memcpy(p->name, tmp_str[0], NAME_LENGTH-1); //Overflow protection [Skotlex]
 	p->char_id = tmp_int[0];
 	p->account_id = tmp_int[1];
 	p->char_num = tmp_int[2];
 	p->class_ = tmp_int[3];
+/* Unneeded unless you are running a real old character database now.
 	//Temporal fix until all chars are reverted from peco-flying-class to 
 	//normal classes. [Skotlex]
 	switch (p->class_) {
@@ -621,6 +636,7 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 			p->class_ = JOB_STAR_GLADIATOR;
 			break;
 	}
+*/
 	p->base_level = tmp_int[4];
 	p->job_level = tmp_int[5];
 	p->base_exp = tmp_uint[0];
@@ -664,6 +680,7 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 	p->child = tmp_int[42];
 	p->fame = tmp_int[43];
 
+#ifndef TXT_SQL_CONVERT
 	// Some checks
 	for(i = 0; i < char_num; i++) {
 		if (char_dat[i].status.char_id == p->char_id) {
@@ -686,7 +703,7 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 		char_log("mmo_auth_init: ******WARNING: character name has wisp server name: Character name '%s' = wisp server name '%s'." RETCODE,
 		          p->name, wisp_server_name);
 	}
-
+#endif //TXT_SQL_CONVERT
 	if (str[next] == '\n' || str[next] == '\r')
 		return 1;	// 新規データ
 
@@ -850,7 +867,7 @@ int parse_friend_txt(struct mmo_charstatus *p)
 	fclose(fp);
 	return count;
 }
-
+#ifndef TXT_SQL_CONVERT
 //---------------------------------
 // Function to read characters file
 //---------------------------------
@@ -1629,7 +1646,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 //	const int offset = 4;
 //#endif
 
-	set_char_online(0, 99,sd->account_id);
+	set_char_online(-1, 99,sd->account_id);
 
 	found_num = 0;
 	for(i = 0; i < char_num; i++) {
@@ -1643,7 +1660,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	for(i = found_num; i < 9; i++)
 		sd->found_char[i] = -1;
 
-        WFIFOHEAD(fd, offset + found_num * 106);
+	WFIFOHEAD(fd, offset + found_num * 106);
 	memset(WFIFOP(fd,0), 0, offset + found_num * 106);
 	WFIFOW(fd,0) = 0x6b;
 	WFIFOW(fd,2) = offset + found_num * 106;
@@ -3439,51 +3456,46 @@ int parse_char(int fd) {
 			// if map is not found, we check major cities
 			if (i < 0) {
 				unsigned short j;
-				ShowWarning("Unable to find map-server for '%s', resorting to sending to a major city.\n", mapindex_id2name(cd->last_point.map));
+				//First check that there's actually a map server online.
+				for(j = 0; j < MAX_MAP_SERVERS; j++)
+					if (server_fd[j] >= 0 && server[j].map[0])
+						break;
+				if (j == MAX_MAP_SERVERS) {
+					ShowInfo("Connection Closed. No map servers available.\n");
+					WFIFOHEAD(fd, 3);
+					WFIFOW(fd,0) = 0x81;
+					WFIFOB(fd,2) = 1; // 01 = Server closed
+					WFIFOSET(fd,3);
+					break;
+				}
 				if ((i = search_mapserver((j=mapindex_name2id(MAP_PRONTERA)),-1,-1)) >= 0) {
-					cd->last_point.map = j;
-					cd->last_point.x = 273; // savepoint coordinates
+					cd->last_point.x = 273;
 					cd->last_point.y = 354;
 				} else if ((i = search_mapserver((j=mapindex_name2id(MAP_GEFFEN)),-1,-1)) >= 0) {
-					cd->last_point.map = j;
-					cd->last_point.x = 120; // savepoint coordinates
+					cd->last_point.x = 120;
 					cd->last_point.y = 100;
 				} else if ((i = search_mapserver((j=mapindex_name2id(MAP_MORROC)),-1,-1)) >= 0) {
-					cd->last_point.map = j;
-					cd->last_point.x = 160; // savepoint coordinates
+					cd->last_point.x = 160;
 					cd->last_point.y = 94;
 				} else if ((i = search_mapserver((j=mapindex_name2id(MAP_ALBERTA)),-1,-1)) >= 0) {
-					cd->last_point.map = j;
-					cd->last_point.x = 116; // savepoint coordinates
+					cd->last_point.x = 116;
 					cd->last_point.y = 57;
 				} else if ((i = search_mapserver((j=mapindex_name2id(MAP_PAYON)),-1,-1)) >= 0) {
-					cd->last_point.map = j;
-					cd->last_point.x = 87; // savepoint coordinates
+					cd->last_point.x = 87;
 					cd->last_point.y = 117;
 				} else if ((i = search_mapserver((j=mapindex_name2id(MAP_IZLUDE)),-1,-1)) >= 0) {
-					cd->last_point.map = j;
-					cd->last_point.x = 94; // savepoint coordinates
+					cd->last_point.x = 94;
 					cd->last_point.y = 103;
 				} else {
-					// get first online server (with a map)
-					i = 0;
-					for(j = 0; j < MAX_MAP_SERVERS; j++)
-						if (server_fd[j] >= 0 && server[j].map[0]) { // change save point to one of map found on the server (the first)
-							i = j;
-							cd->last_point.map = server[j].map[0];
-							ShowInfo("Map-server #%d found with a map: '%s'.\n", j, mapindex_id2name(server[j].map[0]));
-							// coordinates are unknown
-							break;
-						}
-					// if no map-server is connected, we send: server closed
-					if (j == MAX_MAP_SERVERS) {
-						WFIFOHEAD(fd, 3);
-						WFIFOW(fd,0) = 0x81;
-						WFIFOB(fd,2) = 1; // 01 = Server closed
-						WFIFOSET(fd,3);
-						break;
-					}
+					ShowInfo("Connection Closed. No map server available that has a major city, and unable to find map-server for '%s'.\n", mapindex_id2name(cd->last_point.map));
+					WFIFOHEAD(fd, 3);
+					WFIFOW(fd,0) = 0x81;
+					WFIFOB(fd,2) = 1; // 01 = Server closed
+					WFIFOSET(fd,3);
+					break;
 				}
+				ShowWarning("Unable to find map-server for '%s', sending to major city '%s'.\n", mapindex_id2name(cd->last_point.map), mapindex_id2name(j));
+				cd->last_point.map = j;
 			}
 			WFIFOHEAD(fd, 28);
 			WFIFOW(fd,0) = 0x71;
@@ -4036,6 +4048,7 @@ int char_lan_config_read(const char *lancfgName) {
 	fclose(fp);
 	return 0;
 }
+#endif //TXT_SQL_CONVERT
 
 int char_config_read(const char *cfgName) {
 	char line[1024], w1[1024], w2[1024];
@@ -4063,6 +4076,7 @@ int char_config_read(const char *cfgName) {
 			msg_silent = 0; //To always allow the next line to show up.
 			ShowInfo("Console Silent Setting: %d\n", atoi(w2));
 			msg_silent = atoi(w2);
+#ifndef TXT_SQL_CONVERT
 		} else if (strcmpi(w1, "userid") == 0) {
 			strncpy(userid, w2, 24);
 		} else if (strcmpi(w1, "passwd") == 0) {
@@ -4109,14 +4123,16 @@ int char_config_read(const char *cfgName) {
 			char_new_display = atoi(w2);
 		} else if (strcmpi(w1, "email_creation") == 0) {
 			email_creation = config_switch(w2);
-		} else if (strcmpi(w1, "char_txt") == 0) {
-			strcpy(char_txt, w2);
 		} else if (strcmpi(w1, "scdata_txt") == 0) { //By Skotlex
 			strcpy(scdata_txt, w2);
+#endif
+		} else if (strcmpi(w1, "char_txt") == 0) {
+			strcpy(char_txt, w2);
 		} else if (strcmpi(w1, "backup_txt") == 0) { //By zanetheinsane
 			strcpy(backup_txt, w2);
 		} else if (strcmpi(w1, "friends_txt") == 0) { //By davidsiaw
 			strcpy(friends_txt, w2);
+#ifndef TXT_SQL_CONVERT
 		} else if (strcmpi(w1, "backup_txt_flag") == 0) { // The backup_txt file was created because char deletion bug existed. Now it's finish and that take a lot of time to create a second file when there are a lot of characters. By [Yor]
 			backup_txt_flag = config_switch(w2);
 		} else if (strcmpi(w1, "max_connect_user") == 0) {
@@ -4218,6 +4234,7 @@ int char_config_read(const char *cfgName) {
 			}
 		} else if (strcmpi(w1, "guild_exp_rate") == 0) {
 			guild_exp_rate = atoi(w2);
+#endif //TXT_SQL_CONVERT
 		} else if (strcmpi(w1, "import") == 0) {
 			char_config_read(w2);
 		}
@@ -4228,6 +4245,7 @@ int char_config_read(const char *cfgName) {
 	return 0;
 }
 
+#ifndef TXT_SQL_CONVERT
 int chardb_final(int key, void* data, va_list va)
 {
 	aFree(data);
@@ -4339,7 +4357,7 @@ int do_init(int argc, char **argv) {
 	update_online = time(NULL);
 	create_online_files(); // update online players files at start of the server
 
-	inter_init((argc > 2) ? argv[2] : inter_cfgName);	// inter server 初期化
+	inter_init_txt((argc > 2) ? argv[2] : inter_cfgName);	// inter server 初期化
 
 	set_defaultparse(parse_char);
 
@@ -4371,3 +4389,4 @@ int do_init(int argc, char **argv) {
 
 	return 0;
 }
+#endif //TXT_SQL_CONVERT

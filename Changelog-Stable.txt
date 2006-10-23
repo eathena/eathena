@@ -4,6 +4,18 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/10/23
+	* Merged the txt->sql converter, which involved a pretty much complete
+	  merge of the char txt/sql servers [Skotlex]
+	* Merged char server update where it will print out when there are no
+	  available map-servers (instead of printing "unable to find map-server for
+	  X, sending to major city instead) [Skotlex]
+	* Merged storing memo-points using the mapindex instead of mapname
+	  (char-txt) [Skotlex]
+	* Merged the new char-server Whisper system which relies on the db of
+	  online characters instead of querying the SQL server to locate a character
+	  (even though this only takes place on multi-map server enviroments)
+	  [Skotlex]
 2006/10/20
 	* Merged the fix that prevents KN_CHARGEATK from going over pits as if it
 	  were an arrow attack. [Skotlex]
