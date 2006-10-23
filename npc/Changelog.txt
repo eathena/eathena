@@ -34,7 +34,10 @@ Playtester
 
 Date		Added
 ======
-10/20	* Fixed The Sign Exploits [Lupus]
+10/23
+	* Fixed typos in Assassin and Priest Job quest [Playtester]
+10/20	
+	* Fixed The Sign Exploits [Lupus]
 	- Fixed The Sign bugs, thanks to Tantarian
 		+ added get rid of sobbing pieces to let people reborn
 		If u finished the Sign Quest and have some undeleted sobbing pieces, then visit this man
