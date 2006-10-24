@@ -300,6 +300,7 @@ bool findFiles(const char *p, const char *pat, const CFileProcessor& fp)
 			ok = findFiles(tmppath, pat, fp);
 		}
 	}//end while
+	closedir(dir);
 	return ok;
 #endif
 }
@@ -418,6 +419,7 @@ bool findFiles(const char *p, const char *pat, void (func)(const char*) )
 			findfile(tmppath, pat, func);
 		}
 	}//end while
+	closedir(dir);
 	return true;
 #endif
 }

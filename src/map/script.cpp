@@ -9341,7 +9341,7 @@ void mapregstr_db_final(void *key,void *data)
 void userfunc_db_final(void *key,void *data)
 {
 	delete[] ((char*)key);
-	delete[] ((unsigned char*)data);
+	((script_object*)data)->release();
 }
 int do_final_script()
 {

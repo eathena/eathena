@@ -1,4 +1,14 @@
 Date	Added
+10/24
+	* removed some more status functions, still alot left
+	* identifier fix for script converter [tnx to KarLaeda]
+	* preparing switch to universal login, which is:
+	- moving accountdb and existing administrative code to char-server
+	- cleaning login-char communication
+	* prepared convert/merge of different databases 
+	  (which although needs the step before)
+	* some win64 fixes
+	* additional idiot safety for ip address assignments [Shinomori]
 10/16
 	* removed some more status functions
 	* script converter should now be fully functional, 

@@ -26,10 +26,11 @@ include $(CP)/Makefile.dep
 
 all login-server : $(RETURN_PATH)/login-server
 
-$(RETURN_PATH)/login-server: login.o $(COMMON_OBJ) $(BASE_OBJ)
+$(RETURN_PATH)/login-server: login.o admin.o $(COMMON_OBJ) $(BASE_OBJ)
 	$(CCC) $^ $(LIBS) -o $@
 
-login.o: login.cpp login.h $(COMMON_H) $(BASE_H)
+login.o: login.cpp login.h admin.h $(COMMON_H) $(BASE_H)
+admin.o: admin.cpp admin.h login.h $(COMMON_H) $(BASE_H)
 
 clean:
 	rm -rf *.o $(RETURN_PATH)/login-server GNUmakefile

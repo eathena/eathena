@@ -160,6 +160,68 @@ public:
 
 
 
+///////////////////////////////////////////////////////////////////////////////
+/// assign container.
+/// used as return type for container subscript operators
+template <typename T>
+class assign_cont
+{
+protected:
+	T& cObj;
+public:
+	explicit assign_cont<T>(T& o) : cObj(o)						{}
+	assign_cont<T>(const assign_cont<T>& ac) : cObj(ac.cObj)	{}
+
+	const assign_cont<T>& operator=(const assign_cont<T>& ac)
+	{
+		this->assign(ac.cObj);
+		return *this;
+	}
+	const assign_cont<T>& operator=(const T& o)
+	{
+		this->assign(o);
+		return *this;
+	}
+	virtual const T& assign(const T& o)
+	{
+		this->cObj = o;
+		return this->cObj;
+	}
+	operator const T&() const	{ return this->cObj; }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// assign container. boolean specialisation
+/// assuming that these are implemented as bitmasks on ulongs
+template <>
+class assign_cont<bool>
+{
+	ulong&	cObj;
+	ulong	cBit;
+public:
+	explicit assign_cont(ulong& o, uchar b) : cObj(o), cBit(1ul<<b)			{}
+	assign_cont(const assign_cont<bool>& ac) : cObj(ac.cObj), cBit(ac.cBit)	{}
+
+	bool operator=(const assign_cont<bool>& ac)
+	{
+		return this->assign( ac );
+	}
+	bool operator=(const bool o)
+	{
+		return this->assign(o);
+	}
+	virtual bool assign(const bool o)
+	{
+		if(o)
+			this->cObj |=  cBit;
+		else
+			this->cObj &= ~cBit;
+		return 0;
+	}
+	operator bool() const	{ return (0!=(this->cObj&this->cBit)); }
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 /// 64bit and user save pointer/number sharing structure.
 /// use with care

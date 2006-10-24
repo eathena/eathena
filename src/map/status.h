@@ -615,13 +615,6 @@ extern int current_equip_item_index;
 int status_recalc_speed(block_list *bl);
 
 // ƒpƒ‰ƒ[ƒ^Š“¾Œn battle.c ‚æ‚èˆÚ“®
-int status_get_max_hp(block_list *bl);
-int status_get_str(block_list *bl);
-int status_get_agi(block_list *bl);
-int status_get_vit(block_list *bl);
-int status_get_int(block_list *bl);
-int status_get_dex(block_list *bl);
-int status_get_luk(block_list *bl);
 int status_get_hit(block_list *bl);
 int status_get_flee(block_list *bl);
 int status_get_def(block_list *bl);
@@ -640,8 +633,7 @@ int status_get_attack_element(block_list *bl);
 int status_get_attack_element2(block_list *bl);  //¶è•Ší‘®«æ“¾
 #define status_get_elem_type(bl)	(status_get_element(bl)%10)
 #define status_get_elem_level(bl)	(status_get_element(bl)/10/2)
-uint32 status_get_party_id(const block_list *bl);
-uint32 status_get_guild_id(const block_list *bl);
+
 
 
 struct status_change *status_get_sc_data(const block_list *bl);

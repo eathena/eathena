@@ -689,7 +689,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 	unsigned int target_count = 1;
 	int def1 = status_get_def(target);
 	int def2 = status_get_def2(target);
-	int t_vit = status_get_vit(target);
+	int t_vit = target->get_vit();
 	struct Damage wd;
 	int damage,damage2=0,type,div_,blewcount=skill_get_blewcount(skill_num,skill_lv);
 	int flag,dmg_lv=0;
@@ -744,7 +744,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 	}
 	else div_ = 1; // single attack
 
-	luk=status_get_luk(src);
+	luk=src->get_luk();
 
 	if(config.pet_str)
 		damage = status_get_baseatk(src);
@@ -764,7 +764,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 		flag=(flag&~BF_RANGEMASK)|BF_LONG;
 
 	cri = status_get_critical(src);
-	cri -= status_get_luk(target) * 2; // luk/5*10 => target_luk*2 not target_luk*3
+	cri -= target->get_luk() * 2; // luk/5*10 => target_luk*2 not target_luk*3
 	if(config.enemy_critical_rate != 100) {
 		cri = cri*config.enemy_critical_rate/100;
 		if(cri < 1)
@@ -1161,7 +1161,7 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 	unsigned int target_count = 1;
 	int def1 = status_get_def(target);
 	int def2 = status_get_def2(target);
-	int t_vit = status_get_vit(target);
+	int t_vit = target->get_vit();
 	struct Damage wd;
 	int damage,damage2=0,type,div_,blewcount=skill_get_blewcount(skill_num,skill_lv);
 	int flag,skill,ac_flag = 0,dmg_lv = 0;
@@ -1252,7 +1252,7 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 		if (div_ < 1) div_ = 1;	//Avoid the rare case where the db says div_ is 0 and below
 	} else div_ = 1; // single attack
 
-	luk=status_get_luk(src);
+	luk=src->get_luk();
 
 	if(config.enemy_str)
 		damage = status_get_baseatk(src);
@@ -1275,7 +1275,7 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 	}
 
 	cri = status_get_critical(src);
-	cri -= status_get_luk(target) * 3;
+	cri -= target->get_luk() * 3;
 	if(config.enemy_critical_rate != 100) {
 		cri = cri*config.enemy_critical_rate/100;
 		if(cri < 1)
@@ -1760,7 +1760,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 	int no_cardfix=0;
 	int def1 = status_get_def(target);
 	int def2 = status_get_def2(target);
-	int t_vit = status_get_vit(target);
+	int t_vit = target->get_vit();
 	struct Damage wd;
 	int damage,damage2,damage_rate=100,type,div_,blewcount=skill_get_blewcount(skill_num,skill_lv);
 	int flag,skill,dmg_lv = 0;
@@ -1863,8 +1863,8 @@ static struct Damage battle_calc_pc_weapon_attack(
 		if (div_ < 1) div_ = 1;	//Avoid the rare case where the db says div_ is 0 and below
 	} else div_ = 1; // single attack
 
-	dex = status_get_dex(sd); //DEX
-	luk = status_get_luk(sd); //LUK
+	dex = sd->get_dex(); //DEX
+	luk = sd->get_luk(); //LUK
 	watk = status_get_atk(sd); //ATK
 	watk_ = status_get_atk_(sd); //ATK左手
 
@@ -1939,7 +1939,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			cri += sd->arrow_cri;
 		if(sd->status.weapon == 16)	// カタールの場合、クリティカルを倍に
 			cri <<= 1;
-		cri -= status_get_luk(target) * 3;
+		cri -= target->get_luk() * 3;
 
 		if (t_sc_data) {
 			if (t_sc_data[SC_SLEEP].timer != -1)	// 睡眠中はクリティカルが倍に
@@ -2476,7 +2476,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 		}
 		// sacrifice works on boss monsters, and does 9% damage to self [Celest]
 		if (!skill_num && sc_data[SC_SACRIFICE].timer != -1) {
-			int self_damage = status_get_max_hp(sd) * 9/100;
+			int self_damage = sd->get_max_hp() * 9/100;
 			//sd->heal(-dmg, 0);
 			pc_damage(*sd, self_damage, sd);
 			clif_damage(*sd,*sd, gettick(), 0, 0, self_damage, 0 , 0, 0);
@@ -3127,7 +3127,7 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 		}
 		//The official equation is *2, but that only applies when sd's do critical.
 		//Therefore, we use the old value 3 on cases when an sd gets attacked by a mob
-		cri -= status_get_luk(target) * (md&&tsd?3:2);
+		cri -= target->get_luk() * (md&&tsd?3:2);
 		if(!sd && config.enemy_critical_rate != 100)
 		{ //Mob/Pets
 			cri = cri*config.enemy_critical_rate/100;
@@ -3275,7 +3275,7 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 		switch (skill_num)
 		{	//Calc base damage according to skill
 			case PA_SACRIFICE:
-				ATK_ADD(status_get_max_hp(src)* 9/100);
+				ATK_ADD(src->get_max_hp()* 9/100);
 				break;
 			case PA_PRESSURE: //Since PRESSURE ignores everything, finish here
 				wd.damage=battle_calc_damage(src,target,500+300*skill_lv,wd.div_,skill_num,skill_lv,wd.flag);
@@ -3325,7 +3325,7 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 
 					if (!flag.cri)
 					{	//Normal attacks
-						atkmin = atkmin_ = status_get_dex(src);
+						atkmin = atkmin_ = src->get_dex();
 						
 						if (sd->equip_index[9] < MAX_INVENTORY && sd->inventory_data[sd->equip_index[9]])
 							atkmin = atkmin*(80 + sd->inventory_data[sd->equip_index[9]]->wlv*20)/100;
@@ -3760,7 +3760,7 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 
 		if (!flag.infdef && (!flag.idef || !flag.idef2))
 		{	//Defense reduction
-			int t_vit = status_get_vit(target);
+			int t_vit = target->get_vit();
 			int vit_def;
 
 			if(config.vit_penalty_type)
@@ -4269,15 +4269,15 @@ struct Damage battle_calc_magic_attack(block_list *src, block_list *target,int s
 			{
 				int hp, mhp, thres;
 				hp = target->get_hp();
-				mhp = status_get_max_hp(target);
-				thres = (skill_lv * 20) + status_get_luk(src)+
-						status_get_int(src) + src->get_lv()+
+				mhp = target->get_max_hp();
+				thres = (skill_lv * 20) + src->get_luk()+
+						src->get_int() + src->get_lv()+
 						((200 - hp * 200 / mhp));
 				if(thres > 700) thres = 700;
 				if(rand()%1000 < thres && !(t_mode&0x20))	// 成功
 					damage = hp;
 				else					// 失敗
-					damage = src->get_lv() + status_get_int(src) + skill_lv * 10;
+					damage = src->get_lv() + src->get_int() + skill_lv * 10;
 			}
 			normalmagic_flag=0;
 			break;
@@ -4386,7 +4386,7 @@ struct Damage battle_calc_magic_attack(block_list *src, block_list *target,int s
 			}
 			break;
 		case ASC_BREAKER:
-			damage = rand()%500 + 500 + skill_lv * status_get_int(src) * 5;
+			damage = rand()%500 + 500 + skill_lv * src->get_int() * 5;
 			matk_flag = 0; // don't consider matk and matk2
 			break;
 		case HW_GRAVITATION:
@@ -4561,9 +4561,9 @@ struct Damage battle_calc_misc_attack(block_list *src,block_list *target,int ski
 		return md;
 	}
 
-	int int_=status_get_int(src);
-//	int luk=status_get_luk(src);
-	int dex=status_get_dex(src);
+	int int_=src->get_int();
+//	int luk=src->get_luk();
+	int dex=src->get_dex();
 	int skill,ele,race,size,cardfix,race2,t_mode;
 	map_session_data *sd=NULL,*tsd=NULL;
 	int damage=0,div_=1,blewcount=skill_get_blewcount(skill_num,skill_lv);
@@ -4657,7 +4657,7 @@ struct Damage battle_calc_misc_attack(block_list *src,block_list *target,int ski
 		if( target->get_mexp() )
 			self_damage = 1;
 		else
-			self_damage = status_get_max_hp(src)*9/100;
+			self_damage = src->get_max_hp()*9/100;
 		ele = status_get_attack_element(src);
 		damage = self_damage + (self_damage/10)*(skill_lv-1);
 		if (maps[src->m].flag.gvg)
@@ -4684,7 +4684,7 @@ struct Damage battle_calc_misc_attack(block_list *src,block_list *target,int ski
 	case CR_ACIDDEMONSTRATION:
 		//This equation is not official, but it's the closest to the official one 
 		//that Viccious Pucca and the other folks at the forums could come up with. [Skotlex]
-		damage = int_ * (int)sqrt((double)(100*status_get_vit(target)))/3;
+		damage = int_ * (int)sqrt((double)(100*target->get_vit()))/3;
 		if (tsd) damage/=2;
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		break;
@@ -4875,7 +4875,7 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 			{
 				int skilllv = pc_checkskill(*sd, MO_CHAINCOMBO);
 				if (skilllv > 0) {
-					delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
+					delay = 1000 - 4 * src->get_agi() - 2 *  src->get_dex();
 					delay += 300 * config.combo_delay_rate / 100; //追加ディレイをconfにより調整
 				}
 				status_change_start(src, SC_COMBO, MO_TRIPLEATTACK, skilllv, 0, 0, delay, 0);
@@ -4904,7 +4904,7 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 			skill_additional_effect(src, target, 0, 0, BF_WEAPON, tick);
 			if(sd)
 			{
-				int hp = status_get_max_hp(target);
+				int hp = target->get_max_hp();
 				if (sd->weapon_coma_ele[ele] > 0 && rand()%10000 < sd->weapon_coma_ele[ele])
 					battle_damage(src, target, hp, 1);
 				if (sd->weapon_coma_race[race] > 0 && rand()%10000 < sd->weapon_coma_race[race])
@@ -5287,8 +5287,8 @@ int battle_check_target(const block_list *src, const block_list *target, int fla
 	if(flag&BCT_PARTY || (maps[m].flag.pvp && flag&BCT_ENEMY))
 	{	//Identify party state
 		int s_party, t_party;
-		s_party = status_get_party_id(s_bl);
-		t_party = status_get_party_id(t_bl);
+		s_party = s_bl->get_party_id();
+		t_party = t_bl->get_party_id();
 
 		if (!maps[m].flag.pvp)
 		{
@@ -5319,8 +5319,8 @@ int battle_check_target(const block_list *src, const block_list *target, int fla
 	if (flag&BCT_GUILD || (agit_flag && (maps[m].flag.gvg || maps[m].flag.gvg_dungeon) && flag&BCT_ENEMY))
 	{	//Identify guild state
 		int s_guild, t_guild;
-		s_guild = status_get_guild_id(s_bl);
-		t_guild = status_get_guild_id(t_bl);
+		s_guild = s_bl->get_guild_id();
+		t_guild = t_bl->get_guild_id();
 
 		if (!maps[m].flag.gvg && !maps[m].flag.gvg_dungeon && !maps[m].flag.pvp)
 		{
@@ -5492,11 +5492,11 @@ int battle_check_target(const block_list *src, const block_list *target, int fla
 	if (ss->type == BL_PET && target->type == BL_MOB)
 		return 0;
 
-	s_p = status_get_party_id(ss);
-	s_g = status_get_guild_id(ss);
+	s_p = ss->get_party_id();
+	s_g = ss->get_guild_id();
 
-	t_p = status_get_party_id(target);
-	t_g = status_get_guild_id(target);
+	t_p = target->get_party_id();
+	t_g = target->get_guild_id();
 
 	if (flag & 0x10000) {
 		if (s_p && t_p && s_p == t_p)	// 同じパーティなら肯定（味方）

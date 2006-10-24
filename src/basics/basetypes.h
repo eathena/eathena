@@ -7,6 +7,15 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+// add to coding guideline:
+//
+// forbid incremental assignments with right hand expressions
+// because
+// incremental assignments are not handled standard conform at gcc
+// things like "ip=pointer; *ip++ = (ip=pointer)?value1:value2;"
+// are compiled as: "ip=pointer; temp_ip=ip; ++ip; *temp_ip=(ip=pointer)?value1:value2;"
+
+
 //////////////////////////////////////////////////////////////////////////
 // some global switches
 //////////////////////////////////////////////////////////////////////////
@@ -14,7 +23,7 @@
 #define CHECK_BOUNDS		///< enables boundary check for arrays and lists
 #define CHECK_EXCEPTIONS	///< use exceptions for "exception" handling
 #define CHECK_LOCKS			///< enables check of locking/unlocking sync objects
-#define SINGLETHREAD		///< builds without multithread guards
+//#define SINGLETHREAD		///< builds without multithread guards
 //#define MEMORY_EXCEPTIONS	///< use buildin exceptions for out-of-memory handling
 #define WITH_NAMESPACE		///< go with everything inside a namespace
 
@@ -331,22 +340,6 @@ extern long altzone;
 #include <typeinfo>		//## this is poisoning the global namespace
 
 
-//////////////////////////////////////////////////////////////////////////
-/// exeption redefine.
-/// after including the c++ header, class name "exception" has been
-/// placed unfortunately in global namespace and in libc's 
-/// at least for the VisualC on windows platforms
-/// to get it working with the our own exception class we do some workaround
-/// by just swapping the name with a hard define, 
-/// drawback is, that std::exception is in this case also not usable
-/// another possibility would be to retreat to our own namespace
-//////////////////////////////////////////////////////////////////////////
-#if defined(_MSC_VER) && !defined(WITH_NAMESPACE)
-#define exception CException
-#endif
-//////////////////////////////////////////////////////////////////////////
-
-
 
 //////////////////////////////////////////////////////////////////////////
 // no comment
@@ -358,6 +351,7 @@ extern long altzone;
 #pragma warning(disable : 4100) // unreferenced formal parameter
 #pragma warning(disable : 4127)	// constant assignment
 //#pragma warning(disable : 4200)	//'...'" warning, NULL field in struct
+#pragma warning(disable : 4213) // type conversion of L-value issued falsly at operator bool
 #pragma warning(disable : 4231) // non standard extension : 'extern' before template instanciation
 #pragma warning(disable : 4244) // converting type on return will shorten
 #pragma warning(disable : 4250) // dominant derive, is only informational

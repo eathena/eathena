@@ -509,6 +509,8 @@ public:
 
 	virtual int get_race() const			{ return 7; }
 	virtual int get_size() const;
+	virtual uint32 get_party_id() const		{ return this->status.party_id; }
+	virtual uint32 get_guild_id() const		{ return this->status.guild_id; }
 
 
 

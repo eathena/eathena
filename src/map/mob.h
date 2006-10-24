@@ -439,6 +439,10 @@ struct mob_data : public fightable
 	virtual int get_mexp() const		{ return mob_db[this->class_].mexp; }
 	virtual int get_size() const		{ return mob_db[this->class_].size; }
 
+	virtual uint32 get_party_id() const;
+	virtual uint32 get_guild_id() const;
+
+
 	void remove_map(int type);
 	void set_spawndelay();
 	void remove_slaves() const;

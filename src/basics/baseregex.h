@@ -73,7 +73,7 @@ private:
 		void regerror( const char* s ) const
 		{
 #ifdef DEBUG
-			printf( "Error in RegularExpression: %s\n", s );
+			fprintf(stderr, "Error in RegularExpression: %s\n", s );
 #endif
 			m_szError = s;
 		}

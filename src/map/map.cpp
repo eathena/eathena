@@ -43,8 +43,7 @@
 const char *LOG_CONF_NAME="conf/log_athena.conf";
 const char *MAP_CONF_NAME = "conf/map_athena.conf";
 const char *BATTLE_CONF_FILENAME = "conf/battle_athena.conf";
-const char *ATCOMMAND_CONF_FILENAME = "conf/atcommand_athena.conf";
-const char *CHARCOMMAND_CONF_FILENAME = "conf/charcommand_athena.conf";
+const char *COMMAND_CONF_FILENAME = "conf/command_athena.conf";
 const char *SCRIPT_CONF_NAME = "conf/script_athena.conf";
 const char *MSG_CONF_NAME = "conf/msg_athena.conf";
 const char *GRF_PATH_FILENAME = "conf/grf-files.txt";
@@ -3527,10 +3526,8 @@ int do_init(int argc, char *argv[])
 			MAP_CONF_NAME=argv[++i];
 		else if (strcmp(argv[i],"--config") == 0 || strcmp(argv[i],"--battle-config") == 0)
 			BATTLE_CONF_FILENAME = argv[++i];
-		else if (strcmp(argv[i],"--atcommand_config") == 0 || strcmp(argv[i],"--atcommand-config") == 0)
-			ATCOMMAND_CONF_FILENAME = argv[++i];
-		else if (strcmp(argv[i],"--charcommand_config") == 0 || strcmp(argv[i],"--charcommand-config") == 0)
-			CHARCOMMAND_CONF_FILENAME = argv[++i];
+		else if (strcmp(argv[i],"--command_config") == 0 || strcmp(argv[i],"--command-config") == 0)
+			COMMAND_CONF_FILENAME = argv[++i];
 		else if (strcmp(argv[i],"--script_config") == 0 || strcmp(argv[i],"--script-config") == 0)
 			SCRIPT_CONF_NAME = argv[++i];
 		else if (strcmp(argv[i],"--msg_config") == 0 || strcmp(argv[i],"--msg-config") == 0)
@@ -3550,7 +3547,7 @@ int do_init(int argc, char *argv[])
 		ShowNotice("Server running in '"CL_WHITE"Debug Mode"CL_RESET"'.\n");
 	config.read(BATTLE_CONF_FILENAME);
 	msg_txt.read(MSG_CONF_NAME);
-	CommandInfo::config_read(ATCOMMAND_CONF_FILENAME);
+	CommandInfo::config_read(COMMAND_CONF_FILENAME);
 	script_config_read(SCRIPT_CONF_NAME);
 
 	log_init(LOG_CONF_NAME);

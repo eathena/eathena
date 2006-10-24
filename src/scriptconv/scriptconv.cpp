@@ -801,14 +801,15 @@ void printer::print_oldshophead( const char* str )
 		}
 		else
 		{	// take full name as id
-			str2id(idname, sizeof(idname), name);
+			str2id(idname, sizeof(idname), tmp);
 		}
 		str2name(name, sizeof(name), tmp);
 		
-		// cut map extension
+		
 		prn << "npc " << idname << " ";
 		if(shopnpc)
 		{
+			// cut map extension
 			char *kp = strchr(map, '.');
 			if(kp) *kp=0;
 			print_newnpchead(name, map, x, y, d, s);

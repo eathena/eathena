@@ -588,6 +588,20 @@ public:
 	virtual int get_mexp() const			{ return 0; }
 	virtual int get_size() const			{ return 1; }
 
+	virtual uint32 get_party_id() const		{ return 0; }
+	virtual uint32 get_guild_id() const		{ return 0; }
+
+
+	////////
+	//## TODO
+	virtual int block_list::get_max_hp() const;
+	virtual int block_list::get_str() const;
+	virtual int block_list::get_agi() const;
+	virtual int block_list::get_vit() const;
+	virtual int block_list::get_int() const;
+	virtual int block_list::get_dex() const;
+	virtual int block_list::get_luk() const;
+	////////
 
 
 	bool is_boss() const					{ return 0!=this->get_mexp(); }
@@ -734,42 +748,9 @@ struct weapon_data
 	}
 };
 
-///////////////////////////////////////////////////////////////////////////////
-struct skill_unit : public block_list
-{
-	struct skill_unit_group *group;
-
-	long limit;
-	long val1;
-	long val2;
-	short alive;
-	short range;
-
-	skill_unit() :
-		group(NULL),
-		limit(0),
-		val1(0),
-		val2(0),
-		alive(0),
-		range(0)
-	{}
-	virtual ~skill_unit()
-	{}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// upcasting overloads.
-	virtual bool is_type(object_t t) const
-	{
-		return (t==BL_ALL) || (t==BL_SKILL);
-	}
-	virtual skill_unit*				get_sk()				{ return this; }
-	virtual const skill_unit*		get_sk() const			{ return this; }
 
 
-private:
-	skill_unit(const skill_unit&);					// forbidden
-	const skill_unit& operator=(const skill_unit&);	// forbidden
-};
+
 struct skill_unit_group
 {
 	uint32 src_id;
@@ -814,6 +795,48 @@ struct skill_unit_group
 		unit(NULL)
 	{}
 };
+
+///////////////////////////////////////////////////////////////////////////////
+struct skill_unit : public block_list
+{
+	struct skill_unit_group *group;
+
+	long limit;
+	long val1;
+	long val2;
+	short alive;
+	short range;
+
+	skill_unit() :
+		group(NULL),
+		limit(0),
+		val1(0),
+		val2(0),
+		alive(0),
+		range(0)
+	{}
+	virtual ~skill_unit()
+	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// upcasting overloads.
+	virtual bool is_type(object_t t) const
+	{
+		return (t==BL_ALL) || (t==BL_SKILL);
+	}
+	virtual skill_unit*				get_sk()				{ return this; }
+	virtual const skill_unit*		get_sk() const			{ return this; }
+
+
+private:
+	skill_unit(const skill_unit&);					// forbidden
+	const skill_unit& operator=(const skill_unit&);	// forbidden
+
+	virtual uint32 get_party_id() const		{ return this->group?this->group->party_id:0; }
+	virtual uint32 get_guild_id() const		{ return this->group?this->group->guild_id:0; }
+};
+
+
 
 struct skill_unit_group_tickset
 {
@@ -1238,8 +1261,7 @@ void map_removemobs(unsigned short m);		// [Wizputer]
 extern const char *LOG_CONF_NAME;
 extern const char *MAP_CONF_NAME;
 extern const char *BATTLE_CONF_FILENAME;
-extern const char *ATCOMMAND_CONF_FILENAME;
-extern const char *CHARCOMMAND_CONF_FILENAME;
+extern const char *COMMAND_CONF_FILENAME;
 extern const char *SCRIPT_CONF_NAME;
 extern const char *MSG_CONF_NAME;
 extern const char *GRF_PATH_FILENAME;

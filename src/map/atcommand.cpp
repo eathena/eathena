@@ -5323,9 +5323,9 @@ bool command_refreshonline(int fd, map_session_data& sd, const char* command, co
 ///
 /// reloadatcommand command_athena.conf
 ///
-bool command_reloadatcommand(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
+bool command_reloadcommand(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	CommandInfo::config_read(ATCOMMAND_CONF_FILENAME);
+	CommandInfo::config_read(COMMAND_CONF_FILENAME);
 	clif_displaymessage(fd, msg_txt(MSG_GM_COMMANDS_RELOADED));
 	return true;
 }
@@ -7193,8 +7193,8 @@ static CommandInfo command_info[] =
 	{ "refine",				60, 2, 1, command_refine				},
 	{ "refresh",			 0, 0, 0, command_refresh				},
 	{ "refreshonline",		99, 0, 0, command_refreshonline			},
-	{ "reloadatcommand",	99, 0, 0, command_reloadatcommand		},
 	{ "reloadbattleconf",	99, 0, 0, command_reloadbattleconf		},
+	{ "reloadcommand",		99, 0, 0, command_reloadcommand			},
 	{ "reloaditemdb",		99, 0, 0, command_reloaditemdb			},
 	{ "reloadmobdb",		99, 0, 0, command_reloadmobdb			},
 	{ "reloadpcdb",			99, 0, 0, command_reloadpcdb			},

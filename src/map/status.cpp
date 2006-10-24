@@ -1950,9 +1950,10 @@ int status_recalc_speed(block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_max_hp(block_list *bl)
+int block_list::get_max_hp() const
 {
-	nullpo_retr(1, bl);
+	const block_list* bl=this;
+	// default return 1
 	if(*bl==BL_PC)
 		return bl->get_sd()->status.max_hp;
 	else
@@ -1961,14 +1962,14 @@ int status_get_max_hp(block_list *bl)
 		int max_hp = 1;
 		if(*bl == BL_MOB)
 		{
-			struct mob_data *md = bl->get_md();
+			const mob_data *md = bl->get_md();
 			max_hp = md->max_hp;
 			if(config.mobs_level_up) // mobs leveling up increase [Valaris]
-				max_hp += (md->level - mob_db[md->class_].lv) * status_get_vit(bl);
+				max_hp += (md->level - mob_db[md->class_].lv) * bl->get_vit();
 		}
 		else if(*bl == BL_PET)
 		{
-			struct pet_data *pd = bl->get_pd();
+			const pet_data *pd = bl->get_pd();
 			max_hp = mob_db[pd->pet.class_].max_hp;
 		}
 
@@ -1993,10 +1994,11 @@ int status_get_max_hp(block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_str(block_list *bl)
+int block_list::get_str() const
 {
+	const block_list* bl=this;
+	// default return 0
 	int str = 0;
-	nullpo_retr(0, bl);
 
 	if (*bl == BL_PC)
 		return bl->get_sd()->paramc[0];
@@ -2007,7 +2009,7 @@ int status_get_str(block_list *bl)
 
 		if(*bl == BL_MOB)
 		{
-			mob_data* md=bl->get_md();
+			const mob_data* md=bl->get_md();
 			str = mob_db[md->class_].str;
 			if(config.mobs_level_up) // mobs leveling up increase [Valaris]
 				str += md->level - mob_db[md->class_].lv;
@@ -2018,7 +2020,7 @@ int status_get_str(block_list *bl)
 		}
 		else if(*bl == BL_PET)
 		{	//<Skotlex> Use pet's stats
-			pet_data *pd = bl->get_pd();
+			const pet_data *pd = bl->get_pd();
 			if (config.pet_lv_rate && pd->status)
 				str = pd->status->str;
 			else
@@ -2050,11 +2052,11 @@ int status_get_str(block_list *bl)
  *------------------------------------------
  */
 
-int status_get_agi(block_list *bl)
+int block_list::get_agi() const
 {
+	const block_list* bl=this;
+	// default return 0
 	int agi=0;
-	nullpo_retr(0, bl);
-
 	if(*bl==BL_PC)
 		return bl->get_sd()->paramc[1];
 	else
@@ -2063,7 +2065,7 @@ int status_get_agi(block_list *bl)
 		sc_data = status_get_sc_data(bl);
 		if(*bl == BL_MOB)
 		{
-			mob_data *md = bl->get_md();
+			const mob_data *md = bl->get_md();
 			agi = mob_db[md->class_].agi;
 			if(config.mobs_level_up) // increase of mobs leveling up [Valaris]
 				agi += md->level - mob_db[md->class_].lv;
@@ -2074,7 +2076,7 @@ int status_get_agi(block_list *bl)
 		}
 		else if(*bl == BL_PET)
 		{	//<Skotlex> Use pet's stats
-			pet_data *pd = bl->get_pd();
+			const pet_data *pd = bl->get_pd();
 			if (config.pet_lv_rate && pd->status)
 				agi = pd->status->agi;
 			else
@@ -2111,10 +2113,11 @@ int status_get_agi(block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_vit(block_list *bl)
+int block_list::get_vit() const
 {
+	const block_list* bl=this;
+	// default return 0
 	int vit = 0;
-	nullpo_retr(0, bl);
 
 	if(*bl == BL_PC && (map_session_data *)bl)
 		return bl->get_sd()->paramc[2];
@@ -2123,7 +2126,7 @@ int status_get_vit(block_list *bl)
 		sc_data = status_get_sc_data(bl);
 		if(*bl == BL_MOB)
 		{
-			mob_data *md = bl->get_md();
+			const mob_data *md = bl->get_md();
 			vit = mob_db[md->class_].vit;
 			if(config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				vit += md->level - mob_db[md->class_].lv;
@@ -2134,7 +2137,7 @@ int status_get_vit(block_list *bl)
 		}	
 		else if(*bl == BL_PET)
 		{	//<Skotlex> Use pet's stats
-			pet_data *pd = bl->get_pd();
+			const pet_data *pd = bl->get_pd();
 			if (config.pet_lv_rate && pd->status)
 				vit = pd->status->vit;
 			else
@@ -2159,10 +2162,11 @@ int status_get_vit(block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_int(block_list *bl)
+int block_list::get_int() const
 {
+	const block_list* bl=this;
+	// default return 0
 	int int_=0;
-	nullpo_retr(0, bl);
 
 	if(*bl == BL_PC && (map_session_data *)bl)
 		return bl->get_sd()->paramc[3];
@@ -2172,7 +2176,7 @@ int status_get_int(block_list *bl)
 		sc_data = status_get_sc_data(bl);
 		if(*bl == BL_MOB)
 		{
-			mob_data *md = bl->get_md();
+			const mob_data *md = bl->get_md();
 			int_ = mob_db[md->class_].int_;
 			if(config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				int_ += md->level - mob_db[md->class_].lv;
@@ -2183,7 +2187,7 @@ int status_get_int(block_list *bl)
 		}		
 		else if(*bl == BL_PET)
 		{	//<Skotlex> Use pet's stats
-			pet_data*pd = bl->get_pd();
+			const pet_data*pd = bl->get_pd();
 			if (config.pet_lv_rate && pd->status)
 				int_ = pd->status->int_;
 			else
@@ -2216,10 +2220,11 @@ int status_get_int(block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_dex(block_list *bl)
+int block_list::get_dex() const
 {
+	const block_list* bl=this;
+	// default return 0
 	int dex = 0;
-	nullpo_retr(0, bl);
 
 	if(*bl==BL_PC)
 		return bl->get_sd()->paramc[4];
@@ -2228,7 +2233,7 @@ int status_get_dex(block_list *bl)
 		struct status_change *sc_data = status_get_sc_data(bl);
 		if(*bl == BL_MOB)
 		{
-			mob_data *md = bl->get_md();
+			const mob_data *md = bl->get_md();
 			dex = mob_db[md->class_].dex;
 			if(config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				dex += md->level - mob_db[md->class_].lv;
@@ -2239,7 +2244,7 @@ int status_get_dex(block_list *bl)
 		}		
 		else if(*bl == BL_PET)
 		{	//<Skotlex> Use pet's stats
-			pet_data *pd = bl->get_pd();
+			const pet_data *pd = bl->get_pd();
 			if (config.pet_lv_rate && pd->status)
 				dex = pd->status->dex;
 			else
@@ -2278,10 +2283,11 @@ int status_get_dex(block_list *bl)
  * 戻りは整数で0以上
  *------------------------------------------
  */
-int status_get_luk(block_list *bl)
+int block_list::get_luk() const
 {
+	const block_list* bl=this;
+	// default return 0
 	int luk = 0;
-	nullpo_retr(0, bl);
 
 	if(*bl == BL_PC)
 		return ((map_session_data *)bl)->paramc[5];
@@ -2291,7 +2297,7 @@ int status_get_luk(block_list *bl)
 		sc_data = status_get_sc_data(bl);
 		if( *bl == BL_MOB )
 		{
-			mob_data *md = bl->get_md();
+			const mob_data *md = bl->get_md();
 			luk = mob_db[md->class_].luk;
 			if(config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				luk += md->level - mob_db[md->class_].lv;
@@ -2302,7 +2308,7 @@ int status_get_luk(block_list *bl)
 		}		
 		else if(*bl == BL_PET)
 		{	//<Skotlex> Use pet's stats
-			pet_data *pd = bl->get_pd();
+			const pet_data *pd = bl->get_pd();
 			if (config.pet_lv_rate && pd->status)
 				luk = pd->status->luk;
 			else
@@ -2339,7 +2345,7 @@ int status_get_flee(block_list *bl)
 		return ((map_session_data *)bl)->flee;
 	else {
 		struct status_change *sc_data = status_get_sc_data(bl);
-		flee = status_get_agi(bl) + bl->get_lv();
+		flee = bl->get_agi() + bl->get_lv();
 
 		if(sc_data){
 			if(sc_data[SC_WHISTLE].timer!=-1)
@@ -2378,7 +2384,7 @@ int status_get_hit(block_list *bl)
 		return ((map_session_data *)bl)->hit;
 	else {
 		struct status_change *sc_data = status_get_sc_data(bl);
-		hit = status_get_dex(bl) + bl->get_lv();
+		hit = bl->get_dex() + bl->get_lv();
 
 		if (sc_data) {
 			if (sc_data[SC_HUMMING].timer != -1)
@@ -2418,7 +2424,7 @@ int status_get_flee2(block_list *bl)
 		return ((map_session_data *)bl)->flee2;
 	} else {
 		struct status_change *sc_data = status_get_sc_data(bl);
-		flee2 = status_get_luk(bl)+1;
+		flee2 = bl->get_luk()+1;
 
 		if (sc_data) {
 			if (sc_data[SC_WHISTLE].timer!=-1)
@@ -2442,7 +2448,7 @@ int status_get_critical(block_list *bl)
 		return ((map_session_data *)bl)->critical;
 	} else {
 		struct status_change *sc_data = status_get_sc_data(bl);
-		critical = status_get_luk(bl)*3 + 1;
+		critical = bl->get_luk()*3 + 1;
 
 		if(sc_data) {
 			if (sc_data[SC_FORTUNE].timer != -1)
@@ -2478,7 +2484,7 @@ int status_get_baseatk(block_list *bl)
 	{	//それ以外なら
 		struct status_change *sc_data;
 		int str,dstr;
-		str = status_get_str(bl); //STR
+		str = bl->get_str(); //STR
 		dstr = str/10;
 		batk = dstr*dstr + str; //base_atkを計算する
 		sc_data = status_get_sc_data(bl);
@@ -2680,7 +2686,7 @@ int status_get_matk1(block_list *bl)
 		return ((map_session_data *)bl)->matk1;
 	else {
 		struct status_change *sc_data;
-		int int_ = status_get_int(bl);
+		int int_ = bl->get_int();
 		matk = int_+(int_/5)*(int_/5);
 
 		sc_data = status_get_sc_data(bl);
@@ -2707,7 +2713,7 @@ int status_get_matk2(block_list *bl)
 		return ((map_session_data *)bl)->matk2;
 	else {
 		struct status_change *sc_data = status_get_sc_data(bl);
-		int int_ = status_get_int(bl);
+		int int_ = bl->get_int();
 		matk = int_+(int_/7)*(int_/7);
 
 		if(sc_data) {
@@ -3199,56 +3205,8 @@ int status_get_attack_element2(block_list *bl)
 	return 0;
 }
 
-uint32 status_get_party_id(const block_list *bl)
-{
-	nullpo_retr(0, bl);
-	if(*bl==BL_PC)
-		return bl->get_sd()->status.party_id;
-	else if(*bl==BL_PET)
-		return bl->get_pd()->msd.status.party_id;
-	else if(*bl==BL_HOM)
-		return bl->get_hd()->msd.status.party_id;
-	else if(*bl==BL_MOB)
-	{
-		const mob_data *md=bl->get_md();
-		if( md->master_id>0 )
-		{
-			map_session_data *msd;
-			if(md->state.special_mob_ai >= 1 && (msd = map_session_data::from_blid(md->master_id)) != NULL)
-				return msd->status.party_id;
-			return md->master_id;
-		}
-		return md->class_;
-	}
-	else if(*bl==BL_SKILL)
-		return bl->get_sk()->group->party_id;
-	else
-		return 0;
-}
-uint32 status_get_guild_id(const block_list *bl)
-{
-	nullpo_retr(0, bl);
-	if(*bl==BL_PC)
-		return bl->get_sd()->status.guild_id;
-	else if(*bl==BL_PET)
-		return bl->get_pd()->msd.status.guild_id;
-	else if(*bl==BL_HOM)
-		return bl->get_hd()->msd.status.guild_id;
-	else if(*bl==BL_MOB)
-	{
-		const map_session_data *msd;
-		const mob_data *md = bl->get_md();
-		if (md->guild_id)	//Guardian's guild [Skotlex]
-			return md->guild_id;
-		if (md->state.special_mob_ai >= 1 && (msd = map_session_data::from_blid(md->master_id)) != NULL)
-			return msd->status.guild_id; //Alchemist's mobs [Skotlex]
-		return md->class_;
-	}
-	else if(*bl==BL_SKILL)
-		return bl->get_sk()->group->guild_id;
-	else
-		return 0;
-}
+
+
 
 
 
@@ -3333,39 +3291,39 @@ int status_get_sc_def(block_list *bl, int type)
 	switch (type)
 	{
 	case SP_MDEF1:	// mdef
-		sc_def = 100 - (3 + status_get_mdef(bl) + status_get_luk(bl)/3);
+		sc_def = 100 - (3 + status_get_mdef(bl) + bl->get_luk()/3);
 		break;
 	case SP_MDEF2:	// int
-		sc_def = 100 - (3 + status_get_int(bl) + status_get_luk(bl)/3);
+		sc_def = 100 - (3 + bl->get_int() + bl->get_luk()/3);
 		break;
 	case SP_DEF1:	// def
-		sc_def = 100 - (3 + status_get_def(bl) + status_get_luk(bl)/3);
+		sc_def = 100 - (3 + status_get_def(bl) + bl->get_luk()/3);
 		break;
 	case SP_DEF2:	// vit
-		sc_def = 100 - (3 + status_get_vit(bl) + status_get_luk(bl)/3);
+		sc_def = 100 - (3 + bl->get_vit() + bl->get_luk()/3);
 		break;
 	case SP_LUK:	// luck
-		sc_def = 100 - (3 + status_get_luk(bl));
+		sc_def = 100 - (3 + bl->get_luk());
 		break;
 
 	case SC_STONE:
 	case SC_FREEZE:
-		sc_def = 100 - (3 + status_get_mdef(bl) + status_get_luk(bl)/3);
+		sc_def = 100 - (3 + status_get_mdef(bl) + bl->get_luk()/3);
 		break;
 	case SC_STAN:
 	case SC_POISON:
 	case SC_SILENCE:
-		sc_def = 100 - (3 + status_get_vit(bl) + status_get_luk(bl)/3);
+		sc_def = 100 - (3 + bl->get_vit() + bl->get_luk()/3);
 		break;	
 	case SC_SLEEP:
 	case SC_CONFUSION:
-		sc_def = 100 - (3 + status_get_int(bl) + status_get_luk(bl)/3);
+		sc_def = 100 - (3 + bl->get_int() + bl->get_luk()/3);
 		break;
 	case SC_BLIND:
-		sc_def = 100 - (3 + status_get_int(bl) + status_get_vit(bl)/3);
+		sc_def = 100 - (3 + bl->get_int() + bl->get_vit()/3);
 		break;
 	case SC_CURSE:
-		sc_def = 100 - (3 + status_get_luk(bl) + status_get_vit(bl)/3);
+		sc_def = 100 - (3 + bl->get_luk() + bl->get_vit()/3);
 		break;	
 
 	default:
@@ -3431,20 +3389,20 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 	{
 		case SC_STONE:
 		case SC_FREEZE:
-			scdef=3+status_get_mdef(bl)+status_get_luk(bl)/3;
+			scdef=3+status_get_mdef(bl)+bl->get_luk()/3;
 			break;
 		case SC_STAN:
 		case SC_SILENCE:
 		case SC_POISON:
 		case SC_DPOISON:
-			scdef=3+status_get_vit(bl)+status_get_luk(bl)/3;
+			scdef=3+bl->get_vit()+bl->get_luk()/3;
 			break;
 		case SC_SLEEP:
 		case SC_BLIND:
-			scdef=3+status_get_int(bl)+status_get_luk(bl)/3;
+			scdef=3+bl->get_int()+bl->get_luk()/3;
 			break;
 		case SC_CURSE:
-			scdef=3+status_get_luk(bl);
+			scdef=3+bl->get_luk();
 			break;
 		default:
 			scdef=0;
@@ -3624,7 +3582,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			val2 = val1.num*20;
 			break;
 		case SC_KYRIE:				/* キリエエレイソン */
-			val2 = status_get_max_hp(bl) * (val1.num * 2 + 10) / 100;/* 耐久度 */
+			val2 = bl->get_max_hp() * (val1.num * 2 + 10) / 100;/* 耐久度 */
 			val3 = (val1.num / 2 + 5);	/* 回? */
 // -- moonsoul (added to undo assumptio status if target has it)
 			if(sc_data[SC_ASSUMPTIO].timer!=-1 )
@@ -3883,7 +3841,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			/* option2 */
 		case SC_DPOISON:			/* 猛毒 */
 		{
-			int mhp = status_get_max_hp(bl);
+			int mhp = bl->get_max_hp();
 			int hp = bl->get_hp();
 			// MHP?1/4????????
 			if (hp > mhp>>2) {
@@ -3908,7 +3866,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 		case SC_POISON:				/* 毒 */
 			calc_flag = 1;
 			if(!(flag&2)) {
-				int sc_def = 100 - (status_get_vit(bl) + status_get_luk(bl)/5);
+				int sc_def = 100 - (bl->get_vit() + bl->get_luk()/5);
 				tick = tick * sc_def / 100;
 			}
 			val3 = tick/1000;
@@ -3924,7 +3882,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 				break;
 			}
 			if(!(flag&2)) {
-				int sc_def = 100 - status_get_vit(bl);
+				int sc_def = 100 - bl->get_vit();
 				tick = tick * sc_def / 100;
 			}
 			break;
@@ -3937,14 +3895,14 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 		case SC_BLIND:				/* 暗? */
 			calc_flag = 1;
 			if(!(flag&2)) {
-				int sc_def = bl->get_lv()/10 + status_get_int(bl)/15;
+				int sc_def = bl->get_lv()/10 + bl->get_int()/15;
 				tick = 30000 - sc_def;
 			}
 			break;
 		case SC_CURSE:
 			calc_flag = 1;
 			if(!(flag&2)) {
-				int sc_def = 100 - status_get_vit(bl);
+				int sc_def = 100 - bl->get_vit();
 				tick = tick * sc_def / 100;
 			}
 			break;
@@ -4808,7 +4766,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 			return 0;
 		}
 		else if( (--sc_data[type].val3.num) > 0) {
-			int hp = status_get_max_hp(bl);
+			int hp = bl->get_max_hp();
 			if((++sc_data[type].val4.num)%5 == 0 && bl->get_hp() > hp>>2)
 			{
 				hp = hp/100;
@@ -4827,7 +4785,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 	case SC_POISON:
 	case SC_DPOISON:
 		if (sc_data[SC_SLOWPOISON].timer == -1 && (--sc_data[type].val3.num) > 0) {
-			int hp = status_get_max_hp(bl);
+			int hp = bl->get_max_hp();
 			if( type == SC_POISON && bl->get_hp() < hp>>2)
 				break;
 			if(sd) {

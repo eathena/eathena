@@ -273,6 +273,8 @@ struct pet_data : public fightable
 	virtual int get_mode() const;
 	virtual int get_mexp() const;
 	virtual int get_size() const;
+	virtual uint32 get_party_id() const	{ return this->msd.status.party_id; }
+	virtual uint32 get_guild_id() const	{ return this->msd.status.guild_id; }
 
 
 	void menu(int menunum);

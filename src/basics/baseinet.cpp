@@ -708,10 +708,22 @@ bool ipset::init(const char *str)
 			wanaddr = netaddress((uint32)INADDR_ANY, this->cPort);
 		}
 
-		if( !this->isBindable() && wanaddr.isBindable() )
-		{	// we assumed it wrong
-			swap(this->cAddr, wanaddr.cAddr);
-			swap(this->cPort, wanaddr.cPort);
+		if( !this->isBindable() )
+		{	
+			if( wanaddr.isBindable() )
+			{	// we assumed it wrong
+				swap(this->cAddr, wanaddr.cAddr);
+				swap(this->cPort, wanaddr.cPort);
+			}
+			else
+			{	// none is bindable, so we default the addresses
+				if(wanaddr.addr() == INADDR_ANY )
+				{	// possibly the wan address has been given
+					wanaddr.cAddr = this->cAddr;
+					wanaddr.cPort = this->cPort;
+				}
+				this->cAddr = ipaddress::GetSystemIP(0);
+			}
 		}
 	}
 	checklocal();
@@ -747,7 +759,7 @@ string<> ipset::tostring() const
 {	
 	char buf[64];
 	size_t sz;
-	if(this->cMask.addr() == INADDR_ANY)
+	if(this->wanaddr.cAddr == INADDR_ANY)
 	{	// have only one accessable ip
 		sz = sprintf(buf, "%d.%d.%d.%d:%d",
 			(this->cAddr>>0x18)&0xFF,
@@ -768,17 +780,17 @@ string<> ipset::tostring() const
 			(this->cMask>>0x08)&0xFF,
 			(this->cMask      )&0xFF,
 			 this->cPort,
-			(wanaddr.cAddr>>0x18)&0xFF,
-			(wanaddr.cAddr>>0x10)&0xFF,
-			(wanaddr.cAddr>>0x08)&0xFF,
-			(wanaddr.cAddr      )&0xFF,
-			 wanaddr.cPort);
+			(this->wanaddr.cAddr>>0x18)&0xFF,
+			(this->wanaddr.cAddr>>0x10)&0xFF,
+			(this->wanaddr.cAddr>>0x08)&0xFF,
+			(this->wanaddr.cAddr      )&0xFF,
+			 this->wanaddr.cPort);
 	}
 	return string<>(buf,sz);
 }
 ssize_t ipset::tostring(char *buffer, size_t sz) const
 {	
-	if(this->cMask.addr() == INADDR_ANY)
+	if(this->wanaddr.cAddr == INADDR_ANY)
 	{	// have only one accessable ip
 		return snprintf(buffer, sz, "%d.%d.%d.%d:%d",
 			(this->cAddr>>0x18)&0xFF,
@@ -799,18 +811,18 @@ ssize_t ipset::tostring(char *buffer, size_t sz) const
 			(this->cMask>>0x08)&0xFF,
 			(this->cMask      )&0xFF,
 			 this->cPort,
-			(wanaddr.cAddr>>0x18)&0xFF,
-			(wanaddr.cAddr>>0x10)&0xFF,
-			(wanaddr.cAddr>>0x08)&0xFF,
-			(wanaddr.cAddr      )&0xFF,
-			 wanaddr.cPort);
+			(this->wanaddr.cAddr>>0x18)&0xFF,
+			(this->wanaddr.cAddr>>0x10)&0xFF,
+			(this->wanaddr.cAddr>>0x08)&0xFF,
+			(this->wanaddr.cAddr      )&0xFF,
+			 this->wanaddr.cPort);
 	}
 }
 const char *ipset::tostring(char *buffer) const
 {	// usage of the static buffer is not threadsafe
 	static char tmp[64];
 	char *buf = (buffer) ? buffer : tmp;
-	if(this->cMask.addr() == INADDR_ANY)
+	if(this->wanaddr.cAddr == INADDR_ANY)
 	{	// have only one accessable ip
 		sprintf(buf, "%d.%d.%d.%d:%d",
 			(this->cAddr>>0x18)&0xFF,
@@ -831,18 +843,18 @@ const char *ipset::tostring(char *buffer) const
 			(this->cMask>>0x08)&0xFF,
 			(this->cMask      )&0xFF,
 			 this->cPort,
-			(wanaddr.cAddr>>0x18)&0xFF,
-			(wanaddr.cAddr>>0x10)&0xFF,
-			(wanaddr.cAddr>>0x08)&0xFF,
-			(wanaddr.cAddr      )&0xFF,
-			 wanaddr.cPort);
+			(this->wanaddr.cAddr>>0x18)&0xFF,
+			(this->wanaddr.cAddr>>0x10)&0xFF,
+			(this->wanaddr.cAddr>>0x08)&0xFF,
+			(this->wanaddr.cAddr      )&0xFF,
+			 this->wanaddr.cPort);
 	}
 	return buf;
 }
 
 template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const ipset& ip)
 {
-	if(ip.cMask.addr()==INADDR_ANY)
+	if(ip.wanaddr.addr()==INADDR_ANY)
 	{
 		str << ((ip.addr()>>0x18)&0xFF) << '.' <<
 			   ((ip.addr()>>0x10)&0xFF) << '.' <<

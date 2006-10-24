@@ -1522,7 +1522,7 @@ int skill_additional_effect(block_list* src, block_list *bl,unsigned short skill
 	case WZ_FROSTNOVA:		/* フロストノヴァ */
 		{
 			struct status_change *sc_data = status_get_sc_data(bl);
-			rate = (skilllv*3+35)*sc_def_mdef/100-(status_get_int(bl)+status_get_luk(bl))/15;
+			rate = (skilllv*3+35)*sc_def_mdef/100-(bl->get_int()+bl->get_luk())/15;
 			if (rate <= 5)
 				rate = 5;
 			if(sc_data && sc_data[SC_FREEZE].timer == -1 && rand()%100 < rate)
@@ -1588,7 +1588,7 @@ int skill_additional_effect(block_list* src, block_list *bl,unsigned short skill
 
 	case AM_ACIDTERROR:
 		if (rand()%100 < (skilllv*3)*sc_def_vit/100 ) {
-			int bleed_time = skill_get_time2(skillid,skilllv) - status_get_vit(bl) * 1000;
+			int bleed_time = skill_get_time2(skillid,skilllv) - bl->get_vit() * 1000;
 			if (bleed_time < 50000)
 				bleed_time = 50000;	// minimum 50 seconds
 			status_change_start(bl,SC_BLEEDING,skilllv,0,0,0,bleed_time,0);
@@ -1607,7 +1607,7 @@ int skill_additional_effect(block_list* src, block_list *bl,unsigned short skill
 	case PA_PRESSURE:	/* プレッシャ? */
 		{	// Official servers seem to indicate this causes neither stun nor bleeding. [Skotlex]
 			int race = bl->get_race();
-			int bleed_time = skill_get_time2(skillid,skilllv) - status_get_vit(bl) * 1000;
+			int bleed_time = skill_get_time2(skillid,skilllv) - bl->get_vit() * 1000;
 			if (bleed_time < 60000)
 				bleed_time = 60000;	// minimum time for pressure is?
 			if (rand()%100 < 50 * sc_def_vit / 100)	// is chance 50%?
@@ -1702,7 +1702,7 @@ int skill_additional_effect(block_list* src, block_list *bl,unsigned short skill
 //
 	case CH_TIGERFIST:
 		if (rand()%100 < (10 + skilllv*10)*sc_def_vit/100) {
-			int sec = skill_get_time2 (skillid,skilllv) - status_get_agi(bl)/10;
+			int sec = skill_get_time2 (skillid,skilllv) - bl->get_agi()/10;
 			if (dstsd) {
 				dstsd->canmove_tick += sec;
 				dstsd->canact_tick += sec;
@@ -1737,7 +1737,7 @@ int skill_additional_effect(block_list* src, block_list *bl,unsigned short skill
 		{
 			//?件が良く分からないので適?に
 			int race = bl->get_race();
-			int bleed_time = skill_get_time2(skillid,skilllv) - status_get_vit(bl) * 1000;
+			int bleed_time = skill_get_time2(skillid,skilllv) - bl->get_vit() * 1000;
 			if (bleed_time < 90000)
 				bleed_time = 90000;	// minimum 90 seconds
 			if (!(bl->is_undead() || race == 6) && rand()%100 < 50 * sc_def_vit/100)
@@ -1772,7 +1772,7 @@ int skill_additional_effect(block_list* src, block_list *bl,unsigned short skill
 					break;
 				case 1:
 					{
-					int bleed_time = skill_get_time2(skillid,skilllv) - status_get_vit(bl) * 1000;
+					int bleed_time = skill_get_time2(skillid,skilllv) - bl->get_vit() * 1000;
 					if (bleed_time < 30000)
 					bleed_time = 30000;	// minimum 30 seconds (it could be up to 60 sec.. but no info yet)
 					status_change_start(bl,SC_BLEEDING,skilllv,0,0,0,bleed_time,0);
@@ -2140,7 +2140,7 @@ int skill_attack(int attack_type, block_list* src, block_list *dsrc,
 
 		if(skillid == MO_TRIPLEATTACK)
 		{
-			int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
+			int delay = 1000 - 4 * src->get_agi() - 2 *  src->get_dex();
 			if (damage < bl->get_hp() &&
 				pc_checkskill(*sd, MO_CHAINCOMBO) > 0)
 				delay += 300 * config.combo_delay_rate / 100;
@@ -2150,7 +2150,7 @@ int skill_attack(int attack_type, block_list* src, block_list *dsrc,
 		}
 //連打掌(MO_CHAINCOMBO)ここから
 		else if(skillid == MO_CHAINCOMBO) {
-			int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src); //基本ディレイの計算
+			int delay = 1000 - 4 * src->get_agi() - 2 *  src->get_dex(); //基本ディレイの計算
 			if(damage < bl->get_hp())
 			{	//ダメ?ジが?象のHPより小さい場合
 				if(pc_checkskill(*sd, MO_COMBOFINISH) > 0 && sd->spiritball > 0) //猛龍拳(MO_COMBOFINISH)取得＆?球保持時は+300ms
@@ -2164,7 +2164,7 @@ int skill_attack(int attack_type, block_list* src, block_list *dsrc,
 //連打掌(MO_CHAINCOMBO)ここまで
 //猛龍拳(MO_COMBOFINISH)ここから
 		else if(skillid == MO_COMBOFINISH) {
-			int delay = 700 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
+			int delay = 700 - 4 * src->get_agi() - 2 *  src->get_dex();
 			if(damage < bl->get_hp())
 			{	//阿修羅覇凰拳(MO_EXTREMITYFIST)取得＆?球4個保持＆爆裂波動(MO_EXPLOSIONSPIRITS)?態時は+300ms
 				//伏虎拳(CH_TIGERFIST)取得時も+300ms
@@ -2181,7 +2181,7 @@ int skill_attack(int attack_type, block_list* src, block_list *dsrc,
 //猛龍拳(MO_COMBOFINISH)ここまで
 //伏虎拳(CH_TIGERFIST)ここから
 		else if(skillid == CH_TIGERFIST) {
-			int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
+			int delay = 1000 - 4 * src->get_agi() - 2 *  src->get_dex();
 			if(damage < bl->get_hp())
 			{	//阿修羅覇凰拳(MO_EXTREMITYFIST)取得＆?球4個保持＆爆裂波動(MO_EXPLOSIONSPIRITS)?態時は+300ms
 				if((pc_checkskill(*sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 3 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1) ||
@@ -2196,7 +2196,7 @@ int skill_attack(int attack_type, block_list* src, block_list *dsrc,
 //伏虎拳(CH_TIGERFIST)ここまで
 //連柱崩?(CH_CHAINCRUSH)ここから
 		else if(skillid == CH_CHAINCRUSH) {
-			int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
+			int delay = 1000 - 4 * src->get_agi() - 2 *  src->get_dex();
 			if(damage < bl->get_hp())
 			{	//阿修羅覇凰拳(MO_EXTREMITYFIST)取得＆?球4個保持＆爆裂波動(MO_EXPLOSIONSPIRITS)?態時は+300ms
 				if(pc_checkskill(*sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 1 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1)
@@ -3640,7 +3640,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 		return 0;
 
 //	sc_dex = status_get_mdef (bl);
-//	sc_luk = status_get_luk (bl);
+//	sc_luk = bl->get_luk ();
 	sc_def_vit = status_get_sc_def_vit (bl);
 	sc_def_mdef = status_get_sc_def_mdef (bl);
 
@@ -3736,7 +3736,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 		if (status_isimmune(bl))
 			break;
 
-		if (rand() % 100 < (40 + skilllv * 2 + (src->get_lv() + status_get_int(src))/5 +(sc_def_mdef-100)))
+		if (rand() % 100 < (40 + skilllv * 2 + (src->get_lv() + bl->get_int())/5 +(sc_def_mdef-100)))
 		{	//0 defense is sc_def_mdef == 100! [Skotlex]
 			int time = skill_get_time(skillid,skilllv);
 			if (*bl == BL_PC) time/=2; //Halved duration for Players
@@ -3835,7 +3835,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 		if (status_isimmune(bl))
 			break;
 		if (dstsd) dstsd->heal (dstsd->status.max_hp, dstsd->status.max_sp);
-		else if (dstmd) dstmd->hp = status_get_max_hp(bl);
+		else if (dstmd) dstmd->hp = bl->get_max_hp();
 		break;
 	case SA_SUMMONMONSTER:
 		clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
@@ -4655,9 +4655,10 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			status_change_end(bl, SC_STAN	, -1 );
 			if( bl->is_undead() )
 			{	//アンデッドなら暗闇?果
-				if(rand()%100 < (100-(status_get_int(bl)/2+status_get_vit(bl)/3+status_get_luk(bl)/10))) {
+				if(rand()%100 < (100-(bl->get_int()/2+bl->get_vit()/3+bl->get_luk()/10)))
+				{
 					status_change_start(bl, SC_BLIND,1,0,0,0,
-						1000 * 30 * (100-(status_get_int(bl)+status_get_vit(bl))/2)/100,0);
+						1000 * 30 * (100-(bl->get_int()+bl->get_vit())/2)/100,0);
 				}
 			}
 			if(dstmd){
@@ -4775,7 +4776,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 		if (skillid == RG_STRIPHELM || skillid == ST_FULLSTRIP)
 		   equip |= EQP_HELM;
 
-		strip_fix = status_get_dex(src) - status_get_dex(bl);
+		strip_fix = src->get_dex() - bl->get_dex();
 		if(strip_fix < 0)
 			strip_fix=0;
 		if (rand()%100 >= 5+2*skilllv+strip_fix/5)
@@ -4850,7 +4851,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 				pc_delitem(*sd,i,skill_db[skillid].amount[x],0);
 				sd->state.potion_flag = 0;
 				if(sd->potion_per_hp > 0 || sd->potion_per_sp > 0) {
-					hp = status_get_max_hp(bl) * sd->potion_per_hp / 100;
+					hp = bl->get_max_hp() * sd->potion_per_hp / 100;
 					hp = hp * (100 + pc_checkskill(*sd,AM_POTIONPITCHER)*10 + pc_checkskill(*sd,AM_LEARNINGPOTION)*5)/100;
 					if(dstsd) {
 						sp = dstsd->status.max_sp * sd->potion_per_sp / 100;
@@ -4860,13 +4861,13 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 				else {
 					if(sd->potion_hp > 0) {
 						hp = sd->potion_hp * (100 + pc_checkskill(*sd,AM_POTIONPITCHER)*10 + pc_checkskill(*sd,AM_LEARNINGPOTION)*5)/100;
-						hp = hp * (100 + (status_get_vit(bl)<<1)) / 100;
+						hp = hp * (100 + (bl->get_vit()<<1)) / 100;
 						if(dstsd)
 							hp = hp * (100 + pc_checkskill(*dstsd,SM_RECOVERY)*10) / 100;
 					}
 					if(sd->potion_sp > 0) {
 						sp = sd->potion_sp * (100 + pc_checkskill(*sd,AM_POTIONPITCHER)*10 + pc_checkskill(*sd,AM_LEARNINGPOTION)*5)/100;
-						sp = sp * (100 + (status_get_int(bl)<<1)) / 100;
+						sp = sp * (100 + (bl->get_int()<<1)) / 100;
 						if(dstsd)
 							sp = sp * (100 + pc_checkskill(*dstsd,MG_SRECOVERY)*10) / 100;
 					}
@@ -4874,7 +4875,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			}
 			else {
 				hp = (1 + rand()%400) * (100 + skilllv*10) / 100;
-				hp = hp * (100 + (status_get_vit(bl)<<1)) / 100;
+				hp = hp * (100 + (bl->get_vit()<<1)) / 100;
 				if(dstsd)
 					hp = hp * (100 + pc_checkskill(*dstsd,SM_RECOVERY)*10) / 100;
 			}
@@ -4995,11 +4996,11 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 								break;
 							}
 						} else
-							hp = status_get_max_hp(bl)/50; //Recover 2% HP [Skotlex]
+							hp = bl->get_max_hp()/50; //Recover 2% HP [Skotlex]
 						bl_skillid = dstmd->skillid;
 						bl_skilllv = dstmd->skilllv;
 						if (maps[bl->m].flag.pvp || maps[bl->m].flag.gvg)
-							hp = status_get_max_hp(bl)/50; //Recover 2% HP [Skotlex]
+							hp = bl->get_max_hp()/50; //Recover 2% HP [Skotlex]
 					}
 				}
 				if(bl_skillid > 0 && skill_db[bl_skillid].skill_type == BF_MAGIC) {
@@ -5506,7 +5507,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 		break;
 
 	case AS_SPLASHER:		/* ベナムスプラッシャ? */
-		if( status_get_max_hp(bl)*3 < 4*bl->get_hp() )
+		if( bl->get_max_hp()*3 < 4*bl->get_hp() )
 		{	//HPが3/4以上?っていたら失敗
 			block_list::freeblock_unlock();
 			return 1;
@@ -5594,7 +5595,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			if (sd && flag&1) {
 				block_list tbl;
 				int hp = sd->potion_hp * (100 + pc_checkskill(*sd,CR_SLIMPITCHER)*10 + pc_checkskill(*sd,AM_POTIONPITCHER)*10 + pc_checkskill(*sd,AM_LEARNINGPOTION)*5)/100;
-				hp = hp * (100 + (status_get_vit(bl)<<1))/100;
+				hp = hp * (100 + (bl->get_vit()<<1))/100;
 				if (dstsd) {
 					hp = hp * (100 + pc_checkskill(*dstsd,SM_RECOVERY)*10)/100;
 				}
@@ -6638,47 +6639,47 @@ struct skill_unit_group *skill_unitsetting(block_list *src, unsigned short skill
 	case BA_WHISTLE:			/* 口笛 */
 		if(*src == BL_PC)
 			val1 = (pc_checkskill(*((map_session_data *)src),BA_MUSICALLESSON)+1)>>1;
-		val2 = ((status_get_agi(src)/10)&0xffff)<<16;
-		val2 |= (status_get_luk(src)/10)&0xffff;
+		val2 = ((src->get_agi()/10)&0xffff)<<16;
+		val2 |= (src->get_luk()/10)&0xffff;
 		break;
 	case DC_HUMMING:			/* ハミング */
 		if(*src == BL_PC)
 			val1 = (pc_checkskill(*((map_session_data *)src),DC_DANCINGLESSON)+1)>>1;
-		val2 = status_get_dex(src)/10;
+		val2 = src->get_dex()/10;
 		break;
 	case DC_DONTFORGETME:		/* 私を忘れないで… */
 		if(*src == BL_PC)
 			val1 = (pc_checkskill(*((map_session_data *)src),DC_DANCINGLESSON)+1)>>1;
-		//val2 = ((status_get_str(src)/20)&0xffff)<<16;
-		val2 = ((status_get_dex(src)/20)&0xffff)<<16;
-		val2 |= (status_get_agi(src)/10)&0xffff;
+		//val2 = ((src->get_str()/20)&0xffff)<<16;
+		val2 = ((src->get_dex()/20)&0xffff)<<16;
+		val2 |= (src->get_agi()/10)&0xffff;
 		break;
 	case BA_POEMBRAGI:			/* ブラギの詩 */
 		if(*src == BL_PC)
 			val1 = pc_checkskill(*((map_session_data *)src),BA_MUSICALLESSON);
-		val2 = ((status_get_dex(src)/10)&0xffff)<<16;
-		val2 |= (status_get_int(src)/5)&0xffff;
+		val2 = ((src->get_dex()/10)&0xffff)<<16;
+		val2 |= (src->get_int()/5)&0xffff;
 		break;
 	case BA_APPLEIDUN:			/* イドゥンの林檎 */
 		if(*src == BL_PC)
 			val1 = pc_checkskill(*((map_session_data *)src),BA_MUSICALLESSON)&0xffff;
-		val2 |= (status_get_vit(src))&0xffff; // Used modulus to prevent e.g. 42VIT/10*5 gives 21 HP healing bonus instead if 20 [DracoRPG]
+		val2 |= (src->get_vit())&0xffff; // Used modulus to prevent e.g. 42VIT/10*5 gives 21 HP healing bonus instead if 20 [DracoRPG]
 		val3 = 0;//回復用タイムカウンタ(6秒?に1?加)
 		break;
 	case DC_SERVICEFORYOU:		/* サ?ビスフォ?ユ? */
 		if(*src == BL_PC)
 			val1 = (pc_checkskill(*((map_session_data *)src),DC_DANCINGLESSON)+1)>>1;
-		val2 = status_get_int(src)/10;
+		val2 = src->get_int()/10;
 		break;
 	case BA_ASSASSINCROSS:		/* 夕陽のアサシンクロス */
 		if(*src == BL_PC)
 			val1 = (pc_checkskill(*((map_session_data *)src),BA_MUSICALLESSON)+1)>>1;
-		val2 = status_get_agi(src)/20;
+		val2 = src->get_agi()/20;
 		break;
 	case DC_FORTUNEKISS:		/* 幸運のキス */
 		if(*src == BL_PC)
 			val1 = (pc_checkskill(*((map_session_data *)src),DC_DANCINGLESSON)+1)>>1;
-		val2 = status_get_luk(src)/10;
+		val2 = src->get_luk()/10;
 		break;
 
 	case PF_FOGWALL:	/* フォグウォ?ル */
@@ -7001,7 +7002,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,block_list *bl,unsigned long
 				}
 			} else {
 				int heal = sg->val2;
-				if( bl->get_hp() >= status_get_max_hp(bl) )
+				if( bl->get_hp() >= bl->get_max_hp() )
 					break;
 				if (status_isimmune(bl))
 					heal = 0;	/* 黄金蟲カード（ヒール量０） */
@@ -7083,7 +7084,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,block_list *bl,unsigned long
 	case UNT_ANKLESNARE:	/* アンクルスネア */
 		if(sg->val2==0 && sc_data && sc_data[SC_ANKLE].timer==-1){
 			int moveblock = ( bl->x/BLOCK_SIZE != src->block_list::x/BLOCK_SIZE || bl->y/BLOCK_SIZE != src->block_list::y/BLOCK_SIZE);
-			int sec = skill_get_time2(sg->skill_id,sg->skill_lv) - status_get_agi(bl)*100;
+			int sec = skill_get_time2(sg->skill_id,sg->skill_lv) - bl->get_agi()*100;
 			if(bl->get_mode()&0x20)
 				sec = sec/5;
 			if (sec < 3000+30*sg->skill_lv)	// minimum time of 3 seconds [celest]
@@ -7957,7 +7958,7 @@ int skill_castfix(block_list *bl, long time)
 		map_session_data *sd = bl->get_sd();
 		// calculate base cast time (reduced by dex)
 		if( skill_get_castnodex(sd->skillid, sd->skilllv) <= 0 ) {
-			int scale = config.castrate_dex_scale - status_get_dex(bl);
+			int scale = config.castrate_dex_scale - bl->get_dex();
 			if (scale > 0)	// not instant cast
 				time = time * (unsigned int)scale / config.castrate_dex_scale;
 			else 
@@ -7972,7 +7973,7 @@ int skill_castfix(block_list *bl, long time)
 		if( sd->castrate < 100 )
 			time -= time * (100 - sd->castrate) / 100;
 	} else if (*bl == BL_PET) { //Skotlex: Simple scaling
-		int scale = config.castrate_dex_scale - status_get_dex(bl);
+		int scale = config.castrate_dex_scale - bl->get_dex();
 		if (scale > 0)	// not instant cast
 			time = time * scale / config.castrate_dex_scale;
 		else return 0;	// instant cast
@@ -8024,7 +8025,7 @@ int skill_delayfix(block_list *bl, long time)
 		if (config.delay_dependon_dex &&	/* dexの影響を計算する */
 			!skill_get_delaynodex(sd->skillid, sd->skilllv))	// if skill casttime is allowed to be reduced by dex
 		{
-			int scale = config.castrate_dex_scale - status_get_dex(bl);
+			int scale = config.castrate_dex_scale - bl->get_dex();
 			if (scale < 0)
 				scale = 0;
 			time = time * scale / config.castrate_dex_scale;
@@ -9394,8 +9395,8 @@ struct skill_unit_group *skill_initunitgroup(block_list *src,int count,unsigned 
 	}
 
 	group->src_id=src->id;
-	group->party_id=status_get_party_id(src);
-	group->guild_id=status_get_guild_id(src);
+	group->party_id=src->get_party_id();
+	group->guild_id=src->get_guild_id();
 	group->group_id=skill_unit_group_newid++;
 	if(skill_unit_group_newid<=0)
 		skill_unit_group_newid = MAX_SKILL_DB;
@@ -9859,7 +9860,7 @@ int skill_produce_mix(map_session_data &sd, unsigned short nameid, unsigned shor
 			make_per = make_per * config.pp_rate / 100;
 
 	} else { // Weapon Forging. Using rates based on jRO [Skotlex]
-		make_per = 2000 + sd.status.job_level*20 + status_get_dex(&sd)*10 + status_get_luk(&sd)*10; //Base
+		make_per = 2000 + sd.status.job_level*20 + sd.get_dex()*10 + sd.get_luk()*10; //Base
 		make_per += 2500 + pc_checkskill(sd,skill_produce_db[idx].req_skill)*500; //Skill bonus: +30/+35/+40
 		make_per += pc_checkskill(sd,BS_WEAPONRESEARCH)*100 +((wlv >= 3)? pc_checkskill(sd,BS_ORIDEOCON)*100:0); //Weapon/Oridecon research
 		make_per -= (ele?2000:0 + sc*1500 + wlv>1?wlv*1000:0); //Ele: -20%, StarCrumb: -15%ea, Wlevel: -0/-20/-30

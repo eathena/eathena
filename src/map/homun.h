@@ -241,6 +241,11 @@ public:
 	virtual int get_class() const		{ return this->status.class_; }
 	virtual int get_lv() const			{ return this->status.base_level; }
 	virtual int get_hp() const			{ return this->status.hp; }
+
+	virtual uint32 get_party_id() const	{ return this->msd.status.party_id; }
+	virtual uint32 get_guild_id() const	{ return this->msd.status.guild_id; }
+
+
 };
 
 

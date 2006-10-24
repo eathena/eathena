@@ -54,12 +54,43 @@ inline log_interface& operator <<(log_interface& l, uint i)
 
 
 
+///////////////////////////////////////////////////////////////////////////////
+// Database Conversion Interface
+///////////////////////////////////////////////////////////////////////////////
+template<typename T>
+class CDB_if : public basics::noncopyable, public basics::global
+{
+public:
+	CDB_if():warned(false)			{}
+	virtual ~CDB_if()	{}
+
+	virtual size_t size() const=0;
+	virtual T& operator[](size_t i)=0;
+
+	bool warned;
+	virtual bool save(const T&val)
+	{
+		if(!warned)
+		{
+			ShowError("cnversion not implemented yet");
+			warned=true;
+		}
+		return false;
+	}
+
+	void convert(CDB_if& db)
+	{
+		size_t i;
+		for(i=0; i<db.size(); ++i)
+		{
+			T& val = db[i];
+			this->save(val);
+		}
+	}
+};
 
 
-///////////////////////////////////////////////////////////////////////////////
-// Account Database
-// for storing accounts stuff in login
-///////////////////////////////////////////////////////////////////////////////
+
 
 
 
@@ -68,7 +99,7 @@ inline log_interface& operator <<(log_interface& l, uint i)
 // Account Database Interface
 // for storing accounts stuff in login
 ///////////////////////////////////////////////////////////////////////////////
-class CAccountDBInterface : public basics::noncopyable, public basics::global
+class CAccountDBInterface : public CDB_if<CLoginAccount>
 {
 protected:
 	static basics::CParam<bool> case_sensitive;
@@ -828,14 +859,32 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
+enum
+{
+	VARSCOPE_SERVER,	// server variables
+	VARSCOPE_CHAR,		// character variables
+	VARSCOPE_ACCOUNT,	// account variables
+	VARSCOPE_GUILD,		// guild variables
+	VARSCOPE_PARTY,		// party variables
+};
+enum
+{
+	VARTYPE_STRING,		// string
+	VARTYPE_INTEGER,	// fixed point number
+	VARTYPE_FLOAT,		// floating point number
+};
 
 class CVar : public basics::string<>
 {
-	basics::string<> cValue;
+	uchar				cScope;	// variable scope
+	uchar				cType;	// variable type
+	uint32				cID;	// storage id
+	basics::string<>	cValue;	// stringified value
 public:
 	/// standard constructor
 	CVar()	{}
-	CVar(const basics::string<>& name, const basics::string<>& value) : basics::string<>(name), cValue(value)	{}
+	CVar(const basics::string<>& name, const basics::string<>& value)
+		: basics::string<>(name), cValue(value)	{}
 	CVar(const basics::string<>& name) : basics::string<>(name)	{}
 	/// destructor
 	virtual ~CVar()	{}
@@ -855,8 +904,6 @@ public:
 	bool from_buffer(const unsigned char* buf);
 	/// conversion to transfer buffer
 	size_t to_buffer(unsigned char* buf, size_t len) const;
-
-
 
 	void str2array()
 	{

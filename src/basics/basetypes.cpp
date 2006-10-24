@@ -313,12 +313,47 @@ void* FASTCALL _atomiccompareexchange(void** target, void* value, void* comperan
 
 size_t FASTCALL atomiccompareexchange(size_t* target, size_t value, size_t comperand)
 {
-	return (int)InterlockedCompareExchange((void**)target, (void*)value, (void*)comperand);
+// Windows compilers before VC7 
+# if _MSC_VER < 1300
+	return (size_t)InterlockedCompareExchange( (void**)target, (void*)value, (void*)comperand);
+#else
+
+#if defined __64BIT__
+	// they possibly recognized that pointer size is changing for 64bit systems
+	// but their crappy interface is not a pointer but a casted integer (and limited to 32bits)
+	return (size_t)InterlockedCompareExchange64( (volatile LONGLONG *)target, (LONGLONG)value, (LONGLONG)comperand);
+#else
+#pragma warning(push)
+#pragma warning(disable:4311) // disable 64bit conversion warnings, when not on a 64bit system
+#pragma warning(disable:4312)
+	return (size_t)InterlockedCompareExchange((volatile LONG *)target, (LONG)value, (LONG)comperand);
+#pragma warning(pop)
+#endif
+
+#endif
 }
 void* FASTCALL _atomiccompareexchange(void** target, void* value, void* comperand)
 {
-	return InterlockedCompareExchange(target, value, comperand);
+// Windows compilers before VC7 
+# if _MSC_VER < 1300
+	return (void*)InterlockedCompareExchange(target, value, comperand);
+#else
+
+#if defined __64BIT__
+	// they possibly recognized that pointer size is changing for 64bit systems
+	// but their crappy interface is not a pointer but a casted integer (and limited to 32bits)
+	return (void*)InterlockedCompareExchange64( (volatile LONGLONG *)target, (LONGLONG)value, (LONGLONG)comperand);
+#else
+#pragma warning(push)
+#pragma warning(disable:4311) // disable 64bit conversion warnings, when not on a 64bit system
+#pragma warning(disable:4312)
+	return (void*)InterlockedCompareExchange((volatile LONG *)target, (LONG)value, (LONG)comperand);
+#pragma warning(pop)
+#endif
+
+#endif
 }
+
 //## TODO: add inline asm's
 #else
 
@@ -339,7 +374,7 @@ void* FASTCALL _atomiccompareexchange(void** target, void* value, void* comperan
 	if(*target==comperand)
 		*target = value;
 	return prev;
-)
+}
 
 #endif
 

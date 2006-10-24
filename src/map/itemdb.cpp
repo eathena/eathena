@@ -791,12 +791,18 @@ int itemdb_readdb(void)
 			id->view_id=0;
 
 			if((p=strchr(np,'{'))!=NULL)
+			{
+				if(id->use_script) id->use_script->release();
 				id->use_script = parse_script((unsigned char *) p,lines);
+			}
 			else
 				id->use_script=NULL;
 
 			if((p=strchr(p+1,'{'))!=NULL)
+			{
+				if(id->equip_script) id->equip_script->release();
 				id->equip_script = parse_script((unsigned char *) p,lines);
+			}
 			else
 				id->equip_script=NULL;
 		}

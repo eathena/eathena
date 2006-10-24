@@ -505,6 +505,30 @@ int mob_data::get_equip() const
 {
 	return mob_db[this->class_].equip;
 }
+uint32 mob_data::get_party_id() const
+{
+	if( this->master_id )
+	{
+		map_session_data *msd;
+		if( this->state.special_mob_ai >= 1 && 
+			(msd = map_session_data::from_blid(this->master_id)) != NULL)
+			return msd->status.party_id;
+		return this->master_id;
+	}
+	return 0;
+}
+uint32 mob_data::get_guild_id() const
+{
+	if( this->master_id )
+	{
+		map_session_data *msd;
+		if( this->state.special_mob_ai >= 1 && 
+			(msd = map_session_data::from_blid(this->master_id)) != NULL)
+			return msd->status.party_id;
+		return this->class_;
+	}
+	return 0;
+}
 
 
 
@@ -515,7 +539,7 @@ int mob_data::get_equip() const
 int mob_data::heal(int hp, int sp)
 {
 	mob_data& md = *this;
-	int max_hp = status_get_max_hp(&md);
+	int max_hp = md.get_max_hp();
 
 	if( md.hp>0 && max_hp-md.hp < md.hp )
 		hp = max_hp-md.hp;
@@ -1097,11 +1121,11 @@ int mob_spawn(uint32 id)
 	else if(md->state.size==2)
 		md->max_hp*=2;
 
-	md->hp = status_get_max_hp(md);
+	md->hp = md->get_max_hp();
 	if (md->hp <= 0)
 	{
 		mob_makedummymobdb(md->class_);
-		md->hp = status_get_max_hp(md);
+		md->hp = md->get_max_hp();
 	}
 
 	if(md->cache)
@@ -2060,7 +2084,7 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 	
 	//srcはNULLで呼ばれる場合もあるので、他でチェック
 
-	max_hp = status_get_max_hp(&md);
+	max_hp = md.get_max_hp();
 	race = md.get_race();
 
 	if( src )
@@ -2239,7 +2263,7 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 	memset(tmpsd,0,sizeof(tmpsd));
 	memset(pt,0,sizeof(pt));
 
-	max_hp = status_get_max_hp(&md);
+	max_hp = md.get_max_hp();
 
 	if(src && *src == BL_MOB)
 		((mob_data *)src)->unlock_target(tick);
@@ -2516,7 +2540,7 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 
 			//Drops affected by luk as a % increase [Skotlex] (original implementation by Valaris)
 			if (src && config.drops_by_luk > 0)
-				drop_rate += drop_rate*status_get_luk(src)*config.drops_by_luk/10000;
+				drop_rate += drop_rate*src->get_luk()*config.drops_by_luk/10000;
 			if (sd && config.pk_mode == 1 && (mob_db[md.class_].lv - sd->status.base_level >= 20))
 				drop_rate += drop_rate/4; // pk_mode increase drops if 20 level difference [Valaris]
 
@@ -2735,15 +2759,16 @@ int mob_class_change(mob_data &md, int value[], size_t count)
 	class_ = value[rand()%count];
 	if(class_<=1000 || class_>MAX_MOB_DB) class_ = value[0];
 
-	max_hp = status_get_max_hp(&md);
+	max_hp = md.get_max_hp();
 	hp_rate = md.hp*100/max_hp;
 	md.class_ = class_;
 	clif_mob_class_change(md);
-	max_hp = status_get_max_hp(&md);
-	if (config.monster_class_change_full_recover) {
+	if (config.monster_class_change_full_recover)
+	{
 		md.hp = max_hp;
 		memset(md.dmglog,0,sizeof(md.dmglog));
-	} else
+	}
+	else
 		md.hp = max_hp*hp_rate/100;
 
 	if(md.hp > max_hp) 
@@ -3362,7 +3387,7 @@ block_list *mob_getmasterhpltmaxrate(mob_data &md,int rate)
 {
 	if (md.master_id > 0) {
 		block_list *bl = block_list::from_blid(md.master_id);
-		if( bl->get_hp() < status_get_max_hp(bl) * rate / 100)
+		if( bl->get_hp() < bl->get_max_hp() * rate / 100)
 			return bl;
 	}
 
@@ -3453,7 +3478,7 @@ int mobskill_use(mob_data &md,unsigned long tick,int event)
 					break;
 				case MSC_MYHPLTMAXRATE:		// HP< maxhp%
 				{
-					long max_hp = status_get_max_hp(&md);
+					long max_hp = md.get_max_hp();
 					flag = (md.hp < max_hp * c2 / 100);
 					break;
 				}

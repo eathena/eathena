@@ -26,14 +26,15 @@
 #endif
 
 
-
+// database conversion interface
+// only available if compiled with multiple interfaces
 
 ///////////////////////////////////////////////////////////////////////////////
 // for simplicity have global database selection parameters. 
 // move to the database wrapper class when debugging is finished
-basics::Mutex									_parammtx;	///< lock
-basics::TPtrCount<CAccountDBInterface>			_dbreader;	///< the reader
-basics::smap<basics::string<>, basics::TPtrCount<CAccountDBInterface> >	_dbwriter;	///< map of writers
+basics::Mutex						_parammtx;	///< lock
+basics::slist<basics::string<> >	_dbreader;	///< list of readers
+basics::slist<basics::string<> >	_dbwriter;	///< list of writers
 
 
 // functions for parameter update.
@@ -46,7 +47,7 @@ basics::CParam< basics::string<> > param_dbreader("read from", "", &_readerselec
 basics::CParam< basics::string<> > param_dbwriter("write to",  "", &_writerselection);
 
 
-/// database reader seletion.
+/// database reader selection.
 bool _readerselection(const basics::string<>& name, basics::string<>& newval, const basics::string<>& oldval)
 {
 	basics::ScopeLock sl(_parammtx);
@@ -56,9 +57,10 @@ bool _readerselection(const basics::string<>& name, basics::string<>& newval, co
 	param_dbwriter = newval;
 
 	// get the reader if writer has accepted
-	if( _dbwriter.exists(newval) )
+	size_t pos;
+	if( _dbwriter.find(newval,0,pos) )
 	{
-		_dbreader = _dbwriter[newval];
+		_dbreader = newval;
 		return true;
 	}
 	// otherwise keep the existing setting
@@ -71,20 +73,28 @@ bool _writerselection(const basics::string<>& name, basics::string<>& newval, co
 {
 	basics::ScopeLock sl(_parammtx);
 
-	// check if the specified writer is already allocated
-	if( !_dbwriter.exists(newval) )
+	// check if the specified writer is already there
+	size_t pos;
+	if( !_dbwriter.find(newval,0,pos) )
 	{
 #if defined(WITH_TEXT)
 		if( newval == "txt" )	// in-memory database on txt files
-			_dbwriter[newval] = new CAccountDB_txt("");
+			_dbwriter.push(newval);
 		else 
-#elif defined(SQL_EMBED)
-		if( newval == "sqlmem")	// in-memory database on sql
-			_dbwriter[newval] = new CAccountDB_txt("");
-		else 
-#elif !defined(WITH_TEXT) && !defined(SQL_EMBED)
+#endif
+#if defined(WITH_MYSQL)
 		if( newval == "sql" )	// transition database on sql
-			_dbwriter[newval] = new CAccountDB_sql("");
+			_dbwriter.push(newval);
+		else 
+#endif
+#if defined(WITH_SQLMEM) && defined(WITH_MYSQL)
+		if( newval == "sqlmem")	// in-memory database on sql
+			_dbwriter.push(newval);
+		else 
+#endif
+#if defined(WITH_PHEOENIX)
+		if( newval == "phoenix")	// in-memory database on sql
+			_dbwriter.push(newval);
 		else 
 #endif
 			return false;		// otherwise fail this assignment
@@ -104,23 +114,32 @@ bool _writerselection(const basics::string<>& name, basics::string<>& newval, co
 ///////////////////////////////////////////////////////////////////////////////
 // preliminary dynamic database interface
 
-#if defined(WITH_TEXT) && defined(WITH_MYSQL)
 bool ParamCallback_database_engine(const basics::string<>& name, basics::string<>& newval, const basics::string<>& oldval);
 basics::CParam< basics::string<> > database_engine("database_engine", "txt", ParamCallback_database_engine);
 
 
 bool ParamCallback_database_engine(const basics::string<>& name, basics::string<>& newval, const basics::string<>& oldval)
 {
-	if( newval != "sql" && newval != "txt" )
+	if( newval != "sql" && 
+		newval != "txt" &&
+		newval != "sqlmem" &&
+		newval != "phoenix" )
 	{
-		ShowError("Parameter '%s' specified as '%s' but only 'txt' or 'sql' is supported.\n"CL_SPACE"Defaulting to %s.",
+		ShowError("Parameter '%s' specified as '%s' but 'txt'/'sql'/'sqlmem'/'phoenix' is supported.\n"CL_SPACE"Defaulting to %s.",
 			(const char*)name, (const char*)newval, (const char*)oldval );
 
 		return false;
 	}
 	return true;
 }
-#endif
+
+
+
+
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 
 
@@ -361,11 +380,11 @@ bool CVar::from_string(const char* str)
 	static basics::CRegExp re("([^,]+),([^,]*),([^,]*),([^,]*),([^,\n]*)");
 	if( re.match(str) )
 	{
-		*this = re[1];			// name
-		//re[2];				// will be storage type (account/char/party/... variable)
-		//re[3];				// will be storage id (account_id/char_id/...)
-		//re[4];				// will be variable type (string/int/float/...)
-		this->cValue = re[5];	// value
+		*this = re[1];				// name
+		this->cScope=atoi(re[2]);	// storage scope (account/char/party/... variable)
+		this->cID=atoi(re[3]);		// storage id (account_id/char_id/...)
+		this->cType=atoi(re[4]);	// variable type (string/int/float/...)
+		this->cValue = re[5];		// value
 
 		return (this->name()!="" && this->cValue!="0" && this->cValue!="");
 	}
@@ -378,7 +397,12 @@ size_t CVar::to_string(char* str, size_t len) const
 		this->cValue!="0" &&
 		this->cValue!="" )
 	{
-		int sz = snprintf(str,len, "%s,0,0,0,%s", (const char*)*this, (const char*)this->cValue);
+		int sz = snprintf(str,len, "%s,%u,%lu,%u,%s", 
+			(const char*)*this, 
+			(uint)this->cScope,
+			(ulong)this->cID,
+			(uint)this->cType,
+			(const char*)this->cValue);
 		return (sz>0)?sz:0;
 	}
 	return 0;
@@ -387,6 +411,9 @@ size_t CVar::to_string(char* str, size_t len) const
 /// conversion from transfer buffer
 bool CVar::from_buffer(const unsigned char* buf)
 {
+	_B_frombuffer(this->cScope,buf);
+	_B_frombuffer(this->cType,buf);
+	_L_frombuffer(this->cID,buf);
 	this->assign((const char*)buf,32);
 	this->cValue.assign((const char*)buf+32);
 	return true;
@@ -394,10 +421,12 @@ bool CVar::from_buffer(const unsigned char* buf)
 /// conversion to transfer buffer
 size_t CVar::to_buffer(unsigned char* buf, size_t len) const
 {
-	memcpy(buf, (const char*)this->name(), 32);
-	buf[31]=0;
-	memcpy(buf+32, (const char*)this->cValue, 1+this->cValue.size());
-	return 32+1+this->cValue.size();
+	_B_tobuffer(this->cScope,buf);
+	_B_tobuffer(this->cType,buf);
+	_L_tobuffer(this->cID,buf);
+	_S_tobuffer(this->name(),buf,32);
+	memcpy(buf, (const char*)this->cValue, 1+this->cValue.size());
+	return 38+1+this->cValue.size();
 }
 
 

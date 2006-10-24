@@ -127,8 +127,8 @@ class CToken : public defaultcmp
 public:
 	short			id;
 	string<>		cLexeme;
-	unsigned short	line;
-	unsigned short	column;
+	unsigned int	line;
+	unsigned int	column;
 
 	CToken() : id(0),line(0),column(0)	{}
 	CToken(short i) : id(i), line(0),column(0)	{}

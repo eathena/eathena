@@ -838,7 +838,7 @@ npcscript_data::~npcscript_data()
 	// delete ontimers
 	if (this->ontimer_list)
 	{
-		delete (this->ontimer_list);
+		delete[] this->ontimer_list;
 		this->ontimer_list=NULL;
 		this->ontimer_cnt=0;
 	}
@@ -1487,6 +1487,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 
 		while(1) 
 		{
+			ssize_t i;
 			for(i=strlen((char*)srcbuf)-1; i>=0 && isspace((int)((unsigned char)srcbuf[i])); i--);
 			
 			if (i >= 0 && srcbuf[i] == '}')
