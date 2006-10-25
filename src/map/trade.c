@@ -229,9 +229,6 @@ int trade_check(struct map_session_data *sd, struct map_session_data *tsd) {
 							return 0;
 						inventory2[i].amount += amount;
 						inventory[n].amount -= amount;
-						//let's not make room, as pc_additem is done before pc_delitem, so it could lead to problems depending on order.
-//							if (!inventory[n].amount) 
-//								memset(&inventory[n], 0, sizeof(struct item));
 						break;
 					}
 			}
@@ -243,8 +240,6 @@ int trade_check(struct map_session_data *sd, struct map_session_data *tsd) {
 				memcpy(&inventory2[i], &inventory[n], sizeof(struct item));
 				inventory2[i].amount = amount;
 				inventory[n].amount -= amount;
-//					if (!inventory[n].amount)
-//						memset(&inventory[n], 0, sizeof(struct item));
 			}
 		}
 		amount = tsd->deal.item[trade_i].amount;
@@ -265,8 +260,6 @@ int trade_check(struct map_session_data *sd, struct map_session_data *tsd) {
 						return 0;
 					inventory[i].amount += amount;
 					inventory2[n].amount -= amount;
-//					if (!inventory2[n].amount)
-//						memset(&inventory2[n], 0, sizeof(struct item));
 					break;
 				}
 		}
@@ -277,8 +270,6 @@ int trade_check(struct map_session_data *sd, struct map_session_data *tsd) {
 			memcpy(&inventory[i], &inventory2[n], sizeof(struct item));
 			inventory[i].amount = amount;
 			inventory2[n].amount -= amount;
-//			if (!inventory2[n].amount)
-//				memset(&inventory2[n], 0, sizeof(struct item));
 		}
 	}
 
@@ -486,8 +477,8 @@ void trade_tradecommit(struct map_session_data *sd) {
 			if (flag == 0) {
 				//Logs (T)rade [Lupus]
 				if(log_config.enable_logs&0x2) {
-					log_pick(sd, "T", 0, sd->status.inventory[n].nameid, -(sd->deal.item[trade_i].amount), &sd->status.inventory[n]);
-					log_pick(tsd, "T", 0, sd->status.inventory[n].nameid, sd->deal.item[trade_i].amount, &sd->status.inventory[n]);
+					log_pick_pc(sd, "T", sd->status.inventory[n].nameid, -(sd->deal.item[trade_i].amount), &sd->status.inventory[n]);
+					log_pick_pc(tsd, "T", sd->status.inventory[n].nameid, sd->deal.item[trade_i].amount, &sd->status.inventory[n]);
 				}
 				//Logs
 				pc_delitem(sd, n, sd->deal.item[trade_i].amount, 1);
@@ -503,8 +494,8 @@ void trade_tradecommit(struct map_session_data *sd) {
 			if (flag == 0) {
 				//Logs (T)rade [Lupus]
 				if(log_config.enable_logs&0x2) {
-					log_pick(tsd, "T", 0, tsd->status.inventory[n].nameid, -(tsd->deal.item[trade_i].amount), &tsd->status.inventory[n]);
-					log_pick(sd, "T", 0, tsd->status.inventory[n].nameid, tsd->deal.item[trade_i].amount, &tsd->status.inventory[n]);
+					log_pick_pc(tsd, "T", tsd->status.inventory[n].nameid, -(tsd->deal.item[trade_i].amount), &tsd->status.inventory[n]);
+					log_pick_pc(sd, "T", tsd->status.inventory[n].nameid, tsd->deal.item[trade_i].amount, &tsd->status.inventory[n]);
 				}
 				//Logs
 				pc_delitem(tsd, n, tsd->deal.item[trade_i].amount, 1);

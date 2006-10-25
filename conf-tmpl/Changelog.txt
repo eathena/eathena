@@ -1,5 +1,9 @@
 Date	Added
 
+2006/10/25
+	* Merged config setting summon_flora_setting (skill.conf) which specifies
+	  restrictions on the skill such as letting other people hit the floras, or
+	  preventing more than one type of flora being summoned at a time. [Skotlex]
 2006/10/20
 	* Added &16 to the default emergency_call (skill.conf) setting. This means
 	  that Emergency Call fails in "no warp to" maps (mainly, maps like Lhz3)

@@ -103,7 +103,8 @@ extern struct Battle_Config {
 	unsigned short pc_damage_delay_rate;
 	unsigned short defnotenemy;
 	unsigned short vs_traps_bctall;	
-	unsigned short traps_setting;	
+	unsigned short traps_setting;
+	unsigned short summon_flora; //[Skotlex]	
 	unsigned short clear_unit_ondeath; //[Skotlex]
 	unsigned short clear_unit_onwarp; //[Skotlex]
 	unsigned short random_monster_checklv;
@@ -354,7 +355,6 @@ extern struct Battle_Config {
 	unsigned short skill_steal_type; // [celest]
 	unsigned short skill_steal_rate; // [celest]
 	unsigned short skill_steal_max_tries; //max steal skill tries on a mob. if=256, then w/o limit [Lupus]
-//	unsigned short night_darkness_level; // [celest]
 	unsigned short motd_type; // [celest]
 	unsigned short finding_ore_rate; // orn
 	unsigned short exp_calc_type;

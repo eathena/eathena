@@ -2621,7 +2621,7 @@ int atcommand_item(
 
 	//Logs (A)dmins items [Lupus]
 	if(log_config.enable_logs&0x400)
-		log_pick(sd, "A", 0, item_id, number, NULL);
+		log_pick_pc(sd, "A", item_id, number, NULL);
 
 	clif_displaymessage(fd, msg_txt(18)); // Item created.
 	return 0;
@@ -2696,7 +2696,7 @@ int atcommand_item2(
 
 		//Logs (A)dmins items [Lupus]
 		if(log_config.enable_logs&0x400)
-			log_pick(sd, "A", 0, item_tmp.nameid, number, &item_tmp);
+			log_pick_pc(sd, "A", item_tmp.nameid, number, &item_tmp);
 
 		clif_displaymessage(fd, msg_txt(18)); // Item created.
 	} else {
@@ -2723,7 +2723,7 @@ int atcommand_itemreset(
 
 			//Logs (A)dmins items [Lupus]
 			if(log_config.enable_logs&0x400)
-				log_pick(sd, "A", 0, sd->status.inventory[i].nameid, -sd->status.inventory[i].amount, &sd->status.inventory[i]);
+				log_pick_pc(sd, "A", sd->status.inventory[i].nameid, -sd->status.inventory[i].amount, &sd->status.inventory[i]);
 
 			pc_delitem(sd, i, sd->status.inventory[i].amount, 0);
 		}
@@ -3693,8 +3693,8 @@ static int atkillmonster_sub(struct block_list *bl, va_list ap) {
 		return 0; //Do not touch WoE mobs!
 	
 	if (flag)
-		status_kill(bl);
-	else //FIXME: Eh.. what exactly is the difference here?
+		status_zap(bl,md->status.hp, 0);
+	else
 		status_kill(bl);	
 	return 1;
 }
@@ -3874,7 +3874,7 @@ int atcommand_produce(
 
 		//Logs (A)dmins items [Lupus]
 		if(log_config.enable_logs&0x400)
-			log_pick(sd, "A", 0, tmp_item.nameid, 1, &tmp_item);
+			log_pick_pc(sd, "A", tmp_item.nameid, 1, &tmp_item);
 
 		if ((flag = pc_additem(sd, &tmp_item, 1)))
 			clif_additem(sd, 0, 0, flag);
@@ -6379,7 +6379,7 @@ int atcommand_chardelitem(const int fd, struct map_session_data* sd,
 
 						//Logs (A)dmins items [Lupus]
 						if(log_config.enable_logs&0x400)
-							log_pick(pl_sd, "A", 0, pl_sd->status.inventory[item_position].nameid, -1, &pl_sd->status.inventory[item_position]);
+							log_pick_pc(pl_sd, "A", pl_sd->status.inventory[item_position].nameid, -1, &pl_sd->status.inventory[item_position]);
 
 						pc_delitem(pl_sd, item_position, 1, 0);
 						count++;
@@ -7677,7 +7677,7 @@ void getring (struct map_session_data *sd)
 
 	//Logs (A)dmins items [Lupus]
 	if(log_config.enable_logs&0x400)
-		log_pick(sd, "A", 0, item_id, 1, &item_tmp);
+		log_pick_pc(sd, "A", item_id, 1, &item_tmp);
 
 	if((flag = pc_additem(sd,&item_tmp,1))) {
 		clif_additem(sd,0,0,flag);

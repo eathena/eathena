@@ -3032,9 +3032,10 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				return -1; //Cannot be targeted yet.
 			break;
 		case BL_MOB:
-			if (((TBL_MOB*)target)->special_state.ai > 1 &&
+			if((((TBL_MOB*)target)->special_state.ai == 2 || //Marine Spheres
+				(((TBL_MOB*)target)->special_state.ai == 3 && battle_config.summon_flora&1)) && //Floras
 				s_bl->type == BL_PC && src->type != BL_MOB)
-			{	//Alchemist summoned mobs are always targettable by players
+			{	//Targettable by players
 				state |= BCT_ENEMY;
 				strip_enemy = 0;
 			}
@@ -3325,6 +3326,7 @@ static const struct battle_data_short {
 	{ "defunit_not_enemy",                 &battle_config.defnotenemy				},
 	{ "gvg_traps_target_all",	            &battle_config.vs_traps_bctall			},
 	{ "traps_setting",	                  &battle_config.traps_setting	},
+	{ "summon_flora_setting",              &battle_config.summon_flora	},
 	{ "clear_skills_on_death",             &battle_config.clear_unit_ondeath },
 	{ "clear_skills_on_warp",              &battle_config.clear_unit_onwarp },
 	{ "random_monster_checklv",            &battle_config.random_monster_checklv	},
@@ -3557,8 +3559,7 @@ static const struct battle_data_short {
 	{ "pk_min_level",                      &battle_config.pk_min_level}, // [celest]
 	{ "skill_steal_type",                  &battle_config.skill_steal_type}, // [celest]
 	{ "skill_steal_rate",                  &battle_config.skill_steal_rate}, // [celest]
-	{ "skill_steal_max_tries",			&battle_config.skill_steal_max_tries}, // [Lupus]
-//	{ "night_darkness_level",              &battle_config.night_darkness_level}, // [celest]
+	{ "skill_steal_max_tries",             &battle_config.skill_steal_max_tries}, // [Lupus]
 	{ "motd_type",                         &battle_config.motd_type}, // [celest]
 	{ "finding_ore_rate",                  &battle_config.finding_ore_rate}, // [celest]
 	{ "exp_calc_type",                     &battle_config.exp_calc_type}, // [celest]
@@ -3719,6 +3720,7 @@ void battle_set_defaults() {
 	battle_config.defnotenemy=0;
 	battle_config.vs_traps_bctall=BL_PC;
 	battle_config.traps_setting=0;
+	battle_config.summon_flora=3;
 	battle_config.clear_unit_ondeath=BL_ALL;
 	battle_config.clear_unit_onwarp=BL_ALL;
 	battle_config.random_monster_checklv=1;
@@ -3986,7 +3988,6 @@ void battle_set_defaults() {
 	battle_config.skill_steal_type = 1;
 	battle_config.skill_steal_rate = 100;
 	battle_config.skill_steal_max_tries = 15; //=16 tries
-//	battle_config.night_darkness_level = 9;
 	battle_config.motd_type = 0;
 	battle_config.finding_ore_rate = 100;
 	battle_config.castrate_dex_scale = 150;
