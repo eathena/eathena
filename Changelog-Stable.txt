@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/10/26
+	* Updated sql files [Playtester]
 	* Merged the friend_auto_add setting, since the whole friend-system is not
 	  gonna be updated to how it really should be due to feature-freeze.
 	  [Skotlex]
