@@ -1,3 +1,8 @@
+10/26
+	* Merged item_db, mob_db and mob_skill_db [Playtester]
+	- updated view ids of some headgears
+	- updated stats & skills of Kiel mobs
+	- official Muscipular drops
 10/20
 	* Merged skill_db.txt, skill_require_db.txt, skill_cast_db.txt,
 	  skill_castnodex.txt, skill_unit_db.txt (those are mostly NJ skills, but a
