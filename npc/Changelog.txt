@@ -34,6 +34,9 @@ Playtester
 
 Date		Added
 ======
+10/27
+	* Merged recent TRUNK changes of job quests, warps, Kunai/etc makers [Lupus]
+	  The Ninja Job Quest hasn't been added yet.
 10/26
 	* Merged official kRO 10.1 spawns [Playtester]
 	- includes some newer spawn fixes
