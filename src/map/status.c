@@ -356,6 +356,12 @@ void initChangeTables(void) {
 	set_sc(GS_ADJUSTMENT, SC_ADJUSTMENT, SI_ADJUSTMENT, SCB_HIT|SCB_FLEE);
 	set_sc(GS_INCREASING, SC_INCREASING, SI_ACCURACY, SCB_AGI|SCB_DEX|SCB_HIT);
 	set_sc(GS_GATLINGFEVER, SC_GATLINGFEVER, SI_GATLINGFEVER, SCB_BATK|SCB_FLEE|SCB_SPEED|SCB_ASPD);
+	set_sc(NJ_TATAMIGAESHI, SC_TATAMIGAESHI, SI_BLANK, SCB_NONE);
+	set_sc(NJ_SUITON, SC_SUITON, SI_BLANK, SCB_AGI|SCB_SPEED);
+	add_sc(NJ_HYOUSYOURAKU, SC_FREEZE);
+	set_sc(NJ_NEN, SC_NEN, SI_NEN, SCB_STR|SCB_INT);
+	set_sc(NJ_UTSUSEMI, SC_UTSUSEMI, SI_UTSUSEMI,SCB_NONE);
+	set_sc(NJ_BUNSINJYUTSU, SC_BUNSINJYUTSU, SI_BUNSINJYUTSU, SCB_DYE);
 	set_sc(CR_SHRINK, SC_SHRINK, SI_SHRINK, SCB_NONE);
 	set_sc(RG_CLOSECONFINE, SC_CLOSECONFINE2, SI_CLOSECONFINE2, SCB_NONE);
 	set_sc(RG_CLOSECONFINE, SC_CLOSECONFINE, SI_CLOSECONFINE, SCB_FLEE);
@@ -1029,7 +1035,8 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	{	
 		if(!skill_num && !(status->mode&MD_BOSS) && tsc->data[SC_TRICKDEAD].timer != -1)
 			return 0;
-		if(skill_num == WZ_STORMGUST && tsc->data[SC_FREEZE].timer != -1)
+		if((skill_num == WZ_STORMGUST || skill_num == NJ_HYOUSYOURAKU)
+			&& tsc->data[SC_FREEZE].timer != -1)
 			return 0;
 		if(skill_num == PR_LEXAETERNA && (tsc->data[SC_FREEZE].timer != -1 || (tsc->data[SC_STONE].timer != -1 && tsc->opt1 == OPT1_STONE)))
 			return 0;
@@ -2927,6 +2934,8 @@ static unsigned short status_calc_agi(struct block_list *bl, struct status_chang
 		agi -= sc->data[SC_DECREASEAGI].val2;
 	if(sc->data[SC_QUAGMIRE].timer!=-1)
 		agi -= sc->data[SC_QUAGMIRE].val2;
+	if(sc->data[SC_SUITON].timer!=-1 && sc->data[SC_SUITON].val3) // does not affect players when not in PVP nor WoE. Does not affect Ninjas.
+		agi -= sc->data[SC_SUITON].val2;
 	if(sc->data[SC_MARIONETTE].timer!=-1)
 		agi -= (sc->data[SC_MARIONETTE].val3>>8)&0xFF;
 	if(sc->data[SC_MARIONETTE2].timer!=-1)
@@ -4087,6 +4096,7 @@ int status_get_sc_def(struct block_list *bl, int type)
 	case SC_HALLUCINATION:
 	case SC_STONE:
 	case SC_QUAGMIRE:
+	case SC_SUITON:
 		return 10000;
 	}
 	
@@ -4230,6 +4240,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 
 		if (!(rand()%10000 < rate))
 			return 0;
+
 	}
 
 	undead_flag=battle_check_undead(status->race,status->def_ele);
@@ -4340,6 +4351,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			case SC_ROKISWEIL:
 			case SC_COMA:
 			case SC_GRAVITATION:
+			case SC_SUITON:
 				return 0;
 		}
 	}
@@ -4647,6 +4659,16 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				val2 = deluge_eff[val1-1]; //HP increase
 			else
 				val2 = 0;
+			break;
+		case SC_SUITON:
+			val2 = 0; //Agi penalty
+			val3 = 0; //Walk speed penalty
+			if (status_get_class(bl) == JOB_NINJA ||
+				(sd && !map_flag_vs(bl->m)))
+				break;
+			val3 = 50;
+			val2 = 3*((val1+1)/3);
+			if (val1 > 4) val2--;
 			break;
 		case SC_ONEHAND:
 		case SC_TWOHANDQUICKEN:
@@ -5267,6 +5289,13 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				val3 = map;
 				val4 = pos;
 			}
+			break;
+		case SC_UTSUSEMI:
+			val2=(val1+1)/2; // number of hits blocked
+			val3=skill_get_blewcount(NJ_UTSUSEMI, val1); //knockback value.
+			break;
+		case SC_BUNSINJYUTSU:
+			val2=(val1+1)/2; // number of hits blocked
 			break;
 		case SC_SWOO:
 			if(status->mode&MD_BOSS)

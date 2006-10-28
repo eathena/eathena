@@ -7601,10 +7601,10 @@ int clif_charnameack (int fd, struct block_list *bl)
 		}
 		break;
 	case BL_PET:
-		memcpy(WBUFP(buf,6), ((struct pet_data*)bl)->pet.name, NAME_LENGTH);
+		memcpy(WBUFP(buf,6), ((TBL_PET*)bl)->pet.name, NAME_LENGTH);
 		break;
 	case BL_NPC:
-		memcpy(WBUFP(buf,6), ((struct npc_data*)bl)->name, NAME_LENGTH);
+		memcpy(WBUFP(buf,6), ((TBL_NPC*)bl)->name, NAME_LENGTH);
 		break;
 	case BL_MOB:
 		{

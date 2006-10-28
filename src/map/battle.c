@@ -321,6 +321,37 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			return 0;
 		}
 
+		if ((sc->data[SC_UTSUSEMI].timer != -1 || sc->data[SC_BUNSINJYUTSU].timer != -1)
+		&& 
+// This check used instead, is 'aproximate' to what it can block.
+			(flag&BF_WEAPON || (flag&(BF_MISC|BF_SHORT)) == (BF_MISC|BF_SHORT))
+/* FIXME: This check is awful, there has to be some kind of logic behind this!
+		// there is no rule for that, only some exceptions.. which I listed according to many tests and says
+		&& (
+			skill_num != ASC_BREAKER &&
+			skill_num != NJ_KUNAI &&
+			skill_num != SN_FALCONASSAULT &&
+			skill_num != MO_BALKYOUNG &&
+			skill_num != HT_BLITZBEAT &&
+			skill_num != NJ_SYURIKEN
+			)
+*/
+		)
+		{
+			if (sc->data[SC_UTSUSEMI].timer != -1) {
+				clif_specialeffect(bl, 462, AREA);
+				skill_blown (src, bl, sc->data[SC_UTSUSEMI].val3);
+			};
+			//Both need to be consumed if they are active.
+			if (sc->data[SC_UTSUSEMI].timer != -1 &&
+				--sc->data[SC_UTSUSEMI].val2 <= 0)
+				status_change_end(bl, SC_UTSUSEMI, -1);
+			if (sc->data[SC_BUNSINJYUTSU].timer != -1 &&
+				--sc->data[SC_BUNSINJYUTSU].val2 <= 0)
+				status_change_end(bl, SC_BUNSINJYUTSU, -1);
+			return 0;
+		}
+
 		//Now damage increasing effects
 		if(sc->data[SC_AETERNA].timer!=-1 && skill_num != PF_SOULBURN){
 			damage<<=1;
@@ -482,6 +513,7 @@ int battle_calc_gvg_damage(struct block_list *src,struct block_list *bl,int dama
 	//Skills with no damage reduction.
 	case PA_PRESSURE:
 	case HW_GRAVITATION:
+	case NJ_ZENYNAGE:
 		break;
 	default:
 		if (md && md->guardian_data) {
@@ -857,6 +889,8 @@ static struct Damage battle_calc_weapon_attack(
 			case ITM_TOMAHAWK:	//Tomahawk is a ranged attack! [Skotlex]
 			case CR_GRANDCROSS:
 			case NPC_GRANDDARKNESS:
+			case NJ_HUUMA:
+			case NJ_ISSEN:
 			case GS_TRIPLEACTION:
 			case GS_BULLSEYE:
 			case GS_MAGICALBULLET:
@@ -984,6 +1018,9 @@ static struct Damage battle_calc_weapon_attack(
 			case SN_SHARPSHOOTING:
 				cri += 200;
 				break;
+			case NJ_KIRIKAGE:
+				cri += 250 + 50*skill_lv;
+				break;
 		}
 		if(tsd && tsd->critical_def)
 			cri = cri*(100-tsd->critical_def)/100;
@@ -1024,6 +1061,9 @@ static struct Damage battle_calc_weapon_attack(
 				case NPC_ENERGYDRAIN:
 				case NPC_MENTALBREAKER:
 				case GS_GROUNDDRIFT:
+				case NJ_SYURIKEN:
+				case NJ_KUNAI:
+				case NJ_ISSEN:
 					flag.hit = 1;
 					break;
 				case CR_SHIELDBOOMERANG:
@@ -1124,6 +1164,11 @@ static struct Damage battle_calc_weapon_attack(
 
 		switch (skill_num)
 		{	//Calc base damage according to skill
+			case NJ_ISSEN:
+				wd.damage = 40*sstatus->str +skill_lv*(sstatus->hp/10 + 35);
+				wd.damage2 = 0;
+				status_set_hp(src, 1, 0);
+				break;
 			case PA_SACRIFICE:
 				wd.damage = sstatus->max_hp* 9/100;
 				status_zap(src, wd.damage, 0);//Damage to self is always 9%
@@ -1195,6 +1240,14 @@ static struct Damage battle_calc_weapon_attack(
 				if (flag.lh)
 					wd.damage2 = battle_calc_base_damage(sstatus, sstatus->lhw, sc, tstatus->size, sd, i);
 
+				// Added split damage for Huuma
+				if (skill_num == NJ_HUUMA)
+				{	// Divide ATK in case of multiple targets skill
+					if(wflag>0)
+						wd.damage/= wflag;
+					else if(battle_config.error_log)
+						ShowError("0 enemies targeted by Throw Huuma, divide per 0 avoided!\n");
+				}
 				//Add any bonuses that modify the base baseatk+watk (pre-skills)
 				if(sd)
 				{
@@ -1483,6 +1536,18 @@ static struct Damage battle_calc_weapon_attack(
 				case GS_SPREADATTACK:
 					skillratio += 20*(skill_lv-1);
 					break;
+				case NJ_HUUMA:
+					skillratio += 50 + 150*skill_lv;
+					break;
+				case NJ_TATAMIGAESHI:
+					skillratio += 10*skill_lv;
+					break;
+				case NJ_KASUMIKIRI:
+					skillratio += 10*skill_lv;
+					break;
+				case NJ_KIRIKAGE:
+					skillratio += 100*(skill_lv-1);
+					break;
 				case KN_CHARGEATK:
 					skillratio += wflag*15; //FIXME: How much is the actual bonus? [Skotlex]
 					break;
@@ -1519,6 +1584,9 @@ static struct Damage battle_calc_weapon_attack(
 					} else {
 						ATK_ADD(sstatus->matk_min);
 					}
+					break;
+				case NJ_SYURIKEN:
+					ATK_ADD(4*skill_lv);
 					break;
 			}
 		}
@@ -1715,6 +1783,10 @@ static struct Damage battle_calc_weapon_attack(
 					skillratio /= 12-3*skill;
 				ATK_ADDRATE(skillratio);
 			}
+			if (skill_num == NJ_SYURIKEN && (skill = pc_checkskill(sd,NJ_TOBIDOUGU)) > 0)
+				ATK_ADD(3*skill);
+			if (skill_num == NJ_KUNAI)
+				ATK_ADD(60);
 		}
 	} //Here ends flag.hit section, the rest of the function applies to both hitting and missing attacks
   	else if(wd.div_ < 0) //Since the attack missed...
@@ -2243,6 +2315,24 @@ struct Damage battle_calc_magic_attack(
 					case SL_SMA:
 						skillratio += -60 + status_get_lv(src); //Base damage is 40% + lv%
 						break;
+					case NJ_KOUENKA:
+						skillratio -= 10;
+						break;
+					case NJ_KAENSIN:
+						skillratio -= 50;
+						break;
+					case NJ_BAKUENRYU:
+						skillratio += 50*(skill_lv-1);
+						break;
+					case NJ_HYOUSYOURAKU:
+						skillratio += 50*skill_lv;
+						break;
+					case NJ_RAIGEKISAI:
+						skillratio += 60 + 40*skill_lv;
+						break;
+					case NJ_KAMAITACHI:
+						skillratio += 100*skill_lv;
+						break;
 				}
 
 				if (sd && sd->skillatk[0].id != 0)
@@ -2419,6 +2509,7 @@ struct Damage  battle_calc_misc_attack(
 	switch(skill_num){
 	case PA_PRESSURE:
 	case GS_FLING:
+	case NJ_ZENYNAGE:
 		flag.cardfix = 0;
 	case ASC_BREAKER:
 		flag.elefix = 0;
@@ -2507,6 +2598,21 @@ struct Damage  battle_calc_misc_attack(
 	  	//Overflow prevention, will anyone whine if I cap it to a few billion?
 		//Not capped to INT_MAX to give some room for further damage increase.
 			md.damage = INT_MAX>>1;
+		break;
+	case NJ_ZENYNAGE:
+		md.damage = skill_get_zeny(skill_num ,skill_lv);
+		if (!md.damage) md.damage = 2;
+		md.damage = md.damage + rand()%md.damage;
+
+		if (sd)
+		{
+			if ( md.damage > sd->status.zeny )
+				md.damage=sd->status.zeny;
+			pc_payzeny(sd, md.damage);
+		}
+
+		if(is_boss(target) || tsd || map_flag_gvg2(target->m))
+			md.damage=md.damage/3;
 		break;
 	case GS_FLING:
 		md.damage = sd?sd->status.job_level:status_get_lv(src);
