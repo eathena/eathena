@@ -23,101 +23,101 @@
 #include "utils.h"
 
 
-/* ƒXƒLƒ‹”Ô?„ƒXƒe?ƒ^ƒXˆÙí”Ô??Š·ƒe?ƒuƒ‹ */
-int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
-/* 0- */
+// ƒXƒLƒ‹”Ô?„ƒXƒe?ƒ^ƒXˆÙí”Ô??Š·ƒe?ƒuƒ‹
+int SkillStatusChangeTable[]={	// status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ
+// 0-
 	-1,-1,-1,-1,-1,-1,
-	SC_PROVOKE,			/* ƒvƒƒ{ƒbƒN */
+	SC_PROVOKE,			// ƒvƒƒ{ƒbƒN
 	SC_WATK_ELEMENT,		//Converts part of your final attack into an elemental one. [Skotlex]
 	SC_ENDURE,
 	-1,
-/* 10- */
-	SC_SIGHT,			/* ƒTƒCƒg */
+// 10-
+	SC_SIGHT,			// ƒTƒCƒg
 	-1,
-	SC_SAFETYWALL,		/* ƒZ[ƒtƒeƒB[ƒEƒH[ƒ‹ */
+	SC_SAFETYWALL,		// ƒZ[ƒtƒeƒB[ƒEƒH[ƒ‹
 	-1,-1,-1,
-	SC_FREEZE,			/* ƒtƒƒXƒgƒ_ƒCƒo? */
-	SC_STONE,			/* ƒXƒg?ƒ“ƒJ?ƒX */
+	SC_FREEZE,			// ƒtƒƒXƒgƒ_ƒCƒo?
+	SC_STONE,			// ƒXƒg?ƒ“ƒJ?ƒX
 	-1,-1,
-/* 20- */
+// 20-
 	-1,-1,-1,-1,
-	SC_RUWACH,			/* ƒ‹ƒAƒt */
-	SC_PNEUMA,			/* ƒjƒ…[ƒ} */
+	SC_RUWACH,			// ƒ‹ƒAƒt
+	SC_PNEUMA,			// ƒjƒ…[ƒ}
 	-1,-1,-1,
-	SC_INCREASEAGI,		/* ‘¬“x?‰Á */
-/* 30- */
-	SC_DECREASEAGI,		/* ‘¬“xŒ¸­ */
+	SC_INCREASEAGI,		// ‘¬“x?‰Á
+// 30-
+	SC_DECREASEAGI,		// ‘¬“xŒ¸­
 	-1,
-	SC_SIGNUMCRUCIS,	/* ƒVƒOƒiƒ€ƒNƒ‹ƒVƒX */
-	SC_ANGELUS,			/* ƒGƒ“ƒWƒFƒ‰ƒX */
-	SC_BLESSING,		/* ƒuƒŒƒbƒVƒ“ƒO */
+	SC_SIGNUMCRUCIS,	// ƒVƒOƒiƒ€ƒNƒ‹ƒVƒX
+	SC_ANGELUS,			// ƒGƒ“ƒWƒFƒ‰ƒX
+	SC_BLESSING,		// ƒuƒŒƒbƒVƒ“ƒO
 	-1,-1,-1,-1,-1,
-/* 40- */
+// 40-
 	-1,-1,-1,-1,-1,
-	SC_CONCENTRATE,		/* W’†—ÍŒüã */
+	SC_CONCENTRATE,		// W’†—ÍŒüã
 	-1,-1,-1,-1,
-/* 50- */
+// 50-
 	-1,
-	SC_HIDING,			/* ƒnƒCƒfƒBƒ“ƒO */
+	SC_HIDING,			// ƒnƒCƒfƒBƒ“ƒO
 	-1,-1,-1,-1,-1,-1,-1,-1,
-/* 60- */
-	SC_TWOHANDQUICKEN,	/* 2HQ */
+// 60-
+	SC_TWOHANDQUICKEN,	// 2HQ
 	SC_AUTOCOUNTER,
 	-1,-1,-1,-1,
-	SC_IMPOSITIO,		/* ƒCƒ“ƒ|ƒVƒeƒBƒIƒ}ƒkƒX */
-	SC_SUFFRAGIUM,		/* ƒTƒtƒ‰ƒMƒEƒ€ */
-	SC_ASPERSIO,		/* ƒAƒXƒyƒ‹ƒVƒI */
-	SC_BENEDICTIO,		/* ¹?~•Ÿ */
-/* 70- */
+	SC_IMPOSITIO,		// ƒCƒ“ƒ|ƒVƒeƒBƒIƒ}ƒkƒX
+	SC_SUFFRAGIUM,		// ƒTƒtƒ‰ƒMƒEƒ€
+	SC_ASPERSIO,		// ƒAƒXƒyƒ‹ƒVƒI
+	SC_BENEDICTIO,		// ¹?~•Ÿ
+// 70-
 	-1,
 	SC_SLOWPOISON,
 	-1,
-	SC_KYRIE,			/* ƒLƒŠƒGƒGƒŒƒCƒ\ƒ“ */
-	SC_MAGNIFICAT,		/* ƒ}ƒOƒjƒtƒBƒJ?ƒg */
-	SC_GLORIA,			/* ƒOƒƒŠƒA */
-	SC_DIVINA,			/* ƒŒƒbƒNƒXƒfƒBƒr?ƒi */
+	SC_KYRIE,			// ƒLƒŠƒGƒGƒŒƒCƒ\ƒ“
+	SC_MAGNIFICAT,		// ƒ}ƒOƒjƒtƒBƒJ?ƒg
+	SC_GLORIA,			// ƒOƒƒŠƒA
+	SC_DIVINA,			// ƒŒƒbƒNƒXƒfƒBƒr?ƒi
 	-1,
-	SC_AETERNA,			/* ƒŒƒbƒNƒXƒG?ƒeƒ‹ƒi */
+	SC_AETERNA,			// ƒŒƒbƒNƒXƒG?ƒeƒ‹ƒi
 	-1,
-/* 80- */
+// 80-
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-/* 90- */
+// 90-
 	-1,-1,
-	SC_QUAGMIRE,		/* ƒNƒ@ƒOƒ}ƒCƒA */
+	SC_QUAGMIRE,		// ƒNƒ@ƒOƒ}ƒCƒA
 	-1,-1,-1,-1,-1,-1,-1,
-/* 100- */
+// 100-
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-/* 110- */
+// 110-
 	-1,
-	SC_ADRENALINE,		/* ƒAƒhƒŒƒiƒŠƒ“ƒ‰ƒbƒVƒ… */
-	SC_WEAPONPERFECTION,/* ƒEƒFƒ|ƒ“ƒp?ƒtƒFƒNƒVƒ‡ƒ“ */
-	SC_OVERTHRUST,		/* ƒI?ƒo?ƒgƒ‰ƒXƒg */
-	SC_MAXIMIZEPOWER,	/* ƒ}ƒLƒVƒ}ƒCƒYƒpƒ? */
+	SC_ADRENALINE,		// ƒAƒhƒŒƒiƒŠƒ“ƒ‰ƒbƒVƒ…
+	SC_WEAPONPERFECTION,// ƒEƒFƒ|ƒ“ƒp?ƒtƒFƒNƒVƒ‡ƒ“
+	SC_OVERTHRUST,		// ƒI?ƒo?ƒgƒ‰ƒXƒg
+	SC_MAXIMIZEPOWER,	// ƒ}ƒLƒVƒ}ƒCƒYƒpƒ?
 	-1,-1,-1,-1,-1,
-/* 120- */
+// 120-
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-/* 130- */
+// 130-
 	-1,-1,-1,-1,-1,
-	SC_CLOAKING,		/* ƒNƒ?ƒLƒ“ƒO */
-	SC_STAN,			/* ƒ\ƒjƒbƒNƒuƒ? */
+	SC_CLOAKING,		// ƒNƒ?ƒLƒ“ƒO
+	SC_STAN,			// ƒ\ƒjƒbƒNƒuƒ?
 	-1,
-	SC_ENCPOISON,		/* ƒGƒ“ƒ`ƒƒƒ“ƒgƒ|ƒCƒYƒ“ */
-	SC_POISONREACT,		/* ƒ|ƒCƒYƒ“ƒŠƒAƒNƒg */
-/* 140- */
-	SC_POISON,			/* ƒxƒmƒ€ƒ_ƒXƒg */
-	SC_SPLASHER,		/* ƒxƒiƒ€ƒXƒvƒ‰ƒbƒVƒƒ? */
+	SC_ENCPOISON,		// ƒGƒ“ƒ`ƒƒƒ“ƒgƒ|ƒCƒYƒ“
+	SC_POISONREACT,		// ƒ|ƒCƒYƒ“ƒŠƒAƒNƒg
+// 140-
+	SC_POISON,			// ƒxƒmƒ€ƒ_ƒXƒg
+	SC_SPLASHER,		// ƒxƒiƒ€ƒXƒvƒ‰ƒbƒVƒƒ?
 	-1,
-	SC_TRICKDEAD,		/* €‚ñ‚¾‚Ó‚è */
+	SC_TRICKDEAD,		// €‚ñ‚¾‚Ó‚è
 	-1,-1,
 	SC_AUTOBERSERK,
 	-1,-1,-1,
-/* 150- */
+// 150-
 	-1,-1,-1,-1,-1,
-	SC_LOUD,			/* ƒ‰ƒEƒhƒ{ƒCƒX */
+	SC_LOUD,			// ƒ‰ƒEƒhƒ{ƒCƒX
 	-1,
-	SC_ENERGYCOAT,		/* ƒGƒiƒW?ƒR?ƒg */
+	SC_ENERGYCOAT,		// ƒGƒiƒW?ƒR?ƒg
 	-1,-1,
-/* 160- */
+// 160-
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -129,26 +129,26 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 	-1,-1,
 	SC_HALLUCINATION,
 	-1,-1,
-/* 210- */
+// 210-
 	-1,-1,-1,-1,-1,
 	SC_STRIPWEAPON,
 	SC_STRIPSHIELD,
 	SC_STRIPARMOR,
 	SC_STRIPHELM,
 	-1,
-/* 220- */
+// 220-
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-/* 230- */
+// 230-
 	-1,-1,-1,-1,
 	SC_CP_WEAPON,
 	SC_CP_SHIELD,
 	SC_CP_ARMOR,
 	SC_CP_HELM,
 	-1,-1,
-/* 240- */
+// 240-
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,
 	SC_AUTOGUARD,
-/* 250- */
+// 250-
 	-1,-1,
 	SC_REFLECTSHIELD,
 	-1,-1,
@@ -157,17 +157,17 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 	SC_DEFENDER,
 	SC_SPEARSQUICKEN,
 	-1,
-/* 260- */
+// 260-
 	-1,-1,-1,-1,-1,-1,-1,-1,
 	SC_STEELBODY,
 	SC_BLADESTOP_WAIT,
-/* 270- */
+// 270-
 	SC_EXPLOSIONSPIRITS,
 	SC_EXTREMITYFIST,
 	-1,-1,-1,-1,
 	SC_MAGICROD,
 	-1,-1,-1,
-/* 280- */
+// 280-
 	SC_FLAMELAUNCHER,
 	SC_FROSTWEAPON,
 	SC_LIGHTNINGLOADER,
@@ -178,15 +178,15 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 	SC_VIOLENTGALE,
 	SC_LANDPROTECTOR,
 	-1,
-/* 290- */
+// 290-
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-/* 300- */
+// 300-
 	-1,-1,-1,-1,-1,-1,
 	SC_LULLABY,
 	SC_RICHMANKIM,
 	SC_ETERNALCHAOS,
 	SC_DRUMBATTLE,
-/* 310- */
+// 310-
 	SC_NIBELUNGEN,
 	SC_ROKISWEIL,
 	SC_INTOABYSS,
@@ -195,7 +195,7 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 	SC_DISSONANCE,
 	-1,
 	SC_WHISTLE,
-/* 320- */
+// 320-
 	SC_ASSNCROS,
 	SC_POEMBRAGI,
 	SC_APPLEIDUN,
@@ -205,19 +205,19 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 	SC_HUMMING,
 	SC_DONTFORGETME,
 	SC_FORTUNE,
-/* 330- */
+// 330-
 	SC_SERVICE4U,
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,
-/* 340- */
+// 340-
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-/* 350- */
+// 350-
 	-1,-1,-1,-1,-1,
 	SC_AURABLADE,
 	SC_PARRYING,
 	SC_CONCENTRATION,
 	SC_TENSIONRELAX,
 	SC_BERSERK,
-/* 360- */
+// 360-
 	SC_BERSERK,
 	SC_ASSUMPTIO,
 	SC_BASILICA,
@@ -226,11 +226,11 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 	-1,
 	SC_SACRIFICE,
 	SC_GOSPEL,
-/* 370- */
+// 370-
 	-1,-1,-1,-1,-1,-1,-1,-1,
 	SC_EDP,
 	-1,
-/* 380- */
+// 380-
 	SC_TRUESIGHT,
 	-1,-1,
 	SC_WINDWALK,
@@ -239,7 +239,7 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 	SC_CARTBOOST,
 	-1,
 	SC_CHASEWALK,
-/* 390- */
+// 390-
 	SC_REJECTSWORD,
 	-1,-1,-1,-1,
 	SC_MOONLIT,
@@ -247,7 +247,7 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 	-1,
 	SC_BLEEDING,
 	SC_JOINTBEAT,
-/* 400 */
+// 400
 	-1,-1,
 	SC_MINDBREAKER,
 	SC_MEMORIZE,
@@ -256,7 +256,7 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 	-1,-1,
 	SC_BABY,
 	-1,
-/* 410- */
+// 410-
 	-1,
 	SC_RUN,
 	SC_READYSTORM,
@@ -267,22 +267,22 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 	SC_TURNKICK,
 	SC_READYCOUNTER,
 	SC_COUNTER,
-/* 420- */
+// 420-
 	SC_DODGE,
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,
-/* 430- */
+// 430-
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-/* 440- */
+// 440-
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-/* 450- */
+// 450-
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-/* 460- */
+// 460-
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-/* 470- */
+// 470-
 	-1,-1,-1,-1,-1,
 	SC_PRESERVE,
 	-1,-1,-1,-1,
-/* 480- */
+// 480-
 	-1,-1,
 	SC_DOUBLECAST,
 	-1,
@@ -292,7 +292,7 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 	SC_LONGING,
 	SC_HERMODE,
 	-1,
-/* 490- */
+// 490-
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 };
 
@@ -1152,7 +1152,7 @@ int status_calc_pc(map_session_data& sd, int first)
 		
 		if((skill=pc_checkskill(sd,HP_MEDITATIO))>0) // ƒƒfƒBƒeƒCƒeƒBƒI
 			sd.status.max_sp += sd.status.max_sp*skill/100;
-		if((skill=pc_checkskill(sd,HW_SOULDRAIN))>0) /* ƒ\ƒEƒ‹ƒhƒŒƒCƒ“ */
+		if((skill=pc_checkskill(sd,HW_SOULDRAIN))>0) // ƒ\ƒEƒ‹ƒhƒŒƒCƒ“ 
 			sd.status.max_sp += sd.status.max_sp*2*skill/100;
 		if(sd.sc_data && sd.sc_data[SC_INCMSP2].timer!=-1) {
 			sd.status.max_sp += sd.status.max_sp*sd.sc_data[SC_INCMSP2].val1.num/100;
@@ -1167,7 +1167,7 @@ int status_calc_pc(map_session_data& sd, int first)
 
 		//©‘R‰ñ•œHP
 		sd.nhealhp = 1 + (sd.paramc[2]/5) + (sd.status.max_hp/200);
-		if((skill=pc_checkskill(sd,SM_RECOVERY)) > 0) {	/* HP‰ñ•œ—ÍŒüã */
+		if((skill=pc_checkskill(sd,SM_RECOVERY)) > 0) {	// HP‰ñ•œ—ÍŒüã
 			sd.nshealhp = skill*5 + (sd.status.max_hp*skill/500);
 			if(sd.nshealhp > 0x7fff) sd.nshealhp = 0x7fff;
 		}
@@ -1191,7 +1191,7 @@ int status_calc_pc(map_session_data& sd, int first)
 		sd.nhealsp = 1 + (sd.paramc[3]/6) + (sd.status.max_sp/100);
 		if(sd.paramc[3] >= 120)
 			sd.nhealsp += ((sd.paramc[3]-120)>>1) + 4;
-		if((skill=pc_checkskill(sd,MG_SRECOVERY)) > 0) { /* SP‰ñ•œ—ÍŒüã */
+		if((skill=pc_checkskill(sd,MG_SRECOVERY)) > 0) { // SP‰ñ•œ—ÍŒüã 
 			sd.nshealsp = skill*3 + (sd.status.max_sp*skill/500);
 			if(sd.nshealsp > 0x7fff) sd.nshealsp = 0x7fff;
 		}
@@ -3414,7 +3414,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 		if( sd && type == SC_ADRENALINE && !(skill_get_weapontype(BS_ADRENALINE)&(1<<sd->status.weapon)))
 			return 0;
 
-		if(SC_STONE<=type && type<=SC_BLIND){	/* ƒJ?ƒh‚É‚æ‚é‘Ï« */
+		if(SC_STONE<=type && type<=SC_BLIND){	// ƒJ?ƒh‚É‚æ‚é‘Ï«
 			if( sd && sd->reseff[type-SC_STONE] > 0 && rand()%10000<sd->reseff[type-SC_STONE]){
 				if(config.battle_log)
 					ShowMessage("PC %d skill_sc_start: card‚É‚æ‚éˆÙí‘Ï«?“®\n",sd->block_list::id);
@@ -3458,14 +3458,14 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 		bl->stop_walking(1);
 
 	if(sc_data[type].timer != -1)
-	{	/* ‚·‚Å‚É“¯‚¶ˆÙí‚É‚È‚Á‚Ä‚¢‚éê‡ƒ^ƒCƒ}‰ğœ */
+	{	// ‚·‚Å‚É“¯‚¶ˆÙí‚É‚È‚Á‚Ä‚¢‚éê‡ƒ^ƒCƒ}‰ğœ
 		if(sc_data[type].val1.num > val1.num && type != SC_COMBO && type != SC_DANCING && type != SC_DEVOTION &&
 			type != SC_SPEEDPOTION0 && type != SC_SPEEDPOTION1 && type != SC_SPEEDPOTION2 && type != SC_SPEEDPOTION3
 			&& type != SC_ATKPOT && type != SC_MATKPOT) // added atk and matk potions [Valaris]
 			return 0;
 
 		if ((type >=SC_STAN && type <= SC_BLIND) || type == SC_DPOISON)
-			return 0;/* ?‚¬‘«‚µ‚ª‚Å‚«‚È‚¢?‘ÔˆÙí‚Å‚ ‚é‚Í?‘ÔˆÙí‚ğs‚í‚È‚¢ */
+			return 0;// ?‚¬‘«‚µ‚ª‚Å‚«‚È‚¢?‘ÔˆÙí‚Å‚ ‚é‚Í?‘ÔˆÙí‚ğs‚í‚È‚¢
 
 		delete_timer(sc_data[type].timer, status_change_timer);
 		sc_data[type].timer = -1;
@@ -3479,12 +3479,12 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 		type==SC_WINDWALK || type==SC_CARTBOOST || type==SC_ASSNCROS))
 	return 0;
 
-	switch(type){	/* ˆÙí‚Ìí—Ş‚²‚Æ‚Ì?— */
-		case SC_PROVOKE:			/* ƒvƒƒ{ƒbƒN */
+	switch(type){	// ˆÙí‚Ìí—Ş‚²‚Æ‚Ì?—
+		case SC_PROVOKE:			// ƒvƒƒ{ƒbƒN
 			calc_flag = 1;
-			if(tick <= 0) tick = 1000;	/* (ƒI?ƒgƒo?ƒT?ƒN) */
+			if(tick <= 0) tick = 1000;	// (ƒI?ƒgƒo?ƒT?ƒN)
 			break;
-		case SC_ENDURE:				/* ƒCƒ“ƒfƒ…ƒA */
+		case SC_ENDURE:				// ƒCƒ“ƒfƒ…ƒA
 			calc_flag = 1; // for updating mdef
 			if(tick <= 0) tick = 1000 * 60;
 			val2 = 7; // [Celest]
@@ -3498,15 +3498,15 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			}
 			break;
 		
-		case SC_INCREASEAGI:		/* ‘¬“xã¸ */
+		case SC_INCREASEAGI:		// ‘¬“xã¸
 			calc_flag = 1;
 			if(sc_data[SC_DECREASEAGI].timer!=-1 )
 				status_change_end(bl,SC_DECREASEAGI,-1);
 			// the effect will still remain [celest]
-//			if(sc_data[SC_WINDWALK].timer!=-1 )	/* ƒEƒCƒ“ƒhƒEƒH?ƒN */
+//			if(sc_data[SC_WINDWALK].timer!=-1 )	// ƒEƒCƒ“ƒhƒEƒH?ƒN
 //				status_change_end(bl,SC_WINDWALK,-1);
 			break;
-		case SC_DECREASEAGI:		/* ‘¬“xŒ¸­ */
+		case SC_DECREASEAGI:		// ‘¬“xŒ¸­
 			if (*bl == BL_PC)	// Celest
 				tick>>=1;
 			calc_flag = 1;
@@ -3519,7 +3519,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			if(sc_data[SC_TWOHANDQUICKEN].timer!=-1 )
 				status_change_end(bl,SC_TWOHANDQUICKEN,-1);
 			break;
-		case SC_SIGNUMCRUCIS:		/* ƒVƒOƒiƒ€ƒNƒ‹ƒVƒX */
+		case SC_SIGNUMCRUCIS:		// ƒVƒOƒiƒ€ƒNƒ‹ƒVƒX
 			calc_flag = 1;
 			val2 = 10 + val1.num*2;
 			tick = 600*1000;
@@ -3529,13 +3529,13 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			if (sc_data[SC_POISON].timer == -1 && sc_data[SC_DPOISON].timer == -1)
 				return 0;
 			break;
-		case SC_TWOHANDQUICKEN:		/* 2HQ */
+		case SC_TWOHANDQUICKEN:		// 2HQ
 			if(sc_data[SC_DECREASEAGI].timer!=-1)
 				return 0;
 			*opt3 |= 1;
 			calc_flag = 1;
 			break;
-		case SC_ADRENALINE:			/* ƒAƒhƒŒƒiƒŠƒ“ƒ‰ƒbƒVƒ… */
+		case SC_ADRENALINE:			// ƒAƒhƒŒƒiƒŠƒ“ƒ‰ƒbƒVƒ…
 			if(sc_data[SC_DECREASEAGI].timer!=-1)
 				return 0;
 			if(*bl == BL_PC)
@@ -3543,62 +3543,62 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 					tick += tick / 10;
 			calc_flag = 1;
 			break;
-		case SC_WEAPONPERFECTION:	/* ƒEƒFƒ|ƒ“ƒp?ƒtƒFƒNƒVƒ‡ƒ“ */
+		case SC_WEAPONPERFECTION:	// ƒEƒFƒ|ƒ“ƒp?ƒtƒFƒNƒVƒ‡ƒ“
 			if(*bl == BL_PC)
 				if(pc_checkskill(*sd,BS_HILTBINDING)>0)
 					tick += tick / 10;
 			break;
-		case SC_OVERTHRUST:			/* ƒI?ƒo?ƒXƒ‰ƒXƒg */
+		case SC_OVERTHRUST:			// ƒI?ƒo?ƒXƒ‰ƒXƒg
 			if(*bl == BL_PC)
 				if(pc_checkskill(*sd,BS_HILTBINDING)>0)
 					tick += tick / 10;
 			*opt3 |= 2;
 			break;
-		case SC_MAXIMIZEPOWER:		/* ƒ}ƒLƒVƒ}ƒCƒYƒpƒ?(SP‚ª1Œ¸‚éŠÔ,val2‚É‚à) */
+		case SC_MAXIMIZEPOWER:		// ƒ}ƒLƒVƒ}ƒCƒYƒpƒ?(SP‚ª1Œ¸‚éŠÔ,val2‚É‚à)
 			if(*bl == BL_PC)
 				val2 = tick;
 			else
 				tick = 5000*val1.num;
 			break;
-		case SC_ENCPOISON:			/* ƒGƒ“ƒ`ƒƒƒ“ƒgƒ|ƒCƒYƒ“ */
+		case SC_ENCPOISON:			// ƒGƒ“ƒ`ƒƒƒ“ƒgƒ|ƒCƒYƒ“
 			calc_flag = 1;
-			val2=(((val1.num - 1) / 2) + 3)*100;	/* “Å•t?Šm—¦ */
+			val2=(((val1.num - 1) / 2) + 3)*100;	// “Å•t?Šm—¦
 			skill_enchant_elemental_end(bl,SC_ENCPOISON);
 			break;
 		case SC_EDP:	// [Celest]
-			val2 = val1.num + 2;			/* –Ò“Å•t?Šm—¦(%) */
+			val2 = val1.num + 2;			// –Ò“Å•t?Šm—¦(%)
 			calc_flag = 1;
 			break;
-		case SC_POISONREACT:	/* ƒ|ƒCƒYƒ“ƒŠƒAƒNƒg */
+		case SC_POISONREACT:	// ƒ|ƒCƒYƒ“ƒŠƒAƒNƒg
 			val2=val1.num/2 + val1.num%2; // [Celest]
 			break;
-		case SC_ASPERSIO:			/* ƒAƒXƒyƒ‹ƒVƒI */
+		case SC_ASPERSIO:			// ƒAƒXƒyƒ‹ƒVƒI
 			skill_enchant_elemental_end(bl,SC_ASPERSIO);
 			break;
-		case SC_ENERGYCOAT:			/* ƒGƒiƒW?ƒR?ƒg */
+		case SC_ENERGYCOAT:			// ƒGƒiƒW?ƒR?ƒg
 			*opt3 |= 4;
 			break;
 		case SC_MAGICROD:
 			val2 = val1.num*20;
 			break;
-		case SC_KYRIE:				/* ƒLƒŠƒGƒGƒŒƒCƒ\ƒ“ */
-			val2 = bl->get_max_hp() * (val1.num * 2 + 10) / 100;/* ‘Ï‹v“x */
-			val3 = (val1.num / 2 + 5);	/* ‰ñ? */
+		case SC_KYRIE:				// ƒLƒŠƒGƒGƒŒƒCƒ\ƒ“
+			val2 = bl->get_max_hp() * (val1.num * 2 + 10) / 100;// ‘Ï‹v“x
+			val3 = (val1.num / 2 + 5);	// ‰ñ?
 // -- moonsoul (added to undo assumptio status if target has it)
 			if(sc_data[SC_ASSUMPTIO].timer!=-1 )
 				status_change_end(bl,SC_ASSUMPTIO,-1);
 			break;
 		case SC_MINDBREAKER:
 			calc_flag = 1;
-			if(tick <= 0) tick = 1000;	/* (ƒI?ƒgƒo?ƒT?ƒN) */
-		case SC_TRICKDEAD:			/* €‚ñ‚¾‚Ó‚è */
+			if(tick <= 0) tick = 1000;	// (ƒI?ƒgƒo?ƒT?ƒN)
+		case SC_TRICKDEAD:			// €‚ñ‚¾‚Ó‚è
 			bl->stop_attack();
 			break;
-		case SC_QUAGMIRE:			/* ƒNƒ@ƒOƒ}ƒCƒA */
+		case SC_QUAGMIRE:			// ƒNƒ@ƒOƒ}ƒCƒA
 			calc_flag = 1;
-			if(sc_data[SC_CONCENTRATE].timer!=-1 )	/* W’†—ÍŒüã‰ğœ */
+			if(sc_data[SC_CONCENTRATE].timer!=-1 )	// W’†—ÍŒüã‰ğœ
 				status_change_end(bl,SC_CONCENTRATE,-1);
-			if(sc_data[SC_INCREASEAGI].timer!=-1 )	/* ‘¬“xã¸‰ğœ */
+			if(sc_data[SC_INCREASEAGI].timer!=-1 )	// ‘¬“xã¸‰ğœ
 				status_change_end(bl,SC_INCREASEAGI,-1);
 			if(sc_data[SC_TWOHANDQUICKEN].timer!=-1 )
 				status_change_end(bl,SC_TWOHANDQUICKEN,-1);
@@ -3606,11 +3606,11 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 				status_change_end(bl,SC_SPEARSQUICKEN,-1);
 			if(sc_data[SC_ADRENALINE].timer!=-1 )
 				status_change_end(bl,SC_ADRENALINE,-1);
-			if(sc_data[SC_TRUESIGHT].timer!=-1 )	/* ƒgƒDƒ‹?ƒTƒCƒg */
+			if(sc_data[SC_TRUESIGHT].timer!=-1 )	// ƒgƒDƒ‹?ƒTƒCƒg
 				status_change_end(bl,SC_TRUESIGHT,-1);
-			if(sc_data[SC_WINDWALK].timer!=-1 )	/* ƒEƒCƒ“ƒhƒEƒH?ƒN */
+			if(sc_data[SC_WINDWALK].timer!=-1 )	// ƒEƒCƒ“ƒhƒEƒH?ƒN
 				status_change_end(bl,SC_WINDWALK,-1);
-			if(sc_data[SC_CARTBOOST].timer!=-1 )	/* ƒJ?ƒgƒu?ƒXƒg */
+			if(sc_data[SC_CARTBOOST].timer!=-1 )	// ƒJ?ƒgƒu?ƒXƒg
 				status_change_end(bl,SC_CARTBOOST,-1);
 			break;
 		case SC_MAGICPOWER:
@@ -3620,19 +3620,19 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 		case SC_SACRIFICE:
 			val2 = 5;
 			break;
-		case SC_FLAMELAUNCHER:		/* ƒtƒŒ?ƒ€ƒ‰ƒ“ƒ`ƒƒ? */
+		case SC_FLAMELAUNCHER:		// ƒtƒŒ?ƒ€ƒ‰ƒ“ƒ`ƒƒ?
 			skill_enchant_elemental_end(bl,SC_FLAMELAUNCHER);
 			break;
-		case SC_FROSTWEAPON:		/* ƒtƒƒXƒgƒEƒFƒ|ƒ“ */
+		case SC_FROSTWEAPON:		// ƒtƒƒXƒgƒEƒFƒ|ƒ“
 			skill_enchant_elemental_end(bl,SC_FROSTWEAPON);
 			break;
-		case SC_LIGHTNINGLOADER:	/* ƒ‰ƒCƒgƒjƒ“ƒOƒ?ƒ_? */
+		case SC_LIGHTNINGLOADER:	// ƒ‰ƒCƒgƒjƒ“ƒOƒ?ƒ_?
 			skill_enchant_elemental_end(bl,SC_LIGHTNINGLOADER);
 			break;
-		case SC_SEISMICWEAPON:		/* ƒTƒCƒYƒ~ƒbƒNƒEƒFƒ|ƒ“ */
+		case SC_SEISMICWEAPON:		// ƒTƒCƒYƒ~ƒbƒNƒEƒFƒ|ƒ“
 			skill_enchant_elemental_end(bl,SC_SEISMICWEAPON);
 			break;
-		case SC_PROVIDENCE:			/* ƒvƒƒ”ƒBƒfƒ“ƒX */
+		case SC_PROVIDENCE:			// ƒvƒƒ”ƒBƒfƒ“ƒX
 			calc_flag = 1;
 			val2=val1.num*5;
 			break;
@@ -3646,7 +3646,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			if (val2.num==0) val2=85;
 			break;
 
-		case SC_AUTOSPELL:			/* ƒI?ƒgƒXƒyƒ‹ */
+		case SC_AUTOSPELL:			// ƒI?ƒgƒXƒyƒ‹
 			val4 = 5 + val1.num*2;
 			break;
 
@@ -3664,63 +3664,63 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			val3 = val1.num*3;
 			break;
 
-		case SC_SPEARSQUICKEN:		/* ƒXƒsƒAƒNƒCƒbƒPƒ“ */
+		case SC_SPEARSQUICKEN:		// ƒXƒsƒAƒNƒCƒbƒPƒ“
 			calc_flag = 1;
 			val2 = 20+val1.num;
 			*opt3 |= 1;
 			break;
 
-		case SC_BLADESTOP:		/* ”’næ‚è */
+		case SC_BLADESTOP:		// ”’næ‚è
 			if(val2.num==2 && val3.isptr && val4.isptr)
 				clif_bladestop(*((block_list *)val3.ptr),*((block_list *)val4.ptr),1);
 			*opt3 |= 32;
 			break;
 
-		case SC_LULLABY:			/* qç‰S */
+		case SC_LULLABY:			// qç‰S
 			val2 = 11;
 			break;
 		case SC_RICHMANKIM:
 			break;
-		case SC_ETERNALCHAOS:		/* ƒGƒ^?ƒiƒ‹ƒJƒIƒX */
+		case SC_ETERNALCHAOS:		// ƒGƒ^?ƒiƒ‹ƒJƒIƒX
 			calc_flag = 1;
 			break;
-		case SC_DRUMBATTLE:			/* ?‘¾ŒÛ‚Ì‹¿‚« */
+		case SC_DRUMBATTLE:			// ?‘¾ŒÛ‚Ì‹¿‚«
 			calc_flag = 1;
 			val2 = (val1.num+1)*25;
 			val3 = (val1.num+1)*2;
 			break;
-		case SC_NIBELUNGEN:			/* ƒj?ƒxƒ‹ƒ“ƒO‚Ìw—Ö */
+		case SC_NIBELUNGEN:			// ƒj?ƒxƒ‹ƒ“ƒO‚Ìw—Ö
 			calc_flag = 1;
 			//val2 = (val1.num+2)*50;
 			val3 = (val1.num+2)*25;
 			break;
-		case SC_SIEGFRIED:			/* •s€g‚ÌƒW?ƒNƒtƒŠ?ƒh */
+		case SC_SIEGFRIED:			// •s€g‚ÌƒW?ƒNƒtƒŠ?ƒh
 			calc_flag = 1;
 			val2 = 55 + val1.num*5;
 			val3 = val1.num*10;
 			break;
-		case SC_DISSONANCE:			/* •s‹¦˜a‰¹ */
-		case SC_UGLYDANCE:			/* ©•ªŸè‚Èƒ_ƒ“ƒX */
+		case SC_DISSONANCE:			// •s‹¦˜a‰¹
+		case SC_UGLYDANCE:			// ©•ªŸè‚Èƒ_ƒ“ƒX
 			val2 = 10;
 			break;
 
-		case SC_ROKISWEIL:			/* ƒƒL‚Ì‹©‚Ñ */
-		case SC_INTOABYSS:			/* [•£‚Ì’†‚É */
-		case SC_POEMBRAGI:			/* ƒuƒ‰ƒM‚Ì */
+		case SC_ROKISWEIL:			// ƒƒL‚Ì‹©‚Ñ
+		case SC_INTOABYSS:			// [•£‚Ì’†‚É
+		case SC_POEMBRAGI:			// ƒuƒ‰ƒM‚Ì
 			break;
 		
-		case SC_WHISTLE:			/* Œû“J */
-		case SC_ASSNCROS:			/* —[—z‚ÌƒAƒTƒVƒ“ƒNƒƒX */
-		case SC_APPLEIDUN:			/* ƒCƒhƒDƒ“‚Ì—ÑŒç */
-		case SC_HUMMING:			/* ƒnƒ~ƒ“ƒO */
-		case SC_FORTUNE:			/* K‰^‚ÌƒLƒX */
-		case SC_SERVICE4U:			/* ƒT?ƒrƒXƒtƒH?ƒ†? */
+		case SC_WHISTLE:			// Œû“J
+		case SC_ASSNCROS:			// —[—z‚ÌƒAƒTƒVƒ“ƒNƒƒX
+		case SC_APPLEIDUN:			// ƒCƒhƒDƒ“‚Ì—ÑŒç
+		case SC_HUMMING:			// ƒnƒ~ƒ“ƒO
+		case SC_FORTUNE:			// K‰^‚ÌƒLƒX
+		case SC_SERVICE4U:			// ƒT?ƒrƒXƒtƒH?ƒ†?
 			calc_flag = 1;
 			break;
 
-		case SC_DONTFORGETME:		/* „‚ğ–Y‚ê‚È‚¢‚Å */
+		case SC_DONTFORGETME:		// „‚ğ–Y‚ê‚È‚¢‚Å
 			calc_flag = 1;
-			if(sc_data[SC_INCREASEAGI].timer!=-1 )	/* ‘¬“xã¸‰ğœ */
+			if(sc_data[SC_INCREASEAGI].timer!=-1 )	// ‘¬“xã¸‰ğœ
 				status_change_end(bl,SC_INCREASEAGI,-1);
 			if(sc_data[SC_TWOHANDQUICKEN].timer!=-1 )
 				status_change_end(bl,SC_TWOHANDQUICKEN,-1);
@@ -3730,17 +3730,17 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 				status_change_end(bl,SC_ADRENALINE,-1);
 			if(sc_data[SC_ASSNCROS].timer!=-1 )
 				status_change_end(bl,SC_ASSNCROS,-1);
-			if(sc_data[SC_TRUESIGHT].timer!=-1 )	/* ƒgƒDƒ‹?ƒTƒCƒg */
+			if(sc_data[SC_TRUESIGHT].timer!=-1 )	// ƒgƒDƒ‹?ƒTƒCƒg
 				status_change_end(bl,SC_TRUESIGHT,-1);
-			if(sc_data[SC_WINDWALK].timer!=-1 )	/* ƒEƒCƒ“ƒhƒEƒH?ƒN */
+			if(sc_data[SC_WINDWALK].timer!=-1 )	// ƒEƒCƒ“ƒhƒEƒH?ƒN
 				status_change_end(bl,SC_WINDWALK,-1);
-			if(sc_data[SC_CARTBOOST].timer!=-1 )	/* ƒJ?ƒgƒu?ƒXƒg */
+			if(sc_data[SC_CARTBOOST].timer!=-1 )	// ƒJ?ƒgƒu?ƒXƒg
 				status_change_end(bl,SC_CARTBOOST,-1);
 			break;
 		case SC_MOONLIT:
 			val2 = bl->id;
 			break;
-		case SC_DANCING:			/* ƒ_ƒ“ƒX/‰‰‘t’† */
+		case SC_DANCING:			// ƒ_ƒ“ƒX/‰‰‘t’†
 			calc_flag = 1;
 			val3= tick / 1000;
 			tick = 1000;
@@ -3760,7 +3760,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			val3 = val4 = 0;
 			break;
 
-		case SC_SPEEDPOTION0:		/* ?‘¬ƒ|?ƒVƒ‡ƒ“ */
+		case SC_SPEEDPOTION0:		// ?‘¬ƒ|?ƒVƒ‡ƒ“
 		case SC_SPEEDPOTION1:
 		case SC_SPEEDPOTION2:
 		case SC_SPEEDPOTION3:
@@ -3778,7 +3778,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 				clif_status_change(*bl,SC_SPEEDPOTION3,0);
 			break;
 
-		/* atk & matk potions [Valaris] */
+		// atk & matk potions [Valaris]
 		case SC_ATKPOT:
 		case SC_MATKPOT:
 			calc_flag = 1;
@@ -3809,8 +3809,8 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			}
 			break;
 
-		/* option1 */
-		case SC_STONE:				/* Î‰» */
+		// option1
+		case SC_STONE:				// Î‰»
 			if(!(flag&2)) {
 				int sc_def = status_get_mdef(bl)*200;
 				tick = tick - sc_def;
@@ -3820,26 +3820,26 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			tick = 5000;
 			val2 = 1;
 			break;
-		case SC_SLEEP:				/* ‡–° */
+		case SC_SLEEP:				// ‡–°
 			if(!(flag&2)) {
 				tick = 30000;//‡–°‚ÍƒXƒe?ƒ^ƒX‘Ï«‚É?‚í‚ç‚¸30•b
 			}
 			break;
-		case SC_FREEZE:				/* “€Œ‹ */
+		case SC_FREEZE:				// “€Œ‹
 			if(!(flag&2)) {
 				int sc_def = 100 - status_get_mdef(bl);
 				tick = tick * sc_def / 100;
 			}
 			break;
-		case SC_STAN:				/* ƒXƒ^ƒ“ival2‚Éƒ~ƒŠ•bƒZƒbƒgj */
+		case SC_STAN:				// ƒXƒ^ƒ“ival2‚Éƒ~ƒŠ•bƒZƒbƒgj
 			if(!(flag&2)) {
 				int sc_def = status_get_sc_def_vit(bl);
 				tick = tick * sc_def / 100;
 			}
 			break;
 
-			/* option2 */
-		case SC_DPOISON:			/* –Ò“Å */
+			// option2
+		case SC_DPOISON:			// –Ò“Å
 		{
 			int mhp = bl->get_max_hp();
 			int hp = bl->get_hp();
@@ -3863,7 +3863,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 				}
 			}
 		}	// fall through
-		case SC_POISON:				/* “Å */
+		case SC_POISON:				// “Å
 			calc_flag = 1;
 			if(!(flag&2)) {
 				int sc_def = 100 - (bl->get_vit() + bl->get_luk()/5);
@@ -3873,7 +3873,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			if(val3.num < 1) val3.num = 1;
 			tick = 1000;
 			break;
-		case SC_SILENCE:			/* ’¾?iƒŒƒbƒNƒXƒfƒr?ƒij */
+		case SC_SILENCE:			// ’¾?iƒŒƒbƒNƒXƒfƒr?ƒij
 			if (sc_data && sc_data[SC_GOSPEL].timer!=-1)
 			{
 				struct skill_unit_group *ptr = (struct skill_unit_group *)sc_data[SC_GOSPEL].val3.ptr;
@@ -3892,7 +3892,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			clif_emotion(*bl,1);
 			if(sd)	sd->stop_walking(0);
 			break;
-		case SC_BLIND:				/* ˆÃ? */
+		case SC_BLIND:				// ˆÃ?
 			calc_flag = 1;
 			if(!(flag&2)) {
 				int sc_def = bl->get_lv()/10 + bl->get_int()/15;
@@ -3907,16 +3907,16 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			}
 			break;
 
-		/* option */
-		case SC_HIDING:		/* ƒnƒCƒfƒBƒ“ƒO */
+		// option
+		case SC_HIDING:		// ƒnƒCƒfƒBƒ“ƒO
 			calc_flag = 1;
 			if(*bl == BL_PC) {
-				val2 = tick / 1000;		/* ?ŠÔ */
+				val2 = tick / 1000;		// ?ŠÔ
 				tick = 1000;
 			}
 			break;
 		case SC_CHASEWALK:
-		case SC_CLOAKING:		/* ƒNƒ?ƒLƒ“ƒO */
+		case SC_CLOAKING:		// ƒNƒ?ƒLƒ“ƒO
 			if(*bl == BL_PC) {
 				calc_flag = 1; // [Celest]
 				val2 = tick;
@@ -3925,13 +3925,13 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			else
 				tick = 5000*val1.num;
 			break;
-		case SC_SIGHT:			/* ƒTƒCƒg/ƒ‹ƒAƒt */
+		case SC_SIGHT:			// ƒTƒCƒg/ƒ‹ƒAƒt
 		case SC_RUWACH:
 			val2 = tick/250;
 			tick = 10;
 			break;
 
-		/* ƒXƒLƒ‹‚¶‚á‚È‚¢/ŠÔ‚É?ŒW‚µ‚È‚¢ */
+		// ƒXƒLƒ‹‚¶‚á‚È‚¢/ŠÔ‚É?ŒW‚µ‚È‚¢
 		case SC_RIDING:
 			calc_flag = 1;
 			tick = 600*1000;
@@ -3970,22 +3970,22 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			val2 = 5 + val1.num*15;
 			break;
 
-		case SC_CONCENTRATION:	/* ƒRƒ“ƒZƒ“ƒgƒŒ?ƒVƒ‡ƒ“ */
+		case SC_CONCENTRATION:	// ƒRƒ“ƒZƒ“ƒgƒŒ?ƒVƒ‡ƒ“
 			*opt3 |= 1;
 			calc_flag = 1;
 			break;
 
-		case SC_TENSIONRELAX:	/* ƒeƒ“ƒVƒ‡ƒ“ƒŠƒ‰ƒbƒNƒX */
+		case SC_TENSIONRELAX:	// ƒeƒ“ƒVƒ‡ƒ“ƒŠƒ‰ƒbƒNƒX
 			if(*bl == BL_PC) {
 				tick = 10000;
 			} else return 0;
 			break;
 
-		case SC_PARRYING:		/* ƒpƒŠƒCƒ“ƒO */
+		case SC_PARRYING:		// ƒpƒŠƒCƒ“ƒO
 		    val2 = 20 + val1.num*3;
 			break;
 
-		case SC_WINDWALK:		/* ƒEƒCƒ“ƒhƒEƒH?ƒN */
+		case SC_WINDWALK:		// ƒEƒCƒ“ƒhƒEƒH?ƒN
 			calc_flag = 1;
 			val2 = (val1.num+1) / 2; //Fleeã¸—¦
 			break;
@@ -3997,7 +3997,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 				status_change_start(bl,SC_BLEEDING,val1.num,0,0,0,skill_get_time2(type,val1.num),0);
 			break;
 
-		case SC_BERSERK:		/* ƒo?ƒT?ƒN */
+		case SC_BERSERK:		// ƒo?ƒT?ƒN
 			if(sd){
 				sd->status.hp = sd->status.max_hp * 3;
 				sd->status.sp = 0;
@@ -4010,7 +4010,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			calc_flag = 1;
 			break;
 
-		case SC_ASSUMPTIO:		/* ƒAƒXƒ€ƒvƒeƒBƒI */
+		case SC_ASSUMPTIO:		// ƒAƒXƒ€ƒvƒeƒBƒI
 			if(sc_data[SC_KYRIE].timer!=-1 )
 			{
 				status_change_end(bl,SC_KYRIE,-1);
@@ -4031,7 +4031,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			}
 			break;
 
-		case SC_MARIONETTE:		/* ƒ}ƒŠƒIƒlƒbƒgƒRƒ“ƒgƒ?ƒ‹ */
+		case SC_MARIONETTE:		// ƒ}ƒŠƒIƒlƒbƒgƒRƒ“ƒgƒ?ƒ‹
 		case SC_MARIONETTE2:
 			val2 = tick;
 			if (!val3.num)
@@ -4041,11 +4041,11 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			*opt3 |= 1024;
 			break;
 
-		case SC_REJECTSWORD:	/* ƒŠƒWƒFƒNƒgƒ\?ƒh */
+		case SC_REJECTSWORD:	// ƒŠƒWƒFƒNƒgƒ\?ƒh
 			val2 = 3; //3‰ñU?‚ğ’µ‚Ë•Ô‚·
 			break;
 
-		case SC_MEMORIZE:		/* ƒƒ‚ƒ‰ƒCƒY */
+		case SC_MEMORIZE:		// ƒƒ‚ƒ‰ƒCƒY
 			val2 = 5; //‰ñ‰r¥‚ğ1/3‚É‚·‚é
 			break;
 
@@ -4081,31 +4081,31 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			break;
 
 
-		case SC_CONCENTRATE:		/* W’†—ÍŒüã */
-		case SC_BLESSING:			/* ƒuƒŒƒbƒVƒ“ƒO */
-		case SC_ANGELUS:			/* ƒAƒ“ƒ[ƒ‹ƒX */
-		case SC_IMPOSITIO:			/* ƒCƒ“ƒ|ƒVƒeƒBƒIƒ}ƒkƒX */
-		case SC_GLORIA:				/* ƒOƒƒŠƒA */
-		case SC_LOUD:				/* ƒ‰ƒEƒhƒ{ƒCƒX */
-		case SC_DEVOTION:			/* ƒfƒBƒ{?ƒVƒ‡ƒ“ */
+		case SC_CONCENTRATE:		// W’†—ÍŒüã
+		case SC_BLESSING:			// ƒuƒŒƒbƒVƒ“ƒO
+		case SC_ANGELUS:			// ƒAƒ“ƒ[ƒ‹ƒX
+		case SC_IMPOSITIO:			// ƒCƒ“ƒ|ƒVƒeƒBƒIƒ}ƒkƒX
+		case SC_GLORIA:				// ƒOƒƒŠƒA
+		case SC_LOUD:				// ƒ‰ƒEƒhƒ{ƒCƒX
+		case SC_DEVOTION:			// ƒfƒBƒ{?ƒVƒ‡ƒ“
 		case SC_KEEPING:
 		case SC_BARRIER:
-		case SC_MELTDOWN:		/* ƒƒ‹ƒgƒ_ƒEƒ“ */
-		case SC_CARTBOOST:		/* ƒJ?ƒgƒu?ƒXƒg */
-		case SC_TRUESIGHT:		/* ƒgƒDƒ‹?ƒTƒCƒg */
-		case SC_SPIDERWEB:		/* ƒXƒpƒCƒ_?ƒEƒFƒbƒu */
+		case SC_MELTDOWN:		// ƒƒ‹ƒgƒ_ƒEƒ“
+		case SC_CARTBOOST:		// ƒJ?ƒgƒu?ƒXƒg
+		case SC_TRUESIGHT:		// ƒgƒDƒ‹?ƒTƒCƒg
+		case SC_SPIDERWEB:		// ƒXƒpƒCƒ_?ƒEƒFƒbƒu
 		case SC_SLOWDOWN:
 		case SC_SPEEDUP0:
 		case SC_SPEEDUP1:
 		case SC_INCALLSTATUS:
-		case SC_INCHIT:			/* HITã¸ */
-		case SC_INCFLEE:		/* FLEEã¸ */
-		case SC_INCMHP2:		/* MHP%ã¸ */
-		case SC_INCMSP2:		/* MSP%ã¸ */
-		case SC_INCATK2:		/* ATK%ã¸ */
+		case SC_INCHIT:			// HITã¸
+		case SC_INCFLEE:		// FLEEã¸
+		case SC_INCMHP2:		// MHP%ã¸
+		case SC_INCMSP2:		// MSP%ã¸
+		case SC_INCATK2:		// ATK%ã¸
 		case SC_INCMATK2:
-		case SC_INCHIT2:		/* HIT%ã¸ */
-		case SC_INCFLEE2:		/* FLEE%ã¸ */
+		case SC_INCHIT2:		// HIT%ã¸
+		case SC_INCFLEE2:		// FLEE%ã¸
 		case SC_INCDEF2:
 		case SC_INCSTR:
 		case SC_INCAGI:
@@ -4124,28 +4124,28 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 				tick = ((struct skill_unit *)val2.ptr)->group->limit;
 			break;
 
-		case SC_SUFFRAGIUM:			/* ƒTƒtƒ‰ƒMƒ€ */
-		case SC_BENEDICTIO:			/* ¹? */
-		case SC_MAGNIFICAT:			/* ƒ}ƒOƒjƒtƒBƒJ?ƒg */
-		case SC_AETERNA:			/* ƒG?ƒeƒ‹ƒi */
+		case SC_SUFFRAGIUM:			// ƒTƒtƒ‰ƒMƒ€
+		case SC_BENEDICTIO:			// ¹?
+		case SC_MAGNIFICAT:			// ƒ}ƒOƒjƒtƒBƒJ?ƒg
+		case SC_AETERNA:			// ƒG?ƒeƒ‹ƒi
   		case SC_STRIPARMOR:
 		case SC_STRIPHELM:
 		case SC_CP_WEAPON:
 		case SC_CP_SHIELD:
 		case SC_CP_ARMOR:
 		case SC_CP_HELM:
-		case SC_EXTREMITYFIST:		/* ˆ¢C—…”e™€Œ */
-		case SC_ANKLE:	/* ƒAƒ“ƒNƒ‹ */
+		case SC_EXTREMITYFIST:		// ˆ¢C—…”e™€Œ
+		case SC_ANKLE:	// ƒAƒ“ƒNƒ‹
 		case SC_COMBO:
-		case SC_BLADESTOP_WAIT:		/* ”’næ‚è(‘Ò‚¿) */
+		case SC_BLADESTOP_WAIT:		// ”’næ‚è(‘Ò‚¿)
 		case SC_HALLUCINATION:
 		case SC_BASILICA: // [celest]
-		case SC_SPLASHER:		/* ƒxƒiƒ€ƒXƒvƒ‰ƒbƒVƒƒ? */
+		case SC_SPLASHER:		// ƒxƒiƒ€ƒXƒvƒ‰ƒbƒVƒƒ?
 		case SC_FOGWALL:
 		case SC_PRESERVE:
 		case SC_DOUBLECAST:
 		case SC_MAXOVERTHRUST:
-        case SC_AURABLADE:		/* ƒI?ƒ‰ƒuƒŒ?ƒh */
+        case SC_AURABLADE:		// ƒI?ƒ‰ƒuƒŒ?ƒh
        	case SC_BABY:
 		case SC_RUN:
 		case SC_WATK_ELEMENT:
@@ -4158,9 +4158,9 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 	}
 
 	if (*bl == BL_PC && (config.display_hallucination || type != SC_HALLUCINATION))
-		clif_status_change(*bl,type,1);	/* ƒAƒCƒRƒ“•\¦ */
+		clif_status_change(*bl,type,1);	// ƒAƒCƒRƒ“•\¦
 
-	/* option‚Ì?X */
+	// option‚Ì?X
 	switch(type){
 		case SC_STONE:
 		case SC_FREEZE:
@@ -4176,9 +4176,9 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 		        if (md->skilltimer != -1) skill_castcancel(bl, 0);
 			}	    		
 
-			bl->stop_attack();	/* U?’â~ */
-			skill_stop_dancing(bl,0);	/* ‰‰‘t/ƒ_ƒ“ƒX‚Ì’†? */
-			{	/* “¯‚ÉŠ|‚©‚ç‚È‚¢ƒXƒe?ƒ^ƒXˆÙí‚ğ‰ğœ */
+			bl->stop_attack();	// U?’â~
+			skill_stop_dancing(bl,0);	// ‰‰‘t/ƒ_ƒ“ƒX‚Ì’†?
+			{	// “¯‚ÉŠ|‚©‚ç‚È‚¢ƒXƒe?ƒ^ƒXˆÙí‚ğ‰ğœ
 				int i;
 				for(i = SC_STONE; i <= SC_SLEEP; ++i){
 					if(sc_data[i].timer != -1){
@@ -4210,12 +4210,12 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			break;
 		case SC_HIDING:
 		case SC_CLOAKING:
-			bl->stop_attack();	/* U?’â~ */
+			bl->stop_attack();	// U?’â~
 			*option |= ((type==SC_HIDING)?2:4);
 			opt_flag =1 ;
 			break;
 		case SC_CHASEWALK:
-			bl->stop_attack();	/* U?’â~ */
+			bl->stop_attack();	// U?’â~
 			*option |= 16388;
 			opt_flag =1 ;
 			break;
@@ -4232,24 +4232,24 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			opt_flag = 1;
 	}
 
-	if(opt_flag)	/* option‚Ì?X */
+	if(opt_flag)	// option‚Ì?X
 		clif_changeoption(*bl);
 
 	sc_data[type].val1 = val1;
 	sc_data[type].val2 = val2;
 	sc_data[type].val3 = val3;
 	sc_data[type].val4 = val4;
-	/* ƒ^ƒCƒ}?İ’è */
+	// ƒ^ƒCƒ}?İ’è
 	sc_data[type].timer = add_timer(gettick() + tick, status_change_timer, bl->id, type);
 
 	if(*bl==BL_PC && calc_flag)
-		status_calc_pc(*sd,0);	/* ƒXƒe?ƒ^ƒXÄŒvZ */
+		status_calc_pc(*sd,0);	// ƒXƒe?ƒ^ƒXÄŒvZ
 
 	if(*bl==BL_PC && save_flag)
 		chrif_save(*sd); // save the player status
 
 	if(*bl==BL_PC && updateflag)
-		clif_updatestatus(*sd,updateflag);	/* ƒXƒe?ƒ^ƒX‚ğƒNƒ‰ƒCƒAƒ“ƒg‚É‘—‚é */
+		clif_updatestatus(*sd,updateflag);	// ƒXƒe?ƒ^ƒX‚ğƒNƒ‰ƒCƒAƒ“ƒg‚É‘—‚é
 
 	if (*bl==BL_PC && sd->pd)
 		pet_sc_check(*sd, type); //Skotlex: Pet Status Effect Healing
@@ -4274,7 +4274,7 @@ int status_change_clear(block_list *bl,int type)
 
 	for(i = 0; i < MAX_STATUSCHANGE; ++i)
 	{
-		if(sc_data[i].timer != -1){	/* ˆÙí‚ª‚ ‚é‚È‚çƒ^ƒCƒ}?‚ğíœ‚·‚é */
+		if(sc_data[i].timer != -1){	// ˆÙí‚ª‚ ‚é‚È‚çƒ^ƒCƒ}?‚ğíœ‚·‚é
 			status_change_end(bl, i, -1);
 		}
 	}
@@ -4320,57 +4320,57 @@ int status_change_end( block_list* bl, int type, int tid )
 		// ŠY?‚ÌˆÙí‚ğ³í‚É?‚· 
 		sc_data[type].timer=-1;
 
-		switch(type){	/* ˆÙí‚Ìí—Ş‚²‚Æ‚Ì?— */
-			case SC_PROVOKE:			/* ƒvƒƒ{ƒbƒN */
+		switch(type){	// ˆÙí‚Ìí—Ş‚²‚Æ‚Ì?—
+			case SC_PROVOKE:			// ƒvƒƒ{ƒbƒN
 			case SC_ENDURE: // celest
-			case SC_CONCENTRATE:		/* W’†—ÍŒüã */
-			case SC_BLESSING:			/* ƒuƒŒƒbƒVƒ“ƒO */
-			case SC_ANGELUS:			/* ƒAƒ“ƒ[ƒ‹ƒX */
-			case SC_INCREASEAGI:		/* ‘¬“xã¸ */
-			case SC_DECREASEAGI:		/* ‘¬“xŒ¸­ */
-			case SC_SIGNUMCRUCIS:		/* ƒVƒOƒiƒ€ƒNƒ‹ƒVƒX */
+			case SC_CONCENTRATE:		// W’†—ÍŒüã
+			case SC_BLESSING:			// ƒuƒŒƒbƒVƒ“ƒO
+			case SC_ANGELUS:			// ƒAƒ“ƒ[ƒ‹ƒX
+			case SC_INCREASEAGI:		// ‘¬“xã¸
+			case SC_DECREASEAGI:		// ‘¬“xŒ¸­
+			case SC_SIGNUMCRUCIS:		// ƒVƒOƒiƒ€ƒNƒ‹ƒVƒX
 			case SC_HIDING:
-			case SC_TWOHANDQUICKEN:		/* 2HQ */
-			case SC_ADRENALINE:			/* ƒAƒhƒŒƒiƒŠƒ“ƒ‰ƒbƒVƒ… */
-			case SC_ENCPOISON:			/* ƒGƒ“ƒ`ƒƒƒ“ƒgƒ|ƒCƒYƒ“ */
-			case SC_IMPOSITIO:			/* ƒCƒ“ƒ|ƒVƒeƒBƒIƒ}ƒkƒX */
-			case SC_GLORIA:				/* ƒOƒƒŠƒA */
-			case SC_LOUD:				/* ƒ‰ƒEƒhƒ{ƒCƒX */
-			case SC_QUAGMIRE:			/* ƒNƒ@ƒOƒ}ƒCƒA */
-			case SC_PROVIDENCE:			/* ƒvƒƒ”ƒBƒfƒ“ƒX */
-			case SC_SPEARSQUICKEN:		/* ƒXƒsƒAƒNƒCƒbƒPƒ“ */
+			case SC_TWOHANDQUICKEN:		// 2HQ
+			case SC_ADRENALINE:			// ƒAƒhƒŒƒiƒŠƒ“ƒ‰ƒbƒVƒ…
+			case SC_ENCPOISON:			// ƒGƒ“ƒ`ƒƒƒ“ƒgƒ|ƒCƒYƒ“
+			case SC_IMPOSITIO:			// ƒCƒ“ƒ|ƒVƒeƒBƒIƒ}ƒkƒX
+			case SC_GLORIA:				// ƒOƒƒŠƒA
+			case SC_LOUD:				// ƒ‰ƒEƒhƒ{ƒCƒX
+			case SC_QUAGMIRE:			// ƒNƒ@ƒOƒ}ƒCƒA
+			case SC_PROVIDENCE:			// ƒvƒƒ”ƒBƒfƒ“ƒX
+			case SC_SPEARSQUICKEN:		// ƒXƒsƒAƒNƒCƒbƒPƒ“
 			case SC_VOLCANO:
 			case SC_DELUGE:
 			case SC_VIOLENTGALE:
-			case SC_ETERNALCHAOS:		/* ƒGƒ^?ƒiƒ‹ƒJƒIƒX */
-			case SC_DRUMBATTLE:			/* ?‘¾ŒÛ‚Ì‹¿‚« */
-			case SC_NIBELUNGEN:			/* ƒj?ƒxƒ‹ƒ“ƒO‚Ìw—Ö */
-			case SC_SIEGFRIED:			/* •s€g‚ÌƒW?ƒNƒtƒŠ?ƒh */
-			case SC_WHISTLE:			/* Œû“J */
-			case SC_ASSNCROS:			/* —[—z‚ÌƒAƒTƒVƒ“ƒNƒƒX */
-			case SC_HUMMING:			/* ƒnƒ~ƒ“ƒO */
-			case SC_DONTFORGETME:		/* „‚ğ–Y‚ê‚È‚¢‚Å */
-			case SC_FORTUNE:			/* K‰^‚ÌƒLƒX */
-			case SC_SERVICE4U:			/* ƒT?ƒrƒXƒtƒH?ƒ†? */
+			case SC_ETERNALCHAOS:		// ƒGƒ^?ƒiƒ‹ƒJƒIƒX
+			case SC_DRUMBATTLE:			// ?‘¾ŒÛ‚Ì‹¿‚«
+			case SC_NIBELUNGEN:			// ƒj?ƒxƒ‹ƒ“ƒO‚Ìw—Ö
+			case SC_SIEGFRIED:			// •s€g‚ÌƒW?ƒNƒtƒŠ?ƒh
+			case SC_WHISTLE:			// Œû“J
+			case SC_ASSNCROS:			// —[—z‚ÌƒAƒTƒVƒ“ƒNƒƒX
+			case SC_HUMMING:			// ƒnƒ~ƒ“ƒO
+			case SC_DONTFORGETME:		// „‚ğ–Y‚ê‚È‚¢‚Å
+			case SC_FORTUNE:			// K‰^‚ÌƒLƒX
+			case SC_SERVICE4U:			// ƒT?ƒrƒXƒtƒH?ƒ†?
 			case SC_EXPLOSIONSPIRITS:	// ”š—ô”g“®
 			case SC_STEELBODY:			// ‹à„
 			case SC_DEFENDER:
-			case SC_APPLEIDUN:			/* ƒCƒhƒDƒ“‚Ì—ÑŒç */
+			case SC_APPLEIDUN:			// ƒCƒhƒDƒ“‚Ì—ÑŒç
 			case SC_RIDING:
 			case SC_BLADESTOP_WAIT:
-			case SC_CONCENTRATION:		/* ƒRƒ“ƒZƒ“ƒgƒŒ?ƒVƒ‡ƒ“ */
-			case SC_ASSUMPTIO:			/* ƒAƒVƒƒƒ“ƒvƒeƒBƒI */
-			case SC_WINDWALK:		/* ƒEƒCƒ“ƒhƒEƒH?ƒN */
-			case SC_TRUESIGHT:		/* ƒgƒDƒ‹?ƒTƒCƒg */
-			case SC_SPIDERWEB:		/* ƒXƒpƒCƒ_?ƒEƒFƒbƒu */
-			case SC_MAGICPOWER:		/* –‚–@—Í?• */
+			case SC_CONCENTRATION:		// ƒRƒ“ƒZƒ“ƒgƒŒ?ƒVƒ‡ƒ“
+			case SC_ASSUMPTIO:			// ƒAƒVƒƒƒ“ƒvƒeƒBƒI
+			case SC_WINDWALK:		// ƒEƒCƒ“ƒhƒEƒH?ƒN
+			case SC_TRUESIGHT:		// ƒgƒDƒ‹?ƒTƒCƒg
+			case SC_SPIDERWEB:		// ƒXƒpƒCƒ_?ƒEƒFƒbƒu
+			case SC_MAGICPOWER:		// –‚–@—Í?•
 			case SC_CHASEWALK:
-			case SC_ATKPOT:		/* attack potion [Valaris] */
-			case SC_MATKPOT:		/* magic attack potion [Valaris] */
+			case SC_ATKPOT:		// attack potion [Valaris]
+			case SC_MATKPOT:		// magic attack potion [Valaris]
 			case SC_WEDDING:	//Œ‹¥—p(Œ‹¥ˆßÖ‚É‚È‚Á‚Ä?‚­‚Ì‚ª?‚¢‚Æ‚©)
-			case SC_MELTDOWN:		/* ƒƒ‹ƒgƒ_ƒEƒ“ */
+			case SC_MELTDOWN:		// ƒƒ‹ƒgƒ_ƒEƒ“
 			case SC_CARTBOOST:
-			case SC_MINDBREAKER:		/* ƒ}ƒCƒ“ƒhƒuƒŒ[ƒJ[ */
+			case SC_MINDBREAKER:		// ƒ}ƒCƒ“ƒhƒuƒŒ[ƒJ[
 			case SC_BERSERK:
 			case SC_EDP:
 			case SC_SLOWDOWN:
@@ -4397,7 +4397,7 @@ int status_change_end( block_list* bl, int type, int tid )
 			case SC_GUILDAURA:
 				calc_flag = 1;
 				break;
-			case SC_SPEEDPOTION0:		/* ?‘¬ƒ|?ƒVƒ‡ƒ“ */
+			case SC_SPEEDPOTION0:		// ?‘¬ƒ|?ƒVƒ‡ƒ“
 			case SC_SPEEDPOTION1:
 			case SC_SPEEDPOTION2:
 			case SC_SPEEDPOTION3:
@@ -4416,7 +4416,7 @@ int status_change_end( block_list* bl, int type, int tid )
 				if(sc_data[SC_PROVOKE].timer != -1)
 					status_change_end(bl,SC_PROVOKE,-1);
 				break;
-			case SC_DEVOTION:		/* ƒfƒBƒ{?ƒVƒ‡ƒ“ */
+			case SC_DEVOTION:		// ƒfƒBƒ{?ƒVƒ‡ƒ“
 				{
 					map_session_data *md = map_session_data::from_blid(sc_data[type].val1.num);
 					sc_data[type].val1=sc_data[type].val2=0;
@@ -4460,7 +4460,7 @@ int status_change_end( block_list* bl, int type, int tid )
 					}
 				}
 				break;
-			case SC_SPLASHER:		/* ƒxƒiƒ€ƒXƒvƒ‰ƒbƒVƒƒ? */
+			case SC_SPLASHER:		// ƒxƒiƒ€ƒXƒvƒ‰ƒbƒVƒƒ?
 				{
 					block_list *src=block_list::from_blid(sc_data[type].val3.num);
 					if(src && tid!=-1){
@@ -4474,19 +4474,19 @@ int status_change_end( block_list* bl, int type, int tid )
 					status_change_start(bl, SC_INCSTR,10,0,0,0,skill_get_time2(TK_RUN,sc_data[type].val1.num),0);
 				break;
 
-		/* option1 */
+		// option1
 			case SC_FREEZE:
 				sc_data[type].val3 = 0;
 				break;
 
-		/* option2 */
-			case SC_POISON:				/* “Å */
-			case SC_BLIND:				/* ˆÃ? */
+		// option2
+			case SC_POISON:				// “Å
+			case SC_BLIND:				// ˆÃ?
 			case SC_CURSE:
 				calc_flag = 1;
 				break;
 
-			case SC_MARIONETTE:		/* ƒ}ƒŠƒIƒlƒbƒgƒRƒ“ƒgƒ?ƒ‹ */
+			case SC_MARIONETTE:		// ƒ}ƒŠƒIƒlƒbƒgƒRƒ“ƒgƒ?ƒ‹
 			case SC_MARIONETTE2:	/// Marionette target
 				{
 					// check for partner and end their marionette status as well
@@ -4523,9 +4523,9 @@ int status_change_end( block_list* bl, int type, int tid )
 			}
 
 		if (*bl == BL_PC && (config.display_hallucination || type != SC_HALLUCINATION))
-			clif_status_change(*bl,type,0);	/* ƒAƒCƒRƒ“Á‹ */
+			clif_status_change(*bl,type,0);	// ƒAƒCƒRƒ“Á‹
 
-		switch(type){	/* ³í‚É?‚é‚Æ‚«‚È‚É‚©?—‚ª•K—v */
+		switch(type){	// ³í‚É?‚é‚Æ‚«‚È‚É‚©?—‚ª•K—v
 		case SC_STONE:
 		case SC_FREEZE:
 		case SC_STAN:
@@ -4583,15 +4583,15 @@ int status_change_end( block_list* bl, int type, int tid )
 			break;
 
 		//opt3
-		case SC_TWOHANDQUICKEN:		/* 2HQ */
-		case SC_SPEARSQUICKEN:		/* ƒXƒsƒAƒNƒCƒbƒPƒ“ */
-		case SC_CONCENTRATION:		/* ƒRƒ“ƒZƒ“ƒgƒŒ?ƒVƒ‡ƒ“ */
+		case SC_TWOHANDQUICKEN:		// 2HQ
+		case SC_SPEARSQUICKEN:		// ƒXƒsƒAƒNƒCƒbƒPƒ“
+		case SC_CONCENTRATION:		// ƒRƒ“ƒZƒ“ƒgƒŒ?ƒVƒ‡ƒ“
 			*opt3 &= ~1;
 			break;
-		case SC_OVERTHRUST:			/* ƒI?ƒo?ƒXƒ‰ƒXƒg */
+		case SC_OVERTHRUST:			// ƒI?ƒo?ƒXƒ‰ƒXƒg
 			*opt3 &= ~2;
 			break;
-		case SC_ENERGYCOAT:			/* ƒGƒiƒW?ƒR?ƒg */
+		case SC_ENERGYCOAT:			// ƒGƒiƒW?ƒR?ƒg
 			*opt3 &= ~4;
 			break;
 		case SC_EXPLOSIONSPIRITS:	// ”š—ô”g“®
@@ -4600,26 +4600,26 @@ int status_change_end( block_list* bl, int type, int tid )
 		case SC_STEELBODY:			// ‹à„
 			*opt3 &= ~16;
 			break;
-		case SC_BLADESTOP:		/* ”’næ‚è */
+		case SC_BLADESTOP:		// ”’næ‚è
 			*opt3 &= ~32;
 			break;
-		case SC_BERSERK:		/* ƒo?ƒT?ƒN */
+		case SC_BERSERK:		// ƒo?ƒT?ƒN
 			*opt3 &= ~128;
 			break;
-		case SC_MARIONETTE:		/* ƒ}ƒŠƒIƒlƒbƒgƒRƒ“ƒgƒ?ƒ‹ */
+		case SC_MARIONETTE:		// ƒ}ƒŠƒIƒlƒbƒgƒRƒ“ƒgƒ?ƒ‹
 		case SC_MARIONETTE2:
 			*opt3 &= ~1024;
 			break;
-		case SC_ASSUMPTIO:		/* ƒAƒXƒ€ƒvƒeƒBƒI */
+		case SC_ASSUMPTIO:		// ƒAƒXƒ€ƒvƒeƒBƒI
 			*opt3 &= ~2048;
 			break;
 		}
 
-		if(opt_flag)	/* option‚Ì?X‚ğ?‚¦‚é */
+		if(opt_flag)	// option‚Ì?X‚ğ?‚¦‚é
 			clif_changeoption(*bl);
 
 		if (*bl == BL_PC && calc_flag)
-			status_calc_pc(*((map_session_data *)bl),0);	/* ƒXƒe?ƒ^ƒXÄŒvZ */
+			status_calc_pc(*((map_session_data *)bl),0);	// ƒXƒe?ƒ^ƒXÄŒvZ
 	}
 
 	return 0;
@@ -4662,14 +4662,14 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 	else if(*bl==BL_MOB)
 		md=(struct mob_data *)bl;
 
-	switch(type){	/* “Áê‚È?—‚É‚È‚éê‡ */
-	case SC_MAXIMIZEPOWER:	/* ƒ}ƒLƒVƒ}ƒCƒYƒpƒ? */
+	switch(type){	// “Áê‚È?—‚É‚È‚éê‡
+	case SC_MAXIMIZEPOWER:	// ƒ}ƒLƒVƒ}ƒCƒYƒpƒ?
 	case SC_CLOAKING:
 		if(sd){
-			if( sd->status.sp > 0 ){ /* SPØ‚ê‚é‚Ü‚Å? */
+			if( sd->status.sp > 0 ){ // SPØ‚ê‚é‚Ü‚Å? 
 				sd->status.sp--;
 				clif_updatestatus(*sd,SP_SP);
-				/* ƒ^ƒCƒ}?Äİ’è */
+				// ƒ^ƒCƒ}?Äİ’è
 				sc_data[type].timer=add_timer(sc_data[type].val2.num+tick, status_change_timer, bl->id, data);
 				return 0;
 			}
@@ -4687,29 +4687,29 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 					status_change_start(bl, SC_INCSTR, 1<<(sc_data[SC_CHASEWALK].val1.num-1), 0, 0, 0, skill_get_time2(ST_CHASEWALK,sc_data[SC_CHASEWALK].val1.num), 0);
 					//status_calc_pc (*sd, 0);
 				}
-				/* ƒ^ƒCƒ}?Äİ’è */
+				// ƒ^ƒCƒ}?Äİ’è
 				sc_data[type].timer=add_timer(sc_data[type].val2.num+tick, status_change_timer, bl->id, data);
 				return 0;
 			}
 		}
 	break;
 
-	case SC_HIDING:		/* ƒnƒCƒfƒBƒ“ƒO */
-		if(sd){		/* SP‚ª‚ ‚Á‚ÄAŠÔ§ŒÀ‚ÌŠÔ‚Í? */
+	case SC_HIDING:		// ƒnƒCƒfƒBƒ“ƒO
+		if(sd){		// SP‚ª‚ ‚Á‚ÄAŠÔ§ŒÀ‚ÌŠÔ‚Í?
 			if( sd->status.sp > 0 && (--sc_data[type].val2.num)>0 ){
 				if(sc_data[type].val2.num % (sc_data[type].val1.num+3) ==0 ){
 					sd->status.sp--;
 					clif_updatestatus(*sd,SP_SP);
 				}
-				/* ƒ^ƒCƒ}?Äİ’è */
+				// ƒ^ƒCƒ}?Äİ’è
 				sc_data[type].timer=add_timer(1000+tick, status_change_timer,bl->id, data);
 				return 0;
 			}
 		}
 	break;
 
-	case SC_SIGHT:	/* ƒTƒCƒg */
-	case SC_RUWACH:	/* ƒ‹ƒAƒt */
+	case SC_SIGHT:	// ƒTƒCƒg
+	case SC_RUWACH:	// ƒ‹ƒAƒt
 		{
 			int range = 5;
 			if ( type == SC_SIGHT ) range = 7;
@@ -4718,14 +4718,14 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 				bl->m, ((int)bl->x)-range, ((int)bl->y)-range, ((int)bl->x)+range,((int)bl->y)+range,BL_ALL);
 
 			if( (--sc_data[type].val2.num)>0 ){
-				/* ƒ^ƒCƒ}?Äİ’è */
+				// ƒ^ƒCƒ}?Äİ’è
 				sc_data[type].timer=add_timer(250+tick, status_change_timer,bl->id, data);
 				return 0;
 			}
 		}
 		break;
 
-	case SC_SIGNUMCRUCIS:		/* ƒVƒOƒiƒ€ƒNƒ‹ƒVƒX */
+	case SC_SIGNUMCRUCIS:		// ƒVƒOƒiƒ€ƒNƒ‹ƒVƒX
 		{
 			int race = bl->get_race();
 			if( race == 6 || bl->is_undead() ) {
@@ -4735,16 +4735,16 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 		}
 		break;
 
-	case SC_PROVOKE:	/* ƒvƒƒ{ƒbƒN/ƒI?ƒgƒo?ƒT?ƒN */
-		if(sc_data[type].val2.num!=0){	/* ƒI?ƒgƒo?ƒT?ƒNi‚P•b‚²‚Æ‚ÉHPƒ`ƒFƒbƒNj */
-			if(sd && sd->status.hp>sd->status.max_hp>>2)	/* ’â~ */
+	case SC_PROVOKE:	// ƒvƒƒ{ƒbƒN/ƒI?ƒgƒo?ƒT?ƒN
+		if(sc_data[type].val2.num!=0){	// ƒI?ƒgƒo?ƒT?ƒNi‚P•b‚²‚Æ‚ÉHPƒ`ƒFƒbƒNj
+			if(sd && sd->status.hp>sd->status.max_hp>>2)	// ’â~
 				break;
 			sc_data[type].timer=add_timer( 1000+tick,status_change_timer, bl->id, data );
 			return 0;
 		}
 		break;
 
-	case SC_ENDURE:	/* ƒCƒ“ƒfƒ…ƒA */
+	case SC_ENDURE:	// ƒCƒ“ƒfƒ…ƒA
 	case SC_AUTOBERSERK: // Celest
 		if(sd && sd->state.infinite_endure) {
 			sc_data[type].timer=add_timer( 1000*60+tick,status_change_timer, bl->id, data );
@@ -4802,10 +4802,10 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 			return 0;
 		}
 		break;
-	case SC_TENSIONRELAX:	/* ƒeƒ“ƒVƒ‡ƒ“ƒŠƒ‰ƒbƒNƒX */
-		if(sd){		/* SP‚ª‚ ‚Á‚ÄAHP‚ª?ƒ^ƒ“‚Å‚È‚¯‚ê‚Î?? */
+	case SC_TENSIONRELAX:	// ƒeƒ“ƒVƒ‡ƒ“ƒŠƒ‰ƒbƒNƒX
+		if(sd){		// SP‚ª‚ ‚Á‚ÄAHP‚ª?ƒ^ƒ“‚Å‚È‚¯‚ê‚Î??
 			if( sd->status.sp > 12 && sd->status.max_hp > sd->status.hp ){
-				/* ƒ^ƒCƒ}?Äİ’è */
+				// ƒ^ƒCƒ}?Äİ’è
 				sc_data[type].timer=add_timer(10000+tick, status_change_timer,bl->id, data);
 				return 0;
 			}
@@ -4820,7 +4820,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 		// i hope i haven't interpreted it wrong.. which i might ^^;
 		// Source:
 		// - 10õ©ª´ªÈªËHPª¬Êõá´
-		// - õóúìªÎªŞªŞ«µ?«Ğì¹ÔÑªä«ê«í«°ª·ªÆªâ?ÍıªÏá¼ª¨ªÊª¤
+		// - õóúìªÎªŞªŞ«µ?«ĞEÔÑªä«EúÇ°ª·ªÆªEÍıªÏá¼ª¨ªÊª¤
 		// To-do: bleeding effect increases damage taken?
 		if ((sc_data[type].val4.num -= 10000) > 0) {
 			int hp = rand()%300 + 400;
@@ -4843,16 +4843,16 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 		}
 		break;
 
-	/* ŠÔØ‚ê–³‚µHH */
+	// ŠÔØ‚ê–³‚µHH
 	case SC_AETERNA:
 	case SC_TRICKDEAD:
 	case SC_RIDING:
 	case SC_FALCON:
 	case SC_WEIGHT50:
 	case SC_WEIGHT90:
-	case SC_MAGICPOWER:		/* –‚–@—Í?• */
-	case SC_REJECTSWORD:	/* ƒŠƒWƒFƒNƒgƒ\?ƒh */
-	case SC_MEMORIZE:	/* ƒƒ‚ƒ‰ƒCƒY */
+	case SC_MAGICPOWER:		// –‚–@—Í?•
+	case SC_REJECTSWORD:	// ƒŠƒWƒFƒNƒgƒ\?ƒh
+	case SC_MEMORIZE:	// ƒƒ‚ƒ‰ƒCƒY
 	case SC_BROKNWEAPON:
 	case SC_BROKNARMOR:
 	case SC_SACRIFICE:
@@ -4872,34 +4872,34 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 			int s = 0, sp = 1;
 			if(sd && (--sc_data[type].val3.num) > 0) {
 				switch(sc_data[type].val1.num){
-				case BD_RICHMANKIM:				/* ƒjƒˆƒ‹ƒh‚Ì‰ƒ 3•b‚ÉSP1 */
-				case BD_DRUMBATTLEFIELD:		/* ?‘¾ŒÛ‚Ì‹¿‚« 3•b‚ÉSP1 */
-				case BD_RINGNIBELUNGEN:			/* ƒj?ƒxƒ‹ƒ“ƒO‚Ìw—Ö 3•b‚ÉSP1 */
-				case BD_SIEGFRIED:				/* •s€g‚ÌƒW?ƒNƒtƒŠ?ƒh 3•b‚ÉSP1 */
-				case BA_DISSONANCE:				/* •s‹¦˜a‰¹ 3•b‚ÅSP1 */
-				case BA_ASSASSINCROSS:			/* —[—z‚ÌƒAƒTƒVƒ“ƒNƒƒX 3•b‚ÅSP1 */
-				case DC_UGLYDANCE:				/* ©•ªŸè‚Èƒ_ƒ“ƒX 3•b‚ÅSP1 */
+				case BD_RICHMANKIM:				// ƒjƒˆƒ‹ƒh‚Ì‰ƒ 3•b‚ÉSP1
+				case BD_DRUMBATTLEFIELD:		// ?‘¾ŒÛ‚Ì‹¿‚« 3•b‚ÉSP1
+				case BD_RINGNIBELUNGEN:			// ƒj?ƒxƒ‹ƒ“ƒO‚Ìw—Ö 3•b‚ÉSP1
+				case BD_SIEGFRIED:				// •s€g‚ÌƒW?ƒNƒtƒŠ?ƒh 3•b‚ÉSP1
+				case BA_DISSONANCE:				// •s‹¦˜a‰¹ 3•b‚ÅSP1
+				case BA_ASSASSINCROSS:			// —[—z‚ÌƒAƒTƒVƒ“ƒNƒƒX 3•b‚ÅSP1
+				case DC_UGLYDANCE:				// ©•ªŸè‚Èƒ_ƒ“ƒX 3•b‚ÅSP1
 					s=3;
 					break;
-				case BD_LULLABY:				/* qç‰Ì 4•b‚ÉSP1 */
-				case BD_ETERNALCHAOS:			/* ‰i‰“‚Ì¬“× 4•b‚ÉSP1 */
-				case BD_ROKISWEIL:				/* ƒƒL‚Ì‹©‚Ñ 4•b‚ÉSP1 */
-				case DC_FORTUNEKISS:			/* K‰^‚ÌƒLƒX 4•b‚ÅSP1 */
+				case BD_LULLABY:				// qç‰Ì 4•b‚ÉSP1
+				case BD_ETERNALCHAOS:			// ‰i‰“‚Ì¬“× 4•b‚ÉSP1
+				case BD_ROKISWEIL:				// ƒƒL‚Ì‹©‚Ñ 4•b‚ÉSP1
+				case DC_FORTUNEKISS:			// K‰^‚ÌƒLƒX 4•b‚ÅSP1
 					s=4;
 					break;
-				case BD_INTOABYSS:				/* [•£‚Ì’†‚É 5•b‚ÉSP1 */
-				case BA_WHISTLE:				/* Œû“J 5•b‚ÅSP1 */
-				case DC_HUMMING:				/* ƒnƒ~ƒ“ƒO 5•b‚ÅSP1 */
-				case BA_POEMBRAGI:				/* ƒuƒ‰ƒM‚Ì 5•b‚ÅSP1 */
-				case DC_SERVICEFORYOU:			/* ƒT?ƒrƒXƒtƒH?ƒ†? 5•b‚ÅSP1 */
+				case BD_INTOABYSS:				// [•£‚Ì’†‚É 5•b‚ÉSP1
+				case BA_WHISTLE:				// Œû“J 5•b‚ÅSP1
+				case DC_HUMMING:				// ƒnƒ~ƒ“ƒO 5•b‚ÅSP1
+				case BA_POEMBRAGI:				// ƒuƒ‰ƒM‚Ì 5•b‚ÅSP1
+				case DC_SERVICEFORYOU:			// ƒT?ƒrƒXƒtƒH?ƒ†? 5•b‚ÅSP1
 				case CG_HERMODE:				// Wand of Hermod
 					s=5;
 					break;
-				case BA_APPLEIDUN:				/* ƒCƒhƒDƒ“‚Ì—ÑŒç 6•b‚ÅSP1 */
+				case BA_APPLEIDUN:				// ƒCƒhƒDƒ“‚Ì—ÑŒç 6•b‚ÅSP1
 					s=6;
 					break;
-				case DC_DONTFORGETME:			/* „‚ğ–Y‚ê‚È‚¢‚Åc 10•b‚ÅSP1 */
-				case CG_MOONLIT:				/* Œ–¾‚è‚Ìò‚É—‚¿‚é‰Ô‚Ñ‚ç 10•b‚ÅSP1H */
+				case DC_DONTFORGETME:			// „‚ğ–Y‚ê‚È‚¢‚Åc 10•b‚ÅSP1
+				case CG_MOONLIT:				// Œ–¾‚è‚Ìò‚É—‚¿‚é‰Ô‚Ñ‚ç 10•b‚ÅSP1H
 					s=10;
 					break;
 				}
@@ -4921,19 +4921,19 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 						clif_updatestatus(*sd,SP_SP);
 					}
 				}
-				/* ƒ^ƒCƒ}?Äİ’è */
+				// ƒ^ƒCƒ}?Äİ’è
 				sc_data[type].timer=add_timer(1000+tick, status_change_timer,bl->id, data);
 				return 0;
 			}
 		}
 		break;
 
-	case SC_BERSERK:		/* ƒo?ƒT?ƒN */
-		if(sd){		/* HP‚ª100ˆÈã‚È‚ç?? */
+	case SC_BERSERK:		// ƒo?ƒT?ƒN
+		if(sd){		// HP‚ª100ˆÈã‚È‚ç??
 			if( (sd->status.hp - sd->status.max_hp*5/100) > 100 ){	// 5% every 10 seconds [DracoRPG]
 				sd->status.hp -= sd->status.max_hp*5/100;	// changed to max hp [celest]
 				clif_updatestatus(*sd,SP_HP);
-				/* ƒ^ƒCƒ}?Äİ’è */
+				// ƒ^ƒCƒ}?Äİ’è
 				sc_data[type].timer = add_timer(10000+tick, status_change_timer,bl->id, data);
 				return 0;
 			}
@@ -4943,7 +4943,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 		if(sd){
 			time_t timer;
 			if(time(&timer) < ((sc_data[type].val2.num) + 3600)){	//1ŠÔ‚½‚Á‚Ä‚¢‚È‚¢‚Ì‚Å??
-				/* ƒ^ƒCƒ}?Äİ’è */
+				// ƒ^ƒCƒ}?Äİ’è
 				sc_data[type].timer=add_timer(10000+tick, status_change_timer,bl->id, data);
 				return 0;
 			}
@@ -4954,7 +4954,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 			time_t timer;
 			if((++sd->status.manner) && time(&timer) < ((sc_data[type].val2.num) + 60*(0-sd->status.manner))){	//ŠJn‚©‚çstatus.manner•ª?‚Á‚Ä‚È‚¢‚Ì‚Å??
 				clif_updatestatus(*sd,SP_MANNER);
-				/* ƒ^ƒCƒ}?Äİ’è(60•b) */
+				// ƒ^ƒCƒ}?Äİ’è(60•b)
 				sc_data[type].timer=add_timer(60000+tick, status_change_timer,bl->id, data);
 				return 0;
 			}
@@ -4973,7 +4973,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 		}
 		break;
 
-	case SC_MARIONETTE:		/* ƒ}ƒŠƒIƒlƒbƒgƒRƒ“ƒgƒ?ƒ‹ */
+	case SC_MARIONETTE:		// ƒ}ƒŠƒIƒlƒbƒgƒRƒ“ƒgƒ?ƒ‹
 	case SC_MARIONETTE2:
 		{
 			block_list *pbl = block_list::from_blid(sc_data[type].val3.num);

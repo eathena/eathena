@@ -291,7 +291,7 @@ int encode_zip(unsigned char *dest, unsigned long& destLen, const unsigned char*
 
 	stream.next_in = (Bytef*)source;
 	stream.avail_in = (uInt)sourceLen;
-	/* Check for source > 64K on 16-bit machine: */
+	// Check for source > 64K on 16-bit machine: 
 	if ((uLong)stream.avail_in != sourceLen) return Z_BUF_ERROR;
 
 	stream.next_out = (Bytef*) dest;
@@ -334,7 +334,7 @@ int decode_file (FILE *source, FILE *dest)
 	unsigned char in[CHUNK];
 	unsigned char out[CHUNK];
 
-	/* allocate inflate state */
+	// allocate inflate state 
 	strm.zalloc = Z_NULL;
 	strm.zfree = Z_NULL;
 	strm.opaque = Z_NULL;
@@ -344,7 +344,7 @@ int decode_file (FILE *source, FILE *dest)
 	err = inflateInit(&strm);
 	if (err != Z_OK) return 0;	//return err;
 
-	/* decompress until deflate stream ends or end of file */
+	// decompress until deflate stream ends or end of file
 	do {
 		strm.avail_in = fread(in, 1, CHUNK, source);
 		if (ferror(source)) {
@@ -355,15 +355,15 @@ int decode_file (FILE *source, FILE *dest)
 			break;
 		strm.next_in = in;
 
-		/* run inflate() on input until output buffer not full */
+		// run inflate() on input until output buffer not full 
 		do {
 			strm.avail_out = CHUNK;
 			strm.next_out = out;
 			err = inflate(&strm, Z_NO_FLUSH);
-			assert(err != Z_STREAM_ERROR);  /* state not clobbered */
+			assert(err != Z_STREAM_ERROR);  // state not clobbered 
 			switch (err) {
 			case Z_NEED_DICT:
-				err = Z_DATA_ERROR;     /* and fall through */
+				err = Z_DATA_ERROR;     // and fall through 
 			case Z_DATA_ERROR:
 			case Z_MEM_ERROR:
 				inflateEnd(&strm);
@@ -377,12 +377,12 @@ int decode_file (FILE *source, FILE *dest)
 				return 0;
 			}
 		} while (strm.avail_out == 0);
-		assert(strm.avail_in == 0);     /* all input will be used */
+		assert(strm.avail_in == 0);     // all input will be used 
 
-		/* done when inflate() says it's done */
+		// done when inflate() says it's done 
 	} while (err != Z_STREAM_END);
 
-	/* clean up and return */
+	// clean up and return
 	inflateEnd(&strm);
 	return err == Z_STREAM_END ? 1 : 0;
 }

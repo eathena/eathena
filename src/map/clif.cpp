@@ -885,7 +885,7 @@ int clif_send (unsigned char *buf, size_t len, const block_list *bl, int type)
 		}
 		break;
 
-/* New definitions for guilds [Valaris]	*/
+// New definitions for guilds [Valaris]	
 
 	case GUILD_AREA:
 	case GUILD_AREA_WOS:
@@ -5044,7 +5044,7 @@ int clif_getareachar_skillunit(map_session_data &sd,struct skill_unit &unit)
 	WFIFOW(fd,10)=unit.block_list::x;
 	WFIFOW(fd,12)=unit.block_list::y;
 	WFIFOB(fd,14)=unit.group->unit_id;
-	/*	Graffiti [Valaris]	*/
+	//	Graffiti [Valaris]	
 	if(unit.group->unit_id==0xb0)
 	{
 		WFIFOL(fd,15)=1;

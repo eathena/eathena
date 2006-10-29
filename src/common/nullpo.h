@@ -12,7 +12,7 @@
 
 
 #ifdef WIN32
-#define __attribute__(x)	/* nothing */
+#define __attribute__(x)
 #endif
 
 
@@ -84,7 +84,7 @@
 
 // 可変引数マクロに関する条件コンパイル
 #if __STDC_VERSION__ >= 199901L
-/* C99に対応 */
+// C99に対応 
 #define nullpo_ret_f(t, fmt, ...) if (nullpo_chk_f(NLP_MARK, (void *)(t), (fmt), __VA_ARGS__)) {return(0);}
 
 #define nullpo_retv_f(t, fmt, ...) if (nullpo_chk_f(NLP_MARK, (void *)(t), (fmt), __VA_ARGS__)) {return;}
@@ -94,7 +94,7 @@
 #define nullpo_retb_f(t, fmt, ...) if (nullpo_chk_f(NLP_MARK, (void *)(t), (fmt), __VA_ARGS__)) {break;}
 
 #elif __GNUC__ >= 2
-/* GCC用 */
+// GCC用 
 #define nullpo_ret_f(t, fmt, args...) if (nullpo_chk_f(NLP_MARK, (void *)(t), (fmt), ## args)) {return(0);}
 
 #define nullpo_retv_f(t, fmt, args...) if (nullpo_chk_f(NLP_MARK, (void *)(t), (fmt), ## args)) {return;}
@@ -105,11 +105,11 @@
 
 #else
 
-/* その他の場合・・・ orz */
+// その他の場合・・・ orz 
 #endif
 
-#else /* NULLPO_CHECK */
-/* No Nullpo check */
+#else // NULLPO_CHECK 
+// No Nullpo check 
 
 // if((t)){;}
 // 良い方法が思いつかなかったので・・・苦肉の策です。
@@ -122,24 +122,24 @@
 
 // 可変引数マクロに関する条件コンパイル
 #if __STDC_VERSION__ >= 199901L
-/* C99に対応 */
+// C99に対応 
 #define nullpo_ret_f(t, fmt, ...) if((t)){;}
 #define nullpo_retv_f(t, fmt, ...) if((t)){;}
 #define nullpo_retr_f(ret, t, fmt, ...) if((t)){;}
 #define nullpo_retb_f(t, fmt, ...) if((t)){;}
 
 #elif __GNUC__ >= 2
-/* GCC用 */
+// GCC用 
 #define nullpo_ret_f(t, fmt, args...) if((t)){;}
 #define nullpo_retv_f(t, fmt, args...) if((t)){;}
 #define nullpo_retr_f(ret, t, fmt, args...) if((t)){;}
 #define nullpo_retb_f(t, fmt, args...) if((t)){;}
 
 #else
-/* その他の場合・・・ orz */
+// その他の場合・・・ orz 
 #endif
 
-#endif /* NULLPO_CHECK */
+#endif // NULLPO_CHECK
 
 /*----------------------------------------------------------------------------
  * Functions

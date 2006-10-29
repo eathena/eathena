@@ -544,7 +544,10 @@ int battle_calc_drain(int damage, int rate, int per, int val)
 				diff = -1;
 		}
 	}
-	if (val /*&& rand()%100 < rate*/) { //Absolute leech/penalties have 100% chance. [Skotlex]
+	if( val 
+		//&& rand()%100 < rate
+		)
+	{	//Absolute leech/penalties have 100% chance. [Skotlex]
 		diff += val;
 	}
 	return diff;
@@ -751,7 +754,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 	else
 		damage = 0;
 
-	if(skill_num==HW_MAGICCRASHER){			/* マジッククラッシャーはMATKで殴る */
+	if(skill_num==HW_MAGICCRASHER){			// マジッククラッシャーはMATKで殴る 
 		atkmin = status_get_matk1(src);
 		atkmax = status_get_matk2(src);
 	}else{
@@ -984,7 +987,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 			case CH_PALMSTRIKE:	// 猛虎硬派山
 				damage = damage*(200+ 100*skill_lv)/100;
 				break;
-			case LK_SPIRALPIERCE:			/* スパイラルピアース */
+			case LK_SPIRALPIERCE:			// スパイラルピアース 
 			{
 				damage = damage*(100+ 50*skill_lv)/100; //増加量が分からないので適当に
 				ignore_def_flag = 1;
@@ -995,22 +998,22 @@ static struct Damage battle_calc_pet_weapon_attack(
 					fi->canmove_tick = gettick() + 1000;
 				break;
 			}
-			case LK_HEADCRUSH:				/* ヘッドクラッシュ */
+			case LK_HEADCRUSH:				// ヘッドクラッシュ 
 				damage = damage*(100+ 40*skill_lv)/100;
 				break;
-			case LK_JOINTBEAT:				/* ジョイントビート */
+			case LK_JOINTBEAT:				// ジョイントビート 
 				damage = damage*(50+ 10*skill_lv)/100;
 				break;
-			case ASC_METEORASSAULT:			/* メテオアサルト */
+			case ASC_METEORASSAULT:			// メテオアサルト 
 				damage = damage*(40+ 40*skill_lv)/100;
 				break;
-			case SN_SHARPSHOOTING:			/* シャープシューティング */
+			case SN_SHARPSHOOTING:			// シャープシューティング 
 				damage += damage*(100+50*skill_lv)/100;
 				break;
-			case CG_ARROWVULCAN:			/* アローバルカン */
+			case CG_ARROWVULCAN:			// アローバルカン 
 				damage = damage*(200+100*skill_lv)/100;
 				break;
-			case AS_SPLASHER:		/* ベナムスプラッシャー */
+			case AS_SPLASHER:		// ベナムスプラッシャー 
 				damage = damage*(200+20*skill_lv)/100;
 				hitrate = 1000000;
 				break;
@@ -1107,7 +1110,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 	if(skill_num != 0 || s_ele != 0 || !config.pet_attack_attr_none)
 	damage=battle_attr_fix(damage, s_ele, status_get_element(target) );
 
-	if(skill_num==PA_PRESSURE) /* プレッシャー 必中? */
+	if(skill_num==PA_PRESSURE) // プレッシャー 必中? 
 		damage = 500+300*skill_lv;
 
 	// インベナム修正
@@ -1258,7 +1261,7 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 		damage = status_get_baseatk(src);
 	else
 		damage = 0;
-	if(skill_num==HW_MAGICCRASHER){			/* マジッククラッシャーはMATKで殴る */
+	if(skill_num==HW_MAGICCRASHER){			// マジッククラッシャーはMATKで殴る 
 		atkmin = status_get_matk1(src);
 		atkmax = status_get_matk2(src);
 	}else{
@@ -1526,7 +1529,7 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 			case CH_PALMSTRIKE:	// 猛虎硬派山
 				damage = damage*(200+ 100*skill_lv)/100;
 				break;
-			case LK_SPIRALPIERCE:			/* スパイラルピアース */
+			case LK_SPIRALPIERCE:			// スパイラルピアース 
 				damage = damage*(100+ 50*skill_lv)/100; //増加量が分からないので適当に
 				ignore_def_flag = 1;
 				flag=(flag&~BF_RANGEMASK)|BF_LONG;
@@ -1535,22 +1538,22 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 				else if(tmd)
 					tmd->canmove_tick = gettick() + 1000;
 				break;
-			case LK_HEADCRUSH:				/* ヘッドクラッシュ */
+			case LK_HEADCRUSH:				// ヘッドクラッシュ 
 				damage = damage*(100+ 40*skill_lv)/100;
 				break;
-			case LK_JOINTBEAT:				/* ジョイントビート */
+			case LK_JOINTBEAT:				// ジョイントビート 
 				damage = damage*(50+ 10*skill_lv)/100;
 				break;
-			case ASC_METEORASSAULT:			/* メテオアサルト */
+			case ASC_METEORASSAULT:			// メテオアサルト 
 				damage = damage*(40+ 40*skill_lv)/100;
 				break;
-			case SN_SHARPSHOOTING:			/* シャープシューティング */
+			case SN_SHARPSHOOTING:			// シャープシューティング 
 				damage += damage*(100+50*skill_lv)/100;
 				break;
-			case CG_ARROWVULCAN:			/* アローバルカン */
+			case CG_ARROWVULCAN:			// アローバルカン 
 				damage = damage*(200+100*skill_lv)/100;
 				break;
-			case AS_SPLASHER:		/* ベナムスプラッシャー */
+			case AS_SPLASHER:		// ベナムスプラッシャー 
 				damage = damage*(200+20*skill_lv)/100;
 				hitrate = 1000000;
 				break;
@@ -1690,9 +1693,9 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 			damage=battle_attr_fix(damage, s_ele, status_get_element(target) );
 
 
-	//if(sc_data && sc_data[SC_AURABLADE].timer!=-1)	/* オーラブレード 必中 */
+	//if(sc_data && sc_data[SC_AURABLADE].timer!=-1)	// オーラブレード 必中 
 	//	damage += sc_data[SC_AURABLADE].val1.num * 10;
-	if(skill_num==PA_PRESSURE) /* プレッシャー 必中? */
+	if(skill_num==PA_PRESSURE) // プレッシャー 必中? 
 		damage = 500+300*skill_lv;
 
 	// インベナム修正
@@ -1868,7 +1871,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 	watk = status_get_atk(sd); //ATK
 	watk_ = status_get_atk_(sd); //ATK左手
 
-	if(skill_num == HW_MAGICCRASHER)	/* マジッククラッシャーはMATKで殴る */
+	if(skill_num == HW_MAGICCRASHER)	// マジッククラッシャーはMATKで殴る 
 		damage = damage2 = status_get_matk1(sd); //damega,damega2初登場、base_atkの取得
 	else
 		damage = damage2 = status_get_baseatk(sd); //damega,damega2初登場、base_atkの取得
@@ -2313,7 +2316,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			case CH_PALMSTRIKE:	// 猛虎硬派山
 				damage_rate += 100+ 100*skill_lv;
 				break;
-			case LK_SPIRALPIERCE:			/* スパイラルピアース */
+			case LK_SPIRALPIERCE:			// スパイラルピアース 
 				damage_rate += 50*skill_lv; //増加量が分からないので適当に
 				ignore_def_flag = 1;
 				flag=(flag&~BF_RANGEMASK)|BF_LONG;
@@ -2322,20 +2325,20 @@ static struct Damage battle_calc_pc_weapon_attack(
 				else if(tmd)
 					tmd->canmove_tick = gettick() + 1000;
 				break;
-			case LK_HEADCRUSH:				/* ヘッドクラッシュ */
+			case LK_HEADCRUSH:				// ヘッドクラッシュ 
 				damage_rate += 40*skill_lv;
 				break;
-			case LK_JOINTBEAT:				/* ジョイントビート */
+			case LK_JOINTBEAT:				// ジョイントビート 
 				damage_rate += 10*skill_lv-50;
 				break;
-			case ASC_METEORASSAULT:			/* メテオアサルト */
+			case ASC_METEORASSAULT:			// メテオアサルト 
 				damage_rate += 40*skill_lv-60;
 				no_cardfix = 1;
 				break;
-			case SN_SHARPSHOOTING:			/* シャープシューティング */
+			case SN_SHARPSHOOTING:			// シャープシューティング 
 				damage_rate += 100+50*skill_lv;
 				break;
-			case CG_ARROWVULCAN:			/* アローバルカン */
+			case CG_ARROWVULCAN:			// アローバルカン 
 				damage_rate += 100+100*skill_lv;
 				if(sd->arrow_ele > 0) {
 					s_ele = sd->arrow_ele;
@@ -2343,7 +2346,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				}
 				flag=(flag&~BF_RANGEMASK)|BF_LONG;
 				break;
-			case AS_SPLASHER:		/* ベナムスプラッシャー */
+			case AS_SPLASHER:		// ベナムスプラッシャー 
 				damage_rate += 100+20*skill_lv+20*pc_checkskill(*sd,AS_POISONREACT);
 				no_cardfix = 1;
 				hitrate = 1000000;
@@ -2508,7 +2511,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			}
 		}
 	}
-	else if(skill_num == LK_SPIRALPIERCE) {			/* スパイラルピアース */
+	else if(skill_num == LK_SPIRALPIERCE) {			// スパイラルピアース 
 		if(sd->equip_index[9] < MAX_INVENTORY) {	//重量で追加ダメージらしいのでシールドブーメランを参考に追加
 			int index = sd->equip_index[9];
 			if(sd->inventory_data[index] && sd->inventory_data[index]->type == 4) {
@@ -2718,7 +2721,8 @@ static struct Damage battle_calc_pc_weapon_attack(
 	damage += sd->spiritball*3;
 	damage2 += sd->spiritball*3;
 
-	if(skill_num==PA_PRESSURE){ /* プレッシャー 必中? */
+	if(skill_num==PA_PRESSURE)
+	{	// プレッシャー 必中? 
 		damage = 500+300*skill_lv;
 		damage2 = 500+300*skill_lv;
 	}
@@ -4254,7 +4258,7 @@ struct Damage battle_calc_magic_attack(block_list *src, block_list *target,int s
 			damage = skill_calc_heal(src,skill_lv)/2;
 			normalmagic_flag=0;
 			break;
-		case PR_ASPERSIO:		/* アスペルシオ */
+		case PR_ASPERSIO:		// アスペルシオ 
 			damage = 40; //固定ダメージ
 			normalmagic_flag=0;
 			break;
@@ -4294,7 +4298,7 @@ struct Damage battle_calc_magic_attack(block_list *src, block_list *target,int s
 			}
 			break;
 
-		case MG_SOULSTRIKE:			/* ソウルストライク （対アンデッドダメージ補正）*/
+		case MG_SOULSTRIKE:			// ソウルストライク （対アンデッドダメージ補正）
 			if( target->is_undead() )
 			{
 				matk1 += matk1*skill_lv/20;//MATKに補正じゃ駄目ですかね？
@@ -4665,7 +4669,7 @@ struct Damage battle_calc_misc_attack(block_list *src,block_list *target,int ski
 		break;
 	}
 
-	case SN_FALCONASSAULT:			/* ファルコンアサルト */
+	case SN_FALCONASSAULT:			// ファルコンアサルト 
 	{
 		if( sd==NULL || (skill = pc_checkskill(*sd,HT_STEELCROW)) <= 0)
 			skill=0;
@@ -4940,7 +4944,7 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 					f = skill_castend_pos2(src, target->x, target->y, skillid, skilllv, tick, flag);
 				else {
 					switch(skill_get_nk(skillid)) {
-						case NK_NO_DAMAGE:/* 支援系 */
+						case NK_NO_DAMAGE:// 支援系 
 							if((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && !tsd)) && target->is_undead())
 								f = skill_castend_damage_id(src, target, skillid, skilllv, tick, flag);
 							else
@@ -5066,7 +5070,7 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 						skill_castend_pos2(target, tbl->x, tbl->y, skillid, skilllv, tick, flag);
 					else {
 						switch (skill_get_nk(skillid)) {
-							case NK_NO_DAMAGE:/* 支援系 */
+							case NK_NO_DAMAGE:// 支援系 
 								if ((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && !sd)) && tbl->is_undead() )
 									skill_castend_damage_id(target, tbl, skillid, skilllv, tick, flag);
 								else

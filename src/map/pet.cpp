@@ -1226,7 +1226,8 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 			mode=mob_db[pd.pet.class_].mode;
 			race=mob_db[pd.pet.class_].race;
 			md= mob_data::from_blid(pd.target_id);
-			if( md == NULL /*|| md->block_list::type != BL_MOB*/ || 
+			if( md == NULL || 
+				//md->block_list::type != BL_MOB || 
 				pd.block_list::m != md->block_list::m || !md->is_on_map() ||
 				distance(pd, *md) > 13)
 			{

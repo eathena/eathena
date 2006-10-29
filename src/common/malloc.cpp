@@ -350,7 +350,7 @@ char* _bstrdup(const char *chr)
 
 #ifdef USE_MEMMGR
 
-/* USE_MEMMGR */
+// USE_MEMMGR
 
 /*
  * メモリマネージャ
@@ -369,28 +369,28 @@ char* _bstrdup(const char *chr)
  *       がっています。それにより、不要となったメモリの再利用が効率的に行えます。
  */
 
-/* ブロックに入るデータ量 */
+// ブロックに入るデータ量
 #define BLOCK_DATA_SIZE	80*1024
 
-/* 一度に確保するブロックの数。 */
+// 一度に確保するブロックの数。
 #define BLOCK_ALLOC		32
 
-/* ブロックのアライメント */
+// ブロックのアライメント
 #define BLOCK_ALIGNMENT	64
 
-/* ブロック */
+// ブロック
 struct block
 {
-	size_t block_no;				/* ブロック番号 */
-	struct block* block_prev;		/* 前に確保した領域 */
-	struct block* block_next;		/* 次に確保した領域 */
-	size_t samesize_no;				/* 同じサイズの番号 */
-	struct block* samesize_prev;	/* 同じサイズの前の領域 */
-	struct block* samesize_next;	/* 同じサイズの次の領域 */
-	size_t unit_size;				/* ユニットのバイト数 0=未使用 */
-	size_t unit_hash;				/* ユニットのハッシュ */
-	size_t unit_count;				/* ユニットの数 */
-	size_t unit_used;				/* 使用済みユニット */
+	size_t block_no;				// ブロック番号
+	struct block* block_prev;		// 前に確保した領域
+	struct block* block_next;		// 次に確保した領域
+	size_t samesize_no;				// 同じサイズの番号
+	struct block* samesize_prev;	// 同じサイズの前の領域
+	struct block* samesize_next;	// 同じサイズの次の領域
+	size_t unit_size;				// ユニットのバイト数 0=未使用
+	size_t unit_hash;				// ユニットのハッシュ
+	size_t unit_count;				// ユニットの数
+	size_t unit_used;				// 使用済みユニット
 	char   data[BLOCK_DATA_SIZE];
 };
 
@@ -407,12 +407,12 @@ static struct block* block_first  = NULL;
 static struct block* block_last   = NULL;
 static struct block* block_unused = NULL;
 
-/* ユニットへのハッシュ。80KB/64Byte = 1280個 */
-static struct block* unit_first[BLOCK_DATA_SIZE/BLOCK_ALIGNMENT];	/* 最初 */
-static struct block* unit_last[BLOCK_DATA_SIZE/BLOCK_ALIGNMENT];	/* 最後 */
-static struct block* unit_empty[BLOCK_DATA_SIZE/BLOCK_ALIGNMENT];	/* 埋まってない */
+// ユニットへのハッシュ。80KB/64Byte = 1280個
+static struct block* unit_first[BLOCK_DATA_SIZE/BLOCK_ALIGNMENT];	// 最初
+static struct block* unit_last[BLOCK_DATA_SIZE/BLOCK_ALIGNMENT];	// 最後
+static struct block* unit_empty[BLOCK_DATA_SIZE/BLOCK_ALIGNMENT];	// 埋まってない
 
-/* メモリを使い回せない領域用のデータ */
+// メモリを使い回せない領域用のデータ
 struct unit_head_large {
 	struct unit_head_large* prev;
 	struct unit_head_large* next;
@@ -440,15 +440,15 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 	size_t i;
 	struct block *block;
 	size_t size_hash = (size+BLOCK_ALIGNMENT-1) / BLOCK_ALIGNMENT;
-	size = size_hash * BLOCK_ALIGNMENT; /* アライメントの倍数に切り上げ */
+	size = size_hash * BLOCK_ALIGNMENT; // アライメントの倍数に切り上げ 
 
 	if(size == 0)
 		return NULL;
 
 	memmgr_usage_bytes += size;
 
-	/* ブロック長を超える領域の確保には、malloc() を用いる */
-	/* その際、unit_head.block に NULL を代入して区別する */
+	// ブロック長を超える領域の確保には、malloc() を用いる 
+	// その際、unit_head.block に NULL を代入して区別する 
 	if( size+sizeof(struct unit_head) > BLOCK_DATA_SIZE )
 	{
 #ifdef MEMWATCH
@@ -484,12 +484,12 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 		}
 	}
 
-	/* 同一サイズのブロックが確保されていない時、新たに確保する */
+	// 同一サイズのブロックが確保されていない時、新たに確保する
 	if(unit_empty[size_hash] == NULL)
 	{
 		block = block_malloc();
 		if(unit_first[size_hash] == NULL)
-		{	/* 初回確保 */
+		{	// 初回確保
 			unit_first[size_hash] = block;
 			unit_last[size_hash] = block;
 			block->samesize_no = 0;
@@ -497,7 +497,7 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 			block->samesize_next = NULL;
 		}
 		else
-		{	/* 連結作業 */
+		{	// 連結作業
 			unit_last[size_hash]->samesize_next = block;
 			block->samesize_no   = unit_last[size_hash]->samesize_no + 1;
 			block->samesize_prev = unit_last[size_hash];
@@ -509,7 +509,7 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 		block->unit_count = BLOCK_DATA_SIZE / block->unit_size;
 		block->unit_used  = 0;
 		block->unit_hash  = size_hash;
-		/* 未使用Flagを立てる */
+		// 未使用Flagを立てる
 		for(i=0;i<block->unit_count;++i)
 		{
 			struct unit_head *head = (struct unit_head*)(block->data + i*block->unit_size);
@@ -517,11 +517,11 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 			head->parent = NULL;
 		}
 	}
-	/* ユニット使用個数加算 */
+	// ユニット使用個数加算
 	block = unit_empty[size_hash];
 	block->unit_used++;
 
-	/* ユニット内を全て使い果たした */
+	// ユニット内を全て使い果たした
 	if(block->unit_used>=block->unit_count)
 	{
 		do
@@ -531,7 +531,7 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 				 unit_empty[size_hash]->unit_used >= unit_empty[size_hash]->unit_count);
 	}
 
-	/* ブロックの中の空きユニット捜索 */
+	// ブロックの中の空きユニット捜索
 	for(i=0;i<block->unit_count;++i)
 	{
 		struct unit_head *head = (struct unit_head*)(block->data + i*block->unit_size);
@@ -669,7 +669,7 @@ void _mfree(void *ptr, const char *file, int line, const char *func )
 		memmgr_info();
 	}
 	else if( head->parent == NULL && head->size+sizeof(struct unit_head) > BLOCK_DATA_SIZE && head->marker == 0xC3C3A5A5)
-	{	/* malloc() で直に確保された領域 */
+	{	// malloc() で直に確保された領域
 		struct unit_head_large *head_large = (struct unit_head_large *)((char *)ptr - sizeof(struct unit_head_large));
 		if(head_large->prev)
 			head_large->prev->next = head_large->next;
@@ -682,7 +682,7 @@ void _mfree(void *ptr, const char *file, int line, const char *func )
 		return;
 	}
 	else if(head->marker == 0xA5A5C3C3)
-	{	/* ユニット解放 */
+	{	// ユニット解放
 		struct block *block = head->parent;
 		if(!block || block->unit_used==0)
 		{
@@ -694,9 +694,9 @@ void _mfree(void *ptr, const char *file, int line, const char *func )
 			head->parent = NULL;
 			memmgr_usage_bytes -= head->size;
 			if(--block->unit_used == 0)
-			{	/* ブロックの解放 */
+			{	// ブロックの解放
 				if(unit_empty[block->unit_hash] == block)
-				{	/* 空きユニットに指定されている */
+				{	// 空きユニットに指定されている
 					do {
 						unit_empty[block->unit_hash] = unit_empty[block->unit_hash]->samesize_next;
 					} while(
@@ -705,30 +705,30 @@ void _mfree(void *ptr, const char *file, int line, const char *func )
 					);
 				}
 				if(block->samesize_prev == NULL && block->samesize_next == NULL)
-				{	/* 独立ブロックの解放 */
+				{	// 独立ブロックの解放
 					unit_first[block->unit_hash]  = NULL;
 					unit_last[block->unit_hash]   = NULL;
 					unit_empty[block->unit_hash] = NULL;
 				}
 				else if(block->samesize_prev == NULL)
-				{	/* 先頭ブロックの解放 */
+				{	// 先頭ブロックの解放
 					unit_first[block->unit_hash] = block->samesize_next;
 					(block->samesize_next)->samesize_prev = NULL;
 				}
 				else if(block->samesize_next == NULL)
-				{	/* 末端ブロックの解放 */
+				{	// 末端ブロックの解放
 					unit_last[block->unit_hash] = block->samesize_prev; 
 					(block->samesize_prev)->samesize_next = NULL;
 				}
 				else
-				{	/* 中間ブロックの解放 */
+				{	// 中間ブロックの解放
 					(block->samesize_next)->samesize_prev = block->samesize_prev;
 					(block->samesize_prev)->samesize_next = block->samesize_next;
 				}
 				block_free(block);
 			}
 			else
-			{	/* 空きユニットの再設定 */
+			{	// 空きユニットの再設定
 				if( unit_empty[block->unit_hash] == NULL ||
 					unit_empty[block->unit_hash]->samesize_no > block->samesize_no )
 				{
@@ -740,7 +740,7 @@ void _mfree(void *ptr, const char *file, int line, const char *func )
 	}
 }
 
-/* 現在の状況を表示する */
+// 現在の状況を表示する
 void memmgr_info(void)
 {
 	size_t i;
@@ -782,11 +782,11 @@ void memmgr_info(void)
 	}
 }
 
-/* ブロックを確保する */
+// ブロックを確保する
 struct block* block_malloc(void)
 {
 	if(block_unused != NULL)
-	{	/* ブロック用の領域は確保済み */
+	{	// ブロック用の領域は確保済み
 		struct block* ret = block_unused;
 		do {
 			block_unused = block_unused->block_next;
@@ -794,7 +794,7 @@ struct block* block_malloc(void)
 		return ret;
 	}
 	else
-	{	/* ブロック用の領域を新たに確保する */
+	{	// ブロック用の領域を新たに確保する
 		size_t i;
 		size_t  block_no;
 		struct block* p = (struct block *) CALLOC (sizeof(struct block),BLOCK_ALLOC);
@@ -804,7 +804,7 @@ struct block* block_malloc(void)
 			exit(1);
 		}
 		if(block_first == NULL)
-		{	/* 初回確保 */
+		{	// 初回確保
 			block_no     = 0;
 			block_first  = p;
 		}
@@ -815,7 +815,7 @@ struct block* block_malloc(void)
 			p->block_prev = block_last;
 		}
 		block_last = &p[BLOCK_ALLOC-1];
-		/* ブロックを連結させる */
+		// ブロックを連結させる
 		for(i=0;i<BLOCK_ALLOC;++i)
 		{
 			if(i != 0)
@@ -824,16 +824,16 @@ struct block* block_malloc(void)
 				p[i].block_next = &p[i+1];
 			p[i].block_no = block_no + i;
 		}
-		/* 未使用ブロックへのポインタを更新 */
+		// 未使用ブロックへのポインタを更新
 		block_unused = &p[1];
 		return p;
 	}
 }
 
 void block_free(struct block* p)
-{	/* free() せずに、未使用フラグを付けるだけ */
+{	// free() せずに、未使用フラグを付けるだけ
 	p->unit_size = 0;
-	/* 未使用ポインターを更新する */
+	// 未使用ポインターを更新する
 	if(block_unused == NULL)
 		block_unused = p;
 	else if(block_unused->block_no > p->block_no)

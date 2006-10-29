@@ -2952,8 +2952,7 @@ int pc_takeitem(map_session_data &sd, flooritem_data &fitem)
 		// 重量overで取得失敗
 		clif_additem(sd,0,0,flag);
 	else
-	{
-		/* 取得成功 */
+	{	// 取得成功 
 		sd.stop_attack();
 		clif_takeitem(sd,fitem);
 		map_clearflooritem(fitem.block_list::id);
@@ -3883,16 +3882,16 @@ bool pc_checkallowskill(map_session_data &sd)
 		status_change_end(&sd,SC_TWOHANDQUICKEN,-1);	// 2HQを解除
 		ret=false;
 	}
-	if( sd.sc_data[SC_AURABLADE].timer!=-1      && !(skill_get_weapontype(LK_AURABLADE)&(1<<sd.status.weapon)) ) {	/* オ?ラブレ?ド */
-		status_change_end(&sd,SC_AURABLADE,-1);	/* オ-ラブレ-ドを解除 */
+	if( sd.sc_data[SC_AURABLADE].timer!=-1      && !(skill_get_weapontype(LK_AURABLADE)&(1<<sd.status.weapon)) ) {	// オ?ラブレ?ド 
+		status_change_end(&sd,SC_AURABLADE,-1);	// オ-ラブレ-ドを解除 
 		ret=false;
 	}
-	if( sd.sc_data[SC_PARRYING].timer!=-1       && !(skill_get_weapontype(LK_PARRYING)&(1<<sd.status.weapon)) ) {	/* パリイング */
-		status_change_end(&sd,SC_PARRYING,-1);	/* パリイングを解除 */
+	if( sd.sc_data[SC_PARRYING].timer!=-1       && !(skill_get_weapontype(LK_PARRYING)&(1<<sd.status.weapon)) ) {	// パリイング 
+		status_change_end(&sd,SC_PARRYING,-1);	// パリイングを解除 
 		ret=false;
 	}
-	if( sd.sc_data[SC_CONCENTRATION].timer!=-1  && !(skill_get_weapontype(LK_CONCENTRATION)&(1<<sd.status.weapon)) ) {	/* コンセントレ?ション */
-		status_change_end(&sd,SC_CONCENTRATION,-1);	/* コンセントレ-ションを解除 */
+	if( sd.sc_data[SC_CONCENTRATION].timer!=-1  && !(skill_get_weapontype(LK_CONCENTRATION)&(1<<sd.status.weapon)) ) {	// コンセントレ?ション 
+		status_change_end(&sd,SC_CONCENTRATION,-1);	// コンセントレ-ションを解除 
 		ret=false;
 	}
 	if( sd.sc_data[SC_SPEARSQUICKEN].timer!=-1  && !(skill_get_weapontype(CR_SPEARQUICKEN)&(1<<sd.status.weapon)) ){	// スピアクィッケン
@@ -4912,7 +4911,7 @@ int pc_damage(map_session_data &sd, long damage, block_list *src)
 		item_tmp.identify=1;
 		item_tmp.card[0]=0x00fe;
 		item_tmp.card[1]=0;
-		item_tmp.card[2]=basics::GetWord(sd.status.char_id,0);	/* キャラID */
+		item_tmp.card[2]=basics::GetWord(sd.status.char_id,0);	// キャラID 
 		item_tmp.card[3]=basics::GetWord(sd.status.char_id,1);
 		map_addflooritem(item_tmp,1,sd.block_list::m,sd.block_list::x,sd.block_list::y,NULL,NULL,NULL,0);
 	}

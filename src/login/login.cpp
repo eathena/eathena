@@ -188,6 +188,27 @@ int save_packet(int fd, const char* str, const char* ip_str)
 
 ///////////////////////////////////////////////////////////////////////////////
 // encrypted/unencrypted password check
+
+bool check_encryped(const char* str1, const char* str2, const char* passwd)
+{
+	char md5str[64], md5bin[32];
+	snprintf(md5str, sizeof(md5str), "%s%s", str1, str2);
+	md5str[sizeof(md5str)-1] = '\0';
+	MD5_String2binary(md5str, md5bin);
+
+		size_t i;
+		for(i=0; i<16; ++i)
+			printf("%2X ", (unsigned char)(md5bin[i]));
+		printf("\n");
+
+		for(i=0; i<16; ++i)
+			printf("%2X ", (unsigned char)(passwd[i]));
+		printf("\n");
+	
+	
+	return (0==memcmp(passwd, md5bin, 16));
+}
+
 bool check_password(login_session_data* ld, int passwdenc, const char* passwd, const char* refpass)
 {	
 	if(passwdenc == 0)
@@ -196,16 +217,15 @@ bool check_password(login_session_data* ld, int passwdenc, const char* passwd, c
 	}
 	else if (ld)
 	{
-		char md5str[64], md5bin[32];
-		bool encpasswdok = false;
-		if(passwdenc == 2)
-			snprintf(md5str, sizeof(md5str), "%s%s", refpass, ld->md5key); // 24 + 20
-		else // otherwise take passwdenc == 1 as defaule
-			snprintf(md5str, sizeof(md5str), "%s%s", ld->md5key, refpass); // 20 + 24
-
-		md5str[sizeof(md5str)-1] = '\0';
-		MD5_String2binary(md5str, md5bin);
-		encpasswdok = (memcmp(passwd, md5bin, 16) == 0);
+		// password mode set to 1
+		// (md5key, refpass) enable with <passwordencrypt></passwordencrypt>
+		// password mode set to 2
+		// (refpass, md5key) enable with <passwordencrypt2></passwordencrypt2>
+		
+		bool encpasswdok = 
+			((passwdenc&0x01) && check_encryped(ld->md5key, refpass, passwd)) ||
+			((passwdenc&0x02) && check_encryped(refpass, ld->md5key, passwd));
+	
 		return encpasswdok;
 	}
 	return false;

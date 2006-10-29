@@ -80,50 +80,50 @@ extern int _ShowMessage(enum msg_type flag, const char *str, ...);
 // direct printf replacement
 	#define ShowMessage(str...) _ShowMessage(MSG_NONE,##str)
 
-/* MSG_XX */
+// MSG_XX
 	#define ShowMsg(flag,str...) _ShowMessage(flag,##str)
 //	#define DisplayMsg(flag,str...) _ShowMessage(flag,##str)
 //	#define ShowMessage(flag,str...) _ShowMessage(flag,##str)
 
-/* MSG_STATUS */
+// MSG_STATUS
 	#define ShowStatus(str...) _ShowMessage(MSG_STATUS,##str)
 //	#define DisplayStatus(str...) _ShowMessage(MSG_STATUS,##str)
 
-/* MSG_SQL*/
+// MSG_SQL
 	#define ShowSQL(str...) _ShowMessage(MSG_SQL,##str)
 //	#define DisplaySQL(str...) _ShowMessage(MSG_SQL,##str)
 
-/* MSG_INFORMATION */
+// MSG_INFORMATION
 	#define ShowInfo(str...) _ShowMessage(MSG_INFORMATION,##str)
 //	#define DisplayInfo(str...) _ShowMessage(MSG_INFORMATION,##str)
 //	#define ShowInformation(str...) _ShowMessage(MSG_INFORMATION,##str)
 //	#define DisplayInformation(str...) _ShowMessage(MSG_INFORMATION,##str)
 
-/* MSG_CONSOLE */
+// MSG_CONSOLE
 	#define ShowConsole(str...) _ShowMessage(MSG_CONSOLE,##str)
 //	#define DisplayNotice(str...) _ShowMessage(MSG_NOTICE,##str)
 
-/* MSG_NOTICE */
+// MSG_NOTICE
 	#define ShowNotice(str...) _ShowMessage(MSG_NOTICE,##str)
 //	#define DisplayNotice(str...) _ShowMessage(MSG_NOTICE,##str)
 
-/* MSG_WARNING */
+// MSG_WARNING
 	#define ShowWarning(str...) _ShowMessage(MSG_WARNING,##str)
 //	#define DisplayWarning(str...) _ShowMessage(MSG_WARNING,##str)
 //	#define Warn(str...) _ShowMessage(MSG_WARNING,##str)
 
-/* MSG_DEBUG */
+// MSG_DEBUG
 	#define ShowDebug(str...) _ShowMessage(MSG_DEBUG,##str)
 	#define DisplayDebug(str...) _ShowMessage(MSG_DEBUG,##str)
 	#define Debug(str...) _ShowMessage(MSG_DEBUG,##str)
 	#define printDebug(str...) _ShowMessage(MSG_DEBUG,##str)
 
-/* MSG_ERROR */
+// MSG_ERROR
 	#define ShowError(str...) _ShowMessage(MSG_ERROR,##str)
 //	#define DisplayError(str...) _ShowMessage(MSG_ERROR,##str)
 //	#define OutputError(str...) _ShowMessage(MSG_ERROR,##str)
 
-/* MSG_FATALERROR */
+// MSG_FATALERROR
 	#define ShowFatalError(str...) _ShowMessage(MSG_FATALERROR,##str)
 //	#define DisplayFatalError(str...) _ShowMessage(MSG_ERROR,##str)
 //	#define Terminate(str...) _ShowMessage(MSG_FATALERROR,##str)
@@ -143,7 +143,7 @@ static inline int ShowMessage(const char *str, ...)
 	return ret;
 }
 
-/* MSG_XX */
+// MSG_XX
 static inline int ShowMsg(enum msg_type flag, const char *str, ...)
 //	static inline int DisplayMsg(enum msg_type flag, const char *str, ...)
 //	static inline int ShowMessage(enum msg_type flag, const char *str, ...)
@@ -156,7 +156,7 @@ static inline int ShowMsg(enum msg_type flag, const char *str, ...)
 	return ret;
 }
 
-/* MSG_STATUS */
+// MSG_STATUS
 static inline int ShowStatus(const char *str, ...)
 //	static inline int DisplayStatus(const char *str, ...)
 {
@@ -169,7 +169,7 @@ static inline int ShowStatus(const char *str, ...)
 }
 
 
-/* MSG_SQL*/
+// MSG_SQL
 static inline int ShowSQL(const char *str, ...)
 //	static inline int DisplaySQL(const char *str, ...)
 {
@@ -181,7 +181,7 @@ static inline int ShowSQL(const char *str, ...)
 	return ret;
 }
 
-/* MSG_INFORMATION */
+// MSG_INFORMATION
 static inline int ShowInfo(const char *str, ...)
 //	static inline int DisplayInfo(const char *str, ...)
 //	static inline int ShowInformation(const char *str, ...)
@@ -194,7 +194,7 @@ static inline int ShowInfo(const char *str, ...)
 	va_end(va);
 	return ret;
 }
-/* MSG_CONSOLE */
+// MSG_CONSOLE
 static inline int ShowConsole(const char *str, ...)
 {
 	va_list va;
@@ -205,7 +205,7 @@ static inline int ShowConsole(const char *str, ...)
 	return ret;
 }
 
-/* MSG_NOTICE */
+// MSG_NOTICE
 static inline int ShowNotice(const char *str, ...)
 //	static inline int DisplayNotice(const char *str, ...)
 {
@@ -217,7 +217,7 @@ static inline int ShowNotice(const char *str, ...)
 	return ret;
 }
 
-/* MSG_WARNING */
+// MSG_WARNING
 static inline int ShowWarning(const char *str, ...)
 //	static inline int DisplayWarning(const char *str, ...)
 //	static inline int Warn(const char *str, ...)
@@ -230,7 +230,7 @@ static inline int ShowWarning(const char *str, ...)
 	return ret;
 }
 
-/* MSG_DEBUG */
+// MSG_DEBUG
 static inline int ShowDebug(const char *str, ...)
 //	static inline int DisplayDebug(const char *str, ...)
 //	static inline int Debug(const char *str, ...)
@@ -244,7 +244,7 @@ static inline int ShowDebug(const char *str, ...)
 	return ret;
 }
 
-/* MSG_ERROR */
+// MSG_ERROR
 static inline int ShowError(const char *str, ...)
 //	static inline int DisplayError(const char *str, ...)
 //	static inline int OutputError(const char *str, ...)
@@ -257,7 +257,7 @@ static inline int ShowError(const char *str, ...)
 	return ret;
 }
 
-/* MSG_FATALERROR */
+// MSG_FATALERROR
 static inline int ShowFatalError(const char *str, ...)
 //	static inline int DisplayFatalError(const char *str, ...)
 //	static inline int Terminate(const char *str, ...)

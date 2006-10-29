@@ -1378,7 +1378,7 @@ char* parse_subexpr(char *p,int limit)
 	if(config.etc_log)
 		ShowMessage("parse_subexpr end %s\n",p);
 #endif
-	return p;  /* return first untreated operator */
+	return p;  // return first untreated operator 
 }
 
 /*==========================================
@@ -3497,21 +3497,6 @@ int buildin_warp(CScriptEngine &st)
  * エリア指定ワープ
  *------------------------------------------
  */
-/*
-int buildin_areawarp_sub(block_list &bl,va_list &ap)
-{
-	int x,y;
-	char *map;
-	map=va_arg(ap, char *);
-	x=va_arg(ap,int);
-	y=va_arg(ap,int);
-	if(strcmp(map,"Random")==0)
-		pc_randomwarp(((map_session_data &)bl),3);
-	else
-		pc_setpos(((map_session_data &)bl),map,x,y,0);
-	return 0;
-}
-*/
 class CBuildinAreawarpXY : public CMapProcessor
 {
 	const char*& map;
@@ -3573,9 +3558,6 @@ int buildin_areawarp(CScriptEngine &st)
 		else
 			block_list::foreachinarea( CBuildinAreawarpXY(targetmap,x,y),
 				m,x0,y0,x1,y1,BL_PC);
-//		map_foreachinarea(buildin_areawarp_sub,
-//			m,x0,y0,x1,y1,BL_PC, 
-//			targetmap,x,y );
 	}
 	return 0;
 }
@@ -4148,7 +4130,7 @@ int buildin_readparam(CScriptEngine &st)
  */
 int buildin_getcharid(CScriptEngine &st)
 {
-	int num, val=-1;
+	int num, val=0;
 	map_session_data *sd;
 
 	num=st.GetInt(st[2]);
@@ -5019,7 +5001,7 @@ int buildin_savepoint(CScriptEngine &st)
  * GetTimeTick(0: System Tick, 1: Time Second Tick)
  *------------------------------------------
  */
-int buildin_gettimetick(CScriptEngine &st)	/* Asgard Version */
+int buildin_gettimetick(CScriptEngine &st)	// Asgard Version 
 {
 	time_t timer;
 	struct tm *t;
@@ -5051,7 +5033,7 @@ int buildin_gettimetick(CScriptEngine &st)	/* Asgard Version */
  * 7: Year
  *------------------------------------------
  */
-int buildin_gettime(CScriptEngine &st)	/* Asgard Version */
+int buildin_gettime(CScriptEngine &st)	// Asgard Version 
 {
 	time_t timer;
 	struct tm *t;
@@ -5333,11 +5315,6 @@ int buildin_killmonster(CScriptEngine &st)
 		else
 			block_list::foreachinarea( CBuildinKillEventmob(event),
 				m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
-
-//		if(strcmp(event,"All")==0)
-//			allflag = 1;
-//		map_foreachinarea(buildin_killmonster_sub,
-//			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB, event ,allflag);
 	}
 	return 0;
 }
@@ -5350,9 +5327,6 @@ int buildin_killmonsterall(CScriptEngine &st)
 	{	//!! broadcast command if not on this mapserver
 		block_list::foreachinarea( CBuildinKillallmob(),
 			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
-
-//		map_foreachinarea(buildin_killmonsterall_sub,
-//			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
 	}
 	return 0;
 }
