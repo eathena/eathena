@@ -1530,8 +1530,9 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 {
 	int char_id = 0;
 
-	md->tdmg+=damage; //Store total damage...
-	
+	if (damage > 0) //Store total damage...
+		md->tdmg+=damage;
+
 	if(md->guardian_data && md->guardian_data->number < MAX_GUARDIANS) // guardian hp update [Valaris] (updated by [Skotlex])
 		md->guardian_data->castle->guardian[md->guardian_data->number].hp = md->status.hp;
 
