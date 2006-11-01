@@ -1,3 +1,11 @@
+11/01
+	* Merged exp, item_db, job_db1, mob_db, mob_skill_db [Playtester]
+	- official GS/NJ job exp up to level 48
+	- made Ninja Suit and Thief Clothes being equippable by Ninjas
+	- updated Ninja weight and HP growth
+	- updated some official X.4 drop rates and mob speed
+	- added Shinobi Sash drop to Shinobi
+	- Constant only explodes on attack state
 10/26
 	* Merged item_db, mob_db and mob_skill_db [Playtester]
 	- updated view ids of some headgears
