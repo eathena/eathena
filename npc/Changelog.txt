@@ -34,6 +34,11 @@ Playtester
 
 Date		Added
 ======
+11/01
+	* Spawn updates [Playtester]
+	- official X.4 mob types
+	- numbers are official on 90% of the maps
+	- also added optional jRO spawns
 10/30
 	* Updated the npc/other/marriage.txt wedding script with the most current
 	  version. [Skotlex]
