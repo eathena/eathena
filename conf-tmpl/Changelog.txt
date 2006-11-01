@@ -1,5 +1,7 @@
 Date	Added
 
+2006/11/01
+	* Fixed start map name, according to the recent changes [KarLaeda]
 2006/10/25
 	* Merged config setting summon_flora_setting (skill.conf) which specifies
 	  restrictions on the skill such as letting other people hit the floras, or
