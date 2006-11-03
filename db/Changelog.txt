@@ -1,3 +1,9 @@
+11/03
+	* Merged exp, item_db, mob_db, mob_skill_db [Playtester]
+	- official GS/NJ job exp up to level 50
+	- official X.4 drops & drop rates
+	- fixed related item names
+	- made Aliot only use NPC_Rebirth on dead	
 11/01
 	* Merged exp, item_db, job_db1, mob_db, mob_skill_db [Playtester]
 	- official GS/NJ job exp up to level 48
