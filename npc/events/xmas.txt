@@ -342,14 +342,14 @@ yuno_fild08.gat,0,0,0,0	monster	Antonio	1247,1,0,0,0
 yuno_fild09.gat,0,0,0,0	monster	Antonio	1247,1,0,0,0
 yuno_fild11.gat,0,0,0,0	monster	Antonio	1247,1,0,0,0
 yuno_fild12.gat,0,0,0,0	monster	Antonio	1247,1,0,0,0
-ama_fild01.gat,0,0,0,0  monster	Antonio 1247,1,0,0,0
+ama_fild01.gat,0,0,0,0	monster	Antonio	1247,1,0,0,0
 gon_fild01.gat,0,0,0,0	monster	Antonio	1247,1,0,0,0
 um_fild01.gat,0,0,0,0	monster	Antonio	1247,1,0,0,0
 um_fild02.gat,0,0,0,0	monster	Antonio	1247,1,0,0,0
 um_fild03.gat,0,0,0,0	monster	Antonio	1247,1,0,0,0
 um_fild04.gat,0,0,0,0	monster	Antonio	1247,1,0,0,0
-nif_fild01.gat,0,0,0,0  monster	Antonio 1247,1,0,0,0
-nif_fild02.gat,0,0,0,0  monster	Antonio 1247,1,0,0,0
+nif_fild01.gat,0,0,0,0	monster	Antonio	1247,1,0,0,0
+nif_fild02.gat,0,0,0,0	monster	Antonio	1247,1,0,0,0
 lou_fild01.gat,0,0,0,0	monster	Antonio	1247,1,0,0,0
 hu_fild01.gat,0,0,0,0	monster	Antonio	1247,1,0,0,0
 hu_fild04.gat,0,0,0,0	monster	Antonio	1247,1,0,0,0
