@@ -35,6 +35,9 @@ Playtester
 Date		Added
 ======
 11/05
+	* Fixed extra EOL in jro spawn [Playtester]
+	- I thought I fixed that already, I wonder why the fix disappeared
+	- thanks to KarLaeda for fixing it again, I only merged it
 	* Fixed reward of gunslinger job quest [Playtester]
 11/04
 	* Many small fixes - tabs, parenthesis [KarLaeda]
