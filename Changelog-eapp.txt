@@ -1,4 +1,6 @@
 Date	Added
+11/05
+	* Added admin.cpp/.h to VC7.1/VC8 projects [DracoRPG]
 10/29
 	* nothing beside a changed export script 
 	  (should have replaced one lined C-style comments)
