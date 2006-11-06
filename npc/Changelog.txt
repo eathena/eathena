@@ -34,6 +34,8 @@ Playtester
 
 Date		Added
 ======
+11/06
+	* Fixed item select in Novice Exchanger [KarLaeda]
 11/05
 	* Fixed extra EOL in jro spawn [Playtester]
 	- I thought I fixed that already, I wonder why the fix disappeared
