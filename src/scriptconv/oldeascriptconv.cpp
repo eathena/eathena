@@ -863,47 +863,55 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 		{
 		case PT_IDENTIFIER:
 		{	// convert variable scopes
-			//##	account2	->login::
-			//#		account		->account::
-			//$		char		->player::
-			//@		global		->global::
-			//.		script		->script::
-
 			const char*str = parser.rt[rtpos].cToken.cLexeme;
 			const char*epp = str+parser.rt[rtpos].cToken.cLexeme.size()-1;
+			const char*add = "";
 			// strip 
 			for( ; str<=epp && !basics::stringcheck::isalnum(*epp) && *epp!='_'; --epp) {}
 			if(str[0]=='.' && str[1]=='@')
 			{
 				str+=2;
-				if(str<=epp) prn << "temp::";
+				add = "temp::";
 				//could also skip these as default vars are temp
 			}
 			else if(str[0]=='.')
 			{
 				++str;
-				if(str<=epp) prn << "npc::";
+				add = "npc::";
 			}
 			else if(str[0]=='@')
 			{
 				++str;
-				if(str<=epp) prn << "global::";
+				add = "temp::";
+				//could also skip these as default vars are temp
+			}
+			else if(str[0]=='$' && str[1]=='@')
+			{
+				str+=2;
+				add = "temp::";
+				//could also skip these as default vars are temp
 			}
 			else if(str[0]=='$')
 			{
 				++str;
-				if(str<=epp) prn << "player::";
+				add = "global::";
 			}
 			else if(str[0]=='#' && str[1]=='#')
 			{
 				str+=2;
-				if(str<=epp) prn << "login::";
+				add = "login::";
 			}
 			else if(str[0]=='#')
 			{
 				++str;
-				if(str<=epp) prn << "account::";
+				add = "account::";
 			}
+			//else
+			// cannot recognize player variables as all identifiers/labels/names end up here
+			// add = "player::";
+
+			// strip any other stuff from the beginning
+			for( ; str<=epp && !basics::stringcheck::isalnum(*str) && *str!='_'; ++str) {}
 			if(str<=epp)
 			{	// check for reserved words
 				bool reserved = ( 0==strcmp(str,"if") ||
@@ -917,6 +925,7 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 								  0==strcmp(str,"double") ||
 								  0==strcmp(str,"auto") ||
 								  0==strcmp(str,"var") );
+				prn << add;
 				if(reserved) prn << '_';
 				for(; str<=epp; ++str)
 					prn << *str;
@@ -1099,7 +1108,10 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 				// so neet to test it explicitely
 
 				// function name
-				print_beautified(parser, parser.rt[rtpos].cChildPos);
+				char idname[64];
+				const char* tmp = parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme;
+				str2id(idname, sizeof(idname), tmp);
+				prn << idname;
 
 				if( parser.rt[rtpos].cChildNum==3 )
 				{
@@ -1218,24 +1230,25 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 		{	// <Case Stms>  ::= case <Value> ':' <Stm List> <Case Stms>
 			//			   | default ':' <Stm List> <Case Stms>
 			//			   |
-			size_t j,k;
-			int tmpscope = prn.scope;
-			k = parser.rt[rtpos].cChildPos+parser.rt[rtpos].cChildNum;
-			for(j=parser.rt[rtpos].cChildPos; j<k; ++j)
-			{	// go down
-				if( PT_COLON==parser.rt[j].symbol.idx )
-				{
-					prn << ":\n";
-					++prn.scope;
-				}
-				else
-				{
-					if( PT_CASESTMS==parser.rt[j].symbol.idx )
-						if(prn.scope) --prn.scope;
-					print_beautified(parser, j);
-				}
+			size_t i = parser.rt[rtpos].cChildPos;
+			
+			if( PT_CASE == parser.rt[i].symbol.idx )
+			{
+				prn << "case ";
+				++i;
+				print_beautified(parser, i);
 			}
-			prn.scope = tmpscope;
+			else
+			{
+				prn << "default";
+				++i;
+				print_beautified(parser, i);
+			}
+			prn << ":\n";
+			++prn.scope;
+			print_beautified(parser, i+2);
+			--prn.scope;
+			print_beautified(parser, i+3);
 			break;
 		}
 		case PT_RETURNSTMS:
@@ -1247,6 +1260,13 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 				print_beautified(parser, parser.rt[rtpos].cChildPos+1 );
 			}
 			prn << ";\n";
+			break;
+		}
+		case PT_GOTOSTMS:
+		{
+			prn << "goto ";
+			prn << parser.rt[parser.rt[rtpos].cChildPos+1].cToken.cLexeme;
+			prn << ';' << '\n';
 			break;
 		}
 		case PT_OLDITEMDB:
@@ -1420,7 +1440,6 @@ bool oldeaParser::process(const char*name) const
 			{
 				if( (option&OPT_PRINTTREE)==OPT_PRINTTREE )
 				{
-					fprintf(stderr, "(%li)----------------------------------------\n", (unsigned long)parser->rt.size());
 					parser->print_rt_tree(0,0, false);
 				}
 
@@ -1429,7 +1448,6 @@ bool oldeaParser::process(const char*name) const
 					//////////////////////////////////////////////////////////
 					// tree transformation
 					parsenode pnode(*parser);
-					fprintf(stderr, "----------------------------------------\n");
 					pnode.print_tree();
 				}
 				if( (option&OPT_BEAUTIFY)==OPT_BEAUTIFY && this->prn.output )
@@ -1443,7 +1461,6 @@ bool oldeaParser::process(const char*name) const
 				//////////////////////////////////////////////////////////
 				// reinitialize parser
 				parser->reinit();
-//					fprintf(stderr, "............................................(%i)\n", global::getcount());
 			}
 		}
 	}

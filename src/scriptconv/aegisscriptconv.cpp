@@ -116,14 +116,25 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			//			   |
 			if( parser.rt[rtpos].cChildNum )
 			{
-				print_beautified(parser, parser.rt[rtpos].cChildPos+0);
-				prn << ' ';
-				print_beautified(parser, parser.rt[rtpos].cChildPos+1);
+				size_t i = parser.rt[rtpos].cChildPos;
+				
+				if( AE_CASE == parser.rt[i].symbol.idx )
+				{
+					prn << "case ";
+					++i;
+					print_beautified(parser, i);
+				}
+				else
+				{
+					prn << "default";
+					++i;
+					print_beautified(parser, i);
+				}
 				prn << ":\n";
 				++prn.scope;
-				print_beautified(parser, parser.rt[rtpos].cChildPos+3);
+				print_beautified(parser, i+2);
 				--prn.scope;
-				print_beautified(parser, parser.rt[rtpos].cChildPos+4);
+				print_beautified(parser, i+3);
 			}
 			break;
 		}

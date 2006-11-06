@@ -1,5 +1,6 @@
 Date	Added
 11/06
+	* think I could become accustomed to KarLaeda reports
 	* some fixes for reported things
 	* added experimental aegis support to script converter (*.sc)
 	  it should read the scripts although I had to guess alot of the grammar
