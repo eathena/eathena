@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/11/06
+	* Cleaned up the way mobskill_use checks for the correct event. It should
+	  fix unlimited mob-skill-casting issues. [Skotlex]
 	* Bunch of merges from Trunk: [Skotlex]
 	- MG_STONECURSE and NPC_PETRIFYATTACK now use time1 as the petrifying time.
 	  The auto-casted petrify uses 0, which causes the minimum (1 sec) to be
