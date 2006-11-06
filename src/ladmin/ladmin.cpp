@@ -3542,7 +3542,7 @@ int parse_fromlogin(int fd)
 				}
 				// Displaying of result
 				for(i = 4; i < RFIFOW(fd,2); i += 32) {
-					memcpy(name, RFIFOP(fd,i+6), sizeof(name));
+					safestrcpy(name, sizeof(name), (char*)RFIFOP(fd,i+6));
 					name[sizeof(name) - 1] = '\0';
 					ShowMessage("    %-20s : %5d\n", name, (unsigned short)RFIFOW(fd,i+26));
 				}
@@ -3911,19 +3911,13 @@ int parse_fromlogin(int fd)
 			char userid[24], error_message[20], lastlogin[24], last_ip[16], email[40], memo[255];
 			time_t ban_until_time; // # of seconds 1/1/1970 (timestamp): ban time limit of the account (0 = no ban)
 			time_t connect_until_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
-			memcpy(userid, RFIFOP(fd,7), sizeof(userid));
-			userid[sizeof(userid)-1] = '\0';
-			memcpy(error_message, RFIFOP(fd,40), sizeof(error_message));
-			error_message[sizeof(error_message)-1] = '\0';
-			memcpy(lastlogin, RFIFOP(fd,60), sizeof(lastlogin));
-			lastlogin[sizeof(lastlogin)-1] = '\0';
-			memcpy(last_ip, RFIFOP(fd,84), sizeof(last_ip));
-			last_ip[sizeof(last_ip)-1] = '\0';
-			memcpy(email, RFIFOP(fd,100), sizeof(email));
-			email[sizeof(email)-1] = '\0';
+			safestrcpy(userid, sizeof(userid), (char*)RFIFOP(fd,7));
+			safestrcpy(error_message, sizeof(error_message), (char*)RFIFOP(fd,40));
+			safestrcpy(lastlogin, sizeof(lastlogin), (char*)RFIFOP(fd,60));
+			safestrcpy(last_ip, sizeof(last_ip), (char*)RFIFOP(fd,84));
+			safestrcpy(email, sizeof(email), (char*)RFIFOP(fd,100));
 			connect_until_time = (time_t)RFIFOL(fd,140);
 			ban_until_time = (time_t)RFIFOL(fd,144);
-			memset(memo, '\0', sizeof(memo));
 			safestrcpy(memo, RFIFOW(fd,148), (char*)RFIFOP(fd,150));
 			if( (int)RFIFOL(fd,2) == -1 ) {
 				if (defaultlanguage == 'F') {
@@ -4106,7 +4100,7 @@ int Connect_login_server()
 	{
 		WFIFOW(login_fd,0) = 0x7918; // Request for administation login
 		WFIFOW(login_fd,2) = 0; // no encrypted
-		memcpy(WFIFOP(login_fd,4), loginserveradminpassword, 24);
+		safestrcpy((char*)WFIFOP(login_fd,4), 24, loginserveradminpassword);
 		WFIFOSET(login_fd,28);
 		bytes_to_read = 1;
 		if (defaultlanguage == 'F') {

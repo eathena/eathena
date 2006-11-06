@@ -785,10 +785,8 @@ int mapif_parse_WisToGM(int fd)
 	char *message = ( (size_t)RFIFOW(fd,2) >= 30+sizeof(mbuf)) ? new char[(RFIFOW(fd,2) - 30)] : mbuf;
 
 	min_gm_level = (int)RFIFOW(fd,28);
-	memcpy(Wisp_name, RFIFOP(fd,4), 24);
-	Wisp_name[23] = '\0';
-	memcpy(message, RFIFOP(fd,30), RFIFOW(fd,2) - 30);
-	message[sizeof(message) - 1] = '\0';
+	safestrcpy(Wisp_name, sizeof(Wisp_name), (char*)RFIFOP(fd,4));
+	safestrcpy(message, RFIFOW(fd,2) - 30, (char*)RFIFOP(fd,30));
 	// information is sended to all online GM
 	for (i = 0; i < fd_max; ++i)
 		if(session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth)
@@ -808,8 +806,9 @@ int intif_parse_AccountReg(int fd) {
 
 	if( (sd=map_session_data::from_blid(RFIFOL(fd,4)))==NULL )
 		return 1;
-	for(p=8,j=0; p<RFIFOW(fd,2) && j<ACCOUNT_REG_NUM; p+=36,++j){
-		memcpy(sd->status.account_reg[j].str,RFIFOP(fd,p),32);
+	for(p=8,j=0; p<RFIFOW(fd,2) && j<ACCOUNT_REG_NUM; p+=36,++j)
+	{
+		safestrcpy(sd->status.account_reg[j].str, sizeof(sd->status.account_reg[j].str), (char*)RFIFOP(fd,p));
 		sd->status.account_reg[j].value=RFIFOL(fd,p+32);
 	}
 	sd->status.account_reg_num = j;
@@ -847,7 +846,6 @@ int intif_parse_LoadStorage(int fd) {
 		if(config.save_log)
 			ShowMessage("intif_openstorage: %ld\n",(unsigned long)RFIFOL(fd,4) );
 
-	//	memcpy(stor,RFIFOP(fd,8),sizeof(struct pc_storage));
 		pc_storage_frombuffer(*stor, RFIFOP(fd,8));
 		stor->dirty=0;
 		stor->storage_status=1;

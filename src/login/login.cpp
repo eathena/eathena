@@ -811,8 +811,7 @@ int parse_fromchar(int fd)
 				
 				for(p=8, j=0; p<sz && j<ACCOUNT_REG2_NUM; p += 36, ++j)
 				{
-					memcpy(account.account_reg2[j].str, RFIFOP(fd,p), 32);
-					account.account_reg2[j].str[31] = '\0';
+					safestrcpy(account.account_reg2[j].str, sizeof(account.account_reg2[j].str), (char*)RFIFOP(fd,p));
 					remove_control_chars((account.account_reg2[j].str));
 					account.account_reg2[j].value = RFIFOL(fd,p+32);
 				}
@@ -1361,8 +1360,7 @@ int parse_login(int fd)
 				if (RFIFOW(fd,2) == 0)
 				{	// non encrypted password
 					char password[64];
-					memcpy(password, RFIFOP(fd,4), 24);
-					password[23] = '\0';
+					safestrcpy(password, sizeof(password), (char*)RFIFOP(fd,4));
 					remove_control_chars(password);
 					// If remote administration is enabled and password sent by client matches password read from login server configuration file
 					if( !admin_state )

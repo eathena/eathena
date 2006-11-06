@@ -74,6 +74,11 @@ public:
 
 
 
+
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// login object for an account entry.
 /// holds user data and account specific options
@@ -85,7 +90,7 @@ public:
 	basics::string<>				userid;			///< username
 	uint32							login_id1;		///< last id1
 	uint32							login_id2;		///< last id2
-	uint32							passfails;		///< # offailed password trials
+	uint32							passfails;		///< # of failed password trys
 	time_t							ban_until;		///< bantime if any
 	time_t							valid_until;	///< validtime if any
 	
@@ -135,9 +140,8 @@ public:
 			_L_frombuffer(this->login_id2, buf);
 			_T_frombuffer(this->ban_until, buf);
 			_T_frombuffer(this->valid_until, buf);
-			return 4+24+16+4+4+4+4;
 		}
-		return 0;
+		return 4+24+16+4+4+4+4;
 	}
 	/// old style buffer converter. stores object to buffer
 	size_t tobuffer(unsigned char* buf) const
@@ -151,9 +155,8 @@ public:
 			_L_tobuffer(this->login_id2, buf);
 			_T_tobuffer(this->ban_until, buf);
 			_T_tobuffer(this->valid_until, buf);
-			return 4+24+16+4+4+4+4;
 		}
-		return 0;
+		return 4+24+16+4+4+4+4;
 	}
 };
 
@@ -174,12 +177,10 @@ struct charserver_connect : public server_connect
 {
 	basics::string<>				name;
 	unsigned int					mode;
-	uint32							cryptkey;
 	basics::slist<login_account>	accounts;
 
 	bool operator==(const charserver_connect&a) const { return this->name==a.name; }
 	bool operator< (const charserver_connect&a) const { return this->name< a.name; }
-
 };
 
 ///////////////////////////////////////////////////////////////////////////////

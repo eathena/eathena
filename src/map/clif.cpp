@@ -10613,8 +10613,7 @@ int clif_parse_UseSkillToPos(int fd, map_session_data &sd)
 			sd.clif_skill_failed( skillnum, 0, 0);
 			return 0;
 		}
-		memcpy(talkie_mes, RFIFOP(fd,skillmoreinfo), 80);
-		talkie_mes[79]=0;
+		safestrcpy(talkie_mes, sizeof(talkie_mes), (char*)RFIFOP(fd,skillmoreinfo));
 	}
 
 	if (sd.skilltimer != -1)
@@ -11584,8 +11583,7 @@ int clif_parse_Shift(int fd, map_session_data &sd)
 	if( (config.atc_gmonly == 0 || sd.isGM()) &&
 	    sd.isGM() >= CommandInfo::get_level(command_jumpto) )
 	{
-		memcpy(player_name, RFIFOP(fd,2), 24);
-		player_name[23]=0;
+		safestrcpy(player_name, sizeof(player_name), (char*)RFIFOP(fd,2));
 		command_jumpto(fd, sd, "@jumpto", basics::CParameterList(player_name)); // as @jumpto
 	}
 
@@ -11606,8 +11604,7 @@ int clif_parse_Recall(int fd, map_session_data &sd)
 	if( (config.atc_gmonly == 0 || sd.isGM()) &&
 		sd.isGM() >= CommandInfo::get_level(command_recall) )
 	{
-		memcpy(player_name, RFIFOP(fd,2), 24);
-		player_name[23]=0;
+		safestrcpy(player_name, sizeof(player_name), (char*)RFIFOP(fd,2));
 		command_recall(fd, sd, "@recall", basics::CParameterList(player_name)); // as @recall
 	}
 

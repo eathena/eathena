@@ -877,13 +877,11 @@ int parse_admin(int fd)
 				}
 				else
 				{	// at least 1 char-server
-					unsigned char buf[32016];
 					char message[32000];
 					size_t sz = RFIFOL(fd,4);
 					if(sz > sizeof(message)) sz = sizeof(message)-1;
 					WFIFOW(fd,2) = 0;
-					memset(message, '\0', sizeof(message));
-					memcpy(message, RFIFOP(fd,8), sz);
+					safestrcpy(message, sizeof(message), (char*)RFIFOP(fd,8));
 					message[sizeof(message)-1] = '\0';
 					remove_control_chars(message);
 					if (RFIFOW(fd,2) == 0)
@@ -893,9 +891,9 @@ int parse_admin(int fd)
 						login_log("'ladmin': Receiving a message for broadcast (message (in blue): %s, ip: %s)" RETCODE,
 							message, ip_str);
 					// send same message to all char-servers (no answer)
-					memcpy(buf, RFIFOP(fd,0), 8+sz);
-					WBUFW(buf,0) = 0x2726;
-					charif_sendallwos(-1, buf, 8+sz);
+					// send directly from receive buffer, no copy
+					RFIFOW(fd,0) = 0x2726;
+					charif_sendallwos(-1, RFIFOP(fd,0), 8+sz);
 				}
 			}
 			WFIFOSET(fd,4);

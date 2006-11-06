@@ -1058,7 +1058,7 @@ int parse_tologin(int fd)
 			{
 				for(p = 8, j = 0; p < sz && j < ACCOUNT_REG2_NUM; p += 36, ++j)
 				{
-					memcpy(account.account_reg2[j].str, RFIFOP(fd,p), 32);
+					safestrcpy(account.account_reg2[j].str, sizeof(account.account_reg2[j].str), (char*)RFIFOP(fd,p));
 					account.account_reg2[j].value = RFIFOL(fd,p+32);
 				}
 				char_db.saveAccount(account);
@@ -1356,7 +1356,7 @@ int parse_frommap(int fd)
 			memset(server[id].map, 0, sizeof(server[id].map));
 			j = 0;
 			for(i = 4; i < (size_t)RFIFOW(fd,2); i += 16) {
-				memcpy(server[id].map[j], RFIFOP(fd,i), 16);
+				safestrcpy(server[id].map[j], sizeof(server[id].map[j]), (char*)RFIFOP(fd,i));
 				j++;
 			}
 			server[id].maps = j;
@@ -1804,7 +1804,7 @@ int parse_frommap(int fd)
 			{
 				for(p = 8, j = 0; p < sz && j < ACCOUNT_REG2_NUM; p += 36, ++j)
 				{
-					memcpy(account.account_reg2[j].str, RFIFOP(fd,p), 32);
+					safestrcpy(account.account_reg2[j].str, sizeof(account.account_reg2[j].str), (char*)RFIFOP(fd,p));
 					account.account_reg2[j].value = RFIFOL(fd,p+32);
 				}
 				char_db.saveAccount(account);

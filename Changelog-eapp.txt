@@ -1,6 +1,13 @@
 Date	Added
-11/05
-	* Added admin.cpp/.h to VC7.1/VC8 projects [DracoRPG]
+11/06
+	* some fixes for reported things
+	* added experimental aegis support to script converter (*.sc)
+	  it should read the scripts although I had to guess alot of the grammar
+	  beautifier outputs new syntax style but function names
+	  and some function behaviour needs to be converted. 
+	* updated oldea syntax to support subfunctions and script varibles
+	  but not yet decided how the new engine will support them
+	* outputted variable names should now get scoped correctly
 10/29
 	* nothing beside a changed export script 
 	  (should have replaced one lined C-style comments)

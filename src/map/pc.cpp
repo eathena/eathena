@@ -3795,46 +3795,47 @@ int pc_memo(map_session_data &sd, int i)
 	int skill;
 	int j;
 
-	skill = pc_checkskill(sd, AL_WARP);
-	if (i >= MIN_PORTAL_MEMO)
-		i -= MIN_PORTAL_MEMO;
-	else if (maps[sd.block_list::m].flag.nomemo || (maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()))
+	if (maps[sd.block_list::m].flag.nomemo || (maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()))
 	{
 		clif_skill_teleportmessage(sd, 1);
 		return 0;
 	}
-
-	if (skill < 1) {
+	else if ( (skill = pc_checkskill(sd, AL_WARP)) < 1)
+	{
 		clif_skill_memo(sd,2);
 	}
-
-	if (skill < 2 || i < -1 || i > 2) {
+	else if (skill < 2 || i < -1 || i > 2)
+	{
 		clif_skill_memo(sd, 1);
-		return 0;
-	}
 
-	for(j = 0 ; j < 3; ++j)
+	}
+	else
 	{
-		if(strcmp(sd.status.memo_point[j].mapname, maps[sd.block_list::m].mapname) == 0)
+		for(j=0 ; j<MAX_PORTAL_MEMO; ++j)
 		{
-			i = j;
-			break;
+			if(strcmp(sd.status.memo_point[j].mapname, maps[sd.block_list::m].mapname) == 0)
+			{
+				i = j;
+				break;
+			}
 		}
-	}
-
-	if (i == -1)
-	{
-		for(i = skill - 3; i >= 0; i--)
+		if(i == -1)
 		{
-			memcpy(&sd.status.memo_point[i+1],&sd.status.memo_point[i],sizeof(struct point));
+			for(i=skill-3; i>0;)
+			{
+				 --i;
+				sd.status.memo_point[i+1] = sd.status.memo_point[i];
+			}
+			i=0;
 		}
-		i = 0;
+		if(i>=0 && i<MAX_PORTAL_MEMO)
+		{
+			memcpy(sd.status.memo_point[i].mapname, maps[sd.block_list::m].mapname, 24);
+			sd.status.memo_point[i].x = sd.block_list::x;
+			sd.status.memo_point[i].y = sd.block_list::y;
+		}
+		clif_skill_memo(sd, 0);
 	}
-	memcpy(sd.status.memo_point[i].mapname, maps[sd.block_list::m].mapname, 24);
-	sd.status.memo_point[i].x = sd.block_list::x;
-	sd.status.memo_point[i].y = sd.block_list::y;
-
-	clif_skill_memo(sd, 0);
 	return 1;
 }
 

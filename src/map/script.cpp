@@ -871,7 +871,7 @@ void check_script_buf(int size)
 void add_scriptb(int a)
 {
 	check_script_buf(1);
-	script_buf[script_pos++]=a;
+	script_buf[script_pos++] = (0xFF&a);
 }
 
 /*==========================================
@@ -1087,38 +1087,45 @@ static int startline;
  */
 void disp_error_message(const char *mes,const char *pos)
 {
-	int line,c=0,i,on=0;
-	char *p,*linestart,*lineend;
+	int line, on=0;
+	const char *p,*linestart,*lineend;
 
-	for(line=startline,p=startptr;p && *p;++line){
+	for(line=startline, p=startptr; p && *p; ++line)
+	{
 		linestart=p;
 		lineend=strchr(p,'\n');
-		if(lineend){
-			c=*lineend;
-			*lineend=0;
-		}
-		if(lineend==NULL || pos<lineend){
-			ShowMessage("\n%s line "CL_WHITE"\'%d\'"CL_RESET" :\n", mes, line);
-			for(i=0;(linestart[i]!='\r') && (linestart[i]!='\n') && linestart[i];++i)
+		if(lineend==NULL || pos<lineend)
+		{
+			// skip all leading control chars
+			for(; basics::stringcheck::iscntrl(*p); ++p) {}
+
+			if(lineend==NULL)
+			{	// go to the end of the string
+				for(lineend=p; *lineend; ++lineend) {}
+			}
+			else
+			{	// skip all preceeding control chars
+				for(; basics::stringcheck::iscntrl(*lineend); --lineend) {}
+			}
+
+			ShowError("\n%s line "CL_WHITE"\'%d\'"CL_RESET":\n", mes, line);
+			for(; *p &&  p<lineend; ++p)
 			{
-				if(linestart+i==pos)
+				if(p==pos)
 				{
 					on=1;
 					ShowMessage("\'"CL_BT_RED);
 				}
-				else if( on && !(linestart[i]=='_' || isalnum(((unsigned char)linestart[i]))) )
+				else if( on && !(*p=='_' || basics::stringcheck::isalnum(*p)) )
 				{
 					on=0;
 					ShowMessage(CL_RESET"\'");
 				}
-				ShowMessage("%c",linestart[i]);
+				ShowMessage("%c",*p);
 			}
-			ShowMessage(CL_RESET"\a\n");
-			if(lineend)
-				*lineend=c;
+			ShowMessage(CL_RESET"\n");
 			return;
 		}
-		*lineend=c;
 		p=lineend+1;
 	}
 }

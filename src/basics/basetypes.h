@@ -23,7 +23,7 @@
 #define CHECK_BOUNDS		///< enables boundary check for arrays and lists
 #define CHECK_EXCEPTIONS	///< use exceptions for "exception" handling
 #define CHECK_LOCKS			///< enables check of locking/unlocking sync objects
-//#define SINGLETHREAD		///< builds without multithread guards
+#define SINGLETHREAD		///< builds without multithread guards
 //#define MEMORY_EXCEPTIONS	///< use buildin exceptions for out-of-memory handling
 #define WITH_NAMESPACE		///< go with everything inside a namespace
 

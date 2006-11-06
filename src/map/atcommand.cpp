@@ -3844,8 +3844,8 @@ bool command_memo(int fd, map_session_data& sd, const char* command, const basic
 	
 	if( param.size() >=1 )
 	{
-		int position = param[0];
-		if (position >= MIN_PORTAL_MEMO && position <= MAX_PORTAL_MEMO)
+		size_t position = param[0];
+		if(position < MAX_PORTAL_MEMO)
 		{
 			if( sd.block_list::m < map_num &&
 				(maps[sd.block_list::m].flag.nowarpto || maps[sd.block_list::m].flag.nomemo) &&
@@ -3862,20 +3862,20 @@ bool command_memo(int fd, map_session_data& sd, const char* command, const basic
 			sd.status.memo_point[position].x = sd.block_list::x;
 			sd.status.memo_point[position].y = sd.block_list::y;
 			clif_skill_memo(sd, 0);
-			if (pc_checkskill(sd, AL_WARP) <= (position + 1))
+			if (pc_checkskill(sd, AL_WARP) <= (int)(position + 1))
 				clif_displaymessage(fd, msg_txt(MSG_DONT_HAVE_WARP_SKILL)); // Note: you don't have the 'Warp' skill level to use it.
 			ret = true;
 		}
 		else
 		{
-			snprintf(output, sizeof(output), "Please, enter a valid position (usage: memo <memo_position:%d-%d>).", MIN_PORTAL_MEMO, MAX_PORTAL_MEMO);
+			snprintf(output, sizeof(output), "Please, enter a valid position (usage: memo <memo_position:0-%d>).", MAX_PORTAL_MEMO-1);
 			clif_displaymessage(fd, output);
 		}
 	}
 
 	// display actual memo points
 	clif_displaymessage(sd.fd,  "Your actual memo positions are (except respawn point):");
-	for (i = MIN_PORTAL_MEMO; i <= MAX_PORTAL_MEMO; ++i)
+	for (i = 0; i < MAX_PORTAL_MEMO; ++i)
 	{
 		if (sd.status.memo_point[i].mapname[0])
 			snprintf(output, sizeof(output), "%d - %s (%d,%d)", (uint)i, sd.status.memo_point[i].mapname, sd.status.memo_point[i].x, sd.status.memo_point[i].y);
@@ -4957,9 +4957,9 @@ bool command_produce(int fd, map_session_data& sd, const char* command, const ba
 	    (item_id < 4001 || item_id > 4148) &&
 	    (item_id < 7001 || item_id > 10019) &&
 	    itemdb_isSingleStorage(item_id)) {
-		if (attribute < MIN_ATTRIBUTE || attribute > MAX_ATTRIBUTE)
-			attribute = ATTRIBUTE_NORMAL;
-		if (star < MIN_STAR || star > MAX_STAR)
+		if (attribute < 0 || attribute > MAX_ATTRIBUTE)
+			attribute = 0;
+		if (star < 0 || star > MAX_STAR)
 			star = 0;
 		memset(&tmp_item, 0, sizeof tmp_item);
 		tmp_item.nameid = item_id;

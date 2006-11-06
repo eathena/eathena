@@ -171,6 +171,7 @@ protected:
 public:
 	explicit assign_cont<T>(T& o) : cObj(o)						{}
 	assign_cont<T>(const assign_cont<T>& ac) : cObj(ac.cObj)	{}
+	virtual ~assign_cont()	{}
 
 	const assign_cont<T>& operator=(const assign_cont<T>& ac)
 	{
@@ -201,6 +202,7 @@ class assign_cont<bool>
 public:
 	explicit assign_cont(ulong& o, uchar b) : cObj(o), cBit(1ul<<b)			{}
 	assign_cont(const assign_cont<bool>& ac) : cObj(ac.cObj), cBit(ac.cBit)	{}
+	virtual ~assign_cont()	{}
 
 	bool operator=(const assign_cont<bool>& ac)
 	{

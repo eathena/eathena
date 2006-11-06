@@ -288,7 +288,8 @@ void ipaddress::_ipset_helper::init(void)
 			struct sockaddr_in * a = (struct sockaddr_in *) &(ir->ifr_addr);
 			if(a->sin_family == AF_INET) {
 				u_long ad = ntohl(a->sin_addr.s_addr);
-				if(ad != INADDR_LOOPBACK) {
+				if(ad != INADDR_LOOPBACK && ad != INADDR_ANY)
+				{
 					cAddr[cCnt++] = ad;
 					if(cCnt >= 16)
 						break;

@@ -61,14 +61,9 @@ enum fame_t{ FAME_PK=0, FAME_SMITH, FAME_CHEM, FAME_TEAK };
 #define MAX_CLOTH_COLOR config.max_cloth_color
 
 // for produce
-#define MIN_ATTRIBUTE 0
 #define MAX_ATTRIBUTE 4
-#define ATTRIBUTE_NORMAL 0
-#define MIN_STAR 0
 #define MAX_STAR 3
-
-#define MIN_PORTAL_MEMO 0
-#define MAX_PORTAL_MEMO 2
+#define MAX_PORTAL_MEMO 3
 
 
 #define WEDDING_RING_M 2634

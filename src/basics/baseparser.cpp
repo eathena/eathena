@@ -144,7 +144,16 @@ bool CParser::MatchFunction(short type, const string<>& name, short symbol)
 	switch(type) {
 	case SymbolTypeCommentLine: // ;
 	{
-		c = this->input.get_charstep();
+		c = this->input.get_char();
+		while( c != EEOF )
+		{
+			if(c == 13 || c == 10)
+				break;
+
+			this->input.next_char();
+			c = this->input.get_char();
+		}
+/*		c = this->input.get_charstep();
 		while( c != EEOF )
 		{
 			if(c == 13 || c == 10)
@@ -160,6 +169,7 @@ bool CParser::MatchFunction(short type, const string<>& name, short symbol)
 			}
 			c = this->input.get_charstep();
 		}
+*/
 		return false;
 	}
 	case SymbolTypeCommentStart: // /* */
@@ -193,6 +203,16 @@ bool CParser_CommentStore::MatchFunction(short type, const string<>& name, short
 		size_t line = this->input.line;
 		string<> str;
 
+		c = this->input.get_char();
+		while( c != EEOF )
+		{
+			if(c == 13 || c == 10)
+				break;
+			str.append( (char)c );
+			this->input.next_char();
+			c = this->input.get_char();
+		}
+/*
 		c = this->input.get_charstep();
 		while( c != EEOF )
 		{
@@ -212,6 +232,7 @@ bool CParser_CommentStore::MatchFunction(short type, const string<>& name, short
 
 			c = this->input.get_charstep();
 		}
+*/
 		str.trim();
 		cCommentList.append( CLineStorage(line, str) );
 		return false;

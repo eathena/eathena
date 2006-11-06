@@ -3307,6 +3307,7 @@ private:
 		{	// terminals
 			switch( node.Symbol() )
 			{
+			case PT_VAR:
 			case PT_AUTO:
 			case PT_DOUBLE:
 			case PT_STRING:
@@ -3314,7 +3315,7 @@ private:
 				num = node.Symbol();
 				accept = true;
 				break;
-			case PT_TEMP:
+			/*case PT_TEMP:
 				type = VAR_TEMP;
 				accept = true;
 				break;
@@ -3322,6 +3323,7 @@ private:
 				type = VAR_GSERVER;
 				accept = true;
 				break;
+			*/
 			}
 		}
 		else

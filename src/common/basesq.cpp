@@ -867,7 +867,6 @@ void CSQLParameter::rebuild()
 
 			 "`intimate`		INTEGER UNSIGNED NOT NULL default '0',"
 			 "`hungry`			SMALLINT NOT NULL default '0',"
-			 "`equip`			SMALLINT UNSIGNED NOT NULL default '0',"
 			 "`base_level`		SMALLINT UNSIGNED NOT NULL default '0',"
 			 
 			 "`rename_flag`		TINYINT UNSIGNED NOT NULL default '0',"
@@ -4146,7 +4145,6 @@ bool CHomunculusDB_sql::saveHomunculus(const CHomunculus& hom)
 
 				 "`intimate` = '"		<< hom.intimate << "',"
 				 "`hungry` = '"			<< hom.hungry << "',"
-				 "`equip` = '"			<< hom.equip << "',"
 				 "`base_level` = '"		<< hom.base_level << "',"
 				 
 				 "`rename_flag` = '"	<< hom.rename_flag << "',"

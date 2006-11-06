@@ -2040,7 +2040,7 @@ public:
 	}
 	substring<T>operator[](int inx)
 	{
-		if( inx<=0 )
+		if( inx<0 )
 			return substring<T>(this, 0, 0);
 		else if( (size_t)inx >= this->length() )
 			return substring<T>(this, this->length()-1, 1);
@@ -2474,7 +2474,6 @@ private:
 	substring<T>(const string<T>* str, size_t pos, size_t len)
 		: cString(const_cast<string<T>*>(str)), cPos(pos), cLen(len)
 	{ }
-
 
 public:
 	~substring<T>()	{}

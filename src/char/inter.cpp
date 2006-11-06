@@ -482,9 +482,9 @@ int mapif_parse_WisRequest(int fd)
 			wd->fd = fd;
 			wd->count= 0;
 			wd->len= RFIFOW(fd,2)-52;
-			memcpy(wd->src, RFIFOP(fd, 4), 24);
-			memcpy(wd->dst, RFIFOP(fd,28), 24);
-			memcpy(wd->msg, RFIFOP(fd,52), wd->len);
+			safestrcpy(wd->src, sizeof(wd->src), (char*)RFIFOP(fd, 4));
+			safestrcpy(wd->dst, sizeof(wd->dst), (char*)RFIFOP(fd,28));
+			safestrcpy(wd->msg, sizeof(wd->msg), (char*)RFIFOP(fd,52));
 			wd->tick = gettick();
 			numdb_insert(wis_db, wd->id, wd);
 			mapif_wis_message(wd);
@@ -545,7 +545,7 @@ int mapif_parse_AccReg(int fd)
 	}
 	for(j = 0, p = 8; j < ACCOUNT_REG_NUM && p < RFIFOW(fd,2); j++, p += 36)
 	{
-		memcpy(reg->reg[j].str, RFIFOP(fd,p), 32);
+		safestrcpy(reg->reg[j].str, sizeof(reg->reg[j].str), (char*)RFIFOP(fd,p));
 		reg->reg[j].value = RFIFOL(fd, p + 32);
 	}
 	reg->reg_num = j;

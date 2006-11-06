@@ -20,12 +20,15 @@ include $(BP)/Makefile.dep
 
 all scriptconv: $(RETURN_PATH)/eascriptconv
 
-$(RETURN_PATH)/eascriptconv: scriptengine.o scriptconv.o $(BASE_OBJ)
+$(RETURN_PATH)/eascriptconv: scriptconv.o scriptengine.o oldeascriptconv.o aegisscriptconv.o $(BASE_OBJ)
 	$(CCC) $^ $(LIBS) -o $@
 
-scriptengine.o: scriptengine.cpp eascript.engine.txt scriptengine.h $(BASE_H)
-scriptconv.o: scriptconv.cpp scriptengine.h $(BASE_H)
-eascript.engine.txt:
+scriptconv.o: scriptconv.cpp scriptengine.h oldeascriptconv.h aegisscriptconv.h $(BASE_H)
+scriptengine.o: scriptengine.cpp scriptengine.h $(BASE_H)
+oldeascriptconv.o: oldeascriptconv.cpp oldeascriptconv.h oldeascript.h oldeascript.engine.txt $(BASE_H)
+oldeascript.engine.txt:
+aegisscriptconv.o: aegisscriptconv.cpp aegisscriptconv.h aegisscript.h aegisscript.engine.txt $(BASE_H)
+aegisscript.engine.txt:
 
 clean:
 	rm -rf *.o $(RETURN_PATH)/eascriptconv GNUmakefile

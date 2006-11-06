@@ -610,7 +610,7 @@ int chrif_sendmapack(int fd)
 	}
 	else
 	{
-		memcpy(wisp_server_name, RFIFOP(fd,3), 24);
+		safestrcpy(wisp_server_name, 24, (char*)RFIFOP(fd,3));
 		chrif_state = 2;
 	}
 	return 0;
@@ -825,8 +825,7 @@ int chrif_char_ask_name_answer(int fd)
 		return -1;
 
 	acc = RFIFOL(fd,2); // account_id of who has asked (-1 if nobody)
-	memcpy(player_name, RFIFOP(fd,6), sizeof(player_name));
-	player_name[sizeof(player_name)-1] = '\0';
+	safestrcpy(player_name, sizeof(player_name), (char*)RFIFOP(fd,6));
 
 	sd = map_session_data::from_blid(acc);
 	if (acc >= 0 && sd != NULL)
@@ -1061,8 +1060,9 @@ int chrif_accountreg2(int fd)
 	if ((sd = map_session_data::from_blid(RFIFOL(fd,4))) == NULL)
 		return 1;
 
-	for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 36, ++j) {
-		memcpy(sd->status.account_reg2[j].str, RFIFOP(fd,p), 32);
+	for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 36, ++j)
+	{
+		safestrcpy(sd->status.account_reg2[j].str, sizeof(sd->status.account_reg2[j].str), (char*)RFIFOP(fd,p));
 		sd->status.account_reg2[j].value = RFIFOL(fd, p + 32);
 	}
 	sd->status.account_reg2_num = j;
