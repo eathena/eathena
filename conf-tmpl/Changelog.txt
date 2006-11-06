@@ -1,5 +1,19 @@
 Date	Added
 
+2006/11/06
+	* The config settings player_cloak_checl_type and monster_cloak_check_type
+	  are updated (skill.conf) to give more fine-grained control:
+	- &1 means to check for walls
+	- &2 makes cloaking not end when using normal attacks 
+	- &4 makes it not end when using skills.
+	  Note that mobs by default will not uncloak now when using skills.
+	* Added config settings exp_bonus_attacker and exp_bonus_max_attacker
+	  (exp.conf) to specify how the exp bonus per attacker (and limit) should
+	  be calculated. Default is +25% exp per attacker, capped to 12 attackers.
+	  [Skotlex]
+	* Behaviour change of party_even_share_bonus (party.conf), defaults to 0 as
+	  there really is no even share bonus for parties, and when set, it's a
+	  lineal bonus per party-member involved. [Skotlex]
 2006/11/05
 	* Added maplags for PowerNPC quest. [KarLaeda]
 2006/11/01

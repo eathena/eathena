@@ -4,6 +4,34 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/11/06
+	* Bunch of merges from Trunk: [Skotlex]
+	- MG_STONECURSE and NPC_PETRIFYATTACK now use time1 as the petrifying time.
+	  The auto-casted petrify uses 0, which causes the minimum (1 sec) to be
+	  used.
+	- GS_CHAINACTION becoming usable by clones (like Triple Blows or Double Attack)
+	- Added config settings exp_bonus_attacker and exp_bonus_max_attacker to
+	  specify how the exp bonus per attacker (and limit) should be calculated.
+	- TK_JUMPKICK now dispels normal potion effects, not Berserk-Pitched ones.
+	- Soul Drain won't work on skills tagged as "cast on self"
+	- Added the fix to determine direction on which characters are knocked
+	  back from Tatami Gaeshi
+	- Merged Suiton improvement so that the speed/agi penalty is only for
+	  enemies of the caster.
+	- The second column of skill_require_db (mhp) is now the "max required HP
+	  to be able to cast the skill"
+	- Fixed Ganbantein to not touch song/dances/ensembles.
+	- Crash-fix when reading the skill sp amount file directly from the grfs
+	- Merged the skill cloaking update, so that mobs do not uncloak when using
+	  skills.
+	- Merged mobs being able to use all skills while hidden.
+	- Swapped the checks in status_isimmune so Wand of Hermod takes priority over GTB
+	- Behaviour change of party_even_share_bonus, defaults to no bonus.
+	- All status changes being removed when auto-resurrected by Kaizel
+	- Merged the exp bonus where the first attacker to a mob receives double
+	  their exp share than the following attackers.
+	- Updated the view field in the item_db to smallint. Added
+	  upgrade_svn9153.sql to apply this change.
 2006/10/31
 	* Fixed song/dance/encore cells not being placed down when casted on top of
 	  a land Protector. [Skotlex]

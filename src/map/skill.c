@@ -989,7 +989,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				skill_castend_damage_id(src,bl,HT_BLITZBEAT,(skill<lv)?skill:lv,tick,SD_LEVEL);
 			}
 			// Gank
-			if(dstmd && dstmd->state.steal_flag<battle_config.skill_steal_max_tries && sd->status.weapon != W_BOW &&
+			if(dstmd && sd->status.weapon != W_BOW &&
 				(skill=pc_checkskill(sd,RG_SNATCHER)) > 0 &&
 				(skill*15 + 55) + pc_checkskill(sd,TF_STEAL)*10 > rand()%1000) {
 				if(pc_steal_item(sd,bl))
@@ -1180,13 +1180,17 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 			
 	case NPC_PETRIFYATTACK:
+		sc_start4(bl,SkillStatusChangeTable(skillid),50+10*skilllv,
+			skilllv,0,0,skill_get_time(skillid,skilllv), 
+			skill_get_time2(skillid,skilllv));
+		break;
 	case NPC_CURSEATTACK:
 	case NPC_SLEEPATTACK:
 	case NPC_BLINDATTACK:
 	case NPC_POISON:
 	case NPC_SILENCEATTACK:
 	case NPC_STUNATTACK:
-		sc_start(bl,SkillStatusChangeTable(skillid),50+10*skilllv,skilllv,src->type==BL_PET?skilllv*1000:skill_get_time2(skillid,skilllv));
+		sc_start(bl,SkillStatusChangeTable(skillid),50+10*skilllv,skilllv,skill_get_time2(skillid,skilllv));
 		break;
 
 	case NPC_MENTALBREAKER: 
@@ -1272,17 +1276,19 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	case TK_JUMPKICK:
 		//Cancel out Soul Linker status of the target. [Skotlex]
 		if (tsc->count) {
-			if (tsc->data[SC_PRESERVE].timer != -1) //preserve blocks the cleaning
-				break;	
-			//Remove pitched potions effect.
-			if (tsc->data[SC_ASPDPOTION0].timer != -1 && tsc->data[SC_ASPDPOTION0].val4)
+			//Remove NORMAL potions effect.
+			if (tsc->data[SC_ASPDPOTION0].timer != -1 && !tsc->data[SC_ASPDPOTION0].val4)
 				status_change_end(bl, SC_ASPDPOTION0, -1);
-			if (tsc->data[SC_ASPDPOTION1].timer != -1 && tsc->data[SC_ASPDPOTION1].val4)
+			if (tsc->data[SC_ASPDPOTION1].timer != -1 && !tsc->data[SC_ASPDPOTION1].val4)
 				status_change_end(bl, SC_ASPDPOTION1, -1);
-			if (tsc->data[SC_ASPDPOTION2].timer != -1 && tsc->data[SC_ASPDPOTION2].val4)
+			if (tsc->data[SC_ASPDPOTION2].timer != -1 && !tsc->data[SC_ASPDPOTION2].val4)
 				status_change_end(bl, SC_ASPDPOTION2, -1);
-			if (tsc->data[SC_ASPDPOTION3].timer != -1 && tsc->data[SC_ASPDPOTION3].val4)
+			if (tsc->data[SC_ASPDPOTION3].timer != -1 && !tsc->data[SC_ASPDPOTION3].val4)
 				status_change_end(bl, SC_ASPDPOTION3, -1);
+			if (tsc->data[SC_SPEEDUP0].timer != -1 && !tsc->data[SC_SPEEDUP0].val4)
+				status_change_end(bl, SC_SPEEDUP0, -1);
+			if (tsc->data[SC_SPEEDUP1].timer != -1 && !tsc->data[SC_SPEEDUP1].val4)
+				status_change_end(bl, SC_SPEEDUP1, -1);
 			if (tsc->data[SC_SPIRIT].timer != -1)
 				status_change_end(bl, SC_SPIRIT, -1);
 			if (tsc->data[SC_ONEHAND].timer != -1)
@@ -1474,7 +1480,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	}
 
 	if(sd && skillid && attack_type&BF_MAGIC && status_isdead(bl) &&
-	 	skill_get_inf(skillid)!=INF_GROUND_SKILL &&
+	 	!(skill_get_inf(skillid)&(INF_GROUND_SKILL|INF_SELF_SKILL)) &&
 		(rate=pc_checkskill(sd,HW_SOULDRAIN))>0
 	){	//Soul Drain should only work on targetted spells [Skotlex]
 		if (pc_issit(sd)) pc_setstand(sd); //Character stuck in attacking animation while 'sitting' fix. [Skotlex]
@@ -2010,7 +2016,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 	//Only knockback if it's still alive, otherwise a "ghost" is left behind. [Skotlex]
 	if (dmg.blewcount > 0 && !status_isdead(bl))
-		skill_blown(dsrc,bl,dmg.blewcount);
+		skill_blown(skillid==NJ_TATAMIGAESHI?src:dsrc,bl,dmg.blewcount);
 	
 	//Delayed damage must be dealt after the knockback (it needs to know actual position of target)
 	if (dmg.amotion)
@@ -2534,6 +2540,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case HT_POWER:
 	case TK_DOWNKICK:
 	case TK_COUNTER:
+	case GS_CHAINACTION:
 	case GS_TRIPLEACTION:
 	case GS_MAGICALBULLET:
 	case GS_TRACKING:
@@ -4016,7 +4023,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				if (sd) clif_skill_fail(sd,skillid,0,0);
 				break;
 			}
-			if (sc_start(bl,SC_STONE,(skilllv*4+20),skilllv,skill_get_time2(skillid,skilllv)))
+			if (sc_start4(bl,SC_STONE,(skilllv*4+20),
+				skilllv, 0, 0, skill_get_time(skillid, skilllv),
+				skill_get_time2(skillid,skilllv)))
 					clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			else if(sd) {
 				clif_skill_fail(sd,skillid,0,0);
@@ -4722,9 +4731,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case NPC_INVISIBLE:
-		//Have val4 passed as 2 is for "infinite cloak".
+		//Have val4 passed as 6 is for "infinite cloak" (do not end on attack/skill use).
 		clif_skill_nodamage(src,bl,skillid,skilllv,
-			sc_start4(bl,type,100,skilllv,0,0,2,skill_get_time(skillid,skilllv)));
+			sc_start4(bl,type,100,skilllv,0,0,6,skill_get_time(skillid,skilllv)));
 		break;
 		
 	case NPC_SIEGEMODE:
@@ -6554,9 +6563,15 @@ int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, unsigned 
 	case UNT_VOLCANO:
 	case UNT_DELUGE:
 	case UNT_VIOLENTGALE:
-	case UNT_SUITON:
 		if(sc && sc->data[type].timer==-1)
 			sc_start(bl,type,100,sg->skill_lv,sg->limit);
+		break;
+
+	case UNT_SUITON:
+		if(sc && sc->data[type].timer==-1)
+			sc_start4(bl,type,100,sg->skill_lv,
+			battle_check_target(&src->bl,bl,BCT_ENEMY)>0?1:0, //Send val3 =1 to reduce agi.
+			0,0,sg->limit);
 		break;
 
 	case UNT_RICHMANKIM:
@@ -7561,8 +7576,12 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 		itemid[i] = skill_db[j].itemid[i];
 		amount[i] = skill_db[j].amount[i];
 	}
-	if(mhp > 0)
-		hp += (status->max_hp * mhp)/100;
+	if(mhp > 0 && 100 * status->hp / status->max_hp > (unsigned int) mhp) {
+		//mhp is the max-hp-requirement, that is,
+		//you must have this % or less of HP to cast it.
+		clif_skill_fail(sd,skill,2,0);
+		return 0;
+	}
 	if(hp_rate > 0)
 		hp += (status->hp * hp_rate)/100;
 	else
@@ -8991,10 +9010,9 @@ int skill_ganbatein (struct block_list *bl, va_list ap)
 	if ((unit = (struct skill_unit *)bl) == NULL || unit->group == NULL)
 		return 0;
 
-// Apparently, it REMOVES traps.
-//	if (skill_get_inf2(unit->group->skill_id)&INF2_TRAP)
-//		return 0; //Do not remove traps.
-	
+	if (unit->group->state.song_dance)
+		return 0; //Don't touch song/dance/ensemble.
+
 	if (unit->group->skill_id == SA_LANDPROTECTOR)
 		skill_delunit(unit, 1);
 	else skill_delunitgroup(NULL, unit->group, 1);
@@ -11051,7 +11069,13 @@ static int skill_read_skillspamount (void)
 		} else if (new_flag && sscanf(p,"%[^#]#",buf2) == 1) {
 			for (idx=0; skill_names[idx].id != 0; idx++) {
 				if (strstr(buf2, skill_names[idx].name) != NULL) {
-					skill = &skill_db[ skill_names[idx].id ];
+					//Apply Guild/Homunc adjustment.
+					sp = skill_names[idx].id;
+					if (sp >= GD_SKILLBASE) sp = GD_SKILLRANGEMIN + sp - GD_SKILLBASE;
+					if (sp >= HM_SKILLBASE) sp = HM_SKILLRANGEMIN + sp - HM_SKILLBASE;
+					if (sp < 1 || sp >= MAX_SKILL_DB)
+						continue;
+					skill = &skill_db[sp];
 					new_flag = 0;
 					break;
 				}

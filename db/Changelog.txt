@@ -1,3 +1,6 @@
+11/06
+	* Updated MG_STONECURSE and NPC_PETRIFYATTACK petrifying time to 5 secs.
+	  [Skotlex]
 11/03
 	* Merged exp, item_db, mob_db, mob_skill_db [Playtester]
 	- official GS/NJ job exp up to level 50

@@ -1597,7 +1597,8 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 				md->dmglog[i].id  = char_id;
 				break;
 			}
-			if(md->dmglog[i].dmg<mindmg){
+			if(md->dmglog[i].dmg<mindmg && i)
+			{	//Never overwrite first hit slot (he gets double exp bonus)
 				minpos=i;
 				mindmg=md->dmglog[i].dmg;
 			}
@@ -1706,6 +1707,13 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	}
 	count = i; //Total number of attackers.
 
+	if(!battle_config.exp_calc_type && count > 1)
+	{	//Apply first-attacker 200% exp share bonus
+		//TODO: Determine if this should go before calculating the MVP player instead of after.
+		md->tdmg += md->dmglog[0].dmg;
+		md->dmglog[0].dmg<<=1;
+	}
+
 	if(!(type&2) && //No exp
 		(!map[md->bl.m].flag.pvp || battle_config.pvp_exp) && //Pvp no exp rule [MouseJstr]
 		(!md->master_id || !md->special_state.ai) && //Only player-summoned mobs do not give exp. [Skotlex]
@@ -1728,8 +1736,13 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			//eAthena's exp formula based on max hp.
 			per = (double)md->dmglog[i].dmg/(double)status->max_hp;
 	
-		if (count>1)	
-			per *= (9.+(double)((count > 6)? 6:count))/10.; //attackers count bonus.
+		if (count>1 && battle_config.exp_bonus_attacker) {
+			//Exp bonus per additional attacker.
+			if (count > battle_config.exp_bonus_max_attacker)
+				count = battle_config.exp_bonus_max_attacker;
+			count--;
+			per += per*(count*battle_config.exp_bonus_attacker)/100.;
+		}
 
 		if(md->special_state.size==1)	// change experience for different sized monsters [Valaris]
 			per /=2.;
@@ -1972,8 +1985,10 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		//mapflag: noexp check [Lorky]
 		if (map[md->bl.m].flag.nobaseexp)
 			exp =1; 
-		else 
-			exp = (double)md->db->mexp * (9+count)/10.;	//[Gengar]
+		else {
+			exp = md->db->mexp;
+			exp += exp*(battle_config.exp_bonus_attacker*count)/100.; //[Gengar]
+		}
 		
 		mexp = (exp > UINT_MAX)?UINT_MAX:(exp<1?1:(unsigned int)exp);
 
@@ -2889,10 +2904,11 @@ int mob_clone_spawn(struct map_session_data *sd, int m, int x, int y, const char
 			switch (skill_id) { //Certain Special skills that are passive, and thus, never triggered.
 				case MO_TRIPLEATTACK:
 				case TF_DOUBLE:
+				case GS_CHAINACTION:
 					ms[i].state = MSS_BERSERK;
 					ms[i].target = MST_TARGET;
 					ms[i].cond1 = MSC_ALWAYS;
-					ms[i].permillage = skill_id==TF_DOUBLE?(ms[i].skill_lv*500):(3000-ms[i].skill_lv*100);
+					ms[i].permillage = skill_id==MO_TRIPLEATTACK?(3000-ms[i].skill_lv*100):(ms[i].skill_lv*500);
 					ms[i].delay -= 5000; //Remove the added delay as these could trigger on "all hits".
 					break;
 				default: //Untreated Skill
