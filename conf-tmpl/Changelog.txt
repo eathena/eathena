@@ -1,5 +1,7 @@
 Date	Added
 
+2006/11/07
+	* Added nosave mapflag for Guild Dungeons [KarLaeda]
 2006/11/06
 	* The config settings player_cloak_checl_type and monster_cloak_check_type
 	  are updated (skill.conf) to give more fine-grained control:
