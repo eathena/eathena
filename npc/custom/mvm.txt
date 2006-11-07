@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= acky - god@acky.com
 //===== Current Version: =====================================
-//= 1.1.2
+//= 1.1.3
 //===== Compatible With: =====================================
 //= eAthena SVN
 //===== Description: =========================================
@@ -17,6 +17,8 @@
 //= ---------------------------------------------------------
 //= Script is messy! Be careful!
 //= 1.1.2 Changed all gmcommand to atcommand as Poki#3 suggested. [Vicious]
+//= 1.1.3 Removed Duplicate Names [Silent]
+//= 1.1.4 Fixed SummonPad syntax. [KarLaeda]
 //============================================================ 
 
 // Entrance //
@@ -67,7 +69,7 @@ goto L_Menu;
 }
 
 // Monster Summon Function //
-function	script	monstersummon	-1,{
+function	script	monstersummon	{
 // 1. ---Change to Add Monsters--- //
 if (#monster == 10) summon strcharinfo(0) + "'s Poring",1002, "OnPoringKilled";
 if (#monster == 20) summon strcharinfo(0) + "'s Fabre",1007, "OnFaberKilled";
@@ -191,7 +193,7 @@ mes "[Referee]";
 mes "Alright";
 close;
 }
-gon_test.gat,56,91,6	duplicate(monsterreferee)	Referee	61
+gon_test.gat,56,91,6	duplicate(monsterreferee)	Referee#01	61
 
 
 // Usher //
@@ -708,7 +710,7 @@ close;
 	callfunc "duelkill";
 	}
 
-function	script	duelkill	-1,{
+function	script	duelkill	{
 if (strcharinfo(0) == $@duelist1$ || strcharinfo(0) == $@duelist2$) goto L_Heal;
 end;
 	L_Heal:
@@ -719,7 +721,7 @@ end;
 	end;
 }
 	
-function	script	illegalkill	-1,{
+function	script	illegalkill	{
 announce "Illegal Kill by " + strcharinfo(0) + " Detected",1;
 percentheal -100,-100;
 end;
@@ -747,13 +749,12 @@ end;
 }
 
 // Warps players //
--	script	SummonPad	111,2,2,{
+gon_test.gat,57,86,5	script	Summon Pad 1::SummonPad	111,2,2,{
 end;
 OnTouch:
 set @marena,1;
 warp "gon_test.gat",57,99;
 }
-gon_test.gat,57,86,5	duplicate(SummonPad)	Summon Pad 1	111,2,2
 gon_test.gat,43,87,5	duplicate(SummonPad)	Summon Pad 2	111,2,2
 gon_test.gat,72,87,5	duplicate(SummonPad)	Summon Pad 3	111,2,2
 
@@ -767,7 +768,7 @@ end;
 }
 
 // Duel Arena //
-gon_test.gat,58,103,5	script	Duel Master	92,{
+gon_test.gat,58,103,5	script	Duel Master#01	92,{
 if ($@duelist1$ == "") set @duel,0;
 if ($@monster1 == "") set @duel,0;
 set @marena,1;
@@ -859,7 +860,7 @@ close;
 }
 
 // Duel Exit //
-gon_test.gat,42,8,5	script	Duel Master	92,{
+gon_test.gat,42,8,5	script	Duel Master#02	92,{
 mes "[Duel Master]";
 mes "Would you like to return?";
 menu "Yes",L_Leave,"No",-;
@@ -892,4 +893,4 @@ close;
 }
 	
 gon_test.gat,49,5,5	duplicate(SummonPad)	Summon Pad 4	111,2,2
-gon_test.gat,55,8,6	duplicate(monsterreferee)	Referee	61
+gon_test.gat,55,8,6	duplicate(monsterreferee)	Referee#02	61

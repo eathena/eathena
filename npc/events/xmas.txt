@@ -18,7 +18,7 @@
 //= 1.2a Fixed a major problem with the monster spawns, thanks to Playtester [MasterOfMuppets]
 //= 1.2b Fixed a minor problem with the mosnter spawns, thanks to Playtester [Kayla]
 //= 1.3 Added Christmas Orc to the places where other orcs spawn [MasterOfMuppets]
-//=	Added Christmas goblins to yuno_fild09, thanks to Playtester for pointing it out
+//= Added Christmas goblins to yuno_fild09, thanks to Playtester for pointing it out
 //= 1.4 Added a fix to make Lutie & Bard quests passable during this event [Lupus]
 //============================================================
 

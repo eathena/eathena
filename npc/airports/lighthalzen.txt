@@ -11,7 +11,7 @@
 //===== Additional Comments: ================================= 
 //= 1.0 Cloned from einbroch.txt [Justin84]
 //= 1.1 Removed Duplicates [Silent]
-//= 1.2 Fixed syntax of duplicate [KarLaeda]
+//= 1.2 Fixed syntax errors for duplicate [KarLaeda]
 //============================================================
 
 

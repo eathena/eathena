@@ -34,6 +34,8 @@ Playtester
 
 Date		Added
 ======
+11/07
+	* Massive bugfix merge from trunk. [KarLaeda]
 11/06
 	* Fixed item select in Novice Exchanger [KarLaeda]
 11/05
