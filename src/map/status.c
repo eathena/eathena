@@ -4618,7 +4618,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				for (i = 0; i < 5; i++)
 				{	//Pass the status to the other affected chars. [Skotlex]
 					if (sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])))
-						status_change_start(&tsd->bl,SC_AUTOGUARD,10000,val1,val2,0,0,tick,1);
+						status_change_start(&tsd->bl,type,10000,val1,val2,0,0,tick,1);
 				}
 			}
 			break;
@@ -4842,7 +4842,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				for (i = 0; i < 5; i++)
 				{	//Pass the status to the other affected chars. [Skotlex]
 					if (sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])))
-						status_change_start(&tsd->bl,SC_AUTOGUARD,10000,val1,val2,0,0,tick,1);
+						status_change_start(&tsd->bl,type,10000,val1,val2,0,0,tick,1);
 				}
 			}
 			break;
@@ -4860,7 +4860,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				for (i = 0; i < 5; i++)
 				{	//See if there are devoted characters, and pass the status to them. [Skotlex]
 					if (sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])))
-						status_change_start(&tsd->bl,SC_DEFENDER,10000,val1,5+val1*5,val3,val4,tick,1);
+						status_change_start(&tsd->bl,type,10000,val1,5+val1*5,val3,val4,tick,1);
 				}
 			}
 			break;
@@ -5250,8 +5250,8 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			break;
 
 		case SC_FLING:
-			val2 = 3*val1; //Def reduction
-			val3 = 3*val1; //Def2 reduction
+			val2 = 5*val1; //Def reduction
+			val3 = 5*val1; //Def2 reduction
 			break;
 		case SC_PROVOKE:
 			//val2 signals autoprovoke.
@@ -5732,7 +5732,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				md->devotion[sc->data[type].val2] = 0;
 				clif_devotion(md);
 			}
-			//Remove AutoGuard and Defender [Skotlex]
+			//Remove inherited status [Skotlex]
 			if (sc->data[SC_AUTOGUARD].timer != -1)
 				status_change_end(bl,SC_AUTOGUARD,-1);
 			if (sc->data[SC_DEFENDER].timer != -1)
@@ -6596,7 +6596,7 @@ int status_change_clear_buffs (struct block_list *bl, int type)
 
 //Natural regen related stuff.
 static unsigned int natural_heal_prev_tick,natural_heal_diff_tick;
-static int status_natural_heal(DBKey key,void * data,va_list app)
+static int status_natural_heal(DBKey key,void * data,va_list ap)
 {
 	struct block_list *bl = (struct block_list*)data;
 	struct regen_data *regen;
@@ -6768,10 +6768,9 @@ static int status_natural_heal(DBKey key,void * data,va_list app)
 					(sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR &&
 					rand()%10000 < battle_config.sg_angel_skill_ratio
 				) { //Angel of the Sun/Moon/Star
+					clif_feel_hate_reset(sd);
 					pc_resethate(sd);
 					pc_resetfeel(sd);
-					//TODO: Figure out how to make the client-side msg show up.
-					clif_displaymessage(sd->fd,"[Angel of the Sun, Moon and Stars]");
 				}
 			}
 			sregen->tick.sp -= battle_config.natural_heal_skill_interval;

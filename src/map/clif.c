@@ -7833,6 +7833,22 @@ void clif_mission_mob(struct map_session_data *sd, unsigned short mob_id, unsign
 	WFIFOSET(fd, packet_len_table[0x20e]);
 }
 
+/*==========================================
+ * Feel/Hate reset (thanks to Rayce) [Skotlex]
+ *------------------------------------------
+ */
+void clif_feel_hate_reset(struct map_session_data *sd)
+{
+	int fd=sd->fd;
+	WFIFOHEAD(fd,packet_len_table[0x20e]);
+	WFIFOW(fd,0)=0x20e;
+	memset(WFIFOP(fd,2), 0, NAME_LENGTH); //Blank name as all was reset.
+	WFIFOL(fd,26)=sd->bl.id;
+	WFIFOB(fd,30)=0; //Feel/hate level: irrelevant
+	WFIFOB(fd,31)=30;
+	WFIFOSET(fd, packet_len_table[0x20e]);
+}
+
 // ---------------------
 // clif_guess_PacketVer
 // ---------------------
