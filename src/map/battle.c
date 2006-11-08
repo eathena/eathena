@@ -210,8 +210,11 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 			if (tsc->data[SC_ARMOR_ELEMENT].val3 == atk_elem)
 				ratio -= tsc->data[SC_ARMOR_ELEMENT].val4;
 		}
-		if(tsc->data[SC_SPIDERWEB].timer!=-1 && atk_elem == ELE_FIRE) // [Celest]
+		if(tsc->data[SC_SPIDERWEB].timer!=-1 && atk_elem == ELE_FIRE)
+		{	// [Celest]
 			damage <<= 1;
+			status_change_end(target, SC_SPIDERWEB, -1);
+		}
 	}
 	return damage*ratio/100;
 }
@@ -374,7 +377,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 
 		if(sc->data[SC_ADJUSTMENT].timer != -1 &&
 			(flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON))
-			damage=damage*80/100;
+			damage -= 20*damage/100;
 
 		if(sc->data[SC_FOGWALL].timer != -1) {
 			if(flag&BF_SKILL) //25% reduction
@@ -874,6 +877,7 @@ static struct Damage battle_calc_weapon_attack(
 				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 				break;
 			case GS_DESPERADO:
+			case GS_DUST:
 				//This one is the opposite, it consumes ammo, but should count as short range.
 				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_SHORT;
 				break;
@@ -906,6 +910,8 @@ static struct Damage battle_calc_weapon_attack(
 				wd.type = 0x08;
 				break;
 				
+			case GS_GROUNDDRIFT:
+				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 			case KN_SPEARSTAB:
 			case KN_BOWLINGBASH:
 			case MO_BALKYOUNG:
@@ -1513,8 +1519,12 @@ static struct Damage battle_calc_weapon_attack(
 						skillratio += 10*status_get_lv(src)/3;
 					break;
 				case GS_BULLSEYE:
-					skillratio += 400;
-					flag.cardfix = 0;
+					if((tstatus->race == RC_BRUTE || tstatus->race == RC_DEMIHUMAN)
+						&& !(tstatus->mode&MD_BOSS))
+					{	//Only works well against brute/demihumans non bosses.
+						skillratio += 400;
+						flag.cardfix = 0;
+					}
 					break;
 				case GS_TRACKING:
 					skillratio += 100 *(skill_lv+1);
@@ -1566,9 +1576,6 @@ static struct Damage battle_calc_weapon_attack(
 			switch (skill_num) {
 				case MO_EXTREMITYFIST:
 					ATK_ADD(250 + 150*skill_lv);
-					break;
-				case GS_GROUNDDRIFT:
-					ATK_ADD(50*skill_lv);
 					break;
 				case TK_DOWNKICK:
 				case TK_STORMKICK:
@@ -1809,6 +1816,8 @@ static struct Damage battle_calc_weapon_attack(
 			wd.damage=battle_attr_fix(src,target,wd.damage,s_ele,tstatus->def_ele, tstatus->ele_lv);
 			if(skill_num==MC_CARTREVOLUTION) //Cart Revolution applies the element fix once more with neutral element
 				wd.damage = battle_attr_fix(src,target,wd.damage,ELE_NEUTRAL,tstatus->def_ele, tstatus->ele_lv);
+			if(skill_num== GS_GROUNDDRIFT) //Additional 50*lv Neutral damage.
+				wd.damage+= battle_attr_fix(src,target,50*skill_lv,ELE_NEUTRAL,tstatus->def_ele, tstatus->ele_lv);
 		}
 		if (flag.lh && wd.damage2 > 0)
 			wd.damage2 = battle_attr_fix(src,target,wd.damage2,s_ele_,tstatus->def_ele, tstatus->ele_lv);

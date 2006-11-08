@@ -1015,9 +1015,7 @@ int unit_skilluse_pos2( struct block_list *src, int skill_x, int skill_y, int sk
 	if( casttime>0 ) {
 		unit_stop_walking( src, 1);
 		clif_skillcasting(src, src->id, 0, skill_x,skill_y, skill_num,casttime);
-	}
-
-	if( casttime<=0 )
+	} else
 		ud->state.skillcastcancel=0;
 
 	ud->canact_tick  = tick + casttime + 100;
@@ -1678,7 +1676,7 @@ int unit_free(struct block_list *bl, int clrtype) {
 		}
 		if (sd->followtimer != -1)
 			pc_stop_following(sd);
-		
+	
 		// Notify friends that this char logged out. [Skotlex]
 		clif_foreachclient(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 0);
 		party_send_logout(sd);

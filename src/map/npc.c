@@ -801,27 +801,22 @@ int npc_settimerevent_tick(struct npc_data *nd,int newtimer)
 int npc_event_sub(struct map_session_data *sd, struct event_data *ev, const unsigned char *eventname){
 
 	if ( sd->npc_id!=0) {
-//		if (battle_config.error_log)
-//			printf("npc_event: npc_id != 0\n");
+		//Enqueue the event trigger.
 		int i;
-		for(i=0;i<MAX_EVENTQUEUE;i++)
-			if (!sd->eventqueue[i][0])
-				break;
+		for(i=0;i<MAX_EVENTQUEUE && sd->eventqueue[i][0];i++);
+		
 		if (i==MAX_EVENTQUEUE) {
 			if (battle_config.error_log)
 				ShowWarning("npc_event: event queue is full !\n");
-		}else{
-//			if (battle_config.etc_log)
-//				printf("npc_event: enqueue\n");
+		}else //Event enqueued.
 			memcpy(sd->eventqueue[i],eventname,50);
-		}
 		return 1;
 	}
-	if (ev->nd->sc.option&OPTION_INVISIBLE) {	// –³Œø‰»‚³‚ê‚Ä‚¢‚é
+	if (ev->nd->sc.option&OPTION_INVISIBLE) {
+		//Disabled npc, shouldn't trigger event.
 		npc_event_dequeue(sd);
-		return 0;
+		return 2;
 	}
-
 	run_script(ev->nd->u.scr.script,ev->pos,sd->bl.id,ev->nd->bl.id);
 	return 0;
 }
@@ -1416,16 +1411,14 @@ static int npc_unload_ev(DBKey key,void *data,va_list ap) {
 	return 0;
 }
 
-static int npc_unload_dup_sub(DBKey key,void * data,va_list app)
+static int npc_unload_dup_sub(DBKey key,void * data,va_list ap)
 {
 	struct npc_data *nd = (struct npc_data *)data;
-	va_list ap;
 	int src_id;
 
 	if(nd->bl.type!=BL_NPC || nd->bl.subtype != SCRIPT)
 		return 0;
 
-	ap = va_arg(app, va_list);
 	src_id=va_arg(ap,int);
 	if (nd->u.scr.src_id == src_id)
 		npc_unload(nd);
@@ -2844,7 +2837,7 @@ static int npc_cleanup_sub (struct block_list *bl, va_list ap) {
 	return 0;
 }
 
-static int npc_cleanup_dbsub(DBKey key,void * data,va_list app) {
+static int npc_cleanup_dbsub(DBKey key,void * data,va_list ap) {
 	return npc_cleanup_sub((struct block_list*)data, 0);
 }
 

@@ -1,5 +1,10 @@
 Date	Added
 
+2006/11/08
+	* Merged official GS skill ranges (from Aegis login packet) [Skotlex]
+	* Merged Ganbantein's delay being 2 secs. [Skotlex]
+	* Merged cast time of 0.5 secs to Bulls Eye [Skotlex]
+	* Merged cast time of 2 secs for Ground Drift [Skotlex]
 2006/11/07
 	* Added nosave mapflag for Guild Dungeons [KarLaeda]
 2006/11/06

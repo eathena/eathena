@@ -1297,20 +1297,16 @@ static int mob_ai_sub_foreachclient(struct map_session_data *sd,va_list ap)
  * Negligent mode MOB AI (PC is not in near)
  *------------------------------------------
  */
-static int mob_ai_sub_lazy(DBKey key,void * data,va_list app)
+static int mob_ai_sub_lazy(DBKey key,void * data,va_list ap)
 {
 	struct mob_data *md = (struct mob_data *)data;
-	va_list ap;
 	unsigned int tick;
 	int mode;
 
 	nullpo_retr(0, md);
-	nullpo_retr(0, app);
 
 	if(md->bl.type!=BL_MOB || md->bl.prev == NULL)
 		return 0;
-
-	ap = va_arg(app, va_list);
 
 	if (battle_config.mob_ai&32 && map[md->bl.m].users>0)
 		return mob_ai_sub_hard(&md->bl, ap);
@@ -1371,7 +1367,6 @@ static int mob_ai_sub_lazy(DBKey key,void * data,va_list app)
 static int mob_ai_lazy(int tid,unsigned int tick,int id,int data)
 {
 	map_foreachiddb(mob_ai_sub_lazy,tick);
-
 	return 0;
 }
 
@@ -2538,7 +2533,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 	if (!battle_config.mob_skill_rate || md->ud.skilltimer != -1 || !md->db->maxskill)
 		return 0;
 
-	if (event < 0 && DIFF_TICK(md->ud.canact_tick, tick) > 0)
+	if (event == -1 && DIFF_TICK(md->ud.canact_tick, tick) > 0)
 		return 0; //Skill act delay only affects non-event skills.
 
 	//Pick a starting position and loop from that.
@@ -2565,11 +2560,12 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 		if (rand() % 10000 > ms[i].permillage) //Lupus (max value = 10000)
 			continue;
 
-		// ðŒ”»’è
-		flag = (event == ms[i].cond1);
-		//Avoid entering on defined events to avoid "hyper-active skill use" due to the overflow of calls to this function
-		//in battle. The only exception is MSC_SKILLUSED which explicitly uses the event value to trigger. [Skotlex]
-		if (!flag && (event == -1 || ms[i].cond1 == MSC_SKILLUSED)){
+		if (ms[i].cond1 == event)
+			flag = 1; //Trigger skill.
+		else if (ms[i].cond1 == MSC_SKILLUSED)
+			flag = ((event & 0xffff) == MSC_SKILLUSED && ((event >> 16) == c2 || c2 == 0));
+		else if(event == -1){
+			//Avoid entering on defined events to avoid "hyper-active skill use" due to the overflow of calls to this function in battle.
 			switch (ms[i].cond1)
 			{
 				case MSC_ALWAYS:
@@ -2612,8 +2608,6 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					flag = (unit_counttargeted(&md->bl, 0) >= c2); break;
 				case MSC_AFTERSKILL:
 					flag = (md->ud.skillid == c2); break;
-				case MSC_SKILLUSED:		// specificated skill used
-					flag = ((event & 0xffff) == MSC_SKILLUSED && ((event >> 16) == c2 || c2 == 0)); break;
 				case MSC_RUDEATTACKED:
 					flag = (md->attacked_count >= RUDE_ATTACKED_COUNT);
 					if (flag) md->attacked_count = 0;	//Rude attacked count should be reset after the skill condition is met. Thanks to Komurka [Skotlex]
@@ -2739,7 +2733,7 @@ int mobskill_event(struct mob_data *md, struct block_list *src, unsigned int tic
 	if (flag == -1)
 		res = mobskill_use(md, tick, MSC_CASTTARGETED);
 	else if ((flag&0xffff) == MSC_SKILLUSED)
-		res = mobskill_use(md,tick,flag);
+		res = mobskill_use(md, tick, flag);
 	else if (flag&BF_SHORT)
 		res = mobskill_use(md, tick, MSC_CLOSEDATTACKED);
 	else if (flag&BF_LONG)
