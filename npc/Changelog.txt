@@ -34,6 +34,8 @@ Playtester
 
 Date		Added
 ======
+11/09
+	* Added entrance to Kiel Dungeon F2 [Playtester]
 11/08
 	* Small fix in Hunter Job Quest [KarLaeda]
 11/07
