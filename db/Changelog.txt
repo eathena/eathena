@@ -1,3 +1,6 @@
+11/09
+	* Merged Ground Drift being stackable and placeable on top of others.
+	  [Skotlex]
 11/06
 	* Updated MG_STONECURSE and NPC_PETRIFYATTACK petrifying time to 5 secs.
 	  [Skotlex]
