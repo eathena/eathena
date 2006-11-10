@@ -4,6 +4,15 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/11/10
+	* Merged the improved "map_respawn_guildid" script command implementation
+	  that will catch even players that are "in transit" between maps. [Skotlex]
+	* Merged the correct usage of packet 0x20e (hate/feel/mission/angel
+	  information packet) [Skotlex]
+	* Merged targetted spells not coming off at cast-end when the caster is
+	  disabled. [Skotlex]
+	* Merged the permanent mob spawn parsing update to correctly handle event
+	  triggers that are enclosed in quotes. [Skotlex]
 2006/11/09
 	* Merged the login and char servers. Family even share rules should now
 	  work as intended (the child is never counted towards the even share range

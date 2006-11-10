@@ -3576,7 +3576,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if (sd) {
 			int id;
 			if (sd->mission_mobid && (sd->mission_count || rand()%100)) { //Cannot change target when already have one
-				clif_mission_mob(sd, sd->mission_mobid, sd->mission_count);
+				clif_mission_info(sd, sd->mission_mobid, sd->mission_count);
 				clif_skill_fail(sd,skillid,0,0);
 				break;
 			}
@@ -3588,7 +3588,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			sd->mission_mobid = id;
 			sd->mission_count = 0;
 			pc_setglobalreg(sd,"TK_MISSION_ID", id);
-			clif_mission_mob(sd, id, 0);
+			clif_mission_info(sd, id, 0);
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		}
 		break;
@@ -5197,7 +5197,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if(!sd->feel_map[skilllv-1].index)
 				clif_parse_ReqFeel(sd->fd,sd, skilllv);
 			else
-				clif_feel_info(sd, skilllv-1);
+				clif_feel_info(sd, skilllv-1, 1);
 		}
 		break;	
 

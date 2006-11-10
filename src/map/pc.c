@@ -707,9 +707,18 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	{	//Add IP field
 		unsigned char *ip = (unsigned char *) &session[sd->fd]->client_addr.sin_addr;
 		if (pc_isGM(sd))
-			ShowInfo("GM Character '"CL_WHITE"%s"CL_RESET"' logged in. (Acc. ID: '"CL_WHITE"%d"CL_RESET"', Connection: '"CL_WHITE"%d"CL_RESET"', Packet Ver: '"CL_WHITE"%d"CL_RESET"', IP: '"CL_WHITE"%d.%d.%d.%d"CL_RESET"', GM Level '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->status.account_id, sd->fd, sd->packet_ver, ip[0],ip[1],ip[2],ip[3], pc_isGM(sd));
+			ShowInfo("GM '"CL_WHITE"%s"CL_RESET"' logged in."
+				" (AID/CID: '"CL_WHITE"%d/%d"CL_RESET"',"
+				" Packet Ver: '"CL_WHITE"%d"CL_RESET"', IP: '"CL_WHITE"%d.%d.%d.%d"CL_RESET"',"
+				" GM Level '"CL_WHITE"%d"CL_RESET"').\n",
+				sd->status.name, sd->status.account_id, sd->status.char_id,
+				sd->packet_ver, ip[0],ip[1],ip[2],ip[3], pc_isGM(sd));
 		else
-			ShowInfo("Character '"CL_WHITE"%s"CL_RESET"' logged in. (Account ID: '"CL_WHITE"%d"CL_RESET"', Connection: '"CL_WHITE"%d"CL_RESET"', Packet Ver: '"CL_WHITE"%d"CL_RESET"', IP: '"CL_WHITE"%d.%d.%d.%d"CL_RESET"').\n", sd->status.name, sd->status.account_id, sd->fd, sd->packet_ver, ip[0],ip[1],ip[2],ip[3]);
+			ShowInfo("'"CL_WHITE"%s"CL_RESET"' logged in."
+				" (AID/CID: '"CL_WHITE"%d/%d"CL_RESET"',"
+				" Packet Ver: '"CL_WHITE"%d"CL_RESET"', IP: '"CL_WHITE"%d.%d.%d.%d"CL_RESET"').\n",
+				sd->status.name, sd->status.account_id, sd->status.char_id,
+				sd->packet_ver, ip[0],ip[1],ip[2],ip[3]);
 	}
 	
 	// Send friends list
@@ -722,14 +731,11 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	}
 
 	// Message of the Day [Valaris]
-	{
-		int ln;
-		for(ln=0; motd_text[ln][0] && ln < MOTD_LINE_SIZE; ln++) {
-			if (battle_config.motd_type)
-				clif_disp_onlyself(sd,motd_text[ln],strlen(motd_text[ln]));
-			else
-				clif_displaymessage(sd->fd, motd_text[ln]);
-		}
+	for(i=0; motd_text[i][0] && i < MOTD_LINE_SIZE; i++) {
+		if (battle_config.motd_type)
+			clif_disp_onlyself(sd,motd_text[i],strlen(motd_text[i]));
+		else
+			clif_displaymessage(sd->fd, motd_text[i]);
 	}
 
 #ifndef TXT_ONLY
@@ -766,13 +772,12 @@ int pc_authfail(struct map_session_data *sd) {
 //Attempts to set a mob. 
 int pc_set_hate_mob(struct map_session_data *sd, int pos, struct block_list *bl)
 {
-	const char hate_var[3][NAME_LENGTH] = {"PC_HATE_MOB_SUN","PC_HATE_MOB_MOON","PC_HATE_MOB_STAR"};
 	int class_;
 	if (!sd || !bl || pos < 0 || pos > 2)
 		return 0;
 	if (sd->hate_mob[pos] != -1)
 	{	//Can't change hate targets.
-		clif_hate_mob(sd,pos,sd->hate_mob[pos]); //Display current
+		clif_hate_info(sd, pos, sd->hate_mob[pos], 0); //Display current
 		return 0;
 	}
 
@@ -786,7 +791,7 @@ int pc_set_hate_mob(struct map_session_data *sd, int pos, struct block_list *bl)
 	}
 	sd->hate_mob[pos] = class_;
 	pc_setglobalreg(sd,hate_var[pos],class_+1);
-	clif_hate_mob(sd,pos,class_);
+	clif_hate_info(sd, pos, class_, 1);
 	return 1;
 }
 
@@ -6096,7 +6101,7 @@ int pc_setregistry_str(struct map_session_data *sd,char *reg,char *val,int type)
  * イベントタイマ??理
  *------------------------------------------
  */
-int pc_eventtimer(int tid,unsigned int tick,int id,int data)
+static int pc_eventtimer(int tid,unsigned int tick,int id,int data)
 {
 	struct map_session_data *sd=map_id2sd(id);
 	char *p = (char *)data;
@@ -6104,19 +6109,16 @@ int pc_eventtimer(int tid,unsigned int tick,int id,int data)
 	if(sd==NULL)
 		return 0;
 
-	for(i=0;i < MAX_EVENTTIMER;i++){
-		if( sd->eventtimer[i]==tid ){
-			sd->eventtimer[i]=-1;
-			npc_event(sd,p,0);
-			break;
-		}
-	}
-	if (p) aFree(p);
-	if(i==MAX_EVENTTIMER) {
-		if(battle_config.error_log)
-			ShowError("pc_eventtimer: no such event timer\n");
-	}
+	for(i=0;i < MAX_EVENTTIMER && sd->eventtimer[i]!=tid; i++);
 
+	if(i < MAX_EVENTTIMER){
+		sd->eventcount--;
+		sd->eventtimer[i]=-1;
+		npc_event(sd,p,0);
+	} else if(battle_config.error_log)
+		ShowError("pc_eventtimer: no such event timer\n");
+
+	if (p) aFree(p);
 	return 0;
 }
 
@@ -6127,22 +6129,21 @@ int pc_eventtimer(int tid,unsigned int tick,int id,int data)
 int pc_addeventtimer(struct map_session_data *sd,int tick,const char *name)
 {
 	int i;
+	char *evname;
 
 	nullpo_retr(0, sd);
 
-	for(i=0;i<MAX_EVENTTIMER;i++)
-		if( sd->eventtimer[i]==-1 )
-			break;
-	if(i<MAX_EVENTTIMER){
-		char *evname = aStrdup(name);
-		//char *evname=(char *)aMallocA((strlen(name)+1)*sizeof(char));
-		//memcpy(evname,name,(strlen(name)+1));
-		sd->eventtimer[i]=add_timer(gettick()+tick,
-			pc_eventtimer,sd->bl.id,(int)evname);
-		sd->eventcount++;
-	}
+	for(i=0;i<MAX_EVENTTIMER && sd->eventtimer[i]!=-1;i++);
+	
+	if(i==MAX_EVENTTIMER)
+		return 0;
 
-	return 0;
+	evname = aStrdup(name);
+	sd->eventtimer[i]=add_timer(gettick()+tick,
+		pc_eventtimer,sd->bl.id,(int)evname);
+	sd->eventcount++;
+
+	return 1;
 }
 
 /*==========================================
@@ -6845,7 +6846,7 @@ int pc_setsavepoint(struct map_session_data *sd, short mapindex,int x,int y)
  *------------------------------------------
  */
 static int last_save_id=0,save_flag=0;
-static int pc_autosave_sub(DBKey key,void * data,va_list app)
+static int pc_autosave_sub(DBKey key,void * data,va_list ap)
 {
 	struct map_session_data *sd = (TBL_PC*)data;
 	

@@ -163,31 +163,18 @@ int npc_event_dequeue(struct map_session_data *sd)
 	nullpo_retr(0, sd);
 
 	sd->npc_id=0;
-	if (sd->eventqueue[0][0]) {	// キューのイベント処理
-		size_t ev;
+	if (!sd->eventqueue[0][0])
+		return 0; //Nothing to dequeue
 
-		// find an empty place in eventtimer list
-		for(ev=0;ev<MAX_EVENTTIMER;ev++)
-			if( sd->eventtimer[ev]==-1 )
-				break;
-		if(ev<MAX_EVENTTIMER)
-		{	// generate and insert the timer
-			int i;
-			// copy the first event name
-			char *name=(char *)aMalloc(50*sizeof(char));
-			memcpy(name,sd->eventqueue[0],50);
-			// shift queued events down by one
-			for(i=1;i<MAX_EVENTQUEUE;i++)
-				memcpy(sd->eventqueue[i-1],sd->eventqueue[i],50);
-			// clear the last event
-			sd->eventqueue[MAX_EVENTQUEUE-1][0]=0;
-			// add the timer
-			sd->eventtimer[ev]=add_timer(gettick()+100,pc_eventtimer,sd->bl.id,(int)name);//!!todo!!
-
-		}else
-			ShowWarning("npc_event_dequeue: event timer is full !\n");
+	if (!pc_addeventtimer(sd,100,sd->eventqueue[0]))
+	{	//Failed to dequeue, couldn't set a timer.
+		ShowWarning("npc_event_dequeue: event timer is full !\n");
+		return 0;
 	}
-	return 0;
+	//Event dequeued successfully, shift other elements.
+	memmove(sd->eventqueue[0], sd->eventqueue[1], (MAX_EVENTQUEUE-1)*sizeof(sd->eventqueue[0]));
+	sd->eventqueue[MAX_EVENTQUEUE-1][0]=0;
+	return 1;
 }
 
 /*==========================================
@@ -2214,7 +2201,7 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 
 	// 引数の個数チェック
 	if (sscanf(w1, "%15[^,],%d,%d,%d,%d", mapname, &x, &y, &xs, &ys) < 3 ||
-		sscanf(w4, "%d,%d,%u,%u,%23s", &class_, &num, &mob.delay1, &mob.delay2, mob.eventname) < 2 ) {
+		sscanf(w4, "%d,%d,%u,%u,%49[^\r\n]", &class_, &num, &mob.delay1, &mob.delay2, mob.eventname) < 2 ) {
 		ShowError("bad monster line : %s %s %s (file %s)\n", w1, w3, w4, current_file);
 		return 1;
 	}
