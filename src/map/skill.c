@@ -6447,7 +6447,7 @@ struct skill_unit_group *skill_unitsetting (struct block_list *src, int skillid,
 			ux+=(i%5-2);
 			uy+=(i/5-2);
 			break;
-		case UNT_DESPERADO:
+		case GS_DESPERADO:
 			val1 = abs(layout->dx[i]);
 			val2 = abs(layout->dy[i]);
 			if (val1 < 2 || val2 < 2) { //Nearby cross, linear decrease with no diagonals

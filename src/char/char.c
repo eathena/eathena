@@ -498,13 +498,13 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 	char tmp_str[3][128]; //To avoid deleting chars with too long names.
 	int tmp_int[256];
 	unsigned int tmp_uint[2]; //To read exp....
-	int set, next, len, i, j;
+	int next, len, i, j;
 
 	// initilialise character
 	memset(p, '\0', sizeof(struct mmo_charstatus));
 	
 	// If it's not char structure of version 1488 and after
-	if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 		"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d,%d,%d,%d,%d%n",
 		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0],
@@ -519,11 +519,11 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
 		tmp_str[1], &tmp_int[35], &tmp_int[36],
 		tmp_str[2], &tmp_int[37], &tmp_int[38], &tmp_int[39], 
-		&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next)) != 47)
+		&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next) != 47)
 	{
 	tmp_int[43] = 0; //Fame
 // Char structure of version 1363 (family data addition)
-	if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 		"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d,%d,%d,%d%n",
 		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
@@ -538,13 +538,13 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
 		tmp_str[1], &tmp_int[35], &tmp_int[36], //
 		tmp_str[2], &tmp_int[37], &tmp_int[38], &tmp_int[39], 
-		&tmp_int[40], &tmp_int[41], &tmp_int[42], &next)) != 46)
+		&tmp_int[40], &tmp_int[41], &tmp_int[42], &next) != 46)
 	{
 	tmp_int[40] = 0; // father
 	tmp_int[41] = 0; // mother
 	tmp_int[42] = 0; // child
 // Char structure version 1008 (marriage partner addition)
-	if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 		"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d%n",
 		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
@@ -558,11 +558,11 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 		&tmp_int[27], &tmp_int[28], &tmp_int[29],
 		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
 		tmp_str[1], &tmp_int[35], &tmp_int[36], //
-		tmp_str[2], &tmp_int[37], &tmp_int[38], &tmp_int[39], &next)) != 43)
+		tmp_str[2], &tmp_int[37], &tmp_int[38], &tmp_int[39], &next) != 43)
 	{
 	tmp_int[39] = 0; // partner id
 // Char structure version 384 (pet addition)
-	if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 		"\t%127[^,],%d,%d\t%127[^,],%d,%d%n",
 		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
@@ -576,11 +576,11 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 		&tmp_int[27], &tmp_int[28], &tmp_int[29],
 		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
 		tmp_str[1], &tmp_int[35], &tmp_int[36], //
-		tmp_str[2], &tmp_int[37], &tmp_int[38], &next)) != 42)
+		tmp_str[2], &tmp_int[37], &tmp_int[38], &next) != 42)
 	{
 	tmp_int[26] = 0; // pet id
 // Char structure of a version 1 (original data structure)
-	if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 		"\t%d,%d,%d\t%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 		"\t%127[^,],%d,%d\t%127[^,],%d,%d%n",
 		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
@@ -594,7 +594,7 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 		&tmp_int[27], &tmp_int[28], &tmp_int[29],
 		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
 		tmp_str[1], &tmp_int[35], &tmp_int[36], //
-		tmp_str[2], &tmp_int[37], &tmp_int[38], &next)) != 41)
+		tmp_str[2], &tmp_int[37], &tmp_int[38], &next) != 41)
 	{
 		ShowError("Char-loading: Unrecognized character data version, info lost!\n");
 		ShowDebug("Character info: %s\n", str);
@@ -1767,15 +1767,15 @@ int char_family(int cid1, int cid2, int cid3) {
 	//we could do a lot more checks and force cross-reference integrity.
 	if(char_dat[idx1].status.partner_id == cid2 &&
 		char_dat[idx1].status.child == cid3)
-		return 1; //cid1/cid2 parents. cid3 child.
+		return cid3; //cid1/cid2 parents. cid3 child.
 
 	if(char_dat[idx1].status.partner_id == cid3 &&
 		char_dat[idx1].status.child == cid2)
-		return 1; //cid1/cid3 parents. cid2 child.
+		return cid2; //cid1/cid3 parents. cid2 child.
 
 	if(char_dat[idx2].status.partner_id == cid3 &&
 		char_dat[idx2].status.child == cid1)
-		return 1; //cid2/cid3 parents. cid1 child.
+		return cid1; //cid2/cid3 parents. cid1 child.
 	return 0;
 }
 

@@ -2600,8 +2600,10 @@ int parse_frommap(int fd) {
 			{
 				memcpy(&char_dat, RFIFOP(fd,13), sizeof(struct mmo_charstatus));
 				mmo_char_tosql(cid, &char_dat);
-			} else 
-				ShowError("parse_from_map (save-char): Received data for non-existant/offline character (%d:%d)!\n", aid, cid);
+			} else {	//This may be valid on char-server reconnection, when re-sending characters that already logged off.
+				ShowError("parse_from_map (save-char): Received data for non-existant/offline character (%d:%d).\n", aid, cid);
+				set_char_online(id, cid, aid);
+			}
 
 			if (RFIFOB(fd,12))
 		  	{ //Flag? Set character offline after saving [Skotlex]
@@ -4380,7 +4382,7 @@ int char_family(int pl1,int pl2,int pl3) {
 				(pl3 == partnerid && pl2 == childid)
 			) {
 				mysql_free_result (sql_res);
-				return 1;
+				return childid;
 			}
 		}
 		if(charid == pl2) {
@@ -4388,7 +4390,7 @@ int char_family(int pl1,int pl2,int pl3) {
 				(pl3 == partnerid && pl1 == childid)
 			) {
 				mysql_free_result (sql_res);
-				return 1;
+				return childid;
 			}
 		}
 		if(charid == pl3) {
@@ -4396,7 +4398,7 @@ int char_family(int pl1,int pl2,int pl3) {
 				(pl2 == partnerid && pl1 == childid)
 			) {
 				mysql_free_result (sql_res);
-				return 1;
+				return childid;
 			}
 		}
 	}
