@@ -34,6 +34,8 @@ Playtester
 
 Date		Added
 ======
+11/11
+	* Fixed warp on timeout in swordman.txt [KarLaeda]
 11/09
 	* Added entrance to Kiel Dungeon F2 [Playtester]
 11/08
