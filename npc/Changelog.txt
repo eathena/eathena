@@ -34,6 +34,8 @@ Playtester
 
 Date		Added
 ======
+11/13
+	* Merged from TRUNK: u can re-install Guardians during WoE [Lupus]
 11/11
 	* Fixed warp on timeout in swordman.txt [KarLaeda]
 11/09
