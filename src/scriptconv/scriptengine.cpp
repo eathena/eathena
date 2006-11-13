@@ -249,22 +249,86 @@ void printer::print_without_quotes(const char* str)
 	}
 }
 
-void printer::print_comments(basics::CParser_CommentStore& parser, size_t linelimit)
+void printer::print_comments(basics::CParser_CommentStore& parser, int rtpos)
 {
 	printer& prn = *this;
-	// print comments
-	while( parser.cCommentList.size() )
+
+	// go down the first node until reaching a terminal
+	size_t linelimit = static_cast<size_t>(-1);
+
+	if( rtpos >= 0)
 	{
-		if( parser.cCommentList[0].line < linelimit )
+		while( parser.rt[rtpos].symbol.Type == 0 && parser.rt[rtpos].cChildNum )
 		{
-			if(!prn.newline) prn << '\n';
-			prn << ((parser.cCommentList[0].multi)?"/*":"// ") 
-				<< parser.cCommentList[0].content
-				<< ((parser.cCommentList[0].multi)?"*/\n":"\n");
-			parser.cCommentList.removeindex(0);
+			rtpos = parser.rt[rtpos].cChildPos;	// select the first child
 		}
-		else
-			break;
+		linelimit = parser.rt[rtpos].cToken.line;
+	}
+
+	if( rtpos < 0 || parser.rt[rtpos].symbol.Type == 1 )
+	{	// reached a terminal
+		// print all coments up to this line
+
+		// print comments
+		while( parser.cCommentList.size() )
+		{
+			if( parser.cCommentList[0].line <= linelimit )
+			{
+				if(!prn.newline) prn << '\n';
+				prn << ((parser.cCommentList[0].multi)?"/*":"// ") 
+					<< parser.cCommentList[0].content
+					<< ((parser.cCommentList[0].multi)?"*/\n":"\n");
+				parser.cCommentList.removeindex(0);
+			}
+			else
+				break;
+		}
 	}
 }
 
+
+int printer::log(const char*fmt, ...)
+{
+	if(logfile)
+	{
+		va_list argptr;
+		va_start(argptr, fmt);
+		int ret = vfprintf(logfile, fmt, argptr);
+		fputc('\n', logfile);
+		va_end(argptr);
+		return ret;
+	}
+	return 0;
+}
+
+static int internlog(FILE*logfile, basics::CParser_CommentStore& parser, int rtpos)
+{
+	int ret = 0;
+	size_t j=  parser.rt[rtpos].cChildPos;
+	size_t k=j+parser.rt[rtpos].cChildNum;
+	for(; j<k; ++j)
+	{	
+		if( parser.rt[j].symbol.Type == 1 )
+		{	// print the ternimal
+			const char* str = parser.rt[j].cToken.cLexeme;
+			ret += fprintf(logfile, str);
+			fputc(' ', logfile), ++ret;
+		}
+		else
+		{	// go down
+			ret += internlog(logfile, parser, j);
+		}
+	}
+	return ret;
+}
+
+int printer::log(basics::CParser_CommentStore& parser, int rtpos)
+{
+	if(logfile)
+	{
+		int ret = internlog(logfile,parser,rtpos);
+		if(ret>0) fputc('\n',logfile);
+		return ret;
+	}
+	return 0;
+}

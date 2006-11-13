@@ -18,6 +18,7 @@ void buildEngine(const char*filename);
 #define OPT_BEAUTIFY		0x01
 #define OPT_PRINTTREE		0x02
 #define OPT_TRANSFORM		0x04
+#define OPT_LOGGING			0x08
 
 
 struct parserstorage
@@ -130,8 +131,8 @@ public:
 	}
 	virtual int output(const char* str)
 	{
-		int ret = fprintf(stderr, str);
-		fflush(stderr);
+		int ret = fprintf(stdout, str);
+		fflush(stdout);
 		return ret;
 	}
 };
@@ -253,8 +254,9 @@ public:
 		size_t j, k;
 		const basics::CStackElement* se = &parser.rt[rtpos];
 		const basics::CStackElement* child;
+		//if( se->cChildNum==1 && parser.rt[se->cChildPos].symbol.Type!=1 )// leave the last non-terminal intact
 		if( se->cChildNum==1 )
-		{
+		{	
 			this->reduce_tree(parser, se->cChildPos, 0);
 		}
 		else
@@ -306,16 +308,29 @@ struct printer : public basics::noncopyable
 protected:
 	// internal use
 	bool newline;	// detects newline, adds scope indentation
+	FILE *logfile;
 public:
 	FILE *output;	// output, defaults to stdout
 	size_t scope;	// scope counter
 	bool ignore_nl;	// ignores newlines (ie. for itemscripts)
 
-	printer() : newline(false),output(stdout),scope(0),ignore_nl(false)
+	printer() : newline(false),logfile(NULL),output(stdout),scope(0),ignore_nl(false)
 	{}
 
 	virtual ~printer()
-	{}
+	{
+		if(logfile) fclose(logfile);
+	}
+
+	void open_log()
+	{
+		if(logfile) fclose(logfile);
+		logfile = fopen("converter.log", "wb");
+	}
+	int log(const char*fmt, ...);
+	int log(basics::CParser_CommentStore& parser, int rtpos);
+
+
 
 	void put(const char c);
 	void put(const char *str);
@@ -330,7 +345,7 @@ public:
 	void print_name(const char* str);
 	void print_without_quotes(const char* str);
 
-	void print_comments(basics::CParser_CommentStore& parser, size_t linelimit);
+	void print_comments(basics::CParser_CommentStore& parser, int rtpos);
 	virtual bool print_beautified(basics::CParser_CommentStore& parser, int rtpos) =0;
 };
 inline printer& operator <<(printer& prn, const char t)			{ prn.put(t); return prn; }

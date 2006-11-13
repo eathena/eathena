@@ -43,7 +43,14 @@ public:
 	int print_olditemdbhead( const char* str );
 	int print_olditemdbheadea( const char* str );
 
+	
 	virtual bool print_beautified(basics::CParser_CommentStore& parser, int rtpos);
+
+
+	bool transform_print_unprocessed(basics::CParser_CommentStore& parser, int rtpos);
+	bool transform_cmd_set(basics::CParser_CommentStore& parser, int rtpos);
+	bool transform_callstm(basics::CParser_CommentStore& parser, int rtpos);
+	bool transform_identifier(basics::CParser_CommentStore& parser, int rtpos);
 };
 
 
@@ -57,7 +64,10 @@ class oldeaParser : public basics::CFileProcessor
 
 public:
 	oldeaParser(basics::CParser_CommentStore* p, int o) : parser(p), option(o)
-	{}
+	{
+		if(option & OPT_LOGGING)
+			prn.open_log();
+	}
 	virtual bool process(const char*name) const;
 };
 

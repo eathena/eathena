@@ -86,7 +86,7 @@ class login_account
 {
 public:
 	uint32							account_id;		///< id of the account
-	uchar							passwd[16];		///< password hash
+	uchar							passwd[24];		///< password
 	basics::string<>				userid;			///< username
 	uint32							login_id1;		///< last id1
 	uint32							login_id2;		///< last id2

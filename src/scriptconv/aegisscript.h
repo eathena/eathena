@@ -50,57 +50,67 @@
 #define AE_DEFAULT       49 /* default */
 #define AE_DO            50 /* do */
 #define AE_ELSE          51 /* else */
-#define AE_ENDCHOOSE     52 /* endchoose */
-#define AE_ENDFOR        53 /* endfor */
-#define AE_ENDIF         54 /* endif */
-#define AE_ENDWHILE      55 /* endwhile */
-#define AE_FOR           56 /* for */
-#define AE_IDENTIFIER    57 /* identifier */
-#define AE_IF            58 /* if */
-#define AE_NEWLINE       59 /* NewLine */
-#define AE_NPC           60 /* npc */
-#define AE_RETURN        61 /* return */
-#define AE_STRINGLITERAL 62 /* StringLiteral */
-#define AE_UNTIL         63 /* until */
-#define AE_VAR           64 /* var */
-#define AE_WARP          65 /* warp */
-#define AE_WHILE         66 /* while */
-#define AE_ARRAY         67 /* <Array> */
-#define AE_BLOCK         68 /* <Block> */
-#define AE_CALLARG       69 /* <Call Arg> */
-#define AE_CALLLIST      70 /* <Call List> */
-#define AE_CALLSTM       71 /* <Call Stm> */
-#define AE_CASESTM       72 /* <Case Stm> */
-#define AE_DECL          73 /* <Decl> */
-#define AE_EXPR          74 /* <Expr> */
-#define AE_EXPRSTM       75 /* <Expr Stm> */
-#define AE_LABEL         76 /* <Label> */
-#define AE_LCTRSTM       77 /* <LCtr Stm> */
-#define AE_NL            78 /* <nl> */
-#define AE_NLOPT         79 /* <nl Opt> */
-#define AE_NORMALSTM     80 /* <Normal Stm> */
-#define AE_NPC2          81 /* <NPC> */
-#define AE_OBJ           82 /* <Obj> */
-#define AE_OPADDSUB      83 /* <Op AddSub> */
-#define AE_OPAND         84 /* <Op And> */
-#define AE_OPASSIGN      85 /* <Op Assign> */
-#define AE_OPBINAND      86 /* <Op BinAND> */
-#define AE_OPBINOR       87 /* <Op BinOR> */
-#define AE_OPBINXOR      88 /* <Op BinXOR> */
-#define AE_OPCOMPARE     89 /* <Op Compare> */
-#define AE_OPEQUATE      90 /* <Op Equate> */
-#define AE_OPIF          91 /* <Op If> */
-#define AE_OPMULTDIV     92 /* <Op MultDiv> */
-#define AE_OPOR          93 /* <Op Or> */
-#define AE_OPSHIFT       94 /* <Op Shift> */
-#define AE_OPUNARY       95 /* <Op Unary> */
-#define AE_OPTVALUE      96 /* <OptValue> */
-#define AE_PROGRAM       97 /* <Program> */
-#define AE_RETURNSTM     98 /* <Return Stm> */
-#define AE_SPRITE        99 /* <Sprite> */
-#define AE_START         100 /* <Start> */
-#define AE_STM           101 /* <Stm> */
-#define AE_STMLIST       102 /* <Stm List> */
-#define AE_VALUE         103 /* <Value> */
-#define AE_VARDECL       104 /* <Var Decl> */
-#define AE_WARP2         105 /* <Warp> */
+#define AE_ELSEIF        52 /* elseif */
+#define AE_ENDCHOOSE     53 /* endchoose */
+#define AE_ENDFOR        54 /* endfor */
+#define AE_ENDIF         55 /* endif */
+#define AE_ENDWHILE      56 /* endwhile */
+#define AE_FOR           57 /* for */
+#define AE_IDENTIFIER    58 /* identifier */
+#define AE_IF            59 /* if */
+#define AE_NEWLINE       60 /* NewLine */
+#define AE_NPC           61 /* npc */
+#define AE_NPCV          62 /* npcv */
+#define AE_RETURN        63 /* return */
+#define AE_STRINGLITERAL 64 /* StringLiteral */
+#define AE_UNTIL         65 /* until */
+#define AE_VAR           66 /* var */
+#define AE_WARP          67 /* warp */
+#define AE_WHILE         68 /* while */
+#define AE_ARRAY         69 /* <Array> */
+#define AE_BLOCK         70 /* <Block> */
+#define AE_CALLARG       71 /* <Call Arg> */
+#define AE_CALLLIST      72 /* <Call List> */
+#define AE_CALLSTM       73 /* <Call Stm> */
+#define AE_CASESTM       74 /* <Case Stm> */
+#define AE_CHOOSESTM     75 /* <Choose Stm> */
+#define AE_DECL          76 /* <Decl> */
+#define AE_DOSTM         77 /* <Do Stm> */
+#define AE_ELSESTM       78 /* <Else Stm> */
+#define AE_ELSEIFSTM     79 /* <Elseif Stm> */
+#define AE_EXPR          80 /* <Expr> */
+#define AE_EXPRSTM       81 /* <Expr Stm> */
+#define AE_FORSTM        82 /* <For Stm> */
+#define AE_IFSTM         83 /* <If Stm> */
+#define AE_LABEL         84 /* <Label> */
+#define AE_LCTRSTM       85 /* <LCtr Stm> */
+#define AE_NL            86 /* <nl> */
+#define AE_NLOPT         87 /* <nl Opt> */
+#define AE_NORMALSTM     88 /* <Normal Stm> */
+#define AE_NPC2          89 /* <NPC> */
+#define AE_NPCARRAY      90 /* <NPCArray> */
+#define AE_OBJ           91 /* <Obj> */
+#define AE_OPADDSUB      92 /* <Op AddSub> */
+#define AE_OPAND         93 /* <Op And> */
+#define AE_OPASSIGN      94 /* <Op Assign> */
+#define AE_OPBINAND      95 /* <Op BinAND> */
+#define AE_OPBINOR       96 /* <Op BinOR> */
+#define AE_OPBINXOR      97 /* <Op BinXOR> */
+#define AE_OPCOMPARE     98 /* <Op Compare> */
+#define AE_OPEQUATE      99 /* <Op Equate> */
+#define AE_OPIF          100 /* <Op If> */
+#define AE_OPMULTDIV     101 /* <Op MultDiv> */
+#define AE_OPOR          102 /* <Op Or> */
+#define AE_OPSHIFT       103 /* <Op Shift> */
+#define AE_OPUNARY       104 /* <Op Unary> */
+#define AE_OPTVALUE      105 /* <OptValue> */
+#define AE_PROGRAM       106 /* <Program> */
+#define AE_RETURNSTM     107 /* <Return Stm> */
+#define AE_SPRITE        108 /* <Sprite> */
+#define AE_START         109 /* <Start> */
+#define AE_STM           110 /* <Stm> */
+#define AE_STMLIST       111 /* <Stm List> */
+#define AE_VALUE         112 /* <Value> */
+#define AE_VARDECL       113 /* <Var Decl> */
+#define AE_WARP2         114 /* <Warp> */
+#define AE_WHILESTM      115 /* <While Stm> */

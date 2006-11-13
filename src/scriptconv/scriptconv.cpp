@@ -37,10 +37,12 @@ void basics::CTimerBase::timerfinalize()
 
 void usage(const char*p)
 {
-	fprintf(stderr, "usage: %s [engine file] [bptco] <input file/folder>\n", (p)?p:"<binary>");
+	fprintf(stderr, "usage: %s [engine file] [bptl] <input file/folder>\n", (p)?p:"<binary>");
 	fprintf(stderr, "     option b: outputs beautified code\n");
 	fprintf(stderr, "     option p: prints parse tree\n");
 	fprintf(stderr, "     option t: prints transformation tree\n");
+	fprintf(stderr, "     option l: enables logging for function and variable names\n");
+	fprintf(stderr, "     default only checks syntax errors\n");
 }
 
 int get_option(const char* p)
@@ -56,11 +58,12 @@ int get_option(const char* p)
 				option |= OPT_PRINTTREE;
 			else if(*p=='t')
 				option |= OPT_TRANSFORM;
+			else if(*p=='l')
+				option |= OPT_LOGGING;
 		}
 	}
 	return option;
 }
-
 
 // Accepts 3 arguments [engine file] [option(s)] <input file>
 int main(int argc, char *argv[])
@@ -69,7 +72,6 @@ int main(int argc, char *argv[])
 
 	ulong tick = GetTickCount();
 	bool ok=false;
-
 
 	// parse commandline
 	const char* enginefile=NULL;

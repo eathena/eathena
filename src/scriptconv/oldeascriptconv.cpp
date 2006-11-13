@@ -847,6 +847,263 @@ int oldeaprinter::print_olditemdbheadea( const char* str )
 	return atoi(me.Type);
 }
 
+bool oldeaprinter::transform_cmd_set(basics::CParser_CommentStore& parser, int rtpos)
+{	// transform "set" functions
+	// from "set <a>, <b>" to "<a> = <b>
+	oldeaprinter& prn = *this;
+	basics::CStackElement& listnode = parser.rt[parser.rt[rtpos].cChildPos+1];
+	
+	if( listnode.symbol.idx == PT_CALLLIST )
+	{
+		print_beautified(parser, listnode.cChildPos);
+		prn << " = ";
+		if(listnode.cChildNum>2)
+			print_beautified(parser, listnode.cChildPos+2);
+		else
+			prn << '0';
+	}
+	else
+	{	// fix invalid set commands with only one argument
+		print_beautified(parser, parser.rt[rtpos].cChildPos+1);
+		prn << " = ";
+		// fix invalid set commands
+		if(parser.rt[rtpos].cChildNum>3)
+			print_beautified(parser, parser.rt[rtpos].cChildNum+3);
+		else
+			prn << '0';
+		prn << "/* generated from incorrect set (";
+		transform_print_unprocessed(parser,rtpos);
+		prn << ")*/";
+		if( !basics::is_console(stdout) )
+			fprintf(stderr, "incorrect set at line %i\n", (int)parser.rt[parser.rt[rtpos].cChildPos].cToken.line);
+	}
+	return true;
+}
+
+bool oldeaprinter::transform_callstm(basics::CParser_CommentStore& parser, int rtpos)
+{	// either a real call statement with <function name> <parameter list>
+	// or a function with one argument
+	oldeaprinter& prn = *this;
+	if( parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme=="callfunc" )
+	{	// transform to real function calls
+		// "callfunc <name> <parameterlist>" -> <name>(<parameterlist>)
+		basics::CStackElement& listnode = parser.rt[parser.rt[rtpos].cChildPos+1];
+		if(listnode.cChildNum)
+		{	
+			// listnode's first child is the name, so strip any quote
+			const char* kp=parser.rt[listnode.cChildPos].cToken.cLexeme;
+			for(++kp; *kp && *kp!='"'; ++kp)
+				prn << *kp;
+			
+			// argument list
+			prn << "(";
+			size_t j,k;
+			k = listnode.cChildPos+listnode.cChildNum;
+			for(j=listnode.cChildPos+2; j<k; ++j)
+			{	// go down
+				print_beautified(parser, j);
+			}
+			prn << ");\n";
+		}
+		else
+		{	// listnode itself is the name, so strip any quote
+			const char* kp=listnode.cToken.cLexeme;
+			for(++kp; *kp && *kp!='"'; ++kp)
+				prn << *kp;
+
+			prn << "();\n";
+		}
+	}
+	else if( parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme=="set" )
+	{	// transform "set" functions
+		// from "set <a>, <b>" to "<a> = <b>;
+		transform_cmd_set(parser, rtpos);
+		prn << ";\n";
+	}
+	else if( parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme=="menu" )
+	{	// transform "menu" functions
+		// from "menu <a>, labela, <b>, labelb" to 
+		// "switch(select(<a>, <b>); { case 0: goto labela; case 1: goto labelb; default: end(); }
+		basics::CStackElement& listnode = parser.rt[parser.rt[rtpos].cChildPos+1];
+		basics::vector<size_t> items;
+		if( listnode.symbol.idx == PT_CALLLIST )
+		{	// analyze the <call list>
+			size_t i = listnode.cChildPos;
+			size_t k = i+listnode.cChildNum;
+			for(;i<k;)
+			{
+				if( parser.rt[i].symbol.idx == PT_COMMA )
+				{	// skip
+					++i;
+				}
+				else if( parser.rt[i].symbol.idx == PT_CALLLIST )
+				{	// go down
+					k = parser.rt[i].cChildPos+parser.rt[i].cChildNum;
+					i = parser.rt[i].cChildPos;
+				}
+				else
+				{	// remember
+					items.push_back(i);
+					++i;
+				}
+			}
+		}
+		if( (items.size() > 0) && ((items.size()&0x01) == 0) )
+		{	// a list with even number of parameters
+			size_t i;
+			prn << "switch( select(" ;
+			for(i=0;;)
+			{	// print the arguments
+				print_beautified(parser, items[i]);
+				i+=2;
+				if(i<items.size()) 
+					prn<<','<<' ';
+				else
+					break;
+			}
+			prn << ") )\n{\n";
+			for(i=1; i<items.size(); i+=2)
+			{	// print the arguments
+				prn << "case " << (i>>1) << ':' << ' ';
+				if( parser.rt[items[i]].symbol.idx == PT_IDENTIFIER ) // label marker
+					prn << "goto " << parser.rt[items[i]].cToken.cLexeme << ';' << '\n';
+				else // '-'
+					prn << "break;\n";
+			}
+			prn << "default: end();\n}\n";
+		}
+		else
+		{	// line is wrong, comment it
+			prn << "// incorrect menu\n/*";
+			transform_print_unprocessed(parser, rtpos);
+			prn << "*/\n";
+			if( !basics::is_console(stdout) )
+				fprintf(stderr, "incorrect menu at line %i\n", (int)parser.rt[parser.rt[rtpos].cChildPos].cToken.line);
+		}
+	}
+	else
+	{	// transform the rest to function calls
+		// since the grammar is ambiguous
+		// we cannod decide between "func( 1 )" and "func (1)", 
+		// where "1" is a function parameter or "(1)" is a evaluation
+		// so neet to test it explicitely
+
+		// function name
+		char idname[64];
+		const char* tmp = parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme;
+		str2id(idname, sizeof(idname), tmp);
+		prn << idname;
+
+		if( parser.rt[rtpos].cChildNum==3 )
+		{
+			const bool eval = ( PT_EVALUATION==parser.rt[parser.rt[rtpos].cChildPos+1].symbol.idx );
+			if(!eval) prn << '(';
+			print_beautified(parser, parser.rt[rtpos].cChildPos+1);
+			if(!eval) prn << ')';
+		}
+		else
+		{	// no call parameter
+			prn << '('<<')';
+		}
+		prn << ';' << '\n';
+	}
+	return true;
+}
+
+bool oldeaprinter::transform_identifier(basics::CParser_CommentStore& parser, int rtpos)
+{	// convert variable scopes
+	oldeaprinter& prn = *this;
+	const char*str = parser.rt[rtpos].cToken.cLexeme;
+	const char*epp = str+parser.rt[rtpos].cToken.cLexeme.size()-1;
+	const char*add = "";
+
+	prn.log(parser, rtpos);
+
+	// strip 
+	for( ; str<=epp && !basics::stringcheck::isalnum(*epp) && *epp!='_'; --epp) {}
+	if(str[0]=='.' && str[1]=='@')
+	{
+		str+=2;
+		add = "temp::";
+		//could also skip these as default vars are temp
+	}
+	else if(str[0]=='.')
+	{
+		++str;
+		add = "npc::";
+	}
+	else if(str[0]=='@')
+	{
+		++str;
+		add = "temp::";
+		//could also skip these as default vars are temp
+	}
+	else if(str[0]=='$' && str[1]=='@')
+	{
+		str+=2;
+		add = "temp::";
+		//could also skip these as default vars are temp
+	}
+	else if(str[0]=='$')
+	{
+		++str;
+		add = "global::";
+	}
+	else if(str[0]=='#' && str[1]=='#')
+	{
+		str+=2;
+		add = "login::";
+	}
+	else if(str[0]=='#')
+	{
+		++str;
+		add = "account::";
+	}
+	//else
+	// cannot recognize player variables as all identifiers/labels/names end up here
+	// add = "player::";
+
+	// strip any other stuff from the beginning
+	for( ; str<=epp && !basics::stringcheck::isalnum(*str) && *str!='_'; ++str) {}
+	if(str<=epp)
+	{	// check for reserved words
+		bool reserved = ( 0==strcmp(str,"if") ||
+						  0==strcmp(str,"else") ||
+						  0==strcmp(str,"for") ||
+						  0==strcmp(str,"while") ||
+						  0==strcmp(str,"return") ||
+						  0==strcmp(str,"goto") ||
+						  0==strcmp(str,"string") ||
+						  0==strcmp(str,"int") ||
+						  0==strcmp(str,"double") ||
+						  0==strcmp(str,"auto") ||
+						  0==strcmp(str,"var") );
+		prn << add;
+		if(reserved) prn << '_';
+		for(; str<=epp; ++str)
+			prn << *str;
+		if(reserved) prn << '_';
+	}
+	return true;
+}
+bool oldeaprinter::transform_print_unprocessed(basics::CParser_CommentStore& parser, int rtpos)
+{
+	oldeaprinter& prn = *this;
+	size_t j = parser.rt[rtpos].cChildPos;
+	size_t k = j+parser.rt[rtpos].cChildNum;
+	for(; j<k; ++j)
+	{	// go down
+		if( parser.rt[j].symbol.Type == 1 )	// terminal
+		{
+			prn << parser.rt[j].cToken.cLexeme << ' ';
+		}
+		else	// non terminal
+		{	// go down
+			transform_print_unprocessed(parser, j);
+		}
+	}
+	return true;
+}
 
 
 bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rtpos)
@@ -854,86 +1111,15 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 	oldeaprinter& prn = *this;
 	bool ret = true;
 
+	prn.print_comments(parser, rtpos);
+
 	if( parser.rt[rtpos].symbol.Type == 1 )
 	{	// terminals
-
-		prn.print_comments(parser, parser.rt[rtpos].cToken.line);
-
 		switch( parser.rt[rtpos].symbol.idx )
 		{
 		case PT_IDENTIFIER:
-		{	// convert variable scopes
-			const char*str = parser.rt[rtpos].cToken.cLexeme;
-			const char*epp = str+parser.rt[rtpos].cToken.cLexeme.size()-1;
-			const char*add = "";
-			// strip 
-			for( ; str<=epp && !basics::stringcheck::isalnum(*epp) && *epp!='_'; --epp) {}
-			if(str[0]=='.' && str[1]=='@')
-			{
-				str+=2;
-				add = "temp::";
-				//could also skip these as default vars are temp
-			}
-			else if(str[0]=='.')
-			{
-				++str;
-				add = "npc::";
-			}
-			else if(str[0]=='@')
-			{
-				++str;
-				add = "temp::";
-				//could also skip these as default vars are temp
-			}
-			else if(str[0]=='$' && str[1]=='@')
-			{
-				str+=2;
-				add = "temp::";
-				//could also skip these as default vars are temp
-			}
-			else if(str[0]=='$')
-			{
-				++str;
-				add = "global::";
-			}
-			else if(str[0]=='#' && str[1]=='#')
-			{
-				str+=2;
-				add = "login::";
-			}
-			else if(str[0]=='#')
-			{
-				++str;
-				add = "account::";
-			}
-			//else
-			// cannot recognize player variables as all identifiers/labels/names end up here
-			// add = "player::";
-
-			// strip any other stuff from the beginning
-			for( ; str<=epp && !basics::stringcheck::isalnum(*str) && *str!='_'; ++str) {}
-			if(str<=epp)
-			{	// check for reserved words
-				bool reserved = ( 0==strcmp(str,"if") ||
-								  0==strcmp(str,"else") ||
-								  0==strcmp(str,"for") ||
-								  0==strcmp(str,"while") ||
-								  0==strcmp(str,"return") ||
-								  0==strcmp(str,"goto") ||
-								  0==strcmp(str,"string") ||
-								  0==strcmp(str,"int") ||
-								  0==strcmp(str,"double") ||
-								  0==strcmp(str,"auto") ||
-								  0==strcmp(str,"var") );
-				prn << add;
-				if(reserved) prn << '_';
-				for(; str<=epp; ++str)
-					prn << *str;
-				if(reserved) prn << '_';
-			}
+			ret = transform_identifier(parser, rtpos);
 			break;
-		}
-
 		case PT_RBRACE:
 			if(prn.scope) --prn.scope;
 			if(!prn.newline) prn << '\n';
@@ -1041,90 +1227,36 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			break;
 		}
 		case PT_CALLSTM:
-		{	// either a real call statement with <function name> <parameter list>
-			// or a function with one arument
+		{
+			prn.log(parser, rtpos);
+			ret = transform_callstm(parser, rtpos);
+			break;
+		}
+		case PT_ARG:
+		{	// argument in a for statement, 
+			// can be <expr> (which should have been handled already) or a call statement
 
-			if( parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme=="callfunc" )
-			{	// transform to real function calls
-				// "callfunc <name> <parameterlist>" -> <name>(<parameterlist>)
-				basics::CStackElement& listnode = parser.rt[parser.rt[rtpos].cChildPos+1];
-				if(listnode.cChildNum)
+			prn.log(parser, rtpos);
+			
+			if( parser.rt[rtpos].cChildNum > 1 )
+			{
+				//we only accept a single "set" command here
+				if( parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme=="set" )
 				{	
-					// listnode's first child is the name, so strip any quote
-					const char* kp=parser.rt[listnode.cChildPos].cToken.cLexeme;
-					for(++kp; *kp && *kp!='"'; ++kp)
-						prn << *kp;
-					
-					// argument list
-					prn << "(";
-					size_t j,k;
-					k = listnode.cChildPos+listnode.cChildNum;
-					for(j=listnode.cChildPos+2; j<k; ++j)
-					{	// go down
-						print_beautified(parser, j);
-					}
-					prn << ");\n";
+					transform_cmd_set(parser, rtpos);
 				}
 				else
-				{	// listnode itself is the name, so strip any quote
-					const char* kp=listnode.cToken.cLexeme;
-					for(++kp; *kp && *kp!='"'; ++kp)
-						prn << *kp;
-
-					prn << "();\n";
+				{	// argument is wrong, ignore it
+					if( !basics::is_console(stdout) )
+						fprintf(stderr, "ignoring incorrect 'for' arguments at line %i\n", (int)parser.rt[parser.rt[rtpos].cChildPos].cToken.line);
+					prn << '/' << '*' << ' ';
+					transform_print_unprocessed(parser, rtpos);
+					prn << '*' << '/';
 				}
 			}
-			else if( parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme=="set" )
-			{	// transform "set" functions
-				// from "set <a>, <b>" to "<a> = <b>;
-				basics::CStackElement& listnode = parser.rt[parser.rt[rtpos].cChildPos+1];
-				
-				if( listnode.symbol.idx == PT_CALLLIST )
-				{
-					print_beautified(parser, listnode.cChildPos);
-					prn << " = ";
-					if(listnode.cChildNum>2)
-						print_beautified(parser, listnode.cChildPos+2);
-					else
-						prn << '0';
-				}
-				else
-				{	// fix invalid set commands with only one argument
-					print_beautified(parser, parser.rt[rtpos].cChildPos+1);
-					prn << " = ";
-					// fix invalid set commands
-					if(parser.rt[rtpos].cChildNum>3)
-						print_beautified(parser, parser.rt[rtpos].cChildNum+3);
-					else
-						prn << '0';
-				}
-				prn << ";\n";
-			}
-			else
-			{	// transform the rest to function calls
-				// since the grammar is ambiguous
-				// we cannod decide between "func( 1 )" and "func (1)", 
-				// where "1" is a function parameter or "(1)" is a evaluation
-				// so neet to test it explicitely
-
-				// function name
-				char idname[64];
-				const char* tmp = parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme;
-				str2id(idname, sizeof(idname), tmp);
-				prn << idname;
-
-				if( parser.rt[rtpos].cChildNum==3 )
-				{
-					const bool eval = ( PT_EVALUATION==parser.rt[parser.rt[rtpos].cChildPos+1].symbol.idx );
-					if(!eval) prn << '(';
-					print_beautified(parser, parser.rt[rtpos].cChildPos+1);
-					if(!eval) prn << ')';
-				}
-				else
-				{	// no call parameter
-					prn << '('<<')';
-				}
-				prn << ';' << '\n';
+			else if( parser.rt[rtpos].cChildNum )
+			{
+				print_beautified(parser, parser.rt[rtpos].cChildPos);
 			}
 			break;
 		}
@@ -1156,11 +1288,10 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 					if(prn.scope) --prn.scope;
 
 				if( parser.rt[rtpos].cChildNum==7 )
-				{
-					print_beautified(parser, parser.rt[rtpos].cChildPos+5);
+				{	// else part
 					if(!prn.newline)
 						prn << '\n';
-
+					prn << "else\n";
 					if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+6 ].symbol.idx )
 						++prn.scope;
 					print_beautified(parser, parser.rt[rtpos].cChildPos+6);
@@ -1170,8 +1301,7 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			}
 			else if( PT_DO == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
 			{	// do <Normal Stm> while '(' <Expr> ')' ';'
-				print_beautified(parser, parser.rt[rtpos].cChildPos+0);
-				prn << '\n';
+				prn << "do\n";
 				if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+1 ].symbol.idx )
 					++prn.scope;
 				print_beautified(parser, parser.rt[rtpos].cChildPos+1);
@@ -1179,16 +1309,13 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 					if(prn.scope) --prn.scope;
 				if(!prn.newline)
 					prn << '\n';
-				print_beautified(parser, parser.rt[rtpos].cChildPos+2);
-				prn << "( ";
+				prn << "while( ";
 				print_beautified(parser, parser.rt[rtpos].cChildPos+4);
-				prn << " )";
-				print_beautified(parser, parser.rt[rtpos].cChildPos+6);
+				prn << " );\n";
 			}
 			else if( PT_SWITCH == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
 			{	// switch '(' <Expr> ')' '{' <Case Stms> '}'
-				print_beautified(parser, parser.rt[rtpos].cChildPos+0);
-				prn << "( ";
+				prn << "switch ( ";
 				print_beautified(parser, parser.rt[rtpos].cChildPos+2);
 				prn << " )\n";
 				prn << "{\n";
@@ -1200,8 +1327,7 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			}
 			else if( PT_FOR == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
 			{	// for '(' <Arg> ';' <Arg> ';' <Arg> ')' <Normal Stm>
-				print_beautified(parser, parser.rt[rtpos].cChildPos+0);
-				prn << "(";
+				prn << "for(";
 				print_beautified(parser, parser.rt[rtpos].cChildPos+2);
 				prn << "; ";
 				print_beautified(parser, parser.rt[rtpos].cChildPos+4);
@@ -1216,11 +1342,10 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			}
 			else
 			{
-				size_t j,k;
-				k = parser.rt[rtpos].cChildPos+parser.rt[rtpos].cChildNum;
-				j = parser.rt[rtpos].cChildPos;
+				size_t j = parser.rt[rtpos].cChildPos;
+				size_t k = j+parser.rt[rtpos].cChildNum;
 				for(; j<k; ++j)
-				{
+				{	// go down
 					print_beautified(parser, j);
 				}
 			}
@@ -1231,7 +1356,8 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			//			   | default ':' <Stm List> <Case Stms>
 			//			   |
 			size_t i = parser.rt[rtpos].cChildPos;
-			
+
+			if(!prn.newline) prn << '\n';
 			if( PT_CASE == parser.rt[i].symbol.idx )
 			{
 				prn << "case ";
@@ -1241,8 +1367,6 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			else
 			{
 				prn << "default";
-				++i;
-				print_beautified(parser, i);
 			}
 			prn << ":\n";
 			++prn.scope;
@@ -1349,9 +1473,9 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 		}
 		default:
 		{
-			size_t j,k;
-			k = parser.rt[rtpos].cChildPos+parser.rt[rtpos].cChildNum;
-			for(j=parser.rt[rtpos].cChildPos; j<k; ++j)
+			size_t j = parser.rt[rtpos].cChildPos;
+			size_t k = j+parser.rt[rtpos].cChildNum;
+			for(; j<k; ++j)
 			{	// go down
 				print_beautified(parser, j);
 			}
@@ -1395,9 +1519,7 @@ bool oldeaParser::process(const char*name) const
 		short p = parser->parse(PT_DECL);
 		if (p < 0)
 		{	// an error
-			fprintf(stderr, "Parse Error in file '%s', line %i, col %i\n", name, parser->input.line, parser->input.column);
-
-			parser->print_expects();
+			parser->print_expects(name);
 
 			run = false;
 			ok = false;
@@ -1456,7 +1578,7 @@ bool oldeaParser::process(const char*name) const
 					this->prn << '\n';
 
 					this->prn.print_beautified(*parser, 0);
-					this->prn.print_comments(*parser, 0xFFFFFFFF);
+					this->prn.print_comments(*parser, -1);
 				}					
 				//////////////////////////////////////////////////////////
 				// reinitialize parser

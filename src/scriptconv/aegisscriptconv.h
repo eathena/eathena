@@ -22,12 +22,12 @@ struct aegisparserstorage : public parserstorage
 struct aegisprinter : public printer
 {
 public:
-
 	aegisprinter()
 	{}
 	virtual ~aegisprinter()
-	{}
-
+	{
+		if(logfile) fclose(logfile);
+	}
 	virtual bool print_beautified(basics::CParser_CommentStore& parser, int rtpos);
 };
 
@@ -42,7 +42,10 @@ class aegisParser : public basics::CFileProcessor
 
 public:
 	aegisParser(basics::CParser_CommentStore* p, int o) : parser(p), option(o)
-	{}
+	{
+		if(option & OPT_LOGGING)
+			prn.open_log();	
+	}
 	virtual bool process(const char*name) const;
 };
 

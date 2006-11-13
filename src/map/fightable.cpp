@@ -22,7 +22,7 @@
 // temporary skill test area
 
 
-
+///////////////////////////////////////////////////////////////////////////////
 /// some test class
 class dummyskill : public skillbase
 {
@@ -54,8 +54,59 @@ public:
 	{
 		printf("%s stopped\n", msg?msg:"dummy skill");
 	}
-	static skillbase* create_newskill(fightable&fi, ushort skillid, ushort skilllv=1);
 };
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// basic target skill.
+/// could be used as their base class,
+/// add more functionality here if it can be shared by all derived objects
+class targetskill : public skillbase
+{
+	uint32 target;
+public:
+
+	targetskill(fightable& caster, uint32 id)
+		: skillbase(caster)
+	{}
+	virtual ~targetskill()	{}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// basic ground skill.
+/// could be used as their base class
+/// add more functionality here if it can be shared by all derived objects
+class groundskill : public skillbase
+{
+	ushort x,y;
+	basics::string<> extra;
+public:
+
+	groundskill(fightable& caster, ushort xs, ushort ys, const char*e)
+		: skillbase(caster), x(xs), y(ys), extra(e)
+	{}
+	virtual ~groundskill()	{}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// basic map skill.
+/// could be used as their base class
+/// add more functionality here if it can be shared by all derived objects
+class mapskill : public skillbase
+{
+	basics::string<> mapname;
+public:
+
+	mapskill(fightable& caster, const char* map)
+		: skillbase(caster), mapname(map)
+	{}
+	virtual ~mapskill()	{}
+};
+
+
+
+
+
 
 
 /// check for timed or immediate execution

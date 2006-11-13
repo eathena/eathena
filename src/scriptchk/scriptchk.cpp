@@ -872,10 +872,7 @@ public:
 			short p = parser->parse(PT_DECL);
 			if (p < 0)
 			{	// an error
-				printf("Parse Error in file '%s', line %i, col %i\n", name, parser->input.line, parser->input.column);
-
-				parser->print_expects();
-
+				parser->print_expects(name);
 				run = false;
 				ok = false;
 			}

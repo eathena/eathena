@@ -1,4 +1,9 @@
 Date	Added
+11/13
+	* some filters, might discuss the content/further preprocessing
+	* changed parse error display format
+	* some more aegis statements, but maybe still not all implemented
+	* some beautification of the converterted scripts
 11/06
 	* think I could become accustomed to KarLaeda reports
 	* some fixes for reported things

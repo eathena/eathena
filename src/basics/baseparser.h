@@ -211,7 +211,7 @@ public:
 	unsigned int	line;
 	unsigned int	column;
 
-	CParseInput() : line(1),column(0)	{}
+	CParseInput() : line(1),column(1)	{}
 	virtual ~CParseInput()				{}
 
 
@@ -230,13 +230,13 @@ public:
 		{
 			if( 10==*this->cScn )
 			{
-				this->line++;
-				this->column=0;
+				++this->line;
+				this->column=1;
 			}
 			else if( 13 != *this->cScn)
-				this->column++;
+				++this->column;
 
-			this->cScn++;
+			++this->cScn;
 		}
 	}
 	short get_char()
@@ -256,11 +256,11 @@ public:
 		{
 			if( 10==*this->cScn )
 			{
-				this->line++;
-				this->column=0;
+				++this->line;
+				this->column=1;
 			}
 			else if( 13 != *this->cScn)
-				this->column++;
+				++this->column;
 
 			return (*((unsigned char*)this->cScn++));
 		}
@@ -537,7 +537,7 @@ public:
 	void print_rt_tree(int rtpos, int indent, bool trim=true);
 	void print_rt();
 	void print_stack();
-	void print_expects();
+	void print_expects(const char* name=NULL);
 	
 
 	///////////////////////////////////////////////////////////////////////////

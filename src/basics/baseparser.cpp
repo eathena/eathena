@@ -88,15 +88,33 @@ printf ("print stack\n");
 		printf("\n");
 	}
 }
-void CParser::print_expects()
+void CParser::print_expects(const char*name)
 {
-	fprintf(stderr,"recognized: '%s'\n", (const char*)this->cScanToken.cLexeme);
-	fprintf(stderr,"expecting: ");
-	size_t i;
-	for(i=0; i<this->pconfig->lalr_state[this->lalr_state].cAction.size(); ++i)
+	fprintf(stderr, "Parse Error at line %i, col %i\n", this->cScanToken.line, this->cScanToken.column);
+	if(name&&*name) fprintf(stderr, "in file '%s'\n", name);
+
+	if(this->cScanToken.id >=0)
 	{
-		CAction* action = &this->pconfig->lalr_state[this->lalr_state].cAction[i];
-		fprintf(stderr,"'%s' ", (const char*) pconfig->sym[action->SymbolIndex].Name );
+		fprintf(stderr,"recognized: %s '%s'\n", 
+			(const char*) pconfig->sym[this->cScanToken.id].Name,
+			(const char*)this->cScanToken.cLexeme);
+	}
+	else
+	{
+		fprintf(stderr,"unrecognized token: '%c'\n", 
+			this->input.get_char());
+	}
+
+
+	if(this->lalr_state>0)
+	{
+		size_t i;
+		fprintf(stderr,"expecting: ");
+		for(i=0; i<this->pconfig->lalr_state[this->lalr_state].cAction.size(); ++i)
+		{
+			CAction* action = &this->pconfig->lalr_state[this->lalr_state].cAction[i];
+			fprintf(stderr,"'%s' ", (const char*) pconfig->sym[action->SymbolIndex].Name );
+		}
 	}
 	fprintf(stderr,"\n");
 }
@@ -320,17 +338,23 @@ short CParseInput::scan(CParser& parser, CToken& target)
 			}
 		}
 		if( (c == EEOF) || (i == nedge) )
-		{
-			// accept, ignore or invalid token
-			if (last_accepted != -1)
-			{
-				// reset buffer counters to start right after the matched token
+		{	// accept, ignore or invalid token
+
+			if (last_accepted == -1)
+			{	// invalid token, just reset the reader
+				this->cScn=this->cRpp;
 				this->line = last_accepted_line;
 				this->column=last_accepted_col;
-
+			}
+			else //if (last_accepted != -1)
+			{
+				// copy the token
 				target.cLexeme.assign( this->cRpp, last_accepted_size );
+				// reset buffer counters to start right after the matched token
 				this->cRpp+=last_accepted_size;
 				this->cScn=this->cRpp;
+				this->line = last_accepted_line;
+				this->column=last_accepted_col;
 			
 				if( !parser.MatchFunction(parser.pconfig->sym[last_accepted].Type, parser.pconfig->sym[last_accepted].Name, (short)last_accepted) )
 				{	// ignore, reset state
@@ -516,22 +540,19 @@ void CParser::reinit()
 	// but we need at least on of these elements on the stack 
 	// because it contains the finalizing reduction rule
 	// so we just empty the children list of the first and delete the others
-	size_t i;
-	for(i=0; i<this->cStack.size(); ++i)
+
+	// find the reduced symbol (which is in rt[0])
+	size_t i, c;
+	for(i=0, c=0; i<this->cStack.size(); ++i)
 	{
-		if( this->cStack[i].cChildNum>0 )
-		{
-			if(i==0)// just clear the children in the first rule
-			{
-				this->cStack[i].cChildNum = 0;
-				this->cStack[i].cChildPos = 0;
-			}
-			else	// otherwise just remove the element from stack
-				this->cStack.removeindex(i);
+		if( this->rt[0].symbol.idx == this->cStack[i].symbol.idx &&
+			this->cStack[i].cChildNum )
+		{	// only clear the children
+			this->cStack[i].cChildNum = 0;
+			this->cStack[i].cChildPos = 0;
 			break;
 		}
 	}
-
 	// delete the complete reduction tree
 	this->rt.resize(1);	// 0 is reserved as head
 }
@@ -591,8 +612,7 @@ short CParser::parse(short reduce_sym)
 		if( this->cStack.size() < nrtIdx )
 			nrtIdx = this->cStack.size();
 
-		if( nrtIdx==1 && reduce_sym && tmpsym.idx != reduce_sym
-			)
+		if( nrtIdx==1 && reduce_sym && tmpsym.idx != reduce_sym )
 		{	// revert lalr_state
 			this->lalr_state = this->cStack.last().state;
 		}

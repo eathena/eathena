@@ -19,15 +19,19 @@ bool aegisparserstorage::getEngine(const unsigned char*& buf, unsigned long& sz)
 	return true;
 }
 
+
+
 ///////////////////////////////////////////////////////////////////////////////////////
 bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rtpos)
 {
 	aegisprinter& prn = *this;
 	bool ret = true;
 
+	prn.print_comments(parser, rtpos);
+
 	if( parser.rt[rtpos].symbol.Type == 1 )
 	{	// terminals
-		prn.print_comments(parser, parser.rt[rtpos].cToken.line);
+		
 		switch( parser.rt[rtpos].symbol.idx )
 		{
 		case AE_IDENTIFIER:
@@ -87,7 +91,29 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			print_beautified(parser, parser.rt[rtpos].cChildPos);
 			// print the value just attached
 			// so "OnTimer: 2000\n" -> "OnTimer2000:\n"
-			print_beautified(parser, parser.rt[rtpos].cChildPos+2);
+
+			
+			size_t i = parser.rt[rtpos].cChildPos+2;
+			while( parser.rt[i].symbol.Type != 1 && parser.rt[i].cChildNum )
+			{	// find the first existing terminal
+				i = parser.rt[i].cChildPos;
+			}
+			if( parser.rt[i].symbol.Type == 1 &&
+				parser.rt[i].symbol.idx == AE_STRINGLITERAL)
+			{	// strip quotes from stringliterals
+				const char* str = parser.rt[i].cToken.cLexeme;
+				if( *str=='\"' ) ++str;
+				if( *str && *str!='\"' )
+				{	// string not empty
+					prn << basics::upcase(*str++);
+					for(; *str && *str!='\"'; ++str)
+						prn << *str;
+				}
+			}
+			else
+			{
+				print_beautified(parser, parser.rt[rtpos].cChildPos+2);
+			}
 			prn << ":\n";
 
 			prn.scope = tmpscope;
@@ -101,13 +127,152 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			break;
 		}
 		case AE_CALLSTM:
-		{	
+		{	// identifier <Call List>
 			// function name
+//////
+// replace with function remapping
+//////
+			prn.log(parser, rtpos);
+
 			print_beautified(parser, parser.rt[rtpos].cChildPos);
 			prn << '(';
 			// function parameters
 			print_beautified(parser, parser.rt[rtpos].cChildPos+1);
 			prn << ')';
+			break;
+		}
+		case AE_ARRAY:
+		{	// <Value> '[' <Expr> ']'
+//////
+// replace with server/player variable access
+//////
+			prn.log(parser, rtpos);
+
+			print_beautified(parser, parser.rt[rtpos].cChildPos);
+			prn << '[';
+			print_beautified(parser, parser.rt[rtpos].cChildPos+2);
+			prn << ']';
+			break;
+		}
+		case AE_NPCARRAY:
+		{	// 'npcv' <stringliteral> '[' <Expr> ']'
+//////
+// replace with server/player variable access
+//////
+			prn.log(parser, rtpos);
+
+			prn << "npc_variable(";
+			print_beautified(parser, parser.rt[rtpos].cChildPos+1);
+			prn << ')';
+			prn << '[';
+			print_beautified(parser, parser.rt[rtpos].cChildPos+3);
+			prn << ']';
+			break;
+		}
+		case AE_IFSTM:
+		{	// 'if'  <Expr>  <nl> <Stm List> <Elseif Stm> 'endif' <nl>
+			prn << "if( ";
+			print_beautified(parser, parser.rt[rtpos].cChildPos+1);
+			prn << " )\n{\n";
+			++prn.scope;
+			print_beautified(parser, parser.rt[rtpos].cChildPos+3);
+			--prn.scope;
+			if(!prn.newline) prn << '\n';
+			prn << "}\n";
+			print_beautified(parser, parser.rt[rtpos].cChildPos+4);
+			break;
+		}
+		case AE_ELSEIFSTM:
+		{	// 'elseif'  <Expr>  <nl> <Stm List> <ElseIfStm>
+			if( parser.rt[rtpos].cChildNum>1 )
+			{
+				prn << "else if( ";
+				print_beautified(parser, parser.rt[rtpos].cChildPos+1);
+				prn << " )\n{\n";
+				++prn.scope;
+				print_beautified(parser, parser.rt[rtpos].cChildPos+3);
+				--prn.scope;
+				if(!prn.newline) prn << '\n';
+				prn << "}\n";
+				print_beautified(parser, parser.rt[rtpos].cChildPos+4);
+			}
+			// else its a <elsstm> and already handled
+			// or empty and not necessary to process
+			break;
+		}
+		case AE_ELSESTM:
+		{	// 'else' <nl> <Stm List>
+			if( parser.rt[rtpos].cChildNum )
+			{
+				prn << "else\n{\n";
+				++prn.scope;
+				print_beautified(parser, parser.rt[rtpos].cChildPos+2);
+				--prn.scope;
+				if(!prn.newline) prn << '\n';
+				prn << "}\n";
+			}
+			break;
+		}
+		case AE_WHILESTM:
+		{	
+			prn << "while( ";
+			print_beautified(parser, parser.rt[rtpos].cChildPos+1);
+			prn << " )\n{\n";
+			++prn.scope;
+			print_beautified(parser, parser.rt[rtpos].cChildPos+3);
+			--prn.scope;
+			if(!prn.newline) prn << '\n';
+			prn << "}\n";
+			break;
+		}
+		case AE_FORSTM:
+		{
+			size_t i = parser.rt[rtpos].cChildPos;
+			bool forward = atoi(parser.rt[i+3].cToken.cLexeme) <= atoi(parser.rt[i+5].cToken.cLexeme);
+			prn << "for(";
+			print_beautified(parser, i+1);
+			prn << "=";
+			print_beautified(parser, i+3);
+			prn << "; ";
+			print_beautified(parser, i+1);
+			prn << (forward?"<=":">=");
+			print_beautified(parser, i+5);
+			prn << "; ";
+			prn << (forward?"++":"--");
+			print_beautified(parser, i+1);
+			prn << ")\n{\n";
+			++prn.scope;
+			print_beautified(parser, i+7);
+			--prn.scope;
+			if(!prn.newline) prn << '\n';
+			prn << "}\n";
+			break;
+		}			
+		case AE_DOSTM:
+		{
+			size_t i = parser.rt[rtpos].cChildPos;
+			prn << "do\n{\n";
+			++prn.scope;
+			print_beautified(parser, i+2); // <Stm List>
+			if(!prn.newline)
+				prn << '\n';
+			--prn.scope;
+			prn << "}\n";
+			prn << "while( !(";	// negate because aegis does "until" but we do "while"
+			print_beautified(parser, i+4);
+			prn << ") );\n";
+			break;
+		}
+		case AE_CHOOSESTM:
+		{
+			size_t i = parser.rt[rtpos].cChildPos;
+			prn << "switch( ";
+			print_beautified(parser, i+1); // <expr>
+			prn << " )\n{\n";
+			print_beautified(parser, i+3); // <Case Stm>
+			if(!prn.newline)
+				prn << '\n';
+			prn << "}\n";
 			break;
 		}
 		case AE_CASESTM:
@@ -117,7 +282,8 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			if( parser.rt[rtpos].cChildNum )
 			{
 				size_t i = parser.rt[rtpos].cChildPos;
-				
+
+				if(!prn.newline) prn << '\n';
 				if( AE_CASE == parser.rt[i].symbol.idx )
 				{
 					prn << "case ";
@@ -127,110 +293,12 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 				else
 				{
 					prn << "default";
-					++i;
-					print_beautified(parser, i);
 				}
 				prn << ":\n";
 				++prn.scope;
 				print_beautified(parser, i+2);
 				--prn.scope;
 				print_beautified(parser, i+3);
-			}
-			break;
-		}
-		case AE_NORMALSTM:
-		{	// 'if'  <Expr>  <nl> <Stm List> 'endif' <nl>
-			// 'if'  <Expr>  <nl> <Stm List> 'else' <nl> <Stm List> 'endif' <nl>
-			// 'while'  <Expr>  <nl> <Stm List> 'endwhile' <nl>
-			// 'for' identifier '=' <Value> '..' <Value> <nl> <Stm List> 'endfor' <nl>
-			// 'do' <nl> <Stm List> 'until'  <Expr>  <nl>
-			// 'choose' <Expr> <nl> <Case Stm> 'endchoose' <nl>
-			size_t i = parser.rt[rtpos].cChildPos;
-			switch( parser.rt[i].symbol.idx )
-			{
-			case AE_IF:
-			{
-				prn << "if( ";
-				print_beautified(parser, i+1);
-				prn << " )\n{\n";
-				++prn.scope;
-				print_beautified(parser, parser.rt[rtpos].cChildPos+3);
-				--prn.scope;
-				if(!prn.newline) prn << '\n';
-				prn << "}\n";
-				if( AE_ELSE == parser.rt[i].symbol.idx )
-				{
-					prn << "else\n{";
-					++prn.scope;
-					print_beautified(parser, parser.rt[rtpos].cChildPos+6);
-					--prn.scope;
-					if(!prn.newline) prn << '\n';
-					prn << "}\n";
-				}
-				break;
-			}
-			case AE_WHILE:
-			{
-				prn << "while( ";
-				print_beautified(parser, i+1);
-				prn << " )\n{\n";
-				++prn.scope;
-				print_beautified(parser, parser.rt[rtpos].cChildPos+3);
-				--prn.scope;
-				if(!prn.newline) prn << '\n';
-				prn << "}\n";
-				break;
-			}
-			case AE_FOR:
-			{
-				bool forward = atoi(parser.rt[i+3].cToken.cLexeme) <= atoi(parser.rt[i+5].cToken.cLexeme);
-				prn << "for(";
-				print_beautified(parser, i+1);
-				prn << "=";
-				print_beautified(parser, i+3);
-				prn << "; ";
-				print_beautified(parser, i+1);
-				prn << (forward?"<=":">=");
-				print_beautified(parser, i+5);
-				prn << "; ";
-				prn << (forward?"++":"--");
-				print_beautified(parser, i+1);
-				prn << ")\n{\n";
-				++prn.scope;
-				print_beautified(parser, i+7);
-				--prn.scope;
-				if(!prn.newline) prn << '\n';
-				prn << "}\n";
-				break;
-			}			
-			case AE_DO:
-			{
-				prn << "do\n{\n";
-				++prn.scope;
-				print_beautified(parser, i+2); // <Stm List>
-				if(!prn.newline)
-					prn << '\n';
-				--prn.scope;
-				prn << "}\n";
-				prn << "while( !(";	// negate because aegis does "until" but we do "while"
-				print_beautified(parser, i+4);
-				prn << ") );\n";
-				break;
-			}
-			case AE_CHOOSE:
-			{
-				prn << "switch( ";
-				print_beautified(parser, i+1); // <expr>
-				prn << " )\n{\n";
-				print_beautified(parser, i+3); // <Case Stm>
-				if(!prn.newline)
-					prn << '\n';
-				prn << "}\n";
-				break;
-			}
-			default:
-				// ignore, handled otherwise
-				break;
 			}
 			break;
 		}
@@ -290,7 +358,6 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 				"west",
 				"northwest",
 			};
-			prn.print_comments(parser, parser.rt[i+1].cToken.line);
 			prn << "npc ";			
 			prn.print_id(name);
 			prn << " (name=\"";
@@ -333,7 +400,6 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			// strip quotes from name
 			str2strip_quotes(name, sizeof(name),parser.rt[i+2].cToken.cLexeme);
 
-			prn.print_comments(parser, parser.rt[i].cToken.line);
 			prn << "npc ";			
 			prn.print_id(name);
 			prn << "(name=\"";
@@ -404,10 +470,7 @@ bool aegisParser::process(const char*name) const
 		short p = parser->parse(AE_DECL);
 		if (p < 0)
 		{	// an error
-			fprintf(stderr, "Parse Error in file '%s', line %i, col %i\n", name, parser->input.line, parser->input.column);
-
-			parser->print_expects();
-
+			parser->print_expects(name);
 			run = false;
 			ok = false;
 		}
@@ -447,7 +510,7 @@ bool aegisParser::process(const char*name) const
 					//	this->prn << "not yet implemented\n";
 
 					this->prn.print_beautified(*parser, 0);
-					this->prn.print_comments(*parser, 0xFFFFFFFF);
+					this->prn.print_comments(*parser, -1);
 				}					
 				//////////////////////////////////////////////////////////
 				// reinitialize parser
