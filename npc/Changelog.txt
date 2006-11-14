@@ -35,6 +35,7 @@ Playtester
 Date		Added
 ======
 11/13
+	* Fixed Swordman Skill Quest (merged correct version form Trunk) [Lupus]
 	* Fix for guild manager recognizing [KarLaeda]
 	* Merged from TRUNK: u can re-install Guardians during WoE [Lupus]
 11/11
