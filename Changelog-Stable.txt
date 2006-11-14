@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/11/13
+	* Fixed a bug in the Moving HP Recovery quest not checking if player 
+	  is a knight or crusader. [Euph]
 	* Fixed a bug where the char-txt server was incorrectly saving memos,
 	  causing character data to be lost on restart. [Skotlex]
 	* Merged Health Conversion Skill formula from TRUNK. [Lupus]
