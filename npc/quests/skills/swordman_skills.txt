@@ -227,7 +227,7 @@ L_Check:
 	next;
 	mes "[Knight De Thomas]";
 	if ((countitem(713)<200) || (countitem(1058)<1) || (countitem(2312)<1)) goto L_NoItems;
-	if (baseClass==Job_Swordman && JobLevel < 35) goto L_LowLvl;
+	if (BaseJob=Job_Swordsman && JobLevel < 35) goto L_LowLvl;
 	delitem 713,200;
 	delitem 1058,1;
 	mes "Great! You have everything needed to learn this skill.  Take a deep breath.... let us begin.";
@@ -358,7 +358,6 @@ L_Check:
 	close;
 
 	L_NoItems:
-		mes "[Juan]";
 		mes "In order to learn this skill you will need to bring me the following items:";
 		mes "^5555FF35 Powder of Butterfly,";
 		mes "10 Horrendous Mouth,";
