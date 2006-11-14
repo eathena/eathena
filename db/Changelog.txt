@@ -1,3 +1,10 @@
+11/14
+	* Merged exp, item_db, job_db1, mob_db, mob_skill_db [Playtester]
+	- official GS/NJ job exp
+	- replaced bAtk with bBaseAtk
+	- more official max HP/SP for TK/SG/SL/GS/NJ
+	- official X.4 MVP drops
+	- Kiel now summons 6 slaves rather than 5
 11/09
 	* Merged Ground Drift being stackable and placeable on top of others.
 	  [Skotlex]
