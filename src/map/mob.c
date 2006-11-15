@@ -2681,7 +2681,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 			}
 			md->skillidx = i;
 			flag = unit_skilluse_pos2(&md->bl, x, y, ms[i].skill_id, ms[i].skill_lv,
-				skill_castfix_sc(&md->bl, ms[i].casttime), ms[i].cancel);
+				ms[i].casttime, ms[i].cancel);
 			if (!flag) md->skillidx = -1; //Skill failed.
 			return flag;
 		} else {
@@ -2711,7 +2711,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				}
 				md->skillidx = i;
 				flag = (bl && unit_skilluse_id2(&md->bl, bl->id, ms[i].skill_id, ms[i].skill_lv,
-					skill_castfix_sc(&md->bl,ms[i].casttime),	ms[i].cancel));
+					ms[i].casttime, ms[i].cancel));
 				if (!flag) md->skillidx = -1;
 				return flag;
 			} else {

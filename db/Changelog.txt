@@ -1,4 +1,6 @@
 11/14
+	* Removed inf2 = trap from Firepillar and Spider Web [Skotlex]
+	* Wand of Hermod's range from warp has been reduced to 1. [Skotlex]
 	* Merged exp, item_db, job_db1, mob_db, mob_skill_db [Playtester]
 	- official GS/NJ job exp
 	- replaced bAtk with bBaseAtk

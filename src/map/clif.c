@@ -101,7 +101,7 @@ static const int packet_len_table[MAX_PACKET_DB] = {
    -1, -1, 20, 10, 32,  9, 34, 14,   2,  6, 48, 56, -1,  4,  5, 10,
 //#0x200
    26, -1,  26, 10, 18, 26, 11, 34,  14, 36, 10, 0,  0, -1, 32, 10, // 0x20c change to 0 (was 19)
-   22,  0,  26, 26, 42, -1, -1,  2,   2,282,282,10, 10, -1, -1, 66,
+   22,  0,  26, 26, 42,  6,  6,  2,   2,282,282,10, 10, -1, -1, 66,
    10, -1,  -1,  8, 10,  2,282, 18,  18, 15, 58, 57, 64, 5, 71,  5,
    12, 26,   9, 11, -1, -1, 10,  2, 282, 11,  4, 36, -1,-1,  4,  2,
    -1, -1,  -1, -1, -1,  3,  4,  8,  -1,  3, 70,  4,  8,12,  4, 10,
@@ -900,7 +900,7 @@ static int clif_set0078(struct block_list *bl, struct view_data *vd, unsigned ch
 		WBUFW(buf,28)=vd->head_mid;
 		WBUFW(buf,30)=vd->hair_color;
 		WBUFW(buf,32)=vd->cloth_color;
-		WBUFW(buf,34)=sd?sd->head_dir:dir;
+		WBUFW(buf,34)=sd?sd->head_dir:0;
 		WBUFL(buf,36)=guild_id;
 		WBUFW(buf,40)=emblem_id;
 		if (sd) {
@@ -935,7 +935,7 @@ static int clif_set0078(struct block_list *bl, struct view_data *vd, unsigned ch
 		WBUFW(buf,26)=vd->head_mid;
 		WBUFW(buf,28)=vd->hair_color;
 		WBUFW(buf,30)=vd->cloth_color;
-		WBUFW(buf,32)=sd?sd->head_dir:dir;
+		WBUFW(buf,32)=sd?sd->head_dir:0;
 		WBUFL(buf,34)=guild_id;
 		WBUFW(buf,38)=emblem_id;
 		if (sd) {
@@ -970,7 +970,7 @@ static int clif_set0078(struct block_list *bl, struct view_data *vd, unsigned ch
 		WBUFW(buf,26)=vd->head_mid;
 		WBUFW(buf,28)=vd->hair_color;
 		WBUFW(buf,30)=vd->cloth_color;
-		WBUFW(buf,32)=sd?sd->head_dir:dir;
+		WBUFW(buf,32)=sd?sd->head_dir:0;
 		WBUFL(buf,34)=guild_id;
 		WBUFL(buf,38)=emblem_id;
 		if (sd)
@@ -1054,7 +1054,7 @@ static int clif_set007b(struct block_list *bl, struct view_data *vd, struct unit
 		WBUFW(buf,32)=vd->head_mid;
 		WBUFW(buf,34)=vd->hair_color;
 		WBUFW(buf,36)=vd->cloth_color;
-		WBUFW(buf,38)=sd?sd->head_dir:unit_getdir(bl);
+		WBUFW(buf,38)=sd?sd->head_dir:0;
 		WBUFL(buf,40)=guild_id;
 		WBUFW(buf,44)=emblem_id;
 		if (sd) {
@@ -1091,7 +1091,7 @@ static int clif_set007b(struct block_list *bl, struct view_data *vd, struct unit
 		WBUFW(buf,30)=vd->head_mid;
 		WBUFW(buf,32)=vd->hair_color;
 		WBUFW(buf,34)=vd->cloth_color;
-		WBUFW(buf,36)=sd?sd->head_dir:unit_getdir(bl);
+		WBUFW(buf,36)=sd?sd->head_dir:0;
 		WBUFL(buf,38)=guild_id;
 		WBUFW(buf,42)=emblem_id;
 		if (sd) {
@@ -1128,7 +1128,7 @@ static int clif_set007b(struct block_list *bl, struct view_data *vd, struct unit
 		WBUFW(buf,30)=vd->head_mid;
 		WBUFW(buf,32)=vd->hair_color;
 		WBUFW(buf,34)=vd->cloth_color;
-		WBUFW(buf,36)=sd?sd->head_dir:unit_getdir(bl);
+		WBUFW(buf,36)=sd?sd->head_dir:0;
 		WBUFL(buf,38)=guild_id;
 		WBUFL(buf,42)=emblem_id;
 		if (sd)
@@ -7783,6 +7783,30 @@ int clif_party_xy_remove(struct map_session_data *sd)
 	return 0;
 }
 
+//Displays gospel-buff information (thanks to Rayce):
+//Type determines message based on this table:
+/*
+	0x15 End all negative status
+	0x16 Immunity to all status
+	0x17 MaxHP +100%
+	0x18 MaxSP +100%
+	0x19 All stats +20
+	0x1c Enchant weapon with Holy element
+	0x1d Enchant armor with Holy element
+	0x1e DEF +25%
+	0x1f ATK +100%
+	0x20 HIT/Flee +50
+	0x28 Full strip failed because of coating (unrelated to gospel, maybe for ST_FULLSTRIP)
+*/
+void clif_gospel_info(struct map_session_data *sd, int type)
+{
+	int fd=sd->fd;
+	WFIFOHEAD(fd,packet_len_table[0x215]);
+	WFIFOW(fd,0)=0x215;
+	WFIFOL(fd,2)=type;
+	WFIFOSET(fd, packet_len_table[0x215]);
+
+}
 /*==========================================
  * Info about Star Glaldiator save map [Komurka]
  * type: 1: Information, 0: Map registered
@@ -7989,11 +8013,9 @@ static int clif_nighttimer(int tid, unsigned int tick, int id, int data)
  */
 void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 {
-	int i;
-	
 	if(sd->bl.prev != NULL)
 		return;
-		
+	
 	if (sd->state.rewarp)
   	{	//Rewarp player.
 		sd->state.rewarp = 0;
@@ -8001,23 +8023,16 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		return;
 	}
 
-	if(sd->npc_id) npc_event_dequeue(sd);
+	// look
+#if PACKETVER < 4
+	clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
+	clif_changelook(&sd->bl,LOOK_SHIELD,sd->status.shield);
+#else
+	clif_changelook(&sd->bl,LOOK_WEAPON,0);
+#endif
 
-	if(sd->state.connect_new) {
-		clif_skillinfoblock(sd);
-		clif_updatestatus(sd,SP_NEXTBASEEXP);
-		clif_updatestatus(sd,SP_NEXTJOBEXP);
-		clif_updatestatus(sd,SP_SKILLPOINT);
-		clif_initialstatus(sd);
-	} else {
-		//For some reason the client "loses" these on map-change.
-		clif_updatestatus(sd,SP_STR);
-		clif_updatestatus(sd,SP_AGI);
-		clif_updatestatus(sd,SP_VIT);
-		clif_updatestatus(sd,SP_INT);
-		clif_updatestatus(sd,SP_DEX);
-		clif_updatestatus(sd,SP_LUK);
-	}
+	if(sd->vd.cloth_color)
+		clif_refreshlook(&sd->bl,sd->bl.id,LOOK_CLOTHES_COLOR,sd->vd.cloth_color,SELF);
 
 	// item
 	pc_checkitem(sd);
@@ -8043,16 +8058,15 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	map_addblock(&sd->bl);	// ブロック登録
 	clif_spawn(&sd->bl);	// spawn
 
-	// party
-	party_send_movemap(sd);
+	// Party
+	if(sd->status.party_id) {
+		party_send_movemap(sd);
+		clif_party_hp(sd); // Show hp after displacement [LuzZza]
+	}
+
 	// guild
-	guild_send_memberinfoshort(sd,1);
-
-	// Show hp after displacement [LuzZza]
-	if(sd->status.party_id)
-	    clif_party_hp(sd);
-
-	sd->state.using_fake_npc = 0;
+	if(sd->status.guild_id)
+		guild_send_memberinfoshort(sd,1);
 
 	// pvp
 	//if(sd->pvp_timer!=-1 && !battle_config.pk_mode) /PVP Client crash fix* Removed timer deletion
@@ -8068,17 +8082,16 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 			sd->pvp_lost=0;
 		}
 		clif_set0199(fd,1);
-	} else {
-		sd->pvp_timer=-1;
-		// set flag, if it's a duel [LuzZza]
-		if(sd->duel_group)
-			clif_set0199(fd, 1);
-	}
-	if(map_flag_gvg(sd->bl.m))
+	} else
+	// set flag, if it's a duel [LuzZza]
+	if(sd->duel_group)
+		clif_set0199(fd, 1);
+
+	if(map_flag_gvg(sd->bl.m) || map[sd->bl.m].flag.gvg_dungeon)
 		clif_set0199(fd,3);
 
 	// pet
-	if(sd->status.pet_id > 0 && sd->pd) {
+	if(sd->pd) {
 		map_addblock(&sd->pd->bl);
 		clif_spawn(&sd->pd->bl);
 		clif_send_petdata(sd,0,0);
@@ -8086,68 +8099,68 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		clif_send_petstatus(sd);
 	}
 
-	if(sd->state.connect_new) {
-		sd->state.connect_new = 0;
-		//Delayed night effect on log-on fix for the glow-issue. Thanks to Larry.
-		if (night_flag) {
-			char tmpstr[1024];
-			strcpy(tmpstr, msg_txt(500)); // Actually, it's the night...
-			clif_wis_message(sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
-			
-			if (map[sd->bl.m].flag.nightenabled)
-				add_timer(gettick()+1000,clif_nighttimer,sd->bl.id,0);
-		}
 
-//		if(sd->status.class_ != sd->vd.class_)
-//			clif_refreshlook(&sd->bl,sd->bl.id,LOOK_BASE,sd->vd.class_,SELF);
+	if(sd->state.connect_new) {
+		int lv;
+		sd->state.connect_new = 0;
+		clif_skillinfoblock(sd);
+		clif_updatestatus(sd,SP_NEXTBASEEXP);
+		clif_updatestatus(sd,SP_NEXTJOBEXP);
+		clif_updatestatus(sd,SP_SKILLPOINT);
+		clif_initialstatus(sd);
 
 		if (sd->sc.option&OPTION_FALCON)
 			clif_status_load(&sd->bl, SI_FALCON, 1);
+
 		if (sd->sc.option&OPTION_RIDING)
 			clif_status_load(&sd->bl, SI_RIDING, 1);
 
+		if(sd->status.manner < 0)
+			sc_start(&sd->bl,SC_NOCHAT,100,0,0);
+
 		//Auron reported that This skill only triggers when you logon on the map o.O [Skotlex]
-		if ((i = pc_checkskill(sd,SG_KNOWLEDGE)) > 0) {
+		if ((lv = pc_checkskill(sd,SG_KNOWLEDGE)) > 0) {
 			if(sd->bl.m == sd->feel_map[0].m
 				|| sd->bl.m == sd->feel_map[1].m
 				|| sd->bl.m == sd->feel_map[2].m)
-				sc_start(&sd->bl, SC_KNOWLEDGE, 100, i, skill_get_time(SG_KNOWLEDGE, i));
+				sc_start(&sd->bl, SC_KNOWLEDGE, 100, lv, skill_get_time(SG_KNOWLEDGE, lv));
 		}
 
-		if(sd->status.pet_id > 0 && sd->pd && sd->pd->pet.intimate > 900)
+		if(sd->pd && sd->pd->pet.intimate > 900)
 			clif_pet_emotion(sd->pd,(sd->pd->pet.class_ - 100)*100 + 50 + pet_hungry_val(sd->pd));
-		//[LuzZza]
-		//clif_guild_send_onlineinfo(sd);
 
-	} else
-	//New 'night' effect by dynamix [Skotlex]
-	if (night_flag && map[sd->bl.m].flag.nightenabled)
-	{	//Display night.
-		if (sd->state.night) //It must be resent because otherwise players get this annoying aura...
+		//Delayed night effect on log-on fix for the glow-issue. Thanks to Larry.
+		if (night_flag && map[sd->bl.m].flag.nightenabled)
+			add_timer(gettick()+1000,clif_nighttimer,sd->bl.id,0);
+	} else {
+		//For some reason the client "loses" these on map-change.
+		clif_updatestatus(sd,SP_STR);
+		clif_updatestatus(sd,SP_AGI);
+		clif_updatestatus(sd,SP_VIT);
+		clif_updatestatus(sd,SP_INT);
+		clif_updatestatus(sd,SP_DEX);
+		clif_updatestatus(sd,SP_LUK);
+
+		sd->state.using_fake_npc = 0;
+
+		//New 'night' effect by dynamix [Skotlex]
+		if (night_flag && map[sd->bl.m].flag.nightenabled)
+		{	//Display night.
+			if (sd->state.night) //It must be resent because otherwise players get this annoying aura...
+				clif_status_load(&sd->bl, SI_NIGHT, 0);
+			else
+				sd->state.night = 1;
+			clif_status_load(&sd->bl, SI_NIGHT, 1);
+		} else if (sd->state.night) { //Clear night display.
+			sd->state.night = 0;
 			clif_status_load(&sd->bl, SI_NIGHT, 0);
-		else
-			sd->state.night = 1;
-		clif_status_load(&sd->bl, SI_NIGHT, 1);
-	} else if (sd->state.night) { //Clear night display.
-		sd->state.night = 0;
-		clif_status_load(&sd->bl, SI_NIGHT, 0);
+		}
+
+		if(sd->npc_id)
+			npc_event_dequeue(sd);
 	}
 
-	// view equipment item
-#if PACKETVER < 4
-	clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
-	clif_changelook(&sd->bl,LOOK_SHIELD,sd->status.shield);
-#else
-	clif_changelook(&sd->bl,LOOK_WEAPON,0);
-#endif
-
-	if(sd->vd.cloth_color)
-		clif_refreshlook(&sd->bl,sd->bl.id,LOOK_CLOTHES_COLOR,sd->vd.cloth_color,SELF);
-
-	if(sd->status.manner < 0)
-		sc_start(&sd->bl,SC_NOCHAT,100,0,0);
-
-// Lance
+	// Lance
 	if(sd->state.event_loadmap && map[sd->bl.m].flag.loadevent){
 		npc_script_event(sd, NPCE_LOADMAP);
 	}
@@ -8760,7 +8773,6 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 	int i=0;
 	struct npc_data *npc;
 	char split_data[10][50];
-	int j=0,k=0;
 	char target[NAME_LENGTH+1];
 	char output[256];  
 	RFIFOHEAD(fd);
@@ -8805,31 +8817,35 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 		char *whisper_tmp = target+4; //Skip the NPC: string part.
 		if ((npc = npc_name2id(whisper_tmp)))	
 		{
+			char *split, *str;
 			whisper_tmp=(char *)aMallocA((strlen((char *)(RFIFOP(fd,28)))+1)*sizeof(char));
-		   
+		  
+			str=whisper_tmp; 
 			sprintf(whisper_tmp, "%s", (const char*)RFIFOP(fd,28));  
-			for( j=0;whisper_tmp[j]!='\0';j++)
-			{
-				if(whisper_tmp[j]!='#')
-				{
-					split_data[i][j-k]=whisper_tmp[j];
+			for( i=0; i < 10; ++i )
+			{// Splits the message using '#' as separators
+				split = strchr(str,'#');
+				if( split == NULL )
+				{	// use the remaining string
+					strncpy(split_data[i], str, sizeof(split_data[0])/sizeof(char));
+					split_data[i][sizeof(split_data[0])/sizeof(char)-1] = '\0';
+					for( ++i; i < 10; ++i )
+					split_data[i][0] = '\0';
+					break;
 				}
-				else
-				{
-					split_data[i][j-k]='\0';
-					k=j+1;
-					i++;
-				}
-			} // Splits the message using '#' as separators
-			split_data[i][j-k]='\0';
+				*split = '\0';
+				strncpy(split_data[i], str, sizeof(split_data[0])/sizeof(char));
+				split_data[i][sizeof(split_data[0])/sizeof(char)-1] = '\0';
+				str = split+1;
+			}
 			
 			aFree(whisper_tmp);
 			whisper_tmp=(char *)aMallocA(15*sizeof(char));
 			
-			for (j=0;j<=10;j++)
+			for (i=0;i<10;i++)
 			{
-				sprintf(whisper_tmp, "@whispervar%d$", j);
-				set_var(sd,whisper_tmp,(char *) split_data[j]);        
+				sprintf(whisper_tmp, "@whispervar%d$", i);
+				set_var(sd,whisper_tmp,(char *) split_data[i]);        
 			}//You don't need to zero them, just reset them [Kevin]
 			
 			aFree(whisper_tmp);
@@ -9429,7 +9445,7 @@ void clif_parse_SkillUp(int fd,struct map_session_data *sd)
  *------------------------------------------
  */
 void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
-	int skillnum, skilllv, lv, target_id;
+	int skillnum, skilllv, tmp, target_id;
 	unsigned int tick = gettick();
 	RFIFOHEAD(fd);
 
@@ -9445,13 +9461,15 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 
 	//Whether skill fails or not is irrelevant, the char ain't idle. [Skotlex]
 	sd->idletime = last_tick;
-	
+
+	tmp = skill_get_inf(skillnum);
+	if (tmp&INF_GROUND_SKILL)
+		return; //Using a ground skill on a target? WRONG.
+
 	if (skillnotok(skillnum, sd))
 		return;
 
-	if (sd->bl.id != target_id &&
-		!sd->state.skill_flag &&
-		skill_get_inf(skillnum)&INF_SELF_SKILL)
+	if (sd->bl.id != target_id && !sd->state.skill_flag && tmp&INF_SELF_SKILL)
 		target_id = sd->bl.id; //What good is it to mess up the target in self skills? Wished I knew... [Skotlex]
 	
 	if (sd->ud.skilltimer != -1) {
@@ -9514,9 +9532,9 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 		else
 			skilllv = 0;
 	} else {
-		lv = pc_checkskill(sd, skillnum);
-		if (skilllv > lv)
-			skilllv = lv;
+		tmp = pc_checkskill(sd, skillnum);
+		if (skilllv > tmp)
+			skilllv = tmp;
 	}
 
 	if (skilllv)
@@ -9541,6 +9559,9 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, int skilll
 
 	if (skillnotok(skillnum, sd))
 		return;
+
+	if (!(skill_get_inf(skillnum)&INF_GROUND_SKILL))
+		return; //Using a target skill on the ground? WRONG.
 
 	if (skillmoreinfo != -1) {
 		if (pc_issit(sd)) {
@@ -11212,14 +11233,10 @@ void clif_parse_FeelSaveOk(int fd,struct map_session_data *sd)
 	sd->feel_map[i].m = sd->bl.m;
 	pc_setglobalreg(sd,feel_var[i],map[sd->bl.m].index);
 
-	clif_misceffect2(&sd->bl, 0x1b0);
-	clif_misceffect2(&sd->bl, 0x21f);
-	WFIFOHEAD(fd,packet_len_table[0x20e]);
-	WFIFOW(fd,0)=0x20e;
-	memcpy(WFIFOP(fd,2),map[sd->bl.m].name, MAP_NAME_LENGTH);
-	WFIFOL(fd,26)=sd->bl.id;
-	WFIFOW(fd,30)=i;
-	WFIFOSET(fd, packet_len_table[0x20e]);
+//Are these really needed? Shouldn't they show up automatically from the feel save packet?
+//	clif_misceffect2(&sd->bl, 0x1b0);
+//	clif_misceffect2(&sd->bl, 0x21f);
+	clif_feel_info(sd, i, 0);
 	sd->menuskill_lv = sd->menuskill_id = 0;
 }
 
@@ -11432,6 +11449,10 @@ int clif_parse(int fd) {
 	if (sd && sd->state.auth == 1 && sd->state.waitingdisconnect == 1) { // 切断待ちの場合パケットを処理しない
 
 	} else if (packet_db[packet_ver][cmd].func) {
+		if (sd && sd->bl.prev == NULL &&
+			packet_db[packet_ver][cmd].func != clif_parse_LoadEndAck)
+			; //Only valid packet when player is not on a map is the finish-loading packet.
+		else
 		if (sd
 			|| packet_db[packet_ver][cmd].func == clif_parse_WantToConnection
 			|| packet_db[packet_ver][cmd].func == clif_parse_debug

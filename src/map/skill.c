@@ -714,7 +714,7 @@ int skill_attack_area(struct block_list *bl,va_list ap);
 struct skill_unit_group *skill_locate_element_field(struct block_list *bl); // [Skotlex]
 int skill_graffitiremover(struct block_list *bl, va_list ap); // [Valaris]
 int skill_greed(struct block_list *bl, va_list ap);
-int skill_landprotector(struct block_list *bl, va_list ap);
+int skill_cell_overlap(struct block_list *bl, va_list ap);
 int skill_ganbatein(struct block_list *bl, va_list ap);
 int skill_trap_splash(struct block_list *bl, va_list ap);
 int skill_count_target(struct block_list *bl, va_list ap);
@@ -992,7 +992,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			if(dstmd && sd->status.weapon != W_BOW &&
 				(skill=pc_checkskill(sd,RG_SNATCHER)) > 0 &&
 				(skill*15 + 55) + pc_checkskill(sd,TF_STEAL)*10 > rand()%1000) {
-				if(pc_steal_item(sd,bl))
+				if(pc_steal_item(sd,bl,pc_checkskill(sd,TF_STEAL)))
 					clif_skill_nodamage(src,bl,TF_STEAL,skill,1);
 				else
 					clif_skill_fail(sd,RG_SNATCHER,0,0);
@@ -1865,6 +1865,10 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		if(src == bl) type = 4;
 		else flag|=SD_ANIMATION;
 	}
+	if(skillid == NJ_TATAMIGAESHI) {
+		dsrc = src; //For correct knockback.
+		flag|=SD_ANIMATION;
+	}
 
 	if(sd) {
 		int flag = 0; //Used to signal if this skill can be combo'ed later on.
@@ -2017,7 +2021,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 	//Only knockback if it's still alive, otherwise a "ghost" is left behind. [Skotlex]
 	if (dmg.blewcount > 0 && !status_isdead(bl))
-		skill_blown(skillid==NJ_TATAMIGAESHI?src:dsrc,bl,dmg.blewcount);
+		skill_blown(dsrc,bl,dmg.blewcount);
 	
 	//Delayed damage must be dealt after the knockback (it needs to know actual position of target)
 	if (dmg.amotion)
@@ -2460,7 +2464,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	if (status_isdead(bl))
 		return 1;
 
-	if (skillid && skill_get_type(skillid) == BF_MAGIC && status_isimmune(bl))
+	if (skillid && skill_get_type(skillid) == BF_MAGIC && status_isimmune(bl) == 100)
 	{	//GTB makes all targetted magic fail silently.
 		if (sd) clif_skill_fail(sd,skillid,0,0);
 		return 1;
@@ -3989,7 +3993,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case TF_STEAL:
 		if(sd) {
-			if(pc_steal_item(sd,bl))
+			if(pc_steal_item(sd,bl,skilllv))
 				clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			else
 				clif_skill_fail(sd,skillid,0x0a,0);
@@ -4052,7 +4056,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		status_change_end(bl, SC_SILENCE	, -1 );
 		status_change_end(bl, SC_BLIND	, -1 );
 		status_change_end(bl, SC_CONFUSION, -1 );
-		if(battle_check_undead(tstatus->race,tstatus->def_ele))
+		//Confusion on undead won't trigger on undead players.
+		if(!dstsd && battle_check_undead(tstatus->race,tstatus->def_ele))
 			sc_start(bl, SC_CONFUSION,100,1,skill_get_time2(skillid, skilllv));
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		break;
@@ -4119,6 +4124,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case AL_TELEPORT:
+		//Should fail when used on top of Land Protector [Skotlex]
+		if (map_getcell(bl->m, bl->x, bl->y, CELL_CHKLANDPROTECTOR))
+			break;
+
 		if(sd) {
 			if (map[bl->m].flag.noteleport) {
 				clif_skill_teleportmessage(sd,0);
@@ -6253,8 +6262,13 @@ struct skill_unit_group *skill_unitsetting (struct block_list *src, int skillid,
 	{
 		struct skill_unit_group *old_sg;
 		if ((old_sg = skill_locate_element_field(src)) != NULL)
-		{
-			if (old_sg->skill_id == skillid && old_sg->limit > 0)
+		{	//HelloKitty confirmed that these are interchangeable,
+			//so you can change element and not consume gemstones.
+			if ((
+				old_sg->skill_id == SA_VOLCANO ||
+				old_sg->skill_id == SA_DELUGE ||
+				old_sg->skill_id == SA_VIOLENTGALE
+			) && old_sg->limit > 0)
 			{	//Use the previous limit (minus the elapsed time) [Skotlex]
 				limit = old_sg->limit - DIFF_TICK(gettick(), old_sg->tick);
 				if (limit < 0)	//This can happen... 
@@ -6340,11 +6354,6 @@ struct skill_unit_group *skill_unitsetting (struct block_list *src, int skillid,
 	case BD_SIEGFRIED:
 		val1 = 55 + skilllv*5;	//Elemental Resistance
 		val2 = skilllv*10;	//Status ailment resistance
-		break;
-	case PF_FOGWALL:
-		if(sc && (
-			sc->data[SC_DELUGE].timer!=-1 || sc->data[SC_SUITON].timer != -1
-		)) limit *= 2;
 		break;
 	case RG_GRAFFITI:			/* Graffiti */
 		count=1;	// Leave this at 1 [Valaris]
@@ -6466,7 +6475,7 @@ struct skill_unit_group *skill_unitsetting (struct block_list *src, int skillid,
 			break;
 		}
 		if(range<=0)
-			map_foreachincell(skill_landprotector,src->m,ux,uy,BL_SKILL,skillid,&alive, src);
+			map_foreachincell(skill_cell_overlap,src->m,ux,uy,BL_SKILL,skillid,&alive, src);
 		
 		if(alive && map_getcell(src->m,ux,uy,CELL_CHKWALL))
 			alive = 0;
@@ -6493,6 +6502,12 @@ struct skill_unit_group *skill_unitsetting (struct block_list *src, int skillid,
 			nullpo_retr(NULL, unit=skill_initunit(group,i,ux,uy,val1,val2));
 			unit->limit=limit;
 			unit->range=range;
+
+			if (skillid == PF_FOGWALL && alive == 2)
+			{	//Double duration of cells on top of Deluge/Suiton
+				unit->limit *= 2;
+				group->limit = unit->limit;
+			}
 		
 			if (range==0 && active_flag)
 				map_foreachincell(skill_unit_effect,unit->bl.m,
@@ -6925,18 +6940,23 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 						break;
 					case 1: // End all negative status
 						status_change_clear_buffs(bl,2);
+						if (sd) clif_gospel_info(sd, 0x15);
 						break;
 					case 2: // Immunity to all status
 						sc_start(bl,SC_SCRESIST,100,100,type);
+						if (sd) clif_gospel_info(sd, 0x16);
 						break;
 					case 3: // MaxHP +100%
 						sc_start(bl,SC_INCMHPRATE,100,100,type);
+						if (sd) clif_gospel_info(sd, 0x17);
 						break;
 					case 4: // MaxSP +100%
 						sc_start(bl,SC_INCMSPRATE,100,100,type);
+						if (sd) clif_gospel_info(sd, 0x18);
 						break;
 					case 5: // All stats +20
 						sc_start(bl,SC_INCALLSTATUS,100,20,type);
+						if (sd) clif_gospel_info(sd, 0x19);
 						break;
 					case 6: // Level 10 Blessing
 						sc_start(bl,SC_BLESSING,100,10,type);
@@ -6946,19 +6966,24 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 						break;
 					case 8: // Enchant weapon with Holy element
 						sc_start(bl,SC_ASPERSIO,100,1,type);
+						if (sd) clif_gospel_info(sd, 0x1c);
 						break;
 					case 9: // Enchant armor with Holy element
 						sc_start(bl,SC_BENEDICTIO,100,1,type);
+						if (sd) clif_gospel_info(sd, 0x1d);
 						break;
 					case 10: // DEF +25%
 						sc_start(bl,SC_INCDEFRATE,100,25,type);
+						if (sd) clif_gospel_info(sd, 0x1e);
 						break;
 					case 11: // ATK +100%
 						sc_start(bl,SC_INCATKRATE,100,100,type);
+						if (sd) clif_gospel_info(sd, 0x1f);
 						break;
 					case 12: // HIT/Flee +50
 						sc_start(bl,SC_INCHIT,100,50,type);
 						sc_start(bl,SC_INCFLEE,100,50,type);
+						if (sd) clif_gospel_info(sd, 0x20);
 						break;
 				}
 			}
@@ -7003,7 +7028,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 
 		case UNT_DESPERADO:
-			if (!(rand()%5)) //Has a low chance of connecting. [Skotlex]
+			if (rand()%100 < src->val1)
 				skill_attack(BF_WEAPON,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 			break;
 
@@ -7867,14 +7892,18 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 	case SA_DELUGE:
 	case SA_VOLCANO:
 	case SA_VIOLENTGALE:
-	case SA_LANDPROTECTOR:
 	{	//Does not consumes if the skill is already active. [Skotlex]
 		struct skill_unit_group *sg;
-		if ((sg= skill_locate_element_field(&sd->bl)) != NULL && sg->skill_id == skill)
-		{
+		if ((sg= skill_locate_element_field(&sd->bl)) != NULL &&
+		(
+			sg->skill_id == SA_VOLCANO ||
+			sg->skill_id == SA_DELUGE ||
+			sg->skill_id == SA_VIOLENTGALE
+		)) {
 			if (sg->limit - DIFF_TICK(gettick(), sg->tick) > 0)
 				checkitem_flag = delitem_flag = 0;
-			else sg->limit = 0; //Disable it.
+			else
+				sg->limit = 0; //Disable it.
 		}
 		break;
 	}
@@ -8189,7 +8218,6 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
  */
 int skill_castfix (struct block_list *bl, int skill_id, int skill_lv)
 {
-	int castnodex = skill_get_castnodex(skill_id, skill_lv);
 	int time = skill_get_cast(skill_id, skill_lv);	
 	struct map_session_data *sd;
 
@@ -8197,7 +8225,7 @@ int skill_castfix (struct block_list *bl, int skill_id, int skill_lv)
 	BL_CAST(BL_PC, bl, sd);
 	
 	// calculate base cast time (reduced by dex)
-	if (!(castnodex&1)) {			// castnodex&~1? wtf. [blackhole89]
+	if (!(skill_get_castnodex(skill_id, skill_lv)&1)) {
 		int scale = battle_config.castrate_dex_scale - status_get_dex(bl);
 		if (scale > 0)	// not instant cast
 			time = time * scale / battle_config.castrate_dex_scale;
@@ -8211,10 +8239,6 @@ int skill_castfix (struct block_list *bl, int skill_id, int skill_lv)
 	// config cast time multiplier
 	if (battle_config.cast_rate != 100)
 		time = time * battle_config.cast_rate / 100;
-
-  	// calculate cast time reduced by skill bonuses
-	if (!(castnodex&2))
-		time = skill_castfix_sc(bl, time);
 
 	// return final cast time
 	return (time > 0) ? time : 0;
@@ -8931,7 +8955,7 @@ int skill_greed (struct block_list *bl, va_list ap)
  *
  *------------------------------------------
  */
-int skill_landprotector (struct block_list *bl, va_list ap)
+int skill_cell_overlap(struct block_list *bl, va_list ap)
 {
 	int skillid;
 	int *alive;
@@ -8942,7 +8966,7 @@ int skill_landprotector (struct block_list *bl, va_list ap)
 	alive = va_arg(ap,int *);
 	src = va_arg(ap,struct block_list *);
 	unit = (struct skill_unit *)bl;
-	if (unit == NULL || unit->group == NULL)
+	if (unit == NULL || unit->group == NULL || (*alive) == 0)
 		return 0;
 
 	switch (skillid)
@@ -8957,8 +8981,8 @@ int skill_landprotector (struct block_list *bl, va_list ap)
 			}
 			//Delete the rest of types.
 		case HW_GANBANTEIN:
-			if(!unit->group->state.song_dance)
-			{	//It deletes everything except songs/dances/encores.
+			if(!(skill_get_inf2(unit->group->skill_id)&(INF2_SONG_DANCE|INF2_TRAP)))
+			{	//It deletes everything except songs/dances
 				skill_delunit(unit, 1);
 				return 1;
 			}
@@ -8980,6 +9004,20 @@ int skill_landprotector (struct block_list *bl, va_list ap)
 					return 1;
 			}
 			break;
+		case PF_FOGWALL:
+			switch(unit->group->skill_id)
+			{
+				case SA_VOLCANO: //Can't be placed on top of these
+				case SA_VIOLENTGALE:
+					(*alive) = 0;
+					return 1;
+				case SA_DELUGE:
+				case NJ_SUITON:
+				//Cheap 'hack' to notify the calling function that duration should be doubled [Skotlex]
+					(*alive) = 2;
+					break;
+			}
+			break;
 		case HP_BASILICA:
 			if (unit->group->skill_id == HP_BASILICA)
 			{	//Basilica can't be placed on top of itself to avoid map-cell stacking problems. [Skotlex]
@@ -8989,8 +9027,8 @@ int skill_landprotector (struct block_list *bl, va_list ap)
 			break;
 	}
 	if (unit->group->skill_id == SA_LANDPROTECTOR &&
-		!(skill_get_unit_flag(skillid)&(UF_DANCE|UF_SONG|UF_ENSEMBLE)))
-	{	//It deletes everything except songs/dances/encores.
+		!(skill_get_inf2(skillid)&(INF2_SONG_DANCE|INF2_TRAP)))
+	{	//It deletes everything except songs/dances/traps
 		(*alive) = 0;
 		return 1;
 	}
@@ -8999,7 +9037,7 @@ int skill_landprotector (struct block_list *bl, va_list ap)
 }
 
 /*==========================================
- * variation of skill_landprotector
+ * variation of skill_cell_overlap
  *------------------------------------------
  */
 int skill_ganbatein (struct block_list *bl, va_list ap)
@@ -9011,8 +9049,8 @@ int skill_ganbatein (struct block_list *bl, va_list ap)
 	if ((unit = (struct skill_unit *)bl) == NULL || unit->group == NULL)
 		return 0;
 
-	if (unit->group->state.song_dance)
-		return 0; //Don't touch song/dance/ensemble.
+	if (unit->group->state.song_dance&0x1)
+		return 0; //Don't touch song/dance.
 
 	if (unit->group->skill_id == SA_LANDPROTECTOR)
 		skill_delunit(unit, 1);
@@ -9540,7 +9578,7 @@ int skill_unit_timer_sub_onplace (struct block_list *bl, va_list ap)
 
 	nullpo_retr(0, group=unit->group);
 
-	if (skill_get_type(group->skill_id)==BF_MAGIC
+	if (!(skill_get_inf2(group->skill_id)&(INF2_SONG_DANCE|INF2_TRAP))
 		&& map_getcell(bl->m, bl->x, bl->y, CELL_CHKLANDPROTECTOR))
 		return 0; //AoE skills are ineffective. [Skotlex]
 
