@@ -1,5 +1,12 @@
 Date	Added
 
+2006/11/15
+	- New config settings in packet_athena.txt:
+	  frame_size, if for some reason you want to use packets less than 1024
+	  bytes in length
+	  mode_neg, with which you can disable the Nagel Algorythm (the default is
+	  yes), you may try turning it off to compare which one yields better
+	  performance
 2006/11/08
 	* Merged official GS skill ranges (from Aegis login packet) [Skotlex]
 	* Merged Ganbantein's delay being 2 secs. [Skotlex]

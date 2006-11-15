@@ -4,6 +4,12 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/11/15
+	* Merged Meruru's cleanup/optimization of the socket.c code. There are two
+	  new config settings in packet_athena.txt: frame_size (if for some reason
+	  you want to use packets less than 1024 bytes in length) and mode_neg, with
+	  which you can disable the Nagel Algorythm (the default is yes), you may try
+	  turning it off to compare which one yields better performance. [Skotlex]
 2006/11/14
 	* Various trunk merges: [Skotlex]
 	- Kaupe won't end on the first half of Soul Destroyer now. 
