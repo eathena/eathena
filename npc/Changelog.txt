@@ -35,6 +35,7 @@ Playtester
 Date		Added
 ======
 11/16
+	* Fixed wrong label name in adoption NPC [KarLaeda]
 	* Added official Ninja Job quest! Thanks to Legionaire for translation [Lupus]
 	- Removed name duplicates [Lupus]
 	- Merged shops from Trunk
