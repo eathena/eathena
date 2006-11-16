@@ -621,7 +621,7 @@ struct map_session_data {
 	int fd;
 	unsigned short mapindex;
 	unsigned short prev_speed,prev_adelay;
-	unsigned char head_dir;
+	unsigned char head_dir; //0: Look forward. 1: Look right, 2: Look left.
 	unsigned int client_tick;
 	int npc_id,areanpc_id,npc_shopid;
 	int npc_item_flag; //Marks the npc_id with which you can use items during interactions with said npc (see script command enable_itemuse)
@@ -764,18 +764,17 @@ struct map_session_data {
 	short spiritball, spiritball_old;
 	int spirit_timer[MAX_SKILL_LEVEL];
 
-	int die_counter;
-	char potion_success_counter;
+	unsigned char potion_success_counter; //Potion successes in row counter
+	unsigned char mission_count; //Stores the bounty kill count for TK_MISSION
+	short mission_mobid; //Stores the target mob_id for TK_MISSION
+	int die_counter; //Total number of times you've died
+	int devotion[5]; //Stores the char IDs of chars devoted to.
+	int reg_num; //Number of registries (type numeric)
+	int regstr_num; //Number of registries (type string)
 
-	int reg_num;
 	struct script_reg *reg;
-	int regstr_num;
 	struct script_regstr *regstr;
 
-	short mission_mobid; //Stores the target mob_id for TK_MISSION
-	short mission_count; //Stores the bounty kill count for TK_MISSION
-	int devotion[5]; //Stores the char IDs of chars devoted to.
-	
 	int trade_partner;
 	struct { 
 		struct {
@@ -1286,7 +1285,9 @@ int map_getusers(void);
 // blockçÌèúä÷òA
 int map_freeblock(struct block_list *bl);
 int map_freeblock_lock(void);
-int map_freeblock_unlock(void);
+//int map_freeblock_unlock(void);
+int map_freeblock_unlock_sub (char *file, int lineno);
+#define map_freeblock_unlock() map_freeblock_unlock_sub (__FILE__, __LINE__)
 // blockä÷òA
 int map_addblock_sub(struct block_list *, int);
 int map_delblock_sub(struct block_list *, int);
