@@ -34,6 +34,10 @@ Playtester
 
 Date		Added
 ======
+11/16
+	* Added official Ninja Job quest! Thanks to Legionaire for translation [Lupus]
+	- Removed name duplicates [Lupus]
+	- Merged shops from Trunk
 11/13
 	* Fixed Swordman Skill Quest (merged correct version form Trunk) [Lupus]
 	* Fix for guild manager recognizing [KarLaeda]
