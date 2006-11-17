@@ -34,6 +34,9 @@ Playtester
 
 Date		Added
 ======
+11/17
+	* Fixed possible EXP bugs. Look at TRUNK [Lupus]
+	- Merged 1st class quests from TRUNK
 11/16
 	* Fixed wrong label name in adoption NPC [KarLaeda]
 	* Added official Ninja Job quest! Thanks to Legionaire for translation [Lupus]
