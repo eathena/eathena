@@ -4,6 +4,8 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/11/17
+	* Merged some cleanups in chat.c, including a possible crash fix. [Skotlex]
 2006/11/16
 	* Merged a debug version of map_freeblock_unlock to help fix an already
 	  free'd pointer error. [Skotlex]
