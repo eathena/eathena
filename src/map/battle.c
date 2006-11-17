@@ -4108,7 +4108,7 @@ void battle_set_defaults() {
 	battle_config.pk_min_level = 55;
 	battle_config.skill_steal_type = 1;
 	battle_config.skill_steal_rate = 100;
-	battle_config.skill_steal_max_tries = 15; //=16 tries
+	battle_config.skill_steal_max_tries = 0; //Default: unlimited tries.
 	battle_config.motd_type = 0;
 	battle_config.finding_ore_rate = 100;
 	battle_config.castrate_dex_scale = 150;
@@ -4363,7 +4363,7 @@ void battle_validate_conf() {
 	if (battle_config.sg_miracle_skill_duration_max < 2000)
 		battle_config.sg_miracle_skill_duration_max = 2000;
 
-	if (battle_config.skill_steal_max_tries > UCHAR_MAX)
+	if (battle_config.skill_steal_max_tries >= UCHAR_MAX)
 		battle_config.skill_steal_max_tries = UCHAR_MAX;	
 
 #ifdef CELL_NOSTACK

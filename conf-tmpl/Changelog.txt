@@ -1,7 +1,9 @@
 Date	Added
-
+2006/11/17
+	* Merged updated behaviour of skill_max_tries where 0 means unlimited, and
+	  any other value is the amount of steal tries. The default is 0. [Skotlex]
 2006/11/15
-	- New config settings in packet_athena.txt:
+	* New config settings in packet_athena.txt:
 	  frame_size, if for some reason you want to use packets less than 1024
 	  bytes in length
 	  mode_neg, with which you can disable the Nagel Algorythm (the default is

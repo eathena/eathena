@@ -3178,18 +3178,24 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl, int lv)
 	if(!sd || !bl || bl->type!=BL_MOB)
 		return 0;
 
-	sd_status= status_get_status_data(&sd->bl);
-	md_status= status_get_status_data(bl);
 	md = (TBL_MOB *)bl;
 
-	if(md->state.steal_flag>=battle_config.skill_steal_max_tries ||
-		md_status->mode&MD_BOSS || md->master_id ||
-		(md->class_>=1324 && md->class_<1364) || // prevent stealing from treasure boxes [Valaris]
-		map[md->bl.m].flag.nomobloot ||        // check noloot map flag [Lorky]
-		md->sc.data[SC_STONE].timer != -1 || md->sc.data[SC_FREEZE].timer != -1 //status change check
-  	)
+	if(md->state.steal_flag == UCHAR_MAX || md->sc.opt1) //already stolen from / status change check
 		return 0;
 	
+	sd_status= status_get_status_data(&sd->bl);
+	md_status= status_get_status_data(bl);
+
+	if(md->master_id || md_status->mode&MD_BOSS ||
+		(md->class_>=1324 && md->class_<1364) || // prevent stealing from treasure boxes [Valaris]
+		map[bl->m].flag.nomobloot || // check noloot map flag [Lorky]
+		(battle_config.skill_steal_max_tries && //Reached limit of steal attempts. [Lupus]
+			md->state.steal_flag++ >= battle_config.skill_steal_max_tries)
+  	) { //Can't steal from
+		md->state.steal_flag = UCHAR_MAX;
+		return 0;
+	}
+						
 	rate = battle_config.skill_steal_type
 		? (sd_status->dex - md_status->dex)/2 + lv*6 + 10
 		: (sd_status->dex - md_status->dex)   + lv*3 + 10;
@@ -3199,7 +3205,6 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl, int lv)
 	if (rate < 1)
 		return 0;
 
-	md->state.steal_flag++; //increase steal tries number
 
 	for(i = 0; i<MAX_MOB_DROP-1; i++)//Last slot can't be stolen (cards)
 	{

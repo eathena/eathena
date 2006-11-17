@@ -2949,14 +2949,15 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 			sc_start(src,SC_HIDING,100,skilllv,skill_get_time(skillid,skilllv));
 		break;
 	case NJ_KIRIKAGE:
-		{
+		if (!map_flag_gvg(src->m))
+		{	//You don't move on GVG grounds.
 			short x, y;
 			map_search_freecell(bl, 0, &x, &y, 1, 1, 0);
-			status_change_end(src, SC_HIDING, -1);
 			if (unit_movepos(src, x, y, 0, 0))
 				clif_slide(src,src->x,src->y);
-			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		}
+		status_change_end(src, SC_HIDING, -1);
+		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 	case 0:
 		if(sd) {
@@ -5773,9 +5774,11 @@ int skill_castend_pos2 (struct block_list *src, int x, int y, int skillid, int s
 		break;
 	case NJ_SHADOWJUMP:
 	{
-		unit_movepos(src, x, y, 1, 0);
-		clif_slide(src,x,y);
-
+		if (!map_flag_gvg(src->m))
+		{	//You don't move on GVG grounds.
+			unit_movepos(src, x, y, 1, 0);
+			clif_slide(src,x,y);
+		}
 		if (sc && sc->data[SC_HIDING].timer != -1)
 			status_change_end(src, SC_HIDING, -1);
 	}
@@ -6119,6 +6122,7 @@ static int skill_dance_switch_sub(struct skill_unit *unit, struct skill_unit_gro
 		memset(&uglydance, 0, sizeof(uglydance));
 		group2 = &dissonance;
 		group2->skill_id = BA_DISSONANCE;
+		group2->skill_lv = 1;
 		group2->unit_id = skill_get_unit_id(group2->skill_id,0);
 		group2->target_flag = skill_get_unit_target(group2->skill_id);
 		group2->bl_flag= skill_get_unit_bl_target(group2->skill_id);
@@ -6126,6 +6130,7 @@ static int skill_dance_switch_sub(struct skill_unit *unit, struct skill_unit_gro
 
 		group2 = &uglydance;
 		group2->skill_id = DC_UGLYDANCE;
+		group2->skill_lv = 1;
 		group2->unit_id = skill_get_unit_id(group2->skill_id,0);
 		group2->target_flag = skill_get_unit_target(group2->skill_id);
 		group2->bl_flag= skill_get_unit_bl_target(group2->skill_id);
@@ -6138,12 +6143,14 @@ static int skill_dance_switch_sub(struct skill_unit *unit, struct skill_unit_gro
 		memcpy(&original, group, sizeof(struct skill_unit_group)); //Backup
 		group2 = unit->val2&UF_SONG?&dissonance:&uglydance;
 		group->skill_id = group2->skill_id;
+		group->skill_lv = group2->skill_lv;
 		group->unit_id = group2->unit_id;
 		group->target_flag = group2->target_flag;
 		group->bl_flag= group2->bl_flag;
 		group->interval = group2->interval;
 	} else { //Restore only relevant values (should the backup be 5 ints rather than the whole structure?)
 		group->skill_id = original.skill_id;
+		group->skill_lv = original.skill_lv;
 		group->unit_id = original.unit_id;
 		group->target_flag = original.target_flag;
 		group->bl_flag = original.bl_flag;
@@ -8018,6 +8025,10 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 			return 0;
 		}
 		zeny = 0; //Zeny is reduced on skill_attack.
+		break;
+	case PF_HPCONVERSION:
+		if (status->sp == status->max_sp)
+			return 0; //Unusable when at full SP.
 		break;
 	}
 
