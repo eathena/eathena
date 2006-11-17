@@ -1,4 +1,19 @@
 Date	Added
+11/17
+	* tyr seems down so it will be not updated in parallel today
+	* removes some mistakable config loading
+	* some parser grammar updates
+	* started with some transformations of functions and variables 
+	- on the aegis converter we'll might need complete access to
+	  an itemdb and mobdb as it uses their names as direct identifiers
+	  mixed together with real variable names
+	- behaviour of some aegis function is unclear beside the ton's 
+	  of structural and logical errors in their scripts
+	* as lexical reading seems working and if there are no further 
+	  structural errors we'll come to the actual parsed content 
+	  which first is redefinition of the necessary buildins 
+	  including a cleaning of the functions together with resorting 
+	  their parameters; alot of useless crap has to go [Shinomori]
 11/13
 	* some filters, might discuss the content/further preprocessing
 	* changed parse error display format

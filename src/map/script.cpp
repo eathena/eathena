@@ -1704,7 +1704,7 @@ int set_var(const char *name, const void *v)
 		}
 		else
 		{
-			ShowError("script: set_var: illegal scope string variable '%s'!", name);
+			ShowError("script: set_var: illegal scope string variable '%s'!\n", name);
 		}
 	}
     return 0;
@@ -1729,7 +1729,7 @@ int set_var(map_session_data &sd, const char *name, const void *v)
 		}
 		else
 		{
-			ShowError("script: set_var: illegal scope string variable '%s'!", name);
+			ShowError("script: set_var: illegal scope string variable '%s'!\n", name);
 		}
 	}
     return 0;
@@ -1764,7 +1764,7 @@ int set_reg(CScriptEngine &st,int num,const char *name, void *v)
 			}
 			else
 			{
-				ShowError("script: set_reg: illegal scope string variable '%s'!", name);
+				ShowError("script: set_reg: illegal scope string variable '%s'!\n", name);
 			}
 		}
 		else 
@@ -1954,7 +1954,7 @@ void CScriptEngine::ConvertName(CScriptEngine::CValue &data)
 			}
 			else
 			{
-				ShowError("script: get_val: illegal scope string variable.\n");
+				ShowError("script: get_val: illegal scope string variable '%s'!\n", name);
 				data.str = "!!ERROR!!";
 			}
 		}
@@ -5277,9 +5277,9 @@ public:
 };
 class CBuildinKillEventmob : public CMapProcessor
 {
-	const char *&event;
+	const char *event;
 public:
-	CBuildinKillEventmob(const char*&e) : event(e)	{}
+	CBuildinKillEventmob(const char* e) : event(e)	{}
 	~CBuildinKillEventmob()	{}
 	virtual int process(block_list& bl) const
 	{

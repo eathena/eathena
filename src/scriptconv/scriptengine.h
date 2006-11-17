@@ -37,7 +37,7 @@ struct parserstorage
 	bool init(const char* enginefile);
 	virtual bool getEngine(const unsigned char*& buf, unsigned long& sz)=0;
 
-	operator bool() const { return NULL!=parser; }
+	bool is_valid() const { return NULL!=parser; }
 	operator basics::CParser_CommentStore*() { return parser; }
 };
 
@@ -346,7 +346,7 @@ public:
 	void print_without_quotes(const char* str);
 
 	void print_comments(basics::CParser_CommentStore& parser, int rtpos);
-	virtual bool print_beautified(basics::CParser_CommentStore& parser, int rtpos) =0;
+	virtual bool print_beautified(basics::CParser_CommentStore& parser, int rtpos, short parent) =0;
 };
 inline printer& operator <<(printer& prn, const char t)			{ prn.put(t); return prn; }
 inline printer& operator <<(printer& prn, const char *t)		{ prn.put(t); return prn; }

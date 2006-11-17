@@ -304,19 +304,27 @@ int printer::log(const char*fmt, ...)
 static int internlog(FILE*logfile, basics::CParser_CommentStore& parser, int rtpos)
 {
 	int ret = 0;
-	size_t j=  parser.rt[rtpos].cChildPos;
-	size_t k=j+parser.rt[rtpos].cChildNum;
-	for(; j<k; ++j)
-	{	
-		if( parser.rt[j].symbol.Type == 1 )
-		{	// print the ternimal
-			const char* str = parser.rt[j].cToken.cLexeme;
-			ret += fprintf(logfile, str);
-			fputc(' ', logfile), ++ret;
-		}
-		else
-		{	// go down
-			ret += internlog(logfile, parser, j);
+	if( parser.rt[rtpos].symbol.Type == 1 )
+	{	// print the ternimal
+		const char* str = parser.rt[rtpos].cToken.cLexeme;
+		ret += fprintf(logfile, str);
+	}
+	else
+	{
+		size_t j=  parser.rt[rtpos].cChildPos;
+		size_t k=j+parser.rt[rtpos].cChildNum;
+		for(; j<k; ++j)
+		{	
+			if( parser.rt[j].symbol.Type == 1 )
+			{	// print the ternimal
+				const char* str = parser.rt[j].cToken.cLexeme;
+				ret += fprintf(logfile, str);
+				fputc(' ', logfile), ++ret;
+			}
+			else
+			{	// go down
+				ret += internlog(logfile, parser, j);
+			}
 		}
 	}
 	return ret;

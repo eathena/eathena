@@ -137,7 +137,6 @@ void CSQLParameter::rebuild()
 	//	 `INSERT DELAYED' with `MyISAM'.  *Note `MyISAM' storage engine:
 	//	 MyISAM storage engine.
 
-
 	basics::CMySQLConnection dbcon1(CSQLParameter::sqlbase);
 	basics::string<> query;
 

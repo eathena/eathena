@@ -847,7 +847,7 @@ int oldeaprinter::print_olditemdbheadea( const char* str )
 	return atoi(me.Type);
 }
 
-bool oldeaprinter::transform_cmd_set(basics::CParser_CommentStore& parser, int rtpos)
+bool oldeaprinter::transform_cmd_set(basics::CParser_CommentStore& parser, int rtpos, short parent)
 {	// transform "set" functions
 	// from "set <a>, <b>" to "<a> = <b>
 	oldeaprinter& prn = *this;
@@ -855,24 +855,24 @@ bool oldeaprinter::transform_cmd_set(basics::CParser_CommentStore& parser, int r
 	
 	if( listnode.symbol.idx == PT_CALLLIST )
 	{
-		print_beautified(parser, listnode.cChildPos);
+		print_beautified(parser, listnode.cChildPos, parent);
 		prn << " = ";
 		if(listnode.cChildNum>2)
-			print_beautified(parser, listnode.cChildPos+2);
+			print_beautified(parser, listnode.cChildPos+2, parent);
 		else
 			prn << '0';
 	}
 	else
 	{	// fix invalid set commands with only one argument
-		print_beautified(parser, parser.rt[rtpos].cChildPos+1);
+		print_beautified(parser, parser.rt[rtpos].cChildPos+1, parent);
 		prn << " = ";
 		// fix invalid set commands
 		if(parser.rt[rtpos].cChildNum>3)
-			print_beautified(parser, parser.rt[rtpos].cChildNum+3);
+			print_beautified(parser, parser.rt[rtpos].cChildNum+3, parent);
 		else
 			prn << '0';
 		prn << "/* generated from incorrect set (";
-		transform_print_unprocessed(parser,rtpos);
+		transform_print_unprocessed(parser,rtpos, parent);
 		prn << ")*/";
 		if( !basics::is_console(stdout) )
 			fprintf(stderr, "incorrect set at line %i\n", (int)parser.rt[parser.rt[rtpos].cChildPos].cToken.line);
@@ -880,7 +880,7 @@ bool oldeaprinter::transform_cmd_set(basics::CParser_CommentStore& parser, int r
 	return true;
 }
 
-bool oldeaprinter::transform_callstm(basics::CParser_CommentStore& parser, int rtpos)
+bool oldeaprinter::transform_callstm(basics::CParser_CommentStore& parser, int rtpos, short parent)
 {	// either a real call statement with <function name> <parameter list>
 	// or a function with one argument
 	oldeaprinter& prn = *this;
@@ -901,7 +901,7 @@ bool oldeaprinter::transform_callstm(basics::CParser_CommentStore& parser, int r
 			k = listnode.cChildPos+listnode.cChildNum;
 			for(j=listnode.cChildPos+2; j<k; ++j)
 			{	// go down
-				print_beautified(parser, j);
+				print_beautified(parser, j, parent);
 			}
 			prn << ");\n";
 		}
@@ -917,8 +917,24 @@ bool oldeaprinter::transform_callstm(basics::CParser_CommentStore& parser, int r
 	else if( parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme=="set" )
 	{	// transform "set" functions
 		// from "set <a>, <b>" to "<a> = <b>;
-		transform_cmd_set(parser, rtpos);
+		transform_cmd_set(parser, rtpos, parent);
 		prn << ";\n";
+	}
+	else if( parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme=="close2" )
+	{	// old close2 behaviour is to only close the window, but not the script
+		// this is now done with the new close function;
+		
+		prn <<	"// the new close function only close the window, but not the script\n"
+				"// this was formally done with close2\n";
+		prn << "close();\n";
+	}
+	else if( parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme=="close" )
+	{	// old close behaviour is to close the window and the script
+		// but very harsh and not waiting for the users close click
+		// this is now done with new end statement;
+		prn <<	"// the new end statement close the window and ends script execution from any calling level\n"
+				"// this was formally done with close\n";
+		prn << "end;\n";
 	}
 	else if( parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme=="menu" )
 	{	// transform "menu" functions
@@ -954,7 +970,7 @@ bool oldeaprinter::transform_callstm(basics::CParser_CommentStore& parser, int r
 			prn << "switch( select(" ;
 			for(i=0;;)
 			{	// print the arguments
-				print_beautified(parser, items[i]);
+				print_beautified(parser, items[i], parent);
 				i+=2;
 				if(i<items.size()) 
 					prn<<','<<' ';
@@ -964,18 +980,18 @@ bool oldeaprinter::transform_callstm(basics::CParser_CommentStore& parser, int r
 			prn << ") )\n{\n";
 			for(i=1; i<items.size(); i+=2)
 			{	// print the arguments
-				prn << "case " << (i>>1) << ':' << ' ';
+				prn << "case " << (1+(i>>1)) << ':' << ' ';
 				if( parser.rt[items[i]].symbol.idx == PT_IDENTIFIER ) // label marker
 					prn << "goto " << parser.rt[items[i]].cToken.cLexeme << ';' << '\n';
 				else // '-'
 					prn << "break;\n";
 			}
-			prn << "default: end();\n}\n";
+			prn << "default: end;\n}\n";
 		}
 		else
 		{	// line is wrong, comment it
 			prn << "// incorrect menu\n/*";
-			transform_print_unprocessed(parser, rtpos);
+			transform_print_unprocessed(parser, rtpos, parent);
 			prn << "*/\n";
 			if( !basics::is_console(stdout) )
 				fprintf(stderr, "incorrect menu at line %i\n", (int)parser.rt[parser.rt[rtpos].cChildPos].cToken.line);
@@ -998,7 +1014,7 @@ bool oldeaprinter::transform_callstm(basics::CParser_CommentStore& parser, int r
 		{
 			const bool eval = ( PT_EVALUATION==parser.rt[parser.rt[rtpos].cChildPos+1].symbol.idx );
 			if(!eval) prn << '(';
-			print_beautified(parser, parser.rt[rtpos].cChildPos+1);
+			print_beautified(parser, parser.rt[rtpos].cChildPos+1, parent);
 			if(!eval) prn << ')';
 		}
 		else
@@ -1010,7 +1026,7 @@ bool oldeaprinter::transform_callstm(basics::CParser_CommentStore& parser, int r
 	return true;
 }
 
-bool oldeaprinter::transform_identifier(basics::CParser_CommentStore& parser, int rtpos)
+bool oldeaprinter::transform_identifier(basics::CParser_CommentStore& parser, int rtpos, short parent)
 {	// convert variable scopes
 	oldeaprinter& prn = *this;
 	const char*str = parser.rt[rtpos].cToken.cLexeme;
@@ -1086,7 +1102,7 @@ bool oldeaprinter::transform_identifier(basics::CParser_CommentStore& parser, in
 	}
 	return true;
 }
-bool oldeaprinter::transform_print_unprocessed(basics::CParser_CommentStore& parser, int rtpos)
+bool oldeaprinter::transform_print_unprocessed(basics::CParser_CommentStore& parser, int rtpos, short parent)
 {
 	oldeaprinter& prn = *this;
 	size_t j = parser.rt[rtpos].cChildPos;
@@ -1099,14 +1115,14 @@ bool oldeaprinter::transform_print_unprocessed(basics::CParser_CommentStore& par
 		}
 		else	// non terminal
 		{	// go down
-			transform_print_unprocessed(parser, j);
+			transform_print_unprocessed(parser, j, parent);
 		}
 	}
 	return true;
 }
 
 
-bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rtpos)
+bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rtpos, short parent)
 {
 	oldeaprinter& prn = *this;
 	bool ret = true;
@@ -1118,7 +1134,7 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 		switch( parser.rt[rtpos].symbol.idx )
 		{
 		case PT_IDENTIFIER:
-			ret = transform_identifier(parser, rtpos);
+			ret = transform_identifier(parser, rtpos, parent);
 			break;
 		case PT_RBRACE:
 			if(prn.scope) --prn.scope;
@@ -1200,7 +1216,7 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 	}
 	else if( parser.rt[rtpos].cChildNum==1 )
 	{	// nonterminal with only one child, just go down
-		print_beautified(parser, parser.rt[rtpos].cChildPos);
+		print_beautified(parser, parser.rt[rtpos].cChildPos, parent);
 	}
 	else if( parser.rt[rtpos].cChildNum>1 )
 	{	// other nonterminals
@@ -1222,14 +1238,14 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 
 			prn << "function auto " << idname << "() // TODO: add real function parameters\n";
 			// print the function body
-			print_beautified(parser, parser.rt[rtpos].cChildPos+2);
+			print_beautified(parser, parser.rt[rtpos].cChildPos+2, parent);
 
 			break;
 		}
 		case PT_CALLSTM:
 		{
 			prn.log(parser, rtpos);
-			ret = transform_callstm(parser, rtpos);
+			ret = transform_callstm(parser, rtpos, parent);
 			break;
 		}
 		case PT_ARG:
@@ -1243,20 +1259,20 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 				//we only accept a single "set" command here
 				if( parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme=="set" )
 				{	
-					transform_cmd_set(parser, rtpos);
+					transform_cmd_set(parser, rtpos, parent);
 				}
 				else
 				{	// argument is wrong, ignore it
 					if( !basics::is_console(stdout) )
 						fprintf(stderr, "ignoring incorrect 'for' arguments at line %i\n", (int)parser.rt[parser.rt[rtpos].cChildPos].cToken.line);
 					prn << '/' << '*' << ' ';
-					transform_print_unprocessed(parser, rtpos);
+					transform_print_unprocessed(parser, rtpos, parent);
 					prn << '*' << '/';
 				}
 			}
 			else if( parser.rt[rtpos].cChildNum )
 			{
-				print_beautified(parser, parser.rt[rtpos].cChildPos);
+				print_beautified(parser, parser.rt[rtpos].cChildPos, parent);
 			}
 			break;
 		}
@@ -1270,75 +1286,111 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			// switch '(' <Expr> ')' '{' <Case Stms> '}'
 			// <ExprList> ';'
 			// ';'              !Null statement
-			if(!prn.newline)
-				prn << '\n';
-
 			if( PT_IF == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx ||
 				PT_WHILE == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
 			{
-				print_beautified(parser, parser.rt[rtpos].cChildPos+0);
+				print_beautified(parser, parser.rt[rtpos].cChildPos+0, parent);
 				prn << "( ";
-				print_beautified(parser, parser.rt[rtpos].cChildPos+2);
+				print_beautified(parser, parser.rt[rtpos].cChildPos+2, parent);
 				prn << " )\n";
 
-				if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+4 ].symbol.idx )
-					++prn.scope;
-				print_beautified(parser, parser.rt[rtpos].cChildPos+4);
-				if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+4 ].symbol.idx )
-					if(prn.scope) --prn.scope;
+				basics::CStackElement* child = &parser.rt[ parser.rt[rtpos].cChildPos+4 ];
+				for( ; child->cChildNum ==1; child = &parser.rt[ child->cChildPos ]) {}
+
+				if( PT_BLOCK != child->symbol.idx )
+					prn << '{' << '\n', ++prn.scope;
+
+				print_beautified(parser, parser.rt[rtpos].cChildPos+4, parent);
+				if(!prn.newline) prn << '\n';
+
+				if( PT_BLOCK != child->symbol.idx )
+					--prn.scope, prn << '}' << '\n';
 
 				if( parser.rt[rtpos].cChildNum==7 )
 				{	// else part
 					if(!prn.newline)
 						prn << '\n';
-					prn << "else\n";
-					if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+6 ].symbol.idx )
-						++prn.scope;
-					print_beautified(parser, parser.rt[rtpos].cChildPos+6);
-					if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+6 ].symbol.idx )
-						if(prn.scope) --prn.scope;
+					prn << "else";
+					
+					bool is_elseif = false;
+					bool is_block  = false;
+					// find the first block with more than one children
+					basics::CStackElement* child = &parser.rt[ parser.rt[rtpos].cChildPos+6 ];
+					for( ; child->cChildNum ==1; child = &parser.rt[ child->cChildPos ]) {}
+					if( child->cChildNum>1 )
+					{
+						is_block = PT_BLOCK == child->symbol.idx;
+						is_elseif = PT_NORMALSTM == child->symbol.idx
+							&& PT_IF == parser.rt[ child->cChildPos ].symbol.idx;
+					}
+
+					if( is_block )
+						prn << '\n';
+					else if( is_elseif )
+						prn << ' ';
+					else
+						prn << '\n' << '{' << '\n', ++prn.scope;
+
+					print_beautified(parser, parser.rt[rtpos].cChildPos+6, parent);
+					if(!prn.newline) prn << '\n';
+
+					if( !is_block && !is_elseif )
+						--prn.scope, prn << '}' << '\n';
 				}
 			}
 			else if( PT_DO == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
 			{	// do <Normal Stm> while '(' <Expr> ')' ';'
+
+				basics::CStackElement* child = &parser.rt[ parser.rt[rtpos].cChildPos+1 ];
+				for( ; child->cChildNum ==1; child = &parser.rt[ child->cChildPos ]) {}
+
 				prn << "do\n";
-				if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+1 ].symbol.idx )
-					++prn.scope;
-				print_beautified(parser, parser.rt[rtpos].cChildPos+1);
-				if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+1 ].symbol.idx )
-					if(prn.scope) --prn.scope;
-				if(!prn.newline)
-					prn << '\n';
+				if( PT_BLOCK != child->symbol.idx )
+					prn << '{' << '\n', ++prn.scope;
+
+				print_beautified(parser, parser.rt[rtpos].cChildPos+1, parent);
+				if(!prn.newline) prn << '\n';
+
+				if( PT_BLOCK != child->symbol.idx )
+					--prn.scope, prn << '}' << '\n';
+
 				prn << "while( ";
-				print_beautified(parser, parser.rt[rtpos].cChildPos+4);
+				print_beautified(parser, parser.rt[rtpos].cChildPos+4, parent);
 				prn << " );\n";
 			}
 			else if( PT_SWITCH == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
 			{	// switch '(' <Expr> ')' '{' <Case Stms> '}'
 				prn << "switch ( ";
-				print_beautified(parser, parser.rt[rtpos].cChildPos+2);
+				print_beautified(parser, parser.rt[rtpos].cChildPos+2, parent);
 				prn << " )\n";
 				prn << "{\n";
-				print_beautified(parser, parser.rt[rtpos].cChildPos+5);
-				if(!prn.newline)
-					prn << '\n';
+
+				print_beautified(parser, parser.rt[rtpos].cChildPos+5, parent);
+				if(!prn.newline) prn << '\n';
 
 				prn << "}\n";
 			}
 			else if( PT_FOR == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
 			{	// for '(' <Arg> ';' <Arg> ';' <Arg> ')' <Normal Stm>
 				prn << "for(";
-				print_beautified(parser, parser.rt[rtpos].cChildPos+2);
+				print_beautified(parser, parser.rt[rtpos].cChildPos+2, parent);
 				prn << "; ";
-				print_beautified(parser, parser.rt[rtpos].cChildPos+4);
+				print_beautified(parser, parser.rt[rtpos].cChildPos+4, parent);
 				prn << "; ";
-				print_beautified(parser, parser.rt[rtpos].cChildPos+6);
+				print_beautified(parser, parser.rt[rtpos].cChildPos+6, parent);
 				prn << ")\n";
-				if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+8 ].symbol.idx )
-					++prn.scope;
-				print_beautified(parser, parser.rt[rtpos].cChildPos+8);
-				if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+8 ].symbol.idx )
-					if(prn.scope) --prn.scope;
+
+				basics::CStackElement* child = &parser.rt[ parser.rt[rtpos].cChildPos+1 ];
+				for( ; child->cChildNum ==1; child = &parser.rt[ child->cChildPos ]) {}
+
+				if( PT_BLOCK != child->symbol.idx )
+					prn << '{' << '\n', ++prn.scope;
+
+				print_beautified(parser, parser.rt[rtpos].cChildPos+8, parent);
+				if(!prn.newline) prn << '\n';
+				
+				if( PT_BLOCK != child->symbol.idx )
+					--prn.scope, prn << '}' << '\n';
 			}
 			else
 			{
@@ -1346,8 +1398,9 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 				size_t k = j+parser.rt[rtpos].cChildNum;
 				for(; j<k; ++j)
 				{	// go down
-					print_beautified(parser, j);
+					print_beautified(parser, j, parent);
 				}
+				if(!prn.newline) prn << '\n';
 			}
 			break;
 		}
@@ -1362,7 +1415,7 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			{
 				prn << "case ";
 				++i;
-				print_beautified(parser, i);
+				print_beautified(parser, i, parent);
 			}
 			else
 			{
@@ -1370,18 +1423,18 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			}
 			prn << ":\n";
 			++prn.scope;
-			print_beautified(parser, i+2);
+			print_beautified(parser, i+2, parent);
 			--prn.scope;
-			print_beautified(parser, i+3);
+			print_beautified(parser, i+3, parent);
 			break;
 		}
 		case PT_RETURNSTMS:
 		{
-			print_beautified(parser, parser.rt[rtpos].cChildPos);
+			print_beautified(parser, parser.rt[rtpos].cChildPos, parent);
 			if( parser.rt[rtpos].cChildNum==3 )
 			{	// 'return' <arg> ';'
 				prn << ' ';
-				print_beautified(parser, parser.rt[rtpos].cChildPos+1 );
+				print_beautified(parser, parser.rt[rtpos].cChildPos+1, parent);
 			}
 			prn << ";\n";
 			break;
@@ -1429,7 +1482,7 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 						parser.rt[node1.cChildPos+1].cChildNum)
 					{
 						prn << "{ OnUse: ";
-						print_beautified(parser, node1.cChildPos+1);
+						print_beautified(parser, node1.cChildPos+1, parent);
 						prn << '}';
 					}
 
@@ -1449,13 +1502,13 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 						if( n1 )
 						{
 							prn << "OnEquip: ";
-							print_beautified(parser, node1.cChildPos+1);
+							print_beautified(parser, node1.cChildPos+1, parent);
 							prn << "end; ";
 						}
 						if( n2 )
 						{
 							prn << "OnUnequip: ";
-							print_beautified(parser, node2.cChildPos+1);
+							print_beautified(parser, node2.cChildPos+1, parent);
 							prn << "end; ";
 						}
 						prn << '}';
@@ -1477,7 +1530,7 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			size_t k = j+parser.rt[rtpos].cChildNum;
 			for(; j<k; ++j)
 			{	// go down
-				print_beautified(parser, j);
+				print_beautified(parser, j, parent);
 			}
 			break;
 		}// end default case
@@ -1577,7 +1630,7 @@ bool oldeaParser::process(const char*name) const
 					this->prn.scope=0;
 					this->prn << '\n';
 
-					this->prn.print_beautified(*parser, 0);
+					this->prn.print_beautified(*parser, 0, 0);
 					this->prn.print_comments(*parser, -1);
 				}					
 				//////////////////////////////////////////////////////////

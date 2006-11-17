@@ -44,13 +44,13 @@ public:
 	int print_olditemdbheadea( const char* str );
 
 	
-	virtual bool print_beautified(basics::CParser_CommentStore& parser, int rtpos);
+	virtual bool print_beautified(basics::CParser_CommentStore& parser, int rtpos, short parent);
 
 
-	bool transform_print_unprocessed(basics::CParser_CommentStore& parser, int rtpos);
-	bool transform_cmd_set(basics::CParser_CommentStore& parser, int rtpos);
-	bool transform_callstm(basics::CParser_CommentStore& parser, int rtpos);
-	bool transform_identifier(basics::CParser_CommentStore& parser, int rtpos);
+	bool transform_print_unprocessed(basics::CParser_CommentStore& parser, int rtpos, short parent);
+	bool transform_cmd_set(basics::CParser_CommentStore& parser, int rtpos, short parent);
+	bool transform_callstm(basics::CParser_CommentStore& parser, int rtpos, short parent);
+	bool transform_identifier(basics::CParser_CommentStore& parser, int rtpos, short parent);
 };
 
 

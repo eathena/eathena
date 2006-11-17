@@ -21,9 +21,9 @@
 #define WISDATA_TTL (60*1000)	// Existence time of Wisp/page data (60 seconds)
                              	// that is the waiting time of answers of all map-servers
 
-char inter_log_filename[1024] = "log/inter.log";
+basics::CParam< basics::string<> > inter_log_filename("inter_log_filename", "log/inter.log");
+basics::CParam< basics::string<> > accreg_txt("accreg_txt", "save/accreg.txt");
 
-char accreg_txt[1024] = "save/accreg.txt";
 static struct dbt *accreg_db = NULL;
 
 struct accreg
@@ -42,7 +42,6 @@ struct accreg
 	{}
 };
 
-size_t party_share_level = 10;
 
 
 // 送信パケット長リスト
@@ -131,7 +130,7 @@ int inter_accreg_init(void)
 
 	accreg_db = numdb_init();
 
-	if( (fp = basics::safefopen(accreg_txt, "r")) == NULL)
+	if( (fp = basics::safefopen(accreg_txt(), "r")) == NULL)
 		return 1;
 	while(fgets(line, sizeof(line), fp)){
 		line[sizeof(line)-1] = '\0';
@@ -157,7 +156,7 @@ int inter_accreg_init(void)
 int inter_accreg_save(void)
 {
 	int lock;
-	FILE *fp = lock_fopen(accreg_txt, lock);
+	FILE *fp = lock_fopen(accreg_txt(), lock);
 	if(!fp)
 	{
 		ShowError("int_accreg: cant write [%s] !!! data is lost !!!\n", accreg_txt);
@@ -177,7 +176,7 @@ int inter_accreg_save(void)
 				fprintf(fp, "%s" RETCODE, line);
 			}
 		}
-		lock_fclose(fp, accreg_txt, lock);
+		lock_fclose(fp, accreg_txt(), lock);
 		//ShowStatus("inter: %s saved.\n", accreg_txt);
 	}
 	return 0;
@@ -185,61 +184,10 @@ int inter_accreg_save(void)
 
 //--------------------------------------------------------
 
-/*==========================================
- * 設定ファイルを読み込む
- *------------------------------------------
- */
-int inter_config_read(const char *cfgName) {
-	char line[1024], w1[1024], w2[1024];
-	FILE *fp;
-
-	fp = basics::safefopen(cfgName, "r");
-	if (fp == NULL) {
-		ShowError("file not found: %s\n", line);
-		return 1;
-	}
-	while(fgets(line, sizeof(line), fp))
-	{
-		if( prepare_line(line) && 2==sscanf(line,"%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
-		{
-			basics::itrim(w1);
-			if(!*w1) continue;
-			
-			basics::itrim(w2);
-			
-			if (strcasecmp(w1, "accreg_txt") == 0)
-			{
-				safestrcpy(accreg_txt, sizeof(accreg_txt), w2);
-			}
-			else if (strcasecmp(w1, "party_share_level") == 0)
-			{
-				party_share_level = atoi(w2);
-				if (party_share_level < 0)
-					party_share_level = 0;
-			}
-			else if (strcasecmp(w1, "inter_log_filename") == 0)
-			{
-				safestrcpy(inter_log_filename, sizeof(inter_log_filename), w2);
-			}
-			else if (strcasecmp(w1, "import") == 0)
-			{
-				inter_config_read(w2);
-			}
-			else if(strcasecmp(w1,"log_inter")==0)
-			{
-				log_inter = atoi(w2);
-			}
-		}
-	}
-	fclose(fp);
-
-	return 0;
-}
-
 // ログ書き出し
 int inter_log(char *fmt,...)
 {
-	FILE *logfp = basics::safefopen(inter_log_filename, "a");
+	FILE *logfp = basics::safefopen(inter_log_filename(), "a");
 	if (logfp && fmt)
 	{
 		va_list ap;
@@ -260,9 +208,8 @@ int inter_save(void)
 }
 
 // 初期化
-int inter_init(const char *file) {
-	inter_config_read(file);
-
+int inter_init(void)
+{
 	wis_db = numdb_init();
 
 	inter_party_init();

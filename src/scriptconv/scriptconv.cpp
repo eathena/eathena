@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
 	oldea.init(enginefile);
 	aegis.init(enginefile);
 
-	if( oldea || aegis )
+	if( oldea.is_valid() || aegis.is_valid() )
 	{
 		oldeaParser ea(oldea, option);
 		aegisParser ae(aegis, option);

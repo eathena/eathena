@@ -10187,9 +10187,9 @@ int clif_parse_NpcBuyListSend(int fd, map_session_data &sd)
 	if(sd.vender_id == 0  && sd.trade_partner == 0)
 		fail = npc_buylist(sd,(RFIFOW(fd,2)-4)/4, RFIFOP(fd,4));
 
-	WFIFOW(fd,0)=0xca;
+	WFIFOW(fd,0)=0x00ca;
 	WFIFOB(fd,2)=fail;
-	WFIFOSET(fd,packet_len_table[0xca]);
+	WFIFOSET(fd,packet_len_table[0x00ca]);
 	return 0;
 }
 

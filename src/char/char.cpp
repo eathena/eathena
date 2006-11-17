@@ -77,7 +77,7 @@ bool console = false;
 // Writing function of logs file
 //!!
 int log_char = 1;	// loggin char or not [devil]
-int log_inter = 1;	// loggin inter or not [devil]
+
 char char_log_filename[1024] = "log/char.log";
 
 int char_log(char *fmt, ...)
@@ -2939,7 +2939,7 @@ unsigned char getServerType()
 int do_init(int argc, char **argv)
 {
 	int i;
-
+	
 	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
 	char_db.init( (argc < 2) ? CHAR_CONF_NAME : argv[1] );
 	var_db.init( (argc < 2) ? CHAR_CONF_NAME : argv[1] );
@@ -2958,7 +2958,7 @@ int do_init(int argc, char **argv)
 	update_online = time(NULL);
 	create_online_files(); // update online players files at start of the server
 
-	inter_init((argc > 2) ? argv[2] : inter_cfgName);	// inter server ‰Šú‰»
+	inter_init();	// inter server ‰Šú‰»
 	
 	set_defaultparse(parse_char);
 

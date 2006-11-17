@@ -7384,11 +7384,12 @@ map_session_data *CommandInfo::param2sd(const char* str)
 /// checks and executes a command.
 bool CommandInfo::is_command(const int fd, map_session_data &sd, const char* message, unsigned char gmlvl_override)
 {
-	if( !config.allow_atcommand_when_mute && sd.sc_data[SC_NOCHAT].timer != -1 )
+	if( !gmlvl_override && !config.allow_atcommand_when_mute && sd.sc_data[SC_NOCHAT].timer != -1 )
 	{	// return as processed
 		return true;
 	}
-	else if( message && *message && (!config.atc_gmonly || gmlvl_override) )
+	gmlvl_override = gmlvl_override?gmlvl_override:sd.isGM();
+	if( message && *message && (!config.atc_gmonly || gmlvl_override) )
 	{	// format of the input string is "<name> : <command string>"
 		char output[512];
 
@@ -7436,7 +7437,6 @@ bool CommandInfo::is_command(const int fd, map_session_data &sd, const char* mes
 
 			log_atcommand(sd, message, cmd.level);
 
-			gmlvl_override = gmlvl_override?gmlvl_override:sd.isGM();
 			if( cmd.func == NULL  || gmlvl_override<cmd.level )
 			{	// return false if player is normal player 
 				// (display the text, not display: unknown command)

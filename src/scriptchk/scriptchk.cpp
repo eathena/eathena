@@ -39,255 +39,252 @@ void basics::CTimerBase::timerfinalize()
 class CScriptEngine
 {
 };
-
-int buildin_mes(CScriptEngine &st) { return 0; }
-int buildin_goto(CScriptEngine &st) { return 0; }
-int buildin_callsub(CScriptEngine &st) { return 0; }
-int buildin_callfunc(CScriptEngine &st) { return 0; }
-int buildin_return(CScriptEngine &st) { return 0; }
-int buildin_getarg(CScriptEngine &st) { return 0; }
-int buildin_next(CScriptEngine &st) { return 0; }
-int buildin_close(CScriptEngine &st) { return 0; }
-int buildin_close2(CScriptEngine &st) { return 0; }
-int buildin_menu(CScriptEngine &st) { return 0; }
-int buildin_rand(CScriptEngine &st) { return 0; }
-int buildin_warp(CScriptEngine &st) { return 0; }
+int buildin_activatepset(CScriptEngine &st) { return 0; }
+int buildin_addtimer(CScriptEngine &st) { return 0; }
+int buildin_addtimercount(CScriptEngine &st) { return 0; }
+int buildin_addtoskill(CScriptEngine &st) { return 0; }
+int buildin_adopt(CScriptEngine &st) { return 0; }
+int buildin_agitcheck(CScriptEngine &st) { return 0; }
+int buildin_agitend(CScriptEngine &st) { return 0; }
+int buildin_agitstart(CScriptEngine &st) { return 0; }
+int buildin_announce(CScriptEngine &st) { return 0; }
+int buildin_areaannounce(CScriptEngine &st) { return 0; }
+int buildin_areamonster(CScriptEngine &st) { return 0; }
 int buildin_areawarp(CScriptEngine &st) { return 0; }
-int buildin_heal(CScriptEngine &st) { return 0; }
-int buildin_itemheal(CScriptEngine &st) { return 0; }
-int buildin_percentheal(CScriptEngine &st) { return 0; }
-int buildin_jobchange(CScriptEngine &st) { return 0; }
-int buildin_input(CScriptEngine &st) { return 0; }
-int buildin_setlook(CScriptEngine &st) { return 0; }
-int buildin_set(CScriptEngine &st) { return 0; }
-int buildin_setarray(CScriptEngine &st) { return 0; }
-int buildin_cleararray(CScriptEngine &st) { return 0; }
-int buildin_copyarray(CScriptEngine &st) { return 0; }
-int buildin_getarraysize(CScriptEngine &st) { return 0; }
-int buildin_deletearray(CScriptEngine &st) { return 0; }
-int buildin_getelementofarray(CScriptEngine &st) { return 0; }
-int buildin_if(CScriptEngine &st) { return 0; }
-int buildin_getitem(CScriptEngine &st) { return 0; }
-int buildin_getitem2(CScriptEngine &st) { return 0; }
-int buildin_makeitem(CScriptEngine &st) { return 0; }
-int buildin_delitem(CScriptEngine &st) { return 0; }
-int buildin_viewpoint(CScriptEngine &st) { return 0; }
-int buildin_countitem(CScriptEngine &st) { return 0; }
-int buildin_checkweight(CScriptEngine &st) { return 0; }
-int buildin_readparam(CScriptEngine &st) { return 0; }
-int buildin_getcharid(CScriptEngine &st) { return 0; }
-int buildin_getpartyname(CScriptEngine &st) { return 0; }
-int buildin_getpartymember(CScriptEngine &st) { return 0; }
-int buildin_getguildname(CScriptEngine &st) { return 0; }
-int buildin_getguildmaster(CScriptEngine &st) { return 0; }
-int buildin_getguildmasterid(CScriptEngine &st) { return 0; }
-int buildin_strcharinfo(CScriptEngine &st) { return 0; }
-int buildin_getequipid(CScriptEngine &st) { return 0; }
-int buildin_getequipname(CScriptEngine &st) { return 0; }
-int buildin_getbrokenid(CScriptEngine &st) { return 0; } // [Valaris]
-int buildin_repair(CScriptEngine &st) { return 0; } // [Valaris]
-int buildin_getequipisequiped(CScriptEngine &st) { return 0; }
-int buildin_getequipisenableref(CScriptEngine &st) { return 0; }
-int buildin_getequipisidentify(CScriptEngine &st) { return 0; }
-int buildin_getequiprefinerycnt(CScriptEngine &st) { return 0; }
-int buildin_getequipweaponlv(CScriptEngine &st) { return 0; }
-int buildin_getequippercentrefinery(CScriptEngine &st) { return 0; }
-int buildin_successrefitem(CScriptEngine &st) { return 0; }
-int buildin_failedrefitem(CScriptEngine &st) { return 0; }
-int buildin_cutin(CScriptEngine &st) { return 0; }
-int buildin_cutincard(CScriptEngine &st) { return 0; }
-int buildin_statusup(CScriptEngine &st) { return 0; }
-int buildin_statusup2(CScriptEngine &st) { return 0; }
+int buildin_attachnpctimer(CScriptEngine &st) { return 0; }
+int buildin_attachrid(CScriptEngine &st) { return 0; }
+int buildin_basicskillcheck(CScriptEngine &st) { return 0; }
+int buildin_birthpet(CScriptEngine &st) { return 0; }
 int buildin_bonus(CScriptEngine &st) { return 0; }
 int buildin_bonus2(CScriptEngine &st) { return 0; }
 int buildin_bonus3(CScriptEngine &st) { return 0; }
 int buildin_bonus4(CScriptEngine &st) { return 0; }
-int buildin_skill(CScriptEngine &st) { return 0; }
-int buildin_addtoskill(CScriptEngine &st) { return 0; } // [Valaris]
-int buildin_guildskill(CScriptEngine &st) { return 0; }
-int buildin_getskilllv(CScriptEngine &st) { return 0; }
-int buildin_getgdskilllv(CScriptEngine &st) { return 0; }
-int buildin_basicskillcheck(CScriptEngine &st) { return 0; }
-int buildin_getgmlevel(CScriptEngine &st) { return 0; }
-int buildin_end(CScriptEngine &st) { return 0; }
+int buildin_callfunc(CScriptEngine &st) { return 0; }
+int buildin_callsub(CScriptEngine &st) { return 0; }
+int buildin_cardscnt(CScriptEngine &st) { return 0; }
+int buildin_catchpet(CScriptEngine &st) { return 0; }
+int buildin_changebase(CScriptEngine &st) { return 0; }
+int buildin_changesex(CScriptEngine &st) { return 0; }
+int buildin_charisalpha(CScriptEngine &st) { return 0; }
+int buildin_checkcart(CScriptEngine &st) { return 0; }
+int buildin_checkequipedcard(CScriptEngine &st) { return 0; }
+int buildin_checkfalcon(CScriptEngine &st) { return 0; }
 int buildin_checkoption(CScriptEngine &st) { return 0; }
-int buildin_setoption(CScriptEngine &st) { return 0; }
-int buildin_setcart(CScriptEngine &st) { return 0; }
-int buildin_checkcart(CScriptEngine &st) { return 0; } // check cart [Valaris]
-int buildin_setfalcon(CScriptEngine &st) { return 0; }
-int buildin_checkfalcon(CScriptEngine &st) { return 0; } // check falcon [Valaris]
-int buildin_setriding(CScriptEngine &st) { return 0; }
-int buildin_checkriding(CScriptEngine &st) { return 0; } // check for pecopeco [Valaris]
-int buildin_savepoint(CScriptEngine &st) { return 0; }
-int buildin_gettimetick(CScriptEngine &st) { return 0; }
-int buildin_gettime(CScriptEngine &st) { return 0; }
-int buildin_gettimestr(CScriptEngine &st) { return 0; }
-int buildin_openstorage(CScriptEngine &st) { return 0; }
-int buildin_guildopenstorage(CScriptEngine &st) { return 0; }
-int buildin_itemskill(CScriptEngine &st) { return 0; }
-int buildin_produce(CScriptEngine &st) { return 0; }
-int buildin_monster(CScriptEngine &st) { return 0; }
-int buildin_areamonster(CScriptEngine &st) { return 0; }
-int buildin_killmonster(CScriptEngine &st) { return 0; }
-int buildin_killmonsterall(CScriptEngine &st) { return 0; }
+int buildin_checkoption1(CScriptEngine &st) { return 0; }
+int buildin_checkoption2(CScriptEngine &st) { return 0; }
+int buildin_checkriding(CScriptEngine &st) { return 0; }
+int buildin_checkweight(CScriptEngine &st) { return 0; }
+int buildin_classchange(CScriptEngine &st) { return 0; }
+int buildin_cleararray(CScriptEngine &st) { return 0; }
+int buildin_clearitem(CScriptEngine &st) { return 0; }
+int buildin_close(CScriptEngine &st) { return 0; }
+int buildin_close2(CScriptEngine &st) { return 0; }
+int buildin_cmdothernpc(CScriptEngine &st) { return 0; }
+int buildin_compare(CScriptEngine &st) { return 0; }
+int buildin_copyarray(CScriptEngine &st) { return 0; }
+int buildin_countitem(CScriptEngine &st) { return 0; }
+int buildin_cutin(CScriptEngine &st) { return 0; }
+int buildin_cutincard(CScriptEngine &st) { return 0; }
+int buildin_day(CScriptEngine &st) { return 0; }
+int buildin_deactivatepset(CScriptEngine &st) { return 0; }
+int buildin_debugmes(CScriptEngine &st) { return 0; }
+int buildin_defpattern(CScriptEngine &st) { return 0; }
+int buildin_deletearray(CScriptEngine &st) { return 0; }
+int buildin_deletepset(CScriptEngine &st) { return 0; }
+int buildin_delitem(CScriptEngine &st) { return 0; }
+int buildin_deltimer(CScriptEngine &st) { return 0; }
+int buildin_delwaitingroom(CScriptEngine &st) { return 0; }
+int buildin_detachnpctimer(CScriptEngine &st) { return 0; }
+int buildin_detachrid(CScriptEngine &st) { return 0; }
+int buildin_disablearena(CScriptEngine &st) { return 0; }
+int buildin_disablenpc(CScriptEngine &st) { return 0; }
+int buildin_disablewaitingroomevent(CScriptEngine &st) { return 0; }
+int buildin_dispbottom(CScriptEngine &st) { return 0; }
+int buildin_divorce(CScriptEngine &st) { return 0; }
 int buildin_doevent(CScriptEngine &st) { return 0; }
 int buildin_donpcevent(CScriptEngine &st) { return 0; }
-int buildin_addtimer(CScriptEngine &st) { return 0; }
-int buildin_deltimer(CScriptEngine &st) { return 0; }
-int buildin_addtimercount(CScriptEngine &st) { return 0; }
-int buildin_initnpctimer(CScriptEngine &st) { return 0; }
-int buildin_stopnpctimer(CScriptEngine &st) { return 0; }
-int buildin_startnpctimer(CScriptEngine &st) { return 0; }
-int buildin_setnpctimer(CScriptEngine &st) { return 0; }
-int buildin_getnpctimer(CScriptEngine &st) { return 0; }
-int buildin_attachnpctimer(CScriptEngine &st) { return 0; }	// [celest]
-int buildin_detachnpctimer(CScriptEngine &st) { return 0; }	// [celest]
-int buildin_announce(CScriptEngine &st) { return 0; }
-int buildin_mapannounce(CScriptEngine &st) { return 0; }
-int buildin_areaannounce(CScriptEngine &st) { return 0; }
-int buildin_getusers(CScriptEngine &st) { return 0; }
-int buildin_getmapusers(CScriptEngine &st) { return 0; }
-int buildin_getareausers(CScriptEngine &st) { return 0; }
-int buildin_getareadropitem(CScriptEngine &st) { return 0; }
+int buildin_emotion(CScriptEngine &st) { return 0; }
+int buildin_enablearena(CScriptEngine &st) { return 0; }
 int buildin_enablenpc(CScriptEngine &st) { return 0; }
-int buildin_disablenpc(CScriptEngine &st) { return 0; }
-int buildin_enablearena(CScriptEngine &st) { return 0; }	// Added by RoVeRT
-int buildin_disablearena(CScriptEngine &st) { return 0; }	// Added by RoVeRT
+int buildin_enablewaitingroomevent(CScriptEngine &st) { return 0; }
+int buildin_end(CScriptEngine &st) { return 0; }
+int buildin_failedrefitem(CScriptEngine &st) { return 0; }
+int buildin_failedremovecards(CScriptEngine &st) { return 0; }
+int buildin_fakenpcname(CScriptEngine &st) { return 0; }
+int buildin_flagemblem(CScriptEngine &st) { return 0; }
+int buildin_getareadropitem(CScriptEngine &st) { return 0; }
+int buildin_getareausers(CScriptEngine &st) { return 0; }
+int buildin_getarg(CScriptEngine &st) { return 0; }
+int buildin_getarraysize(CScriptEngine &st) { return 0; }
+int buildin_getbrokenid(CScriptEngine &st) { return 0; }
+int buildin_getcastledata(CScriptEngine &st) { return 0; }
+int buildin_getcastlename(CScriptEngine &st) { return 0; }
+int buildin_getcharid(CScriptEngine &st) { return 0; }
+int buildin_getchildid(CScriptEngine &st) { return 0; }
+int buildin_getelementofarray(CScriptEngine &st) { return 0; }
+int buildin_getequipcardcnt(CScriptEngine &st) { return 0; }
+int buildin_getequipid(CScriptEngine &st) { return 0; }
+int buildin_getequipisenableref(CScriptEngine &st) { return 0; }
+int buildin_getequipisequiped(CScriptEngine &st) { return 0; }
+int buildin_getequipisidentify(CScriptEngine &st) { return 0; }
+int buildin_getequipname(CScriptEngine &st) { return 0; }
+int buildin_getequippercentrefinery(CScriptEngine &st) { return 0; }
+int buildin_getequiprefinerycnt(CScriptEngine &st) { return 0; }
+int buildin_getequipweaponlv(CScriptEngine &st) { return 0; }
+int buildin_getexp(CScriptEngine &st) { return 0; }
+int buildin_getgdskilllv(CScriptEngine &st) { return 0; }
+int buildin_getgmlevel(CScriptEngine &st) { return 0; }
+int buildin_getguildmaster(CScriptEngine &st) { return 0; }
+int buildin_getguildmasterid(CScriptEngine &st) { return 0; }
+int buildin_getguildname(CScriptEngine &st) { return 0; }
+int buildin_getinventorylist(CScriptEngine &st) { return 0; }
+int buildin_getitem(CScriptEngine &st) { return 0; }
+int buildin_getitem2(CScriptEngine &st) { return 0; }
+int buildin_getiteminfo(CScriptEngine &st) { return 0; }
+int buildin_getitemname(CScriptEngine &st) { return 0; }
+int buildin_getlook(CScriptEngine &st) { return 0; }
+int buildin_getmapmobs(CScriptEngine &st) { return 0; }
+int buildin_getmapusers(CScriptEngine &st) { return 0; }
+int buildin_getmapxy(CScriptEngine &st) { return 0; }
+int buildin_getnameditem(CScriptEngine &st) { return 0; }
+int buildin_getnpctimer(CScriptEngine &st) { return 0; }
+int buildin_getpartnerid(CScriptEngine &st) { return 0; }
+int buildin_getpartymember(CScriptEngine &st) { return 0; }
+int buildin_getpartyname(CScriptEngine &st) { return 0; }
+int buildin_getpetinfo(CScriptEngine &st) { return 0; }
+int buildin_getrefine(CScriptEngine &st) { return 0; }
+int buildin_getsavepoint(CScriptEngine &st) { return 0; }
+int buildin_getscrate(CScriptEngine &st) { return 0; }
+int buildin_getskilllist(CScriptEngine &st) { return 0; }
+int buildin_getskilllv(CScriptEngine &st) { return 0; }
+int buildin_getstrlen(CScriptEngine &st) { return 0; }
+int buildin_gettime(CScriptEngine &st) { return 0; }
+int buildin_gettimestr(CScriptEngine &st) { return 0; }
+int buildin_gettimetick(CScriptEngine &st) { return 0; }
+int buildin_getusers(CScriptEngine &st) { return 0; }
+int buildin_getusersname(CScriptEngine &st) { return 0; }
+int buildin_getwaitingroomstate(CScriptEngine &st) { return 0; }
+int buildin_globalmes(CScriptEngine &st) { return 0; }
+int buildin_gmcommand(CScriptEngine &st) { return 0; }
+int buildin_goto(CScriptEngine &st) { return 0; }
+int buildin_guardian(CScriptEngine &st) { return 0; }
+int buildin_guardianinfo(CScriptEngine &st) { return 0; }
+int buildin_guildgetexp(CScriptEngine &st) { return 0; }
+int buildin_guildopenstorage(CScriptEngine &st) { return 0; }
+int buildin_guildskill(CScriptEngine &st) { return 0; }
+int buildin_gvgoff(CScriptEngine &st) { return 0; }
+int buildin_gvgon(CScriptEngine &st) { return 0; }
+int buildin_hasitems(CScriptEngine &st) { return 0; }
+int buildin_heal(CScriptEngine &st) { return 0; }
 int buildin_hideoffnpc(CScriptEngine &st) { return 0; }
 int buildin_hideonnpc(CScriptEngine &st) { return 0; }
+int buildin_if(CScriptEngine &st) { return 0; }
+int buildin_initnpctimer(CScriptEngine &st) { return 0; }
+int buildin_inittimer(CScriptEngine &st) { return 0; }
+int buildin_input(CScriptEngine &st) { return 0; }
+int buildin_isday(CScriptEngine &st) { return 0; }
+int buildin_isequipped(CScriptEngine &st) { return 0; }
+int buildin_isequippedcnt(CScriptEngine &st) { return 0; }
+int buildin_isloggedin(CScriptEngine &st) { return 0; }
+int buildin_isnight(CScriptEngine &st) { return 0; }
+int buildin_ispartneron(CScriptEngine &st) { return 0; }
+int buildin_itemheal(CScriptEngine &st) { return 0; }
+int buildin_itemskill(CScriptEngine &st) { return 0; }
+int buildin_jobchange(CScriptEngine &st) { return 0; }
+int buildin_jump_zero(CScriptEngine &st) { return 0; }
+int buildin_killmonster(CScriptEngine &st) { return 0; }
+int buildin_killmonsterall(CScriptEngine &st) { return 0; }
+int buildin_logmes(CScriptEngine &st) { return 0; }
+int buildin_makeitem(CScriptEngine &st) { return 0; }
+int buildin_makepet(CScriptEngine &st) { return 0; }
+int buildin_mapannounce(CScriptEngine &st) { return 0; }
+int buildin_maprespawnguildid(CScriptEngine &st) { return 0; }
+int buildin_mapwarp(CScriptEngine &st) { return 0; }
+int buildin_marriage(CScriptEngine &st) { return 0; }
+int buildin_menu(CScriptEngine &st) { return 0; }
+int buildin_mes(CScriptEngine &st) { return 0; }
+int buildin_message(CScriptEngine &st) { return 0; }
+int buildin_misceffect(CScriptEngine &st) { return 0; }
+int buildin_mobcount(CScriptEngine &st) { return 0; }
+int buildin_monster(CScriptEngine &st) { return 0; }
+int buildin_movenpc(CScriptEngine &st) { return 0; }
+int buildin_next(CScriptEngine &st) { return 0; }
+int buildin_night(CScriptEngine &st) { return 0; }
+int buildin_npcskilleffect(CScriptEngine &st) { return 0; }
+int buildin_npcspeed(CScriptEngine &st) { return 0; }
+int buildin_npcstop(CScriptEngine &st) { return 0; }
+int buildin_npctalk(CScriptEngine &st) { return 0; }
+int buildin_npcwalkto(CScriptEngine &st) { return 0; }
+int buildin_nude(CScriptEngine &st) { return 0; }
+int buildin_openstorage(CScriptEngine &st) { return 0; }
+int buildin_pc_emotion(CScriptEngine &st) { return 0; }
+int buildin_pcstrcharinfo(CScriptEngine &st) { return 0; }
+int buildin_percentheal(CScriptEngine &st) { return 0; }
+int buildin_petheal(CScriptEngine &st) { return 0; }
+int buildin_petloot(CScriptEngine &st) { return 0; }
+int buildin_petrecovery(CScriptEngine &st) { return 0; }
+int buildin_petskillattack(CScriptEngine &st) { return 0; }
+int buildin_petskillattack2(CScriptEngine &st) { return 0; }
+int buildin_petskillbonus(CScriptEngine &st) { return 0; }
+int buildin_petskillsupport(CScriptEngine &st) { return 0; }
+int buildin_produce(CScriptEngine &st) { return 0; }
+int buildin_pvpoff(CScriptEngine &st) { return 0; }
+int buildin_pvpon(CScriptEngine &st) { return 0; }
+int buildin_rand(CScriptEngine &st) { return 0; }
+int buildin_readparam(CScriptEngine &st) { return 0; }
+int buildin_recovery(CScriptEngine &st) { return 0; }
+int buildin_removemapflag(CScriptEngine &st) { return 0; }
+int buildin_repair(CScriptEngine &st) { return 0; }
+int buildin_requestguildinfo(CScriptEngine &st) { return 0; }
+int buildin_resetlvl(CScriptEngine &st) { return 0; }
+int buildin_resetskill(CScriptEngine &st) { return 0; }
+int buildin_resetstatus(CScriptEngine &st) { return 0; }
+int buildin_return(CScriptEngine &st) { return 0; }
+int buildin_savepoint(CScriptEngine &st) { return 0; }
+int buildin_sc_end(CScriptEngine &st) { return 0; }
 int buildin_sc_start(CScriptEngine &st) { return 0; }
 int buildin_sc_start2(CScriptEngine &st) { return 0; }
 int buildin_sc_start4(CScriptEngine &st) { return 0; }
-int buildin_sc_end(CScriptEngine &st) { return 0; }
-int buildin_getscrate(CScriptEngine &st) { return 0; }
-int buildin_debugmes(CScriptEngine &st) { return 0; }
-int buildin_catchpet(CScriptEngine &st) { return 0; }
-int buildin_birthpet(CScriptEngine &st) { return 0; }
-int buildin_resetlvl(CScriptEngine &st) { return 0; }
-int buildin_resetstatus(CScriptEngine &st) { return 0; }
-int buildin_resetskill(CScriptEngine &st) { return 0; }
-int buildin_changebase(CScriptEngine &st) { return 0; }
-int buildin_changesex(CScriptEngine &st) { return 0; }
-int buildin_waitingroom(CScriptEngine &st) { return 0; }
-int buildin_delwaitingroom(CScriptEngine &st) { return 0; }
-int buildin_enablewaitingroomevent(CScriptEngine &st) { return 0; }
-int buildin_disablewaitingroomevent(CScriptEngine &st) { return 0; }
-int buildin_getwaitingroomstate(CScriptEngine &st) { return 0; }
-int buildin_warpwaitingpc(CScriptEngine &st) { return 0; }
-int buildin_attachrid(CScriptEngine &st) { return 0; }
-int buildin_detachrid(CScriptEngine &st) { return 0; }
-int buildin_isloggedin(CScriptEngine &st) { return 0; }
-int buildin_setmapflagnosave(CScriptEngine &st) { return 0; }
-int buildin_setmapflag(CScriptEngine &st) { return 0; }
-int buildin_removemapflag(CScriptEngine &st) { return 0; }
-int buildin_pvpon(CScriptEngine &st) { return 0; }
-int buildin_pvpoff(CScriptEngine &st) { return 0; }
-int buildin_gvgon(CScriptEngine &st) { return 0; }
-int buildin_gvgoff(CScriptEngine &st) { return 0; }
-int buildin_emotion(CScriptEngine &st) { return 0; }
-int buildin_maprespawnguildid(CScriptEngine &st) { return 0; }
-int buildin_agitstart(CScriptEngine &st) { return 0; }		// <Agit>
-int buildin_agitend(CScriptEngine &st) { return 0; }
-int buildin_agitcheck(CScriptEngine &st) { return 0; }  // <Agitcheck>
-int buildin_flagemblem(CScriptEngine &st) { return 0; }		// Flag Emblem
-int buildin_getcastlename(CScriptEngine &st) { return 0; }
-int buildin_getcastledata(CScriptEngine &st) { return 0; }
+int buildin_select(CScriptEngine &st) { return 0; }
+int buildin_set(CScriptEngine &st) { return 0; }
+int buildin_setarray(CScriptEngine &st) { return 0; }
+int buildin_setcart(CScriptEngine &st) { return 0; }
 int buildin_setcastledata(CScriptEngine &st) { return 0; }
-int buildin_requestguildinfo(CScriptEngine &st) { return 0; }
-int buildin_getequipcardcnt(CScriptEngine &st) { return 0; }
-int buildin_successremovecards(CScriptEngine &st) { return 0; }
-int buildin_failedremovecards(CScriptEngine &st) { return 0; }
-int buildin_marriage(CScriptEngine &st) { return 0; }
-int buildin_wedding_effect(CScriptEngine &st) { return 0; }
-int buildin_divorce(CScriptEngine &st) { return 0; }
-int buildin_ispartneron(CScriptEngine &st) { return 0; } // MouseJstr
-int buildin_getpartnerid(CScriptEngine &st) { return 0; } // MouseJstr
-int buildin_getchildid(CScriptEngine &st) { return 0; } // Skotlex
-int buildin_warppartner(CScriptEngine &st) { return 0; } // MouseJstr
-int buildin_getitemname(CScriptEngine &st) { return 0; }
-int buildin_makepet(CScriptEngine &st) { return 0; }
-int buildin_getexp(CScriptEngine &st) { return 0; }
-int buildin_getinventorylist(CScriptEngine &st) { return 0; }
-int buildin_getskilllist(CScriptEngine &st) { return 0; }
-int buildin_clearitem(CScriptEngine &st) { return 0; }
-int buildin_classchange(CScriptEngine &st) { return 0; }
-int buildin_misceffect(CScriptEngine &st) { return 0; }
+int buildin_setfalcon(CScriptEngine &st) { return 0; }
+int buildin_setlook(CScriptEngine &st) { return 0; }
+int buildin_setmapflag(CScriptEngine &st) { return 0; }
+int buildin_setmapflagnosave(CScriptEngine &st) { return 0; }
+int buildin_setnpctimer(CScriptEngine &st) { return 0; }
+int buildin_setoption(CScriptEngine &st) { return 0; }
+int buildin_setriding(CScriptEngine &st) { return 0; }
+int buildin_skill(CScriptEngine &st) { return 0; }
+int buildin_skilleffect(CScriptEngine &st) { return 0; }
+int buildin_skilluseid(CScriptEngine &st) { return 0; }
+int buildin_skillusepos(CScriptEngine &st) { return 0; }
 int buildin_soundeffect(CScriptEngine &st) { return 0; }
 int buildin_soundeffectall(CScriptEngine &st) { return 0; }
-int buildin_mapwarp(CScriptEngine &st) { return 0; }
-int buildin_inittimer(CScriptEngine &st) { return 0; }
+int buildin_specialeffect(CScriptEngine &st) { return 0; }
+int buildin_specialeffect2(CScriptEngine &st) { return 0; }
+int buildin_startnpctimer(CScriptEngine &st) { return 0; }
+int buildin_statusup(CScriptEngine &st) { return 0; }
+int buildin_statusup2(CScriptEngine &st) { return 0; }
+int buildin_stopnpctimer(CScriptEngine &st) { return 0; }
 int buildin_stoptimer(CScriptEngine &st) { return 0; }
-int buildin_cmdothernpc(CScriptEngine &st) { return 0; }
-int buildin_mobcount(CScriptEngine &st) { return 0; }
-int buildin_strmobinfo(CScriptEngine &st) { return 0; } // Script for displaying mob info [Valaris]
-int buildin_guardian(CScriptEngine &st) { return 0; } // Script for displaying mob info [Valaris]
-int buildin_guardianinfo(CScriptEngine &st) { return 0; } // Script for displaying mob info [Valaris]
-int buildin_petskillbonus(CScriptEngine &st) { return 0; } // petskillbonus [Valaris]
-int buildin_petrecovery(CScriptEngine &st) { return 0; } // pet skill for curing status [Valaris]
-int buildin_petloot(CScriptEngine &st) { return 0; } // pet looting [Valaris]
-int buildin_petheal(CScriptEngine &st) { return 0; } // pet healing [Valaris]
-int buildin_petskillattack(CScriptEngine &st) { return 0; } // pet skill attacks [Skotlex]
-int buildin_petskillattack2(CScriptEngine &st) { return 0; } // pet skill attacks [Skotlex]
-int buildin_petskillsupport(CScriptEngine &st) { return 0; } // pet support skill [Valaris]
-int buildin_skilleffect(CScriptEngine &st) { return 0; } // skill effects [Celest]
-int buildin_npcskilleffect(CScriptEngine &st) { return 0; } // skill effects for npcs [Valaris]
-int buildin_specialeffect(CScriptEngine &st) { return 0; } // special effect script [Valaris]
-int buildin_specialeffect2(CScriptEngine &st) { return 0; } // special effect script [Valaris]
-int buildin_nude(CScriptEngine &st) { return 0; } // nude [Valaris]
-int buildin_gmcommand(CScriptEngine &st) { return 0; } // [MouseJstr]
-int buildin_movenpc(CScriptEngine &st) { return 0; } // [MouseJstr]
-int buildin_message(CScriptEngine &st) { return 0; } // [MouseJstr]
-int buildin_npctalk(CScriptEngine &st) { return 0; } // [Valaris]
-int buildin_hasitems(CScriptEngine &st) { return 0; } // [Valaris]
-int buildin_getlook(CScriptEngine &st) { return 0; }	//Lorky [Lupus]
-int buildin_getsavepoint(CScriptEngine &st) { return 0; }	//Lorky [Lupus]
-int buildin_npcspeed(CScriptEngine &st) { return 0; } // [Valaris]
-int buildin_npcwalkto(CScriptEngine &st) { return 0; } // [Valaris]
-int buildin_npcstop(CScriptEngine &st) { return 0; } // [Valaris]
-int buildin_getmapxy(CScriptEngine &st) { return 0; }  //get map position for player/npc/pet/mob by Lorky [Lupus]
-int buildin_checkoption1(CScriptEngine &st) { return 0; } // [celest]
-int buildin_checkoption2(CScriptEngine &st) { return 0; } // [celest]
-int buildin_guildgetexp(CScriptEngine &st) { return 0; } // [celest]
-int buildin_skilluseid(CScriptEngine &st) { return 0; } // originally by Qamera [celest]
-int buildin_skillusepos(CScriptEngine &st) { return 0; } // originally by Qamera [celest]
-int buildin_logmes(CScriptEngine &st) { return 0; } // [Lupus]
-int buildin_summon(CScriptEngine &st) { return 0; } // [celest]
-int buildin_isnight(CScriptEngine &st) { return 0; } // [celest]
-int buildin_isday(CScriptEngine &st) { return 0; } // [celest]
-int buildin_isequipped(CScriptEngine &st) { return 0; } // [celest]
-int buildin_isequippedcnt(CScriptEngine &st) { return 0; } // [celest]
-int buildin_cardscnt(CScriptEngine &st) { return 0; } // [Lupus]
-int buildin_getrefine(CScriptEngine &st) { return 0; } // [celest]
-int buildin_adopt(CScriptEngine &st) { return 0; }
-int buildin_night(CScriptEngine &st) { return 0; }
-int buildin_day(CScriptEngine &st) { return 0; }
-int buildin_getusersname(CScriptEngine &st) { return 0; } //jA commands added [Lupus]
-int buildin_dispbottom(CScriptEngine &st) { return 0; }
-int buildin_recovery(CScriptEngine &st) { return 0; }
-int buildin_getpetinfo(CScriptEngine &st) { return 0; }
-int buildin_checkequipedcard(CScriptEngine &st) { return 0; }
-int buildin_globalmes(CScriptEngine &st) { return 0; }
-int buildin_jump_zero(CScriptEngine &st) { return 0; }
-int buildin_select(CScriptEngine &st) { return 0; }
-int buildin_getmapmobs(CScriptEngine &st) { return 0; } //jA addition end
-int buildin_getstrlen(CScriptEngine &st) { return 0; } //strlen [valaris]
-int buildin_charisalpha(CScriptEngine &st) { return 0; }//isalpha [valaris]
-int buildin_fakenpcname(CScriptEngine &st) { return 0; } // [Lance]
-
-int buildin_defpattern(CScriptEngine &st) { return 0; } // MouseJstr
-int buildin_activatepset(CScriptEngine &st) { return 0; } // MouseJstr
-int buildin_deactivatepset(CScriptEngine &st) { return 0; } // MouseJstr
-int buildin_deletepset(CScriptEngine &st) { return 0; } // MouseJstr
-
-int buildin_unequip(CScriptEngine &st) { return 0; } // unequip [Spectre]
-
-int buildin_pcstrcharinfo(CScriptEngine &st) { return 0; }
-int buildin_getnameditem(CScriptEngine &st) { return 0; }
-int buildin_compare(CScriptEngine &st) { return 0; }
-int buildin_warpparty(CScriptEngine &st) { return 0; }
+int buildin_strcharinfo(CScriptEngine &st) { return 0; }
+int buildin_strmobinfo(CScriptEngine &st) { return 0; }
+int buildin_successrefitem(CScriptEngine &st) { return 0; }
+int buildin_successremovecards(CScriptEngine &st) { return 0; }
+int buildin_summon(CScriptEngine &st) { return 0; }
+int buildin_unequip(CScriptEngine &st) { return 0; }
+int buildin_viewpoint(CScriptEngine &st) { return 0; }
+int buildin_waitingroom(CScriptEngine &st) { return 0; }
+int buildin_warp(CScriptEngine &st) { return 0; }
 int buildin_warpguild(CScriptEngine &st) { return 0; }
-int buildin_pc_emotion(CScriptEngine &st) { return 0; }
-int buildin_getiteminfo(CScriptEngine &st) { return 0; }
+int buildin_warppartner(CScriptEngine &st) { return 0; }
+int buildin_warpparty(CScriptEngine &st) { return 0; }
+int buildin_warpwaitingpc(CScriptEngine &st) { return 0; }
+int buildin_wedding_effect(CScriptEngine &st) { return 0; }
+
 
 
 struct _buildin_func{

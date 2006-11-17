@@ -21,6 +21,7 @@ int mapif_parse_PartyLeave(int fd, uint32 party_id, uint32 account_id);
 
 
 CPartyDB	cPartyDB;
+basics::CParam<size_t> party_share_level("party_share_level", 10);
 
 
 // パーティデータのロード

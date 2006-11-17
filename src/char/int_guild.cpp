@@ -23,6 +23,7 @@ int mapif_guild_info(int fd, CGuild &g);
 
 
 CGuildDB	cGuildDB;
+basics::CParam<bool> log_inter("log_inter", true);
 
 
 
@@ -797,7 +798,7 @@ int mapif_parse_GuildCastleDataSave(int fd, int castle_id, int index, int value)
 	{
 		switch(index) {
 		case 1:
-			if(gc.guild_id != (uint32)value && log_inter)
+			if(log_inter() && gc.guild_id != (uint32)value)
 			{
 				int gid = (value) ? value : gc.guild_id;
 				CGuild g;
