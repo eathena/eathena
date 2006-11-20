@@ -17,7 +17,6 @@
 #include "../common/socket.h"
 #include "../common/timer.h"
 #include "../common/graph.h"
-#include "../common/grfio.h"
 #include "../common/plugins.h"
 #include "../common/version.h"
 #include "../common/showmsg.h"
@@ -33,8 +32,9 @@ char **arg_v = NULL;
 char *SERVER_NAME = NULL;
 char SERVER_TYPE = ATHENA_SERVER_NONE;
 static void (*term_func)(void) = NULL;
-static char eA_svn_version[10];
-
+#ifndef SVNVERSION
+	static char eA_svn_version[10];
+#endif
 /*======================================
  *	CORE : Set function
  *--------------------------------------
@@ -183,6 +183,7 @@ static void display_title(void)
 {
 	//The clearscreeen is usually more of an annoyance than anything else... [Skotlex]
 //	ClearScreen(); // clear screen and go up/left (0, 0 position in text)
+	//ShowMessage("\n"); //A blank message??
 	printf("\n");
 	ShowMessage(""CL_WTBL"          (=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=)"CL_CLL""CL_NORMAL"\n"); // white writing (37) on blue background (44), \033[K clean until end of file
 	ShowMessage(""CL_XXBL"          ("CL_BT_YELLOW"        (c)2005 eAthena Development Team presents        "CL_XXBL")"CL_CLL""CL_NORMAL"\n"); // yellow writing (33)
@@ -231,7 +232,9 @@ int main (int argc, char **argv)
 			SERVER_NAME = ++p;
 		arg_c = argc;
 		arg_v = argv;
-		*eA_svn_version = '\0';
+		#ifndef SVNVERSION
+			*eA_svn_version = '\0';
+		#endif
 	}
 
 	set_server_type();
