@@ -22,6 +22,7 @@ struct oldeaparserstorage : public parserstorage
 
 struct oldeaprinter : public printer
 {
+	bool cHasDefault;				///< has a default case
 public:
 
 	oldeaprinter()
@@ -46,10 +47,8 @@ public:
 	
 	virtual bool print_beautified(basics::CParser_CommentStore& parser, int rtpos, short parent);
 
-
+	bool transform_function(basics::CParser_CommentStore& parser, int namepos, int parapos);
 	bool transform_print_unprocessed(basics::CParser_CommentStore& parser, int rtpos, short parent);
-	bool transform_cmd_set(basics::CParser_CommentStore& parser, int rtpos, short parent);
-	bool transform_callstm(basics::CParser_CommentStore& parser, int rtpos, short parent);
 	bool transform_identifier(basics::CParser_CommentStore& parser, int rtpos, short parent);
 };
 
@@ -61,7 +60,6 @@ class oldeaParser : public basics::CFileProcessor
 	basics::CParser_CommentStore*	parser;
 	int								option;
 	mutable oldeaprinter			prn;
-
 public:
 	oldeaParser(basics::CParser_CommentStore* p, int o) : parser(p), option(o)
 	{

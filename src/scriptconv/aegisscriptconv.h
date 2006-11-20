@@ -26,6 +26,7 @@ struct aegisprinter : public printer
 	basics::string<>	cMapName;	///< map name of currently processed npc
 	bool cHasTmpstr;				///< has an instance of tempstr
 	bool cHasTmpval;				///< has an instance of tempval
+	bool cHasDefault;				///< has a default case
 
 public:
 	aegisprinter()
@@ -35,13 +36,13 @@ public:
 		if(logfile) fclose(logfile);
 	}
 	virtual bool print_beautified(basics::CParser_CommentStore& parser, int rtpos, short parent);
-	bool print_callstm(basics::CParser_CommentStore& parser, int func, int param);
+	bool print_callstm(basics::CParser_CommentStore& parser, int namepos, int parapos);
 	bool print_varray(basics::CParser_CommentStore& parser, int rtpos, short parent);
 	bool print_npcvarray(basics::CParser_CommentStore& parser, int rtpos, short parent);
 	bool print_opand(basics::CParser_CommentStore& parser, int rtpos, short parent);
 	bool print_idstring(basics::string<>& origstr);
 	bool print_identifier(basics::CParser_CommentStore& parser, int rtpos, short parent);
-	bool print_npchead(const basics::string<>& name, const basics::string<>& map, const basics::string<>& xpos, const basics::string<>& ypos, const char* dir, const char* sprite, const basics::string<>& touchx, const basics::string<>& touchy);
+	bool print_npchead(const char* head, const basics::string<>& name, const basics::string<>& map, const basics::string<>& xpos, const basics::string<>& ypos, const char* dir, const char* sprite, const basics::string<>& touchx, const basics::string<>& touchy);
 };
 
 

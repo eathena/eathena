@@ -7315,7 +7315,7 @@ bool CommandInfo::config_read(const char *cfgName)
 
 	if((fp = basics::safefopen(cfgName, "r")) == NULL)
 	{
-		ShowError("At commands configuration file not found: %s\n", cfgName);
+		ShowError("command configuration file not found: %s\n", cfgName);
 	}
 	else
 	{

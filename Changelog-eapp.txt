@@ -1,4 +1,28 @@
 Date	Added
+11/20
+	* as flaviojs provided a new set of aegis scripts, 
+	  I updated the aegis parser a bit, they run clean
+	  when removing all the original syntax errors:
+	  wide char spaces within code, inconsistent quotes
+	  and missing linefeeds mostly, did not explicitely look
+	  for logical errors but already saw them,
+	  I also updated the aegis grammer to accept statements like
+	  "else <expression>" to be equivalent to "elseif <expression>"
+	  as the aegis script engine apperently is stupid enough
+	  to not recognize this syntactical error.
+	- not sure if it is necessary to provide parsing support
+	  for the std.sc and enum.sc as the first basically contain
+	  the function layout and the second is a different syntax
+	- it could be also considered to support aegis style fsm
+	  for npc/mobs as posted by vicious_pucca:
+	  (http://www.eathena.ws/board/index.php?showtopic=8537)
+	  as it seem rather simple to implement and would
+	  automatically offer the flexibility of a scriptable ai
+	  at almost no performance costs
+	* script converter is reading item/mob/npc db to check
+	  if used items/mobs exist and also using their names
+	  in the scripts instead of the ids, this might reduce
+	  errors by using wrong numbers in the scripts
 11/17
 	* tyr seems down so it will be not updated in parallel today
 	* removes some mistakable config loading

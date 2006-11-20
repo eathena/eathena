@@ -9301,7 +9301,7 @@ int script_config_read(const char *cfgName)
 			}
 			else
 			{
-				ShowWarning("unknown option '%s' in '%s', ignored", w1, cfgName);
+				ShowWarning("unknown option '%s' in '%s', ignored\n", w1, cfgName);
 			}
 		}
 	}

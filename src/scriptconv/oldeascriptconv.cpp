@@ -4,6 +4,7 @@
 
 #include "oldeascriptconv.h"
 #include "oldeascript.h"
+#include "dblookup.h"
 
 
 const unsigned char oldeaengine[] = 
@@ -18,179 +19,8 @@ bool oldeaparserstorage::getEngine(const unsigned char*& buf, unsigned long& sz)
 }
 
 
-///////////////////////////////////////////////////////////////////////////////////////
-// helpers
-///////////////////////////////////////////////////////////////////////////////////////
-
-/////////////////////////////////
-struct itemdb_entry
-{
-	basics::string<>	ID;				// mandatory	unique
-	basics::string<>	Name1;			// mandatory	unique
-	basics::string<>	Name2;			// optional		unique
-	basics::string<>	Type;			// mandatory	
-														// 0: Healing, 2: Usable, 3: Misc, 4: Weapon, 
-														// 5: Armor, 6: Card, 7: Pet Egg,
-														// 8: Pet Equipment, 10: Arrow, 
-														// 11: Usable with delayed consumption (possibly unnecessary)
-	basics::string<>	Price;			// mandatory	as said
-	basics::string<>	Sell;			// optional		defaults to price/2
-	basics::string<>	Weight;			// mandatory	
-	basics::string<>	ATK;			// optional
-	basics::string<>	DEF;			// optional
-	basics::string<>	Range;			// optional
-	basics::string<>	Slot;			// optional
-	basics::string<>	Job;			// optional		when adding 0==all allowed
-	basics::string<>	Upper;			// optional
-	basics::string<>	Gender;			// optional
-	basics::string<>	Loc;			// optional
-	basics::string<>	wLV;			// optional
-	basics::string<>	eLV;			// optional
-	basics::string<>	Refineable;		// optional
-	basics::string<>	View;			// optional
-	basics::string<>	UseScript;		// optional
-	basics::string<>	EquipScript1;	// optional
-	basics::string<>	EquipScript2;	// optional
-
-	bool operator==(const itemdb_entry& me) const	{ return this->ID == me.ID; }
-	bool operator!=(const itemdb_entry& me) const	{ return this->ID != me.ID; }
-	bool operator< (const itemdb_entry& me) const	{ return this->ID <  me.ID; }
-};
-
-/*
-different item types
-each with different additional data
-
-virtual common_item:
-mandatory:
-id, name, (alternative name), type (not allocated), Price, Weight
-optional:
-sell
-
-virtual basic_item : inherits common_item
-optional:
-gender,job,upper,eLV
 
 
-*Healing : inherits basic_item
-mandatory:
-script
-
-*Usable : inherits basic_item
-mandatory:
-script
-
-*delayed Usable : inherits basic_item
-mandatory:
-script
-
-*Misc : inherits common_item
-
-virtual equip_item : inherits basic_item
-mandatory:
-Loc
-optional:
-Slot,Refineable,view, script(s)
-
-*Weapon : inherits equip_item
-mandatory:
-ATK
-optional:
-Range,wLV
-
-*Armor : inherits equip_item
-mandatory:
-DEF
-
-*Card : inherits basic_item
-mandatory:
-Loc
-
-*Arrow : inherits basic_item
-mandatory:
-ATK
-
-*Pet Egg : inherits common_item
-
-*Pet Equipment : inherits common_item
-*/
-
-/////////////////////////////////
-struct mobdb_entry
-{
-	basics::string<>	ID;
-	basics::string<>	Name;
-	basics::string<>	JKName;
-	basics::string<>	IName;
-	basics::string<>	LV;
-	basics::string<>	HP;
-	basics::string<>	SP;
-	basics::string<>	BEXP;
-	basics::string<>	JEXP;
-	basics::string<>	Range1;
-	basics::string<>	ATK1;
-	basics::string<>	ATK2;
-	basics::string<>	DEF;
-	basics::string<>	MDEF;
-	basics::string<>	STR;
-	basics::string<>	AGI;
-	basics::string<>	VIT;
-	basics::string<>	INT;
-	basics::string<>	DEX;
-	basics::string<>	LUK;
-	basics::string<>	Range2;
-	basics::string<>	Range3;
-	basics::string<>	Scale;
-	basics::string<>	Race;
-	basics::string<>	Element;
-	basics::string<>	Mode;
-	basics::string<>	Speed;
-	basics::string<>	ADelay;
-	basics::string<>	aMotion;
-	basics::string<>	dMotion;
-	basics::string<>	Drop1id;
-	basics::string<>	Drop1per;
-	basics::string<>	Drop2id;
-	basics::string<>	Drop2per;
-	basics::string<>	Drop3id;
-	basics::string<>	Drop3per;
-	basics::string<>	Drop4id;
-	basics::string<>	Drop4per;
-	basics::string<>	Drop5id;
-	basics::string<>	Drop5per;
-	basics::string<>	Drop6id;
-	basics::string<>	Drop6per;
-	basics::string<>	Drop7id;
-	basics::string<>	Drop7per;
-	basics::string<>	Drop8id;
-	basics::string<>	Drop8per;
-	basics::string<>	Drop9id;
-	basics::string<>	Drop9per;
-	basics::string<>	DropCardid;
-	basics::string<>	DropCardper;
-	basics::string<>	MEXP;
-	basics::string<>	ExpPer;
-	basics::string<>	MVP1id;
-	basics::string<>	MVP1per;
-	basics::string<>	MVP2id;
-	basics::string<>	MVP2per;
-	basics::string<>	MVP3id;
-	basics::string<>	MVP3per;
-
-	bool operator==(const mobdb_entry& me) const	{ return this->ID == me.ID; }
-	bool operator!=(const mobdb_entry& me) const	{ return this->ID != me.ID; }
-	bool operator< (const mobdb_entry& me) const	{ return this->ID <  me.ID; }
-};
-
-/*
-compound drops to list
-optional:
-mexp, mvp drop list
-*/
-
-
-basics::slist<mobdb_entry>	mobdb;
-basics::slist<itemdb_entry>	itemdb;
 
 
 
@@ -222,7 +52,21 @@ void oldeaprinter::print_newnpchead(const char*name, const char*map, int x, int 
 				", xpos=" << x << 
 				", ypos=" << y << 
 				", dir=" << dirnames[d&0x07] << 
-				", sprite=" << s;
+				", sprite=";
+		
+		const npcdb_entry *npc = npcdb_entry::lookup( basics::string<>(s) );
+		if(npc)
+			prn << '\"' << npc->Name1 << '\"';
+		else
+		{	// test for a mob sprite
+			const mobdb_entry *mob = mobdb_entry::lookup( basics::string<>(s) );
+			if(mob)
+				prn << '\"' << mob->Name1 << '\"';
+			else
+				prn << s;
+		}
+
+			
 	}
 	if(tx>0 || ty>0)
 	{
@@ -230,7 +74,6 @@ void oldeaprinter::print_newnpchead(const char*name, const char*map, int x, int 
 	}
 	prn << ')';
 }
-
 
 void oldeaprinter::print_oldscripthead(const char* str)
 {	// split the old npc header
@@ -391,13 +234,23 @@ void oldeaprinter::print_oldshophead( const char* str )
 
 		if( *str==',' && 2==sscanf(str,",%d:%d%n", &id, &price,&n) )
 		{
-			//## TODO: replace item id's with item names from db
-			prn << '\t' << id;
+			prn << '\t';
+			const itemdb_entry *item = itemdb_entry::lookup( basics::string<>(id) );
+			if(item)
+				prn << '\"' << item->Name1 << '\"';
+			else
+				prn << id;
 			if(price>0)
 				prn << ':' << price;
 			for(str+=n, ++cnt; *str==',' && 2==sscanf(str,",%d:%d%n", &id, &price,&n); str+=n, ++cnt)
 			{	
-				prn << ',' << id;
+				prn << ',';
+				if(cnt%5==0) prn << '\n' << '\t';
+				item = itemdb_entry::lookup( basics::string<>(id) );
+				if(item)
+					prn << '\"' << item->Name1 << '\"';
+				else
+					prn << id;
 				if(price>0)
 					prn << ':' << price;
 			}
@@ -455,11 +308,17 @@ void oldeaprinter::print_oldmonsterhead( const char* str )
 
 		//## TODO check if giving explicit names is necessary, remove them if identical with dbname
 
-		prn << "monster (sprite=" << id << ", name=\"" << name << "\", map=\"" << map << "\"";
+		prn << "monster (sprite=";
+		const mobdb_entry *mob = mobdb_entry::lookup( basics::string<>(id) );
+		if(mob)
+			prn << '\"' << mob->Name1 << '\"';
+		else
+			prn << id;
+		prn << ", name=\"" << name << "\", map=\"" << map << "\"";
 		if( x1||x2||y1||y2 )
 			prn << ", area={" << x1 << ", " << y1 << ", " << x2 << ", " << y2 << '}';
 		prn << ", count=" << cn;
-		if( t1 || t2 )
+		if( t1>0 || t2>0 )
 		{
 			prn << ", respawn=";
 			if(t1>0 && t2>0)
@@ -555,8 +414,8 @@ void oldeaprinter::print_oldmobdbhead( const char* str )
 	
 	mobdb_entry me;
 	me.ID			= strings[ 0];
-	me.Name			= strings[ 1];
-	me.JKName		= strings[ 2];
+	me.Name1		= strings[ 1];
+	me.Name2		= strings[ 2];
 	me.IName		= strings[ 2];
 	me.LV			= strings[ 3];
 	me.HP			= strings[ 4];
@@ -613,11 +472,7 @@ void oldeaprinter::print_oldmobdbhead( const char* str )
 	me.MVP3id		= strings[55];
 	me.MVP3per		= strings[56];
 
-	size_t pos;
-	if( mobdb.find(me,0,pos) ) 
-		fprintf(stderr, "mobdb entry [%s] already exists", (const char*)me.ID);
-
-	mobdb.push(me);
+	mobdb_entry::insert(me);
 }
 
 void oldeaprinter::print_oldmobdbheadea( const char* str )
@@ -633,8 +488,8 @@ void oldeaprinter::print_oldmobdbheadea( const char* str )
 	
 	mobdb_entry me;
 	me.ID			= strings[ 0];
-	me.Name			= strings[ 1];
-	me.JKName		= strings[ 2];
+	me.Name1		= strings[ 1];
+	me.Name2		= strings[ 2];
 	me.IName		= strings[ 3];
 	me.LV			= strings[ 4];
 	me.HP			= strings[ 5];
@@ -690,10 +545,8 @@ void oldeaprinter::print_oldmobdbheadea( const char* str )
 	me.Drop9per		= strings[55];
 	me.DropCardid	= strings[56];
 	me.DropCardper	= strings[57];
-	size_t pos;
-	if( mobdb.find(me,0,pos) ) 
-		fprintf(stderr, "mobdb %s entry already exists", (const char*)me.ID);
-	mobdb.push(me);
+
+	mobdb_entry::insert(me);
 }
 
 int oldeaprinter::print_olditemdbhead( const char* str )
@@ -744,10 +597,7 @@ int oldeaprinter::print_olditemdbhead( const char* str )
 	if( atoi(me.Refineable) <=0 ) me.Refineable = "";
 	if( atoi(me.View) <=0 ) me.View = "";
 
-	size_t pos;
-	if( itemdb.find(me,0,pos) ) 
-		fprintf(stderr, "itemdb %s entry already exists", (const char*)me.ID);
-	itemdb.push(me);
+	itemdb_entry::insert(me);
 
 	prn << me.ID << ','
 		<< me.Name1 << ','
@@ -818,11 +668,7 @@ int oldeaprinter::print_olditemdbheadea( const char* str )
 	if( atoi(me.Refineable) <=0 ) me.Refineable = "";
 	if( atoi(me.View) <=0 ) me.View = "";
 
-
-	size_t pos;
-	if( itemdb.find(me,0,pos) ) 
-		fprintf(stderr, "itemdb %s entry already exists", (const char*)me.ID);
-	itemdb.push(me);
+	itemdb_entry::insert(me);
 
 	prn << me.ID << ','
 		<< me.Name1 << ','
@@ -847,184 +693,334 @@ int oldeaprinter::print_olditemdbheadea( const char* str )
 	return atoi(me.Type);
 }
 
-bool oldeaprinter::transform_cmd_set(basics::CParser_CommentStore& parser, int rtpos, short parent)
-{	// transform "set" functions
-	// from "set <a>, <b>" to "<a> = <b>
+bool oldeaprinter::transform_function(basics::CParser_CommentStore& parser, int namepos, int parapos)
+{
 	oldeaprinter& prn = *this;
-	basics::CStackElement& listnode = parser.rt[parser.rt[rtpos].cChildPos+1];
-	
-	if( listnode.symbol.idx == PT_CALLLIST )
-	{
-		print_beautified(parser, listnode.cChildPos, parent);
-		prn << " = ";
-		if(listnode.cChildNum>2)
-			print_beautified(parser, listnode.cChildPos+2, parent);
-		else
-			prn << '0';
-	}
-	else
-	{	// fix invalid set commands with only one argument
-		print_beautified(parser, parser.rt[rtpos].cChildPos+1, parent);
-		prn << " = ";
-		// fix invalid set commands
-		if(parser.rt[rtpos].cChildNum>3)
-			print_beautified(parser, parser.rt[rtpos].cChildNum+3, parent);
-		else
-			prn << '0';
-		prn << "/* generated from incorrect set (";
-		transform_print_unprocessed(parser,rtpos, parent);
-		prn << ")*/";
-		if( !basics::is_console(stdout) )
-			fprintf(stderr, "incorrect set at line %i\n", (int)parser.rt[parser.rt[rtpos].cChildPos].cToken.line);
-	}
-	return true;
-}
 
-bool oldeaprinter::transform_callstm(basics::CParser_CommentStore& parser, int rtpos, short parent)
-{	// either a real call statement with <function name> <parameter list>
-	// or a function with one argument
-	oldeaprinter& prn = *this;
-	if( parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme=="callfunc" )
-	{	// transform to real function calls
-		// "callfunc <name> <parameterlist>" -> <name>(<parameterlist>)
-		basics::CStackElement& listnode = parser.rt[parser.rt[rtpos].cChildPos+1];
-		if(listnode.cChildNum)
-		{	
-			// listnode's first child is the name, so strip any quote
-			const char* kp=parser.rt[listnode.cChildPos].cToken.cLexeme;
-			for(++kp; *kp && *kp!='"'; ++kp)
-				prn << *kp;
-			
-			// argument list
-			prn << "(";
-			size_t j,k;
-			k = listnode.cChildPos+listnode.cChildNum;
-			for(j=listnode.cChildPos+2; j<k; ++j)
-			{	// go down
-				print_beautified(parser, j, parent);
-			}
-			prn << ");\n";
+	basics::CStackElement *namenode = &parser.rt[namepos];
+	basics::CStackElement *paranode = (parapos>0)?&parser.rt[parapos]:NULL;
+
+	for(; namenode->cChildNum==1; namenode = &parser.rt[ namenode->cChildPos ]) {}
+	if(paranode) for(; paranode->cChildNum==1; paranode = &parser.rt[ paranode->cChildPos ]) {}
+
+	basics::string<> function_name = namenode->cToken.cLexeme;
+	if(namenode->symbol.idx == PT_STRINGLITERAL)
+	{	// first parameter of a callfunc has quotes, need stripping
+		function_name.truncate(1,function_name.size()>2?function_name.size()-2:0);
+	}
+
+	if( function_name=="callfunc" )
+	{	// callfunc <name>, <parameters>
+		// -> <name> '(' <parameers> ')'
+		if(paranode && (paranode->cChildNum==3 || paranode->cChildNum==1) ) 
+		{	// calling function with parameters or with empty list
+			transform_function(parser, paranode->cChildPos, paranode->cChildNum==3?(int)(paranode->cChildPos+2):-1);
+		}
+		else if(paranode && paranode->cChildNum==0) 
+		{	// calling function with given list itself
+			transform_function(parser, parapos, -1);
 		}
 		else
-		{	// listnode itself is the name, so strip any quote
-			const char* kp=listnode.cToken.cLexeme;
-			for(++kp; *kp && *kp!='"'; ++kp)
-				prn << *kp;
-
-			prn << "();\n";
-		}
-	}
-	else if( parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme=="set" )
-	{	// transform "set" functions
-		// from "set <a>, <b>" to "<a> = <b>;
-		transform_cmd_set(parser, rtpos, parent);
-		prn << ";\n";
-	}
-	else if( parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme=="close2" )
-	{	// old close2 behaviour is to only close the window, but not the script
-		// this is now done with the new close function;
-		
-		prn <<	"// the new close function only close the window, but not the script\n"
-				"// this was formally done with close2\n";
-		prn << "close();\n";
-	}
-	else if( parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme=="close" )
-	{	// old close behaviour is to close the window and the script
-		// but very harsh and not waiting for the users close click
-		// this is now done with new end statement;
-		prn <<	"// the new end statement close the window and ends script execution from any calling level\n"
-				"// this was formally done with close\n";
-		prn << "end;\n";
-	}
-	else if( parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme=="menu" )
-	{	// transform "menu" functions
-		// from "menu <a>, labela, <b>, labelb" to 
-		// "switch(select(<a>, <b>); { case 0: goto labela; case 1: goto labelb; default: end(); }
-		basics::CStackElement& listnode = parser.rt[parser.rt[rtpos].cChildPos+1];
-		basics::vector<size_t> items;
-		if( listnode.symbol.idx == PT_CALLLIST )
-		{	// analyze the <call list>
-			size_t i = listnode.cChildPos;
-			size_t k = i+listnode.cChildNum;
-			for(;i<k;)
-			{
-				if( parser.rt[i].symbol.idx == PT_COMMA )
-				{	// skip
-					++i;
-				}
-				else if( parser.rt[i].symbol.idx == PT_CALLLIST )
-				{	// go down
-					k = parser.rt[i].cChildPos+parser.rt[i].cChildNum;
-					i = parser.rt[i].cChildPos;
-				}
-				else
-				{	// remember
-					items.push_back(i);
-					++i;
-				}
-			}
-		}
-		if( (items.size() > 0) && ((items.size()&0x01) == 0) )
-		{	// a list with even number of parameters
-			size_t i;
-			prn << "switch( select(" ;
-			for(i=0;;)
-			{	// print the arguments
-				print_beautified(parser, items[i], parent);
-				i+=2;
-				if(i<items.size()) 
-					prn<<','<<' ';
-				else
-					break;
-			}
-			prn << ") )\n{\n";
-			for(i=1; i<items.size(); i+=2)
-			{	// print the arguments
-				prn << "case " << (1+(i>>1)) << ':' << ' ';
-				if( parser.rt[items[i]].symbol.idx == PT_IDENTIFIER ) // label marker
-					prn << "goto " << parser.rt[items[i]].cToken.cLexeme << ';' << '\n';
-				else // '-'
-					prn << "break;\n";
-			}
-			prn << "default: end;\n}\n";
-		}
-		else
-		{	// line is wrong, comment it
-			prn << "// incorrect menu\n/*";
-			transform_print_unprocessed(parser, rtpos, parent);
-			prn << "*/\n";
-			if( !basics::is_console(stdout) )
-				fprintf(stderr, "incorrect menu at line %i\n", (int)parser.rt[parser.rt[rtpos].cChildPos].cToken.line);
-		}
-	}
-	else
-	{	// transform the rest to function calls
-		// since the grammar is ambiguous
-		// we cannod decide between "func( 1 )" and "func (1)", 
-		// where "1" is a function parameter or "(1)" is a evaluation
-		// so neet to test it explicitely
-
-		// function name
-		char idname[64];
-		const char* tmp = parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme;
-		str2id(idname, sizeof(idname), tmp);
-		prn << idname;
-
-		if( parser.rt[rtpos].cChildNum==3 )
 		{
-			const bool eval = ( PT_EVALUATION==parser.rt[parser.rt[rtpos].cChildPos+1].symbol.idx );
-			if(!eval) prn << '(';
-			print_beautified(parser, parser.rt[rtpos].cChildPos+1, parent);
-			if(!eval) prn << ')';
+			prn << '/' << '*' << " ignoring: ";
+			transform_print_unprocessed(parser, namepos,0);
+			transform_print_unprocessed(parser, parapos,0);
+			prn << '*' << '/';
 		}
-		else
-		{	// no call parameter
-			prn << '('<<')';
+	}
+	else
+	{
+		// generate flat parameter list
+		// also unfold a possible evaluation nonterminal
+		basics::vector<size_t> parameter;
+		if(paranode) // valid parameter node
+		{
+			basics::CStackElement* node = paranode;
+			if( node->symbol.idx==PT_CALLLIST )
+			{	// a list
+
+				size_t i = node->cChildPos;
+				size_t k = i+node->cChildNum;
+				for(;i<k;)
+				{
+					if( parser.rt[i].symbol.idx == PT_COMMA )
+					{	// skip
+						++i;
+					}
+					else if( parser.rt[i].symbol.idx == PT_CALLLIST )
+					{	// go down
+						k = parser.rt[i].cChildPos+parser.rt[i].cChildNum;
+						i = parser.rt[i].cChildPos;
+					}
+					else
+					{	// remember
+						size_t z=i;
+						for(; parser.rt[z].cChildNum==1; z = parser.rt[z].cChildPos) {}
+						parameter.push_back(z);
+						++i;
+					}
+				}
+			}
+			else if( node->symbol.idx==PT_EVALUATION )
+			{	// is '(' <value> ')', so strip the parenthesis
+				parameter.push( node->cChildPos+1 );
+			}
+			else if(paranode->symbol.Type==1 || paranode->cChildNum)
+			{	// a single value
+				parameter.push(parapos);
+			}
+			// empty node otherwise
 		}
-		prn << ';' << '\n';
+
+		///////////////////////////////////////////////////////////////////////
+		// function transformation
+
+		size_t paramcounter= parameter.size();
+
+		if( function_name == "set" )
+		{	// setfunction, 2 parameters
+			// transform to assignment
+			if( parameter.size() )
+			{	
+				print_beautified(parser, parameter[0], PT_EXPR);
+				prn << ' ' << '=' << ' ';
+				if(parameter.size()>1)
+				{
+					if( parameter.size()>2 )
+					{
+						fprintf(stderr, "incorrect set command with more than 2 parameters, line %i, concatinating\n",
+							(int)namenode->cToken.line);
+
+						// concat the values
+						prn << '{';
+						size_t i;
+						for(i=1; i<parameter.size()-1; ++i)
+						{
+							print_beautified(parser, parameter[i], PT_EXPR);
+							prn << ',' << ' ';
+						}
+						print_beautified(parser, parameter[i], PT_EXPR);
+						prn << '}';
+					}
+					else
+					{	// default
+						print_beautified(parser, parameter[1], PT_EXPR);
+					}
+				}
+				else
+				{
+					fprintf(stderr, "incorrect set command with only one parameter, line %i, defaulting\n",
+						(int)namenode->cToken.line);
+					prn << '0';
+				}
+			}
+			// just skip the whole thing when no parameters
+			// quit here
+			return true;
+		}
+		else if( function_name == "callsub" )
+		{	
+			if( parameter.size() )
+			{
+				prn << "callsub(";
+				print_beautified(parser, parameter[0], PT_LABELSTM);
+				prn << ')';
+			}
+			// ignore otherwisse
+			// quit here
+			return true;
+		}
+		else if( namenode->cToken.cLexeme=="close2" )
+		{	// old close2 behaviour is only close the window, but not the script
+			// this is now done with the new close function;
+			
+			prn <<	"// the new close function only close the window, but not the script\n"
+					"// this was formally done with close2\n"
+					"close()";
+			// quit here
+			return true;
+		}
+		else if( function_name=="close" )
+		{	// old close behaviour is to close the window and the script
+			// but very harsh and not waiting for the users close click
+			// this is now done with new end statement;
+			prn <<  "// the new close function only close the window, but not the script\n"
+					"close();\nend";
+			// quit here
+			return true;
+		}
+		else if( function_name=="menu" )
+		{	// transform "menu" functions
+			// from "menu <a>, labela, <b>, labelb" to 
+			// "switch(select(<a>, <b>); { case 1: goto labela; case 2: goto labelb; default: end; }
+
+			if( (parameter.size() > 0) && ((parameter.size()&0x01) == 0) )
+			{	// a list with even number of parameters
+				size_t i;
+				prn << "switch( select(" ;
+				for(i=0;;)
+				{	// print the arguments
+					print_beautified(parser, parameter[i], 0);
+					i+=2;
+					if(i<parameter.size()) 
+						prn<<','<<' ';
+					else
+						break;
+				}
+				prn << ") )\n{\n";
+				for(i=1; i<parameter.size(); i+=2)
+				{	// print the arguments
+					prn << "case " << (1+(i>>1)) << ':' << ' ';
+					if( parser.rt[parameter[i]].symbol.idx == PT_IDENTIFIER ) // label marker
+						prn << "goto " << parser.rt[parameter[i]].cToken.cLexeme << ';' << '\n';
+					else // '-'
+						prn << "break;\n";
+				}
+				prn << "default: end;\n}\n";
+			}
+			else
+			{	// line is wrong, comment it
+				prn << "// incorrect menu\n/*";
+				transform_print_unprocessed(parser, namepos, 0);
+				transform_print_unprocessed(parser, parapos, 0);
+				prn << "*/\n";
+				if( !basics::is_console(stdout) )
+					fprintf(stderr, "incorrect menu at line %i\n", (int)namenode->cToken.line);
+			}
+			// quit here
+			return true;
+		}
+		else if( function_name=="delitem" || function_name=="getitem" || function_name=="getitem2" )
+		{	// delitem/getitem ( <item>, <count>, parameters )
+
+			prn << function_name << '(';
+			if( parameter.size() >=1 )
+			{
+				const itemdb_entry *item = itemdb_entry::lookup(parser.rt[parameter[0]].cToken.cLexeme);
+				if( item )
+				{
+					prn << '\"' << item->Name1 << '\"';
+				}
+				else
+				{
+					print_beautified(parser, parameter[0], 0);
+				}
+				prn << ',' << ' ';
+				if( parameter.size() >=2 )
+				{
+					print_beautified(parser, parameter[1], 0);
+				}
+				else
+				{
+					prn << '1';
+				}
+				if(parameter.size()>2) prn << ',' << ' ';
+				// print the rest starting from position 2
+				paramcounter = 2;
+			}
+		}
+		else if( function_name=="countitem" )
+		{	// countitem ( <item> )
+			prn << "countitem" << '(';
+			if( parameter.size() >=1 )
+			{
+				const itemdb_entry *item = itemdb_entry::lookup(parser.rt[parameter[0]].cToken.cLexeme);
+				if( item )
+				{
+					prn << '\"' << item->Name1 << '\"';
+				}
+				else
+				{
+					print_beautified(parser, parameter[0], 0);
+				}
+			}
+			// no further parameter
+		}
+		else if( function_name == "areamonster" )
+		{	// ea:		monster		<map>,<x>,<y>,<x>,<y>,<name>,<id>,<cnt>,<event>
+			prn << "monster(";
+			if( parameter.size()>=7 )
+			{
+				print_beautified(parser, parameter[0], 0);
+				prn << ',' << ' ';
+				print_beautified(parser, parameter[1], 0);
+				prn << ',' << ' ';
+				print_beautified(parser, parameter[2], 0);
+				prn << ',' << ' ';
+				print_beautified(parser, parameter[3], 0);
+				prn << ',' << ' ';
+				print_beautified(parser, parameter[4], 0);
+				prn << ',' << ' ';
+				print_beautified(parser, parameter[5], 0);
+				prn << ',' << ' ';
+				
+				const mobdb_entry *mob = mobdb_entry::lookup( parser.rt[parameter[6]].cToken.cLexeme );
+				if(mob)
+					prn << '\"' << mob->Name1 << '\"';
+				else
+				{
+					prn << '\"';
+					print_beautified(parser, parameter[6], 0);
+					prn << '\"';
+				}
+				if(parameter.size()>7) prn << ',' << ' ';
+				paramcounter = 7;
+			}
+			else
+				paramcounter = 0;
+		}
+		else if( function_name == "monster" )
+		{	// ea:		monster		<map>,<x>,<y>,<name>,<id>,<cnt>,<event>
+
+			prn << "monster(";
+			if( parameter.size()>=5 )
+			{
+				print_beautified(parser, parameter[0], 0);
+				prn << ',' << ' ';
+				print_beautified(parser, parameter[1], 0);
+				prn << ',' << ' ';
+				print_beautified(parser, parameter[2], 0);
+				prn << ',' << ' ';
+				print_beautified(parser, parameter[3], 0);
+				prn << ',' << ' ';
+				
+				const mobdb_entry *mob = mobdb_entry::lookup( parser.rt[parameter[4]].cToken.cLexeme );
+				if(mob)
+					prn << '\"' << mob->Name1 << '\"';
+				else
+				{
+					prn << '\"';
+					print_beautified(parser, parameter[4], 0);
+					prn << '\"';
+				}
+				if(parameter.size()>5) prn << ',' << ' ';
+				paramcounter = 5;
+			}
+			else
+				paramcounter = 0;
+		}
+		////////////////////
+		else // default is using it is
+		{
+			prn << function_name << '(';
+			paramcounter = 0;
+		}
+
+		if(paramcounter<parameter.size())
+		{
+			size_t i=paramcounter;
+			print_beautified(parser, parameter[i], PT_EXPR);
+			for(++i; i<parameter.size(); ++i)
+			{
+				prn << ',' << ' ';
+				print_beautified(parser, parameter[i], PT_EXPR);
+			}
+		}
+		prn << ')';
 	}
 	return true;
 }
+
 
 bool oldeaprinter::transform_identifier(basics::CParser_CommentStore& parser, int rtpos, short parent)
 {	// convert variable scopes
@@ -1076,9 +1072,12 @@ bool oldeaprinter::transform_identifier(basics::CParser_CommentStore& parser, in
 		add = "account::";
 	}
 	//else
-	// cannot recognize player variables as all identifiers/labels/names end up here
 	// add = "player::";
-
+	else if(parent==0)
+	{
+		add = "player::";
+	}
+	
 	// strip any other stuff from the beginning
 	for( ; str<=epp && !basics::stringcheck::isalnum(*str) && *str!='_'; ++str) {}
 	if(str<=epp)
@@ -1105,15 +1104,15 @@ bool oldeaprinter::transform_identifier(basics::CParser_CommentStore& parser, in
 bool oldeaprinter::transform_print_unprocessed(basics::CParser_CommentStore& parser, int rtpos, short parent)
 {
 	oldeaprinter& prn = *this;
-	size_t j = parser.rt[rtpos].cChildPos;
-	size_t k = j+parser.rt[rtpos].cChildNum;
-	for(; j<k; ++j)
-	{	// go down
-		if( parser.rt[j].symbol.Type == 1 )	// terminal
-		{
-			prn << parser.rt[j].cToken.cLexeme << ' ';
-		}
-		else	// non terminal
+	if( parser.rt[rtpos].symbol.Type == 1 )
+	{	// terminal
+		prn << parser.rt[rtpos].cToken.cLexeme << ' ';
+	}
+	else
+	{	// non terminal
+		size_t j = parser.rt[rtpos].cChildPos;
+		size_t k = j+parser.rt[rtpos].cChildNum;
+		for(; j<k; ++j)
 		{	// go down
 			transform_print_unprocessed(parser, j, parent);
 		}
@@ -1232,20 +1231,26 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 		}
 		case PT_SUBFUNCTION:
 		{	// 'function' <identifier> <block>
-			char idname[64];
-			const char* tmp = parser.rt[parser.rt[rtpos].cChildPos+1].cToken.cLexeme;
-			str2id(idname, sizeof(idname), tmp);
-
-			prn << "function auto " << idname << "() // TODO: add real function parameters\n";
-			// print the function body
+			// 'function' <identifier> ';'
+			prn << "function auto ";
+			prn.print_id(parser.rt[parser.rt[rtpos].cChildPos+1].cToken.cLexeme);
+			prn << "() // TODO: add real function parameters\n";
+			// print the function body or the semicolon
 			print_beautified(parser, parser.rt[rtpos].cChildPos+2, parent);
-
+			break;
+		}
+		case PT_FUNCTION2:
+		{	// identifier '(' <Call Liste> ')'
+			ret = transform_function(parser, parser.rt[rtpos].cChildPos, parser.rt[rtpos].cChildPos+2);
 			break;
 		}
 		case PT_CALLSTM:
-		{
+		{	// identifier <Call List>  ';'
+			// identifier  ';'
 			prn.log(parser, rtpos);
-			ret = transform_callstm(parser, rtpos, parent);
+			ret = transform_function(parser, parser.rt[rtpos].cChildPos, parser.rt[rtpos].cChildNum==3?(int)parser.rt[rtpos].cChildPos+1:-1);
+			if(!prn.newline)
+				prn << ';' << '\n';
 			break;
 		}
 		case PT_ARG:
@@ -1259,7 +1264,7 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 				//we only accept a single "set" command here
 				if( parser.rt[parser.rt[rtpos].cChildPos].cToken.cLexeme=="set" )
 				{	
-					transform_cmd_set(parser, rtpos, parent);
+					transform_function(parser, parser.rt[rtpos].cChildPos, parser.rt[rtpos].cChildPos+1);
 				}
 				else
 				{	// argument is wrong, ignore it
@@ -1365,8 +1370,13 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 				prn << " )\n";
 				prn << "{\n";
 
+				this->cHasDefault = false;
 				print_beautified(parser, parser.rt[rtpos].cChildPos+5, parent);
 				if(!prn.newline) prn << '\n';
+				if( !this->cHasDefault )
+				{	// always add a default case
+					prn << "default:\nend;\n";
+				}
 
 				prn << "}\n";
 			}
@@ -1419,6 +1429,12 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			}
 			else
 			{
+				if( this->cHasDefault )
+				{
+					fprintf(stderr, "multiple default cases, line %i",
+						(int)parser.rt[i].cToken.line);
+				}
+				this->cHasDefault = true;
 				prn << "default";
 			}
 			prn << ":\n";
@@ -1458,7 +1474,7 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 				// print the header
 				// cannot go down recursively because we need the return value,
 				// so just pretend a terminal printing
-				prn.print_comments(parser, parser.rt[rtpos].cToken.line);
+				prn.print_comments(parser, rtpos);
 				
 				// set printer to line mode
 				prn.ignore_nl = true;

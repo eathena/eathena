@@ -182,11 +182,7 @@ void printer::put(const char c)
 			for(i=0; i<scope; ++i)
 				fputc('\t', this->output);
 		}
-
-		
-
 		this->newline = (c=='\n');
-
 		fputc( (this->newline && ignore_nl)?' ':c, this->output);
 	}
 }

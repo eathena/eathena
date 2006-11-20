@@ -2950,7 +2950,7 @@ private:
 			return +1;
 	}
 
-	bool find(const K& key, size_t& pos)
+	bool find(const K& key, size_t& pos) const
 	{
 		return BinarySearchC<K, ptrvector<node>, node*> (key, cVect, cVect.size(), 0, pos, &this->cmp);
 	}
@@ -2990,7 +2990,7 @@ public:
 		cVect.clear();
 	}
 
-	bool exists(const K& key)
+	bool exists(const K& key) const
 	{
 		size_t pos;
 		return this->find(key, pos);
@@ -3089,7 +3089,7 @@ public:
 	virtual size_t length() const		{ return this->cVect.size(); }
 
 private:
-	bool find(const K& key, size_t& pos)
+	bool find(const K& key, size_t& pos) const
 	{
 		return BinarySearch<K, const node*>(key, cVect.begin(), cVect.size(), 0, pos);
 	}
@@ -3106,7 +3106,7 @@ public:
 		cVect.clear();
 	}
 
-	bool exists(const K& key)
+	bool exists(const K& key) const
 	{
 		size_t pos;
 		return this->find(key, pos);
@@ -5405,7 +5405,7 @@ public:
 	{
 		// automatic resize on out-of-bound
 		if( inx>=cCnt )
-		{	
+		{
 			printf("autoresize %lu->%lu\n",(unsigned long)cCnt, (unsigned long)(inx+1));
 			resize(inx+1);
 		}

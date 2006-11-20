@@ -20,14 +20,15 @@ include $(BP)/Makefile.dep
 
 all scriptconv: $(RETURN_PATH)/eascriptconv
 
-$(RETURN_PATH)/eascriptconv: scriptconv.o scriptengine.o oldeascriptconv.o aegisscriptconv.o $(BASE_OBJ)
+$(RETURN_PATH)/eascriptconv: scriptconv.o scriptengine.o dblookup.o oldeascriptconv.o aegisscriptconv.o $(BASE_OBJ)
 	$(CCC) $^ $(LIBS) -o $@
 
-scriptconv.o: scriptconv.cpp scriptengine.h oldeascriptconv.h aegisscriptconv.h $(BASE_H)
+scriptconv.o: scriptconv.cpp scriptengine.h oldeascriptconv.h aegisscriptconv.h dblookup.h $(BASE_H)
 scriptengine.o: scriptengine.cpp scriptengine.h $(BASE_H)
-oldeascriptconv.o: oldeascriptconv.cpp oldeascriptconv.h oldeascript.h oldeascript.engine.txt $(BASE_H)
+dblookup.o: dblookup.cpp dblookup.h $(BASE_H)
+oldeascriptconv.o: oldeascriptconv.cpp oldeascriptconv.h oldeascript.h oldeascript.engine.txt dblookup.h $(BASE_H)
 oldeascript.engine.txt:
-aegisscriptconv.o: aegisscriptconv.cpp aegisscriptconv.h aegisscript.h aegisscript.engine.txt $(BASE_H)
+aegisscriptconv.o: aegisscriptconv.cpp aegisscriptconv.h aegisscript.h aegisscript.engine.txt dblookup.h $(BASE_H)
 aegisscript.engine.txt:
 
 clean:

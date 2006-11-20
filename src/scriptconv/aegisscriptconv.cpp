@@ -4,6 +4,7 @@
 
 #include "aegisscriptconv.h"
 #include "aegisscript.h"
+#include "dblookup.h"
 
 
 /// array for compile-emedded script engine
@@ -20,7 +21,8 @@ bool aegisparserstorage::getEngine(const unsigned char*& buf, unsigned long& sz)
 }
 
 
-bool aegisprinter::print_npchead(const basics::string<>& name,
+bool aegisprinter::print_npchead(const char* head,
+								 const basics::string<>& name,
 								 const basics::string<>& map,
 								 const basics::string<>& xpos,
 								 const basics::string<>& ypos,
@@ -54,7 +56,7 @@ bool aegisprinter::print_npchead(const basics::string<>& name,
 	this->cHasTmpval = false;
 
 
-	prn << "npc ";
+	prn << (head?head:"npc")<< ' ';
 	prn.print_id(tmpname);
 	prn << " (name=\"";
 	prn.print_name(tmpname);
@@ -78,47 +80,47 @@ bool aegisprinter::print_npchead(const basics::string<>& name,
 	return true;
 }
 
-bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int func, int param)
+bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int namepos, int parapos)
 {
 	aegisprinter& prn = *this;
 	basics::CStackElement* funcname;
 
 	// find the function name
-	for(funcname = &parser.rt[ func ]; funcname->symbol.Type != 1; funcname = &parser.rt[ funcname->cChildPos ]) {}
+	for(funcname = &parser.rt[ namepos ]; funcname->symbol.Type != 1; funcname = &parser.rt[ funcname->cChildPos ]) {}
 	if( funcname->symbol.idx == AE_IDENTIFIER )
 	{
+		// generate flat parameter list
 		basics::vector<size_t> parameter;
-		if(param>0) // valid rt position
+		if(parapos>0) // valid parameter node
 		{
-			basics::CStackElement* node = &parser.rt[ param ];
-			if( node->symbol.idx==AE_CALLLIST )
+			basics::CStackElement *paranode = &parser.rt[parapos];
+			for(; paranode->cChildNum==1; paranode = &parser.rt[ paranode->cChildPos ]) {}
+			if( paranode->symbol.idx==AE_CALLLIST )
 			{	// a list
-				for(;;)
+
+				size_t i = paranode->cChildPos;
+				size_t k = i+paranode->cChildNum;
+				for(;i<k;)
 				{
-					if( node->cChildNum )
-					{
-						parameter.push(node->cChildPos+0); // first child is always valid
-						if( node->cChildNum>1 )
-						{	
-							if( parser.rt[node->cChildPos+1].symbol.idx == AE_CALLLIST )
-							{	// calllist continued
-								node = &parser.rt[node->cChildPos+1];
-								continue;
-							}
-							else
-							{	// a final value node
-								parameter.push(node->cChildPos+1); // first child is always valid
-							}
-						}
+					if( parser.rt[i].symbol.idx == AE_CALLLIST )
+					{	// go down
+						k = parser.rt[i].cChildPos+parser.rt[i].cChildNum;
+						i = parser.rt[i].cChildPos;
 					}
-					// always finish 
-					break;
+					else
+					{	// remember
+						size_t z=i;
+						for(; parser.rt[z].cChildNum==1; z = parser.rt[z].cChildPos) {}
+						parameter.push_back(z);
+						++i;
+					}
 				}
 			}
-			else
+			else if(paranode->symbol.Type==1 || paranode->cChildNum)
 			{	// a single value
-				parameter.push(param);
-			}	
+				parameter.push(parapos);
+			}
+			// empty node otherwise
 		}
 		
 		//////////////////////////////////////////////////////////////////
@@ -127,7 +129,7 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int func,
 		{	// open message window and displaytext
 			// new command can have arbitrary arguments, so skip any test
 			prn << "dialog" << '(';
-			if( param>0 ) print_beautified(parser, param, AE_EXPR);
+			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
 		}
 		else if( funcname->cToken.cLexeme == "wait" )
@@ -144,7 +146,7 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int func,
 		{	// displays a selection, aegis menu translates to ea select
 			// arbitrary arguments, so skip any test
 			prn << "select" << '(';
-			if( param>0 ) print_beautified(parser, param, AE_EXPR);
+			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
 		}
 		else if( funcname->cToken.cLexeme == "dlgwritestr" )
@@ -207,11 +209,10 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int func,
 		else if( funcname->cToken.cLexeme == "dropitem" )
 		{	// removes items
 			// translates to delitem, 2 parameters
-			prn << "delitem";
-			prn << "select" << '(';
+			prn << "delitem" << '(';
 ////////
 // add parameter test
-			if( param>0 ) print_beautified(parser, param, AE_EXPR);
+			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
 		}
 		else if( funcname->cToken.cLexeme == "getitem" )
@@ -220,9 +221,31 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int func,
 			prn << "getitem" << '(';
 ////////
 // add parameter test
-			if( param>0 ) print_beautified(parser, param, AE_EXPR);
+			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
 		}
+		else if( funcname->cToken.cLexeme == "sellitem" )
+		{	// add item to a shop, only valid within oninit of a shop npc
+			// 1 parameters, must be identifier
+			if( parapos>0 ) 
+			{
+				prn << "sellitem" << '(';
+				const itemdb_entry* item = itemdb_entry::lookup( parser.rt[parameter[0]].cToken.cLexeme );
+				if( item )
+				{
+					prn << '\"' << item->Name1 << '\"';
+				}
+				else
+				{
+					prn << '\"' << parser.rt[parameter[0]].cToken.cLexeme << '\"';
+					fprintf(stderr, "item id '%s' not found, line %i\n",
+						(const char*)parser.rt[parameter[0]].cToken.cLexeme,
+						(int)parser.rt[parameter[0]].cToken.line);
+				}
+				prn << ')';
+			}
+		}
+		
 		else if( funcname->cToken.cLexeme == "CheckMaxCount" && parameter.size()==2 )
 		{	// possibly tests the itemcount with the second number
 			// translates to countitem with compare, 2 parameters
@@ -231,7 +254,16 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int func,
 			print_beautified(parser, parameter[1], AE_EXPR); // second has the number
 			prn << ' ' << '<' << ' '
 				<< "countitem(";
-			print_beautified(parser, parameter[0], AE_EXPR);
+
+			const itemdb_entry *item = itemdb_entry::lookup(parser.rt[parameter[0]].cToken.cLexeme);
+			if( item )
+			{
+				prn << '\"' << item->Name1 << '\"';
+			}
+			else
+			{
+				print_beautified(parser, parameter[0], AE_EXPR);
+			}
 			prn << ')' << ')';
 		}
 		else if( funcname->cToken.cLexeme == "GetPCCount" )
@@ -239,7 +271,7 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int func,
 			// translates to getmapusers, 1 parameter
 			
 			prn << "getmapusers(";
-			if( param>0 ) print_beautified(parser, param, AE_EXPR);
+			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
 		}
 		else if( funcname->cToken.cLexeme == "Emotion" )
@@ -258,7 +290,7 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int func,
 			prn << "rand" << '(';
 ////////
 // add parameter test
-			if( param>0 ) print_beautified(parser, param, AE_EXPR);
+			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
 		}
 		else if( funcname->cToken.cLexeme == "cmdothernpc" )
@@ -268,7 +300,7 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int func,
 			prn << "cmdothernpc" << '(';
 ////////
 // add parameter test
-			if( param>0 ) print_beautified(parser, param, AE_EXPR);
+			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
 		}
 		else if( funcname->cToken.cLexeme == "moveto" )
@@ -278,7 +310,7 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int func,
 			prn << "warp" << '(';
 ////////
 // add parameter test
-			if( param>0 ) print_beautified(parser, param, AE_EXPR);
+			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
 		}
 		else if( funcname->cToken.cLexeme == "makewaitingroom" )
@@ -287,7 +319,7 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int func,
 			prn << "waitingroom" << '(';
 ////////
 // add parameter test
-			if( param>0 ) print_beautified(parser, param, AE_EXPR);
+			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
 		}
 		else if( funcname->cToken.cLexeme == "warpwaitingpctoarena" )
@@ -296,7 +328,7 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int func,
 			prn << "warpwaitingpc" << '(';
 ////////
 // add parameter test
-			if( param>0 ) print_beautified(parser, param, AE_EXPR);
+			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
 		}
 		else if( funcname->cToken.cLexeme == "callmonster" )
@@ -322,7 +354,16 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int func,
 			prn << ',' << ' ';
 			print_beautified(parser, parameter[2], AE_EXPR);
 			prn << ',' << ' ';
-			print_beautified(parser, parameter[1], AE_EXPR);
+			
+			const mobdb_entry *mob = mobdb_entry::lookup( parser.rt[parameter[1]].cToken.cLexeme );
+			if(mob)
+				prn << '\"' << mob->Name1 << '\"';
+			else
+			{
+				prn << '\"';
+				print_beautified(parser, parameter[1], AE_LABEL);
+				prn << '\"';
+			}
 			prn << ',' << ' ' << '1' << ',' << ' '
 				<< '\"' << this->cEAName << "::" << "OnMyMobDead" << '\"' << ')';
 		}
@@ -346,7 +387,7 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int func,
 			prn << "enablenpc" << '(';
 ////////
 // add parameter test
-			if( param>0 ) print_beautified(parser, param, AE_EXPR);
+			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
 		}
 		else if( funcname->cToken.cLexeme == "disablenpc" )
@@ -356,19 +397,19 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int func,
 			prn << "disablenpc" << '(';
 ////////
 // add parameter test
-			if( param>0 ) print_beautified(parser, param, AE_EXPR);
+			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
 		}
 		//////////////////////////////////////////////////////////////////
 		else
 		{	// default: just use the given function name
 
-			prn.log(parser, func);
+			prn.log(parser, namepos);
 
-			print_beautified(parser, func, AE_CALLSTM);
+			print_beautified(parser, namepos, AE_CALLSTM);
 			// function parameters if exist
 			prn << '(';
-			if( param>0 ) print_beautified(parser, param, AE_EXPR);
+			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
 		}
 		return true;
@@ -431,17 +472,25 @@ bool aegisprinter::print_varray(basics::CParser_CommentStore& parser, int rtpos,
 		prn << "player::skillevel(\"NV_BASIC\")";
 	}
 // the others should be intentory access but double check with a loaded itemdb later
-	else if( node->symbol.idx == AE_IDENTIFIER )
-	{
-		prn << "countitem(\"" << node->cToken.cLexeme << "\")";
-	}
 	else
-	{	// default
+	{
+		const itemdb_entry *item = itemdb_entry::lookup(node->cToken.cLexeme);
+		if( item )
+		{
+			prn << "countitem(\"" << item->Name1 << "\")";
+		}
+		else
+		{	// some char variable (possibly)
+			prn << "player::" << node->cToken.cLexeme;
+		}
+/*		
+		// default
 		prn.log(parser, rtpos);
 		prn << "variable";
 		prn << '[';
 		print_beautified(parser, parser.rt[rtpos].cChildPos+2, AE_ARRAY);
 		prn << ']';
+*/
 	}
 	return true;
 }
@@ -782,6 +831,15 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			print_npcvarray(parser, rtpos, parent);
 			break;
 		}
+		case AE_LOTARRAY:
+		{	// 'lot' '[' DecLiteral DecLiteral ']'
+			// assuming a randomizer
+			const size_t i = parser.rt[rtpos].cChildPos;
+			prn << parser.rt[i+2].cToken.cLexeme << ' ' << '=' << '='
+				<< "rand(" << parser.rt[i+2].cToken.cLexeme << ',' << ' '
+				<< parser.rt[i+3].cToken.cLexeme << ')';
+			break;
+		}
 		case AE_IFSTM:
 		{	// 'if'  <Expr>  <nl> <Stm List> <Elseif Stm> 'endif' <nl>
 			prn << "if( ";
@@ -882,9 +940,14 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			prn << "switch( ";
 			print_beautified(parser, i+1, AE_EXPR); // <expr>
 			prn << " )\n{\n";
+			this->cHasDefault=false;
 			print_beautified(parser, i+3, parent); // <Case Stm>
 			if(!prn.newline)
 				prn << '\n';
+			if( !this->cHasDefault )
+			{	// always add a default case
+				prn << "default:\nend;\n";
+			}
 			prn << "}\n";
 			break;
 		}
@@ -905,6 +968,12 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 				}
 				else
 				{
+					if( this->cHasDefault )
+					{
+						fprintf(stderr, "multiple default cases, line %i",
+							(int)parser.rt[i].cToken.line);
+					}
+					this->cHasDefault=true;
 					prn << "default";
 				}
 				prn << ":\n";
@@ -976,10 +1045,20 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 		{	// <Obj> StringLiteral StringLiteral identifier DecLiteral DecLiteral DecLiteral DecLiteral DecLiteral <nl> <Block>
 			// translates to normal npc
 			size_t i = parser.rt[rtpos].cChildPos;
-			
+
+		
 			basics::string<> sprite;
-			sprite << '\"' << parser.rt[i+3].cToken.cLexeme << '\"';
-			this->print_npchead( parser.rt[i+2].cToken.cLexeme,
+			const npcdb_entry *npc = npcdb_entry::lookup( parser.rt[i+3].cToken.cLexeme );
+			if(npc)
+				sprite << '\"' << npc->Name1 << '\"';
+			else
+				sprite << '\"' << parser.rt[i+3].cToken.cLexeme << '\"'
+						<< "/*unknown sprite id*/";
+
+			const bool shop = parser.rt[i+0].cToken.cLexeme=="trader";
+
+			this->print_npchead( shop?"shop":"npc",
+								 parser.rt[i+2].cToken.cLexeme,
 								 parser.rt[i+1].cToken.cLexeme,
 								 parser.rt[i+4].cToken.cLexeme,
 								 parser.rt[i+5].cToken.cLexeme,
@@ -990,6 +1069,7 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			// script body
 			prn << "{\n";
 			++prn.scope;
+			if(shop) prn << "openshop();\n";
 			prn << "end;\n";
 			// aegis body, should start with a label (most likly OnClick)
 			print_beautified(parser, parser.rt[rtpos].cChildPos+10, parent);
@@ -1003,12 +1083,20 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			// translates to ontouch npc with warp sprite
 			size_t i = parser.rt[rtpos].cChildPos;
 
-			this->print_npchead( parser.rt[i+2].cToken.cLexeme,
+			basics::string<> sprite;
+			const npcdb_entry *npc = npcdb_entry::lookup( "45" );
+			if(npc)
+				sprite << '\"' << npc->Name1 << '\"';
+			else
+				sprite << "45/*\"WARPPOINT\"*/";
+
+			this->print_npchead( "npc",
+								 parser.rt[i+2].cToken.cLexeme,
 								 parser.rt[i+1].cToken.cLexeme,
 								 parser.rt[i+3].cToken.cLexeme,
 								 parser.rt[i+4].cToken.cLexeme,
 								 "0",
-								 "45/*\"WARP\"*/",
+								 sprite,
 								 parser.rt[i+5].cToken.cLexeme,
 								 parser.rt[i+6].cToken.cLexeme);
 			// script body
@@ -1027,12 +1115,20 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			// translates to invisible npc 
 			size_t i = parser.rt[rtpos].cChildPos;
 
-			this->print_npchead( parser.rt[i+2].cToken.cLexeme,
+			basics::string<> sprite;
+			const npcdb_entry *npc = npcdb_entry::lookup( "111" );
+			if(npc)
+				sprite << '\"' << npc->Name1 << '\"';
+			else
+				sprite << "111/*\"HIDDENNPC\"*/";
+
+			this->print_npchead( "npc",
+								 parser.rt[i+2].cToken.cLexeme,
 								 parser.rt[i+1].cToken.cLexeme,
 								 parser.rt[i+3].cToken.cLexeme,
 								 parser.rt[i+4].cToken.cLexeme,
 								 parser.rt[i+5].cToken.cLexeme,
-								 "111/*\"INVISIBLE\"*/",
+								 sprite,
 								 parser.rt[i+6].cToken.cLexeme,
 								 parser.rt[i+7].cToken.cLexeme);
 			// script body
@@ -1044,6 +1140,46 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			--prn.scope;
 			if(!prn.newline) prn << '\n';
 			prn << "}\n";
+			break;
+		}
+		case AE_MOBOBJ:
+		{	// 'putmob' StringLiteral DecLiteral DecLiteral DecLiteral DecLiteral DecLiteral identifier DecLiteral DecLiteral DecLiteral <nl>
+
+			// <> <map> <x> <y> <x> <y> <cnt> <id> <tick1> <tick2> <?>
+			const size_t i = parser.rt[rtpos].cChildPos;
+			prn << "monster (sprite=";
+			const mobdb_entry *mob = mobdb_entry::lookup( parser.rt[i+7].cToken.cLexeme );
+			if(mob)
+				prn << '\"' << mob->Name1 << '\"';
+			else
+			{
+				prn << '\"' << parser.rt[i+7].cToken.cLexeme << '\"';
+				fprintf(stderr, "mob id '%s' not found, line %i\n",
+					(const char*)parser.rt[i+7].cToken.cLexeme,
+					(int)parser.rt[i+7].cToken.line);
+			}
+			prn << ", map=" << parser.rt[i+1].cToken.cLexeme;
+
+			const uint x1 = atoi( parser.rt[i+2].cToken.cLexeme );
+			const uint y1 = atoi( parser.rt[i+3].cToken.cLexeme );
+			const uint x2 = atoi( parser.rt[i+4].cToken.cLexeme );
+			const uint y2 = atoi( parser.rt[i+5].cToken.cLexeme );
+			if( x1||x2||y1||y2 )
+				prn << ", area={" << x1 << ", " << y1 << ", " << x2 << ", " << y2 << '}';
+
+			prn << ", count=" << parser.rt[i+6].cToken.cLexeme;
+
+			const int t1 = atoi( parser.rt[i+8].cToken.cLexeme );
+			const int t2 = atoi( parser.rt[i+9].cToken.cLexeme );
+			if( t1>0 || t2>0 )
+			{
+				prn << ", respawn=";
+				if(t1>0 && t2>0)
+					prn << "{"<< t1 << ", " << t2 << '}';
+				else 
+					prn << (t1>0?t1:t2);
+			}
+			prn << ')' << ';';
 			break;
 		}
 		case AE_NL:
@@ -1103,8 +1239,8 @@ bool aegisParser::process(const char*name) const
 			if( child &&
 				( child->symbol.idx == AE_NPCOBJ ||
 				  child->symbol.idx == AE_WARPOBJ ||
-				  child->symbol.idx == AE_WARPNPCOBJ
-					
+				  child->symbol.idx == AE_WARPNPCOBJ ||
+				  child->symbol.idx == AE_MOBOBJ
 				  )
 			  )
 			{
