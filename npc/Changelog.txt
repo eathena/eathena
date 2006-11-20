@@ -35,6 +35,7 @@ Playtester
 Date		Added
 ======
 11/20
+	* Fixed Sage guest [KarLaeda]
 	* Fixed exploit in Shinokas Quest [KarLaeda]
 11/17
 	* Fixed possible EXP bugs. Look at TRUNK [Lupus]
