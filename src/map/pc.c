@@ -3206,7 +3206,7 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl, int lv)
 		return 0;
 
 
-	for(i = 0; i<MAX_MOB_DROP-1; i++)//Last slot can't be stolen (cards)
+	for(i = 0; i<MAX_STEAL_DROP; i++)
 	{
 		itemid = md->db->dropitem[i].nameid;
 		if(itemid <= 0)
@@ -3214,7 +3214,7 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl, int lv)
 		if(rand() % 10000 < md->db->dropitem[i].p*rate/100)
 			break;
 	}
-	if (i == MAX_MOB_DROP)
+	if (i == MAX_STEAL_DROP)
 		return 0;
 	
 	memset(&tmp_item,0,sizeof(tmp_item));
