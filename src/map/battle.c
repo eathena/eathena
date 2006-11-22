@@ -388,6 +388,12 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 				damage >>= 2; //75% reduction
 		}
 
+		if(sc->data[SC_ARMOR].timer != -1 &&
+			sc->data[SC_ARMOR].val3&flag &&
+			sc->data[SC_ARMOR].val4&flag)
+			//NPC_DEFENDER
+			damage -= damage*sc->data[SC_ARMOR].val2/100;
+
 		if(sc->data[SC_ENERGYCOAT].timer!=-1 && flag&BF_WEAPON){
 			struct status_data *status = status_get_status_data(bl);
 			int per = 100*status->sp / status->max_sp -1; //100% should be counted as the 80~99% interval
@@ -1520,6 +1526,9 @@ static struct Damage battle_calc_weapon_attack(
 					if (sc && sc->data[SC_COMBO].timer != -1 && sc->data[SC_COMBO].val1 == skill_num)
 						skillratio += 10*status_get_lv(src)/3;
 					break;
+				case GS_TRIPLEACTION:
+					skillratio += 50*skill_lv;
+					break;
 				case GS_BULLSEYE:
 					if((tstatus->race == RC_BRUTE || tstatus->race == RC_DEMIHUMAN)
 						&& !(tstatus->mode&MD_BOSS))
@@ -1533,6 +1542,7 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case GS_PIERCINGSHOT:
 					skillratio += 20*skill_lv;
+					flag.idef = flag.idef2 = 1;
 					break;
 				case GS_RAPIDSHOWER:
 					skillratio += 10*skill_lv;
@@ -3197,6 +3207,9 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		case BL_PC:
 		{
 			TBL_PC *sd = (TBL_PC*)t_bl;
+			if (sd->status.karma && t_bl != s_bl && s_bl->type == BL_PC &&
+				((TBL_PC*)s_bl)->status.karma)
+				state |= BCT_ENEMY; //Characters with bad karma may fight amongst them.
 			if (sd->state.monster_ignore && t_bl != s_bl && flag&BCT_ENEMY)
 				return 0; //Global inmunity to attacks.
 			if (sd->state.killable && t_bl != s_bl)
@@ -3418,7 +3431,7 @@ int battle_config_switch(const char *str) {
 		strncmpi(str, "non",3) == 0 ||
 		strncmpi(str, "nein",4) == 0)
 		return 0;
-	return atoi(str);
+	return (int)strtol(str,NULL,0);
 }
 
 static const struct battle_data_short {

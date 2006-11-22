@@ -8,12 +8,13 @@
 #include <math.h>
 #include <limits.h>
 
-#include "../common/socket.h"
 #include "../common/timer.h"
 #include "../common/nullpo.h"
 #include "../common/mmo.h"
 #include "../common/core.h"
 #include "../common/showmsg.h"
+#include "../common/malloc.h"
+#include "../common/socket.h"
 
 #include "atcommand.h"
 #include "log.h"
@@ -5633,6 +5634,10 @@ int atcommand_mapinfo(
 		strcat(atcmd_output, "NoMobLoot | ");
 	if (map[m_id].flag.nomvploot)
 		strcat(atcmd_output, "NoMVPLoot | ");
+	if (map[m_id].flag.partylock)
+		strcat(atcmd_output, "PartyLock | ");
+	if (map[m_id].flag.guildlock)
+		strcat(atcmd_output, "GuildLock | ");
 	clif_displaymessage(fd, atcmd_output);
 
 

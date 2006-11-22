@@ -768,7 +768,6 @@ int skill_get_range2 (struct block_list *bl, int id, int lv)
 		break;
 	// added to allow GS skills to be effected by the range of Snake Eyes [Reddozen]
 	case GS_RAPIDSHOWER:
-	case GS_TRACKING:
 	case GS_PIERCINGSHOT:
 	case GS_FULLBUSTER:
 	case GS_SPREADATTACK:
@@ -2080,7 +2079,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
  *------------------------------------------
  */
 static int skill_area_temp[8];
-static int skill_unit_temp[8];	/* For storing skill_unit ids as players move in/out of them. [Skotlex] */
+static int skill_unit_temp[24];	/* For storing skill_unit ids as players move in/out of them. [Skotlex] */
 static int skill_unit_index=0;	//Well, yeah... am too lazy to pass pointers around :X
 typedef int (*SkillFunc)(struct block_list *, struct block_list *, int, int, unsigned int, int);
 int skill_area_sub (struct block_list *bl, va_list ap)
@@ -3333,17 +3332,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
-	case AL_INCAGI:
-	case AL_BLESSING:
-	case PR_SLOWPOISON:
-	case PR_IMPOSITIO:
-	case PR_LEXAETERNA:
-	case PR_SUFFRAGIUM:
-	case PR_BENEDICTIO:
-		clif_skill_nodamage(src,bl,skillid,skilllv,
-			sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv)));
-		break;
-
 	case CR_PROVIDENCE:
 		if(sd && dstsd){ //Check they are not another crusader [Skotlex]
 			if ((dstsd->class_&MAPID_UPPERMASK) == MAPID_CRUSADER) {	
@@ -3478,6 +3466,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		sc_start4(src,SC_WATK_ELEMENT,100,3,20,0,0,skill_get_time2(skillid, skilllv));
 		if (sd) skill_blockpc_start (sd, skillid, skill_get_time(skillid, skilllv));
 		break;
+
+	case AL_INCAGI:
+	case AL_BLESSING:
+	case PR_SLOWPOISON:
+	case PR_IMPOSITIO:
+	case PR_LEXAETERNA:
+	case PR_SUFFRAGIUM:
+	case PR_BENEDICTIO:
 	case LK_BERSERK:
 	case KN_AUTOCOUNTER:
 	case KN_TWOHANDQUICKEN:	
@@ -3518,6 +3514,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case NJ_KASUMIKIRI:
 	case NJ_UTSUSEMI:
 	case NJ_NEN:
+	case NPC_DEFENDER:
 		clif_skill_nodamage(src,bl,skillid,skilllv,
 			sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv)));
 		break;
@@ -4624,8 +4621,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case NPC_REBIRTH:
-		//New rebirth System uses Kaizel lv1. [Skotlex]
-		sc_start(bl,type,100,1,skill_get_time(SL_KAIZEL,skilllv));
+		//New rebirth System uses Kaizel [Skotlex]
+		sc_start(bl,type,100,skilllv,skill_get_time(SL_KAIZEL,skilllv));
 		break;
 
 	case NPC_DARKBLESSING:
@@ -4721,10 +4718,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					skillid==NPC_EMOTION   ?md->db->skill[md->skillidx].val[2]:0,
 					skill_get_time(skillid, skilllv));
 		}
-		break;
-
-	case NPC_DEFENDER:
-		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		break;
 
 	case NPC_POWERUP:
@@ -5233,9 +5226,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case GS_CRACKER:
 		if (!dstsd)	// according to latest patch, should not work on players [Reddozen]
 		{
-			int rate=10+(skill_get_range2(src,skillid,skilllv)-distance_bl(src,bl))*20;
+			i =65 -5*distance_bl(src,bl); //Base rate
+			if (i < 30) i = 30;
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			sc_start(bl,SC_STUN,(rate>100)?100:rate,skilllv,skill_get_time2(skillid,skilllv)); //New temp stun rate (by RockmanEXE)
+			sc_start(bl,SC_STUN, i,skilllv,skill_get_time2(skillid,skilllv));
 		}
 		else if (sd)
 			clif_skill_fail(sd,skillid,0,0);
@@ -5368,6 +5362,12 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 		if(md) {
 			if(ud->skillid != NPC_EMOTION)//Set afterskill delay.
 				md->last_thinktime=tick + (tid==-1?md->status.adelay:md->status.amotion);
+			if(battle_config.mob_ai&0x200) { //pass on delay to same skill.
+				int i;
+				for (i = 0; i < md->db->maxskill; i++)
+					if (md->db->skill[i].skill_id == ud->skillid)
+						md->skilldelay[i]=tick;
+			} else
 			if(md->skillidx >= 0) {
 				md->skilldelay[md->skillidx]=tick;
 				if (md->db->skill[md->skillidx].emotion >= 0)
@@ -5537,6 +5537,12 @@ int skill_castend_pos (int tid, unsigned int tick, int id, int data)
 
 		if(md) {
 			md->last_thinktime=tick + (tid==-1?md->status.adelay:md->status.amotion);
+			if(battle_config.mob_ai&0x200) { //pass on delay to same skill.
+				int i;
+				for (i = 0; i < md->db->maxskill; i++)
+					if (md->db->skill[i].skill_id == ud->skillid)
+						md->skilldelay[i]=tick;
+			} else
 			if(md->skillidx >= 0) {
 				md->skilldelay[md->skillidx]=tick;
 				if (md->db->skill[md->skillidx].emotion >= 0)
@@ -7686,6 +7692,7 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 	case PA_GOSPEL:
 	case CR_SHRINK:
 	case TK_RUN:
+	case GS_GATLINGFEVER:
 		if(sc && sc->data[SkillStatusChangeTable(skill)].timer!=-1)
 			return 1; //Allow turning off.
 		break;
@@ -9004,6 +9011,15 @@ int skill_cell_overlap(struct block_list *bl, va_list ap)
 // Suiton/Kaensin CAN super-impose on each another.
 //		case NJ_SUITON:
 //		case NJ_KAENSIN:
+// The official implementation makes them fail to appear when casted on top of ANYTHING
+// but I wonder if they didn't actually meant to fail when casted on top of each other?
+// hence, I leave the alternate implementation here, commented. [Skotlex]
+			if (unit->range <= 0)
+			{
+				(*alive) = 0;
+				return 1;
+			}
+/*
 			switch (unit->group->skill_id)
 			{	//These cannot override each other.
 				case SA_VOLCANO:
@@ -9014,6 +9030,7 @@ int skill_cell_overlap(struct block_list *bl, va_list ap)
 					(*alive) = 0;
 					return 1;
 			}
+*/
 			break;
 		case PF_FOGWALL:
 			switch(unit->group->skill_id)
@@ -9763,15 +9780,21 @@ int skill_unit_move_sub (struct block_list *bl, va_list ap)
 				if (flag&2)
 				{	//Clear skill ids we have stored in onout.
 					int i;
-					for(i=0; i<8 && skill_unit_temp[i]!=skill_id; i++);
-					if (i<8)
+					for(i=0; i < (sizeof(skill_unit_temp)/sizeof(int)) &&
+						skill_unit_temp[i]!=skill_id; i++);
+					if (i < (sizeof(skill_unit_temp)/sizeof(int)))
 						skill_unit_temp[i] = 0;
 				}
 			}
 			else
 			{
-				if (flag&2 && skill_unit_index < 7) //Store this unit id.
-					skill_unit_temp[skill_unit_index++] = skill_id;
+				if (flag&2) { //Store this unit id.
+					if (skill_unit_index < (sizeof(skill_unit_temp)/sizeof(int)))
+						skill_unit_temp[skill_unit_index++] = skill_id;
+					else if (battle_config.error_log)
+						ShowError("skill_unit_move_sub: Reached limit of unit objects per cell!\n");
+				}
+
 			}
 			if (flag&4)
 				skill_unit_onleft(skill_id,target,tick);
@@ -9787,16 +9810,21 @@ int skill_unit_move_sub (struct block_list *bl, va_list ap)
 		if (flag&2 && result)
 		{	//Clear skill ids we have stored in onout.
 			int i;
-			for(i=0; i<8 && skill_unit_temp[i]!=result; i++);
-			if (i<8)
+			for(i=0; i < (sizeof(skill_unit_temp)/sizeof(int)) &&
+				skill_unit_temp[i]!=result; i++);
+			if (i < (sizeof(skill_unit_temp)/sizeof(int)))
 				skill_unit_temp[i] = 0;
 		}
 	}
 	else
 	{
 		result = skill_unit_onout(unit,target,tick);
-		if (flag&2 && skill_unit_index < 7 && result) //Store this unit id.
-			skill_unit_temp[skill_unit_index++] = result;
+		if (flag&2 && result) { //Store this unit id.
+			if (skill_unit_index < (sizeof(skill_unit_temp)/sizeof(int)))
+				skill_unit_temp[skill_unit_index++] = result;
+			else if (battle_config.error_log)
+				ShowError("skill_unit_move_sub: Reached limit of unit objects per cell!\n");
+		}
 	}
 
 	if (flag&64)
@@ -9835,7 +9863,8 @@ int skill_unit_move (struct block_list *bl, unsigned int tick, int flag)
 	if (flag&2 && flag&1)
 	{ //Onplace, check any skill units you have left.
 		int i;
-		for (i=0; i< 8 && skill_unit_temp[i]>0; i++)
+		for (i=0; i < (sizeof(skill_unit_temp)/sizeof(int)) &&
+			skill_unit_temp[i]; i++)
 			skill_unit_onleft(skill_unit_temp[i], bl, tick);
 	}
 
@@ -10828,7 +10857,11 @@ int skill_readdb (void)
 		p = split[8];
 		for(j=0;j<32;j++){
 			l = atoi(p);
-			if (l)
+			if (l==99) {
+				skill_db[i].ammo = 0xffffffff;
+				break;
+			}
+			else if (l)
 				skill_db[i].ammo |= 1<<l;
 			p=strchr(p,':');
 			if(!p)

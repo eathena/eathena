@@ -211,7 +211,7 @@ void initChangeTables(void) {
 	add_sc(NPC_SLEEPATTACK, SC_SLEEP);
 	set_sc(NPC_KEEPING, SC_KEEPING, SI_BLANK, SCB_DEF);
 	add_sc(NPC_DARKBLESSING, SC_COMA);
-	set_sc(NPC_BARRIER, SC_BARRIER, SI_BLANK, SCB_MDEF);
+	set_sc(NPC_BARRIER, SC_BARRIER, SI_BLANK, SCB_MDEF|SCB_DEF);
 	add_sc(NPC_LICK, SC_STUN);
 	set_sc(NPC_HALLUCINATION, SC_HALLUCINATION, SI_HALLUCINATION, SCB_NONE);
 	add_sc(NPC_REBIRTH, SC_KAIZEL);
@@ -2729,12 +2729,17 @@ void status_calc_bl(struct block_list *bl, unsigned long flag)
 
 	if(flag&SCB_WATK) {
 		status->rhw.atk = status_calc_watk(bl, sc, b_status->rhw.atk);
-		status->rhw.atk2 = status_calc_watk(bl, sc, b_status->rhw.atk2);
+		if (!sd) //Should not affect weapon refine bonus
+			status->rhw.atk2 = status_calc_watk(bl, sc, b_status->rhw.atk2);
 		if(status->lhw && b_status->lhw && b_status->lhw->atk) {
-			if (sd) sd->state.lr_flag = 1;
-			status->lhw->atk = status_calc_watk(bl, sc, b_status->lhw->atk);
-			status->lhw->atk2 = status_calc_watk(bl, sc, b_status->lhw->atk2);
-			if (sd) sd->state.lr_flag = 0;
+			if (sd) {
+				sd->state.lr_flag = 1;
+				status->lhw->atk = status_calc_watk(bl, sc, b_status->lhw->atk);
+				sd->state.lr_flag = 0;
+			} else {
+				status->lhw->atk = status_calc_watk(bl, sc, b_status->lhw->atk);
+				status->lhw->atk2= status_calc_watk(bl, sc, b_status->lhw->atk2);
+			}
 		}
 	}
 
@@ -3281,16 +3286,18 @@ static signed char status_calc_def(struct block_list *bl, struct status_change *
 
 	if(sc->data[SC_BERSERK].timer!=-1)
 		return 0;
-	if(sc->data[SC_KEEPING].timer!=-1)
-		return 100;
 	if(sc->data[SC_SKA].timer != -1)
 		return sc->data[SC_SKA].val3;
-	if (sc->data[SC_DEFENCE].timer != -1)	//[orn]
-		def += sc->data[SC_DEFENCE].val2 ;
+	if(sc->data[SC_BARRIER].timer!=-1)
+		return 100;
+	if(sc->data[SC_KEEPING].timer!=-1)
+		return 90;
 	if(sc->data[SC_STEELBODY].timer!=-1)
 		return 90;
 	if(sc->data[SC_DRUMBATTLE].timer!=-1)
 		def += sc->data[SC_DRUMBATTLE].val3;
+	if (sc->data[SC_DEFENCE].timer != -1)	//[orn]
+		def += sc->data[SC_DEFENCE].val2 ;
 	if(sc->data[SC_INCDEFRATE].timer!=-1)
 		def += def * sc->data[SC_INCDEFRATE].val1/100;
 	if(sc->data[SC_FREEZE].timer!=-1)
@@ -3397,26 +3404,27 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 	if(sc->data[SC_WEDDING].timer!=-1)
 		speed += 300;
 
-	//% increases (they don't stack, with the exception of Speedup1? @.@)
-	if(sc->data[SC_SPEEDUP1].timer!=-1)
-		speed -= speed * 50/100;
-	if(sc->data[SC_RUN].timer!=-1)
-		speed -= speed * 50/100;
-	else if(sc->data[SC_SPEEDUP0].timer!=-1)
-		speed -= speed * 25/100;
-	else if(sc->data[SC_INCREASEAGI].timer!=-1)
-		speed -= speed * 25/100;
-	else if(sc->data[SC_FUSION].timer != -1)
-		speed -= speed * 25/100;
-	else if(sc->data[SC_CARTBOOST].timer!=-1)
-		speed -= speed * 20/100;
-	else if(sc->data[SC_BERSERK].timer!=-1)
-		speed -= speed * 20/100;
-	else if(sc->data[SC_AVOID].timer!=-1)
-		speed -= speed * sc->data[SC_AVOID].val2/100;
-	else if(sc->data[SC_WINDWALK].timer!=-1)
-		speed -= speed * sc->data[SC_WINDWALK].val3/100;
-
+	if(sc->data[SC_GATLINGFEVER].timer==-1)
+	{	//% increases (they don't stack, with the exception of Speedup1? @.@)
+		if(sc->data[SC_SPEEDUP1].timer!=-1)
+			speed -= speed * 50/100;
+		if(sc->data[SC_RUN].timer!=-1)
+			speed -= speed * 50/100;
+		else if(sc->data[SC_SPEEDUP0].timer!=-1)
+			speed -= speed * 25/100;
+		else if(sc->data[SC_INCREASEAGI].timer!=-1)
+			speed -= speed * 25/100;
+		else if(sc->data[SC_FUSION].timer != -1)
+			speed -= speed * 25/100;
+		else if(sc->data[SC_CARTBOOST].timer!=-1)
+			speed -= speed * 20/100;
+		else if(sc->data[SC_BERSERK].timer!=-1)
+			speed -= speed * 20/100;
+		else if(sc->data[SC_AVOID].timer!=-1)
+			speed -= speed * sc->data[SC_AVOID].val2/100;
+		else if(sc->data[SC_WINDWALK].timer!=-1)
+			speed -= speed * sc->data[SC_WINDWALK].val3/100;
+	}
 	//% reductions	 (they stack)
 	if(sc->data[SC_DANCING].timer!=-1 && sc->data[SC_DANCING].val3&0xFFFF)
 		speed += speed*(sc->data[SC_DANCING].val3&0xFFFF)/100;
@@ -5267,7 +5275,10 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			break;
 
 		case SC_FLING:
-			val2 = 5*val1; //Def reduction
+			if (bl->type == BL_PC)
+				val2 = 0; //No armor reduction to players.
+			else
+				val2 = 5*val1; //Def reduction
 			val3 = 5*val1; //Def2 reduction
 			break;
 		case SC_PROVOKE:
@@ -5341,6 +5352,13 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 		case SC_SPIDERWEB:
 			if (map[bl->m].flag.pvp)
 				tick /=2;
+			break;
+		case SC_ARMOR:
+			//NPC_DEFENDER:
+			val2 = 80; //Damage reduction
+			//Attack requirements to be blocked:
+			val3 = BF_LONG; //Range
+			val4 = BF_WEAPON|BF_MISC; //Type
 			break;
 		case SC_INTRAVISION:
 		case SC_ARMOR_ELEMENT:
@@ -6370,6 +6388,8 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		break;
 		
 	case SC_BERSERK:
+		//The damage below should be made aware that Berserk is active.
+		sc->data[type].timer = temp_timerid;
 		// 5% every 10 seconds [DracoRPG]
 		if((--sc->data[type].val3)>0 && status_charge(bl, sc->data[type].val2, 0))
 		{

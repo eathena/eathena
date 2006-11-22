@@ -544,7 +544,7 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range, int state
 	switch (state) {
 		case MSS_RUSH:
 		case MSS_FOLLOW:
-			easy = 0; //(battle_config.mob_ai&1?0:1);
+			easy = 0; //(battle_config.mob_ai&0x1?0:1);
 			break;
 		case MSS_LOOT:
 		default:
@@ -720,14 +720,14 @@ static int mob_can_changetarget(struct mob_data* md, struct block_list* target, 
 	{	
 		if (md->state.provoke_flag == target->id)
 			return 1;
-		else if (!battle_config.mob_ai&4)
+		else if (!battle_config.mob_ai&0x4)
 			return 0;
 	}
 	
 	switch (md->state.skillstate) {
 		case MSS_BERSERK: //Only Assist, Angry or Aggressive+CastSensor mobs can change target while attacking.
-			if (mode&(MD_ASSIST|MD_ANGRY) || (mode&(MD_AGGRESSIVE|MD_CASTSENSOR)) == (MD_AGGRESSIVE|MD_CASTSENSOR))
-				return (battle_config.mob_ai&4 || check_distance_bl(&md->bl, target, 3));
+			if (mode&(MD_ASSIST|MD_ANGRY|MD_CHANGETARGET) || (mode&(MD_AGGRESSIVE|MD_CASTSENSOR)) == (MD_AGGRESSIVE|MD_CASTSENSOR))
+				return (battle_config.mob_ai&0x4 || check_distance_bl(&md->bl, target, 3));
 			else
 				return 0;
 		case MSS_RUSH:
@@ -830,23 +830,18 @@ static int mob_ai_sub_hard_changechase(struct block_list *bl,va_list ap)
 	target= va_arg(ap,struct block_list**);
 
 	//If can't seek yet, not an enemy, or you can't attack it, skip.
-	if ((*target) == bl || battle_check_target(&md->bl,bl,BCT_ENEMY)<=0 || !status_check_skilluse(&md->bl, bl, 0, 0))
+	if ((*target) == bl ||
+		battle_check_target(&md->bl,bl,BCT_ENEMY)<=0 ||
+	  	!status_check_skilluse(&md->bl, bl, 0, 0))
 		return 0;
 
-	switch (bl->type)
+	if(battle_check_range (&md->bl, bl, md->status.rhw.range))
 	{
-	case BL_PC:
-	case BL_MOB:
-		if(battle_check_range (&md->bl, bl, md->status.rhw.range))
-	  	{
-			(*target) = bl;
-			md->target_id=bl->id;
-			md->min_chase= md->db->range3;
-			return 1;
-		}
-		break;
+		(*target) = bl;
+		md->target_id=bl->id;
+		md->min_chase= md->db->range3;
 	}
-	return 0;
+	return 1;
 }
 
 
@@ -1072,14 +1067,14 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		tbl = map_id2bl(md->target_id);
 		if (!tbl || tbl->m != md->bl.m ||
 			(md->ud.attacktimer == -1 && !status_check_skilluse(&md->bl, tbl, 0, 0)) ||
-			(md->ud.walktimer != -1 && !(battle_config.mob_ai&1) && !check_distance_bl(&md->bl, tbl, md->min_chase)) ||
+			(md->ud.walktimer != -1 && !(battle_config.mob_ai&0x1) && !check_distance_bl(&md->bl, tbl, md->min_chase)) ||
 			(
 				tbl->type == BL_PC && !(mode&MD_BOSS) &&
 				((TBL_PC*)tbl)->state.gangsterparadise
 		)) {	//Unlock current target.
-			if (battle_config.mob_ai&8) //Inmediately stop chasing.
+			if (battle_config.mob_ai&0x8) //Inmediately stop chasing.
 				mob_stop_walking(md,1);
-			mob_unlocktarget(md, tick-(battle_config.mob_ai&8?3000:0)); //Imediately do random walk.
+			mob_unlocktarget(md, tick-(battle_config.mob_ai&0x8?3000:0)); //Imediately do random walk.
 			tbl = NULL;
 		}
 	}
@@ -1090,7 +1085,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		if (md->attacked_id == md->target_id)
 		{
 			if (!battle_check_range(&md->bl, tbl, md->status.rhw.range) &&
-				((!can_move && battle_config.mob_ai&2) ||
+				((!can_move && battle_config.mob_ai&0x2) ||
 				(!mob_can_reach(md, tbl, md->min_chase, MSS_RUSH))))
 			{	//Rude-attacked (avoid triggering due to can-walk delay).
 				if (DIFF_TICK(tick, md->ud.canmove_tick) > 0 &&
@@ -1102,7 +1097,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			if (md->bl.m != abl->m || abl->prev == NULL ||
 				(dist = distance_bl(&md->bl, abl)) >= MAX_MINCHASE ||
 				battle_check_target(bl, abl, BCT_ENEMY) <= 0 ||
-				(battle_config.mob_ai&2 && !status_check_skilluse(bl, abl, 0, 0)) ||
+				(battle_config.mob_ai&0x2 && !status_check_skilluse(bl, abl, 0, 0)) ||
 				!mob_can_reach(md, abl, dist+md->db->range3, MSS_RUSH) ||
 				(	//Gangster Paradise check
 					abl->type == BL_PC && !(mode&MD_BOSS) &&
@@ -1118,7 +1113,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 						unit_walktoxy(&md->bl, md->bl.x + dist * mask[dir][0], md->bl.y + dist * mask[dir][1], 0);
 					}
 				}
-			} else if (!(battle_config.mob_ai&2) && !status_check_skilluse(bl, abl, 0, 0)) {
+			} else if (!(battle_config.mob_ai&0x2) && !status_check_skilluse(bl, abl, 0, 0)) {
 				//Can't attack back, but didn't invoke a rude attacked skill...
 				md->attacked_id = 0; //Simply unlock, shouldn't attempt to run away when in dumb_ai mode.
 			} else { //Attackable
@@ -1202,7 +1197,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				md->state.skillstate = md->state.aggressive?MSS_FOLLOW:MSS_RUSH;
 				if (md->ud.walktimer != -1 && md->ud.target == tbl->id &&
 					(
-						!(battle_config.mob_ai&1) ||
+						!(battle_config.mob_ai&0x1) ||
 						check_distance_blxy(tbl, md->ud.to_x, md->ud.to_y, md->status.rhw.range)
 				)) //Current target tile is still within attack range.
 					return 0;
@@ -1316,7 +1311,7 @@ static int mob_ai_sub_lazy(DBKey key,void * data,va_list ap)
 	if(md->bl.type!=BL_MOB || md->bl.prev == NULL)
 		return 0;
 
-	if (battle_config.mob_ai&32 && map[md->bl.m].users>0)
+	if (battle_config.mob_ai&0x20 && map[md->bl.m].users>0)
 		return mob_ai_sub_hard(&md->bl, ap);
 
 	tick=va_arg(ap,unsigned int);
@@ -1385,7 +1380,7 @@ static int mob_ai_lazy(int tid,unsigned int tick,int id,int data)
 static int mob_ai_hard(int tid,unsigned int tick,int id,int data)
 {
 
-	if (battle_config.mob_ai&32)
+	if (battle_config.mob_ai&0x20)
 		map_foreachiddb(mob_ai_sub_lazy,tick);
 	else
 		clif_foreachclient(mob_ai_sub_foreachclient,tick);
@@ -1938,6 +1933,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 							drop_rate = battle_config.item_drop_adddrop_min;
 						else if (drop_rate > battle_config.item_drop_adddrop_max)
 							drop_rate = battle_config.item_drop_adddrop_max;
+						if (drop_rate > 10000) drop_rate = 10000;
 					}
 					else
 						//it's positive, then it goes as it is
@@ -2492,7 +2488,7 @@ int mob_getfriendstatus_sub(struct block_list *bl,va_list ap)
 	nullpo_retr(0, md=(struct mob_data *)bl);
 	nullpo_retr(0, mmd=va_arg(ap,struct mob_data *));
 
-	if( mmd->bl.id == bl->id && !(battle_config.mob_ai&16) )
+	if( mmd->bl.id == bl->id && !(battle_config.mob_ai&0x10) )
 		return 0;
 
 	if (battle_check_target(&mmd->bl,bl,BCT_ENEMY)>0)
@@ -2545,7 +2541,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 		return 0; //Skill act delay only affects non-event skills.
 
 	//Pick a starting position and loop from that.
-	i = battle_config.mob_ai&256?rand()%md->db->maxskill:0;
+	i = battle_config.mob_ai&0x100?rand()%md->db->maxskill:0;
 	for (n = 0; n < md->db->maxskill; i++, n++) {
 		int c2, flag = 0;		
 

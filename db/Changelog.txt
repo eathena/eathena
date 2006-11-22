@@ -1,3 +1,6 @@
+11/22
+	* Merged GS skill cast times and requirements. All Coin-skills are now
+	  usable with any weapon [Skotlex]
 11/14
 	* Removed inf2 = trap from Firepillar and Spider Web [Skotlex]
 	* Wand of Hermod's range from warp has been reduced to 1. [Skotlex]

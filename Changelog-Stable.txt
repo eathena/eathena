@@ -4,6 +4,27 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/11/22
+	* Multiple trunk merges:[Skotlex]
+	- Merged Warmth skills hitting rate (it's like twice than before).
+	- Added mapflags partylock/guildlock to prevent party/guild manipulations
+	  on maps where they are set
+	- Merged implementation of NPC_DEFENDER, correction of NPC_KEEPING and
+	  NPC_BARRIER
+	- Triple Action does 150%*3 damage, and Piercing Shot ignores defense,
+	  corrected stun chance of Cracker. Gatling fever's speed bonus blocks speed
+	  bonuses from taking effect. Fling's armor reduction does not apply to
+	  players.
+	- Merged monster_ai&0x200 (share skill delay)
+	- official Deluge/v Gale/Volcano implementation where cells won't overlap
+	  on top of other effects.
+	- Watk bonuses will only apply to the character's weapon power, not refine
+	  power (atk2)
+	- Implemented enabling chars with bad karma to attack each other.
+	- Support for reading hexadecimals as valid values from the battle config
+	  files.
+	- Merged pet ai improvements in regards to looting.
+	- Merged multiple small changes/fixes that were in trunk since a while ago.
 2006/11/21
 	* Fixed always stealing slot 9. [Skotlex]
 2006/11/17

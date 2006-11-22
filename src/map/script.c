@@ -174,7 +174,7 @@ enum {
 	MF_NOTRADE,
 	MF_NOSKILL,
 	MF_NOWARP,
-	MF_FREE,
+	MF_PARTYLOCK,
 	MF_NOICEWALL,
 	MF_SNOW,
 	MF_FOG,
@@ -204,7 +204,8 @@ enum {
 	MF_NOVENDING,
 	MF_LOADEVENT,
 	MF_NOCHAT,
-	MF_NOEXPPENALTY
+	MF_NOEXPPENALTY,
+	MF_GUILDLOCK
 };
 
 //Reports on the console the src of an script error.
@@ -8304,6 +8305,13 @@ int buildin_setmapflag(struct script_state *st)
 				break;
 			case MF_NOCHAT:
 				map[m].flag.nochat=1;
+				break;
+			case MF_PARTYLOCK:
+				map[m].flag.partylock=1;
+				break;
+			case MF_GUILDLOCK:
+				map[m].flag.guildlock=1;
+				break;
 		}
 	}
 
@@ -8449,6 +8457,13 @@ int buildin_removemapflag(struct script_state *st)
 				break;
 			case MF_NOCHAT:
 				map[m].flag.nochat=0;
+				break;
+			case MF_PARTYLOCK:
+				map[m].flag.partylock=0;
+				break;
+			case MF_GUILDLOCK:
+				map[m].flag.guildlock=0;
+				break;
 		}
 	}
 
