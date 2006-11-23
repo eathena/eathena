@@ -1,3 +1,10 @@
+11/23
+	* Merged create_arrow_db, item_db, item_violetbox, mob_db and mob_skill_db [Playtester]
+	- fixed comments in create arrow db
+	- updated healing items and made all cards "card type"
+	- raised chance you get an OVB from and OVB
+	- official mob stats of X.1 - X.4 mobs
+	- official X.3 and X.4 mob skills
 11/22
 	* Merged GS skill cast times and requirements. All Coin-skills are now
 	  usable with any weapon [Skotlex]
