@@ -961,7 +961,7 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list),int m,int x0,i
 	for(i=blockcount;i<bl_list_count;i++)
 		if(bl_list[i]->prev) {	// 有?かどうかチェック
 			if (bl_list[i]->type == BL_PC
-			  && ((TBL_PC*) bl_list[i])->fd == 0)
+				&& session[((TBL_PC*) bl_list[i])->fd] == NULL)
 				continue;
 			returnCount += func(bl_list[i],ap);
 		}

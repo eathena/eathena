@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/11/24
+	* Reverted a small change in map_foreachinmovearea which caused autotraders
+	  to not popup on sight of players. [Skotlex]
 	* Updated mysql and project files according to trunk 6079 and 6080 [FlavioJS]
 	- mysql 5.16 -> mysql 5.20
 	- project files build executables that use the mysql dll
