@@ -913,7 +913,7 @@ void CSQLParameter::rebuild()
 		 
 			 "PRIMARY KEY (`name`,`stortype`,`storid`),"
 			 "KEY `name` (`name`),"
-			 "KEY `storid` (`storid`),"
+			 "KEY `storid` (`storid`)"
 			 ") "
 			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine);
 	dbcon1.PureQuery(query);

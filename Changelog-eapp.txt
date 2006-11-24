@@ -1,4 +1,6 @@
 Date	Added
+11/24
+	* removed an extra coma that prevented tbl_variable from being created [FlavioJS]
 11/20
 	* as flaviojs provided a new set of aegis scripts, 
 	  I updated the aegis parser a bit, they run clean
