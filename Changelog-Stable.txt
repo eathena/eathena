@@ -4,6 +4,12 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/11/24
+	* Updated mysql and project files according to trunk 6079 and 6080 [FlavioJS]
+	- mysql 5.16 -> mysql 5.20
+	- project files build executables that use the mysql dll
+	* Decreased VS8 warning level to 3. 4 only makes sense in trunk,
+	  where the changes take place. [FlavioJS]
 2006/11/23
 	* Updated sql files [Playtester]
 2006/11/22

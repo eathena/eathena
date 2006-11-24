@@ -49,7 +49,7 @@
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="true"
 				UsePrecompiledHeader="0"
-				WarningLevel="4"
+				WarningLevel="3"
 				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
 				CompileAs="1"
@@ -65,7 +65,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="WSOCK32.lib mysqlclient.lib pcre.lib"
+				AdditionalDependencies="WSOCK32.lib libmysql.lib pcre.lib zdll.lib"
 				OutputFile="..\map-server_sql.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\lib"
@@ -149,7 +149,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="WSOCK32.lib mysqlclient.lib pcre.lib"
+				AdditionalDependencies="WSOCK32.lib libmysql.lib pcre.lib zdll.lib"
 				OutputFile="..\map-server_sql.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\lib"
