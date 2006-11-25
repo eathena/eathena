@@ -212,6 +212,7 @@ void initChangeTables(void) {
 	set_sc(NPC_KEEPING, SC_KEEPING, SI_BLANK, SCB_DEF);
 	add_sc(NPC_DARKBLESSING, SC_COMA);
 	set_sc(NPC_BARRIER, SC_BARRIER, SI_BLANK, SCB_MDEF|SCB_DEF);
+	add_sc(NPC_DEFENDER, SC_ARMOR);
 	add_sc(NPC_LICK, SC_STUN);
 	set_sc(NPC_HALLUCINATION, SC_HALLUCINATION, SI_HALLUCINATION, SCB_NONE);
 	add_sc(NPC_REBIRTH, SC_KAIZEL);
@@ -4593,6 +4594,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			break;
 		case SC_EDP:	// [Celest]
 			val2 = val1 + 2; //Chance to Poison enemies.
+			val3 = 50*(val1+1); //Damage increase (+50 +50*lv%)
 			break;
 		case SC_POISONREACT:
 			val2=(val1+1)/2 + val1/10; // Number of counters [Skotlex]
@@ -5350,7 +5352,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				tick = 3000;
 			break;
 		case SC_SPIDERWEB:
-			if (map[bl->m].flag.pvp)
+			if (bl->type == BL_PC)
 				tick /=2;
 			break;
 		case SC_ARMOR:

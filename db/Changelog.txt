@@ -1,3 +1,5 @@
+11/25
+	* Corrected Raid's SP cost [Skotlex]
 11/23
 	* Merged create_arrow_db, item_db, item_violetbox, mob_db and mob_skill_db [Playtester]
 	- fixed comments in create arrow db

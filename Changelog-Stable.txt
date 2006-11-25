@@ -4,6 +4,13 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/11/25
+	* Merged ST_MOVE_ENABLE skills checking if you could move to the target
+	  cell instead of checking if you could shoot to that cell. [Skotlex]
+	* Merged EDP's corrected damage equation. [Skotlex]
+	* Merged Self Destruction from non-mobs not damaging allies except in
+	  versus grounds. [Skotlex]
+	* Corrected Spider Web so duration is halved only on players. [Skotlex]
 2006/11/24
 	* Reverted a small change in map_foreachinmovearea which caused autotraders
 	  to not popup on sight of players. [Skotlex]
