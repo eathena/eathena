@@ -622,9 +622,10 @@ int	PRINTF(const char *fmt, ...)
 int _vShowMessage(enum msg_type flag, const char *str, va_list ap)
 {	// Return: 0 = Successful, 1 = Failed.
 	const char *prefix = "";
-
-	if(flag == MSG_DEBUG && !SHOW_DEBUG_MSG)
+#if !defined(DEBUG)
+	if(flag == MSG_DEBUG)
 		return 0;
+#endif
 
 	if( (NULL==str) || (0==*str) ) {
 		ShowError("Empty str flag %i passed to _ShowMessage().\n", flag);

@@ -1462,10 +1462,10 @@ int login_config_read(const char *cfgName)
 	
 	if ((fp = basics::safefopen(cfgName, "r")) == NULL)
 	{
-		ShowError("Configuration file (%s) not found.\n", cfgName);
+		ShowError("Login Configuration '"CL_WHITE"%s"CL_RESET"' not found.\n", cfgName);
 		return 1;
 	}
-	ShowStatus("Reading Login Configuration %s\n", cfgName);
+	
 	while( fgets(line, sizeof(line), fp) )
 	{
 		if( prepare_line(line) && 2==sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
@@ -1699,6 +1699,7 @@ int login_config_read(const char *cfgName)
 		}
 	}
 	fclose(fp);
+	ShowStatus("Done reading Login Configuration '"CL_WHITE"%s"CL_RESET"'.\n", cfgName);
 	return 0;
 }
 

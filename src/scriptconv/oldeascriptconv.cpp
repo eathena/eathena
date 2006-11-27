@@ -306,8 +306,6 @@ void oldeaprinter::print_oldmonsterhead( const char* str )
 		char *kp = strchr(map, '.');
 		if(kp) *kp=0;
 
-		//## TODO check if giving explicit names is necessary, remove them if identical with dbname
-
 		prn << "monster (sprite=";
 		const mobdb_entry *mob = mobdb_entry::lookup( basics::string<>(id) );
 		if(mob)
@@ -704,7 +702,7 @@ bool oldeaprinter::transform_function(basics::CParser_CommentStore& parser, int 
 	if(paranode) for(; paranode->cChildNum==1; paranode = &parser.rt[ paranode->cChildPos ]) {}
 
 	basics::string<> function_name = namenode->cToken.cLexeme;
-	if(namenode->symbol.idx == PT_STRINGLITERAL)
+	if(namenode->symbol.idx == EA_STRINGLITERAL)
 	{	// first parameter of a callfunc has quotes, need stripping
 		function_name.truncate(1,function_name.size()>2?function_name.size()-2:0);
 	}
@@ -736,18 +734,18 @@ bool oldeaprinter::transform_function(basics::CParser_CommentStore& parser, int 
 		if(paranode) // valid parameter node
 		{
 			basics::CStackElement* node = paranode;
-			if( node->symbol.idx==PT_CALLLIST )
+			if( node->symbol.idx==EA_CALLLIST )
 			{	// a list
 
 				size_t i = node->cChildPos;
 				size_t k = i+node->cChildNum;
 				for(;i<k;)
 				{
-					if( parser.rt[i].symbol.idx == PT_COMMA )
+					if( parser.rt[i].symbol.idx == EA_COMMA )
 					{	// skip
 						++i;
 					}
-					else if( parser.rt[i].symbol.idx == PT_CALLLIST )
+					else if( parser.rt[i].symbol.idx == EA_CALLLIST )
 					{	// go down
 						k = parser.rt[i].cChildPos+parser.rt[i].cChildNum;
 						i = parser.rt[i].cChildPos;
@@ -761,7 +759,7 @@ bool oldeaprinter::transform_function(basics::CParser_CommentStore& parser, int 
 					}
 				}
 			}
-			else if( node->symbol.idx==PT_EVALUATION )
+			else if( node->symbol.idx==EA_EVALUATION )
 			{	// is '(' <value> ')', so strip the parenthesis
 				parameter.push( node->cChildPos+1 );
 			}
@@ -782,7 +780,7 @@ bool oldeaprinter::transform_function(basics::CParser_CommentStore& parser, int 
 			// transform to assignment
 			if( parameter.size() )
 			{	
-				print_beautified(parser, parameter[0], PT_EXPR);
+				print_beautified(parser, parameter[0], EA_EXPR);
 				prn << ' ' << '=' << ' ';
 				if(parameter.size()>1)
 				{
@@ -796,15 +794,15 @@ bool oldeaprinter::transform_function(basics::CParser_CommentStore& parser, int 
 						size_t i;
 						for(i=1; i<parameter.size()-1; ++i)
 						{
-							print_beautified(parser, parameter[i], PT_EXPR);
+							print_beautified(parser, parameter[i], EA_EXPR);
 							prn << ',' << ' ';
 						}
-						print_beautified(parser, parameter[i], PT_EXPR);
+						print_beautified(parser, parameter[i], EA_EXPR);
 						prn << '}';
 					}
 					else
 					{	// default
-						print_beautified(parser, parameter[1], PT_EXPR);
+						print_beautified(parser, parameter[1], EA_EXPR);
 					}
 				}
 				else
@@ -823,7 +821,7 @@ bool oldeaprinter::transform_function(basics::CParser_CommentStore& parser, int 
 			if( parameter.size() )
 			{
 				prn << "callsub(";
-				print_beautified(parser, parameter[0], PT_LABELSTM);
+				print_beautified(parser, parameter[0], EA_LABELSTM);
 				prn << ')';
 			}
 			// ignore otherwisse
@@ -871,7 +869,7 @@ bool oldeaprinter::transform_function(basics::CParser_CommentStore& parser, int 
 				for(i=1; i<parameter.size(); i+=2)
 				{	// print the arguments
 					prn << "case " << (1+(i>>1)) << ':' << ' ';
-					if( parser.rt[parameter[i]].symbol.idx == PT_IDENTIFIER ) // label marker
+					if( parser.rt[parameter[i]].symbol.idx == EA_IDENTIFIER ) // label marker
 						prn << "goto " << parser.rt[parameter[i]].cToken.cLexeme << ';' << '\n';
 					else // '-'
 						prn << "break;\n";
@@ -1009,11 +1007,11 @@ bool oldeaprinter::transform_function(basics::CParser_CommentStore& parser, int 
 		if(paramcounter<parameter.size())
 		{
 			size_t i=paramcounter;
-			print_beautified(parser, parameter[i], PT_EXPR);
+			print_beautified(parser, parameter[i], EA_EXPR);
 			for(++i; i<parameter.size(); ++i)
 			{
 				prn << ',' << ' ';
-				print_beautified(parser, parameter[i], PT_EXPR);
+				print_beautified(parser, parameter[i], EA_EXPR);
 			}
 		}
 		prn << ')';
@@ -1028,6 +1026,7 @@ bool oldeaprinter::transform_identifier(basics::CParser_CommentStore& parser, in
 	const char*str = parser.rt[rtpos].cToken.cLexeme;
 	const char*epp = str+parser.rt[rtpos].cToken.cLexeme.size()-1;
 	const char*add = "";
+	bool maybe_player = false;
 
 	prn.log(parser, rtpos);
 
@@ -1071,28 +1070,39 @@ bool oldeaprinter::transform_identifier(basics::CParser_CommentStore& parser, in
 		++str;
 		add = "account::";
 	}
-	//else
-	// add = "player::";
 	else if(parent==0)
 	{
-		add = "player::";
+		maybe_player = true;
 	}
 	
 	// strip any other stuff from the beginning
 	for( ; str<=epp && !basics::stringcheck::isalnum(*str) && *str!='_'; ++str) {}
-	if(str<=epp)
-	{	// check for reserved words
-		bool reserved = ( 0==strcmp(str,"if") ||
-						  0==strcmp(str,"else") ||
-						  0==strcmp(str,"for") ||
-						  0==strcmp(str,"while") ||
-						  0==strcmp(str,"return") ||
-						  0==strcmp(str,"goto") ||
-						  0==strcmp(str,"string") ||
-						  0==strcmp(str,"int") ||
-						  0==strcmp(str,"double") ||
-						  0==strcmp(str,"auto") ||
-						  0==strcmp(str,"var") );
+	if(str<epp)
+	{
+		basics::string<> tmp(str, epp-str+1);
+		// test for stuff from constdb
+		const const_entry* ce;
+		if( maybe_player && (ce = const_entry::lookup( tmp )) &&
+			!ce->param )
+		{	// check constant defines from constdb
+			// but have player parameters with player:: prefix
+			maybe_player = false;
+		}
+
+		if(maybe_player) add = "player::";
+
+		// check for reserved words
+		bool reserved = ( tmp == "if" ||
+						  tmp == "else" ||
+						  tmp == "for" ||
+						  tmp == "while" ||
+						  tmp == "return" ||
+						  tmp == "goto" ||
+						  tmp == "string" ||
+						  tmp == "int" ||
+						  tmp == "double" ||
+						  tmp == "auto" ||
+						  tmp == "var" );
 		prn << add;
 		if(reserved) prn << '_';
 		for(; str<=epp; ++str)
@@ -1132,78 +1142,78 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 	{	// terminals
 		switch( parser.rt[rtpos].symbol.idx )
 		{
-		case PT_IDENTIFIER:
+		case EA_IDENTIFIER:
 			ret = transform_identifier(parser, rtpos, parent);
 			break;
-		case PT_RBRACE:
+		case EA_RBRACE:
 			if(prn.scope) --prn.scope;
 			if(!prn.newline) prn << '\n';
 			prn << "}\n";
 			break;
-		case PT_LBRACE:
+		case EA_LBRACE:
 			if(!prn.newline) prn << '\n';
 			prn << "{\n";
 			++prn.scope;
 			break;
-		case PT_SEMI:
+		case EA_SEMI:
 			prn << ";\n";
 			break;
-		case PT_COMMA:
+		case EA_COMMA:
 			prn << ", ";
 			break;
-		case PT_GOTO:
+		case EA_GOTO:
 			prn << "goto ";
 			break;
-		case PT_LPARAN:
-		case PT_RPARAN:
+		case EA_LPARAN:
+		case EA_RPARAN:
 			prn << parser.rt[rtpos].cToken.cLexeme;
 			break;
 
-		case PT_OLDSCRIPTHEAD:
+		case EA_OLDSCRIPTHEAD:
 			print_oldscripthead( parser.rt[rtpos].cToken.cLexeme );
 			break;
 
-		case PT_OLDMINSCRIPTHEAD:
+		case EA_OLDMINSCRIPTHEAD:
 			print_oldminscripthead( parser.rt[rtpos].cToken.cLexeme );
 			break;
 
-		case PT_OLDFUNCHEAD:
+		case EA_OLDFUNCHEAD:
 			print_oldfunctionhead( parser.rt[rtpos].cToken.cLexeme );
 			break;
 
-		case PT_OLDMONSTERHEAD:
+		case EA_OLDMONSTERHEAD:
 			print_oldmonsterhead( parser.rt[rtpos].cToken.cLexeme );
 			break;
 
-		case PT_OLDWARPHEAD:
+		case EA_OLDWARPHEAD:
 			print_oldwarphead( parser.rt[rtpos].cToken.cLexeme );
 			break;
 
-		case PT_OLDMAPFLAGHEAD:
+		case EA_OLDMAPFLAGHEAD:
 			print_oldmapflaghead( parser.rt[rtpos].cToken.cLexeme );
 			break;
 
-		case PT_OLDDUPHEAD:
+		case EA_OLDDUPHEAD:
 			print_oldduphead( parser.rt[rtpos].cToken.cLexeme );
 			break;
 
-		case PT_OLDSHOPHEAD:
+		case EA_OLDSHOPHEAD:
 			print_oldshophead( parser.rt[rtpos].cToken.cLexeme );
 			break;
 
-		case PT_OLDMOBDBHEAD:
+		case EA_OLDMOBDBHEAD:
 			print_oldmobdbhead( parser.rt[rtpos].cToken.cLexeme );
 			break;
 
-		case PT_OLDMOBDBHEAD_EA:
+		case EA_OLDMOBDBHEAD_EA:
 			print_oldmobdbheadea( parser.rt[rtpos].cToken.cLexeme );
 			break;
 
-		case PT_OLDITEMDBHEAD:
+		case EA_OLDITEMDBHEAD:
 			print_olditemdbhead( parser.rt[rtpos].cToken.cLexeme );
 			break;
 
-		case PT_OLDITEMDBHEAD_EA:
+		case EA_OLDITEMDBHEAD_EA:
 			print_olditemdbheadea( parser.rt[rtpos].cToken.cLexeme );
 			break;
 
@@ -1221,7 +1231,7 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 	{	// other nonterminals
 		switch( parser.rt[rtpos].symbol.idx )
 		{
-		case PT_LABELSTM:
+		case EA_LABELSTM:
 		{	// set labels to zero scope
 			int tmpscope = prn.scope;
 			prn.scope=0;
@@ -1229,7 +1239,7 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			prn.scope = tmpscope;
 			break;
 		}
-		case PT_SUBFUNCTION:
+		case EA_SUBFUNCTION:
 		{	// 'function' <identifier> <block>
 			// 'function' <identifier> ';'
 			prn << "function auto ";
@@ -1239,12 +1249,12 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			print_beautified(parser, parser.rt[rtpos].cChildPos+2, parent);
 			break;
 		}
-		case PT_FUNCTION2:
+		case EA_FUNCCALL:
 		{	// identifier '(' <Call Liste> ')'
 			ret = transform_function(parser, parser.rt[rtpos].cChildPos, parser.rt[rtpos].cChildPos+2);
 			break;
 		}
-		case PT_CALLSTM:
+		case EA_CALLSTM:
 		{	// identifier <Call List>  ';'
 			// identifier  ';'
 			prn.log(parser, rtpos);
@@ -1253,7 +1263,7 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 				prn << ';' << '\n';
 			break;
 		}
-		case PT_ARG:
+		case EA_ARG:
 		{	// argument in a for statement, 
 			// can be <expr> (which should have been handled already) or a call statement
 
@@ -1281,147 +1291,142 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			}
 			break;
 		}
-		case PT_NORMALSTM:
-		{	// can be:
-			// if '(' <Expr> ')' <Normal Stm>
-			// if '(' <Expr> ')' <Normal Stm> else <Normal Stm>
+		case EA_IFSTM:
+		case EA_WHILESTM:
+		{
+			// if    '(' <Expr> ')' <Normal Stm>
+			// if    '(' <Expr> ')' <Normal Stm> else <Normal Stm>
 			// while '(' <Expr> ')' <Normal Stm>
-			// for '(' <Arg> ';' <Arg> ';' <Arg> ')' <Normal Stm>
-			// do <Normal Stm> while '(' <Expr> ')' ';'
-			// switch '(' <Expr> ')' '{' <Case Stms> '}'
-			// <ExprList> ';'
-			// ';'              !Null statement
-			if( PT_IF == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx ||
-				PT_WHILE == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
-			{
-				print_beautified(parser, parser.rt[rtpos].cChildPos+0, parent);
-				prn << "( ";
-				print_beautified(parser, parser.rt[rtpos].cChildPos+2, parent);
-				prn << " )\n";
 
-				basics::CStackElement* child = &parser.rt[ parser.rt[rtpos].cChildPos+4 ];
-				for( ; child->cChildNum ==1; child = &parser.rt[ child->cChildPos ]) {}
+			print_beautified(parser, parser.rt[rtpos].cChildPos+0, parent);
+			prn << "( ";
+			print_beautified(parser, parser.rt[rtpos].cChildPos+2, parent);
+			prn << " )\n";
 
-				if( PT_BLOCK != child->symbol.idx )
-					prn << '{' << '\n', ++prn.scope;
+			basics::CStackElement* child = &parser.rt[ parser.rt[rtpos].cChildPos+4 ];
+			for( ; child->cChildNum ==1; child = &parser.rt[ child->cChildPos ]) {}
 
-				print_beautified(parser, parser.rt[rtpos].cChildPos+4, parent);
-				if(!prn.newline) prn << '\n';
+			if( EA_BLOCK != child->symbol.idx )
+				prn << '{' << '\n', ++prn.scope;
 
-				if( PT_BLOCK != child->symbol.idx )
-					--prn.scope, prn << '}' << '\n';
+			print_beautified(parser, parser.rt[rtpos].cChildPos+4, parent);
+			if(!prn.newline) prn << '\n';
 
-				if( parser.rt[rtpos].cChildNum==7 )
-				{	// else part
-					if(!prn.newline)
-						prn << '\n';
-					prn << "else";
-					
-					bool is_elseif = false;
-					bool is_block  = false;
-					// find the first block with more than one children
-					basics::CStackElement* child = &parser.rt[ parser.rt[rtpos].cChildPos+6 ];
-					for( ; child->cChildNum ==1; child = &parser.rt[ child->cChildPos ]) {}
-					if( child->cChildNum>1 )
-					{
-						is_block = PT_BLOCK == child->symbol.idx;
-						is_elseif = PT_NORMALSTM == child->symbol.idx
-							&& PT_IF == parser.rt[ child->cChildPos ].symbol.idx;
-					}
+			if( EA_BLOCK != child->symbol.idx )
+				--prn.scope, prn << '}' << '\n';
 
-					if( is_block )
-						prn << '\n';
-					else if( is_elseif )
-						prn << ' ';
-					else
-						prn << '\n' << '{' << '\n', ++prn.scope;
-
-					print_beautified(parser, parser.rt[rtpos].cChildPos+6, parent);
-					if(!prn.newline) prn << '\n';
-
-					if( !is_block && !is_elseif )
-						--prn.scope, prn << '}' << '\n';
-				}
-			}
-			else if( PT_DO == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
-			{	// do <Normal Stm> while '(' <Expr> ')' ';'
-
-				basics::CStackElement* child = &parser.rt[ parser.rt[rtpos].cChildPos+1 ];
-				for( ; child->cChildNum ==1; child = &parser.rt[ child->cChildPos ]) {}
-
-				prn << "do\n";
-				if( PT_BLOCK != child->symbol.idx )
-					prn << '{' << '\n', ++prn.scope;
-
-				print_beautified(parser, parser.rt[rtpos].cChildPos+1, parent);
-				if(!prn.newline) prn << '\n';
-
-				if( PT_BLOCK != child->symbol.idx )
-					--prn.scope, prn << '}' << '\n';
-
-				prn << "while( ";
-				print_beautified(parser, parser.rt[rtpos].cChildPos+4, parent);
-				prn << " );\n";
-			}
-			else if( PT_SWITCH == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
-			{	// switch '(' <Expr> ')' '{' <Case Stms> '}'
-				prn << "switch ( ";
-				print_beautified(parser, parser.rt[rtpos].cChildPos+2, parent);
-				prn << " )\n";
-				prn << "{\n";
-
-				this->cHasDefault = false;
-				print_beautified(parser, parser.rt[rtpos].cChildPos+5, parent);
-				if(!prn.newline) prn << '\n';
-				if( !this->cHasDefault )
-				{	// always add a default case
-					prn << "default:\nend;\n";
-				}
-
-				prn << "}\n";
-			}
-			else if( PT_FOR == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
-			{	// for '(' <Arg> ';' <Arg> ';' <Arg> ')' <Normal Stm>
-				prn << "for(";
-				print_beautified(parser, parser.rt[rtpos].cChildPos+2, parent);
-				prn << "; ";
-				print_beautified(parser, parser.rt[rtpos].cChildPos+4, parent);
-				prn << "; ";
-				print_beautified(parser, parser.rt[rtpos].cChildPos+6, parent);
-				prn << ")\n";
-
-				basics::CStackElement* child = &parser.rt[ parser.rt[rtpos].cChildPos+1 ];
-				for( ; child->cChildNum ==1; child = &parser.rt[ child->cChildPos ]) {}
-
-				if( PT_BLOCK != child->symbol.idx )
-					prn << '{' << '\n', ++prn.scope;
-
-				print_beautified(parser, parser.rt[rtpos].cChildPos+8, parent);
-				if(!prn.newline) prn << '\n';
+			if( parser.rt[rtpos].cChildNum==7 )
+			{	// else part
+				if(!prn.newline)
+					prn << '\n';
+				prn << "else";
 				
-				if( PT_BLOCK != child->symbol.idx )
-					--prn.scope, prn << '}' << '\n';
-			}
-			else
-			{
-				size_t j = parser.rt[rtpos].cChildPos;
-				size_t k = j+parser.rt[rtpos].cChildNum;
-				for(; j<k; ++j)
-				{	// go down
-					print_beautified(parser, j, parent);
+				bool is_elseif = false;
+				bool is_block  = false;
+				// find the first block with more than one children
+				basics::CStackElement* child = &parser.rt[ parser.rt[rtpos].cChildPos+6 ];
+				for( ; child->cChildNum ==1; child = &parser.rt[ child->cChildPos ]) {}
+				if( child->cChildNum>1 )
+				{
+					is_block = EA_BLOCK == child->symbol.idx;
+					is_elseif = (EA_NORMALSTM == child->symbol.idx && EA_IF == parser.rt[ child->cChildPos ].symbol.idx) ||
+								(EA_IF        == child->symbol.idx);
 				}
+				if( is_block )
+					prn << '\n';
+				else if( is_elseif )
+					prn << ' ';
+				else
+					prn << '\n' << '{' << '\n', ++prn.scope;
+
+				print_beautified(parser, parser.rt[rtpos].cChildPos+6, parent);
 				if(!prn.newline) prn << '\n';
+
+				if( !is_block && !is_elseif )
+					--prn.scope, prn << '}' << '\n';
 			}
 			break;
 		}
-		case PT_CASESTMS:
+		case EA_DOSTM:
+		{	// do <Normal Stm> while '(' <Expr> ')' ';'
+
+			basics::CStackElement* child = &parser.rt[ parser.rt[rtpos].cChildPos+1 ];
+			for( ; child->cChildNum ==1; child = &parser.rt[ child->cChildPos ]) {}
+
+			prn << "do\n";
+			if( EA_BLOCK != child->symbol.idx )
+				prn << '{' << '\n', ++prn.scope;
+
+			print_beautified(parser, parser.rt[rtpos].cChildPos+1, parent);
+			if(!prn.newline) prn << '\n';
+
+			if( EA_BLOCK != child->symbol.idx )
+				--prn.scope, prn << '}' << '\n';
+
+			prn << "while( ";
+			print_beautified(parser, parser.rt[rtpos].cChildPos+4, parent);
+			prn << " );\n";
+			break;
+		}
+		case EA_SWITCHSTM:
+		{	// switch '(' <Expr> ')' '{' <Case Stms> '}'
+			prn << "switch ( ";
+			print_beautified(parser, parser.rt[rtpos].cChildPos+2, parent);
+			prn << " )\n";
+			prn << "{\n";
+
+			this->cHasDefault = false;
+			print_beautified(parser, parser.rt[rtpos].cChildPos+5, parent);
+			if(!prn.newline) prn << '\n';
+			if( !this->cHasDefault )
+			{	// always add a default case
+				prn << "default:\nend;\n";
+			}
+			prn << "}\n";
+			break;
+		}
+		case EA_FORSTM:
+		{	// for '(' <Arg> ';' <Arg> ';' <Arg> ')' <Normal Stm>
+			prn << "for(";
+			print_beautified(parser, parser.rt[rtpos].cChildPos+2, parent);
+			prn << "; ";
+			print_beautified(parser, parser.rt[rtpos].cChildPos+4, parent);
+			prn << "; ";
+			print_beautified(parser, parser.rt[rtpos].cChildPos+6, parent);
+			prn << ")\n";
+
+			basics::CStackElement* child = &parser.rt[ parser.rt[rtpos].cChildPos+1 ];
+			for( ; child->cChildNum ==1; child = &parser.rt[ child->cChildPos ]) {}
+
+			if( EA_BLOCK != child->symbol.idx )
+				prn << '{' << '\n', ++prn.scope;
+
+			print_beautified(parser, parser.rt[rtpos].cChildPos+8, parent);
+			if(!prn.newline) prn << '\n';
+			
+			if( EA_BLOCK != child->symbol.idx )
+				--prn.scope, prn << '}' << '\n';
+			break;
+		}
+		case EA_EXPRSTM:
+		{	// <ExprList> ';'
+			size_t j = parser.rt[rtpos].cChildPos;
+			size_t k = j+parser.rt[rtpos].cChildNum;
+			for(; j<k; ++j)
+			{	// go down
+				print_beautified(parser, j, parent);
+			}
+			if(!prn.newline) prn << '\n';
+			break;
+		}
+		case EA_CASESTM:
 		{	// <Case Stms>  ::= case <Value> ':' <Stm List> <Case Stms>
 			//			   | default ':' <Stm List> <Case Stms>
 			//			   |
 			size_t i = parser.rt[rtpos].cChildPos;
 
 			if(!prn.newline) prn << '\n';
-			if( PT_CASE == parser.rt[i].symbol.idx )
+			if( EA_CASE == parser.rt[i].symbol.idx )
 			{
 				prn << "case ";
 				++i;
@@ -1444,7 +1449,7 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			print_beautified(parser, i+3, parent);
 			break;
 		}
-		case PT_RETURNSTMS:
+		case EA_RETURNSTM:
 		{
 			print_beautified(parser, parser.rt[rtpos].cChildPos, parent);
 			if( parser.rt[rtpos].cChildNum==3 )
@@ -1455,14 +1460,14 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			prn << ";\n";
 			break;
 		}
-		case PT_GOTOSTMS:
+		case EA_GOTOSTM:
 		{
 			prn << "goto ";
 			prn << parser.rt[parser.rt[rtpos].cChildPos+1].cToken.cLexeme;
 			prn << ';' << '\n';
 			break;
 		}
-		case PT_OLDITEMDB:
+		case EA_OLDITEMDB:
 		{	// OldItemDBHead <Block> ',' <Block>
 			// OldItemDBHead_eA <Block> ',' <Block> ',' <Block>
 
@@ -1494,7 +1499,7 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 				if( (type==0) || (type==2) || (type==11) )
 				{	// use script, just append
 					basics::CStackElement& node1 = parser.rt[parser.rt[rtpos].cChildPos+1];
-					if( node1.symbol.idx == PT_BLOCK &&
+					if( node1.symbol.idx == EA_BLOCK &&
 						parser.rt[node1.cChildPos+1].cChildNum)
 					{
 						prn << "{ OnUse: ";
@@ -1508,8 +1513,8 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 					const basics::CStackElement& node1 = parser.rt[parser.rt[rtpos].cChildPos+3];
 					const basics::CStackElement& node2 = parser.rt[parser.rt[rtpos].cChildPos + (parser.rt[rtpos].cChildNum==6)?5:0];
 
-					const bool n1 = (node1.symbol.idx == PT_BLOCK && parser.rt[node1.cChildPos+1].cChildNum);
-					const bool n2 = (parser.rt[rtpos].cChildNum==6 && node2.symbol.idx == PT_BLOCK && parser.rt[node2.cChildPos+1].cChildNum);
+					const bool n1 = (node1.symbol.idx == EA_BLOCK && parser.rt[node1.cChildPos+1].cChildNum);
+					const bool n2 = (parser.rt[rtpos].cChildNum==6 && node2.symbol.idx == EA_BLOCK && parser.rt[node2.cChildPos+1].cChildNum);
 
 					if( n1 || n2 )
 					{
@@ -1585,7 +1590,7 @@ bool oldeaParser::process(const char*name) const
 
 	while(run)
 	{
-		short p = parser->parse(PT_DECL);
+		short p = parser->parse(EA_DECL);
 		if (p < 0)
 		{	// an error
 			parser->print_expects(name);
@@ -1597,35 +1602,35 @@ bool oldeaParser::process(const char*name) const
 		{	// finished
 			run = false;
 		}			
-		if( ok && parser->rt[0].symbol.idx==PT_DECL && parser->rt[0].cChildNum )
+		if( ok && parser->rt[0].symbol.idx==EA_DECL && parser->rt[0].cChildNum )
 		{
 			basics::CStackElement *child = &(parser->rt[parser->rt[0].cChildPos]);
 			if( child &&
-				( child->symbol.idx == PT_BLOCK ||
+				( child->symbol.idx == EA_BLOCK ||
 
-				  child->symbol.idx == PT_OLDSCRIPT ||
-				  child->symbol.idx == PT_OLDFUNC ||
-				  child->symbol.idx == PT_OLDMAPFLAG ||
-				  child->symbol.idx == PT_OLDNPC ||
-				  child->symbol.idx == PT_OLDDUP ||
-				  child->symbol.idx == PT_OLDMOB ||
-				  child->symbol.idx == PT_OLDSHOP ||
-				  child->symbol.idx == PT_OLDWARP ||
-				  child->symbol.idx == PT_OLDITEMDB ||
-				  child->symbol.idx == PT_OLDMOBDB ||
+				  child->symbol.idx == EA_OLDSCRIPT ||
+				  child->symbol.idx == EA_OLDFUNC ||
+				  child->symbol.idx == EA_OLDMAPFLAG ||
+				  child->symbol.idx == EA_OLDNPC ||
+				  child->symbol.idx == EA_OLDDUP ||
+				  child->symbol.idx == EA_OLDMOB ||
+				  child->symbol.idx == EA_OLDSHOP ||
+				  child->symbol.idx == EA_OLDWARP ||
+				  child->symbol.idx == EA_OLDITEMDB ||
+				  child->symbol.idx == EA_OLDMOBDB ||
 
-				  child->symbol.idx == PT_OLDDUPHEAD ||
-				  child->symbol.idx == PT_OLDFUNCHEAD ||
-				  child->symbol.idx == PT_OLDITEMDBHEAD ||
-				  child->symbol.idx == PT_OLDITEMDBHEAD_EA ||
-				  child->symbol.idx == PT_OLDMAPFLAGHEAD ||
-				  child->symbol.idx == PT_OLDMINSCRIPTHEAD ||
-				  child->symbol.idx == PT_OLDMOBDBHEAD ||
-				  child->symbol.idx == PT_OLDMOBDBHEAD_EA ||
-				  child->symbol.idx == PT_OLDMONSTERHEAD ||
-				  child->symbol.idx == PT_OLDSCRIPTHEAD ||
-				  child->symbol.idx == PT_OLDSHOPHEAD ||
-				  child->symbol.idx == PT_OLDWARPHEAD
+				  child->symbol.idx == EA_OLDDUPHEAD ||
+				  child->symbol.idx == EA_OLDFUNCHEAD ||
+				  child->symbol.idx == EA_OLDITEMDBHEAD ||
+				  child->symbol.idx == EA_OLDITEMDBHEAD_EA ||
+				  child->symbol.idx == EA_OLDMAPFLAGHEAD ||
+				  child->symbol.idx == EA_OLDMINSCRIPTHEAD ||
+				  child->symbol.idx == EA_OLDMOBDBHEAD ||
+				  child->symbol.idx == EA_OLDMOBDBHEAD_EA ||
+				  child->symbol.idx == EA_OLDMONSTERHEAD ||
+				  child->symbol.idx == EA_OLDSCRIPTHEAD ||
+				  child->symbol.idx == EA_OLDSHOPHEAD ||
+				  child->symbol.idx == EA_OLDWARPHEAD
 				  )
 			  )
 			{

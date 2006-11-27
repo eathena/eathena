@@ -238,6 +238,11 @@ void display_title(void)
 	ShowMessage(CL_XXBL"          ("CL_BT_YELLOW"  Advanced Fusion Maps (c) 2003-2004 The Fusion Project  "CL_XXBL")"CL_CLL""CL_NORM"\n"); // yellow writing (33)
 	ShowMessage(CL_WTBL"          (=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=)"CL_CLL""CL_NORM"\n\n"); // reset color
 	ShowInfo("Revision: '"CL_WHITE"%s"CL_RESET"'.\n", get_revision() );
+
+#if defined(DEBUG)
+	ShowNotice("Server running in '"CL_WHITE"Debug Mode"CL_RESET"'.\n");
+#endif
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -253,7 +258,6 @@ void display_version(bool quit)
 	if (ATHENA_RELEASE_FLAG) ShowNotice("This version is not for release.\n");
 	if (quit) exit(1);
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /// main entry point

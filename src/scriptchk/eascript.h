@@ -45,120 +45,129 @@
 #define PT_LTGT          44 /* '<>' */
 #define PT_EQ            45 /* '=' */
 #define PT_MINUSEQ       46 /* '-=' */
-#define PT_EQEQ          47 /* '==' */
-#define PT_GT            48 /* '>' */
-#define PT_GTEQ          49 /* '>=' */
-#define PT_GTGT          50 /* '>>' */
-#define PT_GTGTEQ        51 /* '>>=' */
-#define PT_AUTO          52 /* auto */
-#define PT_BINLITERAL    53 /* BinLiteral */
-#define PT_BREAK         54 /* break */
-#define PT_CASE          55 /* case */
-#define PT_CHARLITERAL   56 /* CharLiteral */
-#define PT_CONST         57 /* const */
-#define PT_CONTINUE      58 /* continue */
-#define PT_DECLITERAL    59 /* DecLiteral */
-#define PT_DEFAULT       60 /* default */
-#define PT_DEFINE        61 /* define */
-#define PT_DO            62 /* do */
-#define PT_DOUBLE        63 /* double */
-#define PT_ELSE          64 /* else */
-#define PT_END           65 /* end */
-#define PT_FLOATLITERAL  66 /* FloatLiteral */
-#define PT_FOR           67 /* for */
-#define PT_FUNCTION      68 /* function */
-#define PT_GOTO          69 /* goto */
-#define PT_HEXLITERAL    70 /* HexLiteral */
-#define PT_IDENTIFIER    71 /* identifier */
-#define PT_IF            72 /* if */
-#define PT_INCLUDE       73 /* include */
-#define PT_INT           74 /* int */
-#define PT_RETURN        75 /* return */
-#define PT_SIZEOF        76 /* sizeof */
-#define PT_STRING        77 /* string */
-#define PT_STRINGLITERAL 78 /* StringLiteral */
-#define PT_SWITCH        79 /* switch */
-#define PT_VAR           80 /* var */
-#define PT_WHILE         81 /* while */
-#define PT_ACCESSFUNC    82 /* <AccessFunc> */
-#define PT_ACCESSVAR     83 /* <AccessVar> */
-#define PT_ARRAY         84 /* <Array> */
-#define PT_BLOCK         85 /* <Block> */
-#define PT_CASESTM       86 /* <Case Stm> */
-#define PT_CONCAT        87 /* <Concat> */
-#define PT_CONDITION     88 /* <Condition> */
-#define PT_CONSTELEM     89 /* <Const Elem> */
-#define PT_CONSTLIST     90 /* <Const List> */
-#define PT_CONSTOBJ      91 /* <Const Obj> */
-#define PT_CONSTUNARY    92 /* <Const Unary> */
-#define PT_CONSTVALUE    93 /* <Const Value> */
-#define PT_CONSTE        94 /* <conste> */
-#define PT_DECL          95 /* <Decl> */
-#define PT_DECLS         96 /* <Decls> */
-#define PT_DEFINE2       97 /* <Define> */
-#define PT_DUPLICATE     98 /* <Duplicate> */
-#define PT_EVAL          99 /* <Eval> */
-#define PT_EXPR          100 /* <Expr> */
-#define PT_EXPRLIST      101 /* <Expr List> */
-#define PT_FUNCDECL      102 /* <Func Decl> */
-#define PT_FUNCTION2     103 /* <Function> */
-#define PT_GOTOSTM       104 /* <Goto Stm> */
-#define PT_INCLUDE2      105 /* <Include> */
-#define PT_ITEM          106 /* <Item> */
-#define PT_ITEMLIST      107 /* <ItemList> */
-#define PT_LABELSTM      108 /* <Label Stm> */
-#define PT_LCTRSTM       109 /* <LCtr Stm> */
-#define PT_NORMALSTM     110 /* <Normal Stm> */
-#define PT_OBJDECL       111 /* <Obj Decl> */
-#define PT_OBJID         112 /* <Obj Id> */
-#define PT_OBJINST       113 /* <Obj Inst> */
-#define PT_OBJLIST       114 /* <Obj List> */
-#define PT_OBJTYPE       115 /* <Obj Type> */
-#define PT_OPADDSUB      116 /* <Op AddSub> */
-#define PT_OPAND         117 /* <Op And> */
-#define PT_OPASSIGN      118 /* <Op Assign> */
-#define PT_OPBINAND      119 /* <Op BinAND> */
-#define PT_OPBINOR       120 /* <Op BinOR> */
-#define PT_OPBINXOR      121 /* <Op BinXOR> */
-#define PT_OPCAST        122 /* <Op Cast> */
-#define PT_OPCOMPARE     123 /* <Op Compare> */
-#define PT_OPEQUATE      124 /* <Op Equate> */
-#define PT_OPIF          125 /* <Op If> */
-#define PT_OPMULTDIV     126 /* <Op MultDiv> */
-#define PT_OPOR          127 /* <Op Or> */
-#define PT_OPPOINTER     128 /* <Op Pointer> */
-#define PT_OPPOST        129 /* <Op Post> */
-#define PT_OPPRE         130 /* <Op Pre> */
-#define PT_OPSHIFT       131 /* <Op Shift> */
-#define PT_OPSIZEOF      132 /* <Op SizeOf> */
-#define PT_OPUNARY       133 /* <Op Unary> */
-#define PT_ORDERMOB      134 /* <order mob> */
-#define PT_ORDERNPC      135 /* <order npc> */
-#define PT_ORDERSCR      136 /* <order scr> */
-#define PT_ORDERTOUCH    137 /* <order touch> */
-#define PT_ORDERWARP     138 /* <order warp> */
-#define PT_OVERWRITE     139 /* <Overwrite> */
-#define PT_PAIR          140 /* <Pair> */
-#define PT_PARAM         141 /* <Param> */
-#define PT_PARAMS        142 /* <Params> */
-#define PT_PARAMSE       143 /* <Paramse> */
-#define PT_PERCENTAGE    144 /* <Percentage> */
-#define PT_RANGE         145 /* <Range> */
-#define PT_RETURNSTM     146 /* <Return Stm> */
-#define PT_SCALAR        147 /* <Scalar> */
-#define PT_SCALARE       148 /* <Scalare> */
-#define PT_SCOPENAME     149 /* <ScopeName> */
-#define PT_SCRIPT        150 /* <Script> */
-#define PT_SPECITEM      151 /* <Spec Item> */
-#define PT_SPECLIST      152 /* <Spec List> */
-#define PT_SPLICE        153 /* <Splice> */
-#define PT_STM           154 /* <Stm> */
-#define PT_STMLIST       155 /* <Stm List> */
-#define PT_SUBDECL       156 /* <Sub Decl> */
-#define PT_SUBPROG       157 /* <SubProg> */
-#define PT_VAR2          158 /* <Var> */
-#define PT_VARDECL       159 /* <Var Decl> */
-#define PT_VARLIST       160 /* <Var List> */
-#define PT_VARARRAY      161 /* <VarArray> */
-#define PT_VARASSIGN     162 /* <VarAssign> */
-#define PT_VARNAME       163 /* <VarName> */
+#define PT_EQTILDE       47 /* '=~' */
+#define PT_EQEQ          48 /* '==' */
+#define PT_GT            49 /* '>' */
+#define PT_GTEQ          50 /* '>=' */
+#define PT_GTGT          51 /* '>>' */
+#define PT_GTGTEQ        52 /* '>>=' */
+#define PT_AUTO          53 /* auto */
+#define PT_BINLITERAL    54 /* BinLiteral */
+#define PT_BREAK         55 /* break */
+#define PT_CASE          56 /* case */
+#define PT_CHARLITERAL   57 /* CharLiteral */
+#define PT_CONST         58 /* const */
+#define PT_CONTINUE      59 /* continue */
+#define PT_DECLITERAL    60 /* DecLiteral */
+#define PT_DEFAULT       61 /* default */
+#define PT_DEFINE        62 /* define */
+#define PT_DO            63 /* do */
+#define PT_DOUBLE        64 /* double */
+#define PT_ELSE          65 /* else */
+#define PT_END           66 /* end */
+#define PT_FLOATLITERAL  67 /* FloatLiteral */
+#define PT_FOR           68 /* for */
+#define PT_FUNCTION      69 /* function */
+#define PT_GOTO          70 /* goto */
+#define PT_HEXLITERAL    71 /* HexLiteral */
+#define PT_IDENTIFIER    72 /* identifier */
+#define PT_IF            73 /* if */
+#define PT_INCLUDE       74 /* include */
+#define PT_INT           75 /* int */
+#define PT_OCTLITERAL    76 /* OctLiteral */
+#define PT_REGEXLITERAL  77 /* RegExLiteral */
+#define PT_RETURN        78 /* return */
+#define PT_SIZEOF        79 /* sizeof */
+#define PT_STRING        80 /* string */
+#define PT_STRINGLITERAL 81 /* StringLiteral */
+#define PT_SWITCH        82 /* switch */
+#define PT_VAR           83 /* var */
+#define PT_WHILE         84 /* while */
+#define PT_ACCESSFUNC    85 /* <AccessFunc> */
+#define PT_ACCESSVAR     86 /* <AccessVar> */
+#define PT_ARRAY         87 /* <Array> */
+#define PT_BLOCK         88 /* <Block> */
+#define PT_CASESTM       89 /* <Case Stm> */
+#define PT_CONCAT        90 /* <Concat> */
+#define PT_CONSTELEM     91 /* <Const Elem> */
+#define PT_CONSTLIST     92 /* <Const List> */
+#define PT_CONSTOBJ      93 /* <Const Obj> */
+#define PT_CONSTUNARY    94 /* <Const Unary> */
+#define PT_CONSTVALUE    95 /* <Const Value> */
+#define PT_CONSTOPT      96 /* <constopt> */
+#define PT_DECL          97 /* <Decl> */
+#define PT_DECLS         98 /* <Decls> */
+#define PT_DEFINEDECL    99 /* <Define Decl> */
+#define PT_DOSTM         100 /* <Do Stm> */
+#define PT_DUPLICATE     101 /* <Duplicate> */
+#define PT_EVAL          102 /* <Eval> */
+#define PT_EXPR          103 /* <Expr> */
+#define PT_EXPRLIST      104 /* <Expr List> */
+#define PT_EXPRSTM       105 /* <Expr Stm> */
+#define PT_FORSTM        106 /* <For Stm> */
+#define PT_FUNCCALL      107 /* <Func Call> */
+#define PT_FUNCDECL      108 /* <Func Decl> */
+#define PT_GOTOSTM       109 /* <Goto Stm> */
+#define PT_IFSTM         110 /* <If Stm> */
+#define PT_INCLUDEDECL   111 /* <Include Decl> */
+#define PT_ITEM          112 /* <Item> */
+#define PT_ITEMLIST      113 /* <ItemList> */
+#define PT_LABELSTM      114 /* <Label Stm> */
+#define PT_LCTRSTM       115 /* <LCtr Stm> */
+#define PT_NORMALSTM     116 /* <Normal Stm> */
+#define PT_OBJDECL       117 /* <Obj Decl> */
+#define PT_OBJID         118 /* <Obj Id> */
+#define PT_OBJINST       119 /* <Obj Inst> */
+#define PT_OBJLIST       120 /* <Obj List> */
+#define PT_OBJTYPE       121 /* <Obj Type> */
+#define PT_OPADDSUB      122 /* <Op AddSub> */
+#define PT_OPAND         123 /* <Op And> */
+#define PT_OPASSIGN      124 /* <Op Assign> */
+#define PT_OPBINAND      125 /* <Op BinAND> */
+#define PT_OPBINOR       126 /* <Op BinOR> */
+#define PT_OPBINXOR      127 /* <Op BinXOR> */
+#define PT_OPCAST        128 /* <Op Cast> */
+#define PT_OPCOMPARE     129 /* <Op Compare> */
+#define PT_OPEQUATE      130 /* <Op Equate> */
+#define PT_OPIF          131 /* <Op If> */
+#define PT_OPMULTDIV     132 /* <Op MultDiv> */
+#define PT_OPOR          133 /* <Op Or> */
+#define PT_OPPOINTER     134 /* <Op Pointer> */
+#define PT_OPPOST        135 /* <Op Post> */
+#define PT_OPPRE         136 /* <Op Pre> */
+#define PT_OPSHIFT       137 /* <Op Shift> */
+#define PT_OPSIZEOF      138 /* <Op SizeOf> */
+#define PT_OPUNARY       139 /* <Op Unary> */
+#define PT_ORDERMOB      140 /* <order mob> */
+#define PT_ORDERNPC      141 /* <order npc> */
+#define PT_ORDERSCR      142 /* <order scr> */
+#define PT_ORDERTOUCH    143 /* <order touch> */
+#define PT_ORDERWARP     144 /* <order warp> */
+#define PT_OVERWRITE     145 /* <Overwrite> */
+#define PT_PAIR          146 /* <Pair> */
+#define PT_PARAM         147 /* <Param> */
+#define PT_PARAMS        148 /* <Params> */
+#define PT_PARAMSE       149 /* <Paramse> */
+#define PT_PERCENTAGE    150 /* <Percentage> */
+#define PT_RANGE         151 /* <Range> */
+#define PT_REGEXPR       152 /* <RegExpr> */
+#define PT_RETURNSTM     153 /* <Return Stm> */
+#define PT_SCOPENAME     154 /* <ScopeName> */
+#define PT_SCRIPT        155 /* <Script> */
+#define PT_SPECITEM      156 /* <Spec Item> */
+#define PT_SPECLIST      157 /* <Spec List> */
+#define PT_SPLICE        158 /* <Splice> */
+#define PT_STM           159 /* <Stm> */
+#define PT_STMLIST       160 /* <Stm List> */
+#define PT_SUBDECL       161 /* <Sub Decl> */
+#define PT_SUBPROG       162 /* <SubProg> */
+#define PT_SWITCHSTM     163 /* <Switch Stm> */
+#define PT_VARDECL       164 /* <Var Decl> */
+#define PT_VARARRAY      165 /* <VarArray> */
+#define PT_VARASSIGN     166 /* <VarAssign> */
+#define PT_VARIABLE      167 /* <Variable> */
+#define PT_VARLIST       168 /* <VarList> */
+#define PT_VARNAME       169 /* <VarName> */
+#define PT_VARTYPE       170 /* <VarType> */
+#define PT_VARTYPEOPT    171 /* <VarTypeopt> */
+#define PT_WHILESTM      172 /* <While Stm> */

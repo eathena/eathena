@@ -213,5 +213,30 @@ struct npcdb_entry
 };
 
 
+/*
+ea const table
+*/
+
+struct const_entry
+{
+	basics::string<>	name;
+	int					value;
+	bool				param;
+
+	const_entry() {}
+	~const_entry() {}
+	const_entry(const const_entry& ce) : name(ce.name),value(ce.value),param(ce.param) {}
+	const const_entry& operator=(const const_entry& ce)
+	{
+		name = ce.name;
+		value = ce.value;
+		param = ce.param;
+		return *this;
+	}
+
+	static const const_entry* lookup(const basics::string<>& str);
+	static void load(const char* filename);
+};
+
 
 #endif//_DBLOOKUP_

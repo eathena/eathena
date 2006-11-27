@@ -42,10 +42,11 @@ void usage(const char*p)
 	fprintf(stderr, "     option p: prints parse tree\n");
 	fprintf(stderr, "     option t: prints transformation tree\n");
 	fprintf(stderr, "     option l: enables logging for unknown function and variable names\n");
-	fprintf(stderr, "[-i<itemdb>]: read itemdb from different place than ./db/item_db.txt\n");
-	fprintf(stderr, " [-m<mobdb>]: read mobdb from different place than ./db/mob_db.txt\n");
-	fprintf(stderr, " [-n<npcdb>]: read mobdb from different place than ./db/npc_db.txt\n");
-	fprintf(stderr, "     default only checks syntax errors\n");
+	fprintf(stderr, " [-i<itemdb>]: read itemdb from different place than ./db/item_db.txt\n");
+	fprintf(stderr, "  [-m<mobdb>]: read mobdb from different place than ./db/mob_db.txt\n");
+	fprintf(stderr, "  [-n<npcdb>]: read mobdb from different place than ./db/npc_db.txt\n");
+	fprintf(stderr, "[-c<constdb>]: read constdb from different place than ./db/const.txt\n");
+	fprintf(stderr, "               default only checks syntax errors\n");
 }
 
 int get_option(const char* p)
@@ -85,6 +86,7 @@ int main(int argc, char *argv[])
 	const char* itemdbpath = "./db/item_db.txt";
 	const char* mobdbpath = "./db/mob_db.txt";
 	const char* npcdbpath = "./db/npc_db.txt";
+	const char* constdbpath = "./db/const.txt";
 
 	for(c=0, i=1; i<argc; ++i)
 	{
@@ -109,6 +111,11 @@ int main(int argc, char *argv[])
 			{	// overwrite npcdb
 				npcdbpath = argv[i]+2;
 			}
+			else if( argv[i][0] == '-' && argv[i][1] == 'c' 
+				&& basics::is_file(argv[i]+2) )
+			{	// overwrite constdbpath
+				constdbpath = argv[i]+2;
+			}
 			else
 			{	// option
 				option = get_option(argv[i]);
@@ -125,6 +132,7 @@ int main(int argc, char *argv[])
 	itemdb_entry::load(itemdbpath);
 	mobdb_entry::load(mobdbpath);
 	npcdb_entry::load(npcdbpath);
+	const_entry::load(constdbpath);
 
 
 	oldeaparserstorage oldea;

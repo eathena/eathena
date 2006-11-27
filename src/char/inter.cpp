@@ -142,13 +142,13 @@ int inter_accreg_init(void)
 		}
 		else
 		{
-			ShowMessage("inter: accreg: broken data [%s] line %d\n", accreg_txt, c);
+			ShowMessage("inter: accreg: broken data [%s] line %d\n", (const char*)accreg_txt(), c);
 			delete reg;
 		}
 		c++;
 	}
 	fclose(fp);
-	//ShowStatus("inter: %s read done (%d)\n", accreg_txt, c);
+	//ShowStatus("inter: %s read done (%d)\n", (const char*)accreg_txt(), c);
 	return 0;
 }
 
@@ -159,7 +159,7 @@ int inter_accreg_save(void)
 	FILE *fp = lock_fopen(accreg_txt(), lock);
 	if(!fp)
 	{
-		ShowError("int_accreg: cant write [%s] !!! data is lost !!!\n", accreg_txt);
+		ShowError("int_accreg: cant write [%s] !!! data is lost !!!\n", (const char*)accreg_txt());
 		return 1;
 	}
 	else
@@ -177,7 +177,7 @@ int inter_accreg_save(void)
 			}
 		}
 		lock_fclose(fp, accreg_txt(), lock);
-		//ShowStatus("inter: %s saved.\n", accreg_txt);
+		//ShowStatus("inter: %s saved.\n", (const char*)accreg_txt());
 	}
 	return 0;
 }

@@ -29,7 +29,7 @@ NAMESPACE_BEGIN(basics)
 //
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-void CParser::print_stack_element(CStackElement &se, int indent, const char sign)
+void CParser::print_stack_element(const CStackElement &se, int indent, const char sign) const
 {
 	int i;
 	printf("(%3i/%4i)", se.cToken.line, se.cToken.column);
@@ -37,7 +37,7 @@ void CParser::print_stack_element(CStackElement &se, int indent, const char sign
 		printf("|%c",sign);
 	printf("%c-<%s>(%i)[%li] ::= %s (len=%li)\n", (se.symbol.Type)?'T':'N', (const char*)se.symbol.Name, se.symbol.idx, (unsigned long)se.cChildNum, (const char*)se.cToken.cLexeme, (unsigned long)(((const char*)se.cToken.cLexeme)?strlen(se.cToken.cLexeme):0));
 }
-void CParser::print_rt_tree(int rtpos, int indent, bool trim)
+void CParser::print_rt_tree(int rtpos, int indent, bool trim) const
 {
 	int callindent = indent;
 
@@ -60,7 +60,7 @@ void CParser::print_rt_tree(int rtpos, int indent, bool trim)
 		}
 	}
 }
-void CParser::print_rt()
+void CParser::print_rt() const
 {
 	size_t i, k;
 	printf ("print rt\n");
@@ -74,7 +74,7 @@ void CParser::print_rt()
 	}
 }
 
-void CParser::print_stack()
+void CParser::print_stack() const
 {
 	size_t i,k;
 printf ("print stack\n");
@@ -88,7 +88,7 @@ printf ("print stack\n");
 		printf("\n");
 	}
 }
-void CParser::print_expects(const char*name)
+void CParser::print_expects(const char*name) const
 {
 	fprintf(stderr, "Parse Error at line %i, col %i\n", this->cScanToken.line, this->cScanToken.column);
 	if(name&&*name) fprintf(stderr, "in file '%s'\n", name);
@@ -102,18 +102,17 @@ void CParser::print_expects(const char*name)
 	else
 	{
 		fprintf(stderr,"unrecognized token: '%c'\n", 
-			this->input.get_char());
+			const_cast<CParser*>(this)->input.get_char());
 	}
-
-
-	if(this->lalr_state>0)
+	if(this->lalr_state>=0)
 	{
 		size_t i;
 		fprintf(stderr,"expecting: ");
 		for(i=0; i<this->pconfig->lalr_state[this->lalr_state].cAction.size(); ++i)
 		{
 			CAction* action = &this->pconfig->lalr_state[this->lalr_state].cAction[i];
-			fprintf(stderr,"'%s' ", (const char*) pconfig->sym[action->SymbolIndex].Name );
+			fprintf(stderr,pconfig->sym[action->SymbolIndex].Type==1?"'%s' ":"<%s> ", 
+				(const char*) pconfig->sym[action->SymbolIndex].Name);
 		}
 	}
 	fprintf(stderr,"\n");
@@ -502,7 +501,7 @@ short CParseInput::scan(CParser& parser, CToken& target)
 ///////////////////////////////////////////////////////////////////////////////
 // Get symbol info
 ///////////////////////////////////////////////////////////////////////////////
-bool CParser::get_symbol(size_t syminx, CSymbol& symbol)
+bool CParser::get_symbol(size_t syminx, CSymbol& symbol) const
 {
 	if(syminx >= this->pconfig->sym.size())
 		return false;
@@ -581,7 +580,7 @@ void CParser::reset()
 ///////////////////////////////////////////////////////////////////////////////
 // Reduction Tree
 ///////////////////////////////////////////////////////////////////////////////
-CStackElement* CParser::get_rt_entry(size_t idx)
+const CStackElement* CParser::get_rt_entry(size_t idx) const
 {
 	if(idx >= this->rt.size())
 		return NULL;

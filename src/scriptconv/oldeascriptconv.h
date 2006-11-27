@@ -6,8 +6,7 @@
 #include "basefile.h"
 #include "baseparser.h"
 #include "scriptengine.h"
-
-
+#include "scriptprn.h"
 
 struct oldeaparserstorage : public parserstorage
 {

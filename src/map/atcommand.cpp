@@ -7315,7 +7315,7 @@ bool CommandInfo::config_read(const char *cfgName)
 
 	if((fp = basics::safefopen(cfgName, "r")) == NULL)
 	{
-		ShowError("command configuration file not found: %s\n", cfgName);
+		ShowError("Command Configuration '"CL_WHITE"%s"CL_RESET"' not found.\n", cfgName);
 	}
 	else
 	{
@@ -7348,13 +7348,13 @@ bool CommandInfo::config_read(const char *cfgName)
 					}
 					else
 					{
-						ShowWarning("command \"%s\" does not exist\n", w1);
+						ShowWarning("'"CL_WHITE"%s"CL_RESET"': unknown command '%s'.\n", cfgName, w1);
 					}
 				}
 			}
 		}
 		fclose(fp);
-		ShowStatus("Command configuration file '%s' read.\n", cfgName);
+		ShowStatus("Done reading Command Configuration '"CL_WHITE"%s"CL_RESET"'.\n", cfgName);
 		return true;
 	}
 	return false;

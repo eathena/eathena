@@ -509,11 +509,11 @@ public:
 
 	short parse(short reduce_sym=0);
 
-	CStackElement* get_rt_entry(size_t idx);
+	const CStackElement* get_rt_entry(size_t idx) const;
 
 
 	// Get the current lexeme
-	const char*	get_lexeme()
+	const char*	get_lexeme() const
 	{
 		return this->cScanToken.cLexeme;
 	}
@@ -525,19 +525,19 @@ public:
 
 
 	// Get a lexeme from the stack
-	const char* get_child_lexeme(int index)
+	const char* get_child_lexeme(int index) const
 	{
 		return this->cStack[this->nstackofs+index].cToken.cLexeme;
 	}
 
-	bool get_symbol(size_t syminx, CSymbol& symbol);
+	bool get_symbol(size_t syminx, CSymbol& symbol) const;
 
 
-	void print_stack_element(CStackElement& se, int indent, const char sign);
-	void print_rt_tree(int rtpos, int indent, bool trim=true);
-	void print_rt();
-	void print_stack();
-	void print_expects(const char* name=NULL);
+	void print_stack_element(const CStackElement& se, int indent, const char sign) const;
+	void print_rt_tree(int rtpos, int indent, bool trim=true) const;
+	void print_rt() const;
+	void print_stack() const;
+	void print_expects(const char* name=NULL) const;
 	
 
 	///////////////////////////////////////////////////////////////////////////

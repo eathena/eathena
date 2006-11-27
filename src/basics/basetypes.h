@@ -40,23 +40,6 @@
 #endif
 
 
-
-//////////////////////////////////////////////////////////////////////////
-/// setting some defines for compile modes
-//////////////////////////////////////////////////////////////////////////
-
-// check global objects count and array boundaries in debug mode
-#if defined(DEBUG) && !defined(COUNT_GLOBALS)
-#define COUNT_GLOBALS
-#endif
-#if defined(DEBUG) && !defined(CHECK_BOUNDS)
-#define CHECK_BOUNDS
-#endif
-#if defined(DEBUG) && !defined(CHECK_LOCKS)
-#define CHECK_LOCKS
-#endif
-
-
 //////////////////////////////////////////////////////////////////////////
 /// setting some defines on platforms
 //////////////////////////////////////////////////////////////////////////
@@ -87,6 +70,22 @@
 #if defined(_MSC_VER) && !defined(_MT) && !defined(SINGLETHREAD)
 #pragma message ( "INFO: not building multithreaded, defining SINGLETHREAD" )
 #define SINGLETHREAD
+#endif
+
+
+//////////////////////////////////////////////////////////////////////////
+/// setting some defines for compile modes
+//////////////////////////////////////////////////////////////////////////
+
+// check global objects count and array boundaries in debug mode
+#if defined(DEBUG) && !defined(COUNT_GLOBALS)
+#define COUNT_GLOBALS
+#endif
+#if defined(DEBUG) && !defined(CHECK_BOUNDS)
+#define CHECK_BOUNDS
+#endif
+#if defined(DEBUG) && !defined(CHECK_LOCKS)
+#define CHECK_LOCKS
 #endif
 
 

@@ -9846,7 +9846,9 @@ int clif_parse_Restart(int fd, map_session_data &sd)
  */
 int clif_parse_Wis(int fd, map_session_data &sd)
 {	// S 0096 <len>.w <nick>.24B <message>.?B // rewritten by [Yor]
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) ||
+		sd.sc_data[SC_BERSERK].timer!=-1 || //バーサーク時は会話も不可
+		sd.sc_data[SC_NOCHAT].timer != -1 ) //チャット禁止
 		return 0;
 
 	size_t buffersize = RFIFOW(fd,2);
@@ -9869,9 +9871,7 @@ int clif_parse_Wis(int fd, map_session_data &sd)
 	basics::string<> gm_command;
 
 	gm_command << sd.status.name << " : " << message;
-	if( CommandInfo::is_command(fd, sd, gm_command) ||
-		sd.sc_data[SC_BERSERK].timer!=-1 || //バーサーク時は会話も不可
-		sd.sc_data[SC_NOCHAT].timer != -1 ) //チャット禁止
+	if( CommandInfo::is_command(fd, sd, gm_command) )
 	{
 		return 0;
 	}
@@ -13807,13 +13807,13 @@ int packetdb_readdb(void)
 		{clif_parse_debug,"debug"},
 		{NULL,NULL}
 	};
+	const char* cfgName = "db/packet_db.txt";
 
-	if( (fp=basics::safefopen("db/packet_db.txt","r"))==NULL )
+	if( (fp=basics::safefopen(cfgName,"r"))==NULL )
 	{
-		ShowWarning("can't read db/packet_db.txt, using defaults\n");		
+		ShowWarning("Packet Configuration '"CL_WHITE"%s"CL_RESET"' not found, using defaults.\n", cfgName);
 		return 1;
 	}
-
 	packet_ver = MAX_PACKET_VER;
 	while( fgets(line,sizeof(line),fp) )
 	{
@@ -13872,7 +13872,7 @@ int packetdb_readdb(void)
 				continue;
 			if(str[1]==NULL)
 			{
-				ShowError("packet_db: packet len error (line %i\n)", ln);
+				ShowError("'"CL_WHITE"%s"CL_RESET"', line %i: packet len error.\n", cfgName, ln);
 				continue;
 			}
 			k = atoi(str[1]);
@@ -13894,7 +13894,7 @@ int packetdb_readdb(void)
 			}
 			if( j>=sizeof(clif_parse_func)/sizeof(clif_parse_func[0]) )
 			{
-				ShowError("packet_db (line %i): parse command '%s' not found\n", ln, str[2]);
+				ShowError("'"CL_WHITE"%s"CL_RESET"', line %i: parse command '%s' not found.\n", cfgName, ln, str[2]);
 			}
 			// set the identifying cmd for the packet_db version
 			if(strcasecmp(str[2],"wanttoconnection")==0)
@@ -13903,7 +13903,7 @@ int packetdb_readdb(void)
 			}
 			if(str[3]==NULL)
 			{
-				ShowError("packet_db (line %i): no positions\n", ln);
+				ShowError("'"CL_WHITE"%s"CL_RESET"', line %i: no positions.\n", cfgName, ln);
 			}
 			for(j=0,p2=str[3];p2; ++j){
 				str2[j]=p2;
@@ -13915,7 +13915,7 @@ int packetdb_readdb(void)
 		}
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/packet_db.txt");
+	ShowStatus("Done reading Packet Configuration '"CL_WHITE"%s"CL_RESET"'.\n",cfgName);
 	return 0;
 }
 

@@ -182,3 +182,101 @@ const npcdb_entry* npcdb_entry::lookup(const basics::string<>& str)
 	return npcdb.lookup(str);
 }
 
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+basics::smap<basics::string<>, const_entry> const_table;
+
+const const_entry* const_entry::lookup(const basics::string<>& str)
+{
+	if( const_table.exists(str) )
+		return &(const_table[str]);
+	return NULL;
+}
+void const_entry::load(const char* filename)
+{
+	fprintf(stderr, "loading conversion npcdb... ");
+
+	FILE* fp =fopen(filename, "rb");
+	if( !fp )
+	{
+		fprintf(stderr, "cannot open %s\n", filename);
+	}
+	else
+	{
+		char line[1024], *ip, *kp;
+		basics::string<> temp;
+
+		while(fgets(line, sizeof(line), fp))
+		{
+			// terminate buffer
+			line[sizeof(line)-1] = '\0';
+
+			// skip leading spaces
+			ip = line;
+			while( basics::stringcheck::isspace(*ip) ) ip++;
+
+			// check for comments (only "//") 
+			// does not check for escapes or string markers 
+			// as a appropiate config grammer needs to be defined first
+			for(kp=ip; *kp; ++kp)
+			{	// cut of trailing comments/newlines
+				if(kp[0]=='\r' || kp[0]=='\n' || (kp[0]=='/' && kp[1]=='/') )
+				{
+					kp[0] = 0;
+					break;
+				}
+			}
+
+			// skipping empty lines
+			if( !ip[0] )
+				continue;
+// name value [value]
+			const_entry me;
+			for(me.name.clear(); *ip && !basics::stringcheck::isspace(*ip); ++ip)
+			{
+				me.name << *ip;
+			}
+			me.name.trim();
+
+			while( basics::stringcheck::isspace(*ip) ) ++ip;
+
+			if( !*ip )
+				continue;
+
+			
+			for(temp.clear(); *ip && !basics::stringcheck::isspace(*ip); ++ip)
+			{
+				temp << *ip;
+			}
+			me.value = atoi(temp); 
+
+			while( basics::stringcheck::isspace(*ip) ) ++ip;
+
+			if( *ip )
+			{
+				for(temp.clear(); *ip && !basics::stringcheck::isspace(*ip); ++ip)
+				{
+					temp << *ip;
+				}
+				me.param = atoi(temp); 
+			}
+			else
+				me.param = false; 
+
+			if( const_table.exists(me.name) )
+			{
+				fprintf(stderr, "duplicated constant %s\n",
+					(const char*)me.name);
+			}
+			else
+			{
+				const_table[me.name] = me;
+			}
+		}
+		fprintf(stderr, "%i entries\n", (int)const_table.size());
+	}
+}

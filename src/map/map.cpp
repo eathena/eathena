@@ -34,6 +34,9 @@
 #include "atcommand.h"
 #include "log.h"
 
+#if defined(WITH_FSMAI)
+#include "npcai.h"
+#endif
 
 #define USE_AFM
 #define USE_AF2
@@ -3220,118 +3223,121 @@ int map_config_read(const char *cfgName)
 //	struct hostent *h = NULL;
 
 	fp = basics::safefopen(cfgName,"r");
-	if (fp == NULL) {
-		ShowError("Map configuration file not found at: %s\n", cfgName);
-		return 0;
-	}
-	
-	while(fgets(line, sizeof(line), fp))
+	if (fp == NULL)
 	{
-		if( prepare_line(line) && 2==sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
+		ShowError("Map configuration '"CL_WHITE"%s"CL_RESET"' not found.\n", cfgName);
+	}
+	else
+	{
+		while(fgets(line, sizeof(line), fp))
 		{
-			basics::itrim(w1);
-			if(!*w1) continue;
-			basics::itrim(w2);
+			if( prepare_line(line) && 2==sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
+			{
+				basics::itrim(w1);
+				if(!*w1) continue;
+				basics::itrim(w2);
 
-			if (strcasecmp(w1, "userid")==0)
-			{
-				chrif_setuserid(w2);
-			}
-			else if (strcasecmp(w1, "passwd") == 0)
-			{
-				chrif_setpasswd(w2);
-			}
-			else if (strcasecmp(w1, "char_ip") == 0)
-			{
-				getcharaddress() = w2;
-				ShowInfo("Char Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", w2, getcharaddress().tostring(NULL));
-			} 
-			else if (strcasecmp(w1, "char_port") == 0)
-			{
-				getcharaddress().port() = atoi(w2);
-			}
-			else if (strcasecmp(w1, "map_ip") == 0)
-			{
-				getmapaddress() = w2;
-				ShowInfo("Map Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", w2, getmapaddress().tostring(NULL));
-			}
-			else if (strcasecmp(w1, "map_port") == 0)
-			{
-				getmapaddress().LANPort() = atoi(w2);
-			}
-			else if (strcasecmp(w1, "water_height") == 0)
-			{
-				waterlist.open(w2);
-			}
-			else if (strcasecmp(w1, "map") == 0)
-			{
-				map_addmap(w2);
-			}
-			else if (strcasecmp(w1, "delmap") == 0)
-			{
-				map_delmap(w2);
-			}
-			else if (strcasecmp(w1, "npc") == 0)
-			{
-				npc_addsrcfile(w2);
-			}
-			else if (strcasecmp(w1, "path") == 0)
-			{
-				////////////////////////////////////////
-				// add all .txt files recursive from ./npc folder to npc source tree
-				basics::findFiles(w2, "*.txt", npc_addsrcfile );
-				////////////////////////////////////////
-			}
-			else if (strcasecmp(w1, "delnpc") == 0)
-			{
-				npc_delsrcfile(w2);
-			}
-			else if (strcasecmp(w1, "autosave_time") == 0)
-			{
-				autosave_interval = atoi(w2) * 1000;
-				if (autosave_interval <= 0)
-					autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
-			}
-			else if (strcasecmp(w1, "motd_txt") == 0)
-			{
-				safestrcpy(motd_txt, sizeof(motd_txt), w2);
-			}
-			else if (strcasecmp(w1, "help_txt") == 0)
-			{
-				safestrcpy(help_txt, sizeof(help_txt), w2);
-			}
-			else if (strcasecmp(w1, "mapreg_txt") == 0)
-			{
-				safestrcpy(mapreg_txt, sizeof(mapreg_txt), w2);
-			}
-			else if(strcasecmp(w1,"read_map_from_cache")==0)
-			{
-				if (atoi(w2) == 2)
-					map_read_flag = READ_FROM_BITMAP_COMPRESSED;
-				else if (atoi(w2) == 1)
-					map_read_flag = READ_FROM_BITMAP;
-				else
-					map_read_flag = READ_FROM_GAT;
-			}
-			else if(strcasecmp(w1,"map_cache_file")==0)
-			{
-				safestrcpy(map_cache_file,sizeof(map_cache_file),w2);
-			}
-			else if(strcasecmp(w1,"afm_dir") == 0)
-			{
-				safestrcpy(afm_dir,sizeof(afm_dir), w2);
-			}
-			else if (strcasecmp(w1, "import") == 0)
-			{
-				map_config_read(w2);
-			}
-			else if (strcasecmp(w1, "console") == 0)
-			{
-				console = basics::config_switch<bool>(w2);
+				if (strcasecmp(w1, "userid")==0)
+				{
+					chrif_setuserid(w2);
+				}
+				else if (strcasecmp(w1, "passwd") == 0)
+				{
+					chrif_setpasswd(w2);
+				}
+				else if (strcasecmp(w1, "char_ip") == 0)
+				{
+					getcharaddress() = w2;
+					ShowInfo("Char Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", w2, getcharaddress().tostring(NULL));
+				} 
+				else if (strcasecmp(w1, "char_port") == 0)
+				{
+					getcharaddress().port() = atoi(w2);
+				}
+				else if (strcasecmp(w1, "map_ip") == 0)
+				{
+					getmapaddress() = w2;
+					ShowInfo("Map Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", w2, getmapaddress().tostring(NULL));
+				}
+				else if (strcasecmp(w1, "map_port") == 0)
+				{
+					getmapaddress().LANPort() = atoi(w2);
+				}
+				else if (strcasecmp(w1, "water_height") == 0)
+				{
+					waterlist.open(w2);
+				}
+				else if (strcasecmp(w1, "map") == 0)
+				{
+					map_addmap(w2);
+				}
+				else if (strcasecmp(w1, "delmap") == 0)
+				{
+					map_delmap(w2);
+				}
+				else if (strcasecmp(w1, "npc") == 0)
+				{
+					npc_addsrcfile(w2);
+				}
+				else if (strcasecmp(w1, "path") == 0)
+				{
+					////////////////////////////////////////
+					// add all .txt files recursive from ./npc folder to npc source tree
+					basics::findFiles(w2, "*.txt", npc_addsrcfile );
+					////////////////////////////////////////
+				}
+				else if (strcasecmp(w1, "delnpc") == 0)
+				{
+					npc_delsrcfile(w2);
+				}
+				else if (strcasecmp(w1, "autosave_time") == 0)
+				{
+					autosave_interval = atoi(w2) * 1000;
+					if (autosave_interval <= 0)
+						autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
+				}
+				else if (strcasecmp(w1, "motd_txt") == 0)
+				{
+					safestrcpy(motd_txt, sizeof(motd_txt), w2);
+				}
+				else if (strcasecmp(w1, "help_txt") == 0)
+				{
+					safestrcpy(help_txt, sizeof(help_txt), w2);
+				}
+				else if (strcasecmp(w1, "mapreg_txt") == 0)
+				{
+					safestrcpy(mapreg_txt, sizeof(mapreg_txt), w2);
+				}
+				else if(strcasecmp(w1,"read_map_from_cache")==0)
+				{
+					if (atoi(w2) == 2)
+						map_read_flag = READ_FROM_BITMAP_COMPRESSED;
+					else if (atoi(w2) == 1)
+						map_read_flag = READ_FROM_BITMAP;
+					else
+						map_read_flag = READ_FROM_GAT;
+				}
+				else if(strcasecmp(w1,"map_cache_file")==0)
+				{
+					safestrcpy(map_cache_file,sizeof(map_cache_file),w2);
+				}
+				else if(strcasecmp(w1,"afm_dir") == 0)
+				{
+					safestrcpy(afm_dir,sizeof(afm_dir), w2);
+				}
+				else if (strcasecmp(w1, "import") == 0)
+				{
+					map_config_read(w2);
+				}
+				else if (strcasecmp(w1, "console") == 0)
+				{
+					console = basics::config_switch<bool>(w2);
+				}
 			}
 		}
+		fclose(fp);
+		ShowStatus("Done reading Map configuration '"CL_WHITE"%s"CL_RESET"'\n", cfgName);
 	}
-	fclose(fp);
 	return 0;
 }
 
@@ -3513,6 +3519,10 @@ unsigned char getServerType()
 int do_init(int argc, char *argv[])
 {
 	int i;
+#if defined(WITH_FSMAI)
+//	npcai_test();
+#endif
+
 	// just clear all maps
 	memset(maps, 0, MAX_MAP_PER_SERVER*sizeof(struct map_data));
 
@@ -3543,8 +3553,6 @@ int do_init(int argc, char *argv[])
 	map_config_read(MAP_CONF_NAME);
 	basics::CParamBase::loadFile(MAP_CONF_NAME);
 
-	if (SHOW_DEBUG_MSG)
-		ShowNotice("Server running in '"CL_WHITE"Debug Mode"CL_RESET"'.\n");
 	config.read(BATTLE_CONF_FILENAME);
 	msg_txt.read(MSG_CONF_NAME);
 	CommandInfo::config_read(COMMAND_CONF_FILENAME);

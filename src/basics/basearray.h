@@ -577,8 +577,8 @@ public:
 			this->cWpp+=cnt;
 			// fill the hole
 			T* ptr = this->ptrRpp()+pos;
-			while(cnt--)
-				*ptr++ = elem;
+			for(; cnt--; ++ptr)
+				*ptr = elem;
 			return true;
 		}
 		else

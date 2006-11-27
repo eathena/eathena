@@ -2895,10 +2895,10 @@ int buildin_select(CScriptEngine &st)
 			delete[] buf;
 		}
 		else
-		{	// client only sends a byte, so onyl use a byte
+		{	// client only sends a byte, so only use a byte
 			int menu = 0xFF & st.GetInt( st.cExtData );
-			if(menu==0xFF)
-			{	// cancel
+			if( menu==0xFF || menu==0 || menu<(int)(st.end-st.start) )
+			{	// cancel or invalid
 				menu = -1;
 			}
 			pc_setreg(*st.sd,add_str( "l15"),menu);
@@ -9228,7 +9228,7 @@ int script_config_read(const char *cfgName)
 
 	fp=basics::safefopen(cfgName,"r");
 	if (fp == NULL) {
-		ShowError("file not found: %s\n",cfgName);
+		ShowError("Script Configuration '"CL_WHITE"%s"CL_RESET"' not found.\n",cfgName);
 		return 1;
 	}
 	while (fgets(line, sizeof(line), fp))
@@ -9306,7 +9306,7 @@ int script_config_read(const char *cfgName)
 		}
 	}
 	fclose(fp);
-
+	ShowStatus("Done reading Script Configuration '"CL_WHITE"%s"CL_RESET"'.\n", cfgName);
 	return 0;
 }
 

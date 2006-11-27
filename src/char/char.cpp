@@ -2765,9 +2765,11 @@ int char_config_read(const char *cfgName)
 
 	FILE *fp = basics::safefopen(cfgName, "r");
 	if (fp == NULL) {
-		ShowError("Configuration file not found: %s.\n", cfgName);
+		ShowError("Char configuration file '%s' not found.\n", cfgName);
 		return 0;
 	}
+
+	ShowStatus("Reading Char configuration '%s'.\n", cfgName);
 
 	while(fgets(line, sizeof(line), fp))
 	{

@@ -612,9 +612,10 @@ public:
 
 		fp=basics::safefopen(cfgName, "r");
 		if(fp==NULL){
-			ShowError("socket config file not found: %s\n", cfgName);
+			ShowError("Socket Configuration '"CL_WHITE"%s"CL_RESET"' not found.\n", cfgName);
 			return 1;
 		}
+		
 		while(fgets(line,sizeof(line),fp))
 		{
 			if( prepare_line(line) && 2==sscanf(line,"%1024[^:=]%*[:=]%1024[^\r\n]",w1,w2) )
@@ -678,6 +679,7 @@ public:
 			}
 		}
 		fclose(fp);
+		ShowStatus("Done reading Socket Configuration '"CL_WHITE"%s"CL_RESET"'.\n", cfgName);
 		return 0;
 	}
 };

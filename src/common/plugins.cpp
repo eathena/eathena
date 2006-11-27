@@ -326,9 +326,10 @@ int plugins_config_read(const char *cfgName)
 	fp = basics::safefopen(cfgName, "r");
 	if (fp == NULL)
 	{
-		ShowError("File not found: %s\n", cfgName);
+		ShowError("Plugin Configuration '"CL_WHITE"%s"CL_RESET"' not found.\n", cfgName);
 		return 1;
 	}
+	
 	while (fgets(line, sizeof(line), fp))
 	{
 		if( prepare_line(line) && 2==sscanf(line,"%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
@@ -355,6 +356,7 @@ int plugins_config_read(const char *cfgName)
 		}
 	}
 	fclose(fp);
+	ShowStatus("Done reading Plugin Configuration '"CL_WHITE"%s"CL_RESET"'.\n", cfgName);
 	return 0;
 }
 

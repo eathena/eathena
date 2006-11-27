@@ -6,8 +6,6 @@
 
 #include "basetypes.h"
 
-//ok thanks MC I see it
-#define SHOW_DEBUG_MSG 1
 // for help with the console colors look here:
 // http://www.edoceo.com/liberum/?doc=printf-with-color
 // some code explanation (used here):

@@ -1,22 +1,24 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
+///////////////////////////////////////////////////////////////////////////////
+//## <unmanaged code>
+///////////////////////////////////////////////////////////////////////////////
+
 #include "eacompiler.h"
-#include "basevariant.h"
 
-USING_NAMESPACE(basics)
 
-class Variable : public string<>
+class Variable : public basics::string<>
 {
 	Variable(const Variable&);					// no copy
 	const Variable& operator=(const Variable&);	// no assign
 
 public:
-	Variant		cValue;
+	basics::Variant		cValue;
 	///////////////////////////////////////////////////////////////////////////
 	// Construct/Destruct
-	Variable(const char* n) : string<>(n)		{  }
-	Variable(const string<>& n) : string<>(n)	{  }
+	Variable(const char* n) : basics::string<>(n)				{  }
+	Variable(const basics::string<>& n) : basics::string<>(n)	{  }
 	~Variable()	{  }
 
 	///////////////////////////////////////////////////////////////////////////
@@ -28,14 +30,15 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// Set Values
-	void set(int val)				{ cValue = val; }
-	void set(double val)			{ cValue = val; }
-	void set(const char* val)		{ cValue = val; }
-	void set(const Variant & val)	{ cValue = val; }
+	void set(int val)						{ cValue = val; }
+	void set(double val)					{ cValue = val; }
+	void set(const char* val)				{ cValue = val; }
+	void set(const basics::Variant & val)	{ cValue = val; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// read/set Value
-	operator Variant()				{ return cValue; }
+	operator const basics::Variant&() const				{ return cValue; }
+	const Variable& operator=(const basics::Variant& v)	{ cValue=v; return *this; }
 };
 
 
@@ -44,10 +47,10 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // the user stack
 ///////////////////////////////////////////////////////////////////////////////
-class UserStack : private noncopyable
+class UserStack : private basics::noncopyable
 {
 	///////////////////////////////////////////////////////////////////////////
-	stack<Variant>			cStack;		// the stack
+	basics::stack<basics::Variant>			cStack;		// the stack
 	size_t					cSC;		// stack counter
 	size_t					cSB;		// initial stack start index
 	size_t					cParaBase;	// function parameter start index
@@ -274,7 +277,7 @@ class UserStack : private noncopyable
 			// take one stack variable and push a value
 			case OP_POSTADD:	// <Op Pointer> '++'
 			{	
-				Variant temp = cStack[cSC-1];
+				basics::Variant temp = cStack[cSC-1];
 				temp.makeValue();
 				cStack[cSC-1]++;
 				cStack[cSC-1].makeValue();
@@ -283,7 +286,7 @@ class UserStack : private noncopyable
 			}
 			case OP_POSTSUB:	// <Op Pointer> '--'
 			{	
-				Variant temp(cStack[cSC-1]);
+				basics::Variant temp(cStack[cSC-1]);
 				temp.makeValue();
 				cStack[cSC-1]--;
 				cStack[cSC-1].makeValue();
@@ -531,7 +534,7 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// comming back from a callback
-	void Continue(Variant retvalue)
+	void Continue(basics::Variant& retvalue)
 	{
 
 
@@ -559,10 +562,10 @@ void vartest()
 
 
 	/////////////////////////
-	Variant a,b,c;
+	basics::Variant a,b,c;
 	a = 8.6;
 
-	Variant ref(a,true);
+	basics::Variant ref(a,true);
 	ref += 2;
 
 	printf("%s\n", (const char*)a.getString());
@@ -621,8 +624,37 @@ void vartest()
 	printf("%s\n", (const char*)c[0].getString());
 	printf("%s\n", (const char*)c[1].getString());
 	printf("%s\n\n", (const char*)c[2].getString());
-
-
-
-
 }
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+scriptstorage::scriptfile* scriptstorage::insert(const basics::string<>& filename)
+{
+	size_t pos;
+	if( !this->files.find(filename, 0, pos) )
+	{
+		this->files.insert(filename);
+	}
+	return &(this->files[pos]);
+}
+
+void scriptstorage::info()
+{
+	 basics::slist<scriptfile>::iterator iter(this->files);
+	for(; iter; ++iter)
+	{
+		printf("%s: %i scripts\n", 
+			(const char*)(*iter),
+			(int)iter->scripts.size());
+	}
+	printf("%i files\n", (int)this->files.size());
+}
+

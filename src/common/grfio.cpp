@@ -1042,7 +1042,7 @@ void grfio_final(void)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Grfio : Initialize
-void grfio_init(const char *fname)
+void grfio_init(const char *cfgName)
 {
 	/////////////////////////////////////////////////////////////////
 	// initialisation, will move to constructor
@@ -1055,15 +1055,14 @@ void grfio_init(const char *fname)
 	// read config file, might move to setup timing
 
 	int result = 0;
-	FILE *data_conf = basics::safefopen(fname, "r");
-
+	FILE *data_conf = basics::safefopen(cfgName, "r");
 
 	// It will read, if there is grf-files.txt.
 	if (data_conf)
 	{
 		char line[1024], w1[1024], w2[1024];
 		bool has_priority = false;
-
+		
 		while(fgets(line, sizeof(line), data_conf))
 		{
 			if( prepare_line(line) && 2==sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
@@ -1098,11 +1097,10 @@ void grfio_init(const char *fname)
 			}
 		}
 		fclose(data_conf);
+		ShowStatus("Done reading GRF Configuration '"CL_WHITE"%s"CL_RESET"'.\n", cfgName);
+
 		// release unnecessary area in filelist
 		filelist_adjust();
-
-		ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",fname);
-
 	} // end of reading grf-files.txt
 
 	if( !result )

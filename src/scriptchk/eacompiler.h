@@ -1,20 +1,18 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
-
-
 #ifndef _EACOMPILER_
 #define _EACOMPILER_
 
 #include "basesync.h"
+#include "basevariant.h"
+#include "basefile.h"
+#include "basestrsearch.h"
 #include "baseparser.h"
-
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // terminal definitions from parse tree
 #include "eascript.h"
-
-
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -3896,6 +3894,58 @@ public:
 
 
 
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+class scriptprog;
+class scriptstorage;
+class eacompiler;
+
+
+/// program storage.
+/// should be (or contain) a counting smartpointer to the actual program
+class scriptprog
+{
+public:
+	scriptprog()	{}
+	~scriptprog()	{}
+
+	bool operator==(const scriptprog& a) const	{ return this==&a; }
+	bool operator< (const scriptprog& a) const	{ return this< &a; }
+};
+
+/// script storage.
+/// contains the loaded scriptfiles
+class scriptstorage
+{
+	friend class eacompiler;
+
+	/// storage for a scriptfile.
+	/// contains the list of scripts in that file
+	struct scriptfile : public basics::string<>
+	{
+		scriptfile()
+		{}
+		scriptfile(const basics::string<>& filename) : basics::string<>(filename)
+		{}
+		~scriptfile()
+		{}
+
+		basics::vector<scriptprog>	scripts;	///< list of scripts in that file
+	};
+
+	basics::slist<scriptfile>	files;			///< list of files
+public:
+
+	scriptstorage()
+	{}
+	~scriptstorage()
+	{}
+
+	scriptfile* insert(const basics::string<>& filename);
+	void info();
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 #endif//_EACOMPILER_

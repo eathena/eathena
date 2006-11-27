@@ -796,13 +796,13 @@ bool CBattleConfig::read(const char *cfgName)
 	FILE *fp;
 	static int count = 0;
 
-	if ((count++) == 0)
+	if( count == 0)
 		this->defaults();
-
+	++count;
 	fp = basics::safefopen(cfgName,"r");
 	if (fp == NULL)
 	{
-		ShowError("Configuration file not found: %s\n", cfgName);
+		ShowError("Configuration '"CL_WHITE"%s"CL_RESET"' not found.\n", cfgName);
 	}
 	else
 	{
@@ -819,16 +819,16 @@ bool CBattleConfig::read(const char *cfgName)
 				else
 				{
 					if( !this->set_value(w1, w2) )
-						ShowWarning("(Config) %s: no such option.\n", w1);
+						ShowWarning("'"CL_WHITE"%s"CL_RESET"': no option '%s'.\n", cfgName, w1);
 				}
 			}
 		}
 		fclose(fp);
+		ShowStatus("Done reading Configuration '"CL_WHITE"%s"CL_RESET"'.\n", cfgName);
 		if( --count == 0 )
 		{
 			this->validate();
 		}
-		ShowStatus("Configuration file '%s' read.\n", cfgName);
 		return true;
 	}
 	return false;
@@ -890,7 +890,7 @@ bool CMessageTable::read(const char *cfgName)
 
 	if((fp = basics::safefopen(cfgName, "r")) == NULL)
 	{
-		ShowError("Messages file not found: %s\n", cfgName);
+		ShowError("Messages Configuration '"CL_WHITE"%s"CL_RESET"' not found.\n", cfgName);
 	}
 	else
 	{
@@ -920,7 +920,7 @@ bool CMessageTable::read(const char *cfgName)
 			}
 		}
 		fclose(fp);
-		ShowStatus("Messages configuration file '%s' read.\n", cfgName);
+		ShowStatus("Done reading Message Configuration '"CL_WHITE"%s"CL_RESET"'.\n", cfgName);
 		return true;
 	}
 	return false;

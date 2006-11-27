@@ -28,8 +28,8 @@ bool aegisprinter::print_npchead(const char* head,
 								 const basics::string<>& ypos,
 								 const char* dir,
 								 const char* sprite,
-								 const basics::string<>& touchx,
-								 const basics::string<>& touchy)
+								 int touchx,
+								 int touchy)
 {
 	aegisprinter& prn = *this;
 	char tmpname[32];
@@ -68,15 +68,51 @@ bool aegisprinter::print_npchead(const char* head,
 			", dir=" << dirnames[(dir?atoi(dir)&0x07:0)] << 
 			", sprite=" << sprite;
 
-	if( 0!=atoi(touchx) ||
-		0!=atoi(touchy) )
+	if( touchx>0 ||
+		touchy>0 )
 	{
 		prn << ", touchup={"
-			<< atoi(touchx) << ", "
-			<< atoi(touchy) << '}';
+			<< (touchx>0?touchx:0) << ", "
+			<< (touchy>0?touchy:0) << '}';
 	}
 	prn << ')';
 	prn << '\n';
+	return true;
+}
+
+bool aegisprinter::print_equipid(basics::CParser_CommentStore& parser, int nodepos)
+{
+	aegisprinter& prn = *this;
+
+	basics::CStackElement* node;
+	for(node = &parser.rt[ nodepos ]; node->symbol.Type != 1; node= &parser.rt[ node->cChildPos ]) {}
+	
+	const uint pos = atoi(node->cToken.cLexeme)-1;
+	if( node->symbol.idx == AE_DECLITERAL )
+	{
+		const char * equippos[] = 
+		{
+			"\"Head\"",
+			"\"Body\"",
+			"\"Left Hand\"",
+			"\"Right Hand\"",
+			"\"Robe\"",
+			"\"Shoes\"",
+			"\"Accessory 1\"",
+			"\"Accessory 2\"",
+			"\"Head 2\"",
+			"\"Head 3\"",
+			"\"Arrows\""
+		};
+		prn << ' ' << pos
+			<< ' ' << '/' << '*' << ' '
+			<< ((pos < sizeof(equippos)/sizeof(*equippos))?equippos[pos]:"invalid")
+			<< ' ' << '*' << '/';
+	}	
+	else
+	{
+		prn << node->cToken.cLexeme;
+	}
 	return true;
 }
 
@@ -123,6 +159,222 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int namep
 			// empty node otherwise
 		}
 		
+
+/*
+declare v							n			ENUM++
+-> <array>
+declare lv							s			ENUM++
+-> <array>
+declare npcv						sn			ENUM++
+-> <npcarray>
+declare SetLocalVar					sn			ENUM++
+-> tempvar assignment
+declare PcName						.			ENUM++
+-> player::name, or strcharinfo(0)
+declare OnInit:						.			ENUM++	blockcheck
+-> <Label>
+declare OnClick:					.			ENUM++	blockcheck
+-> <Label>
+declare OnTouch:					.			ENUM++	blockcheck
+-> <Label>
+declare OnMyMobDead:				.			ENUM++	blockcheck
+-> <Label>
+declare OnTimer:					n			ENUM++	blockcheck
+-> <Label>
+declare OnCommand:					s			ENUM++	blockcheck
+-> <Label>
+declare OnStartArena:				.			ENUM++	blockcheck
+-> <Label>
+declare rand						nn			ENUM++
+-> rand
+declare lot							nn			ENUM++
+-> rand ?
+declare GetPCCount					s			ENUM++
+-> getmapusers
+declare return						.			ENUM++
+-> end
+declare guide						ssnnnn		ENUM++	blockcheck
+-> <npc/mob/warpobj>
+declare npc							ssnnnnnn	ENUM++	blockcheck
+-> <npc/mob/warpobj>
+declare mob							nsnnnn		ENUM++	blockcheck
+-> <npc/mob/warpobj>
+declare warp						ssnnnn		ENUM++	blockcheck
+-> <npc/mob/warpobj>
+declare trader						ssnnnn		ENUM++	blockcheck
+-> <npc/mob/warpobj>
+declare arenaguide					ssnnnnnn	ENUM++	blockcheck
+-> <npc/mob/warpobj>
+declare hiddenwarp					ssnnnn		ENUM++	blockcheck
+-> <npc/mob/warpobj>
+declare dialog						s			ENUM++
+-> dialog
+declare wait						.			ENUM++
+-> next
+declare close						.			ENUM++
+-> close
+declare putmob						snnnnnnnnn	ENUM++
+-> monster
+declare moveto						snn			ENUM++
+-> warp
+declare getitem						nn			ENUM++
+-> getitem
+declare dropitem					nn			ENUM++
+-> delitem
+declare menu						s?			ENUM++
+-> select
+declare sellitem					n			ENUM++
+-> sellitem
+declare error						.			ENUM++
+-> tmpval<0
+declare dlgwrite					nn			ENUM++
+-> input
+declare input						.			ENUM++
+-> tmpval/tmpstr
+declare	callmonster					snsnn		ENUM++
+-> monster
+declare	cmdothernpc					ss			ENUM++
+-> cmdothernpc
+declare	makewaitingroom				sn			ENUM++
+-> waitingroom
+declare	resetmymob					.			ENUM++
+-> killmonster
+declare	enablenpc					s			ENUM++
+-> enablenpc
+declare	disablenpc					s			ENUM++
+-> disablenpc
+declare IncLocalVar					sn			ENUM++
+-> ++
+declare DecLocalVar					sn			ENUM++
+-> --
+declare compass						nnnns		ENUM++
+-> viewpoint
+declare	GetEquipName				n			ENUM++
+-> getequipname
+declare GetEquipItemIdx				n			ENUM++
+-> getequipid
+declare GetEquipIsIdentify			n			ENUM++
+-> getequipisidentify
+
+  
+declare trace						s			ENUM++
+-> ?
+declare GetEquipRefineryCnt			n			ENUM++
+-> ?
+declare GetEquipPercentRefinery		n			ENUM++
+-> ?
+declare GetEquipRefineryCost		n			ENUM++
+-> ?
+declare GetEquipIsSuccessRefinery	n			ENUM++
+-> ?
+declare	GetEquipWeaponLv			n			ENUM++
+-> ?
+declare GetEquipIsEnableRef			n			ENUM++
+-> ?
+declare LastNpcName					s			ENUM++
+-> ?
+declare effect						snnnnnn		ENUM++	blockcheck
+-> ?
+declare say							s			ENUM++
+-> ?
+declare getgold						n			ENUM++
+-> ?
+declare dropgold					n			ENUM++
+-> ?
+declare setitem						nn			ENUM++
+-> ?
+declare inc							nn			ENUM++
+-> ?
+declare dec							nn			ENUM++
+-> ?
+declare hpfullheal					.			ENUM++
+-> ?
+declare spfullheal					.			ENUM++
+-> ?
+declare hpheal						n			ENUM++
+-> ?
+declare spheal						n			ENUM++
+-> ?
+declare poisonheal					.			ENUM++
+-> ?
+declare stoneheal					.			ENUM++
+-> ?
+declare curseheal					.			ENUM++
+-> ?
+declare freezingheal				.			ENUM++
+-> ?
+declare silenceheal					.			ENUM++
+-> ?
+declare confusionheal				. 			ENUM++
+-> ?
+declare buyitem						n			ENUM++
+-> ?
+declare jobchange					n			ENUM++
+-> ?
+declare exchange					nnnn		ENUM++
+-> ?
+declare checkpoint					snn			ENUM++
+-> ?
+declare store						.			ENUM++
+-> ?
+declare cart						n			ENUM++
+-> ?
+declare	nude						.			ENUM++
+-> ?
+declare	showimage					sn			ENUM++
+-> ?
+declare	changepallete				nn			ENUM++
+-> ?
+declare	addskill					nnnn		ENUM++
+-> ?
+declare	strlocalvar					ns			ENUM++
+-> ?
+declare InitTimer					.			ENUM++
+-> ?
+declare setarenaeventsize			n			ENUM++
+-> ?
+declare	enablearena					.			ENUM++
+-> ?
+declare	disablearena				.			ENUM++
+-> ?
+declare	warpwaitingpctoarena		snn			ENUM++
+-> ?
+declare	warpallpcinthemap			snn			ENUM++
+-> ?
+declare	broadcastinmap				s			ENUM++
+-> ?
+declare	stoptimer					.			ENUM++
+-> ?
+declare	addnpctimer					sn			ENUM++
+-> ?
+declare	subnpctimer					sn			ENUM++
+-> ?
+declare	callnpc						snsnnn		ENUM++
+-> ?
+declare SetFeeZeny					n			ENUM++
+-> ?
+declare SetFeeItem					nn			ENUM++
+-> ?
+declare SetReqLevel					nn			ENUM++
+-> ?
+declare SetTexJob					n			ENUM++
+-> ?
+declare DisableItemMove				.			ENUM++
+-> ?
+declare EnableItemMove				.			ENUM++
+-> ?
+declare SuccessRefItem				n			ENUM++
+-> ?
+declare FailedRefItem				n			ENUM++
+-> ?
+declare SetEffectStatus				n			ENUM++
+-> ?
+declare ResetStat					.			ENUM++
+-> ?
+declare ResetSkill					.			ENUM++
+-> ?
+*/
+
 		//////////////////////////////////////////////////////////////////
 		// function remapping
 		if( funcname->cToken.cLexeme == "dialog" )
@@ -153,16 +405,49 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int namep
 		{	// string input box
 			// aegis default variable is "inputstr"
 			// we'll need to make it explicit
-			if( !this->cHasTmpstr ) this->cHasTmpstr=true, prn << "temp ";
-			prn << "temp tmpstr = inputstring()";
+			if( !this->cHasTmpstr ) this->cHasTmpstr=true, prn << "string ";
+			prn << "temp::tmpstr = inputstring()";
 		}
 		else if( funcname->cToken.cLexeme == "dlgwrite" )
 		{	// number input box with range check
 			// aegis default variable is "input", 
-			// additionally the variable "error" gets set to 1 if in case of error
+			// additionally the variable "error" gets set to 1 in case of error
 			// we'll need to make it explicit
-			if( !this->cHasTmpval ) this->cHasTmpval=true, prn << "temp ";
-			prn << "temp tmpval = inputnumber()";
+			if( !this->cHasTmpval ) prn << "int ";
+			prn <<  "temp::tmpval = inputnumber();\n";
+			if( parameter.size()>0 )
+			{
+				size_t cnt=0;
+
+				if( !this->cHasTmpval ) prn << "int ";
+				prn << "temp::tmperr = ";
+
+				basics::CStackElement* node = &parser.rt[parameter[0]];
+
+				if( node->symbol.idx==AE_DECLITERAL )
+				{	// a number
+					int num = atoi(node->cToken.cLexeme);
+					if( num >1 )
+					{
+						prn << "( temp::tmpval>0 && temp::tmpval<" << num << ' ' << ')';
+						++cnt;
+					}
+					// else don't need a lower bound check
+				}
+				else
+				{	// type of first parameter unknown, might be an error
+					prn << "temp::tmpval < ";
+					print_beautified(parser, parameter[0], AE_EXPR);
+					++cnt;
+				}
+				if( parameter.size()>1 )
+				{
+					if(cnt) prn << " || ";
+					prn <<  "temp::tmpval > ";
+					print_beautified(parser, parameter[1], AE_EXPR);
+				}
+			}
+			this->cHasTmpval=true;
 		}
 		else if( funcname->cToken.cLexeme == "exitwhile" )
 		{	// exit from a while loop
@@ -177,7 +462,7 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int namep
 			{
 				basics::CStackElement* node=&parser.rt[ parameter[0] ];
 				for(; node->cChildNum==1; node = &parser.rt[ node->cChildPos ]) {}
-				if( node->symbol.Type == 1 ) // should be a stringliteral
+				if( node->symbol.Type == 1 )
 				{
 					prn << "global::";
 					this->print_idstring(node->cToken.cLexeme);
@@ -197,7 +482,7 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int namep
 			{
 				basics::CStackElement* node=&parser.rt[ parameter[0] ];
 				for(; node->cChildNum==1; node = &parser.rt[ node->cChildPos ]) {}
-				if( node->symbol.Type == 1 ) // should be a stringliteral
+				if( node->symbol.Type == 1 )
 				{
 					prn << "global::";
 					this->print_idstring(node->cToken.cLexeme);
@@ -206,22 +491,92 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int namep
 					prn << '0';
 			}
 		}
+		else if( funcname->cToken.cLexeme == "SetLocalVar" ||
+				 funcname->cToken.cLexeme == "SetLocalStr" )
+		{	// as names say
+			// translates to assignment, 2 parameters
+			if( parameter.size()>0 )
+			{
+				basics::CStackElement* node=&parser.rt[ parameter[0] ];
+				for(; node->cChildNum==1; node = &parser.rt[ node->cChildPos ]) {}
+				if( node->symbol.Type == 1 )
+				{
+					prn << "temp::";
+					this->print_idstring(node->cToken.cLexeme);
+					prn << ' ' << '=' << ' ';
+					if( parameter.size()>1 )
+						print_beautified(parser, parameter[1], AE_EXPR);
+					else
+						prn << '0';
+				}
+			}
+		}
+		else if( funcname->cToken.cLexeme == "IncLocalVar" ||
+				 funcname->cToken.cLexeme == "DecLocalVar" )
+		{	// as names say
+			// translates to assignment, 2 parameters
+			if( parameter.size()>0 )
+			{
+				basics::CStackElement* node=&parser.rt[ parameter[0] ];
+				for(; node->cChildNum==1; node = &parser.rt[ node->cChildPos ]) {}
+				if( node->symbol.Type == 1 )
+				{
+					prn << ((funcname->cToken.cLexeme == "IncLocalVar")?"++":"--");
+					prn << "temp::";
+					this->print_idstring(node->cToken.cLexeme);
+				}
+			}
+		}
+
 		else if( funcname->cToken.cLexeme == "dropitem" )
 		{	// removes items
 			// translates to delitem, 2 parameters
 			prn << "delitem" << '(';
-////////
-// add parameter test
-			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
+
+			if(parameter.size() ==2 )
+			{
+				const itemdb_entry* item = itemdb_entry::lookup( parser.rt[parameter[0]].cToken.cLexeme );
+				if( item )
+				{
+					prn << '\"' << item->Name1 << '\"';
+				}
+				else
+				{
+					prn << '\"' << parser.rt[parameter[0]].cToken.cLexeme << '\"';
+					fprintf(stderr, "item id '%s' not found, line %i\n",
+						(const char*)parser.rt[parameter[0]].cToken.cLexeme,
+						(int)parser.rt[parameter[0]].cToken.line);
+				}
+				prn << ',' << ' ';
+				print_beautified(parser, parameter[1], AE_EXPR);
+			}
+			else if( parapos>0 )
+				print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
 		}
 		else if( funcname->cToken.cLexeme == "getitem" )
 		{	// adds items
 			// translates to getitem, 2 parameters
 			prn << "getitem" << '(';
-////////
-// add parameter test
-			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
+			if(parameter.size() ==2 )
+			{
+				const itemdb_entry* item = itemdb_entry::lookup( parser.rt[parameter[0]].cToken.cLexeme );
+				if( item )
+				{
+					prn << '\"' << item->Name1 << '\"';
+				}
+				else
+				{
+					prn << '\"' << parser.rt[parameter[0]].cToken.cLexeme << '\"';
+					fprintf(stderr, "item id '%s' not found, line %i\n",
+						(const char*)parser.rt[parameter[0]].cToken.cLexeme,
+						(int)parser.rt[parameter[0]].cToken.line);
+				}
+				prn << ',' << ' ';
+				print_beautified(parser, parameter[1], AE_EXPR);
+			}
+			else if( parapos>0 )
+				print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
 		}
 		else if( funcname->cToken.cLexeme == "sellitem" )
@@ -245,7 +600,33 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int namep
 				prn << ')';
 			}
 		}
-		
+		else if( funcname->cToken.cLexeme == "GetEquipName" )
+		{	// equiment name
+			if(parameter.size()>0 )
+			{
+				prn << "getequipname(";
+				print_equipid(parser, parameter[0]);
+				prn << ')';
+			}
+		}
+		else if( funcname->cToken.cLexeme == "GetEquipItemIdx" )
+		{	// equiment name
+			if(parameter.size()>0 )
+			{
+				prn << "getequipid(";
+				print_equipid(parser, parameter[0]);
+				prn << ')';
+			}
+		}
+		else if( funcname->cToken.cLexeme == "GetEquipIsIdentify" )
+		{	// equiment name
+			if(parameter.size()>0 )
+			{
+				prn << "getequipisidentify(";
+				print_equipid(parser, parameter[0]);
+				prn << ')';
+			}
+		}
 		else if( funcname->cToken.cLexeme == "CheckMaxCount" && parameter.size()==2 )
 		{	// possibly tests the itemcount with the second number
 			// translates to countitem with compare, 2 parameters
@@ -331,49 +712,78 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int namep
 			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
 		}
+		else if( funcname->cToken.cLexeme == "compass" )
+		{	// warpwaitingpctoarena
+			// translates to warpwaitingpc, 3 parameters
+			
+			if( parameter.size()!=5 )
+			{	// incorrect parameters
+				fprintf(stderr, "incorrect parameter for compass, line %i",
+					(int)funcname->cToken.line);
+				prn << "// compass ";
+				if(parapos>0)
+					print_beautified(parser, parapos, AE_EXPR);
+			}
+			else
+			{
+				prn << "viewpoint" << '(';
+				print_beautified(parser, parameter[0], AE_EXPR);
+				prn << ',' << ' ';
+				print_beautified(parser, parameter[1], AE_EXPR);
+				prn << ',' << ' ';
+				print_beautified(parser, parameter[2], AE_EXPR);
+				prn << ',' << ' ';
+				print_beautified(parser, parameter[3], AE_EXPR);
+				prn << ',' << ' ';
+				prn.print_without_quotes(parser.rt[parameter[4]].cToken.cLexeme);
+				prn << ')';
+			}
+		}
 		else if( funcname->cToken.cLexeme == "callmonster" )
 		{	// callmonster creates npc bound monsters
 			// ->
-/*
-			// new function npc::createmonster
-			prn << "npc::createmonster" << '(';
-			if( param>0 ) print_beautified(parser, param, AE_EXPR);
-			prn << ')';
-*/
 			// use old ea functions as other option (with slight enhancement)
 			// aegis:	callmonster <map> <id> <name> <x> <y>
 			// ea:		monster		<map>,<x>,<y>,<name>,<id>,<cnt>,<event>
 			// default aegis event name is the "OnMyMobDead"
 
-			prn << "npc::mymobcount += monster(";
-			print_beautified(parser, parameter[0], AE_EXPR);
-			prn << ',' << ' ';
-			print_beautified(parser, parameter[3], AE_EXPR);
-			prn << ',' << ' ';
-			print_beautified(parser, parameter[4], AE_EXPR);
-			prn << ',' << ' ';
-			print_beautified(parser, parameter[2], AE_EXPR);
-			prn << ',' << ' ';
-			
-			const mobdb_entry *mob = mobdb_entry::lookup( parser.rt[parameter[1]].cToken.cLexeme );
-			if(mob)
-				prn << '\"' << mob->Name1 << '\"';
+			if( parameter.size()!=5 )
+			{	// incorrect parameters
+				fprintf(stderr, "incorrect parameter for callmonster, line %i",
+					(int)funcname->cToken.line);
+				prn << "// callmonster ";
+				if(parapos>0)
+					print_beautified(parser, parapos, AE_EXPR);
+			}
 			else
 			{
-				prn << '\"';
-				print_beautified(parser, parameter[1], AE_LABEL);
-				prn << '\"';
+
+				prn << "npc::mymobcount += monster(";
+				print_beautified(parser, parameter[0], AE_EXPR);
+				prn << ',' << ' ';
+				print_beautified(parser, parameter[3], AE_EXPR);
+				prn << ',' << ' ';
+				print_beautified(parser, parameter[4], AE_EXPR);
+				prn << ',' << ' ';
+				print_beautified(parser, parameter[2], AE_EXPR);
+				prn << ',' << ' ';
+				
+				const mobdb_entry *mob = mobdb_entry::lookup( parser.rt[parameter[1]].cToken.cLexeme );
+				if(mob)
+					prn << '\"' << mob->Name1 << '\"';
+				else
+				{
+					prn << '\"';
+					print_beautified(parser, parameter[1], AE_LABEL);
+					prn << '\"';
+				}
+				prn << ',' << ' ' << '1' << ',' << ' '
+					<< '\"' << this->cEAName << "::" << "OnMyMobDead" << '\"' << ')';
 			}
-			prn << ',' << ' ' << '1' << ',' << ' '
-				<< '\"' << this->cEAName << "::" << "OnMyMobDead" << '\"' << ')';
 		}
 		else if( funcname->cToken.cLexeme == "resetmymob" )
 		{	// resetmymob removes called npc monsters
 			// ->
-/*			// new function npc::removemonster
-			// no parameters
-			prn << "npc::removemonster" << '(' << ')';
-*/
 			// use old ea functions as other option
 			// killmonster with mapname and eventname
 			prn << "killmonster(" << this->cMapName << ',' << ' '
@@ -391,9 +801,9 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int namep
 			prn << ')';
 		}
 		else if( funcname->cToken.cLexeme == "disablenpc" )
-		{	// enablenpc
+		{	// disablenpc
 			// ->
-			// enablenpc, 1 parameter
+			// disablenpc, 1 parameter
 			prn << "disablenpc" << '(';
 ////////
 // add parameter test
@@ -401,7 +811,64 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int namep
 			prn << ')';
 		}
 		//////////////////////////////////////////////////////////////////
-		else
+		else if( funcname->cToken.cLexeme == "trace" ||
+				 funcname->cToken.cLexeme == "GetEquipRefineryCnt" ||
+				 funcname->cToken.cLexeme == "GetEquipPercentRefinery" ||
+				 funcname->cToken.cLexeme == "GetEquipRefineryCost" ||
+				 funcname->cToken.cLexeme == "GetEquipIsSuccessRefinery" ||
+				 funcname->cToken.cLexeme == "GetEquipWeaponLv" ||
+				 funcname->cToken.cLexeme == "GetEquipIsEnableRef" ||
+				 funcname->cToken.cLexeme == "LastNpcName" ||
+				 funcname->cToken.cLexeme == "effect" ||
+				 funcname->cToken.cLexeme == "say" ||
+				 funcname->cToken.cLexeme == "getgold" ||
+				 funcname->cToken.cLexeme == "dropgold" ||
+				 funcname->cToken.cLexeme == "setitem" ||
+				 funcname->cToken.cLexeme == "inc" ||
+				 funcname->cToken.cLexeme == "dec" ||
+				 funcname->cToken.cLexeme == "hpfullheal" ||
+				 funcname->cToken.cLexeme == "spfullheal" ||
+				 funcname->cToken.cLexeme == "hpheal" ||
+				 funcname->cToken.cLexeme == "spheal" ||
+				 funcname->cToken.cLexeme == "poisonheal" ||
+				 funcname->cToken.cLexeme == "stoneheal" ||
+				 funcname->cToken.cLexeme == "curseheal" ||
+				 funcname->cToken.cLexeme == "freezingheal" ||
+				 funcname->cToken.cLexeme == "silenceheal" ||
+				 funcname->cToken.cLexeme == "confusionheal" ||
+				 funcname->cToken.cLexeme == "buyitem" ||
+				 funcname->cToken.cLexeme == "jobchange" ||
+				 funcname->cToken.cLexeme == "exchange" ||
+				 funcname->cToken.cLexeme == "checkpoint" ||
+				 funcname->cToken.cLexeme == "store" ||
+				 funcname->cToken.cLexeme == "cart" ||
+				 funcname->cToken.cLexeme == "nude" ||
+				 funcname->cToken.cLexeme == "showimage" ||
+				 funcname->cToken.cLexeme == "changepallete" ||
+				 funcname->cToken.cLexeme == "addskill" ||
+				 funcname->cToken.cLexeme == "strlocalvar" ||
+				 funcname->cToken.cLexeme == "InitTimer" ||
+				 funcname->cToken.cLexeme == "setarenaeventsize" ||
+				 funcname->cToken.cLexeme == "enablearena" ||
+				 funcname->cToken.cLexeme == "disablearena" ||
+				 funcname->cToken.cLexeme == "warpwaitingpctoarena" ||
+				 funcname->cToken.cLexeme == "warpallpcinthemap" ||
+				 funcname->cToken.cLexeme == "broadcastinmap" ||
+				 funcname->cToken.cLexeme == "stoptimer" ||
+				 funcname->cToken.cLexeme == "addnpctimer" ||
+				 funcname->cToken.cLexeme == "subnpctimer" ||
+				 funcname->cToken.cLexeme == "callnpc" ||
+				 funcname->cToken.cLexeme == "SetFeeZeny" ||
+				 funcname->cToken.cLexeme == "SetFeeItem" ||
+				 funcname->cToken.cLexeme == "SetReqLevel" ||
+				 funcname->cToken.cLexeme == "SetTexJob" ||
+				 funcname->cToken.cLexeme == "DisableItemMove" ||
+				 funcname->cToken.cLexeme == "EnableItemMove" ||
+				 funcname->cToken.cLexeme == "SuccessRefItem" ||
+				 funcname->cToken.cLexeme == "FailedRefItem" ||
+				 funcname->cToken.cLexeme == "SetEffectStatus" ||
+				 funcname->cToken.cLexeme == "ResetStat" ||
+				 funcname->cToken.cLexeme == "ResetSkill" )
 		{	// default: just use the given function name
 
 			prn.log(parser, namepos);
@@ -411,6 +878,14 @@ bool aegisprinter::print_callstm(basics::CParser_CommentStore& parser, int namep
 			prn << '(';
 			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
+		}
+		else
+		{	// as aegis grammar is ambiguous 
+			// we wronly detected a call statement here
+			// while it's beeing an expression starting with an identifier
+			// so:
+			print_beautified(parser, namepos, AE_CALLSTM);
+			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
 		}
 		return true;
 	}
@@ -427,70 +902,96 @@ bool aegisprinter::print_varray(basics::CParser_CommentStore& parser, int rtpos,
 	basics::CStackElement* node=&parser.rt[ parser.rt[rtpos].cChildPos+2 ];
 	for(; node->cChildNum==1; node = &parser.rt[ node->cChildPos ]) {}
 
-	if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_SEX" )
-	{	// access player variable
-		prn << "player::gender()";
+	if( parser.rt[ parser.rt[rtpos].cChildPos+0 ].cToken.cLexeme == "lv" )
+	{	// local variable
+		prn << "temp::";
+		this->print_idstring(node->cToken.cLexeme);
 	}
-	else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_MAXWEIGHT" )
-	{	// access player variable
-		prn << "player::maxweight()";
-	}
-	else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_WEIGHT" )
-	{	// access player variable
-		prn << "player::weight()";
-	}
-	else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_MONEY" )
-	{	// access player variable
-		prn << "player::zeny()";
-	}
-	else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_JOB" )
-	{	// access player variable
-		prn << "player::job()";
-	}
-	else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_ISRIDING" )
-	{	// access player variable
-		prn << "player::is_riding()";
-	}
-	else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_ISRIDING" )
-	{	// access player variable
-		prn << "player::is_riding()";
-	}
-	else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_ISPECOON" )
-	{	// access player variable
-		prn << "player::is_riding()";
-	}
-	else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_ISPARTYMASTER" )
-	{	// access player variable
-		prn << "player::is_partymaster()";
-	}
-	else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_CLEVEL" )
-	{	// access player variable
-		prn << "player::baselevel()";
-	}
-	else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_CLEVEL" )
-	{	// access player variable
-		prn << "player::skillevel(\"NV_BASIC\")";
-	}
-// the others should be intentory access but double check with a loaded itemdb later
-	else
-	{
-		const itemdb_entry *item = itemdb_entry::lookup(node->cToken.cLexeme);
-		if( item )
-		{
-			prn << "countitem(\"" << item->Name1 << "\")";
+	else if( parser.rt[ parser.rt[rtpos].cChildPos+0 ].cToken.cLexeme == "v" )
+	{	// player variable
+		if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_SEX" )
+		{	// access player variable
+			prn << "player::gender()";
 		}
+		else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_MAXWEIGHT" )
+		{	// access player variable
+			prn << "player::maxweight()";
+		}
+		else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_WEIGHT" )
+		{	// access player variable
+			prn << "player::weight()";
+		}
+		else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_MONEY" )
+		{	// access player variable
+			prn << "player::zeny()";
+		}
+		else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_JOB" )
+		{	// access player variable
+			prn << "player::job()";
+		}
+		else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_ISRIDING" )
+		{	// access player variable
+			prn << "player::is_riding()";
+		}
+		else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_ISRIDING" )
+		{	// access player variable
+			prn << "player::is_riding()";
+		}
+		else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_ISPECOON" )
+		{	// access player variable
+			prn << "player::is_pecoon()";
+		}
+		else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_ISCARTON" )
+		{	// access player variable
+			prn << "player::is_carton()";
+		}
+		else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_ISPARTYMASTER" )
+		{	// access player variable
+			prn << "player::is_partymaster()";
+		}
+		else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_CLEVEL" )
+		{	// access player variable
+			prn << "player::baselevel()";
+		}
+		else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_JOBLEVEL" )
+		{	// access player variable
+			prn << "player::joblevel()";
+		}
+		else if( node->symbol.idx == AE_IDENTIFIER && node->cToken.cLexeme == "VAR_NV_BASIC" )
+		{	// access player variable
+			prn << "player::skillevel(\"NV_BASIC\")";
+		}
+	// the others should be intentory access but double check with a loaded itemdb later
 		else
-		{	// some char variable (possibly)
-			prn << "player::" << node->cToken.cLexeme;
+		{
+			const itemdb_entry *item = itemdb_entry::lookup(node->cToken.cLexeme);
+			if( item )
+			{
+				prn << "countitem(\"" << item->Name1 << "\")";
+			}
+			else
+			{	// some char variable (possibly)
+
+				fprintf(stderr, "item '%s' not found, assuming player variable, line %i\n",
+					(const char*)node->cToken.cLexeme,
+					(int)node->cToken.line);
+
+				prn << "player::";
+				this->print_idstring(node->cToken.cLexeme);
+			}
+	/*		
+			// default
+			prn.log(parser, rtpos);
+			prn << "variable";
+			prn << '[';
+			print_beautified(parser, parser.rt[rtpos].cChildPos+2, AE_ARRAY);
+			prn << ']';
+	*/
 		}
-/*		
-		// default
-		prn.log(parser, rtpos);
-		prn << "variable";
-		prn << '[';
-		print_beautified(parser, parser.rt[rtpos].cChildPos+2, AE_ARRAY);
-		prn << ']';
-*/
+	}
+	else
+	{	// some function with brackets
+		print_callstm(parser, parser.rt[rtpos].cChildPos+0, parser.rt[rtpos].cChildPos+2);
 	}
 	return true;
 }
@@ -651,7 +1152,7 @@ bool aegisprinter::print_identifier(basics::CParser_CommentStore& parser, int rt
 	}
 	else if( parser.rt[rtpos].cToken.cLexeme == "error" )
 	{	// variable for number input box
-		prn << "temp::tmpval<0";
+		prn << "temp::tmperr";
 	}
 	else if( parser.rt[rtpos].cToken.cLexeme == "PcName" )
 	{	// variable for number input box
@@ -774,7 +1275,7 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 		}
 		case AE_VARDECL:
 		{	// 'var' identifier <Var Init> <nl>
-			prn << "temp ";
+			prn << "var ";
 			print_beautified(parser, parser.rt[rtpos].cChildPos+1, AE_VARDECL);
 			print_beautified(parser, parser.rt[rtpos].cChildPos+2, parent);
 			prn << ";\n";
@@ -1064,8 +1565,8 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 								 parser.rt[i+5].cToken.cLexeme,
 								 parser.rt[i+6].cToken.cLexeme,
 								 sprite,
-								 parser.rt[i+7].cToken.cLexeme,
-								 parser.rt[i+8].cToken.cLexeme);
+								 (shop)?0:atoi(parser.rt[i+7].cToken.cLexeme),
+								 (shop)?0:atoi(parser.rt[i+8].cToken.cLexeme) );
 			// script body
 			prn << "{\n";
 			++prn.scope;
@@ -1097,8 +1598,8 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 								 parser.rt[i+4].cToken.cLexeme,
 								 "0",
 								 sprite,
-								 parser.rt[i+5].cToken.cLexeme,
-								 parser.rt[i+6].cToken.cLexeme);
+								 atoi(parser.rt[i+5].cToken.cLexeme),
+								 atoi(parser.rt[i+6].cToken.cLexeme) );
 			// script body
 			prn << "{\n";
 			++prn.scope;
@@ -1129,8 +1630,8 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 								 parser.rt[i+4].cToken.cLexeme,
 								 parser.rt[i+5].cToken.cLexeme,
 								 sprite,
-								 parser.rt[i+6].cToken.cLexeme,
-								 parser.rt[i+7].cToken.cLexeme);
+								 atoi(parser.rt[i+6].cToken.cLexeme),
+								 atoi(parser.rt[i+7].cToken.cLexeme) );
 			// script body
 			prn << "{\n";
 			++prn.scope;
@@ -1182,6 +1683,39 @@ bool aegisprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 			prn << ')' << ';';
 			break;
 		}
+		case AE_MOBDECL:
+		{
+			break;
+		}
+		case AE_EFFECTOBJ:
+		{
+			break;
+		}
+		case AE_DEFINITION:
+		{	// 'define' identifier DecLiteral <nl>
+			const size_t i = parser.rt[rtpos].cChildPos;
+			const int val = atoi(parser.rt[i+2].cToken.cLexeme);
+			if( this->defines.exists(parser.rt[i+1].cToken.cLexeme) )
+			{
+				if( this->defines[parser.rt[i+1].cToken.cLexeme] != val )
+				{
+					fprintf(stderr, "double definition %s, different values ('%i'!='%i')\n",
+						(const char*)parser.rt[i+1].cToken.cLexeme,
+						val, this->defines[parser.rt[i+1].cToken.cLexeme]);
+				}
+			}
+			else
+			{
+				this->defines[parser.rt[i+1].cToken.cLexeme] = val;
+			}
+			break;
+		}
+		case AE_DECLARATION:
+		{	// declare <nl>
+			// just ignore
+			break;
+		}
+
 		case AE_NL:
 		case AE_NLOPT:
 		case AE_NEWLINE:
@@ -1240,7 +1774,11 @@ bool aegisParser::process(const char*name) const
 				( child->symbol.idx == AE_NPCOBJ ||
 				  child->symbol.idx == AE_WARPOBJ ||
 				  child->symbol.idx == AE_WARPNPCOBJ ||
-				  child->symbol.idx == AE_MOBOBJ
+				  child->symbol.idx == AE_MOBOBJ ||
+				  child->symbol.idx == AE_MOBDECL ||
+				  child->symbol.idx == AE_EFFECTOBJ ||
+				  child->symbol.idx == AE_DEFINITION ||
+				  child->symbol.idx == AE_DECLARATION
 				  )
 			  )
 			{

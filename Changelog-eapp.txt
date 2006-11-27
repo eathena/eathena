@@ -1,4 +1,21 @@
 Date	Added
+11/27
+	* some changes on console logs, despite my doubts it will help the epidemic dyslexia
+	* debug mode is now activated only when building with DEBUG (or _DEBUG) defined
+	  as only this symbol is activating the debug mode for the underlying structures
+	* some more fine tuning to script converter
+	- adding const.txt into dblookup
+	  still need checking if it is sufficient for player variable detection
+	- usages of temp variables in current scripts is inconsistent
+	  as some assume lifetime of temp vars beyond script execution
+	  (just something like non-saving permanent variables)
+	  new temp variables are really temporary, so some scripts might fail to work
+	- more aegis conversions; 58 of the aegis functions are left for transformation
+	- added read support std.sc although nothing is converted from there
+	  (defines are only stored, declarations and mobs ignored)
+	* merged some of Hinoko's code into the script checker,
+	  unfortunately the compiler needs to be redone as some of grammar terminals 
+	  don't follow the existing compiler template, so I cannot generate it
 11/24
 	* removed an extra coma that prevented tbl_variable from being created [FlavioJS]
 11/20

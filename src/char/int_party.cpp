@@ -70,7 +70,7 @@ bool party_check_exp_share(CParty &p)
 			(char_married(p.member[1].name,p.member[2].name) && char_child(p.member[1].name,p.member[0].name)) )
 			return true;
 	}
-	return (maxlv==0) || (maxlv<=(minlv+party_share_level));
+	return (maxlv==0) || (maxlv<=(minlv+party_share_level()));
 }
 
 // キャラの競合がないかチェック
