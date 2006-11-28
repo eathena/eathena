@@ -1075,8 +1075,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 		//TODO: Would be nice if this could be used to judge whether the player can or not pick up the item it targets. [Skotlex]
 		if (status->mode&MD_LOOTER)
 			return 1;
-		else
-			return 0;
+		return 0;
 	default:
 		//Check for chase-walk/hiding/cloaking opponents.
 		if (tsc && !(status->mode&MD_BOSS))
@@ -4048,8 +4047,8 @@ void status_set_viewdata(struct block_list *bl, int class_)
 	}
 	vd = status_get_viewdata(bl);
 	if (vd && vd->cloth_color && (
-		(vd->class_==JOB_WEDDING && !battle_config.wedding_ignorepalette)
-		|| (vd->class_==JOB_XMAS && !battle_config.xmas_ignorepalette)
+		(vd->class_==JOB_WEDDING && battle_config.wedding_ignorepalette)
+		|| (vd->class_==JOB_XMAS && battle_config.xmas_ignorepalette)
 	))
 		vd->cloth_color = 0;
 }
