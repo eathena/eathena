@@ -1,5 +1,8 @@
 Date	Added
-11/27
+2006/11/28
+	* Normalized line terminators and set the svn:eol-style property to native for all .cpp/.h/.txt files. [FlavioJS]
+	* Added the date to this changelog (hope it's ok). [FlavioJS]
+2006/11/27
 	* some changes on console logs, despite my doubts it will help the epidemic dyslexia
 	* debug mode is now activated only when building with DEBUG (or _DEBUG) defined
 	  as only this symbol is activating the debug mode for the underlying structures
@@ -16,9 +19,9 @@ Date	Added
 	* merged some of Hinoko's code into the script checker,
 	  unfortunately the compiler needs to be redone as some of grammar terminals 
 	  don't follow the existing compiler template, so I cannot generate it
-11/24
+2006/11/24
 	* removed an extra coma that prevented tbl_variable from being created [FlavioJS]
-11/20
+2006/11/20
 	* as flaviojs provided a new set of aegis scripts, 
 	  I updated the aegis parser a bit, they run clean
 	  when removing all the original syntax errors:
@@ -42,7 +45,7 @@ Date	Added
 	  if used items/mobs exist and also using their names
 	  in the scripts instead of the ids, this might reduce
 	  errors by using wrong numbers in the scripts
-11/17
+2006/11/17
 	* tyr seems down so it will be not updated in parallel today
 	* removes some mistakable config loading
 	* some parser grammar updates
@@ -57,12 +60,12 @@ Date	Added
 	  which first is redefinition of the necessary buildins 
 	  including a cleaning of the functions together with resorting 
 	  their parameters; alot of useless crap has to go [Shinomori]
-11/13
+2006/11/13
 	* some filters, might discuss the content/further preprocessing
 	* changed parse error display format
 	* some more aegis statements, but maybe still not all implemented
 	* some beautification of the converterted scripts
-11/06
+2006/11/06
 	* think I could become accustomed to KarLaeda reports
 	* some fixes for reported things
 	* added experimental aegis support to script converter (*.sc)
@@ -72,12 +75,12 @@ Date	Added
 	* updated oldea syntax to support subfunctions and script varibles
 	  but not yet decided how the new engine will support them
 	* outputted variable names should now get scoped correctly
-10/29
+2006/10/29
 	* nothing beside a changed export script 
 	  (should have replaced one lined C-style comments)
 	* I'm still waiting for comments on the 10/16 changelog
 	  script engine work is freezed until perfection stated
-10/24
+2006/10/24
 	* removed some more status functions, still alot left
 	* identifier fix for script converter [tnx to KarLaeda]
 	* preparing switch to universal login, which is:
@@ -87,7 +90,7 @@ Date	Added
 	  (which although needs the step before)
 	* some win64 fixes
 	* additional idiot safety for ip address assignments [Shinomori]
-10/16
+2006/10/16
 	* removed some more status functions
 	* script converter should now be fully functional, 
 	  exept for the db files (which new format is not yet decided)
@@ -98,7 +101,7 @@ Date	Added
 	  and then test it with the checker ("scriptchk <filename> ><output>")
 	  together with manually checking the output by looking over it
 	  reporting unexpected behaviour would be helpful. [Shinomori]
-10/11
+2006/10/11
 	* doing a temporal upload on behalf of Shinomori (which is absent atm)
 	  so I just paste the log entries from his work packages [Hinoko]
 	* removed some status functions, embedded them at the objects
@@ -111,21 +114,21 @@ Date	Added
 	  it can only parse/convert scripts and recognize itemdb and mobdb entries
 	  but not convert them since the new format is to be specified
 	  it is not included in the global makefile and needs to be built seperately
-09/30
+2006/09/30
 	* changes at on-event behaviour (examples in gmhelper.txt)
 	* cleaned some more stray functions
 	* unified destructions for mob/pet/homun
-09/24
+2006/09/24
 	* almost finished npc rewrite:
 	- new event structures, new timer structures, merged useless functions
 	- changed some script command behaviour 
 	* npcevent calls still need a revision [Shinomori]
-09/17
+2006/09/17
 	* removed block_list::type and block_list::subtype completely
 	* split different npc types into seperated classes,
 	  now functional enhancements can follow (eg. dynamic shop content)
 	* some smaller cleanings [Shinomori]
-09/12
+2006/09/12
 	* framework updates
 	* cleaned and documented utils
 	* more block_list::type usages removed, also provided 
@@ -137,7 +140,7 @@ Date	Added
 	* some structure renamings [Shinomori]
 	* tests with virtual overloads for clif functions finished, next is 
 	  to further check functions for overlapping and improper behaviour [Hinoko]
-09/01
+2006/09/01
 	* added a doxygen template, so just load it with doxygen and 
 	  it will generate a 30MB code documentation, 
 	  although the original code is not documented at all 
@@ -145,15 +148,15 @@ Date	Added
 	* some more replacements of pc status functions
 	* moved some code around (atcommand/config/utils) 
 	  and had some renamings [Shinomori]
-08/28
+2006/08/28
 	* replaced all db_foreach with iterators
 	* renamed npc_chat to npclisten because this is what they do
 	  and because of experiments with chat_data object
 	* removed the changestate stuff, integrated it into the map objects [Shinomori]
-08/27
+2006/08/27
 	* Added the same GPL licence notice trunk has in every file [DracoRPG]
 	* Replaced every msg_txt(x) with the matching MSG_ constant [DracoRPG]
-08/23
+2006/08/23
 	* fixed mysql connection bug
 	* added overflow protection to config reading
 	* templated the db_iterator to prevent extra casting on access level
@@ -167,27 +170,27 @@ Date	Added
 	  over the code (like day/night cyle or the permanent char name storage)
 	* changed the static initializers, although code is correct and working,
 	  gcc is erroneously convinced to give warnings there [Shinomori]
-08/21	
+2006/08/21	
 	* Added VC++8.0 project files [Toms]
 	* Added some svn:ignore properties [Toms]
-08/18
+2006/08/18
 	* trashed useless charcommand and restructured atcommand handling
 	* prepared grf rewrite, already changed some behaviour
 	* moved message table to config.cpp, possibly combining both later
 	* some allignments of function layouts and exchange of some calls
-08/08
+2006/08/08
 	* missing uploads from previous submit
 	* rearranged some makefile parameters
 	* some functional unification of config file reading 
 	  now accepts ':' and '=' as seperator and is independend to whitespaces
 	  still need conversion of static configs into parameters
-08/07
+2006/08/07
 	* some renaming of external header/lib folders before moving them
 	* gcc4 errors/warnings removed (at least the important ones)
 	* moved cygwin's nonexisting wcs timer function warning/fix to proper place
 	* added a general solution for the VC7 parser bug at map.cpp
 	* some changes on config line preperation but not finished yet
-08/03
+2006/08/03
 	* Refined VC++ stuff, everything should work flawlessly [DracoRPG]
 	  - There's only one debug build configuration, SQL/TXT hybrid
 	  - Intended bugs were also removed, so all what you should have to
@@ -196,11 +199,11 @@ Date	Added
 	  - Currently the TXT configuration seems to be working, SQL won't
 	    as I have to work a bit more with those damn libraries and all
 	  - Beware of Shino's intended bugs, errors/warnings aren't my fault 
-07/31
+2006/07/31
 	* new make flow, but might be not fully idiot proof 
 	* seperated map's sql links and changed the directions of the data
 	* start to remove db_foreach since not necessary anymore
-07/28
+2006/07/28
 	* the promised "bug reporting" capability of the ea board is
 	  ridiculous, from the 5 very obviously placed functional bugs
 	  in the code, only one has been vaguely mentioned, however, 
@@ -219,14 +222,14 @@ Date	Added
 	  but is working in parallel the old system until approved
 	* converting scripts parsing outputs into structures
 	  compatible to the outputs of the new engine
-07/20
+2006/07/20
 	* enabled some already prepared virtual interfaces
 	* removed the old walk implementations 
 	* removed some redundant functions from battle and status 
 	  but still a big bunch of redundancy left for removal
 	* added some basic fightable functions, but need to merge them
 	  with the already existing battle code
-07/15
+2006/07/15
 	* added parameters fixing (ie. command line parameters are 
 	  not overwritable by files (might also add forced overwrites)
 	* update for better character sets in regular expressions
@@ -238,7 +241,7 @@ Date	Added
 	  also try to tweak it for more flexibility in terms of
 	  changing to the new socket layer (this will unfortuantely
 	  need a new packetdb for the dynamic packet creation)
-07/05
+2006/07/05
 	* switched to new moving code, also activated map tile depending
 	  moving, both something experimental, will need some review 
 	  after cleaning the old stuff
@@ -250,7 +253,7 @@ Date	Added
 	* some more bug reports/comments would be appreciated 
 	  since this was an important argument to convince me returning to eA, 
 	  but until now, there was not really much to see. [Shinomori]
-06/26
+2006/06/26
 	* adding default parameter names to inter_athena.conf, 
 	  even if this file is not loaded by default, 
 	  you now have the correct names
@@ -296,7 +299,7 @@ Date	Added
 	  a player acting as mob while a clif module on a mob would be a 
 	  real player controlled mob with stats and skills and stuff
 	  without needing any special code for disguises/clones.
-06/16
+2006/06/16
 	* starting numbers for id's (account, char, guild, party, pet)
 	  are now forced lower bounds
 	* added a seperate function for sanity checking of new characters
@@ -306,12 +309,12 @@ Date	Added
 	  started filling it with functions, 
 	  also combined walkpath with target coordinates and walk flags, 
 	  but might completely combine it with movable later
-06/07
+2006/06/07
 	* added recovery of dropped listen port
 	* fixed runtime problem with cygwin (which does not supported 
 	  inlined static constructors, tnx to erKURITA), 
 	* fixed unsupported parameter compare on intel compiler (tnx to ALZ)
-06/04
+2006/06/04
 	* removed the usage of the "bl" block_list member
 	  and wrapped up some parts of block_list usage function
 	  added some safty to virtual destruction, but need to add 
@@ -325,7 +328,7 @@ Date	Added
 	  which should be possible with rectangle movements, but I need to check how 
 	  they actually work on msvc since description was not really comprehensible
 	  also beautified the internal loop a bit and made it more generic
-05/29
+2006/05/29
 	* added support for external parameter file processors so
 	  automatic file reloading can be used also for non-param configs
 	* some tweaking on the automatic wan setup, it now is possible to
@@ -344,7 +347,7 @@ Date	Added
 	  also unifying return types/values; this mixture of 0/!=0
 	  for success/failure is more than annoying
 	* some VC8 fixes (tnx to ALZ, there should be some more warnings, eh?)
-05/25
+2006/05/25
 	* after Hinoko acted a bit autonomous by removing all c style
 	  allocations and virtually broke the mapserver, I'm quite happy
 	  that this step is finally done, even if it has cost me the 
@@ -375,7 +378,7 @@ Date	Added
 	  revised the code when necessary, there are several possibilities 
 	  for more speedups especially at the initial path finder since 
 	  this thing is called for every movement [Shinomori]
-05/07
+2006/05/07
 	* since I had access to a windows machine with mysql this weekend,
 	  I spend some time merging the recent changes from Hinoko and
 	  also had a look at the current sql database implementation 
@@ -405,7 +408,7 @@ Date	Added
 	* some additions on the automatic WAN detection like the parts for configuration, 
 	  reconnection and dynamic check, this might possibly end all "cannot connect server" issues
 	  but still need Hinoko to finish her tests with it
-04/23	
+2006/04/23	
 	* some changes to basics memory allocation class hierarchy
 	  (but will not generate a new doxygen tree since no interface changes)
 	* moving the threadsafe mysql wrapper example into a seperated module
@@ -423,11 +426,11 @@ Date	Added
 	* preparing phoenix database module
 	* applying some of the login<->char protocol change from working copy
 	* merging some fixes from ea stable
-04/02
+2006/04/02
 	* changed doxygen formatting to javadoc since the new version did
 	  not recognize my former style template
 	* some smaller (untested) additions, notably mysql reconnect and map.rsw reading
-03/28
+2006/03/28
 	* still cleaning code/moving section etc.
 	  fixed compile errors on MSVC/commented out some warning throwing variables
 	* mapped std::vectors to basics since not usable in combination on windows
@@ -435,11 +438,11 @@ Date	Added
 	  which results in beeing really ugly code, maybe rethink the design
 	  possibly switching to CParam's, which also include the file processing
 	* added some doxygen doc's (though might still be missing a lot)
-03/13
+2006/03/13
 	* some cleaning on basesql (making it compileable, simplifying query building, 
 	  explaining questioned functions, etc)
 	* reenabled npc_chat
-03/07
+2006/03/07
 	* more cleaning in common; removing strlib, moving code from socket
 	* restructuring makefile dependencies
 	* adding switch for using whatsmyip.com for wan-lookup (although not recommended)
@@ -448,7 +451,7 @@ Date	Added
 	* threadpool is also usable in singlethread mode
 	* more vector/map/string functionality
 	* added some experimental printf-like and direct formatings
-02/17
+2006/02/17
 	* adding some more base environment stuff
 	* wrapped test code into debug defines, but existing test cases
 	  still not cover all files/necessary circumstances
@@ -463,24 +466,24 @@ Date	Added
 	  and 'make login' only makes the txt login server with its dependencies
 	* cleaned some unused account variables in login and started 
 	  to remove unused/unnecessary packets
-02/05
+2006/02/05
 	* sql database connection pool with example
 	* added vector/stack/fifo/slist classes, testcases not yet complete
 	* some code optimisation/speedup in memory/strings/parser
 	* automatic safty replacements of sprintf to snprintf, not tested
-01/27
+2006/01/27
 	* still evacuating my stuff from common to basics
 	* adding inet functions/simple lists/regular expressions/threads
 	* cleaning basic string functions, unifying string conversion
 	* fixing error in basememory in case of non-throwing new operator
 	* split stringsearch and zlib example to seperate files and expand them
 	* adding minizip code, but still need to clean and fully integrate it
-01/22
+2006/01/22
 	* cleaning common/removing functions that now are in basics 
 	* adding dynamic library load interface
 	  still need to split the zlib example from that file 
 	  and add the minizip code
-01/15	
+2006/01/15	
 	* cleaned warnings from base test functions on 64bit compilations
 	- revised base includes and makefiles
 	* replaced the old parse input scanner [Hinoko]
@@ -488,7 +491,7 @@ Date	Added
 	- checks now for variable usage before declaration
 	- counts the usages of labels and variables (aka detects unused)
 	- modified label jump generation, still testing [Shinomori]
-01/08	
+2006/01/08	
 	* added merged part of my general programming environment,
 	  though, some important parts are still not ready to be copied
 	- basically contains the full versions the formally trimmed-down base.h
@@ -498,12 +501,12 @@ Date	Added
 	  for normal use it is safe to take default paramerters with "string<>"
 	  look at the testfunctions in basestring.cpp for examples
 	- the script checker should be also compilable now
-12/26
+2005/12/26
 	* adding elements for replacing existing structures
 	  such as dynamic buffers as replacement for session fifos,
 	  experimental stringbuffers and adding some enhancements on temporary ministrings
 	* set type of variables/parameters to ipaddress wherever appropriate [Shinomori]
-12/23
+2005/12/23
 	* small bugfixes/protections here and there, mostly replacing sprintf with snprintf
 	  and supplementing initialisation/destruction for c++ object that need to run 
 	  temporarily in the old c style allocation model, but not looked over all places yet
@@ -516,13 +519,13 @@ Date	Added
 	  is mandatory since the maps were originally identified by the full name
 	  the search order for map loading is cache/gat/afm/af2
 	  (whenever zipped af2 support is not yet added)
-12/10
+2005/12/10
 	* since returned from travel I clean up the stuff a bit first
 	  to get some consistency between different working copies and svn code
 	  before processing and forwarding items from the task list [Shinomori]
-11/11
+2005/11/11
 	* New readme content/layout (IE warning: IE hates new readme) [Evera]
-10/29
+2005/10/29
 	* Updated readme with new layout [Evera]
 	* following the wishes I enable the hidden functions in the script checker for public
 	  which includes a bunch of the parsing debug outputs (but might be only useful
@@ -550,7 +553,7 @@ Date	Added
 	  tests have been successful, though, memory fragmentation could be reduced
 	  now only need to implement callbacks then all ini-file reading/processing 
 	  can be switched to use those dynamic parameters [Shinomori]
-10/21
+2005/10/21
 	* adding parts of the new script engine, currently only in form of a simple script checker
 	  the provided pre-compiled w32 version (needs zlib1.dll from precompiled zlib folder)
 	  only does basic syntax checks, which might be enought for testing purpose
@@ -577,7 +580,7 @@ Date	Added
 	* some smaller edits and only very few copies from stable; 
 	  stable seems now to become more and more incomatible to its former structures
 	  I guess I have to look up an new definition of "feature freeze", maybe it's "features <until you> freeze"... [Shinomori]
-10/07
+2005/10/07
 	* added database interace and txt implementation for party, guild, castle,
 	  pcstorage and guildstorage, 
 	  still need to make use of them in char server, sql part is also missing
@@ -585,7 +588,7 @@ Date	Added
 	  (sry for conflicting with your work CLOWNISIUS)
 	* restructured map reading
 	* testing of named parameter storage for simplified configuration
-09/27
+2005/09/27
 	* replaced varargs with callback objects providing type safe argument passing
 	  additionally it is a bit faster since it does not copy the passed variables
 	  though, readability might be strange for habitual C programmers
@@ -599,7 +602,7 @@ Date	Added
 	  currently not in use, still need to check if replacing the current red-black tree 
 	  with another binary tree (ie. AVL) or with an order-N balanced tree is favourable
 	  (Hinoko, you could check if the (N)BTree from Caldon would fit while I'm on travel) [Shinomori]
-09/22
+2005/09/22
 	* try to temporarily overcome the vararg issue on the amd64
 	  appearently the changed structures and storing on the amd64 
 	  make a gained va_list only usable once, you cannot just make a copy 
@@ -608,21 +611,21 @@ Date	Added
 	  but varargs are to be generally removed, so it's ok
 	* wrapped the parser, but have it running in parallel until I'm sure it is safe
 	  need to rethink the str_data/str_buf thing as it is not very efficient and quite inconvinient
-09/12
+2005/09/12
 	* debugged and fixed the apparent 64bit issues, so the servers should
 	  also run on 64bit machines now, but still more issues might exist
 	* temporary introduced some new types for portablility 
 	  checking a possible switch to a portable stdint.h
 	* some more additions to the script engine to prevent unclean scripts
 	  breaking the execution, but still under investigation
-09/03
+2005/09/03
 	* added types for combined transfer of pointers and number
 	  with some checking posibilities, 
 	* exchanged some more int usages with machine independend types
 	  so the whole thing now builds clean on my 64bit sparc
 	  login and char seem ok but map need some more twiddling
 	* continued on rewriting the old script enbedding/calling scheme
-08/30
+2005/08/30
 	* renamed the sql class files to 'basesq.cpp/h' since having 'sql'
 	  within the name conflicts with the makefile build environment
 	* finished the functional rewrite of the script engine
@@ -632,13 +635,13 @@ Date	Added
 	  will still need a clean up of the buildin functions since they
 	  only have been converted automatically and might lack efficiency
 	* some regular copies from stables updates
-08/27
+2005/08/27
 	* Fixed MS VC type coversion error in socket.h [Wizputer]
 	* Made Shinomori's CMySQL class little more friendly
 	- Cleaned up some of Shinomori's classes so they can be utilized
 	  more easily
 
-08/26	forked out the changes from cuteboi, they have to be merged in 
+2005/08/26	forked out the changes from cuteboi, they have to be merged in 
 	a more decent manner
 	changes for the current update compared with the 07/17 release include:
 	
@@ -686,13 +689,13 @@ Date	Added
 	* other stuff from last week that I don't remember anymore [Shinomori]
 /////////////////////////////////////////////////////////////////
 changelog from devel/shinomori, which the above is based on
-08/10
+2005/08/10
 	minor changes/additions
 	still preparing the replacements for current data access and authentification
 	notice for Hinoko: I corrected your Multilist and made an modification
 	that is using pointer storage; check the comments at the classes
 	your fix for the system ip check on bsd type unix is working fine
-07/29
+2005/07/29
 	new makefiles (look for suitable compile options on your system)
 	fix for guild creation crash
 	some changes on freeing script allocated strings 
@@ -700,7 +703,7 @@ changelog from devel/shinomori, which the above is based on
 	and added some block checking on memory manager [Shinomori]
 	changed sockets to use c++ allocation/deallocation
 	will use managed memory again when switched completely [Hinoko]
-07/23
+2005/07/23
 	Moving back to devel dir, since I've been efficiently thrown out 
 	of my own sources after beeing away for just some days and 
 	beeing fair enough to not do the same [Shinomori]
@@ -711,7 +714,7 @@ changelog from devel/shinomori, which the above is based on
 /////////////////////////////////////////////////////////////////
 changelog from cuteboi's changes on eapp which is forked to eapp_old
 code is basically reverted to 07/17 from here
-07/22
+2005/07/22
 	- Removal of checks whether the client is LAN or WAN, Must be fixed ASAP, map, login, char
 	  updated to allow players to log in.[CLOWNISIUS]
 	- Completed Update of char.c/h for optimized SQL access.[CLOWNISIUS]
@@ -722,14 +725,14 @@ code is basically reverted to 07/17 from here
 	- Repair of Shino's IP structure from login workaround complete, using LANIP instead 
 	  of the blank WANIP that always seems to be blank, and LAN is a simple 
 	  workaround [CLOWNISIUS]
-07/21
+2005/07/21
 	- Added new md5.cc and md5.hh for usage in the PASSWORDENC and CLOWNPHOBIA sections
 	  of the login.c/h and in the ladmin for compiling of some other things.
 	  lAdmin at the meantime is bugged, and will be that way for a while, till things
 	  are stable.[CLOWNISIUS]
 	- Login server fixed to use PASSWORDENC properly, CLOWNPHOBIA updated also to use salted
 	  hashes.[CLOWNISIUS]
-07/18
+2005/07/18
 	- Fixed Makefiles for all SQL based compiles (login,char,map) [CLOWNISIUS]
 	- Implementation of the dbaccess.c/h files to help ease usage of SQL commands,
 	and allowing others to make a small dbaccess.c/h for any other type of SQL
@@ -738,19 +741,19 @@ code is basically reverted to 07/17 from here
 	- Updated the main Makefile to not touch TXT based servers, and simplified compiling options
 	for the login, char and map servers. [CLOWNISIUS]
 /////////////////////////////////////////////////////////////////
-07/17
+2005/07/17
 	modification on the ip storage and transfer,
 	removed the lan support stuff and integrated it directly to the server configs
 	corrections on the fame system
 	beautified some outputs [Shinomori]
-07/10
+2005/07/10
 	merges from stable
 	Paladin's new Sacrifical Ritual
 	adding chaos as additional characterisation variable (besides karma)
 	and some code reordering [Shinomori]
-07/3
+2005/07/3
 	* Updated NPCs [massdriller]
-06/18
+2005/06/18
 	just to note all the differences of eApp to stable branch
 	might be quite incomplete, though; there are lots of playgrounds 
 	that I don't explain in detail, just the basics:
@@ -843,6 +846,6 @@ code is basically reverted to 07/17 from here
 	c++ compilable with VC and g++
 	the makefiles are for solaris,
 	so might need to edit linker options on linux
-06/10
+2005/06/10
 	* eA++ will now compile on VC.net 2003. Just prepare the appropriate conf files and run.
 	  read the README.txt for notes on compilation. [davidsiaw]
