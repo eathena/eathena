@@ -5,6 +5,10 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/11/27
+	* Now when a player's "attack once" request fails due to range, the client
+	  is told to move to the target to attack it. This sort of fixes the problem
+	  of the client SPAMMING the server with attack requests from afar without
+	  even approaching the icewall. [Skotlex]
 	* Corrected the skill animation for Absorb Spirits [Skotlex]
 	* Mob class-changing will fail if the new class is the same as the previous
 	  one. [Skotlex]
