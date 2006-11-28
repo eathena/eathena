@@ -34,8 +34,6 @@ Playtester
 
 Date		Added
 ======
-11/27
-	* Fixed exploit in Merchant Skills Quests [KarLaeda]
 11/24
 	* Cleaned up global permanent variables in Airship Quest [KarLaeda]
 11/23
