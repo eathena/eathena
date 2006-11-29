@@ -1,6 +1,9 @@
 Date	Added
 
 2006/11/29
+	* Merged the updates to slaves_inherit_mode and slaves_inherit_speed so you
+	  can decide under which types of masters does the slave's speed/mode is
+	  changed (see battle/monster.conf). [Skotlex]
 	* Merged mapflags from trunk [Playtester]
 2006/11/22
 	* Merged monster_ai&0x200, which makes monster skills apply their mob-delay

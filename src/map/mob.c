@@ -132,7 +132,7 @@ int mobdb_checkid(const int id)
  * Returns the view data associated to this mob class.
  *------------------------------------------
  */
-struct view_data * mob_get_viewdata(class_) 
+struct view_data * mob_get_viewdata(int class_) 
 {
 	if (mob_db(class_) == mob_dummy)
 		return 0;
@@ -1631,7 +1631,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		int id,zeny;
 		unsigned int base_exp,job_exp;
 	} pt[DAMAGELOG_SIZE];
-	int i,temp,count,pnum=0;
+	int i,temp,count,pnum=0,m=md->bl.m;
 	unsigned int mvp_damage, tick = gettick();
 
 	if(src && src->type == BL_PC) {
@@ -1691,7 +1691,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		tmpsd[i] = map_charid2sd(md->dmglog[i].id);
 		if(tmpsd[i] == NULL)
 			continue;
-		if(tmpsd[i]->bl.m != md->bl.m || pc_isdead(tmpsd[i]))
+		if(tmpsd[i]->bl.m != m || pc_isdead(tmpsd[i]))
 		{
 			tmpsd[i] = NULL;
 			continue;
@@ -1713,9 +1713,9 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	}
 
 	if(!(type&2) && //No exp
-		(!map[md->bl.m].flag.pvp || battle_config.pvp_exp) && //Pvp no exp rule [MouseJstr]
+		(!map[m].flag.pvp || battle_config.pvp_exp) && //Pvp no exp rule [MouseJstr]
 		(!md->master_id || !md->special_state.ai) && //Only player-summoned mobs do not give exp. [Skotlex]
-		(!map[md->bl.m].flag.nobaseexp || !map[md->bl.m].flag.nojobexp) //Gives Exp
+		(!map[m].flag.nobaseexp || !map[m].flag.nojobexp) //Gives Exp
 	) { //Experience calculation.
 
 	for(i=0;i<DAMAGELOG_SIZE && md->dmglog[i].id;i++){
@@ -1763,12 +1763,12 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		}
 		jper = per;
 
-		if (map[md->bl.m].flag.nobaseexp)
+		if (map[m].flag.nobaseexp || !md->db->base_exp)
 			base_exp=0; 
 		else {
 			temp = bonus; //Do not alter bonus for the jExp section below.
-			if (map[md->bl.m].bexp != 100)
-				temp = map[md->bl.m].bexp*temp/100;
+			if (map[m].bexp != 100)
+				temp = map[m].bexp*temp/100;
 			if (temp != 100)
 				per = per*temp/100.;
 	
@@ -1783,11 +1783,11 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				base_exp = 1;
 		}
 
-		if (map[md->bl.m].flag.nojobexp)
+		if (map[m].flag.nojobexp || !md->db->job_exp)
 			job_exp=0; 
 		else {
-			if (map[md->bl.m].jexp != 100)
-				bonus = map[md->bl.m].jexp*bonus/100;
+			if (map[m].jexp != 100)
+				bonus = map[m].jexp*bonus/100;
 			if (bonus != 100)
 				jper = jper*bonus/100.;
 	
@@ -1846,7 +1846,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	} //End EXP giving.
 	
 	if (!(type&1) &&
-		!map[md->bl.m].flag.nomobloot &&
+		!map[m].flag.nomobloot &&
 		(
 		 	!md->special_state.ai || //Non special mob
 			battle_config.alchemist_summon_reward == 2 || //All summoned give drops
@@ -1982,7 +1982,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		double exp;
 		
 		//mapflag: noexp check [Lorky]
-		if (map[md->bl.m].flag.nobaseexp)
+		if (map[m].flag.nobaseexp)
 			exp =1; 
 		else {
 			exp = md->db->mexp;
@@ -1996,7 +1996,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		clif_mvp_exp(mvp_sd,mexp);
 		pc_gainexp(mvp_sd, &md->bl, mexp,0);
 		log_mvp[1] = mexp;
-		if(!map[md->bl.m].flag.nomvploot)
+		if(!map[m].flag.nomvploot)
 		for(j=0;j<3;j++){
 			i = rand() % 3;
 			
@@ -2386,11 +2386,24 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,int skill_id)
 			md->status.hp = md->status.max_hp*hp_rate/100;
 
 		//Inherit the aggressive mode of the master.
-		if (battle_config.slaves_inherit_mode && md->master_id) {
-			if (md2->status.mode&MD_AGGRESSIVE)
-				sc_start4(&md->bl, SC_MODECHANGE, 100, 1, 0, MD_AGGRESSIVE, 0, 0);
-			else
-				sc_start4(&md->bl, SC_MODECHANGE, 100, 1, 0, 0, MD_AGGRESSIVE, 0);
+		if (battle_config.slaves_inherit_mode && md->master_id)
+	  	{
+			switch (battle_config.slaves_inherit_mode) {
+			case 1: //Always aggressive
+				if (!(md->status.mode&MD_AGGRESSIVE))
+					sc_start4(&md->bl, SC_MODECHANGE, 100,1,0, MD_AGGRESSIVE, 0, 0);
+				break;
+			case 2: //Always passive
+				if (md->status.mode&MD_AGGRESSIVE)
+					sc_start4(&md->bl, SC_MODECHANGE, 100,1,0, 0, MD_AGGRESSIVE, 0);
+				break;
+			default: //Copy master.
+				if (md2->status.mode&MD_AGGRESSIVE)
+					sc_start4(&md->bl, SC_MODECHANGE, 100,1,0, MD_AGGRESSIVE, 0, 0);
+				else
+					sc_start4(&md->bl, SC_MODECHANGE, 100,1,0, 0, MD_AGGRESSIVE, 0);
+				break;
+			}
 		}
 
 		clif_skill_nodamage(&md->bl,&md->bl,skill_id,amount,1);
@@ -2434,7 +2447,7 @@ int mob_getfriendhprate_sub(struct block_list *bl,va_list ap)
 	max_rate=va_arg(ap,int);
 	fr=va_arg(ap,struct block_list **);
 
-	if( md->bl.id == bl->id && !(battle_config.mob_ai&16))
+	if( md->bl.id == bl->id && !(battle_config.mob_ai&0x10))
 		return 0;
 
 	if ((*fr) != NULL) //A friend was already found.

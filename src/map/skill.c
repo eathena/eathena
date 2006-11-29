@@ -1855,8 +1855,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 	if(damage < dmg.div_ 
 		//Only skills that knockback even when they miss. [Skotlex]
-		&& skillid != CH_PALMSTRIKE
-		&& skillid != HT_PHANTASMIC)
+		&& skillid != CH_PALMSTRIKE)
 		dmg.blewcount = 0;
 
 	if(skillid == CR_GRANDCROSS||skillid == NPC_GRANDDARKNESS) {
@@ -7994,15 +7993,13 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 	case GD_BATTLEORDER:
 	case GD_REGENERATION:
 	case GD_RESTORE:
-		//Emergency Recall is handled on skill_notok
+		//Emergency Recall is handled on skillnotok
 		if (!agit_flag) {
 			clif_skill_fail(sd,skill,0,0);
 			return 0;
 		}
 	case GD_EMERGENCYCALL:
 		if (!sd->status.guild_id || !sd->state.gmaster_flag)
-			return 0;
-		if (lv <= 0)
 			return 0;
 		break;
 

@@ -447,10 +447,11 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 		for(i=1; i<fd_max; i++) {
 			if (session[i] && session[i]->func_parse == clif_parse &&
 				(sd = (struct map_session_data*)session[i]->session_data) != NULL &&
-				sd->state.mainchat && sd->fd) {
-					WFIFOHEAD(sd->fd, len);								
-					memcpy(WFIFOP(sd->fd,0), buf, len);
-					WFIFOSET(sd->fd, len);								
+				sd->state.mainchat && sd->fd)
+			{
+				WFIFOHEAD(sd->fd, len);								
+				memcpy(WFIFOP(sd->fd,0), buf, len);
+				WFIFOSET(sd->fd, len);								
 			}
 		}
 		break;
@@ -850,9 +851,10 @@ void clif_get_weapon_view(TBL_PC* sd, unsigned short *rhand, unsigned short *lha
 	*rhand = sd->status.weapon;
 	*lhand = sd->status.shield;
 #else
-	if (sd->equip_index[9] >= 0 && sd->inventory_data[sd->equip_index[9]]) 
+	if (sd->equip_index[EQI_HAND_R] >= 0 &&
+		sd->inventory_data[sd->equip_index[EQI_HAND_R]]) 
 	{
-		id = sd->inventory_data[sd->equip_index[9]];
+		id = sd->inventory_data[sd->equip_index[EQI_HAND_R]];
 		if (id->view_id > 0)
 			*rhand = id->view_id;
 		else
@@ -860,10 +862,11 @@ void clif_get_weapon_view(TBL_PC* sd, unsigned short *rhand, unsigned short *lha
 	} else
 		*rhand = 0;
 
-	if (sd->equip_index[8] >= 0 && sd->equip_index[8] != sd->equip_index[9]
-			&& sd->inventory_data[sd->equip_index[8]]) 
+	if (sd->equip_index[EQI_HAND_L] >= 0 &&
+		sd->equip_index[EQI_HAND_L] != sd->equip_index[EQI_HAND_R] &&
+		sd->inventory_data[sd->equip_index[EQI_HAND_L]]) 
 	{
-		id = sd->inventory_data[sd->equip_index[8]];
+		id = sd->inventory_data[sd->equip_index[EQI_HAND_L]];
 		if (id->view_id > 0)
 			*lhand = id->view_id;
 		else
@@ -1608,7 +1611,7 @@ void clif_quitsave(int fd,struct map_session_data *sd)
 	else if (sd->fd)
 	{	//Disassociate session from player (session is deleted after this function was called)
 		//And set a timer to make him quit later.
-		session[fd]->session_data = NULL;
+		session[sd->fd]->session_data = NULL;
 		sd->fd = 0;
 		add_timer(gettick() + 10000, clif_delayquit, sd->bl.id, 0);
 	}
@@ -2682,9 +2685,8 @@ int clif_changelook(struct block_list *bl,int type,int val)
 	struct view_data *vd;
 	vd = status_get_viewdata(bl);
 	nullpo_retr(0, vd);
-	
-	if(bl->type == BL_PC)
-		sd = (struct map_session_data *)bl;
+
+	BL_CAST(BL_PC, bl, sd);	
 
 	switch(type) {
 		case LOOK_WEAPON:
@@ -4752,13 +4754,8 @@ int clif_skill_estimation(struct map_session_data *sd,struct block_list *dst)
 //		The following caps negative attributes to 0 since the client displays them as 255-fix. [Skotlex]
 //		WBUFB(buf,20+i)= (unsigned char)((fix=battle_attr_fix(NULL,dst,100,i+1,status->def_ele, status->ele_lv))<0?0:fix);
 
-	if(sd->status.party_id>0)
-		clif_send(buf,packet_len_table[0x18c],&sd->bl,PARTY_SAMEMAP);
-	else{
-		WFIFOHEAD(sd->fd,packet_len_table[0x18c]);
-		memcpy(WFIFOP(sd->fd,0),buf,packet_len_table[0x18c]);
-		WFIFOSET(sd->fd,packet_len_table[0x18c]);
-	}
+	clif_send(buf,packet_len_table[0x18c],&sd->bl,
+		sd->status.party_id>0?PARTY_SAMEMAP:SELF);
 	return 0;
 }
 /*==========================================
@@ -4882,7 +4879,7 @@ int clif_GMmessage(struct block_list *bl, char* mes, int len, int flag)
 
 	WBUFW(buf,0) = 0x9a;
 	WBUFW(buf,2) = len + lp;
-	WBUFL(buf,4) = 0x65756c62;
+	WBUFL(buf,4) = 0x65756c62; //"blue":
 	memcpy(WBUFP(buf,lp), mes, len);
 	flag &= 0x07;
 	clif_send(buf, WBUFW(buf,2), bl,
@@ -8004,40 +8001,38 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 	packet_ver = clif_guess_PacketVer(fd, 1);
 	cmd = RFIFOW(fd,0);
 	
-	if (packet_ver > 0)
-	{
-		account_id	= RFIFOL(fd, packet_db[packet_ver][cmd].pos[0]);
-		char_id		= RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]);
-		login_id1	= RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]);
-		client_tick	= RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]);
-		sex			= RFIFOB(fd, packet_db[packet_ver][cmd].pos[4]);
-			
-		if ((old_sd = map_id2sd(account_id)) != NULL)
-		{	// if same account already connected, we disconnect the 2 sessions
-			//Check for characters with no connection (includes those that are using autotrade) [durf],[Skotlex]
-			if (old_sd->state.finalsave || !old_sd->state.auth)
-				; //Previous player is not done loading.
-				//Or he has quit, but is not done saving on the charserver.
-			else if (old_sd->fd)
-				clif_authfail_fd(old_sd->fd, 2); // same id
-			else 
-				map_quit(old_sd);
-			clif_authfail_fd(fd, 8); // still recognizes last connection
-		} else {
-			sd = (struct map_session_data*)aCalloc(1, sizeof(struct map_session_data));
+	if (packet_ver <= 0)
+		return;
 
-			sd->fd = fd;
-			sd->packet_ver = packet_ver;
-			session[fd]->session_data = sd;
-
-			pc_setnewpc(sd, account_id, char_id, login_id1, client_tick, sex, fd);
-			WFIFOHEAD(fd,4);
-			WFIFOL(fd,0) = sd->bl.id;
-			WFIFOSET(fd,4);
-
-			chrif_authreq(sd);
-		}
+	account_id  = RFIFOL(fd, packet_db[packet_ver][cmd].pos[0]);
+	char_id     = RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]);
+	login_id1   = RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]);
+	client_tick = RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]);
+	sex         = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4]);
+		
+	if ((old_sd = map_id2sd(account_id)) != NULL)
+	{	// if same account already connected, we disconnect the 2 sessions
+		//Check for characters with no connection (includes those that are using autotrade) [durf],[Skotlex]
+		if (old_sd->state.finalsave || !old_sd->state.auth)
+			; //Previous player is not done loading.
+			//Or he has quit, but is not done saving on the charserver.
+		else if (old_sd->fd)
+			clif_authfail_fd(old_sd->fd, 2); // same id
+		else 
+			map_quit(old_sd);
+		clif_authfail_fd(fd, 8); // still recognizes last connection
+		return;
 	}
+	sd = (struct map_session_data*)aCalloc(1, sizeof(struct map_session_data));
+	sd->fd = fd;
+	sd->packet_ver = packet_ver;
+	session[fd]->session_data = sd;
+
+	pc_setnewpc(sd, account_id, char_id, login_id1, client_tick, sex, fd);
+	WFIFOHEAD(fd,4);
+	WFIFOL(fd,0) = sd->bl.id;
+	WFIFOSET(fd,4);
+	chrif_authreq(sd);
 	return;
 }
 
@@ -8117,13 +8112,11 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if(sd->status.guild_id)
 		guild_send_memberinfoshort(sd,1);
 
-	// pvp
-	//if(sd->pvp_timer!=-1 && !battle_config.pk_mode) /PVP Client crash fix* Removed timer deletion
-	//	delete_timer(sd->pvp_timer,pc_calc_pvprank_timer);
 	if(map[sd->bl.m].flag.pvp){
 		if(!battle_config.pk_mode) { // remove pvp stuff for pk_mode [Valaris]
-			if (sd->pvp_timer == -1)
-				sd->pvp_timer=add_timer(gettick()+200,pc_calc_pvprank_timer,sd->bl.id,0);
+			if (!map[sd->bl.m].flag.pvp_nocalcrank)
+				sd->pvp_timer= add_timer(gettick()+200,
+					pc_calc_pvprank_timer,sd->bl.id,0);
 			sd->pvp_rank=0;
 			sd->pvp_lastusers=0;
 			sd->pvp_point=5;
@@ -8820,35 +8813,49 @@ void clif_parse_Restart(int fd, struct map_session_data *sd) {
  *------------------------------------------
  */
 void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <nick>.24B <message>.?B // rewritten by [Yor]
-	char *gm_command;
+	char *command, *msg;
 	struct map_session_data *dstsd;
 	int i=0;
 	struct npc_data *npc;
 	char split_data[10][50];
 	char target[NAME_LENGTH+1];
-	char output[256];  
+	char output[256];
+	unsigned int len;
 	RFIFOHEAD(fd);
-
-	//printf("clif_parse_Wis: message: '%s'.\n", RFIFOP(fd,28));
-
-	gm_command = (char*)aMallocA((strlen((const char*)RFIFOP(fd,28)) + 28)*sizeof(char)); // 24+3+(RFIFOW(fd,2)-28)+1 or 24+3+(strlen(RFIFOP(fd,28))+1 (size can be wrong with hacker)
-
-	sprintf(gm_command, "%s : %s", sd->status.name, RFIFOP(fd,28));
-	if ((is_charcommand(fd, sd, gm_command, 0) != CharCommand_None) ||
-		(is_atcommand(fd, sd, gm_command, 0) != AtCommand_None)) {
-		if(gm_command) aFree(gm_command);
+	len = RFIFOW(fd,2); //Packet length
+	if (len < 28)
+	{	//Invalid packet, specified size is less than minimum! [Skotlex]
+		ShowWarning("Hack on Whisper: %s (AID/CID: %d:%d)!\n", sd->status.name, sd->status.account_id, sd->status.char_id);
+		clif_setwaitclose(fd);
 		return;
 	}
-	if(gm_command) aFree(gm_command);
+	if (len == 28) return; //Not sure if client really lets you send a blank line.
+	len-=28; //Message length
+	// 24+3+(RFIFOW(fd,2)-28)+1 <- last 1 is '\0'
+	command = (char*)aMallocA((NAME_LENGTH+4+len) * sizeof(char));
+	//No need for out of memory checks, malloc.c aborts the map when that happens.
+	msg = command;	
+	msg+= sprintf(command, "%s : ", sd->status.name);
+	memcpy(msg, RFIFOP(fd, 28), len);
+	msg[len]='\0'; //Force a terminator
+	if ((is_charcommand(fd, sd, command, 0) != CharCommand_None) ||
+		(is_atcommand(fd, sd, command, 0) != AtCommand_None)) {
+		aFree(command);
+		return;
+	}
 	if (sd->sc.count &&
 		(sd->sc.data[SC_BERSERK].timer!=-1 ||
-		(sd->sc.data[SC_NOCHAT].timer != -1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOCHAT)))
+		(sd->sc.data[SC_NOCHAT].timer != -1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOCHAT))) {
+		aFree(command);
 		return;
+	}
 
 	if (battle_config.min_chat_delay)
 	{	//[Skotlex]
-		if (DIFF_TICK(sd->cantalk_tick, gettick()) > 0)
+		if (DIFF_TICK(sd->cantalk_tick, gettick()) > 0) {
+			aFree(command);
 			return;
+		}
 		sd->cantalk_tick = gettick() + battle_config.min_chat_delay;
 	}
 
@@ -8859,21 +8866,17 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 	if(log_config.chat&1 //we log everything then
 		|| ( log_config.chat&2 //if Whisper bit is on
 		&& ( !agit_flag || !(log_config.chat&16) ))) //if WOE ONLY flag is off or AGIT is OFF
-		log_chat("W", 0, sd->status.char_id, sd->status.account_id, (char*)mapindex_id2name(sd->mapindex), sd->bl.x, sd->bl.y, target, (char*)RFIFOP(fd, 28));
-
+		log_chat("W", 0, sd->status.char_id, sd->status.account_id, (char*)mapindex_id2name(sd->mapindex), sd->bl.x, sd->bl.y, target, msg);
 
 	//-------------------------------------------------------//
 	//   Lordalfa - Paperboy - To whisper NPC commands       //
 	//-------------------------------------------------------//
 	if (target[0] && (strncasecmp(target,"NPC:",4) == 0) && (strlen(target) >4))   {
-		char *whisper_tmp = target+4; //Skip the NPC: string part.
-		if ((npc = npc_name2id(whisper_tmp)))	
+		char *str= target+4; //Skip the NPC: string part.
+		if ((npc = npc_name2id(str)))	
 		{
-			char *split, *str;
-			whisper_tmp=(char *)aMallocA((strlen((char *)(RFIFOP(fd,28)))+1)*sizeof(char));
-		  
-			str=whisper_tmp; 
-			sprintf(whisper_tmp, "%s", (const char*)RFIFOP(fd,28));  
+			char *split;
+			str = msg;
 			for( i=0; i < 10; ++i )
 			{// Splits the message using '#' as separators
 				split = strchr(str,'#');
@@ -8882,7 +8885,7 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 					strncpy(split_data[i], str, sizeof(split_data[0])/sizeof(char));
 					split_data[i][sizeof(split_data[0])/sizeof(char)-1] = '\0';
 					for( ++i; i < 10; ++i )
-					split_data[i][0] = '\0';
+						split_data[i][0] = '\0';
 					break;
 				}
 				*split = '\0';
@@ -8891,90 +8894,98 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 				str = split+1;
 			}
 			
-			aFree(whisper_tmp);
-			whisper_tmp=(char *)aMallocA(15*sizeof(char));
-			
 			for (i=0;i<10;i++)
 			{
-				sprintf(whisper_tmp, "@whispervar%d$", i);
-				set_var(sd,whisper_tmp,(char *) split_data[i]);        
-			}//You don't need to zero them, just reset them [Kevin]
+				sprintf(output, "@whispervar%d$", i);
+				set_var(sd,output,(char *) split_data[i]);
+			}
 			
-			aFree(whisper_tmp);
-			whisper_tmp=(char *)aMallocA((strlen(npc->name)+18)*sizeof(char));
-			
-			sprintf(whisper_tmp, "%s::OnWhisperGlobal", npc->name);
-			npc_event(sd,whisper_tmp,0); // Calls the NPC label 
+			sprintf(output, "%s::OnWhisperGlobal", npc->name);
+			npc_event(sd,output,0); // Calls the NPC label 
 
-			aFree(whisper_tmp); //I rewrote it a little to use memory allocation, a bit more stable =P  [Kevin]
+			aFree(command);
 			return;     
-		} //should have just removed the one below that was a my bad =P
-	}		
+		}
+	}
 	
 	// Main chat [LuzZza]
 	if(strcmpi(target, main_chat_nick) == 0) {
-		if(!sd->state.mainchat) {
+		if(!sd->state.mainchat)
 			clif_displaymessage(fd, msg_txt(388)); // You should enable main chat with "@main on" command.
-			return;
+		else {
+			sprintf(output, msg_txt(386), sd->status.name, msg);
+			intif_announce(output, strlen(output) + 1, 0xFE000000, 0);
 		}
-		sprintf(output, msg_txt(386), sd->status.name, (char *)RFIFOP(fd,28));
-		intif_announce(output, strlen(output) + 1, 0xFE000000, 0);
+		aFree(command);
 		return;
 	}
 
 	// searching destination character
 	dstsd = map_nick2sd(target);
 	// player is not on this map-server
-	if (dstsd == NULL ||
 	// At this point, don't send wisp/page if it's not exactly the same name, because (example)
 	// if there are 'Test' player on an other map-server and 'test' player on this map-server,
 	// and if we ask for 'Test', we must not contact 'test' player
 	// so, we send information to inter-server, which is the only one which decide (and copy correct name).
-	    strcmp(dstsd->status.name, target) != 0) // not exactly same name
-		// send message to inter-server
-		intif_wis_message(sd, target, (char*)RFIFOP(fd,28), RFIFOW(fd,2)-28);
+	if (dstsd == NULL ||
+		strcmp(dstsd->status.name, target) != 0)
+	{	// send message to inter-server
+		intif_wis_message(sd, target, msg, len);
+		aFree(command);
+		return;
+	}
 	// player is on this map-server
-	else {
+	if (dstsd->fd == fd) {
 		// if you send to your self, don't send anything to others
-		if (dstsd->fd == fd) // but, normaly, it's impossible!
-			clif_wis_message(fd, wisp_server_name, "You can not page yourself. Sorry.", strlen("You can not page yourself. Sorry.") + 1);
-		// otherwise, send message and answer immediatly
-		else {
-			if (dstsd->ignoreAll == 1) {
-				if (dstsd->sc.option & OPTION_INVISIBLE && pc_isGM(sd) < pc_isGM(dstsd))
-					clif_wis_end(fd, 1); // 1: target character is not loged in
-				else
-					clif_wis_end(fd, 3); // 3: everyone ignored by target
-			} else {
-				// if player ignore the source character
-				for(i = 0; i < MAX_IGNORE_LIST; i++)
-					if (strcmp(dstsd->ignore[i].name, sd->status.name) == 0) {
-						clif_wis_end(fd, 2);	// 2: ignored by target
-						break;
-					}
-				// if source player not found in ignore list
-				if (i == MAX_IGNORE_LIST) {
-					if(strlen(dstsd->away_message) > 0) { // Send away automessage [LuzZza]
-						//(Automessage has been sent)
-						sprintf(output, "%s %s", (char*)RFIFOP(fd,28),msg_txt(543));
-						clif_wis_message(dstsd->fd, sd->status.name, output, strlen(output) + 1);
-						clif_wis_end(fd, 0); // 0: success to send wisper
-						if(dstsd->state.autotrade)
-							//"Away [AT] - \"%s\""
-							sprintf(output, msg_txt(544), dstsd->away_message);
-						else
-							//"Away - \"%s\""
-							sprintf(output, msg_txt(545), dstsd->away_message);
-						clif_wis_message(fd, dstsd->status.name, output, strlen(output) + 1);
-					} else { // Normal message
-						clif_wis_message(dstsd->fd, sd->status.name, (char*)RFIFOP(fd,28), RFIFOW(fd,2) - 28);
-						clif_wis_end(fd, 0); // 0: success to send wisper
-					}
-				}
-			}
-		}
+		// but, normaly, it's impossible!
+		clif_wis_message(fd, wisp_server_name,
+			"You can not page yourself. Sorry.",
+			strlen("You can not page yourself. Sorry.") + 1);
+		aFree(command);
+		return;
+	}
+	// otherwise, send message and answer immediatly
+	if (dstsd->state.ignoreAll) {
+		if (dstsd->sc.option & OPTION_INVISIBLE && pc_isGM(sd) < pc_isGM(dstsd))
+			clif_wis_end(fd, 1); // 1: target character is not loged in
+		else
+			clif_wis_end(fd, 3); // 3: everyone ignored by target
+		aFree(command);
+		return;
+	}
+	// if player ignore the source character
+	for(i = 0; i < MAX_IGNORE_LIST &&
+		dstsd->ignore[i].name[0] != '\0' &&
+		strcmp(dstsd->ignore[i].name, sd->status.name) != 0
+		; i++);
+
+	if(i < MAX_IGNORE_LIST && dstsd->ignore[i].name[0] != '\0')
+	{	//Ignored
+		clif_wis_end(fd, 2);	// 2: ignored by target
+		aFree(command);
+		return;
 	}
 
+	// if source player not found in ignore list
+	if(dstsd->away_message[0] != '\0') { // Send away automessage [LuzZza]
+		//(Automessage has been sent)
+		sprintf(output, "%s %s", msg, msg_txt(543));
+		clif_wis_message(dstsd->fd, sd->status.name, output, strlen(output) + 1);
+		clif_wis_end(fd, 0); // 0: success to send wisper
+		if(dstsd->state.autotrade)
+			//"Away [AT] - \"%s\""
+			sprintf(output, msg_txt(544), dstsd->away_message);
+		else
+			//"Away - \"%s\""
+			sprintf(output, msg_txt(545), dstsd->away_message);
+		aFree(command);
+		clif_wis_message(fd, dstsd->status.name, output, strlen(output) + 1);
+		return;
+	}
+	// Normal message
+	clif_wis_message(dstsd->fd, sd->status.name, msg, len);
+	clif_wis_end(fd, 0); // 0: success to send wisper
+	aFree(command);
 	return;
 }
 
@@ -9353,7 +9364,7 @@ void clif_parse_TradeRequest(int fd,struct map_session_data *sd)
 	struct map_session_data *t_sd;
 	
 	RFIFOHEAD(fd);	
-	t_sd = map_id2sd(RFIFOL(sd->fd,2));
+	t_sd = map_id2sd(RFIFOL(fd,2));
 
 	if(!sd->chatID && clif_cant_act(sd))
 		return; //You can trade while in a chatroom.
@@ -9381,7 +9392,7 @@ void clif_parse_TradeRequest(int fd,struct map_session_data *sd)
 void clif_parse_TradeAck(int fd,struct map_session_data *sd)
 {
 	RFIFOHEAD(fd);
-	trade_tradeack(sd,RFIFOB(sd->fd,2));
+	trade_tradeack(sd,RFIFOB(fd,2));
 }
 
 /*==========================================
@@ -9391,7 +9402,7 @@ void clif_parse_TradeAck(int fd,struct map_session_data *sd)
 void clif_parse_TradeAddItem(int fd,struct map_session_data *sd)
 {
 	RFIFOHEAD(fd);
-	trade_tradeadditem(sd,RFIFOW(sd->fd,2),RFIFOL(sd->fd,4));
+	trade_tradeadditem(sd,RFIFOW(fd,2),RFIFOL(fd,4));
 }
 
 /*==========================================
@@ -9822,8 +9833,12 @@ void clif_parse_NpcAmountInput(int fd,struct map_session_data *sd)
  */
 void clif_parse_NpcStringInput(int fd,struct map_session_data *sd)
 {
-	unsigned short message_len = RFIFOW(fd,2)-7;
+	short message_len;
 	RFIFOHEAD(fd);
+	message_len = RFIFOW(fd,2)-7;
+
+	if(message_len < 1)
+		return; //Blank message?
 
 	if(message_len >= sizeof(sd->npc_str)){
 		ShowWarning("clif: input string too long !\n");
@@ -9833,7 +9848,6 @@ void clif_parse_NpcStringInput(int fd,struct map_session_data *sd)
 	// Exploit prevention if crafted packets (without null) is being sent. [Lance]
 	memcpy(sd->npc_str,RFIFOP(fd,8),message_len); 
 	sd->npc_str[message_len-1]=0;
-
 	npc_scriptcont(sd,RFIFOL(fd,4));
 }
 
@@ -10091,7 +10105,7 @@ void clif_parse_PartyInvite(int fd, struct map_session_data *sd) {
 		return;
 	}
 
-	t_sd = map_id2sd(RFIFOL(sd->fd,2));
+	t_sd = map_id2sd(RFIFOL(fd,2));
 
 	// @noask [LuzZza]
 	if(t_sd && t_sd->state.noask) {
@@ -10358,7 +10372,7 @@ void clif_parse_GuildInvite(int fd,struct map_session_data *sd) {
 		return;
 	}
 
-	t_sd = map_id2sd(RFIFOL(sd->fd,2));
+	t_sd = map_id2sd(RFIFOL(fd,2));
 
 	// @noask [LuzZza]
 	if(t_sd && t_sd->state.noask) {
@@ -10449,7 +10463,7 @@ void clif_parse_GuildRequestAlliance(int fd, struct map_session_data *sd) {
 		return;
 	}
 
-	t_sd = map_id2sd(RFIFOL(sd->fd,2));
+	t_sd = map_id2sd(RFIFOL(fd,2));
 
 	// @noask [LuzZza]
 	if(t_sd && t_sd->state.noask) {
@@ -10490,7 +10504,6 @@ void clif_parse_GuildDelAlliance(int fd, struct map_session_data *sd) {
 void clif_parse_GuildOpposition(int fd, struct map_session_data *sd) {
 	
 	struct map_session_data *t_sd;
-	
 	RFIFOHEAD(fd);	
 
 	if(map[sd->bl.m].flag.guildlock)
@@ -10499,7 +10512,7 @@ void clif_parse_GuildOpposition(int fd, struct map_session_data *sd) {
 		return;
 	}
 
-	t_sd = map_id2sd(RFIFOL(sd->fd,2));
+	t_sd = map_id2sd(RFIFOL(fd,2));
 
 	// @noask [LuzZza]
 	if(t_sd && t_sd->state.noask) {
@@ -10740,126 +10753,157 @@ void clif_parse_GMReqNoChatCount(int fd, struct map_session_data *sd)
 	return;
 }
 
+static int pstrcmp(const void *a, const void *b)
+{
+	char *name1 = (char *)a;
+	char *name2 = (char *)b;
+	if (name1[0] && name2[0])
+		return strcmp(name1, name2);
+	//Since names are sorted in ascending order, send blank entries to the bottom.
+	if (name1[0])
+		return -1;
+	if (name2[0])
+		return 1;
+	return 0;
+}
+
 void clif_parse_PMIgnore(int fd, struct map_session_data *sd) {	// Rewritten by [Yor]
 	char output[512];
 	char *nick; // S 00cf <nick>.24B <type>.B: 00 (/ex nick) deny speech from nick, 01 (/in nick) allow speech from nick
-	int i, pos;
+	int i;
+	WFIFOHEAD(fd,packet_len_table[0xd1]);
 	RFIFOHEAD(fd);
 
 	memset(output, '\0', sizeof(output));
 
 	nick = (char*)RFIFOP(fd,2); // speed up
-	RFIFOB(fd,NAME_LENGTH+1) = '\0'; // to be sure that the player name have at maximum 23 characters (nick range: [2]->[26])
-	//printf("Ignore: char '%s' state: %d\n", nick, RFIFOB(fd,26));
+	nick[NAME_LENGTH-1] = '\0'; // to be sure that the player name have at maximum 23 characters
 
-	WFIFOHEAD(fd,packet_len_table[0xd1]);
 	WFIFOW(fd,0) = 0x0d1; // R 00d1 <type>.B <fail>.B: type: 0: deny, 1: allow, fail: 0: success, 1: fail
 	WFIFOB(fd,2) = RFIFOB(fd,26);
 	// do nothing only if nick can not exist
 	if (strlen(nick) < 4) {
 		WFIFOB(fd,3) = 1; // fail
 		WFIFOSET(fd, packet_len_table[0x0d1]);
-		if (RFIFOB(fd,26) == 0) // type
-			clif_wis_message(fd, wisp_server_name, "It's impossible to block this player.", strlen("It's impossible to block this player.") + 1);
-		else
-			clif_wis_message(fd, wisp_server_name, "It's impossible to unblock this player.", strlen("It's impossible to unblock this player.") + 1);
+		clif_wis_message(fd, wisp_server_name,
+			"This player name is not valid.",
+			strlen("This player name is not valid.")+1);
 		return;
-	// name can exist
-	} else {
-		// deny action (we add nick only if it's not already exist
-		if (RFIFOB(fd,26) == 0) { // type
-			pos = -1;
-			for(i = 0; i < MAX_IGNORE_LIST; i++) {
-				if (strcmp(sd->ignore[i].name, nick) == 0) {
-					WFIFOB(fd,3) = 1; // fail
-					WFIFOSET(fd, packet_len_table[0x0d1]);
-					clif_wis_message(fd, wisp_server_name, "This player is already blocked.", strlen("This player is already blocked.") + 1);
-					if (strcmp(wisp_server_name, nick) == 0) { // to found possible bot users who automaticaly ignore people.
-						sprintf(output, "Character '%s' (account: %d) has tried AGAIN to block wisps from '%s' (wisp name of the server). Bot user?", sd->status.name, sd->status.account_id, wisp_server_name);
-						intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, output);
-					}
-					return;
-				} else if (pos == -1 && sd->ignore[i].name[0] == '\0')
-					pos = i;
-			}
-			// if a position is found and name not found, we add it in the list
-			if (pos != -1) {
-				memcpy(sd->ignore[pos].name, nick, NAME_LENGTH-1);
-				WFIFOB(fd,3) = 0; // success
-				WFIFOSET(fd, packet_len_table[0x0d1]);
-				if (strcmp(wisp_server_name, nick) == 0) { // to found possible bot users who automaticaly ignore people.
-					sprintf(output, "Character '%s' (account: %d) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd->status.name, sd->status.account_id, wisp_server_name);
-					intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, output);
-					// send something to be inform and force bot to ignore twice... If GM receiving block + block again, it's a bot :)
-					clif_wis_message(fd, wisp_server_name, "Add me in your ignore list, doesn't block my wisps.", strlen("Add me in your ignore list, doesn't block my wisps.") + 1);
-				}
-			} else {
-				WFIFOB(fd,3) = 1; // fail
-				WFIFOSET(fd, packet_len_table[0x0d1]);
-				clif_wis_message(fd, wisp_server_name, "You can not block more people.", strlen("You can not block more people.") + 1);
-				if (strcmp(wisp_server_name, nick) == 0) { // to found possible bot users who automaticaly ignore people.
-					sprintf(output, "Character '%s' (account: %d) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd->status.name, sd->status.account_id, wisp_server_name);
-					intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, output);
-				}
-			}
-		// allow action (we remove all same nicks if they exist)
-		} else {
-			pos = -1;
-			for(i = 0; i < MAX_IGNORE_LIST; i++)
-				if (strcmp(sd->ignore[i].name, nick) == 0) {
-					memset(sd->ignore[i].name, 0, sizeof(sd->ignore[i].name));
-					if (pos == -1) {
-						WFIFOB(fd,3) = 0; // success
-						WFIFOSET(fd, packet_len_table[0x0d1]);
-						pos = i; // don't break, to remove ALL same nick
-					}
-				}
-			if (pos == -1) {
-				WFIFOB(fd,3) = 1; // fail
-				WFIFOSET(fd, packet_len_table[0x0d1]);
-				clif_wis_message(fd, wisp_server_name, "This player is not blocked by you.", strlen("This player is not blocked by you.") + 1);
-			}
-		}
 	}
+	// name can exist
+	// deny action (we add nick only if it's not already exist
+	if (RFIFOB(fd,26) == 0) { // Add block
+		for(i = 0; i < MAX_IGNORE_LIST &&
+			sd->ignore[i].name[0] != '\0' &&
+			strcmp(sd->ignore[i].name, nick) != 0
+			; i++);
 
-//	for(i = 0; i < MAX_IGNORE_LIST; i++) // for debug only
-//		if (sd->ignore[i].name[0] != '\0')
-//			printf("Ignored player: '%s'\n", sd->ignore[i].name);
+		if (i == MAX_IGNORE_LIST) { //Full List
+			WFIFOB(fd,3) = 1; // fail
+			WFIFOSET(fd, packet_len_table[0x0d1]);
+			clif_wis_message(fd, wisp_server_name,
+				"You can not block more people.",
+				strlen("You can not block more people.") + 1);
+			if (strcmp(wisp_server_name, nick) == 0)
+			{	// to found possible bot users who automaticaly ignore people.
+				sprintf(output, "Character '%s' (account: %d) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd->status.name, sd->status.account_id, wisp_server_name);
+				intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, output);
+			}
+			return;
+		}
+		if(sd->ignore[i].name[0] != '\0')
+		{	//Name already exists.
+			WFIFOB(fd,3) = 1; // fail
+			WFIFOSET(fd, packet_len_table[0x0d1]);
+			clif_wis_message(fd, wisp_server_name,
+				"This player is already blocked.",
+				strlen("This player is already blocked.") + 1);
+			if (strcmp(wisp_server_name, nick) == 0) { // to found possible bot users who automaticaly ignore people.
+				sprintf(output, "Character '%s' (account: %d) has tried AGAIN to block wisps from '%s' (wisp name of the server). Bot user?", sd->status.name, sd->status.account_id, wisp_server_name);
+				intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, output);
+			}
+			return;
+		}
+		//Insert in position i
+		memcpy(sd->ignore[i].name, nick, NAME_LENGTH-1);
+		WFIFOB(fd,3) = 0; // success
+		WFIFOSET(fd, packet_len_table[0x0d1]);
+		if (strcmp(wisp_server_name, nick) == 0)
+		{	// to found possible bot users who automaticaly ignore people.
+			sprintf(output, "Character '%s' (account: %d) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd->status.name, sd->status.account_id, wisp_server_name);
+			intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, output);
+			// send something to be inform and force bot to ignore twice... If GM receiving block + block again, it's a bot :)
+			clif_wis_message(fd, wisp_server_name,
+				"Adding me in your ignore list will not block my wisps.",
+				strlen("Adding me in your ignore list will not block my wisps.") + 1);
+		}
+		//Sort the ignore list.
+		qsort (sd->ignore[0].name, MAX_IGNORE_LIST, sizeof(sd->ignore[0].name), pstrcmp);
+		return;
+	}
+	//Remove name
+	for(i = 0; i < MAX_IGNORE_LIST &&
+		sd->ignore[i].name[0] != '\0' &&
+		strcmp(sd->ignore[i].name, nick) != 0
+		; i++);
 
+	if (i == MAX_IGNORE_LIST || sd->ignore[i].name[i] == '\0')
+	{	//Not found
+		WFIFOB(fd,3) = 1; // fail
+		WFIFOSET(fd, packet_len_table[0x0d1]);
+		clif_wis_message(fd, wisp_server_name,
+			"This player is not blocked by you.",
+			strlen("This player is not blocked by you.") + 1);
+		return;
+	}
+	//Move everything one place down to overwrite removed entry.
+	memmove(sd->ignore[i].name, sd->ignore[i+1].name,
+		(MAX_IGNORE_LIST-i-1)*sizeof(sd->ignore[0].name));
+	memset(sd->ignore[MAX_IGNORE_LIST-1].name, 0, sizeof(sd->ignore[0].name));
+	// success
+	WFIFOB(fd,3) = 0;
+	WFIFOSET(fd, packet_len_table[0x0d1]);
+
+// for debug only
+//	for(i = 0; i < MAX_IGNORE_LIST && sd->ignore[i].name[0] != '\0'; i++) /
+//		ShowDebug("Ignored player: '%s'\n", sd->ignore[i].name);
 	return;
 }
 
 void clif_parse_PMIgnoreAll(int fd, struct map_session_data *sd) { // Rewritten by [Yor]
 	//printf("Ignore all: state: %d\n", RFIFOB(fd,2));
 	RFIFOHEAD(fd);
-	if (RFIFOB(fd,2) == 0) {// S 00d0 <type>len.B: 00 (/exall) deny all speech, 01 (/inall) allow all speech
-                WFIFOHEAD(fd,packet_len_table[0xd2]);
-		WFIFOW(fd,0) = 0x0d2; // R 00d2 <type>.B <fail>.B: type: 0: deny, 1: allow, fail: 0: success, 1: fail
-		WFIFOB(fd,2) = 0;
-		if (sd->ignoreAll == 0) {
-			sd->ignoreAll = 1;
-			WFIFOB(fd,3) = 0; // success
-			WFIFOSET(fd, packet_len_table[0x0d2]);
-		} else {
+	WFIFOHEAD(fd,packet_len_table[0xd2]);
+	// R 00d2 <type>.B <fail>.B: type: 0: deny, 1: allow, fail: 0: success, 1: fail
+	// S 00d0 <type>len.B: 00 (/exall) deny all speech, 01 (/inall) allow all speech
+	WFIFOW(fd,0) = 0x0d2;
+	WFIFOB(fd,2) = RFIFOB(fd,2);
+	if (RFIFOB(fd,2) == 0) { //Deny all
+		if (sd->state.ignoreAll) {
 			WFIFOB(fd,3) = 1; // fail
 			WFIFOSET(fd, packet_len_table[0x0d2]);
-			clif_wis_message(fd, wisp_server_name, "You already block everyone.", strlen("You already block everyone.") + 1);
+			clif_wis_message(fd, wisp_server_name,
+				"You already block everyone.",
+				strlen("You already block everyone.") + 1);
+			return;
 		}
-	} else {
-                WFIFOHEAD(fd,packet_len_table[0xd2]);
-		WFIFOW(fd,0) = 0x0d2; // R 00d2 <type>.B <fail>.B: type: 0: deny, 1: allow, fail: 0: success, 1: fail
-		WFIFOB(fd,2) = 1;
-		if (sd->ignoreAll == 1) {
-			sd->ignoreAll = 0;
-			WFIFOB(fd,3) = 0; // success
-			WFIFOSET(fd, packet_len_table[0x0d2]);
-		} else {
-			WFIFOB(fd,3) = 1; // fail
-			WFIFOSET(fd, packet_len_table[0x0d2]);
-			clif_wis_message(fd, wisp_server_name, "You already allow everyone.", strlen("You already allow everyone.") + 1);
-		}
+		sd->state.ignoreAll = 1;
+		WFIFOB(fd,3) = 0; // success
+		WFIFOSET(fd, packet_len_table[0x0d2]);
+		return;
 	}
-
+	//Unblock everyone
+	if (!sd->state.ignoreAll) {
+		WFIFOB(fd,3) = 1; // fail
+		WFIFOSET(fd, packet_len_table[0x0d2]);
+		clif_wis_message(fd, wisp_server_name,
+			"You already allow everyone.",
+			strlen("You already allow everyone.") + 1);
+		return;
+	}
+	sd->state.ignoreAll = 0;
+	WFIFOB(fd,3) = 0; // success
+	WFIFOSET(fd, packet_len_table[0x0d2]);
 	return;
 }
 
@@ -10867,32 +10911,18 @@ void clif_parse_PMIgnoreAll(int fd, struct map_session_data *sd) { // Rewritten 
  * Wis拒否リスト
  *------------------------------------------
  */
- int pstrcmp(const void *a, const void *b)
-{
-	return strcmp((char *)a, (char *)b);
-}
 void clif_parse_PMIgnoreList(int fd,struct map_session_data *sd)
 {
-	int i,j=0,count=0;
+	int i;
 
-	qsort (sd->ignore[0].name, MAX_IGNORE_LIST, sizeof(sd->ignore[0].name), pstrcmp);
-	for(i = 0; i < MAX_IGNORE_LIST; i++){	//中身があるのを数える
-		if(sd->ignore[i].name[0] != 0)
-			count++;
-	}
-	WFIFOHEAD(fd, 4 + (NAME_LENGTH * count));
+	WFIFOHEAD(fd, 4 + (NAME_LENGTH * MAX_IGNORE_LIST));
 	WFIFOW(fd,0) = 0xd4;
-	WFIFOW(fd,2) = 4 + (NAME_LENGTH * count);
-	for(i = 0; i < MAX_IGNORE_LIST; i++){
-		if(sd->ignore[i].name[0] != 0){
-			memcpy(WFIFOP(fd, 4 + j * 24),sd->ignore[i].name, NAME_LENGTH);
-			j++;
-		}
-	}
-	WFIFOSET(fd, WFIFOW(fd,2));
-	if(count >= MAX_IGNORE_LIST)	//満タンなら最後の1個を消す
-		sd->ignore[MAX_IGNORE_LIST - 1].name[0] = 0;
 
+	for(i = 0; i < MAX_IGNORE_LIST && sd->ignore[i].name[0] != '\0'; i++)
+		memcpy(WFIFOP(fd, 4 + i * NAME_LENGTH),sd->ignore[i].name, NAME_LENGTH);
+
+	WFIFOW(fd,2) = 4 + i * NAME_LENGTH;
+	WFIFOSET(fd, WFIFOW(fd,2));
 	return;
 }
 
@@ -11414,17 +11444,6 @@ int clif_parse(int fd) {
 	}
 
 	sd = (struct map_session_data*)session[fd]->session_data;
-/* This behaviour has been deprecated due to actually causing trouble instead
- * of helping against exploits ~.~ [Skotlex]
-	if (!chrif_isconnect())
-	{
-		ShowInfo("Closing session #%d (Not connected to Char server)\n", fd);
-		if (sd && sd->state.auth)
-			clif_quitsave(fd, sd); // the function doesn't send to inter-server/char-server if it is not connected [Yor]
-		do_close(fd);
-		return 0;
-	} else
-	*/
 	if (session[fd]->eof) {
 		if (sd && sd->state.autotrade) {
 			//Disassociate character from the socket connection.
@@ -11570,8 +11589,8 @@ int clif_parse(int fd) {
 	}
 #endif
 
-	if (sd && sd->state.auth == 1 && sd->state.waitingdisconnect == 1) { // 切断待ちの場合パケットを処理しない
-
+	if (sd && sd->state.waitingdisconnect == 1) {
+		// 切断待ちの場合パケットを処理しない
 	} else if (packet_db[packet_ver][cmd].func) {
 		if (sd && sd->bl.prev == NULL &&
 			packet_db[packet_ver][cmd].func != clif_parse_LoadEndAck)
@@ -11582,44 +11601,38 @@ int clif_parse(int fd) {
 			|| packet_db[packet_ver][cmd].func == clif_parse_debug
 		)	//Only execute the function when there's an sd (except for debug/wanttoconnect packets)
 			packet_db[packet_ver][cmd].func(fd, sd);
-	} else {
-		// 不明なパケット
-		if (battle_config.error_log) {
+	}
 #if DUMP_UNKNOWN_PACKET
-			{
-				int i;
-				FILE *fp;
-				char packet_txt[256] = "save/packet.txt";
-				time_t now;
-				dump = 1;
+	else if (battle_config.error_log)
+	{
+		int i;
+		FILE *fp;
+		char packet_txt[256] = "save/packet.txt";
+		time_t now;
+		dump = 1;
 
-				if ((fp = fopen(packet_txt, "a")) == NULL) {
-					ShowError("clif.c: cant write [%s] !!! data is lost !!!\n", packet_txt);
-					return 1;
-				} else {
-					time(&now);
-					if (sd && sd->state.auth) {
-						if (sd->status.name != NULL)
-							fprintf(fp, "%sPlayer with account ID %d (character ID %d, player name %s) sent wrong packet:\n",
-							        asctime(localtime(&now)), sd->status.account_id, sd->status.char_id, sd->status.name);
-						else
-							fprintf(fp, "%sPlayer with account ID %d sent wrong packet:\n", asctime(localtime(&now)), sd->bl.id);
-					} else if (sd) // not authentified! (refused by char-server or disconnect before to be authentified)
-						fprintf(fp, "%sPlayer with account ID %d sent wrong packet:\n", asctime(localtime(&now)), sd->bl.id);
+		if ((fp = fopen(packet_txt, "a")) == NULL) {
+			ShowError("clif.c: cant write [%s] !!! data is lost !!!\n", packet_txt);
+			return 1;
+		} else {
+			time(&now);
+			if (sd && sd->state.auth) {
+				fprintf(fp, "%sPlayer with account ID %d (character ID %d, player name %s) sent wrong packet:\n",
+					asctime(localtime(&now)), sd->status.account_id, sd->status.char_id, sd->status.name);
+			} else if (sd) // not authentified! (refused by char-server or disconnect before to be authentified)
+				fprintf(fp, "%sPlayer with account ID %d sent wrong packet:\n", asctime(localtime(&now)), sd->bl.id);
 
-					fprintf(fp, "\t---- 00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F");
-					for(i = 0; i < packet_len; i++) {
-						if ((i & 15) == 0)
-							fprintf(fp, "\n\t%04X ", i);
-						fprintf(fp, "%02X ", RFIFOB(fd,i));
-					}
-					fprintf(fp, "\n\n");
-					fclose(fp);
-				}
+			fprintf(fp, "\t---- 00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F");
+			for(i = 0; i < packet_len; i++) {
+				if ((i & 15) == 0)
+					fprintf(fp, "\n\t%04X ", i);
+				fprintf(fp, "%02X ", RFIFOB(fd,i));
 			}
-#endif
+			fprintf(fp, "\n\n");
+			fclose(fp);
 		}
 	}
+#endif
 
 	if (dump) {
 		int i;

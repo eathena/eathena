@@ -4,6 +4,14 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/11/29
+	* Merged the cleaned up and improved Whisper parsing code. [Skotlex]
+	* Merged the updates to slaves_inherit_mode and slaves_inherit_speed so you
+	  can decide under which types of masters does the slave's speed/mode is
+	  changed. [Skotlex]
+	* Merged fix to prevent mobs with no exp from always giving 1 exp.
+	  [Skotlex]
+	* Phantasmic arrow no longer knocksback even when it misses. [Skotlex]
 2006/11/28
 	* Fixed a typo which made the wedding_ignore_palette setting not work when
 	  you log on with them equipped [Skotlex]

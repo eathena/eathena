@@ -3899,8 +3899,10 @@ struct script_function buildin_func[] = {
  */
 int buildin_mes(struct script_state *st)
 {
+	struct map_session_data *sd = script_rid2sd(st);
 	conv_str(st,& (st->stack->stack_data[st->start+2]));
-	clif_scriptmes(script_rid2sd(st),st->oid,st->stack->stack_data[st->start+2].u.str);
+	if (sd)
+		clif_scriptmes(sd,st->oid,st->stack->stack_data[st->start+2].u.str);
 	return 0;
 }
 
@@ -7372,9 +7374,12 @@ int buildin_getusers(struct script_state *st)
  */
 int buildin_getusersname(struct script_state *st)
 {
-	struct map_session_data *pl_sd = NULL, **pl_allsd;
+	struct map_session_data *sd, *pl_sd = NULL, **pl_allsd;
 	int i=0,disp_num=1, users;
-	
+
+	sd = 	script_rid2sd(st);
+	if (!sd) return 0;
+
 	pl_allsd = map_getallusers(&users);
 	
 	for (i=0;i<users;i++)
@@ -7383,8 +7388,8 @@ int buildin_getusersname(struct script_state *st)
 		if( !(battle_config.hide_GM_session && pc_isGM(pl_sd)) )
 		{
 			if((disp_num++)%10==0)
-				clif_scriptnext(script_rid2sd(st),st->oid);
-			clif_scriptmes(script_rid2sd(st),st->oid,pl_sd->status.name);
+				clif_scriptnext(sd,st->oid);
+			clif_scriptmes(sd,st->oid,pl_sd->status.name);
 		}
 	}
 	return 0;
@@ -10185,7 +10190,7 @@ int buildin_select(struct script_state *st)
 	struct map_session_data *sd;
 
 	sd=script_rid2sd(st);
-
+	nullpo_retr(0, sd);
 	if(sd->state.menu_or_input==0){
 		st->state=RERUNLINE;
 		sd->state.menu_or_input=1;

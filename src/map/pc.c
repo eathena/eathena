@@ -6602,14 +6602,8 @@ int pc_calc_pvprank(struct map_session_data *sd)
 {
 	int old;
 	struct map_data *m;
-
-	nullpo_retr(0, sd);
-	nullpo_retr(0, m=&map[sd->bl.m]);
-
+	m=&map[sd->bl.m];
 	old=sd->pvp_rank;
-
-	if( !(m->flag.pvp) )
-		return 0;
 	sd->pvp_rank=1;
 	map_foreachinmap(pc_calc_pvprank_sub,sd->bl.m,BL_PC,sd);
 	if(old!=sd->pvp_rank || sd->pvp_lastusers!=m->users)
@@ -6623,8 +6617,6 @@ int pc_calc_pvprank(struct map_session_data *sd)
 int pc_calc_pvprank_timer(int tid,unsigned int tick,int id,int data)
 {
 	struct map_session_data *sd=NULL;
-	if(battle_config.pk_mode) // disable pvp ranking if pk_mode on [Valaris]
-		return 0;
 
 	sd=map_id2sd(id);
 	if(sd==NULL)

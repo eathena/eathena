@@ -1406,7 +1406,7 @@ int chrif_disconnect(int fd) {
 
 void chrif_update_ip(int fd){
 	unsigned long new_ip;
-
+	WFIFOHEAD(fd, 6);
 	new_ip = resolve_hostbyname(char_ip_str, NULL, NULL);
 	if (new_ip && new_ip != char_ip)
 		char_ip = new_ip; //Update char_ip
