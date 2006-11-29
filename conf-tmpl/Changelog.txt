@@ -1,4 +1,7 @@
 Date	Added
+
+2006/11/29
+	* Merged mapflags from trunk [Playtester]
 2006/11/22
 	* Merged monster_ai&0x200, which makes monster skills apply their mob-delay
 	  to ALL skills of the same ID in their repertoire instead of just the used
