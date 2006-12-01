@@ -357,7 +357,8 @@ int pc_setnewpc(struct map_session_data *sd, int account_id, int char_id, int lo
 	nullpo_retr(0, sd);
 
 	sd->bl.id        = account_id;
-	sd->char_id      = char_id;
+	sd->status.char_id      = account_id;
+	sd->status.char_id      = char_id;
 	sd->login_id1    = login_id1;
 	sd->login_id2    = 0; // at this point, we can not know the value :(
 	sd->client_tick  = client_tick;
@@ -976,7 +977,7 @@ int pc_calc_skilltree(struct map_session_data *sd)
 			}
 		}
 	} while(flag);
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->char_id, MAPID_TAEKWON)) {
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON)) {
 		//Grant all Taekwon Tree, but only as bonus skills in case they drop from ranking. [Skotlex]
 		for(i=0;i < MAX_SKILL_TREE && (id=skill_tree[c][i].id)>0;i++){
 			if ((skill_get_inf2(id)&(INF2_QUEST_SKILL|INF2_WEDDING_SKILL)))
@@ -4934,8 +4935,8 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		item_tmp.identify=1;
 		item_tmp.card[0]=CARD0_CREATE;
 		item_tmp.card[1]=0;
-		item_tmp.card[2]=GetWord(sd->char_id,0); // CharId
-		item_tmp.card[3]=GetWord(sd->char_id,1);
+		item_tmp.card[2]=GetWord(sd->status.char_id,0); // CharId
+		item_tmp.card[3]=GetWord(sd->status.char_id,1);
 		map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
 	}
 
@@ -5052,14 +5053,16 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		}
 	}
 	// pvp
-	if( map[sd->bl.m].flag.pvp && !battle_config.pk_mode){ // disable certain pvp functions on pk_mode [Valaris]
-		if (!map[sd->bl.m].flag.pvp_nocalcrank) {
-			sd->pvp_point -= 5;
-			sd->pvp_lost++;
-			if (src && src->type == BL_PC) {
-				struct map_session_data *ssd = (struct map_session_data *)src;
-				if (ssd) { ssd->pvp_point++; ssd->pvp_won++; }
-			}
+	// disable certain pvp functions on pk_mode [Valaris]
+	if
+		(map[sd->bl.m].flag.pvp && !battle_config.pk_mode && !map[sd->bl.m].flag.pvp_nocalcrank)
+	{
+		sd->pvp_point -= 5;
+		sd->pvp_lost++;
+		if (src && src->type == BL_PC) {
+			struct map_session_data *ssd = (struct map_session_data *)src;
+			ssd->pvp_point++;
+			ssd->pvp_won++;
 		}
 		if( sd->pvp_point < 0 ){
 			sd->pvp_point=0;

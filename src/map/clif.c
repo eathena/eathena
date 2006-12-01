@@ -1480,11 +1480,7 @@ int clif_spawn(struct block_list *bl)
  */
 int clif_walkok(struct map_session_data *sd)
 {
-	int fd;
-
-	nullpo_retr(0, sd);
-
-	fd=sd->fd;
+	int fd=sd->fd;
 	WFIFOHEAD(fd, packet_len_table[0x87]);
 	WFIFOW(fd,0)=0x87;
 	WFIFOL(fd,2)=gettick();
@@ -1805,13 +1801,9 @@ int clif_selllist(struct map_session_data *sd) {
  *------------------------------------------
  */
 int clif_scriptmes(struct map_session_data *sd, int npcid, char *mes) {
-	int fd;
+	int fd = sd->fd;
 	int slen = strlen(mes) + 9;
 	WFIFOHEAD(fd, slen);
-
-	nullpo_retr(0, sd);
-
-	fd=sd->fd;
 	WFIFOW(fd,0)=0xb4;
 	WFIFOW(fd,2)=slen;
 	WFIFOL(fd,4)=npcid;
@@ -1863,7 +1855,7 @@ int clif_scriptclose(struct map_session_data *sd, int npcid) {
  */
 void clif_sendfakenpc(struct map_session_data *sd, int npcid) {
 	int fd = sd->fd;
-	//sd->npc_id = npcid;
+	WFIFOHEAD(fd, packet_len_table[0x78]);
 	sd->state.using_fake_npc = 1;
 	memset(WFIFOP(fd,0), 0, packet_len_table[0x78]);
 	WFIFOW(fd,0)=0x78;
@@ -1881,19 +1873,16 @@ void clif_sendfakenpc(struct map_session_data *sd, int npcid) {
  *------------------------------------------
  */
 int clif_scriptmenu(struct map_session_data *sd, int npcid, char *mes) {
-	int fd;
+	int fd = sd->fd;
 	int slen = strlen(mes) + 8;
 	struct block_list *bl = NULL;
 	WFIFOHEAD(fd, slen);
-
-	nullpo_retr(0, sd);
 
 	if (!sd->state.using_fake_npc && (npcid == fake_nd->bl.id || ((bl = map_id2bl(npcid)) && (bl->m!=sd->bl.m ||
 	   bl->x<sd->bl.x-AREA_SIZE-1 || bl->x>sd->bl.x+AREA_SIZE+1 ||
 	   bl->y<sd->bl.y-AREA_SIZE-1 || bl->y>sd->bl.y+AREA_SIZE+1))))
 	   clif_sendfakenpc(sd, npcid);
 
-	fd=sd->fd;
 	WFIFOW(fd,0)=0xb7;
 	WFIFOW(fd,2)=slen;
 	WFIFOL(fd,4)=npcid;
@@ -8139,6 +8128,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		clif_send_petdata(sd,0,0);
 		clif_send_petdata(sd,5,battle_config.pet_hair_style);
 		clif_send_petstatus(sd);
+//		skill_unit_move(&sd->pd->bl,gettick(),1);
 	}
 
 
@@ -8231,6 +8221,9 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 // Uncomment if you want to make player face in the same direction he was facing right before warping. [Skotlex]
 //	else
 //		clif_changed_dir(&sd->bl, SELF);
+//	Trigger skill effects if you appear standing on them
+	if(!battle_config.pc_invincible_time)
+		skill_unit_move(&sd->bl,gettick(),1);
 }
 
 /*==========================================
@@ -8742,6 +8735,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
  *------------------------------------------
  */
 void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
+	RFIFOHEAD(fd);
 	clif_parse_ActionRequest_sub(sd,
 		RFIFOB(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]),
 		RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]),
@@ -8913,7 +8907,7 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 		if(!sd->state.mainchat)
 			clif_displaymessage(fd, msg_txt(388)); // You should enable main chat with "@main on" command.
 		else {
-			sprintf(output, msg_txt(386), sd->status.name, msg);
+			snprintf(output, sizeof(output)/sizeof(char), msg_txt(386), sd->status.name, msg);
 			intif_announce(output, strlen(output) + 1, 0xFE000000, 0);
 		}
 		aFree(command);
@@ -11445,20 +11439,27 @@ int clif_parse(int fd) {
 
 	sd = (struct map_session_data*)session[fd]->session_data;
 	if (session[fd]->eof) {
-		if (sd && sd->state.autotrade) {
-			//Disassociate character from the socket connection.
-			session[fd]->session_data = NULL;
-			sd->fd = 0;
-			ShowInfo("%sCharacter '"CL_WHITE"%s"CL_RESET"' logged off (using @autotrade).\n", (pc_isGM(sd))?"GM ":"",sd->status.name); // Player logout display [Valaris]
-		} else if (sd && sd->state.auth) {
-			clif_quitsave(fd, sd); // the function doesn't send to inter-server/char-server if it is not connected [Yor]
-			if (sd->status.name != NULL)
-				ShowInfo("%sCharacter '"CL_WHITE"%s"CL_RESET"' logged off.\n", (pc_isGM(sd))?"GM ":"",sd->status.name); // Player logout display [Valaris]
-			else
-				ShowInfo("%sCharacter with Account ID '"CL_WHITE"%d"CL_RESET"' logged off.\n", (pc_isGM(sd))?"GM ":"", sd->bl.id); // Player logout display [Yor]
+		if (sd) {
+			if (sd->state.autotrade) {
+				//Disassociate character from the socket connection.
+				session[fd]->session_data = NULL;
+				sd->fd = 0;
+				ShowInfo("%sCharacter '"CL_WHITE"%s"CL_RESET"' logged off (using @autotrade).\n",
+					(pc_isGM(sd))?"GM ":"",sd->status.name);
+			} else
+			if (sd->state.auth) {
+				 // Player logout display [Valaris]
+				ShowInfo("%sCharacter '"CL_WHITE"%s"CL_RESET"' logged off.\n",
+					(pc_isGM(sd))?"GM ":"",sd->status.name);
+				clif_quitsave(fd, sd);
+			} else {
+				ShowInfo("Player AID:%d/CID:%d (not authenticated) logged off.\n",
+					sd->bl.id, sd->status.char_id);
+				map_quit(sd);
+			}
 		} else {
 			unsigned char *ip = (unsigned char *) &session[fd]->client_addr.sin_addr;
-			ShowInfo("Player not identified with IP '"CL_WHITE"%d.%d.%d.%d"CL_RESET"' logged off.\n", ip[0],ip[1],ip[2],ip[3]);
+			ShowInfo("Closed connection from '"CL_WHITE"%d.%d.%d.%d"CL_RESET"'.\n", ip[0],ip[1],ip[2],ip[3]);
 		}
 		do_close(fd);
 		return 0;

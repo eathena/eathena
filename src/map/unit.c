@@ -676,6 +676,7 @@ int unit_can_move(struct block_list *bl)
 			|| (sc->data[SC_CLOAKING].timer != -1 && //Need wall at level 1-2
 				sc->data[SC_CLOAKING].val1 < 3 && !(sc->data[SC_CLOAKING].val4&1))
 			|| sc->data[SC_MADNESSCANCEL].timer != -1
+			|| (sc->data[SC_GRAVITATION].timer != -1 && sc->data[SC_GRAVITATION].val3 == BCT_SELF)
 		))
 			return 0;
 	}
@@ -1587,6 +1588,7 @@ int unit_remove_map(struct block_list *bl, int clrtype) {
 		if(sd->pvp_timer!=-1) {
 			delete_timer(sd->pvp_timer,pc_calc_pvprank_timer);
 			sd->pvp_timer = -1;
+			sd->pvp_rank = 0;
 		}
 
 		if(pc_issit(sd)) {

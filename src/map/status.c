@@ -1462,7 +1462,7 @@ static unsigned int status_base_pc_maxhp(struct map_session_data* sd, struct sta
 		val += val * 25/100;
 	else if (sd->class_&JOBL_BABY)
 		val -= val * 30/100;
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->char_id, MAPID_TAEKWON))
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON))
 		val *= 3; //Triple max HP for top ranking Taekwons over level 90.
 	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && sd->status.base_level >= 99)
 		val += 2000;
@@ -1479,7 +1479,7 @@ static unsigned int status_base_pc_maxsp(struct map_session_data* sd, struct sta
 		val += val * 25/100;
 	else if (sd->class_&JOBL_BABY)
 		val -= val * 30/100;
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->char_id, MAPID_TAEKWON))
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON))
 		val *= 3; //Triple max SP for top ranking Taekwons over level 90.
 	
 	return val;
@@ -5089,13 +5089,6 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 
 		case SC_GRAVITATION:
 			val2 = 50*val1; //aspd reduction
-			if (val3 == BCT_SELF) {
-				struct unit_data *ud = unit_bl2ud(bl);
-				if (ud) {
-					ud->canmove_tick += tick;
-					ud->canact_tick += tick;
-				}
-			} 
 			break;
 
 		case SC_HERMODE:
@@ -5504,10 +5497,12 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			sc->opt3 |= 0x20;
 			opt_flag = 0;
 			break;
+		//0x40 missing?
 		case SC_BERSERK:
 			sc->opt3 |= 0x80;
 			opt_flag = 0;
 			break;
+		//0x100, 0x200 missing?
 		case SC_MARIONETTE:
 		case SC_MARIONETTE2:
 			sc->opt3 |= 0x400;
@@ -5893,13 +5888,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				status_change_end(bl, SC_ENDURE, -1);
 			sc_start4(bl, SC_REGENERATION, 100, 10,0,0,(RGN_HP|RGN_SP),
 				skill_get_time(LK_BERSERK, sc->data[type].val1));
-			break;
-		case SC_GRAVITATION:
-			if (sc->data[type].val3 == BCT_SELF) {
-				struct unit_data *ud = unit_bl2ud(bl);
-				if (ud)
-					ud->canmove_tick = ud->canact_tick = gettick();
-			}
 			break;
 		case SC_GOSPEL: //Clear the buffs from other chars.
 			if (sc->data[type].val3) { //Clear the group.

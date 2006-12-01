@@ -2572,7 +2572,7 @@ int run_script_timer(int tid, unsigned int tick, int id, int data)
 	struct linkdb_node *node    = (struct linkdb_node *)sleep_db;
 	struct map_session_data *sd = map_id2sd(st->rid);
 
-	if((sd && sd->char_id != id) || (st->rid && !sd))
+	if((sd && sd->status.char_id != id) || (st->rid && !sd))
 	{	//Character mismatch. Cancel execution.
 		st->rid = 0;
 		st->state = END;
@@ -2720,7 +2720,7 @@ void run_script_main(struct script_state *st)
 
 	if(st->sleep.tick > 0) {
 		//Delay execution
-		st->sleep.charid = sd?sd->char_id:0;
+		st->sleep.charid = sd?sd->status.char_id:0;
 		st->sleep.timer  = add_timer(gettick()+st->sleep.tick,
 			run_script_timer, st->sleep.charid, (int)st);
 		linkdb_insert(&sleep_db, (void*)st->oid, st);
@@ -3509,6 +3509,7 @@ int buildin_checkequipedcard(struct script_state *st);
 int buildin_globalmes(struct script_state *st);
 int buildin_jump_zero(struct script_state *st);
 int buildin_select(struct script_state *st);
+int buildin_prompt(struct script_state *st);
 int buildin_getmapmobs(struct script_state *st); //jA addition end
 int buildin_unequip(struct script_state *st); // unequip [Spectre]
 int buildin_getstrlen(struct script_state *st); //strlen [valaris]
@@ -3832,6 +3833,7 @@ struct script_function buildin_func[] = {
 	{buildin_checkequipedcard,"checkequipedcard","i"},
 	{buildin_jump_zero,"jump_zero","ii"}, //for future jA script compatibility
 	{buildin_select,"select","*"}, //for future jA script compatibility
+	{buildin_prompt,"prompt","*"},
 	{buildin_globalmes,"globalmes","s*"},
 	{buildin_getmapmobs,"getmapmobs","s"}, //end jA addition
 	{buildin_unequip,"unequip","i"}, // unequip command [Spectre]
@@ -4113,7 +4115,7 @@ int buildin_menu(struct script_state *st)
 		sd->state.menu_or_input=1;
 		if( (st->end - st->start - 2) % 2 == 1 ) {
 			// ˆø”‚Ì”‚ªŠï”‚È‚Ì‚ÅƒGƒ‰[ˆµ‚¢
-			ShowError("buildin_menu: illigal argument count(%d).\n", st->end - st->start - 2);
+			ShowError("buildin_menu: illegal argument count(%d).\n", st->end - st->start - 2);
 			sd->state.menu_or_input=0;
 			st->state=END;
 			return 1;
@@ -4130,7 +4132,7 @@ int buildin_menu(struct script_state *st)
 				strcat(buf,":");
 			}
 		}
-		clif_scriptmenu(script_rid2sd(st),st->oid,buf);
+		clif_scriptmenu(sd,st->oid,buf);
 		aFree(buf);
 	} else if(sd->npc_menu==0xff){	// cansel
 		sd->state.menu_or_input=0;
@@ -6149,7 +6151,7 @@ int buildin_successrefitem(struct script_state *st)
 		clif_misceffect(&sd->bl,3);
 		if(sd->status.inventory[i].refine == MAX_REFINE &&
 			sd->status.inventory[i].card[0] == CARD0_FORGE &&
-		  	sd->char_id == MakeDWord(sd->status.inventory[i].card[2],sd->status.inventory[i].card[3])
+		  	sd->status.char_id == MakeDWord(sd->status.inventory[i].card[2],sd->status.inventory[i].card[3])
 		){ // Fame point system [DracoRPG]
 	 		switch (sd->inventory_data[i]->wlv){
 				case 1:
@@ -10206,7 +10208,7 @@ int buildin_select(struct script_state *st)
 		}
 		clif_scriptmenu(script_rid2sd(st),st->oid,buf);
 		aFree(buf);
-	} else if(sd->npc_menu==0xff){	// cansel
+	} else if(sd->npc_menu==0xff){	// cancel
 		sd->state.menu_or_input=0;
 		st->state=END;
 	} else {
@@ -10221,6 +10223,46 @@ int buildin_select(struct script_state *st)
 		push_val(st->stack,C_INT,sd->npc_menu);
 	}
 	return 0;
+}
+
+int buildin_prompt(struct script_state *st)
+{
+	char *buf;
+	int len,i;
+	struct map_session_data *sd;
+
+	sd=script_rid2sd(st);
+	nullpo_retr(0, sd);
+
+	if(sd->state.menu_or_input==0){
+		st->state=RERUNLINE;
+		sd->state.menu_or_input=1;
+		for(i=st->start+2,len=16;i<st->end;i++){
+			conv_str(st,& (st->stack->stack_data[i]));
+			len+=(int)strlen(st->stack->stack_data[i].u.str)+1;
+		}
+		buf=(char *)aMalloc((len+1)*sizeof(char));
+		buf[0]=0;
+		for(i=st->start+2,len=0;i<st->end;i++){
+			strcat(buf,st->stack->stack_data[i].u.str);
+			strcat(buf,":");
+		}
+		clif_scriptmenu(sd,st->oid,buf);
+		aFree(buf);
+	} else {
+		if(sd->npc_menu != 0xff){
+			//Skip empty menu entries which weren't displayed on the client (Skotlex)
+			for(i=st->start+2;i< (st->start+2+sd->npc_menu) && sd->npc_menu < (st->end-st->start-2);i++) {
+				conv_str(st,& (st->stack->stack_data[i])); // we should convert variables to strings before access it [jA1983] [EoE]
+				if((int)strlen(st->stack->stack_data[i].u.str) < 1)
+					sd->npc_menu++; //Empty selection which wasn't displayed on the client.
+			}
+		}
+		pc_setreg(sd,add_str((unsigned char *) "@menu"),sd->npc_menu);
+		sd->state.menu_or_input=0;
+		push_val(st->stack,C_INT,sd->npc_menu);
+	  }
+	  return 0;
 }
 
 /*==========================================
@@ -11996,7 +12038,7 @@ int buildin_awake(struct script_state *st)
 				node = node->next;
 				continue;
 			}
-			if((sd && sd->char_id != tst->sleep.charid) || (tst->rid && !sd))
+			if((sd && sd->status.char_id != tst->sleep.charid) || (tst->rid && !sd))
 			{	//Cancel Execution
 				tst->state=END;
 				tst->rid = 0;
