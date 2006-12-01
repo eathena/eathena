@@ -357,7 +357,8 @@ int pc_setnewpc(struct map_session_data *sd, int account_id, int char_id, int lo
 	nullpo_retr(0, sd);
 
 	sd->bl.id        = account_id;
-	sd->status.char_id      = account_id;
+	sd->char_id      = char_id;
+	sd->status.account_id      = account_id;
 	sd->status.char_id      = char_id;
 	sd->login_id1    = login_id1;
 	sd->login_id2    = 0; // at this point, we can not know the value :(
