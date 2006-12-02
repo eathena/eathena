@@ -34,6 +34,9 @@ Playtester
 
 Date		Added
 ======
+12/01
+	* Removed outdated Thief Bug ID [Playtester]
+	- 1017 and 1021 don't exist anymore
 11/24
 	* Cleaned up global permanent variables in Airship Quest [KarLaeda]
 11/23
