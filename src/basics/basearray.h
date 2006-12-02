@@ -251,18 +251,21 @@ public:
 	// #if defined(__GNU__) or #if !defined(_MSC_VER) / #endif
 	// another workaround is to have a baseclass to derive the hierarchy from 
 	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
-	template<class TT, class EE, class AA> vector<T,E,A>(const vectorbase<TT,EE,AA>& v)
+	template<typename TT, typename EE, typename AA>
+	vector<T,E,A>(const vectorbase<TT,EE,AA>& v)
 	{
 		this->assign(v);
 	}
-	template<class TT, class EE, class AA> const vector<T,E,A>& operator=(const vectorbase<TT,EE,AA>& v)
+	template<typename TT, typename EE, typename AA>
+	const vector<T,E,A>& operator=(const vectorbase<TT,EE,AA>& v)
 	{
 		this->assign(v);
 		return *this;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// carray constructor
-	template<class TT> vector(const TT* elem, size_t sz)
+	template<typename TT>
+	vector(const TT* elem, size_t sz)
 	{	// we are clean and empty here
 		this->convert_assign(elem, sz);
 	}
@@ -414,24 +417,28 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// templated assignment
-	template<class TT, class EE, class AA> bool assign(const vectorbase<TT,EE,AA>& array)
+	template<typename TT, typename EE, typename AA>
+	bool assign(const vectorbase<TT,EE,AA>& array)
 	{
 		this->cWpp=this->ptrRpp()=this->cBuf;
 		return this->append(array);
 	}
-	template<typename TT> bool convert_assign(const TT* e, size_t cnt)
+	template<typename TT>
+	bool convert_assign(const TT* e, size_t cnt)
 	{
 		this->cWpp=this->ptrRpp()=this->cBuf;
 		return convert_append(e, cnt);
 	}
-	template<typename TT> bool convert_assign(const TT& e)
+	template<typename TT>
+	bool convert_assign(const TT& e)
 	{
 		this->cWpp=this->ptrRpp()=this->cBuf;
 		return this->convert_append(e);
 	}
 	// some compilers cannot decide on overloaded template members
 	// so have seperated names instead
-	template<typename TT> bool convert_assign_multiple(const T& e, size_t cnt)
+	template<typename TT>
+	bool convert_assign_multiple(const T& e, size_t cnt)
 	{
 		this->cWpp=this->ptrRpp()=this->cBuf;
 		return convert_append_multiple(e,cnt);
@@ -542,7 +549,8 @@ public:
 		else
 			return false;
 	}
-	template <class TT> bool convert_insert(const TT* elem, size_t cnt, size_t pos)
+	template <typename TT>
+	bool convert_insert(const TT* elem, size_t cnt, size_t pos)
 	{
 		if( !cnt )
 			return true;
@@ -564,7 +572,8 @@ public:
 	}
 	// stupid compilers cannot decide between overloaded template versions
 	// so need to have seperated names 
-	template <class TT> bool convert_insert_multiple(const TT& elem, size_t cnt, size_t pos)
+	template <typename TT>
+	bool convert_insert_multiple(const TT& elem, size_t cnt, size_t pos)
 	{
 		if( !cnt )
 			return true;
@@ -577,8 +586,8 @@ public:
 			this->cWpp+=cnt;
 			// fill the hole
 			T* ptr = this->ptrRpp()+pos;
-			for(; cnt--; ++ptr)
-				*ptr = elem;
+			while(cnt--)
+				*ptr++ = elem;
 			return true;
 		}
 		else
@@ -620,7 +629,8 @@ public:
 		else
 			return false;
 	}
-	template<class TT> bool convert_copy(const TT* elem, size_t cnt, size_t pos=0)
+	template<typename TT>
+	bool convert_copy(const TT* elem, size_t cnt, size_t pos=0)
 	{
 		if( pos >= this->size() )
 		{
@@ -649,7 +659,8 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// replace poscnt elements at pos with array
-	template<class TT, class EE, class AA> bool replace(const vectorbase<TT,EE,AA>& array, size_t pos, size_t poscnt)
+	template<typename TT, typename EE, typename AA>
+	bool replace(const vectorbase<TT,EE,AA>& array, size_t pos, size_t poscnt)
 	{
 		if( pos >= this->size() )
 		{	// replace position outside
@@ -683,7 +694,8 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// replace poscnt elements at pos with cnt elements
-	template<class TT> bool convert_replace(const TT* elem, size_t cnt, size_t pos, size_t poscnt)
+	template<typename TT>
+	bool convert_replace(const TT* elem, size_t cnt, size_t pos, size_t poscnt)
 	{
 		if( pos >= this->size() )
 		{	// replace position outside
@@ -771,12 +783,15 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// push/pop access
 	/// implement fifo behaviour (push to the end and pop from front)
-	virtual bool push(const T& elem)			{ return convert_push(elem); }
-	virtual bool push(const T* elem, size_t cnt){ return convert_push(elem,cnt); }
+	virtual bool push(const T& elem)				{ return convert_push(elem); }
+	virtual bool push(const T* elem, size_t cnt)	{ return convert_push(elem,cnt); }
 
-	template<class TT, class EE, class AA> bool push(const vectorbase<TT,EE,AA>& array){ return append(array); }
-	template<class TT> bool convert_push(const TT& elem)			{ return append(elem); }
-	template<class TT> bool convert_push(const TT* elem, size_t cnt){ return append(elem,cnt); }
+	template<typename TT, typename EE, typename AA>
+	bool push(const vectorbase<TT,EE,AA>& array)	{ return append(array); }
+	template<typename TT>
+	bool convert_push(const TT& elem)				{ return append(elem); }
+	template<typename TT>
+	bool convert_push(const TT* elem, size_t cnt)	{ return append(elem,cnt); }
 	
 	///////////////////////////////////////////////////////////////////////////
 	/// return the first element and remove it from array
@@ -850,7 +865,8 @@ public:
 /// stack.
 /// covers stack push/pop behaviour
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> class stack : public vector<T>
+template <typename T>
+class stack : public vector<T>
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -879,18 +895,14 @@ public:
 	//#endif
 	// another workaround is to have a baseclass to derive the hierarchy from 
 	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
-	template<class TT, class EE, class AA> stack<T>(const vectorbase<TT,EE,AA>& v)
-	{
-		this->convert_assign(v);
-	}
-	template<class TT, class EE, class AA> const stack<T>& operator=(const vectorbase<TT,EE,AA>& v)
-	{
-		this->convert_assign(v);
-		return *this;
-	}
+	template<typename TT, typename EE, typename AA>
+		stack<T>(const vectorbase<TT,EE,AA>& v)						{ this->convert_assign(v); }
+	template<typename TT, typename EE, typename AA>
+		const stack<T>& operator=(const vectorbase<TT,EE,AA>& v)	{ this->convert_assign(v); return *this; }
 	///////////////////////////////////////////////////////////////////////////
 	/// carray constructor
-	template<class TT> stack(const TT* elem, size_t sz)
+	template<typename TT>
+	stack(const TT* elem, size_t sz)
 	{	// we are clean and empty here
 		this->convert_assign(elem, sz);
 	}
@@ -996,7 +1008,8 @@ public:
 /// does fifo push/pop behaviour
 /// and implements moving readpointer to minimize data movements
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> class fifo : public vector<T, elaborator_ct<T>, allocator_rw_dy<T> >
+template <typename T>
+class fifo : public vector<T, elaborator_ct<T>, allocator_rw_dy<T> >
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -1018,18 +1031,21 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// templated baseclasse copy/assignment
-	template<class TT, class EE, class AA> fifo<T>(const vectorbase<TT,EE,AA>& v)
+	template<typename TT, typename EE, typename AA>
+	fifo<T>(const vectorbase<TT,EE,AA>& v)
 	{
 		this->assign(v);
 	}
-	template<class TT, class EE, class AA> const fifo<T>& operator=(const vectorbase<TT, EE, AA>& v)
+	template<typename TT, typename EE, typename AA>
+	const fifo<T>& operator=(const vectorbase<TT, EE, AA>& v)
 	{
 		this->assign(v);
 		return *this;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// carray constructor
-	template<class TT> fifo(const TT* elem, size_t sz)
+	template<typename TT>
+	fifo(const TT* elem, size_t sz)
 	{	
 		this->convert_assign(elem, sz);
 	}
@@ -1275,18 +1291,21 @@ public:
 	//#endif
 	// another workaround is to have a baseclass to derive the hierarchy from 
 	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
-	template<class TT, class EE, class AA> slist<T,E,A>(const vectorbase<TT,EE,AA>& v)
+	template<typename TT, typename EE, typename AA>
+	slist<T,E,A>(const vectorbase<TT,EE,AA>& v)
 	{
 		this->assign(v);
 	}
-	template<class TT, class EE, class AA> const slist<T,E,A>& operator=(const vectorbase<TT,EE,AA>& v)
+	template<typename TT, typename EE, typename AA>
+	const slist<T,E,A>& operator=(const vectorbase<TT,EE,AA>& v)
 	{
 		this->assign(v);
 		return *this;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// carray constructor
-	template<class TT> slist(const TT* elem, size_t sz) : config(true,false), compare(defaultcompare)
+	template<typename TT>
+	slist(const TT* elem, size_t sz) : config(true,false), compare(defaultcompare)
 	{	// we are clean and empty here
 		this->convert_append(elem, sz);
 	}
@@ -1370,7 +1389,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// templated assignment
-	template<class TT, class EE, class AA> bool assign(const vectorbase<TT,EE,AA>& array)
+	template<typename TT, typename EE, typename AA>
+	bool assign(const vectorbase<TT,EE,AA>& array)
 	{
 		this->cWpp=this->ptrRpp()=this->cBuf;
 		return this->append(array);
@@ -1487,17 +1507,20 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// templated insert
-	template<typename TT, typename EE, typename AA> bool insert(const vectorbase<TT,EE,AA>& array, size_t pos)
+	template<typename TT, typename EE, typename AA>
+	bool insert(const vectorbase<TT,EE,AA>& array, size_t pos)
 	{
 		return this->convert_append(array);
 	}
-	template <class TT> bool convert_insert(const TT* elem, size_t cnt, size_t pos)
+	template <typename TT>
+	bool convert_insert(const TT* elem, size_t cnt, size_t pos)
 	{
 		return this->convert_append(elem, cnt);
 	}
 	// stupid compilers cannot decide between overloaded template versions
 	// so need to have seperated names 
-	template <class TT> bool convert_insert_multiple(const TT& elem, size_t cnt, size_t pos)
+	template <typename TT>
+	bool convert_insert_multiple(const TT& elem, size_t cnt, size_t pos)
 	{
 		return this->convert_append_multiple(elem, cnt);
 	}
@@ -1515,11 +1538,13 @@ public:
 	// copy the given array to pos, 
 	// overwrites existing elements, 
 	// expands automatically but does not shrink when array is already larger
-	template<typename TT, typename EE, typename AA> bool copy(const vectorbase<TT,EE,AA>& array, size_t pos=0)
+	template<typename TT, typename EE, typename AA>
+	bool copy(const vectorbase<TT,EE,AA>& array, size_t pos=0)
 	{
 		return this->convert_append(array);
 	}
-	template<class TT> bool convert_copy(const TT* elem, size_t cnt, size_t pos=0)
+	template<typename TT>
+	bool convert_copy(const TT* elem, size_t cnt, size_t pos=0)
 	{
 		return this->convert_append(elem, cnt);
 	}
@@ -1533,14 +1558,16 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// replace poscnt elements at pos with array
-	template<class TT, class EE, class AA> bool replace(const vectorbase<TT,EE,AA>& array, size_t pos, size_t poscnt)
+	template<typename TT, typename EE, typename AA>
+	bool replace(const vectorbase<TT,EE,AA>& array, size_t pos, size_t poscnt)
 	{
 		this->removeindex(pos,poscnt);
 		return this->convert_append(array);
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// replace poscnt elements at pos with cnt elements
-	template<class TT> bool convert_replace(const TT* elem, size_t cnt, size_t pos, size_t poscnt)
+	template<typename TT>
+	bool convert_replace(const TT* elem, size_t cnt, size_t pos, size_t poscnt)
 	{
 		this->removeindex(pos,poscnt);
 		return this->convert_append(elem, cnt);
@@ -1633,12 +1660,16 @@ public:
 	virtual bool push(const T& elem)			{ return convert_append(elem); }
 	virtual bool push(const T* elem, size_t cnt){ return convert_append(elem,cnt); }
 
-	template<class TT, class EE, class AA> bool push(const vectorbase<TT,EE,AA>& array){ return append(array); }
-	template<class TT> bool convert_push(const TT& elem)			{ return convert_append(elem); }
-	template<class TT> bool convert_push(const TT* elem, size_t cnt){ return convert_append(elem,cnt); }
+	template<typename TT, typename EE, typename AA>
+	bool push(const vectorbase<TT,EE,AA>& array){ return append(array); }
+	template<typename TT>
+	bool convert_push(const TT& elem)			{ return convert_append(elem); }
+	template<typename TT>
+	bool convert_push(const TT* elem, size_t cnt){ return convert_append(elem,cnt); }
 
 
-	template<class TT> bool find(const TT& elem, size_t start, size_t& pos) const
+	template<typename TT>
+	bool find(const TT& elem, size_t start, size_t& pos) const
 	{
 		return BinarySearchC<T,const T*,T>(elem, this->begin(), this->size(), start, pos, this->compare, this->config.ascending);
 	}
@@ -1759,11 +1790,13 @@ public:
 		return *this;
 	}
 #endif
-	template<class EE, class AA> ptrvector<T,E,A>(const ptrvector<T,EE,AA>& v)
+	template<typename EE, typename AA>
+	ptrvector<T,E,A>(const ptrvector<T,EE,AA>& v)
 	{
 		this->assign(v);
 	}
-	template<class EE, class AA> const ptrvector<T,E,A>& operator=(const ptrvector<T,EE,AA>& v)
+	template<typename EE, typename AA>
+	const ptrvector<T,E,A>& operator=(const ptrvector<T,EE,AA>& v)
 	{
 		this->assign(v);
 		return *this;
@@ -1867,7 +1900,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// templated assignment
-	template<class EE, class AA> bool assign(const ptrvector<T,EE,AA>& array)
+	template<typename EE, typename AA>
+	bool assign(const ptrvector<T,EE,AA>& array)
 	{
 		return this->cVect.assign(array.cVect);
 	}
@@ -1937,7 +1971,8 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// replace poscnt elements at pos with array
-	template<class EE, class AA> bool replace(const ptrvector<T,EE,AA>& array, size_t pos, size_t poscnt)
+	template<typename EE, typename AA>
+	bool replace(const ptrvector<T,EE,AA>& array, size_t pos, size_t poscnt)
 	{
 		return this->cVect.replace(array.cVect, pos, poscnt);
 	}
@@ -1976,7 +2011,8 @@ public:
 	virtual bool push( T*const& elem)				{ return this->cVect.push((void*const&)elem); }
 	virtual bool push( T*const* elem, size_t cnt)	{ return this->cVect.push((void*const*)elem, cnt); }
 
-	template<class EE, class AA> bool push(const ptrvector<T,EE,AA>& array){ return this->cVect.push(array.cVect); }
+	template<typename EE, typename AA>
+	bool push(const ptrvector<T,EE,AA>& array)		{ return this->cVect.push(array.cVect); }
 	
 	///////////////////////////////////////////////////////////////////////////
 	/// return the first element and remove it from array
@@ -2055,11 +2091,13 @@ public:
 	// #if defined(__GNU__) or #if !defined(_MSC_VER) / #endif
 	// another workaround is to have a baseclass to derive the hierarchy from 
 	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
-	template<class EE, class AA> ptrslist<T,E,A>(const ptrvector<T,EE,AA>& v)
+	template<typename EE, typename AA>
+	ptrslist<T,E,A>(const ptrvector<T,EE,AA>& v)
 	{
 		this->assign(v);
 	}
-	template<class EE, class AA> const ptrslist<T,E,A>& operator=(const ptrvector<T,EE,AA>& v)
+	template<typename EE, typename AA>
+	const ptrslist<T,E,A>& operator=(const ptrvector<T,EE,AA>& v)
 	{
 		this->assign(v);
 		return *this;
@@ -2131,7 +2169,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// templated assignment
-	template<class EE, class AA> bool assign(const ptrvector<T,EE,AA>& array)
+	template<typename EE, typename AA>
+	bool assign(const ptrvector<T,EE,AA>& array)
 	{
 		this->clear();
 		return this->append(array.cVect);
@@ -2235,7 +2274,8 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// replace poscnt elements at pos with array
-	template<class EE, class AA> bool replace(const ptrvector<T,EE,AA>& array, size_t pos, size_t poscnt)
+	template<typename EE, typename AA>
+	bool replace(const ptrvector<T,EE,AA>& array, size_t pos, size_t poscnt)
 	{
 		this->removeindex(pos, poscnt);
 		return this->append(array);
@@ -2247,7 +2287,8 @@ public:
 	virtual bool push( T*const& elem)				{ return this->append(elem); }
 	virtual bool push( T*const* elem, size_t cnt)	{ return this->append(elem, cnt); }
 
-	template<class EE, class AA> bool push(const ptrvector<T,EE,AA>& array){ return this->append(array); }
+	template<typename EE, typename AA>
+	bool push(const ptrvector<T,EE,AA>& array){ return this->append(array); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// search within the field
@@ -2904,7 +2945,8 @@ private:
 /// does not allow multiple data entries per key
 /// to get similar object as stl::multimap
 /// just use ie. map< key, vector<data> >
-template<class K, class D> class map
+template<typename K, typename D>
+class map
 {
 private:
 	typedef struct _node
@@ -3045,7 +3087,8 @@ public:
 /// simple map. associates a data object with a key value
 /// using a linear array for storing, more efficient for small objects
 /// does not allow multiple data entries per key
-template<class K, class D> class smap
+template<typename K, typename D>
+class smap
 {
 private:
 	typedef struct _node
@@ -3148,7 +3191,8 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 /// map with two keys. 
 /// keys need to be of different type
-template<class K1, class K2, class D> class dualmap
+template<typename K1, typename K2, typename D>
+class bimap
 {
 private:
 	typedef struct _node
@@ -3216,19 +3260,19 @@ private:
 		return BinarySearchC<K2, ptrvector<node>, node*> (key, cVect2, cVect2.size(), 0, pos, &this->cmp2);
 	}
 public:
-	dualmap()
+	bimap()
 	{ }
-	virtual ~dualmap()
+	virtual ~bimap()
 	{
 		clear();
 	}
-	dualmap(const dualmap& m)
+	bimap(const bimap& m)
 	{
 		typename ptrvector<node>::iterator iter(m.cVect1);
 		for(; iter; ++iter)
 			this->insert(iter->key1, iter->key2, iter->data);
 	}
-	const dualmap& operator=(const dualmap& m)
+	const bimap& operator=(const bimap& m)
 	{
 		typename ptrvector<node>::iterator iter(m.cVect1);
 		this->clear();
@@ -3250,7 +3294,8 @@ public:
 		cVect2.clear();
 	}
 
-	template<class K> bool exists(const K& key)
+	template<typename K>
+	bool exists(const K& key)
 	{
 		size_t pos;
 		return this->find(key, pos);
@@ -3315,7 +3360,7 @@ public:
 		size_t pos1;
 		if( !this->find(key1, pos1) )
 		{	// can only throw here
-			vector_error("dualmap: key not found");
+			vector_error("bimap: key not found");
 		}
 		return cVect1[pos1]->data;
 	}
@@ -3324,17 +3369,17 @@ public:
 		size_t pos2;
 		if( !this->find(key2, pos2) )
 		{	// can only throw here
-			vector_error("dualmap: key not found");
+			vector_error("bimap: key not found");
 		}
 		return cVect2[pos2]->data;
 	}
 	const D& operator[](const K1& key1) const
 	{
-		return const_cast<dualmap<K1,K2,D>*>(this)->operator[](key1);
+		return const_cast<bimap<K1,K2,D>*>(this)->operator[](key1);
 	}
 	const D& operator[](const K2& key2) const
 	{
-		return const_cast<dualmap<K1,K2,D>*>(this)->operator[](key2);
+		return const_cast<bimap<K1,K2,D>*>(this)->operator[](key2);
 	}
 
 };
@@ -3367,7 +3412,8 @@ public:
 /// might be merged with vectors althought these are slightly faster
 /// because of different memory allocation
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> class TArray : public global
+template <typename T>
+class TArray : public global
 {
 protected:
 	virtual const T* array() const=0;
@@ -3515,7 +3561,8 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 /// fixed size arrays.
 ///////////////////////////////////////////////////////////////////////////////
-template <class T, size_t SZ> class TArrayFST : public TArray<T>
+template <typename T, size_t SZ>
+class TArrayFST : public TArray<T>
 {
 	virtual const T* array() const	{return cField;}
 protected:
@@ -3945,7 +3992,8 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// fixed size fifo
-template <class T, size_t SZ> class TfifoFST : public TArrayFST<T,SZ>
+template <typename T, size_t SZ>
+class TfifoFST : public TArrayFST<T,SZ>
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -3995,7 +4043,8 @@ public:
 
 };
 ///////////////////////////////////////////////////////////////////////////////
-template <class T, size_t SZ> class TstackFST : public TArrayFST<T,SZ>
+template <typename T, size_t SZ>
+class TstackFST : public TArrayFST<T,SZ>
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -4043,7 +4092,8 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // fixed size sorted array.
 ///////////////////////////////////////////////////////////////////////////////
-template <class T, size_t SZ> class TslistFST : public TfifoFST<T,SZ>
+template <typename T, size_t SZ>
+class TslistFST : public TfifoFST<T,SZ>
 {
 	bool cAscending;// sorting order
 	bool cAllowDup;	// allow duplicate entries (find might then not find specific elems)
@@ -4253,7 +4303,8 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // dynamic size arrays.
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> class TArrayDST : public TArray<T>
+template <typename T>
+class TArrayDST : public TArray<T>
 {
 	///////////////////////////////////////////////////////////////////////////
 	// friends
@@ -4778,7 +4829,8 @@ public:
 };
 ///////////////////////////////////////////////////////////////////////////////
 /// dynamic size fifo
-template <class T> class TfifoDST : public TArrayDST<T>
+template <typename T>
+class TfifoDST : public TArrayDST<T>
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -4828,7 +4880,8 @@ public:
 };
 ///////////////////////////////////////////////////////////////////////////////
 /// dynamic size stack
-template <class T> class TstackDST : public TArrayDST<T>
+template <typename T>
+class TstackDST : public TArrayDST<T>
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -4875,7 +4928,8 @@ public:
 };
 ///////////////////////////////////////////////////////////////////////////////
 /// dynamic size sorted array
-template <class T> class TslistDST : public TfifoDST<T>
+template <typename T>
+class TslistDST : public TfifoDST<T>
 {
 	bool cAscending;// sorting order
 	bool cAllowDup;	// allow duplicate entries (find might then not find specific elems)
@@ -5086,7 +5140,8 @@ public:
 };
 ///////////////////////////////////////////////////////////////////////////////
 /// dynamic size array using assignment loops for copy
-template <class T> class TArrayDCT : public TArrayDST<T>
+template <typename T>
+class TArrayDCT : public TArrayDST<T>
 {
 protected:
 	///////////////////////////////////////////////////////////////////////////
@@ -5132,7 +5187,8 @@ public:
 };
 
 /// dynamic size fifo using assignment loops for copy
-template <class T> class TfifoDCT : public TfifoDST<T>
+template <typename T>
+class TfifoDCT : public TfifoDST<T>
 {
 protected:
 	///////////////////////////////////////////////////////////////////////////
@@ -5179,7 +5235,8 @@ public:
 };
 
 /// dynamic size stack using assignment loops for copy
-template <class T> class TstackDCT : public TstackDST<T>
+template <typename T>
+class TstackDCT : public TstackDST<T>
 {
 protected:
 	///////////////////////////////////////////////////////////////////////////
@@ -5226,7 +5283,8 @@ public:
 };
 
 /// dynamic size slist using assignment loops for copy
-template <class T> class TslistDCT : public TslistDST<T>
+template <typename T>
+class TslistDCT : public TslistDST<T>
 {
 protected:
 	///////////////////////////////////////////////////////////////////////////
@@ -5279,7 +5337,8 @@ public:
 /// List of Objects. implemented as array of pointers to (single) objects
 /// it actually owns the pointers and deletes them on exit
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> class TArrayDPT
+template <typename T>
+class TArrayDPT
 {
 	typedef T* pT;
 
@@ -5405,7 +5464,7 @@ public:
 	{
 		// automatic resize on out-of-bound
 		if( inx>=cCnt )
-		{
+		{	
 			printf("autoresize %lu->%lu\n",(unsigned long)cCnt, (unsigned long)(inx+1));
 			resize(inx+1);
 		}
@@ -5548,7 +5607,8 @@ public:
 /// base array cannot shrink on delete operations so this is only suitable for static array
 /// usable classes need a "int compare(const T& elem, size_t inx) const" member
 ///////////////////////////////////////////////////////////////////////////////
-template <class T, int CNT> class TMultiList
+template <typename T, int CNT>
+class TMultiList
 {
 	vector<T>		cList;
 	vector<size_t>	cIndex[CNT];
@@ -5728,7 +5788,8 @@ private:
 /// for performance use a managed memory derived classes
 /// usable classes need a "int compare(const T& elem, size_t inx) const" member
 ///////////////////////////////////////////////////////////////////////////////
-template <class T, int CNT> class TMultiListP
+template <typename T, int CNT>
+class TMultiListP
 {
 
 	ptrvector<T>	cIndex[CNT];
@@ -5941,7 +6002,8 @@ private:
 ///
 /// needs evaluation
 ///////////////////////////////////////////////////////////////////////////////
-template <class T, int CNT> class TMultiListSP
+template <typename T, int CNT>
+class TMultiListSP
 {
 	vector< TPtrAutoCount<T> >	cIndex[CNT];
 

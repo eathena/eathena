@@ -73,7 +73,8 @@ const wchar_t* StringConstant(size_t i, wchar_t dummy)
 ///////////////////////////////////////////////////////////////////////////////
 // some standard string functions
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> const T* toupper(T* str)
+template<typename T>
+const T* toupper(T* str)
 {
 	if(str)
 	{
@@ -88,7 +89,8 @@ template const char* toupper<char>(char* str);
 template const wchar_t* toupper<wchar_t>(wchar_t* str);
 
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> const T* tolower(T* str)
+template<typename T>
+const T* tolower(T* str)
 {
 	if(str)
 	{
@@ -103,7 +105,8 @@ template const char* tolower<char>(char* str);
 template const wchar_t* tolower<wchar_t>(wchar_t* str);
 
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> const T* ltrim(T* str)
+template<typename T>
+const T* ltrim(T* str)
 {
 	if(str)
 	{
@@ -127,7 +130,8 @@ template const char* ltrim<char>(char* str);
 template const wchar_t* ltrim<wchar_t>(wchar_t* str);
 
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> const T* rtrim(T* str)
+template<typename T>
+const T* rtrim(T* str)
 {
 	if(str)
 	{
@@ -151,7 +155,8 @@ template const char* rtrim<char>(char* str);
 template const wchar_t* rtrim<wchar_t>(wchar_t* str);
 
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> const T* trim(T* str)
+template<typename T>
+const T* trim(T* str)
 {
 	if(str)
 	{
@@ -175,7 +180,8 @@ template const char* trim<char>(char* str);
 template const wchar_t* trim<wchar_t>(wchar_t* str);
 
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> const T* itrim(T* str, bool removeall)
+template<typename T>
+const T* itrim(T* str, bool removeall)
 {
 	if(str)
 	{
@@ -208,7 +214,8 @@ template const wchar_t* itrim<wchar_t>(wchar_t* str, bool removeall);
 // supported bases are 2..64
 // buf has to be fixed 128 elements
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> const T* _itobase(sint64 value, T* buf, size_t base, size_t& len, bool _signed, T pluschar)
+template <typename T>
+const T* _itobase(sint64 value, T* buf, size_t base, size_t& len, bool _signed, T pluschar)
 {
 	// internal conversion routine: converts the value to a string
 	// at the end of the buffer and returns a pointer to the first
@@ -269,7 +276,8 @@ template const wchar_t* _itobase(sint64 value, wchar_t* buf, size_t base, size_t
 // function for number2string conversion
 // prepares buffers and proper padding
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void _itostring(stringoperator<T>& result, sint64 value, size_t base, bool _signed, size_t width, bool left, T padchar, T pluschar)
+template <typename T>
+void _itostring(stringoperator<T>& result, sint64 value, size_t base, bool _signed, size_t width, bool left, T padchar, T pluschar)
 {
 	if(base >= 2 && base <= 64)
 	{
@@ -320,7 +328,8 @@ template void _itostring<char   >(stringoperator<char   >& result, sint64 value,
 template void _itostring<wchar_t>(stringoperator<wchar_t>& result, sint64 value, size_t base, bool _signed, size_t width, bool left, wchar_t padchar, wchar_t pluschar);
 
 
-template <class T> void _octtostring(stringoperator<T>& result, uint64 value, size_t width, bool left, T padchar, bool alt)
+template <typename T>
+void _octtostring(stringoperator<T>& result, uint64 value, size_t width, bool left, T padchar, bool alt)
 {
 	static const T nums[8] = {'0','1','2','3','4','5','6','7'};
 	T buffer[32];	// 64bit number -> 22 octal digits +eos
@@ -367,7 +376,8 @@ template <class T> void _octtostring(stringoperator<T>& result, uint64 value, si
 template void _octtostring<char   >(stringoperator<char   >& result, uint64 value, size_t width, bool left, char    padchar, bool alt);
 template void _octtostring<wchar_t>(stringoperator<wchar_t>& result, uint64 value, size_t width, bool left, wchar_t padchar, bool alt);
 
-template <class T> void _hextostring(stringoperator<T>& result, uint64 value, size_t width, bool left, T padchar, bool alt, bool low)
+template <typename T>
+void _hextostring(stringoperator<T>& result, uint64 value, size_t width, bool left, T padchar, bool alt, bool low)
 {
 	static const T nums[2][16] = 
 	{
@@ -439,7 +449,8 @@ template void _hextostring<wchar_t>(stringoperator<wchar_t>& result, uint64 valu
 
 
 
-template <class T> void _ftostring(stringoperator<T>& result, double value, int prec, T format, size_t width, bool left, T padchar, T pluschar, bool alt)
+template <typename T>
+void _ftostring(stringoperator<T>& result, double value, int prec, T format, size_t width, bool left, T padchar, T pluschar, bool alt)
 {
 	// format:
 	// 'f'
@@ -587,7 +598,8 @@ template void _ftostring<wchar_t>(stringoperator<wchar_t>& result, double value,
 // string to unsigned number conversion
 // variable base
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> uint64 stringtoue(const T* str, size_t base)
+template <typename T>
+uint64 stringtoue(const T* str, size_t base)
 {
 	uint64 result = 0;
 
@@ -639,7 +651,8 @@ template uint64 stringtoue<wchar_t>(const wchar_t*  str, size_t base);
 // string to signed number conversion
 // base 10
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> sint64 stringtoie(const T* str)
+template <typename T>
+sint64 stringtoie(const T* str)
 {
 	if(str==0 || *str==0)
 		return 0;
@@ -661,7 +674,8 @@ template sint64 stringtoie<wchar_t>(const wchar_t* str);
 // string to signed number conversion
 // base 10
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> sint64 stringtoi(const T* p)
+template <typename T>
+sint64 stringtoi(const T* p)
 {
 	sint64 r = 0;
 	if( p != 0 &&  *p != 0)
@@ -697,7 +711,8 @@ template sint64 stringtoi<char>(const char* p);
 template sint64 stringtoi<wchar_t>(const wchar_t* p);
 
 
-template <class T> double stringtod(const T* p)
+template <typename T>
+double stringtod(const T* p)
 {
 	double r = 0;
 	if( p != 0 &&  *p != 0)
@@ -863,7 +878,8 @@ inline size_t string_from_time(wchar_t* strDest, size_t maxsize, const wchar_t* 
 ///////////////////////////////////////////////////////////////////////////////
 // timestamp string
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> string<T> nowstring(const T* fmt, bool utc)
+template<typename T>
+string<T> nowstring(const T* fmt, bool utc)
 {
 	T buf[128];
 	time_t longtime;
@@ -893,7 +909,8 @@ template string<wchar_t> nowstring<wchar_t>(const wchar_t* fmt, bool utc);
 ///////////////////////////////////////////////////////////////////////////////
 // timestamp string
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> string<T> dttostring(const datetime& dt, const T* fmt)
+template<typename T>
+string<T> dttostring(const datetime& dt, const T* fmt)
 {
 	T buf[128];
 	tm t;
@@ -1024,7 +1041,8 @@ const wchar_t* stringinterface<wchar_t>::getStringConstant(size_t i) const
 	return StringConstant(i, (wchar_t)0 );
 }
 
-//template <class T> const T* stringinterface<T>::getStringConstant(size_t i) const
+//template <typename T>
+//const T* stringinterface<T>::getStringConstant(size_t i) const
 //{
 //	return StringConstant(i, (T)0 );
 //}
@@ -1144,7 +1162,8 @@ bool stringinterface<wchar_t>::findnext(const stringinterface<wchar_t>& pattern,
 
 #else
 
-template <class T> bool stringinterface<T>::findnext(const stringinterface<T>& pattern, size_t &startpos, bool ignorecase) const
+template <typename T>
+bool stringinterface<T>::findnext(const stringinterface<T>& pattern, size_t &startpos, bool ignorecase) const
 {	// modified boyer-moore search
 	
 	// this table size is bound to 8bit values
@@ -1325,7 +1344,8 @@ vector<size_t> stringinterface<wchar_t>::findall(const stringinterface<wchar_t>&
 #else
 // otherwise use standard explicite template instantiation
 
-template <class T> vector<size_t> stringinterface<T>::findall(const stringinterface<T>& pattern, bool ignorecase) const
+template <typename T>
+vector<size_t> stringinterface<T>::findall(const stringinterface<T>& pattern, bool ignorecase) const
 {	// modified boyer-moore search
 
 	// store results in this list

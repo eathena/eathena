@@ -11,7 +11,7 @@ NAMESPACE_BEGIN(basics)
 
 
 
-/////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 /// clean a string.
 /// remove leading/trailing whitespaces, concatinate multiple whitespaces
 /// replace control chars with '_'
@@ -40,21 +40,25 @@ const char* config_clean(char *str)
 	return "";
 }
 
-bool paramconvert(sint64 &t, const char* str)
+///////////////////////////////////////////////////////////////////////////////
+template<> 
+bool paramconvert<sint64>(sint64 &t, const char* str)
 {
 	t = (!str || strcasecmp(str, "false") == 0 || strcasecmp(str, "off") == 0 || strcasecmp(str, "no" ) == 0 || strcasecmp(str, "non") == 0 || strcasecmp(str, "nein") == 0) ? 0 :
 		(        strcasecmp(str, "true" ) == 0 || strcasecmp(str, "on" ) == 0 || strcasecmp(str, "yes") == 0 || strcasecmp(str, "oui") == 0 || strcasecmp(str, "ja"  ) == 0 || strcasecmp(str, "si") == 0) ? 1 : 
 		strtol(str, NULL, 0);
 	return true;
 }
-bool paramconvert(uint64 &t, const char* str)
+template<> 
+bool paramconvert<uint64>(uint64 &t, const char* str)
 {
 	t = (!str || strcasecmp(str, "false") == 0 || strcasecmp(str, "off") == 0 || strcasecmp(str, "no" ) == 0 || strcasecmp(str, "non") == 0 || strcasecmp(str, "nein") == 0) ? 0 :
 		(        strcasecmp(str, "true" ) == 0 || strcasecmp(str, "on" ) == 0 || strcasecmp(str, "yes") == 0 || strcasecmp(str, "oui") == 0 || strcasecmp(str, "ja"  ) == 0 || strcasecmp(str, "si") == 0) ? 1 : 
 		strtoul(str, NULL, 0);
 	return true;
 }
-bool paramconvert(double &t, const char* s) 
+template<> 
+bool paramconvert<double>(double &t, const char* s) 
 {
 	if( !s)
 		t = 0;
@@ -121,6 +125,8 @@ bool CParameterList::add_commandline(const char* line)
 	}
 	return this->cCnt>0;
 }
+
+///////////////////////////////////////////////////////////////////////////////
 /// remove entries from list.
 void CParameterList::erase(size_t st, size_t num)
 {
@@ -135,8 +141,6 @@ void CParameterList::erase(size_t st, size_t num)
 	}
 }
 
-
-
 ///////////////////////////////////////////////////////////////////////////////
 // basic interface for reading configs from file
 ///////////////////////////////////////////////////////////////////////////////
@@ -145,7 +149,7 @@ void CParameterList::erase(size_t st, size_t num)
 /////////////////////////////////////////////////////////////////////
 /// load and parse config file.
 /// loads a file, strips lines,
-/// splitts it to "part1 : part2" or "part1 = part2"
+/// splits it to "part1 : part2" or "part1 = part2"
 /// cleans leading/trailing whitespaces
 /// and calls the derived function for processing
 bool CConfig::LoadConfig(const char* cfgName)
@@ -199,11 +203,11 @@ bool CConfig::LoadConfig(const char* cfgName)
 				strcasecmp(w1, "include") == 0 )
 			{	// call recursive, prevent infinity loop (first order only)
 				if( strcasecmp(cfgName,w2) !=0 )
-					LoadConfig(w2);
+					this->LoadConfig(w2);
 			}
 			else
 			{	// calling derived function to process
-				ProcessConfig(w1,w2);
+				this->ProcessConfig(w1,w2);
 			}
 		}
 	}
@@ -243,6 +247,7 @@ int CTimerBase::timercallback(int timer, unsigned long tick, int id, numptr data
 	}
 	return 0;
 }
+
 void CTimerBase::timerfinalize()
 {
 	if(cTimer>0)
@@ -327,131 +332,6 @@ void parseCommandline(int argc, char **argv)
 }
 
 
-
-
-#ifdef PARAM_RTTI
-///////////////////////////////////////////////////////////////////////////////
-//
-// Parameter Class
-//
-///////////////////////////////////////////////////////////////////////////////
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-/// timer callback
-bool CParamBase::CParamLoader::timeruserfunc(unsigned long tick)
-{	/// check all listed files for modification
-	size_t i=cFileList.size();
-	while(i)
-	{
-		--i;
-		if( cFileList[i].isModified() )
-		{
-			bool ok = ( cFileList[i].proc )?(*(cFileList[i].proc))(cFileList[i]):CConfig::LoadConfig( cFileList[i] );
-			if(!ok)
-				cFileList.removeindex(i);
-		}
-	}
-	return true;
-}
-///////////////////////////////////////////////////////////////////////////////
-/// external access
-void CParamBase::CParamLoader::loadFile(const string<>& filename, paramproc p)
-{
-	const CFileData tmp(filename, p);
-	size_t pos;
-	const bool find=this->cFileList.find(tmp,0,pos);
-	// update the processing function
-	if( find && p!=this->cFileList[pos].proc )
-		this->cFileList[pos].proc = p;
-	if( !find || this->cFileList[pos].isModified() )
-	{	// call the processing function
-		const bool ok = ( p ) ? (*p)( filename ) : (this->CConfig::LoadConfig( filename ));
-		// and insert
-		if(ok && !find)
-			this->cFileList.insert( tmp );
-	}
-}
-///////////////////////////////////////////////////////////////////////////////
-// static data
-CParamBase::CSingletonData &CParamBase::getSingletonData()
-{
-	static CParamBase::CSingletonData sd;
-	return sd;
-}
-
-///////////////////////////////////////////////////////////////////////////
-// static access functions
-CParamBase& CParamBase::getParam(const string<>& name)
-{
-	CSingletonData &sd = getSingletonData();
-	ScopeLock sl(sd);
-	size_t pos;
-	CParamBase tmp(name);
-	if( !sd.cParams.find(tmp, 0, pos) )
-	{
-		tmp.cTime = GetTickCount();
-		sd.cParams.insert(tmp);
-		if( !sd.cParams.find(tmp, 0, pos) )
-			throw exception("Params: insert failed");
-	}
-	return sd.cParams[pos];
-}
-// check existence of a parameter
-bool CParamBase::existParam(const string<>& name)
-{
-	CSingletonData &sd = getSingletonData();
-	ScopeLock sl(sd);
-	size_t pos;
-	CParamBase tmp(name);
-	return sd.cParams.find(tmp, 0, pos);
-}
-// clean unreferenced parameters
-void CParamBase::clean()
-{
-	CSingletonData &sd = getSingletonData();
-	ScopeLock sl(sd);
-	size_t i=sd.cParams.size();
-	while(i>0)
-	{
-		i--;
-		if( !sd.cParams[i].cParam->isReferenced() )
-			sd.cParams.removeindex(i);
-	}
-}
-void CParamBase::listall()
-{
-	CSingletonData &sd = getSingletonData();
-	ScopeLock sl(sd);
-	size_t i;
-	printf("\nList of Parameters (existing %li):", (unsigned long)sd.cParams.size());
-	for(i=0; i<sd.cParams.size(); ++i)
-		sd.cParams[i].print();
-	printf("\n---------------\n");
-
-}
-string<> CParamBase::getlist()
-{
-	CSingletonData &sd = getSingletonData();
-	ScopeLock sl(sd);
-	size_t i;
-	string<> str;
-	for(i=0; i<sd.cParams.size(); ++i)
-	{
-		str << sd.cParams[i].name() << " = " << sd.cParams[i].value() << "\n";
-	}
-	return str;
-}
-void CParamBase::loadFile(const string<>& name, paramproc p)
-{
-	CSingletonData &sd = getSingletonData();
-	ScopeLock sl(sd);
-	sd.cLoader.loadFile(name,p);
-}
-
-#else
 ///////////////////////////////////////////////////////////////////////////////
 //
 // Parameter Class
@@ -484,6 +364,7 @@ void CParamObj::assignvalue(const string<>& value)
 		}
 	}
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 // print the content to stdout
 void CParamObj::print()
@@ -496,26 +377,64 @@ void CParamObj::print()
 		(const char*)(*this), (const char*)this->cValue, this->cReferenced, i, this->cTime);
 }
 
-
-
-///////////////////////////////////////////////////////////////////
-// construction/destruction
-CParamBase::CParamLoader::CFileData::CFileData(const string<>& filename, paramproc p)
-	: string<>(filename), proc(p)
+///////////////////////////////////////////////////////////////////////////////
+// construction
+CParamBase::CParamFile::CParamFile(const string<>& filename)
+	: string<>(filename), fileproc(NULL), entrproc(NULL)
 {
 	struct stat s;
 	if( 0==stat((const char*)filename, &s) )
 		modtime = s.st_mtime;
 }
-///////////////////////////////////////////////////////////////////
+
+CParamBase::CParamFile::CParamFile(const string<>& filename, paramfileproc p)
+	: string<>(filename), fileproc(p), entrproc(NULL)
+{
+	struct stat s;
+	if( 0==stat((const char*)filename, &s) )
+		modtime = s.st_mtime;
+}
+
+CParamBase::CParamFile::CParamFile(const string<>& filename, paramentrproc p)
+	: string<>(filename), fileproc(NULL), entrproc(p)
+{
+	struct stat s;
+	if( 0==stat((const char*)filename, &s) )
+		modtime = s.st_mtime;
+}
+
+CParamBase::CParamFile::CParamFile(const string<>& filename, const CParamFile& orig)
+	: string<>(filename), fileproc(orig.fileproc), entrproc(orig.entrproc)
+{
+	struct stat s;
+	if( 0==stat((const char*)filename, &s) )
+		modtime = s.st_mtime;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// config processing callback
+bool CParamBase::CParamFile::ProcessConfig(const char*w1,const char*w2)
+{	
+	if( this->entrproc )
+	{	// call the external processing function
+		return (*entrproc)(w1, w2);
+	}
+	else
+	{	// create/update parameter
+		CParamBase::createParam(w1, w2);
+		return true;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // checking file state and updating the locals at the same time
-bool CParamBase::CParamLoader::CFileData::isModified()
+bool CParamBase::CParamFile::isModified()
 {
 	struct stat s;
 	return ( 0==stat((const char*)(*this), &s) && s.st_mtime!=this->modtime && (this->modtime=s.st_mtime)==this->modtime );
 }
 
-/////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // timer callback
 bool CParamBase::CParamLoader::timeruserfunc(unsigned long tick)
 {	// check all listed files for modification
@@ -523,45 +442,47 @@ bool CParamBase::CParamLoader::timeruserfunc(unsigned long tick)
 	while(i)
 	{
 		--i;
-		if( this->cFileList[i].isModified() )
-		{	// call the processing funcion
-			bool ok = (this->cFileList[i].proc)?(*(this->cFileList[i].proc))(cFileList[i]):this->CConfig::LoadConfig( cFileList[i] );
-			if(!ok)
-			{	// remove the file from watchlist if processing asked for it
-				this->cFileList.removeindex(i);
-			}
+		if( this->cFileList[i].isModified() && !this->cFileList[i].load() )
+		{	// remove the file from watchlist when failed to load
+			this->cFileList.removeindex(i);
 		}
 	}
 	return true;
 }
-/////////////////////////////////////////////////////////////
-// config processing callback
-bool CParamBase::CParamLoader::ProcessConfig(const char*w1,const char*w2)
-{	// create/update parameter
-	CParamBase::createParam(w1, w2);
+
+///////////////////////////////////////////////////////////////////////////////
+/// load a file object
+bool CParamBase::CParamLoader::loadParamFile(const CParamFile& fileobj)
+{
+	size_t pos;
+	if( this->cFileList.find(fileobj, 0, pos) )
+	{
+		if( this->cFileList[pos].fileproc != fileobj.fileproc ||
+			this->cFileList[pos].entrproc != fileobj.entrproc )
+		{	// update the processing function
+			this->cFileList[pos].fileproc = fileobj.fileproc;
+			this->cFileList[pos].entrproc = fileobj.entrproc;
+		}
+		else if( !this->cFileList[pos].isModified() )
+		{	// nothing modified, just return true
+			return true;
+		}
+	}
+	else
+	{	// insert the file in the list (temporarily)
+		this->cFileList.insert( fileobj );
+		if( !this->cFileList.find(fileobj, 0, pos) )
+			return false;
+	}
+	if( !this->cFileList[pos].load() )
+	{	// remove when loading has failed
+		this->cFileList.removeindex(pos);
+		return false;
+	}
 	return true;
 }
-/////////////////////////////////////////////////////////////
-// external access
-void CParamBase::CParamLoader::loadFile(const string<>& filename, paramproc p)
-{
-	const CFileData tmp(filename, p);
-	size_t pos;
-	const bool find=this->cFileList.find(tmp,0,pos);
-	// update the processing function
-	if( find && p!=this->cFileList[pos].proc )
-		this->cFileList[pos].proc = p;
-	if( !find || this->cFileList[pos].isModified() )
-	{	// call the processing function
-		const bool ok = ( p ) ? (*p)( filename ) : (this->CConfig::LoadConfig( filename ));
-		// and insert it when ok
-		if(ok && !find)
-			this->cFileList.insert( tmp );
-	}
-}
 
-
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // static data
 // need a singleton here for allowing global parameters
 CParamBase::CSingletonData &CParamBase::getSingletonData()
@@ -570,7 +491,7 @@ CParamBase::CSingletonData &CParamBase::getSingletonData()
 	return sd;
 }
 
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // get a parameter, create it with default value when not existing
 TObjPtrCount<CParamObj> CParamBase::getParam(const string<>& name, const string<>& value)
 {
@@ -591,6 +512,7 @@ TObjPtrCount<CParamObj> CParamBase::getParam(const string<>& name, const string<
 	if( !sd.cParams[pos]->cReferenced ) sd.cParams[pos]->cReferenced=true;
 	return sd.cParams[pos];
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 // create a new parameter or update the values
 TObjPtr<CParamObj> CParamBase::createParam(const string<>& name, const string<>& value, bool fixed)
@@ -620,6 +542,7 @@ TObjPtr<CParamObj> CParamBase::createParam(const string<>& name, const string<>&
 	}
 	return sd.cParams[pos];
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 // check if a parameter exists
 bool CParamBase::existParam(const string<>& name)
@@ -630,6 +553,7 @@ bool CParamBase::existParam(const string<>& name)
 	CParamObj tmp(name);
 	return sd.cParams.find(tmp, 0, pos);
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 // remove all unreferenced parameters
 void CParamBase::clean()
@@ -644,6 +568,7 @@ void CParamBase::clean()
 			sd.cParams.removeindex(i);
 	}
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 // prints all parameters as list to stdout
 void CParamBase::listall()
@@ -656,6 +581,7 @@ void CParamBase::listall()
 		sd.cParams[i]->print();
 	printf("\n---------------\n");
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 // returns a string with all parameters used (as file format & <nl> delimited)
 string<> CParamBase::getlist()
@@ -670,13 +596,14 @@ string<> CParamBase::getlist()
 	}
 	return str;
 }
+
 ///////////////////////////////////////////////////////////////////////////////
-// load parameters from file
-void CParamBase::loadFile(const string<>& filename, paramproc p)
+// load parameters from fileobject
+bool CParamBase::loadParamFile(CParamBase::CParamFile fileobj)
 {
 	CSingletonData &sd = getSingletonData();
 	ScopeLock sl(sd);
-	sd.cLoader.loadFile(filename,p);
+	return sd.cLoader.loadParamFile(fileobj);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -691,6 +618,7 @@ void CParamBase::link()
 		this->cParamObj->cParamRoot = this;
 	}
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 // unlink parameter access object
 void CParamBase::unlink()
@@ -719,19 +647,9 @@ void CParamBase::unlink()
 
 
 
-#endif
 
-
-
-
-
-
-
-
-
-
-
-
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 #if defined(DEBUG)
 bool doublecallback(const string<>& name, double&newval, const double&oldval)
@@ -794,8 +712,16 @@ void test_parameter()
 		CParam<int> testint("int param", 8);
 		CParam<MiniString> teststr("str param", "...test test...");
 
-		CParamBase::loadFile("conf/login_athena.conf");
+		CParamBase::loadFile("config1.txt");
 
+		CParam< vector<int> > testvec("parameter3");
+
+		vector<int>::iterator iter(testvec());
+		for(; iter; ++iter)
+			printf("%i ", *iter);
+		printf("\n");
+
+		
 		CParamBase::listall();
 
 		CParamBase::clean();

@@ -9,7 +9,8 @@ NAMESPACE_BEGIN(basics)
 /////////////////////////////////////////////////////////////////////////////////////////
 /// basic pointer interface
 /////////////////////////////////////////////////////////////////////////////////////////
-template <class X> class TPtr : public noncopyable
+template <typename X>
+class TPtr : public noncopyable
 {
 protected:
 	TPtr()	{}
@@ -20,10 +21,12 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// logical tests to see if there is anything contained in the pointer since it can be null
-//	operator bool(void) const						{ return NULL!=this->get(); }
-	bool operator!(void) const						{ return NULL==this->get(); }
-	bool present(void) const						{ return NULL!=this->get(); }
-	bool null(void) const							{ return NULL==this->get(); }
+//	operator bool(void) const						{ return this->exists(); }
+	bool operator!(void) const						{ return !this->exists(); }
+	bool present(void) const						{ return this->exists(); }
+	bool null(void) const							{ return !this->exists(); }
+
+	virtual bool exists() const=0;
 
 	virtual const X& readaccess() const = 0;
 	virtual X& writeaccess() = 0;
@@ -114,7 +117,8 @@ bool operator>=(const TPtr<T>& left, const TPtr<T>& right)
 /// automatic free on object delete
 /// does not use a counting object
 /////////////////////////////////////////////////////////////////////////////////////////
-template <class X> class TPtrAuto : public TPtr<X>
+template <typename X>
+class TPtrAuto : public TPtr<X>
 {
 private:
 	X* itsPtr;
@@ -160,10 +164,12 @@ public:
 /// when reference counter becomes zero the object is automatically deleted
 /// if there is no pointer, it will return NULL
 /////////////////////////////////////////////////////////////////////////////////////////
-template <class X> class TPtrCount : public TPtr<X>
+template <typename X>
+class TPtrCount : public TPtr<X>
 {
 protected:
-	template <class T> class CCounter
+	template <typename T>
+	class CCounter
 	{
 	public:
 		T*				ptr;
@@ -262,46 +268,45 @@ public:
 	}
 
 //	MSVC cannot seperate this from own copy constructor
-//	template <class P1>
+//	template <typename P1>
 //	TPtrCount<X>(P1& p1) : cCntObj(NULL)
 //	{
 //		this->cCntObj = new CCounter<X>( new X(p1) );
 //	}
-	template <class P1, class P2>
+	template <typename P1, typename P2>
 	TPtrCount<X>(P1 p1, P2 p2) : cCntObj(NULL)
 	{
 		this->cCntObj = new CCounter<X>( new X(p1,p2) );
 	}
-	template <class P1, class P2, class P3>
+	template <typename P1, typename P2, typename P3>
 	TPtrCount<X>(P1 p1, P2 p2, P3 p3) : cCntObj(NULL)
 	{
 		this->cCntObj = new CCounter<X>( new X(p1,p2,p3) );
 	}
-	template <class P1, class P2, class P3, class P4>
+	template <typename P1, typename P2, typename P3, typename P4>
 	TPtrCount<X>(P1 p1, P2 p2, P3 p3, P4 p4) : cCntObj(NULL)
 	{
 		this->cCntObj = new CCounter<X>( new X(p1,p2,p3,p4) );
 	}
-	template <class P1, class P2, class P3, class P4, class P5>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5>
 	TPtrCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) : cCntObj(NULL)
 	{
 		this->cCntObj = new CCounter<X>( new X(p1,p2,p3,p4,p5) );
 	}
-	template <class P1, class P2, class P3, class P4, class P5, class P6>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 	TPtrCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) : cCntObj(NULL)
 	{
 		this->cCntObj = new CCounter<X>( new X(p1,p2,p3,p4,p5,p6) );
 	}
-	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 	TPtrCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) : cCntObj(NULL)
 	{
 		this->cCntObj = new CCounter<X>( new X(p1,p2,p3,p4,p5,p6,p7) );
 	}
 
-	const size_t getRefCount() const { return (this->cCntObj) ? this->cCntObj->count : 1;}
-	bool clear()					{ this->release(); return this->cCntObj==NULL; }
-	bool exists() const				{ return NULL!=this->cCntObj && NULL!=this->cCntObj->ptr; }
-	bool isunique()	const throw()	{ return (this->cCntObj ? (cCntObj->count == 1):true);}
+	const size_t getRefCount() const			{ return (this->cCntObj) ? this->cCntObj->count : 1;}
+	bool clear()								{ this->release(); return this->cCntObj==NULL; }
+	bool isunique()	const throw()				{ return (this->cCntObj ? (cCntObj->count == 1):true);}
 	bool make_unique()	  throw()
 	{
 		if( !isunique() )
@@ -320,6 +325,7 @@ public:
 	virtual const X& readaccess() const			{ return *this->cCntObj->ptr; }
 	virtual X& writeaccess()					{ return *this->cCntObj->ptr; }
 
+	virtual bool exists() const					{ return NULL!=this->cCntObj && NULL!=this->cCntObj->ptr; }
 	virtual const X* get() const				{ return this->cCntObj ?  this->cCntObj->ptr : 0; }
 	virtual const X& operator*() const throw()	{ return *this->cCntObj->ptr; }
 	virtual const X* operator->() const throw()	{ return this->cCntObj ?  this->cCntObj->ptr : 0; }
@@ -337,49 +343,49 @@ public:
 		this->cCntObj = new CCounter<X>( );
 		return *this;
 	}
-	template <class P1>
+	template <typename P1>
 	const TPtrCount<X>& create (P1& p1)
 	{
 		clear();
 		this->cCntObj = new CCounter<X>( X(p1) );
 		return *this;
 	}
-	template <class P1, class P2>
+	template <typename P1, typename P2>
 	const TPtrCount<X>& create (P1& p1, P2& p2)
 	{
 		clear();
 		this->cCntObj = new CCounter<X>( X(p1,p2) );
 		return *this;
 	}
-	template <class P1, class P2, class P3>
+	template <typename P1, typename P2, typename P3>
 	const TPtrCount<X>& create (P1& p1, P2& p2, P3& p3)
 	{
 		clear();
 		this->cCntObj = new CCounter<X>( X(p1,p2,p3) );
 		return *this;
 	}
-	template <class P1, class P2, class P3, class P4>
+	template <typename P1, typename P2, typename P3, typename P4>
 	const TPtrCount<X>& create (P1& p1, P2& p2, P3& p3, P4& p4)
 	{
 		clear();
 		this->cCntObj = new CCounter<X>( X(p1,p2,p3,p4) );
 		return *this;
 	}
-	template <class P1, class P2, class P3, class P4, class P5>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5>
 	const TPtrCount<X>& create (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
 	{
 		clear();
 		this->cCntObj = new CCounter<X>( X(p1,p2,p3,p4,p5) );
 		return *this;
 	}
-	template <class P1, class P2, class P3, class P4, class P5, class P6>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 	const TPtrCount<X>& create (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6)
 	{
 		clear();
 		this->cCntObj = new CCounter<X>( X(p1,p2,p3,p4,p5,p6) );
 		return *this;
 	}
-	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 	const TPtrCount<X>& create (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7)
 	{
 		clear();
@@ -394,7 +400,8 @@ public:
 /// when reference counter becomes zero the object is automatically deleted
 /// creates a default object if not exist
 /////////////////////////////////////////////////////////////////////////////////////////
-template <class X> class TPtrAutoCount : public TPtrCount<X>
+template <typename X>
+class TPtrAutoCount : public TPtrCount<X>
 {
 public:
 	explicit TPtrAutoCount<X>(X* p) : TPtrCount<X>(p)	{}
@@ -405,25 +412,25 @@ public:
 	TPtrAutoCount<X>(const TPtrAutoCount<X>& r) : TPtrCount<X>(r)	{}
 	const TPtrAutoCount<X>& operator=(const TPtrAutoCount<X>& r){ this->acquire(r); return *this; }
 //	MSVC cannot seperate this from copy constructor
-//	template <class P1>
+//	template <typename P1>
 //	TPtrAutoCount<X>(P1& p1) : TPtrCount<X>(p1)
 //	{ }
-	template <class P1, class P2>
+	template <typename P1, typename P2>
 	TPtrAutoCount<X>(P1 p1, P2 p2) : TPtrCount<X>(p1,p2)
 	{ }
-	template <class P1, class P2, class P3>
+	template <typename P1, typename P2, typename P3>
 	TPtrAutoCount<X>(P1 p1, P2 p2, P3 p3) : TPtrCount<X>(p1,p2,p3)
 	{ }
-	template <class P1, class P2, class P3, class P4>
+	template <typename P1, typename P2, typename P3, typename P4>
 	TPtrAutoCount<X>(P1 p1, P2 p2, P3 p3, P4 p4) : TPtrCount<X>(p1,p2,p3,p4)
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5>
 	TPtrAutoCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) : TPtrCount<X>(p1,p2,p3,p4,p5)
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5, class P6>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 	TPtrAutoCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) : TPtrCount<X>(p1,p2,p3,p4,p5,p6)
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 	TPtrAutoCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) : TPtrCount<X>(p1,p2,p3,p4,p5,p6,p7)
 	{ }
 
@@ -443,7 +450,8 @@ public:
 /// when reference counter becomes zero the object is automatically deleted
 /// creates a default object if not exist
 /////////////////////////////////////////////////////////////////////////////////////////
-template <class X> class TPtrAutoRef : public TPtrCount<X>
+template <typename X>
+class TPtrAutoRef : public TPtrCount<X>
 {
 public:
 	explicit TPtrAutoRef(X* p) : TPtrCount<X>(p)	{}
@@ -454,25 +462,25 @@ public:
 	TPtrAutoRef(const TPtrAutoRef<X>& r) : TPtrCount<X>(r)	{}
 	const TPtrAutoRef& operator=(const TPtrAutoRef<X>& r)	{ this->acquire(r); return *this; }
 //	MSVC cannot seperate this from copy constructor
-//	template <class P1>
+//	template <typename P1>
 //	TPtrAutoRef<X>(P1 p1) : TPtrCount<X>(p1)
 //	{ }
-	template <class P1, class P2>
+	template <typename P1, typename P2>
 	TPtrAutoRef<X>(P1 p1, P2 p2) : TPtrCount<X>(p1,p2)
 	{ }
-	template <class P1, class P2, class P3>
+	template <typename P1, typename P2, typename P3>
 	TPtrAutoRef<X>(P1 p1, P2 p2, P3 p3) : TPtrCount<X>(p1,p2,p3)
 	{ }
-	template <class P1, class P2, class P3, class P4>
+	template <typename P1, typename P2, typename P3, typename P4>
 	TPtrAutoRef<X>(P1 p1, P2 p2, P3 p3, P4 p4) : TPtrCount<X>(p1,p2,p3,p4)
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5>
 	TPtrAutoRef<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) : TPtrCount<X>(p1,p2,p3,p4,p5)
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5, class P6>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 	TPtrAutoRef<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) : TPtrCount<X>(p1,p2,p3,p4,p5,p6)
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 	TPtrAutoRef<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) : TPtrCount<X>(p1,p2,p3,p4,p5,p6,p7)
 	{ }
 
@@ -506,7 +514,8 @@ enum POINTER_TYPE
 	AUTOREF		// counting, create-on-access and copy-on-write (default)
 };
 
-template <class X> class TPtrCommon : public TPtrCount<X>
+template <typename X>
+class TPtrCommon : public TPtrCount<X>
 {
 	mutable bool cAutoRef : 1;
 public:
@@ -519,25 +528,25 @@ public:
 	TPtrCommon<X>(const TPtrCommon<X>& r) : TPtrCount<X>(r), cAutoRef(true)	{}
 	const TPtrCommon<X>& operator=(const TPtrCommon<X>& r)					{ this->acquire(r); return *this; }
 //	MSVC cannot seperate this from copy constructor
-//	template <class P1>
+//	template <typename P1>
 //	TPtrCommon<X>(P1 p1) : TPtrCount<X>(p1)
 //	{ }
-	template <class P1, class P2>
+	template <typename P1, typename P2>
 	TPtrCommon<X>(P1 p1, P2 p2) : TPtrCount<X>(p1,p2)
 	{ }
-	template <class P1, class P2, class P3>
+	template <typename P1, typename P2, typename P3>
 	TPtrCommon<X>(P1 p1, P2 p2, P3 p3) : TPtrCount<X>(p1,p2,p3)
 	{ }
-	template <class P1, class P2, class P3, class P4>
+	template <typename P1, typename P2, typename P3, typename P4>
 	TPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4) : TPtrCount<X>(p1,p2,p3,p4)
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5>
 	TPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) : TPtrCount<X>(p1,p2,p3,p4,p5)
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5, class P6>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 	TPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) : TPtrCount<X>(p1,p2,p3,p4,p5,p6)
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 	TPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) : TPtrCount<X>(p1,p2,p3,p4,p5,p6,p7)
 	{ }
 
@@ -580,10 +589,12 @@ public:
 /// TObjPtrCommon is switchable.
 ///
 /////////////////////////////////////////////////////////////////////////////////////////
-template <class X> class TObjPtr : public TPtr<X>
+template <typename X>
+class TObjPtr : public TPtr<X>
 {
 protected:
-	template <class T> class CCounter
+	template <typename T>
+	class CCounter
 	{
 	public:
 		T				ptr;
@@ -615,22 +626,22 @@ protected:
 			return NULL;
 		}
 
-		template <class P1, class P2>
+		template <typename P1, typename P2>
 		CCounter<T>(P1& p1, P2& p2) : ptr(p1,p2), count(1)
 		{ }
-		template <class P1, class P2, class P3>
+		template <typename P1, typename P2, typename P3>
 		CCounter<T>(P1& p1, P2& p2, P3& p3) : ptr(p1,p2,p3), count(1)
 		{ }
-		template <class P1, class P2, class P3, class P4>
+		template <typename P1, typename P2, typename P3, typename P4>
 		CCounter<T>(P1& p1, P2& p2, P3& p3, P4& p4) : ptr(p1,p2,p3,p4), count(1)
 		{ }
-		template <class P1, class P2, class P3, class P4, class P5>
+		template <typename P1, typename P2, typename P3, typename P4, typename P5>
 		CCounter<T>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5) : ptr(p1,p2,p3,p4,p5), count(1)
 		{ }
-		template <class P1, class P2, class P3, class P4, class P5, class P6>
+		template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 		CCounter<T>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6) : ptr(p1,p2,p3,p4,p5,p6), count(1)
 		{ }
-		template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+		template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 		CCounter<T>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7) : ptr(p1,p2,p3,p4,p5,p6,p7), count(1)
 		{ }
 	};
@@ -714,40 +725,40 @@ public:
 	}
 
 //	cannot seperate this from own copy constructor
-//	template <class P1>
+//	template <typename P1>
 //	TPtrCount<X>(P1& p1) : cCntObj(new CCounter<X>(p1))
 //	{ }
 	// have copies here istead of references
 	// otherwise gcc mixes it up with the other two parameter constructors
-	template <class P1, class P2>
+	template <typename P1, typename P2>
 	TObjPtr<X>(P1 p1, P2 p2)
 		: cCntObj(new CCounter<X>(p1,p2))
 	{ }
-	template <class P1, class P2, class P3>
+	template <typename P1, typename P2, typename P3>
 	TObjPtr<X>(P1 p1, P2 p2, P3 p3)
 		: cCntObj(new CCounter<X>(p1,p2,p3))
 	{ }
-	template <class P1, class P2, class P3, class P4>
+	template <typename P1, typename P2, typename P3, typename P4>
 	TObjPtr<X>(P1 p1, P2 p2, P3 p3, P4 p4)
 		: cCntObj(new CCounter<X>(p1,p2,p3,p4))
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5>
 	TObjPtr<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
 		: cCntObj(new CCounter<X>(p1,p2,p3,p4,p5))
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5, class P6>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 	TObjPtr<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
 		: cCntObj(new CCounter<X>(p1,p2,p3,p4,p5,p6))
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 	TObjPtr<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
 		: cCntObj(new CCounter<X>(p1,p2,p3,p4,p5,p6,p7))
 	{ }
 
-	const size_t getRefCount() const { return (this->cCntObj) ? this->cCntObj->count : 1;}
-	bool clear()					{ this->release(); return this->cCntObj==NULL; }
-	bool exists() const				{ return NULL!=this->cCntObj; }
-	bool isunique()	const throw()	{ return (this->cCntObj ? (cCntObj->count == 1):true);}
+	const size_t getRefCount() const				{ return (this->cCntObj) ? this->cCntObj->count : 1;}
+	bool clear()									{ this->release(); return this->cCntObj==NULL; }
+	
+	bool isunique()	const throw()					{ return (this->cCntObj ? (cCntObj->count == 1):true);}
 	bool make_unique()	  throw()
 	{
 		if( !this->isunique() )
@@ -760,14 +771,15 @@ public:
 		return true;
 	}
 
-	virtual bool isCopyonWrite() const	{ return true; }
-	virtual bool isAutoCreate() const	{ return false; }
-	virtual void setCopyonWrite() const	{ }
-	virtual void setAutoCreate() const	{ }
+	virtual bool isCopyonWrite() const				{ return true; }
+	virtual bool isAutoCreate() const				{ return false; }
+	virtual void setCopyonWrite() const				{ }
+	virtual void setAutoCreate() const				{ }
 
-	virtual const X& readaccess() const	{ return this->autocreate(); }
-	virtual X& writeaccess()			{ return this->copyonwrite(); }
+	virtual const X& readaccess() const				{ return this->autocreate(); }
+	virtual X& writeaccess()						{ return this->copyonwrite(); }
 
+	virtual bool exists() const						{ return NULL!=this->cCntObj; }
 	virtual const X* get() const					{ this->readaccess(); return this->cCntObj ? &this->cCntObj->ptr : NULL; }
 	virtual const X& operator*()	const throw()	{ return this->readaccess(); }
 	virtual const X* operator->()	const throw()	{ this->readaccess(); return this->cCntObj ? &this->cCntObj->ptr : NULL; }
@@ -784,49 +796,49 @@ public:
 		this->cCntObj = new CCounter<X>( );
 		return *this;
 	}
-	template <class P1>
+	template <typename P1>
 	const TObjPtr<X>& create (P1& p1)
 	{
 		this->clear();
 		this->cCntObj = new CCounter<X>( X(p1) );
 		return *this;
 	}
-	template <class P1, class P2>
+	template <typename P1, typename P2>
 	const TObjPtr<X>& create (P1& p1, P2& p2)
 	{
 		this->clear();
 		this->cCntObj = new CCounter<X>( (p1,p2) );
 		return *this;
 	}
-	template <class P1, class P2, class P3>
+	template <typename P1, typename P2, typename P3>
 	const TObjPtr<X>& create (P1& p1, P2& p2, P3& p3)
 	{
 		this->clear();
 		this->cCntObj = new CCounter<X>( (p1,p2,p3) );
 		return *this;
 	}
-	template <class P1, class P2, class P3, class P4>
+	template <typename P1, typename P2, typename P3, typename P4>
 	const TObjPtr<X>& create (P1& p1, P2& p2, P3& p3, P4& p4)
 	{
 		this->clear();
 		this->cCntObj = new CCounter<X>( (p1,p2,p3,p4) );
 		return *this;
 	}
-	template <class P1, class P2, class P3, class P4, class P5>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5>
 	const TObjPtr<X>& create (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
 	{
 		this->clear();
 		this->cCntObj = new CCounter<X>( (p1,p2,p3,p4,p5) );
 		return *this;
 	}
-	template <class P1, class P2, class P3, class P4, class P5, class P6>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 	const TObjPtr<X>& create (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6)
 	{
 		this->clear();
 		this->cCntObj = new CCounter<X>( (p1,p2,p3,p4,p5,p6) );
 		return *this;
 	}
-	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 	const TObjPtr<X>& create (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7)
 	{
 		this->clear();
@@ -836,7 +848,8 @@ public:
 };
 
 
-template <class X> class TObjPtrCount : public TObjPtr<X>
+template <typename X>
+class TObjPtrCount : public TObjPtr<X>
 {
 public:
 	TObjPtrCount<X>()
@@ -871,27 +884,27 @@ public:
 
 	// have copies here istead of references
 	// otherwise gcc mixes it up with the other two parameter constructors
-	template <class P1, class P2>
+	template <typename P1, typename P2>
 	TObjPtrCount<X>(P1 p1, P2 p2)
 		: TObjPtr<X>(p1,p2)
 	{ }
-	template <class P1, class P2, class P3>
+	template <typename P1, typename P2, typename P3>
 	TObjPtrCount<X>(P1 p1, P2 p2, P3 p3)
 		: TObjPtr<X>(p1,p2,p3)
 	{ }
-	template <class P1, class P2, class P3, class P4>
+	template <typename P1, typename P2, typename P3, typename P4>
 	TObjPtrCount<X>(P1 p1, P2 p2, P3 p3, P4 p4)
 		: TObjPtr<X>(p1,p2,p3,p4)
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5>
 	TObjPtrCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
 		: TObjPtr<X>(p1,p2,p3,p4,p5)
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5, class P6>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 	TObjPtrCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
 		: TObjPtr<X>(p1,p2,p3,p4,p5,p6)
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 	TObjPtrCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
 		: TObjPtr<X>(p1,p2,p3,p4,p5,p6,p7)
 	{ }
@@ -907,7 +920,8 @@ public:
 
 
 
-template <class X> class TObjPtrCommon : public TObjPtr<X>
+template <typename X>
+class TObjPtrCommon : public TObjPtr<X>
 {
 protected:
 	mutable X& (TObjPtr<X>::*fAccess)(void) const;
@@ -971,27 +985,27 @@ public:
 
 	// have copies here istead of references
 	// otherwise gcc mixes it up with the other two parameter constructors
-	template <class P1, class P2>
+	template <typename P1, typename P2>
 	TObjPtrCommon<X>(P1 p1, P2 p2)
 		: TObjPtr<X>(p1,p2), fAccess(&TObjPtrCommon<X>::copyonwrite)
 	{ }
-	template <class P1, class P2, class P3>
+	template <typename P1, typename P2, typename P3>
 	TObjPtrCommon<X>(P1 p1, P2 p2, P3 p3)
 		: TObjPtr<X>(p1,p2,p3), fAccess(&TObjPtrCommon<X>::copyonwrite)
 	{ }
-	template <class P1, class P2, class P3, class P4>
+	template <typename P1, typename P2, typename P3, typename P4>
 	TObjPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4)
 		: TObjPtr<X>(p1,p2,p3,p4), fAccess(&TObjPtrCommon<X>::copyonwrite)
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5>
 	TObjPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
 		: TObjPtr<X>(p1,p2,p3,p4,p5), fAccess(&TObjPtrCommon<X>::copyonwrite)
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5, class P6>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 	TObjPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
 		: TObjPtr<X>(p1,p2,p3,p4,p5,p6), fAccess(&TObjPtrCommon<X>::copyonwrite)
 	{ }
-	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 	TObjPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
 		: TObjPtr<X>(p1,p2,p3,p4,p5,p6,p7), fAccess(&TObjPtrCommon<X>::copyonwrite)
 	{ }
@@ -1027,7 +1041,8 @@ public:
 // automatic cleanup when the last data is destroyed
 // implements a copy-on-write scheme
 /////////////////////////////////////////////////////////////////////
-template<class T> class TPtrRef
+template<typename T>
+class TPtrRef
 {
 	/////////////////////////////////////////////////////////////////
 	// the reference manages refernce counting and automatic cleanup
@@ -1271,12 +1286,12 @@ enum Null {
 ///////////////////////////////////////////////////////
 // forward definitions
 
-template <class T> class TPtrWeak;
-template <class T> class TPtrStrong;
+template <typename T> class TPtrWeak;
+template <typename T> class TPtrStrong;
 
 ///////////////////////////////////////////////////////
 // TPtrStrong
-template <class T>
+template <typename T>
 class TPtrStrong {
 public:
 	TPtrStrong () : cPtr (0), cRefCount (0) {
@@ -1292,7 +1307,7 @@ public:
 		}
 	}
 
-	template <class O>
+	template <typename O>
 	TPtrStrong (const TPtrWeak<O>& other) {
 		cPtr = other.cPtr;
 		cRefCount = other.cRefCount;
@@ -1393,86 +1408,86 @@ private:
 	T* cPtr;
 	RefCounts* cRefCount;
 
-	template <class T>
+	template <typename T>
 	friend TPtrStrong<T> create ();
 	
-	template <class T, class P1>
+	template <typename T, typename P1>
 	friend TPtrStrong<T> create (P1 p1);
 
-	template <class T, class P1, class P2>
+	template <typename T, typename P1, typename P2>
 	friend TPtrStrong<T> create (P1 p1, P2 p2);
 
-	template <class T, class P1, class P2, class P3>
+	template <typename T, typename P1, typename P2, typename P3>
 	friend TPtrStrong<T> create (P1 p1, P2 p2, P3 p3);
 
-	template <class T, class P1, class P2, class P3, class P4>
+	template <typename T, typename P1, typename P2, typename P3, typename P4>
 	friend TPtrStrong<T> create (P1 p1, P2 p2, P3 p3, P4 p4);
 
-	template <class T, class P1, class P2, class P3, class P4, class P5>
+	template <typename T, typename P1, typename P2, typename P3, typename P4, typename P5>
 	friend TPtrStrong<T> create (P1 p1, P2 p2, P3 p3, P4 p4, P5 p5);
 
-	template <class T, class P1, class P2, class P3, class P4, class P5, class P6>
+	template <typename T, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 	friend TPtrStrong<T> create (P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6);
 
-	template <class T, class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+	template <typename T, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 	friend TPtrStrong<T> create (P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7);
 
-	template <class T>
+	template <typename T>
 	friend TPtrStrong<T> wrapPtr (T* t);
 
 	friend class TPtrStrong;
 	friend class TPtrWeak;
 
-	template<class T, class U>
+	template<typename T, typename U>
 	friend bool operator == (const TPtrStrong<T>& a, const TPtrStrong<U>& b);
 
-	template<class T, class U>
+	template<typename T, typename U>
 	friend bool operator != (const TPtrStrong<T>& a, const TPtrStrong<U>& b);
 
-	template<class T>
+	template<typename T>
 	friend bool operator == (const TPtrStrong<T>& a, Null);
 
-	template<class T>
+	template<typename T>
 	friend bool operator == (Null, const TPtrStrong<T>& a);
 
-	template<class T>
+	template<typename T>
 	friend bool operator != (const TPtrStrong<T>& a, Null);
 
-	template<class T>
+	template<typename T>
 	friend bool operator != (Null, const TPtrStrong<T>& a);
 
-	template<class T, class U>
+	template<typename T, typename U>
 	friend bool operator == (const TPtrStrong<T>& a, const TPtrWeak<U>& b);
 
-	template<class T, class U>
+	template<typename T, typename U>
 	friend bool operator == (const TPtrWeak<T>& a, const TPtrStrong<U>& b);
 
-	template<class T, class U>
+	template<typename T, typename U>
 	friend bool operator != (const TPtrStrong<T>& a, const TPtrWeak<U>& b);
 
-	template<class T, class U>
+	template<typename T, typename U>
 	friend bool operator != (const TPtrWeak<T>& a, const TPtrStrong<U>& b);
 
-	template <class T, class F>
+	template <typename T, typename F>
 	friend TPtrStrong<T> staticCast (const TPtrStrong<F>& from);
 
-	template <class T, class F>
+	template <typename T, typename F>
 	friend TPtrStrong<T> constCast (const TPtrStrong<F>& from);
 
-	template <class T, class F>
+	template <typename T, typename F>
 	friend TPtrStrong<T> dynamicCast (const TPtrStrong<F>& from);
 
-	template <class T, class F>
+	template <typename T, typename F>
 	friend TPtrStrong<T> checkedCast (const TPtrStrong<F>& from);
 
-	template <class T, class F>
+	template <typename T, typename F>
 	friend TPtrStrong<T> queryCast (const TPtrStrong<F>& from);
 };
 
 ///////////////////////////////////////////////////////
 // TPtrWeak
 
-template <class T>
+template <typename T>
 class TPtrWeak {
 public:
 	TPtrWeak () : cPtr (0), cRefCount (0) {
@@ -1487,7 +1502,7 @@ public:
 		}
 	}
 
-	template <class T>
+	template <typename T>
 	TPtrWeak (const TPtrStrong<T>& other) {
 		cPtr = other.cPtr;
 		cRefCount = other.cRefCount;
@@ -1519,7 +1534,7 @@ public:
 	}
 
 
-	template <class T>
+	template <typename T>
 	TPtrWeak& operator = (const TPtrStrong<T>& other) {
 		if (get () != other.cPtr) {
 			releaseRef ();
@@ -1592,131 +1607,131 @@ private:
 	friend class TPtrWeak;
 	friend class SmartPtr;
 
-	template<class T, class U>
+	template<typename T, typename U>
 	friend bool operator == (const TPtrWeak<T>& a, const TPtrWeak<U>& b);
 
-	template<class T, class U>
+	template<typename T, typename U>
 	friend bool operator != (const TPtrWeak<T>& a, const TPtrWeak<U>& b);
 
-	template<class T>
+	template<typename T>
 	friend bool operator == (const TPtrWeak<T>& a, Null);
 
-	template<class T>
+	template<typename T>
 	friend bool operator == (Null, const TPtrWeak<T>& a);
 
-	template<class T>
+	template<typename T>
 	friend bool operator != (const TPtrWeak<T>& a, Null);
 
-	template<class T>
+	template<typename T>
 	friend bool operator != (Null, const TPtrWeak<T>& a);
 
-	template<class T, class U>
+	template<typename T, typename U>
 	friend bool operator == (const TPtrStrong<T>& a, const TPtrWeak<U>& b);
 
-	template<class T, class U>
+	template<typename T, typename U>
 	friend bool operator == (const TPtrWeak<T>& a, const TPtrStrong<U>& b);
 
-	template<class T, class U>
+	template<typename T, typename U>
 	friend bool operator != (const TPtrStrong<T>& a, const TPtrWeak<U>& b);
 
-	template<class T, class U>
+	template<typename T, typename U>
 	friend bool operator != (const TPtrWeak<T>& a, const TPtrStrong<U>& b);
 
-	template <class T, class F>
+	template <typename T, typename F>
 	friend TPtrWeak<T> staticCast (const TPtrWeak<F>& from);
 
-	template <class T, class F>
+	template <typename T, typename F>
 	friend TPtrWeak<T> constCast (const TPtrWeak<F>& from);
 
-	template <class T, class F>
+	template <typename T, typename F>
 	friend TPtrWeak<T> dynamicCast (const TPtrWeak<F>& from);
 
-	template <class T, class F>
+	template <typename T, typename F>
 	friend TPtrWeak<T> checkedCast (const TPtrWeak<F>& from);
 
-	template <class T, class F>
+	template <typename T, typename F>
 	friend TPtrWeak<T> queryCast (const TPtrWeak<F>& from);
 };
 
 ///////////////////////////////////////////////////////
 // globals
 
-template<class T, class U>
+template<typename T, typename U>
 inline bool operator == (const TPtrStrong<T>& a, const TPtrStrong<U>& b) {
 	return a.cPtr == b.cPtr;
 }
 
-template<class T, class U>
+template<typename T, typename U>
 inline bool operator == (const TPtrWeak<T>& a, const TPtrWeak<U>& b) {
 	return a.get () == b.get ();
 }
 
-template<class T, class U>
+template<typename T, typename U>
 inline bool operator == (const TPtrStrong<T>& a, const TPtrWeak<U>& b) {
 	return a.cPtr == b.get ();
 }
 
-template<class T, class U>
+template<typename T, typename U>
 inline bool operator == (const TPtrWeak<T>& a, const TPtrStrong<U>& b) {
 	return a.get () == b.cPtr;
 }
 
-template<class T, class U>
+template<typename T, typename U>
 inline bool operator != (const TPtrStrong<T>& a, const TPtrStrong<U>& b) {
 	return a.cPtr != b.cPtr;
 }
 
-template<class T, class U>
+template<typename T, typename U>
 inline bool operator != (const TPtrWeak<T>& a, const TPtrWeak<U>& b) {
 	return a.get () != b.get ();
 }
 
-template<class T, class U>
+template<typename T, typename U>
 inline bool operator != (const TPtrStrong<T>& a, const TPtrWeak<U>& b) {
 	return a.cPtr != b.get ();
 }
 
-template<class T, class U>
+template<typename T, typename U>
 inline bool operator != (const TPtrWeak<T>& a, const TPtrStrong<U>& b) {
 	return a.get () != b.cPtr;
 }
 
-template<class T>
+template<typename T>
 inline bool operator == (const TPtrStrong<T>& a, Null) {
 	return a.cPtr == 0;
 }
 
-template<class T>
+template<typename T>
 inline bool operator == (Null, const TPtrStrong<T>& a) {
 	return a.cPtr == 0;
 }
 
-template<class T>
+template<typename T>
 inline bool operator != (const TPtrStrong<T>& a, Null) {
 	return a.cPtr != 0;
 }
 
-template<class T>
+template<typename T>
 inline bool operator != (Null, const TPtrStrong<T>& a) {
 	return a.cPtr != 0;
 }
 
-template<class T>
+template<typename T>
 inline bool operator == (const TPtrWeak<T>& a, Null) {
 	return a.isNull ();
 }
 
-template<class T>
+template<typename T>
 inline bool operator == (Null, const TPtrWeak<T>& a) {
 	return a.isNull ();
 }
 
-template<class T>
+template<typename T>
 inline bool operator != (const TPtrWeak<T>& a, Null) {
 	return !a.isNull ();
 }
 
-template<class T>
+template<typename T>
 inline bool operator != (Null, const TPtrWeak<T>& a) {
 	return a.isNull ();
 }
@@ -1724,7 +1739,7 @@ inline bool operator != (Null, const TPtrWeak<T>& a) {
 //////////////////////////////////////////////////////
 // creation functions
 
-template <class T>
+template <typename T>
 TPtrStrong<T> create () {
 	RefCounts* rc = new RefCounts;
 
@@ -1738,7 +1753,7 @@ TPtrStrong<T> create () {
 	}
 }
 
-template <class T, class P1>
+template <typename T, typename P1>
 TPtrStrong<T> create (P1 p1) {
 	RefCounts* rc = new RefCounts;
 
@@ -1752,7 +1767,7 @@ TPtrStrong<T> create (P1 p1) {
 	}
 }
 
-template <class T, class P1, class P2>
+template <typename T, typename P1, typename P2>
 TPtrStrong<T> create (P1 p1, P2 p2) {
 	RefCounts* rc = new RefCounts;
 
@@ -1766,7 +1781,7 @@ TPtrStrong<T> create (P1 p1, P2 p2) {
 	}
 }
 
-template <class T, class P1, class P2, class P3>
+template <typename T, typename P1, typename P2, typename P3>
 TPtrStrong<T> create (P1 p1, P2 p2, P3 p3) {
 	RefCounts* rc = new RefCounts;
 
@@ -1780,7 +1795,7 @@ TPtrStrong<T> create (P1 p1, P2 p2, P3 p3) {
 	}
 }
 
-template <class T, class P1, class P2, class P3, class P4>
+template <typename T, typename P1, typename P2, typename P3, typename P4>
 TPtrStrong<T> create (P1 p1, P2 p2, P3 p3, P4 p4) {
 	RefCounts* rc = new RefCounts;
 
@@ -1794,7 +1809,7 @@ TPtrStrong<T> create (P1 p1, P2 p2, P3 p3, P4 p4) {
 	}
 }
 
-template <class T, class P1, class P2, class P3, class P4, class P5>
+template <typename T, typename P1, typename P2, typename P3, typename P4, typename P5>
 TPtrStrong<T> create (P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) {
 	RefCounts* rc = new RefCounts;
 
@@ -1808,7 +1823,7 @@ TPtrStrong<T> create (P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) {
 	}
 }
 
-template <class T, class P1, class P2, class P3, class P4, class P5, class P6>
+template <typename T, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 TPtrStrong<T> create (P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) {
 	RefCounts* rc = new RefCounts;
 
@@ -1822,7 +1837,7 @@ TPtrStrong<T> create (P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) {
 	}
 }
 
-template <class T, class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+template <typename T, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 TPtrStrong<T> create (P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) {
 	RefCounts* rc = new RefCounts;
 
@@ -1836,7 +1851,7 @@ TPtrStrong<T> create (P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) {
 	}
 }
 
-template <class T>
+template <typename T>
 TPtrStrong<T> wrapPtr (T* t) {
 	if (t == 0) {
 		return TPtrStrong<T> ();
@@ -1856,7 +1871,7 @@ TPtrStrong<T> wrapPtr (T* t) {
 ///////////////////////////////////////////////////////
 // casts
 
-template <class T, class F>
+template <typename T, typename F>
 TPtrStrong<T> staticCast (const TPtrStrong<F>& from) {
 	if (from.cPtr == 0) {
 		return TPtrStrong<T>();
@@ -1873,7 +1888,7 @@ TPtrStrong<T> staticCast (const TPtrStrong<F>& from) {
 	return TPtrStrong<T> (ptr, refCounts);
 }
 
-template <class T, class F>
+template <typename T, typename F>
 TPtrStrong<T> constCast (const TPtrStrong<F>& from) {
 	if (from.cPtr == 0) {
 		return TPtrStrong<T>();
@@ -1890,7 +1905,7 @@ TPtrStrong<T> constCast (const TPtrStrong<F>& from) {
 	return TPtrStrong<T> (ptr, refCounts);
 }
 
-template <class T, class F>
+template <typename T, typename F>
 TPtrStrong<T> dynamicCast (const TPtrStrong<F>& from) {
 	if (from.cPtr == 0) {
 		return TPtrStrong<T>();
@@ -1907,7 +1922,7 @@ TPtrStrong<T> dynamicCast (const TPtrStrong<F>& from) {
 	return TPtrStrong<T> (ptr, refCounts);
 }
 
-template <class T, class F>
+template <typename T, typename F>
 TPtrStrong<T> queryCast (const TPtrStrong<F>& from) {
 	T* ptr = dynamic_cast <T*> (from.cPtr);
 
@@ -1925,7 +1940,7 @@ TPtrStrong<T> queryCast (const TPtrStrong<F>& from) {
 	return TPtrStrong<T> (ptr, refCounts);
 }
 
-template <class T, class F>
+template <typename T, typename F>
 TPtrStrong<T> checkedCast (const TPtrStrong<F>& from) {
 	if (from.cPtr == 0) {
 		return TPtrStrong<T>();
@@ -1944,7 +1959,7 @@ TPtrStrong<T> checkedCast (const TPtrStrong<F>& from) {
 	return TPtrStrong<T> (ptr, refCounts);
 }
 
-template <class T, class F>
+template <typename T, typename F>
 TPtrWeak<T> staticCast (const TPtrWeak<F>& from) {
 	if (from.get () == 0) {
 		return TPtrWeak<T>();
@@ -1960,7 +1975,7 @@ TPtrWeak<T> staticCast (const TPtrWeak<F>& from) {
 	return TPtrWeak<T> (ptr, refCounts);
 }
 
-template <class T, class F>
+template <typename T, typename F>
 TPtrWeak<T> constCast (const TPtrWeak<F>& from) {
 	if (from.get () == 0) {
 		return TPtrWeak<T>();
@@ -1976,7 +1991,7 @@ TPtrWeak<T> constCast (const TPtrWeak<F>& from) {
 	return TPtrWeak<T> (ptr, refCounts);
 }
 
-template <class T, class F>
+template <typename T, typename F>
 TPtrWeak<T> dynamicCast (const TPtrWeak<F>& from) {
 	if (from.get () == 0) {
 		return TPtrWeak<T>();
@@ -1992,7 +2007,7 @@ TPtrWeak<T> dynamicCast (const TPtrWeak<F>& from) {
 	return TPtrWeak<T> (ptr, refCounts);
 }
 
-template <class T, class F>
+template <typename T, typename F>
 TPtrWeak<T> queryCast (const TPtrWeak<F>& from) {
 	T* ptr = dynamic_cast <T*> (from.get ());
 
@@ -2009,7 +2024,7 @@ TPtrWeak<T> queryCast (const TPtrWeak<F>& from) {
 	return TPtrWeak<T> (ptr, refCounts);
 }
 
-template <class T, class F>
+template <typename T, typename F>
 TPtrWeak<T> checkedCast (const TPtrWeak<F>& from) {
 	if (from.get () == 0) {
 		return TPtrWeak<T>();
@@ -2028,12 +2043,12 @@ TPtrWeak<T> checkedCast (const TPtrWeak<F>& from) {
 }
 
 
-template <class T> 
+template <typename T> 
 inline void swap (TPtrStrong<T>& t1, TPtrStrong<T>& t2) {
 	t1.swap (t2);
 }
 
-template <class T> 
+template <typename T> 
 inline void swap (TPtrWeak<T>& t1, TPtrWeak<T>& t2) {
 	t1.swap (t2);
 }

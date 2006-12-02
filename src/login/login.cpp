@@ -465,8 +465,10 @@ int parse_fromchar(int fd)
 				account.login_id2 == RFIFOL(fd,10) && // relate to the versions higher than 18
 #endif
 				account.sex == RFIFOB(fd,14) &&
-				(!check_ip_flag || account.client_ip == RFIFOLIP(fd,15)) )
+				(!check_ip_flag || account.client_ip == RFIFOLIP(fd,15) || 
+				(account.client_ip.isBindable() && basics::ipaddress(RFIFOLIP(fd,15)).isBindable()) ) )
 			{	// found and verified
+				// have a bypass for connections from local machine
 				login_log("Char-server '%s': authentification of the account %d accepted (ip: %s)." RETCODE, server[id].name, accid, ip_str);
 
 				// send authentification to char
@@ -497,6 +499,7 @@ int parse_fromchar(int fd)
 			else
 			{	// authentification not found
 				login_log("Char-server '%s': authentification of the account %d REFUSED (ip: %s)." RETCODE, server[id].name, accid, ip_str);
+
 				WFIFOW(fd,0) = 0x2713;
 				WFIFOL(fd,2) = accid;
 				WFIFOB(fd,6) = 1;
@@ -1627,7 +1630,8 @@ int login_config_read(const char *cfgName)
 						memset(access_allow,0,ACO_STRSIZE*sizeof(char));
 						access_allownum = 1;
 						access_allow[0] = '\0';
-					} else if (w2[0] && !(access_allownum == 1 && access_allow[0] == '\0'))
+					}
+					else if (w2[0] && !(access_allownum == 1 && access_allow[0] == '\0'))
 					{	// don't add IP if already 'all'
 						new_realloc(access_allow,access_allownum*ACO_STRSIZE,ACO_STRSIZE);
 						safestrcpy(access_allow + (access_allownum++) * ACO_STRSIZE, ACO_STRSIZE, w2);

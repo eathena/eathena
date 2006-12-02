@@ -168,7 +168,9 @@ declare lv							s			ENUM++
 declare npcv						sn			ENUM++
 -> <npcarray>
 declare SetLocalVar					sn			ENUM++
--> tempvar assignment
+-> npcvar assignment
+declare	strlocalvar					ns			ENUM++
+-> npcvar declaration
 declare PcName						.			ENUM++
 -> player::name, or strcharinfo(0)
 declare OnInit:						.			ENUM++	blockcheck
@@ -255,6 +257,12 @@ declare GetEquipItemIdx				n			ENUM++
 -> getequipid
 declare GetEquipIsIdentify			n			ENUM++
 -> getequipisidentify
+declare ResetStat					.			ENUM++
+-> resetstatus
+declare ResetSkill					.			ENUM++
+-> resetskill
+declare	showimage					sn			ENUM++
+-> cutin
 
   
 declare trace						s			ENUM++
@@ -321,13 +329,9 @@ declare cart						n			ENUM++
 -> ?
 declare	nude						.			ENUM++
 -> ?
-declare	showimage					sn			ENUM++
--> ?
 declare	changepallete				nn			ENUM++
 -> ?
 declare	addskill					nnnn		ENUM++
--> ?
-declare	strlocalvar					ns			ENUM++
 -> ?
 declare InitTimer					.			ENUM++
 -> ?
@@ -368,10 +372,6 @@ declare SuccessRefItem				n			ENUM++
 declare FailedRefItem				n			ENUM++
 -> ?
 declare SetEffectStatus				n			ENUM++
--> ?
-declare ResetStat					.			ENUM++
--> ?
-declare ResetSkill					.			ENUM++
 -> ?
 */
 
@@ -491,6 +491,21 @@ declare ResetSkill					.			ENUM++
 					prn << '0';
 			}
 		}
+		else if( funcname->cToken.cLexeme == "strlocalvar" )
+		{	// this is allocating a local variable
+			if( parameter.size()<2 )
+			{
+				fprintf(stderr, "strlocalvar not enough parameter, line %i, ignoring\n",
+					(int)parser.rt[parameter[0]].cToken.line);
+			}
+			else
+			{
+				prn << "var npc::";
+				basics::CStackElement* node=&parser.rt[ parameter[1] ];
+				for(; node->cChildNum==1; node = &parser.rt[ node->cChildPos ]) {}
+				this->print_idstring(node->cToken.cLexeme);
+			}
+		}
 		else if( funcname->cToken.cLexeme == "SetLocalVar" ||
 				 funcname->cToken.cLexeme == "SetLocalStr" )
 		{	// as names say
@@ -501,7 +516,7 @@ declare ResetSkill					.			ENUM++
 				for(; node->cChildNum==1; node = &parser.rt[ node->cChildPos ]) {}
 				if( node->symbol.Type == 1 )
 				{
-					prn << "temp::";
+					prn << "npc::";
 					this->print_idstring(node->cToken.cLexeme);
 					prn << ' ' << '=' << ' ';
 					if( parameter.size()>1 )
@@ -522,7 +537,7 @@ declare ResetSkill					.			ENUM++
 				if( node->symbol.Type == 1 )
 				{
 					prn << ((funcname->cToken.cLexeme == "IncLocalVar")?"++":"--");
-					prn << "temp::";
+					prn << "npc::";
 					this->print_idstring(node->cToken.cLexeme);
 				}
 			}
@@ -794,7 +809,7 @@ declare ResetSkill					.			ENUM++
 		{	// enablenpc
 			// ->
 			// enablenpc, 1 parameter
-			prn << "enablenpc" << '(';
+			prn << "enablenpc(";
 ////////
 // add parameter test
 			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
@@ -804,10 +819,29 @@ declare ResetSkill					.			ENUM++
 		{	// disablenpc
 			// ->
 			// disablenpc, 1 parameter
-			prn << "disablenpc" << '(';
+			prn << "disablenpc(";
 ////////
 // add parameter test
 			if( parapos>0 ) print_beautified(parser, parapos, AE_EXPR);
+			prn << ')';
+		}
+		else if( funcname->cToken.cLexeme == "ResetStat" )
+		{
+			prn << "resetstatus()";
+		}
+		else if( funcname->cToken.cLexeme == "ResetSkill" )
+		{
+			prn << "resetskill()";
+		}
+		else if( funcname->cToken.cLexeme == "showimage" )
+		{
+			prn << "cutin(";
+			if( parameter.size()!=2 )
+			{	// incorrect parameters
+				fprintf(stderr, "incorrect parameter for showimage, line %i",
+					(int)funcname->cToken.line);
+			}
+			print_beautified(parser, parapos, AE_EXPR);
 			prn << ')';
 		}
 		//////////////////////////////////////////////////////////////////
@@ -843,10 +877,8 @@ declare ResetSkill					.			ENUM++
 				 funcname->cToken.cLexeme == "store" ||
 				 funcname->cToken.cLexeme == "cart" ||
 				 funcname->cToken.cLexeme == "nude" ||
-				 funcname->cToken.cLexeme == "showimage" ||
 				 funcname->cToken.cLexeme == "changepallete" ||
 				 funcname->cToken.cLexeme == "addskill" ||
-				 funcname->cToken.cLexeme == "strlocalvar" ||
 				 funcname->cToken.cLexeme == "InitTimer" ||
 				 funcname->cToken.cLexeme == "setarenaeventsize" ||
 				 funcname->cToken.cLexeme == "enablearena" ||
@@ -866,9 +898,7 @@ declare ResetSkill					.			ENUM++
 				 funcname->cToken.cLexeme == "EnableItemMove" ||
 				 funcname->cToken.cLexeme == "SuccessRefItem" ||
 				 funcname->cToken.cLexeme == "FailedRefItem" ||
-				 funcname->cToken.cLexeme == "SetEffectStatus" ||
-				 funcname->cToken.cLexeme == "ResetStat" ||
-				 funcname->cToken.cLexeme == "ResetSkill" )
+				 funcname->cToken.cLexeme == "SetEffectStatus")
 		{	// default: just use the given function name
 
 			prn.log(parser, namepos);
@@ -904,7 +934,7 @@ bool aegisprinter::print_varray(basics::CParser_CommentStore& parser, int rtpos,
 
 	if( parser.rt[ parser.rt[rtpos].cChildPos+0 ].cToken.cLexeme == "lv" )
 	{	// local variable
-		prn << "temp::";
+		prn << "npc::";
 		this->print_idstring(node->cToken.cLexeme);
 	}
 	else if( parser.rt[ parser.rt[rtpos].cChildPos+0 ].cToken.cLexeme == "v" )
@@ -1013,9 +1043,6 @@ bool aegisprinter::print_npcvarray(basics::CParser_CommentStore& parser, int rtp
 							(const char*)parser.rt[ parser.rt[rtpos].cChildPos+1 ].cToken.cLexeme,
 							(const char*)this->cAegisName);
 		}
-/*
-		prn << "npc::countmonster()";
-*/
 		// other option using old ea style
 		// using a npc variable which is set at createmonster/killmonster
 		prn << "npc::mymobcount";

@@ -159,7 +159,7 @@ void test_array(void)
 	}
 
 	{
-		dualmap<string<>,int, int>	dm;
+		bimap<string<>,int, int>	dm;
 
 		dm.insert("one", 1, 1);
 		dm.insert("two", 2, 2);
@@ -179,7 +179,7 @@ void test_array(void)
 			printf("exception: %s\n", e.what());
 		}
 
-		dualmap<string<>,int, int>::iterator iter( dm() );
+		bimap<string<>,int, int>::iterator iter( dm() );
 		while(iter)
 		{
 			printf("%s %i %i\n", (const char*)iter->key1, iter->key2, iter->data);

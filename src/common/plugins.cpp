@@ -346,7 +346,7 @@ int plugins_config_read(const char *cfgName)
 			else if (strcasecmp(w1, "plugin") == 0)
 			{
 				char filename[128];
-				snprintf(filename, sizeof(filename), "addons%c%s%s", PATHSEP, w2, DLL_EXT);
+				snprintf(filename, sizeof(filename), "plugins%c%s%s", PATHSEP, w2, DLL_EXT);
 				plugin_open(filename, true);
 			}
 			else if (strcasecmp(w1, "import") == 0)

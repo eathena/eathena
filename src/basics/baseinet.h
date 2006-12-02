@@ -165,8 +165,8 @@ public:
 	static void InitSystemIP()				{        ipaddress::gethelper().init(); }
 	static ipaddress GetSystemIP(uint i=0)	{ return ipaddress::gethelper().GetSystemIP(i); }
 	static uint GetSystemIPCount()			{ return ipaddress::gethelper().GetSystemIPCount(); }
-	static bool isBindable(ipaddress ip);
-	bool isBindable()	{ return ipaddress::isBindable(*this); }
+	static bool isBindable(const ipaddress ip);
+	bool isBindable() const	{ return ipaddress::isBindable(*this); }
 
 protected:
 	///////////////////////////////////////////////////////////////////////////
@@ -246,7 +246,7 @@ public:
 	virtual const char *tostring(char *buffer) const;
 	operator const char*()	{ return this->tostring(NULL); }
 
-	template<class T> friend stringoperator<T>& operator <<(stringoperator<T>& str, const ipaddress& ip);
+	template<typename T> friend stringoperator<T>& operator <<(stringoperator<T>& str, const ipaddress& ip);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// converts a string to an ip (host byte order)
@@ -306,8 +306,8 @@ public:
 	/// not threadsafe
 	virtual const char *tostring(char *buffer) const;
 
-	template<class T> friend stringoperator<T>& operator <<(stringoperator<T>& str, const netaddress& ip);
-	template<class T> friend stringoperator<T>& operator <<(stringoperator<T>& str, const ipset& ip);
+	template<typename T> friend stringoperator<T>& operator <<(stringoperator<T>& str, const netaddress& ip);
+	template<typename T> friend stringoperator<T>& operator <<(stringoperator<T>& str, const ipset& ip);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// boolean operators
@@ -362,7 +362,7 @@ public:
 	// not threadsafe
 	virtual const char *tostring(char *buffer) const;
 
-	template<class T> friend stringoperator<T>& operator <<(stringoperator<T>& str, const subnetaddress& ip);
+	template<typename T> friend stringoperator<T>& operator <<(stringoperator<T>& str, const subnetaddress& ip);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// boolean operators
@@ -481,7 +481,7 @@ public:
 	// not threadsafe
 	virtual const char *tostring(char *buffer) const;
 
-	template<class T> friend stringoperator<T>& operator <<(stringoperator<T>& str, const ipset& ip);
+	template<typename T> friend stringoperator<T>& operator <<(stringoperator<T>& str, const ipset& ip);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// boolean operators
@@ -498,16 +498,16 @@ inline string<> tostring(const subnetaddress& ip)	{ return ip.tostring(); }
 inline string<> tostring(const ipset& ip)			{ return ip.tostring(); }
 
 
-template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const ipaddress& ip);
-template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const netaddress& ip);
-template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const subnetaddress& ip);
-template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const ipset& ip);
+template<typename T> stringoperator<T>& operator <<(stringoperator<T>& str, const ipaddress& ip);
+template<typename T> stringoperator<T>& operator <<(stringoperator<T>& str, const netaddress& ip);
+template<typename T> stringoperator<T>& operator <<(stringoperator<T>& str, const subnetaddress& ip);
+template<typename T> stringoperator<T>& operator <<(stringoperator<T>& str, const ipset& ip);
 
 // give operation down to the wrapped basestring
-template<class T> inline string<T>& operator <<(string<T>& str, const ipaddress& ip)		{ *str << ip; return str; }
-template<class T> inline string<T>& operator <<(string<T>& str, const netaddress& ip)		{ *str << ip; return str; }
-template<class T> inline string<T>& operator <<(string<T>& str, const subnetaddress& ip)	{ *str << ip; return str; }
-template<class T> inline string<T>& operator <<(string<T>& str, const ipset& ip)			{ *str << ip; return str; }
+template<typename T> inline string<T>& operator <<(string<T>& str, const ipaddress& ip)		{ *str << ip; return str; }
+template<typename T> inline string<T>& operator <<(string<T>& str, const netaddress& ip)	{ *str << ip; return str; }
+template<typename T> inline string<T>& operator <<(string<T>& str, const subnetaddress& ip)	{ *str << ip; return str; }
+template<typename T> inline string<T>& operator <<(string<T>& str, const ipset& ip)			{ *str << ip; return str; }
 
 
 

@@ -284,13 +284,15 @@ public:
 		return append((b)?"true":"false", (b)?4:5);
 	}
 	//////////////////////////////////////////////////////
-	template<class X> const MiniString& operator+=(const X& x)
+	template<typename X>
+	const MiniString& operator+=(const X& x)
 	{	
 		return this->append(x);
 	}
 
 	//////////////////////////////////////////////////////
-	template<class X> MiniString& operator<<(const X& x)
+	template<typename X>
+	MiniString& operator<<(const X& x)
 	{	
 		return this->append(x);
 	}
@@ -368,8 +370,8 @@ public:
 };
 
 
-template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const MiniString& t)	{ s.append(t.c_str(), t.length()); return s;}
-template<class T> inline string<T>& operator <<(string<T>& s, const MiniString& t)					{ s->append(t.c_str(), t.length()); return s; }
+template<typename T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const MiniString& t)	{ s.append(t.c_str(), t.length()); return s;}
+template<typename T> inline string<T>& operator <<(string<T>& s, const MiniString& t)					{ s->append(t.c_str(), t.length()); return s; }
 
 NAMESPACE_END(basics)
 

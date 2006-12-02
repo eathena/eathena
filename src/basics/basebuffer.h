@@ -37,7 +37,7 @@ class buffer;
 
 ///////////////////////////////////////////////////////////////////////////////
 // 
-template < class E=elaborator_st<unsigned char>, class A=allocator_rw_dy<unsigned char> >
+template < typename E=elaborator_st<unsigned char>, typename A=allocator_rw_dy<unsigned char> >
 class _basebuffer : public A, public E
 {
 protected:
@@ -1191,7 +1191,8 @@ class _bufferaccess : public noncopyable, public nonallocable
 		~_bufferwriter()	{}
 
 
-		template<class T> const _bufferwriter& operator =(const T& t)
+		template<typename T>
+		const _bufferwriter& operator =(const T& t)
 		{
 			if(cBuffer)
 				_fixbuffer( cBuffer->get_wptr(cOffset, sizeof(T)), sizeof(T)) << t;
@@ -1932,7 +1933,8 @@ public:
 
 
 
-template <size_t SZ> class buffer_fixed : public buffer_iterator
+template <size_t SZ>
+class buffer_fixed : public buffer_iterator
 {
 	unsigned char cBuf[ (SZ<=16) ? 16 : (SZ<=32) ? 32 : (SZ<=2048) ? (SZ+63)&(~63) : (SZ+4095)&(~4095) ];
 public:

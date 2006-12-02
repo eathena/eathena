@@ -16,7 +16,8 @@ void test_lists(void);
 /// non intrusive single linked list class.
 /// stores objects / copy's of given objects
 //////////////////////////////////////////////////////////////////////////
-template<class T> class CSList
+template<typename T>
+class CSList
 {
 	struct CSLinkNode
 	{
@@ -83,8 +84,8 @@ public:
 	};
 };
 
-template<class T> inline 
-T *CSList<T>::insert(const T& in)
+template<typename T>
+inline T *CSList<T>::insert(const T& in)
 {
 	CSLinkNode *x = new CSLinkNode(in, cRoot); 
 	if(x)
@@ -95,8 +96,8 @@ T *CSList<T>::insert(const T& in)
 		return NULL;
 }
 
-template<class T> inline 
-T* CSList<T>::find(const T& in)
+template<typename T>
+inline T* CSList<T>::find(const T& in)
 {
 	CSLinkNode *x = cRoot;
 	while(NULL != x)
@@ -312,7 +313,8 @@ protected:
 };
 
 
-template <class T> class TDLinkRoot : public CDLinkRoot
+template <typename T>
+class TDLinkRoot : public CDLinkRoot
 {
 public:
 	TDLinkRoot()	{}

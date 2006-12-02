@@ -325,9 +325,9 @@ ipaddress::_ipset_helper& ipaddress::gethelper()
 
 ///////////////////////////////////////////////////////////////////////////////
 // ipaddress functions
-bool ipaddress::isBindable(ipaddress ip)
+bool ipaddress::isBindable(const ipaddress ip)
 {	// check if an given IP is part of the system IP that can be bound to
-	if( gethelper().GetSystemIPCount() > 0 )
+	if( ip!=iploopback && gethelper().GetSystemIPCount() > 0 )
 	{	// looping here is ok since the list is not large
 		for(uint i=0; i<GetSystemIPCount(); ++i)
 			if( ip==GetSystemIP(i) )
@@ -335,7 +335,7 @@ bool ipaddress::isBindable(ipaddress ip)
 		return false;
 	}
 	else
-	{	// cannot determine system ip's, just accept all
+	{	// loopback or cannot determine system ip's, just accept all
 		return true;
 	}
 }
@@ -404,7 +404,8 @@ const char *ipaddress::tostring(char *buffer) const
 	return buf;
 }
 
-template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const ipaddress& ip)
+template<typename T>
+stringoperator<T>& operator <<(stringoperator<T>& str, const ipaddress& ip)
 {
 	str << ((ip.cAddr>>0x18)&0xFF) << '.' <<
 		   ((ip.cAddr>>0x10)&0xFF) << '.' <<
@@ -547,7 +548,8 @@ const char *netaddress::tostring(char *buffer) const
 	return buf;
 }
 
-template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const netaddress& ip)
+template<typename T>
+stringoperator<T>& operator <<(stringoperator<T>& str, const netaddress& ip)
 {
 	str << ((ip.addr()>>0x18)&0xFF) << '.' <<
 		   ((ip.addr()>>0x10)&0xFF) << '.' <<
@@ -631,7 +633,8 @@ const char *subnetaddress::tostring(char *buffer) const
 			 this->cPort);
 	return buf;
 }
-template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const subnetaddress& ip)
+template<typename T>
+stringoperator<T>& operator <<(stringoperator<T>& str, const subnetaddress& ip)
 {
 	if(ip.cMask.addr()==INADDR_ANY)
 	{
@@ -853,7 +856,8 @@ const char *ipset::tostring(char *buffer) const
 	return buf;
 }
 
-template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const ipset& ip)
+template<typename T>
+stringoperator<T>& operator <<(stringoperator<T>& str, const ipset& ip)
 {
 	if(ip.wanaddr.addr()==INADDR_ANY)
 	{

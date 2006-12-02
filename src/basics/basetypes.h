@@ -497,11 +497,13 @@ typedef int bool;
   #define TYPEDEF_TYPENAME
   #define TEMPLATE_TYPENAME
   #define PARAMETER_TYPENAME
+  #define RETURN_TYPENAME
  #else
   // gcc v3.0 onwards
   #define TYPEDEF_TYPENAME typename
   #define TEMPLATE_TYPENAME typename
   #define PARAMETER_TYPENAME typename
+  #define RETURN_TYPENAME typename
  #endif
 #elif defined(_MSC_VER)
  // Microsoft Visual Studio variants
@@ -510,9 +512,11 @@ typedef int bool;
  #if _MSC_VER < 1300
   // Visual Studio version 6 and below
   #define PARAMETER_TYPENAME
+  #define RETURN_TYPENAME
  #else
   // Visual Studio .NET and above
   #define PARAMETER_TYPENAME typename
+  #define RETURN_TYPENAME typename
  #endif
 #endif
 
@@ -835,19 +839,26 @@ NAMESPACE_BEGIN(basics)
 #ifdef min // windef has macros for that, kill'em
 #undef min
 #endif
-template <class T> inline T &min(const T &i1, const T &i2)
-{	if(i1 < i2) return (T&)i1; else return (T&)i2;
+template <typename T>
+inline T &min(const T &i1, const T &i2)
+{
+	if(i1 < i2) return (T&)i1; else return (T&)i2;
 }
 #ifdef max // windef has macros for that, kill'em
 #undef max
 #endif
-template <class T> inline T &max(const T &i1, const T &i2)	
-{	if(i1 < i2) return (T&)i2; else return (T&)i1;
+template <typename T>
+inline T &max(const T &i1, const T &i2)	
+{
+	if(i1 < i2) return (T&)i2; else return (T&)i1;
 }
-template <class T> inline void swap(T &i1, T &i2)
-{	T dummy = i1; i1=i2; i2=dummy;
+template <typename T>
+inline void swap(T &i1, T &i2)
+{
+	T dummy = i1; i1=i2; i2=dummy;
 }
-template <class T> inline void minmax(const T &i1, const T &i2, T &minval, T &maxval)
+template <typename T>
+inline void minmax(const T &i1, const T &i2, T &minval, T &maxval)
 {
 	if(i1<i2)
 		minval=i1, maxval=i2;
@@ -924,7 +935,7 @@ namespace stringcheck
 #ifdef isalpha	// get the function form, not the macro
 #undef isalpha
 #endif
-template <class T> extern inline bool isalpha(T c) { return 0!=::isalpha( to_unsigned(c) ); }
+template <typename T> extern inline bool isalpha(T c) { return 0!=::isalpha( to_unsigned(c) ); }
 // implementation for char (and wchar)
 extern inline bool isalpha(char c)		{ return 0!=::isalpha ( to_unsigned(c) ); }
 extern inline bool isalpha(wchar_t c)	{ return 0!=::iswalpha( to_unsigned(c) ); }
@@ -932,7 +943,7 @@ extern inline bool isalpha(wchar_t c)	{ return 0!=::iswalpha( to_unsigned(c) ); 
 #ifdef isupper	// get the function form, not the macro
 #undef isupper
 #endif
-template <class T> extern inline bool isupper(T c) { return ::isupper( to_unsigned(c) ); }
+template <typename T> extern inline bool isupper(T c) { return ::isupper( to_unsigned(c) ); }
 // implementation for char (and wchar)
 extern inline bool isupper(char c)		{ return 0!=::isupper ( to_unsigned(c) ); }
 extern inline bool isupper(wchar_t c)	{ return 0!=::iswupper( to_unsigned(c) ); }
@@ -940,7 +951,7 @@ extern inline bool isupper(wchar_t c)	{ return 0!=::iswupper( to_unsigned(c) ); 
 #ifdef islower	// get the function form, not the macro
 #undef islower
 #endif
-template <class T> extern inline bool islower(T c) { return 0!=::islower( to_unsigned(c) ); }
+template <typename T> extern inline bool islower(T c) { return 0!=::islower( to_unsigned(c) ); }
 // implementation for char (and wchar)
 extern inline bool islower(char c)		{ return 0!=::islower ( to_unsigned(c) ); }
 extern inline bool islower(wchar_t c)	{ return 0!=::iswlower( to_unsigned(c) ); }
@@ -948,7 +959,7 @@ extern inline bool islower(wchar_t c)	{ return 0!=::iswlower( to_unsigned(c) ); 
 #ifdef isdigit	// get the function form, not the macro
 #undef isdigit
 #endif
-template <class T> extern inline bool isdigit(T c) { return 0!=::isdigit( to_unsigned(c) ); }
+template <typename T> extern inline bool isdigit(T c) { return 0!=::isdigit( to_unsigned(c) ); }
 // implementation for char (and wchar)
 extern inline bool isdigit(char c)		{ return 0!=::isdigit ( to_unsigned(c) ); }
 extern inline bool isdigit(wchar_t c)	{ return 0!=::iswdigit( to_unsigned(c) ); }
@@ -956,7 +967,7 @@ extern inline bool isdigit(wchar_t c)	{ return 0!=::iswdigit( to_unsigned(c) ); 
 #ifdef isxdigit	// get the function form, not the macro
 #undef isxdigit
 #endif
-template <class T> extern inline bool isxdigit(T c) { return 0!=::isxdigit( to_unsigned(c) ); }
+template <typename T> extern inline bool isxdigit(T c) { return 0!=::isxdigit( to_unsigned(c) ); }
 // implementation for char (and wchar)
 extern inline bool isxdigit(char c)		{ return 0!=::isxdigit ( to_unsigned(c) ); }
 extern inline bool isxdigit(wchar_t c)	{ return 0!=::iswxdigit( to_unsigned(c) ); }
@@ -964,7 +975,7 @@ extern inline bool isxdigit(wchar_t c)	{ return 0!=::iswxdigit( to_unsigned(c) )
 #ifdef isspace	// get the function form, not the macro
 #undef isspace
 #endif
-template <class T> extern inline bool isspace(T c) { return 0!=::isspace( to_unsigned(c) ); }
+template <typename T> extern inline bool isspace(T c) { return 0!=::isspace( to_unsigned(c) ); }
 // implementation for char (and wchar)
 extern inline bool isspace(char c)		{ return 0!=::isspace ( to_unsigned(c) ); }
 extern inline bool isspace(wchar_t c)	{ return 0!=::iswspace( to_unsigned(c) ); }
@@ -972,7 +983,7 @@ extern inline bool isspace(wchar_t c)	{ return 0!=::iswspace( to_unsigned(c) ); 
 #ifdef ispunct	// get the function form, not the macro
 #undef ispunct
 #endif
-template <class T> extern inline bool ispunct(T c) { return 0!=::ispunct( to_unsigned(c) ); }
+template <typename T> extern inline bool ispunct(T c) { return 0!=::ispunct( to_unsigned(c) ); }
 // implementation for char (and wchar)
 extern inline bool ispunct(char c)		{ return 0!=::ispunct ( to_unsigned(c) ); }
 extern inline bool ispunct(wchar_t c)	{ return 0!=::iswpunct( to_unsigned(c) ); }
@@ -980,7 +991,7 @@ extern inline bool ispunct(wchar_t c)	{ return 0!=::iswpunct( to_unsigned(c) ); 
 #ifdef isalnum	// get the function form, not the macro
 #undef isalnum
 #endif
-template <class T> extern inline bool isalnum(T c) { return 0!=::isalnum( to_unsigned(c) ); }
+template <typename T> extern inline bool isalnum(T c) { return 0!=::isalnum( to_unsigned(c) ); }
 // implementation for char (and wchar)
 extern inline bool isalnum(char c)		{ return 0!=::isalnum ( to_unsigned(c) ); }
 extern inline bool isalnum(wchar_t c)	{ return 0!=::iswalnum( to_unsigned(c) ); }
@@ -988,7 +999,7 @@ extern inline bool isalnum(wchar_t c)	{ return 0!=::iswalnum( to_unsigned(c) ); 
 #ifdef isprint	// get the function form, not the macro
 #undef isprint
 #endif
-template <class T> extern inline bool isprint(T c) { return 0!=::isprint( to_unsigned(c) ); }
+template <typename T> extern inline bool isprint(T c) { return 0!=::isprint( to_unsigned(c) ); }
 // implementation for char (and wchar)
 extern inline bool isprint(char c)		{ return 0!=::isprint ( to_unsigned(c) ); }
 extern inline bool isprint(wchar_t c)	{ return 0!=::iswprint( to_unsigned(c) ); }
@@ -996,7 +1007,7 @@ extern inline bool isprint(wchar_t c)	{ return 0!=::iswprint( to_unsigned(c) ); 
 #ifdef isgraph	// get the function form, not the macro
 #undef isgraph
 #endif
-template <class T> extern inline bool isgraph(T c) { return 0!=::isgraph( to_unsigned(c) ); }
+template <typename T> extern inline bool isgraph(T c) { return 0!=::isgraph( to_unsigned(c) ); }
 // implementation for char (and wchar)
 extern inline bool isgraph(char c)		{ return 0!=::isgraph ( to_unsigned(c) ); }
 extern inline bool isgraph(wchar_t c)	{ return 0!=::iswgraph( to_unsigned(c) ); }
@@ -1004,7 +1015,7 @@ extern inline bool isgraph(wchar_t c)	{ return 0!=::iswgraph( to_unsigned(c) ); 
 #ifdef iscntrl	// get the function form, not the macro
 #undef iscntrl
 #endif
-template <class T> extern inline bool iscntrl(T c) { return 0!=::iscntrl( to_unsigned(c) ); }
+template <typename T> extern inline bool iscntrl(T c) { return 0!=::iscntrl( to_unsigned(c) ); }
 // implementation for char (and wchar)
 extern inline bool iscntrl(char c)		{ return 0!=::iscntrl ( to_unsigned(c) ); }
 extern inline bool iscntrl(wchar_t c)	{ return 0!=::iswcntrl( to_unsigned(c) ); }
@@ -1012,7 +1023,7 @@ extern inline bool iscntrl(wchar_t c)	{ return 0!=::iswcntrl( to_unsigned(c) ); 
 #ifdef toupper	// get the function form, not the macro
 #undef toupper
 #endif
-template <class T> extern inline T toupper(T c) { return ::toupper( to_unsigned(c) ); }
+template <typename T> extern inline T toupper(T c) { return ::toupper( to_unsigned(c) ); }
 // implementation for char (and wchar)
 extern inline char toupper(char c)		{ return ::toupper ( to_unsigned(c) ); }
 extern inline wchar_t toupper(wchar_t c){ return ::towupper( to_unsigned(c) ); }
@@ -1020,7 +1031,7 @@ extern inline wchar_t toupper(wchar_t c){ return ::towupper( to_unsigned(c) ); }
 #ifdef tolower	// get the function form, not the macro
 #undef tolower
 #endif
-template <class T> extern inline T tolower(T c) { return ::tolower( to_unsigned(c) ); }
+template <typename T> extern inline T tolower(T c) { return ::tolower( to_unsigned(c) ); }
 // implementation for char (and wchar)
 extern inline char tolower(char c)		{ return ::tolower ( to_unsigned(c) ); }
 extern inline wchar_t tolower(wchar_t c){ return ::towlower( to_unsigned(c) ); }
@@ -1065,7 +1076,8 @@ inline unsigned int FASTCALL atomicexchange(unsigned int* target, unsigned int v
 }
 
 void* FASTCALL _atomicexchange(void** target, void* value);
-template <class T> inline T* atomicexchange(T** target, T* value)
+template
+<typename T> inline T* atomicexchange(T** target, T* value)
 {
 	return (T*)_atomicexchange((void**)target, (void*)value); 
 }
@@ -1077,7 +1089,8 @@ inline ssize_t atomiccompareexchange(ssize_t*target, ssize_t value, ssize_t comp
 }
 
 void* FASTCALL _atomiccompareexchange(void** target, void* value, void* comperand);
-template <class T> inline T* atomiccompareexchange(T**target, T* value, T* comperand)
+template <typename T>
+inline T* atomiccompareexchange(T**target, T* value, T* comperand)
 {	
 	return (T*)_atomiccompareexchange((void**)target, (void*)value, (void*)comperand);
 }
@@ -1768,7 +1781,8 @@ inline unsigned long interleave_t(unsigned short x, unsigned short y)
 #ifdef isqrt
 #undef isqrt
 #endif
-template<class T> static inline T isqrt(const T& n)
+template<typename T>
+inline T isqrt(const T& n)
 {
 	if(n>0)
 	{
@@ -1791,7 +1805,8 @@ template<class T> static inline T isqrt(const T& n)
 /// sign = -(v > 0). This trick works because when integers are shifted right, 
 /// the value of the far left bit is copied to the other bits. 
 /// The far left bit is 1 when the value is negative and 0 otherwise; 
-template<class T> inline T sign(const T& v)
+template<typename T>
+inline T sign(const T& v)
 {
 	T sign;   // the result goes here 
 
@@ -1811,7 +1826,8 @@ template<class T> inline T sign(const T& v)
 
 //////////////////////////////////////////////////////////////////////////
 /// Compute the integer absolute value (abs) without branching.
-template<class T> inline T iabs(const T& v)
+template<typename T>
+inline T iabs(const T& v)
 {	
 	return (+1 | (v >> (sizeof(T) * NBBY - 1))) * v;
 	// Some CPUs don't have an integer absolute value instruction 
@@ -1823,7 +1839,8 @@ template<class T> inline T iabs(const T& v)
 
 //////////////////////////////////////////////////////////////////////////
 /// Compute the minimum (min) of two integers without branching.
-template<class T> inline T imin(const T& x, const T& y)
+template<typename T>
+inline T imin(const T& x, const T& y)
 {	
 	return y + ((x - y) & ((x - y) >> (sizeof(T) * NBBY - 1))); // min(x, y)
 	// On machines where branching is expensive, the above expression can be faster 
@@ -1838,7 +1855,8 @@ template<class T> inline T imin(const T& x, const T& y)
 
 //////////////////////////////////////////////////////////////////////////
 /// Compute the maximum (max) of two integers without branching.
-template<class T> inline T imax(const T& x, const T& y)
+template<typename T>
+inline T imax(const T& x, const T& y)
 {	
 	return  x - ((x - y) & ((x - y) >> (sizeof(int) * NBBY - 1))); // max(x, y)
 	// On machines where branching is expensive, 

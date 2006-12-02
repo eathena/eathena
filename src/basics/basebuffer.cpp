@@ -17,12 +17,14 @@ class streamtest
 public:
 	streamtest()	{}
 
-	template <class X> streamtest& operator<<(const formatstr<char,X>& a)
+	template <typename X>
+	streamtest& operator<<(const formatstr<char,X>& a)
 	{
 		ba = (const X&)a;
 		return *this;
 	}
-	template <class X> streamtest& operator>>(const formatstr<char,X>& a)
+	template <typename X>
+	streamtest& operator>>(const formatstr<char,X>& a)
 	{
 		a = ba;
 		return *this;

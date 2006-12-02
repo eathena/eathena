@@ -10,11 +10,8 @@
 
 NAMESPACE_BEGIN(basics)
 
-//////////////////////////////////////////////////////////////////////////
-// switch for using typeinfo or linked-list parameters
-//#define PARAM_RTTI
 
-//////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 /// test function.
 void test_parameter(void);
 
@@ -31,33 +28,104 @@ void parseCommandline(int argc, char **argv);
 
 
 
-
+///////////////////////////////////////////////////////////////////////////////
+#if defined (TEMPLATE_NO_PARTIAL_SPECIALIZATION)
+///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
-/// predefined conversion functions for common data types.
-bool paramconvert(sint64 &t, const char* str);
-bool paramconvert(uint64 &t, const char* str);
-bool paramconvert(double &t, const char* s);
-
-inline bool paramconvert( long           &t, const char* s) { sint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( unsigned long  &t, const char* s) { uint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( int            &t, const char* s) { sint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( unsigned int   &t, const char* s) { uint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( short          &t, const char* s) { sint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( unsigned short &t, const char* s) { uint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( char           &t, const char* s) { sint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( unsigned char  &t, const char* s) { uint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( bool           &t, const char* s) { sint64 val; bool ret=paramconvert(val, s); t=(0!=val); return ret; }
-inline bool paramconvert( float          &t, const char* s) { double val; bool ret=paramconvert(val, s); t=val; return ret; }
+/// type that allows any type converted to it.
+/// compiler is using this type when no other is available
+struct param_any_conversion : noncopyable
+{
+	template <typename T> param_any_conversion(const volatile T&)
+	{}
+	template <typename T> param_any_conversion(T&)
+	{}
+};
 
 ///////////////////////////////////////////////////////////////////////////////
-/// template conversion for the rest.
+/// vector conversion fallback.
+/// when T is a vector the call will go here
+template <typename T>
+inline paramconvert_vector(vector<T>& t, vector<T>& vec, const char* s)
+{
+	vector< string<> > strvec = string<>(s).split(',');
+	vector< string<> >::iterator iter(strvec);
+	T tmp;
+	for(t.clear(); iter; ++iter)
+	{
+		if( paramconvert(tmp, *iter) )
+			t.push_back(tmp);
+	}
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// vector conversion fallback.
+/// when T is not a vector the call will end up here
+template <typename T>
+inline paramconvert_vector(param_any_conversion, T& t, const char* s)
+{
+	t = (s) ? s : "";
+}
+///////////////////////////////////////////////////////////////////////////////
+/// template conversion.
 /// usable types need an assignment operator of string<> or const char* 
-template <typename T> inline bool paramconvert( T &t, const char* s)
+template <typename T>
+inline bool paramconvert( T &t, const char* s)
+{
+	paramconvert_vector(t,t,s);
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+#else//!defined (TEMPLATE_NO_PARTIAL_SPECIALIZATION)
+///////////////////////////////////////////////////////////////////////////////
+/// template conversion.
+/// usable types need an assignment operator of string<> or const char* 
+template <typename T>
+inline bool paramconvert( T &t, const char* s)
 {
 	t = (s) ? s : "";
 	return true;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// template conversion for vectors.
+/// just partially specialize
+template <typename T>
+inline bool paramconvert( vector<T> &t, const char* s)
+{
+	vector< string<> > strvec = string<>(s).split(',');
+	vector< string<> >::iterator iter(strvec);
+	T tmp;
+	for(t.clear(); iter; ++iter)
+	{
+		if( paramconvert(tmp, *iter) )
+			t.push_back(tmp);
+	}
+	return true;
+}
+#endif
+///////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// predefined conversion functions for common data types.
+template<> bool paramconvert<sint64>(sint64 &t, const char* str);
+template<> bool paramconvert<uint64>(uint64 &t, const char* str);
+template<> bool paramconvert<double>(double &t, const char* s);
+
+template<> inline bool paramconvert<long          >( long           &t, const char* s) { sint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
+template<> inline bool paramconvert<unsigned long >( unsigned long  &t, const char* s) { uint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
+template<> inline bool paramconvert<int           >( int            &t, const char* s) { sint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
+template<> inline bool paramconvert<unsigned int  >( unsigned int   &t, const char* s) { uint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
+template<> inline bool paramconvert<short         >( short          &t, const char* s) { sint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
+template<> inline bool paramconvert<unsigned short>( unsigned short &t, const char* s) { uint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
+template<> inline bool paramconvert<char          >( char           &t, const char* s) { sint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
+template<> inline bool paramconvert<unsigned char >( unsigned char  &t, const char* s) { uint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
+template<> inline bool paramconvert<bool          >( bool           &t, const char* s) { sint64 val; bool ret=paramconvert(val, s); t=(0!=val); return ret; }
+template<> inline bool paramconvert<float         >( float          &t, const char* s) { double val; bool ret=paramconvert(val, s); t=val; return ret; }
 
 
 
@@ -71,27 +139,31 @@ const char* config_clean(char *str);
 ///////////////////////////////////////////////////////////////////////////////
 // parameter converter in function form
 /// parameter converter with upper/lower bound.
-template <typename T> inline T config_switch(const char *str, const T& defaultmin, const T& defaultmax)
+template <typename T>
+inline T config_switch(const char *str, const T& defaultmin, const T& defaultmax)
 {
 	T val;
 	paramconvert(val, str);
 	return (val<=defaultmin)? defaultmin : (val>=defaultmax)? defaultmax : val;
 }
 /// parameter converter with default value.
-template <typename T> inline T config_switch(const char *str, const T& defaultval)
+template <typename T>
+inline T config_switch(const char *str, const T& defaultval)
 {
 	T val;
 	return ( paramconvert(val, str) ) ? val : defaultval;
 }
 /// plain parameter converter.
-template <typename T> inline T config_switch(const char *str)
+template <typename T>
+inline T config_switch(const char *str)
 {
 	T val;
 	paramconvert(val, str);
 	return val;
 }
 
-template<> inline bool config_switch<bool>(const char *str, const bool& defaultval)
+template<>
+inline bool config_switch<bool>(const char *str, const bool& defaultval)
 {
 	int val;
 	paramconvert(val, str);
@@ -301,530 +373,13 @@ protected:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// external parameter file processing function.
-typedef bool (*paramproc)(const char* name);
-
-
-
-#ifdef PARAM_RTTI
+typedef bool (*paramfileproc)(const char* name);
 ///////////////////////////////////////////////////////////////////////////////
-/// RTTI Parameter class.
-/// for application independend parameter storage and distribution
-/// reads in config files and holds the variables
-///
-/// this class uses a global parameter object containing the data
-/// data is initialized with string type and on first access to the data 
-/// the type is changed according to the requested type
-/// if a following access uses a different type, an exception is thrown
-/// a global callback can be added which is called
-/// when the stored value about to change
-/// needs activated RTTI
-///////////////////////////////////////////////////////////////////////////////
-
-
-///////////////////////////////////////////////////////////////////////////////
-/// parameter object class.
-/// completely inlined since very simple
-class CParamObj
-{
-	///////////////////////////////////////////////////////////////////////////
-	// class data
-	bool cReferenced;	///< true when this parameter has been referenced
-	bool cFixed;		///< true when not changeable from file loading (ie. when given via command line)
-public:
-	///////////////////////////////////////////////////////////////////////////
-	// construct/destruct
-	CParamObj(bool fixed=false) : cReferenced(false), cFixed(fixed)	{}
-	virtual ~CParamObj()											{}
-	///////////////////////////////////////////////////////////////////////////
-	// check/set the reference
-	bool isReferenced()						{ return cReferenced; }
-	bool setReference(bool val=true)		{ return (cReferenced=val); }
-	///////////////////////////////////////////////////////////////////////////
-	// check/set the fixed
-	bool isFixed()							{ return cFixed; }
-	bool setFixed(bool val=true)			{ return (cFixed=val); }
-	///////////////////////////////////////////////////////////////////////////
-	// access functions for overloading
-	virtual const std::type_info& getType()	{ return typeid(CParamObj); }
-	virtual bool assign(const char*name, const char*s)		{ return false; }
-	virtual void print()					{ printf("value uninitialized"); }
-	virtual string<> value()				{ return string<>(); }
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// parameter storage.
-/// stores parameters and their names as smart pointers in a sorted list
-/// gives out references for changing parameters at their storage
-/// needs external locking of the provided mutex for multithread environment
-class CParamBase : public string<>
-{
-	///////////////////////////////////////////////////////////////////////////
-	/// internal class for loading/storing/reloading config files.
-	/// and automatically setting up of changed parameters
-	class CParamLoader : private CConfig, private CTimerBase
-	{
-		///////////////////////////////////////////////////////////////////////
-		/// stores information about a file
-		class CFileData : public string<>
-		{
-			///////////////////////////////////////////////////////////////////
-			/// class data
-			time_t modtime;	///< last modification time of the file
-		public:
-			paramproc proc;	///< external processing function
-			///////////////////////////////////////////////////////////////////
-			/// construction/destruction
-			CFileData() : proc(NULL)	{}
-			CFileData(const string<>& name, paramproc p) : string<>(name), proc(p)
-			{
-				struct stat s;
-				if( 0==stat(name, &s) )
-					modtime = s.st_mtime;
-			}
-			~CFileData()	{}
-
-			///////////////////////////////////////////////////////////////////
-			/// checking file state and updating the locals at the same time
-			bool isModified()
-			{
-				struct stat s;
-				return ( 0==stat((const char*)(*this), &s) && s.st_mtime!=this->modtime && (this->modtime=s.st_mtime)==this->modtime );
-			}
-		};
-		///////////////////////////////////////////////////////////////////////
-
-		///////////////////////////////////////////////////////////////////////
-		/// class data
-		TslistDCT<CFileData>	cFileList;			///< list of loaded files
-	public:
-		CParamLoader() : CTimerBase(60*1000)		///< 1 minute interval for file checks
-		{}
-		/////////////////////////////////////////////////////////////
-		/// timer callback
-		virtual bool timeruserfunc(unsigned long tick);
-		/////////////////////////////////////////////////////////////
-		/// config processing callback
-		virtual bool ProcessConfig(const char*w1,const char*w2)
-		{	/// create/update parameter
-			CParamBase::create(w1, w2);
-			return true;
-		}
-		/////////////////////////////////////////////////////////////
-		/// overload CConfig::LoadConfig. 
-		/// this additionally includes the file to the watchlist
-		virtual bool LoadConfig(const char* cfgName)
-		{
-			CConfig::LoadConfig( cfgName );
-			cFileList.insert( CFileData(cfgName,NULL) );
-			return true;
-		}
-		/////////////////////////////////////////////////////////////
-		/// external access
-		void loadFile(const string<>& filename, paramproc p);
-	};
-
-	///////////////////////////////////////////////////////////////////////////
-	/// static data.
-	/// need a singleton here for allowing global parameters
-	class CSingletonData : public Mutex
-	{
-	public:
-		CParamLoader		cLoader;
-		slist<CParamBase>	cParams;
-	};
-	static CSingletonData &getSingletonData();
-
-public:
-	///////////////////////////////////////////////////////////////////////////
-	/// class Data
-	TPtrCount<CParamObj>	cParam;	///< pointer to the parameter data
-	ulong					cTime;	///< time of last access
-
-	///////////////////////////////////////////////////////////////////////////
-	/// construction/destruction
-	CParamBase()										{}
-	CParamBase(const string<>& name) : string<>(name)	{}
-	~CParamBase()									{}
-	///////////////////////////////////////////////////////////////////////////
-	/// class access
-	void print()
-	{
-		printf("\nname: %-16s ", (const char*)(*this)); 
-		cParam->print();
-	}
-
-	string<> name()		{ return *this; }
-	string<> value()	{ return cParam->value(); }
-
-	///////////////////////////////////////////////////////////////////////////
-	/// static access functions
-
-	/// return a parameterbase object
-	static CParamBase& getParam(const string<>& name);
-	/// check if parameter exists
-	static bool existParam(const string<>& name);
-	/// aquirethe storage mutex for syncronisation
-    static Mutex& getMutex()	{ return getSingletonData(); }
-	/// clean unreferenced parameters
-	static void clean();
-	/// list all parameters
-	static void listall();
-	/// list all parameters
-	static string<> getlist();
-	/// create a new parameter/overwrite an existing
-	static void create(const string<>& name, const string<>& value, bool fixed=false);
-	/// load parameters from file
-	static void loadFile(const string<>& name, paramproc p=NULL);
-};
+/// external parameter entry processing function.
+typedef bool (*paramentrproc)(const char* name, const char* value);
 
 
 
-
-
-///////////////////////////////////////////////////////////////////////////////
-/// variable parameter template.
-template <class T> class CParam
-{
-private:
-	///////////////////////////////////////////////////////////////////////////
-	/// internal parameter data template
-	template <class X> class CParamData : public CParamObj
-	{
-	public:
-		///////////////////////////////////////////////////////////////////////
-		/// the actual parameter data
-		X	cData;
-		bool (*cCallback)(const string<>& name, X& newval, const X& oldval);
-		///////////////////////////////////////////////////////////////////////
-		/// construction
-		CParamData(const char* value, bool fixed=false) : CParamObj(fixed), cCallback(NULL)
-		{
-			paramconvert(cData, value);
-		}
-		CParamData(const X& value, bool fixed=false) : CParamObj(fixed), cData(value), cCallback(NULL)
-		{}
-		///////////////////////////////////////////////////////////////////////
-		/// access on the parameter
-
-		/// returns typeid of the currently stored parameter
-		/// typeid needs #include <typeinfo> 
-		/// which is a bit stange among the different std implementations
-		virtual const std::type_info& getType()	{ return typeid(X); }
-
-		/// assign a string to a parameter
-		virtual bool assign(const string<>& name, const char* s)	
-		{
-			X oldvalue = this->cData;
-			if( paramconvert(this->cData, s) &&
-				(!cCallback || cData == oldvalue || (*cCallback)(name, this->cData, oldvalue)) )
-			{	// keep it
-				return true;
-			}
-			else
-			{	// rollback
-				this->cData = oldvalue;
-				return false;
-			}
-		}
-
-		/// assign a value to a parameter
-		virtual bool assign(const string<>& name, const X&value)
-		{
-			if( !(this->cData == value) )
-			{
-				X oldvalue = this->cData;
-				this->cData = value;
-				if( !cCallback || (*cCallback)(name, this->cData, oldvalue) )
-				{	// keep the value
-					return true; 
-				}
-				else
-				{	// rollback
-					this->cData = oldvalue;
-				}
-			}
-			return false; 
-		}
-		/// debugprint a parameter to stdout
-		virtual void print()
-		{
-			string<> str;
-			str << cData;
-			printf("value='%s' (shared %s)", (const char*)str, typeid(X).name());
-		}
-		virtual string<> value()				{ string<> str; str << this->cData; return str; }
-	};
-
-	///////////////////////////////////////////////////////////////////////////
-	// parameter storage
-	CParamBase		cStor;	///< a copy of the storage to keep the smart pointers alive
-	T&				cData;	///< a reference to the data for direct access
-public:
-	///////////////////////////////////////////////////////////////////////////
-	/// construction/destruction (can use default copy/assign here)
-	CParam(const string<>& name, bool (*callback)(const string<>& name, T& newval, const T& oldval)=NULL)
-		: cStor(), cData(convert(name, "", cStor, callback))
-	{}
-	CParam(const string<>& name, const T& defaultvalue, bool (*callback)(const string<>& name, T& newval, const T& oldval)=NULL)
-		: cStor(), cData(convert(name, defaultvalue, cStor, callback))
-	{}
-
-	virtual ~CParam()
-	{}
-	///////////////////////////////////////////////////////////////////////////
-	/// direct access on the parameter value
-	const T& operator=(const T& a)
-	{
-		if( !(a == cData) )
-		{
-			CParamBase &stor = CParamBase::getParam(cStor);
-			CParamData<T>* tmp = dynamic_cast< CParamData<T>* >( (class CParamObj*)stor.cParam.get() );
-			if(tmp)
-			{
-				tmp->assign(cStor, a);
-				stor.cTime = GetTickCount();
-			}
-		}
-		return a; 
-	}
-	operator const T&() const		{ return cData; }
-	const T& operator*() const		{ return cData; }
-	const T* operator->() const		{ return &cData; }
-	const T& operator()() const		{ return cData; }
-	const T& value() const			{ return cData; }
-	const char*name() const			{ return cStor; }
-
-
-	///////////////////////////////////////////////////////////////////////////
-	// compares parameters directly.
-	// have all six compares
-	template <typename X> bool operator==(const CParam<X>& p)
-	{
-		return this->cData == p();
-	}
-	template <typename X> bool operator!=(const CParam<X>& p)
-	{
-		return this->cData != p();
-	}
-	template <typename X> bool operator< (const CParam<X>& p)
-	{
-		return this->cData <  p();
-	}
-	template <typename X> bool operator<=(const CParam<X>& p)
-	{
-		return this->cData <= p();
-	}
-	template <typename X> bool operator> (const CParam<X>& p)
-	{
-		return this->cData >  p();
-	}
-	template <typename X> bool operator>=(const CParam<X>& p)
-	{
-		return this->cData >= p();
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// check and set parameter modification
-	bool isModified()
-	{
-		CParamBase &stor = CParamBase::getParam(cStor);
-		return (cStor.cTime != stor.cTime);
-	}
-	///////////////////////////////////////////////////////////////////////////
-	/// set parameter status
-	bool adjusted()
-	{
-		CParamBase &stor = CParamBase::getParam(cStor);
-		bool ret = (cStor.cTime != stor.cTime);
-		cStor.cTime = stor.cTime;
-		return ret;
-	}
-
-private:
-	///////////////////////////////////////////////////////////////////////////
-	/// determination and conversion of the stored parameter
-	/// calling with a converted value
-	static T& convert(const string<>& name, const T& value, CParamBase &basestor, bool (*callback)(const string<>& name, T& newval, const T& oldval))
-	{
-		ScopeLock sl(CParamBase::getMutex());
-		// get a reference to the parameter
-		CParamBase &stor = CParamBase::getParam(name);
-		CParamData<T>* tmp=NULL;
-
-		if( !stor.cParam.exists() )
-		{	// there is no data pointer
-			// create one
-			stor.cParam = tmp = new CParamData<T>(value);
-		}
-		else if( stor.cParam->getType() == typeid(T) )
-		{	// data has same type as requested, so can use it directly
-			tmp = dynamic_cast< CParamData<T>* >( (class CParamObj*)stor.cParam.get() );
-			// dynamic_cast is here because of my paranoia
-		}
-		else if( stor.cParam->getType() == typeid(string<>) )
-		{	// otherwise we only accept string<> to convert the data
-			//CParamData< string<> > *old = dynamic_cast< CParamData< string<> >* >( stor.cParam.operator->() );
-			// dynamic cast does not work here even if actually should, just hard cast it then
-			CParamData< string<> > *old = (CParamData< string<> >*)stor.cParam.get();
-			if( !old )
-				throw exception("Params: data conversion wrong type");
-			stor.cParam = tmp = new CParamData<T>(old->cData);
-			// this creation will change the pointer in the database
-			// and disconnect all existing references to this node
-		}
-		else if( stor.cParam->getType() == typeid(MiniString) )
-		{	// otherwise we only accept MiniString to convert the data
-			//CParamData< string<> > *old = dynamic_cast< CParamData< string<> >* >( stor.cParam.operator->() );
-			CParamData< MiniString > *old = (CParamData< MiniString >*)stor.cParam.get();
-			if( !old )
-				throw exception("Params: data conversion wrong type");
-			stor.cParam = tmp = new CParamData<T>(old->cData);
-			// this creation will change the pointer in the database
-			// and disconnect all existing references to this node
-		}
-		if(!tmp) throw exception("Params: data conversion failed");
-		// return a reference to the data and copy the storage
-		tmp->cCallback = (callback) ? callback : NULL;
-		basestor = stor;
-		basestor.cTime++;
-		tmp->setReference();
-		return tmp->cData;
-	}
-	///////////////////////////////////////////////////////////////////////////
-	/// determination and conversion of the stored parameter
-	/// calling with a string
-	static T& convert(const string<>& name, const char* value, CParamBase &basestor, bool (*callback)(const string<>& name, T& newval, const T& oldval))
-	{
-		ScopeLock sl(CParamBase::getMutex());
-		// get a reference to the parameter
-		CParamBase &stor = CParamBase::getParam(name);
-		CParamData<T>* tmp=NULL;
-		if( !stor.cParam.exists() )
-		{	// there is no data pointer
-			// create one
-			stor.cParam = tmp = new CParamData<T>(value);
-		}
-		else if( stor.cParam->getType() == typeid(T) )
-		{	// data has same type as requested, so can use it directly
-			tmp = dynamic_cast< CParamData<T>* >( (class CParamObj*)stor.cParam.get() );
-			// dynamic_cast is here because of my paranoia
-		}
-		else if( stor.cParam->getType() == typeid(string<>) )
-		{	// otherwise we only accept string<> to convert the data
-			//CParamData< string<> > *old = dynamic_cast< CParamData< string<> >* >( stor.cParam.operator->() );
-			CParamData< string<> > *old = (CParamData< string<> >*)stor.cParam.get();
-			if( !old )
-				throw exception("Params: data conversion wrong type");
-			stor.cParam = tmp = new CParamData<T>(old->cData);
-			// this creation will change the pointer in the database
-			// and disconnect all existing references to this node
-		}
-		else if( stor.cParam->getType() == typeid(MiniString) )
-		{	// otherwise we only accept MiniString to convert the data
-			//CParamData< string<> > *old = dynamic_cast< CParamData< string<> >* >( stor.cParam.operator->() );
-			CParamData< MiniString > *old = (CParamData< MiniString >*)stor.cParam.get();
-			if( !old )
-				throw exception("Params: data conversion wrong type");
-			stor.cParam = tmp = new CParamData<T>(old->cData);
-			// this creation will change the pointer in the database
-			// and disconnect all existing references to this node
-		}
-		if(!tmp) throw exception("Params: data conversion failed");
-		tmp->cCallback = (callback) ? callback : NULL;
-		// return a reference to the data and copy the storage
-		basestor = stor;
-		basestor.cTime++;
-		tmp->setReference();
-		return tmp->cData;
-	}
-	///////////////////////////////////////////////////////////////////////////
-	/// create a new variable / overwrite the content of an existing
-	static void create(const string<>& name, const T& value, bool fixed=false)
-	{
-		ScopeLock sl(CParamBase::getMutex());
-		// get a reference to the parameter
-		CParamBase &stor = CParamBase::getParam(name);
-		if( !stor.cParam.exists() )
-		{	// there is no data pointer
-			// create one
-			stor.cParam = (CParamObj*)new CParamData<T>(value,fixed);
-		}
-		else if( stor.cParam->isFixed() )
-		{	// don't overwrite fixed parameters with creation command
-			// maybe print a warning
-			printf("parameter '%s' is fixed, ignoring new assignment\n", (const char*)name);
-		}
-		else if( stor.cParam->getType() == typeid(T) )
-		{	// data is of same type and can be used directly
-			CParamData<T>* tmp = dynamic_cast< CParamData<T>* >( (class CParamObj*)stor.cParam.get() );
-			if( !(tmp->cData == value) )
-			{
-				stor.cParam->assign(name, value);
-				stor.cTime = GetTickCount();
-			}
-		}
-		else
-		{	// otherwise assign the new value
-			if( stor.cParam->assign(name, value) )
-				stor.cTime = GetTickCount();
-		}
-	}
-	///////////////////////////////////////////////////////////////////////////
-	/// check if a variable exists
-	static bool exist(const string<>& name)
-	{
-		ScopeLock sl(CParamBase::getMutex());
-		// get a reference to the parameter
-		return CParamBase::existParam(name);
-	}
-
-	friend void CParamBase::create(const string<>& name, const string<>& value, bool fixed);
-	friend bool existParam(const string<>& name);
-	friend void createParam(const string<>& name, const string<>& value, bool fixed);
-};
-
-
-inline void CParamBase::create(const string<>& name, const string<>& value, bool fixed)
-{
-	CParam< string<> >::create(name, value, fixed);
-}
-///////////////////////////////////////////////////////////////////////////
-/// load parameters from file
-inline void loadParam(const string<>& filename, paramproc p=NULL)
-{
-	CParamBase::loadFile(filename,p);
-}
-///////////////////////////////////////////////////////////////////////////////
-/// clean unused parameters
-inline void cleanParam()
-{
-	CParamBase::clean();
-}
-///////////////////////////////////////////////////////////////////////////////
-/// create/overwrite parameter
-inline void createParam(const string<>& name, const string<>& value, bool fixed=false)
-{
-	CParam< string<> >::create(name, value, fixed);
-}
-///////////////////////////////////////////////////////////////////////////////
-/// check if parameter exist
-inline bool existParam(const string<>& name)
-{
-	return CParam< string<> >::exist(name);
-}
-///////////////////////////////////////////////////////////////////////////////
-/// check for parameter and create if not exist
-inline bool existParam(const string<>& name, const string<>& value)
-{
-	if( !existParam(name) )
-		createParam(name, value);
-	return true;
-}
-
-
-
-
-#else
 ///////////////////////////////////////////////////////////////////////////////
 /// parameter class without using typeid
 /// for application independend parameter storage and distribution
@@ -901,56 +456,76 @@ public:
 /// and the basic functionality for parameter linking
 class CParamBase
 {
+	class CParamLoader;
+	class CParamFile;
+
 	///////////////////////////////////////////////////////////////////////////
-	/// internal class for loading/storing/reloading config files.
-	/// and automatically setting up of changed parameters
-	class CParamLoader : private CConfig, private CTimerBase
+	/// stores information about a parameter file
+	class CParamFile : public string<>, private CConfig
 	{
 		///////////////////////////////////////////////////////////////////////
-		/// stores information about a file
-		class CFileData : public string<>
-		{
-			///////////////////////////////////////////////////////////////////
-			// class data
-			time_t		modtime;	///< last modification time of the file
-		public:
-			paramproc	proc;		///< alternative processing function
-
-			///////////////////////////////////////////////////////////////////
-			/// construction/destruction
-			CFileData() : proc(NULL)	{}
-			CFileData(const string<>& filename, paramproc p=NULL);
-			~CFileData()	{}
-
-			///////////////////////////////////////////////////////////////////
-			/// checking file state and updating the locals at the same time
-			bool isModified();
-		};
-		///////////////////////////////////////////////////////////////////////
-
+		// friends
+		friend class CParamLoader;
 		///////////////////////////////////////////////////////////////////////
 		// class data
-		slist<CFileData>	cFileList;				///< list of loaded files
+		time_t			modtime;	///< last modification time of the file
 	public:
-		CParamLoader() : CTimerBase(60*1000)		///< 1 minute interval for file checks
-		{}
-		/////////////////////////////////////////////////////////////
-		/// timer callback
-		virtual bool timeruserfunc(unsigned long tick);
-		/////////////////////////////////////////////////////////////
-		/// config processing callback
+		paramfileproc	fileproc;	///< alternative processing function
+		paramentrproc	entrproc;	///< alternative processing function
+
+		///////////////////////////////////////////////////////////////////////
+		/// construction/destruction
+		CParamFile() : fileproc(NULL), entrproc(NULL)	{}
+		explicit CParamFile(const string<>& filename);
+		CParamFile(const string<>& filename, paramfileproc p);
+		CParamFile(const string<>& filename, paramentrproc p);
+		CParamFile(const string<>& filename, const CParamFile& orig);
+		~CParamFile()	{}
+
+		///////////////////////////////////////////////////////////////////////
+		/// default config processing callback.
 		virtual bool ProcessConfig(const char*w1,const char*w2);
-		/////////////////////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////////////
 		/// overload CConfig::LoadConfig. 
 		/// this additionally includes the file to the watchlist
 		virtual bool LoadConfig(const char* cfgName)
 		{
-			this->loadFile(cfgName);
+			CParamBase::loadParamFile( CParamFile(cfgName, *this) );
 			return true;
 		}
+		///////////////////////////////////////////////////////////////////////
+		/// 
+		bool load()
+		{
+			return (this->fileproc) ? (*fileproc)(*this) : this->CConfig::LoadConfig(*this);
+		}
+
+		///////////////////////////////////////////////////////////////////////
+		/// checking file state and updating the locals at the same time
+		bool isModified();
+	};
+	
+	///////////////////////////////////////////////////////////////////////////
+	/// internal class for loading/storing/reloading config files.
+	/// and automatically setting up of changed parameters
+	class CParamLoader : private CTimerBase
+	{
+		///////////////////////////////////////////////////////////////////////
+
+		///////////////////////////////////////////////////////////////////////
+		// class data
+		slist<CParamFile>	cFileList;				///< list of loaded files
+
+	public:
+		CParamLoader() : CTimerBase(60*1000)		///< 1 minute interval for file checks
+		{}
 		/////////////////////////////////////////////////////////////
-		/// load a file into the parameter manager
-		void loadFile(const string<>& filename, paramproc p=NULL);
+		/// timer callback.
+		virtual bool timeruserfunc(unsigned long tick);
+
+		///////////////////////////////////////////////////////////////////////
+		/// load a paramfile object.
+		bool loadParamFile(const CParamFile& file);
 	};
 
 	///////////////////////////////////////////////////////////////////////////
@@ -973,9 +548,23 @@ public:
 	static void clean();
 	static void listall();
 	static string<> getlist();
-	static void loadFile(const string<>& filename, paramproc p=NULL);
 
-
+	///////////////////////////////////////////////////////////////////////////
+	/// load a file into the parameter manager.
+	static bool loadParamFile(CParamFile file);
+	///////////////////////////////////////////////////////////////////////////
+	static bool loadFile(const string<>& filename)
+	{
+		return CParamBase::loadParamFile( CParamFile(filename) );
+	}
+	static bool loadFile(const string<>& filename, paramfileproc p)
+	{
+		return CParamBase::loadParamFile( CParamFile(filename, p) );
+	}
+	static bool loadFile(const string<>& filename, paramentrproc p)
+	{
+		return CParamBase::loadParamFile( CParamFile(filename, p) );
+	}
 	///////////////////////////////////////////////////////////////////////////
 	// friends
 	friend class CParamObj;
@@ -983,7 +572,6 @@ protected:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Class Data
-	ulong					cTime;		///< time of local access
 	TObjPtrCount<CParamObj>	cParamObj;	///< a pointer to the parameter object
 	CParamBase*				cNext;		///< next element in link-list
 	///////////////////////////////////////////////////////////////////////////
@@ -1031,7 +619,8 @@ protected:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// the actual parameter template.
-template <typename T> class CParam : public CParamBase
+template <typename T>
+class CParam : public CParamBase
 {
 	///////////////////////////////////////////////////////////////////////////
 	// class data
@@ -1047,6 +636,7 @@ public:
 		string<> tmp;
 		this->cParamObj = CParamBase::getParam(name, tmp);
 		this->link();
+		paramconvert(cValue, this->cParamObj->value() );
 	}
 	CParam(const string<>& name, const T& value, bool (*callback)(const string<>& name, T& newval, const T& oldval)=NULL)
 		: cLocalCallback(callback)
@@ -1134,8 +724,6 @@ public:
 	{
 		return this->cValue >= p();
 	}
-
-
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// function which is called on external parameter modification
@@ -1159,31 +747,45 @@ protected:
 	}
 };
 
-///////////////////////////////////////////////////////////////////////////
-/// load parameters from file
-inline void loadParam(const string<>& filename, paramproc p=NULL)
+///////////////////////////////////////////////////////////////////////////////
+/// load parameters from file.
+inline bool loadParam(const string<>& filename)
 {
-	CParamBase::loadFile(filename, p);
+	return CParamBase::loadFile(filename);
 }
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// load parameters from file.
+/// with user defined file processing
+inline bool loadParam(const string<>& filename, paramfileproc p)
+{
+	return CParamBase::loadFile(filename, p);
+}
+///////////////////////////////////////////////////////////////////////////////
+/// load parameters from file.
+/// with standard file processing but user defined entry processing
+inline bool loadParam(const string<>& filename, paramentrproc p)
+{
+	return CParamBase::loadFile(filename, p);
+}
+///////////////////////////////////////////////////////////////////////////////
 /// clean unused parameters
 inline void cleanParam()
 {
 	CParamBase::clean();
 }
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 /// create/update parameter
 inline void createParam(const string<>& name, const string<>& value, bool fixed=false)
 {
 	CParamBase::createParam(name, value, fixed);
 }
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 /// check if parameter exist
 inline bool existParam(const string<>& name)
 {
 	return CParamBase::existParam(name);
 }
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 /// check if parameter exist and create if not
 inline bool existParam(const string<>& name, const string<>& value)
 {
@@ -1192,74 +794,82 @@ inline bool existParam(const string<>& name, const string<>& value)
 }
 
 
-
-#endif//PARAM_RTTI
-
-
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // compares parameters with content type, both sides
-template <typename T1, typename T2> bool operator==(const T1& t1, const CParam<T2>& p2)
+template <typename T1, typename T2>
+inline bool operator==(const T1& t1, const CParam<T2>& p2)
 {
 	return t1 == p2();
 }
-template <typename T1, typename T2> bool operator!=(const T1& t1, const CParam<T2>& p2)
+template <typename T1, typename T2>
+inline bool operator!=(const T1& t1, const CParam<T2>& p2)
 {
 	return t1 != p2();
 }
-template <typename T1, typename T2> bool operator< (const T1& t1, const CParam<T2>& p2)
+template <typename T1, typename T2>
+inline bool operator< (const T1& t1, const CParam<T2>& p2)
 {
 	return t1 <  p2();
 }
-template <typename T1, typename T2> bool operator<=(const T1& t1, const CParam<T2>& p2)
+template <typename T1, typename T2>
+inline bool operator<=(const T1& t1, const CParam<T2>& p2)
 {
 	return t1 <= p2();
 }
-template <typename T1, typename T2> bool operator> (const T1& t1, const CParam<T2>& p2)
+template <typename T1, typename T2>
+inline bool operator> (const T1& t1, const CParam<T2>& p2)
 {
 	return t1 >  p2();
 }
-template <typename T1, typename T2> bool operator>=(const T1& t1, const CParam<T2>& p2)
+template <typename T1, typename T2>
+inline bool operator>=(const T1& t1, const CParam<T2>& p2)
 {
 	return t1 >= p2();
 }
 
-
-template <typename T1, typename T2> bool operator==(const CParam<T1>& p1, const T2& t2)
+template <typename T1, typename T2>
+inline bool operator==(const CParam<T1>& p1, const T2& t2)
 {
 	return p1() == t2;
 }
-template <typename T1, typename T2> bool operator!=(const CParam<T1>& p1, const T2& t2)
+template <typename T1, typename T2>
+inline bool operator!=(const CParam<T1>& p1, const T2& t2)
 {
 	return p1() != t2;
 }
-template <typename T1, typename T2> bool operator< (const CParam<T1>& p1, const T2& t2)
+template <typename T1, typename T2>
+inline bool operator< (const CParam<T1>& p1, const T2& t2)
 {
 	return p1() <  t2;
 }
-template <typename T1, typename T2> bool operator<=(const CParam<T1>& p1, const T2& t2)
+template <typename T1, typename T2>
+inline bool operator<=(const CParam<T1>& p1, const T2& t2)
 {
 	return p1() <= t2;
 }
-template <typename T1, typename T2> bool operator> (const CParam<T1>& p1, const T2& t2)
+template <typename T1, typename T2>
+inline bool operator> (const CParam<T1>& p1, const T2& t2)
 {
 	return p1() >  t2;
 }
-template <typename T1, typename T2> bool operator>=(const CParam<T1>& p1, const T2& t2)
+template <typename T1, typename T2>
+inline bool operator>=(const CParam<T1>& p1, const T2& t2)
 {
 	return p1() >= t2;
 }
 
-
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // string concatinate
-template <typename T> stringoperator<>& operator << (stringoperator<>& str, const CParam<T>& param)
+template <typename T>
+inline stringoperator<>& operator << (stringoperator<>& str, const CParam<T>& param)
 {
-	str << (const T&)param;
+	str << param();
 	return str;
 }
-template <typename T> string<>& operator << (string<>& str, const CParam<T>& param)
+template <typename T>
+inline  string<>& operator << (string<>& str, const CParam<T>& param)
 {
-	(*str) << (const T&)param;
+	(*str) << param();
 	return str;
 }
 

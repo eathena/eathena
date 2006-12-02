@@ -14,7 +14,8 @@ void test_algo(int scale=1);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Simple Binary Search. (asc order)
-template<class X, class L> bool BinarySearchS( X const (& elem), L const (& list), size_t sz, size_t startpos, size_t& findpos)
+template<typename X, typename L>
+bool BinarySearchS( X const (& elem), L const (& list), size_t sz, size_t startpos, size_t& findpos)
 {
 	size_t a = startpos-1;
 	size_t b = sz;
@@ -46,7 +47,8 @@ template<class X, class L> bool BinarySearchS( X const (& elem), L const (& list
 /// uses binary operators of the elements
 /// works on objects and fields likewise since no pointer arithmetic used
 ///////////////////////////////////////////////////////////////////////////////
-template<class X, class L> bool BinarySearch(X const (& elem), L const (& list), size_t sz, size_t startpos, size_t& findpos, bool asc=true)
+template<typename X, typename L>
+bool BinarySearch(X const (& elem), L const (& list), size_t sz, size_t startpos, size_t& findpos, bool asc=true)
 {	// do a binary search
 	// make some initial stuff
 	bool ret = false;
@@ -162,7 +164,8 @@ template<class X, class L> bool BinarySearch(X const (& elem), L const (& list),
 /// uses given X member compare function
 /// works on objects and fields likewise since no pointer arithmetic used
 ///////////////////////////////////////////////////////////////////////////////
-template<class X, class L, class Y> bool BinarySearchB(X const (& elem), L const (& list), size_t sz, size_t startpos, size_t& findpos, int (Y::*cmp)(const X&) const, bool asc=true)
+template<typename X, typename L, typename Y>
+bool BinarySearchB(X const (& elem), L const (& list), size_t sz, size_t startpos, size_t& findpos, int (Y::*cmp)(const X&) const, bool asc=true)
 {	// do a binary search
 	// make some initial stuff
 	bool ret = false;
@@ -279,7 +282,8 @@ template<class X, class L, class Y> bool BinarySearchB(X const (& elem), L const
 /// uses given external compare function
 /// works on objects and fields likewise since no pointer arithmetic used
 ///////////////////////////////////////////////////////////////////////////////
-template<class X, class L, class Y> bool BinarySearchC( X const (& elem), L const (& list), size_t sz, size_t startpos, size_t& findpos, int (*cmp)(const X&, const Y&), bool asc=true)
+template<typename X, typename L, typename Y>
+bool BinarySearchC( X const (& elem), L const (& list), size_t sz, size_t startpos, size_t& findpos, int (*cmp)(const X&, const Y&), bool asc=true)
 {	// do a binary search
 	// make some initial stuff
 	bool ret = false;
@@ -407,7 +411,7 @@ bool BinarySearch(const void* elem, const void* list[], size_t sz, size_t startp
 /// assignment optimized move without overwrite. pointer version
 /// moves cnt elements starting from spos to tpos
 // 0 1 2 3 4 5 6 7 8 9 ->(1,5,2)-> 0 5 6 1 2 3 4 7 8 9
-template <class T>
+template <typename T>
 bool elementmove(T array[], size_t sz, size_t tpos, size_t spos, size_t cnt)
 {	
 	if( tpos+cnt > sz )
@@ -490,14 +494,14 @@ printf("copies for (%lu->%lu)x%lu = %i", (ulong)spos, (ulong)tpos, (ulong)cnt, c
 
 
 // predeclaration
-template<class T> class vectorinterface;
+template<typename T> class vectorinterface;
 
 
 ///////////////////////////////////////////////////////////////////////////////
 /// assignment optimized move without overwrite. array version
 /// moves cnt elements starting from spos to tpos
 // 0 1 2 3 4 5 6 7 8 9 ->(1,5,2)-> 0 5 6 1 2 3 4 7 8 9
-template <class T>
+template <typename T>
 bool elementmove(vectorinterface<T>& array, size_t sz, size_t tpos, size_t spos, size_t cnt)
 {	
 	if( tpos+cnt > sz )

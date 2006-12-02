@@ -34,7 +34,7 @@ void test_sort(int scale=1);
 ///////////////////////////////////////////////////////////////////////////////
 /// Bubble Sort, just informative, practically unusable
 ///////////////////////////////////////////////////////////////////////////////
-template <class T>
+template <typename T>
 void BubbleSort(T a[], ssize_t l, ssize_t r)
 {
 	if(r>l)
@@ -45,7 +45,8 @@ void BubbleSort(T a[], ssize_t l, ssize_t r)
 			if(kp[1] < kp[0]) swap(kp[0], kp[1]);
 	}
 }
-template <class T> void BubbleSort(T a[], size_t count)
+template <typename T>
+void BubbleSort(T a[], size_t count)
 {
 	if(count>1)
 	{
@@ -59,7 +60,8 @@ template <class T> void BubbleSort(T a[], size_t count)
 ///////////////////////////////////////////////////////////////////////////////
 /// Insertion Sort, linear time for small fields
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void InsertionSort(T a[], ssize_t l, ssize_t r)
+template <typename T>
+void InsertionSort(T a[], ssize_t l, ssize_t r)
 {
 	T *epr=a+r, *elp=a+l;
 	T *ip, *kp;
@@ -71,7 +73,8 @@ template <class T> void InsertionSort(T a[], ssize_t l, ssize_t r)
 	}
 }
 
-template <class T> void InsertionSort(T a[], size_t count)
+template <typename T>
+void InsertionSort(T a[], size_t count)
 {
 	const T *ep=a+count;
 	T *ip, *kp;
@@ -86,7 +89,8 @@ template <class T> void InsertionSort(T a[], size_t count)
 ///////////////////////////////////////////////////////////////////////////////
 /// Selection Sort
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void SelectionSort(T a[], ssize_t l, ssize_t r)
+template <typename T>
+void SelectionSort(T a[], ssize_t l, ssize_t r)
 {
 	T *ip, *jp, *minp, *epr=a+r;
 	for(ip=a+l; ip<epr; ++ip)
@@ -95,7 +99,8 @@ template <class T> void SelectionSort(T a[], ssize_t l, ssize_t r)
 		swap(*minp, *ip);
 	}
 }
-template <class T> void SelectionSort(T a[], size_t count)
+template <typename T>
+void SelectionSort(T a[], size_t count)
 {
 	T *ip, *jp, *minp, *ep=a+count-1;
 	for(ip=a; ip<ep; ++ip)
@@ -108,7 +113,8 @@ template <class T> void SelectionSort(T a[], size_t count)
 ///////////////////////////////////////////////////////////////////////////////
 /// Shell Sort
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void ShellSort(T a[], ssize_t l, ssize_t r)
+template <typename T>
+void ShellSort(T a[], ssize_t l, ssize_t r)
 {
 	ssize_t h;
 	T *ip, *jp, *kp, *ep=a+r;
@@ -124,7 +130,8 @@ template <class T> void ShellSort(T a[], ssize_t l, ssize_t r)
 	}
 }
 
-template <class T> void ShellSort(T a[], size_t count)
+template <typename T>
+void ShellSort(T a[], size_t count)
 {
 	size_t h;
 	T *ip, *jp, *kp, *ep=a+count;
@@ -144,7 +151,8 @@ template <class T> void ShellSort(T a[], size_t count)
 /// Merge Sort, stable variant of quicksort but needs extra memory and copies
 ///////////////////////////////////////////////////////////////////////////////
 // Array b[] must have same size like a[]; result is in a[]!
-template <class T> void MergeSort(T a[], T b[], ssize_t l, ssize_t r)
+template <typename T>
+void MergeSort(T a[], T b[], ssize_t l, ssize_t r)
 {
 	if(r > l)
 	{
@@ -160,7 +168,8 @@ template <class T> void MergeSort(T a[], T b[], ssize_t l, ssize_t r)
 }
 
 // Array b[] must have same size like a[]; result is in a[]!
-template <class T> void MergeSort(T a[], T b[], size_t count)
+template <typename T>
+void MergeSort(T a[], T b[], size_t count)
 {
 	if(count>1)
 	{
@@ -177,7 +186,8 @@ template <class T> void MergeSort(T a[], T b[], size_t count)
 ///////////////////////////////////////////////////////////////////////////////
 /// Comb Sort, variant of BubbleSort with variable gap between compare positions
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void CombSort(T a[], ssize_t l, ssize_t r)
+template <typename T>
+void CombSort(T a[], ssize_t l, ssize_t r)
 {
 	if(r>l)
 	{
@@ -206,7 +216,8 @@ template <class T> void CombSort(T a[], ssize_t l, ssize_t r)
 	}
 }
 
-template <class T> void CombSort(T a[], size_t count)
+template <typename T>
+void CombSort(T a[], size_t count)
 {
 	if(count > 1)
 	{
@@ -238,7 +249,8 @@ template <class T> void CombSort(T a[], size_t count)
 ///////////////////////////////////////////////////////////////////////////////
 /// Heap Sort, builds a binary tree
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void HeapSort(T a[], ssize_t l, ssize_t r)
+template <typename T>
+void HeapSort(T a[], ssize_t l, ssize_t r)
 {
 	if(r>l)
 	{
@@ -282,7 +294,8 @@ template <class T> void HeapSort(T a[], ssize_t l, ssize_t r)
 		}
 	}
 }
-template <class T> void HeapSort(T a[], size_t count)
+template <typename T>
+void HeapSort(T a[], size_t count)
 {
 	if(count>1)
 	{
@@ -331,7 +344,8 @@ template <class T> void HeapSort(T a[], size_t count)
 /// Heap Sort variant.
 /// builds heap from bottom up, using downheaps
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> void HeapSortBUDH(T a[], ssize_t l, ssize_t r)
+template<typename T>
+void HeapSortBUDH(T a[], ssize_t l, ssize_t r)
 {
 	if(r>l)
 	{
@@ -395,7 +409,8 @@ template<class T> void HeapSortBUDH(T a[], ssize_t l, ssize_t r)
 		}
 	}
 }
-template<class T> void HeapSortBUDH(T a[], size_t count)
+template<typename T>
+void HeapSortBUDH(T a[], size_t count)
 {
 	if(count>1)
 	{
@@ -466,7 +481,8 @@ template<class T> void HeapSortBUDH(T a[], size_t count)
 /// Heap Sort variant.
 /// builds heap from bottom up, using upheaps
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> void HeapSortBUUH(T a[], ssize_t l, ssize_t r)
+template<typename T>
+void HeapSortBUUH(T a[], ssize_t l, ssize_t r)
 {
 	if(r>l)
 	{
@@ -571,7 +587,8 @@ template<class T> void HeapSortBUUH(T a[], ssize_t l, ssize_t r)
 }
 
 
-template<class T> void HeapSortBUUH(T a[], size_t count)
+template<typename T>
+void HeapSortBUUH(T a[], size_t count)
 {
 	if(count>1)
 	{
@@ -665,7 +682,8 @@ template<class T> void HeapSortBUUH(T a[], size_t count)
 /// modified with middle pivot 
 /// to not get worst case behaviour on already sorted fields
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void QuickSortClassic(T a[], ssize_t l, ssize_t r)
+template <typename T>
+void QuickSortClassic(T a[], ssize_t l, ssize_t r)
 {
 	if(r > l)
 	{
@@ -687,7 +705,8 @@ template <class T> void QuickSortClassic(T a[], ssize_t l, ssize_t r)
 		QuickSortClassic<T>(a, (ip-a)+1, r);	// partition after a[i]
 	}
 }
-template <class T> void QuickSortClassic(T a[], size_t count)
+template <typename T>
+void QuickSortClassic(T a[], size_t count)
 {
 	if(count>1)
 	{
@@ -715,7 +734,8 @@ template <class T> void QuickSortClassic(T a[], size_t count)
 /// switching to InsertionSort for short partitions (<=32 elements)
 /// and switching to HeapSort, when stack is full
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void QuickSort(T a[], ssize_t l, ssize_t r)
+template <typename T>
+void QuickSort(T a[], ssize_t l, ssize_t r)
 {
 	if(r>l)
 	{
@@ -802,7 +822,8 @@ template <class T> void QuickSort(T a[], ssize_t l, ssize_t r)
 	}
 }
 
-template <class T> void QuickSort(T a[], size_t count)
+template <typename T>
+void QuickSort(T a[], size_t count)
 {
 	if(count>1)
 	{
@@ -902,14 +923,14 @@ template <class T> void QuickSort(T a[], size_t count)
 
 
 // predeclaration
-template<class T> class vectorinterface;
+template<typename T> class vectorinterface;
 
 
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Bubble Sort, just informative, practically unusable
 ///////////////////////////////////////////////////////////////////////////////
-template <class T>
+template <typename T>
 void BubbleSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	ssize_t i, j;
@@ -917,7 +938,8 @@ void BubbleSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
 	for(j=l; j<i; ++j)
 		if(a[j+1] < a[j]) swap(a[j], a[j+1]);
 }
-template <class T> inline void BubbleSort(vectorinterface<T>& a, size_t count)
+template <typename T>
+inline void BubbleSort(vectorinterface<T>& a, size_t count)
 {
 	if(count>1) BubbleSort<T>(a, 0, count-1);
 }
@@ -926,7 +948,8 @@ template <class T> inline void BubbleSort(vectorinterface<T>& a, size_t count)
 /// Insertion Sort, linear time for small fields
 ///////////////////////////////////////////////////////////////////////////////
 
-template <class T> void InsertionSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
+template <typename T>
+void InsertionSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	ssize_t i, j;
 	T v;
@@ -936,7 +959,8 @@ template <class T> void InsertionSort(vectorinterface<T>& a, ssize_t l, ssize_t 
 		a[j+1] = v;
 	}
 }
-template <class T> inline void InsertionSort(vectorinterface<T>& a, size_t count)
+template <typename T>
+inline void InsertionSort(vectorinterface<T>& a, size_t count)
 {
 	if(count>1) InsertionSort<T>(a, 0, count-1);
 }
@@ -944,7 +968,8 @@ template <class T> inline void InsertionSort(vectorinterface<T>& a, size_t count
 ///////////////////////////////////////////////////////////////////////////////
 /// Selection Sort
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void SelectionSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
+template <typename T>
+void SelectionSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	ssize_t i, j, min;
 	for(i=l; i<r; ++i)
@@ -954,7 +979,8 @@ template <class T> void SelectionSort(vectorinterface<T>& a, ssize_t l, ssize_t 
 	}
 }
 
-template <class T> inline void SelectionSort(vectorinterface<T>& a, size_t count)
+template <typename T>
+inline void SelectionSort(vectorinterface<T>& a, size_t count)
 {
 	if(count>1) SelectionSort<T>(a, 0, count-1);
 }
@@ -962,7 +988,8 @@ template <class T> inline void SelectionSort(vectorinterface<T>& a, size_t count
 ///////////////////////////////////////////////////////////////////////////////
 /// Shell Sort
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void ShellSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
+template <typename T>
+void ShellSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	ssize_t i, j, h;
 	T v;
@@ -977,7 +1004,8 @@ template <class T> void ShellSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
 		}
 	}
 }
-template <class T> inline void ShellSort(vectorinterface<T>& a, size_t count)
+template <typename T>
+inline void ShellSort(vectorinterface<T>& a, size_t count)
 {
 	if(count>1) ShellSort<T>(a, 0, count-1);
 }
@@ -986,7 +1014,8 @@ template <class T> inline void ShellSort(vectorinterface<T>& a, size_t count)
 /// Merge Sort, stable variant of quicksort but needs extra memory and copies
 ///////////////////////////////////////////////////////////////////////////////
 // Array b must have same size as a; result is in a!
-template <class T> void MergeSort(vectorinterface<T>& a, vectorinterface<T>& b, ssize_t l, ssize_t r)
+template <typename T>
+void MergeSort(vectorinterface<T>& a, vectorinterface<T>& b, ssize_t l, ssize_t r)
 {
 	if(r > l)
 	{
@@ -1006,7 +1035,8 @@ template <class T> void MergeSort(vectorinterface<T>& a, vectorinterface<T>& b, 
 }
 
 // Array b must have same size like a; result is in a!
-template <class T> inline void MergeSort(vectorinterface<T>& a, vectorinterface<T>& b, size_t count)
+template <typename T>
+inline void MergeSort(vectorinterface<T>& a, vectorinterface<T>& b, size_t count)
 {
 	if(count>1) MergeSort<T>(a, b, 0, count-1);
 }
@@ -1014,7 +1044,8 @@ template <class T> inline void MergeSort(vectorinterface<T>& a, vectorinterface<
 ///////////////////////////////////////////////////////////////////////////////
 /// Comb Sort, variant of BubbleSort with variable gap between compare positions
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> inline void CombSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
+template <typename T>
+inline void CombSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	if(r>l)
 	{
@@ -1043,7 +1074,8 @@ template <class T> inline void CombSort(vectorinterface<T>& a, ssize_t l, ssize_
 	}
 }
 
-template <class T> void CombSort(vectorinterface<T>& a, size_t count)
+template <typename T>
+void CombSort(vectorinterface<T>& a, size_t count)
 {
 	if(count > 1)
 	{
@@ -1076,7 +1108,8 @@ template <class T> void CombSort(vectorinterface<T>& a, size_t count)
 /// Heap Sort, builds a binary tree
 ///////////////////////////////////////////////////////////////////////////////
 
-template <class T> inline void HeapSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
+template <typename T>
+inline void HeapSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	if(r>l)
 	{
@@ -1121,7 +1154,8 @@ template <class T> inline void HeapSort(vectorinterface<T>& a, ssize_t l, ssize_
 	}
 }
 
-template <class T> void HeapSort(vectorinterface<T>& a, size_t count)
+template <typename T>
+void HeapSort(vectorinterface<T>& a, size_t count)
 {
 	if(count>1)
 	{
@@ -1169,7 +1203,8 @@ template <class T> void HeapSort(vectorinterface<T>& a, size_t count)
 /// Heap Sort variant.
 /// builds heap from bottom up, using downheaps
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> void HeapSortBUDH(vectorinterface<T>& a, ssize_t l, ssize_t r)
+template<typename T>
+void HeapSortBUDH(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	if(r>l)
 	{
@@ -1233,7 +1268,8 @@ template<class T> void HeapSortBUDH(vectorinterface<T>& a, ssize_t l, ssize_t r)
 		}
 	}
 }
-template<class T> void HeapSortBUDH(vectorinterface<T>& a, size_t count)
+template<typename T>
+void HeapSortBUDH(vectorinterface<T>& a, size_t count)
 {
 	if(count>1)
 	{
@@ -1308,7 +1344,8 @@ template<class T> void HeapSortBUDH(vectorinterface<T>& a, size_t count)
 // http://www.diku.dk/hjemmesider/ansatte/jyrki/Experimentarium/
 //
 // 
-template<class T> void siftup(T *v, int i, int n)
+template<typename T>
+void siftup(T *v, int i, int n)
 {
 	int j, start;
 	T x;
@@ -1342,7 +1379,8 @@ template<class T> void siftup(T *v, int i, int n)
 // The heapsort procedure; the original array is r[0..n-1], but here
 // it is shifted to vector v[1..n], for convenience.
 //----------------------------------------------------------------------
-template<class T> void bottom_up_heapsort(T a[], int n)
+template<typename T>
+void bottom_up_heapsort(T a[], int n)
 {
 	int k;
 	T x;
@@ -1360,7 +1398,8 @@ template<class T> void bottom_up_heapsort(T a[], int n)
 }
 */
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> void HeapSortBUUH(vectorinterface<T>& a, ssize_t l, ssize_t r)
+template<typename T>
+void HeapSortBUUH(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	if(r>l)
 	{
@@ -1466,7 +1505,8 @@ template<class T> void HeapSortBUUH(vectorinterface<T>& a, ssize_t l, ssize_t r)
 }
 
 
-template<class T> void HeapSortBUUH(vectorinterface<T>& a, size_t count)
+template<typename T>
+void HeapSortBUUH(vectorinterface<T>& a, size_t count)
 {
 	if(count>1)
 	{
@@ -1559,7 +1599,8 @@ template<class T> void HeapSortBUUH(vectorinterface<T>& a, size_t count)
 /// modified with middle pivot 
 /// to not get worst case behaviour on already sorted fields
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void QuickSortClassic(vectorinterface<T>& a, ssize_t l, ssize_t r)
+template <typename T>
+void QuickSortClassic(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	if(r > l)
 	{
@@ -1580,7 +1621,8 @@ template <class T> void QuickSortClassic(vectorinterface<T>& a, ssize_t l, ssize
 		QuickSortClassic<T>(a,i+1,r);			// partition after a[i]
 	}
 }
-template <class T> inline void QuickSortClassic(vectorinterface<T>& a, size_t count)
+template <typename T>
+inline void QuickSortClassic(vectorinterface<T>& a, size_t count)
 {
 	if(count>1) QuickSortClassic<T>(a, 0, count-1);
 }
@@ -1590,7 +1632,8 @@ template <class T> inline void QuickSortClassic(vectorinterface<T>& a, size_t co
 /// switching to InsertionSort for short partitions (<=32 elements)
 /// and switching to HeapSort, when stack is full
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void QuickSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
+template <typename T>
+void QuickSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
 {
 	if(r>l)
 	{
@@ -1676,7 +1719,8 @@ template <class T> void QuickSort(vectorinterface<T>& a, ssize_t l, ssize_t r)
 		}
 	}
 }
-template <class T> inline void QuickSort(vectorinterface<T>& a, size_t count)
+template <typename T>
+inline void QuickSort(vectorinterface<T>& a, size_t count)
 {
 	if(count>1) QuickSort<T>(a, 0, count-1);
 }
@@ -1687,7 +1731,8 @@ template <class T> inline void QuickSort(vectorinterface<T>& a, size_t count)
 /// modified with middle pivot 
 /// to not get worst case behaviour on already sorted fields
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void QuickSortClassicC(T a[], ssize_t l, ssize_t r, int (*cmp)(const T&, const T&))
+template <typename T>
+void QuickSortClassicC(T a[], ssize_t l, ssize_t r, int (*cmp)(const T&, const T&))
 {
 	if(r > l)
 	{

@@ -12,9 +12,9 @@ void test_charset();
 ///////////////////////////////////////////////////////////////////////////////
 /// 4bit number <-> hex character
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> uchar char2hex(T c);
-template <class T> uchar str2hex(const T*& p) ;
-template <class T> T hex2char(uchar c);
+template <typename T> uchar char2hex(T c);
+template <typename T> uchar str2hex(const T*& p) ;
+template <typename T> T hex2char(uchar c);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@ const char _csetesc = '~';	// escape character in charset strings
 ///////////////////////////////////////////////////////////////////////////////
 // predeclaration
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> class string;
+template <typename T> class string;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -128,7 +128,8 @@ public:
 string<char   >& tostring(string<char   >& str, const charset& s);
 string<wchar_t>& tostring(string<wchar_t>& str, const charset& s);
 
-template<class T> inline string<T>& operator<<(string<T>& str, const charset& s)
+template<typename T>
+inline string<T>& operator<<(string<T>& str, const charset& s)
 {
 	return tostring(str, s);
 }

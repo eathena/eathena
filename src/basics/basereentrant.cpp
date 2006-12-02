@@ -48,7 +48,8 @@ const char* strerror(int err, char* buf, size_t size)
 		char*p = ::strerror(err);
 		if(p)
 		{
-			if( hstrlen(p)+1 < size ) size = hstrlen(p)+1;
+			if( strlen(p)+1 < size )
+				size = strlen(p)+1;
 			memcpy(buf,p,size);
 			buf[size-1]=0; //force EOS
 		}

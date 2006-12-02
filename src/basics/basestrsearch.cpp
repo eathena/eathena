@@ -12,7 +12,8 @@ NAMESPACE_BEGIN(basics)
 
 
 // create the shift-lookup-table
-template<class T> void patternstring_kmp<T>::compute_shifts(const string<T> &pattern)
+template<typename T>
+void patternstring_kmp<T>::compute_shifts(const string<T> &pattern)
 {
 
 	size_t i, next_shift = 0;
@@ -35,7 +36,8 @@ template<class T> void patternstring_kmp<T>::compute_shifts(const string<T> &pat
 //template void patternstring_kmp<wchar_t>::compute_shifts(const string<wchar_t> &pattern);
 
 // search the string and return when the first occurrence is found
-template<class T> int patternstring_kmp<T>::findnext(const string<T> &text) const
+template<typename T>
+int patternstring_kmp<T>::findnext(const string<T> &text) const
 {
 	size_t next_shift = 0;
 	for(size_t i = 0; i < text.length(); ++i)
@@ -56,7 +58,8 @@ template<class T> int patternstring_kmp<T>::findnext(const string<T> &text) cons
 //template int patternstring_kmp<wchar_t>::findnext(const string<wchar_t> &text) const;
 
 // search the string and put every occurence in a vector
-template<class T> vector<size_t> patternstring_kmp<T>::findall(const string<T> &text) const
+template<typename T>
+vector<size_t> patternstring_kmp<T>::findall(const string<T> &text) const
 {
 	size_t next_shift = 0;
 	vector<size_t> positions;
@@ -80,7 +83,8 @@ template<class T> vector<size_t> patternstring_kmp<T>::findall(const string<T> &
 //template vector<size_t> patternstring_kmp<wchar_t>::findall(const string<wchar_t> &text) const;
 
 // search the string and return when the first occurrence is found
-template<class T> int patternstring_kmp<T>::findnext(const string<T> &text, const string<T> &pattern)
+template<typename T>
+int patternstring_kmp<T>::findnext(const string<T> &text, const string<T> &pattern)
 {
 	size_t next_shift = 0;
 	compute_shifts(pattern);
@@ -103,7 +107,8 @@ template<class T> int patternstring_kmp<T>::findnext(const string<T> &text, cons
 //template int patternstring_kmp<wchar_t>::findnext(const string<wchar_t> &text, const string<wchar_t> &pattern);
 
 // search the string and put every occurence in a vector
-template<class T> vector<size_t> patternstring_kmp<T>::findall(const string<T> &text, const string<T> &pattern)
+template<typename T>
+vector<size_t> patternstring_kmp<T>::findall(const string<T> &text, const string<T> &pattern)
 {
 	size_t next_shift = 0;
 	vector<size_t> positions;
@@ -140,7 +145,8 @@ template class patternstring_kmp<wchar_t>;
 ///////////////////////////////////////////////////////////////////////////////
 // patternstring constructor
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> void patternstring<T>::compute_shifts(const stringinterface<T> &pattern)
+template<typename T>
+void patternstring<T>::compute_shifts(const stringinterface<T> &pattern)
 {
 	size_t len = pattern.length();
 	size_t i;
@@ -165,7 +171,8 @@ template<class T> void patternstring<T>::compute_shifts(const stringinterface<T>
 ///////////////////////////////////////////////////////////////////////////////
 // Search function
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> bool patternstring<T>::findnext(const stringinterface<T>& searchstring, size_t &startpos, bool ignorecase) const
+template<typename T>
+bool patternstring<T>::findnext(const stringinterface<T>& searchstring, size_t &startpos, bool ignorecase) const
 {	// modified boyer-moore search
 	
 	size_t i,k,sp;
@@ -202,7 +209,8 @@ template<class T> bool patternstring<T>::findnext(const stringinterface<T>& sear
 ///////////////////////////////////////////////////////////////////////////////
 // Search function
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> vector<size_t> patternstring<T>::findall(const stringinterface<T>& searchstring, bool ignorecase) const
+template<typename T>
+vector<size_t> patternstring<T>::findall(const stringinterface<T>& searchstring, bool ignorecase) const
 {	// modified boyer-moore search
 
 	// store results in this list
@@ -281,7 +289,8 @@ template class patternstring<wchar_t>;
 // This is a horrible mess - blame the Unix folks for making a hash of wildcards
 // first expand any ranges and remove escape characters to make life more palatable
 
-template<class T> bool match_set(const T* set, const T* setend, T match)
+template<typename T>
+bool match_set(const T* set, const T* setend, T match)
 {
 	const T* ip=set;
 	bool ret = true;
@@ -392,7 +401,8 @@ template bool match_set<wchar_t>(const wchar_t* set, const wchar_t* setend, wcha
 // the recursive bit - basically whenever a * is found you recursively call this 
 // for each candidate substring match until either it succeeds or you run out of string to match
 // for each * in the wildcard another level of recursion is created
-template<class T> bool match_remainder(const T* wild, const T* wildi, const T* match, const T* matchi)
+template<typename T>
+bool match_remainder(const T* wild, const T* wildi, const T* match, const T* matchi)
 {
 	//cerr << "match_remainder called at " << *matchi << " with wildcard " << *wildi << endl;
 	while( *wildi && *matchi )
@@ -480,7 +490,8 @@ template bool match_remainder<wchar_t>(const wchar_t* wild, const wchar_t* wildi
 
 // like all recursions the exported function has a simpler interface than the recursive function and is just a 'seed' to
 // the recursion itself
-template <class T> bool match_wildcard(const T* wild, const T* match)
+template <typename T>
+bool match_wildcard(const T* wild, const T* match)
 {
 	return wild && match && match_remainder<T>(wild, wild, match, match);
 }

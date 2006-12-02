@@ -26,7 +26,8 @@ void test_heaps(int scale=1);
 /// Insert appends the element at the end and upheaps it
 /// Delete swaps the last element in front and downheaps it until a leaf is reached
 /// about 20% slower than method in the second implementation
-template <class T> class BinaryHeapDH : private TArrayDCT<T>
+template <typename T>
+class BinaryHeapDH : private TArrayDCT<T>
 {
 
 	friend void test_heaps(int scale);
@@ -208,7 +209,8 @@ private:
 /// Insert appends the element at the end and upheaps it
 /// Delete downheaps the hole until a leaf is reached, 
 ///    then replaces the hole with the last element and upheaps it
-template <class T> class BinaryHeap : public TArrayDCT<T>
+template <typename T>
+class BinaryHeap : public TArrayDCT<T>
 {
 	friend void test_heaps(int scale);
 public:

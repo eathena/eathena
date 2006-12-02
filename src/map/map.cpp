@@ -3520,7 +3520,7 @@ int do_init(int argc, char *argv[])
 {
 	int i;
 #if defined(WITH_FSMAI)
-//	npcai_test();
+	npcai_test();
 #endif
 
 	// just clear all maps

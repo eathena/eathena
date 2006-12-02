@@ -74,90 +74,48 @@ public:
 
 
 
-
-
-
-
-
 ///////////////////////////////////////////////////////////////////////////////
-/// login object for an account entry.
-/// holds user data and account specific options
-class login_account
+/// login object
+class login_session : public session_data
 {
 public:
-	uint32							account_id;		///< id of the account
-	uchar							passwd[24];		///< password
+	socket_data&					socket;			///< where this session is assigned to
 	basics::string<>				userid;			///< username
+	uchar							passwd[24];		///< password
+	uchar							md5keylen;		///< keylen
+	uchar							md5key[23];		///< key data
 	uint32							login_id1;		///< last id1
 	uint32							login_id2;		///< last id2
-	uint32							passfails;		///< # of failed password trys
-	time_t							ban_until;		///< bantime if any
-	time_t							valid_until;	///< validtime if any
-	
-public:
+
 	/// default constructor.
-	//## TODO remove when combining with construct support
-	login_account()	{}
-
-	// can use default copy/assign
-
-	/// create constructor with explicit name.
-	//## TODO remove when combining with construct support (iterator_find uses direct compare)
-	explicit login_account(char* name) 
-		: account_id(0), userid(name), 
-		  login_id1(0), login_id2(0), passfails(0),
-		  ban_until(0), valid_until(0)
-	{}
-
-	/// create from buffer constructor.
-	/// constructs object from transfer buffer
-	explicit login_account(const unsigned char* buf)
-	{
-		this->frombuffer(buf);
+	login_session(socket_data& s)
+		: socket(s), md5keylen(0)
+	{	// register
+		this->socket.user_session = this;
+		// init values
+		*this->passwd=0;
+		*this->md5key=0;
+		this->login_id1 = rand()<<16 | rand();
+		this->login_id2 = rand()<<16 | rand();
+	}
+	~login_session()
+	{	// unregister
+		this->socket.user_session = NULL;
 	}
 
-	//@{
-	/// compare operators. 
-	/// only have the string types as right hand token
-	bool operator==(const login_account&a) const { return this->userid==a.userid; }
-	bool operator< (const login_account&a) const { return this->userid< a.userid; }
+	/// create a coding key.
+	void create_key()
+ 	{	// all chars exept zero allowed
+		this->md5keylen = rand()%4 + 12; // 4..16
+		size_t i;
+		for(i=0; i<this->md5keylen; ++i)
+			this->md5key[i] = rand() % 255 + 1;
+		// terminate with zero
+		this->md5key[this->md5keylen]=0;
+	}
 
-	bool operator==(const basics::string<>&a) const { return this->userid==a; }
-	bool operator< (const basics::string<>&a) const { return this->userid< a; }
-	bool operator==(const char*a) const				{ return this->userid==a; }
-	bool operator< (const char*a) const				{ return this->userid< a; }
-	//@}
-	
-	/// old style buffer converter. loads object from buffer
-	size_t frombuffer(const unsigned char* buf)
-	{
-		if(buf)
-		{
-			_L_frombuffer(this->account_id, buf);
-			this->userid.assign((char*)buf, 24); buf+=24;
-			_X_frombuffer(this->passwd, buf, 16);
-			_L_frombuffer(this->login_id1, buf);
-			_L_frombuffer(this->login_id2, buf);
-			_T_frombuffer(this->ban_until, buf);
-			_T_frombuffer(this->valid_until, buf);
-		}
-		return 4+24+16+4+4+4+4;
-	}
-	/// old style buffer converter. stores object to buffer
-	size_t tobuffer(unsigned char* buf) const
-	{
-		if(buf)
-		{
-			_L_tobuffer(this->account_id, buf);
-			_S_tobuffer(this->userid, buf, 24);
-			_X_tobuffer(this->passwd, buf, 16);
-			_L_tobuffer(this->login_id1, buf);
-			_L_tobuffer(this->login_id2, buf);
-			_T_tobuffer(this->ban_until, buf);
-			_T_tobuffer(this->valid_until, buf);
-		}
-		return 4+24+16+4+4+4+4;
-	}
+	/// test if key exists.
+	bool is_encryped() const { return md5keylen!=0; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -172,12 +130,10 @@ struct server_connect
 
 ///////////////////////////////////////////////////////////////////////////////
 /// login-char connection, login side.
-/// mode needs to be specified
 struct charserver_connect : public server_connect
 {
 	basics::string<>				name;
-	unsigned int					mode;
-	basics::slist<login_account>	accounts;
+	bool							allow_register;
 
 	bool operator==(const charserver_connect&a) const { return this->name==a.name; }
 	bool operator< (const charserver_connect&a) const { return this->name< a.name; }
@@ -198,25 +154,31 @@ struct client_connect
 
 ///////////////////////////////////////////////////////////////////////////////
 /// data of a login server.
-struct login_server
+struct login_server : public session_data
 {
-	int									fd;				///< socket connect, derive when possible
+	socket_data&						socket;			///< where this session is assigned to
 	basics::CParam<ushort>				port;			///< login server listen port
 	basics::vector<charserver_connect>	char_servers;	///< char server connections
-	basics::slist<client_connect>		last_connects;	///< list of last server connections
+	basics::slist<client_connect>		last_connects;	///< list of last connections
 
 	basics::CParam<bool>				allowed_regs;	///< M/F registration allowed
 	ulong								new_reg_tick;	///< internal tickcounter for M/F registration
 	basics::CParam<ulong>				time_allowed;	///< time in seconds between registrations
 
-	login_server() :
-		fd(-1),
+	basics::smap< basics::string<>, basics::string<> > server_accounts;
+
+	login_server(socket_data& s) :
+		socket(s),
 		port("loginport", 6900),
 		allowed_regs("allowed_regs", false),
 		new_reg_tick(gettick()),
 		time_allowed("time_allowed", 10)
-		{}
+	{}
 
+	~login_server()
+	{	// unregister
+		this->socket.user_session = NULL;
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -230,67 +192,53 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-class packet_login_ok : public transmitt_packet
+class packet_try_login : public transmitt_packet
 {
-	enum { packet_header = 0xFF00, packet_size = 4+3*sizeof(uint32) };
+	enum { packet_header = 0xFF00, packet_size = 4+3*24+1+2*4 };
 
 	unsigned char buffer[packet_size];
 public:
-	explicit packet_login_ok(const login_account& acc)
+	explicit packet_try_login(const login_session& acc)
 	{
 		unsigned char *buf = this->buffer;
 		_W_tobuffer((ushort)packet_header, buf);
 		_W_tobuffer((ushort)packet_size, buf);
-		_L_tobuffer(acc.account_id, buf);
-		_L_tobuffer(acc.login_id1, buf);
-		_L_tobuffer(acc.login_id2, buf);
-	}
-	virtual size_t size() const	{ return packet_size; }
-	virtual operator const unsigned char*()	{ return buffer; }
-};
-
-///////////////////////////////////////////////////////////////////////////////
-class packet_add_account : public transmitt_packet
-{
-	enum { packet_header = 0xFF01, packet_size = 4+2*24+3*sizeof(uint32)+2*sizeof(uint32) };
-
-	unsigned char buffer[packet_size];
-public:
-	explicit packet_add_account(const login_account& acc)
-	{
-		unsigned char *buf = this->buffer;
-		_W_tobuffer((ushort)packet_header, buf);
-		_W_tobuffer((ushort)packet_size, buf);
-
-		_L_tobuffer(acc.account_id, buf);
 		_S_tobuffer(acc.userid, buf, 24);
-		_X_tobuffer(acc.passwd, buf, 16);
+		_X_tobuffer(acc.passwd, buf, 24);
+		_B_tobuffer(acc.md5keylen, buf);
+		_X_tobuffer(acc.md5key, buf, 24);
 		_L_tobuffer(acc.login_id1, buf);
 		_L_tobuffer(acc.login_id2, buf);
-		_T_tobuffer(acc.ban_until, buf);
-		_T_tobuffer(acc.valid_until, buf);
 	}
 	virtual size_t size() const	{ return packet_size; }
-	virtual operator const unsigned char*()	{ return buffer; }
+	virtual operator const unsigned char*() const	{ return buffer; }
+	virtual operator unsigned char*() { return buffer; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-class packet_del_account : public transmitt_packet
+class packet_new_login : public transmitt_packet
 {
-	enum { packet_header = 0xFF02, packet_size = 4+sizeof(uint32) };
+	enum { packet_header = 0xFF01, packet_size = 4+3*24+1+2*4 };
 
 	unsigned char buffer[packet_size];
 public:
-	explicit packet_del_account(const login_account& acc)
+	explicit packet_new_login(const login_session& acc)
 	{
 		unsigned char *buf = this->buffer;
 		_W_tobuffer((ushort)packet_header, buf);
 		_W_tobuffer((ushort)packet_size, buf);
-		_L_tobuffer(acc.account_id, buf);
+		_S_tobuffer(acc.userid, buf, 24);
+		_X_tobuffer(acc.passwd, buf, 24);
+		_B_tobuffer(acc.md5keylen, buf);
+		_X_tobuffer(acc.md5key, buf, 24);
+		_L_tobuffer(acc.login_id1, buf);
+		_L_tobuffer(acc.login_id2, buf);
 	}
 	virtual size_t size() const	{ return packet_size; }
-	virtual operator const unsigned char*()	{ return buffer; }
+	virtual operator const unsigned char*() const	{ return buffer; }
+	virtual operator unsigned char*() { return buffer; }
 };
+
 
 //////////////////////////////////////////////
 #endif

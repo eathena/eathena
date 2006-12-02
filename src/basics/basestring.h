@@ -29,11 +29,11 @@ void test_stringbuffer(void);
 /// character conversion/checking.
 /// with specified implementations for certain types
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> inline T locase(T c) { return ::tolower( to_unsigned(c) ); }
+template <typename T> inline T locase(T c) { return ::tolower( to_unsigned(c) ); }
 inline char locase(char c) { if (c >= 'A' && c <= 'Z') return char(c + 32); return c; }
 inline wchar_t locase(wchar_t c) { return ::towlower( to_unsigned(c) ); }
 
-template <class T> inline T upcase(T c) { return ::toupper( to_unsigned(c) ); }
+template <typename T> inline T upcase(T c) { return ::toupper( to_unsigned(c) ); }
 // implementation for char (and wchar)
 inline char upcase(char c) { if (c >= 'a' && c <= 'z') return char(c - 32); return c; }
 inline wchar_t upcase(wchar_t c) { return ::towupper( to_unsigned(c) ); }
@@ -57,16 +57,16 @@ inline wchar_t upcase(wchar_t c) { return ::towupper( to_unsigned(c) ); }
 ///////////////////////////////////////////////////////////////////////////////
 /// cstring to number
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> uint64 stringtoue(const T* str, size_t base);
-template <class T> sint64 stringtoie(const T* str);
-template <class T> sint64 stringtoi(const T* p);
-template <class T> double stringtod(const T* p);
+template <typename T> uint64 stringtoue(const T* str, size_t base);
+template <typename T> sint64 stringtoie(const T* str);
+template <typename T> sint64 stringtoi(const T* p);
+template <typename T> double stringtod(const T* p);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// number conversion core.
 /// don't use directly
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> const T* _itobase(sint64 value, T* buf, size_t base, size_t& len, bool _signed, T pluschar);
+template <typename T> const T* _itobase(sint64 value, T* buf, size_t base, size_t& len, bool _signed, T pluschar);
 
 
 
@@ -76,17 +76,17 @@ template <class T> const T* _itobase(sint64 value, T* buf, size_t base, size_t& 
 ///////////////////////////////////////////////////////////////////////////////
 /// predeclaration
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> class stringinterface;
-template <class T> class stringoperator;
-template <class T> class basestring;			// dynamic buffer without smart pointer
-template <class T> class staticstring;			// external static buffer
-template <class T> class string;				// dynamic buffer with smart pointer, copy-on-write
-template <class T> class globalstring;			// dynamic buffer with smart pointer, copy-on-write
-template <class T> class substring;				// contains pointer to string, implements allocator interface
+template <typename T> class stringinterface;
+template <typename T> class stringoperator;
+template <typename T> class basestring;			// dynamic buffer without smart pointer
+template <typename T> class staticstring;			// external static buffer
+template <typename T> class string;				// dynamic buffer with smart pointer, copy-on-write
+template <typename T> class globalstring;			// dynamic buffer with smart pointer, copy-on-write
+template <typename T> class substring;				// contains pointer to string, implements allocator interface
 
 
-template <class T, class X> class formatstr;
-template <class X>          class formatobj;
+template <typename T, typename X> class formatstr;
+template <typename X>             class formatobj;
 
 
 
@@ -110,7 +110,8 @@ public:
 /// basic string interface.
 /// defines all reading access on a string object
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class stringinterface : public allocator<T>, public elaborator_st<T>, public stringconfig
+template <typename T=char>
+class stringinterface : public allocator<T>, public elaborator_st<T>, public stringconfig
 {
 protected:
 	///////////////////////////////////////////////////////////////////////////
@@ -186,10 +187,7 @@ public:
 /// some Unix systems do not accept NULL
 inline size_t hstrlen(const char* p)		{ return p == NULL ? 0 : strlen(p); }
 inline size_t hstrlen(const wchar_t* p)		{ return p == NULL ? 0 : wcslen(p); }
-#if !defined(WITH_NAMESPACE)
-template<class T> inline size_t strlen(const stringinterface<T>& p)	{ return p.length(); }
-#endif
-template<class T> inline size_t hstrlen(const stringinterface<T>& p){ return p.length(); }
+template<typename T> inline size_t hstrlen(const stringinterface<T>& p)	{ return p.length(); }
 
 
 
@@ -200,7 +198,8 @@ template<class T> inline size_t hstrlen(const stringinterface<T>& p){ return p.l
 /// basic string operator.
 /// defines write access on a string object
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class stringoperator : public stringinterface<T>
+template <typename T=char>
+class stringoperator : public stringinterface<T>
 {
 protected:
 	stringoperator<T>()				{}
@@ -231,7 +230,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// templated single element append function
 	///////////////////////////////////////////////////////////////////////////
-	template<class X> const stringoperator<T>& assign(const X& t)
+	template<typename X>
+	const stringoperator<T>& assign(const X& t)
 	{
 		this->clear();
 		return this->append(t);
@@ -239,7 +239,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// templated add-assignment operators
 	///////////////////////////////////////////////////////////////////////////
-	template <class X> const stringoperator<T>& operator +=(const X& t)
+	template <typename X>
+	const stringoperator<T>& operator +=(const X& t)
 	{
 		return this->append(t);
 	}
@@ -271,12 +272,14 @@ public:
 	virtual stringoperator<T>& append(const uint64 v) =0;
 	virtual stringoperator<T>& append(const double v) =0;
 
-	template<class X> stringoperator<T>& append(const formatstr<T,X>& t)
+	template<typename X>
+	stringoperator<T>& append(const formatstr<T,X>& t)
 	{
 		dsprintf<T>(*this, t.fmt(), t.val());
 		return *this;
 	}
-	template<class X> stringoperator<T>& append(const formatobj<X>& t)
+	template<typename X>
+	stringoperator<T>& append(const formatobj<X>& t)
 	{
 		t.print( *this );
 		return *this;
@@ -323,28 +326,28 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 /// case and trim
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> const T* toupper(T* str);
-template<class T> const T* tolower(T* str);
-template<class T> const T* ltrim(T* str);
-template<class T> const T* rtrim(T* str);
-template<class T> const T* trim(T* str);
-template<class T> const T* itrim(T* str, bool removeall=false);
+template<typename T> const T* toupper(T* str);
+template<typename T> const T* tolower(T* str);
+template<typename T> const T* ltrim(T* str);
+template<typename T> const T* rtrim(T* str);
+template<typename T> const T* trim(T* str);
+template<typename T> const T* itrim(T* str, bool removeall=false);
 
-template<class T> const stringoperator<T>& toupper(stringoperator<T>& str)	{ return str.toupper(); return str; }
-template<class T> const stringoperator<T>& tolower(stringoperator<T>& str)	{ return str.tolower(); return str; }
-template<class T> const stringoperator<T>& ltrim(stringoperator<T>& str)	{ return str.ltrim(); return str; }
-template<class T> const stringoperator<T>& rtrim(stringoperator<T>& str)	{ return str.rtrim(); return str; }
-template<class T> const stringoperator<T>& trim(stringoperator<T>& str)		{ return str.trim(); return str; }
-template<class T> const stringoperator<T>& itrim(stringoperator<T>& str)	{ return str.itrim(); return str; }
+template<typename T> const stringoperator<T>& toupper(stringoperator<T>& str)	{ return str.toupper(); return str; }
+template<typename T> const stringoperator<T>& tolower(stringoperator<T>& str)	{ return str.tolower(); return str; }
+template<typename T> const stringoperator<T>& ltrim(stringoperator<T>& str)	{ return str.ltrim(); return str; }
+template<typename T> const stringoperator<T>& rtrim(stringoperator<T>& str)	{ return str.rtrim(); return str; }
+template<typename T> const stringoperator<T>& trim(stringoperator<T>& str)		{ return str.trim(); return str; }
+template<typename T> const stringoperator<T>& itrim(stringoperator<T>& str)	{ return str.itrim(); return str; }
 
 
 ///////////////////////////////////////////////////////////////////////////////
 /// basic number conversion
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void _itostring(stringoperator<T>& result, sint64 value, size_t base, bool _signed, size_t width=0, bool left=true, T padchar=0, T pluschar=0);
-template <class T> void _hextostring(stringoperator<T>& result, uint64 value, size_t width=0, bool left=true, T padchar=0, bool alt=false, bool low=true);
-template <class T> void _octtostring(stringoperator<T>& result, uint64 value, size_t width=0, bool left=true, T padchar=0, bool alt=false);
-template <class T> void _ftostring(stringoperator<T>& result, double value, int prec, T format='g', size_t width=0, bool left=true, T padchar=0, T pluschar=0, bool alt=false);
+template <typename T> void _itostring(stringoperator<T>& result, sint64 value, size_t base, bool _signed, size_t width=0, bool left=true, T padchar=0, T pluschar=0);
+template <typename T> void _hextostring(stringoperator<T>& result, uint64 value, size_t width=0, bool left=true, T padchar=0, bool alt=false, bool low=true);
+template <typename T> void _octtostring(stringoperator<T>& result, uint64 value, size_t width=0, bool left=true, T padchar=0, bool alt=false);
+template <typename T> void _ftostring(stringoperator<T>& result, double value, int prec, T format='g', size_t width=0, bool left=true, T padchar=0, T pluschar=0, bool alt=false);
 
 
 
@@ -355,7 +358,7 @@ template <class T> void _ftostring(stringoperator<T>& result, double value, int 
 /// basic string template implementations.
 /// writable part
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=char, class A=allocator_ws_dy<T> >
+template <typename T=char, typename A=allocator_ws_dy<T> >
 class TString : public A, public stringoperator<T>
 {
 	friend void test_stringbuffer(void);
@@ -372,7 +375,8 @@ protected:
 	// but always generating defaults if not explicitely defined
 	// mixing template and explicit definition does also not work because
 	// it "detects" ambiguities in this case
-//	template <class A> TString<T,A>(const TString<T, A>& b) : alloc(b.length())
+//	template <typename A>
+//	TString<T,A>(const TString<T, A>& b) : alloc(b.length())
 //	{
 //		this->append(b);
 //	}
@@ -398,7 +402,8 @@ public:
 // but always generating defaults if not explicitely defines
 // mixing template and explicit definition does also not work because
 // it "detects" ambiguities in this case
-//	template <class X> const TString<T,A>& operator =(const X& t)
+//	template <typename X>
+//	const TString<T,A>& operator =(const X& t)
 //	{
 //		this->cWpp = this->cBuf;
 //		return *this<<t;
@@ -669,7 +674,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// templated single element append function
 	///////////////////////////////////////////////////////////////////////////
-	template<class X> const stringoperator<T>& assign(const X& t)
+	template<typename X>
+	const stringoperator<T>& assign(const X& t)
 	{
 		this->clear();
 		return this->append(t);
@@ -677,7 +683,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// templated add-assignment operators
 	///////////////////////////////////////////////////////////////////////////
-	template <class X> const stringoperator<T>& operator +=(const X& t)
+	template <typename X>
+	const stringoperator<T>& operator +=(const X& t)
 	{
 		return this->append(t);
 	}
@@ -816,12 +823,14 @@ public:
 		_ftostring<T>(*this, v, -1, 'g', 0, true, ' ', '\0', stringconfig::default_double_alternate);
 		return *this;
 	}
-	template<class X> stringoperator<T>& append(const formatstr<T,X>& t)
+	template<typename X>
+	stringoperator<T>& append(const formatstr<T,X>& t)
 	{
 		dsprintf<T>(*this, t.fmt(), t.val());
 		return *this;
 	}
-	template<class X> stringoperator<T>& append(const formatobj<X>& t)
+	template<typename X>
+	stringoperator<T>& append(const formatobj<X>& t)
 	{
 		t.print( *this );
 		return *this;
@@ -1160,7 +1169,8 @@ public:
 /// implements a dynamic in-place buffer
 /// type construction always copies the data to a newly created buffer
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class basestring : public TString< T, allocator_ws_dy<T> >
+template <typename T=char>
+class basestring : public TString< T, allocator_ws_dy<T> >
 {
 public:
 	basestring()
@@ -1204,7 +1214,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// assignments
 	///////////////////////////////////////////////////////////////////////////
-	template<class X> const basestring<T>& operator=(const X& t)
+	template<typename X>
+	const basestring<T>& operator=(const X& t)
 	{
 		this->TString< T, allocator_ws_dy<T> >::assign(t);
 		return *this;
@@ -1217,7 +1228,8 @@ public:
 /// type construction only possible with either a buffer which is used for writing
 /// or with a const cstring which is then used as a constant without write possibility
 ///////////////////////////////////////////////////////////////////////////////
-template<class T=char> class staticstring : public TString< T, allocator_ws_st<T> >
+template<typename T=char>
+class staticstring : public TString< T, allocator_ws_st<T> >
 {
 	staticstring<T>();
 	staticstring<T>(const staticstring<T>&);
@@ -1241,7 +1253,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// assignments
 	///////////////////////////////////////////////////////////////////////////
-	template<class X> const staticstring<T>& operator=(const X& t)
+	template<typename X>
+	const staticstring<T>& operator=(const X& t)
 	{
 		this->TString< T, allocator_ws_st<T> >::assign(t);
 		return *this;
@@ -1254,7 +1267,8 @@ public:
 /// type construction only possible with either a buffer which is used for writing
 /// or with a const cstring which is then used as a constant without write possibility
 ///////////////////////////////////////////////////////////////////////////////
-template<class T=char> class conststring : public stringinterface<T>, public allocator_ws_st<T>
+template<typename T=char>
+class conststring : public stringinterface<T>, public allocator_ws_st<T>
 {
 	// prevent default construction
 	conststring<T>();
@@ -1448,7 +1462,8 @@ public:
 /// additionally it implements a smart pointer with copy-on-write semantic
 /// so that string copy operations are basically reduced to copying a pointer
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class string : public stringoperator<T>
+template <typename T=char>
+class string : public stringoperator<T>
 {
 	friend class substring<T>;
 private:
@@ -1472,7 +1487,8 @@ private:
 		virtual ~ptrstring()	{}
 
 	private:
-		template<class X> const ptrstring& operator=(const X& t)
+		template<typename X>
+		const ptrstring& operator=(const X& t)
 		{
 			this->basestring<T>::operator=(t);
 			return *this;
@@ -1699,12 +1715,14 @@ public:
 		this->writeaccess(false).assign(t);
 		return *this;
 	}
-	template<class X> const string<T>& operator=(const formatstr<T,X>& t)
+	template<typename X>
+	const string<T>& operator=(const formatstr<T,X>& t)
 	{
 		(this->writeaccess(false)) = t;
 		return *this;
 	}
-	template<class X> const string<T>& operator=(const formatobj<X>& t)
+	template<typename X>
+	const string<T>& operator=(const formatobj<X>& t)
 	{
 		(this->writeaccess(false)) = t;
 		return *this;
@@ -1713,7 +1731,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// templated add-assignment operators
 	///////////////////////////////////////////////////////////////////////////
-	template <class X> const stringoperator<T>& operator +=(const X& t)
+	template <typename X>
+	const stringoperator<T>& operator +=(const X& t)
 	{
 		return this->writeaccess().append(t);
 	}
@@ -1721,7 +1740,8 @@ public:
 	/// add operators.
 	/// for right side operations
 	/////////////////////////////////////////////////////////////////
-	template <class X> string<T> operator +(const X& t)
+	template <typename X>
+	string<T> operator +(const X& t)
 	{
 		string<T> a(*this);
 		a.writeaccess().append(t);
@@ -1731,7 +1751,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// assignment function
 	///////////////////////////////////////////////////////////////////////////
-	template<class X> string<T>& assign(const X& t)
+	template<typename X>
+	string<T>& assign(const X& t)
 	{
 		this->writeaccess().assign(t);
 		return *this;
@@ -1892,12 +1913,14 @@ public:
 		this->writeaccess().append(t);
 		return *this;
 	}
-	template<class X> string<T>& append(const formatstr<T,X>& t)
+	template<typename X>
+	string<T>& append(const formatstr<T,X>& t)
 	{
 		dsprintf<T>(this->writeaccess(), t.fmt(), t.val());
 		return *this;
 	}
-	template<class X> string<T>& append(const formatobj<X>& t)
+	template<typename X>
+	string<T>& append(const formatobj<X>& t)
 	{
 		t.print( this->writeaccess() );
 		return *this;
@@ -2352,7 +2375,8 @@ public:
 /// can be used to globally change all strings connected to the same buffer
 /// use with care in multithread environment
 ///////////////////////////////////////////////////////////////////////////////
-template<class T=char> class globalstring : public string<T>
+template<typename T=char>
+class globalstring : public string<T>
 {
 protected:
 	/////////////////////////////////////////////////////////////////
@@ -2454,7 +2478,8 @@ public:
 /// can only be created from inside a string and not stored, 
 /// so it is safe to just contain and work on a pointer to the calling string
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class substring : public stringinterface<T>
+template <typename T=char>
+class substring : public stringinterface<T>
 {
 	friend class string<T>;
 	string<T>* cString;
@@ -2805,7 +2830,8 @@ public:
 /// it just contains a simple singleton with a list of all stored strings
 /// so it can be used to retrieve same stringbuffers throughout the application
 ///////////////////////////////////////////////////////////////////////////////
-template<class T=char> class dbstring
+template<typename T=char>
+class dbstring
 {
 private:
 	// simple Singleton
@@ -2862,44 +2888,44 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 /// pipe operators 
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const stringinterface<T>& t)	{ return s.append(t); }
-template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const string<T>& t)			{ return s.append(t); }
-template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const T* t)					{ return s.append(t); }
-template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const T t)					{ return s.append(t); }
-template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const int t)					{ return s.append(t); }
-template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const unsigned int t)			{ return s.append(t); }
-template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const long t)					{ return s.append(t); }
-template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const unsigned long t)		{ return s.append(t); }
-template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const int64 t)				{ return s.append(t); }
-template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const uint64 t)				{ return s.append(t); }
-template<class T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const double t)				{ return s.append(t); }
-template<class T, class X> inline stringoperator<T>& operator <<(stringoperator<T>& s, const formatstr<T,X>& t)	{ return s.append(t); }
-template<class T, class X> inline stringoperator<T>& operator <<(stringoperator<T>& s, const formatobj<X>& t)	{ return s.append(t); }
+template<typename T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const stringinterface<T>& t)	{ return s.append(t); }
+template<typename T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const string<T>& t)			{ return s.append(t); }
+template<typename T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const T* t)					{ return s.append(t); }
+template<typename T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const T t)					{ return s.append(t); }
+template<typename T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const int t)					{ return s.append(t); }
+template<typename T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const unsigned int t)			{ return s.append(t); }
+template<typename T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const long t)					{ return s.append(t); }
+template<typename T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const unsigned long t)		{ return s.append(t); }
+template<typename T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const int64 t)				{ return s.append(t); }
+template<typename T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const uint64 t)				{ return s.append(t); }
+template<typename T> inline stringoperator<T>& operator <<(stringoperator<T>& s, const double t)				{ return s.append(t); }
+template<typename T, typename X> inline stringoperator<T>& operator <<(stringoperator<T>& s, const formatstr<T,X>& t)	{ return s.append(t); }
+template<typename T, typename X> inline stringoperator<T>& operator <<(stringoperator<T>& s, const formatobj<X>& t)	{ return s.append(t); }
 
-template<class T> inline string<T>& operator <<(string<T>& s, const stringinterface<T>& t)		{ s->append(t); return s; }
-template<class T> inline string<T>& operator <<(string<T>& s, const string<T>& t)				{ s->append(t); return s; }
-template<class T> inline string<T>& operator <<(string<T>& s, const T* t)						{ s->append(t); return s; }
-template<class T> inline string<T>& operator <<(string<T>& s, const T t)						{ s->append(t); return s; }
-template<class T> inline string<T>& operator <<(string<T>& s, const int t)						{ s->append(t); return s; }
-template<class T> inline string<T>& operator <<(string<T>& s, const unsigned int t)				{ s->append(t); return s; }
-template<class T> inline string<T>& operator <<(string<T>& s, const long t)						{ s->append(t); return s; }
-template<class T> inline string<T>& operator <<(string<T>& s, const unsigned long t)			{ s->append(t); return s; }
-template<class T> inline string<T>& operator <<(string<T>& s, const int64 t)					{ s->append(t); return s; }
-template<class T> inline string<T>& operator <<(string<T>& s, const uint64 t)					{ s->append(t); return s; }
-template<class T> inline string<T>& operator <<(string<T>& s, const double t)					{ s->append(t); return s; }
-template<class T, class X> inline string<T>& operator <<(string<T>& s, const formatstr<T,X>& t)	{ s->append(t); return s; } 
-template<class T, class X> inline string<T>& operator <<(string<T>& s, const formatobj<X>& t)	{ s->append(t); return s; }
+template<typename T> inline string<T>& operator <<(string<T>& s, const stringinterface<T>& t)		{ s->append(t); return s; }
+template<typename T> inline string<T>& operator <<(string<T>& s, const string<T>& t)				{ s->append(t); return s; }
+template<typename T> inline string<T>& operator <<(string<T>& s, const T* t)						{ s->append(t); return s; }
+template<typename T> inline string<T>& operator <<(string<T>& s, const T t)						{ s->append(t); return s; }
+template<typename T> inline string<T>& operator <<(string<T>& s, const int t)						{ s->append(t); return s; }
+template<typename T> inline string<T>& operator <<(string<T>& s, const unsigned int t)				{ s->append(t); return s; }
+template<typename T> inline string<T>& operator <<(string<T>& s, const long t)						{ s->append(t); return s; }
+template<typename T> inline string<T>& operator <<(string<T>& s, const unsigned long t)			{ s->append(t); return s; }
+template<typename T> inline string<T>& operator <<(string<T>& s, const int64 t)					{ s->append(t); return s; }
+template<typename T> inline string<T>& operator <<(string<T>& s, const uint64 t)					{ s->append(t); return s; }
+template<typename T> inline string<T>& operator <<(string<T>& s, const double t)					{ s->append(t); return s; }
+template<typename T, typename X> inline string<T>& operator <<(string<T>& s, const formatstr<T,X>& t)	{ s->append(t); return s; } 
+template<typename T, typename X> inline string<T>& operator <<(string<T>& s, const formatobj<X>& t)	{ s->append(t); return s; }
 
 
 // have type conversions for extra windows buildin types for MSVC versions that have them seperated
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 // take __int8 and __int16 as numbers, not as char/wchar
-template<class T> inline string<T>& operator <<(string<T>& s, const          __int8  t)			{ s->append((         int)t); return s; }
-template<class T> inline string<T>& operator <<(string<T>& s, const unsigned __int8  t)			{ s->append((unsigned int)t); return s; }
-template<class T> inline string<T>& operator <<(string<T>& s, const          __int16 t)			{ s->append((         int)t); return s; }
-template<class T> inline string<T>& operator <<(string<T>& s, const unsigned __int16 t)			{ s->append((unsigned int)t); return s; }
-template<class T> inline string<T>& operator <<(string<T>& s, const          __int32 t)			{ s->append((         long)t); return s; }
-template<class T> inline string<T>& operator <<(string<T>& s, const unsigned __int32 t)			{ s->append((unsigned long)t); return s; }
+template<typename T> inline string<T>& operator <<(string<T>& s, const          __int8  t)			{ s->append((         int)t); return s; }
+template<typename T> inline string<T>& operator <<(string<T>& s, const unsigned __int8  t)			{ s->append((unsigned int)t); return s; }
+template<typename T> inline string<T>& operator <<(string<T>& s, const          __int16 t)			{ s->append((         int)t); return s; }
+template<typename T> inline string<T>& operator <<(string<T>& s, const unsigned __int16 t)			{ s->append((unsigned int)t); return s; }
+template<typename T> inline string<T>& operator <<(string<T>& s, const          __int32 t)			{ s->append((         long)t); return s; }
+template<typename T> inline string<T>& operator <<(string<T>& s, const unsigned __int32 t)			{ s->append((unsigned long)t); return s; }
 // (__int64 already handled)
 // (no use for __int128 currently)
 #endif
@@ -2911,33 +2937,39 @@ template<class T> inline string<T>& operator <<(string<T>& s, const unsigned __i
 /// for left hand side operators, only implement these, 
 /// the others would confuse standard operators
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> string<T> operator +(const T* t, const stringinterface<T>& str)
+template<typename T> string<T>
+operator +(const T* t, const stringinterface<T>& str)
 {
 	string<T> a(t);
 	return ( a << str );
 }
-template<class T> string<T> operator +(const T t, const stringinterface<T>& str)
+template<typename T> string<T>
+operator +(const T t, const stringinterface<T>& str)
 {
 	string<T> a(t);
 	return ( a << str );
 }
-template<class T> string<T> operator +(const T* t, const string<T>& str)
+template<typename T> string<T>
+operator +(const T* t, const string<T>& str)
 {
 	string<T> a(t);
 	return ( a << str );
 }
-template<class T> string<T> operator +(const T t, const string<T>& str)
+template<typename T> string<T>
+operator +(const T t, const string<T>& str)
 {
 	string<T> a(t);
 	return ( a << str );
 }
 
-template<class T, class X> string<T> operator +(const stringinterface<T>& t, const X& v)
+template<typename T, typename X>
+string<T> operator +(const stringinterface<T>& t, const X& v)
 {
 	string<T> a(t);
 	return ( a << v );
 }
-template<class T, class X> string<T> operator +(const string<T>& t, const X& v)
+template<typename T, typename X>
+string<T> operator +(const string<T>& t, const X& v)
 {
 	string<T> a(t);
 	return ( a << v );
@@ -2947,41 +2979,41 @@ template<class T, class X> string<T> operator +(const string<T>& t, const X& v)
 ///////////////////////////////////////////////////////////////////////////////
 // 
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> inline void assign(string<T>& s, const char* buf, int len)
+template<typename T> inline void assign(string<T>& s, const char* buf, int len)
 {
 	s.assign(buf, len);
 }
-template<class T> inline void clear(string<T>& s)
+template<typename T> inline void clear(string<T>& s)
 {
 	s.clear();
 }
-template<class T> inline bool isempty(const stringinterface<T>& s)
+template<typename T> inline bool isempty(const stringinterface<T>& s)
 {
 	return s.length() == 0;
 }
-template<class T> inline int  pos(const string<T>& s1, const string<T>& s)
+template<typename T> inline int  pos(const string<T>& s1, const string<T>& s)
 {
 	return pos(s1.c_str(), s);
 }
 
-template<class T> inline string<T> lowercase(const T* p) 
+template<typename T> inline string<T> lowercase(const T* p) 
 {
     return string<T>().assign_tolower(p);
 }
 
-template<class T> inline string<T> lowercase(const string<T>& s)
+template<typename T> inline string<T> lowercase(const string<T>& s)
 {
 	string<T> r = s;
 	r.tolower();
 	return r;
 }
 
-template<class T> inline string<T> uppercase(const T* p) 
+template<typename T> inline string<T> uppercase(const T* p) 
 {
     return string<T>().assign_toupper(p);
 }
 
-template<class T> inline string<T> uppercase(const string<T>& s)
+template<typename T> inline string<T> uppercase(const string<T>& s)
 {
 	string<T> r = s;
 	r.toupper();
@@ -2989,33 +3021,33 @@ template<class T> inline string<T> uppercase(const string<T>& s)
 }
 
 
-template<class T> inline string<T> dup(const string<T>& s)
+template<typename T> inline string<T> dup(const string<T>& s)
 {    // dup() only reads the data pointer so it is thread-safe
     return string<T>(s);
 }
 
-template<class T> inline bool contains(const T* s1, size_t s1len, const string<T>& s, size_t at)
+template<typename T> inline bool contains(const T* s1, size_t s1len, const string<T>& s, size_t at)
 {
 	return (s1len >= 0) && (at >= 0) && (at+s1len <= hstrlen(s))
         && (s1len == 0 || memcmp(s.c_str()+at, s1, s1len*sizeof(T)) == 0);
 }
 
-template<class T> inline bool contains(const T* s1, const string<T>& s, size_t at)
+template<typename T> inline bool contains(const T* s1, const string<T>& s, size_t at)
 {
     return contains<T>(s1, hstrlen(s1), s, at);
 }
 
-template<class T> inline bool contains(const T s1, const string<T>& s, size_t at)
+template<typename T> inline bool contains(const T s1, const string<T>& s, size_t at)
 {
     return (at<hstrlen(s)) && (s.c_str()[at] == s1);
 }
 
-template<class T> inline bool contains(const string<T>& s1, const string<T>& s, size_t at)
+template<typename T> inline bool contains(const string<T>& s1, const string<T>& s, size_t at)
 {
     return contains<T>(s1.c_str(), hstrlen(s1), s, at);
 }
 
-template<class T> inline string<T> copy(const string<T>& s, size_t from, size_t cnt)
+template<typename T> inline string<T> copy(const string<T>& s, size_t from, size_t cnt)
 {
     string<T> t;
     if( hstrlen(s)>0 && from<hstrlen(s)) 
@@ -3029,60 +3061,60 @@ template<class T> inline string<T> copy(const string<T>& s, size_t from, size_t 
 	return t;
 }
 
-template<class T> inline string<T> copy(const string<T>& s, size_t from)
+template<typename T> inline string<T> copy(const string<T>& s, size_t from)
 {
 	return copy(s, from, INT_MAX);
 }
 
-template<class T> inline void ins(const T* s1, size_t s1len, string<T>& s, size_t at)
+template<typename T> inline void ins(const T* s1, size_t s1len, string<T>& s, size_t at)
 {
 	s.insert(at, s1, s1len);
 }
 
-template<class T> inline void ins(const T* sc, string<T>& s, size_t at)
+template<typename T> inline void ins(const T* sc, string<T>& s, size_t at)
 {
 	s.insert(at, sc);
 }
 
-template<class T> inline void ins(const T c, string<T>& s, size_t at)
+template<typename T> inline void ins(const T c, string<T>& s, size_t at)
 {
 	s.insert(at, c);
 }
 
-template<class T> inline void ins(const string<T>& s1, string<T>& s, size_t at)
+template<typename T> inline void ins(const string<T>& s1, string<T>& s, size_t at)
 {
 	s.insert(at, s);
 }
 
-template<class T> inline void del(string<T>& s, size_t from, size_t cnt)
+template<typename T> inline void del(string<T>& s, size_t from, size_t cnt)
 {
 	s.clear(from, cnt);
 }
 
-template<class T> inline void del(string<T>& s, size_t from)
+template<typename T> inline void del(string<T>& s, size_t from)
 {
 	s.clear(from, INT_MAX);
 }
 
-template<class T> inline int pos(const T* sc, const string<T>& s)
+template<typename T> inline int pos(const T* sc, const string<T>& s)
 {
     const T* t = sstrstr(s.c_str(), sc);
     return (t == NULL ? (-1) : (t - s.c_str()));
 }
 
-template<class T> inline int pos(T c, const string<T>& s)
+template<typename T> inline int pos(T c, const string<T>& s)
 {
     const T* t = strchr(s.c_str(), c);
     return (t == NULL ? (-1) : (t - s.c_str()));
 }
 
-template<class T> inline int rpos(T c, const string<T>& s)
+template<typename T> inline int rpos(T c, const string<T>& s)
 {
     const T* t = strrchr(s.c_str(), c);
     return (t == NULL ? (-1) : (t - s.c_str()));
 }
 
-template<class T> inline string<T>& fill(string<T>& str, size_t width, T ch)
+template<typename T> inline string<T>& fill(string<T>& str, size_t width, T ch)
 {
     if( width > 0 )
         str.assign(ch, width);
@@ -3091,7 +3123,7 @@ template<class T> inline string<T>& fill(string<T>& str, size_t width, T ch)
     return str;
 }
 
-template<class T> inline string<T>& pad(string<T>& s, size_t width, T ch, bool left)
+template<typename T> inline string<T>& pad(string<T>& s, size_t width, T ch, bool left)
 {
 	size_t len = hstrlen(s);
 	if( width > 0 && len < width )
@@ -3099,15 +3131,15 @@ template<class T> inline string<T>& pad(string<T>& s, size_t width, T ch, bool l
 	return s;
 }
 
-template<class T> inline vector< string<T> > split(const string<T>& s, const T& splitter)
+template<typename T> inline vector< string<T> > split(const string<T>& s, const T& splitter)
 {
 	return s.split(splitter);
 }
-template<class T> inline vector< string<T> > split(const string<T>& s, const T* splitter)
+template<typename T> inline vector< string<T> > split(const string<T>& s, const T* splitter)
 {
 	return s.split(splitter);
 }
-template<class T> inline vector< string<T> > split(const string<T>& s, const string<T>& splitter)
+template<typename T> inline vector< string<T> > split(const string<T>& s, const string<T>& splitter)
 {
 	return s.split(splitter);
 }
@@ -3141,11 +3173,11 @@ inline string<> tostring(double v)	{ return ftostring(v, 6, 'g', 0, true, ' ', '
 ///////////////////////////////////////////////////////////////////////////////
 /// timestamp string
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> string<T> nowstring(const T* fmt, bool utc=true);
-template<class T> string<T> dttostring(const datetime& dt, const T* fmt);
+template<typename T> string<T> nowstring(const T* fmt, bool utc=true);
+template<typename T> string<T> dttostring(const datetime& dt, const T* fmt);
 string<> longtimestring(ulong seconds);
-template<class T> stringoperator<T>& operator <<(stringoperator<T>& str, const datetime& dt);
-template<class T> string<T>& operator <<(string<T>& str, const datetime& dt)	{ *str << dt; return str; }
+template<typename T> stringoperator<T>& operator <<(stringoperator<T>& str, const datetime& dt);
+template<typename T> string<T>& operator <<(string<T>& str, const datetime& dt)	{ *str << dt; return str; }
 
 ////////////////////////////////////////////////////////////////////////////////
 // converts given number to string with k/M/G.. units with base 1024
@@ -3170,7 +3202,8 @@ extern string<> nullstring;
 /// object for sprintf compatible formating.
 /// though supports only one printing element per object
 ///////////////////////////////////////////////////////////////////////////////
-template <class T, class X> class formatstr
+template <typename T, typename X>
+class formatstr
 {
 	const T*			cfmt;
 	mutable const X&	cval;
@@ -3199,7 +3232,8 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 /// object for formating.
 ///////////////////////////////////////////////////////////////////////////////
-template <class X> class formatobj
+template <typename X>
+class formatobj
 {
 	mutable const X&	cval;
 	bool				cconst;
@@ -3234,7 +3268,7 @@ public:
 	//operator const X&() const	{ return cval; }
 	//operator X&()				{ return const_cast<X&>(cval); }
 
-	template<class T> operator string<T>() const	{ string<T> str; this->print(str); return str;}
+	template<typename T> operator string<T>() const	{ string<T> str; this->print(str); return str;}
 
 	const formatobj<X>& operator=(const X& v) const
 	{
@@ -3268,25 +3302,30 @@ public:
 /// type depending inplementations
 ///////////////////////////////////////////////////////////////////////////////
 
-template <class X> inline formatstr<char   ,X> format(const char   *f, const X& v)
+template <typename X>
+inline formatstr<char   ,X> format(const char   *f, const X& v)
 {
 	return formatstr<char   ,X>(f,v);
 }
-template <class X> inline formatstr<wchar_t,X> format(const wchar_t*f, const X& v)
+template <typename X>
+inline formatstr<wchar_t,X> format(const wchar_t*f, const X& v)
 {
 	return formatstr<wchar_t,X>(f,v);
 }
-template <class X> inline formatstr<char   ,X> format(const char   *f, X& v)
+template <typename X>
+inline formatstr<char   ,X> format(const char   *f, X& v)
 {
 	return formatstr<char   ,X>(f,v);
 }
-template <class X> inline formatstr<wchar_t,X> format(const wchar_t*f, X& v)
+template <typename X>
+inline formatstr<wchar_t,X> format(const wchar_t*f, X& v)
 {
 	return formatstr<wchar_t,X>(f,v);
 }
 
 
-template <class X> inline formatobj<X> format(const X& v, int prec, int width, char type='a', bool left=true, char pad='\0', char plus='\0', bool alt=false)
+template <typename X>
+inline formatobj<X> format(const X& v, int prec, int width, char type='a', bool left=true, char pad='\0', char plus='\0', bool alt=false)
 {
 	return formatobj<X>(v, type, prec, width, left, pad, plus, alt);
 }

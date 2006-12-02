@@ -18,7 +18,8 @@ NAMESPACE_BEGIN(basics)
 ///////////////////////////////////////////////////////////////////////////////
 /// a pool provides overlapping free usage of objects.
 /// usable types need copy constructor
-template <class T> class TPool : public global, protected Mutex
+template <typename T>
+class TPool : public global, protected Mutex
 {
 	//TslistDST<T*> cListAll;
 	//TslistDST<T*> cListFree;
@@ -33,43 +34,50 @@ public:
 		cListAll.push(obj);
 		cListFree.push(obj);
 	}
-	template<class P1> TPool(P1& p1)
+	template<typename P1>
+	TPool(P1& p1)
 	{	// one parametered objects
 		T* obj = new T(p1);
 		cListAll.push(obj);
 		cListFree.push(obj);
 	}
-	template<class P1, class P2> TPool(P1& p1, P2& p2)
+	template<typename P1, typename P2>
+	TPool(P1& p1, P2& p2)
 	{	// two parametered objects
 		T* obj = new T(p1,p2);
 		cListAll.push(obj);
 		cListFree.push(obj);
 	}
-	template<class P1, class P2, class P3> TPool(P1& p1, P2& p2, P3& p3)
+	template<typename P1, typename P2, typename P3>
+	TPool(P1& p1, P2& p2, P3& p3)
 	{	// three parametered objects
 		T* obj = new T(p1,p2,p3);
 		cListAll.push(obj);
 		cListFree.push(obj);
 	}
-	template<class P1, class P2, class P3, class P4> TPool(P1& p1, P2& p2, P3& p3, P4& p4)
+	template<typename P1, typename P2, typename P3, typename P4>
+	TPool(P1& p1, P2& p2, P3& p3, P4& p4)
 	{	// four parametered objects
 		T* obj = new T(p1,p2,p3,p4);
 		cListAll.push(obj);
 		cListFree.push(obj);
 	}
-	template<class P1, class P2, class P3, class P4, class P5> TPool(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
+	template<typename P1, typename P2, typename P3, typename P4, typename P5>
+	TPool(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
 	{	// five parametered objects
 		T* obj = new T(p1,p2,p3,p4,p5);
 		cListAll.push(obj);
 		cListFree.push(obj);
 	}
-	template<class P1, class P2, class P3, class P4, class P5, class P6> TPool(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6)
+	template<typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
+	TPool(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6)
 	{	// six parametered objects
 		T* obj = new T(p1,p2,p3,p4,p5,p6);
 		cListAll.push(obj);
 		cListFree.push(obj);
 	}
-	template<class P1, class P2, class P3, class P4, class P5, class P6, class P7> TPool(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7)
+	template<typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
+	TPool(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7)
 	{	// seven parametered objects
 		T* obj = new T(p1,p2,p3,p4,p5,p6,p7);
 		cListAll.push(obj);
@@ -112,7 +120,8 @@ public:
 			(cListAll[i]->*func)();
 		}
 	}
-	template<class X> void call( void (T::*func)(X p1), X p1)
+	template<typename X>
+	void call( void (T::*func)(X p1), X p1)
 	{
 		ScopeLock sl(*this);
 		size_t i;
@@ -125,7 +134,8 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// object for automated aquire/release of pool objects
-template<class T> class TPoolObj
+template<typename T>
+class TPoolObj
 {
 	TPool<T>& cPool;
 	T& cObj;

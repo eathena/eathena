@@ -200,9 +200,9 @@ class assign_cont<bool>
 	ulong&	cObj;
 	ulong	cBit;
 public:
-	explicit assign_cont(ulong& o, uchar b) : cObj(o), cBit(1ul<<b)			{}
-	assign_cont(const assign_cont<bool>& ac) : cObj(ac.cObj), cBit(ac.cBit)	{}
-	virtual ~assign_cont()	{}
+	explicit assign_cont<bool>(ulong& o, uchar b) : cObj(o), cBit(1ul<<b)			{}
+	assign_cont<bool>(const assign_cont<bool>& ac) : cObj(ac.cObj), cBit(ac.cBit)	{}
+	virtual ~assign_cont<bool>()	{}
 
 	bool operator=(const assign_cont<bool>& ac)
 	{
@@ -215,13 +215,39 @@ public:
 	virtual bool assign(const bool o)
 	{
 		if(o)
-			this->cObj |=  cBit;
+			this->cObj |=  this->cBit;
 		else
-			this->cObj &= ~cBit;
+			this->cObj &= ~this->cBit;
 		return 0;
+	}
+	const assign_cont<bool>& operator |=(bool o)
+	{
+		if(o)
+			this->cObj |= this->cBit;
+		return *this;
+	}
+	const assign_cont<bool>& operator &=(bool o)
+	{
+		if(!o)
+			this->cObj &= ~this->cBit;
+		return *this;
+	}
+	const assign_cont<bool>& operator ^=(bool o)
+	{
+		if(o)
+			this->cObj ^= this->cBit;
+		return *this;
 	}
 	operator bool() const	{ return (0!=(this->cObj&this->cBit)); }
 };
+
+inline void swap(assign_cont<bool>& x, assign_cont<bool>& y)
+{
+	bool tmp =(bool)x;
+	x = y;
+	y = tmp;
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -246,7 +272,8 @@ typedef struct _numptr
 /// removes the necessity of writing bunches of value settings before returns
 /// on spagetti code like frequently found especially here
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> class TScopeChange
+template <typename T>
+class TScopeChange
 {
 	T& val;
 	T tar;
@@ -267,7 +294,8 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 /// Simple Singleton for default creatable objects only
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> class TSimpleSingleton
+template <typename T>
+class TSimpleSingleton
 {
 public:
 	TSimpleSingleton()		{ }
@@ -284,7 +312,8 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 /// Singleton with templated create functions
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> class TSingleton
+template <typename T>
+class TSingleton
 {
 	static T*& getpointer()
 	{
@@ -299,37 +328,37 @@ public:
 	}
 	TSingleton(const TSingleton&)
 	{ }
-	template <class P1>
+	template <typename P1>
 	TSingleton(P1& p1)
 	{
 		this->create(p1);
 	}
-	template <class P1, class P2>
+	template <typename P1, typename P2>
 	TSingleton(P1& p1, P2& p2)
 	{
 		this->create(p1,p2);
 	}
-	template <class P1, class P2, class P3>
+	template <typename P1, typename P2, typename P3>
 	TSingleton(P1& p1, P2& p2, P3& p3)
 	{
 		this->create(p1,p2,p3);
 	}
-	template <class P1, class P2, class P3, class P4>
+	template <typename P1, typename P2, typename P3, typename P4>
 	TSingleton(P1& p1, P2& p2, P3& p3, P4& p4)
 	{
 		this->create(p1,p2,p3,p4);
 	}
-	template <class P1, class P2, class P3, class P4, class P5>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5>
 	TSingleton(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
 	{
 		this->create(p1,p2,p3,p4,p5);
 	}
-	template <class P1, class P2, class P3, class P4, class P5, class P6>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 	TSingleton(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6)
 	{
 		this->create(p1,p2,p3,p4,p5,p6);
 	}
-	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 	TSingleton(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7)
 	{
 		this->create(p1,p2,p3,p4,p5,p6,p7);
@@ -364,7 +393,7 @@ public:
 		}
 		return false;
 	}
-	template <class P1>
+	template <typename P1>
 	bool create(P1& p1)
 	{
 		T*& ptr= this->getpointer();
@@ -375,7 +404,7 @@ public:
 		}
 		return false;
 	}
-	template <class P1, class P2>
+	template <typename P1, typename P2>
 	bool create(P1& p1, P2& p2)
 	{
 		T*& ptr= this->getpointer();
@@ -386,7 +415,7 @@ public:
 		}
 		return false;
 	}
-	template <class P1, class P2, class P3>
+	template <typename P1, typename P2, typename P3>
 	bool create(P1& p1, P2& p2, P3& p3)
 	{
 		T*& ptr= this->getpointer();
@@ -397,7 +426,7 @@ public:
 		}
 		return false;
 	}
-	template <class P1, class P2, class P3, class P4>
+	template <typename P1, typename P2, typename P3, typename P4>
 	bool create(P1& p1, P2& p2, P3& p3, P4& p4)
 	{
 		T*& ptr= this->getpointer();
@@ -408,7 +437,7 @@ public:
 		}
 		return false;
 	}
-	template <class P1, class P2, class P3, class P4, class P5>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5>
 	bool create(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
 	{
 		T*& ptr= this->getpointer();
@@ -419,7 +448,7 @@ public:
 		}
 		return false;
 	}
-	template <class P1, class P2, class P3, class P4, class P5, class P6>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 	bool create(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6)
 	{
 		T*& ptr= this->getpointer();
@@ -430,7 +459,7 @@ public:
 		}
 		return false;
 	}
-	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 	bool create(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7)
 	{
 		T*& ptr= this->getpointer();

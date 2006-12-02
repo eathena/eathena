@@ -326,7 +326,7 @@ class parseprocessor : public basics::noncopyable
 public:
 	parseprocessor(const unsigned char* (*engineloader)(ulong&));
 	parseprocessor(const char* filename);
-	~parseprocessor();
+	virtual ~parseprocessor();
 
 	/// loads a file or directory.
 	bool load(const char* name);
@@ -445,6 +445,7 @@ public:
 		compiler(c),
 		option(o)
 	{}
+	virtual ~PParser()	{}
 	/// work on files with '.txt' extension
 	virtual const char* get_ext() const	{ return "*.txt"; }
 

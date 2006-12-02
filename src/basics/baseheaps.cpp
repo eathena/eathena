@@ -19,7 +19,8 @@ NAMESPACE_BEGIN(basics)
 // Insert appends the element at the end and upheaps it
 // Delete swaps the last element in front and downheaps it until a leaf is reached
 // about 20% slower than method in the second implementation
-template <class T> class _BinaryHeapDH : private allocator_w_dy<T>, private elaborator_ct<T> 
+template <typename T>
+class _BinaryHeapDH : private allocator_w_dy<T>, private elaborator_ct<T> 
 {
 	friend void test_heaps(int scale);
 	bool append(const T&e)
@@ -234,7 +235,8 @@ private:
 // Insert appends the element at the end and upheaps it
 // Delete downheaps the hole until a leaf is reached, 
 //    then replaces the hole with the last element and upheaps it
-template <class T> class _BinaryHeap : private allocator_w_dy<T>, private elaborator_ct<T> 
+template <typename T>
+class _BinaryHeap : private allocator_w_dy<T>, private elaborator_ct<T> 
 {
 	friend void test_heaps(int scale);
 
@@ -792,7 +794,8 @@ NAMESPACE_END(basics)
 /*
 // implementation of a van Emde Boas max-heap, 
 // capable of O(lglg n) insert/delete times.
-template <class T> class VEBHeap
+template <typename T>
+class VEBHeap
 {
 public:
     const size_t kMaxLeaves;

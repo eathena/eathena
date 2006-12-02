@@ -16,7 +16,8 @@ void test_strsearch(void);
 /// for linear running-time, O(m+n) where m=length of pattern and
 /// n=length of text.
 /// originally written by Andreas Magnusson in November 2001
-template <class T=char> class patternstring_kmp : public string<T>
+template <typename T=char>
+class patternstring_kmp : public string<T>
 {
 	vector<size_t>	cShifts;
 
@@ -49,7 +50,8 @@ public:
 /// additionally generates the pattern skip table to be used in booyer-moore search
 /// fastens up continious searches of the same pattern in different strings
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class patternstring : public string<T>
+template <typename T=char>
+class patternstring : public string<T>
 {
 	friend class string<T>;
 	// table size is bound to 8bit values
@@ -83,7 +85,8 @@ public:
 /// simple pattern matching.
 /// using *?# wildcards and character sets
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> bool match_wildcard(const T* wild, const T* match);
+template <typename T>
+bool match_wildcard(const T* wild, const T* match);
 
 
 

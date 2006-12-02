@@ -200,7 +200,6 @@ bool movable::walktimer_func(unsigned long tick)
 			// would also do multiple path searches
 			if( this->walkpath.change_target )
 			{	// build a new path when target has changed
-				this->walkpath.change_target=0;
 				this->init_walkpath();
 			}
 			else
@@ -306,7 +305,7 @@ bool movable::random_walktarget(const block_list &target_bl)
 		}
 */
 		// scheme using a simple multiply/modulo randomizer
-		// which covers the all elements without doing multiple checks
+		// which covers all elements without doing multiple checks
 		// area is 5x5, so have 25 tiles to check, so the divider is 25.
 		// divider prime is then 5, so the multiplier should not be a multiple of 5
 		// so calculate (multiplier*i)%25 with i=1..24 for shuffled indices
@@ -421,6 +420,7 @@ bool movable::can_walk(unsigned short m, unsigned short x, unsigned short y)
 /// initialize walkpath. uses current target position as walk target
 bool movable::init_walkpath()
 {
+	this->walkpath.change_target=0;
 	if( this->walkpath.path_search(this->block_list::m,this->block_list::x,this->block_list::y,this->walktarget.x,this->walktarget.y,this->walkpath.walk_easy) )
 	{
 		clif_moveobject(*this);

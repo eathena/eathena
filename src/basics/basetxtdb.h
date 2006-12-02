@@ -165,7 +165,8 @@ size_t searches;
 #endif
 };
 
-template <typename T> class typed_textdb : public simple_textdb
+template <typename T>
+class typed_textdb : public simple_textdb
 {
 protected:
 	///////////////////////////////////////////////////////////////////////////

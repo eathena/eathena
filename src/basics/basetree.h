@@ -3,7 +3,7 @@
 
 #include "basetypes.h"
 #include "basesync.h"
-
+#include "basesafeptr.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 //## TODO: combine interfaces
@@ -723,7 +723,8 @@ public:
 /// fully inlined type checking db template
 /// can be used for automatic object deletion
 /// only types with max sizeof(size_t) are usable
-template<class K, class T> class CDB : public CDBBase
+template<typename K, typename T>
+class CDB : public CDBBase
 {
 	bool ownkey;
 	bool owndata;
@@ -758,7 +759,8 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// db template with string keys
-template<class T> class CStrDB : public CDB<char*, T>
+template<typename T>
+class CStrDB : public CDB<char*, T>
 {
 protected:
 	size_t maxlen;
@@ -792,7 +794,8 @@ public:
 };
 ///////////////////////////////////////////////////////////////////////////////
 /// db template with number keys
-template<class T> class CNumDB : public CDB<ssize_t, T>
+template<typename T>
+class CNumDB : public CDB<ssize_t, T>
 {
 protected:
 	virtual ssize_t cmp(void*k1, void*k2)		// compares two keys
@@ -829,12 +832,12 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-/// AVL tree
+/// AVL tree.
 /// derived from http://meshula.artistnation.com
 /// slightly better balancing then RB trees on the expence of extra data
 /// not much tested though
-///////////////////////////////////////////////////////////////////////////////
-template<class K, class T> class TAVLTree
+template<typename K, typename T>
+class TAVLTree
 {
 protected:
 	///////////////////////////////////////////////////////////////////////////////
@@ -1057,7 +1060,8 @@ protected:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-template<class K, class T> inline bool TAVLTree<K,T>::insert(const K& key, const T& item)
+template<typename K, typename T>
+inline bool TAVLTree<K,T>::insert(const K& key, const T& item)
 {
 	if (cRoot == 0)
 		cRoot = new TAVLNode(key, item);
@@ -1066,7 +1070,8 @@ template<class K, class T> inline bool TAVLTree<K,T>::insert(const K& key, const
 	return true;
 }
 
-template<class K, class T> inline void TAVLTree<K, T>::_insert(const K& key, const T& item, TAVLNode*& root)
+template<typename K, typename T>
+inline void TAVLTree<K, T>::_insert(const K& key, const T& item, TAVLNode*& root)
 {
 	if (key < root->cKey)
 	{
@@ -1091,12 +1096,14 @@ template<class K, class T> inline void TAVLTree<K, T>::_insert(const K& key, con
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-template<class K, class T> inline bool TAVLTree<K, T>::remove(const K& key)
+template<typename K, typename T>
+inline bool TAVLTree<K, T>::remove(const K& key)
 {
 	return _remove(this->cRoot, key);
 }
 
-template<class K, class T> inline bool TAVLTree<K, T>::_remove(TAVLNode*& root, const K& key)
+template<typename K, typename T>
+inline bool TAVLTree<K, T>::_remove(TAVLNode*& root, const K& key)
 {
 	bool ret = false;
 	if (!root)
@@ -1149,7 +1156,8 @@ template<class K, class T> inline bool TAVLTree<K, T>::_remove(TAVLNode*& root, 
 	return false;
 }
 
-template<class K, class T> inline bool TAVLTree<K, T>::_removeBoth(TAVLNode*& root, TAVLNode*& curr)
+template<typename K, typename T>
+inline bool TAVLTree<K, T>::_removeBoth(TAVLNode*& root, TAVLNode*& curr)
 {
 	if (!curr->cRight)
 	{
@@ -1172,12 +1180,14 @@ template<class K, class T> inline bool TAVLTree<K, T>::_removeBoth(TAVLNode*& ro
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-template<class K, class T> inline bool TAVLTree<K, T>::find(const K& key, T& item)
+template<typename K, typename T>
+inline bool TAVLTree<K, T>::find(const K& key, T& item)
 {
 	return _find(key, item, cRoot);
 }
 
-template<class K, class T> inline bool TAVLTree<K, T>::_find(const K& key, T& item, TAVLNode* root)
+template<typename K, typename T>
+inline bool TAVLTree<K, T>::_find(const K& key, T& item, TAVLNode* root)
 {
 	if (root)
 	{
@@ -1197,7 +1207,8 @@ template<class K, class T> inline bool TAVLTree<K, T>::_find(const K& key, T& it
 
 
 ///////////////////////////////////////////////////////////////////////////////
-template<class K, class T> inline void TAVLTree<K, T>::compute(TAVLNode* root)
+template<typename K, typename T>
+inline void TAVLTree<K, T>::compute(TAVLNode* root)
 {
 	if (root)
 	{
@@ -1209,7 +1220,8 @@ template<class K, class T> inline void TAVLTree<K, T>::compute(TAVLNode* root)
 	}
 }
 
-template<class K, class T> inline void TAVLTree<K, T>::balance(TAVLNode*& root)
+template<typename K, typename T>
+inline void TAVLTree<K, T>::balance(TAVLNode*& root)
 {	// AVL trees have the property that no branch is more than 1 longer than its sibling
 	if (root->cBalance > 1)
 		balanceRight(root);
@@ -1217,7 +1229,8 @@ template<class K, class T> inline void TAVLTree<K, T>::balance(TAVLNode*& root)
 		balanceLeft(root);
 }
 
-template<class K, class T> inline void TAVLTree<K, T>::balanceRight(TAVLNode*& root)
+template<typename K, typename T>
+inline void TAVLTree<K, T>::balanceRight(TAVLNode*& root)
 {
 	if (root->cRight)
 	{
@@ -1233,7 +1246,8 @@ template<class K, class T> inline void TAVLTree<K, T>::balanceRight(TAVLNode*& r
 	}
 }
 
-template<class K, class T> inline void TAVLTree<K, T>::balanceLeft(TAVLNode*& root)
+template<typename K, typename T>
+inline void TAVLTree<K, T>::balanceLeft(TAVLNode*& root)
 {
 	if (root->cLeft)
 	{
@@ -1249,7 +1263,8 @@ template<class K, class T> inline void TAVLTree<K, T>::balanceLeft(TAVLNode*& ro
 	}
 }
 
-template<class K, class T> inline void TAVLTree<K, T>::rotateLeft(TAVLNode*& root)
+template<typename K, typename T>
+inline void TAVLTree<K, T>::rotateLeft(TAVLNode*& root)
 {
 	TAVLNode* pTemp = root;
 	root = root->cRight;
@@ -1261,7 +1276,8 @@ template<class K, class T> inline void TAVLTree<K, T>::rotateLeft(TAVLNode*& roo
 	compute(root);
 }
 
-template<class K, class T> inline void TAVLTree<K, T>::rotateRight(TAVLNode*& root)
+template<typename K, typename T>
+inline void TAVLTree<K, T>::rotateRight(TAVLNode*& root)
 {
 	TAVLNode* pTemp = root;
 	root = root->cLeft;
@@ -1301,7 +1317,8 @@ template<class K, class T> inline void TAVLTree<K, T>::rotateRight(TAVLNode*& ro
 
 ///////////////////////////////////////////////////////////////////////////////
 /// class TRBTree. Holder of the tree structure. 
-template <class K, class T> class TRBTree
+template <typename K, typename T>
+class TRBTree
 {
 	///////////////////////////////////////////////////////////////////////////
 	// Private Classes

@@ -11,70 +11,6 @@
 
 
 
-
-
-///////////////////////////////////////////////////////////////////////////////
-#if defined(WIN32)
-///////////////////////////////////////////////////////////////////////////////
-/// standard new operator
-extern inline void *operator new (size_t sz) NOTHROW()
-{
-	void* p=malloc(sz);
-	return p;
-}
-/// standard new[] operator
-extern inline void *operator new[] (size_t sz) NOTHROW()
-{
-	void* p=malloc(sz);
-	return p;
-}
-/// standard delete operator
-extern inline void operator delete (void * a) NOTHROW()
-{
-	if(a) free(a);
-}
-/// standard delete[] operator
-extern inline void operator delete[] (void *a) NOTHROW()
-{
-	if(a) free(a);
-}
-#ifndef __PLACEMENT_NEW_INLINE
-#define __PLACEMENT_NEW_INLINE
-/// inplace-new operator
-extern inline void *operator new (size_t sz,void* p) NOTHROW()
-{
-	return p;
-}
-
-/// inplace-new operator
-extern inline void *operator new[] (size_t sz, void* p) NOTHROW()
-{
-	return p;
-}
-
-/// inplace-delete operator
-extern inline void operator delete (void * a, void* p) NOTHROW()
-{
-}
-
-/// inplace-delete operator
-extern inline void operator delete[] (void *a, void* p) NOTHROW()
-{
-}
-#endif
-
-///////////////////////////////////////////////////////////////////////////////
-#endif//defined(WIN32)
-///////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
 NAMESPACE_BEGIN(basics)
 
 //////////////////////////////////////////////////////////////////////////
@@ -115,7 +51,8 @@ extern inline size_t memquantize(size_t sz)
 /// for objects working on distinct amount of memory
 /// defines basic functions to modify storages
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class elaborator
+template <typename T=char>
+class elaborator
 {
 public:
 	virtual ~elaborator()	{}
@@ -129,7 +66,8 @@ protected:
 /// elaborator for simple data types.
 /// therefore can use memcopy/move/cmp
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> class elaborator_st : public virtual elaborator<T>
+template<typename T>
+class elaborator_st : public virtual elaborator<T>
 {
 public:
 	virtual ~elaborator_st()	{}
@@ -155,7 +93,8 @@ protected:
 /// elaborator for complex data types.
 /// using assignment and compare operators ('=', '==' and '<' mandatory)
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> class elaborator_ct : public virtual elaborator<T>
+template<typename T>
+class elaborator_ct : public virtual elaborator<T>
 {
 public:
 	virtual ~elaborator_ct()	{}
@@ -212,7 +151,8 @@ protected:
 /// for types with sizeof(type) >= sizeof(pointers) there is no speed advantage.
 /// optimisation automatically removes the dispensable code
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class elaborator_auto : public virtual elaborator<T>
+template <typename T=char>
+class elaborator_auto : public virtual elaborator<T>
 {
 public:
 	virtual ~elaborator_auto()	{}
@@ -299,7 +239,8 @@ public:
 /// for allocating memory in different ways
 /// defines basic functions of a storage element
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class allocator : public _allocatorbase, public virtual elaborator<T>
+template <typename T=char>
+class allocator : public _allocatorbase, public virtual elaborator<T>
 {
 public:
 	typedef T					value_type;
@@ -417,7 +358,8 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 /// allocators for write buffers.
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class allocator_w : public virtual allocator<T>
+template <typename T=char>
+class allocator_w : public virtual allocator<T>
 {
 protected:
 	mutable T* cBuf;
@@ -443,7 +385,6 @@ public:
 	virtual       T* begin()			{ return  this->cBuf; }
 	virtual       T* end()				{ return (this->cWpp)?this->cWpp-1:NULL; }
 	virtual       T* final()			{ return  this->cWpp; }
-
 };
 
 
@@ -454,7 +395,8 @@ public:
 /// size is calculated with one element in advance
 /// so it can be used for cstring allocation
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=char> class allocator_ws_dy : public allocator_w<T>
+template <typename T=char>
+class allocator_ws_dy : public allocator_w<T>
 {
 protected:
 	allocator_ws_dy() : allocator_w<T>()			{ }
@@ -496,7 +438,8 @@ protected:
 /// size is calculated with one element in advance
 /// so it can be used for cstring allocation
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class allocator_ws_st : public allocator_w<T>
+template <typename T=char>
+class allocator_ws_st : public allocator_w<T>
 {
 protected:
 	allocator_ws_st()			{}			// no implementation here
@@ -517,7 +460,8 @@ protected:
 /// creates/reallocates storage on its own
 /// (there is no extra element here, Wpp points outside of the array when full)
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=char> class allocator_w_dy : public allocator_w<T>
+template <typename T=char>
+class allocator_w_dy : public allocator_w<T>
 {
 protected:
 	allocator_w_dy() : allocator_w<T>()			{}
@@ -555,7 +499,8 @@ protected:
 /// does not resize but just returns false on checkwrite
 /// (there is no extra element here, Wpp points outside of the array when full)
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=char> class allocator_w_st : public allocator_w<T>
+template <typename T=char>
+class allocator_w_st : public allocator_w<T>
 {
 protected:
 	allocator_w_st()			{}			// no implementation here
@@ -574,7 +519,8 @@ protected:
 /// allocators for read/write buffers.
 /// ie. for FIFO implementations
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=unsigned char> class allocator_rw : public virtual allocator<T>
+template <typename T=unsigned char>
+class allocator_rw : public virtual allocator<T>
 {
 protected:
 	T* cBuf;
@@ -607,7 +553,8 @@ public:
 /// dynamic read/write-buffer allocator.
 /// creates/reallocates storage on its own
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=unsigned char> class allocator_rw_dy : public allocator_rw<T>
+template <typename T=unsigned char>
+class allocator_rw_dy : public allocator_rw<T>
 {
 protected:
 	allocator_rw_dy() : allocator_rw<T>()			{}
@@ -655,7 +602,8 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////
 /// static read/write-buffer. is using an external buffer for writing
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=unsigned char> class allocator_rw_st : public allocator_rw<T>
+template <typename T=unsigned char>
+class allocator_rw_st : public allocator_rw<T>
 {
 protected:
 	allocator_rw_st()			{}
@@ -688,7 +636,8 @@ protected:
 /// allocators for read buffers with additional scanning.
 /// ie. for the parser
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=unsigned char> class allocator_r : public virtual allocator<T>
+template <typename T=unsigned char>
+class allocator_r : public virtual allocator<T>
 {
 protected:
 	T* cBuf;
@@ -729,7 +678,8 @@ public:
 /// data left of cRpp is considered invalid on reallocation
 /// and overwritten whenever suitable
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=unsigned char> class allocator_r_dy : public allocator_r<T>
+template <typename T=unsigned char>
+class allocator_r_dy : public allocator_r<T>
 {
 protected:
 	allocator_r_dy() : allocator_r<T>()				{  }
@@ -789,7 +739,8 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////
 /// dynamic file read-buffer.
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=unsigned char> class allocator_file : public allocator_r_dy<T>, public elaborator_ct<T> 
+template <typename T=unsigned char>
+class allocator_file : public allocator_r_dy<T>, public elaborator_ct<T> 
 {
 	FILE *cFile;
 public:

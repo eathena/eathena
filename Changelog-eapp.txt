@@ -1,4 +1,10 @@
 Date	Added
+2006/12/02
+	* generated a new basics tree from the main repo, 
+	  changes might appear huge, but is mainly caused by
+	  a different formatting template, there are only
+	  smaller changes on internals and some additions
+	* minor other things [Shinomori]
 2006/11/28
 	* Normalized line terminators and set the svn:eol-style property to native for all .cpp/.h/.txt files. [FlavioJS]
 	* Added the date to this changelog (hope it's ok). [FlavioJS]

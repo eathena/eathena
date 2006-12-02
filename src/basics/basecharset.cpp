@@ -13,7 +13,8 @@ NAMESPACE_BEGIN(basics)
 ///////////////////////////////////////////////////////////////////////////////
 // 4bit number <-> hex character
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> uchar char2hex(T c) 
+template <typename T>
+uchar char2hex(T c) 
 {
     if( c>='a' && c<='f')
         return uchar(c - 'a' + 10);
@@ -29,7 +30,8 @@ template uchar char2hex<char>(char c);
 template uchar char2hex<wchar_t>(wchar_t c);
 
 
-template <class T> uchar str2hex(const T*& p) 
+template <typename T>
+uchar str2hex(const T*& p) 
 {
 	uchar ret = *p;
 	if (ret == _csetesc)
@@ -50,7 +52,8 @@ template uchar str2hex<char>(const char*& p);
 template uchar str2hex<wchar_t>(const wchar_t*& p);
 
 
-template <class T> T hex2char(uchar c)
+template <typename T>
+T hex2char(uchar c)
 {
 	c &= 0x0f;
     if( c < 10 )
@@ -182,7 +185,8 @@ inline bool isprintable(uchar c)
     return ((c >= ' ') && (c < 127));
 }
 
-template<class T> static size_t showmember(uchar c, T *buffer) 
+template<typename T>
+static size_t showmember(uchar c, T *buffer) 
 {
     if( (c == '-') || (c == '~') )
 	{
