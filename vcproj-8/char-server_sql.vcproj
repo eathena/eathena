@@ -149,7 +149,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="WSOCK32.lib libmysql.lib"
+				AdditionalDependencies="WSOCK32.lib libmysql.lib zdll.lib"
 				OutputFile="../char-server_sql.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\lib"
