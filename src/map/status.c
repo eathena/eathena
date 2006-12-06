@@ -1442,8 +1442,11 @@ int status_calc_pet(struct pet_data *pd, int first)
 			if (!first)	//Not done the first time because the pet is not visible yet
 				clif_send_petstatus(sd);
 		}
-	} else if (first)
+	} else if (first) {
 		status_calc_misc(&pd->bl, &pd->status, pd->db->lv);
+		if (!battle_config.pet_lv_rate && pd->pet.level != pd->db->lv)
+			pd->pet.level = pd->db->lv;
+	}
 	
 	//Support rate modifier (1000 = 100%)
 	pd->rate_fix = 1000*(pd->pet.intimate - battle_config.pet_support_min_friendly)/(1000- battle_config.pet_support_min_friendly) +500;
@@ -1462,9 +1465,11 @@ static unsigned int status_base_pc_maxhp(struct map_session_data* sd, struct sta
 		val += val * 25/100;
 	else if (sd->class_&JOBL_BABY)
 		val -= val * 30/100;
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON))
+	if((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON &&
+		sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON))
 		val *= 3; //Triple max HP for top ranking Taekwons over level 90.
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && sd->status.base_level >= 99)
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE &&
+		sd->status.base_level >= 99)
 		val += 2000;
 
 	return val;
@@ -4752,9 +4757,9 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			val3 = vd->shield;
 			val4 = vd->cloth_color;
 			unit_stop_attack(bl);
-			clif_changelook(bl,LOOK_BASE,type==SC_WEDDING?JOB_WEDDING:JOB_XMAS);
 			clif_changelook(bl,LOOK_WEAPON,0);
 			clif_changelook(bl,LOOK_SHIELD,0);
+			clif_changelook(bl,LOOK_BASE,type==SC_WEDDING?JOB_WEDDING:JOB_XMAS);
 			clif_changelook(bl,LOOK_CLOTHES_COLOR,vd->cloth_color);
 			break;
 		case SC_NOCHAT:
@@ -5377,9 +5382,9 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 	switch (type) {
 		case SC_WEDDING:
 		case SC_XMAS:
-			clif_changelook(bl,LOOK_BASE,type==SC_WEDDING?JOB_WEDDING:JOB_XMAS);
 			clif_changelook(bl,LOOK_WEAPON,0);
 			clif_changelook(bl,LOOK_SHIELD,0);
+			clif_changelook(bl,LOOK_BASE,type==SC_WEDDING?JOB_WEDDING:JOB_XMAS);
 			clif_changelook(bl,LOOK_CLOTHES_COLOR,val4);
 			break;	
 		case SC_KAAHI:
@@ -5721,9 +5726,9 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				vd->cloth_color = sc->data[type].val4;
 			}
 			clif_changelook(bl,LOOK_BASE,vd->class_);
+			clif_changelook(bl,LOOK_CLOTHES_COLOR,vd->cloth_color);
 			clif_changelook(bl,LOOK_WEAPON,vd->weapon);
 			clif_changelook(bl,LOOK_SHIELD,vd->shield);
-			clif_changelook(bl,LOOK_CLOTHES_COLOR,vd->cloth_color);
 		break;
 		case SC_RUN:
 		{
@@ -5956,15 +5961,15 @@ int status_change_end( struct block_list* bl , int type,int tid )
 
 	case SC_HIDING:
 		sc->option &= ~OPTION_HIDE;
-		opt_flag = 2; //Check for warp trigger.
+		opt_flag|= 2|4; //Check for warp trigger + AoE trigger
 		break;
 	case SC_CLOAKING:
 		sc->option &= ~OPTION_CLOAK;
-		opt_flag = 2;
+		opt_flag|= 2;
 		break;
 	case SC_CHASEWALK:
 		sc->option &= ~(OPTION_CHASEWALK|OPTION_CLOAK);
-		opt_flag = 2;
+		opt_flag|= 2;
 		break;
 	case SC_SIGHT:
 		sc->option &= ~OPTION_SIGHT;
@@ -6066,7 +6071,10 @@ int status_change_end( struct block_list* bl , int type,int tid )
 	if (calc_flag)
 		status_calc_bl(bl,calc_flag);
 
-	if(opt_flag == 2 && sd && map_getcell(bl->m,bl->x,bl->y,CELL_CHKNPC))
+	if(opt_flag&4) //Out of hiding, invoke on place.
+		skill_unit_move(bl,gettick(),1);
+
+	if(opt_flag&2 && sd && map_getcell(bl->m,bl->x,bl->y,CELL_CHKNPC))
 		npc_touch_areanpc(sd,bl->m,bl->x,bl->y); //Trigger on-touch event.
 
 	return 1;
