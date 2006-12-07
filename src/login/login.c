@@ -1472,6 +1472,7 @@ int parse_fromchar(int fd) {
 					unsigned int k;
 					time_t connect_until_time = 0;
 					char email[40] = "";
+					WFIFOHEAD(fd,51);
 					auth_fifo[i].delflag = 1;
 					login_log("Char-server '%s': authentification of the account %d accepted (ip: %s)." RETCODE,
 					          server[id].name, acc, ip);
@@ -3277,6 +3278,7 @@ int parse_login(int fd) {
 			{
 				int GM_value, len;
 				char* server_name;
+ 				WFIFOHEAD(fd, 3);
 				memcpy(account.userid,RFIFOP(fd,2),NAME_LENGTH);
 				account.userid[23] = '\0';
 				remove_control_chars((unsigned char *)account.userid);
@@ -3285,7 +3287,7 @@ int parse_login(int fd) {
 				remove_control_chars((unsigned char *)account.passwd);
 				account.passwdenc = 0;
 				server_name = (char*)RFIFOP(fd,60);
-				server_name[19] = '\0';
+				server_name[20] = '\0';
 				remove_control_chars((unsigned char *)server_name);
 				login_log("Connection request of the char-server '%s' @ %d.%d.%d.%d:%d (ip: %s)" RETCODE,
 				          server_name, RFIFOB(fd,54), RFIFOB(fd,55), RFIFOB(fd,56), RFIFOB(fd,57), RFIFOW(fd,58), ip);
@@ -3302,7 +3304,6 @@ int parse_login(int fd) {
 					server[account.account_id].maintenance = RFIFOW(fd,82);
 					server[account.account_id].new_ = RFIFOW(fd,84);
 					server_fd[account.account_id] = fd;
-                                        WFIFOHEAD(fd, 3);
 					WFIFOW(fd,0) = 0x2711;
 					WFIFOB(fd,2) = 0;
 					WFIFOSET(fd,3);
