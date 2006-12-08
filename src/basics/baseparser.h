@@ -218,7 +218,7 @@ public:
 	bool open(const char* name)
 	{
 		line =1;
-		column =0;
+		column =1;
 		return allocator_file<char>::open(name);
 	}
 
@@ -474,16 +474,16 @@ public:
 	short					lalr_state;
 
 	CToken					cScanToken;
-	TArrayDPT<CStackElement>	cStack;
+	vector<CStackElement>	cStack;
 	size_t					nstackofs;
-	TArrayDPT<CToken>	tokens;
+	vector<CToken>			tokens;
 
 	CParseConfig*			pconfig;
 	CParseInput				input;
 
 
 	// Reduction Tree
-	TArrayDPT<CStackElement>	rt;
+	vector<CStackElement>	rt;
 
 	///////////////////////////////////////////////////////////////////////////
 	CParser()

@@ -98,10 +98,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\basics\basebuffer.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\basics\basecharset.cpp"
 				>
 			</File>
@@ -110,15 +106,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\basics\baseheaps.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\basics\baseinet.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\src\basics\baselists.cpp"
+				RelativePath="..\src\basics\baseipfilter.cpp"
 				>
 			</File>
 			<File
@@ -174,19 +166,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\basics\basethreadpool.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\basics\basethreads.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\basics\basetime.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\basics\basetree.cpp"
 				>
 			</File>
 			<File
@@ -195,6 +175,10 @@
 			</File>
 			<File
 				RelativePath="..\src\basics\basetypes.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\basics\basevariant.cpp"
 				>
 			</File>
 			<File
@@ -214,10 +198,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\basics\basebuffer.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\basics\basecharset.h"
 				>
 			</File>
@@ -230,11 +210,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\basics\baseheaps.h"
+				RelativePath="..\src\basics\baseinet.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\basics\baseinet.h"
+				RelativePath="..\src\basics\baseipfilter.h"
 				>
 			</File>
 			<File
@@ -242,15 +222,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\basics\baselists.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\basics\basememory.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\basics\baseministring.h"
 				>
 			</File>
 			<File
@@ -310,19 +282,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\basics\basethreadpool.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\basics\basethreads.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\basics\basetime.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\basics\basetree.h"
 				>
 			</File>
 			<File
@@ -331,6 +291,10 @@
 			</File>
 			<File
 				RelativePath="..\src\basics\basetypes.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\basics\basevariant.h"
 				>
 			</File>
 			<File

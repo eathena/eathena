@@ -432,6 +432,7 @@ public:
 	}
 	virtual operator const T*() const	{ return this->c_str(); }
 	virtual size_t length()	const		{ return this->A::length(); }
+	virtual size_t capacity() const		{ return this->A::capacity(); }
 	virtual const T* begin() const		{ return this->A::begin(); }
 	virtual const T* end() const		{ return this->A::end(); }
 	virtual const T* final() const		{ return this->A::final(); }
@@ -1328,6 +1329,7 @@ public:
 	}
 	virtual operator const T*() const	{ return this->c_str(); }
 	virtual size_t length()	const		{ return this->allocator_ws_st<T>::length(); }
+	virtual size_t capacity() const		{ return this->allocator_ws_st<T>::capacity(); }
 	virtual const T* begin() const		{ return this->allocator_ws_st<T>::begin(); }
 	virtual const T* end() const		{ return this->allocator_ws_st<T>::end(); }
 	virtual const T* final() const		{ return this->allocator_ws_st<T>::final(); }
@@ -2025,6 +2027,7 @@ public:
     virtual operator const T*() const	{ return this->readaccess().c_str(); }
 	virtual const T* c_str() const		{ return this->readaccess().c_str(); }
 	virtual size_t length()	const		{ return this->readaccess().length(); }
+	virtual size_t capacity() const		{ return this->readaccess().capacity(); }
 	virtual const T* begin() const		{ return this->readaccess().begin(); }
 	virtual const T* end() const		{ return this->readaccess().end(); }
 	virtual const T* final() const		{ return this->readaccess().final(); }
@@ -2512,6 +2515,7 @@ public:
 	virtual operator const T*() const	{ return (cString) ? this->cString->c_str()+cPos  : this->getStringConstant(0); }
 	virtual const T* c_str() const		{ return (cString) ? this->cString->c_str()+cPos  : this->getStringConstant(0); }
 	virtual size_t length() const		{ return cLen; }
+	virtual size_t capacity() const		{ return (cString) ? this->cString->capacity() : 0; }
 	virtual const T* begin() const		{ return const_cast<T*>( this->c_str() ); }
 	virtual const T* end() const		{ return const_cast<T*>( this->c_str()+cLen ); }
 	virtual const T* final() const		{ return const_cast<T*>( this->c_str()+cLen ); }

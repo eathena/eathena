@@ -5,32 +5,35 @@
 	$(CCC) $(CPPFLAGS) $(OUTPUT_OPTION) -c $<
 ##########################################################
 
+
 ##########################################################
 RETURN_PATH ?= .
-BASE_PATH   ?= ../basics
+BASICS_PATH ?= ../basics
 CCC         ?= g++ -pipe
-CPPFLAGS    ?= -g -O3 -ffast-math -Wall -D_REENTRANT -I$(RETURN_PATH)/$(BASE_PATH)
+CPPFLAGS    ?= -g -O3 -ffast-math -D_REENTRANT
 LIBS        ?= -lpthread -lsocket -lnsl -ldl -lrt -lz
 ##########################################################
-BP = $(RETURN_PATH)/$(BASE_PATH)
+include $(RETURN_PATH)/$(BASICS_PATH)/Makefile.dep
 ##########################################################
-include $(BP)/Makefile.dep
+
+OBJECTS = scriptconv.o scriptengine.o scriptprn.o dblookup.o oldeascriptconv.o aegisscriptconv.o
+EXTLIBS = $(BASICS_STATICLIB)
+
+all scriptconv: $(RETURN_PATH)/scriptconv
 
 
+$(RETURN_PATH)/scriptconv: $(OBJECTS)
+	$(CCC) $^ $(EXTLIBS) $(LIBS) -o $@
 
-all scriptconv: $(RETURN_PATH)/eascriptconv
 
-$(RETURN_PATH)/eascriptconv: scriptconv.o scriptengine.o scriptprn.o dblookup.o oldeascriptconv.o aegisscriptconv.o $(BASE_OBJ)
-	$(CCC) $^ $(LIBS) -o $@
-
-scriptconv.o: scriptconv.cpp scriptengine.h scriptprn.h oldeascriptconv.h aegisscriptconv.h dblookup.h $(BASE_H)
-scriptengine.o: scriptengine.cpp scriptengine.h $(BASE_H)
-scriptprn.o: scriptprn.cpp scriptprn.h $(BASE_H)
-dblookup.o: dblookup.cpp dblookup.h $(BASE_H)
-oldeascriptconv.o: oldeascriptconv.cpp oldeascriptconv.h oldeascript.h oldeascript.engine.txt dblookup.h $(BASE_H)
+scriptconv.o: scriptconv.cpp scriptengine.h scriptprn.h oldeascriptconv.h aegisscriptconv.h dblookup.h $(BASICS_H)
+scriptengine.o: scriptengine.cpp scriptengine.h $(BASICS_H)
+scriptprn.o: scriptprn.cpp scriptprn.h $(BASICS_H)
+dblookup.o: dblookup.cpp dblookup.h $(BASICS_H)
+oldeascriptconv.o: oldeascriptconv.cpp oldeascriptconv.h oldeascript.h oldeascript.engine.txt dblookup.h $(BASICS_H)
 oldeascript.engine.txt:
-aegisscriptconv.o: aegisscriptconv.cpp aegisscriptconv.h aegisscript.h aegisscript.engine.txt dblookup.h $(BASE_H)
+aegisscriptconv.o: aegisscriptconv.cpp aegisscriptconv.h aegisscript.h aegisscript.engine.txt dblookup.h $(BASICS_H)
 aegisscript.engine.txt:
 
 clean:
-	rm -rf *.o $(RETURN_PATH)/eascriptconv GNUmakefile
+	rm -rf *.o $(RETURN_PATH)/scriptconv GNUmakefile

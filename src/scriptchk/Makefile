@@ -5,29 +5,31 @@
 	$(CCC) $(CPPFLAGS) $(OUTPUT_OPTION) -c $<
 ##########################################################
 
+
 ##########################################################
 RETURN_PATH ?= .
-BASE_PATH   ?= ../basics
+BASICS_PATH ?= ../basics
 CCC         ?= g++ -pipe
 CPPFLAGS    ?= -g -O3 -ffast-math -D_REENTRANT
 LIBS        ?= -lpthread -lsocket -lnsl -ldl -lrt -lz
 ##########################################################
-BP = $(RETURN_PATH)/$(BASE_PATH)
+include $(RETURN_PATH)/$(BASICS_PATH)/Makefile.dep
 ##########################################################
-include $(BP)/Makefile.dep
+
+OBJECTS = eacompiler.o scriptchk.o scriptengine.o scriptprn.o
+EXTLIBS = $(BASICS_STATICLIB)
 
 
+all scriptchk: $(RETURN_PATH)/scriptchk
 
-all scriptchk: $(RETURN_PATH)/eascriptchk
+$(RETURN_PATH)/scriptchk: $(OBJECTS)
+	$(CCC) $^ $(EXTLIBS) $(LIBS) -o $@
 
-$(RETURN_PATH)/eascriptchk: eacompiler.o scriptchk.o scriptengine.o scriptprn.o $(BASE_OBJ)
-	$(CCC) $^ $(LIBS) -o $@
-
-eacompiler.o: eacompiler.cpp $(BASE_H)
-scriptchk.o: scriptchk.cpp $(BASE_H)
-scriptengine.o: scriptengine.cpp scriptengine.h eascript.engine.txt scriptprn.h $(BASE_H)
-scriptprn.o: scriptprn.cpp scriptprn.h $(BASE_H)
+eacompiler.o: eacompiler.cpp $(BASICS_H)
+scriptchk.o: scriptchk.cpp $(BASICS_H)
+scriptengine.o: scriptengine.cpp scriptengine.h eascript.engine.txt scriptprn.h $(BASICS_H)
+scriptprn.o: scriptprn.cpp scriptprn.h $(BASICS_H)
 eascript.engine.txt:
 
 clean:
-	rm -rf *.o $(RETURN_PATH)/eascriptchk GNUmakefile
+	rm -rf *.o $(RETURN_PATH)/scriptchk GNUmakefile

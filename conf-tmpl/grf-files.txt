@@ -33,9 +33,9 @@ grf: C:\Program Files\Gravity\RO\sdata.grf
 // data_dir = ./
 // data_dir_priority = 2
 //
-// grf      = data1.grf  // gets priority 0
-// grf      = data2.grf  // gets priority 1
-// grf      = data3.grf  // gets priority 2
+// grf      = data0.grf  // gets priority 0
+// grf      = data1.grf  // gets priority 1
+// grf      = data2.grf  // gets priority 2
 //
 // allowes the datafolder to shaddow data from the data0 and data1 archive
 // but not from data2, since datafolder priority is not larger
@@ -47,9 +47,9 @@ grf: C:\Program Files\Gravity\RO\sdata.grf
 //
 // so a setup like:
 //
-// grf      = data1.grf  // gets priority 0
-// grf      = data2.grf  // gets priority 1
+// grf      = data0.grf  // gets priority 0
+// grf      = data1.grf  // gets priority 1
 // data_dir = ./         // automatically gets priority 2 when inserted here
-// grf      = data3.grf  // gets priority 2
+// grf      = data2.grf  // gets priority 2
 //
 // would have the same outcome than the explicit specification

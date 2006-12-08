@@ -6,7 +6,7 @@
 // Ladamin in C by [Yor]
 // if you modify this software, modify ladmin in tool too.
 ///////////////////////////////////////////////////////////////////////////
-
+#include "basesync.h"
 #include "core.h"
 #include "socket.h"
 #include "ladmin.h"

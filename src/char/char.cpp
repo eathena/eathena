@@ -1458,8 +1458,10 @@ int parse_frommap(int fd)
 				// here, it's the only area where it's possible that we doesn't know login_id2 (map-server asks just after 0x72 packet, that doesn't given the value)
 				(RFIFOL(fd,14) == 0 || account.login_id2 == RFIFOL(fd,14) ) && // relate to the versions higher than 18
 #endif
-				(!check_ip_flag || account.client_ip == RFIFOLIP(fd,18)) )
-			{
+				(!check_ip_flag || account.client_ip == RFIFOLIP(fd,18) || 
+				(account.client_ip.isBindable() && basics::ipaddress(RFIFOLIP(fd,18)).isBindable()) ) )
+			{	// found and verified
+				// have a bypass for connections from local machine
 				WFIFOW(fd,0) = 0x2afd;
 				WFIFOW(fd,2) = 16 + sizeof(struct mmo_charstatus);
 				WFIFOL(fd,4) = RFIFOL(fd,6); // send char_id!!

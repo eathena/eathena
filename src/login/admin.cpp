@@ -924,7 +924,7 @@ int parse_admin(int fd)
 				WFIFOL(fd,2) = account.account_id;
 				memcpy(WFIFOP(fd,6), account.userid, 24);
 				timestamp = account.valid_until;
-				if( !add_to_unlimited_account || timestamp == 0 )
+				if( timestamp == 0 )
 				{
 					login_log("'ladmin': Attempt to adjust the validity limit of an unlimited account (account: %s, ip: %s)" RETCODE,
 						account.userid, ip_str);

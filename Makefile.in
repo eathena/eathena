@@ -24,11 +24,11 @@ endif
 ##########################################################
 # set some path variables for convenience
 RETURN_PATH = ../..
-BASE_PATH   = src/basics
+BASICS_PATH = src/basics
 COMMON_PATH = src/common
 
 ##########################################################
-CPPFLAGS += -I$(RETURN_PATH)/$(COMMON_PATH) -I$(RETURN_PATH)/$(BASE_PATH) $(OS_TYPE)
+CPPFLAGS += -I$(RETURN_PATH)/$(COMMON_PATH) -I$(RETURN_PATH)/$(BASICS_PATH) $(OS_TYPE)
 
 
 
@@ -59,15 +59,41 @@ endif
 endif
 
 
-MKDEF = CCC="$(CCC)" CPPFLAGS="$(CPPFLAGS) $(MYSQL_INCLUDE)" LIBS="$(MYSQL_LIB) $(LIBS) $(GCLIB)" RETURN_PATH="$(RETURN_PATH)" BASE_PATH="$(BASE_PATH)" COMMON_PATH="$(COMMON_PATH)"
+MKDEF = CCC="$(CCC)" CPPFLAGS="$(CPPFLAGS) $(MYSQL_INCLUDE)" LIBS="$(MYSQL_LIB) $(LIBS)" RETURN_PATH="$(RETURN_PATH)" BASICS_PATH="$(BASICS_PATH)" COMMON_PATH="$(COMMON_PATH)"
 
 
 all: conf basics common login char map ladmin scriptchk scriptconv
 
 
+.PHONY : txt
+txt:
+	@echo "there is no target 'txt'"
+	@echo "run './configure --enable-txt [other options]' to activate txt support"
+
+.PHONY : sql
+sql:
+	@echo "there is no target 'sql'"
+	@echo "run './configure --enable-sql [other options]' to activate sql support"
+
+
 .PHONY : options
 options:
 	@echo "@MESSAGE@"
+
+.PHONY : help
+help: options
+	@echo "possible targets are 'login' 'char' 'map' 'ladmin' 'scriptchk' 'scriptconv' 'help' 'all' 'clean' 'confclean'"
+	@echo "'login'       - login server"
+	@echo "'char'        - char server"
+	@echo "'map'         - map server"
+	@echo "'ladmin'      - remote administration tool"
+	@echo "'scriptchk'   - script checker (new ea script syntax)"
+	@echo "'scriptconv'  - script converter (old ea syntax and aegis syntax,"
+	@echo "                can also be used for syntax check of those scripts"
+	@echo "'help'        - outputs this message"
+	@echo "'all'         - builds all above targets"
+	@echo "'clean'       - cleans builds and objects"
+	@echo "'confclean'   - same as clean and additionally cleans previous configuration"
 
 conf:
 	cp -r conf-tmpl conf
@@ -75,7 +101,7 @@ conf:
 
 .PHONY : basics
 basics: options
-	cd $(BASE_PATH) ; $(MAKE) $(MKDEF) ; cd $(RETURN_PATH)
+	cd $(BASICS_PATH) ; $(MAKE) $(MKDEF) ; cd $(RETURN_PATH)
 
 .PHONY : common
 common: options basics

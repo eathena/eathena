@@ -1578,6 +1578,7 @@ public:
 	virtual bool operator!=(const char *name) const	{ return cID!=name; }
 	virtual bool operator==(const CBuildin& p) const	{ return this==&p; }
 	virtual bool operator!=(const CBuildin& p) const	{ return this!=&p; }
+	virtual bool operator< (const CBuildin& p) const	{ return this< &p; }
 	///////////////////////////////////////////////////////////////////////////
 	// accesses
 	size_t Param()		{ return cParaCnt; }
@@ -1628,6 +1629,7 @@ public:
 	virtual bool operator!=(const char *name) const	{ return 0!=strcasecmp(cID,name); }
 	virtual bool operator==(const CFunction& p) const	{ return this==&p; }
 	virtual bool operator!=(const CFunction& p) const	{ return this!=&p; }
+	virtual bool operator< (const CFunction& p) const	{ return this< &p; }
 	///////////////////////////////////////////////////////////////////////////
 	// accesses
 	size_t Param()		{ return cParaCnt; }
@@ -1665,7 +1667,7 @@ public:
 	virtual bool operator!=(const char *name) const	{ return cID!=name; }
 	virtual bool operator==(const CScript& p) const	{ return this==&p; }
 	virtual bool operator!=(const CScript& p) const	{ return this!=&p; }
-
+	virtual bool operator< (const CScript& p) const	{ return this< &p; }
 };
 
 
@@ -1690,9 +1692,9 @@ class CScriptEnvironment
 	};
 
 
-	basics::TArrayDPT<CBuildin>		cBuildinTable;		// table of buildin functions
-	basics::TArrayDPT<CFunction>	cFunctionTable;		// table of script functions
-	basics::TArrayDPT<CScript>		cScriptTable;		// table of scripts
+	basics::vector<CBuildin>		cBuildinTable;		// table of buildin functions
+	basics::vector<CFunction>		cFunctionTable;		// table of script functions
+	basics::vector<CScript>			cScriptTable;		// table of scripts
 
 	// compile time only
 	basics::slist<CConstant>		cConstTable;		// table of constants

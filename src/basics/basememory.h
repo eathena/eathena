@@ -344,6 +344,7 @@ public:
 	//virtual operator const T*() const =0;
 	virtual size_t length()	const =0;
 	virtual size_t size() const { return length(); }
+	virtual size_t capacity() const =0;
 	virtual const T* begin() const=0;
 	virtual const T* end() const=0;
 	virtual const T* final() const=0;
@@ -379,6 +380,7 @@ protected:
 	virtual bool checkwrite(size_t addsize)	=0;
 public:
 	virtual size_t length()	const		{ return (this->cWpp-this->cBuf); }
+	virtual size_t capacity() const		{ return (this->cEnd-this->cBuf); }
 	virtual const T* begin() const		{ return  this->cBuf; }
 	virtual const T* end() const		{ return (this->cWpp)?this->cWpp-1:NULL; }
 	virtual const T* final() const		{ return  this->cWpp; }
@@ -542,6 +544,7 @@ protected:
 	virtual bool checkread(size_t addsize) const =0;
 public:
 	virtual size_t length()	const		{ return (this->cWpp-this->cRpp); }
+	virtual size_t capacity() const		{ return (this->cEnd-this->cBuf); }
 	virtual const T* begin() const		{ return  this->cRpp; }
 	virtual const T* end() const		{ return (this->cWpp)?this->cWpp-1:NULL; }
 	virtual const T* final() const		{ return  this->cWpp; }
@@ -663,6 +666,7 @@ protected:
 	virtual bool checkread(size_t addsize) =0;
 public:
 	virtual size_t length()	const		{ return (this->cWpp-this->cRpp); }
+	virtual size_t capacity() const		{ return (this->cEnd-this->cBuf); }
 
 	// not that usefull here
 	virtual const T* begin() const		{ return  this->cRpp; }

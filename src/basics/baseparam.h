@@ -5,7 +5,6 @@
 #include "baseobjects.h"
 #include "basestring.h"
 #include "basesync.h"
-#include "baseministring.h"
 
 
 NAMESPACE_BEGIN(basics)
@@ -610,7 +609,7 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// function which is called on external parameter modification
 	/// either by assigning values or changing an external file
-	virtual void call(const string<>& newval)=0;
+	virtual void update_value(const string<>& newval)=0;
 };
 
 
@@ -630,23 +629,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// construction/destruction
-	CParam(const string<>& name, bool (*callback)(const string<>& name, T& newval, const T& oldval)=NULL)
-		: cLocalCallback(callback)
-	{
-		string<> tmp;
-		this->cParamObj = CParamBase::getParam(name, tmp);
-		this->link();
-		paramconvert(cValue, this->cParamObj->value() );
-	}
-	CParam(const string<>& name, const T& value, bool (*callback)(const string<>& name, T& newval, const T& oldval)=NULL)
-		: cLocalCallback(callback)
-	{
-		string<> tmp;
-		tmp << value;
-		this->cParamObj = CParamBase::getParam(name, tmp);
-		this->link();
-		paramconvert(cValue, this->cParamObj->value() );
-	}
+	CParam(const string<>& name, bool (*callback)(const string<>& name, T& newval, const T& oldval)=NULL);
+	CParam(const string<>& name, const T& value, bool (*callback)(const string<>& name, T& newval, const T& oldval)=NULL);
 	virtual ~CParam()
 	{ }
 
@@ -657,15 +641,7 @@ public:
 	{
 		this->link();
 	}
-	const CParam& operator=(const CParam<T>& p)
-	{
-		this->unlink();
-		this->cParamObj = p.cParamObj;
-		this->cValue = p.cValue;
-		this->cLocalCallback = p.callback;
-		this->link();
-		return *this;
-	}
+	const CParam& operator=(const CParam<T>& p);
 
 	///////////////////////////////////////////////////////////////////////////
 	// class access
@@ -676,26 +652,9 @@ public:
 	const T& value() const		{ return this->cValue; }
 	const char*name() const		{ return this->cParamObj->name(); }
 
-	const T& operator=(const T& value)
-	{	
-		if( !(value==this->cValue) )
-		{	// take over the new value but store the old one
-			const T oldvalue = this->cValue;
-			this->cValue = value;
-			// check the callback
-			if( !cLocalCallback || cLocalCallback(*cParamObj, this->cValue, oldvalue) )
-			{	// set the value into the global object
-				string<> tmpstr;
-				tmpstr << this->cValue;
-				this->cParamObj->assignvalue(tmpstr);
-			}
-			else
-			{	// do rollback
-				this->cValue = oldvalue;
-			}
-		}
-		return value; 
-	}
+	///////////////////////////////////////////////////////////////////////////
+	/// value assignment.
+	const T& operator=(const T& value);
 
 	///////////////////////////////////////////////////////////////////////////
 	// compares parameters directly.
@@ -726,26 +685,98 @@ public:
 	}
 protected:
 	///////////////////////////////////////////////////////////////////////////
-	/// function which is called on external parameter modification
-	virtual void call(const string<>& newval)
-	{
-		T value;
-		paramconvert(value, newval);
-		if( !(value==this->cValue) )
-		{	// take over the new value but store the old one
-			const T oldvalue = this->cValue;
-			this->cValue = value;
-			// check the callback
-			if( !cLocalCallback || cLocalCallback(*cParamObj, this->cValue, oldvalue) )
-			{	// keep the new value
-			}
-			else
-			{	// do rollback
-				this->cValue = oldvalue;
-			}
+	/// function which is called on external parameter modification.
+	virtual void update_value(const string<>& newval);
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// construction.
+template <typename T>
+CParam<T>::CParam<T>(const string<>& name, bool (*callback)(const string<>& name, T& newval, const T& oldval))
+	: cLocalCallback(callback)
+{
+	string<> tmp;
+	this->cParamObj = CParamBase::getParam(name, tmp);
+	this->link();
+	paramconvert(cValue, this->cParamObj->value() );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// construction.
+template <typename T>
+CParam<T>::CParam<T>(const string<>& name, const T& value, bool (*callback)(const string<>& name, T& newval, const T& oldval))
+	: cLocalCallback(callback)
+{
+	string<> tmp;
+	tmp << value;
+	this->cParamObj = CParamBase::getParam(name, tmp);
+	this->link();
+	paramconvert(cValue, this->cParamObj->value() );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// assignment operator.
+template <typename T>
+const CParam<T>& CParam<T>::operator=(const CParam<T>& p)
+{
+	this->unlink();
+	this->cParamObj = p.cParamObj;
+	this->cValue = p.cValue;
+	this->cLocalCallback = p.callback;
+	this->link();
+	return *this;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// value assignment.
+template <typename T>
+const T& CParam<T>::operator=(const T& value)
+{	
+	if( !(value==this->cValue) )
+	{	// take over the new value but store the old one
+		const T oldvalue = this->cValue;
+		this->cValue = value;
+		// check the callback
+		if( !cLocalCallback || cLocalCallback(*cParamObj, this->cValue, oldvalue) )
+		{	// set the value into the global object
+			string<> tmpstr;
+			tmpstr << this->cValue;
+			this->cParamObj->assignvalue(tmpstr);
+		}
+		else
+		{	// do rollback
+			this->cValue = oldvalue;
 		}
 	}
-};
+	return value; 
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// function which is called on external parameter modification
+template <typename T>
+void CParam<T>::update_value(const string<>& newval)
+{
+	if( !this->cLocalCallback )
+	{	// no callback for value checking, 
+		// just do the conversion
+		paramconvert(this->cValue, newval);
+	}
+	else
+	{	// have the local callback check the new value
+		const T oldvalue = this->cValue;
+		paramconvert(this->cValue, newval);
+		if( !(oldvalue==this->cValue) )
+		{	// check the callback
+			if( !this->cLocalCallback(*cParamObj, this->cValue, oldvalue) )
+			{	// rollback on error
+				this->cValue = oldvalue;
+			}
+			// otherwise keep the new value
+		}
+	}
+}
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// load parameters from file.

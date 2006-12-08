@@ -137,10 +137,13 @@
 #define NAMESPACE_BEGIN(x)	namespace x {
 #define NAMESPACE_END(x)	}
 #define USING_NAMESPACE(x)	using namespace x;
+#define FROM_NAMESPACE(x,y)	x::y
+
 #else
 #define NAMESPACE_BEGIN(x)
 #define NAMESPACE_END(x)
 #define USING_NAMESPACE(x)
+#define FROM_NAMESPACE(x,y) y
 #endif
 
 

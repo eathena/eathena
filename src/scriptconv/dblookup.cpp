@@ -280,3 +280,4 @@ void const_entry::load(const char* filename)
 		fprintf(stderr, "%i entries\n", (int)const_table.size());
 	}
 }
+

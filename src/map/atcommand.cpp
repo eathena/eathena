@@ -2503,27 +2503,23 @@ bool command_shownpc(int fd, map_session_data& sd, const char* command, const ba
 ///
 bool command_loadnpc(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	FILE *fp;
-
-	if (param.size()<1) {
+	if (param.size()<1)
+	{	// not enough parameters
 		clif_displaymessage(fd, "Please, enter a script file name (usage: loadnpc <file name>).");
-		return false;
 	}
-
-	// check if script file exists
-	if ((fp = basics::safefopen(param[0], "r")) == NULL) {
+	else if( !basics::is_file(param[0]) )
+	{	// does not exists or not a file
 		clif_displaymessage(fd, msg_txt(MSG_SCRIPT_NOT_LOADED));
-		return false;
 	}
-	fclose(fp);
+	else
+	{	// add to list of script sources and run it
+		npc_addsrcfile(param[0]);
+		npc_parsesrcfile(param[0]);
 
-	// add to list of script sources and run it
-	npc_addsrcfile(param[0]);
-	npc_parsesrcfile(param[0]);
-
-	clif_displaymessage(fd, msg_txt(MSG_SCRIPT_LOADED));
-
-	return true;
+		clif_displaymessage(fd, msg_txt(MSG_SCRIPT_LOADED));
+		return true;
+	}
+	return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

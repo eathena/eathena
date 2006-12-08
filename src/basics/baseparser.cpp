@@ -625,7 +625,9 @@ short CParser::parse(short reduce_sym)
 			if(nrtIdx)
 			{	// remove terminals from stack
 				// and move them onto reduction tree
-				this->rt.realloc(nrtIdx, RT_BUFF_SIZE);
+				//this->rt.realloc(nrtIdx, RT_BUFF_SIZE);
+				if( this->rt.size()+nrtIdx > this->rt.capacity() )
+					this->rt.realloc(this->rt.size()+RT_BUFF_SIZE);
 
 				se.cChildPos = this->rt.size();
 				// move elements to rt
@@ -689,7 +691,9 @@ short CParser::parse(short reduce_sym)
 					CStackElement* se;
 					size_t sz = this->cStack.size();
 
-					this->cStack.realloc(1,STACK_SIZE);
+					//this->cStack.realloc(1,STACK_SIZE);
+					if( this->cStack.size() >= this->cStack.capacity() )
+						this->cStack.realloc(this->cStack.size()+STACK_SIZE);
 					this->cStack.resize(sz+1);
 					se = &this->cStack[sz];
 
@@ -707,7 +711,7 @@ short CParser::parse(short reduce_sym)
 					this->nstackofs = this->cStack.size()-1;
 					this->lalr_state = action->Target;
 					// pop token from stack
-					this->tokens.pop();
+					this->tokens.resize(this->tokens.size()-1);
 					break;
 				}
 				case ActionReduce:
@@ -733,7 +737,7 @@ short CParser::parse(short reduce_sym)
 				case ActionGoto:
 				{	// Shift states
 					this->lalr_state = action->Target;
-					this->tokens.pop();
+					this->tokens.resize(this->tokens.size()-1);
 					break;
 				}
 				case ActionAccept:

@@ -344,7 +344,7 @@ void test_memory(void)
 
 	{
 		printcreate = true;
-		{
+/*		{
 			printf("\nTArray\n");
 			TArrayDCT<simple_class> svc;
 			svc.append(1);printf("-");
@@ -352,7 +352,7 @@ void test_memory(void)
 			svc.append(3);printf("-");
 			svc.append(4);printf("-");
 		}		
-		{
+*/		{
 			printf("\nvector\n");
 			vector<simple_class> svc;
 			svc.append(1);printf("-");
@@ -370,7 +370,7 @@ void test_memory(void)
 		size_t i,k;
 		ulong tick;
 
-		TArrayDCT<simple_class> arr;
+//		TArrayDCT<simple_class> arr;
 		vector<simple_class> vec;
 /*
 		TArrayDCT	<int> arr;
@@ -379,7 +379,7 @@ void test_memory(void)
 
 		printf("append:\n");
 
-		tick = clock();
+/*		tick = clock();
 		for(k=0; k<runs;k++, arr.clear() )
 		for(i=0; i<elems; ++i)
 		{
@@ -387,7 +387,7 @@ void test_memory(void)
 			//arr.insert( (uchar)i, 1, 0 );
 		}
 		printf("tarray %lu  (%lu,%lu)\n", clock()-tick, (ulong)runs, (ulong)elems);
-
+*/
 
 		tick = clock();
 		for(k=0; k<runs;k++, vec.resize(0) )
@@ -402,7 +402,7 @@ void test_memory(void)
 		printf("insert:\n");
 		runs=100, elems=1000;
 
-		tick = clock();
+/*		tick = clock();
 		for(k=0; k<runs;k++, arr.clear() )
 		for(i=0; i<elems; ++i)
 		{
@@ -410,7 +410,7 @@ void test_memory(void)
 			arr.insert( (uchar)i, 1, 0 );
 		}
 		printf("tarray %lu  (%lu,%lu)\n", clock()-tick, (ulong)runs, (ulong)elems);
-
+*/
 
 		tick = clock();
 		for(k=0; k<runs;k++, vec.resize(0) )

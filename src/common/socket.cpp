@@ -4,6 +4,7 @@
 // original : core.c 2003/02/26 18:03:12 Rev 1.7
 
 #include "baseparam.h"
+#include "baseipfilter.h"
 #include "socket.h"
 #include "mmo.h"	// [Valaris] thanks to fov
 #include "utils.h"
@@ -53,8 +54,11 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-time_t last_tick   = time(0);
-time_t stall_time_ = 60;
+time_t								last_tick   = time(0);
+basics::CParam<time_t>				stall_time("stall_time", 60);
+basics::CParam<basics::ipfilter>	ddos("ipfilter");
+
+
 ///////////////////////////////////////////////////////////////////////////////
 
 //int rfifo_size = 65536;
@@ -305,391 +309,6 @@ SOCKET SessionGetSocket(const size_t pos)
 
 
 
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-// 
-// DDoS 攻撃対策
-// derived from jAthena 
-//
-///////////////////////////////////////////////////////////////////////////////
-
-class DDoS
-{
-	enum {
-		ACO_DENY_ALLOW=0,
-		ACO_ALLOW_DENY,
-		ACO_MUTUAL_FAILTURE,
-	};
-
-	struct _access_control
-	{
-		uint32 ip;
-		uint32 mask;
-
-		_access_control() : 
-			ip(0),
-			mask(0)
-		{}
-	};
-	struct _connect_history
-	{
-		struct _connect_history *next;
-		struct _connect_history *prev;
-		int    status;
-		int    count;
-		uint32 ip;
-		unsigned long tick;
-
-		_connect_history(uint32 ip) :
-			next(NULL),
-			prev(NULL),
-			status(0),
-			count(0),
-			ip(ip),
-			tick(gettick())
-		{}
-	};
-	struct _access_control *access_allow;
-	struct _access_control *access_deny;
-	int access_order;
-	int access_allownum;
-	int access_denynum;
-	bool access_debug;
-	int ddos_count;
-	int ddos_interval;
-	int ddos_autoreset;
-
-	struct _connect_history *connect_history[0x10000];
-public:
-	DDoS() :
-			access_allow(NULL),
-			access_deny(NULL),
-			access_order(ACO_DENY_ALLOW),
-			access_allownum(0),
-			access_denynum(0),
-			access_debug(false),
-			ddos_count(0),
-			ddos_interval(3000),
-			ddos_autoreset(600*1000)
-	{}
-	~DDoS()
-	{
-		clear();
-	}
-
-	void clear()
-	{
-		struct _connect_history *hist , *hist2;
-		for(size_t i=0; i<0x10000; ++i) 
-		{
-			hist = connect_history[i];
-			while(hist)
-			{
-				hist2 = hist->next;
-				delete hist;
-				hist = hist2;
-			}
-			connect_history[i]=NULL;
-		}
-		if(access_allow)
-		{
-			delete[] access_allow;
-			access_allow = NULL;
-		}
-		if(access_deny)
-		{	
-			delete[] access_deny;
-			access_deny = NULL;
-		}
-	}
-
-
-	// 接続できるかどうかの確認
-	//   false : 接続OK
-	//   true  : 接続NG
-
-	// ip is host byte order
-	int connect_check(uint32 ip) 
-	{
-		int result = connect_check_(ip);
-		if(access_debug) {
-			ShowMessage("connect_check: connection from %d.%d.%d.%d %s\n",
-				(ip>>24)&0xFF,(ip>>16)&0xFF,(ip>>8)&0xFF,(ip)&0xFF,result ? "allowed" : "denied");
-		}
-		return result;
-	}
-	// ip is host byte order
-	int connect_check_(uint32 ip) 
-	{
-		struct _connect_history *hist     = connect_history[ip & 0xFFFF];
-		struct _connect_history *hist_new;
-		int    i,is_allowip = 0,is_denyip = 0,connect_ok = 0;
-
-		// allow , deny リストに入っているか確認
-		for(i = 0;i < access_allownum; ++i) {
-			if((ip & access_allow[i].mask) == (access_allow[i].ip & access_allow[i].mask)) {
-				if(access_debug) {
-					printf("connect_check: match allow list from:%08lx ip:%08lx mask:%08lx\n",
-						(unsigned long)ip,(unsigned long)access_allow[i].ip,(unsigned long)access_allow[i].mask);
-				}
-				is_allowip = 1;
-				break;
-			}
-		}
-		for(i = 0;i < access_denynum; ++i) {
-			if((ip & access_deny[i].mask) == (access_deny[i].ip & access_deny[i].mask)) {
-				if(access_debug) {
-					printf("connect_check: match deny list  from:%08lx ip:%08lx mask:%08lx\n",
-						(unsigned long)ip,(unsigned long)access_deny[i].ip,(unsigned long)access_deny[i].mask);
-				}
-				is_denyip = 1;
-				break;
-			}
-		}
-		// コネクト出来るかどうか確認
-		// connect_ok
-		//   0 : 無条件に拒否
-		//   1 : 田代砲チェックの結果次第
-		//   2 : 無条件に許可
-		switch(access_order) {
-		case ACO_DENY_ALLOW:
-		default:
-			if(is_allowip) {
-				connect_ok = 2;
-			} else if(is_denyip) {
-				connect_ok = 0;
-			} else {
-				connect_ok = 1;
-			}
-			break;
-		case ACO_ALLOW_DENY:
-			if(is_denyip) {
-				connect_ok = 0;
-			} else if(is_allowip) {
-				connect_ok = 2;
-			} else {
-				connect_ok = 1;
-			}
-			break;
-		case ACO_MUTUAL_FAILTURE:
-			if(is_allowip) {
-				connect_ok = 2;
-			} else {
-				connect_ok = 0;
-			}
-			break;
-		}
-
-		// 接続履歴を調べる
-		while(hist) {
-			if(ip == hist->ip) {
-				// 同じIP発見
-				if(hist->status) {
-					// ban フラグが立ってる
-					return (connect_ok == 2 ? 1 : 0);
-				} else if(DIFF_TICK(gettick(),hist->tick) < ddos_interval) {
-					// ddos_interval秒以内にリクエスト有り
-					hist->tick = gettick();
-					if(hist->count++ >= ddos_count) {
-						// ddos 攻撃を検出
-						hist->status = 1;
-						ShowMessage("connect_check: ddos attack detected (%d.%d.%d.%d)\n",
-							(ip>>24)&0xFF,(ip>>16)&0xFF,(ip>>8)&0xFF,(ip)&0xFF);
-						return (connect_ok == 2 ? 1 : 0);
-					} else {
-						return connect_ok;
-					}
-				} else {
-					// ddos_interval秒以内にリクエスト無いのでタイマークリア
-					hist->tick  = gettick();
-					hist->count = 0;
-					return connect_ok;
-				}
-			}
-			hist = hist->next;
-		}
-		// IPリストに無いので新規作成
-		hist_new = new struct _connect_history(ip);
-		if(connect_history[ip & 0xFFFF] != NULL)
-		{
-			hist = connect_history[ip & 0xFFFF];
-			hist->prev = hist_new;
-			hist_new->next = hist;
-		}
-		connect_history[ip & 0xFFFF] = hist_new;
-		return connect_ok;
-	}
-
-	int connect_check_clear(int tid,unsigned long tick,int id,basics::numptr data)
-	{
-		int i;
-		int clear = 0;
-		int list  = 0;
-		struct _connect_history *hist , *hist2;
-		for(i = 0;i < 0x10000 ; ++i) {
-			hist = connect_history[i];
-			while(hist) {
-				if(
-					(DIFF_TICK(tick,hist->tick) > ddos_interval * 3 && !hist->status) ||
-					(DIFF_TICK(tick,hist->tick) > ddos_autoreset && hist->status)
-				) {
-					// clear data
-					hist2 = hist->next;
-					if(hist->prev) {
-						hist->prev->next = hist->next;
-					} else {
-						connect_history[i] = hist->next;
-					}
-					if(hist->next) {
-						hist->next->prev = hist->prev;
-					}
-					delete hist;
-					hist = hist2;
-					clear++;
-				} else {
-					hist = hist->next;
-					list++;
-				}
-			}
-		}
-		if(access_debug) {
-			ShowMessage("connect_check_clear: clear = %d list = %d\n",clear,list);
-		}
-		return list;
-	}
-
-private:
-	// IPマスクチェック
-	bool access_ipmask(const char *str,struct _access_control& acc)
-	{
-		unsigned int mask=0,i=0,m,ip, a0,a1,a2,a3;
-		if( !strcmp(str,"all") )
-		{
-			ip   = 0;
-			mask = 0;
-		}
-		else
-		{
-			if( sscanf(str,"%d.%d.%d.%d%n",&a0,&a1,&a2,&a3,&i)!=4 || i==0)
-			{
-				printf("access_ipmask: unknown format %s\n",str);
-				return false;
-			}
-			ip = (a3 << 24) | (a2 << 16) | (a1 << 8) | a0;
-			if(sscanf(str+i,"/%d.%d.%d.%d",&a0,&a1,&a2,&a3)==4 )
-			{
-				mask = (a3 << 24) | (a2 << 16) | (a1 << 8) | a0;
-			}
-			else if(sscanf(str+i,"/%d",&m) == 1)
-			{
-				for(i=0;i<m;++i)
-				{
-					mask = (mask >> 1) | 0x80000000;
-				}
-				mask = ntohl(mask);
-			}
-			else
-			{
-				mask = 0xFFFFFFFF;
-			}
-		}
-		if(access_debug)
-		{
-			ShowMessage("access_ipmask: ip:%08x mask:%08x %s\n",ip,mask,str);
-		}
-		acc.ip   = ip;
-		acc.mask = mask;
-		return true;
-	}
-public:
-	int socket_config_read(const char *cfgName)
-	{
-		char line[1024],w1[1024],w2[1024];
-		FILE *fp;
-
-		fp=basics::safefopen(cfgName, "r");
-		if(fp==NULL){
-			ShowError("Socket Configuration '"CL_WHITE"%s"CL_RESET"' not found.\n", cfgName);
-			return 1;
-		}
-		
-		while(fgets(line,sizeof(line),fp))
-		{
-			if( prepare_line(line) && 2==sscanf(line,"%1024[^:=]%*[:=]%1024[^\r\n]",w1,w2) )
-			{
-				basics::itrim(w1);
-				if(!*w1) continue;
-				
-				basics::itrim(w2);
-				
-				if(0==strcasecmp(w1,"stall_time"))
-				{
-					stall_time_ = atoi(w2);
-				}
-				else if(0==strcasecmp(w1,"order"))
-				{
-					access_order=atoi(w2);
-					if(0==strcasecmp(w2,"deny,allow"))				access_order=ACO_DENY_ALLOW;
-					else if(0==strcasecmp(w2,"allow,deny"))			access_order=ACO_ALLOW_DENY;
-					else if(0==strcasecmp(w2,"mutual-failture"))	access_order=ACO_MUTUAL_FAILTURE;
-				}
-				else if(0==strcasecmp(w1,"allow"))
-				{
-					struct _access_control tmp;
-					if( access_ipmask(w2,tmp) )
-					{
-						new_realloc(access_allow, access_allownum, 1);
-						access_allow[access_allownum] = tmp;
-						++access_allownum;
-					}
-				}
-				else if(0==strcasecmp(w1,"deny"))
-				{
-					struct _access_control tmp;
-					if( access_ipmask(w2, tmp) )
-					{
-						new_realloc(access_deny, access_denynum, 1);
-						access_deny[access_denynum] = tmp;
-						++access_denynum;
-					}
-				}
-				else if(0==strcasecmp(w1,"ddos_interval"))
-				{
-					ddos_interval = atoi(w2);
-				}
-				else if(0==strcasecmp(w1,"ddos_count"))
-				{
-					ddos_count = atoi(w2);
-				}
-				else if(0==strcasecmp(w1,"ddos_autoreset"))
-				{
-					ddos_autoreset = atoi(w2);
-				}
-				else if(0==strcasecmp(w1,"debug"))
-				{
-					access_debug = basics::config_switch<bool>(w2);
-				}
-				else if (strcasecmp(w1, "import") == 0)
-				{
-					socket_config_read(w2);
-				}
-			}
-		}
-		fclose(fp);
-		ShowStatus("Done reading Socket Configuration '"CL_WHITE"%s"CL_RESET"'.\n", cfgName);
-		return 0;
-	}
-};
-
-DDoS ddos;
-
-int connect_check_clear(int tid,unsigned long tick,int id,basics::numptr data)
-{
-	return ddos.connect_check_clear(tid, tick, id, data);
-}
 
 
 
@@ -1169,12 +788,13 @@ int connect_client(int listen_fd)
 		perror("accept");
 		return -1;
 	}
-	else if( !ddos.connect_check(ntohl(client_address.sin_addr.s_addr)) )
-	{
+	else if( !const_cast<basics::ipfilter&>(*ddos).access_from(ntohl(client_address.sin_addr.s_addr)) )
+	{	// const_cast because a parameter by default only returns const references
+		// to prevent accidental assignments to the parameter value
 		closesocket(sock);
 		return -1;
-	} else
-
+	}
+	else
 #ifndef WIN32
 	// on unix a socket can only be in range from 1 to FD_SETSIZE
 	// otherwise it would not fit into the fd_set structure and 
@@ -1701,7 +1321,7 @@ int do_sendrecv(int next)
 #elif defined(SOCKET_DEBUG_LOG)
 			debug_collect(fd);
 #endif
-			if( (session[fd]->rdata_tick > 0) && (last_tick > session[fd]->rdata_tick + stall_time_) ) 
+			if( (session[fd]->rdata_tick > 0) && (last_tick > session[fd]->rdata_tick + stall_time) ) 
 			{	
 				// emulate a disconnection
 				session[fd]->flag.connected = false;
@@ -1837,10 +1457,8 @@ bool session_Delete(int fd)
 ///////////////////////////////////////////////////////////////////////////////
 void socket_init(void)
 {
-	ddos.socket_config_read("conf/packet_athena.conf");
+	basics::loadParam("conf/socket_athena.conf");
 
-	// とりあえず５分ごとに不要なデータを削除する
-	add_timer_interval(gettick()+1000,300*1000,connect_check_clear,0,0);
 	add_timer_func_list(session_WaitClose, "session_WaitClose");
 }
 
@@ -1861,9 +1479,6 @@ void socket_final(void)
 			SessionRemoveIndex( fd );
 		}
 	}
-
-	// might remove that later when switching memory model
-	ddos.clear();
 }
 
 

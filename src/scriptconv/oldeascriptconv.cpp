@@ -129,11 +129,20 @@ void oldeaprinter::print_oldminscripthead( const char* str )
 	if( res>=1 )
 	{	// new format:
 		// npc [id] (name=name)
-		char idname[32];
-		str2id(idname, sizeof(idname), tmp);
+		char idname[32], name[32], *ip;
+		if( (ip=strstr(tmp, "::")) )
+		{	// cut off the script id
+			*ip=0;
+			str2id(idname, sizeof(idname), ip+2);
+		}
+		else
+		{	// take full name as id
+			str2id(idname, sizeof(idname), tmp);
+		}
+		str2name(name, sizeof(name), tmp);
 
 		prn << "npc " << idname << " ";
-		print_newnpchead(idname);
+		print_newnpchead(name);
 	}
 	else
 	{	// error, no format change
@@ -1077,7 +1086,7 @@ bool oldeaprinter::transform_identifier(basics::CParser_CommentStore& parser, in
 	
 	// strip any other stuff from the beginning
 	for( ; str<=epp && !basics::stringcheck::isalnum(*str) && *str!='_'; ++str) {}
-	if(str<epp)
+	if(str<=epp)
 	{
 		basics::string<> tmp(str, epp-str+1);
 		// test for stuff from constdb

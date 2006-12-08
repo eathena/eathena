@@ -1,6 +1,5 @@
 #include "basetypes.h"
 #include "baseobjects.h"
-#include "baseministring.h"
 #include "basesync.h"
 #include "basefile.h"
 
@@ -354,7 +353,7 @@ void CParamObj::assignvalue(const string<>& value)
 			CParamBase* ptr = this->cParamRoot;
 			while( ptr )
 			{
-				ptr->call(value);
+				ptr->update_value(value);
 				ptr = ptr->cNext;
 			}
 		}
@@ -657,6 +656,13 @@ bool doublecallback(const string<>& name, double&newval, const double&oldval)
 	printf( "%s is changing from %lf to %lf\n", (const char*)name, oldval, newval);
 	return true;
 }
+
+bool parameter_process(const char*key, const char*data)
+{
+	printf( "processing '%s' with '%s'\n", key, data);
+	return true;
+}
+
 #endif//DEBUG
 
 
@@ -665,7 +671,7 @@ void test_parameter()
 #if defined(DEBUG)
 	try {
 		double a, xx(141.30);
-		MiniString b="";
+		string<> b="";
 		// create new param entry
 		createParam("double param", "0.2");
 		createParam("double param2", "0.2111");
@@ -673,7 +679,7 @@ void test_parameter()
 
 		try
 		{
-			CParam< MiniString > parameter2("double param", "0.0");
+			CParam< string<> > parameter2("double param", "0.0");
 		}
 		catch(...)
 		{
@@ -708,19 +714,24 @@ void test_parameter()
 
 		printf("%s\n", typeid(testvar).name() );
 
-
 		CParam<int> testint("int param", 8);
-		CParam<MiniString> teststr("str param", "...test test...");
+		CParam< string<> > teststr("str param", "...test test...");
 
 		CParamBase::loadFile("config1.txt");
 
-		CParam< vector<int> > testvec("parameter3");
+		
+
+		CParam< slist<int> > testvec("parameter3");
 
 		vector<int>::iterator iter(testvec());
 		for(; iter; ++iter)
 			printf("%i ", *iter);
 		printf("\n");
 
+
+		
+
+		CParamBase::loadFile("config1.txt", parameter_process);
 		
 		CParamBase::listall();
 

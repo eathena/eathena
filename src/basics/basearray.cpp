@@ -12,6 +12,7 @@
 #include "baseexceptions.h"
 #include "basearray.h"
 
+
 NAMESPACE_BEGIN(basics)
 
 
@@ -366,19 +367,18 @@ void test_array(void)
 		size_t runs=1000, elems=1000;
 		size_t i,k;
 		ulong tick;
-		TArrayDST<char> arr;
+//		TArrayDST<char> arr;
 
 		vector<char> vec;
 
-		tick = clock();
-
+/*		tick = clock();
 		for(k=0; k<runs;++k, arr.resize(1), arr.realloc(1000))
 		for(i=0; i<elems; ++i)
 		{
 			arr.append( (char)i );
 		}
 		printf("tarray %lu  (%lu,%lu)\n", clock()-tick, (ulong)runs, (ulong)elems);
-
+*/
 
 		tick = clock();
 		for(k=0; k<runs;++k, vec.resize(1), vec.realloc(1000))

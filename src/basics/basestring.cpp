@@ -9,7 +9,6 @@
 #include "basearray.h"
 #include "basestrsearch.h"
 #include "basestrformat.h"
-#include "baseministring.h"
 
 NAMESPACE_BEGIN(basics)
 
@@ -1918,7 +1917,7 @@ void test_stringbuffer(void)
 		if( xxx[5]!='t' )
 			xxx[1] = c;
 
-MiniString a; bool bb = true;
+string<> a; bool bb = true;
 
 a << "hallo" << 1 << bb;
 
@@ -1957,7 +1956,7 @@ size_t sz=0;
 	char buffer2[1024];
 	staticstring<> sa(buffer2, sizeof(buffer2));
 	basestring<> sb;
-	MiniString a;
+	string<> a;
 
 	const size_t runs = 100000;
 

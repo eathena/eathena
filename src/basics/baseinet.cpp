@@ -9,7 +9,7 @@
 #include "baseexceptions.h"
 
 #ifndef SINGLETHREAD
-#  include "basethreads.h"   // for mutex
+#  include "basesync.h"   // for mutex
 #endif
 #include "baseinet.h"
 #include "basesocket.h"
@@ -424,37 +424,63 @@ ipaddress ipaddress::str2ip(const char *str)
 {	// format: <ip>
 	if(str)
 	{
-		while( stringcheck::isspace(*str) ) str++;
+		while( stringcheck::isspace(*str) ) ++str;
 		// look up the name
 		// this can take long time (i.e. until timeout looking up non-existing addresses)
 		return hostbyname(str);
 	}
 	return GetSystemIP();
 }
-bool ipaddress::str2ip(const char* str, ipaddress &addr, ipaddress &mask, ushort &port)
+const char* ipaddress::str2ip(const char* str, ipaddress &addr, ipaddress &mask, ushort &port)
 {	// format: <ip>/<mask>:<port>
-	bool ret = false;
 	if(str)
 	{
+		const char* savestr = str;
 		char buffer[1024];
-		const char *kp=NULL, *mp=NULL;
-		kp = strchr(str,'/'); // the first ip/mask seperator
-		mp=strchr(kp?kp:str,':'); // the second ip/port seperator
-		if(kp && mp)
-		{	// all data given
-			// <ip>
-			const uint len = ((size_t)(kp-str)>=sizeof(buffer))?(sizeof(buffer)-1):(kp-str);
-			memcpy(buffer, str, len);
-			buffer[len]=0;
+		char *ip;
+
+		// fill defaults
+		addr = ipany;
+		mask = ipnone;
+		port = 0;
+		// skip leading spaces
+		while( stringcheck::isspace(*str) ) ++str;
+		/////////////////////////////////////////
+		{	// ipaddress
+			for(ip=buffer; 
+				*str && ip<buffer+sizeof(buffer)-1 &&
+				(basics::stringcheck::isalnum(*str) || *str == '.');
+				++str, ++ip)
+			{
+				*ip = *str;
+			}
+			if( ip==buffer )
+				return savestr;// return the original to signal an error in the first conversion
+			*ip=0;
 			addr = ipaddress::str2ip(buffer);
-			// <mask>
-			if(kp<mp)
-			{	// format is ok
-				kp++;
-				const uint len = ((size_t)(mp-kp)>=sizeof(buffer))?(sizeof(buffer)-1):(mp-kp);
-				memcpy(buffer, kp, len);
-				buffer[len]=0;
-				if( strchr(buffer, '.') )
+			if(addr==ipnone)
+			{	// error, invalid lookup
+				addr = ipany;
+				return savestr;// return the original to signal an error in the first conversion
+			}
+		}
+		/////////////////////////////////////////
+		if( *str == '/' )
+		{	// mask
+			++str;
+			bool dot=false;
+			for(ip=buffer; 
+				*str && ip<buffer+sizeof(buffer)-1 &&
+				(basics::stringcheck::isdigit(*str) || *str == '.');
+				++str, ++ip)
+			{
+				dot |= (*str == '.');
+				*ip = *str;
+			}
+			if( buffer<ip )
+			{	// had some chars
+				*ip=0;
+				if( dot )
 				{	// mask given as ip
 					mask = ipaddress::str2ip(buffer);
 				}
@@ -464,56 +490,28 @@ bool ipaddress::str2ip(const char* str, ipaddress &addr, ipaddress &mask, ushort
 					mask = (uint32)(0xFFFFFFFF << ((num<32)?(32-num):0));
 				}
 			}
-			else
-			{	// the mask seperator placement is wrong
-				mask = (uint32)INADDR_NONE; // 255.255.255.255
+		}
+		/////////////////////////////////////////
+		if( *str == ':' )
+		{	// port
+			++str;
+			for(ip=buffer; 
+				*str && ip<buffer+sizeof(buffer)-1 &&
+				(basics::stringcheck::isdigit(*str));
+				++str, ++ip)
+			{
+				*ip = *str;
 			}
-			// <port>
-			port = atoi(mp+1);
-		}
-		else if(!kp && mp)
-		{	// mo mask given
-			// <ip>
-			const uint len = ((size_t)(mp-str)>=sizeof(buffer))?(sizeof(buffer)-1):(mp-str);
-			memcpy(buffer, str, len);
-			buffer[len]=0;
-			addr = ipaddress::str2ip(buffer);
-			// default mask
-			mask = (uint32)INADDR_NONE; // 255.255.255.255
-			// <port>
-			port = atoi(mp+1);
-		}
-		else if(kp && !mp)
-		{	// no port given
-			// <ip>
-			const uint len = ((size_t)(kp-str)>=sizeof(buffer))?(sizeof(buffer)-1):(kp-str);
-			memcpy(buffer, str, len);
-			buffer[len]=0;
-			addr = ipaddress::str2ip(buffer);
-			// <mask>
-			kp++;
-			if( strchr(kp, '.') )
-			{	// maske given as ip
-				mask = ipaddress::str2ip(kp);
+			
+			if( buffer<ip )
+			{	// had some chars
+				*ip=0;
+				port = atoi(buffer);
 			}
-			else
-			{	// mask given as number of mask bits
-				const uint num = atoi(kp);
-				mask = (uint32)(0xFFFFFFFF << ((num<32)?(32-num):0));
-			}
-			// don't change the port
 		}
-		else
-		{	// neither mask nor port given
-			// <ip>
-			addr = ipaddress::str2ip(str);
-			// default mask
-			mask = (uint32)INADDR_NONE; // 255.255.255.255
-			// don't change the port
-		}
-		ret = true;
+		/////////////////////////////////////////
 	}
-	return ret;
+	return str;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -895,16 +893,13 @@ template stringoperator<wchar_t>& operator<< (stringoperator<wchar_t>& str, cons
 // instantiate some fixed ip's
 // the local assignment will also automatically turn on the network layer
 // just by including this object file
-ipaddress localip = ipaddress::GetSystemIP(0);
-
-
+ipaddress iplocal = ipaddress::GetSystemIP(0);
 
 
 
 void test_inet()
 {
 #ifdef DEBUG
-
 
 #endif//DEBUG
 }

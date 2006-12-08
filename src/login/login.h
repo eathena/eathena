@@ -34,7 +34,6 @@
 
 
 extern char date_format[32];
-extern bool add_to_unlimited_account;
 extern struct mmo_char_server server[MAX_SERVERS];
 extern unsigned short server_num;
 extern CAccountDB account_db;
@@ -161,18 +160,19 @@ struct login_server : public session_data
 	basics::vector<charserver_connect>	char_servers;	///< char server connections
 	basics::slist<client_connect>		last_connects;	///< list of last connections
 
-	basics::CParam<bool>				allowed_regs;	///< M/F registration allowed
+	basics::CParam<bool>				mfreg_enabled;	///< M/F registration allowed
+	basics::CParam<ulong>				mfreg_time;		///< time in seconds between registrations
 	ulong								new_reg_tick;	///< internal tickcounter for M/F registration
-	basics::CParam<ulong>				time_allowed;	///< time in seconds between registrations
+	
 
 	basics::smap< basics::string<>, basics::string<> > server_accounts;
 
 	login_server(socket_data& s) :
 		socket(s),
 		port("loginport", 6900),
-		allowed_regs("allowed_regs", false),
-		new_reg_tick(gettick()),
-		time_allowed("time_allowed", 10)
+		mfreg_enabled("mfreg_enabled", false),
+		mfreg_time("mfreg_time", 10),
+		new_reg_tick(gettick())
 	{}
 
 	~login_server()
