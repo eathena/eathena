@@ -694,6 +694,13 @@ typedef unsigned int		uint32;
 #endif
 //////////////////////////////
 
+#ifndef UINT32_MIN
+#define UINT32_MIN uint32(0)
+#endif
+
+#ifndef UINT32_MAX
+#define UINT32_MAX uint32(0xFFFFFFFF)
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 /// Integers with guaranteed _minimum_ size.

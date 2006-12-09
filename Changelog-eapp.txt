@@ -1,4 +1,8 @@
 Date	Added
+2006/12/09
+	* fixed "warning C4812: obsolete declaration style: please use 'basics::CParam<T>::CParam' instead"
+	  when compiling in VS8, caused by the previous changes.
+	* Added UINT32_MIN and UINT32_MAX to basetypes.h [FlavioJS]
 2006/12/08
 	* removed the predefined conf dir, conf-tmpl is enough
 	* removed (hopefully) any unused config option
@@ -18,7 +22,8 @@ Date	Added
 	  smaller changes on internals and some additions
 	* minor other things [Shinomori]
 2006/11/28
-	* Normalized line terminators and set the svn:eol-style property to native for all .cpp/.h/.txt files. [FlavioJS]
+	* Normalized line terminators and set the svn:eol-style property to native 
+	  for all .cpp/.h/.txt files.
 	* Added the date to this changelog (hope it's ok). [FlavioJS]
 2006/11/27
 	* some changes on console logs, despite my doubts it will help the epidemic dyslexia

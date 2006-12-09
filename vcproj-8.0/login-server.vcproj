@@ -44,6 +44,7 @@
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;WITH_TEXT;WITH_MYSQL"
 				RuntimeLibrary="1"
 				EnableFunctionLevelLinking="true"
+				ProgramDataBaseFileName="$(IntDir)\$(ProjectName).pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
@@ -98,7 +99,8 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\src\login\admin.cpp">
+				RelativePath="..\src\login\admin.cpp"
+				>
 			</File>
 			<File
 				RelativePath="..\src\login\login.cpp"
@@ -111,7 +113,8 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\src\login\admin.h">
+				RelativePath="..\src\login\admin.h"
+				>
 			</File>
 			<File
 				RelativePath="..\src\login\login.h"

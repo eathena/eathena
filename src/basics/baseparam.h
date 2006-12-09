@@ -336,7 +336,7 @@ public:
 
 	/// load and parse config file.
 	virtual bool LoadConfig(const char* cfgName);
-	// proccess a config entry.
+	/// proccess a config entry.
 	virtual bool ProcessConfig(const char*w1,const char*w2) = 0;
 };
 
@@ -692,7 +692,7 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////
 /// construction.
 template <typename T>
-CParam<T>::CParam<T>(const string<>& name, bool (*callback)(const string<>& name, T& newval, const T& oldval))
+CParam<T>::CParam(const string<>& name, bool (*callback)(const string<>& name, T& newval, const T& oldval))
 	: cLocalCallback(callback)
 {
 	string<> tmp;
@@ -704,7 +704,7 @@ CParam<T>::CParam<T>(const string<>& name, bool (*callback)(const string<>& name
 ///////////////////////////////////////////////////////////////////////////////
 /// construction.
 template <typename T>
-CParam<T>::CParam<T>(const string<>& name, const T& value, bool (*callback)(const string<>& name, T& newval, const T& oldval))
+CParam<T>::CParam(const string<>& name, const T& value, bool (*callback)(const string<>& name, T& newval, const T& oldval))
 	: cLocalCallback(callback)
 {
 	string<> tmp;
