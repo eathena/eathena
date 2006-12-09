@@ -24,8 +24,11 @@ EXTLIBS = $(COMMON_STATICLIB) $(BASICS_STATICLIB)
 
 all map map-server: $(RETURN_PATH)/map-server
 
-$(RETURN_PATH)/map-server: $(OBJECTS)
-	$(CCC) $^ $(EXTLIBS) -lm $(LIBS) -o $@
+$(EXTLIBS):
+	@echo "$(EXTLIBS) not up to date, rebuild them"
+
+$(RETURN_PATH)/map-server: $(OBJECTS) $(EXTLIBS)
+	$(CCC) $^ -lm $(LIBS) -o $@
 
 atcommand.o: atcommand.cpp atcommand.h itemdb.h pc.h map.h skill.h clif.h mob.h intif.h battle.h config.h storage.h guild.h pet.h log.h $(COMMON_H) $(BASICS_H)
 battle.o: battle.cpp battle.h config.h skill.h map.h mob.h pc.h pet.h guild.h $(COMMON_H) $(BASICS_H)

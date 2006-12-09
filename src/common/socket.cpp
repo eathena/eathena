@@ -55,7 +55,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 time_t								last_tick   = time(0);
-basics::CParam<time_t>				stall_time("stall_time", 60);
+basics::CParam<ulong>				stall_time("stall_time", 60);
 basics::CParam<basics::ipfilter>	ddos("ipfilter");
 
 
@@ -1321,9 +1321,8 @@ int do_sendrecv(int next)
 #elif defined(SOCKET_DEBUG_LOG)
 			debug_collect(fd);
 #endif
-			if( (session[fd]->rdata_tick > 0) && (last_tick > session[fd]->rdata_tick + stall_time) ) 
-			{	
-				// emulate a disconnection
+			if( session[fd]->rdata_tick && (last_tick - session[fd]->rdata_tick > (long)stall_time()) )
+			{	// emulate a disconnection
 				session[fd]->flag.connected = false;
 				// and call the read function
 				process_read(fd);

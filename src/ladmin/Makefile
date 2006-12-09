@@ -22,11 +22,13 @@ include $(RETURN_PATH)/$(COMMON_PATH)/Makefile.dep
 OBJECTS = ladmin.o
 EXTLIBS = $(COMMON_STATICLIB) $(BASICS_STATICLIB)
 
-
 all ladmin: $(RETURN_PATH)/ladmin
 
-$(RETURN_PATH)/ladmin: $(OBJECTS)
-	$(CCC) $^ $(EXTLIBS) $(LIBS) -o $@
+$(EXTLIBS):
+	@echo "$(EXTLIBS) not up to date, rebuild them"
+
+$(RETURN_PATH)/ladmin: $(OBJECTS) $(EXTLIBS)
+	$(CCC) $^ $(LIBS) -o $@
 
 ladmin.o: ladmin.cpp ladmin.h $(COMMON_H)  $(BASICS_H)
 

@@ -1,5 +1,9 @@
 Date	Added
 2006/12/09
+	* forgot a Makefile diff
+	* alligned str2ip to it's former functionality (not overwriting given values)
+	* possibly fixed the VC8 time_t ambiguity [Shinomori]
+2006/12/09
 	* fixed "warning C4812: obsolete declaration style: please use 'basics::CParam<T>::CParam' instead"
 	  when compiling in VS8, caused by the previous changes.
 	* Added UINT32_MIN and UINT32_MAX to basetypes.h [FlavioJS]

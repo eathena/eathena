@@ -694,13 +694,46 @@ typedef unsigned int		uint32;
 #endif
 //////////////////////////////
 
-#ifndef UINT32_MIN
-#define UINT32_MIN uint32(0)
+#ifndef INT8_MIN
+#define INT8_MIN		(int8(0x80))
+#endif
+#ifndef INT8_MAX
+#define INT8_MAX		(int8(0x7f))
+#endif
+#ifndef UINT8_MIN
+#define UINT8_MIN		(uint8(0x00))
 #endif
 
-#ifndef UINT32_MAX
-#define UINT32_MAX uint32(0xFFFFFFFF)
+#ifndef UINT8_MAX
+#define UINT8_MAX		(uint8(0xff))
 #endif
+
+#ifndef INT16_MIN
+#define INT16_MIN		(int16(0x8000))
+#endif
+#ifndef INT16_MAX
+#define INT16_MAX		(int16(0x7fff))
+#endif
+#ifndef UINT16_MIN
+#define UINT16_MIN		(uint16(0x0000))
+#endif
+#ifndef UINT16_MAX
+#define UINT16_MAX		(uint16(0xffff))
+#endif
+
+#ifndef INT32_MIN
+#define INT32_MIN		(int32(0x80000000))
+#endif
+#ifndef INT32_MAX
+#define INT32_MAX		(int32(0x7fffffff))
+#endif
+#ifndef UINT32_MIN
+#define UINT32_MIN		(uint32(0x00000000))
+#endif
+#ifndef UINT32_MAX
+#define UINT32_MAX		(uint32(0xffffffff))
+#endif
+
 
 //////////////////////////////////////////////////////////////////////////
 /// Integers with guaranteed _minimum_ size.

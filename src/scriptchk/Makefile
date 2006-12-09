@@ -19,11 +19,13 @@ include $(RETURN_PATH)/$(BASICS_PATH)/Makefile.dep
 OBJECTS = eacompiler.o scriptchk.o scriptengine.o scriptprn.o
 EXTLIBS = $(BASICS_STATICLIB)
 
-
 all scriptchk: $(RETURN_PATH)/scriptchk
 
-$(RETURN_PATH)/scriptchk: $(OBJECTS)
-	$(CCC) $^ $(EXTLIBS) $(LIBS) -o $@
+$(EXTLIBS):
+	@echo "$(EXTLIBS) not up to date, rebuild them"
+
+$(RETURN_PATH)/scriptchk: $(OBJECTS) $(EXTLIBS)
+	$(CCC) $^ $(LIBS) -o $@
 
 eacompiler.o: eacompiler.cpp $(BASICS_H)
 scriptchk.o: scriptchk.cpp $(BASICS_H)

@@ -24,8 +24,11 @@ EXTLIBS = $(COMMON_STATICLIB) $(BASICS_STATICLIB)
 
 all login login-server: $(RETURN_PATH)/login-server
 
-$(RETURN_PATH)/login-server: $(OBJECTS)
-	$(CCC) $^ $(EXTLIBS) $(LIBS) -o $@
+$(EXTLIBS):
+	@echo "$(EXTLIBS) not up to date, rebuild them"
+
+$(RETURN_PATH)/login-server: $(OBJECTS) $(EXTLIBS)
+	$(CCC) $^ $(LIBS) -o $@
 
 login.o: login.cpp login.h admin.h $(COMMON_H) $(BASICS_H)
 admin.o: admin.cpp admin.h login.h $(COMMON_H) $(BASICS_H)

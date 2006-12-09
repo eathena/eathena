@@ -24,8 +24,11 @@ EXTLIBS = $(COMMON_STATICLIB) $(BASICS_STATICLIB)
 
 all char char-server: $(RETURN_PATH)/char-server
 
-$(RETURN_PATH)/char-server: $(OBJECTS)
-	$(CCC) $^ $(EXTLIBS) $(LIBS) -o $@
+$(EXTLIBS):
+	@echo "$(EXTLIBS) not up to date, rebuild them"
+
+$(RETURN_PATH)/char-server: $(OBJECTS) $(EXTLIBS)
+	$(CCC) $^ $(LIBS) -o $@
 
 
 char.o: char.cpp char.h inter.h int_pet.h $(COMMON_H) $(BASICS_H)

@@ -67,9 +67,8 @@ const char* iprulelist_t::add_rule(const char* str)
 		else
 		{	// format is "ip" or "ip/mask" or "ip/mask bit count"
 			//basics::CRegExp re("(\\d+.\\d+.\\d+.\\d+)\\s*\\/\\s*(?:(\\d+.\\d+.\\d+.\\d+)|(\\d+))?");
-			//subnetaddress parsing is already splitting these, port isunused
-			ipaddress addr, mask;
-			ushort port;
+			ipaddress addr(ipany), mask(ipnone);
+			ushort port(0);
 			const char* ip=ipaddress::str2ip(str,addr,mask,port);
 			if( str==ip )
 			{	// failed
@@ -279,8 +278,12 @@ void ipfilter::add_rule(const char* str)
 			{
 				this->ban_time= 10*this->ban_time + *str - '0';
 			}
+			if(this->ban_time && this->ban_time < 60)
+				this->ban_time = 60;		// at least a minute
+			else if(this->ban_time > 2628000)
+				this->ban_time = 0;			// a month is like eternity
+
 		}
-		
 		else
 		{	// failed
 			break;

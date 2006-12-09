@@ -21,9 +21,11 @@ EXTLIBS = $(BASICS_STATICLIB)
 
 all scriptconv: $(RETURN_PATH)/scriptconv
 
+$(EXTLIBS):
+	@echo "$(EXTLIBS) not up to date, rebuild them"
 
-$(RETURN_PATH)/scriptconv: $(OBJECTS)
-	$(CCC) $^ $(EXTLIBS) $(LIBS) -o $@
+$(RETURN_PATH)/scriptconv: $(OBJECTS) $(EXTLIBS)
+	$(CCC) $^ $(LIBS) -o $@
 
 
 scriptconv.o: scriptconv.cpp scriptengine.h scriptprn.h oldeascriptconv.h aegisscriptconv.h dblookup.h $(BASICS_H)

@@ -439,10 +439,6 @@ const char* ipaddress::str2ip(const char* str, ipaddress &addr, ipaddress &mask,
 		char buffer[1024];
 		char *ip;
 
-		// fill defaults
-		addr = ipany;
-		mask = ipnone;
-		port = 0;
 		// skip leading spaces
 		while( stringcheck::isspace(*str) ) ++str;
 		/////////////////////////////////////////
@@ -463,6 +459,8 @@ const char* ipaddress::str2ip(const char* str, ipaddress &addr, ipaddress &mask,
 				addr = ipany;
 				return savestr;// return the original to signal an error in the first conversion
 			}
+			// address is valid, so we set a mask default
+			mask = ipnone;
 		}
 		/////////////////////////////////////////
 		if( *str == '/' )

@@ -3183,6 +3183,7 @@ string<> longtimestring(ulong seconds);
 template<typename T> stringoperator<T>& operator <<(stringoperator<T>& str, const datetime& dt);
 template<typename T> string<T>& operator <<(string<T>& str, const datetime& dt)	{ *str << dt; return str; }
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // converts given number to string with k/M/G.. units with base 1024
 string<> bytestostring(long bytes);
