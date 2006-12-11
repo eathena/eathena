@@ -916,17 +916,23 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 			TBL_MOB *md = (TBL_MOB*)target;
 			mobskill_event(md, src, tick, -1); //Cast targetted skill event.
 			//temp: used to store mob's mode now.
-			if (tstatus->mode&MD_CASTSENSOR &&
+			if (tstatus->mode&(MD_CASTSENSOR_IDLE|MD_CASTSENSOR_CHASE) &&
 				battle_check_target(target, src, BCT_ENEMY) > 0)
 			{
 				switch (md->state.skillstate) {
-				case MSS_ANGRY:
 				case MSS_RUSH:
 				case MSS_FOLLOW:
-					if (!(tstatus->mode&(MD_AGGRESSIVE|MD_ANGRY)))
-						break; //Only Aggressive mobs change target while chasing.
+					if (!(tstatus->mode&MD_CASTSENSOR_CHASE) &&
+						!(tstatus->mode&(MD_AGGRESSIVE|MD_ANGRY)))
+						break;
+					md->target_id = src->id;
+					md->state.aggressive = (temp&MD_ANGRY)?1:0;
+					md->min_chase = md->db->range3;
+					break;
 				case MSS_IDLE:
 				case MSS_WALK:
+					if (!(tstatus->mode&MD_CASTSENSOR_IDLE))
+						break;
 					md->target_id = src->id;
 					md->state.aggressive = (temp&MD_ANGRY)?1:0;
 					md->min_chase = md->db->range3;

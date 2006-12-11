@@ -412,14 +412,16 @@ extern int percentrefinery[5][MAX_REFINE+1]; //The last slot always has a 0% suc
 #define MD_LOOTER 0x0002
 #define MD_AGGRESSIVE 0x0804
 #define MD_ASSIST 0x0008
-#define MD_CASTSENSOR 0x0010
+#define MD_CASTSENSOR_IDLE 0x0010
 #define MD_BOSS 0x0020
 #define MD_PLANT 0x0040
 #define MD_CANATTACK 0x0080
 #define MD_DETECTOR 0x0100
+#define MD_CASTSENSOR_CHASE 0x0200
 #define MD_CHANGECHASE 0x0400
 #define MD_ANGRY 0x0800
-#define MD_CHANGETARGET 0x1000
+#define MD_CHANGETARGET_MELEE 0x1000
+#define MD_CHANGETARGET_CHASE 0x2000
 #define MD_MASK 0xFFFF
 
 //Status change option definitions (options are what makes status changes visible to chars
