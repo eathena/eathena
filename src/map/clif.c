@@ -3686,7 +3686,7 @@ void clif_getareachar_char(struct map_session_data* sd,struct block_list *bl)
 {
 	struct unit_data *ud;
 	struct view_data *vd;
-	int len;
+	int len, fd = sd->fd;
 	
 	vd = status_get_viewdata(bl);
 
@@ -3697,24 +3697,24 @@ void clif_getareachar_char(struct map_session_data* sd,struct block_list *bl)
 	if (ud && ud->walktimer != -1)
 	{
 #if PACKETVER > 6
-		WFIFOHEAD(sd->fd, packet_len_table[0x22c]);
+		WFIFOHEAD(fd, packet_len_table[0x22c]);
 #elif PACKETVER > 3
-		WFIFOHEAD(sd->fd, packet_len_table[0x1da]);
+		WFIFOHEAD(fd, packet_len_table[0x1da]);
 #else
-		WFIFOHEAD(sd->fd, packet_len_table[0x7b]);
+		WFIFOHEAD(fd, packet_len_table[0x7b]);
 #endif
-		len = clif_set007b(bl,vd,ud,WFIFOP(sd->fd,0));
-		WFIFOSET(sd->fd,len);
+		len = clif_set007b(bl,vd,ud,WFIFOP(fd,0));
+		WFIFOSET(fd,len);
 	} else {
 #if PACKETVER > 6
-		WFIFOHEAD(sd->fd,packet_len_table[0x22a]);
+		WFIFOHEAD(fd,packet_len_table[0x22a]);
 #elif PACKETVER > 3
-		WFIFOHEAD(sd->fd,packet_len_table[0x1d8]);
+		WFIFOHEAD(fd,packet_len_table[0x1d8]);
 #else
-		WFIFOHEAD(sd->fd,packet_len_table[0x78]);
+		WFIFOHEAD(fd,packet_len_table[0x78]);
 #endif
-		len = clif_set0078(bl,vd,WFIFOP(sd->fd,0));
-		WFIFOSET(sd->fd,len);
+		len = clif_set0078(bl,vd,WFIFOP(fd,0));
+		WFIFOSET(fd,len);
 	}
 
 	if (vd->cloth_color)
@@ -6646,10 +6646,10 @@ int clif_guild_basicinfo(struct map_session_data *sd)
 	WFIFOL(fd,18)=g->average_lv;
 	WFIFOL(fd,22)=g->exp;
 	WFIFOL(fd,26)=g->next_exp;
-	WFIFOL(fd,30)=0;	// 上納
-	WFIFOL(fd,34)=0;	// VW（性格の悪さ？：性向グラフ左右）
-	WFIFOL(fd,38)=0;	// RF（正義の度合い？：性向グラフ上下）
-	WFIFOL(fd,42)=0;	// 人数？
+	WFIFOL(fd,30)=0;	// Tax Points
+	WFIFOL(fd,34)=0;	// Tendency: (left) Vulgar [-100,100] Famed (right)
+	WFIFOL(fd,38)=0;	// Tendency: (down) Wicked [-100,100] Righteous (up)
+	WFIFOL(fd,42)=g->emblem_id;
 	memcpy(WFIFOP(fd,46),g->name, NAME_LENGTH);
 	memcpy(WFIFOP(fd,70),g->master, NAME_LENGTH);
 
@@ -8240,6 +8240,7 @@ void clif_parse_TickSend(int fd, struct map_session_data *sd) {
 	WFIFOW(fd,0)=0x7f;
 	WFIFOL(fd,2)=gettick();
 	WFIFOSET(fd,packet_len_table[0x7f]);
+	flush_fifo(fd); // send immediatly so the client gets accurate "pings"
 	return;
 }
 
@@ -10268,6 +10269,7 @@ void clif_parse_GuildCheckMaster(int fd, struct map_session_data *sd) {
  */
 void clif_parse_GuildRequestInfo(int fd, struct map_session_data *sd) {
 	RFIFOHEAD(fd);
+	if (!sd->status.guild_id) return;
 	switch(RFIFOL(fd,2)){
 	case 0:	// ギルド基本情報、同盟敵対情報
 		clif_guild_basicinfo(sd);
@@ -10302,8 +10304,11 @@ void clif_parse_GuildChangePositionInfo(int fd, struct map_session_data *sd) {
 	int i;
 	RFIFOHEAD(fd);
 
+	if(!sd->state.gmaster_flag)
+		return;
+
 	for(i = 4; i < RFIFOW(fd,2); i += 40 ){
-		guild_change_position(sd, RFIFOL(fd,i), RFIFOL(fd,i+4), RFIFOL(fd,i+12), (char*)RFIFOP(fd,i+16));
+		guild_change_position(sd->status.guild_id, RFIFOL(fd,i), RFIFOL(fd,i+4), RFIFOL(fd,i+12), (char*)RFIFOP(fd,i+16));
 	}
 }
 
@@ -10314,6 +10319,9 @@ void clif_parse_GuildChangePositionInfo(int fd, struct map_session_data *sd) {
 void clif_parse_GuildChangeMemberPosition(int fd, struct map_session_data *sd) {
 	int i;
 	RFIFOHEAD(fd);
+	
+	if(!sd->state.gmaster_flag)
+		return;
 
 	for(i=4;i<RFIFOW(fd,2);i+=12){
 		guild_change_memberposition(sd->status.guild_id,
@@ -10339,6 +10347,10 @@ void clif_parse_GuildRequestEmblem(int fd,struct map_session_data *sd) {
  */
 void clif_parse_GuildChangeEmblem(int fd,struct map_session_data *sd) {
 	RFIFOHEAD(fd);
+
+	if(!sd->state.gmaster_flag)
+		return;
+
 	guild_change_emblem(sd,RFIFOW(fd,2)-4,(char*)RFIFOP(fd,4));
 }
 
@@ -10348,6 +10360,10 @@ void clif_parse_GuildChangeEmblem(int fd,struct map_session_data *sd) {
  */
 void clif_parse_GuildChangeNotice(int fd,struct map_session_data *sd) {
 	RFIFOHEAD(fd);
+
+	if(!sd->state.gmaster_flag)
+		return;
+
 	guild_change_notice(sd,RFIFOL(fd,2),(char*)RFIFOP(fd,6),(char*)RFIFOP(fd,66));
 }
 
@@ -10955,7 +10971,7 @@ void clif_parse_NoviceExplosionSpirits(int fd, struct map_session_data *sd)
  */
 void clif_friendslist_toggle(struct map_session_data *sd,int account_id, int char_id, int online)
 {	//Toggles a single friend online/offline [Skotlex]
-	int i;
+	int i, fd = sd->fd;
 
 	//Seek friend.
 	for (i = 0; i < MAX_FRIENDS && sd->status.friends[i].char_id &&
@@ -10964,13 +10980,12 @@ void clif_friendslist_toggle(struct map_session_data *sd,int account_id, int cha
 	if(i == MAX_FRIENDS || sd->status.friends[i].char_id == 0)
 		return; //Not found
 
-	WFIFOHEAD(sd->fd,packet_len_table[0x206]);
-	WFIFOW(sd->fd, 0) = 0x206;
-	WFIFOL(sd->fd, 2) = sd->status.friends[i].account_id;
-	WFIFOL(sd->fd, 6) = sd->status.friends[i].char_id;
-	WFIFOB(sd->fd,10) = !online; //Yeah, a 1 here means "logged off", go figure... 
-	
-	WFIFOSET(sd->fd, packet_len_table[0x206]);
+	WFIFOHEAD(fd,packet_len_table[0x206]);
+	WFIFOW(fd, 0) = 0x206;
+	WFIFOL(fd, 2) = sd->status.friends[i].account_id;
+	WFIFOL(fd, 6) = sd->status.friends[i].char_id;
+	WFIFOB(fd,10) = !online; //Yeah, a 1 here means "logged off", go figure... 
+	WFIFOSET(fd, packet_len_table[0x206]);
 }
 
 //Subfunction called from clif_foreachclient to toggle friends on/off [Skotlex]
@@ -10986,21 +11001,21 @@ int clif_friendslist_toggle_sub(struct map_session_data *sd,va_list ap)
 
 //For sending the whole friends list.
 void clif_friendslist_send(struct map_session_data *sd) {
-	int i = 0, n;
+	int i = 0, n, fd = sd->fd;
 	
 	// Send friends list
-	WFIFOHEAD(sd->fd, MAX_FRIENDS * 32 + 4);
-	WFIFOW(sd->fd, 0) = 0x201;
+	WFIFOHEAD(fd, MAX_FRIENDS * 32 + 4);
+	WFIFOW(fd, 0) = 0x201;
 	for(i = 0; i < MAX_FRIENDS && sd->status.friends[i].char_id; i++)
 	{
-		WFIFOL(sd->fd, 4 + 32 * i + 0) = sd->status.friends[i].account_id;
-		WFIFOL(sd->fd, 4 + 32 * i + 4) = sd->status.friends[i].char_id;
-		memcpy(WFIFOP(sd->fd, 4 + 32 * i + 8), &sd->status.friends[i].name, NAME_LENGTH);
+		WFIFOL(fd, 4 + 32 * i + 0) = sd->status.friends[i].account_id;
+		WFIFOL(fd, 4 + 32 * i + 4) = sd->status.friends[i].char_id;
+		memcpy(WFIFOP(fd, 4 + 32 * i + 8), &sd->status.friends[i].name, NAME_LENGTH);
 	}
 
 	if (i) {
-		WFIFOW(sd->fd,2) = 4 + 32 * i;
-		WFIFOSET(sd->fd, WFIFOW(sd->fd,2));
+		WFIFOW(fd,2) = 4 + 32 * i;
+		WFIFOSET(fd, WFIFOW(fd,2));
 	}
 	
 	for (n = 0; n < i; n++)
