@@ -222,7 +222,7 @@ int chrif_save(struct map_session_data *sd, int flag)
 	WFIFOHEAD(char_fd, sizeof(sd->status) + 13);
 	WFIFOW(char_fd,0) = 0x2b01;
 	WFIFOW(char_fd,2) = sizeof(sd->status) + 13;
-	WFIFOL(char_fd,4) = sd->bl.id;
+	WFIFOL(char_fd,4) = sd->status.account_id;
 	WFIFOL(char_fd,8) = sd->status.char_id;
 	WFIFOB(char_fd,12) = (flag==1)?1:0; //Flag to tell char-server this character is quitting.
 	memcpy(WFIFOP(char_fd,13), &sd->status, sizeof(sd->status));
@@ -336,7 +336,7 @@ int chrif_changemapserver(struct map_session_data *sd, short map, int x, int y, 
 
 	if (other_mapserver_count < 1)
 	{	//No other map servers are online!
-		pc_authfail(sd);
+		clif_authfail_fd(sd->fd, 0);
 		return -1;
 	}
 
@@ -379,7 +379,7 @@ int chrif_changemapserverack(int fd)
 	if (RFIFOL(fd,6) == 1) {
 		if (battle_config.error_log)
 			ShowError("map server change failed.\n");
-		pc_authfail(sd);
+		clif_authfail_fd(sd->fd, 0);
 		return 0;
 	}
 	clif_changemapserver(sd, (char*)mapindex_id2name(RFIFOW(fd,18)), RFIFOW(fd,20), RFIFOW(fd,22), RFIFOL(fd,24), RFIFOW(fd,28));
@@ -857,13 +857,8 @@ int chrif_changedsex(int fd)
 	sd = map_id2sd(acc);
 	if (acc > 0) {
 		if (sd != NULL && sd->status.sex != sex) {
-			if (sd->status.sex == 0) {
-				sd->status.sex = 1;
-				sd->sex = 1;
-			} else if (sd->status.sex == 1) {
-				sd->status.sex = 0;
-				sd->sex = 0;
-			}
+			sd->status.sex = !sd->status.sex;
+
 			// to avoid any problem with equipment and invalid sex, equipment is unequiped.
 			for (i = 0; i < MAX_INVENTORY; i++) {
 				if (sd->status.inventory[i].nameid && sd->status.inventory[i].equip)
@@ -1141,10 +1136,10 @@ int chrif_updatefamelist(struct map_session_data *sd)
 
 	WFIFOHEAD(char_fd, 12);
 	WFIFOW(char_fd, 0) = 0x2b10;
-	WFIFOL(char_fd, 2) = sd->char_id;
+	WFIFOL(char_fd, 2) = sd->status.char_id;
 	WFIFOL(char_fd, 6) = sd->status.fame;
 	WFIFOB(char_fd, 10) = type;
-	WFIFOB(char_fd, 11) = pc_famerank(sd->char_id, sd->class_&MAPID_UPPERMASK);
+	WFIFOB(char_fd, 11) = pc_famerank(sd->status.char_id, sd->class_&MAPID_UPPERMASK);
 	WFIFOSET(char_fd, 12);
 
 	return 0;
@@ -1252,7 +1247,7 @@ int chrif_load_scdata(int fd)
 {	//Retrieve and load sc_data for a player. [Skotlex]
 #ifdef ENABLE_SC_SAVING
 	struct map_session_data *sd;
-	struct status_change_data data;
+	struct status_change_data *data;
 	int aid, cid, i, count;
 	RFIFOHEAD(fd);
 
@@ -1273,13 +1268,13 @@ int chrif_load_scdata(int fd)
 	count = RFIFOW(fd,12); //sc_count
 	for (i = 0; i < count; i++)
 	{
-		memcpy(&data, RFIFOP(fd,14 + i*sizeof(struct status_change_data)), sizeof(struct status_change_data));
-		if (data.tick < 1)
+		data = (struct status_change_data*)RFIFOP(fd,14 + i*sizeof(struct status_change_data));
+		if (data->tick < 1)
 		{	//Protection against invalid tick values. [Skotlex]
-			ShowWarning("chrif_load_scdata: Received invalid duration (%d ms) for status change %d (character %s)\n", data.tick, data.type, sd->status.name);
+			ShowWarning("chrif_load_scdata: Received invalid duration (%d ms) for status change %d (character %s)\n", data->tick, data->type, sd->status.name);
 			continue;
 		}
-		status_change_start(&sd->bl, data.type, 10000, data.val1, data.val2, data.val3, data.val4, data.tick, 15);
+		status_change_start(&sd->bl, data->type, 10000, data->val1, data->val2, data->val3, data->val4, data->tick, 15);
 	}
 #endif
 	return 0;

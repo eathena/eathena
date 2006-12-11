@@ -357,13 +357,12 @@ int pc_setnewpc(struct map_session_data *sd, int account_id, int char_id, int lo
 	nullpo_retr(0, sd);
 
 	sd->bl.id        = account_id;
-	sd->char_id      = char_id;
-	sd->status.account_id      = account_id;
+	sd->status.account_id   = account_id;
 	sd->status.char_id      = char_id;
+	sd->status.sex   = sex;
 	sd->login_id1    = login_id1;
 	sd->login_id2    = 0; // at this point, we can not know the value :(
 	sd->client_tick  = client_tick;
-	sd->sex          = sex;
 	sd->state.auth   = 0;
 	sd->bl.type      = BL_PC;
 	sd->canlog_tick  = gettick();
@@ -577,12 +576,12 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	}
 		
 	sd->login_id2 = login_id2;
-	memcpy(&sd->status, st, sizeof(*st));
 
-	if (sd->status.sex != sd->sex) {
+	if (st->sex != sd->status.sex) {
 		clif_authfail_fd(sd->fd, 0);
 		return 1;
 	}
+	memcpy(&sd->status, st, sizeof(*st));
 
 	//Set the map-server used job id. [Skotlex]
 	i = pc_jobid2mapid(sd->status.class_);
@@ -594,6 +593,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	} else
 		sd->class_ = i; 
 	//Initializations to null/0 unneeded since map_session_data was filled with 0 upon allocation.
+	if(!sd->status.hp) pc_setdead(sd);
 	sd->state.connect_new = 1;
 
 	sd->followtimer = -1; // [MouseJstr]
@@ -2134,19 +2134,19 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 				ATF_SHORT|ATF_TARGET);
 		break;
 	case SP_SKILL_ATK:
+		if(sd->state.lr_flag == 2)
+			break;
 		for (i = 0; i < MAX_PC_BONUS && sd->skillatk[i].id != 0 && sd->skillatk[i].id != type2; i++);
 		if (i == MAX_PC_BONUS)
 		{	//Better mention this so the array length can be updated. [Skotlex]
 			ShowDebug("run_script: bonus2 bSkillAtk reached it's limit (%d skills per character), bonus skill %d (+%d%%) lost.\n", MAX_PC_BONUS, type2, val);
 			break;
 		}
-		if(sd->state.lr_flag != 2) {
-			if (sd->skillatk[i].id == type2)
-				sd->skillatk[i].val += val;
-			else {
-				sd->skillatk[i].id = type2;
-				sd->skillatk[i].val = val;
-			}
+		if (sd->skillatk[i].id == type2)
+			sd->skillatk[i].val += val;
+		else {
+			sd->skillatk[i].id = type2;
+			sd->skillatk[i].val = val;
 		}
 		break;
 	case SP_ADD_SKILL_BLOW:
@@ -3361,7 +3361,7 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 	){ //It is allowed on top of Moonlight/icewall tiles to prevent force-warping 'cheats' [Skotlex]
 		if(x||y) {
 			if(battle_config.error_log)
-				ShowError("pc_setpos: attempt to place player on non-walkable tile (%s-%d,%d)\n",mapindex_id2name(mapindex),x,y);
+				ShowError("pc_setpos: attempt to place player %s (%d:%d) on non-walkable tile (%s-%d,%d)\n", sd->status.name, sd->status.account_id, sd->status.char_id, mapindex_id2name(mapindex),x,y);
 		}
 		do {
 			x=rand()%(map[m].xs-2)+1;
@@ -5055,9 +5055,9 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	}
 	// pvp
 	// disable certain pvp functions on pk_mode [Valaris]
-	if
-		(map[sd->bl.m].flag.pvp && !battle_config.pk_mode && !map[sd->bl.m].flag.pvp_nocalcrank)
-	{
+	if (map[sd->bl.m].flag.gvg_dungeon ||
+		(map[sd->bl.m].flag.pvp && !battle_config.pk_mode && !map[sd->bl.m].flag.pvp_nocalcrank))
+	{	//Pvp points always take effect on gvg_dungeon maps.
 		sd->pvp_point -= 5;
 		sd->pvp_lost++;
 		if (src && src->type == BL_PC) {
@@ -5107,6 +5107,9 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		return 0;
 	}
 
+	//Reset "can log out" tick.
+	if (battle_config.prevent_logout)
+		sd->canlog_tick = gettick() - battle_config.prevent_logout;
 	return 1;
 }
 
@@ -5160,7 +5163,7 @@ int pc_readparam(struct map_session_data *sd,int type)
 		val= pc_mapid2jobid(sd->class_&MAPID_BASEMASK, sd->status.sex);
 		break;
 	case SP_SEX:
-		val= sd->sex;
+		val= sd->status.sex;
 		break;
 	case SP_WEIGHT:
 		val= sd->weight;
@@ -5295,7 +5298,7 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 		}
 		break;
 	case SP_SEX:
-		sd->sex = val;
+		sd->status.sex = val;
 		break;
 	case SP_WEIGHT:
 		sd->weight = val;
@@ -5378,10 +5381,11 @@ int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 
 	if(hp) {
 		bonus = 100 + (sd->battle_status.vit<<1)
-			 + pc_checkskill(sd,SM_RECOVERY)*10
+			+ pc_checkskill(sd,SM_RECOVERY)*10
 			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5;
 		// A potion produced by an Alchemist in the Fame Top 10 gets +50% effect [DracoRPG]
-		bonus += (potion_flag==2)?50:(potion_flag==3?100:0);
+		if (potion_flag > 1)
+			bonus += bonus*(potion_flag-1)*50/100;
 		//Item Group bonuses
 		bonus += bonus*itemdb_group_bonus(sd, itemid)/100;
 		//Individual item bonuses.
@@ -5399,7 +5403,8 @@ int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 		bonus = 100 + (sd->battle_status.int_<<1)
 			+ pc_checkskill(sd,MG_SRECOVERY)*10
 			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5;
-		bonus += (potion_flag==2)?50:(potion_flag==3?100:0);
+		if (potion_flag > 1)
+			bonus += bonus*(potion_flag-1)*50/100;
 		if(bonus != 100)
 			sp = sp * bonus / 100;
 	}
@@ -6578,8 +6583,10 @@ int pc_checkitem(struct map_session_data *sd)
 
 	pc_setequipindex(sd);
 	if(calc_flag && sd->state.auth)
+	{
 		status_calc_pc(sd,0);
-
+		pc_equiplookall(sd);
+	}
 	return 0;
 }
 

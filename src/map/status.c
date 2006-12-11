@@ -618,7 +618,7 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 					status_change_end(target, SC_GRAVITATION, -1);
 				}
 			}
-			if(sc->data[SC_DANCING].timer != -1 && hp > (signed int)status->max_hp>>2)
+			if(sc->data[SC_DANCING].timer != -1 && (unsigned int)hp > status->max_hp>>2)
 				skill_stop_dancing(target);
 		}
 		unit_skillcastcancel(target, 2);
@@ -1465,6 +1465,10 @@ static unsigned int status_base_pc_maxhp(struct map_session_data* sd, struct sta
 		val += val * 25/100;
 	else if (sd->class_&JOBL_BABY)
 		val -= val * 30/100;
+
+	if((sd->class_&MAPID_UPPERMASK) == MAPID_NINJA || 
+		(sd->class_&MAPID_UPPERMASK) == MAPID_GUNSLINGER)
+		val += 100; //Since their HP can't be approximated well enough without this.
 	if((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON &&
 		sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON))
 		val *= 3; //Triple max HP for top ranking Taekwons over level 90.
@@ -1597,7 +1601,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	//FIXME: Most of these stuff should be calculated once, but how do I fix the memset above to do that? [Skotlex]
 	status->speed = DEFAULT_WALK_SPEED;
-	status->mode = MD_CANMOVE|MD_CANATTACK|MD_LOOTER|MD_ASSIST|MD_AGGRESSIVE|MD_CASTSENSOR;
+	//Give them all modes except these (useful for clones)
+	status->mode = MD_MASK&~(MD_BOSS|MD_PLANT|MD_DETECTOR|MD_ANGRY);
+
 	status->size = (sd->class_&JOBL_BABY)?0:1;
 	if (battle_config.character_size && pc_isriding(sd)) { //[Lupus]
 		if (sd->class_&JOBL_BABY) {
@@ -4348,12 +4354,15 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			int mode;
 			struct status_data *bstatus = status_get_base_status(bl);
 			if (!bstatus) return 0;
+			if (sc->data[type].timer != -1)
+			{	//Pile up with previous values.
+				if(!val2) val2 = sc->data[type].val2;
+				val3 |= sc->data[type].val3;
+				val4 |= sc->data[type].val4;
+			}
 			mode = val2?val2:bstatus->mode; //Base mode
-			//Mode added AND removed? Added has priority.
-			if ((val3&val4))
-				val4&= ~(val3&val4);
-			if (val3) mode|= val3; //Add mode
 			if (val4) mode&=~val4; //Del mode
+			if (val3) mode|= val3; //Add mode
 			if (mode == bstatus->mode) { //No change.
 				if (sc->data[type].timer != -1) //Abort previous status
 					return status_change_end(bl, type, -1);

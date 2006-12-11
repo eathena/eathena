@@ -4,6 +4,31 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/12/11
+	* Several merges from trunk: [Skotlex]
+	- Fixed @petrename
+	- Fixed @revive applied on wrong target.
+	- Merged EDP and Assassin Spirit stacking.
+	- Fixed skill atk bonuses not working on spells.
+	- Merged auto-casts using the skill's full delay instead of half.
+	- Merged the new behaviour of NPC_EMOTION/NPC_EMOTION_ON when changing mob
+	  modes (0: Emotion. 1: Mode to set. 2: Mode to add, 3: mode to remove. 4: If
+	  set, clear previous mode change)
+	- Merged NPC_EMOTION_ON removing aggressive state when the new specified
+	  mode is not aggressive.
+	- Merged NPC_EMOTION simplification of removing the mob's mode when the
+	  requested new mode is the same as the mob's db mode.
+	- Merged mob_db ADelay column now being parsed as "Mob think time".
+	- Merged define is_boss() using MD_BOSS mode instead of mvp exp check.
+	- Reverted user scripts overwriting previously found script as it isn't
+	  cleaning up labels properly.
+	- Added static +100 HP to Ninjas/Gunslingers for a better Hp aproximation
+	- Added losing pvp points on gvg dungeon maps (so you are respawned if
+	  killed twice)
+	- The logout tick is reset when killed.
+	- Alchemist fame potion effect is now added on top of the previous effect.
+	  They really heal now 50% more than normal potion regardless of your stats.
+	- Various other cleanups.
 2006/12/07
 	* Merged the login/char servers. [Skotlex]
 2006/12/06

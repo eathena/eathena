@@ -639,8 +639,7 @@ int mob_spawn (struct mob_data *md)
 	int i=0;
 	unsigned int c =0, tick = gettick();
 
-	md->last_spawntime = tick;
-	md->last_thinktime = tick -MIN_MOBTHINKTIME;
+	md->last_spawntime = md->last_thinktime = tick;
 	if (md->bl.prev != NULL)
 		unit_remove_map(&md->bl,2);
 	else
@@ -676,8 +675,6 @@ int mob_spawn (struct mob_data *md)
 	memset(&md->state, 0, sizeof(md->state));
 	status_calc_mob(md, 1);
 	md->attacked_id = 0;
-	md->attacked_players = 0;
-	md->attacked_count = 0;
 	md->target_id = 0;
 	md->move_fail_count = 0;
 
@@ -1037,7 +1034,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	if(md->bl.prev == NULL || md->status.hp <= 0)
 		return 1;
 		
-	if (DIFF_TICK(tick, md->last_thinktime) < MIN_MOBTHINKTIME)
+	if (DIFF_TICK(tick, md->last_thinktime) < md->db->min_thinktime)
 		return 0;
 	md->last_thinktime = tick;
 
@@ -1050,7 +1047,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	// Abnormalities
 	if((md->sc.opt1 > 0 && md->sc.opt1 != OPT1_STONEWAIT) || md->sc.data[SC_BLADESTOP].timer != -1)
   	{	//Should reset targets.
-		md->target_id = md->attacked_id = md->attacked_players = 0;
+		md->target_id = md->attacked_id = 0;
 		return 0;
 	}
 
@@ -1089,7 +1086,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				(!mob_can_reach(md, tbl, md->min_chase, MSS_RUSH))))
 			{	//Rude-attacked (avoid triggering due to can-walk delay).
 				if (DIFF_TICK(tick, md->ud.canmove_tick) > 0 &&
-				  	md->attacked_count++ >= RUDE_ATTACKED_COUNT)
+				  	md->state.attacked_count++ >= RUDE_ATTACKED_COUNT)
 					mobskill_use(md, tick, MSC_RUDEATTACKED);
 			}
 		} else
@@ -1104,7 +1101,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					((TBL_PC*)abl)->state.gangsterparadise
 				)
 			)	{	//Can't attack back
-				if (md->attacked_count++ >= RUDE_ATTACKED_COUNT) {
+				if (md->state.attacked_count++ >= RUDE_ATTACKED_COUNT) {
 					if (mobskill_use(md, tick, MSC_RUDEATTACKED) == 0 && can_move)
 					{
 						int dist = rand() % 10 + 1;//後退する距離
@@ -1122,9 +1119,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				{	//Change if the new target is closer than the actual one
 					//or if the previous target is not attacking the mob. [Skotlex]
 					md->target_id = md->attacked_id; // set target
-					md->state.aggressive = 0; //Retaliating.
-					if (md->attacked_count)
-					  md->attacked_count--; //Should we reset rude attack count?
+					if (md->state.attacked_count)
+					  md->state.attacked_count--; //Should we reset rude attack count?
 					md->min_chase = dist+md->db->range3;
 					if(md->min_chase>MAX_MINCHASE)
 						md->min_chase=MAX_MINCHASE;
@@ -1133,9 +1129,14 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			}
 		}
 		if (md->state.aggressive && md->attacked_id == md->target_id)
-			md->state.aggressive = 0; //No longer aggressive, change to retaliate AI.
+		{	//No longer aggressive, change to retaliate AI.
+			md->state.aggressive = 0;
+			if(md->state.skillstate== MSS_ANGRY)
+				md->state.skillstate = MSS_BERSERK;
+			if(md->state.skillstate== MSS_FOLLOW)
+				md->state.skillstate = MSS_RUSH;
+		}
 		//Clear it since it's been checked for already.
-		md->attacked_players = 0;
 		md->attacked_id = 0;
 	}
 	
@@ -1151,135 +1152,126 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			view_range, BL_ITEM, md, &tbl);
 	}
 
-	if ((!tbl && mode&MD_AGGRESSIVE && battle_config.monster_active_enable) ||
-		(mode&MD_ANGRY && md->state.skillstate == MSS_FOLLOW)
-	) {
+	if ((!tbl && mode&MD_AGGRESSIVE) || md->state.skillstate == MSS_FOLLOW)
+	{
 		map_foreachinrange (mob_ai_sub_hard_activesearch, &md->bl,
 			view_range, md->special_state.ai?BL_CHAR:BL_PC, md, &tbl);
-		if(!tbl && mode&MD_ANGRY && !md->state.aggressive)
-			md->state.aggressive = 1; //Restore angry state when no targets are visible.
-	} else if (mode&MD_CHANGECHASE && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW)) {
+	} else
+	if (mode&MD_CHANGECHASE && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW))
+	{
 		search_size = view_range<md->status.rhw.range ? view_range:md->status.rhw.range;
 		map_foreachinrange (mob_ai_sub_hard_changechase, &md->bl,
 				search_size, (md->special_state.ai?BL_CHAR:BL_PC), md, &tbl);
 	}
 
-	if (tbl)
-	{	//Target exists, attack or loot as applicable.
-		if (tbl->type != BL_ITEM)
-		{	//Attempt to attack.
-			//At this point we know the target is attackable, we just gotta check if the range matches.
-			if (md->ud.target == tbl->id && md->ud.attacktimer != -1)
-			{
-				if (md->state.skillstate!=(md->state.aggressive?MSS_ANGRY:MSS_BERSERK))
-					md->state.skillstate = md->state.aggressive?MSS_ANGRY:MSS_BERSERK;	//Correct the state.
-				return 0; //Already locked.
-			}
-			
-			if (!battle_check_range (&md->bl, tbl, md->status.rhw.range))
-			{	//Out of range...
-				if (!(mode&MD_CANMOVE))
-				{	//Can't chase. Attempt to use a ranged skill at least?
-					md->state.skillstate = MSS_IDLE;
-					if (!mobskill_use(md, tick, -1))
-						mob_unlocktarget(md,tick);
-					return 0;
-				}
+	if (!tbl) { //No targets available.
+		if (mode&MD_ANGRY && !md->state.aggressive)
+			md->state.aggressive = 1; //Restore angry state when no targets are available.
 
-				if (!can_move)
-			  	{	//Stuck. Use an idle skill. o.O'
-					md->state.skillstate = MSS_IDLE;
-					if (!(++md->ud.walk_count%IDLE_SKILL_INTERVAL))
-						mobskill_use(md, tick, -1);
-					return 0;
-				}
-
-				md->state.skillstate = md->state.aggressive?MSS_FOLLOW:MSS_RUSH;
-				if (md->ud.walktimer != -1 && md->ud.target == tbl->id &&
-					(
-						!(battle_config.mob_ai&0x1) ||
-						check_distance_blxy(tbl, md->ud.to_x, md->ud.to_y, md->status.rhw.range)
-				)) //Current target tile is still within attack range.
-					return 0;
-
-				//Follow up
-				if (!mob_can_reach(md, tbl, md->min_chase, MSS_RUSH) ||
-					!unit_walktobl(&md->bl, tbl, md->status.rhw.range, 2))
-					//Give up.
-					mob_unlocktarget(md,tick);
+		if(md->ud.walktimer == -1) {
+			// Idle skill.
+			md->state.skillstate = MSS_IDLE;
+			if (!(++md->ud.walk_count%IDLE_SKILL_INTERVAL) && mobskill_use(md, tick, -1))
 				return 0;
-			}
-			//Target within range, engage
-			md->state.skillstate = md->state.aggressive?MSS_ANGRY:MSS_BERSERK;
-			unit_attack(&md->bl,tbl->id,1);
-			return 0;
-		} else {	//Target is BL_ITEM, attempt loot.
-			struct flooritem_data *fitem;
-			int i;	
-			if (md->ud.target == tbl->id && md->ud.walktimer != -1)
-				return 0; //Already locked.
-			if (md->lootitem == NULL)
-			{	//Can't loot...
-				mob_unlocktarget (md, tick);
-				mob_stop_walking(md,0);
-				return 0;
-			}
-
-			if (!check_distance_bl(&md->bl, tbl, 1))
-			{	//Still not within loot range.
-				if (!(mode&MD_CANMOVE))
-				{	//A looter that can't move? Real smart.
-					mob_unlocktarget(md,tick);
-					return 0;
-				}
-				if (!can_move) //Stuck. Wait before walking.
-					return 0;
-				md->state.skillstate = MSS_LOOT;	// ルート時スキル使用
-				if (!unit_walktobl(&md->bl, tbl, 0, 1))
-					mob_unlocktarget(md, tick); //Can't loot...
-				return 0;
-			}
-			//Within looting range.
-			if (md->ud.attacktimer != -1)
-				return 0; //Busy attacking?
-
-			fitem = (struct flooritem_data *)tbl;
-			if (md->lootitem_count < LOOTITEM_SIZE) {
-				memcpy (&md->lootitem[md->lootitem_count++], &fitem->item_data, sizeof(md->lootitem[0]));
-				if(log_config.enable_logs&0x10)	//Logs items, taken by (L)ooter Mobs [Lupus]
-					log_pick_mob(md, "L", md->lootitem[md->lootitem_count-1].nameid, md->lootitem[md->lootitem_count-1].amount, &md->lootitem[md->lootitem_count-1]);
-			} else {	//Destroy first looted item...
-				if (md->lootitem[0].card[0] == (short)0xff00)
-					intif_delete_petdata( MakeDWord(md->lootitem[0].card[1],md->lootitem[0].card[2]) );
-				for (i = 0; i < LOOTITEM_SIZE - 1; i++)
-					memcpy (&md->lootitem[i], &md->lootitem[i+1], sizeof(md->lootitem[0]));
-				memcpy (&md->lootitem[LOOTITEM_SIZE-1], &fitem->item_data, sizeof(md->lootitem[0]));
-			}
-			//Clear item.
-			if (pcdb_checkid(md->vd->class_))
-			{	//Give them walk act/delay to properly mimic players. [Skotlex]
-				clif_takeitem(&md->bl,tbl);
-				md->ud.canact_tick = tick + md->status.amotion;
-				unit_set_walkdelay(&md->bl, tick, md->status.amotion, 1);
-			}
-			map_clearflooritem (tbl->id);
-			mob_unlocktarget (md,tick);
+		}
+		// Random walk.
+		if (can_move && !md->master_id && DIFF_TICK(md->next_walktime, tick) <= 0)
+			mob_randomwalk(md,tick);
+		return 0;
+	}
+	
+	//Target exists, attack or loot as applicable.
+	if (tbl->type == BL_ITEM)
+	{	//Loot time.
+		struct flooritem_data *fitem;
+		if (md->ud.target == tbl->id && md->ud.walktimer != -1)
+			return 0; //Already locked.
+		if (md->lootitem == NULL)
+		{	//Can't loot...
+			mob_unlocktarget (md, tick);
+			mob_stop_walking(md,0);
 			return 0;
 		}
-	}
-
-	if(md->ud.walktimer == -1) {
-		// When there's no target, it is idling.
-		// Is it terribly exploitable to reuse the walkcounter for idle state skills? [Skotlex]
-		md->state.skillstate = MSS_IDLE;
-		if (!(++md->ud.walk_count%IDLE_SKILL_INTERVAL) && mobskill_use(md, tick, -1))
+		if (!check_distance_bl(&md->bl, tbl, 1))
+		{	//Still not within loot range.
+			if (!(mode&MD_CANMOVE))
+			{	//A looter that can't move? Real smart.
+				mob_unlocktarget(md,tick);
+				return 0;
+			}
+			if (!can_move) //Stuck. Wait before walking.
+				return 0;
+			md->state.skillstate = MSS_LOOT;
+			if (!unit_walktobl(&md->bl, tbl, 0, 1))
+				mob_unlocktarget(md, tick); //Can't loot...
 			return 0;
-	}
-	// Nothing else to do... except random walking.
-	// Slaves do not random walk! [Skotlex]
-	if (can_move && !md->master_id && DIFF_TICK(md->next_walktime, tick) <= 0)
-		mob_randomwalk(md,tick);
+		}
+		//Within looting range.
+		if (md->ud.attacktimer != -1)
+			return 0; //Busy attacking?
 
+		fitem = (struct flooritem_data *)tbl;
+		if(log_config.enable_logs&0x10)	//Logs items, taken by (L)ooter Mobs [Lupus]
+			log_pick_mob(md, "L", fitem->item_data.nameid, fitem->item_data.amount, &fitem->item_data);
+
+		if (md->lootitem_count < LOOTITEM_SIZE) {
+			memcpy (&md->lootitem[md->lootitem_count++], &fitem->item_data, sizeof(md->lootitem[0]));
+		} else {	//Destroy first looted item...
+			if (md->lootitem[0].card[0] == CARD0_PET)
+				intif_delete_petdata( MakeDWord(md->lootitem[0].card[1],md->lootitem[0].card[2]) );
+			memmove(&md->lootitem[0], &md->lootitem[1], (LOOTITEM_SIZE-1)*sizeof(md->lootitem[0]));
+			memcpy (&md->lootitem[LOOTITEM_SIZE-1], &fitem->item_data, sizeof(md->lootitem[0]));
+		}
+		if (pcdb_checkid(md->vd->class_))
+		{	//Give them walk act/delay to properly mimic players. [Skotlex]
+			clif_takeitem(&md->bl,tbl);
+			md->ud.canact_tick = tick + md->status.amotion;
+			unit_set_walkdelay(&md->bl, tick, md->status.amotion, 1);
+		}
+		//Clear item.
+		map_clearflooritem (tbl->id);
+		mob_unlocktarget (md,tick);
+		return 0;
+	}
+	//Attempt to attack.
+	//At this point we know the target is attackable, we just gotta check if the range matches.
+	if (md->ud.target == tbl->id && md->ud.attacktimer != -1) //Already locked.
+		return 0;
+	
+	if (battle_check_range (&md->bl, tbl, md->status.rhw.range))
+	{	//Target within range, engage
+		unit_attack(&md->bl,tbl->id,1);
+		return 0;
+	}
+
+	//Out of range...
+	if (!(mode&MD_CANMOVE))
+	{	//Can't chase. Attempt an idle skill before unlocking.
+		md->state.skillstate = MSS_IDLE;
+		if (!mobskill_use(md, tick, -1))
+			mob_unlocktarget(md,tick);
+		return 0;
+	}
+
+	if (!can_move)
+	{	//Stuck. Attempt an idle skill
+		md->state.skillstate = MSS_IDLE;
+		if (!(++md->ud.walk_count%IDLE_SKILL_INTERVAL))
+			mobskill_use(md, tick, -1);
+		return 0;
+	}
+
+	if (md->ud.walktimer != -1 && md->ud.target == tbl->id &&
+		(
+			!(battle_config.mob_ai&0x1) ||
+			check_distance_blxy(tbl, md->ud.to_x, md->ud.to_y, md->status.rhw.range)
+	)) //Current target tile is still within attack range.
+		return 0;
+
+	//Follow up if possible.
+	if (!mob_can_reach(md, tbl, md->min_chase, MSS_RUSH) ||
+		!unit_walktobl(&md->bl, tbl, md->status.rhw.range, 2))
+		mob_unlocktarget(md,tick);
 	return 0;
 }
 
@@ -1316,7 +1308,7 @@ static int mob_ai_sub_lazy(DBKey key,void * data,va_list ap)
 
 	tick=va_arg(ap,unsigned int);
 
-	if(DIFF_TICK(tick,md->last_thinktime)<MIN_MOBTHINKTIME*10)
+	if(DIFF_TICK(tick,md->last_thinktime)< 10*md->db->min_thinktime)
 		return 0;
 
 	md->last_thinktime=tick;
@@ -1540,17 +1532,12 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 	if (!src)
 		return;
 	
-	md->attacked_players++;
-	if (!md->attacked_players) //Counter overflow o.O
-		md->attacked_players++;
-		
 	switch (src->type) {
 		case BL_PC: 
 		{
 			struct map_session_data *sd = (TBL_PC*)src;
 			char_id = sd->status.char_id;
-			if(rand()%1000 < 1000/md->attacked_players)
-				md->attacked_id = src->id;
+			md->attacked_id = src->id;
 			break;
 		}
 		case BL_PET:
@@ -1561,7 +1548,7 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 				damage=(damage*battle_config.pet_attack_exp_rate)/100; //Modify logged damage accordingly.
 			}
 			//Let mobs retaliate against the pet's master [Skotlex]
-			if(pd->msd && rand()%1000 < 1000/md->attacked_players)
+			if(pd->msd)
 				md->attacked_id = pd->msd->bl.id;
 			break;
 		}
@@ -1572,18 +1559,15 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 				struct map_session_data* msd = map_id2sd(md2->master_id);
 				if (msd) char_id = msd->status.char_id;
 			}
-			if(rand()%1000 < 1000/md->attacked_players)
-			{	//Let players decide whether to retaliate versus the master or the mob. [Skotlex]
-				if (md2->master_id && battle_config.retaliate_to_master)
-					md->attacked_id = md2->master_id;
-				else
-					md->attacked_id = src->id;
-			}
+			//Let players decide whether to retaliate versus the master or the mob. [Skotlex]
+			if (md2->master_id && battle_config.retaliate_to_master)
+				md->attacked_id = md2->master_id;
+			else
+				md->attacked_id = src->id;
 			break;
 		}
 		default: //For all unhandled types.
-			if(rand()%1000 < 1000/md->attacked_players)
-				md->attacked_id = src->id;
+			md->attacked_id = src->id;
 	}
 	//Log damage...
 	if (char_id && damage > 0) {
@@ -1985,7 +1969,8 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			exp =1; 
 		else {
 			exp = md->db->mexp;
-			exp += exp*(battle_config.exp_bonus_attacker*count)/100.; //[Gengar]
+			if (count > 1)
+				exp += exp*(battle_config.exp_bonus_attacker*(count-1))/100.; //[Gengar]
 		}
 		
 		mexp = (exp > UINT_MAX)?UINT_MAX:(exp<1?1:(unsigned int)exp);
@@ -2628,8 +2613,8 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				case MSC_AFTERSKILL:
 					flag = (md->ud.skillid == c2); break;
 				case MSC_RUDEATTACKED:
-					flag = (md->attacked_count >= RUDE_ATTACKED_COUNT);
-					if (flag) md->attacked_count = 0;	//Rude attacked count should be reset after the skill condition is met. Thanks to Komurka [Skotlex]
+					flag = (md->state.attacked_count >= RUDE_ATTACKED_COUNT);
+					if (flag) md->state.attacked_count = 0;	//Rude attacked count should be reset after the skill condition is met. Thanks to Komurka [Skotlex]
 					break;
 				case MSC_MASTERHPLTMAXRATE:
 					flag = ((fbl = mob_getmasterhpltmaxrate(md, ms[i].cond2)) != NULL); break;
@@ -2823,6 +2808,7 @@ int mob_clone_spawn(struct map_session_data *sd, int m, int x, int y, const char
 	mob_db_data[class_]->job_exp=1;
 	mob_db_data[class_]->range2=AREA_SIZE; //Let them have the same view-range as players.
 	mob_db_data[class_]->range3=AREA_SIZE; //Min chase of a screen.
+	mob_db_data[class_]->min_thinktime = 500; //Average player's reflexes?
 	mob_db_data[class_]->option=sd->sc.option;
 
 	//Skill copy [Skotlex]
@@ -3020,6 +3006,7 @@ static int mob_makedummymobdb(int class_)
 	mob_dummy->status.adelay=1000;
 	mob_dummy->status.amotion=500;
 	mob_dummy->status.dmotion=500;
+	mob_dummy->min_thinktime=5000;
 	mob_dummy->base_exp=2;
 	mob_dummy->job_exp=1;
 	mob_dummy->range2=10;
@@ -3049,6 +3036,7 @@ static int mob_readdb(void)
 	char line[1024];
 	char *filename[]={ "mob_db.txt","mob_db2.txt" };
 	struct status_data *status;
+	struct mob_db *db;
 	int class_, i, fi, k;
 	struct mob_data data;
 	memset(&data, 0, sizeof(struct mob_data));
@@ -3095,35 +3083,36 @@ static int mob_readdb(void)
 			}
 			if (mob_db_data[class_] == NULL)
 				mob_db_data[class_] = aCalloc(1, sizeof (struct mob_data));
+			db = mob_db_data[class_];
 
-			mob_db_data[class_]->vd.class_ = class_;
-			memcpy(mob_db_data[class_]->sprite, str[1], NAME_LENGTH-1);
-			memcpy(mob_db_data[class_]->jname, str[2], NAME_LENGTH-1);
-			memcpy(mob_db_data[class_]->name, str[3], NAME_LENGTH-1);
-			mob_db_data[class_]->lv = atoi(str[4]);
-			if (mob_db_data[class_]->lv < 1)
-				mob_db_data[class_]->lv = 1;
+			db->vd.class_ = class_;
+			memcpy(db->sprite, str[1], NAME_LENGTH-1);
+			memcpy(db->jname, str[2], NAME_LENGTH-1);
+			memcpy(db->name, str[3], NAME_LENGTH-1);
+			db->lv = atoi(str[4]);
+			if (db->lv < 1)
+				db->lv = 1;
 
-			status = &mob_db_data[class_]->status;
+			status = &db->status;
 
 			status->max_hp = atoi(str[5]);
 			status->max_sp = atoi(str[6]);
 
 			exp = (double)atoi(str[7]) * (double)battle_config.base_exp_rate / 100.;
 			if (exp < 0)
-				mob_db_data[class_]->base_exp = 0;
+				db->base_exp = 0;
 			if (exp > UINT_MAX)
-				mob_db_data[class_]->base_exp = UINT_MAX;
+				db->base_exp = UINT_MAX;
 			else
-				mob_db_data[class_]->base_exp = (unsigned int)exp;
+				db->base_exp = (unsigned int)exp;
 
 			exp = (double)atoi(str[8]) * (double)battle_config.job_exp_rate / 100.;
 			if (exp < 0)
-				mob_db_data[class_]->job_exp = 0;
+				db->job_exp = 0;
 			else if (exp > UINT_MAX)
-				mob_db_data[class_]->job_exp = UINT_MAX;
+				db->job_exp = UINT_MAX;
 			else
-			mob_db_data[class_]->job_exp = (unsigned int)exp;
+				db->job_exp = (unsigned int)exp;
 			
 			status->rhw.range=atoi(str[9]);
 			status->rhw.atk=atoi(str[10]);
@@ -3144,23 +3133,23 @@ static int mob_readdb(void)
 			if (status->dex < 1) status->dex = 1;
 			if (status->luk < 1) status->luk = 1;
 
-			mob_db_data[class_]->range2=atoi(str[20]);
-			mob_db_data[class_]->range3=atoi(str[21]);
+			db->range2=atoi(str[20]);
+			db->range3=atoi(str[21]);
 			if (battle_config.view_range_rate!=100)
 			{
-				mob_db_data[class_]->range2=
-					mob_db_data[class_]->range2
+				db->range2=
+					db->range2
 					*battle_config.view_range_rate/100;
-				if (mob_db_data[class_]->range2<1)
-					mob_db_data[class_]->range2=1;
+				if (db->range2<1)
+					db->range2=1;
 			}
 			if (battle_config.chase_range_rate!=100)
 			{
-				mob_db_data[class_]->range3=
-					mob_db_data[class_]->range3
+				db->range3=
+					db->range3
 					*battle_config.chase_range_rate/100;
-				if (mob_db_data[class_]->range3<mob_db_data[class_]->range2)
-					mob_db_data[class_]->range3=mob_db_data[class_]->range2;
+				if (db->range3<db->range2)
+					db->range3=db->range2;
 			}
 			status->size=atoi(str[22]);
 			status->race=atoi(str[23]);
@@ -3177,28 +3166,31 @@ static int mob_readdb(void)
 				ShowWarning("Mob with ID: %d has invalid element level %d (max is 4)\n", class_, status->ele_lv);
 				status->ele_lv = 1;
 			}
-			status->mode=atoi(str[25]);
+			status->mode=(int)strtol(str[25],NULL,0);
+			if (!battle_config.monster_active_enable)
+				status->mode&=~MD_AGGRESSIVE;
 			status->speed=atoi(str[26]);
 			status->aspd_rate = 1000;
-			status->adelay=atoi(str[27]);
-			status->amotion=atoi(str[28]);
+			db->min_thinktime=atoi(str[27]);
+			status->adelay = status->amotion=atoi(str[28]);
+			if (db->min_thinktime > status->adelay)
+				status->adelay = db->min_thinktime;
+			if (db->min_thinktime < MIN_MOBTHINKTIME)
+				db->min_thinktime = MIN_MOBTHINKTIME;
 			status->dmotion=atoi(str[29]);
-			//If the attack animation is longer than the delay, the client crops the attack animation!
-			if (status->adelay < status->amotion)
-				status->adelay = status->amotion;
 			if(battle_config.monster_damage_delay_rate != 100)
 				status->dmotion = status->dmotion*battle_config.monster_damage_delay_rate/100;
 
-			data.level = mob_db_data[class_]->lv;
+			data.level = db->lv;
 			memcpy(&data.status, status, sizeof(struct status_data));
-			status_calc_misc(&data.bl, status, mob_db_data[class_]->lv);
+			status_calc_misc(&data.bl, status, db->lv);
 			// MVP EXP Bonus, Chance: MEXP,ExpPer
-			mob_db_data[class_]->mexp=atoi(str[30])*battle_config.mvp_exp_rate/100;
-			mob_db_data[class_]->mexpper=atoi(str[31]);
+			db->mexp=atoi(str[30])*battle_config.mvp_exp_rate/100;
+			db->mexpper=atoi(str[31]);
 			//Now that we know if it is an mvp or not,
 			//apply battle_config modifiers [Skotlex]
 			maxhp = (double)status->max_hp;
-			if (mob_db_data[class_]->mexp > 0)
+			if (db->mexp > 0)
 			{	//Mvp
 				if (battle_config.mvp_hp_rate != 100) 
 					maxhp = maxhp * (double)battle_config.mvp_hp_rate /100.;
@@ -3215,21 +3207,21 @@ static int mob_readdb(void)
 			// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
 			for(i=0;i<3;i++){
 				struct item_data *id;
-				mob_db_data[class_]->mvpitem[i].nameid=atoi(str[32+i*2]);
-				if (!mob_db_data[class_]->mvpitem[i].nameid) {
+				db->mvpitem[i].nameid=atoi(str[32+i*2]);
+				if (!db->mvpitem[i].nameid) {
 					//No item....
-					mob_db_data[class_]->mvpitem[i].p = 0;
+					db->mvpitem[i].p = 0;
 					continue;
 				}
-				mob_db_data[class_]->mvpitem[i].p= mob_drop_adjust(atoi(str[33+i*2]), battle_config.item_rate_mvp,
+				db->mvpitem[i].p= mob_drop_adjust(atoi(str[33+i*2]), battle_config.item_rate_mvp,
 					battle_config.item_drop_mvp_min, battle_config.item_drop_mvp_max);
 
 				//calculate and store Max available drop chance of the MVP item
-				if (mob_db_data[class_]->mvpitem[i].p) {
-					id = itemdb_search(mob_db_data[class_]->mvpitem[i].nameid);
-					if (id->maxchance==10000 || (id->maxchance < mob_db_data[class_]->mvpitem[i].p/10+1) ) {
+				if (db->mvpitem[i].p) {
+					id = itemdb_search(db->mvpitem[i].nameid);
+					if (id->maxchance==10000 || (id->maxchance < db->mvpitem[i].p/10+1) ) {
 					//item has bigger drop chance or sold in shops
-						id->maxchance = mob_db_data[class_]->mvpitem[i].p/10+1; //reduce MVP drop info to not spoil common drop rate
+						id->maxchance = db->mvpitem[i].p/10+1; //reduce MVP drop info to not spoil common drop rate
 					}			
 				}
 			}
@@ -3239,13 +3231,13 @@ static int mob_readdb(void)
 				unsigned short ratemin,ratemax;
 				struct item_data *id;
 				k=38+i*2;
-				mob_db_data[class_]->dropitem[i].nameid=atoi(str[k]);
-				if (!mob_db_data[class_]->dropitem[i].nameid) {
+				db->dropitem[i].nameid=atoi(str[k]);
+				if (!db->dropitem[i].nameid) {
 					//No drop.
-					mob_db_data[class_]->dropitem[i].p = 0;
+					db->dropitem[i].p = 0;
 					continue;
 				}
-				type = itemdb_type(mob_db_data[class_]->dropitem[i].nameid);
+				type = itemdb_type(db->dropitem[i].nameid);
 				rate = atoi(str[k+1]);
 				if (class_ >= 1324 && class_ <= 1363)
 				{	//Treasure box drop rates [Skotlex]
@@ -3299,19 +3291,19 @@ static int mob_readdb(void)
 					ratemax = battle_config.item_drop_common_max;
 					break;
 				}
-				mob_db_data[class_]->dropitem[i].p = mob_drop_adjust(rate, rate_adjust, ratemin, ratemax);
+				db->dropitem[i].p = mob_drop_adjust(rate, rate_adjust, ratemin, ratemax);
 
 				//calculate and store Max available drop chance of the item
-				if (mob_db_data[class_]->dropitem[i].p &&
+				if (db->dropitem[i].p &&
 					(class_ < 1324 || class_ > 1363) //Skip treasure chests.
 				) {
-					id = itemdb_search(mob_db_data[class_]->dropitem[i].nameid);
-					if (id->maxchance==10000 || (id->maxchance < mob_db_data[class_]->dropitem[i].p) ) {
+					id = itemdb_search(db->dropitem[i].nameid);
+					if (id->maxchance==10000 || (id->maxchance < db->dropitem[i].p) ) {
 					//item has bigger drop chance or sold in shops
-						id->maxchance = mob_db_data[class_]->dropitem[i].p;
+						id->maxchance = db->dropitem[i].p;
 					}
 					for (k = 0; k< MAX_SEARCH; k++) {
-						if (id->mob[k].chance < mob_db_data[class_]->dropitem[i].p && id->mob[k].id != class_)
+						if (id->mob[k].chance < db->dropitem[i].p && id->mob[k].id != class_)
 							break;
 					}
 					if (k == MAX_SEARCH)
@@ -3319,7 +3311,7 @@ static int mob_readdb(void)
 				
 					if (id->mob[k].id != class_)
 						memmove(&id->mob[k+1], &id->mob[k], (MAX_SEARCH-k-1)*sizeof(id->mob[0]));
-					id->mob[k].chance = mob_db_data[class_]->dropitem[i].p;
+					id->mob[k].chance = db->dropitem[i].p;
 					id->mob[k].id = class_;
 				}
 			}
@@ -3659,11 +3651,27 @@ static int mob_readskilldb(void)
 			if (j < tmp)
 				ms->cond2=cond2[j].id;
 			
-			ms->val[0]=atoi(sp[12]);
-			ms->val[1]=atoi(sp[13]);
-			ms->val[2]=atoi(sp[14]);
-			ms->val[3]=atoi(sp[15]);
-			ms->val[4]=atoi(sp[16]);
+			ms->val[0]=(int)strtol(sp[12],NULL,0);
+			ms->val[1]=(int)strtol(sp[13],NULL,0);
+			ms->val[2]=(int)strtol(sp[14],NULL,0);
+			ms->val[3]=(int)strtol(sp[15],NULL,0);
+			ms->val[4]=(int)strtol(sp[16],NULL,0);
+			
+			if(ms->skill_id == NPC_EMOTION && mob_id>0 &&
+				ms->val[1] == mob_db(mob_id)->status.mode)
+			{
+				ms->val[1] = 0;
+				ms->val[4] = 1; //request to return mode to normal.
+			}
+			if(ms->skill_id == NPC_EMOTION_ON && mob_id>0 && ms->val[1])
+			{	//Adds a mode to the mob.
+				//Remove aggressive mode when the new mob type is passive.
+				if (!(ms->val[1]&MD_AGGRESSIVE)) 
+					ms->val[3]|=MD_AGGRESSIVE;
+				ms->val[2]|= ms->val[1]; //Add the new mode.
+				ms->val[1] = 0; //Do not "set" it.
+			}
+
 			if(sp[17] != NULL && strlen(sp[17])>2)
 				ms->emotion=atoi(sp[17]);
 			else
@@ -3763,6 +3771,7 @@ static int mob_read_sqldb(void)
 	double exp, maxhp;
 	long unsigned int ln = 0;
 	struct status_data *status;
+	struct mob_db *db;
 	char *mob_db_name[] = { mob_db_db, mob_db2_db };
 	struct mob_data data;
 	memset(&data, 0, sizeof(struct mob_data));
@@ -3794,36 +3803,36 @@ static int mob_read_sqldb(void)
 				}
 				if (mob_db_data[class_] == NULL)
 					mob_db_data[class_] = aCalloc(1, sizeof (struct mob_data));
-				
+				db = mob_db_data[class_];
 				ln++;
 
-				mob_db_data[class_]->vd.class_ = class_;
-				memcpy(mob_db_data[class_]->sprite, TO_STR(1), NAME_LENGTH-1);
-				memcpy(mob_db_data[class_]->jname, TO_STR(2), NAME_LENGTH-1);
-				memcpy(mob_db_data[class_]->name, TO_STR(3), NAME_LENGTH-1);
-				mob_db_data[class_]->lv = TO_INT(4);
-				if (mob_db_data[class_]->lv < 1)
-					mob_db_data[class_]->lv = 1;
+				db->vd.class_ = class_;
+				memcpy(db->sprite, TO_STR(1), NAME_LENGTH-1);
+				memcpy(db->jname, TO_STR(2), NAME_LENGTH-1);
+				memcpy(db->name, TO_STR(3), NAME_LENGTH-1);
+				db->lv = TO_INT(4);
+				if (db->lv < 1)
+					db->lv = 1;
 
-				status = &mob_db_data[class_]->status;
+				status = &db->status;
 				status->max_hp = TO_INT(5);
 				status->max_sp = TO_INT(6);
 
 				exp = (double)TO_INT(7) * (double)battle_config.base_exp_rate / 100.;
 				if (exp < 0)
-					mob_db_data[class_]->base_exp = 0;
+					db->base_exp = 0;
 				else if (exp > UINT_MAX)
-					mob_db_data[class_]->base_exp = UINT_MAX;
+					db->base_exp = UINT_MAX;
 				else
-					mob_db_data[class_]->base_exp = (unsigned int)exp;
+					db->base_exp = (unsigned int)exp;
 
 				exp = (double)TO_INT(8) * (double)battle_config.job_exp_rate / 100.;
 				if (exp < 0)
-					mob_db_data[class_]->job_exp = 0;
+					db->job_exp = 0;
 				else if (exp > UINT_MAX)
-					mob_db_data[class_]->job_exp = UINT_MAX;
+					db->job_exp = UINT_MAX;
 				else
-					mob_db_data[class_]->job_exp = (unsigned int)exp;
+					db->job_exp = (unsigned int)exp;
 				
 				status->rhw.range = TO_INT(9);
 				status->rhw.atk = TO_INT(10);
@@ -3844,8 +3853,8 @@ static int mob_read_sqldb(void)
 				if (status->dex < 1) status->dex = 1;
 				if (status->luk < 1) status->luk = 1;
 
-				mob_db_data[class_]->range2 = TO_INT(20);
-				mob_db_data[class_]->range3 = TO_INT(21);
+				db->range2 = TO_INT(20);
+				db->range3 = TO_INT(21);
 				status->size = TO_INT(22);
 				status->race = TO_INT(23);
 				i = TO_INT(24); //Element
@@ -3862,28 +3871,31 @@ static int mob_read_sqldb(void)
 					status->ele_lv = 1;
 				}
 				status->mode = TO_INT(25);
+				if (!battle_config.monster_active_enable)
+					status->mode&=~MD_AGGRESSIVE;
 				status->speed = TO_INT(26);
 				status->aspd_rate = 1000;
-				status->adelay = TO_INT(27);
-				status->amotion = TO_INT(28);
+				db->min_thinktime = TO_INT(27);
+				status->adelay = status->amotion = TO_INT(28);
+				if (db->min_thinktime > status->adelay)
+					status->adelay = db->min_thinktime;
+				if (db->min_thinktime < MIN_MOBTHINKTIME)
+					db->min_thinktime = MIN_MOBTHINKTIME;
 				status->dmotion = TO_INT(29);
-				//If the attack animation is longer than the delay, the client crops the attack animation!
-				if (status->adelay < status->amotion)
-					status->adelay = status->amotion;
 				if(battle_config.monster_damage_delay_rate != 100)
 					status->dmotion = status->dmotion*battle_config.monster_damage_delay_rate/100;
 
-				data.level = mob_db_data[class_]->lv;
+				data.level = db->lv;
 				memcpy(&data.status, status, sizeof(struct status_data));
-				status_calc_misc(&data.bl, status, mob_db_data[class_]->lv);
+				status_calc_misc(&data.bl, status, db->lv);
 				
 				// MVP EXP Bonus, Chance: MEXP,ExpPer
-				mob_db_data[class_]->mexp = TO_INT(30) * battle_config.mvp_exp_rate / 100;
-				mob_db_data[class_]->mexpper = TO_INT(31);
+				db->mexp = TO_INT(30) * battle_config.mvp_exp_rate / 100;
+				db->mexpper = TO_INT(31);
 				//Now that we know if it is an mvp or not,
 				//apply battle_config modifiers [Skotlex]
 				maxhp = (double)status->max_hp;
-				if (mob_db_data[class_]->mexp > 0)
+				if (db->mexp > 0)
 				{	//Mvp
 					if (battle_config.mvp_hp_rate != 100) 
 						maxhp = maxhp * (double)battle_config.mvp_hp_rate /100.;
@@ -3901,21 +3913,21 @@ static int mob_read_sqldb(void)
 				// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
 				for (i=0; i<3; i++) {
 					struct item_data *id;
-					mob_db_data[class_]->mvpitem[i].nameid = TO_INT(32+i*2);
-					if (!mob_db_data[class_]->mvpitem[i].nameid) {
+					db->mvpitem[i].nameid = TO_INT(32+i*2);
+					if (!db->mvpitem[i].nameid) {
 						//No item....
-						mob_db_data[class_]->mvpitem[i].p = 0;
+						db->mvpitem[i].p = 0;
 						continue;
 					}
-					mob_db_data[class_]->mvpitem[i].p = mob_drop_adjust(TO_INT(33+i*2),
+					db->mvpitem[i].p = mob_drop_adjust(TO_INT(33+i*2),
 						battle_config.item_rate_mvp, battle_config.item_drop_mvp_min, battle_config.item_drop_mvp_max);
 
 					//calculate and store Max available drop chance of the MVP item
-					id = itemdb_search(mob_db_data[class_]->mvpitem[i].nameid);
-					if (mob_db_data[class_]->mvpitem[i].p) {
-						if (id->maxchance==10000 || (id->maxchance < mob_db_data[class_]->mvpitem[i].p/10+1) ) {
+					id = itemdb_search(db->mvpitem[i].nameid);
+					if (db->mvpitem[i].p) {
+						if (id->maxchance==10000 || (id->maxchance < db->mvpitem[i].p/10+1) ) {
 						//item has bigger drop chance or sold in shops
-							id->maxchance = mob_db_data[class_]->mvpitem[i].p/10+1; //reduce MVP drop info to not spoil common drop rate
+							id->maxchance = db->mvpitem[i].p/10+1; //reduce MVP drop info to not spoil common drop rate
 						}			
 					}
 				}
@@ -3925,13 +3937,13 @@ static int mob_read_sqldb(void)
 					unsigned short ratemin, ratemax;
 					struct item_data *id;
 					k=38+i*2;
-					mob_db_data[class_]->dropitem[i].nameid=TO_INT(k);
-					if (!mob_db_data[class_]->dropitem[i].nameid) {
+					db->dropitem[i].nameid=TO_INT(k);
+					if (!db->dropitem[i].nameid) {
 						//No drop.
-						mob_db_data[class_]->dropitem[i].p = 0;
+						db->dropitem[i].p = 0;
 						continue;
 					}
-					type = itemdb_type(mob_db_data[class_]->dropitem[i].nameid);
+					type = itemdb_type(db->dropitem[i].nameid);
 					rate = TO_INT(k+1);
 					if (class_ >= 1324 && class_ <= 1363)
 					{	//Treasure box drop rates [Skotlex]
@@ -3984,24 +3996,24 @@ static int mob_read_sqldb(void)
 						ratemax = battle_config.item_drop_common_max;
 						break;
 					}
-					mob_db_data[class_]->dropitem[i].p = mob_drop_adjust(rate, rate_adjust, ratemin, ratemax);
+					db->dropitem[i].p = mob_drop_adjust(rate, rate_adjust, ratemin, ratemax);
 
 					//calculate and store Max available drop chance of the item
-					if (mob_db_data[class_]->dropitem[i].p) {
-						id = itemdb_search(mob_db_data[class_]->dropitem[i].nameid);
-						if (id->maxchance==10000 || (id->maxchance < mob_db_data[class_]->dropitem[i].p) ) {
+					if (db->dropitem[i].p) {
+						id = itemdb_search(db->dropitem[i].nameid);
+						if (id->maxchance==10000 || (id->maxchance < db->dropitem[i].p) ) {
 						//item has bigger drop chance or sold in shops
-							id->maxchance = mob_db_data[class_]->dropitem[i].p;
+							id->maxchance = db->dropitem[i].p;
 						}			
 						for (k = 0; k< MAX_SEARCH; k++) {
-							if (id->mob[k].chance < mob_db_data[class_]->dropitem[i].p && id->mob[k].id != class_)
+							if (id->mob[k].chance < db->dropitem[i].p && id->mob[k].id != class_)
 								break;
 						}
 						if (k == MAX_SEARCH)
 							continue;
 						if (id->mob[k].id != class_)
 							memmove(&id->mob[k+1], &id->mob[k], (MAX_SEARCH-k-1)*sizeof(id->mob[0]));
-						id->mob[k].chance = mob_db_data[class_]->dropitem[i].p;
+						id->mob[k].chance = db->dropitem[i].p;
 						id->mob[k].id = class_;
 					}
 				}

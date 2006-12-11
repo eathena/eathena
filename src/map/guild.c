@@ -330,7 +330,7 @@ void guild_makemember(struct guild_member *m,struct map_session_data *sd)
 	m->char_id		=sd->status.char_id;
 	m->hair			=sd->status.hair;
 	m->hair_color	=sd->status.hair_color;
-	m->gender		=sd->sex;
+	m->gender		=sd->status.sex;
 	m->class_		=sd->status.class_;
 	m->lv			=sd->status.base_level;
 //	m->exp			=0;
@@ -450,16 +450,16 @@ int guild_created(int account_id,int guild_id)
 
 	if(sd==NULL)
 		return 0;
-	if(guild_id>0) {
-			//struct guild *g;
-			sd->status.guild_id=guild_id;
-			sd->state.guild_sent=0;
-			clif_guild_created(sd,0);
-			if(battle_config.guild_emperium_check)
-				pc_delitem(sd,pc_search_inventory(sd,714),1,0);	// エンペリウム消耗
-	} else {
+	if(!guild_id) {
 		clif_guild_created(sd,2);	// 作成失敗（同名ギルド存在）
+		return 0;
 	}
+	//struct guild *g;
+	sd->status.guild_id=guild_id;
+	sd->state.guild_sent=0;
+	clif_guild_created(sd,0);
+	if(battle_config.guild_emperium_check)
+		pc_delitem(sd,pc_search_inventory(sd,714),1,0);	// エンペリウム消耗
 	return 0;
 }
 
@@ -937,7 +937,7 @@ int guild_recv_memberinfoshort(int guild_id,int account_id,int char_id,int onlin
 	if(idx == -1 || c == 0) {
 		// ギルドのメンバー外なので追放扱いする
 		struct map_session_data *sd = map_id2sd(account_id);
-		if(sd && sd->char_id == char_id) {
+		if(sd && sd->status.char_id == char_id) {
 			sd->status.guild_id=0;
 			sd->guild_emblem_id=0;
 			sd->state.guild_sent=0;

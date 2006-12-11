@@ -1623,8 +1623,8 @@ static struct Damage battle_calc_weapon_attack(
 				skillratio += sc->data[SC_EDP].val3;
 		}
 		switch (skill_num) {
-			case AS_SONICBLOW: //EDP will not stack with Soul Link bonus.
-				if (sc && sc->data[SC_EDP].timer == -1 && sc->data[SC_SPIRIT].timer != -1 && sc->data[SC_SPIRIT].val2 == SL_ASSASIN)
+			case AS_SONICBLOW:
+				if (sc && sc->data[SC_SPIRIT].timer != -1 && sc->data[SC_SPIRIT].val2 == SL_ASSASIN)
 					skillratio += (map_flag_gvg(src->m))?25:100; //+25% dmg on woe/+100% dmg on nonwoe
 				if(sd && pc_checkskill(sd,AS_SONICACCEL)>0)
 					skillratio += 10;
@@ -2359,11 +2359,9 @@ struct Damage battle_calc_magic_attack(
 
 				if (sd && sd->skillatk[0].id != 0)
 				{
-					for (i = 0; i < MAX_PC_BONUS && sd->skillatk[i].id != 0 && sd->skillatk[i].id != skill_num; i++)
-						if (i < MAX_PC_BONUS && sd->skillatk[i].id == skill_num)
-						//If we apply skillatk[] as ATK_RATE, it will also affect other skills,
-						//unfortunately this way ignores a skill's constant modifiers...
-							skillratio += sd->skillatk[i].val;
+					for (i = 0; i < MAX_PC_BONUS && sd->skillatk[i].id != 0 && sd->skillatk[i].id != skill_num; i++);
+					if (i < MAX_PC_BONUS && sd->skillatk[i].id == skill_num)
+						skillratio += sd->skillatk[i].val;
 				}
 
 				MATK_RATE(skillratio);
@@ -2792,7 +2790,8 @@ int battle_calc_return_damage(struct block_list *bl, int *damage, int flag) {
 	// magic_damage_return by [AppleGirl] and [Valaris]
 	if(flag&BF_MAGIC)
 	{
-		if(sd && sd->magic_damage_return && rand()%100 < sd->magic_damage_return)
+		if(sd && sd->magic_damage_return &&
+			rand()%100 < sd->magic_damage_return)
 		{	//Bounces back full damage, you take none.
 			rdamage = *damage;
 		 	*damage = 0;

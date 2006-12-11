@@ -608,7 +608,7 @@ struct map_session_data {
 		unsigned intravision : 1; // Maya Purple Card effect allowing to see Hiding/Cloaking people [DracoRPG]
 		unsigned perfect_hiding : 1; // [Valaris]
 	} special_state;
-	int char_id, login_id1, login_id2, sex;
+	int login_id1, login_id2;
 	unsigned short class_;	//This is the internal job ID used by the map server to simplify comparisons/queries/etc. [Skotlex]
 
 	int packet_ver;  // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 ... 18
@@ -939,6 +939,7 @@ struct mob_data {
 		unsigned steal_coin_flag : 1;
 		unsigned soul_change_flag : 1; // Celest
 		unsigned alchemist: 1;
+		unsigned char attacked_count; //For rude attacked.
 		int provoke_flag; // Celest
 	} state;
 	struct guardian_data* guardian_data; 
@@ -950,8 +951,6 @@ struct mob_data {
 	struct item *lootitem;
 	short spawn_n;	//Spawn data index on the map server.
 	short class_;
-	short attacked_count;
-	unsigned char attacked_players;
 	unsigned int tdmg; //Stores total damage given to the mob, for exp calculations. [Skotlex]
 	int level;
 	int target_id,attacked_id;
@@ -1301,7 +1300,7 @@ int map_foreachinshootrange(int (*)(struct block_list*,va_list),struct block_lis
 int map_foreachinarea(int (*)(struct block_list*,va_list),int,int,int,int,int,int,...);
 // -- moonsoul (added map_foreachincell)
 int map_foreachincell(int (*)(struct block_list*,va_list),int,int,int,int,...);
-int map_foreachinmovearea(int (*)(struct block_list*,va_list),int,int,int,int,int,int,int,int,...);
+int map_foreachinmovearea(int (*)(struct block_list*,va_list),struct block_list*,int,int,int,int,...);
 int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y0,int x1,int y1,int range,int type,...); // Celest
 int map_foreachinmap(int (*)(struct block_list*,va_list),int,int,...);
 int map_countnearpc(int,int,int);

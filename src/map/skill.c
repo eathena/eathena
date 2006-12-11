@@ -1396,7 +1396,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			//Set canact delay. [Skotlex]
 			ud = unit_bl2ud(src);
 			if (ud) {
-				rate = skill_delayfix(src, skill, skilllv)/2;
+				rate = skill_delayfix(src, skill, skilllv);
 				if (DIFF_TICK(ud->canact_tick, tick + rate) < 0)
 					ud->canact_tick = tick+rate;
 			}
@@ -1558,7 +1558,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 			//Set canact delay. [Skotlex]
 			ud = unit_bl2ud(bl);
 			if (ud) {
-				rate = skill_delayfix(bl, skillid, skilllv)/2;
+				rate = skill_delayfix(bl, skillid, skilllv);
 				if (DIFF_TICK(ud->canact_tick, tick + rate) < 0)
 					ud->canact_tick = tick+rate;
 			}
@@ -1713,18 +1713,16 @@ int skill_blown (struct block_list *src, struct block_list *target, int count)
 	if (!dx && !dy) //Could not knockback.
 		return 0;
 	
-	map_foreachinmovearea(clif_outsight,target->m,
-		x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,
-		dx,dy,target->type==BL_PC?BL_ALL:BL_PC,target);
+	map_foreachinmovearea(clif_outsight, target, AREA_SIZE,
+		dx, dy, target->type==BL_PC?BL_ALL:BL_PC, target);
 		
 	if(su)
 		skill_unit_move_unit_group(su->group,target->m,dx,dy);
 	else
 		map_moveblock(target, nx, ny, gettick());
 
-	map_foreachinmovearea(clif_insight,target->m,
-		nx-AREA_SIZE,ny-AREA_SIZE,nx+AREA_SIZE,ny+AREA_SIZE,
-		-dx,-dy,target->type==BL_PC?BL_ALL:BL_PC,target);
+	map_foreachinmovearea(clif_insight, target, AREA_SIZE,
+		-dx, -dy, target->type==BL_PC?BL_ALL:BL_PC, target);
 	
 	if(!(count&0x20000)) 
 		clif_blown(target);
@@ -4069,10 +4067,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			clif_skill_nodamage(src,bl,skillid,skilllv,0);
 			break;
 		}
-		status_change_end(bl, SC_FREEZE	, -1 );
-		status_change_end(bl, SC_STONE	, -1 );
-		status_change_end(bl, SC_SLEEP	, -1 );
-		status_change_end(bl, SC_STUN	, -1 );
+		if (tsc && tsc->opt1) {
+			status_change_end(bl, SC_FREEZE, -1 );
+			status_change_end(bl, SC_STONE, -1 );
+			status_change_end(bl, SC_SLEEP, -1 );
+			status_change_end(bl, SC_STUN, -1 );
+		}
 		//Is this equation really right? It looks so... special.
 		if(battle_check_undead(tstatus->race,tstatus->def_ele) )
 		{
@@ -4702,18 +4702,23 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case NPC_EMOTION_ON:
 	case NPC_EMOTION:
-		if(md && md->skillidx >= 0)
+		//va[0] is the emotion to use.
+		//NPC_EMOTION & NPC_EMOTION_ON can change a mob's mode 'permanently' [Skotlex]
+		//val[1] 'sets' the mode
+		//val[2] adds to the current mode
+		//val[3] removes from the current mode
+		//val[4] if set, asks to delete the previous mode change.
+		if(md && md->skillidx >= 0 && tsc)
 		{
-			clif_emotion(&md->bl,md->db->skill[md->skillidx].val[0]);
-			if(!md->special_state.ai &&
-				(md->db->skill[md->skillidx].val[1] || md->db->skill[md->skillidx].val[2]))
-			//NPC_EMOTION & NPC_EMOTION_ON can change a mob's mode 'permanently' [Skotlex]
-				//val[1] 'sets' the mode, val[2] can add/remove from the current mode based on skill used:
-				//NPC_EMOTION_ON adds a mode / NPC_EMOTION removes it.
+			clif_emotion(bl, md->db->skill[md->skillidx].val[0]);
+			if(md->db->skill[md->skillidx].val[4] && tsc->data[type].timer != -1)
+				status_change_end(bl, type, -1);
+
+			if(md->db->skill[md->skillidx].val[1] || md->db->skill[md->skillidx].val[2])
 				sc_start4(src, type, 100, skilllv,
 					md->db->skill[md->skillidx].val[1],
-					skillid==NPC_EMOTION_ON?md->db->skill[md->skillidx].val[2]:0,
-					skillid==NPC_EMOTION   ?md->db->skill[md->skillidx].val[2]:0,
+					md->db->skill[md->skillidx].val[2],
+					md->db->skill[md->skillidx].val[3],
 					skill_get_time(skillid, skilllv));
 		}
 		break;
@@ -5358,8 +5363,8 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 			break;
 
 		if(md) {
-			if(ud->skillid != NPC_EMOTION)//Set afterskill delay.
-				md->last_thinktime=tick + (tid==-1?md->status.adelay:md->status.amotion);
+			if(tid != -1) //Set afterskill delay.
+				md->last_thinktime=tick + md->status.amotion;
 			if(battle_config.mob_ai&0x200) { //pass on delay to same skill.
 				int i;
 				for (i = 0; i < md->db->maxskill; i++)
@@ -5534,7 +5539,8 @@ int skill_castend_pos (int tid, unsigned int tick, int id, int data)
 			break;
 
 		if(md) {
-			md->last_thinktime=tick + (tid==-1?md->status.adelay:md->status.amotion);
+			if (tid != -1)
+				md->last_thinktime=tick +md->status.amotion;
 			if(battle_config.mob_ai&0x200) { //pass on delay to same skill.
 				int i;
 				for (i = 0; i < md->db->maxskill; i++)
