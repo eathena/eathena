@@ -722,13 +722,12 @@ static int mob_can_changetarget(struct mob_data* md, struct block_list* target, 
 	}
 	
 	switch (md->state.skillstate) {
-		case MSS_BERSERK: //Only Assist, Angry or Aggressive+CastSensor mobs can change target while attacking.
-			if (mode&(MD_ASSIST|MD_ANGRY|MD_CHANGETARGET_MELEE) ||
-				(mode&(MD_AGGRESSIVE|MD_CASTSENSOR_IDLE)) == (MD_AGGRESSIVE|MD_CASTSENSOR_IDLE))
-				return (battle_config.mob_ai&0x4 || check_distance_bl(&md->bl, target, 3));
-			return 0;
+		case MSS_BERSERK:
+			if (!mode&MD_CHANGETARGET_MELEE)
+				return 0;
+			return (battle_config.mob_ai&0x4 || check_distance_bl(&md->bl, target, 3));
 		case MSS_RUSH:
-			return (mode&(MD_AGGRESSIVE|MD_CHANGETARGET_CHASE));
+			return (mode&MD_CHANGETARGET_CHASE);
 		case MSS_FOLLOW:
 		case MSS_ANGRY:
 		case MSS_IDLE:

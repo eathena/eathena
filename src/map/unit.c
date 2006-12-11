@@ -922,8 +922,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 				switch (md->state.skillstate) {
 				case MSS_RUSH:
 				case MSS_FOLLOW:
-					if (!(tstatus->mode&MD_CASTSENSOR_CHASE) &&
-						!(tstatus->mode&(MD_AGGRESSIVE|MD_ANGRY)))
+					if (!(tstatus->mode&MD_CASTSENSOR_CHASE))
 						break;
 					md->target_id = src->id;
 					md->state.aggressive = (temp&MD_ANGRY)?1:0;

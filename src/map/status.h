@@ -410,7 +410,7 @@ extern int percentrefinery[5][MAX_REFINE+1]; //The last slot always has a 0% suc
 //Mode definitions to clear up code reading. [Skotlex]
 #define MD_CANMOVE 0x0001
 #define MD_LOOTER 0x0002
-#define MD_AGGRESSIVE 0x0804
+#define MD_AGGRESSIVE 0x0004
 #define MD_ASSIST 0x0008
 #define MD_CASTSENSOR_IDLE 0x0010
 #define MD_BOSS 0x0020
