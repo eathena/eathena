@@ -1,3 +1,9 @@
+12/11
+	* Merged item_db, job_db1, mob_db2, mob_db, mob_skill_db, skill_unit_db [Playtester]
+	- updated all items and mobs
+	- almost official GS/NJ HP values
+	- new mob mode system for mobs and skills
+	- fixed Heaven's Drive removing traps
 11/27
 	* Corrected KiriKage's range so it works correctly when used by non-players
 	  or when use weapon's range is used. [Skotlex]

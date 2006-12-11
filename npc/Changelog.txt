@@ -35,6 +35,8 @@ Playtester
 Date		Added
 ======
 12/11
+	* Large Arunafeltz update [Playtester]
+	- added spawns and warps
 	* Some cleanup & optimization for MvM Arena [KarLaeda]
 	- Merged Hunter Job Quest
 	* Added Yuno Government Buildings warps. Thanks to $ephiroth [Lupus]
