@@ -34,6 +34,8 @@ Playtester
 
 Date		Added
 ======
+12/13
+	* Fixed exploit in the Slotted Sunglasses Quest [KarLaeda]
 12/11
 	* Large Arunafeltz update [Playtester]
 	- added spawns and warps
