@@ -1361,7 +1361,7 @@ int intif_parse_RenamePetOk(int fd)
 {
 	struct map_session_data *sd = NULL;
 	RFIFOHEAD(fd);
-	if((sd=map_id2sd(RFIFOL(fd,2)))==NULL  ||
+	if((sd=map_id2sd(RFIFOL(fd,2)))==NULL ||
 		sd->status.char_id != RFIFOL(fd,6))
 		return 0;
 	if (RFIFOB(fd,10) == 0) {

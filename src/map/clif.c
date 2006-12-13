@@ -6670,7 +6670,6 @@ int clif_guild_basicinfo(struct map_session_data *sd)
 		strncpy((char*)WFIFOP(fd,94),msg_txt(299),20);
 
 	WFIFOSET(fd,packet_len_table[WFIFOW(fd,0)]);
-	clif_guild_emblem(sd,g);	// Guild emblem vanish fix [Valaris]
 	return 0;
 }
 
@@ -7408,19 +7407,17 @@ int clif_GM_kick(struct map_session_data *sd,struct map_session_data *tsd,int ty
 
 	if(type)
 		clif_GM_kickack(sd,tsd->status.account_id);
+	if (!tsd->fd)
+	{
+		map_quit(tsd);
+		return 0;
+	}
+
 	WFIFOHEAD(tsd->fd,packet_len_table[0x18b]);
 	WFIFOW(tsd->fd,0) = 0x18b;
 	WFIFOW(tsd->fd,2) = 0;
 	WFIFOSET(tsd->fd,packet_len_table[0x18b]);
-
-	if (tsd->fd)
-	{
-		ShowDebug("clif_GM_kick: Disconnecting session #%d\n", tsd->fd);
-		clif_setwaitclose(tsd->fd);
-	} else { //Player has no session attached, delete it right away. [Skotlex]
-		map_quit(tsd);
-	}
-
+	clif_setwaitclose(tsd->fd);
 	return 0;
 }
 
@@ -8062,6 +8059,13 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if(sd->bl.prev != NULL)
 		return;
 	
+	if (!sd->state.auth)
+	{	//Character loading is not complete yet!
+		//Let pc_reg_received reinvoke this when ready.
+		sd->state.connect_new = 0;
+		return;
+	}
+
 	if (sd->state.rewarp)
   	{	//Rewarp player.
 		sd->state.rewarp = 0;
@@ -8179,6 +8183,9 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 
 		// Notify everyone that this char logged in [Skotlex].
 		clif_foreachclient(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 1);
+
+		//Login Event
+		npc_script_event(sd, NPCE_LOGIN);
 	} else {
 		//For some reason the client "loses" these on map-change.
 		clif_updatestatus(sd,SP_STR);

@@ -565,7 +565,6 @@ int pc_isequip(struct map_session_data *sd,int n)
  */
 int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_time, struct mmo_charstatus *st)
 {
-	struct guild *g;
 	int i;
 	unsigned long tick = gettick();
 
@@ -669,22 +668,6 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	if (sd->status.pet_id > 0)
 		intif_request_petdata(sd->status.account_id, sd->status.char_id, sd->status.pet_id);
 
-	// パ?ティ、ギルドデ?タの要求
-	if (sd->status.party_id > 0 && party_search(sd->status.party_id) == NULL)
-		party_request_info(sd->status.party_id);
-	if (sd->status.guild_id > 0)
-	{
-		if ((g = guild_search(sd->status.guild_id)) == NULL)
-			guild_request_info(sd->status.guild_id);
-		else if (strcmp(sd->status.name,g->master) == 0)
-		{	//Block Guild Skills to prevent logout/login reuse exploiting. [Skotlex]
-			guild_block_skill(sd, 300000);
-			//Also set the Guild Master flag.
-			sd->state.gmaster_flag = g;
-		}
-	}
-
-	// 通知
 
 	clif_authok(sd);
 	map_addiddb(&sd->bl);
@@ -699,9 +682,6 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	sd->state.event_disconnect = 1;
 	sd->state.event_kill_mob = 1;
 
-	status_calc_pc(sd,1);
-			
-	sd->state.auth = 1; //Do not auth him until the initial stats have been placed.
 	{	//Add IP field
 		unsigned char *ip = (unsigned char *) &session[sd->fd]->client_addr.sin_addr;
 		if (pc_isGM(sd))
@@ -808,12 +788,11 @@ int pc_set_hate_mob(struct map_session_data *sd, int pos, struct block_list *bl)
 int pc_reg_received(struct map_session_data *sd)
 {
 	int i,j;
+	struct guild *g = NULL;
 	
 	sd->change_level = pc_readglobalreg(sd,"jobchange_level");
 	sd->die_counter = pc_readglobalreg(sd,"PC_DIE_COUNTER");
-	chrif_scdata_request(sd->status.account_id, sd->status.char_id);
-	if (!sd->die_counter && (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE)
-		status_calc_pc(sd, 0); //Check +10 to all stats bonus.
+
 	if (pc_checkskill(sd, TK_MISSION)) {
 		sd->mission_mobid = pc_readglobalreg(sd,"TK_MISSION_ID");
 		sd->mission_count = pc_readglobalreg(sd,"TK_MISSION_COUNT");
@@ -840,7 +819,6 @@ int pc_reg_received(struct map_session_data *sd)
 			if (i < sd->status.skill[sd->cloneskill_id].lv)
 				sd->status.skill[sd->cloneskill_id].lv = i;
 			sd->status.skill[sd->cloneskill_id].flag = 13;	//cloneskill flag			
-			clif_skillinfoblock(sd);
 		}
 	}
 
@@ -863,9 +841,31 @@ int pc_reg_received(struct map_session_data *sd)
 		sd->state.event_joblvup = 1;
 		sd->state.event_loadmap = 1;
 	}
+	//Weird... maybe registries were reloaded?
+	if (sd->state.auth)
+		return 0;
+	sd->state.auth = 1;
 
-	npc_script_event(sd, NPCE_LOGIN);
-	return 0;
+	if (sd->status.party_id > 0 && party_search(sd->status.party_id) == NULL)
+		party_request_info(sd->status.party_id);
+	if (sd->status.guild_id > 0 && (g=guild_search(sd->status.guild_id)) == NULL)
+		guild_request_info(sd->status.guild_id);
+	else if (g && strcmp(sd->status.name,g->master) == 0)
+	{	//Block Guild Skills to prevent logout/login reuse exploiting. [Skotlex]
+		guild_block_skill(sd, 300000);
+		//Also set the Guild Master flag.
+		sd->state.gmaster_flag = g;
+	}
+
+	status_calc_pc(sd,1);
+	chrif_scdata_request(sd->status.account_id, sd->status.char_id);
+
+	if (!sd->state.connect_new && sd->fd)
+	{	//Character already loaded map! Gotta trigger LoadEndAck manually.
+		sd->state.connect_new = 1;
+		clif_parse_LoadEndAck(sd->fd, sd);
+	}
+	return 1;
 }
 
 static int pc_calc_skillpoint(struct map_session_data* sd)
