@@ -1,5 +1,8 @@
 Date	Added
 
+2006/12/13
+	* Merged setting stdout_with_ansisequence ([login/char/map]_athena.conf)
+	  which can enable/disable console colors.
 2006/11/29
 	* Merged the updates to slaves_inherit_mode and slaves_inherit_speed so you
 	  can decide under which types of masters does the slave's speed/mode is

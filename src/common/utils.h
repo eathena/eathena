@@ -4,6 +4,7 @@
 #ifndef COMMON_UTILS_H
 #define COMMON_UTILS_H
 
+#include <stdarg.h>
 
 #ifndef NULL
 #define NULL (void *)0
@@ -32,6 +33,7 @@ struct StringBuf {
 
 struct StringBuf * StringBuf_Malloc(void);
 void StringBuf_Init(struct StringBuf *);
+int StringBuf_Vprintf(struct StringBuf *,const char *,va_list);
 int StringBuf_Printf(struct StringBuf *,const char *,...);
 int StringBuf_Append(struct StringBuf *,const struct StringBuf *);
 char * StringBuf_Value(struct StringBuf *);

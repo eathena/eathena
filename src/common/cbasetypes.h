@@ -54,35 +54,6 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-// useful typedefs
-//////////////////////////////////////////////////////////////////////////
-#define HAVE_UCHAR
-typedef unsigned char	uchar;
-typedef   signed char	schar;
-typedef   signed short	sshort;
-
-#if !defined(__FREEBSD__) && !defined(_SYS_TYPES_H)
-	typedef unsigned short  ushort;
-#endif
-typedef   signed int    sint;   // don't use (only for ie. scanf)
-#if !defined(__FREEBSD__) && !defined(_SYS_TYPES_H)
-	typedef unsigned int    uint;   // don't use
-#endif
-typedef   signed long   slong;  // don't use (only for ie. file-io)
-#ifndef _SYS_TYPES_H
-	typedef unsigned long   ulong;  // don't use
-#endif
-
-#ifndef WIN32
-typedef char*           pchar;
-typedef unsigned char*	puchar;
-#endif
-typedef const char*     cchar;
-typedef void*			ptr;
-typedef int*			pint;
-
-
-//////////////////////////////////////////////////////////////////////////
 // typedefs to compensate type size change from 32bit to 64bit
 // MS implements LLP64 model, normal unix does LP64,
 // only Silicon Graphics/Cray goes ILP64 so don't care (and don't support)
@@ -235,13 +206,16 @@ typedef unsigned long long	uint64;
 //////////////////////////////
 
 // boolean types for C
-typedef int bool;
+typedef char bool;
 #define false	(1==0)
 #define true	(1==1)
 
 //////////////////////////////
 #endif // not cplusplus
 //////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// macro tools
 
 #ifdef swap // just to be sure
 #undef swap
@@ -250,6 +224,14 @@ typedef int bool;
 //#define swap(a,b) { int temp=a; a=b; b=temp;} 
 // if using macros then something that is type independent
 #define swap(a,b) ((a == b) || ((a ^= b), (b ^= a), (a ^= b)))
+
+#ifndef max
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#endif
+
+#ifndef min
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // should not happen
@@ -262,5 +244,46 @@ typedef int bool;
 #ifndef NBBY
 #define	NBBY 8
 #endif
+
+//////////////////////////////////////////////////////////////////////////
+// path separator
+
+#if defined(WIN32)
+#define PATHSEP '\\'
+#elif defined(__APPLE__)
+#define PATHSEP ':'
+#else
+#define PATHSEP '/'
+#endif
+
+//////////////////////////////////////////////////////////////////////////
+// EOL separator
+
+#if defined(WIN32) || defined(CYGWIN)
+#define RETCODE	"\r\n"	// CR/LF : Windows systems
+#elif defined(__APPLE__)
+#define RETCODE "\r"	// CR : Macintosh systems
+#else
+#define RETCODE "\n"	// LF : Unix systems
+#endif
+
+#define RET RETCODE
+
+//////////////////////////////////////////////////////////////////////////
+// Assert
+
+#if ! defined(Assert)
+#if defined(RELEASE)
+#define Assert(EX)
+#else
+// extern "C" {
+#include <assert.h>
+// }
+#if !defined(DEFCPP) && defined(WIN32) && !defined(MINGW)
+#include <crtdbg.h>
+#endif
+#define Assert(EX) assert(EX)
+#endif
+#endif /* ! defined(Assert) */
 
 #endif /* _CBASETYPES_H_ */

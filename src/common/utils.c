@@ -8,18 +8,17 @@
 
 #ifdef WIN32
 	#include <windows.h>
-	#define PATHSEP '\\'
 #else
 	#include <unistd.h>
 	#include <dirent.h>
 	#include <sys/stat.h>
-	#define PATHSEP '/'
 #endif
 
 #include "utils.h"
 #include "../common/mmo.h"
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
+#include "../common/cbasetypes.h"
 
 void dump(unsigned char *buffer, int num)
 {
@@ -155,18 +154,15 @@ void StringBuf_Init(struct StringBuf * sbuf)  {
 	sbuf->ptr_ = sbuf->buf_ = (char *) aMallocA(sbuf->max_ + 1);
 }
 
-// printf into a StringBuf, moving the pointer [MouseJstr]
-int StringBuf_Printf(struct StringBuf *sbuf,const char *fmt,...) 
+// vprintf into a StringBuf, moving the pointer [MouseJstr]
+int StringBuf_Vprintf(struct StringBuf *sbuf,const char *fmt,va_list ap) 
 {
-	va_list ap;
-        int n, size, off;
+	int n, size, off;
 
 	while (1) {
 		/* Try to print in the allocated space. */
-		va_start(ap, fmt);
 		size = sbuf->max_ - (sbuf->ptr_ - sbuf->buf_);
 		n = vsnprintf (sbuf->ptr_, size, fmt, ap);
-		va_end(ap);
 		/* If that worked, return the length. */
 		if (n > -1 && n < size) {
 			sbuf->ptr_ += n;
@@ -178,6 +174,19 @@ int StringBuf_Printf(struct StringBuf *sbuf,const char *fmt,...)
 		sbuf->buf_ = (char *) aRealloc(sbuf->buf_, sbuf->max_ + 1);
 		sbuf->ptr_ = sbuf->buf_ + off;
 	}
+}
+
+// printf into a StringBuf, moving the pointer [MouseJstr]
+int StringBuf_Printf(struct StringBuf *sbuf,const char *fmt,...) 
+{
+	int len;
+	va_list ap;
+
+	va_start(ap,fmt);
+	len = StringBuf_Vprintf(sbuf,fmt,ap);
+	va_end(ap);
+
+	return len;
 }
 
 // Append buf2 onto the end of buf1 [MouseJstr]
@@ -275,8 +284,8 @@ void findfile(const char *p, const char *pat, void (func)(const char*))
 			}
 		}while (FindNextFile(hFind, &FindFileData) != 0);
 		FindClose(hFind);
-   }
-   return;
+	}
+	return;
 }
 #else
 
