@@ -9574,7 +9574,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 		return;
 	}
 		
-	sd->skillitem = sd->skillitemlv = -1;
+	sd->skillitem = sd->skillitemlv = 0;
 	if (skillnum == MO_EXTREMITYFIST) {
 		if ((sd->sc.data[SC_COMBO].timer == -1 ||
 			(sd->sc.data[SC_COMBO].val1 != MO_COMBOFINISH &&
@@ -9668,7 +9668,7 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, int skilll
 			skilllv = sd->skillitemlv;
 		unit_skilluse_pos(&sd->bl, x, y, skillnum, skilllv);
 	} else {
-		sd->skillitem = sd->skillitemlv = -1;
+		sd->skillitem = sd->skillitemlv = 0;
 		if ((lv = pc_checkskill(sd, skillnum)) > 0) {
 			if (skilllv > lv)
 				skilllv = lv;
@@ -11464,7 +11464,7 @@ int clif_parse(int fd) {
 		return 0;
 	}
 
-	sd = (struct map_session_data*)session[fd]->session_data;
+	sd = (TBL_PC *)session[fd]->session_data;
 	if (session[fd]->eof) {
 		if (sd) {
 			if (sd->state.autotrade) {
