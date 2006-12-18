@@ -171,6 +171,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\basics\basetimerhandler.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\basics\basetxtdb.cpp"
 				>
 			</File>
@@ -284,6 +288,10 @@
 			</File>
 			<File
 				RelativePath="..\src\basics\basetime.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\basics\basetimerhandler.h"
 				>
 			</File>
 			<File

@@ -520,12 +520,19 @@ public:
 	/// do object depending stuff for attacking
 	virtual void do_attack();
 
-	/// send skill failed message.
-	virtual int clif_skill_failed(ushort skill_id, uchar type=0, ushort btype=0);
 
 
 	virtual int heal(int hp, int sp=0);
 
+	///////////////////////////////////////////////////////////////////////////
+	// skill functions
+
+	/// returns skill_lvl for given skillid of the current object
+	virtual int skill_check(ushort skillid);
+	/// check if current skill can be canceled
+	virtual bool skill_can_cancel() const;
+	/// send skill failed message.
+	virtual void skill_failed(ushort skill_id, skillfail_t type=SF_FAILED);
 
 	///////////////////////////////////////////////////////////////////////////
 	// chat functions
@@ -577,7 +584,6 @@ static inline bool pc_breakarmor(map_session_data &sd)	{ return pc_break_equip(s
 static inline bool pc_breakshield(map_session_data &sd)	{ return pc_break_equip(sd, EQP_SHIELD); }
 static inline bool pc_breakhelm(map_session_data &sd)	{ return pc_break_equip(sd, EQP_HELM); }
 
-int pc_checkskill(map_session_data &sd,unsigned short skill_id);
 bool pc_checkallowskill(map_session_data &sd);
 unsigned short pc_checkequip(map_session_data &sd, unsigned short pos);
 

@@ -137,6 +137,7 @@ void CSQLParameter::rebuild()
 	//	 `INSERT DELAYED' with `MyISAM'.  *Note `MyISAM' storage engine:
 	//	 MyISAM storage engine.
 
+	basics::slist< basics::string<> > existing_tables;
 	basics::CMySQLConnection dbcon1(CSQLParameter::sqlbase);
 	basics::string<> query;
 
@@ -145,7 +146,6 @@ void CSQLParameter::rebuild()
 	query << "SET FOREIGN_KEY_CHECKS=0";
 	dbcon1.PureQuery(query);
 	query.clear();
-
 
 	///////////////////////////////////////////////////////////////////////////
 	// drop all tables, drop child tables first
@@ -265,6 +265,18 @@ void CSQLParameter::rebuild()
 		dbcon1.PureQuery(query);
 		query.clear();
 	}
+	else
+	{	// get a list of all tables
+		query << "SHOW TABLES";
+		if( dbcon1.ResultQuery(query) )
+		{
+			for(; dbcon1; ++dbcon1)
+			{
+				existing_tables.insert(dbcon1[0]);
+			}
+		}
+		query.clear();
+	}
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -317,6 +329,10 @@ void CSQLParameter::rebuild()
 	dbcon1.PureQuery(query);
 	query.clear();
 
+	query << "SET FOREIGN_KEY_CHECKS=0";
+	dbcon1.PureQuery(query);
+	query.clear();
+
 	query << "INSERT INTO `" << dbcon1.escaped(CSQLParameter::tbl_account) << "` "
 			 "(`account_id`, `user_id`,`user_pass`) "
 			 "VALUES "
@@ -332,12 +348,13 @@ void CSQLParameter::rebuild()
 	///////////////////////////////////////////////////////////////////////////
 	// add the default accounts 
 	//## change to inserting data from the config file
-	if( CSQLParameter::wipe_sql )
+	if( CSQLParameter::wipe_sql() || !existing_tables.find(CSQLParameter::tbl_account) )
 	{
 		query << "INSERT INTO `" << dbcon1.escaped(CSQLParameter::tbl_account) << "` "
 				 "(`user_id`,`user_pass`,`sex`) VALUES ('s1','p1','S'),('s2','p2','S'),('s3','p3','S')";
 		dbcon1.PureQuery(query);
 		query.clear();
+		ShowInfo("created default server accounts\n"CL_SPACE"it is recommended to modify the passwords\n");
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -429,6 +446,10 @@ void CSQLParameter::rebuild()
 			 "FOREIGN KEY (`account_id`) REFERENCES `" << dbcon1.escaped(CSQLParameter::tbl_account) << "` (`account_id`) ON DELETE CASCADE ON UPDATE CASCADE"
 			 ") "
 			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine) << " AUTO_INCREMENT=" << start_char_num;
+	dbcon1.PureQuery(query);
+	query.clear();
+
+	query << "SET FOREIGN_KEY_CHECKS=0";
 	dbcon1.PureQuery(query);
 	query.clear();
 
@@ -618,10 +639,14 @@ void CSQLParameter::rebuild()
 	dbcon1.PureQuery(query);
 	query.clear();
 
+	query << "SET FOREIGN_KEY_CHECKS=0";
+	dbcon1.PureQuery(query);
+	query.clear();
+
 	query << "INSERT INTO `" << dbcon1.escaped(CSQLParameter::tbl_guild) << "` "
-			 "(`guild_id`) "
+			 "(`guild_id`,`emblem_data`) "
 			 "VALUES "
-			 "('" << start_guild_num << "')";
+			 "('" << start_guild_num << "','')";
 	dbcon1.PureQuery(query);
 	query.clear();
 	query << "DELETE FROM `" << dbcon1.escaped(CSQLParameter::tbl_guild) << "` "
@@ -789,6 +814,10 @@ void CSQLParameter::rebuild()
 	dbcon1.PureQuery(query);
 	query.clear();
 
+	query << "SET FOREIGN_KEY_CHECKS=0";
+	dbcon1.PureQuery(query);
+	query.clear();
+
 	query << "INSERT INTO `" << dbcon1.escaped(CSQLParameter::tbl_party) << "` "
 			 "(`party_id`) "
 			 "VALUES "
@@ -823,6 +852,11 @@ void CSQLParameter::rebuild()
 			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine) << " AUTO_INCREMENT=" << start_pet_num;
 	dbcon1.PureQuery(query);
 	query.clear();
+
+	query << "SET FOREIGN_KEY_CHECKS=0";
+	dbcon1.PureQuery(query);
+	query.clear();
+	
 	query << "INSERT INTO `" << dbcon1.escaped(CSQLParameter::tbl_pet) << "` "
 			 "(`pet_id`) "
 			 "VALUES "
@@ -878,6 +912,11 @@ void CSQLParameter::rebuild()
 			"ENGINE = " << dbcon1.escaped(CSQLParameter::sql_engine) << " AUTO_INCREMENT=" << start_homun_num;
 	dbcon1.PureQuery(query);
 	query.clear();
+
+	query << "SET FOREIGN_KEY_CHECKS=0";
+	dbcon1.PureQuery(query);
+	query.clear();
+
 	query << "INSERT INTO `" << dbcon1.escaped(CSQLParameter::tbl_homunculus) << "` "
 			 "(`homun_id`) "
 			 "VALUES "

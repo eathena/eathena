@@ -2271,7 +2271,7 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 	if(sd)
 	{
 		int sp = 0, hp = 0;
-		if(src && sd->state.attack_type == BF_MAGIC && (i=pc_checkskill(*sd,HW_SOULDRAIN))>0)
+		if(src && sd->state.attack_type == BF_MAGIC && (i=sd->skill_check(HW_SOULDRAIN))>0)
 		{	// ソウルドレイン 
 			if( sd->is_sitting() ) 
 				sd->set_stand(); //Character stuck in attacking animation while 'sitting' fix. [Skotlex]
@@ -2575,7 +2575,7 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 		}
 
 		// Ore Discovery [Celest]
-		if(sd && sd == mvp_sd && maps[md.block_list::m].flag.nomobloot==0 && pc_checkskill(*sd,BS_FINDINGORE)>0 && config.finding_ore_rate/100 >= (uint32)(rand()%1000))
+		if(sd && sd == mvp_sd && maps[md.block_list::m].flag.nomobloot==0 && sd->skill_check(BS_FINDINGORE)>0 && config.finding_ore_rate/100 >= (uint32)(rand()%1000))
 		{
 			delay_item_drop *ditem;
 			ditem = new delay_item_drop(md, itemdb_searchrandomid(6),mvp_sd,second_sd,third_sd);

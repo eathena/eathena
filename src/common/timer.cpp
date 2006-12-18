@@ -14,39 +14,61 @@
 ///////////////////////////////////////////////////////////////////////////////
 // basic class for using the old way timers
 ///////////////////////////////////////////////////////////////////////////////
-bool basics::CTimerBase::init(unsigned long interval)
+///////////////////////////////////////////////////////////////////////////////
+class CTimerHandler : public basics::CTimerHandlerBase
 {
-	if(interval<1000)
-		interval = 1000;
-	cTimer = add_timer_interval(gettick()+interval, interval, timercallback, 0, basics::numptr(this), false);
-	return (cTimer>=0);
-}
-
-// external calling from external timer implementation
-int basics::CTimerBase::timercallback(int timer, unsigned long tick, int id, basics::numptr data)
-{
-	if(data.isptr)
+public:
+	CTimerHandler()
 	{
-		CTimerBase* base = (CTimerBase*)data.ptr;
-		if(timer==base->cTimer)
+		basics::CTimerHandlerBase::attach_handler(*this);
+	}
+	virtual ~CTimerHandler()
+	{
+		basics::CTimerHandlerBase::detach_handler(*this);
+	}
+
+	/// start a timer within this handler.
+	virtual bool start_timer(basics::CTimerBase& timer, unsigned long interval)
+	{
+		if(interval<1000)
+			interval = 1000;
+		timer.cTimer = add_timer_interval(gettick()+interval, interval, timercallback, 0, basics::numptr(&timer), false);
+		return (timer.cTimer>=0);
+	}
+
+	/// stop a timer within this handler.
+	virtual bool stop_timer(basics::CTimerBase& timer)
+	{
+		if(timer.cTimer>0)
 		{
-			if( !base->timeruserfunc(tick) )
+			delete_timer(timer.cTimer, timercallback);
+			timer.cTimer = -1;
+		}
+		return true;
+	}
+
+	// external calling from external timer implementation
+	static int CTimerHandler::timercallback(int timer, unsigned long tick, int id, basics::numptr data)
+	{
+		if(data.isptr)
+		{
+			basics::CTimerBase* base = (basics::CTimerBase*)data.ptr;
+			if(timer==base->cTimer)
 			{
-				delete_timer(base->cTimer, timercallback);
-				base->cTimer = -1;
+				if( !base->timeruserfunc(tick) )
+				{
+					delete_timer(base->cTimer, timercallback);
+					base->cTimer = -1;
+				}
 			}
 		}
+		return 0;
 	}
-	return 0;
-}
-void basics::CTimerBase::timerfinalize()
-{
-	if(cTimer>0)
-	{
-		delete_timer(cTimer, timercallback);
-		cTimer = -1;
-	}
-}
+};
+// instanciate only once
+CTimerHandler timerhandler;
+
+///////////////////////////////////////////////////////////////////////////////
 
 
 

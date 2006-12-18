@@ -3404,7 +3404,7 @@ bool command_lostskill(int fd, map_session_data& sd, const char* command, const 
 	{
 		if (skill_get_inf2(skill_id) & 0x01)
 		{
-			if (pc_checkskill(sd, skill_id) > 0)
+			if( sd.skill_check(skill_id)>0 )
 			{
 				sd.status.skill[skill_id].lv = 0;
 				sd.status.skill[skill_id].flag = 0;
@@ -3858,7 +3858,7 @@ bool command_memo(int fd, map_session_data& sd, const char* command, const basic
 			sd.status.memo_point[position].x = sd.block_list::x;
 			sd.status.memo_point[position].y = sd.block_list::y;
 			clif_skill_memo(sd, 0);
-			if (pc_checkskill(sd, AL_WARP) <= (int)(position + 1))
+			if( sd.skill_check(AL_WARP) <= (int)(position + 1) )
 				clif_displaymessage(fd, msg_txt(MSG_DONT_HAVE_WARP_SKILL)); // Note: you don't have the 'Warp' skill level to use it.
 			ret = true;
 		}
@@ -5077,7 +5077,7 @@ bool command_questskill(int fd, map_session_data& sd, const char* command, const
 	{
 		if (skill_get_inf2(skill_id) & 0x01)
 		{
-			if (pc_checkskill(sd, skill_id) == 0)
+			if( sd.skill_check(skill_id)==0 )
 			{
 				pc_skill(sd, skill_id, 1, 0);
 				clif_displaymessage(fd, msg_txt(MSG_YOU_LEARNED_SKILL)); // You have learned the skill.
@@ -5922,7 +5922,7 @@ bool command_skilltree(int fd, map_session_data& sd, const char* command, const 
 	int c = pc_calc_skilltree_normalize_job(*pl_sd);
 
 	snprintf(output, sizeof(output), "Player is using %s skill tree (%d basic points)",
-		job_name(c), pc_checkskill(*pl_sd, 1));
+		job_name(c), pl_sd->skill_check(1));
 	clif_displaymessage(fd, output);
 
 	for (j = 0; skill_tree[c][j].id != 0; ++j)
@@ -5942,7 +5942,7 @@ bool command_skilltree(int fd, map_session_data& sd, const char* command, const 
 	ent = &skill_tree[c][skillidx];
 	for(j=0;j<5; ++j)
 	{
-		if( ent->need[j].id && pc_checkskill(sd,ent->need[j].id) < ent->need[j].lv)
+		if( ent->need[j].id && sd.skill_check(ent->need[j].id) < ent->need[j].lv)
 		{
 			int idx = 0;
 			char *desc;

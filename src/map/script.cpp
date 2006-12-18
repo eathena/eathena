@@ -4826,7 +4826,7 @@ int buildin_guildskill(CScriptEngine &st)
 int buildin_getskilllv(CScriptEngine &st)
 {
 	int id=st.GetInt(st[2]);
-	st.push_val(CScriptEngine::C_INT, (st.sd)?pc_checkskill(*st.sd,id):0 );
+	st.push_val(CScriptEngine::C_INT, (st.sd)?st.sd->skill_check(id):0 );
 	return 0;
 }
 /*==========================================

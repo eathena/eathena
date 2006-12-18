@@ -139,7 +139,8 @@ class CFDSET
 	///////////////////////////////////////////////////////////////////////////
 	// class data
 	unsigned long*	cArray;		///< array pointer
-	unsigned long	cSZ;		///< alloced size
+	uint			cSZ;		///< alloced size
+	uint			cMax;		///< last used slot
 
 	///////////////////////////////////////////////////////////////////////////
 	/// resize the array; only grow, no shrink
@@ -148,25 +149,32 @@ class CFDSET
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Construct/Destruct
-	CFDSET() : cArray(new unsigned long[FD_SETSIZE/NBBY/sizeof(unsigned long)]),cSZ(FD_SETSIZE/NBBY/sizeof(unsigned long))	{}
-	~CFDSET()	{ if(cArray) delete [] cArray; }
+	CFDSET() : cArray(new unsigned long[FD_SETSIZE/NBBY/sizeof(unsigned long)]),cSZ(FD_SETSIZE/NBBY/sizeof(unsigned long)),cMax(0)
+	{
+		memset(this->cArray,0, this->cSZ*sizeof(unsigned long));
+	}
+	~CFDSET()
+	{
+		if(this->cArray)
+			delete [] this->cArray;
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Copy/Assign
-	CFDSET(const CFDSET& cfd) : cArray(NULL),cSZ(0)
+	CFDSET(const CFDSET& cfd) : cArray(NULL),cSZ(0),cMax(0)
 	{
-		copy(cfd);
+		this->copy(cfd);
 	}
 	const CFDSET& operator =(const CFDSET& cfd)
 	{
-		copy(cfd);
+		this->copy(cfd);
 		return *this;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// clear everything
 	void clear()
 	{
-		memset (cArray,0, cSZ*sizeof(unsigned long));
+		memset (this->cArray,0, this->cSZ*sizeof(unsigned long));
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// set a bit
@@ -190,7 +198,11 @@ public:
 			const size_t bit = fd&0x1F;	// equals %32
 #endif
 			checksize(pos);
-			cArray[pos] |= (1ul<<bit);
+			this->cArray[pos] |= (1ul<<bit);
+
+			// set max slot
+			if(pos>=this->cMax)
+				this->cMax=pos+1;
 		}
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -215,7 +227,14 @@ public:
 			const size_t bit = fd&0x1F;	// equals %32
 #endif
 			checksize(pos);
-			cArray[pos] &= ~(1ul<<bit);
+			unsigned long*ptr = this->cArray + pos;
+			*ptr &= ~(1ul<<bit);
+
+			// find the max slot before the current one
+			if(this->cMax && pos+1 == this->cMax)
+			{
+				for(; this->cMax>0 && *ptr==0; --this->cMax, --ptr) {}
+			}
 		}
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -262,7 +281,7 @@ public:
 	/// size
 	int size() const
 	{ 
-		return cSZ * NFDBITS;
+		return this->cMax*NFDBITS;
 	}
 };
 
@@ -293,25 +312,25 @@ class CFDSET
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Construct/Destruct
-	CFDSET() : cSet((struct winfdset *) new char[sizeof(struct winfdset)+128*sizeof(SOCKET)]),cSZ(128)	{ cSet->fd_count=0; }
-	~CFDSET()	{ if(cSet) delete [] ((char*)cSet); }
+	CFDSET() : cSet((struct winfdset *) new char[sizeof(struct winfdset)+128*sizeof(SOCKET)]),cSZ(128)	{ this->cSet->fd_count=0; }
+	~CFDSET()	{ if(this->cSet) delete [] ((char*)this->cSet); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Copy/Assign
 	CFDSET(const CFDSET& cfd) : cSet(NULL),cSZ(0)
 	{
-		copy(cfd);
+		this->copy(cfd);
 	}
 	const CFDSET& operator =(const CFDSET& cfd)
 	{
-		copy(cfd);
+		this->copy(cfd);
 		return *this;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// clear everything
 	void clear()
 	{
-		cSet->fd_count = 0;
+		this->cSet->fd_count = 0;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// set a bit
@@ -332,19 +351,19 @@ public:
 	/// Call a function with each set bit
 	size_t foreach2( void(*func)(SOCKET), size_t max ) const
 	{	// no different approaches on windows
-		return foreach1( func, max );
+		return this->foreach1( func, max );
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// pretending to be an fd_set structure
 	operator fd_set*() const	
 	{
-		return (fd_set*)cSet; 
+		return (fd_set*)this->cSet; 
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// size
 	int size() const
 	{ 
-		return cSZ;
+		return this->cSZ;
 	}
 };
 #endif

@@ -2814,7 +2814,7 @@ int char_config_read(const char *cfgName)
 			else if(strcasecmp(w1, "char_ip") == 0)
 			{
 				charaddress = w2;
-				ShowInfo("Using char server with %s\n", loginaddress.tostring(NULL));
+				ShowInfo("Using char server with %s\n", charaddress.tostring(NULL));
 			}
 			else if(strcasecmp(w1, "char_port") == 0)
 			{
@@ -2944,9 +2944,9 @@ int do_init(int argc, char **argv)
 {
 	int i;
 	
-	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
-	char_db.init( (argc < 2) ? CHAR_CONF_NAME : argv[1] );
-	var_db.init( (argc < 2) ? CHAR_CONF_NAME : argv[1] );
+	char_config_read((argc > 1 && basics::is_file(argv[1])) ? argv[1] : CHAR_CONF_NAME );
+	char_db.init( (argc > 1 && basics::is_file(argv[1])) ? argv[1] : CHAR_CONF_NAME );
+	var_db.init( (argc > 1 && basics::is_file(argv[1])) ? argv[1] : CHAR_CONF_NAME );
 
 
 	// a newline in the log...

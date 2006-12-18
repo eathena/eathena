@@ -5,6 +5,7 @@
 #define _STATUS_H_
 
 #include "map.h" // for basic type definitions, move to a seperated file
+#include "fightable.h"
 
 
 enum {	// map_session_data ‚Ì status_change‚Ì”Ô?ƒe?ƒuƒ‹
@@ -695,5 +696,243 @@ extern int percentrefinery[MAX_REFINE_BONUS][MAX_REFINE+1]; //The last slot alwa
 
 int status_readdb(void);
 int do_init_status(void);
+
+
+
+
+
+
+
+// interface suggestion for new status change system
+// might be stonger seperatable, just for playing
+// also remove the object identifier and place the map into 
+// either fightable or a seperated class for handling statuschanges
+// add statuschange_new.cpp and compile with -DNEWSTATUS
+// should not work on cygwin though the inability of inlined statics [Hinoko]
+
+/// basic interface
+class status_change_if
+{
+protected:
+	fightable&	object;		///< object that receives the statuschange
+	status_change_if(fightable&	o) : object(o)
+	{}
+public:
+	virtual ~status_change_if()
+	{}
+
+	/// return the id of the current object 
+	virtual uint32 status_id() const=0;
+	/// start the status change
+	virtual void start()=0;
+	/// stop the status change
+	virtual void stop()=0;
+
+protected:
+
+	struct cleanup
+	{
+		basics::smap<uint32, basics::smap<uint32, status_change_if*> > statusmap;
+		~cleanup()
+		{	// clean any remaining object
+			basics::smap<uint32, basics::smap<uint32, status_change_if*> >::iterator mapiter(this->statusmap);
+			for(; mapiter; ++mapiter)
+			{
+				basics::smap<uint32, status_change_if*>::iterator iter(mapiter->data);
+				for(; iter; ++iter)
+					delete iter->data;
+				mapiter->data.clear();
+			}
+			statusmap.clear();
+		}
+	};
+	friend struct cleanup;
+
+	static basics::smap<uint32, basics::smap<uint32, status_change_if*> >& get_singleton()
+	{
+		static cleanup c;
+		return c.statusmap;
+	}
+
+	static void attach(status_change_if* ptr)
+	{
+		basics::smap<uint32, basics::smap<uint32, status_change_if*> >& statusmap=get_singleton();
+		basics::smap<uint32, status_change_if*>& list = statusmap[ptr->object.block_list::id];
+		status_change_if** pold = list.search(ptr->status_id());
+		if( pold && *pold )
+		{	// stop the old, replace with the new
+			(*pold)->stop();
+			delete (*pold);
+			(*pold) = ptr;
+		}
+		else
+		{	// insert new
+			list.insert(ptr->status_id(), ptr);
+		}
+	}
+	static void detach(status_change_if* ptr)
+	{
+		basics::smap<uint32, basics::smap<uint32, status_change_if*> >& statusmap=get_singleton();
+		basics::smap<uint32, status_change_if*>* plist = statusmap.search(ptr->object.block_list::id);
+		if(plist)
+		{	
+			plist->erase(ptr->status_id());
+			if( plist->size()==0 )
+			{	// also erase the root when all gone
+				statusmap.erase(ptr->object.block_list::id);
+			}
+		}
+	}
+public:
+	/// create a status change.
+	static bool create(fightable& object, uint32 status_id);
+
+	/// create a status change.
+	static status_change_if* get(fightable& object, uint32 status_id)
+	{
+		basics::smap<uint32, basics::smap<uint32, status_change_if*> >& statusmap=get_singleton();
+		basics::smap<uint32, status_change_if*>* plist = statusmap.search(object.block_list::id);
+		if(plist)
+		{	
+			status_change_if** pold = plist->search(status_id);
+			if( pold && *pold )
+			{	
+				return *pold;
+			}
+		}
+		return NULL;
+	}
+	
+	/// erase a specific status change.
+	static void erase(fightable& object, uint32 status_id)
+	{
+		basics::smap<uint32, basics::smap<uint32, status_change_if*> >& statusmap=get_singleton();
+		basics::smap<uint32, status_change_if*>* plist = statusmap.search(object.block_list::id);
+		if(plist)
+		{	
+			status_change_if** pold = plist->search(status_id);
+			if( pold && *pold )
+			{	
+				(*pold)->stop();
+				delete (*pold);
+			}
+			plist->erase(status_id);
+			if( plist->size()==0 )
+			{	// also erase the root when all gone
+				statusmap.erase(object.block_list::id);
+			}
+		}
+	}
+	/// erase all status changes.
+	static void erase(fightable& object)
+	{
+		basics::smap<uint32, basics::smap<uint32, status_change_if*> >& statusmap=get_singleton();
+		basics::smap<uint32, status_change_if*>* plist = statusmap.search(object.block_list::id);
+		if(plist)
+		{	
+			basics::smap<uint32, status_change_if*>::iterator iter(*plist);
+			for(; iter; ++iter)
+			{
+				iter->data->stop();
+				delete iter->data;
+			}
+			plist->clear();
+			statusmap.erase(object.block_list::id);
+		}
+	}
+};
+
+
+class status_change_timed : public virtual status_change_if
+{
+	int timerid;
+public:
+	status_change_timed(fightable& object, ulong tick) : status_change_if(object), timerid(-1)
+	{
+		this->timerid=add_timer(tick, status_change_timed::timer_entry, object.block_list::id, basics::numptr(this));
+	}
+	virtual ~status_change_timed()
+	{
+		if(this->timerid!=-1)
+			delete_timer(this->timerid, status_change_timed::timer_entry);
+	}
+private:
+	static int timer_entry(int tid, unsigned long tick, int id, basics::numptr data)
+	{
+		//fightable* mv = fightable::from_blid(id);
+		status_change_timed* ptr = (status_change_timed*)data.ptr;
+		if(ptr)
+		{
+			if( tid!=ptr->timerid )
+			{	
+				if(config.error_log)
+					printf("statustimerentry %d != %d\n",ptr->timerid,tid);
+				return 0;
+			}
+			// stop and delete the status change
+			ptr->stop();
+			status_change_if::detach(ptr);
+			delete ptr;
+		}
+	}
+};
+
+
+class sc_weight50 : public status_change_if
+{
+public:
+	enum { ID=SC_WEIGHT50 };
+
+	sc_weight50(fightable&	o) : status_change_if(o)	{}
+	virtual ~sc_weight50()				{}
+	virtual uint32 status_id() const	{ return ID; }
+	virtual void start()
+	{	// add the 50% icon
+
+	}
+	virtual void stop()
+	{	// remove the 50% icon
+
+	}
+};
+
+class sc_weight90 : public status_change_if
+{
+public:
+	enum { ID=SC_WEIGHT90 };
+
+	sc_weight90(fightable&	o) : status_change_if(o)	{}
+	virtual ~sc_weight90()				{}
+	virtual uint32 status_id() const	{ return ID; }
+	virtual void start()
+	{	// add the 90% icon
+	}
+	virtual void stop()
+	{	// remove the 90% icon
+
+		// check for starting 50% icon
+		if( this->object.is_50overweight() )
+			status_change_if::create(this->object, SC_WEIGHT50);
+	}
+};
+
+inline bool status_change_if::create(fightable& object, uint32 status_id)
+{
+	status_change_if* ptr;
+	switch(status_id)
+	{
+	case sc_weight50::ID:	ptr = new sc_weight50(object); break;
+	case sc_weight90::ID:	ptr = new sc_weight90(object); break;
+
+	}
+	if(ptr)
+	{
+		status_change_if::attach(ptr);
+		ptr->start();
+		return true;
+	}
+	return false;
+}
+
 
 #endif

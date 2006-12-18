@@ -1675,7 +1675,13 @@ public:
 	{
 		return BinarySearchC<T,const T*,T>(elem, this->begin(), this->size(), start, pos, this->compare, this->config.ascending);
 	}
-
+	template<typename TT>
+	bool find(const TT& elem) const
+	{
+		size_t start=0;
+		size_t pos;
+		return BinarySearchC<T,const T*,T>(elem, this->begin(), this->size(), start, pos, this->compare, this->config.ascending);
+	}
 	void sort()
 	{
 		if(this->size()>1)
@@ -3024,7 +3030,6 @@ public:
 			this->insert(iter->key, iter->data);
 		return *this;
 	}
-
 	void clear()
 	{
 		size_t i=cVect.size();
@@ -3036,7 +3041,24 @@ public:
 		}
 		cVect.clear();
 	}
-
+	const D* search(const K& key) const
+	{
+		size_t pos;
+		if( this->find(key, pos) )
+		{	// create a new entry with default data
+			return &cVect[pos]->data;
+		}
+		return NULL;
+	}
+	D* search(const K& key)
+	{
+		size_t pos;
+		if( this->find(key, pos) )
+		{	
+			return &cVect[pos]->data;
+		}
+		return NULL;
+	}
 	bool exists(const K& key) const
 	{
 		size_t pos;
@@ -3154,7 +3176,24 @@ public:
 	{
 		cVect.clear();
 	}
-
+	const D* search(const K& key) const
+	{
+		size_t pos;
+		if( this->find(key, pos) )
+		{	// create a new entry with default data
+			return &cVect[pos].data;
+		}
+		return NULL;
+	}
+	D* search(const K& key)
+	{
+		size_t pos;
+		if( this->find(key, pos) )
+		{	
+			return &cVect[pos].data;
+		}
+		return NULL;
+	}
 	bool exists(const K& key) const
 	{
 		size_t pos;

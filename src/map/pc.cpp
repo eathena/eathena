@@ -303,12 +303,12 @@ int map_session_data::attacktimer_func(int tid, unsigned long tick, int id, basi
 		return 0;
 	}
 
-	if(sd->skilltimer != -1 && pc_checkskill(*sd,SA_FREECAST) <= 0)
+	if(sd->skilltimer != -1 && sd->skill_check(SA_FREECAST) <= 0)
 		return 0;
 
-	if(!config.skill_delay_attack_enable && pc_checkskill(*sd,SA_FREECAST) <= 0) {
+	if(!config.skill_delay_attack_enable && sd->skill_check(SA_FREECAST) <= 0) {
 		if(DIFF_TICK(tick, sd->canact_tick) < 0) {
-			sd->clif_skill_failed(1,4,0);
+			sd->skill_failed(1,SF_DELAY);
 			return 0;
 		}
 	}
@@ -352,14 +352,14 @@ int map_session_data::attacktimer_func(int tid, unsigned long tick, int id, basi
 			if(sd->target_lv >0 && sd->status.pet_id > 0 && sd->pd && config.pet_attack_support)
 				pet_target_check(*sd,bl,0);
 			block_list::freeblock_unlock();
-			if(sd->skilltimer != -1 && (skill = pc_checkskill(*sd,SA_FREECAST)) > 0 ) // フリ?キャスト
+			if(sd->skilltimer != -1 && (skill = sd->skill_check(SA_FREECAST)) > 0 ) // フリ?キャスト
 				sd->attackable_tick = tick + ((sd->aspd<<1)*(150 - skill*5)/100);
 			else
 				sd->attackable_tick = tick + (sd->aspd<<1);
 		}
 		else if( DIFF_TICK(sd->attackable_tick,tick) <= 0 )
 		{
-			if(sd->skilltimer != -1 && (skill = pc_checkskill(*sd,SA_FREECAST)) > 0 ) // フリ?キャスト
+			if(sd->skilltimer != -1 && (skill = sd->skill_check(SA_FREECAST)) > 0 ) // フリ?キャスト
 			{
 				sd->attackable_tick = tick + ((sd->aspd<<1)*(150 - skill*5)/100);
 			}
@@ -571,9 +571,27 @@ int map_session_data::heal(int hp, int sp)
 }
 
 
-
-
-
+int map_session_data::skill_check(ushort skillid)
+{
+	if( skillid>=10000 )
+	{
+		struct guild *g;
+		if( this->status.guild_id>0 && (g=guild_search(this->status.guild_id))!=NULL )
+			return guild_checkskill(*g,skillid);
+	}
+	else if( skillid<MAX_SKILL && this->status.skill[skillid].id == skillid)
+		return this->status.skill[skillid].lv;
+	return 0;
+}
+bool map_session_data::skill_can_cancel() const
+{
+	return (this->state.no_castcancel || maps[this->block_list::m].flag.gvg) && 
+			this->state.skillcastcancel	&& !this->state.no_castcancel2;
+}
+void map_session_data::skill_failed(ushort skill_id, skillfail_t type)
+{
+	clif_skill_failed(*this,skill_id, type);
+}
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -915,7 +933,7 @@ unsigned short pc_equippoint(map_session_data &sd, unsigned short inx)
 		ep = sd.inventory_data[inx]->equip;
 		if(sd.inventory_data[inx]->look == 1 || sd.inventory_data[inx]->look == 2 || sd.inventory_data[inx]->look == 6)
 		{
-			if(ep == 2 && (pc_checkskill(sd,AS_LEFT) > 0 || s_class.job == 12))
+			if(ep == 2 && (sd.skill_check(AS_LEFT) > 0 || s_class.job == 12))
 				return 34;
 		}
 	}
@@ -1260,7 +1278,7 @@ int pc_authok(uint32 charid, uint32 login_id2, time_t connect_until_time, unsign
 	// init sd members from script variables
 	sd->die_counter = pc_readglobalreg(*sd,"PC_DIE_COUNTER");
 	sd->mission_target = pc_readglobalreg(*sd,"PC_MISSION_TARGET");
-	if ((i = pc_checkskill(*sd,RG_PLAGIARISM)) > 0) {
+	if ((i = sd->skill_check(RG_PLAGIARISM)) > 0) {
 		sd->cloneskill_id = pc_readglobalreg(*sd,"CLONE_SKILL");
 		if (sd->cloneskill_id > 0) {
 			sd->status.skill[sd->cloneskill_id].id = sd->cloneskill_id;
@@ -1362,7 +1380,7 @@ int pc_calc_skillpoint(map_session_data &sd)
 
 	for(i=1;i<MAX_SKILL;++i)
 	{
-		if( (skill = pc_checkskill(sd,i)) > 0)
+		if( (skill = sd.skill_check(i)) > 0)
 		{
 			inf2 = skill_get_inf2(i);
 			if( ( !(inf2&INF2_QUEST_SKILL) || config.quest_skill_learn) &&
@@ -1428,7 +1446,7 @@ int pc_calc_skilltree(map_session_data &sd)
 					for(j=0;j<5;++j)
 					{
 						if( skill_tree[c][i].need[j].id &&
-							pc_checkskill(sd,skill_tree[c][i].need[j].id) < skill_tree[c][i].need[j].lv )
+							sd.skill_check(skill_tree[c][i].need[j].id) < skill_tree[c][i].need[j].lv )
 						{
 							f=0;
 							break;
@@ -1438,7 +1456,7 @@ int pc_calc_skilltree(map_session_data &sd)
 					{
 						f=0;
 					}
-					else if (id >= 2 && id <= 53 && pc_checkskill(sd, NV_BASIC) < 9)
+					else if (id >= 2 && id <= 53 && sd.skill_check( NV_BASIC) < 9)
 					{
 						f=0;
 					}
@@ -2662,9 +2680,9 @@ int pc_modifybuyvalue(map_session_data &sd,size_t orig_value)
 	int skill,rate1 = 0,rate2 = 0;
 	size_t val = orig_value;
 	
-	if((skill=pc_checkskill(sd,MC_DISCOUNT))>0)	// ディスカウント
+	if((skill=sd.skill_check(MC_DISCOUNT))>0)	// ディスカウント
 		rate1 = 5+skill*2-((skill==10)? 1:0);
-	if((skill=pc_checkskill(sd,RG_COMPULSION))>0)	// コムパルションディスカウント
+	if((skill=sd.skill_check(RG_COMPULSION))>0)	// コムパルションディスカウント
 		rate2 = 5+skill*4;
 	if(rate1 < rate2) rate1 = rate2;
 	if(rate1)
@@ -2683,7 +2701,7 @@ int pc_modifysellvalue(map_session_data &sd,size_t orig_value)
 {
 	int skill,rate = 0;
 	size_t val = orig_value;
-	if((skill=pc_checkskill(sd,MC_OVERCHARGE))>0)	// オ?バ?チャ?ジ
+	if((skill=sd.skill_check(MC_OVERCHARGE))>0)	// オ?バ?チャ?ジ
 		rate = 5+skill*2-((skill==10)? 1:0);
 	if(rate)
 		val = orig_value*(100+rate)/100;
@@ -3257,7 +3275,7 @@ int pc_item_repair(map_session_data &sd, unsigned short idx)
 					material = materials[3];
 
 				if(pc_search_inventory(sd, material) < 0 ) { //fixed by Lupus (item pos can be = 0!)
-					sd.clif_skill_failed(sd.skillid,0,0);
+					sd.skill_failed(sd.skillid);
 					return 0;
 				}
 				flag=0;
@@ -3294,7 +3312,7 @@ int pc_item_refine(map_session_data &sd, unsigned short idx)
 				item.refine >= MAX_REFINE ||		// if it's no longer refineable
 				ditem->flag.no_refine ||	// if the item isn't refinable
 				(i = pc_search_inventory(sd, material [ditem->wlv])) < 0 ) { //fixed by Lupus (item pos can be = 0!)
-				sd.clif_skill_failed(sd.skillid,0,0);
+				sd.skill_failed(sd.skillid);
 				return 0;
 			}
 			per = percentrefinery[ditem->wlv][item.refine];
@@ -3436,8 +3454,8 @@ int pc_steal_item(map_session_data &sd,block_list *bl)
 		size_t i;
 
 		skill = config.skill_steal_type == 1
-			? (sd.paramc[4] - mob_db[md->class_].dex)/2 + pc_checkskill(sd,TF_STEAL)*6 + 10
-			: sd.paramc[4] - mob_db[md->class_].dex + pc_checkskill(sd,TF_STEAL)*3 + 10;
+			? (sd.paramc[4] - mob_db[md->class_].dex)/2 + sd.skill_check(TF_STEAL)*6 + 10
+			: sd.paramc[4] - mob_db[md->class_].dex + sd.skill_check(TF_STEAL)*3 + 10;
 
 		if(0 < skill)
 		{
@@ -3448,7 +3466,7 @@ int pc_steal_item(map_session_data &sd,block_list *bl)
 			// choose a random item
 			if( i > 0 &&
 				(itemid = mob_db[md->class_].dropitem[rand()%i].nameid) > 0 &&
-				(itemdb_type(itemid) != 6 || pc_checkskill(sd,TF_STEAL) > 5) &&
+				(itemdb_type(itemid) != 6 || sd.skill_check(TF_STEAL) > 5) &&
 				rand()%10000 < ((mob_db[md->class_].dropitem[i].p * skill)/100 + sd.add_steal_rate) )//fixed rate. From Freya [Lupus]
 			{
 				struct item tmp_item(itemid);
@@ -3479,7 +3497,7 @@ int pc_steal_coin(map_session_data &sd,block_list *bl)
 		int rate,skill;
 		if (md->sc_data && (md->sc_data[SC_STONE].timer != -1 || md->sc_data[SC_FREEZE].timer != -1))
 			return 0;
-		skill = pc_checkskill(sd,RG_STEALCOIN)*10;
+		skill = sd.skill_check(RG_STEALCOIN)*10;
 		rate = skill + (sd.status.base_level - mob_db[md->class_].lv)*3 + sd.paramc[4]*2 + sd.paramc[5]*2;
 		if(rand()%1000 < rate) {
 			pc_getzeny(sd,mob_db[md->class_].lv*10 + rand()%100);
@@ -3800,7 +3818,7 @@ int pc_memo(map_session_data &sd, int i)
 		clif_skill_teleportmessage(sd, 1);
 		return 0;
 	}
-	else if ( (skill = pc_checkskill(sd, AL_WARP)) < 1)
+	else if ( (skill = sd.skill_check( AL_WARP)) < 1)
 	{
 		clif_skill_memo(sd,2);
 	}
@@ -3842,27 +3860,7 @@ int pc_memo(map_session_data &sd, int i)
 
 
 
-//
-// 武器??
-//
-/*==========================================
- * スキルの?索 所有していた場合Lvが返る
- *------------------------------------------
- */
-int pc_checkskill(map_session_data &sd, unsigned short skill_id)
-{
-	if( skill_id>=10000 )
-	{
-		struct guild *g;
-		if( sd.status.guild_id>0 && (g=guild_search(sd.status.guild_id))!=NULL)
-			return guild_checkskill(*g,skill_id);
-		return 0;
-	}
 
-	if( skill_id<MAX_SKILL && sd.status.skill[skill_id].id == skill_id)
-		return (sd.status.skill[skill_id].lv);
-	return 0;
-}
 
 /*==========================================
  * 武器?更によるスキルの??チェック
@@ -4812,7 +4810,7 @@ int pc_damage(map_session_data &sd, long damage, block_list *src)
 	{	// まだ生きているならHP更新
 		clif_updatestatus(sd,SP_HP);
 
-		//if(sd.status.hp<sd->status.max_hp/4 && pc_checkskill(sd,SM_AUTOBERSERK)>0 &&
+		//if(sd.status.hp<sd->status.max_hp/4 && sd.skill_check(SM_AUTOBERSERK)>0 &&
 		if(sd.status.hp<sd.status.max_hp/4 && sd.sc_data[SC_AUTOBERSERK].timer != -1 &&
 			(sd.sc_data[SC_PROVOKE].timer==-1 || sd.sc_data[SC_PROVOKE].val2.num==0 ))
 			// オ?トバ?サ?ク?動
@@ -4892,7 +4890,7 @@ int pc_damage(map_session_data &sd, long damage, block_list *src)
 			if(eq_num > 0)
 			{
 				int n = eq_n[rand()%eq_num];
-				if(rand()%10000 < sd->status.karma && pc_checkskill(sd,BS_HILTBINDING) < 1)
+				if(rand()%10000 < sd->status.karma && sd.skill_check(BS_HILTBINDING) < 1)
 				{
 					if(sd->status.inventory[n].equip)
 						pc_unequipitem(sd,n,0);
@@ -5356,8 +5354,8 @@ int pc_itemheal(map_session_data &sd,long hp,long sp)
 
 	if(hp > 0)
 	{
-		bonus = (sd.paramc[2]<<1) + 100 + pc_checkskill(sd,SM_RECOVERY)*10
-			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5 + (sd.state.potion_flag == 2)*50; // A potion produced by an Alchemist in the Fame Top 10 gets +50% effect [DracoRPG]
+		bonus = (sd.paramc[2]<<1) + 100 + sd.skill_check(SM_RECOVERY)*10
+			+ sd.skill_check(AM_LEARNINGPOTION)*5 + (sd.state.potion_flag == 2)*50; // A potion produced by an Alchemist in the Fame Top 10 gets +50% effect [DracoRPG]
 		if ((type = itemdb_group(sd.itemid)) > 0 && type <= 7)
 			bonus = bonus * (100+sd.itemhealrate[type - 1]) / 100;
 		if(bonus != 100)
@@ -5365,8 +5363,8 @@ int pc_itemheal(map_session_data &sd,long hp,long sp)
 	}
 	if(sp > 0)
 	{
-		bonus = (sd.paramc[3]<<1) + 100 + pc_checkskill(sd,MG_SRECOVERY)*10
-			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5 + (sd.state.potion_flag == 2)*50; // A potion produced by an Alchemist in the Fame Top 10 gets +50% effect [DracoRPG]
+		bonus = (sd.paramc[3]<<1) + 100 + sd.skill_check(MG_SRECOVERY)*10
+			+ sd.skill_check(AM_LEARNINGPOTION)*5 + (sd.state.potion_flag == 2)*50; // A potion produced by an Alchemist in the Fame Top 10 gets +50% effect [DracoRPG]
 		if(bonus != 100)
 			sp = sp * bonus / 100;
 	}
@@ -5545,9 +5543,9 @@ int pc_jobchange(map_session_data &sd,int job, int upper)
 
 	if(sd.is_riding())
 	{	// remove peco status if changing into invalid class [Valaris]
-		if(!(pc_checkskill(sd,KN_RIDING)))
+		if(!(sd.skill_check(KN_RIDING)))
 			pc_setoption(sd,sd.status.option|-0x0000);
-		if(pc_checkskill(sd,KN_RIDING)>0)
+		if(sd.skill_check(KN_RIDING)>0)
 			 pc_setriding(sd);
 	}
 
@@ -5657,7 +5655,7 @@ int pc_setcart(map_session_data &sd, int type)
 			option &= ~cart[i];
 	}
 
-	if(pc_checkskill(sd,MC_PUSHCART)>0)
+	if(sd.skill_check(MC_PUSHCART)>0)
 	{	// プッシュカ?トスキル所持
 		if( !sd.is_carton() )
 		{	// カ?トを付けていない
@@ -5681,7 +5679,7 @@ int pc_setcart(map_session_data &sd, int type)
  */
 int pc_setfalcon(map_session_data &sd)
 {
-	if(pc_checkskill(sd,HT_FALCON)>0)
+	if(sd.skill_check(HT_FALCON)>0)
 	{	// ファルコンマスタリ?スキル所持
 		pc_setoption(sd,sd.status.option|0x0010);
 	}
@@ -5694,7 +5692,7 @@ int pc_setfalcon(map_session_data &sd)
  */
 int pc_setriding(map_session_data &sd)
 {
-	if((pc_checkskill(sd,KN_RIDING)>0)){ // ライディングスキル所持
+	if((sd.skill_check(KN_RIDING)>0)){ // ライディングスキル所持
 		pc_setoption(sd,sd.status.option|0x0020);
 
 		if(sd.status.class_==7)
@@ -6144,7 +6142,7 @@ int pc_equipitem(map_session_data &sd,unsigned short inx, unsigned short pos)
 	// 二刀流?理
 	if( (pos==0x22) &&		// 一?、?備要求箇所が二刀流武器かチェックする
 		(id->equip==2) &&	// ? 手武器
-		(pc_checkskill(sd, AS_LEFT) > 0 || pc_calc_base_job2(sd.status.class_) == 12) ) // 左手修?有
+		(sd.skill_check( AS_LEFT) > 0 || pc_calc_base_job2(sd.status.class_) == 12) ) // 左手修?有
 	{
 		int tpos=0;
 		if(sd.equip_index[8] < MAX_INVENTORY)
@@ -6710,7 +6708,7 @@ int pc_spheal(map_session_data *sd)
 			a *= sd->sc_data[SC_REGENERATION].val1.num;
 	}
 	// Re-added back to status_calc
-	//if((skill = pc_checkskill(sd,HP_MEDITATIO)) > 0) //Increase natural SP regen with Meditatio [DracoRPG]
+	//if((skill = sd.skill_check(HP_MEDITATIO)) > 0) //Increase natural SP regen with Meditatio [DracoRPG]
 		//a += a*skill*3/100;
 	
 	if (sd->status.guild_id > 0) {
@@ -6779,7 +6777,7 @@ int pc_natural_heal_hp(map_session_data *sd)
 	}
 
 	bhp=sd->status.hp;
-	hp_flag = (pc_checkskill(*sd,SM_MOVINGRECOVERY) > 0 && sd->is_walking() );
+	hp_flag = (sd->skill_check(SM_MOVINGRECOVERY) > 0 && sd->is_walking() );
 
 	if( !sd->is_walking() ) {
 		inc_num = pc_hpheal(sd);
@@ -6824,7 +6822,7 @@ int pc_natural_heal_hp(map_session_data *sd)
 		if(sd->inchealhptick >= config.natural_heal_skill_interval && sd->status.hp < sd->status.max_hp)
 		{
 			bonus = sd->nshealhp;
-			if(sd->doridori_counter && pc_checkskill(*sd,TK_HPTIME)) //TK_HPTIME doridori provided bonus [Dralnu]
+			if(sd->doridori_counter && sd->skill_check(TK_HPTIME)) //TK_HPTIME doridori provided bonus [Dralnu]
 				bonus += 30;
 			//sd->doridori_counter = 0; set 0 on sp heal
 			while(sd->inchealhptick >= config.natural_heal_skill_interval) {
@@ -6896,7 +6894,7 @@ int pc_natural_heal_sp(map_session_data *sd)
 			bonus = sd->nshealsp;
 			if(sd->doridori_counter && s_class.job == 23)
 				bonus *= 2;
-			if(sd->doridori_counter && pc_checkskill(*sd,TK_SPTIME)) //TK_SPTIME doridori provided bonus [Dralnu]
+			if(sd->doridori_counter && sd->skill_check(TK_SPTIME)) //TK_SPTIME doridori provided bonus [Dralnu]
 				bonus += 3;
 			sd->doridori_counter = 0;
 
@@ -7080,7 +7078,7 @@ int pc_natural_heal(int tid, unsigned long tick, int id, basics::numptr data)
 				sd->sp_sub = sd->inchealsptick = 0;
 			}
 
-			if((skill = pc_checkskill(*sd,MO_SPIRITSRECOVERY)) > 0 && !sd->is_hiding() &&
+			if((skill = sd->skill_check(MO_SPIRITSRECOVERY)) > 0 && !sd->is_hiding() &&
 				sd->sc_data[SC_POISON].timer == -1 && sd->sc_data[SC_BERSERK].timer == -1)
 			{
 				pc_spirit_heal_hp(sd);

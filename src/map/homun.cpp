@@ -145,7 +145,7 @@ void homun_data::recv_homunculus(struct homunstatus &p, int flag)
 {
 	map_session_data *sd = map_session_data::charid2sd(p.char_id);
 
-	if(sd == NULL || !pc_checkskill(*sd, AM_CALLHOMUN ) )
+	if(sd == NULL || !sd->skill_check( AM_CALLHOMUN ) )
 		return;
 
 	if( !sd->hd )
@@ -163,7 +163,7 @@ void homun_data::recv_homunculus(struct homunstatus &p, int flag)
 	if( sd->status.homun_id > 0 )
 	{	
 		// if there is no bioethics skill, homunculus cannot be hatched
-		if(!pc_checkskill(*sd, AM_BIOETHICS))
+		if(!sd->skill_check( AM_BIOETHICS))
 			sd->hd->status.incubate = 0;
 		// do the hatching, when incobated and alive
 		if(sd->hd->status.incubate && sd->hd->status.hp > 0)
@@ -1145,7 +1145,7 @@ bool homun_data::call_homunculus(map_session_data &sd)
 	{	// data exists
 		if( sd.hd->is_dead() )
 		{	// object is dead
-			sd.clif_skill_failed(AM_CALLHOMUN,0,0);
+			sd.skill_failed(AM_CALLHOMUN);
 			return false;
 		}
 		else if( !sd.hd->is_on_map() )
@@ -1227,7 +1227,7 @@ bool homun_data::call_homunculus(map_session_data &sd)
 				return true;
 			}
 		}
-		sd.clif_skill_failed(AM_CALLHOMUN,0,0);
+		sd.skill_failed(AM_CALLHOMUN);
 		return false;
 	}
 }

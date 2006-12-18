@@ -167,16 +167,6 @@ bool check_encryped(const char* str1, const char* str2, const char* passwd)
 	md5str[sizeof(md5str)-1] = '\0';
 	MD5_String2binary(md5str, md5bin);
 
-		size_t i;
-		for(i=0; i<16; ++i)
-			printf("%2X ", (unsigned char)(md5bin[i]));
-		printf("\n");
-
-		for(i=0; i<16; ++i)
-			printf("%2X ", (unsigned char)(passwd[i]));
-		printf("\n");
-	
-	
 	return (0==memcmp(passwd, md5bin, 16));
 }
 
@@ -1257,7 +1247,7 @@ int parse_login(int fd)
 						ShowError("'ladmin'-login: error! MD5 key not created/requested for an administration login.\n");
 					else
 					{
-						char md5str[64] = "", md5bin[32];
+						char md5str[64], md5bin[32];
 						if (RFIFOW(fd,2) == 1)
 						{
 							snprintf(md5str, sizeof(md5str),"%s%s", ld->md5key, admin_pass); // 20 24
@@ -1662,12 +1652,12 @@ int do_init(int argc, char **argv)
 {
 	int i;
 	// read login-server configuration
-	login_config_read((argc > 1) ? argv[1] : LOGIN_CONF_NAME);
-	basics::CParamBase::loadFile((argc > 1) ? argv[1] : LOGIN_CONF_NAME);
+	login_config_read((argc > 1 && basics::is_file(argv[1])) ? argv[1] : LOGIN_CONF_NAME);
+	basics::CParamBase::loadFile((argc > 1 && basics::is_file(argv[1])) ? argv[1] : LOGIN_CONF_NAME);
 	display_conf_warnings(); // not in login_config_read, because we can use 'import' option, and display same message twice or more
 	save_config_in_log(); // not before, because log file name can be changed
 	
-	if (!account_db.init( (argc > 1) ? argv[1] : LOGIN_CONF_NAME ))
+	if (!account_db.init( (argc > 1 && basics::is_file(argv[1])) ? argv[1] : LOGIN_CONF_NAME ))
 	{
 		core_stoprunning();
 		return 0;

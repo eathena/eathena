@@ -14,25 +14,6 @@
 #include "dblookup.h"
 #include "baseparam.h"
 
-///////////////////////////////////////////////////////////////////////////////
-// basic class for using the old way timers
-///////////////////////////////////////////////////////////////////////////////
-bool basics::CTimerBase::init(unsigned long interval)
-{
-	return false;
-}
-
-// external calling from external timer implementation
-int basics::CTimerBase::timercallback(int timer, unsigned long tick, int id, basics::numptr data)
-{
-	return 0;
-}
-void basics::CTimerBase::timerfinalize()
-{
-
-}
-
-
 
 
 void usage(const char*p)

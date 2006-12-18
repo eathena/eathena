@@ -19,44 +19,46 @@ NAMESPACE_BEGIN(basics)
 // resize the array; only grow, no shrink
 void CFDSET::checksize(size_t pos)
 {	// pos gives the dword position in the array
-	if( pos >= cSZ )
+	if( pos >= this->cSZ )
 	{	// need to reallocate
-		size_t sz = (this->cSZ)?this->cSZ:2;
-		while(sz <= pos) sz *= 2;
-
+		pos -= this->cSZ;
+		const size_t sz = this->cSZ + (pos>this->cSZ)?pos:this->cSZ;
 		unsigned long* temp= new unsigned long[sz];
-
 		// copy over the old array
-		if(cArray)
+		if(this->cArray)
 		{
-			memcpy(temp, cArray, this->cSZ*sizeof(unsigned long));
-			delete[] cArray;
+			memcpy(temp, this->cArray, this->cSZ*sizeof(unsigned long));
+			delete[] this->cArray;
 		}
 		// and clear the rest
 		memset(temp+this->cSZ,0,(sz-this->cSZ)*sizeof(unsigned long));
-
 		// take it over
-		cArray = temp;
-		cSZ = sz;
+		this->cArray = temp;
+		this->cSZ = sz;
 	}
 }
 void CFDSET::copy(const CFDSET& cfd)
 {
 	if(this != &cfd)
 	{
-		if( cfd.cSZ > this->cSZ )
+		if( !this->cArray || cfd.cMax > this->cSZ )
 		{	// not enough space, need to realloc
 			if(cArray) delete [] cArray;
-			this->cSZ = cfd.cSZ;
-			cArray = new unsigned long[this->cSZ];
+			this->cSZ = (cfd.cMax>(FD_SETSIZE/NBBY/sizeof(unsigned long)))?cfd.cMax:(FD_SETSIZE/NBBY/sizeof(unsigned long));
+			this->cArray = new unsigned long[this->cSZ];
 		}
-		else
-		{	// current array is larger, just clear the uncopied range
-			memset(cArray+cfd.cSZ,0, (this->cSZ-cfd.cSZ)*sizeof(unsigned long));
-		}
+		// clear the uncopied range
+		memset(this->cArray+cfd.cMax,0, (this->cSZ-cfd.cMax)*sizeof(unsigned long));
 		// and copy the given array if it exists
 		if(cfd.cArray)
-			memcpy(cArray, cfd.cArray, cfd.cSZ*sizeof(unsigned long));
+		{
+			memcpy(this->cArray, cfd.cArray, cfd.cMax*sizeof(unsigned long));
+			this->cMax=cfd.cMax;
+		}
+		else
+		{
+			this->cMax=0;
+		}
 	}
 }
 
@@ -77,7 +79,7 @@ size_t CFDSET::foreach1( void(*func)(SOCKET), size_t max) const
 
 		while( nfd < max )
 		{	// while something is set in the ulong at position nfd
-			bits = cArray[nfd];
+			bits = this->cArray[nfd];
 			while( bits )
 			{	// method 1
 				// calc the highest bit with log2 and clear it from the field
@@ -117,7 +119,7 @@ size_t CFDSET::foreach2( void(*func)(SOCKET), size_t max ) const
 
 		while( nfd <  max )
 		{	// while something is set in the ulong at position nfd
-			bits = cArray[nfd];
+			bits = this->cArray[nfd];
 			val = 0;
 			while( bits )
 			{	// method 2
@@ -159,13 +161,12 @@ size_t CFDSET::foreach2( void(*func)(SOCKET), size_t max ) const
 // resize the array; only grow, no shrink
 void CFDSET::checksize()
 {	// no pos parameter here
-	if( cSet->fd_count >= this->cSZ )
+	if( this->cSet->fd_count >= this->cSZ )
 	{	// need to reallocate
-		size_t sz = (this->cSZ)?this->cSZ:2;
-		while(sz <= cSet->fd_count) sz *= 2;
+		const size_t pos = this->cSet->fd_count - this->cSZ;
+		const size_t sz = this->cSZ + (pos>this->cSZ)?pos:this->cSZ;
 
 		struct winfdset *temp= (struct winfdset *)new char[sizeof(struct winfdset)+sz*sizeof(SOCKET)];
-
 		// copy over the old array
 		if(this->cSet)
 		{
@@ -183,11 +184,11 @@ void CFDSET::copy(const CFDSET& cfd)
 {
 	if(this != &cfd)
 	{
-		if( cfd.cSet->fd_count > this->cSZ )
+		if( !this->cSet || cfd.cSet && cfd.cSet->fd_count > this->cSZ )
 		{	// not enough space, need to realloc
-			if(cSet) delete [] ((char*)cSet);
-			
-			this->cSZ = cfd.cSZ;
+			if(this->cSet) delete [] ((char*)this->cSet);
+			this->cSZ = cfd.cSet?cfd.cSet->fd_count:0;
+			if(this->cSZ<128) this->cSZ=128;
 			this->cSet = (struct winfdset *) new char[sizeof(struct winfdset)+this->cSZ*sizeof(SOCKET)];
 		}
 		//else
@@ -196,6 +197,8 @@ void CFDSET::copy(const CFDSET& cfd)
 		// and copy the given array if it exists
 		if(cfd.cSet)
 			memcpy(this->cSet, cfd.cSet, sizeof(struct winfdset)+this->cSZ*sizeof(SOCKET));
+		else
+			this->cSet->fd_count=0;
 	}
 }
 bool CFDSET::find(SOCKET sock, size_t &pos) const
@@ -214,7 +217,7 @@ void CFDSET::set_bit(int fd)
 			this->checksize();
 			memmove(this->cSet->fd_array+pos+1, this->cSet->fd_array+pos, (this->cSet->fd_count-pos)*sizeof(cSet->fd_array[0]));
 			this->cSet->fd_array[pos] = fd;
-			this->cSet->fd_count++;
+			++this->cSet->fd_count;
 		}	
 	}		
 }
@@ -228,7 +231,7 @@ void CFDSET::clear_bit(int fd)
 		if( this->find(fd, pos) )
 		{
 			memmove(this->cSet->fd_array+pos, this->cSet->fd_array+pos+1, (this->cSet->fd_count-pos-1)*sizeof(cSet->fd_array[0]));
-			this->cSet->fd_count--;
+			--this->cSet->fd_count;
 		}
 	}
 }

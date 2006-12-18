@@ -75,45 +75,4 @@ const char* search_timer_func_list(timerfunction func);
 void timer_init(void);
 void timer_final(void);
 
-
-
-
-
-
-class CTimer
-{
-	class CTimerData
-	{
-		unsigned long	tick;
-		unsigned long	interval;
-	};
-
-	class TTimerData0 : public CTimerData
-	{
-		int (*func)(int, unsigned long);
-	};
-
-	template <class T> class TTimerData1 : public CTimerData
-	{
-		int (*func)(int, unsigned long, T&);
-		T	data1;
-	};
-
-	template <class T1, class T2> class TTimerData2 : public CTimerData
-	{
-		int (*func)(int, unsigned long, T1&, T1&);
-		T1	data1;
-		T2	data2;
-	};
-
-
-
-
-};
-
-
-
-
-
-
 #endif	// _TIMER_H_

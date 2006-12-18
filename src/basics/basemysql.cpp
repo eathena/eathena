@@ -131,7 +131,7 @@ bool CMySQL::DBConnection::next()
 /// access the row. also prevent returning NULL pointers
 const char* CMySQL::DBConnection::operator[](int inx)
 {
-	return (this->cRes && this->cRow && this->cRow[inx])?(this->cRow[inx]):("");
+	return (this->cRes && this->cRow && (unsigned)inx<mysql_num_fields(this->cRes) && this->cRow[inx])?(this->cRow[inx]):("");
 }
 ///////////////////////////////////////////////////////////////////////////////
 // free result memory.

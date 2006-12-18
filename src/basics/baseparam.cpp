@@ -9,6 +9,77 @@ NAMESPACE_BEGIN(basics)
 
 
 
+///////////////////////////////////////////////////////////////////////////////
+/// parse standard commandline for parameters.
+/// use argv[0] as application name
+void parseCommandline(int argc, char **argv)
+{
+	char buffer[1024];
+	staticstring<char> str(buffer, sizeof(buffer));
+	char w1[1024], w2[1024];
+	int i;
+
+	// reserved parameters
+	{
+		const char*path = argv[0];
+		const char*pathend = strrchr(path, PATHSEP);
+		const char*file;
+		if(pathend)
+		{	// had a pathname with a filename
+			file = pathend+1;
+		}
+		else
+		{	// no path given
+			path = "";
+			pathend = path+1;
+			file = argv[0];
+		}
+
+		createParam("application", file, true);
+		createParam("application_path", string<>(path,pathend-path), true);
+	}
+
+	for(i=1; i<argc; ++i)
+	{
+		if( is_file(argv[i]) )
+		{
+			// we have a valid filename, so we load it directly
+			CParamBase::loadFile(argv[i]);
+
+			// and clear the string, start new search
+			str.empty();
+		}
+		else
+		{	// not a file, check if it is a direct parameter
+			str << argv[i] << ' ';
+			memset(w1, 0, sizeof(w1));
+			memset(w2, 0, sizeof(w2));
+			// if not matching in the first place 
+			// just try with the concatinated commandline
+			// until something matches or the line runs out
+			//## check effort with regex
+			if( sscanf(argv[i], "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2 ||
+				sscanf(str,     "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2 )
+			{
+				config_clean(w1);
+				config_clean(w2);
+
+				if( strcasecmp(w1, "import") == 0 ||
+					strcasecmp(w1, "include") == 0 ||
+					strcasecmp(w1, "load") == 0 )
+				{	// load the file
+					CParamBase::loadFile(w2);
+				}
+				else
+				{	// create the parameter
+					createParam(w1, w2, true);
+				}
+				// clear the string, start new search
+				str.empty();
+			}
+		}
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// clean a string.
@@ -142,10 +213,8 @@ void CParameterList::erase(size_t st, size_t num)
 
 ///////////////////////////////////////////////////////////////////////////////
 // basic interface for reading configs from file
+
 ///////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////
 /// load and parse config file.
 /// loads a file, strips lines,
 /// splits it to "part1 : part2" or "part1 = part2"
@@ -215,120 +284,6 @@ bool CConfig::LoadConfig(const char* cfgName)
 	return true;
 }
 
-
-#if defined(LOCAL_TIMER)
-///////////////////////////////////////////////////////////////////////////////
-// basic class for using the old way timers
-///////////////////////////////////////////////////////////////////////////////
-bool CTimerBase::init(unsigned long interval)
-{
-	if(interval<1000)
-		interval = 1000;
-	//cTimer = add_timer_interval(gettick()+interval, interval, timercallback, 0, basics::numptr(this), false);
-	cTimer = -1;
-	return (cTimer>=0);
-}
-
-// external calling from external timer implementation
-int CTimerBase::timercallback(int timer, unsigned long tick, int id, numptr data)
-{
-	if(data.isptr)
-	{
-		CTimerBase* base = (CTimerBase*)data.ptr;
-		if(timer==base->cTimer)
-		{
-			if( !base->timeruserfunc(tick) )
-			{
-//				delete_timer(base->cTimer, timercallback);
-				base->cTimer = -1;
-			}
-		}
-	}
-	return 0;
-}
-
-void CTimerBase::timerfinalize()
-{
-	if(cTimer>0)
-	{
-//		delete_timer(cTimer, timercallback);
-		cTimer = -1;
-	}
-}
-#endif
-
-///////////////////////////////////////////////////////////////////////////////
-// parse the commandline for parameters
-// format
-///////////////////////////////////////////////////////////////////////////////
-void parseCommandline(int argc, char **argv)
-{
-	char buffer[1024];
-	staticstring<char> str(buffer, sizeof(buffer));
-	char w1[1024], w2[1024];
-	int i;
-
-	// reserved parameters
-	{
-		const char*path = argv[0];
-		const char*pathend = strrchr(path, PATHSEP);
-		const char*file;
-		if(pathend)
-		{	// had a pathname with a filename
-			file = pathend+1;
-		}
-		else
-		{	// no path given
-			path = "";
-			pathend = path+1;
-			file = argv[0];
-		}
-
-		createParam("application", file, true);
-		createParam("application_path", string<>(path,pathend-path), true);
-	}
-
-	for(i=1; i<argc; ++i)
-	{
-		if( is_file(argv[i]) )
-		{
-			// we have a valid filename, so we load it directly
-			CParamBase::loadFile(argv[i]);
-
-			// and clear the string, start new search
-			str.empty();
-		}
-		else
-		{	// not a file, check if it is a direct parameter
-			str << argv[i] << ' ';
-			memset(w1, 0, sizeof(w1));
-			memset(w2, 0, sizeof(w2));
-			// if not matching in the first place 
-			// just try with the concatinated commandline
-			// until something matches or the line runs out
-			//## check effort with regex
-			if( sscanf(argv[i], "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2 ||
-				sscanf(str,     "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) == 2 )
-			{
-				config_clean(w1);
-				config_clean(w2);
-
-				if( strcasecmp(w1, "import") == 0 ||
-					strcasecmp(w1, "include") == 0 ||
-					strcasecmp(w1, "load") == 0 )
-				{	// load the file
-					CParamBase::loadFile(w2);
-				}
-				else
-				{	// create the parameter
-					createParam(w1, w2, true);
-				}
-				// clear the string, start new search
-				str.empty();
-			}
-		}
-	}
-}
 
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -1086,10 +1086,10 @@ int npc_buylist(map_session_data &sd,unsigned short n,unsigned char *buffer)
 
 	//商人経験値
 /*	if ((sd->status.class_ == 5) || (sd->status.class_ == 10) || (sd->status.class_ == 18)) {
-		z = z * pc_checkskill(sd,MC_DISCOUNT) / ((1 + 300 / itemamount) * 4000) * config.shop_exp;
+		z = z * sd.skill_check(MC_DISCOUNT) / ((1 + 300 / itemamount) * 4000) * config.shop_exp;
 		pc_gainexp(sd,0,z);
 	}*/
-	if (config.shop_exp > 0 && z > 0 && (skill = pc_checkskill(sd,MC_DISCOUNT)) > 0) {
+	if (config.shop_exp > 0 && z > 0 && (skill = sd.skill_check(MC_DISCOUNT)) > 0) {
 		if (sd.status.skill[MC_DISCOUNT].flag != 0)
 			skill = sd.status.skill[MC_DISCOUNT].flag - 2;
 		if (skill > 0) {
@@ -1156,7 +1156,7 @@ int npc_selllist(map_session_data &sd,unsigned short n,unsigned char *buffer)
 	}
 
 	//商人経験値
-	if (config.shop_exp > 0 && z > 0 && (skill = pc_checkskill(sd,MC_OVERCHARGE)) > 0) {
+	if (config.shop_exp > 0 && z > 0 && (skill = sd.skill_check(MC_OVERCHARGE)) > 0) {
 		if (sd.status.skill[MC_OVERCHARGE].flag != 0)
 			skill = sd.status.skill[MC_OVERCHARGE].flag - 2;
 		if (skill > 0) {

@@ -41,6 +41,7 @@ basestring.o: basestring.cpp basetypes.h baseobjects.h basesafeptr.h basememory.
 basestrsearch.o: basestrsearch.cpp basestrsearch.h basestring.h basetypes.h baseobjects.h basememory.h basealgo.h basetime.h basearray.h basesafeptr.h basesort.h basestrformat.h
 basesync.o: basesync.cpp basetypes.h baseobjects.h basememory.h basealgo.h basetime.h basestring.h basearray.h basesafeptr.h basesort.h basestrformat.h basesync.h baseexceptions.h
 basetime.o: basetime.cpp basetypes.h basetime.h
+basetimerhandler.o: basetimerhandler.cpp basetimerhandler.h basetypes.h baseobjects.h basesafeptr.h basealgo.h basetime.h basememory.h basestring.h basearray.h basesort.h basestrformat.h basestrsearch.h basesync.h baseexceptions.h
 basetxtdb.o: basetxtdb.cpp basetypes.h baseobjects.h basetxtdb.h basesync.h baseexceptions.h basearray.h basesafeptr.h basememory.h basealgo.h basesort.h basestring.h basetime.h basestrformat.h basefile.h
 basetypes.o: basetypes.cpp basetypes.h baseobjects.h basesync.h baseexceptions.h
 basevariant.o: basevariant.cpp basevariant.h basetypes.h baseobjects.h basearray.h basesafeptr.h basememory.h basealgo.h basesort.h basestring.h basetime.h basestrformat.h

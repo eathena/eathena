@@ -5,7 +5,7 @@
 #include "baseobjects.h"
 #include "basestring.h"
 #include "basesync.h"
-
+#include "basetimerhandler.h"
 
 NAMESPACE_BEGIN(basics)
 
@@ -315,16 +315,6 @@ public:
 
 
 
-
-
-
-
-
-
-
-
-
-
 //////////////////////////////////////////////////////////////////////////
 /// basic interface for reading configs from file.
 //////////////////////////////////////////////////////////////////////////
@@ -339,33 +329,6 @@ public:
 	/// proccess a config entry.
 	virtual bool ProcessConfig(const char*w1,const char*w2) = 0;
 };
-
-
-///////////////////////////////////////////////////////////////////////////////
-/// basic class for using the old way timers.
-///////////////////////////////////////////////////////////////////////////////
-class CTimerBase : public global, public noncopyable
-{
-	int cTimer;
-protected:
-	CTimerBase(unsigned long interval)
-	{
-		init(interval);
-	}
-	virtual ~CTimerBase()
-	{
-		this->timerfinalize();
-	}
-	/// initialisation
-	bool init(unsigned long interval);
-	/// user function
-	virtual bool timeruserfunc(unsigned long tick) = 0;
-	/// external calling from external timer implementation
-	static int timercallback(int timer, unsigned long tick, int id, numptr data);
-	void timerfinalize();
-};
-
-
 
 
 
@@ -513,10 +476,10 @@ class CParamBase
 
 		///////////////////////////////////////////////////////////////////////
 		// class data
-		slist<CParamFile>	cFileList;				///< list of loaded files
+		slist<CParamFile>	cFileList;			///< list of loaded files
 
 	public:
-		CParamLoader() : CTimerBase(60*1000)		///< 1 minute interval for file checks
+		CParamLoader() : CTimerBase(60*1000)	///< 1 minute interval for file checks
 		{}
 		/////////////////////////////////////////////////////////////
 		/// timer callback.

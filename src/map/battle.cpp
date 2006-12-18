@@ -567,12 +567,12 @@ int battle_addmastery(map_session_data *sd,block_list *target,int damage,int typ
 	nullpo_retr(0, sd);
 
 	// デーモンベイン(+3 ～ +30) vs 不死 or 悪魔 (死人は含めない？)
-	if((skill = pc_checkskill(*sd,AL_DEMONBANE)) > 0 && (target->is_undead() || race==6) )
+	if((skill = sd->skill_check(AL_DEMONBANE)) > 0 && (target->is_undead() || race==6) )
 		damage += (skill*(int)(3+(sd->status.base_level+1)*0.05));	// submitted by orn
 		//damage += (skill * 3);
 
 	// ビーストベイン(+4 ～ +40) vs 動物 or 昆虫
-	if((skill = pc_checkskill(*sd,HT_BEASTBANE)) > 0 && (race==2 || race==4) )
+	if((skill = sd->skill_check(HT_BEASTBANE)) > 0 && (race==2 || race==4) )
 		damage += (skill * 4);
 
 	if(type == 0)
@@ -585,7 +585,7 @@ int battle_addmastery(map_session_data *sd,block_list *target,int damage,int typ
 		case 0x02:	// 1HS
 		{
 			// 剣修練(+4 ～ +40) 片手剣 短剣含む
-			if((skill = pc_checkskill(*sd,SM_SWORD)) > 0) {
+			if((skill = sd->skill_check(SM_SWORD)) > 0) {
 				damage += (skill * 4);
 			}
 			break;
@@ -593,7 +593,7 @@ int battle_addmastery(map_session_data *sd,block_list *target,int damage,int typ
 		case 0x03:	// 2HS
 		{
 			// 両手剣修練(+4 ～ +40) 両手剣
-			if((skill = pc_checkskill(*sd,SM_TWOHAND)) > 0) {
+			if((skill = sd->skill_check(SM_TWOHAND)) > 0) {
 				damage += (skill * 4);
 			}
 			break;
@@ -602,7 +602,7 @@ int battle_addmastery(map_session_data *sd,block_list *target,int damage,int typ
 		case 0x05:	// 2HL
 		{
 			// 槍修練(+4 ～ +40,+5 ～ +50) 槍
-			if((skill = pc_checkskill(*sd,KN_SPEARMASTERY)) > 0) {
+			if((skill = sd->skill_check(KN_SPEARMASTERY)) > 0) {
 				if( !sd->is_riding() )
 					damage += (skill * 4);	// ペコに乗ってない
 				else
@@ -613,7 +613,7 @@ int battle_addmastery(map_session_data *sd,block_list *target,int damage,int typ
 		case 0x06: // 片手斧
 		case 0x07: // Axe by Tato
 		{
-			if((skill = pc_checkskill(*sd,AM_AXEMASTERY)) > 0) {
+			if((skill = sd->skill_check(AM_AXEMASTERY)) > 0) {
 				damage += (skill * 3);
 			}
 			break;
@@ -621,7 +621,7 @@ int battle_addmastery(map_session_data *sd,block_list *target,int damage,int typ
 		case 0x08:	// メイス
 		{
 			// メイス修練(+3 ～ +30) メイス
-			if((skill = pc_checkskill(*sd,PR_MACEMASTERY)) > 0) {
+			if((skill = sd->skill_check(PR_MACEMASTERY)) > 0) {
 				damage += (skill * 3);
 			}
 			break;
@@ -636,7 +636,7 @@ int battle_addmastery(map_session_data *sd,block_list *target,int damage,int typ
 		case 0x0c:	// Knuckles
 		{
 			// 鉄拳(+3 ～ +30) 素手,ナックル
-			if((skill = pc_checkskill(*sd,MO_IRONHAND)) > 0) {
+			if((skill = sd->skill_check(MO_IRONHAND)) > 0) {
 				damage += (skill * 3);
 			}
 			break;
@@ -644,7 +644,7 @@ int battle_addmastery(map_session_data *sd,block_list *target,int damage,int typ
 		case 0x0d:	// Musical Instrument
 		{
 			// 楽器の練習(+3 ～ +30) 楽器
-			if((skill = pc_checkskill(*sd,BA_MUSICALLESSON)) > 0) {
+			if((skill = sd->skill_check(BA_MUSICALLESSON)) > 0) {
 				damage += (skill * 3);
 			}
 			break;
@@ -652,7 +652,7 @@ int battle_addmastery(map_session_data *sd,block_list *target,int damage,int typ
 		case 0x0e:	// Dance Mastery
 		{
 			// Dance Lesson Skill Effect(+3 damage for every lvl = +30) 鞭
-			if((skill = pc_checkskill(*sd,DC_DANCINGLESSON)) > 0) {
+			if((skill = sd->skill_check(DC_DANCINGLESSON)) > 0) {
 				damage += (skill * 3);
 			}
 			break;
@@ -660,7 +660,7 @@ int battle_addmastery(map_session_data *sd,block_list *target,int damage,int typ
 		case 0x0f:	// Book
 		{
 			// Advance Book Skill Effect(+3 damage for every lvl = +30) {
-			if((skill = pc_checkskill(*sd,SA_ADVANCEDBOOK)) > 0) {
+			if((skill = sd->skill_check(SA_ADVANCEDBOOK)) > 0) {
 				damage += (skill * 3);
 			}
 			break;
@@ -668,11 +668,11 @@ int battle_addmastery(map_session_data *sd,block_list *target,int damage,int typ
 		case 0x10:	// Katars
 		{
 			//Advanced Katar Research by zanetheinsane
-			if( (skill = pc_checkskill(*sd,ASC_KATAR)) > 0 )
+			if( (skill = sd->skill_check(ASC_KATAR)) > 0 )
 				damage += damage*(10+(skill * 2))/100;
 
 			// カタール修練(+3 ～ +30) カタール
-			if((skill = pc_checkskill(*sd,AS_KATAR)) > 0) {
+			if((skill = sd->skill_check(AS_KATAR)) > 0) {
 				//ソニックブロー時は別処理（1撃に付き1/8適応)
 				damage += (skill * 3);
 			}
@@ -1602,7 +1602,7 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 			}
 			t_def = def2*8/10;
 			if( src->is_undead() || s_race==6)
-				if(tsd && (skill=pc_checkskill(*tsd,AL_DP)) > 0 )
+				if(tsd && (skill=tsd->skill_check(AL_DP)) > 0 )
 					t_def += skill* (int) (3 + (tsd->status.base_level+1)*0.04);	// submitted by orn
 					//t_def += skill*3;
 
@@ -1917,11 +1917,11 @@ static struct Damage battle_calc_pc_weapon_attack(
 
 	if (skill_num == 0) {
 		//ダブルアタック判定
-		int da_rate = pc_checkskill(*sd,TF_DOUBLE) * 5;
+		int da_rate = sd->skill_check(TF_DOUBLE) * 5;
 		if (sd->weapontype1 == 0x01 && da_rate > 0)
 			da = (rand()%100 < da_rate) ? 1 : 0;
 		//三段掌	 // triple blow works with bows ^^ [celest]
-		if (sd->status.weapon <= 16 && (skill = pc_checkskill(*sd,MO_TRIPLEATTACK)) > 0)
+		if (sd->status.weapon <= 16 && (skill = sd->skill_check(MO_TRIPLEATTACK)) > 0)
 			da = (rand()%100 < (30 - skill)) ? 2 : 0;
 		if (da == 0 && sd->double_rate > 0)
 			// success rate from Double Attack is counted in
@@ -2347,7 +2347,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				flag=(flag&~BF_RANGEMASK)|BF_LONG;
 				break;
 			case AS_SPLASHER:		// ベナムスプラッシャー 
-				damage_rate += 100+20*skill_lv+20*pc_checkskill(*sd,AS_POISONREACT);
+				damage_rate += 100+20*skill_lv+20*sd->skill_check(AS_POISONREACT);
 				no_cardfix = 1;
 				hitrate = 1000000;
 				break;
@@ -2392,7 +2392,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 		if(da == 2) { //三段掌が発動しているか
 			type = 0x08;
 			div_ = 255;	//三段掌用に…
-			damage = damage * (100 + 20 * pc_checkskill(*sd, MO_TRIPLEATTACK)) / 100;
+			damage = damage * (100 + 20 * sd->skill_check( MO_TRIPLEATTACK)) / 100;
 		}
 
 		// 対 象の防御力によるダメージの減少
@@ -2560,7 +2560,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			hitrate = 1000000;
 	}
 	// weapon research hidden bonus
-	if ((skill = pc_checkskill(*sd,BS_WEAPONRESEARCH)) > 0) {
+	if ((skill = sd->skill_check(BS_WEAPONRESEARCH)) > 0) {
 		hitrate = hitrate * (100+2*skill) / 100;
 	}
 	if(hitrate < 5)
@@ -2573,7 +2573,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 	}
 
 	// スキル修正３（武器研究）
-	if ((skill = pc_checkskill(*sd,BS_WEAPONRESEARCH)) > 0) {
+	if ((skill = sd->skill_check(BS_WEAPONRESEARCH)) > 0) {
 		damage += skill*2;
 		damage2 += skill*2;
 	}
@@ -2743,11 +2743,11 @@ static struct Damage battle_calc_pc_weapon_attack(
 	if(sd->status.weapon > 16) {// 二刀流か?
 		int dmg = damage, dmg2 = damage2;
 		// 右手修練(60% ～ 100%) 右手全般
-		skill = pc_checkskill(*sd,AS_RIGHT);
+		skill = sd->skill_check(AS_RIGHT);
 		damage = damage * (50 + (skill * 10))/100;
 		if(dmg > 0 && damage < 1) damage = 1;
 		// 左手修練(40% ～ 80%) 左手全般
-		skill = pc_checkskill(*sd,AS_LEFT);
+		skill = sd->skill_check(AS_LEFT);
 		damage2 = damage2 * (30 + (skill * 10))/100;
 		if(dmg2 > 0 && damage2 < 1) damage2 = 1;
 	}
@@ -2763,7 +2763,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 
 	if(sd->status.weapon == 16) {
 		// カタール追撃ダメージ
-		skill = pc_checkskill(*sd,TF_DOUBLE);
+		skill = sd->skill_check(TF_DOUBLE);
 		damage2 = damage * (1 + (skill * 2))/100;
 		if(damage > 0 && damage2 < 1) damage2 = 1;
 	}
@@ -3056,10 +3056,10 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 	{	//Check for conditions that convert an attack to a skill
 		char da=0;
 		skill = 0;
-		if((sd->weapontype1 == 0x01 && (skill = pc_checkskill(*sd,TF_DOUBLE)) > 0) ||
+		if((sd->weapontype1 == 0x01 && (skill = sd->skill_check(TF_DOUBLE)) > 0) ||
 			sd->double_rate > 0) //success rate from Double Attack is counted in
 			da = (rand()%100 <  sd->double_rate + 5*skill) ? 1:0;
-		if((skill = pc_checkskill(*sd,MO_TRIPLEATTACK)) > 0 && sd->status.weapon <= 16) // triple blow works with bows ^^ [celest]
+		if((skill = sd->skill_check(MO_TRIPLEATTACK)) > 0 && sd->status.weapon <= 16) // triple blow works with bows ^^ [celest]
 			da = (rand()%100 < (30 - skill)) ? 2:da;
 		
 		if (da == 1)
@@ -3219,7 +3219,7 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 			if (flag.arrow)
 				hitrate += sd->arrow_hit;
 			// weapon research hidden bonus
-			if ((skill = pc_checkskill(*sd,BS_WEAPONRESEARCH)) > 0)
+			if ((skill = sd->skill_check(BS_WEAPONRESEARCH)) > 0)
 				hitrate += hitrate * (2*skill)/100;
 		}
 		if(skill_num)
@@ -3647,7 +3647,7 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 				case AS_SPLASHER:
 					skillratio+= 100+20*skill_lv;
 					if (sd)
-						skillratio+= 20*pc_checkskill(*sd,AS_POISONREACT);
+						skillratio+= 20*sd->skill_check(AS_POISONREACT);
 					flag.cardfix = 0;
 					break;
 				case ASC_BREAKER:
@@ -3793,7 +3793,7 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 				vit_def = t_vit/2 + (vit_def>0?rand()%vit_def:0);
 				
 				if( (src->is_undead() || s_race==6) &&
-				(skill=pc_checkskill(*tsd,AL_DP)) >0)
+				(skill=tsd->skill_check(AL_DP)) >0)
 					vit_def += skill*(3 +(tsd->status.base_level+1)/25);   // submitted by orn
 			} else { //Mob-Pet vit-eq
 				//VIT + rnd(0,[VIT/20]^2-1)
@@ -3833,7 +3833,7 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 		}
 	} //Here ends flag.hit section, the rest of the function applies to both hitting and missing attacks
 
-	if(sd && (skill=pc_checkskill(*sd,BS_WEAPONRESEARCH)) > 0)
+	if(sd && (skill=sd->skill_check(BS_WEAPONRESEARCH)) > 0)
 		ATK_ADD(skill*2);
 
 	if(skill_num==TF_POISON)
@@ -4037,20 +4037,20 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 		{	//Dual-wield
 			if (wd.damage > 0)
 			{
-				skill = pc_checkskill(*sd,AS_RIGHT);
+				skill = sd->skill_check(AS_RIGHT);
 				wd.damage = wd.damage * (50 + (skill * 10))/100;
 				if(wd.damage < 1) wd.damage = 1;
 			}
 			if (wd.damage2 > 0)
 			{
-				skill = pc_checkskill(*sd,AS_LEFT);
+				skill = sd->skill_check(AS_LEFT);
 				wd.damage2 = wd.damage2 * (30 + (skill * 10))/100;
 				if(wd.damage2 < 1) wd.damage2 = 1;
 			}
 		}
 		else if(sd->status.weapon == 16)
 		{ //Katars
-			skill = pc_checkskill(*sd,TF_DOUBLE);
+			skill = sd->skill_check(TF_DOUBLE);
 			wd.damage2 = wd.damage * (1 + (skill * 2))/100;
 
 			if(wd.damage > 0 && wd.damage2 < 1) wd.damage2 = 1;
@@ -4614,7 +4614,7 @@ struct Damage battle_calc_misc_attack(block_list *src,block_list *target,int ski
 		break;
 
 	case HT_BLITZBEAT:	// ブリッツビート
-		if( sd==NULL || (skill = pc_checkskill(*sd,HT_STEELCROW)) <= 0)
+		if( sd==NULL || (skill = sd->skill_check(HT_STEELCROW)) <= 0)
 			skill=0;
 		damage=(dex/10+int_/2+skill*3+40)*2;
 		if(flag > 1)
@@ -4629,7 +4629,7 @@ struct Damage battle_calc_misc_attack(block_list *src,block_list *target,int ski
 
 	case BA_DISSONANCE:	// 不協和音
 		if(sd)
-		damage=30+(skill_lv)*10+pc_checkskill(*sd,BA_MUSICALLESSON)*3;
+		damage=30+(skill_lv)*10+sd->skill_check(BA_MUSICALLESSON)*3;
 		break;
 
 	case NPC_SELFDESTRUCTION:	// 自爆
@@ -4671,7 +4671,7 @@ struct Damage battle_calc_misc_attack(block_list *src,block_list *target,int ski
 
 	case SN_FALCONASSAULT:			// ファルコンアサルト 
 	{
-		if( sd==NULL || (skill = pc_checkskill(*sd,HT_STEELCROW)) <= 0)
+		if( sd==NULL || (skill = sd->skill_check(HT_STEELCROW)) <= 0)
 			skill=0;
 		damage=((150+70*skill_lv)*(dex/10+int_/2+skill*3+40)*2)/100; // [Celest]
 		if(flag > 1)
@@ -4877,7 +4877,7 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 			wd.div_ = 3;
 			if(sd && wd.damage+wd.damage2 < target->get_hp())
 			{
-				int skilllv = pc_checkskill(*sd, MO_CHAINCOMBO);
+				int skilllv = sd->skill_check( MO_CHAINCOMBO);
 				if (skilllv > 0) {
 					delay = 1000 - 4 * src->get_agi() - 2 *  src->get_dex();
 					delay += 300 * config.combo_delay_rate / 100; //追加ディレイをconfにより調整
@@ -4888,7 +4888,7 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 
 			clif_combo_delay(*src, delay);
 			clif_skill_damage(*src, *target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_,
-				MO_TRIPLEATTACK, (sd)?pc_checkskill(*sd,MO_TRIPLEATTACK):1, -1);
+				MO_TRIPLEATTACK, (sd)?sd->skill_check(MO_TRIPLEATTACK):1, -1);
 		}
 		else
 		{	//二刀流左手とカタール追撃のミス表示(無理やり～)
@@ -5129,7 +5129,7 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 				int duration = skill_get_time2(MO_BLADESTOP,skilllv);
 				status_change_end(target, SC_BLADESTOP_WAIT, -1);
 				status_change_start(target, SC_BLADESTOP, skilllv, 2, basics::numptr(target), basics::numptr(src), duration, 0);
-				skilllv = sd?pc_checkskill(*sd, MO_BLADESTOP):1;
+				skilllv = sd?sd->skill_check( MO_BLADESTOP):1;
 				status_change_start(src, SC_BLADESTOP, skilllv, 1, basics::numptr(src), basics::numptr(target), duration, 0);
 			}
 			if (tsc_data[SC_SPLASHER].timer != -1)	//殴ったので対象のベナムスプラッシャー状態を解除

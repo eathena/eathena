@@ -266,7 +266,7 @@ int skill_check_cloaking(block_list *bl);
 
 // ステ?タス異常
 int skill_enchant_elemental_end(block_list *bl, int type);
-int skillnotok(int skillid, map_session_data &sd);
+int skill_not_ok(int skillid, map_session_data &sd);
 
 // アイテム作成
 int skill_can_produce_mix(map_session_data &sd, unsigned short nameid, int trigger );
@@ -275,9 +275,9 @@ int skill_produce_mix( map_session_data &sd, unsigned short nameid, unsigned sho
 int skill_arrow_create( map_session_data *sd,unsigned short nameid);
 
 // mobスキルのため
-int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag );
+int skill_castend_nodamage_id( block_list* src, block_list *bl,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag );
 int skill_castend_damage_id  ( block_list* src, block_list *bl,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag );
-int skill_castend_pos2       ( block_list *src, int x,int y,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag);
+int skill_castend_pos2       ( block_list* src, int x,int y,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag);
 
 // スキル攻?一括?理
 int skill_attack(int attack_type, block_list* src, block_list *dsrc,block_list *bl,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag );

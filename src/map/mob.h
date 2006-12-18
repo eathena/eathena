@@ -451,6 +451,21 @@ struct mob_data : public fightable
 
 //	virtual bool warp(unsigned short m, unsigned short x, unsigned short y, int type);
 
+
+	///////////////////////////////////////////////////////////////////////////
+	// skill functions
+
+	/// returns skill_lvl for given skillid of the current object
+	virtual int  skill_check(ushort id)			
+	{
+		//##TODO add access to mobdb
+		return 0; 
+	}
+	virtual bool skill_can_cancel() const
+	{
+		return this->state.skillcastcancel;
+	}
+
 private:
 	mob_data(const mob_data&);					// forbidden
 	const mob_data& operator=(const mob_data&);	// forbidden

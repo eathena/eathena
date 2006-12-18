@@ -3209,11 +3209,11 @@ int parse_fromlogin(int fd)
 			CREATE_BUFFER(md5key,char,sz+1);
 
 			memcpy(md5key, (char*)RFIFOP(fd,4), sz);
-			md5key[sz] = '0';
+			md5key[sz] = 0;
 			if (passenc == 1) {
-				snprintf(md5str, sizeof(md5str), "%s%s", (const char*)RFIFOP(fd,4), loginserveradminpassword);
+				snprintf(md5str, sizeof(md5str), "%s%s", md5key, loginserveradminpassword);
 			} else if (passenc == 2) {
-				snprintf(md5str, sizeof(md5str), "%s%s", loginserveradminpassword, (const char*)RFIFOP(fd,4));
+				snprintf(md5str, sizeof(md5str), "%s%s", loginserveradminpassword, md5key);
 			}
 			MD5_String2binary(md5str, md5bin);
 			WFIFOW(login_fd,0) = 0x7918; // Request for administation login (encrypted password)

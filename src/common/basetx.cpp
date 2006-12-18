@@ -1858,7 +1858,7 @@ bool CAccountDB_txt::do_saveAccounts()
 ///////////////////////////////////////////////////////////////////////////////
 // construct/destruct
 CAccountDB_txt::CAccountDB_txt(const char* configfile) :
-	CTimerBase(10000),		// 60sec save interval
+	basics::CTimerBase(60000),	// 60sec save interval
 	CAccountDB_mem(configfile),
 	savecount(0)
 {
@@ -2711,7 +2711,7 @@ bool CCharDB_txt::do_saveChars(void)
 
 
 CCharDB_txt::CCharDB_txt(const char *dbcfgfile) :
-	CTimerBase(300*1000),
+	basics::CTimerBase(300*1000),
 	CCharDB_mem(dbcfgfile),
 	char_txt("char_txt","save/athena.txt"),
 	friends_txt("friends_txt","save/friends.txt"),
@@ -3415,7 +3415,7 @@ bool CGuildDB_txt::do_saveGuildsCastles()
 ///////////////////////////////////////////////////////////////////////////
 // construct/destruct
 CGuildDB_txt::CGuildDB_txt(const char *configfile) :
-	CTimerBase(60000),		// 60sec save interval
+	basics::CTimerBase(60000),		// 60sec save interval
 	CGuildDB_mem(configfile),
 	guild_filename("guild_filename","save/guild.txt"),
 	castle_filename("castle_filename","save/castle.txt"),
@@ -3582,7 +3582,7 @@ bool CPartyDB_txt::do_saveParties()
 ///////////////////////////////////////////////////////////////////////////
 // construct/destruct
 CPartyDB_txt::CPartyDB_txt(const char *configfile) :
-	CTimerBase(60000),		// 60sec save interval
+	basics::CTimerBase(60000),		// 60sec save interval
 	CPartyDB_mem(configfile),
 	party_filename("party_filename", "save/party.txt"),
 	savecount(0)
@@ -3772,7 +3772,7 @@ bool CPCStorageDB_txt::do_savePCStorage()
 ///////////////////////////////////////////////////////////////////////////
 // construct/destruct
 CPCStorageDB_txt::CPCStorageDB_txt(const char *dbcfgfile) :
-	CTimerBase(60000),		// 60sec save interval
+	basics::CTimerBase(60000),		// 60sec save interval
 	CPCStorageDB_mem(dbcfgfile),
 	pcstorage_filename( "pcstorage_filename", "save/storage.txt"),
 	savecount(0)
@@ -3957,7 +3957,7 @@ bool CGuildStorageDB_txt::do_saveGuildStorage()
 ///////////////////////////////////////////////////////////////////////////
 // construct/destruct
 CGuildStorageDB_txt::CGuildStorageDB_txt(const char *dbcfgfile) :
-	CTimerBase(60000),		// 60sec save interval
+	basics::CTimerBase(60000),		// 60sec save interval
 	CGuildStorageDB_mem(dbcfgfile),
 	guildstorage_filename("guildstorage_filename","save/g_storage.txt"),
 	savecount(0)
@@ -4118,7 +4118,7 @@ bool CPetDB_txt::do_savePets()
 ///////////////////////////////////////////////////////////////////////////
 // construct/destruct
 CPetDB_txt::CPetDB_txt(const char *dbcfgfile) :
-	CTimerBase(60000),		// 60sec save interval
+	basics::CTimerBase(60000),		// 60sec save interval
 	CPetDB_mem(dbcfgfile),
 	pet_filename("pet_filename", "save/pet.txt"),
 	savecount(0)
@@ -4351,7 +4351,7 @@ bool CHomunculusDB_txt::do_saveHomunculus()
 ///////////////////////////////////////////////////////////////////////////
 // construct/destruct
 CHomunculusDB_txt::CHomunculusDB_txt(const char *dbcfgfile) :
-	CTimerBase(60000),		// 60sec save interval
+	basics::CTimerBase(60000),		// 60sec save interval
 	CHomunculusDB_mem(dbcfgfile),
 	homunculus_filename("homunculus_filename", "save/homunculus.txt"),
 	savecount(0)
@@ -4443,7 +4443,7 @@ bool CVarDB_txt::do_saveVars()
 }
 
 CVarDB_txt::CVarDB_txt(const char *dbcfgfile) :
-	CTimerBase(60000),		// 60sec save interval
+	basics::CTimerBase(60000),		// 60sec save interval
 	CVarDB_mem(dbcfgfile),
 	variable_filename("variable_filename", "save/variables.txt"),
 	savecount(0)

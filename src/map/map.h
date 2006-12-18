@@ -176,6 +176,29 @@ enum {
 enum object_t { BL_NUL=0, BL_ALL=0, BL_PC, BL_NPC, BL_MOB, BL_ITEM, BL_CHAT, BL_SKILL, BL_PET, BL_HOM };	//xxx 0..7 -> 3bit
 enum object_sub_t { WARP, SHOP, SCRIPT, MONS };											// 0..3 -> 2bit
 
+///////////////////////////////////////////////////////////////////////////////
+/// skill fail types.
+enum skillfail_t
+{
+	SF_FAILED	= 0x0000,	//	btype==0 "skill failed"
+	SF_NOEMOTION= 0x0100,	//	btype==1 "no emotions"
+	SF_NOSIT	= 0x0200,	//	btype==2 "no sit"
+	SF_NOCHAT	= 0x0300,	//	btype==3 "no chat"
+	SF_NOPARTY	= 0x0400,	//	btype==4 "no party"
+	SF_NOSHOUT	= 0x0500,	//	btype==5 "no shout"
+	SF_NOPKING	= 0x0600,	//	btype==6 "no PKing"
+	SF_NOALLIGN	= 0x0700,	//	btype==7 "no alligning"
+	SF_STEAL	= 0x0A00,	//	btype==10 "steal failed"
+	SF_SP		= 0x0001,	//	type==1 "insufficient SP"
+	SF_HP		= 0x0002,	//	type==2 "insufficient HP"
+	SF_MATERIAL	= 0x0003,	//	type==3 "insufficient materials"
+	SF_DELAY	= 0x0004,	//	type==4 "there is a delay after using a skill"
+	SF_ZENY		= 0x0005,	//	type==5 "insufficient zeny"
+	SF_WEAPON	= 0x0006,	//	type==6 "wrong weapon"
+	SF_REDGEM	= 0x0007,	//	type==7 "red jemstone needed"
+	SF_BLUEGEM	= 0x0008,	//	type==8 "blue jemstone needed"
+	SF_WEIGHT	= 0x0009,	//	type==9 "overweight"
+};
 
 
 
@@ -539,7 +562,7 @@ public:
 	/// checks for attack state
 	virtual bool is_attacking() const		{ return false; }
 	/// checks for skill state
-	virtual bool is_skilling() const		{ return false; }
+	virtual bool is_casting() const		{ return false; }
 	/// checks for dead state
 	virtual bool is_dead() const			{ return false; }
 	/// checks for sitting state
@@ -635,11 +658,6 @@ public:
 	virtual bool start_attack(const block_list& target_bl, bool cont)	{ return false; }
 	/// stops attack
 	virtual bool stop_attack()									{ return false; }
-	/// stops skill
-	virtual bool stop_skill()									{ return false; }
-	// skill failed message.
-	virtual int clif_skill_failed(ushort skill_id, uchar type=0, ushort btype=0)	{ return 0; }
-
 
 	virtual int heal(int hp, int sp=0)	{ return 0; }
 
@@ -647,8 +665,22 @@ public:
 	// targeting functions
 
 	/// unlock from current target
-	virtual void unlock_target()							{ }
+	virtual void unlock_target()		{ }
 
+
+	///////////////////////////////////////////////////////////////////////////
+	// skill functions
+	/// stops skill
+	virtual bool stop_skill()									{ return false; }
+	// skill failed message.
+	virtual int  skill_check(ushort id)			{ return 0; }
+	/// check if current skill can be canceled
+	virtual bool skill_can_cancel() const		{ return false; }
+	/// called when a skill has failed.
+	/// does nothing on default
+	virtual void skill_stopped(ushort skillid)	{}
+	/// does nothing on default
+	virtual void skill_failed(ushort skill_id, skillfail_t type=SF_FAILED)	{}
 };
 
 

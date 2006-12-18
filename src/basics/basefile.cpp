@@ -430,7 +430,7 @@ bool findFiles(const char *p, const char *pat, void (func)(const char*) )
 
 ///////////////////////////////////////////////////////////////////////////////
 // true when given name exists
-bool is_present(const char*name)
+bool is_present(const char* name)
 {
 #ifdef WIN32
 	struct stat dir_stat;       // used by stat().
@@ -443,7 +443,7 @@ bool is_present(const char*name)
 
 ///////////////////////////////////////////////////////////////////////////////
 // true when given path is a directory
-bool is_folder(const char*name)
+bool is_folder(const char* name)
 {
 #ifdef WIN32
 	struct stat dir_stat;       // used by stat().
@@ -459,7 +459,7 @@ bool is_folder(const char*name)
 }
 ///////////////////////////////////////////////////////////////////////////////
 // true when given path is a file
-bool is_file(const char*name)
+bool is_file(const char* name)
 {
 #ifdef WIN32
 	struct stat dir_stat;       // used by stat().
@@ -474,31 +474,30 @@ bool is_file(const char*name)
 #endif
 }
 
-bool file_exists(const char*name)
+bool file_exists(const char* name)
 {
 	return is_file(name);
 }
 
-bool file_readable (const char*name)
+bool file_readable (const char* name)
 {	// a file is readable if it exists and can be read
-	return ( file_exists(name) && access(name,R_OK)==0 );
+	return ( file_exists(name) && access(name, R_OK)==0 );
 }
 
-bool file_writable (const char*name)
+bool file_writable (const char* name)
 {
 	// a file is writable if it exists as a file and is writable or 
 	// if it doesn't exist but could be created and would be writable
-	if(is_present(name))
+	if( is_present(name) )
 	{
-		if(!is_file(name)) return false;
-		return access(name,W_OK)==0;
+		return is_file(name) && (access(name, W_OK)==0);
 	}
 	string<> dir = folder_part(name);
 	if( dir.is_empty() ) dir = ".";
 	return folder_writable(dir);
 }
 
-unsigned long filesize(const char*filename)
+unsigned long filesize(const char* filename)
 {
 #ifdef _WIN32
 	struct _stat st;
@@ -971,31 +970,24 @@ bool folder_exists (const char* directory)
 bool folder_readable (const char* directory)
 {
 	// a folder is readable if it exists and has read access
-	string<> dir = directory;
-	if( dir.is_empty() )
-		dir = ".";
-	if( !folder_exists(dir) )
+	if( !directory || !*directory ) directory = ".";
+	if( !folder_exists(directory) )
 		return false;
-	return access(dir.c_str(),R_OK)==0;
+	return access(directory, R_OK)==0;
 }
 
 bool folder_writable (const char* directory)
-{
-	// a folder is writable if it exists and has write access
-	string<> dir = directory;
-	if( dir.is_empty() )
-		dir = ".";
-	if( !folder_exists(dir) )
+{	// a folder is writable if it exists and has write access
+	if( !directory || !*directory ) directory = ".";
+	if( !folder_exists(directory) )
 		return false;
-	return access(dir.c_str(),W_OK)==0;
+	return access(directory,W_OK)==0;
 }
 
 bool folder_delete(const char* directory, bool recurse)
 {
-	string<> dir = directory;
-	if( dir.is_empty() )
-		dir = ".";
-	if( !folder_exists(dir) )
+	if( !directory || !*directory ) directory = ".";
+	if( !folder_exists(directory) )
 		return false;
 	
 	bool result = true;
@@ -1003,17 +995,17 @@ bool folder_delete(const char* directory, bool recurse)
 	// before trying to delete the directory itself
 	if(recurse)
 	{
-		vector< string<> > ret = folder_subdirectories(dir);
+		vector< string<> > ret = folder_subdirectories(directory);
 		vector< string<> >::iterator iter(ret);
 		while( iter )
-			result &= folder_delete(folder_down(dir,*iter++),true);
+			result &= folder_delete(folder_down(directory,*iter++),true);
 		
-		ret = folder_files(dir);
+		ret = folder_files(directory);
 		iter = ret;
 		while( iter )
-	      result &= file_delete(create_filespec(dir, *iter++));
+	      result &= file_delete(create_filespec(directory, *iter++));
 	}
-	result &= (rmdir(dir.c_str())!=0);
+	result &= (rmdir(directory)!=0);
 	return result;
 }
 
@@ -1026,10 +1018,10 @@ bool folder_rename (const char* old_directory, const char* new_directory)
 
 bool folder_is_empty(const char* directory)
 {
-	string<> dir = (!directory || !*directory) ? "." : directory;
+	if( !directory || !*directory ) directory = ".";
 	bool result = true;
 #ifdef _WIN32
-	string<> wildcard = create_filespec(dir, "*.*");
+	string<> wildcard = create_filespec(directory, "*.*");
 	long handle = -1;
 	_finddata_t fileinfo;
 	bool OK;
@@ -1043,7 +1035,7 @@ bool folder_is_empty(const char* directory)
 	}
 	_findclose(handle);
 #else
-	DIR* d = opendir(dir.c_str());
+	DIR* d = opendir(directory);
 	if(d)
 	{
 		for (dirent* entry = readdir(d); entry; entry = readdir(d))
@@ -1060,16 +1052,16 @@ bool folder_is_empty(const char* directory)
 	return result;
 }
 
-bool folder_set_current(const string<>& folder)
+bool folder_set_current(const char* folder)
 {
   if(!folder_exists(folder))
     return false;
 #ifdef _WIN32
   // Windose implementation - this returns non-zero for success
-  return (SetCurrentDirectory(folder.c_str()) != 0);
+  return (SetCurrentDirectory(folder) != 0);
 #else
   // Unix implementation - this returns zero for success
-  return (chdir(folder.c_str()) == 0);
+  return (chdir(folder) == 0);
 #endif
 }
 
@@ -1316,7 +1308,7 @@ string<> filename_part (const char* spec)
 	return spec;
 }
 
-string<> extension_part (const char *spec)
+string<> extension_part (const char * spec)
 {
 	if( spec && *spec )
 	{
@@ -1334,7 +1326,7 @@ string<> extension_part (const char *spec)
 	
 }
 
-string<> folder_part (const char * spec)
+string<> folder_part (const char* spec)
 {
 	if(spec && *spec)
 	{

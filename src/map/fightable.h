@@ -114,7 +114,7 @@ public:
 public:
 	/// identifier.
 	/// overload with specific value
-	enum {id = -1};
+	enum {SKILLID = -1};
 
 	/// function called for initialisation.
 	/// overload with specific needs
@@ -123,10 +123,17 @@ public:
 	virtual bool init(ulong& timeoffset)=0;
 	/// function called for skill execution.
 	/// overload with specific needs
-	virtual void action()=0;
+	virtual void action(unsigned long tick)=0;
 	/// function called for cast cancel.
 	/// overload with specific needs
 	virtual void stop()=0;
+	/// function called to test is skill is valid.
+	/// overload with specific needs
+	virtual bool is_valid(skillfail_t& errcode) const=0;
+	/// return object skill id
+	virtual ushort get_skillid() const=0;
+	/// return object skill level
+	virtual ushort get_skilllv() const=0;
 
 	// different static constructors
 	static skillbase* create(fightable& caster, ushort skillid, ushort skilllv, uint32 targetid);
@@ -134,8 +141,10 @@ public:
 	static skillbase* create(fightable& caster, ushort skillid, const char*mapname);
 private:
 	/// check for timed or immediate execution
-	static void process_skill(skillbase*& skill);
+	static void initialize(ushort skillid, skillbase*& skill);
+	static int skillbase::timer_entry(int tid, unsigned long tick, int id, basics::numptr data);
 };
+
 
 
 
@@ -221,10 +230,10 @@ public:
 	/// checks for attack state
 	virtual bool is_attacking() const	{ return (attacktimer!=-1); }
 	/// checks for skill state
-	virtual bool is_skilling() const	{ return (skilltimer!=-1); }
+	virtual bool is_casting() const		{ return (skilltimer!=-1); }
 
 	/// checks for idle state (alive+not sitting+not blocked by skill)
-	virtual bool is_idle() const		{ return !is_attacking() && !is_skilling() && this->movable::is_idle(); }
+	virtual bool is_idle() const		{ return !is_attacking() && !is_casting() && this->movable::is_idle(); }
 
 	bool can_act() const	{ return DIFF_TICK(gettick(), this->canact_tick)>0; }
 

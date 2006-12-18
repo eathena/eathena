@@ -527,35 +527,14 @@ void send_fake_id(int fd, map_session_data &sd)
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-/// skill fail type.
-typedef enum
-{
-	SF_FAILED	= 0x0000,	//	btype==0 "skill failed"
-	SF_NOEMOTION= 0x0100,	//	btype==1 "no emotions"
-	SF_NOSIT	= 0x0200,	//	btype==2 "no sit"
-	SF_NOCHAT	= 0x0300,	//	btype==3 "no chat"
-	SF_NOPARTY	= 0x0400,	//	btype==4 "no party"
-	SF_NOSHOUT	= 0x0500,	//	btype==5 "no shout"
-	SF_NOPKING	= 0x0600,	//	btype==6 "no PKing"
-	SF_NOALLIGN	= 0x0700,	//	btype==7 "no alligning"
-	SF_STEAL	= 0x0A00,	//	btype==10 "steal failed"
-	SF_SP		= 0x0001,	//	type==1 "insufficient SP"
-	SF_HP		= 0x0002,	//	type==2 "insufficient HP"
-	SF_MATERIAL	= 0x0003,	//	type==3 "insufficient materials"
-	SF_DELAY	= 0x0004,	//	type==4 "there is a delay after using a skill"
-	SF_ZENY		= 0x0005,	//	type==5 "insufficient zeny"
-	SF_WEAPON	= 0x0006,	//	type==6 "wrong weapon"
-	SF_REDGEM	= 0x0007,	//	type==7 "red jemstone needed"
-	SF_BLUEGEM	= 0x0008,	//	type==8 "blue jemstone needed"
-	SF_WEIGHT	= 0x0009,	//	type==9 "overweight"
-} skillfail_t;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// send skill failed message.
 /// スキル詠唱失敗.
-int map_session_data::clif_skill_failed(ushort skill_id, uchar type, ushort btype)
+int clif_skill_failed(map_session_data& sd, ushort skill_id, skillfail_t type)
 {
+	//, uchar type, ushort btype
 	// only when type==0:
 	//	btype==0 "skill failed"
 	//	btype==1 "no emotions"
@@ -581,20 +560,20 @@ int map_session_data::clif_skill_failed(ushort skill_id, uchar type, ushort btyp
 	//	type>=11 ignored
 	
 	// reset all variables [celest]
-	this->skillx    = this->skilly      = 0xFFFF;
-	this->skillid   = this->skilllv     = 0xFFFF;
-	this->skillitem = this->skillitemlv = 0xFFFF;
+	sd.skillx    = sd.skilly      = 0xFFFF;
+	sd.skillid   = sd.skilllv     = 0xFFFF;
+	sd.skillitem = sd.skillitemlv = 0xFFFF;
 
-	if( session_isActive(this->fd) &&
-		(type!=0x4 || (config.display_delay_skill_fail && !this->state.nodelay)) )
+	if( session_isActive(sd.fd) &&
+		(type!=SF_DELAY || (config.display_delay_skill_fail && !sd.state.nodelay)) )
 	{
-		WFIFOW(this->fd,0) = 0x110;
-		WFIFOW(this->fd,2) = skill_id;
-		WFIFOW(this->fd,4) = btype;
-		WFIFOW(this->fd,6) = 0;
-		WFIFOB(this->fd,8) = 0;
-		WFIFOB(this->fd,9) = type;
-		WFIFOSET(this->fd,packet_len_table[0x110]);
+		WFIFOW(sd.fd,0) = 0x110;
+		WFIFOW(sd.fd,2) = skill_id;
+		WFIFOW(sd.fd,4) = (type>>8)&0xFF;//btype;
+		WFIFOW(sd.fd,6) = 0;
+		WFIFOB(sd.fd,8) = 0;
+		WFIFOB(sd.fd,9) = (type   )&0xFF;//type;
+		WFIFOSET(sd.fd,packet_len_table[0x110]);
 	}
 	return 0;
 }
@@ -2404,7 +2383,7 @@ int clif_spawnpc(map_session_data &sd)
 	if (!sd.disguise_id && (sd.status.class_==13 || sd.status.class_==21 || sd.status.class_==4014 || sd.status.class_==4022 || sd.status.class_==4036 || sd.status.class_==4044))
 		pc_setoption(sd,sd.status.option|0x0020); // [Valaris]
 
-	if ( (sd.is_riding() && pc_checkskill(sd,KN_RIDING)>0) && 
+	if ( (sd.is_riding() && sd.skill_check(KN_RIDING)>0) && 
 		(sd.status.class_==7 || sd.status.class_==14 || sd.status.class_==4008 || sd.status.class_==4015 || sd.status.class_==4030 || sd.status.class_==4037))
 		pc_setriding(sd); // update peco riders for people upgrading athena [Valaris]
 
@@ -6168,7 +6147,7 @@ int clif_item_repair_list(map_session_data &sd)
 		WFIFOSET(fd,c*13+4);
 		sd.state.produce_flag = 1;
 	} else
-		sd.clif_skill_failed(sd.skillid,0,0);
+		sd.skill_failed(sd.skillid);
 
 	return 0;
 }
@@ -6227,7 +6206,7 @@ int clif_item_refine_list(map_session_data &sd)
 	int wlv;
 	int refine_item[5];
 
-	skilllv = pc_checkskill(sd,WS_WEAPONREFINE);
+	skilllv = sd.skill_check(WS_WEAPONREFINE);
 
 	refine_item[0] = -1;
 	refine_item[1] = pc_search_inventory(sd,1010);
@@ -6588,7 +6567,7 @@ int clif_openvending(map_session_data &sd,uint32 id, vending_element vend_list[]
 	WBUFL(buf,4)=id;
 	for(i=0,n=0;i<sd.vend_num; ++i)
 	{
-		if (sd.vend_num > 2+pc_checkskill(sd,MC_VENDING)) return 0;
+		if (sd.vend_num > 2+sd.skill_check(MC_VENDING)) return 0;
 		WBUFL(buf,8+n*22)=vend_list[i].value;
 		WBUFW(buf,12+n*22)=(index=vend_list[i].index)+2;
 		WBUFW(buf,14+n*22)=vend_list[i].amount;
@@ -7213,31 +7192,31 @@ int clif_autospell(map_session_data &sd,unsigned short skilllv)
 
 	WFIFOW(fd, 0)=0x1cd;
 
-	if(skilllv>0 && pc_checkskill(sd,MG_NAPALMBEAT)>0)
+	if(skilllv>0 && sd.skill_check(MG_NAPALMBEAT)>0)
 		WFIFOL(fd,2)= MG_NAPALMBEAT;
 	else
 		WFIFOL(fd,2)= 0x00000000;
-	if(skilllv>1 && pc_checkskill(sd,MG_COLDBOLT)>0)
+	if(skilllv>1 && sd.skill_check(MG_COLDBOLT)>0)
 		WFIFOL(fd,6)= MG_COLDBOLT;
 	else
 		WFIFOL(fd,6)= 0x00000000;
-	if(skilllv>1 && pc_checkskill(sd,MG_FIREBOLT)>0)
+	if(skilllv>1 && sd.skill_check(MG_FIREBOLT)>0)
 		WFIFOL(fd,10)= MG_FIREBOLT;
 	else
 		WFIFOL(fd,10)= 0x00000000;
-	if(skilllv>1 && pc_checkskill(sd,MG_LIGHTNINGBOLT)>0)
+	if(skilllv>1 && sd.skill_check(MG_LIGHTNINGBOLT)>0)
 		WFIFOL(fd,14)= MG_LIGHTNINGBOLT;
 	else
 		WFIFOL(fd,14)= 0x00000000;
-	if(skilllv>4 && pc_checkskill(sd,MG_SOULSTRIKE)>0)
+	if(skilllv>4 && sd.skill_check(MG_SOULSTRIKE)>0)
 		WFIFOL(fd,18)= MG_SOULSTRIKE;
 	else
 		WFIFOL(fd,18)= 0x00000000;
-	if(skilllv>7 && pc_checkskill(sd,MG_FIREBALL)>0)
+	if(skilllv>7 && sd.skill_check(MG_FIREBALL)>0)
 		WFIFOL(fd,22)= MG_FIREBALL;
 	else
 		WFIFOL(fd,22)= 0x00000000;
-	if(skilllv>9 && pc_checkskill(sd,MG_FROSTDIVER)>0)
+	if(skilllv>9 && sd.skill_check(MG_FROSTDIVER)>0)
 		WFIFOL(fd,26)= MG_FROSTDIVER;
 	else
 		WFIFOL(fd,26)= 0x00000000;
@@ -9326,7 +9305,7 @@ int clif_parse_LoadEndAck(int fd, map_session_data &sd)
 		(sd.view_class != 22 || !config.wedding_ignorepalette) )
 		clif_changelook(sd,LOOK_CLOTHES_COLOR,sd.status.clothes_color);
 
-	//if(sd.status.hp<sd.status.max_hp>>2 && pc_checkskill(sd,SM_AUTOBERSERK)>0 &&
+	//if(sd.status.hp<sd.status.max_hp>>2 && sd.skill_check(SM_AUTOBERSERK)>0 &&
 	if(sd.status.hp<sd.status.max_hp>>2 && sd.sc_data[SC_AUTOBERSERK].timer != -1 &&
 		(sd.sc_data[SC_PROVOKE].timer==-1 || sd.sc_data[SC_PROVOKE].val2.num==0 ))
 		// オートバーサーク発動
@@ -9402,7 +9381,7 @@ int clif_parse_WalkToXY(int fd, map_session_data &sd)
 	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.chat || sd.is_sitting() )
 		return 0;
 
-	if (sd.skilltimer != -1 && pc_checkskill(sd, SA_FREECAST) <= 0) // フリーキャスト
+	if (sd.skilltimer != -1 && sd.skill_check( SA_FREECAST) <= 0) // フリーキャスト
 		return 0;
 
 	if (sd.canmove_tick > gettick())
@@ -9420,7 +9399,7 @@ int clif_parse_WalkToXY(int fd, map_session_data &sd)
 		 (sd.sc_data[SC_DANCING].timer !=-1 && sd.sc_data[SC_DANCING].val1.num == CG_HERMODE)  //cannot move while Hermod is active.
 		)
 		return 0;
-	if ((sd.status.option & 2) && pc_checkskill(sd, RG_TUNNELDRIVE) <= 0)
+	if ((sd.status.option & 2) && sd.skill_check( RG_TUNNELDRIVE) <= 0)
 		return 0;
 
 	if (sd.invincible_timer != -1)
@@ -9668,17 +9647,19 @@ int clif_parse_Emotion(int fd, map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if(config.basic_skill_check == 0 || pc_checkskill(sd, NV_BASIC) >= 2)
+	if(config.basic_skill_check == 0 || sd.skill_check( NV_BASIC) >= 2)
 	{
 		if(RFIFOB(fd,2) == 34)
 		{	// prevent use of the mute emote [Valaris]
-			return sd.clif_skill_failed(1, 0, 1);
+			sd.skill_failed(1, SF_NOEMOTION);
+			return 0;
 		}
 		// fix flood of emotion icon (ro-proxy): flood only the hacker player
 		if(sd.emotionlasttime >= time(NULL))
 		{
 			sd.emotionlasttime = time(NULL) + 1; // not more than 1 every second (normal client is every 3-4 seconds)
-			return sd.clif_skill_failed( 1, 0, 1);
+			sd.skill_failed( 1, SF_NOEMOTION);
+			return 0;
 		}
 		sd.emotionlasttime = time(NULL) + 1; // not more than 1 every second (normal client is every 3-4 seconds)
 
@@ -9687,7 +9668,8 @@ int clif_parse_Emotion(int fd, map_session_data &sd)
 		WBUFB(buf,6) = RFIFOB(fd,2);
 		return clif_send(buf, packet_len_table[0xc0], &sd, AREA);
 	} else
-		return sd.clif_skill_failed( 1, 0, 1);
+		sd.skill_failed( 1, SF_NOEMOTION);
+	return 0;
 }
 
 /*==========================================
@@ -9748,9 +9730,10 @@ int clif_parse_ActionRequest(int fd, map_session_data &sd)
 			return 0;
 		if (sd.vender_id != 0)
 			return 0;
-		if (!config.skill_delay_attack_enable && pc_checkskill(sd, SA_FREECAST) <= 0) {
+		if (!config.skill_delay_attack_enable && sd.skill_check( SA_FREECAST) <= 0) {
 			if (DIFF_TICK(tick, sd.canact_tick) < 0) {
-				return sd.clif_skill_failed( 1, 4, 0);
+				sd.skill_failed( 1, SF_DELAY);
+				return 0;
 			}
 		}
 		if (sd.invincible_timer != -1)
@@ -9760,7 +9743,7 @@ int clif_parse_ActionRequest(int fd, map_session_data &sd)
 		pc_attack(sd, target_id, action_type != 0);
 		break;
 	case 0x02: // sitdown
-		if (config.basic_skill_check == 0 || pc_checkskill(sd, NV_BASIC) >= 3) {
+		if (config.basic_skill_check == 0 || sd.skill_check( NV_BASIC) >= 3) {
 			if (sd.skilltimer != -1) //No sitting while casting :P
 				break;
 			sd.stop_attack();
@@ -9770,7 +9753,7 @@ int clif_parse_ActionRequest(int fd, map_session_data &sd)
 			skill_rest(sd, 1); // TK_HPTIME sitting down mode [Dralnu]
 			clif_sitting(sd);
 		} else
-			sd.clif_skill_failed( 1, 0, 2);
+			sd.skill_failed( 1, SF_NOSIT);
 		break;
 	case 0x03: // standup
 		sd.set_stand();
@@ -10222,9 +10205,9 @@ int clif_parse_CreateChatRoom(int fd, map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if( (config.basic_skill_check && pc_checkskill(sd,NV_BASIC) < 4) || 
+	if( (config.basic_skill_check && sd.skill_check(NV_BASIC) < 4) || 
 		!sd.createchat(RFIFOW(fd,4), RFIFOB(fd,6), (const char*)RFIFOP(fd,7), (const char*)RFIFOP(fd,15)) )
-		sd.clif_skill_failed(1,0,3);
+		sd.skill_failed(1,SF_NOCHAT);
 	return 0;
 }
 
@@ -10306,10 +10289,10 @@ int clif_parse_TradeRequest(int fd, map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if(config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 1){
+	if(config.basic_skill_check == 0 || sd.skill_check(NV_BASIC) >= 1){
 		trade_traderequest(sd,RFIFOL(sd.fd,2));
 	} else
-		sd.clif_skill_failed(1,0,0);
+		sd.skill_failed(1);
 	return 0;
 }
 
@@ -10498,7 +10481,7 @@ int clif_parse_UseSkillToId(int fd, map_session_data &sd) {
 	target_id = RFIFOL(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[2]);
 
 
-	if (skillnotok(skillnum, sd))
+	if (skill_not_ok(skillnum, sd))
 		return 0;
 
 	if (sd.skilltimer != -1)
@@ -10516,7 +10499,7 @@ int clif_parse_UseSkillToId(int fd, map_session_data &sd) {
 		skillnum == CH_TIGERFIST ||
 		skillnum == CH_CHAINCRUSH)))
 	{
-		sd.clif_skill_failed( skillnum, 4, 0);
+		sd.skill_failed( skillnum, SF_DELAY);
 		return 0;
 	}
 
@@ -10572,7 +10555,7 @@ int clif_parse_UseSkillToId(int fd, map_session_data &sd) {
 				}
 			}
 		}
-		if ((lv = pc_checkskill(sd, skillnum)) > 0) {
+		if ((lv = sd.skill_check( skillnum)) > 0) {
 			if (skilllv > lv)
 				skilllv = lv;
 			skill_use_id(&sd, target_id, skillnum, skilllv);
@@ -10602,7 +10585,7 @@ int clif_parse_UseSkillToPos(int fd, map_session_data &sd)
 	skillnum = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[1]);
 	x = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[2]);
 	y = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[3]);
-	if (skillnotok(skillnum, sd))
+	if (skill_not_ok(skillnum, sd))
 		return 0;
 
 	if(packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[4] > 0)
@@ -10610,7 +10593,7 @@ int clif_parse_UseSkillToPos(int fd, map_session_data &sd)
 		int skillmoreinfo = packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[4];
 		if( sd.is_sitting() )
 		{
-			sd.clif_skill_failed( skillnum, 0, 0);
+			sd.skill_failed(skillnum,SF_NOSIT);
 			return 0;
 		}
 		safestrcpy(talkie_mes, sizeof(talkie_mes), (char*)RFIFOP(fd,skillmoreinfo));
@@ -10624,7 +10607,7 @@ int clif_parse_UseSkillToPos(int fd, map_session_data &sd)
 		 (skillnum == MO_EXTREMITYFIST || skillnum == MO_CHAINCOMBO || skillnum == MO_COMBOFINISH ||
 		  skillnum == CH_PALMSTRIKE || skillnum == CH_TIGERFIST || skillnum == CH_CHAINCRUSH)) )
 	{
-		sd.clif_skill_failed( skillnum, 4, 0);
+		sd.skill_failed( skillnum, SF_DELAY);
 		return 0;
 	}
 
@@ -10634,13 +10617,17 @@ int clif_parse_UseSkillToPos(int fd, map_session_data &sd)
 		return 0;
 	if (sd.invincible_timer != -1)
 		pc_delinvincibletimer(sd);
-	if(sd.skillitem == skillnum) {
+	if(sd.skillitem == skillnum)
+	{
 		if (skilllv != sd.skillitemlv)
 			skilllv = sd.skillitemlv;
 		skill_use_pos(&sd, x, y, skillnum, skilllv);
-	} else {
+	}
+	else
+	{
 		sd.skillitem = sd.skillitemlv = 0xFFFF;
-		if ((lv = pc_checkskill(sd, skillnum)) > 0) {
+		if ((lv = sd.skill_check( skillnum)) > 0)
+		{
 			if (skilllv > lv)
 				skilllv = lv;
 			skill_use_pos(&sd, x, y, skillnum,skilllv);
@@ -11015,10 +11002,10 @@ int clif_parse_CreateParty(int fd, map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if (config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 7) {
+	if (config.basic_skill_check == 0 || sd.skill_check(NV_BASIC) >= 7) {
 		party_create(sd,(const char*)RFIFOP(fd,2),0,0);
 	} else
-		sd.clif_skill_failed(1,0,4);
+		sd.skill_failed(1,SF_NOPARTY);
 	return 0;
 }
 
@@ -11031,10 +11018,10 @@ int clif_parse_CreateParty2(int fd, map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if (config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 7){
+	if (config.basic_skill_check == 0 || sd.skill_check(NV_BASIC) >= 7){
 		party_create(sd,(const char*)RFIFOP(fd,2),RFIFOB(fd,26),RFIFOB(fd,27));
 	} else
-		sd.clif_skill_failed(1,0,4);
+		sd.skill_failed(1,SF_NOPARTY);
 	return 0;
 }
 
@@ -11060,11 +11047,11 @@ int clif_parse_ReplyPartyInvite(int fd, map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if(config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 5){
+	if(config.basic_skill_check == 0 || sd.skill_check(NV_BASIC) >= 5){
 		party_reply_invite(sd,RFIFOL(fd,2),RFIFOL(fd,6));
 	} else {
 		party_reply_invite(sd,RFIFOL(fd,2),-1);
-		sd.clif_skill_failed(1,0,4);
+		sd.skill_failed(1,SF_NOPARTY);
 	}
 	return 0;
 }

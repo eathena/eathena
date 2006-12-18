@@ -16,6 +16,7 @@ basics::ipset& getmapaddress();
 void clif_ban_player(const map_session_data &sd, uint32 banoption, const char* reason="");
 int clif_authok(map_session_data &sd);
 int clif_authfail(map_session_data &sd, uint32 type);
+int clif_skill_failed(map_session_data& sd, ushort skill_id, skillfail_t type);
 int clif_charselectok(uint32 id);
 int clif_dropflooritem(flooritem_data &fitem);
 int clif_clearflooritem(flooritem_data &fitem, int fd=0);

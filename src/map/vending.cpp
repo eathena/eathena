@@ -162,9 +162,9 @@ void vending_openvending(map_session_data &sd,unsigned short len,const char *mes
 {
 	size_t i;
 
-	if(!pc_checkskill(sd,MC_VENDING) || !sd.is_carton())
+	if(!sd.skill_check(MC_VENDING) || !sd.is_carton())
 	{	// cart skill and cart check [Valaris]
-		sd.clif_skill_failed(MC_VENDING,0,0);
+		sd.skill_failed(MC_VENDING);
 		return;
 	}
 
@@ -180,7 +180,7 @@ void vending_openvending(map_session_data &sd,unsigned short len,const char *mes
 			// カート内のアイテム数と販売するアイテム数に相違があったら中止
 			if(pc_cartitem_amount(sd, sd.vend_list[i].index, sd.vend_list[i].amount) < 0 || sd.vend_list[i].value < 0)
 			{
-				sd.clif_skill_failed(MC_VENDING, 0, 0);
+				sd.skill_failed(MC_VENDING);
 				return;
 			}
 		}

@@ -333,7 +333,7 @@ int status_percentrefinery(map_session_data &sd,struct item &item)
 
 	percent=percentrefinery[itemdb_wlv(item.nameid)][item.refine];
 
-	percent += pc_checkskill(sd,BS_WEAPONRESEARCH);	// 武器研究スキル所持
+	percent += sd.skill_check(BS_WEAPONRESEARCH);	// 武器研究スキル所持
 
 	// 確率の有効範囲チェック
 	if( percent > 100 )
@@ -833,20 +833,20 @@ int status_calc_pc(map_session_data& sd, int first)
 				sd.paramb[job_bonus[s_class.upper][s_class.job][i]-1]++;
 		}
 
-		if( (skill=pc_checkskill(sd,MC_INCCARRY))>0 )	// skill can be used with an item now, thanks to orn [Valaris]
+		if( (skill=sd.skill_check(MC_INCCARRY))>0 )	// skill can be used with an item now, thanks to orn [Valaris]
 			sd.max_weight += skill*2000;
 
-		if( (skill=pc_checkskill(sd,AC_OWL))>0 )	// ふくろうの目
+		if( (skill=sd.skill_check(AC_OWL))>0 )	// ふくろうの目
 			sd.paramb[4] += skill;
 
-		if((skill=pc_checkskill(sd,BS_HILTBINDING))>0) {   // Hilt binding gives +1 str +4 atk
+		if((skill=sd.skill_check(BS_HILTBINDING))>0) {   // Hilt binding gives +1 str +4 atk
 			sd.paramb[0] ++;
 			sd.base_atk += 4;
 		}
-		if((skill=pc_checkskill(sd,SA_DRAGONOLOGY))>0 ){ // Dragonology increases +1 int every 2 levels
+		if((skill=sd.skill_check(SA_DRAGONOLOGY))>0 ){ // Dragonology increases +1 int every 2 levels
 			sd.paramb[3] += (skill+1)/2;
 		}
-		if((skill=pc_checkskill(sd,HP_MANARECHARGE))>0 ){
+		if((skill=sd.skill_check(HP_MANARECHARGE))>0 ){
 			sd.dsprate -= 4 * skill;
 		}
 
@@ -1085,31 +1085,31 @@ int status_calc_pc(map_session_data& sd, int first)
 
 		//攻?速度?加
 
-		if((skill=pc_checkskill(sd,AC_VULTURE))>0){	// ワシの目
+		if((skill=sd.skill_check(AC_VULTURE))>0){	// ワシの目
 			sd.hit += skill;
 			if(sd.status.weapon == 11)
 				sd.attackrange += skill;
 		}
 
-		if( (skill=pc_checkskill(sd,BS_WEAPONRESEARCH))>0)	// 武器?究の命中率?加
+		if( (skill=sd.skill_check(BS_WEAPONRESEARCH))>0)	// 武器?究の命中率?加
 			sd.hit += skill*2;
-		if(sd.status.option&2 && (skill = pc_checkskill(sd,RG_TUNNELDRIVE))>0 )	// トンネルドライブ	// トンネルドライブ
+		if(sd.status.option&2 && (skill = sd.skill_check(RG_TUNNELDRIVE))>0 )	// トンネルドライブ	// トンネルドライブ
 			sd.speed = sd.speed*100/(20+6*skill);
-		if (sd.is_carton() && (skill=pc_checkskill(sd,MC_PUSHCART))>0)	// カ?トによる速度低下
+		if (sd.is_carton() && (skill=sd.skill_check(MC_PUSHCART))>0)	// カ?トによる速度低下
 			sd.speed += (10-skill) * DEFAULT_WALK_SPEED/10;
 		if (sd.is_riding()) {	// ペコペコ?りによる速度?加
 			sd.speed -= DEFAULT_WALK_SPEED/4;
 			sd.max_weight += 10000;
 		}
-		if((skill=pc_checkskill(sd,CR_TRUST))>0) { // フェイス
+		if((skill=sd.skill_check(CR_TRUST))>0) { // フェイス
 			sd.status.max_hp += skill*200;
 			sd.subele[6] += skill*5;
 		}
-		if((skill=pc_checkskill(sd,BS_SKINTEMPER))>0) {
+		if((skill=sd.skill_check(BS_SKINTEMPER))>0) {
 			sd.subele[0] += skill;
 			sd.subele[3] += skill*4;
 		}
-		if((skill=pc_checkskill(sd,SA_ADVANCEDBOOK))>0 )
+		if((skill=sd.skill_check(SA_ADVANCEDBOOK))>0 )
 			aspd_rate -= skill/2;
 
 		bl = sd.status.base_level;
@@ -1150,9 +1150,9 @@ int status_calc_pc(map_session_data& sd, int first)
 		else if (s_class.upper==2)
 			sd.status.max_sp = sd.status.max_sp * 70/100;
 		
-		if((skill=pc_checkskill(sd,HP_MEDITATIO))>0) // メディテイティオ
+		if((skill=sd.skill_check(HP_MEDITATIO))>0) // メディテイティオ
 			sd.status.max_sp += sd.status.max_sp*skill/100;
-		if((skill=pc_checkskill(sd,HW_SOULDRAIN))>0) // ソウルドレイン 
+		if((skill=sd.skill_check(HW_SOULDRAIN))>0) // ソウルドレイン 
 			sd.status.max_sp += sd.status.max_sp*2*skill/100;
 		if(sd.sc_data && sd.sc_data[SC_INCMSP2].timer!=-1) {
 			sd.status.max_sp += sd.status.max_sp*sd.sc_data[SC_INCMSP2].val1.num/100;
@@ -1167,41 +1167,41 @@ int status_calc_pc(map_session_data& sd, int first)
 
 		//自然回復HP
 		sd.nhealhp = 1 + (sd.paramc[2]/5) + (sd.status.max_hp/200);
-		if((skill=pc_checkskill(sd,SM_RECOVERY)) > 0) {	// HP回復力向上
+		if((skill=sd.skill_check(SM_RECOVERY)) > 0) {	// HP回復力向上
 			sd.nshealhp = skill*5 + (sd.status.max_hp*skill/500);
 			if(sd.nshealhp > 0x7fff) sd.nshealhp = 0x7fff;
 		}
 		//TK_HPTIME regen enable [Dralnu]
-		if((skill=pc_checkskill(sd,TK_HPTIME)) > 0 && sd.state.rest == 1) {
+		if((skill=sd.skill_check(TK_HPTIME)) > 0 && sd.state.rest == 1) {
 			sd.nshealhp = 30*skill;
 			if(sd.nshealhp > 0x7fff) sd.nshealhp = 0x7fff;
 		}
 		//TK_HPTIME regen disable [Dralnu]
-		if(pc_checkskill(sd,TK_HPTIME) > 0 && sd.state.rest != 1)
+		if(sd.skill_check(TK_HPTIME) > 0 && sd.state.rest != 1)
 			sd.nshealhp = 0;
 		//TK_SPTIME regen [Dralnu]
-		if((skill=pc_checkskill(sd,TK_SPTIME)) > 0 && sd.state.rest == 1) {
+		if((skill=sd.skill_check(TK_SPTIME)) > 0 && sd.state.rest == 1) {
 			sd.nshealsp = skill*3;
 			if(sd.nshealsp > 0x7fff) sd.nshealsp = 0x7fff;
 		}
 		//TK_SPTIME regen disable [Dralnu]
-		if(pc_checkskill(sd,TK_SPTIME) > 0 && sd.state.rest != 1)
+		if(sd.skill_check(TK_SPTIME) > 0 && sd.state.rest != 1)
 			sd.nshealsp = 0;
 		//自然回復SP
 		sd.nhealsp = 1 + (sd.paramc[3]/6) + (sd.status.max_sp/100);
 		if(sd.paramc[3] >= 120)
 			sd.nhealsp += ((sd.paramc[3]-120)>>1) + 4;
-		if((skill=pc_checkskill(sd,MG_SRECOVERY)) > 0) { // SP回復力向上 
+		if((skill=sd.skill_check(MG_SRECOVERY)) > 0) { // SP回復力向上 
 			sd.nshealsp = skill*3 + (sd.status.max_sp*skill/500);
 			if(sd.nshealsp > 0x7fff) sd.nshealsp = 0x7fff;
 		}
-		if((skill = pc_checkskill(sd,MO_SPIRITSRECOVERY)) > 0) {
+		if((skill = sd.skill_check(MO_SPIRITSRECOVERY)) > 0) {
 			sd.nsshealhp = skill*4 + (sd.status.max_hp*skill/500);
 			sd.nsshealsp = skill*2 + (sd.status.max_sp*skill/500);
 			if(sd.nsshealhp > 0x7fff) sd.nsshealhp = 0x7fff;
 			if(sd.nsshealsp > 0x7fff) sd.nsshealsp = 0x7fff;
 		}
-		if((skill=pc_checkskill(sd,HP_MEDITATIO)) > 0) {
+		if((skill=sd.skill_check(HP_MEDITATIO)) > 0) {
 			// メディテイティオはSPRではなく自然回復にかかる
 			sd.nhealsp += (sd.nhealsp)*3*skill/100;
 			if(sd.nhealsp > 0x7fff) sd.nhealsp = 0x7fff;
@@ -1219,7 +1219,7 @@ int status_calc_pc(map_session_data& sd, int first)
 		}
 
 		// 種族耐性（これでいいの？ ディバインプロテクションと同じ?理がいるかも）
-		if( (skill=pc_checkskill(sd,SA_DRAGONOLOGY))>0 ){ // ドラゴノロジ?
+		if( (skill=sd.skill_check(SA_DRAGONOLOGY))>0 ){ // ドラゴノロジ?
 			skill = skill*4;
 			sd.right_weapon.addrace[9]+=skill;
 			sd.left_weapon.addrace[9]+=skill;
@@ -1229,12 +1229,12 @@ int status_calc_pc(map_session_data& sd, int first)
 		}
 
 		//Flee上昇
-		if( (skill=pc_checkskill(sd,TF_MISS))>0 ){	// 回避率?加
+		if( (skill=sd.skill_check(TF_MISS))>0 ){	// 回避率?加
 			sd.flee += skill*((sd.status.class_==12 || sd.status.class_==17 || sd.status.class_==4013 || sd.status.class_==4018) ? 4 : 3);
 			if( (sd.status.class_==12 || sd.status.class_==4013) && sd.sc_data[SC_CLOAKING].timer==-1)
 				sd.speed -= DEFAULT_WALK_SPEED * skill*3/2/100;
 		}
-		if( (skill=pc_checkskill(sd,MO_DODGE))>0 )	// 見切り
+		if( (skill=sd.skill_check(MO_DODGE))>0 )	// 見切り
 			sd.flee += (skill*3)>>1;
 
 
@@ -1461,12 +1461,12 @@ int status_calc_pc(map_session_data& sd, int first)
 			sd.addeff[4] += sd.sc_data[SC_ENCPOISON].val2.num;
 
 		if( sd.sc_data[SC_DANCING].timer!=-1 ){		// 演奏/ダンス使用中
-			int s_rate = 600 - 40 * pc_checkskill(sd,((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
+			int s_rate = 600 - 40 * sd.skill_check(((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
 			if (sd.sc_data[SC_LONGING].timer != -1)
 				s_rate -= 20 * sd.sc_data[SC_LONGING].val1.num;
 			sd.speed = sd.speed * s_rate / 100;
 			// is attack speed affected?
-			//aspd_rate = 600 - 40 * pc_checkskill(*sd, ((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
+			//aspd_rate = 600 - 40 * sd->skill_check( ((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
 			//if (sd.sc_data[SC_LONGING].timer != -1)
 			//	aspd_rate -= 20 * sd.sc_data[SC_LONGING].val1.num;
 			//sd.speed*=4;
@@ -1572,7 +1572,7 @@ int status_calc_pc(map_session_data& sd, int first)
 		if(sd.speed_rate != 100)
 			sd.speed = sd.speed*sd.speed_rate/100;
 
-		if(sd.skilltimer != -1 && (skill = pc_checkskill(sd,SA_FREECAST)) > 0) {
+		if(sd.skilltimer != -1 && (skill = sd.skill_check(SA_FREECAST)) > 0) {
 			sd.speed = sd.speed*(175 - skill*5)/100;
 		}
 
@@ -1580,11 +1580,11 @@ int status_calc_pc(map_session_data& sd, int first)
 			sd.speed = MAX_WALK_SPEED/config.max_walk_speed;
 
 		if(sd.is_riding())
-			sd.aspd += sd.aspd * 10*(5 - pc_checkskill(sd,KN_CAVALIERMASTERY))/100;
+			sd.aspd += sd.aspd * 10*(5 - sd.skill_check(KN_CAVALIERMASTERY))/100;
 		if(aspd_rate != 100)
 			sd.aspd = sd.aspd*aspd_rate/100;
 		if(sd.is_riding())							// 騎兵修練
-			sd.aspd = sd.aspd*(100 + 10*(5 - pc_checkskill(sd,KN_CAVALIERMASTERY)))/ 100;
+			sd.aspd = sd.aspd*(100 + 10*(5 - sd.skill_check(KN_CAVALIERMASTERY)))/ 100;
 		if(sd.aspd < config.max_aspd_interval) sd.aspd = config.max_aspd_interval;
 		sd.amotion = sd.aspd;
 		if( sd.paramc[1] < 100 )
@@ -1676,7 +1676,7 @@ int status_calc_pc(map_session_data& sd, int first)
 		if(b_sp != sd.status.sp)
 			clif_updatestatus(sd,SP_SP);
 
-		//if(sd.status.hp<sd.status.max_hp>>2 && pc_checkskill(*sd,SM_AUTOBERSERK)>0 &&
+		//if(sd.status.hp<sd.status.max_hp>>2 && sd->skill_check(SM_AUTOBERSERK)>0 &&
 		if(sd.status.hp<sd.status.max_hp>>2 && sd.sc_data[SC_AUTOBERSERK].timer != -1 &&
 			(sd.sc_data[SC_PROVOKE].timer==-1 || sd.sc_data[SC_PROVOKE].val2.num==0 ) && !sd.is_dead() )
 			// オ?トバ?サ?ク?動
@@ -1739,7 +1739,7 @@ int status_calc_speed_old (map_session_data &sd)
 		sd.speed = (sd.speed * (155 - sd.sc_data[SC_DEFENDER].val1.num*5)) / 100;
 	}
 	if( sd.sc_data[SC_DANCING].timer!=-1 ){
-		int s_rate = 600 - 40 * pc_checkskill(sd, ((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
+		int s_rate = 600 - 40 * sd.skill_check( ((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
 		if (sd.sc_data[SC_LONGING].timer != -1)
 			s_rate -= 20 * sd.sc_data[SC_LONGING].val1.num;
 		sd.speed = sd.speed * s_rate / 100;			
@@ -1754,14 +1754,14 @@ int status_calc_speed_old (map_session_data &sd)
 		sd.speed -= sd.speed*25/100;
 
 
-	if(sd.status.option&2 && (skill = pc_checkskill(sd,RG_TUNNELDRIVE))>0 )
+	if(sd.status.option&2 && (skill = sd.skill_check(RG_TUNNELDRIVE))>0 )
 		sd.speed = sd.speed*100/(20+6*skill);
-	if (sd.is_carton() && (skill=pc_checkskill(sd,MC_PUSHCART))>0)
+	if (sd.is_carton() && (skill=sd.skill_check(MC_PUSHCART))>0)
 		sd.speed += (10-skill) * DEFAULT_WALK_SPEED/10;
 	else if (sd.is_riding()) {
 		sd.speed -= DEFAULT_WALK_SPEED/4;
 	}
-	if((skill=pc_checkskill(sd,TF_MISS))>0)
+	if((skill=sd.skill_check(TF_MISS))>0)
 		if(s_class.job==12)
 			sd.speed -= sd.speed *(skill*3/2)/100;
 
@@ -1770,7 +1770,7 @@ int status_calc_speed_old (map_session_data &sd)
 	if(sd.speed < DEFAULT_WALK_SPEED/4)
 		sd.speed = DEFAULT_WALK_SPEED/4;
 
-	if(sd.skilltimer != -1 && (skill = pc_checkskill(sd,SA_FREECAST)) > 0) {
+	if(sd.skilltimer != -1 && (skill = sd.skill_check(SA_FREECAST)) > 0) {
 		sd.speed = sd.speed*(175 - skill*5)/100;
 	}
 
@@ -3539,18 +3539,18 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			if(sc_data[SC_DECREASEAGI].timer!=-1)
 				return 0;
 			if(*bl == BL_PC)
-				if(pc_checkskill(*sd,BS_HILTBINDING)>0)
+				if(sd->skill_check(BS_HILTBINDING)>0)
 					tick += tick / 10;
 			calc_flag = 1;
 			break;
 		case SC_WEAPONPERFECTION:	// ウェポンパ?フェクション
 			if(*bl == BL_PC)
-				if(pc_checkskill(*sd,BS_HILTBINDING)>0)
+				if(sd->skill_check(BS_HILTBINDING)>0)
 					tick += tick / 10;
 			break;
 		case SC_OVERTHRUST:			// オ?バ?スラスト
 			if(*bl == BL_PC)
-				if(pc_checkskill(*sd,BS_HILTBINDING)>0)
+				if(sd->skill_check(BS_HILTBINDING)>0)
 					tick += tick / 10;
 			*opt3 |= 2;
 			break;

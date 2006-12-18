@@ -13,24 +13,6 @@
 
 #include "baseparam.h"
 
-///////////////////////////////////////////////////////////////////////////////
-// basic class for using the old way timers
-///////////////////////////////////////////////////////////////////////////////
-bool basics::CTimerBase::init(unsigned long interval)
-{
-	return false;
-}
-
-// external calling from external timer implementation
-int basics::CTimerBase::timercallback(int timer, unsigned long tick, int id, basics::numptr data)
-{
-	return 0;
-}
-void basics::CTimerBase::timerfinalize()
-{
-
-}
-
 
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -38,8 +20,10 @@ void basics::CTimerBase::timerfinalize()
 ///////////////////////////////////////////////////////////////////////////////////////
 struct eaprinter : public printer
 {
+	bool cHasDefault;
 public:
-	eaprinter()
+	eaprinter() : 
+	  cHasDefault(false)
 	{}
 	~eaprinter()
 	{}
@@ -99,6 +83,13 @@ bool eaprinter::print_beautified(basics::CParser_CommentStore& parser, int rtpos
 			prn.scope = tmpscope;
 			break;
 		}
+		case PT_GOTOSTM:
+		{
+			prn << "goto ";
+			prn << parser.rt[parser.rt[rtpos].cChildPos+1].cToken.cLexeme;
+			prn << ';' << '\n';
+			break;
+		}
 		case PT_IFSTM:
 		case PT_WHILESTM:
 		{
@@ -156,6 +147,7 @@ bool eaprinter::print_beautified(basics::CParser_CommentStore& parser, int rtpos
 			print_beautified(parser, parser.rt[rtpos].cChildPos+2);
 			prn << " )\n";
 			prn << "{\n";
+			this->cHasDefault=false;
 			print_beautified(parser, parser.rt[rtpos].cChildPos+5);
 			if(!prn.newline) prn << '\n';
 			prn << "}\n";
@@ -195,24 +187,35 @@ bool eaprinter::print_beautified(basics::CParser_CommentStore& parser, int rtpos
 		{	// <Case Stms>  ::= case <Value> ':' <Stm List> <Case Stms>
 			//			   | default ':' <Stm List> <Case Stms>
 			//			   |
-			size_t j,k;
-			int tmpscope = prn.scope;
-			k = parser.rt[rtpos].cChildPos+parser.rt[rtpos].cChildNum;
-			for(j=parser.rt[rtpos].cChildPos; j<k; ++j)
-			{	// go down
-				if( PT_COLON==parser.rt[j].symbol.idx )
+			if( parser.rt[rtpos].cChildNum )
+			{
+				size_t i = parser.rt[rtpos].cChildPos;
+
+				if(!prn.newline) prn << '\n';
+				if( PT_CASE == parser.rt[i].symbol.idx )
 				{
-					prn << ":\n";
-					++prn.scope;
+					prn << "case ";
+					++i;
+					print_beautified(parser, i);
 				}
 				else
 				{
-					if( PT_CASESTM==parser.rt[j].symbol.idx )
-						--prn.scope;
-					print_beautified(parser, j);
+					if( this->cHasDefault )
+					{
+						fprintf(stderr, "multiple default cases, line %i",
+							(int)parser.rt[i].cToken.line);
+					}
+					this->cHasDefault=true;
+					prn << "default";
 				}
+				prn << ":\n";
+				if( PT_BLOCK != parser.rt[i+2].symbol.idx )
+					++prn.scope;
+				print_beautified(parser, i+2, parent);
+				if( PT_BLOCK != parser.rt[i+2].symbol.idx )
+					--prn.scope;
+				print_beautified(parser, i+3, parent);
 			}
-			prn.scope = tmpscope;
 			break;
 		}
 		case PT_SPECLIST:
@@ -343,7 +346,7 @@ public:
 
 /// constructor.
 template <typename T>
-parseprocessor<T>::parseprocessor<T>(const unsigned char* (*engineloader)(ulong&)) : cParser(NULL), cConfig(NULL)
+parseprocessor<T>::parseprocessor(const unsigned char* (*engineloader)(ulong&)) : cParser(NULL), cConfig(NULL)
 {
 	ulong sz;
 	const unsigned char *e;
@@ -359,7 +362,7 @@ parseprocessor<T>::parseprocessor<T>(const unsigned char* (*engineloader)(ulong&
 
 /// constructor.
 template <typename T>
-parseprocessor<T>::parseprocessor<T>(const char* filename) : cParser(NULL), cConfig(NULL)
+parseprocessor<T>::parseprocessor(const char* filename) : cParser(NULL), cConfig(NULL)
 {
 	if( !filename || !(this->cConfig = new basics::CParseConfig(filename)) )
 	{
