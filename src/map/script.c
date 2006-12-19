@@ -3379,6 +3379,7 @@ int buildin_announce(struct script_state *st);
 int buildin_mapannounce(struct script_state *st);
 int buildin_areaannounce(struct script_state *st);
 int buildin_getusers(struct script_state *st);
+int buildin_getmapguildusers(struct script_state *st);
 int buildin_getmapusers(struct script_state *st);
 int buildin_getareausers(struct script_state *st);
 int buildin_getareadropitem(struct script_state *st);
@@ -3569,6 +3570,8 @@ int buildin_setitemscript(struct script_state *st);
 int buildin_disguise(struct script_state *st);
 int buildin_undisguise(struct script_state *st);
 int buildin_getmonsterinfo(struct script_state *st); // [Lupus]
+int buildin_checkvending(struct script_state *st); // check vending [Nab4]
+int buildin_checkchatting(struct script_state *st); // check chatting [Marka]
 
 #ifdef PCRE_SUPPORT
 int buildin_defpattern(struct script_state *st); // MouseJstr
@@ -3698,6 +3701,7 @@ struct script_function buildin_func[] = {
 	{buildin_mapannounce,"mapannounce","ssi*"},
 	{buildin_areaannounce,"areaannounce","siiiisi*"},
 	{buildin_getusers,"getusers","i"},
+	{buildin_getmapguildusers,"getmapguildusers","si"},
 	{buildin_getmapusers,"getmapusers","s"},
 	{buildin_getareausers,"getareausers","siiii"},
 	{buildin_getareadropitem,"getareadropitem","siiiii"},
@@ -3892,6 +3896,8 @@ struct script_function buildin_func[] = {
 
 	{buildin_eaclass,"eaclass","*"},	//[Skotlex]
 	{buildin_roclass,"roclass","i*"},	//[Skotlex]
+	{buildin_checkvending,"checkvending","*"},
+	{buildin_checkchatting,"checkchatting","*"},
 	{NULL,NULL,NULL},
 };
 
@@ -4134,7 +4140,7 @@ int buildin_menu(struct script_state *st)
 		}
 		clif_scriptmenu(sd,st->oid,buf);
 		aFree(buf);
-	} else if(sd->npc_menu==0xff){	// cansel
+	} else if(sd->npc_menu==0xff){	// cancel
 		sd->state.menu_or_input=0;
 		st->state=END;
 	} else {	// goto動作
@@ -7396,6 +7402,34 @@ int buildin_getusersname(struct script_state *st)
 	return 0;
 }
 /*==========================================
+ * getmapguildusers("mapname.gat",guild ID) Returns the number guild members present on a map [Reddozen]
+ *------------------------------------------
+ */
+int buildin_getmapguildusers(struct script_state *st) {
+	char *str;
+	int m, gid;
+	int i=0,c=0;
+	struct guild *g = NULL;
+	str=conv_str(st, &(st->stack->stack_data[st->start+2]));
+	gid=conv_num(st, &(st->stack->stack_data[st->start+3]));
+	if ((m = map_mapname2mapid(str)) < 0) { // map id on this server (m == -1 if not in actual map-server)
+		push_val(st->stack, C_INT, -1);
+		return 0;
+	}
+	g = guild_search(gid);
+
+	if (g){
+		for(i = 0; i < g->max_member; i++)
+		{
+			if (g->member[i].sd && g->member[i].sd->bl.m == m)
+				c++;
+		}
+	}
+
+	push_val(st->stack, C_INT, c);
+	return 0;
+}
+/*==========================================
  * マップ指定ユーザー数所得
  *------------------------------------------
  */
@@ -8605,8 +8639,8 @@ static int buildin_maprespawnguildid_sub_pc(DBKey key, void *data, va_list ap)
 	if(!sd || sd->bl.m != m)
 		return 0;
 	if(
-		((sd->status.guild_id == g_id) && flag&1) || //Warp out owners
-		((sd->status.guild_id != g_id) && flag&2) || //Warp out outsiders
+		(sd->status.guild_id == g_id && flag&1) || //Warp out owners
+		(sd->status.guild_id != g_id && flag&2) || //Warp out outsiders
 		(sd->status.guild_id == 0)	// Warp out players not in guild [Valaris]
 	)
 		pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,3);
@@ -11689,6 +11723,39 @@ int buildin_getmonsterinfo(struct script_state *st)
 		default: //wrong Index
 			push_val(st->stack,C_INT,-1);
 	}
+	return 0;
+}
+
+int buildin_checkvending(struct script_state *st){ // check vending [Nab4]
+	struct map_session_data *sd = NULL;
+
+	if(st->end > st->start + 2)
+		sd = map_nick2sd(conv_str(st,&st->stack->stack_data[st->start+2]));
+	else
+		sd = script_rid2sd(st);
+
+	if(sd)
+		push_val(st->stack, C_INT, (sd->vender_id != 0));
+	else
+		push_val(st->stack, C_INT, 0);
+
+	return 0;
+}
+
+
+int buildin_checkchatting(struct script_state *st){ // check chatting [Marka]
+	struct map_session_data *sd = NULL;
+
+	if(st->end > st->start + 2)
+		sd = map_nick2sd(conv_str(st,&st->stack->stack_data[st->start+2]));
+	else
+		sd = script_rid2sd(st);
+
+	if(sd)
+		push_val(st->stack, C_INT, (sd->chatID != 0));
+	else
+		push_val(st->stack, C_INT, 0);
+
 	return 0;
 }
 

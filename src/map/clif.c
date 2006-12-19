@@ -4871,7 +4871,7 @@ int clif_GMmessage(struct block_list *bl, char* mes, int len, int flag)
 	int lp;
 
 	lp = (flag & 0x10) ? 8 : 4;
-	buf = (unsigned char*)aCallocA(len + lp + 8, sizeof(unsigned char));
+	buf = (unsigned char*)aMallocA((len + lp + 8)*sizeof(unsigned char));
 
 	WBUFW(buf,0) = 0x9a;
 	WBUFW(buf,2) = len + lp;
@@ -8259,7 +8259,6 @@ void clif_parse_TickSend(int fd, struct map_session_data *sd) {
 	WFIFOW(fd,0)=0x7f;
 	WFIFOL(fd,2)=gettick();
 	WFIFOSET(fd,packet_len_table[0x7f]);
-//	flush_fifo(fd); // send immediatly so the client gets accurate "pings"
 	return;
 }
 
@@ -9385,13 +9384,9 @@ void clif_parse_TradeRequest(int fd,struct map_session_data *sd)
 		return; //You can trade while in a chatroom.
 
 	// @noask [LuzZza]
-	if(t_sd) {
-	 	if (t_sd->state.noask) {
-			clif_noask_sub(sd, t_sd, 0);
-			return;
-		}
-		if(!t_sd->chatID && clif_cant_act(t_sd))
-			return;
+	if(t_sd && t_sd->state.noask) {
+		clif_noask_sub(sd, t_sd, 0);
+		return;
 	}
 
 	if(battle_config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 1){

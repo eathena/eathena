@@ -1,5 +1,7 @@
 Date	Added
-
+2006/12/19
+	* floor item lifetime is now an int instead of ushort, meaning the max
+	  value is now 2kM ms instead of 65k ms (drops.conf). [Skotlex]
 2006/12/13
 	* Merged setting stdout_with_ansisequence ([login/char/map]_athena.conf)
 	  which can enable/disable console colors.

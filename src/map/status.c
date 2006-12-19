@@ -4366,6 +4366,10 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			case SC_COMA:
 			case SC_GRAVITATION:
 			case SC_SUITON:
+			case SC_STRIPWEAPON:
+			case SC_STRIPSHIELD:
+			case SC_STRIPARMOR:
+			case SC_STRIPHELM:
 				return 0;
 		}
 	}
@@ -4646,19 +4650,58 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			}
 			break;
 		case SC_STRIPWEAPON:
-			if (bl->type != BL_PC) //Watk reduction
+			if (sd) {
+				int i;
+				if(sd->unstripable_equip&EQP_WEAPON)
+					return 0;
+				i = sd->equip_index[EQI_HAND_L];
+				if (i>=0 && sd->inventory_data[i] &&
+					sd->inventory_data[i]->type == IT_WEAPON)
+					pc_unequipitem(sd,i,3); //L-hand weapon
+
+				i = sd->equip_index[EQI_HAND_R];
+				if (i<0 || !sd->inventory_data[i] ||
+					sd->inventory_data[i]->type != IT_WEAPON)
+					return 0;
+				pc_unequipitem(sd,i,3);
+			} else //Watk reduction
 				val2 = 5*val1;
 			break;
 		case SC_STRIPSHIELD:
-			if (bl->type != BL_PC) //Def reduction
+			if (sd) {
+				int i;
+				if(sd->unstripable_equip&EQP_SHIELD)
+					return 0;
+				i = sd->equip_index[EQI_HAND_L];
+				if (i<0 || !sd->inventory_data[i] ||
+					sd->inventory_data[i]->type != IT_ARMOR)
+					return 0;
+				pc_unequipitem(sd,i,3);
+			} else //Def reduction
 				val2 = 3*val1;
 			break;
 		case SC_STRIPARMOR:
-			if (bl->type != BL_PC) //Vit reduction
+			if (sd) {
+				int i;
+				if(sd->unstripable_equip&EQP_ARMOR)
+					return 0;
+				i = sd->equip_index[EQI_ARMOR];
+				if (i<0 || !sd->inventory_data[i])
+					return 0;
+				pc_unequipitem(sd,i,3);
+			} else //Vit reduction
 				val2 = 8*val1;
 			break;
 		case SC_STRIPHELM:
-			if (bl->type != BL_PC) //Int reduction
+			if (sd) {
+				int i;
+				if(sd->unstripable_equip&EQP_HELM)
+					return 0;
+				i = sd->equip_index[EQI_HEAD_TOP];
+				if (i<0 || !sd->inventory_data[i])
+					return 0;
+				pc_unequipitem(sd,i,3);
+			} else //Int reduction
 				val2 = 8*val1;
 			break;
 		case SC_AUTOSPELL:
@@ -5705,9 +5748,12 @@ int status_change_end( struct block_list* bl , int type,int tid )
 		case SC_WEDDING:
 		case SC_XMAS:
 			if (!vd) return 0;
-			if (sd) //Load data from sd->status.* as the stored values could have changed.
+			if (sd)
+			{	//Load data from sd->status.* as the stored values could have changed.
+				//Must remove OPTION to prevent class being rechanged.
+				sc->option &= type==SC_WEDDING?~OPTION_WEDDING:~OPTION_XMAS;
 				status_set_viewdata(bl, sd->status.class_);
-			else {
+			} else {
 				vd->class_ = sc->data[type].val1;
 				vd->weapon = sc->data[type].val2;
 				vd->shield = sc->data[type].val3;

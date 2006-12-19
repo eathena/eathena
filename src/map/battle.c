@@ -1612,44 +1612,48 @@ static struct Damage battle_calc_weapon_attack(
 		}
 		//Div fix.
 		damage_div_fix(wd.damage, wd.div_);
-		//Here comes a second pass for skills that stack to the previously defined % damage. [Skotlex]
-		skillratio = 100;
-		//Skill damage modifiers that affect linearly stacked damage.
-		if (sc && skill_num != PA_SACRIFICE) {
+
+		//The following are applied on top of current damage and are stackable.
+		if (sc) {
 			if(sc->data[SC_TRUESIGHT].timer != -1)
-				skillratio += 2*sc->data[SC_TRUESIGHT].val1;
-			// It is still not quite decided whether it works on bosses or not...
-			if(sc->data[SC_EDP].timer != -1 /*&& !(t_mode&MD_BOSS)*/ && skill_num != ASC_BREAKER && skill_num != ASC_METEORASSAULT)
-				skillratio += sc->data[SC_EDP].val3;
+				ATK_ADDRATE(2*sc->data[SC_TRUESIGHT].val1);
+
+			if(sc->data[SC_EDP].timer != -1 &&
+			  	skill_num != ASC_BREAKER &&
+				skill_num != ASC_METEORASSAULT)
+				ATK_ADDRATE(sc->data[SC_EDP].val3);
 		}
+
 		switch (skill_num) {
 			case AS_SONICBLOW:
-				if (sc && sc->data[SC_SPIRIT].timer != -1 && sc->data[SC_SPIRIT].val2 == SL_ASSASIN)
-					skillratio += (map_flag_gvg(src->m))?25:100; //+25% dmg on woe/+100% dmg on nonwoe
+				if (sc && sc->data[SC_SPIRIT].timer != -1 &&
+					sc->data[SC_SPIRIT].val2 == SL_ASSASIN)
+					ATK_ADDRATE(map_flag_gvg(src->m)?25:100); //+25% dmg on woe/+100% dmg on nonwoe
+
 				if(sd && pc_checkskill(sd,AS_SONICACCEL)>0)
-					skillratio += 10;
+					ATK_ADDRATE(10);
 			break;
 			case CR_SHIELDBOOMERANG:
-				if (sc && sc->data[SC_SPIRIT].timer != -1 && sc->data[SC_SPIRIT].val2 == SL_CRUSADER)
-					skillratio += 100;
+				if(sc && sc->data[SC_SPIRIT].timer != -1 &&
+					sc->data[SC_SPIRIT].val2 == SL_CRUSADER)
+					ATK_ADDRATE(100);
 				break;
 		}
-		if (sd && sd->skillatk[0].id != 0)
-		{
-			for (i = 0; i < MAX_PC_BONUS && sd->skillatk[i].id != 0 && sd->skillatk[i].id != skill_num; i++);
-			if (i < MAX_PC_BONUS && sd->skillatk[i].id == skill_num)
-				//May seem wrong as it also applies on top of other modifiers, but adding, say, 10%
-				//to 800% dmg -> 810% would make the bonus a little lame. [Skotlex]
-				skillratio += sd->skillatk[i].val;
-		}
-		if (skillratio != 100)
-			ATK_RATE(skillratio);
 		
 		if(sd)
 		{
-			if (skill_num != PA_SACRIFICE && skill_num != MO_INVESTIGATE
-				&& skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS
-				&& skill_num != PA_SHIELDCHAIN
+			if (skill_num && sd->skillatk[0].id)
+			{	//Additional skill damage.
+				for (i = 0; i < MAX_PC_BONUS && sd->skillatk[i].id &&
+				  	sd->skillatk[i].id != skill_num; i++);
+
+				if (i < MAX_PC_BONUS && sd->skillatk[i].id == skill_num)
+					ATK_ADDRATE(sd->skillatk[i].val);
+			}
+
+			if(skill_num != PA_SACRIFICE && skill_num != MO_INVESTIGATE &&
+				skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS &&
+				skill_num != PA_SHIELDCHAIN
 			  	&& !flag.cri)
 			{	//Elemental/Racial adjustments
 				if(sd->right_weapon.def_ratio_atk_ele & (1<<tstatus->def_ele) ||
@@ -2357,13 +2361,6 @@ struct Damage battle_calc_magic_attack(
 						break;
 				}
 
-				if (sd && sd->skillatk[0].id != 0)
-				{
-					for (i = 0; i < MAX_PC_BONUS && sd->skillatk[i].id != 0 && sd->skillatk[i].id != skill_num; i++);
-					if (i < MAX_PC_BONUS && sd->skillatk[i].id == skill_num)
-						skillratio += sd->skillatk[i].val;
-				}
-
 				MATK_RATE(skillratio);
 			
 				//Constant/misc additions from skills
@@ -2373,6 +2370,14 @@ struct Damage battle_calc_magic_attack(
 		}
 
 		if(sd) {
+			//Damage bonuses
+			if (sd->skillatk[0].id)
+			{
+				for (i = 0; i < MAX_PC_BONUS && sd->skillatk[i].id && sd->skillatk[i].id != skill_num; i++);
+				if (i < MAX_PC_BONUS && sd->skillatk[i].id == skill_num)
+					ad.damage += ad.damage*sd->skillatk[i].val/100;
+			}
+
 			//Ignore Defense?
 			if (!flag.imdef && (
 				sd->ignore_mdef_ele & (1<<tstatus->def_ele) ||
@@ -2631,8 +2636,10 @@ struct Damage  battle_calc_misc_attack(
 			pc_payzeny(sd, md.damage);
 		}
 
-		if(is_boss(target) || tsd || map_flag_gvg2(target->m))
+		if (is_boss(target))
 			md.damage=md.damage/3;
+		else if (tsd)
+			md.damage=md.damage/2;
 		break;
 	case GS_FLING:
 		md.damage = sd?sd->status.job_level:status_get_lv(src);
@@ -3221,7 +3228,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		case BL_MOB:
 		{
 			TBL_MOB *md = (TBL_MOB*)t_bl;
-			
+
 			if (!agit_flag && md->guardian_data && md->guardian_data->guild_id)
 				return 0; //Disable guardians/emperiums owned by Guilds on non-woe times.
 			break;
@@ -3294,15 +3301,15 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			TBL_MOB*md = (TBL_MOB*)s_bl;
 			if (!agit_flag && md->guardian_data && md->guardian_data->guild_id)
 				return 0; //Disable guardians/emperium owned by Guilds on non-woe times.
-			if (!md->special_state.ai) { //Normal mobs.
-				if (t_bl->type == BL_MOB && !((TBL_MOB*)t_bl)->special_state.ai)
-					state |= BCT_PARTY; //Normal mobs with no ai are friends.
-				else
-					state |= BCT_ENEMY; //However, all else are enemies.
-			} else {
-				if (t_bl->type == BL_MOB && !((TBL_MOB*)t_bl)->special_state.ai)
-					state |= BCT_ENEMY; //Natural enemy for AI mobs are normal mobs.
-			}
+				if (!md->special_state.ai) { //Normal mobs.
+					if (t_bl->type == BL_MOB && !((TBL_MOB*)t_bl)->special_state.ai)
+						state |= BCT_PARTY; //Normal mobs with no ai are friends.
+					else
+						state |= BCT_ENEMY; //However, all else are enemies.
+				} else {
+					if (t_bl->type == BL_MOB && !((TBL_MOB*)t_bl)->special_state.ai)
+						state |= BCT_ENEMY; //Natural enemy for AI mobs are normal mobs.
+				}
 			break;
 		}
 		default:
@@ -3461,7 +3468,6 @@ static const struct battle_data_short {
 	{ "clear_skills_on_warp",              &battle_config.clear_unit_onwarp },
 	{ "random_monster_checklv",            &battle_config.random_monster_checklv	},
 	{ "attribute_recover",                 &battle_config.attr_recover				},
-	{ "flooritem_lifetime",                &battle_config.flooritem_lifetime		},
 	{ "item_auto_get",                     &battle_config.item_auto_get			},
 	{ "drop_rate0item",                    &battle_config.drop_rate0item			},
 	{ "pvp_exp",                           &battle_config.pvp_exp		},
@@ -3764,6 +3770,7 @@ static const struct battle_data_int {
 	const char *str;
 	int *val;
 } battle_data_int[] = {	//List here battle_athena options which are type int!
+	{ "flooritem_lifetime",                &battle_config.flooritem_lifetime		},
 	{ "item_first_get_time",               &battle_config.item_first_get_time		},
 	{ "item_second_get_time",              &battle_config.item_second_get_time		},
 	{ "item_third_get_time",               &battle_config.item_third_get_time		},

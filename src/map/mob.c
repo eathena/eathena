@@ -1033,7 +1033,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	if(md->bl.prev == NULL || md->status.hp <= 0)
 		return 1;
 		
-	if (DIFF_TICK(tick, md->last_thinktime) < md->db->min_thinktime)
+	if (DIFF_TICK(tick, md->last_thinktime) < MIN_MOBTHINKTIME)
 		return 0;
 	md->last_thinktime = tick;
 
@@ -1126,14 +1126,6 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					tbl = abl; //Set the new target
 				}
 			}
-		}
-		if (md->state.aggressive && md->attacked_id == md->target_id)
-		{	//No longer aggressive, change to retaliate AI.
-			md->state.aggressive = 0;
-			if(md->state.skillstate== MSS_ANGRY)
-				md->state.skillstate = MSS_BERSERK;
-			if(md->state.skillstate== MSS_FOLLOW)
-				md->state.skillstate = MSS_RUSH;
 		}
 		//Clear it since it's been checked for already.
 		md->attacked_id = 0;
@@ -1307,7 +1299,7 @@ static int mob_ai_sub_lazy(DBKey key,void * data,va_list ap)
 
 	tick=va_arg(ap,unsigned int);
 
-	if(DIFF_TICK(tick,md->last_thinktime)< 10*md->db->min_thinktime)
+	if(DIFF_TICK(tick,md->last_thinktime)< 10*MIN_MOBTHINKTIME)
 		return 0;
 
 	md->last_thinktime=tick;
@@ -1519,8 +1511,18 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 {
 	int char_id = 0;
 
-	if (damage > 0) //Store total damage...
+	if (damage > 0)
+	{	//Store total damage...
 		md->tdmg+=damage;
+		if (md->state.aggressive)
+		{	//No longer aggressive, change to retaliate AI.
+			md->state.aggressive = 0;
+			if(md->state.skillstate== MSS_ANGRY)
+				md->state.skillstate = MSS_BERSERK;
+			if(md->state.skillstate== MSS_FOLLOW)
+				md->state.skillstate = MSS_RUSH;
+		}
+	}
 
 	if(md->guardian_data && md->guardian_data->number < MAX_GUARDIANS) // guardian hp update [Valaris] (updated by [Skotlex])
 		md->guardian_data->castle->guardian[md->guardian_data->number].hp = md->status.hp;
@@ -2807,7 +2809,6 @@ int mob_clone_spawn(struct map_session_data *sd, int m, int x, int y, const char
 	mob_db_data[class_]->job_exp=1;
 	mob_db_data[class_]->range2=AREA_SIZE; //Let them have the same view-range as players.
 	mob_db_data[class_]->range3=AREA_SIZE; //Min chase of a screen.
-	mob_db_data[class_]->min_thinktime = 500; //Average player's reflexes?
 	mob_db_data[class_]->option=sd->sc.option;
 
 	//Skill copy [Skotlex]
@@ -3005,7 +3006,6 @@ static int mob_makedummymobdb(int class_)
 	mob_dummy->status.adelay=1000;
 	mob_dummy->status.amotion=500;
 	mob_dummy->status.dmotion=500;
-	mob_dummy->min_thinktime=5000;
 	mob_dummy->base_exp=2;
 	mob_dummy->job_exp=1;
 	mob_dummy->range2=10;
@@ -3170,12 +3170,8 @@ static int mob_readdb(void)
 				status->mode&=~MD_AGGRESSIVE;
 			status->speed=atoi(str[26]);
 			status->aspd_rate = 1000;
-			db->min_thinktime=atoi(str[27]);
-			status->adelay = status->amotion=atoi(str[28]);
-			if (db->min_thinktime > status->adelay)
-				status->adelay = db->min_thinktime;
-			if (db->min_thinktime < MIN_MOBTHINKTIME)
-				db->min_thinktime = MIN_MOBTHINKTIME;
+			status->adelay = atoi(str[27]);
+			status->amotion = atoi(str[28]);
 			status->dmotion=atoi(str[29]);
 			if(battle_config.monster_damage_delay_rate != 100)
 				status->dmotion = status->dmotion*battle_config.monster_damage_delay_rate/100;
@@ -3874,12 +3870,8 @@ static int mob_read_sqldb(void)
 					status->mode&=~MD_AGGRESSIVE;
 				status->speed = TO_INT(26);
 				status->aspd_rate = 1000;
-				db->min_thinktime = TO_INT(27);
-				status->adelay = status->amotion = TO_INT(28);
-				if (db->min_thinktime > status->adelay)
-					status->adelay = db->min_thinktime;
-				if (db->min_thinktime < MIN_MOBTHINKTIME)
-					db->min_thinktime = MIN_MOBTHINKTIME;
+				status->adelay = TO_INT(27);
+				status->amotion = TO_INT(28);
 				status->dmotion = TO_INT(29);
 				if(battle_config.monster_damage_delay_rate != 100)
 					status->dmotion = status->dmotion*battle_config.monster_damage_delay_rate/100;

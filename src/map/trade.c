@@ -75,55 +75,74 @@ void trade_traderequest(struct map_session_data *sd, struct map_session_data *ta
 
 /*==========================================
  * Reply to a trade-request.
+ * Type values:
+ * 0: Char is too far
+ * 1: Character does not exists
+ *	2: Trade failed
+ * 3: Accept
+ * 4: Cancel
+ * Weird enough, the client should only send 3/4
+ * and the server is the one that can reply 0~2
  *------------------------------------------
  */
 void trade_tradeack(struct map_session_data *sd, int type) {
-	struct map_session_data *target_sd;
+	struct map_session_data *tsd;
 	nullpo_retv(sd);
 
 	if (sd->state.trading || !sd->trade_partner)
 		return; //Already trading or no partner set.
 	
-	if ((target_sd = map_id2sd(sd->trade_partner)) == NULL) {
+	if ((tsd = map_id2sd(sd->trade_partner)) == NULL) {
 		sd->trade_partner=0;
+		clif_tradestart(sd, 1); // character does not exist
 		return;
 	}
 
-	if (target_sd->state.trading || target_sd->trade_partner != sd->bl.id)
+	if (tsd->state.trading || tsd->trade_partner != sd->bl.id)
+	{
+		clif_tradestart(sd, 2);
 		return; //Already trading or wrong partner.
+	}
+
+	if (type == 4) { // Cancel
+		sd->state.deal_locked = 0;
+		sd->trade_partner = 0;
+		tsd->state.deal_locked = 0;
+		tsd->trade_partner = 0;
+		clif_tradestart(tsd, type);
+		clif_tradestart(sd, type);
+		return;
+	}
+
+	if (type != 3)
+		return; //If client didn't send accept, it's a broken packet?
 
 	//Copied here as well since the original character could had warped.
-	if (type == 3 && pc_isGM(target_sd) < lowest_gm_level && (sd->bl.m != target_sd->bl.m ||
-		!check_distance_bl(&sd->bl, &target_sd->bl, TRADE_DISTANCE)
+	if (pc_isGM(tsd) < lowest_gm_level && (sd->bl.m != tsd->bl.m ||
+		!check_distance_bl(&sd->bl, &tsd->bl, TRADE_DISTANCE)
 	)) {
 		sd->trade_partner=0;
-		target_sd->trade_partner = 0;
+		tsd->trade_partner = 0;
 		clif_tradestart(sd, 0); // too far
 		return;
 	}
 
-	//TODO: Type 4/3? What would 1/2 and the rest do?	
-	if (type == 4) { // Cancel
-		sd->state.deal_locked = 0;
-		sd->trade_partner = 0;
-		target_sd->state.deal_locked = 0;
-		target_sd->trade_partner = 0;
-		clif_tradestart(target_sd, type);
-		clif_tradestart(sd, type);
+	//Check if you can start trade.
+	if (sd->npc_id || sd->vender_id || sd->state.storage_flag ||
+		tsd->npc_id || tsd->vender_id || tsd->state.storage_flag)
+	{	//Fail
+		clif_tradestart(sd, 2);
+		clif_tradestart(tsd, 2);
+		return;
 	}
 
-	if (type == 3) { //Initiate trade
-		sd->state.trading = 1;
-		target_sd->state.trading = 1;
-		memset(&sd->deal, 0, sizeof(sd->deal));
-		memset(&target_sd->deal, 0, sizeof(target_sd->deal));
-		clif_tradestart(target_sd, type);
-		clif_tradestart(sd, type);
-		if (sd->npc_id)
-			npc_event_dequeue(sd);
-		if (target_sd->npc_id)
-			npc_event_dequeue(target_sd);
-	}
+	//Initiate trade
+	sd->state.trading = 1;
+	tsd->state.trading = 1;
+	memset(&sd->deal, 0, sizeof(sd->deal));
+	memset(&tsd->deal, 0, sizeof(tsd->deal));
+	clif_tradestart(tsd, type);
+	clif_tradestart(sd, type);
 }
 
 /*==========================================
@@ -293,7 +312,13 @@ void trade_tradeadditem(struct map_session_data *sd, int index, int amount) {
 		trade_tradecancel(sd);
 		return;
 	}
-	
+
+	if (amount == 0)
+	{	//Why do this.. ~.~ just send an ack, the item won't display on the trade window.
+		clif_tradeitemok(sd, index, 0);
+		return;
+	}
+
 	if (index == 0)
 	{	//Adding Zeny
 		if (amount >= 0 && amount <= sd->status.zeny && // check amount
@@ -301,14 +326,14 @@ void trade_tradeadditem(struct map_session_data *sd, int index, int amount) {
 		{	//Check Ok
 			sd->deal.zeny = amount;
 			clif_tradeadditem(sd, target_sd, 0, amount);
-		} else //Cancel Transaction
-			clif_tradeitemok(sd, 0, 1); //Send overweight when trying to add too much zeny? Hope they get the idea...
+		} else //Send overweight when trying to add too much zeny? Hope they get the idea...
+			clif_tradeitemok(sd, 0, 1);
 		return;
 	}
-	//Add an Item
+
 	index = index -2; //Why the actual index used is -2?
 	//Item checks...
-	if (index < 0 || index > MAX_INVENTORY)
+	if (index < 0 || index >= MAX_INVENTORY)
 		return;
 	if (amount < 0 || amount > sd->status.inventory[index].amount)
 		return;
@@ -331,7 +356,10 @@ void trade_tradeadditem(struct map_session_data *sd, int index, int amount) {
 			break;
 	}
 	if (trade_i >= 10)	//No space left
+	{
+		clif_tradeitemok(sd, index+2, 1);
 		return;
+	}
 
 	trade_weight = sd->inventory_data[index]->weight * amount;
 	if (target_sd->weight + sd->deal.weight + trade_weight > target_sd->max_weight)

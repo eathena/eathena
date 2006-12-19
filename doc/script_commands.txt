@@ -9,7 +9,7 @@
 //= Maeki Rika - A section on general concepts and lots of
 //=              other updates and additions.
 //===== Version ===========================================
-//= 2.7c
+//= 2.8a
 //=========================================================
 //= 1.0 - First release, filled will as much info as I could
 //=       remember or figure out, most likely there are errors,
@@ -675,10 +675,10 @@ This label will be executed if a trigger area is defined for the NPC object it's
 in. If it isn't present, the execution will start from the beginning of the NPC 
 code. The RID of the triggering character object will be attached.
 
-PCDieEvent:
-PCKillEvent:
-PCLogoutEvent:
-PCLoginEvent:
+OnPCDieEvent:
+OnPCKillEvent:
+OnPCLogoutEvent:
+OnPCLoginEvent:
 
 These four special labels will be invoked if you have set 'event_script_type' 
 value in your 'script_athena.conf' to 1, and you can change their names by 
@@ -2731,7 +2731,25 @@ it is better to use 'checkcart','checkfalcon','checkpeco' and other similar
 functions, but there are some options which you cannot get at this way. They 
 return 1 if the option is set and 0 if the option is not set.
 
-Option numbers valid for the first version of this command are:
+Option numbers valid for the first (option) version of this command are:
+
+0x1    - Sight in effect.
+0x2    - Hide in effect.
+0x4    - Cloaking in effect.
+0x8    - Cart number 1 present.
+0x10   - Falcon present.
+0x20   - Peco Peco present.
+0x40   - GM Perfect Hide in effect.
+0x80   - Cart number 2 present.
+0x100  - Cart number 3 present.
+0x200  - Cart number 4 present.
+0x400  - Cart number 5 present.
+0x800  - Orc head present.
+0x1000 - The character is wearing a wedding sprite.
+0x2000 - Ruwach is in effect.
+0x4000 - Chasewalk in effect.
+
+Option numbers valid for the second version (opt1) of this command are:
 
 1  - Petrified.
 2  - Frozen.
@@ -2739,7 +2757,7 @@ Option numbers valid for the first version of this command are:
 4  - Sleeping.
 6	- Petrifying (the state where you can still walk)
 
-Option numbers valid for the second version of this command are:
+Option numbers valid for the third version (opt2) of this command are:
 
 1 - Poisoned.
 2 - Cursed.
@@ -2747,32 +2765,17 @@ Option numbers valid for the second version of this command are:
 8 - Signum Crucis (plays a howl-like sound effect, but otherwise no visible effects are displayed)
 16 - Blinded.
 
-Option numbers valid for the third version of this command are:
-
-1    - Sight in effect.
-2    - Hide in effect.
-4    - Cloaking in effect.
-8    - Falcon present.
-64   - GM Perfect Hide in effect.
-128  - Cart number 2 present.
-256  - Cart number 3 present.
-512  - Cart number 4 present.
-1024 - Cart number 5 present.
-2048 - Orc head present.
-4096 - The character is wearing a wedding sprite.
-8192 - Ruwach is in effect.
-16384 - Chasewalk in effect.
-
-Option numbers are bitmasks - add up option numbers to check for all of them 
-being present at the same time in one go.
+Option numbers (except for opt1) are bitmasks - you can add them up to check
+ for several states, but the functions will return true if at least one of them
+ is in effect.
 
 'setoption' will set options on the invoking character. There are no second and 
-third versions of this command, so you can only change the values in the last
+third versions of this command, so you can only change the values in the first 
 list (cloak, cart, ruwach, etc). if flag is 1 (default when omitted),
 the option will be added to what the character currently has; if 0, the option is removed. 
 
 This is definitely not a complete list of available option flag numbers. Ask a 
-core developer for the full list.
+core developer (or read the source: src/map/status.h) for the full list.
 
 ---------------------------------------
 
@@ -2843,7 +2846,7 @@ unsigned int which loops every ~50 days.
 
 Just in case you don't know, UNIX epoch time is the number of seconds elapsed 
 since 1st of January 1970, and is useful to see, for example, for how long the 
-character has been online with PCLoginEvent and PCLogoutEvent, which could allow 
+character has been online with OnPCLoginEvent and OnPCLogoutEvent, which could allow 
 you to make an 'online time counted for conviction only' jail script.
 
 ---------------------------------------
@@ -4794,8 +4797,8 @@ currently has active. Valid types are:
  1 - Pet ID number as per 'db/pet_db.txt' - will tell you what kind of a pet it 
      is.
  2 - Pet name. Will return "null" if there's no pet. 
- 4 - Pet friendly level (intimacy score). 1000 is full loyalty.
- 3 - Pet hungry level. 100 is completely full.
+ 3 - Pet friendly level (intimacy score). 1000 is full loyalty.
+ 4 - Pet hungry level. 100 is completely full.
 
 ---------------------------------------
 
@@ -5031,7 +5034,7 @@ mes "3."+@name$[2]+"("+@fame[2]+")";
 mes "4."+@name$[3]+"("+@fame[3]+")";
 mes "5."+@name$[4]+"("+@fame[4]+")";
 
-Note: It is available in SQL version only.
+Note: In the TXT version it doesn't fill the array and always return -1.
 Note: Use Text$[] array to recieve all data as text.
 
 ---------------------------------------

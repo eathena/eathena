@@ -208,7 +208,6 @@ int chrif_save(struct map_session_data *sd, int flag)
 		intif_saveregistry(sd, 2); //Save account regs
 	if (sd->state.reg_dirty&1)
 		intif_saveregistry(sd, 1); //Save account2 regs
-
 #ifndef TXT_ONLY
 	if(charsave_method){ //New 'Local' save
 		charsave_savechar(sd->status.char_id, &sd->status);
@@ -315,9 +314,11 @@ int chrif_removemap(int fd){
 }
 
 int chrif_save_ack(int fd) {
-	int aid = RFIFOL(fd,2), cid = RFIFOL(fd,6);
-	struct map_session_data *sd = map_id2sd(aid);
-	if (sd && sd->status.char_id == cid)
+	struct map_session_data *sd;
+	RFIFOHEAD(fd);
+	sd = map_id2sd(RFIFOL(fd,2));
+
+	if (sd && sd->status.char_id == RFIFOL(fd,6))
 		map_quit_ack(sd);
 	return 0;
 }

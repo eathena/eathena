@@ -109,8 +109,8 @@ extern struct Battle_Config {
 	unsigned short clear_unit_onwarp; //[Skotlex]
 	unsigned short random_monster_checklv;
 	unsigned short attr_recover;
-	unsigned short flooritem_lifetime;
 	unsigned short item_auto_get;
+	int flooritem_lifetime;
 	int item_first_get_time;
 	int item_second_get_time;
 	int item_third_get_time;
