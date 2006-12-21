@@ -3172,6 +3172,9 @@ static int mob_readdb(void)
 			status->aspd_rate = 1000;
 			status->adelay = atoi(str[27]);
 			status->amotion = atoi(str[28]);
+			//If the attack animation is longer than the delay, the client crops the attack animation!
+			if (status->adelay < status->amotion)
+				status->adelay = status->amotion;
 			status->dmotion=atoi(str[29]);
 			if(battle_config.monster_damage_delay_rate != 100)
 				status->dmotion = status->dmotion*battle_config.monster_damage_delay_rate/100;
@@ -3872,6 +3875,9 @@ static int mob_read_sqldb(void)
 				status->aspd_rate = 1000;
 				status->adelay = TO_INT(27);
 				status->amotion = TO_INT(28);
+				//If the attack animation is longer than the delay, the client crops the attack animation!
+				if (status->adelay < status->amotion)
+					status->adelay = status->amotion;
 				status->dmotion = TO_INT(29);
 				if(battle_config.monster_damage_delay_rate != 100)
 					status->dmotion = status->dmotion*battle_config.monster_damage_delay_rate/100;
