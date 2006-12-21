@@ -3474,6 +3474,7 @@ int parse_char(int fd) {
 			WFIFOHEAD(fd, 46);
 			ShowInfo(CL_RED" Request Char Deletion:"CL_GREEN"%d (%d)"CL_RESET"\n", sd->account_id, cid);
 			memcpy(email, RFIFOP(fd,6), 40);
+			RFIFOSKIP(fd, 46);
 			
 			/* Check if e-mail is correct */
 			if(strcmpi(email, sd->email)){
@@ -3485,7 +3486,6 @@ int parse_char(int fd) {
 						WFIFOW(fd, 0) = 0x70;
 						WFIFOB(fd, 2) = 0;
 						WFIFOSET(fd, 3);
-						RFIFOSKIP(fd, 46);
 						break;
 					}
 				}else{
@@ -3493,15 +3493,11 @@ int parse_char(int fd) {
 					WFIFOW(fd, 0) = 0x70;
 					WFIFOB(fd, 2) = 0;
 					WFIFOSET(fd, 3);
-					RFIFOSKIP(fd, 46);
 					break;
 				}
 			}
 			
 			for(i = 0; i < 9; i++) {
-				/* Debug:
-				printf("Checking if char to be deleted: %d - %d (%d)\n", sd->found_char[i], RFIFOL(fd, 2), sd->account_id);
-				*/				
 				if (sd->found_char[i] == cid) {
 					for(ch = i; ch < 9-1; ch++)
 						sd->found_char[ch] = sd->found_char[ch+1];
@@ -3544,13 +3540,12 @@ int parse_char(int fd) {
 					WFIFOW(fd, 0) = 0x70;
 					WFIFOB(fd, 2) = 0;
 					WFIFOSET(fd, 3);
-					RFIFOSKIP(fd, 46);
 					break;
 				}
 				if (char_pid != 0)
 				{	/* If there is partner, tell map server to do divorce */
 					WBUFW(buf,0) = 0x2b12;
-					WBUFL(buf,2) = RFIFOL(fd,2);
+					WBUFL(buf,2) = cid;
 					WBUFL(buf,6) = char_pid;
 					mapif_sendall(buf,10);
 				}
@@ -3558,8 +3553,6 @@ int parse_char(int fd) {
 			/* Char successfully deleted.*/
 			WFIFOW(fd, 0) = 0x6f;
 			WFIFOSET(fd, 2);
-				
-			RFIFOSKIP(fd, 46);
 			break;
 		}
 		case 0x2af8: // login as map-server
