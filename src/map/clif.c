@@ -279,6 +279,7 @@ int clif_send_sub(struct block_list *bl, va_list ap)
 				//given buffer to prevent intravision affecting the packet as 
 				//it's being received by everyone. [Skotlex]
 				if ((sd->special_state.intravision || sd->sc.data[SC_INTRAVISION].timer != -1 ) && bl != src_bl) {
+
 					struct status_change *sc = status_get_sc(src_bl);
 					if(sc && (sc->option&(OPTION_HIDE|OPTION_CLOAK)))
 					{	//option‚ÌC³
@@ -7891,53 +7892,72 @@ void clif_feel_hate_reset(struct map_session_data *sd)
 // clif_guess_PacketVer
 // ---------------------
 // Parses a WantToConnection packet to try to identify which is the packet version used. [Skotlex]
-static int clif_guess_PacketVer(int fd, int get_previous)
+// error codes:
+// 0 - Success
+// 1 - Unknown packet_ver
+// 2 - Invalid account_id
+// 3 - Invalid char_id
+// 4 - Invalid login_id1 (reserved)
+// 5 - Invalid client_tick (reserved)
+// 6 - Invalid sex
+// Only the first 'invalid' error that appears is used.
+static int clif_guess_PacketVer(int fd, int get_previous, int *error)
 {
+	static int err = 1;
 	static int packet_ver = -1;
 	int cmd, packet_len, value; //Value is used to temporarily store account/char_id/sex
 	RFIFOHEAD(fd);
-	
-	if (get_previous) //For quick reruns, since the normal code flow is to fetch this once to identify the packet version, then again in the wanttoconnect function. [Skotlex]
-		return packet_ver;
 
-	//By default, start searching on the default one. 
+	if (get_previous)
+	{//For quick reruns, since the normal code flow is to fetch this once to identify the packet version, then again in the wanttoconnect function. [Skotlex]
+		if( error )
+			*error = err;
+		return packet_ver;
+	}
+
+	//By default, start searching on the default one.
+	err = 1;
 	packet_ver = clif_config.packet_db_ver;
 	cmd = RFIFOW(fd,0);
 	packet_len = RFIFOREST(fd);
-	
-	if (
-		cmd == clif_config.connect_cmd[packet_ver] &&
-		packet_len == packet_db[packet_ver][cmd].len &&
-		((value = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4])) == 0 ||	value == 1) &&
-		(value = RFIFOL(fd, packet_db[packet_ver][cmd].pos[0])) > 700000 && //Account ID is valid
-		 value <= max_account_id &&
-		(value = RFIFOL(fd, packet_db[packet_ver][cmd].pos[1])) > 0 &&	//Char ID is valid
-		 value <= max_char_id &&
-		(int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]) > 0	//Login 1 is a positive value (?)
-		)
-		return clif_config.packet_db_ver; //Default packet version found.
+
+#define SET_ERROR(n) \
+	if( err == 1 )\
+		err = n;\
+//define SET_ERROR
+
+#define CHECK_PACKET_VER() \
+	if( cmd != clif_config.connect_cmd[packet_ver] || packet_len != packet_db[packet_ver][cmd].len )\
+		;/* not wanttoconnection or wrong length */\
+	else if( (value=(int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[0])) < START_ACCOUNT_NUM || value > max_account_id )\
+	{ SET_ERROR(2); }/* invalid account_id */\
+	else if( (value=(int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[1])) <= 0 || value > max_char_id )\
+	{ SET_ERROR(3); }/* invalid char_id */\
+	/*                   RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]) - don't care about login_id1 */\
+	/*                   RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]) - don't care about client_tick */\
+	else if( (value=(int)RFIFOB(fd, packet_db[packet_ver][cmd].pos[4])) != 0 && value != 1 )\
+	{ SET_ERROR(6); }/* invalid sex */\
+	else\
+	{\
+		err = 0;\
+		if( error )\
+			*error = 0;\
+		return packet_ver;\
+	}\
+//define CHECK_PACKET_VER
+
+	CHECK_PACKET_VER();//Default packet version found.
 	
 	for (packet_ver = MAX_PACKET_VER; packet_ver > 0; packet_ver--)
 	{	//Start guessing the version, giving priority to the newer ones. [Skotlex]
-		if (cmd != clif_config.connect_cmd[packet_ver] ||	//it is not a wanttoconnection for this version.
-			packet_len != packet_db[packet_ver][cmd].len)	//The size of the wantoconnection packet does not matches.
-			continue;
-	
-		if (
-			(value = RFIFOL(fd, packet_db[packet_ver][cmd].pos[0])) < 700000 || value > max_account_id
-			|| (value = RFIFOL(fd, packet_db[packet_ver][cmd].pos[1])) < 1 || value > max_char_id
-			//What is login 1? In my tests it is a very very high value.
-			|| (int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]) < 1
-			//This check seems redundant, all wanttoconnection packets have the gender on the very 
-			//last byte of the packet.
-			|| (value = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4])) < 0 || value > 1
-		)
-			continue;
-		
-		return packet_ver; //This is our best guess.
+		CHECK_PACKET_VER();
 	}
+	if( error )
+		*error = err;
 	packet_ver = -1;
 	return -1;
+#undef SET_ERROR
+#undef CHECK_PACKET_VER
 }
 
 // ------------
@@ -7962,7 +7982,7 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 		return;
 	}
 
-	packet_ver = clif_guess_PacketVer(fd, 1);
+	packet_ver = clif_guess_PacketVer(fd, 1, NULL);
 	cmd = RFIFOW(fd,0);
 	
 	if (packet_ver <= 0)
@@ -8202,10 +8222,10 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
   	// If player is dead, and is spawned (such as @refresh) send death packet. [Valaris]
 	if(pc_isdead(sd))
 		clif_clearchar_area(&sd->bl,1);
-
 // Uncomment if you want to make player face in the same direction he was facing right before warping. [Skotlex]
 //	else
 //		clif_changed_dir(&sd->bl, SELF);
+
 //	Trigger skill effects if you appear standing on them
 	if(!battle_config.pc_invincible_time)
 		skill_unit_move(&sd->bl,gettick(),1);
@@ -11414,7 +11434,7 @@ void clif_parse_debug(int fd,struct map_session_data *sd)
  *------------------------------------------
  */
 int clif_parse(int fd) {
-	int packet_len = 0, cmd, packet_ver, dump = 0;
+	int packet_len = 0, cmd, packet_ver, err, dump = 0;
 	TBL_PC *sd;
 	RFIFOHEAD(fd);
 
@@ -11498,23 +11518,42 @@ int clif_parse(int fd) {
 	if (sd) {
 		packet_ver = sd->packet_ver;
 		if (packet_ver < 0 || packet_ver > MAX_PACKET_VER) {	// This should never happen unless we have some corrupted memory issues :X [Skotlex]
+			ShowWarning("clif_parse: Disconnecting session #%d (AID:%d/CID:%d) for having invalid packet_ver=%d.", fd, sd->status.account_id, sd->status.char_id, packet_ver);
 			session[fd]->eof = 1;
 			return 0;
 		}
 	} else {
 		// check authentification packet to know packet version
-		packet_ver = clif_guess_PacketVer(fd, 0);
-		// check if version is accepted
-		if (packet_ver < 5 ||	// reject really old client versions
+		packet_ver = clif_guess_PacketVer(fd, 0, &err);
+		if (err || // unknown packet version
+			packet_ver < 5 ||	// reject really old client versions
 			(packet_ver <= 9 && (battle_config.packet_ver_flag & 1) == 0) ||	// older than 6sept04
 			(packet_ver > 9 && (battle_config.packet_ver_flag & 1<<(packet_ver-9)) == 0) ||
 			packet_ver > MAX_PACKET_VER)	// no packet version support yet
 		{
-			ShowInfo("clif_parse: Disconnecting session #%d for not having latest client version (has version %d).\n", fd, packet_ver);
-			WFIFOHEAD(fd, 23);
+			if( err )
+			{// failed to identify
+				ShowInfo("clif_parse: Disconnecting session #%d with unknown packet version%s.\n", fd, (
+					err == 1 ? "" :
+					err == 2 ? ", possibly for having an invalid account_id" :
+					err == 3 ? ", possibly for having an invalid char_id." :
+					/* Uncomment when checks are added in clif_guess_PacketVer. [FlavioJS]
+					err == 4 ? ", possibly for having an invalid login_id1." :
+					err == 5 ? ", possibly for having an invalid client_tick." :
+					*/
+					err == 6 ? ", possibly for having an invalid sex." :
+					". ERROR invalid error code"));
+				err = 3; // 3 = Rejected from Server
+			}
+			else
+			{// version not accepted
+				ShowInfo("clif_parse: Disconnecting session #%d for not having latest client version (has version %d).\n", fd, packet_ver);
+				err = 5; // 05 = Game's EXE is not the latest version
+			}
+			WFIFOHEAD(fd,packet_len(0x6a));
 			WFIFOW(fd,0) = 0x6a;
-			WFIFOB(fd,2) = 5; // 05 = Game's EXE is not the latest version
-			WFIFOSET(fd,23);
+			WFIFOB(fd,2) = err; 
+			WFIFOSET(fd,packet_len(0x6a));
 			packet_len = RFIFOREST(fd);
 			RFIFOSKIP(fd, packet_len);
 			clif_setwaitclose(fd);

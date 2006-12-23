@@ -4,8 +4,6 @@
 #ifndef _LOGIN_H_
 #define _LOGIN_H_
 
-#include "../common/mmo.h"
-
 #define MAX_SERVERS 30
 
 #define LOGIN_CONF_NAME "conf/login_athena.conf"
@@ -14,8 +12,6 @@
                      	// It is 1 at the time of passwordencrypt.
                      	// It is made into 2 at the time of passwordencrypt2.
                      	// When it is made 3, it corresponds to both.
-#define START_ACCOUNT_NUM 2000000
-#define END_ACCOUNT_NUM 100000000
 
 extern int login_port;
 struct mmo_account {

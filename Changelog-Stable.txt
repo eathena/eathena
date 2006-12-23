@@ -5,6 +5,10 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2006/12/23
+	* Merged START_ACCOUNT_NUM and END_ACCOUNT_NUM moved from login.h to mmo.h
+	* Merged more helpfull error messages when packet_ver=-1. (no more 
+	  "clif_parse: Disconnecting session #XX for not having latest client version (has version -1)."
+	  messages).
 	* Merged the increase of MAX_PACKET_DB to 0x300 and the warning for when 
 	  packet ids greater than MAX_PACKET_DB are found.
 	* Merged packet_len_table moved to packet_db[SERVER] and entries of 
