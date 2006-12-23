@@ -4,6 +4,14 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2006/12/22
+	* Merged fix that made it so trying to re-strip a character would fail and
+	  end their current strip state.
+	* Merged the workaround that protects status inducing skills from causing
+	  status changes right after ending them (like hitting Frozen enemies with
+	  Frost Diver)
+	* Merged Taekwon class getting their mission data to prevent skill resets
+	  from being usable to reset the mission variables.
 2006/12/21
 	* Some cleaning to the character deletion code.
 	* Added back cropping the attack delay to attack motion for those weird

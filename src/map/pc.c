@@ -791,7 +791,8 @@ int pc_reg_received(struct map_session_data *sd)
 	sd->change_level = pc_readglobalreg(sd,"jobchange_level");
 	sd->die_counter = pc_readglobalreg(sd,"PC_DIE_COUNTER");
 
-	if (pc_checkskill(sd, TK_MISSION)) {
+	if ((sd->class_&MAPID_BASEMASK)==MAPID_TAEKWON)
+  	{	//Better check for class rather than skill to prevent "skill resets" from unsetting this
 		sd->mission_mobid = pc_readglobalreg(sd,"TK_MISSION_ID");
 		sd->mission_count = pc_readglobalreg(sd,"TK_MISSION_COUNT");
 	}
@@ -5739,7 +5740,6 @@ int pc_setcart(struct map_session_data *sd,int type)
 			pc_setoption(sd,option);
 			clif_cartlist(sd);
 			clif_updatestatus(sd,SP_CARTINFO);
-			clif_status_change(&sd->bl,SI_INCREASEAGI,0); //0x0c is 12, Increase Agi??
 		}
 		else{
 			pc_setoption(sd,option);
