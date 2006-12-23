@@ -1,4 +1,9 @@
 Date	Added
+2006/12/23
+	* preparing the switch to new skill/status code;
+	  created some new files and moved old code
+	* adding some new access interfaces for status changes, 
+	  which are however still incomplete
 2006/12/16
 	* tryed to comensate warning from changed behaviour on mysql5
 	  (at least as far as I foresee them, I don't use mysql)

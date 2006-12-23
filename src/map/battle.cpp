@@ -171,11 +171,11 @@ int battle_damage(block_list *bl, block_list *target, int damage, int flag)
 	if( !flag && sc_data)
 	{
 		// 凍結、石化、睡眠を消去
-		if (sc_data[SC_FREEZE].timer != -1)
+		if( target->has_status(SC_FREEZE) )
 			status_change_end(target,SC_FREEZE,-1);
-		if (sc_data[SC_STONE].timer!=-1 && sc_data[SC_STONE].val2.num == 0)
+		if( target->has_status(SC_STONE) && sc_data[SC_STONE].val2.num == 0)
 			status_change_end(target,SC_STONE,-1);
-		if (sc_data[SC_SLEEP].timer != -1)
+		if( target->has_status(SC_SLEEP) )
 			status_change_end(target,SC_SLEEP,-1);
 	}
 
@@ -283,7 +283,7 @@ int battle_calc_damage(block_list *src,block_list *bl,int damage,int div_,int sk
 	sc_data = status_get_sc_data(bl);
 	if(sc_data)
 	{
-		if (sc_data[SC_SAFETYWALL].timer!=-1 && damage>0 && flag&BF_WEAPON &&
+		if( bl->has_status(SC_SAFETYWALL) && damage>0 && flag&BF_WEAPON &&
 			flag&BF_SHORT && skill_num != NPC_GUIDEDATTACK && skill_num != AM_DEMONSTRATION)
 		{	// セーフティウォール
 			struct skill_unit *unit = (struct skill_unit *)sc_data[SC_SAFETYWALL].val2.ptr;
@@ -4133,9 +4133,9 @@ struct Damage battle_calc_weapon_attack(block_list *src,block_list *target,int s
 		if (config.equip_self_break_rate && sd->status.weapon != 11)
 		{	//Self weapon breaking chance (Bows exempted)
 			int breakrate = config.equip_natural_break_rate;	//default self weapon breaking chance [DracoRPG]
-				if(sd->sc_data[SC_OVERTHRUST].timer!=-1)
+				if(sd->has_status(SC_OVERTHRUST) )
 					breakrate += 10;
-				if(sd->sc_data[SC_MAXOVERTHRUST].timer!=-1)
+				if(sd->has_status(SC_MAXOVERTHRUST) )
 					breakrate += 10;				
 
 			if((size_t)rand() % 10000 < breakrate * config.equip_self_break_rate / 100 || breakrate >= 10000)
@@ -4156,7 +4156,7 @@ struct Damage battle_calc_weapon_attack(block_list *src,block_list *target,int s
 			breakrate_[0] += sd->break_weapon_rate;
 			breakrate_[1] += sd->break_armor_rate;
 
-			if (sd->sc_data[SC_MELTDOWN].timer!=-1)
+			if( sd->has_status(SC_MELTDOWN) )
 			{
 				breakrate_[0] += 100*sd->sc_data[SC_MELTDOWN].val1.num;
 				breakrate_[1] = 70*sd->sc_data[SC_MELTDOWN].val1.num;

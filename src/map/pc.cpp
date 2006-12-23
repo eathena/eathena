@@ -1560,16 +1560,22 @@ int pc_checkweighticon(map_session_data &sd)
 	if(sd.weight*10 >= sd.max_weight*9)
 		flag=2;
 
-	if(flag==1){
-		if(sd.sc_data[SC_WEIGHT50].timer==-1)
+	if(flag==1)
+	{
+		if( !sd.has_status(SC_WEIGHT50) )
 			status_change_start(&sd,SC_WEIGHT50,0,0,0,0,0,0);
-	}else{
+	}
+	else
+	{
 		status_change_end(&sd,SC_WEIGHT50,-1);
 	}
-	if(flag==2){
-		if(sd.sc_data[SC_WEIGHT90].timer==-1)
+	if(flag==2)
+	{
+		if( sd.has_status(SC_WEIGHT90) )
 			status_change_start(&sd,SC_WEIGHT90,0,0,0,0,0,0);
-	}else{
+	}
+	else
+	{
 		status_change_end(&sd,SC_WEIGHT90,-1);
 	}
 	return 0;

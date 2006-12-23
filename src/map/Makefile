@@ -19,7 +19,7 @@ include $(RETURN_PATH)/$(BASICS_PATH)/Makefile.dep
 include $(RETURN_PATH)/$(COMMON_PATH)/Makefile.dep
 ##########################################################
 
-OBJECTS = map.o chrif.o coordinate.o fightable.o movable.o pc.o npc.o chat.o path.o script.o storage.o skill.o atcommand.o battle.o intif.o trade.o party.o vending.o guild.o pet.o homun.o status.o npclisten.o mercenary.o config.o clif.o itemdb.o log.o mob.o
+OBJECTS = map.o chrif.o coordinate.o fightable.o movable.o pc.o npc.o chat.o path.o script.o storage.o skill.o atcommand.o battle.o intif.o trade.o party.o vending.o guild.o pet.o homun.o status.o npclisten.o mercenary.o config.o clif.o itemdb.o log.o mob.o oldskill.o oldstatus.o skillunit.o
 EXTLIBS = $(COMMON_STATICLIB) $(BASICS_STATICLIB)
 
 all map map-server: $(RETURN_PATH)/map-server
@@ -55,10 +55,13 @@ pc.o: pc.cpp map.h clif.h intif.h pc.h npc.h mob.h itemdb.h battle.h config.h sk
 pet.o: pet.cpp pet.h map.h clif.h chrif.h intif.h pc.h itemdb.h battle.h config.h mob.h npc.h script.h $(COMMON_H) $(BASICS_H)
 script.o: script.cpp itemdb.h map.h pc.h mob.h clif.h intif.h npc.h script.h storage.h skill.h pet.h battle.h config.h log.h $(COMMON_H) $(BASICS_H)
 skill.o: skill.cpp skill.h map.h clif.h pc.h mob.h battle.h config.h itemdb.h script.h $(COMMON_H) $(BASICS_H)
+skillunit.o: skillunit.cpp skill.h map.h clif.h pc.h mob.h battle.h config.h itemdb.h script.h $(COMMON_H) $(BASICS_H)
 status.o: status.cpp status.h clif.h intif.h pc.h map.h battle.h config.h $(COMMON_H) $(BASICS_H)
 storage.o: storage.cpp itemdb.h pc.h clif.h intif.h storage.h guild.h $(COMMON_H) $(BASICS_H)
 trade.o: trade.cpp trade.h clif.h itemdb.h map.h pc.h npc.h $(COMMON_H) $(BASICS_H)
 vending.o: vending.cpp vending.h clif.h itemdb.h map.h pc.h $(COMMON_H) $(BASICS_H)
+oldskill.o: oldskill.cpp skill.h map.h clif.h pc.h mob.h battle.h config.h itemdb.h script.h $(COMMON_H) $(BASICS_H)
+oldstatus.o: oldstatus.cpp status.h clif.h intif.h pc.h map.h battle.h config.h $(COMMON_H) $(BASICS_H)
 
 
 clean:

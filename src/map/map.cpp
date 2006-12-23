@@ -1834,7 +1834,7 @@ int map_quit(map_session_data &sd)
 		skill_castcancel(&sd,0);	// 詠唱を中?する
 
 	skill_stop_dancing(&sd,1);// ダンス/演奏中?
-	if(sd.sc_data && sd.sc_data[SC_BERSERK].timer!=-1) //バ?サ?ク中の終了はHPを100に
+	if( sd.has_status(SC_BERSERK) ) //バ?サ?ク中の終了はHPを100に
 	{
 		sd.status.hp = 100;
 		status_change_end(&sd,SC_BERSERK,-1);

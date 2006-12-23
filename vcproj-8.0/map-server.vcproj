@@ -221,6 +221,15 @@
 				RelativePath="..\src\map\vending.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\src\map\oldskill.cpp">
+			</File>
+			<File
+				RelativePath="..\src\map\oldstatus.cpp">
+			</File>
+			<File
+				RelativePath="..\src\map\skillunit.cpp">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -346,6 +355,15 @@
 			<File
 				RelativePath="..\src\map\vending.h"
 				>
+			</File>
+			<File
+				RelativePath="..\src\map\oldskill.h">
+			</File>
+			<File
+				RelativePath="..\src\map\oldstatus.h">
+			</File>
+			<File
+				RelativePath="..\src\map\skillunit.h">
 			</File>
 		</Filter>
 		<Filter

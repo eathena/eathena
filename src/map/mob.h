@@ -5,7 +5,7 @@
 #define _MOB_H_
 
 #include "fightable.h"
-
+#include "status.h"
 
 #define MAX_RANDOMMONSTER 3
 #define MAX_MOB_RACE_DB 6
@@ -246,7 +246,7 @@ struct mob_list
 
 };
 
-struct mob_data : public fightable
+struct mob_data : public affectable
 {
 	/////////////////////////////////////////////////////////////////
 	static mob_data* from_blid(uint32 id)
@@ -330,7 +330,6 @@ struct mob_data : public fightable
 	short move_fail_count;
 	short lootitem_count;
 
-	status_change sc_data[MAX_STATUSCHANGE];
 	short opt1;
 	short opt2;
 	short opt3;

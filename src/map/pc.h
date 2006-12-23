@@ -6,11 +6,12 @@
 #define _PC_H_
 
 #include "fightable.h"
+#include "skillunit.h"
+#include "status.h"
 
 
 
-
-struct map_session_data : public fightable, public session_data
+struct map_session_data : public affectable, public session_data
 {
 
 	/////////////////////////////////////////////////////////////////
@@ -361,7 +362,6 @@ public:
 	unsigned short regstr_num;
 	script_regstr *regstr;
 
-	status_change sc_data[MAX_STATUSCHANGE];
 	square dev;
 
 	uint32 trade_partner;

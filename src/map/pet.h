@@ -5,7 +5,7 @@
 #define _PET_H_
 
 #include "fightable.h"
-
+#include "pc.h"
 
 #define MAX_PET_DB	300
 #define MAX_PETLOOT_SIZE	30 // [Valaris] - Changed to MAX_PETLOOT_SIZE [Skotlex]

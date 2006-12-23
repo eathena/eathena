@@ -163,10 +163,10 @@ int mob_data::attacktimer_func(int tid, unsigned long tick, int id, basics::nump
 	if(md.opt1>0 || md.option&2)
 		return 0;
 
-	if(md.sc_data[SC_AUTOCOUNTER].timer != -1)
+	if( md.has_status(SC_AUTOCOUNTER) )
 		return 0;
 
-	if(md.sc_data[SC_BLADESTOP].timer != -1)
+	if( md.has_status(SC_BLADESTOP) )
 		return 0;
 
 	tbl = block_list::from_blid(md.target_id);
@@ -206,7 +206,7 @@ int mob_data::attacktimer_func(int tid, unsigned long tick, int id, basics::nump
 		md.state.targettype = NONE_ATTACKABLE;
 		return 0;
 	}
-	if(tsd && !(mode&0x20) && (tsd->sc_data[SC_TRICKDEAD].timer != -1 || tsd->sc_data[SC_BASILICA].timer != -1 ||
+	if(tsd && !(mode&0x20) && (tsd->has_status(SC_TRICKDEAD) || tsd->has_status(SC_BASILICA) ||
 		 ((tsd->is_hiding() || tsd->state.gangsterparadise) && !((race == 4 || race == 6 || mode&0x100) && !tsd->state.perfect_hiding) ) ) )
 	{
 		md.target_id=0;
@@ -1512,7 +1512,7 @@ public:
 		if((md.opt1 > 0 && md.opt1 != 6) || !md.can_act() || md.sc_data[SC_BLADESTOP].timer != -1)
 			return 0;
 
-		if (md.sc_data && md.sc_data[SC_BLIND].timer != -1)
+		if( md.has_status(SC_BLIND) )
 			blind_flag = 1;
 
 		if (!md.mode)
@@ -2112,7 +2112,7 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 		return 0;
 	}
 
-	if(md.sc_data[SC_ENDURE].timer == -1)
+	if( !md.has_status(SC_ENDURE) )
 		md.stop_walking(3);
 	if(damage > max_hp>>2)
 		skill_stop_dancing(&md,0);
@@ -2985,15 +2985,15 @@ int mobskill_castend_id(int tid, unsigned long tick, int id, basics::numptr data
 	md->skilltimer=-1;
 	//沈黙や状態異常など
 	if(md->sc_data){
-		if(md->opt1>0 || md->sc_data[SC_DIVINA].timer != -1 ||
-			(!(mob_db[md->class_].mode & 0x20) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
-			md->sc_data[SC_STEELBODY].timer != -1)
+		if(md->opt1>0 || md->has_status(SC_DIVINA) ||
+			(!(mob_db[md->class_].mode & 0x20) && md->has_status(SC_ROKISWEIL) ) ||
+			md->has_status(SC_STEELBODY) )
 			return 0;
-		if(md->sc_data[SC_AUTOCOUNTER].timer != -1 && md->skillid != KN_AUTOCOUNTER) //オートカウンター
+		if(md->has_status(SC_AUTOCOUNTER) && md->skillid != KN_AUTOCOUNTER) //オートカウンター
 			return 0;
-		if(md->sc_data[SC_BLADESTOP].timer != -1) //白刃取り
+		if(md->has_status(SC_BLADESTOP) ) //白刃取り
 			return 0;
-		if(md->sc_data[SC_BERSERK].timer != -1) //バーサーク
+		if(md->has_status(SC_BERSERK) ) //バーサーク
 			return 0;
 	}
 	if(md->skillid != NPC_EMOTION)
@@ -3074,7 +3074,7 @@ int mobskill_castend_pos(int tid, unsigned long tick, int id, basics::numptr dat
 
 	md->skilltimer=-1;
 	if(md->sc_data){
-		if(md->opt1>0 || md->sc_data[SC_DIVINA].timer != -1 ||
+		if(md->opt1>0 || md->has_status(SC_DIVINA) ||
 			(!(mob_db[md->class_].mode & 0x20) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
 			md->sc_data[SC_STEELBODY].timer != -1)
 			return 0;

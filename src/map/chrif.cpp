@@ -332,7 +332,7 @@ int chrif_save_sc(map_session_data &sd)
 
 	for(i=0, cnt=0, p=14; i<MAX_STATUSCHANGE; ++i)
 	{
-		if(sd.sc_data[i].timer != -1)
+		if( sd.has_status(i) )
 		{
 			td = get_timer(sd.sc_data[i].timer);
 			

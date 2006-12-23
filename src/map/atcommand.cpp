@@ -6392,7 +6392,7 @@ bool command_unmute(int fd, map_session_data& sd, const char* command, const bas
 		clif_displaymessage(fd, "Please enable the muting system before using it.");
 		return true;
 	}
-	if(sd.sc_data[SC_NOCHAT].timer!=-1)
+	if( sd.has_status(SC_NOCHAT) )
 	{
 		sd.status.manner = 0; // have to set to 0 first
 		status_change_end(&sd,SC_NOCHAT,-1);
@@ -7380,7 +7380,8 @@ map_session_data *CommandInfo::param2sd(const char* str)
 /// checks and executes a command.
 bool CommandInfo::is_command(const int fd, map_session_data &sd, const char* message, unsigned char gmlvl_override)
 {
-	if( !gmlvl_override && !config.allow_atcommand_when_mute && sd.sc_data[SC_NOCHAT].timer != -1 )
+	if( !gmlvl_override && !config.allow_atcommand_when_mute && 
+		sd.has_status(SC_NOCHAT) )
 	{	// return as processed
 		return true;
 	}

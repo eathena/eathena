@@ -278,6 +278,7 @@ struct item_data;
 struct pet_db;
 
 struct movable;
+struct affectable;
 struct fightable;
 struct map_session_data;
 struct npc_data;
@@ -523,6 +524,9 @@ public:
 	virtual movable*				get_movable()			{ return NULL; }
 	virtual const movable*			get_movable() const		{ return NULL; }
 
+	virtual affectable*				get_affectable()		{ return NULL; }
+	virtual const affectable*		get_affectable() const	{ return NULL; }
+
 	virtual fightable*				get_fightable()			{ return NULL; }
 	virtual const fightable*		get_fightable() const	{ return NULL; }
 
@@ -657,9 +661,9 @@ public:
 	/// starts attack
 	virtual bool start_attack(const block_list& target_bl, bool cont)	{ return false; }
 	/// stops attack
-	virtual bool stop_attack()									{ return false; }
+	virtual bool stop_attack()							{ return false; }
 
-	virtual int heal(int hp, int sp=0)	{ return 0; }
+	virtual int heal(int hp, int sp=0)					{ return 0; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// targeting functions
@@ -671,37 +675,31 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// skill functions
 	/// stops skill
-	virtual bool stop_skill()									{ return false; }
+	virtual bool stop_skill()							{ return false; }
 	// skill failed message.
-	virtual int  skill_check(ushort id)			{ return 0; }
+	virtual int  skill_check(ushort id)					{ return 0; }
 	/// check if current skill can be canceled
-	virtual bool skill_can_cancel() const		{ return false; }
+	virtual bool skill_can_cancel() const				{ return false; }
 	/// called when a skill has failed.
 	/// does nothing on default
-	virtual void skill_stopped(ushort skillid)	{}
+	virtual void skill_stopped(ushort skillid)			{}
 	/// does nothing on default
 	virtual void skill_failed(ushort skill_id, skillfail_t type=SF_FAILED)	{}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// status functions, new layout
+	/// check if status exists
+	virtual bool has_status(uint32 status_id) const		{ return false; }
+	/// remove a status
+	virtual bool remove_status(uint32 status_id)		{ return false; }
+	/// remove all status changes
+	virtual bool remove_status()						{ return false; }
+	/// create a new status. or replace an existing
+	virtual bool create_status(uint32 status_id)		{ return false; }
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-struct status_change
-{
-	int timer;
-	basics::numptr val1;
-	basics::numptr val2;
-	basics::numptr val3;
-	basics::numptr val4;
-
-	// default constructor
-	status_change() :
-		timer(-1),
-		val1(),
-		val2(),
-		val3(),
-		val4()
-	{ }
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 struct vending_element
@@ -780,133 +778,6 @@ struct weapon_data
 	}
 };
 
-
-
-
-struct skill_unit_group
-{
-	uint32 src_id;
-	uint32 party_id;
-	uint32 guild_id;
-	unsigned short map;
-	long target_flag;
-	unsigned long tick;
-	long limit;
-	long interval;
-
-	unsigned short skill_id;
-	unsigned short skill_lv;
-	long val1;
-	long val2;
-	long val3;
-	basics::string<> valstring;
-	unsigned char unit_id;
-	long group_id;
-	long unit_count;
-	long alive_count;
-	struct skill_unit *unit;
-
-	skill_unit_group() :
-		src_id(0),
-		party_id(0),
-		guild_id(0),
-		map(0),
-		target_flag(0),
-		tick(0),
-		limit(0),
-		interval(0),
-		skill_id(0),
-		skill_lv(0),
-		val1(0),
-		val2(0),
-		val3(0),
-		unit_id(0),
-		group_id(0),
-		unit_count(0),
-		alive_count(0),
-		unit(NULL)
-	{}
-};
-
-///////////////////////////////////////////////////////////////////////////////
-struct skill_unit : public block_list
-{
-	struct skill_unit_group *group;
-
-	long limit;
-	long val1;
-	long val2;
-	short alive;
-	short range;
-
-	skill_unit() :
-		group(NULL),
-		limit(0),
-		val1(0),
-		val2(0),
-		alive(0),
-		range(0)
-	{}
-	virtual ~skill_unit()
-	{}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// upcasting overloads.
-	virtual bool is_type(object_t t) const
-	{
-		return (t==BL_ALL) || (t==BL_SKILL);
-	}
-	virtual skill_unit*				get_sk()				{ return this; }
-	virtual const skill_unit*		get_sk() const			{ return this; }
-
-
-private:
-	skill_unit(const skill_unit&);					// forbidden
-	const skill_unit& operator=(const skill_unit&);	// forbidden
-
-	virtual uint32 get_party_id() const		{ return this->group?this->group->party_id:0; }
-	virtual uint32 get_guild_id() const		{ return this->group?this->group->guild_id:0; }
-};
-
-
-
-struct skill_unit_group_tickset
-{
-	unsigned short skill_id;
-	unsigned long tick;
-
-	skill_unit_group_tickset() :
-		skill_id(0),
-		tick(0)
-	{}
-};
-
-struct skill_timerskill
-{
-	uint32 src_id;
-	uint32 target_id;
-	unsigned short map;
-	unsigned short x;
-	unsigned short y;
-	unsigned short skill_id;
-	unsigned short skill_lv;
-	int timer;
-	long type;
-	long flag;
-
-	skill_timerskill() : 
-		src_id(0),
-		target_id(0),
-		map(0),
-		x(0),
-		y(0),
-		skill_id(0),
-		skill_lv(0),
-		timer(-1),
-		type(0),
-		flag(0)
-	{}
-};
 
 
 

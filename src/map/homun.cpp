@@ -420,16 +420,16 @@ void homun_data::calc_status()
 	if(hd.sc_data)
 	{
 		//緊急回避
-		if(hd.sc_data[SC_AVOID].timer!=-1)
+		if( hd.has_status(SC_AVOID) )
 			speed_rate -= hd.sc_data[SC_AVOID].val1.num*10;
 		//
-		if(hd.sc_data[SC_CHANGE].timer!=-1)
+		if( hd.has_status(SC_CHANGE) )
 			hd.int_ += 60;
 		//ブラッドラスト
-		if(hd.sc_data[SC_BLOODLUST].timer!=-1)
+		if( hd.has_status(SC_BLOODLUST) )
 			atk_rate += hd.sc_data[SC_BLOODLUST].val1.num*10+20;
 		//フリットムーブ
-		if(hd.sc_data[SC_FLEET].timer!=-1)
+		if( hd.has_status(SC_FLEET) )
 		{
 			aspd_rate -= hd.sc_data[SC_FLEET].val1.num*3;
 			atk_rate+=5+hd.sc_data[SC_FLEET].val1.num*5;
@@ -439,7 +439,8 @@ void homun_data::calc_status()
 	if(config.allow_homun_status_change && hd.sc_data)
 	{
 		//ゴスペルALL+20
-		if(hd.sc_data[SC_INCALLSTATUS].timer!=-1){
+		if( hd.has_status(SC_INCALLSTATUS) )
+		{
 			hd.str+= hd.sc_data[SC_INCALLSTATUS].val1.num;
 			hd.agi+= hd.sc_data[SC_INCALLSTATUS].val1.num;
 			hd.vit+= hd.sc_data[SC_INCALLSTATUS].val1.num;
@@ -448,28 +449,31 @@ void homun_data::calc_status()
 			hd.luk+= hd.sc_data[SC_INCALLSTATUS].val1.num;
 		}
 
-		if(hd.sc_data[SC_INCREASEAGI].timer!=-1)	// 速度増加
+		if( hd.has_status(SC_INCREASEAGI) )	// 速度増加
 			hd.agi += 2+hd.sc_data[SC_INCREASEAGI].val1.num;
 
-		if(hd.sc_data[SC_DECREASEAGI].timer!=-1)	// 速度減少(agiはbattle.cで)
+		if( hd.has_status(SC_DECREASEAGI) )	// 速度減少(agiはbattle.cで)
 			hd.agi-= 2+hd.sc_data[SC_DECREASEAGI].val1.num;
 
-		if(hd.sc_data[SC_BLESSING].timer!=-1){	// ブレッシング
+		if( hd.has_status(SC_BLESSING) )
+		{	// ブレッシング
 			hd.str+= hd.sc_data[SC_BLESSING].val1.num;
 			hd.dex+= hd.sc_data[SC_BLESSING].val1.num;
 			hd.int_+= hd.sc_data[SC_BLESSING].val1.num;
 		}
-		if(hd.sc_data[SC_SUITON].timer!=-1){	// 水遁
+		if( hd.has_status(SC_SUITON) )
+		{	// 水遁
 			if(hd.sc_data[SC_SUITON].val3.num)
 				hd.agi+=hd.sc_data[SC_SUITON].val3.num;
 			if(hd.sc_data[SC_SUITON].val4.num)
 				hd.speed = hd.speed*2;
 		}
 
-		if(hd.sc_data[SC_GLORIA].timer!=-1)	// グロリア
+		if( hd.has_status(SC_GLORIA) )	// グロリア
 			hd.luk+= 30;
 			
-		if(hd.sc_data[SC_QUAGMIRE].timer!=-1){	// クァグマイア
+		if( hd.has_status(SC_QUAGMIRE) )
+		{	// クァグマイア
 			short subagi = 0;
 			short subdex = 0;
 			subagi = (hd.status.agi/2 < hd.sc_data[SC_QUAGMIRE].val1.num*10) ? hd.status.agi/2 : hd.sc_data[SC_QUAGMIRE].val1.num*10;
@@ -499,10 +503,10 @@ void homun_data::calc_status()
 	hd.aspd		-= 200;
 	
 	//ディフェンス
-	if(hd.sc_data[SC_DEFENCE].timer!=-1)
+	if( hd.has_status(SC_DEFENCE) )
 		hd.def += hd.sc_data[SC_DEFENCE].val1.num*2;
 	//オーバードスピード
-	if(hd.sc_data[SC_SPEED].timer!=-1)
+	if( hd.has_status(SC_SPEED) )
 		hd.flee = hd.flee + 10 + hd.sc_data[SC_SPEED].val1.num*10;
 	//補正
 	if(atk_rate!=100)
@@ -529,7 +533,7 @@ void homun_data::calc_status()
 		hd.speed = hd.speed*speed_rate/100;
 		
 	//メンタルチェンジ
-	if(hd.sc_data && hd.sc_data[SC_CHANGE].timer!=-1)
+	if( hd.has_status(SC_CHANGE) )
 	{
 		int atk_,hp_;
 		//
@@ -899,7 +903,7 @@ void homun_data::gain_exp(uint32 base_exp, uint32 job_exp, block_list &obj)
 		return;
 
 	mob_data *md = obj.get_md();
-	if(md && md->sc_data && md->sc_data[SC_RICHMANKIM].timer != -1)
+	if(md && md->has_status(SC_RICHMANKIM) )
 	{
 		bexp = bexp*(125 + md->sc_data[SC_RICHMANKIM].val1.num*11)/100;
 		jexp = jexp*(125 + md->sc_data[SC_RICHMANKIM].val1.num*11)/100;
@@ -999,7 +1003,7 @@ int homun_data::damage(block_list &src, uint32 damage)
 int homun_data::heal(int hp, int sp)
 {
 	homun_data &hd = *this;
-	if(hd.sc_data && hd.sc_data[SC_BERSERK].timer!=-1)
+	if( hd.has_status(SC_BERSERK) )
 	{
 		if (sp > 0) sp = 0;
 		if (hp > 0) hp = 0;

@@ -9306,8 +9306,8 @@ int clif_parse_LoadEndAck(int fd, map_session_data &sd)
 		clif_changelook(sd,LOOK_CLOTHES_COLOR,sd.status.clothes_color);
 
 	//if(sd.status.hp<sd.status.max_hp>>2 && sd.skill_check(SM_AUTOBERSERK)>0 &&
-	if(sd.status.hp<sd.status.max_hp>>2 && sd.sc_data[SC_AUTOBERSERK].timer != -1 &&
-		(sd.sc_data[SC_PROVOKE].timer==-1 || sd.sc_data[SC_PROVOKE].val2.num==0 ))
+	if(sd.status.hp<sd.status.max_hp>>2 && sd.has_status(SC_AUTOBERSERK) &&
+		( !sd.has_status(SC_PROVOKE) || sd.sc_data[SC_PROVOKE].val2.num==0 ))
 		// オートバーサーク発動
 		status_change_start(&sd,SC_PROVOKE,10,1,0,0,0,0);
 
@@ -9323,11 +9323,11 @@ int clif_parse_LoadEndAck(int fd, map_session_data &sd)
 
 	// option
 	clif_changeoption(sd);
-	if(sd.sc_data[SC_TRICKDEAD].timer != -1)
+	if( sd.has_status(SC_TRICKDEAD) )
 		status_change_end(&sd,SC_TRICKDEAD,-1);
-	if(sd.sc_data[SC_SIGNUMCRUCIS].timer != -1 && !sd.is_undead() )
+	if( sd.has_status(SC_SIGNUMCRUCIS) && !sd.is_undead() )
 		status_change_end(&sd,SC_SIGNUMCRUCIS,-1);
-	if(sd.state.infinite_endure && sd.sc_data[SC_ENDURE].timer == -1)
+	if( sd.state.infinite_endure && !sd.has_status(SC_ENDURE) )
 		status_change_start(&sd,SC_ENDURE,10,1,0,0,0,0);
 	for(i=0;i<MAX_INVENTORY; ++i){
 		if(sd.status.inventory[i].equip && sd.status.inventory[i].equip & 0x0002 && sd.status.inventory[i].attribute==1)
@@ -9389,14 +9389,14 @@ int clif_parse_WalkToXY(int fd, map_session_data &sd)
 
 	// ステータス異常やハイディング中(トンネルドライブ無)で動けない
 	if( (sd.opt1 > 0 && sd.opt1 != 6) ||
-	     sd.sc_data[SC_ANKLE].timer !=-1 || //アンクルスネア
-	     sd.sc_data[SC_AUTOCOUNTER].timer !=-1 || //オートカウンター
-	     sd.sc_data[SC_TRICKDEAD].timer !=-1 || //死んだふり
-	     sd.sc_data[SC_BLADESTOP].timer !=-1 || //白刃取り
-	     sd.sc_data[SC_SPIDERWEB].timer !=-1 || //スパイダーウェッブ
-	     (sd.sc_data[SC_DANCING].timer !=-1 && sd.sc_data[SC_DANCING].val4.num) || //合奏スキル演奏中は動けない
-		 (sd.sc_data[SC_GOSPEL].timer !=-1 && sd.sc_data[SC_GOSPEL].val4.num == BCT_SELF) ||	// cannot move while gospel is in effect
-		 (sd.sc_data[SC_DANCING].timer !=-1 && sd.sc_data[SC_DANCING].val1.num == CG_HERMODE)  //cannot move while Hermod is active.
+	     sd.has_status(SC_ANKLE) || //アンクルスネア
+	     sd.has_status(SC_AUTOCOUNTER) || //オートカウンター
+	     sd.has_status(SC_TRICKDEAD) || //死んだふり
+	     sd.has_status(SC_BLADESTOP) || //白刃取り
+	     sd.has_status(SC_SPIDERWEB) || //スパイダーウェッブ
+	     (sd.has_status(SC_DANCING) && sd.sc_data[SC_DANCING].val4.num) || //合奏スキル演奏中は動けない
+		 (sd.has_status(SC_GOSPEL) && sd.sc_data[SC_GOSPEL].val4.num == BCT_SELF) ||	// cannot move while gospel is in effect
+		 (sd.has_status(SC_DANCING) && sd.sc_data[SC_DANCING].val1.num == CG_HERMODE)  //cannot move while Hermod is active.
 		)
 		return 0;
 	if ((sd.status.option & 2) && sd.skill_check( RG_TUNNELDRIVE) <= 0)
@@ -9434,7 +9434,7 @@ int clif_parse_QuitGame(int fd, map_session_data &sd)
 	if( (!sd.is_dead() && (sd.opt1 || (sd.opt2 && !(daynight_flag && sd.opt2 == STATE_BLIND)))) ||
 	    sd.skilltimer != -1 ||
 	    (DIFF_TICK(tick, sd.canact_tick) < 0) ||
-	    (sd.sc_data && sd.sc_data[SC_DANCING].timer!=-1 && sd.sc_data[SC_DANCING].val2.isptr && (sg=(struct skill_unit_group *)sd.sc_data[SC_DANCING].val2.ptr) && sg->src_id == sd.block_list::id) ||
+	    (sd.has_status(SC_DANCING) && sd.sc_data[SC_DANCING].val2.isptr && (sg=(struct skill_unit_group *)sd.sc_data[SC_DANCING].val2.ptr) && sg->src_id == sd.block_list::id) ||
 		(config.prevent_logout && sd.is_dead() && DIFF_TICK(tick,sd.canlog_tick) < 10000) )
 	{	// fail
 		WFIFOW(fd,2)=1;
@@ -9498,8 +9498,8 @@ int clif_parse_GlobalMessage(int fd, map_session_data &sd)
 	//ShowMessage("clif_parse_GlobalMessage: message: '%s'.\n", message);
 
 	if( CommandInfo::is_command(fd, sd, message) ||
-	    sd.sc_data[SC_BERSERK].timer != -1 || //バーサーク時は会話も不可
-		sd.sc_data[SC_NOCHAT].timer != -1 ) //チャット禁止
+	    sd.has_status(SC_BERSERK) || //バーサーク時は会話も不可
+		sd.has_status(SC_NOCHAT) ) //チャット禁止
 		return 0;
 	
 	// send message to others
@@ -9706,11 +9706,10 @@ int clif_parse_ActionRequest(int fd, map_session_data &sd)
 		return clif_clearchar_area(sd, 1);
 	}
 	if( sd.ScriptEngine.isRunning() || sd.opt1 > 0 || sd.status.option & 2 ||
-	    (sd.sc_data &&
-	     (sd.sc_data[SC_TRICKDEAD].timer != -1 ||
-		  sd.sc_data[SC_AUTOCOUNTER].timer != -1 || //オートカウンター
-	      sd.sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
-	      sd.sc_data[SC_DANCING].timer != -1)) ) //ダンス中
+	     (sd.has_status(SC_TRICKDEAD) ||
+		  sd.has_status(SC_AUTOCOUNTER) || //オートカウンター
+	      sd.has_status(SC_BLADESTOP) || //白刃取り
+	      sd.has_status(SC_DANCING)) ) //ダンス中
 		return 0;
 
 	tick = gettick();
@@ -9726,7 +9725,7 @@ int clif_parse_ActionRequest(int fd, map_session_data &sd)
 	case 0x07: // continuous attack
 
 
-		if(sd.sc_data[SC_WEDDING].timer != -1 || sd.view_class==22)
+		if(sd.has_status(SC_WEDDING) || sd.view_class==22)
 			return 0;
 		if (sd.vender_id != 0)
 			return 0;
@@ -9803,7 +9802,7 @@ int clif_parse_Restart(int fd, map_session_data &sd)
 		if( (!sd.is_dead() && (sd.opt1 || (sd.opt2 && !(daynight_flag && sd.opt2 == STATE_BLIND)))) ||
 			sd.skilltimer != -1 ||
 			(DIFF_TICK(tick, sd.canact_tick) < 0) ||
-			(sd.sc_data && sd.sc_data[SC_DANCING].timer!=-1 && sd.sc_data[SC_DANCING].val2.isptr && (sg=(struct skill_unit_group *)sd.sc_data[SC_DANCING].val2.ptr) && sg->src_id == sd.block_list::id) ||
+			(sd.has_status(SC_DANCING) && sd.sc_data[SC_DANCING].val2.isptr && (sg=(struct skill_unit_group *)sd.sc_data[SC_DANCING].val2.ptr) && sg->src_id == sd.block_list::id) ||
 			(config.prevent_logout && sd.is_dead() && DIFF_TICK(tick,sd.canlog_tick) < 10000) )
 		{	// fail
 			WFIFOW(fd,0)=0x18b;
@@ -9830,8 +9829,8 @@ int clif_parse_Restart(int fd, map_session_data &sd)
 int clif_parse_Wis(int fd, map_session_data &sd)
 {	// S 0096 <len>.w <nick>.24B <message>.?B // rewritten by [Yor]
 	if( !session_isActive(fd) ||
-		sd.sc_data[SC_BERSERK].timer!=-1 || //バーサーク時は会話も不可
-		sd.sc_data[SC_NOCHAT].timer != -1 ) //チャット禁止
+		sd.has_status(SC_BERSERK) || //バーサーク時は会話も不可
+		sd.has_status(SC_NOCHAT) ) //チャット禁止
 		return 0;
 
 	size_t buffersize = RFIFOW(fd,2);
@@ -9981,11 +9980,11 @@ int clif_parse_TakeItem(int fd, map_session_data &sd)
 
 	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0  || sd.trade_partner != 0 || sd.opt1 > 0 ||
 		sd.is_cloaking() || sd.is_chasewalk() || //Disable cloaking/chasewalking characters from looting [Skotlex]
-		(sd.sc_data && (sd.sc_data[SC_TRICKDEAD].timer != -1 || //死んだふり
-		 sd.sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
-		 sd.sc_data[SC_BERSERK].timer!=-1 ||	//バーサーク
-		 sd.sc_data[SC_CHASEWALK].timer!=-1 ||  //Chasewalk [Aru]
-		 sd.sc_data[SC_NOCHAT].timer!=-1 )) )	//会話禁止
+		(sd.has_status(SC_TRICKDEAD) || //死んだふり
+		 sd.has_status(SC_BLADESTOP) || //白刃取り
+		 sd.has_status(SC_BERSERK) ||	//バーサーク
+		 sd.has_status(SC_CHASEWALK) ||  //Chasewalk [Aru]
+		 sd.has_status(SC_NOCHAT)) )	//会話禁止
 	{
 		clif_additem(sd,0,0,6); // send fail packet! [Valaris]
 		return 0;
@@ -10010,9 +10009,9 @@ int clif_parse_DropItem(int fd, map_session_data &sd)
 		return clif_clearchar_area(sd, 1);
 	}
 	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0  || sd.trade_partner != 0 || sd.opt1 > 0 ||
-		(sd.sc_data && (sd.sc_data[SC_AUTOCOUNTER].timer != -1 || //オートカウンター
-		sd.sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
-		sd.sc_data[SC_BERSERK].timer != -1)) ) //バーサーク
+		(sd.has_status(SC_AUTOCOUNTER) || //オートカウンター
+		sd.has_status(SC_BLADESTOP) || //白刃取り
+		sd.has_status(SC_BERSERK)) ) //バーサーク
 		return 0;
 
 	item_index = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0])-2;
@@ -10035,11 +10034,11 @@ int clif_parse_UseItem(int fd, map_session_data &sd)
 		return clif_clearchar_area(sd, 1);
 	}
 	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0  || sd.trade_partner != 0 || (sd.opt1 > 0 && sd.opt1 != 6) ||
-	    (sd.sc_data && (sd.sc_data[SC_TRICKDEAD].timer != -1 || //死んだふり
-	     sd.sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
-		sd.sc_data[SC_BERSERK].timer!=-1 ||	//バーサーク
-		sd.sc_data[SC_NOCHAT].timer!=-1 ||
-		sd.sc_data[SC_GRAVITATION].timer!=-1)) )	//会話禁止
+	    (sd.has_status(SC_TRICKDEAD) || //死んだふり
+	     sd.has_status(SC_BLADESTOP) || //白刃取り
+		sd.has_status(SC_BERSERK) ||	//バーサーク
+		sd.has_status(SC_NOCHAT) ||
+		sd.has_status(SC_GRAVITATION)) )	//会話禁止
 		return 0;
 
 	if (sd.invincible_timer != -1)
@@ -10067,7 +10066,7 @@ int clif_parse_EquipItem(int fd, map_session_data &sd)
 	index = RFIFOW(fd,2)-2;
 	if( index >= MAX_INVENTORY || sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.trade_partner != 0)
 		return 0;
-	if(sd.sc_data && ( sd.sc_data[SC_BLADESTOP].timer!=-1 || sd.sc_data[SC_BERSERK].timer!=-1 )) 
+	if( sd.has_status(SC_BLADESTOP) || sd.has_status(SC_BERSERK) ) 
 		return 0;
 
 	if(	sd.status.inventory[index].identify != 1) {		// 未鑑定
@@ -10106,11 +10105,11 @@ int clif_parse_UnequipItem(int fd, map_session_data &sd)
 		return 0;
 	index = RFIFOW(fd,2)-2;
 
-	/*if(sd.status.inventory[index].attribute == 1 && sd.sc_data && sd.sc_data[SC_BROKNWEAPON].timer!=-1)
+	/*if( sd.status.inventory[index].attribute == 1 && sd.has_status(SC_BROKNWEAPON) )
 		status_change_end(&sd,SC_BROKNWEAPON,-1);
-	if(sd.status.inventory[index].attribute == 1 && sd.sc_data && sd.sc_data[SC_BROKNARMOR].timer!=-1)
+	if( sd.status.inventory[index].attribute == 1 && sd.has_status(SC_BROKNARMOR) )
 		status_change_end(&sd,SC_BROKNARMOR,-1);
-	if(sd.sc_count && ( sd.sc_data[SC_BLADESTOP].timer!=-1 || sd.sc_data[SC_BERSERK].timer!=-1 ))
+	if( sd.has_status(SC_BLADESTOP) || sd.has_status(SC_BERSERK) )
 		return 0;*/
 
 	pc_unequipitem(sd,index,1);
@@ -10491,7 +10490,7 @@ int clif_parse_UseSkillToId(int fd, map_session_data &sd) {
 	}
 	else if (DIFF_TICK(tick, sd.canact_tick) < 0 &&
 		// allow monk combos to ignore this delay [celest]
-		!(sd.sc_data[SC_COMBO].timer!=-1 &&
+		!(sd.has_status(SC_COMBO) &&
 		(skillnum == MO_EXTREMITYFIST ||
 		skillnum == MO_CHAINCOMBO ||
 		skillnum == MO_COMBOFINISH ||
@@ -10503,9 +10502,11 @@ int clif_parse_UseSkillToId(int fd, map_session_data &sd) {
 		return 0;
 	}
 
-	if ((sd.sc_data[SC_TRICKDEAD].timer != -1 && skillnum != NV_TRICKDEAD) ||
-	    sd.sc_data[SC_BERSERK].timer != -1 || sd.sc_data[SC_NOCHAT].timer != -1 ||
-	    sd.sc_data[SC_WEDDING].timer != -1 || sd.view_class == 22)
+	if( (sd.has_status(SC_TRICKDEAD) && skillnum != NV_TRICKDEAD) ||
+	    sd.has_status(SC_BERSERK) ||
+		sd.has_status(SC_NOCHAT) ||
+	    sd.has_status(SC_WEDDING) ||
+		sd.view_class == 22)
 		return 0;
 	if (sd.invincible_timer != -1)
 		pc_delinvincibletimer(sd);
@@ -10523,7 +10524,7 @@ int clif_parse_UseSkillToId(int fd, map_session_data &sd) {
 	{
 		sd.skillitem = sd.skillitemlv = 0xFFFF;
 		if (skillnum == MO_EXTREMITYFIST) {
-			if ((sd.sc_data[SC_COMBO].timer == -1 ||
+			if ((!sd.has_status(SC_COMBO) ||
 				(sd.sc_data[SC_COMBO].val1.num != MO_COMBOFINISH &&
 				 sd.sc_data[SC_COMBO].val1.num != CH_TIGERFIST &&
 				 sd.sc_data[SC_COMBO].val1.num != CH_CHAINCRUSH)) )
@@ -10541,7 +10542,7 @@ int clif_parse_UseSkillToId(int fd, map_session_data &sd) {
 				}
 			}
 		} else if (skillnum == CH_TIGERFIST) {
-			if (sd.sc_data[SC_COMBO].timer == -1 || sd.sc_data[SC_COMBO].val1.num != MO_COMBOFINISH) {
+			if ( !sd.has_status(SC_COMBO) || sd.sc_data[SC_COMBO].val1.num != MO_COMBOFINISH) {
 				if (!sd.state.skill_flag ) {
 					sd.state.skill_flag = 1;
 					if (!sd.target_id) {
@@ -10603,7 +10604,7 @@ int clif_parse_UseSkillToPos(int fd, map_session_data &sd)
 		return 0;
 	else if( DIFF_TICK(tick, sd.canact_tick) < 0 &&
 		// allow monk combos to ignore this delay [celest]
-		!( sd.sc_data[SC_COMBO].timer!=-1 &&
+		!( sd.has_status(SC_COMBO) &&
 		 (skillnum == MO_EXTREMITYFIST || skillnum == MO_CHAINCOMBO || skillnum == MO_COMBOFINISH ||
 		  skillnum == CH_PALMSTRIKE || skillnum == CH_TIGERFIST || skillnum == CH_CHAINCRUSH)) )
 	{
@@ -10611,9 +10612,11 @@ int clif_parse_UseSkillToPos(int fd, map_session_data &sd)
 		return 0;
 	}
 
-	if ((sd.sc_data[SC_TRICKDEAD].timer != -1 && skillnum != NV_TRICKDEAD) ||
-	    sd.sc_data[SC_BERSERK].timer != -1 || sd.sc_data[SC_NOCHAT].timer != -1 ||
-	    sd.sc_data[SC_WEDDING].timer != -1 || sd.view_class == 22)
+	if( (sd.has_status(SC_TRICKDEAD) && skillnum != NV_TRICKDEAD) ||
+	    sd.has_status(SC_BERSERK) ||
+		sd.has_status(SC_NOCHAT) ||
+	    sd.has_status(SC_WEDDING) ||
+		sd.view_class == 22)
 		return 0;
 	if (sd.invincible_timer != -1)
 		pc_delinvincibletimer(sd);
@@ -10649,10 +10652,10 @@ int clif_parse_UseSkillMap(int fd, map_session_data &sd)
 		return 0;
 
 	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0 || (sd.sc_data &&
-		(sd.sc_data[SC_TRICKDEAD].timer != -1 ||
-		sd.sc_data[SC_BERSERK].timer!=-1 ||
-		sd.sc_data[SC_NOCHAT].timer!=-1 ||
-		sd.sc_data[SC_WEDDING].timer!=-1 ||
+		(sd.has_status(SC_TRICKDEAD) ||
+		sd.has_status(SC_BERSERK) ||
+		sd.has_status(SC_NOCHAT) ||
+		sd.has_status(SC_WEDDING) ||
 		sd.view_class==22)))
 		return 0;
 
@@ -11115,8 +11118,8 @@ int clif_parse_PartyMessage(int fd, map_session_data &sd)
 
 
 	if( CommandInfo::is_command(fd, sd, message) ||
-		sd.sc_data[SC_BERSERK].timer!=-1 ||	//バーサーク時は会話も不可
-		sd.sc_data[SC_NOCHAT].timer!=-1 )		//チャット禁止
+		sd.has_status(SC_BERSERK) ||	//バーサーク時は会話も不可
+		sd.has_status(SC_NOCHAT) )		//チャット禁止
 		return 0;
 
 	party_send_message(sd, message, buffersize-4);
@@ -11406,8 +11409,8 @@ int clif_parse_GuildMessage(int fd, map_session_data &sd)
 
 
 	if( CommandInfo::is_command(fd, sd, message) ||
-		sd.sc_data[SC_BERSERK].timer!=-1 ||	//バーサーク時は会話も不可
-		sd.sc_data[SC_NOCHAT].timer!=-1 )		//チャット禁止
+		sd.has_status(SC_BERSERK) ||	//バーサーク時は会話も不可
+		sd.has_status(SC_NOCHAT) )		//チャット禁止
 		return 0;
 
 	guild_send_message(sd, message, buffersize-4);

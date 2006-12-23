@@ -6,6 +6,7 @@
 
 #include "map.h"
 #include "fightable.h"
+#include "status.h"
 
 #define NATURAL_HEAL_HP_INTERVAL 2*1000
 #define NATURAL_HEAL_SP_INTERVAL 4*1000
@@ -67,7 +68,7 @@ struct random_homun_data
 
 
 
-class homun_data : public fightable
+class homun_data : public affectable
 {
 public:
 	/////////////////////////////////////////////////////////////////
@@ -112,7 +113,7 @@ public:
 	ushort equip;
 	uint32 intimate;
 	int homskillstatictimer[MAX_HOMSKILL];
-	struct status_change sc_data[MAX_STATUSCHANGE];
+
 	short atackable;
 	short limits_to_growth;
 	ushort view_class;
