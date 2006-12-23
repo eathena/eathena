@@ -10,7 +10,7 @@
 #define PACKETVER			7
 
 // packet DB
-#define MAX_PACKET_DB		0x25f
+#define MAX_PACKET_DB		0x300
 #define MAX_PACKET_VER		25
 
 struct packet_db {
@@ -48,6 +48,9 @@ enum {
 	DUEL_WOS
 };
 
+// packet_db[SERVER] is reserved for server use
+#define SERVER 0
+#define packet_len(x) packet_db[SERVER][x].len
 extern struct packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB];
 
 int clif_setip(char*);
@@ -319,7 +322,7 @@ int clif_pet_emotion(struct pet_data *pd,int param);
 int clif_pet_performance(struct block_list *bl,int param);
 int clif_pet_equip(struct pet_data *pd);
 int clif_pet_food(struct map_session_data *sd,int foodid,int fail);
-int clif_send (unsigned char *buf, int len, struct block_list *bl, int type);
+int clif_send(unsigned char *buf, int len, struct block_list *bl, int type);
 int clif_send_debug(struct map_session_data *sd, int cmd, int* args, int args_num);
 
 //friends list
