@@ -7,7 +7,12 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <string.h>
+
 #include <limits.h>
+#include "../common/timer.h"
+#include "../common/nullpo.h"
+#include "../common/showmsg.h"
+#include "../common/malloc.h"
 
 #include "pc.h"
 #include "map.h"
@@ -23,11 +28,6 @@
 #include "status.h"
 #include "script.h"
 #include "unit.h"
-
-#include "../common/timer.h"
-#include "../common/nullpo.h"
-#include "../common/showmsg.h"
-#include "../common/malloc.h"
 
 //For specifying where in the SkillStatusChangeTableArray the "out of bounds" skills get stored. [Skotlex]
 #define SC_HM_BASE 800
@@ -5677,6 +5677,7 @@ int status_change_clear(struct block_list *bl,int type)
 
 	if(sc->data[SC_DANCING].timer != -1)
 		skill_stop_dancing(bl);
+
 	for(i = 0; i < SC_MAX; i++)
 	{
 		if(sc->data[i].timer == -1)
@@ -5765,6 +5766,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			//delays status change ending so that a skill that sets opt1 fails to 
 			//trigger when it also removed one
 			case SC_STONE:
+				sc->data[type].val3 = 0; //Petrify time counter.
 			case SC_FREEZE:
 			case SC_STUN:
 			case SC_SLEEP:
