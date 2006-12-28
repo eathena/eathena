@@ -1,3 +1,9 @@
+12/28
+	* Merged item_db, mob_db [Playtester]
+	- updated various items
+	- commented unused items
+	- capped dex to 255
+	- fixed Parasite and Enchanted Peach Tree
 12/13
 	* Added boss mode (0x20) to a few mobs that were missing it. [Skotlex]
 12/11
