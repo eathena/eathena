@@ -768,6 +768,9 @@ int do_sendrecv(int next)
 			if(getsockname(i,(struct sockaddr*)&addr_check,&size)<0)
 				if(serrno == SEBADF) //See the #defines at the top
 				{
+					session[i]->eof = 1;
+					if(session[i]->func_parse)
+						session[i]->func_parse(i);
 					free_session_mem(i); //free the bad session
 					continue;
 				}
@@ -1237,7 +1240,7 @@ void socket_init (void)
 	char fullhost[255];
 	struct hostent* hent;
 
-		/* Start up the windows networking */
+	/* Start up the windows networking */
 	WORD version_wanted = MAKEWORD(1, 1); //Demand at least WinSocket version 1.1 (from Freya)
 	WSADATA wsaData;
 
@@ -1351,7 +1354,7 @@ in_addr_t resolve_hostbyname(char* hostname, unsigned char *ip, char *ip_str) {
 	if (!h) return 0;
 	if (ip == NULL) ip = ip2;
 	ip[0] = (unsigned char) h->h_addr[0];
-	ip[1]	= (unsigned char) h->h_addr[1];
+	ip[1] = (unsigned char) h->h_addr[1];
 	ip[2] = (unsigned char) h->h_addr[2];
 	ip[3] = (unsigned char) h->h_addr[3];
 	if (ip_str == NULL) ip_str = ip_buf;
