@@ -1,4 +1,6 @@
 Date	Added
+2006/12/30
+	* Updated WFIFOPOS2 and WBUFPOS2. [FlavioJS]
 2006/12/23
 	* preparing the switch to new skill/status code;
 	  created some new files and moved old code

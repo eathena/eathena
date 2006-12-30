@@ -53,7 +53,7 @@ bool CMySQL::DBConnection::startup(void)
 		mysql_init(&(this->cHandle));
 
 		// DB connection start
-		printf("Connect Database Server on %s%u...", cMySQL.mysqldb_ip.c_str(), cMySQL.mysqldb_port);
+		printf("Connect Database Server on %s:%u...", cMySQL.mysqldb_ip.c_str(), cMySQL.mysqldb_port);
 		if( mysql_real_connect(&(this->cHandle), cMySQL.mysqldb_ip, cMySQL.mysqldb_id, cMySQL.mysqldb_pw, cMySQL.mysqldb_db, cMySQL.mysqldb_port, (char *)NULL, 0) )
 		{
 			this->cInit = true;

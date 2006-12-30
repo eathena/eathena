@@ -2651,7 +2651,9 @@ int mapif_send(int fd, unsigned char *buf, unsigned int len) {
 	return 0;
 }
 ///////////////////////////////////////////////////////////////////////////////
-int send_users_tologin(int tid, unsigned long tick, int id, basics::numptr data) {
+//## also sends to map-servers, the name should be changed [FlavioJS]
+int send_users_tologin(int tid, unsigned long tick, int id, basics::numptr data)
+{
 	int users = count_users();
 	unsigned char buf[16];
 
@@ -2661,6 +2663,8 @@ int send_users_tologin(int tid, unsigned long tick, int id, basics::numptr data)
 		WFIFOW(login_fd,0) = 0x2714;
 		WFIFOL(login_fd,2) = users;
 		WFIFOSET(login_fd,6);
+		//## should only be sent to login after receiving packet 2711 with accepted status.
+		//## it's not, so there's a parse error in login-server if the connection is rejected [FlavioJS]
 	}
 	// send number of players to all map-servers
 	WBUFW(buf,0) = 0x2b00;

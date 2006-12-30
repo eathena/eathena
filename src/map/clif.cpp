@@ -235,16 +235,20 @@ inline void WBUFPOS(unsigned char* p, size_t pos, unsigned short x, unsigned sho
 		*p   = (unsigned char)(y<<4) | d&0xF;
 	}
 }
-inline void WBUFPOS2(unsigned char* p, size_t pos, unsigned short x0, unsigned short y0, unsigned short x1, unsigned short y1)
+inline void WBUFPOS2(unsigned char* p, size_t pos, unsigned short x0, unsigned short y0, unsigned short x1, unsigned short y1, unsigned char sx0, unsigned char sy0)
 {
 	if(p)
 	{
+		// client-side:
+		//   x0 += 0.0625*sx0 - 0.5
+		//   y0 += 0.0625*sy0 - 0.5
 		p += pos;
 		*p++ = (unsigned char)(x0>>2);
 		*p++ = (unsigned char)((x0<<6) | ((y0>>4)&0x3f));
 		*p++ = (unsigned char)((y0<<4) | ((x1>>6)&0x0f));
 		*p++ = (unsigned char)((x1<<2) | ((y1>>8)&0x03));
-		*p   = (unsigned char)(y1); 
+		*p++ = (unsigned char)(y1); 
+		*p   = (unsigned char)((sx0<<4) | (sy0&0x0f));
 	}
 }
 
@@ -252,9 +256,9 @@ inline void WFIFOPOS(int fd, size_t pos, unsigned short x, unsigned short y, uns
 {
 	WBUFPOS(WFIFOP(fd,pos),0,x,y,d); 
 }
-inline void WFIFOPOS2(int fd, size_t pos, unsigned short x0, unsigned short y0, unsigned short x1, unsigned short y1)
+inline void WFIFOPOS2(int fd, size_t pos, unsigned short x0, unsigned short y0, unsigned short x1, unsigned short y1, unsigned char sx0, unsigned char sy0)
 {
-	WBUFPOS2(WFIFOP(fd,pos),0,x0,y0,x1,y1); 
+	WBUFPOS2(WFIFOP(fd,pos),0,x0,y0,x1,y1,sx0,sy0); 
 }
 
 
@@ -1728,8 +1732,7 @@ int clif_set007b(const map_session_data &sd,unsigned char *buf)
 	WBUFW(buf,46)=sd.status.manner;
 	WBUFB(buf,48)=sd.status.karma;
 	WBUFB(buf,49)=sd.sex;
-	WBUFPOS2(buf,50,sd.block_list::x,sd.block_list::y,sd.target.x,sd.target.y);
-	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
+	WBUFPOS2(buf,50,sd.block_list::x,sd.block_list::y,sd.target.x,sd.target.y,8,8);
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
 	WBUFW(buf,58)=(sd.status.base_level>config.max_lv)?config.max_lv:sd.status.base_level;
@@ -1778,8 +1781,7 @@ int clif_set007b(const map_session_data &sd,unsigned char *buf)
 	WBUFW(buf,46)=sd.opt3;
 	WBUFB(buf,48)=sd.status.karma;
 	WBUFB(buf,49)=sd.status.sex;
-	WBUFPOS2(buf,50,sd.block_list::x,sd.block_list::y,sd.walktarget.x,sd.walktarget.y);
-	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
+	WBUFPOS2(buf,50,sd.block_list::x,sd.block_list::y,sd.walktarget.x,sd.walktarget.y,8,8);
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
 	WBUFW(buf,58)=(sd.status.base_level>config.max_base_level)?config.max_base_level:sd.status.base_level;
@@ -1802,8 +1804,7 @@ int clif_dis007b(const map_session_data &sd,unsigned char *buf)
 	WBUFL(buf,22)=gettick();
 	//WBUFL(buf,38)=sd.status.guild_id;
 	//WBUFL(buf,42)=sd.guild_emblem_id;
-	WBUFPOS2(buf,50,sd.block_list::x,sd.block_list::y,sd.walktarget.x,sd.walktarget.y);
-	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
+	WBUFPOS2(buf,50,sd.block_list::x,sd.block_list::y,sd.walktarget.x,sd.walktarget.y,8,8);
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
 	WBUFW(buf,58)=0;
@@ -1978,8 +1979,7 @@ int clif_mob007b(const mob_data &md, unsigned char *buf)
 		WBUFW(buf,46)=md.opt3;
 		WBUFB(buf,48)=0; // karma
 		WBUFB(buf,49)=md.get_sex();
-		WBUFPOS2(buf,50,md.block_list::x,md.block_list::y,md.walktarget.x,md.walktarget.y);
-		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
+		WBUFPOS2(buf,50,md.block_list::x,md.block_list::y,md.walktarget.x,md.walktarget.y,8,8);
 		WBUFB(buf,56)=5;
 		WBUFB(buf,57)=5;
 		WBUFW(buf,58)=(level>config.max_base_level)? config.max_base_level:level;
@@ -2014,8 +2014,7 @@ int clif_mob007b(const mob_data &md, unsigned char *buf)
 			}
 		} // End addition
 
-		WBUFPOS2(buf,50,md.block_list::x,md.block_list::y,md.walktarget.x,md.walktarget.y);
-		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
+		WBUFPOS2(buf,50,md.block_list::x,md.block_list::y,md.walktarget.x,md.walktarget.y,8,8);
 		WBUFB(buf,56)=5;
 		WBUFB(buf,57)=5;
 		level = md.get_lv();
@@ -2078,8 +2077,7 @@ int clif_npc007b(const npc_data &nd, unsigned char *buf)
 	}
 
 	WBUFL(buf,22)=gettick();
-	WBUFPOS2(buf,50,nd.block_list::x,nd.block_list::y,nd.walktarget.x,nd.walktarget.y);
-	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
+	WBUFPOS2(buf,50,nd.block_list::x,nd.block_list::y,nd.walktarget.x,nd.walktarget.y,8,8);
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
 
@@ -2195,8 +2193,7 @@ int clif_pet007b(const pet_data &pd, unsigned char *buf)
 		WBUFW(buf,46)=0; // opt3
 		WBUFB(buf,48)=0; // karma
 		WBUFB(buf,49)=pd.get_sex();
-		WBUFPOS2(buf,50,pd.block_list::x,pd.block_list::y,pd.walktarget.x,pd.walktarget.y);
-		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
+		WBUFPOS2(buf,50,pd.block_list::x,pd.block_list::y,pd.walktarget.x,pd.walktarget.y,8,8);
 		WBUFB(buf,56)=0;
 		WBUFB(buf,57)=0;
 		WBUFW(buf,58)=(level>config.max_base_level)? config.max_base_level:level;
@@ -2218,8 +2215,7 @@ int clif_pet007b(const pet_data &pd, unsigned char *buf)
 			WBUFW(buf,20)=pd.pet.equip_id;
 		WBUFL(buf,22)=gettick();
 
-		WBUFPOS2(buf,50,pd.block_list::x,pd.block_list::y,pd.walktarget.x,pd.walktarget.y);
-		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
+		WBUFPOS2(buf,50,pd.block_list::x,pd.block_list::y,pd.walktarget.x,pd.walktarget.y,8,8);
 		WBUFB(buf,56)=0;
 		WBUFB(buf,57)=0;
 
@@ -2275,7 +2271,7 @@ int clif_hom007b(const homun_data &hd, unsigned char *buf)
 		WBUFW(buf,20)=hd.equip;
 	WBUFL(buf,22)=gettick();
 
-	WBUFPOS2(buf,50,hd.block_list::x,hd.block_list::y,hd.walktarget.x,hd.walktarget.y);
+	WBUFPOS2(buf,50,hd.block_list::x,hd.block_list::y,hd.walktarget.x,hd.walktarget.y,8,8);
 	WBUFB(buf,56)=0;
 	WBUFB(buf,57)=0;
 	level = hd.get_lv();
@@ -2715,8 +2711,7 @@ int clif_walkok(const map_session_data& sd)
 
 	WFIFOW(fd,0)=0x87;
 	WFIFOL(fd,2)=gettick();
-	WFIFOPOS2(fd,6,sd.block_list::x,sd.block_list::y,sd.walktarget.x,sd.walktarget.y);
-	WFIFOB(fd,11)=0x88;
+	WFIFOPOS2(fd,6,sd.block_list::x,sd.block_list::y,sd.walktarget.x,sd.walktarget.y,8,8);
 	WFIFOSET(fd,packet_len_table[0x87]);
 	return 0;
 }
@@ -10169,6 +10164,11 @@ int clif_parse_NpcBuyListSend(int fd, map_session_data &sd)
 	if(sd.vender_id == 0  && sd.trade_partner == 0)
 		fail = npc_buylist(sd,(RFIFOW(fd,2)-4)/4, RFIFOP(fd,4));
 
+	// fail=0 - success         - MsgStringTable[54]
+	// fail=1 - not enough zeny - MsgStringTable[55]
+	// fail=2 - overwheight     - MsgStringTable[56]
+	// fail=3 - inventory full  - MsgStringTable[221]
+	// fail=other - no message
 	WFIFOW(fd,0)=0x00ca;
 	WFIFOB(fd,2)=fail;
 	WFIFOSET(fd,packet_len_table[0x00ca]);
@@ -12628,6 +12628,69 @@ int clif_terminate(int fd)
 	}
 	return 0;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// Packets that are unused/unknown/under investigation
+#if 0
+
+///////////////////////////////////////////////////////////////////////////////
+/// what is truncated at length 5000 client-side.
+/// The string in the packet doesn't need to be null terminated.
+/// Displays in the game console:
+///		=========== HUNTING LIST =============
+///		<what>
+///		========================================
+int clif_027A(int fd, const char* what)
+{
+	size_t len = strlen(what);
+	WFIFOW(fd,0) = 0x27a;
+	WFIFOW(fd,2) = 4+len;
+	memcpy(WFIFOP(fd,4), what, len);
+	WFIFOSET(fd,packet_len_table[0x27a]);
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Displays in the game console:
+///		"             STR=%3d      AGI=%3d      VIT=%3d      INT=%3d      DEX=%3d      LUK=%d"
+///		"standard STR=%3d      AGI=%3d      VIT=%3d      INT=%3d      DEX=%3d      LUK=%2d"
+///		"    attPower=%3d    refiningPow=%3d    MAXmatPow=%3d    MINmatPower=%3d       ASPD=%3d"
+///		"itemdefPow=%3d     plusdefPow=%3d    mdefPower=%3d    plusmdefPow=%3d    plusASPD=%3d"
+///		"hitSuccessVal=%3d    avoidSuccessVal=%3d    plusAvoidSuccessValue=%3d"
+int clif_0214(int fd, const char* what)
+{
+	WFIFOW(fd,0) = 0x214;
+	WFIFOB(fd,2) = 0; // STR
+	WFIFOB(fd,3) = 0; // standard STR
+	WFIFOB(fd,4) = 0; // AGI
+	WFIFOB(fd,5) = 0; // standard AGI
+	WFIFOB(fd,6) = 0; // VIT
+	WFIFOB(fd,7) = 0; // standard VIT
+	WFIFOB(fd,8) = 0; // INT
+	WFIFOB(fd,9) = 0; // standard INT
+	WFIFOB(fd,10) = 0; // DEX
+	WFIFOB(fd,11) = 0; // standard DEX
+	WFIFOB(fd,12) = 0; // LUK
+	WFIFOB(fd,13) = 0; // standard LUK
+	WFIFOW(fd,14) = 0; // attPower
+	WFIFOW(fd,16) = 0; // refiningPow
+	WFIFOW(fd,18) = 0; // MAXmatPow
+	WFIFOW(fd,20) = 0; // MINmatPower
+	WFIFOW(fd,22) = 0; // itemdefPow
+	WFIFOW(fd,24) = 0; // plusdefPow
+	WFIFOW(fd,26) = 0; // mdefPower
+	WFIFOW(fd,28) = 0; // plusmdefPow
+	WFIFOW(fd,30) = 0; // hitSuccessVal
+	WFIFOW(fd,32) = 0; // avoidSuccessVal
+	WFIFOW(fd,34) = 0; // plusAvoidSuccessValue
+	WFIFOW(fd,36) = 0; // ???
+	WFIFOW(fd,38) = 0; // ASPD
+	WFIFOW(fd,40) = 0; // plusASPD
+	WFIFOSET(fd,packet_len_table[0x214]);
+	return 0;
+}
+
+#endif
 
 /*==========================================
  * クライアントからのパケット解析
