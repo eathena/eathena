@@ -59,6 +59,12 @@
 // only Silicon Graphics/Cray goes ILP64 so don't care (and don't support)
 //////////////////////////////////////////////////////////////////////////
 
+#include <limits.h>
+// ILP64 isn't supported, so always 32 bits?
+#ifndef UINT_MAX
+#define UINT_MAX 0xffffffff
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // Integers with guaranteed _exact_ size.
 //////////////////////////////////////////////////////////////////////////
@@ -284,5 +290,12 @@ typedef char bool;
 #define Assert(EX) assert(EX)
 #endif
 #endif /* ! defined(Assert) */
+
+//////////////////////////////////////////////////////////////////////////
+// Has to be unsigned to avoid problems in some systems
+#define TOLOWER(c) ((char)tolower((unsigned char)(c)))
+#define ISSPACE(c) (isspace((unsigned char)(c)))
+#define ISALPHA(c) (isalpha((unsigned char)(c)))
+#define ISALNUM(c) (isalnum((unsigned char)(c)))
 
 #endif /* _CBASETYPES_H_ */
