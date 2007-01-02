@@ -193,6 +193,14 @@ SOURCE=..\..\src\common\utils.h
 
 SOURCE=..\..\src\common\version.h
 # End Source File
+# Begin Source File
+
+SOURCE=..\..\src\common\md5calc.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\common\md5calc.h
+# End Source File
 # End Group
 # Begin Group "login_sql"
 
@@ -204,14 +212,6 @@ SOURCE=..\..\src\login_sql\login.c
 # Begin Source File
 
 SOURCE=..\..\src\login_sql\login.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\login_sql\md5calc.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\login_sql\md5calc.h
 # End Source File
 # End Group
 # Begin Group "zlib"
