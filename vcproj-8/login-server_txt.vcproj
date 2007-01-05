@@ -241,7 +241,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\login\md5calc.c"
+				RelativePath="..\src\common\md5calc.c"
 				>
 			</File>
 			<File
