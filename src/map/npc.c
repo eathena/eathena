@@ -1360,7 +1360,7 @@ int npc_selllist(struct map_session_data *sd,int n,unsigned short *item_list)
 	return 0;
 }
 
-int npc_remove_map (struct npc_data *nd)
+int npc_remove_map(struct npc_data *nd)
 {
 	int m,i;
 	nullpo_retr(1, nd);
@@ -1430,11 +1430,11 @@ void npc_unload_duplicates (struct npc_data *nd)
 	map_foreachiddb(npc_unload_dup_sub,nd->bl.id);
 }
 
-int npc_unload (struct npc_data *nd)
+int npc_unload(struct npc_data *nd)
 {
 	nullpo_ret(nd);
 
-	npc_remove_map (nd);
+	npc_remove_map(nd);
 	map_deliddb(&nd->bl);
 
 	if (nd->chat_id) {
@@ -1719,13 +1719,13 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
  */
 int npc_convertlabel_db (DBKey key, void *data, va_list ap)
 {
-	unsigned char *lname = key.str;
+	const char *lname = (const char*) key.str;
 	int pos = (int)data;
 	struct npc_data *nd;
 	struct npc_label_list *lst;
 	int num;
-	char *p;
-	char c;
+	const char *p;
+	int len;
 
 	nullpo_retr(0, ap);
 	nullpo_retr(0, nd = va_arg(ap,struct npc_data *));
@@ -1740,18 +1740,17 @@ int npc_convertlabel_db (DBKey key, void *data, va_list ap)
 
 	// In case of labels not terminated with ':', for user defined function support
 	p = lname;
-	while(isalnum(*(unsigned char*)p) || *p == '_') { p++; }
-	c = *p;
-	*p='\0';
+	while( ISALNUM(*p) || *p == '_' )
+		p++;
+	len = p-lname;
 
 	// here we check if the label fit into the buffer
-	if (strlen(lname) > 23) {
+	if (len > 23) {
 		ShowError("npc_parse_script: label name longer than 23 chars! '%s'\n (%s)", lname, current_file);
 		exit(1);
 	}
-	memcpy(lst[num].name, lname, strlen(lname)+1); //including EOS
-
-	*p = c;
+	memcpy(lst[num].name, lname, len);
+	lst[num].name[len]=0;
 	lst[num].pos = pos;
 	nd->u.scr.label_list = lst;
 	nd->u.scr.label_list_num = num+1;
@@ -1862,7 +1861,7 @@ static int npc_parse_script(char *w1,char *w2,char *w3,char *w4,char *first_line
 	unsigned char line[1024];
 	int i;
 	struct npc_data *nd, *dnd;
-	struct dbt *label_db;
+	DB label_db;
 	char *p;
 	struct npc_label_list *label_dup = NULL;
 	int label_dupnum = 0;
@@ -1914,7 +1913,7 @@ static int npc_parse_script(char *w1,char *w2,char *w3,char *w4,char *first_line
 			script = NULL;
 		} else {
 			// printf("Ok line %d\n",*lines);
-			script = parse_script((unsigned char *) srcbuf, file, startline);
+			script = parse_script(srcbuf, file, startline, SCRIPT_USE_LABEL_DB);
 		}
 		if (script == NULL) {
 			// script parse error?
@@ -2033,6 +2032,7 @@ static int npc_parse_script(char *w1,char *w2,char *w3,char *w4,char *first_line
 		// ラベルデータのコンバート
 		label_db = script_get_label_db();
 		label_db->foreach(label_db, npc_convertlabel_db, nd);
+		label_db->clear(label_db,NULL); // not needed anymore, so clear the db
 
 		// もう使わないのでバッファ解放
 		aFree(srcbuf);
@@ -2149,7 +2149,7 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 		ShowError("Missing right curly at file %s, line %d\n",file, *lines);
 		script = NULL;
 	} else {
-		script = parse_script(srcbuf, file, startline);
+		script = parse_script(srcbuf, file, startline,0);
 	}
 	if (script == NULL) {
 		// script parse error?
@@ -2214,7 +2214,7 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 
 	// 引数の個数チェック
 	if (sscanf(w1, "%15[^,],%d,%d,%d,%d", mapname, &x, &y, &xs, &ys) < 3 ||
-		sscanf(w4, "%d,%d,%u,%u,%49[^\r\n]", &class_, &num, &mob.delay1, &mob.delay2, mob.eventname) < 2 ) {
+		sscanf(w4, "%d,%d,%u,%u,%49[^\t\r\n]", &class_, &num, &mob.delay1, &mob.delay2, mob.eventname) < 2 ) {
 		ShowError("bad monster line : %s %s %s (file %s)\n", w1, w3, w4, current_file);
 		return 1;
 	}

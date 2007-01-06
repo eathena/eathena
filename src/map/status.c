@@ -2139,7 +2139,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		status->aspd_rate -= 30*skill;
 	if((skill=pc_checkskill(sd,GS_SINGLEACTION))>0 &&
 		(sd->status.weapon >= W_REVOLVER && sd->status.weapon <= W_GRENADE))
-		status->aspd_rate -= 5*skill;
+		status->aspd_rate -= ((skill+1)/2) * 10;
 	if(pc_isriding(sd))
 		status->aspd_rate += 500-100*pc_checkskill(sd,KN_CAVALIERMASTERY);
 	
@@ -2240,7 +2240,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		clif_updatestatus(sd,SP_WEIGHT);
 	if(b_max_weight != sd->max_weight) {
 		clif_updatestatus(sd,SP_MAXWEIGHT);
-		pc_checkweighticon(sd);
+		pc_updateweightstatus(sd);
 	}
 	if(b_status.str != status->str)
 		clif_updatestatus(sd,SP_STR);
@@ -3100,7 +3100,7 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk += batk * 3;
 	if(sc->data[SC_BLOODLUST].timer!=-1)
 		batk += batk * sc->data[SC_BLOODLUST].val2/100;
-	if(sc->data[SC_JOINTBEAT].timer!=-1 && sc->data[SC_JOINTBEAT].val2==4)
+	if(sc->data[SC_JOINTBEAT].timer!=-1 && sc->data[SC_JOINTBEAT].val2&BREAK_WAIST)
 		batk -= batk * 25/100;
 	if(sc->data[SC_CURSE].timer!=-1)
 		batk -= batk * 25/100;
@@ -3335,10 +3335,9 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 	if(sc->data[SC_PROVOKE].timer!=-1)
 		def2 -= def2 * sc->data[SC_PROVOKE].val4/100;
 	if(sc->data[SC_JOINTBEAT].timer!=-1){
-		if(sc->data[SC_JOINTBEAT].val2==3)
-			def2 -= def2 * 50/100;
-		else if(sc->data[SC_JOINTBEAT].val2==4)
-			def2 -= def2 * 25/100;
+		def2 -= def2 *
+			( ( sc->data[SC_JOINTBEAT].val2&BREAK_SHOULDER ? 50 : 0 )
+			+ ( sc->data[SC_JOINTBEAT].val2&BREAK_WAIST    ? 25 : 0 ) );
 	}
 	if(sc->data[SC_FLING].timer!=-1)
 		def2 -= def2 * (sc->data[SC_FLING].val3)/100;
@@ -3434,11 +3433,9 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 	if(sc->data[SC_GOSPEL].timer!=-1 && sc->data[SC_GOSPEL].val4 == BCT_ENEMY)
 		speed = speed * 100/75;
 	if(sc->data[SC_JOINTBEAT].timer!=-1) {
-		if (sc->data[SC_JOINTBEAT].val2 == 0)
-			speed = speed * 100/50;
-		else
-		if (sc->data[SC_JOINTBEAT].val2 == 2)
-			speed = speed * 100/70;
+		speed = speed * ( 100
+			- ( sc->data[SC_JOINTBEAT].val2&BREAK_ANKLE ? 50 : 0 )
+			- ( sc->data[SC_JOINTBEAT].val2&BREAK_KNEE  ? 30 : 0 ));
 	}
 	if(sc->data[SC_CLOAKING].timer!=-1)
 		speed = speed * 100 /(
@@ -3549,9 +3546,9 @@ static short status_calc_aspd_rate(struct block_list *bl, struct status_change *
 //		if(sc->data[SC_BLEEDING].timer != -1)
 //			aspd_rate += 250;
 	if(sc->data[SC_JOINTBEAT].timer!=-1) {
-		if (sc->data[SC_JOINTBEAT].val2 == 1)
+		if( sc->data[SC_JOINTBEAT].val2&BREAK_WRIST )
 			aspd_rate += 250;
-		else if (sc->data[SC_JOINTBEAT].val2 == 2)
+		if( sc->data[SC_JOINTBEAT].val2&BREAK_KNEE )
 			aspd_rate += 100;
 	}
 
@@ -4971,9 +4968,10 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			val3 = 4*val2;	//movement speed % increase is 4 times that
 			break;
 
-		case SC_JOINTBEAT: // Random break [DracoRPG]
-			val2 = rand()%6; //Type of break
-			if (val2 == 5) sc_start(bl,SC_BLEEDING,100,val1,skill_get_time2(StatusSkillChangeTable[type],val1));
+		case SC_JOINTBEAT:
+			val2 |= sc->data[SC_JOINTBEAT].val2; // stackable ailments
+			if( val2&BREAK_NECK )
+				sc_start(bl,SC_BLEEDING,100,val1,skill_get_time2(StatusSkillChangeTable[type],val1));
 			break;
 
 		case SC_BERSERK:
@@ -5672,7 +5670,13 @@ int status_change_clear(struct block_list *bl,int type)
 
 	sc = status_get_sc(bl);
 
-	if (!sc || sc->count == 0)
+	if (!sc)
+		return 0;
+
+	if (sc->data[SC_FREEZE].val3)
+		sc->data[SC_FREEZE].val3 = 0; //Reset freeze counter.
+	
+  	if (!sc->count)
 		return 0;
 
 	if(sc->data[SC_DANCING].timer != -1)
@@ -6011,6 +6015,9 @@ int status_change_end( struct block_list* bl , int type,int tid )
 					pc_setsavepoint(sd, sd->mapindex, bl->x, bl->y);
 			}
 			break; //guess hes not in jail :P
+		case SC_JOINTBEAT:
+			sc->data[type].val2 = 0; // Clear stackable ailments
+			break;
 		}
 
 	opt_flag = 1;

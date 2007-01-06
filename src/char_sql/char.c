@@ -3477,24 +3477,15 @@ int parse_char(int fd) {
 			RFIFOSKIP(fd, 46);
 			
 			/* Check if e-mail is correct */
-			if(strcmpi(email, sd->email)){
-				if(strcmp("a@a.com", sd->email) == 0){
-					if(strcmp("a@a.com", email) == 0 || strcmp("", email) == 0){
-						//ignore
-					}else{
-						//del fail
-						WFIFOW(fd, 0) = 0x70;
-						WFIFOB(fd, 2) = 0;
-						WFIFOSET(fd, 3);
-						break;
-					}
-				}else{
-					//del fail
-					WFIFOW(fd, 0) = 0x70;
-					WFIFOB(fd, 2) = 0;
-					WFIFOSET(fd, 3);
-					break;
-				}
+			if(strcmpi(email, sd->email) && //email does not matches and 
+			(
+				strcmp("a@a.com", sd->email) || //it is not default email, or
+				(strcmp("a@a.com", email) && strcmp("", email)) //email sent does not matches default
+			)) {	//Fail
+				WFIFOW(fd, 0) = 0x70;
+				WFIFOB(fd, 2) = 0;
+				WFIFOSET(fd, 3);
+				break;
 			}
 			
 			for(i = 0; i < 9; i++) {
@@ -3667,6 +3658,7 @@ int mapif_sendall(unsigned char *buf, unsigned int len) {
 	for(i = 0; i < MAX_MAP_SERVERS; i++) {
 		if ((fd = server_fd[i]) > 0) { //0 Should not be a valid server_fd [Skotlex]
 			WFIFOHEAD(fd,len);
+#if 0 //This seems to have been fixed long long ago.
 			if (session[fd] == NULL)
 			{	//Could this be the crash's source? [Skotlex]
 				ShowError("mapif_sendall: Attempting to write to invalid session %d! Map Server #%d disconnected.\n", fd, i);
@@ -3674,8 +3666,7 @@ int mapif_sendall(unsigned char *buf, unsigned int len) {
 				memset(&server[i], 0, sizeof(struct mmo_map_server));
 				continue;
 			}
-			if (WFIFOSPACE(fd) < len) //Increase buffer size.
-				realloc_writefifo(fd, len);
+#endif
 			memcpy(WFIFOP(fd,0), buf, len);
 			WFIFOSET(fd,len);
 			c++;
@@ -3693,8 +3684,6 @@ int mapif_sendallwos(int sfd, unsigned char *buf, unsigned int len) {
 	for(i=0, c=0;i<MAX_MAP_SERVERS;i++){
 		if ((fd = server_fd[i]) > 0 && fd != sfd) {
 			WFIFOHEAD(fd, len);
-			if (WFIFOSPACE(fd) < len) //Increase buffer size.
-				realloc_writefifo(fd, len);
 			memcpy(WFIFOP(fd,0), buf, len);
 			WFIFOSET(fd, len);
 			c++;
@@ -3711,8 +3700,6 @@ int mapif_send(int fd, unsigned char *buf, unsigned int len) {
 		for(i = 0; i < MAX_MAP_SERVERS; i++) {
 			if (fd == server_fd[i]) {
 				WFIFOHEAD(fd,len);
-				if (WFIFOSPACE(fd) < len) //Increase buffer size.
-					realloc_writefifo(fd, len);
 				memcpy(WFIFOP(fd,0), buf, len);
 				WFIFOSET(fd,len);
 				return 1;

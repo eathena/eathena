@@ -1525,7 +1525,7 @@ static void read_constdb(void)
 
 const char* script_print_line( const char *p, const char *mark, int line );
 
-void script_error(char *src,const char *file,int start_line, const char *error_msg, const char *error_pos) {
+void script_error(const char *src,const char *file,int start_line, const char *error_msg, const char *error_pos) {
 	// ƒGƒ‰[‚ª”­¶‚µ‚½s‚ð‹‚ß‚é
 	int j;
 	int line = start_line;
@@ -1578,7 +1578,7 @@ const char* script_print_line( const char *p, const char *mark, int line ) {
  *------------------------------------------
  */
 
-struct script_code* parse_script(unsigned char *src,const char *file,int line)
+struct script_code* parse_script(const char* src,const char* file,int line,int options)
 {
 	unsigned char *p,*tmpp;
 	int i;
@@ -10043,7 +10043,7 @@ int buildin_atcommand(struct script_state *st)
 	if (st->rid)
 		sd = script_rid2sd(st);
 
-	if (sd) is_atcommand(sd->fd, sd, cmd, 99);
+	if (sd) is_atcommand_sub(sd->fd, sd, cmd, 99);
 	else { //Use a dummy character.
 		struct map_session_data dummy_sd;
 		struct block_list *bl = NULL;
@@ -10054,7 +10054,7 @@ int buildin_atcommand(struct script_state *st)
 			if (bl->type == BL_NPC)
 				strncpy(dummy_sd.status.name, ((TBL_NPC*)bl)->name, NAME_LENGTH);
 		}
-		is_atcommand(0, &dummy_sd, cmd, 99);
+		is_atcommand_sub(0, &dummy_sd, cmd, 99);
 	}
 
 	return 0;
@@ -10070,7 +10070,7 @@ int buildin_charcommand(struct script_state *st)
 	if (st->rid)
 		sd = script_rid2sd(st);
 	
-	if (sd) is_charcommand(sd->fd, sd, cmd, 99);
+	if (sd) is_charcommand_sub(sd->fd, sd, cmd, 99);
 	else { //Use a dummy character.
 		struct map_session_data dummy_sd;
 		struct block_list *bl = NULL;
@@ -10081,7 +10081,7 @@ int buildin_charcommand(struct script_state *st)
 			if (bl->type == BL_NPC)
 				strncpy(dummy_sd.status.name, ((TBL_NPC*)bl)->name, NAME_LENGTH);
 		}
-		is_charcommand(0, &dummy_sd, cmd, 99);
+		is_charcommand_sub(0, &dummy_sd, cmd, 99);
 	}
 
 	return 0;
@@ -11602,7 +11602,7 @@ int buildin_setitemscript(struct script_state *st)
 	if (i_data && script!=NULL && script[0]=='{') {
 		if(i_data->script!=NULL)
 			script_free_code(i_data->script);
-		i_data->script = parse_script((unsigned char *) script, "script_setitemscript", 0);
+		i_data->script = parse_script(script, "script_setitemscript", 0, 0);
 		push_val(st->stack,C_INT,1);
 	} else
 		push_val(st->stack,C_INT,0);

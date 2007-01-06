@@ -235,15 +235,17 @@ struct mob_data* mob_spawn_dataset(struct spawn_data *data)
  * 1: poring list
  * 2: bloody branch list
  * flag:
- * &1: Apply the summon success chance found in the list.
+ * &1: Apply the summon success chance found in the list (otherwise get any monster from the db)
  * &2: Apply a monster check level.
+ * &4: Selected monster should not be a boss type
+ * &8: Selected monster must give base exp.
  * lv: Mob level to check against
  *------------------------------------------
  */
 
 int mob_get_random_id(int type, int flag, int lv) {
 	struct mob_db *mob;
-	int i=0, k=0, class_;
+	int i=0, class_;
 	if(type < 0 || type >= MAX_RANDOMMONSTER) {
 		if (battle_config.error_log)
 			ShowError("mob_get_random_id: Invalid type (%d) of random monster.\n", type);
@@ -251,16 +253,18 @@ int mob_get_random_id(int type, int flag, int lv) {
 	}
 	do {
 		class_ = rand() % MAX_MOB_DB;
-		if (flag&1)
-			k = rand() % 1000000;
 		mob = mob_db(class_);
-	} while ((mob == mob_dummy || mob->summonper[type] <= k ||
-		 (flag&2 && lv < mob->lv)) && (i++) < MAX_MOB_DB);
+	} while ((mob == mob_dummy ||
+		(flag&1 && mob->summonper[type] <= rand() % 1000000) ||
+		(flag&2 && lv < mob->lv) ||
+		(flag&4 && mob->status.mode&MD_BOSS) ||
+		(flag&8 && mob->base_exp < 1)
+	) && (i++) < MAX_MOB_DB);
+
 	if(i >= MAX_MOB_DB)
 		class_ = mob_db_data[0]->summonper[type];
 	return class_;
 }
-
 
 struct mob_data *mob_once_spawn_sub(struct block_list *bl, int m,
 	short x, short y, const char *mobname, int class_, const char *event)

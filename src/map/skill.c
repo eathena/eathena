@@ -1023,7 +1023,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			}
 		}
 	
-		if (sc && sc->count) {	
+		if (sc && sc->count) {
 		// Enchant Poison gives a chance to poison attacked enemies
 			if(sc->data[SC_ENCPOISON].timer != -1) //Don't use sc_start since chance comes in 1/10000 rate.
 				status_change_start(bl,SC_POISON,sc->data[SC_ENCPOISON].val2,
@@ -1096,7 +1096,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		sc_start(bl,SC_FREEZE,(3*skilllv+35),skilllv,skill_get_time2(skillid,skilllv));
 		break;
 
-	 case HT_FLASHER:
+	case HT_FLASHER:
 		sc_start(bl,SC_BLIND,(10*skilllv+30),skilllv,skill_get_time2(skillid,skilllv));
 		break;
 
@@ -1237,10 +1237,15 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		if (!(battle_check_undead(tstatus->race, tstatus->def_ele) || tstatus->race == RC_DEMON))
 			sc_start(bl, SC_BLEEDING,50, skilllv, skill_get_time2(skillid,skilllv));
 		break;
-
+/*
 	case LK_JOINTBEAT:
-		sc_start(bl,SkillStatusChangeTable(skillid),(5*skilllv+5),skilllv,skill_get_time2(skillid,skilllv));
+	{
+		int flag = 0;
+		//##TODO how should this be done? the ailment has to be calculated before because it also affects the damage [FlavioJS]
+		sc_start2(bl,SkillStatusChangeTable(skillid),(5*skilllv+5),skilllv,flag&BREAK_FLAGS,skill_get_time2(skillid,skilllv));
 		break;
+	}
+*/
 
 	case ASC_METEORASSAULT:
 		//Any enemies hit by this skill will receive Stun, Darkness, or external bleeding status ailment with a 5%+5*SkillLV% chance.
@@ -1998,6 +2003,14 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 	case KN_AUTOCOUNTER:
 	case NPC_CRITICALSLASH:
+	case NPC_WATERATTACK:
+	case NPC_GROUNDATTACK:
+	case NPC_FIREATTACK:
+	case NPC_WINDATTACK:
+	case NPC_POISONATTACK:
+	case NPC_HOLYATTACK:
+	case NPC_DARKNESSATTACK:
+	case NPC_TELEKINESISATTACK:
 	case NPC_SPLASHATTACK:
 	case TF_DOUBLE:
 	case GS_CHAINACTION:
@@ -2264,7 +2277,7 @@ int skill_guildaura_sub (struct block_list *bl, va_list ap)
 	if (sd->status.guild_id != gid)
 		return 0;
 
-	if(id == sd->bl.id)
+	if(id == sd->bl.id && battle_config.guild_aura&16)
 		return 0;
 
 	strvit = va_arg(ap,int);
@@ -2563,7 +2576,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case LK_AURABLADE:
 	case LK_SPIRALPIERCE:
 	case LK_HEADCRUSH:
-	case LK_JOINTBEAT:
 	case CG_ARROWVULCAN:
 	case HW_MAGICCRASHER:
 	case ITM_TOMAHAWK:
@@ -2591,6 +2603,20 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case NJ_KUNAI:
 	case ASC_BREAKER:
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+		break;
+
+	case LK_JOINTBEAT: // decide the ailment first (affects attack damage and effect)
+		switch( rand()%6 ){
+		case 0: flag |= BREAK_ANKLE; break;
+		case 1: flag |= BREAK_WRIST; break;
+		case 2: flag |= BREAK_KNEE; break;
+		case 3: flag |= BREAK_SHOULDER; break;
+		case 4: flag |= BREAK_WAIST; break;
+		case 5: flag |= BREAK_NECK; break;
+		}
+		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+		//##TODO this is a quick&dirty hack. How do I pass the selected ailment to skill_additional_effect? [FlavioJS]
+		sc_start2(bl,SkillStatusChangeTable(skillid),(5*skilllv+5),skilllv,flag&BREAK_FLAGS,skill_get_time2(skillid,skilllv));
 		break;
 
 	case MO_COMBOFINISH:
@@ -3011,6 +3037,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 
 	default:
 		ShowWarning("skill_castend_damage_id: Unknown skill used:%d\n",skillid);
+		clif_skill_damage(src, bl, tick, status_get_amotion(src), tstatus->dmotion,
+			0, abs(skill_get_num(skillid, skilllv)),
+			skillid, skilllv, skill_get_hit(skillid));
 		map_freeblock_unlock();
 		return 1;
 	}
@@ -3618,7 +3647,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				clif_skill_fail(sd,skillid,0,0);
 				break;
 			}
-			id = mob_get_random_id(0,0, sd->status.base_level);
+			id = mob_get_random_id(0,0xC, sd->status.base_level);
 			if (!id) {
 				clif_skill_fail(sd,skillid,0,0);
 				break;
@@ -5201,6 +5230,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 	default:
 		ShowWarning("skill_castend_nodamage_id: Unknown skill used:%d\n",skillid);
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		map_freeblock_unlock();
 		return 1;
 	}
@@ -6653,7 +6683,8 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 {
 	struct skill_unit_group *sg;
 	struct block_list *ss;
-	struct map_session_data *sd;
+	TBL_PC* sd;
+	TBL_PC* tsd;
 	struct status_data *tstatus, *sstatus;
 	struct status_change *tsc, *sc;
 	struct skill_unit_group_tickset *ts;
@@ -6670,6 +6701,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 	nullpo_retr(0, sg=src->group);
 	nullpo_retr(0, ss=map_id2bl(sg->src_id));
 	BL_CAST(BL_PC, ss, sd);
+	BL_CAST(BL_PC, bl, tsd);
 	tsc = status_get_sc(bl);
 	tstatus = status_get_status_data(bl);
 	if (sg->state.magic_power)  //For magic power. 
@@ -6920,23 +6952,23 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 						break;
 					case 1: // End all negative status
 						status_change_clear_buffs(bl,2);
-						if (sd) clif_gospel_info(sd, 0x15);
+						if (tsd) clif_gospel_info(sd, 0x15);
 						break;
 					case 2: // Immunity to all status
 						sc_start(bl,SC_SCRESIST,100,100,type);
-						if (sd) clif_gospel_info(sd, 0x16);
+						if (tsd) clif_gospel_info(sd, 0x16);
 						break;
 					case 3: // MaxHP +100%
 						sc_start(bl,SC_INCMHPRATE,100,100,type);
-						if (sd) clif_gospel_info(sd, 0x17);
+						if (tsd) clif_gospel_info(sd, 0x17);
 						break;
 					case 4: // MaxSP +100%
 						sc_start(bl,SC_INCMSPRATE,100,100,type);
-						if (sd) clif_gospel_info(sd, 0x18);
+						if (tsd) clif_gospel_info(sd, 0x18);
 						break;
 					case 5: // All stats +20
 						sc_start(bl,SC_INCALLSTATUS,100,20,type);
-						if (sd) clif_gospel_info(sd, 0x19);
+						if (tsd) clif_gospel_info(sd, 0x19);
 						break;
 					case 6: // Level 10 Blessing
 						sc_start(bl,SC_BLESSING,100,10,type);
@@ -6946,24 +6978,24 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 						break;
 					case 8: // Enchant weapon with Holy element
 						sc_start(bl,SC_ASPERSIO,100,1,type);
-						if (sd) clif_gospel_info(sd, 0x1c);
+						if (tsd) clif_gospel_info(sd, 0x1c);
 						break;
 					case 9: // Enchant armor with Holy element
 						sc_start(bl,SC_BENEDICTIO,100,1,type);
-						if (sd) clif_gospel_info(sd, 0x1d);
+						if (tsd) clif_gospel_info(sd, 0x1d);
 						break;
 					case 10: // DEF +25%
 						sc_start(bl,SC_INCDEFRATE,100,25,type);
-						if (sd) clif_gospel_info(sd, 0x1e);
+						if (tsd) clif_gospel_info(sd, 0x1e);
 						break;
 					case 11: // ATK +100%
 						sc_start(bl,SC_INCATKRATE,100,100,type);
-						if (sd) clif_gospel_info(sd, 0x1f);
+						if (tsd) clif_gospel_info(sd, 0x1f);
 						break;
 					case 12: // HIT/Flee +50
 						sc_start(bl,SC_INCHIT,100,50,type);
 						sc_start(bl,SC_INCFLEE,100,50,type);
-						if (sd) clif_gospel_info(sd, 0x20);
+						if (tsd) clif_gospel_info(sd, 0x20);
 						break;
 				}
 			}
@@ -7503,6 +7535,8 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 		sd->skillitem = sd->skillitemlv = 0;
 		//Need to do arrow state check.
 		sd->state.arrow_atk = skill_get_ammotype(skill)?1:0; 
+		//Need to do Spiritball check.
+		sd->spiritball_old = sd->spiritball;
 		return 1;
 	}
 
@@ -11176,8 +11210,8 @@ int do_init_skill (void)
 	skill_readdb();
 	skill_dance_switch_sub(NULL, NULL, 2); //Initialize Song/Dance overlap switch code.
 	
-	skill_unit_ers = ers_new((uint32)sizeof(struct skill_unit_group));
-	skill_timer_ers  = ers_new((uint32)sizeof(struct skill_timerskill));
+	skill_unit_ers = ers_new(sizeof(struct skill_unit_group));
+	skill_timer_ers  = ers_new(sizeof(struct skill_timerskill));
 	
 	if (battle_config.skill_sp_override_grffile)
 		skill_read_skillspamount();

@@ -162,7 +162,10 @@ static int unit_walktoxy_timer(int tid,unsigned int tick,int id,int data)
 				return 0;
 		} else
 			sd->areanpc_id=0;
-		if (sd->state.gmaster_flag)
+		if (sd->state.gmaster_flag &&
+			(battle_config.guild_aura&(agit_flag?2:1)) &&
+			(battle_config.guild_aura&(map_flag_gvg2(bl->m)?8:4))
+		)
 		{ //Guild Aura: Likely needs to be recoded, this method seems inefficient.
 			struct guild *g = sd->state.gmaster_flag;
 			int skill, strvit= 0, agidex = 0;
@@ -1125,9 +1128,18 @@ int unit_attack(struct block_list *src,int target_id,int type)
 		return 1;
 	}
 
-	if(src->type == BL_PC && target->type==BL_NPC) { // monster npcs [Valaris]
-		npc_click((TBL_PC*)src,(TBL_NPC*)target); // submitted by leinsirk10 [Celest]
-		return 0;
+	if( src->type == BL_PC ){
+		TBL_PC* sd = (TBL_PC*)src;
+		if( target->type == BL_NPC )
+		{// monster npcs [Valaris]
+			npc_click(sd,(TBL_NPC*)target); // submitted by leinsirk10 [Celest]
+			return 0;
+		} else if( pc_is90overweight(sd) )
+		{// overwheight - stop attacking and walking
+			unit_stop_attack(src);
+			unit_stop_walking(src,1);
+			return 0;
+		}
 	}
 
 	if(battle_check_target(src,target,BCT_ENEMY)<=0 ||

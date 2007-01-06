@@ -171,12 +171,12 @@ enum {
 //Specifies if the map is tagged as GvG/WoE (regardless of agit_flag status)
 #define map_flag_gvg2(m) (map[m].flag.gvg || map[m].flag.gvg_castle)
 //Caps values to min/max
-#define cap_value(a, min, max) (a>max?max:a<min?min:a)
+#define cap_value(a, min, max) (a>=max?max:a<=min?min:a)
 
 //This stackable implementation does not means a BL can be more than one type at a time, but it's 
 //meant to make it easier to check for multiple types at a time on invocations such as
 // map_foreach* calls [Skotlex]
-enum { 
+enum bl_type { 
 	BL_NUL = 0x000,
 	BL_PC = 0x001,
 	BL_MOB = 0x002,
@@ -192,7 +192,7 @@ enum {
 #define BL_CHAR (BL_PC|BL_MOB)
 #define BL_ALL 0xfff
 
-enum { WARP, SHOP, SCRIPT, MONS };
+enum bl_subtype { WARP, SHOP, SCRIPT, MONS };
 
 enum {
 	RC_FORMLESS=0,
@@ -1047,7 +1047,7 @@ struct map_data {
 	int water_height;
 	int npc_num;
 	int users;
-	struct {
+	struct map_flag {
 		unsigned alias : 1;
 		unsigned nomemo : 1;
 		unsigned noteleport : 1;

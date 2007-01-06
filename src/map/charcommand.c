@@ -28,7 +28,7 @@
 #include "charcommand.h"
 #include "atcommand.h"
 
-static char command_symbol = '#';
+char charcommand_symbol = '#';
 
 extern char *msg_table[1000]; // Server messages (0-499 reserved for GM commands, 500-999 reserved for others)
 
@@ -122,33 +122,13 @@ int get_charcommand_level(const CharCommandType type) {
 	return 100; // 100: command can not be used
 }
 
-/*==========================================
- *is_charcommand @コマンドに存在するかどうか確認する
- *------------------------------------------
- */
-CharCommandType
-is_charcommand(const int fd, struct map_session_data* sd, const char* message, int gmlvl) {
-	const char* str = message;
-	int s_flag = 0;
+CharCommandType 
+is_charcommand_sub(const int fd, struct map_session_data* sd, const char* str, int gmlvl) {
 	CharCommandInfo info;
 	CharCommandType type;
 
-	nullpo_retr(CharCommand_None, sd);
-
-	if (!message || !*message)
-		return CharCommand_None;
-
 	memset(&info, 0, sizeof(info));
-	str += strlen(sd->status.name);
-	while (*str && (isspace(*str) || (s_flag == 0 && *str == ':'))) {
-		if (*str == ':')
-			s_flag = 1;
-		str++;
-	}
-	if (!*str)
-		return CharCommand_None;
 
-	if (!gmlvl) gmlvl = pc_isGM(sd);
 	type = charcommand(sd, gmlvl, str, &info);
 	if (type != CharCommand_None) {
 		char command[100];
@@ -191,6 +171,33 @@ is_charcommand(const int fd, struct map_session_data* sd, const char* message, i
 }
 
 /*==========================================
+ *is_charcommand @コマンドに存在するかどうか確認する
+ *------------------------------------------
+ */
+CharCommandType
+is_charcommand(const int fd, struct map_session_data* sd, const char* message) {
+	const char* str = message;
+	int s_flag = 0;
+
+	nullpo_retr(CharCommand_None, sd);
+
+	if (!message || !*message)
+		return CharCommand_None;
+
+	str += strlen(sd->status.name);
+	while (*str && (isspace(*str) || (s_flag == 0 && *str == ':'))) {
+		if (*str == ':')
+			s_flag = 1;
+		str++;
+	}
+
+	if (!*str)
+		return CharCommand_None;
+
+	return is_charcommand_sub(fd,sd,str,pc_isGM(sd));
+}
+
+/*==========================================
  *
  *------------------------------------------
  */
@@ -206,7 +213,10 @@ CharCommandType charcommand(struct map_session_data* sd, const int level, const 
 		return CharCommand_None;
 	}
 
-	if (*p == command_symbol) { // check first char.
+	if(p[0] == '|')
+		p += 3;
+
+	if (*p == charcommand_symbol) { // check first char, try to skip |00 (or something else) [Lance]
 		char command[101];
 		int i = 0;
 		memset(info, 0, sizeof(CharCommandInfo));
@@ -284,12 +294,12 @@ int charcommand_config_read(const char *cfgName) {
 
 		if (strcmpi(w1, "import") == 0)
 			charcommand_config_read(w2);
-		else if (strcmpi(w1, "command_symbol") == 0 && w2[0] > 31 &&
+		else if (strcmpi(w1, "charcommand_symbol") == 0 && w2[0] > 31 &&
 				w2[0] != '/' && // symbol of standard ragnarok GM commands
 				w2[0] != '%' && // symbol of party chat speaking
 				w2[0] != '$' && // symbol of guild chat speaking
 				w2[0] != '@')	// symbol of atcommand
-			command_symbol = w2[0];
+			charcommand_symbol = w2[0];
 	}
 	fclose(fp);
 

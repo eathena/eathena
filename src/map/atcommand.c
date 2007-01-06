@@ -41,7 +41,7 @@
 #include "mail.h"
 #endif
 
-static char command_symbol = '@'; // first char of the commands (by [Yor])
+char atcommand_symbol = '@'; // first char of the commands (by [Yor])
 
 char *msg_table[MAX_MSG]; // Server messages (0-499 reserved for GM commands, 500-999 reserved for others)
 
@@ -761,37 +761,13 @@ int get_atcommand_level(const AtCommandType type) {
 	return 100; // 100: command can not be used
 }
 
-/*==========================================
- *is_atcommand @コマンドに存在するかどうか確認する
- *------------------------------------------
- */
 AtCommandType
-is_atcommand(const int fd, struct map_session_data* sd, const char* message, int gmlvl) {
-	const char* str = message;
-	int s_flag = 0;
+is_atcommand_sub(const int fd, struct map_session_data* sd, const char* str, int gmlvl) {
 	AtCommandInfo info;
 	AtCommandType type;
 
-	nullpo_retr(AtCommand_None, sd);
-
-	if (sd->sc.count && sd->sc.data[SC_NOCHAT].timer != -1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOCOMMAND) {
-		return AtCommand_Unknown;
-	}
-
-	if (!message || !*message)
-		return AtCommand_None;
-
 	memset(&info, 0, sizeof(info));
-	str += strlen(sd->status.name);
-	while (*str && (isspace(*str) || (s_flag == 0 && *str == ':'))) {
-		if (*str == ':')
-			s_flag = 1;
-		str++;
-	}
-	if (!*str)
-		return AtCommand_None;
 
-	if (!gmlvl) gmlvl = pc_isGM(sd);
 	type = atcommand(sd, gmlvl, str, &info);
 	if (type != AtCommand_None) {
 		char command[100];
@@ -833,6 +809,37 @@ is_atcommand(const int fd, struct map_session_data* sd, const char* message, int
 }
 
 /*==========================================
+ *is_atcommand @コマンドに存在するかどうか確認する
+ *------------------------------------------
+ */
+AtCommandType
+is_atcommand(const int fd, struct map_session_data* sd, const char* message) {
+	const char* str = message;
+	int s_flag = 0;
+
+	nullpo_retr(AtCommand_None, sd);
+
+	if (sd->sc.count && sd->sc.data[SC_NOCHAT].timer != -1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOCOMMAND) {
+		return AtCommand_Unknown;
+	}
+
+	if (!message || !*message)
+		return AtCommand_None;
+
+	str += strlen(sd->status.name);
+	while (*str && (isspace(*str) || (s_flag == 0 && *str == ':'))) {
+		if (*str == ':')
+			s_flag = 1;
+		str++;
+	}
+
+	if (!*str)
+		return AtCommand_None;
+
+	return is_atcommand_sub(fd,sd,str,pc_isGM(sd));
+}
+
+/*==========================================
  *
  *------------------------------------------
  */
@@ -848,7 +855,10 @@ AtCommandType atcommand(struct map_session_data* sd, const int level, const char
 		return AtCommand_None;
 	}
 
-	if (*p == command_symbol) { // check first char.
+	if(p[0] == '|')
+		p += 3;
+
+	if (*p == atcommand_symbol) { // check first char, try to skip |00 (or something else) [Lance]
 		char command[101];
 		int i = 0;
 		memset(info, 0, sizeof(AtCommandInfo));
@@ -981,7 +991,7 @@ int atcommand_config_read(const char *cfgName) {
 				w2[0] != '%' && // symbol of party chat speaking
 				w2[0] != '$' && // symbol of guild chat
 				w2[0] != '#')	// symbol of charcommand
-			command_symbol = w2[0];
+			atcommand_symbol = w2[0];
 	}
 	fclose(fp);
 
@@ -1131,10 +1141,10 @@ int atcommand_rura(
 		return -1;
 	}
 
-	if ((x || y) && map_getcell(m, x, y, CELL_CHKNOPASS)) {
+	/*if ((x || y) && map_getcell(m, x, y, CELL_CHKNOPASS)) {
 		clif_displaymessage(fd, msg_txt(2));
 		x = y = 0; //Invalid cell, use random spot.
-	}
+	}*/
 	if (map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
 		clif_displaymessage(fd, msg_txt(247));
 		return -1;
@@ -3108,7 +3118,7 @@ int atcommand_go(
 		{ MAP_UMBALA,		89,  157  },		//	12=Umbala
 		{ MAP_NIFLHEIM,	21,  153  },		//	13=Niflheim
 		{ MAP_LOUYANG,		217,  40  },	//	14=Lou Yang
-		{ "new_zone01.gat",		53,  111  },	//	15=Training Grounds
+		{ MAP_NOVICE,		53,  111  },	//	15=Training Grounds
 		{ MAP_JAIL,		23,   61  },	//	16=Prison
 		{ MAP_JAWAII,		249, 127  },		//  17=Jawaii
 		{ MAP_AYOTHAYA,	151, 117  },		//  18=Ayothaya
@@ -3116,6 +3126,8 @@ int atcommand_go(
 		{ MAP_LIGHTHALZEN,	158,  92  },	//  20=Lighthalzen
 		{ MAP_EINBECH,		70,   95  },	//  21=Einbech
 		{ MAP_HUGEL,		96,  145  },		//  22=Hugel
+		{ MAP_RACHEL,		130,  110  },		//  23=Rachel
+		{ MAP_VEINS,		216,  123  },		//  24=Veins
 	};
  
 	nullpo_retr(-1, sd);
@@ -3142,7 +3154,8 @@ int atcommand_go(
 		clif_displaymessage(fd, " 12=Umbala          13=Niflheim    14=Lou Yang");
 		clif_displaymessage(fd, " 15=Novice Grounds  16=Prison      17=Jawaii");
 		clif_displaymessage(fd, " 18=Ayothaya        19=Einbroch    20=Lighthalzen");
-		clif_displaymessage(fd, " 21=Einbech         22=Hugel");
+		clif_displaymessage(fd, " 21=Einbech         22=Hugel       23=Rachel");
+		clif_displaymessage(fd, " 24=Veins");
 		return -1;
 	} else {
 		// get possible name of the city and add .gat if not in the name
@@ -3203,16 +3216,20 @@ int atcommand_go(
 		} else if (strncmp(map_name, "ayothaya.gat", 2) == 0 || // 2 first characters
 		           strncmp(map_name, "ayotaya.gat", 2) == 0) { // writing error (2 first characters)
 			town = 18;
-		} else if (strncmp(map_name, "einbroch.gat", 3) == 0 || // 3 first characters
-		           strncmp(map_name, "ainbroch.gat", 3) == 0) { // writing error (3 first characters)
+		} else if (strncmp(map_name, "einbroch.gat", 5) == 0 || // 5 first characters
+		           strncmp(map_name, "ainbroch.gat", 5) == 0) { // writing error (5 first characters)
 			town = 19;
 		} else if (strncmp(map_name, "lighthalzen.gat", 3) == 0 || // 3 first characters
 		           strncmp(map_name, "reichthalzen.gat", 3) == 0) { // 'alternative' name (3 first characters)
 			town = 20;
-		} else if (strncmp(map_name, "einbech.gat", 5) == 0) {		// 5 first characters
+		} else if (strncmp(map_name, "einbech.gat", 3) == 0) {		// 3 first characters
 			town = 21;
 		} else if (strncmp(map_name, "hugel.gat", 3) == 0) {		// 3 first characters
 			town = 22;
+		} else if (strncmp(map_name, "rachel.gat", 3) == 0) {		// 3 first characters
+			town = 23;
+		} else if (strncmp(map_name, "veins.gat", 3) == 0) {		// 3 first characters
+			town = 24;
 		}
  
 		if (town >= -3 && town <= -1) {
@@ -4808,8 +4825,8 @@ int atcommand_kickall(
 		if ((pl_sd = pl_allsd[i]) && pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can kick only lower or same gm level
 			if (sd->status.account_id != pl_sd->status.account_id)
 				clif_GM_kick(sd, pl_sd, 0);
-			}
 		}
+	}
 
 	clif_displaymessage(fd, msg_txt(195)); // All players have been kicked!
 

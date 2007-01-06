@@ -292,7 +292,9 @@ typedef struct AtCommandInfo {
 } AtCommandInfo;
 
 AtCommandType
-is_atcommand(const int fd, struct map_session_data* sd, const char* message, int gmlvl);
+is_atcommand(const int fd, struct map_session_data* sd, const char* message);
+AtCommandType
+is_atcommand_sub(const int fd, struct map_session_data* sd, const char* str, int gmlvl);
 
 AtCommandType atcommand(
 	struct map_session_data *sd,

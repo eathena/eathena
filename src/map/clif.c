@@ -621,8 +621,8 @@ int clif_authok(struct map_session_data *sd) {
 	WFIFOW(fd, 0) = 0x73;
 	WFIFOL(fd, 2) = gettick();
 	WFIFOPOS(fd, 6, sd->bl.x, sd->bl.y, sd->ud.dir);
-	WFIFOB(fd, 9) = 5;
-	WFIFOB(fd,10) = 5;
+	WFIFOB(fd, 9) = 5; // ignored
+	WFIFOB(fd,10) = 5; // ignored
 	WFIFOSET(fd,packet_len(0x73));
 
 	return 0;
@@ -2406,8 +2406,8 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 	switch(type){
 		// 00b0
 	case SP_WEIGHT:
-		pc_checkweighticon(sd);
-		WFIFOW(fd,0)=0xb0;	//Need to re-set as pc_checkweighticon can alter the buffer. [Skotlex]
+		pc_updateweightstatus(sd);
+		WFIFOW(fd,0)=0xb0;	//Need to re-set as pc_updateweightstatus can alter the buffer. [Skotlex]
 		WFIFOW(fd,2)=type;
 		WFIFOL(fd,4)=sd->weight;
 		break;
@@ -4983,14 +4983,14 @@ int clif_set0199(int fd,int type)
  */
 int clif_pvpset(struct map_session_data *sd,int pvprank,int pvpnum,int type)
 {
-	nullpo_retr(0, sd);
+	int fd = sd->fd;
 
 	if(type == 2) {
-		WFIFOHEAD(sd->fd,packet_len(0x19a));
-		WFIFOW(sd->fd,0) = 0x19a;
-		WFIFOL(sd->fd,2) = sd->bl.id;
-		WFIFOL(sd->fd,6) = pvprank;
-		WFIFOL(sd->fd,10) = pvpnum;
+		WFIFOHEAD(fd,packet_len(0x19a));
+		WFIFOW(fd,0) = 0x19a;
+		WFIFOL(fd,2) = sd->bl.id;
+		WFIFOL(fd,6) = pvprank;
+		WFIFOL(fd,10) = pvpnum;
 		WFIFOSET(sd->fd,packet_len(0x19a));
 	} else {
 		unsigned char buf[32];
@@ -5772,25 +5772,20 @@ int clif_party_option(struct party_data *p,struct map_session_data *sd,int flag)
 
 	nullpo_retr(0, p);
 
-//	if(battle_config.etc_log)
-//		printf("clif_party_option: %d %d %d\n",p->exp,p->item,flag);
-	if(sd==NULL && flag==0){
+	if(!sd && flag==0){
 		int i;
 		for(i=0;i<MAX_PARTY && !p->data[i].sd;i++);
 		if (i < MAX_PARTY)
 			sd = p->data[i].sd;
 	}
-	if(sd==NULL)
-		return 0;
+	if(!sd) return 0;
 	WBUFW(buf,0)=0x101;
 	WBUFW(buf,2)=((flag&0x01)?2:p->party.exp);
-	WBUFW(buf,4)=0; //NOTE: We don't know yet what this is for, it is NOT for item share rules, though. [Skotlex]
+	WBUFW(buf,4)=0;
 	if(flag==0)
 		clif_send(buf,packet_len(0x101),&sd->bl,PARTY);
 	else {
-		WFIFOHEAD(sd->fd,packet_len(0x101));
-		memcpy(WFIFOP(sd->fd,0),buf,packet_len(0x101));
-		WFIFOSET(sd->fd,packet_len(0x101));
+		clif_send(buf,packet_len(0x101),&sd->bl,SELF);
 	}
 	return 0;
 }
@@ -5805,24 +5800,24 @@ int clif_party_leaved(struct party_data *p,struct map_session_data *sd,int accou
 
 	nullpo_retr(0, p);
 
+	if(!sd && (flag&0xf0)==0)
+	{
+		for(i=0;i<MAX_PARTY && !p->data[i].sd;i++);
+			if (i < MAX_PARTY)
+				sd = p->data[i].sd;
+	}
+
+	if(!sd) return 0;
+
 	WBUFW(buf,0)=0x105;
 	WBUFL(buf,2)=account_id;
 	memcpy(WBUFP(buf,6),name,NAME_LENGTH);
 	WBUFB(buf,30)=flag&0x0f;
 
-	if((flag&0xf0)==0){
-		if(sd==NULL) {
-			for(i=0;i<MAX_PARTY && !p->data[i].sd;i++);
-			if (i < MAX_PARTY)
-				sd = p->data[i].sd;
-		}
-		if (sd)		
-			clif_send(buf,packet_len(0x105),&sd->bl,PARTY);
-	} else if (sd!=NULL) {
-		WFIFOHEAD(sd->fd,packet_len(0x105));
-		memcpy(WFIFOP(sd->fd,0),buf,packet_len(0x105));
-		WFIFOSET(sd->fd,packet_len(0x105));
-	}
+	if((flag&0xf0)==0)
+		clif_send(buf,packet_len(0x105),&sd->bl,PARTY);
+	 else
+		clif_send(buf,packet_len(0x105),&sd->bl,SELF);
 	return 0;
 }
 /*==========================================
@@ -7369,21 +7364,19 @@ void clif_parse_QuitGame(int fd,struct map_session_data *sd);
 
 int clif_GM_kick(struct map_session_data *sd,struct map_session_data *tsd,int type)
 {
-	nullpo_retr(0, tsd);
-
+	int fd = tsd->fd;
 	if(type)
 		clif_GM_kickack(sd,tsd->status.account_id);
-	if (!tsd->fd)
-	{
+	if (!fd) {
 		map_quit(tsd);
 		return 0;
 	}
 
-	WFIFOHEAD(tsd->fd,packet_len(0x18b));
-	WFIFOW(tsd->fd,0) = 0x18b;
-	WFIFOW(tsd->fd,2) = 0;
-	WFIFOSET(tsd->fd,packet_len(0x18b));
-	clif_setwaitclose(tsd->fd);
+	WFIFOHEAD(fd,packet_len(0x18b));
+	WFIFOW(fd,0) = 0x18b;
+	WFIFOW(fd,2) = 0;
+	WFIFOSET(fd,packet_len(0x18b));
+	clif_setwaitclose(fd);
 	return 0;
 }
 
@@ -7968,9 +7961,8 @@ static int clif_guess_PacketVer(int fd, int get_previous, int *error)
  *
  *------------------------------------------
  */
-void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
+void clif_parse_WantToConnection(int fd, TBL_PC* sd)
 {
-	struct map_session_data *old_sd;
 	int cmd, account_id, char_id, login_id1, sex;
 	unsigned int client_tick; //The client tick is a tick, therefore it needs be unsigned. [Skotlex]
 	int packet_ver;	// 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
@@ -7982,32 +7974,56 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 		return;
 	}
 
+	// Only valid packet version get here
 	packet_ver = clif_guess_PacketVer(fd, 1, NULL);
-	cmd = RFIFOW(fd,0);
-	
-	if (packet_ver <= 0)
-		return;
 
+	cmd = RFIFOW(fd,0);
 	account_id  = RFIFOL(fd, packet_db[packet_ver][cmd].pos[0]);
 	char_id     = RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]);
 	login_id1   = RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]);
 	client_tick = RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]);
 	sex         = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4]);
-		
-	if ((old_sd = map_id2sd(account_id)) != NULL)
-	{	// if same account already connected, we disconnect the 2 sessions
-		//Check for characters with no connection (includes those that are using autotrade) [durf],[Skotlex]
-		if (old_sd->state.finalsave || !old_sd->state.auth)
-			; //Previous player is not done loading.
-			//Or he has quit, but is not done saving on the charserver.
-		else if (old_sd->fd)
-			clif_authfail_fd(old_sd->fd, 2); // same id
-		else 
-			map_quit(old_sd);
-		clif_authfail_fd(fd, 8); // still recognizes last connection
+
+	if( packet_ver < 5 || // reject really old client versions
+			(packet_ver <= 9 && (battle_config.packet_ver_flag & 1) == 0) || // older than 6sept04
+			(packet_ver > 9 && (battle_config.packet_ver_flag & 1<<(packet_ver-9)) == 0)) // version not allowed
+	{// packet version rejected
+		WFIFOHEAD(fd,packet_len(0x6a));
+		WFIFOW(fd,0) = 0x6a;
+		WFIFOB(fd,2) = 5; // Your Game's EXE file is not the latest version
+		WFIFOSET(fd,packet_len(0x6a));
+		clif_setwaitclose(fd);
 		return;
+	} else
+	{// packet version accepted
+		TBL_PC* old_sd;
+
+		if( map_id2bl(account_id) != NULL )
+		{// non-player object already has that id
+			ShowError("clif_parse_WantToConnection: a non-player object already has id %d, please increase the starting account number\n", account_id);
+			WFIFOHEAD(fd,packet_len(0x6a));
+			WFIFOW(fd,0) = 0x6a;
+			WFIFOB(fd,2) = 3; // Rejected by server
+			WFIFOSET(fd,packet_len(0x6a));
+			clif_setwaitclose(fd);
+			return;
+
+		} else if( (old_sd=map_id2sd(account_id)) != NULL ){
+			// if same account already connected, we disconnect the 2 sessions
+			//Check for characters with no connection (includes those that are using autotrade) [durf],[Skotlex]
+			if (old_sd->state.finalsave || !old_sd->state.auth)
+				; //Previous player is not done loading.
+				//Or he has quit, but is not done saving on the charserver.
+			else if (old_sd->fd)
+				clif_authfail_fd(old_sd->fd, 2); // same id
+			else 
+				map_quit(old_sd);
+			clif_authfail_fd(fd, 8); // still recognizes last connection
+			return;
+		}
 	}
-	sd = (struct map_session_data*)aCalloc(1, sizeof(struct map_session_data));
+
+	CREATE(sd, TBL_PC, 1);
 	sd->fd = fd;
 	sd->packet_ver = packet_ver;
 	session[fd]->session_data = sd;
@@ -8201,6 +8217,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 
 	// Lance
 	if(sd->state.event_loadmap && map[sd->bl.m].flag.loadevent){
+		pc_setregstr(sd, add_str("@maploaded$"), map[sd->bl.m].name);
 		npc_script_event(sd, NPCE_LOADMAP);
 	}
 
@@ -8461,8 +8478,8 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 		return;
 	}
 	
-	if ((is_atcommand(fd, sd, message, 0) != AtCommand_None) ||
-		(is_charcommand(fd, sd, message,0) != CharCommand_None))
+	if ((is_atcommand(fd, sd, message) != AtCommand_None) ||
+		(is_charcommand(fd, sd, message) != CharCommand_None))
 		return;
 
 	if (sd->sc.count &&
@@ -8837,8 +8854,8 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 	msg+= sprintf(command, "%s : ", sd->status.name);
 	memcpy(msg, RFIFOP(fd, 28), len);
 	msg[len]='\0'; //Force a terminator
-	if ((is_charcommand(fd, sd, command, 0) != CharCommand_None) ||
-		(is_atcommand(fd, sd, command, 0) != AtCommand_None)) {
+	if ((is_charcommand(fd, sd, command) != CharCommand_None) ||
+		(is_atcommand(fd, sd, command) != AtCommand_None)) {
 		aFree(command);
 		return;
 	}
@@ -9799,11 +9816,6 @@ void clif_parse_NpcSelectMenu(int fd,struct map_session_data *sd)
 void clif_parse_NpcNextClicked(int fd,struct map_session_data *sd)
 {
 	RFIFOHEAD(fd);
-#ifdef __WIN32
-	//For some extraordinarily eerie reason that noone has figured out yet, 
-	//windows native compiles NEED this nullpo_retv or the function is not found!
-	nullpo_retv(sd);
-#endif
 	npc_scriptcont(sd,RFIFOL(fd,2));
 }
 
@@ -9814,11 +9826,7 @@ void clif_parse_NpcNextClicked(int fd,struct map_session_data *sd)
 void clif_parse_NpcAmountInput(int fd,struct map_session_data *sd)
 {
 	RFIFOHEAD(fd);
-#define RFIFOL_(fd,pos) (*(int*)(session[fd]->rdata+session[fd]->rdata_pos+(pos)))
-	//Input Value overflow Exploit FIX
-	sd->npc_amount=RFIFOL_(fd,6); //fixed by Lupus. npc_amount is (int) but was RFIFOL changing it to (unsigned int)
-#undef RFIFOL_
-
+	sd->npc_amount=(int)RFIFOL(fd,6);
 	npc_scriptcont(sd,RFIFOL(fd,2));
 }
 
@@ -10178,8 +10186,8 @@ void clif_parse_PartyChangeOption(int fd, struct map_session_data *sd) {
 void clif_parse_PartyMessage(int fd, struct map_session_data *sd) {
 	RFIFOHEAD(fd);
 
-	if (is_charcommand(fd, sd, (char*)RFIFOP(fd,4), 0) != CharCommand_None ||
-		is_atcommand(fd, sd, (char*)RFIFOP(fd,4), 0) != AtCommand_None)
+	if (is_charcommand(fd, sd, (char*)RFIFOP(fd,4)) != CharCommand_None ||
+		is_atcommand(fd, sd, (char*)RFIFOP(fd,4)) != AtCommand_None)
 		return;
 
 	if	(sd->sc.count && (
@@ -10437,8 +10445,8 @@ void clif_parse_GuildExpulsion(int fd,struct map_session_data *sd) {
 void clif_parse_GuildMessage(int fd,struct map_session_data *sd) {
 	RFIFOHEAD(fd);
 
-	if (is_charcommand(fd, sd, (char*)RFIFOP(fd, 4), 0) != CharCommand_None ||
-		is_atcommand(fd, sd, (char*)RFIFOP(fd, 4), 0) != AtCommand_None)
+	if (is_charcommand(fd, sd, (char*)RFIFOP(fd, 4)) != CharCommand_None ||
+		is_atcommand(fd, sd, (char*)RFIFOP(fd, 4)) != AtCommand_None)
 		return;
 
 	if (sd->sc.count && (
@@ -11199,7 +11207,7 @@ void clif_parse_GMKillAll(int fd,struct map_session_data *sd)
 	char message[50];
 
 	strncpy(message,sd->status.name, NAME_LENGTH);
-	is_atcommand(fd, sd, strcat(message," : @kickall"),0);
+	is_atcommand(fd, sd, strcat(message," : @kickall"));
 
 	return;
 }
@@ -11479,40 +11487,6 @@ int clif_parse(int fd) {
 
 	cmd = RFIFOW(fd,0);
 
-	/*
-	// These are remants of ladmin packet processing, only in the login server now. [FlavioJS]
-	// @see int parse_admin(int)
-
-	// 管理用パケット処理
-	if (cmd >= 30000) {
-		switch(cmd) {
-		case 0x7530: { //Why are we letting people know which version we are running?
-			WFIFOHEAD(fd, 10);
-			WFIFOW(fd,0) = 0x7531;
-			WFIFOB(fd,2) = ATHENA_MAJOR_VERSION;
-			WFIFOB(fd,3) = ATHENA_MINOR_VERSION;
-			WFIFOB(fd,4) = ATHENA_REVISION;
-			WFIFOB(fd,5) = ATHENA_RELEASE_FLAG;
-			WFIFOB(fd,6) = ATHENA_OFFICIAL_FLAG;
-			WFIFOB(fd,7) = ATHENA_SERVER_MAP;
-			WFIFOW(fd,8) = ATHENA_MOD_VERSION;
-			WFIFOSET(fd,10);
-			RFIFOSKIP(fd,2);
-			break;
-		}
-		case 0x7532: // 接続の切断
-			ShowWarning("clif_parse: session #%d disconnected for sending packet 0x04%x\n", fd, cmd);
-			session[fd]->eof=1;
-			break;
-		default:
-			ShowWarning("Unknown incoming packet (command: 0x%04x, session: %d), disconnecting.\n", cmd, fd);
-			session[fd]->eof=1;
-			break;
-		}
-		return 0;
-	}
-	*/
-
 	// get packet version before to parse
 	packet_ver = 0;
 	if (sd) {
@@ -11525,40 +11499,29 @@ int clif_parse(int fd) {
 	} else {
 		// check authentification packet to know packet version
 		packet_ver = clif_guess_PacketVer(fd, 0, &err);
-		if (err || // unknown packet version
-			packet_ver < 5 ||	// reject really old client versions
-			(packet_ver <= 9 && (battle_config.packet_ver_flag & 1) == 0) ||	// older than 6sept04
-			(packet_ver > 9 && (battle_config.packet_ver_flag & 1<<(packet_ver-9)) == 0) ||
-			packet_ver > MAX_PACKET_VER)	// no packet version support yet
-		{
-			if( err )
-			{// failed to identify
-				ShowInfo("clif_parse: Disconnecting session #%d with unknown packet version%s.\n", fd, (
-					err == 1 ? "" :
-					err == 2 ? ", possibly for having an invalid account_id" :
-					err == 3 ? ", possibly for having an invalid char_id." :
-					/* Uncomment when checks are added in clif_guess_PacketVer. [FlavioJS]
-					err == 4 ? ", possibly for having an invalid login_id1." :
-					err == 5 ? ", possibly for having an invalid client_tick." :
-					*/
-					err == 6 ? ", possibly for having an invalid sex." :
-					". ERROR invalid error code"));
-				err = 3; // 3 = Rejected from Server
-			}
-			else
-			{// version not accepted
-				ShowInfo("clif_parse: Disconnecting session #%d for not having latest client version (has version %d).\n", fd, packet_ver);
-				err = 5; // 05 = Game's EXE is not the latest version
-			}
+		if( err )
+		{// failed to identify packet version
+			ShowInfo("clif_parse: Disconnecting session #%d with unknown packet version%s.\n", fd, (
+				err == 1 ? "" :
+				err == 2 ? ", possibly for having an invalid account_id" :
+				err == 3 ? ", possibly for having an invalid char_id." :
+				/* Uncomment when checks are added in clif_guess_PacketVer. [FlavioJS]
+				err == 4 ? ", possibly for having an invalid login_id1." :
+				err == 5 ? ", possibly for having an invalid client_tick." :
+				*/
+				err == 6 ? ", possibly for having an invalid sex." :
+				". ERROR invalid error code"));
 			WFIFOHEAD(fd,packet_len(0x6a));
 			WFIFOW(fd,0) = 0x6a;
-			WFIFOB(fd,2) = err; 
+			WFIFOB(fd,2) = 3; // Rejected from Server
 			WFIFOSET(fd,packet_len(0x6a));
-			packet_len = RFIFOREST(fd);
-			RFIFOSKIP(fd, packet_len);
+			RFIFOSKIP(fd, RFIFOREST(fd));
 			clif_setwaitclose(fd);
+			/*
+			//## TODO check if it still doesn't send and why. [FlavioJS]
 			if (session[fd]->func_send)  //socket.c doesn't wants to send the data when left on it's own... [Skotlex]
 				session[fd]->func_send(fd);
+			*/
 			return 0;
 		}
 	}

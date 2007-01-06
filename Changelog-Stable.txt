@@ -4,6 +4,29 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2007/01/06
+	* Time for some merging [ultramage]
+	- improved random mobid retrieval function
+	- the configurable 'guild aura' + config setting
+	- improved npc parsing, to allow comments after npc headers (use tab)
+	- the fix to make atcommands work when using pseudo-unicode langtypes (10, 11)
+	- the check that prevents bots attacking when being 90% overweight
+	- cleanup of pc_calc_skilltree, it was giving soullink skills incorrectly
+	- removal of the party/guild cache (since the DB does caching already)
+	- setting the @maploaded$ variable for the OnMapLoad event
+	- the fix to make NPC_ attacks display properly
+	- the clearing of the freeze counter on death
+	- the new Single Action aspd bonus equation
+	- the correct Charge Attack damage bonus
+	- the stacking Joint Beat behavior (not perfect yet... d'oh)
+	- the fix to Gospel (sending the info to the target, not to the paladin)
+	- changes to the default settings of friend_auto_add and monster_class_change_full_recover
+	- mapindex and @go entries for the new maps
+	- the accumulated cleanups of clif.c
+	- fixes to the char deletion process
+	- cleanup of the utils code
+	- some code synchronization here and there
+	- this stuff compiles and runs, more to come after I see the resulting trunk:stable diff
 2007/01/05
 	* Updated VS8 vcproj files to use the new md5calc path [ultramage]
 2007/01/02

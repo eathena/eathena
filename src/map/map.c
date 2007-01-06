@@ -46,10 +46,6 @@
 
 #include "charsave.h"
 
-
-// maybe put basic macros to somewhere else
-#define swap(a,b) ((a == b) || ((a ^= b), (b ^= a), (a ^= b)))
-
 #ifndef TXT_ONLY
 
 #include "mail.h" // mail system [Valaris]
@@ -3278,7 +3274,7 @@ int parse_console(char *buf) {
 
 	if ( strcmpi("admin",type) == 0 && n == 5 ) {
 		sprintf(buf2,"console: %s",command);
-		if( is_atcommand(sd.fd,&sd,buf2,99) == AtCommand_None )
+		if( is_atcommand_sub(sd.fd,&sd,buf2,99) == AtCommand_None )
 			printf("Console: not atcommand\n");
 	} else if ( strcmpi("server",type) == 0 && n == 2 ) {
 		if ( strcmpi("shutdown", command) == 0 || strcmpi("exit",command) == 0 || strcmpi("quit",command) == 0 ) {

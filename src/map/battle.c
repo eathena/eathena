@@ -1017,9 +1017,6 @@ static struct Damage battle_calc_weapon_attack(
 		{
 			if (tsc->data[SC_SLEEP].timer!=-1 )
 				cri <<=1;
-			if(tsc->data[SC_JOINTBEAT].timer != -1 &&
-				tsc->data[SC_JOINTBEAT].val2 == 6) // Always take crits with Neck broken by Joint Beat [DracoRPG]
-				flag.cri=1;
 		}
 		switch (skill_num)
 		{
@@ -1572,7 +1569,7 @@ static struct Damage battle_calc_weapon_attack(
 					skillratio += 100*(skill_lv-1);
 					break;
 				case KN_CHARGEATK:
-					skillratio += wflag*15; //FIXME: How much is the actual bonus? [Skotlex]
+					skillratio += 100*((wflag-1)/3); //+100% every 3 cells.of distance
 					break;
 				case HT_PHANTASMIC:
 					skillratio += 50;
@@ -2060,6 +2057,10 @@ static struct Damage battle_calc_weapon_attack(
 	{	//Breaker's int-based damage (a misc attack?)
 		struct Damage md = battle_calc_misc_attack(src, target, skill_num, skill_lv, wflag);
 		wd.damage += md.damage;
+	} else if( skill_num == LK_JOINTBEAT && wflag&BREAK_NECK ) {
+		//##TODO should this be here?[FlavioJS]
+		// Although not clear, it's being assumed that the 2x damage is only for the break neck ailment.
+		wd.damage *= 2; // 2x damage when breaking neck
 	}
 
 	if (wd.damage || wd.damage2) {
@@ -2628,14 +2629,6 @@ struct Damage  battle_calc_misc_attack(
 		md.damage = skill_get_zeny(skill_num ,skill_lv);
 		if (!md.damage) md.damage = 2;
 		md.damage = md.damage + rand()%md.damage;
-
-		if (sd)
-		{
-			if ( md.damage > sd->status.zeny )
-				md.damage=sd->status.zeny;
-			pc_payzeny(sd, md.damage);
-		}
-
 		if (is_boss(target))
 			md.damage=md.damage/3;
 		else if (tsd)
@@ -2728,6 +2721,13 @@ struct Damage  battle_calc_misc_attack(
 	md.damage=battle_calc_damage(src,target,md.damage,md.div_,skill_num,skill_lv,md.flag);
 	if (map_flag_gvg2(target->m))
 		md.damage=battle_calc_gvg_damage(src,target,md.damage,md.div_,skill_num,skill_lv,md.flag);
+
+	if (skill_num == NJ_ZENYNAGE && sd)
+	{	//Time to Pay Up.
+		if ( md.damage > sd->status.zeny )
+			md.damage=sd->status.zeny;
+		pc_payzeny(sd, md.damage);
+	}
 
 	return md;
 }
@@ -3474,6 +3474,7 @@ static const struct battle_data_short {
 	{ "gtb_sc_immunity",                   &battle_config.gtb_sc_immunity},
 	{ "guild_max_castles",                 &battle_config.guild_max_castles		},
 	{ "emergency_call",                    &battle_config.emergency_call },
+	{ "guild_aura",                        &battle_config.guild_aura	},
 	{ "death_penalty_type",                &battle_config.death_penalty_type		},
 	{ "death_penalty_base",                &battle_config.death_penalty_base		},
 	{ "death_penalty_job",                 &battle_config.death_penalty_job		},
@@ -4026,7 +4027,7 @@ void battle_set_defaults() {
 	battle_config.attack_direction_change = BL_ALL;
 	battle_config.land_skill_limit = BL_ALL;
 	battle_config.party_skill_penalty = 1;
-	battle_config.monster_class_change_full_recover = 0;
+	battle_config.monster_class_change_full_recover = 1;
 	battle_config.produce_item_name_input = 1;
 	battle_config.produce_potion_name_input = 1;
 	battle_config.making_arrow_name_input = 1;
@@ -4201,7 +4202,7 @@ void battle_set_defaults() {
 	battle_config.autospell_stacking = 0;
 	battle_config.override_mob_names = 0;
 	battle_config.min_chat_delay = 0;
-	battle_config.friend_auto_add = 0;
+	battle_config.friend_auto_add = 1;
 }
 
 void battle_validate_conf() {
@@ -4436,7 +4437,7 @@ int battle_config_read(const char *cfgName)
 }
 
 void do_init_battle(void) {
-	delay_damage_ers = ers_new((uint32)sizeof(struct delay_damage));
+	delay_damage_ers = ers_new(sizeof(struct delay_damage));
 }
 
 void do_final_battle(void) {

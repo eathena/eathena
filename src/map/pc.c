@@ -914,6 +914,7 @@ int pc_calc_skilltree(struct map_session_data *sd)
 		if (sd->status.skill[i].flag != 13) //Don't touch plagiarized skills
 			sd->status.skill[i].id=0; //First clear skills.
 	}
+
 	for(i=0;i<MAX_SKILL;i++){ 
 		if (sd->status.skill[i].flag && sd->status.skill[i].flag != 13){ //Restore original level of skills after deleting earned skills.	
 			sd->status.skill[i].lv=(sd->status.skill[i].flag==1)?0:sd->status.skill[i].flag-2;
@@ -942,41 +943,43 @@ int pc_calc_skilltree(struct map_session_data *sd)
 		}
 		return 0;
 	}
+
 	do {
-		flag=0;
-		for(i=0;i < MAX_SKILL_TREE && (id=skill_tree[c][i].id)>0;i++){
-			int j,f=1;
+		flag = 0;
+		for(i = 0; i < MAX_SKILL_TREE && (id = skill_tree[c][i].id) > 0; i++) {
+			int j, f;
+
 			if(sd->status.skill[id].id)
 				continue; //Skill already known.
+
+			f = 1;
 			if(!battle_config.skillfree) {
-				for(j=0;j<5;j++) {
-					if( skill_tree[c][i].need[j].id &&
-						pc_checkskill(sd,skill_tree[c][i].need[j].id) <
-						skill_tree[c][i].need[j].lv) {
-						f=0;
+				for(j = 0; j < 5; j++) {
+					if( skill_tree[c][i].need[j].id && pc_checkskill(sd,skill_tree[c][i].need[j].id) < skill_tree[c][i].need[j].lv) {
+						f = 0; // one or more prerequisites wasn't satisfied
 						break;
 					}
 				}
 				if (sd->status.job_level < skill_tree[c][i].joblv)
-					f=0;
+					f = 0; // job level requirement wasn't satisfied
 				else if (pc_checkskill(sd, NV_BASIC) < 9 && id != NV_BASIC && !(skill_get_inf2(id)&INF2_QUEST_SKILL))
-					f=0; // Do not unlock normal skills when Basic Skills is not maxed out (can happen because of skill reset)
+					f = 0; // Do not unlock normal skills when Basic Skill is not maxed out (can happen because of skill reset)
 			}
-			if(skill_get_inf2(id)&INF2_SPIRIT_SKILL)
-			{	//Spirit skills cannot be learned, they will only show up on your tree when you get buffed.
-				if (sd->sc.count && sd->sc.data[SC_SPIRIT].timer != -1)
-				{	//Enable Spirit Skills. [Skotlex]
-					sd->status.skill[id].id=id;
-					sd->status.skill[id].lv=1;
-					sd->status.skill[id].flag=1; //So it is not saved, and tagged as a "bonus" skill.
-					flag=1;
+
+			if (f) {
+				sd->status.skill[id].id = id;
+
+				if(skill_get_inf2(id)&INF2_SPIRIT_SKILL && sd->sc.count && sd->sc.data[SC_SPIRIT].timer != -1)
+				{	//Spirit skills cannot be learned, they will only show up on your tree when you get buffed.
+					sd->status.skill[id].lv = 1; // need to manually specify a skill level
+					sd->status.skill[id].flag = 1; //So it is not saved, and tagged as a "bonus" skill.
 				}
-			} else if (f){
-				sd->status.skill[id].id=id;
-				flag=1;
+
+				flag = 1; // skill list has changed, perform another pass
 			}
 		}
 	} while(flag);
+
 	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON)) {
 		//Grant all Taekwon Tree, but only as bonus skills in case they drop from ranking. [Skotlex]
 		for(i=0;i < MAX_SKILL_TREE && (id=skill_tree[c][i].id)>0;i++){
@@ -1085,37 +1088,40 @@ int pc_calc_skilltree_normalize_job(struct map_session_data *sd) {
 }
 
 /*==========================================
- * 重量アイコンの確認
+ * Updates the weight status
  *------------------------------------------
+ * 1: overweight 50%
+ * 2: overweight 90%
+ * It's assumed that SC_WEIGHT50 and SC_WEIGHT90 are only started/stopped here.
  */
-int pc_checkweighticon(struct map_session_data *sd)
+int pc_updateweightstatus(struct map_session_data *sd)
 {
-	int flag=0;
+	int old_overweight;
+	int new_overweight;
 
-	nullpo_retr(0, sd);
+	nullpo_retr(1, sd);
 
-	//Consider the battle option 50% criteria....
-	if(sd->weight*100 >= sd->max_weight*battle_config.natural_heal_weight_rate)
-		flag=1;
-	if(sd->weight*10 >= sd->max_weight*9)
-		flag=2;
+	old_overweight = (sd->sc.data[SC_WEIGHT90].timer != -1) ? 2 : (sd->sc.data[SC_WEIGHT50].timer != -1) ? 1 : 0;
+	new_overweight = (pc_is90overweight(sd)) ? 2 : (pc_is50overweight(sd)) ? 1 : 0;
 
-	if(flag==1){
-		if(sd->sc.data[SC_WEIGHT50].timer==-1)
-			sc_start(&sd->bl,SC_WEIGHT50,100,0,0);
-	}else{
-		if(sd->sc.data[SC_WEIGHT50].timer!=-1)
-			status_change_end(&sd->bl,SC_WEIGHT50,-1);
-	} 
-	if(flag==2){
-		if(sd->sc.data[SC_WEIGHT90].timer==-1)
-			sc_start(&sd->bl,SC_WEIGHT90,100,0,0);
-	}else{
-		if(sd->sc.data[SC_WEIGHT90].timer!=-1)
-			status_change_end(&sd->bl,SC_WEIGHT90,-1);
-	}
-	if (flag != sd->regen.state.overweight)
-		sd->regen.state.overweight = flag;
+	if( old_overweight == new_overweight )
+		return 0; // no change
+
+	// stop old status change
+	if( old_overweight == 1 )
+		status_change_end(&sd->bl, SC_WEIGHT50, -1);
+	else if( old_overweight == 2 )
+		status_change_end(&sd->bl, SC_WEIGHT90, -1);
+
+	// start new status change
+	if( new_overweight == 1 )
+		sc_start(&sd->bl, SC_WEIGHT50, 100, 0, 0);
+	else if( new_overweight == 2 )
+		sc_start(&sd->bl, SC_WEIGHT90, 100, 0, 0);
+
+	// update overweight status
+	sd->regen.state.overweight = new_overweight;
+
 	return 0;
 }
 
@@ -2462,6 +2468,8 @@ int pc_insert_card(struct map_session_data *sd,int idx_card,int idx_equip)
 
 	//Check validity
 	if( nameid <= 0 || cardid <= 0 ||
+		sd->status.inventory[idx_equip].amount < 1 || //These two should never be required due to pc_delitem zero'ing the data.
+		sd->status.inventory[idx_card].amount < 1 ||
 		(sd->inventory_data[idx_equip]->type!=IT_WEAPON && sd->inventory_data[idx_equip]->type!=IT_ARMOR)||
 		sd->inventory_data[idx_card]->type!=IT_CARD || // Prevent Hack [Ancyker]
 		sd->status.inventory[idx_equip].identify==0 ||

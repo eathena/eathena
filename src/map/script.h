@@ -31,7 +31,7 @@ extern struct Script_Config {
 
 struct script_data {
 	int type;
-	union {
+	union script_data_val {
 		int num;
 		char *str;
 	} u;
@@ -61,7 +61,11 @@ struct script_state {
 	} sleep;
 };
 
-struct script_code* parse_script(unsigned char *,const char*,int);
+enum script_parse_options {
+	SCRIPT_USE_LABEL_DB = 0x1
+};
+
+struct script_code* parse_script(const char* src,const char* file,int line,int options);
 void run_script_sub(struct script_code *rootscript,int pos,int rid,int oid, char* file, int lineno);
 void run_script(struct script_code*,int,int,int);
 
@@ -82,7 +86,7 @@ struct dbt* script_get_userfunc_db(void);
 int script_config_read(char *cfgName);
 int do_init_script(void);
 int do_final_script(void);
-int add_str(const unsigned char *p);
+int add_str(const char *p);
 int script_reload(void);
 
 extern char mapreg_txt[];
