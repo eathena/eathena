@@ -9,9 +9,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <limits.h>
 #include <time.h>
 
+#include "../common/cbasetypes.h"
 #include "../common/socket.h"
 #include "../common/timer.h"
 #include "../common/malloc.h"
@@ -562,47 +562,6 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 	return 0;
 }
 
-//For use in the @send command.
-int clif_send_debug(struct map_session_data *sd, int cmd, int* args, int args_num)
-{
-	int fd = sd->fd;
-	int len;	
-	if (cmd < 0 || cmd >= MAX_PACKET_DB)
-		return 0;
-
-	len = packet_db[sd->packet_ver][cmd].len;
-	
-  	if (!fd || !len || len == -1) //len -1, variable width, not supported!
-		return 0;
-
-	switch (cmd)
-	{
-		case 0x209:
-		{
-			WFIFOHEAD(fd, len);
-			WFIFOW(fd,0) = 0x209;
-			WFIFOW(fd,2) = 2;
-			memcpy(WFIFOP(fd, 12), sd->status.name, NAME_LENGTH);
-			WFIFOSET(fd, len);
-			break;
-		}
-		default:
-		{
-			int i;
-			WFIFOHEAD(fd, len);
-			memset(WFIFOP(fd,0), 0, len);
-			WFIFOW(fd,0) = cmd;
-			//Packet can only have len/2 arguments. Since each arg is a Word
-			if (args_num > len/2 -2)
-				args_num = len/2 -2;
-			for(i=0; i<args_num; i++)
-				WFIFOW(fd,i+1) = args[i];
-			WFIFOSET(fd, len);
-			break;
-		}
-	}
-	return 1;
-}
 //
 // パケット作って送信
 //
@@ -3982,7 +3941,8 @@ int clif_clearchar_skillunit(struct skill_unit *unit,int fd)
 }
 
 /*==========================================
- *
+ * Unknown... trap related?
+ * Only affects units with class [139,153] client-side
  *------------------------------------------
  */
 int clif_01ac(struct block_list *bl)
@@ -4991,7 +4951,7 @@ int clif_pvpset(struct map_session_data *sd,int pvprank,int pvpnum,int type)
 		WFIFOL(fd,2) = sd->bl.id;
 		WFIFOL(fd,6) = pvprank;
 		WFIFOL(fd,10) = pvpnum;
-		WFIFOSET(sd->fd,packet_len(0x19a));
+		WFIFOSET(fd,packet_len(0x19a));
 	} else {
 		unsigned char buf[32];
 		WBUFW(buf,0) = 0x19a;
@@ -5784,9 +5744,8 @@ int clif_party_option(struct party_data *p,struct map_session_data *sd,int flag)
 	WBUFW(buf,4)=0;
 	if(flag==0)
 		clif_send(buf,packet_len(0x101),&sd->bl,PARTY);
-	else {
+	else
 		clif_send(buf,packet_len(0x101),&sd->bl,SELF);
-	}
 	return 0;
 }
 /*==========================================
@@ -7365,6 +7324,7 @@ void clif_parse_QuitGame(int fd,struct map_session_data *sd);
 int clif_GM_kick(struct map_session_data *sd,struct map_session_data *tsd,int type)
 {
 	int fd = tsd->fd;
+	WFIFOHEAD(fd,packet_len(0x18b));
 	if(type)
 		clif_GM_kickack(sd,tsd->status.account_id);
 	if (!fd) {
@@ -7372,7 +7332,6 @@ int clif_GM_kick(struct map_session_data *sd,struct map_session_data *tsd,int ty
 		return 0;
 	}
 
-	WFIFOHEAD(fd,packet_len(0x18b));
 	WFIFOW(fd,0) = 0x18b;
 	WFIFOW(fd,2) = 0;
 	WFIFOSET(fd,packet_len(0x18b));

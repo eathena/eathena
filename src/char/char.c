@@ -18,8 +18,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
 
+#include "../common/cbasetypes.h"
 #include "../common/strlib.h"
 #include "../common/core.h"
 #include "../common/socket.h"
@@ -1640,11 +1640,7 @@ int count_users(void) {
 int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	int i, j, found_num;
 	struct mmo_charstatus *p;
-//#ifdef NEW_006b
 	const int offset = 24;
-//#else
-//	const int offset = 4;
-//#endif
 
 	set_char_online(-1, 99,sd->account_id);
 
@@ -1682,7 +1678,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 		WFIFOL(fd,j+32) = p->karma;
 		WFIFOL(fd,j+36) = p->manner;
 
-		WFIFOW(fd,j+40) = (p->status_point>SHRT_MAX) ? SHRT_MAX : p->status_point;
+		WFIFOW(fd,j+40) = (p->status_point > SHRT_MAX) ? SHRT_MAX : p->status_point;
 		WFIFOW(fd,j+42) = (p->hp > SHRT_MAX) ? SHRT_MAX : p->hp;
 		WFIFOW(fd,j+44) = (p->max_hp > SHRT_MAX) ? SHRT_MAX : p->max_hp;
 		WFIFOW(fd,j+46) = (p->sp > SHRT_MAX) ? SHRT_MAX : p->sp;
@@ -1692,7 +1688,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 		WFIFOW(fd,j+54) = p->hair;
 		WFIFOW(fd,j+56) = p->option&0x20?0:p->weapon; //When the weapon is sent and your option is riding, the client crashes on login!?
 		WFIFOW(fd,j+58) = p->base_level;
-		WFIFOW(fd,j+60) = (p->skill_point>SHRT_MAX)? SHRT_MAX : p->skill_point;
+		WFIFOW(fd,j+60) = (p->skill_point > SHRT_MAX)? SHRT_MAX : p->skill_point;
 		WFIFOW(fd,j+62) = p->head_bottom;
 		WFIFOW(fd,j+64) = p->shield;
 		WFIFOW(fd,j+66) = p->head_top;
@@ -1702,12 +1698,12 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 
 		memcpy(WFIFOP(fd,j+74), p->name, NAME_LENGTH);
 
-		WFIFOB(fd,j+98) = (p->str > 255) ? 255 : p->str;
-		WFIFOB(fd,j+99) = (p->agi > 255) ? 255 : p->agi;
-		WFIFOB(fd,j+100) = (p->vit > 255) ? 255 : p->vit;
-		WFIFOB(fd,j+101) = (p->int_ > 255) ? 255 : p->int_;
-		WFIFOB(fd,j+102) = (p->dex > 255) ? 255 : p->dex;
-		WFIFOB(fd,j+103) = (p->luk > 255) ? 255 : p->luk;
+		WFIFOB(fd,j+98) = (p->str > UCHAR_MAX) ? UCHAR_MAX : p->str;
+		WFIFOB(fd,j+99) = (p->agi > UCHAR_MAX) ? UCHAR_MAX : p->agi;
+		WFIFOB(fd,j+100) = (p->vit > UCHAR_MAX) ? UCHAR_MAX : p->vit;
+		WFIFOB(fd,j+101) = (p->int_ > UCHAR_MAX) ? UCHAR_MAX : p->int_;
+		WFIFOB(fd,j+102) = (p->dex > UCHAR_MAX) ? UCHAR_MAX : p->dex;
+		WFIFOB(fd,j+103) = (p->luk > UCHAR_MAX) ? UCHAR_MAX : p->luk;
 		WFIFOB(fd,j+104) = p->char_num;
 	}
 
@@ -3610,7 +3606,7 @@ int parse_char(int fd) {
 			WFIFOW(fd,2+44) = (char_dat[i].status.max_hp > SHRT_MAX) ? SHRT_MAX : char_dat[i].status.max_hp;
 			WFIFOW(fd,2+46) = (char_dat[i].status.sp > SHRT_MAX) ? SHRT_MAX : char_dat[i].status.sp;
 			WFIFOW(fd,2+48) = (char_dat[i].status.max_sp > SHRT_MAX) ? SHRT_MAX : char_dat[i].status.max_sp;
-			WFIFOW(fd,2+50) = DEFAULT_WALK_SPEED; // char_dat[i].status.speed;
+			WFIFOW(fd,2+50) = DEFAULT_WALK_SPEED;
 			WFIFOW(fd,2+52) = char_dat[i].status.class_;
 			WFIFOW(fd,2+54) = char_dat[i].status.hair;
 
@@ -3631,7 +3627,6 @@ int parse_char(int fd) {
 			WFIFOB(fd,2+102) = (char_dat[i].status.dex > UCHAR_MAX) ? UCHAR_MAX : char_dat[i].status.dex;
 			WFIFOB(fd,2+103) = (char_dat[i].status.luk > UCHAR_MAX) ? UCHAR_MAX : char_dat[i].status.luk;
 			WFIFOB(fd,2+104) = char_dat[i].status.char_num;
-
 			WFIFOSET(fd,108);
 			RFIFOSKIP(fd,37);
 		}
@@ -3733,7 +3728,6 @@ int parse_char(int fd) {
 			WFIFOSET(fd,2);
 			break;
 		}
-
 		case 0x2af8:	// マップサーバーログイン
 			if (RFIFOREST(fd) < 60)
 				return 0;
@@ -3855,8 +3849,6 @@ int mapif_sendall(unsigned char *buf, unsigned int len) {
 			}
 #endif
 			WFIFOHEAD(fd, len);
-			if (WFIFOSPACE(fd) < len) //Increase buffer size.
-				realloc_writefifo(fd, len);
 			memcpy(WFIFOP(fd,0), buf, len);
 			WFIFOSET(fd,len);
 			c++;

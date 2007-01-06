@@ -8,7 +8,7 @@
 #include <memory.h>
 #include <string.h>
 
-#include <limits.h>
+#include "../common/cbasetypes.h"
 #include "../common/timer.h"
 #include "../common/nullpo.h"
 #include "../common/showmsg.h"
@@ -747,7 +747,6 @@ int status_heal(struct block_list *bl,int hp,int sp, int flag)
 		if (!(flag&1) && sc && sc->data[SC_BERSERK].timer!=-1)
 			hp = 0;
 
-		
 		if((unsigned int)hp > status->max_hp - status->hp)
 			hp = status->max_hp - status->hp;
 	}

@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 
+#include "../common/cbasetypes.h"
 #include "../common/timer.h"
 #include "../common/nullpo.h"
 #include "../common/malloc.h"
@@ -25,12 +25,11 @@
 #include "skill.h"
 #include "log.h"
 
-static struct guild* guild_cache; //For fast retrieval of the same guild over and over. [Skotlex]
-static struct dbt *guild_db;
-static struct dbt *castle_db;
-static struct dbt *guild_expcache_db;
-static struct dbt *guild_infoevent_db;
-static struct dbt *guild_castleinfoevent_db;
+static DB guild_db;
+static DB castle_db;
+static DB guild_expcache_db;
+static DB guild_infoevent_db;
+static DB guild_castleinfoevent_db;
 
 struct eventlist {
 	char name[50];
@@ -206,7 +205,7 @@ void do_init_guild(void)
 	castle_db=db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 	guild_expcache_db=db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));
 	guild_infoevent_db=db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));
-	expcache_ers = ers_new((uint32)sizeof(struct guild_expcache)); 
+	expcache_ers = ers_new(sizeof(struct guild_expcache)); 
 	guild_castleinfoevent_db=db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));
 
 	guild_read_castledb();
@@ -225,10 +224,7 @@ void do_init_guild(void)
 // ŒŸõ
 struct guild *guild_search(int guild_id)
 {
-	if(guild_cache && guild_cache->guild_id == guild_id)
-		return guild_cache;
-	guild_cache = idb_get(guild_db,guild_id);
-	return guild_cache;
+	return idb_get(guild_db,guild_id);
 }
 int guild_searchname_sub(DBKey key,void *data,va_list ap)
 {
@@ -1576,8 +1572,6 @@ int guild_broken(int guild_id,int flag)
 
 	guild_db->foreach(guild_db,guild_broken_sub,guild_id);
 	castle_db->foreach(castle_db,castle_guild_broken_sub,guild_id);
-	if (guild_cache && guild_cache->guild_id == guild_id)
-		guild_cache = NULL;
 	guild_storage_delete(guild_id);
 	idb_remove(guild_db,guild_id);
 	return 0;
@@ -1904,8 +1898,7 @@ int guild_agit_break(struct mob_data *md)
 {	// Run One NPC_Event[OnAgitBreak]
 	char *evname;
 
-	nullpo_retr(0, md);
-
+	if(!agit_flag) return 0;	// Agit already End
 	evname=(char *)aMallocA((strlen(md->npc_event) + 1)*sizeof(char));
 
 	strcpy(evname,md->npc_event);
@@ -1914,7 +1907,6 @@ int guild_agit_break(struct mob_data *md)
 // But Script will be stop, so nothing...
 // Maybe will be changed in the futher..
 //      int c = npc_event_do(evname);
-	if(!agit_flag) return 0;	// Agit already End
 	add_timer(gettick()+battle_config.gvg_eliminate_time,guild_gvg_eliminate_timer,md->bl.m,(int)evname);
 	return 0;
 }

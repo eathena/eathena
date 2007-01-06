@@ -11,6 +11,7 @@
 #include <unistd.h>
 #endif
 
+#include "../common/cbasetypes.h"
 #include "../common/core.h"
 #include "../common/timer.h"
 #include "../common/grfio.h"
@@ -3243,7 +3244,7 @@ static int char_ip_set = 0;
  *------------------------------------------
  */
 int parse_console(char *buf) {
-	char type[64],command[64],map[64], buf2[72];
+	char type[64],command[64],map[64];
 	int x = 0, y = 0;
 	int m, n;
 	struct map_session_data sd;
@@ -3273,8 +3274,7 @@ int parse_console(char *buf) {
 	ShowInfo("Type of command: %s || Command: %s || Map: %s Coords: %d %d\n",type,command,map,x,y);
 
 	if ( strcmpi("admin",type) == 0 && n == 5 ) {
-		sprintf(buf2,"console: %s",command);
-		if( is_atcommand_sub(sd.fd,&sd,buf2,99) == AtCommand_None )
+		if( is_atcommand_sub(sd.fd,&sd,command,99) == AtCommand_None )
 			printf("Console: not atcommand\n");
 	} else if ( strcmpi("server",type) == 0 && n == 2 ) {
 		if ( strcmpi("shutdown", command) == 0 || strcmpi("exit",command) == 0 || strcmpi("quit",command) == 0 ) {

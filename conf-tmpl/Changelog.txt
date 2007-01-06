@@ -1,4 +1,12 @@
 Date	Added
+
+2007/01/07
+	* merged parts of trunk's config files [ultramage]
+	- added missing config setting for @reset and desc for #reset
+	- added new setting, guild_aura (controls when it works and whom it affects)
+	- monster_class_change_full_recover and friend_auto_add set to yes (official)
+	- improved the desc for attack_attr_none and pc_max_status_def
+	- replaced two outdated message strings
 2006/12/19
 	* floor item lifetime is now an int instead of ushort, meaning the max
 	  value is now 2kM ms instead of 65k ms (drops.conf). [Skotlex]

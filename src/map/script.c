@@ -3,6 +3,7 @@
 
 //#define DEBUG_FUNCIN
 //#define DEBUG_DISP
+//#define DEBUG_DISASM
 //#define DEBUG_RUN
 
 #include <stdio.h>
@@ -10,7 +11,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
-#include <limits.h>
 
 #ifndef _WIN32
 	#include <sys/time.h>
@@ -18,6 +18,7 @@
 #include <time.h>
 #include <setjmp.h>
 
+#include "../common/cbasetypes.h"
 #include "../common/socket.h"
 #include "../common/timer.h"
 #include "../common/malloc.h"
@@ -279,7 +280,7 @@ static int search_str(const unsigned char *p)
  *------------------------------------------
  */
 // Šù‘¶‚Ì‚Å‚ ‚ê‚Î”Ô†A–³‚¯‚ê‚Î“o˜^‚µ‚ÄV‹K”Ô†
-int add_str(const unsigned char *p)
+int add_str(const char *p)
 {
 	int i;
 	char *lowcase;
@@ -1578,7 +1579,7 @@ const char* script_print_line( const char *p, const char *mark, int line ) {
  *------------------------------------------
  */
 
-struct script_code* parse_script(const char* src,const char* file,int line,int options)
+struct script_code* parse_script(const char *src,const char *file,int line,int options)
 {
 	unsigned char *p,*tmpp;
 	int i;
@@ -1625,7 +1626,7 @@ struct script_code* parse_script(const char* src,const char* file,int line,int o
 		return NULL;
 	}
 
-	p=src;
+	p=(char *)src; // TODO: remove when merging script engine
 	p=skip_space(p);
 	if(*p!='{'){
 		disp_error_message("not found '{'",p);
@@ -1921,7 +1922,7 @@ static int set_reg(struct script_state*st,struct map_session_data *sd,int num,ch
 
 int set_var(struct map_session_data *sd, char *name, void *val)
 {
-    return set_reg(NULL, sd, add_str((unsigned char *) name), name, val, NULL);
+    return set_reg(NULL, sd, add_str(name), name, val, NULL);
 }
 
 /*==========================================
@@ -1933,8 +1934,9 @@ char* conv_str(struct script_state *st,struct script_data *data)
 	get_val(st,data);
 	if(data->type==C_INT){
 		char *buf;
-		buf=(char *)aMallocA(ITEM_NAME_LENGTH*sizeof(char));
+		CREATE(buf,char,ITEM_NAME_LENGTH);
 		snprintf(buf,ITEM_NAME_LENGTH, "%d",data->u.num);
+		buf[ITEM_NAME_LENGTH-1]=0;
 		data->type=C_STR;
 		data->u.str=buf;
 	} else if(data->type==C_POS) {
@@ -4162,7 +4164,7 @@ int buildin_menu(struct script_state *st)
 				st->state=END;
 				return 1;
 			}
-			pc_setreg(sd,add_str((unsigned char *) "@menu"),sd->npc_menu);
+			pc_setreg(sd,add_str("@menu"),sd->npc_menu);
 			st->pos=conv_num(st,& (st->stack->stack_data[st->start+sd->npc_menu*2+1]));
 			st->state=GOTO;
 		}
@@ -4618,7 +4620,7 @@ int buildin_input(struct script_state *st)
 			set_reg(st,sd,num,name,(void*)sd->npc_amount,st->stack->stack_data[st->start+2].ref);
 		} else {
 			// ragemuŒÝŠ·‚Ì‚½‚ß
-			//pc_setreg(sd,add_str((unsigned char *) "l14"),sd->npc_amount);
+			//pc_setreg(sd,add_str("l14"),sd->npc_amount);
 		}
 		return 0;
 	}
@@ -4807,6 +4809,7 @@ int buildin_getarraysize(struct script_state *st)
 
 	if( prefix!='$' && prefix!='@' && prefix!='.' ){
 		ShowWarning("buildin_copyarray: illegal scope !\n");
+		push_val(st->stack,C_INT,0);
 		return 1;
 	}
 
@@ -5089,7 +5092,8 @@ int buildin_checkweight(struct script_state *st)
 }
 
 /*==========================================
- *
+ * getitem <item id>,<amount>{,<character ID>};
+ * getitem "<item name>",<amount>{,<character ID>};
  *------------------------------------------
  */
 int buildin_getitem(struct script_state *st)

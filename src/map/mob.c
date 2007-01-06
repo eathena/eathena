@@ -6,8 +6,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <math.h>
-#include <limits.h>
 
+#include "../common/cbasetypes.h"
 #include "../common/timer.h"
 #include "../common/db.h"
 #include "../common/nullpo.h"
@@ -265,6 +265,7 @@ int mob_get_random_id(int type, int flag, int lv) {
 		class_ = mob_db_data[0]->summonper[type];
 	return class_;
 }
+
 
 struct mob_data *mob_once_spawn_sub(struct block_list *bl, int m,
 	short x, short y, const char *mobname, int class_, const char *event)
@@ -1663,7 +1664,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		if (hp||sp)
 			status_heal(src, hp, sp, battle_config.show_hp_sp_gain?2:0);
 		if (sd->mission_mobid == md->class_) { //TK_MISSION [Skotlex]
-			if (++sd->mission_count >= 100 && (temp = mob_get_random_id(0, 0, sd->status.base_level)))
+			if (++sd->mission_count >= 100 && (temp = mob_get_random_id(0,0xC, sd->status.base_level)))
 			{
 				pc_addfame(sd, 1);
 				sd->mission_mobid = temp;
@@ -4062,8 +4063,8 @@ int do_init_mob(void)
 	memset(mob_db_data,0,sizeof(mob_db_data)); //Clear the array
 	mob_db_data[0] = aCalloc(1, sizeof (struct mob_data));	//This mob is used for random spawns
 	mob_makedummymobdb(0); //The first time this is invoked, it creates the dummy mob
-	item_drop_ers = ers_new((uint32)sizeof(struct item_drop));
-	item_drop_list_ers = ers_new((uint32)sizeof(struct item_drop_list));
+	item_drop_ers = ers_new(sizeof(struct item_drop));
+	item_drop_list_ers = ers_new(sizeof(struct item_drop_list));
 
 #ifndef TXT_ONLY
     if(db_use_sqldbs)

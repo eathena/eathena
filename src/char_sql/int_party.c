@@ -8,11 +8,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
-#include "char.h"
+
+#include "../common/cbasetypes.h"
 #include "../common/db.h"
 #include "../common/strlib.h"
 #include "../common/socket.h"
 #include "../common/showmsg.h"
+
+#include "char.h"
 
 #ifndef TXT_SQL_CONVERT
 struct party_data {

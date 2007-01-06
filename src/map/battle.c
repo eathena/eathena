@@ -5,9 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <limits.h>
 
-#include "battle.h"
+#include "../common/cbasetypes.h"
 #include "../common/timer.h"
 #include "../common/nullpo.h"
 #include "../common/malloc.h"
@@ -24,6 +23,7 @@
 #include "pet.h"
 #include "guild.h"
 #include "party.h"
+#include "battle.h"
 
 int attr_fix_table[4][ELE_MAX][ELE_MAX];
 
@@ -3810,7 +3810,6 @@ static const struct battle_data_int {
 	{ "mob_remove_delay",                  &battle_config.mob_remove_delay	},
 	{ "sg_miracle_skill_min_duration",		&battle_config.sg_miracle_skill_duration_min },
 	{ "sg_miracle_skill_max_duration",		&battle_config.sg_miracle_skill_duration_max },
-
 };
 
 int battle_set_value(char *w1, char *w2) {
@@ -3903,6 +3902,7 @@ void battle_set_defaults() {
 	battle_config.gm_kick_chat=0;
 	battle_config.guild_max_castles=0;
 	battle_config.emergency_call=15;
+	battle_config.guild_aura=31;
 	battle_config.skillfree = 0;
 	battle_config.skillup_limit = 0;
 	battle_config.wp_rate=100;

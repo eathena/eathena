@@ -6,12 +6,11 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
-#include <limits.h>
 
 #include "../common/cbasetypes.h"
+#include "../common/mmo.h"
 #include "../common/timer.h"
 #include "../common/nullpo.h"
-#include "../common/mmo.h"
 #include "../common/core.h"
 #include "../common/showmsg.h"
 #include "../common/malloc.h"
@@ -2812,6 +2811,16 @@ int atcommand_gm(
 	return 0;
 }
 
+static int atcommand_pvpoff_sub(struct block_list *bl,va_list ap) {
+	TBL_PC* sd = (TBL_PC*)bl;
+	clif_pvpset(sd, 0, 0, 2);
+	if (sd->pvp_timer != UINT_MAX) {
+		delete_timer(sd->pvp_timer, pc_calc_pvprank_timer);
+		sd->pvp_timer = UINT_MAX;
+	}
+	return 0;
+}
+
 /*==========================================
  *
  *------------------------------------------
@@ -2820,8 +2829,6 @@ int atcommand_pvpoff(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	struct map_session_data *pl_sd, **pl_allsd;
-	int i, users;
 	nullpo_retr(-1, sd);
 
 	if (battle_config.pk_mode) { //disable command if server is in PK mode [Valaris]
@@ -2829,26 +2836,15 @@ int atcommand_pvpoff(
 		return -1;
 	}
 
-	if (map[sd->bl.m].flag.pvp) {
-		map[sd->bl.m].flag.pvp = 0;
-		clif_send0199(sd->bl.m, 0);
-
-		pl_allsd = map_getallusers(&users);
-		for (i = 0; i < users; i++) {	//l”•ªƒ‹[ƒv
-			if ((pl_sd = pl_allsd[i]) && sd->bl.m == pl_sd->bl.m) {
-				clif_pvpset(pl_sd, 0, 0, 2);
-				if (pl_sd->pvp_timer != -1) {
-					delete_timer(pl_sd->pvp_timer, pc_calc_pvprank_timer);
-					pl_sd->pvp_timer = -1;
-				}
-			}
-		}
-		clif_displaymessage(fd, msg_txt(31)); // PvP: Off.
-	} else {
+	if (!map[sd->bl.m].flag.pvp) {
 		clif_displaymessage(fd, msg_txt(160)); // PvP is already Off.
 		return -1;
 	}
 
+	map[sd->bl.m].flag.pvp = 0;
+	clif_send0199(sd->bl.m, 0);
+	map_foreachinmap(atcommand_pvpoff_sub,sd->bl.m, BL_PC);
+	clif_displaymessage(fd, msg_txt(31)); // PvP: Off.
 	return 0;
 }
 
@@ -4764,7 +4760,7 @@ int atcommand_raisemap(
 	nullpo_retr(-1, sd);
 
 	pl_allsd = map_getallusers(&users);
-	
+
 	for (i = 0; i < users; i++) {
 		if (sd->bl.m == pl_allsd[i]->bl.m)
 			atcommand_raise_sub(pl_allsd[i]);
@@ -6927,7 +6923,7 @@ int atcommand_effect(
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message || sscanf(message, "%d %d", &type,&flag) < 2) {
-		clif_displaymessage(fd, "Please, enter at least a option (usage: @effect <type+>).");
+		clif_displaymessage(fd, "Please, enter a type and a send flag (usage: @effect <type> <flag>).");
 		return -1;
 	}
 

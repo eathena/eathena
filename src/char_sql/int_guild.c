@@ -9,16 +9,17 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#include "char.h"
+#include "../common/mmo.h"
+#include "../common/cbasetypes.h"
 #include "../common/strlib.h"
 #include "../common/showmsg.h"
 // #include "int_storage.h"
 #include "inter.h"
 #include "int_guild.h"
-#include "mmo.h"
 #include "socket.h"
 #include "db.h"
 #include "malloc.h"
+#include "char.h"
 
 #define GS_MEMBER_UNMODIFIED 0x00
 #define GS_MEMBER_MODIFIED 0x01

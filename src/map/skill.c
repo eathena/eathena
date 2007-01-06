@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <limits.h>
 
+#include "../common/cbasetypes.h"
 #include "../common/timer.h"
 #include "../common/nullpo.h"
 #include "../common/malloc.h"
@@ -841,6 +841,9 @@ int skillnotok (int skillid, struct map_session_data *sd)
 
 	if (battle_config.gm_skilluncond && pc_isGM(sd) >= battle_config.gm_skilluncond)
 		return 0;  // gm's can do anything damn thing they want
+
+	if(sd->menuskill_id && skillid != sd->menuskill_id)
+		return 1; //Can't use skills while a menu is open.
 
 	// Check skill restrictions [Celest]
 	if(!map_flag_vs(m) && skill_get_nocast (skillid) & 1)
@@ -3120,7 +3123,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	if (skillid > 0)
 		type = SkillStatusChangeTable(skillid);
-	
+
 	tsc = status_get_sc(bl);
 
 	map_freeblock_lock();
@@ -5449,6 +5452,9 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 	}
 	ud->skillid = ud->skilllv = ud->skilltarget = 0;
 	ud->canact_tick = tick;
+	//You can't place a skill failed packet here because it would be
+	//sent in ALL cases, even cases where skill_check_condition fails
+	//which would lead to double 'skill failed' messages u.u [Skotlex]
 	if(sd) sd->skillitem = sd->skillitemlv = 0;
 	else
 	if(md) md->skillidx = -1;
@@ -6952,23 +6958,23 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 						break;
 					case 1: // End all negative status
 						status_change_clear_buffs(bl,2);
-						if (tsd) clif_gospel_info(sd, 0x15);
+						if (tsd) clif_gospel_info(tsd, 0x15);
 						break;
 					case 2: // Immunity to all status
 						sc_start(bl,SC_SCRESIST,100,100,type);
-						if (tsd) clif_gospel_info(sd, 0x16);
+						if (tsd) clif_gospel_info(tsd, 0x16);
 						break;
 					case 3: // MaxHP +100%
 						sc_start(bl,SC_INCMHPRATE,100,100,type);
-						if (tsd) clif_gospel_info(sd, 0x17);
+						if (tsd) clif_gospel_info(tsd, 0x17);
 						break;
 					case 4: // MaxSP +100%
 						sc_start(bl,SC_INCMSPRATE,100,100,type);
-						if (tsd) clif_gospel_info(sd, 0x18);
+						if (tsd) clif_gospel_info(tsd, 0x18);
 						break;
 					case 5: // All stats +20
 						sc_start(bl,SC_INCALLSTATUS,100,20,type);
-						if (tsd) clif_gospel_info(sd, 0x19);
+						if (tsd) clif_gospel_info(tsd, 0x19);
 						break;
 					case 6: // Level 10 Blessing
 						sc_start(bl,SC_BLESSING,100,10,type);
@@ -6978,24 +6984,24 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 						break;
 					case 8: // Enchant weapon with Holy element
 						sc_start(bl,SC_ASPERSIO,100,1,type);
-						if (tsd) clif_gospel_info(sd, 0x1c);
+						if (tsd) clif_gospel_info(tsd, 0x1c);
 						break;
 					case 9: // Enchant armor with Holy element
 						sc_start(bl,SC_BENEDICTIO,100,1,type);
-						if (tsd) clif_gospel_info(sd, 0x1d);
+						if (tsd) clif_gospel_info(tsd, 0x1d);
 						break;
 					case 10: // DEF +25%
 						sc_start(bl,SC_INCDEFRATE,100,25,type);
-						if (tsd) clif_gospel_info(sd, 0x1e);
+						if (tsd) clif_gospel_info(tsd, 0x1e);
 						break;
 					case 11: // ATK +100%
 						sc_start(bl,SC_INCATKRATE,100,100,type);
-						if (tsd) clif_gospel_info(sd, 0x1f);
+						if (tsd) clif_gospel_info(tsd, 0x1f);
 						break;
 					case 12: // HIT/Flee +50
 						sc_start(bl,SC_INCHIT,100,50,type);
 						sc_start(bl,SC_INCFLEE,100,50,type);
-						if (tsd) clif_gospel_info(sd, 0x20);
+						if (tsd) clif_gospel_info(tsd, 0x20);
 						break;
 				}
 			}
@@ -9759,6 +9765,9 @@ int skill_unit_move_sub (struct block_list *bl, va_list ap)
 	if (unit->group->interval!=-1 && 
 		!(skill_get_unit_flag(skill_id)&UF_DUALMODE))
 	{	//Skills in dual mode have to trigger both. [Skotlex]
+		//TODO: Normally, this is dangerous since the unit and group could be freed
+		//inside the onout/onplace functions. Currently it is safe because we know song/dance
+		//cells do not get deleted within them. [Skotlex]
 		if (flag&64)
 			skill_dance_switch(unit, group, 1);
 		return 0;

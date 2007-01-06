@@ -7,8 +7,8 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
-#include <limits.h>
 
+#include "../common/cbasetypes.h"
 #include "../common/timer.h"
 #include "../common/nullpo.h"
 #include "../common/malloc.h"
@@ -1110,8 +1110,13 @@ int npc_scriptcont(struct map_session_data *sd,int id)
 {
 	nullpo_retr(1, sd);
 
-	if (id!=sd->npc_id){
-		ShowWarning("npc_scriptcont: sd->npc_id (%d) is not id (%d).\n", sd->npc_id, id);
+	if( id != sd->npc_id ){
+		TBL_NPC* nd_sd=(TBL_NPC*)map_id2bl(sd->npc_id);
+		TBL_NPC* nd=(TBL_NPC*)map_id2bl(id);
+		if( nd_sd && nd )
+			ShowWarning("npc_scriptcont: %s (sd->npc_id=%d) is not %s (id=%d).\n", nd_sd->name, sd->npc_id, nd->name, id);
+		else
+			ShowDebug("npc_scriptcont: Invalid npc ID, npc_id variable not cleared? %x (sd->npc_id=%d) is not %x (id=%d)\n", (int)nd_sd, sd->npc_id, (int)nd, id);
 		return 1;
 	}
 	
@@ -1719,7 +1724,7 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
  */
 int npc_convertlabel_db (DBKey key, void *data, va_list ap)
 {
-	const char *lname = (const char*) key.str;
+	const char *lname = (const char*)key.str;
 	int pos = (int)data;
 	struct npc_data *nd;
 	struct npc_label_list *lst;
@@ -3009,7 +3014,7 @@ int do_init_npc(void)
 	npcname_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_BASE,NAME_LENGTH);
 
 	memset(&ev_tm_b, -1, sizeof(ev_tm_b));
-	timer_event_ers = ers_new((uint32)sizeof(struct timer_event_data));
+	timer_event_ers = ers_new(sizeof(struct timer_event_data));
 
 	for (nsl = npc_src_first; nsl; nsl = nsl->next) {
 		npc_parsesrcfile(nsl->name);
