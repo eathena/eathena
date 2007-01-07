@@ -7,9 +7,11 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 2007/01/07
 	* A followup to the previous change
 	- merges of tidbits I missed or left alone
-	- config switches for newly added options (plus other updates to conf-tmpl)
+	- config switch for the guild_aura option (plus small conf-tmpl cleaning)
+	- blocking skill usage while a menu is open (like aegis)
 	- @pvpoff command cleanup
 	- @effect usage string improvement
+	- more debug info in npc_scriptcont
 	- file header synchronization
 2007/01/06
 	* Time for some merging [ultramage]
