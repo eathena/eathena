@@ -5,6 +5,15 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2007/01/07
+	* Some more trunk-stable synchronization
+	- cleanup of buildin_pvpoff (equivalent to the previous @pvpoff cleanup)
+	- cleanup of buildin_agitcheck and the npcs that use it
+	  (removes the useless '0' parameter and the @agit_flag variable)
+	- crash-fixes/protection to the script engine's functions
+	  run_func, buildin_getnpctimer, buildin_getsavepoint, buildin_getrefine
+	- unsigned char -> char cleanup
+	- a missing charcommand->command conversion
+	- minor whitespace inconsistencies
 	* A followup to the previous change
 	- merges of tidbits I missed or left alone
 	- config switch for the guild_aura option (plus small conf-tmpl cleaning)

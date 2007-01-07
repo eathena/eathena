@@ -34,6 +34,9 @@ Playtester
 
 Date		Added
 ======
+2007/01/07
+	* Merged the simplified version of agitcheck [ultramage]
+	  that takes no arguments and just says whether WoE is on or not.
 2006/12/28
 	* Fixed typo in the Priest Quest [KarLaeda]
 2006/12/17

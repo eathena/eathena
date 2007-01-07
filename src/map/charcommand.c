@@ -294,7 +294,7 @@ int charcommand_config_read(const char *cfgName) {
 
 		if (strcmpi(w1, "import") == 0)
 			charcommand_config_read(w2);
-		else if (strcmpi(w1, "charcommand_symbol") == 0 && w2[0] > 31 &&
+		else if (strcmpi(w1, "command_symbol") == 0 && w2[0] > 31 &&
 				w2[0] != '/' && // symbol of standard ragnarok GM commands
 				w2[0] != '%' && // symbol of party chat speaking
 				w2[0] != '$' && // symbol of guild chat speaking

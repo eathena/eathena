@@ -8867,7 +8867,7 @@ int atcommand_recallid(
    int cid=0;
    struct map_session_data *pl_sd;
 
-	memset(atcmd_output, '\0', sizeof(atcmd_output));
+   memset(atcmd_output, '\0', sizeof(atcmd_output));
 
    if (!message || (cid = atoi(message)) == 0) {
       clif_displaymessage(fd, "Please, enter a player CID (usage: @recallid <char id>).");
@@ -8918,7 +8918,7 @@ int atcommand_recallid2(
    int aid=0;
    struct map_session_data *pl_sd;
 
-	memset(atcmd_output, '\0', sizeof(atcmd_output));
+   memset(atcmd_output, '\0', sizeof(atcmd_output));
 
    if (!message || (aid = atoi(message)) == 0) {
       clif_displaymessage(fd, "Please, enter a player AID (usage: @recallid2 <account id>).");

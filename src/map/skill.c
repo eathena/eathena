@@ -9765,9 +9765,6 @@ int skill_unit_move_sub (struct block_list *bl, va_list ap)
 	if (unit->group->interval!=-1 && 
 		!(skill_get_unit_flag(skill_id)&UF_DUALMODE))
 	{	//Skills in dual mode have to trigger both. [Skotlex]
-		//TODO: Normally, this is dangerous since the unit and group could be freed
-		//inside the onout/onplace functions. Currently it is safe because we know song/dance
-		//cells do not get deleted within them. [Skotlex]
 		if (flag&64)
 			skill_dance_switch(unit, group, 1);
 		return 0;
@@ -9802,6 +9799,9 @@ int skill_unit_move_sub (struct block_list *bl, va_list ap)
 			if (flag&4)
 				skill_unit_onleft(skill_id,target,tick);
 		}
+		//TODO: Normally, this is dangerous since the unit and group could be freed
+		//inside the onout/onplace functions. Currently it is safe because we know song/dance
+		//cells do not get deleted within them. [Skotlex]
 		if (flag&64)
 			skill_dance_switch(unit, group, 1);
 		return 0;
