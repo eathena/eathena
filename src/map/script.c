@@ -8551,6 +8551,16 @@ int buildin_pvpon(struct script_state *st)
 	return 0;
 }
 
+static int buildin_pvpoff_sub(struct block_list *bl,va_list ap) {
+	TBL_PC* sd = (TBL_PC*)bl;
+	clif_pvpset(sd, 0, 0, 2);
+	if (sd->pvp_timer != UINT_MAX) {
+		delete_timer(sd->pvp_timer, pc_calc_pvprank_timer);
+		sd->pvp_timer = UINT_MAX;
+	}
+	return 0;
+}
+
 int buildin_pvpoff(struct script_state *st)
 {
 	int m;
