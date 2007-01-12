@@ -34,6 +34,8 @@ Playtester
 
 Date		Added
 ======
+2007/01/12
+	* Fixed exploits in Valentine Event Scripts [KarLaeda]
 2007/01/07
 	* Merged the simplified version of agitcheck [ultramage]
 	  that takes no arguments and just says whether WoE is on or not.
