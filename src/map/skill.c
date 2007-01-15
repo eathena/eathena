@@ -2001,14 +2001,6 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 	case KN_AUTOCOUNTER:
 	case NPC_CRITICALSLASH:
-	case NPC_WATERATTACK:
-	case NPC_GROUNDATTACK:
-	case NPC_FIREATTACK:
-	case NPC_WINDATTACK:
-	case NPC_POISONATTACK:
-	case NPC_HOLYATTACK:
-	case NPC_DARKNESSATTACK:
-	case NPC_TELEKINESISATTACK:
 	case NPC_SPLASHATTACK:
 	case TF_DOUBLE:
 	case GS_CHAINACTION:
@@ -5341,7 +5333,9 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 
 		if(md) {
 			if(tid != -1) //Set afterskill delay.
-				md->last_thinktime=tick + md->status.amotion;
+				md->last_thinktime=tick +md->status.amotion;
+			else
+				md->last_thinktime=tick +md->status.adelay;
 			if(battle_config.mob_ai&0x200) { //pass on delay to same skill.
 				int i;
 				for (i = 0; i < md->db->maxskill; i++)
@@ -5521,6 +5515,8 @@ int skill_castend_pos (int tid, unsigned int tick, int id, int data)
 		if(md) {
 			if (tid != -1)
 				md->last_thinktime=tick +md->status.amotion;
+			else
+				md->last_thinktime=tick +md->status.adelay;
 			if(battle_config.mob_ai&0x200) { //pass on delay to same skill.
 				int i;
 				for (i = 0; i < md->db->maxskill; i++)

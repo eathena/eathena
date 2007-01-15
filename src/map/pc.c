@@ -580,6 +580,14 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 		clif_authfail_fd(sd->fd, 0);
 		return 1;
 	}
+
+	if (map_id2sd(st->account_id) != NULL)
+	{	//Somehow a second connection has managed to go through the double-connection
+		//check in clif_parse_WantToConnection! [Skotlex]
+		clif_authfail_fd(sd->fd, 0);
+		return 1;
+	}
+
 	memcpy(&sd->status, st, sizeof(*st));
 
 	//Set the map-server used job id. [Skotlex]
@@ -6272,7 +6280,7 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 	if(pos == EQP_ACC) { //Accesories should only go in one of the two,
 		pos = req_pos&EQP_ACC;
 		if (pos == EQP_ACC) //User specified both slots.. 
-			pos = sd->equip_index[EQI_ACC_L] >= 0 ? EQP_ACC_R : EQP_ACC_L;
+			pos = sd->equip_index[EQI_ACC_R] >= 0 ? EQP_ACC_L : EQP_ACC_R;
 	}
 
 	if(pos == EQP_ARMS && id->equip == EQP_HAND_R)
