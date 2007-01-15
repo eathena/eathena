@@ -1240,15 +1240,10 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		if (!(battle_check_undead(tstatus->race, tstatus->def_ele) || tstatus->race == RC_DEMON))
 			sc_start(bl, SC_BLEEDING,50, skilllv, skill_get_time2(skillid,skilllv));
 		break;
-/*
+
 	case LK_JOINTBEAT:
-	{
-		int flag = 0;
-		//##TODO how should this be done? the ailment has to be calculated before because it also affects the damage [FlavioJS]
-		sc_start2(bl,SkillStatusChangeTable(skillid),(5*skilllv+5),skilllv,flag&BREAK_FLAGS,skill_get_time2(skillid,skilllv));
+		sc_start(bl,SkillStatusChangeTable(skillid),(5*skilllv+5),skilllv,skill_get_time2(skillid,skilllv));
 		break;
-	}
-*/
 
 	case ASC_METEORASSAULT:
 		//Any enemies hit by this skill will receive Stun, Darkness, or external bleeding status ailment with a 5%+5*SkillLV% chance.
@@ -2579,6 +2574,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case LK_AURABLADE:
 	case LK_SPIRALPIERCE:
 	case LK_HEADCRUSH:
+	case LK_JOINTBEAT:
 	case CG_ARROWVULCAN:
 	case HW_MAGICCRASHER:
 	case ITM_TOMAHAWK:
@@ -2606,20 +2602,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case NJ_KUNAI:
 	case ASC_BREAKER:
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-		break;
-
-	case LK_JOINTBEAT: // decide the ailment first (affects attack damage and effect)
-		switch( rand()%6 ){
-		case 0: flag |= BREAK_ANKLE; break;
-		case 1: flag |= BREAK_WRIST; break;
-		case 2: flag |= BREAK_KNEE; break;
-		case 3: flag |= BREAK_SHOULDER; break;
-		case 4: flag |= BREAK_WAIST; break;
-		case 5: flag |= BREAK_NECK; break;
-		}
-		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-		//##TODO this is a quick&dirty hack. How do I pass the selected ailment to skill_additional_effect? [FlavioJS]
-		sc_start2(bl,SkillStatusChangeTable(skillid),(5*skilllv+5),skilllv,flag&BREAK_FLAGS,skill_get_time2(skillid,skilllv));
 		break;
 
 	case MO_COMBOFINISH:

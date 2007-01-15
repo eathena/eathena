@@ -1017,6 +1017,9 @@ static struct Damage battle_calc_weapon_attack(
 		{
 			if (tsc->data[SC_SLEEP].timer!=-1 )
 				cri <<=1;
+			if(tsc->data[SC_JOINTBEAT].timer != -1 &&
+				tsc->data[SC_JOINTBEAT].val2 == 6) // Always take crits with Neck broken by Joint Beat [DracoRPG]
+				flag.cri=1;
 		}
 		switch (skill_num)
 		{
@@ -2057,10 +2060,6 @@ static struct Damage battle_calc_weapon_attack(
 	{	//Breaker's int-based damage (a misc attack?)
 		struct Damage md = battle_calc_misc_attack(src, target, skill_num, skill_lv, wflag);
 		wd.damage += md.damage;
-	} else if( skill_num == LK_JOINTBEAT && wflag&BREAK_NECK ) {
-		//##TODO should this be here?[FlavioJS]
-		// Although not clear, it's being assumed that the 2x damage is only for the break neck ailment.
-		wd.damage *= 2; // 2x damage when breaking neck
 	}
 
 	if (wd.damage || wd.damage2) {
