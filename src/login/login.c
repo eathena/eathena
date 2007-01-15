@@ -1193,7 +1193,7 @@ int mmo_auth(struct mmo_account* account, int fd) {
 		&& new_account_flag && account_id_count <= END_ACCOUNT_NUM && len >= 4 && strlen(account->passwd) >= 4) {
 						
 		//only continue if amount in this time limit is allowed (account registration flood protection)[Kevin]
-		if(gettick() <= new_reg_tick && num_regs >= allowed_regs) {
+		if(DIFF_TICK(gettick(), new_reg_tick) < 0 && num_regs >= allowed_regs) {
 			ShowNotice("Account registration denied (registration limit exceeded) to %s!\n", ip);
 			login_log("Notice: Account registration denied (registration limit exceeded) to %s!", ip);
 			return 3;
@@ -4190,6 +4190,8 @@ int do_init(int argc, char **argv) {
 		set_defaultconsoleparse(parse_console);
 	   	start_console();
 	}
+
+	new_reg_tick=gettick();
 
 	login_log("The login-server is ready (Server is listening on the port %d)." RETCODE, login_port);
 	ShowStatus("The login-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %d).\n\n", login_port);
