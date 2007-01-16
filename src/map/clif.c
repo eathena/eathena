@@ -4175,7 +4175,6 @@ int clif_skillup(struct map_session_data *sd,int skill_num)
 	WFIFOW(fd,4) = sd->status.skill[skill_num].lv;
 	WFIFOW(fd,6) = skill_get_sp(skill_num,sd->status.skill[skill_num].lv);
 	WFIFOW(fd,8) = skill_get_range2(&sd->bl,skill_num,sd->status.skill[skill_num].lv);
-	//WFIFOB(fd,10) = (sd->status.skill[skill_num].lv < skill_get_max(sd->status.skill[skill_num].id)) ? 1 : 0;
 	WFIFOB(fd,10) = (sd->status.skill[skill_num].lv < skill_tree_get_max(sd->status.skill[skill_num].id, sd->status.class_)) ? 1 : 0;
 	WFIFOSET(fd,packet_len(0x10e));
 
@@ -5740,6 +5739,7 @@ int clif_party_option(struct party_data *p,struct map_session_data *sd,int flag)
 	}
 	if(!sd) return 0;
 	WBUFW(buf,0)=0x101;
+	// WBUFL(buf,2) // that's how the client reads it, still need to check it's uses [FlavioJS]
 	WBUFW(buf,2)=((flag&0x01)?2:p->party.exp);
 	WBUFW(buf,4)=0;
 	if(flag==0)
@@ -7654,7 +7654,7 @@ int clif_charnameupdate (struct map_session_data *ssd)
 		memcpy(WBUFP(buf,30), p->party.name, NAME_LENGTH);
 	else
 		WBUFB(buf,30) = 0;
-			
+
 	if (g)
 	{
 		int i, ps = -1;
@@ -7966,8 +7966,8 @@ void clif_parse_WantToConnection(int fd, TBL_PC* sd)
 			WFIFOSET(fd,packet_len(0x6a));
 			clif_setwaitclose(fd);
 			return;
-
-		} else if( (old_sd=map_id2sd(account_id)) != NULL ){
+		}
+		if( (old_sd=map_id2sd(account_id)) != NULL ){
 			// if same account already connected, we disconnect the 2 sessions
 			//Check for characters with no connection (includes those that are using autotrade) [durf],[Skotlex]
 			if (old_sd->state.finalsave || !old_sd->state.auth)
@@ -8643,7 +8643,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 
 	if(target_id<0 && -target_id == sd->bl.id) // for disguises [Valaris]
 		target_id = sd->bl.id;
-		
+
 	switch(action_type) {
 	case 0x00: // once attack
 	case 0x07: // continuous attack

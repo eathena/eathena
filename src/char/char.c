@@ -1641,6 +1641,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	int i, j, found_num;
 	struct mmo_charstatus *p;
 	const int offset = 24;
+	WFIFOHEAD(fd, offset + 9*108);
 
 	set_char_online(-1, 99,sd->account_id);
 
@@ -1656,14 +1657,23 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	for(i = found_num; i < 9; i++)
 		sd->found_char[i] = -1;
 
-	WFIFOHEAD(fd, offset + found_num * 106);
+#if PACKETVER > 7
+	//Updated packet structure with rename-button included. Credits to Sara-chan
+	memset(WFIFOP(fd,0), 0, offset + found_num * 108);
+	WFIFOW(fd,2) = offset + found_num * 108;
+#else
 	memset(WFIFOP(fd,0), 0, offset + found_num * 106);
-	WFIFOW(fd,0) = 0x6b;
 	WFIFOW(fd,2) = offset + found_num * 106;
+#endif
+	WFIFOW(fd,0) = 0x6b;
 
 	for(i = 0; i < found_num; i++) {
 		p = &char_dat[sd->found_char[i]].status;
+#if PACKETVER > 7
+		j = offset + (i * 108); // increase speed of code
+#else
 		j = offset + (i * 106); // increase speed of code
+#endif
 
 		WFIFOL(fd,j) = p->char_id;
 		WFIFOL(fd,j+4) = p->base_exp>LONG_MAX?LONG_MAX:p->base_exp;
@@ -1688,7 +1698,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 		WFIFOW(fd,j+54) = p->hair;
 		WFIFOW(fd,j+56) = p->option&0x20?0:p->weapon; //When the weapon is sent and your option is riding, the client crashes on login!?
 		WFIFOW(fd,j+58) = p->base_level;
-		WFIFOW(fd,j+60) = (p->skill_point > SHRT_MAX)? SHRT_MAX : p->skill_point;
+		WFIFOW(fd,j+60) = (p->skill_point > SHRT_MAX) ? SHRT_MAX : p->skill_point;
 		WFIFOW(fd,j+62) = p->head_bottom;
 		WFIFOW(fd,j+64) = p->shield;
 		WFIFOW(fd,j+66) = p->head_top;
@@ -1704,7 +1714,12 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 		WFIFOB(fd,j+101) = (p->int_ > UCHAR_MAX) ? UCHAR_MAX : p->int_;
 		WFIFOB(fd,j+102) = (p->dex > UCHAR_MAX) ? UCHAR_MAX : p->dex;
 		WFIFOB(fd,j+103) = (p->luk > UCHAR_MAX) ? UCHAR_MAX : p->luk;
+#if PACKETVER > 7
+		WFIFOW(fd,j+104) = p->char_num;
+		WFIFOW(fd,j+106) = 1; //TODO: Handle this rename bit: 0 to enable renaming
+#else
 		WFIFOB(fd,j+104) = p->char_num;
+#endif
 	}
 
 	WFIFOSET(fd,WFIFOW(fd,2));
@@ -3588,9 +3603,9 @@ int parse_char(int fd) {
 				break;
 			}
 		{	//Send to player.
-			WFIFOHEAD(fd, 108);
+			WFIFOHEAD(fd, 110);
 			WFIFOW(fd,0) = 0x6d;
-			memset(WFIFOP(fd,2), 0, 106);
+			memset(WFIFOP(fd,2), 0, 108);
 
 			WFIFOL(fd,2) = char_dat[i].status.char_id;
 			WFIFOL(fd,2+4) = char_dat[i].status.base_exp>LONG_MAX?LONG_MAX:char_dat[i].status.base_exp;
@@ -3626,8 +3641,15 @@ int parse_char(int fd) {
 			WFIFOB(fd,2+101) = (char_dat[i].status.int_ > UCHAR_MAX) ? UCHAR_MAX : char_dat[i].status.int_;
 			WFIFOB(fd,2+102) = (char_dat[i].status.dex > UCHAR_MAX) ? UCHAR_MAX : char_dat[i].status.dex;
 			WFIFOB(fd,2+103) = (char_dat[i].status.luk > UCHAR_MAX) ? UCHAR_MAX : char_dat[i].status.luk;
+#if PACKETVER > 7
+			//Updated packet structure with rename-button included. Credits to Sara-chan
+			WFIFOW(fd,2+104) = char_dat[i].status.char_num;
+			WFIFOB(fd,2+106) = 1; //Rename bit.
+			WFIFOSET(fd,110);
+#else
 			WFIFOB(fd,2+104) = char_dat[i].status.char_num;
 			WFIFOSET(fd,108);
+#endif	
 			RFIFOSKIP(fd,37);
 		}
 			for(ch = 0; ch < 9; ch++) {
@@ -3808,27 +3830,33 @@ int parse_char(int fd) {
 }
 
 // Console Command Parser [Wizputer]
-int parse_console(char *buf) {
-    char *type,*command;
+int parse_console(char* buf)
+{
+	char command[256];
 
-	type = (char *)aCalloc(64,1);
-	command = (char *)aCalloc(64,1);
+	memset(command, 0, sizeof(command));
 
-//	memset(type,0,64);
-//	memset(command,0,64);
+	sscanf(buf, "%[^\n]", command);
 
-    ShowStatus("Console: %s\n",buf);
+	//login_log("Console command :%s" RETCODE, command);
 
-    if ( sscanf(buf, "%[^:]:%[^\n]", type , command ) < 2 )
-        sscanf(buf,"%[^\n]",type);
+	if( strcmpi("shutdown", command) == 0 ||
+		strcmpi("exit", command) == 0 ||
+		strcmpi("quit", command) == 0 ||
+		strcmpi("end", command) == 0 )
+		runflag = 0;
+	else if( strcmpi("alive", command) == 0 ||
+			strcmpi("status", command) == 0 )
+		ShowInfo(CL_CYAN"Console: "CL_BOLD"I'm Alive."CL_RESET"\n");
+	else if( strcmpi("help", command) == 0 ){
+		printf(CL_BOLD"Help of commands:"CL_RESET"\n");
+		printf("  To shutdown the server:\n");
+		printf("  'shutdown|exit|qui|end'\n");
+		printf("  To know if server is alive:\n");
+		printf("  'alive|status'\n");
+	}
 
-    ShowDebug("Type of command: %s || Command: %s \n",type,command);
-
-    if(buf) aFree(buf);
-    if(type) aFree(type);
-    if(command) aFree(command);
-
-    return 0;
+	return 0;
 }
 
 // 全てのMAPサーバーにデータ送信（送信したmap鯖の数を返す）
