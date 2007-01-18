@@ -963,7 +963,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		md = (struct mob_data *)src;
 		break;
 	}
-	
+
 	switch (bl->type) {
 	case BL_PC:
 		dstsd=(struct map_session_data *)bl;
@@ -1025,7 +1025,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				}
 			}
 		}
-	
+
 		if (sc && sc->count) {
 		// Enchant Poison gives a chance to poison attacked enemies
 			if(sc->data[SC_ENCPOISON].timer != -1) //Don't use sc_start since chance comes in 1/10000 rate.
@@ -1094,7 +1094,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	case WZ_VERMILION:
 		sc_start(bl,SC_BLIND,4*skilllv,skilllv,skill_get_time2(skillid,skilllv));
 		break;
-		
+
 	case HT_FREEZINGTRAP:
 		sc_start(bl,SC_FREEZE,(3*skilllv+35),skilllv,skill_get_time2(skillid,skilllv));
 		break;
@@ -1144,7 +1144,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	case AM_DEMONSTRATION:
 		skill_break_equip(bl, EQP_WEAPON, 100*skilllv, BCT_ENEMY);
 		break;
-		
+
 	case CR_SHIELDCHARGE:
 		sc_start(bl,SC_STUN,(15+skilllv*5),skilllv,skill_get_time2(skillid,skilllv));
 		break;
@@ -1180,7 +1180,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		if (tstatus->size==1) //Only stuns mid-sized mobs.
 			sc_start(bl,SC_STUN,(30+10*skilllv),skilllv,skill_get_time(skillid,skilllv));
 		break;
-			
+
 	case NPC_PETRIFYATTACK:
 		sc_start4(bl,SkillStatusChangeTable(skillid),50+10*skilllv,
 			skilllv,0,0,skill_get_time(skillid,skilllv), 
@@ -1274,7 +1274,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	case TK_DOWNKICK:
 		sc_start(bl,SC_STUN,100,skilllv,skill_get_time2(skillid,skilllv));
 		break;
-			
+
 	case TK_JUMPKICK:
 		//Cancel out Soul Linker status of the target. [Skotlex]
 		if (tsc->count) {
@@ -1338,7 +1338,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			if (type)
 				rate += sd->addeff[i].arrow_rate;
 			if (!rate) continue;
-			
+
 			if (!(sd->addeff[i].flag&ATF_LONG && sd->addeff[i].flag&ATF_SHORT))
 			{	//Trigger has range consideration.
 				if ((sd->addeff[i].flag&ATF_LONG && !type) ||
@@ -1347,10 +1347,10 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			}
 			type =  sd->addeff[i].id;
 			skill = skill_get_time2(StatusSkillChangeTable[type],7);
-			
+
 			if (sd->addeff[i].flag&ATF_TARGET)
 				status_change_start(bl,type,rate,7,0,0,0,skill,0);
-			
+
 			if (sd->addeff[i].flag&ATF_SELF)
 				status_change_start(src,type,rate,7,0,0,0,skill,0);
 		}
@@ -1374,7 +1374,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		for (i = 0; i < MAX_PC_BONUS && sd->autospell[i].id; i++) {
 
 			skill = (sd->autospell[i].id > 0) ? sd->autospell[i].id : -sd->autospell[i].id;
-			
+
 			if (skillnotok(skill, sd))
 				continue;
 
@@ -1387,7 +1387,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				tbl = src;
 			else
 				tbl = bl;
-			
+
 			if (tbl != src && !battle_check_range(src, tbl, skill_get_range2(src, skill, skilllv)))
 				continue; //Autoskills DO check for target-src range. [Skotlex]
 			rate = skill_get_inf(skill);
@@ -1434,7 +1434,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		if (skill < 2000)
 			mob_class_change(dstmd,class_);
 	}
-	
 
 	return 0;
 }
@@ -1468,7 +1467,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	tsc = status_get_sc(bl);
 	if (tsc && !tsc->count)
 		tsc = NULL;
-	
+
 	BL_CAST(BL_PC, src, sd);
 	BL_CAST(BL_PC, bl, dstsd);
 
@@ -1483,7 +1482,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		sc_start(src,SkillStatusChangeTable(skillid),100,skilllv,skill_get_time2(skillid,skilllv));
 		break;
 	case GS_FULLBUSTER:
-		status_change_start(src,SC_BLIND,200*skilllv,skilllv,0,0,0,skill_get_time2(skillid,skilllv),10);
+		sc_start(src,SC_BLIND,2*skilllv,skilllv,skill_get_time2(skillid,skilllv));
 		break;
 		break;
 	}
@@ -1524,7 +1523,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 				status_change_start(bl,type,rate,7,0,0,0,time,0);
 		}
 	}
-	
+
 	//Trigger counter-spells to retaliate against damage causing skills. [Skotlex]
 	if(dstsd && !status_isdead(bl) && src != bl && !(skillid && skill_get_nk(skillid)&NK_NO_DAMAGE)) 
 	{
@@ -1593,7 +1592,7 @@ int skill_break_equip (struct block_list *bl, unsigned short where, int rate, in
 	BL_CAST(BL_PC, bl, sd);
 	if (sc && !sc->count)
 		sc = NULL;
-	
+
 	if (sd) {
 		if (sd->unbreakable_equip)
 			where &= ~sd->unbreakable_equip;
@@ -1751,10 +1750,10 @@ int skill_blown (struct block_list *src, struct block_list *target, int count)
 
 	if (!dx && !dy) //Could not knockback.
 		return 0;
-	
+
 	map_foreachinmovearea(clif_outsight, target, AREA_SIZE,
 		dx, dy, target->type==BL_PC?BL_ALL:BL_PC, target);
-		
+
 	if(su)
 		skill_unit_move_unit_group(su->group,target->m,dx,dy);
 	else
@@ -1762,7 +1761,7 @@ int skill_blown (struct block_list *src, struct block_list *target, int count)
 
 	map_foreachinmovearea(clif_insight, target, AREA_SIZE,
 		-dx, -dy, target->type==BL_PC?BL_ALL:BL_PC, target);
-	
+
 	if(!(count&0x20000)) 
 		clif_blown(target);
 
@@ -2505,13 +2504,13 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		if (sd) clif_skill_fail(sd,skillid,0,0);
 		return 1;
 	}
-	
+
 	sc = status_get_sc(src);	
 	if (sc && !sc->count)
 		sc = NULL; //Unneeded
-	
+
 	tstatus = status_get_status_data(bl);
-	
+
 	map_freeblock_lock();
 
 	switch(skillid)
@@ -2627,7 +2626,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		if (unit_movepos(src, bl->x, bl->y, 0, 0))
 			clif_slide(src,bl->x,bl->y);
 		break;
-	
+
 	case SN_SHARPSHOOTING:
 	case NJ_KAMAITACHI:
 		//It won't shoot through walls since on castend there has to be a direct
@@ -2675,7 +2674,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		if (sc && sc->data[SC_BLADESTOP].timer != -1)
 			status_change_end(src,SC_BLADESTOP,-1);
 		break;
-	
+
 	case NJ_ISSEN:
 		if (sc) {
 		  	if (sc->data[SC_NEN].timer != -1)
@@ -2824,7 +2823,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0);
 		}
 		break;
-	
+
 	case KN_SPEARSTAB:
 		if(flag&1){
 			if (bl->id==skill_area_temp[1])
@@ -8191,7 +8190,8 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 					clif_skill_fail(sd,skill,0,0);
 				return 0;
 			}
-			if(itemid[i] >= 715 && itemid[i] <= 717 && sc && sc->data[SC_SPIRIT].timer != -1 && sc->data[SC_SPIRIT].val2 == SL_WIZARD)
+			if(itemid[i] >= 715 && itemid[i] <= 717 && skill != HW_GANBANTEIN &&
+				sc && sc->data[SC_SPIRIT].timer != -1 && sc->data[SC_SPIRIT].val2 == SL_WIZARD)
 				index[i] = -1; //Gemstones are checked, but not substracted from inventory.
 		}
 	}
