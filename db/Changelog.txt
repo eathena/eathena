@@ -1,3 +1,5 @@
+01/18
+	* Fixed Ulle's Cap + Odin's Blessing Combo, thanks to happylight [Lupus]
 12/28
 	* Merged item_db, mob_db [Playtester]
 	- updated various items
