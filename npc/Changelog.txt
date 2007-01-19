@@ -34,6 +34,9 @@ Playtester
 
 Date		Added
 ======
+2007/01/19
+	* Merged the required scripts due to the script engine update which is more
+	  strict with function arguments. [Skotlex]
 2007/01/12
 	* Fixed exploits in Valentine Event Scripts [KarLaeda]
 2007/01/07

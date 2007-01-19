@@ -124,7 +124,7 @@ static int pc_invincible_timer(int tid,unsigned int tick,int id,int data) {
 int pc_setinvincibletimer(struct map_session_data *sd,int val) {
 	nullpo_retr(0, sd);
 
-	if(sd->invincible_timer != -1)
+	if(sd->invincible_timer != INVALID_TIMER)
 		delete_timer(sd->invincible_timer,pc_invincible_timer);
 	sd->invincible_timer = add_timer(gettick()+val,pc_invincible_timer,sd->bl.id,0);
 	return 0;
@@ -133,9 +133,9 @@ int pc_setinvincibletimer(struct map_session_data *sd,int val) {
 int pc_delinvincibletimer(struct map_session_data *sd) {
 	nullpo_retr(0, sd);
 
-	if(sd->invincible_timer != -1) {
+	if(sd->invincible_timer != INVALID_TIMER) {
 		delete_timer(sd->invincible_timer,pc_invincible_timer);
-		sd->invincible_timer = -1;
+		sd->invincible_timer = INVALID_TIMER;
 		skill_unit_move(&sd->bl,gettick(),1);
 	}
 	return 0;
@@ -955,7 +955,7 @@ int pc_calc_skilltree(struct map_session_data *sd)
 	do {
 		flag = 0;
 		for(i = 0; i < MAX_SKILL_TREE && (id = skill_tree[c][i].id) > 0; i++) {
-			int j, f;
+			int j, f, inf2;
 
 			if(sd->status.skill[id].id)
 				continue; //Skill already known.
@@ -970,19 +970,25 @@ int pc_calc_skilltree(struct map_session_data *sd)
 				}
 				if (sd->status.job_level < skill_tree[c][i].joblv)
 					f = 0; // job level requirement wasn't satisfied
-				else if (pc_checkskill(sd, NV_BASIC) < 9 && id != NV_BASIC && !(skill_get_inf2(id)&INF2_QUEST_SKILL))
-					f = 0; // Do not unlock normal skills when Basic Skill is not maxed out (can happen because of skill reset)
 			}
 
 			if (f) {
+				inf2 = skill_get_inf2(id);
+
+				if(!sd->status.skill[id].lv && (
+					(inf2&INF2_QUEST_SKILL && !battle_config.quest_skill_learn) ||
+					inf2&INF2_WEDDING_SKILL ||
+					(inf2&INF2_SPIRIT_SKILL && !(sd->sc.count && sd->sc.data[SC_SPIRIT].timer != -1))
+				))
+					continue; //Cannot be learned via normal means. Note this check DOES allows raising already known skills.
+
 				sd->status.skill[id].id = id;
 
-				if(skill_get_inf2(id)&INF2_SPIRIT_SKILL && sd->sc.count && sd->sc.data[SC_SPIRIT].timer != -1)
+				if(inf2&INF2_SPIRIT_SKILL)
 				{	//Spirit skills cannot be learned, they will only show up on your tree when you get buffed.
 					sd->status.skill[id].lv = 1; // need to manually specify a skill level
 					sd->status.skill[id].flag = 1; //So it is not saved, and tagged as a "bonus" skill.
 				}
-
 				flag = 1; // skill list has changed, perform another pass
 			}
 		}
@@ -1041,12 +1047,15 @@ static void pc_check_skilltree(struct map_session_data *sd, int skill) {
 				continue;
 			if (sd->status.job_level < skill_tree[c][i].joblv)
 				continue;
-			else if (pc_checkskill(sd, NV_BASIC) < 9 && id != NV_BASIC && !(skill_get_inf2(id)&INF2_QUEST_SKILL))
-				continue; // Do not unlock normal skills when Basic Skills is not maxed out (can happen because of skill reset)
 			
-			if(skill_get_inf2(id)&INF2_SPIRIT_SKILL)
-				//Spirit skills cannot be learned
-				continue;
+			j = skill_get_inf2(id);
+			if(!sd->status.skill[id].lv && (
+				(j&INF2_QUEST_SKILL && !battle_config.quest_skill_learn) ||
+				j&INF2_WEDDING_SKILL ||
+				(j&INF2_SPIRIT_SKILL && !(sd->sc.count && sd->sc.data[SC_SPIRIT].timer != -1))
+			))
+				continue; //Cannot be learned via normal means.
+
 			sd->status.skill[id].id=id;
 			flag=1;
 		}
@@ -1080,7 +1089,7 @@ int pc_calc_skilltree_normalize_job(struct map_session_data *sd) {
 		return c; //Only Normalize non-first classes (and non-super novice)
 	
 	skill_point = pc_calc_skillpoint(sd);
-	if(skill_point < 9)
+	if(pc_checkskill(sd, NV_BASIC) < 9) //Consider Novice Tree when you dont have NV_BASIC maxed.
 		c = MAPID_NOVICE;
 	else if (sd->status.skill_point >= (int)sd->status.job_level
 		&& ((sd->change_level > 0 && skill_point < sd->change_level+8) || skill_point < 58)) {
@@ -2408,47 +2417,47 @@ int pc_bonus4(struct map_session_data *sd,int type,int type2,int type3,int type4
  *	2 - Like 1, except the level granted can stack with previously learned level.
  *------------------------------------------
  */
-int pc_skill(struct map_session_data *sd,int id,int level,int flag)
+int pc_skill(TBL_PC* sd, int id, int level, int flag)
 {
 	nullpo_retr(0, sd);
 
-	if(level>MAX_SKILL_LEVEL){
-		if(battle_config.error_log)
+	if( level > MAX_SKILL_LEVEL ){
+		if( battle_config.error_log )
 			ShowError("pc_skill: Skill level %d too high. Max lv supported is MAX_SKILL_LEVEL (%d)\n", level, MAX_SKILL_LEVEL);
 		return 0;
 	}
-	switch (flag) {
+	switch( flag ){
 	case 0: //Set skill data overwriting whatever was there before.
-		sd->status.skill[id].id=id;
-		sd->status.skill[id].lv=level;
-		sd->status.skill[id].flag=0;
-		if (!level) //Remove skill.
+		sd->status.skill[id].id   = id;
+		sd->status.skill[id].lv   = level;
+		sd->status.skill[id].flag = 0;
+		if( !level ) //Remove skill.
 			sd->status.skill[id].id = 0;
-		if (!skill_get_inf(id)) //Only recalculate for passive skills.
-			status_calc_pc(sd,0);
+		if( !skill_get_inf(id) ) //Only recalculate for passive skills.
+			status_calc_pc(sd, 0);
 		clif_skillinfoblock(sd);
 	break;
 	case 2: //Add skill bonus on top of what you had.
-		if (sd->status.skill[id].id==id) {
-			if (!sd->status.skill[id].flag)
-				sd->status.skill[id].flag=sd->status.skill[id].lv+2; //Store previous level.
+		if( sd->status.skill[id].id == id ){
+			if( !sd->status.skill[id].flag ) // Store previous level.
+				sd->status.skill[id].flag = sd->status.skill[id].lv + 2;
 		} else {
-			sd->status.skill[id].id=id;
-			sd->status.skill[id].flag=1; //Set that this is a bonus skill.
+			sd->status.skill[id].id   = id;
+			sd->status.skill[id].flag = 1; //Set that this is a bonus skill.
 		}
-		sd->status.skill[id].lv+=level;
+		sd->status.skill[id].lv += level;
 	break;
 	case 1: //Item bonus skill.
-		if(sd->status.skill[id].lv >= level)
+		if( sd->status.skill[id].lv >= level )
 			return 0;
-		if(sd->status.skill[id].id==id) {
-			if (!sd->status.skill[id].flag) //Non-granted skill, store it's level.
-				sd->status.skill[id].flag=sd->status.skill[id].lv+2;
+		if( sd->status.skill[id].id == id ){
+			if( !sd->status.skill[id].flag ) //Non-granted skill, store it's level.
+				sd->status.skill[id].flag = sd->status.skill[id].lv + 2;
 		} else {
-			sd->status.skill[id].id=id;
-			sd->status.skill[id].flag=1;
+			sd->status.skill[id].id   = id;
+			sd->status.skill[id].flag = 1;
 		}
-		sd->status.skill[id].lv=level;
+		sd->status.skill[id].lv = level;
 	break;
 	default: //Unknown flag?
 		return 0;
@@ -4462,12 +4471,13 @@ int pc_skillup(struct map_session_data *sd,int skill_num)
 	nullpo_retr(0, sd);
 
 	if(skill_num >= GD_SKILLBASE){
-		guild_skillup(sd,skill_num,0);
+		guild_skillup(sd, skill_num);
 		return 0;
 	}
+
 	if (skill_num < 0 || skill_num >= MAX_SKILL)
 		return 0;
-	
+
 	if(sd->status.skill_point>0 &&
 		sd->status.skill[skill_num].id &&
 		sd->status.skill[skill_num].flag==0 && //Don't allow raising while you have granted skills. [Skotlex]
@@ -4498,37 +4508,38 @@ int pc_allskillup(struct map_session_data *sd)
 	nullpo_retr(0, sd);
 
 	for(i=0;i<MAX_SKILL;i++){
-		sd->status.skill[i].id=0;
-		if (sd->status.skill[i].flag && sd->status.skill[i].flag != 13){	// cardスキルなら、
-			sd->status.skill[i].lv=(sd->status.skill[i].flag==1)?0:sd->status.skill[i].flag-2;	// 本?のlvに
-			sd->status.skill[i].flag=0;	// flagは0にしておく
+		if (sd->status.skill[i].flag && sd->status.skill[i].flag != 13){
+			sd->status.skill[i].lv=(sd->status.skill[i].flag==1)?0:sd->status.skill[i].flag-2;
+			sd->status.skill[i].flag=0;
+			if (!sd->status.skill[i].lv)
+				sd->status.skill[i].id=0;
 		}
 	}
 
-	if (battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill){
-		// 全てのスキル
+	//pc_calc_skilltree takes care of setting the ID to valid skills. [Skotlex]
+	if (battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill)
+	{	//Get ALL skills except npc/guild ones. [Skotlex]
+		//and except SG_DEVIL [Komurka]
 		for(i=0;i<MAX_SKILL;i++){
-			if(!(skill_get_inf2(i)&(INF2_NPC_SKILL|INF2_GUILD_SKILL))) //Get ALL skills except npc/guild ones. [Skotlex]
-				if (i!=SG_DEVIL) //and except SG_DEVIL [Komurka]
-					sd->status.skill[i].lv=skill_get_max(i); //Nonexistant skills should return a max of 0 anyway.
+			if(!(skill_get_inf2(i)&(INF2_NPC_SKILL|INF2_GUILD_SKILL)) && i!=SG_DEVIL)
+				sd->status.skill[i].lv=skill_get_max(i); //Nonexistant skills should return a max of 0 anyway.
 		}
 	}
-	else {
+	else
+	{
 		int inf2;
 		for(i=0;i < MAX_SKILL_TREE && (id=skill_tree[sd->status.class_][i].id)>0;i++){
 			inf2 = skill_get_inf2(id);
-			if(sd->status.skill[id].id==0 &&
-				(!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
-				!(inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL)) &&
-				(id!=SG_DEVIL))
-			 {
-				sd->status.skill[id].id = id;	// celest
-				sd->status.skill[id].lv = skill_tree_get_max(id, sd->status.class_);	// celest
-			}
+			if (
+				(inf2&INF2_QUEST_SKILL && !battle_config.quest_skill_learn) ||
+				(inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL)) ||
+				id==SG_DEVIL
+			)
+				continue; //Cannot be learned normally.
+			sd->status.skill[id].lv = skill_tree_get_max(id, sd->status.class_);	// celest
 		}
 	}
 	status_calc_pc(sd,0);
-
 	return 0;
 }
 
@@ -4843,13 +4854,13 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		if(sd->duel_invite > 0)
 			duel_reject(sd->duel_invite, sd);
 	}
-	
+
 	pc_setdead(sd);
 	//Reset ticks.
 	sd->hp_loss_tick = sd->sp_loss_tick = 0;
-	
+
 	pc_setglobalreg(sd,"PC_DIE_COUNTER",++sd->die_counter);
-	
+
 	if (sd->state.event_death){
 		if(!src)
 			pc_setglobalreg(sd, "killerrid", 0);
@@ -4857,7 +4868,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			pc_setglobalreg(sd,"killerrid",src->id);
 		npc_script_event(sd,NPCE_DIE);
 	}
-	
+
 	if ( sd && sd->spiritball && (sd->class_&MAPID_BASEMASK)==MAPID_GUNSLINGER ) // maybe also monks' spiritballs ?
 		pc_delspiritball(sd,sd->spiritball,0);
 
@@ -4890,7 +4901,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			ssd->status.manner -= 5;
 			if(ssd->status.manner < 0)
 				sc_start(src,SC_NOCHAT,100,0,0);
-		
+
 		// PK/Karma system code (not enabled yet) [celest]
 		// originally from Kade Online, so i don't know if any of these is correct ^^;
 		// note: karma is measured REVERSE, so more karma = more 'evil' / less honourable,
@@ -4916,7 +4927,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	}
 	break;
 	}
-		
+
 
 	// PK/Karma system code (not enabled yet) [celest]
 	/*
@@ -5771,10 +5782,13 @@ int pc_setcart(struct map_session_data *sd,int type)
  * 鷹設定
  *------------------------------------------
  */
-int pc_setfalcon(struct map_session_data *sd)
+int pc_setfalcon(TBL_PC* sd, int flag)
 {
-	if(pc_checkskill(sd,HT_FALCON)>0){	// ファルコンマスタリ?スキル所持
-		pc_setoption(sd,sd->sc.option|OPTION_FALCON);
+	if( flag ){
+		if( pc_checkskill(sd,HT_FALCON)>0 )	// ファルコンマスタリ?スキル所持
+			pc_setoption(sd,sd->sc.option|OPTION_FALCON);
+	} else if( pc_isfalcon(sd) ){
+		pc_setoption(sd,sd->sc.option&~OPTION_FALCON); // remove falcon
 	}
 
 	return 0;
@@ -5784,11 +5798,15 @@ int pc_setfalcon(struct map_session_data *sd)
  * ペコペコ設定
  *------------------------------------------
  */
-int pc_setriding(struct map_session_data *sd)
+int pc_setriding(TBL_PC* sd, int flag)
 {
-	if((pc_checkskill(sd,KN_RIDING)>0)){ // ライディングスキル所持
-		pc_setoption(sd,sd->sc.option|OPTION_RIDING);
+	if( flag ){
+		if( pc_checkskill(sd,KN_RIDING) > 0 ) // ライディングスキル所持
+			pc_setoption(sd, sd->sc.option|OPTION_RIDING);
+	} else if( pc_isriding(sd) ){
+		pc_setoption(sd, sd->sc.option&~OPTION_RIDING);
 	}
+
 	return 0;
 }
 
@@ -6278,7 +6296,7 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 		clif_equipitemack(sd,n,0,0);	// fail
 		return 0;
 	}
-	
+
 	if(pos == EQP_ACC) { //Accesories should only go in one of the two,
 		pos = req_pos&EQP_ACC;
 		if (pos == EQP_ACC) //User specified both slots.. 
@@ -6309,7 +6327,7 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 			sd->equip_index[i] = n;
 		}
 	}
-	
+
 	if(pos==EQP_AMMO){
 		clif_arrowequip(sd,n);
 		clif_arrow_fail(sd,3);
@@ -6475,7 +6493,7 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag)
 	if((sd->status.inventory[n].equip & EQP_ARMS) && 
 		sd->weapontype1 == 0 && sd->weapontype2 == 0)
 		skill_enchant_elemental_end(&sd->bl,-1);
-	
+
 	sd->status.inventory[n].equip=0;
 
 	if(flag&1) {
@@ -7266,7 +7284,7 @@ int pc_readdb(void)
 	while(fgets(line, sizeof(line)-1, fp)){
 		int jobs[MAX_PC_CLASS], job_count, job;
 		int type;
-		unsigned int max;
+		unsigned int ui,maxlv;
 		char *split[4];
 		if(line[0]=='/' && line[1]=='/')
 			continue;
@@ -7286,23 +7304,27 @@ int pc_readdb(void)
 			ShowError("pc_readdb: Invalid type %d (must be 0 for base levels, 1 for job levels).\n", type);
 			continue;
 		}
-		max = atoi(split[0]);
-		if (max > MAX_LEVEL) {
-			ShowWarning("pc_readdb: Specified max level %d for job %d is beyond server's limit (%d).\n ", max, job, MAX_LEVEL);
-			max = MAX_LEVEL;
+		maxlv = atoi(split[0]);
+		if (maxlv > MAX_LEVEL) {
+			ShowWarning("pc_readdb: Specified max level %u for job %d is beyond server's limit (%u).\n ", maxlv, job, MAX_LEVEL);
+			maxlv = MAX_LEVEL;
 		}
 		//We send one less and then one more because the last entry in the exp array should hold 0.
-		max_level[job][type] = pc_split_atoui(split[3], exp_table[job][type],',',max-1)+1;
+		max_level[job][type] = pc_split_atoui(split[3], exp_table[job][type],',',maxlv-1)+1;
 		//Reverse check in case the array has a bunch of trailing zeros... [Skotlex]
 		//The reasoning behind the -2 is this... if the max level is 5, then the array
 		//should look like this:
 	   //0: x, 1: x, 2: x: 3: x 4: 0 <- last valid value is at 3.
-		while ((i = max_level[job][type]-2) >= 0 && exp_table[job][type][i] <= 0)
+		while ((ui = max_level[job][type]) >= 2 && exp_table[job][type][ui-2] <= 0)
 			max_level[job][type]--;
-		if (max_level[job][type] < max) {
-			ShowWarning("pc_readdb: Specified max %d for job %d, but that job's exp table only goes up to level %d.\n", max, job, max_level[job][type]);
-			ShowNotice("(You may still reach lv %d through scripts/gm-commands)\n", max);
-			max_level[job][type] = max;
+		if (max_level[job][type] < maxlv) {
+			ShowWarning("pc_readdb: Specified max %u for job %d, but that job's exp table only goes up to level %u.\n", maxlv, job, max_level[job][type]);
+			ShowInfo("Filling the missing values with the last exp entry.\n");
+			//Fill the requested values with the last entry.
+			ui = (max_level[job][type] <= 2? 0: max_level[job][type]-2);
+			for (; ui+2 < maxlv; ui++)
+				exp_table[job][type][ui] = exp_table[job][type][ui-1];
+			max_level[job][type] = maxlv;
 		}
 //		ShowDebug("%s - Class %d: %d\n", type?"Job":"Base", job, max_level[job][type]);
 		for (i = 1; i < job_count; i++) {
@@ -7312,8 +7334,8 @@ int pc_readdb(void)
 				continue;
 			}
 			memcpy(exp_table[job][type], exp_table[jobs[0]][type], sizeof(exp_table[0][0]));
-			max_level[job][type] = max;
-//			ShowDebug("%s - Class %d: %d\n", type?"Job":"Base", job, max_level[job][type]);
+			max_level[job][type] = maxlv;
+//			ShowDebug("%s - Class %d: %u\n", type?"Job":"Base", job, max_level[job][type]);
 		}
 	}
 	fclose(fp);

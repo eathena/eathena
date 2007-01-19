@@ -1171,26 +1171,23 @@ int guild_getexp(struct map_session_data *sd,int exp)
 }
 
 // スキルポイント割り振り
-int guild_skillup(struct map_session_data *sd,int skill_num,int flag)
+int guild_skillup(TBL_PC* sd, int skill_num)
 {
-	struct guild *g;
+	struct guild* g;
 	int idx = skill_num - GD_SKILLBASE;
 
 	nullpo_retr(0, sd);
 
-	if(idx < 0 || idx >= MAX_GUILDSKILL)
-
-		return 0;
-	if(sd->status.guild_id==0 || (g=guild_search(sd->status.guild_id))==NULL)
-		return 0;
-	if(strcmp(sd->status.name,g->master))
+	if( idx < 0 || idx >= MAX_GUILDSKILL || // not a guild skill
+			sd->status.guild_id == 0 || (g=guild_search(sd->status.guild_id)) == NULL || // no guild
+			strcmp(sd->status.name, g->master) ) // not the guild master
 		return 0;
 
-	if( (g->skill_point>0 || flag&1) &&
-		g->skill[idx].id!=0 &&
-		g->skill[idx].lv < guild_skill_get_max(skill_num) ){
-		intif_guild_skillup(g->guild_id,skill_num,sd->status.account_id,flag);
-	}
+	if( g->skill_point > 0 &&
+			g->skill[idx].id != 0 &&
+			g->skill[idx].lv < guild_skill_get_max(skill_num) )
+		intif_guild_skillup(g->guild_id, skill_num, sd->status.account_id);
+
 	return 0;
 }
 // スキルポイント割り振り通知
@@ -1911,18 +1908,18 @@ int guild_agit_break(struct mob_data *md)
 	return 0;
 }
 
-// [MouseJstr]
-//   How many castles does this guild have?
-int guild_checkcastles(struct guild *g) {
-	int i,nb_cas=0, id,cas_id=0;
-	struct guild_castle *gc;
-		id=g->guild_id;
-	for(i=0;i<MAX_GUILDCASTLE;i++){
-		gc=guild_castle_search(i);
-		cas_id=gc->guild_id;
-		if(g->guild_id==cas_id)
-			nb_cas=nb_cas+1;
-		} //end for
+// How many castles does this guild have?
+int guild_checkcastles(struct guild *g)
+{
+	int i, nb_cas = 0;
+	struct guild_castle* gc;
+
+	for(i = 0; i < MAX_GUILDCASTLE; i++) {
+		gc = guild_castle_search(i);
+		if(gc && gc->guild_id == g->guild_id)
+			nb_cas++;
+	}
+
 	return nb_cas;
 }
 

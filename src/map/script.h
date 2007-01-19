@@ -10,10 +10,7 @@ extern int potion_target;
 
 extern struct Script_Config {
 	unsigned verbose_mode : 1;
-	unsigned warn_func_no_comma : 1;
-	unsigned warn_cmd_no_comma : 1;
 	unsigned warn_func_mismatch_paramnum : 1;
-	unsigned warn_cmd_mismatch_paramnum : 1;
 	int check_cmdcount;
 	int check_gotocount;
 
@@ -76,9 +73,11 @@ char* conv_str(struct script_state *st,struct script_data *data);
 int run_script_timer(int tid, unsigned int tick, int id, int data);
 void run_script_main(struct script_state *st);
 
+void script_stop_sleeptimers(int id);
 struct linkdb_node* script_erase_sleepdb(struct linkdb_node *n);
 void script_free_stack(struct script_stack*); 
 void script_free_code(struct script_code* code);
+void script_free_vars(struct linkdb_node **node);
 
 struct dbt* script_get_label_db(void);
 struct dbt* script_get_userfunc_db(void);

@@ -6,18 +6,6 @@
 //#define DEBUG_DISASM
 //#define DEBUG_RUN
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <math.h>
-
-#ifndef _WIN32
-	#include <sys/time.h>
-#endif
-#include <time.h>
-#include <setjmp.h>
-
 #include "../common/cbasetypes.h"
 #include "../common/socket.h"
 #include "../common/timer.h"
@@ -51,9 +39,33 @@
 #include "unit.h"
 #include "pet.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <math.h>
+#ifndef WIN32
+	#include <sys/time.h>
+#endif
+#include <time.h>
+#include <setjmp.h>
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// Returns the stack_data at the target index
+#define script_getdata(st,i) &((st)->stack->stack_data[(st)->start+(i)])
+/// Returns if the stack contains data at the target index
+#define script_hasdata(st,i) ( (st)->end > (st)->start + (i) )
+/// Returns the index of the last data in the stack
+#define script_lastdata(st) ( (st)->end - (st)->start - 1 )
+#define script_pushint(st,val) push_val((st)->stack, C_INT, (val))
+#define script_isstring(data) ( (data)->type == C_STR || (data)->type == C_CONSTSTR )
+#define script_isint(data) ( (data)->type == C_INT )
+
 #define FETCH(n, t) \
-		if(st->end>st->start+(n)) \
-			(t)=conv_num(st,&(st->stack->stack_data[st->start+(n)]));
+		if( script_hasdata(st,n) ) \
+			(t)=conv_num(st,script_getdata(st,n));
 
 #define SCRIPT_BLOCK_SIZE 512
 enum { LABEL_NEXTLINE=1,LABEL_START };
@@ -63,6 +75,7 @@ static int script_pos,script_size;
 #define GETVALUE(buf,i)		((int)MakeDWord(MakeWord((buf)[i],(buf)[i+1]),MakeWord((buf)[i+2],0)))
 #define SETVALUE(buf,i,n)	((buf)[i]=GetByte(n,0),(buf)[i+1]=GetByte(n,1),(buf)[i+2]=GetByte(n,2))
 
+#define GETSTRING(off) (str_buf+(off))
 static char *str_buf;
 static int str_pos,str_size;
 static struct str_data_struct {
@@ -75,7 +88,13 @@ static struct str_data_struct {
 	int next;
 } *str_data = NULL;
 int str_num=LABEL_START,str_data_size;
-int str_hash[16];
+// Using a prime number for SCRIPT_HASH_SIZE should give better distributions
+#define SCRIPT_HASH_SIZE 1021
+int str_hash[SCRIPT_HASH_SIZE];
+//#define SCRIPT_HASH_DJB2
+//#define SCRIPT_HASH_SDBM
+//#define SCRIPT_HASH_ELF
+//#define SCRIPT_HASH_PJW
 
 static struct dbt *mapreg_db=NULL;
 static struct dbt *mapregstr_db=NULL;
@@ -85,21 +104,34 @@ char mapreg_txt[256]="save/mapreg.txt";
 
 static struct dbt *scriptlabel_db=NULL;
 static struct dbt *userfunc_db=NULL;
+static int parse_options=0;
 struct dbt* script_get_label_db(){ return scriptlabel_db; }
 struct dbt* script_get_userfunc_db(){ return userfunc_db; }
 
 static char pos[11][100] = {"Head","Body","Left hand","Right hand","Robe","Shoes","Accessory 1","Accessory 2","Head 2","Head 3","Not Equipped"};
 
 struct Script_Config script_config;
-static int parse_cmd;
 
-static jmp_buf error_jump;
-static char*   error_msg;
-static char*   error_pos;
+static jmp_buf     error_jump;
+static char*       error_msg;
+static const char* error_pos;
+static int         error_report; // if the error should produce output
 
 // for advanced scripting support ( nested if, switch, while, for, do-while, function, etc )
 // [Eoe / jA 1080, 1081, 1094, 1164]
-enum { TYPE_NULL = 0 , TYPE_IF , TYPE_SWITCH , TYPE_WHILE , TYPE_FOR , TYPE_DO , TYPE_USERFUNC};
+enum curly_type {
+	TYPE_NULL = 0,
+	TYPE_IF,
+	TYPE_SWITCH,
+	TYPE_WHILE,
+	TYPE_FOR,
+	TYPE_DO,
+	TYPE_USERFUNC,
+	TYPE_ARGLIST // function argument list
+};
+#define ARGLIST_UNDEFINED 0
+#define ARGLIST_NO_PAREN  1
+#define ARGLIST_PAREN     2
 static struct {
 	struct {
 		int type;
@@ -110,10 +142,10 @@ static struct {
 	int curly_count;	// 右カッコの数
 	int index;			// スクリプト内で使用した構文の数
 } syntax;
-unsigned char* parse_curly_close(unsigned char *p);
-unsigned char* parse_syntax_close(unsigned char *p);
-unsigned char* parse_syntax_close_sub(unsigned char *p,int *flag);
-unsigned char* parse_syntax(unsigned char *p);
+const char* parse_curly_close(const char* p);
+const char* parse_syntax_close(const char* p);
+const char* parse_syntax_close_sub(const char* p,int* flag);
+const char* parse_syntax(const char* p);
 static int parse_syntax_for_flag = 0;
 
 extern int current_equip_item_index; //for New CARS Scripts. It contains Inventory Index of the EQUIP_SCRIPT caller item. [Lupus]
@@ -136,8 +168,8 @@ int get_num(unsigned char *script,int *pos);
 
 extern struct script_function {
 	int (*func)(struct script_state *st);
-	char *name;
-	char *arg;
+	const char *name;
+	const char *arg;
 } buildin_func[];
 
 static struct linkdb_node *sleep_db;
@@ -147,20 +179,19 @@ static struct linkdb_node *sleep_db;
  * ローカルプロトタイプ宣言 (必要な物のみ)
  *------------------------------------------
  */
-unsigned char* parse_subexpr(unsigned char *,int);
+const char* parse_subexpr(const char* p,int limit);
 void push_val(struct script_stack *stack,int type,int val);
 int run_func(struct script_state *st);
 
 int mapreg_setreg(int num,int val);
 int mapreg_setregstr(int num,const char *str);
-static void disp_error_message(const char *mes,unsigned char *pos);
 
-enum {
+enum c_op {
 	C_NOP,C_POS,C_INT,C_PARAM,C_FUNC,C_STR,C_CONSTSTR,C_ARG,
 	C_NAME,C_EOL, C_RETINFO,
 	C_USERFUNC, C_USERFUNC_POS, // user defined functions
 
-	C_LOR,C_LAND,C_LE,C_LT,C_GE,C_GT,C_EQ,C_NE,   //operator
+	C_OP3,C_LOR,C_LAND,C_LE,C_LT,C_GE,C_GT,C_EQ,C_NE,   //operator
 	C_XOR,C_OR,C_AND,C_ADD,C_SUB,C_MUL,C_DIV,C_MOD,C_NEG,C_LNOT,C_NOT,C_R_SHIFT,C_L_SHIFT
 };
 
@@ -236,25 +267,74 @@ static void report_src(struct script_state *st) {
 	}
 }
 
-static void check_event(struct script_state *st, unsigned char *event){
-	if(event != NULL && event[0] != '\0' && !stristr(event,"::On")){
-		ShowError("NPC event parameter deprecated! Please use 'NPCNAME::OnEVENT' instead of '%s'.\n",event);
+/*==========================================
+ * エラーメッセージ出力
+ *------------------------------------------
+ */
+static void disp_error_message2(const char *mes,const char *pos,int report)
+{
+	error_msg = aStrdup(mes);
+	error_pos = pos;
+	error_report = report;
+	longjmp( error_jump, 1 );
+}
+#define disp_error_message(mes,pos) disp_error_message2(mes,pos,1)
+
+/// Checks event parameter validity
+static void check_event(struct script_state *st, const char *evt)
+{
+	if( evt != NULL && *evt != '\0' && !stristr(evt,"::On") ){
+		ShowError("NPC event parameter deprecated! Please use 'NPCNAME::OnEVENT' instead of '%s'.\n",evt);
 		report_src(st);
 	}
-	return;
 }
+
 /*==========================================
  * 文字列のハッシュを計算
  *------------------------------------------
  */
-static int calc_hash(const unsigned char *p)
+#define calc_hash(x) calc_hash2(x)%SCRIPT_HASH_SIZE
+static unsigned int calc_hash2(const unsigned char *p)
 {
-	int h=0;
-	while(*p){
-		h=(h<<1)+(h>>3)+(h>>5)+(h>>8);
-		h+=*p++;
+#if defined(SCRIPT_HASH_DJB2)
+	unsigned int h = 5381;
+	while( *p ) // hash*33 + c
+		h = ( h << 5 ) + h + ((unsigned char)tolower(*p++));
+	return h;
+#elif defined(SCRIPT_HASH_SDBM)
+	unsigned int h = 0;
+	while( *p )
+		h = ( h << 6 ) + ( h << 16 ) - h + ((unsigned char)tolower(*p++));
+	return h;
+#elif defined(SCRIPT_HASH_ELF)
+	unsigned int h = 0;
+	unsigned int g;
+	while( *p ){ // UNIX ELF hash
+		h = ( h << 4 ) + ((unsigned char)tolower(*p++));
+		if ( g = h & 0xF0000000 )
+		h ^= g >> 24;
+		h &= ~g;
 	}
-	return h&15;
+	return h;
+#elif defined(SCRIPT_HASH_PJW)
+	unsigned int h = 0;
+	unsigned int g;
+	while( *p ){
+		h = ( h << 4 ) + ((unsigned char)tolower(*p++));
+		if ( (g=h&0xF0000000) ) {
+			h ^= g>>24;
+			h ^= g;
+		}
+	}
+	return h;
+#else
+	unsigned int h = 0;
+	while( *p ){
+		h = ( h << 1 ) + ( h >> 3 ) + ( h >> 5 ) + ( h >> 8 );
+		h+=(unsigned char)tolower(*p++);
+	}
+	return h;
+#endif
 }
 
 /*==========================================
@@ -262,12 +342,12 @@ static int calc_hash(const unsigned char *p)
  *------------------------------------------
  */
 // 既存のであれば番号、無ければ-1
-static int search_str(const unsigned char *p)
+static int search_str(const char *p)
 {
 	int i;
 	i=str_hash[calc_hash(p)];
 	while(i){
-		if(strcmp(str_buf+str_data[i].str,(char *) p)==0){
+		if(strcasecmp(str_buf+str_data[i].str,p)==0){
 			return i;
 		}
 		i=str_data[i].next;
@@ -280,19 +360,10 @@ static int search_str(const unsigned char *p)
  *------------------------------------------
  */
 // 既存のであれば番号、無ければ登録して新規番号
-int add_str(const char *p)
+int add_str(const char* p)
 {
 	int i;
-	char *lowcase;
-
-	lowcase=aStrdup((char *) p);
-	for(i=0;lowcase[i];i++)
-		lowcase[i]=tolower(lowcase[i]);
-	if((i=search_str((unsigned char *) lowcase))>=0){
-		aFree(lowcase);
-		return i;
-	}
-	aFree(lowcase);
+	int len;
 
 	i=calc_hash(p);
 	if(str_hash[i]==0){
@@ -300,7 +371,7 @@ int add_str(const char *p)
 	} else {
 		i=str_hash[i];
 		for(;;){
-			if(strcmp(str_buf+str_data[i].str,(char *) p)==0){
+			if(strcasecmp(str_buf+str_data[i].str,p)==0){
 				return i;
 			}
 			if(str_data[i].next==0)
@@ -311,22 +382,23 @@ int add_str(const char *p)
 	}
 	if(str_num>=str_data_size){
 		str_data_size+=128;
-		str_data=aRealloc(str_data,sizeof(str_data[0])*str_data_size);
+		RECREATE(str_data,struct str_data_struct,str_data_size);
 		memset(str_data + (str_data_size - 128), '\0', 128);
 	}
-	while(str_pos+(int)strlen((char *) p)+1>=str_size){
+	len=(int)strlen(p);
+	while(str_pos+len+1>=str_size){
 		str_size+=256;
-		str_buf=(char *)aRealloc(str_buf,str_size);
+		RECREATE(str_buf,char,str_size);
 		memset(str_buf + (str_size - 256), '\0', 256);
 	}
-	strcpy(str_buf+str_pos, (char *) p);
+	memcpy(str_buf+str_pos,p,len+1);
 	str_data[str_num].type=C_NOP;
 	str_data[str_num].str=str_pos;
 	str_data[str_num].next=0;
 	str_data[str_num].func=NULL;
 	str_data[str_num].backpatch=-1;
 	str_data[str_num].label=-1;
-	str_pos+=(int)strlen( (char *) p)+1;
+	str_pos+=len+1;
 	return str_num++;
 }
 
@@ -335,14 +407,10 @@ int add_str(const char *p)
  * スクリプトバッファサイズの確認と拡張
  *------------------------------------------
  */
-static void check_script_buf(int size)
+static void expand_script_buf(void)
 {
-	if(script_pos+size>=script_size){
-		script_size+=SCRIPT_BLOCK_SIZE;
-		script_buf=(unsigned char *)aRealloc(script_buf,script_size);
-		memset(script_buf + script_size - SCRIPT_BLOCK_SIZE, '\0',
-			SCRIPT_BLOCK_SIZE);
-	}
+	script_size+=SCRIPT_BLOCK_SIZE;
+	RECREATE(script_buf,unsigned char,script_size);
 }
 
 /*==========================================
@@ -350,12 +418,12 @@ static void check_script_buf(int size)
  *------------------------------------------
  */
  
-#define add_scriptb(a) if( script_pos+1>=script_size ) check_script_buf(1); script_buf[script_pos++]=(a);
+#define add_scriptb(a) if( script_pos+1>=script_size ) expand_script_buf(); script_buf[script_pos++]=(uint8)(a)
 
 #if 0
 static void add_scriptb(int a)
 {
-	check_script_buf(1);
+	expand_script_buf();
 	script_buf[script_pos++]=a;
 }
 #endif
@@ -431,17 +499,17 @@ static void add_scriptl(int l)
  * ラベルを解決する
  *------------------------------------------
  */
-void set_label(int l,int pos, unsigned char *script_pos)
+void set_label(int l,int pos, const char* script_pos)
 {
 	int i,next;
 
 	if(str_data[l].type==C_INT || str_data[l].type==C_PARAM)
 	{	//Prevent overwriting constants values and parameters [Skotlex]
-		disp_error_message("invalid label name",script_pos);
+		disp_error_message("set_label: invalid label name",script_pos);
 		return;
 	}
 	if(str_data[l].label!=-1){
-		disp_error_message("dup label ",script_pos);
+		disp_error_message("set_label: dup label ",script_pos);
 		return;
 	}
 	str_data[l].type=(str_data[l].type == C_USERFUNC ? C_USERFUNC_POS : C_POS);
@@ -458,19 +526,23 @@ void set_label(int l,int pos, unsigned char *script_pos)
  * スペース/コメント読み飛ばし
  *------------------------------------------
  */
-static unsigned char *skip_space(unsigned char *p)
+static const char *skip_space(const char *p)
 {
-	while(1){
-		while(isspace(*p))
-			p++;
-		if(p[0]=='/' && p[1]=='/'){
+	for(;;){
+		while(ISSPACE(*p))
+			++p;
+		if( *p=='/' && p[1]=='/' ){
 			while(*p && *p!='\n')
+				++p;
+		} else if( *p=='/' && p[1]=='*' ){
+			p+=2;
+			if(*p) ++p;
+			while( *p && (p[-1]!='*' || *p!='/') )
 				p++;
-		} else if(p[0]=='/' && p[1]=='*'){
-			p++;
-			while(*p && (p[-1]!='*' || p[0]!='/'))
-				p++;
-			if(*p) p++;
+			if(*p)
+				++p;
+			else
+				disp_error_message("skip_space: unexpected eof @ block comment",p);
 		} else
 			break;
 	}
@@ -481,7 +553,7 @@ static unsigned char *skip_space(unsigned char *p)
  * １単語スキップ
  *------------------------------------------
  */
-static unsigned char *skip_word(unsigned char *p)
+static const char *skip_word(const char *p)
 {
 	// prefix
 	if(*p=='.') p++;
@@ -490,34 +562,130 @@ static unsigned char *skip_word(unsigned char *p)
 	if(*p=='#') p++;	// account変数用
 	if(*p=='#') p++;	// ワールドaccount変数用
 
-	while(isalnum(*p)||*p=='_'|| *p>=0x81) {
-		if(*p>=0x81 && p[1]){
-			p+=2;
-		} else
-			p++;
-	}
+	//# Changing from unsigned char to signed char makes p never be able to go above 0x81, but what IS 0x81 for? [Skotlex]
+	//# It's for multibyte encodings like Shift-JIS. Unfortunately this can be problematic for singlebyte encodings.
+	//  Using (*p)>>7 would yield the appropriate result but it's better to restrict words to ASCII characters only. [FlavioJS]
+	while( ISALNUM(*p) || *p == '_' )
+		++p;
 	// postfix
 	if(*p=='$') p++;	// 文字列変数
 
 	return p;
 }
 
-/*==========================================
- * エラーメッセージ出力
- *------------------------------------------
- */
-static void disp_error_message(const char *mes,unsigned char *pos)
+/// Adds a word to str_data
+int add_word(const char *p)
 {
-	error_msg = aStrdup(mes);
-	error_pos = pos;
-	longjmp( error_jump, 1 );
+	char *word;
+	int len;
+	int i;
+
+	// Check for a word
+	len = skip_word(p)-p;
+	if( len == 0 )
+		disp_error_message("add_word: not a word",p);
+
+	// Copy the word
+	CREATE(word,char,len+1);
+	memcpy(word,p,len);
+	word[len]=0;
+	
+	// add the word
+	i=add_str(word);
+	aFree(word);
+	return i;
+}
+
+/// Parses a function call.
+/// The argument list can have parenthesis or not.
+/// The number of arguments is checked.
+static const char* parse_callfunc(const char *p, int require_paren)
+{
+	const char* p2;
+	const char* arg=NULL;
+	int func;
+
+	func = add_word(p);
+	if( str_data[func].type == C_FUNC ){
+		// buildin function
+		add_scriptl(func);
+		add_scriptc(C_ARG);
+		arg = buildin_func[str_data[func].val].arg;
+	} else if( str_data[func].type == C_USERFUNC || str_data[func].type == C_USERFUNC_POS ){
+		// script defined function
+		int callsub = search_str("callsub");
+		add_scriptl(callsub);
+		add_scriptc(C_ARG);
+		add_scriptl(func);
+		arg = buildin_func[str_data[callsub].val].arg;
+		if( *arg == 0 )
+			disp_error_message("parse_callfunc: callsub has no arguments, please review it's definition",p);
+		if( *arg != '*' )
+			++arg; // count func as argument
+	} else
+		disp_error_message("parse_line: expect command, missing function name or calling undeclared function",p);
+
+	p = skip_word(p);
+	p = skip_space(p);
+	syntax.curly[syntax.curly_count].type = TYPE_ARGLIST;
+	syntax.curly[syntax.curly_count].count = 0;
+	if( *p == ';' )
+	{// <func name> ';'
+		syntax.curly[syntax.curly_count].flag = ARGLIST_NO_PAREN;
+	} else if( *p == '(' && *(p2=skip_space(p+1)) == ')' )
+	{// <func name> '(' ')'
+		syntax.curly[syntax.curly_count].flag = ARGLIST_PAREN;
+		p = p2;
+	/*
+	} else if( 0 && require_paren && *p != '(' )
+	{// <func name>
+		syntax.curly[syntax.curly_count].flag = ARGLIST_NO_PAREN;
+	*/
+	} else
+	{// <func name> <arg list>
+		if( require_paren ){
+			if( *p != '(' )
+				disp_error_message("need '('",p);
+			++p; // skip '('
+			syntax.curly[syntax.curly_count].flag = ARGLIST_PAREN;
+		} else if( *p == '(' ){
+			syntax.curly[syntax.curly_count].flag = ARGLIST_UNDEFINED;
+		} else {
+			syntax.curly[syntax.curly_count].flag = ARGLIST_NO_PAREN;
+		}
+		++syntax.curly_count;
+		while( *arg ) {
+			p2=parse_subexpr(p,-1);
+			if( p == p2 )
+				break; // not an argument
+			if( *arg != '*' )
+				++arg; // next argument
+
+			p=skip_space(p2);
+			if( *arg == 0 || *p != ',' )
+				break; // no more arguments
+			++p; // skip comma
+		}
+		--syntax.curly_count;
+	}
+	if( *arg && *arg != '?' && *arg != '*' )
+		disp_error_message2("parse_callfunc: not enough arguments, expected ','", p, script_config.warn_func_mismatch_paramnum);
+	if( syntax.curly[syntax.curly_count].type != TYPE_ARGLIST )
+		disp_error_message("parse_callfunc: DEBUG last curly is not an argument list",p);
+	if( syntax.curly[syntax.curly_count].flag == ARGLIST_PAREN ){
+		if( *p != ')' )
+			disp_error_message("parse_callfunc: expected ')' to close argument list",p);
+		++p;
+	}
+	add_scriptc(C_FUNC);
+	return p;
 }
 
 /*==========================================
  * 項の解析
  *------------------------------------------
  */
-unsigned char* parse_simpleexpr(unsigned char *p)
+const char* parse_simpleexpr(const char *p)
 {
 	int i;
 	p=skip_space(p);
@@ -526,75 +694,67 @@ unsigned char* parse_simpleexpr(unsigned char *p)
 	if(battle_config.etc_log)
 		ShowDebug("parse_simpleexpr %s\n",p);
 #endif
-	if(*p==';' || *p==','){
-		disp_error_message("unexpected expr end",p);
-		exit(1);
-	}
+	if(*p==';' || *p==',')
+		disp_error_message("parse_simpleexpr: unexpected expr end",p);
 	if(*p=='('){
+		if( (i=syntax.curly_count-1) >= 0 && syntax.curly[i].type == TYPE_ARGLIST )
+			++syntax.curly[i].count;
 		p=parse_subexpr(p+1,-1);
 		p=skip_space(p);
-		if((*p++)!=')'){
-			disp_error_message("unmatch ')'",p);
-			exit(1);
+		if( (i=syntax.curly_count-1) >= 0 && syntax.curly[i].type == TYPE_ARGLIST &&
+				syntax.curly[i].flag == ARGLIST_UNDEFINED && --syntax.curly[i].count == 0
+		){
+			if( *p == ',' ){
+				syntax.curly[i].flag = ARGLIST_PAREN;
+				return p;
+			} else
+				syntax.curly[i].flag = ARGLIST_NO_PAREN;
 		}
+		if( *p != ')' )
+			disp_error_message("parse_simpleexpr: unmatch ')'",p);
+		++p;
 	} else if(isdigit(*p) || ((*p=='-' || *p=='+') && isdigit(p[1]))){
 		char *np;
-		i=strtoul((char *) p,&np,0);
+		i=strtoul(p,&np,0);
 		add_scripti(i);
-		p=(unsigned char *) np;
+		p=np;
 	} else if(*p=='"'){
 		add_scriptc(C_STR);
 		p++;
-		while(*p && *p!='"'){
-			if(p[-1]<=0x7e && *p=='\\')
+		while( *p && *p != '"' ){
+			if( (unsigned char)p[-1] <= 0x7e && *p == '\\' )
 				p++;
-			else if(*p=='\n'){
-				disp_error_message("unexpected newline @ string",p);
-				exit(1);
-			}
+			else if( *p == '\n' )
+				disp_error_message("parse_simpleexpr: unexpected newline @ string",p);
 			add_scriptb(*p++);
 		}
-		if(!*p){
-			disp_error_message("unexpected eof @ string",p);
-			exit(1);
-		}
+		if(!*p)
+			disp_error_message("parse_simpleexpr: unexpected eof @ string",p);
 		add_scriptb(0);
 		p++;	//'"'
 	} else {
-		int c,l;
-		char *p2;
+		int l;
 		// label , register , function etc
-		if(skip_word(p)==p){
-			disp_error_message("unexpected character",p);
-			exit(1);
-		}
+		if(skip_word(p)==p)
+			disp_error_message("parse_simpleexpr: unexpected character",p);
 
-		p2=(char *) skip_word(p);
-		c=*p2;	*p2=0;	// 名前をadd_strする
-		l=add_str(p);
+		l=add_word(p);
+		if( str_data[l].type == C_FUNC || str_data[l].type == C_USERFUNC || str_data[l].type == C_USERFUNC_POS)
+			return parse_callfunc(p,1);
 
-		parse_cmd=l;	// warn_*_mismatch_paramnumのために必要
-
-		*p2=c;	
-		p=(unsigned char *) p2;
-
-		if(str_data[l].type!=C_FUNC && c=='['){
+		p=skip_word(p);
+		if( *p == '[' ){
 			// array(name[i] => getelementofarray(name,i) )
-			add_scriptl(search_str((unsigned char *) "getelementofarray"));
+			add_scriptl(search_str("getelementofarray"));
 			add_scriptc(C_ARG);
 			add_scriptl(l);
 			
 			p=parse_subexpr(p+1,-1);
 			p=skip_space(p);
-			if((*p++)!=']'){
-				disp_error_message("unmatch ']'",p);
-				exit(1);
-			}
+			if( *p != ']' )
+				disp_error_message("parse_simpleexpr: unmatch ']'",p);
+			++p;
 			add_scriptc(C_FUNC);
-		} else if(str_data[l].type == C_USERFUNC || str_data[l].type == C_USERFUNC_POS) {
-			add_scriptl(search_str((unsigned char*)"callsub"));
-			add_scriptc(C_ARG);
-			add_scriptl(l);
 		}else
 			add_scriptl(l);
 
@@ -611,10 +771,10 @@ unsigned char* parse_simpleexpr(unsigned char *p)
  * 式の解析
  *------------------------------------------
  */
-unsigned char* parse_subexpr(unsigned char *p,int limit)
+const char* parse_subexpr(const char* p,int limit)
 {
 	int op,opl,len;
-	char *tmpp;
+	const char* tmpp;
 
 #ifdef DEBUG_FUNCIN
 	if(battle_config.etc_log)
@@ -623,87 +783,47 @@ unsigned char* parse_subexpr(unsigned char *p,int limit)
 	p=skip_space(p);
 
 	if(*p=='-'){
-		tmpp=(char *) skip_space((unsigned char *) (p+1));
+		tmpp=skip_space(p+1);
 		if(*tmpp==';' || *tmpp==','){
 			add_scriptl(LABEL_NEXTLINE);
 			p++;
 			return p;
 		}
 	}
-	tmpp=(char *) p;
+	tmpp=p;
 	if((op=C_NEG,*p=='-') || (op=C_LNOT,*p=='!') || (op=C_NOT,*p=='~')){
-		p=parse_subexpr(p+1,8);
+		p=parse_subexpr(p+1,10);
 		add_scriptc(op);
 	} else
 		p=parse_simpleexpr(p);
 	p=skip_space(p);
 	while((
-			(op=C_ADD,opl=6,len=1,*p=='+') ||
-		   (op=C_SUB,opl=6,len=1,*p=='-') ||
-		   (op=C_MUL,opl=7,len=1,*p=='*') ||
-		   (op=C_DIV,opl=7,len=1,*p=='/') ||
-		   (op=C_MOD,opl=7,len=1,*p=='%') ||
-		   (op=C_FUNC,opl=9,len=1,*p=='(') ||
-		   (op=C_LAND,opl=1,len=2,*p=='&' && p[1]=='&') ||
-		   (op=C_AND,opl=5,len=1,*p=='&') ||
-		   (op=C_LOR,opl=0,len=2,*p=='|' && p[1]=='|') ||
-		   (op=C_OR,opl=4,len=1,*p=='|') ||
-		   (op=C_XOR,opl=3,len=1,*p=='^') ||
-		   (op=C_EQ,opl=2,len=2,*p=='=' && p[1]=='=') ||
-		   (op=C_NE,opl=2,len=2,*p=='!' && p[1]=='=') ||
-		   (op=C_R_SHIFT,opl=5,len=2,*p=='>' && p[1]=='>') ||
-		   (op=C_GE,opl=2,len=2,*p=='>' && p[1]=='=') ||
-		   (op=C_GT,opl=2,len=1,*p=='>') ||
-		   (op=C_L_SHIFT,opl=5,len=2,*p=='<' && p[1]=='<') ||
-		   (op=C_LE,opl=2,len=2,*p=='<' && p[1]=='=') ||
-		   (op=C_LT,opl=2,len=1,*p=='<')) && opl>limit){
+			(op=C_OP3,opl=0,len=1,*p=='?') ||
+			(op=C_ADD,opl=8,len=1,*p=='+') ||
+			(op=C_SUB,opl=8,len=1,*p=='-') ||
+			(op=C_MUL,opl=9,len=1,*p=='*') ||
+			(op=C_DIV,opl=9,len=1,*p=='/') ||
+			(op=C_MOD,opl=9,len=1,*p=='%') ||
+			(op=C_LAND,opl=2,len=2,*p=='&' && p[1]=='&') ||
+			(op=C_AND,opl=6,len=1,*p=='&') ||
+			(op=C_LOR,opl=1,len=2,*p=='|' && p[1]=='|') ||
+			(op=C_OR,opl=5,len=1,*p=='|') ||
+			(op=C_XOR,opl=4,len=1,*p=='^') ||
+			(op=C_EQ,opl=3,len=2,*p=='=' && p[1]=='=') ||
+			(op=C_NE,opl=3,len=2,*p=='!' && p[1]=='=') ||
+			(op=C_R_SHIFT,opl=7,len=2,*p=='>' && p[1]=='>') ||
+			(op=C_GE,opl=3,len=2,*p=='>' && p[1]=='=') ||
+			(op=C_GT,opl=3,len=1,*p=='>') ||
+			(op=C_L_SHIFT,opl=7,len=2,*p=='<' && p[1]=='<') ||
+			(op=C_LE,opl=3,len=2,*p=='<' && p[1]=='=') ||
+			(op=C_LT,opl=3,len=1,*p=='<')) && opl>limit){
 		p+=len;
-		if(op==C_FUNC){
-			int i=0,func=parse_cmd;
-			const char *plist[128];
-
-			if(str_data[parse_cmd].type == C_FUNC){
-				// 通常の関数
-				add_scriptc(C_ARG);
-			} else if(str_data[parse_cmd].type == C_USERFUNC || str_data[parse_cmd].type == C_USERFUNC_POS) {
-				// ユーザー定義関数呼び出し
-				parse_cmd = search_str((unsigned char*)"callsub");
-				i++;
-			} else {
-				disp_error_message(
-					"expect command, missing function name or calling undeclared function",(unsigned char *) tmpp
-				);
-				exit(0);
-			}
-			func=parse_cmd;
-			if( *p == '(' && *(plist[i]=(char *)skip_space(p+1)) == ')' ){
-				p=(char *)plist[i]+1; // empty argument list
-			} else
-			while(*p && *p!=')' && i<128) {
-				plist[i]=(char *) p;
-				p=parse_subexpr(p,-1);
-				p=skip_space(p);
-				if(*p==',') p++;
-				else if(*p!=')' && script_config.warn_func_no_comma){
-					disp_error_message("expect ',' or ')' at func params",p);
-				}
-				p=skip_space(p);
-				i++;
-			};
-			plist[i]=(char *) p;
-			if(*(p++)!=')'){
-				disp_error_message("func request '(' ')'",p);
-				exit(1);
-			}
-
-			if( str_data[func].type==C_FUNC && script_config.warn_func_mismatch_paramnum){
-				const char *arg = buildin_func[str_data[func].val].arg;
-				int j = 0;
-				for (; arg[j]; j++) if (arg[j] == '*') break;
-				if (!(i <= 1 && j == 0) && ((arg[j] == 0 && i != j) || (arg[j] == '*' && i < j))) {
-					disp_error_message("illegal number of parameters",(unsigned char *) (plist[(i<j)?i:j]));
-				}
-			}
+		if(op == C_OP3) {
+			p=parse_subexpr(p,-1);
+			p=skip_space(p);
+			if( *(p++) != ':')
+				disp_error_message("parse_subexpr: need ':'", p-1);
+			p=parse_subexpr(p,-1);
 		} else {
 			p=parse_subexpr(p,opl);
 		}
@@ -721,7 +841,7 @@ unsigned char* parse_subexpr(unsigned char *p,int limit)
  * 式の評価
  *------------------------------------------
  */
-unsigned char* parse_expr(unsigned char *p)
+const char* parse_expr(const char *p)
 {
 #ifdef DEBUG_FUNCIN
 	if(battle_config.etc_log)
@@ -730,17 +850,8 @@ unsigned char* parse_expr(unsigned char *p)
 	switch(*p){
 	case ')': case ';': case ':': case '[': case ']':
 	case '}':
-		disp_error_message("unexpected char",p);
-		exit(1);
+		disp_error_message("parse_expr: unexpected char",p);
 	}
-	/*
-	if(*p == '(') {
-		unsigned char *p2 = skip_space(p + 1);
-		if(*p2 == ')') {
-			return p2 + 1;
-		}
-	}
-	*/
 	p=parse_subexpr(p,-1);
 #ifdef DEBUG_FUNCIN
 	if(battle_config.etc_log)
@@ -753,12 +864,10 @@ unsigned char* parse_expr(unsigned char *p)
  * 行の解析
  *------------------------------------------
  */
-unsigned char* parse_line(unsigned char *p)
+const char* parse_line(const char* p)
 {
-	int i=0,cmd;
-	const char *plist[128];
-	unsigned char *p2;
-	char end;
+	const char* p2;
+
 
 	p=skip_space(p);
 	if(*p==';') {
@@ -782,83 +891,30 @@ unsigned char* parse_line(unsigned char *p)
 
 	// 構文関連の処理
 	p2 = parse_syntax(p);
-	if(p2 != NULL) { return p2; }
+	if(p2 != NULL)
+		return p2;
 
-	// 最初は関数名
-	p2=(char *) p;
-	p=parse_simpleexpr(p);
-	p=skip_space(p);
-
-	if(str_data[parse_cmd].type == C_FUNC){
-		// 通常の関数
-		add_scriptc(C_ARG);
-	} else if(str_data[parse_cmd].type == C_USERFUNC || str_data[parse_cmd].type == C_USERFUNC_POS) {
-		// ユーザー定義関数呼び出し
-		parse_cmd = search_str((unsigned char*)"callsub");
-		i++;
-	} else {
-		disp_error_message(
-			"expect command, missing function name or calling undeclared function", (unsigned char *)p2
-		);
-//		exit(0);
-	}
-	cmd=parse_cmd;
+	p = parse_callfunc(p,0);
+	p = skip_space(p);
 
 	if(parse_syntax_for_flag) {
-		end = ')';
+		if( *p != ')' )
+			disp_error_message("parse_line: need ')'",p);
 	} else {
-		end = ';';
+		if( *p != ';' )
+			disp_error_message("parse_line: need ';'",p);
 	}
-
-	if( p && *p == '(' && *(p2=(char *)skip_space(p+1)) == ')' ){
-		p= p2+1; // empty argument list
-	} else
-	while(p && *p && *p != end && i<128){
-		plist[i]=(char *) p;
-
-		p=parse_expr(p);
-		p=skip_space(p);
-		// 引数区切りの,処理
-		if(*p==',') p++;
-		else if(*p!=end && script_config.warn_cmd_no_comma && 0 <= i ){
-			if(parse_syntax_for_flag) {
-				disp_error_message("expect ',' or ')' at cmd params",p);
-			} else {
-				disp_error_message("expect ',' or ';' at cmd params",p);
-			}
-		}
-		p=skip_space(p);
-		i++;
-	}
-	plist[i]=(char *) p;
-	if(!p || *(p++)!=end){
-		if(parse_syntax_for_flag) {
-			disp_error_message("need ')'",p);
-		} else {
-			disp_error_message("need ';'",p);
-		}
-		exit(1);
-	}
-	add_scriptc(C_FUNC);
 
 	// if, for , while の閉じ判定
-	p = parse_syntax_close(p);
+	p = parse_syntax_close(p+1);
 
-	if( str_data[cmd].type==C_FUNC && script_config.warn_cmd_mismatch_paramnum){
-		const char *arg=buildin_func[str_data[cmd].val].arg;
-		int j=0;
-		for(j=0;arg[j];j++) if(arg[j]=='*')break;
-		if( (arg[j]==0 && i!=j) || (arg[j]=='*' && i<j) ){
-			disp_error_message("illegal number of parameters",(unsigned char *) (plist[(i<j)?i:j]));
-		}
-	}
 	return p;
 }
 
 // { ... } の閉じ処理
-unsigned char* parse_curly_close(unsigned char *p) {
+const char* parse_curly_close(const char* p) {
 	if(syntax.curly_count <= 0) {
-		disp_error_message("unexpected string",p);
+		disp_error_message("parse_curly_close: unexpected string",p);
 		return p + 1;
 	} else if(syntax.curly[syntax.curly_count-1].type == TYPE_NULL) {
 		syntax.curly_count--;
@@ -868,7 +924,7 @@ unsigned char* parse_curly_close(unsigned char *p) {
 	} else if(syntax.curly[syntax.curly_count-1].type == TYPE_SWITCH) {
 		// switch() 閉じ判定
 		int pos = syntax.curly_count-1;
-		unsigned char label[256];
+		char label[256];
 		int l;
 		// 一時変数を消す
 		sprintf(label,"set $@__SW%x_VAL,0;",syntax.curly[pos].index);
@@ -899,11 +955,10 @@ unsigned char* parse_curly_close(unsigned char *p) {
 		sprintf(label,"__SW%x_FIN",syntax.curly[pos].index);
 		l=add_str(label);
 		set_label(l,script_pos, p);
-
 		syntax.curly_count--;
 		return p+1;
 	} else {
-		disp_error_message("unexpected string",p);
+		disp_error_message("parse_curly_close: unexpected string",p);
 		return p + 1;
 	}
 }
@@ -911,10 +966,13 @@ unsigned char* parse_curly_close(unsigned char *p) {
 // 構文関連の処理
 //	 break, case, continue, default, do, for, function,
 //	 if, switch, while をこの内部で処理します。
-unsigned char* parse_syntax(unsigned char *p) {
-	switch(p[0]) {
+const char* parse_syntax(const char* p) {
+	const char *p2 = skip_word(p);
+
+	switch(*p) {
+	case 'B':
 	case 'b':
-		if(!strncmp(p,"break",5) && !isalpha(*(p + 5))) {
+		if(p2 - p == 5 && !strncasecmp(p,"break",5)) {
 			// break の処理
 			char label[256];
 			int pos = syntax.curly_count - 1;
@@ -935,13 +993,16 @@ unsigned char* parse_syntax(unsigned char *p) {
 				pos--;
 			}
 			if(pos < 0) {
-				disp_error_message("unexpected 'break'",p);
+				disp_error_message("parse_syntax: unexpected 'break'",p);
 			} else {
 				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
 				parse_line(label);
 				syntax.curly_count--;
 			}
-			p = skip_word(p);
+			p = skip_space(p2);
+			if(*p != ';') {
+				disp_error_message("parse_syntax: need ';'",p);
+			}
 			p++;
 			// if, for , while の閉じ判定
 			p = parse_syntax_close(p + 1);
@@ -949,16 +1010,16 @@ unsigned char* parse_syntax(unsigned char *p) {
 		}
 		break;
 	case 'c':
-		if(!strncmp(p,"case",4) && !isalpha(*(p + 4))) {
+	case 'C':
+		if(p2 - p == 4 && !strncasecmp(p,"case",4)) {
 			// case の処理
-			if(syntax.curly_count <= 0 || syntax.curly[syntax.curly_count - 1].type != TYPE_SWITCH) {
-				disp_error_message("unexpected 'case' ",p);
+			int pos = syntax.curly_count-1;
+			if(pos < 0 || syntax.curly[pos].type != TYPE_SWITCH) {
+				disp_error_message("parse_syntax: unexpected 'case' ",p);
 				return p+1;
 			} else {
-				char *p2;
 				char label[256];
-				int  l;
-				int pos = syntax.curly_count-1;
+				int  l,len;
 				if(syntax.curly[pos].count != 1) {
 					// FALLTHRU 用のジャンプ
 					sprintf(label,"goto __SW%x_%xJ;",syntax.curly[pos].index,syntax.curly[pos].count);
@@ -972,20 +1033,25 @@ unsigned char* parse_syntax(unsigned char *p) {
 					set_label(l,script_pos, p);
 				}
 				// switch 判定文
-				p = skip_word(p);
-				p = skip_space(p);
-				p2 = p;
-				p = skip_word(p);
-				p = skip_space(p);
-				if(*p != ':') {
-					disp_error_message("expect ':'",p);
-					exit(1);
+				p = skip_space(p2);
+				if(p == p2) {
+					disp_error_message("parse_syntax: expect space ' '",p);
 				}
-				*p = 0;
-				sprintf(label,"if(%s != $@__SW%x_VAL) goto __SW%x_%x;",
-					p2,syntax.curly[pos].index,syntax.curly[pos].index,syntax.curly[pos].count+1);
+				p2 = p;
+				if((*p == '-' || *p == '+') && isdigit(p[1]))	// pre-skip because '-' can not skip_word
+					p++;
+				p = skip_word(p);
+				len = p-p2; // length of word at p2
+				p = skip_space(p);
+				if(*p != ':')
+					disp_error_message("parse_syntax: expect ':'",p);
+
+				memcpy(label,"if(",3);
+				memcpy(label+3,p2,len);
+				sprintf(label+3+len," != $@__SW%x_VAL) goto __SW%x_%x;",
+					syntax.curly[pos].index,syntax.curly[pos].index,syntax.curly[pos].count+1);
+
 				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
-				*p = ':';
 				// ２回parse しないとダメ
 				p2 = parse_line(label);
 				parse_line(p2);
@@ -996,15 +1062,15 @@ unsigned char* parse_syntax(unsigned char *p) {
 					l=add_str(label);
 					set_label(l,script_pos,p);
 				}
-				// 一時変数を消す
 				sprintf(label,"set $@__SW%x_VAL,0;",syntax.curly[pos].index);
 				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+			
 				parse_line(label);
 				syntax.curly_count--;
 				syntax.curly[pos].count++;
 			}
 			return p + 1;
-		} else if(!strncmp(p,"continue",8) && !isalpha(*(p + 8))) {
+		} else if(p2 - p == 8 && !strncasecmp(p,"continue",8)) {
 			// continue の処理
 			char label[256];
 			int pos = syntax.curly_count - 1;
@@ -1023,13 +1089,15 @@ unsigned char* parse_syntax(unsigned char *p) {
 				pos--;
 			}
 			if(pos < 0) {
-				disp_error_message("unexpected 'continue'",p);
+				disp_error_message("parse_syntax: unexpected 'continue'",p);
 			} else {
 				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
 				parse_line(label);
 				syntax.curly_count--;
 			}
-			p = skip_word(p);
+			p = skip_space(p2);
+			if(*p != ';')
+				disp_error_message("parse_syntax: need ';'",p);
 			p++;
 			// if, for , while の閉じ判定
 			p = parse_syntax_close(p + 1);
@@ -1037,25 +1105,22 @@ unsigned char* parse_syntax(unsigned char *p) {
 		}
 		break;
 	case 'd':
-		if(!strncmp(p,"default",7) && !isalpha(*(p + 7))) {
+	case 'D':
+		if(p2 - p == 7 && !strncasecmp(p,"default",7)) {
 			// switch - default の処理
-			if(syntax.curly_count <= 0 || syntax.curly[syntax.curly_count - 1].type != TYPE_SWITCH) {
-				disp_error_message("unexpected 'default'",p);
-				return p+1;
-			} else if(syntax.curly[syntax.curly_count - 1].flag) {
-				disp_error_message("dup 'default'",p);
-				return p+1;
+			int pos = syntax.curly_count-1;
+			if(pos < 0 || syntax.curly[pos].type != TYPE_SWITCH) {
+				disp_error_message("parse_syntax: unexpected 'default'",p);
+			} else if(syntax.curly[pos].flag) {
+				disp_error_message("parse_syntax: dup 'default'",p);
 			} else {
 				char label[256];
 				int l;
-				int pos = syntax.curly_count-1;
 				// 現在地のラベルを付ける
-				p = skip_word(p);
-				p = skip_space(p);
+				p = skip_space(p2);
 				if(*p != ':') {
-					disp_error_message("need ':'",p);
+					disp_error_message("parse_syntax: need ':'",p);
 				}
-				p++;
 				sprintf(label,"__SW%x_%x",syntax.curly[pos].index,syntax.curly[pos].count);
 				l=add_str(label);
 				set_label(l,script_pos,p);
@@ -1073,15 +1138,12 @@ unsigned char* parse_syntax(unsigned char *p) {
 
 				syntax.curly[syntax.curly_count - 1].flag = 1;
 				syntax.curly[pos].count++;
-
-				p = skip_word(p);
-				return p + 1;
 			}
-		} else if(!strncmp(p,"do",2) && !isalpha(*(p + 2))) {
+			return p + 1;
+		} else if(p2 - p == 2 && !strncasecmp(p,"do",2)) {
 			int l;
 			char label[256];
-			p=skip_word(p);
-			p=skip_space(p);
+			p=skip_space(p2);
 
 			syntax.curly[syntax.curly_count].type  = TYPE_DO;
 			syntax.curly[syntax.curly_count].count = 1;
@@ -1096,9 +1158,10 @@ unsigned char* parse_syntax(unsigned char *p) {
 		}
 		break;
 	case 'f':
-		if(!strncmp(p,"for",3) && !isalpha(*(p + 3))) {
+	case 'F':
+		if(p2 - p == 3 && !strncasecmp(p,"for",3)) {
 			int l;
-			unsigned char label[256];
+			char label[256];
 			int  pos = syntax.curly_count;
 			syntax.curly[syntax.curly_count].type  = TYPE_FOR;
 			syntax.curly[syntax.curly_count].count = 1;
@@ -1106,13 +1169,10 @@ unsigned char* parse_syntax(unsigned char *p) {
 			syntax.curly[syntax.curly_count].flag  = 0;
 			syntax.curly_count++;
 
-			p=skip_word(p);
-			p=skip_space(p);
+			p=skip_space(p2);
 
-			if(*p != '(') {
-				disp_error_message("need '('",p);
-				return p+1;
-			}
+			if(*p != '(')
+				disp_error_message("parse_syntax: need '('",p);
 			p++;
 
 			// 初期化文を実行する
@@ -1139,10 +1199,8 @@ unsigned char* parse_syntax(unsigned char *p) {
 				add_scriptl(add_str(label));
 				add_scriptc(C_FUNC);
 			}
-			if(*p != ';') {
-				disp_error_message("need ';'",p);
-				return p+1;
-			}
+			if(*p != ';')
+				disp_error_message("parse_syntax: need ';'",p);
 			p++;
 
 			// ループ開始に飛ばす
@@ -1175,29 +1233,25 @@ unsigned char* parse_syntax(unsigned char *p) {
 			l=add_str(label);
 			set_label(l,script_pos,p);
 			return p;
-		} else if(!strncmp(p,"function",8) && !isalpha(*(p + 8))) {
-			unsigned char *func_name;
+		} else if(p2 - p == 8 && !strncasecmp(p,"function",8)) {
+			const char *func_name;
 			// function
-			p=skip_word(p);
-			p=skip_space(p);
+			p=skip_space(p2);
+			if(p == p2)
+				disp_error_message("parse_syntax: expect space ' '",p);
 			// function - name
 			func_name = p;
 			p=skip_word(p);
 			if(*skip_space(p) == ';') {
 				// 関数の宣言 - 名前を登録して終わり
-				unsigned char c = *p;
 				int l;
-				*p = 0;
-				l=add_str(func_name);
-				*p = c;
-				if(str_data[l].type == C_NOP) {
+				l=add_word(func_name);
+				if(str_data[l].type == C_NOP)
 					str_data[l].type = C_USERFUNC;
-				}
 				return skip_space(p) + 1;
 			} else {
 				// 関数の中身
 				char label[256];
-				unsigned char c = *p;
 				int l;
 				syntax.curly[syntax.curly_count].type  = TYPE_USERFUNC;
 				syntax.curly[syntax.curly_count].count = 1;
@@ -1212,24 +1266,25 @@ unsigned char* parse_syntax(unsigned char *p) {
 				syntax.curly_count--;
 
 				// 関数名のラベルを付ける
-				*p = 0;
-				l=add_str(func_name);
+				l=add_word(func_name);
 				if(str_data[l].type == C_NOP)
 					str_data[l].type = C_USERFUNC;
-				*p = c;
 				set_label(l,script_pos,p);
-				strdb_put(scriptlabel_db,func_name,(void*)script_pos);
+				if( parse_options&SCRIPT_USE_LABEL_DB )
+					strdb_put(scriptlabel_db, GETSTRING(str_data[l].str), (void*)script_pos);
 				return skip_space(p);
 			}
 		}
 		break;
 	case 'i':
-		if(!strncmp(p,"if",2) && !isalpha(*(p + 2))) {
+	case 'I':
+		if(p2 - p == 2 && !strncasecmp(p,"if",2)) {
 			// if() の処理
 			char label[256];
-			p=skip_word(p);
-			p=skip_space(p);
-
+			p=skip_space(p2);
+			if(*p != '(') { //Prevent if this {} non-c syntax. from Rayce (jA)
+				disp_error_message("need '('",p);
+			}
 			syntax.curly[syntax.curly_count].type  = TYPE_IF;
 			syntax.curly[syntax.curly_count].count = 1;
 			syntax.curly[syntax.curly_count].index = syntax.index++;
@@ -1246,36 +1301,41 @@ unsigned char* parse_syntax(unsigned char *p) {
 		}
 		break;
 	case 's':
-		if(!strncmp(p,"switch",6) && !isalpha(*(p + 6))) {
+	case 'S':
+		if(p2 - p == 6 && !strncasecmp(p,"switch",6)) {
 			// switch() の処理
 			char label[256];
+			p=skip_space(p2);
+			if(*p != '(') {
+				disp_error_message("need '('",p);
+			}
 			syntax.curly[syntax.curly_count].type  = TYPE_SWITCH;
 			syntax.curly[syntax.curly_count].count = 1;
 			syntax.curly[syntax.curly_count].index = syntax.index++;
 			syntax.curly[syntax.curly_count].flag  = 0;
 			sprintf(label,"$@__SW%x_VAL",syntax.curly[syntax.curly_count].index);
 			syntax.curly_count++;
-			add_scriptl(add_str((unsigned char*)"set"));
+			add_scriptl(add_str("set"));
 			add_scriptc(C_ARG);
 			add_scriptl(add_str(label));
-			p=skip_word(p);
-			p=skip_space(p);
 			p=parse_expr(p);
 			p=skip_space(p);
 			if(*p != '{') {
-				disp_error_message("need '{'",p);
+				disp_error_message("parse_syntax: need '{'",p);
 			}
 			add_scriptc(C_FUNC);
 			return p + 1;
 		}
 		break;
 	case 'w':
-		if(!strncmp(p,"while",5) && !isalpha(*(p + 5))) {
+	case 'W':
+		if(p2 - p == 5 && !strncasecmp(p,"while",5)) {
 			int l;
 			char label[256];
-			p=skip_word(p);
-			p=skip_space(p);
-
+			p=skip_space(p2);
+			if(*p != '(') {
+				disp_error_message("need '('",p);
+			}
 			syntax.curly[syntax.curly_count].type  = TYPE_WHILE;
 			syntax.curly[syntax.curly_count].count = 1;
 			syntax.curly[syntax.curly_count].index = syntax.index++;
@@ -1301,7 +1361,7 @@ unsigned char* parse_syntax(unsigned char *p) {
 	return NULL;
 }
 
-unsigned char* parse_syntax_close(unsigned char *p) {
+const char* parse_syntax_close(const char *p) {
 	// if(...) for(...) hoge(); のように、１度閉じられたら再度閉じられるか確認する
 	int flag;
 
@@ -1314,8 +1374,8 @@ unsigned char* parse_syntax_close(unsigned char *p) {
 // if, for , while , do の閉じ判定
 //	 flag == 1 : 閉じられた
 //	 flag == 0 : 閉じられない
-unsigned char* parse_syntax_close_sub(unsigned char *p,int *flag) {
-	unsigned char label[256];
+const char* parse_syntax_close_sub(const char* p,int* flag) {
+	char label[256];
 	int pos = syntax.curly_count - 1;
 	int l;
 	*flag = 1;
@@ -1324,7 +1384,8 @@ unsigned char* parse_syntax_close_sub(unsigned char *p,int *flag) {
 		*flag = 0;
 		return p;
 	} else if(syntax.curly[pos].type == TYPE_IF) {
-		char *p2 = p;
+		const char *bp = p;
+		const char *p2;
 		// if 最終場所へ飛ばす
 		sprintf(label,"goto __IF%x_FIN;",syntax.curly[pos].index);
 		syntax.curly[syntax.curly_count++].type = TYPE_NULL;
@@ -1338,14 +1399,17 @@ unsigned char* parse_syntax_close_sub(unsigned char *p,int *flag) {
 
 		syntax.curly[pos].count++;
 		p = skip_space(p);
-		if(!syntax.curly[pos].flag && !strncmp(p,"else",4) && !isalpha(*(p + 4))) {
+		p2 = skip_word(p);
+		if(!syntax.curly[pos].flag && p2 - p == 4 && !strncasecmp(p,"else",4)) {
 			// else  or else - if
-			p = skip_word(p);
-			p = skip_space(p);
-			if(!strncmp(p,"if",2) && !isalpha(*(p + 2))) {
+			p = skip_space(p2);
+			p2 = skip_word(p);
+			if(p2 - p == 2 && !strncasecmp(p,"if",2)) {
 				// else - if
-				p=skip_word(p);
-				p=skip_space(p);
+				p=skip_space(p2);
+				if(*p != '(') {
+					disp_error_message("need '('",p);
+				}
 				sprintf(label,"__IF%x_%x",syntax.curly[pos].index,syntax.curly[pos].count);
 				add_scriptl(add_str("jump_zero"));
 				add_scriptc(C_ARG);
@@ -1372,13 +1436,13 @@ unsigned char* parse_syntax_close_sub(unsigned char *p,int *flag) {
 		set_label(l,script_pos,p);
 		if(syntax.curly[pos].flag == 1) {
 			// このifに対するelseじゃないのでポインタの位置は同じ
-			return p2;
+			return bp;
 		}
 		return p;
 	} else if(syntax.curly[pos].type == TYPE_DO) {
 		int l;
 		char label[256];
-		unsigned char *p2;
+		const char *p2;
 
 		if(syntax.curly[pos].flag) {
 			// 現在地のラベル形成する(continue でここに来る)
@@ -1390,11 +1454,13 @@ unsigned char* parse_syntax_close_sub(unsigned char *p,int *flag) {
 		// 条件が偽なら終了地点に飛ばす
 		p = skip_space(p);
 		p2 = skip_word(p);
-		if(p2 - p != 5 || strncmp("while",p,5)) {
-			disp_error_message("need 'while'",p);
-		}
-		p = p2;
+		if(p2 - p != 5 || strncasecmp(p,"while",5))
+			disp_error_message("parse_syntax: need 'while'",p);
 
+		p = skip_space(p2);
+		if(*p != '(') {
+			disp_error_message("need '('",p);
+		}
 		sprintf(label,"__DO%x_FIN",syntax.curly[pos].index);
 		add_scriptl(add_str("jump_zero"));
 		add_scriptc(C_ARG);
@@ -1415,7 +1481,7 @@ unsigned char* parse_syntax_close_sub(unsigned char *p,int *flag) {
 		set_label(l,script_pos,p);
 		p = skip_space(p);
 		if(*p != ';') {
-			disp_error_message("need ';'",p);
+			disp_error_message("parse_syntax: need ';'",p);
 			return p+1;
 		}
 		p++;
@@ -1476,11 +1542,29 @@ unsigned char* parse_syntax_close_sub(unsigned char *p,int *flag) {
 static void add_buildin_func(void)
 {
 	int i,n;
-	for(i=0;buildin_func[i].func;i++){
-		n=add_str((unsigned char *) buildin_func[i].name);
-		str_data[n].type=C_FUNC;
-		str_data[n].val=i;
-		str_data[n].func=buildin_func[i].func;
+	const char* p;
+	for( i=0; buildin_func[i].func; i++ ){
+		/// arg must follow the pattern: (v|s|i|l)*\?*\*?
+		/// 'v' - value (either string or int)
+		/// 's' - string
+		/// 'i' - int
+		/// 'l' - label
+		/// '?' - one optional parameter
+		/// '*' - unknown number of optional parameters
+		p=buildin_func[i].arg;
+		while( *p == 'v' || *p == 's' || *p == 'i' || *p == 'l' ) ++p;
+		while( *p == '?' ) ++p;
+		if( *p == '*' ) ++p;
+		if( *p != 0){
+			ShowWarning("add_buildin_func: ignoring function \"%s\" with invalid arg \"%s\".\n", buildin_func[i].name, buildin_func[i].arg);
+		} else if( *skip_word(buildin_func[i].name) != 0 ){
+			ShowWarning("add_buildin_func: ignoring function with invalid name \"%s\" (must be a word).\n", buildin_func[i].name);
+		} else {
+			n=add_str(buildin_func[i].name);
+			str_data[n].type=C_FUNC;
+			str_data[n].val=i;
+			str_data[n].func=buildin_func[i].func;
+		}
 	}
 }
 
@@ -1492,7 +1576,7 @@ static void read_constdb(void)
 {
 	FILE *fp;
 	char line[1024],name[1024],val[1024];
-	int n,i,type;
+	int n,type;
 
 	sprintf(line, "%s/const.txt", db_path);
 	fp=fopen(line, "r");
@@ -1506,9 +1590,7 @@ static void read_constdb(void)
 		type=0;
 		if(sscanf(line,"%[A-Za-z0-9_],%[-0-9xXA-Fa-f],%d",name,val,&type)>=2 ||
 		   sscanf(line,"%[A-Za-z0-9_] %[-0-9xXA-Fa-f] %d",name,val,&type)>=2){
-			for(i=0;name[i];i++)
-				name[i]=tolower(name[i]);
-			n=add_str((const unsigned char *) name);
+			n=add_str(name);
 			if(type==0)
 				str_data[n].type=C_INT;
 			else
@@ -1524,7 +1606,22 @@ static void read_constdb(void)
  *------------------------------------------
  */
 
-const char* script_print_line( const char *p, const char *mark, int line );
+const char* script_print_line( const char *p, const char *mark, int line ) {
+	int i;
+	if( p == NULL || !p[0] ) return NULL;
+	if( line < 0 ) 
+		printf("*% 5d : ", -line);
+	else
+		printf(" % 5d : ", line);
+	for(i=0;p[i] && p[i] != '\n';i++){
+		if(p + i != mark)
+			printf("%c",p[i]);
+		else
+			printf("\'%c\'",p[i]);
+	}
+	printf("\n");
+	return p+i+(p[i] == '\n' ? 1 : 0);
+}
 
 void script_error(const char *src,const char *file,int start_line, const char *error_msg, const char *error_pos) {
 	// エラーが発生した行を求める
@@ -1557,23 +1654,6 @@ void script_error(const char *src,const char *file,int start_line, const char *e
 	}
 }
 
-const char* script_print_line( const char *p, const char *mark, int line ) {
-	int i;
-	if( p == NULL || !p[0] ) return NULL;
-	if( line < 0 ) 
-		printf("*% 5d : ", -line);
-	else
-		printf(" % 5d : ", line);
-	for(i=0;p[i] && p[i] != '\n';i++){
-		if(p + i != mark)
-			printf("%c",p[i]);
-		else
-			printf("\'%c\'",p[i]);
-	}
-	printf("\n");
-	return p+i+(p[i] == '\n' ? 1 : 0);
-}
-
 /*==========================================
  * スクリプトの解析
  *------------------------------------------
@@ -1581,7 +1661,7 @@ const char* script_print_line( const char *p, const char *mark, int line ) {
 
 struct script_code* parse_script(const char *src,const char *file,int line,int options)
 {
-	unsigned char *p,*tmpp;
+	const char *p,*tmpp;
 	int i;
 	struct script_code *code;
 	static int first=1;
@@ -1593,7 +1673,7 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 	}
 	first=0;
 
-	script_buf=(unsigned char *)aCalloc(SCRIPT_BLOCK_SIZE,sizeof(unsigned char));
+	script_buf=(unsigned char *)aMalloc(SCRIPT_BLOCK_SIZE*sizeof(unsigned char));
 	script_pos=0;
 	script_size=SCRIPT_BLOCK_SIZE;
 	str_data[LABEL_NEXTLINE].type=C_NOP;
@@ -1610,27 +1690,30 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 		}
 	}
 
-	//Labels must be reparsed for the script....
-	scriptlabel_db->clear(scriptlabel_db, NULL);
+	// who called parse_script is responsible for clearing the database after using it, but just in case... lets clear it here
+	if( options&SCRIPT_USE_LABEL_DB )
+		scriptlabel_db->clear(scriptlabel_db, NULL);
+	parse_options = options;
+
 	if( setjmp( error_jump ) != 0 ) {
 		//Restore program state when script has problems. [from jA]
-		script_error(src,file,line,error_msg,error_pos);
+		if( error_report )
+			script_error(src,file,line,error_msg,error_pos);
 		aFree( error_msg );
 		aFree( script_buf );
 		script_pos  = 0;
 		script_size = 0;
 		script_buf  = NULL;
-		for(i=LABEL_START;i<str_num;i++){
+		for(i=LABEL_START;i<str_num;i++)
 			if(str_data[i].type == C_NOP) str_data[i].type = C_NAME;
-		}
 		return NULL;
 	}
 
-	p=(char *)src; // TODO: remove when merging script engine
+	parse_syntax_for_flag=0;
+	p=src;
 	p=skip_space(p);
 	if(*p!='{'){
 		disp_error_message("not found '{'",p);
-		exit(1);
 	}
 	p++;
 	p = skip_space(p);
@@ -1647,27 +1730,11 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 		p=skip_space(p);
 		// labelだけ特殊処理
 		tmpp=skip_space(skip_word(p));
-		if(*tmpp==':' && !(!strncmp(p,"default:",8) && p + 7 == tmpp)){
-			int l,c;
-
-			c=*skip_word(p);
-			*skip_word(p)=0;
-			if(*p == 0) {
-				*skip_word(p)=c;
-				disp_error_message("label length 0 ",p);
-				exit(1);
-			}
-			l=add_str(p);
-			/* FIXME: How much does it breaks to not restore skipword(p)=c when an error occurs here?
-			if(str_data[l].label!=-1){
-				*skip_word(p)=c;
-				disp_error_message("dup label ",p);
-				exit(1);
-			}
-			*/
-			set_label(l,script_pos,p);
-			strdb_put(scriptlabel_db, p, (void*)script_pos);
-			*skip_word(p)=c;
+		if(*tmpp==':' && !(!strncasecmp(p,"default:",8) && p + 7 == tmpp)){
+			i=add_word(p);
+			set_label(i,script_pos,p);
+			if( parse_options&SCRIPT_USE_LABEL_DB )
+				strdb_put(scriptlabel_db, GETSTRING(str_data[i].str), (void*)script_pos);
 			p=tmpp+1;
 			continue;
 		}
@@ -1686,7 +1753,7 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 	add_scriptc(C_NOP);
 
 	script_size = script_pos;
-	script_buf=(unsigned char *)aRealloc(script_buf,script_pos);
+	RECREATE(script_buf,unsigned char,script_pos);
 
 	// 未解決のラベルを解決
 	for(i=LABEL_START;i<str_num;i++){
@@ -1710,8 +1777,63 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 	}
 	printf("\n");
 #endif
+#ifdef DEBUG_DISASM
+	{
+		int i = 0,j;
+		while(i < script_pos) {
+			printf("%06x ",i);
+			j = i;
+			switch(get_com(script_buf,&i)) {
+			case C_EOL:	 printf("C_EOL"); break;
+			case C_INT:	 printf("C_INT %d",get_num(script_buf,&i)); break;
+			case C_POS:
+				printf("C_POS  0x%06x",*(int*)(script_buf+i)&0xffffff);
+				i += 3;
+				break;
+			case C_NAME:
+				j = (*(int*)(script_buf+i)&0xffffff);
+				printf("C_NAME %s",j == 0xffffff ? "?? unknown ??" : str_buf + str_data[j].str);
+				i += 3;
+				break;
+			case C_ARG:		printf("C_ARG"); break;
+			case C_FUNC:	printf("C_FUNC"); break;
+			case C_ADD:	 	printf("C_ADD"); break;
+			case C_SUB:		printf("C_SUB"); break;
+			case C_MUL:		printf("C_MUL"); break;
+			case C_DIV:		printf("C_DIV"); break;
+			case C_MOD:		printf("C_MOD"); break;
+			case C_EQ:		printf("C_EQ"); break;
+			case C_NE:		printf("C_NE"); break;
+			case C_GT:		printf("C_GT"); break;
+			case C_GE:		printf("C_GE"); break;
+			case C_LT:		printf("C_LT"); break;
+			case C_LE:		printf("C_LE"); break;
+			case C_AND:		printf("C_AND"); break;
+			case C_OR:		printf("C_OR"); break;
+			case C_XOR:		printf("C_XOR"); break;
+			case C_LAND:	printf("C_LAND"); break;
+			case C_LOR:		printf("C_LOR"); break;
+			case C_R_SHIFT:	printf("C_R_SHIFT"); break;
+			case C_L_SHIFT:	printf("C_L_SHIFT"); break;
+			case C_NEG:		printf("C_NEG"); break;
+			case C_NOT:		printf("C_NOT"); break;
+			case C_LNOT:	printf("C_LNOT"); break;
+			case C_NOP:		printf("C_NOP"); break;
+			case C_OP3:		printf("C_OP3"); break;
+			case C_STR:
+				j = strlen(script_buf + i);
+				printf("C_STR %s",script_buf + i);
+				i+= j+1;
+				break;
+			default:
+				printf("unknown");
+			}
+			printf("\n");
+		}
+	}
+#endif
 
-	code = aCalloc(1, sizeof(struct script_code));
+	CREATE(code,struct script_code,1);
 	code->script_buf  = script_buf;
 	code->script_size = script_size;
 	code->script_vars = NULL;
@@ -1733,6 +1855,8 @@ struct map_session_data *script_rid2sd(struct script_state *st)
 	if(!sd){
 		ShowError("script_rid2sd: fatal error ! player not attached!\n");
 		report_src(st);
+		//## I would also terminate script execution. [FlavioJS]
+		//st->state = END;
 	}
 	return sd;
 }
@@ -2003,7 +2127,7 @@ void push_val2(struct script_stack *stack,int type,int val,struct linkdb_node** 
  * スタックへ文字列をプッシュ
  *------------------------------------------
  */
-void push_str(struct script_stack *stack,int type,unsigned char *str)
+void push_str(struct script_stack *stack,int type,char *str)
 {
 	if(stack->sp>=stack->sp_max){
 		stack->sp_max += 64;
@@ -2014,9 +2138,9 @@ void push_str(struct script_stack *stack,int type,unsigned char *str)
 	}
 //	if(battle_config.etc_log)
 //		printf("push (%d,%x)-> %d\n",type,str,stack->sp);
-	stack->stack_data[stack->sp].type=type;
-	stack->stack_data[stack->sp].u.str=(char *) str;
-	stack->stack_data[stack->sp].ref   = NULL;
+	stack->stack_data[stack->sp].type =type;
+	stack->stack_data[stack->sp].u.str=str;
+	stack->stack_data[stack->sp].ref  =NULL;
 	stack->sp++;
 }
 
@@ -2028,10 +2152,10 @@ void push_copy(struct script_stack *stack,int pos)
 {
 	switch(stack->stack_data[pos].type){
 	case C_CONSTSTR:
-		push_str(stack,C_CONSTSTR,(unsigned char *) stack->stack_data[pos].u.str);
+		push_str(stack,C_CONSTSTR,stack->stack_data[pos].u.str);
 		break;
 	case C_STR:
-		push_str(stack,C_STR,(unsigned char *) aStrdup(stack->stack_data[pos].u.str));
+		push_str(stack,C_STR,aStrdup(stack->stack_data[pos].u.str));
 		break;
 	default:
 		push_val2(
@@ -2186,6 +2310,27 @@ int isstr(struct script_data *c) {
 		return (postfix == '$');
 	}
 	return 0;
+}
+
+/*==========================================
+ * Three-section operator
+ * test ? if_true : if_false
+ *------------------------------------------
+ */
+void op_3(struct script_state *st) {
+	int flag = 0;
+	if( isstr(&st->stack->stack_data[st->stack->sp-3])) {
+		char *str = conv_str(st,& (st->stack->stack_data[st->stack->sp-3]));
+		flag = str[0];
+	} else {
+		flag = conv_num(st,& (st->stack->stack_data[st->stack->sp-3]));
+	}
+	if( flag ) {
+		push_copy(st->stack, st->stack->sp-2 );
+	} else {
+		push_copy(st->stack, st->stack->sp-1 );
+	}
+	pop_stack(st->stack,st->stack->sp-4,st->stack->sp-1);
 }
 
 /*==========================================
@@ -2543,6 +2688,21 @@ void run_script(struct script_code *rootscript,int pos,int rid,int oid)
 	run_script_main(st);
 }
 
+void script_stop_sleeptimers(int id)
+{
+	struct script_state* st;
+	for(;;)
+	{
+		st = (struct script_state*)linkdb_erase(&sleep_db,(void*)id);
+		if( st == NULL )
+			break; // no more sleep timers
+		if( st->sleep.timer != INVALID_TIMER )
+			delete_timer(st->sleep.timer, run_script_timer);
+		script_free_stack(st->stack);
+		aFree(st);
+	}
+}
+
 /*==========================================
  * 指定ノードをsleep_dbから削除
  *------------------------------------------
@@ -2701,6 +2861,10 @@ void run_script_main(struct script_state *st)
 		case C_NOT:
 		case C_LNOT:
 			op_1num(st,c);
+			break;
+
+		case C_OP3:
+			op_3(st);
 			break;
 
 		case C_NOP:
@@ -3086,17 +3250,8 @@ int script_config_read_sub(char *cfgName)
 		else if(strcmpi(w1,"verbose_mode")==0) {
 			script_config.verbose_mode = battle_config_switch(w2);
 		}
-		else if(strcmpi(w1,"warn_func_no_comma")==0) {
-			script_config.warn_func_no_comma = battle_config_switch(w2);
-		}
-		else if(strcmpi(w1,"warn_cmd_no_comma")==0) {
-			script_config.warn_cmd_no_comma = battle_config_switch(w2);
-		}
 		else if(strcmpi(w1,"warn_func_mismatch_paramnum")==0) {
 			script_config.warn_func_mismatch_paramnum = battle_config_switch(w2);
-		}
-		else if(strcmpi(w1,"warn_cmd_mismatch_paramnum")==0) {
-			script_config.warn_cmd_mismatch_paramnum = battle_config_switch(w2);
 		}
 		else if(strcmpi(w1,"check_cmdcount")==0) {
 			script_config.check_cmdcount = battle_config_switch(w2);
@@ -3164,10 +3319,7 @@ int script_config_read(char *cfgName)
 
 	memset (&script_config, 0, sizeof(script_config));
 	script_config.verbose_mode = 0;
-	script_config.warn_func_no_comma = 1;
-	script_config.warn_cmd_no_comma = 1;
 	script_config.warn_func_mismatch_paramnum = 1;
-	script_config.warn_cmd_mismatch_paramnum = 1;
 	script_config.check_cmdcount = 65535;
 	script_config.check_gotocount = 2048;
 
@@ -3178,7 +3330,8 @@ int script_config_read(char *cfgName)
 }
 
 
-static int do_final_userfunc_sub (DBKey key,void *data,va_list ap){
+static int do_final_userfunc_sub (DBKey key,void *data,va_list ap)
+{
 	struct script_code *code = (struct script_code *)data;
 	if(code){
 		script_free_vars( &code->script_vars );
@@ -3227,7 +3380,7 @@ int do_init_script()
 	mapreg_db= db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));
 	mapregstr_db=db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 	userfunc_db=db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_RELEASE_BOTH,50);
-	scriptlabel_db=db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_ALLOW_NULL_DATA,50);
+	scriptlabel_db=db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_DUP_KEY|DB_OPT_ALLOW_NULL_DATA,50);
 	
 	script_load_mapreg();
 
@@ -3252,6 +3405,8 @@ int script_reload()
 		struct linkdb_node *n = (struct linkdb_node *)sleep_db;
 		while(n) {
 			struct script_state *st = (struct script_state *)n->data;
+			if( st->sleep.timer != INVALID_TIMER )
+				delete_timer(st->sleep.timer, run_script_timer);
 			script_free_stack(st->stack);
 			aFree(st);
 			n = n->next;
@@ -3609,7 +3764,7 @@ struct script_function buildin_func[] = {
 	{buildin_getarraysize,"getarraysize","i"},
 	{buildin_deletearray,"deletearray","ii"},
 	{buildin_getelementofarray,"getelementofarray","ii"},
-	{buildin_getitem,"getitem","ii**"},
+	{buildin_getitem,"getitem","vi?"},
 	{buildin_getitem2,"getitem2","iiiiiiiii*"},
 	{buildin_getnameditem,"getnameditem","is"},
 	{buildin_grouprandomitem,"groupranditem","i"},
@@ -3652,26 +3807,26 @@ struct script_function buildin_func[] = {
 	{buildin_statusup,"statusup","i"},
 	{buildin_statusup2,"statusup2","ii"},
 	{buildin_bonus,"bonus","ii"},
-	{buildin_bonus2,"bonus2","iii"},
-	{buildin_bonus3,"bonus3","iiii"},
-	{buildin_bonus4,"bonus4","iiiii"},
-	{buildin_skill,"skill","ii*"},
-	{buildin_addtoskill,"addtoskill","ii*"}, // [Valaris]
+	{buildin_bonus,"bonus2","iii"},
+	{buildin_bonus,"bonus3","iiii"},
+	{buildin_bonus,"bonus4","iiiii"},
+	{buildin_skill,"skill","ii?"},
+	{buildin_addtoskill,"addtoskill","ii?"}, // [Valaris]
 	{buildin_guildskill,"guildskill","ii"},
 	{buildin_getskilllv,"getskilllv","i"},
 	{buildin_getgdskilllv,"getgdskilllv","ii"},
-	{buildin_basicskillcheck,"basicskillcheck","*"},
-	{buildin_getgmlevel,"getgmlevel","*"},
+	{buildin_basicskillcheck,"basicskillcheck",""},
+	{buildin_getgmlevel,"getgmlevel",""},
 	{buildin_end,"end",""},
 //	{buildin_end,"break",""}, this might confuse advanced scripting support [Eoe]
 	{buildin_checkoption,"checkoption","i"},
-	{buildin_setoption,"setoption","i*"},
-	{buildin_setcart,"setcart",""},
-	{buildin_checkcart,"checkcart","*"},		//fixed by Lupus (added '*')
-	{buildin_setfalcon,"setfalcon",""},
-	{buildin_checkfalcon,"checkfalcon","*"},	//fixed by Lupus (fixed wrong pointer, added '*')
-	{buildin_setriding,"setriding",""},
-	{buildin_checkriding,"checkriding","*"},	//fixed by Lupus (fixed wrong pointer, added '*')
+	{buildin_setoption,"setoption","i?"},
+	{buildin_setcart,"setcart","?"},
+	{buildin_checkcart,"checkcart",""},
+	{buildin_setfalcon,"setfalcon","?"},
+	{buildin_checkfalcon,"checkfalcon",""},
+	{buildin_setriding,"setriding","?"},
+	{buildin_checkriding,"checkriding",""},
 	{buildin_savepoint,"save","sii"},
 	{buildin_savepoint,"savepoint","sii"},
 	{buildin_gettimetick,"gettimetick","i"},
@@ -3779,7 +3934,7 @@ struct script_function buildin_func[] = {
 	{buildin_soundeffect,"soundeffect","si"},
 	{buildin_soundeffectall,"soundeffectall","si*"},	// SoundEffectAll [Codemaster]
 	{buildin_strmobinfo,"strmobinfo","ii"},	// display mob data [Valaris]
-	{buildin_guardian,"guardian","siisii*i"},	// summon guardians
+	{buildin_guardian,"guardian","siisii??"},	// summon guardians
 	{buildin_guardianinfo,"guardianinfo","i"},	// display guardian data [Valaris]
 	{buildin_petskillbonus,"petskillbonus","iiii"}, // [Valaris]
 	{buildin_petrecovery,"petrecovery","ii"}, // [Valaris]
@@ -3910,9 +4065,9 @@ struct script_function buildin_func[] = {
 int buildin_mes(struct script_state *st)
 {
 	struct map_session_data *sd = script_rid2sd(st);
-	conv_str(st,& (st->stack->stack_data[st->start+2]));
+	char *mes = conv_str(st, &(st->stack->stack_data[st->start+2]));
 	if (sd)
-		clif_scriptmes(sd,st->oid,st->stack->stack_data[st->start+2].u.str);
+		clif_scriptmes(sd, st->oid, mes);
 	return 0;
 }
 
@@ -3945,7 +4100,7 @@ int buildin_callfunc(struct script_state *st)
 	struct script_code *scr, *oldscr;
 	char *str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 
-	if( (scr=strdb_get(userfunc_db,(unsigned char*)str)) ){
+	if( (scr=strdb_get(userfunc_db,str)) ){
 		int i,j;
 		struct linkdb_node **oldval = st->stack->var_function;
 		for(i=st->start+3,j=0;i<st->end;i++,j++)
@@ -5099,60 +5254,70 @@ int buildin_checkweight(struct script_state *st)
 int buildin_getitem(struct script_state *st)
 {
 	int nameid,amount,flag = 0;
-	struct item item_tmp;
+	struct item it;
 	struct map_session_data *sd;
 	struct script_data *data;
 
-	sd = script_rid2sd(st);
-
-	data=&(st->stack->stack_data[st->start+2]);
+	data=script_getdata(st,2);
 	get_val(st,data);
-	if( data->type==C_STR || data->type==C_CONSTSTR ){
+	if( script_isstring(data) )
+	{// "<item name>"
 		const char *name=conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
-		if( item_data == NULL) {
-			ShowWarning("buildin_getitem: Nonexistant item %s requested.\n", name);
+		if( item_data == NULL ){
+			ShowError("buildin_getitem: Nonexistant item %s requested.\n", name);
+			report_src(st);
 			return 1; //No item created.
 		}
 		nameid=item_data->nameid;
-	}else
+	} else if( script_isint(data) )
+	{// <item id>
 		nameid=conv_num(st,data);
+		//Violet Box, Blue Box, etc - random item pick
+		if( nameid < 0 ) {
+			nameid=itemdb_searchrandomid(-nameid);
+			flag = 1;
+		}
+		if( nameid <= 0 || !itemdb_exists(nameid) ){
+			ShowError("buildin_getitem: Nonexistant item %d requested.\n", nameid);
+			report_src(st);
+			return 1; //No item created.
+		}
+	} else {
+		ShowError("buildin_getitem: invalid data type for argument #1 (%d).", data->type);
+		report_src(st);
+		return 1;
+	}
 
+	// <amount>
 	if ( ( amount=conv_num(st,& (st->stack->stack_data[st->start+3])) ) <= 0)
 		return 0; //return if amount <=0, skip the useles iteration
 
-	//Violet Box, Blue Box, etc - random item pick
-	if(nameid <0) {
-		nameid=itemdb_searchrandomid(-nameid);
-		flag = 1;
-	}
-
-	if(nameid <= 0 || !itemdb_exists(nameid)) {
-		ShowWarning("buildin_getitem: Nonexistant item %d requested.\n", nameid);
-		return 1; //No item created.
-	}
-		
-	memset(&item_tmp,0,sizeof(item_tmp));
-	item_tmp.nameid=nameid;
+	memset(&it,0,sizeof(it));
+	it.nameid=nameid;
 	if(!flag)
-		item_tmp.identify=1;
+		it.identify=1;
 	else
-		item_tmp.identify=itemdb_isidentified(nameid);
-	if( st->end>st->start+5 ) //アイテムを指定したIDに渡す
-		sd=map_id2sd(conv_num(st,& (st->stack->stack_data[st->start+5])));
-	if(sd == NULL) //アイテムを渡す相手がいなかったらお帰り
+		it.identify=itemdb_isidentified(nameid);
+	if( script_hasdata(st,4) )
+	{// <character ID>
+		sd=map_id2sd(conv_num(st,script_getdata(st,4)));
+	} else
+	{// attached player
+		sd=script_rid2sd(st);
+	}
+	if( sd == NULL ) // no target
 		return 0;
-	if(pet_create_egg(sd, nameid))
+	if( pet_create_egg(sd, nameid) )
 		amount = 1; //This is a pet!
-	else
-	if((flag = pc_additem(sd,&item_tmp,amount))) {
+	else if( (flag=pc_additem(sd,&it,amount)) ){
 		clif_additem(sd,0,0,flag);
-		if (pc_candrop(sd, &item_tmp))
-			map_addflooritem(&item_tmp,amount,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
+		if( pc_candrop(sd,&it) )
+			map_addflooritem(&it,amount,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
 	}
 
 	//Logs items, got from (N)PC scripts [Lupus]
-	if(log_config.enable_logs&0x40)
+	if(log_config.enable_logs&LOG_SCRIPT_TRANSACTIONS)
 		log_pick_pc(sd, "N", nameid, amount, NULL);
 
 	return 0;
@@ -5751,7 +5916,7 @@ int buildin_getpartyleader(struct script_state *st)
 			push_val(st->stack,C_INT,p->party.member[i].lv);
 		break;
 		default:
-			push_str(st->stack,C_STR,(unsigned char *)p->party.member[i].name);
+			push_str(st->stack,C_STR,p->party.member[i].name);
 		break;
 	}
 	return 0;
@@ -5848,7 +6013,7 @@ int buildin_strcharinfo(struct script_state *st)
 
 	sd=script_rid2sd(st);
 	if (!sd) { //Avoid crashing....
-		push_str(st->stack,C_CONSTSTR,(unsigned char *) "");
+		push_str(st->stack,C_CONSTSTR,"");
 		return 0;
 	}
 	num=conv_num(st,& (st->stack->stack_data[st->start+2]));
@@ -5861,16 +6026,16 @@ int buildin_strcharinfo(struct script_state *st)
 		case 1:
 			buf=buildin_getpartyname_sub(sd->status.party_id);
 			if(buf!=0)
-				push_str(st->stack,C_STR,(unsigned char *) buf);
+				push_str(st->stack,C_STR,buf);
 			else
-				push_str(st->stack,C_CONSTSTR,(unsigned char *) "");
+				push_str(st->stack,C_CONSTSTR,"");
 			break;
 		case 2:
 			buf=buildin_getguildname_sub(sd->status.guild_id);
 			if(buf != NULL)
-				push_str(st->stack,C_STR,(unsigned char *) buf);
+				push_str(st->stack,C_STR,buf);
 			else
-				push_str(st->stack,C_CONSTSTR,(unsigned char *) "");
+				push_str(st->stack,C_CONSTSTR,"");
 			break;
 		default:
 			ShowWarning("buildin_strcharinfo: unknown parameter.");
@@ -5937,7 +6102,7 @@ int buildin_getequipname(struct script_state *st)
 	}else{
 		sprintf(buf,"%s-[%s]",pos[num-1],pos[10]);
 	}
-	push_str(st->stack,C_STR,(unsigned char *) buf);
+	push_str(st->stack,C_STR,buf);
 
 	return 0;
 }
@@ -6240,408 +6405,417 @@ int buildin_statusup2(struct script_state *st)
 
 	return 0;
 }
-/*==========================================
- * 装備品による能力値ボーナス
- *------------------------------------------
- */
-int buildin_bonus(struct script_state *st)
+
+/// See 'doc/item_bonus.txt'
+/// bonus <bonus type>,<val1>
+/// bonus2 <bonus type>,<val1>,<val2>
+/// bonus3 <bonus type>,<val1>,<val2>,<val3>
+/// bonus4 <bonus type>,<val1>,<val2>,<val3>,<val4>
+int buildin_bonus(struct script_state* st)
 {
-	int type,val;
-	struct map_session_data *sd;
+	int type;
+	int type2;
+	int type3;
+	int type4;
+	int val;
+	TBL_PC* sd;
 
-	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	val=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	sd=script_rid2sd(st);
-	pc_bonus(sd,type,val);
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return 0; // no player attached
 
-	return 0;
-}
-/*==========================================
- * 装備品による能力値ボーナス
- *------------------------------------------
- */
-int buildin_bonus2(struct script_state *st)
-{
-	int type,type2,val;
-	struct map_session_data *sd;
-
-	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	type2=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	val=conv_num(st,& (st->stack->stack_data[st->start+4]));
-	sd=script_rid2sd(st);
-	pc_bonus2(sd,type,type2,val);
-
-	return 0;
-}
-/*==========================================
- * 装備品による能力値ボーナス
- *------------------------------------------
- */
-int buildin_bonus3(struct script_state *st)
-{
-	int type,type2,type3,val;
-	struct map_session_data *sd;
-
-	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	type2=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	type3=conv_num(st,& (st->stack->stack_data[st->start+4]));
-	val=conv_num(st,& (st->stack->stack_data[st->start+5]));
-	sd=script_rid2sd(st);
-	pc_bonus3(sd,type,type2,type3,val);
-
-	return 0;
-}
-
-int buildin_bonus4(struct script_state *st)
-{
-	int type,type2,type3,type4,val;
-	struct map_session_data *sd;
-
-	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	type2=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	type3=conv_num(st,& (st->stack->stack_data[st->start+4]));
-	type4=conv_num(st,& (st->stack->stack_data[st->start+5]));
-	val=conv_num(st,& (st->stack->stack_data[st->start+6]));
-	sd=script_rid2sd(st);
-	pc_bonus4(sd,type,type2,type3,type4,val);
-
-	return 0;
-}
-/*==========================================
- * スキル所得
- *------------------------------------------
- */
-int buildin_skill(struct script_state *st)
-{
-	int id,level,flag=1;
-	struct map_session_data *sd;
-
-	id=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	level=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	if( st->end>st->start+4 )
-		flag=conv_num(st,&(st->stack->stack_data[st->start+4]) );
-	sd=script_rid2sd(st);
-	pc_skill(sd,id,level,flag);
-
-	return 0;
-}
-
-// add x levels of skill (stackable) [Valaris]
-int buildin_addtoskill(struct script_state *st)
-{
-	int id,level,flag=2;
-	struct map_session_data *sd;
-
-	id=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	level=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	if( st->end>st->start+4 )
-		flag=conv_num(st,&(st->stack->stack_data[st->start+4]) );
-	sd=script_rid2sd(st);
-	pc_skill(sd,id,level,flag);
-
-	return 0;
-}
-
-/*==========================================
- * ギルドスキル取得
- *------------------------------------------
- */
-int buildin_guildskill(struct script_state *st)
-{
-	int id,level,flag=0;
-	struct map_session_data *sd;
-	int i=0;
-
-	id=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	level=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	if( st->end>st->start+4 )
-		flag=conv_num(st,&(st->stack->stack_data[st->start+4]) );
-	sd=script_rid2sd(st);
-	for(i=0;i<level;i++)
-		guild_skillup(sd,id,flag);
-
-	return 0;
-}
-/*==========================================
- * スキルレベル所得
- *------------------------------------------
- */
-int buildin_getskilllv(struct script_state *st)
-{
-	int id=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	push_val(st->stack,C_INT, pc_checkskill( script_rid2sd(st) ,id) );
-	return 0;
-}
-/*==========================================
- * getgdskilllv(Guild_ID, Skill_ID);
- * skill_id = 10000 : GD_APPROVAL
- *            10001 : GD_KAFRACONTRACT
- *            10002 : GD_GUARDIANRESEARCH
- *            10003 : GD_GUARDUP
- *            10004 : GD_EXTENSION
- *------------------------------------------
- */
-int buildin_getgdskilllv(struct script_state *st)
-{
-        int guild_id=conv_num(st,& (st->stack->stack_data[st->start+2]));
-        int skill_id=conv_num(st,& (st->stack->stack_data[st->start+3]));
-        struct guild *g=guild_search(guild_id);
-	push_val(st->stack,C_INT, (g==NULL)?-1:guild_checkskill(g,skill_id) );
-	return 0;
-/*
-	struct map_session_data *sd=NULL;
-	struct guild *g=NULL;
-	int skill_id;
-
-	skill_id=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	sd=script_rid2sd(st);
-	if(sd && sd->status.guild_id > 0) g=guild_search(sd->status.guild_id);
-	if(sd && g) {
-		push_val(st->stack,C_INT, guild_checkskill(g,skill_id+9999) );
-	} else {
-		push_val(st->stack,C_INT,-1);
+	type = conv_num(st, script_getdata(st,2));
+	switch( script_lastdata(st) ){
+	case 3:
+		val  = conv_num(st, script_getdata(st,3));
+		pc_bonus(sd, type, val);
+		break;
+	case 4:
+		type2 = conv_num(st, script_getdata(st,3));
+		val   = conv_num(st, script_getdata(st,4));
+		pc_bonus2(sd, type, type2, val);
+		break;
+	case 5:
+		type2 = conv_num(st, script_getdata(st,3));
+		type3 = conv_num(st, script_getdata(st,4));
+		val   = conv_num(st, script_getdata(st,5));
+		pc_bonus3(sd, type, type2, type3, val);
+		break;
+	case 6:
+		type2 = conv_num(st, script_getdata(st,3));
+		type3 = conv_num(st, script_getdata(st,4));
+		type4 = conv_num(st, script_getdata(st,5));
+		val   = conv_num(st, script_getdata(st,6));
+		pc_bonus4(sd, type, type2, type3, type4, val);
+		break;
+	default:
+		ShowDebug("buildin_bonus: unexpected last data (%d)\n", script_lastdata(st));
 	}
-	return 0;
-*/
-}
-/*==========================================
- *
- *------------------------------------------
- */
-int buildin_basicskillcheck(struct script_state *st)
-{
-	push_val(st->stack,C_INT, battle_config.basic_skill_check);
-	return 0;
-}
-/*==========================================
- *
- *------------------------------------------
- */
-int buildin_getgmlevel(struct script_state *st)
-{
-	push_val(st->stack,C_INT, pc_isGM(script_rid2sd(st)));
+
 	return 0;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
-int buildin_end(struct script_state *st)
+/// Changes the level of a player skill.
+/// skill <skill id>,<level>{,<flag>}
+/// @see pc_skill() for flag
+int buildin_skill(struct script_state* st)
+{
+	int id;
+	int level;
+	int flag = 1;
+	TBL_PC* sd;
+
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return 0; // no player attached
+
+	id    = conv_num(st, script_getdata(st,2));
+	level = conv_num(st, script_getdata(st,3));
+	if( script_hasdata(st,4) )
+		flag = conv_num(st, script_getdata(st,4));
+	pc_skill(sd, id, level, flag);
+
+	return 0;
+}
+
+/// Changes the level of a player skill.
+/// addtoskill <skill id>,<level>{,<flag>}
+/// @see pc_skill() for flag
+int buildin_addtoskill(struct script_state* st)
+{
+	int id;
+	int level;
+	int flag = 2;
+	TBL_PC* sd;
+
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return 0; // no player attached
+
+	id    = conv_num(st, script_getdata(st,2));
+	level = conv_num(st, script_getdata(st,3));
+	if( script_hasdata(st,4) )
+		flag = conv_num(st, script_getdata(st,4));
+	pc_skill(sd, id, level, flag);
+
+	return 0;
+}
+
+/// Increases the level of the guild skill.
+/// guildskill <skill id>,<level>
+int buildin_guildskill(struct script_state* st)
+{
+	int id;
+	int level;
+	TBL_PC* sd;
+	int i;
+
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return 0; // needs player attached
+
+	id    = conv_num(st, script_getdata(st,2));
+	level = conv_num(st, script_getdata(st,3));
+	for( i=0; i < level; i++ )
+		guild_skillup(sd, id);
+
+	return 0;
+}
+
+/// Returns the level of the player skill.
+/// getskilllv(<skill id>) -> <level>
+int buildin_getskilllv(struct script_state* st)
+{
+	int id;
+	TBL_PC* sd;
+
+	sd = script_rid2sd(st);
+	if( sd == NULL ){
+		script_pushint(st, 0);
+		return 0; // needs player attached
+	}
+
+	id = conv_num(st, script_getdata(st,2));
+	script_pushint(st, pc_checkskill(sd,id));
+
+	return 0;
+}
+
+/// Returns the level of the guild skill.
+/// getgdskilllv(<guild id>,<skill id>) -> <level>
+int buildin_getgdskilllv(struct script_state* st)
+{
+	int guild_id;
+	int skill_id;
+	struct guild* g;
+
+	guild_id = conv_num(st, script_getdata(st,2));
+	skill_id = conv_num(st, script_getdata(st,3));
+	g = guild_search(guild_id);
+	if( g == NULL )
+		script_pushint(st, -1);
+	else
+		script_pushint(st, guild_checkskill(g,skill_id));
+
+	return 0;
+}
+
+/// Returns the 'basic_skill_check' setting.
+/// basicskillcheck() -> <setting>
+int buildin_basicskillcheck(struct script_state* st)
+{
+	script_pushint(st, battle_config.basic_skill_check);
+	return 0;
+}
+
+/// Returns the GM level of the player.
+/// getgmlevel() -> <level>
+int buildin_getgmlevel(struct script_state* st)
+{
+	TBL_PC* sd;
+
+	sd = script_rid2sd(st);
+	if( sd == NULL ){
+		script_pushint(st, 0);
+		return 0; // needs player attached
+	}
+
+	script_pushint(st, pc_isGM(sd));
+
+	return 0;
+}
+
+/// Terminates the execution of this script instance.
+/// end
+int buildin_end(struct script_state* st)
 {
 	st->state = END;
 	return 0;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
-int buildin_checkoption(struct script_state *st)
+/// Checks if the player has that option.
+/// checkoption(<option>) -> <bool>
+int buildin_checkoption(struct script_state* st)
 {
-	int type;
-	struct map_session_data *sd;
+	int option;
+	TBL_PC* sd;
 
-	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	sd=script_rid2sd(st);
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return buildin_end(st);// needs player attached
 
-	if(sd->sc.option & type){
-		push_val(st->stack,C_INT,1);
-	} else {
-		push_val(st->stack,C_INT,0);
-	}
-
-	return 0;
-}
-/*==========================================
- *
- *------------------------------------------
- */
-int buildin_checkoption1(struct script_state *st)
-{
-	int type;
-	struct map_session_data *sd;
-
-	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	sd=script_rid2sd(st);
-
-	if(sd->sc.opt1 & type){
-		push_val(st->stack,C_INT,1);
-	} else {
-		push_val(st->stack,C_INT,0);
-	}
-
-	return 0;
-}
-/*==========================================
- *
- *------------------------------------------
- */
-int buildin_checkoption2(struct script_state *st)
-{
-	int type;
-	struct map_session_data *sd;
-
-	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	sd=script_rid2sd(st);
-
-	if(sd->sc.opt2 & type){
-		push_val(st->stack,C_INT,1);
-	} else {
-		push_val(st->stack,C_INT,0);
-	}
+	option = conv_num(st, script_getdata(st,2));
+	if( sd->sc.option&option )
+		script_pushint(st, 1);
+	else
+		script_pushint(st, 0);
 
 	return 0;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
-int buildin_setoption(struct script_state *st)
+/// Checks if the player is in that opt1 state.
+/// checkoption1(<opt1>) -> <bool>
+int buildin_checkoption1(struct script_state* st)
 {
-	int type;
-	struct map_session_data *sd;
-	int flag=1;
-	
-	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	if(st->end>st->start+3 )
-		flag=conv_num(st,&(st->stack->stack_data[st->start+3]) );
-	else if (!type) { //Request to remove everything.
+	int opt1;
+	TBL_PC* sd;
+
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return buildin_end(st);// needs player attached
+
+	opt1 = conv_num(st, script_getdata(st,2));
+	if( sd->sc.opt1 == opt1 )
+		script_pushint(st, 1);
+	else
+		script_pushint(st, 0);
+
+	return 0;
+}
+
+/// Checks if the player has that opt2.
+/// checkoption2(<opt2>) -> <bool>
+int buildin_checkoption2(struct script_state* st)
+{
+	int opt2;
+	TBL_PC* sd;
+
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return buildin_end(st);// needs player attached
+
+	opt2 = conv_num(st, script_getdata(st,2));
+	if( sd->sc.opt2&opt2 )
+		script_pushint(st, 1);
+	else
+		script_pushint(st, 0);
+
+	return 0;
+}
+
+/// Changes the option of the player.
+/// setoption <option number>{,<flag>}
+int buildin_setoption(struct script_state* st)
+{
+	int option;
+	int flag = 1;
+	TBL_PC* sd;
+
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return 0;// needs player attached
+
+	option = conv_num(st, script_getdata(st,2));
+	if( script_hasdata(st,3) )
+		flag = conv_num(st, script_getdata(st,3));
+	else if( !option ){// Request to remove everything.
 		flag = 0;
-		type = OPTION_CART|OPTION_FALCON|OPTION_RIDING;
+		option = OPTION_CART|OPTION_FALCON|OPTION_RIDING;
 	}
-	sd=script_rid2sd(st);
-	if (!sd) return 0;
-
-	if (flag) {//Add option
-		if (type&OPTION_WEDDING && !battle_config.wedding_modifydisplay)
-			type&=~OPTION_WEDDING; //Do not show the wedding sprites
-		pc_setoption(sd,sd->sc.option|type);
-	} else//Remove option
-		pc_setoption(sd,sd->sc.option&~type);
-	return 0;
-}
-
-/*==========================================
- * Checkcart [Valaris]
- *------------------------------------------
- */
-
-int buildin_checkcart(struct script_state *st)
-{
-	struct map_session_data *sd;
-
-	sd=script_rid2sd(st);
-
-	if(pc_iscarton(sd)){
-		push_val(st->stack,C_INT,1);
-	} else {
-		push_val(st->stack,C_INT,0);
-	}
-	return 0;
-}
-
-/*==========================================
- * カートを付ける
- *------------------------------------------
- */
-int buildin_setcart(struct script_state *st)
-{
-	struct map_session_data *sd;
-
-	sd=script_rid2sd(st);
-	pc_setcart(sd,1);
+	if( flag ){// Add option
+		if( option&OPTION_WEDDING && !battle_config.wedding_modifydisplay )
+			option &= ~OPTION_WEDDING;// Do not show the wedding sprites
+		pc_setoption(sd, sd->sc.option|option);
+	} else// Remove option
+		pc_setoption(sd, sd->sc.option&~option);
 
 	return 0;
 }
 
-/*==========================================
- * checkfalcon [Valaris]
- *------------------------------------------
- */
-
-int buildin_checkfalcon(struct script_state *st)
+/// Returns if the player has a cart.
+/// checkcart() -> <bool>
+/// @author Valaris
+int buildin_checkcart(struct script_state* st)
 {
-	struct map_session_data *sd;
+	TBL_PC* sd;
 
-	sd=script_rid2sd(st);
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return buildin_end(st);// needs player attached
 
-	if(pc_isfalcon(sd)){
-		push_val(st->stack,C_INT,1);
-	} else {
-		push_val(st->stack,C_INT,0);
-	}
+	if( pc_iscarton(sd) )
+		script_pushint(st, 1);
+	else
+		script_pushint(st, 0);
 
 	return 0;
 }
 
-
-/*==========================================
- * 鷹を付ける
- *------------------------------------------
- */
-int buildin_setfalcon(struct script_state *st)
+/// Sets the cart of the player.
+/// setcart {<type>}
+int buildin_setcart(struct script_state* st)
 {
-	struct map_session_data *sd;
+	int type = 1;
+	TBL_PC* sd;
 
-	sd=script_rid2sd(st);
-	pc_setfalcon(sd);
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return 0;// needs player attached
+
+	if( script_hasdata(st,2) )
+		type = conv_num(st, script_getdata(st,2));
+	pc_setcart(sd, type);
 
 	return 0;
 }
 
-/*==========================================
- * Checkcart [Valaris]
- *------------------------------------------
- */
-
-int buildin_checkriding(struct script_state *st)
+/// Returns if the player has a falcon.
+/// checkfalcon() -> <bool>
+/// @author Valaris
+int buildin_checkfalcon(struct script_state* st)
 {
-	struct map_session_data *sd;
+	TBL_PC* sd;
 
-	sd=script_rid2sd(st);
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return buildin_end(st);// needs player attached
 
-	if(pc_isriding(sd)){
-		push_val(st->stack,C_INT,1);
-	} else {
-		push_val(st->stack,C_INT,0);
-	}
+	if( pc_isfalcon(sd) )
+		script_pushint(st, 1);
+	else
+		script_pushint(st, 0);
 
 	return 0;
 }
 
-
-/*==========================================
- * ペコペコ乗り
- *------------------------------------------
- */
-int buildin_setriding(struct script_state *st)
+/// Sets if the player has a falcon or not.
+/// setfalcon {<flag>}
+int buildin_setfalcon(struct script_state* st)
 {
-	struct map_session_data *sd;
+	int flag = 1;
+	TBL_PC* sd;
 
-	sd=script_rid2sd(st);
-	pc_setriding(sd);
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return 0;// needs player attached
+
+	if( script_hasdata(st,2) )
+		flag = conv_num(st, script_getdata(st,2));
+
+	pc_setfalcon(sd, flag);
 
 	return 0;
 }
 
-/*==========================================
- *	セーブポイントの保存
- *------------------------------------------
- */
-int buildin_savepoint(struct script_state *st)
+/// Returns if the player is riding.
+/// checkriding() -> <bool>
+/// @author Valaris
+int buildin_checkriding(struct script_state* st)
 {
-	int x,y;
+	TBL_PC* sd;
+
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return buildin_end(st);// needs player attached
+
+	if( pc_isriding(sd) )
+		script_pushint(st, 1);
+	else
+		script_pushint(st, 0);
+
+	return 0;
+}
+
+/// Sets if the player is riding.
+/// setriding {<flag>}
+int buildin_setriding(struct script_state* st)
+{
+	int flag = 1;
+	TBL_PC* sd;
+
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return 0;// needs player attached
+
+	if( script_hasdata(st,2) )
+		flag = conv_num(st, script_getdata(st,2));
+	pc_setriding(sd, flag);
+
+	return 0;
+}
+
+/// Sets the save point of the player.
+/// save "<map name>",<x>,<y>
+/// savepoint "<map name>",<x>,<y>
+int buildin_savepoint(struct script_state* st)
+{
+	int x;
+	int y;
 	short map;
-	char *str;
+	char* str;
+	TBL_PC* sd;
 
-	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
-	x=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	y=conv_num(st,& (st->stack->stack_data[st->start+4]));
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return 0;// needs player attached
+
+	str = conv_str(st, script_getdata(st,2));
+	x   = conv_num(st, script_getdata(st,3));
+	y   = conv_num(st, script_getdata(st,4));
 	map = mapindex_name2id(str);
-	if (map)
-		pc_setsavepoint(script_rid2sd(st),map,x,y);
+	if( map )
+		pc_setsavepoint(sd, map, x, y);
+
 	return 0;
 }
 
@@ -7175,7 +7349,7 @@ int buildin_getnpctimer(struct script_state *st)
 		nd=npc_name2id(conv_str(st,& (st->stack->stack_data[st->start+3])));
 	else
 		nd=(struct npc_data *)map_id2bl(st->oid);
-
+	
 	if (!nd || nd->bl.type != BL_NPC)
 	{
 		push_val(st->stack,C_INT,0);
@@ -9311,26 +9485,45 @@ int buildin_strmobinfo(struct script_state *st)
 
 /*==========================================
  * Summon guardians [Valaris]
+ * guardian "<map name>",<x>,<y>,"<name to show>",<mob id>,<amount>{,"<event label>"}{,<guardian index>};
  *------------------------------------------
  */
 int buildin_guardian(struct script_state *st)
 {
 	int class_=0,amount=1,x=0,y=0,guardian=0;
-	char *str,*map,*event="";
+	char *str,*map,*evt="";
+	struct script_data *data;
 
-	map	=conv_str(st,& (st->stack->stack_data[st->start+2]));
-	x	=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	y	=conv_num(st,& (st->stack->stack_data[st->start+4]));
-	str	=conv_str(st,& (st->stack->stack_data[st->start+5]));
-	class_=conv_num(st,& (st->stack->stack_data[st->start+6]));
-	amount=conv_num(st,& (st->stack->stack_data[st->start+7]));
-	event=conv_str(st,& (st->stack->stack_data[st->start+8]));
-	if( st->end>st->start+9 )
-		guardian=conv_num(st,& (st->stack->stack_data[st->start+9]));
+	map	  =conv_str(st,script_getdata(st,2));
+	x	  =conv_num(st,script_getdata(st,3));
+	y	  =conv_num(st,script_getdata(st,4));
+	str	  =conv_str(st,script_getdata(st,5));
+	class_=conv_num(st,script_getdata(st,6));
+	amount=conv_num(st,script_getdata(st,7));
 
-	check_event(st, event);
+	if( script_hasdata(st,9) )
+	{// "<event label>",<guardian index>
+		evt=conv_str(st,script_getdata(st,8));
+		guardian=conv_num(st,script_getdata(st,9));
+	} else if( script_hasdata(st,8) ){
+		data=script_getdata(st,8);
+		get_val(st,data);
+		if( script_isstring(data) )
+		{// "<event label>"
+			evt=conv_str(st,script_getdata(st,8));
+		} else if( script_isint(data) )
+		{// <guardian index>
+			guardian=conv_num(st,script_getdata(st,8));
+		} else {
+			ShowError("buildin_guardian: invalid data type for argument #8 (%d).", data->type);
+			report_src(st);
+			return 1;
+		}
+	}
 
-	mob_spawn_guardian(map_id2sd(st->rid),map,x,y,str,class_,amount,event,guardian);
+	check_event(st, evt);
+
+	mob_spawn_guardian(map_id2sd(st->rid),map,x,y,str,class_,amount,evt,guardian);
 
 	return 0;
 }
@@ -10041,8 +10234,14 @@ int buildin_atcommand(struct script_state *st)
 	if (st->rid)
 		sd = script_rid2sd(st);
 
-	if (sd) is_atcommand_sub(sd->fd, sd, cmd, 99);
-	else { //Use a dummy character.
+	if (sd){
+		if(cmd[0] != atcommand_symbol){
+			cmd += strlen(sd->status.name);
+			while(*cmd != atcommand_symbol && *cmd != 0)
+				cmd++;
+		}
+		is_atcommand_sub(sd->fd, sd, cmd, 99);
+	} else { //Use a dummy character.
 		struct map_session_data dummy_sd;
 		struct block_list *bl = NULL;
 		memset(&dummy_sd, 0, sizeof(struct map_session_data));
@@ -10051,6 +10250,11 @@ int buildin_atcommand(struct script_state *st)
 			memcpy(&dummy_sd.bl, bl, sizeof(struct block_list));
 			if (bl->type == BL_NPC)
 				strncpy(dummy_sd.status.name, ((TBL_NPC*)bl)->name, NAME_LENGTH);
+		}
+		if(cmd[0] != atcommand_symbol){
+			cmd += strlen(dummy_sd.status.name);
+			while(*cmd != atcommand_symbol && *cmd != 0)
+				cmd++;
 		}
 		is_atcommand_sub(0, &dummy_sd, cmd, 99);
 	}
@@ -10068,8 +10272,14 @@ int buildin_charcommand(struct script_state *st)
 	if (st->rid)
 		sd = script_rid2sd(st);
 	
-	if (sd) is_charcommand_sub(sd->fd, sd, cmd, 99);
-	else { //Use a dummy character.
+	if (sd){ 
+		if(cmd[0] != charcommand_symbol){
+			cmd += strlen(sd->status.name);
+			while(*cmd != charcommand_symbol && *cmd != 0)
+				cmd++;
+		}
+		is_charcommand_sub(sd->fd, sd, cmd,99);
+	} else { //Use a dummy character.
 		struct map_session_data dummy_sd;
 		struct block_list *bl = NULL;
 		memset(&dummy_sd, 0, sizeof(struct map_session_data));
@@ -10078,6 +10288,11 @@ int buildin_charcommand(struct script_state *st)
 			memcpy(&dummy_sd.bl, bl, sizeof(struct block_list));
 			if (bl->type == BL_NPC)
 				strncpy(dummy_sd.status.name, ((TBL_NPC*)bl)->name, NAME_LENGTH);
+		}
+		if(cmd[0] != charcommand_symbol){
+			cmd += strlen(dummy_sd.status.name);
+			while(*cmd != charcommand_symbol && *cmd != 0)
+				cmd++;
 		}
 		is_charcommand_sub(0, &dummy_sd, cmd, 99);
 	}
@@ -11145,7 +11360,7 @@ int buildin_charisalpha(struct script_state *st) {
 	char *str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	int pos=conv_num(st,& (st->stack->stack_data[st->start+3]));
 
-	int val = ( str && pos>0 && (unsigned int)pos<strlen(str) ) ? isalpha( str[pos] ) : 0;
+	int val = ( str && pos>0 && (unsigned int)pos<strlen(str) ) ? ISALPHA( str[pos] ) : 0;
 
 	push_val(st->stack,C_INT,val);
 	return 0;
@@ -11185,9 +11400,9 @@ int buildin_compare(struct script_state *st)                                 {
    message = conv_str(st,& (st->stack->stack_data[st->start+2]));
    cmpstring = conv_str(st,& (st->stack->stack_data[st->start+3]));
    for (j = 0; message[j]; j++)
-    message[j] = tolower(message[j]);
+    message[j] = TOLOWER(message[j]);
    for (j = 0; cmpstring[j]; j++)
-    cmpstring[j] = tolower(cmpstring[j]);    
+    cmpstring[j] = TOLOWER(cmpstring[j]);    
    push_val(st->stack,C_INT,(strstr(message,cmpstring) != NULL));
    return 0;
 }
@@ -11658,7 +11873,7 @@ int buildin_getmonsterinfo(struct script_state *st)
 	mob = mob_db(mob_id);
 	switch ( conv_num(st,& (st->stack->stack_data[st->start+3])) ) {
 		case 0: //Name
-			push_str(st->stack,C_CONSTSTR, mob->jname);
+			push_str(st->stack,C_CONSTSTR,mob->jname);
 			break;
 		case 1: //Lvl
 			push_val(st->stack,C_INT, mob->lv);

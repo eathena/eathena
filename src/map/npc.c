@@ -1470,6 +1470,7 @@ int npc_unload(struct npc_data *nd)
 			}
 		}
 	}
+	script_stop_sleeptimers(nd->bl.id);
 	aFree(nd);
 
 	return 0;

@@ -4,6 +4,29 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2007/01/19
+	* Heavy mergings from trunk (be careful as I haven't closely tested these,
+	  but since they have been in trunk for a while, it should be safe):
+	- Merged most of the updated script engine:
+	- Bigger hash size which leads to less collisions and faster script parsing.
+	- Defines in script.c that let you pick hash method (Dbj2, Sdbm, Elf, Pjw)
+	- Support for opt3 (a?b:c)
+	- More strict function argument format compliance
+	- case insensitivity for reserved words (for/if/else/etc)
+	- Support for negative values in a switch case.
+	- Force require a opening parenthesis for functions.
+	- More extensive script console printout on script errors.
+	- Setfalcon, setpeco, setcart taking an optional parameter to remove them
+	  instead.
+	- charcommand/atcommand script functions don't need you to prefix "player
+	  name: @" on the command to invoke.
+	- Script events now by default should start with 'On'
+	- Various script command cleanups
+	- Exp tables that are now automatically filled up to the max level
+	  specified by duplicating the last entry. To prevent players from leveling
+	  up to the last level, be sure to include a '0' before the last value (eg:
+	  999k,0,999k <- players will get stuck on the 0, unable to progress
+	  forward)
 2007/01/18
 	* Fixed overflow on the mob delay adjustment setting.
 	* Fixed characters being unable to trade again if you attempt a trade on
