@@ -10,9 +10,9 @@
 //= Metto Quest
 //===== Additional Comments: ================================= 
 //= Separated from cities/yuno.txt
-//============================================================
+//============================================================ 
 
- 
+
 yuno_in03.gat,25,39,3	script	Metto	709,{
 	mes "[Metto]";
 	if(metto_q == 2 || metto_q == 4 || metto_q == 6) goto L_Check;

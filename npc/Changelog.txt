@@ -4,18 +4,6 @@ Lupus
 	* Looking for exploits, optimization, bugs hunt
 	* Adding new cards, checking/adding mobs/items
 	* EXP quests for Blacksmith, Merchant, Alchemist
-Mass Zero
-	* Fixing grammatical errors.
-	* Fixing small bugs.
-	* Adding small stuff.
-	* Redoing lots of the custom scripts.
-Massdriller
-	* Correcting & Bugfixing scripts
-MasterOfMuppets
-	* Working on The Sign Quest atm.
-	* Updating Items / Scripts
-Nexon
-	* Adding in the new Abyss/Thanatos/Lighthalzen NPC's and optimizing them.
 erKURITA
 	* Warps maintainment
 Evera
@@ -34,6 +22,14 @@ Playtester
 
 Date		Added
 ======
+2007/01/21
+	* Synchronization of the trunk&stable npc directories [ultramage]
+	- compatibility fixes for the new (stricter) script engine
+	- updates, fixes and cleanups to some scripts (PCLoginEvent, guides_yun,
+	  Global_Functions, quests_ein, the_sign_quest, customs, eaac scripts)
+	- added some custom scripts that were in trunk for some time
+	- removed the temp sign quest script and the temp zondaman event
+	- fixed some typos
 2007/01/19
 	* Merged the required scripts due to the script engine update which is more
 	  strict with function arguments. [Skotlex]
