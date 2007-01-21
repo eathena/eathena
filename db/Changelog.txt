@@ -1,3 +1,11 @@
+01/21
+	* Merged fixes to the db folder from trunk [ultramage]
+	- to make succubus+incubus combo work again
+	- to equip 5154 (Father's Sunglasses) on mid instead of top position
+	- to prevent Owl Duke/Baron from losing boss mode on NPC_EMOTION
+	- to make Dark Priest/LoD/Dracula change YOU to undead instead of self
+	- to make Wand of Hermod behave like an ensemble skill
+	- to allow Shadow Jump in jail zones
 01/18
 	* Fixed Ulle's Cap + Odin's Blessing Combo, thanks to happylight [Lupus]
 12/28
