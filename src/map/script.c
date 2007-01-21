@@ -1347,13 +1347,13 @@ const char* parse_syntax(const char* p) {
 
 			// ğŒ‚ª‹U‚È‚çI—¹’n“_‚É”ò‚Î‚·
 			sprintf(label,"__WL%x_FIN",syntax.curly[syntax.curly_count].index);
+			syntax.curly_count++;
 			add_scriptl(add_str("jump_zero"));
 			add_scriptc(C_ARG);
 			p=parse_expr(p);
 			p=skip_space(p);
 			add_scriptl(add_str(label));
 			add_scriptc(C_FUNC);
-			syntax.curly_count++;
 			return p;
 		}
 		break;
