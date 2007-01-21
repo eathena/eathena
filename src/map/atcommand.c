@@ -4047,13 +4047,11 @@ int atcommand_param(
 		return -1;
 	}
 
-	index = -1;
-	for (index = 0; index < sizeof(param)/sizeof(param[0]); index++) {
-		if (strcmpi(command, param[index]) == 0)
-			break;
-	}
-	if (index == sizeof(param)/sizeof(param[0]) || index > MAX_STATUS_TYPE) {
-		// normaly impossible...
+	for (i = 0; param[i] != NULL; i++)
+		if (strcmpi(command, param[i]) == 0)
+			break;	
+
+	if (param[i] == NULL || i > MAX_STATUS_TYPE) { // normally impossible...
 		sprintf(atcmd_output, "Please, enter a valid value (usage: @str,@agi,@vit,@int,@dex,@luk <+/-adjustement>).");
 		clif_displaymessage(fd, atcmd_output);
 		return -1;
