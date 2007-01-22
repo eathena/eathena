@@ -4817,7 +4817,7 @@ int atcommand_kickall(
 	nullpo_retr(-1, sd);
 
 	pl_allsd = map_getallusers(&users);
-	
+
 	for (i = 0; i < users; i++) {
 		if ((pl_sd = pl_allsd[i]) && pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can kick only lower or same gm level
 			if (sd->status.account_id != pl_sd->status.account_id)
@@ -6695,7 +6695,7 @@ int atcommand_undisguiseall(
 	nullpo_retr(-1, sd);
 
 	pl_allsd = map_getallusers(&users);
-	
+
 	for(i=0; i < users; i++) {
 		if((pl_sd = pl_allsd[i]) && pl_sd->disguise)
 			pc_disguise(pl_sd, 0);
@@ -8779,7 +8779,7 @@ int atcommand_jumptoid(
    int cid=0;
    struct map_session_data *pl_sd;
 
-   memset(atcmd_output, '\0', sizeof(atcmd_output));
+	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
    if (!message || (cid = atoi(message)) == 0) {
       clif_displaymessage(fd, "Please, enter a player CID (usage: @jumptoid/@warptoid/@gotoid <char id>).");
@@ -8824,7 +8824,7 @@ int atcommand_jumptoid2(
    int aid=0;
    struct map_session_data *pl_sd;
 
-   memset(atcmd_output, '\0', sizeof(atcmd_output));
+	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
    if (!message || (aid = atoi(message)) == 0) {
       clif_displaymessage(fd, "Please, enter a player AID (usage: @jumptoid/@warptoid/@gotoid <account id>).");
@@ -8868,7 +8868,7 @@ int atcommand_recallid(
    int cid=0;
    struct map_session_data *pl_sd;
 
-   memset(atcmd_output, '\0', sizeof(atcmd_output));
+	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
    if (!message || (cid = atoi(message)) == 0) {
       clif_displaymessage(fd, "Please, enter a player CID (usage: @recallid <char id>).");
@@ -8919,7 +8919,7 @@ int atcommand_recallid2(
    int aid=0;
    struct map_session_data *pl_sd;
 
-   memset(atcmd_output, '\0', sizeof(atcmd_output));
+	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
    if (!message || (aid = atoi(message)) == 0) {
       clif_displaymessage(fd, "Please, enter a player AID (usage: @recallid2 <account id>).");

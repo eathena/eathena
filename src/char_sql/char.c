@@ -7,7 +7,7 @@
 #include <sys/types.h>
 
 #ifdef _WIN32
-#include <winsock.h>
+#include <winsock2.h>
 #else
 #include <sys/socket.h>
 #include <netinet/in.h> 
@@ -26,6 +26,7 @@
 #include "../common/utils.h"
 #include "../common/strlib.h"
 #include "../common/showmsg.h"
+
 #include "itemdb.h"
 #include "inter.h"
 #include "db.h"
