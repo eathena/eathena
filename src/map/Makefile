@@ -25,6 +25,7 @@ OBJECTS = obj/map.o obj/chrif.o obj/clif.o obj/pc.o obj/status.o obj/npc.o \
 	obj/storage.o obj/skill.o obj/atcommand.o obj/charcommand.o obj/battle.o \
 	obj/intif.o obj/trade.o obj/party.o obj/vending.o obj/guild.o obj/pet.o \
 	obj/log.o obj/mail.o obj/charsave.o obj/date.o obj/unit.o \
+	obj/mercenary.o \
 	$(COMMON_OBJ)
 
 map-server: $(OBJECTS:obj/%=txtobj/%)
@@ -70,6 +71,7 @@ txtobj/log.o: log.c log.h map.h $(COMMON_H)
 txtobj/charcommand.o: charcommand.c charcommand.h itemdb.h pc.h map.h skill.h clif.h mob.h intif.h battle.h storage.h guild.h pet.h log.h $(COMMON_H)
 txtobj/date.o: date.c date.h $(COMMON_H)
 txtobj/unit.o: unit.c unit.h $(COMMON_H)
+txtobj/mercenary.o: mercenary.c mercenary.h $(COMMON_H)
 
 sqlobj/map.o: map.c map.h chrif.h clif.h npc.h pc.h mob.h chat.h skill.h itemdb.h storage.h party.h pet.h atcommand.h log.h $(COMMON_H)
 sqlobj/chrif.o: chrif.c map.h battle.h chrif.h clif.h intif.h pc.h npc.h $(COMMON_H)
@@ -99,3 +101,4 @@ sqlobj/charcommand.o: charcommand.c charcommand.h itemdb.h pc.h map.h skill.h cl
 sqlobj/charsave.o: charsave.c charsave.h $(COMMON_H)
 sqlobj/date.o: date.c date.h $(COMMON_H)
 sqlobj/unit.o: unit.c unit.h $(COMMON_H)
+sqlobj/mercenary.o: mercenary.c mercenary.h $(COMMON_H)

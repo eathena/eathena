@@ -27,6 +27,7 @@
 #include "mob.h"
 #include "npc.h"
 #include "pet.h"
+#include "mercenary.h"	//[orn]
 #include "intif.h"
 #include "skill.h"
 #include "chat.h"
@@ -59,8 +60,11 @@
 #define script_hasdata(st,i) ( (st)->end > (st)->start + (i) )
 /// Returns the index of the last data in the stack
 #define script_lastdata(st) ( (st)->end - (st)->start - 1 )
+/// Pushes an int into the stack
 #define script_pushint(st,val) push_val((st)->stack, C_INT, (val))
+/// Returns if the stack data is a string
 #define script_isstring(data) ( (data)->type == C_STR || (data)->type == C_CONSTSTR )
+/// Returns if the stack data is an int
 #define script_isint(data) ( (data)->type == C_INT )
 
 #define FETCH(n, t) \
@@ -3721,6 +3725,7 @@ int buildin_getvariableofnpc(struct script_state *st);
 
 int buildin_warpportal(struct script_state *st);
 
+int buildin_homunculus_evolution(struct script_state *st) ;	//[orn]
 int buildin_eaclass(struct script_state *st);
 int buildin_roclass(struct script_state *st);
 int buildin_setitemscript(struct script_state *st);
@@ -4051,6 +4056,7 @@ struct script_function buildin_func[] = {
 
 	{buildin_warpportal,"warpportal","iisii"},
 
+	{buildin_homunculus_evolution,"homevolution",""},	//[orn]
 	{buildin_eaclass,"eaclass","*"},	//[Skotlex]
 	{buildin_roclass,"roclass","i*"},	//[Skotlex]
 	{buildin_checkvending,"checkvending","*"},
@@ -5290,7 +5296,7 @@ int buildin_getitem(struct script_state *st)
 	}
 
 	// <amount>
-	if ( ( amount=conv_num(st,& (st->stack->stack_data[st->start+3])) ) <= 0)
+	if( (amount=conv_num(st, script_getdata(st,3))) <= 0)
 		return 0; //return if amount <=0, skip the useles iteration
 
 	memset(&it,0,sizeof(it));
@@ -6039,7 +6045,7 @@ int buildin_strcharinfo(struct script_state *st)
 			break;
 		default:
 			ShowWarning("buildin_strcharinfo: unknown parameter.");
-			push_str(st->stack,C_CONSTSTR,(unsigned char *) "");
+			push_str(st->stack,C_CONSTSTR,"");
 			break;
 	}
 
@@ -7953,6 +7959,21 @@ int buildin_catchpet(struct script_state *st)
 	pet_id= conv_num(st,& (st->stack->stack_data[st->start+2]));
 	sd=script_rid2sd(st);
 	pet_catch_process1(sd,pet_id);
+	return 0;
+}
+
+/*==========================================
+ * [orn]
+ *------------------------------------------
+ */
+int buildin_homunculus_evolution(struct script_state *st)
+{
+	struct map_session_data *sd;
+	sd=script_rid2sd(st);
+	if ( sd->hd && sd->hd->homunculusDB->evo_class && sd->hd->homunculus.intimacy > 91000 ) {
+		return !merc_hom_evolution(sd->hd) ;
+	}
+	clif_emotion(&sd->hd->bl, 4) ;	//swt
 	return 0;
 }
 
@@ -10795,6 +10816,7 @@ int buildin_getsavepoint(struct script_state *st)
   *                                1 - NPC coord
   *                                2 - Pet coord
   *                                3 - Mob coord (not released)
+  *                                4 - Homun coord
   *                     CharName$ - Name object. If miss or "this" the current object
   *
   *             Return:
@@ -10864,6 +10886,15 @@ int buildin_getmapxy(struct script_state *st){
 			break;
 		case 3:	//Get Mob Position
 			break; //Not supported?
+		case 4:	//Get Homun Position
+			if(st->end>st->start+6)
+				sd=map_nick2sd(conv_str(st,& (st->stack->stack_data[st->start+6])));
+			else
+				sd=script_rid2sd(st);
+
+			if (sd && sd->hd)
+				bl = &sd->hd->bl;
+			break;
 	}
 	if (!bl) { //No object found.
 		push_val(st->stack,C_INT,-1);
@@ -12034,6 +12065,9 @@ int buildin_rid2name(struct script_state *st){
 				break;
 			case BL_PET:
 				push_str(st->stack,C_CONSTSTR,((TBL_PET*)bl)->pet.name);
+				break;
+			case BL_HOM:
+				push_str(st->stack,C_CONSTSTR,((TBL_HOM*)bl)->homunculus.name);
 				break;
 			default:
 				ShowError("buildin_rid2name: BL type unknown.\n");

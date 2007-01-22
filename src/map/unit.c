@@ -15,6 +15,7 @@
 #include "pc.h"
 #include "mob.h"
 #include "pet.h"
+#include "mercenary.h"
 #include "skill.h"
 #include "clif.h"
 #include "npc.h"
@@ -37,6 +38,7 @@ struct unit_data* unit_bl2ud(struct block_list *bl) {
 	if( bl->type == BL_MOB) return &((struct mob_data*)bl)->ud;
 	if( bl->type == BL_PET) return &((struct pet_data*)bl)->ud;
 	if( bl->type == BL_NPC) return &((struct npc_data*)bl)->ud;
+	if( bl->type == BL_HOM) return &((struct homun_data*)bl)->ud;	//[orn]
 	return NULL;
 }
 
@@ -403,6 +405,19 @@ int unit_run(struct block_list *bl)
 		return 0;
 	}
 	return 1;
+}
+
+//Makes bl attempt to run dist cells away from target. Uses hard-paths.
+int unit_escape(struct block_list *bl, struct block_list *target, int dist)
+{
+	int dir = map_calc_dir(target, bl->x, bl->y);
+	while (dist > 0 && map_getcell(bl->m,
+		bl->x + dist*dirx[dir], bl->y + dist*diry[dir],
+		CELL_CHKNOREACH))
+		dist--;
+	return (dist > 0 && unit_walktoxy(bl,
+		bl->x + dist*dirx[dir], bl->y + dist*diry[dir],
+		0));
 }
 
 //Instant warp function.
@@ -781,6 +796,18 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 		if (target)
 			target_id = target->id;
 	}
+	if (src->type==BL_HOM)
+	switch(skill_num)
+	{ //Homun-auto-target skills.
+		case HLIF_HEAL:
+		case HLIF_AVOID:
+		case HAMI_DEFENCE:
+		case HAMI_CASTLE:
+			target = battle_get_master(src);
+			if (!target) return 0;
+			target_id = target->id;
+	}
+
 	if(!target && (target=map_id2bl(target_id)) == NULL )
 		return 0;
 	if(src->m != target->m)
@@ -1115,7 +1142,7 @@ int unit_unattackable(struct block_list *bl) {
  *------------------------------------------
  */
 
-int unit_attack(struct block_list *src,int target_id,int type)
+int unit_attack(struct block_list *src,int target_id,int continuous)
 {
 	struct block_list *target;
 	struct unit_data  *ud;
@@ -1150,10 +1177,10 @@ int unit_attack(struct block_list *src,int target_id,int type)
 	}
 
 	ud->target = target_id;
-	ud->state.attack_continue = type;
-	if (type) //If you re to attack continously, set to auto-case character
+	ud->state.attack_continue = continuous;
+	if (continuous) //If you're to attack continously, set to auto-case character
 		ud->chaserange = status_get_range(src);
-	
+
 	//Just change target/type. [Skotlex]
 	if(ud->attacktimer != -1)
 		return 0;
@@ -1581,6 +1608,8 @@ int unit_remove_map(struct block_list *bl, int clrtype) {
 			status_change_end(bl, SC_CHASEWALK, -1);
 		if (sc->data[SC_GOSPEL].timer != -1 && sc->data[SC_GOSPEL].val4 == BCT_SELF)
 			status_change_end(bl, SC_GOSPEL, -1);
+		if (sc->data[SC_CHANGE].timer!=-1)
+			status_change_end(bl, SC_CHANGE, -1);
 	}
 
 	if (bl->type&BL_CHAR) {
@@ -1638,6 +1667,18 @@ int unit_remove_map(struct block_list *bl, int clrtype) {
 		if(pd->pet.intimate <= 0 &&
 			!(pd->msd && pd->msd->state.waitingdisconnect)
 		) {	//If logging out, this is deleted on unit_free
+			clif_clearchar_area(bl,clrtype);
+			map_delblock(bl);
+			unit_free(bl,0);
+			map_freeblock_unlock();
+			return 0;
+		}
+	} else if (bl->type == BL_HOM) {
+		struct homun_data *hd = (struct homun_data *) bl;
+		if(!hd->homunculus.intimacy &&
+			!(hd->master && hd->master->state.waitingdisconnect)
+		) {	//If logging out, this is deleted on unit_free
+			clif_emotion(bl, 28) ;	//sob
 			clif_clearchar_area(bl,clrtype);
 			map_delblock(bl);
 			unit_free(bl,0);
@@ -1822,6 +1863,19 @@ int unit_free(struct block_list *bl, int clrtype) {
 		}
 		if(mob_is_clone(md->class_))
 			mob_clone_delete(md->class_);
+	} else if(bl->type == BL_HOM) {
+		struct homun_data *hd = (TBL_HOM*)bl;
+		struct map_session_data *sd = hd->master;
+		// Desactive timers
+		merc_hom_hungry_timer_delete(hd);
+		if (hd->homunculus.intimacy > 0)
+			merc_save(hd); 
+		else
+		{
+			intif_homunculus_requestdelete(hd->homunculus.hom_id);
+			if (sd) sd->status.hom_id = 0;
+		}
+		if(sd) sd->hd = NULL;
 	}
 
 	skill_clear_unitgroup(bl);

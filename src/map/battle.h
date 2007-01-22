@@ -383,6 +383,7 @@ extern struct Battle_Config {
 	unsigned short berserk_cancels_buffs; // [Aru]
 	unsigned short debuff_on_logout; // Removes a few "official" negative Scs on logout. [Skotlex]
 	unsigned short mob_ai; //Configures various mob_ai settings to make them smarter or dumber(official). [Skotlex]
+	unsigned short hom_setting; //Configures various homunc settings which make them behave unlike normal characters.. [Skotlex]
 	unsigned short dynamic_mobs; // Dynamic Mobs [Wizputer] - battle_athena flag implemented by [random]
 	unsigned short mob_remove_damaged; // Dynamic Mobs - Remove mobs even if damaged [Wizputer]
 	int mob_remove_delay; // Dynamic Mobs - delay before removing mobs from a map [Skotlex]
@@ -439,6 +440,9 @@ extern struct Battle_Config {
 	unsigned short override_mob_names; //Enables overriding spawn mob names with the mob_db names. [Skotlex]
 	unsigned short min_chat_delay; //Minimum time between client messages. [Skotlex]
 	unsigned short friend_auto_add; //When accepting friends, both get friended. [Skotlex]
+	unsigned int hvan_explosion_intimate ;	// fix [albator]
+	unsigned short homunculus_show_growth ;	//[orn]
+	unsigned short homunculus_friendly_rate;
 } battle_config;
 
 void do_init_battle(void);

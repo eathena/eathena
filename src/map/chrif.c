@@ -22,6 +22,7 @@
 #include "npc.h"
 #include "pc.h"
 #include "status.h"
+#include "mercenary.h"
 #ifndef TXT_ONLY
 #include "charsave.h"
 #endif
@@ -226,6 +227,10 @@ int chrif_save(struct map_session_data *sd, int flag)
 	WFIFOB(char_fd,12) = (flag==1)?1:0; //Flag to tell char-server this character is quitting.
 	memcpy(WFIFOP(char_fd,13), &sd->status, sizeof(sd->status));
 	WFIFOSET(char_fd, WFIFOW(char_fd,2));
+
+	if (sd->hd && merc_is_hom_active(sd->hd))
+		merc_save(sd->hd);
+
 	if (flag)
 		sd->state.finalsave = 1; //Mark the last save as done.
 	return 0;

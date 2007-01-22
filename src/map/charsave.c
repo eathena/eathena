@@ -27,16 +27,16 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 	double exp;
 	friends = 0;
 
-         c = (struct mmo_charstatus *)aMalloc(sizeof(struct mmo_charstatus));
+	c = (struct mmo_charstatus *)aCalloc(1,sizeof(struct mmo_charstatus));
 
          if(charid <= 0){
          	ShowError("charsave_loadchar() charid <= 0! (%d)", charid);
 				aFree(c);
          	return NULL;
          }
-
+    // add homun_id [albator]
 	//Tested, Mysql 4.1.9+ has no problems with the long query, the buf is 65k big and the sql server needs for it 0.00009 secs on an athlon xp 2400+ WinXP (1GB Mem) ..  [Sirius]
-         sprintf(tmp_sql, "SELECT `char_id`,`account_id`,`char_num`,`name`,`class`,`base_level`,`job_level`,`base_exp`,`job_exp`,`zeny`, `str`,`agi`,`vit`,`int`,`dex`,`luk`, `max_hp`,`hp`,`max_sp`,`sp`,`status_point`,`skill_point`, `option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`,`hair`,`hair_color`, `clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`, `last_map`,`last_x`,`last_y`,`save_map`,`save_x`,`save_y`, `partner_id`, `father`, `mother`, `child`, `fame` FROM `char` WHERE `char_id` = '%d'", charid);
+		sprintf(tmp_sql, "SELECT `char_id`,`account_id`,`char_num`,`name`,`class`,`base_level`,`job_level`,`base_exp`,`job_exp`,`zeny`, `str`,`agi`,`vit`,`int`,`dex`,`luk`, `max_hp`,`hp`,`max_sp`,`sp`,`status_point`,`skill_point`, `option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`,`hair`,`hair_color`, `clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`, `last_map`,`last_x`,`last_y`,`save_map`,`save_x`,`save_y`, `partner_id`, `father`, `mother`, `child`, `fame`, `homun_id` FROM `char` WHERE `char_id` = '%d'", charid);
     	if(mysql_query(&charsql_handle, tmp_sql)){
 				ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -105,6 +105,7 @@ struct mmo_charstatus *charsave_loadchar(int charid){
          c->mother = atoi(charsql_row[44]);
          c->child = atoi(charsql_row[45]);
          c->fame = atoi(charsql_row[46]);
+			c->hom_id = atoi(charsql_row[47]); // albator
 
 			mysql_free_result(charsql_res);
 
@@ -284,7 +285,7 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
 		"`option`='%d',`karma`='%d',`manner`='%d',`party_id`='%d',`guild_id`='%d',`pet_id`='%d',"
 		"`hair`='%d',`hair_color`='%d',`clothes_color`='%d',`weapon`='%d',`shield`='%d',`head_top`='%d',`head_mid`='%d',`head_bottom`='%d',"
 		"`last_map`='%s',`last_x`='%d',`last_y`='%d',`save_map`='%s',`save_x`='%d',`save_y`='%d',"
-		"`partner_id`='%d', `father`='%d', `mother`='%d', `child`='%d', `fame`='%d'"
+		"`partner_id`='%d', `father`='%d', `mother`='%d', `child`='%d', `fame`='%d', `homun_id`='%d'"
 		"WHERE  `account_id`='%d' AND `char_id` = '%d'",
 		c->class_, c->base_level, c->job_level,
 		c->base_exp, c->job_exp, c->zeny,
@@ -295,7 +296,7 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
 		c->weapon, c->shield, c->head_top, c->head_mid, c->head_bottom,
 		mapindex_id2name(c->last_point.map), c->last_point.x, c->last_point.y,
 		mapindex_id2name(c->save_point.map), c->save_point.x, c->save_point.y, c->partner_id, c->father, c->mother,
-		c->child, c->fame, c->account_id, c->char_id
+		c->child, c->fame, c->hom_id, c->account_id, c->char_id
 	);
          if(mysql_query(&charsql_handle, tmp_sql)){
 				ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));

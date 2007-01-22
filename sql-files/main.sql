@@ -57,6 +57,7 @@ CREATE TABLE `char` (
   `party_id` int(11) unsigned NOT NULL default '0',
   `guild_id` int(11) unsigned NOT NULL default '0',
   `pet_id` int(11) unsigned NOT NULL default '0',
+  `homun_id` int(11) unsigned NOT NULL default '0',
   `hair` tinyint(4) unsigned NOT NULL default '0',
   `hair_color` smallint(5) unsigned NOT NULL default '0',
   `clothes_color` smallint(5) unsigned NOT NULL default '0',
@@ -302,8 +303,39 @@ CREATE TABLE `guild_storage` (
   KEY `guild_id` (`guild_id`)
 ) TYPE=MyISAM;
 
--- Database: Ragnarok
--- Table: 'interlog'
+--
+-- Table structure for table `homunculus`
+--
+
+DROP TABLE IF EXISTS `homunculus`;
+CREATE TABLE `homunculus` (
+  `homun_id` int(11) NOT NULL auto_increment,
+  `char_id` int(11) NOT NULL,
+  `class` mediumint(9) unsigned NOT NULL default '0',
+  `name` varchar(24) NOT NULL default '',
+  `level` smallint(4) NOT NULL default '0',
+  `exp` int(12) NOT NULL default '0',
+  `intimacy` int(12) NOT NULL default '0',
+  `hunger` smallint(4) NOT NULL default '0',
+  `str` smallint(4) unsigned NOT NULL default '0',
+  `agi` smallint(4) unsigned NOT NULL default '0',
+  `vit` smallint(4) unsigned NOT NULL default '0',
+  `int` smallint(4) unsigned NOT NULL default '0',
+  `dex` smallint(4) unsigned NOT NULL default '0',
+  `luk` smallint(4) unsigned NOT NULL default '0',
+  `hp` int(12) NOT NULL default '1',
+  `max_hp` int(12) NOT NULL default '1',
+  `sp` int(12) NOT NULL default '1',
+  `max_sp` int(12) NOT NULL default '1',
+  `skill_point` smallint(4) unsigned NOT NULL default '0',
+  `alive` tinyint(2) NOT NULL default '1',
+  `rename_flag` tinyint(2) NOT NULL default '0',
+  `vaporize` tinyint(2) NOT NULL default '0',
+  PRIMARY KEY  (`homun_id`)
+) TYPE=MyISAM;
+
+-- 
+-- Table structure for table `interlog`
 --
 
 DROP TABLE IF EXISTS `interlog`;
@@ -497,6 +529,19 @@ CREATE TABLE `skill` (
   `lv` tinyint(4) unsigned NOT NULL default '0',
   PRIMARY KEY  (`char_id`,`id`),
   KEY `char_id` (`char_id`)
+) TYPE=MyISAM;
+
+--
+-- Table structure for table `skill_homunculus`
+--
+
+DROP TABLE IF EXISTS `skill_homunculus`;
+CREATE TABLE `skill_homunculus` (
+  `homun_id` int(11) NOT NULL,
+  `id` int(11) NOT NULL,
+  `lv` smallint(6) NOT NULL,
+  PRIMARY KEY  (`homun_id`,`id`),
+  KEY `homun_id` (`homun_id`)
 ) TYPE=MyISAM;
 
 --

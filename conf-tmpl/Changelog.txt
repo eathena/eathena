@@ -1,5 +1,12 @@
 Date	Added
 
+2007/01/22
+	* New @commands (related to homunculus): hominfo, homstats, homtalk,
+	  homlvup, homevolution, makehomun, homfriendly, homhungry, homshuffle
+	* Added config settings related to homunculus: hom_setting,
+	  homunculus_friendly_rate, hvan_explosion_intimate, homunculus_show_growth
+	  (battle/homunc.txt)
+	* enable_baseatk now includes homuncs [Skotlex]
 2007/01/07
 	* merged parts of trunk's config files [ultramage]
 	- added missing config setting for @reset and desc for #reset

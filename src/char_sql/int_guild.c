@@ -7,7 +7,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
 
 #include "../common/mmo.h"
 #include "../common/cbasetypes.h"

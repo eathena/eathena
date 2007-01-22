@@ -244,6 +244,8 @@ int skill_check_cloaking(struct block_list *bl, struct status_change *sc);
 // ステ?タス異常
 int skill_enchant_elemental_end(struct block_list *bl, int type);
 int skillnotok(int skillid, struct map_session_data *sd);
+int skillnotok_hom (int skillid, struct homun_data *hd) ;	//[orn]
+int skill_chastle_mob_changetarget(struct block_list *bl,va_list ap);	//[orn]
 
 // アイテム作成
 int skill_can_produce_mix( struct map_session_data *sd, int nameid, int trigger, int qty);
@@ -257,6 +259,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,int
 int skill_castend_damage_id( struct block_list* src, struct block_list *bl,int skillid,int skilllv,unsigned int tick,int flag );
 int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skilllv,unsigned int tick,int flag);
 int skill_blockpc_start (struct map_session_data*,int,int);	// [celest]
+int skill_blockmerc_start (struct homun_data*,int,int);	//[orn]
 
 // スキル攻?一括?理
 int skill_attack( int attack_type, struct block_list* src, struct block_list *dsrc,
@@ -269,7 +272,7 @@ enum {
 	ST_RECOV_WEIGHT_RATE,ST_MOVE_ENABLE,ST_WATER,
 };
 
-enum {
+enum _skill {
 	NV_BASIC = 1,
 
 	SM_SWORD,

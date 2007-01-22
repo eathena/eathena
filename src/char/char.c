@@ -34,6 +34,7 @@
 #include "char.h"
 #include "inter.h"
 #include "int_pet.h"
+#include "int_homun.h"
 #include "int_guild.h"
 #include "int_party.h"
 #include "int_storage.h"
@@ -431,9 +432,9 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p, struct global_reg *reg, 
 	str_p += sprintf(str_p,
 		"%d\t%d,%d\t%s\t%d,%d,%d\t%u,%u,%d" //Up to Zeny field
 		"\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d" //Up to Skill Point
-		"\t%d,%d,%d\t%d,%d,%d" //Up to pet id
+		"\t%d,%d,%d\t%d,%d,%d,%d" //Up to hom id
 		"\t%d,%d,%d\t%d,%d,%d,%d,%d" //Up to head bottom
-		"\t%s,%d,%d\t%s,%d,%d" //last point + save point
+		"\t%d,%d,%d\t%d,%d,%d" //last point + save point
 		",%d,%d,%d,%d,%d\t",	//Family info
 		p->char_id, p->account_id, p->char_num, p->name, //
 		p->class_, p->base_level, p->job_level,
@@ -442,11 +443,11 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p, struct global_reg *reg, 
 		p->str, p->agi, p->vit, p->int_, p->dex, p->luk,
 		p->status_point, p->skill_point,
 		p->option, p->karma, p->manner,	//
-		p->party_id, p->guild_id, p->pet_id,
+		p->party_id, p->guild_id, p->pet_id, p->hom_id,
 		p->hair, p->hair_color, p->clothes_color,
 		p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
-		mapindex_id2name(p->last_point.map), p->last_point.x, p->last_point.y, //
-		mapindex_id2name(p->save_point.map), p->save_point.x, p->save_point.y,
+		p->last_point.map, p->last_point.x, p->last_point.y, //
+		p->save_point.map, p->save_point.x, p->save_point.y,
 		p->partner_id,p->father,p->mother,p->child,p->fame);
 	for(i = 0; i < MAX_MEMOPOINTS; i++)
 		if (p->memo_point[i].map) {
@@ -503,7 +504,26 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 	// initilialise character
 	memset(p, '\0', sizeof(struct mmo_charstatus));
 	
-	// If it's not char structure of version 1488 and after
+// Char structure of version 1500 (homun + mapindex maps)
+	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+		"\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
+		"\t%d,%d,%d\t%d,%d,%d,%d,%d,%d,%d,%d%n",
+		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0],
+		&tmp_int[3], &tmp_int[4], &tmp_int[5],
+		&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
+		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
+		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
+		&tmp_int[19], &tmp_int[20],
+		&tmp_int[21], &tmp_int[22], &tmp_int[23], //
+		&tmp_int[24], &tmp_int[25], &tmp_int[26], &tmp_int[44],
+		&tmp_int[27], &tmp_int[28], &tmp_int[29],
+		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
+		&tmp_int[45], &tmp_int[35], &tmp_int[36],
+		&tmp_int[46], &tmp_int[37], &tmp_int[38], &tmp_int[39], 
+		&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next) != 48)
+	{
+	tmp_int[44] = 0; //Hom ID.
+// Char structure of version 1488 (fame field addition)
 	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 		"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d,%d,%d,%d,%d%n",
@@ -604,6 +624,10 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 	}	// Char structure version 1008 (marriage partner addition)
 	}	// Char structure of version 1363 (family data addition)
 	}	// Char structure of version 1488 (fame field addition)
+	//Convert save data from string to integer for older formats
+		tmp_int[45] = mapindex_name2id(tmp_str[1]);
+		tmp_int[46] = mapindex_name2id(tmp_str[2]);
+	}	// Char structure of version 1500 (homun + mapindex maps)
 
 	memcpy(p->name, tmp_str[0], NAME_LENGTH-1); //Overflow protection [Skotlex]
 	p->char_id = tmp_int[0];
@@ -668,10 +692,8 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 	p->head_top = tmp_int[32];
 	p->head_mid = tmp_int[33];
 	p->head_bottom = tmp_int[34];
-	p->last_point.map = mapindex_name2id(tmp_str[1]);
 	p->last_point.x = tmp_int[35];
 	p->last_point.y = tmp_int[36];
-	p->save_point.map = mapindex_name2id(tmp_str[2]);
 	p->save_point.x = tmp_int[37];
 	p->save_point.y = tmp_int[38];
 	p->partner_id = tmp_int[39];
@@ -679,6 +701,9 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 	p->mother = tmp_int[41];
 	p->child = tmp_int[42];
 	p->fame = tmp_int[43];
+	p->hom_id = tmp_int[44];
+	p->last_point.map = tmp_int[45];
+	p->save_point.map = tmp_int[46];
 
 #ifndef TXT_SQL_CONVERT
 	// Some checks
@@ -1869,6 +1894,8 @@ static int char_delete(struct mmo_charstatus *cs) {
 	// ƒyƒbƒgíœ
 	if (cs->pet_id)
 		inter_pet_delete(cs->pet_id);
+	if (cs->hom_id)
+		inter_homun_delete(cs->hom_id);
 	for (j = 0; j < MAX_INVENTORY; j++)
 		if (cs->inventory[j].card[0] == (short)0xff00)
 			inter_pet_delete(MakeDWord(cs->inventory[j].card[1],cs->inventory[j].card[2]));

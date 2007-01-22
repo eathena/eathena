@@ -2492,7 +2492,7 @@
 12037,Lotto_Box03,Lotto Box 03,2,,10,20,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem rand(7381,7390),1; },{},{}
 12038,Lotto_Box04,Lotto Box 04,2,,10,20,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem groupranditem(IG_LottoBox),1; },{},{}
 12039,Lotto_Box05,Lotto Box 05,2,,10,20,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem rand(7542,7546),1; },{},{}
-12040,Stone_Of_Intelligence_,Stone of Sage,2,,50000,300,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
+12040,Stone_Of_Intelligence_,Stone of Sage,2,,50000,300,,,,,0xFFFFFFFF,7,2,,,,,,{ homevolution ; },{},{}
 // Mixed Foods (+1 to +5)
 12041,Str_Dish01,Fried Grasshopper Legs,0,2000,,60,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_STRFood, 1200000, 1; percentheal 5,0; },{},{}
 12042,Str_Dish02,Seasoned Sticky Webfoot,0,4000,,500,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_STRFood, 1200000, 2; percentheal 5,0; },{},{}

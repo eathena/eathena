@@ -19,6 +19,7 @@
 #include "int_status.h"
 #include "int_storage.h"
 #include "int_pet.h"
+#include "int_homun.h"
 
 #define WISDATA_TTL (60*1000)	// Existence time of Wisp/page data (60 seconds)
                              	// that is the waiting time of answers of all map-servers
@@ -203,6 +204,8 @@ static int inter_config_read(const char *cfgName) {
 		} else if (strcmpi(w1, "guild_storage_txt") == 0) {
 			strncpy(guild_storage_txt, w2, sizeof(guild_storage_txt));
 #ifndef TXT_SQL_CONVERT
+		} else if (strcmpi(w1, "homun_txt") == 0) {
+			strncpy(homun_txt, w2, sizeof(homun_txt));
 		} else if (strcmpi(w1, "party_share_level") == 0) {
 			party_share_level = (unsigned int)atof(w2);
 		} else if (strcmpi(w1, "inter_log_filename") == 0) {
@@ -247,6 +250,7 @@ int inter_save(void) {
 	inter_storage_save();
 	inter_guild_storage_save();
 	inter_pet_save();
+	inter_homun_save();
 	inter_accreg_save();
 
 	return 0;
@@ -263,6 +267,7 @@ int inter_init_txt(const char *file) {
 	inter_guild_init();
 	inter_storage_init();
 	inter_pet_init();
+	inter_homun_init();
 	inter_accreg_init();
 #endif //TXT_SQL_CONVERT
 	return 0;
@@ -277,6 +282,7 @@ void inter_final(void) {
 	inter_guild_final();
 	inter_storage_final();
 	inter_pet_final();
+	inter_homun_final();
 
 	return;
 }
@@ -659,6 +665,8 @@ int inter_parse_frommap(int fd) {
 		if (inter_storage_parse_frommap(fd))
 			break;
 		if (inter_pet_parse_frommap(fd))
+			break;
+		if (inter_homun_parse_frommap(fd))
 			break;
 		return 0;
 	}

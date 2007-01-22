@@ -1,3 +1,6 @@
+01/22
+	* Merged related db files to homunculus: item_db, skill_db, skill_cast_db,
+	  skill_require_db [Skotlex]
 01/21
 	* Merged fixes to the db folder from trunk [ultramage]
 	- to make succubus+incubus combo work again

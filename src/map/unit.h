@@ -24,6 +24,7 @@ int unit_can_move(struct block_list *bl);
 int unit_is_walking(struct block_list *bl);
 int unit_set_walkdelay(struct block_list *bl, unsigned int tick, int delay, int type);
 
+int unit_escape(struct block_list *bl, struct block_list *target, int dist);
 // 位置の強制移動(吹き飛ばしなど)
 int unit_movepos(struct block_list *bl,int dst_x,int dst_y, int easy, int checkpath);
 int unit_warp(struct block_list *bl, int map, short x, short y, int type);
@@ -36,7 +37,7 @@ int unit_can_reach_bl(struct block_list *bl,struct block_list *tbl, int range, i
 
 // 攻撃関連
 int unit_stop_attack(struct block_list *bl);
-int unit_attack(struct block_list *src,int target_id,int type);
+int unit_attack(struct block_list *src,int target_id,int continuous);
 int unit_cancel_combo(struct block_list *bl);
 
 // スキル使用

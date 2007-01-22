@@ -28,6 +28,7 @@
 #include "skill.h"
 #include "mob.h"
 #include "pet.h"
+#include "mercenary.h"	//[orn]
 #include "battle.h"
 #include "party.h"
 #include "guild.h"
@@ -302,6 +303,16 @@ ACMD_FUNC(tonpc); // LuzZza
 ACMD_FUNC(commands); // [Skotlex]
 ACMD_FUNC(noask); //LuzZza
 ACMD_FUNC(request); //[Skotlex]
+
+ACMD_FUNC(homlevel);	//[orn]
+ACMD_FUNC(homevolution);	//[orn]
+ACMD_FUNC(makehomun);	//[orn]
+ACMD_FUNC(homfriendly);	//[orn]
+ACMD_FUNC(homhungry);	//[orn]
+ACMD_FUNC(homtalk);	//[orn]
+ACMD_FUNC(hominfo);	//[Toms]
+ACMD_FUNC(homstats);	//[Skotlex]
+ACMD_FUNC(homshuffle);	//[Skotlex]
 ACMD_FUNC(showmobs); //KarLaeda
 
 /*==========================================
@@ -625,6 +636,16 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Commands,			"@commands",		1, atcommand_commands }, // [Skotlex]
 	{ AtCommand_NoAsk,				"@noask",			1, atcommand_noask }, // [LuzZza]
 	{ AtCommand_Request,				"@request",			20, atcommand_request }, // [Skotlex]
+
+	{ AtCommand_HomLevel,				"@homlvup",		60, atcommand_homlevel	},
+	{ AtCommand_HomEvolution,				"@homevolution",	60, atcommand_homevolution	},
+	{ AtCommand_MakeHomun,				"@makehomun",	60, atcommand_makehomun	},
+	{ AtCommand_HomFriendly,			"@homfriendly",		60, atcommand_homfriendly },
+	{ AtCommand_HomHungry,			"@homhungry",		60, atcommand_homhungry },
+	{ AtCommand_HomTalk,			"@homtalk",		10, atcommand_homtalk },
+	{ AtCommand_HomInfo,			"@hominfo",		1, atcommand_hominfo },
+	{ AtCommand_HomStats,			"@homstats",		1, atcommand_homstats },
+	{ AtCommand_HomShuffle,			"@homshuffle",		60, atcommand_homshuffle },
 	{ AtCommand_ShowMobs,			"@showmobs",		10, atcommand_showmobs },  //KarLaeda
 // add new commands before this line
 	{ AtCommand_Unknown,			NULL,				 1, NULL }
@@ -5307,6 +5328,7 @@ int atcommand_reloadmobdb(
 	nullpo_retr(-1, sd);
 	mob_reload();
 	read_petdb();
+	merc_reload();
 	clif_displaymessage(fd, msg_txt(98)); // Monster database reloaded.
 
 	return 0;
@@ -5322,6 +5344,7 @@ int atcommand_reloadskilldb(
 {
 	nullpo_retr(-1, sd);
 	skill_reload();
+	merc_skill_reload();
 	clif_displaymessage(fd, msg_txt(99)); // Skill database reloaded.
 
 	return 0;
@@ -7414,6 +7437,7 @@ atcommand_useskill(const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
 	struct map_session_data *pl_sd = NULL;
+	struct block_list *bl;
 	int skillnum;
 	int skilllv;
 	char target[255];
@@ -7429,10 +7453,16 @@ atcommand_useskill(const int fd, struct map_session_data* sd,
 		return -1;
 	}
 
-	if (skill_get_inf(skillnum)&INF_GROUND_SKILL)
-		unit_skilluse_pos(&sd->bl, pl_sd->bl.x, pl_sd->bl.y, skillnum, skilllv);
+	if (skillnum >= HM_SKILLBASE && skillnum <= HM_SKILLBASE+MAX_HOMUNSKILL
+		&& sd->hd && merc_is_hom_active(sd->hd)) // (If used with @useskill, put the homunc as dest)
+		bl = &sd->hd->bl;
 	else
-		unit_skilluse_id(&sd->bl, pl_sd->bl.id, skillnum, skilllv);
+		bl = &sd->bl;
+	
+	if (skill_get_inf(skillnum)&INF_GROUND_SKILL)
+		unit_skilluse_pos(bl, pl_sd->bl.x, pl_sd->bl.y, skillnum, skilllv);
+	else
+		unit_skilluse_id(bl, pl_sd->bl.id, skillnum, skilllv);
 
 	return 0;
 }
@@ -9536,6 +9566,318 @@ int atcommand_showmobs(
     atshowmobs_sub(&sd->bl,0);
 
     return 0;
+}
+
+/*==========================================
+ * homunculus level up [orn]
+ *------------------------------------------
+ */
+int atcommand_homlevel(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	TBL_HOM * hd;
+	int level = 0, i = 0;
+
+	nullpo_retr(-1, sd);
+
+	if (!message || !*message)
+		return -1;
+		
+	if ( !merc_is_hom_active(sd->hd) )
+		return 1 ;
+
+	level = atoi(message);
+	hd = sd->hd;
+	
+	for (i = 1; i <= level && hd->exp_next; i++){
+		hd->homunculus.exp += hd->exp_next;
+		merc_hom_levelup(hd);
+	}
+	status_calc_homunculus(hd,0);
+	status_percent_heal(&hd->bl, 100, 100);
+	clif_misceffect2(&hd->bl,568);
+	return 0;
+}
+
+/*==========================================
+ * homunculus evolution H [orn]
+ *------------------------------------------
+ */
+int atcommand_homevolution(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	nullpo_retr(-1, sd);
+	
+	if (sd->hd && sd->hd->homunculusDB->evo_class)
+	{
+		merc_hom_evolution(sd->hd) ;
+	}
+	return 0;
+}
+
+/*==========================================
+ * call choosen homunculus [orn]
+ *------------------------------------------
+ */
+int
+atcommand_makehomun(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	int homunid;
+	nullpo_retr(-1, sd);
+	if(sscanf(message, "%d", &homunid)<1)
+		return -1;
+	if( homunid < HM_CLASS_BASE || homunid > HM_CLASS_BASE + MAX_HOMUNCULUS_CLASS - 1 )
+		return -1;
+	if(sd->status.hom_id == 0)
+	{
+		merc_create_homunculus_request(sd,homunid);
+	}
+	else
+	{
+		clif_displaymessage(fd,msg_txt(450));
+	}
+	return 0;
+}
+
+/*==========================================
+ * modify homunculus intimacy [orn]
+ *------------------------------------------
+ */
+int atcommand_homfriendly(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	int friendly = 0;
+
+	nullpo_retr(-1, sd);
+
+	if (!message || !*message)
+		return -1;
+
+	friendly = atoi(message);
+	if (merc_is_hom_active(sd->hd)) {
+		if (friendly > 0 && friendly <= 1000) {
+			sd->hd->homunculus.intimacy = friendly * 100 ;
+			clif_send_homdata(sd,SP_INTIMATE,friendly);
+		} else {
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+/*==========================================
+ * modify homunculus hunger [orn]
+ *------------------------------------------
+ */
+int atcommand_homhungry(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	int hungry = 0;
+
+	nullpo_retr(-1, sd);
+
+	if (!message || !*message)
+		return -1;
+
+	hungry = atoi(message);
+	if (sd->status.hom_id > 0 && sd->hd) {
+		struct homun_data *hd = sd->hd;
+		if (hungry >= 0 && hungry <= 100) {
+			hd->homunculus.hunger = hungry;
+			clif_send_homdata(sd,SP_HUNGRY,hd->homunculus.hunger);
+		} else {
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+/*==========================================
+ * modify homunculus hunger [orn]
+ *------------------------------------------
+ */
+int atcommand_homtalk(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	char mes[100],temp[100];
+
+	nullpo_retr(-1, sd);
+
+	if(!merc_is_hom_active(sd->hd))
+		return -1;
+
+	if (sscanf(message, "%99[^\n]", mes) < 1)
+		return -1;
+
+	snprintf(temp, sizeof temp ,"%s : %s",sd->hd->homunculus.name,mes);
+	clif_message(&sd->hd->bl, temp);
+
+	return 0;
+}
+
+/*==========================================
+ * Show homunculus stats
+ *------------------------------------------
+ */
+int atcommand_hominfo(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	struct homun_data *hd;
+	struct status_data *status;
+	nullpo_retr(-1, sd);
+
+	if(!merc_is_hom_active(sd->hd))
+		return -1;
+	hd = sd->hd;
+	status = status_get_status_data(&hd->bl);
+	clif_displaymessage(fd, "Homunculus stats :");
+
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"HP : %d/%d - SP : %d/%d",
+		status->hp, status->max_hp, status->sp, status->max_sp);
+	clif_displaymessage(fd, atcmd_output);
+
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"ATK : %d - MATK : %d~%d",
+		status->rhw.atk2 +status->batk, status->matk_min, status->matk_max);
+	clif_displaymessage(fd, atcmd_output);
+
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"Hungry : %d - Intimacy : %u",
+		hd->homunculus.hunger, hd->homunculus.intimacy/100);
+	clif_displaymessage(fd, atcmd_output);
+
+	snprintf(atcmd_output, sizeof(atcmd_output) ,
+		"Stats: Str %d / Agi %d / Vit %d / Int %d / Dex %d / Luk %d",
+		status->str, status->agi, status->vit,
+		status->int_, status->dex, status->luk);
+	clif_displaymessage(fd, atcmd_output);
+
+	return 0;
+}
+
+int atcommand_homstats(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	struct homun_data *hd;
+	struct homunculus_db *db;
+	struct s_homunculus *hom;
+	int lv;
+
+	nullpo_retr(-1, sd);
+
+	if(!merc_is_hom_active(sd->hd))
+		return -1;
+	hd = sd->hd;
+	
+	hom = &hd->homunculus;
+	db = hd->homunculusDB;
+	lv = hom->level;
+
+	snprintf(atcmd_output, sizeof(atcmd_output) ,
+		"Homunculus growth stats (Lv %d %s):", lv, db->name);
+	clif_displaymessage(fd, atcmd_output);
+	lv--; //Since the first increase is at level 2.
+	
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"Max HP: %d (%d~%d)",
+		hom->max_hp, db->basemaxHP +lv*db->gminHP, db->basemaxHP +lv*db->gmaxHP);
+	clif_displaymessage(fd, atcmd_output);
+
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"Max SP: %d (%d~%d)",
+		hom->max_sp, db->basemaxSP +lv*db->gminSP, db->basemaxSP +lv*db->gmaxSP);
+	clif_displaymessage(fd, atcmd_output);
+
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"Str: %d (%d~%d)",
+		hom->str/10, db->baseSTR +lv*db->gminSTR/10, db->baseSTR +lv*db->gmaxSTR/10);
+	clif_displaymessage(fd, atcmd_output);
+
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"Agi: %d (%d~%d)",
+		hom->agi/10, db->baseAGI +lv*db->gminAGI/10, db->baseAGI +lv*db->gmaxAGI/10);
+	clif_displaymessage(fd, atcmd_output);
+
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"Vit: %d (%d~%d)",
+		hom->vit/10, db->baseVIT +lv*db->gminVIT/10, db->baseVIT +lv*db->gmaxVIT/10);
+	clif_displaymessage(fd, atcmd_output);
+
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"Int: %d (%d~%d)",
+		hom->int_/10, db->baseINT +lv*db->gminINT/10, db->baseINT +lv*db->gmaxINT/10);
+	clif_displaymessage(fd, atcmd_output);
+
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"Dex: %d (%d~%d)",
+		hom->dex/10, db->baseDEX +lv*db->gminDEX/10, db->baseDEX +lv*db->gmaxDEX/10);
+	clif_displaymessage(fd, atcmd_output);
+
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"Luk: %d (%d~%d)",
+		hom->luk/10, db->baseLUK +lv*db->gminLUK/10, db->baseLUK +lv*db->gmaxLUK/10);
+	clif_displaymessage(fd, atcmd_output);
+
+	return 0;
+}
+
+int atcommand_homshuffle(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	struct homun_data *hd;
+	int lv, i, skillpts;
+	unsigned int exp;
+	struct skill b_skill;
+	TBL_PC* tsd = sd;
+
+	nullpo_retr(-1, sd);
+
+	if ((!message || !*message) && !sd->hd)
+	{
+		clif_displaymessage(fd, "usage: @homshuffle <Alchemist's name>");
+		clif_displaymessage(fd, "Use this to recalculate your (or someone else's) homunculus growth data");
+		return -1;
+	}
+	if (message && *message) {
+		tsd = map_nick2sd((char*)message);
+		if (!tsd) {
+			clif_displaymessage(fd, msg_txt(3)); // Character not found.
+			return -1;
+		}
+		if (pc_isGM(tsd) > pc_isGM(sd)) {
+			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+			return -1;
+		}
+	}
+
+	hd = tsd->hd;
+	if(!merc_is_hom_active(hd))
+		return -1;
+	
+	lv = hd->homunculus.level;
+	exp = hd->homunculus.exp;
+	memcpy(&b_skill, &hd->homunculus.hskill, sizeof(b_skill));
+	skillpts = hd->homunculus.skillpts;
+	//Reset values to level 1.
+	merc_reset_stats(hd);
+	//Level it back up
+	for (i = 1; i < lv && hd->exp_next; i++){
+		hd->homunculus.exp += hd->exp_next;
+		merc_hom_levelup(hd);
+	}
+	hd->homunculus.exp = exp;
+	memcpy(&hd->homunculus.hskill, &b_skill, sizeof(b_skill));
+	hd->homunculus.skillpts = skillpts;
+	status_calc_homunculus(hd,0);
+	status_percent_heal(&hd->bl, 100, 100);
+	clif_misceffect2(&hd->bl,568);
+	clif_displaymessage(fd, "Homunculus stats altered");
+	//Print out the new stats
+	//This will send the commands to the invoker since they all use this fd regardless of sd value.
+	atcommand_homstats(fd, tsd, command, message);
+	return 0;
 }
 
 /*==========================================

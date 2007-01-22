@@ -100,6 +100,8 @@ int battle_gettarget(struct block_list *bl)
 			return ((struct mob_data*)bl)->target_id;
 		case BL_PET:
 			return ((struct pet_data*)bl)->target_id;
+		case BL_HOM:
+			return ((struct homun_data*)bl)->ud.target;
 	}
 	return 0;
 }
@@ -437,6 +439,13 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		}
 
 		if (!damage) return 0;
+
+		//Probably not the most correct place, but it'll do here
+		//(since battle_drain is strictly for players currently)
+		if (sc->data[SC_BLOODLUST].timer != -1 && flag&BF_WEAPON && damage > 0 &&
+			rand()%100 < sc->data[SC_BLOODLUST].val3)
+			status_heal(src, damage*sc->data[SC_BLOODLUST].val4/100, 0, 3);
+
 	}
 	//SC effects from caster side. Currently none.
 /*	
@@ -861,7 +870,7 @@ static struct Damage battle_calc_weapon_attack(
 	if(
 		(sd && sd->state.arrow_atk) ||
 		(!sd && ((skill_num && skill_get_ammotype(skill_num)) || sstatus->rhw.range>3))
-	) {	
+	) {
 		wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 		flag.arrow = 1;
 	}
@@ -1121,7 +1130,7 @@ static struct Damage battle_calc_weapon_attack(
 		if(wd.flag&BF_LONG && !skill_num && //Fogwall's hit penalty is only for normal ranged attacks.
 			tsc && tsc->data[SC_FOGWALL].timer!=-1)
 			hitrate-=50;
-			
+
 		if(sd && flag.arrow)
 			hitrate += sd->arrow_hit;
 		if(skill_num)
@@ -1203,12 +1212,12 @@ static struct Damage battle_calc_weapon_attack(
 						sd->inventory_data[index] &&
 						sd->inventory_data[index]->type == IT_WEAPON)
 						wd.damage = sd->inventory_data[index]->weight*8/100; //80% of weight
-					
+
 					ATK_ADDRATE(50*skill_lv); //Skill modifier applies to weight only.
 					index = sstatus->str/10;
 					index = index*index;
 					ATK_ADD(index); //Add str bonus.
-					
+
 					switch (tstatus->size) { //Size-fix. Is this modified by weapon perfection?
 						case 0: //Small: 125%
 							ATK_RATE(125);
@@ -1224,7 +1233,7 @@ static struct Damage battle_calc_weapon_attack(
 			case PA_SHIELDCHAIN:
 				if (sd) {
 					short index = sd->equip_index[EQI_HAND_L];
-					
+
 					wd.damage = sstatus->batk;
 
 					if (index >= 0 &&
@@ -1233,11 +1242,17 @@ static struct Damage battle_calc_weapon_attack(
 						ATK_ADD(sd->inventory_data[index]->weight/10);
 					break;
 				}
+			case HFLI_SBR44:	//[orn]
+				if(src->type == BL_HOM) {
+					wd.damage = ((TBL_HOM*)src)->homunculus.intimacy ;
+					break;
+				}
 			default:
 			{
 				i = (flag.cri?1:0)|
 					(flag.arrow?2:0)|
 					(skill_num == HW_MAGICCRASHER?4:0)|
+					(!skill_num && sc && sc->data[SC_CHANGE].timer!=-1?4:0)|
 					(skill_num == MO_EXTREMITYFIST?8:0)|
 					(sc && sc->data[SC_WEAPONPERFECTION].timer!=-1?8:0);
 				if (flag.arrow && sd)
@@ -1580,6 +1595,12 @@ static struct Damage battle_calc_weapon_attack(
 				case MO_BALKYOUNG:
 					skillratio += 200;
 					break;
+				case HFLI_MOON:	//[orn]
+					skillratio += 10+110*skill_lv;
+					break;
+				case HFLI_SBR44:	//[orn]
+					skillratio += 100 *(skill_lv-1);
+					break;
 			}
 
 			ATK_RATE(skillratio);
@@ -1821,7 +1842,7 @@ static struct Damage battle_calc_weapon_attack(
 
 	if(sd && (skill=pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0) 
 		ATK_ADD(skill*2);
-	
+
 	if(skill_num==TF_POISON)
 		ATK_ADD(15*skill_lv);
 
@@ -1934,10 +1955,10 @@ static struct Damage battle_calc_weapon_attack(
 	if (tsd) {
 		short s_race2,s_class;
 		short cardfix=1000;
-		
+
 		s_race2 = status_get_race2(src);
 		s_class = status_get_class(src);
-		
+
 		cardfix=cardfix*(100-tsd->subele[s_ele])/100;
 		if (flag.lh && s_ele_ != s_ele)
 			cardfix=cardfix*(100-tsd->subele[s_ele_])/100;
@@ -1945,14 +1966,14 @@ static struct Damage battle_calc_weapon_attack(
  		cardfix=cardfix*(100-tsd->subrace2[s_race2])/100;
 		cardfix=cardfix*(100-tsd->subrace[sstatus->race])/100;
 		cardfix=cardfix*(100-tsd->subrace[is_boss(src)?RC_BOSS:RC_NONBOSS])/100;
-		
+
 		for(i=0;i<tsd->add_dmg_count;i++) {
 			if(tsd->add_dmg[i].class_ == s_class) {
 				cardfix=cardfix*(100+tsd->add_dmg[i].rate)/100;
 				break;
 			}
 		}
-	
+
 		if(wd.flag&BF_SHORT)
 			cardfix=cardfix*(100-tsd->near_attack_def_rate)/100;
 		else	// BF_LONG (there's no other choice)
@@ -1972,7 +1993,7 @@ static struct Damage battle_calc_weapon_attack(
 			//Do not return if you are supposed to deal greater damage to plants than 1. [Skotlex]
 			return wd;
 	}
-	
+
 	if(sd && !skill_num && !flag.cri)
 	{	//Check for double attack.
 		if(((skill_lv = pc_checkskill(sd,TF_DOUBLE)) > 0 && sd->weapontype1 == W_DAGGER) || sd->double_rate > 0)
@@ -1994,7 +2015,7 @@ static struct Damage battle_calc_weapon_attack(
 			wd.type = 0x08;
 		}
 	}
-	
+
 	if (sd)
 	{
 		if (!flag.rh && flag.lh) 
@@ -2029,10 +2050,10 @@ static struct Damage battle_calc_weapon_attack(
 
 	if(!flag.rh && wd.damage)
 		wd.damage=0;
-	
+
 	if(!flag.lh && wd.damage2)
 		wd.damage2=0;
-	
+
 	if(wd.damage + wd.damage2)
 	{	//There is a total damage value
 		if(!wd.damage2) {
@@ -2636,6 +2657,9 @@ struct Damage  battle_calc_misc_attack(
 	case GS_FLING:
 		md.damage = sd?sd->status.job_level:status_get_lv(src);
 		break;
+	case HVAN_EXPLOSION:	//[orn]
+		md.damage = sstatus->max_hp * (50 + 50 * skill_lv) / 100 ;
+		break ;
 	case ASC_BREAKER:
 		md.damage = 500+rand()%500 + 5*skill_lv * sstatus->int_;
 		break;
@@ -2976,12 +3000,12 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 	}
 	else if (sc && sc->data[SC_SACRIFICE].timer != -1)
 		return skill_attack(BF_WEAPON,src,src,target,PA_SACRIFICE,sc->data[SC_SACRIFICE].val1,tick,0);
-			
-	wd = battle_calc_weapon_attack(src,target, 0, 0,0);
+
+	wd = battle_calc_weapon_attack(src, target, 0, 0, flag);
 
 	if (sd && sd->state.arrow_atk) //Consume arrow.
 		battle_consume_ammo(sd, 0, 0);
-	
+
 	damage = wd.damage + wd.damage2;
 	if (damage > 0 && src != target) {
 		rdamage = battle_calc_return_damage(target, &damage, wd.flag);
@@ -3113,6 +3137,10 @@ struct block_list* battle_get_master(struct block_list *src)
 				if (((TBL_MOB*)src)->master_id)
 					src = map_id2bl(((TBL_MOB*)src)->master_id);
 				break;
+			case BL_HOM:
+				if (((TBL_HOM*)src)->master)
+					src = (struct block_list*)((TBL_HOM*)src)->master;
+				break;
 			case BL_SKILL:
 				if (((TBL_SKILL*)src)->group && ((TBL_SKILL*)src)->group->src_id)
 					src = map_id2bl(((TBL_SKILL*)src)->group->src_id);
@@ -3202,6 +3230,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		}
 			break;
 		//Valid targets with no special checks here.
+		case BL_HOM:
+			break;
 		//All else not specified is an invalid target.
 		default:	
 			return 0;
@@ -3228,7 +3258,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		{
 			TBL_MOB *md = (TBL_MOB*)t_bl;
 
-			if (!agit_flag && md->guardian_data && md->guardian_data->guild_id)
+			if (!(agit_flag && map[m].flag.gvg_castle) && md->guardian_data && md->guardian_data->guild_id)
 				return 0; //Disable guardians/emperiums owned by Guilds on non-woe times.
 			break;
 		}
@@ -3236,10 +3266,6 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 
 	switch(src->type)
   	{	//Checks on actual src type
-		case BL_MOB:
-			if (!agit_flag && ((TBL_MOB*)src)->guardian_data && ((TBL_MOB*)src)->guardian_data->guild_id)
-				return 0; //Disable guardians/emperium owned by Guilds on non-woe times.
-			break;
 		case BL_PET:
 			if (t_bl->type != BL_MOB && flag&BCT_ENEMY)
 				return 0; //Pet may not attack non-mobs.
@@ -3250,6 +3276,10 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		{
 			struct skill_unit *su = (struct skill_unit *)src;
 			if (!su->group)
+				return 0;
+
+			//For some mysterious reason ground-skills can't target homun.
+			if (target->type == BL_HOM && battle_config.hom_setting&0x2)
 				return 0;
 
 			if (su->group->src_id == target->id)
@@ -3298,7 +3328,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		case BL_MOB:
 		{
 			TBL_MOB*md = (TBL_MOB*)s_bl;
-			if (!agit_flag && md->guardian_data && md->guardian_data->guild_id)
+			if (!(agit_flag && map[m].flag.gvg_castle) && md->guardian_data && md->guardian_data->guild_id)
 				return 0; //Disable guardians/emperium owned by Guilds on non-woe times.
 				if (!md->special_state.ai) { //Normal mobs.
 					if (t_bl->type == BL_MOB && !((TBL_MOB*)t_bl)->special_state.ai)
@@ -3720,6 +3750,7 @@ static const struct battle_data_short {
 
 	{ "debuff_on_logout",                  &battle_config.debuff_on_logout},
 	{ "monster_ai",                        &battle_config.mob_ai},
+	{ "hom_setting",                        &battle_config.hom_setting},
 	{ "dynamic_mobs",                      &battle_config.dynamic_mobs},
 	{ "mob_remove_damaged",                &battle_config.mob_remove_damaged},
 	{ "show_hp_sp_drain",                  &battle_config.show_hp_sp_drain}, // [Skotlex]
@@ -3764,6 +3795,8 @@ static const struct battle_data_short {
 	{ "override_mob_names", 				&battle_config.override_mob_names },
 	{ "min_chat_delay",						&battle_config.min_chat_delay },
 	{ "friend_auto_add",						&battle_config.friend_auto_add },
+	{ "homunculus_show_growth",					&battle_config.homunculus_show_growth },	//[orn]
+	{ "homunculus_friendly_rate",				&battle_config.homunculus_friendly_rate },
 };
 
 static const struct battle_data_int {
@@ -3809,6 +3842,7 @@ static const struct battle_data_int {
 	{ "mob_remove_delay",                  &battle_config.mob_remove_delay	},
 	{ "sg_miracle_skill_min_duration",		&battle_config.sg_miracle_skill_duration_min },
 	{ "sg_miracle_skill_max_duration",		&battle_config.sg_miracle_skill_duration_max },
+	{ "hvan_explosion_intimate",				&battle_config.hvan_explosion_intimate },	//[orn]
 };
 
 int battle_set_value(char *w1, char *w2) {
@@ -3844,7 +3878,7 @@ void battle_set_defaults() {
 	battle_config.enable_critical=BL_PC;
 	battle_config.mob_critical_rate=100;
 	battle_config.critical_rate=100;
-	battle_config.enable_baseatk = BL_PC;
+	battle_config.enable_baseatk = BL_PC|BL_HOM;
 	battle_config.enable_perfect_flee = BL_PC|BL_PET;
 	battle_config.cast_rate=100;
 	battle_config.delay_rate=100;
@@ -4153,6 +4187,7 @@ void battle_set_defaults() {
 	battle_config.debuff_on_logout = 1;
 	battle_config.use_statpoint_table = 1;
 	battle_config.mob_ai = 0;
+	battle_config.hom_setting = 0xFFFF;
 	battle_config.dynamic_mobs = 1; // use Dynamic Mobs [Wizputer]
 	battle_config.mob_remove_damaged = 1; // Dynamic Mobs - Remove mobs even if damaged [Wizputer]
 	battle_config.mob_remove_delay = 60000;
@@ -4202,6 +4237,9 @@ void battle_set_defaults() {
 	battle_config.override_mob_names = 0;
 	battle_config.min_chat_delay = 0;
 	battle_config.friend_auto_add = 1;
+	battle_config.hvan_explosion_intimate = 45000;	//[orn]
+	battle_config.homunculus_show_growth = 0;	//[orn]
+	battle_config.homunculus_friendly_rate = 100;
 }
 
 void battle_validate_conf() {
@@ -4395,6 +4433,9 @@ void battle_validate_conf() {
 	if (battle_config.cell_stack_limit != 1)
 		ShowWarning("Battle setting 'cell_stack_limit' takes no effect as this server was compiled without Cell Stack Limit support.\n");
 #endif
+
+	if(battle_config.hvan_explosion_intimate > 100000)	//[orn]
+		battle_config.hvan_explosion_intimate = 100000;
 }
 
 /*==========================================

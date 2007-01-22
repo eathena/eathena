@@ -104,6 +104,8 @@
 #define HM_SKILLBASE 8000
 #define MAX_HOMUNSKILL 16
 #define MAX_HOMUNCULUS_CLASS	16	//[orn]
+#define HM_CLASS_BASE 6001
+#define HM_CLASS_MAX 6099
 
 struct item {
 	int id;
@@ -158,6 +160,28 @@ struct s_pet {
 	char incuvate;
 };
 
+struct s_homunculus {	//[orn]
+	char name[NAME_LENGTH];
+	int hom_id;
+	int char_id;
+	short class_;
+	int hp,max_hp,sp,max_sp;
+	unsigned int intimacy;	//[orn]
+	short hunger;
+	struct skill hskill[MAX_HOMUNSKILL]; //albator
+	short skillpts;
+	short level;
+	unsigned int exp;
+	short rename_flag;
+	short vaporize; //albator
+	int str ;
+	int agi ;
+	int vit ;
+	int int_ ;
+	int dex ;
+	int luk ;
+};
+
 struct friend {
 	int account_id;
 	int char_id;
@@ -182,7 +206,7 @@ struct mmo_charstatus {
 	short manner;
 	unsigned char karma;
 	short hair,hair_color,clothes_color;
-	int party_id,guild_id,pet_id;
+	int party_id,guild_id,pet_id,hom_id;
 	int fame;
 
 	short weapon,shield;

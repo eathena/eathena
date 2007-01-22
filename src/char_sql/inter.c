@@ -15,6 +15,7 @@
 #include "int_guild.h"
 #include "int_storage.h"
 #include "int_pet.h"
+#include "int_homun.h" //albator
 
 #define WISDATA_TTL (60*1000)	// Wisデータの生存時間(60秒)
 #define WISDELLIST_MAX 256			// Wisデータ削除リストの要素数
@@ -364,6 +365,7 @@ int inter_init_sql(const char *file)
 	inter_storage_sql_init();
 	inter_party_sql_init();
 	inter_pet_sql_init();
+	inter_homunculus_sql_init(); // albator
 	inter_accreg_sql_init();
 
 	if (connection_ping_interval) {
@@ -420,6 +422,7 @@ void inter_final(void) {
 	inter_storage_sql_final();
 	inter_party_sql_final();
 	inter_pet_sql_final();
+	inter_homunculus_sql_final();	//[orn]
 	
 	if (accreg_pt) aFree(accreg_pt);
 	return;
@@ -791,6 +794,8 @@ int inter_parse_frommap(int fd)
 		if(inter_storage_parse_frommap(fd))
 			break;
 		if(inter_pet_parse_frommap(fd))
+			break;
+		if(inter_homunculus_parse_frommap(fd)) //albator
 			break;
 		return 0;
 	}

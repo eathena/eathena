@@ -399,7 +399,13 @@ enum {
 	SI_BUNSINJYUTSU		= 207,
 	SI_NEN				= 208,
 	SI_ADJUSTMENT		= 209,
-	SI_ACCURACY			= 210
+	SI_ACCURACY			= 210,
+	SI_FOODSTR			= 241,
+	SI_FOODAGI			= 242,
+	SI_FOODVIT			= 243,
+	SI_FOODDEX			= 244,
+	SI_FOODINT			= 245,
+	SI_FOODLUK			= 246,
 };
 
 extern int current_equip_item_index;
@@ -517,9 +523,9 @@ enum {
 #define SCB_ALL	0x3FFFFFFF
 
 //Define to determine who gets HP/SP consumed on doing skills/etc. [Skotlex]
-#define BL_CONSUME (BL_PC)
+#define BL_CONSUME (BL_PC|BL_HOM)
 //Define to determine who has regen
-#define BL_REGEN (BL_PC)
+#define BL_REGEN (BL_PC|BL_HOM)
 
 int status_damage(struct block_list *src,struct block_list *target,int hp,int sp, int walkdelay, int flag);
 //Define for standard HP damage attacks.
@@ -626,7 +632,7 @@ void status_calc_bl(struct block_list *bl, unsigned long flag);
 int status_calc_pet(struct pet_data* pd, int first); // [Skotlex]
 int status_calc_pc(struct map_session_data* sd,int first);
 int status_calc_mob(struct mob_data* md, int first); //[Skotlex]
-
+int status_calc_homunculus(struct homun_data *hd, int first);
 void status_calc_misc(struct block_list *bl, struct status_data *status, int level);
 void status_calc_regen(struct block_list *bl, struct status_data *status, struct regen_data *regen);
 void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, struct status_change *sc);

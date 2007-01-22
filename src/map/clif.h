@@ -352,6 +352,16 @@ void clif_feel_info(struct map_session_data *sd, unsigned char feel_level, unsig
 void clif_hate_info(struct map_session_data *sd, unsigned char hate_level,int class_, unsigned char type);
 void clif_mission_info(struct map_session_data *sd, int mob_id, unsigned char progress);
 void clif_feel_hate_reset(struct map_session_data *sd);
+
+// [blackhole89]
+int clif_spawnhomun(struct homun_data *hd);
+int clif_hominfo(struct map_session_data *sd, struct homun_data *hd, int flag);
+int clif_homskillinfoblock(struct map_session_data *sd);
+void clif_homskillup(struct map_session_data *sd, int skill_num) ;	//[orn]
+int clif_hom_food(struct map_session_data *sd,int foodid,int fail);	//[orn]
+void clif_send_homdata(struct map_session_data *sd, int type, int param);	//[orn]
+int clif_hwalkok(struct homun_data *hd);	//[orn]
+
 #endif
 
 

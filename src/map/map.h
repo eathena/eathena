@@ -181,7 +181,7 @@ enum bl_type {
 	BL_PC = 0x001,
 	BL_MOB = 0x002,
 	BL_PET = 0x004,
-//	BL_HOM = 0x008,	//[blackhole89]
+	BL_HOM = 0x008,	//[blackhole89]
 	BL_ITEM = 0x010,
 	BL_SKILL = 0x020,
 	BL_NPC = 0x040,
@@ -189,7 +189,7 @@ enum bl_type {
 };
 
 //For common mapforeach calls. Since pets cannot be affected, they aren't included here yet.
-#define BL_CHAR (BL_PC|BL_MOB)
+#define BL_CHAR (BL_PC|BL_MOB|BL_HOM)
 #define BL_ALL 0xfff
 
 enum bl_subtype { WARP, SHOP, SCRIPT, MONS };
@@ -537,6 +537,7 @@ struct party_data {
 
 struct npc_data;
 struct pet_db;
+struct homunculus_db;	//[orn]
 struct item_data;
 struct square;
 
@@ -797,6 +798,7 @@ struct map_session_data {
 	struct vending vending[MAX_VENDING];
 
 	struct pet_data *pd;
+	struct homun_data *hd;	// [blackhole89]
 
 	struct{
 		int  m; //-1 - none, other: map index corresponding to map name.
@@ -946,6 +948,7 @@ struct mob_data {
 	struct {
 		int id;
 		int dmg;
+		unsigned flag : 1; //0: Normal. 1: Homunc exp
 	} dmglog[DAMAGELOG_SIZE];
 	struct spawn_data *spawn; //Spawn data.
 	struct item *lootitem;
@@ -966,6 +969,23 @@ struct mob_data {
 	short skillidx;
 	unsigned int skilldelay[MAX_MOBSKILL];
 	char npc_event[50];
+};
+
+/* [blackhole89] */
+struct homun_data {
+	struct block_list bl;
+	struct unit_data  ud;
+	struct view_data *vd;
+	struct status_data base_status, battle_status;
+	struct status_change sc;
+	struct regen_data regen;
+	struct homunculus_db *homunculusDB;	//[orn]
+	struct s_homunculus homunculus ;	//[orn]
+
+	struct map_session_data *master; //pointer back to its master
+	int hungry_timer;	//[orn]
+	unsigned int exp_next;
+	char blockskill[MAX_SKILL];	// [orn]
 };
 
 struct pet_data {
@@ -1461,6 +1481,7 @@ typedef struct flooritem_data   TBL_ITEM;
 typedef struct chat_data        TBL_CHAT;
 typedef struct skill_unit       TBL_SKILL;
 typedef struct pet_data         TBL_PET;
+typedef struct homun_data       TBL_HOM;
 
 #define BL_CAST(type_, bl , dest) \
 	(((bl) == NULL || (bl)->type != type_) ? ((dest) = NULL, 0) : ((dest) = (T ## type_ *)(bl), 1))
