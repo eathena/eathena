@@ -1,4 +1,7 @@
 Date	Added
+2007/01/23
+	* Fixed the new skills not compiling. some things still need to be converted so
+	  those are commented out for now [Reddozen]
 2007/01/22
 	* Migrated 13 Skills to the new skill system.
 	  I will keep migrating a few a day untill i'm done [Reddozen]

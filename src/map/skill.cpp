@@ -88,6 +88,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// some test class
+/*
 class dummyskill : public skillbase
 {
 	const char* msg;
@@ -134,6 +135,7 @@ public:
 		return 1;
 	}
 };
+*/
 
 //////////////////////////////////////////
 /// Skillname: SM_BASH
@@ -310,6 +312,7 @@ public:
 		if(bl)
 		{
 			// weapon attack
+			/*	//need to convert to work with new code. [Reddozen]
 			if(flag&1 && bl->id != skill_area_temp[1]){
 				int dist = bl->get_distance(skill_area_temp[2], skill_area_temp[3]);
 				skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0x0500|dist);
@@ -321,7 +324,9 @@ public:
 					src->m,((int)src->x)-2,((int)src->y)-2,((int)src->x)+2,((int)src->y)+2,BL_ALL);
 				clif_skill_nodamage (*src,*src,skillid,skilllv,1);
 				status_change_start (src,SC_WATK_ELEMENT,3,10,0,0,10000,0); //Initiate 10% of your damage becomes fire element.
+				
 			}
+			*/
 
 			// additional effect
 		}
@@ -354,7 +359,7 @@ public:
 class skill_sm_endure : public targetskill
 {
 public:
-	skill_sm_magnum(fightable& caster, ushort lvl, uint32 id)
+	skill_sm_endure(fightable& caster, ushort lvl, uint32 id)
 		: targetskill(caster, lvl, id)
 	{}
 	virtual ~skill_sm_endure()
@@ -376,9 +381,10 @@ public:
 		if(bl)
 		{
 			// weapon attack
-			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
-			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
-			if(sd) pc_blockskill_start(*sd, skillid, 10000);
+			struct map_session_data *sd = bl->get_sd();
+			clif_skill_nodamage(this->caster,*bl,SKILLID, this->skill_lvl,1);
+			status_change_start(bl,SkillStatusChangeTable[SKILLID],this->skill_lvl,0,0,0,skill_get_time(SKILLID,this->skill_lvl),0 );
+			if(sd) pc_blockskill_start(*sd, SKILLID, 10000);
 			
 			// additional effect
 		}
@@ -433,8 +439,8 @@ public:
 		if(bl)
 		{
 			// weapon attack
-			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
-			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
+			clif_skill_nodamage(this->caster,*bl,SKILLID, this->skill_lvl,1);
+			status_change_start(bl,SkillStatusChangeTable[SKILLID],this->skill_lvl,0,0,0,skill_get_time(SKILLID,this->skill_lvl),0 );
 			
 			// additional effect
 		}
@@ -489,6 +495,7 @@ public:
 		if(bl)
 		{
 			// weapon attack
+			/*	//need to convert to work with new code. [Reddozen]
 			if (flag & 1)
 			{
 				if (bl->id != skill_area_temp[1])
@@ -505,7 +512,7 @@ public:
 				block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1, skill_castend_damage_id),
 					bl->m,((int)bl->x)-ar,((int)bl->y)-ar,((int)bl->x)+ar,((int)bl->y)+ar,BL_ALL);
 			}
-
+			*/
 			// additional effect
 		}
 	}
@@ -559,7 +566,8 @@ public:
 		if(bl)
 		{
 			// weapon attack
-			skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+			//skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+			skill_attack(BF_MAGIC,&this->caster,&this->caster,bl,SKILLID,this->skill_lvl,tick,0);
 
 			// additional effect
 		}
@@ -628,7 +636,8 @@ public:
 
 			return (dmg.damage+dmg.damage2); */
 
-			skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+			//skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+			skill_attack(BF_MAGIC,&this->caster,&this->caster,bl,SKILLID,this->skill_lvl,tick,0);
 
 			// additional effect
 		}
@@ -683,15 +692,19 @@ public:
 		if(bl)
 		{
 			// weapon attack
-			skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+			//skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+			skill_attack(BF_MAGIC,&this->caster,&this->caster,bl,SKILLID,this->skill_lvl,tick,0);
 
 			// additional effect
+			int sc_def_mdef = status_get_sc_def_mdef (bl);
+
 			struct status_change *sc_data = status_get_sc_data(bl);
-			rate = (skilllv*3+35)*sc_def_mdef/100-(bl->get_int()+bl->get_luk())/15;
+			int rate = (this->skill_lvl*3+35)*sc_def_mdef/100-(bl->get_int()+bl->get_luk())/15;
 			if (rate <= 5)
 				rate = 5;
 			if(sc_data && sc_data[SC_FREEZE].timer == -1 && rand()%100 < rate)
-				status_change_start(bl,SC_FREEZE,skilllv,0,0,0,skill_get_time2(skillid,skilllv)*(1-sc_def_mdef/100),0);
+				status_change_start(bl,SkillStatusChangeTable[SKILLID],this->skill_lvl,0,0,0,skill_get_time(SKILLID,this->skill_lvl),0 );
+				//status_change_start(bl,SC_FREEZE,skilllv,0,0,0,skill_get_time2(skillid,skilllv)*(1-sc_def_mdef/100),0);
 		}
 	}
 	/// function called when stopped
@@ -747,11 +760,14 @@ public:
 
 			// additional effect
 			struct status_change *sc_data = status_get_sc_data(bl);
+			struct map_session_data *sd = bl->get_sd();
+			struct mob_data *dstmd = bl->get_md();
+
 			// Level 6-10 doesn't consume a red gem if it fails [celest]
 			int i, gem_flag = 1, fail_flag = 0;
 			if (dstmd && bl->get_mode()&0x20)
 			{
-				if(sd) sd->skill_failed(sd->skillid);
+				if(sd) sd->skill_failed(SKILLID);
 					return;
 			}
 			
@@ -763,33 +779,31 @@ public:
 				if (sd)
 				{
 					fail_flag = 1;
-					sd->skill_failed(skillid);
+					sd->skill_failed(SKILLID);
 				}
 			}
-			else if( rand()%100< skilllv*4+20 && !bl->is_undead())
+			else if( rand()%100< this->skill_lvl*4+20 && !bl->is_undead())
 			{
-				clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
-				status_change_start(bl,SC_STONE,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+				clif_skill_nodamage(this->caster,*bl,SKILLID, this->skill_lvl,1);
+				status_change_start(bl,SkillStatusChangeTable[SKILLID],this->skill_lvl,0,0,0,skill_get_time(SKILLID,this->skill_lvl),0 );
 			}
 			else if(sd)
 			{
-				if (skilllv > 5) gem_flag = 0;
-				sd->skill_failed(skillid);
+				if (this->skill_lvl > 5) gem_flag = 0;
+				sd->skill_failed(SKILLID);
 				fail_flag = 1;
 			}
 			if (dstmd)
-				mob_target(*dstmd,src,skill_get_range(skillid,skilllv));
+				mob_target(*dstmd,&this->caster,skill_get_range(SKILLID,this->skill_lvl));
 			if (sd && gem_flag)
 			{
-				if ((i=pc_search_inventory(*sd, skill_db[skillid].itemid[0])) < 0 )
+				if ((i=pc_search_inventory(*sd, skill_db[SKILLID].itemid[0])) < 0 )
 				{
 					if (!fail_flag) sd->skill_failed(sd->skillid);
 						return;
 				}
-				pc_delitem(*sd, i, skill_db[skillid].amount[0], 0);
+				pc_delitem(*sd, i, skill_db[SKILLID].amount[0], 0);
 			}
-
-			delitem_flag = 0;
 		}
 	}
 	/// function called when stopped
@@ -842,6 +856,7 @@ public:
 		if(bl)
 		{
 			// weapon attack
+			/* no definition for flags
 			if (flag & 1)
 			{
 				if (bl->id != skill_area_temp[1])
@@ -904,8 +919,7 @@ public:
 				}
 				pc_delitem(*sd, i, skill_db[skillid].amount[0], 0);
 			}
-
-			delitem_flag = 0;
+			*/
 		}
 	}
 	/// function called when stopped
@@ -972,7 +986,8 @@ public:
 
 			return (dmg.damage+dmg.damage2); */
 
-			skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+			//skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+			skill_attack(BF_MAGIC,&this->caster,&this->caster,bl,SKILLID,this->skill_lvl,tick,0);
 
 			// additional effect
 		}
@@ -1041,7 +1056,8 @@ public:
 
 			return (dmg.damage+dmg.damage2); */
 
-			skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+			//skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+			skill_attack(BF_MAGIC,&this->caster,&this->caster,bl,SKILLID,this->skill_lvl,tick,0);
 
 			// additional effect
 		}
@@ -1142,7 +1158,7 @@ skillbase* skillbase::create(fightable& caster, ushort skillid, ushort skilllv, 
 	skillbase* skill = NULL;
 	switch(skillid)
 	{
-	case dummyskill::SKILLID:	skill = new dummyskill(caster, "targetskill"); break;
+	//case dummyskill::SKILLID:	skill = new dummyskill(caster, "targetskill"); break;
 
 	case skill_sm_bash::SKILLID:    skill = new skill_sm_bash(caster, skilllv, targetid); break;
 	case skill_sm_provoke::SKILLID: skill = new skill_sm_provoke(caster, skilllv, targetid); break;
@@ -1152,7 +1168,7 @@ skillbase* skillbase::create(fightable& caster, ushort skillid, ushort skilllv, 
 	case skill_mg_napalmbeat::SKILLID: skill = new skill_mg_napalmbeat(caster, skilllv, targetid); break;
 	case skill_mg_soulstrike::SKILLID: skill = new skill_mg_soulstrike(caster, skilllv, targetid); break;
 	case skill_mg_coldbolt::SKILLID: skill = new skill_mg_coldbolt(caster, skilllv, targetid); break;
-	case skill_mg_frostdriver::SKILLID: skill = new skill_mg_frostdriver(caster, skilllv, targetid); break;
+	case skill_mg_frostdiver::SKILLID: skill = new skill_mg_frostdiver(caster, skilllv, targetid); break;
 	case skill_mg_stonecurse::SKILLID: skill = new skill_mg_stonecurse(caster, skilllv, targetid); break;
 	case skill_mg_fireball::SKILLID: skill = new skill_mg_fireball(caster, skilllv, targetid); break;
 	case skill_mg_firebolt::SKILLID: skill = new skill_mg_firebolt(caster, skilllv, targetid); break;
@@ -1170,7 +1186,7 @@ skillbase* skillbase::create(fightable& caster, ushort skillid, ushort skilllv, 
 	skillbase* skill = NULL;
 	switch(skillid)
 	{
-	case dummyskill::SKILLID:	skill = new dummyskill(caster,"areaskill"); break;
+	//case dummyskill::SKILLID:	skill = new dummyskill(caster,"areaskill"); break;
 	// add new area skills here
 	}
 	// check for timed or immediate execution
@@ -1183,7 +1199,7 @@ skillbase* skillbase::create(fightable& caster, ushort skillid, const char*mapna
 	skillbase* skill = NULL;
 	switch(skillid)
 	{
-	case dummyskill::SKILLID:	skill = new dummyskill(caster,"mapskill"); break;
+	//case dummyskill::SKILLID:	skill = new dummyskill(caster,"mapskill"); break;
 	// add new map skills here
 	}
 	// check for timed or immediate execution
