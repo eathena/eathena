@@ -1,4 +1,7 @@
 Date	Added
+2007/01/22
+	* Migrated 13 Skills to the new skill system.
+	  I will keep migrating a few a day untill i'm done [Reddozen]
 2006/12/30
 	* Updated WFIFOPOS2 and WBUFPOS2. [FlavioJS]
 2006/12/23

@@ -282,8 +282,791 @@ public:
 	}
 };
 
+//////////////////////////////////////////
+/// Skillname: SM_MAGNUM
+/// skill ID: 7
+class skill_sm_magnum : public targetskill
+{
+public:
+	skill_sm_magnum(fightable& caster, ushort lvl, uint32 id)
+		: targetskill(caster, lvl, id)
+	{}
+	virtual ~skill_sm_magnum()
+	{}
 
+	/// identifier.
+	enum {SKILLID = SM_MAGNUM};
 
+	/// function called for initialisation.
+	virtual bool init(ulong& timeoffset)
+	{
+		timeoffset = skill_castfix(&this->caster, skill_get_cast(SKILLID, this->skill_lvl));
+		return true;
+	}
+	/// function called for execution.
+	virtual void action(unsigned long tick)
+	{
+		block_list* bl=block_list::from_blid(this->target_id);
+		if(bl)
+		{
+			// weapon attack
+			if(flag&1 && bl->id != skill_area_temp[1]){
+				int dist = bl->get_distance(skill_area_temp[2], skill_area_temp[3]);
+				skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0x0500|dist);
+			} else {
+				skill_area_temp[1]=src->id;
+				skill_area_temp[2]=src->x;
+				skill_area_temp[3]=src->y;
+				block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1, skill_castend_damage_id),
+					src->m,((int)src->x)-2,((int)src->y)-2,((int)src->x)+2,((int)src->y)+2,BL_ALL);
+				clif_skill_nodamage (*src,*src,skillid,skilllv,1);
+				status_change_start (src,SC_WATK_ELEMENT,3,10,0,0,10000,0); //Initiate 10% of your damage becomes fire element.
+			}
+
+			// additional effect
+		}
+	}
+	/// function called when stopped
+	virtual void stop()
+	{	
+		this->caster.skill_stopped(SKILLID);
+	}
+	virtual bool is_valid(skillfail_t&) const
+	{
+		block_list* bl;
+		return	(
+			(this->caster.skill_check(SKILLID)>0) &&
+			(bl=block_list::from_blid(this->target_id))!=NULL &&
+			bl->is_on_map() &&
+			!bl->is_dead() &&
+			!bl->is_hiding() );
+	}
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+};
+
+//////////////////////////////////////////
+/// Skillname: SM_ENDURE
+/// skill ID: 8
+class skill_sm_endure : public targetskill
+{
+public:
+	skill_sm_magnum(fightable& caster, ushort lvl, uint32 id)
+		: targetskill(caster, lvl, id)
+	{}
+	virtual ~skill_sm_endure()
+	{}
+
+	/// identifier.
+	enum {SKILLID = SM_ENDURE};
+
+	/// function called for initialisation.
+	virtual bool init(ulong& timeoffset)
+	{
+		timeoffset = skill_castfix(&this->caster, skill_get_cast(SKILLID, this->skill_lvl));
+		return true;
+	}
+	/// function called for execution.
+	virtual void action(unsigned long tick)
+	{
+		block_list* bl=block_list::from_blid(this->target_id);
+		if(bl)
+		{
+			// weapon attack
+			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
+			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
+			if(sd) pc_blockskill_start(*sd, skillid, 10000);
+			
+			// additional effect
+		}
+	}
+	/// function called when stopped
+	virtual void stop()
+	{	
+		this->caster.skill_stopped(SKILLID);
+	}
+	virtual bool is_valid(skillfail_t&) const
+	{
+		block_list* bl;
+		return	(
+			(this->caster.skill_check(SKILLID)>0) &&
+			(bl=block_list::from_blid(this->target_id))!=NULL &&
+			bl->is_on_map() &&
+			!bl->is_dead() &&
+			!bl->is_hiding() );
+	}
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+};
+
+//////////////////////////////////////////
+/// Skillname: MG_SIGHT
+/// skill ID: 10
+class skill_mg_sight : public targetskill
+{
+public:
+	skill_mg_sight(fightable& caster, ushort lvl, uint32 id)
+		: targetskill(caster, lvl, id)
+	{}
+	virtual ~skill_mg_sight()
+	{}
+
+	/// identifier.
+	enum {SKILLID = MG_SIGHT};
+
+	/// function called for initialisation.
+	virtual bool init(ulong& timeoffset)
+	{
+		timeoffset = skill_castfix(&this->caster, skill_get_cast(SKILLID, this->skill_lvl));
+		return true;
+	}
+	/// function called for execution.
+	virtual void action(unsigned long tick)
+	{
+		block_list* bl=block_list::from_blid(this->target_id);
+		if(bl)
+		{
+			// weapon attack
+			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
+			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
+			
+			// additional effect
+		}
+	}
+	/// function called when stopped
+	virtual void stop()
+	{	
+		this->caster.skill_stopped(SKILLID);
+	}
+	virtual bool is_valid(skillfail_t&) const
+	{
+		block_list* bl;
+		return	(
+			(this->caster.skill_check(SKILLID)>0) &&
+			(bl=block_list::from_blid(this->target_id))!=NULL &&
+			bl->is_on_map() &&
+			!bl->is_dead() &&
+			!bl->is_hiding() );
+	}
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+};
+
+//////////////////////////////////////////
+/// Skillname: MG_NAPALMBEAT
+/// skill ID: 11
+class skill_mg_napalmbeat : public targetskill
+{
+public:
+	skill_mg_napalmbeat(fightable& caster, ushort lvl, uint32 id)
+		: targetskill(caster, lvl, id)
+	{}
+	virtual ~skill_mg_napalmbeat()
+	{}
+
+	/// identifier.
+	enum {SKILLID = MG_NAPALMBEAT};
+
+	/// function called for initialisation.
+	virtual bool init(ulong& timeoffset)
+	{
+		timeoffset = skill_castfix(&this->caster, skill_get_cast(SKILLID, this->skill_lvl));
+		return true;
+	}
+	/// function called for execution.
+	virtual void action(unsigned long tick)
+	{
+		block_list* bl=block_list::from_blid(this->target_id);
+		if(bl)
+		{
+			// weapon attack
+			if (flag & 1)
+			{
+				if (bl->id != skill_area_temp[1])
+					skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,skill_area_temp[0]| 0x0500);
+			} else {
+				int ar = 1;
+				skill_area_temp[0]=0;
+				skill_area_temp[1]=bl->id;
+				block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick,flag|BCT_ENEMY,skill_area_sub_count),
+						bl->m,((int)bl->x)-ar,((int)bl->y)-ar,((int)bl->x)+ar,((int)bl->y)+ar,BL_ALL);
+
+				skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,skill_area_temp[0]);
+
+				block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1, skill_castend_damage_id),
+					bl->m,((int)bl->x)-ar,((int)bl->y)-ar,((int)bl->x)+ar,((int)bl->y)+ar,BL_ALL);
+			}
+
+			// additional effect
+		}
+	}
+	/// function called when stopped
+	virtual void stop()
+	{	
+		this->caster.skill_stopped(SKILLID);
+	}
+	virtual bool is_valid(skillfail_t&) const
+	{
+		block_list* bl;
+		return	(
+			(this->caster.skill_check(SKILLID)>0) &&
+			(bl=block_list::from_blid(this->target_id))!=NULL &&
+			bl->is_on_map() &&
+			!bl->is_dead() &&
+			!bl->is_hiding() );
+	}
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+};
+
+//////////////////////////////////////////
+/// Skillname: MG_SOULSTRIKE
+/// skill ID: 13
+class skill_mg_soulstrike : public targetskill
+{
+public:
+	skill_mg_soulstrike(fightable& caster, ushort lvl, uint32 id)
+		: targetskill(caster, lvl, id)
+	{}
+	virtual ~skill_mg_soulstrike()
+	{}
+
+	/// identifier.
+	enum {SKILLID = MG_SOULSTRIKE};
+
+	/// function called for initialisation.
+	virtual bool init(ulong& timeoffset)
+	{
+		timeoffset = skill_castfix(&this->caster, skill_get_cast(SKILLID, this->skill_lvl));
+		return true;
+	}
+	/// function called for execution.
+	virtual void action(unsigned long tick)
+	{
+		block_list* bl=block_list::from_blid(this->target_id);
+		if(bl)
+		{
+			// weapon attack
+			skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+
+			// additional effect
+		}
+	}
+	/// function called when stopped
+	virtual void stop()
+	{	
+		this->caster.skill_stopped(SKILLID);
+	}
+	virtual bool is_valid(skillfail_t&) const
+	{
+		block_list* bl;
+		return	(
+			(this->caster.skill_check(SKILLID)>0) &&
+			(bl=block_list::from_blid(this->target_id))!=NULL &&
+			bl->is_on_map() &&
+			!bl->is_dead() &&
+			!bl->is_hiding() );
+	}
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+};
+
+//////////////////////////////////////////
+/// Skillname: MG_COLDBOLT
+/// skill ID: 14
+class skill_mg_coldbolt : public targetskill
+{
+public:
+	skill_mg_coldbolt(fightable& caster, ushort lvl, uint32 id)
+		: targetskill(caster, lvl, id)
+	{}
+	virtual ~skill_mg_coldbolt()
+	{}
+
+	/// identifier.
+	enum {SKILLID = MG_COLDBOLT};
+
+	/// function called for initialisation.
+	virtual bool init(ulong& timeoffset)
+	{
+		timeoffset = skill_castfix(&this->caster, skill_get_cast(SKILLID, this->skill_lvl));
+		return true;
+	}
+	/// function called for execution.
+	virtual void action(unsigned long tick)
+	{
+		block_list* bl=block_list::from_blid(this->target_id);
+		if(bl)
+		{
+			// weapon attack
+			/* Need to add support for double cast.
+
+			if ((sc_data = status_get_sc_data(src)) &&
+				sc_data[SC_DOUBLECAST].timer != -1 &&
+				rand() % 100 < 40+10*sc_data[SC_DOUBLECAST].val1.num)
+			{
+				if (!(flag & 1))
+					skill_castend_delay(*src, *bl, skillid, skilllv, tick + dmg.div_*dmg.amotion, flag|1);
+			}
+
+			block_list::freeblock_unlock();
+
+			return (dmg.damage+dmg.damage2); */
+
+			skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+
+			// additional effect
+		}
+	}
+	/// function called when stopped
+	virtual void stop()
+	{	
+		this->caster.skill_stopped(SKILLID);
+	}
+	virtual bool is_valid(skillfail_t&) const
+	{
+		block_list* bl;
+		return	(
+			(this->caster.skill_check(SKILLID)>0) &&
+			(bl=block_list::from_blid(this->target_id))!=NULL &&
+			bl->is_on_map() &&
+			!bl->is_dead() &&
+			!bl->is_hiding() );
+	}
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+};
+
+//////////////////////////////////////////
+/// Skillname: MG_FROSTDIVER
+/// skill ID: 15
+class skill_mg_frostdiver : public targetskill
+{
+public:
+	skill_mg_frostdiver(fightable& caster, ushort lvl, uint32 id)
+		: targetskill(caster, lvl, id)
+	{}
+	virtual ~skill_mg_frostdiver()
+	{}
+
+	/// identifier.
+	enum {SKILLID = MG_FROSTDIVER};
+
+	/// function called for initialisation.
+	virtual bool init(ulong& timeoffset)
+	{
+		timeoffset = skill_castfix(&this->caster, skill_get_cast(SKILLID, this->skill_lvl));
+		return true;
+	}
+	/// function called for execution.
+	virtual void action(unsigned long tick)
+	{
+		block_list* bl=block_list::from_blid(this->target_id);
+		if(bl)
+		{
+			// weapon attack
+			skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+
+			// additional effect
+			struct status_change *sc_data = status_get_sc_data(bl);
+			rate = (skilllv*3+35)*sc_def_mdef/100-(bl->get_int()+bl->get_luk())/15;
+			if (rate <= 5)
+				rate = 5;
+			if(sc_data && sc_data[SC_FREEZE].timer == -1 && rand()%100 < rate)
+				status_change_start(bl,SC_FREEZE,skilllv,0,0,0,skill_get_time2(skillid,skilllv)*(1-sc_def_mdef/100),0);
+		}
+	}
+	/// function called when stopped
+	virtual void stop()
+	{	
+		this->caster.skill_stopped(SKILLID);
+	}
+	virtual bool is_valid(skillfail_t&) const
+	{
+		block_list* bl;
+		return	(
+			(this->caster.skill_check(SKILLID)>0) &&
+			(bl=block_list::from_blid(this->target_id))!=NULL &&
+			bl->is_on_map() &&
+			!bl->is_dead() &&
+			!bl->is_hiding() );
+	}
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+};
+
+//////////////////////////////////////////
+/// Skillname: MG_STONECURSE
+/// skill ID: 16
+class skill_mg_stonecurse : public targetskill
+{
+public:
+	skill_mg_stonecurse(fightable& caster, ushort lvl, uint32 id)
+		: targetskill(caster, lvl, id)
+	{}
+	virtual ~skill_mg_stonecurse()
+	{}
+
+	/// identifier.
+	enum {SKILLID = MG_STONECURSE};
+
+	/// function called for initialisation.
+	virtual bool init(ulong& timeoffset)
+	{
+		timeoffset = skill_castfix(&this->caster, skill_get_cast(SKILLID, this->skill_lvl));
+		return true;
+	}
+	/// function called for execution.
+	virtual void action(unsigned long tick)
+	{
+		block_list* bl=block_list::from_blid(this->target_id);
+		if(bl)
+		{
+			// weapon attack
+
+			// additional effect
+			struct status_change *sc_data = status_get_sc_data(bl);
+			// Level 6-10 doesn't consume a red gem if it fails [celest]
+			int i, gem_flag = 1, fail_flag = 0;
+			if (dstmd && bl->get_mode()&0x20)
+			{
+				if(sd) sd->skill_failed(sd->skillid);
+					return;
+			}
+			
+			if(status_isimmune(bl))
+				return;
+			if (sc_data && sc_data[SC_STONE].timer != -1)
+			{
+				status_change_end(bl,SC_STONE,-1);
+				if (sd)
+				{
+					fail_flag = 1;
+					sd->skill_failed(skillid);
+				}
+			}
+			else if( rand()%100< skilllv*4+20 && !bl->is_undead())
+			{
+				clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
+				status_change_start(bl,SC_STONE,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+			}
+			else if(sd)
+			{
+				if (skilllv > 5) gem_flag = 0;
+				sd->skill_failed(skillid);
+				fail_flag = 1;
+			}
+			if (dstmd)
+				mob_target(*dstmd,src,skill_get_range(skillid,skilllv));
+			if (sd && gem_flag)
+			{
+				if ((i=pc_search_inventory(*sd, skill_db[skillid].itemid[0])) < 0 )
+				{
+					if (!fail_flag) sd->skill_failed(sd->skillid);
+						return;
+				}
+				pc_delitem(*sd, i, skill_db[skillid].amount[0], 0);
+			}
+
+			delitem_flag = 0;
+		}
+	}
+	/// function called when stopped
+	virtual void stop()
+	{	
+		this->caster.skill_stopped(SKILLID);
+	}
+	virtual bool is_valid(skillfail_t&) const
+	{
+		block_list* bl;
+		return	(
+			(this->caster.skill_check(SKILLID)>0) &&
+			(bl=block_list::from_blid(this->target_id))!=NULL &&
+			bl->is_on_map() &&
+			!bl->is_dead() &&
+			!bl->is_hiding() );
+	}
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+};
+
+//////////////////////////////////////////
+/// Skillname: MG_FIREBALL
+/// skill ID: 17
+class skill_mg_fireball : public targetskill
+{
+public:
+	skill_mg_fireball(fightable& caster, ushort lvl, uint32 id)
+		: targetskill(caster, lvl, id)
+	{}
+	virtual ~skill_mg_fireball()
+	{}
+
+	/// identifier.
+	enum {SKILLID = MG_FIREBALL};
+
+	/// function called for initialisation.
+	virtual bool init(ulong& timeoffset)
+	{
+		timeoffset = skill_castfix(&this->caster, skill_get_cast(SKILLID, this->skill_lvl));
+		return true;
+	}
+	/// function called for execution.
+	virtual void action(unsigned long tick)
+	{
+		block_list* bl=block_list::from_blid(this->target_id);
+		if(bl)
+		{
+			// weapon attack
+			if (flag & 1)
+			{
+				if (bl->id != skill_area_temp[1])
+				{
+					skill_area_temp[0] = bl->get_distance(skill_area_temp[2], skill_area_temp[3]);
+					skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,skill_area_temp[0]| 0x0500);
+				}
+			} else {
+				int ar = 2;
+				skill_area_temp[0]=0;
+				skill_area_temp[1]=bl->id;
+				skill_area_temp[2]=bl->x;
+				skill_area_temp[3]=bl->y;
+				skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,skill_area_temp[0]);
+				skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,skill_area_temp[0]);
+				block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1, skill_castend_damage_id),
+					bl->m,((int)bl->x)-ar,((int)bl->y)-ar,((int)bl->x)+ar,((int)bl->y)+ar,BL_ALL);
+			}
+
+			// additional effect
+			struct status_change *sc_data = status_get_sc_data(bl);
+			// Level 6-10 doesn't consume a red gem if it fails [celest]
+			int i, gem_flag = 1, fail_flag = 0;
+			if (dstmd && bl->get_mode()&0x20)
+			{
+				if(sd) sd->skill_failed(sd->skillid);
+					return;
+			}
+			
+			if(status_isimmune(bl))
+				return;
+			if (sc_data && sc_data[SC_STONE].timer != -1)
+			{
+				status_change_end(bl,SC_STONE,-1);
+				if (sd)
+				{
+					fail_flag = 1;
+					sd->skill_failed(skillid);
+				}
+			}
+			else if( rand()%100< skilllv*4+20 && !bl->is_undead())
+			{
+				clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
+				status_change_start(bl,SC_STONE,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+			}
+			else if(sd)
+			{
+				if (skilllv > 5) gem_flag = 0;
+				sd->skill_failed(skillid);
+				fail_flag = 1;
+			}
+			if (dstmd)
+				mob_target(*dstmd,src,skill_get_range(skillid,skilllv));
+			if (sd && gem_flag)
+			{
+				if ((i=pc_search_inventory(*sd, skill_db[skillid].itemid[0])) < 0 )
+				{
+					if (!fail_flag) sd->skill_failed(sd->skillid);
+						return;
+				}
+				pc_delitem(*sd, i, skill_db[skillid].amount[0], 0);
+			}
+
+			delitem_flag = 0;
+		}
+	}
+	/// function called when stopped
+	virtual void stop()
+	{	
+		this->caster.skill_stopped(SKILLID);
+	}
+	virtual bool is_valid(skillfail_t&) const
+	{
+		block_list* bl;
+		return	(
+			(this->caster.skill_check(SKILLID)>0) &&
+			(bl=block_list::from_blid(this->target_id))!=NULL &&
+			bl->is_on_map() &&
+			!bl->is_dead() &&
+			!bl->is_hiding() );
+	}
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+};
+
+//////////////////////////////////////////
+/// Skillname: MG_FIREBOLT
+/// skill ID: 19
+class skill_mg_firebolt : public targetskill
+{
+public:
+	skill_mg_firebolt(fightable& caster, ushort lvl, uint32 id)
+		: targetskill(caster, lvl, id)
+	{}
+	virtual ~skill_mg_firebolt()
+	{}
+
+	/// identifier.
+	enum {SKILLID = MG_FIREBOLT};
+
+	/// function called for initialisation.
+	virtual bool init(ulong& timeoffset)
+	{
+		timeoffset = skill_castfix(&this->caster, skill_get_cast(SKILLID, this->skill_lvl));
+		return true;
+	}
+	/// function called for execution.
+	virtual void action(unsigned long tick)
+	{
+		block_list* bl=block_list::from_blid(this->target_id);
+		if(bl)
+		{
+			// weapon attack
+			/* Need to add support for double cast.
+
+			if ((sc_data = status_get_sc_data(src)) &&
+				sc_data[SC_DOUBLECAST].timer != -1 &&
+				rand() % 100 < 40+10*sc_data[SC_DOUBLECAST].val1.num)
+			{
+				if (!(flag & 1))
+					skill_castend_delay(*src, *bl, skillid, skilllv, tick + dmg.div_*dmg.amotion, flag|1);
+			}
+
+			block_list::freeblock_unlock();
+
+			return (dmg.damage+dmg.damage2); */
+
+			skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+
+			// additional effect
+		}
+	}
+	/// function called when stopped
+	virtual void stop()
+	{	
+		this->caster.skill_stopped(SKILLID);
+	}
+	virtual bool is_valid(skillfail_t&) const
+	{
+		block_list* bl;
+		return	(
+			(this->caster.skill_check(SKILLID)>0) &&
+			(bl=block_list::from_blid(this->target_id))!=NULL &&
+			bl->is_on_map() &&
+			!bl->is_dead() &&
+			!bl->is_hiding() );
+	}
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+};
+
+//////////////////////////////////////////
+/// Skillname: MG_LIGHTNINGBOLT
+/// skill ID: 20
+class skill_mg_lightningbolt : public targetskill
+{
+public:
+	skill_mg_lightningbolt(fightable& caster, ushort lvl, uint32 id)
+		: targetskill(caster, lvl, id)
+	{}
+	virtual ~skill_mg_lightningbolt()
+	{}
+
+	/// identifier.
+	enum {SKILLID = MG_LIGHTNINGBOLT};
+
+	/// function called for initialisation.
+	virtual bool init(ulong& timeoffset)
+	{
+		timeoffset = skill_castfix(&this->caster, skill_get_cast(SKILLID, this->skill_lvl));
+		return true;
+	}
+	/// function called for execution.
+	virtual void action(unsigned long tick)
+	{
+		block_list* bl=block_list::from_blid(this->target_id);
+		if(bl)
+		{
+			// weapon attack
+			/* Need to add support for double cast.
+
+			if ((sc_data = status_get_sc_data(src)) &&
+				sc_data[SC_DOUBLECAST].timer != -1 &&
+				rand() % 100 < 40+10*sc_data[SC_DOUBLECAST].val1.num)
+			{
+				if (!(flag & 1))
+					skill_castend_delay(*src, *bl, skillid, skilllv, tick + dmg.div_*dmg.amotion, flag|1);
+			}
+
+			block_list::freeblock_unlock();
+
+			return (dmg.damage+dmg.damage2); */
+
+			skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+
+			// additional effect
+		}
+	}
+	/// function called when stopped
+	virtual void stop()
+	{	
+		this->caster.skill_stopped(SKILLID);
+	}
+	virtual bool is_valid(skillfail_t&) const
+	{
+		block_list* bl;
+		return	(
+			(this->caster.skill_check(SKILLID)>0) &&
+			(bl=block_list::from_blid(this->target_id))!=NULL &&
+			bl->is_on_map() &&
+			!bl->is_dead() &&
+			!bl->is_hiding() );
+	}
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+};
 
 
 
@@ -363,6 +1146,17 @@ skillbase* skillbase::create(fightable& caster, ushort skillid, ushort skilllv, 
 
 	case skill_sm_bash::SKILLID:    skill = new skill_sm_bash(caster, skilllv, targetid); break;
 	case skill_sm_provoke::SKILLID: skill = new skill_sm_provoke(caster, skilllv, targetid); break;
+	case skill_sm_magnum::SKILLID: skill = new skill_sm_magnum(caster, skilllv, targetid); break;
+	case skill_sm_endure::SKILLID: skill = new skill_sm_endure(caster, skilllv, targetid); break;
+	case skill_mg_sight::SKILLID: skill = new skill_mg_sight(caster, skilllv, targetid); break;
+	case skill_mg_napalmbeat::SKILLID: skill = new skill_mg_napalmbeat(caster, skilllv, targetid); break;
+	case skill_mg_soulstrike::SKILLID: skill = new skill_mg_soulstrike(caster, skilllv, targetid); break;
+	case skill_mg_coldbolt::SKILLID: skill = new skill_mg_coldbolt(caster, skilllv, targetid); break;
+	case skill_mg_frostdriver::SKILLID: skill = new skill_mg_frostdriver(caster, skilllv, targetid); break;
+	case skill_mg_stonecurse::SKILLID: skill = new skill_mg_stonecurse(caster, skilllv, targetid); break;
+	case skill_mg_fireball::SKILLID: skill = new skill_mg_fireball(caster, skilllv, targetid); break;
+	case skill_mg_firebolt::SKILLID: skill = new skill_mg_firebolt(caster, skilllv, targetid); break;
+	case skill_mg_lightningbolt::SKILLID: skill = new skill_mg_lightningbolt(caster, skilllv, targetid); break;
 
 	// add new target skills here
 	}
