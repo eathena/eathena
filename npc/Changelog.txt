@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/01/24
+	* Fixed one missing 'On' in prtg_managers.txt [ultramage]
 2007/01/21
 	* Synchronization of the trunk&stable npc directories [ultramage]
 	- compatibility fixes for the new (stricter) script engine
