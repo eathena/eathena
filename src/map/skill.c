@@ -1104,19 +1104,16 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case AS_GRIMTOOTH:
-		{
-			int type = dstsd?SC_SLOWDOWN:SC_STOP;
-			if (tsc->data[type].timer == -1)
-				sc_start(bl,type,100,skilllv,skill_get_time2(skillid, skilllv));
-			break;
-		}
+		skill = dstsd?SC_SLOWDOWN:SC_STOP;
+		if (tsc->data[skill].timer == -1)
+			sc_start(bl,skill,100,skilllv,skill_get_time2(skillid, skilllv));
+		break;
 	case MG_FROSTDIVER:
 	case WZ_FROSTNOVA:
 		sc_start(bl,SC_FREEZE,skilllv*3+35,skilllv,skill_get_time2(skillid,skilllv));
 		break;
 
 	case WZ_STORMGUST:
-		tsc->data[SC_FREEZE].val3++;
 		if(tsc->data[SC_FREEZE].val3 >= 3) //Tharis pointed out that this is normal freeze chance with a base of 300%
 			sc_start(bl,SC_FREEZE,300,skilllv,skill_get_time2(skillid,skilllv));
 		break;
@@ -1625,9 +1622,9 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 --------------------------------------------------------------------------*/
 int skill_break_equip (struct block_list *bl, unsigned short where, int rate, int flag) 
 {
-	static int where_list[4] = {EQP_WEAPON, EQP_ARMOR, EQP_SHIELD, EQP_HELM};
-	static int scatk[4] = {SC_STRIPWEAPON, SC_STRIPARMOR, SC_STRIPSHIELD, SC_STRIPHELM};
-	static int scdef[4] = {SC_CP_WEAPON, SC_CP_ARMOR, SC_CP_SHIELD, SC_CP_HELM};
+	const int where_list[4] = {EQP_WEAPON, EQP_ARMOR, EQP_SHIELD, EQP_HELM};
+	const int scatk[4] = {SC_STRIPWEAPON, SC_STRIPARMOR, SC_STRIPSHIELD, SC_STRIPHELM};
+	const int scdef[4] = {SC_CP_WEAPON, SC_CP_ARMOR, SC_CP_SHIELD, SC_CP_HELM};
 	struct status_change *sc = status_get_sc(bl);
 	int i,j;
 	TBL_PC *sd;
@@ -7097,7 +7094,19 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 						//Otherwise, Knockback attack.
 						skill_attack(BF_WEAPON,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 				break;
-
+				case WZ_STORMGUST:
+					if (tsc)
+					{	//This should be safe as skill_additional_effect 
+						//won't be triggered if the attack is absorbed. [Skotlex]
+						//And if the target is already frozen,
+						//the counter is reset when it ends.
+						if (tsc->data[SC_FREEZE].val4 == sg->group_id)
+							tsc->data[SC_FREEZE].val3++; //SG hit counter.
+						else { //New SG
+							tsc->data[SC_FREEZE].val4 = sg->group_id;
+							tsc->data[SC_FREEZE].val3 = 1;
+						}
+					}
 				default:
 					skill_attack(skill_get_type(sg->skill_id),ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);			
 			}

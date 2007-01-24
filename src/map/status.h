@@ -330,6 +330,7 @@ enum {
 	SI_WATERWEAPON		= 91,
 	SI_WINDWEAPON		= 92,
 	SI_EARTHWEAPON		= 93,
+	SI_UNDEAD			= 97,
 // 102 = again gloria - from what I saw on screenshots, I wonder if it isn't gospel... [DracoRPG]
 	SI_AURABLADE		= 103,
 	SI_PARRYING		= 104,
@@ -365,7 +366,6 @@ enum {
 	SI_SHADOWWEAPON		= 146,
 	SI_ADRENALINE2		= 147,
 	SI_GHOSTWEAPON		= 148,
-	SI_NIGHT		= 149,
 	SI_SPIRIT		= 149,
 	SI_DEVIL		= 152,
 	SI_KAITE		= 153,
@@ -373,7 +373,7 @@ enum {
 	SI_KAAHI		= 157,
 	SI_KAUPE		= 158,
 	SI_SMA		= 159,
-// 160
+	SI_NIGHT		= 149,
 	SI_ONEHAND		= 161,
 	SI_WARM			= 165,	
 //	166 | The three show the exact same display: ultra red character (165, 166, 167)	
@@ -406,6 +406,9 @@ enum {
 	SI_FOODDEX			= 244,
 	SI_FOODINT			= 245,
 	SI_FOODLUK			= 246,
+	SI_FOODFLEE			= 247,
+	SI_FOODHIT			= 248,
+	SI_FOODCRI			= 249,
 };
 
 extern int current_equip_item_index;

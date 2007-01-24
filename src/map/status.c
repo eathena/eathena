@@ -418,14 +418,18 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_INCSTR] = SI_INCSTR;
 	StatusIconChangeTable[SC_MIRACLE] = SI_SPIRIT;
 	StatusIconChangeTable[SC_INTRAVISION] = SI_INTRAVISION;
-#if PACKETVER > 7
+	//This seems wrong as it sets the same icon to all skills that change your 
+	//element, but alas, all of them are mob-target only with the exception of
+	//NPC_CHANGEUNDEAD, so this should be alright. [Skotlex]
+	StatusIconChangeTable[SC_ELEMENTALCHANGE] = SI_UNDEAD;
 	StatusIconChangeTable[SC_STRFOOD] = SI_FOODSTR;
 	StatusIconChangeTable[SC_AGIFOOD] = SI_FOODAGI;
 	StatusIconChangeTable[SC_VITFOOD] = SI_FOODVIT;
-	StatusIconChangeTable[SC_INTFOOD] = SI_FOODDEX;
-	StatusIconChangeTable[SC_DEXFOOD] = SI_FOODINT;
+	StatusIconChangeTable[SC_INTFOOD] = SI_FOODINT;
+	StatusIconChangeTable[SC_DEXFOOD] = SI_FOODDEX;
 	StatusIconChangeTable[SC_LUKFOOD] = SI_FOODLUK;
-#endif
+	StatusIconChangeTable[SC_FLEEFOOD] = SI_FOODFLEE;
+	StatusIconChangeTable[SC_HITFOOD] = SI_FOODHIT;
 	//Other SC which are not necessarily associated to skills.
 	StatusChangeFlagTable[SC_ASPDPOTION0] = SCB_ASPD;
 	StatusChangeFlagTable[SC_ASPDPOTION1] = SCB_ASPD;
@@ -5967,13 +5971,7 @@ int status_change_clear(struct block_list *bl,int type)
 
 	sc = status_get_sc(bl);
 
-	if (!sc)
-		return 0;
-
-	if (sc->data[SC_FREEZE].val3)
-		sc->data[SC_FREEZE].val3 = 0; //Reset freeze counter.
-	
-  	if (!sc->count)
+	if (!sc || !sc->count)
 		return 0;
 
 	if(sc->data[SC_DANCING].timer != -1)
