@@ -14,10 +14,10 @@
 #else
 
 #include <io.h>	// for access
-
+#ifndef F_OK
 #define F_OK   0x0
 #define R_OK   0x4
-
+#endif
 /*
 00 Existence only 
 02 Write permission 

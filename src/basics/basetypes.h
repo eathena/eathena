@@ -392,6 +392,28 @@ extern long altzone;
 #endif
 
 
+#ifdef __ICL
+#pragma warning(disable :  279) // controlling expression is constant
+#pragma warning(disable :  304) // access control not specified
+#pragma warning(disable :  383) // value copied to temporary, reference to temporary used
+#pragma warning(disable :  424) // extra ";" ignored
+#pragma warning(disable :  444) // destructor for base class is not virtual
+#pragma warning(disable :  869) // parameter was never referenced
+#pragma warning(disable :  981) // operands are evaluated in unspecified order
+#pragma warning(disable : 1418) // external function definition with no prior declaration 
+#pragma warning(disable : 1572) // floating-point equality and inequality comparisons are unreliable
+#pragma warning(disable : 1418) // external function definition with no prior declaration
+#pragma warning(disable : 1419) // external declaration in primary source file
+
+// possible problems
+// it also seems 373 cannot be disabled
+#pragma warning(disable :  373) // "copy constructor of copy forbidden classes" is inaccessible (which is actually exact what we intended)
+#pragma warning(disable :  522) // function redeclared "inline" after being called
+
+#endif
+
+
+
 #if defined(__BORLANDC__)
 // Borland
 // Shut up the following irritating warnings
@@ -418,6 +440,7 @@ extern long altzone;
 //          label or the end of a loop or function. The compiler checks while,
 //          do, and for loops with a constant test condition, and attempts to
 //          recognize loops that can't fall through.
+
 #endif
 
 
@@ -521,6 +544,11 @@ typedef int bool;
   #define PARAMETER_TYPENAME typename
   #define RETURN_TYPENAME typename
  #endif
+#else// assume C99 compilant
+  #define TYPEDEF_TYPENAME typename
+  #define TEMPLATE_TYPENAME typename
+  #define PARAMETER_TYPENAME typename
+  #define RETURN_TYPENAME typename
 #endif
 
 
@@ -532,6 +560,8 @@ typedef int bool;
  #if (__GNUC_MINOR__ < 9)  && (__GNUC__ < 3) // below gcc 2.9
   #define TEMPLATE_NO_PARTIAL_SPECIALIZATION
  #endif
+#elif defined(__ICL)
+// intel compiler
 #elif defined(_MSC_VER)
  // Microsoft Visual Studio variants
  #if (_MSC_VER <= 1300) 
@@ -760,7 +790,7 @@ typedef unsigned long int      ppuint32;
 //////////////////////////////
 #if defined(_WIN64)	// naive 64bit windows platform
 typedef __int64			ssize_t;
-#else
+#elif !defined(__GNUC__)
 typedef int				ssize_t;
 #endif
 //////////////////////////////
@@ -772,7 +802,9 @@ typedef int				ssize_t;
 /// make sure there is a pointer difference type
 #ifndef _PTRDIFF_T_DEFINED
 #define _PTRDIFF_T_DEFINED
+#if !defined(__PTRDIFF_TYPE__) //mingw typedefs ptrdiff_t without telling properly
 typedef ssize_t ptrdiff_t;
+#endif
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -956,7 +988,75 @@ inline uint64 to_unsigned(uint64 t)
 {
 	return (uint64)(t);
 }
-
+inline float to_unsigned(float t)
+{
+	return t;
+}
+inline double to_unsigned(double t)
+{
+	return t;
+}
+inline long double to_unsigned(long double t)
+{
+	return t;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// conversion overloads. to change unsigned types to the appropriate signed
+///////////////////////////////////////////////////////////////////////////////
+inline ssize_t to_signed(char t)
+{
+	return (signed char)(t);
+}
+inline ssize_t to_signed(unsigned char t)
+{
+	return (signed char)(t);
+}
+// UCT2
+inline ssize_t to_signed(short t)
+{
+	return (signed short)(t);
+}
+inline ssize_t to_signed(unsigned short t)
+{
+	return (signed short)(t);
+}
+// others, just to be complete
+inline ssize_t to_signed(int t)
+{
+	return (signed int)(t);
+}
+inline ssize_t to_signed(unsigned int t)
+{
+	return (signed int)(t);
+}
+inline ssize_t to_signed(long t)
+{
+	return (signed long)(t);
+}
+inline ssize_t to_signed(unsigned long t)
+{
+	return (signed long)(t);
+}
+inline sint64 to_signed(int64 t)
+{
+	return (sint64)(t);
+}
+inline sint64 to_signed(uint64 t)
+{
+	return (sint64)(t);
+}
+inline float to_signed(float t)
+{
+	return t;
+}
+inline double to_signed(double t)
+{
+	return t;
+}
+inline long double to_signed(long double t)
+{
+	return t;
+}
 ///////////////////////////////////////////////////////////////////////////////
 
 
@@ -1079,7 +1179,7 @@ template <typename T> extern inline T tolower(T c) { return ::tolower( to_unsign
 extern inline char tolower(char c)		{ return ::tolower ( to_unsigned(c) ); }
 extern inline wchar_t tolower(wchar_t c){ return ::towlower( to_unsigned(c) ); }
 
-};
+}//end namespace stringcheck
 ///////////////////////////////////////////////////////////////////////////////
 
 

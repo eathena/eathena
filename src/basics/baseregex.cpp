@@ -221,7 +221,7 @@ enum {
 	REGEX_CONF_NLDT	=	0x04,	// dot matches newline
 	REGEX_MASK_NLDT	=	0x08,
 	REGEX_CONF_NLSE	=	0x10,	// caret/dollar match newline
-	REGEX_MASK_NLSE	=	0x20,
+	REGEX_MASK_NLSE	=	0x20
 };
 
 
@@ -1486,11 +1486,11 @@ size_t CRegExp::CRegProgram::ParseAtom(const char*&parsestr, int &parcnt, int &f
 							const char *p = parsestr;
 							do
 							{
-								int c = *p;
-								if( c<'0' || c > '7' )
+								int parsechar = *p;
+								if( parsechar<'0' || parsechar > '7' )
 									break;
-								c -= '0';
-								result = (result<<3) | (c&0x07);
+								parsechar -= '0';
+								result = (result<<3) | (parsechar&0x07);
 								p++;
 							} while( *p && p<parsestr+3);
 							if(result)
@@ -1508,17 +1508,17 @@ size_t CRegExp::CRegProgram::ParseAtom(const char*&parsestr, int &parcnt, int &f
 							const char *p = parsestr;
 							do
 							{
-								int c = *p;
-								if(c>='0' && c<='9')
-									c -= '0';
-								else if(c>='a' && c<='f')
-									c -= 'a'-10;
-								else if(c>='A' && c<='F')
-									c -= 'A'-10;
+								int parsechar = *p;
+								if(parsechar>='0' && parsechar<='9')
+									parsechar -= '0';
+								else if(parsechar>='a' && parsechar<='f')
+									parsechar -= 'a'-10;
+								else if(parsechar>='A' && parsechar<='F')
+									parsechar -= 'A'-10;
 								else
 									break;
 
-								result = (result<<4) | (c&0x0F);
+								result = (result<<4) | (parsechar&0x0F);
 								p++;
 							} while( *p && p<parsestr+2);
 							if(result)
@@ -2042,7 +2042,7 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 					}
 					return false;
 				}
-				break;
+				//break;
 			}
 			case REGEX_CLOSE:
 			{
@@ -2060,9 +2060,8 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 
 				// don't need to remove the find on error
 				// since it will get cleaned by the OPEN 
-				// or overwritten when comming here again
-
-				break;
+				// or overwritten when returning here again
+				//break;
 			}
 			///////////////////////////////////////////////////////////////////
 			// config
@@ -2216,24 +2215,22 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 							// REGEX_BRPLUS already has matched once when reaching this
 							// while REGEX_BRSTAR starts the first match
 
-							size_t next = this->nextcommand(scan);
+							const size_t nextcommand = this->nextcommand(scan);
 
 							// safe the pointer in case of an error
 							const char* save = reginput;
 
-							if( MatchMain(base, str, finds, next, reginput, imap) )
+							if( MatchMain(base, str, finds, nextcommand, reginput, imap) )
 								return true;
 							// otherwise the rest of the RE has failed
-
 							reginput = save;
-
 							// so we try to match with the variable expression once again
-							// which will loop us back to the beginning
+							// which will loop us back to the beginning.
 							// can break the whole thing when this fails
 							if( MatchMain(base, str, finds, scan+ofs, reginput, imap) )
 								return true;
 							else
-							{
+							{	
 								reginput = save;
 								return false;
 							}
@@ -2269,10 +2266,10 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 										return false;
 								}
 							}
-							size_t next = this->nextcommand(scan);
+							const size_t nextcommand = this->nextcommand(scan);
 
 							// try the following RE
-							if( MatchMain(base, str, finds, next, reginput, imap) )
+							if( MatchMain(base, str, finds, nextcommand, reginput, imap) )
 								return true;
 							else
 								return false;
@@ -2310,9 +2307,9 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 							}
 
 							reginput = (char*)save;
-							size_t next = this->nextcommand(scan);
+							const size_t nextcommand = this->nextcommand(scan);
 
-							if( MatchMain(base, str, finds, next, reginput, imap) )
+							if( MatchMain(base, str, finds, nextcommand, reginput, imap) )
 								return true;
 							// otherwise the rest of the RE has failed
 							reginput = save;
@@ -2328,7 +2325,7 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 								imap[scan]--;
 								return false;
 							}
-							// stay return here
+							/////////////////
 						}
 					}
 					return false;
@@ -2450,7 +2447,7 @@ printf("imap r %i = %i\n", scan, imap[scan]);
 					}
 				}
 				return false;
-				break;
+				//break;
 			}
 			///////////////////////////////////////////////////////////////////
 			// 
@@ -2469,8 +2466,8 @@ printf("imap r %i = %i\n", scan, imap[scan]);
 	// but I leave the rest as reference
 	// We get here only if there's trouble -- normally "case END" is
 	// the terminating point.
-	regerror( REGERR_CORRUPTED_POINTERS );
-	return false;
+//	regerror( REGERR_CORRUPTED_POINTERS );
+//	return false;
 }
 ///////////////////////////////////////////////////////////////////////////////
 // MatchRepeat - report how many times something simple would match
@@ -2661,7 +2658,7 @@ void CRegExp::CRegProgram::Print() const
 		op = this->command(s);
 		next = this->nextcommand(s);
 
-		printf(( "%3d (->%3d) %s" ), s, next, GetPrintCmd(s));	// Where, what. 
+		printf(( "%3d (->%3d) %s" ), (int)s, (int)next, GetPrintCmd(s));	// Where, what. 
 
 		s += 3;// operand
 		if( op == REGEX_EXACTLY )
@@ -2760,7 +2757,7 @@ void CRegExp::CRegProgram::Print() const
 		else if( op==REGEX_RESTORE )
 		{// one byte
 			ushort no = ((ushort)cProgramm[s]) | ((ushort)(cProgramm[s+1])<<8);
-			printf( "(%i)", s-no-3);// -3 since s already has been increased
+			printf( "(%i)", (int)(s-no-3));// -3 since s already has been increased
 			s+=2;
 		}
 		else if( op==REGEX_LBEHINDT || op==REGEX_LBEHINDF )
@@ -3295,7 +3292,7 @@ void test_regex(void)
 		uint i,k;
 		for(i=1; i<=re.sub_count(); ++i)	// finds count from 1
 		{
-			printf("%2i: ", i);
+			printf("%2u: ", i);
 			for(k=0; k<re.sub_count(i); ++k)	// inside finds count from 0
 				printf("%s, ", (const char*)re(i,k));
 
@@ -3318,7 +3315,7 @@ void test_regex(void)
 		{
 			uint i;
 			for(i=0; i<=yy.sub_count(); ++i)
-				printf("%2i: %s\n", i, (const char*)yy[i]);
+				printf("%2u: %s\n", i, (const char*)yy[i]);
 		}
 
 		yy = "([abc])*d";
@@ -3326,7 +3323,7 @@ void test_regex(void)
 		{
 			uint i;
 			for(i=0; i<=yy.sub_count(); ++i)
-				printf("%2i: %s\n", i, (const char*)yy[i]);
+				printf("%2u: %s\n", i, (const char*)yy[i]);
 		}
 
 
@@ -3502,34 +3499,34 @@ void test_regex(void)
 			if( !r.is_valid() )
 			{
 				if( *fields[i][2] != 'c' )
-					printf("%i: unexpected comp failure in '%s' (%s)\n", i, fields[i][0], r.errmsg());
+					printf("%i: unexpected comp failure in '%s' (%s)\n", (int)i, fields[i][0], r.errmsg());
 				continue;
 			}
 			else if( *fields[i][2] == 'c')
 			{
-				printf("%i: unexpected comp success in '%s'\n", i, fields[i][0]);
+				printf("%i: unexpected comp success in '%s'\n", (int)i, fields[i][0]);
 				continue;
 			}
 
 			if( !r.match(fields[i][1]))
 			{
 				if( *fields[i][2] != 'n' )
-					printf("%i: unexpected match failure in '%s' / '%s' (%s)\n", i, fields[i][0],fields[i][1], r.errmsg());
+					printf("%i: unexpected match failure in '%s' / '%s' (%s)\n", (int)i, fields[i][0],fields[i][1], r.errmsg());
 				continue;
 			}
 			if( *fields[i][2] == 'n' )
 			{
-				printf("%i: unexpected match success in '%s' / '%s'\n", i, fields[i][0],fields[i][1]);
+				printf("%i: unexpected match success in '%s' / '%s'\n", (int)i, fields[i][0],fields[i][1]);
 				continue;
 			}
 			string<> repl = r.replacestring( fields[i][3] );
 			if( r.errmsg() )
 			{
-				printf("%i: GetReplaceString complaint in '%s'\n", i, fields[i][0], r.errmsg());
+				printf("%i: GetReplaceString complaint in '%s' / '%s'\n", (int)i, fields[i][0], r.errmsg());
 				continue;
 			}
 			if ( repl != fields[i][4] )
-				printf("%i: regsub result in '%s' wrong (is: '%s' != should: '%s')\n", i, fields[i][0], (const char*)repl, fields[i][4]);
+				printf("%i: regsub result in '%s' wrong (is: '%s' != should: '%s')\n", (int)i, fields[i][0], (const char*)repl, fields[i][4]);
 		}
 	}
 

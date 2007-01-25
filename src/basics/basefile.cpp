@@ -13,12 +13,13 @@
 #include <direct.h>
 #include <io.h>			// for access
 						// and also the modi are not defined in windows
+#ifndef F_OK			// assume this for the others, too			
 #define F_OK	0x0		// Existence only
 #define X_OK	0x1		// Exec permission
 #define W_OK	0x2		// Write permission
 #define R_OK	0x4		// Read permission
 #define RW_OK	0x6		// Read and write permission
-
+#endif
 ///////////////////////////////////////////////////////////////////////////////
 #else
 
@@ -426,12 +427,19 @@ bool findFiles(const char *p, const char *pat, void (func)(const char*) )
 */
 
 
-
-
 ///////////////////////////////////////////////////////////////////////////////
 // true when given name exists
 bool is_present(const char* name)
 {
+	if(!name || !*name )
+		return false;
+	string<> str;
+	const char*ip = name+strlen(name)-1;
+	if(*ip=='\\' || *ip=='/')
+	{
+		str.assign(name, ip-name);
+		name = str.c_str();
+	}
 #ifdef WIN32
 	struct stat dir_stat;       // used by stat().
 	return ( 0==access(name, F_OK) && stat(name, &dir_stat) != -1 );
@@ -445,6 +453,15 @@ bool is_present(const char* name)
 // true when given path is a directory
 bool is_folder(const char* name)
 {
+	if(!name || !*name )
+		return false;
+	string<> str;
+	const char*ip = name+strlen(name)-1;
+	if(*ip=='\\' || *ip=='/')
+	{
+		str.assign(name, ip-name);
+		name = str.c_str();
+	}
 #ifdef WIN32
 	struct stat dir_stat;       // used by stat().
 	if( 0!=access(name, F_OK) || stat(name, &dir_stat) == -1 )
@@ -461,6 +478,14 @@ bool is_folder(const char* name)
 // true when given path is a file
 bool is_file(const char* name)
 {
+	if(!name || !*name )
+		return false;
+	const char*ip = name+strlen(name)-1;
+	if(*ip=='\\' || *ip=='/')
+	{	// path seperator attached
+		return false;
+	}
+
 #ifdef WIN32
 	struct stat dir_stat;       // used by stat().
 	if( 0!=access(name, F_OK) || stat(name, &dir_stat) == -1 )
@@ -1316,7 +1341,7 @@ string<> extension_part (const char * spec)
 		// scan back through filename until a '.' is found and remove prefix;
 		size_t i = fname.find_last_of('.');
 		// observe Unix convention that a dot at the start of a filename is part of the name, not the extension;
-		if( i!=0 && i!= fname.npos )
+		if( i!=0 && i!= string<>::npos )
 			fname.clear(0, i);
 		else
 			fname.clear();

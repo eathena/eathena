@@ -485,9 +485,9 @@ bool command_cartlist(int fd, map_session_data& sd, const char* command, const b
 				if (sd.status.cart[i].card[j]) {
 					if ( (item_temp = itemdb_exists(sd.status.cart[i].card[j])) != NULL) {
 						if(output[0] == '\0')
-							snprintf(outputtmp, sizeof(outputtmp), " -> (card(s): #%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
+							snprintf(outputtmp, sizeof(outputtmp), " -> (card(s): #%lu %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 						else
-							snprintf(outputtmp, sizeof(outputtmp), "#%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
+							snprintf(outputtmp, sizeof(outputtmp), "#%lu %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 						strcat(output, outputtmp);
 					}
 				}
@@ -503,7 +503,7 @@ bool command_cartlist(int fd, map_session_data& sd, const char* command, const b
 		clif_displaymessage(fd, "No item found in the cart of this player.");
 	else
 	{
-		snprintf(output, sizeof(output), "%ld item(s) found in %ld kind(s) of items.", (unsigned long)(counter), (unsigned long)(count));
+		snprintf(output, sizeof(output), "%lu item(s) found in %lu kind(s) of items.", (unsigned long)(counter), (unsigned long)(count));
 		clif_displaymessage(fd, output);
 	}
 	return true;
@@ -582,9 +582,9 @@ bool command_itemlist(int fd, map_session_data& sd, const char* command, const b
 					if ((item_temp = itemdb_exists(sd.status.inventory[i].card[j])) != NULL)
 					{
 						if(output[0] == '\0')
-							snprintf(outputtmp, sizeof(outputtmp), " -> (card(s): #%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
+							snprintf(outputtmp, sizeof(outputtmp), " -> (card(s): #%lu %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 						else
-							snprintf(outputtmp, sizeof(outputtmp), "#%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
+							snprintf(outputtmp, sizeof(outputtmp), "#%lu %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 						strcat(output, outputtmp);
 					}
 				}
@@ -601,7 +601,7 @@ bool command_itemlist(int fd, map_session_data& sd, const char* command, const b
 		clif_displaymessage(fd, "No item found on this player.");
 	else
 	{
-		snprintf(output, sizeof(output), "%ld item(s) found in %ld kind(s) of items.", (unsigned long)(counter), (unsigned long)(count));
+		snprintf(output, sizeof(output), "%lu item(s) found in %lu kind(s) of items.", (unsigned long)(counter), (unsigned long)(count));
 		clif_displaymessage(fd, output);
 	}
 	return true;
@@ -648,9 +648,9 @@ bool command_storagelist(int fd, map_session_data& sd, const char* command, cons
 						if ((item_temp = itemdb_exists(stor->storage[i].card[j])) != NULL)
 						{
 							if (output[0] == '\0')
-								snprintf(outputtmp, sizeof(outputtmp), " -> (card(s): #%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
+								snprintf(outputtmp, sizeof(outputtmp), " -> (card(s): #%lu %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 							else
-								snprintf(outputtmp, sizeof(outputtmp), "#%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
+								snprintf(outputtmp, sizeof(outputtmp), "#%lu %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 							strcat(output, outputtmp);
 						}
 					}
@@ -666,7 +666,7 @@ bool command_storagelist(int fd, map_session_data& sd, const char* command, cons
 		if (count == 0)
 			clif_displaymessage(fd, "No item found in the storage of this player.");
 		else {
-			snprintf(output, sizeof(output), "%ld item(s) found in %ld kind(s) of items.", (unsigned long)(counter), (unsigned long)(count));
+			snprintf(output, sizeof(output), "%lu item(s) found in %lu kind(s) of items.", (unsigned long)(counter), (unsigned long)(count));
 			clif_displaymessage(fd, output);
 		}
 	}
@@ -1619,7 +1619,7 @@ bool command_dye(int fd, map_session_data& sd, const char* command, const basics
 	if( param.size() < 1 )
 	{
 		char output[128];
-		snprintf(output, sizeof(output), "Please, enter a clothes color (usage: dye/ccolor <clothes color: %ld-%ld>).", (unsigned long)MIN_CLOTH_COLOR, (unsigned long)MAX_CLOTH_COLOR);
+		snprintf(output, sizeof(output), "Please, enter a clothes color (usage: dye/ccolor <clothes color: %lu-%lu>).", (unsigned long)MIN_CLOTH_COLOR, (unsigned long)MAX_CLOTH_COLOR);
 		clif_displaymessage(fd, output);
 	}
 	else if (cloth_color >= MIN_CLOTH_COLOR && cloth_color <= MAX_CLOTH_COLOR)
@@ -1651,7 +1651,7 @@ bool command_model(int fd, map_session_data& sd, const char* command, const basi
 		hair_color  < MIN_HAIR_COLOR  || hair_color  > MAX_HAIR_COLOR ||
 		cloth_color < MIN_CLOTH_COLOR || cloth_color > MAX_CLOTH_COLOR )
 	{
-		snprintf(output, sizeof(output), "Please, enter at least a value (usage: model <hair ID: %ld-%ld> <hair color: %ld-%ld> <clothes color: %ld-%ld>).",
+		snprintf(output, sizeof(output), "Please, enter at least a value (usage: model <hair ID: %lu-%lu> <hair color: %lu-%lu> <clothes color: %lu-%lu>).",
 			(unsigned long)MIN_HAIR_STYLE, (unsigned long)MAX_HAIR_STYLE, (unsigned long)MIN_HAIR_COLOR, (unsigned long)MAX_HAIR_COLOR, (unsigned long)MIN_CLOTH_COLOR, (unsigned long)MAX_CLOTH_COLOR);
 		clif_displaymessage(fd, output);
 	}
@@ -1681,7 +1681,7 @@ bool command_hair_style(int fd, map_session_data& sd, const char* command, const
 	if( param.size() < 1 )
 	{
 		char output[128];
-		snprintf(output, sizeof(output), "Please, enter a hair style (usage: hairstyle/hstyle <hair ID: %ld-%ld>).", (unsigned long)MIN_HAIR_STYLE, (unsigned long)MAX_HAIR_STYLE);
+		snprintf(output, sizeof(output), "Please, enter a hair style (usage: hairstyle/hstyle <hair ID: %lu-%lu>).", (unsigned long)MIN_HAIR_STYLE, (unsigned long)MAX_HAIR_STYLE);
 		clif_displaymessage(fd, output);
 	}
 	else if (hair_style >= MIN_HAIR_STYLE && hair_style <= MAX_HAIR_STYLE)
@@ -1713,7 +1713,7 @@ bool command_hair_color(int fd, map_session_data& sd, const char* command, const
 	if( param.size() < 1 )
 	{
 		char output[128];
-		snprintf(output, sizeof(output), "Please, enter a hair color (usage: haircolor/hcolor <hair color: %ld-%ld>).", (unsigned long)MIN_HAIR_COLOR, (unsigned long)MAX_HAIR_COLOR);
+		snprintf(output, sizeof(output), "Please, enter a hair color (usage: haircolor/hcolor <hair color: %lu-%lu>).", (unsigned long)MIN_HAIR_COLOR, (unsigned long)MAX_HAIR_COLOR);
 		clif_displaymessage(fd, output);
 	}
 	else if (hair_color >= MIN_HAIR_COLOR && hair_color <= MAX_HAIR_COLOR)
@@ -2276,7 +2276,7 @@ bool command_guildrecall(int fd, map_session_data& sd, const char* command, cons
 		snprintf(output, sizeof(output), msg_txt(MSG_ALL_ON_CHARS_S_GUILD_NEAR), g->name); // All online characters of the %s guild are near you.
 		clif_displaymessage(fd, output);
 		if (count) {
-			snprintf(output, sizeof(output), "Because you are not authorised to warp from some maps, %ld player(s) have not been recalled.", (unsigned long)(count));
+			snprintf(output, sizeof(output), "Because you are not authorised to warp from some maps, %lu player(s) have not been recalled.", (unsigned long)(count));
 			clif_displaymessage(fd, output);
 		}
 	} else {
@@ -2842,7 +2842,7 @@ bool command_iteminfo(int fd, map_session_data& sd, const char* command, const b
 		);
 		clif_displaymessage(fd, output);
 
-		snprintf(output, sizeof(output), "NPC Buy:%ldz%s, Sell:%ldz%s | Weight: %ld ",
+		snprintf(output, sizeof(output), "NPC Buy:%luz%s, Sell:%luz%s | Weight: %lu ",
 			(unsigned long)item_data->value_buy, item_data->flag.value_notdc ? "(No Discount!)":"",
 			(unsigned long)item_data->value_sell, item_data->flag.value_notoc ? "(No Overcharge!)":"",
 			(unsigned long)item_data->weight );
@@ -3599,7 +3599,7 @@ bool command_mapinfo(int fd, map_session_data& sd, const char* command, const ba
 			++chat_num;
 		}
 	}
-	snprintf(output, sizeof(output), "Map Name: %s | Players In Map: %ld | NPCs In Map: %ld | Chats In Map: %d", mapname, (unsigned long)(maps[m_id].users), (unsigned long)(maps[m_id].npc_num), chat_num);
+	snprintf(output, sizeof(output), "Map Name: %s | Players In Map: %lu | NPCs In Map: %lu | Chats In Map: %d", mapname, (unsigned long)(maps[m_id].users), (unsigned long)(maps[m_id].npc_num), chat_num);
 	clif_displaymessage(fd, output);
 	clif_displaymessage(fd, "------ Map Flags ------");
 	strcpy(output,"PvP Flags: ");
@@ -3705,7 +3705,7 @@ bool command_mapinfo(int fd, map_session_data& sd, const char* command, const ba
 		clif_displaymessage(fd, "----- Players in Map -----");
 		for (i = 0; i < fd_max; ++i) {
 			if(session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth && strcmp(pl_sd->mapname, mapname) == 0) {
-				snprintf(output, sizeof(output), "Player '%s' (session #%ld) | Location: %d,%d",
+				snprintf(output, sizeof(output), "Player '%s' (session #%lu) | Location: %d,%d",
 				        pl_sd->status.name, (unsigned long)(i), pl_sd->block_list::x, pl_sd->block_list::y);
 				clif_displaymessage(fd, output);
 			}
@@ -3728,7 +3728,7 @@ bool command_mapinfo(int fd, map_session_data& sd, const char* command, const ba
 			case DIR_NE: strcpy(direction, "North East"); break;
 			default: strcpy(direction, "Unknown"); break;
 			}
-			snprintf(output, sizeof(output), "NPC %ld: %s | Direction: %s | Sprite: %d | Location: %d %d",
+			snprintf(output, sizeof(output), "NPC %lu: %s | Direction: %s | Sprite: %d | Location: %d %d",
 			        (unsigned long)(++i), nd->name, direction, nd->class_, nd->block_list::x, nd->block_list::y);
 			clif_displaymessage(fd, output);
 		}
@@ -3742,7 +3742,7 @@ bool command_mapinfo(int fd, map_session_data& sd, const char* command, const ba
 			    strcmp(pl_sd->mapname, mapname) == 0 &&
 			    cd->usersd[0] == pl_sd)
 			{
-				snprintf(output, sizeof(output), "Chat %ld: %s | Player: %s | Location: %d %d",
+				snprintf(output, sizeof(output), "Chat %lu: %s | Player: %s | Location: %d %d",
 					(unsigned long)(i), cd->title, pl_sd->status.name, cd->block_list::x, cd->block_list::y);
 				clif_displaymessage(fd, output);
 				snprintf(output, sizeof(output), "   Users: %d/%d | Password: %s | Public: %s",
@@ -3874,7 +3874,7 @@ bool command_memo(int fd, map_session_data& sd, const char* command, const basic
 	for (i = 0; i < MAX_PORTAL_MEMO; ++i)
 	{
 		if (sd.status.memo_point[i].mapname[0])
-			snprintf(output, sizeof(output), "%d - %s (%d,%d)", (uint)i, sd.status.memo_point[i].mapname, sd.status.memo_point[i].x, sd.status.memo_point[i].y);
+			snprintf(output, sizeof(output), "%u - %s (%d,%d)", (uint)i, sd.status.memo_point[i].mapname, sd.status.memo_point[i].x, sd.status.memo_point[i].y);
 		else
 			snprintf(output, sizeof(output), msg_txt(MSG_D___VOID), (uint)i); // %d - void
 		clif_displaymessage(sd.fd, output);
@@ -3888,9 +3888,9 @@ bool command_memo(int fd, map_session_data& sd, const char* command, const basic
 ///
 bool command_mobinfo(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	unsigned char msize[3][7] = {"Small", "Medium", "Large"};
-	unsigned char mrace[12][11] = {"Formless", "Undead", "Beast", "Plant", "Insect", "Fish", "Demon", "Demi-Human", "Angel", "Dragon", "Boss", "Non-Boss"};
-	unsigned char melement[11][8] = {"None", "Neutral", "Water", "Earth", "Fire", "Wind", "Poison", "Holy", "Dark", "Ghost", "Undead"};
+	static const char* msize[3] = {"Small", "Medium", "Large"};
+	static const char* mrace[12] = {"Formless", "Undead", "Beast", "Plant", "Insect", "Fish", "Demon", "Demi-Human", "Angel", "Dragon", "Boss", "Non-Boss"};
+	static const char* melement[11] = {"None", "Neutral", "Water", "Earth", "Fire", "Wind", "Poison", "Holy", "Dark", "Ghost", "Undead"};
 
 	char output[128];
 	char output2[256];
@@ -4752,7 +4752,7 @@ bool command_partyrecall(int fd, map_session_data& sd, const char* command, cons
 		snprintf(output, sizeof(output), msg_txt(MSG_ALL_ON_CHARS_S_PARTY_NEAR), p->name); // All online characters of the %s party are near you.
 		clif_displaymessage(fd, output);
 		if (count) {
-			snprintf(output, sizeof(output), "Because you are not authorised to warp from some maps, %ld player(s) have not been recalled.", (unsigned long)(count));
+			snprintf(output, sizeof(output), "Because you are not authorised to warp from some maps, %lu player(s) have not been recalled.", (unsigned long)(count));
 			clif_displaymessage(fd, output);
 		}
 	}
@@ -5226,7 +5226,7 @@ bool command_recallall(int fd, map_session_data& sd, const char* command, const 
 	clif_displaymessage(fd, msg_txt(MSG_ALL_CHARS_RECALLED)); // All characters recalled!
 	if (count)
 	{
-		snprintf(output, sizeof(output), "Because you are not authorised to warp from some maps, %ld player(s) have not been recalled.", (unsigned long)(count));
+		snprintf(output, sizeof(output), "Because you are not authorised to warp from some maps, %lu player(s) have not been recalled.", (unsigned long)(count));
 		clif_displaymessage(fd, output);
 	}
 	return true;
@@ -5562,8 +5562,6 @@ const char* txt_time(char* buffer, size_t sz, unsigned long duration)
 	if(buffer)
 	{
 		unsigned long days, hours, minutes, seconds;
-		if(duration < 0)
-			duration = 0;
 
 		days = duration / (60 * 60 * 24);
 		duration -= (60 * 60 * 24 * days);
@@ -5572,7 +5570,7 @@ const char* txt_time(char* buffer, size_t sz, unsigned long duration)
 		minutes = duration / 60;
 		seconds = duration - (60 * minutes);
 
-		snprintf(buffer, sz, "%ld %s %ld %s %ld %s %ld %s",
+		snprintf(buffer, sz, "%lu %s %lu %s %lu %s %lu %s",
 				days,		msg_txt((days==1)	?MSG_DAY   :MSG_DAYS   ),
 				hours,		msg_txt((hours==1)	?MSG_HOUR  :MSG_HOURS  ),
 				minutes,	msg_txt((minutes==1)?MSG_MINUTE:MSG_MINUTES),
@@ -5797,7 +5795,7 @@ bool command_skillid(int fd, map_session_data& sd, const char* command, const ba
 			(skill_db[idx].desc && strncasecmp(skill_db[idx].desc, name, len) == 0) )
 		{
 			char output[256];
-			snprintf(output, sizeof(output),"skill %s (id=%ld): %s", 
+			snprintf(output, sizeof(output),"skill %s (id=%lu): %s", 
 				skill_db[idx].name, (unsigned long)(idx), skill_db[idx].desc);
 			clif_displaymessage(fd, output);
 		}
@@ -6204,9 +6202,9 @@ bool command_printstats(int fd, map_session_data& sd, const char* command, const
 				else
 					snprintf(gmlevel, sizeof(gmlevel), " ");
 				
-				snprintf(output, sizeof(output), "Name: %s | BLvl: %d | Job: %s (Lvl: %d) | HP: %ld/%ld | SP: %ld/%ld", pl_sd->status.name, pl_sd->status.base_level, job_name(pl_sd->status.class_), pl_sd->status.job_level, (unsigned long)pl_sd->status.hp, (unsigned long)pl_sd->status.max_hp, (unsigned long)pl_sd->status.sp, (unsigned long)pl_sd->status.max_sp);
+				snprintf(output, sizeof(output), "Name: %s | BLvl: %d | Job: %s (Lvl: %d) | HP: %lu/%lu | SP: %lu/%lu", pl_sd->status.name, pl_sd->status.base_level, job_name(pl_sd->status.class_), pl_sd->status.job_level, (unsigned long)pl_sd->status.hp, (unsigned long)pl_sd->status.max_hp, (unsigned long)pl_sd->status.sp, (unsigned long)pl_sd->status.max_sp);
 				clif_displaymessage(fd, output);
-				snprintf(output, sizeof(output), "STR: %d | AGI: %d | VIT: %d | INT: %d | DEX: %d | LUK: %d | Zeny: %ld %s", pl_sd->status.str, pl_sd->status.agi, pl_sd->status.vit, pl_sd->status.int_, pl_sd->status.dex, pl_sd->status.luk, (unsigned long)pl_sd->status.zeny, gmlevel);
+				snprintf(output, sizeof(output), "STR: %d | AGI: %d | VIT: %d | INT: %d | DEX: %d | LUK: %d | Zeny: %lu %s", pl_sd->status.str, pl_sd->status.agi, pl_sd->status.vit, pl_sd->status.int_, pl_sd->status.dex, pl_sd->status.luk, (unsigned long)pl_sd->status.zeny, gmlevel);
 				clif_displaymessage(fd, output);
 				clif_displaymessage(fd, "--------");
 				++count;
@@ -6435,10 +6433,10 @@ bool command_users(int fd, map_session_data& sd, const char* command, const basi
 	}
 	for(i=0; i<map_num; ++i)
 	{
-		snprintf(buf, sizeof(buf), "%s : %ld (%ld%%)",maps[i].mapname, (unsigned long)maps[i].users,(unsigned long)(maps[i].users*100/all));
+		snprintf(buf, sizeof(buf), "%s : %lu (%lu%%)",maps[i].mapname, (unsigned long)maps[i].users,(unsigned long)(maps[i].users*100/all));
 		clif_displaymessage(fd,buf);
 	}
-	snprintf(buf,sizeof(buf), "all : %ld",(unsigned long)all);
+	snprintf(buf,sizeof(buf), "all : %lu",(unsigned long)all);
 	clif_displaymessage(fd,buf);
 	return true;
 }
@@ -6540,9 +6538,9 @@ bool command_who(int fd, map_session_data& sd, const char* command, const basics
 				{	// search with no case sensitive
 					if (config.who_display_aid > 0 && sd.isGM() >= config.who_display_aid) {
 						if (pl_GM_level > 0)
-							snprintf(output, sizeof(output), "(CID:%ld/AID:%ld) Name: %s (GM:%d) | Location: %s %d %d", (unsigned long)pl_sd->status.char_id, (unsigned long)pl_sd->status.account_id, pl_sd->status.name, pl_GM_level, pl_sd->mapname, pl_sd->block_list::x, pl_sd->block_list::y);
+							snprintf(output, sizeof(output), "(CID:%lu/AID:%lu) Name: %s (GM:%d) | Location: %s %d %d", (unsigned long)pl_sd->status.char_id, (unsigned long)pl_sd->status.account_id, pl_sd->status.name, pl_GM_level, pl_sd->mapname, pl_sd->block_list::x, pl_sd->block_list::y);
 						else
-							snprintf(output, sizeof(output), "(CID:%ld/AID:%ld) Name: %s | Location: %s %d %d", (unsigned long)pl_sd->status.char_id, (unsigned long)pl_sd->status.account_id, pl_sd->status.name, pl_sd->mapname, pl_sd->block_list::x, pl_sd->block_list::y);
+							snprintf(output, sizeof(output), "(CID:%lu/AID:%lu) Name: %s | Location: %s %d %d", (unsigned long)pl_sd->status.char_id, (unsigned long)pl_sd->status.account_id, pl_sd->status.name, pl_sd->mapname, pl_sd->block_list::x, pl_sd->block_list::y);
 					}
 					else {
 						if (pl_GM_level > 0)
@@ -6920,7 +6918,7 @@ bool command_whozeny(int fd, map_session_data& sd, const char* command, const ba
 	}
 	for(i=0; i<count && i<MAX; ++i)
 	{
-		snprintf(output, sizeof(output), "Name: %s | Zeny: %ld", zeny[i].name, (unsigned long)zeny[i].zeny);
+		snprintf(output, sizeof(output), "Name: %s | Zeny: %lu", zeny[i].name, (unsigned long)zeny[i].zeny);
 		clif_displaymessage(fd, output);
 	}
 	if (count == 0)
@@ -7396,7 +7394,7 @@ bool CommandInfo::is_command(const int fd, map_session_data &sd, const char* mes
 		while( *npp && *spp && *npp==*spp ) ++npp, ++spp;
 		if(*npp) // something wrong
 		{
-			snprintf(output,sizeof(output), "Hack on messages: character '%s' (account: %ld) uses another name.", sd.status.name, (unsigned long)sd.status.account_id);
+			snprintf(output,sizeof(output), "Hack on messages: character '%s' (account: %lu) uses another name.", sd.status.name, (unsigned long)sd.status.account_id);
 			intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, output);
 			ShowWarning(output);
 

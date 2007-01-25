@@ -100,7 +100,7 @@ enum
 	GD_REGENERATION=10011,
 	GD_RESTORE=10012,
 	GD_EMERGENCYCALL=10013,
-	GD_DEVELOPMENT=10014,
+	GD_DEVELOPMENT=10014
 };
 
 /////////////////////////////////////////////////////////////////////////////

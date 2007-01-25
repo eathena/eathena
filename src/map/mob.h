@@ -129,7 +129,7 @@ enum {
 	MSS_ATTACK,
 	MSS_DEAD,
 	MSS_LOOT,
-	MSS_CHASE,
+	MSS_CHASE
 };
 
 
@@ -391,7 +391,8 @@ struct mob_data : public affectable
 
 
 	/// special target unlocking with standby time
-	void unlock_target(unsigned long tick);
+	virtual void unlock_target()	{ this->unlock_target(0); }
+	virtual void unlock_target(unsigned long tick);
 
 
 	///////////////////////////////////////////////////////////////////////////

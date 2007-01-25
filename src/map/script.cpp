@@ -1203,6 +1203,7 @@ char* parse_simpleexpr(char *p)
 #endif
 	if(*p==';' || *p==','){
 		disp_error_message("unexpected expr end",p);
+		ShowMessage(CL_SPACE"error not recoverable, quitting.\n");
 		exit(1);
 	}
 	if(*p=='('){
@@ -1211,6 +1212,7 @@ char* parse_simpleexpr(char *p)
 		p=skip_space(p);
 		if((*p++)!=')'){
 			disp_error_message("unmatch ')'",p);
+			ShowMessage(CL_SPACE"error not recoverable, quitting.\n");
 			exit(1);
 		}
 	} else if(isdigit((int)((unsigned char)*p)) || ((*p=='-' || *p=='+') && isdigit((int)((unsigned char)p[1])))){
@@ -1226,12 +1228,14 @@ char* parse_simpleexpr(char *p)
 				p++;
 			else if(*p=='\n'){
 				disp_error_message("unexpected newline @ string", p);
+				ShowMessage(CL_SPACE"error not recoverable, quitting.\n");
 				exit(1);
 			}
 			add_scriptb(*p++);
 		}
 		if(!*p){
 			disp_error_message("unexpected eof @ string", p);
+			ShowMessage(CL_SPACE"error not recoverable, quitting.\n");
 			exit(1);
 		}
 		add_scriptb(0);
@@ -1242,6 +1246,7 @@ char* parse_simpleexpr(char *p)
 		char *p2 = skip_word(p);
 		if(p2==p && !(*p==')' && p[-1]=='(')){
 			disp_error_message("unexpected character",p);
+			ShowMessage(CL_SPACE"error not recoverable, quitting.\n");
 			exit(1);
 		}
 		c=*p2;
@@ -1272,6 +1277,7 @@ char* parse_simpleexpr(char *p)
 			p=skip_space(p);
 			if((*p++)!=']'){
 				disp_error_message("unmatch ']'",p);
+				ShowMessage(CL_SPACE"error not recoverable, quitting.\n");
 				exit(1);
 			}
 			add_scriptc(CScriptEngine::C_FUNC);
@@ -1346,6 +1352,7 @@ char* parse_subexpr(char *p,int limit)
 
 			if( str_data[func].type!=CScriptEngine::C_FUNC ){
 				disp_error_message("expect function",tmpp);
+				ShowMessage(CL_SPACE"error not recoverable, quitting.\n");
 				exit(0);
 			}
 
@@ -1364,6 +1371,7 @@ char* parse_subexpr(char *p,int limit)
 			plist[i]=p;
 			if(*(p++)!=')'){
 				disp_error_message("func request '(' ')'",p);
+				ShowMessage(CL_SPACE"error not recoverable, quitting.\n");
 				exit(1);
 			}
 
@@ -1402,6 +1410,7 @@ char* parse_expr(char *p)
 	case ')': case ';': case ':': case '[': case ']':
 	case '}':
 		disp_error_message("unexpected char",p);
+		ShowMessage(CL_SPACE"error not recoverable, quitting.\n");
 		exit(1);
 	}
 	p=parse_subexpr(p,-1);
@@ -1465,6 +1474,7 @@ char* parse_line(char *p)
 	plist[i]=(char *) p;
 	if(!p || *(p++)!=';'){
 		disp_error_message("need ';'",p);
+		ShowMessage(CL_SPACE"error not recoverable, quitting.\n");
 		exit(1);
 	}
 	add_scriptc(CScriptEngine::C_FUNC);
@@ -1600,6 +1610,7 @@ script_object* parse_script(unsigned char *src, size_t line)
 			{
 				*skip_word(p) = c;
 				disp_error_message("duplicated label ", p);
+				ShowMessage(CL_SPACE"error not recoverable, quitting.\n");
 				exit(1);
 			}
 			set_label(l, script_pos);
@@ -5560,18 +5571,6 @@ int buildin_announce(CScriptEngine &st)
  * 天の声アナウンス（特定マップ）
  *------------------------------------------
  */
-/*
-int buildin_mapannounce_sub(block_list &bl,va_list &ap)
-{
-	char *str;
-	int len,flag;
-	str=va_arg(ap,char *);
-	len=va_arg(ap,int);
-	flag=va_arg(ap,int);
-	clif_GMmessage(&bl,str,len,flag|3);
-	return 0;
-}
-*/
 class CBuildinMapannounce : public CMapProcessor
 {
 	const char*&str;
@@ -5598,9 +5597,6 @@ int buildin_mapannounce(CScriptEngine &st)
 	{	//!! broadcast command if not on this mapserver
 		block_list::foreachinarea( CBuildinMapannounce(str,1+strlen(str),flag),
 			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_PC);
-//		map_foreachinarea(buildin_mapannounce_sub,
-//			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_PC,
-//			str,strlen(str)+1,flag&0x10);
 	}
 	return 0;
 }
@@ -5622,9 +5618,6 @@ int buildin_areaannounce(CScriptEngine &st)
 	{	//!! broadcast command if not on this mapserver
 		block_list::foreachinarea( CBuildinMapannounce(str,1+strlen(str),flag&0x10),
 			m,x0,y0,x1,y1,BL_PC);
-//		map_foreachinarea(buildin_mapannounce_sub,
-//			m,x0,y0,x1,y1,BL_PC, 
-//			str,strlen(str)+1,flag&0x10 );
 	}
 	return 0;
 }
@@ -5760,9 +5753,6 @@ int buildin_getareadropitem(CScriptEngine &st)
 
 		amount = block_list::foreachinarea( CBuildinCountDropitem(item),
 			m,x0,y0,x1,y1,BL_ITEM);
-
-//		map_foreachinarea(buildin_getareadropitem_sub,
-//			m,x0,y0,x1,y1,BL_ITEM,item,&amount);
 	}
 	st.push_val(CScriptEngine::C_INT,amount);
 	return 0;

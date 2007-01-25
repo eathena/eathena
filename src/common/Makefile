@@ -12,7 +12,7 @@ RETURN_PATH ?= .
 COMMON_PATH ?= ../common
 BASICS_PATH ?= ../basics
 CCC         ?= g++ -pipe
-CPPFLAGS    ?= -g -O3 -ffast-math -D_REENTRANT -fPIC
+CPPFLAGS    ?= -g -O3 -ffast-math -D_REENTRANT -fPIC -I$(RETURN_PATH)/$(BASICS_PATH)
 ##########################################################
 
 include $(RETURN_PATH)/$(BASICS_PATH)/Makefile.dep

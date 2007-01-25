@@ -53,7 +53,6 @@ void memfree(void* p)
 
 
 
-const _allocatorbase::size_type _allocatorbase::npos = (_allocatorbase::size_type)-1;
 
 
 

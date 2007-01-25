@@ -4134,11 +4134,15 @@ int clif_changeoption(block_list &bl)
 	}
 
 	// アイコンの表示
-	for(i=0;i<sizeof(omask)/sizeof(omask[0]); ++i){
-		if( option&omask[i] ){
+	for(i=0;i<sizeof(omask)/sizeof(omask[0]); ++i)
+	{
+		if( option&omask[i] )
+		{
 			if( sc_data[scnum[i]].timer==-1)
 				status_change_start(&bl,scnum[i],0,0,0,0,0,0);
-		} else {
+		}
+		else
+		{
 			status_change_end(&bl,scnum[i],-1);
 		}
 	}
@@ -4842,9 +4846,9 @@ int clif_damage(block_list &src,block_list &dst,unsigned long tick,uint32 sdelay
 		if(sc_data[SC_HALLUCINATION].timer != -1)
 		{
 			if(damage > 0)
-				damage = damage*(5+sc_data[SC_HALLUCINATION].val1.num) + rand()%100;
+				damage = damage*(5+sc_data[SC_HALLUCINATION].integer1()) + rand()%100;
 			if(damage2 > 0)
-				damage2 = damage2*(5+sc_data[SC_HALLUCINATION].val1.num) + rand()%100;
+				damage2 = damage2*(5+sc_data[SC_HALLUCINATION].integer1()) + rand()%100;
 		}
 	}
 	
@@ -5431,7 +5435,7 @@ int clif_skill_damage(block_list &src,block_list &dst,unsigned long tick,uint32 
 		if(type != 5 && sc_data[SC_ENDURE].timer != -1)
 			type = 9;
 		if(sc_data[SC_HALLUCINATION].timer != -1 && damage > 0)
-			damage = damage*(5+sc_data[SC_HALLUCINATION].val1.num) + rand()%100;
+			damage = damage*(5+sc_data[SC_HALLUCINATION].integer1()) + rand()%100;
 	}
 
 #if PACKETVER < 3
@@ -5493,7 +5497,7 @@ int clif_skill_damage2(block_list &src,block_list &dst,unsigned long tick,uint32
 		if(type != 5 && sc_data[SC_ENDURE].timer != -1)
 			type = 9;
 		if(sc_data[SC_HALLUCINATION].timer != -1 && damage > 0)
-			damage = damage*(5+sc_data[SC_HALLUCINATION].val1.num) + rand()%100;
+			damage = damage*(5+sc_data[SC_HALLUCINATION].integer1()) + rand()%100;
 	}
 
 	WBUFW(buf,0)=0x115;
@@ -9302,7 +9306,7 @@ int clif_parse_LoadEndAck(int fd, map_session_data &sd)
 
 	//if(sd.status.hp<sd.status.max_hp>>2 && sd.skill_check(SM_AUTOBERSERK)>0 &&
 	if(sd.status.hp<sd.status.max_hp>>2 && sd.has_status(SC_AUTOBERSERK) &&
-		( !sd.has_status(SC_PROVOKE) || sd.sc_data[SC_PROVOKE].val2.num==0 ))
+		( !sd.has_status(SC_PROVOKE) || sd.sc_data[SC_PROVOKE].integer2()==0 ))
 		// オートバーサーク発動
 		status_change_start(&sd,SC_PROVOKE,10,1,0,0,0,0);
 
@@ -9367,7 +9371,7 @@ int clif_parse_WalkToXY(int fd, map_session_data &sd)
 {
 	int x, y;
 
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if( sd.is_dead() )
@@ -9389,9 +9393,9 @@ int clif_parse_WalkToXY(int fd, map_session_data &sd)
 	     sd.has_status(SC_TRICKDEAD) || //死んだふり
 	     sd.has_status(SC_BLADESTOP) || //白刃取り
 	     sd.has_status(SC_SPIDERWEB) || //スパイダーウェッブ
-	     (sd.has_status(SC_DANCING) && sd.sc_data[SC_DANCING].val4.num) || //合奏スキル演奏中は動けない
-		 (sd.has_status(SC_GOSPEL) && sd.sc_data[SC_GOSPEL].val4.num == BCT_SELF) ||	// cannot move while gospel is in effect
-		 (sd.has_status(SC_DANCING) && sd.sc_data[SC_DANCING].val1.num == CG_HERMODE)  //cannot move while Hermod is active.
+	     (sd.has_status(SC_DANCING) && sd.sc_data[SC_DANCING].integer4()) || //合奏スキル演奏中は動けない
+		 (sd.has_status(SC_GOSPEL) && sd.sc_data[SC_GOSPEL].integer4() == BCT_SELF) ||	// cannot move while gospel is in effect
+		 (sd.has_status(SC_DANCING) && sd.sc_data[SC_DANCING].integer1() == CG_HERMODE)  //cannot move while Hermod is active.
 		)
 		return 0;
 	if ((sd.status.option & 2) && sd.skill_check( RG_TUNNELDRIVE) <= 0)
@@ -9429,7 +9433,7 @@ int clif_parse_QuitGame(int fd, map_session_data &sd)
 	if( (!sd.is_dead() && (sd.opt1 || (sd.opt2 && !(daynight_flag && sd.opt2 == STATE_BLIND)))) ||
 	    sd.skilltimer != -1 ||
 	    (DIFF_TICK(tick, sd.canact_tick) < 0) ||
-	    (sd.has_status(SC_DANCING) && sd.sc_data[SC_DANCING].val2.isptr && (sg=(struct skill_unit_group *)sd.sc_data[SC_DANCING].val2.ptr) && sg->src_id == sd.block_list::id) ||
+	    (sd.has_status(SC_DANCING) && (sg=(struct skill_unit_group *)sd.sc_data[SC_DANCING].pointer2()) && sg->src_id == sd.block_list::id) ||
 		(config.prevent_logout && sd.is_dead() && DIFF_TICK(tick,sd.canlog_tick) < 10000) )
 	{	// fail
 		WFIFOW(fd,2)=1;
@@ -9475,7 +9479,7 @@ int clif_parse_GetCharNameRequest(int fd, map_session_data &sd)
 int clif_parse_GlobalMessage(int fd, map_session_data &sd)
 {	// S 008c <len>.w <str>.?B
 
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	size_t buffersize = RFIFOW(fd,2);
@@ -9622,7 +9626,7 @@ int clif_parse_ChangeDir(int fd, map_session_data &sd)
 {
 	dir_t bodydir, headdir;
 
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd)  || !sd.is_on_map() )
 		return 0;
 
 	headdir = (dir_t)(((unsigned char)RFIFOB(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]))&0x07);
@@ -9639,7 +9643,7 @@ int clif_parse_ChangeDir(int fd, map_session_data &sd)
 int clif_parse_Emotion(int fd, map_session_data &sd)
 {
 	unsigned char buf[64];
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd)  || !sd.is_on_map() )
 		return 0;
 
 	if(config.basic_skill_check == 0 || sd.skill_check( NV_BASIC) >= 2)
@@ -9693,7 +9697,7 @@ int clif_parse_ActionRequest(int fd, map_session_data &sd)
 	int action_type;
 	uint32 target_id;
 
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if( sd.is_dead() )
@@ -9797,7 +9801,7 @@ int clif_parse_Restart(int fd, map_session_data &sd)
 		if( (!sd.is_dead() && (sd.opt1 || (sd.opt2 && !(daynight_flag && sd.opt2 == STATE_BLIND)))) ||
 			sd.skilltimer != -1 ||
 			(DIFF_TICK(tick, sd.canact_tick) < 0) ||
-			(sd.has_status(SC_DANCING) && sd.sc_data[SC_DANCING].val2.isptr && (sg=(struct skill_unit_group *)sd.sc_data[SC_DANCING].val2.ptr) && sg->src_id == sd.block_list::id) ||
+			(sd.has_status(SC_DANCING) && (sg=(struct skill_unit_group *)sd.sc_data[SC_DANCING].pointer2()) && sg->src_id == sd.block_list::id) ||
 			(config.prevent_logout && sd.is_dead() && DIFF_TICK(tick,sd.canlog_tick) < 10000) )
 		{	// fail
 			WFIFOW(fd,0)=0x18b;
@@ -9823,7 +9827,7 @@ int clif_parse_Restart(int fd, map_session_data &sd)
  */
 int clif_parse_Wis(int fd, map_session_data &sd)
 {	// S 0096 <len>.w <nick>.24B <message>.?B // rewritten by [Yor]
-	if( !session_isActive(fd) ||
+	if( !session_isActive(fd) || !sd.is_on_map() ||
 		sd.has_status(SC_BERSERK) || //バーサーク時は会話も不可
 		sd.has_status(SC_NOCHAT) ) //チャット禁止
 		return 0;
@@ -9946,7 +9950,7 @@ int clif_parse_Wis(int fd, map_session_data &sd)
  */
 int clif_parse_GMmessage(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if( (config.atc_gmonly == 0 || sd.isGM()) &&
@@ -9961,7 +9965,7 @@ int clif_parse_GMmessage(int fd, map_session_data &sd)
  */
 int clif_parse_TakeItem(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if( sd.is_dead() )
@@ -9997,7 +10001,7 @@ int clif_parse_DropItem(int fd, map_session_data &sd)
 {
 	int item_index, item_amount;
 
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if (sd.is_dead()) {
@@ -10022,7 +10026,7 @@ int clif_parse_DropItem(int fd, map_session_data &sd)
  */
 int clif_parse_UseItem(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if (sd.is_dead()) {
@@ -10052,7 +10056,7 @@ int clif_parse_EquipItem(int fd, map_session_data &sd)
 {
 	unsigned short index;
 
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if(sd.is_dead()) {
@@ -10090,7 +10094,7 @@ int clif_parse_UnequipItem(int fd, map_session_data &sd)
 {
 	int index;
 
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if(sd.is_dead()) {
@@ -10117,7 +10121,7 @@ int clif_parse_UnequipItem(int fd, map_session_data &sd)
  */
 int clif_parse_NpcClicked(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if(sd.is_dead()) {
@@ -10135,7 +10139,7 @@ int clif_parse_NpcClicked(int fd, map_session_data &sd)
  */
 int clif_parse_NpcBuySellSelected(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 	if(sd.vender_id != 0  || sd.trade_partner != 0)
 		return 0;
@@ -10158,7 +10162,7 @@ int clif_parse_NpcBuySellSelected(int fd, map_session_data &sd)
 int clif_parse_NpcBuyListSend(int fd, map_session_data &sd)
 {
 	int fail=1;
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if(sd.vender_id == 0  && sd.trade_partner == 0)
@@ -10183,7 +10187,7 @@ int clif_parse_NpcSellListSend(int fd, map_session_data &sd)
 {
 	int fail=1;
 
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if(sd.vender_id == 0  && sd.trade_partner == 0)
@@ -10201,7 +10205,7 @@ int clif_parse_NpcSellListSend(int fd, map_session_data &sd)
  */
 int clif_parse_CreateChatRoom(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if( (config.basic_skill_check && sd.skill_check(NV_BASIC) < 4) || 
@@ -10216,7 +10220,7 @@ int clif_parse_CreateChatRoom(int fd, map_session_data &sd)
  */
 int clif_parse_ChatAddMember(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	chat_data::join(sd, RFIFOL(fd,2), (char*)RFIFOP(fd,6));
@@ -10229,7 +10233,7 @@ int clif_parse_ChatAddMember(int fd, map_session_data &sd)
  */
 int clif_parse_ChatRoomStatusChange(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 	if(sd.chat)
 	{	// force string termination inside the buffer
@@ -10246,7 +10250,7 @@ int clif_parse_ChatRoomStatusChange(int fd, map_session_data &sd)
  */
 int clif_parse_ChangeChatOwner(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 	if(sd.chat)
 		sd.chat->change_owner(sd, (const char*)RFIFOP(fd,6));
@@ -10259,7 +10263,7 @@ int clif_parse_ChangeChatOwner(int fd, map_session_data &sd)
  */
 int clif_parse_KickFromChat(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if( sd.chat && sd.chat->is_owner(sd) )
@@ -10273,7 +10277,7 @@ int clif_parse_KickFromChat(int fd, map_session_data &sd)
  */
 int clif_parse_ChatLeave(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 	sd.leavechat();
 	return 0;
@@ -10285,7 +10289,7 @@ int clif_parse_ChatLeave(int fd, map_session_data &sd)
  */
 int clif_parse_TradeRequest(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if(config.basic_skill_check == 0 || sd.skill_check(NV_BASIC) >= 1){
@@ -10301,7 +10305,7 @@ int clif_parse_TradeRequest(int fd, map_session_data &sd)
  */
 int clif_parse_TradeAck(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	trade_tradeack(sd,RFIFOB(sd.fd,2));
@@ -10314,7 +10318,7 @@ int clif_parse_TradeAck(int fd, map_session_data &sd)
  */
 int clif_parse_TradeAddItem(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	trade_tradeadditem(sd,RFIFOW(sd.fd,2),RFIFOL(sd.fd,4));
@@ -10367,7 +10371,7 @@ int clif_parse_StopAttack(int fd, map_session_data &sd)
  */
 int clif_parse_PutItemToCart(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if(sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.trade_partner != 0)
@@ -10381,7 +10385,7 @@ int clif_parse_PutItemToCart(int fd, map_session_data &sd)
  */
 int clif_parse_GetItemFromCart(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if(sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.trade_partner != 0)
@@ -10427,7 +10431,7 @@ int clif_parse_RemoveOption(int fd, map_session_data &sd)
  */
 int clif_parse_ChangeCart(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	pc_setcart(sd,RFIFOW(fd,2));
@@ -10440,7 +10444,7 @@ int clif_parse_ChangeCart(int fd, map_session_data &sd)
  */
 int clif_parse_StatusUp(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 	pc_statusup(sd,RFIFOW(fd,2));
 	return 0;
@@ -10452,7 +10456,7 @@ int clif_parse_StatusUp(int fd, map_session_data &sd)
  */
 int clif_parse_SkillUp(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	pc_skillup(sd,RFIFOW(fd,2));
@@ -10525,9 +10529,9 @@ int clif_parse_UseSkillToId(int fd, map_session_data &sd) {
 		sd.skillitem = sd.skillitemlv = 0xFFFF;
 		if (skillnum == MO_EXTREMITYFIST) {
 			if ((!sd.has_status(SC_COMBO) ||
-				(sd.sc_data[SC_COMBO].val1.num != MO_COMBOFINISH &&
-				 sd.sc_data[SC_COMBO].val1.num != CH_TIGERFIST &&
-				 sd.sc_data[SC_COMBO].val1.num != CH_CHAINCRUSH)) )
+				(sd.sc_data[SC_COMBO].integer1() != MO_COMBOFINISH &&
+				 sd.sc_data[SC_COMBO].integer1() != CH_TIGERFIST &&
+				 sd.sc_data[SC_COMBO].integer1() != CH_CHAINCRUSH)) )
 			{
 				if (!sd.state.skill_flag )
 				{
@@ -10542,7 +10546,7 @@ int clif_parse_UseSkillToId(int fd, map_session_data &sd) {
 				}
 			}
 		} else if (skillnum == CH_TIGERFIST) {
-			if ( !sd.has_status(SC_COMBO) || sd.sc_data[SC_COMBO].val1.num != MO_COMBOFINISH) {
+			if ( !sd.has_status(SC_COMBO) || sd.sc_data[SC_COMBO].integer1() != MO_COMBOFINISH) {
 				if (!sd.state.skill_flag ) {
 					sd.state.skill_flag = 1;
 					if (!sd.target_id) {
@@ -10576,7 +10580,7 @@ int clif_parse_UseSkillToPos(int fd, map_session_data &sd)
 	unsigned short skillnum, skilllv, lv, x, y;
 	unsigned long tick = gettick();
 
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if(sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.chat || sd.is_sitting() || sd.is_dead() )
@@ -10645,7 +10649,7 @@ int clif_parse_UseSkillToPos(int fd, map_session_data &sd)
  */
 int clif_parse_UseSkillMap(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if(sd.chat)
@@ -10671,7 +10675,7 @@ int clif_parse_UseSkillMap(int fd, map_session_data &sd)
  */
 int clif_parse_RequestMemo(int fd, map_session_data &sd)
 {
-	if( !sd.is_dead() )
+	if( !sd.is_dead() || !sd.is_on_map() )
 		pc_memo(sd,-1);
 	return 0;
 }
@@ -10681,7 +10685,7 @@ int clif_parse_RequestMemo(int fd, map_session_data &sd)
  */
 int clif_parse_ProduceMix(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	return skill_produce_mix(sd,RFIFOW(fd,2),RFIFOW(fd,4),RFIFOW(fd,6),RFIFOW(fd,8));
@@ -10692,7 +10696,7 @@ int clif_parse_ProduceMix(int fd, map_session_data &sd)
  */
 int clif_parse_RepairItem(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	return pc_item_repair(sd, RFIFOW(fd,2));
@@ -10700,7 +10704,7 @@ int clif_parse_RepairItem(int fd, map_session_data &sd)
 
 int clif_parse_WeaponRefine(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	return pc_item_refine(sd, RFIFOW(fd, packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0])-2);
@@ -10711,7 +10715,7 @@ int clif_parse_WeaponRefine(int fd, map_session_data &sd)
  */
 int clif_parse_NpcSelectMenu(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	sd.ScriptEngine.cExtData = RFIFOB(fd,6);
@@ -10725,7 +10729,7 @@ int clif_parse_NpcSelectMenu(int fd, map_session_data &sd)
  */
 int clif_parse_NpcNextClicked(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 	sd.ScriptEngine.cExtData = 0;
 	sd.ScriptEngine.restart(RFIFOL(fd,2));
@@ -10738,7 +10742,7 @@ int clif_parse_NpcNextClicked(int fd, map_session_data &sd)
  */
 int clif_parse_NpcAmountInput(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	sd.ScriptEngine.cExtData = RFIFOL(fd,6);
@@ -10752,7 +10756,7 @@ int clif_parse_NpcAmountInput(int fd, map_session_data &sd)
  */
 int clif_parse_NpcStringInput(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	sd.ScriptEngine.cExtData = (char*)RFIFOP(fd,8);
@@ -10766,7 +10770,7 @@ int clif_parse_NpcStringInput(int fd, map_session_data &sd)
  */
 int clif_parse_NpcCloseClicked(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	sd.ScriptEngine.cExtData = 1;
@@ -10780,7 +10784,7 @@ int clif_parse_NpcCloseClicked(int fd, map_session_data &sd)
  */
 int clif_parse_ItemIdentify(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	pc_item_identify(sd,RFIFOW(fd,2)-2);
@@ -10792,7 +10796,7 @@ int clif_parse_ItemIdentify(int fd, map_session_data &sd)
  */
 int clif_parse_SelectArrow(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	return skill_arrow_create(&sd,RFIFOW(fd,2));
@@ -10803,7 +10807,7 @@ int clif_parse_SelectArrow(int fd, map_session_data &sd)
  */
 int clif_parse_AutoSpell(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	skill_autospell(&sd,RFIFOW(fd,2));
@@ -10815,7 +10819,7 @@ int clif_parse_AutoSpell(int fd, map_session_data &sd)
  */
 int clif_parse_UseCard(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 	if (sd.trade_partner != 0)
 		return 0;
@@ -10828,7 +10832,7 @@ int clif_parse_UseCard(int fd, map_session_data &sd)
  */
 int clif_parse_InsertCard(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 	if (sd.trade_partner != 0)
 		return 0;
@@ -10882,7 +10886,7 @@ int clif_parse_ResetChar(int fd, map_session_data &sd)
 int clif_parse_LGMmessage(int fd, map_session_data &sd) {
 	unsigned char buf[512];
 
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if( (config.atc_gmonly == 0 || sd.isGM()) &&
@@ -10903,7 +10907,7 @@ int clif_parse_LGMmessage(int fd, map_session_data &sd) {
 int clif_parse_MoveToKafra(int fd, map_session_data &sd) {
 	int item_index, item_amount;
 
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0  || sd.trade_partner != 0)
@@ -10930,7 +10934,7 @@ int clif_parse_MoveToKafra(int fd, map_session_data &sd) {
 int clif_parse_MoveFromKafra(int fd, map_session_data &sd) {
 	int item_index, item_amount;
 
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0  || sd.trade_partner != 0)
@@ -10952,7 +10956,7 @@ int clif_parse_MoveFromKafra(int fd, map_session_data &sd) {
  */
 int clif_parse_MoveToKafraFromCart(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.trade_partner != 0 )
@@ -10970,7 +10974,7 @@ int clif_parse_MoveToKafraFromCart(int fd, map_session_data &sd)
  */
 int clif_parse_MoveFromKafraToCart(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.trade_partner != 0 )
@@ -10988,7 +10992,6 @@ int clif_parse_MoveFromKafraToCart(int fd, map_session_data &sd)
  */
 int clif_parse_CloseKafra(int fd, map_session_data &sd)
 {
-
 	if (sd.state.storage_flag)
 		storage_guild_storageclose(sd);
 	else
@@ -11002,7 +11005,7 @@ int clif_parse_CloseKafra(int fd, map_session_data &sd)
  */
 int clif_parse_CreateParty(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if (config.basic_skill_check == 0 || sd.skill_check(NV_BASIC) >= 7) {
@@ -11018,7 +11021,7 @@ int clif_parse_CreateParty(int fd, map_session_data &sd)
  */
 int clif_parse_CreateParty2(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if (config.basic_skill_check == 0 || sd.skill_check(NV_BASIC) >= 7){
@@ -11034,7 +11037,7 @@ int clif_parse_CreateParty2(int fd, map_session_data &sd)
  */
 int clif_parse_PartyInvite(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	party_invite(sd, RFIFOL(fd,2));
@@ -11047,7 +11050,7 @@ int clif_parse_PartyInvite(int fd, map_session_data &sd)
  */
 int clif_parse_ReplyPartyInvite(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if(config.basic_skill_check == 0 || sd.skill_check(NV_BASIC) >= 5){
@@ -11075,7 +11078,7 @@ int clif_parse_LeaveParty(int fd, map_session_data &sd)
  */
 int clif_parse_RemovePartyMember(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	party_removemember(sd,RFIFOL(fd,2),(char*)RFIFOP(fd,6));
@@ -11088,7 +11091,7 @@ int clif_parse_RemovePartyMember(int fd, map_session_data &sd)
  */
 int clif_parse_PartyChangeOption(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	party_changeoption(sd, RFIFOW(fd,2), RFIFOW(fd,4));
@@ -11101,7 +11104,7 @@ int clif_parse_PartyChangeOption(int fd, map_session_data &sd)
  */
 int clif_parse_PartyMessage(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	size_t buffersize = RFIFOW(fd,2);
@@ -11142,7 +11145,7 @@ int clif_parse_CloseVending(int fd, map_session_data &sd)
  */
 int clif_parse_VendingListReq(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 	if(sd.trade_partner == 0)
 		vending_vendinglistreq(sd,RFIFOL(fd,2));
@@ -11157,7 +11160,7 @@ int clif_parse_VendingListReq(int fd, map_session_data &sd)
  */
 int clif_parse_PurchaseReq(int fd, map_session_data &sd)
  {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 	if(sd.trade_partner == 0)
 		vending_purchasereq(sd, RFIFOW(fd,2), RFIFOL(fd,4), RFIFOP(fd,8));
@@ -11170,7 +11173,7 @@ int clif_parse_PurchaseReq(int fd, map_session_data &sd)
  */
 int clif_parse_OpenVending(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 	if(sd.vender_id == 0  && sd.trade_partner == 0)
 		vending_openvending(sd, RFIFOW(fd,2), (char*)RFIFOP(fd,4), RFIFOB(fd,84), RFIFOP(fd,85));
@@ -11183,7 +11186,7 @@ int clif_parse_OpenVending(int fd, map_session_data &sd)
  */
 int clif_parse_GM_Monster_Item(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 	if(config.atc_gmonly == 0 || sd.isGM())
 	{
@@ -11210,7 +11213,7 @@ int clif_parse_GM_Monster_Item(int fd, map_session_data &sd)
  */
 int clif_parse_CreateGuild(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	guild_create(sd, (char*)RFIFOP(fd,6));
@@ -11233,7 +11236,7 @@ int clif_parse_GuildCheckMaster(int fd, map_session_data &sd)
  */
 int clif_parse_GuildRequestInfo(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	switch(RFIFOL(fd,2)){
@@ -11270,7 +11273,7 @@ int clif_parse_GuildRequestInfo(int fd, map_session_data &sd)
 int clif_parse_GuildChangePositionInfo(int fd, map_session_data &sd)
 {
 	int i;
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 	for(i = 4; i < RFIFOW(fd,2); i += 40 ){
 		guild_change_position(sd, RFIFOL(fd,i), RFIFOL(fd,i+4), RFIFOL(fd,i+12), (char*)RFIFOP(fd,i+16));
@@ -11285,7 +11288,7 @@ int clif_parse_GuildChangePositionInfo(int fd, map_session_data &sd)
 int clif_parse_GuildChangeMemberPosition(int fd, map_session_data &sd)
 {
 	int i;
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 	for(i=4;i<RFIFOW(fd,2);i+=12){
 		guild_change_memberposition(sd.status.guild_id,RFIFOL(fd,i),RFIFOL(fd,i+4),RFIFOL(fd,i+8));
@@ -11485,7 +11488,7 @@ int clif_parse_GuildBreak(int fd, map_session_data &sd)
 // pet
 int clif_parse_PetMenu(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if(sd.pd) sd.pd->menu(RFIFOB(fd,2));
@@ -11494,7 +11497,7 @@ int clif_parse_PetMenu(int fd, map_session_data &sd)
 
 int clif_parse_CatchPet(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	pet_catch_process2(sd,RFIFOL(fd,2));
@@ -11503,7 +11506,7 @@ int clif_parse_CatchPet(int fd, map_session_data &sd)
 
 int clif_parse_SelectEgg(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	pet_select_egg(sd,RFIFOW(fd,2)-2);
@@ -11512,7 +11515,7 @@ int clif_parse_SelectEgg(int fd, map_session_data &sd)
 
 int clif_parse_SendEmotion(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if(sd.pd)
@@ -11522,7 +11525,7 @@ int clif_parse_SendEmotion(int fd, map_session_data &sd)
 
 int clif_parse_ChangePetName(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if(sd.pd) sd.pd->change_name( (const char*)RFIFOP(fd,2) );
@@ -11532,7 +11535,7 @@ int clif_parse_ChangePetName(int fd, map_session_data &sd)
 // Kick (right click menu for GM "(name) force to quit")
 int clif_parse_GMKick(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if( (config.atc_gmonly == 0 || sd.isGM()) && sd.isGM() >= CommandInfo::get_level(command_kick) )
@@ -11567,7 +11570,7 @@ int clif_parse_Shift(int fd, map_session_data &sd)
 {
 	char player_name[32]="";
 
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if( (config.atc_gmonly == 0 || sd.isGM()) &&
@@ -11588,7 +11591,7 @@ int clif_parse_Recall(int fd, map_session_data &sd)
 {
 	char player_name[32];
 
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if( (config.atc_gmonly == 0 || sd.isGM()) &&
@@ -11602,9 +11605,7 @@ int clif_parse_Recall(int fd, map_session_data &sd)
 }
 
 int clif_parse_GMHide(int fd, map_session_data &sd)
-{	// Modified by [Yor]
-
-	//ShowMessage("%2x %2x %2x\n", (unsigned short)RFIFOW(fd,0), (unsigned short)RFIFOW(fd,2), (unsigned short)RFIFOW(fd,4)); // R 019d <Option_value>.2B <flag>.2B
+{
 	if( (config.atc_gmonly == 0 || sd.isGM()) &&
 	    sd.isGM() >= CommandInfo::get_level(command_hide) )
 	{
@@ -11626,7 +11627,7 @@ int clif_parse_GMHide(int fd, map_session_data &sd)
  */
 int clif_parse_GMReqNoChat(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	if(!config.muting_players)
@@ -11673,7 +11674,7 @@ int clif_parse_GMReqNoChat(int fd, map_session_data &sd)
  */
 int clif_parse_GMReqNoChatCount(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	int tid = RFIFOL(fd,2);
@@ -12076,7 +12077,7 @@ int clif_parse_GMKillAll(int fd, map_session_data &sd)
  */
 int clif_parse_PVPInfo(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	WFIFOW(fd,0) = 0x210;
@@ -12466,7 +12467,7 @@ int clif_baby_target_display(map_session_data &sd)
  */
 int clif_parse_BabyRequest(int fd, map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	uint32 char_id = RFIFOL(fd, packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]);
@@ -12494,7 +12495,7 @@ int clif_request_feel(map_session_data &sd, unsigned short skilllv)
 
 int clif_parse_FeelSaveOk(int fd,map_session_data &sd)
 {
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
 	unsigned short i = pc_readglobalreg(sd,"PC_SG_FEEL");
@@ -12520,7 +12521,7 @@ int clif_parse_AdoptRequest(int fd, map_session_data &sd)
 	//TODO: add somewhere the adopt code, checks for exploits, etc, etc.
 	//Missing packets are the client's reply packets to the adopt request one. 
 	//[Skotlex]
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 	
 	int account_id = RFIFOL(fd,2);
@@ -13879,7 +13880,7 @@ int packetdb_readdb(void)
 
 			if(strcasecmp(w1,"packet_ver")==0)
 			{	// start of a new version
-				size_t i, prev_ver = packet_ver;
+				size_t prev_ver = packet_ver;
 				packet_ver = atoi(w2);
 				if (packet_ver > MAX_PACKET_VER)
 				{	//Check to avoid overflowing. [Skotlex]

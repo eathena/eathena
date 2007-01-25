@@ -90,7 +90,7 @@ int inter_accreg_tostr(char *str, struct accreg *reg) {
 	size_t j;
 	char *p = str;
 
-	p += sprintf(p, "%ld\t", (unsigned long)reg->account_id);
+	p += sprintf(p, "%lu\t", (unsigned long)reg->account_id);
 	for(j = 0; j < reg->reg_num; ++j) {
 		p += sprintf(p,"%s,%ld ", reg->reg[j].str, (long)reg->reg[j].value);
 	}

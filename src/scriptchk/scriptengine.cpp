@@ -34,16 +34,16 @@ void buildEngine()
 	static unsigned char buffer2[128*1024];
 	FILE *fp = fopen("eascript.cgt", "rb");
 	ulong sz=fread(buffer1, 1, sizeof(buffer1), fp);
-
 	ulong i, sz2=sizeof(buffer2);
 	basics::CZlib zlib;
 	zlib.encode(buffer2, sz2, buffer1, sz);
 
-	for(i=0; i<sz2; ++i)
+	for(i=0; i<sz2-1; ++i)
 	{
 		if(i%8==0) printf("\n");
 		fprintf(stdout, "0x%02X, ", buffer2[i]);
 	}
+	fprintf(stdout, "0x%02X\n", buffer2[i]);
 	exit(0);
 }
 

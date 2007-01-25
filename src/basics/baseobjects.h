@@ -59,6 +59,8 @@ class nonallocable
 {	// prevent allocation
 	void* operator new(size_t s);
 	void* operator new[](size_t s);
+	void operator delete(void* p);
+	void operator delete[](void* p);
 protected:
 	nonallocable() {}
 public:
@@ -263,6 +265,27 @@ typedef struct _numptr
 	_numptr():isptr(false),ptr(NULL)				{}	// clear as default
 	explicit _numptr(void*a):isptr(a!=NULL),ptr(a)	{}	// take over the void pointer, block const pointers here to signal the user
 	_numptr(ssize_t a):isptr(false),num(a)			{}	// initialisation from numbers !!DONT CAST POINTERS TO INTS!!
+
+	ssize_t	integer() const
+	{
+		return (this->isptr)?0:this->num;
+	}
+	ssize_t& integer()
+	{
+		if( this->isptr )
+			this->num = 0;
+		return this->num;
+	}
+	void* pointer() const
+	{
+		return (this->isptr)?this->ptr:NULL;
+	}
+	void *& pointer()
+	{
+		if( !this->isptr )
+			this->ptr = NULL;
+		return this->ptr;
+	}
 } numptr;
 
 

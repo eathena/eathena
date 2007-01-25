@@ -8,7 +8,7 @@
 #include "fightable.h"
 
 
-enum {	// map_session_data の status_changeの番?テ?ブル
+enum status_t {	// map_session_data の status_changeの番?テ?ブル
 // MAX_STATUSCHANGE未?はクライアントへの通知あり。
 // 2-2次職の値はなんかめちゃくちゃっぽいので暫定。たぶん?更されます。
 
@@ -89,7 +89,7 @@ enum {	// map_session_data の status_changeの番?テ?ブル
 
 	SC_STONE			= 74,
 	SC_FREEZE			= 75,
-	SC_STAN				= 76,
+	SC_STUN				= 76,
 	SC_SLEEP			= 77,
 	SC_POISON			= 78,
 	SC_CURSE			= 79,
@@ -350,7 +350,7 @@ enum {	// map_session_data の status_changeの番?テ?ブル
 	//
 	SC_STONE				=128,	// 状態異常：石化 
 	SC_FREEZE				=129,	// 状態異常：氷結 
-	SC_STAN					=130,	// 状態異常：スタン 
+	SC_STUN					=130,	// 状態異常：スタン 
 	SC_SLEEP				=131,	// 状態異常：睡眠 
 	SC_POISON				=132,	// 状態異常：毒 
 	SC_CURSE				=133,	// 状態異常：呪い 

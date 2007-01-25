@@ -28,8 +28,8 @@ void vector_error(const char*errmsg)
 
 
 ///////////////////////////////////////////////////////////////////////////
-template<typename T, typename E, typename A> 
-void vectorbase<T,E,A>::debug_print()
+template<typename T, typename A> 
+void vectorbase<T,A>::debug_print()
 {
 	string<> str;
 	typename A::iterator iter(*this);
@@ -107,14 +107,13 @@ void test_array(void)
 		char carr[5] = {1,2,3,4,5};
 		TObjPtr< vector<char> > ptrarray(carr,5);
 
-		printf("%li\n------------------\n", (ulong)ptrarray->size());
+		printf("%lu\n------------------\n", (ulong)ptrarray->size());
 
 		string<> sarr[5];
 		TObjPtr< vector< string<> > > ptrarray1(sarr,5);
-		printf("%li\n------------------\n", (ulong)ptrarray1->size());
+		printf("%lu\n------------------\n", (ulong)ptrarray1->size());
 
 		TObjPtr< constructtest > sptr(1,2,"TObjPtr",'c');
-
 		TPtrCount< constructtest > sptr2(1,2,"TPtrCount",'c');
 		TPtrAutoCount< constructtest > sptr3(1,2,"TPtrAutoCount",'c');
 		TPtrAutoRef< constructtest > sptr4(1,2,"TPtrAutoRef",'c');
@@ -135,7 +134,7 @@ void test_array(void)
 		a = sizeof(ptrarray2);
 
 		ptrarray.setCopyonWrite();
-		printf("%li\n", (ulong)ptrarray->size());
+		printf("%lu, %lu\n", (ulong)ptrarray->size(), (ulong)a);
 		char b = (*ptrarray)[2];
 		b++;
 	}
@@ -173,7 +172,8 @@ void test_array(void)
 		try
 		{
 		int xx = dm["none"];
-		xx = dm[2];
+		xx = 2;
+		xx = dm[xx];
 		}
 		catch(exception& e)
 		{
@@ -216,7 +216,7 @@ void test_array(void)
 
 	{
 		map<int, int> a;
-		printf("sz of map: %i\n", sizeof(a) );
+		printf("sz of map: %i\n", (int)sizeof(a) );
 		//map<size_t, size_t> imap;
 
 		//imap[1] = 5;
@@ -290,7 +290,7 @@ void test_array(void)
 		rr = ("ab" == cs);
 		rr = ("ab" == test);
 		rr = (test == "ab");
-
+		if(rr)	rr=false;
 	}
 
 
@@ -394,7 +394,6 @@ void test_array(void)
 	{
 		printf("vector free tests\n");
 		vector<char> ca, cb("hallo", 5);
-//		vector< char, elaborator_st<char>, allocator_rw_st< char, elaborator_st<char> > > cc;
 		vector< char > cc;
 	
 		if(cb.size() != 5) printf("vector construction failed (size=%lu should be 5)\n",(ulong)cb.size());
@@ -627,7 +626,7 @@ void test_array(void)
 		}
 		catch(exception e)
 		{
-			printf("catched: %s\n", e.what());
+			printf("catched: %s (%i)\n", e.what(), a);
 		}
 		ss[3] = 'z'; 
 

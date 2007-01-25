@@ -32,10 +32,10 @@ NAMESPACE_BEGIN(basics)
 void CParser::print_stack_element(const CStackElement &se, int indent, const char sign) const
 {
 	int i;
-	printf("(%3i/%4i)", se.cToken.line, se.cToken.column);
+	printf("(%3u/%4u)", se.cToken.line, se.cToken.column);
 	for(i=0;i<indent;++i)
 		printf("|%c",sign);
-	printf("%c-<%s>(%i)[%li] ::= %s (len=%li)\n", (se.symbol.Type)?'T':'N', (const char*)se.symbol.Name, se.symbol.idx, (unsigned long)se.cChildNum, (const char*)se.cToken.cLexeme, (unsigned long)(((const char*)se.cToken.cLexeme)?strlen(se.cToken.cLexeme):0));
+	printf("%c-<%s>(%i)[%lu] ::= %s (len=%lu)\n", (se.symbol.Type)?'T':'N', (const char*)se.symbol.Name, se.symbol.idx, (unsigned long)se.cChildNum, (const char*)se.cToken.cLexeme, (unsigned long)(((const char*)se.cToken.cLexeme)?strlen(se.cToken.cLexeme):0));
 }
 void CParser::print_rt_tree(int rtpos, int indent, bool trim) const
 {
@@ -66,10 +66,10 @@ void CParser::print_rt() const
 	printf ("print rt\n");
 	for(i=0; i<this->rt.size(); ++i)
 	{
-		printf("%03li - (%i) %s, childs:", (unsigned long)i, this->rt[i].symbol.idx, (const char*)this->rt[i].symbol.Name);
+		printf("%03lu - (%i) %s, childs:", (unsigned long)i, this->rt[i].symbol.idx, (const char*)this->rt[i].symbol.Name);
 
 		for(k=0; k<this->rt[i].cChildNum; ++k)
-			printf("%li ", (unsigned long)(this->rt[i].cChildPos+k));
+			printf("%lu ", (unsigned long)(this->rt[i].cChildPos+k));
 		printf("\n");
 	}
 }
@@ -80,17 +80,17 @@ void CParser::print_stack() const
 printf ("print stack\n");
 	for(i=0; i<this->cStack.size(); ++i)
 	{
-		printf("%03li - (%i) %s, childs:", (unsigned long)i, this->cStack[i].symbol.idx, (const char*)this->cStack[i].symbol.Name);
+		printf("%03lu - (%i) %s, childs:", (unsigned long)i, this->cStack[i].symbol.idx, (const char*)this->cStack[i].symbol.Name);
 
 		for(k=0; k<this->rt[i].cChildNum; ++k)
-			printf("%li ", (unsigned long)(this->rt[i].cChildPos+k));
+			printf("%lu ", (unsigned long)(this->rt[i].cChildPos+k));
 
 		printf("\n");
 	}
 }
 void CParser::print_expects(const char*name) const
 {
-	fprintf(stderr, "Parse Error at line %i, col %i\n", this->cScanToken.line, this->cScanToken.column);
+	fprintf(stderr, "Parse Error at line %u, col %u\n", this->cScanToken.line, this->cScanToken.column);
 	if(name&&*name) fprintf(stderr, "in file '%s'\n", name);
 
 	if(this->cScanToken.id >=0)
@@ -541,8 +541,8 @@ void CParser::reinit()
 	// so we just empty the children list of the first and delete the others
 
 	// find the reduced symbol (which is in rt[0])
-	size_t i, c;
-	for(i=0, c=0; i<this->cStack.size(); ++i)
+	size_t i;
+	for(i=0; i<this->cStack.size(); ++i)
 	{
 		if( this->rt[0].symbol.idx == this->cStack[i].symbol.idx &&
 			this->cStack[i].cChildNum )

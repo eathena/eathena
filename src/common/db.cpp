@@ -308,7 +308,7 @@ void db_rebalance_erase(struct dbn *z,struct dbn **root)
 			z->parent->right = y;
 		y->parent = z->parent;
 		{	// swap colors
-			int tmp=y->color; 
+			const char tmp=y->color; 
 			y->color=z->color;
 			z->color=tmp;
 		}
@@ -585,10 +585,10 @@ void* db_erase(struct dbt *table,void* key)
 			if(table->cmp == strdb_cmp)
 			{
 				size_t len = 1+((table->maxlen) ? table->maxlen : strlen((const char*)p->key));
-				char *key = new char[len];
-				memcpy(key,p->key,len);
-				key[len-1]=0;
-				p->key = key;
+				char *newkey = new char[len];
+				memcpy(newkey,p->key,len);
+				newkey[len-1]=0;
+				p->key = newkey;
 			}
 		}
 		else

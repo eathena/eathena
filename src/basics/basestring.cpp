@@ -35,7 +35,7 @@ void string_error(const char*errmsg)
 // string configs
 int  stringconfig::default_precision = 6;
 int  stringconfig::default_width = 0;
-bool stringconfig::default_left_allign = true;
+bool stringconfig::default_left_align = true;
 bool stringconfig::default_double_alternate = false;
 bool stringconfig::default_hexoct_alternate = false;
 
@@ -208,6 +208,128 @@ template const wchar_t* itrim<wchar_t>(wchar_t* str, bool removeall);
 
 
 
+
+///////////////////////////////////////////////////////////////////////////////
+template<typename T>
+T unescape(const T*& str)
+{	// unescape
+	if( !str || !*str )
+		return 0;
+
+	T ret = *str;
+	if(ret=='\\')
+	{
+		++str;
+		if( *str == 'a' )
+		{
+			ret = '\a';
+		}
+		else if( *str == 'b' )
+		{
+			ret = '\b';
+		}
+		else if( *str == 'f' )
+		{
+			ret = '\f';
+		}
+		else if( *str == 'n' )
+		{
+			ret = '\n';
+		}
+		else if( *str == 'r' )
+		{
+			ret = '\r';
+		}
+		else if( *str == 't' )
+		{
+			ret = '\t';
+		}
+		else if( *str == 'v' )
+		{
+			ret = '\v';
+		}
+		else if( *str == '0' )
+		{	// end string with \0
+			ret = 0;
+		}
+		else if( stringcheck::isdigit(str[0]) && stringcheck::isxdigit(str[1]) && stringcheck::isxdigit(str[2]) )
+		{	// \ddd ascii char as octal
+			ret =	(((str[0]-'0')&0x03)<<6) |
+					(((str[1]-'0')&0x07)<<3) |
+					(((str[2]-'0')&0x07)   );
+			str+=2;
+		}
+		else if( *str == 'x' && stringcheck::isxdigit(str[1]) && stringcheck::isxdigit(str[2]) )
+		{	// \xdd ascii char as hex
+			ret =	(((isxdigit(str[1])?str[1]-'0':locase(str[1])-'a'+10)&0x0F)<<4) |
+					(((isxdigit(str[2])?str[2]-'0':locase(str[2])-'a'+10)&0x0F)   );
+			str+=2;
+		}
+		else if( *str )
+		{	// just escaped char
+			ret = *str;
+		}
+		else
+		{	// eos after the escape
+			--str;
+			return 0;
+		}
+	}
+	return ret;
+}
+// explicit instantiation
+template char unescape<char>(const char*& str);
+template wchar_t unescape<wchar_t>(const wchar_t*& str);
+
+///////////////////////////////////////////////////////////////////////////////
+template<typename T>
+T escape(const T chr)
+{	
+	if(chr == 0)
+		return '0';
+	else if( chr == '\a' )
+	{
+		return 'a';
+	}
+	else if( chr == '\b' )
+	{
+		return 'b';
+	}
+	else if( chr == '\f' )
+	{
+		return 'f';
+	}
+	else if( chr == '\n' )
+	{
+		return 'n';
+	}
+	else if( chr == '\r' )
+	{
+		return 'r';
+	}
+	else if( chr == '\t' )
+	{
+		return 't';
+	}
+	else if( chr == '\v' )
+	{
+		return 'v';
+	}
+	else if( chr == '"' )
+	{	
+		return '"';
+	}
+	else if( chr == '\'' )
+	{	
+		return '\'';
+	}
+	return 0;
+}
+// explicit instantiation
+template char escape<char>(const char str);
+template wchar_t escape<wchar_t>(const wchar_t str);
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // basic function for number2string conversion
 // supported bases are 2..64
@@ -300,12 +422,12 @@ void _itostring(stringoperator<T>& result, sint64 value, size_t base, bool _sign
 			char sign = (*p == '-' || *p == '+' || *p == ' ')?*p:'\0';
 			width -= reslen;
 			if(left)
-			{	// left alligned
+			{	// left aligned
 				result.append(p, reslen);		// buffer
 				result.append(padchar, width);	// padding
 			}
 			else
-			{	// right alligned
+			{	// right aligned
 				if( sign && padchar=='0' )
 				{	// zero padding, need to strip the sign
 					result.append(sign,1);		// add the sign in front
@@ -356,12 +478,12 @@ void _octtostring(stringoperator<T>& result, uint64 value, size_t width, bool le
 			padchar = ' ';
 		width -= reslen;
 		if(left)
-		{	// left alligned
+		{	// left aligned
 			result.append(p, reslen);		// buffer
 			result.append(padchar, width);	// padding
 		}
 		else
-		{	// right alligned
+		{	// right aligned
 			result.append(padchar, width);	// padding
 			result.append(p, reslen);		// buffer
 		}
@@ -407,7 +529,7 @@ void _hextostring(stringoperator<T>& result, uint64 value, size_t width, bool le
 		width -= reslen;
 		if(alt) width-=2;
 		if(left)
-		{	// left alligned
+		{	// left aligned
 			if(alt)
 			{
 				result.append('0', 1);
@@ -417,7 +539,7 @@ void _hextostring(stringoperator<T>& result, uint64 value, size_t width, bool le
 			result.append(padchar, width);	// padding
 		}
 		else
-		{	// right alligned
+		{	// right aligned
 			if(alt && padchar=='0')
 			{
 				result.append('0', 1);
@@ -594,21 +716,18 @@ template void _ftostring<wchar_t>(stringoperator<wchar_t>& result, double value,
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// string to unsigned number conversion
-// variable base
-///////////////////////////////////////////////////////////////////////////////
+/// string to unsigned number conversion.
+/// variable base, no sign allowed
 template <typename T>
 uint64 stringtoue(const T* str, size_t base)
 {
 	uint64 result = 0;
-
 	if( str != 0 && *str != 0 && base >= 2 && base <= 64)
 	{
 		uint64 t;
-		const T* p = str;
 		do
 		{
-			int c = *p++;
+			int c = *str++;
 			if (c >= 'a')
 			{
 				// for the numeration bases that use '.', '/', digits and
@@ -637,7 +756,7 @@ uint64 stringtoue(const T* str, size_t base)
 			if (t < result)
 				return INT64_MAX;
 			result = t;
-		} while (*p != 0);
+		} while(*str);
 	}
     return result;
 }
@@ -647,16 +766,16 @@ template uint64 stringtoue<wchar_t>(const wchar_t*  str, size_t base);
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// string to signed number conversion
-// base 10
-///////////////////////////////////////////////////////////////////////////////
+/// string to signed number conversion.
+/// base 10, strips signs but no whitespaces
 template <typename T>
 sint64 stringtoie(const T* str)
 {
 	if(str==0 || *str==0)
 		return 0;
 	bool neg = *str == '-';
-	uint64 result = stringtoue(str + int(neg), 10);
+	if(neg || *str == '+') ++str;
+	uint64 result = stringtoue(str, 10);
 	if (result > (uint64(INT64_MAX) + uint(neg)))
 		return (neg)?INT64_MIN:INT64_MAX;
 	if (neg)
@@ -670,70 +789,177 @@ template sint64 stringtoie<wchar_t>(const wchar_t* str);
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// string to signed number conversion
-// base 10
-///////////////////////////////////////////////////////////////////////////////
+/// string to signed number conversion.
+/// base 10, strips signs, individual overflow check
 template <typename T>
-sint64 stringtoi(const T* p)
+sint64 stringtoi(T const *str, T const**run)
 {
 	sint64 r = 0;
-	if( p != 0 &&  *p != 0)
+	if( str &&  *str)
 	{
 		sint64 t;
-		while( stringcheck::isspace(*p) ) p++;
-		bool sign = (*p=='-');
-		if(sign || *p=='+')
+		// skip leading whitespace
+		while( stringcheck::isspace(*str) ) ++str;
+
+		bool sign = (*str=='-');
+		if(sign || *str=='+')
 		{
-			p++;
+			str++;
 			// allow whitespace between sign and number
-			while( stringcheck::isspace(*p) ) p++;
+			while( stringcheck::isspace(*str) ) ++str;
 		}
 		do
 		{
-			char c = *p++;
+			const char c = *str;
 			if (c < '0' || c > '9')	// invalid character
 				break;
 			t = r * 10;
 			if (t < r)	// overflow
+			{
+				if(run) *run = str;
 				return (sign)?INT64_MIN:INT64_MAX;
+			}
 			t += c - '0';
 			if (t < r)	// overflow
+			{
+				if(run) *run = str;
 				return (sign)?INT64_MIN:INT64_MAX;
+			}
 			r = t;
-		} while (*p != 0);
+			++str;
+		} while (*str != 0);
 		if(sign) r=-r;
 	}
+	if(run) *run = str;
 	return r;
 }
 // explicit instantiation
-template sint64 stringtoi<char>(const char* p);
-template sint64 stringtoi<wchar_t>(const wchar_t* p);
+template sint64 stringtoi<char>(char const* str, char const** run);
+template sint64 stringtoi<wchar_t>(wchar_t const* str, wchar_t const** run);
 
-
+///////////////////////////////////////////////////////////////////////////////
+/// string to unsigned number conversion.
+/// base 2. skips '0b' prefix
 template <typename T>
-double stringtod(const T* p)
+sint64 stringtoib(T const* str, T const** run)
+{
+	uint64 base=0;
+	if( str )
+	{	// binary
+		// skip leading whitespace
+		while( stringcheck::isspace(*str) ) ++str;
+
+		if(str[0]=='0' && basics::locase(str[1]) == 'b') str+=2;
+		for(; *str=='0' || *str=='1'; ++str)
+		{
+			if( (base>>63)!=0 )
+			{	//overflow
+				base = UINT64_MAX;
+				break;
+			}
+			base = (base<<1) | (*str=='1');
+		}
+	}
+	if(run) *run = str;
+	return (sint64)base;
+}
+// explicit instantiation
+template sint64 stringtoib<char>(char const* str, char const** run);
+template sint64 stringtoib<wchar_t>(wchar_t const* str, wchar_t const** run);
+
+///////////////////////////////////////////////////////////////////////////////
+/// string to unsigned number conversion.
+/// base 8. skips '0o' prefix
+template <typename T>
+sint64 stringtoio(T const* str, T const** run)
+{
+	uint64 base=0;
+	if( str )
+	{	// octal
+		// skip leading whitespace
+		while( stringcheck::isspace(*str) ) ++str;
+
+		if(str[0]=='0' && basics::locase(str[1]) == 'o') str+=2;
+		for(; *str>='0' && *str<='7'; ++str)
+		{
+			if( (base>>61)!=0 )
+			{	//overflow
+				base = UINT64_MAX;
+				break;
+			}
+			base = (base<<3) | (0x07 & (*str-'0'));
+		}
+	}
+	if(run) *run = str;
+	return (sint64)base;
+}
+// explicit instantiation
+template sint64 stringtoio<char>(char const* str, char const** run);
+template sint64 stringtoio<wchar_t>(wchar_t const* str, wchar_t const** run);
+
+///////////////////////////////////////////////////////////////////////////////
+/// string to unsigned number conversion.
+/// base 16. skips '0x' prefix
+template <typename T>
+sint64 stringtoix(T const* str, T const** run)
+{
+	uint64 base=0;
+	if( str )
+	{	// hex
+		// skip leading whitespace
+		while( stringcheck::isspace(*str) ) ++str;
+
+		if(str[0]=='0' && basics::locase(str[1]) == 'x') str+=2;
+		for( str+=2; ; ++str)
+		{
+			if( (base>>60)!=0 )
+			{	//overflow
+				base = UINT64_MAX;
+				break;
+			}
+			else if(*str>='0' && *str<='9')
+				base = (base<<4) | (0x0F & (*str-'0'));
+			else if( basics::locase(*str)>='a' && basics::locase(*str)<='f')
+				base = (base<<4) | (0x0F & (basics::locase(*str)-'a'+10));
+			else
+				break;
+		}
+	}
+	if(run) *run = str;
+	return (sint64)base;
+}
+// explicit instantiation
+template sint64 stringtoix<char>(char const* str, char const** run);
+template sint64 stringtoix<wchar_t>(wchar_t const* str, wchar_t const** run);
+
+///////////////////////////////////////////////////////////////////////////////
+/// string to double conversion.
+/// supports sci exponents and SI units
+template <typename T>
+double stringtod(T const* str, T const** run)
 {
 	double r = 0;
-	if( p != 0 &&  *p != 0)
+	if( str &&  *str != 0)
 	{
 		// skip leading whitespace
-		while( stringcheck::isspace(*p) ) p++;
+		while( stringcheck::isspace(*str) ) ++str;
 
-		bool sign = (*p=='-');
-		if(sign || *p=='+')
+		bool sign = (*str=='-');
+		if(sign || *str=='+')
 		{
-			p++;
+			++str;
 			// allow whitespace between sign and number
-			while( stringcheck::isspace(*p) ) p++;
+			while( stringcheck::isspace(*str) ) ++str;
 		}
-
-		double t=0, fracdiv=10;
+		int64 f=0;
+		int fracdiv=0;
 		int exp=0;
 		bool expsign=false;
-		size_t state=0; 
-		do
+		 // 0 for decimal, 1 for fractional, 2 for exponent
+		size_t state=0;
+		for(; *str; ++str)
 		{
-			char c = *p;
+			char c = *str;
 			if( c=='.' )
 			{	// switch to fractional
 				if(state!=0)
@@ -744,73 +970,71 @@ double stringtod(const T* p)
 			{	// switch to exponent
 				if( state>1 )
 					break;
+				expsign = (str[1]=='-');
+				if( expsign || str[1]=='+' )
+					++str;
 				++state;
-				
-				if( *p=='-' || *p=='+' )
-				{
-					expsign = (*p=='-');
-					p++;
-				}
 			}
 			else if (c < '0' || c > '9')	// invalid character
 			{
 				break;
 			}
-			else
-			{
-				if( state == 0 )
-				{	// integer part
-					t = r * 10.;
-					if (t < r)	// overflow
-						return (sign)?-DBL_MAX:DBL_MAX;
-					t += c - '0';
-					if (t < r)	// overflow
-						return (sign)?-DBL_MAX:DBL_MAX;
-					r = t;
+			else if( state == 0 )
+			{	// integer part
+				if(r > DBL_MAX/10)
+				{	// will overflow, so we stop here
+					if(run) *run = str;
+					return (sign)?-DBL_MAX:DBL_MAX;
 				}
-				else if( state == 1 )
-				{	// fractional
-					if( fracdiv<1e24 )
-					{	// DBL_EPSILON is 2.2204460492503131e-016
-						// so this precision should be enough
-						r += (c - '0')/fracdiv;
-						fracdiv*=10;
-					}
-					
-				}
-				else if( state == 2 )
-				{	// exponent
-
-					exp = exp * 10 + (c - '0');
-					if( exp > DBL_MAX_10_EXP ) // just skip the test with DBL_MIN_10_EXP
-						return ((sign)?-1.:+1.)*(expsign?0:DBL_MAX);
+				r = r * 10. + c - '0';
+			}
+			else if( state == 1 )
+			{	// fractional
+				if( fracdiv<24 )
+				{	// DBL_EPSILON is 2.2204460492503131e-016
+					// so this precision should be enough
+					f = f*10 + (c - '0');
+					--fracdiv;
 				}
 			}
-			++p;
-		} while (*p != 0);
-
-		if(!exp && *p)
-		{	// check for SI prefix
+			else if( state == 2 )
+			{	// exponent
+				exp = exp * 10 + (c - '0');
+				if( exp > DBL_MAX_10_EXP ) // just skip the test with DBL_MIN_10_EXP
+				{
+					if(run) *run = str;
+					return (expsign?0:((sign)?-DBL_MAX:+DBL_MAX));
+				}
+			}
+		}
+		if(state<2 && *str)
+		{	// check for SI prefix when no exponent
 			static const T units[] = {'y','z','a','f','p','n','u','m','\0','k','M','G','T','P','E','Z','Y'};
 			size_t i;
 			for(i=0; i<=16; ++i)
 			{
-				if( *p == units[i] )
+				if( *str == units[i] )
 				{
+					++str;
 					exp = 3*i-24;
 					break;
 				}
 			}
 		}
+		// add fractional part
+		if(fracdiv)
+			r += ((double)f) * pow(10., fracdiv);
+		// set exponent
 		if(exp) 
 			r *= pow(10., (expsign)?(-exp):(exp));
 		if(sign) r = -r;
 	}
+	if(run) *run = str;
 	return r;
 }
 // explicit instantiation
-template double stringtod<char>(const char* p);
-template double stringtod<wchar_t>(const wchar_t* p);
+template double stringtod<char>(char const* p, char const** run);
+template double stringtod<wchar_t>(wchar_t const* p, wchar_t const** run);
 
 
 
@@ -1092,7 +1316,7 @@ bool stringinterface<char>::findnext(const stringinterface<char>& pattern, size_
 			( locase((*this)[i]) != locase(pattern[k]) ) :
 			( (*this)[i] != pattern[k] ) )
 		{	// no match at that position, find the next starting pos
-			size_t inx = to_unsigned( (*this)[sp+len] );
+			inx = to_unsigned( (*this)[sp+len] );
 			sp += (inx<(sizeof(SkipTable)/sizeof(SkipTable[0]))) ? SkipTable[inx] : 1;
 			i=sp;
 			k=0;
@@ -1142,7 +1366,7 @@ bool stringinterface<wchar_t>::findnext(const stringinterface<wchar_t>& pattern,
 			( locase((*this)[i]) != locase(pattern[k]) ) :
 			( (*this)[i] != pattern[k] ) )
 		{	// no match at that position, find the next starting pos
-			size_t inx = to_unsigned( (*this)[sp+len] );
+			inx = to_unsigned( (*this)[sp+len] );
 			sp += (inx<(sizeof(SkipTable)/sizeof(SkipTable[0]))) ? SkipTable[inx] : 1;
 			i=sp;
 			k=0;
@@ -1264,7 +1488,7 @@ vector<size_t> stringinterface<char>::findall(const stringinterface<char>& patte
 			( locase((*this)[i]) != locase(pattern[k]) ) :
 			( (*this)[i] != pattern[k] ) )
 		{	// no match at that position, find the next starting pos
-			size_t inx = to_unsigned( (*this)[sp+len] );
+			inx = to_unsigned( (*this)[sp+len] );
 			sp += (inx<(sizeof(SkipTable)/sizeof(SkipTable[0]))) ? SkipTable[inx] : 1;
 			i=sp;
 			k=0;
@@ -1320,7 +1544,7 @@ vector<size_t> stringinterface<wchar_t>::findall(const stringinterface<wchar_t>&
 			( locase((*this)[i]) != locase(pattern[k]) ) :
 			( (*this)[i] != pattern[k] ) )
 		{	// no match at that position, find the next starting pos
-			size_t inx = to_unsigned( (*this)[sp+len] );
+			inx = to_unsigned( (*this)[sp+len] );
 			sp += (inx<(sizeof(SkipTable)/sizeof(SkipTable[0]))) ? SkipTable[inx] : 1;
 			i=sp;
 			k=0;
@@ -1867,7 +2091,7 @@ void test_stringbuffer(void)
 			a = itostring(1234567890, i);
 			c = a;
 			b = stringtoue(a.c_str(), i);
-			printf("base 10 '%u' / base %2i '%s'\n", b, i, c);
+			printf("base 10 '%u' / base %2u '%s'\n", b, i, c);
 		}
 		printf("\n");
 	}
@@ -1950,7 +2174,7 @@ size_t sz=0;
 
 
 
-	uint i, sz;
+	uint i, sz=0;
 	char buffer1[1024];
 
 	char buffer2[1024];
@@ -1970,8 +2194,8 @@ size_t sz=0;
 
 	tick = clock();
 	for(i=0; i<runs; ++i)
-		sz = snprintf(buffer1, sizeof(buffer1), "hallo %i ballo %i no %lf", i, i*2/3+i, ((double)i)*1.3);
-	printf("sprintf %li\n", clock()-tick);
+		sz = snprintf(buffer1, sizeof(buffer1), "hallo %u ballo %u no %lf", i, i*2/3+i, ((double)i)*1.3);
+	printf("sprintf %lu (%u)\n", clock()-tick, (uint)sz);
 
 	tick = clock();
 	for(i=0; i<runs; ++i)
@@ -1979,7 +2203,7 @@ size_t sz=0;
 		a.clear();
 		a << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " <<(((double)i)*1.3);
 	}
-	printf("Ministring %li\n", clock()-tick);
+	printf("Ministring %lu\n", clock()-tick);
 
 	tick = clock();
 	for(i=0; i<runs; ++i)
@@ -1987,7 +2211,7 @@ size_t sz=0;
 		sa.clear();
 		sa << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " << (((double)i)*1.3);
 	}
-	printf("staticstring %li\n", clock()-tick);
+	printf("staticstring %lu\n", clock()-tick);
 
 	tick = clock();
 	for(i=0; i<runs; ++i)
@@ -1995,7 +2219,7 @@ size_t sz=0;
 		sb.clear();
 		sb << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " << (((double)i)*1.3);
 	}
-	printf("basestring %li\n", clock()-tick);
+	printf("basestring %lu\n", clock()-tick);
 
 	string<> ds;
 	tick = clock();
@@ -2005,7 +2229,7 @@ size_t sz=0;
 		ds << "a";
 		ds << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " << (((double)i)*1.3);
 	}
-	printf("string %li\n", clock()-tick);
+	printf("string %lu\n", clock()-tick);
 
 }
 
@@ -2039,7 +2263,7 @@ size_t sz=0;
 void checkRefCntVal(string s, size_t shouldBe, const char *prefix )
 {
   if (s.getRefCount() != shouldBe)
-    printf("%s refCnt = %d (should be %d)\n", 
+    printf("%s refCnt = %u (should be %u)\n", 
            prefix, (uint)s.getRefCount(), (uint)shouldBe );
 } // checkRefCntVal
 
@@ -2051,7 +2275,7 @@ void checkRefCntVal(string s, size_t shouldBe, const char *prefix )
 void checkRefCnt(string &s, size_t shouldBe, const char *prefix )
 {
   if (s.getRefCount() != shouldBe)
-    printf("%s refCnt = %d (should be %d)\n", 
+    printf("%s refCnt = %u (should be %u)\n", 
            prefix, (uint)s.getRefCount(), (uint)shouldBe );
 } // checkRefCnt
 
@@ -2066,22 +2290,22 @@ void test_constructors()
   printf("Test string constructors\n");
 
   if (b.getRefCount() != 2)
-    printf("1. Reference count is wrong: refCnt = %d (should be 2)\n",
+    printf("1. Reference count is wrong: refCnt = %u (should be 2)\n",
            (uint)b.getRefCount() );
 
   string c = a;
   if (b.getRefCount() != 3)
-    printf("2. Reference count is wrong: refCnt = %d (should be 3)\n",
+    printf("2. Reference count is wrong: refCnt = %u (should be 3)\n",
            (uint)b.getRefCount() );
 
   if (a.getRefCount() != 3)
-    printf("3. Reference count is wrong: refCnt = %d (should be 3)\n",
+    printf("3. Reference count is wrong: refCnt = %u (should be 3)\n",
            (uint)b.getRefCount() );
 
   checkRefCntVal( a, 4, "4. ");
 
   if (a.getRefCount() != 3)
-    printf("4. Reference count is wrong: refCnt = %d (should be 3)\n",
+    printf("4. Reference count is wrong: refCnt = %u (should be 3)\n",
            (uint)b.getRefCount() );
 
   checkRefCnt( a, 3, "5. ");
@@ -2195,7 +2419,7 @@ void test_assign()
     printf("10. string has incorrect contents\n");
 
   if (e.getRefCount() != 1)
-    printf("11. refCnt is wrong: refCnt = %d, should be 1\n",
+    printf("11. refCnt is wrong: refCnt = %u, should be 1\n",
            (uint)e.getRefCount() );
 
   const char *constCStr = "1234567890";
@@ -2203,7 +2427,7 @@ void test_assign()
   string foo = constCStr;
   string bar = foo;
   if (foo.getRefCount() != 2) {
-    printf("12. refcnt is wrong: refCnt = %d, should be 2\n",
+    printf("12. refcnt is wrong: refCnt = %u, should be 2\n",
 	   (uint)foo.getRefCount() );
   }
 
@@ -2221,7 +2445,7 @@ void test_assign()
   }
   // make sure refCnt is still OK
   if (bar.getRefCount() != 2) {
-    printf("14. refcnt is wrong: refCnt = %d, should be 2\n",
+    printf("14. refcnt is wrong: refCnt = %u, should be 2\n",
 	   (uint)bar.getRefCount() );
   }
 
@@ -2348,7 +2572,7 @@ void test_plus_equal()
   empty += full;
 
   if (empty.getRefCount() != 1) {
-    printf("7. empty.getRefCount() = %d, should be 1\n", (uint)empty.getRefCount() );
+    printf("7. empty.getRefCount() = %u, should be 1\n", (uint)empty.getRefCount() );
   }
 
   if (empty != testStr1) {
@@ -2361,7 +2585,7 @@ void test_plus_equal()
 
   empty2 += str;
   if (empty2.getRefCount() != 1) {
-    printf("9. empty2.getRefCount() = %d, should be 1\n", (uint)empty2.getRefCount() );
+    printf("9. empty2.getRefCount() = %u, should be 1\n", (uint)empty2.getRefCount() );
   }
 
   if (empty2 != testStr2) {
@@ -2405,7 +2629,7 @@ void test_plus()
   string t2( secondHalf );
   string a = t1 + t2;
   if (a.getRefCount() != 1) {
-    printf("1. refCnt is wrong: refCnt = %d, should be 1\n",
+    printf("1. refCnt is wrong: refCnt = %u, should be 1\n",
            (uint)a.getRefCount() );
   }
 
@@ -2419,7 +2643,7 @@ void test_plus()
   string b = t1 + secondHalf;
 
   if (b.getRefCount() != 1) {
-    printf("3. refCnt is wrong: refCnt = %d, should be 1\n",
+    printf("3. refCnt is wrong: refCnt = %u, should be 1\n",
            (uint)b.getRefCount() );
   }
 
@@ -2474,8 +2698,7 @@ void test_plus()
     printf("9. string e changed\n");
 
   if (f != "123456789") {
-     const char *tmp = f;
-     printf("10. string f is %s, it should be \"123456789\"\n", tmp);
+     printf("10. string f is %s, it should be \"123456789\"\n", (const char *)f);
   }
 
   if (g != "a123456789")
@@ -2488,28 +2711,26 @@ void test_plus()
   string z = y = w + x;
 
   if (y != "foobar") {
-     const char *tmp = y;
-     printf("12. string y is %s, it should be \"foobar\"\n", tmp );
+     printf("12. string y is %s, it should be \"foobar\"\n", (const char *)y );
   }
 
   if (z != "foobar") {
-     const char *tmp = z;
-     printf("13. string z is %s, it should be \"foobar\"\n", tmp );
+     printf("13. string z is %s, it should be \"foobar\"\n", (const char *)z );
   }
 
   // The reference counts for w and x should both be 1
   if (w.getRefCount() != 1) {
-     printf("14. w.getRefCount() = %d, it should be 1\n", (uint)w.getRefCount() );
+     printf("14. w.getRefCount() = %u, it should be 1\n", (uint)w.getRefCount() );
   }
   if (x.getRefCount() != 1) {
-     printf("15. x.getRefCount() = %d, it should be 1\n", (uint)x.getRefCount() );
+     printf("15. x.getRefCount() = %u, it should be 1\n", (uint)x.getRefCount() );
   }
 
   if (y.getRefCount() != 2) {
-     printf("16. y.getRefCount() = %d, it should be 2\n", (uint)y.getRefCount() );
+     printf("16. y.getRefCount() = %u, it should be 2\n", (uint)y.getRefCount() );
   }
   if (z.getRefCount() != 2) {
-     printf("17. z.getRefCount() = %d, it should be 2\n", (uint)z.getRefCount() );
+     printf("17. z.getRefCount() = %u, it should be 2\n", (uint)z.getRefCount() );
   }
 } // test_plus
 
@@ -2708,7 +2929,7 @@ void test_arrayop()
   // references are jabbarString, jabbarRefStr and now, "a"
   string a = jabbarString;
   if (a.getRefCount() != 3)
-    printf("2. reference count is wrong (%d=!3)\n", (uint)a.getRefCount());
+    printf("2. reference count is wrong (%u=!3)\n", (uint)a.getRefCount());
 
   a(9) = 'e';
   a(10) = 'r';
@@ -2720,7 +2941,7 @@ void test_arrayop()
     printf("3. 'a' reference count is wrong\n");
 
   if (jabbarString.getRefCount() != 2)
-    printf("4. jabbarString reference count is wrong (%d=!2)\n", (uint)jabbarString.getRefCount());
+    printf("4. jabbarString reference count is wrong (%u=!2)\n", (uint)jabbarString.getRefCount());
   
   const char *tmp = a;
   if (strcmp(tmp, newJabbar1) != 0) {
@@ -2823,10 +3044,10 @@ void test_insert()
   c_prime(4, 0) = (const char *)0;
   // make sure that reference count is still 2
   if (c.getRefCount() != 2)
-    printf("8. c.getRefCount() = %d, should be 2\n", (uint)c.getRefCount());
+    printf("8. c.getRefCount() = %u, should be 2\n", (uint)c.getRefCount());
 
   if (c_prime.getRefCount() != 2)
-    printf("9. c_prime.getRefCount() = %d, should be 2\n", (uint)c_prime.getRefCount());
+    printf("9. c_prime.getRefCount() = %u, should be 2\n", (uint)c_prime.getRefCount());
 
   if (c_prime != origA) {
     printf("10. insert failed. c_prime = [%s], should be [%s]\n",
@@ -2858,12 +3079,12 @@ void test_insert()
 void test_substr_func_valarg( const substring &sub, size_t errorNum )
 {
   if (sub.getRefCount() != 1) {
-    printf("%d. sub.getRefCount() = %d, should be 1\n", 
+    printf("%u. sub.getRefCount() = %u, should be 1\n", 
            (uint)errorNum, (uint)sub.getRefCount() );
   }
 
   if (sub != "de") {
-    printf("%d. sub.string = %s, should be \"de\"\n",
+    printf("%u. sub.string = %s, should be \"de\"\n",
            (uint)errorNum + 1, (const char *)((const string)sub) );
   }
 } // test_substr_func_valarg
@@ -2903,7 +3124,7 @@ void test_substring()
   }
 
   if (a.getRefCount() != 1 || b.getRefCount() != 1) {
-    printf("5. a.getRefCount() = %d, b.getRefCount() = %d (both should be 1)\n",
+    printf("5. a.getRefCount() = %u, b.getRefCount() = %u (both should be 1)\n",
            (uint)a.getRefCount(), (uint)b.getRefCount() );
   }
 
@@ -2914,7 +3135,7 @@ void test_substring()
   }
 
   if (c.length() != 4) {
-    printf("7. c.length() = %d, should be 4\n", (uint)c.length());
+    printf("7. c.length() = %u, should be 4\n", (uint)c.length());
   }
 
   string d("1234abcdefgh");
@@ -2930,7 +3151,7 @@ void test_substring()
   }
 
   if (d.getRefCount() != 1) {
-    printf("10. d.getRefCount() = %d, it should be 1\n", (uint)d.getRefCount());
+    printf("10. d.getRefCount() = %u, it should be 1\n", (uint)d.getRefCount());
   }
 
   //
@@ -2978,7 +3199,7 @@ void test_substring()
   // language, nothing will.
   //
   if (e.getRefCount() != 1) {
-    printf("11. e.getRefCount() = %d, it should be 1\n", (uint)e.getRefCount());
+    printf("11. e.getRefCount() = %u, it should be 1\n", (uint)e.getRefCount());
   }
 
   //
@@ -2988,7 +3209,7 @@ void test_substring()
   string z = "lost Z-man";
   string y = z; // refCnt is now 2
   if (z(5, 5).getRefCount() != 1) {
-    printf("12. z(8, 4).getRefCount() = %d, should be 1, !!changed behaviour here!!\n", (uint)z(8, 4).getRefCount() );
+    printf("12. z(8, 4).getRefCount() = %u, should be 1, !!changed behaviour here!!\n", (uint)z(8, 4).getRefCount() );
   }
 
   string f("chopsock");
@@ -3018,7 +3239,7 @@ void test_resize()
 
   b.truncate(10);  // set size of string b to 10
   if (b.length() != 10)
-    printf("1. b.length() = %d, should be 10\n", (uint)b.length() );
+    printf("1. b.length() = %u, should be 10\n", (uint)b.length() );
 
   if (b != "0123456789") {
     tmp = b;
@@ -3029,7 +3250,7 @@ void test_resize()
     printf("3. a was improperly modified by resizing b\n");
 
   if (a.length() != 20)
-    printf("4. a.length() = %d, should be 20\n", (uint)a.length() );
+    printf("4. a.length() = %u, should be 20\n", (uint)a.length() );
 
   b.truncate(20);
   if (b != "0123456789          ") {
@@ -3037,7 +3258,7 @@ void test_resize()
     printf("5. b = %s, should be \"0123456789          \"\n", tmp );
   }
   if (b.length() != 20)
-    printf("6. b.length() = %d, should be 20\n", (uint)b.length() );
+    printf("6. b.length() = %u, should be 20\n", (uint)b.length() );
 
   if (a != init_a)
     printf("8. resizing b modified a\n");
@@ -3053,7 +3274,7 @@ void test_resize()
     printf("10. resizing b modified a\n");
 
   if (b.length() != 0)
-    printf("11. b.length() = %d, should be 0\n", (uint)b.length() );
+    printf("11. b.length() = %u, should be 0\n", (uint)b.length() );
 
   if (b != "") {
     printf("12. b should be the same as the empty string\n");

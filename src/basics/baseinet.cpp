@@ -143,7 +143,7 @@ ipaddress hostbyname(const char* name)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-string<> hostbyaddr(ipaddress ip)
+string<> hostbyaddr(const ipaddress& ip)
 {
     hostent* hp;
     string<> r;
@@ -361,7 +361,7 @@ uchar& ipaddress::operator [] (int i)
 	else
 		return bdata[i];
 }
-const uchar ipaddress::operator [] (int i) const
+uchar ipaddress::operator [] (int i) const
 { 
 #ifdef CHECK_BOUNDS
 	if( (i>=4) || (i<0) )
@@ -387,20 +387,20 @@ string<> ipaddress::tostring() const
 {	
 	char buf[16];
 	size_t sz = sprintf(buf, "%d.%d.%d.%d",
-		(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF);
+		(int)(cAddr>>0x18)&0xFF,(int)(cAddr>>0x10)&0xFF,(int)(cAddr>>0x8)&0xFF,(int)(cAddr)&0xFF);
 	return string<>(buf,sz);
 }
 ssize_t ipaddress::tostring(char *buffer, size_t sz) const
 {	
 	return snprintf(buffer, sz, "%d.%d.%d.%d",
-		(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF);
+		(int)(cAddr>>0x18)&0xFF,(int)(cAddr>>0x10)&0xFF,(int)(cAddr>>0x8)&0xFF,(int)(cAddr)&0xFF);
 }
 const char *ipaddress::tostring(char *buffer) const
 {	// usage of the static buffer is not threadsafe
 	static char tmp[16];
 	char *buf = (buffer) ? buffer : tmp;
 	sprintf(buf, "%d.%d.%d.%d",
-		(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF);
+		(int)(cAddr>>0x18)&0xFF,(int)(cAddr>>0x10)&0xFF,(int)(cAddr>>0x8)&0xFF,(int)(cAddr)&0xFF);
 	return buf;
 }
 
@@ -518,28 +518,28 @@ string<> netaddress::tostring() const
 {	
 	char buf[32];
 	size_t sz = sprintf(buf, "%d.%d.%d.%d:%d",
-		(this->cAddr>>0x18)&0xFF,
-		(this->cAddr>>0x10)&0xFF,
-		(this->cAddr>>0x08)&0xFF,
-		(this->cAddr      )&0xFF,
-		 this->cPort);
+		(int)(this->cAddr>>0x18)&0xFF,
+		(int)(this->cAddr>>0x10)&0xFF,
+		(int)(this->cAddr>>0x08)&0xFF,
+		(int)(this->cAddr      )&0xFF,
+		(int) this->cPort);
 	return string<>(buf,sz);
 }
 ssize_t netaddress::tostring(char *buffer, size_t sz) const
 {	
 	return snprintf(buffer, sz, "%d.%d.%d.%d:%d",
-		(this->cAddr>>0x18)&0xFF,
-		(this->cAddr>>0x10)&0xFF,
-		(this->cAddr>>0x08)&0xFF,
-		(this->cAddr      )&0xFF,
-		 this->cPort);
+		(int)(this->cAddr>>0x18)&0xFF,
+		(int)(this->cAddr>>0x10)&0xFF,
+		(int)(this->cAddr>>0x08)&0xFF,
+		(int)(this->cAddr      )&0xFF,
+		(int) this->cPort);
 }
 const char *netaddress::tostring(char *buffer) const
 {	// usage of the static buffer is not threadsafe
 	static char tmp[32];
 	char *buf = (buffer) ? buffer : tmp;
 	sprintf(buf, "%d.%d.%d.%d:%d",
-		(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF,
+		(int)(cAddr>>0x18)&0xFF,(int)(cAddr>>0x10)&0xFF,(int)(cAddr>>0x8)&0xFF,(int)(cAddr)&0xFF,
 		cPort);
 	return buf;
 }
@@ -566,44 +566,44 @@ string<> subnetaddress::tostring() const
 	size_t sz;
 	if(this->cMask.addr()==INADDR_ANY)
 		sz = sprintf(buf, "%d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,
-			(this->cAddr>>0x10)&0xFF,
-			(this->cAddr>>0x08)&0xFF,
-			(this->cAddr      )&0xFF, 
-			 this->cPort);
+			(int)(this->cAddr>>0x18)&0xFF,
+			(int)(this->cAddr>>0x10)&0xFF,
+			(int)(this->cAddr>>0x08)&0xFF,
+			(int)(this->cAddr      )&0xFF, 
+			(int) this->cPort);
 	else
 		sz = sprintf(buf, "%d.%d.%d.%d/%d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,
-			(this->cAddr>>0x10)&0xFF,
-			(this->cAddr>>0x08)&0xFF,
-			(this->cAddr      )&0xFF, 
-			(this->cMask>>0x18)&0xFF,
-			(this->cMask>>0x10)&0xFF,
-			(this->cMask>>0x08)&0xFF,
-			(this->cMask      )&0xFF,
-			 this->cPort);
+			(int)(this->cAddr>>0x18)&0xFF,
+			(int)(this->cAddr>>0x10)&0xFF,
+			(int)(this->cAddr>>0x08)&0xFF,
+			(int)(this->cAddr      )&0xFF, 
+			(int)(this->cMask>>0x18)&0xFF,
+			(int)(this->cMask>>0x10)&0xFF,
+			(int)(this->cMask>>0x08)&0xFF,
+			(int)(this->cMask      )&0xFF,
+			(int) this->cPort);
 	return string<>(buf,sz);
 }
 ssize_t subnetaddress::tostring(char *buffer, size_t sz) const
 {	
 	if(this->cMask.addr()==INADDR_ANY)
 		return snprintf(buffer, sz, "%d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,
-			(this->cAddr>>0x10)&0xFF,
-			(this->cAddr>>0x08)&0xFF,
-			(this->cAddr      )&0xFF, 
-			 this->cPort);
+			(int)(this->cAddr>>0x18)&0xFF,
+			(int)(this->cAddr>>0x10)&0xFF,
+			(int)(this->cAddr>>0x08)&0xFF,
+			(int)(this->cAddr      )&0xFF, 
+			(int) this->cPort);
 	else
 		return snprintf(buffer, sz, "%d.%d.%d.%d/%d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,
-			(this->cAddr>>0x10)&0xFF,
-			(this->cAddr>>0x08)&0xFF,
-			(this->cAddr      )&0xFF, 
-			(this->cMask>>0x18)&0xFF,
-			(this->cMask>>0x10)&0xFF,
-			(this->cMask>>0x08)&0xFF,
-			(this->cMask      )&0xFF,
-			 this->cPort);
+			(int)(this->cAddr>>0x18)&0xFF,
+			(int)(this->cAddr>>0x10)&0xFF,
+			(int)(this->cAddr>>0x08)&0xFF,
+			(int)(this->cAddr      )&0xFF, 
+			(int)(this->cMask>>0x18)&0xFF,
+			(int)(this->cMask>>0x10)&0xFF,
+			(int)(this->cMask>>0x08)&0xFF,
+			(int)(this->cMask      )&0xFF,
+			(int) this->cPort);
 }
 const char *subnetaddress::tostring(char *buffer) const
 {	// usage of the static buffer is not threadsafe
@@ -611,22 +611,22 @@ const char *subnetaddress::tostring(char *buffer) const
 	char *buf = (buffer) ? buffer : tmp;
 	if(this->cMask.addr()==INADDR_ANY)
 		sprintf(buf, "%d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,
-			(this->cAddr>>0x10)&0xFF,
-			(this->cAddr>>0x08)&0xFF,
-			(this->cAddr      )&0xFF, 
-			 this->cPort);
+			(int)(this->cAddr>>0x18)&0xFF,
+			(int)(this->cAddr>>0x10)&0xFF,
+			(int)(this->cAddr>>0x08)&0xFF,
+			(int)(this->cAddr      )&0xFF, 
+			(int) this->cPort);
 	else
 		sprintf(buf, "%d.%d.%d.%d/%d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,
-			(this->cAddr>>0x10)&0xFF,
-			(this->cAddr>>0x08)&0xFF,
-			(this->cAddr      )&0xFF, 
-			(this->cMask>>0x18)&0xFF,
-			(this->cMask>>0x10)&0xFF,
-			(this->cMask>>0x08)&0xFF,
-			(this->cMask      )&0xFF,
-			 this->cPort);
+			(int)(this->cAddr>>0x18)&0xFF,
+			(int)(this->cAddr>>0x10)&0xFF,
+			(int)(this->cAddr>>0x08)&0xFF,
+			(int)(this->cAddr      )&0xFF, 
+			(int)(this->cMask>>0x18)&0xFF,
+			(int)(this->cMask>>0x10)&0xFF,
+			(int)(this->cMask>>0x08)&0xFF,
+			(int)(this->cMask      )&0xFF,
+			(int) this->cPort);
 	return buf;
 }
 template<typename T>
@@ -762,29 +762,29 @@ string<> ipset::tostring() const
 	if(this->wanaddr.cAddr == INADDR_ANY)
 	{	// have only one accessable ip
 		sz = sprintf(buf, "%d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,
-			(this->cAddr>>0x10)&0xFF,
-			(this->cAddr>>0x08)&0xFF,
-			(this->cAddr      )&0xFF, 
-			 this->cPort);
+			(int)(this->cAddr>>0x18)&0xFF,
+			(int)(this->cAddr>>0x10)&0xFF,
+			(int)(this->cAddr>>0x08)&0xFF,
+			(int)(this->cAddr      )&0xFF, 
+			(int) this->cPort);
 	}
 	else
 	{	// have a full set
 		sz = sprintf(buf, "%d.%d.%d.%d/%d.%d.%d.%d:%d, %d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,
-			(this->cAddr>>0x10)&0xFF,
-			(this->cAddr>>0x08)&0xFF,
-			(this->cAddr      )&0xFF,
-			(this->cMask>>0x18)&0xFF,
-			(this->cMask>>0x10)&0xFF,
-			(this->cMask>>0x08)&0xFF,
-			(this->cMask      )&0xFF,
-			 this->cPort,
-			(this->wanaddr.cAddr>>0x18)&0xFF,
-			(this->wanaddr.cAddr>>0x10)&0xFF,
-			(this->wanaddr.cAddr>>0x08)&0xFF,
-			(this->wanaddr.cAddr      )&0xFF,
-			 this->wanaddr.cPort);
+			(int)(this->cAddr>>0x18)&0xFF,
+			(int)(this->cAddr>>0x10)&0xFF,
+			(int)(this->cAddr>>0x08)&0xFF,
+			(int)(this->cAddr      )&0xFF,
+			(int)(this->cMask>>0x18)&0xFF,
+			(int)(this->cMask>>0x10)&0xFF,
+			(int)(this->cMask>>0x08)&0xFF,
+			(int)(this->cMask      )&0xFF,
+			(int) this->cPort,
+			(int)(this->wanaddr.cAddr>>0x18)&0xFF,
+			(int)(this->wanaddr.cAddr>>0x10)&0xFF,
+			(int)(this->wanaddr.cAddr>>0x08)&0xFF,
+			(int)(this->wanaddr.cAddr      )&0xFF,
+			(int) this->wanaddr.cPort);
 	}
 	return string<>(buf,sz);
 }
@@ -793,28 +793,28 @@ ssize_t ipset::tostring(char *buffer, size_t sz) const
 	if(this->wanaddr.cAddr == INADDR_ANY)
 	{	// have only one accessable ip
 		return snprintf(buffer, sz, "%d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,
-			(this->cAddr>>0x10)&0xFF,
-			(this->cAddr>>0x08)&0xFF,
-			(this->cAddr      )&0xFF, 
-			 this->cPort);
+			(int)(this->cAddr>>0x18)&0xFF,
+			(int)(this->cAddr>>0x10)&0xFF,
+			(int)(this->cAddr>>0x08)&0xFF,
+			(int)(this->cAddr      )&0xFF, 
+			(int) this->cPort);
 	}
 	else
 	{	// have a full set
 		return snprintf(buffer, sz, "%d.%d.%d.%d/%d.%d.%d.%d:%d, %d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,
-			(this->cAddr>>0x10)&0xFF,
-			(this->cAddr>>0x08)&0xFF,
-			(this->cAddr      )&0xFF,
-			(this->cMask>>0x18)&0xFF,
-			(this->cMask>>0x10)&0xFF,
-			(this->cMask>>0x08)&0xFF,
-			(this->cMask      )&0xFF,
-			 this->cPort,
-			(this->wanaddr.cAddr>>0x18)&0xFF,
-			(this->wanaddr.cAddr>>0x10)&0xFF,
-			(this->wanaddr.cAddr>>0x08)&0xFF,
-			(this->wanaddr.cAddr      )&0xFF,
+			(int)(this->cAddr>>0x18)&0xFF,
+			(int)(this->cAddr>>0x10)&0xFF,
+			(int)(this->cAddr>>0x08)&0xFF,
+			(int)(this->cAddr      )&0xFF,
+			(int)(this->cMask>>0x18)&0xFF,
+			(int)(this->cMask>>0x10)&0xFF,
+			(int)(this->cMask>>0x08)&0xFF,
+			(int)(this->cMask      )&0xFF,
+			(int) this->cPort,
+			(int)(this->wanaddr.cAddr>>0x18)&0xFF,
+			(int)(this->wanaddr.cAddr>>0x10)&0xFF,
+			(int)(this->wanaddr.cAddr>>0x08)&0xFF,
+			(int)(this->wanaddr.cAddr      )&0xFF,
 			 this->wanaddr.cPort);
 	}
 }
@@ -825,29 +825,29 @@ const char *ipset::tostring(char *buffer) const
 	if(this->wanaddr.cAddr == INADDR_ANY)
 	{	// have only one accessable ip
 		sprintf(buf, "%d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,
-			(this->cAddr>>0x10)&0xFF,
-			(this->cAddr>>0x08)&0xFF,
-			(this->cAddr      )&0xFF, 
-			 this->cPort);
+			(int)(this->cAddr>>0x18)&0xFF,
+			(int)(this->cAddr>>0x10)&0xFF,
+			(int)(this->cAddr>>0x08)&0xFF,
+			(int)(this->cAddr      )&0xFF, 
+			(int) this->cPort);
 	}
 	else
 	{	// have a full set
 		sprintf(buf, "%d.%d.%d.%d/%d.%d.%d.%d:%d, %d.%d.%d.%d:%d",
-			(this->cAddr>>0x18)&0xFF,
-			(this->cAddr>>0x10)&0xFF,
-			(this->cAddr>>0x08)&0xFF,
-			(this->cAddr      )&0xFF,
-			(this->cMask>>0x18)&0xFF,
-			(this->cMask>>0x10)&0xFF,
-			(this->cMask>>0x08)&0xFF,
-			(this->cMask      )&0xFF,
-			 this->cPort,
-			(this->wanaddr.cAddr>>0x18)&0xFF,
-			(this->wanaddr.cAddr>>0x10)&0xFF,
-			(this->wanaddr.cAddr>>0x08)&0xFF,
-			(this->wanaddr.cAddr      )&0xFF,
-			 this->wanaddr.cPort);
+			(int)(this->cAddr>>0x18)&0xFF,
+			(int)(this->cAddr>>0x10)&0xFF,
+			(int)(this->cAddr>>0x08)&0xFF,
+			(int)(this->cAddr      )&0xFF,
+			(int)(this->cMask>>0x18)&0xFF,
+			(int)(this->cMask>>0x10)&0xFF,
+			(int)(this->cMask>>0x08)&0xFF,
+			(int)(this->cMask      )&0xFF,
+			(int) this->cPort,
+			(int)(this->wanaddr.cAddr>>0x18)&0xFF,
+			(int)(this->wanaddr.cAddr>>0x10)&0xFF,
+			(int)(this->wanaddr.cAddr>>0x08)&0xFF,
+			(int)(this->wanaddr.cAddr      )&0xFF,
+			(int) this->wanaddr.cPort);
 	}
 	return buf;
 }

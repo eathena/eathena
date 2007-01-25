@@ -758,7 +758,7 @@ bool CGuildDB_mem::insertGuild(const struct guild_member &member, const char *na
 		safestrcpy(tmp.position[0].name, sizeof(tmp.position[0].name),"GuildMaster");
 		safestrcpy(tmp.position[MAX_GUILDPOSITION-1].name, sizeof(tmp.position[0].name),"Newbie");
 		for(i=1; i<MAX_GUILDPOSITION-1; ++i)
-			snprintf(tmp.position[i].name,sizeof(tmp.position[0].name),"Position %ld",(unsigned long)(i+1));
+			snprintf(tmp.position[i].name,sizeof(tmp.position[0].name),"Position %lu",(unsigned long)(i+1));
 
 		tmp.max_member=(16>MAX_GUILD)?MAX_GUILD:16;
 		tmp.average_lv=tmp.member[0].lv;
@@ -1577,11 +1577,11 @@ bool CAccountDB_txt::do_readAccounts()
 			
 
 			if( 11 == (i=sscanf(line, 
-							"%ld\t"
+							"%lu\t"
 							"%[^\t]\t%[^\t]\t"
 							"%d\t%c\t%[^\t]\t"
 							"%d\t%[^\t]\t%[^\t]\t"
-							"%ld\t%ld%n",
+							"%lu\t%lu%n",
 							&account_id, 
 							userid, pass, 
 							&gm, &sex, email, 
@@ -1590,19 +1590,19 @@ bool CAccountDB_txt::do_readAccounts()
 			{	// added gm_level, removed useless stuff and reordered the rest
 				;
 			}
-			else if( 13 == (i=sscanf(line, "%ld\t%[^\t]\t%[^\t]\t%[^\t]\t%c\t%d\t%d\t%[^\t]\t%[^\t]\t%ld\t%[^\t]\t%[^\t]\t%ld%n",
+			else if( 13 == (i=sscanf(line, "%lu\t%[^\t]\t%[^\t]\t%[^\t]\t%c\t%d\t%d\t%[^\t]\t%[^\t]\t%lu\t%[^\t]\t%[^\t]\t%lu%n",
 							&account_id, userid, pass, lastlogin, &sex, &logincount, &state, email, error_message, &connect_until_time, last_ip, memo, &ban_until_time, &n)) && (line[n] == '\t') )
 			{	// added ban_time
 				gm=0;
 			}
-			else if( 12 == (i=sscanf(line, "%ld\t%[^\t]\t%[^\t]\t%[^\t]\t%c\t%d\t%d\t%[^\t]\t%[^\t]\t%ld\t%[^\t]\t%[^\t]%n",
+			else if( 12 == (i=sscanf(line, "%lu\t%[^\t]\t%[^\t]\t%[^\t]\t%c\t%d\t%d\t%[^\t]\t%[^\t]\t%lu\t%[^\t]\t%[^\t]%n",
 							&account_id, userid, pass, lastlogin, &sex, &logincount, &state, email, error_message, &connect_until_time, last_ip, memo, &n)) && (line[n] == '\t') )
 			{	// without ban_time
 				ban_until_time=0;
 				gm=0;
 			}
 			// Old athena database version reading (v1)
-			else if( 5 <= (i=sscanf(line, "%ld\t%[^\t]\t%[^\t]\t%[^\t]\t%c\t%d\t%d\t%n",
+			else if( 5 <= (i=sscanf(line, "%lu\t%[^\t]\t%[^\t]\t%[^\t]\t%c\t%d\t%d\t%n",
 							&account_id, userid, pass, lastlogin, &sex, &logincount, &state, &n)) )
 			{
 				gm=0;
@@ -1613,8 +1613,8 @@ bool CAccountDB_txt::do_readAccounts()
 				if (i < 6)
 					logincount=0;
 			}
-			//else if(sscanf(line, "%ld\t%%newid%%\n%n", &account_id, &i) == 1 && i > 0 && account_id > next_account_id)
-			else if(sscanf(line, "%ld\t%%newid%%\n%n", &account_id, &i) == 1)
+			//else if(sscanf(line, "%lu\t%%newid%%\n%n", &account_id, &i) == 1 && i > 0 && account_id > next_account_id)
+			else if(sscanf(line, "%lu\t%%newid%%\n%n", &account_id, &i) == 1)
 			{
 				// ignore
 				//next_account_id = account_id;
@@ -1759,7 +1759,7 @@ bool CAccountDB_txt::do_readAccounts()
 		else
 		{
 			ShowStatus("%d accounts read in %s,\n", this->cList.size(), filename);
-			ptr+=snprintf(ptr, sizeof(str)-(ptr-str), "%ld accounts read in %s,", (unsigned long)cList.size(), filename);
+			ptr+=snprintf(ptr, sizeof(str)-(ptr-str), "%lu accounts read in %s,", (unsigned long)cList.size(), filename);
 		}
 		if (GM_count == 0)
 		{
@@ -1821,16 +1821,16 @@ bool CAccountDB_txt::do_saveAccounts()
 
 	for(i = 0; i < this->cList.size(); ++i)
 	{
-		fprintf(fp, "%ld\t"
+		fprintf(fp, "%lu\t"
 					"%s\t%s\t"
 					"%d\t"
 					"%c\t"
 					"%s\t"
-					"%ld\t"
+					"%lu\t"
 					"%s\t"
 					"%s\t"
-					"%ld\t"
-					"%ld\t",
+					"%lu\t"
+					"%lu\t",
 					(unsigned long)this->cList[i].account_id,
 					this->cList[i].userid, this->cList[i].passwd,
 					(int)this->cList[i].gm_level, 
@@ -1849,7 +1849,7 @@ bool CAccountDB_txt::do_saveAccounts()
 		fprintf(fp, RETCODE);
 	}
 	// ignore
-	//fprintf(fp, "%ld\t%%newid%%"RETCODE, (unsigned long)next_account_id);
+	//fprintf(fp, "%lu\t%%newid%%"RETCODE, (unsigned long)next_account_id);
 	lock_fclose(fp, account_filename(), lock);
 	return true;
 }
@@ -1950,22 +1950,22 @@ int CCharDB_txt::char_to_str(char *str, size_t sz, const CCharCharacter &p)
 	}
 
 	str_p += snprintf(str_p, str+sz-str_p,
-		"%ld"
-		"\t%ld,%d"
+		"%lu"
+		"\t%lu,%d"
 		"\t%s"
 		"\t%d,%d,%d"
-		"\t%ld,%ld,%ld"
-		"\t%ld,%ld,%ld,%ld"
+		"\t%lu,%lu,%lu"
+		"\t%lu,%lu,%lu,%lu"
 		"\t%d,%d,%d,%d,%d,%d"
 		"\t%d,%d"
 		"\t%d,%d,%d"
-		"\t%ld,%ld,%ld,%ld"
+		"\t%lu,%lu,%lu,%lu"
 		"\t%d,%d,%d"
 		"\t%d,%d,%d,%d,%d"
 		"\t%s,%d,%d"
 		"\t%s,%d,%d"
-		"\t%ld,%ld,%ld,%ld"
-		"\t%ld"
+		"\t%lu,%lu,%lu,%lu"
+		"\t%lu"
 		"\t",
 		(unsigned long)p.char_id,
 		(unsigned long)p.account_id, p.slot,
@@ -2292,7 +2292,7 @@ bool CCharDB_txt::char_from_str(const char *str)
 	if( cCharList.find(p, pos, 0) )
 	{
 		ShowError(CL_BT_RED"Character has an identical id to another.\n"CL_NORM);
-		ShowMessage("           Character id #%ld -> new character not read.\n", (unsigned long)p.char_id);
+		ShowMessage("           Character id #%lu -> new character not read.\n", (unsigned long)p.char_id);
 		ShowMessage("           Character saved in log file.\n");
 		return false;
 	}
@@ -2345,7 +2345,7 @@ bool CCharDB_txt::char_from_str(const char *str)
 		{
 			if (sscanf(str+next, "%24[^,],%d,%d%n", buf, &tmp_int[0], &tmp_int[1], &len) != 3)
 			{
-				ShowError(CL_BT_RED"Character Memo points invalid (id #%ld, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
+				ShowError(CL_BT_RED"Character Memo points invalid (id #%lu, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
 				ShowMessage("           Rest skipped, line saved to log file.\n", p.name);
 				ret = false;
 				break;
@@ -2382,7 +2382,7 @@ bool CCharDB_txt::char_from_str(const char *str)
 			}
 			else // invalid structure
 			{
-				ShowError(CL_BT_RED"Character Inventory invalid (id #%ld, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
+				ShowError(CL_BT_RED"Character Inventory invalid (id #%lu, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
 				ShowMessage("           Rest skipped, line saved to log file.\n", p.name);
 				ret = false;
 				break;
@@ -2427,7 +2427,7 @@ bool CCharDB_txt::char_from_str(const char *str)
 			}
 			else // invalid structure
 			{
-				ShowError(CL_BT_RED"Character Cart Items invalid (id #%ld, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
+				ShowError(CL_BT_RED"Character Cart Items invalid (id #%lu, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
 				ShowMessage("           Rest skipped, line saved to log file.\n", p.name);
 				ret = false;
 				break;
@@ -2459,7 +2459,7 @@ bool CCharDB_txt::char_from_str(const char *str)
 		for(i = 0; str[next] && str[next] != '\t'; ++i) {
 			if (sscanf(str + next, "%d,%d%n", &tmp_int[0], &tmp_int[1], &len) != 2)
 			{
-				ShowError(CL_BT_RED"Character skills invalid (id #%ld, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
+				ShowError(CL_BT_RED"Character skills invalid (id #%lu, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
 				ShowMessage("           Rest skipped, line saved to log file.\n", p.name);
 				ret = false;
 				break;
@@ -2482,15 +2482,15 @@ bool CCharDB_txt::char_from_str(const char *str)
 		next++;
 		for(i = 0; str[next] && str[next] != '\t' && str[next] != '\n' && str[next] != '\r'; ++i)
 		{	// global_reg実装以前のathena.txt互換のため一応'\n'チェック
-			if(sscanf(str + next, "%32[^,],%ld%n", valstr, &val, &len) != 2)
+			if(sscanf(str + next, "%32[^,],%lu%n", valstr, &val, &len) != 2)
 			{	// because some scripts are not correct, the str can be "". So, we must check that.
 				// If it's, we must not refuse the character, but just this REG value.
 				// Character line will have something like: nov_2nd_cos,9 ,9 nov_1_2_cos_c,1 (here, ,9 is not good)
-				if(str[next] == ',' && sscanf(str + next, ",%ld%n", &val, &len) == 1)
+				if(str[next] == ',' && sscanf(str + next, ",%lu%n", &val, &len) == 1)
 					i--;
 				else
 				{
-					ShowError(CL_BT_RED"Character Char Variable invalid (id #%ld, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
+					ShowError(CL_BT_RED"Character Char Variable invalid (id #%lu, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
 					ShowMessage("           Rest skipped, line saved to log file.\n", p.name);
 					ret = false;
 					break;
@@ -2534,11 +2534,11 @@ bool CCharDB_txt::save_friends()
 			}
 			if(k<MAX_FRIENDLIST)
 			{	// at least one friend exist
-				fprintf(fp, "%ld", (unsigned long)this->cCharList[i].char_id);
+				fprintf(fp, "%lu", (unsigned long)this->cCharList[i].char_id);
 				for (k=0; k<MAX_FRIENDLIST; ++k)
 				{
 					if (this->cCharList[i].friendlist[k].friend_id > 0 && this->cCharList[i].friendlist[k].friend_name[0])
-						fprintf(fp, ",%ld,%s", (unsigned long)this->cCharList[i].friendlist[k].friend_id,cCharList[i].friendlist[k].friend_name);
+						fprintf(fp, ",%lu,%s", (unsigned long)this->cCharList[i].friendlist[k].friend_id,cCharList[i].friendlist[k].friend_name);
 					else
 						fprintf(fp,",,");
 				}
@@ -2569,7 +2569,7 @@ bool CCharDB_txt::read_friends()
 				continue;
 
 			memset(friendlist,0,sizeof(friendlist));
-			sscanf(line, "%ld,%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%s",
+			sscanf(line, "%lu,%lu,%24[^,],%lu,%24[^,],%lu,%24[^,],%lu,%24[^,],%lu,%24[^,],%lu,%24[^,],%lu,%24[^,],%lu,%24[^,],%lu,%24[^,],%lu,%24[^,],%lu,%24[^,],%lu,%24[^,],%lu,%24[^,],%lu,%24[^,],%lu,%24[^,],%lu,%24[^,],%lu,%24[^,],%lu,%24[^,],%lu,%24[^,],%lu,%s",
 				&cid,
 			&fid[ 0],friendlist[ 0].friend_name,
 			&fid[ 1],friendlist[ 1].friend_name,
@@ -2641,7 +2641,7 @@ bool CCharDB_txt::do_readChars(void)
 		line[sizeof(line)-1] = '\0';
 
 		j = 0;
-		if(sscanf(line, "%ld\t%%newid%%%n", &i, &j) == 1 && j > 0)
+		if(sscanf(line, "%lu\t%%newid%%%n", &i, &j) == 1 && j > 0)
 		{	//ignored
 			//if(next_char_id < i)
 			//	next_char_id = i;
@@ -2939,7 +2939,7 @@ bool CCharDB_txt::sendMail(uint32 senderid, const char* sendername, const char* 
 bool CGuildDB_txt::string2guild(const char *str, CGuild &g)
 {
 	unsigned int i, j, c;
-	int tmp_int[16];
+	int n,tmp_int[16];
 	char tmp_str[4][256];
 	char tmp_str2[4096];
 	char *pstr;
@@ -3005,8 +3005,8 @@ bool CGuildDB_txt::string2guild(const char *str, CGuild &g)
 	// 役職
 	i = 0;
 	memset(&g.position,0, sizeof(g.position));
-	while( sscanf(str+1, "%d,%d%n", &tmp_int[0], &tmp_int[1], &j) == 2 &&
-		str[1+j] == '\t')
+	while( sscanf(str+1, "%d,%d%n", &tmp_int[0], &tmp_int[1], &n) == 2 &&
+		str[n+1] == '\t')
 	{
 		if( sscanf(str+1, "%d,%d\t%[^\t]\t", &tmp_int[0], &tmp_int[1], tmp_str[0]) < 3)
 			return false;
@@ -3054,7 +3054,7 @@ bool CGuildDB_txt::string2guild(const char *str, CGuild &g)
 	str=strchr(str+1, '\t');	// 位置スキップ
 
 	// 同盟リスト
-	if (sscanf(str+1, "%d\t", &c) < 1)
+	if (sscanf(str+1, "%u\t", &c) < 1)
 		return false;
 
 	str = strchr(str + 1, '\t');	// 位置スキップ
@@ -3072,7 +3072,7 @@ bool CGuildDB_txt::string2guild(const char *str, CGuild &g)
 	}
 
 	// 追放リスト
-	if (sscanf(str+1, "%d\t", &c) < 1)
+	if (sscanf(str+1, "%u\t", &c) < 1)
 		return false;
 
 	str = strchr(str + 1, '\t');	// 位置スキップ
@@ -3118,14 +3118,14 @@ ssize_t CGuildDB_txt::guild2string(char *str, size_t maxlen, const CGuild &g)
 	ssize_t i, c, len;
 
 	// 基本データ
-	len = snprintf(str, maxlen, "%ld\t%s\t%s\t%d,%d,%ld,%d,%d\t%s#\t%s#\t",
+	len = snprintf(str, maxlen, "%lu\t%s\t%s\t%d,%d,%lu,%d,%d\t%s#\t%s#\t",
 				  (unsigned long)g.guild_id, g.name, g.master,
 				  g.guild_lv, g.max_member, (unsigned long)g.exp, g.skill_point, 0,//g.castle_id,
 				  g.mes1, g.mes2);
 	// メンバー
 	for(i = 0; i<g.max_member && i<MAX_GUILD; ++i) {
 		const struct guild_member &m = g.member[i];
-		len += snprintf(str + len, maxlen-len, "%ld,%ld,%d,%d,%d,%d,%d,%ld,%ld,%d\t%s\t",
+		len += snprintf(str + len, maxlen-len, "%lu,%lu,%d,%d,%d,%d,%d,%lu,%lu,%d\t%s\t",
 					   (unsigned long)m.account_id, (unsigned long)m.char_id,
 					   m.hair, m.hair_color, m.gender,
 					   m.class_, m.lv, (unsigned long)m.exp, (unsigned long)m.exp_payper, m.position,
@@ -3134,10 +3134,10 @@ ssize_t CGuildDB_txt::guild2string(char *str, size_t maxlen, const CGuild &g)
 	// 役職
 	for(i = 0; i < MAX_GUILDPOSITION; ++i) {
 		const struct guild_position &p = g.position[i];
-		len += snprintf(str + len, maxlen-len, "%ld,%ld\t%s#\t", (unsigned long)p.mode, (unsigned long)p.exp_mode, p.name);
+		len += snprintf(str + len, maxlen-len, "%lu,%lu\t%s#\t", (unsigned long)p.mode, (unsigned long)p.exp_mode, p.name);
 	}
 	// エンブレム
-	len += snprintf(str + len, maxlen-len, "%d,%ld,", g.emblem_len, (unsigned long)g.emblem_id);
+	len += snprintf(str + len, maxlen-len, "%d,%lu,", g.emblem_len, (unsigned long)g.emblem_id);
 	for(i = 0; i < g.emblem_len; ++i) {
 		len += snprintf(str + len, maxlen-len, "%02x", (unsigned char)(g.emblem_data[i]));
 	}
@@ -3148,25 +3148,25 @@ ssize_t CGuildDB_txt::guild2string(char *str, size_t maxlen, const CGuild &g)
 		if(g.alliance[i].guild_id > 0)
 			c++;
 
-	len += snprintf(str + len, maxlen-len, "%ld\t", (unsigned long)c);
+	len += snprintf(str + len, maxlen-len, "%lu\t", (unsigned long)c);
 
 	for(i = 0; i < MAX_GUILDALLIANCE; ++i)
 	{
 		const struct guild_alliance &a = g.alliance[i];
 		if (a.guild_id > 0)
-			len += snprintf(str + len, maxlen-len, "%ld,%ld\t%s\t", (unsigned long)a.guild_id, (unsigned long)a.opposition, a.name);
+			len += snprintf(str + len, maxlen-len, "%lu,%lu\t%s\t", (unsigned long)a.guild_id, (unsigned long)a.opposition, a.name);
 	}
 	// 追放リスト
 	for(i=0,c=0; i<MAX_GUILDEXPLUSION; ++i)
 		if (g.explusion[i].account_id > 0)
 			c++;
 
-	len += snprintf(str + len, maxlen-len, "%ld\t", (unsigned long)c);
+	len += snprintf(str + len, maxlen-len, "%lu\t", (unsigned long)c);
 	for(i = 0; i < MAX_GUILDEXPLUSION; ++i)
 	{
 		const struct guild_explusion &e = g.explusion[i];
 		if (e.account_id > 0)
-			len += snprintf(str + len, maxlen-len, "%ld,%ld,%ld,%ld\t%s\t%s\t%s#\t",
+			len += snprintf(str + len, maxlen-len, "%lu,%lu,%lu,%lu\t%s\t%s\t%s#\t",
 						   (unsigned long)e.account_id, (unsigned long)e.rsv1, (unsigned long)e.rsv2, (unsigned long)e.rsv3,
 						   e.name, e.acc, e.mes );
 	}
@@ -3182,7 +3182,7 @@ ssize_t CGuildDB_txt::guild2string(char *str, size_t maxlen, const CGuild &g)
 ssize_t CGuildDB_txt::castle2string(char *str, size_t maxlen, const CCastle &gc)
 {
 	ssize_t len;
-	len = snprintf(str, maxlen, "%d,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld"RETCODE,	// added Guardian HP [Valaris]
+	len = snprintf(str, maxlen, "%d,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu"RETCODE,	// added Guardian HP [Valaris]
 				  gc.castle_id, (unsigned long)gc.guild_id, (unsigned long)gc.economy, (unsigned long)gc.defense, (unsigned long)gc.triggerE,
 				  (unsigned long)gc.triggerD, (unsigned long)gc.nextTime, (unsigned long)gc.payTime, (unsigned long)gc.createTime, (unsigned long)gc.visibleC,
 				  (unsigned long)gc.guardian[0].visible, (unsigned long)gc.guardian[1].visible, (unsigned long)gc.guardian[2].visible, (unsigned long)gc.guardian[3].visible,
@@ -3469,11 +3469,11 @@ bool CGuildDB_txt::timeruserfunc(unsigned long tick)
 ssize_t CPartyDB_txt::party_to_string(char *str, size_t maxlen, const CParty &p)
 {
 	ssize_t i, len;
-	len = snprintf(str, maxlen, "%ld\t%s\t%d,%d\t", (unsigned long)p.party_id, p.name, p.expshare, p.itemshare);
+	len = snprintf(str, maxlen, "%lu\t%s\t%d,%d\t", (unsigned long)p.party_id, p.name, p.expshare, p.itemshare);
 	for(i = 0; i < MAX_PARTY; ++i)
 	{
 		const struct party_member &m = p.member[i];
-		len += snprintf(str+len, maxlen-len, "%ld,%ld\t%s\t", (unsigned long)m.account_id, (unsigned long)m.leader, ((m.account_id > 0) ? m.name : "NoMember"));
+		len += snprintf(str+len, maxlen-len, "%lu,%lu\t%s\t", (unsigned long)m.account_id, (unsigned long)m.leader, ((m.account_id > 0) ? m.name : "NoMember"));
 	}
 	snprintf(str+len, maxlen-len, RETCODE);
 	return len;
@@ -3633,7 +3633,7 @@ ssize_t CPCStorageDB_txt::storage_to_string(char *str, size_t maxlen, const CPCS
 {
 	int i,f=0;
 	char *str_p = str;
-	str_p += snprintf(str_p,maxlen,"%ld,%d\t",(unsigned long)stor.account_id, stor.storage_amount);
+	str_p += snprintf(str_p,maxlen,"%lu,%d\t",(unsigned long)stor.account_id, stor.storage_amount);
 	for(i=0; i<MAX_STORAGE; ++i)
 	{
 		if( (stor.storage[i].nameid) && (stor.storage[i].amount) )
@@ -3733,7 +3733,7 @@ bool CPCStorageDB_txt::do_readPCStorage()
 		if( !is_valid_line(line) )
 			continue;
 
-		sscanf(line,"%ld",&tmp);
+		sscanf(line,"%lu",&tmp);
 		s.account_id=tmp;
 		if(s.account_id > 0 && storage_from_string(line,s) )
 		{
@@ -3822,7 +3822,7 @@ ssize_t CGuildStorageDB_txt::guild_storage_to_string(char *str, size_t maxlen, c
 {
 	int i,f=0;
 	char *str_p = str;
-	str_p+=snprintf(str,maxlen,"%ld,%d\t",(unsigned long)stor.guild_id, stor.storage_amount);
+	str_p+=snprintf(str,maxlen,"%lu,%d\t",(unsigned long)stor.guild_id, stor.storage_amount);
 
 	for(i=0;i<MAX_GUILD_STORAGE; ++i)
 	{
@@ -3919,7 +3919,7 @@ bool CGuildStorageDB_txt::do_readGuildStorage()
 		if( !is_valid_line(line) )
 			continue;
 
-		sscanf(line,"%ld",&tmp);
+		sscanf(line,"%lu",&tmp);
 		gs.guild_id=tmp;
 		if(gs.guild_id > 0 && guild_storage_from_string(line,gs) )
 		{
@@ -4021,7 +4021,7 @@ int CPetDB_txt::pet_to_string(char *str, size_t sz, CPet &pet)
 	else if(pet.intimate > 1000)
 		pet.intimate = 1000;
 
-	len=snprintf(str, sz, "%ld,%d,%s\t%ld,%ld,%d,%d,%d,%d,%d,%d,%d",
+	len=snprintf(str, sz, "%lu,%d,%s\t%lu,%lu,%d,%d,%d,%d,%d,%d,%d",
 		(unsigned long)pet.pet_id,pet.class_,pet.name,
 		(unsigned long)pet.account_id,(unsigned long)pet.char_id,
 		pet.level,pet.egg_id, pet.equip_id,pet.intimate,pet.hungry,
@@ -4190,10 +4190,10 @@ int CHomunculusDB_txt::homunculus_to_string(char *str, size_t sz, CHomunculus &h
 		(ulong)hom.base_exp,
 		(ulong)hom.hp,(ulong)hom.max_hp,
 		(ulong)hom.sp,(ulong)hom.max_sp,
-		hom.class_,hom.status_point,hom.skill_point,
-		hom.str,hom.agi,hom.vit,hom.int_,hom.dex,hom.luk,
-		hom.option,hom.equip,
-		(ulong)hom.intimate,hom.hungry,hom.base_level,hom.rename_flag,hom.incubate);
+		(uint)hom.class_,(uint)hom.status_point,(uint)hom.skill_point,
+		(uint)hom.str,(uint)hom.agi,(uint)hom.vit,(uint)hom.int_,(uint)hom.dex,(uint)hom.luk,
+		(uint)hom.option,(uint)hom.equip,
+		(ulong)hom.intimate,(uint)hom.hungry,(uint)hom.base_level,(uint)hom.rename_flag,(uint)hom.incubate);
 
 	for(i=0; i<MAX_HOMSKILL; ++i)
 	{
@@ -4283,7 +4283,7 @@ bool CHomunculusDB_txt::homunculus_from_string(const char *str, CHomunculus &hom
 			hom.skill[i].lv = 0;
 			hom.skill[i].flag = 0;
 		}
-		while( str[next] && 2==sscanf(str+next, "%d,%d%n", &tmp_int[0], &tmp_int[1], &len) )
+		while( str[next] && 2==sscanf(str+next, "%u,%u%n", &tmp_int[0], &tmp_int[1], &len) )
 		{
 			i = tmp_int[0]-HOM_SKILLID;
 			if( tmp_int[1] && i < MAX_HOMSKILL )

@@ -68,11 +68,11 @@ public:
 	virtual T& operator[](size_t i)=0;
 
 	bool warned;
-	virtual bool save(const T&val)
+	virtual bool save_value(const T&val)
 	{
 		if(!warned)
 		{
-			ShowError("cnversion not implemented yet");
+			ShowError("conversion not implemented yet");
 			warned=true;
 		}
 		return false;
@@ -84,7 +84,7 @@ public:
 		for(i=0; i<db.size(); ++i)
 		{
 			T& val = db[i];
-			this->save(val);
+			this->save_value(val);
 		}
 	}
 };
@@ -865,13 +865,13 @@ enum
 	VARSCOPE_CHAR,		// character variables
 	VARSCOPE_ACCOUNT,	// account variables
 	VARSCOPE_GUILD,		// guild variables
-	VARSCOPE_PARTY,		// party variables
+	VARSCOPE_PARTY		// party variables
 };
 enum
 {
 	VARTYPE_STRING,		// string
 	VARTYPE_INTEGER,	// fixed point number
-	VARTYPE_FLOAT,		// floating point number
+	VARTYPE_FLOAT		// floating point number
 };
 
 class CVar : public basics::string<>
@@ -954,7 +954,7 @@ public:
 
 			printf("dimensions: ");
 			for(i=0; i<dimension.size(); ++i)
-				printf("%li ", (ulong)dimension[i]);
+				printf("%lu ", (ulong)dimension[i]);
 
 			printf("\nvalues:");
 			for(i=0; i<values.size(); ++i)

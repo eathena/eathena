@@ -66,7 +66,7 @@ public:
 
 
 	// removes object from map, but leave it in memory
-	void npc_data::remove_from_map();
+	void remove_from_map();
 
 	/// do object depending stuff for ending the walk.
 	virtual void do_stop_walking();
@@ -247,13 +247,13 @@ private:
 public:
 	/// get the position inside the eventtimer list.
 	/// return 0 when no timer has been started
-	ushort npcscript_data::eventtimer_getpos(uint32 rid);
+	ushort eventtimer_getpos(uint32 rid);
 	/// set the position inside the eventtimer list.
 	/// return the previous count. does nothing when no timer has been started
-	ushort npcscript_data::eventtimer_setpos(uint32 rid, ushort pos);
+	ushort eventtimer_setpos(uint32 rid, ushort pos);
 	/// set the rid for the next call.
 	/// return the previous rid. does nothing when no timer has been started
-	uint32 npcscript_data::eventtimer_attach(uint32 oldrid, uint32 newrid);
+	uint32 eventtimer_attach(uint32 oldrid, uint32 newrid);
 	/// initialize a timer object and start the timer.
 	void eventtimer_init(uint32 rid, ushort pos=0);
 	/// start the timer.
@@ -401,12 +401,12 @@ struct npcshop_data : public npc_data
 	virtual void OnClick(map_session_data &sd);
 	/// try and execute touchup 
 	/// ignored, shops do not implement touchup
-	virtual void OnTouch(block_list& bl, ushort x, ushort y)	{}
+	virtual void OnTouch(block_list& bl)	{}
 
 	/// display shop buy window
-	void npcshop_data::buywindow(map_session_data &sd);
+	void buywindow(map_session_data &sd);
 	/// display shop sell window
-	void npcshop_data::sellwindow(map_session_data &sd);
+	void sellwindow(map_session_data &sd);
 
 };
 

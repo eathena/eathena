@@ -372,8 +372,6 @@ int	VPRINTF(const char *fmt, va_list argptr)
 				}
 				else if( *q=='s' )
 				{	// \033[s - Save Cursor Position (SCP)
-					CONSOLE_SCREEN_BUFFER_INFO info;
-					GetConsoleScreenBufferInfo(handle, &info);
 					saveposition = info.dwCursorPosition;
 				}
 				else if( *q=='u' )

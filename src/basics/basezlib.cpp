@@ -23,10 +23,12 @@
 #include <direct.h>		// for mkdir
 #include <io.h>			// for access
 						// and also the modi are not defined in windows
+#ifndef F_OK
 #define F_OK	0x0		// Existence only
 #define W_OK	0x2		// Write permission
 #define R_OK	0x4		// Read permission
 #define RW_OK	0x6		// Read and write permission
+#endif
 #else
 #include <unistd.h>		// unix is clean
 #include <utime.h>
@@ -2916,7 +2918,7 @@ int unzRepair(const char* file,
 	{
 		int entries = 0;
 		uLong totalBytes = 0;
-		char header[30];
+		char header[64];
 		char filename[256];
 		char extra[1024];
 		int offset = 0;
@@ -3014,7 +3016,7 @@ int unzRepair(const char* file,
 				}
 				// Central directory entry
 				{
-					char header[46];
+					//char header[46];
 					char* comment = "";
 					int comsize = (int) strlen(comment);
 					WRITE_32(header, 0x02014b50);
@@ -3100,7 +3102,7 @@ int unzRepair(const char* file,
 		// Final central directory
 		{
 			int entriesZip = entries;
-			char header[22];
+			//char header[22];
 			char* comment = ""; // "ZIP File recovered by zlib/minizip/mztools";
 			int comsize = (int) strlen(comment);
 			if (entriesZip > 0xffff) {
@@ -4782,7 +4784,7 @@ int zipmain(int argc,char *argv[])
         zipok=0;
     else
     {
-        int i,len;
+        int len;
         int dot_found=0;
 
         zipok = 1 ;

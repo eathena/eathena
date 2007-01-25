@@ -975,7 +975,9 @@ int log_init(const char *cfgName)
 		if(!mysql_real_connect(&logmysql_handle, log_db_ip, log_db_id, log_db_pw,
 			log_db ,log_db_port, (char *)NULL, 0)) {
 				//pointer check
-				ShowError(""CL_WHITE"[SQL Error]"CL_RESET": %s\n",mysql_error(&logmysql_handle));
+				ShowError(""CL_WHITE"[SQL Error]"CL_RESET": %s\n"
+						CL_SPACE"error not recoverable, quitting.\n",
+						mysql_error(&logmysql_handle));
 				exit(1);
 		} else {
 			ShowStatus(""CL_WHITE"[SQL]"CL_RESET": Successfully '"CL_BT_GREEN"connected"CL_RESET"' to Database '"CL_WHITE"%s"CL_RESET"'.\n", log_db);

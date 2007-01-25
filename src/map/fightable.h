@@ -115,6 +115,10 @@ public:
 	{
 		this->target_id=0;
 	}
+	virtual void unlock_target(unsigned long tick)
+	{
+		this->target_id=0;
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	// attack functions

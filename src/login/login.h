@@ -185,6 +185,7 @@ struct login_server : public session_data
 class transmitt_packet
 {
 public:
+	virtual ~transmitt_packet()	{}
 	virtual size_t size() const=0;
 	virtual operator const unsigned char*()=0;
 
@@ -210,9 +211,10 @@ public:
 		_L_tobuffer(acc.login_id1, buf);
 		_L_tobuffer(acc.login_id2, buf);
 	}
+	virtual ~packet_try_login()	{}
 	virtual size_t size() const	{ return packet_size; }
-	virtual operator const unsigned char*() const	{ return buffer; }
-	virtual operator unsigned char*() { return buffer; }
+	virtual const unsigned char* operator()() const	{ return buffer; }
+	virtual unsigned char* operator()() { return buffer; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -234,9 +236,10 @@ public:
 		_L_tobuffer(acc.login_id1, buf);
 		_L_tobuffer(acc.login_id2, buf);
 	}
+	virtual ~packet_new_login()	{}
 	virtual size_t size() const	{ return packet_size; }
-	virtual operator const unsigned char*() const	{ return buffer; }
-	virtual operator unsigned char*() { return buffer; }
+	virtual const unsigned char* operator()() const	{ return buffer; }
+	virtual unsigned char* operator()() { return buffer; }
 };
 
 

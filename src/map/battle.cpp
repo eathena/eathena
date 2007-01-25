@@ -173,7 +173,7 @@ int battle_damage(block_list *bl, block_list *target, int damage, int flag)
 		// 凍結、石化、睡眠を消去
 		if( target->has_status(SC_FREEZE) )
 			status_change_end(target,SC_FREEZE,-1);
-		if( target->has_status(SC_STONE) && sc_data[SC_STONE].val2.num == 0)
+		if( target->has_status(SC_STONE) && sc_data[SC_STONE].integer2()==0)
 			status_change_end(target,SC_STONE,-1);
 		if( target->has_status(SC_SLEEP) )
 			status_change_end(target,SC_SLEEP,-1);
@@ -189,9 +189,9 @@ int battle_damage(block_list *bl, block_list *target, int damage, int flag)
 	else if( target->get_sd() )
 	{	// PC
 		map_session_data *tsd = target->get_sd();
-		if(sc_data && sc_data[SC_DEVOTION].val1.num)
+		if(sc_data && sc_data[SC_DEVOTION].integer1())
 		{	// ディボーションをかけられている
-			map_session_data *sd2 = map_session_data::from_blid(sc_data[SC_DEVOTION].val1.num);
+			map_session_data *sd2 = map_session_data::from_blid(sc_data[SC_DEVOTION].integer1());
 			if (sd2 && skill_devotion3(sd2, target->id))
 			{
 				skill_devotion(sd2, target->id);
@@ -286,7 +286,7 @@ int battle_calc_damage(block_list *src,block_list *bl,int damage,int div_,int sk
 		if( bl->has_status(SC_SAFETYWALL) && damage>0 && flag&BF_WEAPON &&
 			flag&BF_SHORT && skill_num != NPC_GUIDEDATTACK && skill_num != AM_DEMONSTRATION)
 		{	// セーフティウォール
-			struct skill_unit *unit = (struct skill_unit *)sc_data[SC_SAFETYWALL].val2.ptr;
+			struct skill_unit *unit = (struct skill_unit *)sc_data[SC_SAFETYWALL].pointer2();
 			// temporary check to prevent access on wrong val2
 			if (unit && unit->block_list::m == bl->m) {
 				if (unit->group && (--unit->group->val2)<=0)
@@ -296,7 +296,7 @@ int battle_calc_damage(block_list *src,block_list *bl,int damage,int div_,int sk
 				status_change_end(bl,SC_SAFETYWALL,-1);
 			}
 		}
-		if(sc_data[SC_PNEUMA].timer!=-1 && damage>0 &&
+		if(sc_data[SC_PNEUMA].is_active() && damage>0 &&
 			((flag&BF_WEAPON && flag&BF_LONG && skill_num != NPC_GUIDEDATTACK) ||
 			(flag&BF_MISC && (skill_num ==  HT_BLITZBEAT || skill_num == SN_FALCONASSAULT || skill_num == TF_THROWSTONE)) ||
 			(flag&BF_WEAPON && skill_num == ASC_BREAKER))){ // It should block only physical part of Breaker! [Lupus]
@@ -305,47 +305,47 @@ int battle_calc_damage(block_list *src,block_list *bl,int damage,int div_,int sk
 		}
 
 		/*
-		if(sc_data[SC_ROKISWEIL].timer!=-1 && damage>0 && flag&BF_MAGIC ){
+		if(sc_data[SC_ROKISWEIL].is_active() && damage>0 && flag&BF_MAGIC ){
 			// ニューマ
 			damage=0;
 		}
 		*/
 
-		if(sc_data[SC_AETERNA].timer!=-1 && damage>0 && skill_num != PA_PRESSURE){
+		if(sc_data[SC_AETERNA].is_active() && damage>0 && skill_num != PA_PRESSURE){
 			damage<<=1;
 			if (skill_num != ASC_BREAKER || flag & BF_MAGIC) //Only end it on the second attack of breaker. [Skotlex]
 				status_change_end( bl,SC_AETERNA,-1 );
 		}
 
 		//属性場のダメージ増加
-		if(sc_data[SC_VOLCANO].timer!=-1){	// ボルケーノ
+		if(sc_data[SC_VOLCANO].is_active()){	// ボルケーノ
 			if(flag&BF_SKILL && skill_get_pl(skill_num)==3)
 				//damage += damage*sc_data[SC_VOLCANO].val4/100;
-				damage += damage * enchant_eff[sc_data[SC_VOLCANO].val1.num-1] /100;
+				damage += damage * enchant_eff[sc_data[SC_VOLCANO].integer1()-1] /100;
 			else if(!(flag&BF_SKILL) && status_get_attack_element(bl)==3)
 				//damage += damage*sc_data[SC_VOLCANO].val4/100;
-				damage += damage * enchant_eff[sc_data[SC_VOLCANO].val1.num-1] /100;
+				damage += damage * enchant_eff[sc_data[SC_VOLCANO].integer1()-1] /100;
 		}
 
-		if(sc_data[SC_VIOLENTGALE].timer!=-1){	// バイオレントゲイル
+		if(sc_data[SC_VIOLENTGALE].is_active()){	// バイオレントゲイル
 			if(flag&BF_SKILL && skill_get_pl(skill_num)==4)
 				//damage += damage*sc_data[SC_VIOLENTGALE].val4/100;
-				damage += damage * enchant_eff[sc_data[SC_VIOLENTGALE].val1.num-1] /100;
+				damage += damage * enchant_eff[sc_data[SC_VIOLENTGALE].integer1()-1] /100;
 			else if(!(flag&BF_SKILL) && status_get_attack_element(bl)==4)
 				//damage += damage*sc_data[SC_VIOLENTGALE].val4/100;
-				damage += damage * enchant_eff[sc_data[SC_VIOLENTGALE].val1.num-1] /100;
+				damage += damage * enchant_eff[sc_data[SC_VIOLENTGALE].integer1()-1] /100;
 		}
 
-		if(sc_data[SC_DELUGE].timer!=-1){	// デリュージ
+		if(sc_data[SC_DELUGE].is_active()){	// デリュージ
 			if(flag&BF_SKILL && skill_get_pl(skill_num)==1)
 				//damage += damage*sc_data[SC_DELUGE].val4/100;
-				damage += damage * enchant_eff[sc_data[SC_DELUGE].val1.num-1] /100;
+				damage += damage * enchant_eff[sc_data[SC_DELUGE].integer1()-1] /100;
 			else if(!(flag&BF_SKILL) && status_get_attack_element(bl)==1)
 				//damage += damage*sc_data[SC_DELUGE].val4/100;
-				damage += damage * enchant_eff[sc_data[SC_DELUGE].val1.num-1] /100;
+				damage += damage * enchant_eff[sc_data[SC_DELUGE].integer1()-1] /100;
 		}
 
-		if(sc_data[SC_ENERGYCOAT].timer!=-1 && damage>0  && flag&BF_WEAPON){	// エナジーコート
+		if(sc_data[SC_ENERGYCOAT].is_active() && damage>0  && flag&BF_WEAPON){	// エナジーコート
 			if(sd){
 				if(sd->status.sp>0){
 					int per = sd->status.sp * 5 / (sd->status.max_sp + 1);
@@ -358,39 +358,39 @@ int battle_calc_damage(block_list *src,block_list *bl,int damage,int div_,int sk
 					status_change_end( bl,SC_ENERGYCOAT,-1 );
 			}
 			else
-				damage -= damage * (sc_data[SC_ENERGYCOAT].val1.num * 6) / 100;
+				damage -= damage * (sc_data[SC_ENERGYCOAT].integer1() * 6) / 100;
 		}
 
-		if(sc_data[SC_KYRIE].timer!=-1 && damage > 0){	// キリエエレイソン
+		if(sc_data[SC_KYRIE].is_active() && damage > 0){	// キリエエレイソン
 			sc=&sc_data[SC_KYRIE];
-			sc->val2.num -= damage;
+			sc->integer2() -= damage;
 			if(flag&BF_WEAPON || (flag&BF_MISC && skill_num == TF_THROWSTONE)){
-				if(sc->val2.num>=0)	damage=0;
-				else damage=-sc->val2.num;
+				if(sc->integer2()>=0)	damage=0;
+				else damage=-sc->integer2();
 			}
-			if((--sc->val3.num)<=0 || (sc->val2.num<=0) || skill_num == AL_HOLYLIGHT)
+			if((--sc->integer3())<=0 || (sc->integer2()<=0) || skill_num == AL_HOLYLIGHT)
 				status_change_end(bl, SC_KYRIE, -1);
 		}
 
-		if(sc_data[SC_BASILICA].timer!=-1 && damage > 0){
+		if(sc_data[SC_BASILICA].is_active() && damage > 0){
 			// ニューマ
 			damage=0;
 		}
-		if(sc_data[SC_LANDPROTECTOR].timer!=-1 && damage>0 && flag&BF_MAGIC){
+		if(sc_data[SC_LANDPROTECTOR].is_active() && damage>0 && flag&BF_MAGIC){
 			// ニューマ
 			damage=0;
 		}
 
-		if(sc_data[SC_AUTOGUARD].timer != -1 && damage > 0 && flag&BF_WEAPON) {
-			if(rand()%100 < sc_data[SC_AUTOGUARD].val2.num) {
+		if(sc_data[SC_AUTOGUARD].is_active() && damage > 0 && flag&BF_WEAPON) {
+			if(rand()%100 < sc_data[SC_AUTOGUARD].integer2()) {
 				int delay;
 
 				damage = 0;
-				clif_skill_nodamage(*bl,*bl,CR_AUTOGUARD,(unsigned short)sc_data[SC_AUTOGUARD].val1.num,1);
+				clif_skill_nodamage(*bl,*bl,CR_AUTOGUARD,(unsigned short)sc_data[SC_AUTOGUARD].integer1(),1);
 				// different delay depending on skill level [celest]
-				if (sc_data[SC_AUTOGUARD].val1.num <= 5)
+				if (sc_data[SC_AUTOGUARD].integer1() <= 5)
 					delay = 300;
-				else if (sc_data[SC_AUTOGUARD].val1.num > 5 && sc_data[SC_AUTOGUARD].val1.num <= 9)
+				else if (sc_data[SC_AUTOGUARD].integer1() > 5 && sc_data[SC_AUTOGUARD].integer1() <= 9)
 					delay = 200;
 				else
 					delay = 100;
@@ -402,30 +402,30 @@ int battle_calc_damage(block_list *src,block_list *bl,int damage,int div_,int sk
 		}
 // -- moonsoul (chance to block attacks with new Lord Knight skill parrying)
 //
-		if(sc_data[SC_PARRYING].timer != -1 && damage > 0 && flag&BF_WEAPON) {
-			if(rand()%100 < sc_data[SC_PARRYING].val2.num) {
+		if(sc_data[SC_PARRYING].is_active() && damage > 0 && flag&BF_WEAPON) {
+			if(rand()%100 < sc_data[SC_PARRYING].integer2()) {
 				damage = 0;
-				clif_skill_nodamage(*bl,*bl,LK_PARRYING,sc_data[SC_PARRYING].val1.num,1);
+				clif_skill_nodamage(*bl,*bl,LK_PARRYING,sc_data[SC_PARRYING].integer1(),1);
 			}
 		}
 		// リジェクトソード
-		if(sc_data[SC_REJECTSWORD].timer!=-1 && damage > 0 && flag&BF_WEAPON &&
+		if(sc_data[SC_REJECTSWORD].is_active() && damage > 0 && flag&BF_WEAPON &&
 			// Fixed the condition check [Aalye]
 			(*src==BL_MOB || (*src==BL_PC && (((map_session_data *)src)->status.weapon == 1 ||
 			((map_session_data *)src)->status.weapon == 2 ||
 			((map_session_data *)src)->status.weapon == 3)))){
-			if(rand()%100 < (15*sc_data[SC_REJECTSWORD].val1.num)){ //反射確率は15*Lv
+			if(rand()%100 < (15*sc_data[SC_REJECTSWORD].integer1())){ //反射確率は15*Lv
 				damage = damage*50/100;
 				clif_damage(*bl,*src,gettick(),0,0,damage,0,0,0);
 				battle_damage(bl,src,damage,0);
 				//ダメージを与えたのは良いんだが、ここからどうして表示するんだかわかんねぇ
 				//エフェクトもこれでいいのかわかんねぇ
-				clif_skill_nodamage(*bl,*bl,ST_REJECTSWORD,sc_data[SC_REJECTSWORD].val1.num,1);
-				if((--sc_data[SC_REJECTSWORD].val2.num)<=0)
+				clif_skill_nodamage(*bl,*bl,ST_REJECTSWORD,sc_data[SC_REJECTSWORD].integer1(),1);
+				if((--sc_data[SC_REJECTSWORD].integer2())<=0)
 					status_change_end(bl, SC_REJECTSWORD, -1);
 			}
 		}
-		if(sc_data[SC_SPIDERWEB].timer!=-1 && damage > 0)	// [Celest]
+		if(sc_data[SC_SPIDERWEB].is_active() && damage > 0)	// [Celest]
 			if ((flag&BF_SKILL && skill_get_pl(skill_num)==3) ||
 				(!(flag&BF_SKILL) && status_get_attack_element(src)==3)) {
 				damage<<=1;
@@ -433,7 +433,7 @@ int battle_calc_damage(block_list *src,block_list *bl,int damage,int div_,int sk
 			}
 
 		//Only targetted magic skills are nullified.
-		if( sc_data[SC_FOGWALL].timer != -1 && 
+		if( sc_data[SC_FOGWALL].is_active() && 
 			flag&BF_MAGIC && 
 			!(skill_get_inf(skill_num)&INF_GROUND_SKILL) &&
 			rand()%100 < 75 )
@@ -442,7 +442,7 @@ int battle_calc_damage(block_list *src,block_list *bl,int damage,int div_,int sk
 
 	//SC effects from caster side.
 	sc_data = status_get_sc_data(src);
-	if( sc_data && sc_data[SC_FOGWALL].timer != -1 && 
+	if( sc_data && sc_data[SC_FOGWALL].is_active() && 
 		flag&BF_MAGIC && !(skill_get_inf(skill_num)&INF_GROUND_SKILL) &&
 		rand()%100 < 75 )
 		damage = 0;
@@ -774,10 +774,10 @@ static struct Damage battle_calc_pet_weapon_attack(
 			cri = 1;
 	}
 	if(t_sc_data) {
-		if (t_sc_data[SC_SLEEP].timer!=-1)
+		if (t_sc_data[SC_SLEEP].is_active())
 			cri <<=1;
-		if(t_sc_data[SC_JOINTBEAT].timer != -1 &&
-			t_sc_data[SC_JOINTBEAT].val2.num == 5) // Always take crits with Neck broken by Joint Beat [DracoRPG]
+		if(t_sc_data[SC_JOINTBEAT].is_active() &&
+			t_sc_data[SC_JOINTBEAT].integer2() == 5) // Always take crits with Neck broken by Joint Beat [DracoRPG]
 			cri = 1000;
 	}
 
@@ -1077,12 +1077,12 @@ static struct Damage battle_calc_pet_weapon_attack(
 
 	// 回避修正
 	if(	hitrate < 1000000 && t_sc_data ) {			// 必中攻撃
-		if(t_sc_data[SC_FOGWALL].timer != -1 && flag&BF_LONG)
+		if(t_sc_data[SC_FOGWALL].is_active() && flag&BF_LONG)
 			hitrate -= 75;
-		if (t_sc_data[SC_SLEEP].timer!=-1 ||	// 睡眠は必中
-			t_sc_data[SC_STAN].timer!=-1 ||		// スタンは必中
-			t_sc_data[SC_FREEZE].timer!=-1 ||
-			(t_sc_data[SC_STONE].timer!=-1 && t_sc_data[SC_STONE].val2.num==0))	// 凍結は必中
+		if (t_sc_data[SC_SLEEP].is_active() ||	// 睡眠は必中
+			t_sc_data[SC_STUN].is_active() ||		// スタンは必中
+			t_sc_data[SC_FREEZE].is_active() ||
+			(t_sc_data[SC_STONE].is_active() && t_sc_data[SC_STONE].integer2()==0))	// 凍結は必中
 			hitrate = 1000000;
 	}
 	if(hitrate < 1000000)
@@ -1097,9 +1097,9 @@ static struct Damage battle_calc_pet_weapon_attack(
 
 	if(t_sc_data) {
 		int cardfix=100;
-		if(t_sc_data[SC_DEFENDER].timer != -1 && flag&BF_LONG)
-			cardfix=cardfix*(100-t_sc_data[SC_DEFENDER].val2.num)/100;
-		if(t_sc_data[SC_FOGWALL].timer != -1 && flag&BF_LONG)
+		if(t_sc_data[SC_DEFENDER].is_active() && flag&BF_LONG)
+			cardfix=cardfix*(100-t_sc_data[SC_DEFENDER].integer2())/100;
+		if(t_sc_data[SC_FOGWALL].is_active() && flag&BF_LONG)
 			cardfix=cardfix*50/100;
 		if(cardfix != 100)
 			damage=damage*cardfix/100;
@@ -1204,7 +1204,7 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 		(tsd && config.pc_auto_counter_type&2) ||
 		(tmd && config.monster_auto_counter_type&2))
 	{
-		if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1)
+		if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && t_sc_data && t_sc_data[SC_AUTOCOUNTER].is_active())
 		{
 			dir_t dir = src->get_direction(*target);
 			dir_t t_dir = target->get_dir();
@@ -1212,24 +1212,24 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 			if(dist <= 0 || !is_same_direction(dir,t_dir) )
 			{
 				memset(&wd,0,sizeof(wd));
-				t_sc_data[SC_AUTOCOUNTER].val3 = 0;
-				t_sc_data[SC_AUTOCOUNTER].val4 = 1;
-				if(sc_data && sc_data[SC_AUTOCOUNTER].timer == -1)
+				t_sc_data[SC_AUTOCOUNTER].integer3() = 0;
+				t_sc_data[SC_AUTOCOUNTER].integer4() = 1;
+				if( sc_data && !sc_data[SC_AUTOCOUNTER].is_active() )
 				{
 					int range = target->get_range();
 					if( (tsd && tsd->status.weapon != 11 && dist <= range+1) ||
 						(tmd && range <= 3 && dist <= range+1) )
-						t_sc_data[SC_AUTOCOUNTER].val3 = src->id;
+						t_sc_data[SC_AUTOCOUNTER].integer3() = src->id;
 				}
 				return wd;
 			}
 			else ac_flag = 1;
 		}
-		else if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && t_sc_data && t_sc_data[SC_POISONREACT].timer != -1)
+		else if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && t_sc_data && t_sc_data[SC_POISONREACT].is_active())
 		{   // poison react [Celest]
-			t_sc_data[SC_POISONREACT].val3 = 0;
-			t_sc_data[SC_POISONREACT].val4 = 1;
-			t_sc_data[SC_POISONREACT].val3 = src->id;
+			t_sc_data[SC_POISONREACT].integer3() = 0;
+			t_sc_data[SC_POISONREACT].integer4() = 1;
+			t_sc_data[SC_POISONREACT].integer3() = src->id;
 		}
 	}
 	flag=BF_SHORT|BF_WEAPON|BF_NORMAL;	// 攻撃の種類の設定
@@ -1273,7 +1273,7 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 
 	if(atkmin > atkmax) atkmin = atkmax;
 
-	if(sc_data != NULL && sc_data[SC_MAXIMIZEPOWER].timer!=-1 ){	// マキシマイズパワー
+	if(sc_data != NULL && sc_data[SC_MAXIMIZEPOWER].is_active() ){	// マキシマイズパワー
 		atkmin=atkmax;
 	}
 
@@ -1285,10 +1285,10 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 			cri = 1;
 	}
 	if(t_sc_data) {
-		if (t_sc_data[SC_SLEEP].timer!=-1 )	// 睡眠中はクリティカルが倍に
+		if (t_sc_data[SC_SLEEP].is_active() )	// 睡眠中はクリティカルが倍に
 			cri <<=1;
-		if(t_sc_data[SC_JOINTBEAT].timer != -1 &&
-			t_sc_data[SC_JOINTBEAT].val2.num == 5) // Always take crits with Neck broken by Joint Beat [DracoRPG]
+		if(t_sc_data[SC_JOINTBEAT].is_active() &&
+			t_sc_data[SC_JOINTBEAT].integer2() == 5) // Always take crits with Neck broken by Joint Beat [DracoRPG]
 			cri = 1000;
 	}
 
@@ -1325,16 +1325,16 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 		// ダブルストレイフィング,アローシャワー,チャージアロー,
 		// ソニックブロー
 		if(sc_data){ //状態異常中のダメージ追加
-			if(sc_data[SC_OVERTHRUST].timer!=-1)	// オーバートラスト
-				damage += damage*(5*sc_data[SC_OVERTHRUST].val1.num)/100;
-			if(sc_data[SC_TRUESIGHT].timer!=-1)	// トゥルーサイト
-				damage += damage*(2*sc_data[SC_TRUESIGHT].val1.num)/100;
-			if(sc_data[SC_BERSERK].timer!=-1)	// バーサーク
+			if(sc_data[SC_OVERTHRUST].is_active())	// オーバートラスト
+				damage += damage*(5*sc_data[SC_OVERTHRUST].integer1())/100;
+			if(sc_data[SC_TRUESIGHT].is_active())	// トゥルーサイト
+				damage += damage*(2*sc_data[SC_TRUESIGHT].integer1())/100;
+			if(sc_data[SC_BERSERK].is_active())	// バーサーク
 				damage += damage;
-			if(sc_data && sc_data[SC_AURABLADE].timer!=-1)	//[DracoRPG]
-				damage += sc_data[SC_AURABLADE].val1.num * 20;
-			if(sc_data[SC_MAXOVERTHRUST].timer!=-1)
-				damage += damage*(20*sc_data[SC_MAXOVERTHRUST].val1.num)/100;
+			if(sc_data && sc_data[SC_AURABLADE].is_active())	//[DracoRPG]
+				damage += sc_data[SC_AURABLADE].integer1() * 20;
+			if(sc_data[SC_MAXOVERTHRUST].is_active())
+				damage += damage*(20*sc_data[SC_MAXOVERTHRUST].integer1())/100;
 		}
 
 		if(skill_num>0){
@@ -1621,12 +1621,12 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 
 	// 回避修正
 	if(	hitrate < 1000000 && t_sc_data ) {			// 必中攻撃
-		if(t_sc_data[SC_FOGWALL].timer != -1 && flag&BF_LONG)
+		if(t_sc_data[SC_FOGWALL].is_active() && flag&BF_LONG)
 			hitrate -= 75;
-		if (t_sc_data[SC_SLEEP].timer!=-1 ||	// 睡眠は必中
-			t_sc_data[SC_STAN].timer!=-1 ||		// スタンは必中
-			t_sc_data[SC_FREEZE].timer!=-1 ||
-			(t_sc_data[SC_STONE].timer!=-1 && t_sc_data[SC_STONE].val2.num==0))	// 凍結は必中
+		if (t_sc_data[SC_SLEEP].is_active() ||	// 睡眠は必中
+			t_sc_data[SC_STUN].is_active() ||		// スタンは必中
+			t_sc_data[SC_FREEZE].is_active() ||
+			(t_sc_data[SC_STONE].is_active() && t_sc_data[SC_STONE].integer2()==0))	// 凍結は必中
 			hitrate = 1000000;
 	}
 	if(hitrate < 1000000)
@@ -1669,14 +1669,14 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 	}
 	if(t_sc_data) {
 		int cardfix=100;
-		if(t_sc_data[SC_DEFENDER].timer != -1 && flag&BF_LONG)
-			cardfix=cardfix*(100-t_sc_data[SC_DEFENDER].val2.num)/100;
-		if(t_sc_data[SC_FOGWALL].timer != -1 && flag&BF_LONG)
+		if(t_sc_data[SC_DEFENDER].is_active() && flag&BF_LONG)
+			cardfix=cardfix*(100-t_sc_data[SC_DEFENDER].integer2())/100;
+		if(t_sc_data[SC_FOGWALL].is_active() && flag&BF_LONG)
 			cardfix=cardfix*50/100;
 		if(cardfix != 100)
 			damage=damage*cardfix/100;
 	}
-	if(t_sc_data && t_sc_data[SC_ASSUMPTIO].timer != -1){ //アシャンプティオ
+	if(t_sc_data && t_sc_data[SC_ASSUMPTIO].is_active()){ //アシャンプティオ
 		if(!maps[target->m].flag.pvp)
 			damage=damage/3;
 		else
@@ -1693,8 +1693,8 @@ struct Damage battle_calc_mob_weapon_attack(block_list *src,block_list *target,i
 			damage=battle_attr_fix(damage, s_ele, status_get_element(target) );
 
 
-	//if(sc_data && sc_data[SC_AURABLADE].timer!=-1)	// オーラブレード 必中 
-	//	damage += sc_data[SC_AURABLADE].val1.num * 10;
+	//if(sc_data && sc_data[SC_AURABLADE].is_active())	// オーラブレード 必中 
+	//	damage += sc_data[SC_AURABLADE].integer1() * 10;
 	if(skill_num==PA_PRESSURE) // プレッシャー 必中? 
 		damage = 500+300*skill_lv;
 
@@ -1817,28 +1817,28 @@ static struct Damage battle_calc_pc_weapon_attack(
 		(tsd && config.pc_auto_counter_type&2) ||
 		(tmd && config.monster_auto_counter_type&2))
 	{
-		if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1) { //グランドクロスでなく、対象がオートカウンター状態の場合
+		if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && t_sc_data && t_sc_data[SC_AUTOCOUNTER].is_active()) { //グランドクロスでなく、対象がオートカウンター状態の場合
 			dir_t dir = sd->get_direction(*target);
 			dir_t t_dir = target->get_dir();
 			int dist = distance(*sd,*target);
 			if(dist <= 0 || !is_same_direction(dir,t_dir) ) { //対象との距離が0以下、または対象の正面？
 				memset(&wd,0,sizeof(wd));
-				t_sc_data[SC_AUTOCOUNTER].val3 = 0;
-				t_sc_data[SC_AUTOCOUNTER].val4 = 1;
-				if(sc_data && sc_data[SC_AUTOCOUNTER].timer == -1) { //自分がオートカウンター状態
+				t_sc_data[SC_AUTOCOUNTER].integer3() = 0;
+				t_sc_data[SC_AUTOCOUNTER].integer4() = 1;
+				if(sc_data && !sc_data[SC_AUTOCOUNTER].is_active() ) { //自分がオートカウンター状態
 					int range = target->get_range();
 					if((tsd && ((map_session_data *)target)->status.weapon != 11 && dist <= range+1) || //対象がPCで武器が弓矢でなく射程内
 						(tmd && range <= 3 && dist <= range+1) ) //または対象がMobで射程が3以下で射程内
-						t_sc_data[SC_AUTOCOUNTER].val3 = sd->block_list::id;
+						t_sc_data[SC_AUTOCOUNTER].integer3() = sd->block_list::id;
 				}
 				return wd; //ダメージ構造体を返して終了
 			}
 			else ac_flag = 1;
 		} else if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS &&
-			t_sc_data && t_sc_data[SC_POISONREACT].timer != -1) {   // poison react [Celest]
-			t_sc_data[SC_POISONREACT].val3 = 0;
-			t_sc_data[SC_POISONREACT].val4 = 1;
-			t_sc_data[SC_POISONREACT].val3 = sd->block_list::id;
+			t_sc_data && t_sc_data[SC_POISONREACT].is_active()) {   // poison react [Celest]
+			t_sc_data[SC_POISONREACT].integer3() = 0;
+			t_sc_data[SC_POISONREACT].integer4() = 1;
+			t_sc_data[SC_POISONREACT].integer3() = sd->block_list::id;
 		}
 	}
 //オートカウンター処理ここまで
@@ -1895,7 +1895,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 	// ウェポンパーフェクション,ドレイクC
 	if(sd->state.no_sizefix ||
 		skill_num == MO_EXTREMITYFIST ||
-		(sc_data && sc_data[SC_WEAPONPERFECTION].timer!=-1) ||
+		(sc_data && sc_data[SC_WEAPONPERFECTION].is_active()) ||
 		(sd->is_riding() && (sd->status.weapon == 4 || sd->status.weapon == 5) && t_size == 1))
 	{
 		atkmax = watk;
@@ -1907,7 +1907,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 		atkmin_ = (atkmin_ * sd->left_weapon.atkmods[ t_size ]) / 100;
 	}
 
-	if (sc_data && sc_data[SC_MAXIMIZEPOWER].timer!=-1) {	// マキシマイズパワー
+	if (sc_data && sc_data[SC_MAXIMIZEPOWER].is_active()) {	// マキシマイズパワー
 		atkmin = atkmax;
 		atkmin_ = atkmax_;
 	}
@@ -1945,10 +1945,10 @@ static struct Damage battle_calc_pc_weapon_attack(
 		cri -= target->get_luk() * 3;
 
 		if (t_sc_data) {
-			if (t_sc_data[SC_SLEEP].timer != -1)	// 睡眠中はクリティカルが倍に
+			if (t_sc_data[SC_SLEEP].is_active())	// 睡眠中はクリティカルが倍に
 				cri <<=1;
-			if (t_sc_data[SC_JOINTBEAT].timer != -1 &&
-				t_sc_data[SC_JOINTBEAT].val2.num == 5) // Always take crits with Neck broken by Joint Beat [DracoRPG]
+			if (t_sc_data[SC_JOINTBEAT].is_active() &&
+				t_sc_data[SC_JOINTBEAT].integer2() == 5) // Always take crits with Neck broken by Joint Beat [DracoRPG]
 				cri = 1000;
 		}
 		if (ac_flag) cri = 1000;
@@ -2044,14 +2044,14 @@ static struct Damage battle_calc_pc_weapon_attack(
 		// ダブルストレイフィング,アローシャワー,チャージアロー,
 		// ソニックブロー
 		if(sc_data){ //状態異常中のダメージ追加
-			if(sc_data[SC_OVERTHRUST].timer!=-1)	// オーバートラスト
-				damage_rate += 5*sc_data[SC_OVERTHRUST].val1.num;
-			if(sc_data[SC_TRUESIGHT].timer!=-1)	// トゥルーサイト
-				damage_rate += 2*sc_data[SC_TRUESIGHT].val1.num;
-			if(sc_data[SC_BERSERK].timer!=-1)	// バーサーク
+			if(sc_data[SC_OVERTHRUST].is_active())	// オーバートラスト
+				damage_rate += 5*sc_data[SC_OVERTHRUST].integer1();
+			if(sc_data[SC_TRUESIGHT].is_active())	// トゥルーサイト
+				damage_rate += 2*sc_data[SC_TRUESIGHT].integer1();
+			if(sc_data[SC_BERSERK].is_active())	// バーサーク
 				damage_rate += 200;
-			if(sc_data[SC_MAXOVERTHRUST].timer!=-1)
-				damage_rate += 20*sc_data[SC_MAXOVERTHRUST].val1.num;
+			if(sc_data[SC_MAXOVERTHRUST].is_active())
+				damage_rate += 20*sc_data[SC_MAXOVERTHRUST].integer1();
 		}
 
 		if(skill_num>0){
@@ -2471,19 +2471,19 @@ static struct Damage battle_calc_pc_weapon_attack(
 	// 状態異常中のダメージ追加でクリティカルにも有効なスキル
 	if (sc_data) {
 		// エンチャントデッドリーポイズン
-		if(!no_cardfix && sc_data[SC_EDP].timer != -1 &&
+		if(!no_cardfix && sc_data[SC_EDP].is_active() &&
 			skill_num != ASC_BREAKER && skill_num != ASC_METEORASSAULT)
 		{
-			damage += damage * (150 + sc_data[SC_EDP].val1.num * 50) / 100;
+			damage += damage * (150 + sc_data[SC_EDP].integer1() * 50) / 100;
 			no_cardfix = 1;
 		}
 		// sacrifice works on boss monsters, and does 9% damage to self [Celest]
-		if (!skill_num && sc_data[SC_SACRIFICE].timer != -1) {
+		if (!skill_num && sc_data[SC_SACRIFICE].is_active()) {
 			int self_damage = sd->get_max_hp() * 9/100;
 			//sd->heal(-dmg, 0);
 			pc_damage(*sd, self_damage, sd);
 			clif_damage(*sd,*sd, gettick(), 0, 0, self_damage, 0 , 0, 0);
-			damage = self_damage * (90 + sc_data[SC_SACRIFICE].val1.num * 10) / 100;
+			damage = self_damage * (90 + sc_data[SC_SACRIFICE].integer1() * 10) / 100;
 			if (maps[sd->block_list::m].flag.gvg)
 				damage = 6*damage/10; //40% less effective on siege maps. [Skotlex]
 			damage2 = 0;
@@ -2491,8 +2491,8 @@ static struct Damage battle_calc_pc_weapon_attack(
 			s_ele = 0;
 			s_ele_ = 0;
 			skill_num = PA_SACRIFICE;
-			sc_data[SC_SACRIFICE].val2.num--;
-			if (sc_data[SC_SACRIFICE].val2.num == 0)
+			sc_data[SC_SACRIFICE].integer2()--;
+			if (sc_data[SC_SACRIFICE].integer2() == 0)
 				status_change_end(sd, SC_SACRIFICE,-1);
 		}
 	}
@@ -2535,9 +2535,9 @@ static struct Damage battle_calc_pc_weapon_attack(
 	}
 
 	// Aura Blade adds dmg [DracoRPG]
-	if(sc_data && sc_data[SC_AURABLADE].timer!=-1) {
-		damage += sc_data[SC_AURABLADE].val1.num * 20;
-		damage2 += sc_data[SC_AURABLADE].val1.num * 20;
+	if(sc_data && sc_data[SC_AURABLADE].is_active()) {
+		damage += sc_data[SC_AURABLADE].integer1() * 20;
+		damage2 += sc_data[SC_AURABLADE].integer1() * 20;
 	}
 
 	// A weapon forged by a Blacksmith in the Fame Top 10 gets +10 dmg [DracoRPG]
@@ -2551,12 +2551,12 @@ static struct Damage battle_calc_pc_weapon_attack(
 
 	// 回避修正
 	if (hitrate < 1000000 && t_sc_data) {			// 必中攻撃
-		if (t_sc_data[SC_FOGWALL].timer != -1 && flag&BF_LONG)
+		if (t_sc_data[SC_FOGWALL].is_active() && flag&BF_LONG)
 			hitrate -= 75;
-		if (t_sc_data[SC_SLEEP].timer!=-1 ||	// 睡眠は必中
-			t_sc_data[SC_STAN].timer!=-1 ||		// スタンは必中
-			t_sc_data[SC_FREEZE].timer!=-1 ||
-			(t_sc_data[SC_STONE].timer!=-1 && t_sc_data[SC_STONE].val2.num==0))	// 凍結は必中
+		if (t_sc_data[SC_SLEEP].is_active() ||	// 睡眠は必中
+			t_sc_data[SC_STUN].is_active() ||		// スタンは必中
+			t_sc_data[SC_FREEZE].is_active() ||
+			(t_sc_data[SC_STONE].is_active() && t_sc_data[SC_STONE].integer2()==0))	// 凍結は必中
 			hitrate = 1000000;
 	}
 	// weapon research hidden bonus
@@ -2688,15 +2688,15 @@ static struct Damage battle_calc_pc_weapon_attack(
 //対象にステータス異常がある場合のダメージ減算処理ここから
 	if(t_sc_data) {
 		cardfix=100;
-		if(t_sc_data[SC_DEFENDER].timer != -1 && flag&BF_LONG) //ディフェンダー状態で遠距離攻撃
-			cardfix=cardfix*(100-t_sc_data[SC_DEFENDER].val2.num)/100; //ディフェンダーによる減衰
-		if(t_sc_data[SC_FOGWALL].timer != -1 && flag&BF_LONG)
+		if(t_sc_data[SC_DEFENDER].is_active() && flag&BF_LONG) //ディフェンダー状態で遠距離攻撃
+			cardfix=cardfix*(100-t_sc_data[SC_DEFENDER].integer2())/100; //ディフェンダーによる減衰
+		if(t_sc_data[SC_FOGWALL].is_active() && flag&BF_LONG)
 			cardfix=cardfix*50/100;
 		if(cardfix != 100) {
 			damage=damage*cardfix/100; //ディフェンダー補正によるダメージ減少
 			damage2=damage2*cardfix/100; //ディフェンダー補正による左手ダメージ減少
 		}
-		if(t_sc_data[SC_ASSUMPTIO].timer != -1){ //アスムプティオ
+		if(t_sc_data[SC_ASSUMPTIO].is_active()){ //アスムプティオ
 			if(!maps[target->m].flag.pvp){
 				damage=damage/3;
 				damage2=damage2/3;
@@ -3023,7 +3023,7 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 		(tsd && config.pc_auto_counter_type&2) ||
 		(tmd && config.monster_auto_counter_type&2)))
 	{
-		if(t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1)
+		if(t_sc_data && t_sc_data[SC_AUTOCOUNTER].is_active())
 		{
 			dir_t dir = target->get_direction(*src);
 			dir_t t_dir = target->get_dir();
@@ -3031,24 +3031,24 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 			if(dist <= 0 || !is_same_direction(dir,t_dir) )
 			{
 				memset(&wd,0,sizeof(wd));
-				t_sc_data[SC_AUTOCOUNTER].val3 = 0;
-				t_sc_data[SC_AUTOCOUNTER].val4 = 1;
-				if(sc_data && sc_data[SC_AUTOCOUNTER].timer == -1)
+				t_sc_data[SC_AUTOCOUNTER].integer3() = 0;
+				t_sc_data[SC_AUTOCOUNTER].integer4() = 1;
+				if(sc_data && !sc_data[SC_AUTOCOUNTER].is_active() )
 				{ //How can the attacking char have Auto-counter active?
 					int range = target->get_range();
 					if((tsd && tsd->status.weapon != 11 && dist <= range+1) ||
 						(tmd && range <= 3 && dist <= range+1))
-						t_sc_data[SC_AUTOCOUNTER].val3 = src->id;
+						t_sc_data[SC_AUTOCOUNTER].integer3() = src->id;
 				}
 				return wd;
 			} else
 				flag.cri = 1;
 		}
-		else if(t_sc_data && t_sc_data[SC_POISONREACT].timer != -1)
+		else if(t_sc_data && t_sc_data[SC_POISONREACT].is_active())
 		{	// poison react [Celest]
-			t_sc_data[SC_POISONREACT].val3 = 0;
-			t_sc_data[SC_POISONREACT].val4 = 1;
-			t_sc_data[SC_POISONREACT].val3 = src->id;
+			t_sc_data[SC_POISONREACT].integer3() = 0;
+			t_sc_data[SC_POISONREACT].integer4() = 1;
+			t_sc_data[SC_POISONREACT].integer3() = src->id;
 		}
 	}	//End counter-check
 
@@ -3076,10 +3076,10 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 			wd.type = 0x08;
 	}
 
-	if (!skill_num && !flag.cri && sc_data && sc_data[SC_SACRIFICE].timer != -1)
+	if (!skill_num && !flag.cri && sc_data && sc_data[SC_SACRIFICE].is_active())
 	{
 		skill_num = PA_SACRIFICE;
-		skill_lv =  sc_data[SC_SACRIFICE].val1.num;
+		skill_lv =  sc_data[SC_SACRIFICE].integer1();
 	}
 
 	if (!skill_num && (tsd || config.enemy_perfect_flee))
@@ -3140,10 +3140,10 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 		
 		if(t_sc_data)
 		{
-			if (t_sc_data[SC_SLEEP].timer!=-1 )
+			if (t_sc_data[SC_SLEEP].is_active() )
 				cri <<=1;
-			if(t_sc_data[SC_JOINTBEAT].timer != -1 &&
-				t_sc_data[SC_JOINTBEAT].val2.num == 6) // Always take crits with Neck broken by Joint Beat [DracoRPG]
+			if(t_sc_data[SC_JOINTBEAT].is_active() &&
+				t_sc_data[SC_JOINTBEAT].integer2() == 6) // Always take crits with Neck broken by Joint Beat [DracoRPG]
 				flag.cri=1;
 		}
 		switch (skill_num)
@@ -3186,10 +3186,10 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 				break;
 		}
 		if ((t_sc_data && !flag.hit) &&
-			(t_sc_data[SC_SLEEP].timer!=-1 ||
-			t_sc_data[SC_STAN].timer!=-1 ||
-			t_sc_data[SC_FREEZE].timer!=-1 ||
-			(t_sc_data[SC_STONE].timer!=-1 && t_sc_data[SC_STONE].val2.num==0))
+			(t_sc_data[SC_SLEEP].is_active() ||
+			t_sc_data[SC_STUN].is_active() ||
+			t_sc_data[SC_FREEZE].is_active() ||
+			(t_sc_data[SC_STONE].is_active() && t_sc_data[SC_STONE].integer2()==0))
 			)
 			flag.hit = 1;
 	}
@@ -3355,7 +3355,7 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 					}
 				}
 				
-				if (sc_data && sc_data[SC_MAXIMIZEPOWER].timer!=-1)
+				if (sc_data && sc_data[SC_MAXIMIZEPOWER].is_active())
 				{
 					atkmin = atkmax;
 					atkmin_ = atkmax_;
@@ -3385,7 +3385,7 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 					if (!(
 						//!tsd || //rodatazone claims that target human players don't have a size! -- I really don't believe it... removed until we find some evidence
 						sd->state.no_sizefix ||
-						(sc_data && sc_data[SC_WEAPONPERFECTION].timer!=-1) ||
+						(sc_data && sc_data[SC_WEAPONPERFECTION].is_active()) ||
 						(sd->is_riding() && (sd->status.weapon==4 || sd->status.weapon==5) && t_size==1) ||
 						(skill_num == MO_EXTREMITYFIST)
 						))
@@ -3402,21 +3402,21 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 		//Skill damage modifiers
 		if(sc_data && skill_num != PA_SACRIFICE)
 		{
-			if(sc_data[SC_OVERTHRUST].timer!=-1)
-				skillratio += 5*sc_data[SC_OVERTHRUST].val1.num;
-			if(sc_data[SC_TRUESIGHT].timer!=-1)
-				skillratio += 2*sc_data[SC_TRUESIGHT].val1.num;
-			if(sc_data[SC_BERSERK].timer!=-1)
+			if(sc_data[SC_OVERTHRUST].is_active())
+				skillratio += 5*sc_data[SC_OVERTHRUST].integer1();
+			if(sc_data[SC_TRUESIGHT].is_active())
+				skillratio += 2*sc_data[SC_TRUESIGHT].integer1();
+			if(sc_data[SC_BERSERK].is_active())
 				skillratio += 100; // Although RagnaInfo says +200%, it's *200% so +100%
-			if(sc_data[SC_MAXOVERTHRUST].timer!=-1)
-				skillratio += 20*sc_data[SC_MAXOVERTHRUST].val1.num;
-			if(sc_data[SC_EDP].timer != -1 &&
+			if(sc_data[SC_MAXOVERTHRUST].is_active())
+				skillratio += 20*sc_data[SC_MAXOVERTHRUST].integer1();
+			if(sc_data[SC_EDP].is_active() &&
 //				!(t_mode&0x20) &&
 //				skill_num != AS_SPLASHER &&
 				skill_num != ASC_BREAKER &&
 				skill_num != ASC_METEORASSAULT)
 			{	
-				skillratio += (50 + sc_data[SC_EDP].val1.num * 50)*wd.div_;
+				skillratio += (50 + sc_data[SC_EDP].integer1() * 50)*wd.div_;
 			}
 		}
 		if (!skill_num)
@@ -3696,8 +3696,8 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 					case	PA_SACRIFICE:
 						sd->heal(-wd.damage, 0);//Do we really always use wd.damage here?
 						//clif_skill_nodamage(*src,*target,skill_num,skill_lv,1);  // this doesn't show effect either.. hmm =/
-						sc_data[SC_SACRIFICE].val2.num--;
-						if (sc_data[SC_SACRIFICE].val2.num == 0)
+						sc_data[SC_SACRIFICE].integer2()--;
+						if (sc_data[SC_SACRIFICE].integer2() == 0)
 							status_change_end(src, SC_SACRIFICE,-1);
 						break;
 					case CR_SHIELDBOOMERANG:
@@ -3810,8 +3810,8 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 		//Post skill/vit reduction damage increases
 		if (sc_data)
 		{	//SC skill damages
-			if(sc_data[SC_AURABLADE].timer!=-1) 
-				ATK_ADD(20*sc_data[SC_AURABLADE].val1.num);
+			if(sc_data[SC_AURABLADE].is_active()) 
+				ATK_ADD(20*sc_data[SC_AURABLADE].integer1());
 		}
 
 		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST)
@@ -3847,10 +3847,10 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 		{
 			short t_element = status_get_element(target);
 			int ratio=0, s_element=0, damage;
-			if(sc_data && sc_data[SC_WATK_ELEMENT].timer != -1)
+			if(sc_data && sc_data[SC_WATK_ELEMENT].is_active())
 			{	//Part of the attack becomes elemental. [Skotlex]
-				ratio = sc_data[SC_WATK_ELEMENT].val1.num;
-				s_element = sc_data[SC_WATK_ELEMENT].val2.num;
+				ratio = sc_data[SC_WATK_ELEMENT].integer1();
+				s_element = sc_data[SC_WATK_ELEMENT].integer2();
 			}	
 			if (wd.damage > 0)
 			{
@@ -3983,18 +3983,18 @@ struct Damage battle_calc_weapon_attack_sub(block_list *src,block_list *target,i
 	//SC_data fixes
 	if (sc_data)
 	{
-		if( sc_data[SC_FOGWALL].timer != -1 && wd.flag&BF_LONG )
+		if( sc_data[SC_FOGWALL].is_active() && wd.flag&BF_LONG )
 			ATK_RATE(50);
 	}
 	
 	if (t_sc_data)
 	{
 		short scfix=1000;
-		if(t_sc_data[SC_DEFENDER].timer != -1 && wd.flag&BF_LONG)
-			scfix=scfix*(100-t_sc_data[SC_DEFENDER].val2.num)/100;
-		if(t_sc_data[SC_FOGWALL].timer != -1 && wd.flag&BF_LONG)
+		if(t_sc_data[SC_DEFENDER].is_active() && wd.flag&BF_LONG)
+			scfix=scfix*(100-t_sc_data[SC_DEFENDER].integer2())/100;
+		if(t_sc_data[SC_FOGWALL].is_active() && wd.flag&BF_LONG)
 			scfix=scfix/2;
-		if(t_sc_data[SC_ASSUMPTIO].timer != -1)
+		if(t_sc_data[SC_ASSUMPTIO].is_active())
 		{
 			if(!maps[target->m].flag.pvp)
 				scfix=scfix*2/3;
@@ -4158,8 +4158,8 @@ struct Damage battle_calc_weapon_attack(block_list *src,block_list *target,int s
 
 			if( sd->has_status(SC_MELTDOWN) )
 			{
-				breakrate_[0] += 100*sd->sc_data[SC_MELTDOWN].val1.num;
-				breakrate_[1] = 70*sd->sc_data[SC_MELTDOWN].val1.num;
+				breakrate_[0] += 100*sd->sc_data[SC_MELTDOWN].integer1();
+				breakrate_[1] = 70*sd->sc_data[SC_MELTDOWN].integer1();
 				breaktime = skill_get_time2(WS_MELTDOWN,1);
 			}
 			
@@ -4647,8 +4647,8 @@ struct Damage battle_calc_misc_attack(block_list *src,block_list *target,int ski
 			struct status_change *sc_data = status_get_sc_data(target);
 			int hitrate=status_get_hit(src) - status_get_flee(target) + 80;
 			hitrate = ( (hitrate>95)?95: ((hitrate<5)?5:hitrate) );
-			if(sc_data && (sc_data[SC_SLEEP].timer!=-1 || sc_data[SC_STAN].timer!=-1 ||
-				sc_data[SC_FREEZE].timer!=-1 || (sc_data[SC_STONE].timer!=-1 && sc_data[SC_STONE].val2.num==0) ) )
+			if(sc_data && (sc_data[SC_SLEEP].is_active() || sc_data[SC_STUN].is_active() ||
+				sc_data[SC_FREEZE].is_active() || (sc_data[SC_STONE].is_active() && sc_data[SC_STONE].integer2()==0) ) )
 				hitrate = 1000000;
 			if(rand()%100 < hitrate) {
 				damage = 500 + (skill_lv-1)*1000 + rand()%1000;
@@ -4804,7 +4804,7 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 	sc_data = status_get_sc_data(src);
 	tsc_data = status_get_sc_data(target);
 
-	if (sc_data && sc_data[SC_BLADESTOP].timer != -1) {
+	if (sc_data && sc_data[SC_BLADESTOP].is_active()) {
 		src->stop_attack();
 		return 0;
 	}
@@ -4839,8 +4839,8 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 
 			wd = battle_calc_weapon_attack(src, target, KN_AUTOCOUNTER, flag&0xff, 0);
 		}
-		else if (flag & AS_POISONREACT && sc_data && sc_data[SC_POISONREACT].timer != -1)
-			wd = battle_calc_weapon_attack(src, target, AS_POISONREACT, sc_data[SC_POISONREACT].val1.num, 0);
+		else if (flag & AS_POISONREACT && sc_data && sc_data[SC_POISONREACT].is_active())
+			wd = battle_calc_weapon_attack(src, target, AS_POISONREACT, sc_data[SC_POISONREACT].integer1(), 0);
 		else
 			wd = battle_calc_weapon_attack(src,target,0,0,0);
 	
@@ -4853,9 +4853,9 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 					rdamage += damage * tsd->short_weapon_damage_return / 100;
 					if (rdamage < 1) rdamage = 1;
 				}
-				if(tsc_data && tsc_data[SC_REFLECTSHIELD].timer != -1)
+				if(tsc_data && tsc_data[SC_REFLECTSHIELD].is_active())
 				{
-					rdamage += damage * tsc_data[SC_REFLECTSHIELD].val2.num / 100;
+					rdamage += damage * tsc_data[SC_REFLECTSHIELD].integer2() / 100;
 					if (rdamage < 1) rdamage = 1;
 				}
 			}
@@ -4924,12 +4924,12 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 				}
 			}
 		}
-		if(sc_data && sc_data[SC_AUTOSPELL].timer != -1 && rand()%100 < sc_data[SC_AUTOSPELL].val4.num)
+		if(sc_data && sc_data[SC_AUTOSPELL].is_active() && rand()%100 < sc_data[SC_AUTOSPELL].integer4())
 		{
 			int sp = 0;
 			int f = 0;
-			int skillid = sc_data[SC_AUTOSPELL].val2.num;
-			int skilllv = sc_data[SC_AUTOSPELL].val3.num;
+			int skillid = sc_data[SC_AUTOSPELL].integer2();
+			int skilllv = sc_data[SC_AUTOSPELL].integer3();
 
 			int i = rand()%100;
 			if (i >= 50) skilllv -= 2;
@@ -5091,48 +5091,48 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 
 		if(sc_data)
 		{
-			if (sc_data[SC_READYSTORM].timer != -1 && rand()%100 < 15) // Taekwon Strom Stance [Dralnu]
+			if (sc_data[SC_READYSTORM].is_active() && rand()%100 < 15) // Taekwon Strom Stance [Dralnu]
 				status_change_start(src,SC_STORMKICK,1,0,0,0,0,0);
-			if(sc_data[SC_READYDOWN].timer != -1 && rand()%100 < 15) // Taekwon Axe Stance [Dralnu]
+			if(sc_data[SC_READYDOWN].is_active() && rand()%100 < 15) // Taekwon Axe Stance [Dralnu]
 				status_change_start(src,SC_DOWNKICK,1,target->id,0,0,0,0);
-			if(sc_data[SC_READYTURN].timer != -1 && rand()%100 < 15) // Taekwon Round Stance [Dralnu]
+			if(sc_data[SC_READYTURN].is_active() && rand()%100 < 15) // Taekwon Round Stance [Dralnu]
 				status_change_start(src,SC_TURNKICK,1,target->id,0,0,0,0);
 		}
 		if(tsc_data)
 		{
-			if(tsc_data[SC_AUTOCOUNTER].timer != -1 && tsc_data[SC_AUTOCOUNTER].val4.num > 0)
+			if(tsc_data[SC_AUTOCOUNTER].is_active() && tsc_data[SC_AUTOCOUNTER].integer4() > 0)
 			{
-				if( (uint32)tsc_data[SC_AUTOCOUNTER].val3.num == src->id )
-					battle_weapon_attack(target, src, tick, 0x8000|tsc_data[SC_AUTOCOUNTER].val1.num);
+				if( (uint32)tsc_data[SC_AUTOCOUNTER].integer3() == src->id )
+					battle_weapon_attack(target, src, tick, 0x8000|tsc_data[SC_AUTOCOUNTER].integer1());
 				clif_skillcastcancel(*target); //Remove the little casting bar. [Skotlex]
 				status_change_end(target,SC_AUTOCOUNTER,-1);
 			}
-			if (tsc_data[SC_READYCOUNTER].timer != -1 && rand()%100 < 20) // Taekwon Counter Stance [Dralnu]
+			if (tsc_data[SC_READYCOUNTER].is_active() && rand()%100 < 20) // Taekwon Counter Stance [Dralnu]
 				status_change_start(target,SC_COUNTER,1,src->id,0,0,tick,flag);
-			if(tsc_data[SC_POISONREACT].timer != -1 && tsc_data[SC_POISONREACT].val4.num > 0 && (uint32)tsc_data[SC_POISONREACT].val3.num == src->id)
+			if(tsc_data[SC_POISONREACT].is_active() && tsc_data[SC_POISONREACT].integer4() > 0 && (uint32)tsc_data[SC_POISONREACT].integer3() == src->id)
 			{   // poison react [Celest]
 				if(status_get_elem_type(src) == 5)
 				{
-					tsc_data[SC_POISONREACT].val2 = 0;
+					tsc_data[SC_POISONREACT].integer2() = 0;
 					battle_weapon_attack(target, src, tick, flag|AS_POISONREACT);
 				}
 				else
 				{
 					skill_castend_damage_id(target, src, TF_POISON, 5, tick, flag);
-					tsc_data[SC_POISONREACT].val2.num--;
+					tsc_data[SC_POISONREACT].integer2()--;
 				}
-				if (tsc_data[SC_POISONREACT].val2.num <= 0)
+				if (tsc_data[SC_POISONREACT].integer2() <= 0)
 					status_change_end(target,SC_POISONREACT,-1);
 			}
-			if (tsc_data[SC_BLADESTOP_WAIT].timer != -1 && !src->is_boss()) { // ボスには無効
-				int skilllv = tsc_data[SC_BLADESTOP_WAIT].val1.num;
+			if (tsc_data[SC_BLADESTOP_WAIT].is_active() && !src->is_boss()) { // ボスには無効
+				int skilllv = tsc_data[SC_BLADESTOP_WAIT].integer1();
 				int duration = skill_get_time2(MO_BLADESTOP,skilllv);
 				status_change_end(target, SC_BLADESTOP_WAIT, -1);
 				status_change_start(target, SC_BLADESTOP, skilllv, 2, basics::numptr(target), basics::numptr(src), duration, 0);
 				skilllv = sd?sd->skill_check( MO_BLADESTOP):1;
 				status_change_start(src, SC_BLADESTOP, skilllv, 1, basics::numptr(src), basics::numptr(target), duration, 0);
 			}
-			if (tsc_data[SC_SPLASHER].timer != -1)	//殴ったので対象のベナムスプラッシャー状態を解除
+			if (tsc_data[SC_SPLASHER].is_active())	//殴ったので対象のベナムスプラッシャー状態を解除
 				status_change_end(target, SC_SPLASHER, -1);
 		}
 
@@ -5391,8 +5391,8 @@ int battle_check_target(const block_list *src, const block_list *target, int fla
 	// Celest
 	sc_data = status_get_sc_data(src);
 	tsc_data = status_get_sc_data(target);
-	if ((sc_data && sc_data[SC_BASILICA].timer != -1) ||
-		(tsc_data && tsc_data[SC_BASILICA].timer != -1))
+	if ((sc_data && sc_data[SC_BASILICA].is_active()) ||
+		(tsc_data && tsc_data[SC_BASILICA].is_active()))
 		return -1;
 
 	if(target->type == BL_SKILL)

@@ -784,10 +784,48 @@ bool oldeaprinter::transform_function(basics::CParser_CommentStore& parser, int 
 
 		size_t paramcounter= parameter.size();
 
-		if( function_name == "set" )
+		if( function_name=="input" )
+		{	// input <var>
+			// -> <var> = inputstring() or inputnumber()
+			if(parameter.size()==0)
+			{
+				fprintf(stderr, "invalid 'input' command, line %i, ignoring\n",
+					(int)namenode->cToken.line);
+			}
+			else
+			{
+				if(parameter.size()>1)
+				{
+					fprintf(stderr, "input with more than one parameter, line %i, ignoring additional parameters\n",
+						(int)namenode->cToken.line);
+				}
+				print_beautified(parser, parameter[0], EA_EXPR);
+
+				// check the variable, only accept a identifier, 
+				// if not default to something reasonable
+				basics::CStackElement* n = &parser.rt[parameter[0]];
+				while( n && n->cChildNum )
+					n = &parser.rt[n->cChildPos];
+
+				if( n && n->cToken.cLexeme[n->cToken.cLexeme.size()-1]!='$' )
+					prn << " = inputnumber()";
+				else
+					prn << " = inputstring()";
+			}
+			// return here as we don't need the rest below to complete the string
+			return true;
+		}
+		else if( function_name == "set" )
 		{	// setfunction, 2 parameters
 			// transform to assignment
-			if( parameter.size() )
+			if( 0==parameter.size() )
+			{
+				// just skip the whole thing when no parameters
+				// quit here
+				fprintf(stderr, "invalid 'set' command, line %i, ignoring\n",
+					(int)namenode->cToken.line);
+			}
+			else
 			{	
 				print_beautified(parser, parameter[0], EA_EXPR);
 				prn << ' ' << '=' << ' ';
@@ -821,19 +859,31 @@ bool oldeaprinter::transform_function(basics::CParser_CommentStore& parser, int 
 					prn << '0';
 				}
 			}
-			// just skip the whole thing when no parameters
-			// quit here
+			// return here as we don't need the rest below to complete the string
 			return true;
 		}
 		else if( function_name == "callsub" )
 		{	
 			if( parameter.size() )
 			{
-				prn << "callsub(";
+				prn << "gosub ";
 				print_beautified(parser, parameter[0], EA_LABELSTM);
-				prn << ')';
+
+				if(parameter.size()>1)
+				{
+					fprintf(stderr, "line %i: callsub/gosub with parameters is not supported,\n rewrite the script to use variables\n",
+						(int)namenode->cToken.line);
+					prn << "; // ";
+					size_t i;
+					for(i=1; i<parameter.size()-1; ++i)
+					{
+						print_beautified(parser, parameter[i], EA_EXPR);
+						prn << ',' << ' ';
+					}
+					print_beautified(parser, parameter[i], EA_EXPR);
+				}
 			}
-			// ignore otherwisse
+			// ignore otherwise
 			// quit here
 			return true;
 		}
@@ -1079,7 +1129,7 @@ bool oldeaprinter::transform_identifier(basics::CParser_CommentStore& parser, in
 		++str;
 		add = "account::";
 	}
-	else if(parent==0)
+	else// if(parent==0)
 	{
 		maybe_player = true;
 	}
@@ -1092,7 +1142,7 @@ bool oldeaprinter::transform_identifier(basics::CParser_CommentStore& parser, in
 		// test for stuff from constdb
 		const const_entry* ce;
 		if( maybe_player && (ce = const_entry::lookup( tmp )) &&
-			!ce->param )
+			!ce->param)
 		{	// check constant defines from constdb
 			// but have player parameters with player:: prefix
 			maybe_player = false;
@@ -1107,12 +1157,17 @@ bool oldeaprinter::transform_identifier(basics::CParser_CommentStore& parser, in
 						  tmp == "while" ||
 						  tmp == "return" ||
 						  tmp == "goto" ||
+						  tmp == "gosub" ||
 						  tmp == "string" ||
 						  tmp == "int" ||
 						  tmp == "double" ||
 						  tmp == "auto" ||
 						  tmp == "var" );
-		prn << add;
+		
+		if(parent !=EA_LABELSTM)
+		{	// print prefix only for specific nodes
+			prn << add;
+		}
 		if(reserved) prn << '_';
 		for(; str<=epp; ++str)
 			prn << *str;
@@ -1333,7 +1388,7 @@ bool oldeaprinter::print_beautified(basics::CParser_CommentStore& parser, int rt
 				bool is_elseif = false;
 				bool is_block  = false;
 				// find the first block with more than one children
-				basics::CStackElement* child = &parser.rt[ parser.rt[rtpos].cChildPos+6 ];
+				child = &parser.rt[ parser.rt[rtpos].cChildPos+6 ];
 				for( ; child->cChildNum ==1; child = &parser.rt[ child->cChildPos ]) {}
 				if( child->cChildNum>1 )
 				{
@@ -1597,6 +1652,25 @@ bool oldeaParser::process(const char*name) const
 		fprintf(stderr, "processing input file %s\n", name);
 	}
 
+	if( option&OPT_OUTPUT )
+	{
+		basics::string<> str;
+		const char*ip = strrchr(name,'.');
+		if(ip)
+			str.assign(name,ip-name);
+		else
+			str.assign(name);
+
+		str << ".ea";
+
+		this->prn.output = fopen(str, "wb");
+		if(NULL==this->prn.output)
+		{
+			fprintf(stderr, "cannot open output file %s\noutputting to stdout\n", str.c_str());
+			this->prn.output = stdout;
+		}
+	}
+
 	while(run)
 	{
 		short p = parser->parse(EA_DECL);
@@ -1670,6 +1744,11 @@ bool oldeaParser::process(const char*name) const
 		}
 	}
 	parser->reset();
+	if( this->prn.output != stdout )
+	{
+		fclose(this->prn.output);
+		this->prn.output = stdout;
+	}
 	return ok;
 }
 

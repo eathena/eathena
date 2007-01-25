@@ -85,7 +85,7 @@ int login_log(char *fmt, ...)
 				gettimeofday(&tv, NULL);
 				unixtime = tv.tv_sec;
 				strftime(tmpstr, 24, date_format, localtime(&unixtime));
-				sprintf(tmpstr + strlen(tmpstr), ".%03ld: %s", tv.tv_usec / 1000, fmt);
+				sprintf(tmpstr + strlen(tmpstr), ".%03ld: %s", (long)(tv.tv_usec / 1000), fmt);
 
 				va_list ap;
 				va_start(ap, fmt);
@@ -118,7 +118,7 @@ int save_packet(int fd, const char* str, const char* ip_str)
 			gettimeofday(&tv, NULL);
 			unixtime = tv.tv_sec;
 			strftime(tmpstr, 23, date_format, localtime(&unixtime));
-			fprintf(logfp, "%s.%03ld: receiving of an unknown packet -> disconnection" RETCODE, tmpstr, tv.tv_usec / 1000);
+			fprintf(logfp, "%s.%03ld: receiving of an unknown packet -> disconnection" RETCODE, tmpstr, (long)(tv.tv_usec / 1000));
 			fprintf(logfp, "%s: connection #%d (ip: %s), packet: 0x%x (with being read: %d)." RETCODE, str, fd, ip_str, (unsigned short)RFIFOW(fd,0), RFIFOREST(fd));
 			fprintf(logfp, "Detail (in hex):" RETCODE);
 			fprintf(logfp, "---- 00-01-02-03-04-05-06-07  08-09-0A-0B-0C-0D-0E-0F" RETCODE);
@@ -202,38 +202,12 @@ const char* timestamp2string(char* str, size_t sz)
 		gettimeofday(&tv, NULL);										// get time
 		unixtime = (time_t)tv.tv_sec;									// pick out seconds from unix epoch 
 		csz=strftime(str, sz, "%Y-%m-%d %H:%M:%S", localtime(&unixtime));// print string with given dateformat
-		snprintf(str+csz, sz-csz, ".%03lu", tv.tv_usec / 1000);			// add milliseconds
+		snprintf(str+csz, sz-csz, ".%03ld", (long)(tv.tv_usec / 1000));			// add milliseconds
 		str[sz-1] = 0;	// system snprintf does not add EOS when buffer limit is reached
 	}
 	return str;
 }
 
-
-//--------------------------------------------------------------
-// Test of the IP mask
-// (ip: IP to be tested, str: mask x.x.x.x/# or x.x.x.x/y.y.y.y)
-//--------------------------------------------------------------
-bool check_ipmask(uint32 ip, const unsigned char *str)
-{
-	unsigned int mask = 0, i = 0, m, ip2, a0, a1, a2, a3;
-	unsigned char *p = (unsigned char *)&ip2, *p2 = (unsigned char *)&mask;
-
-	if (sscanf((char *)str, "%d.%d.%d.%d/%n", &a0, &a1, &a2, &a3, &i) != 4 || i == 0)
-		return false;
-	p[0] = a0; p[1] = a1; p[2] = a2; p[3] = a3;
-
-	if (sscanf((char *)(str+i), "%d.%d.%d.%d", &a0, &a1, &a2, &a3) == 4) {
-		p2[0] = a0; p2[1] = a1; p2[2] = a2; p2[3] = a3;
-		mask = ntohl(mask);
-	} else if (sscanf((char *)(str+i), "%d", &m) == 1 && m >= 0 && m <= 32) {
-		for(i = 0; i < m && i < 32; ++i)
-			mask = (mask >> 1) | 0x80000000;
-	} else {
-		ShowWarning("check_ipmask: invalid mask [%s].\n", str);
-		return false;
-	}
-	return ((ntohl(ip) & mask) == (ntohl(ip2) & mask));
-}
 
 //--------------------------------------------------------------------
 // Packet send to all char-servers, except one (wos: without our self)
@@ -924,13 +898,13 @@ int parse_login(int fd)
 			bool ok = account_db.searchAccount(userid, account);
 			if( !ok )
 			{	// try for account creation with _M/_F
-				int len = strlen(userid) - 2;
+				int namelen = strlen(userid) - 2;
 				if( new_account_flag && mfreg_enabled &&
-					len >= 4 &&
+					namelen >= 4 &&
 					passwdenc == 0 && 
-					userid[len] == '_' &&
-					(basics::upcase(userid[len+1]) == 'F' || 
-					 basics::upcase(userid[len+1]) == 'M' ) &&
+					userid[namelen] == '_' &&
+					(basics::upcase(userid[namelen+1]) == 'F' || 
+					 basics::upcase(userid[namelen+1]) == 'M' ) &&
 					strlen(passwd) >= 4)
 				{
 					//only continue if amount in this time limit is allowed (account registration flood protection)[Kevin]
@@ -942,9 +916,9 @@ int parse_login(int fd)
 					else
 					{
 						new_reg_tick = gettick() + 1000*mfreg_time;
-						userid[len] = '\0';
+						userid[namelen] = '\0';
 						ok = !account_db.existAccount(userid) &&
-							account_db.insertAccount(userid, passwd, (basics::upcase(userid[len+1]) == 'M'),"a@a.com", account);
+							account_db.insertAccount(userid, passwd, (basics::upcase(userid[namelen+1]) == 'M'),"a@a.com", account);
 						if(ok)
 						{
 							ShowNotice("Account registration successful account: %s, ip %s!\n", userid, ip_str);

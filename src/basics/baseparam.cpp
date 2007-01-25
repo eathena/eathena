@@ -7,8 +7,6 @@
 
 NAMESPACE_BEGIN(basics)
 
-
-
 ///////////////////////////////////////////////////////////////////////////////
 /// parse standard commandline for parameters.
 /// use argv[0] as application name
@@ -327,7 +325,7 @@ void CParamObj::print()
 	uint i=0;
 	while(ptr)
 		i++, ptr=ptr->cNext;
-	printf("\nname: %-16s value='%s' (linked variable type)\nreferenced: %i, count: %i, timestamp %lu", 
+	printf("\nname: %-16s value='%s' (linked variable type)\nreferenced: %i, count: %u, timestamp %lu", 
 		(const char*)(*this), (const char*)this->cValue, this->cReferenced, i, this->cTime);
 }
 
@@ -530,7 +528,7 @@ void CParamBase::listall()
 	CSingletonData &sd = getSingletonData();
 	ScopeLock sl(sd);
 	size_t i;
-	printf("\nList of Parameters (existing %li):", (unsigned long)sd.cParams.size());
+	printf("\nList of Parameters (existing %lu):", (unsigned long)sd.cParams.size());
 	for(i=0; i<sd.cParams.size(); ++i)
 		sd.cParams[i]->print();
 	printf("\n---------------\n");

@@ -2358,7 +2358,7 @@ void CCharDB_sql::loadfamelist()
 	basics::CMySQLConnection dbcon1(this->sqlbase);
 	basics::string<> query;
 
-	const static fame_t fametype[] = {FAME_PK, FAME_SMITH, FAME_CHEM, FAME_TEAK};
+	static const fame_t fametype[] = {FAME_PK, FAME_SMITH, FAME_CHEM, FAME_TEAK};
 	const char* queryselect[4] = 
 	{	// pk
 		"(`s`.`str`='PC_PK_FAME')",
@@ -2772,7 +2772,7 @@ bool CGuildDB_sql::insertGuild(const struct guild_member &m, const char *name, C
 	safestrcpy(g.position[0].name, sizeof(g.position[0].name),"GuildMaster");
 	safestrcpy(g.position[MAX_GUILDPOSITION-1].name, sizeof(g.position[0].name),"Newbie");
 	for(i=1; i<MAX_GUILDPOSITION-1; ++i)
-		snprintf(g.position[i].name,sizeof(g.position[0].name),"Position %ld",(unsigned long)(i+1));
+		snprintf(g.position[i].name,sizeof(g.position[0].name),"Position %lu",(unsigned long)(i+1));
 
 	g.max_member=(16>MAX_GUILD)?MAX_GUILD:16;
 	g.average_lv=g.member[0].lv;
@@ -3929,17 +3929,17 @@ CHomunculus& CHomunculusDB_sql::operator[](size_t i)
 				 "FROM `" << dbcon1.escaped(this->tbl_homunskill) << "` "
 				 "WHERE `homun_id` = " << hom.homun_id;
 		dbcon1.ResultQuery(query);
-		size_t i;
-		for(i=0; i<MAX_HOMSKILL; ++i)
+		size_t k;
+		for(k=0; k<MAX_HOMSKILL; ++k)
 		{
-			hom.skill[i].id = i+HOM_SKILLID;
-			hom.skill[i].lv = 0;
+			hom.skill[k].id = k+HOM_SKILLID;
+			hom.skill[k].lv = 0;
 		}
 		for( ; dbcon1; ++dbcon1)
 		{
-			i = atol(dbcon1[0])-HOM_SKILLID;
-			if(i<MAX_HOMSKILL)
-				hom.skill[i].lv = atol(dbcon1[1]);
+			k = atol(dbcon1[0])-HOM_SKILLID;
+			if(k<MAX_HOMSKILL)
+				hom.skill[k].lv = atol(dbcon1[1]);
 		}
 	}
 	return hom;

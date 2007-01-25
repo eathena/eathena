@@ -125,7 +125,7 @@ const char* sockerrmsg(int code);
 ///////////////////////////////////////////////////////////////////////////////
 class ipaddress
 {
-	friend string<> hostbyaddr(ipaddress ip);
+	friend string<> hostbyaddr(const ipaddress& ip);
 private:
 	///////////////////////////////////////////////////////////////////////////
 	/// class helper.
@@ -214,7 +214,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// bytewise access (writable and readonly)
     uchar& operator [] (int i);
-    const uchar operator [] (int i) const;
+    uchar operator [] (int i) const;
 
 	///////////////////////////////////////////////////////////////////////////
 	/// pod access on the ip (host byte order)
@@ -225,16 +225,16 @@ public:
 	virtual uint32 addr() const { return this->cAddr; }
 	virtual uint32& addr() { return this->cAddr; }
 	///////////////////////////////////////////////////////////////////////////
-	virtual const uint32 mask() const { return INADDR_BROADCAST; }
+	virtual uint32 mask() const { return INADDR_BROADCAST; }
 	virtual uint32& mask() { static uint32 dummy; return dummy=INADDR_BROADCAST; }
 	///////////////////////////////////////////////////////////////////////////
-	virtual const ushort port() const { return 0; }
+	virtual ushort port() const { return 0; }
 	virtual ushort& port() { static ushort dummy; return dummy=0; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// boolean operators
-	bool operator == (const ipaddress s) const { return this->cAddr==s.cAddr; }
-	bool operator != (const ipaddress s) const { return this->cAddr!=s.cAddr; }
+	bool operator == (const ipaddress& s) const { return this->cAddr==s.cAddr; }
+	bool operator != (const ipaddress& s) const { return this->cAddr!=s.cAddr; }
 	bool operator == (const uint32 s) const { return this->cAddr==s; }
 	bool operator != (const uint32 s) const { return this->cAddr!=s; }
 
@@ -297,7 +297,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	virtual const ushort port() const { return cPort; }
+	virtual ushort port() const { return cPort; }
 	virtual ushort& port() { return cPort; }
 	///////////////////////////////////////////////////////////////////////////
 	/// networkaddr2string
@@ -311,8 +311,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// boolean operators
-	bool operator == (const netaddress s) const { return this->cAddr==s.cAddr && this->cPort==s.cPort; }
-	bool operator != (const netaddress s) const { return this->cAddr!=s.cAddr || this->cPort!=s.cPort; }
+	bool operator == (const netaddress& s) const { return this->cAddr==s.cAddr && this->cPort==s.cPort; }
+	bool operator != (const netaddress& s) const { return this->cAddr!=s.cAddr || this->cPort!=s.cPort; }
 };
 
 
@@ -353,7 +353,7 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// virtual access interface
-	virtual const uint32 mask() const { return cMask.addr(); }
+	virtual uint32 mask() const { return cMask.addr(); }
 	virtual uint32& mask() { return cMask.addr(); }
 	///////////////////////////////////////////////////////////////////////////
 	/// subnetworkaddr2string
@@ -366,8 +366,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// boolean operators
-	bool operator == (const subnetaddress s) const { return this->cMask==s.cMask && this->cAddr==s.cAddr && this->cPort==s.cPort; }
-	bool operator != (const subnetaddress s) const { return this->cMask!=s.cMask || this->cAddr!=s.cAddr || this->cPort!=s.cPort; }
+	bool operator == (const subnetaddress& s) const { return this->cMask==s.cMask && this->cAddr==s.cAddr && this->cPort==s.cPort; }
+	bool operator != (const subnetaddress& s) const { return this->cMask!=s.cMask || this->cAddr!=s.cAddr || this->cPort!=s.cPort; }
 
 };
 
@@ -448,7 +448,7 @@ public:
 		return ( (this->cAddr&this->cMask) != (ip.addr()&this->cMask) );
 	}
 	///////////////////////////////////////////////////////////////////////////
-	bool SetLANIP(const ipaddress ip)
+	bool SetLANIP(const ipaddress& ip)
 	{	// a valid lan address should be bindable
 		if( ipaddress::isBindable(ip) ) 
 		{
@@ -457,7 +457,7 @@ public:
 		}
 		return false;
 	}
-	bool SetWANIP(const ipaddress ip)
+	bool SetWANIP(const ipaddress& ip)
 	{	
 		wanaddr.addr() = ip;
 		return true;
@@ -485,8 +485,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// boolean operators
-	bool operator == (const ipset s) const { return this->cAddr==s.cAddr && this->cMask==s.cMask && this->cPort==s.cPort && wanaddr==s.wanaddr; }
-	bool operator != (const ipset s) const { return this->cAddr!=s.cAddr || this->cMask!=s.cMask || this->cPort!=s.cPort || wanaddr!=s.wanaddr; }
+	bool operator == (const ipset& s) const { return this->cAddr==s.cAddr && this->cMask==s.cMask && this->cPort==s.cPort && wanaddr==s.wanaddr; }
+	bool operator != (const ipset& s) const { return this->cAddr!=s.cAddr || this->cMask!=s.cMask || this->cPort!=s.cPort || wanaddr!=s.wanaddr; }
 };
 
 
@@ -523,7 +523,7 @@ const ipaddress		ipnone((uint32)INADDR_NONE);
 
 
 ipaddress hostbyname(const char* name);
-string<> hostbyaddr(ipaddress ip);
+string<> hostbyaddr(const ipaddress& ip);
 string<> hostname(const char* name);
 
 

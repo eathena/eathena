@@ -455,7 +455,8 @@ const file_entry& filelist_add(const file_entry &entry)
 	int hash;
 
 	if (filelist_entrys>=FILELIST_LIMIT) {
-		ShowFatalError("filelist limit : filelist_add\n");
+		ShowFatalError("filelist limit : filelist_add\n"
+					CL_SPACE"error not recoverable, quitting.\n");
 		exit(1);
 	}
 
@@ -789,7 +790,8 @@ int grfio_entryread(const char *gfname, int gentry)
 				fname = decode_filename(grf_filelist+ofs+6, grf_filelist[ofs]-6);
 				if(strlen(fname)>sizeof(aentry.fn)-1)
 				{
-					ShowFatalError("file name too long : %s\n",fname);
+					ShowFatalError("file name too long : %s\n"
+							CL_SPACE"error not recoverable, quitting.\n",fname);
 					delete[] grf_filelist;
 					exit(1);
 				}
@@ -872,7 +874,8 @@ int grfio_entryread(const char *gfname, int gentry)
 		{
 			fname = (char*)(grf_filelist+ofs);
 			if (strlen(fname)>sizeof(aentry.fn)-1) {
-				ShowFatalError("grf : file name too long : %s\n",fname);
+				ShowFatalError("grf : file name too long : %s\n"
+						CL_SPACE"error not recoverable, quitting.\n",fname);
 				delete[] grf_filelist;
 				exit(1);
 			}
@@ -980,7 +983,8 @@ int grfio_add_archive(const char *fname)
 	char *buf;
 
 	if (gentry_entrys>=GENTRY_LIMIT) {
-		ShowFatalError("gentrys limit : grfio_add\n");
+		ShowFatalError("gentrys limit : grfio_add\n"
+				CL_SPACE"error not recoverable, quitting.\n");
 		exit(1);
 	}
 

@@ -280,7 +280,7 @@ public:
 		bool next()					{ cPos++; return (cPos<cDB.cIndex.size()); }
 		bool prev()					{ cPos--; return (cPos<cDB.cIndex.size()); }
 
-		operator const bool() const { return (cPos<cDB.cIndex.size()); }
+		operator bool() const		{ return (cPos<cDB.cIndex.size()); }
 		bool isValid() const		{ return (cPos<cDB.cIndex.size()); }
 
 		uint32 Key1()				{ return isValid()?cDB.cIndex[cPos].cKey1:0; }
@@ -362,10 +362,10 @@ public:
 		// <# of entries> \n <i1>(0), <i2>(0), <f>(0), <p>(0), <l>(0) \n ...
 		fseek(cIX, 0, SEEK_SET);
 		unsigned long sz,k1,k2,f,p,l;
-		if( 1==fscanf(cIX,"%li\n", &sz) )
+		if( 1==fscanf(cIX,"%lu\n", &sz) )
 		{
 			cIndex.realloc(sz);
-			while( 5==fscanf(cIX,"%li,%li,%li,%li,%li\n",  &k1,&k2,&f,&p,&l) )
+			while( 5==fscanf(cIX,"%lu,%lu,%lu,%lu,%lu\n",  &k1,&k2,&f,&p,&l) )
 			{
 				cIndex.insert( _key(k1,k2,f,p,l) );
 			}
@@ -421,10 +421,10 @@ public:
 			{
 				// write index
 				fseek(cIX, 0, SEEK_SET);
-				fprintf(cIX,"%li\n", (unsigned long)cIndex.size());
+				fprintf(cIX,"%lu\n", (unsigned long)cIndex.size());
 				for(size_t i=0; i<cIndex.size(); ++i)
 				{
-					fprintf(cIX,"%li,%li,%li,%li,%li\n",
+					fprintf(cIX,"%lu,%lu,%lu,%lu,%lu\n",
 						(unsigned long)cIndex[i].cKey1, (unsigned long)cIndex[i].cKey2,
 						(unsigned long)cIndex[i].cFlag, (unsigned long)cIndex[i].cPos, (unsigned long)cIndex[i].cLen);
 				}

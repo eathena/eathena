@@ -70,7 +70,8 @@ size_t online_gm_display_min_level = 20; // minimum GM level to display 'GM' whe
 time_t update_online; // to update online files when we receiving information from a server (not less than 8 seconds)
 
 bool console = false;
-
+// for new char select screen
+basics::CParam< uint > packet_ver("packet_ver", (uint)0);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -99,7 +100,7 @@ int char_log(char *fmt, ...)
 				gettimeofday(&tv, NULL);
 				unixtime = tv.tv_sec;
 				strftime(tmpstr, 24, "%d-%m-%Y %H:%M:%S", localtime(&unixtime));
-				sprintf(tmpstr + 19, ".%03ld: %s", tv.tv_usec / 1000, fmt);
+				sprintf(tmpstr + 19, ".%03ld: %s", (long)(tv.tv_usec / 1000), fmt);
 				
 				va_start(ap, fmt);
 				vfprintf(logfp, tmpstr, ap);
@@ -489,7 +490,9 @@ int mmo_char_send006b(int fd, char_session_data &sd)
 		return 0;
 	set_char_online(99, sd.account_id);
 
-	memset(WFIFOP(fd,0), 0, offset + 9*106);
+	const bool new_charscreen = (packet_ver()>=8);
+
+	memset(WFIFOP(fd,0), 0, offset + 9*(new_charscreen?108:106));
 	WFIFOW(fd,0) = 0x6b;
 	for(i=0; i<9; ++i)
 	{
@@ -545,13 +548,15 @@ int mmo_char_send006b(int fd, char_session_data &sd)
 			WFIFOB(fd,j+101) = (character.int_ > 255) ? 255 : character.int_;
 			WFIFOB(fd,j+102) = (character.dex > 255) ? 255 : character.dex;
 			WFIFOB(fd,j+103) = (character.luk > 255) ? 255 : character.luk;
-			WFIFOB(fd,j+104) = character.slot;
+			WFIFOW(fd,j+104) = character.slot;
+			if(new_charscreen)
+				WFIFOW(fd,j+106) = 1;
 
-			found_num++;
+			++found_num;
 		}
 	}
-	WFIFOW(fd,2) = offset+found_num*106;
-	WFIFOSET(fd, offset+found_num*106);
+	WFIFOW(fd,2) = offset+found_num*(new_charscreen?108:106);
+	WFIFOSET(fd, offset+found_num*(new_charscreen?108:106));
 	return 0;
 }
 
@@ -1085,7 +1090,6 @@ int parse_tologin(int fd)
 			CCharCharAccount account;
 			if( char_db.searchAccount(RFIFOL(fd,2), account) )
 			{
-				size_t i;
 				for(i=0; i<9; ++i)
 				{
 					if( account.charlist[i] != 0)
@@ -1799,7 +1803,7 @@ int parse_frommap(int fd)
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
 
-			size_t j, p, sz=RFIFOW(fd,2);
+			size_t p, sz=RFIFOW(fd,2);
 			uint32 accid = RFIFOL(fd,4);
 			CCharCharAccount account;
 			if( char_db.searchAccount(accid,account) )
@@ -2056,10 +2060,12 @@ int parse_frommap(int fd)
 		// irc system
 		// announce
 		case 0x2b38:
-		{	size_t sz;
+		{	
+			size_t sz;
 			if (RFIFOREST(fd) < 4 || (size_t)RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
 				return 0;
 			irc_announce(fd);
+			RFIFOSKIP(fd,sz);
 			break;
 		}
 		///////////////////////////////////////////////////////////////////////
@@ -2139,7 +2145,7 @@ int parse_char(int fd)
 	}
 
 	unsigned short cmd;
-	uint32 client_ip = session[fd]->client_ip;
+	basics::ipaddress client_ip = session[fd]->client_ip;
 	char_session_data *sd = (char_session_data *)session[fd]->user_session;
 
 	while (RFIFOREST(fd) >= 2)
@@ -2196,7 +2202,7 @@ int parse_char(int fd)
 
 			// search authentification, does also fill the char_session_data
 			if( char_db.searchAccount(RFIFOL(fd,2), *sd) &&
-				client_ip     == sd->client_ip &&
+				(client_ip    == sd->client_ip || (client_ip.isBindable()&&sd->client_ip.isBindable())) &&
 				RFIFOL(fd,2)  == sd->account_id &&
 				RFIFOL(fd,6)  == sd->login_id1 &&
 				RFIFOL(fd,10) == sd->login_id2 && 
@@ -2496,7 +2502,7 @@ int parse_char(int fd)
 					WFIFOW(fd, 0) = 0x70;
 					WFIFOB(fd, 2) = 0; // 00 = Incorrect Email address
 					WFIFOSET(fd, 3);
-					char_log("Char-server '%s': Attempt to create an e-mail on an account with a default e-mail REFUSED - e-mail is invalid (account: %d, ip: %s)" RETCODE, server_name, sd->account_id, basics::ipaddress(client_ip).tostring(NULL));
+					char_log("Char-server '%s': Attempt to create an e-mail on an account with a default e-mail REFUSED - e-mail is invalid (account: %d, ip: %s)" RETCODE, server_name, sd->account_id, client_ip.tostring(NULL));
 				}
 			}
 			// otherwise, we delete the character
@@ -2523,14 +2529,19 @@ int parse_char(int fd)
 			if (RFIFOREST(fd) < 70)
 				return 0;
 			WFIFOW(fd,0) = 0x2af9;
-			for(i = 0; i < MAX_MAP_SERVERS; ++i) {
+			for(i = 0; i < MAX_MAP_SERVERS; ++i)
+			{
 				if(server[i].fd < 0)
 					break;
 			}
-			if (i == MAX_MAP_SERVERS || strcmp((char*)RFIFOP(fd,2), userid) || strcmp((char*)RFIFOP(fd,26), passwd)){
+			if (i == MAX_MAP_SERVERS || strcmp((char*)RFIFOP(fd,2), userid) || strcmp((char*)RFIFOP(fd,26), passwd))
+			{
 				WFIFOB(fd,2) = 3;
 				WFIFOSET(fd,3);
-			} else {
+				char_log("Char-server '%s': map server login from %s failed." RETCODE, server_name, client_ip.tostring(NULL));
+			}
+			else
+			{
 				WFIFOB(fd,2) = 0;
 				session[fd]->func_parse = parse_frommap;
 
@@ -2542,6 +2553,7 @@ int parse_char(int fd)
 				WFIFOSET(fd,3);
 				realloc_fifo(fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 				char_mapif_init(fd);
+				char_log("Char-server '%s': map server login from %s successful." RETCODE, server_name, client_ip.tostring(NULL));
 			}
 			RFIFOSKIP(fd,70);
 			return parse_frommap(fd);

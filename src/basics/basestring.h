@@ -57,10 +57,13 @@ inline wchar_t upcase(wchar_t c) { return ::towupper( to_unsigned(c) ); }
 ///////////////////////////////////////////////////////////////////////////////
 /// cstring to number
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T> uint64 stringtoue(const T* str, size_t base);
-template <typename T> sint64 stringtoie(const T* str);
-template <typename T> sint64 stringtoi(const T* p);
-template <typename T> double stringtod(const T* p);
+template <typename T> uint64 stringtoue(T const* str, size_t base);
+template <typename T> sint64 stringtoie(T const* str);
+template <typename T> sint64 stringtoi (T const* str, T const** run=NULL);
+template <typename T> sint64 stringtoib(T const* str, T const** run=NULL);
+template <typename T> sint64 stringtoio(T const* str, T const** run=NULL);
+template <typename T> sint64 stringtoix(T const* str, T const** run=NULL);
+template <typename T> double stringtod (T const* str, T const** run=NULL);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// number conversion core.
@@ -78,11 +81,11 @@ template <typename T> const T* _itobase(sint64 value, T* buf, size_t base, size_
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T> class stringinterface;
 template <typename T> class stringoperator;
-template <typename T> class basestring;			// dynamic buffer without smart pointer
-template <typename T> class staticstring;			// external static buffer
-template <typename T> class string;				// dynamic buffer with smart pointer, copy-on-write
-template <typename T> class globalstring;			// dynamic buffer with smart pointer, copy-on-write
-template <typename T> class substring;				// contains pointer to string, implements allocator interface
+template <typename T> class basestring;		// dynamic buffer without smart pointer
+template <typename T> class staticstring;	// external static buffer
+template <typename T> class string;			// dynamic buffer with smart pointer, copy-on-write
+template <typename T> class globalstring;	// dynamic buffer with smart pointer, copy-on-write
+template <typename T> class substring;		// contains pointer to string, implements allocator interface
 
 
 template <typename T, typename X> class formatstr;
@@ -101,7 +104,7 @@ class stringconfig
 public:
 	static int  default_precision;
 	static int  default_width;
-	static bool default_left_allign;
+	static bool default_left_align;
 	static bool default_double_alternate;
 	static bool default_hexoct_alternate;
 };
@@ -111,7 +114,7 @@ public:
 /// defines all reading access on a string object
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T=char>
-class stringinterface : public allocator<T>, public elaborator_st<T>, public stringconfig
+class stringinterface : public allocator<T>
 {
 protected:
 	///////////////////////////////////////////////////////////////////////////
@@ -333,6 +336,10 @@ template<typename T> const T* rtrim(T* str);
 template<typename T> const T* trim(T* str);
 template<typename T> const T* itrim(T* str, bool removeall=false);
 
+template<typename T> T unescape(const T*& str);
+template<typename T> T escape(const T chr);
+
+
 template<typename T> const stringoperator<T>& toupper(stringoperator<T>& str)	{ return str.toupper(); return str; }
 template<typename T> const stringoperator<T>& tolower(stringoperator<T>& str)	{ return str.tolower(); return str; }
 template<typename T> const stringoperator<T>& ltrim(stringoperator<T>& str)	{ return str.ltrim(); return str; }
@@ -472,7 +479,7 @@ public:
 			return 0;
 		else if(s.length()>0 && this->length()>0) 
 			// compare including eos
-			return this->intern_cmp(this->c_str(), s.c_str(), 1+this->length());
+			return elaborator::intern_cmp<T>(this->c_str(), s.c_str(), 1+this->length());
 		else if(s.length()==0 && this->length()==0)
 			return 0;
 		else if(s.length()==0)
@@ -494,7 +501,7 @@ public:
 		if(c == this->c_str() )
 			return 0;
 		else if(c && this->length()>0)
-			return this->intern_cmp(this->c_str(), c, 1+this->length());
+			return elaborator::intern_cmp<T>(this->c_str(), c, 1+this->length());
 		else if((!c || *c==0) && this->length()==0)
 			return 0;
 		else if((!c || *c==0))
@@ -571,7 +578,7 @@ public:
 			if(this->cBuf+inx+len >= this->cWpp)
 				len = this->cWpp-this->cBuf-inx;
 			else
-				this->intern_move(this->cBuf+inx, this->cBuf+inx+len, this->cWpp-this->cBuf-inx-len);
+				elaborator::intern_move<T>(this->cBuf+inx, this->cBuf+inx+len, this->cWpp-this->cBuf-inx-len);
 			this->cWpp -= len;
 			*this->cWpp = 0;
 		}
@@ -608,13 +615,13 @@ public:
 		}
 		else if( ix+sz <= (size_t)(this->cWpp-this->cBuf) )
 		{	// move and truncate
-			this->intern_move(this->cBuf, this->cBuf+ix, sz);
+			elaborator::intern_move<T>(this->cBuf, this->cBuf+ix, sz);
 			this->cWpp = this->cBuf+sz;
 			*this->cWpp = 0;
 		}
 		else
 		{	// move and expand
-			this->intern_move(this->cBuf, this->cBuf+ix, this->cWpp-this->cBuf-ix);
+			elaborator::intern_move<T>(this->cBuf, this->cBuf+ix, this->cWpp-this->cBuf-ix);
 			this->cWpp -= ix;
 			if( this->checkwrite( sz-(this->cWpp-this->cBuf) ) )
 			{
@@ -760,7 +767,7 @@ public:
 		{
 			if( t.length()<(size_t)(this->cEnd-this->cWpp) || this->checkwrite( t.length() ) )
 			{
-				this->intern_copy(this->cWpp, t, t.length());
+				elaborator::intern_copy<T>(this->cWpp, t, t.length());
 				this->cWpp += t.length();
 				if(this->cWpp) *this->cWpp=0;
 			}
@@ -847,7 +854,7 @@ public:
 		{
 			if( slen<(size_t)(this->cEnd-this->cWpp) || this->checkwrite( slen ) )
 			{
-				this->intern_copy(this->cWpp, t, slen);
+				elaborator::intern_copy<T>(this->cWpp, t, slen);
 				this->cWpp += slen;
 				if(this->cWpp) *this->cWpp=0;
 			}
@@ -930,8 +937,8 @@ public:
 				slen = t.length();
 			if( slen<(size_t)(this->cEnd-this->cWpp) || this->checkwrite( slen ) )
 			{
-				this->intern_move(this->cBuf+pos+slen, this->cBuf+pos, this->cWpp-this->cBuf-pos);
-				this->intern_copy(this->cBuf+pos, t, slen);
+				elaborator::intern_move<T>(this->cBuf+pos+slen, this->cBuf+pos, this->cWpp-this->cBuf-pos);
+				elaborator::intern_copy<T>(this->cBuf+pos, t, slen);
 
 				this->cWpp += slen;
 				*this->cWpp = 0;
@@ -956,8 +963,8 @@ public:
 					slen = ep-c;
 				if( slen<(size_t)(this->cEnd-this->cWpp) || this->checkwrite( slen ) )
 				{
-					this->intern_move(this->cBuf+pos+slen, this->cBuf+pos, this->cWpp-this->cBuf-pos);
-					this->intern_copy(this->cBuf+pos, c, this->cWpp-this->cBuf-pos);
+					elaborator::intern_move(this->cBuf+pos+slen, this->cBuf+pos, this->cWpp-this->cBuf-pos);
+					elaborator::intern_copy(this->cBuf+pos, c, this->cWpp-this->cBuf-pos);
 
 					this->cWpp += slen;
 					*this->cWpp = 0;
@@ -980,7 +987,7 @@ public:
 				{
 					T* ipp = this->cBuf+pos;
 					T* epp = this->cBuf+pos+slen;
-					this->intern_move(epp, ipp, this->cWpp-this->cBuf-pos);
+					elaborator::intern_move(epp, ipp, this->cWpp-this->cBuf-pos);
 					while(ipp<epp)
 						*ipp++ = ch;
 
@@ -1008,8 +1015,8 @@ public:
 				slen = t.length();
 			if( slen<=tlen || this->checkwrite( slen-tlen ) )
 			{
-				this->intern_move(this->cBuf+pos+slen, this->cBuf+pos+tlen, this->cWpp-this->cBuf-pos-tlen);
-				this->intern_copy(this->cBuf+pos, t, slen);
+				elaborator::intern_move<T>(this->cBuf+pos+slen, this->cBuf+pos+tlen, this->cWpp-this->cBuf-pos-tlen);
+				elaborator::intern_copy<T>(this->cBuf+pos, t, slen);
 
 				this->cWpp += slen-tlen;
 				if(this->cWpp) *this->cWpp = 0;
@@ -1037,8 +1044,8 @@ public:
 				
 				if( slen<=tlen || this->checkwrite( slen-tlen ) )
 				{
-					this->intern_move(this->cBuf+pos+slen, this->cBuf+pos+tlen, this->cWpp-this->cBuf-pos-tlen);
-					this->intern_copy(this->cBuf+pos, c, slen);
+					elaborator::intern_move(this->cBuf+pos+slen, this->cBuf+pos+tlen, this->cWpp-this->cBuf-pos-tlen);
+					elaborator::intern_copy(this->cBuf+pos, c, slen);
 
 					this->cWpp += slen-tlen;
 					if(this->cWpp) *this->cWpp = 0;
@@ -1064,7 +1071,7 @@ public:
 				{
 					T* ipp = this->cBuf+pos;
 					T* epp = this->cBuf+pos+slen;
-					this->intern_move(epp, ipp+tlen, this->cWpp-this->cBuf-pos-tlen);
+					elaborator::intern_move(epp, ipp+tlen, this->cWpp-this->cBuf-pos-tlen);
 					while(ipp<epp)
 						*ipp++ = ch;
 
@@ -1110,7 +1117,7 @@ public:
 			ipp++;
 		if(ipp!=this->cBuf)
 		{
-			this->intern_move(this->cBuf, ipp, this->cWpp-ipp);
+			elaborator::intern_move(this->cBuf, ipp, this->cWpp-ipp);
 			*this->cWpp=0;
 		}
 	}
@@ -1375,7 +1382,7 @@ public:
 			return 0;
 		else if(s.length()>0 && this->length()>0) 
 			// compare including eos
-			return this->intern_cmp(this->c_str(), s.c_str(), 1+this->length());
+			return elaborator::intern_cmp<T>(this->c_str(), s.c_str(), 1+this->length());
 		else if(s.length()==0 && this->length()==0)
 			return 0;
 		else if(s.length()==0)
@@ -1397,7 +1404,7 @@ public:
 		if(c == this->c_str() )
 			return 0;
 		else if(c && this->length()>0)
-			return this->intern_cmp(this->c_str(), c, 1+this->length());
+			return elaborator::intern_cmp<T>(this->c_str(), c, 1+this->length());
 		else if((!c || *c==0) && this->length()==0)
 			return 0;
 		else if((!c || *c==0))
@@ -1574,13 +1581,13 @@ protected:
 			const_cast< string* >(this)->cCountObj = this->createpointer();
 		// no need to aquire, is done on reference creation
 	}
-	bool isunique()	const throw()
+	bool is_unique() const throw()
 	{
 		return (this->cCountObj) ? (this->cCountObj->cRefCnt == 1):true;
 	}
 	bool make_unique(bool keep=true)
 	{
-		if( !this->isunique() )
+		if( !this->is_unique() )
 		{
 			ptrstring *cnt = (this->cCountObj && keep) ? 
 								this->createpointer(*this->cCountObj) : 
@@ -1595,7 +1602,7 @@ public:
 	/////////////////////////////////////////////////////////////////
 	/// public pointer functions
 	/////////////////////////////////////////////////////////////////
-	const size_t getRefCount() const
+	size_t getRefCount() const
 	{
 		return (this->cCountObj) ? this->cCountObj->cRefCnt : 1; 
 	}
@@ -2506,7 +2513,7 @@ private:
 public:
 	~substring<T>()	{}
 
-	const size_t getRefCount() const
+	size_t getRefCount() const
 	{
 		return (this->cString) ? this->cString->getRefCount() : 1;
 	}

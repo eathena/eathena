@@ -19,7 +19,7 @@ struct aegisparserstorage : public parserstorage
 };
 
 
-struct aegisprinter : public printer
+struct aegisprinter : public default_printer
 {
 	basics::string<>	cAegisName;	///< name of currently processed npc
 	basics::string<>	cEAName;	///< name of currently processed npc (ea format)
@@ -60,7 +60,7 @@ public:
 	aegisParser(basics::CParser_CommentStore* p, int o) : parser(p), option(o)
 	{
 		if(option & OPT_LOGGING)
-			prn.open_log();	
+			prn.open_log("converter.log");
 	}
 	virtual bool process(const char*name) const;
 };

@@ -145,10 +145,8 @@ public:
 	/// access to elements(inx) [inx]
 	virtual const T& operator()(size_t inx) const =0;
 	virtual const T& operator[](size_t inx) const =0;
-	virtual const T& operator[](int inx) const =0;
 	virtual       T& operator()(size_t inx) =0;
 	virtual       T& operator[](size_t inx) =0;
-	virtual       T& operator[](int inx) =0;
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -178,15 +176,15 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// internal storage class
-template<typename T, typename E, typename A> 
-class vectorbase : public A, public E, public vectorinterface<T>
+template<typename T, typename A> 
+class vectorbase : public A, public vectorinterface<T>
 {
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// only derived can create
-	vectorbase<T,E,A>()				{}
+	vectorbase<T,A>()				{}
 public:
-	virtual ~vectorbase<T,E,A>()	{}
+	virtual ~vectorbase<T,A>()	{}
 
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -224,22 +222,22 @@ public:
 /// implements fifo hehaviour on push/pop (add last/remove first)
 /// but not as efficient as the fifo class
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, typename E=elaborator_ct<T>, typename A=allocator_w_dy<T> >
-class vector : public vectorbase<T,E,A>
+template <typename T, typename A=allocator_w_dy<T> >
+class vector : public vectorbase<T,A>
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// standard constructor / destructor
-	vector<T,E,A>()				{}
-	virtual ~vector<T,E,A>()	{}
+	vector<T,A>()				{}
+	virtual ~vector<T,A>()	{}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// copy/assignment
-	vector<T,E,A>(const vector<T,E,A>& v)
+	vector<T,A>(const vector<T,A>& v)
 	{
 		this->assign(v);
 	}
-	const vector<T,E,A>& operator=(const vector<T,E,A>& v)
+	const vector<T,A>& operator=(const vector<T,A>& v)
 	{	
 		this->assign(v);
 		return *this;
@@ -253,13 +251,13 @@ public:
 	// #if defined(__GNU__) or #if !defined(_MSC_VER) / #endif
 	// another workaround is to have a baseclass to derive the hierarchy from 
 	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
-	template<typename TT, typename EE, typename AA>
-	vector<T,E,A>(const vectorbase<TT,EE,AA>& v)
+	template<typename TT, typename AA>
+	vector<T,A>(const vectorbase<TT,AA>& v)
 	{
 		this->assign(v);
 	}
-	template<typename TT, typename EE, typename AA>
-	const vector<T,E,A>& operator=(const vectorbase<TT,EE,AA>& v)
+	template<typename TT, typename AA>
+	const vector<T,A>& operator=(const vectorbase<TT,AA>& v)
 	{
 		this->assign(v);
 		return *this;
@@ -267,7 +265,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// carray constructor
 	template<typename TT>
-	vector(const TT* elem, size_t sz)
+	explicit vector(const TT* elem, size_t sz)
 	{	// we are clean and empty here
 		this->convert_assign(elem, sz);
 	}
@@ -284,7 +282,7 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// with variable argument array (use with care)
-	vector(size_t sz, const T& t0, ...)
+	explicit vector(size_t sz, const T& t0, ...)
 	{	// we are clean and empty here
 		if( sz && this->checkwrite( sz ) )
 		{
@@ -301,10 +299,10 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
     /// Scalar assignment
-    ListInit<vector<T,E,A>, T> operator=(const T& x)
+    ListInit<vector<T,A>, T> operator=(const T& x)
     {
 		this->assign(x);
-        return ListInit<vector<T,E,A>, T>(*this);
+        return ListInit<vector<T,A>, T>(*this);
     }
 
 
@@ -313,7 +311,7 @@ protected:
 	/// get start pointer to the array
 	virtual const T* raw() const
 	{
-		const_cast< vector<T,E,A>* >(this)->checkwrite(1);
+		const_cast< vector<T,A>* >(this)->checkwrite(1);
 		return this->ptrRpp();
 	}
 
@@ -345,7 +343,7 @@ public:
 		if( inx < this->size() )
 		{	
 			if( this->ptrRpp()+inx+1<this->cWpp )
-				this->intern_move( this->ptrRpp()+inx, this->ptrRpp()+inx+1, this->cWpp-this->ptrRpp()-inx-1);
+				elaborator::intern_move<T>( this->ptrRpp()+inx, this->ptrRpp()+inx+1, this->cWpp-this->ptrRpp()-inx-1);
 			this->cWpp--;
 			return true;
 		}
@@ -359,7 +357,7 @@ public:
 		if( cnt && inx < this->size() )
 		{	
 			if( this->ptrRpp()+inx+cnt<this->cWpp )
-				this->intern_move(this->ptrRpp()+inx, this->ptrRpp()+inx+cnt, this->cWpp-this->ptrRpp()-inx-cnt);
+				elaborator::intern_move<T>(this->ptrRpp()+inx, this->ptrRpp()+inx+cnt, this->cWpp-this->ptrRpp()-inx-cnt);
 			if( this->ptrRpp()+cnt >= this->cWpp )
 				this->clear();
 			else
@@ -419,8 +417,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// templated assignment
-	template<typename TT, typename EE, typename AA>
-	bool assign(const vectorbase<TT,EE,AA>& array)
+	template<typename TT, typename AA>
+	bool assign(const vectorbase<TT,AA>& array)
 	{
 		this->cWpp=this->ptrRpp()=this->cBuf;
 		return this->append(array);
@@ -463,7 +461,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// templated append
-	template<typename TT, typename EE, typename AA> bool append(const vectorbase<TT,EE,AA>& array)
+	template<typename TT, typename AA>
+	bool append(const vectorbase<TT,AA>& array)
 	{
 		if( !array.size() )
 			return true;
@@ -529,7 +528,8 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// templated insert
-	template<typename TT, typename EE, typename AA> bool insert(const vectorbase<TT,EE,AA>& array, size_t pos)
+	template<typename TT, typename AA>
+	bool insert(const vectorbase<TT,AA>& array, size_t pos)
 	{
 		if( !array.size() )
 			return true;
@@ -537,7 +537,7 @@ public:
 			return this->append(array);
 		else if( this->cWpp+array.size() <= this->cEnd || checkwrite( array.size() ) )
 		{	// make the hole to insert
-			this->intern_move(this->ptrRpp()+pos+array.size(), this->ptrRpp()+pos, this->cWpp-this->ptrRpp()-pos);
+			elaborator::intern_move(this->ptrRpp()+pos+array.size(), this->ptrRpp()+pos, this->cWpp-this->ptrRpp()-pos);
 			// move the end pointer
 			this->cWpp+=array.size();
 			// fill the hole
@@ -560,7 +560,7 @@ public:
 			return this->append(elem,cnt);
 		else if( this->cWpp+cnt <= this->cEnd || this->checkwrite(cnt) )
 		{	// make the hole to insert
-			this->intern_move(this->ptrRpp()+pos+cnt, this->ptrRpp()+pos, this->cWpp-this->ptrRpp()-pos);
+			elaborator::intern_move<T>(this->ptrRpp()+pos+cnt, this->ptrRpp()+pos, this->cWpp-this->ptrRpp()-pos);
 			// move the end pointer
 			this->cWpp+=cnt;
 			// fill the hole
@@ -583,12 +583,12 @@ public:
 			return this->append(elem,cnt);
 		else if( this->cWpp+cnt <= this->cEnd || this->checkwrite(cnt) )
 		{	// make the hole to insert
-			this->intern_move(this->ptrRpp()+pos+cnt, this->ptrRpp()+pos, this->cWpp-this->ptrRpp()-pos);
+			elaborator::intern_move<T>(this->ptrRpp()+pos+cnt, this->ptrRpp()+pos, this->cWpp-this->ptrRpp()-pos);
 			// move the end pointer
 			this->cWpp+=cnt;
 			// fill the hole
-			T* ptr = this->ptrRpp()+pos;
-			while(cnt--)
+			
+			for(T* ptr = this->ptrRpp()+pos; cnt; --cnt)
 				*ptr++ = elem;
 			return true;
 		}
@@ -609,7 +609,8 @@ public:
 	// copy the given array to pos, 
 	// overwrites existing elements, 
 	// expands automatically but does not shrink when array is already larger
-	template<typename TT, typename EE, typename AA> bool copy(const vectorbase<TT,EE,AA>& array, size_t pos=0)
+	template<typename TT, typename AA>
+	bool copy(const vectorbase<TT,AA>& array, size_t pos=0)
 	{
 		if( pos >= this->size() )
 		{
@@ -661,8 +662,8 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// replace poscnt elements at pos with array
-	template<typename TT, typename EE, typename AA>
-	bool replace(const vectorbase<TT,EE,AA>& array, size_t pos, size_t poscnt)
+	template<typename TT, typename AA>
+	bool replace(const vectorbase<TT,AA>& array, size_t pos, size_t poscnt)
 	{
 		if( pos >= this->size() )
 		{	// replace position outside
@@ -680,7 +681,7 @@ public:
 		else if( array.size()<poscnt || this->checkwrite( array.size()-poscnt ) )
 		{	// preplacing something in the middle
 			// move the trailing elements in place
-			this->intern_move(this->ptrRpp()+pos+array.size(), this->ptrRpp()+pos+poscnt, this->cWpp-this->ptrRpp()-pos-poscnt);
+			elaborator::intern_move(this->ptrRpp()+pos+array.size(), this->ptrRpp()+pos+poscnt, this->cWpp-this->ptrRpp()-pos-poscnt);
 			// set new write pointer
 			this->cWpp = this->cWpp+array.size()-poscnt;
 			// fill the hole with the array elements
@@ -715,7 +716,7 @@ public:
 		else if( cnt<poscnt || this->checkwrite( cnt-poscnt ) )
 		{	// preplacing something in the middle
 			// move the trailing elements in place
-			this->intern_move(this->ptrRpp()+pos+cnt, this->ptrRpp()+pos+poscnt, this->cWpp-this->ptrRpp()-pos-poscnt);
+			elaborator::intern_move<T>(this->ptrRpp()+pos+cnt, this->ptrRpp()+pos+poscnt, this->cWpp-this->ptrRpp()-pos-poscnt);
 			// set new write pointer
 			this->cWpp = this->cWpp+cnt-poscnt;
 			// fill the hole with the array elements
@@ -750,10 +751,6 @@ public:
 	{	
 		return this->operator()((size_t)inx);
 	}
-	virtual const T& operator[](int inx) const
-	{	
-		return this->operator()((size_t)inx);
-	}
 	///////////////////////////////////////////////////////////////////////////
 	/// access to elements(inx) [inx] / writable
 	virtual T& operator () (size_t inx)
@@ -776,10 +773,6 @@ public:
 	{	
 		return this->operator()((size_t)inx);
 	}
-	virtual T& operator[](int inx)
-	{	
-		return this->operator()((size_t)inx);
-	}
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -788,8 +781,8 @@ public:
 	virtual bool push(const T& elem)				{ return convert_push(elem); }
 	virtual bool push(const T* elem, size_t cnt)	{ return convert_push(elem,cnt); }
 
-	template<typename TT, typename EE, typename AA>
-	bool push(const vectorbase<TT,EE,AA>& array)	{ return append(array); }
+	template<typename TT, typename AA>
+	bool push(const vectorbase<TT,AA>& array)		{ return append(array); }
 	template<typename TT>
 	bool convert_push(const TT& elem)				{ return append(elem); }
 	template<typename TT>
@@ -897,14 +890,14 @@ public:
 	//#endif
 	// another workaround is to have a baseclass to derive the hierarchy from 
 	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
-	template<typename TT, typename EE, typename AA>
-		stack<T>(const vectorbase<TT,EE,AA>& v)						{ this->convert_assign(v); }
-	template<typename TT, typename EE, typename AA>
-		const stack<T>& operator=(const vectorbase<TT,EE,AA>& v)	{ this->convert_assign(v); return *this; }
+	template<typename TT, typename AA>
+	stack<T>(const vectorbase<TT,AA>& v)					{ this->convert_assign(v); }
+	template<typename TT, typename AA>
+	const stack<T>& operator=(const vectorbase<TT,AA>& v)	{ this->convert_assign(v); return *this; }
 	///////////////////////////////////////////////////////////////////////////
 	/// carray constructor
 	template<typename TT>
-	stack(const TT* elem, size_t sz)
+	explicit stack(const TT* elem, size_t sz)
 	{	// we are clean and empty here
 		this->convert_assign(elem, sz);
 	}
@@ -920,7 +913,7 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// with variable argument array (use with care)
-	stack(size_t sz, const T& t0, ...)
+	explicit stack(size_t sz, const T& t0, ...)
 	{	// we are clean and empty here
 		if( this->checkwrite( sz ) )
 		{
@@ -1011,7 +1004,7 @@ public:
 /// and implements moving readpointer to minimize data movements
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class fifo : public vector<T, elaborator_ct<T>, allocator_rw_dy<T> >
+class fifo : public vector<T, allocator_rw_dy<T> >
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -1033,13 +1026,13 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// templated baseclasse copy/assignment
-	template<typename TT, typename EE, typename AA>
-	fifo<T>(const vectorbase<TT,EE,AA>& v)
+	template<typename TT, typename AA>
+	fifo<T>(const vectorbase<TT,AA>& v)
 	{
 		this->assign(v);
 	}
-	template<typename TT, typename EE, typename AA>
-	const fifo<T>& operator=(const vectorbase<TT, EE, AA>& v)
+	template<typename TT, typename AA>
+	const fifo<T>& operator=(const vectorbase<TT,AA>& v)
 	{
 		this->assign(v);
 		return *this;
@@ -1047,7 +1040,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// carray constructor
 	template<typename TT>
-	fifo(const TT* elem, size_t sz)
+	explicit fifo(const TT* elem, size_t sz)
 	{	
 		this->convert_assign(elem, sz);
 	}
@@ -1064,7 +1057,7 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// with variable argument array (use with care)
-	fifo(size_t sz, const T& t0, ...)
+	explicit fifo(size_t sz, const T& t0, ...)
 	{	// we are clean and empty here
 		if( this->checkwrite( sz ) )
 		{
@@ -1108,11 +1101,7 @@ public:
 	}
 	virtual const T& operator[](size_t inx) const
 	{	
-		return this->operator()((size_t)inx);
-	}
-	virtual const T& operator[](int inx) const
-	{	
-		return this->operator()((size_t)inx);
+		return this->operator()(inx);
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// access to elements(inx) [inx] / writable
@@ -1133,11 +1122,7 @@ public:
 	}
 	virtual T& operator[](size_t inx)
 	{	
-		return this->operator()((size_t)inx);
-	}
-	virtual T& operator[](int inx)
-	{	
-		return this->operator()((size_t)inx);
+		return this->operator()(inx);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1199,17 +1184,17 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// sorted array.
-template <typename T, typename E=elaborator_ct<T>, typename A=allocator_w_dy<T> >
-class slist : public vector<T,E,A>
+template <typename T, typename A=allocator_w_dy<T> >
+class slist : public vector<T,A>
 {
 /*
 public:
 	class assignee
 	{
-		friend class slist<T,E,A>;
-		slist<T,E,A>& sl;
+		friend class slist<T,A>;
+		slist<T,A>& sl;
 		size_t inx;
-		assignee(slist<T,E,A>& s, size_t i) : sl(s), inx(i)	{}
+		assignee(slist<T,A>& s, size_t i) : sl(s), inx(i)	{}
 
 		void assign(const T& val)
 		{
@@ -1266,17 +1251,17 @@ public:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard constructor / destructor
-	slist<T,E,A>(bool a=true, bool d=false) : config(a,d), compare(defaultcompare)
+	slist<T,A>(bool a=true, bool d=false) : config(a,d), compare(defaultcompare)
 	{ }
-	virtual ~slist<T,E,A>() {}
+	virtual ~slist<T,A>() {}
 
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assignment
-	slist<T,E,A>(const slist<T,E,A>& v) : config(v.config), compare(v.compare)
+	slist<T,A>(const slist<T,A>& v) : config(v.config), compare(v.compare)
 	{
 		this->assign(v);
 	}
-	const slist<T,E,A>& operator=(const slist<T,E,A>& v)
+	const slist<T,A>& operator=(const slist<T,A>& v)
 	{	
 		this->config = v.config;
 		this->compare= v.compare;
@@ -1293,13 +1278,13 @@ public:
 	//#endif
 	// another workaround is to have a baseclass to derive the hierarchy from 
 	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
-	template<typename TT, typename EE, typename AA>
-	slist<T,E,A>(const vectorbase<TT,EE,AA>& v)
+	template<typename TT, typename AA>
+	slist<T,A>(const vectorbase<TT,AA>& v)
 	{
 		this->assign(v);
 	}
-	template<typename TT, typename EE, typename AA>
-	const slist<T,E,A>& operator=(const vectorbase<TT,EE,AA>& v)
+	template<typename TT, typename AA>
+	const slist<T,A>& operator=(const vectorbase<TT,AA>& v)
 	{
 		this->assign(v);
 		return *this;
@@ -1307,7 +1292,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// carray constructor
 	template<typename TT>
-	slist(const TT* elem, size_t sz) : config(true,false), compare(defaultcompare)
+	explicit slist(const TT* elem, size_t sz) : config(true,false), compare(defaultcompare)
 	{	// we are clean and empty here
 		this->convert_append(elem, sz);
 	}
@@ -1324,7 +1309,7 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// with variable argument array (use with care)
-	slist(size_t sz, const T& t0, ...) : config(true,false), compare(defaultcompare)
+	explicit slist(size_t sz, const T& t0, ...) : config(true,false), compare(defaultcompare)
 	{	// we are clean and empty here
 		if( this->checkwrite( sz ) )
 		{
@@ -1332,17 +1317,17 @@ public:
 			va_start(va, t0);
 			this->assign(t0);
 			while(sz--)
-				this->vector<T,E,A>::assign( va_arg(va, T) );
+				this->vector<T,A>::assign( va_arg(va, T) );
 			va_end(va);
 		}
 	}
 
 	///////////////////////////////////////////////////////////////////////////
     /// Scalar assignment
-    ListInit<slist<T,E,A>, T> operator=(const T& x)
+    ListInit<slist<T,A>, T> operator=(const T& x)
     {
-		this->vector<T,E,A>::assign(x);
-        return ListInit<slist<T,E,A>, T>(*this);
+		this->vector<T,A>::assign(x);
+        return ListInit<slist<T,A>, T>(*this);
     }
 
 public:
@@ -1391,8 +1376,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// templated assignment
-	template<typename TT, typename EE, typename AA>
-	bool assign(const vectorbase<TT,EE,AA>& array)
+	template<typename TT, typename AA>
+	bool assign(const vectorbase<TT,AA>& array)
 	{
 		this->cWpp=this->ptrRpp()=this->cBuf;
 		return this->append(array);
@@ -1415,7 +1400,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// templated append
-	template<typename TT, typename EE, typename AA> bool append(const vectorbase<TT,EE,AA>& array)
+	template<typename TT, typename AA>
+	bool append(const vectorbase<TT,AA>& array)
 	{
 		if( this->cWpp+array.size() <= this->cEnd || this->checkwrite( array.size() ) )
 		{	
@@ -1426,7 +1412,7 @@ public:
 				if( !BinarySearchC<T, const T*, T>( *iter, this->begin(), this->size(), 0, pos, this->compare, this->config.ascending) || this->config.duplicates )
 				{
 					T* xptr = this->ptrRpp()+pos, *xeptr=xptr+1;
-					this->intern_move(xeptr, xptr, this->cWpp-this->ptrRpp()-pos);
+					elaborator::intern_move(xeptr, xptr, this->cWpp-this->ptrRpp()-pos);
 					*xptr = *iter;
 					this->cWpp++;
 				}
@@ -1436,7 +1422,8 @@ public:
 		else
 			return false;
 	}
-	template<typename TT> bool convert_append(const TT* elem, size_t cnt)
+	template<typename TT>
+	bool convert_append(const TT* elem, size_t cnt)
 	{
 		if( this->cWpp+cnt <= this->cEnd || this->checkwrite( cnt ) )
 		{	
@@ -1447,7 +1434,7 @@ public:
 				if( !BinarySearchC<T, const T*, T>( *ptr, this->begin(), this->size(), 0, pos, this->compare, this->config.ascending) || this->config.duplicates )
 				{
 					T* xptr = this->ptrRpp()+pos, *xeptr=xptr+1;
-					this->intern_move(xeptr, xptr, this->cWpp-this->ptrRpp()-pos);
+					elaborator::intern_move(xeptr, xptr, this->cWpp-this->ptrRpp()-pos);
 					*xptr = *ptr;
 					this->cWpp++;
 				}
@@ -1458,7 +1445,8 @@ public:
 		else
 			return false;
 	}
-	template<typename TT> bool convert_append(const TT& elem)
+	template<typename TT>
+	bool convert_append(const TT& elem)
 	{
 		if( this->cWpp < this->cEnd || this->checkwrite(1) )
 		{	
@@ -1466,7 +1454,7 @@ public:
 			if( !BinarySearchC<T, const T*, T>( elem, this->begin(), this->size(), 0, pos, this->compare, this->config.ascending) || this->config.duplicates )
 			{	
 				T* xptr = this->ptrRpp()+pos, *xeptr=xptr+1;
-				this->intern_move(xeptr, xptr, this->cWpp-this->ptrRpp()-pos);
+				elaborator::intern_move(xeptr, xptr, this->cWpp-this->ptrRpp()-pos);
 				*xptr = elem;
 				this->cWpp++;
 			}
@@ -1477,7 +1465,8 @@ public:
 	}
 	// some compilers cannot decide on overloaded template members
 	// so have seperated names instead
-	template<typename TT> bool convert_append_multiple(const TT& elem, size_t cnt)
+	template<typename TT>
+	bool convert_append_multiple(const TT& elem, size_t cnt)
 	{
 		if( this->cWpp+cnt <= this->cEnd || this->checkwrite(cnt) )
 		{	
@@ -1486,7 +1475,7 @@ public:
 			{
 				if( !this->config.duplicates ) cnt = 1;
 				T* xptr = this->ptrRpp()+pos, *xeptr=xptr+cnt;
-				this->intern_move(xeptr, xptr, this->cWpp-this->ptrRpp()-pos);
+				elaborator::intern_move(xeptr, xptr, this->cWpp-this->ptrRpp()-pos);
 				while(xptr<xeptr)
 					*xptr++ = elem;
 				this->cWpp+=cnt;
@@ -1509,8 +1498,8 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// templated insert
-	template<typename TT, typename EE, typename AA>
-	bool insert(const vectorbase<TT,EE,AA>& array, size_t pos)
+	template<typename TT, typename AA>
+	bool insert(const vectorbase<TT,AA>& array, size_t pos)
 	{
 		return this->convert_append(array);
 	}
@@ -1540,8 +1529,8 @@ public:
 	// copy the given array to pos, 
 	// overwrites existing elements, 
 	// expands automatically but does not shrink when array is already larger
-	template<typename TT, typename EE, typename AA>
-	bool copy(const vectorbase<TT,EE,AA>& array, size_t pos=0)
+	template<typename TT, typename AA>
+	bool copy(const vectorbase<TT,AA>& array, size_t pos=0)
 	{
 		return this->convert_append(array);
 	}
@@ -1560,8 +1549,8 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// replace poscnt elements at pos with array
-	template<typename TT, typename EE, typename AA>
-	bool replace(const vectorbase<TT,EE,AA>& array, size_t pos, size_t poscnt)
+	template<typename TT, typename AA>
+	bool replace(const vectorbase<TT,AA>& array, size_t pos, size_t poscnt)
 	{
 		this->removeindex(pos,poscnt);
 		return this->convert_append(array);
@@ -1597,10 +1586,6 @@ public:
 	{	
 		return this->operator()((size_t)inx);
 	}
-	virtual const T& operator[](int inx) const
-	{	
-		return this->operator()((size_t)inx);
-	}
 /*	///////////////////////////////////////////////////////////////////////////
 	// access to elements(inx) [inx] / writable
 	// return assignee object on non-const access
@@ -1620,11 +1605,7 @@ public:
 		//return this->ptrRpp()[inx];
 		return assignee(*this, inx);
 	}
-	assignee<T,E,A> operator[](size_t inx)
-	{	
-		return this->operator()((size_t)inx);
-	}
-	assignee<T,E,A> operator[](int inx)
+	assignee<T,A> operator[](size_t inx)
 	{	
 		return this->operator()((size_t)inx);
 	}
@@ -1651,10 +1632,6 @@ public:
 	{	
 		return this->operator()((size_t)inx);
 	}
-	virtual T& operator[](int inx)
-	{	
-		return this->operator()((size_t)inx);
-	}
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// push/pop access
@@ -1662,8 +1639,8 @@ public:
 	virtual bool push(const T& elem)			{ return convert_append(elem); }
 	virtual bool push(const T* elem, size_t cnt){ return convert_append(elem,cnt); }
 
-	template<typename TT, typename EE, typename AA>
-	bool push(const vectorbase<TT,EE,AA>& array){ return append(array); }
+	template<typename TT, typename AA>
+	bool push(const vectorbase<TT,AA>& array){ return append(array); }
 	template<typename TT>
 	bool convert_push(const TT& elem)			{ return convert_append(elem); }
 	template<typename TT>
@@ -1682,6 +1659,15 @@ public:
 		size_t pos;
 		return BinarySearchC<T,const T*,T>(elem, this->begin(), this->size(), start, pos, this->compare, this->config.ascending);
 	}
+	template<typename TT>
+	const T* search(const TT& elem) const
+	{
+		size_t start=0;
+		size_t pos;
+		if( BinarySearchC<T,const T*,T>(elem, this->begin(), this->size(), start, pos, this->compare, this->config.ascending) )
+			return this->begin()+pos;
+		return NULL;
+	}
 	void sort()
 	{
 		if(this->size()>1)
@@ -1698,7 +1684,7 @@ public:
 /// vector of pointers.
 /// uses partial specialisation of vector template storing all pointer types as void*
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, typename E=elaborator_ct<void*>, typename A=allocator_w_dy<void*> >
+template <typename T, typename A=allocator_w_dy<void*> >
 class ptrvector
 {
 public:
@@ -1778,40 +1764,38 @@ public:
 	virtual       T** end()				{ return (      T**)this->cVect.end(); }
 	virtual       T** final()			{ return (      T**)this->cVect.final(); }
 protected:
-	vector<void*,E,A>	cVect;
+	vector<void*,A>	cVect;
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard constructor / destructor
-	ptrvector<T,E,A>()				{}
-	virtual ~ptrvector<T,E,A>()	{}
+	ptrvector<T,A>()				{}
+	virtual ~ptrvector<T,A>()	{}
 
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assignment
-#if !defined(NO_TEMPLATED_COPY_ASSIGN)
-	ptrvector<T,E,A>(const ptrvector<T,E,A>& v)
+	template<typename TT, typename AA>
+	ptrvector<T,A>(const ptrvector<TT,AA>& v)
 	{
 		this->assign(v);
 	}
-	const ptrvector<T,E,A>& operator=(const ptrvector<T,E,A>& v)
-	{	
+	template<typename TT, typename AA>
+	const ptrvector<T,A>& operator=(const ptrvector<TT,AA>& v)
+	{
 		this->assign(v);
 		return *this;
 	}
-#endif
-	template<typename EE, typename AA>
-	ptrvector<T,E,A>(const ptrvector<T,EE,AA>& v)
+	ptrvector<T,A>(const ptrvector<T,A>& v)
 	{
 		this->assign(v);
 	}
-	template<typename EE, typename AA>
-	const ptrvector<T,E,A>& operator=(const ptrvector<T,EE,AA>& v)
-	{
+	const ptrvector<T,A>& operator=(const ptrvector<T,A>& v)
+	{	
 		this->assign(v);
 		return *this;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// carray constructor
-	ptrvector(T*const* elem, size_t sz)
+	explicit ptrvector(T*const* elem, size_t sz)
 	{	// we are clean and empty here
 		this->assign(elem, sz);
 	}
@@ -1829,10 +1813,10 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
     /// Scalar assignment
-    ListInit<ptrvector<T,E,A>, T> operator=(const T& x)
+    ListInit<ptrvector<T,A>, T> operator=(const T& x)
     {
 		this->assign(x);
-        return ListInit<ptrvector<T,E,A>, T>(*this);
+        return ListInit<ptrvector<T,A>, T>(*this);
     }
 
 protected:
@@ -1909,8 +1893,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// templated assignment
-	template<typename EE, typename AA>
-	bool assign(const ptrvector<T,EE,AA>& array)
+	template<typename AA>
+	bool assign(const ptrvector<T,AA>& array)
 	{
 		return this->cVect.assign(array.cVect);
 	}
@@ -1932,7 +1916,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// templated append
-	template<typename EE, typename AA> bool append(const ptrvector<T,EE,AA>& array)
+	template<typename AA> bool append(const ptrvector<T,AA>& array)
 	{
 		return this->cVect.append(array.cVect);
 	}
@@ -1949,7 +1933,7 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// templated insert
-	template<typename EE, typename AA> bool insert(const ptrvector<T,EE,AA>& array, size_t pos)
+	template<typename AA> bool insert(const ptrvector<T,AA>& array, size_t pos)
 	{
 		return this->cVect.insert(array.cVect, pos);
 	}
@@ -1967,7 +1951,7 @@ public:
 	// copy the given array to pos, 
 	// overwrites existing elements, 
 	// expands automatically but does not shrink when array is already larger
-	template<typename EE, typename AA> bool copy(const ptrvector<T,EE,AA>& array, size_t pos=0)
+	template<typename AA> bool copy(const ptrvector<T,AA>& array, size_t pos=0)
 	{
 		return this->cVect.copy(array.cVect, pos);
 	}
@@ -1980,8 +1964,8 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// replace poscnt elements at pos with array
-	template<typename EE, typename AA>
-	bool replace(const ptrvector<T,EE,AA>& array, size_t pos, size_t poscnt)
+	template<typename AA>
+	bool replace(const ptrvector<T,AA>& array, size_t pos, size_t poscnt)
 	{
 		return this->cVect.replace(array.cVect, pos, poscnt);
 	}
@@ -1996,10 +1980,6 @@ public:
 	{	
 		return (T*const&)this->cVect.operator[](inx);
 	}
-	virtual T*const& operator[](int inx) const
-	{	
-		return (T*const&)this->cVect.operator[](inx);
-	}
 	///////////////////////////////////////////////////////////////////////////
 	/// access to elements(inx) [inx] / writable
 	virtual T*& operator () (size_t inx)
@@ -2010,18 +1990,14 @@ public:
 	{	
 		return (T*&)this->cVect.operator[](inx);
 	}
-	virtual T*& operator[](int inx)
-	{	
-		return (T*&)this->cVect.operator[](inx);
-	}
 	///////////////////////////////////////////////////////////////////////////
 	/// push/pop access
 	/// implement fifo behaviour (push to the end and pop from front)
 	virtual bool push( T*const& elem)				{ return this->cVect.push((void*const&)elem); }
 	virtual bool push( T*const* elem, size_t cnt)	{ return this->cVect.push((void*const*)elem, cnt); }
 
-	template<typename EE, typename AA>
-	bool push(const ptrvector<T,EE,AA>& array)		{ return this->cVect.push(array.cVect); }
+	template<typename AA>
+	bool push(const ptrvector<T,AA>& array)		{ return this->cVect.push(array.cVect); }
 	
 	///////////////////////////////////////////////////////////////////////////
 	/// return the first element and remove it from array
@@ -2053,8 +2029,8 @@ public:
 /// slist of pointers.
 /// uses partial specialisation of vector template storing all pointer types as void*
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, typename E=elaborator_ct<void*>, typename A=allocator_w_dy<void*> >
-class ptrslist : public ptrvector<T,E,A>
+template <typename T, typename A=allocator_w_dy<void*> >
+class ptrslist : public ptrvector<T,A>
 {
 protected:
     struct _config
@@ -2077,16 +2053,16 @@ protected:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard constructor / destructor
-	ptrslist<T,E,A>()				{}
-	virtual ~ptrslist<T,E,A>()	{}
+	ptrslist<T,A>()				{}
+	virtual ~ptrslist<T,A>()	{}
 
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assignment
-	ptrslist<T,E,A>(const ptrslist<T,E,A>& v)
+	ptrslist<T,A>(const ptrslist<T,A>& v)
 	{
 		this->assign(v);
 	}
-	const ptrslist<T,E,A>& operator=(const ptrslist<T,E,A>& v)
+	const ptrslist<T,A>& operator=(const ptrslist<T,A>& v)
 	{	
 		this->assign(v);
 		return *this;
@@ -2100,20 +2076,20 @@ public:
 	// #if defined(__GNU__) or #if !defined(_MSC_VER) / #endif
 	// another workaround is to have a baseclass to derive the hierarchy from 
 	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
-	template<typename EE, typename AA>
-	ptrslist<T,E,A>(const ptrvector<T,EE,AA>& v)
+	template<typename AA>
+	ptrslist<T,A>(const ptrvector<T,AA>& v)
 	{
 		this->assign(v);
 	}
-	template<typename EE, typename AA>
-	const ptrslist<T,E,A>& operator=(const ptrvector<T,EE,AA>& v)
+	template<typename AA>
+	const ptrslist<T,A>& operator=(const ptrvector<T,AA>& v)
 	{
 		this->assign(v);
 		return *this;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// carray constructor
-	ptrslist(T*const* elem, size_t sz)
+	explicit ptrslist(T*const* elem, size_t sz)
 	{	// we are clean and empty here
 		this->assign(elem, sz);
 	}
@@ -2131,10 +2107,10 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
     /// Scalar assignment
-    ListInit<ptrslist<T,E,A>, T> operator=(const T& x)
+    ListInit<ptrslist<T,A>, T> operator=(const T& x)
     {
 		this->assign(x);
-        return ListInit<ptrslist<T,E,A>, T>(*this);
+        return ListInit<ptrslist<T,A>, T>(*this);
     }
 
 public:
@@ -2178,8 +2154,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// templated assignment
-	template<typename EE, typename AA>
-	bool assign(const ptrvector<T,EE,AA>& array)
+	template<typename AA>
+	bool assign(const ptrvector<T,AA>& array)
 	{
 		this->clear();
 		return this->append(array.cVect);
@@ -2222,10 +2198,10 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// templated append
-	template<typename EE, typename AA> bool append(const ptrvector<T,EE,AA>& array)
+	template<typename AA> bool append(const ptrvector<T,AA>& array)
 	{
 		bool ret = true;
-		typename ptrvector<T,EE,AA>::cVect::iterator iter(array.cVect);
+		typename ptrvector<T,AA>::cVect::iterator iter(array.cVect);
 		size_t pos;
 		for( ; iter; ++iter )
 		{
@@ -2249,7 +2225,7 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// templated insert
-	template<typename EE, typename AA> bool insert(const ptrvector<T,EE,AA>& array, size_t pos)
+	template<typename AA> bool insert(const ptrvector<T,AA>& array, size_t pos)
 	{
 		return this->append(array);
 	}
@@ -2268,7 +2244,7 @@ public:
 	// copy the given array to pos, 
 	// overwrites existing elements, 
 	// expands automatically but does not shrink when array is already larger
-	template<typename EE, typename AA> bool copy(const ptrvector<T,EE,AA>& array, size_t pos=0)
+	template<typename AA> bool copy(const ptrvector<T,AA>& array, size_t pos=0)
 	{
 		this->removeindex(pos, array.size());
 		return this->append(array);
@@ -2283,8 +2259,8 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// replace poscnt elements at pos with array
-	template<typename EE, typename AA>
-	bool replace(const ptrvector<T,EE,AA>& array, size_t pos, size_t poscnt)
+	template<typename AA>
+	bool replace(const ptrvector<T,AA>& array, size_t pos, size_t poscnt)
 	{
 		this->removeindex(pos, poscnt);
 		return this->append(array);
@@ -2296,8 +2272,8 @@ public:
 	virtual bool push( T*const& elem)				{ return this->append(elem); }
 	virtual bool push( T*const* elem, size_t cnt)	{ return this->append(elem, cnt); }
 
-	template<typename EE, typename AA>
-	bool push(const ptrvector<T,EE,AA>& array){ return this->append(array); }
+	template<typename AA>
+	bool push(const ptrvector<T,AA>& array){ return this->append(array); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// search within the field
@@ -2335,7 +2311,7 @@ private:
 /// stores a vector of pointers to objects
 /// but access is still on element base
 /// uses partial specialisation of vector template storing all pointer types as void*
-template <typename T, typename E=elaborator_ct<void*>, typename A=allocator_w_dy<void*> >
+template <typename T, typename A=allocator_w_dy<void*> >
 class objvector : public vectorinterface<T>
 {
 public:
@@ -2416,18 +2392,18 @@ public:
 
 
 protected:
-	vector<void*,E,A>	cVect;
+	vector<void*,A>	cVect;
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// 
-	objvector<T,E,A>()				{}
-	virtual ~objvector<T,E,A>()		{ this->clear(); }
+	objvector<T,A>()				{}
+	virtual ~objvector<T,A>()		{ this->clear(); }
 
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// constructors/assignments
-	objvector<T,E,A>(const objvector<T,E,A>& v) : cVect(v.cVect){}
-	const objvector<T,E,A> operator=(const objvector<T,E,A>& v)	{ cVect = v.cVect; return *this;}
+	objvector<T,A>(const objvector<T,A>& v) : cVect(v.cVect){}
+	const objvector<T,A> operator=(const objvector<T,A>& v)	{ cVect = v.cVect; return *this;}
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -2540,7 +2516,7 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// assignment 
-	virtual bool assign(const objvector<T,E,A>& v)
+	virtual bool assign(const objvector<T,A>& v)
 	{
 		this->clear();
 		this->append(v);
@@ -2563,7 +2539,7 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// add an element at position pos (at the end by default)
-	virtual bool append(const objvector<T,E,A>& v)
+	virtual bool append(const objvector<T,A>& v)
 	{
 		size_t i;
 		for(i=0; i<v.size(); ++i)
@@ -2658,7 +2634,6 @@ public:
 	/// access to elements(inx) [inx]
 	virtual const T& operator () (size_t inx) const	{ return *((T*&)cVect[inx]); }
 	virtual const T& operator[](size_t inx) const	{ return *((T*&)cVect[inx]); }
-	virtual const T& operator[](int inx) const		{ return *((T*&)cVect[inx]); }
 	virtual       T& operator () (size_t inx)		
 	{
 		// automatic resize on out-of-bound
@@ -2675,7 +2650,6 @@ public:
 		return *((T*&)cVect[inx]);
 	}
 	virtual       T& operator[](size_t inx)			{ return this->operator()(inx); }
-	virtual       T& operator[](int inx)			{ return this->operator()((size_t)inx); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// push/pop access
@@ -2735,8 +2709,8 @@ public:
 /// object vector.
 /// stores a vector of pointers to objects
 /// uses partial specialisation of vector template storing all pointer types as void*
-template <typename T, typename E=elaborator_ct<void*>, typename A=allocator_w_dy<void*> >
-class objslist : public objvector<T,E,A>
+template <typename T, typename A=allocator_w_dy<void*> >
+class objslist : public objvector<T,A>
 {
 protected:
     struct _config
@@ -2759,16 +2733,16 @@ protected:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// 
-	objslist<T,E,A>()				{}
-	virtual ~objslist<T,E,A>()		{}
+	objslist<T,A>()				{}
+	virtual ~objslist<T,A>()		{}
 
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// constructors/assignments
-	objslist<T,E,A>(const objvector<T,E,A>& v)					{ this->append(v); }
-	const objslist<T,E,A> operator=(const objvector<T,E,A>& v)	{ this->assign(v); return *this; }
-	objslist<T,E,A>(const objslist<T,E,A>& v)					{ this->append(v); }
-	const objslist<T,E,A> operator=(const objslist<T,E,A>& v)	{ this->assign(v); return *this; }
+	objslist<T,A>(const objvector<T,A>& v)					{ this->append(v); }
+	const objslist<T,A> operator=(const objvector<T,A>& v)	{ this->assign(v); return *this; }
+	objslist<T,A>(const objslist<T,A>& v)					{ this->append(v); }
+	const objslist<T,A> operator=(const objslist<T,A>& v)	{ this->assign(v); return *this; }
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -2800,7 +2774,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// add an element at position pos (at the end by default)
-	virtual bool append(const objvector<T,E,A>& v)
+	virtual bool append(const objvector<T,A>& v)
 	{
 		size_t i;
 		for(i=0; i<v.size(); ++i)
@@ -2869,10 +2843,8 @@ public:
 	/// access to elements(inx) [inx]
 	virtual const T& operator () (size_t inx) const	{ return *((T*&)this->cVect[inx]); }
 	virtual const T& operator[](size_t inx) const	{ return *((T*&)this->cVect[inx]); }
-	virtual const T& operator[](int inx) const		{ return *((T*&)this->cVect[inx]); }
 	virtual       T& operator () (size_t inx)		{ return *((T*&)this->cVect[inx]); }
 	virtual       T& operator[](size_t inx)			{ return *((T*&)this->cVect[inx]); }
-	virtual       T& operator[](int inx)			{ return *((T*&)this->cVect[inx]); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// push/pop access
@@ -2969,6 +2941,8 @@ private:
 	ptrvector<node>	cVect;
 
 public:
+	typedef K key_type;
+	typedef D data_type;
 	typedef typename ptrvector<node>::const_iterator const_iterator;
 	typedef typename ptrvector<node>::simple_iterator simple_iterator;
 	typedef typename ptrvector<node>::iterator iterator;
@@ -3140,6 +3114,8 @@ private:
 
 	vector<node>	cVect;
 public:
+	typedef K key_type;
+	typedef D data_type;
 	typedef typename vector<node>::const_iterator const_iterator;
 	typedef typename vector<node>::simple_iterator simple_iterator;
 	typedef typename vector<node>::iterator iterator;

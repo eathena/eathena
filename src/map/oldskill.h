@@ -111,7 +111,7 @@ enum {
 	_UF_UNUSED			= 0x0040,
 	UF_DUALMODE			= 0x0080,	//Spells should trigger both ontimer and onplace/onout/onleft effects.
 	UF_DANCE			= 0x0100,	// ダンススキル
-	UF_ENSEMBLE			= 0x0200,	// 合奏スキル
+	UF_ENSEMBLE			= 0x0200	// 合奏スキル
 };
 
 struct castend_delay
@@ -286,7 +286,7 @@ void skill_reload(void);
 
 enum {
 	ST_NONE,ST_HIDING,ST_CLOAKING,ST_HIDDEN,ST_RIDING,ST_FALCON,ST_CART,ST_SHIELD,ST_SIGHT,ST_EXPLOSIONSPIRITS,
-	ST_RECOV_WEIGHT_RATE,ST_MOVE_ENABLE,ST_WATER,
+	ST_RECOV_WEIGHT_RATE,ST_MOVE_ENABLE,ST_WATER
 };
 
 enum {
@@ -904,7 +904,7 @@ enum {
 	HVAN_CAPRICE	=8013,//#カプリス#
 	HVAN_CHAOTIC	=8014,//#カオティックベネディクション#
 	HVAN_INSTRUCT	=8015,//#チェンジインストラクション#
-	HVAN_EXPLOSION	=8016,//#バイオエクスプロージョン#
+	HVAN_EXPLOSION	=8016 //#バイオエクスプロージョン#
 
 };
 
@@ -963,7 +963,7 @@ enum {
 	UNT_FOGWALL = 0xb6,
 	UNT_SPIDERWEB = 0xb7,
 	UNT_GRAVITATION = 0xb8,
-	UNT_HERMODE = 0xb9,
+	UNT_HERMODE = 0xb9
 };
 
 #endif

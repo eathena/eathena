@@ -19,6 +19,7 @@ void buildEngine(const char*filename);
 #define OPT_PRINTTREE		0x02
 #define OPT_TRANSFORM		0x04
 #define OPT_LOGGING			0x08
+#define OPT_OUTPUT			0x10
 
 
 struct parserstorage
@@ -42,101 +43,6 @@ struct parserstorage
 };
 
 
-
-///////////////////////////////////////////////////////////////////////////////
-// logging output collector/rerouter
-///////////////////////////////////////////////////////////////////////////////
-class CLogger
-{
-	int enable;
-	int do_print(const char *fmt, va_list& argptr)
-	{
-		int ret=0;
-		static char		tempbuf[4096]; // initially using a static fixed buffer size 
-		static basics::Mutex	mtx;
-		basics::ScopeLock		sl(mtx);
-		size_t sz  = 4096; // initial buffer size
-		char *ibuf = tempbuf;
-
-
-		if(fmt)
-		{
-			if(argptr)
-			{
-				do
-				{	// print
-					if( vsnprintf(ibuf, sz, fmt, argptr) >=0 ) // returns -1 in case of error
-						break; // print ok, can break
-					// otherwise
-					// free the memory if it was dynamically alloced
-					if(ibuf!=tempbuf) delete[] ibuf;
-					// double the size of the buffer
-					sz *= 2;
-					ibuf = new char[sz];
-					// and loop in again
-				}while(1); 
-				// ibuf contains the printed string
-				ret = output(ibuf);
-			}
-			else
-			{	// thust the format string, no parameter
-				ret = output(fmt);
-			}
-		}
-		if(ibuf!=tempbuf) delete[] ibuf;
-		return ret;
-	}
-public:
-	CLogger(int e=2) : enable(e)		{}
-	virtual ~CLogger()					{}
-
-	int logging(const char *fmt, ...)
-	{
-		int ret = 0;
-		if(enable>=2)
-		{
-			va_list argptr;
-			va_start(argptr, fmt);
-			ret = do_print(fmt, argptr);
-			va_end(argptr);
-
-		}
-		return ret;
-	}
-	int warning(const char *fmt, ...)
-	{
-		int ret = 0;
-		if(enable>=1)
-		{
-			va_list argptr;
-			va_start(argptr, fmt);
-			ret = do_print(fmt, argptr);
-			va_end(argptr);
-
-		}
-		return ret;
-	}
-	int error(const char *fmt, ...)
-	{
-		int ret = 0;
-		if(enable>=0)
-		{
-			va_list argptr;
-			va_start(argptr, fmt);
-			ret = do_print(fmt, argptr);
-			va_end(argptr);
-
-		}
-		return ret;
-	}
-	virtual int output(const char* str)
-	{
-		int ret = fprintf(stdout, str);
-		fflush(stdout);
-		return ret;
-	}
-};
-
 ///////////////////////////////////////////////////////////////////////////////
 //
 // Parse Tree Transformation
@@ -150,8 +56,18 @@ public:
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-class parsenode : public basics::global, public CLogger
+class parsenode : public basics::global
 {
+	int logging(const char *fmt, ...) const
+	{
+		int ret = 0;
+		va_list argptr;
+		va_start(argptr, fmt);
+		ret = vfprintf(stdout,fmt, argptr);
+		va_end(argptr);
+		return ret;
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 	// types
 	typedef parsenode* parsenodep;

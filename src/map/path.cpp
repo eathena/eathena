@@ -65,7 +65,8 @@ void update_heap_path(int heap[], struct tmp_path tp[], int index)
 
 	if(h>=heap[0])
 	{	// maybe a bit hard, might be possible to just ignore that
-		fprintf(stderr,"update_heap_path bug\n");
+		ShowError("update_heap_path bug\n"
+				CL_SPACE"error not recoverable, quitting.\n");
 		exit(1);
 	}
 	// one sided update of the node 

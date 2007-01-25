@@ -95,6 +95,7 @@ typedef char* sockval_t;
 
 //////////////////////////////////////////////////////////////////////////
 #ifdef WIN32
+#if !defined(__GNUC__)
 // unix specific interface for windows
 extern inline int read(SOCKET fd, char*buf, int sz)		
 {
@@ -104,7 +105,7 @@ extern inline int write(SOCKET fd, const char*buf, int sz)
 {
 	return send(fd,buf,sz,0); 
 }
-
+#endif
 //////////////////////////////////////////////////////////////////////////
 #else
 // windows specific interface for non-windows systems

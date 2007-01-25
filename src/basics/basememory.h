@@ -46,193 +46,138 @@ extern inline size_t memquantize(size_t sz)
 }
 
 
+
+NAMESPACE_BEGIN(elaborator)
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// boolean type and boolean operations
+//## temporary copy from traits
+
 ///////////////////////////////////////////////////////////////////////////////
-/// basic elaborator interface.
-/// for objects working on distinct amount of memory
-/// defines basic functions to modify storages
+/// boolean true struct.
+struct bool_true
+{	
+	enum { Result = true };
+	/// right hand cast. allow implicit type2value conversion
+	operator bool() const	{ return Result; }
+};
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T=char>
-class elaborator
-{
-public:
-	virtual ~elaborator()	{}
-protected:
-	virtual T*  intern_move(T* target, const T* source, size_t cnt) = 0;
-	virtual T*  intern_copy(T* target, const T* source, size_t cnt) = 0;
-	virtual int intern_cmp(const T* a, const T* b, size_t cnt) const = 0;
+/// boolean false struct.
+struct bool_false
+{	
+	enum { Result = false };
+	/// right hand cast. allow implicit type2value conversion
+	operator bool() const	{ return Result; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// elaborator for simple data types.
-/// therefore can use memcopy/move/cmp
-///////////////////////////////////////////////////////////////////////////////
-template<typename T>
-class elaborator_st : public virtual elaborator<T>
+/// bool to type conversion.
+/// true is set as default, have explicit instanciations for each value
+/// (having both would actually not be necessary)
+template <bool is> struct bool2type
 {
-public:
-	virtual ~elaborator_st()	{}
-
-protected:
-	virtual T*  intern_move(T* target, const T* source, size_t cnt)
-	{	// simple type mover, no checks performed
-		memmove(target, source, cnt*sizeof(T));
-		return target+cnt;
-	}
-	virtual T*  intern_copy(T* target, const T* source, size_t cnt)
-	{	// simple type copy, no checks performed
-		memcpy(target, source, cnt*sizeof(T));
-		return target+cnt;
-	}
-	virtual int intern_cmp(const T* a, const T* b, size_t cnt) const
-	{	// simple type compare, no checks performed
-		return memcmp(a,b,cnt*sizeof(T));
-	}
+	typedef bool_true Type;
 };
 
-///////////////////////////////////////////////////////////////////////////////
-/// elaborator for complex data types.
-/// using assignment and compare operators ('=', '==' and '<' mandatory)
-///////////////////////////////////////////////////////////////////////////////
-template<typename T>
-class elaborator_ct : public virtual elaborator<T>
+template<>
+struct bool2type<false>
 {
-public:
-	virtual ~elaborator_ct()	{}
+	typedef bool_false Type;
+};
 
-protected:
-//## bloat
-	virtual T* intern_move(T* target, const T* source, size_t cnt)
-	{	
-		if(target>source)
-		{	// last to first run
-			T* epp=target;
-			target+=cnt-1;
-			source+=cnt-1;
-			while( target>=epp ) *target-- = *source--;
-			return epp+cnt;
-		}
-		else if(target<source)
-		{	// first to last run
-			T* epp=target+cnt;
-			while( target< epp ) *target++ = *source++;
-			return epp;
-		}
-		else
-			// identical; no move necessary
-			return target+cnt;
+
+
+
+template<typename T>
+inline T*  intern_move(T* target, const T* source, size_t cnt, bool_true)
+{	// simple type mover, no checks performed
+	memmove(target, source, cnt*sizeof(T));
+	return target+cnt;
+}
+template<typename T>
+inline T*  intern_copy(T* target, const T* source, size_t cnt, bool_true)
+{	// simple type copy, no checks performed
+	memcpy(target, source, cnt*sizeof(T));
+	return target+cnt;
+}
+template<typename T>
+inline int intern_cmp(const T* a, const T* b, size_t cnt, bool_true)
+{	// simple type compare, no checks performed
+	return memcmp(a,b,cnt*sizeof(T));
+}
+
+
+template<typename T>
+inline T* intern_move(T* target, const T* source, size_t cnt, bool_false)
+{	
+	if(target>source)
+	{	// last to first run
+		T* epp=target;
+		target+=cnt-1;
+		source+=cnt-1;
+		while( target>=epp ) *target-- = *source--;
+		return epp+cnt;
 	}
-	virtual T*  intern_copy(T* target, const T* source, size_t cnt)
-	{	
+	else if(target<source)
+	{	// first to last run
 		T* epp=target+cnt;
-		while( target<epp ) *target++ = *source++;
+		while( target< epp ) *target++ = *source++;
 		return epp;
 	}
-//## bloat
-	virtual int intern_cmp(const T* a, const T* b, size_t cnt) const
-	{	
-		const T* epp=a+cnt;
-		for( ; a<epp ; ++a,++b)
-		{
-			if( a==b || *a==*b )
-				continue;
-			else if( *a < *b )
-				return -1;
-			else
-				return  1;
-		}
-		return 0;
-	}
-};
-///////////////////////////////////////////////////////////////////////////////
-/// elaborator with automatic type selection.
-/// types smaller than pointers are processed using memcpy etc.,
-/// since it is unlikely to need explicite copy construction there.
-/// on 32bit machine memcpy on chars is up to 4 times faster than element copy,
-/// for types with sizeof(type) >= sizeof(pointers) there is no speed advantage.
-/// optimisation automatically removes the dispensable code
-///////////////////////////////////////////////////////////////////////////////
-template <typename T=char>
-class elaborator_auto : public virtual elaborator<T>
-{
-public:
-	virtual ~elaborator_auto()	{}
-
-protected:
-	virtual T*  intern_move(T* target, const T* source, size_t cnt)
-	{	
-		if( sizeof(T) < sizeof(T*) )
-		{	// simple type mover, no checks performed
-			memmove(target, source, cnt*sizeof(T));
-			return target+cnt;
-		}
-		else
-		{
-			if(target>source)
-			{	// last to first run
-				T* epp=target;
-				target+=cnt-1;
-				source+=cnt-1;
-				while( target>=epp ) *target-- = *source--;
-				return epp+cnt;
-			}
-			else if(target<source)
-			{	// first to last run
-				T* epp=target+cnt;
-				while( target< epp ) *target++ = *source++;
-				return epp;
-			}
-			else
-				// identical; no move necessary
-				return target+cnt;
-		}
-	}
-	virtual T*  intern_copy(T* target, const T* source, size_t cnt)
-	{	
-		if( sizeof(T) < sizeof(T*) )
-		{	// simple type mover, no checks performed
-			memcpy(target, source, cnt*sizeof(T));
-			return target+cnt;
-		}
-		else
-		{
-			T* epp=target+cnt;
-			while( target<epp ) *target++ = *source++;
-			return epp;
-		}
-	}
-//## bloat
-	virtual int intern_cmp(const T* a, const T* b, size_t cnt) const
+	else
+		// identical; no move necessary
+		return target+cnt;
+}
+template<typename T>
+inline T*  intern_copy(T* target, const T* source, size_t cnt, bool_false)
+{	
+	T* epp=target+cnt;
+	while( target<epp ) *target++ = *source++;
+	return epp;
+}
+template<typename T>
+inline int intern_cmp(const T* a, const T* b, size_t cnt, bool_false)
+{	
+	const T* epp=a+cnt;
+	for( ; a<epp ; ++a,++b)
 	{
-		if( sizeof(T) < sizeof(T*) )
-		{	// simple type mover, no checks performed
-			return memcmp(a,b,cnt*sizeof(T));
-		}
+		if( a==b || *a==*b )
+			continue;
+		else if( *a < *b )
+			return -1;
 		else
-		{
-			const T* epp=a+cnt;
-			for( ; a<epp ; ++a,++b)
-			{
-				if( a==b || *a==*b )
-					continue;
-				else if( *a < *b )
-					return -1;
-				else
-					return  1;
-			}
-			return 0;
-		}
+			return  1;
 	}
+	return 0;
+}
+
+template<typename T>
+struct is_simple_type
+{
+	enum{ Result = sizeof(T)<sizeof(void*) };
+	typedef typename bool2type<Result>::Type Type;
 };
 
-///////////////////////////////////////////////////////////////////////////////
-/// allocator base interface.
-/// contains type intependend types
-class _allocatorbase : public global, public noncopyable
+template<typename T>
+inline T*  intern_move(T* target, const T* source, size_t cnt)
+{	
+	typedef typename elaborator::is_simple_type<T>::Type is_simple;
+	return intern_move(target, source, cnt, is_simple());
+}
+template<typename T>
+inline T*  intern_copy(T* target, const T* source, size_t cnt)
 {
-public:
-	typedef size_t size_type;		///< type of positions
-	static const size_type npos;	///< not-valid-position constant
-};
+	typedef typename elaborator::is_simple_type<T>::Type is_simple;
+	return intern_copy(target, source, cnt, is_simple());
+}
+template<typename T>
+inline int intern_cmp(const T* a, const T* b, size_t cnt)
+{
+	typedef typename elaborator::is_simple_type<T>::Type is_simple;
+	return intern_cmp(a, b, cnt, is_simple());
+}
+
+NAMESPACE_END(elaborator)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// basic allocator interface.
@@ -240,9 +185,12 @@ public:
 /// defines basic functions of a storage element
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T=char>
-class allocator : public _allocatorbase, public virtual elaborator<T>
+class allocator : public global, public noncopyable
 {
 public:
+	typedef size_t size_type;		///< type of positions
+	static const size_type npos;	///< not-valid-position constant
+
 	typedef T					value_type;
 
 	typedef const value_type*	const_iterator;		///< stl like pointer iterator
@@ -286,6 +234,7 @@ public:
 		size_t position()		{ return (this->ptr && this->base && this->ptr>=base->begin() && this->ptr<=base->end())?(this->ptr-base->begin()):(0); }
 		bool isvalid() const	{ return (this->ptr && this->base && base->begin()<=base->end() && this->ptr>=base->begin() && this->ptr<=base->end()); }
 		operator bool() const	{ return this->isvalid(); }
+		bool operator !() const	{ return !this->isvalid(); }
 		T* operator()()			{ return this->isvalid()?this->ptr:NULL; }
 		T& operator*()			{ return *this->ptr; }
 		T* operator->()			{ return this->isvalid()?this->ptr:NULL; }
@@ -335,6 +284,11 @@ public:
 		bool operator> (const iterator&i) const	{ return this->ptr> i.ptr; }
 		bool operator<=(const iterator&i) const	{ return this->ptr<=i.ptr; }
 		bool operator< (const iterator&i) const	{ return this->ptr< i.ptr; }
+
+		bool operator&&(const iterator&i) const	{ return this->isvalid() && i.isvalid(); }
+		bool operator||(const iterator&i) const	{ return this->isvalid() || i.isvalid(); }
+
+
 	};
 
 
@@ -353,6 +307,8 @@ public:
 	virtual       T* final()=0;
 };
 
+template <typename T>
+const RETURN_TYPENAME allocator<T>::size_type allocator<T>::npos = static_cast<typename allocator<T>::size_type>(-1);
 
 
 
@@ -418,7 +374,7 @@ protected:
 			if(!tmp) return false;
 			if(this->cBuf)
 			{
-				this->intern_copy(tmp, this->cBuf, used_count);
+				elaborator::intern_copy<T>(tmp, this->cBuf, used_count);
 				delete[] this->cBuf;
 			}
 			this->cEnd = tmp+sz;
@@ -484,7 +440,7 @@ protected:
 			if(!tmp) return false;
 			if(this->cBuf)
 			{
-				this->intern_copy(tmp, this->cBuf, used_count);
+				elaborator::intern_copy<T>(tmp, this->cBuf, used_count);
 				delete[] this->cBuf;
 			}
 			this->cEnd = tmp+sz;
@@ -580,7 +536,7 @@ protected:
 			if(!tmp) return false;
 			if(this->cBuf)
 			{
-				this->intern_copy(tmp, this->cRpp, used_count);
+				elaborator::intern_copy(tmp, this->cRpp, used_count);
 				delete[] this->cBuf;
 			}
 			this->cEnd = tmp+sz;
@@ -590,7 +546,7 @@ protected:
 		}
 		else if( this->cWpp+addsize > this->cEnd )
 		{	// moving the current buffer data is sufficient
-			this->intern_move(this->cBuf, this->cRpp, used_count);
+			elaborator::intern_move(this->cBuf, this->cRpp, used_count);
 			this->cWpp = this->cBuf+used_count;
 			this->cRpp = this->cBuf;
 		}
@@ -620,7 +576,7 @@ protected:
 		if( this->cWpp+addsize > this->cEnd && this->cBuf < this->cRpp )
 		{	// move the current buffer data when necessary and possible 
 			const size_t used_count = this->cWpp-this->cRpp;
-			this->intern_move(this->cBuf, this->cRpp, used_count);
+			elaborator::intern_move(this->cBuf, this->cRpp, used_count);
 			this->cWpp = this->cBuf+used_count;
 			this->cRpp = this->cBuf;
 		}
@@ -705,7 +661,7 @@ protected:
 			if(!tmp) return false;
 			if(this->cBuf)
 			{
-				this->intern_copy(tmp, this->cRpp, used_count);
+				elaborator::intern_copy(tmp, this->cRpp, used_count);
 				delete[] this->cBuf;
 			}
 			this->cEnd = tmp+sz;
@@ -716,7 +672,7 @@ protected:
 		}
 		else if( this->cWpp+addsize > this->cEnd )
 		{	// moving the current buffer data is sufficient
-			this->intern_move(this->cBuf, this->cRpp, used_count);
+			elaborator::intern_move(this->cBuf, this->cRpp, used_count);
 			this->cWpp = this->cBuf+used_count;
 			this->cScn = this->cBuf+(this->cScn-this->cRpp);
 			this->cRpp = this->cBuf;
@@ -744,7 +700,7 @@ protected:
 /// dynamic file read-buffer.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T=unsigned char>
-class allocator_file : public allocator_r_dy<T>, public elaborator_ct<T> 
+class allocator_file : public allocator_r_dy<T>
 {
 	FILE *cFile;
 public:

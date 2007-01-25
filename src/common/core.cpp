@@ -43,7 +43,7 @@ const char *uptime::tostring(char *buffer)
 	unsigned long day, minute, hour, seconds;
 	getvalues(day, minute, hour, seconds);
 
-	snprintf(buf, sizeof(buf), "%ld days, %ld hours, %ld minutes, %ld seconds",
+	snprintf(buf, sizeof(buf), "%lu days, %lu hours, %lu minutes, %lu seconds",
 		(unsigned long)day, (unsigned long)minute, (unsigned long)hour, (unsigned long)seconds);
 	return buf;
 }
@@ -84,7 +84,7 @@ void pid_create(const char* file)
 		fp = basics::safefopen(pid_file,"w");
 		if(fp)
 		{
-			fprintf(fp,"%ld", (unsigned long)GetCurrentProcessId());
+			fprintf(fp,"%lu", (unsigned long)GetCurrentProcessId());
 			fclose(fp);
 		}
 	}

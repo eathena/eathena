@@ -453,7 +453,8 @@ int recv_to_fifo(int fd)
 
 		if(len > (int)RFIFOSPACE(fd))
 		{
-			ShowError("Read Socket out of bound\n");
+			ShowError("Read Socket out of bound\n"
+				CL_SPACE"error not recoverable, quitting.\n");
 			exit(1);
 		}
 #ifdef SOCKET_DEBUG_PRINT
@@ -722,7 +723,9 @@ int WFIFOSET(int fd,size_t len)
 		if( session[fd]->wdata_size > session[fd]->wdata_max )
 		{	// we had a buffer overflow already
 			unsigned long ip = session[fd]->client_ip;
-			ShowError("socket: Buffer Overflow. Connection %d (%d.%d.%d.%d). has written %d bytes (%d allowed).\n",fd, (ip>>24)&0xFF, (ip>>16)&0xFF, (ip>>8)&0xFF, (ip)&0xFF, session[fd]->wdata_size+len, session[fd]->wdata_max);
+			ShowError("socket: Buffer Overflow. Connection %d (%d.%d.%d.%d). has written %d bytes (%d allowed).\n"
+				CL_SPACE"error not recoverable, quitting.\n",
+				fd, (ip>>24)&0xFF, (ip>>16)&0xFF, (ip>>8)&0xFF, (ip)&0xFF, session[fd]->wdata_size+len, session[fd]->wdata_max);
 			exit(1);
 		}
 
@@ -785,7 +788,8 @@ int connect_client(int listen_fd)
 	sock = accept(SessionGetSocket(listen_fd),(struct sockaddr*)&client_address,&len);
 	if(sock==-1) 
 	{	// same here, app might have passed away
-		perror("accept");
+		ShowError("accept: %s\n",
+			basics::sockerrmsg(basics::sockerrno()));
 		return -1;
 	}
 	else if( !const_cast<basics::ipfilter&>(*ddos).access_from(ntohl(client_address.sin_addr.s_addr)) )
@@ -879,14 +883,17 @@ int make_listen(unsigned long ip, unsigned short port)
 
 	result = bind(sock, (struct sockaddr*)&server_address, sizeof(server_address));
 	if( result == -1 ) {
+		ShowError("bind: %s\n"CL_SPACE"error not recoverable, quitting.\n",
+			basics::sockerrmsg(basics::sockerrno()));
 		closesocket(sock);
-		perror("bind");
 		exit(1);
 	}
 	result = listen( sock, 5 );
 	if( result == -1 ) {
+		ShowError("listen: %s\n"CL_SPACE"error not recoverable, quitting.\n",
+			basics::sockerrmsg(basics::sockerrno()));
 		closesocket(sock);
-		perror("listen");
+		ShowError(CL_SPACE"error not recoverable, quitting.\n");
 		exit(1);
 	}
 
@@ -1287,7 +1294,7 @@ void debug_output()
 {
 	if( 0!=strcmp(temp_buffer1,temp_buffer2) )
 	{
-		printf("[%ld]%s\n",(unsigned long)last_tick, temp_buffer1);
+		printf("[%lu]%s\n",(unsigned long)last_tick, temp_buffer1);
 		fflush(stdout);
 		memcpy(temp_buffer2, temp_buffer1,sizeof(temp_buffer1));
 	}

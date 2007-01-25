@@ -48,7 +48,7 @@ public:
 	}
 
 	// external calling from external timer implementation
-	static int CTimerHandler::timercallback(int timer, unsigned long tick, int id, basics::numptr data)
+	static int timercallback(int timer, unsigned long tick, int id, basics::numptr data)
 	{
 		if(data.isptr)
 		{
@@ -212,7 +212,7 @@ void dump_timer_heap(void)
 		} else {
 			printf(" ");
 		}
-		printf("%4ld : %4ld %ld\n", (unsigned long)j, (unsigned long)timer_heap[j], (unsigned long)timer_data[timer_heap[j]].tick);
+		printf("%4lu : %4lu %lu\n", (unsigned long)j, (unsigned long)timer_heap[j], (unsigned long)timer_data[timer_heap[j]].tick);
 	}
 }
 

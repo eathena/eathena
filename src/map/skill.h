@@ -95,13 +95,14 @@ struct fightable;
 /// declares a common interface for skills.
 class skillbase : public basics::global, public basics::noncopyable
 {
+	bool		doublecasted;
 public:
 	int			timerid;	///< will replace skilltimer
 	fightable	&caster;	///< casting object
 protected:
 	/// protected constructor.
 	/// only derived can create
-	skillbase(fightable &c) : timerid(-1), caster(c)	{}
+	skillbase(fightable &c) : doublecasted(false), timerid(-1), caster(c)	{}
 public:
 	/// destructor.
 	virtual ~skillbase();
@@ -115,7 +116,7 @@ public:
 	/// overload with specific needs
 	/// timeoffset receives the tick for delayed execution,
 	/// returns true when execution is ok
-	virtual bool init(ulong& timeoffset)=0;
+	virtual bool init(unsigned long& timeoffset)=0;
 	/// function called for skill execution.
 	/// overload with specific needs
 	virtual void action(unsigned long tick)=0;
@@ -129,7 +130,11 @@ public:
 	virtual ushort get_skillid() const=0;
 	/// return object skill level
 	virtual ushort get_skilllv() const=0;
-
+	/// check for doublecast.
+	virtual bool doublecast(unsigned long& timeoffset) const
+	{
+		return false;
+	}
 	// different static constructors
 	static skillbase* create(fightable& caster, ushort skillid, ushort skilllv, uint32 targetid);
 	static skillbase* create(fightable& caster, ushort skillid, ushort skilllv, ushort x, ushort y, const char*extra=NULL);
@@ -137,7 +142,8 @@ public:
 private:
 	/// check for timed or immediate execution
 	static void initialize(ushort skillid, skillbase*& skill);
-	static int skillbase::timer_entry(int tid, unsigned long tick, int id, basics::numptr data);
+	static int timer_entry(int tid, unsigned long tick, int id, basics::numptr data);
+	static int timer_entry_double(int tid, unsigned long tick, int id, basics::numptr data);
 };
 
 

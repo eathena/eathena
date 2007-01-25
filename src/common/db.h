@@ -159,7 +159,7 @@ public:
 	bool next()						{ if(curr) curr=curr->next; return NULL!=curr; }
 	bool prev()						{ if(curr) curr=curr->prev; return NULL!=curr; }
 
-	operator const bool() const		{ return NULL!=curr; }
+	operator bool() const			{ return NULL!=curr; }
 	bool isValid() const			{ return NULL!=curr; }
 
 	KEY  key() const				{ return (KEY) (size_t)((curr) ? curr->key  : NULL); }

@@ -876,7 +876,7 @@ const char *CMessageTable::operator()(msg_t msg_number)
 {
 	if( (int)msg_number < MAX_MSG && this->msg_table[msg_number] && *this->msg_table[msg_number] )
 		return msg_table[msg_number];
-	return "??";
+	return "";
 }
 
 
@@ -899,22 +899,23 @@ bool CMessageTable::read(const char *cfgName)
 			if( prepare_line(line) && 2==sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
 			{
 				basics::itrim(w1);
-				if(!*w1) continue;
 				basics::itrim(w2);
-
-				if(strcasecmp(w1, "import") == 0)
+				if( *w1 && *w2 )
 				{
-					this->read(w2);
-				}
-				else
-				{
-					msg_number = atoi(w1);
-					if(msg_number < MAX_MSG)
+					if(strcasecmp(w1, "import") == 0)
 					{
-						if (msg_table[msg_number] != NULL)
-							delete[] msg_table[msg_number];
-						msg_table[msg_number] = new char[(1+strlen(w2))];
-						memcpy(msg_table[msg_number],w2,1+strlen(w2));
+						this->read(w2);
+					}
+					else
+					{
+						msg_number = atoi(w1);
+						if(msg_number < MAX_MSG)
+						{
+							if (msg_table[msg_number] != NULL)
+								delete[] msg_table[msg_number];
+							msg_table[msg_number] = new char[(1+strlen(w2))];
+							memcpy(msg_table[msg_number],w2,1+strlen(w2));
+						}
 					}
 				}
 			}

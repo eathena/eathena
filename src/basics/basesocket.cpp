@@ -381,7 +381,7 @@ void test_id()
 	uint64 i = CIDVal::idclient.aquire();
 
 	for(i=0; i<CIDVal::idclient.idlist.size(); ++i)
-		printf("%i ", CIDVal::idclient.idlist[(size_t)i]); 
+		printf("%i ", (int)CIDVal::idclient.idlist[(size_t)i]); 
 #endif//DEBUG
 }
 
@@ -511,9 +511,9 @@ void test_socket()
 		
 		SOCKET client;
 		struct sockaddr_in client_address;
-		socklen_t len = sizeof(client_address);
+		socklen_t socklen = sizeof(client_address);
 
-		client = accept(server,(struct sockaddr*)&client_address,&len);
+		client = accept(server,(struct sockaddr*)&client_address, &socklen);
 		if(client==-1) 
 		{	// same here, app might have passed away
 			perror("accept");
@@ -527,8 +527,8 @@ void test_socket()
 		{	// we are reading 'arg' bytes of data from the socket
 			char buffer[1024];
 			if( arg > sizeof(buffer) ) arg = sizeof(buffer);
-			int len=read(client,buffer,arg);
-			buffer[len]=0;
+			const int readlen = read(client,buffer,arg);
+			buffer[readlen]=0;
 			FILE*ff = fopen("test.txt", "wb");
 			fprintf(ff, buffer);
 			fclose(ff);
@@ -643,19 +643,17 @@ void test_socket()
 
 		int num = ::select(FD_SETSIZE/2,NULL,(fd_set *)&fd,NULL,&timeout);
 
-		printf("%i\n", num);
+		printf("%i\n", (int)num);
 		for(i=0; i<howmany(2*FD_SETSIZE,NBBY*sizeof(ulong)); ++i)
-			printf("%X ", fd.fd_array[i]);
+			printf("%lX ", (ulong)fd.fd_array[i]);
 		printf("\n");
 
 		num = ::select(FD_SETSIZE,(fd_set *)&fd,NULL,NULL,&timeout);
 
-		printf("%i\n", num);
+		printf("%i\n", (int)num);
 		for(i=0; i<howmany(2*FD_SETSIZE,NBBY*sizeof(ulong)); ++i)
-			printf("%X ", fd.fd_array[i]);
+			printf("%lX ", (ulong)fd.fd_array[i]);
 		printf("\n");
-		
-
 	}
 
 
@@ -709,7 +707,7 @@ public:
 	}
 	static void processorprint(SOCKET s)
 	{
-		printf("%i ", s);
+		printf("%i ", (int)s);
 	}
 
 	testserver(const unsigned short port)
@@ -750,13 +748,14 @@ public:
 		{
 			CFDSET tmp = this->fds;
 			struct timeval timeout = {1,0};
-			int i;
+			
 			
 			//printf("start select %i with ", (int)tmp.size());
 			//tmp.foreach1(&this->processorprint, this->fds.size());
 			//printf("\n");
 			
-			if( (i=::select(tmp.size(), tmp, NULL, NULL, &timeout))>0 )
+			const int i = ::select(tmp.size(), tmp, NULL, NULL, &timeout);
+			if( i>0 )
 			{
 				//printf("select %i: ",i);
 				//tmp.foreach1(&this->processorprint, this->fds.size());
@@ -806,7 +805,7 @@ public:
 			(len=read(this->sock,buffer,arg)) )
 		{
 			buffer[len]=0;
-			printf("[%5i]recv %p,%i (len=%lu): '%s' \n", (int)server.sessionmap.size(), this, this->sock, len, buffer); fflush(stdout);
+			printf("[%5i]recv %p,%i (len=%lu): '%s' \n", (int)server.sessionmap.size(), this, (int)this->sock, len, buffer); fflush(stdout);
 		}
 		else
 		{
@@ -828,7 +827,7 @@ int testserver::run()
 	if(s!=INVALID_SOCKET) 
 	{
 		testproc* p = new testproc(s, *this);
-		printf("incoming from %X (%p = #%i)(socket %i)\n", ntohl(client_address.sin_addr.s_addr), p, (int)this->sessionmap.size(),s );
+		printf("incoming from %X (%p = #%i)(socket %i)\n", (int)ntohl(client_address.sin_addr.s_addr), p, (int)this->sessionmap.size(), (int)s );
 	}
 	else
 	{
@@ -863,7 +862,7 @@ public:
 			(len=read(this->sock,buffer,arg)) )
 		{
 			buffer[len]=0;
-			printf("[%5i]recv %p,%i (len=%lu): '%s' \n", 0, this, this->sock, len, buffer); fflush(stdout);
+			printf("[%5i]recv %p,%i (len=%lu): '%s' \n", 0, this, (int)this->sock, len, buffer); fflush(stdout);
 		}
 		else
 		{

@@ -245,7 +245,7 @@ private:
 			}
 			return ret;
 		}
-		virtual void setStack(size_t &def,size_t &ptr, size_t max, CValue*&stack)
+		virtual void setStack(size_t &def, size_t &ptr, size_t &max, CValue*&stack)
 		{	// dummy, used for transfering a queued stack on derived class
 		}
 	///////////////////////////////////////////////////////////////////////////

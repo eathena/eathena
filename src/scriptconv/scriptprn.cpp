@@ -77,9 +77,33 @@ void str2strip_quotes(char*target, size_t sz, const char*str)
 }
 
 
+
+///////////////////////////////////////////////////////////////////////////////
+namespace print
+{
+
+void console_printer::put(const char *str)
+{
+	if(str)
+	{
+		for(; *str; ++str)
+			this->put(*str);
+	}
+}
+
+
+console_printer message(stdout);
+console_printer warning(stdout);
+console_printer error(stderr);
+
+}
+// end namespace print
 ///////////////////////////////////////////////////////////////////////////////
 
-void printer::put(const char c)
+
+
+
+void default_printer::put(const char c)
 {	// ignore carriage return
 	if( c!='\r' )
 	{
@@ -93,35 +117,27 @@ void printer::put(const char c)
 		fputc( (this->newline && ignore_nl)?' ':c, this->output);
 	}
 }
-void printer::put(const char *str)
-{
-	if(str)
-	{
-		for(; *str; ++str)
-			this->put(*str);
-	}
-}
 
-void printer::print_id(const char* str)
+void default_printer::print_id(const char* str)
 {
 	if(str)
 	{	// convert to id (\w[\w\d]*)
-		printer& prn = *this;
+		default_printer& prn = *this;
 		const char c = unescape(str);
 		prn << (basics::stringcheck::isalpha(c)?c:'_');
 		for(++str; *str; ++str)
 		{	
-			const char c = unescape(str);
-			prn << (basics::stringcheck::isalnum(c)?c:'_');
+			const char x = unescape(str);
+			prn << (basics::stringcheck::isalnum(x)?x:'_');
 		}
 	}
 }
 
-void printer::print_name(const char* str)
+void default_printer::print_name(const char* str)
 {
 	if(str)
 	{	// ignore controls, replace quotes with escapes
-		printer& prn = *this;
+		default_printer& prn = *this;
 		for(; *str; ++str)
 		{
 			if( !basics::stringcheck::iscntrl(*str) )
@@ -134,11 +150,11 @@ void printer::print_name(const char* str)
 	}
 }
 
-void printer::print_without_quotes(const char* str)
+void default_printer::print_without_quotes(const char* str)
 {
 	if(str)
 	{	
-		printer& prn = *this;
+		default_printer& prn = *this;
 		if(*str=='\"') ++str;
 		for(; *str && (str[0]!='\"' || str[1]); ++str)
 		{
@@ -152,9 +168,9 @@ void printer::print_without_quotes(const char* str)
 	}
 }
 
-void printer::print_comments(basics::CParser_CommentStore& parser, int rtpos)
+void default_printer::print_comments(basics::CParser_CommentStore& parser, int rtpos)
 {
-	printer& prn = *this;
+	default_printer& prn = *this;
 
 	// go down the first node until reaching a terminal
 	size_t linelimit = static_cast<size_t>(-1);
@@ -190,7 +206,7 @@ void printer::print_comments(basics::CParser_CommentStore& parser, int rtpos)
 }
 
 
-int printer::log(const char*fmt, ...)
+int default_printer::log(const char*fmt, ...)
 {
 	if(logfile)
 	{
@@ -233,7 +249,7 @@ static int internlog(FILE*logfile, basics::CParser_CommentStore& parser, int rtp
 	return ret;
 }
 
-int printer::log(basics::CParser_CommentStore& parser, int rtpos)
+int default_printer::log(basics::CParser_CommentStore& parser, int rtpos)
 {
 	if(logfile)
 	{

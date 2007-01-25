@@ -5,9 +5,6 @@
 /// exceptions
 //////////////////////////////////////////////////////////////////////////
 
-#include "basetypes.h"
-#include "baseobjects.h"
-
 
 NAMESPACE_BEGIN(basics)
 
@@ -17,7 +14,7 @@ NAMESPACE_BEGIN(basics)
 /// when including any c++ header (same with string), 
 /// so retreat to an own namespace.
 /// low level cstring removes higher object dependency
-class exception : public global
+class exception
 {
 protected:
     char* message;

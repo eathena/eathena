@@ -301,13 +301,9 @@ int mapif_parse_PartyChangeOption(int fd, uint32 party_id, uint32 account_id, un
 {
 	CParty p;
 	int flag = 0;
-	unsigned short esold, isold;
 
 	if( cPartyDB.searchParty(party_id, p) )
 	{
-		esold = p.expshare;
-		isold = p.itemshare;
-
 		if( party_check_exp_share(p) )
 		{
 			p.itemshare = itemshare;

@@ -83,7 +83,7 @@
 #define nullpo_retb(t) if (nullpo_chk(NLP_MARK, (void *)(t))) {break;}
 
 // 可変引数マクロに関する条件コンパイル
-#if __STDC_VERSION__ >= 199901L
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 // C99に対応 
 #define nullpo_ret_f(t, fmt, ...) if (nullpo_chk_f(NLP_MARK, (void *)(t), (fmt), __VA_ARGS__)) {return(0);}
 
@@ -93,7 +93,7 @@
 
 #define nullpo_retb_f(t, fmt, ...) if (nullpo_chk_f(NLP_MARK, (void *)(t), (fmt), __VA_ARGS__)) {break;}
 
-#elif __GNUC__ >= 2
+#elif defined(__GNUC__) && __GNUC__ >= 2
 // GCC用 
 #define nullpo_ret_f(t, fmt, args...) if (nullpo_chk_f(NLP_MARK, (void *)(t), (fmt), ## args)) {return(0);}
 

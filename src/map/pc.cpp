@@ -433,18 +433,18 @@ bool map_session_data::do_walkstep(unsigned long tick, const coordinate &target,
 	}
 
 	// 被ディボ?ション?査 
-	if( this->sc_data[SC_DANCING].timer != -1 && this->sc_data[SC_DANCING].val2.isptr )
+	if( this->sc_data[SC_DANCING].timer != -1 )
 	{
-		struct skill_unit_group *ptr = (struct skill_unit_group *)this->sc_data[SC_DANCING].val2.ptr;
+		struct skill_unit_group *ptr = (struct skill_unit_group *)this->sc_data[SC_DANCING].pointer2();
 		if(ptr) skill_unit_move_unit_group(*ptr, this->block_list::m, dx, dy);
 	}
 
-	if (this->sc_data[SC_DEVOTION].val1.num)
-		skill_devotion2(this, this->sc_data[SC_DEVOTION].val1.num);
+	if (this->sc_data[SC_DEVOTION].integer1())
+		skill_devotion2(this, this->sc_data[SC_DEVOTION].integer1());
 
 	if (this->sc_data[SC_BASILICA].timer != -1)
 	{	// Basilica cancels if caster moves [celest]
-		struct skill_unit_group *sg = (struct skill_unit_group *)this->sc_data[SC_BASILICA].val4.ptr;
+		struct skill_unit_group *sg = (struct skill_unit_group *)this->sc_data[SC_BASILICA].pointer4();
 		if (sg && sg->src_id == this->block_list::id)
 			skill_delunitgroup (*sg);
 		status_change_end(this,SC_BASILICA,-1);
@@ -3582,7 +3582,7 @@ bool pc_setpos(map_session_data &sd, const char *mapname_org, unsigned short x, 
 	if(sd.sc_data[SC_DANCING].timer!=-1) // clear dance effect when warping [Valaris]
 		skill_stop_dancing(&sd,0);
 	if (sd.sc_data[SC_BASILICA].timer!=-1) {
-		struct skill_unit_group *sg = (struct skill_unit_group *)sd.sc_data[SC_BASILICA].val4.ptr;
+		struct skill_unit_group *sg = (struct skill_unit_group *)sd.sc_data[SC_BASILICA].pointer4();
 		if (sg && sg->src_id == sd.block_list::id)
 				skill_delunitgroup (*sg);
 		status_change_end(&sd,SC_BASILICA,-1);
@@ -4168,8 +4168,8 @@ int pc_gainexp(map_session_data &sd,uint32 base_exp,uint32 job_exp)
 
 	if( sd.sc_data[SC_RICHMANKIM].timer != -1)
 	{
-		base_exp += base_exp*(25 + sd.sc_data[SC_RICHMANKIM].val1.num*11)/100;
-		job_exp += job_exp*(25 + sd.sc_data[SC_RICHMANKIM].val1.num*11)/100;
+		base_exp += base_exp*(25 + sd.sc_data[SC_RICHMANKIM].integer1()*11)/100;
+		job_exp += job_exp*(25 + sd.sc_data[SC_RICHMANKIM].integer1()*11)/100;
 	}
 
 	if(sd.status.guild_id>0)
@@ -4773,15 +4773,15 @@ int pc_damage(map_session_data &sd, long damage, block_list *src)
 			;	// do nothing
 		else if (sd.sc_data[SC_ENDURE].timer != -1 && (src != NULL && *src == BL_MOB) && !maps[sd.block_list::m].flag.gvg)
 		{
-			if( !sd.state.infinite_endure && (--sd.sc_data[SC_ENDURE].val2.num) < 0 )
+			if( !sd.state.infinite_endure && (--sd.sc_data[SC_ENDURE].integer2()) < 0 )
 				status_change_end(&sd, SC_ENDURE, -1);
 		}
 		else
 			sd.stop_walking(3);
 
-		if( sd.sc_data[SC_GRAVITATION].timer != -1 && sd.sc_data[SC_GRAVITATION].val3.num == BCT_SELF)
+		if( sd.sc_data[SC_GRAVITATION].timer != -1 && sd.sc_data[SC_GRAVITATION].integer3() == BCT_SELF)
 		{
-			struct skill_unit_group *sg = (struct skill_unit_group *)sd.sc_data[SC_GRAVITATION].val4.ptr;
+			struct skill_unit_group *sg = (struct skill_unit_group *)sd.sc_data[SC_GRAVITATION].pointer4();
 			if (sg)
 			{
 				skill_delunitgroup(*sg);
@@ -4817,8 +4817,8 @@ int pc_damage(map_session_data &sd, long damage, block_list *src)
 		clif_updatestatus(sd,SP_HP);
 
 		//if(sd.status.hp<sd->status.max_hp/4 && sd.skill_check(SM_AUTOBERSERK)>0 &&
-		if(sd.status.hp<sd.status.max_hp/4 && sd.sc_data[SC_AUTOBERSERK].timer != -1 &&
-			(sd.sc_data[SC_PROVOKE].timer==-1 || sd.sc_data[SC_PROVOKE].val2.num==0 ))
+		if( sd.status.hp<sd.status.max_hp/4 && sd.has_status(SC_AUTOBERSERK) &&
+			( !sd.has_status(SC_PROVOKE) || sd.sc_data[SC_PROVOKE].integer2()==0 ))
 			// オ?トバ?サ?ク?動
 			status_change_start(&sd,SC_PROVOKE,10,1,0,0,0,0);
 
@@ -6245,7 +6245,7 @@ int pc_equipitem(map_session_data &sd,unsigned short inx, unsigned short pos)
 	}
 	else
 	{
-		if(	sd.sc_data[SC_ENDURE].timer != -1 && sd.sc_data[SC_ENDURE].val2.num)
+		if(	sd.sc_data[SC_ENDURE].timer != -1 && sd.sc_data[SC_ENDURE].integer2())
 			status_change_end(&sd,SC_ENDURE,-1);
 	}
 	if( sd.sc_data[SC_SIGNUMCRUCIS].timer != -1 && !sd.is_undead() )
@@ -6711,7 +6711,7 @@ int pc_spheal(map_session_data *sd)
 		if (sd->sc_data[SC_MAGNIFICAT].timer!=-1)	// マグニフィカ?ト
 			a += a;
 		if (sd->sc_data[SC_REGENERATION].timer != -1)
-			a *= sd->sc_data[SC_REGENERATION].val1.num;
+			a *= sd->sc_data[SC_REGENERATION].integer1();
 	}
 	// Re-added back to status_calc
 	//if((skill = sd.skill_check(HP_MEDITATIO)) > 0) //Increase natural SP regen with Meditatio [DracoRPG]
@@ -6748,7 +6748,7 @@ int pc_hpheal(map_session_data *sd)
 	if (sd->sc_data[SC_MAGNIFICAT].timer != -1)	// Modified by RoVeRT
 		a += a;
 	if (sd->sc_data[SC_REGENERATION].timer != -1)
-		a *= sd->sc_data[SC_REGENERATION].val1.num;
+		a *= sd->sc_data[SC_REGENERATION].integer1();
 
 	if (sd->status.guild_id > 0) {
 		struct guild_castle *gc = guild_mapname2gc(sd->mapname);	// Increased guild castle regen [Valaris]

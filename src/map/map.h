@@ -164,10 +164,10 @@ enum { ATK_LUCKY=1,ATK_FLEE,ATK_DEF};	// 囲まれペナルティ計算用
 
 // 装備コード
 enum {
-	EQP_WEAPON		= 1,		// 右手
-	EQP_ARMOR		= 2,		// 体
-	EQP_SHIELD		= 4,		// 左手
-	EQP_HELM		= 8,		// 頭上段
+	EQP_WEAPON		= 1,	// 右手
+	EQP_ARMOR		= 2,	// 体
+	EQP_SHIELD		= 4,	// 左手
+	EQP_HELM		= 8		// 頭上段
 };
 
 
@@ -197,7 +197,7 @@ enum skillfail_t
 	SF_WEAPON	= 0x0006,	//	type==6 "wrong weapon"
 	SF_REDGEM	= 0x0007,	//	type==7 "red jemstone needed"
 	SF_BLUEGEM	= 0x0008,	//	type==8 "blue jemstone needed"
-	SF_WEIGHT	= 0x0009,	//	type==9 "overweight"
+	SF_WEIGHT	= 0x0009	//	type==9 "overweight"
 };
 
 
@@ -339,7 +339,7 @@ public:
 	static int foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int range,object_t type);
 	static int foreachpartymemberonmap(const CMapProcessor& elem, map_session_data &sd, bool area);
 	static int foreachobject(const CMapProcessor& elem,object_t type);
-	static skill_unit *block_list::skillunit_oncell(block_list &target, int x, int y, ushort skill_id, skill_unit *out_unit);
+	static skill_unit *skillunit_oncell(block_list &target, int x, int y, ushort skill_id, skill_unit *out_unit);
 
 
 	/////////////////////////////////////////////////////////////////
@@ -575,7 +575,9 @@ public:
 	virtual bool is_idle() const			{ return true; }
 
 	/// sets the object to idle state
-	virtual bool set_idle(ulong delaytick=0){ return false; }
+	virtual bool set_idle()					{ return false; }
+	/// sets the object delay
+	virtual void set_delay(ulong delaytick)	{ this->set_idle(); }
 	/// sets the object to idle state
 	virtual bool set_dead()					{ return false; }
 	/// sets the object to sitting state
@@ -621,13 +623,13 @@ public:
 
 	////////
 	//## TODO
-	virtual int block_list::get_max_hp() const;
-	virtual int block_list::get_str() const;
-	virtual int block_list::get_agi() const;
-	virtual int block_list::get_vit() const;
-	virtual int block_list::get_int() const;
-	virtual int block_list::get_dex() const;
-	virtual int block_list::get_luk() const;
+	virtual int get_max_hp() const;
+	virtual int get_str() const;
+	virtual int get_agi() const;
+	virtual int get_vit() const;
+	virtual int get_int() const;
+	virtual int get_dex() const;
+	virtual int get_luk() const;
 	////////
 
 
@@ -669,7 +671,8 @@ public:
 	// targeting functions
 
 	/// unlock from current target
-	virtual void unlock_target()		{ }
+	virtual void unlock_target()						{ unlock_target(0); }
+	virtual void unlock_target(unsigned long tick)		{ }
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -899,7 +902,7 @@ enum {
 	GAT_UNUSED2		= 4,
 	GAT_GROUND		= 5,	// not passable but can shoot/cast over it
 	GAT_HOLE		= 6,	// holes in morroc desert
-	GAT_UNUSED3		= 7,
+	GAT_UNUSED3		= 7
 };
 
 struct mapgat // values from .gat & 

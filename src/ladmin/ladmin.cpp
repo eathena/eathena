@@ -250,7 +250,7 @@ int ladmin_log(char *fmt, ...)
 			gettimeofday(&tv, NULL);
 			unixtime=tv.tv_sec;
 			strftime(tmpstr, 24, date_format, localtime(&unixtime));
-			sprintf(tmpstr + strlen(tmpstr), ".%03ld: %s", tv.tv_usec / 1000, fmt);
+			sprintf(tmpstr + strlen(tmpstr), ".%03ld: %s", (long)(tv.tv_usec / 1000), fmt);
 
 			va_list ap;
 			va_start(ap, fmt);
@@ -286,7 +286,6 @@ char* makeordinal(int number) {
 			return "th";
 		}
 	}
-	return "";
 }
 
 //-----------------------------------------------------------------------------------------
@@ -3456,18 +3455,18 @@ int parse_fromlogin(int fd)
 				return 0;
 			if( (int)RFIFOL(fd,2) == -1 ) {
 				if (defaultlanguage == 'F') {
-					ShowMessage("Echec du changement du statut du compte [%s]. Le compte n'existe pas.\n", RFIFOP(fd,6));
-					ladmin_log("Echec du changement du statut du compte [%s]. Le compte n'existe pas." RETCODE, RFIFOP(fd,6));
+					ShowMessage("Echec du changement du statut du compte [%s]. Le compte n'existe pas.\n", (char*)RFIFOP(fd,6));
+					ladmin_log("Echec du changement du statut du compte [%s]. Le compte n'existe pas." RETCODE, (char*)RFIFOP(fd,6));
 				} else {
-					ShowMessage("Account [%s] state changing failed. Account doesn't exist.\n", RFIFOP(fd,6));
-					ladmin_log("Account [%s] state changing failed. Account doesn't exist." RETCODE, RFIFOP(fd,6));
+					ShowMessage("Account [%s] state changing failed. Account doesn't exist.\n", (char*)RFIFOP(fd,6));
+					ladmin_log("Account [%s] state changing failed. Account doesn't exist." RETCODE, (char*)RFIFOP(fd,6));
 				}
 			} else {
 				char tmpstr[256];
 				if (defaultlanguage == 'F') {
-					snprintf(tmpstr, sizeof(tmpstr), "Statut du compte [%s] changé avec succès en [", RFIFOP(fd,6));
+					snprintf(tmpstr, sizeof(tmpstr), "Statut du compte [%s] changé avec succès en [", (char*)RFIFOP(fd,6));
 				} else {
-					snprintf(tmpstr, sizeof(tmpstr), "Account [%s] state successfully changed in [", RFIFOP(fd,6));
+					snprintf(tmpstr, sizeof(tmpstr), "Account [%s] state successfully changed in [", (char*)RFIFOP(fd,6));
 				}
 				switch(RFIFOL(fd,30)) {
 				case 0:

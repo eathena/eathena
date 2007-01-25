@@ -234,7 +234,8 @@ void* aMalloc_ (size_t size, const char *file, int line, const char *func)
 #endif
 	// ShowMessage("%s:%d: in func %s: malloc %d\n",file,line,func,size);
 	if (ret == NULL){
-		ShowFatalError("%s:%d: in func %s: malloc error out of memory!\n",file,line,func);
+		ShowFatalError("%s:%d: in func %s: malloc error out of memory!\n"
+			CL_SPACE"error not recoverable, quitting.\n",file,line,func);
 		exit(1);
 	}
 	return ret;
@@ -248,7 +249,8 @@ void* aMallocA_ (size_t size, const char *file, int line, const char *func)
 #endif
 	// ShowMessage("%s:%d: in func %s: malloc %d\n",file,line,func,size);
 	if (ret == NULL){
-		ShowFatalError("%s:%d: in func %s: malloc error out of memory!\n",file,line,func);
+		ShowFatalError("%s:%d: in func %s: malloc error out of memory!\n"
+			CL_SPACE"error not recoverable, quitting.\n",file,line,func);
 		exit(1);
 	}
 	return ret;
@@ -262,7 +264,8 @@ void* aCalloc_ (size_t num, size_t size, const char *file, int line, const char 
 #endif
 	// ShowMessage("%s:%d: in func %s: calloc %d %d\n",file,line,func,num,size);
 	if (ret == NULL){
-		ShowFatalError("%s:%d: in func %s: calloc error out of memory!\n", file, line, func);
+		ShowFatalError("%s:%d: in func %s: calloc error out of memory!\n"
+			CL_SPACE"error not recoverable, quitting.\n", file, line, func);
 		exit(1);
 	}
 	return ret;
@@ -276,7 +279,8 @@ void* aCallocA_ (size_t num, size_t size, const char *file, int line, const char
 #endif
 	// ShowMessage("%s:%d: in func %s: calloc %d %d\n",file,line,func,num,size);
 	if (ret == NULL){
-		ShowFatalError("%s:%d: in func %s: calloc error out of memory!\n",file,line,func);
+		ShowFatalError("%s:%d: in func %s: calloc error out of memory!\n"
+			CL_SPACE"error not recoverable, quitting.\n",file,line,func);
 		exit(1);
 	}
 	return ret;
@@ -290,7 +294,8 @@ void* aRealloc_ (void *p, size_t size, const char *file, int line, const char *f
 #endif
 	// ShowMessage("%s:%d: in func %s: realloc %p %d\n",file,line,func,p,size);
 	if (ret == NULL){
-		ShowFatalError("%s:%d: in func %s: realloc error out of memory!\n",file,line,func);
+		ShowFatalError("%s:%d: in func %s: realloc error out of memory!\n"
+			CL_SPACE"error not recoverable, quitting.\n",file,line,func);
 		exit(1);
 	}
 	return ret;
@@ -304,7 +309,8 @@ char* aStrdup_ (const char *p, const char *file, int line, const char *func)
 #endif
 	// ShowMessage("%s:%d: in func %s: strdup %p\n",file,line,func,p);
 	if (ret == NULL){
-		ShowFatalError("%s:%d: in func %s: strdup error out of memory!\n", file, line, func);
+		ShowFatalError("%s:%d: in func %s: strdup error out of memory!\n"
+			CL_SPACE"error not recoverable, quitting.\n", file, line, func);
 		exit(1);
 	}
 	return ret;
@@ -479,7 +485,8 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 		}
 		else
 		{
-			ShowFatalError("MEMMGR::memmgr_alloc failed.\n");
+			ShowFatalError("MEMMGR::memmgr_alloc failed.\n"
+				CL_SPACE"error not recoverable, quitting.\n");
 			exit(1);
 		}
 	}
@@ -561,7 +568,8 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 		}
 	}
 	// ‚±‚±‚É—ˆ‚Ä‚Í‚¢‚¯‚È‚¢B
-	ShowFatalError("MEMMGR::memmgr_malloc() serious error.\n");
+	ShowFatalError("MEMMGR::memmgr_malloc() serious error.\n"
+		CL_SPACE"error not recoverable, quitting.\n");
 	memmgr_info();
 	exit(1);
 //	return NULL;
@@ -800,7 +808,8 @@ struct block* block_malloc(void)
 		struct block* p = (struct block *) CALLOC (sizeof(struct block),BLOCK_ALLOC);
 		if(p == NULL)
 		{
-			ShowFatalError("MEMMGR::block_alloc failed.\n");
+			ShowFatalError("MEMMGR::block_alloc failed.\n"
+				CL_SPACE"error not recoverable, quitting.\n");
 			exit(1);
 		}
 		if(block_first == NULL)
@@ -887,7 +896,7 @@ void memmer_exit(void)
 				{
 				#ifdef LOG_MEMMGR
 					snprintf (buf, sizeof(buf),
-						"%04d : %s line %d size %ld\n", ++count,
+						"%04d : %s line %d size %lu\n", ++count,
 						head->file, head->line, (unsigned long)head->size);
 					memmgr_log (buf);
 				#endif
@@ -915,7 +924,7 @@ void memmer_exit(void)
 	{
 	#ifdef LOG_MEMMGR
 		snprintf (buf, sizeof(buf),
-			"%04d : %s line %d size %ld\n", ++count,
+			"%04d : %s line %d size %lu\n", ++count,
 			large->unithead.file, large->unithead.line, (unsigned long)large->unithead.size);
 		memmgr_log (buf);
 	#endif

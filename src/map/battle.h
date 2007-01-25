@@ -63,7 +63,7 @@ enum {	// 最終計算のフラグ
 	BF_NORMAL	= 0x0200,
 	BF_WEAPONMASK=0x000f,
 	BF_RANGEMASK= 0x00f0,
-	BF_SKILLMASK= 0x0f00,
+	BF_SKILLMASK= 0x0f00
 };
 
 // 実際にHPを増減

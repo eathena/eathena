@@ -452,9 +452,11 @@ public:
 	virtual size_t size() const;
 	virtual CVar& operator[](size_t i);
 
-
+	using CVarDBInterface::searchVar;
 	virtual bool searchVar(const char* name, CVar& var);
+	using CVarDBInterface::insertVar;
 	virtual bool insertVar(const char* name, const char* value);
+	using CVarDBInterface::removeVar;
 	virtual bool removeVar(const char* name);
 	virtual bool saveVar(const CVar& var);
 };

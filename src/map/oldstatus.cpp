@@ -99,7 +99,7 @@ int SkillStatusChangeTable[]={	// status.hÇÃenumÇÃSC_***Ç∆Ç†ÇÌÇπÇÈÇ±Ç∆
 // 130-
 	-1,-1,-1,-1,-1,
 	SC_CLOAKING,		// ÉNÉç?ÉLÉìÉO
-	SC_STAN,			// É\ÉjÉbÉNÉuÉç?
+	SC_STUN,			// É\ÉjÉbÉNÉuÉç?
 	-1,
 	SC_ENCPOISON,		// ÉGÉìÉ`ÉÉÉìÉgÉ|ÉCÉYÉì
 	SC_POISONREACT,		// É|ÉCÉYÉìÉäÉAÉNÉg
@@ -855,47 +855,47 @@ int status_calc_pc(map_session_data& sd, int first)
 		{
 			if( sd.has_status(SC_INCALLSTATUS) )
 			{
-				sd.paramb[0]+= sd.sc_data[SC_INCALLSTATUS].val1.num;
-				sd.paramb[1]+= sd.sc_data[SC_INCALLSTATUS].val1.num;
-				sd.paramb[2]+= sd.sc_data[SC_INCALLSTATUS].val1.num;
-				sd.paramb[3]+= sd.sc_data[SC_INCALLSTATUS].val1.num;
-				sd.paramb[4]+= sd.sc_data[SC_INCALLSTATUS].val1.num;
-				sd.paramb[5]+= sd.sc_data[SC_INCALLSTATUS].val1.num;
+				sd.paramb[0]+= sd.sc_data[SC_INCALLSTATUS].integer1();
+				sd.paramb[1]+= sd.sc_data[SC_INCALLSTATUS].integer1();
+				sd.paramb[2]+= sd.sc_data[SC_INCALLSTATUS].integer1();
+				sd.paramb[3]+= sd.sc_data[SC_INCALLSTATUS].integer1();
+				sd.paramb[4]+= sd.sc_data[SC_INCALLSTATUS].integer1();
+				sd.paramb[5]+= sd.sc_data[SC_INCALLSTATUS].integer1();
 			}
 			if( sd.has_status(SC_INCSTR) )
-				sd.paramb[0] += sd.sc_data[SC_INCSTR].val1.num;
+				sd.paramb[0] += sd.sc_data[SC_INCSTR].integer1();
 			if( sd.has_status(SC_INCAGI) )
-				sd.paramb[1] += sd.sc_data[SC_INCAGI].val1.num;
+				sd.paramb[1] += sd.sc_data[SC_INCAGI].integer1();
 			if( sd.has_status(SC_INCVIT) )
-				sd.paramb[2] += sd.sc_data[SC_INCVIT].val1.num;
+				sd.paramb[2] += sd.sc_data[SC_INCVIT].integer1();
 			if( sd.has_status(SC_INCINT) )
-				sd.paramb[3] += sd.sc_data[SC_INCINT].val1.num;
+				sd.paramb[3] += sd.sc_data[SC_INCINT].integer1();
 			if( sd.has_status(SC_INCDEX) )
-				sd.paramb[4] += sd.sc_data[SC_INCDEX].val1.num;
+				sd.paramb[4] += sd.sc_data[SC_INCDEX].integer1();
 			if( sd.has_status(SC_INCLUK) )
-				sd.paramb[5] += sd.sc_data[SC_INCLUK].val1.num;
+				sd.paramb[5] += sd.sc_data[SC_INCLUK].integer1();
 			if( sd.has_status(SC_CONCENTRATE) && !sd.has_status(SC_QUAGMIRE) )
 			{	// èWíÜóÕå¸è„
-				sd.paramb[1]+= (sd.status.agi+sd.paramb[1]+sd.parame[1]-sd.paramcard[1])*(2+sd.sc_data[SC_CONCENTRATE].val1.num)/100;
-				sd.paramb[4]+= (sd.status.dex+sd.paramb[4]+sd.parame[4]-sd.paramcard[4])*(2+sd.sc_data[SC_CONCENTRATE].val1.num)/100;
+				sd.paramb[1]+= (sd.status.agi+sd.paramb[1]+sd.parame[1]-sd.paramcard[1])*(2+sd.sc_data[SC_CONCENTRATE].integer1())/100;
+				sd.paramb[4]+= (sd.status.dex+sd.paramb[4]+sd.parame[4]-sd.paramcard[4])*(2+sd.sc_data[SC_CONCENTRATE].integer1())/100;
 			}
 			if( sd.has_status(SC_INCREASEAGI) )
 			{	// ë¨ìx?â¡
-				sd.paramb[1]+= 2 + sd.sc_data[SC_INCREASEAGI].val1.num;
+				sd.paramb[1]+= 2 + sd.sc_data[SC_INCREASEAGI].integer1();
 				sd.speed_rate -= 25;
 			}
 			if( sd.has_status(SC_DECREASEAGI) )
 			{	// ë¨ìxå∏è≠(agiÇÕbattle.cÇ≈)
-				sd.paramb[1] -= 2 + sd.sc_data[SC_DECREASEAGI].val1.num;	// reduce agility [celest]
+				sd.paramb[1] -= 2 + sd.sc_data[SC_DECREASEAGI].integer1();	// reduce agility [celest]
 				sd.speed_rate += 25;
 			}
 			if( sd.has_status(SC_CLOAKING) )
 			{
 				sd.critical_rate += 100; // critical increases
-				sd.speed = sd.speed * (sd.sc_data[SC_CLOAKING].val3.num-sd.sc_data[SC_CLOAKING].val1.num*3) /100;
+				sd.speed = sd.speed * (sd.sc_data[SC_CLOAKING].integer3()-sd.sc_data[SC_CLOAKING].integer1()*3) /100;
 			}
 			if( sd.has_status(SC_CHASEWALK) )
-				sd.speed = sd.speed * sd.sc_data[SC_CHASEWALK].val3.num /100; // slow down by chasewalk
+				sd.speed = sd.speed * sd.sc_data[SC_CHASEWALK].integer3() /100; // slow down by chasewalk
 			if( sd.has_status(SC_SLOWDOWN) )
 				sd.speed_rate += 50;
 			if( sd.has_status(SC_SPEEDUP1) )
@@ -904,9 +904,9 @@ int status_calc_pc(map_session_data& sd, int first)
 				sd.speed_rate -= 25;
 			if( sd.has_status(SC_BLESSING) )
 			{	// ÉuÉåÉbÉVÉìÉO
-				sd.paramb[0]+= sd.sc_data[SC_BLESSING].val1.num;
-				sd.paramb[3]+= sd.sc_data[SC_BLESSING].val1.num;
-				sd.paramb[4]+= sd.sc_data[SC_BLESSING].val1.num;
+				sd.paramb[0]+= sd.sc_data[SC_BLESSING].integer1();
+				sd.paramb[3]+= sd.sc_data[SC_BLESSING].integer1();
+				sd.paramb[4]+= sd.sc_data[SC_BLESSING].integer1();
 			}
 			if( sd.has_status(SC_GLORIA) )	// ÉOÉçÉäÉA
 				sd.paramb[5]+= 30;
@@ -914,8 +914,8 @@ int status_calc_pc(map_session_data& sd, int first)
 				sd.paramb[0]+= 4;
 			if( sd.has_status(SC_QUAGMIRE) )
 			{	// ÉNÉ@ÉOÉ}ÉCÉA
-				sd.paramb[1]-= sd.sc_data[SC_QUAGMIRE].val1.num*5;
-				sd.paramb[4]-= sd.sc_data[SC_QUAGMIRE].val1.num*5;
+				sd.paramb[1]-= sd.sc_data[SC_QUAGMIRE].integer1()*5;
+				sd.paramb[4]-= sd.sc_data[SC_QUAGMIRE].integer1()*5;
 				sd.speed_rate += 50;
 			}
 			if( sd.has_status(SC_TRUESIGHT) )
@@ -941,7 +941,7 @@ int status_calc_pc(map_session_data& sd, int first)
 			}
 			else if( sd.has_status(SC_MARIONETTE2) )
 			{
-				map_session_data *psd = map_session_data::from_blid(sd.sc_data[SC_MARIONETTE2].val3.num);
+				map_session_data *psd = map_session_data::from_blid(sd.sc_data[SC_MARIONETTE2].integer3());
 				if (psd) {	// if partner is found
 					sd.paramb[0] += sd.status.str+psd->status.str/2 > 99 ? 99-sd.status.str : psd->status.str/2;
 					sd.paramb[1] += sd.status.agi+psd->status.agi/2 > 99 ? 99-sd.status.agi : psd->status.agi/2;
@@ -951,9 +951,9 @@ int status_calc_pc(map_session_data& sd, int first)
 					sd.paramb[5] += sd.status.luk+psd->status.luk/2 > 99 ? 99-sd.status.luk : psd->status.luk/2;
 				}
 			}
-			if( sd.has_status(SC_GOSPEL) && sd.sc_data[SC_GOSPEL].val4.num == BCT_PARTY)
+			if( sd.has_status(SC_GOSPEL) && sd.sc_data[SC_GOSPEL].integer4() == BCT_PARTY)
 			{
-				if (sd.sc_data[SC_GOSPEL].val3.num == 6) {
+				if (sd.sc_data[SC_GOSPEL].integer3() == 6) {
 					sd.paramb[0]+= 2;
 					sd.paramb[1]+= 2;
 					sd.paramb[2]+= 2;
@@ -971,7 +971,7 @@ int status_calc_pc(map_session_data& sd, int first)
 			}
 			if( sd.has_status(SC_GUILDAURA) )
 			{
-				int guildflag = sd.sc_data[SC_GUILDAURA].val4.num;
+				int guildflag = sd.sc_data[SC_GUILDAURA].integer4();
 				for (i = 16; i >= 0; i -= 4) {
 					skill = guildflag >> i;
 					switch (i) {
@@ -994,7 +994,7 @@ int status_calc_pc(map_session_data& sd, int first)
 				}
 			}
 			if( sd.has_status(SC_ENDURE) )
-				sd.mdef += sd.sc_data[SC_ENDURE].val1.num;
+				sd.mdef += sd.sc_data[SC_ENDURE].integer1();
 		}
 
 		// If Super Novice / Super Baby Never Died till Job70 they get bonus: AllStats +10
@@ -1136,7 +1136,7 @@ int status_calc_pc(map_session_data& sd, int first)
 
 			{
 				if(sd.sc_data[SC_INCMHP2].timer!=-1)
-					sd.status.max_hp += sd.status.max_hp * sd.sc_data[SC_INCMHP2].val1.num / 100;
+					sd.status.max_hp += sd.status.max_hp * sd.sc_data[SC_INCMHP2].integer1() / 100;
 				if (sd.sc_data[SC_BERSERK].timer!=-1)	// Éo?ÉT?ÉN
 					sd.status.max_hp = sd.status.max_hp * 3;			
 			}
@@ -1167,7 +1167,7 @@ int status_calc_pc(map_session_data& sd, int first)
 		if((skill=sd.skill_check(HW_SOULDRAIN))>0) // É\ÉEÉãÉhÉåÉCÉì 
 			sd.status.max_sp += sd.status.max_sp*2*skill/100;
 		if(sd.sc_data && sd.sc_data[SC_INCMSP2].timer!=-1) {
-			sd.status.max_sp += sd.status.max_sp*sd.sc_data[SC_INCMSP2].val1.num/100;
+			sd.status.max_sp += sd.status.max_sp*sd.sc_data[SC_INCMSP2].integer1()/100;
 		}
 
 		if (sd.sprate <= 0)
@@ -1251,9 +1251,9 @@ int status_calc_pc(map_session_data& sd, int first)
 
 
 		if( sd.sc_data[SC_INCFLEE].timer!=-1 )
-			sd.flee += (unsigned short)sd.sc_data[SC_INCFLEE].val1.num;
+			sd.flee += (unsigned short)sd.sc_data[SC_INCFLEE].integer1();
 		if( sd.sc_data[SC_INCFLEE2].timer!=-1 )
-			sd.flee += (unsigned short)sd.sc_data[SC_INCFLEE2].val1.num;
+			sd.flee += (unsigned short)sd.sc_data[SC_INCFLEE2].integer1();
 
 
 		// ÉXÉLÉãÇ‚ÉXÉe?É^ÉXàŸèÌÇ…ÇÊÇÈ?ÇËÇÃÉpÉâÉÅ?É^ï‚ê≥
@@ -1261,28 +1261,29 @@ int status_calc_pc(map_session_data& sd, int first)
 
 		// ATK/DEF?âªå`
 		if(sd.sc_data[SC_ANGELUS].timer!=-1)	// ÉGÉìÉWÉFÉâÉX
-			sd.def2 = sd.def2*(110+5*sd.sc_data[SC_ANGELUS].val1.num)/100;
+			sd.def2 = sd.def2*(110+5*sd.sc_data[SC_ANGELUS].integer1())/100;
 		if(sd.sc_data[SC_IMPOSITIO].timer!=-1)	{// ÉCÉìÉ|ÉVÉeÉBÉIÉ}ÉkÉX
-			sd.right_weapon.watk += sd.sc_data[SC_IMPOSITIO].val1.num*5;
+			sd.right_weapon.watk += sd.sc_data[SC_IMPOSITIO].integer1()*5;
 			index = sd.equip_index[8];
 			if(index < MAX_INVENTORY && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
-				sd.left_weapon.watk += sd.sc_data[SC_IMPOSITIO].val1.num*5;
+				sd.left_weapon.watk += sd.sc_data[SC_IMPOSITIO].integer1()*5;
 		}
-		if(sd.sc_data[SC_PROVOKE].timer!=-1){	// ÉvÉçÉ{ÉbÉN
-			sd.def2 -= sd.def2*(5+5*sd.sc_data[SC_PROVOKE].val1.num)/100;
-			sd.base_atk += sd.base_atk*(2+3*sd.sc_data[SC_PROVOKE].val1.num)/100;
-			sd.right_weapon.watk += sd.right_weapon.watk*(2+3*sd.sc_data[SC_PROVOKE].val1.num)/100;
+		if( sd.has_status(SC_PROVOKE) )
+		{	// ÉvÉçÉ{ÉbÉN
+			sd.def2 -= sd.def2*(5+5*sd.sc_data[SC_PROVOKE].integer1())/100;
+			sd.base_atk += sd.base_atk*(2+3*sd.sc_data[SC_PROVOKE].integer1())/100;
+			sd.right_weapon.watk += sd.right_weapon.watk*(2+3*sd.sc_data[SC_PROVOKE].integer1())/100;
 			index = sd.equip_index[8];
 			if(index < MAX_INVENTORY && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
-				sd.left_weapon.watk += sd.left_weapon.watk*(2+3*sd.sc_data[SC_PROVOKE].val1.num)/100;
+				sd.left_weapon.watk += sd.left_weapon.watk*(2+3*sd.sc_data[SC_PROVOKE].integer1())/100;
 		}
 		if(sd.sc_data[SC_MINDBREAKER].timer!=-1){	// ÉvÉçÉ{ÉbÉN
-			sd.mdef2 -= sd.mdef2*(12*sd.sc_data[SC_MINDBREAKER].val1.num)/100;
-			sd.matk1 += sd.matk1*(20*sd.sc_data[SC_MINDBREAKER].val1.num)/100;
-			sd.matk2 += sd.matk2*(20*sd.sc_data[SC_MINDBREAKER].val1.num)/100;
+			sd.mdef2 -= sd.mdef2*(12*sd.sc_data[SC_MINDBREAKER].integer1())/100;
+			sd.matk1 += sd.matk1*(20*sd.sc_data[SC_MINDBREAKER].integer1())/100;
+			sd.matk2 += sd.matk2*(20*sd.sc_data[SC_MINDBREAKER].integer1())/100;
 		}
 		if(sd.sc_data[SC_INCMATK2].timer!=-1)	// ÉvÉçÉ{ÉbÉN
-			sd.matk1 += sd.matk1*sd.sc_data[SC_INCMATK2].val1.num/100;
+			sd.matk1 += sd.matk1*sd.sc_data[SC_INCMATK2].integer1()/100;
 		
 		if(sd.sc_data[SC_POISON].timer!=-1)	// ì≈?ë‘
 			sd.def2 = sd.def2*75/100;
@@ -1294,50 +1295,50 @@ int status_calc_pc(map_session_data& sd, int first)
 				sd.left_weapon.watk = sd.left_weapon.watk*75/100;
 		}
 		if(sd.sc_data[SC_DRUMBATTLE].timer!=-1){	// ?ëæå€ÇÃãøÇ´
-			sd.right_weapon.watk += sd.sc_data[SC_DRUMBATTLE].val2.num;
-			sd.def  += sd.sc_data[SC_DRUMBATTLE].val3.num;
+			sd.right_weapon.watk += sd.sc_data[SC_DRUMBATTLE].integer2();
+			sd.def  += sd.sc_data[SC_DRUMBATTLE].integer3();
 			index = sd.equip_index[8];
 			if(index < MAX_INVENTORY && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
-				sd.left_weapon.watk += sd.sc_data[SC_DRUMBATTLE].val2.num;
+				sd.left_weapon.watk += sd.sc_data[SC_DRUMBATTLE].integer2();
 		}
 		if(sd.sc_data[SC_NIBELUNGEN].timer!=-1) {	// Éj?ÉxÉãÉìÉOÇÃéwó÷
 			index = sd.equip_index[9];
 			if(index < MAX_INVENTORY && sd.inventory_data[index] && sd.inventory_data[index]->wlv == 4)
-				sd.right_weapon.watk2 += sd.sc_data[SC_NIBELUNGEN].val2.num;
+				sd.right_weapon.watk2 += sd.sc_data[SC_NIBELUNGEN].integer2();
 			index = sd.equip_index[8];
 			if(index < MAX_INVENTORY && sd.inventory_data[index] && sd.inventory_data[index]->wlv == 4)
-				sd.left_weapon.watk2 += sd.sc_data[SC_NIBELUNGEN].val2.num;
+				sd.left_weapon.watk2 += sd.sc_data[SC_NIBELUNGEN].integer2();
 		}
 
 		if(sd.sc_data[SC_VOLCANO].timer != -1 && sd.def_ele == 3)	// É{ÉãÉP?Ém
-			sd.right_weapon.watk += sd.sc_data[SC_VOLCANO].val3.num;
+			sd.right_weapon.watk += sd.sc_data[SC_VOLCANO].integer3();
 		if(sd.sc_data[SC_INCATK2].timer != -1)
-			sd.right_weapon.watk += sd.right_weapon.watk * sd.sc_data[SC_INCATK2].val1.num / 100;
+			sd.right_weapon.watk += sd.right_weapon.watk * sd.sc_data[SC_INCATK2].integer1() / 100;
 		if(sd.sc_data[SC_SIGNUMCRUCIS].timer != -1)
-			sd.def = sd.def * (100 - sd.sc_data[SC_SIGNUMCRUCIS].val2.num)/100;
+			sd.def = sd.def * (100 - sd.sc_data[SC_SIGNUMCRUCIS].integer2())/100;
 		if(sd.sc_data[SC_ETERNALCHAOS].timer != -1)	// ÉGÉ^?ÉiÉãÉJÉIÉX
 			sd.def = 0;
 
 		if(sd.sc_data[SC_CONCENTRATION].timer!=-1){ //ÉRÉìÉZÉìÉgÉå?ÉVÉáÉì
-			sd.base_atk = sd.base_atk * (100 + 5*sd.sc_data[SC_CONCENTRATION].val1.num)/100;
-			sd.right_weapon.watk = sd.right_weapon.watk * (100 + 5*sd.sc_data[SC_CONCENTRATION].val1.num)/100;
+			sd.base_atk = sd.base_atk * (100 + 5*sd.sc_data[SC_CONCENTRATION].integer1())/100;
+			sd.right_weapon.watk = sd.right_weapon.watk * (100 + 5*sd.sc_data[SC_CONCENTRATION].integer1())/100;
 			index = sd.equip_index[8];
 			if(index < MAX_INVENTORY && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
-				sd.left_weapon.watk = sd.left_weapon.watk * (100 + 5*sd.sc_data[SC_CONCENTRATION].val1.num)/100;
-			sd.def = sd.def * (100 - 5*sd.sc_data[SC_CONCENTRATION].val1.num)/100;
-			sd.def2 = sd.def2 * (100 - 5*sd.sc_data[SC_CONCENTRATION].val1.num)/100;
+				sd.left_weapon.watk = sd.left_weapon.watk * (100 + 5*sd.sc_data[SC_CONCENTRATION].integer1())/100;
+			sd.def = sd.def * (100 - 5*sd.sc_data[SC_CONCENTRATION].integer1())/100;
+			sd.def2 = sd.def2 * (100 - 5*sd.sc_data[SC_CONCENTRATION].integer1())/100;
 		}
 
 		if(sd.sc_data[SC_MAGICPOWER].timer!=-1){ //ñÇñ@óÕ?ïù
-			sd.matk1 = sd.matk1*(100+5*sd.sc_data[SC_MAGICPOWER].val1.num)/100;
-			sd.matk2 = sd.matk2*(100+5*sd.sc_data[SC_MAGICPOWER].val1.num)/100;
+			sd.matk1 = sd.matk1*(100+5*sd.sc_data[SC_MAGICPOWER].integer1())/100;
+			sd.matk2 = sd.matk2*(100+5*sd.sc_data[SC_MAGICPOWER].integer1())/100;
 		}
 		if( sd.has_status(SC_ATKPOT) )
-			sd.right_weapon.watk += sd.sc_data[SC_ATKPOT].val1.num;
+			sd.right_weapon.watk += sd.sc_data[SC_ATKPOT].integer1();
 		if( sd.has_status(SC_MATKPOT) )
 		{
-			sd.matk1 += (unsigned short)sd.sc_data[SC_MATKPOT].val1.num;
-			sd.matk2 += (unsigned short)sd.sc_data[SC_MATKPOT].val1.num;
+			sd.matk1 += (unsigned short)sd.sc_data[SC_MATKPOT].integer1();
+			sd.matk2 += (unsigned short)sd.sc_data[SC_MATKPOT].integer1();
 		}
 
 		// ASPD/à⁄ìÆë¨ìx?âªån
@@ -1346,7 +1347,7 @@ int status_calc_pc(map_session_data& sd, int first)
 		if( sd.has_status(SC_ADRENALINE) && !sd.has_status(SC_TWOHANDQUICKEN) &&
 			!sd.has_status(SC_QUAGMIRE) && !sd.has_status(SC_DONTFORGETME) )
 		{	// ÉAÉhÉåÉiÉäÉìÉâÉbÉVÉÖ
-			if(sd.sc_data[SC_ADRENALINE].val2.num || !config.party_skill_penalty)
+			if(sd.sc_data[SC_ADRENALINE].integer2() || !config.party_skill_penalty)
 				aspd_rate -= 30;
 			else
 				aspd_rate -= 25;
@@ -1354,25 +1355,25 @@ int status_calc_pc(map_session_data& sd, int first)
 		if( sd.has_status(SC_SPEARSQUICKEN) && !sd.has_status(SC_ADRENALINE) &&
 			!sd.has_status(SC_TWOHANDQUICKEN) && !sd.has_status(SC_QUAGMIRE) && 
 			!sd.has_status(SC_DONTFORGETME) )	// ÉXÉsÉAÉNÉBÉbÉPÉì
-			aspd_rate -= sd.sc_data[SC_SPEARSQUICKEN].val2.num;
+			aspd_rate -= sd.sc_data[SC_SPEARSQUICKEN].integer2();
 		if( sd.has_status(SC_ASSNCROS) && // ó[ózÇÃÉAÉTÉVÉìÉNÉçÉX
 			!sd.has_status(SC_TWOHANDQUICKEN) && !sd.has_status(SC_ADRENALINE) && 
 			!sd.has_status(SC_SPEARSQUICKEN) && !sd.has_status(SC_DONTFORGETME) )
-				aspd_rate -= 5+sd.sc_data[SC_ASSNCROS].val1.num+sd.sc_data[SC_ASSNCROS].val2.num+sd.sc_data[SC_ASSNCROS].val3.num;
+				aspd_rate -= 5+sd.sc_data[SC_ASSNCROS].integer1()+sd.sc_data[SC_ASSNCROS].integer2()+sd.sc_data[SC_ASSNCROS].integer3();
 		if( sd.has_status(SC_DONTFORGETME) )
 		{	// éÑÇñYÇÍÇ»Ç¢Ç≈
-			aspd_rate += sd.sc_data[SC_DONTFORGETME].val1.num*3 + sd.sc_data[SC_DONTFORGETME].val2.num + (sd.sc_data[SC_DONTFORGETME].val3.num>>16);
-			sd.speed_rate += sd.sc_data[SC_DONTFORGETME].val1.num*2 + sd.sc_data[SC_DONTFORGETME].val2.num + (sd.sc_data[SC_DONTFORGETME].val3.num&0xffff);
+			aspd_rate += sd.sc_data[SC_DONTFORGETME].integer1()*3 + sd.sc_data[SC_DONTFORGETME].integer2() + (sd.sc_data[SC_DONTFORGETME].integer3()>>16);
+			sd.speed_rate += sd.sc_data[SC_DONTFORGETME].integer1()*2 + sd.sc_data[SC_DONTFORGETME].integer2() + (sd.sc_data[SC_DONTFORGETME].integer3()&0xffff);
 		}
-		if(	sd.has_status(i=SC_SPEEDPOTION3) ||
-			sd.has_status(i=SC_SPEEDPOTION2) ||
-			sd.has_status(i=SC_SPEEDPOTION1) ||
-			sd.has_status(i=SC_SPEEDPOTION0) )	// ? ë¨É|?ÉVÉáÉì
-			aspd_rate -= sd.sc_data[i].val2.num;
+		if(	sd.has_status( (status_t)(i=SC_SPEEDPOTION3) ) ||
+			sd.has_status( (status_t)(i=SC_SPEEDPOTION2) ) ||
+			sd.has_status( (status_t)(i=SC_SPEEDPOTION1) ) ||
+			sd.has_status( (status_t)(i=SC_SPEEDPOTION0) ) )	// ? ë¨É|?ÉVÉáÉì
+			aspd_rate -= sd.sc_data[i].integer2();
 		if( sd.has_status(SC_GRAVITATION) )
-			aspd_rate += sd.sc_data[SC_GRAVITATION].val2.num;
+			aspd_rate += sd.sc_data[SC_GRAVITATION].integer2();
 		if( sd.has_status(SC_WINDWALK) && !sd.has_status(SC_INCREASEAGI) )	//ÉEÉBÉìÉhÉEÉH?ÉNébÕLv*2%å∏éZ
-			sd.speed_rate -= sd.sc_data[SC_WINDWALK].val1.num*4;
+			sd.speed_rate -= sd.sc_data[SC_WINDWALK].integer1()*4;
 		if( sd.has_status(SC_CARTBOOST) )	// ÉJ?ÉgÉu?ÉXÉg
 			sd.speed_rate -= 20;
 		if( sd.has_status(SC_BERSERK) )	//Éo?ÉT?ÉNíÜÇÕIAÇ∆ìØÇ∂ÇÆÇÁÇ¢ë¨Ç¢ÅH
@@ -1383,15 +1384,15 @@ int status_calc_pc(map_session_data& sd, int first)
 		// HIT/FLEE?âªån
 		if( sd.has_status(SC_WHISTLE) )
 		{  // å˚ìJ
-			sd.flee += sd.flee * (sd.sc_data[SC_WHISTLE].val1.num
-					+sd.sc_data[SC_WHISTLE].val2.num+(sd.sc_data[SC_WHISTLE].val3.num>>16))/100;
-			sd.flee2+= (sd.sc_data[SC_WHISTLE].val1.num+sd.sc_data[SC_WHISTLE].val2.num+(sd.sc_data[SC_WHISTLE].val3.num&0xffff)) * 10;
+			sd.flee += sd.flee * (sd.sc_data[SC_WHISTLE].integer1()
+					+sd.sc_data[SC_WHISTLE].integer2()+(sd.sc_data[SC_WHISTLE].integer3()>>16))/100;
+			sd.flee2+= (sd.sc_data[SC_WHISTLE].integer1()+sd.sc_data[SC_WHISTLE].integer2()+(sd.sc_data[SC_WHISTLE].integer3()&0xffff)) * 10;
 		}
 		if( sd.has_status(SC_HUMMING) )  // ÉnÉ~ÉìÉO
-			sd.hit += (sd.sc_data[SC_HUMMING].val1.num*2+sd.sc_data[SC_HUMMING].val2.num
-					+sd.sc_data[SC_HUMMING].val3.num) * sd.hit/100;
+			sd.hit += (sd.sc_data[SC_HUMMING].integer1()*2+sd.sc_data[SC_HUMMING].integer2()
+					+sd.sc_data[SC_HUMMING].integer3()) * sd.hit/100;
 		if( sd.has_status(SC_VIOLENTGALE) && sd.def_ele == 4)	// ÉoÉCÉIÉåÉìÉgÉQÉCÉã
-			sd.flee += sd.flee * sd.sc_data[SC_VIOLENTGALE].val3.num / 100;
+			sd.flee += sd.flee * sd.sc_data[SC_VIOLENTGALE].integer3() / 100;
 		if( sd.has_status(SC_BLIND) )
 		{	// à√?
 			sd.hit -= sd.hit * 25 / 100;
@@ -1399,74 +1400,74 @@ int status_calc_pc(map_session_data& sd, int first)
 		}
 		if( sd.has_status(SC_WINDWALK) )
 		{	// ÉEÉBÉìÉhÉEÉH?ÉN
-			sd.flee += sd.flee * sd.sc_data[SC_WINDWALK].val2.num / 100;
+			sd.flee += sd.flee * sd.sc_data[SC_WINDWALK].integer2() / 100;
 		}
 		if( sd.has_status(SC_SPIDERWEB) ) //ÉXÉpÉCÉ_?ÉEÉFÉu
 		{
 			sd.flee = sd.flee * 50 / 100;
 		}
 		if( sd.has_status(SC_TRUESIGHT) ) //ÉgÉDÉã?ÉTÉCÉg
-			sd.hit += 3 * sd.sc_data[SC_TRUESIGHT].val1.num;
+			sd.hit += 3 * sd.sc_data[SC_TRUESIGHT].integer1();
 		if( sd.has_status(SC_CONCENTRATION) ) //ÉRÉìÉZÉìÉgÉå?ÉVÉáÉì
-			sd.hit += sd.hit * 10 * sd.sc_data[SC_CONCENTRATION].val1.num / 100;
+			sd.hit += sd.hit * 10 * sd.sc_data[SC_CONCENTRATION].integer1() / 100;
 		if( sd.has_status(SC_INCHIT) )
-			sd.hit += (unsigned short)sd.sc_data[SC_INCHIT].val1.num;
+			sd.hit += (unsigned short)sd.sc_data[SC_INCHIT].integer1();
 		if( sd.has_status(SC_INCHIT2) )
-			sd.hit += sd.hit * sd.sc_data[SC_INCHIT2].val1.num / 100;
+			sd.hit += sd.hit * sd.sc_data[SC_INCHIT2].integer1() / 100;
 
 		// ëœê´
 		if( sd.has_status(SC_SIEGFRIED) )
 		{	// ïséÄêgÇÃÉW?ÉNÉtÉä?Éh
-			sd.subele[1] += sd.sc_data[SC_SIEGFRIED].val2.num;	// êÖ
-			sd.subele[2] += sd.sc_data[SC_SIEGFRIED].val2.num;	// êÖ
-			sd.subele[3] += sd.sc_data[SC_SIEGFRIED].val2.num;	// âŒ
-			sd.subele[4] += sd.sc_data[SC_SIEGFRIED].val2.num;	// êÖ
-			sd.subele[5] += sd.sc_data[SC_SIEGFRIED].val2.num;	// êÖ
-			sd.subele[6] += sd.sc_data[SC_SIEGFRIED].val2.num;	// êÖ
-			sd.subele[7] += sd.sc_data[SC_SIEGFRIED].val2.num;	// êÖ
-			sd.subele[8] += sd.sc_data[SC_SIEGFRIED].val2.num;	// êÖ
-			sd.subele[9] += sd.sc_data[SC_SIEGFRIED].val2.num;	// êÖ
+			sd.subele[1] += sd.sc_data[SC_SIEGFRIED].integer2();	// êÖ
+			sd.subele[2] += sd.sc_data[SC_SIEGFRIED].integer2();	// êÖ
+			sd.subele[3] += sd.sc_data[SC_SIEGFRIED].integer2();	// âŒ
+			sd.subele[4] += sd.sc_data[SC_SIEGFRIED].integer2();	// êÖ
+			sd.subele[5] += sd.sc_data[SC_SIEGFRIED].integer2();	// êÖ
+			sd.subele[6] += sd.sc_data[SC_SIEGFRIED].integer2();	// êÖ
+			sd.subele[7] += sd.sc_data[SC_SIEGFRIED].integer2();	// êÖ
+			sd.subele[8] += sd.sc_data[SC_SIEGFRIED].integer2();	// êÖ
+			sd.subele[9] += sd.sc_data[SC_SIEGFRIED].integer2();	// êÖ
 		}
 		if( sd.has_status(SC_PROVIDENCE) )
 		{	// ÉvÉçÉîÉBÉfÉìÉX
-			sd.subele[6] += sd.sc_data[SC_PROVIDENCE].val2.num;	// ? êπ?ê´
-			sd.subrace[6] += sd.sc_data[SC_PROVIDENCE].val2.num;	// ? ?ñÇ
+			sd.subele[6] += sd.sc_data[SC_PROVIDENCE].integer2();	// ? êπ?ê´
+			sd.subrace[6] += sd.sc_data[SC_PROVIDENCE].integer2();	// ? ?ñÇ
 		}
 
 		// ÇªÇÃëº
 		if( sd.has_status(SC_APPLEIDUN) )
 		{	// ÉCÉhÉDÉìÇÃó—åÁ
 			sd.status.max_hp +=
-					(5 + sd.sc_data[SC_APPLEIDUN].val1.num * 2 + sd.sc_data[SC_APPLEIDUN].val2.num
-					+ sd.sc_data[SC_APPLEIDUN].val3.num / 10) * sd.status.max_hp / 100;
+					(5 + sd.sc_data[SC_APPLEIDUN].integer1() * 2 + sd.sc_data[SC_APPLEIDUN].integer2()
+					+ sd.sc_data[SC_APPLEIDUN].integer3() / 10) * sd.status.max_hp / 100;
 			if(sd.status.max_hp < 0 || sd.status.max_hp > (long)config.max_hp)
 				sd.status.max_hp = config.max_hp;
 		}
 		if( sd.has_status(SC_DELUGE) && sd.def_ele==1){	// ÉfÉäÉÖ?ÉW
-			sd.status.max_hp += sd.status.max_hp * deluge_eff[sd.sc_data[SC_DELUGE].val1.num-1]/100;
+			sd.status.max_hp += sd.status.max_hp * deluge_eff[sd.sc_data[SC_DELUGE].integer1()-1]/100;
 			if(sd.status.max_hp < 0 || sd.status.max_hp > (long)config.max_hp)
 				sd.status.max_hp = config.max_hp;
 		}
 		if( sd.has_status(SC_SERVICE4U) )
 		{	// ÉT?ÉrÉXÉtÉH?ÉÜ?
-			sd.status.max_sp += sd.status.max_sp*(10+sd.sc_data[SC_SERVICE4U].val1.num+sd.sc_data[SC_SERVICE4U].val2.num
-						+sd.sc_data[SC_SERVICE4U].val3.num)/100;
+			sd.status.max_sp += sd.status.max_sp*(10+sd.sc_data[SC_SERVICE4U].integer1()+sd.sc_data[SC_SERVICE4U].integer2()
+						+sd.sc_data[SC_SERVICE4U].integer3())/100;
 			if(sd.status.max_sp < 0 || sd.status.max_sp > (long)config.max_sp)
 				sd.status.max_sp = config.max_sp;
-			sd.dsprate-=(10+sd.sc_data[SC_SERVICE4U].val1.num*3+sd.sc_data[SC_SERVICE4U].val2.num
-					+sd.sc_data[SC_SERVICE4U].val3.num);			
+			sd.dsprate-=(10+sd.sc_data[SC_SERVICE4U].integer1()*3+sd.sc_data[SC_SERVICE4U].integer2()
+					+sd.sc_data[SC_SERVICE4U].integer3());			
 		}
 
 		if( sd.has_status(SC_FORTUNE) )	// çKâ^ÇÃÉLÉX
-			sd.critical += (10+sd.sc_data[SC_FORTUNE].val1.num+sd.sc_data[SC_FORTUNE].val2.num
-						+sd.sc_data[SC_FORTUNE].val3.num)*10;
+			sd.critical += (10+sd.sc_data[SC_FORTUNE].integer1()+sd.sc_data[SC_FORTUNE].integer2()
+						+sd.sc_data[SC_FORTUNE].integer3())*10;
 
 		if( sd.has_status(SC_EXPLOSIONSPIRITS) )
 		{	// îöóÙîgìÆ
 			if(s_class.job==23)
-				sd.critical += sd.sc_data[SC_EXPLOSIONSPIRITS].val1.num*100;
+				sd.critical += sd.sc_data[SC_EXPLOSIONSPIRITS].integer1()*100;
 			else
-			sd.critical += sd.sc_data[SC_EXPLOSIONSPIRITS].val2.num;
+			sd.critical += sd.sc_data[SC_EXPLOSIONSPIRITS].integer2();
 		}
 
 		if( sd.has_status(SC_STEELBODY) )
@@ -1478,22 +1479,22 @@ int status_calc_pc(map_session_data& sd, int first)
 		}
 		if( sd.has_status(SC_DEFENDER) )
 		{
-			aspd_rate += 25 - sd.sc_data[SC_DEFENDER].val1.num*5;
-			sd.speed += 55 - sd.sc_data[SC_DEFENDER].val1.num*5;
+			aspd_rate += 25 - sd.sc_data[SC_DEFENDER].integer1()*5;
+			sd.speed += 55 - sd.sc_data[SC_DEFENDER].integer1()*5;
 		}
 		if( sd.has_status(SC_ENCPOISON) )
-			sd.addeff[4] += sd.sc_data[SC_ENCPOISON].val2.num;
+			sd.addeff[4] += sd.sc_data[SC_ENCPOISON].integer2();
 
 		if( sd.has_status(SC_DANCING) )
 		{	// ââët/É_ÉìÉXégópíÜ
 			int s_rate = 600 - 40 * sd.skill_check(((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
 			if (sd.sc_data[SC_LONGING].timer != -1)
-				s_rate -= 20 * sd.sc_data[SC_LONGING].val1.num;
+				s_rate -= 20 * sd.sc_data[SC_LONGING].integer1();
 			sd.speed = sd.speed * s_rate / 100;
 			// is attack speed affected?
 			//aspd_rate = 600 - 40 * sd->skill_check( ((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
 			//if (sd.sc_data[SC_LONGING].timer != -1)
-			//	aspd_rate -= 20 * sd.sc_data[SC_LONGING].val1.num;
+			//	aspd_rate -= 20 * sd.sc_data[SC_LONGING].integer1();
 			//sd.speed*=4;
 			sd.nhealsp = 0;
 			sd.nshealsp = 0;
@@ -1503,7 +1504,7 @@ int status_calc_pc(map_session_data& sd, int first)
 			sd.speed += 450;
 
 		if( sd.has_status(SC_TRUESIGHT) ) //ÉgÉDÉã?ÉTÉCÉg
-			sd.critical += sd.sc_data[SC_TRUESIGHT].val1.num; // not +10% CRIT but +CRIT!! [Lupus] u can see it in any RO calc stats
+			sd.critical += sd.sc_data[SC_TRUESIGHT].integer1(); // not +10% CRIT but +CRIT!! [Lupus] u can see it in any RO calc stats
 
 		if( sd.has_status(SC_BERSERK) )
 		{	//All Def/MDef reduced to 0 while in Berserk [DracoRPG]
@@ -1513,7 +1514,7 @@ int status_calc_pc(map_session_data& sd, int first)
 			aspd_rate -= 30;
 		}
 		if( sd.has_status(SC_INCDEF2) )
-			sd.def += sd.def * sd.sc_data[SC_INCDEF2].val1.num/100;
+			sd.def += sd.def * sd.sc_data[SC_INCDEF2].integer1()/100;
 		if( sd.has_status(SC_KEEPING) )
 			sd.def = 100;
 		if( sd.has_status(SC_BARRIER) )
@@ -1521,7 +1522,7 @@ int status_calc_pc(map_session_data& sd, int first)
 
 		if( sd.has_status(SC_JOINTBEAT) )
 		{	// Random break [DracoRPG]
-			switch(sd.sc_data[SC_JOINTBEAT].val2.num) {
+			switch(sd.sc_data[SC_JOINTBEAT].integer2()) {
 			case 0: //Ankle break
 				sd.speed_rate += 50;
 				break;
@@ -1543,9 +1544,9 @@ int status_calc_pc(map_session_data& sd, int first)
 		}
 		if( sd.has_status(SC_GOSPEL) )
 		{
-			if (sd.sc_data[SC_GOSPEL].val4.num == BCT_PARTY)
+			if (sd.sc_data[SC_GOSPEL].integer4() == BCT_PARTY)
 			{
-				switch (sd.sc_data[SC_GOSPEL].val3.num)
+				switch (sd.sc_data[SC_GOSPEL].integer3())
 				{
 				case 4:
 					sd.status.max_hp += sd.status.max_hp * 25 / 100;
@@ -1572,9 +1573,9 @@ int status_calc_pc(map_session_data& sd, int first)
 					break;
 				}
 			}
-			else if (sd.sc_data[SC_GOSPEL].val4.num == BCT_ENEMY)
+			else if (sd.sc_data[SC_GOSPEL].integer4() == BCT_ENEMY)
 			{
-				switch (sd.sc_data[SC_GOSPEL].val3.num)
+				switch (sd.sc_data[SC_GOSPEL].integer3())
 				{
 					case 5:
 						sd.def = 0;
@@ -1708,7 +1709,7 @@ int status_calc_pc(map_session_data& sd, int first)
 
 		//if(sd.status.hp<sd.status.max_hp>>2 && sd->skill_check(SM_AUTOBERSERK)>0 &&
 		if(sd.status.hp<sd.status.max_hp>>2 && sd.sc_data[SC_AUTOBERSERK].timer != -1 &&
-			(sd.sc_data[SC_PROVOKE].timer==-1 || sd.sc_data[SC_PROVOKE].val2.num==0 ) && !sd.is_dead() )
+			(sd.sc_data[SC_PROVOKE].timer==-1 || sd.sc_data[SC_PROVOKE].integer2()==0 ) && !sd.is_dead() )
 			// ÉI?ÉgÉo?ÉT?ÉN?ìÆ
 			status_change_start(&sd,SC_PROVOKE,10,1,0,0,0,0);
 
@@ -1739,16 +1740,16 @@ int status_calc_speed_old (map_session_data &sd)
 		sd.speed = sd.speed *125/100;
 	}
 	if(sd.sc_data[SC_CLOAKING].timer!=-1) {
-		sd.speed = sd.speed * (sd.sc_data[SC_CLOAKING].val3.num-sd.sc_data[SC_CLOAKING].val1.num*3) /100;
+		sd.speed = sd.speed * (sd.sc_data[SC_CLOAKING].integer3()-sd.sc_data[SC_CLOAKING].integer1()*3) /100;
 	}
 	if(sd.sc_data[SC_CHASEWALK].timer!=-1) {
-		sd.speed = sd.speed * sd.sc_data[SC_CHASEWALK].val3.num /100;
+		sd.speed = sd.speed * sd.sc_data[SC_CHASEWALK].integer3() /100;
 	}
 	if(sd.sc_data[SC_QUAGMIRE].timer!=-1){
 		sd.speed = sd.speed*3/2;
 	}
 	if(sd.sc_data[SC_WINDWALK].timer!=-1 && sd.sc_data[SC_INCREASEAGI].timer==-1) {
-		sd.speed -= sd.speed *(sd.sc_data[SC_WINDWALK].val1.num*2)/100;
+		sd.speed -= sd.speed *(sd.sc_data[SC_WINDWALK].integer1()*2)/100;
 	}
 	if(sd.sc_data[SC_CARTBOOST].timer!=-1) {
 		sd.speed -= (DEFAULT_WALK_SPEED * 20)/100;
@@ -1760,18 +1761,18 @@ int status_calc_speed_old (map_session_data &sd)
 		sd.speed = 2*DEFAULT_WALK_SPEED;
 	}
 	if(sd.sc_data[SC_DONTFORGETME].timer!=-1){
-		sd.speed= sd.speed*(100+sd.sc_data[SC_DONTFORGETME].val1.num*2 + sd.sc_data[SC_DONTFORGETME].val2.num + (sd.sc_data[SC_DONTFORGETME].val3.num&0xffff))/100;
+		sd.speed= sd.speed*(100+sd.sc_data[SC_DONTFORGETME].integer1()*2 + sd.sc_data[SC_DONTFORGETME].integer2() + (sd.sc_data[SC_DONTFORGETME].integer3()&0xffff))/100;
 	}
 	if(sd.sc_data[SC_STEELBODY].timer!=-1){
 		sd.speed = (sd.speed * 125) / 100;
 	}
 	if(sd.sc_data[SC_DEFENDER].timer != -1) {
-		sd.speed = (sd.speed * (155 - sd.sc_data[SC_DEFENDER].val1.num*5)) / 100;
+		sd.speed = (sd.speed * (155 - sd.sc_data[SC_DEFENDER].integer1()*5)) / 100;
 	}
 	if( sd.sc_data[SC_DANCING].timer!=-1 ){
 		int s_rate = 600 - 40 * sd.skill_check( ((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
 		if (sd.sc_data[SC_LONGING].timer != -1)
-			s_rate -= 20 * sd.sc_data[SC_LONGING].val1.num;
+			s_rate -= 20 * sd.sc_data[SC_LONGING].integer1();
 		sd.speed = sd.speed * s_rate / 100;			
 	}
 	if(sd.sc_data[SC_CURSE].timer!=-1)
@@ -1840,12 +1841,12 @@ printf("speed set to %i (%i)\n",sd.speed, val);
 		if (start && sd.sc_data[SC_CLOAKING].timer != -1)
 		{	//There shouldn't be an "stop" case here.
 			//If the previous upgrade was 
-			//SPEED_ADD_RATE(3*sd->sc_data[SC_CLOAKING].val1.num -sd->sc_data[SC_CLOAKING].val3);
+			//SPEED_ADD_RATE(3*sd->sc_data[SC_CLOAKING].integer1() -sd->sc_data[SC_CLOAKING].val3);
 			//Then just changing val3 should be a net difference of....
-			if (3*sd.sc_data[SC_CLOAKING].val1.num != sd.sc_data[SC_CLOAKING].val3.num)	//This reverts the previous value.
-				sd.speed = sd.speed * 100 /(sd.sc_data[SC_CLOAKING].val3.num-3*sd.sc_data[SC_CLOAKING].val1.num);
-			sd.sc_data[SC_CLOAKING].val3 = skill_lv;
-				sd.speed = sd.speed * (sd.sc_data[SC_CLOAKING].val3.num-sd.sc_data[SC_CLOAKING].val1.num*3) /100;
+			if (3*sd.sc_data[SC_CLOAKING].integer1() != sd.sc_data[SC_CLOAKING].integer3())	//This reverts the previous value.
+				sd.speed = sd.speed * 100 /(sd.sc_data[SC_CLOAKING].integer3()-3*sd.sc_data[SC_CLOAKING].integer1());
+			sd.sc_data[SC_CLOAKING].value3() = skill_lv;
+				sd.speed = sd.speed * (sd.sc_data[SC_CLOAKING].integer3()-sd.sc_data[SC_CLOAKING].integer1()*3) /100;
 		}
 		break;
 	}
@@ -1907,7 +1908,7 @@ int status_recalc_speed(block_list *bl)
 				speed -= speed*25/100;
 			//ÉEÉBÉìÉhÉEÉHÅ[ÉNéûÇÕLv*2%å∏éZ
 			else if(sc_data[SC_WINDWALK].timer!=-1)
-				speed -= (speed*(sc_data[SC_WINDWALK].val1.num*4))/100;
+				speed -= (speed*(sc_data[SC_WINDWALK].integer1()*4))/100;
 			//ë¨ìxå∏è≠éûÇÕ25%â¡éZ
 			if(sc_data[SC_DECREASEAGI].timer!=-1)
 				speed = speed*125/100;
@@ -1916,13 +1917,13 @@ int status_recalc_speed(block_list *bl)
 				speed = speed*3/2;
 			//éÑÇñYÇÍÇ»Ç¢Ç≈ÅcéûÇÕâ¡éZ
 			if(sc_data[SC_DONTFORGETME].timer!=-1)
-				speed = speed*(100+sc_data[SC_DONTFORGETME].val1.num*2 + sc_data[SC_DONTFORGETME].val2.num + (sc_data[SC_DONTFORGETME].val3.num&0xffff))/100;
+				speed = speed*(100+sc_data[SC_DONTFORGETME].integer1()*2 + sc_data[SC_DONTFORGETME].integer2() + (sc_data[SC_DONTFORGETME].integer3()&0xffff))/100;
 			//ã‡çÑéûÇÕ25%â¡éZ
 			if(sc_data[SC_STEELBODY].timer!=-1)
 				speed = speed*125/100;
 			//ÉfÉBÉtÉFÉìÉ_Å[éûÇÕâ¡éZ
 			if(sc_data[SC_DEFENDER].timer!=-1)
-				speed = (speed * (155 - sc_data[SC_DEFENDER].val1.num*5)) / 100;
+				speed = (speed * (155 - sc_data[SC_DEFENDER].integer1()*5)) / 100;
 			//óxÇËèÛë‘ÇÕ4î{íxÇ¢
 			if(sc_data[SC_DANCING].timer!=-1 )
 				speed *= 6;
@@ -1938,13 +1939,13 @@ int status_recalc_speed(block_list *bl)
 				speed -= speed*25/100;
 
 			if(sc_data[SC_GOSPEL].timer!=-1 &&
-				sc_data[SC_GOSPEL].val4.num == BCT_ENEMY &&
-				sc_data[SC_GOSPEL].val3.num == 8)
+				sc_data[SC_GOSPEL].integer4() == BCT_ENEMY &&
+				sc_data[SC_GOSPEL].integer3() == 8)
 				speed = speed*125/100;
 			if(sc_data[SC_JOINTBEAT].timer!=-1) {
-				if (sc_data[SC_JOINTBEAT].val2.num == 0)
+				if (sc_data[SC_JOINTBEAT].integer2() == 0)
 					speed = speed*150/100;
-				else if (sc_data[SC_JOINTBEAT].val2.num == 2)
+				else if (sc_data[SC_JOINTBEAT].integer2() == 2)
 					speed = speed*130/100;				
 			}
 		}
@@ -2006,14 +2007,14 @@ int block_list::get_max_hp() const
 		sc_data = status_get_sc_data(bl);
 		if(sc_data) {
 			if(sc_data[SC_APPLEIDUN].timer != -1)
-				max_hp += ((5 + sc_data[SC_APPLEIDUN].val1.num * 2 + ((sc_data[SC_APPLEIDUN].val2.num + 1) >> 1)
-					+ sc_data[SC_APPLEIDUN].val3.num / 10) * max_hp)/100;
+				max_hp += ((5 + sc_data[SC_APPLEIDUN].integer1() * 2 + ((sc_data[SC_APPLEIDUN].integer2() + 1) >> 1)
+					+ sc_data[SC_APPLEIDUN].integer3() / 10) * max_hp)/100;
 			if(sc_data[SC_GOSPEL].timer != -1 &&
-				sc_data[SC_GOSPEL].val4.num == BCT_PARTY &&
-				sc_data[SC_GOSPEL].val3.num == 4)
+				sc_data[SC_GOSPEL].integer4() == BCT_PARTY &&
+				sc_data[SC_GOSPEL].integer3() == 4)
 				max_hp += max_hp * 25 / 100;
 			if(sc_data[SC_INCMHP2].timer!=-1)
-				max_hp *= (100+ sc_data[SC_INCMHP2].val1.num)/100;
+				max_hp *= (100+ sc_data[SC_INCMHP2].integer1())/100;
 		}
 		if(max_hp < 1) max_hp = 1;
 		return max_hp;
@@ -2063,14 +2064,14 @@ int block_list::get_str() const
 				int race = bl->get_race();
 				if( bl->is_undead() || race == 6)
 					str >>= 1;	// à´ ñÇ/ïséÄ
-				else str += sc_data[SC_BLESSING].val1.num;	// ÇªÇÃëº
+				else str += sc_data[SC_BLESSING].integer1();	// ÇªÇÃëº
 			}
 			if(sc_data[SC_TRUESIGHT].timer!=-1)	// ÉgÉDÉãÅ[ÉTÉCÉg
 				str += 5;
 			if(sc_data[SC_INCALLSTATUS].timer!=-1)
-				str += sc_data[SC_INCALLSTATUS].val1.num;
+				str += sc_data[SC_INCALLSTATUS].integer1();
 			if(sc_data[SC_INCSTR].timer!=-1)
-				str += sc_data[SC_INCSTR].val1.num;
+				str += sc_data[SC_INCSTR].integer1();
 		}
 	}
 	if(str < 0) str = 0;
@@ -2114,25 +2115,25 @@ int block_list::get_agi() const
 		}
 		if(sc_data) {
 			if(sc_data[SC_INCREASEAGI].timer!=-1 && sc_data[SC_QUAGMIRE].timer == -1 && sc_data[SC_DONTFORGETME].timer == -1)	// ë¨ìxëùâ¡(PCÇÕpc.cÇ≈)
-				agi += 2 + sc_data[SC_INCREASEAGI].val1.num;
+				agi += 2 + sc_data[SC_INCREASEAGI].integer1();
 			if(sc_data[SC_CONCENTRATE].timer!=-1 && sc_data[SC_QUAGMIRE].timer == -1)
-				agi += agi * (2 + sc_data[SC_CONCENTRATE].val1.num)/100;
+				agi += agi * (2 + sc_data[SC_CONCENTRATE].integer1())/100;
 			if(sc_data[SC_DECREASEAGI].timer!=-1)	// ë¨ìxå∏è≠
 			{
-				agi -= 2+sc_data[SC_DECREASEAGI].val1.num;
+				agi -= 2+sc_data[SC_DECREASEAGI].integer1();
 			}
 			if(sc_data[SC_QUAGMIRE].timer!=-1 ) {	// ÉNÉ@ÉOÉ}ÉCÉA
 				//agi >>= 1;
-				//int agib = agi*(sc_data[SC_QUAGMIRE].val1.num*10)/100;
+				//int agib = agi*(sc_data[SC_QUAGMIRE].integer1()*10)/100;
 				//agi -= agib > 50 ? 50 : agib;
-				agi -= sc_data[SC_QUAGMIRE].val1.num*10;
+				agi -= sc_data[SC_QUAGMIRE].integer1()*10;
 			}
 			if(sc_data[SC_TRUESIGHT].timer!=-1)	// ÉgÉDÉãÅ[ÉTÉCÉg
 				agi += 5;
 			if(sc_data[SC_INCALLSTATUS].timer!=-1)
-				agi += sc_data[SC_INCALLSTATUS].val1.num;
+				agi += sc_data[SC_INCALLSTATUS].integer1();
 			if(sc_data[SC_INCAGI].timer!=-1)
-				agi += sc_data[SC_INCAGI].val1.num;
+				agi += sc_data[SC_INCAGI].integer1();
 		}
 	}
 	if(agi < 0) agi = 0;
@@ -2179,9 +2180,9 @@ int block_list::get_vit() const
 			if(sc_data[SC_TRUESIGHT].timer!=-1)	// ÉgÉDÉãÅ[ÉTÉCÉg
 				vit += 5;
 			if(sc_data[SC_INCALLSTATUS].timer!=-1)
-				vit += sc_data[SC_INCALLSTATUS].val1.num;
+				vit += sc_data[SC_INCALLSTATUS].integer1();
 			if(sc_data[SC_INCVIT].timer!=-1)
-				vit += sc_data[SC_INCVIT].val1.num;
+				vit += sc_data[SC_INCVIT].integer1();
 		}
 	}
 	if(vit < 0) vit = 0;
@@ -2230,16 +2231,16 @@ int block_list::get_int() const
 				if(bl->is_undead() || race == 6 )
 					int_ >>= 1;	// à´ ñÇ/ïséÄ
 				else
-					int_ += sc_data[SC_BLESSING].val1.num;	// ÇªÇÃëº
+					int_ += sc_data[SC_BLESSING].integer1();	// ÇªÇÃëº
 			}
 			if(sc_data[SC_STRIPHELM].timer != -1)
 				int_ = int_*60/100;
 			if(sc_data[SC_TRUESIGHT].timer!=-1)	// ÉgÉDÉãÅ[ÉTÉCÉg
 				int_ += 5;
 			if(sc_data[SC_INCALLSTATUS].timer!=-1)
-				int_ += sc_data[SC_INCALLSTATUS].val1.num;
+				int_ += sc_data[SC_INCALLSTATUS].integer1();
 			if(sc_data[SC_INCINT].timer!=-1)
-				int_ += sc_data[SC_INCINT].val1.num;
+				int_ += sc_data[SC_INCINT].integer1();
 		}
 	}
 	if(int_ < 0) int_ = 0;
@@ -2284,25 +2285,25 @@ int block_list::get_dex() const
 		if(sc_data)
 		{
 			if(sc_data[SC_CONCENTRATE].timer!=-1 && sc_data[SC_QUAGMIRE].timer == -1)
-				dex += dex*(2+sc_data[SC_CONCENTRATE].val1.num)/100;
+				dex += dex*(2+sc_data[SC_CONCENTRATE].integer1())/100;
 			if(sc_data[SC_BLESSING].timer != -1){	// ÉuÉåÉbÉVÉìÉO
 				int race = bl->get_race();
 				if( bl->is_undead() || race == 6 )
 					dex >>= 1;	// à´ ñÇ/ïséÄ
-				else dex += sc_data[SC_BLESSING].val1.num;	// ÇªÇÃëº
+				else dex += sc_data[SC_BLESSING].integer1();	// ÇªÇÃëº
 			}
 			if(sc_data[SC_QUAGMIRE].timer!=-1)	{ // ÉNÉ@ÉOÉ}ÉCÉA
 				// dex >>= 1;
-				//int dexb = dex*(sc_data[SC_QUAGMIRE].val1.num*10)/100;
+				//int dexb = dex*(sc_data[SC_QUAGMIRE].integer1()*10)/100;
 				//dex -= dexb > 50 ? 50 : dexb;
-				dex -= sc_data[SC_QUAGMIRE].val1.num*10;
+				dex -= sc_data[SC_QUAGMIRE].integer1()*10;
 			}
 			if(sc_data[SC_TRUESIGHT].timer!=-1)	// ÉgÉDÉãÅ[ÉTÉCÉg
 				dex += 5;
 			if(sc_data[SC_INCALLSTATUS].timer!=-1)
-				dex += sc_data[SC_INCALLSTATUS].val1.num;
+				dex += sc_data[SC_INCALLSTATUS].integer1();
 			if(sc_data[SC_INCDEX].timer!=-1)
-				dex += sc_data[SC_INCDEX].val1.num;
+				dex += sc_data[SC_INCDEX].integer1();
 		}
 	}
 	if(dex < 0) dex = 0;
@@ -2352,9 +2353,9 @@ int block_list::get_luk() const
 			if(sc_data[SC_CURSE].timer!=-1)		// éÙÇ¢
 				luk = 0;
 			if(sc_data[SC_INCALLSTATUS].timer!=-1)
-				luk += sc_data[SC_INCALLSTATUS].val1.num;
+				luk += sc_data[SC_INCALLSTATUS].integer1();
 			if(sc_data[SC_INCLUK].timer!=-1)
-				luk += sc_data[SC_INCLUK].val1.num;
+				luk += sc_data[SC_INCLUK].integer1();
 		}
 	}
 	if(luk < 0) luk = 0;
@@ -2379,23 +2380,23 @@ int status_get_flee(block_list *bl)
 
 		if(sc_data){
 			if(sc_data[SC_WHISTLE].timer!=-1)
-				flee += flee*(sc_data[SC_WHISTLE].val1.num+sc_data[SC_WHISTLE].val2.num +(sc_data[SC_WHISTLE].val3.num>>16))/100;
+				flee += flee*(sc_data[SC_WHISTLE].integer1()+sc_data[SC_WHISTLE].integer2() +(sc_data[SC_WHISTLE].integer3()>>16))/100;
 			if(sc_data[SC_BLIND].timer!=-1)
 				flee -= flee*25/100;
 			if(sc_data[SC_WINDWALK].timer!=-1) // ÉEÉBÉìÉhÉEÉHÅ[ÉN
-				flee += flee*(sc_data[SC_WINDWALK].val2.num)/100;
+				flee += flee*(sc_data[SC_WINDWALK].integer2())/100;
 			if(sc_data[SC_SPIDERWEB].timer!=-1) //ÉXÉpÉCÉ_Å[ÉEÉFÉu
 				flee -= flee*50/100;
 			if(sc_data[SC_GOSPEL].timer!=-1) {
-				if (sc_data[SC_GOSPEL].val4.num == BCT_PARTY &&
-					sc_data[SC_GOSPEL].val3.num == 13)
+				if (sc_data[SC_GOSPEL].integer4() == BCT_PARTY &&
+					sc_data[SC_GOSPEL].integer3() == 13)
 					flee += flee*5/100;
-				else if (sc_data[SC_GOSPEL].val4.num == BCT_ENEMY &&
-					sc_data[SC_GOSPEL].val3.num == 7)
+				else if (sc_data[SC_GOSPEL].integer4() == BCT_ENEMY &&
+					sc_data[SC_GOSPEL].integer3() == 7)
 					flee = 0;
 			}
 			if(sc_data[SC_INCFLEE].timer!=-1)
-				flee += flee * sc_data[SC_INCFLEE].val1.num / 100;
+				flee += flee * sc_data[SC_INCFLEE].integer1() / 100;
 		}
 	}
 	if(flee < 1) flee = 1;
@@ -2418,23 +2419,23 @@ int status_get_hit(block_list *bl)
 
 		if (sc_data) {
 			if (sc_data[SC_HUMMING].timer != -1)
-				hit += hit * (sc_data[SC_HUMMING].val1.num * 2 + sc_data[SC_HUMMING].val2.num
-					+ sc_data[SC_HUMMING].val3.num) / 100;
+				hit += hit * (sc_data[SC_HUMMING].integer1() * 2 + sc_data[SC_HUMMING].integer2()
+					+ sc_data[SC_HUMMING].integer3()) / 100;
 			if (sc_data[SC_BLIND].timer != -1)	// éÙÇ¢
 				hit -= hit * 25 / 100;
 			if (sc_data[SC_TRUESIGHT].timer != -1)	// ÉgÉDÉãÅ[ÉTÉCÉg
-				hit += 3 * sc_data[SC_TRUESIGHT].val1.num;
+				hit += 3 * sc_data[SC_TRUESIGHT].integer1();
 			if (sc_data[SC_CONCENTRATION].timer != -1) //ÉRÉìÉZÉìÉgÉåÅ[ÉVÉáÉì
-				//hit += hit * sc_data[SC_CONCENTRATION].val1.num * 10 / 100;
-				hit += 10 * sc_data[SC_CONCENTRATION].val1.num; //+10 hit per level as per updates (?) [Skotlex]
+				//hit += hit * sc_data[SC_CONCENTRATION].integer1() * 10 / 100;
+				hit += 10 * sc_data[SC_CONCENTRATION].integer1(); //+10 hit per level as per updates (?) [Skotlex]
 			if (sc_data[SC_GOSPEL].timer != -1 &&
-				sc_data[SC_GOSPEL].val4.num == BCT_PARTY &&
-				sc_data[SC_GOSPEL].val3.num == 14)
+				sc_data[SC_GOSPEL].integer4() == BCT_PARTY &&
+				sc_data[SC_GOSPEL].integer3() == 14)
 				hit += hit * 5 / 100;
 			if (sc_data[SC_EXPLOSIONSPIRITS].timer != -1)
-				hit += 20 * sc_data[SC_EXPLOSIONSPIRITS].val1.num;
+				hit += 20 * sc_data[SC_EXPLOSIONSPIRITS].integer1();
 			if (sc_data[SC_INCHIT].timer != -1)
-				hit += hit * sc_data[SC_INCHIT].val1.num / 100;
+				hit += hit * sc_data[SC_INCHIT].integer1() / 100;
 		}
 	}
 	if(hit < 1) hit = 1;
@@ -2458,7 +2459,7 @@ int status_get_flee2(block_list *bl)
 
 		if (sc_data) {
 			if (sc_data[SC_WHISTLE].timer!=-1)
-				flee2 += (sc_data[SC_WHISTLE].val1.num + sc_data[SC_WHISTLE].val2.num + (sc_data[SC_WHISTLE].val3.num&0xffff)) * 10;
+				flee2 += (sc_data[SC_WHISTLE].integer1() + sc_data[SC_WHISTLE].integer2() + (sc_data[SC_WHISTLE].integer3()&0xffff)) * 10;
 		}
 	}
 	if (flee2 < 1) flee2 = 1;
@@ -2482,12 +2483,12 @@ int status_get_critical(block_list *bl)
 
 		if(sc_data) {
 			if (sc_data[SC_FORTUNE].timer != -1)
-				critical += 10 + sc_data[SC_FORTUNE].val1.num + sc_data[SC_FORTUNE].val2.num
-					+ sc_data[SC_FORTUNE].val3.num * 10;
+				critical += 10 + sc_data[SC_FORTUNE].integer1() + sc_data[SC_FORTUNE].integer2()
+					+ sc_data[SC_FORTUNE].integer3() * 10;
 			if (sc_data[SC_EXPLOSIONSPIRITS].timer != -1)
-				critical += sc_data[SC_EXPLOSIONSPIRITS].val2.num;
+				critical += sc_data[SC_EXPLOSIONSPIRITS].integer2();
 			if (sc_data[SC_TRUESIGHT].timer != -1) //ÉgÉDÉãÅ[ÉTÉCÉg
-				critical += sc_data[SC_TRUESIGHT].val1.num;
+				critical += sc_data[SC_TRUESIGHT].integer1();
 		}
 	}
 	if (critical < 1) critical = 1;
@@ -2537,13 +2538,13 @@ int status_get_baseatk(block_list *bl)
 		if(sc_data)
 		{	//èÛë‘àŸèÌÇ†ÇË
 			if(sc_data[SC_PROVOKE].timer!=-1) //PCÇ≈ÉvÉçÉ{ÉbÉN(SM_PROVOKE)èÛë‘
-				batk += batk *(2+3*sc_data[SC_PROVOKE].val1.num)/100; //base_atkëùâ¡
+				batk += batk *(2+3*sc_data[SC_PROVOKE].integer1())/100; //base_atkëùâ¡
 			if(sc_data[SC_CURSE].timer!=-1) //éÙÇÌÇÍÇƒÇ¢ÇΩÇÁ
 				batk -= batk*25/100; //base_atkÇ™25%å∏è≠
 			if(sc_data[SC_CONCENTRATION].timer!=-1) //ÉRÉìÉZÉìÉgÉåÅ[ÉVÉáÉì
-				batk += batk*5*sc_data[SC_CONCENTRATION].val1.num/100;
+				batk += batk*5*sc_data[SC_CONCENTRATION].integer1()/100;
 			if(sc_data[SC_INCATK2].timer!=-1)
-				batk += batk*sc_data[SC_INCATK2].val1.num/100;
+				batk += batk*sc_data[SC_INCATK2].integer1()/100;
 		}
 	}
 	if(batk < 1) batk = 1; //base_atkÇÕç≈í·Ç≈Ç‡1
@@ -2591,26 +2592,26 @@ int status_get_atk(block_list *bl)
 		}
 		if(sc_data) {
 			if(sc_data[SC_PROVOKE].timer!=-1)
-				atk += atk * (2+3*sc_data[SC_PROVOKE].val1.num)/100;
+				atk += atk * (2+3*sc_data[SC_PROVOKE].integer1())/100;
 			if(sc_data[SC_CURSE].timer!=-1)
 				atk -= atk*25/100;
 			if(sc_data[SC_CONCENTRATION].timer!=-1) //ÉRÉìÉZÉìÉgÉåÅ[ÉVÉáÉì
-				atk += atk*(5*sc_data[SC_CONCENTRATION].val1.num)/100;
+				atk += atk*(5*sc_data[SC_CONCENTRATION].integer1())/100;
 			if(sc_data[SC_EXPLOSIONSPIRITS].timer!=-1)
-				atk += (1000*sc_data[SC_EXPLOSIONSPIRITS].val1.num);
+				atk += (1000*sc_data[SC_EXPLOSIONSPIRITS].integer1());
 			if(sc_data[SC_STRIPWEAPON].timer!=-1)
 				atk -= atk*10/100;
 
 			if(sc_data[SC_GOSPEL].timer!=-1) {
-				if (sc_data[SC_GOSPEL].val4.num == BCT_PARTY &&
-					sc_data[SC_GOSPEL].val3.num == 12)
+				if (sc_data[SC_GOSPEL].integer4() == BCT_PARTY &&
+					sc_data[SC_GOSPEL].integer3() == 12)
 					atk += atk*8/100;
-				else if (sc_data[SC_GOSPEL].val4.num == BCT_ENEMY &&
-					sc_data[SC_GOSPEL].val3.num == 6)
+				else if (sc_data[SC_GOSPEL].integer4() == BCT_ENEMY &&
+					sc_data[SC_GOSPEL].integer3() == 6)
 					atk = 0;
 			}
 			if(sc_data[SC_INCATK2].timer!=-1)
-				atk += atk * sc_data[SC_INCATK2].val1.num / 100;
+				atk += atk * sc_data[SC_INCATK2].integer1() / 100;
 		}
 	}
 	return (atk<0)?0:atk;
@@ -2670,21 +2671,21 @@ int status_get_atk2(block_list *bl)
 		}		  
 		if(sc_data) {
 			if( sc_data[SC_IMPOSITIO].timer!=-1)
-				atk2 += sc_data[SC_IMPOSITIO].val1.num*5;
+				atk2 += sc_data[SC_IMPOSITIO].integer1()*5;
 			if( sc_data[SC_PROVOKE].timer!=-1 )
-				atk2 += atk2*2*sc_data[SC_PROVOKE].val1.num/100;
+				atk2 += atk2*2*sc_data[SC_PROVOKE].integer1()/100;
 			if( sc_data[SC_CURSE].timer!=-1 )
 				atk2 -= atk2*25/100;
 			if(sc_data[SC_DRUMBATTLE].timer!=-1)
-				atk2 += sc_data[SC_DRUMBATTLE].val2.num;
+				atk2 += sc_data[SC_DRUMBATTLE].integer2();
 			if(sc_data[SC_NIBELUNGEN].timer!=-1 && (status_get_element(bl)/10) >= 8 )
-				atk2 += sc_data[SC_NIBELUNGEN].val2.num;
+				atk2 += sc_data[SC_NIBELUNGEN].integer2();
 			if(sc_data[SC_STRIPWEAPON].timer!=-1)
-				atk2 = atk2*sc_data[SC_STRIPWEAPON].val2.num/100;
+				atk2 = atk2*sc_data[SC_STRIPWEAPON].integer2()/100;
 			if(sc_data[SC_CONCENTRATION].timer!=-1) //ÉRÉìÉZÉìÉgÉåÅ[ÉVÉáÉì
-				atk2 += atk2*(5*sc_data[SC_CONCENTRATION].val1.num)/100;
+				atk2 += atk2*(5*sc_data[SC_CONCENTRATION].integer1())/100;
 			if(sc_data[SC_EXPLOSIONSPIRITS].timer!=-1)
-				atk2 += (1000*sc_data[SC_EXPLOSIONSPIRITS].val1.num);
+				atk2 += (1000*sc_data[SC_EXPLOSIONSPIRITS].integer1());
 		}
 	}
 	return (atk2<0)?0:atk2;
@@ -2722,9 +2723,9 @@ int status_get_matk1(block_list *bl)
 		sc_data = status_get_sc_data(bl);
 		if(sc_data) {
 			if(sc_data[SC_MINDBREAKER].timer!=-1)
-				matk += matk*(20*sc_data[SC_MINDBREAKER].val1.num)/100;
+				matk += matk*(20*sc_data[SC_MINDBREAKER].integer1())/100;
 			if(sc_data[SC_INCMATK2].timer!=-1)
-				matk += matk * sc_data[SC_INCMATK2].val1.num / 100;
+				matk += matk * sc_data[SC_INCMATK2].integer1() / 100;
 		}
 	}
 	return matk;
@@ -2748,9 +2749,9 @@ int status_get_matk2(block_list *bl)
 
 		if(sc_data) {
 			if(sc_data[SC_MINDBREAKER].timer!=-1)
-				matk += matk*(20*sc_data[SC_MINDBREAKER].val1.num)/100;
+				matk += matk*(20*sc_data[SC_MINDBREAKER].integer1())/100;
 			if(sc_data[SC_INCMATK2].timer!=-1)
-				matk += matk * sc_data[SC_INCMATK2].val1.num / 100;
+				matk += matk * sc_data[SC_INCMATK2].integer1() / 100;
 		}
 	}
 	return matk;
@@ -2789,7 +2790,7 @@ int status_get_def(block_list *bl)
 
 	if(sc_data) {
 		//ìÄåãÅAêŒâªéûÇÕâEÉVÉtÉg
-		if(sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].val2.num == 0))
+		if(sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].integer2() == 0))
 			def >>= 1;
 
 		if (*bl != BL_PC) {
@@ -2803,39 +2804,39 @@ int status_get_def(block_list *bl)
 				def = 100;
 			//ÉvÉçÉ{ÉbÉNéûÇÕå∏éZ
 			if(sc_data[SC_PROVOKE].timer!=-1 && *bl != BL_PC) //Provoke doesn't alters player defense.
-				def -= def*(5+5*sc_data[SC_PROVOKE].val1.num)/100;
+				def -= def*(5+5*sc_data[SC_PROVOKE].integer1())/100;
 			//êÌëæå€ÇÃãøÇ´éûÇÕâ¡éZ
 			if( sc_data[SC_DRUMBATTLE].timer!=-1)
-				def += sc_data[SC_DRUMBATTLE].val3.num;
+				def += sc_data[SC_DRUMBATTLE].integer3();
 			//ì≈Ç…Ç©Ç©Ç¡ÇƒÇ¢ÇÈéûÇÕå∏éZ
 			if(sc_data[SC_POISON].timer!=-1)
 				def = def*75/100;
 			//ÉXÉgÉäÉbÉvÉVÅ[ÉãÉhéûÇÕå∏éZ
 			if(sc_data[SC_STRIPSHIELD].timer!=-1)
-				def = def*sc_data[SC_STRIPSHIELD].val2.num/100;
+				def = def*sc_data[SC_STRIPSHIELD].integer2()/100;
 			//ÉVÉOÉiÉÄÉNÉãÉVÉXéûÇÕå∏éZ
 			if(sc_data[SC_SIGNUMCRUCIS].timer!=-1)
-				def -= def * (10+4*sc_data[SC_SIGNUMCRUCIS].val2.num)/100;
+				def -= def * (10+4*sc_data[SC_SIGNUMCRUCIS].integer2())/100;
 			//âiâìÇÃç¨ì◊éûÇÕDEF0Ç…Ç»ÇÈ
 			//ÉRÉìÉZÉìÉgÉåÅ[ÉVÉáÉìéûÇÕå∏éZ
 			if( sc_data[SC_CONCENTRATION].timer!=-1)
-				def = (def*(100 - 5*sc_data[SC_CONCENTRATION].val1.num))/100;
+				def = (def*(100 - 5*sc_data[SC_CONCENTRATION].integer1()))/100;
 			if(sc_data[SC_GOSPEL].timer!=-1) {
-				if (sc_data[SC_GOSPEL].val4.num == BCT_PARTY &&
-					sc_data[SC_GOSPEL].val3.num == 11)
+				if (sc_data[SC_GOSPEL].integer4() == BCT_PARTY &&
+					sc_data[SC_GOSPEL].integer3() == 11)
 					def += def*25/100;
-				else if (sc_data[SC_GOSPEL].val4.num == BCT_ENEMY &&
-					sc_data[SC_GOSPEL].val3.num == 5)
+				else if (sc_data[SC_GOSPEL].integer4() == BCT_ENEMY &&
+					sc_data[SC_GOSPEL].integer3() == 5)
 					def = 0;
 			}
 			if(sc_data[SC_JOINTBEAT].timer!=-1) {
-				if (sc_data[SC_JOINTBEAT].val2.num == 3)
+				if (sc_data[SC_JOINTBEAT].integer2() == 3)
 					def -= def*50/100;
-				else if (sc_data[SC_JOINTBEAT].val2.num == 4)
+				else if (sc_data[SC_JOINTBEAT].integer2() == 4)
 					def -= def*25/100;
 			}
 			if(sc_data[SC_INCDEF2].timer!=-1)
-				def += def * sc_data[SC_INCDEF2].val1.num / 100;
+				def += def * sc_data[SC_INCDEF2].integer1() / 100;
 		}
 	}
 	//ârè•íÜÇÕârè•éûå∏éZó¶Ç…äÓÇ√Ç¢Çƒå∏éZ
@@ -2873,10 +2874,10 @@ int status_get_mdef(block_list *bl)
 		if(sc_data[SC_BARRIER].timer != -1)
 			mdef = 100;
 		//ìÄåãÅAêŒâªéûÇÕ1.25î{
-		if(sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].val2.num == 0))
+		if(sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].integer2() == 0))
 			mdef += mdef/4; // == *1.25
 		if( sc_data[SC_MINDBREAKER].timer!=-1 && *bl != BL_PC)
-			mdef -= mdef*(12*sc_data[SC_MINDBREAKER].val1.num)/100;
+			mdef -= mdef*(12*sc_data[SC_MINDBREAKER].integer1())/100;
 	}
 	if(mdef < 0) mdef = 0;
 	return mdef;
@@ -2914,20 +2915,20 @@ int status_get_def2(const block_list *bl)
 				return 0;
 
 			if(sc_data[SC_ANGELUS].timer != -1)
-				def2 += def2*(10+5*sc_data[SC_ANGELUS].val1.num)/100;
+				def2 += def2*(10+5*sc_data[SC_ANGELUS].integer1())/100;
 			if(sc_data[SC_PROVOKE].timer!=-1)
-				def2 -= def2*(5+5*sc_data[SC_PROVOKE].val1.num)/100;
+				def2 -= def2*(5+5*sc_data[SC_PROVOKE].integer1())/100;
 			if(sc_data[SC_POISON].timer!=-1)
 				def2 = def2*75/100;
 			//ÉRÉìÉZÉìÉgÉåÅ[ÉVÉáÉìéûÇÕå∏éZ
 			if( sc_data[SC_CONCENTRATION].timer!=-1)
-				def2 -= def2*(5*sc_data[SC_CONCENTRATION].val1.num)/100;
+				def2 -= def2*(5*sc_data[SC_CONCENTRATION].integer1())/100;
 			if(sc_data[SC_GOSPEL].timer!=-1) {
-				if (sc_data[SC_GOSPEL].val4.num == BCT_PARTY &&
-					sc_data[SC_GOSPEL].val3.num == 11)
+				if (sc_data[SC_GOSPEL].integer4() == BCT_PARTY &&
+					sc_data[SC_GOSPEL].integer3() == 11)
 					def2 += def2*25/100;
-				else if (sc_data[SC_GOSPEL].val4.num == BCT_ENEMY &&
-					sc_data[SC_GOSPEL].val3.num == 5)
+				else if (sc_data[SC_GOSPEL].integer4() == BCT_ENEMY &&
+					sc_data[SC_GOSPEL].integer3() == 5)
 					def2 = 0;
 			}
 		}
@@ -2961,7 +2962,7 @@ int status_get_mdef2(const block_list *bl)
 		}
 		if(sc_data) {
 			if(sc_data[SC_MINDBREAKER].timer!=-1)
-				mdef2 -= mdef2*12*sc_data[SC_MINDBREAKER].val1.num/100;
+				mdef2 -= mdef2*12*sc_data[SC_MINDBREAKER].integer1()/100;
 		}
 	}
 	if(mdef2 < 0) mdef2 = 0;
@@ -3010,7 +3011,7 @@ int status_get_adelay(block_list *bl)
 			if(sc_data[SC_ADRENALINE].timer != -1 && sc_data[SC_TWOHANDQUICKEN].timer == -1 &&
 				sc_data[SC_QUAGMIRE].timer == -1 && sc_data[SC_DONTFORGETME].timer == -1) {	// ÉAÉhÉåÉiÉäÉìÉâÉbÉVÉÖ
 				//égópé“Ç∆ÉpÅ[ÉeÉBÉÅÉìÉoÅ[Ç≈äiç∑Ç™èoÇÈê›íËÇ≈Ç»ÇØÇÍÇŒ3äÑå∏éZ
-				if(sc_data[SC_ADRENALINE].val2.num || !config.party_skill_penalty)
+				if(sc_data[SC_ADRENALINE].integer2() || !config.party_skill_penalty)
 					aspd_rate -= 30;
 				//ÇªÇ§Ç≈Ç»ÇØÇÍÇŒ2.5äÑå∏éZ
 				else
@@ -3019,37 +3020,37 @@ int status_get_adelay(block_list *bl)
 			//ÉXÉsÉAÉNÉBÉbÉPÉìéûÇÕå∏éZ
 			if(sc_data[SC_SPEARSQUICKEN].timer != -1 && sc_data[SC_ADRENALINE].timer == -1 &&
 				sc_data[SC_TWOHANDQUICKEN].timer == -1 && sc_data[SC_QUAGMIRE].timer == -1 && sc_data[SC_DONTFORGETME].timer == -1)	// ÉXÉsÉAÉNÉBÉbÉPÉì
-				aspd_rate -= sc_data[SC_SPEARSQUICKEN].val2.num;
+				aspd_rate -= sc_data[SC_SPEARSQUICKEN].integer2();
 			//ó[ì˙ÇÃÉAÉTÉVÉìÉNÉçÉXéûÇÕå∏éZ
 			if(sc_data[SC_ASSNCROS].timer!=-1 && // ó[ózÇÃÉAÉTÉVÉìÉNÉçÉX
 				sc_data[SC_TWOHANDQUICKEN].timer==-1 && sc_data[SC_ADRENALINE].timer==-1 && sc_data[SC_SPEARSQUICKEN].timer==-1 &&
 				sc_data[SC_DONTFORGETME].timer == -1)
-				aspd_rate -= 5+sc_data[SC_ASSNCROS].val1.num+sc_data[SC_ASSNCROS].val2.num+sc_data[SC_ASSNCROS].val3.num;
+				aspd_rate -= 5+sc_data[SC_ASSNCROS].integer1()+sc_data[SC_ASSNCROS].integer2()+sc_data[SC_ASSNCROS].integer3();
 			//éÑÇñYÇÍÇ»Ç¢Ç≈ÅcéûÇÕâ¡éZ
 			if(sc_data[SC_DONTFORGETME].timer!=-1)		// éÑÇñYÇÍÇ»Ç¢Ç≈
-				aspd_rate += sc_data[SC_DONTFORGETME].val1.num*3 + sc_data[SC_DONTFORGETME].val2.num + (sc_data[SC_DONTFORGETME].val3.num>>16);
+				aspd_rate += sc_data[SC_DONTFORGETME].integer1()*3 + sc_data[SC_DONTFORGETME].integer2() + (sc_data[SC_DONTFORGETME].integer3()>>16);
 			//ã‡çÑéû25%â¡éZ
 			if(sc_data[SC_STEELBODY].timer!=-1)	// ã‡çÑ
 				aspd_rate += 25;
 			//ëùë¨É|Å[ÉVÉáÉìégópéûÇÕå∏éZ
 			if(	sc_data[i=SC_SPEEDPOTION3].timer!=-1 || sc_data[i=SC_SPEEDPOTION2].timer!=-1 || sc_data[i=SC_SPEEDPOTION1].timer!=-1 || sc_data[i=SC_SPEEDPOTION0].timer!=-1)
-				aspd_rate -= sc_data[i].val2.num;
+				aspd_rate -= sc_data[i].integer2();
 			//ÉfÉBÉtÉFÉìÉ_Å[éûÇÕâ¡éZ
 			if(sc_data[SC_DEFENDER].timer != -1)
-				aspd_rate += (25 - sc_data[SC_DEFENDER].val1.num*5);
-				//adelay += (1100 - sc_data[SC_DEFENDER].val1.num*100);
+				aspd_rate += (25 - sc_data[SC_DEFENDER].integer1()*5);
+				//adelay += (1100 - sc_data[SC_DEFENDER].integer1()*100);
 			if(sc_data[SC_GOSPEL].timer!=-1 &&
-				sc_data[SC_GOSPEL].val4.num == BCT_ENEMY &&
-				sc_data[SC_GOSPEL].val3.num == 8)
+				sc_data[SC_GOSPEL].integer4() == BCT_ENEMY &&
+				sc_data[SC_GOSPEL].integer3() == 8)
 				aspd_rate += 25;
 			if(sc_data[SC_JOINTBEAT].timer!=-1) {
-				if (sc_data[SC_JOINTBEAT].val2.num == 1)
+				if (sc_data[SC_JOINTBEAT].integer2() == 1)
 					aspd_rate += 25;
-				else if (sc_data[SC_JOINTBEAT].val2.num == 2)
+				else if (sc_data[SC_JOINTBEAT].integer2() == 2)
 					aspd_rate += 10;
 			}
 			if(sc_data[SC_GRAVITATION].timer!=-1)
-				aspd_rate += sc_data[SC_GRAVITATION].val2.num;
+				aspd_rate += sc_data[SC_GRAVITATION].integer2();
 		}
 		if(aspd_rate != 100)
 			adelay = adelay*aspd_rate/100;
@@ -3089,28 +3090,28 @@ int status_get_amotion(const block_list *bl)
 				aspd_rate -= 30;
 			if(sc_data[SC_ADRENALINE].timer != -1 && sc_data[SC_TWOHANDQUICKEN].timer == -1 &&
 				sc_data[SC_QUAGMIRE].timer == -1 && sc_data[SC_DONTFORGETME].timer == -1) {	// ÉAÉhÉåÉiÉäÉìÉâÉbÉVÉÖ
-				if(sc_data[SC_ADRENALINE].val2.num || !config.party_skill_penalty)
+				if(sc_data[SC_ADRENALINE].integer2() || !config.party_skill_penalty)
 					aspd_rate -= 30;
 				else
 					aspd_rate -= 25;
 			}
 			if(sc_data[SC_SPEARSQUICKEN].timer != -1 && sc_data[SC_ADRENALINE].timer == -1 &&
 				sc_data[SC_TWOHANDQUICKEN].timer == -1 && sc_data[SC_QUAGMIRE].timer == -1 && sc_data[SC_DONTFORGETME].timer == -1)	// ÉXÉsÉAÉNÉBÉbÉPÉì
-				aspd_rate -= sc_data[SC_SPEARSQUICKEN].val2.num;
+				aspd_rate -= sc_data[SC_SPEARSQUICKEN].integer2();
 			if(sc_data[SC_ASSNCROS].timer!=-1 && // ó[ózÇÃÉAÉTÉVÉìÉNÉçÉX
 				sc_data[SC_TWOHANDQUICKEN].timer==-1 && sc_data[SC_ADRENALINE].timer==-1 && sc_data[SC_SPEARSQUICKEN].timer==-1 &&
 				sc_data[SC_DONTFORGETME].timer == -1)
-				aspd_rate -= 5+sc_data[SC_ASSNCROS].val1.num+sc_data[SC_ASSNCROS].val2.num+sc_data[SC_ASSNCROS].val3.num;
+				aspd_rate -= 5+sc_data[SC_ASSNCROS].integer1()+sc_data[SC_ASSNCROS].integer2()+sc_data[SC_ASSNCROS].integer3();
 			if(sc_data[SC_DONTFORGETME].timer!=-1)		// éÑÇñYÇÍÇ»Ç¢Ç≈
-				aspd_rate += sc_data[SC_DONTFORGETME].val1.num*3 + sc_data[SC_DONTFORGETME].val2.num + (sc_data[SC_DONTFORGETME].val3.num>>16);
+				aspd_rate += sc_data[SC_DONTFORGETME].integer1()*3 + sc_data[SC_DONTFORGETME].integer2() + (sc_data[SC_DONTFORGETME].integer3()>>16);
 			if(sc_data[SC_STEELBODY].timer!=-1)	// ã‡çÑ
 				aspd_rate += 25;
 			if(	sc_data[i=SC_SPEEDPOTION3].timer!=-1 || sc_data[i=SC_SPEEDPOTION2].timer!=-1 || sc_data[i=SC_SPEEDPOTION1].timer!=-1 || sc_data[i=SC_SPEEDPOTION0].timer!=-1)
-				aspd_rate -= sc_data[i].val2.num;
+				aspd_rate -= sc_data[i].integer2();
 			if(sc_data[SC_DEFENDER].timer != -1)
-				aspd_rate += (25 - sc_data[SC_DEFENDER].val1.num*5);
+				aspd_rate += (25 - sc_data[SC_DEFENDER].integer1()*5);
 			if(sc_data[SC_GRAVITATION].timer!=-1)
-				aspd_rate += sc_data[SC_GRAVITATION].val2.num;
+				aspd_rate += sc_data[SC_GRAVITATION].integer2();
 		}
 		if(aspd_rate != 100)
 			amotion = amotion*aspd_rate/100;
@@ -3173,7 +3174,7 @@ int status_get_element(const block_list *bl)
 			ret=26;
 		if( sc_data[SC_FREEZE].timer!=-1 )	// ìÄåã
 			ret=21;
-		if( sc_data[SC_STONE].timer!=-1 && sc_data[SC_STONE].val2.num==0)
+		if( sc_data[SC_STONE].timer!=-1 && sc_data[SC_STONE].integer2()==0)
 			ret=22;
 	}
 	return ret;
@@ -3340,7 +3341,7 @@ int status_get_sc_def(block_list *bl, int type)
 	case SC_FREEZE:
 		sc_def = 100 - (3 + status_get_mdef(bl) + bl->get_luk()/3);
 		break;
-	case SC_STAN:
+	case SC_STUN:
 	case SC_POISON:
 	case SC_SILENCE:
 		sc_def = 100 - (3 + bl->get_vit() + bl->get_luk()/3);
@@ -3371,10 +3372,10 @@ int status_get_sc_def(block_list *bl, int type)
 		struct status_change* sc_data = status_get_sc_data(bl);
 		if (sc_data)
 		{
-			if( sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4.num == BCT_PARTY )
+			if( sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].integer4() == BCT_PARTY )
 				sc_def = 0; //Status inmunity
 			else if (sc_data[SC_SIEGFRIED].timer != -1)
-				sc_def -= sc_data[SC_SIEGFRIED].val2.num; //Status resistance.
+				sc_def -= sc_data[SC_SIEGFRIED].integer2(); //Status resistance.
 		}
 	}
 
@@ -3421,7 +3422,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 		case SC_FREEZE:
 			scdef=3+status_get_mdef(bl)+bl->get_luk()/3;
 			break;
-		case SC_STAN:
+		case SC_STUN:
 		case SC_SILENCE:
 		case SC_POISON:
 		case SC_DPOISON:
@@ -3468,33 +3469,33 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 	if (type==SC_BLESSING && (*bl==BL_PC || (!undead_flag && race!=6))) {
 		if (sc_data[SC_CURSE].timer!=-1)
 			status_change_end(bl,SC_CURSE,-1);
-		if (sc_data[SC_STONE].timer!=-1 && sc_data[SC_STONE].val2.num==0)
+		if (sc_data[SC_STONE].timer!=-1 && sc_data[SC_STONE].integer2()==0)
 			status_change_end(bl,SC_STONE,-1);
 	}
 
 	if((type == SC_ADRENALINE || type == SC_WEAPONPERFECTION || type == SC_OVERTHRUST) &&
-		sc_data[type].timer != -1 && sc_data[type].val2.num && !val2.num)
+		sc_data[type].timer != -1 && sc_data[type].integer2() && !val2.num)
 		return 0;
 
 	if( mode & 0x20  && !(flag&1) &&
-		(type==SC_STONE || type==SC_FREEZE || type==SC_STAN || type==SC_SLEEP || type==SC_SILENCE ||
+		(type==SC_STONE || type==SC_FREEZE || type==SC_STUN || type==SC_SLEEP || type==SC_SILENCE ||
 		 type==SC_POISON || type==SC_DPOISON || type==SC_CURSE  || type==SC_ROKISWEIL ||
 		 type==SC_QUAGMIRE || type == SC_DECREASEAGI || type == SC_SIGNUMCRUCIS || type == SC_PROVOKE ||
 		 (type == SC_BLESSING && (undead_flag || race == 6))) )
 	{	// É{ÉXÇ…ÇÕ?Ç©Ç»Ç¢(ÇΩÇæÇµÉJ?ÉhÇ…ÇÊÇÈ?â ÇÕìKópÇ≥ÇÍÇÈ)
 		return 0;
 	}
-	if(type==SC_FREEZE || type==SC_STAN || type==SC_SLEEP || type == SC_CONFUSION)
+	if(type==SC_FREEZE || type==SC_STUN || type==SC_SLEEP || type == SC_CONFUSION)
 		bl->stop_walking(1);
 
 	if(sc_data[type].timer != -1)
 	{	// Ç∑Ç≈Ç…ìØÇ∂àŸèÌÇ…Ç»Ç¡ÇƒÇ¢ÇÈèÍçáÉ^ÉCÉ}âèú
-		if(sc_data[type].val1.num > val1.num && type != SC_COMBO && type != SC_DANCING && type != SC_DEVOTION &&
+		if(sc_data[type].integer1() > val1.num && type != SC_COMBO && type != SC_DANCING && type != SC_DEVOTION &&
 			type != SC_SPEEDPOTION0 && type != SC_SPEEDPOTION1 && type != SC_SPEEDPOTION2 && type != SC_SPEEDPOTION3
 			&& type != SC_ATKPOT && type != SC_MATKPOT) // added atk and matk potions [Valaris]
 			return 0;
 
-		if ((type >=SC_STAN && type <= SC_BLIND) || type == SC_DPOISON)
+		if ((type >=SC_STUN && type <= SC_BLIND) || type == SC_DPOISON)
 			return 0;// ?Ç¨ë´ÇµÇ™Ç≈Ç´Ç»Ç¢?ë‘àŸèÌÇ≈Ç†ÇÈéûÇÕ?ë‘àŸèÌÇçsÇÌÇ»Ç¢
 
 		delete_timer(sc_data[type].timer, status_change_timer);
@@ -3523,7 +3524,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 			{
 				tick = 60*1000;
 				if (*bl == BL_PC && sd->status.hp<sd->status.max_hp>>2 &&
-					(sc_data[SC_PROVOKE].timer==-1 || sc_data[SC_PROVOKE].val2.num==0))
+					(sc_data[SC_PROVOKE].timer==-1 || sc_data[SC_PROVOKE].integer2()==0))
 					status_change_start(bl,SC_PROVOKE,10,1,0,0,0,0);
 			}
 			break;
@@ -3861,7 +3862,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 				tick = tick * sc_def / 100;
 			}
 			break;
-		case SC_STAN:				// ÉXÉ^ÉìÅival2Ç…É~ÉäïbÉZÉbÉgÅj
+		case SC_STUN:				// ÉXÉ^ÉìÅival2Ç…É~ÉäïbÉZÉbÉgÅj
 			if(!(flag&2)) {
 				int sc_def = status_get_sc_def_vit(bl);
 				tick = tick * sc_def / 100;
@@ -3906,7 +3907,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 		case SC_SILENCE:			// íæ?ÅiÉåÉbÉNÉXÉfÉr?ÉiÅj
 			if (sc_data && sc_data[SC_GOSPEL].timer!=-1)
 			{
-				struct skill_unit_group *ptr = (struct skill_unit_group *)sc_data[SC_GOSPEL].val3.ptr;
+				struct skill_unit_group *ptr = (struct skill_unit_group *)sc_data[SC_GOSPEL].pointer3();
 				if(ptr) skill_delunitgroup(*ptr);
 				status_change_end(bl,SC_GOSPEL,-1);
 				break;
@@ -4194,7 +4195,7 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 	switch(type){
 		case SC_STONE:
 		case SC_FREEZE:
-		case SC_STAN:
+		case SC_STUN:
 		case SC_SLEEP:
 
             // Cancel cast when get status [LuzZza]
@@ -4265,10 +4266,10 @@ int status_change_start(block_list *bl,int type, basics::numptr val1,basics::num
 	if(opt_flag)	// optionÇÃ?çX
 		clif_changeoption(*bl);
 
-	sc_data[type].val1 = val1;
-	sc_data[type].val2 = val2;
-	sc_data[type].val3 = val3;
-	sc_data[type].val4 = val4;
+	sc_data[type].value1() = val1;
+	sc_data[type].value2() = val2;
+	sc_data[type].value3() = val3;
+	sc_data[type].value4() = val4;
 	// É^ÉCÉ}?ê›íË
 	sc_data[type].timer = add_timer(gettick() + tick, status_change_timer, bl->id, type);
 
@@ -4448,32 +4449,32 @@ int status_change_end( block_list* bl, int type, int tid )
 				break;
 			case SC_DEVOTION:		// ÉfÉBÉ{?ÉVÉáÉì
 				{
-					map_session_data *md = map_session_data::from_blid(sc_data[type].val1.num);
-					sc_data[type].val1=sc_data[type].val2=0;
+					map_session_data *md = map_session_data::from_blid(sc_data[type].integer1());
+					sc_data[type].value1() = sc_data[type].value2() = 0;
 					if(md) skill_devotion(md,bl->id);
 					calc_flag = 1;
 				}
 				break;
 			case SC_BLADESTOP:
 				{
-					struct status_change *t_sc_data = status_get_sc_data((block_list *)sc_data[type].val4.ptr);
+					struct status_change *t_sc_data = status_get_sc_data((block_list *)sc_data[type].pointer4());
 					//ï–ï˚Ç™êÿÇÍÇΩÇÃÇ≈ëäéËÇÃîíên?ë‘Ç™êÿÇÍÇƒÇ»Ç¢ÇÃÇ»ÇÁâèú
-					if(t_sc_data && t_sc_data[SC_BLADESTOP].timer!=-1 && sc_data[type].val4.isptr)
-						status_change_end((block_list *)sc_data[type].val4.ptr,SC_BLADESTOP,-1);
+					if(t_sc_data && t_sc_data[SC_BLADESTOP].timer!=-1 && sc_data[type].pointer4())
+						status_change_end((block_list *)sc_data[type].pointer4(),SC_BLADESTOP,-1);
 
-					if(sc_data[type].val2.num==2 && sc_data[type].val3.isptr && sc_data[type].val4.isptr)
-						clif_bladestop(*((block_list *)sc_data[type].val3.ptr),*((block_list *)sc_data[type].val4.ptr),0);
+					if(sc_data[type].integer2()==2 && sc_data[type].value3().isptr && sc_data[type].value4().isptr)
+						clif_bladestop(*((block_list *)sc_data[type].pointer3()),*((block_list *)sc_data[type].pointer4()),0);
 				}
 				break;
 			case SC_DANCING:
 				{
 					map_session_data *dsd;
 					struct status_change *d_sc_data;
-					if(sc_data[type].val4.num && (dsd=map_session_data::from_blid(sc_data[type].val4.num))){
+					if(sc_data[type].integer4() && (dsd=map_session_data::from_blid(sc_data[type].integer4()))){
 						d_sc_data = dsd->sc_data;
 						//çáëtÇ≈ëäéËÇ™Ç¢ÇÈèÍçáëäéËÇÃval4Ç0Ç…Ç∑ÇÈ
 						if(d_sc_data && d_sc_data[type].timer!=-1)
-							d_sc_data[type].val4=0;
+							d_sc_data[type].value4()=0;
 					}
 				}
 				if (sc_data[SC_LONGING].timer!=-1)
@@ -4492,21 +4493,21 @@ int status_change_end( block_list* bl, int type, int tid )
 				break;
 			case SC_SPLASHER:		// ÉxÉiÉÄÉXÉvÉâÉbÉVÉÉ?
 				{
-					block_list *src=block_list::from_blid(sc_data[type].val3.num);
+					block_list *src=block_list::from_blid(sc_data[type].integer3());
 					if(src && tid!=-1){
 						//é©ï™Ç…É_ÉÅ?ÉWÅïé¸?3*3Ç…É_ÉÅ?ÉW
-						skill_castend_damage_id(src, bl,(unsigned short)sc_data[type].val2.num,(unsigned short)sc_data[type].val1.num,gettick(),0 );
+						skill_castend_damage_id(src, bl,(unsigned short)sc_data[type].integer2(),(unsigned short)sc_data[type].integer1(),gettick(),0 );
 					}
 				}
 				break;
 			case SC_RUN:
-				if (sc_data[type].val1.num >= 7 && !sc_data[type].val2.num && (*bl != BL_PC || ((map_session_data *)bl)->status.weapon == 0))
-					status_change_start(bl, SC_INCSTR,10,0,0,0,skill_get_time2(TK_RUN,sc_data[type].val1.num),0);
+				if (sc_data[type].integer1() >= 7 && !sc_data[type].integer2() && (*bl != BL_PC || ((map_session_data *)bl)->status.weapon == 0))
+					status_change_start(bl, SC_INCSTR,10,0,0,0,skill_get_time2(TK_RUN,sc_data[type].integer1()),0);
 				break;
 
 		// option1
 			case SC_FREEZE:
-				sc_data[type].val3 = 0;
+				sc_data[type].value3() = 0;
 				break;
 
 		// option2
@@ -4521,7 +4522,7 @@ int status_change_end( block_list* bl, int type, int tid )
 				{
 					// check for partner and end their marionette status as well
 					int type2 = (type == SC_MARIONETTE) ? SC_MARIONETTE2 : SC_MARIONETTE;
-					block_list *pbl = block_list::from_blid(sc_data[type].val3.num);
+					block_list *pbl = block_list::from_blid(sc_data[type].integer3());
 					if (pbl) {
 						struct status_change* sc_data;
 						if(//*status_get_sc_count(pbl) > 0 &&
@@ -4537,7 +4538,7 @@ int status_change_end( block_list* bl, int type, int tid )
 
 			case SC_GRAVITATION:
 				if (*bl == BL_PC) {
-					if (sc_data[type].val3.num == BCT_SELF) {
+					if (sc_data[type].integer3() == BCT_SELF) {
 						map_session_data *sd = (map_session_data *)bl;
 						if (sd) {
 							unsigned long tick = gettick();
@@ -4558,7 +4559,7 @@ int status_change_end( block_list* bl, int type, int tid )
 		switch(type){	// ê≥èÌÇ…?ÇÈÇ∆Ç´Ç»Ç…Ç©?óùÇ™ïKóv
 		case SC_STONE:
 		case SC_FREEZE:
-		case SC_STAN:
+		case SC_STUN:
 		case SC_SLEEP:
 			*opt1 = 0;
 			opt_flag = 1;
@@ -4700,7 +4701,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 				sd->status.sp--;
 				clif_updatestatus(*sd,SP_SP);
 				// É^ÉCÉ}?çƒê›íË
-				sc_data[type].timer=add_timer(sc_data[type].val2.num+tick, status_change_timer, bl->id, data);
+				sc_data[type].timer=add_timer(sc_data[type].integer2()+tick, status_change_timer, bl->id, data);
 				return 0;
 			}
 		}
@@ -4708,17 +4709,17 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 
 	case SC_CHASEWALK:
 		if(sd){
-			long sp = 10+sc_data[SC_CHASEWALK].val1.num*2;
+			long sp = 10+sc_data[SC_CHASEWALK].integer1()*2;
 			if (maps[sd->block_list::m].flag.gvg) sp *= 5;
 			if (sd->status.sp > sp){
 				sd->status.sp -= sp; // update sp cost [Celest]
 				clif_updatestatus(*sd,SP_SP);
-				if ((++sc_data[SC_CHASEWALK].val4.num) == 1) {
-					status_change_start(bl, SC_INCSTR, 1<<(sc_data[SC_CHASEWALK].val1.num-1), 0, 0, 0, skill_get_time2(ST_CHASEWALK,sc_data[SC_CHASEWALK].val1.num), 0);
+				if ((++sc_data[SC_CHASEWALK].integer4()) == 1) {
+					status_change_start(bl, SC_INCSTR, 1<<(sc_data[SC_CHASEWALK].integer1()-1), 0, 0, 0, skill_get_time2(ST_CHASEWALK,sc_data[SC_CHASEWALK].integer1()), 0);
 					//status_calc_pc (*sd, 0);
 				}
 				// É^ÉCÉ}?çƒê›íË
-				sc_data[type].timer=add_timer(sc_data[type].val2.num+tick, status_change_timer, bl->id, data);
+				sc_data[type].timer=add_timer(sc_data[type].integer2()+tick, status_change_timer, bl->id, data);
 				return 0;
 			}
 		}
@@ -4726,8 +4727,8 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 
 	case SC_HIDING:		// ÉnÉCÉfÉBÉìÉO
 		if(sd){		// SPÇ™Ç†Ç¡ÇƒÅAéûä‘êßå¿ÇÃä‘ÇÕéù?
-			if( sd->status.sp > 0 && (--sc_data[type].val2.num)>0 ){
-				if(sc_data[type].val2.num % (sc_data[type].val1.num+3) ==0 ){
+			if( sd->status.sp > 0 && (--sc_data[type].integer2())>0 ){
+				if(sc_data[type].integer2() % (sc_data[type].integer1()+3) ==0 ){
 					sd->status.sp--;
 					clif_updatestatus(*sd,SP_SP);
 				}
@@ -4747,7 +4748,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 			block_list::foreachinarea( CStatusChangetimer(*bl,type,tick),
 				bl->m, ((int)bl->x)-range, ((int)bl->y)-range, ((int)bl->x)+range,((int)bl->y)+range,BL_ALL);
 
-			if( (--sc_data[type].val2.num)>0 ){
+			if( (--sc_data[type].integer2())>0 ){
 				// É^ÉCÉ}?çƒê›íË
 				sc_data[type].timer=add_timer(250+tick, status_change_timer,bl->id, data);
 				return 0;
@@ -4766,7 +4767,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 		break;
 
 	case SC_PROVOKE:	// ÉvÉçÉ{ÉbÉN/ÉI?ÉgÉo?ÉT?ÉN
-		if(sc_data[type].val2.num!=0){	// ÉI?ÉgÉo?ÉT?ÉNÅiÇPïbÇ≤Ç∆Ç…HPÉ`ÉFÉbÉNÅj
+		if(sc_data[type].integer2()!=0){	// ÉI?ÉgÉo?ÉT?ÉNÅiÇPïbÇ≤Ç∆Ç…HPÉ`ÉFÉbÉNÅj
 			if(sd && sd->status.hp>sd->status.max_hp>>2)	// í‚é~
 				break;
 			sc_data[type].timer=add_timer( 1000+tick,status_change_timer, bl->id, data );
@@ -4783,10 +4784,10 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 		break;
 
 	case SC_STONE:
-		if(sc_data[type].val2.num != 0) {
+		if(sc_data[type].integer2() != 0) {
 			short *opt1 = status_get_opt1(bl);
-			sc_data[type].val2 = 0;
-			sc_data[type].val4 = 0;
+			sc_data[type].value2() = 0;
+			sc_data[type].value4() = 0;
 			bl->stop_walking(1);
 			if(opt1) {
 				*opt1 = 1;
@@ -4795,9 +4796,9 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 			sc_data[type].timer=add_timer(1000+tick,status_change_timer, bl->id, data );
 			return 0;
 		}
-		else if( (--sc_data[type].val3.num) > 0) {
+		else if( (--sc_data[type].integer3()) > 0) {
 			int hp = bl->get_max_hp();
-			if((++sc_data[type].val4.num)%5 == 0 && bl->get_hp() > hp>>2)
+			if((++sc_data[type].integer4())%5 == 0 && bl->get_hp() > hp>>2)
 			{
 				hp = hp/100;
 				if(hp < 1) hp = 1;
@@ -4814,7 +4815,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 		break;
 	case SC_POISON:
 	case SC_DPOISON:
-		if (sc_data[SC_SLOWPOISON].timer == -1 && (--sc_data[type].val3.num) > 0) {
+		if (sc_data[SC_SLOWPOISON].timer == -1 && (--sc_data[type].integer3()) > 0) {
 			int hp = bl->get_max_hp();
 			if( type == SC_POISON && bl->get_hp() < hp>>2)
 				break;
@@ -4826,7 +4827,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 				md->hp -= hp;
 			}
 		}
-		if( sc_data[type].val3.num > 0 && !bl->is_dead() )
+		if( sc_data[type].integer3() > 0 && !bl->is_dead() )
 		{
 			sc_data[type].timer = add_timer (1000 + tick, status_change_timer, bl->id, data );
 			return 0;
@@ -4852,7 +4853,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 		// - 10ı©™¥™»™ÀHP™¨ ı·¥
 		// - ıÛ˙Ï™Œ™ﬁ™ﬁ´µ?´–ÅE‘—™‰´ÅE˙«∞™∑™∆™ÅEÕ˝™œ·º™®™ ™§
 		// To-do: bleeding effect increases damage taken?
-		if ((sc_data[type].val4.num -= 10000) > 0) {
+		if ((sc_data[type].integer4() -= 10000) > 0) {
 			int hp = rand()%300 + 400;
 			if(sd)
 			{
@@ -4894,14 +4895,14 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 		sc_data[type].timer=add_timer( tick+1000*600,status_change_timer, bl->id, data );
 		return 0;
 	case SC_RUN:
-		sc_data[type].val2 = 1; // Once the first second is spent, no more STR bonus when stopping
+		sc_data[type].value2() = 1; // Once the first second is spent, no more STR bonus when stopping
 		sc_data[type].timer=add_timer( 1000*600+tick,status_change_timer, bl->id, data );
 		return 0;
 	case SC_DANCING: //É_ÉìÉXÉXÉLÉãÇÃéûä‘SPè¡îÔ
 		{
 			int s = 0, sp = 1;
-			if(sd && (--sc_data[type].val3.num) > 0) {
-				switch(sc_data[type].val1.num){
+			if(sd && (--sc_data[type].integer3()) > 0) {
+				switch(sc_data[type].integer1()){
 				case BD_RICHMANKIM:				// ÉjÉàÉãÉhÇÃâÉ 3ïbÇ…SP1
 				case BD_DRUMBATTLEFIELD:		// ?ëæå€ÇÃãøÇ´ 3ïbÇ…SP1
 				case BD_RINGNIBELUNGEN:			// Éj?ÉxÉãÉìÉOÇÃéwó÷ 3ïbÇ…SP1
@@ -4933,9 +4934,9 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 					s=10;
 					break;
 				}
-				if (s && ((sc_data[type].val3.num % s) == 0)) {
+				if (s && ((sc_data[type].integer3() % s) == 0)) {
 					if (sc_data[SC_LONGING].timer != -1 ||
-						sc_data[type].val1.num == CG_HERMODE) {
+						sc_data[type].integer1() == CG_HERMODE) {
 						sp = s;						
 					}
 					if (sp > sd->status.sp)
@@ -4972,7 +4973,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 	case SC_WEDDING:	//åãç•óp(åãç•àﬂè÷Ç…Ç»Ç¡Çƒ?Ç≠ÇÃÇ™?Ç¢Ç∆Ç©)
 		if(sd){
 			time_t timer;
-			if(time(&timer) < ((sc_data[type].val2.num) + 3600)){	//1éûä‘ÇΩÇ¡ÇƒÇ¢Ç»Ç¢ÇÃÇ≈??
+			if(time(&timer) < ((sc_data[type].integer2()) + 3600)){	//1éûä‘ÇΩÇ¡ÇƒÇ¢Ç»Ç¢ÇÃÇ≈??
 				// É^ÉCÉ}?çƒê›íË
 				sc_data[type].timer=add_timer(10000+tick, status_change_timer,bl->id, data);
 				return 0;
@@ -4982,7 +4983,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 	case SC_NOCHAT:	//É`ÉÉÉbÉgã÷é~?ë‘
 		if(sd && config.muting_players){
 			time_t timer;
-			if((++sd->status.manner) && time(&timer) < ((sc_data[type].val2.num) + 60*(0-sd->status.manner))){	//äJénÇ©ÇÁstatus.mannerï™?Ç¡ÇƒÇ»Ç¢ÇÃÇ≈??
+			if((++sd->status.manner) && time(&timer) < ((sc_data[type].integer2()) + 60*(0-sd->status.manner))){	//äJénÇ©ÇÁstatus.mannerï™?Ç¡ÇƒÇ»Ç¢ÇÃÇ≈??
 				clif_updatestatus(*sd,SP_MANNER);
 				// É^ÉCÉ}?çƒê›íË(60ïb)
 				sc_data[type].timer=add_timer(60000+tick, status_change_timer,bl->id, data);
@@ -4992,12 +4993,12 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 		break;
 
 	case SC_SPLASHER:
-		if (sc_data[type].val4.num % 1000 == 0) {
+		if (sc_data[type].integer4() % 1000 == 0) {
 			char timer[32];
-			snprintf(timer, sizeof(timer), "%ld", (unsigned long)(sc_data[type].val4.num/1000));
+			snprintf(timer, sizeof(timer), "%ld", (unsigned long)(sc_data[type].integer4()/1000));
 			clif_message(*bl, timer);
 		}
-		if((sc_data[type].val4.num -= 500) > 0) {
+		if((sc_data[type].integer4() -= 500) > 0) {
 			sc_data[type].timer = add_timer(500 + tick, status_change_timer,bl->id, data);
 				return 0;
 		}
@@ -5006,8 +5007,8 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 	case SC_MARIONETTE:		// É}ÉäÉIÉlÉbÉgÉRÉìÉgÉç?Éã
 	case SC_MARIONETTE2:
 		{
-			block_list *pbl = block_list::from_blid(sc_data[type].val3.num);
-			if(pbl && battle_check_range(bl, pbl, 7) && (sc_data[type].val2.num -= 1000)>0) {
+			block_list *pbl = block_list::from_blid(sc_data[type].integer3());
+			if(pbl && battle_check_range(bl, pbl, 7) && (sc_data[type].integer2() -= 1000)>0) {
 				sc_data[type].timer = add_timer(1000 + tick, status_change_timer,bl->id, data);
 					return 0;
 			}
@@ -5031,7 +5032,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 				}
 				md->randomwalk(tick);
 			}
-			if( sc_data[type].val2.num > 1000 ) 
+			if( sc_data[type].integer2() > 1000 ) 
 			{
 				sc_data[type].timer = add_timer(tick+i, status_change_timer,bl->id, data);
 					return 0;
@@ -5042,26 +5043,26 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 	case SC_GOSPEL:
 		{
 			int calc_flag = 0;
-			if (sc_data[type].val3.num > 0) {
-				sc_data[type].val3 = 0;
+			if (sc_data[type].integer3() > 0) {
+				sc_data[type].value3() = 0;
 				calc_flag = 1;
 			}
-			if(sd && sc_data[type].val4.num == BCT_SELF){
+			if(sd && sc_data[type].integer4() == BCT_SELF){
 				int hp, sp;
-				hp = (sc_data[type].val1.num > 5) ? 45 : 30;
-				sp = (sc_data[type].val1.num > 5) ? 35 : 20;
+				hp = (sc_data[type].integer1() > 5) ? 45 : 30;
+				sp = (sc_data[type].integer1() > 5) ? 35 : 20;
 				if(sd->status.hp - hp > 0 &&
 					sd->status.sp - sp > 0){
 					sd->status.hp -= hp;
 					sd->status.sp -= sp;
 					clif_updatestatus(*sd,SP_HP);
 					clif_updatestatus(*sd,SP_SP);
-					if((sc_data[type].val2.num -= 10000) > 0) {
+					if((sc_data[type].integer2() -= 10000) > 0) {
 						sc_data[type].timer = add_timer(10000+tick, status_change_timer,bl->id, data);
 						return 0;
 					}
 				}
-			} else if (sd && sc_data[type].val4.num == BCT_PARTY) {
+			} else if (sd && sc_data[type].integer4() == BCT_PARTY) {
 				int i;
 				switch ((i = rand() % 12)) {
 				case 1: // heal between 100-1000
@@ -5087,7 +5088,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 				case 12: // +8% atk
 				case 13: // +5% flee
 				case 14: // +5% hit
-					sc_data[type].val3 = i;
+					sc_data[type].value3() = i;
 					if (i == 6 ||
 						(i >= 11 && i <= 14))
 						calc_flag = 1;
@@ -5139,7 +5140,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 				default:
 					break;
 				}
-			} else if (sc_data[type].val4.num == BCT_ENEMY) {
+			} else if (sc_data[type].integer4() == BCT_ENEMY) {
 				int i;
 				switch ((i = rand() % 8)) {
 				case 1: // damage between 300-800
@@ -5170,7 +5171,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 				case 6: // 0 atk
 				case 7: // 0 flee
 				case 8: // -75% move speed and aspd
-					sc_data[type].val3 = i;
+					sc_data[type].value3() = i;
 					calc_flag = 1;
 					break;
 				default:
@@ -5184,7 +5185,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 
 	case SC_GUILDAURA:
 		{
-			block_list *tbl = block_list::from_blid(sc_data[type].val2.num);
+			block_list *tbl = block_list::from_blid(sc_data[type].integer2());
 			if( tbl && battle_check_range(bl, tbl, 2) )
 			{
 				sc_data[type].timer = add_timer(1000 + tick, status_change_timer,bl->id, data);

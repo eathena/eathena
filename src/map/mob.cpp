@@ -1110,7 +1110,7 @@ int mob_spawn(uint32 id)
 
 	for (i = 0; i < MAX_STATUSCHANGE; ++i) {
 		md->sc_data[i].timer = -1;
-		md->sc_data[i].val1 = md->sc_data[i].val2 = md->sc_data[i].val3 = md->sc_data[i].val4 = 0;
+		md->sc_data[i].value1() = md->sc_data[i].value2() = md->sc_data[i].value3() = md->sc_data[i].value4() = 0;
 	}
 	md->opt1 = md->opt2 = md->opt3 = md->option = 0;
 
@@ -3009,7 +3009,7 @@ int mobskill_castend_id(int tid, unsigned long tick, int id, basics::numptr data
 
 	if(md->skillid == PR_LEXAETERNA) {
 		struct status_change *sc_data = status_get_sc_data(bl);
-		if(sc_data && (sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].val2.num == 0)))
+		if(sc_data && (sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].integer2() == 0)))
 			return 0;
 	}
 	else if(md->skillid == RG_BACKSTAP)
@@ -4066,7 +4066,7 @@ int mob_readskilldb(void)
 		{	"anybad",		-1				},
 		{	"stone",		SC_STONE		},
 		{	"freeze",		SC_FREEZE		},
-		{	"stan",			SC_STAN			},
+		{	"stun",			SC_STUN			},
 		{	"sleep",		SC_SLEEP		},
 		{	"poison",		SC_POISON		},
 		{	"curse",		SC_CURSE		},

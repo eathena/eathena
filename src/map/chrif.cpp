@@ -236,7 +236,7 @@ int chrif_save_sc(map_session_data &sd)
 		SC_OVERTHRUST,
 		SC_MAXIMIZEPOWER,
 		SC_CLOAKING,
-		SC_STAN,
+		SC_STUN,
 		SC_ENCPOISON,
 		SC_POISONREACT,
 		SC_SPLASHER,
@@ -332,22 +332,22 @@ int chrif_save_sc(map_session_data &sd)
 
 	for(i=0, cnt=0, p=14; i<MAX_STATUSCHANGE; ++i)
 	{
-		if( sd.has_status(i) )
+		if( sd.has_status((status_t)i) )
 		{
 			td = get_timer(sd.sc_data[i].timer);
 			
 			if( td && td->func == status_change_timer &&
 				DIFF_TICK(td->tick, tick)>0 &&
-				!sd.sc_data[i].val1.isptr &&
-				!sd.sc_data[i].val2.isptr &&
-				!sd.sc_data[i].val3.isptr &&
-				!sd.sc_data[i].val4.isptr )
+				!sd.sc_data[i].pointer1() &&
+				!sd.sc_data[i].pointer2() &&
+				!sd.sc_data[i].pointer3() &&
+				!sd.sc_data[i].pointer4() )
 			{
 				data.type = i;
-				data.val1 = sd.sc_data[i].val1.num;
-				data.val2 = sd.sc_data[i].val2.num;
-				data.val3 = sd.sc_data[i].val3.num;
-				data.val4 = sd.sc_data[i].val4.num;
+				data.val1 = sd.sc_data[i].integer1();
+				data.val2 = sd.sc_data[i].integer2();
+				data.val3 = sd.sc_data[i].integer3();
+				data.val4 = sd.sc_data[i].integer4();
 				data.tick = DIFF_TICK(td->tick, tick); //Duration that is left before ending.
 				scdata_tobuffer(data, RFIFOP(char_fd,p));
 				p+=sizeof(struct sc_data);
@@ -437,16 +437,14 @@ int chrif_sendmap(int fd)
 int chrif_recvmap(int fd)
 {
 	int i, j;
-	basics::ipaddress ip;
-	unsigned short port;
 
 	if( !session_isActive(char_fd) || !chrif_isconnect() )	// Ç‹ÇæèÄîıíÜ
 		return -1;
 
-	basics::ipset mapset( RFIFOLIP(fd,4), RFIFOLIP(fd,8),RFIFOW(fd,12), RFIFOLIP(fd,14), RFIFOW(fd,18) );
+	basics::ipaddress ip = RFIFOLIP(fd,4);
+	unsigned short port = RFIFOW(fd,8);
+	basics::ipset mapset( ip, port, RFIFOW(fd,12), RFIFOLIP(fd,14), RFIFOW(fd,18) );
 
-	ip = RFIFOLIP(fd,4);
-	port = RFIFOW(fd,8);
 	for(i = 20, j = 0; i < RFIFOW(fd,2); i += 16, ++j)
 	{
 		map_setipport((char*)RFIFOP(fd,i), mapset);
@@ -574,8 +572,12 @@ int chrif_connectack(int fd)
 	if( !session_isActive(fd) )
 		return -1;
 
-	if (RFIFOB(fd,2)) {
-		ShowMessage("Connected to char-server failed %d.\n", (unsigned char)RFIFOB(fd,2));
+	if (RFIFOB(fd,2))
+	{
+		ShowError("Connection to char-server failed (%d).\n"
+					CL_SPACE"char server is full or using wrong username or password.\n"
+					CL_SPACE"error not recoverable, quitting.\n",
+					(unsigned char)RFIFOB(fd,2));
 		exit(1);
 	}
 	ShowStatus("Successfully connected to Char Server (Connection: '"CL_WHITE"%d"CL_RESET"').\n",fd);
@@ -1601,7 +1603,7 @@ int chrif_parse_mail_check(int fd)
 			char message[512];
 			if(showall && all>0)
 			{
-				snprintf(message, sizeof(message), "You have %i unread of %i mails", unread, all);
+				snprintf(message, sizeof(message), "You have %u unread of %u mails", unread, all);
 				clif_disp_onlyself(*sd, message);
 			}
 			else if(unread>0)

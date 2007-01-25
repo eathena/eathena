@@ -12,17 +12,17 @@
 #include "oldeascriptconv.h"
 #include "aegisscriptconv.h"
 #include "dblookup.h"
-#include "baseparam.h"
 
 
 
 void usage(const char*p)
 {
-	fprintf(stderr, "usage: %s [bptli] [-i <itemdb>] [-m <mobdb>] <input files/folder>\n", (p)?p:"<binary>");
+	fprintf(stderr, "usage: %s [bptlio] [-i<itemdb>] [-m<mobdb>] <input files/folder>\n", (p)?p:"<binary>");
 	fprintf(stderr, "     option b: outputs beautified code\n");
 	fprintf(stderr, "     option p: prints parse tree\n");
 	fprintf(stderr, "     option t: prints transformation tree\n");
 	fprintf(stderr, "     option l: enables logging for unknown function and variable names\n");
+	fprintf(stderr, "     option o: output to appropriate '*.ea' files\n");
 	fprintf(stderr, " [-i<itemdb>]: read itemdb from different place than ./db/item_db.txt\n");
 	fprintf(stderr, "  [-m<mobdb>]: read mobdb from different place than ./db/mob_db.txt\n");
 	fprintf(stderr, "  [-n<npcdb>]: read mobdb from different place than ./db/npc_db.txt\n");
@@ -47,6 +47,8 @@ int get_option(const char* p)
 				option |= OPT_TRANSFORM;
 			else if(*p=='l')
 				option |= OPT_LOGGING;
+			else if(*p=='o')
+				option |= OPT_OUTPUT;
 			else
 				fprintf(stderr, "unknown option %c\n", *p);
 		}
@@ -77,25 +79,33 @@ int main(int argc, char *argv[])
 		}
 		else
 		{	// test for option or overwrite
-			if( argv[i][0] == '-' && argv[i][1] == 'i' 
-				&& basics::is_file(argv[i]+2) )
-			{	// overwrite mobdb
-				itemdbpath = argv[i]+2;
+			if( argv[i][0] == '-' && argv[i][1] == 'i')
+			{	// overwrite itemdb
+				if( basics::is_file(argv[i]+2) )
+					itemdbpath = argv[i]+2;
+				else
+					fprintf(stderr, "'%s' is invalid\n", argv[i]+2);
 			}
-			else if( argv[i][0] == '-' && argv[i][1] == 'm' 
-				&& basics::is_file(argv[i]+2) )
+			else if( argv[i][0] == '-' && argv[i][1] == 'm' )
 			{	// overwrite mobdb
-				mobdbpath = argv[i]+2;
+				if( basics::is_file(argv[i]+2) )
+					mobdbpath = argv[i]+2;
+				else
+					fprintf(stderr, "'%s' is invalid\n", argv[i]+2);
 			}
-			else if( argv[i][0] == '-' && argv[i][1] == 'n' 
-				&& basics::is_file(argv[i]+2) )
+			else if( argv[i][0] == '-' && argv[i][1] == 'n' )
 			{	// overwrite npcdb
-				npcdbpath = argv[i]+2;
+				if( basics::is_file(argv[i]+2) )
+					npcdbpath = argv[i]+2;
+				else
+					fprintf(stderr, "'%s' is invalid\n", argv[i]+2);
 			}
-			else if( argv[i][0] == '-' && argv[i][1] == 'c' 
-				&& basics::is_file(argv[i]+2) )
+			else if( argv[i][0] == '-' && argv[i][1] == 'c' )
 			{	// overwrite constdbpath
-				constdbpath = argv[i]+2;
+				if( basics::is_file(argv[i]+2) )
+					constdbpath = argv[i]+2;
+				else
+					fprintf(stderr, "'%s' is invalid\n", argv[i]+2);
 			}
 			else
 			{	// option
@@ -145,7 +155,7 @@ int main(int argc, char *argv[])
 			}
 		}
 		fprintf(stderr, "\nready (%i)\n", ok);
-		fprintf(stderr, "elapsed time: %li\n", (unsigned long)(GetTickCount()-tick));
+		fprintf(stderr, "elapsed time: %lu\n", (unsigned long)(GetTickCount()-tick));
 
 		return EXIT_SUCCESS;
 	}

@@ -100,7 +100,7 @@ void simple_textdb::readentries()
 			{
 				if( idmap.exists(tmpline.id) )
 				{
-					printf("warning: id %li already used, ignoring previous entry\n", (ulong)tmpline.id);
+					printf("warning: id %lu already used, ignoring previous entry\n", (ulong)tmpline.id);
 					// put the previous entry to comments
 					cmmap.push( idmap[tmpline.id] );
 				}
@@ -129,14 +129,14 @@ void simple_textdb::readentries()
 				}
 
 				// save original file pointer
-				long pos = ftell(this->filehandle);
+				long safepos = ftell(this->filehandle);
 				
 				// clean the new empty entry
 				fseek(this->filehandle, start, SEEK_SET);
 				if(len) while(--len) fputc(' ', this->filehandle);
 
 				// restore original file pointer
-				fseek(this->filehandle, pos, SEEK_SET);
+				fseek(this->filehandle, safepos, SEEK_SET);
 			}
 			// else comment
 			// just don't store it at all, that way it is virtually non-existent
@@ -670,8 +670,9 @@ uint32 simple_textdb::getfreeid()
 
 #if defined(DEBUG)
 
-
+#if defined(_MSC_VER)
 #pragma warning(disable : 4097) // typedef synonym to class name
+#endif//_MSC_VER
 typedef simple_textdb usingdb;
 
 class example_txtdb : public usingdb
@@ -739,9 +740,9 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// user defined command processing.
-	virtual void readcommand(const string<>& str)
+	virtual void readcommand(const char* buf)
 	{
-		printf("doing command: '%s'\n", str.begin());
+		printf("doing command: '%s'\n", buf);
 
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -842,11 +843,12 @@ void test_txtdb()
 		for(i=0; i<elems; ++i)
 		{
 			str.assign('x', rand()%64);
-			len = sprintf(buf, "%i %lf %i %s", i, (double)rand()/(0.1+(double)rand()), rand(), (const char*)str);
+			len = sprintf(buf, "%i %lf %i %s", (int)i, (double)rand()/(0.1+(double)rand()), (int)rand(), (const char*)str);
 			txtdb.rawwrite(buf, len, i);
 		}
-		printf("db %i entries linear create => %lu\n", elems, clock()-tick);
 		res = ((double)txtdb.counts)/((double)txtdb.searches);
+		printf("db %i entries linear create => %lu\n (%lf)", (int)elems, clock()-tick, res);
+		
 
 		i = txtdb.getfreeid();
 		txtdb.rawerase(394);
@@ -860,11 +862,11 @@ void test_txtdb()
 		{
 			k = rand()%elems;
 			str.assign('x', rand()%64);
-			len = sprintf(buf, "%i %lf %i %s", k, (double)rand()/(0.1+(double)rand()), rand(), (const char*)str);
+			len = sprintf(buf, "%i %lf %i %s", (int)k, (double)rand()/(0.1+(double)rand()), (int)rand(), (const char*)str);
 			txtdb.rawwrite(buf, len, k);
 		}
-		printf("db %i entries %i random save => %lu\n", elems, runs, clock()-tick);
-		printf("done %i searches with %i iterations (%lf)\n", txtdb.searches, txtdb.counts, ((double)txtdb.counts)/((double)txtdb.searches));
+		printf("db %i entries %i random save => %lu\n", (int)elems, (int)runs, clock()-tick);
+		printf("done %i searches with %i iterations (%lf)\n", (int)txtdb.searches, (int)txtdb.counts, ((double)txtdb.counts)/((double)txtdb.searches));
 
 		res = ((double)txtdb.counts)/((double)txtdb.searches);
 
@@ -872,7 +874,7 @@ void test_txtdb()
 		{
 			k = rand()%elems;
 			txtdb.rawread(buf, sizeof(buf), k);
-			printf("%i: '%s'\n", k, buf);
+			printf("%i: '%s'\n", (int)k, buf);
 		}
 		txtdb.cleanopen();
 
@@ -880,10 +882,10 @@ void test_txtdb()
 		for(i=0; i<elems; ++i)
 		{
 			str.assign('x', rand()%64);
-			len = sprintf(buf, "%i %lf %i %s", i, (double)rand()/(0.1+(double)rand()), rand(), (const char*)str);
+			len = sprintf(buf, "%i %lf %i %s", (int)i, (double)rand()/(0.1+(double)rand()), (int)rand(), (const char*)str);
 			txtdb.rawwrite(buf, len, i);
 		}
-		printf("db %i entries linear cleansave => %lu\n", elems, clock()-tick);
+		printf("db %i entries linear cleansave => %lu\n", (int)elems, clock()-tick);
 
 		txtdb.close();
 	}

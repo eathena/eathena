@@ -19,7 +19,7 @@ struct oldeaparserstorage : public parserstorage
 };
 
 
-struct oldeaprinter : public printer
+struct oldeaprinter : public default_printer
 {
 	bool cHasDefault;				///< has a default case
 public:
@@ -63,7 +63,7 @@ public:
 	oldeaParser(basics::CParser_CommentStore* p, int o) : parser(p), option(o)
 	{
 		if(option & OPT_LOGGING)
-			prn.open_log();
+			prn.open_log("converter.log");
 	}
 	virtual bool process(const char*name) const;
 };

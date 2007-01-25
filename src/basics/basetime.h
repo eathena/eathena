@@ -29,7 +29,7 @@ inline wchar_t * __cdecl _wstrtime(wchar_t *)		{ return NULL; }
 #ifdef WIN32
 ///////////////////////////////////////////////////////////////////////////////
 /// missing gettimeofday on windows
-extern inline int gettimeofday(struct timeval *timenow, void *tz)
+extern inline int gettimeofday(struct timeval *timenow, void* /*tz*/)
 {
 	if (timenow)
 	{

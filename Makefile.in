@@ -91,6 +91,7 @@ help: options
 	@echo "'scriptconv'  - script converter (old ea syntax and aegis syntax,"
 	@echo "                can also be used for syntax check of those scripts"
 	@echo "'help'        - outputs this message"
+	@echo "'option'      - displays the current configure options"
 	@echo "'all'         - builds all above targets"
 	@echo "'clean'       - cleans builds and objects"
 	@echo "'confclean'   - same as clean and additionally cleans previous configuration"

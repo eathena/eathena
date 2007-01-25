@@ -1781,6 +1781,25 @@ bool aegisParser::process(const char*name) const
 		fprintf(stderr, "processing input file %s\n", name);
 	}
 
+	if( option&OPT_OUTPUT )
+	{
+		basics::string<> str;
+		const char*ip = strrchr(name,'.');
+		if(ip)
+			str.assign(name,ip-name);
+		else
+			str.assign(name);
+
+		str << ".ea";
+
+		this->prn.output = fopen(str, "wb");
+		if(NULL==this->prn.output)
+		{
+			fprintf(stderr, "cannot open output file %s\noutputting to stdout\n", str.c_str());
+			this->prn.output = stdout;
+		}
+	}
+
 	while(run)
 	{
 		short p = parser->parse(AE_DECL);
@@ -1811,7 +1830,7 @@ bool aegisParser::process(const char*name) const
 			{
 				if( (option&OPT_PRINTTREE)==OPT_PRINTTREE )
 				{
-					fprintf(stderr, "(%li)----------------------------------------\n", (unsigned long)parser->rt.size());
+					fprintf(stderr, "(%lu)----------------------------------------\n", (unsigned long)parser->rt.size());
 					parser->print_rt_tree(0,0, false);
 				}
 
@@ -1836,11 +1855,15 @@ bool aegisParser::process(const char*name) const
 				//////////////////////////////////////////////////////////
 				// reinitialize parser
 				parser->reinit();
-//					fprintf(stderr, "............................................(%i)\n", global::getcount());
 			}
 		}
 	}
 	parser->reset();
+	if( this->prn.output != stdout )
+	{
+		fclose(this->prn.output);
+		this->prn.output = stdout;
+	}
 	return ok;
 }
 
