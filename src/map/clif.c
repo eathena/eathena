@@ -8157,20 +8157,6 @@ void clif_parse_WantToConnection(int fd, TBL_PC* sd)
 	return;
 }
 
-static int clif_nighttimer(int tid, unsigned int tick, int id, int data)
-{
-	TBL_PC *sd;
-	sd=map_id2sd(id);
-	if (!sd) return 0;
-
-	//Check if character didn't instant-warped after logging in.
-	if (sd->bl.prev!=NULL) {
-		sd->state.night = 1;
- 		clif_status_load(&sd->bl, SI_NIGHT, 1);
-	}
-	return 0;
-}
-
 /*==========================================
  * 007d クライアント側マップ読み込み完了
  * map侵入時に必要なデータを全て送りつける
@@ -8280,8 +8266,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		//Homunc mimic their master's speed on each map change. [Skotlex]
 		if (battle_config.hom_setting&0x8)
 			status_calc_bl(&sd->hd->bl, SCB_SPEED);
-//		Since hom is inmune to land effects, unneeded.
-//		skill_unit_move(&sd->hd->bl,gettick(),1);
+		if (!battle_config.hom_setting&0x2)
+			skill_unit_move(&sd->hd->bl,gettick(),1);
 	}
 
 	if(sd->state.connect_new) {
@@ -8316,9 +8302,11 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		if(merc_is_hom_active(sd->hd))
 			merc_hom_init_timers(sd->hd);
 
-		//Delayed night effect on log-on fix for the glow-issue. Thanks to Larry.
 		if (night_flag && map[sd->bl.m].flag.nightenabled)
-			add_timer(gettick()+1000,clif_nighttimer,sd->bl.id,0);
+		{
+			sd->state.night = 1;
+			clif_status_load(&sd->bl, SI_NIGHT, 1);
+		}
 
 		// Notify everyone that this char logged in [Skotlex].
 		clif_foreachclient(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 1);
@@ -8339,11 +8327,10 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		//New 'night' effect by dynamix [Skotlex]
 		if (night_flag && map[sd->bl.m].flag.nightenabled)
 		{	//Display night.
-			if (sd->state.night) //It must be resent because otherwise players get this annoying aura...
-				clif_status_load(&sd->bl, SI_NIGHT, 0);
-			else
+			if (!sd->state.night) {
 				sd->state.night = 1;
-			clif_status_load(&sd->bl, SI_NIGHT, 1);
+				clif_status_load(&sd->bl, SI_NIGHT, 1);
+			}
 		} else if (sd->state.night) { //Clear night display.
 			sd->state.night = 0;
 			clif_status_load(&sd->bl, SI_NIGHT, 0);
@@ -8435,7 +8422,9 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd) {
 		return;
 	}
 
-	if (clif_cant_act(sd) && sd->sc.opt1 != OPT1_STONEWAIT)
+	if (sd->sc.opt1 && sd->sc.opt1 == OPT1_STONEWAIT)
+		; //You CAN walk on this OPT1 value.
+	else if (clif_cant_act(sd))
 		return;
 
 	if(sd->sc.count && sd->sc.data[SC_RUN].timer != -1)
@@ -12210,7 +12199,6 @@ int do_init_clif(void) {
 	add_timer_func_list(clif_waitclose, "clif_waitclose");
 	add_timer_func_list(clif_clearchar_delay_sub, "clif_clearchar_delay_sub");
 	add_timer_func_list(clif_delayquit, "clif_delayquit");
-	add_timer_func_list(clif_nighttimer, "clif_nighttimer");
 	add_timer_func_list(clif_walktoxy_timer, "clif_walktoxy_timer");
 	return 0;
 }
