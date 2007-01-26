@@ -373,7 +373,7 @@ enum {
 	SI_KAAHI		= 157,
 	SI_KAUPE		= 158,
 	SI_SMA		= 159,
-	SI_NIGHT		= 149,
+	SI_NIGHT		= 160,
 	SI_ONEHAND		= 161,
 	SI_WARM			= 165,	
 //	166 | The three show the exact same display: ultra red character (165, 166, 167)	
