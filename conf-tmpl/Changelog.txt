@@ -1,5 +1,8 @@
 Date	Added
 
+2007/01/26
+	* Updated the gvg damage adjustments. Non-skill ranged damage adjustment is
+	  -20% instead of -25%, and Magic-skill adjustment is -40% instead of -50%
 2007/01/22
 	* New @commands (related to homunculus): hominfo, homstats, homtalk,
 	  homlvup, homevolution, makehomun, homfriendly, homhungry, homshuffle
