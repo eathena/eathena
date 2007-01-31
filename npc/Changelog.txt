@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/01/31
+	* Merged r9714 from trunk (typo fixes)
 2007/01/24
 	* Fixed one missing 'On' in prtg_managers.txt [ultramage]
 2007/01/21
