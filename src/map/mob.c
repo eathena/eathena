@@ -1302,7 +1302,7 @@ static int mob_ai_sub_lazy(DBKey key,void * data,va_list ap)
 	if(md->bl.type!=BL_MOB || md->bl.prev == NULL)
 		return 0;
 
-	if (md->nd || (battle_config.mob_ai&0x20 && map[md->bl.m].users>0))
+	if (battle_config.mob_ai&0x20 && map[md->bl.m].users>0)
 		return mob_ai_sub_hard(&md->bl, ap);
 
 	tick=va_arg(ap,unsigned int);
