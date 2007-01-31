@@ -6212,7 +6212,7 @@ int skill_castend_pos2 (struct block_list *src, int x, int y, int skillid, int s
 	}
 
 	if (sc && sc->data[SC_MAGICPOWER].timer != -1)
-		status_change_end(&sd->bl,SC_MAGICPOWER,-1);
+		status_change_end(src,SC_MAGICPOWER,-1);
 
 	if (sd && !(flag&1) && sd->state.arrow_atk) //Consume arrow if a ground skill was not invoked. [Skotlex]
 		battle_consume_ammo(sd, skillid, skilllv);
@@ -10147,9 +10147,6 @@ int skill_unit_move_sub (struct block_list *bl, va_list ap)
 			if (flag&4)
 				skill_unit_onleft(skill_id,target,tick);
 		}
-		//TODO: Normally, this is dangerous since the unit and group could be freed
-		//inside the onout/onplace functions. Currently it is safe because we know song/dance
-		//cells do not get deleted within them. [Skotlex]
 		if (flag&64)
 			skill_dance_switch(unit, group, 1);
 		return 0;
@@ -10178,6 +10175,9 @@ int skill_unit_move_sub (struct block_list *bl, va_list ap)
 		}
 	}
 
+	//TODO: Normally, this is dangerous since the unit and group could be freed
+	//inside the onout/onplace functions. Currently it is safe because we know song/dance
+	//cells do not get deleted within them. [Skotlex]
 	if (flag&64)
 		skill_dance_switch(unit, group, 1);
 		

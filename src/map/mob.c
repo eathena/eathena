@@ -1302,7 +1302,7 @@ static int mob_ai_sub_lazy(DBKey key,void * data,va_list ap)
 	if(md->bl.type!=BL_MOB || md->bl.prev == NULL)
 		return 0;
 
-	if (battle_config.mob_ai&0x20 && map[md->bl.m].users>0)
+	if (md->nd || (battle_config.mob_ai&0x20 && map[md->bl.m].users>0))
 		return mob_ai_sub_hard(&md->bl, ap);
 
 	tick=va_arg(ap,unsigned int);
@@ -1914,7 +1914,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				char message[128];
 				i_data = itemdb_search(ditem->item_data.nameid);
 				sprintf (message, msg_txt(541), (mvp_sd?mvp_sd->status.name:"???"), md->name, i_data->jname, (float)drop_rate/100);
-				//MSG: "'%s' won %s's %s (chance: %%%0.02f)"
+				//MSG: "'%s' won %s's %s (chance: %0.02f%%)"
 				intif_GMmessage(message,strlen(message)+1,0);
 			}
 			// Announce first, or else ditem will be freed. [Lance]
@@ -2033,7 +2033,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				char message[128];
 				i_data = itemdb_exists(item.nameid);
 				sprintf (message, msg_txt(541), mvp_sd->status.name, md->name, i_data->jname, temp/100.);
-				//MSG: "'%s' won %s's %s (chance: %%%0.02f)"
+				//MSG: "'%s' won %s's %s (chance: %0.02f%%)"
 				intif_GMmessage(message,strlen(message)+1,0);
 			}
 

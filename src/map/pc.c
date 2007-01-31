@@ -3274,7 +3274,7 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl, int lv)
 		char message[128];
 		i_data = itemdb_search(itemid);
 		sprintf (message, msg_txt(542), (sd->status.name != NULL)?sd->status.name :"GM", md->db->jname, i_data->jname, (float)md->db->dropitem[i].p/100);
-		//MSG: "'%s' stole %s's %s (chance: %%%0.02f)"
+		//MSG: "'%s' stole %s's %s (chance: %0.02f%%)"
 		intif_GMmessage(message,strlen(message)+1,0);
 	}
 	return 1;

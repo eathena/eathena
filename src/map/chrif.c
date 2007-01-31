@@ -621,7 +621,7 @@ int chrif_changegm(int id, const char *pass, int len)
 
 	chrif_check(-1);
 
-        WFIFOHEAD(char_fd, len + 8);
+	WFIFOHEAD(char_fd, len + 8);
 	WFIFOW(char_fd,0) = 0x2b0a;
 	WFIFOW(char_fd,2) = len + 8;
 	WFIFOL(char_fd,4) = id;
@@ -929,7 +929,7 @@ int chrif_divorce(int char_id, int partner_id)
 	if (!char_id || !partner_id)
 		return 0;
 
-	nullpo_retr(0, sd = map_nick2sd(map_charid2nick(partner_id)));
+	nullpo_retr(0, sd = map_charid2sd(partner_id));
 	if (sd->status.partner_id == char_id) {
 		int i;
 		//—£¥(‘Š•û‚ÍŠù‚ÉƒLƒƒƒ‰‚ªÁ‚¦‚Ä‚¢‚é”¤‚È‚Ì‚Å)
