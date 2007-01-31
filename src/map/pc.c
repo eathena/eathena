@@ -131,15 +131,10 @@ int pc_setinvincibletimer(struct map_session_data *sd,int val) {
 	return 0;
 }
 
-int pc_delinvincibletimer(struct map_session_data *sd) {
-	nullpo_retr(0, sd);
-
-	if(sd->invincible_timer != INVALID_TIMER) {
-		delete_timer(sd->invincible_timer,pc_invincible_timer);
-		sd->invincible_timer = INVALID_TIMER;
-		skill_unit_move(&sd->bl,gettick(),1);
-	}
-	return 0;
+void pc_delinvincibletimer_sub(struct map_session_data *sd) {
+	delete_timer(sd->invincible_timer,pc_invincible_timer);
+	sd->invincible_timer = INVALID_TIMER;
+	skill_unit_move(&sd->bl,gettick(),1);
 }
 
 static int pc_spiritball_timer(int tid,unsigned int tick,int id,int data) {
@@ -606,6 +601,8 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 
 	sd->followtimer = -1; // [MouseJstr]
 	sd->invincible_timer = -1;
+	sd->npc_timer_id = -1;
+	sd->pvp_timer = -1;
 	
 	sd->canuseitem_tick = tick;
 	sd->cantalk_tick = tick;
@@ -649,11 +646,6 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	// ƒCƒxƒ“ƒg?ŒW‚Ì‰Šú‰»
 	for(i = 0; i < MAX_EVENTTIMER; i++)
 		sd->eventtimer[i] = -1;
-
-	sd->npc_timer_id = -1;
-	
-	// Moved PVP timer initialisation before set_pos
-	sd->pvp_timer = -1;
 
 	for (i = 0; i < 3; i++)
 		sd->hate_mob[i] = -1;
@@ -804,7 +796,7 @@ int pc_reg_received(struct map_session_data *sd)
 	sd->die_counter = pc_readglobalreg(sd,"PC_DIE_COUNTER");
 
 	if ((sd->class_&MAPID_BASEMASK)==MAPID_TAEKWON)
-  	{	//Better check for class rather than skill to prevent "skill resets" from unsetting this
+	{	//Better check for class rather than skill to prevent "skill resets" from unsetting this
 		sd->mission_mobid = pc_readglobalreg(sd,"TK_MISSION_ID");
 		sd->mission_count = pc_readglobalreg(sd,"TK_MISSION_COUNT");
 	}
@@ -1089,14 +1081,17 @@ int pc_calc_skilltree_normalize_job(struct map_session_data *sd) {
 	int skill_point;
 	int c = sd->class_;
 	
-	if (!battle_config.skillup_limit || !(sd->class_&JOBL_2) || (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE)
-		return c; //Only Normalize non-first classes (and non-super novice)
+	if (!battle_config.skillup_limit)
+		return c;
 	
 	skill_point = pc_calc_skillpoint(sd);
 	if(pc_checkskill(sd, NV_BASIC) < 9) //Consider Novice Tree when you don't have NV_BASIC maxed.
 		c = MAPID_NOVICE;
-	else if (sd->status.skill_point >= (int)sd->status.job_level
-		&& ((sd->change_level > 0 && skill_point < sd->change_level+8) || skill_point < 58)) {
+	else
+	//Do not send S. Novices to first class (Novice)
+	if ((sd->class_&JOBL_2) && (sd->class_&MAPID_UPPERMASK) != MAPID_SUPER_NOVICE &&
+		sd->status.skill_point >= (int)sd->status.job_level &&
+		((sd->change_level > 0 && skill_point < sd->change_level+8) || skill_point < 58)) {
 		//Send it to first class.
 		c &= MAPID_BASEMASK;
 	}

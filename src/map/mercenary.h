@@ -43,13 +43,14 @@ enum {
 	SP_INTIMATE 	= 0x100,
 	SP_HUNGRY 		= 0x200
 };
+
+#define homdb_checkid(id) (id >=  HM_CLASS_BASE && id <= HM_CLASS_MAX)
+
 // merc_is_hom_alive(struct homun_data *)
 #define merc_is_hom_active(x) (x && x->homunculus.vaporize != 1 && x->battle_status.hp > 0)
 int do_init_merc(void);
 int merc_hom_recv_data(int account_id, struct s_homunculus *sh, int flag); //albator
-void merc_load_sub(struct homun_data *hd, struct map_session_data *sd);
-void merc_load_exptables(void);
-char *merc_hom_skill_get_name(int id);
+struct view_data* merc_get_hom_viewdata(int class_);
 void merc_damage(struct homun_data *hd,struct block_list *src,int hp,int sp);
 int merc_hom_dead(struct homun_data *hd, struct block_list *src);
 void merc_hom_skillup(struct homun_data *hd,int skillnum);
@@ -70,6 +71,8 @@ int search_homunculusDB_index(int key,int type);
 int merc_menu(struct map_session_data *sd,int menunum);
 int merc_hom_food(struct map_session_data *sd, struct homun_data *hd);
 int merc_hom_hungry_timer_delete(struct homun_data *hd);
+int merc_hom_change_name(struct map_session_data *sd,char *name);
+int merc_hom_change_name_ack(struct map_session_data *sd, char* name, int flag);
 #define merc_stop_walking(hd, type) { if((hd)->ud.walktimer != -1) unit_stop_walking(&(hd)->bl, type); }
 #define merc_stop_attack(hd) { if((hd)->ud.attacktimer != -1) unit_stop_attack(&(hd)->bl); hd->ud.target = 0; }
 int merc_hom_increase_intimacy(struct homun_data * hd, unsigned int value);

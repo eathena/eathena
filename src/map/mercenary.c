@@ -44,6 +44,16 @@ static int merc_hom_hungry(int tid,unsigned int tick,int id,int data);
 
 static unsigned int hexptbl[MAX_LEVEL];
 
+//For holding the view data of npc classes. [Skotlex]
+static struct view_data hom_viewdb[MAX_HOMUNCULUS_CLASS];
+
+struct view_data* merc_get_hom_viewdata(int class_)
+{	//Returns the viewdata for homunculus
+	if (homdb_checkid(class_))
+		return &hom_viewdb[class_-HM_CLASS_BASE];
+	return NULL;
+}
+
 void merc_damage(struct homun_data *hd,struct block_list *src,int hp,int sp)
 {
 	clif_hominfo(hd->master,hd,0);
@@ -481,6 +491,41 @@ int merc_hom_hungry_timer_delete(struct homun_data *hd)
 		delete_timer(hd->hungry_timer,merc_hom_hungry);
 		hd->hungry_timer = -1;
 	}
+	return 1;
+}
+
+int merc_hom_change_name(struct map_session_data *sd,char *name)
+{
+	int i;
+	struct homun_data *hd;
+	nullpo_retr(1, sd);
+
+	hd = sd->hd;
+	if (!merc_is_hom_active(hd))
+		return 1;
+	if(hd->homunculus.rename_flag && !battle_config.hom_rename)
+		return 1;
+
+	for(i=0;i<NAME_LENGTH && name[i];i++){
+		if( !(name[i]&0xe0) || name[i]==0x7f)
+			return 1;
+	}
+
+	return intif_rename_hom(sd, name);
+}
+
+int merc_hom_change_name_ack(struct map_session_data *sd, char* name, int flag)
+{
+	struct homun_data *hd = sd->hd;
+	if (!merc_is_hom_active(hd)) return 0;
+	if (!flag) {
+		clif_displaymessage(sd->fd, msg_txt(280)); // You cannot use this name
+		return 0;
+	}
+	strncpy(hd->homunculus.name,name,NAME_LENGTH);
+	clif_charnameack (0,&hd->bl);
+	hd->homunculus.rename_flag = 1;
+	clif_hominfo(sd,hd,0);
 	return 1;
 }
 
@@ -976,11 +1021,17 @@ void merc_skill_reload(void)
 
 int do_init_merc(void)
 {
+	int class_;
 	read_homunculusdb();
 	read_homunculus_expdb();
 	read_homunculus_skilldb();
 	// Add homunc timer function to timer func list [Toms]
 	add_timer_func_list(merc_hom_hungry, "merc_hom_hungry");
+
+	//Stock view data for homuncs
+	memset(&hom_viewdb, 0, sizeof(hom_viewdb));
+	for (class_ = 0; class_ < sizeof(hom_viewdb)/sizeof(hom_viewdb[0]); class_++) 
+		hom_viewdb[class_].class_ = HM_CLASS_BASE+class_;
 	return 0;
 }
 

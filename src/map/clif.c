@@ -1377,7 +1377,7 @@ int clif_hominfo(struct map_session_data *sd, struct homun_data *hd, int flag)
 	WBUFW(buf,0)=0x22e;
 	memcpy(WBUFP(buf,2),hd->homunculus.name,NAME_LENGTH);
 	// Bit field, bit 0 : rename_flag (1 = already renamed), bit 1 : homunc vaporized (1 = true), bit 2 : homunc dead (1 = true)
-	WBUFB(buf,26)=hd->homunculus.rename_flag | (hd->homunculus.vaporize << 1) | (hd->homunculus.hp?0:4);
+	WBUFB(buf,26)=(battle_config.hom_rename?0:hd->homunculus.rename_flag) | (hd->homunculus.vaporize << 1) | (hd->homunculus.hp?0:4);
 	WBUFW(buf,27)=hd->homunculus.level;
 	WBUFW(buf,29)=hd->homunculus.hunger;
 	WBUFW(buf,31)=(unsigned short) (hd->homunculus.intimacy / 100) ;
@@ -1477,80 +1477,6 @@ void clif_homskillup(struct map_session_data *sd, int skill_num) {	//[orn]
 	WFIFOSET(fd,packet_len(0x239));
 
 	return;
-}
-
-void clif_parse_ChangeHomunculusName(int fd, struct map_session_data *sd) {	//[orn]
-	struct homun_data *hd;
-	RFIFOHEAD(fd);
-	nullpo_retv(sd);
-
-	if((hd=sd->hd) == NULL)
-		return;
-
-	memcpy(hd->homunculus.name,RFIFOP(fd,2),24);
-	hd->homunculus.rename_flag = 1;
-	clif_hominfo(sd,hd,0);
-	clif_charnameack(sd->fd,&hd->bl);
-}
-
-void clif_parse_HomMoveToMaster(int fd, struct map_session_data *sd) {	//[orn]
-
-	nullpo_retv(sd);
-
-	if(!merc_is_hom_active(sd->hd))
-		return;
-
-	if (!unit_can_move(&sd->hd->bl))
-		return;
-	unit_walktoxy(&sd->hd->bl, sd->bl.x,sd->bl.y-1, 0);
-}
-
-void clif_parse_HomMoveTo(int fd,struct map_session_data *sd) {	//[orn]
-	int x,y,cmd;
-	RFIFOHEAD(fd);
-	nullpo_retv(sd);
-
-	if(!merc_is_hom_active(sd->hd))
-		return;
-
-	cmd = RFIFOW(fd,0);
-	x = RFIFOB(fd,packet_db[sd->packet_ver][cmd].pos[0]) * 4 +
-		(RFIFOB(fd,packet_db[sd->packet_ver][cmd].pos[0] + 1) >> 6);
-	y = ((RFIFOB(fd,packet_db[sd->packet_ver][cmd].pos[0]+1) & 0x3f) << 4) +
-		(RFIFOB(fd,packet_db[sd->packet_ver][cmd].pos[0] + 2) >> 4);
-
-	if (!unit_can_move(&sd->hd->bl))
-		return;
-
-	unit_walktoxy(&(sd->hd->bl),x,y,0);
-}
-
-void clif_parse_HomAttack(int fd,struct map_session_data *sd) {	//[orn]
-	struct block_list *target;
-	RFIFOHEAD(fd);
-	nullpo_retv(sd);
-
-	if(!merc_is_hom_active(sd->hd))
-		return;
-	
-	if ((target = map_id2bl(RFIFOL(fd,6))) == NULL || status_isdead(target)) 
-		return;
-
-	merc_stop_walking(sd->hd, 1);
-	merc_stop_attack(sd->hd);
-	unit_attack(&sd->hd->bl,RFIFOL(fd,6),1) ;
-}
-
-void clif_parse_HomMenu(int fd, struct map_session_data *sd) {	//[orn]
-	int cmd;
-
-	RFIFOHEAD(fd);
-	cmd = RFIFOW(fd,0);
-
-	if(!merc_is_hom_active(sd->hd))
-		return;
-
-	merc_menu(sd,RFIFOB(fd,packet_db[sd->packet_ver][cmd].pos[0]));
 }
 
 int clif_hom_food(struct map_session_data *sd,int foodid,int fail)	//[orn]
@@ -6259,7 +6185,7 @@ int clif_send_petstatus(struct map_session_data *sd)
 	WFIFOHEAD(fd,packet_len(0x1a2));
 	WFIFOW(fd,0)=0x1a2;
 	memcpy(WFIFOP(fd,2),pet->name,NAME_LENGTH);
-	WFIFOB(fd,26)=(battle_config.pet_rename == 1)? 0:pet->rename_flag;
+	WFIFOB(fd,26)=battle_config.pet_rename?0:pet->rename_flag;
 	WFIFOW(fd,27)=pet->level;
 	WFIFOW(fd,29)=pet->hungry;
 	WFIFOW(fd,31)=pet->intimate;
@@ -8431,9 +8357,7 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd) {
 		return;
 
 	pc_stop_attack(sd);
-
-	if (sd->invincible_timer != -1)
-		pc_delinvincibletimer(sd);
+	pc_delinvincibletimer(sd);
 
 	cmd = RFIFOW(fd,0);
 	x = RFIFOB(fd,packet_db[sd->packet_ver][cmd].pos[0]) * 4 +
@@ -8828,9 +8752,8 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 				return;
 			}
 		}
-		if (sd->invincible_timer != -1)
-			pc_delinvincibletimer(sd);
 
+		pc_delinvincibletimer(sd);
 		sd->idletime = last_tick;
 		unit_attack(&sd->bl, target_id, action_type != 0);
 		break;
@@ -9243,8 +9166,7 @@ void clif_parse_UseItem(int fd, struct map_session_data *sd) {
 	if (clif_trading(sd))
 		return;
 	
-	if (sd->invincible_timer != -1)
-		pc_delinvincibletimer(sd);
+	pc_delinvincibletimer(sd);
 
 	//Whether the item is used or not is irrelevant, the char ain't idle. [Skotlex]
 	sd->idletime = last_tick;
@@ -9718,8 +9640,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS))
 		return;
 	
-	if (sd->invincible_timer != -1)
-		pc_delinvincibletimer(sd);
+	pc_delinvincibletimer(sd);
 	
 	if(target_id<0 && -target_id == sd->bl.id) // for disguises [Valaris]
 		target_id = sd->bl.id;
@@ -9818,8 +9739,7 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, int skilll
 	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS))
 		return;
 	
-	if (sd->invincible_timer != -1)
-		pc_delinvincibletimer(sd);
+	pc_delinvincibletimer(sd);
 	if (sd->skillitem == skillnum) {
 		if (skilllv != sd->skillitemlv)
 			skilllv = sd->skillitemlv;
@@ -9882,8 +9802,7 @@ void clif_parse_UseSkillMap(int fd,struct map_session_data *sd)
 	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS))
 		return;
 	
-	if(sd->invincible_timer != -1)
-		pc_delinvincibletimer(sd);
+	pc_delinvincibletimer(sd);
 
 	skill_castend_map(sd,RFIFOW(fd,2),(char*)RFIFOP(fd,4));
 }
@@ -10753,7 +10672,7 @@ void clif_parse_SendEmotion(int fd, struct map_session_data *sd) {
 
 void clif_parse_ChangePetName(int fd, struct map_session_data *sd) {
 	RFIFOHEAD(fd);
-	pet_change_name(sd,(char*)RFIFOP(fd,2), 0);
+	pet_change_name(sd,(char*)RFIFOP(fd,2));
 }
 
 // Kick (right click menu for GM "(name) force to quit")
@@ -11573,6 +11492,71 @@ void clif_parse_ReqFeel(int fd, struct map_session_data *sd, int skilllv) {
 	WFIFOSET(fd, packet_len(0x253));
 	sd->menuskill_id=SG_FEEL;
 	sd->menuskill_lv=skilllv;
+}
+
+void clif_parse_ChangeHomunculusName(int fd, struct map_session_data *sd) {	//[orn]
+	RFIFOHEAD(fd);
+	merc_hom_change_name(sd,RFIFOP(fd,2));
+}
+
+void clif_parse_HomMoveToMaster(int fd, struct map_session_data *sd) {	//[orn]
+
+	nullpo_retv(sd);
+
+	if(!merc_is_hom_active(sd->hd))
+		return;
+
+	if (!unit_can_move(&sd->hd->bl))
+		return;
+	unit_walktoxy(&sd->hd->bl, sd->bl.x,sd->bl.y-1, 0);
+}
+
+void clif_parse_HomMoveTo(int fd,struct map_session_data *sd) {	//[orn]
+	int x,y,cmd;
+	RFIFOHEAD(fd);
+	nullpo_retv(sd);
+
+	if(!merc_is_hom_active(sd->hd))
+		return;
+
+	cmd = RFIFOW(fd,0);
+	x = RFIFOB(fd,packet_db[sd->packet_ver][cmd].pos[0]) * 4 +
+		(RFIFOB(fd,packet_db[sd->packet_ver][cmd].pos[0] + 1) >> 6);
+	y = ((RFIFOB(fd,packet_db[sd->packet_ver][cmd].pos[0]+1) & 0x3f) << 4) +
+		(RFIFOB(fd,packet_db[sd->packet_ver][cmd].pos[0] + 2) >> 4);
+
+	if (!unit_can_move(&sd->hd->bl))
+		return;
+
+	unit_walktoxy(&(sd->hd->bl),x,y,0);
+}
+
+void clif_parse_HomAttack(int fd,struct map_session_data *sd) {	//[orn]
+	struct block_list *target;
+	RFIFOHEAD(fd);
+	nullpo_retv(sd);
+
+	if(!merc_is_hom_active(sd->hd))
+		return;
+	
+	if ((target = map_id2bl(RFIFOL(fd,6))) == NULL || status_isdead(target)) 
+		return;
+
+	merc_stop_walking(sd->hd, 1);
+	merc_stop_attack(sd->hd);
+	unit_attack(&sd->hd->bl,RFIFOL(fd,6),1) ;
+}
+
+void clif_parse_HomMenu(int fd, struct map_session_data *sd) {	//[orn]
+	int cmd;
+
+	RFIFOHEAD(fd);
+	cmd = RFIFOW(fd,0);
+
+	if(!merc_is_hom_active(sd->hd))
+		return;
+
+	merc_menu(sd,RFIFOB(fd,packet_db[sd->packet_ver][cmd].pos[0]));
 }
 
 /*==========================================

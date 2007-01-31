@@ -275,6 +275,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		}
 	
 		if(sc->data[SC_AUTOGUARD].timer != -1 && flag&BF_WEAPON &&
+			skill_num != WS_CARTTERMINATION && // FIXME(?): Quick and dirty check, but HSCR really bypasses Guard [DracoRPG]
 			rand()%100 < sc->data[SC_AUTOGUARD].val2) {
 			int delay;
 			clif_skill_nodamage(bl,bl,CR_AUTOGUARD,sc->data[SC_AUTOGUARD].val1,1);
@@ -1026,9 +1027,6 @@ static struct Damage battle_calc_weapon_attack(
 		{
 			if (tsc->data[SC_SLEEP].timer!=-1 )
 				cri <<=1;
-			if(tsc->data[SC_JOINTBEAT].timer != -1 &&
-				tsc->data[SC_JOINTBEAT].val2 == 6) // Always take crits with Neck broken by Joint Beat [DracoRPG]
-				flag.cri=1;
 		}
 		switch (skill_num)
 		{
@@ -1483,7 +1481,10 @@ static struct Damage battle_calc_weapon_attack(
 					skillratio += 40*skill_lv;
 					break;
 				case LK_JOINTBEAT:
-					skillratio += 10*skill_lv-50;
+					i = 10*skill_lv-50;
+					// Although not clear, it's being assumed that the 2x damage is only for the break neck ailment.
+					if (wflag&BREAK_NECK) i*=2;
+					skillratio += i;
 					break;
 				case ASC_METEORASSAULT:
 					skillratio += 40*skill_lv-60;
@@ -3789,6 +3790,7 @@ static const struct battle_data_short {
 	{ "override_mob_names", 				&battle_config.override_mob_names },
 	{ "min_chat_delay",						&battle_config.min_chat_delay },
 	{ "friend_auto_add",						&battle_config.friend_auto_add },
+	{ "hom_rename",                     &battle_config.hom_rename },
 	{ "homunculus_show_growth",					&battle_config.homunculus_show_growth },	//[orn]
 	{ "homunculus_friendly_rate",				&battle_config.homunculus_friendly_rate },
 };
@@ -4226,6 +4228,7 @@ void battle_set_defaults() {
 	battle_config.min_chat_delay = 0;
 	battle_config.friend_auto_add = 1;
 	battle_config.hvan_explosion_intimate = 45000;	//[orn]
+	battle_config.hom_rename=0;
 	battle_config.homunculus_show_growth = 0;	//[orn]
 	battle_config.homunculus_friendly_rate = 100;
 }

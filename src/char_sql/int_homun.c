@@ -183,9 +183,7 @@ int mapif_load_homunculus(int fd){
 		homun_pt->hunger = 0;
 	else if(homun_pt->hunger > 100)
 		homun_pt->hunger = 100;
-	if(homun_pt->intimacy < 0)
-		homun_pt->intimacy = 0;
-	else if(homun_pt->intimacy > 100000)
+	if(homun_pt->intimacy > 100000)
 		homun_pt->intimacy = 100000;
 
 	mysql_free_result(sql_res);
@@ -214,27 +212,31 @@ int mapif_load_homunculus(int fd){
 	return mapif_info_homunculus(fd, RFIFOL(fd,2), homun_pt);
 }
 
-
+int inter_delete_homunculus(int hom_id)
+{
+	sprintf(tmp_sql, "DELETE FROM `homunculus` WHERE `homun_id` = '%u'", hom_id);
+	if(mysql_query(&mysql_handle, tmp_sql))
+	{
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		return 0;
+	}
+	
+	sprintf(tmp_sql, "DELETE FROM `skill_homunculus` WHERE `homun_id` = '%u'", hom_id);
+	if(mysql_query(&mysql_handle, tmp_sql))
+	{
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		return 0;
+	}
+	return 1;
+}
 
 int mapif_delete_homunculus(int fd)
 {
 	RFIFOHEAD(fd);
-	sprintf(tmp_sql, "DELETE FROM `homunculus` WHERE `homun_id` = '%u'", RFIFOL(fd,2));
-	if(mysql_query(&mysql_handle, tmp_sql))
-	{
-		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		return mapif_homunculus_deleted(fd, 0);
-	}
-	
-	sprintf(tmp_sql, "DELETE FROM `skill_homunculus` WHERE `homun_id` = '%u'", RFIFOL(fd,2));
-	if(mysql_query(&mysql_handle, tmp_sql))
-	{
-		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		return mapif_homunculus_deleted(fd, 0);
-	}
-	return mapif_homunculus_deleted(fd, 1);
+	mapif_homunculus_deleted(fd, inter_delete_homunculus(RFIFOL(fd,2)));
+	return 1;
 }
 
 int mapif_rename_homun_ack(int fd, int account_id, int char_id, unsigned char flag, char *name){

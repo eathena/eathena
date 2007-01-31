@@ -1272,9 +1272,12 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case LK_JOINTBEAT:
-		sc_start(bl,SkillStatusChangeTable(skillid),(5*skilllv+5),skilllv,skill_get_time2(skillid,skilllv));
+		skill = SkillStatusChangeTable(skillid);
+		if (tsc->data[skill].val4) {
+			sc_start2(bl,skill,(5*skilllv+5),skilllv,tsc->data[skill].val4&BREAK_FLAGS,skill_get_time2(skillid,skilllv));
+			tsc->data[skill].val4 = 0;
+		}
 		break;
-
 	case ASC_METEORASSAULT:
 		//Any enemies hit by this skill will receive Stun, Darkness, or external bleeding status ailment with a 5%+5*SkillLV% chance.
 		switch(rand()%3) {
@@ -1922,7 +1925,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 	damage = dmg.damage + dmg.damage2;
 
-	if (damage > 0 && src != bl && src == dsrc)
+	if (damage > 0 && src != bl && src == dsrc && skillid != WS_CARTTERMINATION) // FIXME(?): Quick and dirty check, but HSCR does bypass Shield Reflect... so I make it bypass the whole reflect thing [DracoRPG]
 		rdamage = battle_calc_return_damage(bl, &damage, dmg.flag);
 
 	//Skill hit type
@@ -2082,6 +2085,15 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		if (su->group && skill_get_inf2(su->group->skill_id)&INF2_TRAP)
 			damage = 0; //Only Heaven's drive may damage traps. [Skotlex]
 	}
+
+	if (dmg.dmg_lv == ATK_DEF && (type = skill_get_walkdelay(skillid, skilllv)) > 0)
+	{	//Skills with can't walk delay also stop normal attacking for that
+		//duration when the attack connects. [Skotlex]
+		struct unit_data *ud = unit_bl2ud(src);
+		if (ud && DIFF_TICK(ud->attackabletime, tick + type) < 0)
+			ud->attackabletime = tick + type;
+	}
+
 	if (!dmg.amotion) {
 		status_fix_damage(src,bl,damage,dmg.dmotion); //Deal damage before knockback to allow stuff like firewall+storm gust combo.
 		if (dmg.dmg_lv == ATK_DEF || damage > 0) {
@@ -2729,7 +2741,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case LK_AURABLADE:
 	case LK_SPIRALPIERCE:
 	case LK_HEADCRUSH:
-	case LK_JOINTBEAT:
 	case CG_ARROWVULCAN:
 	case HW_MAGICCRASHER:
 	case ITM_TOMAHAWK:
@@ -2758,6 +2769,22 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case ASC_BREAKER:
 	case HFLI_MOON:	//[orn]
 	case HFLI_SBR44:	//[orn]
+		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+		break;
+
+	case LK_JOINTBEAT: // decide the ailment first (affects attack damage and effect)
+		switch( rand()%6 ){
+		case 0: flag |= BREAK_ANKLE; break;
+		case 1: flag |= BREAK_WRIST; break;
+		case 2: flag |= BREAK_KNEE; break;
+		case 3: flag |= BREAK_SHOULDER; break;
+		case 4: flag |= BREAK_WAIST; break;
+		case 5: flag |= BREAK_NECK; break;
+		}
+		//Seems a little ugly, but we have done this or worse with other skills like Storm Gust. [Skotlex]
+		//val3 holds the status that it should start when it connects.
+		sc = status_get_sc(bl);
+		if (sc) sc->data[SkillStatusChangeTable(skillid)].val4 = flag;
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 
@@ -3188,6 +3215,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 					sd->splash_range, BL_CHAR,
 					src, skillid, skilllv, tick, flag | BCT_ENEMY | 1,
 					skill_castend_damage_id);
+				flag|=1; //Set flag to 1 so ammo is not double-consumed. [Skotlex]
 			}
 		}
 		break;
@@ -7798,6 +7826,7 @@ static int skill_check_condition_hermod_sub(struct block_list *bl,va_list ap)
 int skill_isammotype (TBL_PC *sd, int skill)
 {
 	return (
+		battle_config.arrow_decrement==2 &&
 		(sd->status.weapon == W_BOW || (sd->status.weapon >= W_REVOLVER && sd->status.weapon <= W_GRENADE)) &&
 		skill != HT_PHANTASMIC &&
 		skill_get_type(skill) == BF_WEAPON &&
