@@ -1,4 +1,9 @@
 Date	Added
+2007/02/11
+	* Merged removal of config settings produce_item_name_input,
+	  produce_potion_name_input, making_arrow_name_input, holywater_name_input
+	  and cdp_name_input. These are all handled now through bitmasks using
+	  produce_item_name_input instead (items.conf).
 2007/01/31
 	* Updated arrow_decrement setting to specify if skills should "auto-guess"
 	  if they require ammo or not based on currently used weapon. By default

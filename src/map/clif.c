@@ -8168,7 +8168,18 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if(sd->duel_group)
 		clif_set0199(fd, 1);
 
-	if(map_flag_gvg(sd->bl.m) || map[sd->bl.m].flag.gvg_dungeon)
+	if (map[sd->bl.m].flag.gvg_dungeon)
+	{
+		clif_set0199(fd, 1); //TODO: Figure out the real packet to send here.
+		if (!sd->pvp_point)
+		{
+			sd->pvp_point=5; //Need to die twice to be warped out.
+			sd->pvp_won=0;
+			sd->pvp_lost=0;
+		}
+	}
+
+	if(map_flag_gvg(sd->bl.m))
 		clif_set0199(fd,3);
 
 	// pet
@@ -9882,10 +9893,17 @@ void clif_parse_WeaponRefine(int fd, struct map_session_data *sd) {
  */
 void clif_parse_NpcSelectMenu(int fd,struct map_session_data *sd)
 {
+	unsigned char select;
 	RFIFOHEAD(fd);
 
-	sd->npc_menu=RFIFOB(fd,6);
-	npc_scriptcont(sd,RFIFOL(fd,2));
+	select = RFIFOB(fd,6);
+	if((select > sd->npc_menu && select != 0xff) || !select){
+		ShowWarning("Hack on NPC Select Menu: %s (AID: %d)!\n",sd->status.name,sd->bl.id);
+		clif_GM_kick(sd,sd,0);
+	} else {
+		sd->npc_menu=select;
+		npc_scriptcont(sd,RFIFOL(fd,2));
+	}
 }
 
 /*==========================================

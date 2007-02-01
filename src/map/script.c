@@ -4271,7 +4271,7 @@ int buildin_close2(struct script_state *st)
  */
 int buildin_menu(struct script_state *st)
 {
-	char *buf;
+	char *buf, *ptr;
 	int len,i;
 	struct map_session_data *sd = script_rid2sd(st);
 
@@ -4299,6 +4299,11 @@ int buildin_menu(struct script_state *st)
 				strcat(buf,":");
 			}
 		}
+		
+		ptr = buf;
+		sd->npc_menu = 0;  //Reuse to store max menu entries. Avoids the need of an extra variable.
+		while (ptr && (ptr = strchr(ptr, ':')) != NULL)
+		{	sd->npc_menu++; ptr++; }
 		clif_scriptmenu(sd,st->oid,buf);
 		aFree(buf);
 	} else if(sd->npc_menu==0xff){	// cancel
@@ -10434,7 +10439,7 @@ int buildin_jump_zero(struct script_state *st) {
 
 int buildin_select(struct script_state *st)
 {
-	char *buf;
+	char *buf, *ptr;
 	int len,i;
 	struct map_session_data *sd;
 
@@ -10453,6 +10458,12 @@ int buildin_select(struct script_state *st)
 			strcat(buf,st->stack->stack_data[i].u.str);
 			strcat(buf,":");
 		}
+
+		ptr = buf;
+		sd->npc_menu = 0;  //Reuse to store max menu entries. Avoids the need of an extra variable.
+		while (ptr && (ptr = strchr(ptr, ':')) != NULL)
+		{	sd->npc_menu++; ptr++; }
+
 		clif_scriptmenu(sd,st->oid,buf);
 		aFree(buf);
 	} else if(sd->npc_menu==0xff){
@@ -10474,7 +10485,7 @@ int buildin_select(struct script_state *st)
 
 int buildin_prompt(struct script_state *st)
 {
-	char *buf;
+	char *buf, *ptr;
 	int len,i;
 	struct map_session_data *sd;
 
@@ -10494,6 +10505,12 @@ int buildin_prompt(struct script_state *st)
 			strcat(buf,st->stack->stack_data[i].u.str);
 			strcat(buf,":");
 		}
+
+		ptr = buf;
+		sd->npc_menu = 0;  //Reuse to store max menu entries. Avoids the need of an extra variable.
+		while (ptr && (ptr = strchr(ptr, ':')) != NULL)
+		{	sd->npc_menu++; ptr++; }
+
 		clif_scriptmenu(sd,st->oid,buf);
 		aFree(buf);
 	} else {

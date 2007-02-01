@@ -10611,20 +10611,29 @@ int skill_produce_mix (struct map_session_data *sd, int skill_id, int nameid, in
 		} else {
 			//Flag is only used on the end, so it can be used here. [Skotlex]
 			switch (skill_id) {
+				case BS_DAGGER:
+				case BS_SWORD:
+				case BS_TWOHANDSWORD:
+				case BS_AXE:
+				case BS_MACE:
+				case BS_KNUCKLE:
+				case BS_SPEAR:
+					flag = battle_config.produce_item_name_input&0x1;
+					break;
 				case AM_PHARMACY:
 				case AM_TWILIGHT1:
 				case AM_TWILIGHT2:
 				case AM_TWILIGHT3:
-					flag = battle_config.produce_potion_name_input;
+					flag = battle_config.produce_item_name_input&0x2;
 					break;
 				case AL_HOLYWATER:
-					flag = battle_config.holywater_name_input;
+					flag = battle_config.produce_item_name_input&0x8;
 					break;
 				case ASC_CDP:
-					flag = battle_config.cdp_name_input;
+					flag = battle_config.produce_item_name_input&0x10;
 					break;
 				default:
-					flag = battle_config.produce_item_name_input;
+					flag = battle_config.produce_item_name_input&0x80;
 					break;
 			}
 			if (flag) {
@@ -10771,7 +10780,7 @@ int skill_arrow_create (struct map_session_data *sd, int nameid)
 		tmp_item.identify = 1;
 		tmp_item.nameid = skill_arrow_db[index].cre_id[i];
 		tmp_item.amount = skill_arrow_db[index].cre_amount[i];
-		if(battle_config.making_arrow_name_input) {
+		if(battle_config.produce_item_name_input&0x4) {
 			tmp_item.card[0]=CARD0_CREATE;
 			tmp_item.card[1]=0;
 			tmp_item.card[2]=GetWord(sd->status.char_id,0); // CharId
