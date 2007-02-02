@@ -95,14 +95,30 @@ struct fightable;
 /// declares a common interface for skills.
 class skillbase : public basics::global, public basics::noncopyable
 {
-	bool		doublecasted;
+	ICL_EMPTY_COPYCONSTRUCTOR(skillbase)
+protected:
+	template<typename T>
+	struct map_callback : public CMapProcessor
+	{
+		T& parent;
+		bool (T::*func)(block_list& bl);
+
+
+		map_callback(T& p, bool (T::*f)(block_list& bl))
+			: parent(p), func(f)
+		{}
+		virtual int process(block_list& bl) const
+		{
+			return (parent.*func)(bl);
+		}
+	};
 public:
 	int			timerid;	///< will replace skilltimer
 	fightable	&caster;	///< casting object
 protected:
 	/// protected constructor.
 	/// only derived can create
-	skillbase(fightable &c) : doublecasted(false), timerid(-1), caster(c)	{}
+	skillbase(fightable &c) : timerid(-1), caster(c)	{}
 public:
 	/// destructor.
 	virtual ~skillbase();

@@ -4,6 +4,10 @@
 #ifndef _INTIF_H_
 #define _INFIF_H_
 
+#include "basetypes.h"
+struct map_session_data;
+struct homun_data;
+
 int intif_parse(int fd);
 
 int intif_GMmessage(const char* mes,size_t len, int flag);

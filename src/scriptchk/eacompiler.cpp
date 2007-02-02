@@ -113,7 +113,7 @@ bool eacompiler::check_labels()
 			this->warning("undefined label for 'goto %s'\n", (const char*)iter->key);
 			++ret;
 		}
-		if( !iter->data.use && (iter->key[0]!='O' || iter->key[1]!='n') )
+		else if( !iter->data.use && (iter->key[0]!='O' || iter->key[1]!='n') )
 		{
 			this->warning("unused label '%s'\n", (const char*)iter->key);
 		}
@@ -173,13 +173,14 @@ bool eacompiler::compile_goto(const parse_node &node, uint scope, unsigned long 
 	const basics::string<>& name = node[1].string();
 	CLabelPos& label = this->cLabels[name];
 	++label.use;
-	this->put_command(OP_GOTO);
+	
 	if( label.valid )
 	{
-		prog->appendAddr( label.pos );
+		this->put_varcommand(OP_GOTO, label.pos);
 	}
 	else
-	{
+	{	// default size
+		this->put_command(OP_GOTO3);
 		label.pos = prog->appendAddr( label.pos );
 	}
 	return true;
@@ -192,13 +193,13 @@ bool eacompiler::compile_gosub(const parse_node &node, uint scope, unsigned long
 	const basics::string<>& name = node[1].string();
 	CLabelPos& label = this->cLabels[name];
 	++label.use;
-	this->put_command(OP_GOSUB);
 	if( label.valid )
 	{
-		prog->appendAddr( label.pos );
+		this->put_varcommand(OP_GOSUB, label.pos);
 	}
 	else
-	{
+	{	// default size
+		this->put_command(OP_GOSUB3);
 		label.pos = prog->appendAddr( label.pos );
 	}
 	return true;
@@ -259,7 +260,7 @@ bool eacompiler::compile_variable(const parse_node &node, uint scope, unsigned l
 		// final cast
 		if( flags&CFLAG_VARMASK )
 		{
-			this->put_command(OP_CAST, (flags&CFLAG_VARSTRING)?basics::VAR_STRING:(flags&CFLAG_VARFLOAT)?basics::VAR_FLOAT:basics::VAR_INTEGER);
+			this->put_command((flags&CFLAG_VARSTRING)?OP_CAST_STRING:(flags&CFLAG_VARFLOAT)?OP_CAST_FLOAT:OP_CAST_INTEGER);
 		}
 		if( modify_variable )// clear the stack when modified
 			this->put_command(OP_POP);
@@ -294,11 +295,12 @@ bool eacompiler::compile_funcdecl(const parse_node &node, uint scope, unsigned l
 	cConstvalues.clear();
 	
 	prog->cName = node[1].string();
-	this->funcdecl = temp->cHeader.search("main");
+	const basics::string<> main_node("main");
+	this->funcdecl = temp->cHeader.search(main_node);
 	if( !this->funcdecl )
 	{	// create new
-		prog->cHeader["main"].cName = "main";
-		this->funcdecl = prog->cHeader.search("main");
+		prog->cHeader[main_node].cName = main_node;
+		this->funcdecl = prog->cHeader.search(main_node);
 		this->funcdecl->cScript = &(*prog);
 	}
 	this->funcdecl->cReturn = basics::variant::name2type(node[0].string());
@@ -401,7 +403,7 @@ bool eacompiler::compile_subfuncdecl(const parse_node &node, uint scope, unsigne
 	// compile body if exists
 	if( accept && !declare_only )
 	{
-		this->put_command(OP_GOTO);
+		this->put_command(OP_GOTO3);
 		size_t inspos1 = prog->appendAddr(0);	// placeholder
 		this->funcdecl->cEntry = prog->getCurrentPosition();
 
@@ -489,7 +491,7 @@ bool eacompiler::put_function_call(const basics::string<>& name, uint paramcnt)
 	scriptdecl decl = prog->get_declaration(name);
 	if( decl.cScript )
 	{
-		this->put_command(OP_SUBFUNCTION, prog->cName+"::"+name, paramcnt);
+		this->put_fnccommand(OP_SUBFUNCTION, prog->cName+"::"+name, paramcnt);
 	}
 	else
 	{	// check if function name exists
@@ -509,7 +511,7 @@ bool eacompiler::put_function_call(const basics::string<>& name, uint paramcnt)
 				++paramcnt;
 			}
 		}
-		this->put_command(OP_FUNCTION, name, paramcnt);
+		this->put_fnccommand(OP_FUNCTION, name, paramcnt);
 	}
 	return true;
 }
@@ -530,7 +532,7 @@ bool eacompiler::put_subfunction_call(const basics::string<>& host, const basics
 		}
 		else
 		{	
-			this->put_command(OP_SUBFUNCTION, host+"::"+name, paramcnt);
+			this->put_fnccommand(OP_SUBFUNCTION, host+"::"+name, paramcnt);
 			return true;
 		}
 	}
@@ -1123,16 +1125,15 @@ void eacompiler::put_value_unchecked(double d)
 void eacompiler::put_value_unchecked(int64 i)
 {
 //	printf("push int '%i'\n", (int)i);
-	prog->appendVarCommand( OP_PUSH_INT1, i);
+	prog->appendVarCommand(OP_PUSH_INT, i);
 }
 void eacompiler::put_value_unchecked(const basics::string<>& s)
 {
 //	printf("push string '%s'\n", (const char*)s);
-	prog->appendCommand(OP_PUSH_STRING);
 	uint32& addr = cStrTable[s];
 	if( !addr )
 		addr = prog->append_string( s );
-	prog->appendAddr(addr);
+	prog->appendVarCommand(OP_PUSH_STRING, addr);
 }
 void eacompiler::put_value_unchecked(const basics::variant& v)
 {
@@ -1154,7 +1155,7 @@ void eacompiler::put_value_unchecked(const basics::variant& v)
 		for(i=0; i<v.size(); ++i)
 			put_value_unchecked(v[i]);
 //		printf("push array '%u' elements\n", (uint)v.size());
-		prog->appendVarCommand( OP_CONCAT1, v.size());
+		prog->appendVarCommand(OP_CONCAT, v.size());
 	}
 	else 
 	{
@@ -1352,6 +1353,21 @@ void eacompiler::put_command(command_t command)
 				ve[-1] = ve[-1].get_bool();
 				return;
 			}
+			else if( command==OP_CAST_STRING )
+			{
+				ve[-1].cast(basics::VAR_STRING);
+				return;
+			}
+			else if( command==OP_CAST_FLOAT )
+			{
+				ve[-1].cast(basics::VAR_FLOAT);
+				return;
+			}
+			else if( command==OP_CAST_INTEGER )
+			{
+				ve[-1].cast(basics::VAR_INTEGER);
+				return;
+			}
 		}
 	}
 	// otherwise do a nonconst command
@@ -1359,16 +1375,11 @@ void eacompiler::put_command(command_t command)
 	prog->appendCommand(command);
 }
 
-void eacompiler::put_command(command_t command, int p)
+void eacompiler::put_intcommand(command_t command, int p)
 {
 	if( this->is_const() )
 	{
-		if( command==OP_CAST )
-		{
-			this->cConstvalues.last().cast((basics::var_t)p);
-			return;
-		}
-		else if( command==OP_CONCAT1 && this->cConstvalues.size() >= (size_t)p )
+		if( command==OP_CONCAT && this->cConstvalues.size() >= (size_t)p )
 		{
 			const size_t pos = this->cConstvalues.size()-p;
 			size_t i;
@@ -1384,35 +1395,26 @@ void eacompiler::put_command(command_t command, int p)
 	}
 	// otherwise do a nonconst command
 	this->put_nonconst();
-	if( command==OP_CONCAT1 )
-	{
-		prog->appendVarCommand(command, p);
-	}
-	else
-	{
-		prog->appendCommand(command);
-		prog->appendChar(p);
-	}
+	prog->appendVarCommand(command, p);
 }
 
-void eacompiler::put_command(command_t command, const basics::string<>& s)
+void eacompiler::put_strcommand(command_t command, const basics::string<>& s)
 {
 	this->put_nonconst();
-	prog->appendCommand(command);
 	uint32& addr = cStrTable[s];
 	if( !addr )
 		addr = prog->append_string( s );
-	prog->appendAddr(addr);
+
+	prog->appendVarCommand(command, addr);
 }
 
-void eacompiler::put_command(command_t command, const basics::string<>& s, int p)
+void eacompiler::put_fnccommand(command_t command, const basics::string<>& s, int p)
 {
 	this->put_nonconst();
-	prog->appendCommand(command);
 	uint32& addr = cStrTable[s];
 	if( !addr )
 		addr = prog->append_string( s );
-	prog->appendAddr(addr);
+	prog->appendVarCommand(command, addr);
 	prog->appendChar(p);
 }
 
@@ -1587,7 +1589,7 @@ bool eacompiler::put_variable_access(uint access)
 	}
 	else
 	{	// put the variable on the stack
-		this->put_command(OP_PUSH_VAR,  (access&CFLAG_PLY)?"player":
+		this->put_strcommand(OP_PUSH_VAR,  (access&CFLAG_PLY)?"player":
 										(access&CFLAG_ACC)?"account":
 										(access&CFLAG_LOG)?"login":
 										(access&CFLAG_NPC)?"npc":"global"
@@ -1644,18 +1646,18 @@ bool eacompiler::put_variable(const basics::string<>& name, ulong flags, uint sc
 
 		if( 0!=(access&CFLAG_PARAM) )
 		{	// function parameter
-			this->put_command((0!=(flags&CFLAG_RVALUE))?OP_PUSH_PARAVAL:OP_PUSH_PARAVAR, v.id);
+			this->put_intcommand((0!=(flags&CFLAG_RVALUE))?OP_PUSH_PARAVAL:OP_PUSH_PARAVAR, v.id);
 		}
 		else if( 0!=(access&CFLAG_TEMP) && 0==(access&CFLAG_STORMASK) )
 		{	// pure temporary
 			if( v.isvalid || ((0!=(flags&CFLAG_LVALUE)) && (0==(flags&CFLAG_NOASSIGN))) )
 			{	// ok
-				this->put_varcommand((0!=(flags&CFLAG_RVALUE))?OP_PUSH_TEMPVAL1:OP_PUSH_TEMPVAR1, v.id);
+				this->put_varcommand((0!=(flags&CFLAG_RVALUE))?OP_PUSH_TEMPVAL:OP_PUSH_TEMPVAR, v.id);
 			}
 			else
 			{	// force clearing
 				this->warning("variable 'temp::%s' is used uninitialized.\n", name.c_str());
-				this->put_varcommand(OP_PUSH_TEMPVAR1, v.id);
+				this->put_varcommand(OP_PUSH_TEMPVAR, v.id);
 				this->put_command(OP_CLEAR);
 				++v.use; // emulate a second access on the variable
 				if( 0!=(flags&CFLAG_RVALUE) )
@@ -1678,7 +1680,7 @@ bool eacompiler::put_variable(const basics::string<>& name, ulong flags, uint sc
 			this->put_command(OP_MEMBER);
 */
 			// combined access
-			this->put_command((0!=(flags&CFLAG_RVALUE))?OP_PUSH_VAL:OP_PUSH_VAR, variable_id2scopename(access) + name);
+			this->put_strcommand((0!=(flags&CFLAG_RVALUE))?OP_PUSH_VAL:OP_PUSH_VAR, variable_id2scopename(access) + name);
 		}
 	}
 	return true;
@@ -1941,7 +1943,7 @@ bool eacompiler::compile_switchstm(const parse_node &node, uint scope, unsigned 
 	++cVariable[varname][CFLAG_TEMP].use;
 //	this->logging("create temporary variable %s (%u)\n", varname.c_str(), (uint)var_id);
 
-	this->put_varcommand( OP_PUSH_TEMPVAR1, var_id );
+	this->put_varcommand( OP_PUSH_TEMPVAR, var_id );
 //	this->logging("push temporary variable %s (%u)\n", varname.c_str(), (uint)var_id);
 	// compile <Expr>
 	if( !compile_main(node[2], scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue) )
@@ -1963,7 +1965,6 @@ bool eacompiler::compile_switchstm(const parse_node &node, uint scope, unsigned 
 	basics::vector<parse_node> conditions;
 	basics::vector<parse_node> expression;
 	basics::vector<uint> gotomarker;
-	parse_node defaultexpr;
 	size_t defaultgoto;
 	int defaultpos=-1;
 
@@ -1983,7 +1984,8 @@ bool eacompiler::compile_switchstm(const parse_node &node, uint scope, unsigned 
 		else if( worknode.childs() == 4 )
 		{	// default case
 			defaultpos = expression.size();
-			defaultexpr = worknode[2];
+			conditions.push(worknode[0]);
+			expression.push(worknode[2]);
 			worknode = worknode[3];
 		}
 		else //if( worknode.childs() == 0 )
@@ -1996,11 +1998,9 @@ bool eacompiler::compile_switchstm(const parse_node &node, uint scope, unsigned 
 	size_t i;
 	bool accept = true;
 	for(i=0; i<conditions.size() && accept; ++i)
-	{	// these are normal case statements, not the default case
-
-		// push the case value
-		if( conditions[i].symbol()==PT_EXPR )
-		{	// empty expression
+	{	// push the case value
+		if( (int)i == defaultpos || conditions[i].symbol()==PT_EXPR )
+		{	// spare default case and empty expression
 			// ignore this
 			gotomarker.push( 0 );
 		}
@@ -2015,24 +2015,24 @@ bool eacompiler::compile_switchstm(const parse_node &node, uint scope, unsigned 
 			{	
 				if( worknode[0].symbol()!=PT_EXPR )// ignore empty expressions
 				{	
-					this->put_varcommand( OP_PUSH_TEMPVAL1, var_id );
+					this->put_varcommand( OP_PUSH_TEMPVAL, var_id );
 					accept = compile_main(worknode[0], scope, flags, uservalue);
 					this->put_command(OP_EQUATE);
 
 //					this->logging("Conditional Jump True or Pop -> Label1\n");
-					this->put_command(OP_IF);
+					this->put_command(OP_IF3);
 					inspos1 = prog->appendAddr(inspos1);	// placeholder
 				}
 				if( accept && worknode[2].symbol()==PT_EXPRLIST )
 					worknode = worknode[2];
 				else if( worknode[2].symbol()!=PT_EXPR )// ignore empty expressions
 				{	
-					this->put_varcommand( OP_PUSH_TEMPVAL1, var_id );
+					this->put_varcommand( OP_PUSH_TEMPVAL, var_id );
 					accept = compile_main(worknode[2], scope, flags, uservalue);
 					this->put_command(OP_EQUATE);
 
 //					this->logging("Conditional Jump True or Pop -> Label1\n");
-					this->put_command(OP_IF);
+					this->put_command(OP_IF3);
 					inspos1 = prog->appendAddr(inspos1);	// placeholder
 					break;
 				}
@@ -2041,8 +2041,8 @@ bool eacompiler::compile_switchstm(const parse_node &node, uint scope, unsigned 
 		}
 		else
 		{	// a single value
-			// push the temprary variable
-			this->put_varcommand( OP_PUSH_TEMPVAL1, var_id );
+			// push the temporary variable
+			this->put_varcommand( OP_PUSH_TEMPVAL, var_id );
 //			this->logging("push temporary variable %s (%i)\n", varname.c_str(), (int)var_id);
 
 			accept = compile_main(conditions[i], scope, flags, uservalue);
@@ -2051,41 +2051,32 @@ bool eacompiler::compile_switchstm(const parse_node &node, uint scope, unsigned 
 			this->put_command(OP_EQUATE);
 
 //			this->logging("Conditional Jump True -> CaseLabel%i\n", (int)i);
-			this->put_command(OP_IF);
+			this->put_command(OP_IF3);
 			gotomarker.push( prog->appendAddr(0) );	// placeholder
 		}
 	}
 //	this->logging("Goto -> LabelEnd/Default\n");
-	this->put_command(OP_GOTO);
+	this->put_command(OP_GOTO3);
 	defaultgoto = prog->appendAddr(0);	// placeholder
+	if( defaultpos>=0 )
+		gotomarker[defaultpos] = defaultgoto;
 
 	///////////////////////////////////////////////////////////////////////////
 	// build the body of the case statements
 	// update the jumps to the correct targets
 	if(accept)
 	{	
-		size_t address;
 		for(i=0; i<expression.size()&& accept; ++i)
 		{
-			if( (int)i==defaultpos )
-			{	// compile the default
-				// update the jump address
-				address = prog->getCurrentPosition();
-				prog->replaceAddr(address, defaultgoto);
-				// compile the statement
-				accept = compile_main(defaultexpr, scope, flags | CFLAG_USE_BREAK, uservalue);
-			}
-
 			// replace with real target address
 			this->replace_jumps(gotomarker[i], prog->getCurrentPosition());
-
 			// compile the statement
 			accept = compile_main(expression[i], scope, flags | CFLAG_USE_BREAK, uservalue);
 		}
 		size_t rend = prog->getCurrentPosition();
 		if(defaultpos<0)
 		{	// no default case, so redirect the last goto to the end
-			prog->replaceAddr(rend, defaultgoto);
+			this->replace_jumps(defaultgoto, rend);
 		}
 		// convert break -> goto REND
 		this->replace_jumps(this->break_target, rend);
@@ -2115,7 +2106,7 @@ bool eacompiler::compile_ifstm(const parse_node &node, uint scope, unsigned long
 		else
 		{	// need to evaluate
 //			this->logging("Conditional Jump False -> Label1\n");
-			this->put_command(OP_NIF);
+			this->put_command(OP_NIF3);
 			size_t inspos1 = prog->appendAddr(0);	// placeholder
 			// put in <Normal Stm>
 			accept &= compile_main(node[4], scope, flags, uservalue);
@@ -2140,12 +2131,12 @@ bool eacompiler::compile_ifstm(const parse_node &node, uint scope, unsigned long
 		else
 		{
 //			this->logging("Conditional Jump False -> Label1\n");
-			this->put_command(OP_NIF);
+			this->put_command(OP_NIF3);
 			size_t inspos1 = prog->appendAddr(0);	// placeholder
 			// put in <Normal Stm>
 			accept &= compile_main(node[4], scope, flags, uservalue);
 //			this->logging("Goto -> Label2\n");
-			this->put_command(OP_GOTO);
+			this->put_command(OP_GOTO3);
 			size_t inspos2 = prog->appendAddr(0);	// placeholder
 //			this->logging("Label1\n");
 			// calculate and insert the correct jump 
@@ -2171,15 +2162,14 @@ bool eacompiler::compile_whilestm(const parse_node &node, uint scope, unsigned l
 	accept  = compile_main(node[2], scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue);
 
 //	this->logging("Conditional Jump False -> Label2\n");
-	this->put_command(OP_NIF);
+	this->put_command(OP_NIF3);
 	size_t inspos2 = prog->appendAddr(0);	// placeholder offset
 
 	// execute <Normal Stm>
 	accept &= compile_main(node[4], scope, flags | CFLAG_USE_BREAK | CFLAG_USE_CONT, uservalue);
 
 //	this->logging("Goto -> Label1\n");
-	this->put_command(OP_GOTO);
-	prog->appendAddr(this->continue_target);
+	this->put_varcommand(OP_GOTO, this->continue_target);
 
 //	this->logging("Label2\n");
 	size_t tarpos2 = prog->getCurrentPosition();
@@ -2202,17 +2192,19 @@ bool eacompiler::compile_forstm(const parse_node &node, uint scope, unsigned lon
 
 	const bool has_condition = (node[4].symbol() != PT_EXPR);
 	// true when second argument is empty and for loop is infinite
+	
+	size_t inspos2=0;
 	if(has_condition)
 	{
 		accept &= compile_main(node[4], scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue);
 //		this->logging("Conditional Jump False -> Label2\n");
-		this->put_command(OP_NIF);
+		this->put_command(OP_NIF3);
+		inspos2 = prog->appendAddr(0);	// placeholder
 	}
 	this->continue_target = 0;
 	this->has_continue=false;
 	this->break_target = 0;
-
-	size_t inspos2 = prog->appendAddr(0);	// placeholder
+	
 	// execute the loop body
 	accept &= compile_main(node[8], scope, flags | CFLAG_USE_BREAK | CFLAG_USE_CONT, uservalue);
 
@@ -2224,12 +2216,14 @@ bool eacompiler::compile_forstm(const parse_node &node, uint scope, unsigned lon
 	this->put_command(OP_POP);
 
 //	this->logging("Goto -> Label1\n");
-	this->put_command(OP_GOTO);
-	prog->appendAddr(tarpos1);
+	this->put_varcommand(OP_GOTO, tarpos1);
 
 //	this->logging("Label2\n");
 	size_t tarpos2 = prog->getCurrentPosition();
-	prog->replaceAddr( tarpos2 ,inspos2);
+	if(has_condition)
+	{
+		prog->replaceAddr(tarpos2, inspos2);
+	}
 
 	// convert break -> goto Label2
 	this->replace_jumps(this->break_target,tarpos2);
@@ -2253,11 +2247,11 @@ bool eacompiler::compile_dostm(const parse_node &node, uint scope, unsigned long
 
 	// execute <Expr>
 	accept &= compile_main(node[4], scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue);
-//	this->logging("Conditional Jump True -> Label1\n");
-	this->put_command(OP_IF);
-	prog->appendAddr(tarpos1);
 	this->put_command(OP_POP);
 
+//	this->logging("Conditional Jump True -> Label1\n");
+	this->put_varcommand(OP_IF, tarpos1);
+	
 	// convert break -> goto Label2
 	this->replace_jumps(this->break_target, prog->getCurrentPosition());
 	
@@ -2269,15 +2263,20 @@ bool eacompiler::compile_lctrlstm(const parse_node &node, uint scope, unsigned l
 	// 'continue' ';'
 	if( (node.childs()>0 && node[0].symbol() == PT_CONTINUE) && (0!=(flags & CFLAG_USE_CONT)) )
 	{
-		this->put_command(OP_GOTO);
+		
 		if( this->has_continue )
-			prog->appendAddr( this->continue_target );
+		{
+			this->put_varcommand(OP_GOTO, this->continue_target);
+		}
 		else
+		{
+			this->put_command(OP_GOTO3);
 			this->continue_target = prog->appendAddr( this->continue_target );
+		}
 	}
 	else if( (node.childs()>0 && node[0].symbol() == PT_BREAK) && (0!=(flags & CFLAG_USE_BREAK)) )
 	{
-		this->put_command(OP_GOTO);
+		this->put_command(OP_GOTO3);
 		this->break_target = prog->appendAddr( this->break_target );
 	}
 	else if( (node.childs()>0 && node[0].symbol() == PT_BREAK) )
@@ -2371,12 +2370,12 @@ bool eacompiler::compile_opif(const parse_node &node, uint scope, unsigned long 
 	else
 	{
 //		this->logging("Conditional Jump False -> Label1\n");
-		this->put_command(OP_NIF);
+		this->put_command(OP_NIF3);
 		size_t inspos1 = prog->appendAddr(0);	// placeholder
 		// put in <Op If1>
 		accept &= compile_main(node[2], scope, flags, uservalue);
 //		this->logging("Goto -> Label2\n");
-		this->put_command(OP_GOTO);
+		this->put_command(OP_GOTO3);
 		size_t inspos2 = prog->appendAddr(0);	// placeholder
 //		this->logging("Label1\n");
 		// calculate and insert the correct jump offset
@@ -2412,7 +2411,7 @@ bool eacompiler::compile_opor(const parse_node &node, uint scope, unsigned long 
 	else
 	{
 //		this->logging("Conditional Jump True or Pop -> Label1\n");
-		this->put_command(OP_IF_POP);
+		this->put_command(OP_IF_POP3);
 		size_t inspos1 = prog->appendAddr(0);	// placeholder
 		accept &= compile_main(node[2], scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue);
 //		this->logging("Label1\n");
@@ -2446,7 +2445,7 @@ bool eacompiler::compile_opand(const parse_node &node, uint scope, unsigned long
 	else
 	{
 //		this->logging("Conditional Jump False or Pop -> Label1\n");
-		this->put_command(OP_NIF_POP);
+		this->put_command(OP_NIF_POP3);
 		size_t inspos1 = prog->appendAddr(0);	// placeholder
 		accept &= compile_main(node[2], scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue);
 //		this->logging("Label1\n");
@@ -2629,17 +2628,22 @@ bool eacompiler::compile_opcast(const parse_node &node, uint scope, unsigned lon
 
 	if( PT_AUTO != node[1].symbol() )
 	{	// don't need to cast to auto type
-		basics::var_t v;
-		if( ((v=basics::VAR_INTEGER),PT_INT    == node[1].symbol()) ||
-			((v=basics::VAR_STRING ),PT_STRING == node[1].symbol()) ||
-			((v=basics::VAR_FLOAT  ),PT_DOUBLE == node[1].symbol()) )
+		if( PT_INT == node[1].symbol() )
 		{
-			this->put_command(OP_CAST, v);
+			this->put_command(OP_CAST_INTEGER);
+		}
+		else if( PT_STRING == node[1].symbol() )
+		{
+			this->put_command(OP_CAST_STRING);
+		}
+		else if( PT_DOUBLE == node[1].symbol() )
+		{
+			this->put_command(OP_CAST_FLOAT);
 		}
 		else
 		{
 			accept = false;
-			this->warning("wrong cast target\n");
+			this->warning("unrecognized cast target '%s'\n", node[1].c_str());
 		}
 	}
 	return accept;
@@ -2768,15 +2772,7 @@ bool eacompiler::compile_array(const parse_node &node, uint scope, unsigned long
 			// if there was a expression list
 			if( uservalue>1 )
 			{
-				if( uservalue<256 )
-				{
-					this->put_command(OP_ARRAYSEL, uservalue);
-				}
-				else
-				{
-					this->warning("array selection list only supports up to 256 elements\n");
-					accept = false;
-				}
+				this->put_intcommand(OP_ARRAYSEL, uservalue);
 			}
 			else
 			{	// single element or none
@@ -2819,7 +2815,7 @@ bool eacompiler::compile_concat(const parse_node &node, uint scope, unsigned lon
 	if(	compile_main(node[1], scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue) &&
 		compile_main(list, scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue) )
 	{
-		this->put_command(OP_CONCAT1, (list.symbol()==PT_EXPRLIST)?1+uservalue:2);
+		this->put_intcommand(OP_CONCAT, (list.symbol()==PT_EXPRLIST)?1+uservalue:2);
 		return true;
 	}
 	return false;

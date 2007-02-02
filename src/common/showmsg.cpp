@@ -617,7 +617,7 @@ int	PRINTF(const char *fmt, ...)
 
 
 
-int _vShowMessage(enum msg_type flag, const char *str, va_list ap)
+int _vShowMessage(msg_type flag, const char *str, va_list ap)
 {	// Return: 0 = Successful, 1 = Failed.
 	const char *prefix = "";
 #if !defined(DEBUG)
@@ -678,7 +678,7 @@ int _vShowMessage(enum msg_type flag, const char *str, va_list ap)
 }
 
 
-int _ShowMessage(enum msg_type flag, const char *str, ...){ 
+int _ShowMessage(msg_type flag, const char *str, ...){ 
 
 	int ret;
 	va_list ap;

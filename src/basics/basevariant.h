@@ -951,49 +951,35 @@ protected:
 	vector<variant> value;
 	///////////////////////////////////////////////////////////////////////////
 	// default constructor/destructor
-	value_array()
-	{}
+	value_array();
 	///////////////////////////////////////////////////////////////////////////
 	// type constructors
 	explicit value_array(const vector<variant>& v);
 public:
-	virtual ~value_array()
-	{
-		//printf("destroy %p value_array\n", this);
-	}
+	virtual ~value_array();
 	///////////////////////////////////////////////////////////////////////////
 	//
-	const value_empty& operator=(const vector<variant>& v){ this->assign(v); return *this; }
+	const value_empty& operator=(const vector<variant>& v);
 
 	///////////////////////////////////////////////////////////////////////////
 	//
 	using value_empty::assign;
-	virtual void assign(const vector<variant>& v)
-	{
-		this->value = v;
-	}
+	virtual void assign(const vector<variant>& v);
 	///////////////////////////////////////////////////////////////////////////
 	//
-	virtual const value_empty& duplicate(value_empty& convertee) const
-	{
-		convertee.~value_empty();
-		return *new (&convertee) value_array(this->value);
-	}
-	virtual const value_empty& duplicate(void* p) const
-	{
-		return *new (p) value_array(this->value);
-	}
+	virtual const value_empty& duplicate(value_empty& convertee) const;
+	virtual const value_empty& duplicate(void* p) const;
 	static const value_array& convert(value_empty& convertee, const size_t sz, const variant& elem);
 	static const value_array& convert(value_empty& convertee, const vector<variant>& v);
 	static const value_array& construct(void* p, const vector<variant>& v);
 
 	///////////////////////////////////////////////////////////////////////////
 	//
-	virtual void clear()				{ value.clear(); }
+	virtual void clear();
 	///////////////////////////////////////////////////////////////////////////
 	virtual bool is_empty() const		{ return false; }
 	virtual bool is_array() const		{ return true; }
-	virtual size_t size() const			{ return this->value.size(); }
+	virtual size_t size() const;
 	virtual var_t type() const			{ return VAR_ARRAY; }
 	///////////////////////////////////////////////////////////////////////////
 	//
@@ -1014,7 +1000,7 @@ public:
 	
 	///////////////////////////////////////////////////////////////////////////
 	// access conversion 
-	virtual bool get_bool() const		{ return this->value.size(); }
+	virtual bool get_bool() const		{ return this->size()>0; }
 	virtual int64 get_int() const;
 	virtual double get_float() const;
 	virtual string<> get_string() const;
@@ -1972,6 +1958,40 @@ bool set_namedmember(value_empty& target, const P& v, const T P::*t, const strin
 
 
 ///////////////////////////////////////////////////////////////////////////////
+
+
+inline value_array::value_array()
+{}
+inline value_array::~value_array()
+{
+	//printf("destroy %p value_array\n", this);
+}
+inline const value_empty& value_array::operator=(const vector<variant>& v)
+{
+	this->assign(v);
+	return *this;
+}
+inline void value_array::assign(const vector<variant>& v)
+{
+	this->value = v;
+}
+inline const value_empty& value_array::duplicate(value_empty& convertee) const
+{
+	convertee.~value_empty();
+	return *new (&convertee) value_array(this->value);
+}
+inline const value_empty& value_array::duplicate(void* p) const
+{
+	return *new (p) value_array(this->value);
+}
+inline void value_array::clear()
+{
+	value.clear();
+}
+inline size_t value_array::size() const
+{
+	return this->value.size();
+}
 inline const variant* value_array::operator[](size_t inx) const
 {
 	return (inx<this->value.size()) ? &this->value[inx] : NULL;

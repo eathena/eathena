@@ -4,8 +4,8 @@
 #ifndef _MOB_H_
 #define _MOB_H_
 
-#include "fightable.h"
 #include "status.h"
+#include "skillunit.h"
 
 #define MAX_RANDOMMONSTER 3
 #define MAX_MOB_RACE_DB 6

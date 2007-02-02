@@ -42,6 +42,14 @@ struct scriptprog
 		int64			cParam1;
 		int64			cParam2;
 	};
+	struct COpcode
+	{
+		unsigned char size1;	// number of bytes in the first parameter
+		unsigned char type1;	// type of first parameter
+		unsigned char size2;	// number of bytes in the second parameter
+		const char* desc;		// some descrition
+		unsigned char code;		// base code
+	};
 
 	basics::string<>								cName;			///< name on the programm
 	basics::map<basics::string<>, scriptdecl>		cHeader;		///< declarative part
@@ -49,7 +57,8 @@ struct scriptprog
 	basics::vector<uchar>							cDataSeg;		///< the data segment
 	basics::smap<basics::string<>, uint>			cLabels;		///< labels
 	static basics::smap<basics::string<>, script>	cNamedProgs;	///< lookup for progs with names
-public:
+	static COpcode									cOpcodeTable[256];///< opcode processing
+
 	scriptprog()
 	{}
 	~scriptprog()
@@ -100,7 +109,6 @@ public:
 	uint get_labeltarget(const basics::string<>& name) const;
 	scriptdecl get_declaration(const basics::string<>& name) const;
 
-	bool replaceJumps(size_t start, size_t end, uchar cmd, int val);
 	size_t append(const scriptprog& p);
 	unsigned char getCommand(size_t &inx) const;
 	size_t insertCommand(unsigned char val, size_t &inx);
@@ -131,6 +139,7 @@ public:
 	void dump() const;
 	void printCommand(size_t &pos) const;
 
+	int64 getNumber(size_t &inx, unsigned char sz) const;
 
 	int logging(const char *fmt, ...) const
 	{

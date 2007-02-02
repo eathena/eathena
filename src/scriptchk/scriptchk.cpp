@@ -5,7 +5,7 @@
 #include "basesafeptr.h"
 #include "basetime.h"
 
-
+#include "eaprogram.h"
 #include "eaparser.h"
 #include "eacompiler.h"
 #include "eastorage.h"

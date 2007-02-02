@@ -19,6 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 class CAccountDB_mem : public CAccountDBInterface
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CAccountDB_mem)
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// helper class for gm_level reading.
@@ -148,6 +149,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CCharDB_mem : public CCharDBInterface
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CCharDB_mem)
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// create a new character
@@ -268,6 +270,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CGuildDB_mem : public CGuildDBInterface
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CGuildDB_mem)
 protected:
 	virtual bool do_readGuildsCastles()=0;
 	virtual bool do_saveGuildsCastles()=0;
@@ -371,6 +374,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CPartyDB_mem : public CPartyDBInterface
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CPartyDB_mem)
 protected:
 	virtual bool do_readParties()=0;
 	virtual bool do_saveParties()=0;
@@ -413,6 +417,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CPCStorageDB_mem : public CPCStorageDBInterface
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CPCStorageDB_mem)
 protected:
 	virtual bool do_readPCStorage()=0;
 	virtual bool do_savePCStorage()=0;
@@ -452,6 +457,7 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////
 class CGuildStorageDB_mem : public CGuildStorageDBInterface
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CGuildStorageDB_mem)
 protected:
 	virtual bool do_readGuildStorage()=0;
 	virtual bool do_saveGuildStorage()=0;
@@ -494,6 +500,7 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////
 class CPetDB_mem : public CPetDBInterface
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CPetDB_mem)
 protected:
 	virtual bool do_readPets()=0;
 	virtual bool do_savePets()=0;
@@ -535,6 +542,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CHomunculusDB_mem : public CHomunculusDBInterface
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CHomunculusDB_mem)
 protected:
 	virtual bool do_readHomunculus()=0;
 	virtual bool do_saveHomunculus()=0;
@@ -575,6 +583,7 @@ public:
 
 class CVarDB_mem : public CVarDBInterface
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CVarDB_mem)
 protected:
 	virtual bool do_readVars()=0;
 	virtual bool do_saveVars()=0;
@@ -641,6 +650,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CAccountDB_txt : public basics::CTimerBase, public CAccountDB_mem
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CAccountDB_txt)
 protected:
 
 	///////////////////////////////////////////////////////////////////////////
@@ -685,6 +695,7 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////
 class CCharDB_txt : public basics::CTimerBase, public CCharDB_mem
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CCharDB_txt)
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	// Function to create the character line (for save)
@@ -753,6 +764,7 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////
 class CGuildDB_txt : public basics::CTimerBase, public CGuildDB_mem
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CGuildDB_txt)
 protected:
 	bool string2guild(const char *str, CGuild &g);
 	ssize_t guild2string(char *str, size_t maxlen, const CGuild &g);
@@ -798,6 +810,7 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////
 class CPartyDB_txt : public basics::CTimerBase, public CPartyDB_mem
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CPartyDB_txt)
 protected:
 	ssize_t party_to_string(char *str, size_t maxlen, const CParty &p);
 	bool party_from_string(const char *str, CParty &p);
@@ -836,6 +849,7 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////
 class CPCStorageDB_txt : public basics::CTimerBase, public CPCStorageDB_mem
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CPCStorageDB_txt)
 protected:
 	ssize_t storage_to_string(char *str, size_t maxlen, const CPCStorage &stor);
 	int storage_from_string(const char *str, CPCStorage &stor);
@@ -877,6 +891,7 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////
 class CGuildStorageDB_txt : public basics::CTimerBase, public CGuildStorageDB_mem
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CGuildStorageDB_txt)
 protected:
 	ssize_t guild_storage_to_string(char *str, size_t maxlen, const CGuildStorage &stor);
 	bool guild_storage_from_string(const char *str, CGuildStorage &stor);
@@ -916,6 +931,7 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////
 class CPetDB_txt : public basics::CTimerBase, public CPetDB_mem
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CPetDB_txt)
 protected:
 	int pet_to_string(char *str, size_t sz, CPet &pet);
 	bool pet_from_string(const char *str, CPet &pet);
@@ -953,6 +969,7 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////
 class CHomunculusDB_txt : public basics::CTimerBase, public CHomunculusDB_mem
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CHomunculusDB_txt)
 protected:
 	int homunculus_to_string(char *str, size_t sz, CHomunculus &hom);
 	bool homunculus_from_string(const char *str, CHomunculus &hom);
@@ -989,6 +1006,7 @@ protected:
 
 class CVarDB_txt : public basics::CTimerBase, public CVarDB_mem
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CVarDB_txt)
 protected:
 	virtual bool do_readVars();
 	virtual bool do_saveVars();

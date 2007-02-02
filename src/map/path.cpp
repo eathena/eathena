@@ -623,13 +623,13 @@ bool walkpath_data::path_search(unsigned short m,int x0,int y0,int x1,int y1,int
 	// but the current number scales don't allow this, and I don't want to rescale
 	const unsigned long randomizer = (rand()<<16) | rand();
 
-	while(1)
+	for(;;)
 	{
 		int e=0;
 
 		// fail when nothing on the heap
 		if(heap[0]==0)
-			return false;
+			break;
 
 		// get the element with the lowest cost
 		rp=pop_heap_path(heap,tp);
@@ -684,7 +684,7 @@ bool walkpath_data::path_search(unsigned short m,int x0,int y0,int x1,int y1,int
 		// but no idea why it's limited to 5 below max heapsize
 		// it instead could overwrite the node which is most unlikely to be on the sortest path
 		if(e || heap[0]>=MAX_HEAP-5)
-			return false;
+			break;
 	}
 	// return failure
 	return false;
@@ -777,7 +777,7 @@ bool walkpath_data::is_possible(unsigned short m,int x0,int y0,int x1,int y1,int
 
 		// fail when nothing on the heap
 		if(heap[0]==0)
-			return false;
+			break;
 
 		// get the element with the lowest cost
 		rp=pop_heap_path(heap,tp);
@@ -809,7 +809,7 @@ bool walkpath_data::is_possible(unsigned short m,int x0,int y0,int x1,int y1,int
 		// but no idea why it's limited to 5 below max heapsize
 		// it instead could overwrite the node which is most unlikely to be on the sortest path
 		if(e || heap[0]>=MAX_HEAP-5)
-			return false;
+			break;
 	}
 	// return failure
 	return false;

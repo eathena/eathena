@@ -1,8 +1,8 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#ifndef _MALLOC_H_
-#define _MALLOC_H_
+#ifndef _MALLOC_VH_
+#define _MALLOC_VH_
 
 #include <stdio.h> // for size_t
 
@@ -224,7 +224,8 @@ public:
 
 // temporary memory realloc replacement using memcpy and memset
 // change to containers generally
-template<typename T> size_t new_realloc(T*& pointer, size_t oldsize, size_t addition)
+template<typename T>
+size_t new_realloc(T*& pointer, size_t oldsize, size_t addition)
 {
 	const size_t sz = oldsize+addition;
 	T* tmp = new T[sz];

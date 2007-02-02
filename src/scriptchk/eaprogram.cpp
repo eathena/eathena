@@ -10,6 +10,135 @@
 #include "eabuildin.h"
 
 
+scriptprog::COpcode scriptprog::cOpcodeTable[256] = 
+{
+	{0,0,0,"nop",OP_NOP},
+	{0,0,0,"assign",OP_ASSIGN}, 
+	{0,0,0,"binary and",OP_BIN_AND},
+	{0,0,0,"binary or",OP_BIN_OR},
+	{0,0,0,"binary xor",OP_BIN_XOR},
+	{0,0,0,"equate",OP_EQUATE},
+	{0,0,0,"unequate",OP_UNEQUATE},
+	{0,0,0,"greater than",OP_ISGT},
+	{0,0,0,"greater equal",OP_ISGTEQ},
+	{0,0,0,"less than",OP_ISLT},
+	{0,0,0,"less equal",OP_ISLTEQ},
+	{0,0,0,"left shift",OP_LSHIFT},
+	{0,0,0,"right shift",OP_RSHIFT},
+	{0,0,0,"add",OP_ADD},
+	{0,0,0,"sub",OP_SUB},
+	{0,0,0,"mul",OP_MUL},
+	{0,0,0,"div",OP_DIV},
+	{0,0,0,"mod",OP_MOD},
+	{0,0,0,"negate",OP_NEGATE},
+	{0,0,0,"invert",OP_INVERT},
+	{0,0,0,"not",OP_NOT},
+	{0,0,0,"sizeof",OP_SIZEOF},
+	{0,0,0,"cast to integer",OP_CAST_INTEGER},
+	{0,0,0,"cast to string",OP_CAST_STRING},
+	{0,0,0,"cast to float",OP_CAST_FLOAT},
+	{0,0,0,"preadd",OP_PREADD},
+	{0,0,0,"presub",OP_PRESUB},
+	{0,0,0,"postadd",OP_POSTADD},
+	{0,0,0,"postsub",OP_POSTSUB},
+	{0,0,0,"member access",OP_MEMBER},
+	{0,0,0,"scope access",OP_SCOPE},
+	{1,1,1,"function call '%s', %i parameter",OP_FUNCTION},
+	{2,1,1,"function call '%s', %i parameter",OP_FUNCTION},
+	{3,1,1,"function call '%s', %i parameter",OP_FUNCTION},
+	{4,1,1,"function call '%s', %i parameter",OP_FUNCTION},
+	{1,1,1,"subfunction call '%s', %i parameter",OP_SUBFUNCTION},
+	{2,1,1,"subfunction call '%s', %i parameter",OP_SUBFUNCTION},
+	{3,1,1,"subfunction call '%s', %i parameter",OP_SUBFUNCTION},
+	{4,1,1,"subfunction call '%s', %i parameter",OP_SUBFUNCTION},
+	{0,0,0,"push none",OP_PUSH_NONE},
+	{1,0,0,"push address '%i'",OP_PUSH_ADDR},
+	{2,0,0,"push address '%i'",OP_PUSH_ADDR},
+	{3,0,0,"push address '%i'",OP_PUSH_ADDR},
+	{4,0,0,"push address '%i'",OP_PUSH_ADDR},
+	{1,0,0,"push integer '%i'",OP_PUSH_INT},
+	{2,0,0,"push integer '%i'",OP_PUSH_INT},
+	{3,0,0,"push integer '%i'",OP_PUSH_INT},
+	{4,0,0,"push integer '%i'",OP_PUSH_INT},
+	{5,0,0,"push integer '%i'",OP_PUSH_INT},
+	{6,0,0,"push integer '%i'",OP_PUSH_INT},
+	{7,0,0,"push integer '%i'",OP_PUSH_INT},
+	{8,0,0,"push integer '%i'",OP_PUSH_INT},
+	{1,1,0,"push string '%s'",OP_PUSH_STRING},
+	{2,1,0,"push string '%s'",OP_PUSH_STRING},
+	{3,1,0,"push string '%s'",OP_PUSH_STRING},
+	{4,1,0,"push string '%s'",OP_PUSH_STRING},
+	{4,0,0,"push float '%lf'",OP_PUSH_FLOAT},
+	{1,1,0,"push variable reference '%s'",OP_PUSH_VAR},
+	{2,1,0,"push variable reference '%s'",OP_PUSH_VAR},
+	{3,1,0,"push variable reference '%s'",OP_PUSH_VAR},
+	{4,1,0,"push variable reference '%s'",OP_PUSH_VAR},
+	{1,1,0,"push variable value '%s'",OP_PUSH_VAL},
+	{2,1,0,"push variable value '%s'",OP_PUSH_VAL},
+	{3,1,0,"push variable value '%s'",OP_PUSH_VAL},
+	{4,1,0,"push variable value '%s'",OP_PUSH_VAL},
+	{1,0,0,"push parameter reference '%i'",OP_PUSH_PARAVAR},
+	{2,0,0,"push parameter reference '%i'",OP_PUSH_PARAVAR},
+	{3,0,0,"push parameter reference '%i'",OP_PUSH_PARAVAR},
+	{4,0,0,"push parameter reference '%i'",OP_PUSH_PARAVAR},
+	{1,0,0,"push parameter value '%i'",OP_PUSH_PARAVAL},
+	{2,0,0,"push parameter value '%i'",OP_PUSH_PARAVAL},
+	{3,0,0,"push parameter value '%i'",OP_PUSH_PARAVAL},
+	{4,0,0,"push parameter value '%i'",OP_PUSH_PARAVAL},
+	{1,0,0,"push temp reference '%i'",OP_PUSH_TEMPVAR},
+	{2,0,0,"push temp reference '%i'",OP_PUSH_TEMPVAR},
+	{3,0,0,"push temp reference '%i'",OP_PUSH_TEMPVAR},
+	{4,0,0,"push temp reference '%i'",OP_PUSH_TEMPVAR},
+	{1,0,0,"push temp value '%i'",OP_PUSH_TEMPVAL},
+	{2,0,0,"push temp value '%i'",OP_PUSH_TEMPVAL},
+	{3,0,0,"push temp value '%i'",OP_PUSH_TEMPVAL},
+	{4,0,0,"push temp value '%i'",OP_PUSH_TEMPVAL},
+	{0,0,0,"array element access",OP_ARRAY},
+	{1,0,0,"array selection, %i elements",OP_ARRAYSEL},
+	{2,0,0,"array selection, %i elements",OP_ARRAYSEL},
+	{3,0,0,"array selection, %i elements",OP_ARRAYSEL},
+	{4,0,0,"array selection, %i elements",OP_ARRAYSEL},
+	{0,0,0,"array range",OP_RANGE},
+	{0,0,0,"array splice",OP_SPLICE},
+	{0,0,0,"array dulicate",OP_DULICATE},
+	{1,0,0,"concatination, %i elements",OP_CONCAT},
+	{2,0,0,"concatination, %i elements",OP_CONCAT},
+	{3,0,0,"concatination, %i elements",OP_CONCAT},
+	{4,0,0,"concatination, %i elements",OP_CONCAT},
+	{1,0,0,"create array, %i dimensions",OP_CREATEARRAY},
+	{0,0,0,"clear",OP_CLEAR},
+	{0,0,0,"pop",OP_POP},
+	{0,0,0,"eval",OP_EVAL},
+	{0,0,0,"boolean",OP_BOOLEAN},
+	{4,0,0,"start, prog size '%i'",OP_START},
+	{0,0,0,"end",OP_END},
+	{0,0,0,"return",OP_RETURN},
+	{1,0,0,"conditional jump on false to '%i'",OP_NIF},
+	{2,0,0,"conditional jump on false to '%i'",OP_NIF},
+	{3,0,0,"conditional jump on false to '%i'",OP_NIF},
+	{4,0,0,"conditional jump on false to '%i'",OP_NIF},
+	{1,0,0,"conditional jump on true to '%i'",OP_IF},
+	{2,0,0,"conditional jump on true to '%i'",OP_IF},
+	{3,0,0,"conditional jump on true to '%i'",OP_IF},
+	{4,0,0,"conditional jump on true to '%i'",OP_IF},
+	{1,0,0,"conditional jump on false or pop to '%i'",OP_NIF_POP},
+	{2,0,0,"conditional jump on false or pop to '%i'",OP_NIF_POP},
+	{3,0,0,"conditional jump on false or pop to '%i'",OP_NIF_POP},
+	{4,0,0,"conditional jump on false or pop to '%i'",OP_NIF_POP},
+	{1,0,0,"conditional jump on true or pop to '%i'",OP_IF_POP},
+	{2,0,0,"conditional jump on true or pop to '%i'",OP_IF_POP},
+	{3,0,0,"conditional jump on true or pop to '%i'",OP_IF_POP},
+	{4,0,0,"conditional jump on true or pop to '%i'",OP_IF_POP},
+	{1,0,0,"jump to '%i'",OP_GOTO},
+	{2,0,0,"jump to '%i'",OP_GOTO},
+	{3,0,0,"jump to '%i'",OP_GOTO},
+	{4,0,0,"jump to '%i'",OP_GOTO},
+	{1,0,0,"gosub to '%i'",OP_GOSUB},
+	{2,0,0,"gosub to '%i'",OP_GOSUB},
+	{3,0,0,"gosub to '%i'",OP_GOSUB},
+	{4,0,0,"gosub to '%i'",OP_GOSUB},
+};
+
 
 /// lookup for progs with names
 basics::smap<basics::string<>, scriptprog::script>	scriptprog::cNamedProgs;
@@ -91,62 +220,26 @@ void scriptprog::unregist() const
 bool scriptprog::getCommand(size_t &inx, CCommand& cmd) const
 {
 	cmd.cCommand = getCommand(inx);
-	switch( cmd.cCommand )
-	{
-		// commands followed by an int (1 byte)
-		case OP_PUSH_INT1:
-		case OP_PUSH_TEMPVAR1:
-		case OP_PUSH_TEMPVAL1:
-		case OP_PUSH_PARAVAR:
-		case OP_PUSH_PARAVAL:
-		case OP_CONCAT1:
-		case OP_CREATEARRAY:
-		case OP_CAST:
-		case OP_ARRAYSEL:
-			cmd.cParam1 = getChar(inx);
-			break;
-		// commands followed by an int (2 byte)
-		case OP_PUSH_INT2:
-		case OP_PUSH_TEMPVAR2:
-		case OP_PUSH_TEMPVAL2:
-		case OP_CONCAT2:
-			cmd.cParam1 = getShort(inx);
-			break;
-		// commands followed by an int (3 byte)
-		case OP_PUSH_INT3:
-		case OP_CONCAT3:
-			cmd.cParam1 = getAddr(inx);
-			break;
-		// commands followed by an int or float (4 byte)
-		case OP_PUSH_INT4:
-		case OP_CONCAT4:
-		case OP_PUSH_FLOAT:
-		case OP_START:
-			cmd.cParam1 = getInt(inx);
-			break;
-		// commands followed by an address
-		case OP_NIF:
-		case OP_IF:
-		case OP_IF_POP:
-		case OP_NIF_POP:
-		case OP_GOTO:
-		case OP_GOSUB:
-		case OP_PUSH_ADDR:
-			cmd.cParam1 = getAddr(inx);
-			break;
-
-		// commands followed by an int (1 byte) and a second unsigned char param
-		case OP_FUNCTION:
-			cmd.cString = get_string(inx);
-			cmd.cParam1 = getChar(inx);
-			break;
-
-		// commands followed by a string
-		case OP_PUSH_VAR:
-		case OP_PUSH_VAL:
-		case OP_PUSH_STRING:
-			cmd.cString = get_string(inx);
-			break;
+	const COpcode& op = scriptprog::cOpcodeTable[cmd.cCommand];
+	///////////
+	cmd.cCommand = op.code;
+	///////////
+	cmd.cParam1 = getNumber(inx, op.size1);
+	///////////
+	cmd.cParam2 = getNumber(inx, op.size2);
+	///////////
+	if( op.type1 )
+	{	// is string
+		cmd.cString = "";
+		if( cmd.cParam1 && cDataSeg.size()>cmd.cParam1 )
+		{
+			size_t i = cmd.cParam1;
+			const char *str = (const char *)&(cDataSeg[i]);
+			// search for the EOS marker
+			for(; cDataSeg[i] && i<cDataSeg.size(); ++i)	{}
+			if( i<cDataSeg.size() ) 
+				cmd.cString = str;
+		}
 	}
 	return true;
 }
@@ -155,108 +248,9 @@ bool scriptprog::getCommand(size_t &inx, CCommand& cmd) const
 //
 size_t scriptprog::nextCommand(size_t pos) const
 {
-	const int cmd = getCommand(pos);
-	switch( cmd )
-	{
-	// commands with no parameters
-	case OP_NOP:
-	case OP_ASSIGN:
-	case OP_BIN_OR:
-	case OP_BIN_XOR:
-	case OP_BIN_AND:
-	case OP_EQUATE:
-	case OP_UNEQUATE:
-	case OP_ISGT:
-	case OP_ISGTEQ:
-	case OP_ISLT:
-	case OP_ISLTEQ:
-	case OP_LSHIFT:
-	case OP_RSHIFT:
-	case OP_ADD:
-	case OP_SUB:
-	case OP_MUL:
-	case OP_DIV:
-	case OP_MOD:
-	case OP_NOT:
-	case OP_INVERT:
-	case OP_NEGATE:
-	case OP_SIZEOF:
-	case OP_PREADD:
-	case OP_PRESUB:
-	case OP_POSTADD:
-	case OP_POSTSUB:
-	case OP_MEMBER:
-	case OP_ARRAY:
-	case OP_RANGE:
-	case OP_SPLICE:
-	case OP_DULICATE:
-	case OP_PUSH_NONE:
-	case OP_CLEAR:
-	case OP_POP:
-	case OP_EVAL:
-	case OP_BOOLEAN:
-	case OP_END:
-	case OP_RETURN:
-		return pos;
-
-	// commands with int parameters (1 bytes)
-	case OP_PUSH_INT1:
-	case OP_PUSH_TEMPVAR1:
-	case OP_PUSH_TEMPVAL1:
-	case OP_PUSH_PARAVAR:
-	case OP_PUSH_PARAVAL:
-	case OP_CONCAT1:
-	case OP_CREATEARRAY:
-	case OP_CAST:
-	case OP_ARRAYSEL:
-		return pos+1;
-
-	// commands with int parameters (2 bytes)
-	case OP_PUSH_INT2:
-	case OP_PUSH_TEMPVAR2:
-	case OP_PUSH_TEMPVAL2:
-	case OP_CONCAT2:
-		return pos+2;
-
-	// commands with int parameters (3 bytes)
-	case OP_PUSH_INT3:
-	case OP_CONCAT3:
-		return pos+3;
-
-	// commands with int or float parameters (4 bytes)
-	case OP_START:
-	case OP_PUSH_FLOAT:
-	case OP_PUSH_INT4:
-	case OP_CONCAT4:
-		return pos+4;
-
-	// commands with int64
-	case OP_PUSH_INT8:
-		return pos+8;
-
-	// commands with addr parameters
-	case OP_NIF:
-	case OP_IF:
-	case OP_IF_POP:
-	case OP_NIF_POP:
-	case OP_GOTO:
-	case OP_GOSUB:
-	case OP_PUSH_ADDR:
-		return pos+3;
-
-	// commands with string parameter and 1 byte parameter count
-	case OP_FUNCTION:
-		return pos+4;
-
-	// commands with string parameter
-	case OP_PUSH_STRING:
-	case OP_PUSH_VAR:
-	case OP_PUSH_VAL:
-		pos+=3;
-		return pos;
-	}
-	printf("missing command entry %i\n", cmd);
-	return pos;
+	const unsigned char cmd = getCommand(pos);
+	const COpcode& op = scriptprog::cOpcodeTable[cmd];
+	return pos + op.size1+op.size2;
 }
 
 
@@ -283,28 +277,6 @@ scriptdecl scriptprog::get_declaration(const basics::string<>& name) const
 }
 
 
-///////////////////////////////////////////////////////////////////////////
-// replacing temporary jump targets
-bool scriptprog::replaceJumps(size_t start, size_t end, uchar cmd, int val)
-{	// convert a specific temporary jump command into goto commands
-	CCommand ccmd;
-	size_t pos, tmp;
-	while( start<end && start<cProgramm.size() )
-	{	// need to copy the position, 
-		// it gets incremented on access internally
-		pos=start;
-		getCommand(start, ccmd);
-		if( ccmd.cCommand==cmd )
-		{	// just replace the command
-			replaceCommand(OP_GOTO,pos);
-			// replace the jump taget if not set already
-			tmp=pos;
-			if( 0==getAddr(pos) )
-				replaceAddr(val,tmp);
-		}
-	}
-	return true;
-}
 ///////////////////////////////////////////////////////////////////////////
 // merging
 size_t scriptprog::append(const scriptprog& p)
@@ -538,41 +510,51 @@ size_t scriptprog::append_string(const basics::string<>& val)
 	return addr;
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+// get a number.
+// fetch sz bytes from the stream and build a integer
+int64 scriptprog::getNumber(size_t &inx, unsigned char sz) const
+{
+	uint64 ret=0;
+	size_t shift=0;
+	uint64 val=0;
+	for( ; sz && inx<cProgramm.size(); --sz, ++inx, shift+=8)
+	{
+		val = cProgramm[inx];
+		ret |= val<<shift;
+	}
+	if(val&0x80)
+	{	// append sign bits
+		ret |= (~LLCONST(0))<<shift;
+	}
+	return ret;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////
 // append variable size command, 
 // assuming command numbers for cmd1,2,3,4,8 are following directly
 size_t scriptprog::appendVarCommand(unsigned char cmd, int64 val)
 {
 	size_t pos = cProgramm.size();
-	// chars           0 ...        255
-	// shorts     -32768 ...      32767
-	// addr            0 ...   16777216
-	// int   -2147483648 ... 2147483647
-	// int64 rest
-	if(val>= 0     && val<=255)
+	this->appendCommand(cmd);
+	const int64 cmp = (val<0)?-1:0;
+	const unsigned char sign = (val<0)?0x80:0x00;
+	unsigned char v;
+	size_t num=0;
+	do
 	{
-		this->appendCommand(cmd+0);
-		this->appendChar(val);
-	}
-	else if(val>=-32768 && val<=32767)
+		v = (unsigned char)(0xFF&val);
+		cProgramm.append( v );
+		val>>=8;
+		++num;
+	} while( val!=cmp || (v&0x80)!=sign );
+
+	if(num>1)
 	{
-		this->appendCommand(cmd+1);
-		this->appendShort(val);
-	}
-	else if(val>= 0     && val<=16777216)
-	{
-		this->appendCommand(cmd+2);
-		this->appendAddr(val);
-	}
-	else if(val>= INT32_MIN     && val<=INT32_MAX)
-	{
-		this->appendCommand(cmd+3);
-		this->appendInt(val);
-	}
-	else
-	{
-		this->appendCommand(cmd+4);
-		this->appendInt64(val);
+		size_t mypos=pos;
+		this->replaceCommand(cmd+num-1, mypos);
 	}
 	return pos;
 }
@@ -635,149 +617,25 @@ void scriptprog::printCommand(size_t &pos) const
 	CCommand ccmd;
 	if( getCommand(pos, ccmd) )
 	{
-		switch( ccmd.cCommand )
-		{
-		// commands with no parameters
-		case OP_NOP:
-			this->logging("nop"); break;
-		case OP_ASSIGN:
-			this->logging("assign"); break;
-		case OP_BIN_OR:
-			this->logging("binary or"); break;
-		case OP_BIN_XOR:
-			this->logging("binary xor"); break;
-		case OP_BIN_AND:
-			this->logging("binary and"); break;
-		case OP_EQUATE:
-			this->logging("equal"); break;
-		case OP_UNEQUATE:
-			this->logging("uneqal"); break;
-		case OP_ISGT:
-			this->logging("compare greater then"); break;
-		case OP_ISGTEQ:
-			this->logging("compare greater/equal then"); break;
-		case OP_ISLT:
-			this->logging("compare less then"); break;
-		case OP_ISLTEQ:
-			this->logging("compare less/equal then"); break;
-		case OP_LSHIFT:
-			this->logging("leftshift"); break;
-		case OP_RSHIFT:
-			this->logging("rightshift"); break;
-		case OP_ADD:
-			this->logging("add"); break;
-		case OP_SUB:
-			this->logging("sub"); break;
-		case OP_MUL:
-			this->logging("mul"); break;
-		case OP_DIV:
-			this->logging("div"); break;
-		case OP_MOD:
-			this->logging("modulo"); break;
-		case OP_NOT:
-			this->logging("logic not"); break;
-		case OP_INVERT:
-			this->logging("binary invert"); break;
-		case OP_NEGATE:
-			this->logging("arithmetic negate"); break;
-		case OP_SIZEOF:
-			this->logging("sizeof"); break;
-		case OP_PREADD:
-			this->logging("preop add"); break;
-		case OP_PRESUB:
-			this->logging("preop sub"); break;
-		case OP_POSTADD:
-			this->logging("postop add"); break;
-		case OP_POSTSUB:
-			this->logging("postop sub"); break;
-		case OP_MEMBER:
-			this->logging("member access"); break;
-		case OP_ARRAY:
-			this->logging("array access"); break;
-		case OP_ARRAYSEL:
-			this->logging("array select access, %i elements", (int)ccmd.cParam1); break;
-		case OP_RANGE:
-			this->logging("array range access"); break;
-		case OP_SPLICE:
-			this->logging("array splice access"); break;
-		case OP_DULICATE:
-			this->logging("array duplicate access"); break;
-		case OP_CLEAR:
-			this->logging("clear variable"); break;
-		case OP_POP:
-			this->logging("pop stack"); break;
-		case OP_EVAL:
-			this->logging("evaluate"); break;
-		case OP_BOOLEAN:
-			this->logging("create boolean"); break;
-		case OP_END:
-			this->logging("quit"); break;
-		case OP_RETURN:
-			this->logging("return"); break;
-
-		// commands with int (float) parameters (4 bytes)
-		case OP_START:
-			this->logging("start (progsize=%i)", (int)ccmd.cParam1); break;
-		case OP_PUSH_NONE:
-			this->logging("push empty element"); break;
-		case OP_PUSH_ADDR:
-			this->logging("push addr '%i'", (int)ccmd.cParam1); break;
-		case OP_PUSH_INT1:
-			this->logging("push uchar '%i'", (int)ccmd.cParam1); break;
-		case OP_PUSH_INT2:
-			this->logging("push short '%i'", (int)ccmd.cParam1); break;
-		case OP_PUSH_INT3:
-			this->logging("push int3 '%i'", (int)ccmd.cParam1); break;
-		case OP_PUSH_INT4:
-			this->logging("push int '%i'", (int)ccmd.cParam1); break;
-		case OP_PUSH_INT8:
-			this->logging("push int64 '%i'", ccmd.cParam1); break;
-		case OP_PUSH_FLOAT:
-			this->logging("push float '%lf'", int2float(ccmd.cParam1) ); break;
-		case OP_PUSH_TEMPVAR1:
-		case OP_PUSH_TEMPVAR2:
-			this->logging("push temp variable '%i'", (int)ccmd.cParam1); break;
-		case OP_PUSH_TEMPVAL1:
-		case OP_PUSH_TEMPVAL2:
-			this->logging("push value from temp variable '%i'", (int)ccmd.cParam1); break;
-		case OP_CREATEARRAY:
-			this->logging("create array (%i dimension(s))", (int)ccmd.cParam1); break;
-		case OP_CAST:
-			this->logging("cast to %i", (int)ccmd.cParam1); break;
-		case OP_CONCAT1:
-		case OP_CONCAT2:
-		case OP_CONCAT3:
-		case OP_CONCAT4:
-			this->logging("vectorize '%i' elements", (int)ccmd.cParam1); break;
-
-		case OP_IF:
-			this->logging("conditional jump on true to '%i'", (int)ccmd.cParam1); break;
-		case OP_NIF:
-			this->logging("conditional jump on false to '%i'", (int)ccmd.cParam1); break;
-		case OP_IF_POP:
-			this->logging("conditional jump on true or pop to '%i'", (int)ccmd.cParam1); break;
-		case OP_NIF_POP:
-			this->logging("conditional jump on false or pop to '%i'", (int)ccmd.cParam1); break;
-		case OP_GOTO:
-			this->logging("jump to '%i'", (int)ccmd.cParam1); break;
-		case OP_GOSUB:
-			this->logging("gosub to '%i'", (int)ccmd.cParam1); break;
-		// commands with int and char parameters
-		case OP_FUNCTION:
-			this->logging("call script '%s' (%i args)", ccmd.cString, (int)ccmd.cParam1); break;
-		// commands with string parameters (sizeof(pointer) bytes)
-		case OP_PUSH_STRING:
-			this->logging("push string '%s'", ccmd.cString); break;
-		case OP_PUSH_VAL:
-			this->logging("push value from global variable '%s'", ccmd.cString); break;
-		case OP_PUSH_VAR:
-			this->logging("push global variable '%s'", ccmd.cString); break;
-		case OP_PUSH_PARAVAL:
-			this->logging("push value from function parameter '%i'", (int)ccmd.cParam1); break;
-		case OP_PUSH_PARAVAR:
-			this->logging("push variable from function parameter '%i'", (int)ccmd.cParam1); break;
-		default:
-			this->logging("command %i not in list", (int)ccmd.cCommand); break;
+		const COpcode& op = scriptprog::cOpcodeTable[ccmd.cCommand];
+		if( op.type1 && op.size2 )
+		{	// 2 params first string
+			this->logging(op.desc, ccmd.cString, (int)ccmd.cParam2);
+		}
+		else if( op.type1 )
+		{	// 1 param first string
+			this->logging(op.desc, ccmd.cString);
+		}
+		else if( op.size1 )
+		{	// 1 param first integer
+			if( op.code==OP_PUSH_FLOAT )
+				this->logging(op.desc, int2float(ccmd.cParam1));
+			else
+				this->logging(op.desc, (int)ccmd.cParam1);
+		}
+		else
+		{	// no param
+			this->logging(op.desc);
 		}
 	}
 }

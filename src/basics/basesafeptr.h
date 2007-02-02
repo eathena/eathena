@@ -31,11 +31,11 @@ public:
 	virtual const X& readaccess() const = 0;
 	virtual X& writeaccess() = 0;
 
-	virtual const X& operator*() const throw() =0;
-	virtual const X* operator->() const throw() =0;
-	virtual X& operator*()	throw() =0;
-	virtual X* operator->()	throw() =0;
-	virtual operator const X&() const throw() =0;
+	virtual const X& operator*() const =0;
+	virtual const X* operator->() const =0;
+	virtual X& operator*() =0;
+	virtual X* operator->() =0;
+	virtual operator const X&() const =0;
 
 	virtual bool operator ==(void *p) const			{ return p==(void*)this->get(); }
 	virtual bool operator !=(void *p) const			{ return p==(void*)this->get(); }
@@ -138,22 +138,22 @@ private:
 		}
 	}
 public:
-	explicit TPtrAuto(X* p = NULL) throw() : itsPtr(p)		{ }
+	explicit TPtrAuto(X* p = NULL) : itsPtr(p)				{ }
 	virtual ~TPtrAuto()										{ if(this->itsPtr) delete this->itsPtr; }
 
-	TPtrAuto(const TPtr<X>& p) throw() : itsPtr(NULL)		{ this->copy(p); }
+	TPtrAuto(const TPtr<X>& p) : itsPtr(NULL)				{ this->copy(p); }
 	const TPtr<X>& operator=(const TPtr<X>& p)				{ this->copy(p); return *this; }
-	TPtrAuto(const TPtrAuto<X>& p) throw() : itsPtr(NULL)	{ this->copy(p); }
+	TPtrAuto(const TPtrAuto<X>& p): itsPtr(NULL)			{ this->copy(p); }
 	const TPtr<X>& operator=(const TPtrAuto<X>& p)			{ this->copy(p); return *this; }
 
 	virtual const X& readaccess() const			{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
 	virtual X& writeaccess()					{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
 	virtual const X* get() const				{ const_cast<TPtrAuto<X>*>(this)->create(); return  this->itsPtr; }
-	virtual const X& operator*() const throw()	{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
-	virtual const X* operator->() const throw() { const_cast<TPtrAuto<X>*>(this)->create(); return  this->itsPtr; }
-	virtual X& operator*()	throw()				{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
-	virtual X* operator->()	throw()				{ const_cast<TPtrAuto<X>*>(this)->create(); return  this->itsPtr; }
-	virtual operator const X&() const throw()	{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
+	virtual const X& operator*() const			{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
+	virtual const X* operator->() const			{ const_cast<TPtrAuto<X>*>(this)->create(); return  this->itsPtr; }
+	virtual X& operator*()						{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
+	virtual X* operator->()						{ const_cast<TPtrAuto<X>*>(this)->create(); return  this->itsPtr; }
+	virtual operator const X&() const			{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
 
 	virtual bool operator ==(void *p) const { return this->itsPtr==p; }
 	virtual bool operator !=(void *p) const { return this->itsPtr!=p; }
@@ -239,7 +239,7 @@ class TPtrCount : public TPtr<X>
 {
 protected:
 	CPtrCounter<X>* cCntObj;
-	void acquire(const TPtrCount<X>& r) throw()
+	void acquire(const TPtrCount<X>& r)
 	{	// check if not already pointing to the same object
 		if( this->cCntObj != r.cCntObj || NULL==this->cCntObj )
 		{	// save the current pointer
@@ -339,8 +339,8 @@ public:
 
 	size_t getRefCount() const					{ return (this->cCntObj) ? this->cCntObj->count : 1;}
 	bool clear()								{ this->release(); return this->cCntObj==NULL; }
-	bool is_unique() const throw()				{ return (this->cCntObj ? (cCntObj->count == 1):true);}
-	bool make_unique() throw()
+	bool is_unique() const						{ return (this->cCntObj ? (cCntObj->count == 1):true);}
+	bool make_unique()		
 	{
 		if( !is_unique() )
 		{
@@ -360,11 +360,11 @@ public:
 
 	virtual bool exists() const					{ return NULL!=this->cCntObj && NULL!=this->cCntObj->ptr; }
 	virtual const X* get() const				{ return this->cCntObj ?  this->cCntObj->ptr : 0; }
-	virtual const X& operator*() const throw()	{ return *this->cCntObj->ptr; }
-	virtual const X* operator->() const throw()	{ return this->cCntObj ?  this->cCntObj->ptr : 0; }
-	virtual X& operator*() throw()				{ return *this->cCntObj->ptr; }
-	virtual X* operator->() throw()				{ return this->cCntObj ?  this->cCntObj->ptr : 0; }
-	virtual operator const X&() const throw()	{ return *this->cCntObj->ptr; }
+	virtual const X& operator*() const			{ return *this->cCntObj->ptr; }
+	virtual const X* operator->() const			{ return this->cCntObj ?  this->cCntObj->ptr : 0; }
+	virtual X& operator*()						{ return *this->cCntObj->ptr; }
+	virtual X* operator->()						{ return this->cCntObj ?  this->cCntObj->ptr : 0; }
+	virtual operator const X&() const			{ return *this->cCntObj->ptr; }
 
 	virtual bool operator ==(void *p) const		{ return (this->cCntObj) ? (this->cCntObj->ptr==p) : (this->cCntObj==p); }
 	virtual bool operator !=(void *p) const		{ return (this->cCntObj) ? (this->cCntObj->ptr!=p) : (this->cCntObj!=p); }
@@ -476,11 +476,11 @@ public:
 	virtual const X& readaccess() const			{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
 	virtual X& writeaccess()					{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
 	virtual const X* get() const				{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
-	virtual const X& operator*() const throw()	{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
-	virtual const X* operator->() const throw()	{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
-	virtual X& operator*() throw()				{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
-	virtual X* operator->() throw()				{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
-	virtual operator const X&() const throw()	{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
+	virtual const X& operator*() const			{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
+	virtual const X* operator->() const			{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
+	virtual X& operator*()						{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
+	virtual X* operator->()						{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
+	virtual operator const X&() const			{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -544,11 +544,11 @@ public:
 		return *this->cCntObj->ptr;
 	}
 	virtual const X* get() const					{ this->readaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
-	virtual const X& operator*()	const throw()	{ return this->readaccess(); }
-	virtual const X* operator->()	const throw()	{ this->readaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
-	virtual X& operator*()	throw()					{ return this->writeaccess();}
-	virtual X* operator->()	throw()					{ this->writeaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
-	virtual operator const X&() const throw()		{ return this->readaccess(); }
+	virtual const X& operator*() const				{ return this->readaccess(); }
+	virtual const X* operator->() const				{ this->readaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
+	virtual X& operator*()							{ return this->writeaccess();}
+	virtual X* operator->()							{ this->writeaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
+	virtual operator const X&() const				{ return this->readaccess(); }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -621,11 +621,11 @@ public:
 		return *this->cCntObj->ptr;
 	}
 	virtual const X* get() const					{ readaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
-	virtual const X& operator*()	const throw()	{ return readaccess(); }
-	virtual const X* operator->()	const throw()	{ readaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
-	virtual X& operator*()	throw()					{ return writeaccess();}
-	virtual X* operator->()	throw()					{ writeaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
-	virtual operator const X&() const throw()		{ return readaccess(); }
+	virtual const X& operator*() const				{ return readaccess(); }
+	virtual const X* operator->() const				{ readaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
+	virtual X& operator*()							{ return writeaccess();}
+	virtual X* operator->()							{ writeaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
+	virtual operator const X&() const				{ return readaccess(); }
 };
 
 
@@ -711,7 +711,7 @@ class TObjPtr : public TPtr<X>
 protected:
 	CObjCounter<X>* cCntObj;
 
-	void acquire(const TObjPtr& r) throw()
+	void acquire(const TObjPtr& r)
 	{	// check if not already pointing to the same object
 		if( this->cCntObj != r.cCntObj )
 		{	// save the current pointer
@@ -829,8 +829,8 @@ public:
 	size_t getRefCount() const						{ return (this->cCntObj) ? this->cCntObj->count : 1;}
 	bool clear()									{ this->release(); return this->cCntObj==NULL; }
 	
-	bool is_unique() const throw()					{ return (this->cCntObj ? (cCntObj->count == 1):true);}
-	bool make_unique() throw()
+	bool is_unique() const							{ return (this->cCntObj ? (cCntObj->count == 1):true);}
+	bool make_unique()
 	{
 		if( !this->is_unique() )
 		{	// there is an object and the refeence counter is >1
@@ -852,11 +852,11 @@ public:
 
 	virtual bool exists() const						{ return NULL!=this->cCntObj; }
 	virtual const X* get() const					{ this->readaccess(); return this->cCntObj ? &this->cCntObj->obj : NULL; }
-	virtual const X& operator*()	const throw()	{ return this->readaccess(); }
-	virtual const X* operator->()	const throw()	{ this->readaccess(); return this->cCntObj ? &this->cCntObj->obj : NULL; }
-	virtual X& operator*()	throw()					{ return this->writeaccess();}
-	virtual X* operator->()	throw()					{ this->writeaccess(); return this->cCntObj ? &this->cCntObj->obj : NULL; }
-	virtual operator const X&() const throw()		{ return this->readaccess(); }
+	virtual const X& operator*() const				{ return this->readaccess(); }
+	virtual const X* operator->() const				{ this->readaccess(); return this->cCntObj ? &this->cCntObj->obj : NULL; }
+	virtual X& operator*()							{ return this->writeaccess();}
+	virtual X* operator->()							{ this->writeaccess(); return this->cCntObj ? &this->cCntObj->obj : NULL; }
+	virtual operator const X&() const				{ return this->readaccess(); }
 
 	virtual bool operator ==(void *p) const			{ return this->cCntObj==p; }
 	virtual bool operator !=(void *p) const			{ return this->cCntObj!=p; }

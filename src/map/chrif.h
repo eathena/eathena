@@ -5,6 +5,9 @@
 #define _CHRIF_H_
 
 #include "baseio.h"
+struct map_session_data;
+struct mob_data;
+
 
 void chrif_setuserid(const char* user);
 void chrif_setpasswd(const char *pwd);

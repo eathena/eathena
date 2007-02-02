@@ -1088,11 +1088,10 @@ static int startline;
 void disp_error_message(const char *mes,const char *pos)
 {
 	int line, on=0;
-	const char *p,*linestart,*lineend;
+	const char *p,*lineend;
 
 	for(line=startline, p=startptr; p && *p; ++line)
 	{
-		linestart=p;
 		lineend=strchr(p,'\n');
 		if(lineend==NULL || pos<lineend)
 		{
@@ -2322,7 +2321,8 @@ int CScriptEngine::run_func()
 	int i,start_sp,end_sp,func;
 
 	end_sp=stack_ptr;
-	for(i=end_sp-1;i>=0 && stack_data[i].type!=C_ARG;i--);
+	for(i=end_sp-1;i>=0 && stack_data[i].type!=C_ARG;i--)
+	{}
 	if(i==0)
 	{
 		if(config.error_log)
@@ -2381,8 +2381,6 @@ int CScriptEngine::run_func()
 	if(state==RETFUNC)
 	{	// ユーザー定義関数からの復帰
 		int olddefsp=defsp;
-		int i;
-
 		pop_stack(defsp,start_sp);	// 復帰に邪魔なスタック削除
 		if( defsp<4 || stack_data[defsp-1].type!=C_RETINFO)
 		{
@@ -2445,7 +2443,7 @@ int CScriptEngine::run_main()
 						{
 							printf("no npc script, ");
 						}
-						printf("prog pos (%ld)\n", (unsigned long)pos);
+						printf("prog pos (%lu)\n", (unsigned long)pos);
 						debug_script(script,((pos>32)?pos-32:0),((pos>32)?32:pos));
 					}
 					stack_ptr=defsp;
@@ -3842,9 +3840,10 @@ int buildin_getitem2(CScriptEngine &st)
 
 	
 	st.ConvertName(data);
-	if( data.isString() ){
+	if( data.isString() )
+	{
 		const char *name=st.GetString(data);
-		struct item_data *item_data = itemdb_searchname(name);
+		item_data = itemdb_searchname(name);
 		nameid=512; //Apple item ID
 		if( item_data )
 			nameid=item_data->nameid;
@@ -5288,6 +5287,7 @@ public:
 };
 class CBuildinKillEventmob : public CMapProcessor
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CBuildinKillEventmob)
 	const char *event;
 public:
 	CBuildinKillEventmob(const char* e) : event(e)	{}
@@ -5684,6 +5684,7 @@ int buildin_getmapusers(CScriptEngine &st)
  */
 class CBuildinCountObject : public CMapProcessor
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CBuildinCountObject)
 	object_t type;// double check actually not necessary, just paranoia
 public:
 	CBuildinCountObject(object_t t) : type(t)	{}
@@ -5715,6 +5716,7 @@ int buildin_getareausers(CScriptEngine &st)
  */
 class CBuildinCountDropitem : public CMapProcessor
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CBuildinCountDropitem)
 	int item;
 public:
 	CBuildinCountDropitem(int i):item(i)	{}
@@ -5844,7 +5846,7 @@ int buildin_sc_start(CScriptEngine &st)
 			bl = block_list::from_blid(sd->skilltarget);
 			tick/=2; //Thrown potions only last half.
 		}
-		if(bl) status_change_start(bl,type,val1,0,0,0,tick,0);
+		if(bl) status_change_start(bl,(status_t)type,val1,0,0,0,tick,0);
 	}
 	return 0;
 }
@@ -5873,7 +5875,7 @@ int buildin_sc_start2(CScriptEngine &st)
 		if( sd && sd->state.potion_flag==1 )
 			bl = block_list::from_blid(sd->skilltarget);
 		if(rand()%10000 < per)
-			status_change_start(bl,type,val1,0,0,0,tick,0);
+			status_change_start(bl,(status_t)type,val1,0,0,0,tick,0);
 	}
 	return 0;
 }
@@ -5902,7 +5904,7 @@ int buildin_sc_start4(CScriptEngine &st)
 		map_session_data*sd = bl->get_sd();
 		if(sd && sd->state.potion_flag==1 )
 			bl = block_list::from_blid(sd->skilltarget);
-		status_change_start(bl,type,val1,val2,val3,val4,tick,0);
+		status_change_start(bl,(status_t)type,val1,val2,val3,val4,tick,0);
 	}
 	return 0;
 }
@@ -5920,7 +5922,7 @@ int buildin_sc_end(CScriptEngine &st)
 		
 		if( st.sd->state.potion_flag==1 )
 			bl = block_list::from_blid(st.sd->skilltarget);
-		status_change_end(bl,type,-1);
+		status_change_end(bl,(status_t)type,-1);
 //		if(config.etc_log)
 //			ShowMessage("sc_end : %d %d\n",st.rid,type);
 	}
@@ -7182,6 +7184,7 @@ int buildin_stoptimer(CScriptEngine &st)
 
 class CBuildinMobCount : public CMapProcessor
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CBuildinMobCount)
 	const char *event;
 public:
 	CBuildinMobCount(const char *e) : event(e)	{}
@@ -8041,17 +8044,10 @@ int buildin_getmapmobs(CScriptEngine &st)
 
 int buildin_movenpc(CScriptEngine &st)
 {
-	map_session_data *sd;
-	const char *map,*npc;
-	int x,y;
-
-	sd = st.sd;
-
-	map = st.GetString(st[2]);
-	x = st.GetInt(st[3]);
-	y = st.GetInt(st[4]);
-	npc = st.GetString(st[5]);
-
+//	const char *map = st.GetString(st[2]);
+//	const int x = st.GetInt(st[3]);
+//	const int y = st.GetInt(st[4]);
+//	const char *name = st.GetString(st[5]);
 	return 0;
 }
 
@@ -8062,19 +8058,11 @@ int buildin_movenpc(CScriptEngine &st)
 
 int buildin_message(CScriptEngine &st)
 {
-	map_session_data *sd;
-	const char *msg,*player;
-	map_session_data *pl_sd = NULL;
-
-	sd = st.sd;
-
-	player = st.GetString(st[2]);
-	msg = st.GetString(st[3]);
-
-	if((pl_sd=map_session_data::nick2sd((char *) player)) == NULL)
-             return 1;
-	clif_displaymessage(pl_sd->fd, msg);
-
+	const char *player = st.GetString(st[2]);
+	const char *msg = st.GetString(st[3]);
+	map_session_data *pl_sd = map_session_data::nick2sd(player);
+	if( pl_sd )
+		clif_displaymessage(pl_sd->fd, msg);
 	return 0;
 }
 

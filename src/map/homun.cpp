@@ -39,8 +39,8 @@ int embryo_default=6001;
 static int homun_exp_table[6][MAX_LEVEL];
 int homun_count=0;
 
-const static char dirx[8] = { 0, 1, 1, 1, 0,-1,-1,-1};
-const static char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
+static const char dirx[8] = { 0, 1, 1, 1, 0,-1,-1,-1};
+static const char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
 
 
 static struct dbt* homun_id_db=NULL;
@@ -417,55 +417,53 @@ void homun_data::calc_status()
 		hd.hprecov_rate+=lv*5;
 	}
 	// ステータス変化による基本パラメータ補正ホムスキル
-	if(hd.sc_data)
+	//緊急回避
+	if( hd.has_status(SC_AVOID) )
+		speed_rate -= hd.get_statusvalue1(SC_AVOID).integer()*10;
+	//
+	if( hd.has_status(SC_CHANGE) )
+		hd.int_ += 60;
+	//ブラッドラスト
+	if( hd.has_status(SC_BLOODLUST) )
+		atk_rate += hd.get_statusvalue1(SC_BLOODLUST).integer()*10+20;
+	//フリットムーブ
+	if( hd.has_status(SC_FLEET) )
 	{
-		//緊急回避
-		if( hd.has_status(SC_AVOID) )
-			speed_rate -= hd.sc_data[SC_AVOID].integer1()*10;
-		//
-		if( hd.has_status(SC_CHANGE) )
-			hd.int_ += 60;
-		//ブラッドラスト
-		if( hd.has_status(SC_BLOODLUST) )
-			atk_rate += hd.sc_data[SC_BLOODLUST].integer1()*10+20;
-		//フリットムーブ
-		if( hd.has_status(SC_FLEET) )
-		{
-			aspd_rate -= hd.sc_data[SC_FLEET].integer1()*3;
-			atk_rate+=5+hd.sc_data[SC_FLEET].integer1()*5;
-		}
+		aspd_rate -= hd.get_statusvalue1(SC_FLEET).integer()*3;
+		atk_rate+=5+hd.get_statusvalue1(SC_FLEET).integer()*5;
 	}
+
 	// ステータス変化による基本パラメータ補正
-	if(config.allow_homun_status_change && hd.sc_data)
+	if( config.allow_homun_status_change )
 	{
 		//ゴスペルALL+20
 		if( hd.has_status(SC_INCALLSTATUS) )
 		{
-			hd.str+= hd.sc_data[SC_INCALLSTATUS].integer1();
-			hd.agi+= hd.sc_data[SC_INCALLSTATUS].integer1();
-			hd.vit+= hd.sc_data[SC_INCALLSTATUS].integer1();
-			hd.int_+= hd.sc_data[SC_INCALLSTATUS].integer1();
-			hd.dex+= hd.sc_data[SC_INCALLSTATUS].integer1();
-			hd.luk+= hd.sc_data[SC_INCALLSTATUS].integer1();
+			hd.str+= hd.get_statusvalue1(SC_INCALLSTATUS).integer();
+			hd.agi+= hd.get_statusvalue1(SC_INCALLSTATUS).integer();
+			hd.vit+= hd.get_statusvalue1(SC_INCALLSTATUS).integer();
+			hd.int_+= hd.get_statusvalue1(SC_INCALLSTATUS).integer();
+			hd.dex+= hd.get_statusvalue1(SC_INCALLSTATUS).integer();
+			hd.luk+= hd.get_statusvalue1(SC_INCALLSTATUS).integer();
 		}
 
 		if( hd.has_status(SC_INCREASEAGI) )	// 速度増加
-			hd.agi += 2+hd.sc_data[SC_INCREASEAGI].integer1();
+			hd.agi += 2+hd.get_statusvalue1(SC_INCREASEAGI).integer();
 
 		if( hd.has_status(SC_DECREASEAGI) )	// 速度減少(agiはbattle.cで)
-			hd.agi-= 2+hd.sc_data[SC_DECREASEAGI].integer1();
+			hd.agi-= 2+hd.get_statusvalue1(SC_DECREASEAGI).integer();
 
 		if( hd.has_status(SC_BLESSING) )
 		{	// ブレッシング
-			hd.str+= hd.sc_data[SC_BLESSING].integer1();
-			hd.dex+= hd.sc_data[SC_BLESSING].integer1();
-			hd.int_+= hd.sc_data[SC_BLESSING].integer1();
+			hd.str+= hd.get_statusvalue1(SC_BLESSING).integer();
+			hd.dex+= hd.get_statusvalue1(SC_BLESSING).integer();
+			hd.int_+= hd.get_statusvalue1(SC_BLESSING).integer();
 		}
 		if( hd.has_status(SC_SUITON) )
 		{	// 水遁
-			if(hd.sc_data[SC_SUITON].integer3())
-				hd.agi+=hd.sc_data[SC_SUITON].integer3();
-			if(hd.sc_data[SC_SUITON].integer4())
+			if(hd.get_statusvalue3(SC_SUITON).integer())
+				hd.agi+=hd.get_statusvalue3(SC_SUITON).integer();
+			if(hd.get_statusvalue4(SC_SUITON).integer())
 				hd.speed = hd.speed*2;
 		}
 
@@ -476,8 +474,8 @@ void homun_data::calc_status()
 		{	// クァグマイア
 			short subagi = 0;
 			short subdex = 0;
-			subagi = (hd.status.agi/2 < hd.sc_data[SC_QUAGMIRE].integer1()*10) ? hd.status.agi/2 : hd.sc_data[SC_QUAGMIRE].integer1()*10;
-			subdex = (hd.status.dex/2 < hd.sc_data[SC_QUAGMIRE].integer1()*10) ? hd.status.dex/2 : hd.sc_data[SC_QUAGMIRE].integer1()*10;
+			subagi = (hd.status.agi/2 < hd.get_statusvalue1(SC_QUAGMIRE).integer()*10) ? hd.status.agi/2 : hd.get_statusvalue1(SC_QUAGMIRE).integer()*10;
+			subdex = (hd.status.dex/2 < hd.get_statusvalue1(SC_QUAGMIRE).integer()*10) ? hd.status.dex/2 : hd.get_statusvalue1(SC_QUAGMIRE).integer()*10;
 			if(maps[hd.block_list::m].flag.pvp || maps[hd.block_list::m].flag.gvg){
 				subagi/= 2;
 				subdex/= 2;
@@ -504,10 +502,10 @@ void homun_data::calc_status()
 	
 	//ディフェンス
 	if( hd.has_status(SC_DEFENCE) )
-		hd.def += hd.sc_data[SC_DEFENCE].integer1()*2;
+		hd.def += hd.get_statusvalue1(SC_DEFENCE).integer()*2;
 	//オーバードスピード
 	if( hd.has_status(SC_SPEED) )
-		hd.flee = hd.flee + 10 + hd.sc_data[SC_SPEED].integer1()*10;
+		hd.flee = hd.flee + 10 + hd.get_statusvalue1(SC_SPEED).integer()*10;
 	//補正
 	if(atk_rate!=100)
 		hd.atk = hd.atk*atk_rate/100;
@@ -905,8 +903,8 @@ void homun_data::gain_exp(uint32 base_exp, uint32 job_exp, block_list &obj)
 	mob_data *md = obj.get_md();
 	if(md && md->has_status(SC_RICHMANKIM) )
 	{
-		bexp = bexp*(125 + md->sc_data[SC_RICHMANKIM].integer1()*11)/100;
-		jexp = jexp*(125 + md->sc_data[SC_RICHMANKIM].integer1()*11)/100;
+		bexp = bexp*(125 + md->get_statusvalue1(SC_RICHMANKIM).integer()*11)/100;
+		jexp = jexp*(125 + md->get_statusvalue1(SC_RICHMANKIM).integer()*11)/100;
 	}
 	base_exp = (bexp>0x7fffffff)? 0x7fffffff: (int)bexp;
 	job_exp  = (jexp>0x7fffffff)? 0x7fffffff: (int)jexp;
@@ -927,20 +925,19 @@ void homun_data::gain_exp(uint32 base_exp, uint32 job_exp, block_list &obj)
 			while((this->status.base_exp + base_exp) >= (uint32)next)
 			{	// LvUP
 				int temp_exp = next - this->status.base_exp;
-				if( (per-(100-((uint64)this->status.base_exp)*100/next)) <0)
+				if( (per+((uint64)this->status.base_exp)*100/next) < 100 )
 					break;
-				per -= (100-((uint64)this->status.base_exp)*100/next);
+				per -= 100-((uint64)this->status.base_exp)*100/next;
 				this->status.base_exp = next;
 				if(!this->check_baselevelup() || (next = this->next_baseexp())<=0) break;
 				base_exp -= temp_exp;
 			}
-			if((next=this->next_baseexp())>0 && (((uint64)base_exp) * 100 / next) > per)
-				this->status.base_exp = (uint32)( next * per / 100 );
+			next=this->next_baseexp();
+			if( next>0 && (((uint64)base_exp)*100/next) > per)
+				this->status.base_exp = (uint32)( next*per/100 );
 			else
 				this->status.base_exp += base_exp;
 
-			if(this->status.base_exp < 0)
-				this->status.base_exp = 0;
 			this->check_baselevelup();
 		}
 		else
@@ -1144,7 +1141,6 @@ void homun_data ::delete_hungry_timer()
 
 bool homun_data::call_homunculus(map_session_data &sd)
 {
-	int i;
 	if( sd.hd )
 	{	// data exists
 		if( sd.hd->is_dead() )
@@ -1221,6 +1217,7 @@ bool homun_data::call_homunculus(map_session_data &sd)
 	}
 	else
 	{	
+		size_t i;
 		for(i=0;i<MAX_INVENTORY;++i)
 		{
 			if(sd.status.inventory[i].nameid==7142)
@@ -1278,7 +1275,7 @@ int read_homundb(void)
 		lines=0;
 		while( fgets(line,sizeof(line),fp) )
 		{
-			int nameid,i;
+			int nameid;
 			char *str[50],*p,*np;
 			lines++;
 

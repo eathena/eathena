@@ -251,10 +251,22 @@ bool CStackEngine::process()
 		/////////////////////////////////////////////////////////////////
 		// cast operations
 		// take one stack values and push the result
-		case OP_CAST:	// '(' <Type> ')' <Op Unary>   !CAST
+		case OP_CAST_INTEGER:	// '(' <Type> ')' <Op Unary>   !CAST
 		{	// <Op Unary> is first on the stack, <Type> is second
 			stack[0].make_value();
-			stack[0].cast((basics::var_t)ccmd.cParam1);
+			stack[0].cast(basics::VAR_INTEGER);
+			break;
+		}
+		case OP_CAST_STRING:	// '(' <Type> ')' <Op Unary>   !CAST
+		{	// <Op Unary> is first on the stack, <Type> is second
+			stack[0].make_value();
+			stack[0].cast(basics::VAR_STRING);
+			break;
+		}
+		case OP_CAST_FLOAT:	// '(' <Type> ')' <Op Unary>   !CAST
+		{	// <Op Unary> is first on the stack, <Type> is second
+			stack[0].make_value();
+			stack[0].cast(basics::VAR_FLOAT);
 			break;
 		}
 
@@ -412,10 +424,7 @@ bool CStackEngine::process()
 			stack[0].clear();
 			break;
 		}
-		case OP_CONCAT1:
-		case OP_CONCAT2:
-		case OP_CONCAT3:
-		case OP_CONCAT4:
+		case OP_CONCAT:
 		{
 			//this->logging("vectorize '%i' elements", ccmd.cParam1); break;
 			const int cnt = ccmd.cParam1;
@@ -450,11 +459,7 @@ bool CStackEngine::process()
 			break;
 		}
 		case OP_PUSH_ADDR:
-		case OP_PUSH_INT1:	// followed by an integer
-		case OP_PUSH_INT2:
-		case OP_PUSH_INT3:
-		case OP_PUSH_INT4:
-		case OP_PUSH_INT8:
+		case OP_PUSH_INT:	// followed by an integer
 		{
 			this->cStack.resize(this->cStack.size()+1);
 			this->cStack.last().make_value();
@@ -476,6 +481,15 @@ bool CStackEngine::process()
 			break;
 		}
 		case OP_PUSH_VAR:	// followed by a string containing a variable name
+		{
+			this->cStack.resize(this->cStack.size()+1);
+			this->cStack.last().make_value();
+			this->cStack.last().clear();
+			this->cStack.last().access_member(ccmd.cString);
+			// but also could decode the variable string directly
+			this->cStack.last().make_reference();
+			break;			
+		}
 		case OP_PUSH_VAL:
 		{
 			this->cStack.resize(this->cStack.size()+1);
@@ -483,31 +497,31 @@ bool CStackEngine::process()
 			this->cStack.last().clear();
 			this->cStack.last().access_member(ccmd.cString);
 			// but also could decode the variable string directly
-
-			if( OP_PUSH_VAR==ccmd.cCommand )
-				this->cStack.last().make_reference();
-			else
-				this->cStack.last().make_value();
+			this->cStack.last().make_value();
 			break;			
 		}
 		case OP_PUSH_PARAVAR:
+		{	// push a reference
+			this->cStack.resize(this->cStack.size()+1);
+			this->cStack.last().make_value();
+			this->cStack.last().assign(((size_t)ccmd.cParam1<this->cPara.size())?this->cPara[ccmd.cParam1]:basics::variant(), true);
+			break;
+		}
 		case OP_PUSH_PARAVAL:
 		{	// push a reference/value
 			this->cStack.resize(this->cStack.size()+1);
 			this->cStack.last().make_value();
-			this->cStack.last().assign(((size_t)ccmd.cParam1<this->cPara.size())?this->cPara[ccmd.cParam1]:basics::variant(), OP_PUSH_PARAVAR==ccmd.cCommand);
+			this->cStack.last().assign(((size_t)ccmd.cParam1<this->cPara.size())?this->cPara[ccmd.cParam1]:basics::variant(), false);
 			break;
 		}
-		case OP_PUSH_TEMPVAR1:
-		case OP_PUSH_TEMPVAR2:
+		case OP_PUSH_TEMPVAR:
 		{	// push a reference
 			this->cStack.resize(this->cStack.size()+1);
 			this->cStack.last().make_value();
 			this->cStack.last().assign(((size_t)ccmd.cParam1<this->cTemp.size())?this->cTemp[ccmd.cParam1]:basics::variant(), true);
 			break;
 		}
-		case OP_PUSH_TEMPVAL1:
-		case OP_PUSH_TEMPVAL2:
+		case OP_PUSH_TEMPVAL:
 		{	// push a value
 			this->cStack.resize(this->cStack.size()+1);
 			this->cStack.last().make_value();

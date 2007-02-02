@@ -116,6 +116,7 @@ class CNameStorage;
 /// only offers virtual destruction and upcast
 class CNameStorageBase : public basics::noncopyable
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CNameStorageBase)
 public:
 	uint32			char_id;	// char id 
 protected:

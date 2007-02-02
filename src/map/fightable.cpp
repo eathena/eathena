@@ -196,27 +196,25 @@ bool fightable::is_movable()
 	else
 		return false;
 
-	struct status_change *sc_data = status_get_sc_data(this);
-	if (sc_data)
-	{
-		if(	sc_data[SC_ANKLE].timer != -1 ||
-			sc_data[SC_AUTOCOUNTER].timer !=-1 ||
-			sc_data[SC_TRICKDEAD].timer !=-1 ||
-			sc_data[SC_BLADESTOP].timer !=-1 ||
-			sc_data[SC_BLADESTOP_WAIT].timer !=-1 ||
-			sc_data[SC_SPIDERWEB].timer !=-1 ||
-			(sc_data[SC_DANCING].timer !=-1 && (
-				(sc_data[SC_DANCING].integer4() && sc_data[SC_LONGING].timer == -1) ||
-				sc_data[SC_DANCING].integer1() == CG_HERMODE	//cannot move while Hermod is active.
-			)) ||
-//			sc_data[SC_STOP].timer != -1 ||
-//			sc_data[SC_CLOSECONFINE].timer != -1 ||
-//			sc_data[SC_CLOSECONFINE2].timer != -1 ||
-			sc_data[SC_MOONLIT].timer != -1 ||
-			(sc_data[SC_GOSPEL].timer !=-1 && sc_data[SC_GOSPEL].integer4() == BCT_SELF) // cannot move while gospel is in effect
-			)
-			return false;
-	}
+
+	if(	this->has_status(SC_ANKLE) ||
+		this->has_status(SC_AUTOCOUNTER) ||
+		this->has_status(SC_TRICKDEAD) ||
+		this->has_status(SC_BLADESTOP) ||
+		this->has_status(SC_BLADESTOP_WAIT) ||
+		this->has_status(SC_SPIDERWEB) ||
+		(this->has_status(SC_DANCING) && (
+			(this->get_statusvalue4(SC_DANCING).integer() && 
+			this->has_status(SC_LONGING)) ||
+			this->get_statusvalue1(SC_DANCING).integer() == CG_HERMODE	//cannot move while Hermod is active.
+		)) ||
+//		this->has_status(SC_STOP) ||
+//		this->has_status(SC_CLOSECONFINE) ||
+//		this->has_status(SC_CLOSECONFINE2) ||
+		this->has_status(SC_MOONLIT) ||
+		(this->has_status(SC_GOSPEL) && this->get_statusvalue4(SC_GOSPEL).integer() == BCT_SELF) // cannot move while gospel is in effect
+		)
+		return false;
 	return true;
 }
 
@@ -316,15 +314,14 @@ int fightable::attacktimer_entry(int tid, unsigned long tick, int id, basics::nu
 // needs combining with other object functions since those are very similar
 int fightable::attacktimer_func(int tid, unsigned long tick, int id, basics::numptr data)
 {
-	short range;
 	fightable* target_fi = fightable::from_blid(this->target_id);
 	
-	if( NULL != target_fi &&												// target exists
-		target_fi->is_on_map() &&											// and is spawned
-		target_fi->block_list::m == this->block_list::m &&					// and is on the same map as we are
-		distance(*this, *target_fi) <= (range = this->get_attackrange()) &&	// and is within attack range
-		target_fi->is_attackable() &&										// and is attackable
-		this->can_attack(*target_fi) )										// and we can attack it
+	if( NULL != target_fi &&										// target exists
+		target_fi->is_on_map() &&									// and is spawned
+		target_fi->block_list::m == this->block_list::m &&			// and is on the same map as we are
+		distance(*this, *target_fi) <= this->get_attackrange() &&	// and is within attack range
+		target_fi->is_attackable() &&								// and is attackable
+		this->can_attack(*target_fi) )								// and we can attack it
 	{
 		// stop movements
 		this->stop_walking();

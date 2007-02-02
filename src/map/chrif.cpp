@@ -326,29 +326,26 @@ int chrif_save_sc(map_session_data &sd)
 */	if( !session_isActive(char_fd) || !chrif_isconnect() )
 		return -1;
 	size_t i, cnt, p;
-	struct TimerData *td;
-	struct sc_data data;
 	unsigned long tick = gettick();
 
 	for(i=0, cnt=0, p=14; i<MAX_STATUSCHANGE; ++i)
 	{
 		if( sd.has_status((status_t)i) )
 		{
-			td = get_timer(sd.sc_data[i].timer);
-			
-			if( td && td->func == status_change_timer &&
-				DIFF_TICK(td->tick, tick)>0 &&
-				!sd.sc_data[i].pointer1() &&
-				!sd.sc_data[i].pointer2() &&
-				!sd.sc_data[i].pointer3() &&
-				!sd.sc_data[i].pointer4() )
+			const ulong remaining_time = sd.get_status_remaining((status_t)i,tick);
+			if( remaining_time &&
+				!sd.get_statusvalue1((status_t)i).pointer() &&
+				!sd.get_statusvalue2((status_t)i).pointer() &&
+				!sd.get_statusvalue3((status_t)i).pointer() &&
+				!sd.get_statusvalue4((status_t)i).pointer() )
 			{
+				sc_data data;
 				data.type = i;
-				data.val1 = sd.sc_data[i].integer1();
-				data.val2 = sd.sc_data[i].integer2();
-				data.val3 = sd.sc_data[i].integer3();
-				data.val4 = sd.sc_data[i].integer4();
-				data.tick = DIFF_TICK(td->tick, tick); //Duration that is left before ending.
+				data.val1 = sd.get_statusvalue1((status_t)i).integer();
+				data.val2 = sd.get_statusvalue2((status_t)i).integer();
+				data.val3 = sd.get_statusvalue3((status_t)i).integer();
+				data.val4 = sd.get_statusvalue4((status_t)i).integer();
+				data.tick = remaining_time; //Duration that is left before ending.
 				scdata_tobuffer(data, RFIFOP(char_fd,p));
 				p+=sizeof(struct sc_data);
 				cnt++;
@@ -378,7 +375,7 @@ int chrif_parse_ReadSC(int fd)
 		for (i=0, p=14; i<count; i++, p+=14+sizeof(struct sc_data))
 		{
 			scdata_frombuffer(data, RFIFOP(fd,p));
-			status_change_start(sd, data.type, data.val1, data.val2, data.val3, data.val4, data.tick, 3);
+			status_change_start(sd, (status_t)data.type, data.val1, data.val2, data.val3, data.val4, data.tick, 3);
 			//Flag 3 is 1&2, 1: Force status start, 2: Do not modify the tick value sent.
 		}
 	}

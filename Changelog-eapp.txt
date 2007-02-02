@@ -1,4 +1,21 @@
 Date	Added
+2007/02/02
+	* some more examples for the skill splash distribution
+	  as the map structures itself are on rewrite schedule
+	  these all can be seen as temporary solutions
+	* concentrating the old status interface to few function calls
+	  so switching to the new status code is simplified
+	* generated the new status code (read: "I did not even look at the result"),
+	  now it should only need the insertion of the equations.
+	* enabled case-insensitive keyword checking in the script converter
+	  as I've seen that alot of the original scripts contain reserved words
+	  in uppercase. you also should check for wrong/missing labels in
+	  the ea scripts as there have been several (>20) errors on that.
+	* fixed default case handling in switch statements for cases with
+	  empty default expression where the compiler was inserting wrong jumps
+	* some additional sanity checks to have icl happy
+	* I also tryed Dev-C++ this morning, exept that it did not link with
+	  vc6 generated libraries, everything was as clear as usual. [Shinomori]
 2007/01/25
 	* some simple demonstration code to support the skill rewrite
 	* interface changes for status to simplify testing and the later 

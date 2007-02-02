@@ -124,7 +124,28 @@ struct buildin_system : public buildin
 	}
 } buildin_system_i;
 
-
+///////////////////////////////////////////////////////////////////////////////
+/// 
+struct buildin_gui : public buildin
+{
+	static basics::variant buildin_close(CStackEngine& st) { return 0; } 
+	static basics::variant buildin_inputnumber(CStackEngine& st) { return 0; } 
+	static basics::variant buildin_inputstring(CStackEngine& st) { return 0; } 
+	static basics::variant buildin_menu(CStackEngine& st) { return 0; } 
+	static basics::variant buildin_mes(CStackEngine& st) { return 0; } 
+	static basics::variant buildin_next(CStackEngine& st) { return 0; } 
+	static basics::variant buildin_select(CStackEngine& st) { return 0; } 
+	buildin_gui()
+	{
+		buildin::create("close", buildin_close);
+		buildin::create("inputnumber", buildin_inputnumber);
+		buildin::create("inputstring", buildin_inputstring);
+		buildin::create("menu", buildin_menu);
+		buildin::create("mes", buildin_mes);
+		buildin::create("next", buildin_next);
+		buildin::create("select", buildin_select);
+	}
+}buildin_gui_i;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 
@@ -165,7 +186,6 @@ struct buildin_specific : public buildin
 	static basics::variant buildin_checkweight(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_classchange(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_clearitem(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_close(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_cmdothernpc(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_countitem(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_cutin(CStackEngine& st) { return 0; } 
@@ -258,7 +278,6 @@ struct buildin_specific : public buildin
 	static basics::variant buildin_hideonnpc(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_initnpctimer(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_inittimer(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_input(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_isday(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_isequipped(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_isequippedcnt(CStackEngine& st) { return 0; } 
@@ -277,14 +296,11 @@ struct buildin_specific : public buildin
 	static basics::variant buildin_maprespawnguildid(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_mapwarp(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_marriage(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_menu(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_mes(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_message(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_misceffect(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_mobcount(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_monster(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_movenpc(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_next(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_night(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_npcskilleffect(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_npcspeed(CStackEngine& st) { return 0; } 
@@ -319,7 +335,6 @@ struct buildin_specific : public buildin
 	static basics::variant buildin_sc_start(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_sc_start2(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_sc_start4(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_select(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_setcart(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_setcastledata(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_setfalcon(CStackEngine& st) { return 0; } 
@@ -394,7 +409,6 @@ struct buildin_specific : public buildin
 		buildin::create("checkweight", buildin_checkweight);
 		buildin::create("classchange", buildin_classchange);
 		buildin::create("clearitem", buildin_clearitem);
-		buildin::create("close", buildin_close);
 		buildin::create("cmdothernpc", buildin_cmdothernpc);
 		buildin::create("countitem", buildin_countitem);
 		buildin::create("cutin", buildin_cutin);
@@ -487,7 +501,6 @@ struct buildin_specific : public buildin
 		buildin::create("hideonnpc", buildin_hideonnpc);
 		buildin::create("initnpctimer", buildin_initnpctimer);
 		buildin::create("inittimer", buildin_inittimer);
-		buildin::create("input", buildin_input);
 		buildin::create("isday", buildin_isday);
 		buildin::create("isequipped", buildin_isequipped);
 		buildin::create("isequippedcnt", buildin_isequippedcnt);
@@ -506,14 +519,11 @@ struct buildin_specific : public buildin
 		buildin::create("maprespawnguildid", buildin_maprespawnguildid);
 		buildin::create("mapwarp", buildin_mapwarp);
 		buildin::create("marriage", buildin_marriage);
-		buildin::create("menu", buildin_menu);
-		buildin::create("mes", buildin_mes);
 		buildin::create("message", buildin_message);
 		buildin::create("misceffect", buildin_misceffect);
 		buildin::create("mobcount", buildin_mobcount);
 		buildin::create("monster", buildin_monster);
 		buildin::create("movenpc", buildin_movenpc);
-		buildin::create("next", buildin_next);
 		buildin::create("night", buildin_night);
 		buildin::create("npcskilleffect", buildin_npcskilleffect);
 		buildin::create("npcspeed", buildin_npcspeed);
@@ -548,7 +558,6 @@ struct buildin_specific : public buildin
 		buildin::create("sc_start", buildin_sc_start);
 		buildin::create("sc_start2", buildin_sc_start2);
 		buildin::create("sc_start4", buildin_sc_start4);
-		buildin::create("select", buildin_select);
 		buildin::create("setcart", buildin_setcart);
 		buildin::create("setcastledata", buildin_setcastledata);
 		buildin::create("setfalcon", buildin_setfalcon);

@@ -20,6 +20,7 @@
 #include "skill.h"
 #include "showmsg.h"
 #include "utils.h"
+#include "pc.h"
 
 int petskill_castend(struct pet_data &pd,unsigned long tick, struct castend_delay *dat);
 int petskill_castend2(struct pet_data &pd, block_list &target, unsigned short skill_id, unsigned short skill_lv, unsigned short skill_x, unsigned short skill_y, unsigned long tick);
@@ -30,8 +31,8 @@ int pet_attackskill(struct pet_data &pd, unsigned long tick, int data);
 
 struct petdb pet_db[MAX_PET_DB];
 
-const static char dirx[8] = { 0, 1, 1, 1, 0,-1,-1,-1};
-const static char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
+static const char dirx[8] = { 0, 1, 1, 1, 0,-1,-1,-1};
+static const char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
 
 
 
@@ -719,7 +720,7 @@ int pet_hungry_timer(int tid, unsigned long tick, int id, basics::numptr data)
 	// "*~ Original code by Kitty, adapted by flaviojs ~*"
 	if( pd->pet.hungry <= 35 && (pd->pet.hungry <= 25 || pd->pet.hungry%2) )
 	{
-		const static unsigned char petemicon_list[] = 
+		static const unsigned char petemicon_list[] = 
 		{
 			 7,	// Smoke cloud (angry) /ag
 			16,	// Wah (crying) /wah
@@ -1143,6 +1144,7 @@ int pet_unequipitem(map_session_data &sd)
 
 class CPetAiHardLootsearch : public CMapProcessor
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CPetAiHardLootsearch)
 	struct pet_data& pd;
 public:
 	mutable int itc;
@@ -1150,7 +1152,6 @@ public:
 	~CPetAiHardLootsearch()	{}
 	virtual int process(block_list& bl) const
 	{
-		int dist;
 		if( !pd.target_id )
 		{
 			flooritem_data *fitem = (flooritem_data *)&bl;
@@ -1162,7 +1163,7 @@ public:
 			if( pd.loot == NULL || pd.loot->itemlist == NULL || (pd.loot->count >= pd.loot->max) || 
 				(sd && sd->pd && sd->pd->block_list::id != pd.block_list::id) )
 				return 0;
-			if(bl.m == pd.block_list::m && (dist=distance(pd.block_list::x,pd.block_list::y,bl.x,bl.y))<5)
+			if(bl.m == pd.block_list::m && distance(pd.block_list::x,pd.block_list::y,bl.x,bl.y)<5 )
 			{
 				if( pd.can_reach(bl.x,bl.y) &&		// “ž’B‰Â”\«”»’è
 					rand()%1000<1000/(++itc) )			// ”ÍˆÍ“àPC‚Å“™Šm—¦‚É‚·‚é
@@ -1179,7 +1180,6 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 	map_session_data *sd = &pd.msd;
 	struct mob_data *md = NULL;
 	int dist,i=0,dx=-1,dy=-1;
-	int mode,race;
 
 	if( !pd.is_on_map() || sd == NULL || !sd->is_on_map() )
 		return 0;
@@ -1223,8 +1223,6 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 		}
 		else if(pd.target_id > MAX_FLOORITEM)
 		{	//Mob targeted
-			mode=mob_db[pd.pet.class_].mode;
-			race=mob_db[pd.pet.class_].race;
 			md= mob_data::from_blid(pd.target_id);
 			if( md == NULL || 
 				//md->block_list::type != BL_MOB || 
@@ -1431,10 +1429,10 @@ int pet_recovery_timer(int tid, unsigned long tick, int id, basics::numptr data)
 		return 0;
 	}
 
-	if(sd->sc_data && sd->sc_data[pd->recovery->type].timer != -1)
+	if( sd->has_status((status_t)pd->recovery->type) )
 	{	//Display a heal
 		clif_skill_nodamage(*pd,*sd,TF_DETOXIFY,1,1);
-		status_change_end(sd,pd->recovery->type,-1);
+		status_change_end(sd,(status_t)pd->recovery->type,-1);
 		clif_emotion(*pd, 33);
 	}
 

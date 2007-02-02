@@ -12,8 +12,8 @@
 #include "status.h"
 
 
-const static char dirx[8] = { 0, 1, 1, 1, 0,-1,-1,-1};
-const static char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
+static const char dirx[8] = { 0, 1, 1, 1, 0,-1,-1,-1};
+static const char diry[8] = { 1, 1, 0,-1,-1,-1, 0, 1};
 
 
 //## change to static initializer when timer function management got classified

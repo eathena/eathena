@@ -133,6 +133,7 @@ public:
 //
 class CAccountDB_sql : public CAccountDBInterface, public CSQLParameter
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CAccountDB_sql)
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
@@ -166,6 +167,7 @@ public:
 
 class CCharDB_sql : public CCharDBInterface, public CSQLParameter
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CCharDB_sql)
 public:
 	CCharDB_sql(const char *dbcfgfile) : CSQLParameter(dbcfgfile)
 	{
@@ -212,6 +214,7 @@ public:
 //
 class CGuildDB_sql : public CGuildDBInterface, public CSQLParameter
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CGuildDB_sql)
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
@@ -261,6 +264,7 @@ public:
 //
 class CPartyDB_sql : public CPartyDBInterface, public CSQLParameter
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CPartyDB_sql)
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
@@ -298,6 +302,7 @@ private:
 // Storage Database Interface
 class CPCStorageDB_sql : public CPCStorageDBInterface, public CSQLParameter
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CPCStorageDB_sql)
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
@@ -334,6 +339,7 @@ public:
 //
 class CGuildStorageDB_sql : public CGuildStorageDBInterface, public CSQLParameter
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CGuildStorageDB_sql)
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
@@ -369,6 +375,7 @@ private:
 // Pet Database Interface
 class CPetDB_sql : public CPetDBInterface, public CSQLParameter
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CPetDB_sql)
 public:
 	CPetDB_sql(const char *dbcfgfile) : CSQLParameter(dbcfgfile)
 	{
@@ -399,6 +406,7 @@ public:
 // Homunculi Database Interface
 class CHomunculusDB_sql : public CHomunculusDBInterface, public CSQLParameter
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CHomunculusDB_sql)
 public:
 	CHomunculusDB_sql(const char *dbcfgfile) : CSQLParameter(dbcfgfile)
 	{
@@ -431,6 +439,7 @@ public:
 // testcase, possibly seperate into different implementations
 class CVarDB_sql : public CVarDBInterface, public CSQLParameter
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CVarDB_sql)
 public:
 	CVarDB_sql(const char *dbcfgfile) : CSQLParameter(dbcfgfile)
 	{

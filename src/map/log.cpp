@@ -96,7 +96,7 @@ int log_branch(map_session_data &sd)
 		{
 			char t_name[64];
 			char tmp_sql[16384];
-			snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`branch_date`, `account_id`, `char_id`, `char_name`, `map`) VALUES (NOW(), '%ld', '%ld', '%s', '%s')",
+			snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`branch_date`, `account_id`, `char_id`, `char_name`, `map`) VALUES (NOW(), '%lu', '%lu', '%s', '%s')",
 				log_config.log_branch_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), sd.mapname);
 			if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 				ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
@@ -112,7 +112,7 @@ int log_branch(map_session_data &sd)
 
 				time(&curtime);
 				strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-				fprintf(logfp,"%s - %s[%ld:%ld]\t%s"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, sd.mapname);
+				fprintf(logfp,"%s - %s[%lu:%lu]\t%s"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, sd.mapname);
 				fclose(logfp);
 			}
 		}
@@ -137,7 +137,7 @@ int log_drop(map_session_data &sd, uint32 monster_id, int log_drop[])
 	if(log_config.sql_logs)
 	{
 		char tmp_sql[16384];
-		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`drop_date`, `kill_char_id`, `monster_id`, `item1`, `item2`, `item3`, `item4`, `item5`, `item6`, `item7`, `item8`, `item9`, `itemCard`, `map`) VALUES (NOW(), '%ld', '%ld', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s') ", log_config.log_drop_db, (unsigned long)sd.status.char_id, (unsigned long)monster_id, log_drop[0], log_drop[1], log_drop[2], log_drop[3], log_drop[4], log_drop[5], log_drop[6], log_drop[7], log_drop[8], log_drop[9], sd.mapname);
+		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`drop_date`, `kill_char_id`, `monster_id`, `item1`, `item2`, `item3`, `item4`, `item5`, `item6`, `item7`, `item8`, `item9`, `itemCard`, `map`) VALUES (NOW(), '%lu', '%lu', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s') ", log_config.log_drop_db, (unsigned long)sd.status.char_id, (unsigned long)monster_id, log_drop[0], log_drop[1], log_drop[2], log_drop[3], log_drop[4], log_drop[5], log_drop[6], log_drop[7], log_drop[8], log_drop[9], sd.mapname);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	}
@@ -150,7 +150,7 @@ int log_drop(map_session_data &sd, uint32 monster_id, int log_drop[])
 			time_t curtime;
 			time(&curtime);
 			strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-			fprintf(logfp,"%s - %s[%ld:%ld]\t%ld\t%d,%d,%d,%d,%d,%d,%d,%d,%d,%d"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, (unsigned long)monster_id, log_drop[0], log_drop[1], log_drop[2], log_drop[3], log_drop[4], log_drop[5], log_drop[6], log_drop[7], log_drop[8], log_drop[9]);
+			fprintf(logfp,"%s - %s[%lu:%lu]\t%lu\t%d,%d,%d,%d,%d,%d,%d,%d,%d,%d"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, (unsigned long)monster_id, log_drop[0], log_drop[1], log_drop[2], log_drop[3], log_drop[4], log_drop[5], log_drop[6], log_drop[7], log_drop[8], log_drop[9]);
 			fclose(logfp);
 		}
 	}
@@ -168,7 +168,7 @@ int log_mvpdrop(map_session_data &sd, uint32 monster_id, int log_mvp[])
 	if(log_config.sql_logs)
 	{
 		char tmp_sql[16384];
-		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`mvp_date`, `kill_char_id`, `monster_id`, `prize`, `mvpexp`, `map`) VALUES (NOW(), '%ld', '%ld', '%d', '%d', '%s') ", log_config.log_mvpdrop_db, (unsigned long)sd.status.char_id, (unsigned long)monster_id, log_mvp[0], log_mvp[1], sd.mapname);
+		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`mvp_date`, `kill_char_id`, `monster_id`, `prize`, `mvpexp`, `map`) VALUES (NOW(), '%lu', '%lu', '%d', '%d', '%s') ", log_config.log_mvpdrop_db, (unsigned long)sd.status.char_id, (unsigned long)monster_id, log_mvp[0], log_mvp[1], sd.mapname);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	}
@@ -181,7 +181,7 @@ int log_mvpdrop(map_session_data &sd, uint32 monster_id, int log_mvp[])
 
 			time(&curtime);
 			strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-			fprintf(logfp,"%s - %s[%ld:%ld]\t%ld\t%d,%d"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, (unsigned long)monster_id, log_mvp[0], log_mvp[1]);
+			fprintf(logfp,"%s - %s[%lu:%lu]\t%lu\t%d,%d"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, (unsigned long)monster_id, log_mvp[0], log_mvp[1]);
 			fclose(logfp);
 		}
 	}
@@ -201,7 +201,7 @@ int log_present(map_session_data &sd, int source_type, unsigned short nameid)
 	{
 		char tmp_sql[16384];
 		char t_name[64];
-		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`present_date`, `src_id`, `account_id`, `char_id`, `char_name`, `nameid`, `map`) VALUES (NOW(), '%d', '%ld', '%ld', '%s', '%d', '%s') ",
+		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`present_date`, `src_id`, `account_id`, `char_id`, `char_name`, `nameid`, `map`) VALUES (NOW(), '%d', '%lu', '%lu', '%s', '%d', '%s') ",
 			log_config.log_present_db, source_type, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), nameid, sd.mapname);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
@@ -216,7 +216,7 @@ int log_present(map_session_data &sd, int source_type, unsigned short nameid)
 
 			time(&curtime);
 			strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-			fprintf(logfp,"%s - %s[%ld:%ld]\t%d\t%d"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, source_type, nameid);
+			fprintf(logfp,"%s - %s[%lu:%lu]\t%d\t%d"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, source_type, nameid);
 			fclose(logfp);
 		}
 	}
@@ -236,7 +236,7 @@ int log_produce(map_session_data &sd, unsigned short nameid, int slot1, int slot
 	{
 		char tmp_sql[16384];
 		char t_name[64];
-		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`produce_date`, `account_id`, `char_id`, `char_name`, `nameid`, `slot1`, `slot2`, `slot3`, `map`, `success`) VALUES (NOW(), '%ld', '%ld', '%s', '%d', '%d', '%d', '%d', '%s', '%d') ",
+		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`produce_date`, `account_id`, `char_id`, `char_name`, `nameid`, `slot1`, `slot2`, `slot3`, `map`, `success`) VALUES (NOW(), '%lu', '%lu', '%s', '%d', '%d', '%d', '%d', '%s', '%d') ",
 			log_config.log_produce_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), nameid, slot1, slot2, slot3, sd.mapname, success);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
@@ -251,7 +251,7 @@ int log_produce(map_session_data &sd, unsigned short nameid, int slot1, int slot
 
 			time(&curtime);
 			strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-			fprintf(logfp,"%s - %s[%ld:%ld]\t%d\t%d,%d,%d\t%d"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, nameid, slot1, slot2, slot3, success);
+			fprintf(logfp,"%s - %s[%lu:%lu]\t%d\t%d,%d,%d\t%d"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, nameid, slot1, slot2, slot3, success);
 			fclose(logfp);
 		}
 	}
@@ -281,7 +281,7 @@ int log_refine(map_session_data &sd, int n, int success)
 	{
 		char tmp_sql[16384];
 		char t_name[64];
-		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`refine_date`, `account_id`, `char_id`, `char_name`, `nameid`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`, `success`, `item_level`) VALUES (NOW(), '%ld', '%ld', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%d', '%d')",
+		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`refine_date`, `account_id`, `char_id`, `char_name`, `nameid`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`, `success`, `item_level`) VALUES (NOW(), '%lu', '%lu', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%d', '%d')",
 			log_config.log_refine_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), sd.status.inventory[n].nameid, sd.status.inventory[n].refine, log_card[0], log_card[1], log_card[2], log_card[3], sd.mapname, success, item_level);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
@@ -296,7 +296,7 @@ int log_refine(map_session_data &sd, int n, int success)
 
 			time(&curtime);
 			strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-			fprintf(logfp,"%s - %s[%ld:%ld]\t%d,%d\t%d%d%d%d\t%d,%d"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, sd.status.inventory[n].nameid, sd.status.inventory[n].refine, log_card[0], log_card[1], log_card[2], log_card[3], success, item_level);
+			fprintf(logfp,"%s - %s[%lu:%lu]\t%d,%d\t%d%d%d%d\t%d,%d"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, sd.status.inventory[n].nameid, sd.status.inventory[n].refine, log_card[0], log_card[1], log_card[2], log_card[3], success, item_level);
 			fclose(logfp);
 		}
 	}
@@ -321,7 +321,7 @@ int log_tostorage(map_session_data &sd,int n, int guild)
 
     time(&curtime);
 		strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-		fprintf(logfp,"%s - to %s: %s[%ld:%ld]\t%d\t%d\t%d\t%d,%d,%d,%d"RETCODE, 
+		fprintf(logfp,"%s - to %s: %s[%lu:%lu]\t%d\t%d\t%d\t%d,%d,%d,%d"RETCODE, 
 			timestring, guild ? "guild_storage": "storage", 
 			sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, 
 			sd.status.inventory[n].nameid,
@@ -354,7 +354,7 @@ int log_fromstorage(map_session_data &sd,int n, int guild)
 
     time(&curtime);
 		strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-		fprintf(logfp,"%s - from %s: %s[%ld:%ld]\t%d\t%d\t%d\t%d,%d,%d,%d"RETCODE, 
+		fprintf(logfp,"%s - from %s: %s[%lu:%lu]\t%d\t%d\t%d\t%d,%d,%d,%d"RETCODE, 
 			timestring, guild ? "guild_storage": "storage", 
 			sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, 
 			sd.status.inventory[n].nameid,
@@ -396,7 +396,7 @@ int log_trade(map_session_data &sd, map_session_data &target_sd, int n,int amoun
 	{
 		char tmp_sql[16384];
 		char t_name[64],t_name2[64];
-		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`trade_date`, `src_account_id`, `src_char_id`, `src_char_name`, `des_account_id`, `des_char_id`, `des_char_name`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`) VALUES (NOW(), '%ld', '%ld', '%s', '%ld', '%ld', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s')",
+		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`trade_date`, `src_account_id`, `src_char_id`, `src_char_name`, `des_account_id`, `des_char_id`, `des_char_name`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`) VALUES (NOW(), '%lu', '%lu', '%s', '%lu', '%lu', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s')",
 			log_config.log_trade_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), (unsigned long)target_sd.status.account_id, (unsigned long)target_sd.status.char_id, escape_string(t_name2, target_sd.status.name), log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], sd.mapname);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
@@ -410,7 +410,7 @@ int log_trade(map_session_data &sd, map_session_data &target_sd, int n,int amoun
 
 			time(&curtime);
 			strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-			fprintf(logfp,"%s - %s[%ld:%ld]\t%s[%ld:%ld]\t%d\t%d\t%d\t%d,%d,%d,%d"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, target_sd.status.name, (unsigned long)target_sd.status.account_id, (unsigned long)target_sd.status.char_id, log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3]);
+			fprintf(logfp,"%s - %s[%lu:%lu]\t%s[%lu:%lu]\t%d\t%d\t%d\t%d,%d,%d,%d"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, target_sd.status.name, (unsigned long)target_sd.status.account_id, (unsigned long)target_sd.status.char_id, log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3]);
 			fclose(logfp);
 		}
 	}
@@ -441,7 +441,7 @@ int log_vend(map_session_data &sd,map_session_data &vsd,int n,int amount, int ze
 	{
 		char tmp_sql[16384];
 		char t_name[64],t_name2[64];
-		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`vend_date`, `vend_account_id`, `vend_char_id`, `vend_char_name`, `buy_account_id`, `buy_char_id`, `buy_char_name`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`, `zeny`) VALUES (NOW(), '%ld', '%ld', '%s', '%ld', '%ld', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%d')",
+		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`vend_date`, `vend_account_id`, `vend_char_id`, `vend_char_name`, `buy_account_id`, `buy_char_id`, `buy_char_name`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`, `zeny`) VALUES (NOW(), '%lu', '%lu', '%s', '%lu', '%lu', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%d')",
 			log_config.log_vend_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), (unsigned long)vsd.status.account_id, (unsigned long)vsd.status.char_id, escape_string(t_name2, vsd.status.name), log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], sd.mapname, zeny);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
@@ -456,7 +456,7 @@ int log_vend(map_session_data &sd,map_session_data &vsd,int n,int amount, int ze
 
 			time(&curtime);
 			strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-			fprintf(logfp,"%s - %s[%ld:%ld]\t%s[%ld:%ld]\t%d\t%d\t%d\t%d,%d,%d,%d\t%d"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, vsd.status.name, (unsigned long)vsd.status.account_id, (unsigned long)vsd.status.char_id, log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], zeny);
+			fprintf(logfp,"%s - %s[%lu:%lu]\t%s[%lu:%lu]\t%d\t%d\t%d\t%d,%d,%d,%d\t%d"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, vsd.status.name, (unsigned long)vsd.status.account_id, (unsigned long)vsd.status.char_id, log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], zeny);
 			fclose(logfp);
 		}
 	}
@@ -475,7 +475,7 @@ int log_zeny(map_session_data &sd, map_session_data &target_sd,int amount)
 	{
 		char tmp_sql[16384];
 		char t_name[64],t_name2[64];
-		snprintf(tmp_sql, sizeof(tmp_sql),"INSERT DELAYED INTO `%s` (`trade_date`, `src_account_id`, `src_char_id`, `src_char_name`, `des_account_id`, `des_char_id`, `des_char_name`, `map`, `zeny`) VALUES (NOW(), '%ld', '%ld', '%s', '%ld', '%ld', '%s', '%s', '%ld')",
+		snprintf(tmp_sql, sizeof(tmp_sql),"INSERT DELAYED INTO `%s` (`trade_date`, `src_account_id`, `src_char_id`, `src_char_name`, `des_account_id`, `des_char_id`, `des_char_name`, `map`, `zeny`) VALUES (NOW(), '%lu', '%lu', '%s', '%lu', '%lu', '%s', '%s', '%lu')",
 			log_config.log_trade_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), (unsigned long)target_sd.status.account_id, (unsigned long)target_sd.status.char_id, escape_string(t_name2, target_sd.status.name), sd.mapname, (unsigned long)sd.deal_zeny);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
@@ -490,7 +490,7 @@ int log_zeny(map_session_data &sd, map_session_data &target_sd,int amount)
 
 			time(&curtime);
 			strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-			fprintf(logfp,"%s - %s[%ld]\t%s[%ld]\t%ld"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, target_sd.status.name, (unsigned long)target_sd.status.account_id, (unsigned long)sd.deal_zeny);
+			fprintf(logfp,"%s - %s[%lu]\t%s[%lu]\t%lu"RETCODE, timestring, sd.status.name, (unsigned long)sd.status.account_id, target_sd.status.name, (unsigned long)target_sd.status.account_id, (unsigned long)sd.deal_zeny);
 			fclose(logfp);
 		}
 	}
@@ -509,7 +509,7 @@ int log_atcommand(const map_session_data &sd, const char *message, unsigned cmdl
 		char t_name[64];
 		char t_msg[100]; //These are the contents of an @ call, so there shouldn't be overflow danger here?
 
-		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`atcommand_date`, `account_id`, `char_id`, `char_name`, `map`, `command`) VALUES(NOW(), '%ld', '%ld', '%s', '%s', '%s') ",
+		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`atcommand_date`, `account_id`, `char_id`, `char_name`, `map`, `command`) VALUES(NOW(), '%lu', '%lu', '%s', '%s', '%s') ",
 			log_config.log_gm_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), sd.mapname, escape_string(t_msg, (char *)message));
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
@@ -524,7 +524,7 @@ int log_atcommand(const map_session_data &sd, const char *message, unsigned cmdl
 
 			time(&curtime);
 			strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-			fprintf(logfp,"%s - %s[%ld]: %s"RETCODE,timestring,sd.status.name,(unsigned long)sd.status.account_id,message);
+			fprintf(logfp,"%s - %s[%lu]: %s"RETCODE,timestring,sd.status.name,(unsigned long)sd.status.account_id,message);
 			fclose(logfp);
 		}
 	}
@@ -543,7 +543,7 @@ int log_npc(map_session_data &sd, const char *message)
 	{
 		char tmp_sql[16384];
 		char t_name[64];
-		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`npc_date`, `account_id`, `char_id`, `char_name`, `map`, `mes`) VALUES(NOW(), '%ld', '%ld', '%s', '%s', '%s') ",
+		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`npc_date`, `account_id`, `char_id`, `char_name`, `map`, `mes`) VALUES(NOW(), '%lu', '%lu', '%s', '%s', '%s') ",
 			log_config.log_npc_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), sd.mapname, message);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
@@ -557,7 +557,7 @@ int log_npc(map_session_data &sd, const char *message)
 
 			time(&curtime);
 			strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-			fprintf(logfp,"%s - %s[%ld]: %s"RETCODE,timestring,sd.status.name,(unsigned long)sd.status.account_id,message);
+			fprintf(logfp,"%s - %s[%lu]: %s"RETCODE,timestring,sd.status.name,(unsigned long)sd.status.account_id,message);
 			fclose(logfp);
 		}
 	}

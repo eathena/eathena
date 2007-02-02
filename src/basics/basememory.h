@@ -187,6 +187,7 @@ NAMESPACE_END(elaborator)
 template <typename T=char>
 class allocator : public global, public noncopyable
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(allocator)
 public:
 	typedef size_t size_type;		///< type of positions
 	static const size_type npos;	///< not-valid-position constant
@@ -318,6 +319,7 @@ const RETURN_TYPENAME allocator<T>::size_type allocator<T>::npos = static_cast<t
 template <typename T=char>
 class allocator_w : public virtual allocator<T>
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(allocator_w)
 protected:
 	mutable T* cBuf;
 	T* cEnd;
@@ -356,6 +358,7 @@ public:
 template <typename T=char>
 class allocator_ws_dy : public allocator_w<T>
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(allocator_ws_dy)
 protected:
 	allocator_ws_dy() : allocator_w<T>()			{ }
 	allocator_ws_dy(size_t sz) : allocator_w<T>()	{ checkwrite(sz); }
@@ -399,6 +402,7 @@ protected:
 template <typename T=char>
 class allocator_ws_st : public allocator_w<T>
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(allocator_ws_st)
 protected:
 	allocator_ws_st()			{}			// no implementation here
 	allocator_ws_st(size_t sz)	{}			// no implementation here
@@ -421,6 +425,7 @@ protected:
 template <typename T=char>
 class allocator_w_dy : public allocator_w<T>
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(allocator_w_dy)
 protected:
 	allocator_w_dy() : allocator_w<T>()			{}
 	allocator_w_dy(size_t sz) : allocator_w<T>()	{ checkwrite(sz); }
@@ -460,6 +465,7 @@ protected:
 template <typename T=char>
 class allocator_w_st : public allocator_w<T>
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(allocator_w_st)
 protected:
 	allocator_w_st()			{}			// no implementation here
 	allocator_w_st(size_t sz)	{}			// no implementation here
@@ -480,6 +486,7 @@ protected:
 template <typename T=unsigned char>
 class allocator_rw : public virtual allocator<T>
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(allocator_rw)
 protected:
 	T* cBuf;
 	T* cEnd;
@@ -515,6 +522,7 @@ public:
 template <typename T=unsigned char>
 class allocator_rw_dy : public allocator_rw<T>
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(allocator_rw_dy)
 protected:
 	allocator_rw_dy() : allocator_rw<T>()			{}
 	allocator_rw_dy(size_t sz) : allocator_rw<T>()	{ checkwrite(sz); }
@@ -564,6 +572,7 @@ protected:
 template <typename T=unsigned char>
 class allocator_rw_st : public allocator_rw<T>
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(allocator_rw_st)
 protected:
 	allocator_rw_st()			{}
 	allocator_rw_st(size_t sz)	{}
@@ -598,6 +607,7 @@ protected:
 template <typename T=unsigned char>
 class allocator_r : public virtual allocator<T>
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(allocator_r)
 protected:
 	T* cBuf;
 	T* cEnd;
@@ -641,6 +651,7 @@ public:
 template <typename T=unsigned char>
 class allocator_r_dy : public allocator_r<T>
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(allocator_r_dy)
 protected:
 	allocator_r_dy() : allocator_r<T>()				{  }
 	allocator_r_dy(size_t sz) : allocator_r<T>()	{ this->checkwrite(sz); }

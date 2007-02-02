@@ -103,7 +103,9 @@ int party_created(uint32 account_id,int fail,uint32 party_id,const char *name)
 // 情報要求
 int party_request_info(uint32 party_id)
 {
-	return intif_request_partyinfo(party_id);
+	if( party_id > 0 && party_search(party_id)==NULL )
+		return intif_request_partyinfo(party_id);
+	return 1;
 }
 
 // 所属キャラの確認

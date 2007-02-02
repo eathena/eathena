@@ -410,8 +410,15 @@ extern long altzone;
 #pragma warning(disable :  373) // "copy constructor of copy forbidden classes" is inaccessible (which is actually exact what we intended)
 #pragma warning(disable :  522) // function redeclared "inline" after being called
 
+////////////////////////////////////////////////////////////////////////////////
+/// Problems with ICL which is not possible to disable remark 373
+/// which is spamming idiotic stuff
+#define ICL_DUMMY_COPYCONSTRUCTOR(a)	a(const a&) {}
+#define ICL_EMPTY_COPYCONSTRUCTOR(a)	a(const a&);
+#else
+#define ICL_DUMMY_COPYCONSTRUCTOR(a)
+#define ICL_EMPTY_COPYCONSTRUCTOR(a)
 #endif
-
 
 
 #if defined(__BORLANDC__)
@@ -946,37 +953,37 @@ inline void minmax(const T &i1, const T &i2, T &minval, T &maxval)
 ///////////////////////////////////////////////////////////////////////////////
 /// conversion overloads. to change signed types to the appropriate unsigned
 ///////////////////////////////////////////////////////////////////////////////
-inline size_t to_unsigned(char t)
+inline unsigned char to_unsigned(char t)
 {
 	return (unsigned char)(t);
 }
-inline size_t to_unsigned(unsigned char t)
+inline unsigned char to_unsigned(unsigned char t)
 {
 	return (unsigned char)(t);
 }
 // UCT2
-inline size_t to_unsigned(short t)
+inline unsigned short to_unsigned(short t)
 {
 	return (unsigned short)(t);
 }
-inline size_t to_unsigned(unsigned short t)
+inline unsigned short to_unsigned(unsigned short t)
 {
 	return (unsigned short)(t);
 }
 // others, just to be complete
-inline size_t to_unsigned(int t)
+inline unsigned int to_unsigned(int t)
 {
 	return (unsigned int)(t);
 }
-inline size_t to_unsigned(unsigned int t)
+inline unsigned int to_unsigned(unsigned int t)
 {
 	return (unsigned int)(t);
 }
-inline size_t to_unsigned(long t)
+inline unsigned long to_unsigned(long t)
 {
 	return (unsigned long)(t);
 }
-inline size_t to_unsigned(unsigned long t)
+inline unsigned long to_unsigned(unsigned long t)
 {
 	return (unsigned long)(t);
 }
@@ -1003,37 +1010,37 @@ inline long double to_unsigned(long double t)
 ///////////////////////////////////////////////////////////////////////////////
 /// conversion overloads. to change unsigned types to the appropriate signed
 ///////////////////////////////////////////////////////////////////////////////
-inline ssize_t to_signed(char t)
+inline signed char to_signed(char t)
 {
 	return (signed char)(t);
 }
-inline ssize_t to_signed(unsigned char t)
+inline signed char to_signed(unsigned char t)
 {
 	return (signed char)(t);
 }
 // UCT2
-inline ssize_t to_signed(short t)
+inline signed short to_signed(short t)
 {
 	return (signed short)(t);
 }
-inline ssize_t to_signed(unsigned short t)
+inline signed short to_signed(unsigned short t)
 {
 	return (signed short)(t);
 }
 // others, just to be complete
-inline ssize_t to_signed(int t)
+inline signed int to_signed(int t)
 {
 	return (signed int)(t);
 }
-inline ssize_t to_signed(unsigned int t)
+inline signed int to_signed(unsigned int t)
 {
 	return (signed int)(t);
 }
-inline ssize_t to_signed(long t)
+inline signed long to_signed(long t)
 {
 	return (signed long)(t);
 }
-inline ssize_t to_signed(unsigned long t)
+inline signed long to_signed(unsigned long t)
 {
 	return (signed long)(t);
 }

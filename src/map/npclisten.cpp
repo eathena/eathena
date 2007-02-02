@@ -12,7 +12,7 @@
 #include "chat.h"
 #include "script.h"
 #include "battle.h"
-
+#include "pc.h"
 
 #ifdef WITH_PCRE
 

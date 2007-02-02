@@ -370,9 +370,9 @@ struct eacompiler
 	bool is_const() const;
 	void put_nonconst();
 	void put_command(command_t command);
-	void put_command(command_t command, int p);
-	void put_command(command_t command, const basics::string<>& s);
-	void eacompiler::put_command(command_t command, const basics::string<>& s, int p);
+	void put_intcommand(command_t command, int p);
+	void put_strcommand(command_t command, const basics::string<>& s);
+	void put_fnccommand(command_t command, const basics::string<>& s, int p);
 	void put_varcommand(command_t command, int64 i);
 
 

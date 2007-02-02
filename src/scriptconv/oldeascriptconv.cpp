@@ -784,7 +784,56 @@ bool oldeaprinter::transform_function(basics::CParser_CommentStore& parser, int 
 
 		size_t paramcounter= parameter.size();
 
-		if( function_name=="input" )
+		function_name.tolower();
+		if( function_name == "if" || function_name == "else" || function_name == "for" || 
+			function_name == "while" || function_name == "return" || function_name == "continue" || 
+			function_name == "gosub" || function_name == "string" || function_name == "int" || 
+			function_name == "double" || function_name == "auto" || function_name == "var" )
+		{	// keyword as function name
+			fprintf(stderr, "invalid use of keyword '%s', line %i\n",
+				function_name.c_str(), (int)namenode->cToken.line);
+			return false;
+		}
+		else if( function_name== "goto" )
+		{	// some misspelled goto
+			if(parameter.size()==0)
+			{
+				fprintf(stderr, "invalid 'goto' statement, line %i\n",
+					(int)namenode->cToken.line);
+				return false;
+			}
+			else
+			{
+				basics::CStackElement* n = &parser.rt[parameter[0]];
+				while( n && n->cChildNum )
+					n = &parser.rt[n->cChildPos];
+				if( n && n->symbol.idx==EA_IDENTIFIER )
+				{
+					prn << "goto " << n->cToken.cLexeme;
+				}
+				else
+				{
+					fprintf(stderr, "invalid 'goto' statement, line %i\n",
+						(int)namenode->cToken.line);
+					return false;
+				}
+			}
+			// return here as we don't need the rest below to complete the string
+			return true;
+		}
+		else if( function_name=="break" )
+		{	// some misspelled break
+			prn << "break";
+			// return here as we don't need the rest below to complete the string
+			return true;
+		}
+		else if( function_name=="end" )
+		{	// some misspelled end
+			prn << "end";
+			// return here as we don't need the rest below to complete the string
+			return true;
+		}
+		else if( function_name=="input" )
 		{	// input <var>
 			// -> <var> = inputstring() or inputnumber()
 			if(parameter.size()==0)
@@ -1139,6 +1188,7 @@ bool oldeaprinter::transform_identifier(basics::CParser_CommentStore& parser, in
 	if(str<=epp)
 	{
 		basics::string<> tmp(str, epp-str+1);
+		tmp.tolower();
 		// test for stuff from constdb
 		const const_entry* ce;
 		if( maybe_player && (ce = const_entry::lookup( tmp )) &&

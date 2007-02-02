@@ -315,6 +315,7 @@ bool findFiles(const char *p, const char *pat, const CFileProcessor& fp)
 
 class CSimpleFileProcessor  : public CFileProcessor
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CSimpleFileProcessor)
 	void (*func)(const char*);
 public:
 	CSimpleFileProcessor( void (*f)(const char*) ) : func(f)	{}

@@ -1,34 +1,29 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
+#include "atcommand.h"
+#include "core.h"
 #include "socket.h"
 #include "timer.h"
 #include "nullpo.h"
 #include "mmo.h"
 #include "db.h"
-#include "core.h"
 #include "showmsg.h"
 #include "utils.h"
 
-
-#include "log.h"
 #include "clif.h"
-#include "chrif.h"
-#include "intif.h"
-#include "itemdb.h"
-#include "map.h"
-#include "pc.h"
-#include "status.h"
-#include "skill.h"
-#include "mob.h"
-#include "pet.h"
-#include "battle.h"
-#include "party.h"
-#include "guild.h"
-#include "atcommand.h"
-#include "script.h"
+#include "chat.h"
 #include "npc.h"
+#include "guild.h"
+#include "intif.h"
+#include "chrif.h"
+#include "itemdb.h"
+#include "pc.h"
+#include "mob.h"
+#include "party.h"
+#include "pet.h"
 #include "trade.h"
+#include "log.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2167,12 +2162,12 @@ bool command_grind(int fd, map_session_data& sd, const char* command, const basi
 ///
 bool command_grind2(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	int i, x, y, id;
+	int i, x, y;
 	for(i=1000; i<2000; ++i)
 	{
 		x = sd.block_list::x + (rand() % 10 - 5);
 		y = sd.block_list::y + (rand() % 10 - 5);
-		id = mob_once_spawn(&sd, "this", x, y, "--ja--", i, 1, "");
+		mob_once_spawn(&sd, "this", x, y, "--ja--", i, 1, "");
 	}
 	return true;
 }
@@ -3336,6 +3331,7 @@ bool command_killmonster(int fd, map_session_data& sd, const char* command, cons
 {
 	class CAtKillMonster : public CMapProcessor
 	{
+		ICL_EMPTY_COPYCONSTRUCTOR(CAtKillMonster)
 		int flag;
 	public:
 		CAtKillMonster(int f) : flag(f)	{}
@@ -7481,4 +7477,5 @@ bool CommandInfo::is_command(const int fd, map_session_data &sd, const char* mes
 	}
 	return false;
 }
+
 

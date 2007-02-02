@@ -6,6 +6,7 @@
 #include "malloc.h"
 #include "map.h"
 #include "npc.h"
+#include "chat.h"
 #include "clif.h"
 #include "intif.h"
 #include "pc.h"
@@ -684,6 +685,7 @@ int npc_data::event(const char*onevent, const char*npcevent, map_session_data& s
  */
 class CNpcEnable : public CMapProcessor
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CNpcEnable)
 	npc_data &nd;
 public:
 	CNpcEnable(npc_data &n) : nd(n)	{}
@@ -1441,13 +1443,12 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
  */
 int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4,const char *first_line,FILE *fp,int *lines, npc_data **dummy_npc)
 {
-	int x, y, dir = 0, m, xs = 0, ys = 0, class_ = 0;	// [Valaris] thanks to fov
+	int x, y, dir = 0, m, xs = 0, ys = 0, class_ = 0;	//  thanks to fov
 	char mapname[32], *ip;
 	unsigned char *srcbuf=NULL;
 	size_t srcsize=65536;
 	int startline = 0;
 	unsigned char line[1024];
-	size_t i;
 
 	struct script_object *ref=NULL;
 
@@ -1645,51 +1646,53 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 	//-----------------------------------------
 	// イベント用ラベルデータのエクスポート
 	if(!dummy_npc)
-	for(i=0;i<nd->ref->label_count();++i)
 	{
-		const script_object::script_label& label = nd->ref->get_label(i);
-
-		// export event labels (all labels starting with "On")
-		if( basics::locase(label.name[0])=='o' && basics::locase(label.name[1])=='n' ) 
+		size_t i;
+		for(i=0;i<nd->ref->label_count();++i)
 		{
-			struct event_data *ev = (struct event_data *)strdb_search(ev_db, label.name);
-			if( ev )
-			{
-				if( !ev->insert(*nd, label.pos) )
-					ShowError("npc_parse_script : duplicate event %s::%s\n", nd->exname, label.name);
-			}
-			else
-			{
-				ev = new struct event_data(label.name);
-				ev->insert(*nd,label.pos);
-				strdb_insert(ev_db, (const char*)ev->event_name, ev);
-			}
-		}
+			const script_object::script_label& label = nd->ref->get_label(i);
 
-		// ラベルデータからタイマーイベント取り込み
-		int n = 0;
-		ulong t = 0;
-		if(sscanf(label.name,"OnTimer%lu%n",&t,&n)==1 && label.name[n]=='\0')
-		{
-			// タイマーイベント
-			struct npc_timerevent *te = nd->ontimer_list;
-			int j, k = nd->ontimer_cnt;
-
-			new_realloc(te,k,1);
-			for(j=0;j<k;++j)
+			// export event labels (all labels starting with "On")
+			if( basics::locase(label.name[0])=='o' && basics::locase(label.name[1])=='n' ) 
 			{
-				if(te[j].tick>t)
+				struct event_data *ev = (struct event_data *)strdb_search(ev_db, label.name);
+				if( ev )
 				{
-					memmove(te+j+1, te+j, sizeof(struct npc_timerevent)*(k-j));
-					break;
+					if( !ev->insert(*nd, label.pos) )
+						ShowError("npc_parse_script : duplicate event %s::%s\n", nd->exname, label.name);
+				}
+				else
+				{
+					ev = new struct event_data(label.name);
+					ev->insert(*nd,label.pos);
+					strdb_insert(ev_db, (const char*)ev->event_name, ev);
 				}
 			}
-			te[j].tick = t;
-			te[j].pos = label.pos;
-			nd->ontimer_list = te;
-			nd->ontimer_cnt = k+1;
-		}
 
+			// ラベルデータからタイマーイベント取り込み
+			int n = 0;
+			ulong t = 0;
+			if(sscanf(label.name,"OnTimer%lu%n",&t,&n)==1 && label.name[n]=='\0')
+			{
+				// タイマーイベント
+				struct npc_timerevent *te = nd->ontimer_list;
+				int j, k = nd->ontimer_cnt;
+
+				new_realloc(te,k,1);
+				for(j=0;j<k;++j)
+				{
+					if(te[j].tick>t)
+					{
+						memmove(te+j+1, te+j, sizeof(struct npc_timerevent)*(k-j));
+						break;
+					}
+				}
+				te[j].tick = t;
+				te[j].pos = label.pos;
+				nd->ontimer_list = te;
+				nd->ontimer_cnt = k+1;
+			}
+		}
 	}
 	return 0;
 }
@@ -1901,15 +1904,19 @@ int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const char *w
 		return 1;
 
 	//マップフラグ
-	if ( strcasecmp(w3,"nosave")==0) {
+	if ( strcasecmp(w3,"nosave")==0)
+	{
 		char savemap[32];
 		int savex, savey;
-		if (strcmp(w4, "SavePoint") == 0) {
+		if (strcmp(w4, "SavePoint") == 0)
+		{
 			safestrcpy(maps[m].nosave.mapname, sizeof(maps[m].nosave.mapname), "SavePoint");
 			maps[m].nosave.x = -1;
 			maps[m].nosave.y = -1;
-		} else if (sscanf(w4, "%32[^,],%d,%d", savemap, &savex, &savey) == 3) {
-			char*ip = strchr(savemap, '.');
+		}
+		else if (sscanf(w4, "%32[^,],%d,%d", savemap, &savex, &savey) == 3)
+		{
+			ip = strchr(savemap, '.');
 			if(ip) *ip=0;
 			safestrcpy(maps[m].nosave.mapname, sizeof(maps[m].nosave.mapname), savemap);			
 			maps[m].nosave.x = savex;
@@ -1917,40 +1924,52 @@ int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const char *w
 		}
 		maps[m].flag.nosave = 1;
 	}
-	else if (strcasecmp(w3,"nomemo")==0) {
+	else if (strcasecmp(w3,"nomemo")==0)
+	{
 		maps[m].flag.nomemo=1;
 	}
-	else if (strcasecmp(w3,"noteleport")==0) {
+	else if (strcasecmp(w3,"noteleport")==0)
+	{
 		maps[m].flag.noteleport=1;
 	}
-	else if (strcasecmp(w3,"nowarp")==0) {
+	else if (strcasecmp(w3,"nowarp")==0)
+	{
 		maps[m].flag.nowarp=1;
 	}
-	else if (strcasecmp(w3,"nowarpto")==0) {
+	else if (strcasecmp(w3,"nowarpto")==0)
+	{
 		maps[m].flag.nowarpto=1;
 	}
-	else if (strcasecmp(w3,"noreturn")==0) {
+	else if (strcasecmp(w3,"noreturn")==0)
+	{
 		maps[m].flag.noreturn=1;
 	}
-	else if (strcasecmp(w3,"monster_noteleport")==0) {
+	else if (strcasecmp(w3,"monster_noteleport")==0)
+	{
 		maps[m].flag.monster_noteleport=1;
 	}
-	else if (strcasecmp(w3,"nobranch")==0) {
+	else if (strcasecmp(w3,"nobranch")==0)
+	{
 		maps[m].flag.nobranch=1;
 	}
-	else if (strcasecmp(w3,"nopenalty")==0) {
+	else if (strcasecmp(w3,"nopenalty")==0)
+	{
 		maps[m].flag.nopenalty=1;
 	}
-	else if (strcasecmp(w3,"pvp")==0) {
+	else if (strcasecmp(w3,"pvp")==0)
+	{
 		maps[m].flag.pvp=1;
 	}
-	else if (strcasecmp(w3,"pvp_noparty")==0) {
+	else if (strcasecmp(w3,"pvp_noparty")==0)
+	{
 		maps[m].flag.pvp_noparty=1;
 	}
-	else if (strcasecmp(w3,"pvp_noguild")==0) {
+	else if (strcasecmp(w3,"pvp_noguild")==0)
+	{
 		maps[m].flag.pvp_noguild=1;
 	}
-	else if (strcasecmp(w3,"pvp_nightmaredrop")==0) {
+	else if (strcasecmp(w3,"pvp_nightmaredrop")==0)
+	{
 		char drop_arg1[16], drop_arg2[16];
 		int drop_id = 0, drop_type = 0, drop_per = 0;
 		if( sscanf(w4, "%16[^,],%16[^,],%d", drop_arg1, drop_arg2, &drop_per) == 3 )
@@ -1983,82 +2002,107 @@ int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const char *w
 			}
 		}
 	}
-	else if (strcasecmp(w3,"pvp_nocalcrank")==0) {
+	else if (strcasecmp(w3,"pvp_nocalcrank")==0)
+	{
 		maps[m].flag.pvp_nocalcrank=1;
 	}
-	else if (strcasecmp(w3,"gvg")==0) {
+	else if (strcasecmp(w3,"gvg")==0)
+	{
 		maps[m].flag.gvg=1;
 	}
-	else if (strcasecmp(w3,"gvg_noparty")==0) {
+	else if (strcasecmp(w3,"gvg_noparty")==0)
+	{
 		maps[m].flag.gvg_noparty=1;
 	}
-	else if (strcasecmp(w3,"gvg_dungeon")==0) {
+	else if (strcasecmp(w3,"gvg_dungeon")==0)
+	{
 		maps[m].flag.gvg_dungeon=1;
 	}
-	else if (strcasecmp(w3,"nozenypenalty")==0) {
+	else if (strcasecmp(w3,"nozenypenalty")==0)
+	{
 		maps[m].flag.nozenypenalty=1;
 	}
-	else if (strcasecmp(w3,"notrade")==0) {
+	else if (strcasecmp(w3,"notrade")==0)
+	{
 		maps[m].flag.notrade=1;
 	}
-	else if (strcasecmp(w3,"noskill")==0) {
+	else if (strcasecmp(w3,"noskill")==0)
+	{
 		maps[m].flag.noskill=1;
 	}
-	else if (config.pk_mode && strcasecmp(w3,"nopvp")==0) { // nopvp for pk mode [Valaris]
+	else if (config.pk_mode && strcasecmp(w3,"nopvp")==0)
+	{
 		maps[m].flag.nopvp=1;
 		maps[m].flag.pvp=0;
 	}
-	else if (strcasecmp(w3,"noicewall")==0) { // noicewall [Valaris]
+	else if (strcasecmp(w3,"noicewall")==0)
+	{
 		maps[m].flag.noicewall=1;
 	}
-	else if (strcasecmp(w3,"snow")==0) { // snow [Valaris]
+	else if (strcasecmp(w3,"snow")==0)
+	{
 		maps[m].flag.snow=1;
 	}
-	else if (strcasecmp(w3,"clouds")==0) {
+	else if (strcasecmp(w3,"clouds")==0)
+	{
 		maps[m].flag.clouds=1;
 	}
-	else if (strcasecmp(w3,"clouds2")==0) {
+	else if (strcasecmp(w3,"clouds2")==0)
+	{
 		maps[m].flag.clouds2=1;
 	}
-	else if (strcasecmp(w3,"fog")==0) { // fog [Valaris]
+	else if (strcasecmp(w3,"fog")==0)
+	{
 		maps[m].flag.fog=1;
 	}
-	else if (strcasecmp(w3,"fireworks")==0) {
+	else if (strcasecmp(w3,"fireworks")==0)
+	{
 		maps[m].flag.fireworks=1;
 	}
-	else if (strcasecmp(w3,"sakura")==0) { // sakura [Valaris]
+	else if (strcasecmp(w3,"sakura")==0)
+	{
 		maps[m].flag.sakura=1;
 	}
-	else if (strcasecmp(w3,"leaves")==0) { // leaves [Valaris]
+	else if (strcasecmp(w3,"leaves")==0)
+	{
 		maps[m].flag.leaves=1;
 	}
-	else if (strcasecmp(w3,"rain")==0) { // rain [Valaris]
+	else if (strcasecmp(w3,"rain")==0)
+	{
 		maps[m].flag.rain=1;
 	}
-	else if (strcasecmp(w3,"indoors")==0) { // celest
+	else if (strcasecmp(w3,"indoors")==0)
+	{
 		maps[m].flag.indoors=1;
 	}
-	else if (strcasecmp(w3,"nogo")==0) { // celest
+	else if (strcasecmp(w3,"nogo")==0)
+	{
 		maps[m].flag.nogo=1;
 	}
-	else if (strcasecmp(w3,"noexp")==0) { // Lorky
+	else if (strcasecmp(w3,"noexp")==0)
+	{
 		maps[m].flag.nobaseexp=1;
 		maps[m].flag.nojobexp=1;
 	}
-	else if (strcasecmp(w3,"nobaseexp")==0) { // Lorky
+	else if (strcasecmp(w3,"nobaseexp")==0)
+	{
 		maps[m].flag.nobaseexp=1;
 	}
-	else if (strcasecmp(w3,"nojobexp")==0) { // Lorky
+	else if (strcasecmp(w3,"nojobexp")==0)
+	{
 		maps[m].flag.nojobexp=1;
 	}
-	else if (strcasecmp(w3,"noloot")==0) { // Lorky
+	else if (strcasecmp(w3,"noloot")==0)
+	{
 		maps[m].flag.nomobloot=1;
 		maps[m].flag.nomvploot=1;
 	}
-	else if (strcasecmp(w3,"nomobloot")==0) { // Lorky
+	else if (strcasecmp(w3,"nomobloot")==0)
+	{
 		maps[m].flag.nomobloot=1;
 	}
-	else if (strcasecmp(w3,"nomvploot")==0) { // Lorky
+	else if (strcasecmp(w3,"nomvploot")==0)
+	{
 		maps[m].flag.nomvploot=1;
 	}
 
@@ -2109,7 +2153,7 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 	int m, lines = 0;
 	char line[1024];
 	char w1[1024], w2[1024], w3[1024], w4[1024], mapname[1024], *ip;
-	unsigned int i, j;
+	int i, j;
 	int count, w4pos;
 	FILE *fp;
 

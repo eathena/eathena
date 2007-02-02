@@ -6,7 +6,12 @@
 
 #include "socket.h"
 #include "map.h"
-#include "chat.h"
+
+
+
+// protocol version
+#define PACKETVER			6
+
 
 bool clif_packetsend(int fd, map_session_data &sd, unsigned short cmd, int info[], size_t sz);
 
@@ -129,6 +134,7 @@ int clif_guildstorageitemadded(map_session_data &sd,struct guild_storage &stor,u
 
 class CClifInsight : public CMapProcessor
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CClifInsight)
 	block_list &tbl;
 	map_session_data *tsd;
 public:
@@ -138,6 +144,7 @@ public:
 };
 class CClifOutsight : public CMapProcessor
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CClifOutsight)
 	block_list &tbl;
 	map_session_data *tsd;
 public:

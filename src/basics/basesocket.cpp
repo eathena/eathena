@@ -681,6 +681,7 @@ void test_socket()
 
 class socketprocessor : public noncopyable
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(socketprocessor)
 public:
 	SOCKET sock;
 	socketprocessor(SOCKET s=INVALID_SOCKET) : sock(s)	{}
@@ -692,6 +693,7 @@ public:
 class testproc;
 class testserver : public socketprocessor
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(testserver)
 	friend class testproc;
 public:
 	CFDSET fds;
@@ -773,6 +775,7 @@ smap<SOCKET, socketprocessor*> testserver::sessionmap;
 
 class testproc : public socketprocessor
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(testproc)
 	testserver& server;
 public:
 
@@ -838,6 +841,7 @@ int testserver::run()
 
 class testclient : public socketprocessor
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(testclient)
 public:
 	netaddress ipaddr;
 	testclient(const netaddress& ip) : ipaddr(ip)

@@ -313,8 +313,8 @@ int guild_created(uint32 account_id,uint32 guild_id)
 
 	if(guild_id>0)
 	{
-		struct guild *g;
-		if((g=(struct guild *) numdb_search(guild_db,guild_id))!=NULL)
+		const struct guild *g=(struct guild *) numdb_search(guild_db,guild_id);
+		if(g!=NULL)
 		{
 			ShowMessage("guild: id already exists!\n");
 			return 0;
@@ -993,13 +993,10 @@ int guild_payexp(map_session_data &sd, uint32 exp)
 // Celest
 int guild_getexp(map_session_data &sd,int exp)
 {
-	struct guild *g;
-	struct guild_expcache *c;
-	
-	if(sd.status.guild_id==0 || (g=guild_search(sd.status.guild_id))==NULL )
+	if(sd.status.guild_id==0 || guild_search(sd.status.guild_id)==NULL )
 		return 0;
-
-	if( (c=(struct guild_expcache *) numdb_search(guild_expcache_db,sd.status.char_id))==NULL )
+	struct guild_expcache *c=(struct guild_expcache *) numdb_search(guild_expcache_db,sd.status.char_id);
+	if( c==NULL )
 	{
 		c = new struct guild_expcache;
 		c->guild_id=sd.status.guild_id;
@@ -1007,7 +1004,9 @@ int guild_getexp(map_session_data &sd,int exp)
 		c->char_id=sd.status.char_id;
 		c->exp = exp;
 		numdb_insert(guild_expcache_db,c->char_id,c);
-	} else {
+	}
+	else
+	{
 		double tmp = c->exp + exp;
 		c->exp = (tmp > double(INT_MAX)) ? INT_MAX : (int)tmp;
 	}
@@ -1239,28 +1238,28 @@ int guild_allianceack(uint32 guild_id1,uint32 guild_id2,uint32 account_id1,uint3
 	struct guild *g[2];
 	uint32 guild_id[2];
 	const char *guild_name[2];
-	map_session_data *sd[2];
+	map_session_data *sds[2];
 	int j,i;
 
 	guild_id[0] = guild_id1;
 	guild_id[1] = guild_id2;
 	guild_name[0] = name1;
 	guild_name[1] = name2;
-	sd[0] = map_session_data::from_blid(account_id1);
-	sd[1] = map_session_data::from_blid(account_id2);
+	sds[0] = map_session_data::from_blid(account_id1);
+	sds[1] = map_session_data::from_blid(account_id2);
 
 	g[0]=guild_search(guild_id1);
 	g[1]=guild_search(guild_id2);
 
-	if(sd[0]!=NULL && (flag&0x0f)==0){
-		sd[0]->guild_alliance=0;
-		sd[0]->guild_alliance_account=0;
+	if(sds[0]!=NULL && (flag&0x0f)==0){
+		sds[0]->guild_alliance=0;
+		sds[0]->guild_alliance_account=0;
 	}
 
 	if(flag&0x70){	// ¸”s
 		for(i=0;i<2-(flag&1);++i)
-			if( sd[i]!=NULL )
-				clif_guild_allianceack(*sd[i],((flag>>4)==i+1)?3:4);
+			if( sds[i]!=NULL )
+				clif_guild_allianceack(*sds[i],((flag>>4)==i+1)?3:4);
 		return 0;
 	}
 //	if(config.etc_log)
@@ -1285,26 +1284,30 @@ int guild_allianceack(uint32 guild_id1,uint32 guild_id2,uint32 account_id1,uint3
 						g[i]->alliance[j].guild_id=0;
 						break;
 					}
-			if( sd[i]!=NULL )	// ‰ğÁ’Ê’m
-				clif_guild_delalliance(*sd[i],guild_id[1-i],(flag&1));
+			if( sds[i]!=NULL )	// ‰ğÁ’Ê’m
+				clif_guild_delalliance(*sds[i],guild_id[1-i],(flag&1));
 		}
 	}
 
 	if((flag&0x0f)==0){			// “¯–¿’Ê’m
-		if( sd[1]!=NULL )
-			clif_guild_allianceack(*sd[1],2);
+		if( sds[1]!=NULL )
+			clif_guild_allianceack(*sds[1],2);
 	}else if((flag&0x0f)==1){	// “G‘Î’Ê’m
-		if( sd[0]!=NULL )
-			clif_guild_oppositionack(*sd[0],0);
+		if( sds[0]!=NULL )
+			clif_guild_oppositionack(*sds[0],0);
 	}
 
 
-	for(i=0;i<2-(flag&1);++i){	// “¯–¿/“G‘ÎƒŠƒXƒg‚ÌÄ‘—M
-		map_session_data *sd;
+	for(i=0;i<2-(flag&1);++i)
+	{	// “¯–¿/“G‘ÎƒŠƒXƒg‚ÌÄ‘—M
 		if(g[i]!=NULL)
+		{
 			for(j=0;j<g[i]->max_member; ++j)
-				if((sd=g[i]->member[j].sd)!=NULL)
-					clif_guild_allianceinfo(*sd);
+			{
+				if( g[i]->member[j].sd != NULL )
+					clif_guild_allianceinfo(*g[i]->member[j].sd);
+			}
+		}
 	}
 	return 0;
 }
@@ -1312,16 +1315,16 @@ int guild_allianceack(uint32 guild_id1,uint32 guild_id2,uint32 account_id1,uint3
 // ƒMƒ‹ƒh‰ğU’Ê’m
 int guild_broken(uint32 guild_id,int flag)
 {
-	guild *g;
-	if( flag==0 && (g=guild_search(guild_id)) )
+	guild *gg;
+	if( flag==0 && (gg=guild_search(guild_id)) )
 	{
 		map_session_data *sd;
-		int i;
+		int i,j;
 
 		// clear members
-		for(i=0;i<g->max_member;++i)
+		for(i=0;i<gg->max_member;++i)
 		{	// ƒMƒ‹ƒh‰ğU‚ğ’Ê’m
-			if((sd=g->member[i].sd)!=NULL)
+			if((sd=gg->member[i].sd)!=NULL)
 			{
 				if(sd->state.storage_flag)
 					storage_guild_storage_quit(*sd,1);
@@ -1335,21 +1338,20 @@ int guild_broken(uint32 guild_id,int flag)
 		db_iterator<size_t, guild*> giter(guild_db);
 		for(; giter; ++giter)
 		{
-			guild *g=giter.data();
-			if(g)
+			guild *gi=giter.data();
+			if(gi)
 			{
-				int i,j;
 				for(i=0;i<MAX_GUILDALLIANCE;++i)
 				{	// ŠÖŒW‚ğ”jŠü
-					if(g->alliance[i].guild_id==guild_id)
+					if(gi->alliance[i].guild_id==guild_id)
 					{
-						for(j=0;j<g->max_member; ++j)
+						for(j=0;j<gi->max_member; ++j)
 						{
-							if( (sd=g->member[j].sd)!=NULL )
-								clif_guild_delalliance(*sd,guild_id,g->alliance[i].opposition);
+							if( (sd=gi->member[j].sd)!=NULL )
+								clif_guild_delalliance(*sd,guild_id,gi->alliance[i].opposition);
 						}
-						intif_guild_alliance(g->guild_id, guild_id,0,0,g->alliance[i].opposition|8);
-						g->alliance[i].guild_id=0;
+						intif_guild_alliance(gi->guild_id, guild_id,0,0,gi->alliance[i].opposition|8);
+						gi->alliance[i].guild_id=0;
 					}
 				}
 			}
@@ -1372,7 +1374,7 @@ int guild_broken(uint32 guild_id,int flag)
 
 		// 
 		numdb_erase(guild_db,guild_id);
-		delete g;
+		delete gg;
 	}
 	return 0;
 }

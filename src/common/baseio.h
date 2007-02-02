@@ -60,6 +60,7 @@ inline log_interface& operator <<(log_interface& l, uint i)
 template<typename T>
 class CDB_if : public basics::noncopyable, public basics::global
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CDB_if)
 public:
 	CDB_if():warned(false)			{}
 	virtual ~CDB_if()	{}
@@ -101,6 +102,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CAccountDBInterface : public CDB_if<CLoginAccount>
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CAccountDBInterface)
 protected:
 	static basics::CParam<bool> case_sensitive;
 
@@ -178,6 +180,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CCharDBInterface : public basics::noncopyable, public basics::global
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CCharDBInterface)
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	static basics::CParam<bool>				char_new;	
@@ -295,6 +298,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CGuildDBInterface : public basics::noncopyable, public basics::global
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CGuildDBInterface)
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
@@ -437,6 +441,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CPartyDBInterface : public basics::noncopyable, public basics::global
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CPartyDBInterface)
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
@@ -541,6 +546,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CPCStorageDBInterface : public basics::noncopyable, public basics::global
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CPCStorageDBInterface)
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
@@ -559,6 +565,7 @@ public:
 };
 class CGuildStorageDBInterface : public basics::noncopyable, public basics::global
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CGuildStorageDBInterface)
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
@@ -699,6 +706,7 @@ class CPet : public petstatus
 ///////////////////////////////////////////////////////////////////////////////
 class CPetDBInterface : public basics::noncopyable, public basics::global
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CPetDBInterface)
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
@@ -788,6 +796,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CHomunculusDBInterface : public basics::noncopyable, public basics::global
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CHomunculusDBInterface)
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
@@ -972,6 +981,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CVarDBInterface : public basics::noncopyable, public basics::global
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CVarDBInterface)
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct

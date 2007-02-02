@@ -9,161 +9,187 @@ enum command_t
 {
 	/////////////////////////////////////////////////////////////////
 	// "no operation" as usual
-	OP_NOP				=  0,	
+	OP_NOP=0,					
 	/////////////////////////////////////////////////////////////////
 	// assignment operations
 	// take two stack values and push up one
-	OP_ASSIGN			=  1,	// <Op If> '='   <Op>
+	OP_ASSIGN,					// <Op If> '='   <Op>
 	/////////////////////////////////////////////////////////////////
 	// logic operations
 	// take two stack values and push a value
-	OP_BIN_AND			=  2,	// <Op BinAND> '&' <Op Equate>
-	OP_BIN_OR			=  3,	// <Op BinOr> '|' <Op BinXOR>
-	OP_BIN_XOR			=  4,	// <Op BinXOR> '^' <Op BinAND>
+	OP_BIN_AND,					// <Op BinAND> '&' <Op Equate>
+	OP_BIN_OR,					// <Op BinOr> '|' <Op BinXOR>
+	OP_BIN_XOR,					// <Op BinXOR> '^' <Op BinAND>
 	/////////////////////////////////////////////////////////////////
 	// compare operations
 	// take two stack values and push a boolean value
-	OP_EQUATE			=  5,	// <Op Equate> '==' <Op Compare>
-	OP_UNEQUATE			=  6,	// <Op Equate> '!=' <Op Compare>
-	OP_ISGT				=  7,	// <Op Compare> '>'  <Op Shift>
-	OP_ISGTEQ			=  8,	// <Op Compare> '>=' <Op Shift>
-	OP_ISLT				=  9,	// <Op Compare> '<'  <Op Shift>
-	OP_ISLTEQ			= 10,	// <Op Compare> '<=' <Op Shift>
+	OP_EQUATE,					// <Op Equate> '==' <Op Compare>
+	OP_UNEQUATE,				// <Op Equate> '!=' <Op Compare>
+	OP_ISGT,					// <Op Compare> '>'  <Op Shift>
+	OP_ISGTEQ,					// <Op Compare> '>=' <Op Shift>
+	OP_ISLT,					// <Op Compare> '<'  <Op Shift>
+	OP_ISLTEQ,					// <Op Compare> '<=' <Op Shift>
 	/////////////////////////////////////////////////////////////////
 	// shift operations
 	// take two stack values and push a value
-	OP_LSHIFT			= 11,	// <Op Shift> '<<' <Op AddSub>
-	OP_RSHIFT			= 12,	// <Op Shift> '>>' <Op AddSub>
+	OP_LSHIFT,					// <Op Shift> '<<' <Op AddSub>
+	OP_RSHIFT,					// <Op Shift> '>>' <Op AddSub>
 	/////////////////////////////////////////////////////////////////
 	// add/sub operations
 	// take two stack values and push a value
-	OP_ADD				= 13,	// <Op AddSub> '+' <Op MultDiv>
-	OP_SUB				= 14,	// <Op AddSub> '-' <Op MultDiv>
+	OP_ADD,						// <Op AddSub> '+' <Op MultDiv>
+	OP_SUB,						// <Op AddSub> '-' <Op MultDiv>
 	/////////////////////////////////////////////////////////////////
 	// mult/div/modulo operations
 	// take two stack values and push a value
-	OP_MUL				= 15,	// <Op MultDiv> '*' <Op Unary>
-	OP_DIV				= 16,	// <Op MultDiv> '/' <Op Unary>
-	OP_MOD				= 17,	// <Op MultDiv> '%' <Op Unary>
+	OP_MUL,						// <Op MultDiv> '*' <Op Unary>
+	OP_DIV,						// <Op MultDiv> '/' <Op Unary>
+	OP_MOD,						// <Op MultDiv> '%' <Op Unary>
 	/////////////////////////////////////////////////////////////////
 	// unary operations
 	// take one stack values and push a value
-	OP_NEGATE			= 18,	// '-'    <Op Unary>
-	OP_INVERT			= 19,	// '~'    <Op Unary>
-	OP_NOT				= 20,	// '!'    <Op Unary>
+	OP_NEGATE,					// '-'    <Op Unary>
+	OP_INVERT,					// '~'    <Op Unary>
+	OP_NOT,						// '!'    <Op Unary>
 	/////////////////////////////////////////////////////////////////
 	// sizeof operations
 	// take one stack values and push the result
-	OP_SIZEOF			= 21,	// sizeof '(' Id ')'
+	OP_SIZEOF,					// sizeof '(' Id ')'
 	// sizeof '(' <Type> ')' replaces with OP_PUSH_INT on compile time
 	/////////////////////////////////////////////////////////////////
 	// cast operations
 	// take one stack values and push the result
-	OP_CAST				= 22,	// '(' <Type> ')' <Op Unary>   !CAST
+	OP_CAST_INTEGER,			// '(' <Type> ')' <Op Unary>
+	OP_CAST_STRING,				// '(' <Type> ')' <Op Unary>
+	OP_CAST_FLOAT,				// '(' <Type> ')' <Op Unary>
+
 	/////////////////////////////////////////////////////////////////
 	// Pre operations
 	// take one stack variable and push a value
-	OP_PREADD			= 23,	// '++'   <Op Pointer>
-	OP_PRESUB			= 24,	// '--'   <Op Pointer>
+	OP_PREADD,					// '++'   <Op Pointer>
+	OP_PRESUB,					// '--'   <Op Pointer>
 	/////////////////////////////////////////////////////////////////
 	// Post operations
 	// take one stack variable and push a value
-	OP_POSTADD			= 25,	// <Op Pointer> '++'
-	OP_POSTSUB			= 26,	// <Op Pointer> '--'
+	OP_POSTADD,					// <Op Pointer> '++'
+	OP_POSTSUB,					// <Op Pointer> '--'
 	/////////////////////////////////////////////////////////////////
 	// Member Access
 	// take a variable and a value from stack and push a varible
-	OP_MEMBER			= 27,	// <Op Pointer> '.' <Value>
-	OP_SCOPE			= 28,	// <Op Pointer> '::' <Value>
+	OP_MEMBER,					// <Op Pointer> '.' <Value>
+	OP_SCOPE,					// <Op Pointer> '::' <Value>
 	/////////////////////////////////////////////////////////////////
 	// standard function calls
 	// check the parameters on stack before or inside the call of function
-	OP_FUNCTION			= 29,	// followed by an string address and a byte for parameter count
-//
-//
-//
-	OP_SUBFUNCTION		= 29,	// followed by an address and a byte for parameter count
-//
-//
-//
+	OP_FUNCTION,				// followed by an string address and a byte for parameter count
+	OP_FUNCTION2,				// followed by an string address and a byte for parameter count
+	OP_FUNCTION3,				// followed by an string address and a byte for parameter count
+	OP_FUNCTION4,				// followed by an string address and a byte for parameter count
+	OP_SUBFUNCTION,				// followed by an address and a byte for parameter count
+	OP_SUBFUNCTION2,			// followed by an address and a byte for parameter count
+	OP_SUBFUNCTION3,			// followed by an address and a byte for parameter count
+	OP_SUBFUNCTION4,			// followed by an address and a byte for parameter count
 	/////////////////////////////////////////////////////////////////
 	// explicit stack pushes
 	// Values pushed on stack directly
-	OP_PUSH_NONE		= 30,	//
-	OP_PUSH_ADDR		= 31,	// followed by an address
-//
-//
-//
-	OP_PUSH_INT1		= 32,	// followed by an integer 1byte
-	OP_PUSH_INT2		= 33,	// followed by an integer 2byte
-	OP_PUSH_INT3		= 34,	// followed by an integer 3byte
-	OP_PUSH_INT4		= 35,	// followed by an integer 4byte
-//
-//
-//
-	OP_PUSH_INT8		= 36,	// followed by an integer 8byte
-	OP_PUSH_STRING		= 37,	// followed by an string address
-//
-//
-//
-	OP_PUSH_FLOAT		= 38,	// followed by a splitted float 4 byte
-	OP_PUSH_VAR			= 39,	// followed by an string address
-//
-//
-//
-	OP_PUSH_VAL			= 40,	// followed by an string address
-//
-//
-//
-	OP_PUSH_PARAVAR		= 41,	// followed by an integer 1byte
-//
-	OP_PUSH_PARAVAL		= 42,	// followed by an integer 1byte
-//
-	OP_PUSH_TEMPVAR1	= 43,	// followed by the number of the temp variable 1byte
-	OP_PUSH_TEMPVAR2	= 44,	// followed by the number of the temp variable 2byte
-	OP_PUSH_TEMPVAL1	= 45,	// followed by the number of the temp variable 1byte 
-	OP_PUSH_TEMPVAL2	= 46,	// followed by the number of the temp variable 2byte
+	OP_PUSH_NONE,				//
+	OP_PUSH_ADDR,				// followed by an address
+	OP_PUSH_ADDR2,				// followed by an address
+	OP_PUSH_ADDR3,				// followed by an address
+	OP_PUSH_ADDR4,				// followed by an address
+	OP_PUSH_INT,				// followed by an integer 1byte
+	OP_PUSH_INT2,				// followed by an integer 2byte
+	OP_PUSH_INT3,				// followed by an integer 3byte
+	OP_PUSH_INT4,				// followed by an integer 4byte
+	OP_PUSH_INT5,				// followed by an integer 4byte
+	OP_PUSH_INT6,				// followed by an integer 4byte
+	OP_PUSH_INT7,				// followed by an integer 4byte
+	OP_PUSH_INT8,				// followed by an integer 8byte
+	OP_PUSH_STRING,				// followed by an string address
+	OP_PUSH_STRING2,			// followed by an string address
+	OP_PUSH_STRING3,			// followed by an string address
+	OP_PUSH_STRING4,			// followed by an string address
+	OP_PUSH_FLOAT,				// followed by a splitted float 4 byte
+	OP_PUSH_VAR,				// followed by an string address
+	OP_PUSH_VAR2,				// followed by an string address
+	OP_PUSH_VAR3,				// followed by an string address
+	OP_PUSH_VAR4,				// followed by an string address
+	OP_PUSH_VAL,				// followed by an string address
+	OP_PUSH_VAL2,				// followed by an string address
+	OP_PUSH_VAL3,				// followed by an string address
+	OP_PUSH_VAL4,				// followed by an string address
+	OP_PUSH_PARAVAR,			// followed by an integer 1byte
+	OP_PUSH_PARAVAR2,			// followed by an integer 1byte
+	OP_PUSH_PARAVAR3,			// followed by an integer 1byte
+	OP_PUSH_PARAVAR4,			// followed by an integer 1byte
+	OP_PUSH_PARAVAL,			// followed by an integer 1byte
+	OP_PUSH_PARAVAL2,			// followed by an integer 1byte
+	OP_PUSH_PARAVAL3,			// followed by an integer 1byte
+	OP_PUSH_PARAVAL4,			// followed by an integer 1byte
+	OP_PUSH_TEMPVAR,			// followed by the number of the temp variable 1byte
+	OP_PUSH_TEMPVAR2,			// followed by the number of the temp variable 2byte
+	OP_PUSH_TEMPVAR3,			// followed by the number of the temp variable 2byte
+	OP_PUSH_TEMPVAR4,			// followed by the number of the temp variable 2byte
+	OP_PUSH_TEMPVAL,			// followed by the number of the temp variable 1byte 
+	OP_PUSH_TEMPVAL2,			// followed by the number of the temp variable 2byte
+	OP_PUSH_TEMPVAL3,			// followed by the number of the temp variable 2byte
+	OP_PUSH_TEMPVAL4,			// followed by the number of the temp variable 2byte
 	/////////////////////////////////////////////////////////////////
 	// array operations
 	// take a variable and a value from stack and push a varible
-	OP_ARRAY			= 47,	// <Op Pointer> '[' <Expr> ']'
-	OP_ARRAYSEL			= 48,	// <Op Pointer> '[' <Expr List> ']'
-	OP_RANGE			= 49,	// <Op Pointer> '[' <Expr>':'<Expr> ']'
-	OP_SPLICE			= 50,	// <Op Pointer> '[' <Expr>':'<Expr>':'<Expr> ']'
-	OP_DULICATE			= 51,	// <Op Pointer> '[' <Expr>':'<Expr>':*'<Expr> ']'
+	OP_ARRAY,					// <Op Pointer> '[' <Expr> ']'
+	OP_ARRAYSEL,				// <Op Pointer> '[' <Expr List> ']'
+	OP_ARRAYSEL2,				// <Op Pointer> '[' <Expr List> ']'
+	OP_ARRAYSEL3,				// <Op Pointer> '[' <Expr List> ']'
+	OP_ARRAYSEL4,				// <Op Pointer> '[' <Expr List> ']'
+	OP_RANGE,					// <Op Pointer> '[' <Expr>':'<Expr> ']'
+	OP_SPLICE,					// <Op Pointer> '[' <Expr>':'<Expr>':'<Expr> ']'
+	OP_DULICATE,				// <Op Pointer> '[' <Expr>':'<Expr>':*'<Expr> ']'
 	// creation and modification
-	OP_CONCAT1			= 52,	// followed by the number of array elements 1byte 
-	OP_CONCAT2			= 53,	// followed by the number of array elements 2byte
-	OP_CONCAT3			= 54,	// followed by the number of array elements 3byte
-	OP_CONCAT4			= 55,	// followed by the number of array elements 4byte
-	OP_CREATEARRAY		= 56,	// followed by dimension (char), create a empty var array
+	OP_CONCAT,					// followed by the number of array elements 1byte 
+	OP_CONCAT2,					// followed by the number of array elements 2byte
+	OP_CONCAT3,					// followed by the number of array elements 3byte
+	OP_CONCAT4,					// followed by the number of array elements 4byte
+	OP_CREATEARRAY,				// followed by dimension (char), create a empty var array
 	/////////////////////////////////////////////////////////////////
 	// maintainance
-	OP_CLEAR			= 57,	// clear a variable
-	OP_POP				= 58,	// clear the stack
-	OP_EVAL				= 59,	// evaluate
-	OP_BOOLEAN			= 60,	// convert to boolean
+	OP_CLEAR,					// clear a variable
+	OP_POP,						// clear the stack
+	OP_EVAL,					// evaluate
+	OP_BOOLEAN,					// convert to boolean
 	/////////////////////////////////////////////////////////////////
 	// markers
-	OP_START			= 61,	// Program Start followed by 3byte Programm length
-	OP_END				= 62,	// Quit the interpreter immediately
-	OP_RETURN			= 63,	// return, quit if last scope	
+	OP_START,					// Program Start followed by 3byte Programm length
+	OP_END,						// Quit the interpreter immediately
+	OP_RETURN,					// return, quit if last scope	
 	/////////////////////////////////////////////////////////////////
 	// Jumps
 	// conditional branch
-	OP_NIF				= 64,	// branch when false, followed by the target address
-	OP_IF				= 65,	// branch when true,  followed by the target address
-	OP_NIF_POP			= 66,	// branch when false, pop when true, followed by the target address
-	OP_IF_POP			= 67,	// branch when true, pop when false, followed by the target address
+	OP_NIF,						// branch when false, followed by the target address
+	OP_NIF2,					// branch when false, followed by the target address
+	OP_NIF3,					// branch when false, followed by the target address
+	OP_NIF4,					// branch when false, followed by the target address
+	OP_IF,						// branch when true,  followed by the target address
+	OP_IF2,						// branch when true,  followed by the target address
+	OP_IF3,						// branch when true,  followed by the target address
+	OP_IF4,						// branch when true,  followed by the target address
+	OP_NIF_POP,					// branch when false, pop when true, followed by the target address
+	OP_NIF_POP2,				// branch when false, pop when true, followed by the target address
+	OP_NIF_POP3,				// branch when false, pop when true, followed by the target address
+	OP_NIF_POP4,				// branch when false, pop when true, followed by the target address
+	OP_IF_POP,					// branch when true, pop when false, followed by the target address
+	OP_IF_POP2,					// branch when true, pop when false, followed by the target address
+	OP_IF_POP3,					// branch when true, pop when false, followed by the target address
+	OP_IF_POP4,					// branch when true, pop when false, followed by the target address
 	// unconditional branch
-	OP_GOTO				= 68,	// goto Id ';' followed by the target address
-//
-//
-//
-	OP_GOSUB			= 69	// gosub Id ';' followed by the target address
-//
-//
-//
+	OP_GOTO,					// goto Id ';' followed by the target address
+	OP_GOTO2,					// goto Id ';' followed by the target address
+	OP_GOTO3,					// goto Id ';' followed by the target address
+	OP_GOTO4,					// goto Id ';' followed by the target address
+	OP_GOSUB,					// gosub Id ';' followed by the target address
+	OP_GOSUB2,					// gosub Id ';' followed by the target address
+	OP_GOSUB3,					// gosub Id ';' followed by the target address
+	OP_GOSUB4					// gosub Id ';' followed by the target address
 };
 
 #endif//_EAOPCODE_

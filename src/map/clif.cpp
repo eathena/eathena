@@ -43,8 +43,6 @@
 // (which is useless without the format)
 
 
-// protocol version
-#define PACKETVER			6
 
 // packet DB
 #define MAX_PACKET_DB		0x25f
@@ -282,14 +280,14 @@ void dump_packet(int fd, int packet_len, map_session_data *sd)
 	if (sd && sd->state.auth)
 	{
 		if (sd->status.name != NULL)
-			fprintf(fp, "%sPlayer with account ID %ld (character ID %ld, player name %s) sent wrong packet:\n",
+			fprintf(fp, "%sPlayer with account ID %lu (character ID %lu, player name %s) sent wrong packet:\n",
 					asctime(localtime(&now)), (unsigned long)sd->status.account_id, (unsigned long)sd->status.char_id, sd->status.name);
 		else
-			fprintf(fp, "%sPlayer with account ID %ld sent wrong packet:\n",
+			fprintf(fp, "%sPlayer with account ID %lu sent wrong packet:\n",
 					asctime(localtime(&now)), (unsigned long)sd->block_list::id);
 	}
 	else if (sd) // not authentified! (refused by char-server or disconnect before to be authentified)
-		fprintf(fp, "%sPlayer with account ID %ld sent wrong packet:\n", 
+		fprintf(fp, "%sPlayer with account ID %lu sent wrong packet:\n", 
 				asctime(localtime(&now)), (unsigned long)sd->block_list::id);
 	
 	dump(RFIFOP(fd,0), packet_len, fp);
@@ -330,7 +328,7 @@ uint32 server_mob_id	= 0;
 void clif_ban_player(const map_session_data &sd, uint32 banoption, const char* reason)
 {
 	char message[1024];
-	snprintf(message, sizeof(message), "Character '%s' (account: %ld, charid: %ld) %s", 
+	snprintf(message, sizeof(message), "Character '%s' (account: %lu, charid: %lu) %s", 
 		sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, reason);
 	intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message);
 
@@ -362,7 +360,7 @@ void clif_ban_player(const map_session_data &sd, uint32 banoption, const char* r
 inline unsigned short get_fakemob_id(map_session_data &sd)
 {
 	// base randomizer; the other variables are known by the client
-	const static int base = rand();
+	static const int base = rand();
 	// choose a mob which the client cannot trace back
 	static unsigned short fake_mob_list[] =
 	{	// set here mobs that do not sound when they don't move
@@ -721,7 +719,7 @@ int clif_send (unsigned char *buf, size_t len, const block_list *bl, int type)
 	{
 		if(!bl)
 		{
-			printf("clif_send nullpo, head: %02X%02X%02X%02X type %i, len %li\n", buf[0], buf[1], buf[2], buf[3], type, (unsigned long)len);
+			printf("clif_send nullpo, head: %02X%02X%02X%02X type %i, len %lu\n", buf[0], buf[1], buf[2], buf[3], type, (unsigned long)len);
 			return 0;
 		}
 		sd = bl->get_sd();
@@ -4097,15 +4095,13 @@ int clif_misceffect(block_list &bl, uint32 type)
  */
 int clif_changeoption(block_list &bl)
 {
+	static const int omask[]={ 0x10,0x20 };
+	static const status_t scnum[]={ SC_FALCON, SC_RIDING };
 	unsigned char buf[32];
 	short option;
-	struct status_change *sc_data;
-	static const int omask[]={ 0x10,0x20 };
-	static const int scnum[]={ SC_FALCON, SC_RIDING };
 	size_t i;
-
 	option = *status_get_option(&bl);
-	sc_data = status_get_sc_data(&bl);
+
 
 	WBUFW(buf,0) = 0x119;
 	if(bl==BL_PC && ((map_session_data &)bl).disguise_id)
@@ -4138,7 +4134,7 @@ int clif_changeoption(block_list &bl)
 	{
 		if( option&omask[i] )
 		{
-			if( sc_data[scnum[i]].timer==-1)
+			if( !bl.has_status(scnum[i]) )
 				status_change_start(&bl,scnum[i],0,0,0,0,0,0);
 		}
 		else
@@ -4832,24 +4828,19 @@ int clif_fixobject(const block_list &bl)
 int clif_damage(block_list &src,block_list &dst,unsigned long tick,uint32 sdelay,uint32 ddelay,unsigned short damage,unsigned short div,unsigned char type,unsigned short damage2)
 {
 	unsigned char buf[256];
-	struct status_change *sc_data;
-
-	sc_data = status_get_sc_data(&dst);
 
 	if(type != 4 && dst==BL_PC && ((map_session_data &)dst).state.infinite_endure)
 		type = 9;
-	if(sc_data)
+
+	if( type != 4 && dst.has_status(SC_ENDURE) && 
+		dst==BL_PC && !maps[dst.m].flag.gvg )
+		type = 9;
+	if( dst.has_status(SC_HALLUCINATION) )
 	{
-		if( type != 4 && sc_data[SC_ENDURE].timer != -1 && 
-			dst==BL_PC && !maps[dst.m].flag.gvg )
-			type = 9;
-		if(sc_data[SC_HALLUCINATION].timer != -1)
-		{
-			if(damage > 0)
-				damage = damage*(5+sc_data[SC_HALLUCINATION].integer1()) + rand()%100;
-			if(damage2 > 0)
-				damage2 = damage2*(5+sc_data[SC_HALLUCINATION].integer1()) + rand()%100;
-		}
+		if(damage > 0)
+			damage = damage*(5+dst.get_statusvalue1(SC_HALLUCINATION).integer()) + rand()%100;
+		if(damage2 > 0)
+			damage2 = damage2*(5+dst.get_statusvalue1(SC_HALLUCINATION).integer()) + rand()%100;
 	}
 	
 	WBUFW(buf,0)=0x8a;
@@ -5098,6 +5089,7 @@ int clif_01ac(block_list &bl)
  */
 class CClifGetAreaChar : public CMapProcessor
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CClifGetAreaChar)
 	map_session_data &sd;
 public:
 
@@ -5425,18 +5417,14 @@ int clif_skillcastcancel(block_list &bl)
 int clif_skill_damage(block_list &src,block_list &dst,unsigned long tick,uint32 sdelay,uint32 ddelay,uint32 damage,unsigned short div,unsigned short skill_id,unsigned short skill_lv,int type)
 {
 	unsigned char buf[64];
-	struct status_change *sc_data;
-
-	sc_data = status_get_sc_data(&dst);
 
 	if(type != 5 && dst==BL_PC && ((map_session_data &)dst).state.infinite_endure)
 		type = 9;
-	if(sc_data) {
-		if(type != 5 && sc_data[SC_ENDURE].timer != -1)
-			type = 9;
-		if(sc_data[SC_HALLUCINATION].timer != -1 && damage > 0)
-			damage = damage*(5+sc_data[SC_HALLUCINATION].integer1()) + rand()%100;
-	}
+	if(type != 5 && dst.has_status(SC_ENDURE) )
+		type = 9;
+	if(dst.has_status(SC_HALLUCINATION) && damage > 0)
+		damage = damage*(5+dst.get_statusvalue1(SC_HALLUCINATION).integer()) + rand()%100;
+
 
 #if PACKETVER < 3
 	WBUFW(buf,0)=0x114;
@@ -5486,19 +5474,13 @@ int clif_skill_damage(block_list &src,block_list &dst,unsigned long tick,uint32 
 int clif_skill_damage2(block_list &src,block_list &dst,unsigned long tick,uint32 sdelay,uint32 ddelay,uint32 damage,unsigned short div,unsigned short skill_id,unsigned short skill_lv,int type)
 {
 	unsigned char buf[64];
-	struct status_change *sc_data;
-
-	sc_data = status_get_sc_data(&dst);
 
 	if(type != 5 && dst == BL_PC && ((map_session_data &)dst).state.infinite_endure)
 		type = 9;
-	if(sc_data)
-	{
-		if(type != 5 && sc_data[SC_ENDURE].timer != -1)
-			type = 9;
-		if(sc_data[SC_HALLUCINATION].timer != -1 && damage > 0)
-			damage = damage*(5+sc_data[SC_HALLUCINATION].integer1()) + rand()%100;
-	}
+	if(type != 5 && dst.has_status(SC_ENDURE))
+		type = 9;
+	if(dst.has_status(SC_HALLUCINATION) && damage > 0)
+		damage = damage*(5+dst.get_statusvalue1(SC_HALLUCINATION).integer()) + rand()%100;
 
 	WBUFW(buf,0)=0x115;
 	WBUFW(buf,2)=skill_id;
@@ -6942,7 +6924,7 @@ int clif_update_mobhp(struct mob_data &md)
 	WBUFL(buf,2) = md.block_list::id;
 
 	memcpy(WBUFP(buf,6), md.name, 24);
-	snprintf(mobhp, sizeof(mobhp), "hp: %ld/%ld", (unsigned long)md.hp, (unsigned long)mob_db[md.class_].max_hp);
+	snprintf(mobhp, sizeof(mobhp), "hp: %lu/%lu", (unsigned long)md.hp, (unsigned long)mob_db[md.class_].max_hp);
 
 	WBUFW(buf, 0) = 0x195;
 	memcpy(WBUFP(buf,30), mobhp, 24);
@@ -7479,13 +7461,13 @@ int clif_guild_basicinfo(map_session_data &sd)
 	{	// sdの設定と人数の確認
 		if(g->member[i].account_id>0)
 		{
-			map_session_data *sd = map_session_data::from_blid(g->member[i].account_id);
-			if (sd && sd->status.char_id == g->member[i].char_id &&
-				sd->status.guild_id == g->guild_id &&
-				!sd->state.waitingdisconnect)
+			map_session_data *psd = map_session_data::from_blid(g->member[i].account_id);
+			if (psd && psd->status.char_id == g->member[i].char_id &&
+				psd->status.guild_id == g->guild_id &&
+				!psd->state.waitingdisconnect)
 			{
-				chaos  += sd->status.chaos; //
-				honour -= sd->status.karma;	// carma is counted invers, honour not
+				chaos  += psd->status.chaos; //
+				honour -= psd->status.karma; // carma is counted invers, honour not
 				t++;
 			}
 		}
@@ -8440,7 +8422,8 @@ int clif_charnameack(int fd, block_list &bl, bool clear)
 			{	// not necessary to send message if GM can do nothing
 				// we can not ban automaticly, because if there is lag, hidden player could be not hidden when other player ask for name.
 				char message_to_gm[1024];
-				snprintf(message_to_gm, sizeof(message_to_gm), "Possible use of BOT (99%% of chance) or modified client by '%s' (account: %ld, char_id: %ld). This player ask your name when you are hidden.", sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id);
+				snprintf(message_to_gm, sizeof(message_to_gm), "Possible use of BOT (99%% of chance) or modified client by '%s' (account: %lu, char_id: %lu)."
+					" This player ask your name when you are hidden.", sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id);
 				intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, message_to_gm);
 			}
 		}
@@ -8540,7 +8523,7 @@ int clif_charnameack(int fd, block_list &bl, bool clear)
 		{
 			char mobhp[64];
 			cmd = 0x195;
-			snprintf(mobhp, sizeof(mobhp), "hp: %ld/%ld", (unsigned long)md.hp, (unsigned long)md.max_hp);
+			snprintf(mobhp, sizeof(mobhp), "hp: %lu/%lu", (unsigned long)md.hp, (unsigned long)md.max_hp);
 			safestrcpy((char*)WBUFP(buf,30), 24, mobhp);
 			WBUFB(buf,54) = 0;
 			WBUFB(buf,78) = 0;
@@ -8928,7 +8911,7 @@ int clif_send_mailbox(map_session_data &sd, uint32 count, const unsigned char* b
 				struct tm t;
 				basics::dttotm(basics::utodatetime(head.sendtime), t);
 
-				snprintf(message, sizeof(message), "%c %-8lu %4u/%02u/%02u %2u:%02u:%02u %-24s %s",
+				snprintf(message, sizeof(message), "%c %-8lu %4i/%02i/%02i %2i:%02i:%02i %-24s %s",
 					head.read?' ':'*', (unsigned long)head.msgid, 
 					t.tm_year+1900, t.tm_mon+1, t.tm_mday, t.tm_hour,t.tm_min, t.tm_sec,
 					head.name, head.head);
@@ -9037,7 +9020,7 @@ int clif_receive_mail(map_session_data &sd, const CMail& md)
 			struct tm t;
 			basics::dttotm(basics::utodatetime(md.sendtime), t);
 
-			snprintf(message, sizeof(message), "%c %-8lu %4u/%02u/%02u %2u:%02u:%02u %-24s %s",
+			snprintf(message, sizeof(message), "%c %-8lu %4i/%02i/%02i %2i:%02i:%02i %-24s %s",
 				md.read?' ':'*', (unsigned long)md.msgid, 
 				t.tm_year+1900, t.tm_mon+1, t.tm_mday, t.tm_hour,t.tm_min, t.tm_sec,
 				md.name, md.head);
@@ -9080,7 +9063,7 @@ int clif_deletemail_res(map_session_data &sd, uint32 msgid, bool ok)
 	else
 	{
 		char message[512];
-		snprintf(message, sizeof(message), "mail %i delet%s.", msgid, (ok?"ed":"ion failed"));
+		snprintf(message, sizeof(message), "mail %u delet%s.", msgid, (ok?"ed":"ion failed"));
 		clif_disp_onlyself(sd, message);
 	}
 	return 0;
@@ -9306,7 +9289,7 @@ int clif_parse_LoadEndAck(int fd, map_session_data &sd)
 
 	//if(sd.status.hp<sd.status.max_hp>>2 && sd.skill_check(SM_AUTOBERSERK)>0 &&
 	if(sd.status.hp<sd.status.max_hp>>2 && sd.has_status(SC_AUTOBERSERK) &&
-		( !sd.has_status(SC_PROVOKE) || sd.sc_data[SC_PROVOKE].integer2()==0 ))
+		( !sd.has_status(SC_PROVOKE) || sd.get_statusvalue2(SC_PROVOKE).integer()==0 ))
 		// オートバーサーク発動
 		status_change_start(&sd,SC_PROVOKE,10,1,0,0,0,0);
 
@@ -9393,9 +9376,9 @@ int clif_parse_WalkToXY(int fd, map_session_data &sd)
 	     sd.has_status(SC_TRICKDEAD) || //死んだふり
 	     sd.has_status(SC_BLADESTOP) || //白刃取り
 	     sd.has_status(SC_SPIDERWEB) || //スパイダーウェッブ
-	     (sd.has_status(SC_DANCING) && sd.sc_data[SC_DANCING].integer4()) || //合奏スキル演奏中は動けない
-		 (sd.has_status(SC_GOSPEL) && sd.sc_data[SC_GOSPEL].integer4() == BCT_SELF) ||	// cannot move while gospel is in effect
-		 (sd.has_status(SC_DANCING) && sd.sc_data[SC_DANCING].integer1() == CG_HERMODE)  //cannot move while Hermod is active.
+	     (sd.has_status(SC_DANCING) && sd.get_statusvalue4(SC_DANCING).integer()) || //合奏スキル演奏中は動けない
+		 (sd.has_status(SC_GOSPEL) && sd.get_statusvalue4(SC_GOSPEL).integer() == BCT_SELF) ||	// cannot move while gospel is in effect
+		 (sd.has_status(SC_DANCING) && sd.get_statusvalue1(SC_DANCING).integer() == CG_HERMODE)  //cannot move while Hermod is active.
 		)
 		return 0;
 	if ((sd.status.option & 2) && sd.skill_check( RG_TUNNELDRIVE) <= 0)
@@ -9433,7 +9416,7 @@ int clif_parse_QuitGame(int fd, map_session_data &sd)
 	if( (!sd.is_dead() && (sd.opt1 || (sd.opt2 && !(daynight_flag && sd.opt2 == STATE_BLIND)))) ||
 	    sd.skilltimer != -1 ||
 	    (DIFF_TICK(tick, sd.canact_tick) < 0) ||
-	    (sd.has_status(SC_DANCING) && (sg=(struct skill_unit_group *)sd.sc_data[SC_DANCING].pointer2()) && sg->src_id == sd.block_list::id) ||
+	    (sd.has_status(SC_DANCING) && (sg=(struct skill_unit_group *)sd.get_statusvalue2(SC_DANCING).pointer()) && sg->src_id == sd.block_list::id) ||
 		(config.prevent_logout && sd.is_dead() && DIFF_TICK(tick,sd.canlog_tick) < 10000) )
 	{	// fail
 		WFIFOW(fd,2)=1;
@@ -9540,7 +9523,7 @@ int clif_parse_GlobalMessage(int fd, map_session_data &sd)
 			else if (sd.state.snovice_flag == 3)
 			{
 				clif_skill_nodamage(sd,sd,MO_EXPLOSIONSPIRITS,0xFFFF,1);
-				status_change_start(&sd,SkillStatusChangeTable[MO_EXPLOSIONSPIRITS],
+				status_change_start(&sd,(status_t)SkillStatusChangeTable[MO_EXPLOSIONSPIRITS],
 						17,0,0,0,skill_get_time(MO_EXPLOSIONSPIRITS,1),0 ); //Lv17-> +50 critical (noted by Poki) [Skotlex]
 				sd.state.snovice_flag = 0;
 			}
@@ -9801,7 +9784,7 @@ int clif_parse_Restart(int fd, map_session_data &sd)
 		if( (!sd.is_dead() && (sd.opt1 || (sd.opt2 && !(daynight_flag && sd.opt2 == STATE_BLIND)))) ||
 			sd.skilltimer != -1 ||
 			(DIFF_TICK(tick, sd.canact_tick) < 0) ||
-			(sd.has_status(SC_DANCING) && (sg=(struct skill_unit_group *)sd.sc_data[SC_DANCING].pointer2()) && sg->src_id == sd.block_list::id) ||
+			(sd.has_status(SC_DANCING) && (sg=(struct skill_unit_group *)sd.get_statusvalue2(SC_DANCING).pointer()) && sg->src_id == sd.block_list::id) ||
 			(config.prevent_logout && sd.is_dead() && DIFF_TICK(tick,sd.canlog_tick) < 10000) )
 		{	// fail
 			WFIFOW(fd,0)=0x18b;
@@ -9884,7 +9867,7 @@ int clif_parse_Wis(int fd, map_session_data &sd)
 			}
 			else
 				kp = "";
-			snprintf(tempmes, sizeof(tempmes),"@whispervar%ld$", (unsigned long)i);
+			snprintf(tempmes, sizeof(tempmes),"@whispervar%lu$", (unsigned long)i);
 			set_var(sd,tempmes,kp);
 		}//Sets Variables to use in the NPC
 		npc_data::event("OnWhisperGlobal", *npc, sd); // Calls the NPC label
@@ -10527,11 +10510,12 @@ int clif_parse_UseSkillToId(int fd, map_session_data &sd) {
 	else
 	{
 		sd.skillitem = sd.skillitemlv = 0xFFFF;
-		if (skillnum == MO_EXTREMITYFIST) {
+		if (skillnum == MO_EXTREMITYFIST)
+		{
 			if ((!sd.has_status(SC_COMBO) ||
-				(sd.sc_data[SC_COMBO].integer1() != MO_COMBOFINISH &&
-				 sd.sc_data[SC_COMBO].integer1() != CH_TIGERFIST &&
-				 sd.sc_data[SC_COMBO].integer1() != CH_CHAINCRUSH)) )
+				(sd.get_statusvalue1(SC_COMBO).integer() != MO_COMBOFINISH &&
+				 sd.get_statusvalue1(SC_COMBO).integer() != CH_TIGERFIST &&
+				 sd.get_statusvalue1(SC_COMBO).integer() != CH_CHAINCRUSH)) )
 			{
 				if (!sd.state.skill_flag )
 				{
@@ -10545,8 +10529,11 @@ int clif_parse_UseSkillToId(int fd, map_session_data &sd) {
 					return 0;
 				}
 			}
-		} else if (skillnum == CH_TIGERFIST) {
-			if ( !sd.has_status(SC_COMBO) || sd.sc_data[SC_COMBO].integer1() != MO_COMBOFINISH) {
+		}
+		else if (skillnum == CH_TIGERFIST)
+		{
+			if ( !sd.has_status(SC_COMBO) || sd.get_statusvalue1(SC_COMBO).integer() != MO_COMBOFINISH)
+			{
 				if (!sd.state.skill_flag ) {
 					sd.state.skill_flag = 1;
 					if (!sd.target_id) {
@@ -10655,12 +10642,10 @@ int clif_parse_UseSkillMap(int fd, map_session_data &sd)
 	if(sd.chat)
 		return 0;
 
-	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0 || (sd.sc_data &&
-		(sd.has_status(SC_TRICKDEAD) ||
-		sd.has_status(SC_BERSERK) ||
-		sd.has_status(SC_NOCHAT) ||
-		sd.has_status(SC_WEDDING) ||
-		sd.view_class==22)))
+	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0 || 
+		sd.has_status(SC_TRICKDEAD) || sd.has_status(SC_BERSERK) ||
+		sd.has_status(SC_NOCHAT) || sd.has_status(SC_WEDDING) ||
+		sd.view_class==22)
 		return 0;
 
 	if(sd.invincible_timer != -1)
@@ -11731,7 +11716,7 @@ int clif_parse_PMIgnore(int fd, map_session_data &sd)
 				clif_wis_message(fd, wisp_server_name, "This player is already blocked.", strlen("This player is already blocked.") + 1);
 				if (strcmp(wisp_server_name, nick) == 0)
 				{	// to find possible bot users who automaticaly ignore people.
-					snprintf(output, sizeof(output), "Character '%s' (account: %ld) has tried AGAIN to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
+					snprintf(output, sizeof(output), "Character '%s' (account: %lu) has tried AGAIN to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
 					intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, output);
 				}
 			}
@@ -11741,7 +11726,7 @@ int clif_parse_PMIgnore(int fd, map_session_data &sd)
 				WFIFOSET(fd, packet_len_table[0x0d1]);
 				clif_wis_message(fd, wisp_server_name, "You can not block more people.", strlen("You can not block more people.") + 1);
 				if (strcmp(wisp_server_name, nick) == 0) { // to found possible bot users who automaticaly ignore people.
-					snprintf(output, sizeof(output), "Character '%s' (account: %ld) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
+					snprintf(output, sizeof(output), "Character '%s' (account: %lu) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
 					intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, output);
 				}
 			}
@@ -11752,7 +11737,7 @@ int clif_parse_PMIgnore(int fd, map_session_data &sd)
 				WFIFOSET(fd, packet_len_table[0x0d1]);
 				if (strcmp(wisp_server_name, nick) == 0)
 				{	// to find possible bot users who automaticaly ignore people.
-					snprintf(output, sizeof(output), "Character '%s' (account: %ld) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
+					snprintf(output, sizeof(output), "Character '%s' (account: %lu) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
 					intif_wis_message_to_gm(wisp_server_name, config.hack_info_GM_level, output);
 					// send something to be inform and force bot to ignore twice... ifGM receiving block + block again, it's a bot :)
 					clif_wis_message(fd, wisp_server_name, "Add me in your ignore list, doesn't block my wisps.", 1+strlen("Add me in your ignore list, doesn't block my wisps."));
@@ -11884,7 +11869,7 @@ int clif_parse_NoviceExplosionSpirits(int fd, map_session_data &sd)
 		}
 	if(s_class.job == 23 && sd.status.base_exp > 0 && nextbaseexp > 0 && (1000*sd.status.base_exp/nextbaseexp)%100==0){
 		clif_skill_nodamage(sd,sd,MO_EXPLOSIONSPIRITS,5,1);
-		status_change_start(&sd,SkillStatusChangeTable[MO_EXPLOSIONSPIRITS],5,0,0,0,skill_get_time(MO_EXPLOSIONSPIRITS,5),0 );
+		status_change_start(&sd,(status_t)SkillStatusChangeTable[MO_EXPLOSIONSPIRITS],5,0,0,0,skill_get_time(MO_EXPLOSIONSPIRITS,5),0 );
 		}
 	return 0;
 	}
@@ -11976,13 +11961,13 @@ int clif_parse_FriendsListAdd(int fd, map_session_data &sd)
 int clif_parse_FriendsListReply(int fd, map_session_data &sd)
 {	//<W: id> <L: Player 1 chara ID> <L: Player 1 AID> <B: Response>
 	map_session_data *f_sd;
-	uint32 char_id, id;
+	uint32 id;
 	char reply;
 
 	if( !session_isActive(fd) )
 		return 0;
 
-	char_id = RFIFOL(fd,2);
+//	uint32 char_id = RFIFOL(fd,2);
 	id = RFIFOL(fd,6);
 	reply = RFIFOB(fd,10);
 //	ShowMessage ("reply: %d %d %d\n", char_id, id, reply);

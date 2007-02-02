@@ -124,7 +124,7 @@ template<> inline bool paramconvert<unsigned short>( unsigned short &t, const ch
 template<> inline bool paramconvert<char          >( char           &t, const char* s) { sint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
 template<> inline bool paramconvert<unsigned char >( unsigned char  &t, const char* s) { uint64 val; bool ret=paramconvert(val, s); t=val; return ret; }
 template<> inline bool paramconvert<bool          >( bool           &t, const char* s) { sint64 val; bool ret=paramconvert(val, s); t=(0!=val); return ret; }
-template<> inline bool paramconvert<float         >( float          &t, const char* s) { double val; bool ret=paramconvert(val, s); t=val; return ret; }
+template<> inline bool paramconvert<float         >( float          &t, const char* s) { double val; bool ret=paramconvert(val, s); t=val; return (float)ret; }
 
 
 
@@ -214,7 +214,7 @@ public:
 	operator int64() const			{ return this->integer(); }
 	operator uint64() const			{ return this->integer(); }
 	operator double() const			{ return this->floating(); }
-	operator float() const			{ return this->floating(); }
+	operator float() const			{ return (float)this->floating(); }
 
 	// compare with string
 	// only do lowercase compare

@@ -147,20 +147,21 @@ basics::CParam<bool> CAccountDBInterface::case_sensitive("case_sensitive", true)
 
 CAccountDBInterface* CAccountDB::getDB(const char *dbcfgfile)
 {
+	CAccountDBInterface* ret = NULL;
 	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
 #if defined(WITH_TEXT) && defined(WITH_MYSQL)
 	if(database_engine()=="txt")
-		return new CAccountDB_txt(dbcfgfile);
-	if(database_engine()=="sql")
-		return new CAccountDB_sql(dbcfgfile);
+		ret = new CAccountDB_txt(dbcfgfile);
+	else if(database_engine()=="sql")
+		ret = new CAccountDB_sql(dbcfgfile);
 #elif defined(WITH_TEXT)
-	return new CAccountDB_txt(dbcfgfile);
+	ret = new CAccountDB_txt(dbcfgfile);
 #elif defined(WITH_MYSQL)
-	return new CAccountDB_sql(dbcfgfile);
+	ret = new CAccountDB_sql(dbcfgfile);
 #else
 #error "no database implementation specified, define 'WITH_MYSQL','WITH_TEXT' or both"
 #endif
-	return NULL;
+	return ret;
 }
 
 
@@ -222,40 +223,42 @@ bool CCharDBInterface::testChar(const CCharAccount& account, char *name, const u
 
 CCharDBInterface* CCharDB::getDB(const char *dbcfgfile)
 {
+	CCharDBInterface* ret = NULL;
 	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
 #if defined(WITH_TEXT) && defined(WITH_MYSQL)
 	if(database_engine()=="txt")
-		return new CCharDB_txt(dbcfgfile);
-	if(database_engine()=="sql")
-		return new CCharDB_sql(dbcfgfile);
+		ret = new CCharDB_txt(dbcfgfile);
+	else if(database_engine()=="sql")
+		ret = new CCharDB_sql(dbcfgfile);
 #elif defined(WITH_TEXT)
-	return new CCharDB_txt(dbcfgfile);
+	ret = new CCharDB_txt(dbcfgfile);
 #elif defined(WITH_MYSQL)
-	return new CCharDB_sql(dbcfgfile);
+	ret = new CCharDB_sql(dbcfgfile);
 #else
 #error "no database implementation specified, define 'WITH_MYSQL','WITH_TEXT' or both"
 #endif
-	return NULL;
+	return ret;
 }
 
 
 
 CGuildDBInterface* CGuildDB::getDB(const char *dbcfgfile)
 {
+	CGuildDBInterface* ret = NULL;
 	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
 #if defined(WITH_TEXT) && defined(WITH_MYSQL)
 	if(database_engine()=="txt")
-		return new CGuildDB_txt(dbcfgfile);
-	if(database_engine()=="sql")
-		return new CGuildDB_sql(dbcfgfile);
+		ret = new CGuildDB_txt(dbcfgfile);
+	else if(database_engine()=="sql")
+		ret = new CGuildDB_sql(dbcfgfile);
 #elif defined(WITH_TEXT)
-	return new CGuildDB_txt(dbcfgfile);
+	ret = new CGuildDB_txt(dbcfgfile);
 #elif defined(WITH_MYSQL)
-	return new CGuildDB_sql(dbcfgfile);
+	ret = new CGuildDB_sql(dbcfgfile);
 #else
 #error "no database implementation specified, define 'WITH_MYSQL','WITH_TEXT' or both"
 #endif
-	return NULL;
+	return ret;
 }
 
 
@@ -266,20 +269,21 @@ CGuildDBInterface* CGuildDB::getDB(const char *dbcfgfile)
 
 CPartyDBInterface* CPartyDB::getDB(const char *dbcfgfile)
 {
+	CPartyDBInterface* ret = NULL;
 	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
 #if defined(WITH_TEXT) && defined(WITH_MYSQL)
 	if(database_engine()=="txt")
-		return new CPartyDB_txt(dbcfgfile);
-	if(database_engine()=="sql")
-		return new CPartyDB_sql(dbcfgfile);
+		ret = new CPartyDB_txt(dbcfgfile);
+	else if(database_engine()=="sql")
+		ret = new CPartyDB_sql(dbcfgfile);
 #elif defined(WITH_TEXT)
-	return new CPartyDB_txt(dbcfgfile);
+	ret = new CPartyDB_txt(dbcfgfile);
 #elif defined(WITH_MYSQL)
-	return new CPartyDB_sql(dbcfgfile);
+	ret = new CPartyDB_sql(dbcfgfile);
 #else
 #error "no database implementation specified, define 'WITH_MYSQL','WITH_TEXT' or both"
 #endif
-	return NULL;
+	return ret;
 }
 
 
@@ -289,77 +293,81 @@ CPartyDBInterface* CPartyDB::getDB(const char *dbcfgfile)
 
 CPCStorageDBInterface* CPCStorageDB::getDB(const char *dbcfgfile)
 {
+	CPCStorageDBInterface* ret = NULL;
 	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
 #if defined(WITH_TEXT) && defined(WITH_MYSQL)
 	if(database_engine()=="txt")
-		return new CPCStorageDB_txt(dbcfgfile);
-	if(database_engine()=="sql")
-		return new CPCStorageDB_sql(dbcfgfile);
+		ret = new CPCStorageDB_txt(dbcfgfile);
+	else if(database_engine()=="sql")
+		ret = new CPCStorageDB_sql(dbcfgfile);
 #elif defined(WITH_TEXT)
-	return new CPCStorageDB_txt(dbcfgfile);
+	ret = new CPCStorageDB_txt(dbcfgfile);
 #elif defined(WITH_MYSQL)
-	return new CPCStorageDB_sql(dbcfgfile);
+	ret = new CPCStorageDB_sql(dbcfgfile);
 #else
 #error "no database implementation specified, define 'WITH_MYSQL','WITH_TEXT' or both"
 #endif
-	return NULL;
+	return ret;
 }
 
 
 
 CGuildStorageDBInterface* CGuildStorageDB::getDB(const char *dbcfgfile)
 {
+	CGuildStorageDBInterface* ret = NULL;
 	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
 #if defined(WITH_TEXT) && defined(WITH_MYSQL)
 	if(database_engine()=="txt")
-		return new CGuildStorageDB_txt(dbcfgfile);
-	if(database_engine()=="sql")
-		return new CGuildStorageDB_sql(dbcfgfile);
+		ret = new CGuildStorageDB_txt(dbcfgfile);
+	else if(database_engine()=="sql")
+		ret = new CGuildStorageDB_sql(dbcfgfile);
 #elif defined(WITH_TEXT)
-	return new CGuildStorageDB_txt(dbcfgfile);
+	ret = new CGuildStorageDB_txt(dbcfgfile);
 #elif defined(WITH_MYSQL)
-	return new CGuildStorageDB_sql(dbcfgfile);
+	ret = new CGuildStorageDB_sql(dbcfgfile);
 #else
 #error "no database implementation specified, define 'WITH_MYSQL','WITH_TEXT' or both"
 #endif
-	return NULL;
+	return ret;
 }
 
 CPetDBInterface* CPetDB::getDB(const char *dbcfgfile)
 {
+	CPetDBInterface* ret = NULL;
 	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
 #if defined(WITH_TEXT) && defined(WITH_MYSQL)
 	if(database_engine()=="txt")
-		return new CPetDB_txt(dbcfgfile);
-	if(database_engine()=="sql")
-		return new CPetDB_sql(dbcfgfile);
+		ret = new CPetDB_txt(dbcfgfile);
+	else if(database_engine()=="sql")
+		ret = new CPetDB_sql(dbcfgfile);
 #elif defined(WITH_TEXT)
-	return new CPetDB_txt(dbcfgfile);
+	ret = new CPetDB_txt(dbcfgfile);
 #elif defined(WITH_MYSQL)
-	return new CPetDB_sql(dbcfgfile);
+	ret = new CPetDB_sql(dbcfgfile);
 #else
 #error "no database implementation specified, define 'WITH_MYSQL','WITH_TEXT' or both"
 #endif
-	return NULL;
+	return ret;
 }
 
 
 CHomunculusDBInterface* CHomunculusDB::getDB(const char *dbcfgfile)
 {
+	CHomunculusDBInterface* ret = NULL;
 	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
 #if defined(WITH_TEXT) && defined(WITH_MYSQL)
 	if(database_engine()=="txt")
-		return new CHomunculusDB_txt(dbcfgfile);
-	if(database_engine()=="sql")
-		return new CHomunculusDB_sql(dbcfgfile);
+		ret = new CHomunculusDB_txt(dbcfgfile);
+	else if(database_engine()=="sql")
+		ret = new CHomunculusDB_sql(dbcfgfile);
 #elif defined(WITH_TEXT)
-	return new CHomunculusDB_txt(dbcfgfile);
+	ret = new CHomunculusDB_txt(dbcfgfile);
 #elif defined(WITH_MYSQL)
-	return new CHomunculusDB_sql(dbcfgfile);
+	ret = new CHomunculusDB_sql(dbcfgfile);
 #else
 #error "no database implementation specified, define 'WITH_MYSQL','WITH_TEXT' or both"
 #endif
-	return NULL;
+	return ret;
 }
 
 
@@ -380,11 +388,11 @@ bool CVar::from_string(const char* str)
 	static basics::CRegExp re("([^,]+),([^,]*),([^,]*),([^,]*),([^,\n]*)");
 	if( re.match(str) )
 	{
-		*this = re[1];				// name
-		this->cScope=atoi(re[2]);	// storage scope (account/char/party/... variable)
-		this->cID=atoi(re[3]);		// storage id (account_id/char_id/...)
-		this->cType=atoi(re[4]);	// variable type (string/int/float/...)
-		this->cValue = re[5];		// value
+		*this = re[1];					// name
+		this->cScope=(uchar)atoi(re[2]);// storage scope (account/char/party/... variable)
+		this->cID=atoi(re[3]);			// storage id (account_id/char_id/...)
+		this->cType=(uchar)atoi(re[4]);	// variable type (string/int/float/...)
+		this->cValue = re[5];			// value
 
 		return (this->name()!="" && this->cValue!="0" && this->cValue!="");
 	}
@@ -437,20 +445,21 @@ size_t CVar::to_buffer(unsigned char* buf, size_t len) const
 
 CVarDBInterface* CVarDB::getDB(const char *dbcfgfile)
 {
+	CVarDBInterface* ret = NULL;
 	if(dbcfgfile) basics::CParamBase::loadFile(dbcfgfile);
 #if defined(WITH_TEXT) && defined(WITH_MYSQL)
 	if(database_engine()=="txt")
-		return new CVarDB_txt(dbcfgfile);
-	if(database_engine()=="sql")
-		return new CVarDB_sql(dbcfgfile);
+		ret = new CVarDB_txt(dbcfgfile);
+	else if(database_engine()=="sql")
+		ret = new CVarDB_sql(dbcfgfile);
 #elif defined(WITH_TEXT)
-	return new CVarDB_txt(dbcfgfile);
+	ret = new CVarDB_txt(dbcfgfile);
 #elif defined(WITH_MYSQL)
-	return new CVarDB_sql(dbcfgfile);
+	ret = new CVarDB_sql(dbcfgfile);
 #else
 #error "no database implementation specified, define 'WITH_MYSQL','WITH_TEXT' or both"
 #endif
-	return NULL;
+	return ret;
 }
 
 

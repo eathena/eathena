@@ -70,8 +70,8 @@
 #define CL_SPACE         "           "	// space aquivalent of the print messages
 enum msg_type {MSG_NONE,MSG_STATUS,MSG_SQL,MSG_INFORMATION,MSG_CONSOLE,MSG_NOTICE,MSG_WARNING,MSG_DEBUG,MSG_ERROR,MSG_FATALERROR};
 
-extern int _vShowMessage(enum msg_type flag, const char *str, va_list va);
-extern int _ShowMessage(enum msg_type flag, const char *str, ...);
+extern int _vShowMessage(msg_type flag, const char *str, va_list va);
+extern int _ShowMessage(msg_type flag, const char *str, ...);
 
 #ifdef __GNUC__ 
 
@@ -142,9 +142,9 @@ static inline int ShowMessage(const char *str, ...)
 }
 
 // MSG_XX
-static inline int ShowMsg(enum msg_type flag, const char *str, ...)
-//	static inline int DisplayMsg(enum msg_type flag, const char *str, ...)
-//	static inline int ShowMessage(enum msg_type flag, const char *str, ...)
+static inline int ShowMsg(msg_type flag, const char *str, ...)
+//	static inline int DisplayMsg(msg_type flag, const char *str, ...)
+//	static inline int ShowMessage(msg_type flag, const char *str, ...)
 {
 	va_list va;
 	int ret;

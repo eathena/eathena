@@ -4,7 +4,7 @@
 #ifndef _CHAT_H_
 #define _CHAT_H_
 
-#include "pc.h"
+#include "map.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -52,10 +52,7 @@ public:
 
 	/////////////////////////////////////////////////////////////////
 	/// check ownership
-	bool is_owner(map_session_data const & sd) const
-	{
-		return (owner)?owner->id==sd.block_list::id:false;
-	}
+	bool is_owner(map_session_data const & sd) const;
 
 	/////////////////////////////////////////////////////////////////
 	/// create a chat.

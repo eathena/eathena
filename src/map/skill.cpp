@@ -10,6 +10,11 @@
 #include "skill.h"
 #include "status.h"
 
+
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// basic target skill.
 /// could be used as their base class,
@@ -227,7 +232,6 @@ public:
 		if(bl)
 		{
 			mob_data* md = bl->get_md();
-			struct status_change *sc_data = status_get_sc_data(bl);
 			// check if the monster an MVP or undead
 			if(( md && md->get_mode()&0x20) || bl->is_undead() )
 				return;
@@ -237,20 +241,17 @@ public:
 			{	//TODO: How much does base level effect? Dummy value of 1% per level difference used. [Skotlex]
 				this->caster.skill_failed(SKILLID, SF_FAILED);
 			}
-			status_change_start(bl,SkillStatusChangeTable[SKILLID],this->skill_lvl,0,0,0,skill_get_time(SKILLID,this->skill_lvl),0 );
+			status_change_start(bl,(status_t)SkillStatusChangeTable[SKILLID],this->skill_lvl,0,0,0,skill_get_time(SKILLID,this->skill_lvl),0 );
 
 			if( bl->is_casting() && bl->skill_can_cancel() )
 				skill_castcancel(bl,0);
 
-			if(sc_data)
-			{
-				if(sc_data[SC_FREEZE].timer!=-1)
-					status_change_end(bl,SC_FREEZE,-1);
-				if(sc_data[SC_STONE].timer!=-1 && sc_data[SC_STONE].integer2()==0)
-					status_change_end(bl,SC_STONE,-1);
-				if(sc_data[SC_SLEEP].timer!=-1)
-					status_change_end(bl,SC_SLEEP,-1);
-			}
+			if( bl->has_status(SC_FREEZE) )
+				status_change_end(bl,SC_FREEZE,-1);
+			if( bl->has_status(SC_STONE) && bl->get_statusvalue2(SC_STONE).integer()==0)
+				status_change_end(bl,SC_STONE,-1);
+			if( bl->has_status(SC_SLEEP) )
+				status_change_end(bl,SC_SLEEP,-1);
 
 			if(md)
 			{
@@ -285,30 +286,38 @@ public:
 //////////////////////////////////////////
 /// Skillname: SM_MAGNUM
 /// skill ID: 7
-class skill_sm_magnum : public targetskill, public CMapProcessor
+class skill_sm_magnum : public targetskill
 {
-	ulong savedtick;
+	struct spash_damage : public CMapProcessor
+	{
+		skill_sm_magnum& parent;
+		ulong tick;
+
+		spash_damage(skill_sm_magnum& p, ulong t)
+			: parent(p), tick(t)
+		{}
+
+		virtual int process(block_list& bl) const
+		{
+			if(bl!=BL_PC && bl!=BL_MOB && bl!=BL_SKILL)
+				return 0;
+			if( battle_check_target(&parent.caster,&bl,BCT_ENEMY) > 0)
+			{
+				const int dist = bl.get_distance(parent.caster);
+				skill_attack(BF_WEAPON,&parent.caster,&parent.caster, &bl, skill_sm_magnum::SKILLID, parent.skill_lvl, this->tick, 0x0500|dist);
+				return 1;
+			}
+			return 0;
+		}
+	};
+	friend struct spash_damage;
+	
 public:
 	skill_sm_magnum(fightable& caster, ushort lvl, uint32 id)
 		: targetskill(caster, lvl, id)
 	{}
 	virtual ~skill_sm_magnum()
 	{}
-
-	// callback from foreach calls
-	virtual int process(block_list& bl) const
-	{
-	// get surrounding enemies
-		if(bl!=BL_PC && bl!=BL_MOB && bl!=BL_SKILL)
-			return 0;
-		if( battle_check_target(&this->caster,&bl,BCT_ENEMY) > 0)
-		{
-			const int dist = bl.get_distance(this->caster);
-			skill_attack(BF_WEAPON,&this->caster,&this->caster, &bl, SKILLID, this->skill_lvl, this->savedtick, 0x0500|dist);
-			return 1;
-		}
-		return 0;
-	}
 
 	/// identifier.
 	enum {SKILLID = SM_MAGNUM};
@@ -325,9 +334,8 @@ public:
 		block_list* bl=block_list::from_blid(this->target_id);
 		if(bl)
 		{	
-			this->savedtick  = tick;	// to have it readable from the mapprocessor callback
 			// weapon attack
-			block_list::foreachinarea(  *this,
+			block_list::foreachinarea(  spash_damage(*this, tick),
 				this->caster.m,((int)this->caster.x)-2,((int)this->caster.y)-2,((int)this->caster.x)+2,((int)this->caster.y)+2,BL_ALL);
 				clif_skill_nodamage(this->caster,this->caster,SKILLID,this->skill_lvl,1);
 
@@ -389,7 +397,7 @@ public:
 
 			// additional effect
 			clif_skill_nodamage(this->caster,*bl,SKILLID,this->skill_lvl,1);
-			status_change_start(bl,SkillStatusChangeTable[SKILLID],this->skill_lvl,0,0,0,skill_get_time(SKILLID,this->skill_lvl),0 );
+			status_change_start(bl,(status_t)SkillStatusChangeTable[SKILLID],this->skill_lvl,0,0,0,skill_get_time(SKILLID,this->skill_lvl),0 );
 
 			map_session_data *sd = bl->get_sd();
 			if(sd)
@@ -449,7 +457,7 @@ public:
 			
 			// additional effect
 			clif_skill_nodamage(this->caster,*bl,SKILLID,this->skill_lvl,1);
-			status_change_start(bl,SkillStatusChangeTable[SKILLID],this->skill_lvl,0,0,0,skill_get_time(SKILLID,this->skill_lvl),0 );
+			status_change_start(bl,(status_t)SkillStatusChangeTable[SKILLID],this->skill_lvl,0,0,0,skill_get_time(SKILLID,this->skill_lvl),0 );
 		}
 	}
 	/// function called when stopped
@@ -477,28 +485,72 @@ public:
 //////////////////////////////////////////
 /// Skillname: MG_NAPALMBEAT
 /// skill ID: 11
-class skill_mg_napalmbeat : public targetskill, public CMapProcessor
+class skill_mg_napalmbeat : public targetskill
 {
-	mutable basics::vector<block_list*>	blocks;
+
+	// using the callback to this function from the default template
+	bool splash_count(block_list& bl)
+	{
+		if(bl!=BL_PC && bl!=BL_MOB && bl!=BL_SKILL)
+			return false;
+		if( bl.id!=this->target_id && battle_check_target(&this->caster,&bl,BCT_ENEMY) > 0)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	// having own callback objects defined
+	struct splash_count : public CMapProcessor
+	{
+		skill_mg_napalmbeat& parent;
+
+		splash_count(skill_mg_napalmbeat& p)
+			: parent(p)
+		{}
+		virtual int process(block_list& bl) const
+		{
+			if(bl!=BL_PC && bl!=BL_MOB && bl!=BL_SKILL)
+				return 0;
+			if( bl.id!=parent.target_id && battle_check_target(&parent.caster,&bl,BCT_ENEMY) > 0)
+			{
+				return 1;
+			}
+			return 0;
+		}
+	};
+	friend struct splash_count;
+	// having own callback objects defined
+	struct splash_damage : public CMapProcessor
+	{
+		skill_mg_napalmbeat& parent;
+		ulong tick;
+		uint count;
+
+		splash_damage(skill_mg_napalmbeat& p, ulong t, uint c)
+			: parent(p), tick(t), count(c)
+		{}
+
+		virtual int process(block_list& bl) const
+		{
+			if(bl!=BL_PC && bl!=BL_MOB && bl!=BL_SKILL)
+				return 0;
+			if( bl.id==parent.target_id || battle_check_target(&parent.caster,&bl,BCT_ENEMY) > 0)
+			{
+				skill_attack(BF_MAGIC,&parent.caster,&parent.caster,&bl,skill_mg_napalmbeat::SKILLID,parent.skill_lvl,tick,count|0x0500);
+				return 1;
+			}
+			return 0;
+		}
+	};
+	friend struct splash_damage;
+
 public:
 	skill_mg_napalmbeat(fightable& caster, ushort lvl, uint32 id)
 		: targetskill(caster, lvl, id)
 	{}
 	virtual ~skill_mg_napalmbeat()
 	{}
-
-	// callback from foreach calls
-	virtual int process(block_list& bl) const
-	{	// get surrounding enemies, excluding the target
-		if(bl!=BL_PC && bl!=BL_MOB && bl!=BL_SKILL)
-			return 0;
-		if( bl.id!=this->target_id && battle_check_target(&this->caster,&bl,BCT_ENEMY) > 0)
-		{
-			blocks.push_back(&bl);
-			return 1;
-		}
-		return 0;
-	}
 
 	/// identifier.
 	enum {SKILLID = MG_NAPALMBEAT};
@@ -516,18 +568,19 @@ public:
 		if(bl)
 		{
 			// get surrounding enemies
-			block_list::foreachinarea(  *this,
+			// calling with own callback objects
+	//		const uint count = block_list::foreachinarea(  splash_count(*this),
+	//			bl->m,((int)bl->x)-1,((int)bl->y)-1,((int)bl->x)+1,((int)bl->y)+1,BL_ALL);
+
+			// calling with default object template
+			const uint count = block_list::foreachinarea(  skillbase::map_callback<skill_mg_napalmbeat>(*this,&skill_mg_napalmbeat::splash_count),
 				bl->m,((int)bl->x)-1,((int)bl->y)-1,((int)bl->x)+1,((int)bl->y)+1,BL_ALL);
 
-			// attack the target
-			skill_attack(BF_MAGIC,&this->caster,&this->caster,bl,SKILLID,this->skill_lvl,tick,blocks.size());
+			// calling with own callback objects
+			// attack the surround
+			block_list::foreachinarea(  splash_damage(*this, tick, count),
+				bl->m,((int)bl->x)-1,((int)bl->y)-1,((int)bl->x)+1,((int)bl->y)+1,BL_ALL);
 
-			// splash the surround
-			basics::vector<block_list*>::iterator iter(this->blocks);
-			for(; iter; ++iter)
-			{
-				skill_attack(BF_MAGIC,&this->caster,&this->caster,bl,SKILLID,this->skill_lvl,tick,blocks.size()|0x0500);
-			}
 			// additional effect
 		}
 	}
@@ -637,15 +690,6 @@ public:
 		{
 			// weapon attack
 			skill_attack(BF_MAGIC,&this->caster,&this->caster,bl,SKILLID,this->skill_lvl,tick,0);
-
-			// additional effect
-// Need to add support for double cast. (currently done inside skill_attack)
-//			struct status_change *sc_data = status_get_sc_data(&this->caster);
-//			if( sc_data && sc_data[SC_DOUBLECAST].timer != -1 &&
-//				rand() % 100 < 40+10*sc_data[SC_DOUBLECAST].val1.num )
-//			{
-//				skill_castend_delay(*src, *bl, skillid, skilllv, tick + dmg.div_*dmg.amotion, flag|1);
-//			}
 		}
 	}
 	/// function called when stopped
@@ -667,6 +711,18 @@ public:
 	virtual ushort get_skillid() const
 	{
 		return SKILLID;
+	}
+	/// check for doublecast.
+	virtual bool doublecast(unsigned long& timeoffset) const
+	{
+		if( this->caster.has_status(SC_DOUBLECAST) &&
+			rand()%100 < 40+10*this->caster.get_statusvalue1(SC_DOUBLECAST).integer() )
+			{
+				timeoffset = 500;//dmg.div_*dmg.amotion;
+				return true;
+			}
+
+		return false;
 	}
 };
 
@@ -701,12 +757,11 @@ public:
 			skill_attack(BF_MAGIC,&this->caster,&this->caster,bl,SKILLID,this->skill_lvl,tick,0);
 
 			// additional effect
-			struct status_change *sc_data = status_get_sc_data(bl);
 			const int sc_def_mdef = status_get_sc_def_mdef(bl);
 			int rate = (this->skill_lvl*3+35)*sc_def_mdef/100-(bl->get_int()+bl->get_luk())/15;
 			if (rate <= 5)
 				rate = 5;
-			if(sc_data && sc_data[SC_FREEZE].timer == -1 && rand()%100 < rate)
+			if( !bl->has_status(SC_FREEZE) && rand()%100 < rate)
 				status_change_start(bl,SC_FREEZE,this->skill_lvl,0,0,0,skill_get_time2(SKILLID,this->skill_lvl)*(1-sc_def_mdef/100),0);
 		}
 	}
@@ -762,7 +817,6 @@ public:
 			// weapon attack
 
 			// additional effect
-			struct status_change *sc_data = status_get_sc_data(bl);
 			int i=0;
 			bool fail_flag = true;
 			map_session_data *sd = this->caster.get_sd();
@@ -781,7 +835,7 @@ public:
 			{	// failed
 				caster.skill_failed(SKILLID);
 			}
-			else if( !status_isimmune(bl) && sc_data && sc_data[SC_STONE].timer != -1)
+			else if( !status_isimmune(bl) && bl->has_status(SC_STONE) )
 			{	// un-stoned
 				caster.skill_failed(SKILLID);
 				status_change_end(bl,SC_STONE,-1);
@@ -799,7 +853,7 @@ public:
 
 			if( sd && (!fail_flag || this->skill_lvl <= 5) )
 			{	// Level 6-10 doesn't consume a red gem if it fails [celest]
-				pc_delitem(*sd, i, skill_db[SKILLID].amount[0], 0);
+				pc_delitem(*sd, (ushort)i, skill_db[SKILLID].amount[0], 0);
 			}
 		}
 	}
@@ -930,14 +984,6 @@ public:
 			// weapon attack
 			skill_attack(BF_MAGIC,&this->caster,&this->caster,bl,SKILLID,this->skill_lvl,tick,0);
 
-			// additional effect
-// Need to add support for double cast. (currently done inside skill_attack)
-//			struct status_change *sc_data = status_get_sc_data(&this->caster);
-//			if( sc_data && sc_data[SC_DOUBLECAST].timer != -1 &&
-//				rand() % 100 < 40+10*sc_data[SC_DOUBLECAST].val1.num)
-//			{
-//				skill_castend_delay(*src, *bl, skillid, skilllv, tick + dmg.div_*dmg.amotion, flag|1);
-//			}
 		}
 	}
 	/// function called when stopped
@@ -959,6 +1005,18 @@ public:
 	virtual ushort get_skillid() const
 	{
 		return SKILLID;
+	}
+	/// check for doublecast.
+	virtual bool doublecast(unsigned long& timeoffset) const
+	{
+		if( this->caster.has_status(SC_DOUBLECAST) &&
+			rand()%100 < 40+10*this->caster.get_statusvalue1(SC_DOUBLECAST).integer() )
+			{
+				timeoffset = 500;//dmg.div_*dmg.amotion;
+				return true;
+			}
+
+		return false;
 	}
 };
 
@@ -993,13 +1051,6 @@ public:
 			skill_attack(BF_MAGIC,&this->caster,&this->caster,bl,SKILLID,this->skill_lvl,tick,0);
 
 			// additional effect
-// Need to add support for double cast. (currently done inside skill_attack)
-//			struct status_change *sc_data = status_get_sc_data(&this->caster);
-//			if( sc_data && sc_data[SC_DOUBLECAST].timer != -1 &&
-//				rand() % 100 < 40+10*sc_data[SC_DOUBLECAST].val1.num)
-//			{
-//				skill_castend_delay(*src, *bl, skillid, skilllv, tick + dmg.div_*dmg.amotion, flag|1);
-//			}
 		}
 	}
 	/// function called when stopped
@@ -1022,6 +1073,18 @@ public:
 	{
 		return SKILLID;
 	}
+	/// check for doublecast.
+	virtual bool doublecast(unsigned long& timeoffset) const
+	{
+		if( this->caster.has_status(SC_DOUBLECAST) &&
+			rand()%100 < 40+10*this->caster.get_statusvalue1(SC_DOUBLECAST).integer() )
+			{
+				timeoffset = 500;//dmg.div_*dmg.amotion;
+				return true;
+			}
+
+		return false;
+	}
 };
 
 
@@ -1032,8 +1095,6 @@ skillbase* skillbase::create(fightable& caster, ushort skillid, ushort skilllv, 
 	skillbase* skill = NULL;
 	switch(skillid)
 	{
-	case dummyskill::SKILLID:	skill = new dummyskill(caster, "targetskill"); break;
-
 	case skill_sm_bash::SKILLID:    skill = new skill_sm_bash(caster, skilllv, targetid); break;
 	case skill_sm_provoke::SKILLID: skill = new skill_sm_provoke(caster, skilllv, targetid); break;
 	case skill_sm_magnum::SKILLID: skill = new skill_sm_magnum(caster, skilllv, targetid); break;
@@ -1130,7 +1191,7 @@ int skillbase::timer_entry(int tid, unsigned long tick, int id, basics::numptr d
 				mv->cSkillObj=skill;
 				if( timeoffset>100 )
 				{	/// action is to be called more than 100ms from now
-					/// initialize timer.
+					/// initialize timer. use the timer_entry_double for execution
 					skill->timerid = add_timer(tick+timeoffset, skillbase::timer_entry_double, skill->caster.block_list::id, basics::numptr(skill));
 					return 0;
 				}
@@ -1202,7 +1263,7 @@ void skillbase::initialize(ushort skillid, skillbase*& skill)
 			}
 		}
 		else
-		{
+		{	// skill is invalid
 			skill->caster.skill_failed(skillid, errcode);
 		}
 		// delete the skill, either failed or already executed

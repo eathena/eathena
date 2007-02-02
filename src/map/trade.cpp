@@ -258,7 +258,7 @@ void trade_tradeok(map_session_data &sd)
 	}
 
 	// check zeny
-	if(sd.deal_zeny < 0 || sd.deal_zeny > MAX_ZENY || sd.deal_zeny > (uint32)sd.status.zeny)
+	if( sd.deal_zeny > MAX_ZENY || sd.deal_zeny > (uint32)sd.status.zeny )
 	{	// check amount
 		pc_setglobalreg(sd,"ZENY_HACKER",1);
 		trade_tradecancel(sd);
@@ -350,12 +350,11 @@ void trade_tradecommit(map_session_data &sd)
 					return;
 				}
 				// check zenys value against hackers
-				if( sd.deal_zeny >= 0 && sd.deal_zeny <= MAX_ZENY && sd.deal_zeny <= (uint32)sd.status.zeny &&
+				if( sd.deal_zeny <= MAX_ZENY && sd.deal_zeny <= (uint32)sd.status.zeny &&
 				    (target_sd->status.zeny + sd.deal_zeny) <= MAX_ZENY && // fix positiv overflow
-				    target_sd->deal_zeny >= 0 && target_sd->deal_zeny <= MAX_ZENY && target_sd->deal_zeny <= (uint32)target_sd->status.zeny &&
+				    target_sd->deal_zeny <= MAX_ZENY && target_sd->deal_zeny <= (uint32)target_sd->status.zeny &&
 				    (sd.status.zeny + target_sd->deal_zeny) <= MAX_ZENY) // fix positiv overflow
-				{
-					// trade is accepted
+				{	// trade is accepted
 					for(trade_i = 0; trade_i < MAX_TRADING; ++trade_i)
 					{
 						if (sd.deal_item_amount[trade_i] != 0)

@@ -209,6 +209,7 @@ inline FILE* safefopen(const char*name, const char*option)
 ///////////////////////////////////////////////////////////////////////////////
 class CFileProcessor : public noncopyable
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CFileProcessor)
 public:
 	CFileProcessor()			{}
 	virtual ~CFileProcessor()	{}

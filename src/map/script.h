@@ -537,6 +537,7 @@ struct script_regstr
 /// is used as conversion vehicle toward the new script engine
 struct script_object : public basics::noncopyable
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(script_object)
 public:
 	struct script_label
 	{

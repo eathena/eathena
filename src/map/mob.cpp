@@ -233,7 +233,7 @@ int mob_data::attacktimer_func(int tid, unsigned long tick, int id, basics::nump
 
 	md.target_lv = battle_weapon_attack(&md,tbl,tick,0);
 
-	if(!(config.monster_cloak_check_type&2) && md.sc_data[SC_CLOAKING].timer != -1)
+	if(!(config.monster_cloak_check_type&2) && md.has_status(SC_CLOAKING))
 		status_change_end(&md,SC_CLOAKING,-1);
 
 	md.attackable_tick = tick + status_get_adelay(&md);
@@ -406,13 +406,11 @@ bool mob_data::stop_attack()
 int mob_target(mob_data &md,block_list *bl,int dist)
 {
 	map_session_data *sd;
-	struct status_change *sc_data;
 	short *option;
 	int mode,race;
 
 	nullpo_retr(0, bl);
 
-	sc_data = status_get_sc_data(bl);
 	option = status_get_option(bl);
 	race=mob_db[md.class_].race;
 
@@ -430,7 +428,7 @@ int mob_target(mob_data &md,block_list *bl,int dist)
 		!(md.provoke_id && md.provoke_id == bl->id))
 		return 0;
 	if(mode&0x20 ||	// Coercion is exerted if it is MVPMOB.
-		(sc_data && sc_data[SC_TRICKDEAD].timer == -1 && sc_data[SC_BASILICA].timer == -1 &&
+		( !bl->has_status(SC_TRICKDEAD) && !bl->has_status(SC_BASILICA) &&
 		 ( (option && !(*option&0x06) ) || race==4 || race==6 || mode&0x100 ) ) )
 	{
 		sd = bl->get_sd();
@@ -646,6 +644,7 @@ void mob_data::set_spawndelay()
  */
 class CMobDeleteSlave : public CMapProcessor
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CMobDeleteSlave)
 	uint32 id;
 public:
 	CMobDeleteSlave(uint32 i) : id(i)	{}
@@ -681,6 +680,7 @@ void mob_data::remove_slaves() const
  */
 class CMobCountSlave : public CMapProcessor
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CMobCountSlave)
 	uint32 id;
 public:
 	CMobCountSlave(uint32 i) : id(i) {}
@@ -969,10 +969,7 @@ int mob_spawn_guardian(map_session_data *sd,const char *mapname,
 	int x,int y,const char *mobname,int class_,int amount,const char *event,int guardian)
 {
 	mob_data *md=NULL;
-	int m,count=1,lv=255;
-
-	if( sd )
-		lv=sd->status.base_level;
+	int m,count=1;
 
 	if( sd && strcmp(mapname,"this")==0)
 		m=sd->block_list::m;
@@ -1108,10 +1105,8 @@ int mob_spawn(uint32 id)
 	for (i = 0; i < MAX_MOBSKILLTIMERSKILL; ++i)
 		md->skilltimerskill[i].timer = -1;
 
-	for (i = 0; i < MAX_STATUSCHANGE; ++i) {
-		md->sc_data[i].timer = -1;
-		md->sc_data[i].value1() = md->sc_data[i].value2() = md->sc_data[i].value3() = md->sc_data[i].value4() = 0;
-	}
+	md->status_clear();
+
 	md->opt1 = md->opt2 = md->opt3 = md->option = 0;
 
 	md->max_hp = mob_db[md->class_].max_hp;
@@ -1183,7 +1178,7 @@ public:
 	~CMobAiHardActivesearch()	{}
 	virtual int process(block_list& bl) const
 	{
-		int mode,race,dist;
+		int mode,race;
 		if(bl!=BL_PC && bl!=BL_MOB)
 			return 0;
 
@@ -1210,9 +1205,9 @@ public:
 					tsd.invincible_timer == -1 &&
 					!tsd.is_invisible() &&
 					!tsd.ScriptEngine.isRunning() &&
-					(dist=distance(smd.block_list::x,smd.block_list::y,tsd.block_list::x,tsd.block_list::y))<9 )
+					distance(smd.block_list::x,smd.block_list::y,tsd.block_list::x,tsd.block_list::y)<9 )
 				if( mode&0x20 ||
-					(tsd.sc_data[SC_TRICKDEAD].timer == -1 && tsd.sc_data[SC_BASILICA].timer == -1 &&
+					( !tsd.has_status(SC_TRICKDEAD) && !tsd.has_status(SC_BASILICA) &&
 					((!tsd.is_hiding() && !tsd.state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) 
 					&& !tsd.state.perfect_hiding) )))
 				{	// 妨害がないか判定
@@ -1231,7 +1226,7 @@ public:
 			{	//対象がMobの場合
 				mob_data &tmd=(mob_data &)bl;
 				if( tmd.block_list::m == smd.block_list::m &&
-					(dist=distance(smd.block_list::x,smd.block_list::y,tmd.block_list::x,tmd.block_list::y))<9 )
+					distance(smd.block_list::x,smd.block_list::y,tmd.block_list::x,tmd.block_list::y)<9 )
 				{
 					if( smd.can_reach(bl,12) && 		// 到達可能性判定
 						rand()%1000<1000/(++pcc) )
@@ -1259,7 +1254,7 @@ public:
 	~CMobAiHardLootsearch()	{}
 	virtual int process(block_list& bl) const
 	{
-		int mode,dist;
+		int mode;
 
 		if(!md.mode)
 			mode=mob_db[md.class_].mode;
@@ -1270,7 +1265,7 @@ public:
 		{
 			if(!md.lootitem || (config.monster_loot_type == 1 && md.lootitem_count >= LOOTITEM_SIZE) )
 				return 0;
-			if(bl.m == md.block_list::m && (dist=distance(md.block_list::x,md.block_list::y,bl.x,bl.y))<9)
+			if(bl.m == md.block_list::m && distance(md.block_list::x,md.block_list::y,bl.x,bl.y)<9)
 			{	// Reachability judging
 				if( md.can_reach(bl, 12) && 		
 					rand()%1000<1000/(++itc) )
@@ -1434,7 +1429,7 @@ int mob_ai_sub_hard_slavemob(mob_data &md,unsigned long tick)
 
 			race=mob_db[md.class_].race;
 			if(mode&0x20 ||
-				(sd->sc_data[SC_TRICKDEAD].timer == -1 && sd->sc_data[SC_BASILICA].timer == -1 &&
+				( !sd->has_status(SC_TRICKDEAD) && !sd->has_status(SC_BASILICA) &&
 				( (!sd->is_hiding() && !sd->state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) && !sd->state.perfect_hiding) ) ) ){	// 妨害がないか判定
 
 				md.target_id=sd->block_list::id;
@@ -1444,25 +1439,6 @@ int mob_ai_sub_hard_slavemob(mob_data &md,unsigned long tick)
 			}
 		}
 	}
-
-	// There is the master, the master locks a target and he does not lock.
-/*	if( (md.target_id>0 && mmd->state.targettype == ATTACKABLE) && (!mmd->target_id || mmd->state.targettype == NONE_ATTACKABLE) ){
-		map_session_data *sd=map_session_data::from_blid(md.target_id);
-		if(sd!=NULL && !sd->is_dead() && sd->invincible_timer == -1 && !pc_isinvisible(sd)){
-
-			race=mob_db[mmd->class_].race;
-			if(mode&0x20 ||
-				(sd->sc_data[SC_TRICKDEAD].timer == -1 &&
-				(!(sd->status.option&0x06) || race==4 || race==6)
-				) ){	// It judges whether there is any disturbance.
-
-				mmd->target_id=sd->block_list::id;
-				mmd->state.targettype = ATTACKABLE;
-				mmd->min_chase=5+distance(mmd->block_list::x,mmd->block_list::y,sd->block_list::x,sd->block_list::y);
-			}
-		}
-	}*/
-
 	return 0;
 }
 
@@ -1475,6 +1451,7 @@ int mob_ai_sub_hard_slavemob(mob_data &md,unsigned long tick)
 
 class CMobAiHard : public CMapProcessor
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CMobAiHard)
 	unsigned long tick;
 public:
 	CMobAiHard(unsigned long t) : tick(t)	{}
@@ -1509,7 +1486,7 @@ public:
 		}
 
 		// Abnormalities
-		if((md.opt1 > 0 && md.opt1 != 6) || !md.can_act() || md.sc_data[SC_BLADESTOP].timer != -1)
+		if((md.opt1 > 0 && md.opt1 != 6) || !md.can_act() || md.has_status(SC_BLADESTOP))
 			return 0;
 
 		if( md.has_status(SC_BLIND) )
@@ -1566,7 +1543,7 @@ public:
 					{
 						static const signed char mask[8][2] = {{0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1}};
 						dir_t dir = (abl)? abl->get_direction(bl) : (dir_t)(rand()&0x07);
-						int dist = rand()%4 + 4;	//後退する距離
+						dist = rand()%4 + 4;	//後退する距離
 
 						if( md.is_movable() )
 						{
@@ -1675,8 +1652,8 @@ public:
 						md.walktoxy( md.block_list::x+dx, md.block_list::y+dy, 0);
 					}
 					else if( tsd && !(mode & 0x20) &&
-						(tsd->sc_data[SC_TRICKDEAD].timer != -1 ||
-						tsd->sc_data[SC_BASILICA].timer != -1 ||
+						(tsd->has_status(SC_TRICKDEAD) ||
+						tsd->has_status(SC_BASILICA) ||
 						((tsd->is_hiding() || tsd->state.gangsterparadise) &&
 						!((race == 4 || race == 6 || mode&0x100) && !tsd->state.perfect_hiding))))
 					{
@@ -2522,7 +2499,6 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 		for (i = 0; i < 10; ++i)
 		{ // 8 -> 10 Lupus
 			delay_item_drop *ditem;
-			int drop_rate;
 			
 			if( (maps[md.block_list::m].flag.nomobloot) ||
 				(md.master_id && md.state.special_mob_ai) ||
@@ -2697,15 +2673,20 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 		{
 			if(mvp_sd != NULL)
 				sd = mvp_sd;
-			else {
-				map_session_data *tmpsd;
-				size_t i;
-				for(i=0;i<fd_max;++i){
-					if(session[i] && (tmpsd= (map_session_data *) session[i]->user_session) && tmpsd->state.auth) {
-						if(md.block_list::m == tmpsd->block_list::m) {
-							sd = tmpsd;
-							break;
-						}
+			else
+			{	// get the first character on the current map
+				//##TODO
+				//instead of the userdb use the map iterator when merged
+
+				// nick_db contains only authentified sessions
+				// so can use this directly
+				map_session_data::iterator iter(map_session_data::nickdb());
+				for(; iter; ++iter)
+				{
+					if( iter.data() && md.block_list::m == iter.data()->block_list::m )
+					{
+						sd = &*iter.data();
+						break;
 					}
 				}
 			}
@@ -2984,7 +2965,7 @@ int mobskill_castend_id(int tid, unsigned long tick, int id, basics::numptr data
 
 	md->skilltimer=-1;
 	//沈黙や状態異常など
-	if(md->sc_data){
+	{
 		if(md->opt1>0 || md->has_status(SC_DIVINA) ||
 			(!(mob_db[md->class_].mode & 0x20) && md->has_status(SC_ROKISWEIL) ) ||
 			md->has_status(SC_STEELBODY) )
@@ -3007,9 +2988,10 @@ int mobskill_castend_id(int tid, unsigned long tick, int id, basics::numptr data
 	if(md->block_list::m != bl->m)
 		return 0;
 
-	if(md->skillid == PR_LEXAETERNA) {
-		struct status_change *sc_data = status_get_sc_data(bl);
-		if(sc_data && (sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].integer2() == 0)))
+	if(md->skillid == PR_LEXAETERNA)
+	{
+		if( bl->has_status(SC_FREEZE) || 
+			(bl->has_status(SC_STONE) && bl->get_statusvalue2(SC_STONE).integer()== 0) )
 			return 0;
 	}
 	else if(md->skillid == RG_BACKSTAP)
@@ -3073,16 +3055,16 @@ int mobskill_castend_pos(int tid, unsigned long tick, int id, basics::numptr dat
 		return 0;
 
 	md->skilltimer=-1;
-	if(md->sc_data){
+	{
 		if(md->opt1>0 || md->has_status(SC_DIVINA) ||
-			(!(mob_db[md->class_].mode & 0x20) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
-			md->sc_data[SC_STEELBODY].timer != -1)
+			(!(mob_db[md->class_].mode & 0x20) && md->has_status(SC_ROKISWEIL)) ||
+			md->has_status(SC_STEELBODY))
 			return 0;
-		if(md->sc_data[SC_AUTOCOUNTER].timer != -1 && md->skillid != KN_AUTOCOUNTER) //オートカウンター
+		if(md->has_status(SC_AUTOCOUNTER) && md->skillid != KN_AUTOCOUNTER) //オートカウンター
 			return 0;
-		if(md->sc_data[SC_BLADESTOP].timer != -1) //白刃取り
+		if(md->has_status(SC_BLADESTOP)) //白刃取り
 			return 0;
-		if(md->sc_data[SC_BERSERK].timer != -1) //バーサーク
+		if(md->has_status(SC_BERSERK)) //バーサーク
 			return 0;
 	}
 
@@ -3154,16 +3136,16 @@ int mobskill_use_id(mob_data &md,block_list *target,unsigned short skill_idx)
 	skill_lv=ms->skill_lv;
 
 	// 沈黙や異常
-	if(md.sc_data){
-		if(md.opt1>0 || md.sc_data[SC_DIVINA].timer != -1 ||
-			(!(mob_db[md.class_].mode & 0x20) && md.sc_data[SC_ROKISWEIL].timer != -1) ||
-			md.sc_data[SC_STEELBODY].timer != -1)
+	{
+		if(md.opt1>0 || md.has_status(SC_DIVINA) ||
+			(!(mob_db[md.class_].mode & 0x20) && md.has_status(SC_ROKISWEIL)) ||
+			md.has_status(SC_STEELBODY))
 			return 0;
-		if(md.sc_data[SC_AUTOCOUNTER].timer != -1 && md.skillid != KN_AUTOCOUNTER) //オートカウンター
+		if(md.has_status(SC_AUTOCOUNTER) && md.skillid != KN_AUTOCOUNTER) //オートカウンター
 			return 0;
-		if(md.sc_data[SC_BLADESTOP].timer != -1) //白刃取り
+		if(md.has_status(SC_BLADESTOP)) //白刃取り
 			return 0;
-		if(md.sc_data[SC_BERSERK].timer != -1) //バーサーク
+		if(md.has_status(SC_BERSERK)) //バーサーク
 			return 0;
 	}
 
@@ -3237,7 +3219,7 @@ int mobskill_use_id(mob_data &md,block_list *target,unsigned short skill_idx)
 	md.skilllv		= skill_lv;
 	md.skillidx		= skill_idx;
 
-	if(!(config.monster_cloak_check_type&2) && md.sc_data[SC_CLOAKING].timer != -1 && md.skillid != AS_CLOAKING)
+	if(!(config.monster_cloak_check_type&2) && md.has_status(SC_CLOAKING) && md.skillid != AS_CLOAKING)
 		status_change_end(&md,SC_CLOAKING,-1);
 
 	if( casttime>0 )
@@ -3275,16 +3257,16 @@ int mobskill_use_pos( mob_data *md, int skill_x, int skill_y, unsigned short ski
 	skill_lv=ms->skill_lv;
 
 	//沈黙や状態異常など
-	if(md->sc_data){
-		if(md->opt1>0 || md->sc_data[SC_DIVINA].timer != -1 ||
-			(!(mob_db[md->class_].mode & 0x20) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
-			md->sc_data[SC_STEELBODY].timer != -1)
+	{
+		if(md->opt1>0 || md->has_status(SC_DIVINA)||
+			(!(mob_db[md->class_].mode & 0x20) && md->has_status(SC_ROKISWEIL)) ||
+			md->has_status(SC_STEELBODY))
 			return 0;
-		if(md->sc_data[SC_AUTOCOUNTER].timer != -1 && md->skillid != KN_AUTOCOUNTER) //オートカウンター
+		if(md->has_status(SC_AUTOCOUNTER) && md->skillid != KN_AUTOCOUNTER) //オートカウンター
 			return 0;
-		if(md->sc_data[SC_BLADESTOP].timer != -1) //白刃取り
+		if(md->has_status(SC_BLADESTOP)) //白刃取り
 			return 0;
-		if(md->sc_data[SC_BERSERK].timer != -1) //バーサーク
+		if(md->has_status(SC_BERSERK)) //バーサーク
 			return 0;
 	}
 
@@ -3331,7 +3313,7 @@ int mobskill_use_pos( mob_data *md, int skill_x, int skill_y, unsigned short ski
 	md->skilllv		= skill_lv;
 	md->skillidx	= skill_idx;
 
-	if(!(config.monster_cloak_check_type&2) && md->sc_data[SC_CLOAKING].timer != -1)
+	if(!(config.monster_cloak_check_type&2) && md->has_status(SC_CLOAKING))
 		status_change_end(md,SC_CLOAKING,-1);
 
 	if( casttime>0 )
@@ -3423,10 +3405,10 @@ public:
 			{
 				int j;
 				for(j=SC_STONE;j<=SC_BLIND && !flag;++j)
-					flag=(md->sc_data[j].timer!=-1 );
+					flag=(md->has_status(status_t(j)) );
 			}
 			else
-				flag=( md->sc_data[cond2].timer!=-1 );
+				flag=( md->has_status(status_t(cond2)) );
 			if( flag^( cond1==MSC_FRIENDSTATUSOFF ) )
 				fr = md;
 		}
@@ -3487,15 +3469,16 @@ int mobskill_use(mob_data &md,unsigned long tick,int event)
 				}
 				case MSC_MYSTATUSON:		// status[num] on
 				case MSC_MYSTATUSOFF:		// status[num] off
-					if (!md.sc_data) {
-						flag = 0;
-					} else if (ms[i].cond2 == -1) {
+					if (ms[i].cond2 == -1)
+					{
 						int j;
 						for (j = SC_STONE; j <= SC_BLIND; ++j)
-							if ((flag = (md.sc_data[j].timer != -1)) != 0)
+							if ((flag = (md.has_status((status_t)j))) != 0)
 								break;
-					} else {
-						flag = (md.sc_data[ms[i].cond2].timer != -1);
+					}
+					else
+					{
+						flag = md.has_status((status_t)ms[i].cond2);
 					}
 					flag ^= (ms[i].cond1 == MSC_MYSTATUSOFF);
 					break;
@@ -3578,28 +3561,37 @@ int mobskill_use(mob_data &md,unsigned long tick,int event)
 					continue;
 				// 自分の周囲
 				if (ms[i].target >= MST_AROUND1) {
-					int bx = x, by = y, i = 0, m = bl->m, r = ms[i].target-MST_AROUND1;
-					do {
+					int bx = x, by = y, m = bl->m, r = ms[i].target-MST_AROUND1;
+					i = 0;
+					do
+					{
 						bx = x + rand() % (r*2+3) - r;
 						by = y + rand() % (r*2+3) - r;
 					} while ((
 						//bx <= 0 || by <= 0 || bx >= maps[m].xs || by >= maps[m].ys ||	// checked in getcell
 						map_getcell(m, bx, by, CELL_CHKNOPASS)) && (i++) < 1000);
-					if (i < 1000){
-						x = bx; y = by;
+					if (i < 1000)
+					{
+						x = bx;
+						y = by;
 					}
 				}
 				// 相手の周囲
-				if (ms[i].target >= MST_AROUND5) {
-					int bx = x, by = y, i = 0, m = bl->m, r = (ms[i].target-MST_AROUND5) + 1;
-					do {
+				if (ms[i].target >= MST_AROUND5)
+				{
+					int bx = x, by = y, m = bl->m, r = (ms[i].target-MST_AROUND5) + 1;
+					i = 0;
+					do
+					{
 						bx = x + rand() % (r*2+1) - r;
 						by = y + rand() % (r*2+1) - r;
 					} while ((
 						//bx <= 0 || by <= 0 || bx >= maps[m].xs || by >= maps[m].ys ||	// checked in getcell
 						map_getcell(m, bx, by, CELL_CHKNOPASS)) && (i++) < 1000);
-					if (i < 1000){
-						x = bx; y = by;
+					if (i < 1000)
+					{
+						x = bx;
+						y = by;
 					}
 				}
 				if (!mobskill_use_pos(&md, x, y, i))
@@ -3760,158 +3752,167 @@ int mob_readdb(void)
 {
 	FILE *fp;
 	char line[1024];
-	char *filename[]={ "db/mob_db.txt","db/mob_db2.txt" };
+	const char *filename[]={ "db/mob_db.txt","db/mob_db2.txt" };
 	int i;
 
 	memset(mob_db,0,sizeof(mob_db));
 
-	for(i=0;i<2;++i){
-
+	for(i=0;i<2;++i)
+	{
 		fp=basics::safefopen(filename[i],"r");
-		if(fp==NULL){
-			if(i>0)
-				continue;
-			return -1;
+		if( fp )
+		{
+			while(fgets(line,sizeof(line),fp))
+			{
+				int j, class_;
+				long exp, maxhp;
+				char *str[60], *p, *np; // 55->60 Lupus
+
+				if( !is_valid_line(line) )
+					continue;
+
+				for(j=0,p=line;j<60;++j)
+				{
+					if((np=strchr(p,','))!=NULL)
+					{
+						str[j]=p;
+						*np=0;
+						p=np+1;
+					}
+					else
+						str[j]=p;
+				}
+
+				class_ = atoi(str[0]);
+				if (class_ <= 1000 || class_ > MAX_MOB_DB)
+					continue;
+
+				mob_db[class_].view_class = class_;
+				safestrcpy(mob_db[class_].name,  sizeof(mob_db[class_].name),  str[1]);
+				safestrcpy(mob_db[class_].jname, sizeof(mob_db[class_].jname), str[2]);
+				mob_db[class_].lv = atoi(str[3]);
+				mob_db[class_].max_hp = atoi(str[4]);
+				mob_db[class_].max_sp = atoi(str[5]);
+
+				exp = (atoi(str[6]) * config.base_exp_rate / 100);
+				if (exp < 0) 
+					exp = 0;
+				else if (exp > INT_MAX)// useless
+					exp = INT_MAX;
+				mob_db[class_].base_exp = (int)exp;
+
+				exp = (atoi(str[7]) * config.job_exp_rate / 100);
+				if (exp < 0) 
+					exp = 0;
+				else if (exp > INT_MAX)// useless
+					exp = INT_MAX;
+				
+				mob_db[class_].job_exp = exp;
+				
+				mob_db[class_].range=atoi(str[8]);
+				mob_db[class_].atk1=atoi(str[9]);
+				mob_db[class_].atk2=atoi(str[10]);
+				mob_db[class_].def=atoi(str[11]);
+				mob_db[class_].mdef=atoi(str[12]);
+				mob_db[class_].str=atoi(str[13]);
+				mob_db[class_].agi=atoi(str[14]);
+				mob_db[class_].vit=atoi(str[15]);
+				mob_db[class_].int_=atoi(str[16]);
+				mob_db[class_].dex=atoi(str[17]);
+				mob_db[class_].luk=atoi(str[18]);
+				mob_db[class_].range2=atoi(str[19]);
+				mob_db[class_].range3=atoi(str[20]);
+				mob_db[class_].size=atoi(str[21]);
+				mob_db[class_].race=atoi(str[22]);
+				mob_db[class_].element=atoi(str[23]);
+				mob_db[class_].mode=atoi(str[24]);
+				mob_db[class_].speed=atoi(str[25]);
+				mob_db[class_].adelay=atoi(str[26]);
+				mob_db[class_].amotion=atoi(str[27]);
+				mob_db[class_].dmotion=atoi(str[28]);
+
+				for(j=0;j<10;++j)
+				{
+					int rate = 0,type,ratemin,ratemax;
+					mob_db[class_].dropitem[j].nameid=atoi(str[29+j*2]);
+					type = itemdb_type(mob_db[class_].dropitem[j].nameid);
+					if (type == 0)
+					{
+						rate = config.item_rate_heal * atoi(str[30+j*2]) / 100;
+						ratemin = config.item_drop_heal_min;
+						ratemax = config.item_drop_heal_max;
+					}
+					else if (type == 2)
+					{
+						rate = config.item_rate_use * atoi(str[30+j*2]) / 100;
+						ratemin = config.item_drop_use_min;
+						ratemax = config.item_drop_use_max;
+					}
+					else if (type == 4 || type == 5 || type == 8)
+					{
+						rate = config.item_rate_equip * atoi(str[30+j*2]) / 100;
+						ratemin = config.item_drop_equip_min;
+						ratemax = config.item_drop_equip_max;
+					}
+					else if (type == 6)
+					{
+						rate = config.item_rate_card * atoi(str[30+j*2]) / 100;
+						ratemin = config.item_drop_card_min;
+						ratemax = config.item_drop_card_max;
+					}
+					else
+					{
+						rate = config.item_rate_common * atoi(str[30+j*2]) / 100;
+						ratemin = config.item_drop_common_min;
+						ratemax = config.item_drop_common_max;
+					}
+					mob_db[class_].dropitem[j].p = (rate < ratemin) ? ratemin : (rate > ratemax) ? ratemax: rate;
+				}
+				// MVP EXP Bonus, Chance: MEXP,ExpPer
+				mob_db[class_].mexp=atoi(str[49])*config.mvp_exp_rate/100;
+				mob_db[class_].mexpper=atoi(str[50]);
+				//Now that we know if it is an mvp or not,
+				//apply config modifiers [Skotlex]
+				maxhp = mob_db[class_].max_hp;
+				if (mob_db[class_].mexp > 0)
+				{	//Mvp
+					if (config.mvp_hp_rate != 100) 
+						maxhp = maxhp * config.mvp_hp_rate /100;
+				}
+				else if (config.monster_hp_rate != 100) //Normal mob
+					maxhp = maxhp * config.monster_hp_rate /100;
+				if (maxhp < 1)
+					maxhp = 1;
+				else if (maxhp > INT_MAX)
+					maxhp = INT_MAX;
+				mob_db[class_].max_hp = maxhp;
+
+				// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
+				for(j=0;j<3;++j)
+				{
+					int rate=atoi(str[52+j*2])*config.mvp_item_rate/100; //idea of the fix from Freya
+					mob_db[class_].mvpitem[j].nameid=atoi(str[51+j*2]);
+					mob_db[class_].mvpitem[j].p = (rate < (int)config.item_drop_mvp_min) 
+						? config.item_drop_mvp_min : (rate > (int)config.item_drop_mvp_max) 
+						? config.item_drop_mvp_max : rate;
+				}
+				for(j=0;j<MAX_RANDOMMONSTER;++j)
+					mob_db[class_].summonper[j]=0;
+				mob_db[class_].maxskill=0;
+
+				mob_db[class_].sex=0;
+				mob_db[class_].hair=0;
+				mob_db[class_].hair_color=0;
+				mob_db[class_].weapon=0;
+				mob_db[class_].shield=0;
+				mob_db[class_].head_top=0;
+				mob_db[class_].head_mid=0;
+				mob_db[class_].head_buttom=0;
+				mob_db[class_].clothes_color=0; //Add for player monster dye - Valaris
+			}
+			fclose(fp);
+			ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",filename[i]);
 		}
-		while(fgets(line,sizeof(line),fp)){
-			int class_, i;
-			long exp, maxhp;
-			char *str[60], *p, *np; // 55->60 Lupus
-
-			if( !is_valid_line(line) )
-				continue;
-
-			for(i=0,p=line;i<60;++i){
-				if((np=strchr(p,','))!=NULL){
-					str[i]=p;
-					*np=0;
-					p=np+1;
-				} else
-					str[i]=p;
-			}
-
-			class_ = atoi(str[0]);
-			if (class_ <= 1000 || class_ > MAX_MOB_DB)
-				continue;
-
-			mob_db[class_].view_class = class_;
-			safestrcpy(mob_db[class_].name,  sizeof(mob_db[class_].name),  str[1]);
-			safestrcpy(mob_db[class_].jname, sizeof(mob_db[class_].jname), str[2]);
-			mob_db[class_].lv = atoi(str[3]);
-			mob_db[class_].max_hp = atoi(str[4]);
-			mob_db[class_].max_sp = atoi(str[5]);
-
-			exp = (atoi(str[6]) * config.base_exp_rate / 100);
-			if (exp < 0) 
-				exp = 0;
-			else if (exp > INT_MAX)// useless
-				exp = INT_MAX;
-			mob_db[class_].base_exp = (int)exp;
-
-			exp = (atoi(str[7]) * config.job_exp_rate / 100);
-			if (exp < 0) 
-				exp = 0;
-			else if (exp > INT_MAX)// useless
-				exp = INT_MAX;
-			
-			mob_db[class_].job_exp = exp;
-			
-			mob_db[class_].range=atoi(str[8]);
-			mob_db[class_].atk1=atoi(str[9]);
-			mob_db[class_].atk2=atoi(str[10]);
-			mob_db[class_].def=atoi(str[11]);
-			mob_db[class_].mdef=atoi(str[12]);
-			mob_db[class_].str=atoi(str[13]);
-			mob_db[class_].agi=atoi(str[14]);
-			mob_db[class_].vit=atoi(str[15]);
-			mob_db[class_].int_=atoi(str[16]);
-			mob_db[class_].dex=atoi(str[17]);
-			mob_db[class_].luk=atoi(str[18]);
-			mob_db[class_].range2=atoi(str[19]);
-			mob_db[class_].range3=atoi(str[20]);
-			mob_db[class_].size=atoi(str[21]);
-			mob_db[class_].race=atoi(str[22]);
-			mob_db[class_].element=atoi(str[23]);
-			mob_db[class_].mode=atoi(str[24]);
-			mob_db[class_].speed=atoi(str[25]);
-			mob_db[class_].adelay=atoi(str[26]);
-			mob_db[class_].amotion=atoi(str[27]);
-			mob_db[class_].dmotion=atoi(str[28]);
-
-			for(i=0;i<10;++i){ // 8 -> 10 Lupus
-				int rate = 0,type,ratemin,ratemax;
-				mob_db[class_].dropitem[i].nameid=atoi(str[29+i*2]);
-				type = itemdb_type(mob_db[class_].dropitem[i].nameid);
-				if (type == 0) {
-					rate = config.item_rate_heal * atoi(str[30+i*2]) / 100; //fix by Yor
-					ratemin = config.item_drop_heal_min;
-					ratemax = config.item_drop_heal_max;
-				}
-				else if (type == 2) {
-					rate = config.item_rate_use * atoi(str[30+i*2]) / 100; //fix by Yor
-					ratemin = config.item_drop_use_min;
-					ratemax = config.item_drop_use_max;	// End
-				}
-				else if (type == 4 || type == 5 || type == 8) {		// Changed to include Pet Equip
-					rate = config.item_rate_equip * atoi(str[30+i*2]) / 100;
-					ratemin = config.item_drop_equip_min;
-					ratemax = config.item_drop_equip_max;
-				}
-				else if (type == 6) {
-					rate = config.item_rate_card * atoi(str[30+i*2]) / 100;
-					ratemin = config.item_drop_card_min;
-					ratemax = config.item_drop_card_max;
-				}
-				else {
-					rate = config.item_rate_common * atoi(str[30+i*2]) / 100;
-					ratemin = config.item_drop_common_min;
-					ratemax = config.item_drop_common_max;
-				}
-				mob_db[class_].dropitem[i].p = (rate < ratemin) ? ratemin : (rate > ratemax) ? ratemax: rate;
-			}
-			// MVP EXP Bonus, Chance: MEXP,ExpPer
-			mob_db[class_].mexp=atoi(str[49])*config.mvp_exp_rate/100;
-			mob_db[class_].mexpper=atoi(str[50]);
-			//Now that we know if it is an mvp or not,
-			//apply config modifiers [Skotlex]
-			maxhp = mob_db[class_].max_hp;
-			if (mob_db[class_].mexp > 0)
-			{	//Mvp
-				if (config.mvp_hp_rate != 100) 
-					maxhp = maxhp * config.mvp_hp_rate /100;
-			}
-			else if (config.monster_hp_rate != 100) //Normal mob
-				maxhp = maxhp * config.monster_hp_rate /100;
-			if (maxhp < 1)
-				maxhp = 1;
-			else if (maxhp > INT_MAX)
-				maxhp = INT_MAX;
-			mob_db[class_].max_hp = maxhp;
-
-			// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
-			for(i=0;i<3;++i){
-				int rate=atoi(str[52+i*2])*config.mvp_item_rate/100; //idea of the fix from Freya
-				mob_db[class_].mvpitem[i].nameid=atoi(str[51+i*2]);
-				mob_db[class_].mvpitem[i].p = (rate < (int)config.item_drop_mvp_min) 
-					? config.item_drop_mvp_min : (rate > (int)config.item_drop_mvp_max) 
-					? config.item_drop_mvp_max : rate;
-			}
-			for(i=0;i<MAX_RANDOMMONSTER;++i)
-				mob_db[class_].summonper[i]=0;
-			mob_db[class_].maxskill=0;
-
-			mob_db[class_].sex=0;
-			mob_db[class_].hair=0;
-			mob_db[class_].hair_color=0;
-			mob_db[class_].weapon=0;
-			mob_db[class_].shield=0;
-			mob_db[class_].head_top=0;
-			mob_db[class_].head_mid=0;
-			mob_db[class_].head_buttom=0;
-			mob_db[class_].clothes_color=0; //Add for player monster dye - Valaris
-		}
-		fclose(fp);
-		ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",filename[i]);
 	}
 	return 0;
 }

@@ -16,20 +16,19 @@
 #include "nullpo.h"
 #include "log.h"
 
-/*==========================================
- * ˜I“X•Â½
- *------------------------------------------
-*/
+
+//==========================================
+// ˜I“X•Â½
+//------------------------------------------
 void vending_closevending(map_session_data &sd)
 {
 	sd.vender_id=0;
 	clif_closevendingboard(sd,0);
 }
 
-/*==========================================
- * ˜I“XƒAƒCƒeƒ€ƒŠƒXƒg—v‹
- *------------------------------------------
- */
+//==========================================
+// ˜I“XƒAƒCƒeƒ€ƒŠƒXƒg—v‹
+//------------------------------------------
 void vending_vendinglistreq(map_session_data &sd, uint32 id)
 {
 	map_session_data *vsd=map_session_data::from_blid(id);
@@ -37,10 +36,9 @@ void vending_vendinglistreq(map_session_data &sd, uint32 id)
 		clif_vendinglist(sd,id,vsd->vend_list);
 }
 
-/*==========================================
- * ˜I“XƒAƒCƒeƒ€w“ü
- *------------------------------------------
- */
+//==========================================
+// ˜I“XƒAƒCƒeƒ€w“ü
+//------------------------------------------
 void vending_purchasereq(map_session_data &sd,unsigned short len,uint32 id,unsigned char *buffer)
 {
 	size_t i, j, w;
@@ -123,7 +121,8 @@ void vending_purchasereq(map_session_data &sd,unsigned short len,uint32 id,unsig
 			return; // ƒAƒCƒeƒ€”’´‰ß
 		}
 	}
-	if (z < 0 || z > MAX_ZENY) { // Zeny Bug Fixed by Darkchild
+	if( z > MAX_ZENY )
+	{
 		clif_tradecancelled(sd);
 		clif_tradecancelled(*vsd);
 		return;
@@ -154,10 +153,9 @@ void vending_purchasereq(map_session_data &sd,unsigned short len,uint32 id,unsig
 	}
 }
 
-/*==========================================
- * ˜I“XŠJİ
- *------------------------------------------
- */
+//==========================================
+// ˜I“XŠJİ
+//------------------------------------------
 void vending_openvending(map_session_data &sd,unsigned short len,const char *message,int flag, unsigned char *buffer)
 {
 	size_t i;
@@ -178,7 +176,7 @@ void vending_openvending(map_session_data &sd,unsigned short len,const char *mes
 			else if(sd.vend_list[i].value == 0)
 				sd.vend_list[i].value = 1000000;	// auto set to 1 million [celest]
 			// ƒJ[ƒg“à‚ÌƒAƒCƒeƒ€”‚Æ”Ì”„‚·‚éƒAƒCƒeƒ€”‚É‘Šˆá‚ª‚ ‚Á‚½‚ç’†~
-			if(pc_cartitem_amount(sd, sd.vend_list[i].index, sd.vend_list[i].amount) < 0 || sd.vend_list[i].value < 0)
+			if( pc_cartitem_amount(sd, sd.vend_list[i].index, sd.vend_list[i].amount) < 0 )
 			{
 				sd.skill_failed(MC_VENDING);
 				return;
@@ -193,4 +191,3 @@ void vending_openvending(map_session_data &sd,unsigned short len,const char *mes
 			sd.vender_id = 0;
 	}
 }
-

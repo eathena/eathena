@@ -48,6 +48,7 @@ public:
 /// which gets called back
 class CTimerBase : public global, public noncopyable
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CTimerBase)
 protected:
 	CTimerBase(unsigned long interval) : cTimer(-1)
 	{

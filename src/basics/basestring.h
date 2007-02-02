@@ -1525,11 +1525,11 @@ protected:
 	/////////////////////////////////////////////////////////////////
 	/// allocation of the pointer
 	/////////////////////////////////////////////////////////////////
-	virtual ptrstring *createpointer() const throw()
+	virtual ptrstring *createpointer() const
 	{
 		return new ptrstring();
 	}
-	virtual ptrstring *createpointer(const ptrstring& old) const throw()
+	virtual ptrstring *createpointer(const ptrstring& old) const
 	{
 		return new ptrstring(old);
 	}
@@ -1553,7 +1553,7 @@ protected:
 	/////////////////////////////////////////////////////////////////
 	/// aquire/release the pointer
 	/////////////////////////////////////////////////////////////////
-	void acquire(const string<T>& r) throw()
+	void acquire(const string<T>& r)
 	{	// check if not already pointing to the same object
 		if( this->cCountObj != r.cCountObj ||  NULL==this->cCountObj )
 		{	// save the current pointer
@@ -1581,7 +1581,7 @@ protected:
 			const_cast< string* >(this)->cCountObj = this->createpointer();
 		// no need to aquire, is done on reference creation
 	}
-	bool is_unique() const throw()
+	bool is_unique() const
 	{
 		return (this->cCountObj) ? (this->cCountObj->cRefCnt == 1):true;
 	}
@@ -1624,9 +1624,9 @@ public:
 	}
 	/////////////////////////////////////////////////////////////////
 	/// direct access to the underlying class
-	virtual basestring<T>& operator*()	throw()				{ return this->writeaccess(); }
-	virtual basestring<T>* operator->()	throw()				{ return &this->writeaccess(); }
-	virtual operator const basestring<T>&() const throw()	{ return this->readaccess();  }
+	virtual basestring<T>& operator*()				{ return this->writeaccess(); }
+	virtual basestring<T>* operator->()				{ return &this->writeaccess(); }
+	virtual operator const basestring<T>&() const	{ return this->readaccess();  }
 
 
 	/////////////////////////////////////////////////////////////////

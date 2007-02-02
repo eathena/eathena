@@ -25,6 +25,7 @@ void display_title(void);
 /// uptime class.
 class uptime : public basics::noncopyable
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(uptime)
 	static time_t starttime;
 public:
 	static const char *tostring(char *buffer=NULL);

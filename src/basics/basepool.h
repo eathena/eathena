@@ -21,6 +21,7 @@ NAMESPACE_BEGIN(basics)
 template <typename T>
 class TPool : public global, protected Mutex
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(TPool)
 	//TslistDST<T*> cListAll;
 	//TslistDST<T*> cListFree;
 	ptrvector<T> cListAll;

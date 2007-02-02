@@ -205,6 +205,7 @@ public:
 
 class CParseInput : public allocator_file<char>
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CParseInput)
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// position marker
@@ -465,8 +466,9 @@ public:
 };
 
 
-class CParser
+class CParser : public noncopyable
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CParser)
 	friend class CParseInput;
 public:
 	bool					reduction;
@@ -551,6 +553,7 @@ protected:
 
 class CParser_CommentStore : public CParser
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(CParser_CommentStore)
 public:
 	class CLineStorage
 	{

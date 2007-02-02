@@ -18,6 +18,9 @@ namespace print
 
 struct console_printer : public basics::noncopyable
 {
+private:
+	ICL_EMPTY_COPYCONSTRUCTOR(console_printer)
+protected:
 	FILE *logfile;
 public:
 	FILE *output;	// output, defaults to stdout

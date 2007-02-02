@@ -4,6 +4,8 @@
 #ifndef _GUILD_H_
 #define _GUILD_H_
 
+#include "basetypes.h"
+
 struct map_session_data;
 struct mob_data;
 struct guild;
