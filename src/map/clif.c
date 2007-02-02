@@ -90,6 +90,9 @@ struct packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB];
 
 //To idenfity disguised characters.
 #define disguised(bl) (bl->type==BL_PC && ((TBL_PC*)bl)->disguise)
+
+//Guarantees that the given string does not exceeds the allowed size, as well as making sure it's null terminated. [Skotlex\]
+#define mes_len_check(mes, len) if (len > CHAT_SIZE) { mes[CHAT_SIZE-1] = '\0'; len = CHAT_SIZE; } else mes[len-1] = '\0';
 static char map_ip_str[128];
 static in_addr_t map_ip;
 static in_addr_t bind_ip = INADDR_ANY;
@@ -8540,8 +8543,8 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 		return;
 	}
 	
-	if ((is_atcommand(fd, sd, message) != AtCommand_None) ||
-		(is_charcommand(fd, sd, message) != CharCommand_None))
+	if (is_atcommand(fd, sd, message) != AtCommand_None ||
+		is_charcommand(fd, sd, message) != CharCommand_None)
 		return;
 
 	if (sd->sc.count &&
@@ -8914,7 +8917,7 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 	msg = command;	
 	msg+= sprintf(command, "%s : ", sd->status.name);
 	memcpy(msg, RFIFOP(fd, 28), len);
-	msg[len]='\0'; //Force a terminator
+	mes_len_check(msg, len);
 	if ((is_charcommand(fd, sd, command) != CharCommand_None) ||
 		(is_atcommand(fd, sd, command) != AtCommand_None)) {
 		aFree(command);
@@ -10281,10 +10284,16 @@ void clif_parse_PartyChangeOption(int fd, struct map_session_data *sd) {
  *------------------------------------------
  */
 void clif_parse_PartyMessage(int fd, struct map_session_data *sd) {
-	RFIFOHEAD(fd);
+	char *mes;
+	int len;
 
-	if (is_charcommand(fd, sd, (char*)RFIFOP(fd,4)) != CharCommand_None ||
-		is_atcommand(fd, sd, (char*)RFIFOP(fd,4)) != AtCommand_None)
+	RFIFOHEAD(fd);
+	len = RFIFOW(fd,2) - 4;
+	mes = RFIFOP(fd,4);
+	mes_len_check(mes, len);
+
+	if (is_charcommand(fd, sd, mes) != CharCommand_None ||
+		is_atcommand(fd, sd, mes) != AtCommand_None)
 		return;
 
 	if	(sd->sc.count && (
@@ -10300,7 +10309,7 @@ void clif_parse_PartyMessage(int fd, struct map_session_data *sd) {
 		sd->cantalk_tick = gettick() + battle_config.min_chat_delay;
 	}
 
-	party_send_message(sd, (char*)RFIFOP(fd,4), RFIFOW(fd,2)-4);
+	party_send_message(sd, mes, len);
 }
 
 /*==========================================
@@ -10540,10 +10549,16 @@ void clif_parse_GuildExpulsion(int fd,struct map_session_data *sd) {
  *------------------------------------------
  */
 void clif_parse_GuildMessage(int fd,struct map_session_data *sd) {
-	RFIFOHEAD(fd);
+	char *mes;
+	int len;
 
-	if (is_charcommand(fd, sd, (char*)RFIFOP(fd, 4)) != CharCommand_None ||
-		is_atcommand(fd, sd, (char*)RFIFOP(fd, 4)) != AtCommand_None)
+	RFIFOHEAD(fd);
+	len = RFIFOW(fd,2) - 4;
+	mes = RFIFOP(fd,4);
+	mes_len_check(mes, len);
+
+	if (is_charcommand(fd, sd, mes) != CharCommand_None ||
+		is_atcommand(fd, sd, mes) != AtCommand_None)
 		return;
 
 	if (sd->sc.count && (
@@ -10559,7 +10574,7 @@ void clif_parse_GuildMessage(int fd,struct map_session_data *sd) {
 		sd->cantalk_tick = gettick() + battle_config.min_chat_delay;
 	}
 
-	guild_send_message(sd, (char*)RFIFOP(fd,4), RFIFOW(fd,2)-4);
+	guild_send_message(sd, mes, len);
 }
 
 /*==========================================
@@ -10830,7 +10845,7 @@ void clif_parse_GMReqNoChat(int fd,struct map_session_data *sd)
 	bl = map_id2bl(RFIFOL(fd,2));
 	if (!bl || bl->type != BL_PC)
 		return;
-	nullpo_retv(dstsd =(struct map_session_data *)bl);
+	dstsd =(struct map_session_data *)bl;
 
 	type = RFIFOB(fd,6);
 	limit = RFIFOW(fd,7);
