@@ -4,6 +4,15 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2007/02/05
+	* Merged sending the player's level to the char-server on level up so the
+	  party even-share range can be updated.
+	* Added mob skill condition 'randomtarget'
+	* Merged Wand of Hermod fix (was checking against the center of the warp
+	  rather than the whole warp area)
+	* Merged the fix to display the skill tree change after @skillall
+	* Merged fix to prevent cloned players from being picked at random
+	  (TK_MISSION)
 2007/02/02
 	* Updated the walk delay code so that it parses homunculus as well as
 	  players. What this means is that a homunculus walk request won't go ignored

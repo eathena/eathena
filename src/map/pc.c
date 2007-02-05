@@ -3180,7 +3180,7 @@ int pc_show_steal(struct block_list *bl,va_list ap)
 	itemid=va_arg(ap,int);
 
 	if((item=itemdb_exists(itemid))==NULL)
-		sprintf(output,"%s stole an Unknown Item.",sd->status.name);
+		sprintf(output,"%s stole an Unknown Item (id: %i).",sd->status.name, itemid);
 	else
 		sprintf(output,"%s stole %s.",sd->status.name,item->jname);
 	clif_displaymessage( ((struct map_session_data *)bl)->fd, output);
@@ -4101,6 +4101,9 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 	//LORDALFA - LVLUPEVENT
 	if(sd->state.event_baselvup)
 		npc_script_event(sd, NPCE_BASELVUP);
+
+	if(sd->status.party_id)
+		party_send_levelup(sd);
 	return 1;
 }
 
@@ -4556,6 +4559,9 @@ int pc_allskillup(struct map_session_data *sd)
 		}
 	}
 	status_calc_pc(sd,0);
+	//Required because if you could level up all skills previously, 
+	//the update will not be sent as only the lv variable changes.
+	clif_skillinfoblock(sd);
 	return 0;
 }
 
@@ -4715,48 +4721,68 @@ int pc_resetstate(struct map_session_data* sd)
  */
 int pc_resetskill(struct map_session_data* sd, int flag)
 {
-	int i, skill, inf2, skill_point=0;
+	int i, lv, inf2, skill_point=0;
 	nullpo_retr(0, sd);
 
-	if (pc_checkskill(sd, SG_DEVIL) &&  !pc_nextjobexp(sd))
-		clif_status_load(&sd->bl, SI_DEVIL, 0); //Remove perma blindness due to skill-reset. [Skotlex]
+	if(!(flag&2))
+	{	//Remove stuff lost when resetting skills.
+		if (pc_checkskill(sd, SG_DEVIL) &&  !pc_nextjobexp(sd))
+			clif_status_load(&sd->bl, SI_DEVIL, 0); //Remove perma blindness due to skill-reset. [Skotlex]
+		i = sd->sc.option;
+		if (i&OPTION_RIDING && pc_checkskill(sd, KN_RIDING))
+		i&=~OPTION_RIDING;
+		if(i&OPTION_CART && pc_checkskill(sd, MC_PUSHCART))
+			i&=~OPTION_CART;
+		if(i&OPTION_FALCON && pc_checkskill(sd, HT_FALCON))
+			i&=~OPTION_FALCON;
+
+		if(i != sd->sc.option)
+			pc_setoption(sd, i);
+
+		if(merc_is_hom_active(sd->hd) && pc_checkskill(sd, AM_CALLHOMUN))
+			merc_hom_vaporize(sd, 0);
+	}
 	
 	for (i = 1; i < MAX_SKILL; i++) {
-		if ((skill = sd->status.skill[i].lv) > 0) {
-			inf2 = skill_get_inf2(i);	
-			if ((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
-				!(inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL))) //Avoid reseting wedding/linker skills.
-			{
-					if (!sd->status.skill[i].flag)
-						skill_point += skill;
-					else if (sd->status.skill[i].flag > 2 && sd->status.skill[i].flag != 13)
-						skill_point += (sd->status.skill[i].flag - 2);
-					if (!(flag&2)) {
-						sd->status.skill[i].lv = 0;
-						sd->status.skill[i].flag = 0;
-					}
-			}
-			else if (battle_config.quest_skill_reset && (inf2&INF2_QUEST_SKILL) && !(flag&2))
-			{
+		lv= sd->status.skill[i].lv;
+		if (lv < 1) continue;
+
+		inf2 = skill_get_inf2(i);
+
+		if(inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL)) //Avoid reseting wedding/linker skills.
+			continue;
+
+		if (inf2&INF2_QUEST_SKILL && !battle_config.quest_skill_learn)
+		{	//Only handle quest skills in a special way when you can't learn them manually
+			if (battle_config.quest_skill_reset && !(flag&2))
+			{	//Wipe them
 				sd->status.skill[i].lv = 0;
 				sd->status.skill[i].flag = 0;
 			}
-		} else {
+			continue;
+		}
+		if (!sd->status.skill[i].flag)
+			skill_point += lv;
+		else if (sd->status.skill[i].flag > 2 && sd->status.skill[i].flag != 13)
+			skill_point += (sd->status.skill[i].flag - 2);
+
+		if (!(flag&2)) {
 			sd->status.skill[i].lv = 0;
+			sd->status.skill[i].flag = 0;
 		}
 	}
 	
-	if (!(flag&2)) {
-		if (sd->status.skill_point > USHRT_MAX - skill_point)
-			sd->status.skill_point = USHRT_MAX;
-		else
-			sd->status.skill_point += skill_point;
-	
-		if (flag&1) {
-			clif_updatestatus(sd,SP_SKILLPOINT);
-			clif_skillinfoblock(sd);
-			status_calc_pc(sd,0);
-		}
+	if (flag&2 || !skill_point) return skill_point;
+
+	if (sd->status.skill_point > USHRT_MAX - skill_point)
+		sd->status.skill_point = USHRT_MAX;
+	else
+		sd->status.skill_point += skill_point;
+
+	if (flag&1) {
+		clif_updatestatus(sd,SP_SKILLPOINT);
+		clif_skillinfoblock(sd);
+		status_calc_pc(sd,0);
 	}
 	return skill_point;
 }

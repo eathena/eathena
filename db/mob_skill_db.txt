@@ -14,7 +14,8 @@
 // target, without being attacked)
 // anytarget (attack+angry+chase+follow)
 //
-//target: The target of the skill can be: target (when a PC is targetted) / self / friend / master
+//target: The target of the skill can be: target (current target) / self / friend / 
+// master / randomtarget (any enemy within skill's range)
 // (the following are for ground-skills, a random target tile is selected from
 // the specified area):
 // around1 (3x3 area around self) / around2 (5x5 area around self) /

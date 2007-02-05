@@ -256,6 +256,7 @@ int mob_get_random_id(int type, int flag, int lv) {
 		class_ = rand() % MAX_MOB_DB;
 		mob = mob_db(class_);
 	} while ((mob == mob_dummy ||
+		mob_is_clone(class_) ||
 		(flag&1 && mob->summonper[type] <= rand() % 1000000) ||
 		(flag&2 && lv < mob->lv) ||
 		(flag&4 && mob->status.mode&MD_BOSS) ||
@@ -723,13 +724,13 @@ static int mob_can_changetarget(struct mob_data* md, struct block_list* target, 
 	{	
 		if (md->state.provoke_flag == target->id)
 			return 1;
-		else if (!battle_config.mob_ai&0x4)
+		else if (!(battle_config.mob_ai&0x4))
 			return 0;
 	}
 	
 	switch (md->state.skillstate) {
 		case MSS_BERSERK:
-			if (!mode&MD_CHANGETARGET_MELEE)
+			if (!(mode&MD_CHANGETARGET_MELEE))
 				return 0;
 			return (battle_config.mob_ai&0x4 || check_distance_bl(&md->bl, target, 3));
 		case MSS_RUSH:
@@ -1074,8 +1075,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			(md->ud.attacktimer == -1 && !status_check_skilluse(&md->bl, tbl, 0, 0)) ||
 			(md->ud.walktimer != -1 && !(battle_config.mob_ai&0x1) && !check_distance_bl(&md->bl, tbl, md->min_chase)) ||
 			(
-				tbl->type == BL_PC && !(mode&MD_BOSS) &&
-				(((TBL_PC*)tbl)->state.gangsterparadise ||
+				tbl->type == BL_PC &&
+				((((TBL_PC*)tbl)->state.gangsterparadise && !(mode&MD_BOSS)) ||
 				((TBL_PC*)tbl)->invincible_timer != INVALID_TIMER)
 		)) {	//Unlock current target.
 			if (battle_config.mob_ai&0x8) //Inmediately stop chasing.
@@ -2671,6 +2672,10 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 			short x = 0, y = 0;
 			if (ms[i].target <= MST_AROUND) {
 				switch (ms[i].target) {
+					case MST_RANDOM: //Pick a random enemy within skill range.
+						bl = battle_getenemy(&md->bl, md->special_state.ai?BL_CHAR:BL_PC|BL_HOM,
+							skill_get_range2(&md->bl, ms[i].skill_id, ms[i].skill_lv));
+						break;
 					case MST_TARGET:
 					case MST_AROUND5:
 					case MST_AROUND6:
@@ -2719,6 +2724,10 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 			if (ms[i].target <= MST_MASTER) {
 				struct block_list *bl;
 				switch (ms[i].target) {
+					case MST_RANDOM: //Pick a random enemy within skill range.
+						bl = battle_getenemy(&md->bl, md->special_state.ai?BL_CHAR:BL_PC|BL_HOM,
+							skill_get_range2(&md->bl, ms[i].skill_id, ms[i].skill_lv));
+						break;
 					case MST_TARGET:
 						bl = map_id2bl(md->target_id);
 						break;
@@ -3555,6 +3564,7 @@ static int mob_readskilldb(void)
 		{	"anytarget",MSS_ANYTARGET	}, //Berserk+Angry+Rush+Follow
 	}, target[] = {
 		{	"target",	MST_TARGET	},
+		{	"randomtarget",	MST_RANDOM	},
 		{	"self",		MST_SELF	},
 		{	"friend",	MST_FRIEND	},
 		{	"master",	MST_MASTER	},

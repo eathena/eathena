@@ -1005,6 +1005,67 @@ int npc_touch_areanpc2(struct block_list *bl)
 	return 1;
 }
 
+//Checks if there are any NPC on-touch objects on the given range.
+//Flag determines the type of object to check for:
+//&1: NPC Warps
+//&2: NPCs with on-touch events.
+int npc_check_areanpc(int flag,int m,int x,int y,int range)
+{
+	int i;
+	int x0,y0,x1,y1;
+	int xs,ys;
+
+	if (range < 0) return 0;
+	x0 = x-range;
+	x1 = x+range;
+	y0 = y-range;
+	y1 = y+range;
+	
+	//First check for npc_cells on the range given
+	if (x0 < 0) x0 = 0;
+	if (y0 < 0) y0 = 0;
+	if (x1 >= map[m].xs) x1 = map[m].xs-1;
+	if (y1 >= map[m].ys) y1 = map[m].ys-1;
+	i = 0;
+	for (ys = y0; ys <= y1 && !i; ys++) {
+		for(xs = x0; xs <= x1 && !i; xs++){
+			if (map_getcell(m,xs,ys,CELL_CHKNPC))
+				i = 1;
+		}
+	}
+	if (!i) return 0; //No NPC_CELLs.
+
+	//Now check for the actual NPC on said range.
+	for(i=0;i<map[m].npc_num;i++) {
+		if (map[m].npc[i]->sc.option&OPTION_INVISIBLE)
+			continue;
+
+		switch(map[m].npc[i]->bl.subtype) {
+		case WARP:
+			if (!(flag&1))
+				continue;
+			xs=map[m].npc[i]->u.warp.xs;
+			ys=map[m].npc[i]->u.warp.ys;
+			break;
+		case SCRIPT:
+			if (!(flag&2))
+				continue;
+			xs=map[m].npc[i]->u.scr.xs;
+			ys=map[m].npc[i]->u.scr.ys;
+			break;
+		default:
+			continue;
+		}
+		if (x0 >= map[m].npc[i]->bl.x-xs/2 && x1 < map[m].npc[i]->bl.x-xs/2+xs &&
+		   y0 >= map[m].npc[i]->bl.y-ys/2 && y1 < map[m].npc[i]->bl.y-ys/2+ys)
+			break;
+	}
+	if (i==map[m].npc_num)
+		return 0;
+
+	return (map[m].npc[i]->bl.id);
+}
+
 /*==========================================
  * ‹ß‚­‚©‚Ç‚¤‚©‚Ì”»’è
  *------------------------------------------
