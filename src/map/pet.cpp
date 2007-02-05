@@ -1540,28 +1540,35 @@ int read_petdb()
 	char *str[32],*p,*np;
 	
 	memset(pet_db,0,sizeof(pet_db));
-	for(i=0;i<2;++i){
+	for(i=0;i<2;++i)
+	{
 		fp=basics::safefopen(filename[i],"r");
-		if(fp==NULL){
+		if(fp==NULL)
+		{
 			if(i>0)
 				continue;
 			ShowError("can't read %s\n",filename[i]);
 			return -1;
 		}
 		lines = 0;
-		while(fgets(line,sizeof(line),fp)){
+		while(fgets(line,sizeof(line),fp))
+		{
 			
 			lines++;
 
 			if( !is_valid_line(line) )
 				continue;
 
-			for(k=0,p=line;k<20;++k){
-				if((np=strchr(p,','))!=NULL){
+			for(k=0,p=line;k<20;++k)
+			{
+				if((np=strchr(p,','))!=NULL)
+				{
 					str[k]=p;
 					*np=0;
 					p=np+1;
-				} else {
+				}
+				else
+				{
 					str[k]=p;
 					p+=strlen(p);
 				}
@@ -1598,7 +1605,10 @@ int read_petdb()
 			if((np=strchr(p,'{'))==NULL)
 				continue;
 			pet_db[j].script = parse_script((unsigned char *) np,lines);
-			j++;
+			
+			++j;
+			if(j>=MAX_PET_DB)
+				break;
 		}
 		fclose(fp);
 		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' pets in '"CL_WHITE"%s"CL_RESET"'.\n",j,filename[i]);

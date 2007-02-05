@@ -1314,7 +1314,7 @@ public:
 	/// remove all status changes
 	virtual bool remove_status()						{ return false; }
 	/// create a new status. or replace an existing
-	virtual bool create_status(status_t status_id, basics::numptr v1=basics::numptr(), basics::numptr v2=basics::numptr(), basics::numptr v3=basics::numptr(), basics::numptr v4=basics::numptr())
+	virtual bool create_status(status_t status_id, const basics::numptr& v1=basics::numptr(), const basics::numptr& v2=basics::numptr(), const basics::numptr& v3=basics::numptr(), const basics::numptr& v4=basics::numptr())
 	{
 		return false;
 	}

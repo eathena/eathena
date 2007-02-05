@@ -27,7 +27,7 @@ public:
 		val4()
 	{ }
 
-	bool is_active() const { return timerid==-1; }
+	bool is_active() const { return timerid!=-1; }
 	const int& timer() const { return timerid; }
 	int& timer() { return timerid; }
 
@@ -156,8 +156,7 @@ public:
 ////////////////
 // new status interface
 	/// create a new status. or replace an existing
-	virtual bool create_status(status_t status_id, const basics::numptr v1=basics::numptr(), const basics::numptr v2=basics::numptr(), const basics::numptr v3=basics::numptr(), const basics::numptr v4=basics::numptr());
-
+	virtual bool create_status(status_t status_id, const basics::numptr& v1=basics::numptr(), const basics::numptr& v2=basics::numptr(), const basics::numptr& v3=basics::numptr(), const basics::numptr& v4=basics::numptr());
 	/// remove a status
 	virtual bool remove_status(status_t status_id);
 	/// remove all status changes
@@ -167,9 +166,11 @@ public:
 	/// returns a stored value
 	virtual basics::numptr status_value(status_t status_id);
 
-	/// maintainance.
+	/// restart the existing status object.
+	/// used for internal maintainance.
 	void restart_status(status_t exept);
-	/// remove a status
+	/// remove a status.
+	/// used for internal maintainance.
 	void remove_status(status_change_if* status);
 
 ////////////////
@@ -225,7 +226,7 @@ public:
 		if( status_id<MAX_STATUSCHANGE && this->sc_data[status_id].is_active() )
 		{
 			const struct TimerData *td = get_timer(this->sc_data[status_id].timer());
-			return DIFF_TICK(td->tick, tick);
+			return td?DIFF_TICK(td->tick, tick):0;
 		}
 		return 0; 
 	}

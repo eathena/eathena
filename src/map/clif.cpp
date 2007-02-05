@@ -33,155 +33,9 @@
 #include "vending.h"
 #include "pet.h"
 #include "log.h"
+#include "packetdb.h"
 
 
-
-// new packetdb needs different sections for sending and receiving
-// receiving packets are keyed by command and contain format and (recv)processor
-// sending packets are keyed by (send)processor and contain format and command
-// this would elliminate the necessity of any PACKETVER define and packet_len_table
-// (which is useless without the format)
-
-
-
-// packet DB
-#define MAX_PACKET_DB		0x25f
-#define MAX_PACKET_VER		19
-
-class packet_cmd
-{
-public:
-	short len;
-	int (*func)(int,map_session_data &);
-	short pos[20];
-
-	packet_cmd()	{}
-	~packet_cmd()	{}
-	packet_cmd(short l, int (*f)(int,map_session_data &)=NULL, short p00=0, short p01=0, short p02=0, short p03=0, short p04=0, short p05=0, short p06=0, short p07=0, short p08=0, short p09=0, short p10=0, short p11=-11, short p12=0, short p13=0, short p14=0, short p15=0, short p16=0, short p17=0, short p18=0, short p19=0)
-		: len(l),
-		  func(f)
-	{
-		pos[0]=p00;
-		pos[1]=p01;
-		pos[2]=p02;
-		pos[3]=p03;
-		pos[4]=p04;
-		pos[5]=p05;
-		pos[6]=p06;
-		pos[7]=p07;
-		pos[8]=p08;
-		pos[9]=p09;
-		pos[10]=p10;
-		pos[11]=p11;
-		pos[12]=p12;
-		pos[13]=p13;
-		pos[14]=p14;
-		pos[15]=p15;
-		pos[16]=p16;
-		pos[17]=p17;
-		pos[18]=p18;
-		pos[19]=p19;
-	}
-};
-
-class packet_ver
-{
-	packet_cmd		cmd[MAX_PACKET_DB];
-public:
-	unsigned short	connect_cmd;
-
-	packet_ver()	{}
-	~packet_ver()	{}
-
-	packet_cmd& operator[](size_t i)
-	{
-		if(i<MAX_PACKET_DB)
-			return cmd[i];
-		return cmd[0];
-	}
-};
-class _packet_db
-{
-	packet_ver	vers[MAX_PACKET_VER+1];
-public:
-	int default_ver;
-
-	_packet_db()
-		: default_ver(MAX_PACKET_VER)
-	{
-		 memset(vers,0,sizeof(vers)); //!!
-	}
-
-	~_packet_db()	{}
-
-	packet_ver& operator[](size_t i)
-	{
-		if(i<MAX_PACKET_VER+1)
-			return vers[i];
-		return vers[default_ver];
-	}
-} packet_db;
-
-
-
-
-static const int packet_len_table[MAX_PACKET_DB] = {
-   10,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
-//#0x0040
-    0,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0, 55, 17,  3, 37,  46, -1, 23, -1,  3,108,  3,  2,
-#if PACKETVER < 2
-    3, 28, 19, 11,  3, -1,  9,  5,  52, 51, 56, 58, 41,  2,  6,  6,
-#else	// 78-7b 亀島以降 lv99エフェクト用
-    3, 28, 19, 11,  3, -1,  9,  5,  54, 53, 58, 60, 41,  2,  6,  6,
-#endif
-//#0x0080
-    7,  3,  2,  2,  2,  5, 16, 12,  10,  7, 29,  2, -1, -1, -1,  0, // 0x8b changed to 2 (was 23)
-    7, 22, 28,  2,  6, 30, -1, -1,   3, -1, -1,  5,  9, 17, 17,  6,
-   23,  6,  6, -1, -1, -1, -1,  8,   7,  6,  7,  4,  7,  0, -1,  6,
-    8,  8,  3,  3, -1,  6,  6, -1,   7,  6,  2,  5,  6, 44,  5,  3,
-//#0x00C0
-    7,  2,  6,  8,  6,  7, -1, -1,  -1, -1,  3,  3,  6,  3,  2, 27, // 0xcd change to 3 (was 6)
-    3,  4,  4,  2, -1, -1,  3, -1,   6, 14,  3, -1, 28, 29, -1, -1,
-   30, 30, 26,  2,  6, 26,  3,  3,   8, 19,  5,  2,  3,  2,  2,  2,
-    3,  2,  6,  8, 21,  8,  8,  2,   2, 26,  3, -1,  6, 27, 30, 10,
-
-//#0x0100
-    2,  6,  6, 30, 79, 31, 10, 10,  -1, -1,  4,  6,  6,  2, 11, -1,
-   10, 39,  4, 10, 31, 35, 10, 18,   2, 13, 15, 20, 68,  2,  3, 16,
-    6, 14, -1, -1, 21,  8,  8,  8,   8,  8,  2,  2,  3,  4,  2, -1,
-    6, 86,  6, -1, -1,  7, -1,  6,   3, 16,  4,  4,  4,  6, 24, 26,
-//#0x0140
-   22, 14,  6, 10, 23, 19,  6, 39,   8,  9,  6, 27, -1,  2,  6,  6,
-  110,  6, -1, -1, -1, -1, -1,  6,  -1, 54, 66, 54, 90, 42,  6, 42,
-   -1, -1, -1, -1, -1, 30, -1,  3,  14,  3, 30, 10, 43, 14,186,182,
-   14, 30, 10,  3, -1,  6,106, -1,   4,  5,  4, -1,  6,  7, -1, -1,
-//#0x0180
-    6,  3,106, 10, 10, 34,  0,  6,   8,  4,  4,  4, 29, -1, 10,  6,
-#if PACKETVER < 1
-   90, 86, 24,  6, 30,102,  8,  4,   8,  4, 14, 10, -1,  6,  2,  6,
-#else	// 196 comodo以降 状態表示アイコン用
-   90, 86, 24,  6, 30,102,  9,  4,   8,  4, 14, 10, -1,  6,  2,  6,
-#endif
-    3,  3, 35,  5, 11, 26, -1,  4,   4,  6, 10, 12,  6, -1,  4,  4,
-   11,  7, -1, 67, 12, 18,114,  6,   3,  6, 26, 26, 26, 26,  2,  3,
-//#0x01C0,   Set 0x1d5=-1
-    2, 14, 10, -1, 22, 22,  4,  2,  13, 97,  3,  9,  9, 30,  6, 28,
-    8, 14, 10, 35,  6, -1,  4, 11,  54, 53, 60,  2, -1, 47, 33,  6,
-   30,  8, 34, 14,  2,  6, 26,  2,  28, 81,  6, 10, 26,  2, -1, -1,
-   -1, -1, 20, 10, 32,  9, 34, 14,   2,  6, 48, 56, -1,  4,  5, 10,
-//#0x200
-   26, -1,  26, 10, 18, 26, 11, 34,  14, 36, 10, 0,  0, -1, 24, 10, // 0x20c change to 0 (was 19)
-   22,  0,  26, 26, 42, -1, -1,  2,   2,282,282,10, 10, -1, -1, 66,
-   10, -1,  -1,  8, 10,  2,282, 18,  18, 15, 58, 57, 64, 5, 69,  0,
-   12, 26,   9, 11, -1, -1, 10,  2, 282, 11,  4, 36, -1,-1,  4,  2,
-   -1, -1,  -1, -1, -1,  3,  4,  8,  -1,  3, 70,  4,  8,12,  4, 10,
-    3, 32,  -1,  3,  3,  5,  5,  8,   2,  3, -1, -1,  4,-1,  4
-};
 
 
 // local define
@@ -382,22 +236,22 @@ void check_fake_id(int fd, map_session_data &sd, uint32 target_id)
 		clif_ban_player(sd, config.ban_bot, "can see fake objects");
 
 		// send this info cause the bot ask until get an answer, damn spam
-		memset(WFIFOP(fd,0), 0, packet_db[sd.packet_ver][0x95].len);
+		memset(WFIFOP(fd,0), 0, packet(sd.packet_ver,0x95).len);
 		WFIFOW(fd,0) = 0x95;
 		WFIFOL(fd,2) = server_char_id;
 		memcpy(WFIFOP(fd,6), sd.status.name, 24);
-		WFIFOSET(fd, packet_db[sd.packet_ver][0x95].len);
+		WFIFOSET(fd, packet(sd.packet_ver,0x95).len);
 
 		// take fake player out of screen
 		WFIFOW(fd,0) = 0x80;
 		WFIFOL(fd,2) = server_char_id;
 		WFIFOB(fd,6) = 0;
-		WFIFOSET(fd, packet_db[sd.packet_ver][0x80].len);
+		WFIFOSET(fd, packet(sd.packet_ver,0x80).len);
 		// take fake mob out of screen
 		WFIFOW(fd,0) = 0x80;
 		WFIFOL(fd,2) = server_mob_id;
 		WFIFOB(fd,6) = 0;
-		WFIFOSET(fd, packet_db[sd.packet_ver][0x80].len);
+		WFIFOSET(fd, packet(sd.packet_ver,0x80).len);
 		return;
 	}
 
@@ -407,22 +261,22 @@ void check_fake_id(int fd, map_session_data &sd, uint32 target_id)
 		clif_ban_player(sd, config.ban_bot, "can see fake objects");
 
 		// send this info cause the bot ask until get an answer, damn spam
-		memset(WFIFOP(fd,0), 0, packet_db[sd.packet_ver][0x95].len);
+		memset(WFIFOP(fd,0), 0, packet(sd.packet_ver,0x95).len);
 		WFIFOW(fd,0) = 0x95;
 		WFIFOL(fd,2) = server_mob_id;
 		memcpy(WFIFOP(fd,6), mob_db[ get_fakemob_id(sd) ].name, 24);
-		WFIFOSET(fd, packet_db[sd.packet_ver][0x95].len);
+		WFIFOSET(fd, packet(sd.packet_ver,0x95).len);
 
 		// take fake mob out of screen
 		WFIFOW(fd,0) = 0x80;
 		WFIFOL(fd,2) = server_mob_id;
 		WFIFOB(fd,6) = 0;
-		WFIFOSET(fd, packet_db[sd.packet_ver][0x80].len);
+		WFIFOSET(fd, packet(sd.packet_ver,0x80).len);
 		// take fake player out of screen
 		WFIFOW(fd,0) = 0x80;
 		WFIFOL(fd,2) = server_char_id;
 		WFIFOB(fd,6) = 0;
-		WFIFOSET(fd, packet_db[sd.packet_ver][0x80].len);
+		WFIFOSET(fd, packet(sd.packet_ver,0x80).len);
 		return;
 	}
 	
@@ -469,7 +323,7 @@ void send_fake_id(int fd, map_session_data &sd)
 		WFIFOB(fd,50) = 5;
 		WFIFOB(fd,51) = sd.state.dead_sit;
 		WFIFOW(fd,52) = (sd.status.base_level > config.max_lv) ? config.max_lv : sd.status.base_level;
-		WFIFOSET(sd.fd, packet_db[sd.packet_ver][0x78].len);
+		WFIFOSET(sd.fd, packet(sd.packet_ver,0x78).len);
 #else
 		unsigned short level;
 		WFIFOW(fd, 0) = 0x1d8;
@@ -511,10 +365,10 @@ void send_fake_id(int fd, map_session_data &sd)
 		WFIFOB(fd,50) = 5;
 		WFIFOB(fd,51) = sd.state.dead_sit;
 		WFIFOW(fd,52) = ((level = sd.get_lv()) > config.max_job_level) ? config.max_job_level : level;
-		WFIFOSET(sd.fd, packet_db[sd.packet_ver][0x1d8].len);
+		WFIFOSET(sd.fd, packet(sd.packet_ver,0x1d8).len);
 #endif
 		// send a fake monster
-		memset(WFIFOP(fd, 0), 0, packet_db[sd.packet_ver][0x7c].len);
+		memset(WFIFOP(fd, 0), 0, packet(sd.packet_ver,0x7c).len);
 		WFIFOW(fd, 0) = 0x7c;
 		WFIFOL(fd, 2) = server_mob_id;
 		WFIFOW(fd, 6) = sd.speed;
@@ -523,7 +377,7 @@ void send_fake_id(int fd, map_session_data &sd)
 		WFIFOW(fd,12) = OPTION_HIDE;
 		WFIFOW(fd,20) = get_fakemob_id(sd);
 		WFIFOPOS(fd, 36, x2, y2, d2);
-		WFIFOSET(sd.fd, packet_db[sd.packet_ver][0x7c].len);
+		WFIFOSET(sd.fd, packet(sd.packet_ver,0x7c).len);
 	}
 }
 
@@ -575,7 +429,7 @@ int clif_skill_failed(map_session_data& sd, ushort skill_id, skillfail_t type)
 		WFIFOW(sd.fd,6) = 0;
 		WFIFOB(sd.fd,8) = 0;
 		WFIFOB(sd.fd,9) = (type   )&0xFF;//type;
-		WFIFOSET(sd.fd,packet_len_table[0x110]);
+		WFIFOSET(sd.fd,packet(sd.packet_ver,0x110).len);
 	}
 	return 0;
 }
@@ -602,7 +456,7 @@ bool clif_packetsend(int fd, map_session_data &sd, unsigned short cmd, int info[
 			WFIFOW(fd,0) = 0x209;
 			WFIFOW(fd,2) = 2;
 			memcpy(WFIFOP(fd, 12), sd.status.name, 24);
-			WFIFOSET(fd, packet_db[sd.packet_ver][cmd].len);
+			WFIFOSET(fd, packet(sd.packet_ver,cmd).len);
 			break;
 		case 0x1b1:
 		case 0x1c2:
@@ -614,7 +468,7 @@ bool clif_packetsend(int fd, map_session_data &sd, unsigned short cmd, int info[
 			for(i=1;i<=sz; ++i)
 				if(info[i])
 					WFIFOW(fd,i) = info[i];
-			WFIFOSET(fd, packet_db[sd.packet_ver][cmd].len);
+			WFIFOSET(fd, packet(sd.packet_ver,cmd).len);
 			break;
 		}
 		return true;
@@ -691,7 +545,7 @@ public:
 			}
 			else
 			{
-				if(packet_db[sd.packet_ver][RBUFW(buf,0)].len)
+				if(packet(sd.packet_ver,RBUFW(buf,0)).len)
 				{	// packet must exist for the client version
 					memcpy(WFIFOP(sd.fd,0), buf, len);
 					WFIFOSET(sd.fd,len);
@@ -734,7 +588,7 @@ int clif_send (unsigned char *buf, size_t len, const block_list *bl, int type)
 			sd = iter.data();
 			if( sd )
 			{
-				if (packet_db[sd->packet_ver][RBUFW(buf,0)].len)
+				if( packet(sd->packet_ver,RBUFW(buf,0)).len)
 				{	// packet must exist for the client version
 					memcpy(WFIFOP(sd->fd,0), buf, len);
 					WFIFOSET(sd->fd,len);
@@ -752,7 +606,7 @@ int clif_send (unsigned char *buf, size_t len, const block_list *bl, int type)
 			if( sd &&
 				sd->block_list::m == bl->m )
 			{
-				if( packet_db[sd->packet_ver][RBUFW(buf,0)].len )
+				if( packet(sd->packet_ver,RBUFW(buf,0)).len )
 				{	// packet must exist for the client version
 					memcpy(WFIFOP(sd->fd,0), buf, len);
 					WFIFOSET(sd->fd,len);
@@ -789,7 +643,7 @@ int clif_send (unsigned char *buf, size_t len, const block_list *bl, int type)
 				{
 					if (type == CHAT_WOS && cd->usersd[i] == sd)
 						continue;
-					if( session_isActive(cd->usersd[i]->fd) && packet_db[cd->usersd[i]->packet_ver][RBUFW(buf,0)].len)
+					if( session_isActive(cd->usersd[i]->fd) && packet(cd->usersd[i]->packet_ver,RBUFW(buf,0)).len)
 					{
 						memcpy(WFIFOP(cd->usersd[i]->fd,0), buf, len);
 						WFIFOSET(cd->usersd[i]->fd,len);
@@ -834,7 +688,7 @@ int clif_send (unsigned char *buf, size_t len, const block_list *bl, int type)
 					    (sd->block_list::x < x0 || sd->block_list::y < y0 ||
 					     sd->block_list::x > x1 || sd->block_list::y > y1))
 						continue;
-					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
+					if (packet(sd->packet_ver,RBUFW(buf,0)).len) { // packet must exist for the client version
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
 					}
@@ -850,7 +704,7 @@ int clif_send (unsigned char *buf, size_t len, const block_list *bl, int type)
 				if( sd &&
 					sd->partyspy == p->party_id)
 				{
-					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len)
+					if (packet(sd->packet_ver,RBUFW(buf,0)).len)
 					{	// packet must exist for the client version
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
@@ -860,7 +714,7 @@ int clif_send (unsigned char *buf, size_t len, const block_list *bl, int type)
 		}
 		break;
 	case SELF:
-		if (sd && session_isActive(sd->fd) && session[sd->fd]->user_session && packet_db[sd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
+		if (sd && session_isActive(sd->fd) && session[sd->fd]->user_session && packet(sd->packet_ver,RBUFW(buf,0)).len ) { // packet must exist for the client version
 			memcpy(WFIFOP(sd->fd,0), buf, len);
 			WFIFOSET(sd->fd,len);
 		}
@@ -896,7 +750,7 @@ int clif_send (unsigned char *buf, size_t len, const block_list *bl, int type)
 						continue;
 					if (sd->packet_ver > MAX_PACKET_VER)
 						continue;
-					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len)
+					if (packet(sd->packet_ver,RBUFW(buf,0)).len)
 					{	// packet must exist for the client version
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
@@ -911,7 +765,7 @@ int clif_send (unsigned char *buf, size_t len, const block_list *bl, int type)
 				if( sd &&
 					sd->guildspy == g->guild_id )
 				{
-					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len)
+					if (packet(sd->packet_ver,RBUFW(buf,0)).len)
 					{	// packet must exist for the client version
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
@@ -939,7 +793,7 @@ int clif_send (unsigned char *buf, size_t len, const block_list *bl, int type)
 					    (sd->block_list::x < x0 || sd->block_list::y < y0 ||
 					     sd->block_list::x > x1 || sd->block_list::y > y1))
 						continue;
-					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
+					if (packet(sd->packet_ver,RBUFW(buf,0)).len) { // packet must exist for the client version
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
 					}
@@ -967,7 +821,7 @@ void clif_send_all(unsigned char *buf, size_t len)
 		map_session_data *sd = iter.data();
 		if( sd )
 		{
-			if( packet_db[sd->packet_ver][RBUFW(buf,0)].len &&
+			if( packet(sd->packet_ver,RBUFW(buf,0)).len &&
 				session_isActive(sd->fd) )
 			{	// packet must exist for the client version
 				memcpy(WFIFOP(sd->fd,0), buf, len);
@@ -984,7 +838,7 @@ void clif_send_same_map(const block_list& bl, unsigned char *buf, size_t len)
 		map_session_data *sd = iter.data();
 		if( sd && sd->block_list::m == bl.m )
 		{
-			if( packet_db[sd->packet_ver][RBUFW(buf,0)].len &&
+			if( packet(sd->packet_ver,RBUFW(buf,0)).len &&
 				session_isActive(sd->fd) )
 			{	// packet must exist for the client version
 				memcpy(WFIFOP(sd->fd,0), buf, len);
@@ -998,7 +852,7 @@ void clif_send_self(const block_list& bl, unsigned char *buf, size_t len)
 {
 	const map_session_data *sd = bl.get_sd();
 	if( sd && session_isActive(sd->fd) && session[sd->fd]->user_session && 
-		packet_db[sd->packet_ver][RBUFW(buf,0)].len )
+		packet(sd->packet_ver,RBUFW(buf,0)).len )
 	{
 		memcpy(WFIFOP(sd->fd,0), buf, len);
 		WFIFOSET(sd->fd,len);
@@ -1016,7 +870,7 @@ void clif_send_chat(const block_list& bl, unsigned char *buf, size_t len, int ty
 		{
 			if( type==CHAT_WOS && pcd->usersd[i]==psd )
 				continue;
-			if( packet_db[pcd->usersd[i]->packet_ver][RBUFW(buf,0)].len &&
+			if( packet(pcd->usersd[i]->packet_ver,RBUFW(buf,0)).len &&
 				session_isActive(pcd->usersd[i]->fd) )
 			{	// packet must exist for the client version
 				memcpy(WFIFOP(pcd->usersd[i]->fd,0), buf, len);
@@ -1071,7 +925,7 @@ void clif_send_party(const block_list& bl, unsigned char *buf, size_t len, int t
 					    (sd->block_list::x < x0 || sd->block_list::y < y0 ||
 					     sd->block_list::x > x1 || sd->block_list::y > y1))
 						continue;
-					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
+					if (packet(sd->packet_ver,RBUFW(buf,0)).len) { // packet must exist for the client version
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
 					}
@@ -1088,7 +942,7 @@ void clif_send_party(const block_list& bl, unsigned char *buf, size_t len, int t
 				if( sd &&
 					sd->partyspy == p->party_id)
 				{
-					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len)
+					if (packet(sd->packet_ver,RBUFW(buf,0)).len)
 					{	// packet must exist for the client version
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
@@ -1151,7 +1005,7 @@ void clif_send_guild(const block_list& bl, unsigned char *buf, size_t len, int t
 						continue;
 					if (sd->packet_ver > MAX_PACKET_VER)
 						continue;
-					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len)
+					if (packet(sd->packet_ver,RBUFW(buf,0)).len)
 					{	// packet must exist for the client version
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
@@ -1165,7 +1019,7 @@ void clif_send_guild(const block_list& bl, unsigned char *buf, size_t len, int t
 				if( sd &&
 					sd->guildspy == g->guild_id)
 				{
-					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len)
+					if (packet(sd->packet_ver,RBUFW(buf,0)).len)
 					{	// packet must exist for the client version
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
@@ -1191,7 +1045,7 @@ void clif_send_guild(const block_list& bl, unsigned char *buf, size_t len, int t
 					    (sd->block_list::x < x0 || sd->block_list::y < y0 ||
 					     sd->block_list::x > x1 || sd->block_list::y > y1))
 						continue;
-					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
+					if (packet(sd->packet_ver,RBUFW(buf,0)).len) { // packet must exist for the client version
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
 					}
@@ -1226,7 +1080,7 @@ int clif_seteffect(const map_session_data& sd, uint32 id, uint32 effect)
 		WFIFOW(sd.fd,0) = 0x1f3;
 		WFIFOL(sd.fd,2) = id;
 		WFIFOL(sd.fd,6) = effect;
-		WFIFOSET(sd.fd,packet_len_table[0x1f3]);
+		WFIFOSET(sd.fd,packet(sd.packet_ver,0x1f3).len);
 	}
 	return 0;
 }
@@ -1242,7 +1096,7 @@ int clif_setareaeffect(const block_list &bl, uint32 effect)
 	WBUFL(buf,2) = bl.id;
 	WBUFL(buf,6) = effect;
 
-	return clif_send(buf, packet_len_table[0x1f3], &bl, AREA);
+	return clif_send(buf, packet(0,0x1f3).len, &bl, AREA);
 }
 
 
@@ -1262,7 +1116,7 @@ int clif_setweather(const map_session_data& sd)
 		WFIFOW(sd.fd,0) = 0x80;
 		WFIFOL(sd.fd,2) = server_weather_id;
 		WFIFOB(sd.fd,6) = 0;
-		WFIFOSET(sd.fd, packet_len_table[0x80]);
+		WFIFOSET(sd.fd, packet(sd.packet_ver,0x80).len);
 
 		
 		if( !maps[sd.block_list::m].flag.indoors && (
@@ -1284,7 +1138,7 @@ int clif_setweather(const map_session_data& sd)
 			WFIFOW(sd.fd,12)=OPTION_HIDE;
 			WFIFOW(sd.fd,20)=100;
 			WFIFOPOS(sd.fd,36,0,0,0);
-			WFIFOSET(sd.fd,packet_len_table[0x7c]);
+			WFIFOSET(sd.fd,packet(sd.packet_ver,0x7c).len);
 
 			// and add the effects
 			if (maps[sd.block_list::m].flag.snow)
@@ -1372,7 +1226,7 @@ int clif_authok(map_session_data &sd)
 	WFIFOPOS(fd, 6, sd.block_list::x, sd.block_list::y, sd.dir);
 	WFIFOB(fd, 9) = 5;
 	WFIFOB(fd,10) = 5;
-	WFIFOSET(fd,packet_db[sd.packet_ver][0x73].len);
+	WFIFOSET(fd,packet(sd.packet_ver,0x73).len);
 
 	return 0;
 }
@@ -1390,7 +1244,7 @@ int clif_authfail(map_session_data &sd, uint32 type)
 
 	WFIFOW(fd,0) = 0x81;
 	WFIFOL(fd,2) = type;
-	WFIFOSET(fd,packet_db[sd.packet_ver][0x81].len);
+	WFIFOSET(fd,packet(sd.packet_ver,0x81).len);
 
 	ShowDebug("clif_authfail: Disconnecting session #%d\n", fd);
 	session_SetWaitClose(fd, 5000);
@@ -1416,7 +1270,7 @@ int clif_charselectok(uint32 id)
 
 	WFIFOW(fd,0) = 0xb3;
 	WFIFOB(fd,2) = 1;
-	WFIFOSET(fd,packet_db[sd->packet_ver][0xb3].len);
+	WFIFOSET(fd,packet(sd->packet_ver,0xb3).len);
 
 	return 0;
 }
@@ -1446,7 +1300,7 @@ int clif_dropflooritem(flooritem_data &fitem)
 	WBUFB(buf,14) = fitem.suby;
 	WBUFW(buf,15) = fitem.item_data.amount;
 
-	return clif_send(buf, packet_len_table[0x9e], &fitem, AREA);
+	return clif_send(buf, packet(0,0x9e).len, &fitem, AREA);
 }
 
 /*==========================================
@@ -1460,11 +1314,14 @@ int clif_clearflooritem(flooritem_data &fitem, int fd)
 	WBUFW(buf,0) = 0xa1;
 	WBUFL(buf,2) = fitem.block_list::id;
 
-	if (fd == 0) {
-		clif_send(buf, packet_len_table[0xa1], &fitem, AREA);
-	} else if( session_isActive(fd) ) {
+	if (fd == 0)
+	{
+		clif_send(buf, packet(0,0xa1).len, &fitem, AREA);
+	}
+	else if( session_isActive(fd) )
+	{
 		memcpy(WFIFOP(fd,0), buf, 6);
-		WFIFOSET(fd,packet_len_table[0xa1]);
+		WFIFOSET(fd,packet(0,0xa1).len);
 	}
 	return 0;
 }
@@ -1480,14 +1337,14 @@ int clif_clearchar(block_list &bl, unsigned char type)
 	WBUFW(buf,0) = 0x80;
 	WBUFL(buf,2) = bl.id;
 	WBUFB(buf,6) = type;
-	clif_send(buf, packet_len_table[0x80], &bl, (type&1) ? AREA : AREA_WOS);
+	clif_send(buf, packet(0,0x80).len, &bl, (type&1) ? AREA : AREA_WOS);
 
 
 	const map_session_data *sd = bl.get_sd();
 	if( sd && sd->disguise_id )
 	{
 		WBUFL(buf,2) = bl.id|FLAG_DISGUISE;
-		clif_send(buf, packet_len_table[0x80], &bl, AREA);
+		clif_send(buf, packet(0,0x80).len, &bl, AREA);
 	}
 
 	return 0;
@@ -1499,13 +1356,13 @@ int clif_clearchar(map_session_data &sd, block_list &bl)
 	WBUFW(buf,0) = 0x80;
 	WBUFL(buf,2) = bl.id;
 	WBUFB(buf,6) = 0;
-	clif_send_self(sd,buf, packet_db[sd.packet_ver][0x80].len);
+	clif_send_self(sd,buf, packet(sd.packet_ver,0x80).len);
 
 	const map_session_data *tsd = bl.get_sd();
 	if( tsd && tsd->disguise_id )
 	{
 		WBUFL(buf,2) = bl.id|FLAG_DISGUISE;
-		clif_send_self(sd,buf, packet_db[sd.packet_ver][0x80].len);
+		clif_send_self(sd,buf, packet(sd.packet_ver,0x80).len);
 	}
 
 	return 0;
@@ -1545,7 +1402,7 @@ int clif_clearchar_id(const map_session_data& sd, uint32 id, unsigned char type)
 	WFIFOW(sd.fd,0) = 0x80;
 	WFIFOL(sd.fd,2) = id;
 	WFIFOB(sd.fd,6) = type;
-	WFIFOSET(sd.fd, packet_db[sd.packet_ver][0x80].len);
+	WFIFOSET(sd.fd, packet(sd.packet_ver,0x80).len);
 	return 0;
 }
 
@@ -1559,7 +1416,7 @@ int clif_set0078(const map_session_data &sd, unsigned char *buf)
 
 	if(sd.disguise_id > 23 && sd.disguise_id < 4001)
 	{	// mob disguises [Valaris]
-		memset(buf, 0, packet_len_table[0x78]);
+		memset(buf, 0, packet(sd.packet_ver,0x78).len);
 		WBUFW(buf,0) = 0x78;
 		WBUFL(buf,2) = sd.block_list::id;
 		WBUFW(buf,6) = sd.get_speed();
@@ -1575,11 +1432,11 @@ int clif_set0078(const map_session_data &sd, unsigned char *buf)
 		WBUFB(buf,51) = 0;
 		WBUFW(buf,52) = ((level = sd.get_lv()) > config.max_base_level) ? config.max_base_level : level;
 
-		return packet_len_table[0x78];
+		return packet(sd.packet_ver,0x78).len;
 	}
 
 #if PACKETVER < 4
-	memset(buf, 0, packet_len_table[0x78]);
+	memset(buf, 0, packet(sd.packet_ver,0x78).len);
 	WBUFW(buf,0)=0x78;
 	WBUFL(buf,2)=sd.block_list::id;
 	WBUFW(buf,6)=sd.get_speed();
@@ -1614,9 +1471,9 @@ int clif_set0078(const map_session_data &sd, unsigned char *buf)
 	WBUFB(buf,51)= sd.state.dead_sit;
 	WBUFW(buf,52)=(sd.status.base_level>config.max_lv)?config.max_lv:sd.status.base_level;
 
-	return packet_len_table[0x78];
+	return packet(sd.packet_ver,0x78).len;
 #else
-	memset(buf, 0, packet_len_table[0x1d8]);
+	memset(buf, 0, packet(sd.packet_ver,0x1d8).len);
 	WBUFW(buf,0)=0x1d8;
 	WBUFL(buf,2) = sd.block_list::id;
 	WBUFW(buf,6) = sd.get_speed();
@@ -1664,14 +1521,14 @@ int clif_set0078(const map_session_data &sd, unsigned char *buf)
 	WBUFB(buf,51) = sd.state.dead_sit;
 	WBUFW(buf,52)=(sd.status.base_level>config.max_base_level)?config.max_base_level:sd.status.base_level;
 
-	return packet_len_table[0x1d8];
+	return packet(sd.packet_ver,0x1d8).len;
 #endif
 }
 
 // non-moving function for disguises [Valaris]
 size_t clif_dis0078(map_session_data &sd, unsigned char *buf)
 {
-	memset(buf,0,packet_len_table[0x78]);
+	memset(buf,0,packet(sd.packet_ver,0x78).len);
 	WBUFW(buf,0)=0x78;
 	WBUFL(buf,2)=sd.block_list::id|FLAG_DISGUISE;
 	WBUFW(buf,6)=sd.get_speed();
@@ -1689,7 +1546,7 @@ size_t clif_dis0078(map_session_data &sd, unsigned char *buf)
 	WBUFB(buf,51)=sd.state.dead_sit;
 	WBUFW(buf,52)=0;
 
-	return (packet_len_table[0x78]>0)?packet_len_table[0x78]:0;
+	return (packet(sd.packet_ver,0x78).len>0)?packet(sd.packet_ver,0x78).len:0;
 }
 
 /*==========================================
@@ -1700,7 +1557,7 @@ int clif_set007b(const map_session_data &sd,unsigned char *buf)
 {
 
 #if PACKETVER < 4
-	memset(buf, 0, packet_len_table[0x7b]);
+	memset(buf, 0, packet(sd.packet_ver,0x7b).len);
 	WBUFW(buf,0)=0x7b;
 	WBUFL(buf,2)=sd.block_list::id;
 	WBUFW(buf,6)=sd.get_speed();
@@ -1735,9 +1592,9 @@ int clif_set007b(const map_session_data &sd,unsigned char *buf)
 	WBUFB(buf,57)=5;
 	WBUFW(buf,58)=(sd.status.base_level>config.max_lv)?config.max_lv:sd.status.base_level;
 
-	return packet_len_table[0x7b];
+	return packet(sd.packet_ver,0x7b).len;
 #else
-	memset(buf, 0, packet_len_table[0x1da]);
+	memset(buf, 0, packet(sd.packet_ver,0x1da).len);
 	WBUFW(buf,0)=0x1da;
 	WBUFL(buf,2)=sd.block_list::id;
 	WBUFW(buf,6)=sd.get_speed();
@@ -1784,14 +1641,14 @@ int clif_set007b(const map_session_data &sd,unsigned char *buf)
 	WBUFB(buf,57)=5;
 	WBUFW(buf,58)=(sd.status.base_level>config.max_base_level)?config.max_base_level:sd.status.base_level;
 
-	return packet_len_table[0x1da];
+	return packet(sd.packet_ver,0x1da).len;
 #endif
 }
 
 // moving function for disguises [Valaris]
 int clif_dis007b(const map_session_data &sd,unsigned char *buf)
 {
-	memset(buf,0,packet_len_table[0x7b]);
+	memset(buf,0,packet(sd.packet_ver,0x7b).len);
 	WBUFW(buf,0)=0x7b;
 	WBUFL(buf,2)=sd.block_list::id|FLAG_DISGUISE;
 	WBUFW(buf,6)=sd.get_speed();
@@ -1807,7 +1664,7 @@ int clif_dis007b(const map_session_data &sd,unsigned char *buf)
 	WBUFB(buf,57)=5;
 	WBUFW(buf,58)=0;
 
-	return packet_len_table[0x7b];
+	return packet(sd.packet_ver,0x7b).len;
 }
 
 /*==========================================
@@ -1823,7 +1680,7 @@ int clif_class_change(const block_list &bl,unsigned short class_,unsigned char t
 		WBUFL(buf,2)=bl.id;
 		WBUFB(buf,6)=type;
 		WBUFL(buf,7)=class_;
-		clif_send(buf,packet_len_table[0x1b0],&bl,AREA);
+		clif_send(buf,packet(0,0x1b0).len,&bl,AREA);
 	}
 	return 0;
 }
@@ -1842,7 +1699,7 @@ int clif_mob_class_change(const mob_data &md)
 		WBUFB(buf,6)=1;
 		WBUFL(buf,7)=view;
 
-		clif_send(buf,packet_len_table[0x1b0],&md,AREA);
+		clif_send(buf,packet(0,0x1b0).len,&md,AREA);
 	}
 	return 0;
 }
@@ -1857,7 +1714,7 @@ int clif_mob_equip(const mob_data &md, unsigned short nameid)
 	WBUFL(buf,3)=md.block_list::id;
 	WBUFL(buf,7)=nameid;
 
-	clif_send(buf,packet_len_table[0x1a4],&md,AREA);
+	clif_send(buf,packet(0,0x1a4).len,&md,AREA);
 
 	return 0;
 }
@@ -1873,7 +1730,7 @@ int clif_mob0078(const mob_data &md, unsigned char *buf)
 
 	if( id <= 23 || id >= 4001)
 	{	// Use 0x1d8 packet for monsters with player sprites [Valaris]
-		memset(buf,0,packet_len_table[0x1d8]);
+		memset(buf,0,packet(0,0x1d8).len);
 
 		WBUFW(buf,0)=0x1d8;
 		WBUFL(buf,2)=md.block_list::id;
@@ -1903,11 +1760,11 @@ int clif_mob0078(const mob_data &md, unsigned char *buf)
 		WBUFB(buf,51)=0; // dead or sit state
 		WBUFW(buf,52)=(level>config.max_base_level)? config.max_base_level:level;
 
-		return packet_len_table[0x1d8];
+		return packet(0,0x1d8).len;
 	}
 	else
 	{	// Use 0x78 packet for monsters sprites [Valaris]
-		memset(buf,0,packet_len_table[0x78]);
+		memset(buf,0,packet(0,0x78).len);
 
 		WBUFW(buf,0)=0x78;
 		WBUFL(buf,2)=md.block_list::id;
@@ -1935,7 +1792,7 @@ int clif_mob0078(const mob_data &md, unsigned char *buf)
 		level = md.get_lv();
 		WBUFW(buf,52)=(level>config.max_base_level)? config.max_base_level:level;
 
-		return packet_len_table[0x78];
+		return packet(0,0x78).len;
 	}
 }
 
@@ -1952,7 +1809,7 @@ int clif_mob007b(const mob_data &md, unsigned char *buf)
 
 	if(id <= 23 || id >= 4001)
 	{	// Use 0x1da packet for monsters with player sprites [Valaris]
-		memset(buf,0,packet_len_table[0x1da]);
+		memset(buf,0,packet(0,0x1da).len);
 
 		WBUFW(buf,0)=0x1da;
 		WBUFL(buf,2)=md.block_list::id;
@@ -1982,11 +1839,11 @@ int clif_mob007b(const mob_data &md, unsigned char *buf)
 		WBUFB(buf,57)=5;
 		WBUFW(buf,58)=(level>config.max_base_level)? config.max_base_level:level;
 
-		return packet_len_table[0x1da];
+		return packet(0,0x1da).len;
 	}
 	else
 	{	// Use 0x7b packet for monsters sprites [Valaris]
-		memset(buf,0,packet_len_table[0x7b]);
+		memset(buf,0,packet(0,0x7b).len);
 	
 		WBUFW(buf,0)=0x7b;
 		WBUFL(buf,2)=md.block_list::id;
@@ -2018,7 +1875,7 @@ int clif_mob007b(const mob_data &md, unsigned char *buf)
 		level = md.get_lv();
 		WBUFW(buf,58)=(level>config.max_base_level)? config.max_base_level:level;
 
-		return packet_len_table[0x7b];
+		return packet(0,0x7b).len;
 	}
 }
 /*==========================================
@@ -2029,7 +1886,7 @@ int clif_npc0078(const npc_data &nd, unsigned char *buf)
 {
 	
 
-	memset(buf,0,packet_len_table[0x78]);
+	memset(buf,0,packet(0,0x78).len);
 
 	WBUFW(buf,0)=0x78;
 	WBUFL(buf,2)=nd.block_list::id;
@@ -2050,13 +1907,13 @@ int clif_npc0078(const npc_data &nd, unsigned char *buf)
 	WBUFB(buf,49)=5;
 	WBUFB(buf,50)=5;
 
-	return packet_len_table[0x78];
+	return packet(0,0x78).len;
 }
 
 // NPC Walking [Valaris]
 int clif_npc007b(const npc_data &nd, unsigned char *buf)
 {
-	memset(buf,0,packet_len_table[0x7b]);
+	memset(buf,0,packet(0,0x7b).len);
 
 	WBUFW(buf,0)=0x7b;
 	WBUFL(buf,2)=nd.block_list::id;
@@ -2079,7 +1936,7 @@ int clif_npc007b(const npc_data &nd, unsigned char *buf)
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
 
-	return packet_len_table[0x7b];
+	return packet(0,0x7b).len;
 }
 
 /*==========================================
@@ -2094,7 +1951,7 @@ int clif_pet0078(const pet_data &pd, unsigned char *buf)
 
 	if(id <= 23 || id >= 4001)
 	{	// Use 0x1d8 packet for pets with player sprites [Valaris]
-		memset(buf,0,packet_len_table[0x1d8]);
+		memset(buf,0,packet(0,0x1d8).len);
 
 		WBUFW(buf,0)=0x1d8;
 		WBUFL(buf,2)=pd.block_list::id;
@@ -2127,11 +1984,11 @@ int clif_pet0078(const pet_data &pd, unsigned char *buf)
 		level = pd.get_lv();
 		WBUFW(buf,52)=(level>config.max_base_level)? config.max_base_level:level;
 
-		return packet_len_table[0x1d8];
+		return packet(0,0x1d8).len;
 	}
 	else
 	{	// Use 0x7b packet for monsters sprites [Valaris]
-		memset(buf,0,packet_len_table[0x78]);
+		memset(buf,0,packet(0,0x78).len);
 
 		WBUFW(buf,0)=0x78;
 		WBUFL(buf,2)=pd.block_list::id;
@@ -2149,7 +2006,7 @@ int clif_pet0078(const pet_data &pd, unsigned char *buf)
 		level = pd.get_lv();
 		WBUFW(buf,52)=(level>config.max_base_level)? config.max_base_level:level;
 
-		return packet_len_table[0x78];
+		return packet(0,0x78).len;
 	}
 }
 /*==========================================
@@ -2164,7 +2021,7 @@ int clif_pet007b(const pet_data &pd, unsigned char *buf)
 
 	if(id <= 23 || id >= 4001)
 	{	// Use 0x1da packet for monsters with player sprites [Valaris]
-		memset(buf,0,packet_len_table[0x1da]);
+		memset(buf,0,packet(0,0x1da).len);
 
 		WBUFW(buf,0)=0x1da;
 		WBUFL(buf,2)=pd.block_list::id;
@@ -2196,11 +2053,11 @@ int clif_pet007b(const pet_data &pd, unsigned char *buf)
 		WBUFB(buf,57)=0;
 		WBUFW(buf,58)=(level>config.max_base_level)? config.max_base_level:level;
 
-		return packet_len_table[0x1da];
+		return packet(0,0x1da).len;
 	}
 	else
 	{	// Use 0x7b packet for monsters sprites [Valaris]
-		memset(buf,0,packet_len_table[0x7b]);
+		memset(buf,0,packet(0,0x7b).len);
 
 		WBUFW(buf,0)=0x7b;
 		WBUFL(buf,2)=pd.block_list::id;
@@ -2219,7 +2076,7 @@ int clif_pet007b(const pet_data &pd, unsigned char *buf)
 
 		WBUFW(buf,58)=(level>config.max_base_level)? config.max_base_level:level;
 
-		return packet_len_table[0x7b];
+		return packet(0,0x7b).len;
 	}
 }
 
@@ -2229,7 +2086,7 @@ int clif_pet007b(const pet_data &pd, unsigned char *buf)
  */
 int clif_hom0078(const homun_data &hd, unsigned char *buf)
 {
-	memset(buf, 0, packet_len_table[0x78]);
+	memset(buf, 0, packet(0,0x78).len);
 
 	WBUFW(buf,0) =0x78;
 	WBUFL(buf,2) =hd.block_list::id;
@@ -2247,13 +2104,13 @@ int clif_hom0078(const homun_data &hd, unsigned char *buf)
 	WBUFB(buf,50)=0;
 	WBUFW(buf,52)=hd.get_lv();
 
-	return packet_len_table[0x78];
+	return packet(0,0x78).len;
 }
 int clif_hom007b(const homun_data &hd, unsigned char *buf)
 {
 	int view,level;
 
-	memset(buf,0,packet_len_table[0x7b]);
+	memset(buf,0,packet(0,0x7b).len);
 
 	WBUFW(buf,0) =0x7b;
 	WBUFL(buf,2) =hd.block_list::id;
@@ -2275,7 +2132,7 @@ int clif_hom007b(const homun_data &hd, unsigned char *buf)
 	level = hd.get_lv();
 	WBUFW(buf,58)=(level>99)? 99:level;
 
-	return packet_len_table[0x7b];
+	return packet(0,0x7b).len;
 }
 
 /*==========================================
@@ -2288,7 +2145,7 @@ int clif_set01e1(map_session_data &sd, unsigned char *buf)
 	WBUFL(buf,2)=sd.block_list::id;
 	WBUFW(buf,6)=sd.spiritball;
 
-	return packet_len_table[0x1e1];
+	return packet(sd.packet_ver,0x1e1).len;
 }
 
 /*==========================================
@@ -2305,7 +2162,7 @@ int clif_set0192(int fd, unsigned short m, unsigned short x, unsigned short y, u
 	WFIFOW(fd,4) = y;
 	WFIFOW(fd,6) = type;
 	mapname2buffer(WFIFOP(fd,8), 16, maps[m].mapname);
-	WFIFOSET(fd,packet_len_table[0x192]);
+	WFIFOSET(fd,packet(0,0x192).len);
 
 	return 0;
 }
@@ -2343,23 +2200,23 @@ int clif_spawnpc(map_session_data &sd)
 #if PACKETVER < 4
 	WBUFW(buf, 0) = 0x79;
 	WBUFW(buf,51) = (sd.status.base_level > config.max_lv) ? config.max_lv : sd.status.base_level;
-	clif_send(buf, packet_len_table[0x79], &sd, AREA_WOS);
+	clif_send(buf, packet(sd.packet_ver,0x79).len, &sd, AREA_WOS);
 #else
 	WBUFW(buf, 0) = 0x1d9;
 	WBUFW(buf,51) = (sd.status.base_level > config.max_base_level) ? config.max_base_level : sd.status.base_level;
-	clif_send(buf, packet_len_table[0x1d9], &sd, AREA_WOS);
+	clif_send(buf, packet(sd.packet_ver,0x1d9).len, &sd, AREA_WOS);
 #endif
 
 	if(sd.disguise_id > 0)
 	{
-		memset(buf,0,packet_len_table[0x7c]);
+		memset(buf,0,packet(sd.packet_ver,0x7c).len);
 		WBUFW(buf,0)=0x7c;
 		WBUFL(buf,2)=sd.block_list::id|FLAG_DISGUISE;
 		WBUFW(buf,6)=sd.get_speed();
 		WBUFW(buf,12)=sd.status.option;
 		WBUFW(buf,20)=sd.disguise_id;
 		WBUFPOS(buf,36,sd.block_list::x,sd.block_list::y,sd.dir);
-		clif_send(buf,packet_len_table[0x7c],&sd,AREA);
+		clif_send(buf,packet(sd.packet_ver,0x7c).len,&sd,AREA);
 
 		size_t len = clif_dis0078(sd,buf);
 		clif_send(buf,len,&sd,AREA);
@@ -2404,7 +2261,7 @@ int clif_spawnnpc(npc_data &nd)
 	if(nd.class_ < 0 || nd.invalid || nd.class_ == INVISIBLE_CLASS)
 		return 0;
 
-	memset(buf,0,packet_len_table[0x7c]);
+	memset(buf,0,packet(0,0x7c).len);
 
 	WBUFW(buf,0)=0x7c;
 	WBUFL(buf,2)=nd.block_list::id;
@@ -2412,7 +2269,7 @@ int clif_spawnnpc(npc_data &nd)
 	WBUFW(buf,20)=nd.class_;
 	WBUFPOS(buf,36,nd.block_list::x,nd.block_list::y,nd.get_dir());
 
-	clif_send(buf,packet_len_table[0x7c],&nd,AREA);
+	clif_send(buf,packet(0,0x7c).len,&nd,AREA);
 
 	len = clif_npc0078(nd,buf);
 	clif_send(buf,len,&nd,AREA);
@@ -2428,7 +2285,7 @@ int clif_spawnnpc(map_session_data &sd, npc_data &nd)
 	if(nd.class_ < 0 || nd.invalid || nd.class_ == INVISIBLE_CLASS)
 		return 0;
 
-	memset(buf,0,packet_len_table[0x7c]);
+	memset(buf,0,packet(sd.packet_ver,0x7c).len);
 
 	WBUFW(buf,0)=0x7c;
 	WBUFL(buf,2)=nd.block_list::id;
@@ -2436,7 +2293,7 @@ int clif_spawnnpc(map_session_data &sd, npc_data &nd)
 	WBUFW(buf,20)=nd.class_;
 	WBUFPOS(buf,36,nd.block_list::x,nd.block_list::y,nd.get_dir());
 
-	clif_send_self(sd,buf,packet_len_table[0x7c]);
+	clif_send_self(sd,buf,packet(sd.packet_ver,0x7c).len);
 
 	len = clif_npc0078(nd,buf);
 	clif_send_self(sd,buf,len);
@@ -2455,7 +2312,7 @@ int clif_spawnmob(struct mob_data &md)
 
 	if (viewclass > 23 && viewclass < 4000)
 	{
-		memset(buf,0,packet_len_table[0x7c]);
+		memset(buf,0,packet(0,0x7c).len);
 		WBUFW(buf,0)=0x7c;
 		WBUFL(buf,2)=md.block_list::id;
 		WBUFW(buf,6)=md.get_speed();
@@ -2464,7 +2321,7 @@ int clif_spawnmob(struct mob_data &md)
 		WBUFW(buf,12)=md.option;
 		WBUFW(buf,20)=viewclass;
 		WBUFPOS(buf,36,md.block_list::x,md.block_list::y,md.dir);
-		clif_send(buf,packet_len_table[0x7c],&md,AREA);
+		clif_send(buf,packet(0,0x7c).len,&md,AREA);
 	}
 
 	len = clif_mob0078(md,buf);
@@ -2494,7 +2351,7 @@ int clif_spawnpet(struct pet_data &pd)
 
 	if( pd.get_viewclass() >= MAX_PC_CLASS )
 	{
-		memset(buf,0,packet_len_table[0x7c]);
+		memset(buf,0,packet(0,0x7c).len);
 
 		WBUFW(buf,0)=0x7c;
 		WBUFL(buf,2)=pd.block_list::id;
@@ -2502,7 +2359,7 @@ int clif_spawnpet(struct pet_data &pd)
 		WBUFW(buf,20)=pd.get_viewclass();
 		WBUFPOS(buf,36,pd.block_list::x,pd.block_list::y,pd.dir);
 
-		clif_send(buf,packet_len_table[0x7c],&pd,AREA);
+		clif_send(buf,packet(0,0x7c).len,&pd,AREA);
 	}
 
 	len = clif_pet0078(pd,buf);
@@ -2518,7 +2375,7 @@ int clif_spawnhom(const homun_data &hd)
 {
 	unsigned char buf[64];
 
-	memset(buf,0,packet_db[19][0x7c].len);
+	memset(buf,0,packet(19,0x7c).len);
 	
 	WBUFW(buf,0) = 0x7c;
 	WBUFL(buf,2) = hd.block_list::id;
@@ -2529,7 +2386,7 @@ int clif_spawnhom(const homun_data &hd)
 		WBUFW(buf,20) = hd.status.class_;
 	WBUFB(buf,28)=8;		// 調べた限り固定
 	WBUFPOS(buf,36,hd.block_list::x,hd.block_list::y, hd.get_dir());
-	clif_send(buf, packet_db[19][0x7c].len, &hd, AREA);
+	clif_send(buf, packet(19,0x7c).len, &hd, AREA);
 	
 	if(hd.view_size==2)
 		clif_specialeffect(hd,EFFECT_BIG,0);
@@ -2553,7 +2410,7 @@ int clif_send_homdata(const map_session_data &sd, unsigned short type, uint32 pa
 	WFIFOW(fd,2) = type;
 	WFIFOL(fd,4) = sd.hd->block_list::id;
 	WFIFOL(fd,8) = param;
-	WFIFOSET(fd, packet_db[sd.packet_ver][0x230].len);
+	WFIFOSET(fd, packet(sd.packet_ver,0x230).len);
 	return 0;
 }
 
@@ -2599,7 +2456,7 @@ int clif_send_homstatus(const map_session_data &sd, int flag)
 	WFIFOL(fd,63) = sd.hd->next_baseexp();	// NextExp
 	WFIFOW(fd,67) = sd.hd->status.skill_point;	// skill point
 	WFIFOW(fd,69) = sd.hd->atackable;			// 攻撃可否フラグ	0:不可/1:許可
-	WFIFOSET(fd,packet_db[sd.packet_ver][0x22e].len);
+	WFIFOSET(fd,packet(sd.packet_ver,0x22e).len);
 
 	return 0;
 }
@@ -2612,7 +2469,7 @@ int clif_hom_food(const map_session_data &sd, unsigned short foodid, int fail)
 	WFIFOW(fd,0)=0x22f;
 	WFIFOB(fd,2)=fail;
 	WFIFOW(fd,3)=foodid;
-	WFIFOSET(fd,packet_db[sd.packet_ver][0x22f].len);
+	WFIFOSET(fd,packet(sd.packet_ver,0x22f).len);
 	return 0;
 }
 /*==========================================
@@ -2675,7 +2532,7 @@ int clif_homskillup(const map_session_data &sd, unsigned short skill_num)
 		range = sd.hd->get_range() - (range + 1);
 	WFIFOW(fd,8) = range;
 	WFIFOB(fd,10) = (sd.hd->status.skill[skillid].lv < skill_get_max(sd.hd->status.skill[skillid].id)) ? 1 : 0;
-	WFIFOSET(fd,packet_db[sd.packet_ver][0x10e].len);
+	WFIFOSET(fd,packet(sd.packet_ver,0x10e).len);
 	return 0;
 }
 
@@ -2691,7 +2548,7 @@ int clif_servertick(map_session_data &sd, unsigned long tick)
 
 	WFIFOW(fd,0)=0x7f;
 	WFIFOL(fd,2)=tick;
-	WFIFOSET(fd,packet_len_table[0x7f]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x7f).len);
 
 	return 0;
 }
@@ -2710,7 +2567,7 @@ int clif_walkok(const map_session_data& sd)
 	WFIFOW(fd,0)=0x87;
 	WFIFOL(fd,2)=gettick();
 	WFIFOPOS2(fd,6,sd.block_list::x,sd.block_list::y,sd.walktarget.x,sd.walktarget.y,8,8);
-	WFIFOSET(fd,packet_len_table[0x87]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x87).len);
 	return 0;
 }
 /*==========================================
@@ -2811,7 +2668,7 @@ int clif_changemap(map_session_data &sd, const char *mapname, unsigned short x, 
 	mapname2buffer(WFIFOP(fd,2), 16, mapname);
 	WFIFOW(fd,18) = x;
 	WFIFOW(fd,20) = y;
-	WFIFOSET(fd, packet_len_table[0x91]);
+	WFIFOSET(fd, packet(sd.packet_ver,0x91).len);
 
 	return 0;
 }
@@ -2837,7 +2694,7 @@ int clif_changemapserver(map_session_data &sd, const char *mapname, unsigned sho
 	WFIFOW(fd,20) = y;
 	WFIFOLIP(fd,22) = ip;
 	WFIFOW(fd,26) = port;
-	WFIFOSET(fd, packet_len_table[0x92]);
+	WFIFOSET(fd, packet(sd.packet_ver,0x92).len);
 
 	session_SetWaitClose(fd, 1000);
 	return 0;
@@ -2857,7 +2714,7 @@ int clif_npcbuysell(map_session_data& sd, uint32 id)
 
 	WFIFOW(fd,0)=0xc4;
 	WFIFOL(fd,2)=id;
-	WFIFOSET(fd,packet_len_table[0xc4]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xc4).len);
 
 	return 0;
 }
@@ -2869,7 +2726,7 @@ int clif_npcbuysell(map_session_data& sd, uint32 id)
 int clif_buylist(map_session_data &sd, npc_data &nd)
 {
 	const npcshop_data *sh = nd.get_shop();
-	if( sh && !session_isActive(sd.fd) )
+	if( sh && session_isActive(sd.fd) )
 	{
 		const item_data *id;
 		int i,c,val;
@@ -2970,7 +2827,7 @@ int clif_scriptnext(map_session_data &sd,uint32 npcid)
 
 	WFIFOW(fd,0)=0xb5;
 	WFIFOL(fd,2)=npcid;
-	WFIFOSET(fd,packet_len_table[0xb5]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xb5).len);
 
 	return 0;
 }
@@ -2987,7 +2844,7 @@ int clif_scriptclose(map_session_data &sd, uint32 npcid)
 
 	WFIFOW(fd,0)=0xb6;
 	WFIFOL(fd,2)=npcid;
-	WFIFOSET(fd,packet_len_table[0xb6]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xb6).len);
 
 	return 0;
 }
@@ -3025,7 +2882,7 @@ int clif_scriptinput(map_session_data &sd, uint32 npcid)
 
 	WFIFOW(fd,0)=0x142;
 	WFIFOL(fd,2)=npcid;
-	WFIFOSET(fd,packet_len_table[0x142]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x142).len);
 
 	return 0;
 }
@@ -3042,7 +2899,7 @@ int clif_scriptinputstr(map_session_data &sd, uint32 npcid)
 
 	WFIFOW(fd,0)=0x1d4;
 	WFIFOL(fd,2)=npcid;
-	WFIFOSET(fd,packet_len_table[0x1d4]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x1d4).len);
 
 	return 0;
 }
@@ -3064,7 +2921,7 @@ int clif_viewpoint(map_session_data &sd, uint32 npc_id, uint32 id, uint32 x, uin
 	WFIFOL(fd,14)=y;
 	WFIFOB(fd,18)=type;
 	WFIFOL(fd,19)=color;
-	WFIFOSET(fd,packet_len_table[0x144]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x144).len);
 
 	return 0;
 }
@@ -3084,7 +2941,7 @@ int clif_cutin(map_session_data &sd, const char *image, unsigned char type)
 		WFIFOW(fd,0)=0x1b3;
 		safestrcpy((char*)WFIFOP(fd,2),64,image);
 		WFIFOB(fd,66)=type;
-		WFIFOSET(fd,packet_len_table[0x1b3]);
+		WFIFOSET(fd,packet(sd.packet_ver,0x1b3).len);
 	}
 
 	return 0;
@@ -3187,7 +3044,7 @@ int clif_additem(map_session_data &sd, unsigned short n, unsigned short amount, 
 		WBUFB(buf,22)=fail;
 	}
 
-	WFIFOSET(fd,packet_len_table[0xa0]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xa0).len);
 	return 0;
 }
 
@@ -3205,7 +3062,7 @@ int clif_delitem(map_session_data &sd,unsigned short n,unsigned short amount)
 	WFIFOW(fd,2)=n+2;
 	WFIFOW(fd,4)=amount;
 
-	WFIFOSET(fd,packet_len_table[0xaf]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xaf).len);
 
 	return 0;
 }
@@ -3555,7 +3412,7 @@ int clif_guild_xy(map_session_data &sd)
 	WBUFL(buf,2)=sd.status.account_id;
 	WBUFW(buf,6)=sd.block_list::x;
 	WBUFW(buf,8)=sd.block_list::y;
-	clif_send(buf,packet_len_table[0x1eb],&sd,GUILD_SAMEMAP_WOS);
+	clif_send(buf,packet(sd.packet_ver,0x1eb).len,&sd,GUILD_SAMEMAP_WOS);
 	return 0;
 }
 int clif_guild_xy_remove(map_session_data &sd)
@@ -3565,7 +3422,7 @@ int clif_guild_xy_remove(map_session_data &sd)
 	WBUFL(buf,2)=sd.status.account_id;
 	WBUFW(buf,6)=0xFFFF;
 	WBUFW(buf,8)=0xFFFF;
-	clif_send(buf,packet_len_table[0x1eb],&sd,GUILD_SAMEMAP_WOS);
+	clif_send(buf,packet(sd.packet_ver,0x1eb).len,&sd,GUILD_SAMEMAP_WOS);
 	return 0;
 }
 
@@ -3788,7 +3645,7 @@ int clif_changestatus(block_list &bl, unsigned short type, uint32 val)
 				ShowMessage("clif_changestatus : make %d routine\n",type);
 			return 1;
 		}
-		clif_send(buf,packet_len_table[0x1ab],&bl,AREA_WOS);
+		clif_send(buf,packet(0,0x1ab).len,&bl,AREA_WOS);
 	}
 	return 0;
 }
@@ -3811,7 +3668,7 @@ int clif_changelook(const block_list &bl,unsigned char type, unsigned short val)
 		WBUFL(buf,2)=bl.id;
 		WBUFB(buf,6)=type;
 		WBUFB(buf,7)=val;
-		return clif_send(buf,packet_len_table[0xc3],&bl,AREA);
+		return clif_send(buf,packet(sd.packet_ver,0xc3).len,&bl,AREA);
 	}
 	return 0;
 
@@ -3862,7 +3719,7 @@ int clif_changelook(const block_list &bl,unsigned char type, unsigned short val)
 				else
 					WBUFW(buf,9)=0;
 			}
-			return clif_send(buf,packet_len_table[0x1d7],&bl,AREA);
+			return clif_send(buf,packet(sd.packet_ver,0x1d7).len,&bl,AREA);
 		}
 		else if( (type == LOOK_BASE) && (val > 255) )
 		{
@@ -3871,7 +3728,7 @@ int clif_changelook(const block_list &bl,unsigned char type, unsigned short val)
 			WBUFB(buf,6)=type;
 			WBUFW(buf,7)=val;
 			WBUFW(buf,9)=0;
-			return clif_send(buf,packet_len_table[0x1d7],&bl,AREA);
+			return clif_send(buf,packet(sd.packet_ver,0x1d7).len,&bl,AREA);
 		}
 
 	}
@@ -3879,7 +3736,7 @@ int clif_changelook(const block_list &bl,unsigned char type, unsigned short val)
 	WBUFL(buf,2)=bl.id;
 	WBUFB(buf,6)=type;
 	WBUFB(buf,7)=val;
-	return clif_send(buf,packet_len_table[0xc3],&bl,AREA);
+	return clif_send(buf,packet(0,0xc3).len,&bl,AREA);
 
 #endif
 
@@ -3930,7 +3787,7 @@ int clif_initialstatus(map_session_data &sd)
 	WBUFW(buf,40) = sd.status.karma;
 	WBUFW(buf,42) = sd.status.manner;
 
-	WFIFOSET(fd,packet_len_table[0xbd]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xbd).len);
 
 	clif_updatestatus(sd,SP_STR);
 	clif_updatestatus(sd,SP_AGI);
@@ -3961,7 +3818,7 @@ int clif_arrowequip(map_session_data &sd,unsigned short val)
 	WFIFOW(fd,0)=0x013c;
 	WFIFOW(fd,2)=val+2;//矢のアイテムID
 
-	WFIFOSET(fd,packet_len_table[0x013c]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x013c).len);
 
 	return 0;
 }
@@ -3979,7 +3836,7 @@ int clif_arrow_fail(map_session_data &sd,unsigned short type)
 	WFIFOW(fd,0)=0x013b;
 	WFIFOW(fd,2)=type;
 
-	WFIFOSET(fd,packet_len_table[0x013b]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x013b).len);
 
 	return 0;
 }
@@ -4030,7 +3887,7 @@ int clif_statusupack(map_session_data &sd,unsigned short type,unsigned char ok,u
 	WFIFOW(fd,2)=type;
 	WFIFOB(fd,4)=ok;
 	WFIFOB(fd,5)=val;
-	WFIFOSET(fd,packet_len_table[0xbc]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xbc).len);
 
 	return 0;
 }
@@ -4049,7 +3906,7 @@ int clif_equipitemack(map_session_data &sd,unsigned short n,unsigned short pos,u
 	WFIFOW(fd,2)=n+2;
 	WFIFOW(fd,4)=pos;
 	WFIFOB(fd,6)=ok;
-	WFIFOSET(fd,packet_len_table[0xaa]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xaa).len);
 
 	return 0;
 }
@@ -4068,7 +3925,7 @@ int clif_unequipitemack(map_session_data &sd,unsigned short n,unsigned short pos
 	WFIFOW(fd,2)=n+2;
 	WFIFOW(fd,4)=pos;
 	WFIFOB(fd,6)=ok;
-	WFIFOSET(fd,packet_len_table[0xac]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xac).len);
 
 	return 0;
 }
@@ -4085,7 +3942,7 @@ int clif_misceffect(block_list &bl, uint32 type)
 	WBUFL(buf,2) = bl.id;
 	WBUFL(buf,6) = type;
 
-	return clif_send(buf,packet_len_table[0x19b],&bl,AREA);
+	return clif_send(buf,packet(0,0x19b).len,&bl,AREA);
 }
 
 
@@ -4111,13 +3968,13 @@ int clif_changeoption(block_list &bl)
 		WBUFW(buf,8) = 0;
 		WBUFW(buf,10) = OPTION_HIDE;
 		WBUFB(buf,12) = 0;
-		clif_send(buf,packet_len_table[0x119],&bl,AREA);
+		clif_send(buf,packet(0,0x119).len,&bl,AREA);
 		WBUFL(buf,2) = bl.id|FLAG_DISGUISE;
 		WBUFW(buf,6) = 0;
 		WBUFW(buf,8) = 0;
 		WBUFW(buf,10) = option;
 		WBUFB(buf,12) = 0;
-		clif_send(buf,packet_len_table[0x119],&bl,AREA);
+		clif_send(buf,packet(0,0x119).len,&bl,AREA);
 	}
 	else
 	{
@@ -4126,7 +3983,7 @@ int clif_changeoption(block_list &bl)
 		WBUFW(buf,8) = *status_get_opt2(&bl);
 		WBUFW(buf,10) = option;
 		WBUFB(buf,12) = 0;	// ??
-		clif_send(buf,packet_len_table[0x119],&bl,AREA);
+		clif_send(buf,packet(0,0x119).len,&bl,AREA);
 	}
 
 	// アイコンの表示
@@ -4162,7 +4019,7 @@ int clif_useitemack(map_session_data &sd,unsigned short index,unsigned short amo
 		WFIFOW(fd,2)=index+2;
 		WFIFOW(fd,4)=amount;
 		WFIFOB(fd,6)=ok;
-		WFIFOSET(fd,packet_len_table[0xa8]);
+		WFIFOSET(fd,packet(sd.packet_ver,0xa8).len);
 	}
 	else {
 #if PACKETVER < 3
@@ -4174,7 +4031,7 @@ int clif_useitemack(map_session_data &sd,unsigned short index,unsigned short amo
 		WFIFOW(fd,2)=index+2;
 		WFIFOW(fd,4)=amount;
 		WFIFOB(fd,6)=ok;
-		WFIFOSET(fd,packet_len_table[0xa8]);
+		WFIFOSET(fd,packet(sd.packet_ver,0xa8).len);
 #else
 		unsigned char buf[32];
 
@@ -4187,7 +4044,7 @@ int clif_useitemack(map_session_data &sd,unsigned short index,unsigned short amo
 		WBUFL(buf,6)=sd.block_list::id;
 		WBUFW(buf,10)=amount;
 		WBUFB(buf,12)=ok;
-		clif_send(buf,packet_len_table[0x1c8],&sd,AREA);
+		clif_send(buf,packet(sd.packet_ver,0x1c8).len,&sd,AREA);
 #endif
 	}
 
@@ -4206,7 +4063,7 @@ int clif_createchat(map_session_data &sd,unsigned char fail)
 
 	WFIFOW(fd,0)=0xd6;
 	WFIFOB(fd,2)=fail;
-	WFIFOSET(fd,packet_len_table[0xd6]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xd6).len);
 
 	return 0;
 }
@@ -4279,12 +4136,12 @@ int clif_clearchat(chat_data &cd,int fd)
 
 	if( fd && session_isActive(fd) )
 	{
-		memcpy(WFIFOP(fd,0),buf,packet_len_table[0xd8]);
-		WFIFOSET(fd,packet_len_table[0xd8]);
+		memcpy(WFIFOP(fd,0),buf,packet(0,0xd8).len);
+		WFIFOSET(fd,packet(0,0xd8).len);
 	}
 	else
 	{
-		clif_send(buf,packet_len_table[0xd8],cd.owner,AREA_WOSC);
+		clif_send(buf,packet(0,0xd8).len,cd.owner,AREA_WOSC);
 	}
 
 	return 0;
@@ -4302,7 +4159,7 @@ int clif_joinchatfail(map_session_data &sd,unsigned char fail)
 
 	WFIFOW(fd,0)=0xda;
 	WFIFOB(fd,2)=fail;
-	WFIFOSET(fd,packet_len_table[0xda]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xda).len);
 
 	return 0;
 }
@@ -4341,7 +4198,7 @@ int clif_addchat(chat_data &cd,map_session_data &sd)
 	WBUFW(buf, 0) = 0x0dc;
 	WBUFW(buf, 2) = cd.users;
 	memcpy(WBUFP(buf, 4),sd.status.name,24);
-	return clif_send(buf,packet_len_table[0xdc],&sd,CHAT_WOS);
+	return clif_send(buf,packet(sd.packet_ver,0xdc).len,&sd,CHAT_WOS);
 }
 
 /*==========================================
@@ -4359,7 +4216,7 @@ int clif_changechatowner(chat_data &cd,map_session_data &sd)
 	WBUFL(buf,32) = 0;
 	memcpy(WBUFP(buf,36),sd.status.name,24);
 
-	return clif_send(buf,packet_len_table[0xe1]*2,&sd,CHAT);
+	return clif_send(buf,packet(sd.packet_ver,0xe1).len*2,&sd,CHAT);
 }
 
 /*==========================================
@@ -4375,7 +4232,7 @@ int clif_leavechat(chat_data &cd,map_session_data &sd)
 	memcpy(WBUFP(buf,4),sd.status.name,24);
 	WBUFB(buf,28) = 0;
 
-	return clif_send(buf,packet_len_table[0xdd],&sd,CHAT);
+	return clif_send(buf,packet(sd.packet_ver,0xdd).len,&sd,CHAT);
 }
 
 /*==========================================
@@ -4392,7 +4249,7 @@ int clif_traderequest(map_session_data &sd,const char *name)
 
 	strcpy((char*)WFIFOP(fd,2),name);
 	
-	WFIFOSET(fd,packet_len_table[0xe5]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xe5).len);
 
 	return 0;
 }
@@ -4409,7 +4266,7 @@ int clif_tradestart(map_session_data &sd,unsigned char type)
 
 	WFIFOW(fd,0)=0xe7;
 	WFIFOB(fd,2)=type;
-	WFIFOSET(fd,packet_len_table[0xe7]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xe7).len);
 
 	return 0;
 }
@@ -4451,7 +4308,7 @@ int clif_tradeadditem(map_session_data &sd, map_session_data &tsd,unsigned short
 		clif_cards_to_buffer( WFIFOP(fd,11), sd.status.inventory[index]);
 
 	}
-	WFIFOSET(fd,packet_len_table[0xe9]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xe9).len);
 
 	return 0;
 }
@@ -4469,7 +4326,7 @@ int clif_tradeitemok(map_session_data &sd,unsigned short index,unsigned char fai
 	WFIFOW(fd,0)=0xea;
 	WFIFOW(fd,2)=index;
 	WFIFOB(fd,4)=fail;
-	WFIFOSET(fd,packet_len_table[0xea]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xea).len);
 
 	return 0;
 }
@@ -4486,7 +4343,7 @@ int clif_tradedeal_lock(map_session_data &sd,unsigned char fail)
 
 	WFIFOW(fd,0)=0xec;
 	WFIFOB(fd,2)=fail; // 0=you 1=the other person
-	WFIFOSET(fd,packet_len_table[0xec]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xec).len);
 
 	return 0;
 }
@@ -4502,7 +4359,7 @@ int clif_tradecancelled(map_session_data &sd)
 		return 0;
 
 	WFIFOW(fd,0)=0xee;
-	WFIFOSET(fd,packet_len_table[0xee]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xee).len);
 
 	return 0;
 }
@@ -4519,7 +4376,7 @@ int clif_tradecompleted(map_session_data &sd,unsigned char fail)
 
 	WFIFOW(fd,0)=0xf0;
 	WFIFOB(fd,2)=fail;
-	WFIFOSET(fd,packet_len_table[0xf0]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xf0).len);
 
 	return 0;
 }
@@ -4537,7 +4394,7 @@ int clif_updatestorageamount(map_session_data &sd,struct pc_storage &stor)
 	WFIFOW(fd,0) = 0xf2;  // update storage amount
 	WFIFOW(fd,2) = stor.storage_amount;  //items
 	WFIFOW(fd,4) = MAX_STORAGE; //items max
-	WFIFOSET(fd,packet_len_table[0xf2]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xf2).len);
 
 	return 0;
 }
@@ -4567,7 +4424,7 @@ int clif_storageitemadded(map_session_data &sd,struct pc_storage &stor,unsigned 
 
 	clif_cards_to_buffer( WFIFOP(fd,13), stor.storage[index] );
 
-	WFIFOSET(fd,packet_len_table[0xf4]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xf4).len);
 
 	return 0;
 }
@@ -4585,7 +4442,7 @@ int clif_updateguildstorageamount(map_session_data &sd,struct guild_storage &sto
 	WFIFOW(fd,0) = 0xf2;  // update storage amount
 	WFIFOW(fd,2) = stor.storage_amount;  //items
 	WFIFOW(fd,4) = MAX_GUILD_STORAGE; //items max
-	WFIFOSET(fd,packet_len_table[0xf2]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xf2).len);
 
 	return 0;
 }
@@ -4615,7 +4472,7 @@ int clif_guildstorageitemadded(map_session_data &sd,struct guild_storage &stor,u
 
 	clif_cards_to_buffer( WFIFOP(fd,13), stor.storage[index] );
 
-	WFIFOSET(fd,packet_len_table[0xf4]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xf4).len);
 
 	return 0;
 }
@@ -4633,7 +4490,7 @@ int clif_storageitemremoved(map_session_data &sd,unsigned short index,uint32 amo
 	WFIFOW(fd,0)=0xf6; // Storage item removed
 	WFIFOW(fd,2)=index+1;
 	WFIFOL(fd,4)=amount;
-	WFIFOSET(fd,packet_len_table[0xf6]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xf6).len);
 
 	return 0;
 }
@@ -4649,7 +4506,7 @@ int clif_storageclose(map_session_data &sd)
 		return 0;
 
 	WFIFOW(fd,0)=0xf8; // Storage Closed
-	WFIFOSET(fd,packet_len_table[0xf8]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xf8).len);
 
 	return 0;
 }
@@ -4700,7 +4557,7 @@ int clif_getareachar_pc(map_session_data &sd, map_session_data &dstsd)
 	}
 	if(dstsd.spiritball > 0) {
 		clif_set01e1(dstsd,WFIFOP(sd.fd,0));
-		WFIFOSET(sd.fd,packet_len_table[0x1e1]);
+		WFIFOSET(sd.fd,packet(sd.packet_ver,0x1e1).len);
 	}
 	if( config.save_clothcolor && dstsd.status.clothes_color > 0 &&
 		(dstsd.view_class != 22 || !config.wedding_ignorepalette) )
@@ -4757,7 +4614,7 @@ int clif_fixpos(const block_list &bl)
 	WBUFW(buf,6)=bl.x;
 	WBUFW(buf,8)=bl.y;
 
-	clif_send(buf, packet_len_table[0x88], &bl, AREA);
+	clif_send(buf, packet(0,0x88).len, &bl, AREA);
 
 	const map_session_data *sd=bl.get_sd();
 	if(sd && sd->disguise_id)
@@ -4765,7 +4622,7 @@ int clif_fixpos(const block_list &bl)
 		WBUFL(buf,2)=bl.id|FLAG_DISGUISE;
 		//WBUFW(buf,6)=bl.x;
 		//WBUFW(buf,8)=bl.y;
-		clif_send(buf, packet_len_table[0x88], &bl, AREA);
+		clif_send(buf, packet(0,0x88).len, &bl, AREA);
 	}
 	return 0;
 }
@@ -4859,7 +4716,7 @@ int clif_damage(block_list &src,block_list &dst,unsigned long tick,uint32 sdelay
 	WBUFW(buf,24)=div;
 	WBUFB(buf,26)=type;
 	WBUFW(buf,27)=damage2;
-	clif_send(buf,packet_len_table[0x8a],&src,AREA);
+	clif_send(buf,packet(0,0x8a).len,&src,AREA);
 
 	if( (src==BL_PC && ((map_session_data &)src).disguise_id) || 
 		(dst==BL_PC && ((map_session_data &)dst).disguise_id) )
@@ -4883,7 +4740,7 @@ int clif_damage(block_list &src,block_list &dst,unsigned long tick,uint32 sdelay
 		WBUFW(buf,24)=div;
 		WBUFB(buf,26)=type;
 		WBUFW(buf,27)=0;
-		clif_send(buf,packet_len_table[0x8a],&src,AREA);
+		clif_send(buf,packet(0,0x8a).len,&src,AREA);
 	}
 
 	return 0;
@@ -4978,7 +4835,7 @@ int clif_getareachar_item(map_session_data &sd, flooritem_data &fitem)
 	WFIFOB(fd,15)=fitem.subx;
 	WFIFOB(fd,16)=fitem.suby;
 
-	WFIFOSET(fd,packet_len_table[0x9d]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x9d).len);
 	return 0;
 }
 /*==========================================
@@ -4996,7 +4853,7 @@ int clif_getareachar_skillunit(map_session_data &sd,struct skill_unit &unit)
 
 	bl=block_list::from_blid(unit.group->src_id);
 #if PACKETVER < 3
-	memset(WFIFOP(fd,0),0,packet_len_table[0x11f]);
+	memset(WFIFOP(fd,0),0,packet(sd.packet_ver,0x11f).len);
 	WFIFOW(fd, 0)=0x11f;
 	WFIFOL(fd, 2)=unit.block_list::id;
 	WFIFOL(fd, 6)=unit.group->src_id;
@@ -5004,9 +4861,9 @@ int clif_getareachar_skillunit(map_session_data &sd,struct skill_unit &unit)
 	WFIFOW(fd,12)=unit.block_list::y;
 	WFIFOB(fd,14)=unit.group->unit_id;
 	WFIFOB(fd,15)=0;
-	WFIFOSET(fd,packet_len_table[0x11f]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x11f).len);
 #else
-	memset(WFIFOP(fd,0),0,packet_len_table[0x1c9]);
+	memset(WFIFOP(fd,0),0,packet(sd.packet_ver,0x1c9).len);
 	WFIFOW(fd, 0)=0x1c9;
 	WFIFOL(fd, 2)=unit.block_list::id;
 	WFIFOL(fd, 6)=unit.group->src_id;
@@ -5046,7 +4903,7 @@ int clif_getareachar_skillunit(map_session_data &sd,struct skill_unit &unit)
 		WFIFOL(fd,15+77)=unit.block_list::m;	//77-80マップIDかなぁ？かなり2バイトで足りそうな数字
 		WFIFOB(fd,15+81)=0xaa;					//81終端文字0xaa
 	}
-	WFIFOSET(fd,packet_len_table[0x1c9]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x1c9).len);
 #endif
 	if(unit.group && unit.group->skill_id == WZ_ICEWALL)
 		clif_set0192(fd,unit.block_list::m,unit.block_list::x,unit.block_list::y,5);
@@ -5064,7 +4921,7 @@ int clif_clearchar_skillunit(struct skill_unit &unit, int fd)
 
 	WFIFOW(fd, 0)=0x120;
 	WFIFOL(fd, 2)=unit.block_list::id;
-	WFIFOSET(fd,packet_len_table[0x120]);
+	WFIFOSET(fd,packet(0,0x120).len);
 	if(unit.group && unit.group->skill_id == WZ_ICEWALL)
 		clif_set0192(fd,unit.block_list::m,unit.block_list::x,unit.block_list::y,unit.val2);
 
@@ -5080,7 +4937,7 @@ int clif_01ac(block_list &bl)
 	unsigned char buf[32];
 	WBUFW(buf, 0) = 0x1ac;
 	WBUFL(buf, 2) = bl.id;
-	return clif_send(buf,packet_len_table[0x1ac],&bl,AREA);
+	return clif_send(buf,packet(0,0x1ac).len,&bl,AREA);
 }
 
 /*==========================================
@@ -5302,7 +5159,7 @@ int clif_skillinfo(map_session_data &sd, unsigned short skillid, short type, sho
 		WFIFOB(fd,38)= (sd.status.skill[skillid].lv < skill_tree_get_max(id, sd.status.class_) && sd.status.skill[skillid].flag ==0 )? 1:0;
 	else
 		WFIFOB(fd,38) = 0;
-	WFIFOSET(fd,packet_len_table[0x147]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x147).len);
 
 	return 0;
 }
@@ -5372,7 +5229,7 @@ int clif_skillup(map_session_data &sd, unsigned short skill_num)
 	WFIFOW(fd,8) = range;
 	//WFIFOB(fd,10) = (sd.status.skill[skill_num].lv < skill_get_max(sd.status.skill[skill_num].id)) ? 1 : 0;
 	WFIFOB(fd,10) = (sd.status.skill[skill_num].lv < skill_tree_get_max(sd.status.skill[skill_num].id, sd.status.class_)) ? 1 : 0;
-	WFIFOSET(fd,packet_len_table[0x10e]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x10e).len);
 
 	return 0;
 }
@@ -5392,7 +5249,7 @@ int clif_skillcasting(block_list &bl,uint32 src_id,uint32 dst_id,unsigned short 
 	WBUFW(buf,14) = skill_id;//魔法詠唱スキル
 	WBUFL(buf,16) = skill_get_pl(skill_id);//属性
 	WBUFL(buf,20) = casttime;//skill詠唱時間
-	return clif_send(buf,packet_len_table[0x13e], &bl, AREA);
+	return clif_send(buf,packet(0,0x13e).len, &bl, AREA);
 }
 
 /*==========================================
@@ -5405,7 +5262,7 @@ int clif_skillcastcancel(block_list &bl)
 
 	WBUFW(buf,0) = 0x1b9;
 	WBUFL(buf,2) = bl.id;
-	return clif_send(buf,packet_len_table[0x1b9], &bl, AREA);
+	return clif_send(buf,packet(0,0x1b9).len, &bl, AREA);
 }
 
 
@@ -5444,7 +5301,7 @@ int clif_skill_damage(block_list &src,block_list &dst,unsigned long tick,uint32 
 	WBUFW(buf,26)=skill_lv;
 	WBUFW(buf,28)=div;
 	WBUFB(buf,30)=(type>0)?type:skill_get_hit(skill_id);
-	return clif_send(buf,packet_len_table[0x114],&src,AREA);
+	return clif_send(buf,packet(sd.packet_ver,0x114).len,&src,AREA);
 #else
 	WBUFW(buf,0)=0x1de;
 	WBUFW(buf,2)=skill_id;
@@ -5463,7 +5320,7 @@ int clif_skill_damage(block_list &src,block_list &dst,unsigned long tick,uint32 
 	WBUFW(buf,28)=skill_lv;
 	WBUFW(buf,30)=div;
 	WBUFB(buf,32)=(type>0)?type:skill_get_hit(skill_id);
-	return clif_send(buf,packet_len_table[0x1de],&src,AREA);
+	return clif_send(buf,packet(0,0x1de).len,&src,AREA);
 #endif
 }
 
@@ -5495,7 +5352,7 @@ int clif_skill_damage2(block_list &src,block_list &dst,unsigned long tick,uint32
 	WBUFW(buf,30)=skill_lv;
 	WBUFW(buf,32)=div;
 	WBUFB(buf,34)=(type>0)?type:skill_get_hit(skill_id);
-	return clif_send(buf,packet_len_table[0x115],&src,AREA);
+	return clif_send(buf,packet(0,0x115).len,&src,AREA);
 }
 
 /*==========================================
@@ -5512,7 +5369,7 @@ int clif_skill_nodamage(block_list &src,block_list &dst,unsigned short skill_id,
 	WBUFL(buf,6)=dst.id;
 	WBUFL(buf,10)=src.id;
 	WBUFB(buf,14)=fail;
-	return clif_send(buf,packet_len_table[0x11a],&src,AREA);
+	return clif_send(buf,packet(0,0x11a).len,&src,AREA);
 }
 
 /*==========================================
@@ -5530,7 +5387,7 @@ int clif_skill_poseffect(block_list &src,unsigned short skill_id,unsigned short 
 	WBUFW(buf,10)=x;
 	WBUFW(buf,12)=y;
 	WBUFL(buf,14)=tick;
-	return clif_send(buf,packet_len_table[0x117],&src,AREA);
+	return clif_send(buf,packet(0,0x117).len,&src,AREA);
 }
 
 /*==========================================
@@ -5543,7 +5400,7 @@ int clif_skill_setunit(struct skill_unit &unit)
 	block_list *bl = (unit.group) ? block_list::from_blid(unit.group->src_id) : NULL;
 
 #if PACKETVER < 3
-	memset(WBUFP(buf, 0),0,packet_len_table[0x11f]);
+	memset(WBUFP(buf, 0),0,packet(sd.packet_ver,0x11f).len);
 	WBUFW(buf, 0)=0x11f;
 	WBUFL(buf, 2)=unit.block_list::id;
 	WBUFL(buf, 6)=(unit.group) ? unit.group->src_id : unit.block_list::id;
@@ -5551,9 +5408,9 @@ int clif_skill_setunit(struct skill_unit &unit)
 	WBUFW(buf,12)=unit.block_list::y;
 	WBUFB(buf,14)=(unit.group) ? unit.group->unit_id : unit.block_list::id;
 	WBUFB(buf,15)=0;
-	return clif_send(buf,packet_len_table[0x11f],&unit->bl,AREA);
+	return clif_send(buf,packet(sd.packet_ver,0x11f).len,&unit->bl,AREA);
 #else
-	memset(WBUFP(buf, 0),0,packet_len_table[0x1c9]);
+	memset(WBUFP(buf, 0),0,packet(0,0x1c9).len);
 	WBUFW(buf, 0)=0x1c9;
 	WBUFL(buf, 2)=unit.block_list::id;
 	WBUFL(buf, 6)=(unit.group) ? unit.group->src_id : unit.block_list::id;
@@ -5592,7 +5449,7 @@ int clif_skill_setunit(struct skill_unit &unit)
 		WBUFL(buf,15+77)=unit.block_list::m;				//77-80マップIDかなぁ？かなり2バイトで足りそうな数字
 		WBUFB(buf,15+81)=0xaa;					//81終端文字0xaa
 	}
-	return clif_send(buf,packet_len_table[0x1c9],&unit,AREA);
+	return clif_send(buf,packet(0,0x1c9).len,&unit,AREA);
 #endif
 }
 /*==========================================
@@ -5604,7 +5461,7 @@ int clif_skill_delunit(struct skill_unit &unit)
 	unsigned char buf[16];
 	WBUFW(buf, 0)=0x120;
 	WBUFL(buf, 2)=unit.block_list::id;
-	return clif_send(buf,packet_len_table[0x120],&unit,AREA);
+	return clif_send(buf,packet(0,0x120).len,&unit,AREA);
 }
 /*==========================================
  * ワープ場所選択
@@ -5623,7 +5480,7 @@ int clif_skill_warppoint(map_session_data &sd,unsigned short skill_id,
 	memcpy(WFIFOP(fd,20),map2,16);
 	memcpy(WFIFOP(fd,36),map3,16);
 	memcpy(WFIFOP(fd,52),map4,16);
-	WFIFOSET(fd,packet_len_table[0x11c]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x11c).len);
 	return 0;
 }
 /*==========================================
@@ -5638,7 +5495,7 @@ int clif_skill_memo(map_session_data &sd,unsigned char flag)
 
 	WFIFOW(fd,0)=0x11e;
 	WFIFOB(fd,2)=flag;
-	WFIFOSET(fd,packet_len_table[0x11e]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x11e).len);
 	return 0;
 }
 int clif_skill_teleportmessage(map_session_data &sd,unsigned short flag)
@@ -5649,7 +5506,7 @@ int clif_skill_teleportmessage(map_session_data &sd,unsigned short flag)
 
 	WFIFOW(fd,0)=0x189;
 	WFIFOW(fd,2)=flag;
-	WFIFOSET(fd,packet_len_table[0x189]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x189).len);
 	return 0;
 }
 
@@ -5676,12 +5533,12 @@ int clif_skill_estimation(const map_session_data &sd, const mob_data &md)
 
 	if(sd.status.party_id>0)
 
-		return clif_send(buf,packet_len_table[0x18c],&sd,PARTY_AREA);
+		return clif_send(buf,packet(sd.packet_ver,0x18c).len,&sd,PARTY_AREA);
 	
 	else if( session_isActive(sd.fd) )
 	{
-		memcpy(WFIFOP(sd.fd,0),buf,packet_len_table[0x18c]);
-		WFIFOSET(sd.fd,packet_len_table[0x18c]);
+		memcpy(WFIFOP(sd.fd,0),buf,packet(sd.packet_ver,0x18c).len);
+		WFIFOSET(sd.fd,packet(sd.packet_ver,0x18c).len);
 	}
 	return 0;
 }
@@ -5728,7 +5585,7 @@ int clif_status_change(block_list &bl,unsigned short type,unsigned char flag)
 	WBUFW(buf,2)=type;
 	WBUFL(buf,4)=bl.id;
 	WBUFB(buf,8)=flag;
-	return clif_send(buf,packet_len_table[0x196],&bl,AREA);
+	return clif_send(buf,packet(0,0x196).len,&bl,AREA);
 }
 
 /*==========================================
@@ -5817,7 +5674,7 @@ int clif_heal(int fd, unsigned short type, unsigned short val)
 	WFIFOW(fd,0)=0x13d;
 	WFIFOW(fd,2)=type;
 	WFIFOW(fd,4)=val;
-	WFIFOSET(fd,packet_len_table[0x13d]);
+	WFIFOSET(fd,packet(0,0x13d).len);
 
 	return 0;
 }
@@ -5834,7 +5691,7 @@ int clif_resurrection(block_list &bl,unsigned short type)
 	WBUFL(buf,2)=bl.id;
 	WBUFW(buf,6)=type;
 
-	clif_send(buf,packet_len_table[0x148],&bl,type==1 ? AREA : AREA_WOS);
+	clif_send(buf,packet(0,0x148).len,&bl,type==1 ? AREA : AREA_WOS);
 
 	map_session_data *sd = bl.get_sd();
 	if(sd && sd->disguise_id )
@@ -5854,7 +5711,7 @@ int clif_set0199(int fd,unsigned short type)
 
 	WFIFOW(fd,0)=0x199;
 	WFIFOW(fd,2)=type;
-	WFIFOSET(fd,packet_len_table[0x199]);
+	WFIFOSET(fd,packet(0,0x199).len);
 
 	return 0;
 }
@@ -5878,7 +5735,7 @@ int clif_pvpset(map_session_data &sd,uint32 pvprank,uint32 pvpnum,int type)
 			pc_calc_pvprank(sd);
 		WFIFOL(sd.fd,6) = pvprank;
 		WFIFOL(sd.fd,10) = pvpnum;
-		WFIFOSET(sd.fd,packet_len_table[0x19a]);
+		WFIFOSET(sd.fd,packet(sd.packet_ver,0x19a).len);
 	} else {
 		unsigned char buf[32];
 
@@ -5892,9 +5749,9 @@ int clif_pvpset(map_session_data &sd,uint32 pvprank,uint32 pvpnum,int type)
 			WBUFL(buf,6) = pvprank;
 		WBUFL(buf,10) = pvpnum;
 		if(!type)
-			clif_send(buf,packet_len_table[0x19a],&sd,AREA);
+			clif_send(buf,packet(sd.packet_ver,0x19a).len,&sd,AREA);
 		else
-			clif_send_same_map(sd,buf,packet_len_table[0x19a]);
+			clif_send_same_map(sd,buf,packet(sd.packet_ver,0x19a).len);
 	}
 
 	return 0;
@@ -5912,7 +5769,7 @@ int clif_send0199(unsigned short map,unsigned short type)
 	bl.m = map;
 	WBUFW(buf,0)=0x199;
 	WBUFW(buf,2)=type;
-	clif_send_same_map(bl,buf,packet_len_table[0x199]);
+	clif_send_same_map(bl,buf,packet(0,0x199).len);
 	return 0;
 }
 
@@ -5929,7 +5786,7 @@ int clif_refine(int fd, map_session_data &sd,unsigned short fail,unsigned short 
 	WFIFOW(fd,2)=fail;
 	WFIFOW(fd,4)=index+2;
 	WFIFOW(fd,6)=val;
-	WFIFOSET(fd,packet_len_table[0x188]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x188).len);
 
 	return 0;
 }
@@ -5963,7 +5820,7 @@ int clif_wis_end(int fd, unsigned short flag)
 
 	WFIFOW(fd,0) = 0x98;
 	WFIFOW(fd,2) = flag;
-	WFIFOSET(fd,packet_len_table[0x98]);
+	WFIFOSET(fd,packet(0,0x98).len);
 	return 0;
 }
 
@@ -5978,7 +5835,7 @@ int clif_solved_charname(const map_session_data &sd, uint32 char_id, const char*
 		WFIFOW(sd.fd,0)=0x194;
 		WFIFOL(sd.fd,2)=char_id;
 		memcpy(WFIFOP(sd.fd,6), name, 24);
-		WFIFOSET(sd.fd,packet_len_table[0x194]);
+		WFIFOSET(sd.fd,packet(sd.packet_ver,0x194).len);
 	}
 	return 0;
 }
@@ -6048,7 +5905,7 @@ int clif_insert_card(map_session_data &sd,unsigned short idx_equip,unsigned shor
 	WFIFOW(fd,2)=idx_equip+2;
 	WFIFOW(fd,4)=idx_card+2;
 	WFIFOB(fd,6)=flag;
-	WFIFOSET(fd,packet_len_table[0x17d]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x17d).len);
 	return 0;
 }
 
@@ -6093,7 +5950,7 @@ int clif_item_identified(map_session_data &sd,unsigned short idx,unsigned char f
 	WFIFOW(fd, 0)=0x179;
 	WFIFOW(fd, 2)=idx+2;
 	WFIFOB(fd, 4)=flag;
-	WFIFOSET(fd,packet_len_table[0x179]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x179).len);
 	return 0;
 }
 
@@ -6238,7 +6095,7 @@ int clif_item_skill(map_session_data &sd,unsigned short skillid,unsigned short s
 	WFIFOW(fd,12)=range;
 	safestrcpy((char*)WFIFOP(fd,14),24,name);
 	WFIFOB(fd,38)=0;
-	WFIFOSET(fd,packet_len_table[0x147]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x147).len);
 	return 0;
 }
 
@@ -6272,7 +6129,7 @@ int clif_cart_additem(map_session_data &sd,unsigned short n,uint32 amount,unsign
 
 	clif_cards_to_buffer( WBUFP(buf,13), sd.status.cart[n] );
 
-	WFIFOSET(fd,packet_len_table[0x124]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x124).len);
 	return 0;
 }
 
@@ -6290,7 +6147,7 @@ int clif_cart_delitem(map_session_data &sd,unsigned short n,uint32 amount)
 	WFIFOW(fd,2)=n+2;
 	WFIFOL(fd,4)=amount;
 
-	WFIFOSET(fd,packet_len_table[0x125]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x125).len);
 
 	return 0;
 }
@@ -6416,7 +6273,7 @@ int clif_openvendingreq(map_session_data &sd, unsigned short num)
 
 	WFIFOW(fd,0)=0x12d;
 	WFIFOW(fd,2)=num;
-	WFIFOSET(fd,packet_len_table[0x12d]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x12d).len);
 
 	return 0;
 }
@@ -6433,10 +6290,10 @@ int clif_showvendingboard(block_list &bl,const char *message,int fd)
 	WBUFL(buf,2)=bl.id;
 	memcpy((char*)WBUFP(buf,6),message,80);
 	if(fd && session_isActive(fd) ) {
-		memcpy(WFIFOP(fd,0),buf,packet_len_table[0x131]);
-		WFIFOSET(fd,packet_len_table[0x131]);
+		memcpy(WFIFOP(fd,0),buf,packet(0,0x131).len);
+		WFIFOSET(fd,packet(0,0x131).len);
 	}else{
-		clif_send(buf,packet_len_table[0x131],&bl,AREA_WOS);
+		clif_send(buf,packet(0,0x131).len,&bl,AREA_WOS);
 	}
 	return 0;
 }
@@ -6452,10 +6309,10 @@ int clif_closevendingboard(block_list &bl,int fd)
 	WBUFW(buf,0)=0x132;
 	WBUFL(buf,2)=bl.id;
 	if(fd && session_isActive(fd) ) {
-		memcpy(WFIFOP(fd,0),buf,packet_len_table[0x132]);
-		WFIFOSET(fd,packet_len_table[0x132]);
+		memcpy(WFIFOP(fd,0),buf,packet(0,0x132).len);
+		WFIFOSET(fd,packet(0,0x132).len);
 	}else{
-		clif_send(buf,packet_len_table[0x132],&bl,AREA_WOS);
+		clif_send(buf,packet(0,0x132).len,&bl,AREA_WOS);
 	}
 
 	return 0;
@@ -6523,7 +6380,7 @@ int clif_buyvending(map_session_data &sd,unsigned short index,unsigned short amo
 	WFIFOW(fd,2)=index+2;
 	WFIFOW(fd,4)=amount;
 	WFIFOB(fd,6)=fail;
-	WFIFOSET(fd,packet_len_table[0x135]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x135).len);
 
 	return 0;
 }
@@ -6588,7 +6445,7 @@ int clif_vendingreport(map_session_data &sd,unsigned short index,unsigned short 
 	WFIFOW(fd,0)=0x137;
 	WFIFOW(fd,2)=index+2;
 	WFIFOW(fd,4)=amount;
-	WFIFOSET(fd,packet_len_table[0x137]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x137).len);
 
 	return 0;
 }
@@ -6605,7 +6462,7 @@ int clif_party_created(map_session_data &sd,unsigned char flag)
 
 	WFIFOW(fd,0)=0xfa;
 	WFIFOB(fd,2)=flag;
-	WFIFOSET(fd,packet_len_table[0xfa]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xfa).len);
 	return 0;
 }
 /*==========================================
@@ -6665,7 +6522,7 @@ int clif_party_invite(map_session_data &sd,map_session_data &tsd)
 	WFIFOW(fd,0)=0xfe;
 	WFIFOL(fd,2)=sd.status.account_id;
 	memcpy(WFIFOP(fd,6),p->name,24);
-	WFIFOSET(fd,packet_len_table[0xfe]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xfe).len);
 	return 0;
 }
 
@@ -6682,7 +6539,7 @@ int clif_party_inviteack(map_session_data &sd,const char *nick,unsigned char fla
 	WFIFOW(fd,0)=0xfd;
 	memcpy(WFIFOP(fd,2),nick,24);
 	WFIFOB(fd,26)=flag;
-	WFIFOSET(fd,packet_len_table[0xfd]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xfd).len);
 	return 0;
 }
 
@@ -6708,10 +6565,10 @@ int clif_party_option(struct party &p,map_session_data *sd, int flag)
 	WBUFW(buf,2)=((flag&0x01)?2:p.expshare);
 	WBUFW(buf,4)=((flag&0x10)?2:p.itemshare);
 	if(flag==0)
-		clif_send(buf, packet_len_table[0x101], sd, PARTY);
+		clif_send(buf, packet(0,0x101).len, sd, PARTY);
 	else if( sd && session_isActive(sd->fd) ) {
-		memcpy(WFIFOP(sd->fd,0),buf,packet_len_table[0x101]);
-		WFIFOSET(sd->fd,packet_len_table[0x101]);
+		memcpy(WFIFOP(sd->fd,0),buf,packet(0,0x101).len);
+		WFIFOSET(sd->fd,packet(0,0x101).len);
 	}
 	return 0;
 }
@@ -6735,12 +6592,12 @@ int clif_party_leaved(struct party &p,map_session_data *sd,uint32 account_id,con
 			if((sd=p.member[i].sd)!=NULL)
 				break;
 		if(flag==0)
-			clif_send(buf,packet_len_table[0x105], sd,PARTY);
+			clif_send(buf,packet(0,0x105).len, sd,PARTY);
 	}
 	else if( sd && session_isActive(sd->fd) )
 	{
-		memcpy(WFIFOP(sd->fd,0),buf,packet_len_table[0x105]);
-		WFIFOSET(sd->fd,packet_len_table[0x105]);
+		memcpy(WFIFOP(sd->fd,0),buf,packet(sd->packet_ver,0x105).len);
+		WFIFOSET(sd->fd,packet(sd->packet_ver,0x105).len);
 	}
 	return 0;
 }
@@ -6781,7 +6638,7 @@ int clif_party_xy(struct party &p,map_session_data &sd)
 	WBUFL(buf,2)=sd.status.account_id;
 	WBUFW(buf,6)=sd.block_list::x;
 	WBUFW(buf,8)=sd.block_list::y;
-	return clif_send(buf,packet_len_table[0x107],&sd,PARTY_SAMEMAP_WOS);
+	return clif_send(buf,packet(sd.packet_ver,0x107).len,&sd,PARTY_SAMEMAP_WOS);
 }
 /*==========================================
  * Remove dot from minimap 
@@ -6794,7 +6651,7 @@ int clif_party_xy_remove(map_session_data &sd)
 	WBUFL(buf,2)=sd.status.account_id;
 	WBUFW(buf,6)=0xFFFF;
 	WBUFW(buf,8)=0xFFFF;
-	clif_send(buf, packet_len_table[0x107], &sd, PARTY_SAMEMAP_WOS);
+	clif_send(buf, packet(sd.packet_ver,0x107).len, &sd, PARTY_SAMEMAP_WOS);
 	return 0;
 }
 
@@ -6815,7 +6672,7 @@ int clif_party_hp(struct party &p,map_session_data &sd)
 	WBUFL(buf,2)=sd.status.account_id;
 	WBUFW(buf,6)=(unsigned short)cur_hp;
 	WBUFW(buf,8)=(unsigned short)max_hp;
-	return clif_send(buf,packet_len_table[0x106],&sd,PARTY_AREA_WOS);
+	return clif_send(buf,packet(sd.packet_ver,0x106).len,&sd,PARTY_AREA_WOS);
 }
 /*==========================================
  * GMへ場所とHP通知
@@ -6861,11 +6718,11 @@ int clif_hpmeter(map_session_data &sd)
 				&sd != sd2 && 
 				sd2->state.auth)
 			{
-				memcpy(WFIFOP(sd2->fd,0), buf1, packet_len_table[0x107]);
-				WFIFOSET (sd2->fd, packet_len_table[0x107]);
+				memcpy(WFIFOP(sd2->fd,0), buf1, packet(sd.packet_ver,0x107).len);
+				WFIFOSET (sd2->fd, packet(sd.packet_ver,0x107).len);
 
-				memcpy (WFIFOP(sd2->fd,0), buf2, packet_len_table[0x106]);
-				WFIFOSET (sd2->fd, packet_len_table[0x106]);
+				memcpy (WFIFOP(sd2->fd,0), buf2, packet(sd.packet_ver,0x106).len);
+				WFIFOSET (sd2->fd, packet(sd.packet_ver,0x106).len);
 			}
 			return 0;
 		}
@@ -6900,11 +6757,11 @@ int clif_hpmeter(map_session_data &sd)
 			&sd != sd2 && 
 			sd2->state.auth)
 		{
-			memcpy(WFIFOP(i,0), buf1, packet_len_table[0x107]);
-			WFIFOSET (i, packet_len_table[0x107]);
+			memcpy(WFIFOP(i,0), buf1, packet(sd.packet_ver,0x107).len);
+			WFIFOSET (i, packet(sd.packet_ver,0x107).len);
 
-			memcpy (WFIFOP(i,0), buf2, packet_len_table[0x106]);
-			WFIFOSET (i, packet_len_table[0x106]);
+			memcpy (WFIFOP(i,0), buf2, packet(sd.packet_ver,0x106).len);
+			WFIFOSET (i, packet(sd.packet_ver,0x106).len);
 		}
 	}
 */
@@ -6930,7 +6787,7 @@ int clif_update_mobhp(struct mob_data &md)
 	memcpy(WBUFP(buf,30), mobhp, 24);
 	WBUFL(buf,54) = 0;
 	WBUFL(buf,78) = 0;
-	return clif_send(buf,packet_len_table[0x195],&md,AREA);
+	return clif_send(buf,packet(0,0x195).len,&md,AREA);
 }
 /*==========================================
  * パーティ場所移動（未使用）
@@ -6949,7 +6806,7 @@ int clif_party_move(struct party &p,map_session_data &sd,unsigned char online)
 	memcpy(WBUFP(buf,15),p.name,24);
 	memcpy(WBUFP(buf,39),sd.status.name,24);
 	mapname2buffer(WBUFP(buf,63),16,maps[sd.block_list::m].mapname);
-	return clif_send(buf,packet_len_table[0x104],&sd,PARTY);
+	return clif_send(buf,packet(sd.packet_ver,0x104).len,&sd,PARTY);
 }
 /*==========================================
  * 攻撃するために移動が必要
@@ -6968,7 +6825,7 @@ int clif_movetoattack(map_session_data &sd,block_list &bl)
 	WFIFOW(fd,10)=sd.block_list::x;
 	WFIFOW(fd,12)=sd.block_list::y;
 	WFIFOW(fd,14)=sd.attackrange;
-	WFIFOSET(fd,packet_len_table[0x139]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x139).len);
 	return 0;
 }
 /*==========================================
@@ -6992,7 +6849,7 @@ int clif_produceeffect(map_session_data &sd,unsigned short flag,unsigned short n
 		WFIFOW(fd, 4)=view;
 	else
 		WFIFOW(fd, 4)=nameid;
-	WFIFOSET(fd,packet_len_table[0x18f]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x18f).len);
 	return 0;
 }
 
@@ -7004,7 +6861,7 @@ int clif_catch_process(map_session_data &sd)
 		return 0;
 
 	WFIFOW(fd,0)=0x19e;
-	WFIFOSET(fd,packet_len_table[0x19e]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x19e).len);
 
 	return 0;
 }
@@ -7017,7 +6874,7 @@ int clif_pet_rulet(map_session_data &sd,unsigned char data)
 
 	WFIFOW(fd,0)=0x1a0;
 	WFIFOB(fd,2)=data;
-	WFIFOSET(fd,packet_len_table[0x1a0]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x1a0).len);
 
 	return 0;
 }
@@ -7066,7 +6923,7 @@ int clif_send_petdata(map_session_data &sd,unsigned char type,uint32 param)
 	WFIFOB(fd,2)=type;
 	WFIFOL(fd,3)=sd.pd->block_list::id;
 	WFIFOL(fd,7)=param;
-	WFIFOSET(fd,packet_len_table[0x1a4]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x1a4).len);
 
 	return 0;
 }
@@ -7084,7 +6941,7 @@ int clif_send_petstatus(map_session_data &sd)
 	WFIFOW(fd,29)=sd.pd->pet.hungry;
 	WFIFOW(fd,31)=sd.pd->pet.intimate;
 	WFIFOW(fd,33)=sd.pd->pet.equip_id;
-	WFIFOSET(fd,packet_len_table[0x1a2]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x1a2).len);
 
 	return 0;
 }
@@ -7096,7 +6953,7 @@ int clif_send_petstatus(map_session_data &sd)
 int clif_pet_emotion(struct pet_data &pd, uint32 param)
 {
 	unsigned char buf[16];
-	memset(buf,0,packet_len_table[0x1aa]);
+	memset(buf,0,packet(0,0x1aa).len);
 
 	WBUFW(buf,0)=0x1aa;
 	WBUFL(buf,2)=pd.block_list::id;
@@ -7112,21 +6969,21 @@ int clif_pet_emotion(struct pet_data &pd, uint32 param)
 	}
 	WBUFL(buf,6)=param;
 
-	return clif_send(buf,packet_len_table[0x1aa],&pd,AREA);
+	return clif_send(buf,packet(0,0x1aa).len,&pd,AREA);
 }
 
 int clif_pet_performance(block_list &bl,uint32 param)
 {
 	unsigned char buf[16];
 
-	memset(buf,0,packet_len_table[0x1a4]);
+	memset(buf,0,packet(0,0x1a4).len);
 
 	WBUFW(buf,0)=0x1a4;
 	WBUFB(buf,2)=4;
 	WBUFL(buf,3)=bl.id;
 	WBUFL(buf,7)=param;
 
-	return clif_send(buf,packet_len_table[0x1a4],&bl,AREA);
+	return clif_send(buf,packet(0,0x1a4).len,&bl,AREA);
 }
 
 int clif_pet_equip(struct pet_data &pd)
@@ -7134,7 +6991,7 @@ int clif_pet_equip(struct pet_data &pd)
 	unsigned char buf[16];
 	unsigned short view;
 
-	memset(buf,0,packet_len_table[0x1a4]);
+	memset(buf,0,packet(0,0x1a4).len);
 
 	WBUFW(buf,0)=0x1a4;
 	WBUFB(buf,2)=3;
@@ -7144,7 +7001,7 @@ int clif_pet_equip(struct pet_data &pd)
 	else
 		WBUFL(buf,7)=pd.pet.equip_id;
 
-	return clif_send(buf,packet_len_table[0x1a4],&pd,AREA);
+	return clif_send(buf,packet(0,0x1a4).len,&pd,AREA);
 }
 
 int clif_pet_food(map_session_data &sd,unsigned short foodid,unsigned char fail)
@@ -7156,7 +7013,7 @@ int clif_pet_food(map_session_data &sd,unsigned short foodid,unsigned char fail)
 	WFIFOW(fd,0)=0x1a3;
 	WFIFOB(fd,2)=fail;
 	WFIFOW(fd,3)=foodid;
-	WFIFOSET(fd,packet_len_table[0x1a3]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x1a3).len);
 
 	return 0;
 }
@@ -7202,7 +7059,7 @@ int clif_autospell(map_session_data &sd,unsigned short skilllv)
 	else
 		WFIFOL(fd,26)= 0x00000000;
 
-	WFIFOSET(fd,packet_len_table[0x1cd]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x1cd).len);
 	return 0;
 }
 
@@ -7224,7 +7081,7 @@ int clif_devotion(map_session_data &sd,uint32 target_id)
 	WBUFB(buf,26)=8;
 	WBUFB(buf,27)=0;
 
-	return clif_send(buf,packet_len_table[0x1cf],&sd,AREA);
+	return clif_send(buf,packet(sd.packet_ver,0x1cf).len,&sd,AREA);
 }
 int clif_marionette(block_list &src, block_list *target)
 {
@@ -7240,7 +7097,7 @@ int clif_marionette(block_list &src, block_list *target)
 	WBUFB(buf,26)=8;
 	WBUFB(buf,27)=0;
 
-	clif_send(buf,packet_len_table[0x1cf],&src,AREA);
+	clif_send(buf,packet(0,0x1cf).len,&src,AREA);
 	return 0;
 }
 
@@ -7254,7 +7111,7 @@ int clif_spiritball(map_session_data &sd)
 	WBUFW(buf,0)=0x1d0;
 	WBUFL(buf,2)=sd.block_list::id;
 	WBUFW(buf,6)=sd.spiritball;
-	return clif_send(buf,packet_len_table[0x1d0],&sd,AREA);
+	return clif_send(buf,packet(sd.packet_ver,0x1d0).len,&sd,AREA);
 }
 
 /*==========================================
@@ -7269,7 +7126,7 @@ int clif_combo_delay(block_list &bl,uint32 wait)
 	WBUFW(buf,0)=0x1d2;
 	WBUFL(buf,2)=bl.id;
 	WBUFL(buf,6)=wait;
-	return clif_send(buf,packet_len_table[0x1d2],&bl,AREA);
+	return clif_send(buf,packet(0,0x1d2).len,&bl,AREA);
 }
 /*==========================================
  *白刃取り
@@ -7284,7 +7141,7 @@ int clif_bladestop(block_list &src,block_list &dst, uint32 _bool)
 	WBUFL(buf,6)=dst.id;
 	WBUFL(buf,10)=_bool;
 
-	return clif_send(buf,packet_len_table[0x1d1],&src,AREA);
+	return clif_send(buf,packet(0,0x1d1).len,&src,AREA);
 }
 
 /*==========================================
@@ -7305,9 +7162,9 @@ int clif_changemapcell(unsigned short m,unsigned short x,unsigned short y,unsign
 	WBUFW(buf,6) = cell_type;
 	mapname2buffer(WBUFP(buf,8),16,maps[m].mapname);
 	if(!type)
-		clif_send(buf,packet_len_table[0x192],&bl, AREA);
+		clif_send(buf,packet(0,0x192).len,&bl, AREA);
 	else
-		clif_send_same_map(bl,buf,packet_len_table[0x192]);
+		clif_send_same_map(bl,buf,packet(0,0x192).len);
 	return 0;
 }
 
@@ -7321,7 +7178,7 @@ int clif_mvp_effect(map_session_data &sd)
 
 	WBUFW(buf,0)=0x10c;
 	WBUFL(buf,2)=sd.block_list::id;
-	return clif_send(buf,packet_len_table[0x10c],&sd,AREA);
+	return clif_send(buf,packet(sd.packet_ver,0x10c).len,&sd,AREA);
 }
 /*==========================================
  * MVPアイテム所得
@@ -7339,7 +7196,7 @@ int clif_mvp_item(map_session_data &sd,unsigned short nameid)
 		WFIFOW(fd,2)=view;
 	else
 		WFIFOW(fd,2)=nameid;
-	WFIFOSET(fd,packet_len_table[0x10a]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x10a).len);
 	return 0;
 }
 /*==========================================
@@ -7354,7 +7211,7 @@ int clif_mvp_exp(map_session_data &sd, uint32 exp)
 
 	WFIFOW(fd,0)=0x10b;
 	WFIFOL(fd,2)=exp;
-	WFIFOSET(fd,packet_len_table[0x10b]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x10b).len);
 	return 0;
 }
 
@@ -7370,7 +7227,7 @@ int clif_guild_created(map_session_data &sd,unsigned char flag)
 
 	WFIFOW(fd,0)=0x167;
 	WFIFOB(fd,2)=flag;
-	WFIFOSET(fd,packet_len_table[0x167]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x167).len);
 	return 0;
 }
 /*==========================================
@@ -7385,13 +7242,13 @@ int clif_guild_belonginfo(map_session_data &sd,struct guild &g)
 
 	ps=guild_getposition(sd,g);
 
-	memset(WFIFOP(fd,0),0,packet_len_table[0x16c]);
+	memset(WFIFOP(fd,0),0,packet(sd.packet_ver,0x16c).len);
 	WFIFOW(fd,0)=0x16c;
 	WFIFOL(fd,2)=g.guild_id;
 	WFIFOL(fd,6)=g.emblem_id;
 	WFIFOL(fd,10)=g.position[ps].mode;
 	memcpy(WFIFOP(fd,19),g.name,24);
-	WFIFOSET(fd,packet_len_table[0x16c]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x16c).len);
 	return 0;
 }
 /*==========================================
@@ -7413,9 +7270,9 @@ int clif_guild_memberlogin_notice(struct guild &g,uint32 idx,uint32 flag)
 	{
 		map_session_data *sd=guild_getavailablesd(g);
 		if(sd!=NULL)
-			clif_send(buf,packet_len_table[0x16d],sd,GUILD);
+			clif_send(buf,packet(0,0x16d).len,sd,GUILD);
 	}else
-		clif_send(buf,packet_len_table[0x16d], g.member[idx].sd, GUILD_WOS);
+		clif_send(buf,packet(0,0x16d).len, g.member[idx].sd, GUILD_WOS);
 	return 0;
 }
 /*==========================================
@@ -7435,7 +7292,7 @@ int clif_guild_masterormember(map_session_data &sd)
 		type=0xd7; // master
 	WFIFOW(fd,0)=0x14e;
 	WFIFOL(fd,2)=type;
-	WFIFOSET(fd,packet_len_table[0x14e]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x14e).len);
 	return 0;
 }
 /*==========================================
@@ -7524,7 +7381,7 @@ int clif_guild_basicinfo(map_session_data &sd)
 	else if(t==MAX_GUILDCASTLE) safestrcpy((char*)WFIFOP(fd,94),20,"Total Domination");
 	else safestrcpy((char*)WFIFOP(fd,94),20,"None Taken");
 
-	WFIFOSET(fd,packet_len_table[WFIFOW(fd,0)]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x1b6).len);
 	clif_guild_emblem(sd,*g);	// Guild emblem vanish fix [Valaris]
 	return 0;
 }
@@ -7821,7 +7678,7 @@ int clif_guild_notice(map_session_data &sd,struct guild &g)
 	WFIFOW(fd,0)=0x16f;
 	memcpy(WFIFOP(fd,2),g.mes1,60);
 	memcpy(WFIFOP(fd,62),g.mes2,120);
-	WFIFOSET(fd,packet_len_table[0x16f]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x16f).len);
 	return 0;
 }
 
@@ -7838,7 +7695,7 @@ int clif_guild_invite(map_session_data &sd,struct guild &g)
 	WFIFOW(fd,0)=0x16a;
 	WFIFOL(fd,2)=g.guild_id;
 	memcpy(WFIFOP(fd,6),g.name,24);
-	WFIFOSET(fd,packet_len_table[0x16a]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x16a).len);
 	return 0;
 }
 /*==========================================
@@ -7853,7 +7710,7 @@ int clif_guild_inviteack(map_session_data &sd,unsigned char flag)
 
 	WFIFOW(fd,0)=0x169;
 	WFIFOB(fd,2)=flag;
-	WFIFOSET(fd,packet_len_table[0x169]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x169).len);
 	return 0;
 }
 /*==========================================
@@ -7867,7 +7724,7 @@ int clif_guild_leave(map_session_data &sd,const char *name,const char *mes)
 	WBUFW(buf, 0)=0x15a;
 	memcpy(WBUFP(buf, 2),name,24);
 	memcpy(WBUFP(buf,26),mes,40);
-	return clif_send(buf,packet_len_table[0x15a],&sd,GUILD);
+	return clif_send(buf,packet(sd.packet_ver,0x15a).len,&sd,GUILD);
 }
 /*==========================================
  * ギルドメンバ追放通知
@@ -7881,7 +7738,7 @@ int clif_guild_explusion(map_session_data &sd,const char *name,const char *mes,u
 	memcpy(WBUFP(buf, 2),name,24);
 	memcpy(WBUFP(buf,26),mes,40);
 	memcpy(WBUFP(buf,66),"dummy",24);
-	return clif_send(buf,packet_len_table[0x15c],&sd,GUILD);
+	return clif_send(buf,packet(sd.packet_ver,0x15c).len,&sd,GUILD);
 }
 /*==========================================
  * ギルド追放メンバリスト
@@ -7967,7 +7824,7 @@ int clif_guild_reqalliance(map_session_data &sd,uint32 account_id,const char *na
 	WFIFOW(fd,0)=0x171;
 	WFIFOL(fd,2)=account_id;
 	memcpy(WFIFOP(fd,6),name,24);
-	WFIFOSET(fd,packet_len_table[0x171]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x171).len);
 	return 0;
 }
 /*==========================================
@@ -7982,7 +7839,7 @@ int clif_guild_allianceack(map_session_data &sd,uint32 flag)
 
 	WFIFOW(fd,0)=0x173;
 	WFIFOL(fd,2)=flag;
-	WFIFOSET(fd,packet_len_table[0x173]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x173).len);
 	return 0;
 }
 /*==========================================
@@ -7998,7 +7855,7 @@ int clif_guild_delalliance(map_session_data &sd,uint32 guild_id,uint32 flag)
 	WFIFOW(fd,0)=0x184;
 	WFIFOL(fd,2)=guild_id;
 	WFIFOL(fd,6)=flag;
-	WFIFOSET(fd,packet_len_table[0x184]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x184).len);
 	return 0;
 }
 /*==========================================
@@ -8013,7 +7870,7 @@ int clif_guild_oppositionack(map_session_data &sd,unsigned char flag)
 
 	WFIFOW(fd,0)=0x181;
 	WFIFOB(fd,2)=flag;
-	WFIFOSET(fd,packet_len_table[0x181]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x181).len);
 	return 0;
 }
 
@@ -8029,7 +7886,7 @@ int clif_guild_broken(map_session_data &sd,uint32 flag)
 
 	WFIFOW(fd,0)=0x15e;
 	WFIFOL(fd,2)=flag;
-	WFIFOSET(fd,packet_len_table[0x15e]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x15e).len);
 	return 0;
 }
 
@@ -8044,7 +7901,7 @@ int clif_emotion(block_list &bl,unsigned char type)
 	WBUFW(buf,0)=0xc0;
 	WBUFL(buf,2)=bl.id;
 	WBUFB(buf,6)=type;
-	return clif_send(buf,packet_len_table[0xc0],&bl,AREA);
+	return clif_send(buf,packet(0,0xc0).len,&bl,AREA);
 }
 
 /*==========================================
@@ -8058,7 +7915,7 @@ int clif_talkiebox(block_list &bl, const char* talkie)
 	WBUFW(buf,0)=0x191;
 	WBUFL(buf,2)=bl.id;
 	memcpy(WBUFP(buf,6),talkie,80);
-	return clif_send(buf,packet_len_table[0x191],&bl,AREA);
+	return clif_send(buf,packet(0,0x191).len,&bl,AREA);
 }
 
 /*==========================================
@@ -8071,7 +7928,7 @@ int clif_wedding_effect(block_list &bl)
 
 	WBUFW(buf,0) = 0x1ea;
 	WBUFL(buf,2) = bl.id;
-	return clif_send(buf, packet_len_table[0x1ea], &bl, AREA);
+	return clif_send(buf, packet(0,0x1ea).len, &bl, AREA);
 }
 /*==========================================
  * あなたに逢いたい使用時名前叫び
@@ -8092,7 +7949,7 @@ int clif_callpartner(map_session_data &sd)
 			chrif_searchcharid(sd.status.partner_id);
 			WBUFB(buf,2) = 0;
 		}
-		clif_send(buf,packet_len_table[0x1e6]&sd,AREA);
+		clif_send(buf,packet(sd.packet_ver,0x1e6).len&sd,AREA);
 	}
 	return 0;
 }
@@ -8108,7 +7965,7 @@ int clif_adopt_process(map_session_data &sd)
 		return 0;
 
 	WFIFOW(fd,0)=0x1f8;
-	WFIFOSET(fd,packet_len_table[0x1f8]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x1f8).len);
 	return 0;
 }
 /*==========================================
@@ -8119,7 +7976,7 @@ void clif_marriage_process(map_session_data &sd)
 {
 	int fd=sd.fd;
 	WFIFOW(fd,0)=0x1e4;
-	WFIFOSET(fd,packet_len_table[0x1e4]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x1e4).len);
 }
 
 
@@ -8132,7 +7989,7 @@ int clif_divorced(map_session_data &sd, const char *name)
 	int fd=sd.fd;
 	WFIFOW(fd,0)=0x205;
 	memcpy(WFIFOP(fd,2), name, 24);
-	WFIFOSET(fd, packet_len_table[0x205]);
+	WFIFOSET(fd, packet(sd.packet_ver,0x205).len);
 	return 0;
 }
 
@@ -8146,7 +8003,7 @@ int clif_parse_ReqAdopt(int fd, map_session_data &sd)
 		return 0;
 
 	WFIFOW(fd,0)=0x1f6;
-	WFIFOSET(fd, packet_len_table[0x1f6]);
+	WFIFOSET(fd, packet(sd.packet_ver,0x1f6).len);
 	return 0;
 }
 
@@ -8159,7 +8016,7 @@ int clif_parse_ReqMarriage(int fd, map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 	WFIFOW(fd,0)=0x1e2;
-	WFIFOSET(fd, packet_len_table[0x1e2]);
+	WFIFOSET(fd, packet(sd.packet_ver,0x1e2).len);
 	return 0;
 }
 
@@ -8174,12 +8031,12 @@ int clif_sitting(map_session_data &sd)
 	WBUFW(buf, 0) = 0x8a;
 	WBUFL(buf, 2) = sd.block_list::id;
 	WBUFB(buf,26) = 2;
-	clif_send(buf, packet_len_table[0x8a], &sd, AREA);
+	clif_send(buf, packet(sd.packet_ver,0x8a).len, &sd, AREA);
 
 	if(sd.disguise_id)
 	{
 		WBUFL(buf, 2) = sd.block_list::id|FLAG_DISGUISE;
-		clif_send(buf, packet_len_table[0x8a], &sd, AREA);
+		clif_send(buf, packet(sd.packet_ver,0x8a).len, &sd, AREA);
 	}
 	return 0;
 }
@@ -8219,7 +8076,7 @@ int clif_GM_kickack(map_session_data &sd, uint32 id)
 
 	WFIFOW(fd,0) = 0xcd;
 	WFIFOL(fd,2) = id;
-	WFIFOSET(fd, packet_len_table[0xcd]);
+	WFIFOSET(fd, packet(sd.packet_ver,0xcd).len);
 	return 0;
 }
 
@@ -8234,7 +8091,7 @@ int clif_GM_kick(map_session_data &sd,map_session_data &tsd,int type)
 
 	WFIFOW(tsd.fd,0) = 0x18b;
 	WFIFOW(tsd.fd,2) = 0;
-	WFIFOSET(tsd.fd,packet_len_table[0x18b]);
+	WFIFOSET(tsd.fd,packet(sd.packet_ver,0x18b).len);
 	session_SetWaitClose(tsd.fd, 5000);
 
 	return 0;
@@ -8249,7 +8106,7 @@ int clif_GM_silence(map_session_data &sd, map_session_data &tsd, int type)
 	WFIFOW(fd,0) = 0x14b;
 	WFIFOB(fd,2) = 0;
 	memcpy(WFIFOP(fd,3), sd.status.name, 24);
-	WFIFOSET(fd, packet_len_table[0x14b]);
+	WFIFOSET(fd, packet(sd.packet_ver,0x14b).len);
 
 	return 0;
 }
@@ -8281,7 +8138,7 @@ int clif_wisexin(map_session_data &sd,int type,int flag)
 	WFIFOW(fd,0)=0xd1;
 	WFIFOB(fd,2)=type;
 	WFIFOB(fd,3)=flag;
-	WFIFOSET(fd,packet_len_table[0xd1]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xd1).len);
 
 	return 0;
 }
@@ -8298,7 +8155,7 @@ int clif_wisall(map_session_data &sd,int type,int flag)
 	WFIFOW(fd,0)=0xd2;
 	WFIFOB(fd,2)=type;
 	WFIFOB(fd,3)=flag;
-	WFIFOSET(fd,packet_len_table[0xd2]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xd2).len);
 
 	return 0;
 }
@@ -8317,7 +8174,7 @@ int clif_soundeffect(map_session_data &sd,block_list &bl,const char *name,unsign
 	WFIFOB(fd,26)=type;
 	WFIFOL(fd,27)=0;
 	WFIFOL(fd,31)=bl.id;
-	WFIFOSET(fd,packet_len_table[0x1d3]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x1d3).len);
 
 	return 0;
 }
@@ -8331,14 +8188,14 @@ int clif_soundeffectall(block_list &bl, const char *name, unsigned char type)
 	WBUFB(buf,26)=type;
 	WBUFL(buf,27)=0;
 	WBUFL(buf,31)=bl.id;
-	return clif_send(buf, packet_len_table[0x1d3], &bl, AREA);
+	return clif_send(buf, packet(0,0x1d3).len, &bl, AREA);
 }
 
 // displaying special effects (npcs, weather, etc) [Valaris]
 int clif_specialeffect(const block_list &bl, uint32 type, int flag)
 {
 	unsigned char buf[64];
-	memset(buf, 0, packet_len_table[0x1f3]);
+	memset(buf, 0, packet(0,0x1f3).len);
 
 	WBUFW(buf,0) = 0x1f3;
 	if(bl==BL_PC && ((map_session_data &)bl).disguise_id)
@@ -8349,16 +8206,16 @@ int clif_specialeffect(const block_list &bl, uint32 type, int flag)
 
 	switch (flag) {
 	case 3:
-		clif_send_all(buf, packet_len_table[0x1f3]);
+		clif_send_all(buf, packet(0,0x1f3).len);
 		break;
 	case 2:
-		clif_send_same_map(bl, buf, packet_len_table[0x1f3]);
+		clif_send_same_map(bl, buf, packet(0,0x1f3).len);
 		break;
 	case 1:
-		clif_send_self(bl, buf, packet_len_table[0x1f3]);
+		clif_send_self(bl, buf, packet(0,0x1f3).len);
 		break;
 	default:
-		clif_send(buf, packet_len_table[0x1f3], &bl, AREA);
+		clif_send(buf, packet(0,0x1f3).len, &bl, AREA);
 	}
 
 	return 0;
@@ -8545,11 +8402,11 @@ int clif_charnameack(int fd, block_list &bl, bool clear)
 
 	// if no receipient specified just update nearby clients
 	if( !session_isActive(fd) )
-		clif_send(buf, packet_len_table[cmd], &bl, AREA);
+		clif_send(buf, packet(0,cmd).len, &bl, AREA);
 	else
 	{
-		memcpy(WFIFOP(fd, 0), buf, packet_len_table[cmd]);
-		WFIFOSET(fd, packet_len_table[cmd]);
+		memcpy(WFIFOP(fd, 0), buf, packet(0,cmd).len);
+		WFIFOSET(fd, packet(0,cmd).len);
 	}
 
 	return 0;
@@ -8604,7 +8461,7 @@ int clif_friend_send_online(map_session_data &sd, uint32 account_id, uint32 char
 	WFIFOL( fd, 2 ) = account_id;
 	WFIFOL( fd, 6 ) = char_id;
 	WFIFOB( fd,10 ) = flag;
-	WFIFOSET( fd, packet_db[sd.packet_ver][0x206].len );
+	WFIFOSET( fd, packet(sd.packet_ver,0x206).len );
 	return 0;
 }
 
@@ -8622,7 +8479,7 @@ int clif_friend_add_request(map_session_data &sd, map_session_data &from_sd)
 	WFIFOL( fd, 2 ) = from_sd.block_list::id;
 	WFIFOL( fd, 6 ) = from_sd.status.char_id;
 	memcpy(WFIFOP( fd, 10 ), from_sd.status.name, 24 );
-	WFIFOSET( fd, packet_db[sd.packet_ver][0x207].len );
+	WFIFOSET( fd, packet(sd.packet_ver,0x207).len );
 
 	return 0;
 }
@@ -8642,7 +8499,7 @@ int clif_friend_add_ack(map_session_data &sd, uint32 account_id, uint32 char_id,
 	WFIFOL( fd, 4 ) = account_id;
 	WFIFOL( fd, 8 ) = char_id;
 	memcpy(WFIFOP( fd, 12 ), name, 24 );
-	WFIFOSET( fd, packet_db[sd.packet_ver][0x209].len );
+	WFIFOSET( fd, packet(sd.packet_ver,0x209).len );
 	return 0;
 }
 
@@ -8659,7 +8516,7 @@ int clif_friend_del_ack(map_session_data &sd, uint32 account_id, uint32 char_id 
 	WFIFOW( fd, 0 ) = 0x20a;
 	WFIFOL( fd, 2 ) = account_id;
 	WFIFOL( fd, 6 ) = char_id;
-	WFIFOSET( fd, packet_db[sd.packet_ver][0x20a].len );
+	WFIFOSET( fd, packet(sd.packet_ver,0x20a).len );
 	return 0;
 }
 
@@ -8684,7 +8541,7 @@ int clif_blacksmith_fame(map_session_data &sd, const uint32 total, int delta)
 	WFIFOW(fd,0) = 0x21b;
 	WFIFOL(fd,2) = delta;
 	WFIFOL(fd,6) = total;
-	WFIFOSET(fd, packet_len_table[0x21b]);
+	WFIFOSET(fd, packet(sd.packet_ver,0x21b).len);
 
 	return 0;
 }
@@ -8701,7 +8558,7 @@ int clif_blacksmith_ranking(map_session_data &sd, const CFameList &fl)
 		memcpy(WFIFOP(fd,i*24+2), fl[i].name, 24 );
 		WFIFOL(fd,i*4+242) = fl[i].fame_points;
 	}
-	WFIFOSET(fd,packet_db[sd.packet_ver][0x219].len);
+	WFIFOSET(fd,packet(sd.packet_ver,0x219).len);
 	return 0;
 }
 /*==========================================
@@ -8717,7 +8574,7 @@ int clif_alchemist_fame(map_session_data &sd, const uint32 total, int delta)
 	WFIFOW(fd,0) = 0x21c;
 	WFIFOL(fd,2) = delta;
 	WFIFOL(fd,6) = total;
-	WFIFOSET(fd, packet_len_table[0x21c]);
+	WFIFOSET(fd, packet(sd.packet_ver,0x21c).len);
 	
 	return 0;
 }
@@ -8734,7 +8591,7 @@ int clif_alchemist_ranking(map_session_data &sd, const CFameList &fl)
 		memcpy(WFIFOP(fd,i*24+2), fl[i].name, 24 );
 		WFIFOL(fd,i*4+242) = fl[i].fame_points;
 	}
-	WFIFOSET(fd,packet_db[sd.packet_ver][0x21a].len);
+	WFIFOSET(fd,packet(sd.packet_ver,0x21a).len);
 	return 0;
 }
 /*==========================================
@@ -8764,7 +8621,7 @@ int clif_taekwon_ranking(map_session_data &sd, const CFameList &fl)
 		memcpy(WFIFOP(fd,i*24+2), fl[i].name, 24 );
 		WFIFOL(fd,i*4+242) = fl[i].fame_points;
 	}
-	WFIFOSET(fd,packet_db[sd.packet_ver][0x226].len);
+	WFIFOSET(fd,packet(sd.packet_ver,0x226).len);
 	return 0;
 }
 /*==========================================
@@ -8795,7 +8652,7 @@ int clif_pk_ranking(map_session_data &sd, const CFameList &fl)
 		memcpy(WFIFOP(fd,i*24+2), fl[i].name, 24 );
 		WFIFOL(fd,i*4+242) = fl[i].fame_points;
 	}
-	WFIFOSET(fd,packet_db[sd.packet_ver][0x238].len);
+	WFIFOSET(fd,packet(sd.packet_ver,0x238).len);
 	return 0;
 }
 /*==========================================
@@ -8812,7 +8669,7 @@ int clif_feel_info(map_session_data &sd, int feel_level)
 	//memcpy(WFIFOP(fd,2),mapindex_id2name(sd->feel_map[feel_level].index), MAP_NAME_LENGTH);
 	WFIFOL(fd,26)=sd.block_list::id;
 	WFIFOW(fd,30)=0x100+feel_level;
-	WFIFOSET(fd, packet_len_table[0x20e]);
+	WFIFOSET(fd, packet(sd.packet_ver,0x20e).len);
 	return 0;
 }
 
@@ -8836,7 +8693,7 @@ int clif_hate_mob(map_session_data &sd, unsigned short skilllv, unsigned short  
 		WFIFOB(fd,2) = 0;
 	WFIFOL(fd,26)=sd.block_list::id;
 	WFIFOW(fd,30)=0xa00+skilllv-1;
-	WFIFOSET(fd, packet_len_table[0x20e]);
+	WFIFOSET(fd, packet(sd.packet_ver,0x20e).len);
 	return 0;
 }
 
@@ -8854,7 +8711,7 @@ int clif_mission_mob(map_session_data &sd, unsigned short mob_id, unsigned short
 	safestrcpy((char*)WFIFOP(fd,2), 24, (mobdb_checkid(mob_id))?mob_db[mob_id].jname:"");
 	WFIFOL(fd,26)=mob_id;
 	WFIFOW(fd,30)=0x1400+progress; //Message to display
-	WFIFOSET(fd, packet_len_table[0x20e]);
+	WFIFOSET(fd, packet(sd.packet_ver,0x20e).len);
 	return 0;
 }
 
@@ -8873,7 +8730,7 @@ int clif_openmailbox(map_session_data &sd)
 
 	WFIFOW(fd,0) = 0x260;
 	WFIFOL(fd,2) = 0;
-	WFIFOSET(fd,packet_db[sd.packet_ver][0x260].len);
+	WFIFOSET(fd,packet(sd.packet_ver,0x260).len);
 	return 0;
 }
 /*==========================================
@@ -8937,7 +8794,7 @@ int clif_res_sendmail(map_session_data &sd, bool ok)
 
 	WFIFOW(fd,0) = 0x249;
 	WFIFOB(fd,2) = ok?0:1;
-	WFIFOSET(fd,packet_db[sd.packet_ver][0x249].len);
+	WFIFOSET(fd,packet(sd.packet_ver,0x249).len);
 	return 0;
 }
 /*==========================================
@@ -8952,7 +8809,7 @@ int clif_res_sendmail_setappend(map_session_data &sd, int flag)
 
 	WFIFOW(fd,0) = 0x245;
 	WFIFOB(fd,2) = flag;
-	WFIFOSET(fd,packet_db[sd.packet_ver][0x245].len);
+	WFIFOSET(fd,packet(sd.packet_ver,0x245).len);
 	return 0;
 }
 /*==========================================
@@ -8969,7 +8826,7 @@ int clif_arrive_newmail(map_session_data &sd, const CMailHead& mh)
 	WFIFOL(fd,2) = mh.msgid;
 	memcpy(WFIFOP(fd, 6),mh.name, 24);
 	memcpy(WFIFOP(fd,30),mh.head, 40);
-	WFIFOSET(fd,packet_db[sd.packet_ver][0x24a].len);
+	WFIFOSET(fd,packet(sd.packet_ver,0x24a).len);
 	return 0;
 }
 /*==========================================
@@ -9058,7 +8915,7 @@ int clif_deletemail_res(map_session_data &sd, uint32 msgid, bool ok)
 		WFIFOW(fd,0) = 0x257;
 		WFIFOL(fd,2) = msgid;
 		WFIFOL(fd,6) = ok?0:1;
-		WFIFOSET(fd,packet_db[sd.packet_ver][0x257].len);
+		WFIFOSET(fd,packet(sd.packet_ver,0x257).len);
 	}
 	else
 	{
@@ -9086,15 +8943,15 @@ int clif_getPacketVer(int fd)
 		
 		for(i=MAX_PACKET_VER; i>0; --i)
 		{
-			if( cmd==packet_db[i].connect_cmd &&
-				getAthentification( RFIFOL(fd, packet_db[i][cmd].pos[0]) ,auth) &&
+			if( cmd==packet_connect(i) &&
+				getAthentification( RFIFOL(fd, packet(i,cmd).pos[0]) ,auth) &&
 				// explicitely tested above
-				//auth.account_id == RFIFOL(fd, packet_db[i][cmd].pos[0])
-				auth.login_id1  == RFIFOL(fd, packet_db[i][cmd].pos[2]) &&
+				//auth.account_id == RFIFOL(fd, packet(i,cmd).pos[0])
+				auth.login_id1  == RFIFOL(fd, packet(i,cmd).pos[2]) &&
 				auth.client_ip  == session[fd]->client_ip &&
-				RFIFOREST(fd) >= packet_db[i][cmd].len &&
-				(RFIFOB(fd, packet_db[i][cmd].pos[4]) == 0 ||	// 00 = Female
-				 RFIFOB(fd, packet_db[i][cmd].pos[4]) == 1) )	// 01 = Male
+				RFIFOREST(fd) >= packet(i,cmd).len &&
+				(RFIFOB(fd, packet(i,cmd).pos[4]) == 0 ||	// 00 = Female
+				 RFIFOB(fd, packet(i,cmd).pos[4]) == 1) )	// 01 = Male
 			{
 				return i;
 			}
@@ -9113,11 +8970,11 @@ int clif_parse_WantToConnection(int fd, map_session_data &sd)
 
 	map_session_data *old_sd;
 	unsigned short cmd	= RFIFOW(fd,0);
-	uint32 account_id	= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[0]);
-	uint32 char_id		= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[1]);
-	uint32 login_id1	= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[2]);
-	uint32 client_tick	= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[3]);
-	unsigned char sex	= RFIFOB(fd, packet_db[sd.packet_ver][cmd].pos[4]);
+	uint32 account_id	= RFIFOL(fd, packet(sd.packet_ver,cmd).pos[0]);
+	uint32 char_id		= RFIFOL(fd, packet(sd.packet_ver,cmd).pos[1]);
+	uint32 login_id1	= RFIFOL(fd, packet(sd.packet_ver,cmd).pos[2]);
+	uint32 client_tick	= RFIFOL(fd, packet(sd.packet_ver,cmd).pos[3]);
+	unsigned char sex	= RFIFOB(fd, packet(sd.packet_ver,cmd).pos[4]);
 	CAuth auth;
 
 	//ShowMessage("WantToConnection: Received %d bytes with packet 0x%X -> ver %i\n", RFIFOREST(fd), cmd, sd.packet_ver);
@@ -9342,7 +9199,7 @@ int clif_parse_TickSend(int fd, map_session_data &sd)
 {
 	if( !session_isActive(fd) )
 		return 0;
-	sd.client_tick=RFIFOL(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]);
+	sd.client_tick=RFIFOL(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[0]);
 	return clif_servertick(sd, gettick());
 }
 
@@ -9391,10 +9248,10 @@ int clif_parse_WalkToXY(int fd, map_session_data &sd)
 
 	
 	int cmd = RFIFOW(fd,0);
-	x = RFIFOB(fd,packet_db[sd.packet_ver][cmd].pos[0]) * 4 +
-		(RFIFOB(fd,packet_db[sd.packet_ver][cmd].pos[0] + 1) >> 6);
-	y = ((RFIFOB(fd,packet_db[sd.packet_ver][cmd].pos[0]+1) & 0x3f) << 4) +
-		(RFIFOB(fd,packet_db[sd.packet_ver][cmd].pos[0] + 2) >> 4);
+	x = RFIFOB(fd,packet(sd.packet_ver,cmd).pos[0]) * 4 +
+		(RFIFOB(fd,packet(sd.packet_ver,cmd).pos[0] + 1) >> 6);
+	y = ((RFIFOB(fd,packet(sd.packet_ver,cmd).pos[0]+1) & 0x3f) << 4) +
+		(RFIFOB(fd,packet(sd.packet_ver,cmd).pos[0] + 2) >> 4);
 
 	sd.walktoxy(x,y);
 	return 0;
@@ -9426,7 +9283,7 @@ int clif_parse_QuitGame(int fd, map_session_data &sd)
 		session_SetWaitClose(fd, 1000);
 		WFIFOW(fd,2)=0;
 	}
-	WFIFOSET(fd,packet_len_table[0x18b]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x18b).len);
 	return 0;
 }
 
@@ -9441,7 +9298,7 @@ int clif_parse_GetCharNameRequest(int fd, map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 	
-	account_id = RFIFOL(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]);
+	account_id = RFIFOL(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[0]);
 
 	if(account_id & FLAG_DISGUISE) // for disguises [Valaris]
 		account_id &= ~FLAG_DISGUISE;
@@ -9587,7 +9444,7 @@ int clif_changed_dir(block_list &bl)
 		WBUFW(buf,6) = bl.get_headdir();
 		WBUFB(buf,8) = bl.get_bodydir();
 
-		clif_send(buf, packet_len_table[0x9c], &bl, AREA_WOS);
+		clif_send(buf, packet(0,0x9c).len, &bl, AREA_WOS);
 
 		map_session_data *sd = bl.get_sd();
 		if(sd)
@@ -9595,7 +9452,7 @@ int clif_changed_dir(block_list &bl)
 			if(sd->disguise_id)
 			{
 				WBUFL(buf,2) = bl.id|FLAG_DISGUISE;
-				clif_send(buf, packet_len_table[0x9c], &bl, AREA);
+				clif_send(buf, packet(0,0x9c).len, &bl, AREA);
 			}
 		}
 	}
@@ -9612,8 +9469,8 @@ int clif_parse_ChangeDir(int fd, map_session_data &sd)
 	if( !session_isActive(fd)  || !sd.is_on_map() )
 		return 0;
 
-	headdir = (dir_t)(((unsigned char)RFIFOB(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]))&0x07);
-	bodydir = (dir_t)(((unsigned char)RFIFOB(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[1]))&0x07);
+	headdir = (dir_t)(((unsigned char)RFIFOB(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[0]))&0x07);
+	bodydir = (dir_t)(((unsigned char)RFIFOB(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[1]))&0x07);
 	sd.set_dir(bodydir, headdir);
 
 	return 0;
@@ -9648,7 +9505,7 @@ int clif_parse_Emotion(int fd, map_session_data &sd)
 		WBUFW(buf,0) = 0xc0;
 		WBUFL(buf,2) = sd.block_list::id;
 		WBUFB(buf,6) = RFIFOB(fd,2);
-		return clif_send(buf, packet_len_table[0xc0], &sd, AREA);
+		return clif_send(buf, packet(sd.packet_ver,0xc0).len, &sd, AREA);
 	} else
 		sd.skill_failed( 1, SF_NOEMOTION);
 	return 0;
@@ -9665,7 +9522,7 @@ int  clif_parse_HowManyConnections(int fd, map_session_data &sd)
 
 	WFIFOW(fd,0) = 0xc2;
 	WFIFOL(fd,2) = map_getusers();
-	WFIFOSET(fd,packet_len_table[0xc2]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xc2).len);
 	return 0;
 }
 
@@ -9699,8 +9556,8 @@ int clif_parse_ActionRequest(int fd, map_session_data &sd)
 	sd.stop_walking(0);
 	sd.stop_attack();
 
-	target_id = RFIFOL(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]);
-	action_type = RFIFOB(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[1]);
+	target_id = RFIFOL(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[0]);
+	action_type = RFIFOB(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[1]);
 	
 	switch(action_type) {
 	case 0x00: // once attack
@@ -9743,10 +9600,10 @@ int clif_parse_ActionRequest(int fd, map_session_data &sd)
 		WBUFW(buf, 0) = 0x8a;
 		WBUFL(buf, 2) = sd.block_list::id;
 		WBUFB(buf,26) = 3;
-		clif_send(buf, packet_len_table[0x8a], &sd, AREA);
+		clif_send(buf, packet(sd.packet_ver,0x8a).len, &sd, AREA);
 		if(sd.disguise_id) {
 			WBUFL(buf, 2) = sd.block_list::id|FLAG_DISGUISE;
-			clif_send(buf, packet_len_table[0x8a], &sd, AREA);
+			clif_send(buf, packet(sd.packet_ver,0x8a).len, &sd, AREA);
 		}
 		break;
 	}
@@ -9789,7 +9646,7 @@ int clif_parse_Restart(int fd, map_session_data &sd)
 		{	// fail
 			WFIFOW(fd,0)=0x18b;
 			WFIFOW(fd,2)=1;
-			WFIFOSET(fd,packet_len_table[0x018b]);
+			WFIFOSET(fd,packet(sd.packet_ver,0x018b).len);
 		}
 		else
 		{	// ok
@@ -9954,7 +9811,7 @@ int clif_parse_TakeItem(int fd, map_session_data &sd)
 	if( sd.is_dead() )
 		return clif_clearchar_area(sd, 1);
 
-	uint32 map_object_id = RFIFOL(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]);
+	uint32 map_object_id = RFIFOL(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[0]);
 	flooritem_data *fitem = flooritem_data::from_blid(map_object_id);
 
 	if (fitem == NULL || fitem->block_list::m != sd.block_list::m)
@@ -9996,8 +9853,8 @@ int clif_parse_DropItem(int fd, map_session_data &sd)
 		sd.has_status(SC_BERSERK)) ) //バーサーク
 		return 0;
 
-	item_index = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0])-2;
-	item_amount = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[1]);
+	item_index = RFIFOW(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[0])-2;
+	item_amount = RFIFOW(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[1]);
 
 	pc_dropitem(sd, item_index, item_amount);
 	return 0;
@@ -10026,7 +9883,7 @@ int clif_parse_UseItem(int fd, map_session_data &sd)
 	if (sd.invincible_timer != -1)
 		pc_delinvincibletimer(sd);
 
-	pc_useitem(sd,RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0])-2);
+	pc_useitem(sd,RFIFOW(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[0])-2);
 
 	return 0;
 }
@@ -10158,7 +10015,7 @@ int clif_parse_NpcBuyListSend(int fd, map_session_data &sd)
 	// fail=other - no message
 	WFIFOW(fd,0)=0x00ca;
 	WFIFOB(fd,2)=fail;
-	WFIFOSET(fd,packet_len_table[0x00ca]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x00ca).len);
 	return 0;
 }
 
@@ -10178,7 +10035,7 @@ int clif_parse_NpcSellListSend(int fd, map_session_data &sd)
 
 	WFIFOW(fd,0)=0xcb;
 	WFIFOB(fd,2)=fail;
-	WFIFOSET(fd,packet_len_table[0xcb]);
+	WFIFOSET(fd,packet(sd.packet_ver,0xcb).len);
 	return 0;
 }
 
@@ -10461,10 +10318,10 @@ int clif_parse_UseSkillToId(int fd, map_session_data &sd) {
 	if( sd.ScriptEngine.isRunning() || sd.chat || sd.vender_id != 0 || sd.is_sitting() || sd.is_dead())
 		return 0;
 
-	skilllv = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]);
+	skilllv = RFIFOW(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[0]);
 	if (skilllv < 1) skilllv = 1; //No clue, I have seen the client do this with guild skills :/ [Skotlex]
-	skillnum = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[1]);
-	target_id = RFIFOL(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[2]);
+	skillnum = RFIFOW(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[1]);
+	target_id = RFIFOL(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[2]);
 
 
 	if (skill_not_ok(skillnum, sd))
@@ -10573,16 +10430,16 @@ int clif_parse_UseSkillToPos(int fd, map_session_data &sd)
 	if(sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.chat || sd.is_sitting() || sd.is_dead() )
 		return 0;
 
-	skilllv = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]);
-	skillnum = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[1]);
-	x = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[2]);
-	y = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[3]);
+	skilllv = RFIFOW(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[0]);
+	skillnum = RFIFOW(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[1]);
+	x = RFIFOW(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[2]);
+	y = RFIFOW(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[3]);
 	if (skill_not_ok(skillnum, sd))
 		return 0;
 
-	if(packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[4] > 0)
+	if(packet(sd.packet_ver,RFIFOW(fd,0)).pos[4] > 0)
 	{
-		int skillmoreinfo = packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[4];
+		int skillmoreinfo = packet(sd.packet_ver,RFIFOW(fd,0)).pos[4];
 		if( sd.is_sitting() )
 		{
 			sd.skill_failed(skillnum,SF_NOSIT);
@@ -10692,7 +10549,7 @@ int clif_parse_WeaponRefine(int fd, map_session_data &sd)
 	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
-	return pc_item_refine(sd, RFIFOW(fd, packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0])-2);
+	return pc_item_refine(sd, RFIFOW(fd, packet(sd.packet_ver,RFIFOW(fd,0)).pos[0])-2);
 }
 /*==========================================
  *
@@ -10834,7 +10691,7 @@ int clif_parse_SolveCharName(int fd, map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	const uint32 charid = RFIFOL(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]);
+	const uint32 charid = RFIFOL(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[0]);
 	return map_req_namedb(sd, charid);
 }
 
@@ -10898,8 +10755,8 @@ int clif_parse_MoveToKafra(int fd, map_session_data &sd) {
 	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0  || sd.trade_partner != 0)
 		return 0;
 
-	item_index = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0])-2;
-	item_amount = RFIFOL(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[1]);
+	item_index = RFIFOW(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[0])-2;
+	item_amount = RFIFOL(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[1]);
 
 
 	if (item_index < 0 || item_index >= MAX_INVENTORY)
@@ -10925,8 +10782,8 @@ int clif_parse_MoveFromKafra(int fd, map_session_data &sd) {
 	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0  || sd.trade_partner != 0)
 		return 0;
 
-	item_index = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0])-1;
-	item_amount = RFIFOL(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[1]);
+	item_index = RFIFOW(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[0])-1;
+	item_amount = RFIFOL(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[1]);
 
 	if (sd.state.storage_flag)
 		storage_guild_storageget(sd, item_index, item_amount);
@@ -11623,9 +11480,9 @@ int clif_parse_GMReqNoChat(int fd, map_session_data &sd)
 
 
 	ushort cmd = RFIFOW(fd,0);
-	uint32 tid = RFIFOL(fd,packet_db[sd.packet_ver][cmd].pos[0]);
-	int type   = RFIFOB(fd,packet_db[sd.packet_ver][cmd].pos[1]);
-	int limit  = RFIFOW(fd,packet_db[sd.packet_ver][cmd].pos[2]);
+	uint32 tid = RFIFOL(fd,packet(sd.packet_ver,cmd).pos[0]);
+	int type   = RFIFOB(fd,packet(sd.packet_ver,cmd).pos[1]);
+	int limit  = RFIFOW(fd,packet(sd.packet_ver,cmd).pos[2]);
 	map_session_data *dstsd = map_session_data::from_blid(tid);
 
 	if( dstsd && sd.block_list::id != dstsd->block_list::id &&
@@ -11637,7 +11494,7 @@ int clif_parse_GMReqNoChat(int fd, map_session_data &sd)
 			WFIFOW(dstfd,0)=0x14b;
 			WFIFOB(dstfd,2)=(type==2)?1:type;
 			memcpy(WFIFOP(dstfd,3),sd.status.name,24);
-			WFIFOSET(dstfd,packet_len_table[0x14b]);
+			WFIFOSET(dstfd,packet(sd.packet_ver,0x14b).len);
 		}
 
 		dstsd->status.manner -= (type == 0)?-limit:+limit;
@@ -11668,7 +11525,7 @@ int clif_parse_GMReqNoChatCount(int fd, map_session_data &sd)
 	WFIFOL(fd,2) = tid;
 	snprintf((char*)WFIFOP(fd,6),24,"%d",tid);
 //	memcpy(WFIFOP(fd,6), "TESTNAME", 24);
-	WFIFOSET(fd, packet_len_table[0x1e0]);
+	WFIFOSET(fd, packet(sd.packet_ver,0x1e0).len);
 
 	return 0;
 }
@@ -11692,7 +11549,7 @@ int clif_parse_PMIgnore(int fd, map_session_data &sd)
 	if( strlen(nick) < 4 )
 	{
 		WFIFOB(fd,3) = 1; // fail
-		WFIFOSET(fd, packet_len_table[0x0d1]);
+		WFIFOSET(fd, packet(sd.packet_ver,0x0d1).len);
 		if (RFIFOB(fd,26) == 0) // type
 			clif_wis_message(fd, wisp_server_name, "It's impossible to block this player.", strlen("It's impossible to block this player.") + 1);
 		else
@@ -11712,7 +11569,7 @@ int clif_parse_PMIgnore(int fd, map_session_data &sd)
 			if( i<MAX_IGNORE_LIST && sd.ignore[i].name[0] != '\0' )
 			{	// failed, found it
 				WFIFOB(fd,3) = 1; // fail
-				WFIFOSET(fd, packet_len_table[0x0d1]);
+				WFIFOSET(fd, packet(sd.packet_ver,0x0d1).len);
 				clif_wis_message(fd, wisp_server_name, "This player is already blocked.", strlen("This player is already blocked.") + 1);
 				if (strcmp(wisp_server_name, nick) == 0)
 				{	// to find possible bot users who automaticaly ignore people.
@@ -11723,7 +11580,7 @@ int clif_parse_PMIgnore(int fd, map_session_data &sd)
 			else if( i>=MAX_IGNORE_LIST )
 			{	// failed, list full
 				WFIFOB(fd,3) = 1; 
-				WFIFOSET(fd, packet_len_table[0x0d1]);
+				WFIFOSET(fd, packet(sd.packet_ver,0x0d1).len);
 				clif_wis_message(fd, wisp_server_name, "You can not block more people.", strlen("You can not block more people.") + 1);
 				if (strcmp(wisp_server_name, nick) == 0) { // to found possible bot users who automaticaly ignore people.
 					snprintf(output, sizeof(output), "Character '%s' (account: %lu) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
@@ -11734,7 +11591,7 @@ int clif_parse_PMIgnore(int fd, map_session_data &sd)
 			{	// success
 				memcpy(sd.ignore[i].name, nick, 24);
 				WFIFOB(fd,3) = 0; 
-				WFIFOSET(fd, packet_len_table[0x0d1]);
+				WFIFOSET(fd, packet(sd.packet_ver,0x0d1).len);
 				if (strcmp(wisp_server_name, nick) == 0)
 				{	// to find possible bot users who automaticaly ignore people.
 					snprintf(output, sizeof(output), "Character '%s' (account: %lu) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
@@ -11755,7 +11612,7 @@ int clif_parse_PMIgnore(int fd, map_session_data &sd)
 			if( i>=MAX_IGNORE_LIST || sd.ignore[i].name[0] == '\0' )
 			{	// fail, not found
 				WFIFOB(fd,3) = 1; 
-				WFIFOSET(fd, packet_len_table[0x0d1]);
+				WFIFOSET(fd, packet(sd.packet_ver,0x0d1).len);
 				clif_wis_message(fd, wisp_server_name, "This player is not blocked by you.", strlen("This player is not blocked by you.") + 1);
 			}
 			else
@@ -11763,7 +11620,7 @@ int clif_parse_PMIgnore(int fd, map_session_data &sd)
 				memmove(sd.ignore+i, sd.ignore+i+1, (MAX_IGNORE_LIST-i-1)*sizeof(sd.ignore[0]));
 				sd.ignore[MAX_IGNORE_LIST-1].name[0]=0;
 				WFIFOB(fd,3) = 0; // success
-				WFIFOSET(fd, packet_len_table[0x0d1]);
+				WFIFOSET(fd, packet(sd.packet_ver,0x0d1).len);
 			}
 		}
 #ifdef DEBUG
@@ -11787,10 +11644,10 @@ int clif_parse_PMIgnoreAll(int fd, map_session_data &sd)
 		if(sd.state.ignoreAll == 0) {
 			sd.state.ignoreAll = 1;
 			WFIFOB(fd,3) = 0; // success
-			WFIFOSET(fd, packet_len_table[0x0d2]);
+			WFIFOSET(fd, packet(sd.packet_ver,0x0d2).len);
 		} else {
 			WFIFOB(fd,3) = 1; // fail
-			WFIFOSET(fd, packet_len_table[0x0d2]);
+			WFIFOSET(fd, packet(sd.packet_ver,0x0d2).len);
 			clif_wis_message(fd, wisp_server_name, "You already block everyone.", strlen("You already block everyone.") + 1);
 		}
 	} else {
@@ -11799,10 +11656,10 @@ int clif_parse_PMIgnoreAll(int fd, map_session_data &sd)
 		if(sd.state.ignoreAll == 1) {
 			sd.state.ignoreAll = 0;
 			WFIFOB(fd,3) = 0; // success
-			WFIFOSET(fd, packet_len_table[0x0d2]);
+			WFIFOSET(fd, packet(sd.packet_ver,0x0d2).len);
 		} else {
 			WFIFOB(fd,3) = 1; // fail
-			WFIFOSET(fd, packet_len_table[0x0d2]);
+			WFIFOSET(fd, packet(sd.packet_ver,0x0d2).len);
 			clif_wis_message(fd, wisp_server_name, "You already allow everyone.", strlen("You already allow everyone.") + 1);
 		}
 	}
@@ -11918,7 +11775,7 @@ int clif_friendslist_reqack(map_session_data &sd, char *name, unsigned short typ
 	WFIFOW(fd,2) = type;
 	if (type != 2)
 		memcpy(WFIFOP(fd, 12), name, 24);
-	WFIFOSET(fd, packet_len_table[0x209]);
+	WFIFOSET(fd, packet(sd.packet_ver,0x209).len);
 	return 0;
 }
 
@@ -11953,7 +11810,7 @@ int clif_parse_FriendsListAdd(int fd, map_session_data &sd)
 	WFIFOL(f_fd,2) = sd.status.char_id;
 	WFIFOL(f_fd,6) = sd.block_list::id;
 	memcpy(WFIFOP(f_fd,10), sd.status.name, 24);
-	WFIFOSET(f_fd, packet_len_table[0x207]);
+	WFIFOSET(f_fd, packet(sd.packet_ver,0x207).len);
 }
 	return 0;
 }
@@ -12029,7 +11886,7 @@ int clif_parse_FriendsListRemove(int fd, map_session_data &sd)
 			WFIFOW(fd,0) = 0x20a;
 			WFIFOL(fd,2) = (f_sd) ? f_sd->block_list::id : 0;	//account id;
 			WFIFOL(fd,6) = id;
-			WFIFOSET(fd, packet_len_table[0x20a]);
+			WFIFOSET(fd, packet(sd.packet_ver,0x20a).len);
 			clif_friendslist_send(sd);
 			break;
 		}
@@ -12071,7 +11928,7 @@ int clif_parse_PVPInfo(int fd, map_session_data &sd)
 	WFIFOL(fd,10) = sd.pvp_won;	// times won
 	WFIFOL(fd,14) = sd.pvp_lost;	// times lost
 	WFIFOL(fd,18) = sd.pvp_point;
-	WFIFOSET(fd, packet_db[sd.packet_ver][0x210].len);
+	WFIFOSET(fd, packet(sd.packet_ver,0x210).len);
 
 	return 0;
 }
@@ -12100,7 +11957,7 @@ int clif_parse_Blacksmith(int fd, map_session_data &sd)
 		WFIFOL(fd, 242 + i * 4) = 0;
 	}
 
-	WFIFOSET(fd, packet_db[sd.packet_ver][0x219].len);
+	WFIFOSET(fd, packet(sd.packet_ver,0x219).len);
 	return 0;
 }
 
@@ -12128,7 +11985,7 @@ int clif_parse_Alchemist(int fd, map_session_data &sd)
 		WFIFOL(fd, 242 + i * 4) = 0;
 	}
 
-	WFIFOSET(fd, packet_db[sd.packet_ver][0x21a].len);
+	WFIFOSET(fd, packet(sd.packet_ver,0x21a).len);
 	return 0;
 }
 
@@ -12155,7 +12012,7 @@ int clif_parse_Taekwon(int fd, map_session_data &sd)
 		memcpy(WFIFOP(fd, 2 + 24 * i), "None", 24);
 		WFIFOL(fd, 242 + i * 4) = 0;
 	}
-	WFIFOSET(fd, packet_db[sd.packet_ver][0x226].len);
+	WFIFOSET(fd, packet(sd.packet_ver,0x226).len);
 	return 0;
 }
 
@@ -12183,7 +12040,7 @@ int clif_parse_RankingPk(int fd, map_session_data &sd)
 		WFIFOL(fd, 242 + i * 4) = 0;
 	}
 
-	WFIFOSET(fd, packet_db[sd.packet_ver][0x238].len);
+	WFIFOSET(fd, packet(sd.packet_ver,0x238).len);
 	return 0;
 }
 
@@ -12269,7 +12126,7 @@ int clif_parse_MailWinOpen(int fd, map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	flag = RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[0]);
+	flag = RFIFOL(fd, packet(sd.packet_ver,cmd).pos[0]);
 	chrif_mail_removeitem(sd, (flag==0)?3:flag );
 	return 0;
 }
@@ -12333,7 +12190,7 @@ int clif_parse_HomMenu(int fd, map_session_data &sd)
 	if( !session_isActive(fd) || !sd.hd )
 		return 0;
 	unsigned short cmd	= RFIFOW(fd,0);
-	sd.hd->menu(RFIFOB(fd,packet_db[sd.packet_ver][cmd].pos[0]));
+	sd.hd->menu(RFIFOB(fd,packet(sd.packet_ver,cmd).pos[0]));
 	return 0;
 }
 int clif_parse_HomWalkMaster(int fd, map_session_data &sd)
@@ -12359,9 +12216,9 @@ int clif_parse_HomWalkToXY(int fd, map_session_data &sd)
 		if( id != sd.hd->status.homun_id )
 			printf("clif_parse_HomWalkToXY: %lu %lu", (ulong)id, (ulong)sd.hd->status.homun_id);
 
-		const uchar v0 = RFIFOB(fd,0+packet_db[sd.packet_ver][cmd].pos[0]);
-		const uchar v1 = RFIFOB(fd,1+packet_db[sd.packet_ver][cmd].pos[0]);
-		const uchar v2 = RFIFOB(fd,2+packet_db[sd.packet_ver][cmd].pos[0]);
+		const uchar v0 = RFIFOB(fd,0+packet(sd.packet_ver,cmd).pos[0]);
+		const uchar v1 = RFIFOB(fd,1+packet(sd.packet_ver,cmd).pos[0]);
+		const uchar v2 = RFIFOB(fd,2+packet(sd.packet_ver,cmd).pos[0]);
 
 		const int x = ( v0      <<2) | (v1>>6);	// inverse to position encoding
 		const int y = ((v1&0x3f)<<4) | (v2>>4);
@@ -12392,13 +12249,13 @@ int clif_parse_HomActionRequest(int fd, map_session_data &sd)
 		if( id != sd.hd->status.homun_id )
 			printf("clif_parse_HomActionRequest: %lu %lu", (ulong)id, (ulong)sd.hd->status.homun_id);
 
-		uint32 target_id = RFIFOL(fd,packet_db[sd.packet_ver][cmd].pos[0]);	// pos 6
-		int action_type = RFIFOB(fd,packet_db[sd.packet_ver][cmd].pos[1]);	// pos 10 -> len 11
+		uint32 target_id = RFIFOL(fd,packet(sd.packet_ver,cmd).pos[0]);	// pos 6
+		int action_type = RFIFOB(fd,packet(sd.packet_ver,cmd).pos[1]);	// pos 10 -> len 11
 		
 		// decode for jRO 2005-05-09dRagexe
-		if( packet_db[sd.packet_ver][cmd].pos[0]==0 )
+		if( packet(sd.packet_ver,cmd).pos[0]==0 )
 		{
-			int packet_len = packet_db[sd.packet_ver][cmd].len;
+			int packet_len = packet(sd.packet_ver,cmd).len;
 			int t1[]={ 88, 37 }, t2[]={ 80, 4 };
 			int pos = ( ( packet_len - t1[packet_len&1] ) >> 1 ) + t2[packet_len&1];
 			target_id = RFIFOL(fd,pos);
@@ -12427,7 +12284,7 @@ int clif_parse_ChangeHomName(int fd, map_session_data &sd)
 {
 	if( !session_isActive(fd) )
 		return 0;
-	if(sd.hd) sd.hd->change_name( (const char*)RFIFOP(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]));
+	if(sd.hd) sd.hd->change_name( (const char*)RFIFOP(fd,packet(sd.packet_ver,RFIFOW(fd,0)).pos[0]));
 	return 0;
 }
 
@@ -12442,7 +12299,7 @@ int clif_baby_target_display(map_session_data &sd)
 
 	unsigned char buf[2];
 	WBUFW(buf,0) = 0x01f8;
-	WFIFOSET(sd.fd,packet_db[sd.packet_ver][0x1f8].len);
+	WFIFOSET(sd.fd,packet(sd.packet_ver,0x1f8).len);
 
 	return 0;
 }
@@ -12455,7 +12312,7 @@ int clif_parse_BabyRequest(int fd, map_session_data &sd)
 	if( !session_isActive(fd) || !sd.is_on_map() )
 		return 0;
 
-	uint32 char_id = RFIFOL(fd, packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]);
+	uint32 char_id = RFIFOL(fd, packet(sd.packet_ver,RFIFOW(fd,0)).pos[0]);
 	map_session_data* tsd = map_session_data::from_blid(char_id);
 	if(tsd)
 		clif_baby_target_display(*tsd);
@@ -12473,7 +12330,7 @@ int clif_request_feel(map_session_data &sd, unsigned short skilllv)
 		return 0;
 	pc_setglobalreg(sd, "PC_SG_FEEL", skilllv);
 	WFIFOW(sd.fd,0)=0x253;
-	WFIFOSET(sd.fd, packet_db[sd.packet_ver][0x253].len);
+	WFIFOSET(sd.fd, packet(sd.packet_ver,0x253).len);
 
 	return 0;
 }
@@ -12495,7 +12352,7 @@ int clif_parse_FeelSaveOk(int fd,map_session_data &sd)
 	mapname2buffer(WFIFOP(fd,2), 16, maps[sd.block_list::m].mapname);
 	WFIFOL(fd,26)=sd.block_list::id;
 	WFIFOW(fd,30)=i-1;
-	WFIFOSET(fd, packet_db[sd.packet_ver][0x20e].len);
+	WFIFOSET(fd, packet(sd.packet_ver,0x20e).len);
 	
 	clif_skill_nodamage(sd,sd,SG_FEEL,i,1);
 	return 0;
@@ -12516,7 +12373,7 @@ int clif_parse_AdoptRequest(int fd, map_session_data &sd)
 		sd2->status.party_id == sd.status.party_id)
 	{	//FIXME: No checks whatsoever are in place yet!
 		WFIFOW(sd2->fd,0)=0x1f9;
-		WFIFOSET(sd2->fd, packet_len_table[0x1f9]);
+		WFIFOSET(sd2->fd, packet(sd.packet_ver,0x1f9).len);
 	}
 	return 0;
 }
@@ -12535,7 +12392,7 @@ int clif_parse_debug(int fd, map_session_data &sd)
 
 	ShowMessage("packet debug 0x%4X\n",cmd);
 //	ShowMessage("---- 00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F");
-	for(i=0;i<packet_db[sd.packet_ver][cmd].len; ++i){
+	for(i=0;i<packet(sd.packet_ver,cmd).len; ++i){
 		if((i&15)==0)
 			ShowMessage("\n%04X ",i);
 		ShowMessage("%02X ",(unsigned char)RFIFOB(fd,i));
@@ -12564,7 +12421,7 @@ int clif_parse_dummy(int fd, map_session_data &sd)
 
 	ShowMessage("unimplemented packet debug 0x%4X\n",cmd);
 //	ShowMessage("---- 00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F");
-	for(i=0;i<packet_db[sd.packet_ver][cmd].len; ++i){
+	for(i=0;i<packet(sd.packet_ver,cmd).len; ++i){
 		if((i&15)==0)
 			ShowMessage("\n%04X ",i);
 		ShowMessage("%02X ",(unsigned char)RFIFOB(fd,i));
@@ -12632,7 +12489,7 @@ int clif_027A(int fd, const char* what)
 	WFIFOW(fd,0) = 0x27a;
 	WFIFOW(fd,2) = 4+len;
 	memcpy(WFIFOP(fd,4), what, len);
-	WFIFOSET(fd,packet_len_table[0x27a]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x27a).len);
 	return 0;
 }
 
@@ -12672,7 +12529,7 @@ int clif_0214(int fd, const char* what)
 	WFIFOW(fd,36) = 0; // ???
 	WFIFOW(fd,38) = 0; // ASPD
 	WFIFOW(fd,40) = 0; // plusASPD
-	WFIFOSET(fd,packet_len_table[0x214]);
+	WFIFOSET(fd,packet(sd.packet_ver,0x214).len);
 	return 0;
 }
 
@@ -12744,7 +12601,7 @@ int clif_parse(int fd)
 			packet_ver = clif_getPacketVer(fd);
 			// check if version is accepted
 			if( packet_ver < 0 || packet_ver > MAX_PACKET_VER || // reject unknown clients
-				(!sd && packet_db[packet_ver][cmd].func != clif_parse_WantToConnection) || // should not happen
+				(!sd && packet(packet_ver,cmd).func != clif_parse_WantToConnection) || // should not happen
 
 				// check client version
 				(config.packet_ver_flag &&
@@ -12780,7 +12637,7 @@ int clif_parse(int fd)
 		}
 		
 		// ゲーム用以外パケットか、認証を終える前に0072以外が来たら、切断する
-		if(cmd >= MAX_PACKET_DB || packet_ver>MAX_PACKET_VER || packet_db[packet_ver][cmd].len == 0)
+		if(cmd >= MAX_PACKET_DB || packet_ver>MAX_PACKET_VER || packet(packet_ver,cmd).len == 0)
 		{	// packet is not inside these values: session is incorrect?? or auth packet is unknown
 			ShowMessage("clif_parse: session #%d, packet 0x%x ver. %i (%d bytes received) -> disconnected (unknown command).\n", fd, cmd, packet_ver, RFIFOREST(fd));
 			session_Remove(fd);
@@ -12788,7 +12645,7 @@ int clif_parse(int fd)
 		}
 		
 		// パケット長を計算
-		packet_len = packet_db[packet_ver][cmd].len;
+		packet_len = packet(packet_ver,cmd).len;
 		if (packet_len < 0)
 		{	// 可変長パケットで長さの所までデータが来てない
 			if (RFIFOREST(fd) < 4)
@@ -12808,18 +12665,18 @@ int clif_parse(int fd)
 		if (sd && sd->state.auth == 1 && sd->state.waitingdisconnect == 1)
 		{	// 切断待ちの場合パケットを処理しない
 		}
-		else if (packet_db[packet_ver][cmd].func)
+		else if (packet(packet_ver,cmd).func)
 		{	// packet version 5-6-7 use same functions, but size are different
 			// パケット処理
 
-			if( sd && packet_db[packet_ver][cmd].func==clif_parse_WantToConnection )
+			if( sd && packet(packet_ver,cmd).func==clif_parse_WantToConnection )
 			{
 				if (config.error_log)
 					ShowMessage("clif_parse_WantToConnection : invalid request?\n");
 			}
 			else
 			{	
-				if( packet_db[packet_ver][cmd].func==clif_parse_WantToConnection )
+				if( packet(packet_ver,cmd).func==clif_parse_WantToConnection )
 				{	// have a dummy session data to call with WantToConnection
 					static map_session_data dummy(0,0,0,0,0,0,0,0);
 					dummy.packet_ver = packet_ver;
@@ -12829,7 +12686,7 @@ int clif_parse(int fd)
 					sd = (session[fd])?((map_session_data *)session[fd]->user_session):NULL;
 				}
 				else if(sd)
-					packet_db[packet_ver][cmd].func(fd, *sd);
+					packet(packet_ver,cmd).func(fd, *sd);
 			}
 		}
 #ifdef DUMP_UNKNOWN_PACKET
@@ -12847,1116 +12704,6 @@ int clif_parse(int fd)
 }
 
 
-
-/*==========================================
- * パケットデータベース読み込み
- *------------------------------------------
- */
-int packetdb_readdb(void)
-{	// set defaults for packet_db ver 0..18
-
-	///////////////////////////////////////////////////////////////////////////
-	// the default packet used for connecting to the server
-	packet_db[0].connect_cmd = 0x72;
-	packet_db[0][0x0000] = packet_cmd(10);
-	packet_db[0][0x0064] = packet_cmd(55);
-	packet_db[0][0x0065] = packet_cmd(17);
-	packet_db[0][0x0066] = packet_cmd(3);
-	packet_db[0][0x0067] = packet_cmd(37);
-	packet_db[0][0x0068] = packet_cmd(46);
-	packet_db[0][0x0069] = packet_cmd(-1);
-	packet_db[0][0x006a] = packet_cmd(23);
-	packet_db[0][0x006b] = packet_cmd(-1);
-	packet_db[0][0x006c] = packet_cmd(3);
-	packet_db[0][0x006d] = packet_cmd(108);
-	packet_db[0][0x006e] = packet_cmd(3);
-	packet_db[0][0x006f] = packet_cmd(2);
-	packet_db[0][0x0070] = packet_cmd(3);
-	packet_db[0][0x0071] = packet_cmd(28);
-	packet_db[0][0x0072] = packet_cmd(19,clif_parse_WantToConnection,2,6,10,14,18);
-	packet_db[0][0x0073] = packet_cmd(11);
-	packet_db[0][0x0074] = packet_cmd(3);
-	packet_db[0][0x0075] = packet_cmd(-1);
-	packet_db[0][0x0076] = packet_cmd(9);
-	packet_db[0][0x0077] = packet_cmd(5);
-	packet_db[0][0x0078] = packet_cmd(52);
-	packet_db[0][0x0079] = packet_cmd(51);
-	packet_db[0][0x007a] = packet_cmd(56);
-	packet_db[0][0x007b] = packet_cmd(58);
-	packet_db[0][0x007c] = packet_cmd(41);
-	packet_db[0][0x007d] = packet_cmd(2,clif_parse_LoadEndAck,0);
-	packet_db[0][0x007e] = packet_cmd(6,clif_parse_TickSend,2);
-	packet_db[0][0x007f] = packet_cmd(6);
-	packet_db[0][0x0080] = packet_cmd(7);
-	packet_db[0][0x0081] = packet_cmd(3);
-	packet_db[0][0x0082] = packet_cmd(2);
-	packet_db[0][0x0083] = packet_cmd(2);
-	packet_db[0][0x0084] = packet_cmd(2);
-	packet_db[0][0x0085] = packet_cmd(5,clif_parse_WalkToXY,2);
-	packet_db[0][0x0086] = packet_cmd(16);
-	packet_db[0][0x0087] = packet_cmd(12);
-	packet_db[0][0x0088] = packet_cmd(10);
-	packet_db[0][0x0089] = packet_cmd(7,clif_parse_ActionRequest,2,6);
-	packet_db[0][0x008a] = packet_cmd(29);
-	packet_db[0][0x008b] = packet_cmd(2);
-	packet_db[0][0x008c] = packet_cmd(-1,clif_parse_GlobalMessage,2,4);
-	packet_db[0][0x008d] = packet_cmd(-1);
-	packet_db[0][0x008e] = packet_cmd(-1);
-	packet_db[0][0x008f] = packet_cmd(0);
-	packet_db[0][0x0090] = packet_cmd(7,clif_parse_NpcClicked,2);
-	packet_db[0][0x0091] = packet_cmd(22);
-	packet_db[0][0x0092] = packet_cmd(28);
-	packet_db[0][0x0093] = packet_cmd(2);
-	packet_db[0][0x0094] = packet_cmd(6,clif_parse_GetCharNameRequest,2);
-	packet_db[0][0x0095] = packet_cmd(30);
-	packet_db[0][0x0096] = packet_cmd(-1,clif_parse_Wis,2,4,28);
-	packet_db[0][0x0097] = packet_cmd(-1);
-	packet_db[0][0x0098] = packet_cmd(3);
-	packet_db[0][0x0099] = packet_cmd(-1,clif_parse_GMmessage,2,4);
-	packet_db[0][0x009a] = packet_cmd(-1);
-	packet_db[0][0x009b] = packet_cmd(5,clif_parse_ChangeDir,2,4);
-	packet_db[0][0x009c] = packet_cmd(9);
-	packet_db[0][0x009d] = packet_cmd(17);
-	packet_db[0][0x009e] = packet_cmd(17);
-	packet_db[0][0x009f] = packet_cmd(6,clif_parse_TakeItem,2);
-	packet_db[0][0x00a0] = packet_cmd(23);
-	packet_db[0][0x00a1] = packet_cmd(6);
-	packet_db[0][0x00a2] = packet_cmd(6,clif_parse_DropItem,2,4);
-	packet_db[0][0x00a3] = packet_cmd(-1);
-	packet_db[0][0x00a4] = packet_cmd(-1);
-	packet_db[0][0x00a5] = packet_cmd(-1);
-	packet_db[0][0x00a6] = packet_cmd(-1);
-	packet_db[0][0x00a7] = packet_cmd(8,clif_parse_UseItem,2,4);
-	packet_db[0][0x00a8] = packet_cmd(7);
-	packet_db[0][0x00a9] = packet_cmd(6,clif_parse_EquipItem,2,4);
-	packet_db[0][0x00aa] = packet_cmd(7);
-	packet_db[0][0x00ab] = packet_cmd(4,clif_parse_UnequipItem,2);
-	packet_db[0][0x00ac] = packet_cmd(7);
-	packet_db[0][0x00ad] = packet_cmd(0);
-	packet_db[0][0x00ae] = packet_cmd(-1);
-	packet_db[0][0x00af] = packet_cmd(6);
-	packet_db[0][0x00b0] = packet_cmd(8);
-	packet_db[0][0x00b1] = packet_cmd(8);
-	packet_db[0][0x00b2] = packet_cmd(3,clif_parse_Restart,2);
-	packet_db[0][0x00b3] = packet_cmd(3);
-	packet_db[0][0x00b4] = packet_cmd(-1);
-	packet_db[0][0x00b5] = packet_cmd(6);
-	packet_db[0][0x00b6] = packet_cmd(6);
-	packet_db[0][0x00b7] = packet_cmd(-1);
-	packet_db[0][0x00b8] = packet_cmd(7,clif_parse_NpcSelectMenu,2,6);
-	packet_db[0][0x00b9] = packet_cmd(6,clif_parse_NpcNextClicked,2);
-	packet_db[0][0x00ba] = packet_cmd(2);
-	packet_db[0][0x00bb] = packet_cmd(5,clif_parse_StatusUp,2,4);
-	packet_db[0][0x00bc] = packet_cmd(6);
-	packet_db[0][0x00bd] = packet_cmd(44);
-	packet_db[0][0x00be] = packet_cmd(5);
-	packet_db[0][0x00bf] = packet_cmd(3,clif_parse_Emotion,2);
-	packet_db[0][0x00c0] = packet_cmd(7);
-	packet_db[0][0x00c1] = packet_cmd(2,clif_parse_HowManyConnections,0);
-	packet_db[0][0x00c2] = packet_cmd(6);
-	packet_db[0][0x00c3] = packet_cmd(8);
-	packet_db[0][0x00c4] = packet_cmd(6);
-	packet_db[0][0x00c5] = packet_cmd(7,clif_parse_NpcBuySellSelected,2,6);
-	packet_db[0][0x00c6] = packet_cmd(-1);
-	packet_db[0][0x00c7] = packet_cmd(-1);
-	packet_db[0][0x00c8] = packet_cmd(-1,clif_parse_NpcBuyListSend,2,4);
-	packet_db[0][0x00c9] = packet_cmd(-1,clif_parse_NpcSellListSend,2,4);
-	packet_db[0][0x00ca] = packet_cmd(3);
-	packet_db[0][0x00cb] = packet_cmd(3);
-	packet_db[0][0x00cc] = packet_cmd(6,clif_parse_GMKick,2);
-	packet_db[0][0x00cd] = packet_cmd(3);
-	packet_db[0][0x00ce] = packet_cmd(2,clif_parse_GMKillAll,0);
-	packet_db[0][0x00cf] = packet_cmd(27,clif_parse_PMIgnore,2,26);
-	packet_db[0][0x00d0] = packet_cmd(3,clif_parse_PMIgnoreAll,2);
-	packet_db[0][0x00d1] = packet_cmd(4);
-	packet_db[0][0x00d2] = packet_cmd(4);
-	packet_db[0][0x00d3] = packet_cmd(2,clif_parse_PMIgnoreList,0);
-	packet_db[0][0x00d4] = packet_cmd(-1);
-	packet_db[0][0x00d5] = packet_cmd(-1,clif_parse_CreateChatRoom,2,4,6,7,15);
-	packet_db[0][0x00d6] = packet_cmd(3);
-	packet_db[0][0x00d7] = packet_cmd(-1);
-	packet_db[0][0x00d8] = packet_cmd(6);
-	packet_db[0][0x00d9] = packet_cmd(14,clif_parse_ChatAddMember,2,6);
-	packet_db[0][0x00da] = packet_cmd(3);
-	packet_db[0][0x00db] = packet_cmd(-1);
-	packet_db[0][0x00dc] = packet_cmd(28);
-	packet_db[0][0x00dd] = packet_cmd(29);
-	packet_db[0][0x00de] = packet_cmd(-1,clif_parse_ChatRoomStatusChange,2,4,6,7,15);
-	packet_db[0][0x00df] = packet_cmd(-1);
-	packet_db[0][0x00e0] = packet_cmd(30,clif_parse_ChangeChatOwner,2,6);
-	packet_db[0][0x00e1] = packet_cmd(30);
-	packet_db[0][0x00e2] = packet_cmd(26,clif_parse_KickFromChat,2);
-	packet_db[0][0x00e3] = packet_cmd(2,clif_parse_ChatLeave,0);
-	packet_db[0][0x00e4] = packet_cmd(6,clif_parse_TradeRequest,2);
-	packet_db[0][0x00e5] = packet_cmd(26);
-	packet_db[0][0x00e6] = packet_cmd(3,clif_parse_TradeAck,2);
-	packet_db[0][0x00e7] = packet_cmd(3);
-	packet_db[0][0x00e8] = packet_cmd(8,clif_parse_TradeAddItem,2,4);
-	packet_db[0][0x00e9] = packet_cmd(19);
-	packet_db[0][0x00ea] = packet_cmd(5);
-	packet_db[0][0x00eb] = packet_cmd(2,clif_parse_TradeOk,0);
-	packet_db[0][0x00ec] = packet_cmd(3);
-	packet_db[0][0x00ed] = packet_cmd(2,clif_parse_TradeCancel,0);
-	packet_db[0][0x00ee] = packet_cmd(2);
-	packet_db[0][0x00ef] = packet_cmd(2,clif_parse_TradeCommit,0);
-	packet_db[0][0x00f0] = packet_cmd(3);
-	packet_db[0][0x00f1] = packet_cmd(2);
-	packet_db[0][0x00f2] = packet_cmd(6);
-	packet_db[0][0x00f3] = packet_cmd(8,clif_parse_MoveToKafra,2,4);
-	packet_db[0][0x00f4] = packet_cmd(21);
-	packet_db[0][0x00f5] = packet_cmd(8,clif_parse_MoveFromKafra,2,4);
-	packet_db[0][0x00f6] = packet_cmd(8);
-	packet_db[0][0x00f7] = packet_cmd(2,clif_parse_CloseKafra,0);
-	packet_db[0][0x00f8] = packet_cmd(2);
-	packet_db[0][0x00f9] = packet_cmd(26,clif_parse_CreateParty,2);
-	packet_db[0][0x00fa] = packet_cmd(3);
-	packet_db[0][0x00fb] = packet_cmd(-1);
-	packet_db[0][0x00fc] = packet_cmd(6,clif_parse_PartyInvite,2);
-	packet_db[0][0x00fd] = packet_cmd(27);
-	packet_db[0][0x00fe] = packet_cmd(30);
-	packet_db[0][0x00ff] = packet_cmd(10,clif_parse_ReplyPartyInvite,2,6);
-	packet_db[0][0x0100] = packet_cmd(2,clif_parse_LeaveParty,0);
-	packet_db[0][0x0101] = packet_cmd(6);
-	packet_db[0][0x0102] = packet_cmd(6,clif_parse_PartyChangeOption,2,4);
-	packet_db[0][0x0103] = packet_cmd(30,clif_parse_RemovePartyMember,2,6);
-	packet_db[0][0x0104] = packet_cmd(79);
-	packet_db[0][0x0105] = packet_cmd(31);
-	packet_db[0][0x0106] = packet_cmd(10);
-	packet_db[0][0x0107] = packet_cmd(10);
-	packet_db[0][0x0108] = packet_cmd(-1,clif_parse_PartyMessage,2,4);
-	packet_db[0][0x0109] = packet_cmd(-1);
-	packet_db[0][0x010a] = packet_cmd(4);
-	packet_db[0][0x010b] = packet_cmd(6);
-	packet_db[0][0x010c] = packet_cmd(6);
-	packet_db[0][0x010d] = packet_cmd(2);
-	packet_db[0][0x010e] = packet_cmd(11);
-	packet_db[0][0x010f] = packet_cmd(-1);
-	packet_db[0][0x0110] = packet_cmd(10);
-	packet_db[0][0x0111] = packet_cmd(39);
-	packet_db[0][0x0112] = packet_cmd(4,clif_parse_SkillUp,2);
-	packet_db[0][0x0113] = packet_cmd(10,clif_parse_UseSkillToId,2,4,6);
-	packet_db[0][0x0114] = packet_cmd(31);
-	packet_db[0][0x0115] = packet_cmd(35);
-	packet_db[0][0x0116] = packet_cmd(10,clif_parse_UseSkillToPos,2,4,6,8);
-	packet_db[0][0x0117] = packet_cmd(18);
-	packet_db[0][0x0118] = packet_cmd(2,clif_parse_StopAttack,0);
-	packet_db[0][0x0119] = packet_cmd(13);
-	packet_db[0][0x011a] = packet_cmd(15);
-	packet_db[0][0x011b] = packet_cmd(20,clif_parse_UseSkillMap,2,4);
-	packet_db[0][0x011c] = packet_cmd(68);
-	packet_db[0][0x011d] = packet_cmd(2,clif_parse_RequestMemo,0);
-	packet_db[0][0x011e] = packet_cmd(3);
-	packet_db[0][0x011f] = packet_cmd(16);
-	packet_db[0][0x0120] = packet_cmd(6);
-	packet_db[0][0x0121] = packet_cmd(14);
-	packet_db[0][0x0122] = packet_cmd(-1);
-	packet_db[0][0x0123] = packet_cmd(-1);
-	packet_db[0][0x0124] = packet_cmd(21);
-	packet_db[0][0x0125] = packet_cmd(8);
-	packet_db[0][0x0126] = packet_cmd(8,clif_parse_PutItemToCart,2,4);
-	packet_db[0][0x0127] = packet_cmd(8,clif_parse_GetItemFromCart,2,4);
-	packet_db[0][0x0128] = packet_cmd(8,clif_parse_MoveFromKafraToCart,2,4);
-	packet_db[0][0x0129] = packet_cmd(8,clif_parse_MoveToKafraFromCart,2,4);
-	packet_db[0][0x012a] = packet_cmd(2,clif_parse_RemoveOption,0);
-	packet_db[0][0x012b] = packet_cmd(2);
-	packet_db[0][0x012c] = packet_cmd(3);
-	packet_db[0][0x012d] = packet_cmd(4);
-	packet_db[0][0x012e] = packet_cmd(2,clif_parse_CloseVending,0);
-	packet_db[0][0x012f] = packet_cmd(-1);
-	packet_db[0][0x0130] = packet_cmd(6,clif_parse_VendingListReq,2);
-	packet_db[0][0x0131] = packet_cmd(86);
-	packet_db[0][0x0132] = packet_cmd(6);
-	packet_db[0][0x0133] = packet_cmd(-1);
-	packet_db[0][0x0134] = packet_cmd(-1,clif_parse_PurchaseReq,2,4,8);
-	packet_db[0][0x0135] = packet_cmd(7);
-	packet_db[0][0x0136] = packet_cmd(-1);
-	packet_db[0][0x0137] = packet_cmd(6);
-	packet_db[0][0x0138] = packet_cmd(3);
-	packet_db[0][0x0139] = packet_cmd(16);
-	packet_db[0][0x013a] = packet_cmd(4);
-	packet_db[0][0x013b] = packet_cmd(4);
-	packet_db[0][0x013c] = packet_cmd(4);
-	packet_db[0][0x013d] = packet_cmd(6);
-	packet_db[0][0x013e] = packet_cmd(24);
-	packet_db[0][0x013f] = packet_cmd(26,clif_parse_GM_Monster_Item,2);
-	packet_db[0][0x0140] = packet_cmd(22,clif_parse_MapMove,2,18,20);
-	packet_db[0][0x0141] = packet_cmd(14);
-	packet_db[0][0x0142] = packet_cmd(6);
-	packet_db[0][0x0143] = packet_cmd(10,clif_parse_NpcAmountInput,2,6);
-	packet_db[0][0x0144] = packet_cmd(23);
-	packet_db[0][0x0145] = packet_cmd(19);
-	packet_db[0][0x0146] = packet_cmd(6,clif_parse_NpcCloseClicked,2);
-	packet_db[0][0x0147] = packet_cmd(39);
-	packet_db[0][0x0148] = packet_cmd(8);
-	packet_db[0][0x0149] = packet_cmd(9,clif_parse_GMReqNoChat,2,6,7);
-	packet_db[0][0x014a] = packet_cmd(6);
-	packet_db[0][0x014b] = packet_cmd(27);
-	packet_db[0][0x014c] = packet_cmd(-1);
-	packet_db[0][0x014d] = packet_cmd(2,clif_parse_GuildCheckMaster,0);
-	packet_db[0][0x014e] = packet_cmd(6);
-	packet_db[0][0x014f] = packet_cmd(6,clif_parse_GuildRequestInfo,2);
-	packet_db[0][0x0150] = packet_cmd(110);
-	packet_db[0][0x0151] = packet_cmd(6,clif_parse_GuildRequestEmblem,2);
-	packet_db[0][0x0152] = packet_cmd(-1);
-	packet_db[0][0x0153] = packet_cmd(-1,clif_parse_GuildChangeEmblem,2,4);
-	packet_db[0][0x0154] = packet_cmd(-1);
-	packet_db[0][0x0155] = packet_cmd(-1,clif_parse_GuildChangeMemberPosition,2);
-	packet_db[0][0x0156] = packet_cmd(-1);
-	packet_db[0][0x0157] = packet_cmd(6);
-	packet_db[0][0x0158] = packet_cmd(-1);
-	packet_db[0][0x0159] = packet_cmd(54,clif_parse_GuildLeave,2,6,10,14);
-	packet_db[0][0x015a] = packet_cmd(66);
-	packet_db[0][0x015b] = packet_cmd(54,clif_parse_GuildExplusion,2,6,10,14);
-	packet_db[0][0x015c] = packet_cmd(90);
-	packet_db[0][0x015d] = packet_cmd(42,clif_parse_GuildBreak,2);
-	packet_db[0][0x015e] = packet_cmd(6);
-	packet_db[0][0x015f] = packet_cmd(42);
-	packet_db[0][0x0160] = packet_cmd(-1);
-	packet_db[0][0x0161] = packet_cmd(-1,clif_parse_GuildChangePositionInfo,2);
-	packet_db[0][0x0162] = packet_cmd(-1);
-	packet_db[0][0x0163] = packet_cmd(-1);
-	packet_db[0][0x0164] = packet_cmd(-1);
-	packet_db[0][0x0165] = packet_cmd(30,clif_parse_CreateGuild,6);
-	packet_db[0][0x0166] = packet_cmd(-1);
-	packet_db[0][0x0167] = packet_cmd(3);
-	packet_db[0][0x0168] = packet_cmd(14,clif_parse_GuildInvite,2);
-	packet_db[0][0x0169] = packet_cmd(3);
-	packet_db[0][0x016a] = packet_cmd(30);
-	packet_db[0][0x016b] = packet_cmd(10,clif_parse_GuildReplyInvite,2,6);
-	packet_db[0][0x016c] = packet_cmd(43);
-	packet_db[0][0x016d] = packet_cmd(14);
-	packet_db[0][0x016e] = packet_cmd(186,clif_parse_GuildChangeNotice,2,6,66);
-	packet_db[0][0x016f] = packet_cmd(182);
-	packet_db[0][0x0170] = packet_cmd(14,clif_parse_GuildRequestAlliance,2);
-	packet_db[0][0x0171] = packet_cmd(30);
-	packet_db[0][0x0172] = packet_cmd(10,clif_parse_GuildReplyAlliance,2,6);
-	packet_db[0][0x0173] = packet_cmd(3);
-	packet_db[0][0x0174] = packet_cmd(-1);
-	packet_db[0][0x0175] = packet_cmd(6);
-	packet_db[0][0x0176] = packet_cmd(106);
-	packet_db[0][0x0177] = packet_cmd(-1);
-	packet_db[0][0x0178] = packet_cmd(4,clif_parse_ItemIdentify,2);
-	packet_db[0][0x0179] = packet_cmd(5);
-	packet_db[0][0x017a] = packet_cmd(4,clif_parse_UseCard,2);
-	packet_db[0][0x017b] = packet_cmd(-1);
-	packet_db[0][0x017c] = packet_cmd(6,clif_parse_InsertCard,2,4);
-	packet_db[0][0x017d] = packet_cmd(7);
-	packet_db[0][0x017e] = packet_cmd(-1,clif_parse_GuildMessage,2,4);
-	packet_db[0][0x017f] = packet_cmd(-1);
-	packet_db[0][0x0180] = packet_cmd(6,clif_parse_GuildOpposition,2);
-	packet_db[0][0x0181] = packet_cmd(3);
-	packet_db[0][0x0182] = packet_cmd(106);
-	packet_db[0][0x0183] = packet_cmd(10,clif_parse_GuildDelAlliance,2,6);
-	packet_db[0][0x0184] = packet_cmd(10);
-	packet_db[0][0x0185] = packet_cmd(34);
-	packet_db[0][0x0186] = packet_cmd(0);
-	packet_db[0][0x0187] = packet_cmd(6);
-	packet_db[0][0x0188] = packet_cmd(8);
-	packet_db[0][0x0189] = packet_cmd(4);
-	packet_db[0][0x018a] = packet_cmd(4,clif_parse_QuitGame,0);
-	packet_db[0][0x018b] = packet_cmd(4);
-	packet_db[0][0x018c] = packet_cmd(29);
-	packet_db[0][0x018d] = packet_cmd(-1);
-	packet_db[0][0x018e] = packet_cmd(10,clif_parse_ProduceMix,2,4,6,8);
-	packet_db[0][0x018f] = packet_cmd(6);
-	packet_db[0][0x0190] = packet_cmd(90,clif_parse_UseSkillToPos,2,4,6,8,10);
-	packet_db[0][0x0191] = packet_cmd(86);
-	packet_db[0][0x0192] = packet_cmd(24);
-	packet_db[0][0x0193] = packet_cmd(6,clif_parse_SolveCharName,2);
-	packet_db[0][0x0194] = packet_cmd(30);
-	packet_db[0][0x0195] = packet_cmd(102);
-	packet_db[0][0x0196] = packet_cmd(8);
-	packet_db[0][0x0197] = packet_cmd(4,clif_parse_ResetChar,2);
-	packet_db[0][0x0198] = packet_cmd(8);
-	packet_db[0][0x0199] = packet_cmd(4);
-	packet_db[0][0x019a] = packet_cmd(14);
-	packet_db[0][0x019b] = packet_cmd(10);
-	packet_db[0][0x019c] = packet_cmd(-1,clif_parse_LGMmessage,2,4);
-	packet_db[0][0x019d] = packet_cmd(6,clif_parse_GMHide,0);
-	packet_db[0][0x019e] = packet_cmd(2);
-	packet_db[0][0x019f] = packet_cmd(6,clif_parse_CatchPet,2);
-	packet_db[0][0x01a0] = packet_cmd(3);
-	packet_db[0][0x01a1] = packet_cmd(3,clif_parse_PetMenu,2);
-	packet_db[0][0x01a2] = packet_cmd(35);
-	packet_db[0][0x01a3] = packet_cmd(5);
-	packet_db[0][0x01a4] = packet_cmd(11);
-	packet_db[0][0x01a5] = packet_cmd(26,clif_parse_ChangePetName,2);
-	packet_db[0][0x01a6] = packet_cmd(-1);
-	packet_db[0][0x01a7] = packet_cmd(4,clif_parse_SelectEgg,2);
-	packet_db[0][0x01a8] = packet_cmd(4);
-	packet_db[0][0x01a9] = packet_cmd(6,clif_parse_SendEmotion,2);
-	packet_db[0][0x01aa] = packet_cmd(10);
-	packet_db[0][0x01ab] = packet_cmd(12);
-	packet_db[0][0x01ac] = packet_cmd(6);
-	packet_db[0][0x01ad] = packet_cmd(-1);
-	packet_db[0][0x01ae] = packet_cmd(4,clif_parse_SelectArrow,2);
-	packet_db[0][0x01af] = packet_cmd(4,clif_parse_ChangeCart,2);
-	packet_db[0][0x01b0] = packet_cmd(11);
-	packet_db[0][0x01b1] = packet_cmd(7);
-	packet_db[0][0x01b2] = packet_cmd(-1,clif_parse_OpenVending,2,4,84,85);
-	packet_db[0][0x01b3] = packet_cmd(67);
-	packet_db[0][0x01b4] = packet_cmd(12);
-	packet_db[0][0x01b5] = packet_cmd(18);
-	packet_db[0][0x01b6] = packet_cmd(114);
-	packet_db[0][0x01b7] = packet_cmd(6);
-	packet_db[0][0x01b8] = packet_cmd(3);
-	packet_db[0][0x01b9] = packet_cmd(6);
-	packet_db[0][0x01ba] = packet_cmd(26);
-	packet_db[0][0x01bb] = packet_cmd(26,clif_parse_Shift,2);
-	packet_db[0][0x01bc] = packet_cmd(26);
-	packet_db[0][0x01bd] = packet_cmd(26,clif_parse_Recall,2);
-	packet_db[0][0x01be] = packet_cmd(2);
-	packet_db[0][0x01bf] = packet_cmd(3);
-	packet_db[0][0x01c0] = packet_cmd(2);
-	packet_db[0][0x01c1] = packet_cmd(14);
-	packet_db[0][0x01c2] = packet_cmd(10);
-	packet_db[0][0x01c3] = packet_cmd(-1);
-	packet_db[0][0x01c4] = packet_cmd(22);
-	packet_db[0][0x01c5] = packet_cmd(22);
-	packet_db[0][0x01c6] = packet_cmd(4);
-	packet_db[0][0x01c7] = packet_cmd(2);
-	packet_db[0][0x01c8] = packet_cmd(13);
-	packet_db[0][0x01c9] = packet_cmd(97);
-	packet_db[0][0x01ca] = packet_cmd(3);
-	packet_db[0][0x01cb] = packet_cmd(9);
-	packet_db[0][0x01cc] = packet_cmd(9);
-	packet_db[0][0x01cd] = packet_cmd(30);
-	packet_db[0][0x01ce] = packet_cmd(6,clif_parse_AutoSpell,2);
-	packet_db[0][0x01cf] = packet_cmd(28);
-	packet_db[0][0x01d0] = packet_cmd(8);
-	packet_db[0][0x01d1] = packet_cmd(14);
-	packet_db[0][0x01d2] = packet_cmd(10);
-	packet_db[0][0x01d3] = packet_cmd(35);
-	packet_db[0][0x01d4] = packet_cmd(6);
-	packet_db[0][0x01d5] = packet_cmd(-1,clif_parse_NpcStringInput,2,4,8);
-	packet_db[0][0x01d6] = packet_cmd(4);
-	packet_db[0][0x01d7] = packet_cmd(11);
-	packet_db[0][0x01d8] = packet_cmd(54);
-	packet_db[0][0x01d9] = packet_cmd(53);
-	packet_db[0][0x01da] = packet_cmd(60);
-	packet_db[0][0x01db] = packet_cmd(2);
-	packet_db[0][0x01dc] = packet_cmd(-1);
-	packet_db[0][0x01dd] = packet_cmd(47);
-	packet_db[0][0x01de] = packet_cmd(33);
-	packet_db[0][0x01df] = packet_cmd(6,clif_parse_GMReqNoChatCount,2);
-	packet_db[0][0x01e0] = packet_cmd(30);
-	packet_db[0][0x01e1] = packet_cmd(8);
-	packet_db[0][0x01e2] = packet_cmd(34);
-	packet_db[0][0x01e3] = packet_cmd(14);
-	packet_db[0][0x01e4] = packet_cmd(2);
-	packet_db[0][0x01e5] = packet_cmd(6);
-	packet_db[0][0x01e6] = packet_cmd(26);
-	packet_db[0][0x01e7] = packet_cmd(2,clif_parse_NoviceDoriDori,0);
-	packet_db[0][0x01e8] = packet_cmd(28,clif_parse_CreateParty2,2);
-	packet_db[0][0x01e9] = packet_cmd(81);
-	packet_db[0][0x01ea] = packet_cmd(6);
-	packet_db[0][0x01eb] = packet_cmd(10);
-	packet_db[0][0x01ec] = packet_cmd(26);
-	packet_db[0][0x01ed] = packet_cmd(2,clif_parse_NoviceExplosionSpirits,0);
-	packet_db[0][0x01ee] = packet_cmd(-1);
-	packet_db[0][0x01ef] = packet_cmd(-1);
-	packet_db[0][0x01f0] = packet_cmd(-1);
-	packet_db[0][0x01f1] = packet_cmd(-1);
-	packet_db[0][0x01f2] = packet_cmd(20);
-	packet_db[0][0x01f3] = packet_cmd(10);
-	packet_db[0][0x01f4] = packet_cmd(32);
-	packet_db[0][0x01f5] = packet_cmd(9);
-	packet_db[0][0x01f6] = packet_cmd(34);
-	packet_db[0][0x01f7] = packet_cmd(14);
-	packet_db[0][0x01f8] = packet_cmd(2);
-	packet_db[0][0x01f9] = packet_cmd(6,clif_parse_ReqAdopt,5);
-	packet_db[0][0x01fa] = packet_cmd(48);
-	packet_db[0][0x01fb] = packet_cmd(56);
-	packet_db[0][0x01fc] = packet_cmd(-1);
-	packet_db[0][0x01fd] = packet_cmd(4,clif_parse_RepairItem,2);
-	packet_db[0][0x01fe] = packet_cmd(5);
-	packet_db[0][0x01ff] = packet_cmd(10);
-	packet_db[0][0x0200] = packet_cmd(26);
-	packet_db[0][0x0201] = packet_cmd(-1);
-	packet_db[0][0x0202] = packet_cmd(26,clif_parse_FriendsListAdd,2);
-	packet_db[0][0x0203] = packet_cmd(10,clif_parse_FriendsListRemove,2,6);
-	packet_db[0][0x0204] = packet_cmd(18);
-	packet_db[0][0x0205] = packet_cmd(26);
-	packet_db[0][0x0206] = packet_cmd(11);
-	packet_db[0][0x0207] = packet_cmd(34);
-	packet_db[0][0x0208] = packet_cmd(14,clif_parse_FriendsListReply,2,6,10);
-	packet_db[0][0x0209] = packet_cmd(36);
-	packet_db[0][0x020a] = packet_cmd(10);
-	packet_db[0][0x020b] = packet_cmd(0);
-	packet_db[0][0x020c] = packet_cmd(0);
-	packet_db[0][0x020d] = packet_cmd(-1);
-	packet_db[0][0x020e] = packet_cmd(24);
-	packet_db[0][0x020f] = packet_cmd(10);
-	packet_db[0][0x0210] = packet_cmd(22);
-	packet_db[0][0x0211] = packet_cmd(0);
-	packet_db[0][0x0212] = packet_cmd(26);
-	packet_db[0][0x0213] = packet_cmd(26);
-	packet_db[0][0x0214] = packet_cmd(42);
-	packet_db[0][0x0215] = packet_cmd(-1);
-	packet_db[0][0x0216] = packet_cmd(-1);
-	packet_db[0][0x0217] = packet_cmd(2);
-	packet_db[0][0x0218] = packet_cmd(2);
-	packet_db[0][0x0219] = packet_cmd(282);
-	packet_db[0][0x021a] = packet_cmd(282);
-	packet_db[0][0x021b] = packet_cmd(10);
-	packet_db[0][0x021c] = packet_cmd(10);
-	packet_db[0][0x021d] = packet_cmd(-1);
-	packet_db[0][0x021e] = packet_cmd(-1);
-	packet_db[0][0x021f] = packet_cmd(66);
-	packet_db[0][0x0220] = packet_cmd(10);
-	packet_db[0][0x0221] = packet_cmd(-1);
-	packet_db[0][0x0222] = packet_cmd(-1);
-	packet_db[0][0x0223] = packet_cmd(8);
-	packet_db[0][0x0224] = packet_cmd(10);
-	packet_db[0][0x0225] = packet_cmd(2);
-	packet_db[0][0x0226] = packet_cmd(282);
-	packet_db[0][0x0227] = packet_cmd(18);
-	packet_db[0][0x0228] = packet_cmd(18);
-	packet_db[0][0x0229] = packet_cmd(15);
-	packet_db[0][0x022a] = packet_cmd(58);
-	packet_db[0][0x022b] = packet_cmd(57);
-	packet_db[0][0x022c] = packet_cmd(64);
-	packet_db[0][0x022d] = packet_cmd(5);
-	packet_db[0][0x022e] = packet_cmd(69);
-	packet_db[0][0x022f] = packet_cmd(0);
-	packet_db[0][0x0230] = packet_cmd(12);
-	packet_db[0][0x0231] = packet_cmd(26);
-	packet_db[0][0x0232] = packet_cmd(9);
-	packet_db[0][0x0233] = packet_cmd(11);
-	packet_db[0][0x0234] = packet_cmd(-1);
-	packet_db[0][0x0235] = packet_cmd(-1);
-	packet_db[0][0x0236] = packet_cmd(10);
-	packet_db[0][0x0237] = packet_cmd(2, clif_parse_RankingPk, 0);	// shows top 10 slayers in the server
-	packet_db[0][0x0238] = packet_cmd(282);
-	packet_db[0][0x0239] = packet_cmd(11);
-	packet_db[0][0x023d] = packet_cmd(-1);
-	packet_db[0][0x023e] = packet_cmd(4);
-	packet_db[0][0x023f] = packet_cmd(2, clif_parse_RefreshMailBox, 0);
-	packet_db[0][0x0240] = packet_cmd(-1);
-	packet_db[0][0x0241] = packet_cmd(6, clif_parse_ReadMail, 2);
-	packet_db[0][0x0242] = packet_cmd(-1);
-	packet_db[0][0x0243] = packet_cmd(6, clif_parse_DeleteMail, 2);
-	packet_db[0][0x0244] = packet_cmd(6, clif_parse_MailGetAppend, 2);
-	packet_db[0][0x0245] = packet_cmd(3);
-	packet_db[0][0x0246] = packet_cmd(4, clif_parse_MailWinOpen, 2);
-	packet_db[0][0x0247] = packet_cmd(8, clif_parse_SendMailSetAppend, 2, 4);
-	packet_db[0][0x0248] = packet_cmd(-1,clif_parse_SendMail,2,4,28,69);
-	packet_db[0][0x0249] = packet_cmd(3);
-	packet_db[0][0x024a] = packet_cmd(70);
-	packet_db[0][0x024b] = packet_cmd(4);
-	packet_db[0][0x024c] = packet_cmd(8);
-	packet_db[0][0x024d] = packet_cmd(12);
-	packet_db[0][0x024e] = packet_cmd(4);
-	packet_db[0][0x024f] = packet_cmd(10);
-	packet_db[0][0x0250] = packet_cmd(3);
-	packet_db[0][0x0251] = packet_cmd(32);
-	packet_db[0][0x0252] = packet_cmd(-1);
-	packet_db[0][0x0253] = packet_cmd(3);
-	packet_db[0][0x0254] = packet_cmd(3);//feelsaveok,0
-	packet_db[0][0x0255] = packet_cmd(5);
-	packet_db[0][0x0256] = packet_cmd(5);
-	packet_db[0][0x0257] = packet_cmd(8);
-	packet_db[0][0x0258] = packet_cmd(2);
-	packet_db[0][0x0259] = packet_cmd(3);
-	packet_db[0][0x025a] = packet_cmd(-1);
-	packet_db[0][0x025b] = packet_cmd(-1);
-	packet_db[0][0x025c] = packet_cmd(4);
-	packet_db[0][0x025d] = packet_cmd(-1);
-	packet_db[0][0x025e] = packet_cmd(4);
-
-	//0x025f max
-	///////////////////////////////////////////////////////////////////////////
-	// init packet version 5 and lower
-	packet_db[1] = packet_db[0];
-	packet_db[1][0x0196] = packet_cmd(9);
-	///////////////////////////////////////////////////////////////////////////
-	packet_db[2] = packet_db[1];
-	packet_db[0][0x0078] = packet_cmd(54);
-	packet_db[0][0x0079] = packet_cmd(53);
-	packet_db[0][0x007a] = packet_cmd(58);
-	packet_db[0][0x007b] = packet_cmd(60);
-	///////////////////////////////////////////////////////////////////////////
-	packet_db[3] = packet_db[2];
-	///////////////////////////////////////////////////////////////////////////
-	packet_db[4] = packet_db[3];
-	///////////////////////////////////////////////////////////////////////////
-	packet_db[5] = packet_db[4];
-	///////////////////////////////////////////////////////////////////////////
-	// packet version 6 (2004-07-07)
-	packet_db[6] = packet_db[5];
-	packet_db[6].connect_cmd = 0x72;
-	packet_db[6][0x0072] = packet_cmd(22,clif_parse_WantToConnection,5,9,13,17,21);
-	packet_db[6][0x0085] = packet_cmd(8,clif_parse_WalkToXY,5);
-	packet_db[6][0x00a7] = packet_cmd(13,clif_parse_UseItem,5,9);
-	packet_db[6][0x0113] = packet_cmd(15,clif_parse_UseSkillToId,4,9,11);
-	packet_db[6][0x0116] = packet_cmd(15,clif_parse_UseSkillToPos,4,9,11,13);
-	packet_db[6][0x0190] = packet_cmd(95,clif_parse_UseSkillToPos,4,9,11,13,15);
-	///////////////////////////////////////////////////////////////////////////
-	// packet version 7 (2004-07-13)
-	packet_db[7] = packet_db[6];
-	packet_db[7].connect_cmd = 0x72;
-	packet_db[7][0x0072] = packet_cmd(39,clif_parse_WantToConnection,12,22,30,34,38);
-	packet_db[7][0x0085] = packet_cmd(9,clif_parse_WalkToXY,6);
-	packet_db[7][0x009b] = packet_cmd(13,clif_parse_ChangeDir,5,12);
-	packet_db[7][0x009f] = packet_cmd(10,clif_parse_TakeItem,6);
-	packet_db[7][0x00a7] = packet_cmd(17,clif_parse_UseItem,6,13);
-	packet_db[7][0x0113] = packet_cmd(19,clif_parse_UseSkillToId,7,9,15);
-	packet_db[7][0x0116] = packet_cmd(19,clif_parse_UseSkillToPos,7,9,15,17);
-	packet_db[7][0x0190] = packet_cmd(99,clif_parse_UseSkillToPos,7,9,15,17,19);
-	///////////////////////////////////////////////////////////////////////////
-	// packet version 8 (2004-07-26)
-	packet_db[8] = packet_db[7];
-	packet_db[8].connect_cmd = 0x7e;
-	packet_db[8][0x0072] = packet_cmd(14,clif_parse_DropItem,5,12);
-	packet_db[8][0x007e] = packet_cmd(33,clif_parse_WantToConnection,12,18,24,28,32);
-	packet_db[8][0x0085] = packet_cmd(20,clif_parse_UseSkillToId,7,12,16);
-	packet_db[8][0x0089] = packet_cmd(15,clif_parse_GetCharNameRequest,11);
-	packet_db[8][0x008c] = packet_cmd(23,clif_parse_UseSkillToPos,3,6,17,21);
-	packet_db[8][0x0094] = packet_cmd(10,clif_parse_TakeItem,6);
-	packet_db[8][0x009b] = packet_cmd(6,clif_parse_WalkToXY,3);
-	packet_db[8][0x009f] = packet_cmd(13,clif_parse_ChangeDir,5,12);
-	packet_db[8][0x00a2] = packet_cmd(103,clif_parse_UseSkillToPos,3,6,17,21,23);
-	packet_db[8][0x00a7] = packet_cmd(12,clif_parse_SolveCharName,8);
-	packet_db[8][0x00f3] = packet_cmd(-1,clif_parse_GlobalMessage,2,4);
-	packet_db[8][0x00f5] = packet_cmd(17,clif_parse_UseItem,6,12);
-	packet_db[8][0x00f7] = packet_cmd(10,clif_parse_TickSend,6);
-	packet_db[8][0x0113] = packet_cmd(16,clif_parse_MoveToKafra,5,12);
-	packet_db[8][0x0116] = packet_cmd(2,clif_parse_CloseKafra,0);
-	packet_db[8][0x0190] = packet_cmd(26,clif_parse_MoveFromKafra,10,22);
-	packet_db[8][0x0193] = packet_cmd(9,clif_parse_ActionRequest,3,8);
-	///////////////////////////////////////////////////////////////////////////
-	// packet version 9 (2004-08-09)(2004-08-16)(2004-08-17)
-	packet_db[9] = packet_db[8];
-	packet_db[9].connect_cmd = 0x7e;
-	packet_db[9][0x0072] = packet_cmd(17,clif_parse_DropItem,8,15);
-	packet_db[9][0x007e] = packet_cmd(37,clif_parse_WantToConnection,9,21,28,32,36);
-	packet_db[9][0x0085] = packet_cmd(26,clif_parse_UseSkillToId,11,18,22);
-	packet_db[9][0x0089] = packet_cmd(12,clif_parse_GetCharNameRequest,8);
-	packet_db[9][0x008c] = packet_cmd(40,clif_parse_UseSkillToPos,5,15,29,38);
-	packet_db[9][0x0094] = packet_cmd(13,clif_parse_TakeItem,9);
-	packet_db[9][0x009b] = packet_cmd(15,clif_parse_WalkToXY,12);
-	packet_db[9][0x009f] = packet_cmd(12,clif_parse_ChangeDir,7,11);
-	packet_db[9][0x00a2] = packet_cmd(120,clif_parse_UseSkillToPos,5,15,29,38,40);
-	packet_db[9][0x00a7] = packet_cmd(11,clif_parse_SolveCharName,7);
-	packet_db[9][0x00f5] = packet_cmd(24,clif_parse_UseItem,9,20);
-	packet_db[9][0x00f7] = packet_cmd(13,clif_parse_TickSend,9);
-	packet_db[9][0x0113] = packet_cmd(23,clif_parse_MoveToKafra,5,19);
-	packet_db[9][0x0190] = packet_cmd(26,clif_parse_MoveFromKafra,11,22);
-	packet_db[9][0x0193] = packet_cmd(18,clif_parse_ActionRequest,7,17);
-	packet_db[9][0x0211] = packet_cmd(0);
-	packet_db[9][0x0212] = packet_cmd(26);
-	packet_db[9][0x0213] = packet_cmd(26);
-	packet_db[9][0x0214] = packet_cmd(42);
-	packet_db[9][0x020f] = packet_cmd(10);
-	packet_db[9][0x0210] = packet_cmd(22);
-	///////////////////////////////////////////////////////////////////////////
-	// packet version 10 (2004-09-06)
-	packet_db[10] = packet_db[9];
-	packet_db[10].connect_cmd = 0xf5;
-	packet_db[10][0x0072] = packet_cmd(20,clif_parse_UseItem,9,20);
-	packet_db[10][0x007e] = packet_cmd(19,clif_parse_MoveToKafra,3,15);
-	packet_db[10][0x0085] = packet_cmd(23,clif_parse_ActionRequest,9,22);
-	packet_db[10][0x0089] = packet_cmd(9,clif_parse_WalkToXY,6);
-	packet_db[10][0x008c] = packet_cmd(105,clif_parse_UseSkillToPos,10,14,18,23,25);
-	packet_db[10][0x0094] = packet_cmd(17,clif_parse_DropItem,6,15);
-	packet_db[10][0x009b] = packet_cmd(14,clif_parse_GetCharNameRequest,10);
-	packet_db[10][0x009f] = packet_cmd(-1,clif_parse_GlobalMessage,2,4);
-	packet_db[10][0x00a2] = packet_cmd(14,clif_parse_SolveCharName,10);
-	packet_db[10][0x00a7] = packet_cmd(25,clif_parse_UseSkillToPos,10,14,18,23);
-	packet_db[10][0x00f3] = packet_cmd(10,clif_parse_ChangeDir,4,9);
-	packet_db[10][0x00f5] = packet_cmd(34,clif_parse_WantToConnection,7,15,25,29,33);
-	packet_db[10][0x00f7] = packet_cmd(2,clif_parse_CloseKafra,0);
-	packet_db[10][0x0113] = packet_cmd(11,clif_parse_TakeItem,7);
-	packet_db[10][0x0116] = packet_cmd(11,clif_parse_TickSend,7);
-	packet_db[10][0x0190] = packet_cmd(22,clif_parse_UseSkillToId,9,15,18);
-	packet_db[10][0x0193] = packet_cmd(17,clif_parse_MoveFromKafra,3,13);
-	///////////////////////////////////////////////////////////////////////////
-	// packet version 11 (2004-09-21)
-	packet_db[11] = packet_db[10];
-	packet_db[11].connect_cmd = 0xf5;
-	packet_db[11][0x0072] = packet_cmd(18,clif_parse_UseItem,10,14);
-	packet_db[11][0x007e] = packet_cmd(25,clif_parse_MoveToKafra,6,21);
-	packet_db[11][0x0085] = packet_cmd(9,clif_parse_ActionRequest,3,8);
-	packet_db[11][0x0089] = packet_cmd(14,clif_parse_WalkToXY,11);
-	packet_db[11][0x008c] = packet_cmd(109,clif_parse_UseSkillToPos,16,20,23,27,29);
-	packet_db[11][0x0094] = packet_cmd(19,clif_parse_DropItem,12,17);
-	packet_db[11][0x00a2] = packet_cmd(10,clif_parse_SolveCharName,6);
-	packet_db[11][0x00a7] = packet_cmd(29,clif_parse_UseSkillToPos,6,20,23,27);
-	packet_db[11][0x00f3] = packet_cmd(18,clif_parse_ChangeDir,8,17);
-	packet_db[11][0x00f5] = packet_cmd(32,clif_parse_WantToConnection,10,17,23,27,31);
-	packet_db[11][0x009b] = packet_cmd(10,clif_parse_GetCharNameRequest,6);
-	packet_db[11][0x0113] = packet_cmd(14,clif_parse_TakeItem,10);
-	packet_db[11][0x0116] = packet_cmd(14,clif_parse_TickSend,10);
-	packet_db[11][0x0190] = packet_cmd(14,clif_parse_UseSkillToId,4,7,10);
-	packet_db[11][0x0193] = packet_cmd(12,clif_parse_MoveFromKafra,4,8);
-	///////////////////////////////////////////////////////////////////////////
-	// packet version 12 (2004-12-18)
-	packet_db[12] = packet_db[11];
-	packet_db[12].connect_cmd = 0xf5;
-	packet_db[12][0x0072] = packet_cmd(17,clif_parse_UseItem,6,13);
-	packet_db[12][0x007e] = packet_cmd(16,clif_parse_MoveToKafra,5,12);
-	packet_db[12][0x0089] = packet_cmd(6,clif_parse_WalkToXY,3);
-	packet_db[12][0x008c] = packet_cmd(103,clif_parse_UseSkillToPos,2,6,17,21,23);
-	packet_db[12][0x0094] = packet_cmd(14,clif_parse_DropItem,5,12);
-	packet_db[12][0x009b] = packet_cmd(15,clif_parse_GetCharNameRequest,11);
-	packet_db[12][0x00a2] = packet_cmd(12,clif_parse_SolveCharName,8);
-	packet_db[12][0x00a7] = packet_cmd(23,clif_parse_UseSkillToPos,3,6,17,21);
-	packet_db[12][0x00f3] = packet_cmd(13,clif_parse_ChangeDir,5,12);
-	packet_db[12][0x00f5] = packet_cmd(33,clif_parse_WantToConnection,12,18,24,28,32);
-	packet_db[12][0x0113] = packet_cmd(10,clif_parse_TakeItem,6);
-	packet_db[12][0x0116] = packet_cmd(10,clif_parse_TickSend,6);
-	packet_db[12][0x0190] = packet_cmd(20,clif_parse_UseSkillToId,7,12,16);
-	packet_db[12][0x0193] = packet_cmd(26,clif_parse_MoveFromKafra,10,22);
-	///////////////////////////////////////////////////////////////////////////
-	// packet version 13 (2004-10-25)
-	packet_db[13] = packet_db[12];
-	packet_db[13].connect_cmd = 0xf5;
-	packet_db[13][0x0072] = packet_cmd(13,clif_parse_UseItem,5,9);
-	packet_db[13][0x007e] = packet_cmd(13,clif_parse_MoveToKafra,6,9);
-	packet_db[13][0x0085] = packet_cmd(15,clif_parse_ActionRequest,4,14);
-	packet_db[13][0x008c] = packet_cmd(108,clif_parse_UseSkillToPos,6,9,23,26,28);
-	packet_db[13][0x0094] = packet_cmd(12,clif_parse_DropItem,6,10);
-	packet_db[13][0x009b] = packet_cmd(10,clif_parse_GetCharNameRequest,6);
-	packet_db[13][0x00a2] = packet_cmd(16,clif_parse_SolveCharName,12);
-	packet_db[13][0x00a7] = packet_cmd(28,clif_parse_UseSkillToPos,6,9,23,26);
-	packet_db[13][0x00f3] = packet_cmd(15,clif_parse_ChangeDir,6,14);
-	packet_db[13][0x00f5] = packet_cmd(29,clif_parse_WantToConnection,5,14,20,24,28);
-	packet_db[13][0x0113] = packet_cmd(9,clif_parse_TakeItem,5);
-	packet_db[13][0x0116] = packet_cmd(9,clif_parse_TickSend,5);
-	packet_db[13][0x0190] = packet_cmd(26,clif_parse_UseSkillToId,4,10,22);
-	packet_db[13][0x0193] = packet_cmd(22,clif_parse_MoveFromKafra,12,18);
-	///////////////////////////////////////////////////////////////////////////
-	// packet version 14 (2004-11-01)
-	packet_db[14] = packet_db[13];
-	packet_db[14].connect_cmd = 0;// packet version disabled
-	packet_db[14][0x0143] = packet_cmd(23,clif_parse_NpcAmountInput,2,6);
-	packet_db[14][0x0215] = packet_cmd(6);
-	packet_db[14][0x0216] = packet_cmd(6);
-	///////////////////////////////////////////////////////////////////////////
-	// packet version 15 (2004-12-04)
-	packet_db[15] = packet_db[14];
-	packet_db[15].connect_cmd = 0xf5;
-	packet_db[15][0x0190] = packet_cmd(15,clif_parse_UseItem,3,11);
-	packet_db[15][0x0094] = packet_cmd(14,clif_parse_MoveToKafra,4,10);
-	packet_db[15][0x009f] = packet_cmd(18,clif_parse_ActionRequest,6,17);
-	packet_db[15][0x00a7] = packet_cmd(7,clif_parse_WalkToXY,4);
-	packet_db[15][0x007e] = packet_cmd(30,clif_parse_UseSkillToPos,4,9,22,28);
-	packet_db[15][0x0116] = packet_cmd(12,clif_parse_DropItem,4,10);
-	packet_db[15][0x008c] = packet_cmd(13,clif_parse_GetCharNameRequest,9);
-	packet_db[15][0x0085] = packet_cmd(-1,clif_parse_GlobalMessage,2,4);
-	packet_db[15][0x00f7] = packet_cmd(14,clif_parse_SolveCharName,10);
-	packet_db[15][0x0113] = packet_cmd(110,clif_parse_UseSkillToPos,4,9,22,28,30);
-	packet_db[15][0x00f3] = packet_cmd(8,clif_parse_ChangeDir,3,7);
-	packet_db[15][0x00f5] = packet_cmd(29,clif_parse_WantToConnection,3,10,20,24,28);
-	packet_db[15][0x00a2] = packet_cmd(7,clif_parse_TakeItem,3);
-	packet_db[15][0x0089] = packet_cmd(7,clif_parse_TickSend,3);
-	packet_db[15][0x0072] = packet_cmd(22,clif_parse_UseSkillToId,8,12,18);
-	packet_db[15][0x0193] = packet_cmd(21,clif_parse_MoveFromKafra,4,17);
-	packet_db[15][0x009b] = packet_cmd(2,clif_parse_CloseKafra,0);
-	packet_db[15][0x0217] = packet_cmd(2,clif_parse_Blacksmith,0);
-	packet_db[15][0x0218] = packet_cmd(2,clif_parse_Alchemist,0);
-	packet_db[15][0x0219] = packet_cmd(282);
-	packet_db[15][0x021a] = packet_cmd(282);
-	packet_db[15][0x021b] = packet_cmd(10);
-	packet_db[15][0x021c] = packet_cmd(10);
-	packet_db[15][0x021d] = packet_cmd(6);
-	packet_db[15][0x021e] = packet_cmd(6);
-	packet_db[15][0x0221] = packet_cmd(-1);
-	packet_db[15][0x0222] = packet_cmd(6,clif_parse_WeaponRefine,2);
-	packet_db[15][0x0223] = packet_cmd(8);
-	///////////////////////////////////////////////////////////////////////////
-	// packet version 16 (2005-01-10)
-	packet_db[16] = packet_db[15];
-	packet_db[16].connect_cmd = 0x9b;
-	packet_db[16][0x009b] = packet_cmd(32,clif_parse_WantToConnection,3,12,23,27,31);
-	packet_db[16][0x0089] = packet_cmd(9,clif_parse_TickSend,5);
-	packet_db[16][0x00a7] = packet_cmd(13,clif_parse_WalkToXY,10);
-	packet_db[16][0x0190] = packet_cmd(20,clif_parse_ActionRequest,9,19);
-	packet_db[16][0x00f3] = packet_cmd(-1,clif_parse_GlobalMessage,2,4);
-	packet_db[16][0x008c] = packet_cmd(8,clif_parse_GetCharNameRequest,4);
-	packet_db[16][0x0085] = packet_cmd(23,clif_parse_ChangeDir,12,22);
-	packet_db[16][0x0094] = packet_cmd(20,clif_parse_MoveToKafra,10,16);
-	packet_db[16][0x0193] = packet_cmd(2,clif_parse_CloseKafra,0);
-	packet_db[16][0x00f7] = packet_cmd(21,clif_parse_MoveFromKafra,11,17);
-	packet_db[16][0x009f] = packet_cmd(17,clif_parse_UseItem,5,13);
-	packet_db[16][0x0116] = packet_cmd(20,clif_parse_DropItem,15,18);
-	packet_db[16][0x00f5] = packet_cmd(9,clif_parse_TakeItem,5);
-	packet_db[16][0x0113] = packet_cmd(34,clif_parse_UseSkillToPos,10,18,22,32);
-	packet_db[16][0x0072] = packet_cmd(26,clif_parse_UseSkillToId,8,16,22);
-	packet_db[16][0x007e] = packet_cmd(114,clif_parse_UseSkillToPos,10,18,22,32,34);
-	packet_db[16][0x00a2] = packet_cmd(11,clif_parse_SolveCharName,7);
-	packet_db[16][0x0143] = packet_cmd(10,clif_parse_NpcAmountInput,2,6);
-	packet_db[16][0x021f] = packet_cmd(66);
-	packet_db[16][0x0220] = packet_cmd(10);
-	///////////////////////////////////////////////////////////////////////////
-	// packet version 17 (2005-05-10)
-	packet_db[17] = packet_db[16];
-	packet_db[17].connect_cmd = 0x9b;
-	packet_db[17][0x009b] = packet_cmd(26,clif_parse_WantToConnection,4,9,17,18,25);
-	packet_db[17][0x0089] = packet_cmd(8,clif_parse_TickSend,4);
-	packet_db[17][0x00a7] = packet_cmd(8,clif_parse_WalkToXY,5);
-	packet_db[17][0x0190] = packet_cmd(19,clif_parse_ActionRequest,5,18);
-	packet_db[17][0x00f3] = packet_cmd(-1,clif_parse_GlobalMessage,2,4);
-	packet_db[17][0x008c] = packet_cmd(11,clif_parse_GetCharNameRequest,7);
-	packet_db[17][0x0085] = packet_cmd(11,clif_parse_ChangeDir,7,10);
-	packet_db[17][0x0094] = packet_cmd(14,clif_parse_MoveToKafra,7,10);
-	packet_db[17][0x0193] = packet_cmd(2,clif_parse_CloseKafra,0);
-	packet_db[17][0x00f7] = packet_cmd(22,clif_parse_MoveFromKafra,14,18);
-	packet_db[17][0x009f] = packet_cmd(14,clif_parse_UseItem,4,10);
-	packet_db[17][0x0116] = packet_cmd(10,clif_parse_DropItem,5,8);
-	packet_db[17][0x00f5] = packet_cmd(8,clif_parse_TakeItem,4);
-	packet_db[17][0x0113] = packet_cmd(22,clif_parse_UseSkillToPos,5,9,12,20);
-	packet_db[17][0x0072] = packet_cmd(25,clif_parse_UseSkillToId,6,10,21);
-	packet_db[17][0x007e] = packet_cmd(102,clif_parse_UseSkillToPos,5,9,12,20,22);
-	packet_db[17][0x00a2] = packet_cmd(15,clif_parse_SolveCharName,11);
-	packet_db[17][0x0143] = packet_cmd(10,clif_parse_NpcAmountInput,2,6);
-	packet_db[17][0x0224] = packet_cmd(10);
-	packet_db[17][0x0225] = packet_cmd(2);
-	packet_db[17][0x0226] = packet_cmd(282);
-	packet_db[17][0x0227] = packet_cmd(18);
-	packet_db[17][0x0228] = packet_cmd(18);
-	packet_db[17][0x0229] = packet_cmd(15);
-	packet_db[17][0x022a] = packet_cmd(58);
-	packet_db[17][0x022b] = packet_cmd(57);
-	packet_db[17][0x022c] = packet_cmd(64);
-	packet_db[17][0x022d] = packet_cmd(5);
-	packet_db[17][0x0232] = packet_cmd(9);
-	packet_db[17][0x0233] = packet_cmd(11);
-	packet_db[17][0x0234] = packet_cmd(-1);
-	///////////////////////////////////////////////////////////////////////////
-	// packet version 18 (2005-06-28)
-	packet_db[18] = packet_db[17];
-	packet_db[18].connect_cmd = 0x9b;
-	packet_db[18][0x009b] = packet_cmd(32,clif_parse_WantToConnection,9,15,23,30,31);
-	packet_db[18][0x0089] = packet_cmd(13,clif_parse_TickSend,9);
-	packet_db[18][0x00a7] = packet_cmd(11,clif_parse_WalkToXY,8);
-	packet_db[18][0x0190] = packet_cmd(24,clif_parse_ActionRequest,11,23);
-	packet_db[18][0x00f3] = packet_cmd(-1,clif_parse_GlobalMessage,2,4);
-	packet_db[18][0x008c] = packet_cmd(8,clif_parse_GetCharNameRequest,4);
-	packet_db[18][0x0085] = packet_cmd(17,clif_parse_ChangeDir,8,16);
-	packet_db[18][0x0094] = packet_cmd(31,clif_parse_MoveToKafra,16,27);
-	packet_db[18][0x0193] = packet_cmd(2,clif_parse_CloseKafra,0);
-	packet_db[18][0x00f7] = packet_cmd(18,clif_parse_MoveFromKafra,11,14);
-	packet_db[18][0x009f] = packet_cmd(19,clif_parse_UseItem,9,15);
-	packet_db[18][0x0116] = packet_cmd(12,clif_parse_DropItem,3,10);
-	packet_db[18][0x00f5] = packet_cmd(13,clif_parse_TakeItem,9);
-	packet_db[18][0x0113] = packet_cmd(33,clif_parse_UseSkillToPos,12,15,18,31);
-	packet_db[18][0x0072] = packet_cmd(34,clif_parse_UseSkillToId,6,17,30);
-	packet_db[18][0x007e] = packet_cmd(113,clif_parse_UseSkillToPos,12,15,18,31,33);
-	packet_db[18][0x00a2] = packet_cmd(9,clif_parse_SolveCharName,5);
-	packet_db[18][0x0143] = packet_cmd(10,clif_parse_NpcAmountInput,2,6);
-	packet_db[18][0x020e] = packet_cmd(10);
-	packet_db[18][0x022e] = packet_cmd(71);
-	packet_db[18][0x0235] = packet_cmd(115);
-	packet_db[18][0x0248] = packet_cmd(116);
-	///////////////////////////////////////////////////////////////////////////
-	// packet version 19 (2005-06-28)
-	packet_db[19] = packet_db[18];
-	packet_db[19].connect_cmd = 0x9b;
-	packet_db[19][0x009b] = packet_cmd(37,clif_parse_WantToConnection,9,21,28,32,36);
-	packet_db[19][0x00a2] = packet_cmd(11,clif_parse_SolveCharName,7);
-	packet_db[19][0x008c] = packet_cmd(12,clif_parse_GetCharNameRequest,8);
-	packet_db[19][0x00a7] = packet_cmd(15,clif_parse_WalkToXY,12);
-	packet_db[19][0x0116] = packet_cmd(17,clif_parse_DropItem,8,15);
-	packet_db[19][0x009f] = packet_cmd(24,clif_parse_UseItem,9,20);
-	packet_db[19][0x0072] = packet_cmd(26,clif_parse_UseSkillToId,11,18,22);
-	packet_db[19][0x0113] = packet_cmd(40,clif_parse_UseSkillToPos,5,15,29,38);
-	packet_db[19][0x007e] = packet_cmd(120,clif_parse_UseSkillToPos,5,15,29,38,40);
-	packet_db[19][0x0085] = packet_cmd(12,clif_parse_ChangeDir,7,11);
-	packet_db[19][0x0094] = packet_cmd(23,clif_parse_MoveToKafra,5,19);
-	packet_db[19][0x00f7] = packet_cmd(26,clif_parse_MoveFromKafra,11,22);
-	packet_db[19][0x0190] = packet_cmd(18,clif_parse_ActionRequest,7,17);
-
-
-	///////////////////////////////////////////////////////////////////////////
-	size_t i;
-	for(i=20; i<=MAX_PACKET_VER; ++i)
-		packet_db[i] = packet_db[i-1];
-	///////////////////////////////////////////////////////////////////////////
-
-
-
-	///////////////////////////////////////////////////////////////////////////
-	// read in packet_db from file
-	FILE *fp;
-	char line[1024];
-	int ln=0;
-	int cmd;
-	size_t j, packet_ver;
-	int k;
-	char *str[64],*p,*str2[64],*p2,w1[256],w2[256];
-
-	static const struct {
-		int (*func)(int, map_session_data &);
-		char *name;
-	} clif_parse_func[]={
-		{clif_parse_WantToConnection,"wanttoconnection"},
-		{clif_parse_LoadEndAck,"loadendack"},
-		{clif_parse_TickSend,"ticksend"},
-		{clif_parse_WalkToXY,"walktoxy"},
-		{clif_parse_QuitGame,"quitgame"},
-		{clif_parse_GetCharNameRequest,"getcharnamerequest"},
-		{clif_parse_GlobalMessage,"globalmessage"},
-		{clif_parse_MapMove,"mapmove"},
-		{clif_parse_ChangeDir,"changedir"},
-		{clif_parse_Emotion,"emotion"},
-		{clif_parse_HowManyConnections,"howmanyconnections"},
-		{clif_parse_ActionRequest,"actionrequest"},
-		{clif_parse_Restart,"restart"},
-		{clif_parse_Wis,"wis"},
-		{clif_parse_GMmessage,"gmmessage"},
-		{clif_parse_TakeItem,"takeitem"},
-		{clif_parse_DropItem,"dropitem"},
-		{clif_parse_UseItem,"useitem"},
-		{clif_parse_EquipItem,"equipitem"},
-		{clif_parse_UnequipItem,"unequipitem"},
-		{clif_parse_NpcClicked,"npcclicked"},
-		{clif_parse_NpcBuySellSelected,"npcbuysellselected"},
-		{clif_parse_NpcBuyListSend,"npcbuylistsend"},
-		{clif_parse_NpcSellListSend,"npcselllistsend"},
-		{clif_parse_CreateChatRoom,"createchatroom"},
-		{clif_parse_ChatAddMember,"chataddmember"},
-		{clif_parse_ChatRoomStatusChange,"chatroomstatuschange"},
-		{clif_parse_ChangeChatOwner,"changechatowner"},
-		{clif_parse_KickFromChat,"kickfromchat"},
-		{clif_parse_ChatLeave,"chatleave"},
-		{clif_parse_TradeRequest,"traderequest"},
-		{clif_parse_TradeAck,"tradeack"},
-		{clif_parse_TradeAddItem,"tradeadditem"},
-		{clif_parse_TradeOk,"tradeok"},
-		{clif_parse_TradeCancel,"tradecancel"},
-		{clif_parse_TradeCommit,"tradecommit"},
-		{clif_parse_StopAttack,"stopattack"},
-		{clif_parse_PutItemToCart,"putitemtocart"},
-		{clif_parse_GetItemFromCart,"getitemfromcart"},
-		{clif_parse_RemoveOption,"removeoption"},
-		{clif_parse_ChangeCart,"changecart"},
-		{clif_parse_StatusUp,"statusup"},
-		{clif_parse_SkillUp,"skillup"},
-		{clif_parse_UseSkillToId,"useskilltoid"},
-		{clif_parse_UseSkillToPos,"useskilltopos"},
-		{clif_parse_UseSkillToPos,"useskilltoposinfo"},
-//		{clif_parse_UseSkillToPosMoreInfo,"useskilltoposinfo"},
-		{clif_parse_UseSkillMap,"useskillmap"},
-		{clif_parse_RequestMemo,"requestmemo"},
-		{clif_parse_ProduceMix,"producemix"},
-		{clif_parse_NpcSelectMenu,"npcselectmenu"},
-		{clif_parse_NpcNextClicked,"npcnextclicked"},
-		{clif_parse_NpcAmountInput,"npcamountinput"},
-		{clif_parse_NpcStringInput,"npcstringinput"},
-		{clif_parse_NpcCloseClicked,"npccloseclicked"},
-		{clif_parse_ItemIdentify,"itemidentify"},
-		{clif_parse_SelectArrow,"selectarrow"},
-		{clif_parse_AutoSpell,"autospell"},
-		{clif_parse_UseCard,"usecard"},
-		{clif_parse_InsertCard,"insertcard"},
-		{clif_parse_RepairItem,"repairitem"},
-		{clif_parse_WeaponRefine,"weaponrefine"},
-		{clif_parse_SolveCharName,"solvecharname"},
-		{clif_parse_ResetChar,"resetchar"},
-		{clif_parse_LGMmessage,"lgmmessage"},
-		{clif_parse_MoveToKafra,"movetokafra"},
-		{clif_parse_MoveFromKafra,"movefromkafra"},
-		{clif_parse_MoveToKafraFromCart,"movetokafrafromcart"},
-		{clif_parse_MoveFromKafraToCart,"movefromkafratocart"},
-		{clif_parse_CloseKafra,"closekafra"},
-		{clif_parse_CreateParty,"createparty"},
-		{clif_parse_CreateParty2,"createparty2"},
-		{clif_parse_PartyInvite,"partyinvite"},
-		{clif_parse_ReplyPartyInvite,"replypartyinvite"},
-		{clif_parse_LeaveParty,"leaveparty"},
-		{clif_parse_RemovePartyMember,"removepartymember"},
-		{clif_parse_PartyChangeOption,"partychangeoption"},
-		{clif_parse_PartyMessage,"partymessage"},
-		{clif_parse_CloseVending,"closevending"},
-		{clif_parse_VendingListReq,"vendinglistreq"},
-		{clif_parse_PurchaseReq,"purchasereq"},
-		{clif_parse_OpenVending,"openvending"},
-		{clif_parse_CreateGuild,"createguild"},
-		{clif_parse_GuildCheckMaster,"guildcheckmaster"},
-		{clif_parse_GuildRequestInfo,"guildrequestinfo"},
-		{clif_parse_GuildChangePositionInfo,"guildchangepositioninfo"},
-		{clif_parse_GuildChangeMemberPosition,"guildchangememberposition"},
-		{clif_parse_GuildRequestEmblem,"guildrequestemblem"},
-		{clif_parse_GuildChangeEmblem,"guildchangeemblem"},
-		{clif_parse_GuildChangeNotice,"guildchangenotice"},
-		{clif_parse_GuildInvite,"guildinvite"},
-		{clif_parse_GuildReplyInvite,"guildreplyinvite"},
-		{clif_parse_GuildLeave,"guildleave"},
-		{clif_parse_GuildExplusion,"guildexplusion"},
-		{clif_parse_GuildMessage,"guildmessage"},
-		{clif_parse_GuildRequestAlliance,"guildrequestalliance"},
-		{clif_parse_GuildReplyAlliance,"guildreplyalliance"},
-		{clif_parse_GuildDelAlliance,"guilddelalliance"},
-		{clif_parse_GuildOpposition,"guildopposition"},
-		{clif_parse_GuildBreak,"guildbreak"},
-		{clif_parse_PetMenu,"petmenu"},
-		{clif_parse_CatchPet,"catchpet"},
-		{clif_parse_SelectEgg,"selectegg"},
-		{clif_parse_SendEmotion,"sendemotion"},
-		{clif_parse_ChangePetName,"changepetname"},
-		{clif_parse_GMKick,"gmkick"},
-		{clif_parse_GMHide,"gmhide"},
-		{clif_parse_GMReqNoChat,"gmreqnochat"},
-		{clif_parse_GMReqNoChatCount,"gmreqnochatcount"},
-		{clif_parse_NoviceDoriDori,"sndoridori"},
-		{clif_parse_NoviceExplosionSpirits,"snexplosionspirits"},
-		{clif_parse_PMIgnore,"wisexin"},
-		{clif_parse_PMIgnoreList,"wisexlist"},
-		{clif_parse_PMIgnoreAll,"wisall"},
-		{clif_parse_GMKillAll,"killall"},
-		{clif_parse_Recall,"summon"},
-		{clif_parse_GM_Monster_Item,"itemmonster"},
-		{clif_parse_Shift,"shift"},
-
-		{clif_parse_FriendsListAdd,"friendslistadd"},
-		{clif_parse_FriendsListAdd,"friendaddrequest"},
-		{clif_parse_FriendsListRemove,"friendslistremove"},
-		{clif_parse_FriendsListRemove,"frienddeleterequest"},
-		{clif_parse_FriendsListReply,"friendslistreply"},
-		{clif_parse_FriendsListReply,"friendaddreply"},
-		
-		{clif_parse_Blacksmith,"blacksmith"},
-		{clif_parse_Blacksmith,"rankingblacksmith"},
-		{clif_parse_Alchemist,"alchemist"},
-		{clif_parse_Alchemist,"rankingalchemist"},
-		{clif_parse_Taekwon,"taekwon"},
-		{clif_parse_Taekwon,"rankingtaekwon"},
-		{clif_parse_RankingPk,"rankingpk"},
-		{clif_parse_BabyRequest,"babyrequest"},
-
-		{clif_parse_HomMenu,"hommenu"},
-		{clif_parse_HomWalkMaster,"homwalkmaster"},
-		{clif_parse_HomWalkToXY,"homwalktoxy"},
-		{clif_parse_HomActionRequest,"homactionrequest"},
-		{clif_parse_ChangeHomName,"changehomname"},
-
-		{clif_parse_MailWinOpen,"mailwinopen"},
-		{clif_parse_ReadMail,"readmail"},
-		{clif_parse_MailGetAppend,"mailgetappend"},
-		{clif_parse_SendMail,"sendmail"},
-		{clif_parse_RefreshMailBox,"refleshmailbox"},
-		{clif_parse_SendMailSetAppend,"sendmailsetappend"},
-		{clif_parse_DeleteMail,"deletemail"},
-
-		{clif_parse_FeelSaveOk,"feelsaveok"},
-		{clif_parse_AdoptRequest,"adopt"},
-		
-		{clif_parse_clientsetting,"clientsetting"},
-		{clif_parse_debug,"debug"},
-		{NULL,NULL}
-	};
-	const char* cfgName = "db/packet_db.txt";
-
-	if( (fp=basics::safefopen(cfgName,"r"))==NULL )
-	{
-		ShowWarning("Packet Configuration '"CL_WHITE"%s"CL_RESET"' not found, using defaults.\n", cfgName);
-		return 1;
-	}
-	packet_ver = MAX_PACKET_VER;
-	while( fgets(line,sizeof(line),fp) )
-	{
-		ln++;
-		if( prepare_line(line) && 2==sscanf(line,"%256[^:=]%*[:=]%256[^\r\n]",w1,w2) )
-		{
-			basics::itrim(w1);
-			if(!*w1) continue;
-			basics::itrim(w2);
-
-			if(strcasecmp(w1,"packet_ver")==0)
-			{	// start of a new version
-				size_t prev_ver = packet_ver;
-				packet_ver = atoi(w2);
-				if (packet_ver > MAX_PACKET_VER)
-				{	//Check to avoid overflowing. [Skotlex]
-					ShowWarning("The packet_db table only has support up to version %d\n", MAX_PACKET_VER);
-					break;
-				}
-				// copy from previous version into new version and continue
-				// - indicating all following packets should be read into the newer version
-				for(i=prev_ver+1; i<=packet_ver; ++i)
-					packet_db[i]=packet_db[prev_ver];
-				continue;
-			}
-			else if(strcasecmp(w1,"enable_packet_db")==0)
-			{	// only working when found in the beginning of the packet_db file
-				if( !basics::config_switch<bool>(w2) )
-					return 0;
-				continue;
-			}
-			else if(strcasecmp(w1,"default_packet_ver")==0)
-			{	// use this when in daubt, but pretty useless
-				packet_db.default_ver = basics::config_switch<int>(w2,0,MAX_PACKET_VER);
-				// check for invalid version
-				if( packet_db.default_ver > MAX_PACKET_VER ||
-					packet_db.default_ver < 0 )
-					packet_db.default_ver = MAX_PACKET_VER;
-				continue;
-			}
-		}
-
-		if(packet_ver<=MAX_PACKET_VER)
-		{	// only read valid packet_ver's
-			memset(str,0,sizeof(str));
-			for(j=0,p=line;j<4 && p; ++j)
-			{
-				str[j]=p;
-				p=strchr(p,',');
-				if(p) *p++=0;
-			}
-			if(str[0]==NULL)
-				continue;
-			cmd=strtol(str[0],(char **)NULL,0);
-			if(cmd<=0 || cmd>=MAX_PACKET_DB)
-				continue;
-			if(str[1]==NULL)
-			{
-				ShowError("'"CL_WHITE"%s"CL_RESET"', line %i: packet len error.\n", cfgName, ln);
-				continue;
-			}
-			k = atoi(str[1]);
-			packet_db[packet_ver][cmd].len = k;
-
-			if(str[2]==NULL){
-				continue;
-			}
-			for(j=0;j<sizeof(clif_parse_func)/sizeof(clif_parse_func[0]); ++j)
-			{
-				if( clif_parse_func[j].name != NULL &&
-					strcmp(str[2],clif_parse_func[j].name)==0)
-				{
-					// if (packet_db[packet_ver][cmd].func != clif_parse_func[j].func && !clif_config.prefer_packet_db)
-					//	break;	// not used for now
-					packet_db[packet_ver][cmd].func = clif_parse_func[j].func;
-					break;
-				}
-			}
-			if( j>=sizeof(clif_parse_func)/sizeof(clif_parse_func[0]) )
-			{
-				ShowError("'"CL_WHITE"%s"CL_RESET"', line %i: parse command '%s' not found.\n", cfgName, ln, str[2]);
-			}
-			// set the identifying cmd for the packet_db version
-			if(strcasecmp(str[2],"wanttoconnection")==0)
-			{
-				packet_db[packet_ver].connect_cmd = cmd;
-			}
-			if(str[3]==NULL)
-			{
-				ShowError("'"CL_WHITE"%s"CL_RESET"', line %i: no positions.\n", cfgName, ln);
-			}
-			for(j=0,p2=str[3];p2; ++j){
-				str2[j]=p2;
-				p2=strchr(p2,':');
-				if(p2) *p2++=0;
-				k = atoi(str2[j]);
-				packet_db[packet_ver][cmd].pos[j] = k;
-			}
-		}
-	}
-	fclose(fp);
-	ShowStatus("Done reading Packet Configuration '"CL_WHITE"%s"CL_RESET"'.\n",cfgName);
-	return 0;
-}
 
 int check_connect_map_port()
 {

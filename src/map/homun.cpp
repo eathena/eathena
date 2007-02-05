@@ -1282,17 +1282,17 @@ int read_homundb(void)
 			if( !is_valid_line(line) )
 				continue;
 
-			for(i=0,p=line;i<32;i++)
+			for(j=0,p=line;j<32;++j)
 			{
 				if((np=strchr(p,','))!=NULL)
 				{
-					str[i]=p;
+					str[j]=p;
 					*np=0;
 					p=np+1;
 				}
 				else
 				{
-					str[i]=p;
+					str[j]=p;
 					p+=strlen(p);
 				}
 			}
@@ -1400,7 +1400,8 @@ int homun_readdb(void)
 		char *split[50];
 		if( !is_valid_line(line) )
 			continue;
-		for(j=0,p=line;j<15 && p;j++){
+		for(j=0,p=line;j<15 && p;j++)
+		{
 			split[j]=p;
 			p=strchr(p,',');
 			if(p) *p++=0;

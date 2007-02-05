@@ -17,8 +17,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 class CTimerHandler : public basics::CTimerHandlerBase
 {
+	timerfunction func;
 public:
-	CTimerHandler()
+	CTimerHandler() : 
+	  func(CTimerHandler::timercallback)
 	{
 		basics::CTimerHandlerBase::attach_handler(*this);
 	}
@@ -32,7 +34,7 @@ public:
 	{
 		if(interval<1000)
 			interval = 1000;
-		timer.cTimer = add_timer_interval(gettick()+interval, interval, timercallback, 0, basics::numptr(&timer), false);
+		timer.cTimer = add_timer_interval(gettick()+interval, interval, (timerfunction)CTimerHandler::timercallback, 0, basics::numptr(&timer), false);
 		return (timer.cTimer>=0);
 	}
 
@@ -40,8 +42,14 @@ public:
 	virtual bool stop_timer(basics::CTimerBase& timer)
 	{
 		if(timer.cTimer>0)
-		{
-			delete_timer(timer.cTimer, timercallback);
+		{	// icl bug:
+			// internal error: 0_0
+			// compilation aborted for .\timer.cpp (code 4)
+			// when using:
+			// delete_timer(timer.cTimer, CTimerHandler::timercallback);
+			// ok, then "now something completely different":
+			delete_timer(timer.cTimer, this->func);
+			// the local copy of the function pointer hurts, though.
 			timer.cTimer = -1;
 		}
 		return true;
@@ -57,13 +65,14 @@ public:
 			{
 				if( !base->timeruserfunc(tick) )
 				{
-					delete_timer(base->cTimer, timercallback);
+					delete_timer(base->cTimer, (timerfunction)CTimerHandler::timercallback);
 					base->cTimer = -1;
 				}
 			}
 		}
 		return 0;
 	}
+	
 };
 // instanciate only once
 CTimerHandler timerhandler;

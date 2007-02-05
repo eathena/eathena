@@ -43,12 +43,11 @@ public:
 
 	
 	/// return the id of the current object.
-	/// mandatory on derived classes
 	virtual status_t status_id() const =0;
 	/// true when can be saved.
 	virtual bool savable() const =0;
-	/// true when can be saved.
-	virtual bool can_apply(affectable& object) const =0;
+	/// true when an active status nedds to be removed.
+	virtual bool is_invalid(affectable& object) const =0;
 	/// return remaining time.
 	virtual ulong remaining() const =0;
 	/// return status duration.
@@ -121,7 +120,7 @@ struct status_timed : public virtual status_change_if
 	virtual ulong remaining() const
 	{
 		TimerData* td;
-		return ( timerid!=-1 && (td=get_timer(timerid)) ) ? td->tick-gettick() : 0;
+		return ( this->timerid!=-1 && (td=get_timer(this->timerid)) ) ? td->tick-gettick() : 0;
 	}
 	/// start the timer.
 	virtual bool start_timer(affectable& object, ulong tick)
@@ -204,8 +203,14 @@ struct status_alwaysvalid : public virtual status_change_if
 template<>
 struct status_alwaysvalid<true> : public virtual status_change_if
 {
-	virtual bool can_apply(affectable& object) const			{ return true; }
-	static bool is_applyable(affectable& object)				{ return true; }
+	virtual bool is_invalid(affectable& object) const
+	{
+		return false;
+	}
+	static bool is_applyable(affectable& object, const basics::numptr& v1, const basics::numptr& v2, const basics::numptr& v3, const basics::numptr& v4)
+	{
+		return true;
+	}
 };
 
 
@@ -311,9 +316,13 @@ public:
 	virtual ~sc_twohandquicken()
 	{}
 	
+	/// true when needs to be terminated.
+	virtual bool is_invalid(affectable& object) const
+	{
+		return !this->is_applyable(object,basics::numptr(),basics::numptr(),basics::numptr(),basics::numptr());
+	}
 	/// true when possible to apply.
-	virtual bool can_apply(affectable& object) const			{ return this->is_applyable(object); }
-	static bool is_applyable(affectable& object)
+	static bool is_applyable(affectable& object, const basics::numptr& v1, const basics::numptr& v2, const basics::numptr& v3, const basics::numptr& v4)
 	{
 		return	!object.has_status(SC_QUAGMIRE) &&
 				!object.has_status(SC_DONTFORGETME) &&
@@ -356,9 +365,13 @@ public:
 	virtual ~sc_concentrate()
 	{}
 
+	/// true when needs to be terminated.
+	virtual bool is_invalid(affectable& object) const
+	{
+		return object.has_status(SC_QUAGMIRE);
+	}
 	/// true when possible to apply.
-	virtual bool can_apply(affectable& object) const			{ return this->is_applyable(object); }
-	static bool is_applyable(affectable& object)
+	static bool is_applyable(affectable& object, const basics::numptr& v1, const basics::numptr& v2, const basics::numptr& v3, const basics::numptr& v4)
 	{
 		return !object.has_status(SC_QUAGMIRE);
 	}
@@ -406,7 +419,7 @@ public:
 	/// return status duration.
 	virtual ulong duration() const
 	{
-		return 4+this->lvl; // 4+lvl sec, then resumed
+		return (4+this->lvl)*1000; // 4+lvl sec, then resumed
 	}
 	/// executed when starting the status change.
 	virtual void start(affectable& object)
@@ -429,7 +442,7 @@ public:
 			// drains sp every 4+lvl sec
 			this->counter += this->duration();
 
-			if( this->counter>=this->lvl*30 || psd->status.sp<=0 )
+			if( this->counter>=this->lvl*30*1000 || psd->status.sp<=0 )
 			{	// timeout or run out of sp
 				return 0;
 			}
@@ -437,7 +450,7 @@ public:
 			--psd->status.sp;
 			clif_updatestatus(*psd,SP_SP);
 		}
-		return (this->counter+(int)this->duration() > this->lvl*30) ? this->lvl*30-this->counter : this->duration();
+		return (this->counter+(int)this->duration() > this->lvl*30*1000) ? this->lvl*30*1000-this->counter : this->duration();
 	}
 };
 
@@ -4312,7 +4325,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// create a new status. or replace an existing
-bool affectable::create_status(status_t status_id, basics::numptr v1, basics::numptr v2, basics::numptr v3, basics::numptr v4)
+bool affectable::create_status(status_t status_id, const basics::numptr& v1, const basics::numptr& v2, const basics::numptr& v3, const basics::numptr& v4)
 {
 	status_change_if* status=NULL;
 
@@ -4326,200 +4339,200 @@ bool affectable::create_status(status_t status_id, basics::numptr v1, basics::nu
 	// create a new status
 	switch(status_id)
 	{
-	case sc_provoke::ID:			if( sc_provoke::is_applyable(*this) ) status = new sc_provoke(*this,v1,v2,v3,v4); break;
-	case sc_endure::ID:				if( sc_endure::is_applyable(*this) ) status = new sc_endure(*this,v1,v2,v3,v4); break;
-	case sc_twohandquicken::ID:		if( sc_twohandquicken::is_applyable(*this) ) status = new sc_twohandquicken(*this,v1,v2,v3,v4); break;
-	case sc_concentrate::ID:		if( sc_concentrate::is_applyable(*this) ) status = new sc_concentrate(*this,v1,v2,v3,v4); break;
-	case sc_hiding::ID:				if( sc_hiding::is_applyable(*this) ) status = new sc_hiding(*this,v1,v2,v3,v4); break;
-	case sc_cloaking::ID:			if( sc_cloaking::is_applyable(*this) ) status = new sc_cloaking(*this,v1,v2,v3,v4); break;
-	case sc_encpoison::ID:			if( sc_encpoison::is_applyable(*this) ) status = new sc_encpoison(*this,v1,v2,v3,v4); break;
-	case sc_poisonreact::ID:		if( sc_poisonreact::is_applyable(*this) ) status = new sc_poisonreact(*this,v1,v2,v3,v4); break;
-	case sc_quagmire::ID:			if( sc_quagmire::is_applyable(*this) ) status = new sc_quagmire(*this,v1,v2,v3,v4); break;
-	case sc_angelus::ID:			if( sc_angelus::is_applyable(*this) ) status = new sc_angelus(*this,v1,v2,v3,v4); break;
-	case sc_blessing::ID:			if( sc_blessing::is_applyable(*this) ) status = new sc_blessing(*this,v1,v2,v3,v4); break;
-	case sc_signumcrucis::ID:		if( sc_signumcrucis::is_applyable(*this) ) status = new sc_signumcrucis(*this,v1,v2,v3,v4); break;
-	case sc_increaseagi::ID:		if( sc_increaseagi::is_applyable(*this) ) status = new sc_increaseagi(*this,v1,v2,v3,v4); break;
-	case sc_decreaseagi::ID:		if( sc_decreaseagi::is_applyable(*this) ) status = new sc_decreaseagi(*this,v1,v2,v3,v4); break;
-	case sc_slowpoison::ID:			if( sc_slowpoison::is_applyable(*this) ) status = new sc_slowpoison(*this,v1,v2,v3,v4); break;
-	case sc_impositio::ID:			if( sc_impositio::is_applyable(*this) ) status = new sc_impositio(*this,v1,v2,v3,v4); break;
-	case sc_suffragium::ID:			if( sc_suffragium::is_applyable(*this) ) status = new sc_suffragium(*this,v1,v2,v3,v4); break;
-	case sc_aspersio::ID:			if( sc_aspersio::is_applyable(*this) ) status = new sc_aspersio(*this,v1,v2,v3,v4); break;
-	case sc_benedictio::ID:			if( sc_benedictio::is_applyable(*this) ) status = new sc_benedictio(*this,v1,v2,v3,v4); break;
-	case sc_kyrie::ID:				if( sc_kyrie::is_applyable(*this) ) status = new sc_kyrie(*this,v1,v2,v3,v4); break;
-	case sc_magnificat::ID:			if( sc_magnificat::is_applyable(*this) ) status = new sc_magnificat(*this,v1,v2,v3,v4); break;
-	case sc_gloria::ID:				if( sc_gloria::is_applyable(*this) ) status = new sc_gloria(*this,v1,v2,v3,v4); break;
-	case sc_aeterna::ID:			if( sc_aeterna::is_applyable(*this) ) status = new sc_aeterna(*this,v1,v2,v3,v4); break;
-	case sc_adrenaline::ID:			if( sc_adrenaline::is_applyable(*this) ) status = new sc_adrenaline(*this,v1,v2,v3,v4); break;
-	case sc_weaponperfection::ID:	if( sc_weaponperfection::is_applyable(*this) ) status = new sc_weaponperfection(*this,v1,v2,v3,v4); break;
-	case sc_overthrust::ID:			if( sc_overthrust::is_applyable(*this) ) status = new sc_overthrust(*this,v1,v2,v3,v4); break;
-	case sc_maximizepower::ID:		if( sc_maximizepower::is_applyable(*this) ) status = new sc_maximizepower(*this,v1,v2,v3,v4); break;
-	case sc_riding::ID:				if( sc_riding::is_applyable(*this) ) status = new sc_riding(*this,v1,v2,v3,v4); break;
-	case sc_falcon::ID:				if( sc_falcon::is_applyable(*this) ) status = new sc_falcon(*this,v1,v2,v3,v4); break;
-	case sc_trickdead::ID:			if( sc_trickdead::is_applyable(*this) ) status = new sc_trickdead(*this,v1,v2,v3,v4); break;
-	case sc_loud::ID:				if( sc_loud::is_applyable(*this) ) status = new sc_loud(*this,v1,v2,v3,v4); break;
-	case sc_energycoat::ID:			if( sc_energycoat::is_applyable(*this) ) status = new sc_energycoat(*this,v1,v2,v3,v4); break;
-	case sc_brokenarmor::ID:		if( sc_brokenarmor::is_applyable(*this) ) status = new sc_brokenarmor(*this,v1,v2,v3,v4); break;
-	case sc_brokenweapon::ID:		if( sc_brokenweapon::is_applyable(*this) ) status = new sc_brokenweapon(*this,v1,v2,v3,v4); break;
-	case sc_hallucination::ID:		if( sc_hallucination::is_applyable(*this) ) status = new sc_hallucination(*this,v1,v2,v3,v4); break;
-	case sc_weight50::ID:			if( sc_weight50::is_applyable(*this) ) status = new sc_weight50(*this,v1,v2,v3,v4); break;
-	case sc_weight90::ID:			if( sc_weight90::is_applyable(*this) ) status = new sc_weight90(*this,v1,v2,v3,v4); break;
-	case sc_speedpotion0::ID:		if( sc_speedpotion0::is_applyable(*this) ) status = new sc_speedpotion0(*this,v1,v2,v3,v4); break;
-	case sc_speedpotion1::ID:		if( sc_speedpotion1::is_applyable(*this) ) status = new sc_speedpotion1(*this,v1,v2,v3,v4); break;
-	case sc_speedpotion2::ID:		if( sc_speedpotion2::is_applyable(*this) ) status = new sc_speedpotion2(*this,v1,v2,v3,v4); break;
-	case sc_speedpotion3::ID:		if( sc_speedpotion3::is_applyable(*this) ) status = new sc_speedpotion3(*this,v1,v2,v3,v4); break;
-	case sc_speedup0::ID:			if( sc_speedup0::is_applyable(*this) ) status = new sc_speedup0(*this,v1,v2,v3,v4); break;
-	case sc_speedup1::ID:			if( sc_speedup1::is_applyable(*this) ) status = new sc_speedup1(*this,v1,v2,v3,v4); break;
-	case sc_atkpot::ID:				if( sc_atkpot::is_applyable(*this) ) status = new sc_atkpot(*this,v1,v2,v3,v4); break;
-	case sc_matkpot::ID:			if( sc_matkpot::is_applyable(*this) ) status = new sc_matkpot(*this,v1,v2,v3,v4); break;
-	case sc_wedding::ID:			if( sc_wedding::is_applyable(*this) ) status = new sc_wedding(*this,v1,v2,v3,v4); break;
-	case sc_slowdown::ID:			if( sc_slowdown::is_applyable(*this) ) status = new sc_slowdown(*this,v1,v2,v3,v4); break;
-	case sc_ankle::ID:				if( sc_ankle::is_applyable(*this) ) status = new sc_ankle(*this,v1,v2,v3,v4); break;
-	case sc_keeping::ID:			if( sc_keeping::is_applyable(*this) ) status = new sc_keeping(*this,v1,v2,v3,v4); break;
-	case sc_barrier::ID:			if( sc_barrier::is_applyable(*this) ) status = new sc_barrier(*this,v1,v2,v3,v4); break;
-	case sc_stripweapon::ID:		if( sc_stripweapon::is_applyable(*this) ) status = new sc_stripweapon(*this,v1,v2,v3,v4); break;
-	case sc_stripshield::ID:		if( sc_stripshield::is_applyable(*this) ) status = new sc_stripshield(*this,v1,v2,v3,v4); break;
-	case sc_striparmor::ID:			if( sc_striparmor::is_applyable(*this) ) status = new sc_striparmor(*this,v1,v2,v3,v4); break;
-	case sc_striphelm::ID:			if( sc_striphelm::is_applyable(*this) ) status = new sc_striphelm(*this,v1,v2,v3,v4); break;
-	case sc_cp_weapon::ID:			if( sc_cp_weapon::is_applyable(*this) ) status = new sc_cp_weapon(*this,v1,v2,v3,v4); break;
-	case sc_cp_shield::ID:			if( sc_cp_shield::is_applyable(*this) ) status = new sc_cp_shield(*this,v1,v2,v3,v4); break;
-	case sc_cp_armor::ID:			if( sc_cp_armor::is_applyable(*this) ) status = new sc_cp_armor(*this,v1,v2,v3,v4); break;
-	case sc_cp_helm::ID:			if( sc_cp_helm::is_applyable(*this) ) status = new sc_cp_helm(*this,v1,v2,v3,v4); break;
-	case sc_autoguard::ID:			if( sc_autoguard::is_applyable(*this) ) status = new sc_autoguard(*this,v1,v2,v3,v4); break;
-	case sc_reflectshield::ID:		if( sc_reflectshield::is_applyable(*this) ) status = new sc_reflectshield(*this,v1,v2,v3,v4); break;
-	case sc_splasher::ID:			if( sc_splasher::is_applyable(*this) ) status = new sc_splasher(*this,v1,v2,v3,v4); break;
-	case sc_providence::ID:			if( sc_providence::is_applyable(*this) ) status = new sc_providence(*this,v1,v2,v3,v4); break;
-	case sc_defender::ID:			if( sc_defender::is_applyable(*this) ) status = new sc_defender(*this,v1,v2,v3,v4); break;
-	case sc_magicrod::ID:			if( sc_magicrod::is_applyable(*this) ) status = new sc_magicrod(*this,v1,v2,v3,v4); break;
-	case sc_spellbreaker::ID:		if( sc_spellbreaker::is_applyable(*this) ) status = new sc_spellbreaker(*this,v1,v2,v3,v4); break;
-	case sc_autospell::ID:			if( sc_autospell::is_applyable(*this) ) status = new sc_autospell(*this,v1,v2,v3,v4); break;
-	case sc_sighttrasher::ID:		if( sc_sighttrasher::is_applyable(*this) ) status = new sc_sighttrasher(*this,v1,v2,v3,v4); break;
-	case sc_autoberserk::ID:		if( sc_autoberserk::is_applyable(*this) ) status = new sc_autoberserk(*this,v1,v2,v3,v4); break;
-	case sc_spearsquicken::ID:		if( sc_spearsquicken::is_applyable(*this) ) status = new sc_spearsquicken(*this,v1,v2,v3,v4); break;
-	case sc_autocounter::ID:		if( sc_autocounter::is_applyable(*this) ) status = new sc_autocounter(*this,v1,v2,v3,v4); break;
-	case sc_sight::ID:				if( sc_sight::is_applyable(*this) ) status = new sc_sight(*this,v1,v2,v3,v4); break;
-	case sc_safetywall::ID:			if( sc_safetywall::is_applyable(*this) ) status = new sc_safetywall(*this,v1,v2,v3,v4); break;
-	case sc_ruwach::ID:				if( sc_ruwach::is_applyable(*this) ) status = new sc_ruwach(*this,v1,v2,v3,v4); break;
-	case sc_pneuma::ID:				if( sc_pneuma::is_applyable(*this) ) status = new sc_pneuma(*this,v1,v2,v3,v4); break;
-	case sc_stone::ID:				if( sc_stone::is_applyable(*this) ) status = new sc_stone(*this,v1,v2,v3,v4); break;
-	case sc_freeze::ID:				if( sc_freeze::is_applyable(*this) ) status = new sc_freeze(*this,v1,v2,v3,v4); break;
-	case sc_stun::ID:				if( sc_stun::is_applyable(*this) ) status = new sc_stun(*this,v1,v2,v3,v4); break;
-	case sc_sleep::ID:				if( sc_sleep::is_applyable(*this) ) status = new sc_sleep(*this,v1,v2,v3,v4); break;
-	case sc_poison::ID:				if( sc_poison::is_applyable(*this) ) status = new sc_poison(*this,v1,v2,v3,v4); break;
-	case sc_curse::ID:				if( sc_curse::is_applyable(*this) ) status = new sc_curse(*this,v1,v2,v3,v4); break;
-	case sc_silence::ID:			if( sc_silence::is_applyable(*this) ) status = new sc_silence(*this,v1,v2,v3,v4); break;
-	case sc_confusion::ID:			if( sc_confusion::is_applyable(*this) ) status = new sc_confusion(*this,v1,v2,v3,v4); break;
-	case sc_blind::ID:				if( sc_blind::is_applyable(*this) ) status = new sc_blind(*this,v1,v2,v3,v4); break;
-//	case sc_divina::ID:				if( sc_divina::is_applyable(*this) ) status = new sc_divina(*this,v1,v2,v3,v4); break;
-	case sc_bleeding::ID:			if( sc_bleeding::is_applyable(*this) ) status = new sc_bleeding(*this,v1,v2,v3,v4); break;
-	case sc_dpoison::ID:			if( sc_dpoison::is_applyable(*this) ) status = new sc_dpoison(*this,v1,v2,v3,v4); break;
-	case sc_extremityfist::ID:		if( sc_extremityfist::is_applyable(*this) ) status = new sc_extremityfist(*this,v1,v2,v3,v4); break;
-	case sc_explosionspirits::ID:	if( sc_explosionspirits::is_applyable(*this) ) status = new sc_explosionspirits(*this,v1,v2,v3,v4); break;
-	case sc_combo::ID:				if( sc_combo::is_applyable(*this) ) status = new sc_combo(*this,v1,v2,v3,v4); break;
-	case sc_bladestop_wait::ID:		if( sc_bladestop_wait::is_applyable(*this) ) status = new sc_bladestop_wait(*this,v1,v2,v3,v4); break;
-	case sc_bladestop::ID:			if( sc_bladestop::is_applyable(*this) ) status = new sc_bladestop(*this,v1,v2,v3,v4); break;
-	case sc_flamelauncher::ID:		if( sc_flamelauncher::is_applyable(*this) ) status = new sc_flamelauncher(*this,v1,v2,v3,v4); break;
-	case sc_frostweapon::ID:		if( sc_frostweapon::is_applyable(*this) ) status = new sc_frostweapon(*this,v1,v2,v3,v4); break;
-	case sc_lightningloader::ID:	if( sc_lightningloader::is_applyable(*this) ) status = new sc_lightningloader(*this,v1,v2,v3,v4); break;
-	case sc_seismicweapon::ID:		if( sc_seismicweapon::is_applyable(*this) ) status = new sc_seismicweapon(*this,v1,v2,v3,v4); break;
-	case sc_volcano::ID:			if( sc_volcano::is_applyable(*this) ) status = new sc_volcano(*this,v1,v2,v3,v4); break;
-	case sc_deluge::ID:				if( sc_deluge::is_applyable(*this) ) status = new sc_deluge(*this,v1,v2,v3,v4); break;
-	case sc_violentgale::ID:		if( sc_violentgale::is_applyable(*this) ) status = new sc_violentgale(*this,v1,v2,v3,v4); break;
-	case sc_watk_element::ID:		if( sc_watk_element::is_applyable(*this) ) status = new sc_watk_element(*this,v1,v2,v3,v4); break;
-	case sc_landprotector::ID:		if( sc_landprotector::is_applyable(*this) ) status = new sc_landprotector(*this,v1,v2,v3,v4); break;
-	case sc_nochat::ID:				if( sc_nochat::is_applyable(*this) ) status = new sc_nochat(*this,v1,v2,v3,v4); break;
-	case sc_baby::ID:				if( sc_baby::is_applyable(*this) ) status = new sc_baby(*this,v1,v2,v3,v4); break;
-	case sc_aurablade::ID:			if( sc_aurablade::is_applyable(*this) ) status = new sc_aurablade(*this,v1,v2,v3,v4); break;
-	case sc_parrying::ID:			if( sc_parrying::is_applyable(*this) ) status = new sc_parrying(*this,v1,v2,v3,v4); break;
-	case sc_concentration::ID:		if( sc_concentration::is_applyable(*this) ) status = new sc_concentration(*this,v1,v2,v3,v4); break;
-	case sc_tensionrelax::ID:		if( sc_tensionrelax::is_applyable(*this) ) status = new sc_tensionrelax(*this,v1,v2,v3,v4); break;
-	case sc_berserk::ID:			if( sc_berserk::is_applyable(*this) ) status = new sc_berserk(*this,v1,v2,v3,v4); break;
-	case sc_fury::ID:				if( sc_fury::is_applyable(*this) ) status = new sc_fury(*this,v1,v2,v3,v4); break;
-	case sc_gospel::ID:				if( sc_gospel::is_applyable(*this) ) status = new sc_gospel(*this,v1,v2,v3,v4); break;
-	case sc_assumptio::ID:			if( sc_assumptio::is_applyable(*this) ) status = new sc_assumptio(*this,v1,v2,v3,v4); break;
-	case sc_basilica::ID:			if( sc_basilica::is_applyable(*this) ) status = new sc_basilica(*this,v1,v2,v3,v4); break;
-	case sc_guildaura::ID:			if( sc_guildaura::is_applyable(*this) ) status = new sc_guildaura(*this,v1,v2,v3,v4); break;
-	case sc_magicpower::ID:			if( sc_magicpower::is_applyable(*this) ) status = new sc_magicpower(*this,v1,v2,v3,v4); break;
-	case sc_edp::ID:				if( sc_edp::is_applyable(*this) ) status = new sc_edp(*this,v1,v2,v3,v4); break;
-	case sc_truesight::ID:			if( sc_truesight::is_applyable(*this) ) status = new sc_truesight(*this,v1,v2,v3,v4); break;
-	case sc_windwalk::ID:			if( sc_windwalk::is_applyable(*this) ) status = new sc_windwalk(*this,v1,v2,v3,v4); break;
-	case sc_meltdown::ID:			if( sc_meltdown::is_applyable(*this) ) status = new sc_meltdown(*this,v1,v2,v3,v4); break;
-	case sc_cartboost::ID:			if( sc_cartboost::is_applyable(*this) ) status = new sc_cartboost(*this,v1,v2,v3,v4); break;
-	case sc_chasewalk::ID:			if( sc_chasewalk::is_applyable(*this) ) status = new sc_chasewalk(*this,v1,v2,v3,v4); break;
-	case sc_rejectsword::ID:		if( sc_rejectsword::is_applyable(*this) ) status = new sc_rejectsword(*this,v1,v2,v3,v4); break;
-	case sc_marionette::ID:			if( sc_marionette::is_applyable(*this) ) status = new sc_marionette(*this,v1,v2,v3,v4); break;
-	case sc_marionette2::ID:		if( sc_marionette2::is_applyable(*this) ) status = new sc_marionette2(*this,v1,v2,v3,v4); break;
-	case sc_moonlit::ID:			if( sc_moonlit::is_applyable(*this) ) status = new sc_moonlit(*this,v1,v2,v3,v4); break;
-	case sc_headcrush::ID:			if( sc_headcrush::is_applyable(*this) ) status = new sc_headcrush(*this,v1,v2,v3,v4); break;
-	case sc_jointbeat::ID:			if( sc_jointbeat::is_applyable(*this) ) status = new sc_jointbeat(*this,v1,v2,v3,v4); break;
-	case sc_mindbreaker::ID:		if( sc_mindbreaker::is_applyable(*this) ) status = new sc_mindbreaker(*this,v1,v2,v3,v4); break;
-	case sc_memorize::ID:			if( sc_memorize::is_applyable(*this) ) status = new sc_memorize(*this,v1,v2,v3,v4); break;
-	case sc_fogwall::ID:			if( sc_fogwall::is_applyable(*this) ) status = new sc_fogwall(*this,v1,v2,v3,v4); break;
-	case sc_spiderweb::ID:			if( sc_spiderweb::is_applyable(*this) ) status = new sc_spiderweb(*this,v1,v2,v3,v4); break;
-	case sc_devotion::ID:			if( sc_devotion::is_applyable(*this) ) status = new sc_devotion(*this,v1,v2,v3,v4); break;
-	case sc_sacrifice::ID:			if( sc_sacrifice::is_applyable(*this) ) status = new sc_sacrifice(*this,v1,v2,v3,v4); break;
-	case sc_steelbody::ID:			if( sc_steelbody::is_applyable(*this) ) status = new sc_steelbody(*this,v1,v2,v3,v4); break;
-	case sc_readystorm::ID:			if( sc_readystorm::is_applyable(*this) ) status = new sc_readystorm(*this,v1,v2,v3,v4); break;
-	case sc_stormkick::ID:			if( sc_stormkick::is_applyable(*this) ) status = new sc_stormkick(*this,v1,v2,v3,v4); break;
-	case sc_readydown::ID:			if( sc_readydown::is_applyable(*this) ) status = new sc_readydown(*this,v1,v2,v3,v4); break;
-	case sc_downkick::ID:			if( sc_downkick::is_applyable(*this) ) status = new sc_downkick(*this,v1,v2,v3,v4); break;
-	case sc_readycounter::ID:		if( sc_readycounter::is_applyable(*this) ) status = new sc_readycounter(*this,v1,v2,v3,v4); break;
-	case sc_counter::ID:			if( sc_counter::is_applyable(*this) ) status = new sc_counter(*this,v1,v2,v3,v4); break;
-	case sc_readyturn::ID:			if( sc_readyturn::is_applyable(*this) ) status = new sc_readyturn(*this,v1,v2,v3,v4); break;
-	case sc_turnkick::ID:			if( sc_turnkick::is_applyable(*this) ) status = new sc_turnkick(*this,v1,v2,v3,v4); break;
-	case sc_dodge::ID:				if( sc_dodge::is_applyable(*this) ) status = new sc_dodge(*this,v1,v2,v3,v4); break;
-	case sc_run::ID:				if( sc_run::is_applyable(*this) ) status = new sc_run(*this,v1,v2,v3,v4); break;
-	case sc_adrenaline2::ID:		if( sc_adrenaline2::is_applyable(*this) ) status = new sc_adrenaline2(*this,v1,v2,v3,v4); break;
-	case sc_dancing::ID:			if( sc_dancing::is_applyable(*this) ) status = new sc_dancing(*this,v1,v2,v3,v4); break;
-	case sc_lullaby::ID:			if( sc_lullaby::is_applyable(*this) ) status = new sc_lullaby(*this,v1,v2,v3,v4); break;
-	case sc_richmankim::ID:			if( sc_richmankim::is_applyable(*this) ) status = new sc_richmankim(*this,v1,v2,v3,v4); break;
-	case sc_eternalchaos::ID:		if( sc_eternalchaos::is_applyable(*this) ) status = new sc_eternalchaos(*this,v1,v2,v3,v4); break;
-	case sc_drumbattle::ID:			if( sc_drumbattle::is_applyable(*this) ) status = new sc_drumbattle(*this,v1,v2,v3,v4); break;
-	case sc_nibelungen::ID:			if( sc_nibelungen::is_applyable(*this) ) status = new sc_nibelungen(*this,v1,v2,v3,v4); break;
-	case sc_rokisweil::ID:			if( sc_rokisweil::is_applyable(*this) ) status = new sc_rokisweil(*this,v1,v2,v3,v4); break;
-	case sc_intoabyss::ID:			if( sc_intoabyss::is_applyable(*this) ) status = new sc_intoabyss(*this,v1,v2,v3,v4); break;
-	case sc_siegfried::ID:			if( sc_siegfried::is_applyable(*this) ) status = new sc_siegfried(*this,v1,v2,v3,v4); break;
-	case sc_dissonance::ID:			if( sc_dissonance::is_applyable(*this) ) status = new sc_dissonance(*this,v1,v2,v3,v4); break;
-	case sc_whistle::ID:			if( sc_whistle::is_applyable(*this) ) status = new sc_whistle(*this,v1,v2,v3,v4); break;
-	case sc_assncros::ID:			if( sc_assncros::is_applyable(*this) ) status = new sc_assncros(*this,v1,v2,v3,v4); break;
-	case sc_poembragi::ID:			if( sc_poembragi::is_applyable(*this) ) status = new sc_poembragi(*this,v1,v2,v3,v4); break;
-	case sc_appleidun::ID:			if( sc_appleidun::is_applyable(*this) ) status = new sc_appleidun(*this,v1,v2,v3,v4); break;
-	case sc_uglydance::ID:			if( sc_uglydance::is_applyable(*this) ) status = new sc_uglydance(*this,v1,v2,v3,v4); break;
-	case sc_humming::ID:			if( sc_humming::is_applyable(*this) ) status = new sc_humming(*this,v1,v2,v3,v4); break;
-	case sc_dontforgetme::ID:		if( sc_dontforgetme::is_applyable(*this) ) status = new sc_dontforgetme(*this,v1,v2,v3,v4); break;
-	case sc_fortune::ID:			if( sc_fortune::is_applyable(*this) ) status = new sc_fortune(*this,v1,v2,v3,v4); break;
-	case sc_service4u::ID:			if( sc_service4u::is_applyable(*this) ) status = new sc_service4u(*this,v1,v2,v3,v4); break;
-	case sc_incallstatus::ID:		if( sc_incallstatus::is_applyable(*this) ) status = new sc_incallstatus(*this,v1,v2,v3,v4); break;
-	case sc_inchit::ID:				if( sc_inchit::is_applyable(*this) ) status = new sc_inchit(*this,v1,v2,v3,v4); break;
-	case sc_incflee::ID:			if( sc_incflee::is_applyable(*this) ) status = new sc_incflee(*this,v1,v2,v3,v4); break;
-	case sc_incmhp2::ID:			if( sc_incmhp2::is_applyable(*this) ) status = new sc_incmhp2(*this,v1,v2,v3,v4); break;
-	case sc_incmsp2::ID:			if( sc_incmsp2::is_applyable(*this) ) status = new sc_incmsp2(*this,v1,v2,v3,v4); break;
-	case sc_incatk2::ID:			if( sc_incatk2::is_applyable(*this) ) status = new sc_incatk2(*this,v1,v2,v3,v4); break;
-	case sc_incmatk2::ID:			if( sc_incmatk2::is_applyable(*this) ) status = new sc_incmatk2(*this,v1,v2,v3,v4); break;
-	case sc_inchit2::ID:			if( sc_inchit2::is_applyable(*this) ) status = new sc_inchit2(*this,v1,v2,v3,v4); break;
-	case sc_incflee2::ID:			if( sc_incflee2::is_applyable(*this) ) status = new sc_incflee2(*this,v1,v2,v3,v4); break;
-	case sc_preserve::ID:			if( sc_preserve::is_applyable(*this) ) status = new sc_preserve(*this,v1,v2,v3,v4); break;
-	case sc_battleorders::ID:		if( sc_battleorders::is_applyable(*this) ) status = new sc_battleorders(*this,v1,v2,v3,v4); break;
-	case sc_regeneration::ID:		if( sc_regeneration::is_applyable(*this) ) status = new sc_regeneration(*this,v1,v2,v3,v4); break;
-	case sc_doublecast::ID:			if( sc_doublecast::is_applyable(*this) ) status = new sc_doublecast(*this,v1,v2,v3,v4); break;
-	case sc_gravitation::ID:		if( sc_gravitation::is_applyable(*this) ) status = new sc_gravitation(*this,v1,v2,v3,v4); break;
-	case sc_maxoverthrust::ID:		if( sc_maxoverthrust::is_applyable(*this) ) status = new sc_maxoverthrust(*this,v1,v2,v3,v4); break;
-	case sc_longing::ID:			if( sc_longing::is_applyable(*this) ) status = new sc_longing(*this,v1,v2,v3,v4); break;
-	case sc_hermode::ID:			if( sc_hermode::is_applyable(*this) ) status = new sc_hermode(*this,v1,v2,v3,v4); break;
-	case sc_tarot::ID:				if( sc_tarot::is_applyable(*this) ) status = new sc_tarot(*this,v1,v2,v3,v4); break;
-	case sc_incdef2::ID:			if( sc_incdef2::is_applyable(*this) ) status = new sc_incdef2(*this,v1,v2,v3,v4); break;
-	case sc_incstr::ID:				if( sc_incstr::is_applyable(*this) ) status = new sc_incstr(*this,v1,v2,v3,v4); break;
-	case sc_incagi::ID:				if( sc_incagi::is_applyable(*this) ) status = new sc_incagi(*this,v1,v2,v3,v4); break;
-	case sc_incvit::ID:				if( sc_incvit::is_applyable(*this) ) status = new sc_incvit(*this,v1,v2,v3,v4); break;
-	case sc_incint::ID:				if( sc_incint::is_applyable(*this) ) status = new sc_incint(*this,v1,v2,v3,v4); break;
-	case sc_incdex::ID:				if( sc_incdex::is_applyable(*this) ) status = new sc_incdex(*this,v1,v2,v3,v4); break;
-	case sc_incluk::ID:				if( sc_incluk::is_applyable(*this) ) status = new sc_incluk(*this,v1,v2,v3,v4); break;
-	case sc_suiton::ID:				if( sc_suiton::is_applyable(*this) ) status = new sc_suiton(*this,v1,v2,v3,v4); break;
-	case sc_avoid::ID:				if( sc_avoid::is_applyable(*this) ) status = new sc_avoid(*this,v1,v2,v3,v4); break;
-	case sc_change::ID:				if( sc_change::is_applyable(*this) ) status = new sc_change(*this,v1,v2,v3,v4); break;
-	case sc_defence::ID:			if( sc_defence::is_applyable(*this) ) status = new sc_defence(*this,v1,v2,v3,v4); break;
-	case sc_bloodlust::ID:			if( sc_bloodlust::is_applyable(*this) ) status = new sc_bloodlust(*this,v1,v2,v3,v4); break;
-	case sc_fleet::ID:				if( sc_fleet::is_applyable(*this) ) status = new sc_fleet(*this,v1,v2,v3,v4); break;
-	case sc_speed::ID:				if( sc_speed::is_applyable(*this) ) status = new sc_speed(*this,v1,v2,v3,v4); break;
+	case sc_provoke::ID:			if( sc_provoke::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_provoke(*this,v1,v2,v3,v4); break;
+	case sc_endure::ID:				if( sc_endure::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_endure(*this,v1,v2,v3,v4); break;
+	case sc_twohandquicken::ID:		if( sc_twohandquicken::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_twohandquicken(*this,v1,v2,v3,v4); break;
+	case sc_concentrate::ID:		if( sc_concentrate::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_concentrate(*this,v1,v2,v3,v4); break;
+	case sc_hiding::ID:				if( sc_hiding::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_hiding(*this,v1,v2,v3,v4); break;
+	case sc_cloaking::ID:			if( sc_cloaking::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_cloaking(*this,v1,v2,v3,v4); break;
+	case sc_encpoison::ID:			if( sc_encpoison::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_encpoison(*this,v1,v2,v3,v4); break;
+	case sc_poisonreact::ID:		if( sc_poisonreact::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_poisonreact(*this,v1,v2,v3,v4); break;
+	case sc_quagmire::ID:			if( sc_quagmire::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_quagmire(*this,v1,v2,v3,v4); break;
+	case sc_angelus::ID:			if( sc_angelus::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_angelus(*this,v1,v2,v3,v4); break;
+	case sc_blessing::ID:			if( sc_blessing::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_blessing(*this,v1,v2,v3,v4); break;
+	case sc_signumcrucis::ID:		if( sc_signumcrucis::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_signumcrucis(*this,v1,v2,v3,v4); break;
+	case sc_increaseagi::ID:		if( sc_increaseagi::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_increaseagi(*this,v1,v2,v3,v4); break;
+	case sc_decreaseagi::ID:		if( sc_decreaseagi::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_decreaseagi(*this,v1,v2,v3,v4); break;
+	case sc_slowpoison::ID:			if( sc_slowpoison::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_slowpoison(*this,v1,v2,v3,v4); break;
+	case sc_impositio::ID:			if( sc_impositio::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_impositio(*this,v1,v2,v3,v4); break;
+	case sc_suffragium::ID:			if( sc_suffragium::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_suffragium(*this,v1,v2,v3,v4); break;
+	case sc_aspersio::ID:			if( sc_aspersio::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_aspersio(*this,v1,v2,v3,v4); break;
+	case sc_benedictio::ID:			if( sc_benedictio::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_benedictio(*this,v1,v2,v3,v4); break;
+	case sc_kyrie::ID:				if( sc_kyrie::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_kyrie(*this,v1,v2,v3,v4); break;
+	case sc_magnificat::ID:			if( sc_magnificat::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_magnificat(*this,v1,v2,v3,v4); break;
+	case sc_gloria::ID:				if( sc_gloria::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_gloria(*this,v1,v2,v3,v4); break;
+	case sc_aeterna::ID:			if( sc_aeterna::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_aeterna(*this,v1,v2,v3,v4); break;
+	case sc_adrenaline::ID:			if( sc_adrenaline::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_adrenaline(*this,v1,v2,v3,v4); break;
+	case sc_weaponperfection::ID:	if( sc_weaponperfection::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_weaponperfection(*this,v1,v2,v3,v4); break;
+	case sc_overthrust::ID:			if( sc_overthrust::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_overthrust(*this,v1,v2,v3,v4); break;
+	case sc_maximizepower::ID:		if( sc_maximizepower::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_maximizepower(*this,v1,v2,v3,v4); break;
+	case sc_riding::ID:				if( sc_riding::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_riding(*this,v1,v2,v3,v4); break;
+	case sc_falcon::ID:				if( sc_falcon::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_falcon(*this,v1,v2,v3,v4); break;
+	case sc_trickdead::ID:			if( sc_trickdead::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_trickdead(*this,v1,v2,v3,v4); break;
+	case sc_loud::ID:				if( sc_loud::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_loud(*this,v1,v2,v3,v4); break;
+	case sc_energycoat::ID:			if( sc_energycoat::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_energycoat(*this,v1,v2,v3,v4); break;
+	case sc_brokenarmor::ID:		if( sc_brokenarmor::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_brokenarmor(*this,v1,v2,v3,v4); break;
+	case sc_brokenweapon::ID:		if( sc_brokenweapon::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_brokenweapon(*this,v1,v2,v3,v4); break;
+	case sc_hallucination::ID:		if( sc_hallucination::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_hallucination(*this,v1,v2,v3,v4); break;
+	case sc_weight50::ID:			if( sc_weight50::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_weight50(*this,v1,v2,v3,v4); break;
+	case sc_weight90::ID:			if( sc_weight90::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_weight90(*this,v1,v2,v3,v4); break;
+	case sc_speedpotion0::ID:		if( sc_speedpotion0::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_speedpotion0(*this,v1,v2,v3,v4); break;
+	case sc_speedpotion1::ID:		if( sc_speedpotion1::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_speedpotion1(*this,v1,v2,v3,v4); break;
+	case sc_speedpotion2::ID:		if( sc_speedpotion2::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_speedpotion2(*this,v1,v2,v3,v4); break;
+	case sc_speedpotion3::ID:		if( sc_speedpotion3::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_speedpotion3(*this,v1,v2,v3,v4); break;
+	case sc_speedup0::ID:			if( sc_speedup0::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_speedup0(*this,v1,v2,v3,v4); break;
+	case sc_speedup1::ID:			if( sc_speedup1::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_speedup1(*this,v1,v2,v3,v4); break;
+	case sc_atkpot::ID:				if( sc_atkpot::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_atkpot(*this,v1,v2,v3,v4); break;
+	case sc_matkpot::ID:			if( sc_matkpot::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_matkpot(*this,v1,v2,v3,v4); break;
+	case sc_wedding::ID:			if( sc_wedding::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_wedding(*this,v1,v2,v3,v4); break;
+	case sc_slowdown::ID:			if( sc_slowdown::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_slowdown(*this,v1,v2,v3,v4); break;
+	case sc_ankle::ID:				if( sc_ankle::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_ankle(*this,v1,v2,v3,v4); break;
+	case sc_keeping::ID:			if( sc_keeping::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_keeping(*this,v1,v2,v3,v4); break;
+	case sc_barrier::ID:			if( sc_barrier::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_barrier(*this,v1,v2,v3,v4); break;
+	case sc_stripweapon::ID:		if( sc_stripweapon::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_stripweapon(*this,v1,v2,v3,v4); break;
+	case sc_stripshield::ID:		if( sc_stripshield::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_stripshield(*this,v1,v2,v3,v4); break;
+	case sc_striparmor::ID:			if( sc_striparmor::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_striparmor(*this,v1,v2,v3,v4); break;
+	case sc_striphelm::ID:			if( sc_striphelm::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_striphelm(*this,v1,v2,v3,v4); break;
+	case sc_cp_weapon::ID:			if( sc_cp_weapon::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_cp_weapon(*this,v1,v2,v3,v4); break;
+	case sc_cp_shield::ID:			if( sc_cp_shield::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_cp_shield(*this,v1,v2,v3,v4); break;
+	case sc_cp_armor::ID:			if( sc_cp_armor::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_cp_armor(*this,v1,v2,v3,v4); break;
+	case sc_cp_helm::ID:			if( sc_cp_helm::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_cp_helm(*this,v1,v2,v3,v4); break;
+	case sc_autoguard::ID:			if( sc_autoguard::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_autoguard(*this,v1,v2,v3,v4); break;
+	case sc_reflectshield::ID:		if( sc_reflectshield::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_reflectshield(*this,v1,v2,v3,v4); break;
+	case sc_splasher::ID:			if( sc_splasher::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_splasher(*this,v1,v2,v3,v4); break;
+	case sc_providence::ID:			if( sc_providence::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_providence(*this,v1,v2,v3,v4); break;
+	case sc_defender::ID:			if( sc_defender::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_defender(*this,v1,v2,v3,v4); break;
+	case sc_magicrod::ID:			if( sc_magicrod::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_magicrod(*this,v1,v2,v3,v4); break;
+	case sc_spellbreaker::ID:		if( sc_spellbreaker::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_spellbreaker(*this,v1,v2,v3,v4); break;
+	case sc_autospell::ID:			if( sc_autospell::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_autospell(*this,v1,v2,v3,v4); break;
+	case sc_sighttrasher::ID:		if( sc_sighttrasher::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_sighttrasher(*this,v1,v2,v3,v4); break;
+	case sc_autoberserk::ID:		if( sc_autoberserk::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_autoberserk(*this,v1,v2,v3,v4); break;
+	case sc_spearsquicken::ID:		if( sc_spearsquicken::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_spearsquicken(*this,v1,v2,v3,v4); break;
+	case sc_autocounter::ID:		if( sc_autocounter::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_autocounter(*this,v1,v2,v3,v4); break;
+	case sc_sight::ID:				if( sc_sight::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_sight(*this,v1,v2,v3,v4); break;
+	case sc_safetywall::ID:			if( sc_safetywall::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_safetywall(*this,v1,v2,v3,v4); break;
+	case sc_ruwach::ID:				if( sc_ruwach::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_ruwach(*this,v1,v2,v3,v4); break;
+	case sc_pneuma::ID:				if( sc_pneuma::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_pneuma(*this,v1,v2,v3,v4); break;
+	case sc_stone::ID:				if( sc_stone::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_stone(*this,v1,v2,v3,v4); break;
+	case sc_freeze::ID:				if( sc_freeze::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_freeze(*this,v1,v2,v3,v4); break;
+	case sc_stun::ID:				if( sc_stun::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_stun(*this,v1,v2,v3,v4); break;
+	case sc_sleep::ID:				if( sc_sleep::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_sleep(*this,v1,v2,v3,v4); break;
+	case sc_poison::ID:				if( sc_poison::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_poison(*this,v1,v2,v3,v4); break;
+	case sc_curse::ID:				if( sc_curse::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_curse(*this,v1,v2,v3,v4); break;
+	case sc_silence::ID:			if( sc_silence::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_silence(*this,v1,v2,v3,v4); break;
+	case sc_confusion::ID:			if( sc_confusion::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_confusion(*this,v1,v2,v3,v4); break;
+	case sc_blind::ID:				if( sc_blind::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_blind(*this,v1,v2,v3,v4); break;
+//	case sc_divina::ID:				if( sc_divina::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_divina(*this,v1,v2,v3,v4); break;
+	case sc_bleeding::ID:			if( sc_bleeding::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_bleeding(*this,v1,v2,v3,v4); break;
+	case sc_dpoison::ID:			if( sc_dpoison::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_dpoison(*this,v1,v2,v3,v4); break;
+	case sc_extremityfist::ID:		if( sc_extremityfist::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_extremityfist(*this,v1,v2,v3,v4); break;
+	case sc_explosionspirits::ID:	if( sc_explosionspirits::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_explosionspirits(*this,v1,v2,v3,v4); break;
+	case sc_combo::ID:				if( sc_combo::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_combo(*this,v1,v2,v3,v4); break;
+	case sc_bladestop_wait::ID:		if( sc_bladestop_wait::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_bladestop_wait(*this,v1,v2,v3,v4); break;
+	case sc_bladestop::ID:			if( sc_bladestop::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_bladestop(*this,v1,v2,v3,v4); break;
+	case sc_flamelauncher::ID:		if( sc_flamelauncher::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_flamelauncher(*this,v1,v2,v3,v4); break;
+	case sc_frostweapon::ID:		if( sc_frostweapon::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_frostweapon(*this,v1,v2,v3,v4); break;
+	case sc_lightningloader::ID:	if( sc_lightningloader::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_lightningloader(*this,v1,v2,v3,v4); break;
+	case sc_seismicweapon::ID:		if( sc_seismicweapon::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_seismicweapon(*this,v1,v2,v3,v4); break;
+	case sc_volcano::ID:			if( sc_volcano::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_volcano(*this,v1,v2,v3,v4); break;
+	case sc_deluge::ID:				if( sc_deluge::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_deluge(*this,v1,v2,v3,v4); break;
+	case sc_violentgale::ID:		if( sc_violentgale::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_violentgale(*this,v1,v2,v3,v4); break;
+	case sc_watk_element::ID:		if( sc_watk_element::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_watk_element(*this,v1,v2,v3,v4); break;
+	case sc_landprotector::ID:		if( sc_landprotector::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_landprotector(*this,v1,v2,v3,v4); break;
+	case sc_nochat::ID:				if( sc_nochat::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_nochat(*this,v1,v2,v3,v4); break;
+	case sc_baby::ID:				if( sc_baby::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_baby(*this,v1,v2,v3,v4); break;
+	case sc_aurablade::ID:			if( sc_aurablade::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_aurablade(*this,v1,v2,v3,v4); break;
+	case sc_parrying::ID:			if( sc_parrying::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_parrying(*this,v1,v2,v3,v4); break;
+	case sc_concentration::ID:		if( sc_concentration::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_concentration(*this,v1,v2,v3,v4); break;
+	case sc_tensionrelax::ID:		if( sc_tensionrelax::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_tensionrelax(*this,v1,v2,v3,v4); break;
+	case sc_berserk::ID:			if( sc_berserk::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_berserk(*this,v1,v2,v3,v4); break;
+	case sc_fury::ID:				if( sc_fury::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_fury(*this,v1,v2,v3,v4); break;
+	case sc_gospel::ID:				if( sc_gospel::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_gospel(*this,v1,v2,v3,v4); break;
+	case sc_assumptio::ID:			if( sc_assumptio::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_assumptio(*this,v1,v2,v3,v4); break;
+	case sc_basilica::ID:			if( sc_basilica::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_basilica(*this,v1,v2,v3,v4); break;
+	case sc_guildaura::ID:			if( sc_guildaura::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_guildaura(*this,v1,v2,v3,v4); break;
+	case sc_magicpower::ID:			if( sc_magicpower::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_magicpower(*this,v1,v2,v3,v4); break;
+	case sc_edp::ID:				if( sc_edp::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_edp(*this,v1,v2,v3,v4); break;
+	case sc_truesight::ID:			if( sc_truesight::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_truesight(*this,v1,v2,v3,v4); break;
+	case sc_windwalk::ID:			if( sc_windwalk::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_windwalk(*this,v1,v2,v3,v4); break;
+	case sc_meltdown::ID:			if( sc_meltdown::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_meltdown(*this,v1,v2,v3,v4); break;
+	case sc_cartboost::ID:			if( sc_cartboost::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_cartboost(*this,v1,v2,v3,v4); break;
+	case sc_chasewalk::ID:			if( sc_chasewalk::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_chasewalk(*this,v1,v2,v3,v4); break;
+	case sc_rejectsword::ID:		if( sc_rejectsword::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_rejectsword(*this,v1,v2,v3,v4); break;
+	case sc_marionette::ID:			if( sc_marionette::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_marionette(*this,v1,v2,v3,v4); break;
+	case sc_marionette2::ID:		if( sc_marionette2::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_marionette2(*this,v1,v2,v3,v4); break;
+	case sc_moonlit::ID:			if( sc_moonlit::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_moonlit(*this,v1,v2,v3,v4); break;
+	case sc_headcrush::ID:			if( sc_headcrush::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_headcrush(*this,v1,v2,v3,v4); break;
+	case sc_jointbeat::ID:			if( sc_jointbeat::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_jointbeat(*this,v1,v2,v3,v4); break;
+	case sc_mindbreaker::ID:		if( sc_mindbreaker::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_mindbreaker(*this,v1,v2,v3,v4); break;
+	case sc_memorize::ID:			if( sc_memorize::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_memorize(*this,v1,v2,v3,v4); break;
+	case sc_fogwall::ID:			if( sc_fogwall::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_fogwall(*this,v1,v2,v3,v4); break;
+	case sc_spiderweb::ID:			if( sc_spiderweb::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_spiderweb(*this,v1,v2,v3,v4); break;
+	case sc_devotion::ID:			if( sc_devotion::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_devotion(*this,v1,v2,v3,v4); break;
+	case sc_sacrifice::ID:			if( sc_sacrifice::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_sacrifice(*this,v1,v2,v3,v4); break;
+	case sc_steelbody::ID:			if( sc_steelbody::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_steelbody(*this,v1,v2,v3,v4); break;
+	case sc_readystorm::ID:			if( sc_readystorm::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_readystorm(*this,v1,v2,v3,v4); break;
+	case sc_stormkick::ID:			if( sc_stormkick::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_stormkick(*this,v1,v2,v3,v4); break;
+	case sc_readydown::ID:			if( sc_readydown::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_readydown(*this,v1,v2,v3,v4); break;
+	case sc_downkick::ID:			if( sc_downkick::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_downkick(*this,v1,v2,v3,v4); break;
+	case sc_readycounter::ID:		if( sc_readycounter::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_readycounter(*this,v1,v2,v3,v4); break;
+	case sc_counter::ID:			if( sc_counter::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_counter(*this,v1,v2,v3,v4); break;
+	case sc_readyturn::ID:			if( sc_readyturn::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_readyturn(*this,v1,v2,v3,v4); break;
+	case sc_turnkick::ID:			if( sc_turnkick::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_turnkick(*this,v1,v2,v3,v4); break;
+	case sc_dodge::ID:				if( sc_dodge::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_dodge(*this,v1,v2,v3,v4); break;
+	case sc_run::ID:				if( sc_run::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_run(*this,v1,v2,v3,v4); break;
+	case sc_adrenaline2::ID:		if( sc_adrenaline2::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_adrenaline2(*this,v1,v2,v3,v4); break;
+	case sc_dancing::ID:			if( sc_dancing::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_dancing(*this,v1,v2,v3,v4); break;
+	case sc_lullaby::ID:			if( sc_lullaby::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_lullaby(*this,v1,v2,v3,v4); break;
+	case sc_richmankim::ID:			if( sc_richmankim::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_richmankim(*this,v1,v2,v3,v4); break;
+	case sc_eternalchaos::ID:		if( sc_eternalchaos::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_eternalchaos(*this,v1,v2,v3,v4); break;
+	case sc_drumbattle::ID:			if( sc_drumbattle::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_drumbattle(*this,v1,v2,v3,v4); break;
+	case sc_nibelungen::ID:			if( sc_nibelungen::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_nibelungen(*this,v1,v2,v3,v4); break;
+	case sc_rokisweil::ID:			if( sc_rokisweil::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_rokisweil(*this,v1,v2,v3,v4); break;
+	case sc_intoabyss::ID:			if( sc_intoabyss::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_intoabyss(*this,v1,v2,v3,v4); break;
+	case sc_siegfried::ID:			if( sc_siegfried::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_siegfried(*this,v1,v2,v3,v4); break;
+	case sc_dissonance::ID:			if( sc_dissonance::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_dissonance(*this,v1,v2,v3,v4); break;
+	case sc_whistle::ID:			if( sc_whistle::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_whistle(*this,v1,v2,v3,v4); break;
+	case sc_assncros::ID:			if( sc_assncros::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_assncros(*this,v1,v2,v3,v4); break;
+	case sc_poembragi::ID:			if( sc_poembragi::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_poembragi(*this,v1,v2,v3,v4); break;
+	case sc_appleidun::ID:			if( sc_appleidun::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_appleidun(*this,v1,v2,v3,v4); break;
+	case sc_uglydance::ID:			if( sc_uglydance::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_uglydance(*this,v1,v2,v3,v4); break;
+	case sc_humming::ID:			if( sc_humming::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_humming(*this,v1,v2,v3,v4); break;
+	case sc_dontforgetme::ID:		if( sc_dontforgetme::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_dontforgetme(*this,v1,v2,v3,v4); break;
+	case sc_fortune::ID:			if( sc_fortune::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_fortune(*this,v1,v2,v3,v4); break;
+	case sc_service4u::ID:			if( sc_service4u::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_service4u(*this,v1,v2,v3,v4); break;
+	case sc_incallstatus::ID:		if( sc_incallstatus::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_incallstatus(*this,v1,v2,v3,v4); break;
+	case sc_inchit::ID:				if( sc_inchit::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_inchit(*this,v1,v2,v3,v4); break;
+	case sc_incflee::ID:			if( sc_incflee::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_incflee(*this,v1,v2,v3,v4); break;
+	case sc_incmhp2::ID:			if( sc_incmhp2::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_incmhp2(*this,v1,v2,v3,v4); break;
+	case sc_incmsp2::ID:			if( sc_incmsp2::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_incmsp2(*this,v1,v2,v3,v4); break;
+	case sc_incatk2::ID:			if( sc_incatk2::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_incatk2(*this,v1,v2,v3,v4); break;
+	case sc_incmatk2::ID:			if( sc_incmatk2::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_incmatk2(*this,v1,v2,v3,v4); break;
+	case sc_inchit2::ID:			if( sc_inchit2::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_inchit2(*this,v1,v2,v3,v4); break;
+	case sc_incflee2::ID:			if( sc_incflee2::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_incflee2(*this,v1,v2,v3,v4); break;
+	case sc_preserve::ID:			if( sc_preserve::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_preserve(*this,v1,v2,v3,v4); break;
+	case sc_battleorders::ID:		if( sc_battleorders::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_battleorders(*this,v1,v2,v3,v4); break;
+	case sc_regeneration::ID:		if( sc_regeneration::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_regeneration(*this,v1,v2,v3,v4); break;
+	case sc_doublecast::ID:			if( sc_doublecast::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_doublecast(*this,v1,v2,v3,v4); break;
+	case sc_gravitation::ID:		if( sc_gravitation::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_gravitation(*this,v1,v2,v3,v4); break;
+	case sc_maxoverthrust::ID:		if( sc_maxoverthrust::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_maxoverthrust(*this,v1,v2,v3,v4); break;
+	case sc_longing::ID:			if( sc_longing::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_longing(*this,v1,v2,v3,v4); break;
+	case sc_hermode::ID:			if( sc_hermode::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_hermode(*this,v1,v2,v3,v4); break;
+	case sc_tarot::ID:				if( sc_tarot::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_tarot(*this,v1,v2,v3,v4); break;
+	case sc_incdef2::ID:			if( sc_incdef2::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_incdef2(*this,v1,v2,v3,v4); break;
+	case sc_incstr::ID:				if( sc_incstr::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_incstr(*this,v1,v2,v3,v4); break;
+	case sc_incagi::ID:				if( sc_incagi::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_incagi(*this,v1,v2,v3,v4); break;
+	case sc_incvit::ID:				if( sc_incvit::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_incvit(*this,v1,v2,v3,v4); break;
+	case sc_incint::ID:				if( sc_incint::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_incint(*this,v1,v2,v3,v4); break;
+	case sc_incdex::ID:				if( sc_incdex::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_incdex(*this,v1,v2,v3,v4); break;
+	case sc_incluk::ID:				if( sc_incluk::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_incluk(*this,v1,v2,v3,v4); break;
+	case sc_suiton::ID:				if( sc_suiton::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_suiton(*this,v1,v2,v3,v4); break;
+	case sc_avoid::ID:				if( sc_avoid::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_avoid(*this,v1,v2,v3,v4); break;
+	case sc_change::ID:				if( sc_change::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_change(*this,v1,v2,v3,v4); break;
+	case sc_defence::ID:			if( sc_defence::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_defence(*this,v1,v2,v3,v4); break;
+	case sc_bloodlust::ID:			if( sc_bloodlust::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_bloodlust(*this,v1,v2,v3,v4); break;
+	case sc_fleet::ID:				if( sc_fleet::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_fleet(*this,v1,v2,v3,v4); break;
+	case sc_speed::ID:				if( sc_speed::is_applyable(*this,v1,v2,v3,v4) ) status = new sc_speed(*this,v1,v2,v3,v4); break;
 	default: break;
 	}
 	if(status)
@@ -4593,7 +4606,7 @@ void affectable::restart_status(status_t exept)
 	statusmap_t::iterator iter(this->statusmap);
 	for(; iter; ++iter)
 	{
-		if( iter->key != exept && !iter->data->can_apply(*this) )
+		if( iter->key != exept && iter->data->is_invalid(*this) )
 		{
 			iter->data->deactivate(*this);
 			delete iter->data;
@@ -4611,7 +4624,7 @@ void affectable::restart_status(status_t exept)
 	}
 }
 ///////////////////////////////////////////////////////////////////////////////
-/// remove a status
+/// remove a status.
 void affectable::remove_status(status_change_if* status)
 {
 	if(status)

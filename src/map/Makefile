@@ -19,7 +19,7 @@ include $(RETURN_PATH)/$(BASICS_PATH)/Makefile.dep
 include $(RETURN_PATH)/$(COMMON_PATH)/Makefile.dep
 ##########################################################
 
-OBJECTS = map.o chrif.o coordinate.o fightable.o movable.o pc.o npc.o chat.o path.o script.o storage.o skill.o atcommand.o battle.o intif.o trade.o party.o vending.o guild.o pet.o homun.o status.o npclisten.o mercenary.o config.o clif.o itemdb.o log.o mob.o oldskill.o oldstatus.o skillunit.o
+OBJECTS = map.o chrif.o coordinate.o fightable.o movable.o pc.o npc.o chat.o path.o script.o storage.o skill.o atcommand.o battle.o intif.o trade.o party.o vending.o guild.o pet.o homun.o status.o npclisten.o mercenary.o config.o clif.o itemdb.o log.o mob.o oldskill.o oldstatus.o skillunit.o packetdb.o
 EXTLIBS = $(COMMON_STATICLIB) $(BASICS_STATICLIB)
 
 all map map-server: $(RETURN_PATH)/map-server
@@ -49,6 +49,7 @@ mob.o: mob.cpp map.h clif.h intif.h pc.h mob.h skill.h battle.h config.h npc.h i
 movable.o: movable.cpp movable.h map.h $(COMMON_H) $(BASICS_H)
 npc.o: npc.cpp map.h npc.h clif.h pc.h script.h mob.h itemdb.h battle.h config.h $(COMMON_H) $(BASICS_H)
 npclisten.o: npclisten.cpp npclisten.h map.h npc.h clif.h pc.h script.h mob.h itemdb.h battle.h config.h $(COMMON_H) $(BASICS_H)
+packetdb.o: packetdb.cpp packetdb.h map.h chrif.h clif.h npc.h pc.h mob.h chat.h skill.h itemdb.h storage.h party.h pet.h atcommand.h $(COMMON_H) $(BASICS_H)
 party.o: party.cpp party.h clif.h intif.h pc.h map.h battle.h config.h $(COMMON_H) $(BASICS_H)
 path.o: path.cpp map.h battle.h config.h $(COMMON_H) $(BASICS_H)
 pc.o: pc.cpp map.h clif.h intif.h pc.h npc.h mob.h itemdb.h battle.h config.h skill.h script.h party.h guild.h pet.h trade.h storage.h chat.h vending.h $(COMMON_H) $(BASICS_H)

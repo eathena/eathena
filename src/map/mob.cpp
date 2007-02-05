@@ -4040,8 +4040,8 @@ int mob_readskilldb(void)
 	char line[1024];
 	int i;
 
-	const struct {
-		char str[32];
+	static const struct {
+		const char *str;
 		int id;
 	} cond1[] = {
 		{	"always",			MSC_ALWAYS				},
@@ -4100,17 +4100,20 @@ int mob_readskilldb(void)
 	};
 
 	int x;
-	char *filename[]={ "db/mob_skill_db.txt","db/mob_skill_db2.txt" };
+	const char *filename[]={ "db/mob_skill_db.txt","db/mob_skill_db2.txt" };
 
-	for(x=0; x<2; ++x){
+	for(x=0; x<2; ++x)
+	{
 
 		fp=basics::safefopen(filename[x],"r");
-		if(fp==NULL){
+		if(fp==NULL)
+		{
 			if(x==0)
 				ShowError("can't read %s\n",filename[x]);
 			continue;
 		}
-		while(fgets(line,sizeof(line),fp)){
+		while(fgets(line,sizeof(line),fp))
+		{
 			char *sp[20],*p;
 			int mob_id;
 			struct mob_skill *ms=NULL;
@@ -4120,7 +4123,8 @@ int mob_readskilldb(void)
 				continue;
 
 			memset(sp,0,sizeof(sp));
-			for(i=0,p=line;i<18 && p;++i){
+			for(i=0,p=line;i<18 && p;++i)
+			{
 				sp[i]=p;
 				if((p=strchr(p,','))!=NULL)
 					*p++=0;
@@ -4129,7 +4133,8 @@ int mob_readskilldb(void)
 			if( i <= 0 || i < 18 || mob_id<=0  || mob_id>=MAX_MOB_DB)
 				continue;
 
-			if( strcmp(sp[1],"clear")==0 ){
+			if( strcmp(sp[1],"clear")==0 )
+			{
 				memset(mob_db[mob_id].skill,0,sizeof(mob_db[mob_id].skill));
 				mob_db[mob_id].maxskill=0;
 				continue;
@@ -4138,14 +4143,16 @@ int mob_readskilldb(void)
 			for(i=0;i<MAX_MOBSKILL;++i)
 				if( (ms=&mob_db[mob_id].skill[i])->skill_id == 0)
 					break;
-			if(i>=MAX_MOBSKILL){
+			if(i>=MAX_MOBSKILL)
+			{
 				ShowMessage("mob_skill: readdb: too many skill ! [%s] in %d[%s]\n",
 					sp[1],mob_id,mob_db[mob_id].jname);
 				continue;
 			}
 
 			ms->state=atoi(sp[2]);
-			for(j=0;j<sizeof(state)/sizeof(state[0]);++j){
+			for(j=0;j<sizeof(state)/sizeof(state[0]);++j)
+			{
 				if( strcmp(sp[2],state[j].str)==0)
 					ms->state=state[j].id;
 			}

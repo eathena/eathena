@@ -1931,17 +1931,17 @@ bool command_gm(int fd, map_session_data& sd, const char* command, const basics:
 ///
 bool command_gmotd(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	char buf[256];
+	char strbuf[256];
 	size_t sl;
 	FILE *fp;
 
 	if(	(fp = basics::safefopen(motd_txt, "r"))!=NULL)
 	{
-		while (fgets(buf, sizeof(buf), fp) != NULL)
+		while (fgets(strbuf, sizeof(strbuf), fp) != NULL)
 		{
-			sl = prepare_line(buf);
+			sl = prepare_line(strbuf);
 			if(sl)
-				intif_GMmessage(buf, sl, 8);
+				intif_GMmessage(strbuf, sl, 8);
 		}
 		fclose(fp);
 	}

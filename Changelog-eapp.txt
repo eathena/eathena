@@ -1,4 +1,7 @@
 Date	Added
+2007/02/05
+	* some fixes to workaround ICL bugs
+	* packetdb splitted and outsourced, 4 weeks FTE
 2007/02/02
 	* some more examples for the skill splash distribution
 	  as the map structures itself are on rewrite schedule

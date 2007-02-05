@@ -1293,7 +1293,7 @@ int pc_authok(uint32 charid, uint32 login_id2, time_t connect_until_time, unsign
 		FILE *fp;
 		if((fp = basics::safefopen(motd_txt, "r")) != NULL)
 		{
-			while( fgets(strbuf, sizeof(buf), fp) != NULL )
+			while( fgets(strbuf, sizeof(strbuf), fp) != NULL )
 			{
 				sl = prepare_line(strbuf);
 				if(sl)

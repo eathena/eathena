@@ -39,11 +39,11 @@ public:
 struct socket_data
 {
 	struct _flag{
-		bool connected : 1;		// true when connected
-		bool remove : 1;		// true when to be removed
-		bool marked : 1;		// true when deleayed removal is initiated (optional)
+		uchar connected : 1;		// true when connected
+		uchar remove : 1;		// true when to be removed
+		uchar marked : 1;		// true when deleayed removal is initiated (optional)
 
-		_flag() : connected(true),remove(false),marked(false)
+		_flag() : connected(1),remove(0),marked(0)
 		{}
 	}flag;
 

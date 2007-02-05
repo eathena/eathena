@@ -1351,7 +1351,7 @@ int chrif_recvfamelist(int fd)
  */
 int chrif_ragsrvinfo(unsigned short base_rate, unsigned short job_rate, unsigned short drop_rate)
 {
-	char buf[256];
+	char strbuf[256];
 	FILE *fp;
 	size_t sl, sz = 10;
 
@@ -1365,28 +1365,27 @@ int chrif_ragsrvinfo(unsigned short base_rate, unsigned short job_rate, unsigned
 
 	if( (fp = basics::safefopen(motd_txt, "r")) != NULL)
 	{
-		while( fgets(buf, sizeof(buf), fp) )
+		while( fgets(strbuf, sizeof(strbuf), fp) )
 		{
-			sl = prepare_line(buf);
+			sl = prepare_line(strbuf);
 			if(sl)
 			{
-				memcpy(WFIFOP(char_fd,sz), buf, sl);
+				memcpy(WFIFOP(char_fd,sz), strbuf, sl);
 				sz += sl;
 				WFIFOB(char_fd,sz)='\n';
-				sz++;
+				++sz;
 			}
 		}
-		if(sz>0) sz--;
+		if(sz>0) --sz;
 		WFIFOB(char_fd,sz)=0;
-		sz ++;
-
+		++sz;
 		fclose(fp);
 	}
 	else
 	{
 		WFIFOB(char_fd,10) = 0;
 	}
-	sz++;// eof
+	++sz;// eof
 	WFIFOW(char_fd,8) = sz;
 	WFIFOSET(char_fd, sz);
 	return 0;
