@@ -15,6 +15,7 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 	- Merged the fix to allow longer log file names (r9716)
 	- Merged the removal of graph, httpd and webserver (r9757)
 	- Merged the cleaned-up and updated vs6 files (r9764, r9765, r9766, r9785)
+	- Merged the fix to allow proper 8-length room passwords (r9772)
 	- Merged the removal of the 'firewall detected' message (r9786)
 	- Merged the proper limiting of account ids to >=2M for TXT (r9788)
 2007/02/05
