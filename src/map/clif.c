@@ -8501,18 +8501,52 @@ void clif_parse_GetCharNameRequest(int fd, struct map_session_data *sd) {
  *
  *------------------------------------------
  */
-void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <len>.w <str>.?B
-	char *message, *buf, buf2[128];
-	RFIFOHEAD(fd);
-	WFIFOHEAD(fd, RFIFOW(fd,2) + 4);
+void clif_parse_GlobalMessage(int fd, struct map_session_data* sd) // S 008c/00f3 <packet len>.w <strz>.?B
+{
+	char* message;
+	unsigned int packetlen, messagelen, namelen;
 
-	message = (unsigned char*)RFIFOP(fd,4);
-	if (strlen(message) < strlen(sd->status.name) || //If the incoming string is too short...
-		strncmp(message, sd->status.name, strlen(sd->status.name)) != 0) //Or the name does not match...
+	RFIFOHEAD(fd);
+
+	packetlen = RFIFOW(fd,2);
+	if (packetlen > RFIFOREST(fd)) { // there has to be enough data to read
+		ShowWarning("clif_parse_GlobalMessage: Received malformed packet from player '%s' (length is incorrect)!", sd->status.name);
+		return;
+	}
+	if (packetlen < 4 + 1) { // 4-byte header and at least an empty string is expected
+		ShowWarning("clif_parse_GlobalMessage: Received malformed packet from player '%s' (no message data)!", sd->status.name);
+		return;
+	}
+
+	message = (char*)RFIFOP(fd,4);
+	messagelen = packetlen - 4; // let's trust the client here, nothing can go wrong and it saves us one strlen()
+	if (messagelen > CHAT_SIZE) { // messages mustn't be too long
+		int i;
+		// special case here - allow some more freedom for frost joke & dazzler 
+		for(i = 0; i < MAX_SKILLTIMERSKILL; i++) // the only way to check ~.~
+			if (sd->ud.skilltimerskill[i]->timer != -1 && (sd->ud.skilltimerskill[i]->skill_id == BA_FROSTJOKE || sd->ud.skilltimerskill[i]->skill_id == DC_SCREAM))
+				break;
+		if (i == MAX_SKILLTIMERSKILL) { // normal message, too long
+			ShowWarning("clif_parse_GlobalMessage: Player '%s' sent a message too long ('%.*s')!", sd->status.name, CHAT_SIZE, message);
+			return;
+		}
+		if (messagelen > 255) { // frost joke/dazzler, but still too long
+			ShowWarning("clif_parse_GlobalMessage: Player '%s' sent a message too long ('%.*s')!", sd->status.name, 255, message);
+			return;
+		}
+	}
+	if (message[messagelen-1] != '\0') { // message must be zero-terminated
+		ShowWarning("clif_parse_GlobalMessage: Player '%s' sent an unterminated string!", sd->status.name);
+		return;		
+	}
+
+	namelen = strnlen(sd->status.name, NAME_LENGTH - 1);
+	if (strncmp(message, sd->status.name, namelen) || // the name has to match the speaker's name
+		message[namelen] != ' ' || message[namelen+1] != ':' || message[namelen+2] != ' ') // completely, not just the prefix
 	{
-		//Hacked message, or infamous "client desynch" issue where they pick
-		//one char while loading another. Just kick them out to correct it.
-		clif_setwaitclose(fd);
+		//Hacked message, or infamous "client desynch" issue where they pick one char while loading another.
+		clif_setwaitclose(fd); // Just kick them out to correct it.
+		ShowWarning("clif_parse_GlobalMessage: Player '%.*s' sent a messsage using an incorrect name ('%s')! Forcing a relog...", namelen, sd->status.name, message);
 		return;
 	}
 	
@@ -8532,46 +8566,42 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 		sd->cantalk_tick = gettick() + battle_config.min_chat_delay;
 	}
 
-	if (RFIFOW(fd,2)+4 < 128)
-		buf = buf2; //Use a static buffer.
-	else
-		buf = (unsigned char*)aMallocA((RFIFOW(fd,2) + 4)*sizeof(char));
-
 	// send message to others
-	WBUFW(buf,0) = 0x8d;
-	WBUFW(buf,2) = RFIFOW(fd,2) + 4; // len of message - 4 + 8
-	WBUFL(buf,4) = sd->bl.id;
-	memcpy(WBUFP(buf,8), message, RFIFOW(fd,2) - 4);
-	clif_send(buf, WBUFW(buf,2), &sd->bl, sd->chatID ? CHAT_WOS : AREA_CHAT_WOC);
-
-	if(buf != buf2) aFree(buf);
+	WFIFOHEAD(fd, messagelen + 8);
+	WFIFOW(fd,0) = 0x8d;
+	WFIFOW(fd,2) = messagelen + 8;
+	WFIFOL(fd,4) = sd->bl.id;
+	memcpy(WFIFOP(fd,8), message, messagelen);
+	clif_send(WFIFOP(fd,0), WFIFOW(fd,2), &sd->bl, sd->chatID ? CHAT_WOS : AREA_CHAT_WOC);
 
 	// send back message to the speaker
-	memcpy(WFIFOP(fd,0), RFIFOP(fd,0), RFIFOW(fd,2));
+	memcpy(WFIFOP(fd,0), RFIFOP(fd,0), packetlen);
 	WFIFOW(fd,0) = 0x8e;
 	WFIFOSET(fd, WFIFOW(fd,2));
 
 #ifdef PCRE_SUPPORT
 	map_foreachinrange(npc_chat_sub, &sd->bl, AREA_SIZE, BL_NPC, message, strlen(message), &sd->bl);
+	map_foreachinrange(mob_chat_sub, &sd->bl, AREA_SIZE, BL_MOB, message, strlen(message), &sd->bl);
 #endif
 
 	// Celest
 	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE) { //Super Novice.
+		char buf[256];
 		int next = pc_nextbaseexp(sd);
 		if (next > 0 && (sd->status.base_exp * 1000 / next)% 100 == 0) {
-			switch (sd->state.snovice_flag) {
+			switch (sd->state.snovice_call_flag) {
 			case 0:
 				if (strstr(message, msg_txt(504)))
-					sd->state.snovice_flag++;
+					sd->state.snovice_call_flag++;
 				break;
 			case 1:
-				sprintf(buf2, msg_txt(505), sd->status.name);
-				if (strstr(message, buf2))
-					sd->state.snovice_flag++;
+				sprintf(buf, msg_txt(505), sd->status.name);
+				if (strstr(message, buf))
+					sd->state.snovice_call_flag++;
 				break;
 			case 2:
 				if (strstr(message, msg_txt(506)))
-					sd->state.snovice_flag++;
+					sd->state.snovice_call_flag++;
 				break;
 			case 3:
 				if (skillnotok(MO_EXPLOSIONSPIRITS,sd))
@@ -8579,7 +8609,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 				clif_skill_nodamage(&sd->bl,&sd->bl,MO_EXPLOSIONSPIRITS,-1,
 					sc_start(&sd->bl,SkillStatusChangeTable(MO_EXPLOSIONSPIRITS),100,
 						17,skill_get_time(MO_EXPLOSIONSPIRITS,1))); //Lv17-> +50 critical (noted by Poki) [Skotlex]
-				sd->state.snovice_flag = 0;
+				sd->state.snovice_call_flag= 0;
 				break;
 			}
 		}
