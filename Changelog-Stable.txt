@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2007/02/06
+	* Merged the more quiet homun loading code (from r9760)
+	* Merged the fix to allow npcs vending availed items (r7883) [ultramage]
 	* Fixed char-server not sending party status update when a member logs
 	  on/off.
 	* Fixed crash when parsing guild member information change from the
