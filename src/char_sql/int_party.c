@@ -10,6 +10,7 @@
 
 #include "../common/cbasetypes.h"
 #include "../common/db.h"
+#include "../common/malloc.h"
 #include "../common/strlib.h"
 #include "../common/socket.h"
 #include "../common/showmsg.h"
@@ -455,38 +456,6 @@ int mapif_party_optionchanged(int fd,struct party *p,int account_id,int flag)
 		mapif_sendall(buf,15);
 	else
 		mapif_send(fd,buf,15);
-	return 0;
-}
-
-//Checks whether the even-share setting of a party is broken when a character logs in. [Skotlex]
-int inter_party_logged(int party_id, int account_id, int char_id)
-{
-	struct party_data *p;
-	int i;
-
-	if (party_id <= 0)
-		return 0;
-
-	if (!party_id)
-		return 0;
-	p = inter_party_fromsql(party_id);
-	if(!p) //Non existant party?
-		return 0;
-	
-	for(i = 0; i < MAX_PARTY; i++)
-		if(p->party.member[i].account_id==account_id &&
-			p->party.member[i].char_id==char_id)
-	  	{
-			if (!p->party.member[i].online) {
-				p->party.member[i].online = 1;
-				p->party.count++;
-				if(p->party.member[i].lv < p->min_lv ||
-					p->party.member[i].lv > p->max_lv)
-					int_party_check_lv(p);
-			}
-			break;
-		}
-	
 	return 0;
 }
 

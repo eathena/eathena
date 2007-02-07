@@ -1,3 +1,7 @@
+02/07
+	* Merged inf2 format change update.
+	* Fixed Venom Splasher's element not being poison.
+	* Merged BloodDrain/EnergyDrain becoming Dark elemental.
 01/31
 	* Removed homunculus entries from the mob_db
 	* Removed Flag Graffiti's chance to be casted from the abracadabra db.
