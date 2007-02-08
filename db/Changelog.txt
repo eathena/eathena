@@ -1,3 +1,5 @@
+02/08
+	- Fixed the Enchant Poison DB line which broke on the last db update.
 02/07
 	* Merged inf2 format change update.
 	* Fixed Venom Splasher's element not being poison.
