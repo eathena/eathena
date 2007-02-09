@@ -77,11 +77,6 @@ int pc_isGM(struct map_session_data *sd) {
 	if(sd->bl.type!=BL_PC )
 		return 0;
 
-
-	//For console [Wizputer] //Unfortunately the console is "broken" because it shares fd 0 with disconnected players. [Skotlex]
-//	if ( sd->fd == 0 )
-//	    return 99;
-
 	for(i = 0; i < GM_num; i++)
 		if (gm_account[i].account_id == sd->status.account_id)
 			return gm_account[i].level;
@@ -282,9 +277,9 @@ int pc_setrestartvalue(struct map_session_data *sd,int type) {
 	if (type&1)
 	{	//Normal resurrection
 		status->hp = 1; //Otherwise status_heal may fail if dead.
-		if(sd->state.snovice_flag == 4) { // [Celest]
+		if(sd->state.snovice_dead_flag == 1) { // [Celest]
 			status_heal(&sd->bl, status->max_hp, status->max_sp, 1);
-			sd->state.snovice_flag = 0;
+			sd->state.snovice_dead_flag = 2;
 			sc_start(&sd->bl,SkillStatusChangeTable(MO_STEELBODY),100,1,skill_get_time(MO_STEELBODY,1));
 		} else
 			status_heal(&sd->bl, b_status->hp, b_status->sp>status->sp?b_status->sp-status->sp:0, 1);
@@ -1341,26 +1336,6 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		if(sd->state.lr_flag != 2) {
 			bonus = status->batk + val;
 			status->batk = cap_value(bonus, 0, USHRT_MAX);
-		}
-		break;
-	case SP_MATK1:
-		if(sd->state.lr_flag != 2) {
-			bonus = status->matk_max + val;
-			status->matk_max = cap_value(bonus, 0, USHRT_MAX);
-		}
-		break;
-	case SP_MATK2:
-		if(sd->state.lr_flag != 2) {
-			bonus = status->matk_min + val;
-			status->matk_min = cap_value(bonus, 0, USHRT_MAX);
-		}
-		break;
-	case SP_MATK:
-		if(sd->state.lr_flag != 2) {
-			bonus = status->matk_max + val;
-			status->matk_max = cap_value(bonus, 0, USHRT_MAX);
-			bonus = status->matk_min + val;
-			status->matk_min = cap_value(bonus, 0, USHRT_MAX);
 		}
 		break;
 	case SP_DEF1:
@@ -4091,6 +4066,8 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 		sc_start(&sd->bl,SkillStatusChangeTable(PR_MAGNIFICAT),100,1,skill_get_time(PR_MAGNIFICAT,1));
 		sc_start(&sd->bl,SkillStatusChangeTable(PR_GLORIA),100,1,skill_get_time(PR_GLORIA,1));
 		sc_start(&sd->bl,SkillStatusChangeTable(PR_SUFFRAGIUM),100,1,skill_get_time(PR_SUFFRAGIUM,1));
+		if (sd->state.snovice_dead_flag == 2)
+			sd->state.snovice_dead_flag = 0; //Reenable steelbody resurrection on dead.
 	} else
 	if((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON || (sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR)
 	{
@@ -4643,10 +4620,9 @@ int pc_resetlvl(struct map_session_data* sd,int type)
 				pc_unequipitem(sd,sd->equip_index[i],2);
 	}
 
-	if ((type == 1 || type == 2 || type == 3) && sd->status.party_id) {
-		//Send map-change packet to do a level range check and break party settings. [Skotlex]
-		party_send_movemap(sd);
-	}
+	if ((type == 1 || type == 2 || type == 3) && sd->status.party_id)
+		party_send_levelup(sd);
+
 	status_calc_pc(sd,0);
 	clif_skillinfoblock(sd);
 
@@ -5020,15 +4996,16 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	}
 
 	// activate Steel body if a super novice dies at 99+% exp [celest]
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE) {
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && !sd->state.snovice_dead_flag)
+  	{
 		if ((i=pc_nextbaseexp(sd))<=0)
 			i=sd->status.base_exp;
-		if (i>0 && (j=sd->status.base_exp*1000/i)>=990 && j<1000)
-			sd->state.snovice_flag = 4;
+		if (i>0 && (j=sd->status.base_exp*1000/i)>=990 && j<1000 && !map_flag_gvg(sd->bl.m))
+			sd->state.snovice_dead_flag = 1;
 	}
 
 	// changed penalty options, added death by player if pk_mode [Valaris]
-	if(battle_config.death_penalty_type && sd->state.snovice_flag != 4
+	if(battle_config.death_penalty_type && sd->state.snovice_dead_flag != 1
 		&& (sd->class_&MAPID_UPPERMASK) != MAPID_NOVICE	// only novices will receive no penalty
 		&& !map[sd->bl.m].flag.noexppenalty && !map_flag_gvg(sd->bl.m)
 		&& sd->sc.data[SC_BABY].timer == -1)
@@ -5171,14 +5148,14 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		sc_start(&sd->bl,SkillStatusChangeTable(PR_KYRIE),100,10,skill_get_time2(SL_KAIZEL,j));
 		return 0;
 	}
-	if (sd->state.snovice_flag == 4)
+	if (sd->state.snovice_dead_flag == 1)
 	{
 		pc_setstand(sd);
 		status_change_clear(&sd->bl,0);
 		clif_skill_nodamage(&sd->bl,&sd->bl,ALL_RESURRECTION,1,1);
 		status_percent_heal(&sd->bl, 100, 100);
 		clif_resurrection(&sd->bl, 1);
-		sd->state.snovice_flag = 0;
+		sd->state.snovice_dead_flag = 2;
 		if(battle_config.pc_invincible_time)
 			pc_setinvincibletimer(sd, battle_config.pc_invincible_time);
 		sc_start(&sd->bl,SkillStatusChangeTable(MO_STEELBODY),100,1,skill_get_time(MO_STEELBODY,1));

@@ -159,11 +159,13 @@ enum {
 	MAPID_BABY_SOUL_LINKER,
 };
 
-//Talk max size: <name> : <message of 70> [Skotlex]
-#define CHAT_SIZE	(NAME_LENGTH + 3 + 70)
 //Max size when inputting a string with those 'npc input boxes'
 //(also used for Graffiti, Talkie Box, Vending, and Chatrooms)
 #define MESSAGE_SIZE 80
+//String length you can write in the 'talking box'
+#define CHATBOX_SIZE 70
+//Talk max size: <name> : <message of 70> [Skotlex]
+#define CHAT_SIZE	(NAME_LENGTH + 3 + CHATBOX_SIZE)
 
 #define DEFAULT_AUTOSAVE_INTERVAL 5*60*1000
 
@@ -567,7 +569,8 @@ struct map_session_data {
 		unsigned gangsterparadise : 1;
 		unsigned rest : 1;
 		unsigned storage_flag : 2; //0: closed, 1: Normal Storage open, 2: guild storage open [Skotlex]
-		unsigned snovice_flag : 4;
+		unsigned snovice_call_flag : 2; //Summon Angel (stage 1~3)
+		unsigned snovice_dead_flag : 2; //Explosion spirits on death: 0 off, 1 active, 2 used.
 		// originally by Qamera, adapted by celest
 		unsigned event_death : 1;
 		unsigned event_kill_pc : 1;
@@ -1171,7 +1174,7 @@ enum _sp {
 	SP_ADDEFF, SP_RESEFF,	// 1012-1013
 	SP_BASE_ATK,SP_ASPD_RATE,SP_HP_RECOV_RATE,SP_SP_RECOV_RATE,SP_SPEED_RATE, // 1014-1018
 	SP_CRITICAL_DEF,SP_NEAR_ATK_DEF,SP_LONG_ATK_DEF, // 1019-1021
-	SP_DOUBLE_RATE, SP_DOUBLE_ADD_RATE, SP_MATK, SP_MATK_RATE, // 1022-1025
+	SP_DOUBLE_RATE, SP_DOUBLE_ADD_RATE, SP_FREE2, SP_MATK_RATE, // 1022-1025
 	SP_IGNORE_DEF_ELE,SP_IGNORE_DEF_RACE, // 1026-1027
 	SP_ATK_RATE,SP_SPEED_ADDRATE,SP_ASPD_ADDRATE, // 1028-1030
 	SP_MAGIC_ATK_DEF,SP_MISC_ATK_DEF, // 1031-1032
@@ -1202,9 +1205,9 @@ enum _sp {
 	SP_UNSTRIPABLE_WEAPON,SP_UNSTRIPABLE_ARMOR,SP_UNSTRIPABLE_HELM,SP_UNSTRIPABLE_SHIELD,  // 2034-2037
 	SP_INTRAVISION, SP_ADD_MONSTER_DROP_ITEMGROUP, SP_SP_LOSS_RATE, // 2038-2040
 	SP_ADD_SKILL_BLOW, SP_SP_VANISH_RATE //2041
-	//Before adding another, note that
-	//1077 (SP_FREE, previously disguise),
-	//are available!
+	//Before adding another, note that these are free:
+	//1024 (SP_FREE2, previous matk)
+	//1077 (SP_FREE, previously disguise)
 };
 
 enum _look {
@@ -1307,8 +1310,6 @@ extern char motd_txt[];
 extern char help_txt[];
 extern char help2_txt[];
 extern char charhelp_txt[];
-
-extern char talkie_mes[];
 
 extern char wisp_server_name[];
 

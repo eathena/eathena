@@ -988,7 +988,7 @@ static struct Damage battle_calc_weapon_attack(
 	if (skill_num && battle_config.skillrange_by_distance &&
 		(src->type&battle_config.skillrange_by_distance)
 	) { //Skill range based on distance between src/target [Skotlex]
-		if (check_distance_bl(src, target, 3))
+		if (check_distance_bl(src, target, 5))
 			wd.flag=(wd.flag&~BF_RANGEMASK)|BF_SHORT;
 		else
 			wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
@@ -2234,7 +2234,7 @@ struct Damage battle_calc_magic_attack(
 	if (battle_config.skillrange_by_distance &&
 		(src->type&battle_config.skillrange_by_distance)
 	)	{ //Skill range based on distance between src/target [Skotlex]
-		if (check_distance_bl(src, target, 3))
+		if (check_distance_bl(src, target, 5))
 			ad.flag=(ad.flag&~BF_RANGEMASK)|BF_SHORT;
 		else
 			ad.flag=(ad.flag&~BF_RANGEMASK)|BF_LONG;
@@ -2612,7 +2612,7 @@ struct Damage  battle_calc_misc_attack(
 	if (battle_config.skillrange_by_distance &&
 		(src->type&battle_config.skillrange_by_distance)
 	) { //Skill range based on distance between src/target [Skotlex]
-		if (check_distance_bl(src, target, 3))
+		if (check_distance_bl(src, target, 5))
 			md.flag=(md.flag&~BF_RANGEMASK)|BF_SHORT;
 		else
 			md.flag=(md.flag&~BF_RANGEMASK)|BF_LONG;

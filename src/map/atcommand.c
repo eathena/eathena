@@ -1030,15 +1030,15 @@ int atcommand_config_read(const char *cfgName)
  */
 int atcommand_commands(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	char cz_line_buff[MESSAGE_SIZE+1];
+	char cz_line_buff[CHATBOX_SIZE+1];
 
 	register char *lpcz_cur = cz_line_buff;
 	register unsigned int ui_slen;
 
 	int i_cur_cmd,gm_lvl = pc_isGM(sd), count = 0;
 
-	memset(cz_line_buff,' ',MESSAGE_SIZE);
-	cz_line_buff[MESSAGE_SIZE] = 0;
+	memset(cz_line_buff,' ',CHATBOX_SIZE);
+	cz_line_buff[CHATBOX_SIZE] = 0;
 
 	clif_displaymessage(fd, msg_txt(273));
 
@@ -1050,13 +1050,13 @@ int atcommand_commands(const int fd, struct map_session_data* sd, const char* co
 		count++;
 		ui_slen = (unsigned int)strlen(atcommand_info[i_cur_cmd].command);
 
-		//rember not <= bc we need null terminator
-		if(((MESSAGE_SIZE+(int)cz_line_buff)-(int)lpcz_cur) < (int)ui_slen)
+		//remember not <= bc we need null terminator
+		if(((CHATBOX_SIZE+(int)cz_line_buff)-(int)lpcz_cur) < (int)ui_slen)
 		{
 			clif_displaymessage(fd,(char*)cz_line_buff);
 			lpcz_cur = cz_line_buff;
-			memset(cz_line_buff,' ',MESSAGE_SIZE);
-			cz_line_buff[MESSAGE_SIZE] = 0;
+			memset(cz_line_buff,' ',CHATBOX_SIZE);
+			cz_line_buff[CHATBOX_SIZE] = 0;
 		}
 
 		memcpy(lpcz_cur,atcommand_info[i_cur_cmd].command,ui_slen);
@@ -2549,7 +2549,10 @@ int atcommand_item(const int fd, struct map_session_data* sd, const char* comman
 
 	memset(item_name, '\0', sizeof(item_name));
 
-	if (!message || !*message || sscanf(message, "%99s %d", item_name, &number) < 1) {
+	if (!message || !*message || (
+		sscanf(message, "\"%99[^\"]\" %d", item_name, &number) < 1 &&
+		sscanf(message, "%99s %d", item_name, &number) < 1
+	)) {
 		clif_displaymessage(fd, "Please, enter an item name/id (usage: @item <item name or ID> [quantity]).");
 		return -1;
 	}
@@ -2608,7 +2611,10 @@ int atcommand_item2(const int fd, struct map_session_data* sd, const char* comma
 
 	memset(item_name, '\0', sizeof(item_name));
 
-	if (!message || !*message || sscanf(message, "%99s %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4) < 9) {
+	if (!message || !*message || (
+		sscanf(message, "\"%99[^\"]\" %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4) < 9 &&
+		sscanf(message, "%99s %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4) < 9
+	)) {
 		clif_displaymessage(fd, "Please, enter all informations (usage: @item2 <item name or ID> <quantity>");
 		clif_displaymessage(fd, "  <Identify_flag> <refine> <attribut> <Card1> <Card2> <Card3> <Card4>).");
 		return -1;
@@ -2737,17 +2743,15 @@ int atcommand_baselevelup(const int fd, struct map_session_data* sd, const char*
 		level*=-1;
 		if ((unsigned int)level >= sd->status.base_level)
 			level = sd->status.base_level-1;
-		if (sd->status.status_point > 0) {
-			for (i = 0; i > -level; i--)
-				status_point += (sd->status.base_level + i + 14) / 5;
-			if (sd->status.status_point < status_point)
-				pc_resetstate(sd);
-			if (sd->status.status_point < status_point)
-				sd->status.status_point = 0;
-			else
-				sd->status.status_point -= status_point;
-			clif_updatestatus(sd, SP_STATUSPOINT);
-		} /* to add: remove status points from stats */
+		for (i = 0; i > -level; i--)
+			status_point += (sd->status.base_level + i + 14) / 5;
+		if (sd->status.status_point < status_point)
+			pc_resetstate(sd);
+		if (sd->status.status_point < status_point)
+			sd->status.status_point = 0;
+		else
+			sd->status.status_point -= status_point;
+		clif_updatestatus(sd, SP_STATUSPOINT);
 		sd->status.base_level -= (unsigned int)level;
 		clif_updatestatus(sd, SP_BASELEVEL);
 		clif_updatestatus(sd, SP_NEXTBASEEXP);
@@ -3752,7 +3756,10 @@ int atcommand_produce(const int fd, struct map_session_data* sd, const char* com
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 	memset(item_name, '\0', sizeof(item_name));
 
-	if (!message || !*message || sscanf(message, "%99s %d %d", item_name, &attribute, &star) < 1) {
+	if (!message || !*message || (
+		sscanf(message, "\"%99[^\"]\" %d %d", item_name, &attribute, &star) < 1 &&
+		sscanf(message, "%99s %d %d", item_name, &attribute, &star) < 1
+	)) {
 		clif_displaymessage(fd, "Please, enter at least an item name/id (usage: @produce <equip name or equip ID> <element> <# of very's>).");
 		return -1;
 	}
@@ -6125,7 +6132,10 @@ int atcommand_chardelitem(const int fd, struct map_session_data* sd, const char*
 	memset(item_name, '\0', sizeof(item_name));
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
-	if (!message || !*message || sscanf(message, "%s %d %99[^\n]", item_name, &number, atcmd_player_name) < 3 || number < 1) {
+	if (!message || !*message || (
+		sscanf(message, "\"%99[^\"]\" %d %99[^\n]", item_name, &number, atcmd_player_name) < 3 &&
+		sscanf(message, "%s %d %99[^\n]", item_name, &number, atcmd_player_name) < 3
+	) || number < 1) {
 		clif_displaymessage(fd, "Please, enter an item name/id, a quantity and a player name (usage: @chardelitem <item_name_or_ID> <quantity> <player>).");
 		return -1;
 	}
@@ -9337,7 +9347,7 @@ int atcommand_homhungry(const int fd, struct map_session_data* sd, const char* c
 }
 
 /*==========================================
- * modify homunculus hunger [orn]
+ * make the homunculus speak [orn]
  *------------------------------------------
  */
 int atcommand_homtalk(const int fd, struct map_session_data* sd, const char* command, const char* message)
@@ -9851,7 +9861,8 @@ int atcommand_fakename(const int fd, struct map_session_data* sd, const char* co
 		return 0;
 	}
 	
-	memcpy(sd->fakename,name,NAME_LENGTH-1);
+	memcpy(sd->fakename,name,NAME_LENGTH);
+	sd->fakename[NAME_LENGTH-1] = '\0';
 	clif_charnameack(0, &sd->bl);
 	clif_displaymessage(sd->fd,"Fake name enabled.");
 	
