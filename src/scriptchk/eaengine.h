@@ -63,7 +63,7 @@ private:
 	bool call_script(const char* name);
 	///////////////////////////////////////////////////////////////////////////
 	/// calls a script function from the current script (function call)
-	bool call_function(const char*name, const uint param);
+	bool call_function(const uint param);
 	///////////////////////////////////////////////////////////////////////////
 	/// return from a script
 	bool return_script(const basics::variant& retvalue);

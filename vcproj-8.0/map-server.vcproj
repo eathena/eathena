@@ -230,6 +230,9 @@
 			<File
 				RelativePath="..\src\map\skillunit.cpp">
 			</File>
+			<File
+				RelativePath="..\src\map\packetdb.cpp">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -365,6 +368,10 @@
 			<File
 				RelativePath="..\src\map\skillunit.h">
 			</File>
+			<File
+				RelativePath="..\src\map\packetdb.h">
+			</File>
+
 		</Filter>
 		<Filter
 			Name="Library files"

@@ -806,6 +806,19 @@ const variant& variant::operator--()
 
 ///////////////////////////////////////////////////////////////////////////
 // arithmetic operations
+const variant& variant::operator_assign(const variant& v)
+{
+	if( this->is_array() )
+	{	// when array do hierarchical assignment
+		this->access().operator_assign(v);
+	}
+	else
+	{	// otherwise fall back to normal assignment
+		this->assign(v);
+	}
+	return *this;
+}
+
 const variant& variant::operator+=(const variant& v)
 {
 	if( !this->is_valid() || !v.is_valid() )
@@ -1132,6 +1145,10 @@ struct ttt1 : public variant_host
 struct ttt2 : public variant_host
 {
 	string<> val;
+
+	ttt2() : val("")
+	{}
+
 	virtual bool get_member(const string<>& name, value_empty& target)
 	{
 		if( name=="val" )
@@ -1186,7 +1203,6 @@ void test_variant()
 	int prev_count = global::getcount();
 
 	{
-
 		{
 			ttt2& x = ttt2_i;
 			variant a;
@@ -1201,6 +1217,7 @@ void test_variant()
 
 			x.val = "";
 
+			string<> str;
 			variant bb(ttt2_i, "val");
 
 			bb = 100;
@@ -1258,7 +1275,7 @@ void test_variant()
 			tmp[3] = 1;
 			
 		}
-		
+	
 		{
 			variant a,b,c;
 
@@ -1297,7 +1314,6 @@ void test_variant()
 			xd=5;
 			tmp.append_array((int)xd);
 			tmp[3] = 1;
-			
 		}
 
 		{

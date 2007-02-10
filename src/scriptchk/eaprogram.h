@@ -38,17 +38,18 @@ struct scriptprog
 	struct CCommand
 	{
 		unsigned char	cCommand;
+		unsigned char	cCount;
+		int64			cParam;
 		const char*		cString;
-		int64			cParam1;
-		int64			cParam2;
+		
 	};
 	struct COpcode
 	{
-		unsigned char size1;	// number of bytes in the first parameter
-		unsigned char type1;	// type of first parameter
-		unsigned char size2;	// number of bytes in the second parameter
-		const char* desc;		// some descrition
+		unsigned char size;		// number of bytes in the first parameter
+		unsigned char type;		// type of first parameter
+		unsigned char param;	// number of operands for the command
 		unsigned char code;		// base code
+		const char* desc;		// some descrition
 	};
 
 	basics::string<>								cName;			///< name on the programm
@@ -68,7 +69,7 @@ struct scriptprog
 
 	///////////////////////////////////////////////////////////////////////////
 	// register a script via name
-	static bool regist(script& scr);
+	static bool regist(script& scr, uint line);
 	///////////////////////////////////////////////////////////////////////////
 	// unregister script
 	void unregist() const;

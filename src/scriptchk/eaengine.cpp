@@ -82,10 +82,19 @@ bool CStackEngine::process()
 	scriptprog::CCommand ccmd;
 	scriptprog& prog = *this->cProg;
 
-	basics::variant* stack = this->cStack.end()-1;
+	basics::variant *stack, *stackstart;
 
 	while(run && prog.getCommand(this->cPC, ccmd) )
 	{
+		const ssize_t stacksize = this->cStack.end()-this->cStack.begin();
+		stack = this->cStack.end()-1;
+		stackstart = this->cStack.begin();
+
+		if( stacksize < (int)ccmd.cCount )
+		{	// soemthing wrong
+			fprintf(stderr, "stack underflow, %u values requited, have %i\n", ccmd.cCount, (int)stacksize);
+			return false;
+		}
 		switch( ccmd.cCommand )
 		{
 		case OP_START:
@@ -98,7 +107,97 @@ bool CStackEngine::process()
 		// take two stack values and push up one
 		case OP_ASSIGN:	// <Op If> '='   <Op>
 		{
-			stack[-1] = stack[0];
+			//stack[0].operator_assign(stack[-1]);
+			stack[0] = stack[-1];
+			stack[-1].assign(stack[0], false);
+			stack[-1].make_value();
+			this->cStack.strip(1);
+			break;
+		}
+		case OP_ARRAY_ASSIGN:
+		{
+			stack[0].operator_assign(stack[-1]);
+			stack[-1].assign(stack[0], false);
+			stack[-1].make_value();
+			this->cStack.strip(1);
+			break;
+		}
+		case OP_ADD_ASSIGN:
+		{
+			stack[0] += stack[-1];
+			stack[-1].assign(stack[0], false);
+			stack[-1].make_value();
+			this->cStack.strip(1);
+			break;
+		}
+		case OP_SUB_ASSIGN:
+		{
+			stack[0] -= stack[-1];
+			stack[-1].assign(stack[0], false);
+			stack[-1].make_value();
+			this->cStack.strip(1);
+			break;
+		}
+		case OP_MUL_ASSIGN:
+		{
+			stack[0] *= stack[-1];
+			stack[-1].assign(stack[0], false);
+			stack[-1].make_value();
+			this->cStack.strip(1);
+			break;
+		}
+		case OP_DIV_ASSIGN:
+		{
+			stack[0] /= stack[-1];
+			stack[-1].assign(stack[0], false);
+			stack[-1].make_value();
+			this->cStack.strip(1);
+			break;
+		}
+		case OP_MOD_ASSIGN:
+		{
+			stack[0] %= stack[-1];
+			stack[-1].assign(stack[0], false);
+			stack[-1].make_value();
+			this->cStack.strip(1);
+			break;
+		}
+		case OP_BIN_XOR_ASSIGN:
+		{
+			stack[0] ^= stack[-1];
+			stack[-1].assign(stack[0], false);
+			stack[-1].make_value();
+			this->cStack.strip(1);
+			break;
+		}
+		case OP_BIN_AND_ASSIGN:
+		{
+			stack[0] &= stack[-1];
+			stack[-1].assign(stack[0], false);
+			stack[-1].make_value();
+			this->cStack.strip(1);
+			break;
+		}
+		case OP_BIN_OR_ASSIGN:
+		{
+			stack[0] |= stack[-1];
+			stack[-1].assign(stack[0], false);
+			stack[-1].make_value();
+			this->cStack.strip(1);
+			break;
+		}
+		case OP_RSHIFT_ASSIGN:
+		{
+			stack[0] >>= stack[-1];
+			stack[-1].assign(stack[0], false);
+			stack[-1].make_value();
+			this->cStack.strip(1);
+			break;
+		}
+		case OP_LSHIFT_ASSIGN:
+		{
+			stack[0] <<= stack[-1];
+			stack[-1].assign(stack[0], false);
 			stack[-1].make_value();
 			this->cStack.strip(1);
 			break;
@@ -251,20 +350,20 @@ bool CStackEngine::process()
 		/////////////////////////////////////////////////////////////////
 		// cast operations
 		// take one stack values and push the result
-		case OP_CAST_INTEGER:	// '(' <Type> ')' <Op Unary>   !CAST
-		{	// <Op Unary> is first on the stack, <Type> is second
+		case OP_CAST_INTEGER:	// '(' <Type> ')' <Op Unary>
+		{	//
 			stack[0].make_value();
 			stack[0].cast(basics::VAR_INTEGER);
 			break;
 		}
-		case OP_CAST_STRING:	// '(' <Type> ')' <Op Unary>   !CAST
-		{	// <Op Unary> is first on the stack, <Type> is second
+		case OP_CAST_STRING:	// '(' <Type> ')' <Op Unary>
+		{	//
 			stack[0].make_value();
 			stack[0].cast(basics::VAR_STRING);
 			break;
 		}
-		case OP_CAST_FLOAT:	// '(' <Type> ')' <Op Unary>   !CAST
-		{	// <Op Unary> is first on the stack, <Type> is second
+		case OP_CAST_FLOAT:	// '(' <Type> ')' <Op Unary>
+		{	//
 			stack[0].make_value();
 			stack[0].cast(basics::VAR_FLOAT);
 			break;
@@ -324,11 +423,16 @@ bool CStackEngine::process()
 		}
 		case OP_ARRAYSEL:	// <Op Pointer> '[' <Expr List> ']'
 		{
-			stack[-ccmd.cParam1].make_value();
-			array_select(stack[-ccmd.cParam1],
-						 &stack[-ccmd.cParam1+1],
-						 ccmd.cParam1);
-			this->cStack.strip(ccmd.cParam1-1);
+			if( stacksize < ccmd.cParam )
+			{	// soemthing wrong
+				fprintf(stderr, "stack underflow, %i values requited, have %i\n", (int)ccmd.cParam, (int)stacksize);
+				return false;
+			}
+			stack[-ccmd.cParam].make_value();
+			array_select(stack[-ccmd.cParam],
+						 &stack[-ccmd.cParam+1],
+						 ccmd.cParam);
+			this->cStack.strip(ccmd.cParam-1);
 			break;
 		}
 		case OP_RANGE:		// <Op Pointer> '[' <Expr>':'<Expr> ']'
@@ -363,10 +467,15 @@ bool CStackEngine::process()
 		}
 		case OP_CREATEARRAY:
 		{
-			//this->logging("array resize (%i dimension(s))", ccmd.cParam1);
-			// there are (ccmd.cParam1) elements on stack containing the dimensions of a multi-dimensional array
-			const int dim = ccmd.cParam1;
+			//this->logging("array resize (%i dimension(s))", ccmd.cParam);
+			// there are (ccmd.cParam) elements on stack containing the dimensions of a multi-dimensional array
+			const int dim = ccmd.cParam;
 			int i;
+			if( stacksize < dim )
+			{	// soemthing wrong
+				fprintf(stderr, "stack underflow, %i values requited, have %i\n", dim, (int)stacksize);
+				return false;
+			}
 			stack[-dim].clear();
 			for(i=1; i<=dim; ++i)
 			{	// number of elements in this dimension
@@ -382,14 +491,14 @@ bool CStackEngine::process()
 		case OP_NIF:
 		{
 			if( stack[0] == 0 )
-				this->cPC = ccmd.cParam1;
+				this->cPC = ccmd.cParam;
 			this->cStack.strip(1);
 			break;
 		}
 		case OP_IF:		// if '(' <Expr> ')' <Normal Stm>
 		{
 			if( stack[0] != 0 )
-				this->cPC = ccmd.cParam1;
+				this->cPC = ccmd.cParam;
 			this->cStack.strip(1);
 			break;
 		}
@@ -398,7 +507,7 @@ bool CStackEngine::process()
 		case OP_NIF_POP:
 		{
 			if( stack[0] == 0 )
-				this->cPC = ccmd.cParam1;
+				this->cPC = ccmd.cParam;
 			else
 				this->cStack.strip(1);
 			break;
@@ -406,7 +515,7 @@ bool CStackEngine::process()
 		case OP_IF_POP:		// if '(' <Expr> ')' <Normal Stm>
 		{
 			if( stack[0] != 0 )
-				this->cPC = ccmd.cParam1;
+				this->cPC = ccmd.cParam;
 			else
 				this->cStack.strip(1);
 			break;
@@ -416,20 +525,25 @@ bool CStackEngine::process()
 		// add the branch offset to the programm counter
 		case OP_GOTO:	// goto position
 		{
-			this->cPC = ccmd.cParam1;
+			this->cPC = ccmd.cParam;
 			break;
 		}
-		case OP_CLEAR:
+		case OP_EMPTY:
 		{
-			stack[0].clear();
+			stack[0].empty();
 			break;
 		}
 		case OP_CONCAT:
 		{
-			//this->logging("vectorize '%i' elements", ccmd.cParam1); break;
-			const int cnt = ccmd.cParam1;
+			//this->logging("vectorize '%i' elements", ccmd.cParam); break;
+			const int cnt = ccmd.cParam;
 			int i;
 			basics::variant temp;
+			if( stacksize < cnt )
+			{	// soemthing wrong
+				fprintf(stderr, "stack underflow, %i values requited, have %i\n", cnt, (int)stacksize);
+				return false;
+			}
 			temp.create_array( cnt );
 			for(i=0; i<cnt; ++i)
 			{	// put the elements into the array
@@ -458,12 +572,11 @@ bool CStackEngine::process()
 			this->cStack.last().clear();
 			break;
 		}
-		case OP_PUSH_ADDR:
 		case OP_PUSH_INT:	// followed by an integer
 		{
 			this->cStack.resize(this->cStack.size()+1);
 			this->cStack.last().make_value();
-			this->cStack.last() = ccmd.cParam1;
+			this->cStack.last() = ccmd.cParam;
 			break;
 		}
 		case OP_PUSH_STRING:	// followed by a string address
@@ -477,7 +590,7 @@ bool CStackEngine::process()
 		{
 			this->cStack.resize(this->cStack.size()+1);
 			this->cStack.last().make_value();
-			this->cStack.last() = scriptprog::int2float(ccmd.cParam1);
+			this->cStack.last() = scriptprog::int2float(ccmd.cParam);
 			break;
 		}
 		case OP_PUSH_VAR:	// followed by a string containing a variable name
@@ -504,28 +617,28 @@ bool CStackEngine::process()
 		{	// push a reference
 			this->cStack.resize(this->cStack.size()+1);
 			this->cStack.last().make_value();
-			this->cStack.last().assign(((size_t)ccmd.cParam1<this->cPara.size())?this->cPara[ccmd.cParam1]:basics::variant(), true);
+			this->cStack.last().assign(((size_t)ccmd.cParam<this->cPara.size())?this->cPara[ccmd.cParam]:basics::variant(), true);
 			break;
 		}
 		case OP_PUSH_PARAVAL:
 		{	// push a reference/value
 			this->cStack.resize(this->cStack.size()+1);
 			this->cStack.last().make_value();
-			this->cStack.last().assign(((size_t)ccmd.cParam1<this->cPara.size())?this->cPara[ccmd.cParam1]:basics::variant(), false);
+			this->cStack.last().assign(((size_t)ccmd.cParam<this->cPara.size())?this->cPara[ccmd.cParam]:basics::variant(), false);
 			break;
 		}
 		case OP_PUSH_TEMPVAR:
 		{	// push a reference
 			this->cStack.resize(this->cStack.size()+1);
 			this->cStack.last().make_value();
-			this->cStack.last().assign(((size_t)ccmd.cParam1<this->cTemp.size())?this->cTemp[ccmd.cParam1]:basics::variant(), true);
+			this->cStack.last().assign(((size_t)ccmd.cParam<this->cTemp.size())?this->cTemp[ccmd.cParam]:basics::variant(), true);
 			break;
 		}
 		case OP_PUSH_TEMPVAL:
 		{	// push a value
 			this->cStack.resize(this->cStack.size()+1);
 			this->cStack.last().make_value();
-			this->cStack.last().assign(((size_t)ccmd.cParam1<this->cTemp.size())?this->cTemp[ccmd.cParam1]:basics::variant(), false);
+			this->cStack.last().assign(((size_t)ccmd.cParam<this->cTemp.size())?this->cTemp[ccmd.cParam]:basics::variant(), false);
 			break;
 		}
 		case OP_POP:	// decrements the stack
@@ -550,12 +663,31 @@ bool CStackEngine::process()
 		/////////////////////////////////////////////////////////////////
 		// standard function calls
 		// check the values on stack before or inside the call of function
+		case OP_BLDFUNCTION:
 		case OP_FUNCTION:
 		{	// save the current stack/programm/counters
 			// prepare a new stack
 			// get the programm and the function entry
 			// set initial programm counter
-			this->call_function(ccmd.cString, ccmd.cParam1);
+			if( stacksize < 1+stack[0].get_int() )
+			{	// something wrong
+				fprintf(stderr, "stack underflow, %i values requited, have %i\n", (int)1+stack[0].get_int(), (int)stacksize);
+				return false;
+			}
+			this->call_function(ccmd.cParam);
+			break;
+		}
+		case OP_SUBFUNCTION:
+		{	// save the current stack/programm/counters
+			// prepare a new stack
+			// get the programm and the function entry
+			// set initial programm counter
+			if( stacksize < 2+stack[0].get_int() )
+			{	// something wrong
+				fprintf(stderr, "stack underflow, %i values requited, have %i\n", (int)2+stack[0].get_int(), (int)stacksize);
+				return false;
+			}
+			this->call_function(ccmd.cParam);
 			break;
 		}
 		case OP_GOSUB:
@@ -566,6 +698,7 @@ bool CStackEngine::process()
 		}
 		case OP_RETURN:
 		{	// restore the previous stack/programm/counters
+			// if stacksize>0
 			
 			// fall through if no program on the stack
 		}
@@ -615,7 +748,7 @@ bool CStackEngine::start(const scriptprog::script& prog, const basics::string<>&
 }
 
 ///////////////////////////////////////////////////////////////////////////
-/// comming back from a callback with return value
+/// coming back from a callback with return value
 bool CStackEngine::cont(const basics::variant& retvalue)
 {
 	if( this->is_paused() )
@@ -680,29 +813,26 @@ bool CStackEngine::call_script(const char* name)
 
 ///////////////////////////////////////////////////////////////////////////
 /// calls a script function from the current script (function call)
-bool CStackEngine::call_function(const char*name, const uint param)
+bool CStackEngine::call_function(const uint param)
 {
-	if( name )
-	{
-		script prog;
-		scriptdecl decl;
 
-		uint startpos = 0;
-		// find the function
-		// get the start position
+	script prog;
+	scriptdecl decl;
 
-		// save the run parameter
+	uint startpos = 0;
+	// find the function
+	// get the start position
 
-		// set the new run parameter
-		this->cCC       = 0;
-		this->cPC       = startpos;
-		this->cDecl     = decl;
-		this->cProg     = prog;
+	// save the run parameter
 
-		this->cStack.resize(this->cCC);
-		return true;
-	}
-	return false;
+	// set the new run parameter
+	this->cCC       = 0;
+	this->cPC       = startpos;
+	this->cDecl     = decl;
+	this->cProg     = prog;
+
+	this->cStack.resize(this->cCC);
+	return true;
 }
 
 

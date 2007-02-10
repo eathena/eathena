@@ -426,12 +426,25 @@ bool CParamBase::CParamLoader::loadParamFile(const CParamFile& fileobj)
 		if( !this->cFileList.find(fileobj, 0, pos) )
 			return false;
 	}
-	if( !this->cFileList[pos].load() )
-	{	// remove when loading has failed
-		this->cFileList.removeindex(pos);
-		return false;
+	// don't work on the slist entry
+	// this prevents invalidated objects 
+	// when a call within the load 
+	// is modifying the storage vector
+	CParamFile workobj = this->cFileList[pos];
+	const bool ret = workobj.load();
+	// remove when loading has failed
+	if( this->cFileList.find(fileobj, 0, pos) )
+	{	// re-finding is necessary
+		if(ret)
+		{	// copy the modified object back
+			this->cFileList[pos] = workobj;
+		}
+		else
+		{	// remove when loading has failed
+			this->cFileList.removeindex(pos);
+		}
 	}
-	return true;
+	return ret;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -551,7 +564,7 @@ string<> CParamBase::getlist()
 
 ///////////////////////////////////////////////////////////////////////////////
 // load parameters from fileobject
-bool CParamBase::loadParamFile(CParamBase::CParamFile fileobj)
+bool CParamBase::loadParamFile(const CParamBase::CParamFile& fileobj)
 {
 	CSingletonData &sd = getSingletonData();
 	ScopeLock sl(sd);

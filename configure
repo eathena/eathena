@@ -1849,46 +1849,25 @@ else
 fi
 
 
-
-
-ac_safe=`echo "./Makefile.in" | sed 'y%./+-%__p_%'`
-echo $ac_n "checking for ./Makefile.in""... $ac_c" 1>&6
-echo "configure:1857: checking for ./Makefile.in" >&5
-if eval "test \"`echo '$''{'ac_cv_file_$ac_safe'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
+if test -f Makefile.in ; then
+	echo "checking for Makefile.in ... yes"
 else
-  if test "$cross_compiling" = yes; then
-    { echo "configure: error: Cannot check for file existence when cross compiling" 1>&2; exit 1; }
-else
-  if test -r ./Makefile.in; then
-    eval "ac_cv_file_$ac_safe=yes"
-  else
-    eval "ac_cv_file_$ac_safe=no"
-  fi
+	{ echo "configure: error: cannot find Makefile.in - get a new source copy" 1>&2; exit 1; }
 fi
-fi
-if eval "test \"`echo '$ac_cv_file_'$ac_safe`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  :
-else
-  echo "$ac_t""no" 1>&6
-{ echo "configure: error: cannot find Makefile.in - get a new source copy" 1>&2; exit 1; }
-fi
-
 
 ac_safe=`echo "zlib.h" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for zlib.h""... $ac_c" 1>&6
-echo "configure:1882: checking for zlib.h" >&5
+echo "configure:1861: checking for zlib.h" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1887 "configure"
+#line 1866 "configure"
 #include "confdefs.h"
 #include <zlib.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1892: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1871: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -1912,7 +1891,7 @@ fi
 
 
 echo $ac_n "checking for inflateInit_ in -lz""... $ac_c" 1>&6
-echo "configure:1916: checking for inflateInit_ in -lz" >&5
+echo "configure:1895: checking for inflateInit_ in -lz" >&5
 ac_lib_var=`echo z'_'inflateInit_ | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1920,7 +1899,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lz  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1924 "configure"
+#line 1903 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1931,7 +1910,7 @@ int main() {
 inflateInit_()
 ; return 0; }
 EOF
-if { (eval echo configure:1935: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:1914: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1967,29 +1946,28 @@ fi
 fi
 
 MESSAGE="configured with"
+DELIMITER=""
 
 if test "$with_fPIC" != "no"; then
 	CPPFLAGS="$CPPFLAGS -fPIC"
-	if test "$MESSAGE" != "configured with"; then
-		MESSAGE="$MESSAGE,"
-	fi
-	MESSAGE="$MESSAGE fPIC"
+	MESSAGE="$MESSAGE$DELIMITER fPIC"
+	DELIMITER=","
 fi
 
 if test "$enable_sql" != "no"; then
 	ac_safe=`echo "mysql.h" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for mysql.h""... $ac_c" 1>&6
-echo "configure:1983: checking for mysql.h" >&5
+echo "configure:1961: checking for mysql.h" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1988 "configure"
+#line 1966 "configure"
 #include "confdefs.h"
 #include <mysql.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1993: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1971: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2016,7 +1994,7 @@ fi
 		echo "configure: warning: make process will fail if the headers are not available" 1>&2
 	fi
 	echo $ac_n "checking for mysql_real_connect in -lmysqlclient""... $ac_c" 1>&6
-echo "configure:2020: checking for mysql_real_connect in -lmysqlclient" >&5
+echo "configure:1998: checking for mysql_real_connect in -lmysqlclient" >&5
 ac_lib_var=`echo mysqlclient'_'mysql_real_connect | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2024,7 +2002,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lmysqlclient  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2028 "configure"
+#line 2006 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2035,7 +2013,7 @@ int main() {
 mysql_real_connect()
 ; return 0; }
 EOF
-if { (eval echo configure:2039: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2017: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2061,34 +2039,30 @@ fi
 		echo "configure: warning: make process will fail if the libraries are not available" 1>&2
 	fi
 	CPPFLAGS="$CPPFLAGS -DWITH_MYSQL"
-	if test "$MESSAGE" != "configured with"; then
-		MESSAGE="$MESSAGE,"
-	fi
-	MESSAGE="$MESSAGE sql saving"
+	MESSAGE="$MESSAGE$DELIMITER sql saving"
+	DELIMITER=","
 fi
 
 if test "$enable_txt" != "no"; then
 	CPPFLAGS="$CPPFLAGS -DWITH_TEXT"
-	if test "$MESSAGE" != "configured with"; then
-		MESSAGE="$MESSAGE,"
-	fi
-	MESSAGE="$MESSAGE text saving"
+	MESSAGE="$MESSAGE$DELIMITER text saving"
+	DELIMITER=","
 fi
 
 if test "$enable_pcre" != "no"; then
 	ac_safe=`echo "pcre.h" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for pcre.h""... $ac_c" 1>&6
-echo "configure:2082: checking for pcre.h" >&5
+echo "configure:2056: checking for pcre.h" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2087 "configure"
+#line 2061 "configure"
 #include "confdefs.h"
 #include <pcre.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2092: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2066: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2114,7 +2088,7 @@ fi
 		{ echo "configure: error: pcre headers not available" 1>&2; exit 1; }
 	fi
 	echo $ac_n "checking for pcre_compile in -lpcre""... $ac_c" 1>&6
-echo "configure:2118: checking for pcre_compile in -lpcre" >&5
+echo "configure:2092: checking for pcre_compile in -lpcre" >&5
 ac_lib_var=`echo pcre'_'pcre_compile | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2122,7 +2096,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lpcre  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2126 "configure"
+#line 2100 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2133,7 +2107,7 @@ int main() {
 pcre_compile()
 ; return 0; }
 EOF
-if { (eval echo configure:2137: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2111: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2158,27 +2132,58 @@ fi
 		{ echo "configure: error: pcre not available" 1>&2; exit 1; }
 	fi	
 	CPPFLAGS="$CPPFLAGS -DWITH_PCRE"
-	if test "$MESSAGE" != "configured with"; then
-		MESSAGE="$MESSAGE,"
-	fi
-	MESSAGE="$MESSAGE PCRE support"
 	LIBS="$LIBS -lpcre"
+	MESSAGE="$MESSAGE$DELIMITER PCRE support"
+	DELIMITER=","
 fi
 
 if test "$enable_64bit" != "no"; then
 	OPT="$OPT -m64"
-	if test "$MESSAGE" != "configured with"; then
-		MESSAGE="$MESSAGE,"
-	fi
-	MESSAGE="$MESSAGE 64bit compiling"
+	MESSAGE="$MESSAGE$DELIMITER 64bit compiling"
+	DELIMITER=","
 else
 	OPT="$OPT -m32"
-	if test "$MESSAGE" != "configured with"; then
-		MESSAGE="$MESSAGE,"
-	fi
-	MESSAGE="$MESSAGE 32bit compiling"
+	MESSAGE="$MESSAGE$DELIMITER 32bit compiling"
+	DELIMITER=","
 fi
 
+if test -d .svn; then
+	# Extract the first word of "svn", so it can be a program name with args.
+set dummy svn; ac_word=$2
+echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
+echo "configure:2155: checking for $ac_word" >&5
+if eval "test \"`echo '$''{'ac_cv_prog_SVN'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  if test -n "$SVN"; then
+  ac_cv_prog_SVN="$SVN" # Let the user override the test.
+else
+  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
+  ac_dummy="$PATH"
+  for ac_dir in $ac_dummy; do
+    test -z "$ac_dir" && ac_dir=.
+    if test -f $ac_dir/$ac_word; then
+      ac_cv_prog_SVN="svn"
+      break
+    fi
+  done
+  IFS="$ac_save_ifs"
+fi
+fi
+SVN="$ac_cv_prog_SVN"
+if test -n "$SVN"; then
+  echo "$ac_t""$SVN" 1>&6
+else
+  echo "$ac_t""no" 1>&6
+fi
+
+	if test "$SVN" = "svn"; then
+		REVISION="`svn info | grep Revision | awk '{print $2}'`"
+		CPPFLAGS="$CPPFLAGS -DSVNREVISION=$REVISION"
+		MESSAGE="$MESSAGE$DELIMITER based on svn-revision $REVISION"
+		DELIMITER=","
+	fi
+fi
 
 # substitutions to perform
 
@@ -2335,6 +2340,7 @@ s%@CC@%$CC%g
 s%@CPP@%$CPP%g
 s%@SET_MAKE@%$SET_MAKE%g
 s%@LIBOBJS@%$LIBOBJS%g
+s%@SVN@%$SVN%g
 s%@MESSAGE@%$MESSAGE%g
 s%@OPT@%$OPT%g
 

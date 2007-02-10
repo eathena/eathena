@@ -84,6 +84,8 @@ extern console_printer error;
 
 struct default_printer : public print::console_printer
 {
+private:
+	ICL_EMPTY_COPYCONSTRUCTOR(default_printer)
 protected:
 	// internal use
 	bool newline;	// detects newline, adds scope indentation

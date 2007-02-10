@@ -10,7 +10,6 @@
 #include "eaengine.h"
 
 
-
 ///////////////////////////////////////////////////////////////////////////////
 basics::smap<basics::string<>, buildin::declaration>	buildin::table;
 

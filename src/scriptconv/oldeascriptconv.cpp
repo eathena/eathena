@@ -784,6 +784,7 @@ bool oldeaprinter::transform_function(basics::CParser_CommentStore& parser, int 
 
 		size_t paramcounter= parameter.size();
 
+		basics::string<> tmpfunction_name=function_name;
 		function_name.tolower();
 		if( function_name == "if" || function_name == "else" || function_name == "for" || 
 			function_name == "while" || function_name == "return" || function_name == "continue" || 
@@ -791,7 +792,7 @@ bool oldeaprinter::transform_function(basics::CParser_CommentStore& parser, int 
 			function_name == "double" || function_name == "auto" || function_name == "var" )
 		{	// keyword as function name
 			fprintf(stderr, "invalid use of keyword '%s', line %i\n",
-				function_name.c_str(), (int)namenode->cToken.line);
+				tmpfunction_name.c_str(), (int)namenode->cToken.line);
 			return false;
 		}
 		else if( function_name== "goto" )
@@ -1108,7 +1109,7 @@ bool oldeaprinter::transform_function(basics::CParser_CommentStore& parser, int 
 		////////////////////
 		else // default is using it is
 		{
-			prn << function_name << '(';
+			prn << tmpfunction_name << '(';
 			paramcounter = 0;
 		}
 
@@ -1159,8 +1160,9 @@ bool oldeaprinter::transform_identifier(basics::CParser_CommentStore& parser, in
 	}
 	else if(str[0]=='$' && str[1]=='@')
 	{
+		// as I've seen those are uses as global variables rather than temp variables
 		str+=2;
-		add = "temp::";
+		add = "global::temp::";
 		//could also skip these as default vars are temp
 	}
 	else if(str[0]=='$')

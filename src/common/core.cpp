@@ -251,8 +251,7 @@ void display_version(bool quit)
 {
 	ShowMessage(CL_WHITE"eAthena version %d.%02d.%02d, Athena Mod version %d"CL_RESET"\n",
 		ATHENA_MAJOR_VERSION, ATHENA_MINOR_VERSION, ATHENA_REVISION, ATHENA_MOD_VERSION);
-	ShowMessage(CL_BT_GREEN "Website/Forum:" CL_RESET "\thttp://eathena.deltaanime.net/");
-//	ShowMessage(CL_BT_GREEN "Download URL:" CL_RESET "\thttp://eathena.systeminplace.net/");
+	ShowMessage(CL_BT_GREEN "Website/Forum:" CL_RESET "\thttp://eathena.ws/");
 	ShowMessage(CL_BT_GREEN "IRC Channel:" CL_RESET "\tirc://irc.deltaanime.net/#athena");
 	ShowMessage("\nOpen " CL_WHITE "readme.html" CL_RESET " for more information.");
 	if (ATHENA_RELEASE_FLAG) ShowNotice("This version is not for release.\n");
@@ -279,7 +278,7 @@ int main (int argc, char **argv)
 	if(NULL==argv0)
 		argv0 = argv[0];
 	else
-		argv0++;
+		++argv0;
 
 	///////////////////////////////////////////////////////////////////////////
 	// stuff

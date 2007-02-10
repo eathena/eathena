@@ -362,6 +362,7 @@ public:
 	//
 	virtual inline void clear()				{}
 	virtual inline void invalidate();
+	virtual inline void empty();
 
 	///////////////////////////////////////////////////////////////////////////
 	virtual inline bool is_valid() const		{ return true; }
@@ -486,6 +487,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// arithmetic operations
+	virtual const value_empty& operator_assign(const variant& v);
 	virtual const value_empty& operator+=(const variant& v);
 	virtual const value_empty& operator-=(const variant& v);
 	virtual const value_empty& operator*=(const variant& v);
@@ -959,12 +961,14 @@ public:
 	virtual ~value_array();
 	///////////////////////////////////////////////////////////////////////////
 	//
+	const value_empty& operator=(const variant& v)	{ this->assign(v); return *this; }
 	const value_empty& operator=(const vector<variant>& v);
 
 	///////////////////////////////////////////////////////////////////////////
 	//
 	using value_empty::assign;
 	virtual void assign(const vector<variant>& v);
+	virtual void assign(const variant &v);
 	///////////////////////////////////////////////////////////////////////////
 	//
 	virtual const value_empty& duplicate(value_empty& convertee) const;
@@ -1018,6 +1022,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// arithmetic operations
+	virtual const value_empty& operator_assign(const variant& v);
 	virtual const value_empty& operator+=(const variant& v);
 	virtual const value_empty& operator-=(const variant& v);
 	virtual const value_empty& operator*=(const variant& v);
@@ -1563,7 +1568,7 @@ public:
 				this->access() = v.access();
 		}
 		else
-		{	// just share the pointer
+		{	// share the pointers
 			this->value = v.value;
 			this->make_value();
 		}
@@ -1579,6 +1584,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// clear the variant.
 	void clear()				{ this->value.clear(); this->make_value(); }
+	void empty()				{ if(this->value.exists()) this->access().empty(); }
 	void invalidate()			{ if(this->value.exists()) this->access().invalidate(); }
 	///////////////////////////////////////////////////////////////////////////
 	bool is_valid() const		{ return !this->value.exists() || this->access().is_valid(); }
@@ -1701,6 +1707,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// arithmetic operations
+	const variant& operator_assign(const variant& v);
 	const variant& operator+=(const variant& v);
 	const variant& operator-=(const variant& v);
 	const variant& operator*=(const variant& v);
@@ -1858,6 +1865,11 @@ inline void value_empty::invalidate()
 {
 	value_invalid::convert(*this);
 }
+inline void value_empty::empty()
+{
+	value_empty::convert(*this);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // unary operations
 inline void value_empty::negate()
@@ -1886,6 +1898,11 @@ inline const value_empty& value_empty::operator--()
 
 ///////////////////////////////////////////////////////////////////////////////
 // arithmetic operations
+inline const value_empty& value_empty::operator_assign(const variant& v)
+{
+	this->assign(v.access());
+	return *this;
+}
 inline const value_empty& value_empty::operator+=(const variant& v)
 {
 	this->assign(v.access());
@@ -1971,6 +1988,10 @@ inline const value_empty& value_array::operator=(const vector<variant>& v)
 	this->assign(v);
 	return *this;
 }
+inline void value_array::assign(const variant &v)
+{
+	this->operate(v, &variant::operator=);
+}
 inline void value_array::assign(const vector<variant>& v)
 {
 	this->value = v;
@@ -2011,6 +2032,11 @@ inline double value_array::get_float() const
 inline string<> value_array::get_string() const
 {
 	return this->value.size()?this->value[0].get_string():"";
+}
+inline const value_empty& value_array::operator_assign(const variant& v)
+{
+	this->operate(v, &variant::operator_assign);
+	return *this;
 }
 inline const value_empty& value_array::operator+=(const variant& v)
 {

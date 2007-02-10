@@ -145,49 +145,66 @@ struct eacompiler
 		CFLAG_VARCREATE	= 0x00000080,	// create the variable
 		CFLAG_VARSILENT	= 0x00000100,	// don't push the variable
 		CFLAG_NOASSIGN	= 0x00000200,	// lvalue operation without assign
-		CFLAG_SUBFUNC	= 0x00000400,	// subfunction
-		CFLAG_VARSTRING	= 0x00001000,	// variable type
-		CFLAG_VARFLOAT	= 0x00002000,
-		CFLAG_VARINT	= 0x00004000,
-		CFLAG_VARMASK	= 0x00007000,
-		CFLAG_PERM		= 0x00010000,
-		CFLAG_TEMP		= 0x00020000,
-		CFLAG_PARAM		= 0x00040000,
-		CFLAG_SCPMASK	= 0x00070000,
-		CFLAG_PLY		= 0x00100000,	// variable storage
-		CFLAG_ACC		= 0x00200000,
-		CFLAG_LOG		= 0x00400000,
-		CFLAG_NPC		= 0x00800000,
-		CFLAG_GLB		= 0x01000000,
-		CFLAG_PRT		= 0x02000000,
-		CFLAG_GLD		= 0x04000000,
-		CFLAG_ITM		= 0x08000000,
-		CFLAG_STORMASK	= 0x0FF00000
+		CFLAG_ASSIGN	= 0x0000F000,	// lvalue operation with forced assign
+		CFLAG_NRMASSIGN	= 0x00001000,	// lvalue operation with forced assign
+		CFLAG_ARRASSIGN	= 0x00002000,	// lvalue operation with forced assign
+		CFLAG_ADDASSIGN	= 0x00003000,	// lvalue operation with forced assign
+		CFLAG_SUBASSIGN	= 0x00004000,	// lvalue operation with forced assign
+		CFLAG_MULASSIGN	= 0x00005000,	// lvalue operation with forced assign
+		CFLAG_DIVASSIGN	= 0x00006000,	// lvalue operation with forced assign
+		CFLAG_MODASSIGN	= 0x00007000,	// lvalue operation with forced assign
+		CFLAG_XORASSIGN	= 0x00008000,	// lvalue operation with forced assign
+		CFLAG_ANDASSIGN	= 0x00009000,	// lvalue operation with forced assign
+		CFLAG_OR_ASSIGN	= 0x0000A000,	// lvalue operation with forced assign
+		CFLAG_RSHASSIGN	= 0x0000B000,	// lvalue operation with forced assign
+		CFLAG_LSHASSIGN	= 0x0000C000,	// lvalue operation with forced assign
+		CFLAG_VARSTRING	= 0x00010000,	// variable type
+		CFLAG_VARFLOAT	= 0x00020000,
+		CFLAG_VARINT	= 0x00040000,
+		CFLAG_VARMASK	= 0x00070000,
+		CFLAG_SUBFUNC	= 0x00080000,	// subfunction
+		CFLAG_PERM		= 0x00100000,
+		CFLAG_TEMP		= 0x00200000,
+		CFLAG_PARAM		= 0x00400000,
+		CFLAG_SCPMASK	= 0x00700000,
+		CFLAG_PLY		= 0x01000000,	// variable storage
+		CFLAG_ACC		= 0x02000000,
+		CFLAG_LOG		= 0x03000000,
+		CFLAG_NPC		= 0x04000000,
+		CFLAG_GLB		= 0x05000000,
+		CFLAG_PRT		= 0x06000000,
+		CFLAG_GLD		= 0x07000000,
+		CFLAG_STORMASK	= 0x07000000
 	};
 	///////////////////////////////////////////////////////
 	// variable name storage
 	// var {id, type, declare_scope, use}
 	struct CVar
-	{	
+	{
+		typedef basics::TObjPtrCount<CVar>		variable;
+
 		size_t			id;		// number for temp/para, unused otherwise
-		uint			use;	// usage counter
+		uint			luse;	// usage counter lefthand
+		uint			ruse;	// usage counter righthand
+		uint			xuse;	// usage counter unspecified
 		uint			scope;	// scope counter
-		uint			line;	// line of first occurance
+		uint			cline;	// line of first occurance
+		uint			uline;	// line of last usage
 		basics::var_t	type;	// type of content
 		bool			isconst;// as name says
-		bool			isvalid;// as name says
+		bool			declared;// as name says
 
-		CVar(size_t i=static_cast<size_t>(-1), uint s=0, basics::var_t t=basics::VAR_AUTO, bool c=false, bool v=false)
-			: id(i), use(0), scope(s), type(t),isconst(c),isvalid(v)
+		CVar(size_t i=static_cast<size_t>(-1), uint s=0, basics::var_t t=basics::VAR_AUTO, bool c=false, bool p=false, bool d=false, uint l=0)
+			: id(i), luse(p), ruse(0), xuse(0), scope(s), cline(l), uline(l), type(t),isconst(c),declared(d)
 		{}
 		~CVar()	{}
 	};
 
 	///////////////////////////////////////////////////////////////////////////
 	// variable scope
-	struct CVariableScope : public basics::smap<basics::string<>,basics::smap<uint,CVar> >
+	struct CVariableScope : public basics::smap<basics::string<>,basics::smap<uint,CVar::variable> >
 	{
-		typedef basics::smap<basics::string<>,basics::smap<uint,CVar> > base;
+		typedef basics::smap<basics::string<>,basics::smap<uint,CVar::variable> > base;
 		typedef base::iterator iterator;
 
 		size_t cnt_tempvar;
@@ -208,9 +225,11 @@ struct eacompiler
 	{
 		size_t use;
 		size_t pos;
+		uint createline;
+		uint useline;
 		bool valid;
 		
-		CLabelPos(): use(0), pos(0), valid(false)
+		CLabelPos(): use(0), pos(0), createline(0), useline(0), valid(false)
 		{}
 	};
 
@@ -241,32 +260,36 @@ struct eacompiler
 	basics::variant get_define(const basics::string<>& name) const;
 	void set_define(const basics::string<>& name, const basics::variant& value);
 
-	bool create_label(const basics::string<>& name);
+	bool create_label(const basics::string<>& name, uint line);
 	bool check_labels();
 
 	/// correct the variable access identifier.
 	static uint variable_correct_access(uint access);
 	bool variable_scopename2id(const basics::string<>& name, int& uservalue) const;
-	static basics::string<> variable_id2scopename(uint access);
-	/// put a variable access to the program.
-	/// fails for pure temp and parameter access
-	bool put_variable_access(uint access);
+
+	static const char* variable_getaccess(uint access);
+	static const char* variable_getscope(uint access);
+	static const char* variable_getstore(uint access);
+	
+	/// put the assignment command
+	bool put_variableassignment(ulong flags);
 	/// put a variable with known access to the program.
 	/// create and initialite the var entry if not exists,
 	/// cannot fail
-	bool put_variable(const basics::string<>& name, ulong flags, uint scope, uint access);
+	bool put_knownvariable(const parse_node &node, const basics::string<>& name, ulong flags, uint scope, uint access);
 	/// put a variable with unknown access to the program.
 	/// create pure temp variables as default,
 	/// fail when multiple variables of same name exist
-	bool put_variable(const basics::string<>& name, ulong flags, uint scope);
+	bool put_variable(const parse_node &node, const basics::string<>& name, ulong flags, uint scope);
 	/// create a variable.
 	/// fails when variable already exists
-	bool create_variable(const basics::string<>& name, uint access, uint scope, basics::var_t type=basics::VAR_AUTO, bool isconst=false);
+	bool create_variable(const parse_node &node, const basics::string<>& name, uint access, uint scope, basics::var_t type, bool isconst, bool declared);
 	bool exists_variable(const basics::string<>& name, uint access);
-	bool check_variable(uint scope);
+	bool check_variable(uint scope, bool final=true) const;
+	bool export_variable(const parse_node &node, uint scope, CVariableScope& target) const;
 
-	bool put_function_call(const basics::string<>& name, uint paramcnt);
-	bool put_subfunction_call(const basics::string<>& host, const basics::string<>& name, uint paramcnt);
+	bool put_function_call(const parse_node &node, uint scope, const basics::string<>& name, uint paramcnt, bool global);
+	bool put_subfunction_call(const parse_node &node, const basics::string<>& host, const basics::string<>& name, uint paramcnt);
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -299,6 +322,7 @@ struct eacompiler
 	bool compile_function_parameter(const parse_node &node, uint scope, unsigned long flags, int& uservalue);
 	bool compile_function_call(const parse_node &node, uint scope, unsigned long flags, int& uservalue);
 	bool compile_subfunction_call(const parse_node &node, uint scope, unsigned long flags, int& uservalue);
+	bool compile_globalfunction_call(const parse_node &node, uint scope, unsigned long flags, int& uservalue);
 
 	///////////////////////////////////////////////////////////////////////////
 	// literals
@@ -372,7 +396,6 @@ struct eacompiler
 	void put_command(command_t command);
 	void put_intcommand(command_t command, int p);
 	void put_strcommand(command_t command, const basics::string<>& s);
-	void put_fnccommand(command_t command, const basics::string<>& s, int p);
 	void put_varcommand(command_t command, int64 i);
 
 

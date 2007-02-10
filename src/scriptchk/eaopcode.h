@@ -13,27 +13,18 @@ enum command_t
 	/////////////////////////////////////////////////////////////////
 	// assignment operations
 	// take two stack values and push up one
-	OP_ASSIGN,					// <Op If> '='   <Op>
-	/////////////////////////////////////////////////////////////////
-	// logic operations
-	// take two stack values and push a value
-	OP_BIN_AND,					// <Op BinAND> '&' <Op Equate>
-	OP_BIN_OR,					// <Op BinOr> '|' <Op BinXOR>
-	OP_BIN_XOR,					// <Op BinXOR> '^' <Op BinAND>
-	/////////////////////////////////////////////////////////////////
-	// compare operations
-	// take two stack values and push a boolean value
-	OP_EQUATE,					// <Op Equate> '==' <Op Compare>
-	OP_UNEQUATE,				// <Op Equate> '!=' <Op Compare>
-	OP_ISGT,					// <Op Compare> '>'  <Op Shift>
-	OP_ISGTEQ,					// <Op Compare> '>=' <Op Shift>
-	OP_ISLT,					// <Op Compare> '<'  <Op Shift>
-	OP_ISLTEQ,					// <Op Compare> '<=' <Op Shift>
-	/////////////////////////////////////////////////////////////////
-	// shift operations
-	// take two stack values and push a value
-	OP_LSHIFT,					// <Op Shift> '<<' <Op AddSub>
-	OP_RSHIFT,					// <Op Shift> '>>' <Op AddSub>
+	OP_ASSIGN,					// <Op If>  '='  <Op>
+	OP_ARRAY_ASSIGN,			// <Concat> '='  <Op>
+	OP_ADD_ASSIGN,				// <Op If> '+='  <Op>
+	OP_SUB_ASSIGN,				// <Op If> '-='  <Op>
+	OP_MUL_ASSIGN,				// <Op If> '*='  <Op>
+	OP_DIV_ASSIGN,				// <Op If> '/='  <Op>
+	OP_MOD_ASSIGN,				// <Op If> '%='  <Op>
+	OP_BIN_XOR_ASSIGN,			// <Op If> '^='  <Op>
+	OP_BIN_AND_ASSIGN,			// <Op If> '&='  <Op>
+	OP_BIN_OR_ASSIGN,			// <Op If> '|='  <Op>
+	OP_RSHIFT_ASSIGN,			// <Op If> '>>=' <Op>
+	OP_LSHIFT_ASSIGN,			// <Op If> '<<=' <Op>
 	/////////////////////////////////////////////////////////////////
 	// add/sub operations
 	// take two stack values and push a value
@@ -45,6 +36,26 @@ enum command_t
 	OP_MUL,						// <Op MultDiv> '*' <Op Unary>
 	OP_DIV,						// <Op MultDiv> '/' <Op Unary>
 	OP_MOD,						// <Op MultDiv> '%' <Op Unary>
+	/////////////////////////////////////////////////////////////////
+	// logic operations
+	// take two stack values and push a value
+	OP_BIN_AND,					// <Op BinAND> '&' <Op Equate>
+	OP_BIN_OR,					// <Op BinOr>  '|' <Op BinXOR>
+	OP_BIN_XOR,					// <Op BinXOR> '^' <Op BinAND>
+	/////////////////////////////////////////////////////////////////
+	// shift operations
+	// take two stack values and push a value
+	OP_LSHIFT,					// <Op Shift> '<<' <Op AddSub>
+	OP_RSHIFT,					// <Op Shift> '>>' <Op AddSub>
+	/////////////////////////////////////////////////////////////////
+	// compare operations
+	// take two stack values and push a boolean value
+	OP_EQUATE,					// <Op Equate>  '==' <Op Compare>
+	OP_UNEQUATE,				// <Op Equate>  '!=' <Op Compare>
+	OP_ISGT,					// <Op Compare> '>'  <Op Shift>
+	OP_ISGTEQ,					// <Op Compare> '>=' <Op Shift>
+	OP_ISLT,					// <Op Compare> '<'  <Op Shift>
+	OP_ISLTEQ,					// <Op Compare> '<=' <Op Shift>
 	/////////////////////////////////////////////////////////////////
 	// unary operations
 	// take one stack values and push a value
@@ -81,22 +92,24 @@ enum command_t
 	/////////////////////////////////////////////////////////////////
 	// standard function calls
 	// check the parameters on stack before or inside the call of function
-	OP_FUNCTION,				// followed by an string address and a byte for parameter count
-	OP_FUNCTION2,				// followed by an string address and a byte for parameter count
-	OP_FUNCTION3,				// followed by an string address and a byte for parameter count
-	OP_FUNCTION4,				// followed by an string address and a byte for parameter count
-	OP_SUBFUNCTION,				// followed by an address and a byte for parameter count
-	OP_SUBFUNCTION2,			// followed by an address and a byte for parameter count
-	OP_SUBFUNCTION3,			// followed by an address and a byte for parameter count
-	OP_SUBFUNCTION4,			// followed by an address and a byte for parameter count
+	OP_FUNCTION,				// followed by an string address
+	OP_FUNCTION2,				// followed by an string address
+	OP_FUNCTION3,				// followed by an string address
+	OP_FUNCTION4,				// followed by an string address
+	OP_BLDFUNCTION,				// followed by an string address
+	OP_BLDFUNCTION2,			// followed by an string address
+	OP_BLDFUNCTION3,			// followed by an string address
+	OP_BLDFUNCTION4,			// followed by an string address
+	OP_SUBFUNCTION,				// followed by an string address
+	OP_SUBFUNCTION2,			// followed by an string address
+	OP_SUBFUNCTION3,			// followed by an string address
+	OP_SUBFUNCTION4,			// followed by an string address
 	/////////////////////////////////////////////////////////////////
 	// explicit stack pushes
 	// Values pushed on stack directly
 	OP_PUSH_NONE,				//
-	OP_PUSH_ADDR,				// followed by an address
-	OP_PUSH_ADDR2,				// followed by an address
-	OP_PUSH_ADDR3,				// followed by an address
-	OP_PUSH_ADDR4,				// followed by an address
+	OP_PUSH_ZERO,				//
+	OP_PUSH_ONE,				//
 	OP_PUSH_INT,				// followed by an integer 1byte
 	OP_PUSH_INT2,				// followed by an integer 2byte
 	OP_PUSH_INT3,				// followed by an integer 3byte
@@ -153,15 +166,10 @@ enum command_t
 	OP_CREATEARRAY,				// followed by dimension (char), create a empty var array
 	/////////////////////////////////////////////////////////////////
 	// maintainance
-	OP_CLEAR,					// clear a variable
+	OP_EMPTY,					// clear a variable
 	OP_POP,						// clear the stack
 	OP_EVAL,					// evaluate
 	OP_BOOLEAN,					// convert to boolean
-	/////////////////////////////////////////////////////////////////
-	// markers
-	OP_START,					// Program Start followed by 3byte Programm length
-	OP_END,						// Quit the interpreter immediately
-	OP_RETURN,					// return, quit if last scope	
 	/////////////////////////////////////////////////////////////////
 	// Jumps
 	// conditional branch
@@ -189,7 +197,12 @@ enum command_t
 	OP_GOSUB,					// gosub Id ';' followed by the target address
 	OP_GOSUB2,					// gosub Id ';' followed by the target address
 	OP_GOSUB3,					// gosub Id ';' followed by the target address
-	OP_GOSUB4					// gosub Id ';' followed by the target address
+	OP_GOSUB4,					// gosub Id ';' followed by the target address
+	/////////////////////////////////////////////////////////////////
+	// markers
+	OP_RETURN,					// return, quit if last scope	
+	OP_END,						// quit the interpreter immediately
+	OP_START					// Program Start followed by 3byte Programm length
 };
 
 #endif//_EAOPCODE_

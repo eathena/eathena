@@ -241,23 +241,19 @@ protected:
 	CPtrCounter<X>* cCntObj;
 	void acquire(const TPtrCount<X>& r)
 	{	// check if not already pointing to the same object
-		if( this->cCntObj != r.cCntObj || NULL==this->cCntObj )
+		if( this->cCntObj != r.cCntObj )
 		{	// save the current pointer
 			CPtrCounter<X> *old = this->cCntObj;
 			// aquite and increment the given pointer
-			if( r.cCntObj )
-			{
-				this->cCntObj = r.cCntObj;
-				this->cCntObj->aquire();
-			}
-			else
-			{	// new empty counter to link the pointers
-				this->cCntObj = new CPtrCounter<X>();
-				const_cast<TPtrCount&>(r).cCntObj = this->cCntObj;
-				this->cCntObj->aquire();
-			}
+			this->cCntObj = (r.cCntObj)?r.cCntObj->aquire():NULL;
 			// release the old thing
 			if(old) old->release();
+		}
+		if( NULL==this->cCntObj )
+		{	// new empty counter to link the pointers
+			this->cCntObj = new CPtrCounter<X>();
+			const_cast<TPtrCount&>(r).cCntObj = this->cCntObj;
+			this->cCntObj->aquire();
 		}
 	}
 	void release()
@@ -717,15 +713,15 @@ protected:
 		{	// save the current pointer
 			CObjCounter<X> *old = this->cCntObj;
 			// aquite and increment the given pointer
-			if( r.cCntObj )
-			{
-				this->cCntObj = r.cCntObj;
-				this->cCntObj->aquire();
-			}
-			else
-				this->cCntObj=NULL;
+			this->cCntObj = (r.cCntObj)?r.cCntObj->aquire():NULL;
 			// release the old thing
 			if(old) old->release();
+		}
+		if( NULL==this->cCntObj )
+		{	// new empty counter to link the pointers
+			this->cCntObj = new CObjCounter<X>();
+			const_cast<TObjPtr&>(r).cCntObj = this->cCntObj;
+			this->cCntObj->aquire();
 		}
 	}
 	void release()

@@ -12,131 +12,144 @@
 
 scriptprog::COpcode scriptprog::cOpcodeTable[256] = 
 {
-	{0,0,0,"nop",OP_NOP},
-	{0,0,0,"assign",OP_ASSIGN}, 
-	{0,0,0,"binary and",OP_BIN_AND},
-	{0,0,0,"binary or",OP_BIN_OR},
-	{0,0,0,"binary xor",OP_BIN_XOR},
-	{0,0,0,"equate",OP_EQUATE},
-	{0,0,0,"unequate",OP_UNEQUATE},
-	{0,0,0,"greater than",OP_ISGT},
-	{0,0,0,"greater equal",OP_ISGTEQ},
-	{0,0,0,"less than",OP_ISLT},
-	{0,0,0,"less equal",OP_ISLTEQ},
-	{0,0,0,"left shift",OP_LSHIFT},
-	{0,0,0,"right shift",OP_RSHIFT},
-	{0,0,0,"add",OP_ADD},
-	{0,0,0,"sub",OP_SUB},
-	{0,0,0,"mul",OP_MUL},
-	{0,0,0,"div",OP_DIV},
-	{0,0,0,"mod",OP_MOD},
-	{0,0,0,"negate",OP_NEGATE},
-	{0,0,0,"invert",OP_INVERT},
-	{0,0,0,"not",OP_NOT},
-	{0,0,0,"sizeof",OP_SIZEOF},
-	{0,0,0,"cast to integer",OP_CAST_INTEGER},
-	{0,0,0,"cast to string",OP_CAST_STRING},
-	{0,0,0,"cast to float",OP_CAST_FLOAT},
-	{0,0,0,"preadd",OP_PREADD},
-	{0,0,0,"presub",OP_PRESUB},
-	{0,0,0,"postadd",OP_POSTADD},
-	{0,0,0,"postsub",OP_POSTSUB},
-	{0,0,0,"member access",OP_MEMBER},
-	{0,0,0,"scope access",OP_SCOPE},
-	{1,1,1,"function call '%s', %i parameter",OP_FUNCTION},
-	{2,1,1,"function call '%s', %i parameter",OP_FUNCTION},
-	{3,1,1,"function call '%s', %i parameter",OP_FUNCTION},
-	{4,1,1,"function call '%s', %i parameter",OP_FUNCTION},
-	{1,1,1,"subfunction call '%s', %i parameter",OP_SUBFUNCTION},
-	{2,1,1,"subfunction call '%s', %i parameter",OP_SUBFUNCTION},
-	{3,1,1,"subfunction call '%s', %i parameter",OP_SUBFUNCTION},
-	{4,1,1,"subfunction call '%s', %i parameter",OP_SUBFUNCTION},
-	{0,0,0,"push none",OP_PUSH_NONE},
-	{1,0,0,"push address '%i'",OP_PUSH_ADDR},
-	{2,0,0,"push address '%i'",OP_PUSH_ADDR},
-	{3,0,0,"push address '%i'",OP_PUSH_ADDR},
-	{4,0,0,"push address '%i'",OP_PUSH_ADDR},
-	{1,0,0,"push integer '%i'",OP_PUSH_INT},
-	{2,0,0,"push integer '%i'",OP_PUSH_INT},
-	{3,0,0,"push integer '%i'",OP_PUSH_INT},
-	{4,0,0,"push integer '%i'",OP_PUSH_INT},
-	{5,0,0,"push integer '%i'",OP_PUSH_INT},
-	{6,0,0,"push integer '%i'",OP_PUSH_INT},
-	{7,0,0,"push integer '%i'",OP_PUSH_INT},
-	{8,0,0,"push integer '%i'",OP_PUSH_INT},
-	{1,1,0,"push string '%s'",OP_PUSH_STRING},
-	{2,1,0,"push string '%s'",OP_PUSH_STRING},
-	{3,1,0,"push string '%s'",OP_PUSH_STRING},
-	{4,1,0,"push string '%s'",OP_PUSH_STRING},
-	{4,0,0,"push float '%lf'",OP_PUSH_FLOAT},
-	{1,1,0,"push variable reference '%s'",OP_PUSH_VAR},
-	{2,1,0,"push variable reference '%s'",OP_PUSH_VAR},
-	{3,1,0,"push variable reference '%s'",OP_PUSH_VAR},
-	{4,1,0,"push variable reference '%s'",OP_PUSH_VAR},
-	{1,1,0,"push variable value '%s'",OP_PUSH_VAL},
-	{2,1,0,"push variable value '%s'",OP_PUSH_VAL},
-	{3,1,0,"push variable value '%s'",OP_PUSH_VAL},
-	{4,1,0,"push variable value '%s'",OP_PUSH_VAL},
-	{1,0,0,"push parameter reference '%i'",OP_PUSH_PARAVAR},
-	{2,0,0,"push parameter reference '%i'",OP_PUSH_PARAVAR},
-	{3,0,0,"push parameter reference '%i'",OP_PUSH_PARAVAR},
-	{4,0,0,"push parameter reference '%i'",OP_PUSH_PARAVAR},
-	{1,0,0,"push parameter value '%i'",OP_PUSH_PARAVAL},
-	{2,0,0,"push parameter value '%i'",OP_PUSH_PARAVAL},
-	{3,0,0,"push parameter value '%i'",OP_PUSH_PARAVAL},
-	{4,0,0,"push parameter value '%i'",OP_PUSH_PARAVAL},
-	{1,0,0,"push temp reference '%i'",OP_PUSH_TEMPVAR},
-	{2,0,0,"push temp reference '%i'",OP_PUSH_TEMPVAR},
-	{3,0,0,"push temp reference '%i'",OP_PUSH_TEMPVAR},
-	{4,0,0,"push temp reference '%i'",OP_PUSH_TEMPVAR},
-	{1,0,0,"push temp value '%i'",OP_PUSH_TEMPVAL},
-	{2,0,0,"push temp value '%i'",OP_PUSH_TEMPVAL},
-	{3,0,0,"push temp value '%i'",OP_PUSH_TEMPVAL},
-	{4,0,0,"push temp value '%i'",OP_PUSH_TEMPVAL},
-	{0,0,0,"array element access",OP_ARRAY},
-	{1,0,0,"array selection, %i elements",OP_ARRAYSEL},
-	{2,0,0,"array selection, %i elements",OP_ARRAYSEL},
-	{3,0,0,"array selection, %i elements",OP_ARRAYSEL},
-	{4,0,0,"array selection, %i elements",OP_ARRAYSEL},
-	{0,0,0,"array range",OP_RANGE},
-	{0,0,0,"array splice",OP_SPLICE},
-	{0,0,0,"array dulicate",OP_DULICATE},
-	{1,0,0,"concatination, %i elements",OP_CONCAT},
-	{2,0,0,"concatination, %i elements",OP_CONCAT},
-	{3,0,0,"concatination, %i elements",OP_CONCAT},
-	{4,0,0,"concatination, %i elements",OP_CONCAT},
-	{1,0,0,"create array, %i dimensions",OP_CREATEARRAY},
-	{0,0,0,"clear",OP_CLEAR},
-	{0,0,0,"pop",OP_POP},
-	{0,0,0,"eval",OP_EVAL},
-	{0,0,0,"boolean",OP_BOOLEAN},
-	{4,0,0,"start, prog size '%i'",OP_START},
-	{0,0,0,"end",OP_END},
-	{0,0,0,"return",OP_RETURN},
-	{1,0,0,"conditional jump on false to '%i'",OP_NIF},
-	{2,0,0,"conditional jump on false to '%i'",OP_NIF},
-	{3,0,0,"conditional jump on false to '%i'",OP_NIF},
-	{4,0,0,"conditional jump on false to '%i'",OP_NIF},
-	{1,0,0,"conditional jump on true to '%i'",OP_IF},
-	{2,0,0,"conditional jump on true to '%i'",OP_IF},
-	{3,0,0,"conditional jump on true to '%i'",OP_IF},
-	{4,0,0,"conditional jump on true to '%i'",OP_IF},
-	{1,0,0,"conditional jump on false or pop to '%i'",OP_NIF_POP},
-	{2,0,0,"conditional jump on false or pop to '%i'",OP_NIF_POP},
-	{3,0,0,"conditional jump on false or pop to '%i'",OP_NIF_POP},
-	{4,0,0,"conditional jump on false or pop to '%i'",OP_NIF_POP},
-	{1,0,0,"conditional jump on true or pop to '%i'",OP_IF_POP},
-	{2,0,0,"conditional jump on true or pop to '%i'",OP_IF_POP},
-	{3,0,0,"conditional jump on true or pop to '%i'",OP_IF_POP},
-	{4,0,0,"conditional jump on true or pop to '%i'",OP_IF_POP},
-	{1,0,0,"jump to '%i'",OP_GOTO},
-	{2,0,0,"jump to '%i'",OP_GOTO},
-	{3,0,0,"jump to '%i'",OP_GOTO},
-	{4,0,0,"jump to '%i'",OP_GOTO},
-	{1,0,0,"gosub to '%i'",OP_GOSUB},
-	{2,0,0,"gosub to '%i'",OP_GOSUB},
-	{3,0,0,"gosub to '%i'",OP_GOSUB},
-	{4,0,0,"gosub to '%i'",OP_GOSUB},
+	{0,0,0,OP_NOP,"nop"},
+	{0,0,2,OP_ASSIGN,"assign"},
+	{0,0,2,OP_ARRAY_ASSIGN,"array-assign"},
+	{0,0,2,OP_ADD_ASSIGN,"add-assign"},
+	{0,0,2,OP_SUB_ASSIGN,"sub-assign"},
+	{0,0,2,OP_MUL_ASSIGN,"mul-assign"},
+	{0,0,2,OP_DIV_ASSIGN,"div-assign"},
+	{0,0,2,OP_MOD_ASSIGN,"mod-assign"},
+	{0,0,2,OP_BIN_XOR_ASSIGN,"xor-assign"},
+	{0,0,2,OP_BIN_AND_ASSIGN,"and-assign"},
+	{0,0,2,OP_BIN_OR_ASSIGN,"or-assign"},
+	{0,0,2,OP_RSHIFT_ASSIGN,"rshift-assign"},
+	{0,0,2,OP_LSHIFT_ASSIGN,"lshift-assign"},
+	{0,0,2,OP_ADD,"add"},
+	{0,0,2,OP_SUB,"sub"},
+	{0,0,2,OP_MUL,"mul"},
+	{0,0,2,OP_DIV,"div"},
+	{0,0,2,OP_MOD,"mod"},
+	{0,0,2,OP_BIN_AND,"binary and"},
+	{0,0,2,OP_BIN_OR,"binary or"},
+	{0,0,2,OP_BIN_XOR,"binary xor"},
+	{0,0,2,OP_LSHIFT,"left shift"},
+	{0,0,2,OP_RSHIFT,"right shift"},
+	{0,0,2,OP_EQUATE,"equate"},
+	{0,0,2,OP_UNEQUATE,"unequate"},
+	{0,0,2,OP_ISGT,"greater than"},
+	{0,0,2,OP_ISGTEQ,"greater equal"},
+	{0,0,2,OP_ISLT,"less than"},
+	{0,0,2,OP_ISLTEQ,"less equal"},
+	{0,0,1,OP_NEGATE,"negate"},
+	{0,0,1,OP_INVERT,"invert"},
+	{0,0,1,OP_NOT,"not"},
+	{0,0,1,OP_SIZEOF,"sizeof"},
+	{0,0,1,OP_CAST_INTEGER,"cast to integer"},
+	{0,0,1,OP_CAST_STRING,"cast to string"},
+	{0,0,1,OP_CAST_FLOAT,"cast to float"},
+	{0,0,1,OP_PREADD,"preadd"},
+	{0,0,1,OP_PRESUB,"presub"},
+	{0,0,1,OP_POSTADD,"postadd"},
+	{0,0,1,OP_POSTSUB,"postsub"},
+	{0,0,2,OP_MEMBER,"member access"},
+	{0,0,2,OP_SCOPE,"scope access"},
+	{1,1,1,OP_FUNCTION,"function call '%s'"},
+	{2,1,1,OP_FUNCTION,"function call '%s'"},
+	{3,1,1,OP_FUNCTION,"function call '%s'"},
+	{4,1,1,OP_FUNCTION,"function call '%s'"},
+	{1,1,1,OP_BLDFUNCTION,"buildin function call '%s'"},
+	{2,1,1,OP_BLDFUNCTION,"buildin function call '%s'"},
+	{3,1,1,OP_BLDFUNCTION,"buildin function call '%s'"},
+	{4,1,1,OP_BLDFUNCTION,"buildin function call '%s'"},
+	{1,1,2,OP_SUBFUNCTION,"subfunction call '%s'"},
+	{2,1,2,OP_SUBFUNCTION,"subfunction call '%s'"},
+	{3,1,2,OP_SUBFUNCTION,"subfunction call '%s'"},
+	{4,1,2,OP_SUBFUNCTION,"subfunction call '%s'"},
+	{0,0,0,OP_PUSH_NONE,"push none"},
+	{0,0,0,OP_PUSH_ZERO,"push integer '0'"},
+	{0,0,0,OP_PUSH_ONE,"push integer '1'"},
+	{1,0,0,OP_PUSH_INT,"push integer '%i'"},
+	{2,0,0,OP_PUSH_INT,"push integer '%i'"},
+	{3,0,0,OP_PUSH_INT,"push integer '%i'"},
+	{4,0,0,OP_PUSH_INT,"push integer '%i'"},
+	{5,0,0,OP_PUSH_INT,"push integer '%i'"},
+	{6,0,0,OP_PUSH_INT,"push integer '%i'"},
+	{7,0,0,OP_PUSH_INT,"push integer '%i'"},
+	{8,0,0,OP_PUSH_INT,"push integer '%i'"},
+	{1,1,0,OP_PUSH_STRING,"push string '%s'"},
+	{2,1,0,OP_PUSH_STRING,"push string '%s'"},
+	{3,1,0,OP_PUSH_STRING,"push string '%s'"},
+	{4,1,0,OP_PUSH_STRING,"push string '%s'"},
+	{4,0,0,OP_PUSH_FLOAT,"push float '%lf'"},
+	{1,1,2,OP_PUSH_VAR,"push variable reference '%s'"},
+	{2,1,2,OP_PUSH_VAR,"push variable reference '%s'"},
+	{3,1,2,OP_PUSH_VAR,"push variable reference '%s'"},
+	{4,1,2,OP_PUSH_VAR,"push variable reference '%s'"},
+	{1,1,2,OP_PUSH_VAL,"push variable value '%s'"},
+	{2,1,2,OP_PUSH_VAL,"push variable value '%s'"},
+	{3,1,2,OP_PUSH_VAL,"push variable value '%s'"},
+	{4,1,2,OP_PUSH_VAL,"push variable value '%s'"},
+	{1,0,0,OP_PUSH_PARAVAR,"push parameter reference '%i'"},
+	{2,0,0,OP_PUSH_PARAVAR,"push parameter reference '%i'"},
+	{3,0,0,OP_PUSH_PARAVAR,"push parameter reference '%i'"},
+	{4,0,0,OP_PUSH_PARAVAR,"push parameter reference '%i'"},
+	{1,0,0,OP_PUSH_PARAVAL,"push parameter value '%i'"},
+	{2,0,0,OP_PUSH_PARAVAL,"push parameter value '%i'"},
+	{3,0,0,OP_PUSH_PARAVAL,"push parameter value '%i'"},
+	{4,0,0,OP_PUSH_PARAVAL,"push parameter value '%i'"},
+	{1,0,0,OP_PUSH_TEMPVAR,"push temp reference '%i'"},
+	{2,0,0,OP_PUSH_TEMPVAR,"push temp reference '%i'"},
+	{3,0,0,OP_PUSH_TEMPVAR,"push temp reference '%i'"},
+	{4,0,0,OP_PUSH_TEMPVAR,"push temp reference '%i'"},
+	{1,0,0,OP_PUSH_TEMPVAL,"push temp value '%i'"},
+	{2,0,0,OP_PUSH_TEMPVAL,"push temp value '%i'"},
+	{3,0,0,OP_PUSH_TEMPVAL,"push temp value '%i'"},
+	{4,0,0,OP_PUSH_TEMPVAL,"push temp value '%i'"},
+	{0,0,2,OP_ARRAY,"array element access"},
+	{1,0,0,OP_ARRAYSEL,"array selection, %i elements"},
+	{2,0,0,OP_ARRAYSEL,"array selection, %i elements"},
+	{3,0,0,OP_ARRAYSEL,"array selection, %i elements"},
+	{4,0,0,OP_ARRAYSEL,"array selection, %i elements"},
+	{0,0,3,OP_RANGE,"array range"},
+	{0,0,4,OP_SPLICE,"array splice"},
+	{0,0,4,OP_DULICATE,"array dulicate"},
+	{1,0,0,OP_CONCAT,"concatination, %i elements"},
+	{2,0,0,OP_CONCAT,"concatination, %i elements"},
+	{3,0,0,OP_CONCAT,"concatination, %i elements"},
+	{4,0,0,OP_CONCAT,"concatination, %i elements"},
+	{1,0,0,OP_CREATEARRAY,"create array, %i dimensions"},
+	{0,0,1,OP_EMPTY,"clear variable"},
+	{0,0,0,OP_POP,"pop"},
+	{0,0,1,OP_EVAL,"eval"},
+	{0,0,1,OP_BOOLEAN,"boolean"},
+	{1,0,1,OP_NIF,"conditional jump on false to '%i'"},
+	{2,0,1,OP_NIF,"conditional jump on false to '%i'"},
+	{3,0,1,OP_NIF,"conditional jump on false to '%i'"},
+	{4,0,1,OP_NIF,"conditional jump on false to '%i'"},
+	{1,0,1,OP_IF,"conditional jump on true to '%i'"},
+	{2,0,1,OP_IF,"conditional jump on true to '%i'"},
+	{3,0,1,OP_IF,"conditional jump on true to '%i'"},
+	{4,0,1,OP_IF,"conditional jump on true to '%i'"},
+	{1,0,1,OP_NIF_POP,"conditional jump on false or pop to '%i'"},
+	{2,0,1,OP_NIF_POP,"conditional jump on false or pop to '%i'"},
+	{3,0,1,OP_NIF_POP,"conditional jump on false or pop to '%i'"},
+	{4,0,1,OP_NIF_POP,"conditional jump on false or pop to '%i'"},
+	{1,0,1,OP_IF_POP,"conditional jump on true or pop to '%i'"},
+	{2,0,1,OP_IF_POP,"conditional jump on true or pop to '%i'"},
+	{3,0,1,OP_IF_POP,"conditional jump on true or pop to '%i'"},
+	{4,0,1,OP_IF_POP,"conditional jump on true or pop to '%i'"},
+	{1,0,0,OP_GOTO,"jump to '%i'"},
+	{2,0,0,OP_GOTO,"jump to '%i'"},
+	{3,0,0,OP_GOTO,"jump to '%i'"},
+	{4,0,0,OP_GOTO,"jump to '%i'"},
+	{1,0,0,OP_GOSUB,"gosub to '%i'"},
+	{2,0,0,OP_GOSUB,"gosub to '%i'"},
+	{3,0,0,OP_GOSUB,"gosub to '%i'"},
+	{4,0,0,OP_GOSUB,"gosub to '%i'"},
+	{0,0,0,OP_RETURN,"return"},
+	{0,0,0,OP_END,"end"},
+	{4,0,0,OP_START,"start, prog size '%i'"}
 };
 
 
@@ -167,7 +180,7 @@ scriptprog::script scriptprog::get_script(const basics::string<>& name)
 
 ///////////////////////////////////////////////////////////////////////////
 // register script
-bool scriptprog::regist(script& scr)
+bool scriptprog::regist(script& scr, uint line)
 {
 	if( 0==scr->cName.size() )
 	{	// when no name available, it's only used at the instances
@@ -175,9 +188,9 @@ bool scriptprog::regist(script& scr)
 	}
 	else if( scriptprog::cNamedProgs.exists(scr->cName) )
 	{	// conflicting name
-		fprintf(stderr, "programm with name '%s' already exists\n"
+		fprintf(stderr, "programm with name '%s' (line %u) already exists\n"
 			"ignoring name, script will be not available for external duplication\n", 
-			scr->cName.c_str()); 
+			scr->cName.c_str(), line); 
 		scr->cName.clear();
 		return true;
 	}
@@ -223,17 +236,16 @@ bool scriptprog::getCommand(size_t &inx, CCommand& cmd) const
 	const COpcode& op = scriptprog::cOpcodeTable[cmd.cCommand];
 	///////////
 	cmd.cCommand = op.code;
+	cmd.cCount  = op.param;
 	///////////
-	cmd.cParam1 = getNumber(inx, op.size1);
+	cmd.cParam = getNumber(inx, op.size);
 	///////////
-	cmd.cParam2 = getNumber(inx, op.size2);
-	///////////
-	if( op.type1 )
+	cmd.cString = "";
+	if( op.type )
 	{	// is string
-		cmd.cString = "";
-		if( cmd.cParam1 && cDataSeg.size()>cmd.cParam1 )
+		size_t i = cmd.cParam;
+		if( i && i<cDataSeg.size() )
 		{
-			size_t i = cmd.cParam1;
 			const char *str = (const char *)&(cDataSeg[i]);
 			// search for the EOS marker
 			for(; cDataSeg[i] && i<cDataSeg.size(); ++i)	{}
@@ -250,7 +262,7 @@ size_t scriptprog::nextCommand(size_t pos) const
 {
 	const unsigned char cmd = getCommand(pos);
 	const COpcode& op = scriptprog::cOpcodeTable[cmd];
-	return pos + op.size1+op.size2;
+	return pos + op.size;
 }
 
 
@@ -618,20 +630,16 @@ void scriptprog::printCommand(size_t &pos) const
 	if( getCommand(pos, ccmd) )
 	{
 		const COpcode& op = scriptprog::cOpcodeTable[ccmd.cCommand];
-		if( op.type1 && op.size2 )
-		{	// 2 params first string
-			this->logging(op.desc, ccmd.cString, (int)ccmd.cParam2);
-		}
-		else if( op.type1 )
+		if( op.type )
 		{	// 1 param first string
 			this->logging(op.desc, ccmd.cString);
 		}
-		else if( op.size1 )
+		else if( op.size )
 		{	// 1 param first integer
 			if( op.code==OP_PUSH_FLOAT )
-				this->logging(op.desc, int2float(ccmd.cParam1));
+				this->logging(op.desc, int2float(ccmd.cParam));
 			else
-				this->logging(op.desc, (int)ccmd.cParam1);
+				this->logging(op.desc, (int)ccmd.cParam);
 		}
 		else
 		{	// no param
