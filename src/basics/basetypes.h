@@ -322,6 +322,7 @@ extern long altzone;
 #include <sys/time.h>
 #include <sys/un.h>
 #include <unistd.h>
+#include <dirent.h>
 #ifndef FIONREAD
 #include <sys/filio.h>	// FIONREAD on Solaris, might conflict on other systems
 #endif

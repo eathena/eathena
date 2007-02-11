@@ -25,6 +25,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////
 struct eaprinter : public default_printer
 {
+private:
+	ICL_EMPTY_COPYCONSTRUCTOR(eaprinter)
+
 	bool cHasDefault;
 public:
 	eaprinter() : 
@@ -50,6 +53,9 @@ public:
 //
 class transformer : public basics::global, public default_printer
 {
+private:
+	ICL_EMPTY_COPYCONSTRUCTOR(transformer)
+
 	///////////////////////////////////////////////////////////////////////////
 	// types
 	typedef transformer* ptransformer;

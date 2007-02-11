@@ -16,38 +16,12 @@
 #include "eainstance.h"
 #include "eaengine.h"
 
+///////////////////////////////////////////////////////////////////////////////
+// scriptfile::storage.
 
 
-
-scriptfile::storage scriptfile::stor;
-
-/// load a single file.
-bool scriptfile::load_file(const basics::string<>& filename)
-{
-	eacompiler compiler;
-	return compiler.load_file(filename, 0);
-}
-
-/// load list of file.
-bool scriptfile::load_file(const basics::vector< basics::string<> >& namelist)
-{
-	eacompiler compiler;
-	basics::vector< basics::string<> >::iterator iter(namelist);
-	bool ok = true;
-	for(; ok && iter; ++iter)
-	{
-		ok = compiler.load_file(*iter,0);
-	}
-	return ok;
-}
-
-
-
-
-
-
-
-
+///////////////////////////////////////////////////////////////////////////////
+///
 bool scriptfile::storage::reload()
 {
 	scriptfile_list::iterator iter(this->files);
@@ -58,6 +32,9 @@ bool scriptfile::storage::reload()
 	}
 	return true;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+///
 bool scriptfile::storage::erase(const basics::string<>& filename)
 {
 	scriptfile_list::data_type* ptr = this->files.search(filename);
@@ -69,12 +46,16 @@ bool scriptfile::storage::erase(const basics::string<>& filename)
 	return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///
 scriptfile::scriptfile_ptr scriptfile::storage::get_scriptfile(const basics::string<>& filename) const
 {
 	const scriptfile_ptr* ptr = this->files.search(filename);
 	return ptr?*ptr:scriptfile_ptr();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///
 scriptfile::scriptfile_ptr scriptfile::storage::create(const basics::string<>& filename)
 {
 	scriptfile_ptr& obj = this->files[filename];
@@ -82,6 +63,8 @@ scriptfile::scriptfile_ptr scriptfile::storage::create(const basics::string<>& f
 	return obj;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///
 void scriptfile::storage::info() const
 {
 	scriptfile_list::iterator iter(this->files);
@@ -108,15 +91,112 @@ void scriptfile::storage::info() const
 
 ///////////////////////////////////////////////////////////////////////////////
 // scriptfile.
+/*
+	struct loader
+	{
+		basics::TObjPtr<eacompiler> compiler;
 
+		bool load_folder(const char* startfolder)
+		{
+			basics::file_iterator iter(startfolder, "*.ea*");
+			uint cnts=0, cntb=0;
+			for(; iter; ++iter)
+			{
+				if( basics::is_file(*iter) )
+				{
+					if( basics::match_wildcard("*.ea",*iter) )
+					{
+						if( !this->load_file(*iter) )
+							return false;
+						++cnts;
+					}
+					else if( basics::match_wildcard("*.eab",*iter) )
+					{
+						//if( !this->load_binaryfile(*iter) )
+						//	return false;
+						//++cntb;
+					}
+				}
+			}
+			printf("loaded %u new scripts and %u compiled images\n", cnts, cntb);
+			return true;
+		}
+		bool load_file(const basics::string<>& filename, int option=0)
+		{
+			return compiler->load_file(filename, option);
+		}
+		bool load_file(const basics::vector< basics::string<> >& namelist, int option=0)
+		{
+			eacompiler& comp = *this->compiler;
+			basics::vector< basics::string<> >::iterator iter(namelist);
+			bool ok = true;
+			for(; ok && iter; ++iter)
+			{
+				ok = comp.load_file(*iter,0);
+			}
+			return ok;
+		}
+	};
+*/
+scriptfile::storage scriptfile::stor;
 
-///////////////////////////////////////////////////////////////////////////
-// get definitions
+///////////////////////////////////////////////////////////////////////////////
+/// load a single file.
+bool scriptfile::load_file(const basics::string<>& filename)
+{
+	eacompiler compiler;
+	return compiler.load_file(filename, 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// load list of file.
+bool scriptfile::load_file(const basics::vector< basics::string<> >& namelist)
+{
+	eacompiler compiler;
+	basics::vector< basics::string<> >::iterator iter(namelist);
+	bool ok = true;
+	for(; ok && iter; ++iter)
+	{
+		ok = compiler.load_file(*iter,0);
+	}
+	return ok;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// load folder of file.
+bool load_folder(const char* startfolder)
+{
+	eacompiler compiler;
+	basics::file_iterator iter(startfolder, "*.ea*");
+	uint cnts=0, cntb=0;
+	for(; iter; ++iter)
+	{
+		if( basics::is_file(*iter) )
+		{
+			if( basics::match_wildcard("*.ea",*iter) )
+			{
+				if( !compiler.load_file(*iter,0) )
+					return false;
+				++cnts;
+			}
+			else if( basics::match_wildcard("*.eab",*iter) )
+			{
+				//if( !this->load_binaryfile(*iter) )
+				//	return false;
+				//++cntb;
+			}
+		}
+	}
+	printf("loaded %u new scripts and %u compiled images\n", cnts, cntb);
+	return true;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// get definitions
 void scriptfile::get_defines(scriptdefines& defs)
 {
 	defs += this->definitions;
 	// get definitions from parents
-	scriptfile_list::iterator iter(this->parents);
+	filename_list::iterator iter(this->parents);
 	for(; iter; ++iter)
 	{
 		scriptfile::scriptfile_ptr ptr = scriptfile::stor.get_scriptfile(*iter);
@@ -126,8 +206,9 @@ void scriptfile::get_defines(scriptdefines& defs)
 		}
 	}
 }
-///////////////////////////////////////////////////////////////////////////
-// (forced) loading/reloading of this file.
+
+///////////////////////////////////////////////////////////////////////////////
+/// (forced) loading/reloading of this file.
 bool scriptfile::load(bool forced, basics::TObjPtr<eacompiler> compiler)
 {
 	if( this->is_modified() || forced )
@@ -138,7 +219,7 @@ bool scriptfile::load(bool forced, basics::TObjPtr<eacompiler> compiler)
 			return false;
 
 		// reload depending files
-		scriptfile_list::iterator iter(this->childs);
+		filename_list::iterator iter(this->childs);
 		for(; iter; ++iter)
 		{
 			scriptfile_ptr ptr = this->get_scriptfile(*iter);
@@ -149,8 +230,8 @@ bool scriptfile::load(bool forced, basics::TObjPtr<eacompiler> compiler)
 	return true;
 }
 
-///////////////////////////////////////////////////////////////////////////
-// checking file state and updating the locals at the same time
+///////////////////////////////////////////////////////////////////////////////
+/// checking file state and updating the locals at the same time
 bool scriptfile::is_modified()
 {
 	struct stat s;

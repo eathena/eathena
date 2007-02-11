@@ -128,6 +128,7 @@ struct buildin_system : public buildin
 struct buildin_gui : public buildin
 {
 	static basics::variant buildin_close(CStackEngine& st) { return 0; } 
+	static basics::variant buildin_dialog(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_inputnumber(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_inputstring(CStackEngine& st) { return 0; } 
 	static basics::variant buildin_menu(CStackEngine& st) { return 0; } 
@@ -137,6 +138,7 @@ struct buildin_gui : public buildin
 	buildin_gui()
 	{
 		buildin::create("close", buildin_close);
+		buildin::create("dialog", buildin_dialog);
 		buildin::create("inputnumber", buildin_inputnumber);
 		buildin::create("inputstring", buildin_inputstring);
 		buildin::create("menu", buildin_menu);

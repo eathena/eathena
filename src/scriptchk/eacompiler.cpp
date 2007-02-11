@@ -265,7 +265,8 @@ bool eacompiler::compile_variable(const parse_node &node, uint scope, unsigned l
 	else
 	{
 		// varassign not empty -> '=' <Expr>
-		const varflags = (flags&~CFLAG_RVALUE)|CFLAG_VARCREATE|(has_assign?(CFLAG_ASSIGN|CFLAG_LVALUE):(CFLAG_NOASSIGN|CFLAG_VARSILENT));
+
+		const int varflags = (flags&~(CFLAG_RVALUE|CFLAG_ASSIGN))|CFLAG_VARCREATE|(has_assign?(CFLAG_NRMASSIGN|CFLAG_LVALUE):(CFLAG_NOASSIGN|CFLAG_VARSILENT));
 		accept= (!has_assign || compile_main(varassign[1], scope, (flags&~CFLAG_LVALUE)|CFLAG_RVALUE, uservalue)) &&
 				compile_main(varname, scope, varflags, uservalue);
 		if( accept && has_assign )
@@ -536,7 +537,7 @@ bool eacompiler::put_function_call(const parse_node &node, uint scope, const bas
 	return true;
 }
 
-bool eacompiler::put_subfunction_call(const parse_node &node, const basics::string<>& host, const basics::string<>& name, uint paramcnt)
+bool eacompiler::put_subfunction_call(const parse_node &node, uint scope, const basics::string<>& host, const basics::string<>& name, uint paramcnt)
 {
 	this->put_nonconst();
 	if( host == "buildin" )
@@ -551,6 +552,10 @@ bool eacompiler::put_subfunction_call(const parse_node &node, const basics::stri
 			this->put_strcommand(OP_BLDFUNCTION, name);
 			return true;
 		}
+	}
+	else if( host == "player" )
+	{	// some player member function, which actually is a readonly variable access
+		return put_knownvariable(node, name, CFLAG_RVALUE|CFLAG_VARCREATE|CFLAG_NOASSIGN, scope, CFLAG_PERM|CFLAG_PLY);
 	}
 	else
 	{	// call subfunction in another script
@@ -623,7 +628,7 @@ bool eacompiler::compile_subfunction_call(const parse_node &node, uint scope, un
 			const basics::string<>& name = childnode[0].string();
 			// one additional parameter when called as memberfunction
 			uservalue += ((flags&CFLAG_MEMBER)!=0);
-			return put_subfunction_call(node, base, name, uservalue);
+			return put_subfunction_call(node, scope, base, name, uservalue);
 		}
 	}
 	return false;
@@ -1886,6 +1891,10 @@ bool eacompiler::put_variable(const parse_node &node, const basics::string<>& na
 			this->warning("now using variable '%s::%s'\n", variable_getaccess(iterX->key), name.c_str());
 			access = iterX->key;
 		}
+		else if( m.exists( (access = CFLAG_TEMP) ) )
+		{	// prefer a temp var, when exist
+			this->warning("prefering variable 'temp::%s'\n", name.c_str());
+		}
 		else
 		{
 			this->warning("failed to determin a suitable variable\n");
@@ -2109,6 +2118,9 @@ bool eacompiler::compile_switchstm(const parse_node &node, uint scope, unsigned 
 	size_t var_id=0;
 	basics::string<> varname;
 	parse_node worknode = node;
+	CContBreak prev_controls = this->cControl;
+	this->cControl = CContBreak();
+	flags &= ~(CFLAG_USE_BREAK|CFLAG_USE_CONT);
 
 	varname << "_#casetmp_" << (int)prog->getCurrentPosition();
 	create_variable(node, varname, CFLAG_TEMP, scope, basics::VAR_AUTO, false, true);
@@ -2128,10 +2140,6 @@ bool eacompiler::compile_switchstm(const parse_node &node, uint scope, unsigned 
 	this->put_command(OP_POP);
 
 	worknode = node[5];
-
-	this->continue_target = 0;
-	this->has_continue=false;
-	this->break_target = 0;
 
 	///////////////////////////////////////////////////////////////////////////
 	// use a if-else-if strucure to process the case; 
@@ -2253,7 +2261,9 @@ bool eacompiler::compile_switchstm(const parse_node &node, uint scope, unsigned 
 			this->replace_jumps(defaultgoto, rend);
 		}
 		// convert break -> goto REND
-		this->replace_jumps(this->break_target, rend);
+		this->replace_jumps(this->cControl.break_target, rend);
+		// restore previous controls
+		this->cControl = prev_controls;
 	}
 	return accept;
 }
@@ -2328,9 +2338,9 @@ bool eacompiler::compile_whilestm(const parse_node &node, uint scope, unsigned l
 {	// 'while' '(' <Expr> ')' <Normal Stm>
 	bool accept;
 //	this->logging("Label1\n");
-	this->continue_target = prog->getCurrentPosition();// position marker
-	this->has_continue=true;
-	this->break_target = 0;
+	CContBreak prev_controls = this->cControl;
+	this->cControl = CContBreak( prog->getCurrentPosition() ); // position marker
+	flags &= ~(CFLAG_USE_BREAK|CFLAG_USE_CONT);
 
 	// execute <Expr>
 	accept  = compile_main(node[2], scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue);
@@ -2343,13 +2353,14 @@ bool eacompiler::compile_whilestm(const parse_node &node, uint scope, unsigned l
 	accept &= compile_main(node[4], scope, flags | CFLAG_USE_BREAK | CFLAG_USE_CONT, uservalue);
 
 //	this->logging("Goto -> Label1\n");
-	this->put_varcommand(OP_GOTO, this->continue_target);
+	this->put_varcommand(OP_GOTO, this->cControl.continue_target);
 
 //	this->logging("Label2\n");
 	size_t tarpos2 = prog->getCurrentPosition();
 	prog->replaceAddr(tarpos2 ,inspos2);
 	// convert break -> goto Label2
-	this->replace_jumps(this->break_target,tarpos2);
+	this->replace_jumps(this->cControl.break_target,tarpos2);
+	this->cControl = prev_controls;
 	// convert continue -> goto Label1, already done	
 	return accept;
 }
@@ -2357,15 +2368,25 @@ bool eacompiler::compile_whilestm(const parse_node &node, uint scope, unsigned l
 bool eacompiler::compile_forstm(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {	// 'for' '(' <Expr List> ';' <Expr> ';' <Expr List> ')' <Normal Stm>
 	// execute <Arg1>
-	bool accept  = compile_main(node[2], scope, flags, uservalue);
-	this->put_command(OP_POP);
+	CContBreak prev_controls = this->cControl;
+	this->cControl = CContBreak();
+	flags &= ~(CFLAG_USE_BREAK|CFLAG_USE_CONT);
+
+	const bool has_initalize = (node[2].symbol() != PT_EXPR);
+	const bool has_condition = (node[4].symbol() != PT_EXPR);
+	const bool has_increment = (node[6].symbol() != PT_EXPR);
+	
+	bool accept = true;
+	if( has_initalize )
+	{
+		accept = compile_main(node[2], scope, flags, uservalue);
+		this->put_command(OP_POP);
+	}
 	
 //	this->logging("Label1\n");
 	size_t tarpos1 = prog->getCurrentPosition();// position marker
 	// execute <Arg2>, need a value
 
-	const bool has_condition = (node[4].symbol() != PT_EXPR);
-	// true when second argument is empty and for loop is infinite
 	
 	size_t inspos2=0;
 	if(has_condition)
@@ -2375,19 +2396,19 @@ bool eacompiler::compile_forstm(const parse_node &node, uint scope, unsigned lon
 		this->put_command(OP_NIF3);
 		inspos2 = prog->appendAddr(0);	// placeholder
 	}
-	this->continue_target = 0;
-	this->has_continue=false;
-	this->break_target = 0;
 	
 	// execute the loop body
 	accept &= compile_main(node[8], scope, flags | CFLAG_USE_BREAK | CFLAG_USE_CONT, uservalue);
 
 	// convert continue -> goto Label3
-	this->replace_jumps(this->continue_target, prog->getCurrentPosition());
+	this->replace_jumps(this->cControl.continue_target, prog->getCurrentPosition());
+	this->cControl.continue_target = 0;
 
-	// execute the incrementor <Arg3>
-	accept &= compile_main(node[6], scope, flags, uservalue);
-	this->put_command(OP_POP);
+	if(has_increment)
+	{	// execute the incrementor <Arg3>
+		accept &= compile_main(node[6], scope, flags, uservalue);
+		this->put_command(OP_POP);
+	}
 
 //	this->logging("Goto -> Label1\n");
 	this->put_varcommand(OP_GOTO, tarpos1);
@@ -2400,16 +2421,18 @@ bool eacompiler::compile_forstm(const parse_node &node, uint scope, unsigned lon
 	}
 
 	// convert break -> goto Label2
-	this->replace_jumps(this->break_target,tarpos2);
+	this->replace_jumps(this->cControl.break_target,tarpos2);
+	this->cControl = prev_controls;
 	return accept;
 }
 
 bool eacompiler::compile_dostm(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {	// 'do' <Normal Stm> 'while' '(' <Expr> ')' ';'
 //	this->logging("Label1\n");
-	this->continue_target = 0;
-	this->has_continue =false;
-	this->break_target = 0;
+
+	CContBreak prev_controls = this->cControl;
+	this->cControl = CContBreak();
+	flags &= ~(CFLAG_USE_BREAK|CFLAG_USE_CONT);
 
 	size_t tarpos1 = prog->getCurrentPosition();
 
@@ -2417,7 +2440,7 @@ bool eacompiler::compile_dostm(const parse_node &node, uint scope, unsigned long
 	bool accept  = compile_main(node[1], scope, flags | CFLAG_USE_BREAK | CFLAG_USE_CONT, uservalue);
 	
 	// convert continue -> goto Label1
-	this->replace_jumps(this->continue_target, prog->getCurrentPosition());
+	this->replace_jumps(this->cControl.continue_target, prog->getCurrentPosition());
 
 	// execute <Expr>
 	accept &= compile_main(node[4], scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue);
@@ -2427,8 +2450,8 @@ bool eacompiler::compile_dostm(const parse_node &node, uint scope, unsigned long
 	this->put_varcommand(OP_IF, tarpos1);
 	
 	// convert break -> goto Label2
-	this->replace_jumps(this->break_target, prog->getCurrentPosition());
-	
+	this->replace_jumps(this->cControl.break_target, prog->getCurrentPosition());
+	this->cControl = prev_controls;
 	return accept;
 }
 
@@ -2438,20 +2461,20 @@ bool eacompiler::compile_lctrlstm(const parse_node &node, uint scope, unsigned l
 	if( (node.childs()>0 && node[0].symbol() == PT_CONTINUE) && (0!=(flags & CFLAG_USE_CONT)) )
 	{
 		
-		if( this->has_continue )
+		if( this->cControl.has_continue )
 		{
-			this->put_varcommand(OP_GOTO, this->continue_target);
+			this->put_varcommand(OP_GOTO, this->cControl.continue_target);
 		}
 		else
 		{
 			this->put_command(OP_GOTO3);
-			this->continue_target = prog->appendAddr( this->continue_target );
+			this->cControl.continue_target = prog->appendAddr( this->cControl.continue_target );
 		}
 	}
 	else if( (node.childs()>0 && node[0].symbol() == PT_BREAK) && (0!=(flags & CFLAG_USE_BREAK)) )
 	{
 		this->put_command(OP_GOTO3);
-		this->break_target = prog->appendAddr( this->break_target );
+		this->cControl.break_target = prog->appendAddr( this->cControl.break_target );
 	}
 	else if( (node.childs()>0 && node[0].symbol() == PT_BREAK) )
 	{	// accept it as call to end
@@ -2984,7 +3007,7 @@ bool eacompiler::compile_concat(const parse_node &node, uint scope, unsigned lon
 {	// '{' <Expr> ',' <Expr List> '}'
 	const parse_node &list = node[3];
 	// strip the assignments here
-	const has_assign = 0!=(flags&CFLAG_ASSIGN);
+	const bool has_assign = 0!=(flags&CFLAG_ASSIGN);
 	if(	compile_main(node[1], scope, flags&~CFLAG_ASSIGN, uservalue) &&
 		compile_main(list, scope, flags&~CFLAG_ASSIGN, uservalue) )
 	{

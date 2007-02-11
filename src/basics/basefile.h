@@ -202,8 +202,6 @@ inline FILE* safefopen(const char*name, const char*option)
 }
 
 
-
-
 ///////////////////////////////////////////////////////////////////////////////
 /// basic callback object.
 ///////////////////////////////////////////////////////////////////////////////
@@ -220,6 +218,76 @@ bool findFiles(const char *p, const char *pat, const CFileProcessor& fp);
 bool findFiles(const char *p, const char *pat, void (func)(const char*) );
 
 
+///////////////////////////////////////////////////////////////////////////////
+/// file iterator.
+/// allows directory scanning without callbacks
+class file_iterator : public noncopyable
+{
+	ICL_EMPTY_COPYCONSTRUCTOR(file_iterator)
+#ifdef WIN32
+	typedef HANDLE 	scan_t;
+	typedef WIN32_FIND_DATA find_t;
+	bool findfirst(const string<>& path);
+	bool findnext();
+	void findclose();
+	static scan_t invalid()	{ return INVALID_HANDLE_VALUE; }
+#else
+	typedef DIR* scan_t;
+	typedef struct dirent* find_t;
+	bool findfirst(const string<>& path);
+	bool findnext();
+	void findclose();
+	static scan_t invalid()	{ return NULL; }
+#endif
+
+	struct entry
+	{
+		scan_t		cScan;
+		find_t		cFind;
+		string<>	cPath;
+		string<>	cFile;
+		entry() : cScan( file_iterator::invalid() )
+		{}
+	};
+	friend struct entry;
+	
+	bool recursive;
+	string<> pattern;
+	
+	entry current;
+	vector<entry> stack;
+
+public:
+	file_iterator(const string<>& spath, const string<>& pat, bool recurse=true);
+	file_iterator(const string<>& pat="*", bool recurse=true);
+	~file_iterator()
+	{	// close current and stacked handles
+		this->findclose();
+	}
+	const file_iterator& operator=(const string<>& spath);
+
+private:
+	bool select_valid();
+public:
+	bool is_valid() const { return (this->stack.size()>0); }
+	operator bool() const { return this->is_valid(); }
+	bool operator++()
+	{
+		return this->is_valid() && this->findnext() && this->select_valid();
+	}
+	bool operator++(int)
+	{
+		return this->is_valid() && this->findnext() && this->select_valid();
+	}
+	const string<>* operator->()
+	{
+		return &this->current.cFile;
+	}
+	const string<>& operator*()
+	{
+		return this->current.cFile;
+	}
+};
 
 
 //////////////////////////////////////////////////////////////////////////

@@ -38,6 +38,7 @@ void test_zib(void);
 //////////////////////////////////////////////////////////////////////////
 // convinience addition to select preferend link library
 // searchpath to the lib has to be added manually
+
 #ifndef BASE_ZLIB_DYNAMIC
 #ifdef _MSC_VER
 
@@ -93,17 +94,22 @@ class CZlib : public CLibraryLoader
 	//////////////////////////////////////////////////////////////////////
 	// we need a singleton here 
 	// to enable only one instance of the library inside the application
-	TPtrAutoCount<_CZlib> &ptr() const	
-	{
-		static TPtrAutoCount<_CZlib> p;
-		return p;
-	}
+	typedef TPtrAutoCount<_CZlib> zlib_singleton;
+	static zlib_singleton &ptr();
 #endif
 
 public:
 	//////////////////////////////////////////////////////////////////////
 	// construction/destruction
-	CZlib()						{}
+	CZlib()
+	{
+#ifdef BASE_ZLIB_DYNAMIC
+		if( !this->ptr().exists() )
+		{
+			fprintf(stderr, "dynamic zlib: no library specified. usage will always fail\n");
+		}
+#endif
+	}
 	CZlib(const char* name)		{ LoadLib(name); }
 	virtual ~CZlib()			{}
 

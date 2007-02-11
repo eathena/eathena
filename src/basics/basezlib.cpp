@@ -1362,6 +1362,12 @@ bool CZlib::_CZlib::isOk()
 			);
 }
 
+CZlib::zlib_singleton &CZlib::ptr()
+{
+	static zlib_singleton p;
+	return p;
+}
+
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -1371,7 +1377,7 @@ int CZlib::decode(unsigned char *dest, unsigned long& destLen, const unsigned ch
 #ifdef BASE_ZLIB_DYNAMIC
 	// check if necessary functions have been exported
 	if( NULL==ptr()->cdeflateInit || NULL==ptr()->cdeflate || NULL==ptr()->cdeflateEnd )
-		return 0;
+		return Z_ERRNO;
 #endif
 	z_stream stream;
 	int err;
@@ -1428,7 +1434,7 @@ int CZlib::encode(unsigned char *dest, unsigned long& destLen, const unsigned ch
 #ifdef BASE_ZLIB_DYNAMIC
 	// check if necessary functions have been exported
 	if( NULL==ptr()->cinflateInit || NULL==ptr()->cinflate || NULL==ptr()->cinflateEnd )
-		return 0;
+		return Z_ERRNO;
 #endif
 
 	z_stream stream;

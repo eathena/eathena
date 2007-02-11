@@ -82,17 +82,16 @@ bool CStackEngine::process()
 	scriptprog::CCommand ccmd;
 	scriptprog& prog = *this->cProg;
 
-	basics::variant *stack, *stackstart;
+	basics::variant *stack;
 
 	while(run && prog.getCommand(this->cPC, ccmd) )
 	{
 		const ssize_t stacksize = this->cStack.end()-this->cStack.begin();
 		stack = this->cStack.end()-1;
-		stackstart = this->cStack.begin();
 
 		if( stacksize < (int)ccmd.cCount )
 		{	// soemthing wrong
-			fprintf(stderr, "stack underflow, %u values requited, have %i\n", ccmd.cCount, (int)stacksize);
+			fprintf(stderr, "stack underflow, %u values requited, have %i\n", (uint)ccmd.cCount, (int)stacksize);
 			return false;
 		}
 		switch( ccmd.cCommand )
@@ -107,7 +106,6 @@ bool CStackEngine::process()
 		// take two stack values and push up one
 		case OP_ASSIGN:	// <Op If> '='   <Op>
 		{
-			//stack[0].operator_assign(stack[-1]);
 			stack[0] = stack[-1];
 			stack[-1].assign(stack[0], false);
 			stack[-1].make_value();
@@ -564,12 +562,28 @@ bool CStackEngine::process()
 		// FloatLiteral
 		// Id
 		// <Call Arg>  ::= '-'
-
 		case OP_PUSH_NONE:
 		{
 			this->cStack.resize(this->cStack.size()+1);
 			this->cStack.last().make_value();
 			this->cStack.last().clear();
+			break;
+		}
+		case OP_PUSH_ZERO:
+		case OP_PUSH_ONE:
+		case OP_PUSH_TWO:
+		case OP_PUSH_THREE:
+		case OP_PUSH_FOUR:
+		case OP_PUSH_FIVE:
+		case OP_PUSH_SIX:
+		case OP_PUSH_SEVEN:
+		case OP_PUSH_EIGHT:
+		case OP_PUSH_NINE:
+		case OP_PUSH_TEN:
+		{
+			this->cStack.resize(this->cStack.size()+1);
+			this->cStack.last().make_value();
+			this->cStack.last() = ccmd.cCommand-OP_PUSH_ZERO;
 			break;
 		}
 		case OP_PUSH_INT:	// followed by an integer
@@ -643,8 +657,6 @@ bool CStackEngine::process()
 		}
 		case OP_POP:	// decrements the stack
 		{	
-			//--this->cSC;
-			// maybe better reset the stack
 			this->cStack.resize(this->cCC);
 			break;
 		}
@@ -669,12 +681,15 @@ bool CStackEngine::process()
 			// prepare a new stack
 			// get the programm and the function entry
 			// set initial programm counter
-			if( stacksize < 1+stack[0].get_int() )
+			const ssize_t sz = 1+stack[0].get_int();
+			if( stacksize < sz )
 			{	// something wrong
-				fprintf(stderr, "stack underflow, %i values requited, have %i\n", (int)1+stack[0].get_int(), (int)stacksize);
+				fprintf(stderr, "stack underflow, %i values requited, have %i\n", (int)sz, (int)stacksize);
 				return false;
 			}
-			this->call_function(ccmd.cParam);
+			basics::variant result = this->call_function(ccmd.cParam);
+			this->cStack.strip(sz-1);
+			this->cStack.last() = result;
 			break;
 		}
 		case OP_SUBFUNCTION:
@@ -682,12 +697,15 @@ bool CStackEngine::process()
 			// prepare a new stack
 			// get the programm and the function entry
 			// set initial programm counter
-			if( stacksize < 2+stack[0].get_int() )
+			const ssize_t sz = 2+stack[0].get_int();
+			if( stacksize < sz )
 			{	// something wrong
-				fprintf(stderr, "stack underflow, %i values requited, have %i\n", (int)2+stack[0].get_int(), (int)stacksize);
+				fprintf(stderr, "stack underflow, %i values requited, have %i\n", (int)sz, (int)stacksize);
 				return false;
 			}
-			this->call_function(ccmd.cParam);
+			basics::variant result = this->call_function(ccmd.cParam);
+			this->cStack.strip(sz-1);
+			this->cStack.last() = result;
 			break;
 		}
 		case OP_GOSUB:

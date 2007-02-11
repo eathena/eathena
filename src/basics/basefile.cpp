@@ -428,6 +428,218 @@ bool findFiles(const char *p, const char *pat, void (func)(const char*) )
 */
 
 
+
+
+///////////////////////////////////////////////////////////////////////////////
+// file iterator.
+
+#ifdef WIN32
+bool file_iterator::findfirst(const string<>& path)
+{
+	string<> workpattern = path;
+	workpattern << '/' << '*';
+	scan_t scn = FindFirstFile(workpattern, &this->current.cFind);
+	while( 0==strcmp(this->current.cFind.cFileName,".") || 
+		0==strcmp(this->current.cFind.cFileName,"..") )
+	{
+		if( 0==FindNextFile(scn, &this->current.cFind) )
+		{
+			FindClose(scn);
+			return false;
+		}
+	}
+	this->stack.push( this->current );
+	this->current.cScan = scn;
+	this->current.cPath = path;
+	this->current.cFile.clear();
+	this->current.cFile << path << '/' << this->current.cFind.cFileName;
+	return true;
+}
+bool file_iterator::findnext()
+{
+	if( this->recursive && 
+		(this->current.cFind.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) )
+	{	// descend to subdirs
+		if( this->findfirst(this->current.cFile) )
+			return true;
+	}
+
+	do
+	{
+		while( 0==FindNextFile(this->current.cScan, &this->current.cFind) )
+		{	// finished with this level, go up
+			FindClose(this->current.cScan);
+			// last level
+			if( !stack.size() )
+				return false;
+			this->current = stack.last();
+			stack.strip(1);
+			if( this->current.cScan==INVALID_HANDLE_VALUE )
+				return false;
+			continue;
+		}
+	} while( 0==strcmp(this->current.cFind.cFileName,".") ||
+			 0==strcmp(this->current.cFind.cFileName,"..") );
+
+	this->current.cFile.clear();
+	this->current.cFile << this->current.cPath << '/' << this->current.cFind.cFileName;
+	return true;
+}
+void file_iterator::findclose()
+{
+	do
+	{
+		if( this->current.cScan != INVALID_HANDLE_VALUE )
+		{
+			FindClose(this->current.cScan);
+			this->current.cScan = INVALID_HANDLE_VALUE;
+		}
+	}
+	while( stack.pop(this->current) );
+}
+
+#else
+
+bool file_iterator::findfirst(const string<>& path)
+{
+	scan_t scn = opendir( path );
+	if( NULL==scn )
+		return false;
+	// scan the directory, traversing each sub-directory
+	// matching the pattern for each file name.
+	do
+	{
+		this->current.cFind = readdir(scn);
+		if( !this->current.cFind )
+		{
+			closedir(scn);
+			return false;
+		}
+	} while( 0==strcmp(this->current.cFind->d_name,".") ||
+			 0==strcmp(this->current.cFind->d_name,"..") );
+
+	this->stack.push( this->current );
+	this->current.cScan = scn;
+	this->current.cPath = path;
+	this->current.cFile.clear();
+	this->current.cFile << this->current.cPath << '/' << this->current.cFind->d_name;
+	return true;
+}
+bool file_iterator::findnext()
+{
+	struct stat dir_stat;
+	if( this->recursive &&
+		stat(this->current.cFile, &dir_stat) == 0 && 
+		S_ISDIR(dir_stat.st_mode) )
+	{	// descend to subdirs
+		if( this->findfirst(this->current.cFile) )
+			return true;
+	}
+
+	do
+	{
+		this->current.cFind = readdir(this->current.cScan);
+		if( !this->current.cFind )
+		{	// finished with this level, go up
+			closedir(this->current.cScan);
+			// last level
+			if( !stack.size() )
+				return false;
+			this->current = stack.last();
+			stack.strip(1);
+			if( NULL==this->current.cScan )
+				return false;
+			continue;
+		}
+	} while( 0==strcmp(this->current.cFind->d_name,".") ||
+			 0==strcmp(this->current.cFind->d_name,"..") );
+
+	this->current.cFile.clear();
+	this->current.cFile << this->current.cPath << '/' << this->current.cFind->d_name;
+	return true;
+}
+void file_iterator::findclose()
+{
+	do
+	{
+		if( this->current.cScan )
+		{
+			closedir(this->current.cScan);
+			this->current.cScan=NULL;
+		}
+	}
+	while( stack.pop(this->current) );
+}
+#endif
+
+file_iterator::file_iterator(const string<>& spath, const string<>& pat, bool recurse)
+	: recursive(recurse), pattern(pat)
+{
+	string<> path = spath;
+	if( !is_folder(path) )
+		path = ".";
+	if( this->findfirst(path) )
+		this->select_valid();
+}
+
+file_iterator::file_iterator(const string<>& pat, bool recurse)
+	: recursive(recurse), pattern(pat)
+{
+	string<> path = pat;
+	if( this->pattern.length()==0 )
+	{
+		path =".";
+	}
+	else
+	{	// split pattern, extract startpath
+		size_t i;
+		do
+		{
+			i = path.find_last_of('/');
+			if( i == string<>::npos )
+				break;
+			path.truncate(i);
+		}
+		while( !is_folder(path) );
+
+		if( !is_folder(path) )
+			path = ".";
+	}
+	if( this->findfirst(path) )
+		this->select_valid();
+}
+
+const file_iterator& file_iterator::operator=(const string<>& spath)
+{
+	this->findclose();
+	if( this->findfirst( is_folder(spath)?spath:string<>(".")) )
+		this->select_valid();
+	return *this;
+}
+
+
+bool file_iterator::select_valid()
+{
+	if( stack.size() )
+	{
+		if( this->pattern.length()!=0 )
+		{
+			while( stack.size() && !match_wildcard<char>(this->pattern, this->current.cFile) )
+				this->findnext();
+		}
+		return this->is_valid();
+	}
+	return false;
+}
+
+
+
+
+
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // true when given name exists
 bool is_present(const char* name)

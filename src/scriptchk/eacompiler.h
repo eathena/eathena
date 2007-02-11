@@ -232,15 +232,23 @@ struct eacompiler
 		CLabelPos(): use(0), pos(0), createline(0), useline(0), valid(false)
 		{}
 	};
+	struct CContBreak
+	{
+		size_t									continue_target;///< target for continue
+		size_t									break_target;	///< target for break
+		bool									has_continue;	///< when continue is valid
+		CContBreak() : continue_target(0),break_target(0),has_continue(false)
+		{}
+		CContBreak(size_t cnt) : continue_target(cnt),break_target(0),has_continue(true)
+		{}
+	};
 
 	CVariableScope								cVariable;		///< current variable set
 	scriptdefines								cDefines;		///< current define set
 	basics::smap<basics::string<>,uint32>		cStrTable;		///< temporary string table
 	basics::smap<basics::string<>,CLabelPos>	cLabels;		///< temporary label list
 	basics::vector<basics::variant>				cConstvalues;	///< const value stack
-	size_t										continue_target;///< target for continue
-	size_t										break_target;	///< target for break
-	bool										has_continue;	///< when continue is valid
+	CContBreak									cControl;		///< current break/continue controls
 
 	scriptprog::script							prog;			///< current programm
 	basics::vector<scriptinstance::instance>	inst;			///< current instances
@@ -289,7 +297,7 @@ struct eacompiler
 	bool export_variable(const parse_node &node, uint scope, CVariableScope& target) const;
 
 	bool put_function_call(const parse_node &node, uint scope, const basics::string<>& name, uint paramcnt, bool global);
-	bool put_subfunction_call(const parse_node &node, const basics::string<>& host, const basics::string<>& name, uint paramcnt);
+	bool put_subfunction_call(const parse_node &node, uint scope, const basics::string<>& host, const basics::string<>& name, uint paramcnt);
 
 
 	///////////////////////////////////////////////////////////////////////////

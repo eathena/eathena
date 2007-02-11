@@ -110,6 +110,15 @@ enum command_t
 	OP_PUSH_NONE,				//
 	OP_PUSH_ZERO,				//
 	OP_PUSH_ONE,				//
+	OP_PUSH_TWO,				//
+	OP_PUSH_THREE,				//
+	OP_PUSH_FOUR,				//
+	OP_PUSH_FIVE,				//
+	OP_PUSH_SIX,				//
+	OP_PUSH_SEVEN,				//
+	OP_PUSH_EIGHT,				//
+	OP_PUSH_NINE,				//
+	OP_PUSH_TEN,				//
 	OP_PUSH_INT,				// followed by an integer 1byte
 	OP_PUSH_INT2,				// followed by an integer 2byte
 	OP_PUSH_INT3,				// followed by an integer 3byte

@@ -5,6 +5,7 @@
 
 
 #include "basesafeptr.h"
+#include "basefile.h"
 #include "basevariant.h"
 
 
@@ -27,14 +28,14 @@ struct scriptfile : public basics::string<>
 	typedef scriptprog::script						script;
 	typedef scriptinstance::instance				instance;
 	
-	typedef basics::slist< basics::string<> >		scriptfile_list;
+	typedef basics::slist< basics::string<> >		filename_list;
 	typedef basics::smap<basics::string<>,script>	script_list;
 	typedef basics::vector<instance>				instance_list;
 
 	///////////////////////////////////////////////////////////////////////////
 	time_t				modtime;		///< last modification time of this file
-	scriptfile_list		childs;			///< list of files that depend on this one
-	scriptfile_list		parents;		///< list of files that this is depending on
+	filename_list		childs;			///< list of files that depend on this one
+	filename_list		parents;		///< list of files that this is depending on
 	script_list			scripts;		///< list of scripts in that file
 	instance_list		instances;		///< list of instances in that file
 	scriptdefines		definitions;	///< defines in this file
@@ -84,33 +85,14 @@ struct scriptfile : public basics::string<>
 		void info() const;
 	};
 
-	struct loader
-	{
-		basics::TObjPtr<eacompiler> compiler;
-
-		bool process(const basics::string<>& filename, int option=0)
-		{
-			return compiler->load_file(filename, option);
-		}
-		bool process(const basics::vector< basics::string<> >& namelist, int option=0)
-		{
-			eacompiler& comp = *this->compiler;
-			basics::vector< basics::string<> >::iterator iter(namelist);
-			bool ok = true;
-			for(; ok && iter; ++iter)
-			{
-				ok = comp.load_file(*iter,0);
-			}
-			return ok;
-		}
-	};
-
 	static storage stor;	///< storage
 
 	/// load a single file.
 	static bool load_file(const basics::string<>& filename);
 	/// load list of file.
 	static bool load_file(const basics::vector< basics::string<> >& namelist);
+	/// load a folder of file.
+	static bool load_folder(const char* startfolder);
 	/// remove a single file.
 	static bool erase_script(const basics::string<>& filename)
 	{
@@ -125,7 +107,6 @@ struct scriptfile : public basics::string<>
 	{
 		return scriptfile::stor.create(filename);
 	}
-	
 };
 
 

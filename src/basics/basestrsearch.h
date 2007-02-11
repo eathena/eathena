@@ -287,8 +287,21 @@ vector<size_t> patternstring<T>::findall(const stringinterface<T>& searchstring,
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 bool match_wildcard(const T* wild, const T* match);
-
-
+template <typename T>
+bool match_wildcard(const T* wild, const string<T>& match)
+{
+	return match_wildcard<T>(wild, match.c_str());
+}
+template <typename T>
+bool match_wildcard(const string<T>& wild, const T* match)
+{
+	return match_wildcard<T>(wild.c_str(), match);
+}
+template <typename T>
+bool match_wildcard(const string<T>& wild, const string<T>& match)
+{
+	return match_wildcard<T>(wild.c_str(), match.c_str());
+}
 
 NAMESPACE_END(basics)
 
