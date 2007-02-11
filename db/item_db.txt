@@ -1517,7 +1517,7 @@
 4344,Anopheles_Card,Anopheles Card,6,,10,10,,,,,,,,136,,,,,{ bonus3 bAddMonsterDropItem,12058,RC_Insect,300; },{},{}
 4345,Hill_Wind_Card,Hill Wind Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bSkillAtk,21,5; bonus2 bSkillAtk,84,5; bonus2 bSkillAtk,85,5; },{},{ heal 0,-50; }
 4346,Egnigem_Cenia_Card,Egnigem Cenia Card,6,,10,10,,,,,,,,16,,,,,{ bonus bStr,readparam(bInt)/18; },{},{}
-4347,Armeyer_Dinze_Card,Armeyer Dinze Card,6,,10,10,,,,,,,,16,,,,,{ bonus3 bAddMonsterDropItem,12053,RC_Fish,300; },{},{}
+4347,Armeyer_Dinze_Card,Armeyer Dinze Card,6,,10,10,,,,,,,,136,,,,,{ bonus3 bAddMonsterDropItem,12053,RC_Fish,300; },{},{}
 4348,Wikebine_Tres_Card,Wikebine Tres Card,6,,10,10,,,,,,,,136,,,,,{ bonus3 bAutoSpell,217,1,50; if(isequipped(4039,4210,4257,4230)) { bonus bStr,6; bonus bAgi,4; bonus2 bSkillAtk,212,10; if(getskilllv(217)==5) bonus3 bAutoSpell,217,5,50; if(BaseJob == Job_Rogue) { bonus bUseSPrate,-20; bonus3 bAutoSpell,219,1,-20; } } },{},{}
 4349,Errende_Ebecee_Card,Errende Ebecee Card,6,,10,10,,,,,,,,136,,,,,{ bonus4 bAutoSpellWhenHit,25,1,50,0; },{},{}
 4350,Laurell_Weinder_Card,Laurell Weinder Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bSkillAtk,88,3; bonus2 bSkillAtk,89,3; },{},{ heal 0,-50; }
@@ -2445,7 +2445,10 @@
 10020,Sword_Of_Grave_Keeper,Grave Keeper's Sword,8,,10,0,,,,,,,,,,,,,{},{},{}
 // History Books
 //===================================================================
-11000,Prontera_Book_01,History book of Prontera,3,,10,0,,,,,,,,,,,,,{},{},{}
+11000,Prontera_Book_01,History book of Prontera,3,8000,,0,,,,,,,,,,,,,{},{},{}
+11001,Poetry01,Poetry01,3,8000,,0,,,,,,,,,,,,,{},{},{}
+11002,Novel01,Novel01,3,8000,,0,,,,,,,,,,,,,{},{},{}
+11003,Novel02,Novel02,3,8000,,0,,,,,,,,,,,,,{},{},{}
 // More Usable Items
 //===================================================================
 // Scrolls

@@ -1,3 +1,5 @@
+02/10
+	* Fixed Armeyer Dinze Card and added some books [Playtester]
 02/08
 	- Fixed the Enchant Poison DB line which broke on the last db update.
 02/07
