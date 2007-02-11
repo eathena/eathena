@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
+# Visual C++ Express 2005
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "basics", "vcproj-8.0\basics.vcproj", "{D356871D-58E1-450B-967A-E4E9646175AF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "vcproj-8.0\common.vcproj", "{2BF8A844-6752-489E-AA0E-26FBA54D0D2A}"
@@ -9,20 +9,30 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "vcproj-8.0\common
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "char-server", "vcproj-8.0\char-server.vcproj", "{E867A8A1-0A02-4ADB-A48E-30FC103310A7}"
 	ProjectSection(ProjectDependencies) = postProject
-		{D356871D-58E1-450B-967A-E4E9646175AF} = {D356871D-58E1-450B-967A-E4E9646175AF}
 		{2BF8A844-6752-489E-AA0E-26FBA54D0D2A} = {2BF8A844-6752-489E-AA0E-26FBA54D0D2A}
+		{D356871D-58E1-450B-967A-E4E9646175AF} = {D356871D-58E1-450B-967A-E4E9646175AF}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "login-server", "vcproj-8.0\login-server.vcproj", "{9A33BBC1-145A-4A20-90AD-F8B02DCE0E6A}"
 	ProjectSection(ProjectDependencies) = postProject
-		{D356871D-58E1-450B-967A-E4E9646175AF} = {D356871D-58E1-450B-967A-E4E9646175AF}
 		{2BF8A844-6752-489E-AA0E-26FBA54D0D2A} = {2BF8A844-6752-489E-AA0E-26FBA54D0D2A}
+		{D356871D-58E1-450B-967A-E4E9646175AF} = {D356871D-58E1-450B-967A-E4E9646175AF}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "map-server", "vcproj-8.0\map-server.vcproj", "{D71213C7-3562-4523-A67F-B270404118BB}"
 	ProjectSection(ProjectDependencies) = postProject
-		{D356871D-58E1-450B-967A-E4E9646175AF} = {D356871D-58E1-450B-967A-E4E9646175AF}
 		{2BF8A844-6752-489E-AA0E-26FBA54D0D2A} = {2BF8A844-6752-489E-AA0E-26FBA54D0D2A}
+		{D356871D-58E1-450B-967A-E4E9646175AF} = {D356871D-58E1-450B-967A-E4E9646175AF}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scriptchk", "vcproj-8.0\scriptchk.vcproj", "{F6D5CC33-327C-469C-9E03-8A506037A2AB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D356871D-58E1-450B-967A-E4E9646175AF} = {D356871D-58E1-450B-967A-E4E9646175AF}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scriptconv", "vcproj-8.0\scriptconv.vcproj", "{CA103BF7-CFC8-4036-8E0A-2D3E451C909F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D356871D-58E1-450B-967A-E4E9646175AF} = {D356871D-58E1-450B-967A-E4E9646175AF}
 	EndProjectSection
 EndProject
 Global
@@ -40,6 +50,10 @@ Global
 		{9A33BBC1-145A-4A20-90AD-F8B02DCE0E6A}.Debug-Hybrid|Win32.Build.0 = Debug-Hybrid|Win32
 		{D71213C7-3562-4523-A67F-B270404118BB}.Debug-Hybrid|Win32.ActiveCfg = Debug-Hybrid|Win32
 		{D71213C7-3562-4523-A67F-B270404118BB}.Debug-Hybrid|Win32.Build.0 = Debug-Hybrid|Win32
+		{F6D5CC33-327C-469C-9E03-8A506037A2AB}.Debug-Hybrid|Win32.ActiveCfg = Debug-Hybrid|Win32
+		{F6D5CC33-327C-469C-9E03-8A506037A2AB}.Debug-Hybrid|Win32.Build.0 = Debug-Hybrid|Win32
+		{CA103BF7-CFC8-4036-8E0A-2D3E451C909F}.Debug-Hybrid|Win32.ActiveCfg = Debug-Hybrid|Win32
+		{CA103BF7-CFC8-4036-8E0A-2D3E451C909F}.Debug-Hybrid|Win32.Build.0 = Debug-Hybrid|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
