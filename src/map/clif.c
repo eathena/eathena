@@ -5722,33 +5722,36 @@ int clif_party_join_info(struct party *p, struct map_session_data *sd)
 
 
 /*==========================================
- * パーティ情報送信
- *------------------------------------------
- */
-int clif_party_info(struct party_data *p,int fd)
+ * Sends party information
+ * R 00fb <len>.w <party name>.24B {<ID>.l <nick>.24B <map name>.16B <leader>.B <offline>.B}.46B*
+ *------------------------------------------*/
+int clif_party_info(struct party_data* p, int fd)
 {
 	unsigned char buf[1024];
-	int i,c;
-	struct map_session_data *sd=NULL;
+	struct map_session_data* sd = NULL;
+	int i, c;
 
 	nullpo_retr(0, p);
 
-	WBUFW(buf,0)=0xfb;
-	memcpy(WBUFP(buf,4),p->party.name,NAME_LENGTH);
-	for(i=c=0;i<MAX_PARTY;i++){
-		struct party_member *m=&p->party.member[i];
-		if(!m->account_id)
-			continue;
-		if(sd==NULL) sd=p->data[i].sd;
-		WBUFL(buf,28+c*46)=m->account_id;
-		memcpy(WBUFP(buf,28+c*46+ 4),m->name,NAME_LENGTH);
-		memcpy(WBUFP(buf,28+c*46+28),mapindex_id2name(m->map),MAP_NAME_LENGTH);
-		WBUFB(buf,28+c*46+44)=(m->leader)?0:1;
-		WBUFB(buf,28+c*46+45)=(m->online)?0:1;
+	WBUFW(buf,0) = 0xfb;
+	memcpy(WBUFP(buf,4), p->party.name, NAME_LENGTH);
+	for(i = 0, c = 0; i < MAX_PARTY; i++)
+	{
+		struct party_member* m = &p->party.member[i];
+		if(!m->account_id) continue;
+
+		if(sd == NULL) sd = p->data[i].sd;
+
+		WBUFL(buf,28+c*46) = m->account_id;
+		memcpy(WBUFP(buf,28+c*46+4), m->name, NAME_LENGTH);
+		memcpy(WBUFP(buf,28+c*46+28), mapindex_id2name(m->map), MAP_NAME_LENGTH);
+		WBUFB(buf,28+c*46+44) = (m->leader) ? 0 : 1;
+		WBUFB(buf,28+c*46+45) = (m->online) ? 0 : 1;
 		c++;
 	}
-	WBUFW(buf,2)=28+c*46;
-	if(fd>=0){	// fdが設定されてるならそれに送る
+	WBUFW(buf,2) = 28+c*46;
+
+	if(fd >= 0) {
 		WFIFOHEAD(fd, 28+c*46);
 		memcpy(WFIFOP(fd,0),buf,WBUFW(buf,2));
 		WFIFOSET(fd,WFIFOW(fd,2));
@@ -8353,7 +8356,6 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd) {
 	if(sd->sc.count && sd->sc.data[SC_RUN].timer != -1)
 		return;
 
-	pc_stop_attack(sd);
 	pc_delinvincibletimer(sd);
 
 	cmd = RFIFOW(fd,0);

@@ -1,3 +1,8 @@
+02/12
+	* Merged skill_db, some max levels for npc skills and elements for some
+	  sage skills.
+	* Merged skill_require_db, updated stun times to 5 sec, fixed throw Kunai's
+	  delay. [Skotlex]
 02/10
 	* Fixed Armeyer Dinze Card and added some books [Playtester]
 02/08

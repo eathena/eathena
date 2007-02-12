@@ -1056,8 +1056,8 @@ int npc_check_areanpc(int flag,int m,int x,int y,int range)
 		default:
 			continue;
 		}
-		if (x0 >= map[m].npc[i]->bl.x-xs/2 && x1 < map[m].npc[i]->bl.x-xs/2+xs &&
-		   y0 >= map[m].npc[i]->bl.y-ys/2 && y1 < map[m].npc[i]->bl.y-ys/2+ys)
+		if (x1 >= map[m].npc[i]->bl.x-xs/2 && x0 < map[m].npc[i]->bl.x-xs/2+xs &&
+			y1 >= map[m].npc[i]->bl.y-ys/2 && y0 < map[m].npc[i]->bl.y-ys/2+ys)
 			break;
 	}
 	if (i==map[m].npc_num)
@@ -1358,9 +1358,10 @@ int npc_selllist(struct map_session_data *sd,int n,unsigned short *item_list)
 	nd = nd->master_nd; //For OnSell triggers.
 
 	for(i=0,z=0;i<n;i++) {
-		int nameid, idx, qty;
+		int nameid, idx;
+		short qty;
 		idx = item_list[i*2]-2;
-		qty = item_list[i*2+1];
+		qty = (short)item_list[i*2+1];
 		
 		if (idx <0 || idx >=MAX_INVENTORY || qty < 0)
 			break;
@@ -1375,7 +1376,8 @@ int npc_selllist(struct map_session_data *sd,int n,unsigned short *item_list)
 		else
 			z+=(double)qty*pc_modifysellvalue(sd,sd->inventory_data[idx]->value_sell);
 
-		if(sd->inventory_data[idx]->type==7 && sd->status.inventory[idx].card[0] == (short)0xff00)
+		if(sd->inventory_data[idx]->type == IT_PETEGG &&
+			sd->status.inventory[idx].card[0] == CARD0_PET)
 		{
 			if(search_petDB_index(sd->status.inventory[idx].nameid, PET_EGG) >= 0)
 				intif_delete_petdata(MakeDWord(sd->status.inventory[idx].card[1],sd->status.inventory[idx].card[2]));
