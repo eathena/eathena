@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2007/02/12
+	* Fixed Resurrect Homunculus and Wedding skills failing due to timer
+	  mismatches.
 	* Fixed Spider Web casting below self instead of target.
 	* Fixed Wand of Hermod.
 	* Possible crash fix on status_calc_pc, on map_foreachincell

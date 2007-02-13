@@ -5587,6 +5587,7 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 					ud->skillx = target->x;
 					ud->skilly = target->y;
 				}
+				ud->skilltimer=tid;
 				return skill_castend_pos(tid,tick,id,data);
 		}
 

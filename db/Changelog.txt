@@ -1,4 +1,5 @@
 02/12
+	* Reverted Venom Splasher's element to take your weapon's
 	* Merged skill_db, some max levels for npc skills and elements for some
 	  sage skills.
 	* Merged skill_require_db, updated stun times to 5 sec, fixed throw Kunai's
