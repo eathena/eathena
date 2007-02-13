@@ -1,3 +1,5 @@
+02/13
+	* Fixed Bacsojin's mob id in mob_boss [Playtester]
 02/12
 	* Reverted Venom Splasher's element to take your weapon's
 	* Merged skill_db, some max levels for npc skills and elements for some
