@@ -3706,7 +3706,7 @@ BUILDIN_FUNC(npcshopitem); // [Lance]
 BUILDIN_FUNC(npcshopadditem);
 BUILDIN_FUNC(npcshopdelitem);
 BUILDIN_FUNC(npcshopattach);
-
+BUILDIN_FUNC(equip);
 
 BUILDIN_FUNC(setbattleflag);
 BUILDIN_FUNC(getbattleflag);
@@ -4037,7 +4037,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(npcshopadditem,"sii*"),
 	BUILDIN_DEF(npcshopdelitem,"si*"),
 	BUILDIN_DEF(npcshopattach,"s?"),
-
+	BUILDIN_DEF(equip,"i"),
 
 	BUILDIN_DEF(setbattleflag,"ss"),
 	BUILDIN_DEF(getbattleflag,"s"),
