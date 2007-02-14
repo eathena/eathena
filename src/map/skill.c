@@ -7967,8 +7967,7 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 	if (!ammo && skill && skill_isammotype(sd, skill))
 	{	//Assume this skill is using the weapon, therefore it requires arrows.
 		ammo = 0xFFFFFFFF; //Enable use on all ammo types.
-		ammo_qty = skill_get_num(skill, lv);
-		if (ammo_qty < 0) ammo_qty *= -1;
+		ammo_qty = 1;
 	}
 
 	switch(skill) { // Check for cost reductions due to skills & SCs
@@ -8401,7 +8400,7 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 			clif_skill_fail(sd,skill,1,0);		/* SP不足：失敗通知 */
 			return 0;
 		}
-		if( zeny>0 && sd->status.zeny < zeny) {
+		if(zeny>0 && sd->status.zeny < zeny) {
 			clif_skill_fail(sd,skill,5,0);
 			return 0;
 		}

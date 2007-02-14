@@ -2878,9 +2878,7 @@ static int npc_cleanup_sub (struct block_list *bl, va_list ap) {
 		npc_unload((struct npc_data *)bl);
 		break;
 	case BL_MOB:
-		//This is used only on reloading npcs, so let's not free spawn-once mobs. [Skotlex]
-		if (((TBL_MOB*)bl)->spawn)
-			unit_free(bl,0);
+		unit_free(bl,0);
 		break;
 	}
 
@@ -2977,7 +2975,7 @@ int do_final_npc(void)
 		if ((bl = map_id2bl(i))){
 			if (bl->type == BL_NPC)
 				npc_unload((struct npc_data *)bl);
-			else if (bl->type&(BL_MOB|BL_PET))
+			else if (bl->type&(BL_MOB|BL_PET|BL_HOM))
 				unit_free(bl, 0);
 		}
 	}
