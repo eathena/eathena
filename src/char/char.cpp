@@ -477,7 +477,6 @@ int count_users(void)
 	return users;
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // Function to send characters to a player
 int mmo_char_send006b(int fd, char_session_data &sd)
@@ -499,59 +498,8 @@ int mmo_char_send006b(int fd, char_session_data &sd)
 		if( sd.charlist[i]!=0 &&
 			char_db.searchChar(sd.charlist[i], character) )
 		{
-			j = offset + (found_num*106);
-
-			WFIFOL(fd,j) = character.char_id;
-			WFIFOL(fd,j+4) = character.base_exp;
-			WFIFOL(fd,j+8) = character.zeny;
-			WFIFOL(fd,j+12) = character.job_exp;
-			WFIFOL(fd,j+16) = character.job_level;
-
-			WFIFOL(fd,j+20) = 0;
-			WFIFOL(fd,j+24) = 0;
-			WFIFOL(fd,j+28) = character.option;
-
-			WFIFOL(fd,j+32) = character.karma;
-			WFIFOL(fd,j+36) = character.manner;
-
-			WFIFOW(fd,j+40) = character.status_point;
-			WFIFOW(fd,j+42) = (unsigned short)((character.hp > 0x7fff) ? 0x7fff : character.hp);
-			WFIFOW(fd,j+44) = (unsigned short)((character.max_hp > 0x7fff) ? 0x7fff : character.max_hp);
-			WFIFOW(fd,j+46) = (unsigned short)((character.sp > 0x7fff) ? 0x7fff : character.sp);
-			WFIFOW(fd,j+48) = (unsigned short)((character.max_sp > 0x7fff) ? 0x7fff : character.max_sp);
-			WFIFOW(fd,j+50) = DEFAULT_WALK_SPEED; // p->speed;
-			WFIFOW(fd,j+52) = character.class_;
-			WFIFOW(fd,j+54) = character.hair;
-
-			// pecopeco knights/crusaders crash fix
-			if (character.class_ == 13 || character.class_ == 21 ||
-				character.class_ == 4014 || character.class_ == 4022 ||
-				character.class_ == 4036 || character.class_ == 4044)
-				WFIFOW(fd,j+56) = 0;
-			else 
-				WFIFOW(fd,j+56) = character.weapon;
-
-			WFIFOW(fd,j+58) = character.base_level;
-			WFIFOW(fd,j+60) = character.skill_point;
-			WFIFOW(fd,j+62) = character.head_bottom;
-			WFIFOW(fd,j+64) = character.shield;
-			WFIFOW(fd,j+66) = character.head_top;
-			WFIFOW(fd,j+68) = character.head_mid;
-			WFIFOW(fd,j+70) = character.hair_color;
-			WFIFOW(fd,j+72) = character.clothes_color;
-
-			memcpy(WFIFOP(fd,j+74), character.name, 24);
-
-			WFIFOB(fd,j+98) = (character.str > 255) ? 255 : character.str;
-			WFIFOB(fd,j+99) = (character.agi > 255) ? 255 : character.agi;
-			WFIFOB(fd,j+100) = (character.vit > 255) ? 255 : character.vit;
-			WFIFOB(fd,j+101) = (character.int_ > 255) ? 255 : character.int_;
-			WFIFOB(fd,j+102) = (character.dex > 255) ? 255 : character.dex;
-			WFIFOB(fd,j+103) = (character.luk > 255) ? 255 : character.luk;
-			WFIFOW(fd,j+104) = character.slot;
-			if(new_charscreen)
-				WFIFOW(fd,j+106) = 1;
-
+			j = offset + found_num*(new_charscreen?108:106);
+			character.tobuffer(WFIFOP(fd,j), new_charscreen);
 			++found_num;
 		}
 	}
@@ -2407,46 +2355,10 @@ int parse_char(int fd)
 				}
 				else
 				{	// ok
-					WFIFOW(fd,0) = 0x6d;
-					memset(WFIFOP(fd,2), 0, 106);
-
-					WFIFOL(fd,2) = character.char_id;
-					WFIFOL(fd,2+4) = character.base_exp;
-					WFIFOL(fd,2+8) = character.zeny;
-					WFIFOL(fd,2+12) = character.job_exp;
-					WFIFOL(fd,2+16) = character.job_level;
-
-					WFIFOL(fd,2+28) = character.karma;
-					WFIFOL(fd,2+32) = character.manner;
-
-					WFIFOW(fd,2+40) = 0x30;
-					WFIFOW(fd,2+42) = (unsigned short)((character.hp > 0x7fff) ? 0x7fff : character.hp);
-					WFIFOW(fd,2+44) = (unsigned short)((character.max_hp > 0x7fff) ? 0x7fff : character.max_hp);
-					WFIFOW(fd,2+46) = (unsigned short)((character.sp > 0x7fff) ? 0x7fff : character.sp);
-					WFIFOW(fd,2+48) = (unsigned short)((character.max_sp > 0x7fff) ? 0x7fff : character.max_sp);
-					WFIFOW(fd,2+50) = DEFAULT_WALK_SPEED; // char_dat[i].speed;
-					WFIFOW(fd,2+52) = character.class_;
-					WFIFOW(fd,2+54) = character.hair;
-
-					WFIFOW(fd,2+58) = character.base_level;
-					WFIFOW(fd,2+60) = character.skill_point;
-
-					WFIFOW(fd,2+64) = character.shield;
-					WFIFOW(fd,2+66) = character.head_top;
-					WFIFOW(fd,2+68) = character.head_mid;
-					WFIFOW(fd,2+70) = character.hair_color;
-
-					memcpy(WFIFOP(fd,2+74), character.name, 24);
-
-					WFIFOB(fd,2+98) = (character.str > 255) ? 255 : character.str;
-					WFIFOB(fd,2+99) = (character.agi > 255) ? 255 : character.agi;
-					WFIFOB(fd,2+100) = (character.vit > 255) ? 255 : character.vit;
-					WFIFOB(fd,2+101) = (character.int_ > 255) ? 255 : character.int_;
-					WFIFOB(fd,2+102) = (character.dex > 255) ? 255 : character.dex;
-					WFIFOB(fd,2+103) = (character.luk > 255) ? 255 : character.luk;
-					WFIFOB(fd,2+104) = character.slot;
-
-					WFIFOSET(fd,108);
+					const bool new_charscreen = (packet_ver()>=8);
+					WFIFOW(fd, 0) = 0x6d;
+					character.tobuffer(WFIFOP(fd,2), new_charscreen);
+					WFIFOSET(fd, 2+(new_charscreen?108:106));
 				}
 			}
 			// else there is no sd

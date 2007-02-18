@@ -317,9 +317,66 @@ void CCharAccount::_frombuffer(const unsigned char* &buf)
 	}
 }
 
+////////////////////////////////////////////////////
+// CCharCharacter Class
+////////////////////////////////////////////////////
+void CCharCharacter::_tobuffer(unsigned char* &buf, bool new_charscreen) const
+{// Used to build packet 0x6b (existing chars) and packet 0x6d (new char)
+	if(buf)
+	{
+		_L_tobuffer( char_id, buf );
+		_L_tobuffer( base_exp, buf );
+		_L_tobuffer( zeny, buf );
+		_L_tobuffer( job_exp, buf );
+		_L_tobuffer( job_level, buf );
 
+		_L_tobuffer( 0, buf);// probably opt1
+		_L_tobuffer( 0, buf);// probably opt2
+		_L_tobuffer( option, buf);
 
+		_L_tobuffer( karma, buf);
+		_L_tobuffer( manner, buf);
 
+		_W_tobuffer( status_point, buf );
+		_W_tobuffer( ushort((hp > 0x7fff) ? 0x7fff : hp), buf );
+		_W_tobuffer( ushort((max_hp > 0x7fff) ? 0x7fff : max_hp), buf );
+		_W_tobuffer( ushort((sp > 0x7fff) ? 0x7fff : sp), buf );
+		_W_tobuffer( ushort((max_sp > 0x7fff) ? 0x7fff : max_sp), buf );
+		_W_tobuffer( ushort(DEFAULT_WALK_SPEED), buf );
+		_W_tobuffer( class_, buf );
+		_W_tobuffer( hair, buf );
+
+		// pecopeco knights/crusaders crash fix
+		if (class_ == 13 || class_ == 21 ||
+			class_ == 4014 || class_ == 4022 ||
+			class_ == 4036 || class_ == 4044)
+			_W_tobuffer( ushort(0), buf );
+		else 
+			_W_tobuffer( weapon, buf );
+
+		_W_tobuffer( base_level, buf );
+		_W_tobuffer( skill_point, buf );
+		_W_tobuffer( head_bottom, buf );
+		_W_tobuffer( shield, buf );
+		_W_tobuffer( head_top, buf );
+		_W_tobuffer( head_mid, buf );
+		_W_tobuffer( hair_color, buf );
+		_W_tobuffer( clothes_color, buf );
+
+		_S_tobuffer( name, buf, 24 );
+
+		_B_tobuffer( uchar((str > 255) ? 255 : str), buf );
+		_B_tobuffer( uchar((agi > 255) ? 255 : agi), buf );
+		_B_tobuffer( uchar((vit > 255) ? 255 : vit), buf );
+		_B_tobuffer( uchar((int_ > 255) ? 255 : int_), buf );
+		_B_tobuffer( uchar((dex > 255) ? 255 : dex), buf );
+		_B_tobuffer( uchar((luk > 255) ? 255 : luk), buf );
+
+		_W_tobuffer( ushort(slot), buf );
+		if( new_charscreen )
+			_W_tobuffer( ushort(1), buf );
+	}
+}
 
 
 ////////////////////////////////////////////////////

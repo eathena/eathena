@@ -1,4 +1,8 @@
 Date	Added
+2007/02/18
+	* Fixed the amount added at the packet 0x6b loop when new_charscreen=true.
+	* Fixed the structure of packet 0x6d (new char info). It's the same as the 
+	  one used for packet 0x6b (existing chars info). [FlavioJS]
 2007/02/11
 	* compiler support for nested control structures
 	* some reported fixes

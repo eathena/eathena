@@ -1524,6 +1524,8 @@ public:
 			return strcmp(this->name, c.name); 
 	}
 
+	void _tobuffer(unsigned char* &buf, bool new_charscreen) const;		// Put class into given buffer
+	void tobuffer(unsigned char* buf, bool new_charscreen) const	{ _tobuffer(buf, new_charscreen); }		// Put class into given buffer
 };
 
 ///////////////////////////////////////////////////////////////////////////////
