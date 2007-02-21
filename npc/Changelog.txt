@@ -23,6 +23,8 @@ Playtester
 Date		Added
 ======
 2007/02/21
+	* Updated WoE scripts since the "guardian" script command no longer has a
+	  "amount" argument. [Skotlex]
 	* Moved NPC Master Kavaruk (overlapped Phantasmic Arrow Skill quest NPC) [Lupus]
 	- The Sign Quest, minor dialogue fix
 	- Fixed JobMaster Baby -> Super Baby change bug
