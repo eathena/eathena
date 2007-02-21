@@ -256,7 +256,7 @@ enum {
 	MF_GUILDLOCK
 };
 
-//Reports on the console the src of an script error.
+//Reports on the console the src of a script error.
 static void report_src(struct script_state *st) {
 	struct block_list *bl;
 	if (!st->oid) return; //Can't report source.
@@ -5928,13 +5928,13 @@ BUILDIN_FUNC(getpartyleader)
 			push_val(st->stack,C_INT,p->party.member[i].class_);
 		break;
 		case 4:
-			push_str(st->stack,C_CONSTSTR,(char*)mapindex_id2name(p->party.member[i].map));
+			push_str(st->stack,C_STR,aStrdup(mapindex_id2name(p->party.member[i].map)));
 		break;
 		case 5:
 			push_val(st->stack,C_INT,p->party.member[i].lv);
 		break;
 		default:
-			push_str(st->stack,C_STR,p->party.member[i].name);
+			push_str(st->stack,C_STR,aStrdup(p->party.member[i].name));
 		break;
 	}
 	return 0;
@@ -6037,9 +6037,7 @@ BUILDIN_FUNC(strcharinfo)
 	num=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	switch(num){
 		case 0:
-			buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
-			memcpy(buf, sd->status.name, NAME_LENGTH-1);
-			push_str(st->stack,C_STR,(unsigned char *) buf);
+			push_str(st->stack,C_STR,aStrdup(sd->status.name));
 			break;
 		case 1:
 			buf=buildin_getpartyname_sub(sd->status.party_id);
@@ -7453,13 +7451,12 @@ BUILDIN_FUNC(detachnpctimer)
 /*==========================================
  * To avoid "player not attached" script errors, this function is provided,
  * it checks if there is a player attached to the current script. [Skotlex]
- * If no, returns 0, if yes, returns the char_id of the attached player.
+ * If no, returns 0, if yes, returns the account_id of the attached player.
  *------------------------------------------
  */
 BUILDIN_FUNC(playerattached)
 {
-	struct map_session_data *sd;
-	if (st->rid == 0 || (sd = map_id2sd(st->rid)) == NULL)
+	if (st->rid == 0 || map_id2sd(st->rid) == NULL)
 		push_val(st->stack,C_INT,0);
 	else
 		push_val(st->stack,C_INT,st->rid);
