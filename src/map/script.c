@@ -1876,183 +1876,156 @@ struct map_session_data *script_rid2sd(struct script_state *st)
  *------------------------------------------*/
 int get_val(struct script_state* st, struct script_data* data)
 {
-	struct map_session_data *sd=NULL;
-	if(data->type==C_NAME){
-		char *name=str_buf+str_data[data->u.num&0x00ffffff].str;
-		char prefix=*name;
-		char postfix=name[strlen(name)-1];
+	struct map_session_data* sd = NULL;
+	char *name, prefix, postfix;
+	
+	if(data->type != C_NAME) return 0;
 
-		if(not_server_variable(prefix)){
-			if((sd=script_rid2sd(st))==NULL)
-				ShowError("get_val error name?:%s\n",name);
-		}
-		if(postfix=='$'){
+	name = str_buf + str_data[data->u.num&0x00ffffff].str;
+	prefix = name[0]; postfix = name[strlen(name)-1];
 
-			data->type=C_CONSTSTR;
-			if( prefix=='@'){
-				if(sd)
-					data->u.str = pc_readregstr(sd,data->u.num);
-			}else if(prefix=='$'){
-				data->u.str = (char *)idb_get(mapregstr_db,data->u.num);
-			}else if(prefix=='#'){
-				if( name[1]=='#'){
-					if(sd)
-					data->u.str = pc_readaccountreg2str(sd,name);
-				}else{
-					if(sd)
-					data->u.str = pc_readaccountregstr(sd,name);
-				}
- 			}else if(prefix=='.') {
-				struct linkdb_node **n;
-				if( data->ref ) {
-					n = data->ref;
-				} else if( name[1] == '@' ) {
-					n = st->stack->var_function;
-				} else {
-					n = &st->script->script_vars;
-				}
-				data->u.str = linkdb_search(n, (void*)data->u.num );
-			}else{
-				if(sd)
-				data->u.str = pc_readglobalreg_str(sd,name);
- 			} // [zBuffer]
-			/*else{
-				ShowWarning("script: get_val: illegal scope string variable.\n");
-				data->u.str = "!!ERROR!!";
-			}*/
-			if( data->u.str == NULL )
-				data->u.str ="";
-
-		}else{
-
-			data->type=C_INT;
-			if(str_data[data->u.num&0x00ffffff].type==C_INT){
-				data->u.num = str_data[data->u.num&0x00ffffff].val;
-			}else if(str_data[data->u.num&0x00ffffff].type==C_PARAM){
-				if(sd)
-					data->u.num = pc_readparam(sd,str_data[data->u.num&0x00ffffff].val);
-			}else if(prefix=='@'){
-				if(sd)
-					data->u.num = pc_readreg(sd,data->u.num);
-			}else if(prefix=='$'){
-				data->u.num = (int)idb_get(mapreg_db,data->u.num);
-			}else if(prefix=='#'){
-				if( name[1]=='#'){
-					if(sd)
-						data->u.num = pc_readaccountreg2(sd,name);
-				}else{
-					if(sd)
-						data->u.num = pc_readaccountreg(sd,name);
-				}
-			}else if(prefix=='.'){
-				struct linkdb_node **n;
-				if( data->ref ) {
-					n = data->ref;
-				} else if( name[1] == '@' ) {
-					n = st->stack->var_function;
-				} else {
-					n = &st->script->script_vars;
-				}
-				data->u.num = (int)linkdb_search(n, (void*)data->u.num);
-			}else{
-				if(sd)
-					data->u.num = pc_readglobalreg(sd,name);
-			}
-		}
+	if(not_server_variable(prefix)) {
+		sd = script_rid2sd(st);
+		if (!sd) { // needs player attached
+			// throw error, load some meaningful default values and return
+			ShowError("get_val error, cannot access player variable '%s'\n", name);
+			if (postfix == '$') { data->type = C_CONSTSTR; data->u.str = ""; } else { data->type = C_INT; data->u.num = 0; }
+			return 0;
+		}			
 	}
+
+	if(postfix == '$') { // string variable
+
+		data->type = C_CONSTSTR;
+
+		switch (prefix) {
+		case '@':
+			data->u.str = pc_readregstr(sd, data->u.num); break;
+		case '$':
+			data->u.str = (char *)idb_get(mapregstr_db,data->u.num); break;
+		case '#':
+			data->u.str = (name[1] == '#') ? pc_readaccountreg2str(sd, name) : pc_readaccountregstr(sd, name); break;
+		case '.': {
+			struct linkdb_node** n;
+			n = (data->ref) ? data->ref : (name[1] == '@') ? st->stack->var_function : &st->script->script_vars;
+			data->u.str = linkdb_search(n, (void*)data->u.num);
+			}
+			break;
+		default:
+			data->u.str = pc_readglobalreg_str(sd, name); break;
+		}
+
+		if( data->u.str == NULL )
+			data->u.str = "";
+
+	} else { // integer variable
+
+		data->type = C_INT;
+
+		if(str_data[data->u.num&0x00ffffff].type == C_INT) {
+			data->u.num = str_data[data->u.num&0x00ffffff].val;
+		} else if(str_data[data->u.num&0x00ffffff].type == C_PARAM) {
+			data->u.num = pc_readparam(sd, str_data[data->u.num&0x00ffffff].val);
+		}
+		else
+		switch (prefix) {
+		case '@':
+			data->u.num = pc_readreg(sd, data->u.num); break;
+		case '$':
+			data->u.num = (int)idb_get(mapreg_db, data->u.num); break;
+		case '#':
+			data->u.num = (name[1] == '#') ? pc_readaccountreg2(sd, name) : pc_readaccountreg(sd, name); break;
+		case '.': {
+			struct linkdb_node** n;
+			n = (data->ref) ? data->ref : (name[1] == '@') ? st->stack->var_function : &st->script->script_vars;
+			data->u.num = (int)linkdb_search(n, (void*)data->u.num);
+			}
+			break;
+		default:
+			data->u.num = pc_readglobalreg(sd, name); break;
+		}
+
+	}
+
 	return 0;
 }
 /*==========================================
- * 変数の読み取り2
- *------------------------------------------
- */
-void* get_val2(struct script_state*st,int num,struct linkdb_node **ref)
+ * Retrieves the value of a script variable
+ *------------------------------------------*/
+void* get_val2(struct script_state* st, int num, struct linkdb_node** ref)
 {
 	struct script_data dat;
-	dat.type=C_NAME;
-	dat.u.num=num;
-	dat.ref=ref;
-	get_val(st,&dat);
-	if( dat.type==C_INT ) return (void*)dat.u.num;
-	else return (void*)dat.u.str;
+	dat.type = C_NAME;
+	dat.u.num = num;
+	dat.ref = ref;
+	get_val(st, &dat);
+	return (dat.type == C_INT) ? (void*)dat.u.num : (void*)dat.u.str;
 }
 
 /*==========================================
- * 変数設定用
- *------------------------------------------
- */
-static int set_reg(struct script_state*st,struct map_session_data *sd,int num,char *name,void *v,struct linkdb_node** ref)
+ * Stores the value of a script variable
+ *------------------------------------------*/
+static int set_reg(struct script_state* st, struct map_session_data* sd, int num, char* name, void* value, struct linkdb_node** ref)
 {
-	char prefix=*name;
-	char postfix=name[strlen(name)-1];
+	char prefix = name[0]; char postfix = name[strlen(name)-1];
 
-	if( postfix=='$' ){
-		char *str=(char*)v;
-		if( prefix=='@'){
-			pc_setregstr(sd,num,str);
-		}else if(prefix=='$') {
-			mapreg_setregstr(num,str);
-		}else if(prefix=='#') {
-			if( name[1]=='#' )
-				pc_setaccountreg2str(sd,name,str);
-			else
-				pc_setaccountregstr(sd,name,str);
- 		}else if(prefix=='.') {
-			char *p;
-			struct linkdb_node **n;
-			if( ref ) {
-				n = ref;
-			} else if( name[1] == '@' ) {
-				n = st->stack->var_function;
-			} else {
-				n = &st->script->script_vars;
-			}
+	if (postfix == '$') { // string variable
+
+		char* str = (char*)value;
+		switch (prefix) {
+		case '@':
+			pc_setregstr(sd, num, str); break;
+		case '$':
+			mapreg_setregstr(num, str); break;
+		case '#':
+			(name[1] == '#') ? pc_setaccountreg2str(sd, name, str) : pc_setaccountregstr(sd, name, str); break;
+		case '.': {
+			char* p;
+			struct linkdb_node** n;
+			n = (ref) ? ref : (name[1] == '@') ? st->stack->var_function : &st->script->script_vars;
 			p = linkdb_search(n, (void*)num);
-			if(p) {
+			if (p) {
 				linkdb_erase(n, (void*)num);
 				aFree(p);
 			}
-			if( ((char*)v)[0] )
-				linkdb_insert(n, (void*)num, aStrdup(v));
-		}else{
-			pc_setglobalreg_str(sd,name,str);
- 		} // [zBuffer]
-	}else{
-		// 数値
-		int val = (int)v;
-		if(str_data[num&0x00ffffff].type==C_PARAM){
-			pc_setparam(sd,str_data[num&0x00ffffff].val,val);
-		}else if(prefix=='@') {
-			pc_setreg(sd,num,val);
-		}else if(prefix=='$') {
-			mapreg_setreg(num,val);
-		}else if(prefix=='#') {
-			if( name[1]=='#' )
-				pc_setaccountreg2(sd,name,val);
-			else
-				pc_setaccountreg(sd,name,val);
-		}else if(prefix == '.') {
-			struct linkdb_node **n;
-			if( ref ) {
-				n = ref;
-			} else if( name[1] == '@' ) {
-				n = st->stack->var_function;
-			} else {
-				n = &st->script->script_vars;
+			if (str[0]) linkdb_insert(n, (void*)num, aStrdup(str));
 			}
-			if( val == 0 ) {
+			break;
+		default:
+			pc_setglobalreg_str(sd, name, str); break;
+		}
+
+	} else { // integer variable
+
+		int val = (int)value;
+		if(str_data[num&0x00ffffff].type == C_PARAM)
+			pc_setparam(sd, str_data[num&0x00ffffff].val, val);
+		else
+		switch (prefix) {
+		case '@':
+			pc_setreg(sd, num, val); break;
+		case '$':
+			mapreg_setreg(num, val); break;
+		case '#':
+			(name[1] == '#') ? pc_setaccountreg2(sd, name, val) : pc_setaccountreg(sd, name, val); break;
+		case '.': {
+			struct linkdb_node** n;
+			n = (ref) ? ref : (name[1] == '@') ? st->stack->var_function : &st->script->script_vars;
+			if (val == 0)
 				linkdb_erase(n, (void*)num);
-			} else {
+			else 
 				linkdb_replace(n, (void*)num, (void*)val);
 			}
-		}else{
-			pc_setglobalreg(sd,name,val);
+			break;
+		default:
+			pc_setglobalreg(sd, name, val); break;
 		}
 	}
+
 	return 0;
 }
 
-int set_var(struct map_session_data *sd, char *name, void *val)
+int set_var(struct map_session_data* sd, char* name, void* val)
 {
     return set_reg(NULL, sd, add_str(name), name, val, NULL);
 }
@@ -3863,13 +3836,13 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(addtimer,"is"),
 	BUILDIN_DEF(deltimer,"s"),
 	BUILDIN_DEF(addtimercount,"si"),
-	BUILDIN_DEF(initnpctimer,"*"),
-	BUILDIN_DEF(stopnpctimer,"*"),
-	BUILDIN_DEF(startnpctimer,"*"),
-	BUILDIN_DEF(setnpctimer,"*"),
-	BUILDIN_DEF(getnpctimer,"i*"),
-	BUILDIN_DEF(attachnpctimer,"*"), // attached the player id to the npc timer [Celest]
-	BUILDIN_DEF(detachnpctimer,"*"), // detached the player id from the npc timer [Celest]
+	BUILDIN_DEF(initnpctimer,"??"),
+	BUILDIN_DEF(stopnpctimer,"??"),
+	BUILDIN_DEF(startnpctimer,"??"),
+	BUILDIN_DEF(setnpctimer,"i?"),
+	BUILDIN_DEF(getnpctimer,"i?"),
+	BUILDIN_DEF(attachnpctimer,"?"), // attached the player id to the npc timer [Celest]
+	BUILDIN_DEF(detachnpctimer,"?"), // detached the player id from the npc timer [Celest]
 	BUILDIN_DEF(playerattached,""), // returns id of the current attached player. [Skotlex]
 	BUILDIN_DEF(announce,"si*"),
 	BUILDIN_DEF(mapannounce,"ssi*"),
@@ -7269,8 +7242,8 @@ BUILDIN_FUNC(addtimer)
 {
 	char *event;
 	int tick;
-	tick=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	event=conv_str(st,& (st->stack->stack_data[st->start+3]));
+	tick=conv_num(st, script_getdata(st,2));
+	event=conv_str(st, script_getdata(st,3));
 	check_event(st, event);
 	pc_addeventtimer(script_rid2sd(st),tick,event);
 	return 0;
@@ -7282,7 +7255,7 @@ BUILDIN_FUNC(addtimer)
 BUILDIN_FUNC(deltimer)
 {
 	char *event;
-	event=conv_str(st,& (st->stack->stack_data[st->start+2]));
+	event=conv_str(st, script_getdata(st,2));
 	check_event(st, event);
 	pc_deleventtimer(script_rid2sd(st),event);
 	return 0;
@@ -7295,8 +7268,8 @@ BUILDIN_FUNC(addtimercount)
 {
 	char *event;
 	int tick;
-	event=conv_str(st,& (st->stack->stack_data[st->start+2]));
-	tick=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	event=conv_str(st, script_getdata(st,2));
+	tick=conv_num(st, script_getdata(st,3));
 	check_event(st, event);
 	pc_addeventtimercount(script_rid2sd(st),event,tick);
 	return 0;
@@ -7309,10 +7282,34 @@ BUILDIN_FUNC(addtimercount)
 BUILDIN_FUNC(initnpctimer)
 {
 	struct npc_data *nd;
-	if( st->end > st->start+2 )
-		nd=npc_name2id(conv_str(st,& (st->stack->stack_data[st->start+2])));
-	else
+	int flag = 0;
+	if( script_hasdata(st,3) )
+	{	//Two arguments: NPC name and attach flag.
+		nd = npc_name2id(conv_str(st, script_getdata(st,2)));
+		flag = conv_num(st, script_getdata(st,3));
+	} else
+	if( script_hasdata(st,2) )
+	{	//Check if argument is numeric (flag) or string (npc name)
+		struct script_data *data;
+		data = script_getdata(st,2);
+		get_val(st,data);
+		if( data_isstring(data) ) //NPC name
+			nd = npc_name2id(conv_str(st, script_getdata(st,2)));
+		else if( data_isint(data) ) {	//Flag
+			nd = (struct npc_data *)map_id2bl(st->oid);
+			flag = conv_num(st, script_getdata(st,3));
+		} else {
+			ShowError("initnpctimer: invalid argument type #1 (needs be int or string)).\n");
+			return 1;
+		}
+	} else
 		nd=(struct npc_data *)map_id2bl(st->oid);
+
+	if (!nd) return 0;
+	if (flag) { //Attach
+		TBL_PC* sd = script_rid2sd(st);
+		if (sd) nd->u.scr.rid = sd->bl.id;
+	}
 
 	npc_settimerevent_tick(nd,0);
 	npc_timerevent_start(nd, st->rid);
@@ -7325,10 +7322,34 @@ BUILDIN_FUNC(initnpctimer)
 BUILDIN_FUNC(startnpctimer)
 {
 	struct npc_data *nd;
-	if( st->end > st->start+2 )
-		nd=npc_name2id(conv_str(st,& (st->stack->stack_data[st->start+2])));
-	else
+	int flag = 0;
+	if( script_hasdata(st,3) )
+	{	//Two arguments: NPC name and attach flag.
+		nd = npc_name2id(conv_str(st, script_getdata(st,2)));
+		flag = conv_num(st, script_getdata(st,3));
+	} else
+	if( script_hasdata(st,2) )
+	{	//Check if argument is numeric (flag) or string (npc name)
+		struct script_data *data;
+		data = script_getdata(st,2);
+		get_val(st,data);
+		if( data_isstring(data) ) //NPC name
+			nd = npc_name2id(conv_str(st, script_getdata(st,2)));
+		else if( data_isint(data) ) {	//Flag
+			nd = (struct npc_data *)map_id2bl(st->oid);
+			flag = conv_num(st, script_getdata(st,3));
+		} else {
+			ShowError("startnpctimer: invalid argument type #1 (needs be int or string)).\n");
+			return 1;
+		}
+	} else
 		nd=(struct npc_data *)map_id2bl(st->oid);
+
+	if (!nd) return 0;
+	if (flag) { //Attach
+		TBL_PC* sd = script_rid2sd(st);
+		if (sd) nd->u.scr.rid = sd->bl.id;
+	}
 
 	npc_timerevent_start(nd, st->rid);
 	return 0;
@@ -7340,10 +7361,32 @@ BUILDIN_FUNC(startnpctimer)
 BUILDIN_FUNC(stopnpctimer)
 {
 	struct npc_data *nd;
-	if( st->end > st->start+2 )
-		nd=npc_name2id(conv_str(st,& (st->stack->stack_data[st->start+2])));
-	else
+	int flag = 0;
+	if( script_hasdata(st,3) )
+	{	//Two arguments: NPC name and attach flag.
+		nd = npc_name2id(conv_str(st, script_getdata(st,2)));
+		flag = conv_num(st, script_getdata(st,3));
+	} else
+	if( script_hasdata(st,2) )
+	{	//Check if argument is numeric (flag) or string (npc name)
+		struct script_data *data;
+		data = script_getdata(st,2);
+		get_val(st,data);
+		if( data_isstring(data) ) //NPC name
+			nd = npc_name2id(conv_str(st, script_getdata(st,2)));
+		else if( data_isint(data) ) {	//Flag
+			nd = (struct npc_data *)map_id2bl(st->oid);
+			flag = conv_num(st, script_getdata(st,3));
+		} else {
+			ShowError("stopnpctimer: invalid argument type #1 (needs be int or string)).\n");
+			return 1;
+		}
+	} else
 		nd=(struct npc_data *)map_id2bl(st->oid);
+
+	if (!nd) return 0;
+	if (flag) //Detach
+		nd->u.scr.rid = 0;
 
 	npc_timerevent_stop(nd);
 	return 0;
@@ -7356,12 +7399,12 @@ BUILDIN_FUNC(getnpctimer)
 {
 	struct npc_data *nd;
 	struct map_session_data *sd;
-	int type=conv_num(st,& (st->stack->stack_data[st->start+2]));
+	int type=conv_num(st, script_getdata(st,2));
 	int val=0;
-	if( st->end > st->start+3 )
-		nd=npc_name2id(conv_str(st,& (st->stack->stack_data[st->start+3])));
+	if( script_hasdata(st,3) )
+		nd = npc_name2id(conv_str(st,script_getdata(st,3)));
 	else
-		nd=(struct npc_data *)map_id2bl(st->oid);
+		nd = (struct npc_data *)map_id2bl(st->oid);
 	
 	if (!nd || nd->bl.type != BL_NPC)
 	{
@@ -7398,9 +7441,9 @@ BUILDIN_FUNC(setnpctimer)
 {
 	int tick;
 	struct npc_data *nd;
-	tick=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	if( st->end > st->start+3 )
-		nd=npc_name2id(conv_str(st,& (st->stack->stack_data[st->start+3])));
+	tick=conv_num(st,script_getdata(st,2));
+	if( script_hasdata(st,3) )
+		nd=npc_name2id(conv_str(st,script_getdata(st,3)));
 	else
 		nd=(struct npc_data *)map_id2bl(st->oid);
 
@@ -7418,12 +7461,10 @@ BUILDIN_FUNC(attachnpctimer)
 	struct npc_data *nd;
 
 	nd=(struct npc_data *)map_id2bl(st->oid);
-	if( st->end > st->start+2 ) {
-		char *name = conv_str(st,& (st->stack->stack_data[st->start+2]));
-		sd=map_nick2sd(name);
-	} else {
+	if( script_hasdata(st,2) )
+		sd=map_nick2sd(conv_str(st,script_getdata(st,2)));
+	else
 		sd = script_rid2sd(st);
-	}
 
 	if (sd==NULL)
 		return 0;
@@ -7439,8 +7480,8 @@ BUILDIN_FUNC(attachnpctimer)
 BUILDIN_FUNC(detachnpctimer)
 {
 	struct npc_data *nd;
-	if( st->end > st->start+2 )
-		nd=npc_name2id(conv_str(st,& (st->stack->stack_data[st->start+2])));
+	if( script_hasdata(st,2) )
+		nd=npc_name2id(conv_str(st,script_getdata(st,2)));
 	else
 		nd=(struct npc_data *)map_id2bl(st->oid);
 
@@ -7456,7 +7497,7 @@ BUILDIN_FUNC(detachnpctimer)
  */
 BUILDIN_FUNC(playerattached)
 {
-	if (st->rid == 0 || map_id2sd(st->rid) == NULL)
+	if(st->rid == 0 || map_id2sd(st->rid) == NULL)
 		push_val(st->stack,C_INT,0);
 	else
 		push_val(st->stack,C_INT,st->rid);
@@ -12450,26 +12491,34 @@ BUILDIN_FUNC(awake)
 /// getvariableofnpc(<variable>, "<npc name>") -> <reference>
 BUILDIN_FUNC(getvariableofnpc)
 {
-	if( st->stack->stack_data[st->start+2].type != C_NAME ) {
-		// 第一引数が変数名じゃない
-		printf("getvariableofnpc: param not name\n");
-		push_val(st->stack,C_INT,0);
-	} else {
-		int num = st->stack->stack_data[st->start+2].u.num;
-		char *var_name = str_buf+str_data[num&0x00ffffff].str;
-		char *npc_name = conv_str(st,& (st->stack->stack_data[st->start+3]));
-		struct npc_data *nd = npc_name2id(npc_name);
-		if( var_name[0] != '.' || var_name[1] == '@' ) {
-			// ' 変数以外はダメ
-			printf("getvariableofnpc: invalid scope %s\n", var_name);
-			push_val(st->stack,C_INT,0);
-		} else if( nd == NULL || nd->bl.subtype != SCRIPT || !nd->u.scr.script) {
-			// NPC が見つからない or SCRIPT以外のNPC
-			printf("getvariableofnpc: can't find npc %s\n", npc_name);
-			push_val(st->stack,C_INT,0);
-		} else {
-			push_val2(st->stack,C_NAME,num, &nd->u.scr.script->script_vars );
+	struct script_data* data;
+
+	data = script_getdata(st,2);
+	if( !data_isreference(data) )
+	{// Not a reference (aka varaible name)
+		ShowError("script: getvariableofnpc: first argument is not a variable name\n");
+		st->state = END;
+		return 1;
+	}
+	else
+	{
+		int num = data->u.num;
+		char* var_name = str_buf + str_data[num&0x00ffffff].str;
+		char* npc_name = conv_str(st, script_getdata(st,3));
+		struct npc_data* nd = npc_name2id(npc_name);
+		if( var_name[0] != '.' || var_name[1] == '@' )
+		{// not a npc variable
+			ShowError("script: getvariableofnpc: invalid scope %s (not npc variable)\n", var_name);
+			st->state = END;
+			return 1;
 		}
+		if( nd == NULL || nd->bl.subtype != SCRIPT || nd->u.scr.script == NULL )
+		{// NPC not found or has no script
+			ShowError("script: getvariableofnpc: can't find npc %s\n", npc_name);
+			st->state = END;
+			return 1;
+		}
+		push_val2(st->stack, C_NAME, num, &nd->u.scr.script->script_vars );
 	}
 	return 0;
 }

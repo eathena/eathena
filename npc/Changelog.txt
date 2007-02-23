@@ -22,6 +22,9 @@ Playtester
 
 Date		Added
 ======
+2007/02/23
+	* Updated dancer quest to v2.3, Lupus later script fixes are still rather
+	  recent as to merge them to stable.
 2007/02/21
 	* Updated WoE scripts since the "guardian" script command no longer has a
 	  "amount" argument. [Skotlex]
