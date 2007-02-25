@@ -946,7 +946,7 @@ int pc_calc_skilltree(struct map_session_data *sd)
 	do {
 		flag = 0;
 		for(i = 0; i < MAX_SKILL_TREE && (id = skill_tree[c][i].id) > 0; i++) {
-			int j, f, inf2;
+			int j, f, k, inf2;
 
 			if(sd->status.skill[id].id)
 				continue; //Skill already known.
@@ -954,9 +954,19 @@ int pc_calc_skilltree(struct map_session_data *sd)
 			f = 1;
 			if(!battle_config.skillfree) {
 				for(j = 0; j < 5; j++) {
-					if( skill_tree[c][i].need[j].id && pc_checkskill(sd,skill_tree[c][i].need[j].id) < skill_tree[c][i].need[j].lv) {
-						f = 0; // one or more prerequisites wasn't satisfied
-						break;
+					if((k=skill_tree[c][i].need[j].id))
+					{
+						if (!sd->status.skill[k].id || sd->status.skill[k].flag == 13)
+							k = 0; //Not learned.
+						else if (sd->status.skill[k].flag) //Real lerned level
+							k = sd->status.skill[skill_tree[c][i].need[j].id].flag-2;
+						else
+							k = pc_checkskill(sd,k);
+						if (k < skill_tree[c][i].need[j].lv)
+						{
+							f=0;
+							break;
+						}
 					}
 				}
 				if (sd->status.job_level < skill_tree[c][i].joblv)
@@ -1021,17 +1031,25 @@ static void pc_check_skilltree(struct map_session_data *sd, int skill) {
 	do {
 		flag=0;
 		for(i=0;i < MAX_SKILL_TREE && (id=skill_tree[c][i].id)>0;i++){
-			int j,f=1;
+			int j,f=1, k;
 
 			if(sd->status.skill[id].id) //Already learned
 				continue;
 			
 			for(j=0;j<5;j++) {
-				if( skill_tree[c][i].need[j].id &&
-					pc_checkskill(sd,skill_tree[c][i].need[j].id) <
-					skill_tree[c][i].need[j].lv) {
-					f=0;
-					break;
+				if((k=skill_tree[c][i].need[j].id))
+				{
+					if (!sd->status.skill[k].id || sd->status.skill[k].flag == 13)
+						k = 0; //Not learned.
+					else if (sd->status.skill[k].flag) //Real lerned level
+						k = sd->status.skill[skill_tree[c][i].need[j].id].flag-2;
+					else
+						k = pc_checkskill(sd,k);
+					if (k < skill_tree[c][i].need[j].lv)
+					{
+						f=0;
+						break;
+					}
 				}
 			}
 			if (!f)
@@ -1175,7 +1193,7 @@ static int pc_bonus_autospell_del(struct s_autospell *spell, int max, short id, 
 	if (i<0) return 0; //Nothing to substract from.
 
 	j = i;
-	for(; i>=0 && rate > 0; i--)
+	for(; i>=0 && rate>0; i--)
 	{
 		if (spell[i].id != id || spell[i].lv != lv) continue;
 		if (rate >= spell[i].rate) {
@@ -1189,6 +1207,13 @@ static int pc_bonus_autospell_del(struct s_autospell *spell, int max, short id, 
 			rate = 0;
 		}
 	}
+	if (rate > 0 && ++j < max)
+	{	 //Tag this as "pending" autospell to remove.
+		spell[j].id = id;
+		spell[j].lv = lv;
+		spell[j].rate = -rate;
+		spell[j].card_id = 0;
+	}
 	return rate;
 }
 
@@ -1198,12 +1223,13 @@ static int pc_bonus_autospell(struct s_autospell *spell, int max, short id, shor
 		pc_bonus_autospell_del(spell, max, id, lv, -rate, card_id);
 
 	for (i = 0; i < max && spell[i].id; i++) {
-		if (spell[i].card_id == card_id &&
+		if ((spell[i].card_id == card_id || !spell[i].card_id) &&
 			spell[i].id == id && spell[i].lv == lv)
 		{
-			if (!battle_config.autospell_stacking)
+			if (!battle_config.autospell_stacking && spell[i].rate > 0)
 				return 0;
 			rate += spell[i].rate;
+			if (rate < 0) card_id = 0; //Reduced from debted autospell.
 			break;
 		}
 	}
@@ -5736,15 +5762,18 @@ int pc_setoption(struct map_session_data *sd,int type)
 	}
 	if(type&OPTION_CART && !(p_type&OPTION_CART))
   	{ //Cart On
+		clif_cartlist(sd);
+		clif_updatestatus(sd, SP_CARTINFO);
 		if(pc_checkskill(sd, MC_PUSHCART) < 10)
 			status_calc_pc(sd,0); //Apply speed penalty.
 	} else
 	if(!(type&OPTION_CART) && p_type&OPTION_CART)
 	{ //Cart Off
+		clif_clearcart(sd->fd);
 		if(pc_checkskill(sd, MC_PUSHCART) < 10)
 			status_calc_pc(sd,0); //Remove speed penalty.
 	}
-			
+
 	if (type&OPTION_FALCON && !(p_type&OPTION_FALCON)) //Falcon ON
 		clif_status_load(&sd->bl,SI_FALCON,1);
 	else if (!(type&OPTION_FALCON) && p_type&OPTION_FALCON) //Falcon OFF
@@ -5783,8 +5812,9 @@ int pc_setoption(struct map_session_data *sd,int type)
  */
 int pc_setcart(struct map_session_data *sd,int type)
 {
-	int cart[6]={0x0000,OPTION_CART1,OPTION_CART2,OPTION_CART3,OPTION_CART4,OPTION_CART5};
+	int cart[6] = {0x0000,OPTION_CART1,OPTION_CART2,OPTION_CART3,OPTION_CART4,OPTION_CART5};
 	int option;
+
 	nullpo_retr(0, sd);
 	
 	if (type < 0 || type > 5)

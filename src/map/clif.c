@@ -2389,6 +2389,15 @@ void clif_cartlist(struct map_session_data *sd)
 	return;
 }
 
+/// Client behaviour:
+/// Closes the cart storage and removes all it's items from memory.
+/// The Num & Weight values of the cart are left untouched and the cart is NOT removed.
+void clif_clearcart(int fd)
+{
+	WFIFOHEAD(fd, packet_len(0x12b));
+	WFIFOW(fd,0) = 0x12b;
+}
+
 // Guild XY locators [Valaris]
 int clif_guild_xy(struct map_session_data *sd)
 {
@@ -8177,11 +8186,10 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		clif_hominfo(sd,sd->hd,0); //for some reason, at least older clients want this sent twice
 		clif_send_homdata(sd,0,0);
 		clif_homskillinfoblock(sd);
-		//Homunc mimic their master's speed on each map change. [Skotlex]
 		if (battle_config.hom_setting&0x8)
-			status_calc_bl(&sd->hd->bl, SCB_SPEED);
+			status_calc_bl(&sd->hd->bl, SCB_SPEED); //Homunc mimic their master's speed on each map change
 		if (!(battle_config.hom_setting&0x2))
-			skill_unit_move(&sd->hd->bl,gettick(),1);
+			skill_unit_move(&sd->hd->bl,gettick(),1); // apply land skills immediately
 	}
 
 	if(sd->state.connect_new) {
@@ -9664,7 +9672,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 		unit_skilluse_id(&sd->bl, target_id, skillnum, skilllv);
 		return;
 	}
-		
+
 	sd->skillitem = sd->skillitemlv = 0;
 	if (skillnum == MO_EXTREMITYFIST) {
 		if ((sd->sc.data[SC_COMBO].timer == -1 ||
@@ -9756,6 +9764,7 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, int skilll
 		return;
 	
 	pc_delinvincibletimer(sd);
+
 	if (sd->skillitem == skillnum) {
 		if (skilllv != sd->skillitemlv)
 			skilllv = sd->skillitemlv;

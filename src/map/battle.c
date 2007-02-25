@@ -486,7 +486,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 	if (sc && sc->count) {
 	}
 */	
-	if (battle_config.pk_mode && sd && damage)
+	if (battle_config.pk_mode && sd && bl->type == BL_PC && damage)
   	{
 		if (flag & BF_SKILL) { //Skills get a different reduction than non-skills. [Skotlex]
 			if (flag&BF_WEAPON)
@@ -1430,7 +1430,10 @@ static struct Damage battle_calc_weapon_attack(
 				case NPC_DARKNESSATTACK:
 				case NPC_UNDEADATTACK:
 				case NPC_TELEKINESISATTACK:
-					skillratio += 25*skill_lv;
+					skillratio += 100*(skill_lv-1);
+					break;
+				case NPC_BLOODDRAIN:
+					skillratio += 100*skill_lv;
 					break;
 				case RG_BACKSTAP:
 					if(sd && sd->status.weapon == W_BOW && battle_config.backstab_bow_penalty)
@@ -1670,7 +1673,8 @@ static struct Damage battle_calc_weapon_attack(
 
 			if(sc->data[SC_EDP].timer != -1 &&
 			  	skill_num != ASC_BREAKER &&
-				skill_num != ASC_METEORASSAULT)
+				skill_num != ASC_METEORASSAULT &&
+				skill_num != AS_VENOMKNIFE)
 				ATK_ADDRATE(sc->data[SC_EDP].val3);
 		}
 
@@ -2407,6 +2411,7 @@ struct Damage battle_calc_magic_attack(
 						skillratio += 60 + 40*skill_lv;
 						break;
 					case NJ_KAMAITACHI:
+					case NPC_ENERGYDRAIN:
 						skillratio += 100*skill_lv;
 						break;
 				}

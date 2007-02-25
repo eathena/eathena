@@ -2403,7 +2403,13 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,int skill_id)
 			data.x = md2->bl.x;
 			data.y = md2->bl.y;
 		}
-		strcpy(data.name, "--ja--");	//These two need to be loaded from the db for each slave.
+
+		//These two need to be loaded from the db for each slave.
+		if(battle_config.override_mob_names==1)
+			strcpy(data.name,"--en--");
+		else
+			strcpy(data.name,"--ja--");
+
 		data.level = 0;
 		if (!mob_parse_dataset(&data))
 			continue;
@@ -3143,7 +3149,7 @@ int mob_parse_dbrow(char** str)
 	if (status->int_< 1) status->int_= 1;
 	if (status->dex < 1) status->dex = 1;
 	if (status->luk < 1) status->luk = 1;
-
+	
 	db->range2 = atoi(str[20]);
 	db->range3 = atoi(str[21]);
 	if (battle_config.view_range_rate != 100) {

@@ -1113,7 +1113,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case WZ_STORMGUST:
-		if(tsc->data[SC_FREEZE].val3 >= 3) //Tharis pointed out that this is normal freeze chance with a base of 300%
+		//Use two since the counter is increased AFTER the attack.
+		if(tsc->data[SC_FREEZE].val3 >= 2) //Tharis pointed out that this is normal freeze chance with a base of 300%
 			sc_start(bl,SC_FREEZE,300,skilllv,skill_get_time2(skillid,skilllv));
 		break;
 
@@ -7939,10 +7940,15 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 	hp_rate = skill_db[j].hp_rate[lv-1];
 	sp_rate = skill_db[j].sp_rate[lv-1];
 	zeny = skill_db[j].zeny[lv-1];
-	weapon = skill_db[j].weapon;
-	ammo = skill_db[j].ammo;
-	ammo_qty = skill_db[j].ammo_qty[lv-1];
-	state = skill_db[j].state;
+
+	if (!type) { //These should only be checked on begin casting.
+		weapon = skill_db[j].weapon;
+		ammo = skill_db[j].ammo;
+		ammo_qty = skill_db[j].ammo_qty[lv-1];
+		state = skill_db[j].state;
+	} else
+		weapon = ammo = ammo_qty = state = 0;
+
 	spiritball = skill_db[j].spiritball[lv-1];
 	mhp = skill_db[j].mhp[lv-1];
 	for(i = 0; i < 10; i++) {
@@ -7964,11 +7970,14 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 	else
 		sp += (status->max_sp * (-sp_rate))/100;
 
-	if (!ammo && skill && skill_isammotype(sd, skill))
+	if (weapon && !ammo && skill && skill_isammotype(sd, skill))
 	{	//Assume this skill is using the weapon, therefore it requires arrows.
 		ammo = 0xFFFFFFFF; //Enable use on all ammo types.
 		ammo_qty = 1;
 	}
+
+	//Can only update state when weapon/arrow info is checked.
+	if (weapon) sd->state.arrow_atk = ammo?1:0;
 
 	switch(skill) { // Check for cost reductions due to skills & SCs
 		case MC_MAMMONITE:
@@ -8405,7 +8414,7 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 			return 0;
 		}
 	
-		if(!pc_check_weapontype(sd,weapon)) {
+		if(weapon && !pc_check_weapontype(sd,weapon)) {
 			clif_skill_fail(sd,skill,6,0);
 			return 0;
 		}
@@ -8431,7 +8440,6 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 		}
 	}
 
-	if(!type)//States are only checked on begin-casting. [Skotlex]
 	switch(state) {
 	case ST_HIDING:
 		if(!(sc && sc->option&OPTION_HIDE)) {
@@ -8557,8 +8565,6 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 
 	if(!(type&1))
 		return 1;
-
-	sd->state.arrow_atk = ammo?1:0; //Update arrow-atk state on cast-end.
 
 	if(delitem_flag) {
 		for(i=0;i<10;i++) {
@@ -11193,7 +11199,7 @@ int skill_readdb (void)
 		skill_db[i].hit=atoi(split[2]);
 		skill_db[i].inf=atoi(split[3]);
 		skill_db[i].pl=atoi(split[4]);
-		skill_db[i].nk=atoi(split[5]);
+		skill_db[i].nk=(int)strtol(split[5], NULL, 0);
 		skill_split_atoi(split[6],skill_db[i].splash);
 		skill_db[i].max=atoi(split[7]);
 		skill_split_atoi(split[8],skill_db[i].num);
@@ -11407,6 +11413,7 @@ int skill_readdb (void)
 	skill_init_unit_layout();
 
 	memset(skill_produce_db,0,sizeof(skill_produce_db));
+	k=0;
 	for(m=0;m<2;m++){
 		sprintf(path, "%s/%s", db_path, filename[m]);
 		fp=fopen(path,"r");
@@ -11416,7 +11423,6 @@ int skill_readdb (void)
 			ShowError("can't read %s\n",path);
 			return 1;
 		}
-		k=0;
 		while(fgets(line,1020,fp)){
 			char *split[7 + MAX_PRODUCE_RESOURCE * 2];
 			int x,y;
@@ -11440,7 +11446,10 @@ int skill_readdb (void)
 			}
 			k++;
 			if(k >= MAX_SKILL_PRODUCE_DB)
+			{
+				ShowError("Reached the max number of produce_db entries (%d), consider raising the value of MAX_SKILL_PRODUCE_DB and recompile.\n", MAX_SKILL_PRODUCE_DB);
 				break;
+			}
 		}
 		fclose(fp);
 		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,path);

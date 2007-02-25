@@ -4,6 +4,20 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2007/02/26
+	* fixed PK damage adjustment settings affecting PvM damage.
+	* Corrected the damage of the NPC elemental skills, BloodDrain/EnergyDrain
+	* EDP no longer works on Venom Knives
+	* Corrected Storm Gust freezing on the fourth hit instead of third.
+	* Weapon types, ammo and skill state is no longer checked on cast-end, only
+	  on cast-begin.
+	* Merged support for reading hex nk values.
+	* Merged fix of produce_db2 overriding entries in produce_db.
+	* Merged fix to item-acquired skills unlocking skills further down in the
+	  skill tree.
+	* Merged fix to let autospell cancel scripts work when they are executed
+	  before the actual script that grants the skill is parsed.
+	* Fixed mob_override_name not working on mob-summoned mobs.
 2007/02/23
 	* Updater script commands initnpctimer, stopnpctimer and startnpctimer so
 	  you can choose to attach the current player to them.
