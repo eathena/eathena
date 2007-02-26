@@ -1430,10 +1430,8 @@ static struct Damage battle_calc_weapon_attack(
 				case NPC_DARKNESSATTACK:
 				case NPC_UNDEADATTACK:
 				case NPC_TELEKINESISATTACK:
-					skillratio += 100*(skill_lv-1);
-					break;
 				case NPC_BLOODDRAIN:
-					skillratio += 100*skill_lv;
+					skillratio += 100*(skill_lv-1);
 					break;
 				case RG_BACKSTAP:
 					if(sd && sd->status.weapon == W_BOW && battle_config.backstab_bow_penalty)
@@ -2733,7 +2731,7 @@ struct Damage  battle_calc_misc_attack(
 			else if (hitrate < battle_config.min_hitrate)
 				hitrate = battle_config.min_hitrate;
 
-			if(rand()%100 >= hitrate)
+			if(rand()%100 < hitrate)
 				flag.hit = 1;
 		}
 		if (!flag.hit) {
