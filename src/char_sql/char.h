@@ -1,7 +1,8 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
-#ifndef _CHARSQL_H_
-#define _CHARSQL_H_
+
+#ifndef _CHAR_SQL_H_
+#define _CHAR_SQL_H_
 
 #include "../common/core.h"
 #include "../common/socket.h"
@@ -90,7 +91,6 @@ extern char party_db[256];
 extern char pet_db[256];
 
 extern int db_use_sqldbs; // added for sql item_db read for char server [Valaris]
-extern int connection_ping_interval;
 
 extern char login_db_level[32];
 extern char login_db_account_id[32];
@@ -107,4 +107,5 @@ extern int debug_mysql_query(char *file, int line, void *mysql, const char *q);
 //Exported for use in the TXT-SQL converter.
 int mmo_char_tosql(int char_id, struct mmo_charstatus *p);
 void sql_config_read(const char *cfgName);
-#endif
+
+#endif /* _CHAR_SQL_H_ */

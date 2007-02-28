@@ -280,7 +280,7 @@ void initChangeTables(void) {
 	set_sc(NPC_BREAKARMOR, SC_BROKENARMOR, SI_BROKENARMOR, SCB_NONE);
 	add_sc(NPC_CHANGEUNDEAD, SC_ELEMENTALCHANGE);
 	set_sc(NPC_POWERUP, SC_INCDEXRATE, SI_BLANK, SCB_DEX);
-	set_sc(NPC_AGIUP, SC_INCAGIRATE, SI_BLANK, SCB_AGI);
+	set_sc(NPC_AGIUP, SC_INCFLEERATE, SI_BLANK, SCB_AGI);
 	add_sc(NPC_INVISIBLE, SC_CLOAKING);
 	set_sc(LK_AURABLADE, SC_AURABLADE, SI_AURABLADE, SCB_NONE);
 	set_sc(LK_PARRYING, SC_PARRYING, SI_PARRYING, SCB_NONE);
@@ -6628,7 +6628,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		break;
 
 	case SC_STONE:
-		if(sc->opt1 == OPT1_STONEWAIT) {
+		if(sc->opt1 == OPT1_STONEWAIT && sc->data[type].val3) {
 			sc->data[type].val4 = 0;
 			unit_stop_walking(bl,1);
 			sc->opt1 = OPT1_STONE;

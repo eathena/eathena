@@ -509,10 +509,6 @@ void chrif_authok(int fd) {
 	struct auth_node *auth_data;
 	RFIFOHEAD(fd);
 	
-	if (map_id2sd(RFIFOL(fd, 4)) != NULL)
-	//Someone with this account is already in! Do not store the info to prevent possible sync exploits. [Skotlex]
-		return;
-	
 	if ((auth_data =uidb_get(auth_db, RFIFOL(fd, 4))) != NULL)
 	{	//Is the character already awaiting authorization?
 		if (auth_data->sd)
@@ -1076,7 +1072,6 @@ int chrif_disconnectplayer(int fd){
 
 		case 3: //server overpopulated
 			clif_authfail_fd(sd->fd, 4);
-
 		break;
 
 		case 4: //out of time payd for .. (avail)
@@ -1087,8 +1082,7 @@ int chrif_disconnectplayer(int fd){
 			clif_authfail_fd(sd->fd, 15);
 		break;
 	}
-
-return 0;
+	return 0;
 }
 
 /*==========================================

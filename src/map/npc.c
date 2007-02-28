@@ -598,7 +598,7 @@ int npc_timerevent(int tid,unsigned int tick,int id,int data)
 	struct npc_timerevent_list *te;
 	struct timer_event_data *ted = (struct timer_event_data*)data;
 	struct map_session_data *sd=NULL;
-	
+
 	if( nd==NULL ){
 		ShowError("npc_timerevent: NPC not found??\n");
 		return 0;

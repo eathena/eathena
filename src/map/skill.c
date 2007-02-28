@@ -851,9 +851,6 @@ int skillnotok (int skillid, struct map_session_data *sd)
 	if (battle_config.gm_skilluncond && pc_isGM(sd) >= battle_config.gm_skilluncond)
 		return 0;  // gm's can do anything damn thing they want
 
-	if(sd->menuskill_id && skillid != sd->menuskill_id)
-		return 1; //Can't use skills while a menu is open.
-
 	// Check skill restrictions [Celest]
 	if(!map_flag_vs(m) && skill_get_nocast (skillid) & 1)
 		return 1;
@@ -4100,10 +4097,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		i = ((!md || md->special_state.ai == 2) && !map_flag_vs(src->m))?
 			BCT_ENEMY:BCT_ALL;
 		clif_skill_nodamage(src, src, skillid, -1, 1);
+		map_delblock(src); //Required to prevent chain-self-destructions hitting back.
 		map_foreachinrange(skill_area_sub, bl,
 			skill_get_splash(skillid, skilllv), BL_CHAR,
 			src, skillid, skilllv, tick, flag|i,
 			skill_castend_damage_id);
+		map_addblock(src);
 		status_damage(src, src, sstatus->max_hp,0,0,1);
 		break;
 
@@ -4927,7 +4926,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case NPC_AGIUP:
 		sc_start(bl,SC_SPEEDUP1,100,skilllv,skill_get_time(skillid, skilllv));
 		clif_skill_nodamage(src,bl,skillid,skilllv,
-			sc_start(bl,type,100,40*skilllv,skill_get_time(skillid, skilllv)));
+			sc_start(bl,type,100,100,skill_get_time(skillid, skilllv)));
 		break;
 
 	case NPC_INVISIBLE:

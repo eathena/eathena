@@ -578,7 +578,6 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 		clif_authfail_fd(sd->fd, 0);
 		return 1;
 	}
-
 	memcpy(&sd->status, st, sizeof(*st));
 
 	//Set the map-server used job id. [Skotlex]
@@ -5816,24 +5815,18 @@ int pc_setcart(struct map_session_data *sd,int type)
 	int option;
 
 	nullpo_retr(0, sd);
-	
-	if (type < 0 || type > 5)
-		return 0; //Never trust the values sent by the client! [Skotlex]
 
-	if(pc_checkskill(sd,MC_PUSHCART)>0){ // プッシュカ?トスキル所持
-		option = sd->sc.option;
-		//This should preserve the current option, only modifying the cart bit.
-		option&=~OPTION_CART;
-		option|=cart[type];
-		if(!pc_iscarton(sd)){ // カ?トを付けていない
-			pc_setoption(sd,option);
-			clif_cartlist(sd);
-			clif_updatestatus(sd,SP_CARTINFO);
-		}
-		else{
-			pc_setoption(sd,option);
-		}
-	}
+	if( type < 0 || type > 5 )
+		return 1;// Never trust the values sent by the client! [Skotlex]
+
+	if( pc_checkskill(sd,MC_PUSHCART) <= 0 )
+		return 1;// Push cart is required
+
+	// Update option
+	option = sd->sc.option;
+	option &= ~OPTION_CART;// clear cart bits
+	option |= cart[type]; // set cart
+	pc_setoption(sd, option);
 
 	return 0;
 }

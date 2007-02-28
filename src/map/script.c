@@ -199,12 +199,43 @@ int mapreg_setreg(int num,int val);
 int mapreg_setregstr(int num,const char *str);
 
 enum c_op {
-	C_NOP,C_POS,C_INT,C_PARAM,C_FUNC,C_STR,C_CONSTSTR,C_ARG,
-	C_NAME,C_EOL, C_RETINFO,
-	C_USERFUNC, C_USERFUNC_POS, // user defined functions
+	C_NOP,
+	C_POS,
+	C_INT, // number
+	C_PARAM, // parameter variable (see pc_readparam/pc_setparam)
+	C_FUNC, // buildin function call
+	C_STR, // string (free'd automatically)
+	C_CONSTSTR, // string (not free'd)
+	C_ARG, // start of argument list
+	C_NAME,
+	C_EOL, // end of line (extra stack values are cleared)
+	C_RETINFO,
+	C_USERFUNC, // internal script function
+	C_USERFUNC_POS, // internal script function label
 
-	C_OP3,C_LOR,C_LAND,C_LE,C_LT,C_GE,C_GT,C_EQ,C_NE,   //operator
-	C_XOR,C_OR,C_AND,C_ADD,C_SUB,C_MUL,C_DIV,C_MOD,C_NEG,C_LNOT,C_NOT,C_R_SHIFT,C_L_SHIFT
+	// operators
+	C_OP3, // a ? b : c
+	C_LOR, // a || b
+	C_LAND, // a && b
+	C_LE, // a <= b
+	C_LT, // a < b
+	C_GE, // a >= b
+	C_GT, // a > b
+	C_EQ, // a == b
+	C_NE, // a != b
+	C_XOR, // a ^ b
+	C_OR, // a | b
+	C_AND, // a & b
+	C_ADD, // a + b
+	C_SUB, // a - b
+	C_MUL, // a * b
+	C_DIV, // a / b
+	C_MOD, // a % b
+	C_NEG, // - a
+	C_LNOT, // ! a
+	C_NOT, // ~ a
+	C_R_SHIFT, // a >> b
+	C_L_SHIFT // a << b
 };
 
 enum {
@@ -534,38 +565,45 @@ void set_label(int l,int pos, const char* script_pos)
 	}
 }
 
-/*==========================================
- * スペース/コメント読み飛ばし
- *------------------------------------------
- */
-static const char *skip_space(const char *p)
+/// Skips spaces and/or comments.
+static
+const char* skip_space(const char* p)
 {
-	for(;;){
-		while(ISSPACE(*p))
+	for(;;)
+	{
+		while( ISSPACE(*p) )
 			++p;
-		if( *p=='/' && p[1]=='/' ){
+		if( *p == '/' && p[1] == '/' )
+		{// line comment
 			while(*p && *p!='\n')
 				++p;
-		} else if( *p=='/' && p[1]=='*' ){
-			p+=2;
-			if(*p) ++p;
-			while( *p && (p[-1]!='*' || *p!='/') )
-				p++;
-			if(*p)
+		}
+		else if( *p == '/' && p[1] == '*' )
+		{// block comment
+			p += 2;
+			for(;;)
+			{
+				if( *p == '\0' )
+					disp_error_message("script:skip_space: end of file while parsing block comment. expected "CL_BOLD"*/"CL_NORM, p);
+				if( *p == '*' || p[1] == '/' )
+				{// end of block comment
+					p += 2;
+					break;
+				}
 				++p;
-			else
-				disp_error_message("skip_space: unexpected eof @ block comment",p);
-		} else
+			}
+		}
+		else
 			break;
 	}
 	return p;
 }
 
-/*==========================================
- * １単語スキップ
- *------------------------------------------
- */
-static const char *skip_word(const char *p)
+/// Skips a word.
+/// A word consists of undercores and/or alfanumeric characters,
+/// and valid variable prefixes/postfixes.
+static
+const char* skip_word(const char* p)
 {
 	// prefix
 	if(*p=='.') p++;
@@ -580,30 +618,34 @@ static const char *skip_word(const char *p)
 	while( ISALNUM(*p) || *p == '_' )
 		++p;
 	// postfix
-	if(*p=='$') p++;	// 文字列変数
+	if( *p == '$' )// string
+		p++;
 
 	return p;
 }
 
-/// Adds a word to str_data
-int add_word(const char *p)
+/// Adds a word to str_data.
+/// @see skip_word
+/// @see add_str
+static
+int add_word(const char* p)
 {
-	char *word;
+	char* word;
 	int len;
 	int i;
 
 	// Check for a word
-	len = skip_word(p)-p;
+	len = skip_word(p) - p;
 	if( len == 0 )
-		disp_error_message("add_word: not a word",p);
+		disp_error_message("script:add_word: invalid word. A word consists of undercores and/or alfanumeric characters, and valid variable prefixes/postfixes.", p);
 
-	// Copy the word
-	CREATE(word,char,len+1);
-	memcpy(word,p,len);
-	word[len]=0;
+	// Duplicate the word
+	CREATE(word, char, len+1);
+	memcpy(word, p, len);
+	word[len] = 0;
 	
 	// add the word
-	i=add_str(word);
+	i = add_str(word);
 	aFree(word);
 	return i;
 }
@@ -611,7 +653,8 @@ int add_word(const char *p)
 /// Parses a function call.
 /// The argument list can have parenthesis or not.
 /// The number of arguments is checked.
-static const char* parse_callfunc(const char *p, int require_paren)
+static
+const char* parse_callfunc(const char* p, int require_paren)
 {
 	const char* p2;
 	const char* arg=NULL;
@@ -978,7 +1021,8 @@ const char* parse_curly_close(const char* p) {
 // 構文関連の処理
 //	 break, case, continue, default, do, for, function,
 //	 if, switch, while をこの内部で処理します。
-const char* parse_syntax(const char* p) {
+const char* parse_syntax(const char* p)
+{
 	const char *p2 = skip_word(p);
 
 	switch(*p) {
@@ -1245,43 +1289,47 @@ const char* parse_syntax(const char* p) {
 			l=add_str(label);
 			set_label(l,script_pos,p);
 			return p;
-		} else if(p2 - p == 8 && !strncasecmp(p,"function",8)) {
+		}
+		else if( p2 - p == 8 && strncasecmp(p,"function",8) == 0 )
+		{// internal script function
 			const char *func_name;
-			// function
-			p=skip_space(p2);
-			if(p == p2)
-				disp_error_message("parse_syntax: expect space ' '",p);
-			// function - name
-			func_name = p;
-			p=skip_word(p);
-			if(*skip_space(p) == ';') {
-				// 関数の宣言 - 名前を登録して終わり
+
+			func_name = skip_space(p2);
+			p = skip_word(func_name);
+			if( p == func_name )
+				disp_error_message("parse_syntax:function: function name is missing or invalid", p);
+			if( *skip_space(p) == ';' )
+			{// function <name> ;
+				// function declaration - just register the name
 				int l;
-				l=add_word(func_name);
-				if(str_data[l].type == C_NOP)
+				l = add_word(func_name);
+				if( str_data[l].type == C_NOP )//## ??? [FlavioJS]
 					str_data[l].type = C_USERFUNC;
 				return skip_space(p) + 1;
-			} else {
-				// 関数の中身
+			}
+			else
+			{// function <name> <line/block of code>
 				char label[256];
 				int l;
+
 				syntax.curly[syntax.curly_count].type  = TYPE_USERFUNC;
 				syntax.curly[syntax.curly_count].count = 1;
 				syntax.curly[syntax.curly_count].index = syntax.index++;
 				syntax.curly[syntax.curly_count].flag  = 0;
-				syntax.curly_count++;
+				++syntax.curly_count;
 
-				// 関数終了まで飛ばす
-				sprintf(label,"goto __FN%x_FIN;",syntax.curly[syntax.curly_count-1].index);
-				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+				// Jump over the function code
+				sprintf(label, "goto __FN%x_FIN;", syntax.curly[syntax.curly_count-1].index);
+				syntax.curly[syntax.curly_count].type = TYPE_NULL;
+				++syntax.curly_count;
 				parse_line(label);
-				syntax.curly_count--;
+				--syntax.curly_count;
 
-				// 関数名のラベルを付ける
+				// Set the position of the function (label)
 				l=add_word(func_name);
-				if(str_data[l].type == C_NOP)
+				if( str_data[l].type == C_NOP )//## ??? [FlavioJS]
 					str_data[l].type = C_USERFUNC;
-				set_label(l,script_pos,p);
+				set_label(l, script_pos, p);
 				if( parse_options&SCRIPT_USE_LABEL_DB )
 					strdb_put(scriptlabel_db, GETSTRING(str_data[l].str), (void*)script_pos);
 				return skip_space(p);
@@ -4939,41 +4987,42 @@ BUILDIN_FUNC(copyarray)
 	}
 	return 0;
 }
+
 /*==========================================
- * 配列変数のサイズ所得
- *------------------------------------------
- */
-static int getarraysize(struct script_state *st,int num,int postfix,struct linkdb_node** ref)
+ * Returns the size of the specified array
+ *------------------------------------------*/
+static int getarraysize(struct script_state* st, int num, int postfix, struct linkdb_node** ref)
 {
-	int i=(num>>24),c=(i==0? -1:i); // Moded to -1 because even if the first element is 0, it will still report as 1 [Lance]
-	if(postfix == '$'){
-		for(;i<128;i++){
-			void *v=get_val2(st,(num & 0x00FFFFFF)+(i<<24),ref);
-			if(*((char*)v)) c=i;
+
+	int i = (num>>24), c = (i==0?-1:i); // Moded to -1 because even if the first element is 0, it will still report as 1 [Lance]
+	
+	if(postfix == '$') {
+		for(; i < 128; i++) {
+			void* v = get_val2(st, (num & 0x00FFFFFF) + (i<<24), ref);
+			if(*((char*)v)) c = i;
 		}
-	}else{
-		for(;i<128;i++){
-			void *v=get_val2(st,(num & 0x00FFFFFF)+(i<<24),ref);
-			if((int)v) c=i;
+	} else {
+		for(; i < 128; i++) {
+			void* v = get_val2(st, (num & 0x00FFFFFF) + (i<<24), ref);
+			if((int)v) c = i;
 		}
 	}
-	return c+1;
+	return c + 1;
 }
 
 BUILDIN_FUNC(getarraysize)
 {
-	int num=st->stack->stack_data[st->start+2].u.num;
-	char *name=str_buf+str_data[num&0x00ffffff].str;
-	char prefix=*name;
-	char postfix=name[strlen(name)-1];
+	int num = st->stack->stack_data[st->start+2].u.num;
+	char* name = str_buf + str_data[num&0x00ffffff].str;
+	char prefix = name[0], postfix = name[strlen(name)-1];
 
-	if( prefix!='$' && prefix!='@' && prefix!='.' ){
-		ShowWarning("buildin_copyarray: illegal scope !\n");
-		push_val(st->stack,C_INT,0);
+	if( prefix != '$' && prefix != '@' && prefix != '.' ) {
+		ShowWarning("buildin_getarraysize: illegal scope !\n");
+		push_val(st->stack, C_INT, 0);
 		return 1;
 	}
 
-	push_val(st->stack,C_INT,getarraysize(st,num,postfix,st->stack->stack_data[st->start+2].ref));
+	push_val(st->stack, C_INT, getarraysize(st, num, postfix, st->stack->stack_data[st->start+2].ref));
 	return 0;
 }
 /*==========================================
