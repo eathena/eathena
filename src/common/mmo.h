@@ -9,7 +9,9 @@
 #include "utils.h" // _WIN32
 
 // server protocol version
-#define PACKETVER			7
+#ifndef PACKETVER
+	#define PACKETVER			8
+#endif
 
 #define FIFOSIZE_SERVERLINK	256*1024
 
@@ -511,4 +513,4 @@ enum {
 	#endif
 #endif
 
-#endif	// _MMO_H_
+#endif /* _MMO_H_ */

@@ -5,6 +5,20 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2007/03/01
+	* Added new NK values to determine skill damage properties such as: ignore
+	  flee, ignore defense, ignore attack cards, ignore elemental adjustments.
+	* Merged the improvements to the login auth system to prevent dual logins
+	  and login in with char-data different from the last save (dupes). This
+	  hasn't been in trunk for long, but it seems to work, and is necessary to
+	  merge as soon as possible since there is already an exploit out there used
+	  to dupe!
+	* Merged autoguard/Utsusemi/Bunsinyutsu working only on skills that take
+	  into account damage +% cards.
+	* Merged the updates to the battle calc damage equations, where the skill's
+	  range determines if it is melee/ranged and the NK value determines various
+	  damage attributes.
+	* Corrected Raid not doing the "can hit" check on splashed targets.
+2007/03/01
 	* Modified the Palm Strike initial attack packet so it no longer displays
 	  'Miss'
 	* Corrected the warpwaitingpc scritp definition to allow for the optional

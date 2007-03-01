@@ -25,8 +25,14 @@ OPT += -ffast-math
 OPT += -Wall -Wno-sign-compare
 # Uncomment this one if you are using GCC 4.X
 # OPT += -Wno-unused-parameter -Wno-pointer-sign
+# Server Packet Protocol version (also defined in src/common/mmo.h)
+# OPT += -DPACKETVER=8
+# Makes map-wide script variables be saved to SQL instead of TXT files.
 # OPT += -DMAPREGSQL
-# OPT += -DCHRIF_OLDINFO
+# Turbo is an alternate socket access implementation which should be faster.
+# DO NOT ENABLE YET as it isn't quite ready for general usage.
+# OPT += -DTURBO
+# Enable the perl regular expression support for scripts
 # OPT += -DPCRE_SUPPORT
 # OPT += -DGCOLLECT
 # OPT += -DMEMWATCH
@@ -38,6 +44,7 @@ OPT += -Wall -Wno-sign-compare
 # LIBS += -L/usr/local/lib -lpcre
 
 PLATFORM = $(shell uname)
+ARCH = $(shell uname -m)
 
 ifeq ($(findstring Linux,$(PLATFORM)), Linux)
    LIBS += -ldl
@@ -67,6 +74,10 @@ ifeq ($(findstring CYGWIN,$(PLATFORM)), CYGWIN)
    else
       OS_TYPE = -DCYGWIN
    endif
+endif
+
+ifeq ($(findstring x86_64,$(ARCH)), x86_64)
+    OPT += -m32
 endif
 
 CFLAGS = $(OPT) -I../common $(OS_TYPE)
@@ -106,8 +117,6 @@ endif
 
 .PHONY: txt sql common login login_sql char char_sql map map_sql ladmin converters \
 	addons plugins tools clean zlib depend
-
-all: txt
 
 txt : Makefile.cache conf common login char map ladmin
 

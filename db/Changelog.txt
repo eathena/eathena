@@ -1,3 +1,6 @@
+03/02
+	* Merged the new NK values to skill_db. See file for details on these new
+	  NK values which determine damage properties of skills. [Skotlex]
 02/23
 	* Fixed Aegis names and added some etc items [Playtester]
 02/13
@@ -32,7 +35,7 @@
 	- to allow Shadow Jump in jail zones
 01/18
 	* Fixed Ulle's Cap + Odin's Blessing Combo, thanks to happylight [Lupus]
-12/28
+2/28
 	* Merged item_db, mob_db [Playtester]
 	- updated various items
 	- commented unused items

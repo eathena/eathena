@@ -1317,7 +1317,7 @@ int mmo_auth(struct mmo_account* account, int fd) {
 			struct online_login_data* data = idb_get(online_db,auth_dat[i].account_id);
 			if (data && data->char_server > -1) {
 				//Request char servers to kick this account out. [Skotlex]
-				ShowWarning("User [%d] is already online - Rejected.\n",auth_dat[i].account_id);
+				ShowNotice("User [%d] is already online - Rejected.\n",auth_dat[i].account_id);
 				WBUFW(buf,0) = 0x2734;
 				WBUFL(buf,2) = auth_dat[i].account_id;
 				charif_sendallwos(-1, buf, 6);
@@ -3031,7 +3031,7 @@ int parse_admin(int fd) {
 int lan_subnetcheck(long *p) {
 
 	int i;
-	unsigned char *sbn, *msk, *src = (unsigned char *)p;
+	unsigned char *sbn, *msk/*, *src = (unsigned char *)p*/;
 	
 	for(i=0; i<subnet_count; i++) {
 	
@@ -3039,15 +3039,15 @@ int lan_subnetcheck(long *p) {
 			
 			sbn = (char *)&subnet[i].subnet;
 			msk = (char *)&subnet[i].mask;
-			
+/*			
 			ShowInfo("Subnet check [%u.%u.%u.%u]: Matches "CL_CYAN"%u.%u.%u.%u/%u.%u.%u.%u"CL_RESET"\n",
 				src[0], src[1], src[2], src[3], sbn[0], sbn[1], sbn[2], sbn[3], msk[0], msk[1], msk[2], msk[3]);
-			
+*/
 			return subnet[i].char_ip;
 		}
 	}
 	
-	ShowInfo("Subnet check [%u.%u.%u.%u]: "CL_CYAN"WAN"CL_RESET"\n", src[0], src[1], src[2], src[3]);
+//	ShowInfo("Subnet check [%u.%u.%u.%u]: "CL_CYAN"WAN"CL_RESET"\n", src[0], src[1], src[2], src[3]);
 	return 0;
 }
 
@@ -3247,12 +3247,7 @@ int parse_login(int fd) {
 					return 0;
 				}
 				ld = (struct login_session_data*)aCalloc(1, sizeof(struct login_session_data));
-                                session[fd]->session_data = ld;
-				if (!ld) {
-					ShowFatalError("login: Request for md5 key: memory allocation failure (malloc)!\n");
-					session[fd]->eof = 1;
-					return 0;
-				}
+				session[fd]->session_data = ld;
 				if (RFIFOW(fd,0) == 0x01db)
 					login_log("Sending request of the coding key (ip: %s)" RETCODE, ip);
 				else
@@ -4186,9 +4181,10 @@ int do_init(int argc, char **argv) {
 		add_timer_func_list(sync_ip_addresses, "sync_ip_addresses");
 		add_timer_interval(gettick() + ip_sync_interval, sync_ip_addresses, 0, 0, ip_sync_interval);
 	}
-	if(console) {
-		set_defaultconsoleparse(parse_console);
-	   	start_console();
+
+	if( console )
+	{
+		//##TODO invoke a CONSOLE_START plugin event
 	}
 
 	new_reg_tick=gettick();
