@@ -22,4 +22,4 @@ void status_init(void);
 void status_final(void);
 #endif
 
-#endif
+#endif /* _INT_STATUS_H_ */
