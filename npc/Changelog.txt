@@ -22,6 +22,9 @@ Playtester
 
 Date		Added
 ======
+2007/03/02
+	* Restored history for the newly added files [ultramage]
+	- use 'svn copy' damnit :)
 2007/03/01
 	* The Sign: Fixed possible exploit, thanks to happylight [Lupus]
 	- Merged Socket Enchang, Cool Corp in Hugel
