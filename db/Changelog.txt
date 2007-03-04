@@ -1,3 +1,7 @@
+03/05
+	* Merged Box of Thunder giving "increase agility" speed up (+25%) rather
+	  than NPC Agi Up (+50%), corrected it's duration to 30 secs as well.
+	* Updated item_db.sql
 03/02
 	* Merged the new NK values to skill_db. See file for details on these new
 	  NK values which determine damage properties of skills. [Skotlex]
