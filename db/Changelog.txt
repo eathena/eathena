@@ -1,4 +1,5 @@
 03/06
+	* Soul Breaker no longer ignores elemental adjustments. [Skotlex]
 	* Added the 2 new packet versions to packet_db.txt [Zephiris]
 03/05
 	* Merged Box of Thunder giving "increase agility" speed up (+25%) rather
