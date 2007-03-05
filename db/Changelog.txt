@@ -1,4 +1,11 @@
 03/06
+	* Big item_db update [Playtester]
+	- various items got their official aegis name and price
+	- added special type items
+	- added new headgears thanks to Argatlahm
+	- fixed various weapons
+	- other random item fixes
+	- updated item_db.sql
 	* Soul Breaker no longer ignores elemental adjustments. [Skotlex]
 	* Added the 2 new packet versions to packet_db.txt [Zephiris]
 03/05
