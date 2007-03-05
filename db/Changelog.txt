@@ -1,3 +1,5 @@
+03/06
+	* Added the 2 new packet versions to packet_db.txt [Zephiris]
 03/05
 	* Merged Box of Thunder giving "increase agility" speed up (+25%) rather
 	  than NPC Agi Up (+50%), corrected it's duration to 30 secs as well.

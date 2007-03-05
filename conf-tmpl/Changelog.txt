@@ -1,5 +1,7 @@
 Date	Added
 
+2007/03/06
+	* Added the two new packet versions to battle/client.conf [Zephiris]
 2007/02/28
 	* Removed the connection_ping_interval setting as it's now automatically handled
 	  by the server.
