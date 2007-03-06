@@ -77,7 +77,6 @@ bonus bDefEle,n;				Gives the player's defense element n
 bonus bSplashRange n;			Splash attack radius + n (e.g. n=1 makes a 3*3 cells area, n=2 a 5*5 area, etc | only the highest among all is applied)
 bonus bSplashAddRange n;		Splash attack radius + n (e.g. n=1 makes a 3*3 cells area, n=2 a 5*5 area, etc)
 
-bonus bInfiniteEndure,n;		Unlimited Endure effect, n is meaningless 
 bonus bRestartFullRecover,n;		When reviving, HP and SP are fully filled (n is meaningless)
 bonus bNoCastCancel,n;			Prevents casting from being interrupted when hit (does not work in GvG | n is meaningless)
 bonus bNoCastCancel2,n;			Prevents casting from being interrupted when hit (works even in GvG | n is meaningless)
@@ -175,11 +174,16 @@ bonus3 bSPDrainValue,n,x,y;		When attacking there is a n% chance to either
 
 bonus4 bAutoSpell,x,y,n,i;		n/10% chance to cast skill x of level y when
                                         being attacking
-                                        i:0=cast on self  1=cast on enemy
+                                        i: 1=cast on enemy, not on self
+                                           2=use random skill lv in [1..y]
+                                           3=1+2 (random lv on enemy)
 bonus4 bAutoSpellWhenHit,x,y,n,i;	n/10% chance to cast skill x of level y when
                                         being hit by a direct attack. Target
 													 must be within spell's range to go
-													 off. i:0=cast on self  1=cast on enemy
+													 off.
+                                        i: 1=cast on enemy, not on self
+                                           2=use random skill lv in [1..y]
+                                           3=1+2 (random lv on enemy)
 
 //---- 2/22 new card effects ----
 

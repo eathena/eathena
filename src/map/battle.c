@@ -295,7 +295,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 	
 	if (sc && sc->count) {
 		//First, sc_*'s that reduce damage to 0.
-		if (sc->data[SC_SAFETYWALL].timer!=-1 && flag&BF_SHORT && (skill_num != NPC_GUIDEDATTACK && skill_num != AM_DEMONSTRATION)
+		if (sc->data[SC_SAFETYWALL].timer!=-1 && flag&BF_SHORT && skill_num != NPC_GUIDEDATTACK
 		) {
 			struct skill_unit_group *group = (struct skill_unit_group *)sc->data[SC_SAFETYWALL].val3;
 			if (group) {
@@ -307,7 +307,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		}
 	
 		if(sc->data[SC_AUTOGUARD].timer != -1 && flag&BF_WEAPON &&
-			!(skill_get_nk(skill_num)&NK_NO_CARDFIX) &&
+			!(skill_get_nk(skill_num)&NK_NO_CARDFIX_ATK) &&
 			rand()%100 < sc->data[SC_AUTOGUARD].val2) {
 			int delay;
 			clif_skill_nodamage(bl,bl,CR_AUTOGUARD,sc->data[SC_AUTOGUARD].val1,1);
@@ -364,7 +364,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		if ((sc->data[SC_UTSUSEMI].timer != -1 || sc->data[SC_BUNSINJYUTSU].timer != -1)
 		&& 
 			(flag&BF_WEAPON || (flag&(BF_MISC|BF_SHORT)) == (BF_MISC|BF_SHORT)) &&
-			!(skill_get_nk(skill_num)&NK_NO_CARDFIX)
+			!(skill_get_nk(skill_num)&NK_NO_CARDFIX_ATK)
 		)
 		{
 			if (sc->data[SC_UTSUSEMI].timer != -1) {
@@ -805,6 +805,36 @@ void battle_consume_ammo(TBL_PC*sd, int skill, int lv)
 		pc_delitem(sd,sd->equip_index[EQI_AMMO],qty,0);
 }
 
+static int battle_range_type(
+	struct block_list *src, struct block_list *target,
+	int skill_num, int skill_lv)
+{	//Skill Range Criteria
+	if (battle_config.skillrange_by_distance &&
+		(src->type&battle_config.skillrange_by_distance)
+	) { //based on distance between src/target [Skotlex]
+		if (check_distance_bl(src, target, 5))
+			return BF_SHORT;
+		return BF_LONG;
+	}
+	//based on used skill's range
+	if (skill_get_range2(src, skill_num, skill_lv) < 5)
+		return BF_SHORT;
+	return BF_LONG;
+}
+
+static int battle_blewcount_bonus(struct map_session_data *sd, int skill_num)
+{
+	int i;
+	if (!sd->skillblown[0].id)
+		return 0;
+	//Apply the bonus blewcount. [Skotlex]
+	for (i = 0; i < MAX_PC_BONUS && sd->skillblown[i].id; i++) {
+		if (sd->skillblown[i].id == skill_num)
+			return sd->skillblown[i].val;
+	}
+	return 0;
+}
+
 struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int mflag);
 struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int mflag);
 
@@ -863,7 +893,8 @@ static struct Damage battle_calc_weapon_attack(
 		wd.amotion >>= 1;
 	wd.dmotion=tstatus->dmotion;
 	wd.blewcount=skill_get_blewcount(skill_num,skill_lv);
-	wd.flag=BF_SHORT|BF_WEAPON|BF_NORMAL; //Initial Flag
+	wd.flag = BF_WEAPON; //Initial Flag
+	wd.flag|= skill_num?BF_SKILL:BF_NORMAL;
 	wd.dmg_lv=ATK_DEF;	//This assumption simplifies the assignation later
 	nk = skill_get_nk(skill_num);
 	flag.hit	= nk&NK_IGNORE_FLEE?1:0;
@@ -877,14 +908,8 @@ static struct Damage battle_calc_weapon_attack(
 	BL_CAST(BL_PC, src, sd);
 	BL_CAST(BL_PC, target, tsd);
 
-	if(sd) {
-		if (sd->skillblown[0].id != 0)
-		{	//Apply the bonus blewcount. [Skotlex]
-			for (i = 0; i < 5 && sd->skillblown[i].id != 0 && sd->skillblown[i].id != skill_num; i++);
-			if (i < 5 && sd->skillblown[i].id == skill_num)
-				 wd.blewcount += sd->skillblown[i].val;
-		}
-	}
+	if(sd)
+		wd.blewcount += battle_blewcount_bonus(sd, skill_num);
 
 	//Set miscellaneous data that needs be filled regardless of hit/miss
 	if(
@@ -894,7 +919,7 @@ static struct Damage battle_calc_weapon_attack(
 		flag.arrow = 1;
 	
 	if(skill_num){
-		wd.flag=(wd.flag&~BF_SKILLMASK)|BF_SKILL;
+		wd.flag |= battle_range_type(src, target, skill_num, skill_lv);
 		switch(skill_num)
 		{
 			case MO_FINGEROFFENSIVE:
@@ -940,23 +965,8 @@ static struct Damage battle_calc_weapon_attack(
 				flag.cri = 1; //Always critical skill.
 				break;
 		}
-
-		//Skill Range Criteria
-		if (battle_config.skillrange_by_distance &&
-			(src->type&battle_config.skillrange_by_distance)
-		) { //based on distance between src/target [Skotlex]
-			if (check_distance_bl(src, target, 5))
-				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_SHORT;
-			else
-				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
-		} else { //based on used skill's range
-			if (skill_get_range2(src, skill_num, skill_lv) < 5)
-				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_SHORT;
-			else
-				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
-		}
-	} else if (flag.arrow) //Make the normal attack ranged.
-		wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
+	} else //Range for normal attacks.
+		wd.flag |= flag.arrow?BF_LONG:BF_SHORT;
 	
 	if (!skill_num && tstatus->flee2 && rand()%1000 < tstatus->flee2)
 	{	//Check for Lucky Dodge
@@ -1111,13 +1121,20 @@ static struct Damage battle_calc_weapon_attack(
 				hitrate += 10*skill_lv;
 				break;
 			case KN_AUTOCOUNTER:
+			case PA_SHIELDCHAIN:
+			case NPC_WATERATTACK:
+			case NPC_GROUNDATTACK:
+			case NPC_FIREATTACK:
+			case NPC_WINDATTACK:
+			case NPC_POISONATTACK:
+			case NPC_HOLYATTACK:
+			case NPC_DARKNESSATTACK:
+			case NPC_UNDEADATTACK:
+			case NPC_TELEKINESISATTACK:
 				hitrate += 20;
 				break;
 			case KN_PIERCE:
 				hitrate += hitrate*(5*skill_lv)/100;
-				break;
-			case PA_SHIELDCHAIN:
-				hitrate += 20;
 				break;
 			case AS_SONICBLOW:
 				if(sd && pc_checkskill(sd,AS_SONICACCEL)>0)
@@ -1246,6 +1263,7 @@ static struct Damage battle_calc_weapon_attack(
 					else if(battle_config.error_log)
 						ShowError("0 enemies targeted by Throw Huuma, divide per 0 avoided!\n");
 				}
+
 				//Add any bonuses that modify the base baseatk+watk (pre-skills)
 				if(sd)
 				{
@@ -1831,7 +1849,7 @@ static struct Damage battle_calc_weapon_attack(
 		}
 
 		//Card Fix, sd side
-		if ((wd.damage || wd.damage2) && !(nk&NK_NO_CARDFIX))
+		if ((wd.damage || wd.damage2) && !(nk&NK_NO_CARDFIX_ATK))
 		{
 			short cardfix = 1000, cardfix_ = 1000;
 			short t_race2 = status_get_race2(target);	
@@ -1904,17 +1922,21 @@ static struct Damage battle_calc_weapon_attack(
 		}
 	} //if (sd)
 
-	//Card Fix, tsd side - Cards always apply on the target. [Skotlex]
-	if (tsd) {
+	//Card Fix, tsd sid
+	if (tsd && !(nk&NK_NO_CARDFIX_DEF))
+	{
 		short s_race2,s_class;
 		short cardfix=1000;
 
 		s_race2 = status_get_race2(src);
 		s_class = status_get_class(src);
 
-		cardfix=cardfix*(100-tsd->subele[s_ele])/100;
-		if (flag.lh && s_ele_ != s_ele)
-			cardfix=cardfix*(100-tsd->subele[s_ele_])/100;
+		if (!(nk&NK_NO_ELEFIX))
+		{
+			cardfix=cardfix*(100-tsd->subele[s_ele])/100;
+			if (flag.lh && s_ele_ != s_ele)
+				cardfix=cardfix*(100-tsd->subele[s_ele_])/100;
+		}
 		cardfix=cardfix*(100-tsd->subsize[sstatus->size])/100;
  		cardfix=cardfix*(100-tsd->subrace2[s_race2])/100;
 		cardfix=cardfix*(100-tsd->subrace[sstatus->race])/100;
@@ -2139,29 +2161,11 @@ struct Damage battle_calc_magic_attack(
 	//Set miscellaneous data that needs be filled
 	if(sd) {
 		sd->state.arrow_atk = 0;
-		if (sd->skillblown[0].id != 0)
-		{	//Apply the bonus blewcount. [Skotlex]
-			for (i = 0; i < MAX_PC_BONUS && sd->skillblown[i].id != 0 && sd->skillblown[i].id != skill_num; i++);
-			if (i < MAX_PC_BONUS && sd->skillblown[i].id == skill_num)
-				ad.blewcount += sd->skillblown[i].val;
-		}
+		ad.blewcount += battle_blewcount_bonus(sd, skill_num);
 	}
 
 	//Skill Range Criteria
-	if (battle_config.skillrange_by_distance &&
-		(src->type&battle_config.skillrange_by_distance)
-	)	{ //based on distance between src/target [Skotlex]
-		if (check_distance_bl(src, target, 5))
-			ad.flag=(ad.flag&~BF_RANGEMASK)|BF_SHORT;
-		else
-			ad.flag=(ad.flag&~BF_RANGEMASK)|BF_LONG;
-	} else { //based on used skill's range
-		if (skill_get_range2(src, skill_num, skill_lv) < 5)
-			ad.flag=(ad.flag&~BF_RANGEMASK)|BF_SHORT;
-		else
-			ad.flag=(ad.flag&~BF_RANGEMASK)|BF_LONG;
-	}
-
+	ad.flag |= battle_range_type(src, target, skill_num, skill_lv);
 	flag.infdef=(tstatus->mode&MD_PLANT?1:0);
 		
 	switch(skill_num)
@@ -2368,7 +2372,7 @@ struct Damage battle_calc_magic_attack(
 		if (!(nk&NK_NO_ELEFIX))
 			ad.damage=battle_attr_fix(src, target, ad.damage, s_ele, tstatus->def_ele, tstatus->ele_lv);
 
-		if (sd && !(nk&NK_NO_CARDFIX)) {
+		if (sd && !(nk&NK_NO_CARDFIX_ATK)) {
 			short t_class = status_get_class(target);
 			short cardfix=1000;
 
@@ -2387,8 +2391,8 @@ struct Damage battle_calc_magic_attack(
 				MATK_RATE(cardfix/10);
 		}
 
-		if (tsd && skill_num != HW_GRAVITATION && skill_num != PF_SOULBURN)
-	  	{ //Card fixes always apply on the target side. [Skotlex]
+		if (tsd && !(nk&NK_NO_CARDFIX_DEF))
+	  	{	//Target cards.
 			short s_race2=status_get_race2(src);
 			short s_class= status_get_class(src);
 			short cardfix=1000;
@@ -2467,12 +2471,7 @@ struct Damage  battle_calc_misc_attack(
 	
 	if(sd) {
 		sd->state.arrow_atk = 0;
-		if (sd->skillblown[0].id != 0)
-		{	//Apply the bonus blewcount. [Skotlex]
-			for (i = 0; i < MAX_PC_BONUS && sd->skillblown[i].id != 0 && sd->skillblown[i].id != skill_num; i++);
-			if (i < MAX_PC_BONUS && sd->skillblown[i].id == skill_num)
-				md.blewcount += sd->skillblown[i].val;
-		}
+		md.blewcount += battle_blewcount_bonus(sd, skill_num);
 	}
 
 	s_ele = skill_get_pl(skill_num);
@@ -2480,19 +2479,7 @@ struct Damage  battle_calc_misc_attack(
 		s_ele = ELE_NEUTRAL;
 
 	//Skill Range Criteria
-	if (battle_config.skillrange_by_distance &&
-		(src->type&battle_config.skillrange_by_distance)
-	) { //based on distance between src/target [Skotlex]
-		if (check_distance_bl(src, target, 5))
-			md.flag=(md.flag&~BF_RANGEMASK)|BF_SHORT;
-		else
-			md.flag=(md.flag&~BF_RANGEMASK)|BF_LONG;
-	} else { //based on used skill's range
-		if (skill_get_range2(src, skill_num, skill_lv) < 5)
-			md.flag=(md.flag&~BF_RANGEMASK)|BF_SHORT;
-		else
-			md.flag=(md.flag&~BF_RANGEMASK)|BF_LONG;
-	}
+	md.flag |= battle_range_type(src, target, skill_num, skill_lv);
 
 	switch(skill_num){
 	case HT_LANDMINE:
@@ -2571,7 +2558,7 @@ struct Damage  battle_calc_misc_attack(
 		break ;
 	case ASC_BREAKER:
 		md.damage = 500+rand()%500 + 5*skill_lv * sstatus->int_;
-		nk|=NK_IGNORE_FLEE; //Only Breaker's Misc part always hits.
+		nk|=NK_IGNORE_FLEE|NK_NO_ELEFIX; //These two are not properties of the weapon based part.
 		break;
 	}
 	
@@ -2619,7 +2606,7 @@ struct Damage  battle_calc_misc_attack(
 		}
 	}
 
-	if(md.damage && tsd && !(nk&NK_NO_CARDFIX)){
+	if(md.damage && tsd && !(nk&NK_NO_CARDFIX_DEF)){
 		int cardfix = 10000;
 		int race2 = status_get_race2(src);
 		if (!(nk&NK_NO_ELEFIX))

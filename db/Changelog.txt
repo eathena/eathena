@@ -1,3 +1,7 @@
+03/07
+	* Corrected nk of a bunch of skills: 0x8 -> 0x80: Self Destructio, Bio
+	  Explosion, Pressure. Removed 0x8: Smoking, Fling, Zeny Nage. Added 0x80:
+	  Soul Burn, Gravitation. [Skotlex]
 03/06
 	* Big item_db update [Playtester]
 	- various items got their official aegis name and price
