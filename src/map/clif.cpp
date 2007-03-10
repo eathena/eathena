@@ -2499,7 +2499,7 @@ int clif_homskillinfoblock(const map_session_data &sd)
 				range = sd.hd->get_range() - (range + 1);
 			WFIFOW(fd,len+10)= range;
 			memset(WFIFOP(fd,len+12),0,24);
-			if(!(skill_get_inf2(id)&0x01))
+			if(!(skill_get_inf2(id)&INF2_QUEST_SKILL))
 				WFIFOB(fd,len+36)= (skill_lv < skill_get_max(id) && sd.hd->status.skill[i].flag ==0 )? 1:0;
 			else
 				WFIFOB(fd,len+36) = 0;

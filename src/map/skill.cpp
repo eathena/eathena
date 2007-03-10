@@ -68,6 +68,14 @@ public:
 	{
 		return this->skill_lvl;
 	}
+	/// function called to test is skill is valid. (global checks)
+	virtual bool is_valid(skillfail_t& errcode) const
+	{
+		return is_valid_sub(errcode);
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t& errcode) const=0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -92,6 +100,14 @@ public:
 	{
 		return this->skill_lvl;
 	}
+	/// function called to test is skill is valid. (global checks)
+	virtual bool is_valid(skillfail_t& errcode) const
+	{
+		return is_valid_sub(errcode);
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t& errcode) const=0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -114,6 +130,14 @@ public:
 	{
 		return 1;
 	}
+	/// function called to test is skill is valid. (global checks)
+	virtual bool is_valid(skillfail_t& errcode) const
+	{
+		return is_valid_sub(errcode);
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t& errcode) const=0;
 };
 
 
@@ -219,7 +243,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -228,11 +259,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -298,7 +324,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -307,11 +340,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -381,7 +409,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -390,11 +425,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -441,7 +471,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -450,11 +487,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -497,7 +529,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -506,11 +545,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -621,7 +655,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -630,11 +671,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -676,7 +712,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -685,11 +728,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -729,16 +767,6 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
-	{
-		block_list* bl;
-		return	(
-			(this->caster.skill_check(SKILLID)>0) &&
-			(bl=block_list::from_blid(this->target_id))!=NULL &&
-			bl->is_on_map() &&
-			!bl->is_dead() &&
-			!bl->is_hiding() );
-	}
 	/// return object skill id
 	virtual ushort get_skillid() const
 	{
@@ -755,6 +783,18 @@ public:
 			}
 
 		return false;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
+	{
+		block_list* bl;
+		return	(
+			(this->caster.skill_check(SKILLID)>0) &&
+			(bl=block_list::from_blid(this->target_id))!=NULL &&
+			bl->is_on_map() &&
+			!bl->is_dead() &&
+			!bl->is_hiding() );
 	}
 };
 
@@ -802,7 +842,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -811,11 +858,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -894,7 +936,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -903,11 +952,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -969,7 +1013,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -978,11 +1029,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -1023,16 +1069,6 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
-	{
-		block_list* bl;
-		return	(
-			(this->caster.skill_check(SKILLID)>0) &&
-			(bl=block_list::from_blid(this->target_id))!=NULL &&
-			bl->is_on_map() &&
-			!bl->is_dead() &&
-			!bl->is_hiding() );
-	}
 	/// return object skill id
 	virtual ushort get_skillid() const
 	{
@@ -1049,6 +1085,18 @@ public:
 			}
 
 		return false;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
+	{
+		block_list* bl;
+		return	(
+			(this->caster.skill_check(SKILLID)>0) &&
+			(bl=block_list::from_blid(this->target_id))!=NULL &&
+			bl->is_on_map() &&
+			!bl->is_dead() &&
+			!bl->is_hiding() );
 	}
 };
 
@@ -1090,16 +1138,6 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
-	{
-		block_list* bl;
-		return	(
-			(this->caster.skill_check(SKILLID)>0) &&
-			(bl=block_list::from_blid(this->target_id))!=NULL &&
-			bl->is_on_map() &&
-			!bl->is_dead() &&
-			!bl->is_hiding() );
-	}
 	/// return object skill id
 	virtual ushort get_skillid() const
 	{
@@ -1116,6 +1154,18 @@ public:
 			}
 
 		return false;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
+	{
+		block_list* bl;
+		return	(
+			(this->caster.skill_check(SKILLID)>0) &&
+			(bl=block_list::from_blid(this->target_id))!=NULL &&
+			bl->is_on_map() &&
+			!bl->is_dead() &&
+			!bl->is_hiding() );
 	}
 };
 
@@ -1161,7 +1211,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -1170,11 +1227,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -1209,7 +1261,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		// TODO
 		block_list* bl;
@@ -1218,11 +1277,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -1306,7 +1360,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -1315,11 +1376,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -1366,7 +1422,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -1375,11 +1438,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -1430,7 +1488,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -1439,11 +1504,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -1502,7 +1562,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -1511,11 +1578,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -1570,7 +1632,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -1579,11 +1648,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -1635,7 +1699,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -1644,11 +1715,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -1695,7 +1761,15 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -1704,11 +1778,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -1759,7 +1828,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -1768,11 +1844,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -1814,7 +1885,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -1823,11 +1901,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -1869,7 +1942,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -1878,11 +1958,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -1930,7 +2005,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -1939,11 +2021,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -1990,7 +2067,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -1999,11 +2083,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -2051,7 +2130,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -2060,11 +2146,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -2122,7 +2203,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -2131,11 +2219,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -2182,7 +2265,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -2191,11 +2281,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -2243,7 +2328,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -2252,11 +2344,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -2304,7 +2391,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -2313,11 +2407,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -2362,7 +2451,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -2371,11 +2467,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 
@@ -2455,7 +2546,14 @@ public:
 	{	
 		this->caster.skill_stopped(SKILLID);
 	}
-	virtual bool is_valid(skillfail_t&) const
+	/// return object skill id
+	virtual ushort get_skillid() const
+	{
+		return SKILLID;
+	}
+protected:
+	/// function called to test if skill is valid. (local checks)
+	virtual bool is_valid_sub(skillfail_t&) const
 	{
 		block_list* bl;
 		return	(
@@ -2464,11 +2562,6 @@ public:
 			bl->is_on_map() &&
 			!bl->is_dead() &&
 			!bl->is_hiding() );
-	}
-	/// return object skill id
-	virtual ushort get_skillid() const
-	{
-		return SKILLID;
 	}
 };
 */

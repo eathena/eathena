@@ -34,11 +34,13 @@
 // do we assume nothing has been checked before the is_valid function is called?
 // where do we put checks that affect all skills or a particular class of skills
 // {my answer: assume nothing is checked and put global checks in the skillbase::create functions [FlavioJS]}
+// {gonna assume nothing has been checked, global checks are going to skill::is_valid in targetskill/groundskill/mapskill that calls a protected function skill::is_valid_sub that will be used in the skills [FlavioJS]}
 //
 // what will happen to the inf value? currently that value classifies the type 
 // of skill and there are restriction based on the type of skill,
 // like SC_HERMODE blocking supportive skills
 // {my answer: keep the inf value and do a global check [FlavioJS]}
+// {for the moment just adding functions in skillbase or higher up like skill::is_support_skill [FlavioJS]}
 // 
 /*
 	proposed new flow for skills:
@@ -148,7 +150,7 @@ public:
 	/// function called for cast cancel.
 	/// overload with specific needs
 	virtual void stop()=0;
-	/// function called to test is skill is valid.
+	/// function called to test if skill is valid.
 	/// overload with specific needs
 	virtual bool is_valid(skillfail_t& errcode) const=0;
 	/// return object skill id

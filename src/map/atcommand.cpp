@@ -2148,7 +2148,7 @@ bool command_grind(int fd, map_session_data& sd, const char* command, const basi
 		sd.status.sp = sd.status.max_sp;
 		command_alive(fd, sd, command, param);
 		inf = skill_get_inf(skillnum);
-		if ((inf == 2) || (inf == 1))
+		if ((inf == 2) || (inf == INF_ATTACK_SKILL))//## CHECK attack or ground skill ?
 			skill_use_pos(&sd, pl_sd->block_list::x+5, pl_sd->block_list::y+5, skillnum, 1);
 		else
 			skill_use_id(&sd, pl_sd->block_list::id, skillnum, 1);
@@ -3398,7 +3398,7 @@ bool command_lostskill(int fd, map_session_data& sd, const char* command, const 
 
 	if (skill_id >= 0 && skill_id < MAX_SKILL)
 	{
-		if (skill_get_inf2(skill_id) & 0x01)
+		if (skill_get_inf2(skill_id) & INF2_QUEST_SKILL)
 		{
 			if( sd.skill_check(skill_id)>0 )
 			{
@@ -5071,7 +5071,7 @@ bool command_questskill(int fd, map_session_data& sd, const char* command, const
 	}
 	if (skill_id >= 0 && skill_id < MAX_SKILL_DB)
 	{
-		if (skill_get_inf2(skill_id) & 0x01)
+		if (skill_get_inf2(skill_id) & INF2_QUEST_SKILL)
 		{
 			if( sd.skill_check(skill_id)==0 )
 			{
@@ -6457,7 +6457,7 @@ bool command_useskill(int fd, map_session_data& sd, const char* command, const b
 	if( pl_sd )
 	{
 		int inf = skill_get_inf(skillnum);
-		if( (inf == 2) || (inf == 1) )
+		if( (inf == 2) || (inf == INF_ATTACK_SKILL) )//## CHECK attack or ground skill ?
 			skill_use_pos(&sd, pl_sd->block_list::x, pl_sd->block_list::y, skillnum, skilllv);
 		else
 			skill_use_id(&sd, pl_sd->block_list::id, skillnum, skilllv);

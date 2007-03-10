@@ -1,5 +1,8 @@
 Date	Added
 2007/03/11
+	* Global skill checks are going to skill::is_valid in targetskill/groundskill/mapskill that 
+	  calls a protected function skill::is_valid_sub.
+	* Using INF/INF2 defines so the oldskill code is more readable.
 	* Separated the build paths of the VS2005 projects so they don't interfere with each other.
 	* Added IDs of skills in the 12-18 client.
 	* Added two questions to skill.h

@@ -3796,7 +3796,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			{	// [Skotlex]
 				struct pet_data *pd = (struct pet_data *)src;
 				int inf = skill_get_inf(abra_skillid);
-				if (inf&4 || inf&16)//Self-Skills, Supportive skills
+				if (inf & (INF_SELF_SKILL|INF_SUPPORT_SKILL))//Self-Skills, Supportive skills
 					pet_skill_use(*pd, pd->msd, abra_skillid, abra_skilllv, tick); 
 				else //Assume offensive skills
 					pet_skill_use(*pd, *bl, abra_skillid, abra_skilllv, tick); 
@@ -5924,7 +5924,7 @@ int skill_castend_id(int tid, unsigned long tick, int id, basics::numptr data)
 	}
 
 	inf2 = skill_get_inf2(sd->skillid);
-	if( ( (skill_get_inf(sd->skillid)&INF_ATTACK_SKILL) || inf2&4 ) &&	// 彼我敵??係チェック
+	if( ( (skill_get_inf(sd->skillid)&INF_ATTACK_SKILL) || inf2&INF2_WEDDING_SKILL ) &&	// 彼我敵??係チェック
 		battle_check_target(sd,bl, BCT_ENEMY)<=0 ) {
 		sd->canact_tick = tick;
 		sd->canmove_tick = tick;

@@ -4896,7 +4896,7 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 
 			if((sd && sd->status.sp >= sp) || !sd)
 			{
-				if ((i = skill_get_inf(skillid) == 2) || i == 32)
+				if (skill_get_inf(skillid) & INF_GROUND_SKILL)
 					f = skill_castend_pos2(src, target->x, target->y, skillid, skilllv, tick, flag);
 				else {
 					switch(skill_get_nk(skillid)) {
@@ -4928,7 +4928,7 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 					block_list *tbl;
 					int skillid = (sd->autospell_id[i] > 0) ? sd->autospell_id[i] : -sd->autospell_id[i];
 					int skilllv = (sd->autospell_lv[i] > 0) ? sd->autospell_lv[i] : 1;
-					int j, rate = (!sd->state.arrow_atk) ? sd->autospell_rate[i] : sd->autospell_rate[i] / 2;
+					int rate = (!sd->state.arrow_atk) ? sd->autospell_rate[i] : sd->autospell_rate[i] / 2;
 					
 					if (rand()%100 > rate)
 						continue;
@@ -4937,7 +4937,7 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 					else
 						tbl = target;
 					
-					if ((j = skill_get_inf(skillid) == 2) || j == 32)
+					if (skill_get_inf(skillid) & INF_GROUND_SKILL)
 						skill_castend_pos2(src, tbl->x, tbl->y, skillid, skilllv, tick, flag);
 					else {
 						switch (skill_get_nk(skillid))
@@ -5013,7 +5013,7 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 					block_list *tbl;
 					int skillid = (tsd->autospell2_id[i] > 0) ? tsd->autospell2_id[i] : -tsd->autospell2_id[i];
 					int skilllv = (tsd->autospell2_lv[i] > 0) ? tsd->autospell2_lv[i] : 1;
-					int j, rate = ((sd && !sd->state.arrow_atk) || (src->get_range()<=2)) ?
+					int rate = ((sd && !sd->state.arrow_atk) || (src->get_range()<=2)) ?
 						tsd->autospell2_rate[i] : tsd->autospell2_rate[i] / 2;
 					
 					if (rand()%100 > rate)
@@ -5022,7 +5022,7 @@ int battle_weapon_attack(block_list *src, block_list *target, unsigned long tick
 						tbl = target;
 					else 
 						tbl = src;
-					if ((j = skill_get_inf(skillid) == 2) || j == 32)
+					if (skill_get_inf(skillid) & INF_GROUND_SKILL)
 						skill_castend_pos2(target, tbl->x, tbl->y, skillid, skilllv, tick, flag);
 					else {
 						switch (skill_get_nk(skillid)) {

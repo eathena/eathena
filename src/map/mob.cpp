@@ -3002,7 +3002,7 @@ int mobskill_castend_id(int tid, unsigned long tick, int id, basics::numptr data
 		if( *bl != BL_SKILL && (dist == 0 || !is_same_direction(dir,t_dir)))
 			return 0;
 	}
-	if( ( (skill_get_inf(md->skillid)&1) || (skill_get_inf2(md->skillid)&4) ) &&	// 彼我敵対関係チェック
+	if( ( (skill_get_inf(md->skillid)&INF_ATTACK_SKILL) || (skill_get_inf2(md->skillid)&INF2_WEDDING_SKILL) ) &&	// 彼我敵対関係チェック
 		battle_check_target(md,bl, BCT_ENEMY)<=0 )
 		return 0;
 	range = skill_get_range(md->skillid,md->skilllv);
@@ -3531,7 +3531,7 @@ int mobskill_use(mob_data &md,unsigned long tick,int event)
 		// 確率判定
 		if (flag && rand() % 10000 < ms[i].permillage)
 		{
-			if (skill_get_inf(ms[i].skill_id) & 2) {
+			if (skill_get_inf(ms[i].skill_id) & 2) { //## CHECK ground skill?
 				// 場所指定
 				block_list *bl = NULL;
 				int x = 0, y = 0;
