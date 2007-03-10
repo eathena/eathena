@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="map-server"
 	ProjectGUID="{D71213C7-3562-4523-A67F-B270404118BB}"
+	RootNamespace="map-server"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -17,7 +18,7 @@
 		<Configuration
 			Name="Debug-Hybrid|Win32"
 			OutputDirectory="$(ProjectDir).."
-			IntermediateDirectory="$(ProjectDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ProjectDir)$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
@@ -182,6 +183,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\map\oldskill.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\oldstatus.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\packetdb.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\map\party.cpp"
 				>
 			</File>
@@ -206,6 +219,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\map\skillunit.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\map\status.cpp"
 				>
 			</File>
@@ -220,18 +237,6 @@
 			<File
 				RelativePath="..\src\map\vending.cpp"
 				>
-			</File>
-			<File
-				RelativePath="..\src\map\oldskill.cpp">
-			</File>
-			<File
-				RelativePath="..\src\map\oldstatus.cpp">
-			</File>
-			<File
-				RelativePath="..\src\map\skillunit.cpp">
-			</File>
-			<File
-				RelativePath="..\src\map\packetdb.cpp">
 			</File>
 		</Filter>
 		<Filter
@@ -320,6 +325,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\map\oldskill.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\oldstatus.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\packetdb.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\map\party.h"
 				>
 			</File>
@@ -344,6 +361,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\map\skillunit.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\map\status.h"
 				>
 			</File>
@@ -359,19 +380,6 @@
 				RelativePath="..\src\map\vending.h"
 				>
 			</File>
-			<File
-				RelativePath="..\src\map\oldskill.h">
-			</File>
-			<File
-				RelativePath="..\src\map\oldstatus.h">
-			</File>
-			<File
-				RelativePath="..\src\map\skillunit.h">
-			</File>
-			<File
-				RelativePath="..\src\map\packetdb.h">
-			</File>
-
 		</Filter>
 		<Filter
 			Name="Library files"

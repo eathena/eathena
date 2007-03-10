@@ -31,6 +31,15 @@
 // {my answer: set up everything externally, no extra data at the casting object at all [Hinoko]}
 // {suggest to have the root node of a doubled linked list at the object [Shinomori]}
 //
+// do we assume nothing has been checked before the is_valid function is called?
+// where do we put checks that affect all skills or a particular class of skills
+// {my answer: assume nothing is checked and put global checks in the skillbase::create functions [FlavioJS]}
+//
+// what will happen to the inf value? currently that value classifies the type 
+// of skill and there are restriction based on the type of skill,
+// like SC_HERMODE blocking supportive skills
+// {my answer: keep the inf value and do a global check [FlavioJS]}
+// 
 /*
 	proposed new flow for skills:
 	(possibly also integrate physical attacks here)

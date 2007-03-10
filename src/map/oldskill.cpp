@@ -8135,7 +8135,7 @@ if(config._temp_)
 		return 0;
 	if(sd->is_chasewalk() && skill_num != ST_CHASEWALK)
 	 	return 0;
-	if(skill_get_inf2(skill_num) & 0x200 && sd->block_list::id == target_id)
+	if(skill_get_inf2(skill_num) & INF2_NO_TARGET_SELF && sd->block_list::id == target_id)
 		return 0;
 	
 	//直前のスキルが何か?える必要のあるスキル

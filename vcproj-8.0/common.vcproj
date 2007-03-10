@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="common"
 	ProjectGUID="{2BF8A844-6752-489E-AA0E-26FBA54D0D2A}"
 	RootNamespace="common"
@@ -17,8 +17,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug-Hybrid|Win32"
-			OutputDirectory="$(ProjectDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ProjectDir)$(ConfigurationName)"
+			OutputDirectory="$(ProjectDir)$(ProjectName)\$(ConfigurationName)"
+			IntermediateDirectory="$(ProjectDir)$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"

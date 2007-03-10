@@ -1,4 +1,9 @@
 Date	Added
+2007/03/11
+	* Separated the build paths of the VS2005 projects so they don't interfere with each other.
+	* Added IDs of skills in the 12-18 client.
+	* Added two questions to skill.h
+	* Added unfinished skill.c code from Redozzen. [FlavioJS]
 2007/02/18
 	* Fixed the amount added at the packet 0x6b loop when new_charscreen=true.
 	* Fixed the structure of packet 0x6d (new char info). It's the same as the 

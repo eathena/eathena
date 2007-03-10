@@ -27,19 +27,19 @@
 #define NK_SPLASH_DAMAGE 2
 
 //Constants to identify a skill's inf2 value.
-#define INF2_QUEST_SKILL 1
+#define INF2_QUEST_SKILL    0x001
 //NPC skills are those that players can't have in their skill tree.
-#define INF2_NPC_SKILL 2
-#define INF2_WEDDING_SKILL 4
-#define INF2_GUILD_SKILL 16
-#define INF2_SONG_DANCE 32
-#define INF2_ENSEMBLE_SKILL 64
-#define INF2_TRAP 128
+#define INF2_NPC_SKILL      0x002
+#define INF2_WEDDING_SKILL  0x004
+#define INF2_GUILD_SKILL    0x010
+#define INF2_SONG_DANCE     0x020
+#define INF2_ENSEMBLE_SKILL 0x040
+#define INF2_TRAP           0x080
 //Refers to ground placed skills that won't hurt the caster (like Grandcross)
-#define INF2_TARGET_SELF 256
-#define INF2_NO_TARGET_SELF 512
-#define INF2_PARTY_ONLY 1024
-#define INF2_GUILD_ONLY 2048
+#define INF2_TARGET_SELF    0x100
+#define INF2_NO_TARGET_SELF 0x200
+#define INF2_PARTY_ONLY     0x400
+#define INF2_GUILD_ONLY     0x800
 
 // スキルデ?タベ?ス
 struct skill_db {
@@ -866,7 +866,116 @@ enum {
 	NJ_KAMAITACHI,//#NJ_KAMAITACHI#
 	NJ_NEN,//#NJ_NEN#
 	NJ_ISSEN,//#NJ_ISSEN#
-	
+
+	// not implemented START (from 12-18)
+	MB_FIGHTING        = 545,
+	MB_NEUTRAL         = 546,
+	MB_TAIMING_PUTI    = 547,
+	MB_WHITEPOTION     = 548,
+	MB_MENTAL          = 549,
+	MB_CARDPITCHER     = 550,
+	MB_PETPITCHER      = 551,
+	MB_BODYSTUDY       = 552,
+	MB_BODYALTER       = 553,
+	MB_PETMEMORY       = 554,
+	MB_M_TELEPORT      = 555,
+	MB_B_GAIN          = 556,
+	MB_M_GAIN          = 557,
+	MB_MISSION         = 558,
+	MB_MUNAKKNOWLEDGE  = 559,
+	MB_MUNAKBALL       = 560,
+	MB_SCROLL          = 561,
+	MB_B_GATHERING     = 562,
+	MB_M_GATHERING     = 563,
+	MB_B_EXCLUDE       = 564,
+	MB_B_DRIFT         = 565,
+	MB_B_WALLRUSH      = 566,
+	MB_M_WALLRUSH      = 567,
+	MB_B_WALLSHIFT     = 568,
+	MB_M_WALLCRASH     = 569,
+	MB_M_REINCARNATION = 570,
+	MB_B_EQUIP         = 571,
+	SL_DEATHKNIGHT     = 572,
+	SL_COLLECTOR       = 573,
+	SL_NINJA           = 574,
+	SL_GUNNER          = 575,
+	AM_TWILIGHT4       = 576,
+	DE_PASSIVE         = 577,
+	DE_PATTACK         = 578,
+	DE_PSPEED          = 579,
+	DE_PDEFENSE        = 580,
+	DE_PCRITICAL       = 581,
+	DE_PHP             = 582,
+	DE_PSP             = 583,
+	DE_RESET           = 584,
+	DE_RANKING         = 585,
+	DE_PTRIPLE         = 586,
+	DE_ENERGY          = 587,
+	DE_NIGHTMARE       = 588,
+	DE_SLASH           = 589,
+	DE_COIL            = 590,
+	DE_WAVE            = 591,
+	DE_REBIRTH         = 592,
+	DE_AURA            = 593,
+	DE_FREEZER         = 594,
+	DE_CHANGEATTACK    = 595,
+	DE_PUNISH          = 596,
+	DE_POISON          = 597,
+	DE_INSTANT         = 598,
+	DE_WARNING         = 599,
+	DE_RANKEDKNIFE     = 600,
+	DE_RANKEDGRADIUS   = 601,
+	DE_GAUGE           = 602,
+	DE_GTIME           = 603,
+	DE_GPAIN           = 604,
+	DE_GSKILL          = 605,
+	DE_GKILL           = 606,
+	DE_ACCEL           = 607,
+	DE_BLOCKDOUBLE     = 608,
+	DE_BLOCKMELEE      = 609,
+	DE_BLOCKFAR        = 610,
+	DE_FRONTATTACK     = 611,
+	DE_DANGERATTACK    = 612,
+	DE_TWINATTACK      = 613,
+	DE_WINDATTACK      = 614,
+	DE_WATERATTACK     = 615,
+	DA_ENERGY          = 616,
+	DA_CLOUD           = 617,
+	DA_FIRSTSLOT       = 618,
+	DA_HEADDEF         = 619,
+	DA_SPACE           = 620,
+	DA_TRANSFORM       = 621,
+	DA_EXPLOSION       = 622,
+	DA_REWARD          = 623,
+	DA_CRUSH           = 624,
+	DA_ITEMREBUILD     = 625,
+	DA_ILLUSION        = 626,
+	DA_NUETRALIZE      = 627,
+	DA_RUNNER          = 628,
+	DA_TRANSFER        = 629,
+	DA_WALL            = 630,
+	DA_ZENY            = 631,
+	DA_REVENGE         = 632,
+	DA_EARPLUG         = 633,
+	DA_CONTRACT        = 634,
+	DA_BLACK           = 635,
+	DA_DREAM           = 636,
+	DA_MAGICCART       = 637,
+	DA_RESET           = 638,
+	DA_COPY            = 639,
+	DA_CRYSTAL         = 640,
+	DA_EXP             = 641,
+	DA_CREATE          = 642,
+	DA_REBUILD         = 643,
+	DA_JOBCHANGE       = 644,
+	DA_EDARKNESS       = 645,
+	DA_EGUARDIAN       = 646,
+	DA_TIMEOUT         = 647,
+	ALL_TIMEIN         = 648,
+	DA_ZENYRANK        = 649,
+	DA_ACCESSORYMIX    = 650,
+	// not implemented END
+
 	KN_CHARGEATK	=	1001,//#チャージアタック#
 	CR_SHRINK		=	1002,//#シュリンク#
 	AS_SONICACCEL	=	1003,//#ソニックアクセラレーション#

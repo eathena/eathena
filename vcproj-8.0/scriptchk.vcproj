@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="scriptchk"
 	ProjectGUID="{F6D5CC33-327C-469C-9E03-8A506037A2AB}"
 	RootNamespace="scriptchk"
@@ -18,7 +18,7 @@
 		<Configuration
 			Name="Debug-Hybrid|Win32"
 			OutputDirectory="$(ProjectDir).."
-			IntermediateDirectory="$(ProjectDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ProjectDir)$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="1"
 			>

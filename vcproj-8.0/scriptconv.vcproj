@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="scriptconv"
 	ProjectGUID="{CA103BF7-CFC8-4036-8E0A-2D3E451C909F}"
 	RootNamespace="scriptconv"
@@ -18,7 +18,7 @@
 		<Configuration
 			Name="Debug-Hybrid|Win32"
 			OutputDirectory="$(ProjectDir).."
-			IntermediateDirectory="$(ProjectDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ProjectDir)$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="1"
 			>
