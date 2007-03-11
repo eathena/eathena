@@ -188,7 +188,6 @@ enum skillfail_t
 	SF_NOSHOUT	= 0x0500,	//	btype==5 "no shout"
 	SF_NOPKING	= 0x0600,	//	btype==6 "no PKing"
 	SF_NOALLIGN	= 0x0700,	//	btype==7 "no alligning"
-	SF_STEAL	= 0x0A00,	//	btype==10 "steal failed"
 	SF_SP		= 0x0001,	//	type==1 "insufficient SP"
 	SF_HP		= 0x0002,	//	type==2 "insufficient HP"
 	SF_MATERIAL	= 0x0003,	//	type==3 "insufficient materials"

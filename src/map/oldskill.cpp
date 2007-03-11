@@ -4537,7 +4537,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			if(pc_steal_item(*sd,bl))
 				clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 			else
-				sd->skill_failed(skillid,SF_STEAL);
+				sd->skill_failed(skillid,SF_FAILED);
 		}
 		break;
 

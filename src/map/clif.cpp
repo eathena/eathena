@@ -392,29 +392,37 @@ int clif_skill_failed(map_session_data& sd, ushort skill_id, skillfail_t type)
 {
 	//, uchar type, ushort btype
 	// only when type==0:
-	//	btype==0 "skill failed"
-	//	btype==1 "no emotions"
-	//	btype==2 "no sit"
-	//	btype==3 "no chat"
-	//	btype==4 "no party"
-	//	btype==5 "no shout"
-	//	btype==6 "no PKing"
-	//	btype==7 "no alligning"
-	//	btype>=8: ignored
-	//	btype==10: "steal failed" if(skillid==TF_STEAL) "skill failed" otherwise
+	//  if(skillid==NV_BASIC)
+	//   btype==0 "skill failed" MsgStringTable[159]
+	//   btype==1 "no emotions" MsgStringTable[160]
+	//   btype==2 "no sit" MsgStringTable[161]
+	//   btype==3 "no chat" MsgStringTable[162]
+	//   btype==4 "no party" MsgStringTable[163]
+	//   btype==5 "no shout" MsgStringTable[164]
+	//   btype==6 "no PKing" MsgStringTable[165]
+	//   btype==7 "no alligning" MsgStringTable[383]
+	//   btype>=8: ignored
+	//  if(skillid==AL_WARP) "not enough skill level" MsgStringTable[214]
+	//  if(skillid==TF_STEAL) "steal failed" MsgStringTable[205]
+	//  if(skillid==TF_POISON) "envenom failed" MsgStringTable[207]
+	//  otherwise "skill failed" MsgStringTable[204]
 	// btype irrelevant
-	//	type==1 "insufficient SP" SP不足：失敗通知.
-	//	type==2 "insufficient HP" HP不足：失敗通知.
-	//	type==3 "insufficient materials"
-	//	type==4 "there is a delay after using a skill"
-	//	type==5 "insufficient zeny" zeny不足：失敗通知.
-	//	type==6 "wrong weapon"
-	//	type==7 "red jemstone needed"
-	//	type==8 "blue jemstone needed"
-	//	type==9 "overweight"
-	//	type==10 "skill failed"
-	//	type>=11 ignored
-	
+	//  type==1 "insufficient SP" MsgStringTable[202]
+	//  type==2 "insufficient HP" MsgStringTable[203]
+	//  type==3 "insufficient materials" MsgStringTable[808]
+	//  type==4 "there is a delay after using a skill" MsgStringTable[219]
+	//  type==5 "insufficient zeny" MsgStringTable[233]
+	//  type==6 "wrong weapon" MsgStringTable[239]
+	//  type==7 "red jemstone needed" MsgStringTable[246]
+	//  type==8 "blue jemstone needed" MsgStringTable[247]
+	//  type==9 "overweight" MsgStringTable[580]
+	//  type==10 "skill failed" MsgStringTable[285]
+	//  type>=11 ignored
+
+	// if(success!=0) doesn't display any of the previous messages
+	// Note: when this packet is received an unknown flag is always set to 0,
+	// suggesting this is an ACK packet for the UseSkill packets and should be sent on success too [FlavioJS]
+
 	// reset all variables [celest]
 	sd.skillx    = sd.skilly      = 0xFFFF;
 	sd.skillid   = sd.skilllv     = 0xFFFF;
@@ -425,9 +433,8 @@ int clif_skill_failed(map_session_data& sd, ushort skill_id, skillfail_t type)
 	{
 		WFIFOW(sd.fd,0) = 0x110;
 		WFIFOW(sd.fd,2) = skill_id;
-		WFIFOW(sd.fd,4) = (type>>8)&0xFF;//btype;
-		WFIFOW(sd.fd,6) = 0;
-		WFIFOB(sd.fd,8) = 0;
+		WFIFOL(sd.fd,4) = (type>>8)&0xFF;//btype;
+		WFIFOB(sd.fd,8) = 0;// success;
 		WFIFOB(sd.fd,9) = (type   )&0xFF;//type;
 		WFIFOSET(sd.fd,packet(sd.packet_ver,0x110).len);
 	}
