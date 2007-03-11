@@ -71,11 +71,114 @@ public:
 	/// function called to test is skill is valid. (global checks)
 	virtual bool is_valid(skillfail_t& errcode) const
 	{
-		return is_valid_sub(errcode);
+		block_list* target_bl;
+		map_session_data* target_sd;
+		//struct skill_unit_group* sg;
+
+		// REF taken from clif_parse_UseSkillToId
+
+		// also in skill_use_id without the skillid checks
+		if (caster.can_act()
+		/*
+		// do these check in is_valid_sub
+			// allow monk combos to ignore this delay [celest]
+			&& !(caster.has_status(SC_COMBO) &&
+			(get_skillid() == MO_EXTREMITYFIST ||
+			get_skillid() == MO_CHAINCOMBO ||
+			get_skillid() == MO_COMBOFINISH ||
+			get_skillid() == CH_PALMSTRIKE ||
+			get_skillid() == CH_TIGERFIST ||
+			get_skillid() == CH_CHAINCRUSH)))
+		*/
+			)
+			errcode = SF_DELAY; // NOTE only produced a skill failed in clif_parse_UseSkillToId
+		/*
+		//## TODO this isn't checked for atcommands/items, decide how to handle it [FlavioJS]
+		else if (caster.skill_check(get_skillid()) <= 0)
+			errcode = SF_FAILED; // NOTE doesn't produce a skill failed in oldskill
+		*/
+
+		// REF taken from skill_use_id
+
+		else if ((target_bl=block_list::from_blid(target_id)) == NULL ||
+			!target_bl->is_on_map())
+		{
+			if (config.error_log)
+				ShowError("skill target not found %d\n", target_id);
+			errcode = SF_FAILED; // NOTE doesn't produce a skill failed in oldskill
+		}
+		else if (caster.is_dead() || caster.m != target_bl->m)
+			errcode = SF_FAILED; // NOTE doesn't produce a skill failed in oldskill
+		else if ((target_sd=caster.get_sd()) != NULL &&
+			skill_not_ok(get_skillid(),*target_sd))
+			//## TODO transfer the code of skill_not_ok to skill.cpp [FlavioJS]
+			errcode = SF_FAILED; // NOTE doesn't produce a skill failed in oldskill
+		/*
+		// do this check in is_valid_sub
+		else if (target_sd && get_skillid() == ALL_RESURRECTION && !target_sd->is_dead())
+			errcode = SF_FAILED; // NOTE doesn't produce a skill failed in oldskill
+		*/
+		else if (status_get_opt1(&caster) > 0)
+			errcode = SF_FAILED; // NOTE doesn't produce a skill failed in oldskill
+		else if(
+		/*
+		// do these checks in is_valid_sub
+		//## TODO what is caster.skillid suposed to be? (was sd->skillid) [FlavioJS]
+			(caster.has_status(SC_VOLCANO) && get_skillid() == WZ_ICEWALL) ||
+			(caster.has_status(SC_ROKISWEIL) && get_skillid() != BD_ADAPTATION) ||
+			(caster.has_status(SC_AUTOCOUNTER) && caster.skillid != KN_AUTOCOUNTER) ||
+			(caster.has_status(SC_MARIONETTE) && caster.skillid != CG_MARIONETTE) ||
+			(caster.has_status(SC_MARIONETTE2) && caster.skillid == CG_MARIONETTE) ||
+		*/
+			caster.has_status(SC_DIVINA) || 
+			caster.has_status(SC_STEELBODY) ||
+			caster.has_status(SC_BERSERK) )
+			errcode = SF_FAILED; // NOTE doesn't produce a skill failed in oldskill
+		else if( caster.has_status(SC_HERMODE) && is_supportive() )
+			errcode = SF_FAILED; // NOTE doesn't produce a skill failed in oldskill
+		//...
+		else if( caster.has_status(SC_BLADESTOP) &&
+			(caster.get_statusvalue2(SC_BLADESTOP).integer() == 1 ||
+			caster.get_statusvalue1(SC_BLADESTOP).integer() == 1
+		/*
+		// do these checks in is_valid_sub
+			|| (caster.get_statusvalue1(SC_BLADESTOP).integer() == 5 && get_skillid() != MO_FINGEROFFENSIVE && get_skillid() != MO_INVESTIGATE && get_skillid() != MO_CHAINCOMBO && get_skillid()!=MO_EXTREMITYFIST) ||
+			(caster.get_statusvalue1(SC_BLADESTOP).integer() == 4 && get_skillid() != MO_FINGEROFFENSIVE && get_skillid() != MO_INVESTIGATE && get_skillid() != MO_CHAINCOMBO) ||
+			(caster.get_statusvalue1(SC_BLADESTOP).integer() == 3 && get_skillid() != MO_FINGEROFFENSIVE && get_skillid() != MO_INVESTIGATE) ||
+			(caster.get_statusvalue1(SC_BLADESTOP).integer() == 2 && get_skillid() != MO_FINGEROFFENSIVE)
+		*/
+			) )
+			errcode = SF_FAILED; // NOTE doesn't produce a skill failed in oldskill
+		/*
+		// do this check in is_valid_sub
+		else if( caster.has_status(SC_BASILICA) &&
+			((sg=(struct skill_unit_group *)caster.get_statusvalue4(SC_BASILICA).pointer()) == NULL ||
+			sg->src_id != caster.id ||
+			get_skillid() != HP_BASILICA) )
+			errcode = SF_FAILED; // NOTE doesn't produce a skill failed in oldskill
+		*/
+		/*
+		// do this check in is_valid_sub
+		else if( caster.has_status(SC_DANCING) &&
+			((caster.get_statusvalue4(SC_DANCING).integer() && get_skillid() != BD_ADAPTATION) ||
+			(get_skillid() != BD_ADAPTATION && get_skillid() != BA_MUSICALSTRIKE && get_skillid() != DC_THROWARROW)) )
+			errcode = SF_FAILED; // NOTE doesn't produce a skill failed in oldskill
+		*/
+		/*
+		// do this check in is_valid_sub
+		else if( caster.is_cloaking() && get_skillid() == TF_HIDING )
+			errcode = SF_FAILED; // NOTE doesn't produce a skill failed in oldskill
+		*/
+		//...
+		else
+			return is_valid_sub(errcode);
+		return false;
 	}
 protected:
 	/// function called to test if skill is valid. (local checks)
 	virtual bool is_valid_sub(skillfail_t& errcode) const=0;
+	/// function called to know if the skill is supportive
+	virtual bool is_supportive() const { return (skill_get_inf(get_skillid()) & INF_SUPPORT_SKILL); }
 };
 
 ///////////////////////////////////////////////////////////////////////////////

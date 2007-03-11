@@ -1,7 +1,8 @@
 Date	Added
 
 2007/03/12
-	* Updated info  and structure of the SkillFail packet (0x110). [FlavioJS]
+	* Tranfered part of the global targetskill checks.
+	* Updated info and structure of the SkillFail packet (0x110). [FlavioJS]
 2007/03/11
 	* Global skill checks are going to skill::is_valid in targetskill/groundskill/mapskill that 
 	  calls a protected function skill::is_valid_sub.

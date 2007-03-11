@@ -10339,7 +10339,26 @@ int clif_parse_UseSkillToId(int fd, map_session_data &sd) {
 		if (skillnum != SA_CASTCANCEL)
 			return 0;
 	}
-	else if (DIFF_TICK(tick, sd.canact_tick) < 0 &&
+	else if( (sd.has_status(SC_TRICKDEAD) && skillnum != NV_TRICKDEAD) ||
+		sd.has_status(SC_BERSERK) ||
+		sd.has_status(SC_NOCHAT) ||
+		sd.has_status(SC_WEDDING) ||
+		sd.view_class == 22)
+		return 0;
+
+	if(target_id & FLAG_DISGUISE) // for disguises [Valaris]
+		target_id &= ~FLAG_DISGUISE;
+
+	if( sd.skillitem == skillnum )
+		skilllv = sd.skillitemlv;
+	else if( skilllv > (lv=sd.skill_check(skillnum)) )
+		skilllv = lv;
+
+	//////////////////////////////////////////////////////////////
+	// REF target entry point for the new skill code (targetskill)
+	// sd.start_skill(skillnum, skilllv, target_id);
+
+	if (DIFF_TICK(tick, sd.canact_tick) < 0 &&
 		// allow monk combos to ignore this delay [celest]
 		!(sd.has_status(SC_COMBO) &&
 		(skillnum == MO_EXTREMITYFIST ||
@@ -10353,26 +10372,16 @@ int clif_parse_UseSkillToId(int fd, map_session_data &sd) {
 		return 0;
 	}
 
-	if( (sd.has_status(SC_TRICKDEAD) && skillnum != NV_TRICKDEAD) ||
-	    sd.has_status(SC_BERSERK) ||
-		sd.has_status(SC_NOCHAT) ||
-	    sd.has_status(SC_WEDDING) ||
-		sd.view_class == 22)
-		return 0;
-	if (sd.invincible_timer != -1)
+	if (sd.invincible_timer != -1)//## TODO where to put this (start_skill?) [FlavioJS]
 		pc_delinvincibletimer(sd);
-	
-	if(target_id & FLAG_DISGUISE) // for disguises [Valaris]
-		target_id &= ~FLAG_DISGUISE;
-		
+
 	if(sd.skillitem == skillnum)
 	{
-		if (skilllv != sd.skillitemlv)
-			skilllv = sd.skillitemlv;
 		skill_use_id(&sd, target_id, skillnum, skilllv);
 	}
 	else
 	{
+		//## TODO what's happening here and where to put it [FlavioJS]
 		sd.skillitem = sd.skillitemlv = 0xFFFF;
 		if (skillnum == MO_EXTREMITYFIST)
 		{
@@ -10411,9 +10420,7 @@ int clif_parse_UseSkillToId(int fd, map_session_data &sd) {
 				}
 			}
 		}
-		if ((lv = sd.skill_check( skillnum)) > 0) {
-			if (skilllv > lv)
-				skilllv = lv;
+		if (skilllv > 0) {
 			skill_use_id(&sd, target_id, skillnum, skilllv);
 			if (sd.state.skill_flag)
 				sd.state.skill_flag = 0;
