@@ -1673,6 +1673,8 @@ void map_deliddb(struct block_list *bl) {
 int map_quit(struct map_session_data *sd) {
 
 	if(!sd->state.auth) { //Removing a player that hasn't even finished loading
+		if (sd->pd) unit_free(&sd->pd->bl,-1);
+		if (sd->hd) unit_free(&sd->hd->bl,-1);
 		idb_remove(pc_db,sd->status.account_id);
 		idb_remove(charid_db,sd->status.char_id);
 		idb_remove(id_db,sd->bl.id);
@@ -1804,7 +1806,7 @@ struct map_session_data * map_charid2sd(int id) {
  * return map_session_data pointer or NULL
  *------------------------------------------
  */
-struct map_session_data * map_nick2sd(char *nick) {
+struct map_session_data * map_nick2sd(const char *nick) {
 	int i, users;
 	struct map_session_data *pl_sd = NULL, **pl_allsd;
 
@@ -2074,7 +2076,7 @@ void map_removemobs(int m)
  * map–¼‚©‚çmap”Ô?‚Ö?Š·
  *------------------------------------------
  */
-int map_mapname2mapid(char *name) {
+int map_mapname2mapid(const char* name) {
 	unsigned short map_index;
 	map_index = mapindex_name2id(name);
 	if (!map_index)
@@ -3759,9 +3761,8 @@ void do_final(void) {
 
 	do_final_atcommand();
 	do_final_battle();
-	do_final_chrif(); // ‚±‚Ì“à•”‚ÅƒLƒƒƒ‰‚ğ‘S‚ÄØ’f‚·‚é
+	do_final_chrif();
 	do_final_npc();
-//	map_removenpc();
 	do_final_script();
 	do_final_itemdb();
 	do_final_storage();

@@ -596,6 +596,7 @@ struct map_session_data {
 		unsigned size :2; // for tiny/large types
 		unsigned night :1; //Holds whether or not the player currently has the SI_NIGHT effect on. [Skotlex]
 		unsigned finalsave :1; //Signals whether the final save for the char was done or not yet. Meant to prevent exploits and the like. [Skotlex]
+		unsigned blockedmove :1;
 		unsigned using_fake_npc :1;
 		unsigned rewarp :1; //Signals that a player should warp as soon as he is done loading a map. [Skotlex]
 		unsigned killer : 1;
@@ -1369,7 +1370,7 @@ struct map_session_data * map_charid2sd(int);
 struct map_session_data * map_id2sd(int);
 struct block_list * map_id2bl(int);
 int map_mapindex2mapid(unsigned short mapindex);
-int map_mapname2mapid(char*);
+int map_mapname2mapid(const char* name);
 int map_mapname2ipport(unsigned short,int*,int*);
 int map_setipport(unsigned short map,unsigned long ip,int port);
 int map_eraseipport(unsigned short map,unsigned long ip,int port);
@@ -1380,7 +1381,7 @@ struct map_session_data** map_getallusers(int *users);
 void map_foreachpc(int (*func)(DBKey,void*,va_list),...);
 int map_foreachiddb(int (*)(DBKey,void*,va_list),...);
 void map_addnickdb(struct map_session_data *);
-struct map_session_data * map_nick2sd(char*);
+struct map_session_data * map_nick2sd(const char*);
 int compare_item(struct item *a, struct item *b);
 
 // ‚»‚Ì‘¼

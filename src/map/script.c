@@ -3742,7 +3742,7 @@ BUILDIN_FUNC(axtoi);
 BUILDIN_FUNC(rid2name);
 BUILDIN_FUNC(pcfollow);
 BUILDIN_FUNC(pcstopfollow);
-
+BUILDIN_FUNC(pcblockmove);
 // <--- [zBuffer] List of player cont commands
 BUILDIN_FUNC(unitwalk);
 BUILDIN_FUNC(unitkill);
@@ -4075,6 +4075,7 @@ struct script_function buildin_func[] = {
 	// [zBuffer] List of player cont commands 	{buildin_rid2name,"rid2name","i"},
 	BUILDIN_DEF(rid2name,"i"),
 	BUILDIN_DEF(pcfollow,"ii"),
+	BUILDIN_DEF(pcblockmove,"ii"),
 	// <--- [zBuffer] List of player cont commands
 	BUILDIN_DEF(unitwalk,"i*"),
 	BUILDIN_DEF(unitkill,"i"),
@@ -5157,6 +5158,11 @@ BUILDIN_FUNC(countitem)
 
 	sd = script_rid2sd(st);
 
+	if (!sd) {
+		push_val(st->stack,C_INT,0);
+		return 0;
+	}
+
 	data=&(st->stack->stack_data[st->start+2]);
 	get_val(st,data);
 	if( data->type==C_STR || data->type==C_CONSTSTR ){
@@ -5196,6 +5202,11 @@ BUILDIN_FUNC(countitem2)
 	struct script_data *data;
 
 	sd = script_rid2sd(st);
+
+	if (!sd) {
+		push_val(st->stack,C_INT,0);
+		return 0;
+	}
 
 	data=&(st->stack->stack_data[st->start+2]);
 	get_val(st,data);
@@ -12233,6 +12244,25 @@ BUILDIN_FUNC(rid2name)
 		ShowError("buildin_rid2name: invalid RID\n");
 		push_str(st->stack,C_CONSTSTR,"(null)");
 	}
+	return 0;
+}
+
+BUILDIN_FUNC(pcblockmove)
+{
+	int id, flag;
+	struct map_session_data *sd = NULL;
+
+	id = conv_num(st, & (st->stack->stack_data[st->start + 2]));
+	flag = conv_num(st, & (st->stack->stack_data[st->start + 3]));
+
+	if(id)
+		sd = map_id2sd(id);
+	else
+		sd = script_rid2sd(st);
+
+	if(sd)
+		sd->state.blockedmove = flag > 0;
+
 	return 0;
 }
 
