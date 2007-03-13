@@ -3184,7 +3184,7 @@ int parse_frommap(int fd) {
 						(pos == size-1 || fame > list[pos+1].fame)
 					) { //No change in order.
 						list[(int)pos].fame = fame;
-						char_send_fame_list(fd);
+						char_update_fame_list(type, pos, fame);
 						break;
 					}
 					// If the player's already in the list, remove the entry and shift the following ones 1 step up
@@ -4278,8 +4278,10 @@ void do_final(void) {
 	if(gm_account) aFree(gm_account);
 	if(char_dat) aFree(char_dat);
 
-	delete_session(login_fd);
-	delete_session(char_fd);
+	if (login_fd > 0)
+		do_close(login_fd);
+	if (char_fd > 0)
+		do_close(char_fd);
 
 #ifdef ENABLE_SC_SAVING
 	status_final();

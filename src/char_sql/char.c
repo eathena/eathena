@@ -2973,7 +2973,7 @@ int parse_frommap(int fd) {
 						(pos == size-1 || fame > list[pos+1].fame)
 					) { //No change in order.
 						list[(int)pos].fame = fame;
-						char_send_fame_list(fd);
+						char_update_fame_list(type, pos, fame);
 						break;
 					}
 					// If the player's already in the list, remove the entry and shift the following ones 1 step up
@@ -3002,13 +3002,14 @@ int parse_frommap(int fd) {
 			if (RFIFOREST(fd) < 6 || RFIFOREST(fd) < RFIFOW(fd,8))
 				return 0;
 		{
-			char motd[256], t_name[512]; //Required for jstrescapecpy [Skotlex]
+			char motd[256], t_name[2*sizeof(char)*sizeof(server_name)+1], t_motd[512]; //Required for jstrescapecpy [Skotlex]
 			strncpy(motd, RFIFOP(fd,10), 255); //First copy it to make sure the motd fits.
 			motd[255]='\0';
-			jstrescapecpy(t_name,motd);
-
+			jstrescapecpy(t_motd,motd);
+			jstrescapecpy(t_name,server_name);
+		
 			sprintf(tmp_sql, "INSERT INTO `ragsrvinfo` SET `index`='%d',`name`='%s',`exp`='%d',`jexp`='%d',`drop`='%d',`motd`='%s'",
-				fd, server_name, RFIFOW(fd,2), RFIFOW(fd,4), RFIFOW(fd,6), t_name);
+				fd, t_name, RFIFOW(fd,2), RFIFOW(fd,4), RFIFOW(fd,6), t_motd);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -3887,8 +3888,10 @@ void do_final(void) {
 		gm_account = 0;
 	}
 
-	delete_session(login_fd);
-	delete_session(char_fd);
+	if (login_fd > 0)
+		do_close(login_fd);
+	if (char_fd > 0)
+		do_close(char_fd);
 	char_db_->destroy(char_db_, NULL);
 	online_char_db->destroy(online_char_db, NULL);
 

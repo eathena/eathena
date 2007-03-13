@@ -988,7 +988,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 			|| (sc->data[SC_AUTOCOUNTER].timer != -1 && !flag)
 			|| (sc->data[SC_GOSPEL].timer != -1 && sc->data[SC_GOSPEL].val4 == BCT_SELF && skill_num != PA_GOSPEL)
 			|| (sc->data[SC_GRAVITATION].timer != -1 && sc->data[SC_GRAVITATION].val3 == BCT_SELF && skill_num != HW_GRAVITATION)
-			|| (sc->data[SC_CLOAKING].timer != -1 && sc->data[SC_CLOAKING].val1 < 3 && skill_num != AS_CLOAKING)
+//			|| (sc->data[SC_CLOAKING].timer != -1 && sc->data[SC_CLOAKING].val1 < 3 && skill_num != AS_CLOAKING) //Official sites say it blocks attack/skill usage, ingame proof says it does not.
 		)
 			return 0;
 
@@ -2370,8 +2370,7 @@ int status_calc_homunculus(struct homun_data *hd, int first)
 		status->rhw.range = 1 + status->size;
 		status->mode = MD_CANMOVE|MD_CANATTACK;
 		status->speed = DEFAULT_WALK_SPEED;
-		if (battle_config.hom_setting&0x8 &&
-			hd->master && hd->master->state.auth) //Master needs be authed to have valid speed.
+		if (battle_config.hom_setting&0x8 && hd->master)
 			status->speed = status_get_speed(&hd->master->bl);
 
 		status->hp = 1;
@@ -5175,7 +5174,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			val2 = tick>0?tick:10000; //Interval at which SP is drained.
 			val3 = 65+val1*5; //Speed adjustment.
 			if (sc->data[SC_SPIRIT].timer != -1 && sc->data[SC_SPIRIT].val2 == SL_ROGUE)
-				val3 += 10; //TODO: Figure out real bonus. Temp value +10%
+				val3 += 60;
 			val4 = 10+val1*2; //SP cost.
 			if (map_flag_gvg(bl->m)) val4 *= 5;
 			break;

@@ -1869,6 +1869,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		return 0;
 
 	dmg=battle_calc_attack(attack_type,src,bl,skillid,skilllv,flag&0xFFF);
+	attack_type|=dmg.flag; //Add on the rest of attack properties.
 
 	//Skotlex: Adjusted to the new system
 	if(src->type==BL_PET)
@@ -4713,10 +4714,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				else
 					hp = 0;
 				
-				if (skilllv > 1 && sp) //Recover some of the SP used
+				if (sp) //Recover some of the SP used
 					sp = sp*(25*(skilllv-1))/100;
-				else
-					sp = 0;
 
 				if(hp || sp)
 					status_heal(src, hp, sp, 2);
@@ -7267,9 +7266,10 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 
 		case UNT_GOSPEL:
-			if (rand()%100 > sg->skill_lv*10)
+			if (rand()%100 > sg->skill_lv*10 || ss == bl)
 				break;
-			if (ss != bl && battle_check_target(ss,bl,BCT_PARTY)>0) { // Support Effect only on party, not guild
+			if (battle_check_target(ss,bl,BCT_PARTY)>0)
+			{ // Support Effect only on party, not guild
 				int i = rand()%13; // Positive buff count
 				type = skill_get_time2(sg->skill_id, sg->skill_lv); //Duration
 				switch (i)
@@ -7328,7 +7328,8 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 						break;
 				}
 			}
-			else if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0) { // Offensive Effect
+			else if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0)
+			{ // Offensive Effect
 				int i = rand()%9; // Negative buff count
 				type = skill_get_time2(sg->skill_id, sg->skill_lv);
 				switch (i)
@@ -8332,6 +8333,14 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 			return 1;
 		if (sc && sc->data[SC_SPIRIT].timer != -1 && sc->data[SC_SPIRIT].val2 == SL_STAR)
 			break;
+		//Auron insists we should implement SP consumption when you are not Soul Linked. [Skotlex]
+		if(sp>0 && type&1)
+		{ 
+			if (status->sp < (unsigned int)sp)
+				clif_skill_fail(sd,skill,1,0);
+			else
+				status_zap(&sd->bl, 0, sp);
+		}
 		return 0;
 	case GD_BATTLEORDER:
 	case GD_REGENERATION:

@@ -21,6 +21,7 @@
 #include "log.h"
 #include "skill.h"
 #include "status.h"
+#include "itemdb.h"
 
 static DB party_db;
 int party_share_level = 10;
@@ -519,23 +520,9 @@ void party_send_movemap(struct map_session_data *sd)
 	intif_party_changemap(sd,1);
 
 	p=party_search(sd->status.party_id);
-	if (p && sd->fd) {
-		//Send dots of other party members to this char. [Skotlex]
-		for(i=0; i < MAX_PARTY; i++) {
-			if (!p->data[i].sd	|| p->data[i].sd == sd ||
-				p->data[i].sd->bl.m != sd->bl.m)
-				continue;
-			clif_party_xy_single(sd->fd, p->data[i].sd);
-		}
-		
-	}
-	
-	if( sd->state.party_sent )
-		return;
+	if (!p) return;
 
-	party_check_conflict(sd);
-	
-	if(p){
+	if(!sd->state.party_sent) {
 		party_check_member(&p->party);
 		if(sd->status.party_id==p->party.party_id){
 			clif_party_member_info(p,sd);
@@ -544,7 +531,15 @@ void party_send_movemap(struct map_session_data *sd)
 			sd->state.party_sent=1;
 		}
 	}
-	
+
+	if (sd->fd) { //Send dots of other party members to this char. [Skotlex]
+		for(i=0; i < MAX_PARTY; i++) {
+			if (p->data[i].sd &&
+				p->data[i].sd != sd &&
+				p->data[i].sd->bl.m == sd->bl.m)
+				clif_party_xy_single(sd->fd, p->data[i].sd);
+		}
+	}
 	return;
 }
 
@@ -825,7 +820,7 @@ int party_share_loot(struct party_data *p, TBL_PC *sd, struct item *item_data, i
 	//Logs
 	if(battle_config.party_show_share_picker && target != sd){
 		char output[80];
-		sprintf(output, "%s acquired the item.",target->status.name);
+		sprintf(output, "%s acquired %s.",target->status.name, itemdb_jname(item_data->nameid));
 		clif_disp_onlyself(sd,output,strlen(output));
 	}
 	return 0;

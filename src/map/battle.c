@@ -1255,13 +1255,11 @@ static struct Damage battle_calc_weapon_attack(
 				if (flag.lh)
 					wd.damage2 = battle_calc_base_damage(sstatus, sstatus->lhw, sc, tstatus->size, sd, i);
 
-				// Added split damage for Huuma
-				if (skill_num == NJ_HUUMA)
-				{	// Divide ATK in case of multiple targets skill
+				if (nk&NK_SPLASHSPLIT){ // Divide ATK among targets
 					if(wflag>0)
 						wd.damage/= wflag;
 					else if(battle_config.error_log)
-						ShowError("0 enemies targeted by Throw Huuma, divide per 0 avoided!\n");
+						ShowError("0 enemies targeted by %s, divide per 0 avoided!\n", skill_get_name(skill_num));
 				}
 
 				//Add any bonuses that modify the base baseatk+watk (pre-skills)
@@ -2233,11 +2231,11 @@ struct Damage battle_calc_magic_attack(
 					MATK_ADD(sstatus->matk_min);
 				}
 
-				if(skill_num == MG_NAPALMBEAT || skill_num == HW_NAPALMVULCAN){ // Divide MATK in case of multiple targets skill
+				if(nk&NK_SPLASHSPLIT){ // Divide MATK in case of multiple targets skill
 					if(mflag>0)
 						ad.damage/= mflag;
 					else if(battle_config.error_log)
-						ShowError("0 enemies targeted by Napalm Beat/Vulcan, divide per 0 avoided!\n");
+						ShowError("0 enemies targeted by %s, divide per 0 avoided!\n", skill_get_name(skill_num));
 				}
 
 				switch(skill_num){
@@ -2497,8 +2495,8 @@ struct Damage  battle_calc_misc_attack(
 		if(!sd || (skill = pc_checkskill(sd,HT_STEELCROW)) <= 0)
 			skill=0;
 		md.damage=(sstatus->dex/10+sstatus->int_/2+skill*3+40)*2;
-		if(mflag > 1)
-			md.damage /= mflag;
+		if(mflag > 1) //Autocasted Blitz.
+			nk|=NK_SPLASHSPLIT;
 		
 		if (skill_num == HT_BLITZBEAT)
 			break;
@@ -2561,7 +2559,14 @@ struct Damage  battle_calc_misc_attack(
 		nk|=NK_IGNORE_FLEE|NK_NO_ELEFIX; //These two are not properties of the weapon based part.
 		break;
 	}
-	
+
+	if (nk&NK_SPLASHSPLIT){ // Divide ATK among targets
+		if(mflag>0)
+			md.damage/= mflag;
+		else if(battle_config.error_log)
+			ShowError("0 enemies targeted by %s, divide per 0 avoided!\n", skill_get_name(skill_num));
+	}
+
 	damage_div_fix(md.damage, md.div_);
 	
 	if (!(nk&NK_IGNORE_FLEE))
@@ -3733,7 +3738,7 @@ static const struct battle_data_int {
 	{ "hvan_explosion_intimate",				&battle_config.hvan_explosion_intimate },	//[orn]
 };
 
-int battle_set_value(char *w1, char *w2) {
+int battle_set_value(const char* w1, const char* w2) {
 	int i;
 	for(i = 0; i < sizeof(battle_data_short) / (sizeof(battle_data_short[0])); i++)
 		if (strcmpi(w1, battle_data_short[i].str) == 0) {
@@ -3748,7 +3753,7 @@ int battle_set_value(char *w1, char *w2) {
 	return 0;
 }
 
-int battle_get_value(char *w1) {
+int battle_get_value(const char* w1) {
 	int i;
 	for(i = 0; i < sizeof(battle_data_short) / (sizeof(battle_data_short[0])); i++)
 		if (strcmpi(w1, battle_data_short[i].str) == 0) {

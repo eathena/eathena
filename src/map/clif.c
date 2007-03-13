@@ -112,7 +112,7 @@ static void clif_hpmeter_single(int fd, struct map_session_data *sd);
  * map鯖のip設定
  *------------------------------------------
  */
-int clif_setip(char *ip)
+int clif_setip(const char* ip)
 {
 	char ip_str[16];
 	map_ip = resolve_hostbyname(ip,NULL,ip_str);
@@ -126,7 +126,7 @@ int clif_setip(char *ip)
 	return 1;
 }
 
-void clif_setbindip(char *ip)
+void clif_setbindip(const char* ip)
 {
 	unsigned char ip_str[4];
 	bind_ip = resolve_hostbyname(ip,ip_str,NULL);
@@ -291,7 +291,7 @@ int clif_send_sub(struct block_list *bl, va_list ap)
  *
  *------------------------------------------
  */
-int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
+int clif_send (const unsigned char *buf, int len, struct block_list *bl, int type) {
 	int i;
 	struct map_session_data *sd = NULL;
 	struct party_data *p = NULL;
@@ -940,7 +940,7 @@ static int clif_set0078(struct block_list *bl, struct view_data *vd, unsigned ch
 	WBUFW(buf,14)=vd->class_;
 	WBUFW(buf,16)=vd->hair_style;  //Required for pets.
 	WBUFW(buf,20)=vd->head_bottom;	//Pet armor
-	if (bl->type == BL_NPC && vd->class_ == 722)
+	if (bl->type == BL_NPC && vd->class_ == FLAG_CLASS)
 	{	//The hell, why flags work like this?
 		WBUFL(buf,22)=emblem_id;
 		WBUFL(buf,26)=guild_id;
@@ -1683,7 +1683,7 @@ int clif_changemap(struct map_session_data *sd, short map, int x, int y) {
  *
  *------------------------------------------
  */
-int clif_changemapserver(struct map_session_data *sd, char *mapname, int x, int y, int ip, int port) {
+int clif_changemapserver(struct map_session_data* sd, const char* mapname, int x, int y, int ip, int port) {
 	int fd;
 
 	nullpo_retr(0, sd);
@@ -1818,7 +1818,7 @@ int clif_selllist(struct map_session_data *sd) {
  *
  *------------------------------------------
  */
-int clif_scriptmes(struct map_session_data *sd, int npcid, char *mes) {
+int clif_scriptmes(struct map_session_data *sd, int npcid, const char *mes) {
 	int fd = sd->fd;
 	int slen = strlen(mes) + 9;
 	WFIFOHEAD(fd, slen);
@@ -1890,7 +1890,7 @@ void clif_sendfakenpc(struct map_session_data *sd, int npcid) {
  *
  *------------------------------------------
  */
-int clif_scriptmenu(struct map_session_data *sd, int npcid, char *mes) {
+int clif_scriptmenu(struct map_session_data* sd, int npcid, const char* mes) {
 	int fd = sd->fd;
 	int slen = strlen(mes) + 8;
 	struct block_list *bl = NULL;
@@ -1984,7 +1984,7 @@ int clif_viewpoint(struct map_session_data *sd, int npc_id, int type, int x, int
  *
  *------------------------------------------
  */
-int clif_cutin(struct map_session_data *sd, char *image, int type) {
+int clif_cutin(struct map_session_data* sd, const char* image, int type) {
 	int fd;
 
 	nullpo_retr(0, sd);
@@ -3389,7 +3389,7 @@ int clif_leavechat(struct chat_data* cd,struct map_session_data *sd)
  * 取り引き要請受け
  *------------------------------------------
  */
-int clif_traderequest(struct map_session_data *sd,char *name)
+int clif_traderequest(struct map_session_data* sd, const char* name)
 {
 	int fd;
 
@@ -4862,7 +4862,7 @@ int clif_status_change(struct block_list *bl,int type,int flag)
  * Send message (modified by [Yor])
  *------------------------------------------
  */
-int clif_displaymessage(const int fd, char* mes)
+int clif_displaymessage(const int fd, const char* mes)
 {
 	// invalid pointer?
 	nullpo_retr(-1, mes);
@@ -4889,7 +4889,7 @@ int clif_displaymessage(const int fd, char* mes)
  * 天の声を送信する
  *------------------------------------------
  */
-int clif_GMmessage(struct block_list *bl, char* mes, int len, int flag)
+int clif_GMmessage(struct block_list* bl, const char* mes, int len, int flag)
 {
 	unsigned char *buf;
 	int lp;
@@ -4916,7 +4916,7 @@ int clif_GMmessage(struct block_list *bl, char* mes, int len, int flag)
  * グローバルメッセージ
  *------------------------------------------
  */
-void clif_GlobalMessage(struct block_list *bl,char *message)
+void clif_GlobalMessage(struct block_list* bl, const char* message)
 {
 	char buf[100];
 	int len;
@@ -4939,7 +4939,7 @@ void clif_GlobalMessage(struct block_list *bl,char *message)
  * Send main chat message [LuzZza]
  *------------------------------------------
  */
-void clif_MainChatMessage(char* message) {
+void clif_MainChatMessage(const char* message) {
 
 	char buf[200];
 	int len;
@@ -4963,7 +4963,7 @@ void clif_MainChatMessage(char* message) {
  * Does an announce message in the given color. 
  *------------------------------------------
  */
-int clif_announce(struct block_list *bl, char* mes, int len, unsigned long color, int flag)
+int clif_announce(struct block_list* bl, const char* mes, int len, unsigned long color, int flag)
 {
 	unsigned char *buf;
 	buf = (unsigned char*)aMallocA((len + 16)*sizeof(unsigned char));
@@ -5109,7 +5109,7 @@ int clif_refine(int fd,struct map_session_data *sd,int fail,int index,int val)
  * Wisp/page is transmitted to the destination player
  *------------------------------------------
  */
-int clif_wis_message(int fd, char *nick, char *mes, int mes_len) // R 0097 <len>.w <nick>.24B <message>.?B
+int clif_wis_message(int fd, const char* nick, const char* mes, int mes_len) // R 0097 <len>.w <nick>.24B <message>.?B
 {
 //	printf("clif_wis_message(%d, %s, %s)\n", fd, nick, mes);
 
@@ -5487,7 +5487,7 @@ int clif_openvendingreq(struct map_session_data *sd,int num)
  * 露店看板表示
  *------------------------------------------
  */
-int clif_showvendingboard(struct block_list* bl,char *message,int fd)
+int clif_showvendingboard(struct block_list* bl, const char* message, int fd)
 {
 	unsigned char buf[128];
 
@@ -5775,7 +5775,7 @@ int clif_party_invite(struct map_session_data *sd,struct map_session_data *tsd)
  * 4 -> char of the same account already joined the party
  *------------------------------------------
  */
-int clif_party_inviteack(struct map_session_data *sd,char *nick,int flag)
+int clif_party_inviteack(struct map_session_data* sd, const char* nick, int flag)
 {
 	int fd;
 
@@ -5824,7 +5824,7 @@ int clif_party_option(struct party_data *p,struct map_session_data *sd,int flag)
  * パーティ脱退（脱退前に呼ぶこと）
  *------------------------------------------
  */
-int clif_party_leaved(struct party_data *p,struct map_session_data *sd,int account_id,char *name,int flag)
+int clif_party_leaved(struct party_data* p, struct map_session_data* sd, int account_id, const char* name, int flag)
 {
 	unsigned char buf[64];
 	int i;
@@ -5855,7 +5855,7 @@ int clif_party_leaved(struct party_data *p,struct map_session_data *sd,int accou
  * パーティメッセージ送信
  *------------------------------------------
  */
-int clif_party_message(struct party_data *p,int account_id,char *mes,int len)
+int clif_party_message(struct party_data* p, int account_id, const char* mes, int len)
 {
 	struct map_session_data *sd;
 	int i;
@@ -7202,7 +7202,7 @@ void clif_emotion(struct block_list *bl,int type)
  * トーキーボックス
  *------------------------------------------
  */
-void clif_talkiebox(struct block_list *bl,char* talkie)
+void clif_talkiebox(struct block_list* bl, const char* talkie)
 {
 	unsigned char buf[86];
 
@@ -7287,7 +7287,7 @@ void clif_marriage_process(struct map_session_data *sd)
  * Notice of divorce
  *------------------------------------------
  */
-void clif_divorced(struct map_session_data *sd, char *name)
+void clif_divorced(struct map_session_data* sd, const char* name)
 {
 	int fd;
 	nullpo_retv(sd);
@@ -7343,7 +7343,7 @@ void clif_sitting(struct map_session_data *sd)
  *
  *------------------------------------------
  */
-int clif_disp_onlyself(struct map_session_data *sd, char *mes, int len)
+int clif_disp_onlyself(struct map_session_data *sd, const char *mes, int len)
 {
 	int fd;
 	nullpo_retr(0, sd);
@@ -7361,7 +7361,7 @@ int clif_disp_onlyself(struct map_session_data *sd, char *mes, int len)
  * Displays a message using the guild-chat colors to the specified targets. [Skotlex]
  *------------------------------------------
  */
-void clif_disp_message(struct block_list *src, char *mes, int len, int type)
+void clif_disp_message(struct block_list* src, const char* mes, int len, int type)
 {
 	unsigned char buf[1024];
 	if (!len) return;
@@ -7487,7 +7487,7 @@ int clif_wisall(struct map_session_data *sd,int type,int flag)
  * サウンドエフェクト
  *------------------------------------------
  */
-void clif_soundeffect(struct map_session_data *sd,struct block_list *bl,char *name,int type)
+void clif_soundeffect(struct map_session_data *sd,struct block_list *bl,const char *name,int type)
 {
 	int fd;
 
@@ -7506,7 +7506,7 @@ void clif_soundeffect(struct map_session_data *sd,struct block_list *bl,char *na
 	return;
 }
 
-int clif_soundeffectall(struct block_list *bl, char *name, int type, int coverage)
+int clif_soundeffectall(struct block_list *bl, const char *name, int type, int coverage)
 {
 	unsigned char buf[40];
 	memset(buf, 0, packet_len(0x1d3));
@@ -7561,6 +7561,12 @@ int clif_refresh(struct map_session_data *sd) {
 	}
 	clif_updatestatus(sd,SP_MAXWEIGHT);
 	clif_updatestatus(sd,SP_WEIGHT);
+	clif_updatestatus(sd,SP_STR);
+	clif_updatestatus(sd,SP_AGI);
+	clif_updatestatus(sd,SP_VIT);
+	clif_updatestatus(sd,SP_INT);
+	clif_updatestatus(sd,SP_DEX);
+	clif_updatestatus(sd,SP_LUK);
 	map_foreachinrange(clif_getareachar,&sd->bl,AREA_SIZE,BL_ALL,sd);
 	clif_weather_check(sd);
 	return 0;
@@ -7778,7 +7784,7 @@ int clif_slide(struct block_list *bl, int x, int y){
  * @me command by lordalfa, rewritten implementation by Skotlex
  *------------------------------------------
 */
-int clif_disp_overhead(struct map_session_data *sd, char* mes)
+int clif_disp_overhead(struct map_session_data *sd, const char* mes)
 {
 	unsigned char buf[256]; //This should be more than sufficient, the theorical max is CHAT_SIZE + 8 (pads and extra inserted crap)
 	int len_mes = strlen(mes)+1; //Account for \0
@@ -8589,7 +8595,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data* sd)
 	return;
 }
 
-int clif_message(struct block_list *bl, char* msg)
+int clif_message(struct block_list *bl, const char* msg)
 {
 	unsigned short msg_len = strlen(msg) + 1;
 	unsigned char buf[256];

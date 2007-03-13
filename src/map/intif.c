@@ -31,7 +31,7 @@ static const int packet_len_table[]={
 	-1, 7, 0, 0,  0, 0, 0, 0, -1,11, 0, 0,  0, 0,  0, 0, //0x3810
 	39,-1,15,15, 14,19, 7,-1,  0, 0, 0, 0,  0, 0,  0, 0, //0x3820
 	10,-1,15, 0, 79,19, 7,-1,  0,-1,-1,-1, 14,67,186,-1, //0x3830
-	 9, 9,-1,10,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3840
+	 9, 9,-1,14,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3840
 	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
 	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
 	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
@@ -129,7 +129,7 @@ int intif_rename(struct map_session_data *sd, int type, char *name)
 }
 
 // GMメッセージを送信
-int intif_GMmessage(char* mes,int len,int flag)
+int intif_GMmessage(const char* mes,int len,int flag)
 {
 	int lp = (flag&0x10) ? 8 : 4;
 
@@ -152,7 +152,7 @@ int intif_GMmessage(char* mes,int len,int flag)
 	return 0;
 }
 
-int intif_announce(char* mes,int len, unsigned long color, int flag)
+int intif_announce(const char* mes,int len, unsigned long color, int flag)
 {
 	// Send to the local players
 	if(color == 0xFE000000) // This is main chat message [LuzZza]
@@ -1366,7 +1366,7 @@ int intif_parse_GuildCastleAllDataLoad(int fd)
 int intif_parse_GuildMasterChanged(int fd)
 {
 	RFIFOHEAD(fd);
-	return guild_gm_changed(RFIFOL(fd,2),RFIFOL(fd,6));
+	return guild_gm_changed(RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10));
 }
 
 // pet

@@ -4,6 +4,30 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2007/03/14
+	* Merged most of the cleanups in the socket code: faster parsing, removed
+	  frame_len and mode_neg config settings, they are defines in the code now,
+	  removed related console code.
+	* Skills with nk "damage split" set will now all divide it's damage by the
+	  number of targets, instead of being hardcoded which ones do (note this will
+	  only work for skills that already do splash damage).
+	* Casting Fusion when not linked will now make you lose the SP anyway.
+	* Merged fix to make guild flags properly vanish with disablenpc/hidenpc
+	  calls.
+	* Merged being able to attack/use skills while cloaking even at low
+	  cloaking levels.
+	* Corrected Chase Walk's speed boost from Spirit of rogue.
+	* Corrected party changemap code so party info is sent before partymate
+	  info when first logging in.
+	* Made party_show_share_picker show the name of the item that is being
+	  picked.
+	* Players now are allocated withthe default walking speed to prevent
+	  homunculus from ever having speed 0.
+	* Added logging support to storage/guild-storage transactions.
+	* Added upgrade_svn10001.sql to update the log table.
+	* Corrected @refresh not updating your job/item stat bonuses display
+	* Made mob skill "anytarget" not count in when the mob's target is an item
+	  (looting)
 2007/03/13
 	* Corrected item reloading not unsetting the "delay consume" flag if the
 	  item had changed it's type.
