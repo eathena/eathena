@@ -1,3 +1,6 @@
+03/14
+	* Updated various weapons and "AddEffWhenHit" cards [Playtester]
+	- also updates sql files
 03/13
 	* Corrected the new packet version entries for skilluseposinfo
 03/07
