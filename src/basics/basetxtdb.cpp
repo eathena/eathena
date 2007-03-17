@@ -460,7 +460,7 @@ unstructured_shortcut:
 						// (another threshold than before)
 
 						// so remove it from empty list
-						exmap.erase(iter.position());
+						exmap.erase(iter);
 					}
 					else
 					{	// cut it
@@ -632,7 +632,7 @@ uint32 simple_textdb::getfreeid()
 	else
 	{
 		const uint32 s = idmap.begin()->key;
-		const uint32 e = idmap.end()->key;
+		const uint32 e = (idmap.end()-1)->key;
 
 		if( s+sz <= e )
 		{	// search an empty position within

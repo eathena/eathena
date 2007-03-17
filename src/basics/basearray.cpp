@@ -90,6 +90,8 @@ void test_array(void)
 		tlist.insert( 1 );
 		tlist.insert( 2 );
 
+//		tlist.insert( tlist.begin(), 2 );
+
 
 		slist< TObjPtr<int> >::iterator iter( tlist );
 

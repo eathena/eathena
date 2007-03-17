@@ -1,5 +1,6 @@
 
 #include "basetypes.h"
+#include "basebits.h"
 #include "baseobjects.h"
 #include "basememory.h"
 #include "basealgo.h"
@@ -325,9 +326,10 @@ ipaddress::_ipset_helper& ipaddress::gethelper()
 
 ///////////////////////////////////////////////////////////////////////////////
 // ipaddress functions
-bool ipaddress::isBindable(const ipaddress ip)
+bool ipaddress::isBindable(const ipaddress& ip)
 {	// check if an given IP is part of the system IP that can be bound to
-	if( ip!=iploopback && gethelper().GetSystemIPCount() > 0 )
+	// also allow ipany for binding
+	if( ip!=ipany && ip!=iploopback && gethelper().GetSystemIPCount() > 0 )
 	{	// looping here is ok since the list is not large
 		for(uint i=0; i<GetSystemIPCount(); ++i)
 			if( ip==GetSystemIP(i) )
@@ -460,7 +462,7 @@ const char* ipaddress::str2ip(const char* str, ipaddress &addr, ipaddress &mask,
 				return savestr;// return the original to signal an error in the first conversion
 			}
 			// address is valid, so we set a mask default
-			mask = ipnone;
+			mask = ipany;
 		}
 		/////////////////////////////////////////
 		if( *str == '/' )
@@ -736,8 +738,8 @@ bool ipset::init(const char *str)
 bool ipset::checklocal()
 {
 	bool ret = true;
-	if(this->cAddr==INADDR_ANY || !this->isBindable() ) // not detected or not local
-	{	// take the first system ip for lan
+	if( !this->isBindable() ) 
+	{	// when not local, take the first system ip as lan ip
 		this->cAddr = ipaddress::GetSystemIP(0);
 		ret = false;
 	}

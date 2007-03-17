@@ -10,6 +10,32 @@
 #include "eaprogram.h"
 
 
+///////////////////////////////////////////////////////////////////////////////
+struct objectmap : public basics::variant_host
+{
+	uint32  val;
+	virtual ~objectmap()
+	{}
+
+	virtual bool get_member(const basics::string<>& name, basics::value_empty& target)
+	{
+		if( name=="val" )
+			return basics::set_externmember(target, *this, &objectmap::val);
+		return false;
+	}
+	virtual bool set_member(const basics::string<>& name, const basics::value_empty& target)
+	{
+		if( name=="val" )
+			val = target.get_int();
+		else
+			return false;
+		return true;
+	}
+};
+
+
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// stack engine.

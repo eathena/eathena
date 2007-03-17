@@ -179,6 +179,17 @@ datetime encodedate(int year, int month, int day, int hour, int min, int sec, in
 
 
 ///////////////////////////////////////////////////////////////////////////////
+/// clocks per tick. not very relient esp. on windows
+static inline unsigned long clocks_per_sec()
+{
+#if defined(WIN32)
+	return CLOCKS_PER_SEC;
+#else
+	return sysconf(_SC_CLK_TCK);
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////////
 /// directly read the processor clock register (using RDTSC command).
 /// combined with known processor clock it would allow timers in nanosecond scale
 /// unfortunately the later is unlikely to get in necessary precision

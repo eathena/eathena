@@ -3,9 +3,7 @@
 
 
 #include "basetypes.h"
-//##exprot remove start
-//#include "basetraits.h" 
-//##export remove end
+#include "basemath.h"
 
 
 
@@ -13,78 +11,6 @@
 NAMESPACE_BEGIN(basics)
 ///////////////////////////////////////////////////////////////////////////////
 
-
-
-///////////////////////////////////////////////////////////////////////////////
-// temporary copy from basics to play with
-///////////////////////////////////////////////////////////////////////////////
-namespace minimath
-{
-///////////////////////////////////////////////////////////////////////////////
-template<typename T>
-struct signed_type
-{
-	typedef T Type;
-};
-template<>
-struct signed_type<unsigned char>
-{
-	typedef signed char Type;
-};
-template<>
-struct signed_type<unsigned short>
-{
-	typedef signed short Type;
-};
-template<>
-struct signed_type<unsigned int>
-{
-	typedef signed int Type;
-};
-template<>
-struct signed_type<unsigned long>
-{
-	typedef signed long Type;
-};
-template<>
-struct signed_type<uint64>
-{
-	typedef sint64 Type;
-};
-
-template<typename T>
-struct unsigned_type
-{
-	typedef T Type;
-};
-template<>
-struct unsigned_type<signed char>
-{
-	typedef unsigned char Type;
-};
-template<>
-struct unsigned_type<signed short>
-{
-	typedef unsigned short Type;
-};
-template<>
-struct unsigned_type<signed int>
-{
-	typedef unsigned int Type;
-};
-template<>
-struct unsigned_type<signed long>
-{
-	typedef unsigned long Type;
-};
-template<>
-struct unsigned_type<sint64>
-{
-	typedef uint64 Type;
-};
-///////////////////////////////////////////////////////////////////////////////
-} // end namespace minimath
-///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
 /// subscript type with optional callback.
@@ -281,14 +207,14 @@ const recalculator<P,T>& recalculator<P,T>::operator>>=(const T& o)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-/// simple definition for linear equations could be:\n
+/// simple definition for linear equations. could be:\n
 /// final = base*factor + addition + final*scale\n
 /// where\n
 /// - base is some base value
 /// - factor is the percentage of the base included in the result
 /// - addition is some linear addition independend from factor
 /// - scale is the relative scale factor of the result
-/// -
+///
 /// meaning that eg. base=100, factor = 0.80, addition = 10, scale=0.50
 /// results in final=180\n
 ///
@@ -301,9 +227,8 @@ const recalculator<P,T>& recalculator<P,T>::operator>>=(const T& o)
 /// - addition  -inf...+inf
 /// - factor       0...+inf
 /// - scale     -inf...1
-/// -
 ///
-template <typename BT, size_t B=100, typename FT=PARAMETER_TYPENAME minimath::signed_type<BT>::Type>
+template <typename BT, size_t B=100, typename FT=PARAMETER_TYPENAME signed_type<BT>::Type>
 struct linearvalue
 {
 	typedef recalculator<linearvalue, BT> bsubscript_t;
@@ -372,16 +297,15 @@ void linearvalue<BT,B,FT>::refresh()
 
 
 ///////////////////////////////////////////////////////////////////////////////
-/// linear equation without feedback\n
+/// linear equation without feedback.
 /// offset intrusion here is on the amplifier input
 /// final = (base+addition)*factor\n
 /// where\n
 /// - base is some base value
 /// - addition is some linear addition
 /// - factor is the amplification
-/// -
 ///
-template <typename BT, size_t B=100, typename FT=PARAMETER_TYPENAME minimath::signed_type<BT>::Type>
+template <typename BT, size_t B=100, typename FT=PARAMETER_TYPENAME signed_type<BT>::Type>
 struct addmulvalue
 {
 	typedef recalculator<addmulvalue, BT> bsubscript_t;

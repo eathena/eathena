@@ -2616,7 +2616,7 @@ void connect_login(void)
 		WFIFOB(login_fd,72) = 0;
 		WFIFOB(login_fd,73) = 0;
 		// ip's
-		WFIFOLIP(login_fd,74) = charaddress.LANIP();
+		WFIFOLIP(login_fd,74) = charaddress.RealLANIP();
 		WFIFOLIP(login_fd,78) = charaddress.LANMask();
 		WFIFOW(login_fd,82)   = charaddress.LANPort();
 		WFIFOLIP(login_fd,84) = charaddress.WANIP();

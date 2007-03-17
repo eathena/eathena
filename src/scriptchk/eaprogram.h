@@ -48,7 +48,7 @@ struct scriptprog
 		unsigned char size;		// number of bytes in the first parameter
 		unsigned char type;		// type of first parameter
 		unsigned char param;	// number of operands for the command
-		unsigned char code;		// base code
+		unsigned char code;		// base command code
 		const char* desc;		// some descrition
 	};
 

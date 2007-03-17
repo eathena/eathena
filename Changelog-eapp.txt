@@ -1,5 +1,9 @@
 Date	Added
 
+2007/03/15
+	* applied script compiler changes according to the modified script syntax
+	* obviously the cron job doing the automated svn sync with the ea repo died
+	  when I was abroad, so there are also some older supplement,
 2007/03/12
 	* Tranfered part of the global targetskill checks.
 	* Updated info and structure of the SkillFail packet (0x110). [FlavioJS]
@@ -11,6 +15,20 @@ Date	Added
 	* Added IDs of skills in the 12-18 client.
 	* Added two questions to skill.h
 	* Added unfinished skill.c code from Redozzen. [FlavioJS]
+2007/03/09
+	* removed server accounts; account files now are for users only,
+	  server authentification goes into server configuration [Shinomori]
+	* concatination in script syntax allows single elements but cannot be empty [Hinoko]
+2007/02/28
+	* compiler accumulates the read scripts and 
+	  gives a short info when asked; also reading whole folders
+	* as none is giving feedback, I will decide on the functionality of
+	  the buildin functions myself [Shinomori]
+2007/02/22
+	* reworking some of the export scripts for the basics code,
+	  and removed parts of the glue code that emulated traits and math support,
+	  this possibly introduces more overhead to the interfaces
+	* also added some more output files for the content [Hinoko]
 2007/02/18
 	* Fixed the amount added at the packet 0x6b loop when new_charscreen=true.
 	* Fixed the structure of packet 0x6d (new char info). It's the same as the 

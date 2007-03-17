@@ -18,6 +18,7 @@ void usage(const char*p)
 	fprintf(stderr, "     option t: prints transformation tree\n");
 	fprintf(stderr, "     option c: does compilation\n");
 	fprintf(stderr, "     option o: prints compilation output\n");
+	fprintf(stderr, "     option i: prints simple info for all loaded files\n");
 }
 
 int get_option(const char* p)
@@ -37,13 +38,13 @@ int get_option(const char* p)
 				option |= OPT_COMPILE;
 			else if(*p=='o')
 				option |= OPT_COMPILEOUTPUT;
+			else if(*p=='i')
+				option |= OPT_INFO;
 			p++;
 		}
 	}
 	return option;
 }
-
-
 
 
 int main(int argc, char *argv[])
@@ -74,15 +75,21 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	eacompiler compiler;
 	for(i=1; i<argc; ++i)
 	{
 		if( basics::is_file(argv[i]) )
 		{
-			if( !(ok=compiler.load_file(argv[i], option)) )
+			if( !(ok=scriptfile::load_file(argv[i], option)) )
+				break;
+		}
+		else if( basics::is_folder(argv[i]) )
+		{
+			if( !(ok=scriptfile::load_folder(argv[i], option)) )
 				break;
 		}
 	}
+
+	if(ok && (option&OPT_INFO)!=0) scriptfile::info();
 
 	fprintf(stderr, "\nready (%i)\n", ok);
 	fprintf(stderr, "elapsed time: %lu\n", (unsigned long)(GetTickCount()-tick));

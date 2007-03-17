@@ -10,9 +10,9 @@
 /// map of define statements.
 struct scriptdefines
 {
-private:
 	basics::smap<basics::string<>, basics::variant> table;
-public:
+	typedef basics::smap<basics::string<>, basics::variant>::iterator iterator;
+
 	scriptdefines()	{}
 	~scriptdefines()	{}
 

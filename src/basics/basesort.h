@@ -2,6 +2,7 @@
 #define __BASESORT_H__
 
 #include "basetypes.h"
+#include "baseswap.h"
 
 NAMESPACE_BEGIN(basics)
 

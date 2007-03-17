@@ -34,14 +34,14 @@ eacompiler::eacompiler()
 	}
 
 	// set some default defines
-	cDefines.insert("north",0);
-	cDefines.insert("northeast",1);
-	cDefines.insert("east",2);
-	cDefines.insert("southeast",3);
-	cDefines.insert("south",4);
-	cDefines.insert("southwest",5);
-	cDefines.insert("west",6);
-	cDefines.insert("northwest",7);
+	this->cDefines_.insert("north",0);
+	this->cDefines_.insert("northeast",1);
+	this->cDefines_.insert("east",2);
+	this->cDefines_.insert("southeast",3);
+	this->cDefines_.insert("south",4);
+	this->cDefines_.insert("southwest",5);
+	this->cDefines_.insert("west",6);
+	this->cDefines_.insert("northwest",7);
 }
 
 eacompiler::~eacompiler()
@@ -72,23 +72,19 @@ void eacompiler::replace_jumps(size_t startaddr, size_t with)
 // define functions
 bool eacompiler::is_defined(const basics::string<>& name) const
 {
-	return this->cDefines.exists(name);
+	return this->cDefines_.exists(name);
 }
 bool eacompiler::is_defined(const basics::string<>& name, basics::variant& def) const
 {	// check for define and return the value
-	if( this->cDefines.exists(name) )
-		return def = this->cDefines.get(name), true;
+	if( this->cDefines_.exists(name) )
+		return def = this->cDefines_.get(name), true;
 	return false;
 }
 basics::variant eacompiler::get_define(const basics::string<>& name) const
 {
-	if( this->cDefines.exists(name) )
-		return this->cDefines.get(name);
+	if( this->cDefines_.exists(name) )
+		return this->cDefines_.get(name);
 	return basics::variant();
-}
-void eacompiler::set_define(const basics::string<>& name, const basics::variant& value)
-{
-	this->cDefines.insert(name, value);
 }
 
 bool eacompiler::create_label(const basics::string<>& name, uint line)
@@ -142,10 +138,14 @@ bool eacompiler::check_labels()
 
 bool eacompiler::compile_define(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {	// 'define' identifier '=' <Op If> ';'
-	size_t i = cConstvalues.size();
+	const size_t i = cConstvalues.size();
 	const bool accept = compile_main(node[3], scope, flags | CFLAG_CONST, uservalue);
 	if( accept )
-		this->set_define( node[1].string(), cConstvalues.last());
+	{
+		this->cDefines_.insert( node[1].string(), cConstvalues.last() );
+		if( flags&CFLAG_DECL )
+			this->cFile->definitions.insert( node[1].string(), cConstvalues.last() );
+	}
 	cConstvalues.resize(i);
 	return accept;
 }
@@ -154,19 +154,18 @@ bool eacompiler::compile_define(const parse_node &node, uint scope, unsigned lon
 // include functions
 bool eacompiler::compile_include(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {
-	
-	basics::string<> name = basics::create_filespec(basics::folder_part(this->file->c_str()), basics::string<>(node[1].string().c_str()+1,node[1].string().size()-2));
+	basics::string<> name = basics::create_filespec(basics::folder_part(this->cFile->c_str()), basics::string<>(node[1].string().c_str()+1,node[1].string().size()-2));
 	if( !this->load_file(name, this->cCompileOptions) )
 	{
-		this->warning("included in '%s' at line %u\n", this->file->c_str(), node.line());
+		this->warning("included in '%s' at line %u\n", this->cFile->c_str(), node.line());
 	}
 	else
 	{	// connect the two files
 		scriptfile::scriptfile_ptr ptr = scriptfile::get_scriptfile(name);
-		this->file->childs.push(name);
-		ptr->parents.push(*this->file);
+		this->cFile->childs.push(name);
+		ptr->parents.push(*this->cFile);
 		// get the defines from the included file
-		this->file->definitions += ptr->definitions;
+		ptr->get_defines(this->cDefines_);
 		return true;
 	}
 	return false;
@@ -258,19 +257,19 @@ bool eacompiler::compile_variable(const parse_node &node, uint scope, unsigned l
 //	}
 // ignore the array for the moment
 
-	if( varname.symbol() != PT_SCOPEVAR && varname.symbol() != PT_IDENTIFIER )
+	if( varname.symbol() != PT_SCOPEVAR && varname.symbol() != PT_ARRAY &&varname.symbol() != PT_IDENTIFIER )
 	{
 		this->warning("variable type '%s' is not allowed (line %u)\n", varname.name(), node.line());
 	}
 	else
 	{
 		// varassign not empty -> '=' <Expr>
-
-		const int varflags = (flags&~(CFLAG_RVALUE|CFLAG_ASSIGN))|CFLAG_VARCREATE|(has_assign?(CFLAG_NRMASSIGN|CFLAG_LVALUE):(CFLAG_NOASSIGN|CFLAG_VARSILENT));
+		const int varflags = (flags&~(CFLAG_RVALUE|CFLAG_ASSIGN))|CFLAG_VARCREATE|(has_assign?(CFLAG_ASSIGN|CFLAG_LVALUE):(CFLAG_NOASSIGN|CFLAG_VARSILENT));
 		accept= (!has_assign || compile_main(varassign[1], scope, (flags&~CFLAG_LVALUE)|CFLAG_RVALUE, uservalue)) &&
 				compile_main(varname, scope, varflags, uservalue);
 		if( accept && has_assign )
 		{	//## TODO: add check for proper dimensions of assignment values
+			this->put_command( (varname.symbol()!=PT_ARRAY)?OP_ASSIGN:OP_ARRAY_ASSIGN );
 			this->put_command(OP_POP);
 		}
 	}
@@ -302,6 +301,7 @@ bool eacompiler::compile_funcdecl(const parse_node &node, uint scope, unsigned l
 	cStrTable.clear();
 	cLabels.clear();
 	cConstvalues.clear();
+	scriptdefines tmpdefines = this->cDefines_;
 	
 	prog->cName = node[1].string();
 	const basics::string<> main_node("main");
@@ -356,8 +356,13 @@ bool eacompiler::compile_funcdecl(const parse_node &node, uint scope, unsigned l
 	{
 		prog->unregist();
 		accept = scriptprog::regist(prog, node.line());
-		if( accept && cCompileOptions&OPT_COMPILEOUTPUT )
-			prog->dump();
+		if( accept )
+		{
+			if( cCompileOptions&OPT_COMPILEOUTPUT )
+				prog->dump();
+			this->cFile->scripts.push_back(prog->cName);
+		}
+
 	}
 
 	prog.clear();
@@ -366,6 +371,7 @@ bool eacompiler::compile_funcdecl(const parse_node &node, uint scope, unsigned l
 	cStrTable.clear();
 	cLabels.clear();
 	cConstvalues.clear();
+	this->cDefines_ = tmpdefines;
 
 	return accept;
 }
@@ -403,7 +409,7 @@ bool eacompiler::compile_subfuncdecl(const parse_node &node, uint scope, unsigne
 	// parameter
 	uservalue = 0;
 
-	scriptdefines  tempdefines   = cDefines;
+	scriptdefines  tempdefines   = cDefines_;
 	CVariableScope tempvariables = cVariable;
 	cVariable.clear();
 
@@ -427,7 +433,7 @@ bool eacompiler::compile_subfuncdecl(const parse_node &node, uint scope, unsigne
 		this->funcdecl = prog->cHeader.search(savename);
 
 	cVariable = tempvariables;
-	cDefines = tempdefines;
+	cDefines_ = tempdefines;
 	return accept;
 }
 bool eacompiler::compile_parameter(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
@@ -643,7 +649,7 @@ bool eacompiler::compile_objlist(const parse_node &node, uint scope, unsigned lo
 	}
 	else
 	{	// new specitem or orderd item
-		inst.push( scriptinstance::instance() );
+		inst.push_back( scriptinstance::instance() );
 		if( compile_main(node, scope, flags, uservalue) )
 		{
 			//##TODO:
@@ -669,6 +675,7 @@ bool eacompiler::compile_object(const parse_node &node, uint scope, unsigned lon
 	cStrTable.clear();
 	cLabels.clear();
 	cConstvalues.clear();
+	scriptdefines  tempdefines   = cDefines_;
 
 	// compile the specification
 	if( !compile_objlist(node[2], scope, flags, uservalue) || inst.size()==0 )
@@ -743,8 +750,12 @@ bool eacompiler::compile_object(const parse_node &node, uint scope, unsigned lon
 			if(accept)
 			{
 				accept = scriptprog::regist(prog, node.line());
-				if( accept && cCompileOptions&OPT_COMPILEOUTPUT )
-					prog->dump();
+				if( accept )
+				{
+					if( cCompileOptions&OPT_COMPILEOUTPUT )
+						prog->dump();
+					this->cFile->scripts.push_back(prog->cName);
+				}
 			}
 		}
 		///////////////////////////////////////////////////////////////////////
@@ -816,8 +827,12 @@ bool eacompiler::compile_object(const parse_node &node, uint scope, unsigned lon
 			if(accept)
 			{
 				accept = scriptprog::regist(prog, node.line());
-				if( accept && cCompileOptions&OPT_COMPILEOUTPUT )
-					prog->dump();
+				if( accept )
+				{
+					if( cCompileOptions&OPT_COMPILEOUTPUT )
+						prog->dump();
+					this->cFile->scripts.push_back(prog->cName);
+				}
 			}
 		}
 		///////////////////////////////////////////////////////////////////////
@@ -855,17 +870,18 @@ bool eacompiler::compile_object(const parse_node &node, uint scope, unsigned lon
 				{
 					printf("using script '%s' starting at '%s'\n", prog->cName.c_str(), startlabel.c_str());
 				}
-				
 			}
+			// append to current file
+			this->cFile->instances.push_back(*iter);
 		}
 	}
-
 	prog.clear();
 	inst.clear();
 	cVariable.clear();
 	cStrTable.clear();
 	cLabels.clear();
 	cConstvalues.clear();
+	cDefines_ = tempdefines;
 
 	return accept;
 }
@@ -880,6 +896,7 @@ bool eacompiler::compile_block(const parse_node &node, uint scope, unsigned long
 		cStrTable.clear();
 		cLabels.clear();
 		cConstvalues.clear();
+		scriptdefines  tempdefines   = cDefines_;
 
 		// '{' <Stm List> '}'
 		prog->clear();
@@ -905,17 +922,20 @@ bool eacompiler::compile_block(const parse_node &node, uint scope, unsigned long
 		cStrTable.clear();
 		cLabels.clear();
 		cConstvalues.clear();
+		cDefines_ = tempdefines;
 	}
 	else
 	{	// just a block, increments scope
 		// save the curent variable set
-		CVariableScope temp = cVariable;
+		scriptdefines  tempdefines   = cDefines_;
+		CVariableScope tempvariable = cVariable;
 		accept = compile_main(node[1], scope+1, flags, uservalue) &&
 			check_variable(scope+1, false);
 		// export the variables from the scope
-		this->export_variable(node[2], scope+1, temp);
+		this->export_variable(node[2], scope+1, tempvariable);
 		// restore the variable set
-		cVariable = temp;
+		cVariable = tempvariable;
+		cDefines_ = tempdefines;
 	}
 	return accept;
 }
@@ -936,7 +956,7 @@ bool eacompiler::compile_ordernpc(const parse_node &node, uint scope, unsigned l
 	prop["dir"]		= basics::variant(basics::stringtoi(node[7].string().c_str()));
 	prop["name"]	= basics::variant(basics::string<>(node[11].string()+1, node[11].string().size()-2));
 	prop["sprite"]	= basics::variant(basics::stringtoi(node[13].string().c_str()));
-	return false;
+	return true;
 }
 bool eacompiler::compile_ordertouch(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {	// '(' StringLiteral ',' DecLiteral ',' DecLiteral ',' DecLiteral ',' StringLiteral ',' DecLiteral ',' DecLiteral ',' DecLiteral ')'
@@ -1739,30 +1759,7 @@ bool eacompiler::create_variable(const parse_node &node, const basics::string<>&
 	this->cVariable[name].insert(access, CVar(id, scope, type, isconst, param, declared, node.line()));
 	return true;
 }
-bool eacompiler::put_variableassignment(ulong flags)
-{
-	if( 0!=(flags&CFLAG_LVALUE) && 0!=(flags&CFLAG_ASSIGN) )
-	{
-		flags &= CFLAG_ASSIGN;
-		switch(flags)
-		{
-		case CFLAG_NRMASSIGN:	this->put_command(OP_ASSIGN); break;
-		case CFLAG_ARRASSIGN:	this->put_command(OP_ARRAY_ASSIGN); break;
-		case CFLAG_ADDASSIGN:	this->put_command(OP_ADD_ASSIGN); break;
-		case CFLAG_SUBASSIGN:	this->put_command(OP_SUB_ASSIGN); break;
-		case CFLAG_MULASSIGN:	this->put_command(OP_MUL_ASSIGN); break;
-		case CFLAG_DIVASSIGN:	this->put_command(OP_DIV_ASSIGN); break;
-		case CFLAG_MODASSIGN:	this->put_command(OP_MOD_ASSIGN); break;
-		case CFLAG_XORASSIGN:	this->put_command(OP_BIN_XOR_ASSIGN); break;
-		case CFLAG_ANDASSIGN:	this->put_command(OP_BIN_AND_ASSIGN); break;
-		case CFLAG_OR_ASSIGN:	this->put_command(OP_BIN_OR_ASSIGN); break;
-		case CFLAG_RSHASSIGN:	this->put_command(OP_RSHIFT_ASSIGN); break;
-		case CFLAG_LSHASSIGN:	this->put_command(OP_LSHIFT_ASSIGN); break;
-		default: return false;
-		}
-	}
-	return true;
-}
+
 	
 /// put a variable with known access to the program.
 /// create and initialite the var entry if not exists,
@@ -1782,6 +1779,7 @@ bool eacompiler::put_knownvariable(const parse_node &node, const basics::string<
 			if( is_defined("strict", strict) && true==strict.get_bool() )
 				return false;
 		}
+
 	}
 	const basics::var_t type = (flags&CFLAG_VARSTRING)?basics::VAR_STRING:(flags&CFLAG_VARFLOAT)?basics::VAR_FLOAT:(flags&CFLAG_VARINT)?basics::VAR_INTEGER:basics::VAR_AUTO;
 	if( ( !pv || (0!=(flags&CFLAG_VARCREATE)) ) && !create_variable(node, name, access, scope, type, false, (0!=(flags&CFLAG_VARCREATE))) )
@@ -1811,30 +1809,21 @@ bool eacompiler::put_knownvariable(const parse_node &node, const basics::string<
 		if( 0!=(access&CFLAG_TEMP) && 0==(access&CFLAG_STORMASK) )
 		{	// pure temporary
 			if( 0!=(flags&CFLAG_RVALUE) && 0==v.luse && 0==v.xuse )
-			{	// force clearing
 				this->warning("variable 'temp::%s' is used uninitialized (line %u)\n", name.c_str(), node.line());
-				this->put_varcommand(OP_PUSH_TEMPVAR, v.id);
-				this->put_command(OP_EMPTY);
-				++v.luse; // emulate lefthand access on the variable
-				if( 0==(flags&CFLAG_LVALUE) )
-					this->put_command(OP_EVAL);
-			}
-			else
-			{	// ok but check for uninitialized function parameters
-				if( 0==(flags&CFLAG_RVALUE) && 0==(flags&CFLAG_LVALUE) && 0==v.luse )
-					this->warning("variable 'temp::%s' is propably used uninitialized (line %u)\n", name.c_str(), node.line());
-				this->put_varcommand((0!=(flags&CFLAG_RVALUE))?OP_PUSH_TEMPVAL:OP_PUSH_TEMPVAR, v.id);
-			}
+			else if( 0==(flags&CFLAG_RVALUE) && 0==(flags&CFLAG_LVALUE) && 0==v.luse )
+				this->warning("variable 'temp::%s' is propably used uninitialized (line %u)\n", name.c_str(), node.line());
+
+			this->put_varcommand((0!=(flags&CFLAG_LVALUE))?OP_PUSH_TEMPVAR:OP_PUSH_TEMPVAL, v.id);
 		}
 		else if( 0!=(access&CFLAG_PARAM) )
 		{	// function parameter
-			this->put_intcommand((0!=(flags&CFLAG_RVALUE))?OP_PUSH_PARAVAL:OP_PUSH_PARAVAR, v.id);
+			this->put_intcommand((0!=(flags&CFLAG_LVALUE))?OP_PUSH_PARAVAR:OP_PUSH_PARAVAL, v.id);
 		}
 		else
 		{	// put a named variable
 			this->put_strcommand(OP_PUSH_STRING, variable_getscope(access));
 			this->put_strcommand(OP_PUSH_STRING, variable_getstore(access));
-			this->put_strcommand((0!=(flags&CFLAG_RVALUE))?OP_PUSH_VAL:OP_PUSH_VAR, name);
+			this->put_strcommand((0!=(flags&CFLAG_LVALUE))?OP_PUSH_VAR:OP_PUSH_VAL, name);
 		}
 
 		// update
@@ -1845,8 +1834,6 @@ bool eacompiler::put_knownvariable(const parse_node &node, const basics::string<
 			++v.luse;
 		if( 0==(flags&CFLAG_LVALUE) && 0==(flags&CFLAG_RVALUE) )
 			++v.xuse;
-
-		this->put_variableassignment(flags);
 	}
 	return true;
 }
@@ -1978,7 +1965,12 @@ bool eacompiler::compile_identifier(const parse_node &node, uint scope, unsigned
 	{
 		if(flags&CFLAG_LVALUE)
 		{
-			this->warning("defines cannot be lvalues (line %u)\n", node.line());
+			this->warning("define '%s' cannot be lvalues (line %u)\n", name.c_str(), node.line());
+			accept = false;
+		}
+		else if(flags&(CFLAG_VARCREATE|CFLAG_VARSILENT))
+		{
+			this->warning("variable name '%s' already used by a define (line %u)\n", name.c_str(), node.line());
 			accept = false;
 		}
 		else
@@ -2528,30 +2520,33 @@ bool eacompiler::compile_opassign(const parse_node &node, uint scope, unsigned l
 
 	const unsigned short sym = node[1].symbol();
 	// push the command
-	flags &= ~CFLAG_ASSIGN;
-	unsigned long myflags=flags;
+	command_t cmd=OP_ASSIGN;
 	switch( sym )
 	{
-	case PT_EQ:			myflags |= CFLAG_NRMASSIGN|CFLAG_LVALUE; break;
-	case PT_PLUSEQ:		myflags |= CFLAG_ADDASSIGN|CFLAG_LVALUE; break;
-	case PT_MINUSEQ:	myflags |= CFLAG_SUBASSIGN|CFLAG_LVALUE; break;
-	case PT_TIMESEQ:	myflags |= CFLAG_MULASSIGN|CFLAG_LVALUE; break;
-	case PT_DIVEQ:		myflags |= CFLAG_DIVASSIGN|CFLAG_LVALUE; break;
-	case PT_PERCENTEQ:	myflags |= CFLAG_MODASSIGN|CFLAG_LVALUE; break;
-	case PT_CARETEQ:	myflags |= CFLAG_XORASSIGN|CFLAG_LVALUE; break;
-	case PT_AMPEQ:		myflags |= CFLAG_ANDASSIGN|CFLAG_LVALUE; break;
-	case PT_PIPEEQ:		myflags |= CFLAG_OR_ASSIGN|CFLAG_LVALUE; break;
-	case PT_GTGTEQ:		myflags |= CFLAG_RSHASSIGN|CFLAG_LVALUE; break;
-	case PT_LTLTEQ:		myflags |= CFLAG_LSHASSIGN|CFLAG_LVALUE; break;
+	case PT_EQ:			cmd = OP_ASSIGN; break;
+	case PT_PLUSEQ:		cmd = OP_ADD_ASSIGN; break;
+	case PT_MINUSEQ:	cmd = OP_SUB_ASSIGN; break;
+	case PT_TIMESEQ:	cmd = OP_MUL_ASSIGN; break;
+	case PT_DIVEQ:		cmd = OP_DIV_ASSIGN; break;
+	case PT_PERCENTEQ:	cmd = OP_MOD_ASSIGN; break;
+	case PT_CARETEQ:	cmd = OP_BIN_XOR_ASSIGN; break;
+	case PT_AMPEQ:		cmd = OP_BIN_AND_ASSIGN; break;
+	case PT_PIPEEQ:		cmd = OP_BIN_OR_ASSIGN; break;
+	case PT_GTGTEQ:		cmd = OP_RSHIFT_ASSIGN; break;
+	case PT_LTLTEQ:		cmd = OP_LSHIFT_ASSIGN; break;
 	default: break;
 	}
 
 	// put the operand first then the variable
 	bool accept=compile_main(node[2], scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue) &&
-		compile_main(node[0], scope, ((sym==PT_EQ)?(myflags&~CFLAG_RVALUE):(myflags|CFLAG_RVALUE)), uservalue);
+		compile_main(node[0], scope, CFLAG_ASSIGN | CFLAG_LVALUE | ((sym==PT_EQ)?(flags&~CFLAG_RVALUE):(flags|CFLAG_RVALUE)), uservalue);
 
+	if( cmd == OP_ASSIGN && node[0].symbol()==PT_CONCAT )
+		cmd = OP_ARRAY_ASSIGN;
+	this->put_command(cmd);
 	return accept;
 }
+
 
 bool eacompiler::compile_opif(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {	// <Op Or> '?' <Op If> ':' <Op If>
@@ -2784,24 +2779,21 @@ bool eacompiler::compile_oppost(const parse_node &node, uint scope, unsigned lon
 {	// <Op Pointer> '++'
 	// <Op Pointer> '--'
 	// put the operands on stack
-	bool accept  = compile_main(node[0], scope, (flags & ~CFLAG_RVALUE) | CFLAG_LVALUE | CFLAG_NOASSIGN, uservalue);
-
-	if( (flags&CFLAG_RVALUE)!=CFLAG_RVALUE )
+	const bool accept  = compile_main(node[0], scope, (flags & ~CFLAG_RVALUE) | CFLAG_LVALUE | CFLAG_NOASSIGN, uservalue);
+	if( accept )
 	{
-		this->warning("prefere pre-operations when the result is not directly needed (line %u)\n", node.line());
+		command_t cmd;
+		if( (flags&CFLAG_RVALUE)!=CFLAG_RVALUE )
+		{
+			this->warning("prefere pre-operations when the result is not directly needed (line %u)\n", node.line());
+			cmd = (node[1].symbol()==PT_MINUSMINUS)?OP_PRESUB:OP_PREADD;
+		}
+		else
+		{
+			cmd = (node[1].symbol()==PT_MINUSMINUS)?OP_POSTSUB:OP_POSTADD;
+		}
+		this->put_command(cmd);
 	}
-
-	switch( node[1].symbol() )
-	{
-	case PT_PLUSPLUS:
-//		this->logging("PT_OPPOST_PLUSPLUS, \n");
-		this->put_command(OP_POSTADD);
-		break;
-	case PT_MINUSMINUS:
-//		this->logging("PT_OPPOST_MINUSMINUS\n");
-		this->put_command(OP_POSTSUB);
-		break;
-	}// end switch
 	return accept;
 }
 
@@ -2809,20 +2801,12 @@ bool eacompiler::compile_oppre(const parse_node &node, uint scope, unsigned long
 {	// '++' <Op Pointer>
 	// '--' <Op Pointer>
 	// put the operands on stack
-	bool accept  = compile_main(node[1], scope, (flags & ~CFLAG_RVALUE) | CFLAG_LVALUE | CFLAG_NOASSIGN, uservalue);
-
-	switch( node[0].symbol() )
+	const bool accept  = compile_main(node[1], scope, (flags & ~CFLAG_RVALUE) | CFLAG_LVALUE | CFLAG_NOASSIGN, uservalue);
+	if( accept )
 	{
-	case PT_PLUSPLUS:
-//		this->logging("PT_OPPRE_PLUSPLUS, \n");
-		this->put_command(OP_PREADD);
-		break;
-	case PT_MINUSMINUS:
-//		this->logging("PT_OPPRE_MINUSMINUS\n");
-		this->put_command(OP_PRESUB);
-		break;
-	}// end switch
-
+		const command_t cmd = (node[0].symbol()==PT_MINUSMINUS)?OP_PRESUB:OP_PREADD;
+		this->put_command(cmd);
+	}
 	return accept;
 }
 
@@ -2898,8 +2882,7 @@ bool eacompiler::compile_membervariable(const parse_node &node, uint scope, unsi
 {	// <Op Pointer> '.'  identifier
 	if( compile_main(node[0], scope, (flags & ~CFLAG_RVALUE) | CFLAG_LVALUE, uservalue) )
 	{
-		this->put_value( node[2].string() );
-		this->put_command(OP_MEMBER);
+		this->put_strcommand(OP_MEMBER, node[2].string());
 		return true;
 	}
 	return false;
@@ -2939,7 +2922,7 @@ bool eacompiler::compile_scopevariable(const parse_node &node, uint scope, unsig
 		{	// access the variable
 			// be aware that global names are accepted as variable names
 			usertemp = this->variable_correct_access(usertemp);
-			accept = put_knownvariable(node[2], node[2].string(), flags | CFLAG_LVALUE, scope, usertemp);
+			accept = put_knownvariable(node[2], node[2].string(), flags, scope, usertemp);
 		}
 	}
 	return accept;
@@ -2952,7 +2935,23 @@ bool eacompiler::compile_array(const parse_node &node, uint scope, unsigned long
 				compile_main(childnode, scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue);
 	if(accept)
 	{
-		if( childnode.is_nonterminal(PT_RANGE) )
+		if( flags&CFLAG_VARCREATE )
+		{
+			if( childnode.is_nonterminal(PT_RANGE) ||
+				childnode.is_nonterminal(PT_SPLICE) ||
+				childnode.is_nonterminal(PT_DUPLICATE) ||
+				childnode.is_nonterminal(PT_EXPR) ||
+				uservalue>1)
+			{
+				this->warning("invalid variable range (line %u)\n", node.line());
+				accept = false;
+			}
+			else
+			{
+				this->put_intcommand(OP_CREATEARRAY,1);
+			}
+		}
+		else if( childnode.is_nonterminal(PT_RANGE) )
 		{	// <Expr> ':' <Expr>
 			this->put_command(OP_RANGE);
 		}
@@ -3005,17 +3004,18 @@ bool eacompiler::compile_eval(const parse_node &node, uint scope, unsigned long 
 
 bool eacompiler::compile_concat(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {	// '{' <Expr> ',' <Expr List> '}'
-	const parse_node &list = node[3];
-	// strip the assignments here
-	const bool has_assign = 0!=(flags&CFLAG_ASSIGN);
-	if(	compile_main(node[1], scope, flags&~CFLAG_ASSIGN, uservalue) &&
-		compile_main(list, scope, flags&~CFLAG_ASSIGN, uservalue) )
+	// '{' <Op Assign> '}'
+	// '{' <RegExpr> '}'
+	if(	compile_main(node[1], scope, flags, uservalue) )
 	{
-		this->put_intcommand(OP_CONCAT, (list.symbol()==PT_EXPRLIST)?1+uservalue:2);
-		// and add assignment after concatination
-		if(has_assign)
-		{	// exchange normal assign with array assign
-			this->put_variableassignment( ((flags&CFLAG_ASSIGN)==CFLAG_NRMASSIGN)?CFLAG_ARRASSIGN|CFLAG_LVALUE:flags );
+		if( node.childs() > 3 )
+		{
+			const parse_node &exprlist = node[3];
+			if( !compile_main(exprlist, scope, flags, uservalue) )
+				return false;
+			
+			// only put concat command when more than one element
+			this->put_intcommand(OP_CONCAT, (exprlist.symbol()==PT_EXPRLIST)?1+uservalue:2);
 		}
 		return true;
 	}
@@ -3698,7 +3698,7 @@ bool eacompiler::compile_main(const parse_node &node, uint scope, unsigned long 
 bool eacompiler::compile(const parse_node &node)
 {
 	int uservalue=0;
-	return this->compile_main(node, 0, 0, uservalue);
+	return this->compile_main(node, 0, CFLAG_DECL, uservalue);
 }
 
 
@@ -3707,7 +3707,7 @@ bool eacompiler::load_file(const basics::string<>& filename, int option, bool fo
 {
 	if( !basics::file_exists(filename) )
 	{
-		this->warning("file '%s' does not exist\n", filename.c_str(), this->file->c_str());
+		this->warning("file '%s' does not exist\n", filename.c_str(), this->cFile->c_str());
 		return false;
 	}
 	else if( this->loadingfiles.find(filename) )
@@ -3717,10 +3717,10 @@ bool eacompiler::load_file(const basics::string<>& filename, int option, bool fo
 	}
 
 	
-	scriptfile::scriptfile_ptr safefile = this->file;
+	scriptfile::scriptfile_ptr safefile = this->cFile;
 	// get the current file (creates when necessary)
-	this->file = scriptfile::create(filename);
-	if(!this->file->is_modified() && !forced)
+	this->cFile = scriptfile::create(filename);
+	if(!this->cFile->is_modified() && !forced)
 		return true;
 
 	this->cCompileOptions=option;
@@ -3740,6 +3740,9 @@ bool eacompiler::load_file(const basics::string<>& filename, int option, bool fo
 
 	// remember the name
 	this->loadingfiles.insert(filename);
+
+	//save the current define set
+	scriptdefines tmpdefine =  this->cDefines_;
 
 	while(run)
 	{
@@ -3802,13 +3805,20 @@ bool eacompiler::load_file(const basics::string<>& filename, int option, bool fo
 	}
 	parser.reset();
 
+	// restore the define set
+	this->cDefines_ = tmpdefine;
+
 	// remove the name
 	size_t pos;
 	if( this->loadingfiles.find(filename, 0, pos) )
 		this->loadingfiles.removeindex(pos);
 
+	scriptfile::to_binary(this->cFile);
+	scriptfile::to_binary(this->cFile);
+
+	
 	// restore the file
-	this->file = safefile;
+	this->cFile = safefile;
 
 	return ok;
 }

@@ -1,5 +1,6 @@
 
 #include "basetypes.h"
+#include "baseswap.h"
 #include "baseobjects.h"
 #include "basecharset.h"
 #include "basealgo.h"

@@ -346,18 +346,6 @@ void CSQLParameter::rebuild()
 
 
 	///////////////////////////////////////////////////////////////////////////
-	// add the default accounts 
-	//## change to inserting data from the config file
-	if( CSQLParameter::wipe_sql() || !existing_tables.find(CSQLParameter::tbl_account) )
-	{
-		query << "INSERT INTO `" << dbcon1.escaped(CSQLParameter::tbl_account) << "` "
-				 "(`user_id`,`user_pass`,`sex`) VALUES ('s1','p1','S'),('s2','p2','S'),('s3','p3','S')";
-		dbcon1.PureQuery(query);
-		query.clear();
-		ShowInfo("created default server accounts\n"CL_SPACE"it is recommended to modify the passwords\n");
-	}
-
-	///////////////////////////////////////////////////////////////////////////
 	query << "CREATE TABLE IF NOT EXISTS `" << dbcon1.escaped(CSQLParameter::tbl_login_reg) << "` "
 			 "("
 			 "`account_id`      INTEGER UNSIGNED NOT NULL,"
@@ -1042,7 +1030,7 @@ bool CAccountDB_sql::sql2struct(const basics::string<>& querycondition, CLoginAc
 		account.account_id	= atol(dbcon1[0]);
 		safestrcpy(account.userid, sizeof(account.userid), dbcon1[1]);
 		safestrcpy(account.passwd, sizeof(account.passwd), dbcon1[2]);
-		account.sex			= ((dbcon1[3][0]=='S') ? (2) : (dbcon1[3][0]=='M'));
+		account.sex			= (dbcon1[3][0]=='M');
 		account.gm_level	= atol(dbcon1[4]);
 		account.online		= atol(dbcon1[5]);
 		safestrcpy(account.email, sizeof(account.email), dbcon1[6]);

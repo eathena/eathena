@@ -368,7 +368,7 @@ public:
 			cIndex.realloc(sz);
 			while( 5==fscanf(cIX,"%lu,%lu,%lu,%lu,%lu\n",  &k1,&k2,&f,&p,&l) )
 			{
-				cIndex.insert( _key(k1,k2,f,p,l) );
+				cIndex.append( _key(k1,k2,f,p,l) );
 			}
 		}
 
@@ -461,7 +461,7 @@ public:
 			else
 			{	// insert new at the end
 				fseek(cDB, 0, SEEK_END);
-				cIndex.insert( _key(key1, key2, 0, ftell(cDB), len) );
+				cIndex.append( _key(key1, key2, 0, ftell(cDB), len) );
 			}
 			fwrite(data, 1, len, cDB);
 			fflush(cDB);
@@ -570,7 +570,7 @@ public:
 			fseek(cDB,cIndex[i].cPos, SEEK_SET);
 			fread (buffer.begin(), len,1,cDB);
 			fwrite(buffer.begin(), len,1,tmp);
-			inx.insert( _key(k1,k2,f,p,len) );
+			inx.append( _key(k1,k2,f,p,len) );
 		}
 		fclose(tmp);
 		fclose(cDB);

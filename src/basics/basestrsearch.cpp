@@ -170,7 +170,7 @@ bool match_remainder(const T* wild, const T* wildi, const T* match, const T* mat
 		case '*':
 		{
 			++wildi;
-			++matchi;
+			//++matchi;
 			const T* ip;
 			for( ip = matchi; *ip; ++ip)
 			{	// deal with * at the end of the wildcard - there is no remainder then
@@ -238,7 +238,7 @@ bool match_remainder(const T* wild, const T* wildi, const T* match, const T* mat
 			break;
 		}
 	}
-	bool result = (*wildi == 0) && (*matchi == 0);
+	bool result = (*matchi==0) && ((*wildi==0) || ((*wildi== '*') && (wildi[1]==0)));
 	return result;
 }
 template bool match_remainder<char   >(const char   * wild, const char   * wildi, const char   * match, const char   * matchi);

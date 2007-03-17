@@ -422,7 +422,7 @@ bool CParamBase::CParamLoader::loadParamFile(const CParamFile& fileobj)
 	}
 	else
 	{	// insert the file in the list (temporarily)
-		this->cFileList.insert( fileobj );
+		this->cFileList.append( fileobj );
 		if( !this->cFileList.find(fileobj, 0, pos) )
 			return false;
 	}
@@ -467,7 +467,7 @@ TObjPtrCount<CParamObj> CParamBase::getParam(const string<>& name, const string<
 	CParamObj tmp(name);
 	if( !sd.cParams.find(tmp, 0, pos) )
 	{
-		sd.cParams.insert(tmp);
+		sd.cParams.append(tmp);
 		if( !sd.cParams.find(tmp, 0, pos) )
 			throw exception("Params: insert failed");
 
@@ -489,7 +489,7 @@ TObjPtr<CParamObj> CParamBase::createParam(const string<>& name, const string<>&
 	CParamObj tmp(name);
 	if( !sd.cParams.find(tmp, 0, pos) )
 	{
-		sd.cParams.insert(tmp);
+		sd.cParams.append(tmp);
 		if( !sd.cParams.find(tmp, 0, pos) )
 			throw exception("Params: insert failed");
 	}

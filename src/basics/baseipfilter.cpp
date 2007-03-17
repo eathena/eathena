@@ -39,7 +39,7 @@ retry:
 	}
 	else
 	{	// new entry
-		this->list.insert( tmp );
+		this->list.append( tmp );
 	}
 }
 

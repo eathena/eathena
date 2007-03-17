@@ -24,19 +24,40 @@ struct scriptstorage;
 struct scriptfile : public basics::string<>
 {
 	///////////////////////////////////////////////////////////////////////////
-	typedef basics::TObjPtr<scriptfile>				scriptfile_ptr;
+	/// script storage.
+	/// contains all loaded scriptfiles
+	struct storage
+	{
+		typedef basics::TObjPtrCount<scriptfile>                scriptfile_ptr;
+		typedef basics::smap<basics::string<>, scriptfile_ptr > scriptfile_list;
+
+		scriptdefines		globaldef;			///< global definitions
+		scriptfile_list		files;				///< list of files
+
+		storage()		{}
+		~storage()		{}
+
+		bool erase(const basics::string<>& filename);
+		scriptfile_ptr get_scriptfile(const basics::string<>& filename) const;
+		scriptfile_ptr create(const basics::string<>& filename);
+		void info() const;
+	};
+
+	///////////////////////////////////////////////////////////////////////////
+	typedef storage::scriptfile_ptr					scriptfile_ptr;
+	typedef storage::scriptfile_list				scriptfile_list;
 	typedef scriptprog::script						script;
 	typedef scriptinstance::instance				instance;
 	
-	typedef basics::slist< basics::string<> >		filename_list;
-	typedef basics::smap<basics::string<>,script>	script_list;
+	typedef basics::slist< basics::string<> >		name_list;
+	typedef basics::vector<script>					script_list;
 	typedef basics::vector<instance>				instance_list;
 
 	///////////////////////////////////////////////////////////////////////////
 	time_t				modtime;		///< last modification time of this file
-	filename_list		childs;			///< list of files that depend on this one
-	filename_list		parents;		///< list of files that this is depending on
-	script_list			scripts;		///< list of scripts in that file
+	name_list			childs;			///< list of files that depend on this one
+	name_list			parents;		///< list of files that this is depending on
+	name_list			scripts;		///< list of scripts in that file
 	instance_list		instances;		///< list of instances in that file
 	scriptdefines		definitions;	///< defines in this file
 
@@ -53,7 +74,7 @@ struct scriptfile : public basics::string<>
 	void get_defines(scriptdefines& defs);
 	///////////////////////////////////////////////////////////////////////////
 	// (forced) loading/reloading of this file.
-	bool load(bool forced=false, basics::TObjPtr<eacompiler> compiler=basics::TObjPtr<eacompiler>());
+//	bool load(bool forced=false, basics::TObjPtr<eacompiler> compiler=basics::TObjPtr<eacompiler>());
 
 	///////////////////////////////////////////////////////////////////////////
 	// checking file state and updating the locals at the same time
@@ -61,42 +82,26 @@ struct scriptfile : public basics::string<>
 
 
 
-
-
-	///////////////////////////////////////////////////////////////////////////
-	/// script storage.
-	/// contains all loaded scriptfiles
-	struct storage
-	{
-		typedef basics::TObjPtr<scriptfile>                     scriptfile_ptr;
-		typedef basics::smap<basics::string<>, scriptfile_ptr > scriptfile_list;
-
-		scriptdefines		globaldef;			///< global definitions
-		scriptfile_list		files;				///< list of files
-
-		storage()		{}
-		~storage()		{}
-
-
-		bool reload();
-		bool erase(const basics::string<>& filename);
-		scriptfile_ptr get_scriptfile(const basics::string<>& filename) const;
-		scriptfile_ptr create(const basics::string<>& filename);
-		void info() const;
-	};
-
 	static storage stor;	///< storage
 
 	/// load a single file.
-	static bool load_file(const basics::string<>& filename);
+	static bool load_file(const basics::string<>& filename, int option=0);
 	/// load list of file.
-	static bool load_file(const basics::vector< basics::string<> >& namelist);
+	static bool load_file(const basics::vector< basics::string<> >& namelist, int option=0);
+	/// load list of file.
+	static bool load_file(const scriptfile_list& namelist, int option=0);
+	
 	/// load a folder of file.
-	static bool load_folder(const char* startfolder);
+	static bool load_folder(const char* startfolder, int option=0);
 	/// remove a single file.
 	static bool erase_script(const basics::string<>& filename)
 	{
 		return scriptfile::stor.erase(filename);
+	}
+	/// remove a single file.
+	static void info()
+	{
+		scriptfile::stor.info();
 	}
 	/// get a scriptfile.
 	static scriptfile_ptr get_scriptfile(const basics::string<>& filename)
@@ -107,6 +112,8 @@ struct scriptfile : public basics::string<>
 	{
 		return scriptfile::stor.create(filename);
 	}
+	static bool to_binary(const scriptfile_ptr& file);
+	static bool from_binary(const basics::string<>& name);
 };
 
 

@@ -23,7 +23,7 @@
 // terminal definitions from parse tree
 #include "eascript.h"
 
-
+// predeclare
 struct scriptfile;
 
 
@@ -145,19 +145,8 @@ struct eacompiler
 		CFLAG_VARCREATE	= 0x00000080,	// create the variable
 		CFLAG_VARSILENT	= 0x00000100,	// don't push the variable
 		CFLAG_NOASSIGN	= 0x00000200,	// lvalue operation without assign
-		CFLAG_ASSIGN	= 0x0000F000,	// lvalue operation with forced assign
-		CFLAG_NRMASSIGN	= 0x00001000,	// lvalue operation with forced assign
-		CFLAG_ARRASSIGN	= 0x00002000,	// lvalue operation with forced assign
-		CFLAG_ADDASSIGN	= 0x00003000,	// lvalue operation with forced assign
-		CFLAG_SUBASSIGN	= 0x00004000,	// lvalue operation with forced assign
-		CFLAG_MULASSIGN	= 0x00005000,	// lvalue operation with forced assign
-		CFLAG_DIVASSIGN	= 0x00006000,	// lvalue operation with forced assign
-		CFLAG_MODASSIGN	= 0x00007000,	// lvalue operation with forced assign
-		CFLAG_XORASSIGN	= 0x00008000,	// lvalue operation with forced assign
-		CFLAG_ANDASSIGN	= 0x00009000,	// lvalue operation with forced assign
-		CFLAG_OR_ASSIGN	= 0x0000A000,	// lvalue operation with forced assign
-		CFLAG_RSHASSIGN	= 0x0000B000,	// lvalue operation with forced assign
-		CFLAG_LSHASSIGN	= 0x0000C000,	// lvalue operation with forced assign
+		CFLAG_ASSIGN	= 0x00000400,	// lvalue operation with forced assign
+		CFLAG_DECL		= 0x00000800,	// compiling a declaration
 		CFLAG_VARSTRING	= 0x00010000,	// variable type
 		CFLAG_VARFLOAT	= 0x00020000,
 		CFLAG_VARINT	= 0x00040000,
@@ -244,7 +233,7 @@ struct eacompiler
 	};
 
 	CVariableScope								cVariable;		///< current variable set
-	scriptdefines								cDefines;		///< current define set
+	scriptdefines								cDefines_;		///< current define set
 	basics::smap<basics::string<>,uint32>		cStrTable;		///< temporary string table
 	basics::smap<basics::string<>,CLabelPos>	cLabels;		///< temporary label list
 	basics::vector<basics::variant>				cConstvalues;	///< const value stack
@@ -253,7 +242,7 @@ struct eacompiler
 	scriptprog::script							prog;			///< current programm
 	basics::vector<scriptinstance::instance>	inst;			///< current instances
 	scriptdecl*									funcdecl;		///< current declaration
-	basics::TObjPtr<scriptfile>					file;			///< current file
+	basics::TObjPtrCount<scriptfile>			cFile;			///< current file
 
 	basics::slist< basics::string<> >			loadingfiles;
 	basics::CParseConfig						cParseConfig;
@@ -266,7 +255,6 @@ struct eacompiler
 	bool is_defined(const basics::string<>& name) const;
 	bool is_defined(const basics::string<>& name, basics::variant& def) const;
 	basics::variant get_define(const basics::string<>& name) const;
-	void set_define(const basics::string<>& name, const basics::variant& value);
 
 	bool create_label(const basics::string<>& name, uint line);
 	bool check_labels();
@@ -279,8 +267,6 @@ struct eacompiler
 	static const char* variable_getscope(uint access);
 	static const char* variable_getstore(uint access);
 	
-	/// put the assignment command
-	bool put_variableassignment(ulong flags);
 	/// put a variable with known access to the program.
 	/// create and initialite the var entry if not exists,
 	/// cannot fail

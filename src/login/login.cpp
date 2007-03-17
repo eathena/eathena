@@ -38,6 +38,10 @@ unsigned long new_reg_tick=0;		///< internal tickcounter for M/F registration
 basics::CParam<basics::iprulelist> ladminallowip("ladminallowip");
 
 ///////////////////////////////////////////////////////////////////////////////
+// server access
+basics::CParam<server_auth> server_pass("server_pass");
+
+///////////////////////////////////////////////////////////////////////////////
 // connection stuff
 int min_level_to_connect = 0;			// minimum level of player/GM (0: player, 1-99: gm) to connect on the server
 bool check_ip_flag = true;				// It's to check IP of a player between login-server and char-server (part of anti-hacking system)
@@ -80,8 +84,8 @@ int login_log(char *fmt, ...)
 		if (log_fp) {
 			if (fmt[0] == '\0') // jump a line if no message
 				fprintf(log_fp, RETCODE);
-			else {
-				
+			else
+			{
 				gettimeofday(&tv, NULL);
 				unixtime = tv.tv_sec;
 				strftime(tmpstr, 24, date_format, localtime(&unixtime));
@@ -941,6 +945,8 @@ int parse_login(int fd)
 				login_log("Request for connection %s of %s (ip: %s)."RETCODE, 
 					( command == 0x64 )?"(non encryption mode)":"(encryption mode)",account.userid, ip_str);
 
+
+
 				if( !check_password(ld, passwdenc, passwd, account.passwd) )
 				{
 					WFIFOW(fd,0) = 0x6a;
@@ -1102,10 +1108,7 @@ int parse_login(int fd)
 			login_log("Connection request of the char-server '%s' @ %d.%d.%d.%d:%d (ip: %s)" RETCODE,
 				      server_name, (unsigned char)RFIFOB(fd,74), (unsigned char)RFIFOB(fd,75), (unsigned char)RFIFOB(fd,76), (unsigned char)RFIFOB(fd,77), (unsigned short)RFIFOW(fd,82), ip_str);
 
-			CLoginAccount account;
-			if( !account_db.searchAccount(userid, account) || 
-				account.sex != 2 || 
-				0!=strcmp(passwd, account.passwd) )
+			if( !server_pass->exists(userid,passwd) )
 			{
 				ShowError("Connection of the char-server '%s' REFUSED (account: %s, pass: %s, ip: %s).\n", server_name, userid, passwd, ip_str);
 				login_log("Connexion of the char-server '%s' REFUSED (account: %s, pass: %s, ip: %s)" RETCODE,
@@ -1125,7 +1128,7 @@ int parse_login(int fd)
 				if(i>=MAX_SERVERS)
 				{
 					login_log("Connection of the char-server '%s' refused, we are full (account: %s, pass: %s, ip: %s)" RETCODE,
-							  server_name, account.userid, account.passwd, ip_str);
+							  server_name, userid, passwd, ip_str);
 					ShowStatus("Connection of the char-server '%s' refused, we are full \n", server_name);
 					WFIFOW(fd,0) = 0x2711;
 					WFIFOB(fd,2) = 3;
@@ -1133,22 +1136,22 @@ int parse_login(int fd)
 				}
 				else
 				{
-					memcpy(server[i].name,server_name,20);
+					safestrcpy(server[i].name,20,server_name);
 					server[i].maintenance=RFIFOB(fd,70);
 					server[i].new_display=RFIFOB(fd,71);
-					// wanip,wanport,lanip,lanmask,lanport
+					// lanip,lanmask,lanport,wanip,wanport
 					server[i].address = basics::ipset(	RFIFOLIP(fd,74), RFIFOLIP(fd,78), RFIFOW(fd,82), RFIFOLIP(fd,84), RFIFOW(fd,88) );
 					server[i].users = 0;
 					server[i].fd = fd;
 					
+					login_log("Connection of the char-server '%s' accepted (account: %s, pass: %s, ip: %s)" RETCODE,
+							server[i].name, userid, passwd, server[i].address.tostring(NULL));
+					ShowStatus("Connection of the char-server '%s' (%s) accepted.\n", 
+							server[i].name, server[i].address.tostring(NULL));
+
 					session[fd]->func_parse = parse_fromchar;
 					realloc_fifo(fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 
-					login_log("Connection of the char-server '%s' accepted (account: %s, pass: %s, ip: %s)" RETCODE,
-							server[i].name, account.userid, account.passwd, server[i].address.tostring(NULL));
-					ShowStatus("Connection of the char-server '%s' (%s) accepted.\n", 
-							server[i].name, server[i].address.tostring(NULL));
-					
 					WFIFOW(fd,0) = 0x2711;
 					WFIFOB(fd,2) = 0;
 					WFIFOSET(fd,3);
@@ -1251,6 +1254,30 @@ int parse_login(int fd)
 			RFIFOSKIP(fd, (RFIFOW(fd,2) == 0) ? 28 : 20);
 			return 0;
 		}
+/*
+		///////////////////////////////////////////////////////////////////////
+		case 0xA000:
+		{
+			if( !process_A000(fd) )
+				return 0;
+			break;
+		}
+		///////////////////////////////////////////////////////////////////////
+		case 0xA001:
+		{
+			if( !process_A001(fd) )
+				return 0;
+			break;
+		}
+		///////////////////////////////////////////////////////////////////////
+		case 0xA002:
+		{
+			if( !process_A002(fd) )
+				return 0;
+			break;
+		}
+
+*/
 		///////////////////////////////////////////////////////////////////////
 		default:
 			save_packet(fd, "parse_login", ip_str);
@@ -1261,6 +1288,9 @@ int parse_login(int fd)
 	}
 	return 0;
 }
+
+
+
 
 void send_reject_packet(int fd)
 {
@@ -1630,7 +1660,7 @@ int do_init(int argc, char **argv)
 	basics::CParamBase::loadFile((argc > 1 && basics::is_file(argv[1])) ? argv[1] : LOGIN_CONF_NAME);
 	display_conf_warnings(); // not in login_config_read, because we can use 'import' option, and display same message twice or more
 	save_config_in_log(); // not before, because log file name can be changed
-	
+
 	if (!account_db.init( (argc > 1 && basics::is_file(argv[1])) ? argv[1] : LOGIN_CONF_NAME ))
 	{
 		core_stoprunning();

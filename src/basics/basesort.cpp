@@ -2,6 +2,7 @@
 #include "basetypes.h"
 #include "basealgo.h"
 #include "basearray.h"
+#include "basemath.h"
 
 
 NAMESPACE_BEGIN(basics)

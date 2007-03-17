@@ -88,7 +88,13 @@ enum command_t
 	// Member Access
 	// take a variable and a value from stack and push a varible
 	OP_MEMBER,					// <Op Pointer> '.' <Value>
+	OP_MEMBER2,					// <Op Pointer> '.' <Value>
+	OP_MEMBER3,					// <Op Pointer> '.' <Value>
+	OP_MEMBER4,					// <Op Pointer> '.' <Value>
 	OP_SCOPE,					// <Op Pointer> '::' <Value>
+	OP_SCOPE2,					// <Op Pointer> '::' <Value>
+	OP_SCOPE3,					// <Op Pointer> '::' <Value>
+	OP_SCOPE4,					// <Op Pointer> '::' <Value>
 	/////////////////////////////////////////////////////////////////
 	// standard function calls
 	// check the parameters on stack before or inside the call of function

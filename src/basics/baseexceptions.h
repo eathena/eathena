@@ -17,11 +17,11 @@ NAMESPACE_BEGIN(basics)
 class exception
 {
 protected:
-    char* message;
+    const char* message;
 public:
-    explicit exception(const char* e) : message(e?strdup(e):NULL)
+    explicit exception(const char* e) : message(e)
 	{ }
-    ~exception()				{ if(message) free(message); }
+    ~exception()				{}
     const char* get_message()	{ return message?message:""; }
 	operator const char *()		{ return this->get_message(); }
 	const char *what()			{ return this->get_message(); }

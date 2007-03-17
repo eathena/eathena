@@ -5,6 +5,7 @@
 //## move back included
 
 #include "basetypes.h"
+#include "basemath.h"
 #include "baseobjects.h"
 #include "basememory.h"
 #include "basealgo.h"
@@ -23,6 +24,122 @@ void test_strings(void);
 void test_stringbuffer(void);
 
 
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// wrappers for Character Classification Routines.
+/// this also gets rid of the macro definitions
+//## TODO: choose a better name for the namespace 
+namespace stringcheck
+{
+#ifdef isalpha	// get the function form, not the macro
+#undef isalpha
+#endif
+template <typename T> extern inline bool isalpha(T c) { return 0!=::isalpha( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool isalpha(char c)		{ return 0!=::isalpha ( to_unsigned(c) ); }
+extern inline bool isalpha(wchar_t c)	{ return 0!=::iswalpha( to_unsigned(c) ); }
+
+#ifdef isupper	// get the function form, not the macro
+#undef isupper
+#endif
+template <typename T> extern inline bool isupper(T c) { return ::isupper( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool isupper(char c)		{ return 0!=::isupper ( to_unsigned(c) ); }
+extern inline bool isupper(wchar_t c)	{ return 0!=::iswupper( to_unsigned(c) ); }
+
+#ifdef islower	// get the function form, not the macro
+#undef islower
+#endif
+template <typename T> extern inline bool islower(T c) { return 0!=::islower( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool islower(char c)		{ return 0!=::islower ( to_unsigned(c) ); }
+extern inline bool islower(wchar_t c)	{ return 0!=::iswlower( to_unsigned(c) ); }
+
+#ifdef isdigit	// get the function form, not the macro
+#undef isdigit
+#endif
+template <typename T> extern inline bool isdigit(T c) { return 0!=::isdigit( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool isdigit(char c)		{ return 0!=::isdigit ( to_unsigned(c) ); }
+extern inline bool isdigit(wchar_t c)	{ return 0!=::iswdigit( to_unsigned(c) ); }
+
+#ifdef isxdigit	// get the function form, not the macro
+#undef isxdigit
+#endif
+template <typename T> extern inline bool isxdigit(T c) { return 0!=::isxdigit( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool isxdigit(char c)		{ return 0!=::isxdigit ( to_unsigned(c) ); }
+extern inline bool isxdigit(wchar_t c)	{ return 0!=::iswxdigit( to_unsigned(c) ); }
+
+#ifdef isspace	// get the function form, not the macro
+#undef isspace
+#endif
+template <typename T> extern inline bool isspace(T c) { return 0!=::isspace( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool isspace(char c)		{ return 0!=::isspace ( to_unsigned(c) ); }
+extern inline bool isspace(wchar_t c)	{ return 0!=::iswspace( to_unsigned(c) ); }
+
+#ifdef ispunct	// get the function form, not the macro
+#undef ispunct
+#endif
+template <typename T> extern inline bool ispunct(T c) { return 0!=::ispunct( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool ispunct(char c)		{ return 0!=::ispunct ( to_unsigned(c) ); }
+extern inline bool ispunct(wchar_t c)	{ return 0!=::iswpunct( to_unsigned(c) ); }
+
+#ifdef isalnum	// get the function form, not the macro
+#undef isalnum
+#endif
+template <typename T> extern inline bool isalnum(T c) { return 0!=::isalnum( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool isalnum(char c)		{ return 0!=::isalnum ( to_unsigned(c) ); }
+extern inline bool isalnum(wchar_t c)	{ return 0!=::iswalnum( to_unsigned(c) ); }
+
+#ifdef isprint	// get the function form, not the macro
+#undef isprint
+#endif
+template <typename T> extern inline bool isprint(T c) { return 0!=::isprint( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool isprint(char c)		{ return 0!=::isprint ( to_unsigned(c) ); }
+extern inline bool isprint(wchar_t c)	{ return 0!=::iswprint( to_unsigned(c) ); }
+
+#ifdef isgraph	// get the function form, not the macro
+#undef isgraph
+#endif
+template <typename T> extern inline bool isgraph(T c) { return 0!=::isgraph( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool isgraph(char c)		{ return 0!=::isgraph ( to_unsigned(c) ); }
+extern inline bool isgraph(wchar_t c)	{ return 0!=::iswgraph( to_unsigned(c) ); }
+
+#ifdef iscntrl	// get the function form, not the macro
+#undef iscntrl
+#endif
+template <typename T> extern inline bool iscntrl(T c) { return 0!=::iscntrl( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool iscntrl(char c)		{ return 0!=::iscntrl ( to_unsigned(c) ); }
+extern inline bool iscntrl(wchar_t c)	{ return 0!=::iswcntrl( to_unsigned(c) ); }
+
+#ifdef toupper	// get the function form, not the macro
+#undef toupper
+#endif
+template <typename T> extern inline T toupper(T c) { return ::toupper( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline char toupper(char c)		{ return ::toupper ( to_unsigned(c) ); }
+extern inline wchar_t toupper(wchar_t c){ return ::towupper( to_unsigned(c) ); }
+
+#ifdef tolower	// get the function form, not the macro
+#undef tolower
+#endif
+template <typename T> extern inline T tolower(T c) { return ::tolower( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline char tolower(char c)		{ return ::tolower ( to_unsigned(c) ); }
+extern inline wchar_t tolower(wchar_t c){ return ::towlower( to_unsigned(c) ); }
+
+}//end namespace stringcheck
+///////////////////////////////////////////////////////////////////////////////
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -441,11 +558,11 @@ public:
 	virtual size_t length()	const		{ return this->A::length(); }
 	virtual size_t capacity() const		{ return this->A::capacity(); }
 	virtual const T* begin() const		{ return this->A::begin(); }
-	virtual const T* end() const		{ return this->A::end(); }
 	virtual const T* final() const		{ return this->A::final(); }
+	virtual const T* end() const		{ return this->A::end(); }
 	virtual       T* begin()			{ return this->A::begin(); }
-	virtual       T* end()				{ return this->A::end(); }
 	virtual       T* final()			{ return this->A::final(); }
+	virtual       T* end()				{ return this->A::end(); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// standard functions
@@ -518,11 +635,10 @@ public:
 		const T *ptr  = this->begin();
 		const T *eptr = this->end();
 		if(ptr)
-		while(ptr<=eptr)
+		for(; ptr<eptr; ++ptr)
 		{
 			if( *ptr == ch )
 				return ptr-this->begin();
-			++ptr;
 		}
 		return this->npos;
 	}
@@ -531,11 +647,10 @@ public:
 		const T *ptr  = this->end();
 		const T *eptr = this->begin();
 		if(ptr)
-		while(ptr>=eptr)
+		for(--ptr; ptr>=eptr; --ptr)
 		{
 			if( *ptr == ch )
 				return ptr-this->begin();
-			--ptr;
 		}
 		return this->npos;
 	}
@@ -1338,11 +1453,11 @@ public:
 	virtual size_t length()	const		{ return this->allocator_ws_st<T>::length(); }
 	virtual size_t capacity() const		{ return this->allocator_ws_st<T>::capacity(); }
 	virtual const T* begin() const		{ return this->allocator_ws_st<T>::begin(); }
-	virtual const T* end() const		{ return this->allocator_ws_st<T>::end(); }
 	virtual const T* final() const		{ return this->allocator_ws_st<T>::final(); }
+	virtual const T* end() const		{ return this->allocator_ws_st<T>::end(); }
 	virtual       T* begin()			{ return this->allocator_ws_st<T>::begin(); }
+	virtual	      T* final()			{ return this->allocator_ws_st<T>::final(); }
 	virtual       T* end()				{ return this->allocator_ws_st<T>::end(); }
-	virtual       T* final()			{ return this->allocator_ws_st<T>::final(); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// standard functions
@@ -2036,11 +2151,11 @@ public:
 	virtual size_t length()	const		{ return this->readaccess().length(); }
 	virtual size_t capacity() const		{ return this->readaccess().capacity(); }
 	virtual const T* begin() const		{ return this->readaccess().begin(); }
-	virtual const T* end() const		{ return this->readaccess().end(); }
 	virtual const T* final() const		{ return this->readaccess().final(); }
+	virtual const T* end() const		{ return this->readaccess().end(); }
 	virtual       T* begin()			{ return this->writeaccess().begin(); }
-	virtual       T* end()				{ return this->writeaccess().end(); }
 	virtual       T* final()			{ return this->writeaccess().final(); }
+	virtual       T* end()				{ return this->writeaccess().end(); }
 
 
 	virtual void clear()						{ this->writeaccess().clear(); }
@@ -2524,11 +2639,11 @@ public:
 	virtual size_t length() const		{ return cLen; }
 	virtual size_t capacity() const		{ return (cString) ? this->cString->capacity() : 0; }
 	virtual const T* begin() const		{ return const_cast<T*>( this->c_str() ); }
+	virtual const T* final() const		{ return const_cast<T*>( this->c_str()+cLen-(cLen?1:0) ); }
 	virtual const T* end() const		{ return const_cast<T*>( this->c_str()+cLen ); }
-	virtual const T* final() const		{ return const_cast<T*>( this->c_str()+cLen ); }
 	virtual       T* begin()			{ return const_cast<T*>( this->c_str() ); }
+	virtual       T* final()			{ return const_cast<T*>( this->c_str()+cLen-(cLen?1:0) ); }
 	virtual       T* end()				{ return const_cast<T*>( this->c_str()+cLen ); }
-	virtual       T* final()			{ return const_cast<T*>( this->c_str()+cLen ); }
 
 
 	/////////////////////////////////////////////////////////////////

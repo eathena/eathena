@@ -18,6 +18,7 @@
 #define OPT_TRANSFORM		0x04
 #define OPT_COMPILE			0x08
 #define OPT_COMPILEOUTPUT	0x10
+#define OPT_INFO			0x20
 
 
 ///////////////////////////////////////////////////////////////////////////////////////

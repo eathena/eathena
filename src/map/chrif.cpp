@@ -397,7 +397,7 @@ int chrif_connect(int fd)
 	memcpy(WFIFOP(fd,26), passwd, 24);
 	WFIFOL(fd,50) = 0;
 
-	WFIFOLIP(fd,54) = getmapaddress().LANIP();
+	WFIFOLIP(fd,54) = getmapaddress().RealLANIP();
 	WFIFOLIP(fd,58) = getmapaddress().LANMask();
 	WFIFOW(fd,62)   = getmapaddress().LANPort();
 	WFIFOLIP(fd,64) = getmapaddress().WANIP();

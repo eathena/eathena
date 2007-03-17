@@ -31,7 +31,7 @@ public:
 		const ulong tick = this->duration();
 		return tick==0 || this->start_timer(object, tick);
 	}
-	/// activate a status.
+	/// deactivate a status.
 	void deactivate(affectable& object)
 	{	// stop the timer (if any)
 		this->stop_timer();
@@ -46,7 +46,7 @@ public:
 	virtual status_t status_id() const =0;
 	/// true when can be saved.
 	virtual bool savable() const =0;
-	/// true when an active status nedds to be removed.
+	/// true when an active status needs to be removed.
 	virtual bool is_invalid(affectable& object) const =0;
 	/// return remaining time.
 	virtual ulong remaining() const =0;

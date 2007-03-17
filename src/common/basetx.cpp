@@ -138,14 +138,14 @@ bool CAccountDB_mem::insertAccount(const char* userid, const char* passwd, unsig
 
 	///////////////////////////////////////////////////////////////////////////
 	basics::CParam<uint32> start_account_num("start_account_num", 10000000);
-	uint32 accid = start_account_num;
+	uint32 accid = start_account_num+1;
 	const size_t p=this->cList.size();
 	if( 0==p || cList[0].account_id>accid )
 	{	// take the start value
 	}
 	else if( cList[0].account_id+p-1 == cList[p-1].account_id )
 	{	// increment last id when range is fully used
-		accid = this->cList[p-1].account_id++;
+		accid = this->cList[p-1].account_id+1;
 	}
 	else
 	{	// find some unused key within
@@ -159,10 +159,10 @@ bool CAccountDB_mem::insertAccount(const char* userid, const char* passwd, unsig
 			else
 				a=c;
 		}
-		accid = this->cList[a].account_id + 1;
-		// don't use id's less than start_account_num		
-		if( accid < start_account_num() )
-			accid = start_account_num;
+		accid = this->cList[a].account_id+1;
+		// don't use id's less or equal than start_account_num		
+		if( accid <= start_account_num() )
+			accid = start_account_num+1;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	
@@ -311,14 +311,14 @@ bool CCharDB_mem::make_new_char(CCharCharAccount& account, const char *n, unsign
 
 	///////////////////////////////////////////////////////////////////////////
 	basics::CParam<uint32> start_char_num("start_char_num", 20000000);
-	uint32 char_id=start_char_num;
+	uint32 char_id=start_char_num+1;
 	const size_t p=this->cCharList.size();
 	if( 0==p || cCharList[0].char_id > char_id)
 	{	// take the start value
 	}
 	else if( cCharList[0].char_id+p-1 == cCharList[p-1].char_id )
 	{	// increment last id when range is fully used
-		char_id = cCharList[p-1].char_id++;
+		char_id = cCharList[p-1].char_id+1;
 	}
 	else
 	{	// find some unused key within
@@ -332,9 +332,9 @@ bool CCharDB_mem::make_new_char(CCharCharAccount& account, const char *n, unsign
 			else
 				a=c;
 		}
-		char_id = cCharList[a].char_id + 1;
-		if( char_id < start_char_num() )
-			char_id = start_char_num;
+		char_id = cCharList[a].char_id+1;
+		if( char_id <= start_char_num() )
+			char_id = start_char_num+1;
 	}
 	///////////////////////////////////////////////////////////////////////////
 
@@ -724,14 +724,14 @@ bool CGuildDB_mem::insertGuild(const struct guild_member &member, const char *na
 	{
 		///////////////////////////////////////////////////////////////////////
 		basics::CParam<uint32> start_guild_num("start_guild_num", 30000000);
-		uint32 guild_id=start_guild_num;
+		uint32 guild_id=start_guild_num+1;
 		const size_t p=this->cGuilds.size();
 		if( 0==p || cGuilds[0].guild_id > guild_id)
 		{	// take the start value
 		}
 		else if( cGuilds[0].guild_id+p-1 == cGuilds[p-1].guild_id )
 		{	// increment last id when range is fully used
-			guild_id = cGuilds[p-1].guild_id++;
+			guild_id = cGuilds[p-1].guild_id+1;
 		}
 		else
 		{	// find some unused key within
@@ -745,9 +745,9 @@ bool CGuildDB_mem::insertGuild(const struct guild_member &member, const char *na
 				else
 					a=c;
 			}
-			guild_id = cGuilds[a].guild_id + 1;
-			if( guild_id < start_guild_num() )
-				guild_id = start_guild_num;
+			guild_id = cGuilds[a].guild_id+1;
+			if( guild_id <= start_guild_num() )
+				guild_id = start_guild_num+1;
 		}
 		///////////////////////////////////////////////////////////////////////
 
@@ -1003,14 +1003,14 @@ bool CPartyDB_mem::insertParty(uint32 accid, const char *nick, const char *mapna
 	{
 		///////////////////////////////////////////////////////////////////////
 		basics::CParam<uint32> start_party_num("start_party_num", 40000000);
-		uint32 party_id=start_party_num;
+		uint32 party_id=start_party_num+1;
 		const size_t p=this->cParties.size();
 		if( 0==p || cParties[0].party_id > party_id)
 		{	// take the start value
 		}
 		else if( cParties[0].party_id+p-1 == cParties[p-1].party_id )
 		{	// increment last id when range is fully used
-			party_id = cParties[p-1].party_id++;
+			party_id = cParties[p-1].party_id+1;
 		}
 		else
 		{	// find some unused key within
@@ -1024,9 +1024,9 @@ bool CPartyDB_mem::insertParty(uint32 accid, const char *nick, const char *mapna
 				else
 					a=c;
 			}
-			party_id = cParties[a].party_id + 1;
-			if( party_id < start_party_num() )
-				party_id = start_party_num;
+			party_id = cParties[a].party_id+1;
+			if( party_id <= start_party_num() )
+				party_id = start_party_num+1;
 		}
 		///////////////////////////////////////////////////////////////////////
 
@@ -1269,14 +1269,14 @@ bool CPetDB_mem::insertPet(uint32 accid, uint32 cid, short pet_class, short pet_
 {
 	///////////////////////////////////////////////////////////////////////////
 	basics::CParam<uint32> start_pet_num("start_pet_num", 50000000);
-	size_t pet_id=start_pet_num;
+	size_t pet_id=start_pet_num+1;
 	const size_t p=this->cPetList.size();
 	if( 0==p || this->cPetList[0].pet_id > pet_id)
 	{	// take the start value
 	}
 	else if( this->cPetList[0].pet_id+p-1 == this->cPetList[p-1].pet_id )
 	{	// increment last id when range is fully used
-		pet_id = this->cPetList[p-1].pet_id++;
+		pet_id = this->cPetList[p-1].pet_id+1;
 	}
 	else
 	{	// find some unused key within
@@ -1290,9 +1290,9 @@ bool CPetDB_mem::insertPet(uint32 accid, uint32 cid, short pet_class, short pet_
 			else
 				a=c;
 		}
-		pet_id = this->cPetList[a].pet_id + 1;
-		if( pet_id < start_pet_num() )
-			pet_id = start_pet_num;
+		pet_id = this->cPetList[a].pet_id+1;
+		if( pet_id <= start_pet_num() )
+			pet_id = start_pet_num+1;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	
@@ -1376,14 +1376,14 @@ bool CHomunculusDB_mem::insertHomunculus(CHomunculus& hom)
 {
 	///////////////////////////////////////////////////////////////////////////
 	basics::CParam<uint32> start_homun_num("start_homun_num", 60000000);
-	size_t homun_id=start_homun_num;
+	size_t homun_id=start_homun_num+1;
 	const size_t p=this->cHomunculusList.size();
 	if( 0==p || this->cHomunculusList[0].homun_id > homun_id)
 	{	// take the start value
 	}
 	else if( cHomunculusList[0].homun_id+p-1 == cHomunculusList[p-1].homun_id )
 	{	// increment last id when range is fully used
-		homun_id = this->cHomunculusList[p-1].homun_id++;
+		homun_id = this->cHomunculusList[p-1].homun_id+1;
 	}
 	else
 	{	// find some unused key within
@@ -1397,9 +1397,9 @@ bool CHomunculusDB_mem::insertHomunculus(CHomunculus& hom)
 			else
 				a=c;
 		}
-		homun_id = this->cHomunculusList[a].homun_id + 1;
-		if( homun_id < start_homun_num() )
-			homun_id = start_homun_num;
+		homun_id = this->cHomunculusList[a].homun_id+1;
+		if( homun_id <= start_homun_num() )
+			homun_id = start_homun_num+1;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	
@@ -1541,14 +1541,12 @@ bool CVarDB_mem::saveVar(const CVar& var)
 bool CAccountDB_txt::do_readAccounts()
 {
 	int GM_count = 0;
-	int server_count = 0;
 	const char* filename;
 	basics::CParam< basics::string<> > account_filename("account_filename", "save/account.txt");
 	FILE *fp;
 	filename = account_filename();
 	if ((fp = basics::safefopen(filename, "r")) == NULL)
-	{
-		// no account file -> no account -> no login, including char-server (ERROR)
+	{	// no account file -> no account -> no login, including char-server (ERROR)
 		ShowError(CL_BT_RED"Accounts file [%s] not found.\n"CL_RESET, filename);
 		return false;
 	}
@@ -1634,7 +1632,7 @@ bool CAccountDB_txt::do_readAccounts()
 			}
 			userid[23] = '\0';
 			remove_control_chars(userid);
-
+			sex = basics::upcase(sex);
 			if( this->cList.find( CLoginAccount(account_id), pos, 0) )
 			{
 				ShowWarning(CL_BT_RED"An account has an identical id to another.\n"CL_RESET);
@@ -1650,6 +1648,11 @@ bool CAccountDB_txt::do_readAccounts()
 
 				//!! log account line to file as promised
 			}
+			else if( sex != 'M' && sex != 'F' )
+			{
+				ShowWarning("ignoring unsupported account type '%c'.\n", sex);
+				//!! log account line to file as promised
+			}
 			else
 			{
 				CLoginAccount temp;
@@ -1660,9 +1663,8 @@ bool CAccountDB_txt::do_readAccounts()
 				pass[23] = '\0';
 				remove_control_chars(pass);
 				safestrcpy(temp.passwd, sizeof(temp.passwd), pass);
-				temp.sex = (basics::upcase(sex) == 'S') ? 2 : (basics::upcase(sex) == 'M');
-				if (temp.sex == 2)
-					server_count++;
+				
+				temp.sex = (basics::upcase(sex) == 'M');
 
 				remove_control_chars(email);
 				if( !email_check(email) )
@@ -1763,34 +1765,20 @@ bool CAccountDB_txt::do_readAccounts()
 		}
 		if (GM_count == 0)
 		{
-			ShowMessage("           of which is no GM account, and ");
-			ptr+=snprintf(ptr, sizeof(str)-(ptr-str), " of which is no GM account and");
+			ShowMessage("           (with no GM account)");
+			ptr+=snprintf(ptr, sizeof(str)-(ptr-str), " (with no GM account).");
 		}
 		else if (GM_count == 1)
 		{
-			ShowMessage("           of which is 1 GM account, and ");
-			ptr+=snprintf(ptr, sizeof(str)-(ptr-str), " of which is 1 GM account and");
+			ShowMessage("           (with 1 GM account)");
+			ptr+=snprintf(ptr, sizeof(str)-(ptr-str), " (with 1 GM account).");
 		}
 		else
 		{
-			ShowMessage("           of which is %d GM accounts, and ", GM_count);
-			ptr+=snprintf(ptr, sizeof(str)-(ptr-str), " of which is %d GM accounts and", GM_count);
+			ShowMessage("           (with %d GM accounts)", GM_count);
+			ptr+=snprintf(ptr, sizeof(str)-(ptr-str), " (with %d GM accounts).", GM_count);
 		}
-		if (server_count == 0)
-		{
-			ShowMessage("no server account ('S').\n");
-			ptr+=snprintf(ptr, sizeof(str)-(ptr-str), " no server account.");
-		}
-		else if (server_count == 1)
-		{
-			ShowMessage("1 server account ('S').\n");
-			ptr+=snprintf(ptr, sizeof(str)-(ptr-str), " 1 server account.");
-		}
-		else
-		{
-			ShowMessage("%d server accounts ('S').\n", server_count);
-			ptr+=snprintf(ptr, sizeof(str)-(ptr-str), " %d server accounts.", server_count);
-		}
+		ShowMessage("\n");
 	}
 //	login_log("%s" RETCODE, line);
 	return true;

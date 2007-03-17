@@ -19,7 +19,7 @@
 
 class packet_ver
 {
-	packet_cmd		cmd[MAX_PACKET_DB];
+	packet_cmd		cmd[MAX_PACKET_DB+1];
 public:
 	unsigned short	connect_cmd;
 
@@ -587,8 +587,88 @@ int packetdb_readdb(void)
 	packet_db[0][0x025c] = packet_cmd(4);
 	packet_db[0][0x025d] = packet_cmd(-1);
 	packet_db[0][0x025e] = packet_cmd(4);
-
-	//0x025f max
+	packet_db[0][0x025f] = packet_cmd(6);
+	packet_db[0][0x0260] = packet_cmd(6);
+	packet_db[0][0x0261] = packet_cmd(11);
+	packet_db[0][0x0262] = packet_cmd(11);
+	packet_db[0][0x0263] = packet_cmd(11);
+	packet_db[0][0x0264] = packet_cmd(20);
+	packet_db[0][0x0265] = packet_cmd(20);
+	packet_db[0][0x0266] = packet_cmd(30);
+	packet_db[0][0x0267] = packet_cmd(4);
+	packet_db[0][0x0268] = packet_cmd(4);
+	packet_db[0][0x0269] = packet_cmd(4);
+	packet_db[0][0x026a] = packet_cmd(4);
+	packet_db[0][0x026b] = packet_cmd(4);
+	packet_db[0][0x026c] = packet_cmd(4);
+	packet_db[0][0x026d] = packet_cmd(4);
+	packet_db[0][0x026e] = packet_cmd(0);
+	packet_db[0][0x026f] = packet_cmd(2);
+	packet_db[0][0x0270] = packet_cmd(2);
+	packet_db[0][0x0271] = packet_cmd(40);
+	packet_db[0][0x0272] = packet_cmd(44);
+	packet_db[0][0x0273] = packet_cmd(30);
+	packet_db[0][0x0274] = packet_cmd(8);
+	packet_db[0][0x0275] = packet_cmd(0);
+	packet_db[0][0x0276] = packet_cmd(0);
+	packet_db[0][0x0277] = packet_cmd(84);
+	packet_db[0][0x0278] = packet_cmd(2);
+	packet_db[0][0x0279] = packet_cmd(2);
+	packet_db[0][0x027a] = packet_cmd(-1);
+	packet_db[0][0x027b] = packet_cmd(14);
+	packet_db[0][0x027c] = packet_cmd(60);
+	packet_db[0][0x027d] = packet_cmd(62);
+	packet_db[0][0x027e] = packet_cmd(-1);
+	packet_db[0][0x027f] = packet_cmd(8);
+	packet_db[0][0x0280] = packet_cmd(12);
+	packet_db[0][0x0281] = packet_cmd(4);
+	packet_db[0][0x0282] = packet_cmd(284);
+	packet_db[0][0x0283] = packet_cmd(6);
+	packet_db[0][0x0284] = packet_cmd(14);
+	packet_db[0][0x0285] = packet_cmd(6);
+	packet_db[0][0x0286] = packet_cmd(4);
+	packet_db[0][0x0287] = packet_cmd(0);
+	packet_db[0][0x0288] = packet_cmd(0);
+	packet_db[0][0x0289] = packet_cmd(0);
+	packet_db[0][0x028a] = packet_cmd(18);
+	packet_db[0][0x028b] = packet_cmd(-1);
+	packet_db[0][0x028c] = packet_cmd(46);
+	packet_db[0][0x028d] = packet_cmd(34);
+	packet_db[0][0x028e] = packet_cmd(4);
+	packet_db[0][0x028f] = packet_cmd(6);
+	packet_db[0][0x0290] = packet_cmd(4);
+	packet_db[0][0x0291] = packet_cmd(4);
+	packet_db[0][0x0292] = packet_cmd(2);
+	packet_db[0][0x0293] = packet_cmd(70);
+	packet_db[0][0x0294] = packet_cmd(10);
+	packet_db[0][0x0295] = packet_cmd(-1);
+	packet_db[0][0x0296] = packet_cmd(-1);
+	packet_db[0][0x0297] = packet_cmd(-1);
+	packet_db[0][0x0298] = packet_cmd(8);
+	packet_db[0][0x0299] = packet_cmd(6);
+	packet_db[0][0x029a] = packet_cmd(27);
+	packet_db[0][0x029b] = packet_cmd(70);
+	packet_db[0][0x029c] = packet_cmd(66);
+	packet_db[0][0x029d] = packet_cmd(-1);
+	packet_db[0][0x029e] = packet_cmd(11);
+	packet_db[0][0x029f] = packet_cmd(3);
+	packet_db[0][0x02a0] = packet_cmd(0);
+	packet_db[0][0x02a1] = packet_cmd(0);
+	packet_db[0][0x02a2] = packet_cmd(8);
+	packet_db[0][0x02a3] = packet_cmd(0);
+	packet_db[0][0x02a4] = packet_cmd(0);
+	packet_db[0][0x02a5] = packet_cmd(8);
+	packet_db[0][0x02a6] = packet_cmd(0);
+	packet_db[0][0x02a7] = packet_cmd(0);
+	packet_db[0][0x02a8] = packet_cmd(0);
+	packet_db[0][0x02a9] = packet_cmd(0);
+	packet_db[0][0x02aa] = packet_cmd(4);
+	packet_db[0][0x02ab] = packet_cmd(36);
+	packet_db[0][0x02ac] = packet_cmd(6);
+	packet_db[0][0x02ad] = packet_cmd(0);
+	packet_db[0][0x02ae] = packet_cmd(0);
+	packet_db[0][0x02af] = packet_cmd(0);
+		//0x02af max
 	///////////////////////////////////////////////////////////////////////////
 	// init packet version 5 and lower
 	packet_db[1] = packet_db[0];
@@ -890,11 +970,34 @@ int packetdb_readdb(void)
 	packet_db[19][0x0094] = packet_cmd(23,clif_parse_MoveToKafra,5,19);
 	packet_db[19][0x00f7] = packet_cmd(26,clif_parse_MoveFromKafra,11,22);
 	packet_db[19][0x0190] = packet_cmd(18,clif_parse_ActionRequest,7,17);
+	packet_db[19][0x006d] = packet_cmd(110);
+	///////////////////////////////////////////////////////////////////////////
+	// packet version 20 (2007-01-08)
+	packet_db[20] = packet_db[19];
+	packet_db[20].connect_cmd = 0x9b;
+	packet_db[20][0x009b] = packet_cmd(35,clif_parse_WantToConnection,7,21,26,30,34);
+	packet_db[20][0x0072] = packet_cmd(30,clif_parse_UseSkillToId,10,14,26);
+	packet_db[20][0x007e] = packet_cmd(120,clif_parse_UseSkillToPos,10,19,23,38,40);
+	packet_db[20][0x0085] = packet_cmd(14,clif_parse_ChangeDir,10,13);
+	packet_db[20][0x0089] = packet_cmd(11,clif_parse_TickSend,7);
+	packet_db[20][0x008c] = packet_cmd(17,clif_parse_GetCharNameRequest,13);
+	packet_db[20][0x0094] = packet_cmd(17,clif_parse_MoveToKafra,4,13);
+	packet_db[20][0x009f] = packet_cmd(21,clif_parse_UseItem,7,17);
+	packet_db[20][0x00a2] = packet_cmd(10,clif_parse_SolveCharName,6);
+	packet_db[20][0x00a7] = packet_cmd(8,clif_parse_WalkToXY,5);
+	packet_db[20][0x00f3] = packet_cmd(-1,clif_parse_GlobalMessage,2,4);
+	packet_db[20][0x00f5] = packet_cmd(11,clif_parse_TakeItem,7);
+	packet_db[20][0x00f7] = packet_cmd(15,clif_parse_MoveFromKafra,3,11);
+	packet_db[20][0x0113] = packet_cmd(40,clif_parse_UseSkillToPos,10,19,23,38);
+	packet_db[20][0x0116] = packet_cmd(19,clif_parse_DropItem,11,17);
+	packet_db[20][0x0190] = packet_cmd(10,clif_parse_ActionRequest,4,9);
+	packet_db[20][0x0193] = packet_cmd(2,clif_parse_CloseKafra,0);
+
 
 
 	///////////////////////////////////////////////////////////////////////////
 	size_t i;
-	for(i=20; i<=MAX_PACKET_VER; ++i)
+	for(i=21; i<=MAX_PACKET_VER; ++i)
 		packet_db[i] = packet_db[i-1];
 	///////////////////////////////////////////////////////////////////////////
 
@@ -1132,7 +1235,10 @@ int packetdb_readdb(void)
 				continue;
 			cmd=strtol(str[0],(char **)NULL,0);
 			if(cmd<=0 || cmd>=MAX_PACKET_DB)
+			{
+				ShowWarning("'"CL_WHITE"%s"CL_RESET"', line %i: ignoring out-of-range packet description.\n", cfgName, ln);
 				continue;
+			}
 			if(str[1]==NULL)
 			{
 				ShowError("'"CL_WHITE"%s"CL_RESET"', line %i: packet len error.\n", cfgName, ln);

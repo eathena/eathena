@@ -1,4 +1,5 @@
 #include "basetypes.h"
+#include "basebits.h"
 #include "baseobjects.h"
 #include "basesafeptr.h"
 #include "basememory.h"

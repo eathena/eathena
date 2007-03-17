@@ -6,6 +6,7 @@
 #include "basearray.h"
 #include "basesafeptr.h"
 #include "basestring.h"
+#include "basemath.h"
 
 //#include "basenew.h"
 #include <new>	//##TODO: prepare a workaround when conflicts on windows
@@ -18,165 +19,6 @@ NAMESPACE_BEGIN(basics)
 ///////////////////////////////////////////////////////////////////////////////
 /// test function
 void test_variant();
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-//## temporary copy from traits
-namespace minitraits
-{
-	///////////////////////////////////////////////////////////////////////////
-	// boolean type and boolean operations
-
-	///////////////////////////////////////////////////////////////////////////
-	/// boolean true struct.
-	struct bool_true
-	{	
-		enum { Result = true };
-		/// right hand cast. allow implicit type2value conversion
-		operator bool() const	{ return Result; }
-		bool operator !() const	{ return !Result; }
-	};
-	///////////////////////////////////////////////////////////////////////////
-	/// boolean false struct.
-	struct bool_false
-	{	
-		enum { Result = false };
-		/// right hand cast. allow implicit type2value conversion
-		operator bool() const	{ return Result; }
-		bool operator !() const	{ return !Result; }
-	};
-
-	///////////////////////////////////////////////////////////////////////////
-	/// bool to type conversion.
-	/// true is set as default, have explicit instanciation for false
-	template <bool is> struct bool2type
-	{
-		typedef bool_true Type;
-	};
-
-	template<>
-	struct bool2type<false>
-	{
-		typedef bool_false Type;
-	};
-
-	///////////////////////////////////////////////////////////////////////////
-	/// floating point detector
-	/// false is set as default, have explicit instanciation for float types
-	template<typename T>
-	struct is_float_type
-	{
-		enum { Result = false };
-		typedef bool_false Type;
-	};
-	template<>
-	struct is_float_type<float>
-	{
-		enum { Result = true };
-		typedef bool_true Type;
-	};
-	template<>
-	struct is_float_type<double>
-	{
-		enum { Result = true };
-		typedef bool_true Type;
-	};
-	template<>
-	struct is_float_type<long double>
-	{
-		enum { Result = true };
-		typedef bool_true Type;
-	};
-	///////////////////////////////////////////////////////////////////////////
-	/// integer type detector
-	/// false is set as default, have explicit instanciation for integer types
-	template<typename T>
-	struct is_int_type
-	{
-		enum { Result = false };
-		typedef bool_false Type;
-	};
-	template<>
-	struct is_int_type<char>
-	{
-		enum { Result = true };
-		typedef bool_true Type;
-	};
-	template<>
-	struct is_int_type<unsigned char>
-	{
-		enum { Result = true };
-		typedef bool_true Type;
-	};
-	template<>
-	struct is_int_type<short>
-	{
-		enum { Result = true };
-		typedef bool_true Type;
-	};
-	template<>
-	struct is_int_type<unsigned short>
-	{
-		enum { Result = true };
-		typedef bool_true Type;
-	};
-	template<>
-	struct is_int_type<int>
-	{
-		enum { Result = true };
-		typedef bool_true Type;
-	};
-	template<>
-	struct is_int_type<unsigned int>
-	{
-		enum { Result = true };
-		typedef bool_true Type;
-	};
-	template<>
-	struct is_int_type<long>
-	{
-		enum { Result = true };
-		typedef bool_true Type;
-	};
-	template<>
-	struct is_int_type<unsigned long>
-	{
-		enum { Result = true };
-		typedef bool_true Type;
-	};
-	template<>
-	struct is_int_type<int64>
-	{
-		enum { Result = true };
-		typedef bool_true Type;
-	};
-	template<>
-	struct is_int_type<uint64>
-	{
-		enum { Result = true };
-		typedef bool_true Type;
-	};
-	///////////////////////////////////////////////////////////////////////////
-	/// string type detector
-	/// false is set as default, have explicit instanciation for string type
-	template<typename T>
-	struct is_string_type
-	{
-		enum { Result = false };
-		typedef bool_false Type;
-	};
-	template<>
-	struct is_string_type< string<> >
-	{
-		enum { Result = true };
-		typedef bool_true Type;
-	};	
-}// end namespace minitraits
-///////////////////////////////////////////////////////////////////////////////
-
-
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -209,6 +51,23 @@ enum var_t
 	VAR_FLOAT,
 	VAR_ARRAY
 };
+
+
+///////////////////////////////////////////////////////////////////////////
+/// string type detector
+/// false is set as default, have explicit instanciation for string type
+template<typename T>
+struct is_string_type
+{
+	enum { Result = false };
+	typedef bool_false Type;
+};
+template<>
+struct is_string_type< string<> >
+{
+	enum { Result = true };
+	typedef bool_true Type;
+};	
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -426,46 +285,44 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	// internal type depending value selectors
 	template<typename T>
-	void get_string(T& v, minitraits::bool_true) const
+	void get_string(T& v, const bool_true&) const
 	{
 		v = this->get_string();
 	}
 	template<typename T>
-	void get_string(T& v, minitraits::bool_false) const
+	void get_string(T& v, const bool_false&) const
 	{	// type T is not recognized
 		//##TODO: check if some conversion could be offered
 		struct unrecognized_type
 		{} x = v;
 	}
-
 	template<typename T>
-	void get_float(T& v, minitraits::bool_true) const
+	void get_float(T& v, const bool_true&) const
 	{
 		v = this->get_float();
 	}
 	template<typename T>
-	void get_float(T& v, minitraits::bool_false) const
+	void get_float(T& v, const bool_false&) const
 	{
-		typedef typename minitraits::is_string_type<T>::Type isstring;
+		typedef typename is_string_type<T>::Type isstring;
 		get_string(v, isstring());
 	}	
-	
 	template<typename T>
-	void get_integer(T& v, minitraits::bool_false) const
-	{
-		typedef typename minitraits::is_float_type<T>::Type isfloat;
-		get_float(v, isfloat());
-	}	
-	template<typename T>
-	void get_integer(T& v, minitraits::bool_true) const
+	void get_integer(T& v, const bool_true&) const
 	{
 		v = this->get_int();
-	}
+	}	
+	template<typename T>
+	void get_integer(T& v, const bool_false&) const
+	{
+		typedef typename is_rational<T>::Type isfloat;
+		get_float(v, isfloat());
+	}	
 public:
 	template<typename T>
 	void get_value(T& v) const
 	{
-		typedef typename minitraits::is_int_type<T>::Type isint;
+		typedef typename is_integral<T>::Type isint;
 		this->get_integer(v, isint());
 	}
 	template<typename T>
@@ -1235,18 +1092,18 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	virtual bool is_valid() const		{ return (this->parent_ref.exists() && *this->parent_ref); }
 	virtual bool is_empty() const		{ return false; }
-	virtual bool is_int() const			{ return (this->parent_ref.exists() && *this->parent_ref && value) && minitraits::is_int_type<T>::Result; }
-	virtual bool is_float() const		{ return (this->parent_ref.exists() && *this->parent_ref && value) && minitraits::is_float_type<T>::Result; }
-	virtual bool is_number() const		{ return (this->parent_ref.exists() && *this->parent_ref && value) && (minitraits::is_int_type<T>::Result || minitraits::is_float_type<T>::Result); }
-	virtual bool is_string() const		{ return (this->parent_ref.exists() && *this->parent_ref && value) && minitraits::is_string_type<T>::Result; }
+	virtual bool is_int() const			{ return (this->parent_ref.exists() && *this->parent_ref && value) && is_integral<T>::Result; }
+	virtual bool is_float() const		{ return (this->parent_ref.exists() && *this->parent_ref && value) && is_rational<T>::Result; }
+	virtual bool is_number() const		{ return (this->parent_ref.exists() && *this->parent_ref && value) && (is_integral<T>::Result || is_rational<T>::Result); }
+	virtual bool is_string() const		{ return (this->parent_ref.exists() && *this->parent_ref && value) && is_string_type<T>::Result; }
 	virtual bool is_extern() const		{ return (this->parent_ref.exists() && *this->parent_ref); }
 	virtual var_t type() const
 	{
 		if(this->parent_ref.exists() && *this->parent_ref && value)
 		{
-			if( minitraits::is_float_type<T>::Result ) return VAR_FLOAT;
-			else if( minitraits::is_int_type<T>::Result ) return VAR_INTEGER;
-			else if( minitraits::is_string_type<T>::Result ) return VAR_STRING;
+			if( is_rational<T>::Result ) return VAR_FLOAT;
+			else if( is_integral<T>::Result ) return VAR_INTEGER;
+			else if( is_string_type<T>::Result ) return VAR_STRING;
 		}
 		return VAR_NONE;
 	}
@@ -2433,9 +2290,9 @@ inline const value_empty& value_unnamed< string<> >::operator<<=(const variant& 
 template <typename T>
 variant stringtov(T const*str, T const** run=NULL);
 template <typename T>
-variant tovariant(const string<>& str)
+variant tovariant(const string<T>& str)
 {
-	return stringtov(str.c_str(), NULL);
+	return stringtov<T>(str.c_str(), NULL);
 }
 string<> tostring(const variant& v);
 

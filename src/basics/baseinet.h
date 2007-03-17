@@ -165,7 +165,7 @@ public:
 	static void InitSystemIP()				{        ipaddress::gethelper().init(); }
 	static ipaddress GetSystemIP(uint i=0)	{ return ipaddress::gethelper().GetSystemIP(i); }
 	static uint GetSystemIPCount()			{ return ipaddress::gethelper().GetSystemIPCount(); }
-	static bool isBindable(const ipaddress ip);
+	static bool isBindable(const ipaddress& ip);
 	bool isBindable() const	{ return ipaddress::isBindable(*this); }
 
 protected:
@@ -223,20 +223,22 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// virtual access interface
 	virtual uint32 addr() const { return this->cAddr; }
-	virtual uint32& addr() { return this->cAddr; }
+	virtual uint32& addr()		{ return this->cAddr; }
 	///////////////////////////////////////////////////////////////////////////
-	virtual uint32 mask() const { return INADDR_BROADCAST; }
-	virtual uint32& mask() { static uint32 dummy; return dummy=INADDR_BROADCAST; }
+	virtual ipaddress mask() const	{ return INADDR_BROADCAST; }
+	virtual ipaddress& mask()		{ static ipaddress dummy; dummy=INADDR_BROADCAST; return dummy; }
 	///////////////////////////////////////////////////////////////////////////
 	virtual ushort port() const { return 0; }
-	virtual ushort& port() { static ushort dummy; return dummy=0; }
+	virtual ushort& port()		{ static ushort dummy; return dummy=0; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// boolean operators
 	bool operator == (const ipaddress& s) const { return this->cAddr==s.cAddr; }
 	bool operator != (const ipaddress& s) const { return this->cAddr!=s.cAddr; }
+	bool operator <  (const ipaddress& s) const { return this->cAddr< s.cAddr; }
 	bool operator == (const uint32 s) const { return this->cAddr==s; }
 	bool operator != (const uint32 s) const { return this->cAddr!=s; }
+	bool operator <  (const uint32 s) const { return this->cAddr< s; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// ip2string
@@ -313,6 +315,7 @@ public:
 	/// boolean operators
 	bool operator == (const netaddress& s) const { return this->cAddr==s.cAddr && this->cPort==s.cPort; }
 	bool operator != (const netaddress& s) const { return this->cAddr!=s.cAddr || this->cPort!=s.cPort; }
+	bool operator <  (const netaddress& s) const { return this->cAddr< s.cAddr || (this->cAddr==s.cAddr && this->cPort< s.cPort); }
 };
 
 
@@ -353,8 +356,8 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// virtual access interface
-	virtual uint32 mask() const { return cMask.addr(); }
-	virtual uint32& mask() { return cMask.addr(); }
+	virtual ipaddress mask() const	{ return this->cMask; }
+	virtual ipaddress& mask()		{ return this->cMask; }
 	///////////////////////////////////////////////////////////////////////////
 	/// subnetworkaddr2string
 	virtual string<> tostring() const;
@@ -368,7 +371,7 @@ public:
 	/// boolean operators
 	bool operator == (const subnetaddress& s) const { return this->cMask==s.cMask && this->cAddr==s.cAddr && this->cPort==s.cPort; }
 	bool operator != (const subnetaddress& s) const { return this->cMask!=s.cMask || this->cAddr!=s.cAddr || this->cPort!=s.cPort; }
-
+	bool operator <  (const subnetaddress& s) const { return this->netaddress::operator<(s) || (this->netaddress::operator==(s) && this->cMask<s.cMask);}
 };
 
 
@@ -464,16 +467,24 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	ipaddress LANIP() const	{ return this->cAddr; }
-	ipaddress& LANMask()	{ return this->cMask; }
-	ushort& LANPort()		{ return this->cPort; }
-	ipaddress WANIP()		{ return wanaddr.addr(); }
-	ushort& WANPort()		{ return wanaddr.port(); }
+	//ipaddress& LANIP()			{ return *this; }
+	ipaddress LANIP() const			{ return this->cAddr; }
+	ipaddress RealLANIP() const		{ return (this->cAddr==INADDR_ANY)?ipaddress::GetSystemIP(0):ipaddress(this->cAddr); }
+	//ipaddress& LANMask()			{ return this->cMask; }
+	ipaddress LANMask() const		{ return this->cMask; }
+	ushort& LANPort()				{ return this->cPort; }
+	ushort LANPort() const			{ return this->cPort; }
+	//ipaddress& WANIP()			{ return this->wanaddr; }
+	ipaddress WANIP() const			{ return this->wanaddr; }
+	ushort& WANPort()				{ return this->wanaddr.port(); }
+	ushort WANPort() const			{ return this->wanaddr.port(); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// returning as netaddresses only
-	netaddress& LANAddr()	{ return *this;; }	
-	netaddress& WANAddr()	{ return wanaddr; }
+	netaddress& LANAddr()				{ return *this; }	
+	const netaddress& LANAddr() const	{ return *this; }	
+	netaddress& WANAddr()				{ return wanaddr; }
+	const netaddress& WANAddr() const	{ return wanaddr; }
 
 	///////////////////////////////////////////////////////////////////////////
 	virtual string<> tostring() const;
@@ -487,6 +498,7 @@ public:
 	/// boolean operators
 	bool operator == (const ipset& s) const { return this->cAddr==s.cAddr && this->cMask==s.cMask && this->cPort==s.cPort && wanaddr==s.wanaddr; }
 	bool operator != (const ipset& s) const { return this->cAddr!=s.cAddr || this->cMask!=s.cMask || this->cPort!=s.cPort || wanaddr!=s.wanaddr; }
+	bool operator <  (const ipset& s) const { return this->subnetaddress::operator<(s) || (this->subnetaddress::operator==(s) && this->wanaddr<s.wanaddr); }
 };
 
 

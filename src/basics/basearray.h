@@ -165,12 +165,6 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// as above but with check if element exist
 	virtual bool top(T& elem) const=0;
-
-
-	///////////////////////////////////////////////////////////////////////////
-	/// some of the stl compatible methods
-	void push_back(const T& elem)	{ push(elem); }
-	void erase(size_t pos)			{ removeindex(pos); }
 };
 
 
@@ -179,6 +173,16 @@ public:
 template<typename T, typename A> 
 class vectorbase : public A, public vectorinterface<T>
 {
+public:
+	typedef typename A::iterator_category		iterator_category;
+	typedef typename A::value_type				value_type;
+	typedef typename A::difference_type			difference_type;
+	typedef typename A::size_type				size_type;
+	typedef typename A::pointer					pointer;
+	typedef typename A::reference				reference;
+	typedef typename A::iterator				iterator;
+	typedef typename A::const_iterator			const_iterator;
+	typedef typename A::simple_iterator			simple_iterator;
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// only derived can create
@@ -205,13 +209,76 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// access to element[inx] 0 and length()-1
 	virtual T& first()				{ return *const_cast<T*>(this->begin()); }
-	virtual T& last()				{ return *const_cast<T*>(this->end()); }
+	virtual T& last()				{ return *const_cast<T*>(this->end()-1); }
 	virtual const T& first() const	{ return *this->begin(); }
-	virtual const T& last() const	{ return *this->end(); }
+	virtual const T& last() const	{ return *(this->end()-1); }
 
 	///////////////////////////////////////////////////////////////////////////
 	//
 	void debug_print();
+	///////////////////////////////////////////////////////////////////////////
+	//
+	void swap(vectorbase& t)
+	{
+		basics::swap(this->cBuf, t.cBuf);
+		basics::swap(this->cWpp, t.cWpp);
+		basics::swap(this->cEnd, t.cEnd);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	/// some of the stl compatible methods
+	void push_back(const T& elem)	{ this->insert(elem,1,this->size()); }
+	void push_front(const T& elem)	{ this->insert(elem,1,0); }
+	size_t erase(const iterator& it)
+	{
+		return (it)?this->removeindex(it.position()):0;
+	}
+	size_t erase(const iterator& first, const iterator& last)
+	{
+		const size_t s = (first)?first.position():0;
+		const size_t e = (last)?last.position():this->size();
+		if(e>s)
+		{
+			this->removeindex(s, e-s);
+			return (e-s);
+		}
+		return 0;
+	}
+	simple_iterator stl_insert(simple_iterator pos, const T& val)
+	{
+		const size_t inx = pos-this->begin();
+		this->insert(val,1,inx);
+		return this->begin()+inx;
+	}
+	simple_iterator stl_insert(simple_iterator pos)
+	{
+		const size_t inx = pos-this->begin();
+		this->insert(T(),1,inx);
+		return this->begin()+inx;
+	}
+	void stl_insert(simple_iterator pos, simple_iterator first, simple_iterator last)
+	{
+		const size_t inx = pos-this->begin();
+		this->insert(first,last-first,inx);
+		return this->begin()+inx;
+	}
+	void stl_insert(simple_iterator pos, size_type sz, const T& val)
+	{
+		const size_t inx = pos-this->begin();
+		this->insert(val,sz,inx);
+		return this->begin()+inx;
+	}
+	simple_iterator erase(simple_iterator first)
+	{
+		if( first>=this->begin() && first<this->end() )
+			this->removeindex(first-this->begin(), 1);
+		return first;
+	}
+	simple_iterator erase(simple_iterator first, simple_iterator last)
+	{
+		if( first>=this->begin() && first<this->end() )
+			this->removeindex(first-this->begin(), last-first);
+		return first;
+	}
 };
 
 
@@ -268,10 +335,6 @@ public:
 	explicit vector(const TT* elem, size_t sz)
 	{	// we are clean and empty here
 		this->convert_assign(elem, sz);
-	}
-	explicit vector(const T& elem)
-	{	// we are clean and empty here
-		this->convert_assign(elem);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1331,6 +1394,13 @@ public:
     }
 
 public:
+	void swap(vectorbase<T,A>& t)
+	{
+		swap(this->cBuf, t.cBuf);
+		swap(this->cWpp, t.cWpp);
+		swap(this->cEnd, t.cEnd);
+		this->sort();
+	}
 	///////////////////////////////////////////////////////////////////////////
 	/// (re)allocates a array of cnt elements [0...cnt-1], 
 	/// leave new elements uninitialized/default constructed
@@ -1757,12 +1827,11 @@ public:
 	friend class iterator;
 
 	virtual const T** begin() const		{ return (const T**)this->cVect.begin(); }
-	virtual const T** end() const		{ return (const T**)this->cVect.end(); }
 	virtual const T** final() const		{ return (const T**)this->cVect.final(); }
-
+	virtual const T** end() const		{ return (const T**)this->cVect.end(); }
 	virtual       T** begin()			{ return (      T**)this->cVect.begin(); }
-	virtual       T** end()				{ return (      T**)this->cVect.end(); }
 	virtual       T** final()			{ return (      T**)this->cVect.final(); }
+	virtual       T** end()				{ return (      T**)this->cVect.end(); }
 protected:
 	vector<void*,A>	cVect;
 public:
@@ -1840,7 +1909,7 @@ public:
 		size_t sz =this->cVect.size(); 
 		bool ret = this->cVect.resize(cnt);
 		if(ret)
-			memset(const_cast<void**>(this->cVect.final()-(cnt-sz)), 0, (cnt-sz)*sizeof(void*) );
+			memset(const_cast<void**>(this->cVect.end()-(cnt-sz)), 0, (cnt-sz)*sizeof(void*) );
 		return ret;
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -2122,7 +2191,7 @@ public:
 		size_t sz =this->cVect.size(); 
 		bool ret = this->cVect.resize(cnt);
 		if(ret && cnt>sz)
-			memset( const_cast<void**>(this->cVect.final()-(cnt-sz)), 0, (cnt-sz)*sizeof(void*) );
+			memset( const_cast<void**>(this->cVect.end()-(cnt-sz)), 0, (cnt-sz)*sizeof(void*) );
 		return ret;
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -2384,11 +2453,11 @@ public:
 	friend class iterator;
 
 	virtual const T** begin() const		{ return (const T**)this->cVect.begin(); }
-	virtual const T** end() const		{ return (const T**)this->cVect.end(); }
 	virtual const T** final() const		{ return (const T**)this->cVect.final(); }
+	virtual const T** end() const		{ return (const T**)this->cVect.end(); }
 	virtual       T** begin()			{ return (      T**)this->cVect.begin(); }
-	virtual       T** end()				{ return (      T**)this->cVect.end(); }
 	virtual       T** final()			{ return (      T**)this->cVect.final(); }
+	virtual       T** end()				{ return (      T**)this->cVect.end(); }
 
 
 protected:
@@ -2595,7 +2664,7 @@ public:
 		T** ptr = (T**)this->cVect.begin()+pos;
 		T** end = (T**)this->cVect.end();
 		const T*  xxx = elem+cnt;
-		while( ptr<=end && elem<xxx)
+		while( ptr<end && elem<xxx)
 		{	// overwriting exisitng elements
 			**ptr++ = *elem++;
 		}
@@ -2626,9 +2695,9 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// access to element[inx] 0 and length()-1
 	T& first()				{ return **((T**)this->cVect.begin()); }
-	T& last()				{ return **((T**)this->cVect.end()); }
+	T& last()				{ return **((T**)(this->cVect.end()-1)); }
 	const T& first() const	{ return **((T**)this->cVect.begin()); }
-	const T& last() const	{ return **((T**)this->cVect.end()); }
+	const T& last() const	{ return **((T**)(this->cVect.end()-1)); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// access to elements(inx) [inx]
@@ -2834,10 +2903,10 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// access to element[inx] 0 and length()-1
-	T& first()				{ return **((T**)this->cVect.begin()); }
-	T& last()				{ return **((T**)this->cVect.end()); }
-	const T& first() const	{ return **((T**)this->cVect.begin()); }
-	const T& last() const	{ return **((T**)this->cVect.end()); }
+	T& first()				{ return **((T**)(this->cVect.begin())); }
+	T& last()				{ return **((T**)(this->cVect.end()-1)); }
+	const T& first() const	{ return **((T**)(this->cVect.begin())); }
+	const T& last() const	{ return **((T**)(this->cVect.end()-1)); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// access to elements(inx) [inx]
@@ -2952,17 +3021,16 @@ public:
 	const ptrvector<node>& operator()(size_t i=0) const	{ return this->cVect; }
 
 
-	virtual const node** begin() const	{ return this->cVect.begin(); }
-	virtual const node** end() const	{ return this->cVect.end(); }
-	virtual const node** final() const	{ return this->cVect.final(); }
+	virtual const node** begin() const		{ return this->cVect.begin(); }
+	virtual const node** final() const		{ return this->cVect.final(); }
+	virtual const node** end() const		{ return this->cVect.end(); }
+	virtual       node** begin()			{ return this->cVect.begin(); }
+	virtual       node** final()			{ return this->cVect.final(); }
+	virtual       node** end()				{ return this->cVect.end(); }
 
-	virtual       node** begin()		{ return this->cVect.begin(); }
-	virtual       node** end()			{ return this->cVect.end(); }
-	virtual       node** final()		{ return this->cVect.final(); }
-
-	virtual size_t size() const			{ return this->cVect.size(); }
-	virtual size_t capacity() const		{ return this->cVect.capacity(); }
-	virtual size_t length() const		{ return this->cVect.size(); }
+	virtual size_t size() const				{ return this->cVect.size(); }
+	virtual size_t capacity() const			{ return this->cVect.capacity(); }
+	virtual size_t length() const			{ return this->cVect.size(); }
 
 private:
 	static int cmp(const K& k,  node* const & n)
@@ -3124,16 +3192,16 @@ public:
 	vector<node>& operator()(size_t i=0)	{ return this->cVect; }
 	const vector<node>& operator()(size_t i=0) const	{ return this->cVect; }
 
-	virtual const node* begin() const	{ return this->cVect.begin(); }
-	virtual const node* end() const		{ return this->cVect.end(); }
-	virtual const node* final() const	{ return this->cVect.final(); }
-	virtual       node* begin()			{ return this->cVect.begin(); }
-	virtual       node* end()			{ return this->cVect.end(); }
-	virtual       node* final()			{ return this->cVect.final(); }
+	virtual const node* begin() const		{ return this->cVect.begin(); }
+	virtual const node* final() const		{ return this->cVect.final(); }
+	virtual const node* end() const			{ return this->cVect.end(); }
+	virtual       node* begin()				{ return this->cVect.begin(); }
+	virtual       node* final()				{ return this->cVect.final(); }
+	virtual       node* end()				{ return this->cVect.end(); }
 
-	virtual size_t size() const			{ return this->cVect.size(); }
-	virtual size_t capacity() const		{ return this->cVect.capacity(); }
-	virtual size_t length() const		{ return this->cVect.size(); }
+	virtual size_t size() const				{ return this->cVect.size(); }
+	virtual size_t capacity() const			{ return this->cVect.capacity(); }
+	virtual size_t length() const			{ return this->cVect.size(); }
 
 private:
 	bool find(const K& key, size_t& pos) const
@@ -3237,17 +3305,16 @@ public:
 	ptrvector<node>& operator()(size_t i=0)	{ return (i==0)?(this->cVect1):(this->cVect2); }
 	const ptrvector<node>& operator()(size_t i=0) const	{ return (i==0)?(this->cVect1):(this->cVect2); }
 
-	virtual const node** begin() const	{ return this->cVect1.begin(); }
-	virtual const node** end() const	{ return this->cVect1.end(); }
-	virtual const node** final() const	{ return this->cVect1.final(); }
+	virtual const node** begin() const		{ return this->cVect1.begin(); }
+	virtual const node** final() const		{ return this->cVect1.final(); }
+	virtual const node** end() const		{ return this->cVect1.end(); }
+	virtual       node** begin()			{ return this->cVect1.begin(); }
+	virtual       node** final()			{ return this->cVect1.final(); }
+	virtual       node** end()				{ return this->cVect1.end(); }
 
-	virtual       node** begin()		{ return this->cVect1.begin(); }
-	virtual       node** end()			{ return this->cVect1.end(); }
-	virtual       node** final()		{ return this->cVect1.final(); }
-
-	virtual size_t size() const			{ return this->cVect1.size(); }
-	virtual size_t capacity() const		{ return this->cVect1.capacity(); }
-	virtual size_t length() const		{ return this->cVect1.size(); }
+	virtual size_t size() const				{ return this->cVect1.size(); }
+	virtual size_t capacity() const			{ return this->cVect1.capacity(); }
+	virtual size_t length() const			{ return this->cVect1.size(); }
 
 private:
 	static int cmp1(const K1& k,  node* const & n)

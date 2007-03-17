@@ -81,8 +81,8 @@ public:
 	socket_data&					socket;			///< where this session is assigned to
 	basics::string<>				userid;			///< username
 	uchar							passwd[24];		///< password
-	uchar							md5keylen;		///< keylen
 	uchar							md5key[23];		///< key data
+	uchar							md5keylen;		///< keylen
 	uint32							login_id1;		///< last id1
 	uint32							login_id2;		///< last id2
 
@@ -117,130 +117,74 @@ public:
 	bool is_encryped() const { return md5keylen!=0; }
 };
 
-///////////////////////////////////////////////////////////////////////////////
-/// base class for a server connection.
-/// add more generic stuff in here when going global with that
-struct server_connect
+
+struct server_auth
 {
-	int fd;
-	basics::ipset address;
-	size_t users;
-};
+	basics::smap< basics::string<>,basics::string<> > passmap;
 
-///////////////////////////////////////////////////////////////////////////////
-/// login-char connection, login side.
-struct charserver_connect : public server_connect
-{
-	basics::string<>				name;
-	bool							allow_register;
-
-	bool operator==(const charserver_connect&a) const { return this->name==a.name; }
-	bool operator< (const charserver_connect&a) const { return this->name< a.name; }
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// base class for a client connection.
-/// add more generic stuff in here when going global with that
-struct client_connect
-{
-	basics::ipaddress	addr;	///< socket connect, derive when possible
-	ulong				tick;	///< tick of
-
-	bool operator==(const client_connect&a) const { return this->addr==a.addr; }
-	bool operator< (const client_connect&a) const { return this->addr< a.addr; }
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-/// data of a login server.
-struct login_server : public session_data
-{
-	socket_data&						socket;			///< where this session is assigned to
-	basics::CParam<ushort>				port;			///< login server listen port
-	basics::vector<charserver_connect>	char_servers;	///< char server connections
-	basics::slist<client_connect>		last_connects;	///< list of last connections
-
-	basics::CParam<bool>				mfreg_enabled;	///< M/F registration allowed
-	basics::CParam<ulong>				mfreg_time;		///< time in seconds between registrations
-	ulong								new_reg_tick;	///< internal tickcounter for M/F registration
-	
-
-	basics::smap< basics::string<>, basics::string<> > server_accounts;
-
-	login_server(socket_data& s) :
-		socket(s),
-		port("loginport", 6900),
-		mfreg_enabled("mfreg_enabled", false),
-		mfreg_time("mfreg_time", 10),
-		new_reg_tick(gettick())
+	server_auth()
 	{}
 
-	~login_server()
-	{	// unregister
-		this->socket.user_session = NULL;
-	}
-};
-
-///////////////////////////////////////////////////////////////////////////////
-class transmitt_packet
-{
-public:
-	virtual ~transmitt_packet()	{}
-	virtual size_t size() const=0;
-	virtual operator const unsigned char*()=0;
-
-	void send()	{}
-};
-
-///////////////////////////////////////////////////////////////////////////////
-class packet_try_login : public transmitt_packet
-{
-	enum { packet_header = 0xFF00, packet_size = 4+3*24+1+2*4 };
-
-	unsigned char buffer[packet_size];
-public:
-	explicit packet_try_login(const login_session& acc)
+	void add(const char* str)
 	{
-		unsigned char *buf = this->buffer;
-		_W_tobuffer((ushort)packet_header, buf);
-		_W_tobuffer((ushort)packet_size, buf);
-		_S_tobuffer(acc.userid, buf, 24);
-		_X_tobuffer(acc.passwd, buf, 24);
-		_B_tobuffer(acc.md5keylen, buf);
-		_X_tobuffer(acc.md5key, buf, 24);
-		_L_tobuffer(acc.login_id1, buf);
-		_L_tobuffer(acc.login_id2, buf);
+		while(str && *str)
+		{
+			const char* kp = strchr(str,',');
+			basics::string<> user = (kp)?basics::string<>(str, kp-str):basics::string<>(str);
+			str=(kp)?kp+1:kp;
+
+			const char* ip = strchr(user.c_str(),':');
+			if(!ip)
+			{
+				ShowError("server_auth: invalid specification, should be <user>:<pass>\n");
+				continue;
+			}
+
+			basics::string<> pass(ip+1);
+			user.truncate(ip-user.c_str());
+			user.trim();
+			pass.trim();
+			if( user.size() == 0 )
+			{
+				ShowError("server_auth: empty user ignored\n");
+			}
+			else if( pass.size()==0 )
+			{
+				ShowError("server_auth: empty password ignored\n");
+			}
+			else
+			{
+				if( passmap.exists(user) )
+				{
+					ShowWarning("server_auth: replacing password for user '%s'\n", user.c_str());
+				}
+				this->passmap[user] = pass;
+			}
+		}
 	}
-	virtual ~packet_try_login()	{}
-	virtual size_t size() const	{ return packet_size; }
-	virtual const unsigned char* operator()() const	{ return buffer; }
-	virtual unsigned char* operator()() { return buffer; }
-};
-
-///////////////////////////////////////////////////////////////////////////////
-class packet_new_login : public transmitt_packet
-{
-	enum { packet_header = 0xFF01, packet_size = 4+3*24+1+2*4 };
-
-	unsigned char buffer[packet_size];
-public:
-	explicit packet_new_login(const login_session& acc)
+	void add(const basics::string<> str)
 	{
-		unsigned char *buf = this->buffer;
-		_W_tobuffer((ushort)packet_header, buf);
-		_W_tobuffer((ushort)packet_size, buf);
-		_S_tobuffer(acc.userid, buf, 24);
-		_X_tobuffer(acc.passwd, buf, 24);
-		_B_tobuffer(acc.md5keylen, buf);
-		_X_tobuffer(acc.md5key, buf, 24);
-		_L_tobuffer(acc.login_id1, buf);
-		_L_tobuffer(acc.login_id2, buf);
+		this->add((const char*)str);
 	}
-	virtual ~packet_new_login()	{}
-	virtual size_t size() const	{ return packet_size; }
-	virtual const unsigned char* operator()() const	{ return buffer; }
-	virtual unsigned char* operator()() { return buffer; }
+
+	bool exists(const char* user, const char* pass) const
+	{
+		const basics::string<>* entry = this->passmap.search(user);
+		return ( entry && *entry==pass );
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// assign string.
+	const server_auth& operator=(const char* str)				{ this->add(str); return *this; }
+	const server_auth& operator=(const basics::string<>& str)	{ this->add(str); return *this; }
+
+	///////////////////////////////////////////////////////////////////////////
+	/// explicit compare operator.
+	/// retuns always false for usage in parameters
+	friend bool operator==(const server_auth& a, const server_auth& b)	{ return false; } 
 };
+
+
 
 
 //////////////////////////////////////////////

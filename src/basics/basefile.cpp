@@ -1586,8 +1586,8 @@ vector< string<> > filespec_elements(const char * filespec)
 	file_specification spec;
 	spec.initialise_file(filespec);
 	vector< string<> > result = spec.path();
-	if(!spec.drive().is_empty()) result.insert(spec.drive(),0);
-	if(!spec.file().is_empty()) result.push(spec.file());
+	if(!spec.drive().is_empty()) result.push_front(spec.drive());
+	if(!spec.file().is_empty()) result.push_back(spec.file());
 	return result;
 }
 
@@ -1596,7 +1596,7 @@ vector< string<> > folder_elements(const char * folder)
 	file_specification spec;
 	spec.initialise_folder(folder);
 	vector< string<> > result = spec.path();
-	if(!spec.drive().is_empty()) result.insert(spec.drive(),0);
+	if(!spec.drive().is_empty()) result.push_front(spec.drive());
 	return result;
 }
 

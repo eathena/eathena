@@ -495,6 +495,68 @@ public:
 	}
 };
 
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// delete notification.
+template<typename T>
+struct TDeleteNotify
+{
+private:
+	bool valid;
+	T value;
+
+	void throw_when_invalid()
+	{
+#if defined(DEBUG)
+		if( !valid ) 
+		{
+#if defined(CHECK_EXCEPTIONS)
+			throw "access on destroyed object";
+#else
+			sprintf(stderr, "access on destroyed object");
+#endif
+		}
+#endif
+	}
+public:
+	TDeleteNotify() : valid(true), value()
+	{}
+	~TDeleteNotify()
+	{
+		valid=false;
+	}
+
+	TDeleteNotify(const TDeleteNotify& d) : valid(true), value(d.v)
+	{}
+	const T& operator=(const TDeleteNotify& d)
+	{
+		throw_when_invalid();
+		value = d;
+		return value;
+	}
+
+	TDeleteNotify(const T& v) : valid(true), value(v)
+	{}
+	const T& operator=(const T& v)
+	{
+		throw_when_invalid();
+		value = v;
+		return value;
+	}
+
+	operator const T&() const	{ throw_when_invalid(); return value; }
+	operator T&()				{ throw_when_invalid(); return value; }
+
+	const T& operator()() const	{ throw_when_invalid(); return value; }
+	T& operator()()				{ throw_when_invalid(); return value; }
+
+	bool is_valid() const		{ return valid; }
+};
+
+
 NAMESPACE_END(basics)
 
 #endif//__BASEOBJECTS_H__

@@ -406,8 +406,7 @@ bool CStackEngine::process()
 		case OP_MEMBER:		// <Op Pointer> '.' <Value>
 		case OP_SCOPE:		// <Op Pointer> '::' <Value>
 		{
-			stack[-1].access_member(stack[0].get_string());
-			this->cStack.strip(1);
+			stack[0].access_member(ccmd.cString);
 			break;
 		}
 		/////////////////////////////////////////////////////////////////
@@ -474,7 +473,6 @@ bool CStackEngine::process()
 				fprintf(stderr, "stack underflow, %i values requited, have %i\n", dim, (int)stacksize);
 				return false;
 			}
-			stack[-dim].clear();
 			for(i=1; i<=dim; ++i)
 			{	// number of elements in this dimension
 				stack[-dim].append_array( stack[i-dim].get_int() );

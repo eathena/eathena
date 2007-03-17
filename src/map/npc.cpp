@@ -515,7 +515,7 @@ struct event_data
 		event_entry tmp(&nd, 0);
 		if( this->event_list.find(tmp,0,p) )
 		{
-			this->event_list.erase(p);
+			this->event_list.removeindex(p);
 			return true;
 		}
 		return false;

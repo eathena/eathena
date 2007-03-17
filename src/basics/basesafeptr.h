@@ -125,7 +125,7 @@ private:
 	void create()					{ if(!itsPtr) itsPtr = new X; }
 	void copy(const TPtr<X>& p)
 	{
-		X* pp=p.get();
+		const X* pp=p.get();
 		if( this!=&p && this->itsPtr!=pp )
 		{
 			if(this->itsPtr)
@@ -145,6 +145,8 @@ public:
 	const TPtr<X>& operator=(const TPtr<X>& p)				{ this->copy(p); return *this; }
 	TPtrAuto(const TPtrAuto<X>& p): itsPtr(NULL)			{ this->copy(p); }
 	const TPtr<X>& operator=(const TPtrAuto<X>& p)			{ this->copy(p); return *this; }
+
+	virtual bool exists() const					{ return this->itsPtr!=NULL; }
 
 	virtual const X& readaccess() const			{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
 	virtual X& writeaccess()					{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }

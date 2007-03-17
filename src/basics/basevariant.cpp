@@ -560,13 +560,15 @@ void value_array::operate(const variant& v, const variant& (variant::*func)(cons
 		vector<variant>::iterator iterV(a2.value);
 
 		if( this->value.size() < a2.value.size() )
-		{	// strip surmounting elements
+		{	
 			this->value.resize(a2.value.size());
 		}
 
 		vector<variant>::iterator iterA(this->value);
 		for(; iterA && iterV; ++iterA, ++iterV)
 			((*iterA).*func)(*iterV);
+		for(; iterA ; ++iterA)
+			((*iterA).*func)( variant() );
 	}
 	else
 	{

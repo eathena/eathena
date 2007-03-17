@@ -146,7 +146,7 @@ struct buildin_gui : public buildin
 		buildin::create("next", buildin_next);
 		buildin::create("select", buildin_select);
 	}
-}buildin_gui_i;
+} buildin_gui_i;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 

@@ -7,11 +7,13 @@
 
 
 #include "basetypes.h"
+#include "baseswap.h"
 #include "baseobjects.h"
 
-
-
+///////////////////////////////////////////////////////////////////////////////
 NAMESPACE_BEGIN(basics)
+///////////////////////////////////////////////////////////////////////////////
+
 
 //////////////////////////////////////////////////////////////////////////
 /// test function
@@ -45,47 +47,17 @@ extern inline size_t memquantize(size_t sz)
 		return (sz + quant2 - 1) & qmask2;
 }
 
+#ifndef BASICS_HAS_ITERATOR_TAGS
+struct input_iterator_tag {};
+struct output_iterator_tag {};
+struct forward_iterator_tag : public input_iterator_tag {};
+struct bidirectional_iterator_tag : public forward_iterator_tag {};
+struct random_access_iterator_tag : public bidirectional_iterator_tag {};
+#define BASICS_HAS_ITERATOR_TAGS
+#endif//BASICS_HAS_ITERATOR_TAGS
 
 
 NAMESPACE_BEGIN(elaborator)
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// boolean type and boolean operations
-//## temporary copy from traits
-
-///////////////////////////////////////////////////////////////////////////////
-/// boolean true struct.
-struct bool_true
-{	
-	enum { Result = true };
-	/// right hand cast. allow implicit type2value conversion
-	operator bool() const	{ return Result; }
-};
-///////////////////////////////////////////////////////////////////////////////
-/// boolean false struct.
-struct bool_false
-{	
-	enum { Result = false };
-	/// right hand cast. allow implicit type2value conversion
-	operator bool() const	{ return Result; }
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// bool to type conversion.
-/// true is set as default, have explicit instanciations for each value
-/// (having both would actually not be necessary)
-template <bool is> struct bool2type
-{
-	typedef bool_true Type;
-};
-
-template<>
-struct bool2type<false>
-{
-	typedef bool_false Type;
-};
-
-
 
 
 template<typename T>
@@ -189,19 +161,30 @@ class allocator : public global, public noncopyable
 {
 	ICL_EMPTY_COPYCONSTRUCTOR(allocator)
 public:
-	typedef size_t size_type;		///< type of positions
-	static const size_type npos;	///< not-valid-position constant
+	typedef size_t						size_type;		///< type of positions
+	typedef random_access_iterator_tag	iterator_category;
+	typedef T							value_type;
+	typedef ssize_t						difference_type;
+	typedef T*							pointer;
+	typedef T&							reference;
 
-	typedef T					value_type;
+	typedef const value_type*			const_iterator;		///< stl like pointer iterator
+	typedef value_type*					simple_iterator;	///< stl like pointer iterator
 
-	typedef const value_type*	const_iterator;		///< stl like pointer iterator
-	typedef value_type*			simple_iterator;	///< stl like pointer iterator
+	static const size_type				npos;	///< not-valid-position constant
 
 	///////////////////////////////////////////////////////////////////////////
 	/// iterator wrapper.
 	/// provised iterator interface with additional checkings and conversions
 	class iterator
 	{
+	public:
+		typedef random_access_iterator_tag	iterator_category;
+		typedef T							value_type;
+		typedef size_t						difference_type;
+		typedef T*							pointer;
+		typedef T&							reference;
+	private:
 		const allocator* base;
 		T* ptr;
 	public:
@@ -212,7 +195,7 @@ public:
 			: base(&a), ptr(const_cast<T*>(a.begin()))
 		{}
 		iterator(const allocator& a, const T* p)
-			: base(&a), ptr((p && base && p>=base->begin() && p<=base->end())?const_cast<T*>(p):(base->begin()?base->begin()-1:NULL))
+			: base(&a), ptr(const_cast<T*>((p && base && p>=base->begin() && p<=base->end())?p:(base->begin()?base->begin()-1:NULL)))
 		{}
 		~iterator()	{}
 		// can use default copy//assignment
@@ -232,8 +215,8 @@ public:
 			ptr = const_cast<T*>(a.begin());
 			return *this;
 		}
-		size_t position()		{ return (this->ptr && this->base && this->ptr>=base->begin() && this->ptr<=base->end())?(this->ptr-base->begin()):(0); }
-		bool isvalid() const	{ return (this->ptr && this->base && base->begin()<=base->end() && this->ptr>=base->begin() && this->ptr<=base->end()); }
+		size_t position() const	{ return (this->ptr && this->base && this->ptr>=base->begin() && this->ptr<=base->end())?(this->ptr-base->begin()):(0); }
+		bool isvalid() const	{ return (this->ptr && this->base && base->begin()<base->end() && this->ptr>=base->begin() && this->ptr<base->end()); }
 		operator bool() const	{ return this->isvalid(); }
 		bool operator !() const	{ return !this->isvalid(); }
 		T* operator()()			{ return this->isvalid()?this->ptr:NULL; }
@@ -242,17 +225,17 @@ public:
 
 		T* operator++()			
 		{	// preincrement
-			if( base && this->ptr <= this->base->end() )
+			if( base && this->ptr < this->base->end() )
 			{
 				++this->ptr;
-				if( this->ptr <= this->base->end() )
+				if( this->ptr < this->base->end() )
 					return this->ptr;
 			}
 			return NULL; 
 		}
 		T* operator++(int)
 		{	// postincrement
-			if( base && this->ptr <= this->base->end() )
+			if( base && this->ptr < this->base->end() )
 				return this->ptr++;
 			return NULL; 
 		}
@@ -288,8 +271,6 @@ public:
 
 		bool operator&&(const iterator&i) const	{ return this->isvalid() && i.isvalid(); }
 		bool operator||(const iterator&i) const	{ return this->isvalid() || i.isvalid(); }
-
-
 	};
 
 
@@ -301,11 +282,11 @@ public:
 	virtual size_t size() const { return length(); }
 	virtual size_t capacity() const =0;
 	virtual const T* begin() const=0;
-	virtual const T* end() const=0;
 	virtual const T* final() const=0;
+	virtual const T* end() const=0;
 	virtual       T* begin()=0;
-	virtual       T* end()=0;
 	virtual       T* final()=0;
+	virtual       T* end()=0;
 };
 
 template <typename T>
@@ -340,11 +321,11 @@ public:
 	virtual size_t length()	const		{ return (this->cWpp-this->cBuf); }
 	virtual size_t capacity() const		{ return (this->cEnd-this->cBuf); }
 	virtual const T* begin() const		{ return  this->cBuf; }
-	virtual const T* end() const		{ return (this->cWpp)?this->cWpp-1:NULL; }
-	virtual const T* final() const		{ return  this->cWpp; }
+	virtual const T* final() const		{ return (this->cWpp)?this->cWpp-1:this->cWpp; }
+	virtual const T* end() const		{ return  this->cWpp; }
 	virtual       T* begin()			{ return  this->cBuf; }
-	virtual       T* end()				{ return (this->cWpp)?this->cWpp-1:NULL; }
-	virtual       T* final()			{ return  this->cWpp; }
+	virtual       T* final()			{ return (this->cWpp)?this->cWpp-1:this->cWpp; }
+	virtual       T* end()				{ return  this->cWpp; }
 };
 
 
@@ -387,8 +368,8 @@ protected:
 		return (this->cEnd > this->cBuf);
 	}
 	// have the EOS be part of the iteration
- 	virtual const T* end() const		{ return this->cWpp; }
-	virtual       T* end()				{ return this->cWpp; }
+	virtual const T* end() const		{ return this->cWpp?this->cWpp-1:NULL; }
+	virtual       T* end()				{ return this->cWpp?this->cWpp-1:NULL; }
 };
 
 
@@ -413,8 +394,10 @@ protected:
 		return ( this->cWpp && this->cWpp +addsize < this->cEnd );
 	}
 	// have the EOS be part of the iteration
- 	virtual const T* end() const		{ return this->cWpp; }
-	virtual       T* end()				{ return this->cWpp; }
+	virtual const T* final() const		{ return (this->cWpp)?(this->cWpp[-1]?this->cWpp-1:this->cWpp-2):this->cWpp; }
+ 	virtual const T* end() const		{ return this->cWpp?this->cWpp-1:NULL; }
+	virtual       T* final()			{ return (this->cWpp)?(this->cWpp[-1]?this->cWpp-1:this->cWpp-2):this->cWpp; }
+	virtual       T* end()				{ return this->cWpp?this->cWpp-1:NULL; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -509,11 +492,11 @@ public:
 	virtual size_t length()	const		{ return (this->cWpp-this->cRpp); }
 	virtual size_t capacity() const		{ return (this->cEnd-this->cBuf); }
 	virtual const T* begin() const		{ return  this->cRpp; }
-	virtual const T* end() const		{ return (this->cWpp)?this->cWpp-1:NULL; }
-	virtual const T* final() const		{ return  this->cWpp; }
+	virtual const T* final() const		{ return (this->cWpp)?this->cWpp-1:this->cWpp; }
+	virtual const T* end() const		{ return  this->cWpp; }
 	virtual       T* begin()			{ return  this->cRpp; }
-	virtual       T* end()				{ return (this->cWpp)?this->cWpp-1:NULL; }
-	virtual       T* final()			{ return  this->cWpp; }
+	virtual       T* final()			{ return (this->cWpp)?this->cWpp-1:this->cWpp; }
+	virtual       T* end()				{ return  this->cWpp; }
 };
 ///////////////////////////////////////////////////////////////////////////////
 /// dynamic read/write-buffer allocator.
@@ -636,11 +619,11 @@ public:
 
 	// not that usefull here
 	virtual const T* begin() const		{ return  this->cRpp; }
-	virtual const T* end() const		{ return (this->cWpp)?this->cWpp-1:NULL; }
-	virtual const T* final() const		{ return  this->cWpp; }
+	virtual const T* final() const		{ return (this->cWpp)?this->cWpp-1:this->cWpp; }
+	virtual const T* end() const		{ return  this->cWpp; }
 	virtual       T* begin()			{ return  this->cRpp; }
-	virtual       T* end()				{ return (this->cWpp)?this->cWpp-1:NULL; }
-	virtual       T* final()			{ return  this->cWpp; }
+	virtual       T* final()			{ return (this->cWpp)?this->cWpp-1:this->cWpp; }
+	virtual       T* end()				{ return  this->cWpp; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -751,7 +734,9 @@ protected:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
 NAMESPACE_END(basics)
+///////////////////////////////////////////////////////////////////////////////
 
 #endif//__BASEMEMORY_H__
 
