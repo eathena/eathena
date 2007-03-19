@@ -248,6 +248,7 @@ const struct skill_name_db skill_names[] = {
  { HW_MAGICPOWER, "HW_MAGICPOWER", "Mystical_Amplification" } ,
  { HW_NAPALMVULCAN, "HW_NAPALMVULCAN", "Napalm_Vulcan" } ,
  { HW_SOULDRAIN, "HW_SOULDRAIN", "Soul_Drain" } ,
+ { ITEM_ENCHANTARMS, "ITEM_ENCHANTARMS", "Weapon Enchantment" },
  { ITM_TOMAHAWK, "ITM_TOMAHAWK", "Tomahawk_Throwing" } ,
  { KN_AUTOCOUNTER, "KN_AUTOCOUNTER", "Counter_Attack" } ,
  { KN_BOWLINGBASH, "KN_BOWLINGBASH", "Bowling_Bash" } ,
@@ -805,6 +806,7 @@ int skill_calc_heal (struct block_list *bl, int skill_lv)
 
 	if(bl->type == BL_HOM && (skill = merc_hom_checkskill(((TBL_HOM*)bl), HLIF_BRAIN)) > 0)
 		heal += heal * skill * 2 / 100;
+
 	return heal;
 }
 
@@ -1352,7 +1354,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		rate = 3*skilllv;
 		if (sstatus->dex > tstatus->dex)
 			rate += (sstatus->dex - tstatus->dex)/5;
-		skill_strip_equip(bl, EQP_WEAPON, rate, skilllv, skill_get_time(skillid,skilllv));
+		if (skill_strip_equip(bl, EQP_WEAPON, rate, skilllv, skill_get_time(skillid,skilllv)))
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		break;
 	}
 
@@ -1365,15 +1368,14 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		for(i=0; i < MAX_PC_BONUS && sd->addeff[i].flag; i++)
 		{
 			rate = sd->addeff[i].rate;
-			type = sd->state.arrow_atk; //Ranged?
-			if (type)
+			if (attack_type&BF_LONG) // Any ranged physical attack takes status arrows into account (Grimtooth...) [DracoRPG]
 				rate += sd->addeff[i].arrow_rate;
 			if (!rate) continue;
 
-			if (!(sd->addeff[i].flag&ATF_LONG && sd->addeff[i].flag&ATF_SHORT))
+			if ((sd->addeff[i].flag&(ATF_LONG|ATF_SHORT)) != (ATF_LONG|ATF_SHORT))
 			{	//Trigger has range consideration.
-				if ((sd->addeff[i].flag&ATF_LONG && !type) ||
-					(sd->addeff[i].flag&ATF_SHORT && type))
+				if((sd->addeff[i].flag&ATF_LONG && !(attack_type&BF_LONG)) ||
+					(sd->addeff[i].flag&ATF_SHORT && !(attack_type&BF_SHORT)))
 					continue; //Range Failed.
 			}
 			type =  sd->addeff[i].id;
@@ -1543,18 +1545,17 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		for(i=0; i < MAX_PC_BONUS && dstsd->addeff2[i].flag; i++)
 		{
 			rate = dstsd->addeff2[i].rate;
-			type = (sd && sd->state.arrow_atk) || (status_get_range(src)>2);
-			if (type)
+			if (attack_type&BF_LONG)
 				rate+=dstsd->addeff2[i].arrow_rate;
 			if (!rate) continue;
 			
-			if (!(dstsd->addeff2[i].flag&ATF_LONG && dstsd->addeff2[i].flag&ATF_SHORT))
+			if ((dstsd->addeff2[i].flag&(ATF_LONG|ATF_SHORT)) != (ATF_LONG|ATF_SHORT))
 			{	//Trigger has range consideration.
-				if ((dstsd->addeff2[i].flag&ATF_LONG && !type) ||
-					(dstsd->addeff2[i].flag&ATF_SHORT && type))
+				if((dstsd->addeff2[i].flag&ATF_LONG && !(attack_type&BF_LONG)) ||
+					(dstsd->addeff2[i].flag&ATF_SHORT && !(attack_type&BF_SHORT)))
 					continue; //Range Failed.
 			}
-			type =  dstsd->addeff2[i].id;
+			type = dstsd->addeff2[i].id;
 			time = skill_get_time2(StatusSkillChangeTable[type],7);
 			
 			if (dstsd->addeff2[i].flag&ATF_TARGET)
@@ -1578,8 +1579,9 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 			skilllv = dstsd->autospell2[i].lv?dstsd->autospell2[i].lv:1;
 			if (skilllv < 0) skilllv = 1+rand()%(-skilllv);
 
-			rate = ((sd && !sd->state.arrow_atk) || (status_get_range(src)<=2)) ?
-				dstsd->autospell2[i].rate : dstsd->autospell2[i].rate / 2;
+			rate = dstsd->autospell2[i].rate;
+			if (attack_type&BF_LONG)
+				 rate>>=1;
 			
 			if (skillnotok(skillid, dstsd))
 				continue;
@@ -2943,7 +2945,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		{	//Invoked from map_foreachinarea, skill_area_temp[0] holds number of targets to divide damage by.
 			if (skill_area_temp[1] != bl->id)
 				skill_attack(skill_get_type(skillid), src, src, bl,
-					skillid, skilllv, tick, skill_area_temp[0]|SD_ANIMATION);
+					skillid, skilllv, tick, skill_area_temp[0]|SD_ANIMATION|(flag&SD_LEVEL));
 			break;
 		}
 		if ( skillid == NJ_BAKUENRYU )
@@ -3680,6 +3682,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		clif_skill_nodamage(src,bl,skillid,skilllv,
 			sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv)));
+		break;
+
+	case ITEM_ENCHANTARMS:
+		clif_skill_nodamage(src,bl,skillid,skilllv,
+			sc_start2(bl,type,100,skilllv,
+				skill_get_pl(skillid), skill_get_time(skillid,skilllv)));
 		break;
 
 	case TK_SEVENWIND:
@@ -4627,15 +4635,21 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			for(i=0;i<SC_MAX;i++){
 				if (tsc->data[i].timer == -1)
 					continue;
-				if(i==SC_HALLUCINATION || i==SC_WEIGHT50 || i==SC_WEIGHT90
-					|| i==SC_STRIPWEAPON || i==SC_STRIPSHIELD || i==SC_STRIPARMOR || i==SC_STRIPHELM
-					|| i==SC_CP_WEAPON || i==SC_CP_SHIELD || i==SC_CP_ARMOR || i==SC_CP_HELM
-					|| i==SC_COMBO || i==SC_DANCING || i==SC_GUILDAURA || i==SC_EDP
-					|| i==SC_AUTOBERSERK  || i==SC_CARTBOOST || i==SC_MELTDOWN
-					|| i==SC_SAFETYWALL || i==SC_SMA || i==SC_SPEEDUP0
-					|| i==SC_NOCHAT
-					)
+				switch (i) {
+				case SC_WEIGHT50:    case SC_WEIGHT90:    case SC_HALLUCINATION: 
+				case SC_STRIPWEAPON: case SC_STRIPSHIELD: case SC_STRIPARMOR:
+			  	case SC_STRIPHELM:   case SC_CP_WEAPON:   case SC_CP_SHIELD:
+				case SC_CP_ARMOR:    case SC_CP_HELM:     case SC_COMBO:
+				case SC_STRFOOD:     case SC_AGIFOOD:     case SC_VITFOOD:
+				case SC_INTFOOD:     case SC_DEXFOOD:     case SC_LUKFOOD:
+				case SC_HITFOOD:     case SC_FLEEFOOD:    case SC_BATKFOOD:
+				case SC_WATKFOOD:    case SC_MATKFOOD:    case SC_DANCING:
+				case SC_GUILDAURA:   case SC_EDP:         case SC_AUTOBERSERK:
+				case SC_CARTBOOST:   case SC_MELTDOWN:    case SC_SAFETYWALL:
+				case SC_SMA:         case SC_SPEEDUP0:    case SC_NOCHAT:
+				case SC_ANKLE:       case SC_JAILED:
 					continue;
+				}
 				if(i==SC_BERSERK) tsc->data[i].val2=0; //Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
 				status_change_end(bl,i,-1);
 			}

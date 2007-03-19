@@ -278,7 +278,7 @@ void initChangeTables(void) {
 	add_sc(NPC_STOP, SC_STOP);
 	set_sc(NPC_BREAKWEAPON, SC_BROKENWEAPON, SI_BROKENWEAPON, SCB_NONE);
 	set_sc(NPC_BREAKARMOR, SC_BROKENARMOR, SI_BROKENARMOR, SCB_NONE);
-	add_sc(NPC_CHANGEUNDEAD, SC_ELEMENTALCHANGE);
+	set_sc(NPC_CHANGEUNDEAD, SC_CHANGEUNDEAD, SI_UNDEAD, SCB_DEF_ELE);
 	set_sc(NPC_POWERUP, SC_INCDEXRATE, SI_BLANK, SCB_DEX);
 	set_sc(NPC_AGIUP, SC_INCFLEERATE, SI_BLANK, SCB_AGI);
 	add_sc(NPC_INVISIBLE, SC_CLOAKING);
@@ -351,6 +351,7 @@ void initChangeTables(void) {
 	set_sc(WS_OVERTHRUSTMAX, SC_MAXOVERTHRUST, SI_MAXOVERTHRUST, SCB_NONE);
 	set_sc(CG_LONGINGFREEDOM, SC_LONGING, SI_BLANK, SCB_SPEED|SCB_ASPD);
 	add_sc(CG_HERMODE, SC_HERMODE);
+	set_sc(ITEM_ENCHANTARMS, SC_ENCHANTARMS, SI_BLANK, SCB_ATK_ELE);
 	set_sc(SL_HIGH, SC_SPIRIT, SI_SPIRIT, SCB_PC);
 	set_sc(KN_ONEHAND, SC_ONEHAND, SI_ONEHAND, SCB_ASPD);
 	set_sc(GS_FLING, SC_FLING, SI_BLANK, SCB_DEF|SCB_DEF2);
@@ -421,7 +422,6 @@ void initChangeTables(void) {
 	//This seems wrong as it sets the same icon to all skills that change your 
 	//element, but alas, all of them are mob-target only with the exception of
 	//NPC_CHANGEUNDEAD, so this should be alright. [Skotlex]
-	StatusIconChangeTable[SC_ELEMENTALCHANGE] = SI_UNDEAD;
 	StatusIconChangeTable[SC_STRFOOD] = SI_FOODSTR;
 	StatusIconChangeTable[SC_AGIFOOD] = SI_FOODAGI;
 	StatusIconChangeTable[SC_VITFOOD] = SI_FOODVIT;
@@ -897,9 +897,13 @@ int status_revive(struct block_list *bl, unsigned char per_hp, unsigned char per
 
 	if(hp > status->max_hp - status->hp)
 		hp = status->max_hp - status->hp;
-
+	else if (per_hp && !hp)
+		hp = 1;
+		
 	if(sp > status->max_sp - status->sp)
 		sp = status->max_sp - status->sp;
+	else if (per_sp && !sp)
+		sp = 1;
 
 	status->hp += hp;
 	status->sp += sp;
@@ -3871,6 +3875,8 @@ static unsigned char status_calc_element(struct block_list *bl, struct status_ch
 		return ELE_EARTH;
 	if( sc->data[SC_BENEDICTIO].timer!=-1 )
 		return ELE_HOLY;
+	if( sc->data[SC_CHANGEUNDEAD].timer!=-1)
+		return sc->data[SC_CHANGEUNDEAD].val3;
 	if( sc->data[SC_ELEMENTALCHANGE].timer!=-1)
 		return sc->data[SC_ELEMENTALCHANGE].val3;
 	return cap_value(element,0,UCHAR_MAX);
@@ -3886,6 +3892,8 @@ static unsigned char status_calc_element_lv(struct block_list *bl, struct status
 		return 1;
 	if( sc->data[SC_BENEDICTIO].timer!=-1 )
 		return 1;
+	if( sc->data[SC_CHANGEUNDEAD].timer!=-1)
+		return 1;
 	if(sc->data[SC_ELEMENTALCHANGE].timer!=-1)
 		return sc->data[SC_ELEMENTALCHANGE].val4;
 	return cap_value(lv,1,4);
@@ -3896,6 +3904,8 @@ unsigned char status_calc_attack_element(struct block_list *bl, struct status_ch
 {
 	if(!sc || !sc->count)
 		return element;
+	if( sc->data[SC_ENCHANTARMS].timer!=-1)
+		return sc->data[SC_ENCHANTARMS].val2;
 	if( sc->data[SC_WATERWEAPON].timer!=-1)
 		return ELE_WATER;
 	if( sc->data[SC_EARTHWEAPON].timer!=-1)
@@ -4561,6 +4571,10 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 	case SC_CURSE:
 		//Dark Elementals are inmune to curse.
 		if (status->def_ele == ELE_DARK && !(flag&1))
+			return 0;
+	break;
+	case SC_CHANGEUNDEAD: //Undead/Dark are inmune to it.
+		if ((status->def_ele == ELE_DARK || undead_flag) && !(flag&1))
 			return 0;
 	break;
 	case SC_COMA:
@@ -5720,6 +5734,13 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			//Attack requirements to be blocked:
 			val3 = BF_LONG; //Range
 			val4 = BF_WEAPON|BF_MISC; //Type
+			break;
+		case SC_ENCHANTARMS:
+			//Make sure the received element is valid.
+			if (val2 >= ELE_MAX)
+				val2 = val2%ELE_MAX;
+			else if (val2 < 0)
+				val2 = rand()%ELE_MAX;
 			break;
 		case SC_ARMOR_ELEMENT:
 			//Place here SCs that have no SCB_* data, no skill associated, no ICON

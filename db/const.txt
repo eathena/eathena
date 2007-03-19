@@ -261,8 +261,6 @@ bDex		17
 bLuk		18
 bAtk		41
 bAtk2		42
-bMatk1		43
-bMatk2		44
 bDef		45
 bDef2		46
 bMdef		47
@@ -299,7 +297,6 @@ bNearAtkDef	1020
 bLongAtkDef	1021
 bDoubleRate	1022
 bDoubleAddRate	1023
-bMatk		1024
 bMatkRate	1025
 bIgnoreDefEle	1026
 bIgnoreDefRace	1027
@@ -351,8 +348,8 @@ bRandomAttackIncrease	1072
 bAllStats		1073
 bAgiVit			1074
 bAgiDexStr		1075
-bPerfectHide		1076
-
+bPerfectHide	1076
+bNoKnockback	1077
 bClassChange	1078
 bHPDrainValue	1079
 bSPDrainValue	1080
@@ -395,7 +392,7 @@ bAddItemHealRate	2028
 bSPDrainValueRace	2029
 bExpAddRace	2030
 bSPGainRace	2031
-bSPSubRace2	2032
+bSubRace2	2032
 bAddEffWhenHitShort	2033
 bUnstripableWeapon	2034
 bUnstripableArmor	2035

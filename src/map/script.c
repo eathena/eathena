@@ -606,17 +606,21 @@ static
 const char* skip_word(const char* p)
 {
 	// prefix
-	if(*p=='.') p++;
-	if(*p=='$') p++;	// MAP鯖内共有変数用
-	if(*p=='@') p++;	// 一時的変数用(like weiss)
-	if(*p=='#') p++;	// account変数用
-	if(*p=='#') p++;	// ワールドaccount変数用
+	switch( *p )
+	{
+	case '@':// temporary char variable
+		++p; break;
+	case '#':// account variable
+		p += ( p[1] == '#' ? 2 : 1 ); break;
+	case '.':// npc variable
+		p += ( p[1] == '@' ? 2 : 1 ); break;
+	case '$':// global variable
+		p += ( p[1] == '@' ? 2 : 1 ); break;
+	}
 
-	//# Changing from unsigned char to signed char makes p never be able to go above 0x81, but what IS 0x81 for? [Skotlex]
-	//# It's for multibyte encodings like Shift-JIS. Unfortunately this can be problematic for singlebyte encodings.
-	//  Using (*p)>>7 would yield the appropriate result but it's better to restrict words to ASCII characters only. [FlavioJS]
 	while( ISALNUM(*p) || *p == '_' )
 		++p;
+
 	// postfix
 	if( *p == '$' )// string
 		p++;
@@ -2827,11 +2831,6 @@ void run_script_main(struct script_state *st)
 				if(stack->sp > stack->defsp)
 				{	//sp > defsp is valid in cases when you invoke functions and don't use the returned value. [Skotlex]
 					//Since sp is supposed to be defsp in these cases, we could assume the extra stack elements are unneeded.
-					if (battle_config.etc_log)
-					{
-						ShowWarning("Clearing unused stack stack.sp(%d) -> default(%d)\n",stack->sp,stack->defsp);
-						report_src(st);
-					}
 					pop_stack(stack, stack->defsp, stack->sp); //Clear out the unused stack-section.
 				} else if(battle_config.error_log)
 					ShowError("stack.sp(%d) != default(%d)\n",stack->sp,stack->defsp);
@@ -9029,14 +9028,8 @@ BUILDIN_FUNC(getcastlename)
 {
 	const char *mapname=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	struct guild_castle *gc=NULL;
-	int i;
-	for(i=0;i<MAX_GUILDCASTLE;i++){
-		if( (gc=guild_castle_search(i)) != NULL ){
-			if(strcmp(mapname,gc->map_name)==0){
-				break;
-			}
-		}
-	}
+	gc = guild_mapname2gc(mapname);
+
 	if(gc)
 		push_str(st->stack,C_CONSTSTR,gc->castle_name);
 	else
@@ -9050,58 +9043,61 @@ BUILDIN_FUNC(getcastledata)
 	int index=conv_num(st,& (st->stack->stack_data[st->start+3]));
 	const char *event=NULL;
 	struct guild_castle *gc;
-	int i,j;
+	int i;
+	gc = guild_mapname2gc(mapname);
 
-	if( st->end>st->start+4 && index==0){
-		for(i=0,j=-1;i<MAX_GUILDCASTLE;i++)
-			if( (gc=guild_castle_search(i)) != NULL &&
-				strcmp(mapname,gc->map_name)==0 )
-				j=i;
-		if(j>=0){
-			event=conv_str(st,& (st->stack->stack_data[st->start+4]));
-			check_event(st, event);
-			guild_addcastleinfoevent(j,17,event);
-		}
+	if(st->end>st->start+4 && index==0 && gc) {
+		event=conv_str(st,script_getdata(st,4));
+		check_event(st, event);
+		guild_addcastleinfoevent(gc->castle_id,17,event);
 	}
 
-	for(i=0;i<MAX_GUILDCASTLE;i++){
-		if( (gc=guild_castle_search(i)) != NULL ){
-			if(strcmp(mapname,gc->map_name)==0){
-				switch(index){
-				case 0: for(j=1;j<26;j++) guild_castledataload(gc->castle_id,j); break;  // Initialize[AgitInit]
-				case 1: push_val(st->stack,C_INT,gc->guild_id); break;
-				case 2: push_val(st->stack,C_INT,gc->economy); break;
-				case 3: push_val(st->stack,C_INT,gc->defense); break;
-				case 4: push_val(st->stack,C_INT,gc->triggerE); break;
-				case 5: push_val(st->stack,C_INT,gc->triggerD); break;
-				case 6: push_val(st->stack,C_INT,gc->nextTime); break;
-				case 7: push_val(st->stack,C_INT,gc->payTime); break;
-				case 8: push_val(st->stack,C_INT,gc->createTime); break;
-				case 9: push_val(st->stack,C_INT,gc->visibleC); break;
-				case 10:
-				case 11:
-				case 12:
-				case 13:
-				case 14:
-				case 15:
-				case 16:
-				case 17:
-					push_val(st->stack,C_INT,gc->guardian[index-10].visible); break;
-				case 18:
-				case 19:
-				case 20:
-				case 21:
-				case 22:
-				case 23:
-				case 24:
-				case 25:
-					push_val(st->stack,C_INT,gc->guardian[index-18].hp); break;
-				default:
-					push_val(st->stack,C_INT,0); break;
-				}
-				return 0;
-			}
+	if(gc){
+		switch(index){
+			case 0:
+				for(i=1;i<26;i++) // Initialize[AgitInit]
+					guild_castledataload(gc->castle_id,i);
+				break;
+			case 1:
+				push_val(st->stack,C_INT,gc->guild_id); break;
+			case 2:
+				push_val(st->stack,C_INT,gc->economy); break;
+			case 3:
+				push_val(st->stack,C_INT,gc->defense); break;
+			case 4:
+				push_val(st->stack,C_INT,gc->triggerE); break;
+			case 5:
+				push_val(st->stack,C_INT,gc->triggerD); break;
+			case 6:
+				push_val(st->stack,C_INT,gc->nextTime); break;
+			case 7:
+				push_val(st->stack,C_INT,gc->payTime); break;
+			case 8:
+				push_val(st->stack,C_INT,gc->createTime); break;
+			case 9:
+				push_val(st->stack,C_INT,gc->visibleC); break;
+			case 10:
+			case 11:
+			case 12:
+			case 13:
+			case 14:
+			case 15:
+			case 16:
+			case 17:
+				push_val(st->stack,C_INT,gc->guardian[index-10].visible); break;
+			case 18:
+			case 19:
+			case 20:
+			case 21:
+			case 22:
+			case 23:
+			case 24:
+			case 25:
+				push_val(st->stack,C_INT,gc->guardian[index-18].hp); break;
+			default:
+				push_val(st->stack,C_INT,0); break;
 		}
+		return 0;
 	}
 	push_val(st->stack,C_INT,0);
 	return 0;
@@ -9115,59 +9111,66 @@ BUILDIN_FUNC(setcastledata)
 	struct guild_castle *gc;
 	int i;
 
-	for(i=0;i<MAX_GUILDCASTLE;i++){
-		if( (gc=guild_castle_search(i)) != NULL ){
-			if(strcmp(mapname,gc->map_name)==0){
-				// Save Data byself First
-				switch(index){
-				case 1: gc->guild_id = value; break;
-				case 2: gc->economy = value; break;
-				case 3: gc->defense = value; break;
-				case 4: gc->triggerE = value; break;
-				case 5: gc->triggerD = value; break;
-				case 6: gc->nextTime = value; break;
-				case 7: gc->payTime = value; break;
-				case 8: gc->createTime = value; break;
-				case 9: gc->visibleC = value; break;
-				case 10:
-				case 11:
-				case 12:
-				case 13:
-				case 14:
-				case 15:
-				case 16:
-				case 17:
-					gc->guardian[index-10].visible = value; break;
-				case 18:
-				case 19:
-				case 20:
-				case 21:
-				case 22:
-				case 23:
-				case 24:
-				case 25:
-					gc->guardian[index-18].hp = value;
-					if (gc->guardian[index-18].id)
-				  	{	//Update this mob's HP.
-						struct block_list *bl = map_id2bl(gc->guardian[index-18].id);
-						if (!bl)
-					  	{	//Wrong target?
-							gc->guardian[index-18].id = 0;
-							break;
-						}
-						if (value < 1) {
-							status_kill(bl);
-							break;
-						}
-						status_set_hp(bl, value, 0);
+	gc = guild_mapname2gc(mapname);
+
+	if(gc) {
+		// Save Data byself First
+		switch(index){
+			case 1:
+				gc->guild_id = value; break;
+			case 2:
+				gc->economy = value; break;
+			case 3:
+				gc->defense = value; break;
+			case 4:
+				gc->triggerE = value; break;
+			case 5:
+				gc->triggerD = value; break;
+			case 6:
+				gc->nextTime = value; break;
+			case 7:
+				gc->payTime = value; break;
+			case 8:
+				gc->createTime = value; break;
+			case 9:
+				gc->visibleC = value; break;
+			case 10:
+			case 11:
+			case 12:
+			case 13:
+			case 14:
+			case 15:
+			case 16:
+			case 17:
+				gc->guardian[index-10].visible = value; break;
+			case 18:
+			case 19:
+			case 20:
+			case 21:
+			case 22:
+			case 23:
+			case 24:
+			case 25:
+				gc->guardian[index-18].hp = value;
+				if (gc->guardian[index-18].id)
+				{	//Update this mob's HP.
+					struct block_list *bl = map_id2bl(gc->guardian[index-18].id);
+					if (!bl)
+					{	//Wrong target?
+						gc->guardian[index-18].id = 0;
+						break;
 					}
-					break;
-				default: return 0;
+					if (value < 1) {
+						status_kill(bl);
+						break;
+					}
+					status_set_hp(bl, value, 0);
 				}
-				guild_castledatasave(gc->castle_id,index,value);
+				break;
+			default:
 				return 0;
-			}
 		}
+		guild_castledatasave(gc->castle_id,index,value);
 	}
 	return 0;
 }
@@ -10716,7 +10719,6 @@ BUILDIN_FUNC(movenpc)
 	TBL_NPC *nd = NULL;
 	const char *npc;
 	int x,y;
-	short m;
 
 	npc = conv_str(st,& (st->stack->stack_data[st->start+2]));
 	x = conv_num(st,& (st->stack->stack_data[st->start+3]));
@@ -10725,17 +10727,7 @@ BUILDIN_FUNC(movenpc)
 	if ((nd = npc_name2id(npc)) == NULL)
 		return -1;
 
-	if ((m=nd->bl.m) < 0 || nd->bl.prev == NULL)
-		return -1;	//Not on a map.
-	
-	if (x < 0) x = 0;
-	else if (x >= map[m].xs) x = map[m].xs-1;
-	if (y < 0) y = 0;
-	else if (y >= map[m].ys) y = map[m].ys-1;
-	map_foreachinrange(clif_outsight, &nd->bl, AREA_SIZE, BL_PC, &nd->bl);
-	map_moveblock(&nd->bl, x, y, gettick());
-	map_foreachinrange(clif_insight, &nd->bl, AREA_SIZE, BL_PC, &nd->bl);
-
+	npc_movenpc(nd, x, y);
 	return 0;
 }
 
@@ -12488,71 +12480,93 @@ BUILDIN_FUNC(unitskillusepos)
 
 // <--- [zBuffer] List of mob control commands
 
-// sleep <mili sec>
+/// Pauses the execution of the script, detaching the player
+///
+/// sleep <mili seconds>;
 BUILDIN_FUNC(sleep)
 {
-	int tick = conv_num(st,& (st->stack->stack_data[st->start+2]));
-	struct map_session_data *sd = map_id2sd(st->rid);
-	if(sd && sd->npc_id == st->oid) {
+	int ticks;
+	TBL_PC* sd;
+	
+	ticks = conv_num(st,& (st->stack->stack_data[st->start+2]));
+	sd = map_id2sd(st->rid);
+
+	// detach the player
+	if( sd && sd->npc_id == st->oid )
+	{
 		sd->npc_id = 0;
 	}
 	st->rid = 0;
-	if(tick <= 0) {
-		// 何もしない
-	} else if( !st->sleep.tick ) {
-		// 初回実行
+
+	if( ticks <= 0 )
+	{// do nothing
+	}
+	else if( st->sleep.tick == 0 )
+	{// sleep for the target amount of time
 		st->state = RERUNLINE;
-		st->sleep.tick = tick;
-	} else {
-		// 続行
+		st->sleep.tick = ticks;
+	}
+	else
+	{// sleep time is over
 		st->sleep.tick = 0;
 	}
 	return 0;
 }
 
-// sleep2 <mili sec>
+/// Pauses the execution of the script, keeping the player attached
+/// Returns if a player is still attached
+///
+/// sleep2(<mili secconds>) -> <bool>
 BUILDIN_FUNC(sleep2)
 {
-	int tick = conv_num(st,& (st->stack->stack_data[st->start+2]));
-	if( tick <= 0 ) {
-		// 0ms の待機時間を指定された
+	int ticks;
+	
+	ticks = conv_num(st,& (st->stack->stack_data[st->start+2]));
+
+	if( ticks <= 0 )
+	{// do nothing
 		push_val(st->stack,C_INT,map_id2sd(st->rid) != NULL);
-	} else if( !st->sleep.tick ) {
-		// 初回実行時
+	}
+	else if( !st->sleep.tick )
+	{// sleep for the target amount of time
 		st->state = RERUNLINE;
-		st->sleep.tick = tick;
-	} else {
-		push_val(st->stack,C_INT,map_id2sd(st->rid) != NULL);
+		st->sleep.tick = ticks;
+	}
+	else
+	{// sleep time is over
 		st->sleep.tick = 0;
+		push_val(st->stack,C_INT,map_id2sd(st->rid) != NULL);
 	}
 	return 0;
 }
 
-/*==========================================
- * 指定NPCの全てのsleepを再開する
- *------------------------------------------
- */
+/// Awakes all the sleep timers of the target npc
+///
+/// awake "<npc name>";
 BUILDIN_FUNC(awake)
 {
-	struct npc_data *nd;
+	struct npc_data* nd;
 	struct linkdb_node *node = (struct linkdb_node *)sleep_db;
 
 	nd = npc_name2id(conv_str(st,& (st->stack->stack_data[st->start+2])));
-	if(nd == NULL)
+	if( nd == NULL )
 		return 0;
 
-	while( node ) {
-		if( (int)node->key == nd->bl.id) {
-			struct script_state *tst    = node->data;
-			struct map_session_data *sd = map_id2sd(tst->rid);
+	while( node )
+	{
+		if( (int)node->key == nd->bl.id )
+		{// sleep timer for the npc
+			struct script_state* tst = (struct script_state*)node->data;
+			TBL_PC* sd = map_id2sd(tst->rid);
 
-			if( tst->sleep.timer == -1 ) {
+			if( tst->sleep.timer == -1 )
+			{// already awake ???
 				node = node->next;
 				continue;
 			}
-			if((sd && sd->status.char_id != tst->sleep.charid) || (tst->rid && !sd))
-			{	//Cancel Execution
-				tst->state=END;
+			if( (sd && sd->status.char_id != tst->sleep.charid) || (tst->rid && !sd))
+			{// char not online anymore / another char of the same account is online - Cancel execution
+				tst->state = END;
 				tst->rid = 0;
 			}
 
@@ -12561,7 +12575,9 @@ BUILDIN_FUNC(awake)
 			tst->sleep.timer = -1;
 			tst->sleep.tick = 0;
 			run_script_main(tst);
-		} else {
+		}
+		else
+		{
 			node = node->next;
 		}
 	}
@@ -12609,7 +12625,7 @@ BUILDIN_FUNC(getvariableofnpc)
 /// Opens a warp portal.
 /// Has no "portal opening" effect/sound, it opens the portal immediately.
 ///
-/// warpportal(<src x>,<src y>,"<target map>",<target x>,<target y>);
+/// warpportal <source x>,<source y>,"<target map>",<target x>,<target y>;
 ///
 /// @author blackhole89
 BUILDIN_FUNC(warpportal)
@@ -12625,7 +12641,7 @@ BUILDIN_FUNC(warpportal)
 	bl = map_id2bl(st->oid);
 	if( bl == NULL )
 	{
-		ShowError("script: warpportal: npc is needed");
+		ShowError("script:warpportal: npc is needed");
 		return 1;
 	}
 

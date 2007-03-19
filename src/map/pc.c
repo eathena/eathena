@@ -3336,10 +3336,6 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 
 	if (sd->mapindex != mapindex)
 	{	//Misc map-changing settings
-		party_send_dot_remove(sd); //minimap dot fix [Kevin]
-		guild_send_dot_remove(sd);
-		if (sd->regen.state.gc)
-			sd->regen.state.gc = 0;
 		if (sd->sc.count)
 		{ //Cancel some map related stuff.
 			if (sd->sc.data[SC_WARM].timer != -1)
@@ -3357,6 +3353,10 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 		}
 		if (battle_config.clear_unit_onwarp&BL_PC)
 			skill_clear_unitgroup(&sd->bl);
+		party_send_dot_remove(sd); //minimap dot fix [Kevin]
+		guild_send_dot_remove(sd);
+		if (sd->regen.state.gc)
+			sd->regen.state.gc = 0;
 	}
 
 	if(m<0){
@@ -5804,6 +5804,8 @@ int pc_setoption(struct map_session_data *sd,int type)
 		new_look = sd->vd.class_;
 	}
 	if (new_look) {
+		//Stop attacking on new view change (to prevent wedding/santa attacks.
+		pc_stop_attack(sd);
 		clif_changelook(&sd->bl,LOOK_BASE,new_look);
 		if (sd->vd.cloth_color)
 			clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->vd.cloth_color);

@@ -56,6 +56,7 @@ int npc_parse_warp(char *w1,char *w2,char *w3,char *w4);
 int npc_globalmessage(const char *name,const char *mes);
 
 void npc_setcells(struct npc_data *nd);
+void npc_movenpc(struct npc_data *nd, int x, int y);
 int npc_enable(const char *name,int flag);
 int npc_changename(const char *name, const char *newname, short look); // [Lance]
 struct npc_data* npc_name2id(const char *name);
