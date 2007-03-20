@@ -9027,8 +9027,7 @@ BUILDIN_FUNC(flagemblem)
 BUILDIN_FUNC(getcastlename)
 {
 	const char *mapname=conv_str(st,& (st->stack->stack_data[st->start+2]));
-	struct guild_castle *gc=NULL;
-	gc = guild_mapname2gc(mapname);
+	struct guild_castle *gc= guild_mapname2gc(mapname);
 
 	if(gc)
 		push_str(st->stack,C_CONSTSTR,gc->castle_name);
@@ -9109,7 +9108,6 @@ BUILDIN_FUNC(setcastledata)
 	int index=conv_num(st,& (st->stack->stack_data[st->start+3]));
 	int value=conv_num(st,& (st->stack->stack_data[st->start+4]));
 	struct guild_castle *gc;
-	int i;
 
 	gc = guild_mapname2gc(mapname);
 

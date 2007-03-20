@@ -249,7 +249,7 @@ struct guild_castle *guild_castle_search(int gcid)
 }
 
 // mapname‚É‘Î‰‚µ‚½ƒAƒWƒg‚Ìgc‚ğ•Ô‚·
-struct guild_castle *guild_mapname2gc(char *mapname)
+struct guild_castle *guild_mapname2gc(const char *mapname)
 {
 	int i;
 	struct guild_castle *gc=NULL;
