@@ -1708,6 +1708,10 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 			clif_status_load(&sd->bl, SI_INTRAVISION, 1);
 		}
 		break;
+	case SP_NO_KNOCKBACK:
+		if(sd->state.lr_flag != 2)
+			sd->special_state.no_knockback = 1;
+		break;
 	case SP_SPLASH_RANGE:
 		if(sd->state.lr_flag != 2 && sd->splash_range < val)
 			sd->splash_range = val;
@@ -2777,10 +2781,12 @@ int pc_dropitem(struct map_session_data *sd,int n,int amount)
 	if(amount <= 0)
 		return 0;
 
-	if (sd->status.inventory[n].nameid <= 0 ||
-	    sd->status.inventory[n].amount < amount ||
-	    sd->trade_partner != 0 || sd->vender_id != 0 ||
-	    sd->status.inventory[n].amount <= 0)
+	if(sd->status.inventory[n].nameid <= 0 ||
+		sd->status.inventory[n].amount < amount ||
+		sd->trade_partner != 0 || sd->vender_id != 0 ||
+		sd->status.inventory[n].amount <= 0 ||
+		!sd->inventory_data[n] //pc_delitem would fail on this case.
+		)
 		return 0;
 
 	if (map[sd->bl.m].flag.nodrop) {
@@ -6399,25 +6405,25 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 	sd->status.inventory[n].equip=pos;
 
 	if(pos & EQP_HAND_R) {
-		if(sd->inventory_data[n])
-			sd->weapontype1 = sd->inventory_data[n]->look;
+		if(id)
+			sd->weapontype1 = id->look;
 		else
 			sd->weapontype1 = 0;
 		pc_calcweapontype(sd);
 		clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
 	}
 	if(pos & EQP_HAND_L) {
-		if(sd->inventory_data[n]) {
-			if(sd->inventory_data[n]->type == IT_WEAPON) {
+		if(id) {
+			if(id->type == IT_WEAPON) {
 				sd->status.shield = 0;
 				if(sd->status.inventory[n].equip == EQP_HAND_L)
-					sd->weapontype2 = sd->inventory_data[n]->look;
+					sd->weapontype2 = id->look;
 				else
 					sd->weapontype2 = 0;
 			}
 			else
-			if(sd->inventory_data[n]->type == IT_ARMOR) {
-				sd->status.shield = sd->inventory_data[n]->look;
+			if(id->type == IT_ARMOR) {
+				sd->status.shield = id->look;
 				sd->weapontype2 = 0;
 			}
 		}
@@ -6429,22 +6435,22 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 	//Added check to prevent sending the same look on multiple slots ->
 	//causes client to redraw item on top of itself. (suggested by Lupus)
 	if(pos & EQP_HEAD_LOW) {
-		if(sd->inventory_data[n] && !(pos&(EQP_HEAD_TOP|EQP_HEAD_MID)))
-			sd->status.head_bottom = sd->inventory_data[n]->look;
+		if(id && !(pos&(EQP_HEAD_TOP|EQP_HEAD_MID)))
+			sd->status.head_bottom = id->look;
 		else
 			sd->status.head_bottom = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_BOTTOM,sd->status.head_bottom);
 	}
 	if(pos & EQP_HEAD_TOP) {
-		if(sd->inventory_data[n])
-			sd->status.head_top = sd->inventory_data[n]->look;
+		if(id)
+			sd->status.head_top = id->look;
 		else
 			sd->status.head_top = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
 	}
 	if(pos & EQP_HEAD_MID) {
-		if(sd->inventory_data[n] && !(pos&EQP_HEAD_TOP))
-			sd->status.head_mid = sd->inventory_data[n]->look;
+		if(id && !(pos&EQP_HEAD_TOP))
+			sd->status.head_mid = id->look;
 		else
 			sd->status.head_mid = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
@@ -6455,29 +6461,20 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 	pc_checkallowskill(sd); //Check if status changes should be halted.
 
 
-/* WTF? pc_checkequip returns an item index, pc_search_inventory expects a 
- * nameid as argument. This function is totally broken, so most (all?) of the
- *  time it would return arrow == -1 anyway...?? [Skotlex]
-	arrow=pc_search_inventory(sd,pc_checkequip(sd,EQI_AMMO));	// Added by RoVeRT
-	if (itemdb_look(sd->status.inventory[n].nameid) == W_BOW && (arrow >= 0)){	// Added by RoVeRT
-		clif_arrowequip(sd,arrow);
-		sd->status.inventory[arrow].equip=EQP_AMMO;
-	}
-*/
 	status_calc_pc(sd,0);
 	if (flag) //Update skill data
 		clif_skillinfoblock(sd);
 
 	//OnEquip script [Skotlex]
-	if (sd->inventory_data[n]) {
+	if (id) {
 		int i;
 		struct item_data *data;
-		if (sd->inventory_data[n]->equip_script)
-			run_script(sd->inventory_data[n]->equip_script,0,sd->bl.id,fake_nd->bl.id);
+		if (id->equip_script)
+			run_script(id->equip_script,0,sd->bl.id,fake_nd->bl.id);
 		if(itemdb_isspecial(sd->status.inventory[n].card[0]))
 			; //No cards
 		else
-		for(i=0;i<sd->inventory_data[n]->slot; i++)
+		for(i=0;i<id->slot; i++)
 		{
 			if (!sd->status.inventory[n].card[i])
 				continue;

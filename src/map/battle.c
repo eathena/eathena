@@ -1643,14 +1643,8 @@ static struct Damage battle_calc_weapon_attack(
 		
 		if(sd)
 		{
-			if (skill_num && sd->skillatk[0].id)
-			{	//Additional skill damage.
-				for (i = 0; i < MAX_PC_BONUS && sd->skillatk[i].id &&
-				  	sd->skillatk[i].id != skill_num; i++);
-
-				if (i < MAX_PC_BONUS && sd->skillatk[i].id == skill_num)
-					ATK_ADDRATE(sd->skillatk[i].val);
-			}
+			if (skill_num && (i = battle_skillatk_bonus(sd, skill_num)))
+				ATK_ADDRATE(i);
 
 			if(skill_num != PA_SACRIFICE && skill_num != MO_INVESTIGATE &&
 				skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS &&
@@ -2185,6 +2179,7 @@ struct Damage battle_calc_magic_attack(
 				ad.blewcount = 0; //No knockback
 			else
 				ad.blewcount |= 0x10000;
+		case HW_GRAVITATION:
 			ad.dmotion = 0; //No flinch animation.
 			break;
 		case WZ_STORMGUST: //Should knockback randomly.
@@ -2340,12 +2335,8 @@ struct Damage battle_calc_magic_attack(
 
 		if(sd) {
 			//Damage bonuses
-			if (sd->skillatk[0].id)
-			{
-				for (i = 0; i < MAX_PC_BONUS && sd->skillatk[i].id && sd->skillatk[i].id != skill_num; i++);
-				if (i < MAX_PC_BONUS && sd->skillatk[i].id == skill_num)
-					ad.damage += ad.damage*sd->skillatk[i].val/100;
-			}
+			if ((i = battle_skillatk_bonus(sd, skill_num)))
+				ad.damage += ad.damage*i/100;
 
 			//Ignore Defense?
 			if (!flag.imdef && (
@@ -2641,12 +2632,9 @@ struct Damage  battle_calc_misc_attack(
 		if (cardfix != 10000)
 			md.damage=md.damage*cardfix/10000;
 	}
-	if (sd && skill_num > 0 && sd->skillatk[0].id != 0)
-	{
-		for (i = 0; i < MAX_PC_BONUS && sd->skillatk[i].id != 0 && sd->skillatk[i].id != skill_num; i++);
-		if (i < MAX_PC_BONUS && sd->skillatk[i].id == skill_num)
-			md.damage += md.damage*sd->skillatk[i].val/100;
-	}
+
+	if (sd && (i = battle_skillatk_bonus(sd, skill_num)))
+		md.damage += md.damage*i/100;
 
 	if(md.damage < 0)
 		md.damage = 0;

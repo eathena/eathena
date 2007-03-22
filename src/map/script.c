@@ -3875,7 +3875,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(gettimestr,"si"),
 	BUILDIN_DEF(openstorage,""),
 	BUILDIN_DEF(guildopenstorage,"*"),
-	BUILDIN_DEF(itemskill,"iis"),
+	BUILDIN_DEF(itemskill,"ii?"),
 	BUILDIN_DEF(produce,"i"),
 	BUILDIN_DEF(monster,"siisii*"),
 	BUILDIN_DEF(areamonster,"siiiisii*"),
@@ -4077,15 +4077,15 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(pcfollow,"ii"),
 	BUILDIN_DEF(pcblockmove,"ii"),
 	// <--- [zBuffer] List of player cont commands
-	BUILDIN_DEF(unitwalk,"i*"),
+	BUILDIN_DEF(unitwalk,"ii?"),
 	BUILDIN_DEF(unitkill,"i"),
 	BUILDIN_DEF(unitwarp,"isii"),
-	BUILDIN_DEF(unitattack,"i*"),
+	BUILDIN_DEF(unitattack,"iv?"),
 	BUILDIN_DEF(unitstop,"i"),
 	BUILDIN_DEF(unittalk,"is"),
 	BUILDIN_DEF(unitemote,"ii"),
 
-	BUILDIN_DEF(unitskilluseid,"iii*"), // originally by Qamera [Celest]
+	BUILDIN_DEF(unitskilluseid,"iii?"), // originally by Qamera [Celest]
 	BUILDIN_DEF(unitskillusepos,"iiiii"), // [Celest]
 	BUILDIN_DEF(sleep,"i"),
 	BUILDIN_DEF(sleep2,"i"),
@@ -6364,7 +6364,7 @@ BUILDIN_FUNC(successrefitem)
 		sd->status.inventory[i].refine++;
 		pc_unequipitem(sd,i,2);
 
-		clif_refine(sd->fd,sd,0,i,sd->status.inventory[i].refine);
+		clif_refine(sd->fd,0,i,sd->status.inventory[i].refine);
 		clif_delitem(sd,i,1);
 
 		//Logs items, got from (N)PC scripts [Lupus]
@@ -6415,7 +6415,7 @@ BUILDIN_FUNC(failedrefitem)
 		sd->status.inventory[i].refine = 0;
 		pc_unequipitem(sd,i,3);
 		// 精錬失敗エフェクトのパケット
-		clif_refine(sd->fd,sd,1,i,sd->status.inventory[i].refine);
+		clif_refine(sd->fd,1,i,sd->status.inventory[i].refine);
 
 		pc_delitem(sd,i,1,0);
 		// 他の人にも失敗を通知
@@ -6997,12 +6997,10 @@ BUILDIN_FUNC(guildopenstorage)
 BUILDIN_FUNC(itemskill)
 {
 	int id,lv;
-	const char *str;
 	struct map_session_data *sd=script_rid2sd(st);
 
 	id=conv_num(st,script_getdata(st,2));
 	lv=conv_num(st,script_getdata(st,3));
-	str=conv_str(st,script_getdata(st,4));
 
 	// 詠唱中にスキルアイテムは使用できない
 	if(sd->ud.skilltimer != -1)
@@ -7010,7 +7008,7 @@ BUILDIN_FUNC(itemskill)
 
 	sd->skillitem=id;
 	sd->skillitemlv=lv;
-	clif_item_skill(sd,id,lv,str);
+	clif_item_skill(sd,id,lv);
 	return 0;
 }
 /*==========================================
@@ -12371,40 +12369,56 @@ BUILDIN_FUNC(unitwarp)
 /// unitattack(<unit_id>,<target_id>{,<action type>}) -> <bool>
 BUILDIN_FUNC(unitattack)
 {
-	int id = 0, actiontype = 0;
-	const char *target = NULL;
-	struct map_session_data *sd = NULL;
-	struct block_list *bl = NULL, *tbl = NULL;
-	
-	id = conv_num(st, & (st->stack->stack_data[st->start+2]));
-	target = conv_str(st, & (st->stack->stack_data[st->start+3]));
-	if(st->end > st->start + 4)
-		actiontype = conv_num(st, & (st->stack->stack_data[st->start+4]));
+	struct block_list* unit_bl;
+	struct block_list* target_bl = NULL;
+	struct script_data* data;
+	int actiontype = 0;
 
-	sd = map_nick2sd(target);
-	if(!sd)
-		tbl = map_id2bl(atoi(target));
-	else
-		tbl = &sd->bl;
-
-	if((bl = map_id2bl(id))){
-		switch (bl->type) {
-		case BL_PC:
-			clif_parse_ActionRequest_sub(((TBL_PC *)bl), actiontype > 0?0x07:0x00, tbl->id, gettick());
-			push_val(st->stack,C_INT,1);
-			return 0;
-		case BL_MOB:
-			((TBL_MOB *)bl)->target_id = tbl->id;
-			break;
-		case BL_PET:
-			((TBL_PET *)bl)->target_id = tbl->id;
-			break;
-		}
-		push_val(st->stack,C_INT,unit_walktobl(bl, tbl, 65025, 2));
-	} else {
-		push_val(st->stack,C_INT,0);
+	// get unit
+	unit_bl = map_id2bl(conv_num(st, script_getdata(st, 2)));
+	if( unit_bl == NULL ) {
+		script_pushint(st, 0);
+		return 0;
 	}
+	
+	data = script_getdata(st, 3);
+	get_val(st, data);
+	if( data_isstring(data) )
+	{
+		struct map_session_data* sd = map_nick2sd(conv_str(st, data));
+		if( sd != NULL )
+			target_bl = &sd->bl;
+	} else
+		target_bl = map_id2bl(conv_num(st, data));
+	// request the attack
+	if( target_bl == NULL )
+	{
+		script_pushint(st, 0);
+		return 0;
+	}
+	
+	// get actiontype
+	if( script_hasdata(st,4) )
+		actiontype = conv_num(st, script_getdata(st, 4));
 
+	switch( unit_bl->type )
+	{
+	case BL_PC:
+		clif_parse_ActionRequest_sub(((TBL_PC *)unit_bl), actiontype > 0 ? 0x07 : 0x00, target_bl->id, gettick());
+		script_pushint(st, 1);
+		return 0;
+	case BL_MOB:
+		((TBL_MOB *)unit_bl)->target_id = target_bl->id;
+		break;
+	case BL_PET:
+		((TBL_PET *)unit_bl)->target_id = target_bl->id;
+		break;
+	default:
+		ShowError("script:unitattack: unsupported source unit type %d\n", unit_bl->type);
+		script_pushint(st, 0);
+		return  0;
+	}
+	script_pushint(st, unit_walktobl(unit_bl, target_bl, 65025, 2));
 	return 0;
 }
 

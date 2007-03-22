@@ -613,8 +613,9 @@ struct map_session_data {
 		unsigned no_castcancel2 : 1;
 		unsigned no_sizefix : 1;
 		unsigned no_gemstone : 1;
-		unsigned intravision : 1; // Maya Purple Card effect allowing to see Hiding/Cloaking people [DracoRPG]
+		unsigned intravision : 1; // Maya Purple Card effect [DracoRPG]
 		unsigned perfect_hiding : 1; // [Valaris]
+		unsigned no_knockback : 1;
 	} special_state;
 	int login_id1, login_id2;
 	unsigned short class_;	//This is the internal job ID used by the map server to simplify comparisons/queries/etc. [Skotlex]
@@ -1190,7 +1191,7 @@ enum _sp {
 	SP_SHORT_WEAPON_DAMAGE_RETURN,SP_LONG_WEAPON_DAMAGE_RETURN,SP_WEAPON_COMA_ELE,SP_WEAPON_COMA_RACE, // 1063-1066
 	SP_ADDEFF2,SP_BREAK_WEAPON_RATE,SP_BREAK_ARMOR_RATE,SP_ADD_STEAL_RATE, // 1067-1070
 	SP_MAGIC_DAMAGE_RETURN,SP_RANDOM_ATTACK_INCREASE,SP_ALL_STATS,SP_AGI_VIT,SP_AGI_DEX_STR,SP_PERFECT_HIDE, // 1071-1076
-	SP_FREE,SP_CLASSCHANGE, // 1077-1078
+	SP_NO_KNOCKBACK,SP_CLASSCHANGE, // 1077-1078
 	SP_HP_DRAIN_VALUE,SP_SP_DRAIN_VALUE, // 1079-1080
 	SP_WEAPON_ATK,SP_WEAPON_ATK_RATE, // 1081-1082
 	SP_DELAYRATE,SP_HP_DRAIN_RATE_RACE,SP_SP_DRAIN_RATE_RACE, // 1083-1085
@@ -1209,7 +1210,6 @@ enum _sp {
 	SP_ADD_SKILL_BLOW, SP_SP_VANISH_RATE //2041
 	//Before adding another, note that these are free:
 	//1024 (SP_FREE2, previous matk)
-	//1077 (SP_FREE, previously disguise)
 };
 
 enum _look {
@@ -1425,9 +1425,6 @@ void map_spawnmobs(int); // [Wizputer]
 void map_removemobs(int); // [Wizputer]
 void do_reconnect_map(void); //Invoked on map-char reconnection [Skotlex]
 
-//Added for own save method
-int charsql_db_init(int method);
-
 extern char *INTER_CONF_NAME;
 extern char *LOG_CONF_NAME;
 extern char *MAP_CONF_NAME;
@@ -1438,8 +1435,6 @@ extern char *SCRIPT_CONF_NAME;
 extern char *MSG_CONF_NAME;
 extern char *GRF_PATH_FILENAME;
 
-
-extern int charsave_method; //needed ..
 extern char *map_server_dns;
 
 #ifndef TXT_ONLY
@@ -1457,10 +1452,6 @@ extern int db_use_sqldbs;
 extern MYSQL mmysql_handle;
 extern MYSQL_RES*	sql_res ;
 extern MYSQL_ROW	sql_row ;
-
-extern MYSQL charsql_handle;
-extern MYSQL_RES*	charsql_res;
-extern MYSQL_ROW	charsql_row;
 
 extern MYSQL logmysql_handle;
 extern MYSQL_RES*	logsql_res ;

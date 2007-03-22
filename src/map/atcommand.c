@@ -100,7 +100,6 @@ ACMD_FUNC(produce);
 ACMD_FUNC(memo);
 ACMD_FUNC(gat);
 ACMD_FUNC(packet);
-ACMD_FUNC(waterlevel);
 ACMD_FUNC(statuspoint);
 ACMD_FUNC(skillpoint);
 ACMD_FUNC(zeny);
@@ -390,7 +389,6 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_GAT,                "@gat",             99, atcommand_gat }, // debug function
 	{ AtCommand_Packet,             "@packet",          99, atcommand_packet }, // debug function
 	{ AtCommand_Packet,             "@packetmode",      99, atcommand_packet }, // debug function
-	{ AtCommand_WaterLevel,         "@waterlevel",      99, atcommand_waterlevel }, // debug function
 	{ AtCommand_StatusPoint,        "@stpoint",         60, atcommand_statuspoint },
 	{ AtCommand_SkillPoint,         "@skpoint",         60, atcommand_skillpoint },
 	{ AtCommand_Zeny,               "@zeny",            60, atcommand_zeny },
@@ -3734,7 +3732,7 @@ int atcommand_refine(const int fd, struct map_session_data* sd, const char* comm
 			sd->status.inventory[i].refine = final_refine;
 			current_position = sd->status.inventory[i].equip;
 			pc_unequipitem(sd, i, 3);
-			clif_refine(fd, sd, 0, i, sd->status.inventory[i].refine);
+			clif_refine(fd, 0, i, sd->status.inventory[i].refine);
 			clif_delitem(sd, i, 1);
 			clif_additem(sd, i, 1, 0);
 			pc_equipitem(sd, i, current_position);
@@ -3953,32 +3951,6 @@ int atcommand_packet(const int fd, struct map_session_data* sd, const char* comm
 		//added later
 	}
 
-	return 0;
-}
-
-/*==========================================
- * @waterlevel [Skotlex]
- *------------------------------------------
- */
-int atcommand_waterlevel(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	int newlevel;
-	if (!message || !*message || sscanf(message, "%d", &newlevel) < 1) {
-		sprintf(atcmd_output, "%s's current water level: %d", map[sd->bl.m].name, map_waterheight(map[sd->bl.m].name));
-		clif_displaymessage(fd, atcmd_output);
-		return 0;
-	}
-
-	if (map_setwaterheight(sd->bl.m, map[sd->bl.m].name, newlevel)) {
-		if (newlevel > 0)
-			sprintf(atcmd_output, "%s's water level changed to: %d", map[sd->bl.m].name, newlevel);
-		else
-			sprintf(atcmd_output, "Removed %s's water level information.", map[sd->bl.m].name);
-		clif_displaymessage(fd, atcmd_output);
-	} else {
-		sprintf(atcmd_output, "Failed to change %s's water level.", map[sd->bl.m].name);
-		clif_displaymessage(fd, atcmd_output);
-	}
 	return 0;
 }
 
@@ -6494,29 +6466,26 @@ int atcommand_charjailtime(const int fd, struct map_session_data* sd, const char
 		return -1;
 	}
 
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		if (pc_isGM(pl_sd) < pc_isGM(sd)) { // only lower or same level
-			if (pl_sd->bl.m != map_mapname2mapid(MAP_JAIL)) {
-				clif_displaymessage(fd, "This player is not in jail."); // You are not in jail.
-				return -1;
-			}
-			if (!pl_sd->sc.count || pl_sd->sc.data[SC_JAILED].timer == -1 || pl_sd->sc.data[SC_JAILED].val1 <= 0) { // Was not jailed with @jailfor (maybe @jail?)
-				clif_displaymessage(fd, "This player has been jailed for an unknown amount of time.");
-				return -1;
-			}
-			//Get remaining jail time
-			get_jail_time(pl_sd->sc.data[SC_JAILED].val1,&year,&month,&day,&hour,&minute);
-			sprintf(atcmd_output,msg_txt(402),"This player will remain",year,month,day,hour,minute); 
-			clif_displaymessage(fd, atcmd_output);
-		} else {
-			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorize you to do this action on this player.
-			return -1;
-		}
-	} else {
+	if ((pl_sd = map_nick2sd(atcmd_player_name)) == NULL) {
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
 	}
-
+	if (pc_isGM(pl_sd) >= pc_isGM(sd)) {
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorize you to do this action on this player.
+		return -1;
+	}
+	if (pl_sd->bl.m != map_mapname2mapid(MAP_JAIL)) {
+		clif_displaymessage(fd, "This player is not in jail."); // You are not in jail.
+		return -1;
+	}
+	if (!pl_sd->sc.count || pl_sd->sc.data[SC_JAILED].timer == -1 || pl_sd->sc.data[SC_JAILED].val1 <= 0) { // Was not jailed with @jailfor (maybe @jail?)
+		clif_displaymessage(fd, "This player has been jailed for an unknown amount of time.");
+		return -1;
+	}
+	//Get remaining jail time
+	get_jail_time(pl_sd->sc.data[SC_JAILED].val1,&year,&month,&day,&hour,&minute);
+	sprintf(atcmd_output,msg_txt(402),"This player will remain",year,month,day,hour,minute); 
+	clif_displaymessage(fd, atcmd_output);
 	return 0;
 }
 

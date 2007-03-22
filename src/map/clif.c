@@ -5093,7 +5093,7 @@ int clif_send0199(int map,int type)
  * 精錬エフェクトを送信する
  *------------------------------------------
  */
-int clif_refine(int fd,struct map_session_data *sd,int fail,int index,int val)
+void clif_refine(int fd, int fail, int index, int val)
 {
 	WFIFOHEAD(fd,packet_len(0x188));
 	WFIFOW(fd,0)=0x188;
@@ -5101,8 +5101,19 @@ int clif_refine(int fd,struct map_session_data *sd,int fail,int index,int val)
 	WFIFOW(fd,4)=index+2;
 	WFIFOW(fd,6)=val;
 	WFIFOSET(fd,packet_len(0x188));
+}
 
-	return 0;
+/// result=0: "weapon upgrated: %s" MsgStringTable[911] in rgb(0,255,255)
+/// result=1: "weapon upgrated: %s" MsgStringTable[912] in rgb(0,205,205)
+/// result=2: "cannot upgrade %s until you level up the upgrade weapon skill" MsgStringTable[913] in rgb(255,200,200)
+/// result=3: "you lack the item %s to upgrade the weapon" MsgStringTable[914] in rgb(255,200,200)
+void clif_upgrademessage(int fd, int result, int item_id)
+{
+	WFIFOHEAD(fd,packet_len(0x223));
+	WFIFOW(fd,0)=0x223;
+	WFIFOL(fd,2)=result;
+	WFIFOW(fd,6)=item_id;
+	WFIFOSET(fd,packet_len(0x223));
 }
 
 /*==========================================
@@ -5389,7 +5400,7 @@ int clif_item_refine_list(struct map_session_data *sd)
  * アイテムによる一時的なスキル効果
  *------------------------------------------
  */
-int clif_item_skill(struct map_session_data *sd,int skillid,int skilllv,const char *name)
+int clif_item_skill(struct map_session_data *sd,int skillid,int skilllv)
 {
 	int fd;
 
@@ -5404,7 +5415,7 @@ int clif_item_skill(struct map_session_data *sd,int skillid,int skilllv,const ch
 	WFIFOW(fd, 8)=skilllv;
 	WFIFOW(fd,10)=skill_get_sp(skillid,skilllv);
 	WFIFOW(fd,12)=skill_get_range2(&sd->bl, skillid,skilllv);
-	strncpy((char*)WFIFOP(fd,14),name,NAME_LENGTH);
+	strncpy((char*)WFIFOP(fd,14),skill_get_name(skillid),NAME_LENGTH);
 	WFIFOB(fd,38)=0;
 	WFIFOSET(fd,packet_len(0x147));
 	return 0;
@@ -9222,20 +9233,24 @@ void clif_parse_EquipItem(int fd,struct map_session_data *sd)
 	if(sd->sc.data[SC_BLADESTOP].timer!=-1 || sd->sc.data[SC_BERSERK].timer!=-1 )
 		return;
 
-	if(!sd->status.inventory[index].identify) {		// 未鑑定
+	if(!sd->status.inventory[index].identify) {
 		clif_equipitemack(sd,index,0,0);	// fail
 		return;
 	}
-	//ペット用装備であるかないか
-	if(sd->inventory_data[index]) {
-		if(sd->inventory_data[index]->type != IT_PETARMOR){
-			if(sd->inventory_data[index]->type == IT_AMMO)
-				pc_equipitem(sd,index,EQP_AMMO); //Client doesn't sends the position.
-			else
-				pc_equipitem(sd,index,RFIFOW(fd,4));
-		} else
-			pet_equipitem(sd,index);
+
+	if(!sd->inventory_data[index])
+		return;
+
+	if(sd->inventory_data[index]->type == IT_PETARMOR){
+		pet_equipitem(sd,index);
+		return;
 	}
+	
+	//Client doesn't sends the position for ammo.
+	if(sd->inventory_data[index]->type == IT_AMMO)
+		pc_equipitem(sd,index,EQP_AMMO);
+	else
+		pc_equipitem(sd,index,RFIFOW(fd,4));
 }
 
 /*==========================================

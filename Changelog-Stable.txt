@@ -5,6 +5,14 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2007/03/22
+	* Removed the whole charsave_method code as it's pretty much unneeded.
+	* Removed @ waterlevel since eA autoreads the water level of each map.
+	* Cleaned up @unjail
+	* Made itemskill not require the string name, but it is currently passed as
+	  optional value to allow compatibility with older item_db's
+	* Merged script command unitattack cleanup
+	* Merged script bonus "bNoKnockback"
+2007/03/22
 	* Merged some script.c cleanups, getpetinfo(5) can now be used to retrive
 	  the pet's rename flag. [Skotlex]
 2007/03/20

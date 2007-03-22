@@ -1763,6 +1763,10 @@ int skill_blown (struct block_list *src, struct block_list *target, int count)
 			if(src != target && is_boss(target)) //Bosses can't be knocked-back
 				return 0;
 			break;
+		case BL_PC:
+			if(src != target && ((TBL_PC*)target)->special_state.no_knockback)
+				return 0;
+			break;
 		case BL_SKILL:
 			su=(struct skill_unit *)target;
 			break;
@@ -3491,7 +3495,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				sd->skillitem = abra_skillid;
 				sd->skillitemlv = abra_skilllv;
 				sd->state.abra_flag = 1;
-				clif_item_skill (sd, abra_skillid, abra_skilllv, "Abracadabra");
+				clif_item_skill (sd, abra_skillid, abra_skilllv);
 			} else
 			{	// [Skotlex]
 				struct unit_data *ud = unit_bl2ud(src);
@@ -8980,7 +8984,7 @@ void skill_weaponrefine (struct map_session_data *sd, int idx)
 					ep = item->equip;
 					pc_unequipitem(sd,idx,3);
 				}
-				clif_refine(sd->fd,sd,0,idx,item->refine);
+				clif_refine(sd->fd,0,idx,item->refine);
 				clif_delitem(sd,idx,1);
 				clif_additem(sd,idx,1,0);
 				if (ep)
@@ -9006,7 +9010,7 @@ void skill_weaponrefine (struct map_session_data *sd, int idx)
 				item->refine = 0;
 				if(item->equip)
 					pc_unequipitem(sd,idx,3);
-				clif_refine(sd->fd,sd,1,idx,item->refine);
+				clif_refine(sd->fd,1,idx,item->refine);
 				pc_delitem(sd,idx,1,0);
 				clif_misceffect(&sd->bl,2);
 				clif_emotion(&sd->bl, 23);
