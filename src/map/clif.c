@@ -1326,8 +1326,8 @@ int clif_spawn(struct block_list *bl)
 			WBUFW(buf,10)=sc->opt2;
 			WBUFW(buf,12)=sc->option;
 		}
+		WBUFW(buf,14)=vd->hair_style;  //Required for pets.
 		WBUFW(buf,20)=vd->class_;
-		WBUFW(buf,22)=vd->hair_style;  //Required for pets.
 		WBUFW(buf,24)=vd->head_bottom;	//Pet armor
 
 		WBUFPOS(buf,36,bl->x,bl->y,unit_getdir(bl));
@@ -2119,7 +2119,7 @@ int clif_delitem(struct map_session_data *sd,int n,int amount)
 	nullpo_retr(0, sd);
 
 	fd=sd->fd;
-        WFIFOHEAD(fd, packet_len(0xaf));
+	WFIFOHEAD(fd, packet_len(0xaf));
 	WFIFOW(fd,0)=0xaf;
 	WFIFOW(fd,2)=n+2;
 	WFIFOW(fd,4)=amount;
