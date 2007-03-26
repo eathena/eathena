@@ -1,5 +1,8 @@
 Date	Added
 
+2007/03/27
+	* Removed check_ip_flag from char_athena.conf as it's now always done.
+	  [Skotlex]
 2007/03/14
 	* Removed socket config settings packet_len and mode_neg since these are
 	  hardcoded now.

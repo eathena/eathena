@@ -99,7 +99,7 @@ int log_inter = 1;	// loggin inter or not [devil]
 
 struct char_session_data{
 	int account_id, login_id1, login_id2, sex;
-	int found_char[9];
+	int found_char[MAX_CHARS];
 	char email[40]; // e-mail (default: a@a.com) by [Yor]
 	time_t connect_until_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
 };
@@ -111,7 +111,6 @@ struct {
 } auth_fifo[AUTH_FIFO_SIZE];
 int auth_fifo_pos = 0;
 
-int check_ip_flag = 1; // It's to check IP of a player between char-server and other servers (part of anti-hacking system)
 static int online_check = 1; //If one, it won't let players connect when their account is already registered online and will send the relevant map server a kick user request. [Skotlex]
 
 int char_id_count = START_CHAR_NUM;
@@ -158,8 +157,8 @@ struct online_char_data {
 	int account_id;
 	int char_id;
 	int fd;
+	int waiting_disconnect;
 	short server;
-	unsigned waiting_disconnect :1;
 };
 
 struct dbt *online_char_db; //Holds all online characters.
@@ -291,6 +290,7 @@ static void * create_online_char_data(DBKey key, va_list args) {
 	character->char_id = -1;
   	character->server = -1;
 	character->fd = -1;
+	character->waiting_disconnect = -1;
 	return character;
 }
 
@@ -322,7 +322,10 @@ void set_char_online(int map_id, int char_id, int account_id) {
 				character->account_id, character->char_id, character->server, map_id, account_id, char_id);
 		mapif_disconnectplayer(server_fd[character->server], character->account_id, character->char_id, 2);
 	}
-	character->waiting_disconnect = 0;
+	if(character->waiting_disconnect != -1){
+		delete_timer(character->waiting_disconnect, chardb_waiting_disconnect);
+		character->waiting_disconnect = -1;
+	}
 	character->char_id = (char_id==99)?-1:char_id;
 	character->server = (char_id==99)?-1:map_id;
 
@@ -342,7 +345,10 @@ void set_char_offline(int char_id, int account_id) {
 	{	//We don't free yet to avoid aCalloc/aFree spamming during char change. [Skotlex]
 		character->char_id = -1;
 		character->server = -1;
-		character->waiting_disconnect = 0;
+		if(character->waiting_disconnect != -1){
+			delete_timer(character->waiting_disconnect, chardb_waiting_disconnect);
+			character->waiting_disconnect = -1;
+		}
 	}
 	if (login_fd <= 0 || session[login_fd]->eof)
 		return;
@@ -359,7 +365,10 @@ static int char_db_setoffline(DBKey key, void* data, va_list ap) {
 	if (server == -1) {
 		character->char_id = -1;
 		character->server = -1;
-		character->waiting_disconnect = 0;	
+		if(character->waiting_disconnect != -1){
+			delete_timer(character->waiting_disconnect, chardb_waiting_disconnect);
+			character->waiting_disconnect = -1;
+		}
 	} else if (character->server == server)
 		character->server = -2; //In some map server that we aren't connected to.
 	return 0;
@@ -376,7 +385,7 @@ static int char_db_kickoffline(DBKey key, void* data, va_list ap) {
 	if (character->server > -1)
 		mapif_disconnectplayer(server_fd[character->server],
 			character->account_id, character->char_id, 1);
-	else if (!character->waiting_disconnect)
+	else if (character->waiting_disconnect == -1)
 		set_char_offline(character->char_id, character->account_id);
 	else return 0;
 	return 1;
@@ -1146,7 +1155,7 @@ int make_new_char(int fd, unsigned char *dat) {
 	} // else, all letters/symbols are authorised (except control char removed before)
 
 	if (dat[24] + dat[25] + dat[26] + dat[27] + dat[28] + dat[29] != 5*6 || // stats
-	    dat[30] >= 9 || // slots (dat[30] can not be negativ)
+	    dat[30] >= MAX_CHARS || // slots (dat[30] can not be negativ)
 	    dat[33] <= 0 || dat[33] >= 24 || // hair style
 	    dat[31] >= 9) { // hair color (dat[31] can not be negativ)
 		char_log("Make new char error (invalid values): (connection #%d, account: %d) slot %d, name: %s, stats: %d+%d+%d+%d+%d+%d=%d, hair: %d, hair color: %d" RETCODE,
@@ -1732,11 +1741,11 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	for(i = 0; i < char_num; i++) {
 		if (char_dat[i].status.account_id == sd->account_id) {
 			sd->found_char[found_num] = i;
-			if( ++found_num == 9 )
+			if( ++found_num == MAX_CHARS )
 				break;
 		}
 	}
-	for(i = found_num; i < 9; i++)
+	for(i = found_num; i < MAX_CHARS; i++)
 		sd->found_char[i] = -1;
 
 
@@ -1946,9 +1955,8 @@ static void char_auth_ok(int fd, struct char_session_data *sd)
 		{	//Character already online. KICK KICK KICK
 			mapif_disconnectplayer(server_fd[character->server],
 				character->account_id, character->char_id, 2);
-			if (!character->waiting_disconnect)
-				add_timer(gettick()+20000, chardb_waiting_disconnect, character->account_id, 0);
-			character->waiting_disconnect = 1;
+			if (character->waiting_disconnect == -1)
+				character->waiting_disconnect = add_timer(gettick()+20000, chardb_waiting_disconnect, character->account_id, 0);
 			WFIFOW(fd,0) = 0x81;
 			WFIFOB(fd,2) = 8;
 			WFIFOSET(fd,3);
@@ -2296,7 +2304,7 @@ int parse_tologin(int fd) {
 							for (j = 0; j < fd_max; j++) {
 								if (session[j] && (sd2 = (struct char_session_data*)session[j]->session_data) &&
 									sd2->account_id == char_dat[char_num-1].status.account_id) {
-									for (k = 0; k < 9; k++) {
+									for (k = 0; k < MAX_CHARS; k++) {
 										if (sd2->found_char[k] == char_num-1) {
 											sd2->found_char[k] = i;
 											break;
@@ -2439,9 +2447,8 @@ int parse_tologin(int fd) {
 					if (character->server > -1)
 					{	//Kick it from the map server it is on.
 						mapif_disconnectplayer(server_fd[character->server], character->account_id, character->char_id, 2);
-						if (!character->waiting_disconnect)
-							add_timer(gettick()+15000, chardb_waiting_disconnect, character->account_id, 0);
-						character->waiting_disconnect = 1;
+						if (character->waiting_disconnect == -1)
+							character->waiting_disconnect = add_timer(gettick()+15000, chardb_waiting_disconnect, character->account_id, 0);
 					} else { //Manual kick from char server.
 						struct char_session_data *tsd;
 						int i;
@@ -3433,10 +3440,8 @@ int parse_char(int fd) {
 			for(i = 0; i < AUTH_FIFO_SIZE && !(
 				auth_fifo[i].account_id == sd->account_id &&
 				auth_fifo[i].login_id1 == sd->login_id1 &&
-#if CMP_AUTHFIFO_LOGIN2 != 0
 				auth_fifo[i].login_id2 == sd->login_id2 && // relate to the versions higher than 18
-#endif
-				(!check_ip_flag || auth_fifo[i].ip == session[fd]->client_addr.sin_addr.s_addr) &&
+				auth_fifo[i].ip == session[fd]->client_addr.sin_addr.s_addr &&
 				auth_fifo[i].delflag == 2)
 				; i++);
 
@@ -3480,10 +3485,10 @@ int parse_char(int fd) {
 				break;
 			}
 			// otherwise, load the character
-			for (ch = 0; ch < 9; ch++)
+			for (ch = 0; ch < MAX_CHARS; ch++)
 				if (sd->found_char[ch] >= 0 && char_dat[sd->found_char[ch]].status.char_num == char_num)
 					break;
-			if (ch == 9)
+			if (ch == MAX_CHARS)
 			{	//Not found?? May be forged packet.
 				break;
 			}
@@ -3627,7 +3632,7 @@ int parse_char(int fd) {
 			WFIFOSET(fd,len);
 			RFIFOSKIP(fd,37);
 		}
-			for(ch = 0; ch < 9; ch++) {
+			for(ch = 0; ch < MAX_CHARS; ch++) {
 				if (sd->found_char[ch] == -1) {
 					sd->found_char[ch] = i;
 					break;
@@ -3656,7 +3661,7 @@ int parse_char(int fd) {
 					break;
 				}
 				// we change the packet to set it like selection.
-				for (i = 0; i < 9; i++)
+				for (i = 0; i < MAX_CHARS; i++)
 					if (sd->found_char[i] != -1 && char_dat[sd->found_char[i]].status.char_id == cid) {
 						// we save new e-mail
 						memcpy(sd->email, email, 40);
@@ -3672,7 +3677,7 @@ int parse_char(int fd) {
 						// not send packet, it's modify of actual packet
 						break;
 					}
-				if (i == 9) {
+				if (i == MAX_CHARS) {
 					WFIFOW(fd, 0) = 0x70;
 					WFIFOB(fd, 2) = 0; // 00 = Incorrect Email address
 					WFIFOSET(fd, 3);
@@ -3686,11 +3691,11 @@ int parse_char(int fd) {
 				WFIFOSET(fd, 3);
 				break;
 			}
-			for (i = 0; i < 9; i++) {
+			for (i = 0; i < MAX_CHARS; i++) {
 				if (sd->found_char[i] == -1) continue;
 				if (char_dat[sd->found_char[i]].status.char_id == cid) break;
 			}
-			if (i == 9) {
+			if (i == MAX_CHARS) {
 				WFIFOW(fd,0) = 0x70;
 				WFIFOB(fd,2) = 0;
 				WFIFOSET(fd,3);
@@ -3707,7 +3712,7 @@ int parse_char(int fd) {
 				for (j = 0; j < fd_max; j++) {
 					if (session[j] && (sd2 = (struct char_session_data*)session[j]->session_data) &&
 						sd2->account_id == char_dat[char_num-1].status.account_id) {
-						for (k = 0; k < 9; k++) {
+						for (k = 0; k < MAX_CHARS; k++) {
 							if (sd2->found_char[k] == char_num-1) {
 								sd2->found_char[k] = sd->found_char[i];
 								break;
@@ -3718,9 +3723,9 @@ int parse_char(int fd) {
 				}
 			}
 			char_num--;
-			for(ch = i; ch < 9-1; ch++)
+			for(ch = i; ch < MAX_CHARS-1; ch++)
 				sd->found_char[ch] = sd->found_char[ch+1];
-			sd->found_char[8] = -1;
+			sd->found_char[MAX_CHARS-1] = -1;
 			WFIFOW(fd,0) = 0x6f;
 			WFIFOSET(fd,2);
 			break;
@@ -3983,8 +3988,9 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, int data)
 {
 	struct online_char_data* character;
-	if ((character = idb_get(online_char_db, id)) != NULL && character->waiting_disconnect)
+	if ((character = idb_get(online_char_db, id)) != NULL && character->waiting_disconnect == tid)
 	{	//Mark it offline due to timeout.
+		character->waiting_disconnect = -1;
 		set_char_offline(character->char_id, character->account_id);
 	}
 	return 0;
@@ -4083,9 +4089,8 @@ int char_config_read(const char *cfgName) {
 		if(strcmpi(w1,"timestamp_format") == 0) {
 			strncpy(timestamp_format, w2, 20);
 		} else if(strcmpi(w1,"console_silent")==0){
-			msg_silent = 0; //To always allow the next line to show up.
-			ShowInfo("Console Silent Setting: %d\n", atoi(w2));
 			msg_silent = atoi(w2);
+			ShowInfo("Console Silent Setting: %d\n", msg_silent);
 #ifndef TXT_SQL_CONVERT
 		} else if(strcmpi(w1,"stdout_with_ansisequence")==0){
 			stdout_with_ansisequence = config_switch(w2);
@@ -4155,8 +4160,6 @@ int char_config_read(const char *cfgName) {
 			gm_allow_level = atoi(w2);
 			if(gm_allow_level < 0)
 				gm_allow_level = 99;
-		} else if (strcmpi(w1, "check_ip_flag") == 0) {
-			check_ip_flag = config_switch(w2);
 		} else if (strcmpi(w1, "online_check") == 0) {
 			online_check = config_switch(w2);
 		} else if (strcmpi(w1, "autosave_time") == 0) {

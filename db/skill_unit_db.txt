@@ -18,7 +18,7 @@
 //
 // Notes:
 // ------
-//    0x89,0x8a,0x8b •\Ž¦–³‚µ
+//    0x89,0x8a,0x8b without indication
 //
 //    u1   u2 lay  r intr target  flag
 //

@@ -4,6 +4,11 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2007/03/27
+	* Merged most of the char-server, several cleanups, removal of
+	  check_ip_flag setting.
+	* Also added the MAX_CHARS define to mmo.h (max number of chars per
+	  account). [Skotlex]
 2007/03/25
 	* Updated the visual studio 7 & 8 project files from trunk [ultramage]
 2007/03/22
