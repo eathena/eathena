@@ -22,6 +22,9 @@ Playtester
 
 Date		Added
 ======
+2007/03/28
+ 	* Added Akagi to Ninja Job quest [Playtester]
+	- he teleports job level 10 novices to amatsu for free
 2007/03/20
 	* Removed duplicate Noyee npc [ultramage]
 2007/03/14
