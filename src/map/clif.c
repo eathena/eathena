@@ -2645,9 +2645,9 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 	case SP_CARTINFO:
 		WFIFOW(fd,0)=0x121;
 		WFIFOW(fd,2)=sd->cart_num;
-		WFIFOW(fd,4)=sd->cart_max_num;
+		WFIFOW(fd,4)=MAX_CART;
 		WFIFOL(fd,6)=sd->cart_weight;
-		WFIFOL(fd,10)=sd->cart_max_weight;
+		WFIFOL(fd,10)=battle_config.max_cart_weight;
 		len=14;
 		break;
 
@@ -4323,10 +4323,38 @@ int clif_skillcastcancel(struct block_list* bl)
 	return 0;
 }
 
-/*==========================================
- * ƒXƒLƒ‹‰r¥Ž¸”s
- *------------------------------------------
- */
+
+/// only when type==0:
+///  if(skill_id==NV_BASIC)
+///   btype==0 "skill failed" MsgStringTable[159]
+///   btype==1 "no emotions" MsgStringTable[160]
+///   btype==2 "no sit" MsgStringTable[161]
+///   btype==3 "no chat" MsgStringTable[162]
+///   btype==4 "no party" MsgStringTable[163]
+///   btype==5 "no shout" MsgStringTable[164]
+///   btype==6 "no PKing" MsgStringTable[165]
+///   btype==7 "no alligning" MsgStringTable[383]
+///   btype>=8: ignored
+///  if(skill_id==AL_WARP) "not enough skill level" MsgStringTable[214]
+///  if(skill_id==TF_STEAL) "steal failed" MsgStringTable[205]
+///  if(skill_id==TF_POISON) "envenom failed" MsgStringTable[207]
+///  otherwise "skill failed" MsgStringTable[204]
+/// btype irrelevant
+///  type==1 "insufficient SP" MsgStringTable[202]
+///  type==2 "insufficient HP" MsgStringTable[203]
+///  type==3 "insufficient materials" MsgStringTable[808]
+///  type==4 "there is a delay after using a skill" MsgStringTable[219]
+///  type==5 "insufficient zeny" MsgStringTable[233]
+///  type==6 "wrong weapon" MsgStringTable[239]
+///  type==7 "red jemstone needed" MsgStringTable[246]
+///  type==8 "blue jemstone needed" MsgStringTable[247]
+///  type==9 "overweight" MsgStringTable[580]
+///  type==10 "skill failed" MsgStringTable[285]
+///  type>=11 ignored
+///
+/// if(success!=0) doesn't display any of the previous messages
+/// Note: when this packet is received an unknown flag is always set to 0,
+/// suggesting this is an ACK packet for the UseSkill packets and should be sent on success too [FlavioJS]
 int clif_skill_fail(struct map_session_data *sd,int skill_id,int type,int btype)
 {
 	int fd;
@@ -4354,9 +4382,8 @@ int clif_skill_fail(struct map_session_data *sd,int skill_id,int type,int btype)
 	WFIFOHEAD(fd,packet_len(0x110));
 	WFIFOW(fd,0) = 0x110;
 	WFIFOW(fd,2) = skill_id;
-	WFIFOW(fd,4) = btype;
-	WFIFOW(fd,6) = 0;
-	WFIFOB(fd,8) = 0;
+	WFIFOL(fd,4) = btype;
+	WFIFOB(fd,8) = 0;// success?
 	WFIFOB(fd,9) = type;
 	WFIFOSET(fd,packet_len(0x110));
 
@@ -8173,6 +8200,10 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if(map_flag_gvg(sd->bl.m))
 		clif_set0199(fd,3);
 
+	map_foreachinarea(clif_getareachar,sd->bl.m,
+		sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,
+		BL_ALL,sd);
+
 	// pet
 	if(sd->pd) {
 		map_addblock(&sd->pd->bl);
@@ -8280,10 +8311,6 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		clif_changeoption(&sd->bl);
 
 	clif_weather_check(sd);
-	
-	map_foreachinarea(clif_getareachar,sd->bl.m,
-		sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,
-		BL_ALL,sd);
 	
 	// For automatic triggering of NPCs after map loading (so you don't need to walk 1 step first)
 	if (map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKNPC))
@@ -8841,31 +8868,6 @@ void clif_parse_Restart(int fd, struct map_session_data *sd) {
 			break;
 		pc_setstand(sd);
 		pc_setrestartvalue(sd, 3);
-		if (sd->sc.count && battle_config.debuff_on_logout&2) {
-			//For some reason food buffs are removed when you respawn.
-			if(sd->sc.data[SC_STRFOOD].timer!=-1)
-				status_change_end(&sd->bl,SC_STRFOOD,-1);
-			if(sd->sc.data[SC_AGIFOOD].timer!=-1)
-				status_change_end(&sd->bl,SC_AGIFOOD,-1);
-			if(sd->sc.data[SC_VITFOOD].timer!=-1)
-				status_change_end(&sd->bl,SC_VITFOOD,-1);
-			if(sd->sc.data[SC_INTFOOD].timer!=-1)
-				status_change_end(&sd->bl,SC_INTFOOD,-1);
-			if(sd->sc.data[SC_DEXFOOD].timer!=-1)
-				status_change_end(&sd->bl,SC_DEXFOOD,-1);
-			if(sd->sc.data[SC_LUKFOOD].timer!=-1)
-				status_change_end(&sd->bl,SC_LUKFOOD,-1);
-			if(sd->sc.data[SC_HITFOOD].timer!=-1)
-				status_change_end(&sd->bl,SC_HITFOOD,-1);
-			if(sd->sc.data[SC_FLEEFOOD].timer!=-1)
-				status_change_end(&sd->bl,SC_FLEEFOOD,-1);
-			if(sd->sc.data[SC_BATKFOOD].timer!=-1)
-				status_change_end(&sd->bl,SC_BATKFOOD,-1);
-			if(sd->sc.data[SC_WATKFOOD].timer!=-1)
-				status_change_end(&sd->bl,SC_WATKFOOD,-1);
-			if(sd->sc.data[SC_MATKFOOD].timer!=-1)
-				status_change_end(&sd->bl,SC_MATKFOOD,-1);
-		}
 		//If warping fails, send a normal stand up packet.
 		if (pc_setpos(sd, sd->status.save_point.map, sd->status.save_point.x, sd->status.save_point.y, 2))
 			clif_resurrection(&sd->bl, 1);
@@ -9246,7 +9248,7 @@ void clif_parse_EquipItem(int fd,struct map_session_data *sd)
 		return;
 	}
 	
-	//Client doesn't sends the position for ammo.
+	//Client doesn't send the position for ammo.
 	if(sd->inventory_data[index]->type == IT_AMMO)
 		pc_equipitem(sd,index,EQP_AMMO);
 	else
@@ -9646,8 +9648,8 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 	sd->idletime = last_tick;
 
 	tmp = skill_get_inf(skillnum);
-	if (tmp&INF_GROUND_SKILL)
-		return; //Using a ground skill on a target? WRONG.
+	if (tmp&INF_GROUND_SKILL || !tmp)
+		return; //Using a ground/passive skill on a target? WRONG.
 
 	if (skillnum >= HM_SKILLBASE && skillnum <= HM_SKILLBASE+MAX_HOMUNSKILL) {
 		clif_parse_UseSkillToId_homun(sd->hd, sd, tick, skillnum, skilllv, target_id);
@@ -9679,6 +9681,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 		if (sd->menuskill_id == SA_TAMINGMONSTER)
 			sd->menuskill_id = sd->menuskill_lv = 0; //Cancel pet capture.
 		else
+		if (sd->menuskill_id != SA_AUTOSPELL)
 			return; //Can't use skills while a menu is open.
 	}
 	if (sd->skillitem == skillnum) {
@@ -9783,6 +9786,7 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, int skilll
 		if (sd->menuskill_id == SA_TAMINGMONSTER)
 			sd->menuskill_id = sd->menuskill_lv = 0; //Cancel pet capture.
 		else
+		if (sd->menuskill_id != SA_AUTOSPELL)
 			return; //Can't use skills while a menu is open.
 	}
 
@@ -9850,7 +9854,9 @@ void clif_parse_UseSkillMap(int fd,struct map_session_data *sd)
 	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS))
 		return;
 	
-	if(sd->menuskill_id && sd->menuskill_id != RFIFOW(fd,2))
+	if(sd->menuskill_id &&
+		sd->menuskill_id != RFIFOW(fd,2) &&
+		sd->menuskill_id != SA_AUTOSPELL)
 		return; //Can't use skills while a menu is open.
 
 	pc_delinvincibletimer(sd);

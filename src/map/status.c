@@ -428,7 +428,7 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_INTFOOD] = SI_FOODINT;
 	StatusIconChangeTable[SC_DEXFOOD] = SI_FOODDEX;
 	StatusIconChangeTable[SC_LUKFOOD] = SI_FOODLUK;
-	StatusIconChangeTable[SC_FLEEFOOD] = SI_FOODFLEE;
+	StatusIconChangeTable[SC_FLEEFOOD]= SI_FOODFLEE;
 	StatusIconChangeTable[SC_HITFOOD] = SI_FOODHIT;
 	//Other SC which are not necessarily associated to skills.
 	StatusChangeFlagTable[SC_ASPDPOTION0] = SCB_ASPD;
@@ -1566,9 +1566,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 				continue;
 			sd->weight += sd->inventory_data[i]->weight*sd->status.inventory[i].amount;
 		}
-		sd->cart_max_weight=battle_config.max_cart_weight;
 		sd->cart_weight=0;
-		sd->cart_max_num=MAX_CART;
 		sd->cart_num=0;
 		for(i=0;i<MAX_CART;i++){
 			if(sd->status.cart[i].nameid==0)
@@ -4427,7 +4425,6 @@ int status_get_sc_def(struct block_list *bl, int type)
 	case SC_STONE:
 	case SC_FREEZE:
 	case SC_DECREASEAGI:
-	case SC_COMA:
 		sc_def = 300 +100*status->mdef;
 		break;
 	case SC_CURSE:
@@ -4442,6 +4439,10 @@ int status_get_sc_def(struct block_list *bl, int type)
 	case SC_CONFUSION:
 		sc_def = 300 +50*status->str +50*status->int_;
 		break;
+	case SC_ANKLE:
+		sc_def = 100*status->agi;
+		break;
+
 	default:
 		return 0; //Effect that cannot be reduced? Likely a buff.
 	}
@@ -5711,12 +5712,6 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				tick /= 5; //TODO: Reduce skill's duration. But for how long?
 			break;
 		case SC_ANKLE:
-			if (sd && battle_config.pc_sc_def_rate != 100)
-				tick -= tick*status->agi*battle_config.pc_sc_def_rate/10000;
-			else if (battle_config.mob_sc_def_rate != 100)
-				tick -= tick*status->agi*battle_config.mob_sc_def_rate/10000;
-			else
-				tick -= tick*status->agi/100;
 			if(status->mode&MD_BOSS) // Lasts 5 times less on bosses
 				tick /= 5;
 			// Minimum trap time of 3+0.03*skilllv seconds [celest]
@@ -5928,9 +5923,6 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 		case SC_ORCISH:
 			sc->option |= OPTION_ORCISH;
 			break;
-		case SC_SIGHTTRASHER:
-			sc->option |= OPTION_SIGHTTRASHER;
-			break;
 		case SC_FUSION:
 			sc->option |= OPTION_FLYING;
 			break;
@@ -6025,17 +6017,6 @@ int status_change_clear(struct block_list *bl,int type)
 		case SC_READYTURN:
 		case SC_DODGE:
 		case SC_JAILED:
-		case SC_STRFOOD:
-		case SC_AGIFOOD:
-		case SC_VITFOOD:
-		case SC_INTFOOD:
-		case SC_DEXFOOD:
-		case SC_LUKFOOD:
-		case SC_HITFOOD:
-		case SC_FLEEFOOD:
-		case SC_BATKFOOD:
-		case SC_WATKFOOD:
-		case SC_MATKFOOD:
 			continue;
 		}
 		status_change_end(bl, i, -1);
@@ -6399,9 +6380,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 		break;
 	case SC_RUWACH:
 		sc->option &= ~OPTION_RUWACH;
-		break;
-	case SC_SIGHTTRASHER:
-		sc->option &= ~OPTION_SIGHTTRASHER;
 		break;
 	case SC_FUSION:
 		sc->option &= ~OPTION_FLYING;
@@ -7014,6 +6992,17 @@ int status_change_clear_buffs (struct block_list *bl, int type)
 			case SC_CP_SHIELD:
 			case SC_CP_ARMOR:
 			case SC_CP_HELM:
+			case SC_STRFOOD:
+			case SC_AGIFOOD:
+			case SC_VITFOOD:
+			case SC_INTFOOD:
+			case SC_DEXFOOD:
+			case SC_LUKFOOD:
+			case SC_HITFOOD:
+			case SC_FLEEFOOD:
+			case SC_BATKFOOD:
+			case SC_WATKFOOD:
+			case SC_MATKFOOD:
 				continue;
 				
 			//Debuffs that can be removed.

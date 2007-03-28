@@ -450,7 +450,6 @@ struct weapon_data {
 	int addrace2[RC_MAX];
 	int addsize[3];
 
-	short ignore_def_mob;
 	struct drain_data {
 		short rate;
 		short per;
@@ -627,7 +626,7 @@ struct map_session_data {
 	struct item_data *inventory_data[MAX_INVENTORY];
 	short equip_index[11];
 	unsigned int weight,max_weight;
-	int cart_weight,cart_max_weight,cart_num,cart_max_num;
+	int cart_weight,cart_num;
 	int fd;
 	unsigned short mapindex;
 	unsigned short prev_speed,prev_adelay;
@@ -1202,7 +1201,7 @@ enum _sp {
 
 	SP_CRIT_ATK_RATE, SP_CRITICAL_ADDRACE, SP_NO_REGEN, SP_ADDEFF_WHENHIT, SP_AUTOSPELL_WHENHIT, // 2013-2017
 	SP_SKILL_ATK, SP_UNSTRIPABLE, SP_ADD_DAMAGE_BY_CLASS, // 2018-2020
-	SP_SP_GAIN_VALUE, SP_IGNORE_DEF_MOB, SP_HP_LOSS_RATE, SP_ADDRACE2, SP_HP_GAIN_VALUE, // 2021-2025
+	SP_SP_GAIN_VALUE, SP_FREE, SP_HP_LOSS_RATE, SP_ADDRACE2, SP_HP_GAIN_VALUE, // 2021-2025
 	SP_SUBSIZE, SP_HP_DRAIN_VALUE_RACE, SP_ADD_ITEM_HEAL_RATE, SP_SP_DRAIN_VALUE_RACE, SP_EXP_ADDRACE,	// 2026-2030
 	SP_SP_GAIN_RACE, SP_SUBRACE2, SP_ADDEFF_WHENHIT_SHORT,	// 2031-2033
 	SP_UNSTRIPABLE_WEAPON,SP_UNSTRIPABLE_ARMOR,SP_UNSTRIPABLE_HELM,SP_UNSTRIPABLE_SHIELD,  // 2034-2037
@@ -1210,6 +1209,7 @@ enum _sp {
 	SP_ADD_SKILL_BLOW, SP_SP_VANISH_RATE //2041
 	//Before adding another, note that these are free:
 	//1024 (SP_FREE2, previous matk)
+	//2022 (SP_FREE, previous bDefIgnoreMob)
 };
 
 enum _look {
