@@ -1,5 +1,7 @@
 Date	Added
 
+2007/04/01
+	* Updated login server & config to make M/F autoregistration work [ultramage]
 2007/03/15
 	* applied script compiler changes according to the modified script syntax
 	* obviously the cron job doing the automated svn sync with the ea repo died
