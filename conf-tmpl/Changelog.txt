@@ -1,5 +1,8 @@
 Date	Added
 
+2007/04/02
+	* Merged config setting "vending_tax" to specify a server tax on all
+	  vending transactions (see items.conf for details)
 2007/03/29
 	* Set the default display_skill_fail setting to 2 (Disable skill-failed
 	  messages due to can-act delays)
