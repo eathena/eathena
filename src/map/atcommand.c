@@ -879,7 +879,7 @@ AtCommandType atcommand(struct map_session_data* sd, const int level, const char
 		int i = 0;
 		memset(info, 0, sizeof(AtCommandInfo));
 		sscanf(p, "%100s", command);
-		command[sizeof(command)-1] = '\0';
+		command[100] = '\0';
 
 		while (atcommand_info[i].type != AtCommand_Unknown) {
 			if (strcmpi(command+1, atcommand_info[i].command+1) == 0 && level >= atcommand_info[i].level) {
@@ -1414,14 +1414,11 @@ int atcommand_jumpto(const int fd, struct map_session_data* sd, const char* comm
 
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", atcmd_player_name) < 1) {
+	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @jumpto/@warpto/@goto <char name>).");
 		return -1;
 	}
 
-	memset(atcmd_player_name, '\0', sizeof atcmd_player_name);
-	if (sscanf(message, "%23[^\n]", atcmd_player_name) < 1)
-		return -1;
 	if(strncmp(sd->status.name,atcmd_player_name,NAME_LENGTH)==0) //Yourself mate? Tsk tsk tsk.
 		return -1;
 
@@ -4382,9 +4379,6 @@ int atcommand_recall(const int fd, struct map_session_data* sd, const char* comm
 		return -1;
 	}
 
-	memset(atcmd_player_name, '\0', sizeof atcmd_player_name);
-	if(sscanf(message, "%23[^\n]", atcmd_player_name) < 1)
-		return -1;
 	if(strncmp(sd->status.name,atcmd_player_name,NAME_LENGTH)==0)
 		return -1;
 
@@ -4455,7 +4449,7 @@ int atcommand_char_block(const int fd, struct map_session_data* sd, const char* 
 
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", atcmd_player_name) < 1) {
+	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charblock/@block <name>).");
 		return -1;
 	}
@@ -4469,7 +4463,7 @@ int atcommand_char_block(const int fd, struct map_session_data* sd, const char* 
 		return -1;
 	} else {
 		chrif_char_ask_name(sd->status.account_id, atcmd_player_name, 1, 0, 0, 0, 0, 0, 0); // type: 1 - block
-		clif_displaymessage(fd, msg_txt(88)); // Character name sends to char-server to ask it.
+		clif_displaymessage(fd, msg_txt(88)); // Character name sent to char-server to ask it.
 	}
 
 	return 0;
@@ -4500,7 +4494,7 @@ int atcommand_char_ban(const int fd, struct map_session_data* sd, const char* co
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
 
-	if (!message || !*message || sscanf(message, "%s %99[^\n]", atcmd_output, atcmd_player_name) < 2) {
+	if (!message || !*message || sscanf(message, "%199s %99[^\n]", atcmd_output, atcmd_player_name) < 2) {
 		clif_displaymessage(fd, "Please, enter ban time and a player name (usage: @charban/@ban/@banish/@charbanish <time> <name>).");
 		return -1;
 	}
@@ -4555,7 +4549,7 @@ int atcommand_char_ban(const int fd, struct map_session_data* sd, const char* co
 		return -1;
 	} else {
 		chrif_char_ask_name(sd->status.account_id, atcmd_player_name, 2, year, month, day, hour, minute, second); // type: 2 - ban
-		clif_displaymessage(fd, msg_txt(88)); // Character name sends to char-server to ask it.
+		clif_displaymessage(fd, msg_txt(88)); // Character name sent to char-server to ask it.
 	}
 
 	return 0;
@@ -4586,7 +4580,7 @@ int atcommand_char_unblock(const int fd, struct map_session_data* sd, const char
 	} else {
 		// send answer to login server via char-server
 		chrif_char_ask_name(sd->status.account_id, atcmd_player_name, 3, 0, 0, 0, 0, 0, 0); // type: 3 - unblock
-		clif_displaymessage(fd, msg_txt(88)); // Character name sends to char-server to ask it.
+		clif_displaymessage(fd, msg_txt(88)); // Character name sent to char-server to ask it.
 	}
 
 	return 0;
@@ -4617,7 +4611,7 @@ int atcommand_char_unban(const int fd, struct map_session_data* sd, const char* 
 	} else {
 		// send answer to login server via char-server
 		chrif_char_ask_name(sd->status.account_id, atcmd_player_name, 4, 0, 0, 0, 0, 0, 0); // type: 4 - unban
-		clif_displaymessage(fd, msg_txt(88)); // Character name sends to char-server to ask it.
+		clif_displaymessage(fd, msg_txt(88)); // Character name sent to char-server to ask it.
 	}
 
 	return 0;
@@ -6122,7 +6116,7 @@ int atcommand_chardelitem(const int fd, struct map_session_data* sd, const char*
 
 	if (!message || !*message || (
 		sscanf(message, "\"%99[^\"]\" %d %99[^\n]", item_name, &number, atcmd_player_name) < 3 &&
-		sscanf(message, "%s %d %99[^\n]", item_name, &number, atcmd_player_name) < 3
+		sscanf(message, "%99s %d %99[^\n]", item_name, &number, atcmd_player_name) < 3
 	) || number < 1) {
 		clif_displaymessage(fd, "Please, enter an item name/id, a quantity and a player name (usage: @chardelitem <item_name_or_ID> <quantity> <player>).");
 		return -1;
@@ -6234,8 +6228,8 @@ int atcommand_jail(const int fd, struct map_session_data* sd, const char* comman
 		return -1;
 	}
 
-	if (pl_sd->mapindex == mapindex_name2id(MAP_JAIL))
-  	{	//Already jailed
+	if (pl_sd->sc.data[SC_JAILED].timer != -1)
+	{
 		clif_displaymessage(fd, msg_txt(118)); // Player warped in jails.
 		return -1;
 	}
@@ -6252,12 +6246,9 @@ int atcommand_jail(const int fd, struct map_session_data* sd, const char* comman
 		y = 75;
 		break;
 	}
-	if (pc_setpos(pl_sd, m_index, x, y, 3)) {
-		clif_displaymessage(fd, msg_txt(1)); // Map not found.
-		return -1;
-	}
 
-	pc_setsavepoint(pl_sd, m_index, x, y); // Save Char Respawn Point in the jail room [Lupus]
+	//Duration of INT_MAX to specify infinity.
+	sc_start4(&pl_sd->bl,SC_JAILED,100,INT_MAX,m_index,x,y,1000); 
 	clif_displaymessage(pl_sd->fd, msg_txt(117)); // GM has send you in jails.
 	clif_displaymessage(fd, msg_txt(118)); // Player warped in jails.
 	return 0;
@@ -6271,8 +6262,6 @@ int atcommand_jail(const int fd, struct map_session_data* sd, const char* comman
 int atcommand_unjail(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
-	unsigned short m_index;
-	int x=0, y=0;
 
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
 
@@ -6292,30 +6281,16 @@ int atcommand_unjail(const int fd, struct map_session_data* sd, const char* comm
 		return -1;
 	}
 
-	if (pl_sd->mapindex != mapindex_name2id(MAP_JAIL)) {
+	if (pl_sd->sc.data[SC_JAILED].timer == -1)
+	{
 		clif_displaymessage(fd, msg_txt(119)); // This player is not in jails.
 		return -1;
 	}
 
-	if (pl_sd->sc.count && pl_sd->sc.data[SC_JAILED].timer != -1)
-	{	//Retrieve return map.
-		m_index = pl_sd->sc.data[SC_JAILED].val3;
-		x =  pl_sd->sc.data[SC_JAILED].val4&0xFFFF;
-		y =  pl_sd->sc.data[SC_JAILED].val4>>16;
-		status_change_end(&pl_sd->bl,SC_JAILED,-1);
-	} else
-		m_index = mapindex_name2id(MAP_PRONTERA);
-	
-	if (pc_setpos(pl_sd, m_index, x, y, 3) == 0 ||
- 		pc_setpos(pl_sd, mapindex_name2id(MAP_PRONTERA), 0, 0, 3) == 0
-	) { //Send to Prontera is saved SC map fails.
-		pc_setsavepoint(pl_sd, m_index, x, y);
-		clif_displaymessage(pl_sd->fd, msg_txt(120)); // GM has discharge you.
-		clif_displaymessage(fd, msg_txt(121)); // Player unjailed.
-	} else {
-		clif_displaymessage(fd, msg_txt(1)); // Map not found.
-		return -1;
-	}
+	//Reset jail time to 1 sec.
+	sc_start(&pl_sd->bl,SC_JAILED,100,1,1000);
+	clif_displaymessage(pl_sd->fd, msg_txt(120)); // GM has discharge you.
+	clif_displaymessage(fd, msg_txt(121)); // Player unjailed.
 	return 0;
 }
 
@@ -6328,7 +6303,7 @@ int atcommand_jailfor(const int fd, struct map_session_data* sd, const char* com
 	short m_index = 0;
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message || sscanf(message, "%s %99[^\n]",atcmd_output,atcmd_player_name) < 2) {
+	if (!message || !*message || sscanf(message, "%199s %99[^\n]",atcmd_output,atcmd_player_name) < 2) {
 		clif_displaymessage(fd, msg_txt(400));  //Usage: @jailfor <time> <character name>
 		return -1;
 	}
@@ -6390,7 +6365,8 @@ int atcommand_jailfor(const int fd, struct map_session_data* sd, const char* com
 	}
 
 	//Added by Coltaro
-	if (pl_sd->sc.count && pl_sd->sc.data[SC_JAILED].timer != -1)
+	if (pl_sd->sc.count && pl_sd->sc.data[SC_JAILED].timer != -1 && 
+		pl_sd->sc.data[SC_JAILED].val1 != INT_MAX)
   	{	//Update the player's jail time
 		jailtime += pl_sd->sc.data[SC_JAILED].val1;
 		if (jailtime <= 0) {
@@ -6434,12 +6410,17 @@ int atcommand_jailtime(const int fd, struct map_session_data* sd, const char* co
 
 	nullpo_retr(-1, sd);
 	
-	if (sd->bl.m != map_mapname2mapid(MAP_JAIL)) {
+	if (!sd->sc.count || sd->sc.data[SC_JAILED].timer == -1) {
 		clif_displaymessage(fd, "You are not in jail."); // You are not in jail.
 		return -1;
 	}
 
-	if (!sd->sc.count || sd->sc.data[SC_JAILED].timer == -1 || sd->sc.data[SC_JAILED].val1 <= 0) { // Was not jailed with @jailfor (maybe @jail? or warped there? or got recalled?)
+	if (sd->sc.data[SC_JAILED].val1 == INT_MAX) {
+		clif_displaymessage(fd, "You have been jailed indefinitely.");
+		return 0;
+	}
+
+	if (sd->sc.data[SC_JAILED].val1 <= 0) { // Was not jailed with @jailfor (maybe @jail? or warped there? or got recalled?)
 		clif_displaymessage(fd, "You have been jailed for an unknown amount of time.");
 		return -1;
 	}
@@ -6461,7 +6442,7 @@ int atcommand_charjailtime(const int fd, struct map_session_data* sd, const char
 
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message || sscanf(message, "%[^\n]", atcmd_player_name) < 1) {
+	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charjailtime <character name>).");
 		return -1;
 	}
@@ -6474,11 +6455,16 @@ int atcommand_charjailtime(const int fd, struct map_session_data* sd, const char
 		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorize you to do this action on this player.
 		return -1;
 	}
-	if (pl_sd->bl.m != map_mapname2mapid(MAP_JAIL)) {
+	if (!pl_sd->sc.count || pl_sd->sc.data[SC_JAILED].timer == -1 ) {
 		clif_displaymessage(fd, "This player is not in jail."); // You are not in jail.
 		return -1;
 	}
-	if (!pl_sd->sc.count || pl_sd->sc.data[SC_JAILED].timer == -1 || pl_sd->sc.data[SC_JAILED].val1 <= 0) { // Was not jailed with @jailfor (maybe @jail?)
+	if (pl_sd->sc.data[SC_JAILED].val2) {
+		clif_displaymessage(fd, "This player has been jailed indefinitely.");
+		return 0;
+	}
+
+	if (pl_sd->sc.data[SC_JAILED].val1 <= 0) { // Was not jailed with @jailfor (maybe @jail?)
 		clif_displaymessage(fd, "This player has been jailed for an unknown amount of time.");
 		return -1;
 	}
@@ -6681,7 +6667,7 @@ int atcommand_chardisguise(const int fd, struct map_session_data* sd, const char
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
 	memset(mob_name, '\0', sizeof(mob_name));
 
-	if (!message || !*message || sscanf(message, "%s %23[^\n]", mob_name, atcmd_player_name) < 2) {
+	if (!message || !*message || sscanf(message, "%23s %23[^\n]", mob_name, atcmd_player_name) < 2) {
 		clif_displaymessage(fd, "Please, enter a Monster/NPC name/id and a player name (usage: @chardisguise <monster_name_or_monster_ID> <char name>).");
 		return -1;
 	}
@@ -7037,7 +7023,7 @@ int atcommand_addwarp(const int fd, struct map_session_data* sd, const char* com
 	if (!message || !*message)
 		return -1;
 
-	if (sscanf(message, "%99s %d %d[^\n]", atcmd_player_name, &x, &y ) < 3)
+	if (sscanf(message, "%23s %d %d[^\n]", atcmd_player_name, &x, &y ) < 3)
 		return -1;
 
 	sprintf(w1,"%s,%d,%d", mapindex_id2name(sd->mapindex), sd->bl.x, sd->bl.y);
@@ -7252,7 +7238,7 @@ int atcommand_useskill(const int fd, struct map_session_data* sd, const char* co
 	struct block_list *bl;
 	int skillnum;
 	int skilllv;
-	char target[255];
+	char target[100];
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message)
@@ -8184,7 +8170,7 @@ int atcommand_adjcmdlvl(const int fd, struct map_session_data* sd, const char* c
 	char cmd[100];
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message || sscanf(message, "%d %100s", &newlev, cmd) != 2)
+	if (!message || !*message || sscanf(message, "%d %99s", &newlev, cmd) != 2)
 	{
 		clif_displaymessage(fd, "Usage: @adjcmdlvl <lvl> <command>.");
 		return -1;

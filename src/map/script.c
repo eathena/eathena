@@ -63,7 +63,12 @@
 #define script_lastdata(st) ( (st)->end - (st)->start - 1 )
 /// Pushes an int into the stack
 #define script_pushint(st,val) push_val((st)->stack, C_INT, (val))
+#define script_pushstr(st,val) push_str((st)->stack, C_STR, (val))
+#define script_pushconststr(st,val) push_str((st)->stack, C_CONSTSTR, (val))
 
+#define script_getnum(st,val) conv_num(st, script_getdata(st,val))
+#define script_getstr(st,val) conv_str(st, script_getdata(st,val))
+#define script_getref(st,val) ((st)->stack->stack_data[(st)->start+(val)].ref)
 //
 // struct script_data* data;
 //
@@ -74,10 +79,14 @@
 #define data_isint(data) ( (data)->type == C_INT )
 /// Returns if the script data is a reference
 #define data_isreference(data) ( (data)->type == C_NAME )
+/// Returns if the script data is a label
+#define data_islabel(data) ( (data)->type == C_POS )
+/// Returns if the script data is an internal script function label
+#define data_isfunclabel(data) ( (data)->type == C_USERFUNC_POS )
 
 #define FETCH(n, t) \
 		if( script_hasdata(st,n) ) \
-			(t)=conv_num(st,script_getdata(st,n));
+			(t)=script_getnum(st,n);
 
 #define SCRIPT_BLOCK_SIZE 512
 enum { LABEL_NEXTLINE=1,LABEL_START };
@@ -4823,7 +4832,7 @@ BUILDIN_FUNC(input)
 //				clif_tradecancelled(sd); // added "Deal has been cancelled" message by Valaris
 //				buildin_close(st); // ** close
 			sd->npc_amount = 0;
-		} else if ((unsigned int)sd->npc_amount > battle_config.vending_max_value) // new fix by Yor
+		} else if (sd->npc_amount > battle_config.vending_max_value) // new fix by Yor
 			sd->npc_amount = battle_config.vending_max_value;
 
 		// ”’l

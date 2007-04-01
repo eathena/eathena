@@ -3874,9 +3874,9 @@ static unsigned char status_calc_element(struct block_list *bl, struct status_ch
 	if( sc->data[SC_BENEDICTIO].timer!=-1 )
 		return ELE_HOLY;
 	if( sc->data[SC_CHANGEUNDEAD].timer!=-1)
-		return sc->data[SC_CHANGEUNDEAD].val3;
+		return ELE_UNDEAD;
 	if( sc->data[SC_ELEMENTALCHANGE].timer!=-1)
-		return sc->data[SC_ELEMENTALCHANGE].val3;
+		return sc->data[SC_ELEMENTALCHANGE].val2;
 	return cap_value(element,0,UCHAR_MAX);
 }
 
@@ -3893,7 +3893,7 @@ static unsigned char status_calc_element_lv(struct block_list *bl, struct status
 	if( sc->data[SC_CHANGEUNDEAD].timer!=-1)
 		return 1;
 	if(sc->data[SC_ELEMENTALCHANGE].timer!=-1)
-		return sc->data[SC_ELEMENTALCHANGE].val4;
+		return sc->data[SC_ELEMENTALCHANGE].val1;
 	return cap_value(lv,1,4);
 }
 
@@ -4899,7 +4899,6 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			case SC_ASPDPOTION3:
 			case SC_ATKPOTION:
 			case SC_MATKPOTION:
-			case SC_JAILED:
 			case SC_ARMOR_ELEMENT:
 				break;
 			case SC_GOSPEL:
@@ -4923,6 +4922,12 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 					delete_timer(sc->data[type].val4,kaahi_heal_timer);
 					sc->data[type].val4=-1;
 				}
+				break;
+			case SC_JAILED:
+				//When a player is already jailed, do not edit the jail data.
+				val2 = sc->data[type].val2;
+				val3 = sc->data[type].val3;
+				val4 = sc->data[type].val4;
 				break;
 			default:
 				if(sc->data[type].val1 > val1)
@@ -5004,10 +5009,14 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			skill_enchant_elemental_end(bl,type);
 			break;
 		case SC_ELEMENTALCHANGE:
-			//Val1 is skill level, val2 is skill that invoked this.
-			if (!val3) //Val 3 holds the element, when not given, a random one is picked.
-				val3 = rand()%ELE_MAX;
-			val4 =1+rand()%4; //Elemental Lv is always a random value between  1 and 4.
+			//Val1 is elemental change level, val2 is element to use.
+			if (!val2) //Val 3 holds the element, when not given, a random one is picked.
+				val2 = rand()%ELE_MAX;
+			//Elemental Lv is always a random value between  1 and 4.
+			if (val1 == 1)
+				val1 =1+rand()%4;
+			else if (val1 > 4)
+				val1 = 4;
 			break;
 		case SC_PROVIDENCE:
 			val2=val1*5; //Race/Ele resist
@@ -5499,8 +5508,8 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			break;
 		}
 
-		case SC_COMA: //Coma. Sends a char to 1HP
-			status_zap(bl, status_get_hp(bl)-1, 0);
+		case SC_COMA: //Coma. Sends a char to 1HP. If val2, do not zap sp
+			status_zap(bl, status->hp-1, val2?0:status->sp);
 			return 1;
 
 		case SC_CLOSECONFINE2:
@@ -5683,17 +5692,24 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			tick = 1000;  
 			break;  
 		case SC_JAILED:
+			//Val1 is duration in minutes. Use INT_MAX to specify 'unlimited' time.
 			tick = val1>0?1000:250;
-			if (sd && sd->mapindex != val2)
+			if (sd)
 			{
-				int pos =  (bl->x&0xFFFF)|(bl->y<<16), //Current Coordinates
-				map =  sd->mapindex; //Current Map
-				//1. Place in Jail (val2 -> Jail Map, val3 -> x, val4 -> y
-				if (pc_setpos(sd,(unsigned short)val2,val3,val4, 3) == 0)
-					pc_setsavepoint(sd, (unsigned short)val2,val3,val4);
-				//2. Set restore point (val3 -> return map, val4 return coords
-				val3 = map;
-				val4 = pos;
+				if (sd->mapindex != val2)
+				{
+					int pos =  (bl->x&0xFFFF)|(bl->y<<16), //Current Coordinates
+					map =  sd->mapindex; //Current Map
+					//1. Place in Jail (val2 -> Jail Map, val3 -> x, val4 -> y
+					pc_setpos(sd,(unsigned short)val2,val3,val4, 3);
+					//2. Set restore point (val3 -> return map, val4 return coords
+					val3 = map;
+					val4 = pos;
+				} else if (!val3 || val3 == sd->mapindex) { //Use save point.
+					val3 = sd->status.save_point.map;
+					val4 = (sd->status.save_point.x&0xFFFF)
+						|(sd->status.save_point.y<<16);
+				}
 			}
 			break;
 		case SC_UTSUSEMI:
@@ -6315,10 +6331,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				break;
 		  	//natural expiration.
 			if(sd && sd->mapindex == sc->data[type].val2)
-			{
-				if (pc_setpos(sd,(unsigned short)sc->data[type].val3,sc->data[type].val4&0xFFFF, sc->data[type].val4>>16, 3) == 0)
-					pc_setsavepoint(sd, sd->mapindex, bl->x, bl->y);
-			}
+				pc_setpos(sd,(unsigned short)sc->data[type].val3,sc->data[type].val4&0xFFFF, sc->data[type].val4>>16, 3);
 			break; //guess hes not in jail :P
 		case SC_CHANGE:
 			if (tid == -1)
@@ -6860,7 +6873,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		}
 		break;
 	case SC_JAILED:
-		if(--sc->data[type].val1 > 0)
+		if(sc->data[type].val1 == INT_MAX || --sc->data[type].val1 > 0)
 		{
 			sc->data[type].timer=add_timer(
 				60000+tick, status_change_timer, bl->id,data);

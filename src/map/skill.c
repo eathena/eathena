@@ -1063,6 +1063,14 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 						(2000 - 4*sstatus->agi - 2*sstatus->dex));
 				}
 			}
+
+			if (sd->special_state.bonus_coma) {
+				rate  = sd->weapon_coma_ele[tstatus->def_ele];
+				rate += sd->weapon_coma_race[tstatus->race];
+				rate += sd->weapon_coma_race[tstatus->mode&MD_BOSS?RC_BOSS:RC_NONBOSS];
+				if (rate)
+					status_change_start(bl, SC_COMA, rate, 0, 0, 0, 0, 0, 0);
+			}
 		}
 
 		if (sc) {
@@ -4820,7 +4828,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case NPC_CHANGETELEKINESIS:
 	case NPC_CHANGEUNDEAD:
 		clif_skill_nodamage(src,bl,skillid,skilllv,
-			sc_start4(bl, type, 100, skilllv, skillid, skill_get_pl(skillid), 0, 
+			sc_start2(bl, type, 100, skilllv, skill_get_pl(skillid), 
 				skill_get_time(skillid, skilllv)));
 		break;
 
@@ -4852,7 +4860,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case NPC_DARKBLESSING:
 		clif_skill_nodamage(src,bl,skillid,skilllv,
-			sc_start(bl,type,(50+skilllv*5),skilllv,skill_get_time2(skillid,skilllv)));
+			sc_start2(bl,type,(50+skilllv*5),skilllv,skilllv,skill_get_time2(skillid,skilllv)));
 		break;
 
 	case NPC_LICK:
@@ -5677,17 +5685,8 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 				md->last_thinktime=tick +md->status.amotion;
 			else
 				md->last_thinktime=tick +md->status.adelay;
-			if(battle_config.mob_ai&0x200) { //pass on delay to same skill.
-				int i;
-				for (i = 0; i < md->db->maxskill; i++)
-					if (md->db->skill[i].skill_id == ud->skillid)
-						md->skilldelay[i]=tick;
-			} else
-			if(md->skillidx >= 0) {
-				md->skilldelay[md->skillidx]=tick;
-				if (md->db->skill[md->skillidx].emotion >= 0)
-					clif_emotion(src, md->db->skill[md->skillidx].emotion);
-			}
+			if(md->skillidx >= 0 && md->db->skill[md->skillidx].emotion >= 0)
+				clif_emotion(src, md->db->skill[md->skillidx].emotion);
 		}
 
 		if(src != target && battle_config.skill_add_range &&
@@ -5863,17 +5862,8 @@ int skill_castend_pos (int tid, unsigned int tick, int id, int data)
 				md->last_thinktime=tick +md->status.amotion;
 			else
 				md->last_thinktime=tick +md->status.adelay;
-			if(battle_config.mob_ai&0x200) { //pass on delay to same skill.
-				int i;
-				for (i = 0; i < md->db->maxskill; i++)
-					if (md->db->skill[i].skill_id == ud->skillid)
-						md->skilldelay[i]=tick;
-			} else
-			if(md->skillidx >= 0) {
-				md->skilldelay[md->skillidx]=tick;
-				if (md->db->skill[md->skillidx].emotion >= 0)
-					clif_emotion(src, md->db->skill[md->skillidx].emotion);
-			}
+			if(md->skillidx >= 0 && md->db->skill[md->skillidx].emotion >= 0)
+				clif_emotion(src, md->db->skill[md->skillidx].emotion);
 		}
 
 		if(battle_config.skill_log && battle_config.skill_log&src->type)
@@ -6876,6 +6866,20 @@ struct skill_unit_group *skill_unitsetting (struct block_list *src, int skillid,
 		skill_delunitgroup(src, group, 0);
 		return NULL;
 	}
+	
+	if (group->state.song_dance) {
+		if(sd){
+			sd->skillid_dance = skillid;
+			sd->skilllv_dance = skilllv;
+		}
+		if (
+			sc_start4(src, SC_DANCING, 100, skillid, (int)group, skilllv,
+				(group->state.song_dance&2?BCT_SELF:0), limit+1000) &&
+			sd && group->state.song_dance&2 && skillid != CG_HERMODE //Hermod is a encore with a warp!
+		)
+			skill_check_pc_partner(sd, skillid, &skilllv, 1, 1);
+	}
+
 	if (skillid == NJ_TATAMIGAESHI) //Store number of tiles.
 		group->val1 = group->alive_count;
 
@@ -7783,6 +7787,11 @@ int skill_check_pc_partner (struct map_session_data *sd, int skill_id, int* skil
 	static int c=0;
 	static int p_sd[2] = { 0, 0 };
 	int i;
+
+	if (!battle_config.player_skill_partner_check ||
+		(battle_config.gm_skilluncond && pc_isGM(sd) >= battle_config.gm_skilluncond))
+		return 99; //As if there were infinite partners.
+
 	if (cast_flag)
 	{	//Execute the skill on the partners.
 		struct map_session_data* tsd;
@@ -8214,10 +8223,6 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 		break;
 	case PR_BENEDICTIO:
 		{
-			if (!battle_config.player_skill_partner_check ||
-				(battle_config.gm_skilluncond && pc_isGM(sd) >= battle_config.gm_skilluncond)
-			)
-				break; //No need to do any partner checking [Skotlex]
 			if (!(type&1))
 			{	//Started casting.
 				if (skill_check_pc_partner(sd, skill, &lv, 1, 0) < 2)
@@ -9853,22 +9858,6 @@ struct skill_unit_group *skill_initunitgroup (struct block_list *src, int count,
 	if (skillid == PR_SANCTUARY) //Sanctuary starts healing +1500ms after casted. [Skotlex]
 		group->tick += 1500;
 	group->valstr=NULL;
-
-	i = skill_get_unit_flag(skillid); //Reuse for faster access from here on. [Skotlex]
-	if (i&(UF_DANCE|UF_SONG|UF_ENSEMBLE)) {
-		struct map_session_data *sd = NULL;
-		if(src->type==BL_PC && (sd=(struct map_session_data *)src) ){
-			sd->skillid_dance=skillid;
-			sd->skilllv_dance=skilllv;
-		}
-		sc_start4(src,SC_DANCING,100,skillid,(int)group,skilllv,(i&UF_ENSEMBLE?BCT_SELF:0),skill_get_time(skillid,skilllv)+1000);
-		if (sd && i&UF_ENSEMBLE && skillid != CG_HERMODE && //Hermod is a encore with a warp!
-			battle_config.player_skill_partner_check &&
-			(!battle_config.gm_skilluncond || pc_isGM(sd) < battle_config.gm_skilluncond)
-			) {
-				skill_check_pc_partner(sd, skillid, &skilllv, 1, 1);
-		}
-	}
 	return group;
 }
 

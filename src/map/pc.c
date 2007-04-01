@@ -319,6 +319,19 @@ int pc_makesavestatus(struct map_session_data *sd)
 		sd->status.clothes_color=0;
 
 	sd->status.option = sd->sc.option; //Since the option saved is in 
+		
+	if (sd->sc.count && sd->sc.data[SC_JAILED].timer != -1)
+	{	//When Jailed, do not move last point.
+		if(pc_isdead(sd))
+			pc_setrestartvalue(sd,0);
+		sd->status.hp = sd->battle_status.hp;
+		sd->status.sp = sd->battle_status.sp;
+		sd->status.last_point.map = sd->mapindex;
+		sd->status.last_point.x = sd->bl.x;
+		sd->status.last_point.y = sd->bl.y;
+		return 0;
+	}
+
 	if(pc_isdead(sd)){
 		pc_setrestartvalue(sd,0);
 		memcpy(&sd->status.last_point,&sd->status.save_point,sizeof(sd->status.last_point));
@@ -1520,12 +1533,7 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		if (battle_config.error_log)			
 			ShowError("pc_bonus: bonus bAspd is no longer supported!\n");
 		break;
-	case SP_ASPD_RATE:	//Non stackable increase
-		if(val >= 0) { //Let negative ASPD bonuses become AddRate ones.
-			if(sd->state.lr_flag != 2 && status->aspd_rate > 1000-val*10)
-				status->aspd_rate = 1000-val*10;
-			break;
-		}
+	case SP_ASPD_RATE:	//Stackable increase - Made it linear as per rodatazone
 	case SP_ASPD_ADDRATE:	//Stackable increase - Made it linear as per rodatazone
 		if(sd->state.lr_flag != 2)
 			sd->aspd_add_rate -= val;
@@ -2119,12 +2127,16 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 				ShowError("pc_bonus2: SP_WEAPON_COMA_ELE: Invalid element %d\n", type2);
 			break;
 		}
-		if(sd->state.lr_flag != 2)
-			sd->weapon_coma_ele[type2] += val;
+		if(sd->state.lr_flag == 2)
+			break;
+		sd->weapon_coma_ele[type2] += val;
+		sd->special_state.bonus_coma = 1;
 		break;
 	case SP_WEAPON_COMA_RACE:
-		if(sd->state.lr_flag != 2)
-			sd->weapon_coma_race[type2] += val;
+		if(sd->state.lr_flag == 2)
+			break;
+		sd->weapon_coma_race[type2] += val;
+		sd->special_state.bonus_coma = 1;
 		break;
 	case SP_RANDOM_ATTACK_INCREASE:	// [Valaris]
 		if(sd->state.lr_flag !=2){
@@ -3340,6 +3352,8 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 	{	//Misc map-changing settings
 		if (sd->sc.count)
 		{ //Cancel some map related stuff.
+			if (sd->sc.data[SC_JAILED].timer != -1)
+				return 1; //You may not get out!
 			if (sd->sc.data[SC_WARM].timer != -1)
 				status_change_end(&sd->bl,SC_WARM,-1);
 			if (sd->sc.data[SC_SUN_COMFORT].timer != -1)
