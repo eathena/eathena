@@ -1,3 +1,6 @@
+04/03
+	* Large db merge [Playtester]
+	- updated items, item givers and more
 03/27
 	* Merged Concentration's unhide range being 7x7
 	* Merged the default stun time being 5 secs for skills.

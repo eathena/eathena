@@ -148,7 +148,7 @@
 3,4167,1	//Neraid Card
 3,4170,1	//Dark Frame Card
 3,4172,1	//The Paper Card
-3,4173,1	//Demon Fungus Card
+3,4173,1	//Demon Pungus Card
 3,4175,1	//Poisonous Toad Card
 3,4176,1	//Dullahan Card
 3,4177,1	//Dryad Card
@@ -196,6 +196,7 @@
 3,4226,1	//Sting Card
 3,4227,1	//Spring Rabbit Card
 3,4228,1	//Sleeper Card
+3,4229,1	//Clock Tower Manager Card
 3,4230,1	//Shinobi Card
 3,4231,1	//Increase Soil Card
 3,4232,1	//Hermit Plant Card
@@ -207,6 +208,7 @@
 3,4239,1	//Iron Fist Card
 3,4240,1	//Arclouze Card
 3,4242,1	//Apocalipse Card
+3,4243,1	//Antonio Card
 3,4244,1	//Alarm Card
 3,4245,1	//Am Mut Card
 3,4246,1	//Assaulter Card
@@ -260,7 +262,6 @@
 3,4300,1	//Chimera Card
 3,4301,1	//Killer Mantis Card
 3,4304,1	//Tamruan Card
-3,4229,1	//Clock Tower Manager Card
 3,4307,1	//Beetle King Card
 3,4308,1	//Tri Joint Card
 3,4309,1	//Parasite Card
@@ -281,7 +282,6 @@
 3,4328,1	//Hyegun Card
 3,4329,1	//Phendark Card
 3,4331,1	//Heater Card
-3,4243,1	//Antonio Card
 
 //New cards
 3,4332,1	//Waste Stove Card
@@ -297,7 +297,7 @@
 3,4343,1	//Holden Card
 3,4344,1	//Anopheles Card
 3,4345,1	//Hill Wind Card
-3,4346,1	//Egnizem Cenia Card
+3,4346,1	//Egnigem Cenia Card
 3,4347,1	//Armeyer Dinze Card
 3,4348,1	//Wikebine Tres Card
 3,4349,1	//Errende Ebecee Card
@@ -338,10 +338,10 @@
 3,4395,1	//Thanatos Maero Card
 3,4396,1	//Thanatos Odium Card
 3,4397,1	//Thanatos Despero Card
-//3,4398,1	//Thanatos Dolor Card
+3,4398,1	//Thanatos Dolor Card
 3,4400,1	//Aliza Card
 3,4401,1	//Alicel Card
 3,4402,1	//Aliot Card
 3,4404,1	//Skogul Card
-//3,4405,1	//Frus Card
-//3,4406,1	//Skeggiold Card
+3,4405,1	//Frus Card
+3,4406,1	//Skeggiold Card

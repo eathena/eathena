@@ -5,7 +5,7 @@
 // 03 hit (8- repeated hitting, 6- single-hit)
 // 04 inf (0- passive, 1- enemy, 2- place, 4- self, 16- friend, 32- trap)
 // 05 pl attributes (0- neutral, 1- water, 2- earth, 3- fire, 4- wind,
-//    5- poison, 6- saint, 7- darkness, 8- sense, 9- immortality)
+//    5- poison, 6- holy, 7- dark, 8- ghost, 9- undead, -1- use weapon element)
 // 06 nk (skill damage properties):
 //    0x01 - No damage skill
 //    0x02 - Has splash area
@@ -386,7 +386,7 @@
 345,9,6,1,-1,0,0,10,1,no,0,0x2,0,weapon,0	//NPC_BREAKHELM#Break helm#
 346,9,6,1,-1,0,0,10,1,no,0,0x2,0,weapon,0	//NPC_BREAKSHIELD#Break shield#
 347,-1,6,1,9,0,0,10,1,no,0,0x2,0,weapon,0	//NPC_UNDEADATTACK
-348,9,0,1,9,0x1,0,10,1,no,0,0x2,0,magic,0	//NPC_CHANGEUNDEAD
+348,9,0,1,9,0x1,0,5,1,no,0,0x2,0,magic,0	//NPC_CHANGEUNDEAD
 349,0,6,4,0,0x1,0,10,0,no,0,0x2,0,weapon,0	//NPC_POWERUP
 350,0,6,4,0,0x1,0,10,0,no,0,0x2,0,none,0	//NPC_AGIUP
 351,0,0,0,0,0x1,0,0,0,no,0,0x2,0,none,0	//NPC_SIEGEMODE
