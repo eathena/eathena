@@ -1092,7 +1092,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	hide_flag = flag?OPTION_HIDE:(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK);
 		
  	//You cannot hide from ground skills.
-	if(skill_get_pl(skill_num) == ELE_EARTH)
+	if(skill_get_pl(skill_num,1) == ELE_EARTH) //TODO: Need Skill Lv here :/
 		hide_flag &= ~OPTION_HIDE;
 
 	switch (target->type)
@@ -1428,6 +1428,7 @@ int status_calc_pet(struct pet_data *pd, int first)
 
 	if (first) {
 		memcpy(&pd->status, &pd->db->status, sizeof(struct status_data));
+		pd->status.mode|= MD_CANMOVE; //so they can chase their master!
 		pd->status.speed = pd->petDB->speed;
 	}
 
@@ -2742,12 +2743,6 @@ void status_calc_bl_sub_pc(struct map_session_data *sd, unsigned long flag)
 		}
 	}
 
-	if(flag&SCB_SPEED) {
-		clif_updatestatus(sd,SP_SPEED);
-		if (sd->ud.walktimer != -1) //Re-walk to adjust speed. [Skotlex]
-			unit_walktoxy(&sd->bl, sd->ud.to_x, sd->ud.to_y, sd->ud.state.walk_easy);
-	}
-
 	if(flag&(SCB_INT|SCB_MAXSP|SCB_VIT|SCB_MAXHP))
 		status_calc_regen(&sd->bl, status, &sd->regen);
 
@@ -2775,6 +2770,8 @@ void status_calc_bl_sub_pc(struct map_session_data *sd, unsigned long flag)
 		clif_updatestatus(sd,SP_FLEE1);
 	if(flag&SCB_ASPD)
 		clif_updatestatus(sd,SP_ASPD);
+	if(flag&SCB_SPEED)
+		clif_updatestatus(sd,SP_SPEED);
 	if(flag&(SCB_BATK|SCB_WATK))
 		clif_updatestatus(sd,SP_ATK1);
 	if(flag&SCB_DEF)
@@ -3017,14 +3014,15 @@ void status_calc_bl(struct block_list *bl, unsigned long flag)
 	}
 
 	if(flag&SCB_SPEED) {
+		struct unit_data *ud = unit_bl2ud(bl);
 		status->speed = status_calc_speed(bl, sc, b_status->speed);
-		if (!sd)
-	  	{	//Player speed is updated on calc_bl_sub_pc
-			struct unit_data *ud = unit_bl2ud(bl);
-		  	if (ud && ud->walktimer != -1) //Re-walk to adjust speed. [Skotlex]
-			unit_walktoxy(bl, ud->to_x, ud->to_y, ud->state.walk_easy);
-		}
+		//Re-walk to adjust speed (we do not check if walktimer != -1
+		//because if you step on something while walking, the moment this
+		//piece of code triggers the walk-timer is set on -1) [Skotlex]
+	  	if (ud)
+			ud->state.change_walk_target = 1;
 	}
+
 	if(flag&SCB_CRI && b_status->cri) {
 		if (status->luk == b_status->luk)
 			status->cri = status_calc_critical(bl, sc, b_status->cri);

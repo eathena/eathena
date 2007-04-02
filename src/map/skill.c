@@ -653,7 +653,7 @@ struct skill_abra_db skill_abra_db[MAX_SKILL_ABRA_DB];
 // Skill DB
 int	skill_get_hit( int id ){ skill_get (skill_db[id].hit, id, 1); }
 int	skill_get_inf( int id ){ skill_get (skill_db[id].inf, id, 1); }
-int	skill_get_pl( int id ){ skill_get (skill_db[id].pl, id, 1); }
+int	skill_get_pl( int id , int lv ){ skill_get (skill_db[id].pl[lv-1], id, lv); }
 int	skill_get_nk( int id ){ skill_get (skill_db[id].nk, id, 1); }
 int	skill_get_max( int id ){ skill_get (skill_db[id].max, id, 1); }
 int	skill_get_range( int id , int lv ){ skill_get(skill_db[id].range[lv-1], id, lv); }
@@ -1898,7 +1898,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		struct pet_data *pd = (TBL_PET*)src;
 		if (pd->a_skill && pd->a_skill->div_ && pd->a_skill->id == skillid)
 		{
-			int element = skill_get_pl(skillid);
+			int element = skill_get_pl(skillid, skilllv);
 			if (skillid == -1)
 				element = sstatus->rhw.ele;
 			if (element != ELE_NEUTRAL || !(battle_config.attack_attr_none&BL_PET))
@@ -3706,30 +3706,30 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case ITEM_ENCHANTARMS:
 		clif_skill_nodamage(src,bl,skillid,skilllv,
 			sc_start2(bl,type,100,skilllv,
-				skill_get_pl(skillid), skill_get_time(skillid,skilllv)));
+				skill_get_pl(skillid,skilllv), skill_get_time(skillid,skilllv)));
 		break;
 
 	case TK_SEVENWIND:
-		switch(skilllv){
-			case 1:
+		switch(skill_get_pl(skillid,skilllv)){
+			case ELE_EARTH:
 				type=SC_EARTHWEAPON;
 				break;
-			case 2:
+			case ELE_WIND:
 				type=SC_WINDWEAPON;
 				break;
-			case 3:
+			case ELE_WATER:
 				type=SC_WATERWEAPON;
 				break;
-			case 4:
+			case ELE_FIRE:
 				type=SC_FIREWEAPON;
 				break;
-			case 5:
+			case ELE_GHOST:
 				type=SC_GHOSTWEAPON;
 				break;
-			case 6:
+			case ELE_DARK:
 				type=SC_SHADOWWEAPON;
 				break;
-			case 7:
+			case ELE_HOLY:
 				type=SC_ASPERSIO;
 				break;
 		}
@@ -4828,7 +4828,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case NPC_CHANGETELEKINESIS:
 	case NPC_CHANGEUNDEAD:
 		clif_skill_nodamage(src,bl,skillid,skilllv,
-			sc_start2(bl, type, 100, skilllv, skill_get_pl(skillid), 
+			sc_start2(bl, type, 100, skilllv, skill_get_pl(skillid,skilllv), 
 				skill_get_time(skillid, skilllv)));
 		break;
 
@@ -11225,7 +11225,7 @@ int skill_readdb (void)
 		skill_split_atoi(split[1],skill_db[i].range);
 		skill_db[i].hit=atoi(split[2]);
 		skill_db[i].inf=atoi(split[3]);
-		skill_db[i].pl=atoi(split[4]);
+		skill_split_atoi(split[4],skill_db[i].pl);
 		skill_db[i].nk=(int)strtol(split[5], NULL, 0);
 		skill_split_atoi(split[6],skill_db[i].splash);
 		skill_db[i].max=atoi(split[7]);
