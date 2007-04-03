@@ -1,3 +1,9 @@
+04/04
+	* Merged mob_db and mob_skill_db [Playtester]
+	- updated modes of 11.1 mobs
+	- raised frequency of skill usage of 11.1 MVPs
+	- updated sql files
+	- please test if the MVP's skill usage is more active now
 04/03
 	* Large db merge [Playtester]
 	- updated items, item givers and more
