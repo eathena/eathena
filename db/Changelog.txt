@@ -1,4 +1,6 @@
 04/04
+	* Remerged item_db [Playtester]
+	- some fixes on Poison Bottle and Thunder Box
 	* Reverted some changes for elemental converters [Playtester]
 	- it doesn't seem to work, needs testing on trunk
 	* Merged mob_db and mob_skill_db [Playtester]
