@@ -1,4 +1,6 @@
 04/04
+	* Reverted some changes for elemental converters [Playtester]
+	- it doesn't seem to work, needs testing on trunk
 	* Merged mob_db and mob_skill_db [Playtester]
 	- updated modes of 11.1 mobs
 	- raised frequency of skill usage of 11.1 MVPs
