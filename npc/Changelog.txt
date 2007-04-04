@@ -23,6 +23,7 @@ Playtester
 Date		Added
 ======
 2007/04/05
+	* Added official Gunslinger quest for Gatling Guns [Playtester]
 	* Opened the entrance to Rachel Sanctuary [Playtester]
 	- you need 50k zeny to enter
 2007/04/04
