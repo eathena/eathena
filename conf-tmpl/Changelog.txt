@@ -1,5 +1,9 @@
 Date	Added
-
+	
+2007/04/05
+	* Updates to login_athena.conf: date_format can be specified directly,
+	  removed check_ip_flag, reorganized the names of the
+	  dynamic_pass_failure_ban.
 2007/04/02
 	* Merged config setting "vending_tax" to specify a server tax on all
 	  vending transactions (see items.conf for details)
