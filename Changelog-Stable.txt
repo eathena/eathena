@@ -4,6 +4,8 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2007/04/08
+	* Merged in r10170 (PCRE update); update your npcs if you use this!
 2007/04/07
 	* Reverted the ankle snare change (r10042) until it's fixed [ultramage]
 2007/04/05
