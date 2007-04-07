@@ -163,7 +163,7 @@
 669,Rice_Cake_Soup,Rice-Cake Soup,0,500,,100,,,,,0xFFFFFFFF,7,2,,,,,,{ percentheal -100,-100; },{},{}
 // Coins
 670,Gold_Coin_Moneybag,Bag of Gold Coins,2,100000,,400,,,,,0xFFFFFFFF,7,3,,,,,,{},{},{}
-671,Gold_Coin,Gold Coin,2,10000,,40,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
+671,Gold_Coin,Gold Coin,2,10000,,40,,,,,0xFFFFFFFF,7,3,,,,,,{},{},{}
 672,Copper_Coin_Moneybag,Bag of Bronze Coins,2,1000,,400,,,,,0xFFFFFFFF,7,3,,,,,,{},{},{}
 673,Copper_Coin,Bronze Coin,2,100,,40,,,,,0xFFFFFFFF,7,3,,,,,,{},{},{}
 674,Mithril_Coin,Mithril Coin,2,5000,,40,,,,,0xFFFFFFFF,7,3,,,,,,{},{},{}
@@ -171,14 +171,14 @@
 676,Silver_Coin_Moneybag,Bag of Silver Coins,2,50000,,400,,,,,0xFFFFFFFF,7,3,,,,,,{},{},{}
 677,White_Gold_Coin,Platinum Coin,2,2000,,40,,,,,0xFFFFFFFF,7,3,,,,,,{},{},{}
 678,Poison_Bottle,Poison Bottle,0,5000,,100,,,,,0xFFFFFFFF,7,2,,,,,,{ if(Class == Job_Assassin_Cross) { sc_start SC_DPoison,60000,0; sc_start SC_ASPDPOTION3,60000,0; } else percentheal -100,0; },{},{}
-679,Gold_Pill,Pilule,0,5000,,300,,,,,0xFFFFFFFF,7,3,,,,,,{ itemheal 50,50; },{},{}
-680,Magical_Carnation,Magic Carnation,2,,0,1000,,,,,0xFFFFFFFF,7,3,,,,,,{ itemheal 25,0; },{},{}
+679,Gold_Pill,Pilule,0,5000,,300,,,,,0xFFFFFFFF,7,2,,,,,,{ percentheal 50,50; },{},{}
+680,Magical_Carnation,Magic Carnation,0,,0,1000,,,,,0xFFFFFFFF,7,2,,,,,,{ percentheal 0,20; },{},{}
 681,Memory_Of_Wedding,Sweet Memory of Marriage,2,50000,,10,,,,,0xFFFFFFFF,7,3,,,,,,{},{},{}
 // ATK/MATK Potions
 682,Realgar_Wine,Distilled Fighting Spirit,0,,0,100,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_ATKPOTION,60000,30; },{},{}
 683,Exorcize_Herb,Herb of Incantation,0,,0,50,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_MATKPOTION,60000,30; },{},{}
 684,Durian,Durian,0,15000,,300,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_ATKPOTION,60000,10; sc_start SC_MATKPOTION,60000,10; },{},{}
-685,RAMADAN,Ramadan,0,5000,,300,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
+685,RAMADAN,Ramadan,0,5000,,300,,,,,0xFFFFFFFF,7,2,,,,,,{ percentheal 100,50; },{},{}
 // Scrolls
 686,Earth_Scroll_1_3,Level 3 Earth Spike,11,1000,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ itemskill 90,3; },{},{}
 687,Earth_Scroll_1_5,Level 5 Earth Spike,11,2000,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ itemskill 90,5; },{},{}
@@ -1577,7 +1577,7 @@
 4397,Tha_Despero_Card,Thanatos Despero Card,6,,10,10,,,,,,,,32,,,,,{ bonus bInt,getrefine()-6; },{},{}
 4398,Tha_Dolor_Card,Thanatos Dolor Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bMagicAddRace,RC_Angel,10; },{},{}
 4399,Thanatos_Card,Thanatos Card,6,,10,10,,,,,,,,2,,,,,{ bonus bDefRatioAtkRace,RC_Boss; bonus bDefRatioAtkRace,RC_NonBoss; bonus bSPDrainValue,-1; bonus bDef,-30; bonus bFlee,-30; },{},{}
-4400,Aliza_Card,Aliza Card,6,,10,10,,,,,,,,16,,,,,{ bonus4 bAutoSpellWhenHit,1011,1,50+50*(BaseJob == Job_Dancer),1; } },{},{}
+4400,Aliza_Card,Aliza Card,6,,10,10,,,,,,,,16,,,,,{ bonus4 bAutoSpellWhenHit,1011,1,50+50*(BaseJob == Job_Dancer),1; },{},{}
 4401,Alicel_Card,Alicel Card,6,,10,10,,,,,,,,16,,,,,{ bonus bFlee,10; bonus bDef,-5; },{},{}
 4402,Aliot_Card,Aliot Card,6,,10,10,,,,,,,,4,,,,,{ if(BaseClass==Job_Swordman||BaseClass==Job_Merchant||BaseClass==Job_Thief) { bonus bStr, 2; bonus bMaxHPrate, 5; } if(BaseClass==Job_Mage||BaseClass==Job_Archer||BaseClass==Job_Acolyte) { bonus bInt, 2; bonus bMaxSPrate, 5; } },{},{}
 4403,Kiel_Card,Kiel Card,6,,10,10,,,,,,,,769,,,,,{ bonus bDelayRate,-30; },{},{}

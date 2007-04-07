@@ -1,3 +1,7 @@
+04/08
+	* Merged recent fixes to the itemdb (aliza card, healing items)
+	* Fixed Marionette Control's sp cost (should be 100 sp, not 1 sp)
+	* Fixed some G_GALION's mob skills not working [ultramage]
 04/04
 	* Remerged item_db [Playtester]
 	- some fixes on Poison Bottle and Thunder Box
