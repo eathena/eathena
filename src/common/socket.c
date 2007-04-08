@@ -242,12 +242,18 @@ int connect_client(int listen_fd)
 
 	len = sizeof(client_address);
 
-	fd = accept(listen_fd,(struct sockaddr*)&client_address,&len);
+	fd = accept(listen_fd, (struct sockaddr*)&client_address, &len);
 	if ( fd == INVALID_SOCKET ) {
 		ShowError("accept failed (code %i)!\n", s_errno);
 		return -1;
 	}
 
+	if ( fd >= FD_SETSIZE )
+	{	//More connections than we can handle!
+		ShowError("accept failed. Received socket #%d is greater than can we handle! Increase the value of FD_SETSIZE (%d) for your OS to fix this!\n", fd, FD_SETSIZE);
+		closesocket(fd);
+		return -1;
+	}
 	setsocketopts(fd);
 	set_nonblocking(fd, 1);
 
@@ -329,9 +335,9 @@ int make_connection(long ip, int port)
 
 	setsocketopts(fd);
 
-	server_address.sin_family = AF_INET;
+	server_address.sin_family      = AF_INET;
 	server_address.sin_addr.s_addr = ip;
-	server_address.sin_port = htons((unsigned short)port);
+	server_address.sin_port        = htons((unsigned short)port);
 
 	ShowStatus("Connecting to %d.%d.%d.%d:%i\n",
 		(ip)&0xFF,(ip>>8)&0xFF,(ip>>16)&0xFF,(ip>>24)&0xFF,port);
@@ -383,7 +389,7 @@ int delete_session(int fd)
 	return 0;
 }
 
-int realloc_fifo(int fd,unsigned int rfifo_size,unsigned int wfifo_size)
+int realloc_fifo(int fd, unsigned int rfifo_size, unsigned int wfifo_size)
 {
 	if( !session_isValid(fd) )
 		return 0;
@@ -415,7 +421,7 @@ int realloc_writefifo(int fd, size_t addition)
 	else if( session[fd]->max_wdata >= FIFOSIZE_SERVERLINK) {
 		//Inter-server adjust. [Skotlex]
 		if ((session[fd]->wdata_size+addition)*4 < session[fd]->max_wdata)
-			newsize = session[fd]->max_wdata/2;
+			newsize = session[fd]->max_wdata / 2;
 		else
 			return 0; //No change
 	} else if( session[fd]->max_wdata > wfifo_size && (session[fd]->wdata_size+addition)*4 < session[fd]->max_wdata )
@@ -431,7 +437,7 @@ int realloc_writefifo(int fd, size_t addition)
 	return 0;
 }
 
-int RFIFOSKIP(int fd,int len)
+int RFIFOSKIP(int fd, int len)
 {
     struct socket_data *s;
 
@@ -633,9 +639,9 @@ static int access_order    = ACO_DENY_ALLOW;
 static int access_allownum = 0;
 static int access_denynum  = 0;
 static int access_debug    = 0;
-static int ddos_count     = 10;
-static int ddos_interval  = 3*1000;
-static int ddos_autoreset = 10*60*1000;
+static int ddos_count      = 10;
+static int ddos_interval   = 3*1000;
+static int ddos_autoreset  = 10*60*1000;
 /// Connection history, an array of linked lists.
 /// The array's index for any ip is ip&0xFFFF
 static ConnectHistory* connect_history[0x10000];
@@ -804,7 +810,7 @@ int access_ipmask(const char* str, AccessControl* acc)
 	unsigned int m[4];
 	int n;
 
-	if( strcmp(str,"all") == 0 ){
+	if( strcmp(str,"all") == 0 ) {
 		ip   = 0;
 		mask = 0;
 	} else {
@@ -845,69 +851,72 @@ int access_ipmask(const char* str, AccessControl* acc)
 #endif
 //////////////////////////////
 
-int socket_config_read(const char *cfgName) {
-	int i;
+int socket_config_read(const char* cfgName)
+{
 	char line[1024],w1[1024],w2[1024];
 	FILE *fp;
 
-	fp=fopen(cfgName, "r");
-	if(fp==NULL){
+	fp = fopen(cfgName, "r");
+	if(fp == NULL) {
 		ShowError("File not found: %s\n", cfgName);
 		return 1;
 	}
-	while(fgets(line,1020,fp)){
+
+	while(fgets(line,1020,fp))
+	{
 		if(line[0] == '/' && line[1] == '/')
 			continue;
-		i=sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
-		if(i!=2)
+		if(sscanf(line, "%[^:]: %[^\r\n]", w1, w2) != 2)
 			continue;
-		if(strcmpi(w1,"stall_time")==0){
+
+		if (!strcmpi(w1, "stall_time"))
 			stall_time = atoi(w2);
 #ifndef MINICORE
-		} else if( strcmpi(w1,"enable_ip_rules") == 0 ){
-			if( strcmpi(w2,"yes") == 0 )
+		else if (!strcmpi(w1, "enable_ip_rules")) {
+			if (!strcmpi(w2, "yes"))
 				ip_rules = 1;
-			else if( strcmpi(w2,"no") == 0 )
+			else if(!strcmpi(w2, "no"))
 				ip_rules = 0;
 			else
 				ip_rules = atoi(w2);
-		} else if( strcmpi(w1,"order") == 0 ){
-			access_order = atoi(w2);
-			if( strcmpi(w2,"deny,allow") == 0 )
+		} else if (!strcmpi(w1, "order")) {
+			if (!strcmpi(w2, "deny,allow"))
 				access_order = ACO_DENY_ALLOW;
-			else if( strcmpi(w2,"allow,deny") == 0 )
-				access_order=ACO_ALLOW_DENY;
-			else if( strcmpi(w2,"mutual-failure") == 0 )
-				access_order=ACO_MUTUAL_FAILURE;
-		} else if( strcmpi(w1,"allow") == 0 ){
+			else if (!strcmpi(w2, "allow,deny"))
+				access_order = ACO_ALLOW_DENY;
+			else if (!strcmpi(w2, "mutual-failure"))
+				access_order = ACO_MUTUAL_FAILURE;
+		} else if (!strcmpi(w1, "allow")) {
 			RECREATE(access_allow, AccessControl, access_allownum+1);
-			if( access_ipmask(w2,&access_allow[access_allownum]) )
+			if (access_ipmask(w2, &access_allow[access_allownum]))
 				++access_allownum;
 			else
 				ShowError("socket_config_read: Invalid ip or ip range '%s'!\n", line);
-		} else if( strcmpi(w1,"deny") == 0 ){
+		} else if (!strcmpi(w1, "deny")) {
 			RECREATE(access_deny, AccessControl, access_denynum+1);
-			if( access_ipmask(w2,&access_deny[access_denynum]) )
+			if (access_ipmask(w2, &access_deny[access_denynum]))
 				++access_denynum;
 			else
 				ShowError("socket_config_read: Invalid ip or ip range '%s'!\n", line);
-		} else if( strcmpi(w1,"ddos_interval") == 0){
+		}
+		else if (!strcmpi(w1,"ddos_interval"))
 			ddos_interval = atoi(w2);
-		} else if( strcmpi(w1,"ddos_count") == 0){
+		else if (!strcmpi(w1,"ddos_count"))
 			ddos_count = atoi(w2);
-		} else if( strcmpi(w1,"ddos_autoreset") == 0){
+		else if (!strcmpi(w1,"ddos_autoreset"))
 			ddos_autoreset = atoi(w2);
-		} else if( strcmpi(w1,"debug") == 0){
-			if( strcmpi(w2,"yes") == 0 )
+		else if (!strcmpi(w1,"debug"))
+			if (!strcmpi(w2,"yes"))
 				access_debug = 1;
-			else if( strcmpi(w2,"no") == 0 )
+			else if (!strcmpi(w2,"no"))
 				access_debug = 0;
 			else
 				access_debug = atoi(w2);
 #endif
-		} else if (strcmpi(w1, "import") == 0)
+		else if (!strcmpi(w1, "import"))
 			socket_config_read(w2);
 	}
+
 	fclose(fp);
 	return 0;
 }
@@ -956,7 +965,7 @@ void do_close(int fd)
 
 /// Retrieve local ips in host byte order.
 /// Uses loopback is no address is found.
-int socket_getips(uint32 *ips, int max)
+int socket_getips(uint32* ips, int max)
 {
 	int num = 0;
 
@@ -982,7 +991,7 @@ int socket_getips(uint32 *ips, int max)
 		{
 			hent = gethostbyname(fullhost);
 			if( hent == NULL ){
-				ShowError("socket_getips: Cannot resolve our own hostname to a IP address\n");
+				ShowError("socket_getips: Cannot resolve our own hostname to an IP address\n");
 				return 0;
 			}
 			a = (u_long**)hent->h_addr_list;

@@ -4,6 +4,11 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2007/04/09
+	* Merged rejecting connections above FD_SETSIZE since they lead to
+	  crashes anyway.
+	* Merged a missing check in chrif_save which was making Jailed characters
+	  be warped out on log-out [Skotlex]
 2007/04/08
 	* Fixed vending tax bug leaving you with x% instead of taking x% away
 	* Renamed and updated the pcre.dll (to pcre3.dll) for consistency

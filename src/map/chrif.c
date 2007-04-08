@@ -24,18 +24,14 @@
 #include "status.h"
 #include "mercenary.h"
 
-//Updated table (only doc^^) [Sirius]
-//Used Packets: U->2af8
-//Free Packets: F->2af8
-
 struct dbt *auth_db;
 
-static const int packet_len_table[0x3d] = {
+static const int packet_len_table[0x3d] = { // U - used, F - free
 	60, 3,-1,27,10,-1, 6,-1,	// 2af8-2aff: U->2af8, U->2af9, U->2afa, U->2afb, U->2afc, U->2afd, U->2afe, U->2aff
 	 6,-1,18, 7,-1,49,30,10,	// 2b00-2b07: U->2b00, U->2b01, U->2b02, U->2b03, U->2b04, U->2b05, U->2b06, U->2b07
 	 6,30,-1,10,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, U->2b0a, U->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
 	 0,-1,10, 6,11,-1, 0, 0,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, U->2b15, U->2b16, U->2b17
-	-1,-1,-1,-1,-1,-1, 2, 7,		// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, U->2b1c, U->2b1d, U->2b1e, U->2b1f
+	-1,-1,-1,-1,-1,-1, 2, 7,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, U->2b1c, U->2b1d, U->2b1e, U->2b1f
 	-1,10, 8,-1,-1,-1,-1,-1,	// 2b20-2b27: U->2b20, U->2b21, U->2b22, U->2b23, F->2b24, F->2b25, F->2b26, F->2b27
 };
 
@@ -69,7 +65,7 @@ static const int packet_len_table[0x3d] = {
 //2b12: Incomming, chrif_divorce -> 'divorce a wedding of charid X and partner id X'
 //2b13: Incomming, chrif_accountdeletion -> 'Delete acc XX, if the player is on, kick ....'
 //2b14: Incomming, chrif_accountban -> 'not sure: kick the player with message XY'
-//2b15: Incomming, chrif_recvgmaccounts -> 'recieve gm accs from charserver (seems to be incomplete !)'
+//2b15: Incomming, chrif_recvgmaccounts -> 'receive gm accs from charserver (seems to be incomplete !)'
 //2b16: Outgoing, chrif_ragsrvinfo -> 'sends motd / rates ....'
 //2b17: Outgoing, chrif_char_offline -> 'tell the charserver that the char is now offline'
 //2b18: Outgoing, chrif_char_reset_offline -> 'set all players OFF!'
@@ -103,29 +99,20 @@ int other_mapserver_count=0; //Holds count of how many other map servers are onl
 //This define should spare writing the check in every function. [Skotlex]
 #define chrif_check(a) { if(!chrif_isconnect()) return a; }
 
-// 設定ファイル読み込み関係
-/*==========================================
- *
- *------------------------------------------
- */
+
+// sets char-server's user id
 void chrif_setuserid(char *id)
 {
 	memcpy(userid, id, NAME_LENGTH);
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+// sets char-server's password
 void chrif_setpasswd(char *pwd)
 {
 	memcpy(passwd, pwd, NAME_LENGTH);
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+// security check, prints warning if using default password
 void chrif_checkdefaultlogin(void)
 {
 	if (strcmp(userid, "s1")==0 && strcmp(passwd, "p1")==0) {
@@ -139,15 +126,11 @@ void chrif_checkdefaultlogin(void)
 	}
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+// sets char-server's ip address
 int chrif_setip(char *ip)
 {
 	char ip_str[16];
 	char_ip = resolve_hostbyname(ip,NULL,ip_str);
-
 	if (!char_ip) {
 		ShowWarning("Failed to Resolve Char Server Address! (%s)\n", ip);
 		return 0;
@@ -157,34 +140,28 @@ int chrif_setip(char *ip)
 	return 1;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+// sets char-server's port number
 void chrif_setport(int port)
 {
 	char_port = port;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+// says whether the char-server is connected or not
 int chrif_isconnect(void)
 {
 	return (char_fd > 0 && session[char_fd] != NULL && chrif_state == 2);
 }
 
 /*==========================================
- * Saves char.
- * Flag = 1: Character is quitting.
+ * Saves character data.
+ * Flag = 1: Character is quitting
  * Flag = 2: Character is changing map-servers
- *------------------------------------------
- */
+ *------------------------------------------*/
 int chrif_save(struct map_session_data *sd, int flag)
 {
 	nullpo_retr(-1, sd);
 
+	if (!flag) //The flag check is needed to prevent 'nosave' taking effect when a jailed player logs out.
 		pc_makesavestatus(sd);
 	if(!chrif_isconnect())
   	{
@@ -226,10 +203,7 @@ int chrif_save(struct map_session_data *sd, int flag)
 	return 0;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
+// connects to char-server (plaintext)
 int chrif_connect(int fd)
 {
 	ShowStatus("Logging in to char server...\n", char_fd);
@@ -245,10 +219,7 @@ int chrif_connect(int fd)
 	return 0;
 }
 
-/*==========================================
- * マップ送信
- *------------------------------------------
- */
+// sends maps to char-server
 int chrif_sendmap(int fd)
 {
 	int i;
@@ -263,10 +234,7 @@ int chrif_sendmap(int fd)
 	return 0;
 }
 
-/*==========================================
- * マップ受信
- *------------------------------------------
- */
+// receive maps from some other map-server (relayed via char-server)
 int chrif_recvmap(int fd)
 {
 	int i, j, ip, port;
@@ -276,8 +244,6 @@ int chrif_recvmap(int fd)
 	port = RFIFOW(fd,8);
 	for(i = 10, j = 0; i < RFIFOW(fd,2); i += 4, j++) {
 		map_setipport(RFIFOW(fd,i), ip, port);
-//		if (battle_config.etc_log)
-//			printf("recv map %d %s\n", j, RFIFOP(fd,i));
 	}
 	if (battle_config.etc_log)
 		ShowStatus("recv map on %d.%d.%d.%d:%d (%d maps)\n", p[0], p[1], p[2], p[3], port, j);
@@ -286,10 +252,7 @@ int chrif_recvmap(int fd)
 	return 0;
 }
 
-/*==========================================
- * Delete maps of other servers, (if an other mapserver is going OFF)
- *------------------------------------------
- */
+// remove specified maps (used when some other map-server disconnects)
 int chrif_removemap(int fd){
 	int i, j, ip, port;
 	unsigned char *p = (unsigned char *)&ip;
@@ -308,7 +271,9 @@ int chrif_removemap(int fd){
 	return 0;
 }
 
-int chrif_save_ack(int fd) {
+// received after a character has been "final saved" on the char-server
+int chrif_save_ack(int fd)
+{
 	struct map_session_data *sd;
 	RFIFOHEAD(fd);
 	sd = map_id2sd(RFIFOL(fd,2));
@@ -318,10 +283,7 @@ int chrif_save_ack(int fd) {
 	return 0;
 }
 
-/*==========================================
- * マップ鯖間移動のためのデータ準備要求
- *------------------------------------------
- */
+// request to move a character between mapservers
 int chrif_changemapserver(struct map_session_data *sd, short map, int x, int y, int ip, short port)
 {
 	int s_ip;
@@ -359,10 +321,7 @@ int chrif_changemapserver(struct map_session_data *sd, short map, int x, int y, 
 	return 0;
 }
 
-/*==========================================
- * マップ鯖間移動ack
- *------------------------------------------
- */
+// map-server change request acknowledgement (positive or negative)
 int chrif_changemapserverack(int fd)
 {
 	struct map_session_data *sd;
@@ -388,8 +347,7 @@ int chrif_changemapserverack(int fd)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 int chrif_connectack(int fd)
 {
 	RFIFOHEAD(fd);
@@ -493,7 +451,18 @@ void chrif_authreq(struct map_session_data *sd)
 //character selected, insert into auth db
 void chrif_authok(int fd) {
 	struct auth_node *auth_data;
+	TBL_PC* sd;
 	RFIFOHEAD(fd);
+	//Check if we don't already have player data in our server
+	//(prevents data that is to be saved from being overwritten by
+	//this received status data if this auth is later successful) [Skotlex]
+	if ((sd = map_id2sd(RFIFOL(fd, 4))) != NULL)
+	{
+		struct mmo_charstatus *status = (struct mmo_charstatus *)RFIFOP(fd, 20);
+		//Auth check is because this could be the very same sd that is waiting char-server authorization.
+		if (sd->state.auth && sd->status.char_id == status->char_id)
+			return;
+	}
 	
 	if ((auth_data =uidb_get(auth_db, RFIFOL(fd, 4))) != NULL)
 	{	//Is the character already awaiting authorization?
@@ -555,7 +524,7 @@ int auth_db_cleanup(int tid, unsigned int tick, int id, int data) {
  *
  *------------------------------------------
  */
-int chrif_charselectreq(struct map_session_data *sd, unsigned long s_ip)
+int chrif_charselectreq(struct map_session_data* sd, unsigned long s_ip)
 {
 	nullpo_retr(-1, sd);
 
@@ -680,7 +649,6 @@ int chrif_changesex(int id, int sex) {
 	WFIFOW(char_fd,2) = 9;
 	WFIFOL(char_fd,4) = id;
 	WFIFOB(char_fd,8) = sex;
-//	ShowInfo("chrif : sent 0x3000(changesex)\n");
 	WFIFOSET(char_fd,9);
 	return 0;
 }
@@ -1027,7 +995,8 @@ int chrif_accountban(int fd)
 
 //Disconnect the player out of the game, simple packet
 //packet.w AID.L WHY.B 2+4+1 = 7byte
-int chrif_disconnectplayer(int fd){
+int chrif_disconnectplayer(int fd)
+{
 	struct map_session_data *sd;
 	RFIFOHEAD(fd);
 
@@ -1404,7 +1373,8 @@ int chrif_disconnect(int fd) {
 	return 0;
 }
 
-void chrif_update_ip(int fd){
+void chrif_update_ip(int fd)
+{
 	unsigned long new_ip;
 	WFIFOHEAD(fd, 6);
 	new_ip = resolve_hostbyname(char_ip_str, NULL, NULL);
