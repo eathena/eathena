@@ -43,7 +43,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <math.h>
 #ifndef WIN32
 	#include <sys/time.h>
@@ -351,18 +350,18 @@ static unsigned int calc_hash2(const unsigned char *p)
 #if defined(SCRIPT_HASH_DJB2)
 	unsigned int h = 5381;
 	while( *p ) // hash*33 + c
-		h = ( h << 5 ) + h + ((unsigned char)tolower(*p++));
+		h = ( h << 5 ) + h + ((unsigned char)TOLOWER(*p++));
 	return h;
 #elif defined(SCRIPT_HASH_SDBM)
 	unsigned int h = 0;
 	while( *p )
-		h = ( h << 6 ) + ( h << 16 ) - h + ((unsigned char)tolower(*p++));
+		h = ( h << 6 ) + ( h << 16 ) - h + ((unsigned char)TOLOWER(*p++));
 	return h;
 #elif defined(SCRIPT_HASH_ELF)
 	unsigned int h = 0;
 	unsigned int g;
 	while( *p ){ // UNIX ELF hash
-		h = ( h << 4 ) + ((unsigned char)tolower(*p++));
+		h = ( h << 4 ) + ((unsigned char)TOLOWER(*p++));
 		if ( g = h & 0xF0000000 )
 		h ^= g >> 24;
 		h &= ~g;
@@ -372,7 +371,7 @@ static unsigned int calc_hash2(const unsigned char *p)
 	unsigned int h = 0;
 	unsigned int g;
 	while( *p ){
-		h = ( h << 4 ) + ((unsigned char)tolower(*p++));
+		h = ( h << 4 ) + ((unsigned char)TOLOWER(*p++));
 		if ( (g=h&0xF0000000) ) {
 			h ^= g>>24;
 			h ^= g;
@@ -383,7 +382,7 @@ static unsigned int calc_hash2(const unsigned char *p)
 	unsigned int h = 0;
 	while( *p ){
 		h = ( h << 1 ) + ( h >> 3 ) + ( h >> 5 ) + ( h >> 8 );
-		h+=(unsigned char)tolower(*p++);
+		h+=(unsigned char)TOLOWER(*p++);
 	}
 	return h;
 #endif
@@ -781,7 +780,7 @@ const char* parse_simpleexpr(const char *p)
 		if( *p != ')' )
 			disp_error_message("parse_simpleexpr: unmatch ')'",p);
 		++p;
-	} else if(isdigit(*p) || ((*p=='-' || *p=='+') && isdigit(p[1]))){
+	} else if(ISDIGIT(*p) || ((*p=='-' || *p=='+') && ISDIGIT(p[1]))){
 		char *np;
 		i=strtoul(p,&np,0);
 		add_scripti(i);
@@ -1107,7 +1106,7 @@ const char* parse_syntax(const char* p)
 					disp_error_message("parse_syntax: expect space ' '",p);
 				}
 				p2 = p;
-				if((*p == '-' || *p == '+') && isdigit(p[1]))	// pre-skip because '-' can not skip_word
+				if((*p == '-' || *p == '+') && ISDIGIT(p[1]))	// pre-skip because '-' can not skip_word
 					p++;
 				p = skip_word(p);
 				len = p-p2; // length of word at p2
@@ -3289,22 +3288,22 @@ int script_config_read_sub(char *cfgName)
 			set_posword(w2);
 		}
 		else if(strcmpi(w1,"verbose_mode")==0) {
-			script_config.verbose_mode = battle_config_switch(w2);
+			script_config.verbose_mode = config_switch(w2);
 		}
 		else if(strcmpi(w1,"warn_func_mismatch_paramnum")==0) {
-			script_config.warn_func_mismatch_paramnum = battle_config_switch(w2);
+			script_config.warn_func_mismatch_paramnum = config_switch(w2);
 		}
 		else if(strcmpi(w1,"check_cmdcount")==0) {
-			script_config.check_cmdcount = battle_config_switch(w2);
+			script_config.check_cmdcount = config_switch(w2);
 		}
 		else if(strcmpi(w1,"check_gotocount")==0) {
-			script_config.check_gotocount = battle_config_switch(w2);
+			script_config.check_gotocount = config_switch(w2);
 		}
 		else if(strcmpi(w1,"event_script_type")==0) {
-			script_config.event_script_type = battle_config_switch(w2);
+			script_config.event_script_type = config_switch(w2);
 		}
 		else if(strcmpi(w1,"event_requires_trigger")==0) {
-			script_config.event_requires_trigger = battle_config_switch(w2);
+			script_config.event_requires_trigger = config_switch(w2);
 		}
 		else if(strcmpi(w1,"die_event_name")==0) {			
 			strncpy(script_config.die_event_name, w2, NAME_LENGTH-1);

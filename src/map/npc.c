@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <string.h>
 #include <math.h>
 #include <time.h>
@@ -31,10 +30,6 @@
 #include "skill.h"
 #include "unit.h"
 
-#ifdef _WIN32
-#undef isspace
-#define isspace(x)  (x == ' ' || x == '\t')
-#endif
 
 struct npc_src_list {
 	struct npc_src_list * next;

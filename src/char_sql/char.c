@@ -3796,19 +3796,6 @@ static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, int dat
 	return 0;
 }
 
-//----------------------------------------------------------
-// Return numerical value of a switch configuration by [Yor]
-// on/off, english, français, deutsch, español
-//----------------------------------------------------------
-int config_switch(const char *str) {
-	if (strcmpi(str, "on") == 0 || strcmpi(str, "yes") == 0 || strcmpi(str, "oui") == 0 || strcmpi(str, "ja") == 0 || strcmpi(str, "si") == 0)
-		return 1;
-	if (strcmpi(str, "off") == 0 || strcmpi(str, "no") == 0 || strcmpi(str, "non") == 0 || strcmpi(str, "nein") == 0)
-		return 0;
-
-	return atoi(str);
-}
-
 //----------------------------------
 // Reading Lan Support configuration
 // Rewrote: Anvanced subnet check [LuzZza]

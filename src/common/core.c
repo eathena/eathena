@@ -8,7 +8,6 @@
 #endif
 #include <signal.h>
 #include <string.h>
-#include <ctype.h>
 
 #include "core.h"
 #include "../common/mmo.h"
@@ -32,18 +31,9 @@ char **arg_v = NULL;
 
 char *SERVER_NAME = NULL;
 char SERVER_TYPE = ATHENA_SERVER_NONE;
-static void (*term_func)(void) = NULL;
 #ifndef SVNVERSION
 	static char eA_svn_version[10];
 #endif
-/*======================================
- *	CORE : Set function
- *--------------------------------------
- */
-void set_termfunc(void (*termfunc)(void))
-{
-	term_func = termfunc;
-}
 
 #ifndef MINICORE	// minimalist Core
 // Added by Gabuzomeu
@@ -145,12 +135,11 @@ const char* get_svn_revision(void)
 		// Check the version
 		if (fgets(line,sizeof(line),fp))
 		{
-			if(!isdigit(line[0]))
+			if(!ISDIGIT(line[0]))
 			{
 				// XML File format
 				while (fgets(line,sizeof(line),fp))
 					if (strstr(line,"revision=")) break;
-				fclose(fp);
 				if (sscanf(line," %*[^\"]\"%d%*[^\n]", &rev) == 1) {
 					snprintf(eA_svn_version, sizeof(eA_svn_version), "%d", rev);
 				}
@@ -166,6 +155,7 @@ const char* get_svn_revision(void)
 				}
 			}
 		}
+		fclose(fp);
 	}
 
 	if(!(*eA_svn_version))
@@ -181,10 +171,8 @@ const char* get_svn_revision(void)
  */
 static void display_title(void)
 {
-	//The clearscreeen is usually more of an annoyance than anything else... [Skotlex]
-//	ClearScreen(); // clear screen and go up/left (0, 0 position in text)
-	//ShowMessage("\n"); //A blank message??
-	printf("\n");
+	//ClearScreen(); // clear screen and go up/left (0, 0 position in text)
+	ShowMessage("\n");
 	ShowMessage(""CL_WTBL"          (=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=)"CL_CLL""CL_NORMAL"\n"); // white writing (37) on blue background (44), \033[K clean until end of file
 	ShowMessage(""CL_XXBL"          ("CL_BT_YELLOW"        (c)2005 eAthena Development Team presents        "CL_XXBL")"CL_CLL""CL_NORMAL"\n"); // yellow writing (33)
 	ShowMessage(""CL_XXBL"          ("CL_BOLD"       ______  __    __                                  "CL_XXBL")"CL_CLL""CL_NORMAL"\n"); // 1: bold char, 0: normal char
@@ -206,7 +194,8 @@ static void display_title(void)
 }
 
 // Warning if logged in as superuser (root)
-void usercheck(void){
+void usercheck(void)
+{
 #ifndef _WIN32
     if ((getuid() == 0) && (getgid() == 0)) {
 	ShowWarning ("You are running eAthena as the root superuser.\n");

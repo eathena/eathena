@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <math.h>
 
 #include "../common/cbasetypes.h"
@@ -145,12 +144,12 @@ is_charcommand_sub(const int fd, struct map_session_data* sd, const char* str, i
 
 		memset(command, '\0', sizeof(command));
 		memset(output, '\0', sizeof(output));
-		while (*p && !isspace(*p))
+		while (*p && !ISSPACE(*p))
 			p++;
 		if (p - str >= sizeof(command)) // too long
 			return CharCommand_Unknown;
 		strncpy(command, str, p - str);
-		while (isspace(*p))
+		while (ISSPACE(*p))
 			p++;
 
 		if (type == CharCommand_Unknown || info.proc == NULL) {
@@ -185,7 +184,7 @@ is_charcommand(const int fd, struct map_session_data* sd, const char* message) {
 		return CharCommand_None;
 
 	str += strlen(sd->status.name);
-	while (*str && (isspace(*str) || (s_flag == 0 && *str == ':'))) {
+	while (*str && (ISSPACE(*str) || (s_flag == 0 && *str == ':'))) {
 		if (*str == ':')
 			s_flag = 1;
 		str++;

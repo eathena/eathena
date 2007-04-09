@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <math.h>
 
 #include "../common/cbasetypes.h"
@@ -15,6 +14,7 @@
 #include "../common/showmsg.h"
 #include "../common/malloc.h"
 #include "../common/socket.h"
+#include "../common/strlib.h"
 
 #include "atcommand.h"
 #include "log.h"
@@ -721,46 +721,6 @@ char * player_title_txt(int level) {
 	return atcmd_temp;
 }
 
-//------------------------------------------------------------
-// E-mail check: return 0 (not correct) or 1 (valid). by [Yor]
-//------------------------------------------------------------
-int e_mail_check(char *email)
-{
-	char ch;
-	char* last_arobas;
-
-	// athena limits
-	if (strlen(email) < 3 || strlen(email) > 39)
-		return 0;
-
-	// part of RFC limits (official reference of e-mail description)
-	if (strchr(email, '@') == NULL || email[strlen(email)-1] == '@')
-		return 0;
-
-	if (email[strlen(email)-1] == '.')
-		return 0;
-
-	last_arobas = strrchr(email, '@');
-
-	if (strstr(last_arobas, "@.") != NULL ||
-	    strstr(last_arobas, "..") != NULL)
-		return 0;
-
-	for(ch = 1; ch < 32; ch++) {
-		if (strchr(last_arobas, ch) != NULL) {
-			return 0;
-			break;
-		}
-	}
-
-	if (strchr(last_arobas, ' ') != NULL ||
-	    strchr(last_arobas, ';') != NULL)
-		return 0;
-
-	// all correct
-	return 1;
-}
-
 /*==========================================
  * Retrieve the atcommand's required gm level
  *------------------------------------------
@@ -798,12 +758,12 @@ AtCommandType is_atcommand_sub(const int fd, struct map_session_data* sd, const 
 
 		memset(command, '\0', sizeof(command));
 		memset(atcmd_output, '\0', sizeof(atcmd_output));
-		while (*p && !isspace(*p))
+		while (*p && !ISSPACE(*p))
 			p++;
 		if (p - str >= sizeof(command)) // too long
 			return AtCommand_Unknown;
 		strncpy(command, str, p - str);
-		while (isspace(*p))
+		while (ISSPACE(*p))
 			p++;
 
 		if (type == AtCommand_Unknown || info.proc == NULL) {
@@ -842,7 +802,7 @@ AtCommandType is_atcommand(const int fd, struct map_session_data* sd, const char
 		return AtCommand_None;
 
 	str += strlen(sd->status.name);
-	while (*str && (isspace(*str) || (s_flag == 0 && *str == ':'))) {
+	while (*str && (ISSPACE(*str) || (s_flag == 0 && *str == ':'))) {
 		if (*str == ':')
 			s_flag = 1;
 		str++;
@@ -1107,8 +1067,8 @@ int atcommand_send(const int fd, struct map_session_data* sd, const char* comman
 
 #define SKIP_VALUE(p) \
 	{\
-		while(*(p) && !isspace(*(p))) ++(p); /* non-space */\
-		while(*(p) && isspace(*(p)))  ++(p); /* space */\
+		while(*(p) && !ISSPACE(*(p))) ++(p); /* non-space */\
+		while(*(p) && ISSPACE(*(p)))  ++(p); /* space */\
 	}
 //define SKIP_VALUE
 
@@ -1148,30 +1108,30 @@ int atcommand_send(const int fd, struct map_session_data* sd, const char* comman
 		// parse packet contents
 		SKIP_VALUE(message);
 		while(*message != 0 && off < len){
-			if(isdigit(*message) || *message == '-' || *message == '+')
+			if(ISDIGIT(*message) || *message == '-' || *message == '+')
 			{// default (byte)
 				GET_VALUE(message,num);
 				WFIFOB(fd,off)=TOB(num);
 				++off;
-			} else if(toupper(*message) == 'B')
+			} else if(TOUPPER(*message) == 'B')
 			{// byte
 				++message;
 				GET_VALUE(message,num);
 				WFIFOB(fd,off)=TOB(num);
 				++off;
-			} else if(toupper(*message) == 'W')
+			} else if(TOUPPER(*message) == 'W')
 			{// word (2 bytes)
 				++message;
 				GET_VALUE(message,num);
 				WFIFOW(fd,off)=TOW(num);
 				off+=2;
-			} else if(toupper(*message) == 'L')
+			} else if(TOUPPER(*message) == 'L')
 			{// long word (4 bytes)
 				++message;
 				GET_VALUE(message,num);
 				WFIFOL(fd,off)=TOL(num);
 				off+=4;
-			} else if(toupper(*message) == 'S')
+			} else if(TOUPPER(*message) == 'S')
 			{// string - escapes are valid
 				// get string length - num <= 0 means not fixed length (default)
 				++message;
@@ -1181,7 +1141,7 @@ int atcommand_send(const int fd, struct map_session_data* sd, const char* comman
 					GET_VALUE(message,num);
 					while(*message != '"')
 					{// find start of string
-						if(*message == 0 || isspace(*message)){
+						if(*message == 0 || ISSPACE(*message)){
 							PARSE_ERROR("Not a string:",message);
 							return -1;
 						}
@@ -1211,16 +1171,16 @@ int atcommand_send(const int fd, struct map_session_data* sd, const char* comman
 							{
 								++message;
 								CHECK_EOS(message);
-								if(!isxdigit(*message)){
+								if(!ISXDIGIT(*message)){
 									PARSE_ERROR("Not a hexadecimal digit:",message);
 									return -1;
 								}
-								num=(isdigit(*message)?*message-'0':tolower(*message)-'a'+10);
-								if(isxdigit(*message)){
+								num=(ISDIGIT(*message)?*message-'0':TOLOWER(*message)-'a'+10);
+								if(ISXDIGIT(*message)){
 									++message;
 									CHECK_EOS(message);
 									num<<=8;
-									num+=(isdigit(*message)?*message-'0':tolower(*message)-'a'+10);
+									num+=(ISDIGIT(*message)?*message-'0':TOLOWER(*message)-'a'+10);
 								}
 								WFIFOB(fd,off)=TOB(num);
 								++message;
@@ -1239,12 +1199,12 @@ int atcommand_send(const int fd, struct map_session_data* sd, const char* comman
 								num=*message-'0'; // 1st octal digit
 								++message;
 								CHECK_EOS(message);
-								if(isdigit(*message) && *message < '8'){
+								if(ISDIGIT(*message) && *message < '8'){
 									num<<=3;
 									num+=*message-'0'; // 2nd octal digit
 									++message;
 									CHECK_EOS(message);
-									if(isdigit(*message) && *message < '8'){
+									if(ISDIGIT(*message) && *message < '8'){
 										num<<=3;
 										num+=*message-'0'; // 3rd octal digit
 										++message;
@@ -1492,7 +1452,7 @@ int atcommand_who3(const int fd, struct map_session_data* sd, const char* comman
 	if (sscanf(message, "%99[^\n]", match_text) < 1)
 		strcpy(match_text, "");
 	for (j = 0; match_text[j]; j++)
-		match_text[j] = tolower(match_text[j]);
+		match_text[j] = TOLOWER(match_text[j]);
 
 	count = 0;
 	GM_level = pc_isGM(sd);
@@ -1503,7 +1463,7 @@ int atcommand_who3(const int fd, struct map_session_data* sd, const char* comman
 			if (!((battle_config.hide_GM_session || (pl_sd->sc.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
 				for (j = 0; player_name[j]; j++)
-					player_name[j] = tolower(player_name[j]);
+					player_name[j] = TOLOWER(player_name[j]);
 				if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
 
 					if (battle_config.who_display_aid > 0 && pc_isGM(sd) >= battle_config.who_display_aid) {
@@ -1565,7 +1525,7 @@ int atcommand_who2(const int fd, struct map_session_data* sd, const char* comman
 	if (sscanf(message, "%99[^\n]", match_text) < 1)
 		strcpy(match_text, "");
 	for (j = 0; match_text[j]; j++)
-		match_text[j] = tolower(match_text[j]);
+		match_text[j] = TOLOWER(match_text[j]);
 
 	count = 0;
 	GM_level = pc_isGM(sd);
@@ -1576,7 +1536,7 @@ int atcommand_who2(const int fd, struct map_session_data* sd, const char* comman
 			if (!((battle_config.hide_GM_session || (pl_sd->sc.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
 				for (j = 0; player_name[j]; j++)
-					player_name[j] = tolower(player_name[j]);
+					player_name[j] = TOLOWER(player_name[j]);
 				if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
 					//Players Name
 					//sprintf(atcmd_output, "Name: %s ", pl_sd->status.name);
@@ -1636,7 +1596,7 @@ int atcommand_who(const int fd, struct map_session_data* sd, const char* command
 	if (sscanf(message, "%99[^\n]", match_text) < 1)
 		strcpy(match_text, "");
 	for (j = 0; match_text[j]; j++)
-		match_text[j] = tolower(match_text[j]);
+		match_text[j] = TOLOWER(match_text[j]);
 
 	count = 0;
 	GM_level = pc_isGM(sd);
@@ -1647,7 +1607,7 @@ int atcommand_who(const int fd, struct map_session_data* sd, const char* command
 			if (!((battle_config.hide_GM_session || (pl_sd->sc.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
 				for (j = 0; player_name[j]; j++)
-					player_name[j] = tolower(player_name[j]);
+					player_name[j] = TOLOWER(player_name[j]);
 				if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
 					g = guild_search(pl_sd->status.guild_id);
 					p = party_search(pl_sd->status.party_id);
@@ -1907,7 +1867,7 @@ int atcommand_whogm(const int fd, struct map_session_data* sd, const char* comma
 	if (sscanf(message, "%99[^\n]", match_text) < 1)
 		strcpy(match_text, "");
 	for (j = 0; match_text[j]; j++)
-		match_text[j] = tolower(match_text[j]);
+		match_text[j] = TOLOWER(match_text[j]);
 
 	count = 0;
 	GM_level = pc_isGM(sd);
@@ -1919,7 +1879,7 @@ int atcommand_whogm(const int fd, struct map_session_data* sd, const char* comma
 				if (!((battle_config.hide_GM_session || (pl_sd->sc.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 					memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
 					for (j = 0; player_name[j]; j++)
-						player_name[j] = tolower(player_name[j]);
+						player_name[j] = TOLOWER(player_name[j]);
 					if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
 						sprintf(atcmd_output, "Name: %s (GM:%d) | Location: %s %d %d", pl_sd->status.name, pl_GM_level, mapindex_id2name(pl_sd->mapindex), pl_sd->bl.x, pl_sd->bl.y);
 						clif_displaymessage(fd, atcmd_output);
@@ -1974,7 +1934,7 @@ int atcommand_whozeny(const int fd, struct map_session_data* sd, const char* com
 	if (sscanf(message, "%99[^\n]", match_text) < 1)
 		strcpy(match_text, "");
 	for (j = 0; match_text[j]; j++)
-		match_text[j] = tolower(match_text[j]);
+		match_text[j] = TOLOWER(match_text[j]);
 
 	count = 0;
 	pl_allsd = map_getallusers(&users);
@@ -1989,7 +1949,7 @@ int atcommand_whozeny(const int fd, struct map_session_data* sd, const char* com
 		if ((pl_sd = pl_allsd[i])) {
 				memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
 				for (j = 0; player_name[j]; j++)
-					player_name[j] = tolower(player_name[j]);
+					player_name[j] = TOLOWER(player_name[j]);
 				if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
 					zeny[count]=pl_sd->status.zeny;
 					counted[i]=0;
@@ -3254,7 +3214,7 @@ int atcommand_go(const int fd, struct map_session_data* sd, const char* command,
 		// get possible name of the city and add .gat if not in the name
 		map_name[MAP_NAME_LENGTH-1] = '\0';
 		for (i = 0; map_name[i]; i++)
-			map_name[i] = tolower(map_name[i]);
+			map_name[i] = TOLOWER(map_name[i]);
 		if (strstr(map_name, ".gat") == NULL && strstr(map_name, ".afm") == NULL && strlen(map_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
 			strcat(map_name, ".gat");
 		// try to see if it's a name, and not a number (try a lot of possibilities, write errors and abbreviations too)
@@ -7685,7 +7645,7 @@ int atcommand_partyoption(const int fd, struct map_session_data* sd, const char*
 		return -1;
 	}
 	w1[14] = w2[14] = '\0'; //Assure a proper string terminator.
-	option = (battle_config_switch(w1)?1:0)|(battle_config_switch(w2)?2:0);
+	option = (config_switch(w1)?1:0)|(config_switch(w2)?2:0);
 	
 	//Change item share type.
 	if (option != p->party.item)

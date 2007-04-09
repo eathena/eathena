@@ -485,42 +485,6 @@ int check_ladminip(unsigned int ip) {
 	return 0;
 }
 
-//---------------------------------------------------
-// E-mail check: return 0 (not correct) or 1 (valid).
-//---------------------------------------------------
-int e_mail_check(char *email) {
-	char ch;
-	char* last_arobas;
-
-	// athena limits
-	if (strlen(email) < 3 || strlen(email) > 39)
-		return 0;
-
-	// part of RFC limits (official reference of e-mail description)
-	if (strchr(email, '@') == NULL || email[strlen(email)-1] == '@')
-		return 0;
-
-	if (email[strlen(email)-1] == '.')
-		return 0;
-
-	last_arobas = strrchr(email, '@');
-
-	if (strstr(last_arobas, "@.") != NULL ||
-	    strstr(last_arobas, "..") != NULL)
-		return 0;
-
-	for(ch = 1; ch < 32; ch++)
-		if (strchr(last_arobas, ch) != NULL)
-			return 0;
-
-	if (strchr(last_arobas, ' ') != NULL ||
-	    strchr(last_arobas, ';') != NULL)
-		return 0;
-
-	// all correct
-	return 1;
-}
-
 //-----------------------------------------------
 // Search an account id
 //   (return account index or -1 (if not found))
@@ -3494,20 +3458,6 @@ static int online_data_cleanup(int tid, unsigned int tick, int id, int data)
 	online_db->foreach(online_db, online_data_cleanup_sub);
 	return 0;
 } 
-
-//-------------------------------------------------
-// Return numerical value of a switch configuration
-// 1/0, on/off, english, français, deutsch
-//-------------------------------------------------
-int config_switch(const char *str)
-{
-	if (strcmpi(str, "1") == 0 || strcmpi(str, "on") == 0 || strcmpi(str, "yes") == 0 || strcmpi(str, "oui") == 0 || strcmpi(str, "ja") == 0)
-		return 1;
-	if (strcmpi(str, "0") == 0 || strcmpi(str, "off") == 0 || strcmpi(str, "no") == 0 || strcmpi(str, "non") == 0 || strcmpi(str, "nein") == 0)
-		return 0;
-
-	return atoi(str);
-}
 
 //----------------------------------
 // Reading Lan Support configuration

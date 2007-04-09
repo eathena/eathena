@@ -29,6 +29,10 @@
 #define WIN32
 #endif
 
+#if defined(__MINGW32__) && !defined(MINGW)
+#define MINGW
+#endif
+
 // __APPLE__ is the only predefined macro on MacOS X
 #if defined(__APPLE__)
 #define __DARWIN__
@@ -153,7 +157,8 @@ typedef unsigned long int   ppuint32;
 // integer with exact processor width (and best speed)
 //						size_t already defined in stdio.h
 //////////////////////////////
-#ifdef WIN32 // does not have a signed size_t
+//
+#if defined(WIN32) && !defined(MINGW) // does not have a signed size_t
 //////////////////////////////
 #if defined(_WIN64)	// naive 64bit windows platform
 typedef __int64			ssize_t;
@@ -197,8 +202,14 @@ typedef unsigned long long	uint64;
 #if defined(_MSC_VER) || defined(__BORLANDC__)
 #define strcasecmp			stricmp
 #define strncasecmp			strnicmp
+#define strncmpi			strnicmp
 #define snprintf			_snprintf
 #define vsnprintf			_vsnprintf
+#else
+#define strcmpi				strcasecmp
+#define stricmp				strcasecmp
+#define strncmpi			strncasecmp
+#define strnicmp			strncasecmp
 #endif
 
 // keyword replacement in windows
@@ -229,7 +240,9 @@ typedef char bool;
 // hmm only ints?
 //#define swap(a,b) { int temp=a; a=b; b=temp;} 
 // if using macros then something that is type independent
-#define swap(a,b) ((a == b) || ((a ^= b), (b ^= a), (a ^= b)))
+//#define swap(a,b) ((a == b) || ((a ^= b), (b ^= a), (a ^= b)))
+// Avoid "value computed is not used" warning and generates the same assembly code
+#define swap(a,b) if (a != b) ((a ^= b), (b ^= a), (a ^= b))
 
 #ifndef max
 #define max(a,b) (((a) > (b)) ? (a) : (b))
@@ -267,8 +280,10 @@ typedef char bool;
 
 #if defined(WIN32) || defined(CYGWIN)
 #define RETCODE	"\r\n"	// CR/LF : Windows systems
+/*FIXME: Mac OSX also uses \n, only pre-OSX uses \r
 #elif defined(__APPLE__)
 #define RETCODE "\r"	// CR : Macintosh systems
+*/
 #else
 #define RETCODE "\n"	// LF : Unix systems
 #endif
@@ -294,9 +309,22 @@ typedef char bool;
 
 //////////////////////////////////////////////////////////////////////////
 // Has to be unsigned to avoid problems in some systems
-#define TOLOWER(c) ((char)tolower((unsigned char)(c)))
-#define ISSPACE(c) (isspace((unsigned char)(c)))
-#define ISALPHA(c) (isalpha((unsigned char)(c)))
+// Problems arise when these functions expect an argument in the range [0,256[ and are feed a signed char.
+#include <ctype.h>
 #define ISALNUM(c) (isalnum((unsigned char)(c)))
+#define ISALPHA(c) (isalpha((unsigned char)(c)))
+#define ISCNTRL(c) (iscntrl((unsigned char)(c)))
+#define ISDIGIT(c) (isdigit((unsigned char)(c)))
+#define ISGRAPH(c) (isgraph((unsigned char)(c)))
+#define ISLOWER(c) (islower((unsigned char)(c)))
+#define ISPRINT(c) (isprint((unsigned char)(c)))
+#define ISPUNCT(c) (ispunct((unsigned char)(c)))
+#define ISSPACE(c) (isspace((unsigned char)(c)))
+#define ISUPPER(c) (isupper((unsigned char)(c)))
+#define ISXDIGIT(c) (isxdigit((unsigned char)(c)))
+#define TOASCII(c) (toascii((unsigned char)(c)))
+#define TOLOWER(c) (tolower((unsigned char)(c)))
+#define TOUPPER(c) (toupper((unsigned char)(c)))
+
 
 #endif /* _CBASETYPES_H_ */

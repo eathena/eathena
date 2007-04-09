@@ -10,6 +10,9 @@ CC = gcc -pipe
 MAKE = make
 # MAKE = gmake
 
+# Detecting gcc version
+GCC_VERSION = $(shell $(CC) -v 2>&1 | grep version | cut -d' ' -f3  | cut -d'.' -f1)
+
 OPT = -g
 OPT += -O2
 # OPT += -O3
@@ -23,8 +26,9 @@ OPT += -ffast-math
 # OPT += -fstack-protector
 # OPT += -fomit-frame-pointer
 OPT += -Wall -Wno-sign-compare
-# Uncomment this one if you are using GCC 4.X
-# OPT += -Wno-unused-parameter -Wno-pointer-sign
+ifeq ($(GCC_VERSION), 4)
+	OPT += -Wno-unused-parameter -Wno-pointer-sign
+endif
 # Server Packet Protocol version (also defined in src/common/mmo.h)
 # OPT += -DPACKETVER=8
 # Makes map-wide script variables be saved to SQL instead of TXT files.
@@ -67,14 +71,18 @@ endif
 
 ifeq ($(findstring CYGWIN,$(PLATFORM)), CYGWIN)
    OPT += -DFD_SETSIZE=4096
-   ifeq ($(findstring mingw,$(shell gcc --version)), mingw)
-      IS_MINGW = 1
-      OS_TYPE = -DMINGW
-      LIBS += -L../.. -lwsock32
-   else
-      OS_TYPE = -DCYGWIN
-   endif
+   OS_TYPE = -DCYGWIN
 endif
+
+ifeq ($(findstring mingw,$(shell gcc --version)), mingw)
+   IS_MINGW = 1
+   OS_TYPE = -DMINGW
+   OPT += -DFD_SETSIZE=4096
+#   CFLAGS += -I../zlib
+#   LIBS += -L../../lib
+   LIBS += -lws2_32
+endif
+
 
 ifeq ($(findstring x86_64,$(ARCH)), x86_64)
     OPT += -m32
@@ -129,9 +137,8 @@ endif
 
 conf:
 	cp -r conf-tmpl conf
-	rm -rf conf/.svn conf/*/.svn
 	cp -r save-tmpl save
-	rm -rf save/.svn
+	rm -rf conf/.svn conf/*/.svn save/.svn
 
 common: src/common/GNUmakefile
 	$(MAKE) -C src/$@ $(MKDEF)
