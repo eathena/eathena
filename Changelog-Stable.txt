@@ -4,6 +4,11 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2007/04/11
+	* Merged cleanup of @whogm, it can now be used by normal players to see
+	  which GMs are online, without telling them which is their position (you
+	  only see the position and info of GMs who's level is less or equal to
+	  yours). [Skotlex]
 2007/04/10
 	* Merged the makefile/mingw fix
 	* Merged the vs8 project file update, now no more dynamic linking

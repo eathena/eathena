@@ -1,5 +1,10 @@
 Date	Added
 	
+2007/04/11
+	* Added hom_setting&0x40 to reset the re-use delay when vaporizing a
+	  homunculus (homunc.conf)
+	* Changed the default of "debuff_on_logout" to only remove negative buffs
+	  (status.conf) [Skotlex]
 2007/04/08
 	* Set default vending tax to 2% [Playtester]
 2007/04/05

@@ -938,18 +938,28 @@ static int clif_set0078(struct block_list *bl, struct view_data *vd, unsigned ch
 	}
 	WBUFW(buf,14)=vd->class_;
 	WBUFW(buf,16)=vd->hair_style;  //Required for pets.
+	//18W: Weapon
 	WBUFW(buf,20)=vd->head_bottom;	//Pet armor
 	if (bl->type == BL_NPC && vd->class_ == FLAG_CLASS)
 	{	//The hell, why flags work like this?
 		WBUFL(buf,22)=emblem_id;
 		WBUFL(buf,26)=guild_id;
 	}
+	//22W: shield
+	//24W: Head top
+	//26W: Head mid
+	//28W: Hair color
+	//30W: Clothes color
 	WBUFW(buf,32)=dir;
 	WBUFL(buf,34)=guild_id;
 	WBUFL(buf,38)=emblem_id;
+	//42W: Manner
+	//44B: Karma
+	//45B: Sex
 	WBUFPOS(buf,46,bl->x,bl->y,dir);
 	WBUFB(buf,49)=5;
 	WBUFB(buf,50)=5;
+	//51BL Sit/Stand
 	WBUFW(buf,52)=clif_setlevel(lv);
 	return packet_len(0x78);
 }
@@ -5019,7 +5029,7 @@ int clif_heal(int fd,int type,int val)
 	WFIFOHEAD(fd,packet_len(0x13d));
 	WFIFOW(fd,0)=0x13d;
 	WFIFOW(fd,2)=type;
-	WFIFOW(fd,4)=val;
+	WFIFOW(fd,4)=cap_value(val,0,SHRT_MAX);
 	WFIFOSET(fd,packet_len(0x13d));
 
 	return 0;
@@ -5646,9 +5656,9 @@ int clif_openvending(struct map_session_data *sd,int id,struct vending *vending)
 	nullpo_retr(0, sd);
 
 	fd=sd->fd;
-        WFIFOHEAD(fd, 8+sd->vend_num*22);
+	WFIFOHEAD(fd, 8+sd->vend_num*22);
 	buf = WFIFOP(fd,0);
-	for(i=0,n=0;i<sd->vend_num;i++){
+	for(i = 0, n = 0; i < sd->vend_num; i++) {
 		if (sd->vend_num > 2+pc_checkskill(sd,MC_VENDING)) return 0;
 		WBUFL(buf,8+n*22)=vending[i].value;
 		WBUFW(buf,12+n*22)=(index=vending[i].index)+2;
@@ -5668,7 +5678,7 @@ int clif_openvending(struct map_session_data *sd,int id,struct vending *vending)
 		clif_addcards(WBUFP(buf, 22+n*22), &sd->status.cart[index]);
 		n++;
 	}
-	if(n > 0){
+	if(n > 0) {
 		WBUFW(buf,0)=0x136;
 		WBUFW(buf,2)=8+n*22;
 		WBUFL(buf,4)=id;
@@ -11702,7 +11712,8 @@ void clif_parse_debug(int fd,struct map_session_data *sd)
  * socket.cÇÃdo_parsepacketÇ©ÇÁåƒÇ—èoÇ≥ÇÍÇÈ
  *------------------------------------------
  */
-int clif_parse(int fd) {
+int clif_parse(int fd)
+{
 	int packet_len = 0, cmd, packet_ver, err, dump = 0;
 	TBL_PC *sd;
 	RFIFOHEAD(fd);
@@ -12275,8 +12286,8 @@ static int packetdb_readdb(void)
  *
  *------------------------------------------
  */
-int do_init_clif(void) {
-	
+int do_init_clif(void)
+{
 	clif_config.packet_db_ver = -1; // the main packet version of the DB
 	memset(clif_config.connect_cmd, 0, sizeof(clif_config.connect_cmd)); //The default connect command will be determined after reading the packet_db [Skotlex]
 
