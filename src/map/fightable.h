@@ -156,11 +156,13 @@ public:
 	/// call back function for the skilltimer
 	virtual int skilltimer_func(int tid, unsigned long tick, int id, basics::numptr data)=0;
 
-
 	/// start a skill
 	bool start_skill(ushort skillid, ushort skilllv, uint32 targetid);
 	bool start_skill(ushort skillid, ushort skilllv, ushort x, ushort y, const char*extra=NULL);
 	bool start_skill(ushort skillid, const char*mapname);
+
+	/// check if it can cast the skill (invoked by skillbase when checking validity)
+	bool can_castskill(const skillbase& skill, skillfail_t& errcode) const	{ return true; }
 
 	/// stops skill
 	virtual bool stop_skill();

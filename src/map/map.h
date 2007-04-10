@@ -196,7 +196,9 @@ enum skillfail_t
 	SF_WEAPON	= 0x0006,	//	type==6 "wrong weapon"
 	SF_REDGEM	= 0x0007,	//	type==7 "red jemstone needed"
 	SF_BLUEGEM	= 0x0008,	//	type==8 "blue jemstone needed"
-	SF_WEIGHT	= 0x0009	//	type==9 "overweight"
+	SF_WEIGHT	= 0x0009,	//	type==9 "overweight"
+	SF_FAILED2	= 0x0010,	//	type==10 "skill failed"
+	SF_IGNORED	= 0x0011	//  type==11 ignored
 };
 
 

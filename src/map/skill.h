@@ -31,16 +31,12 @@
 // {my answer: set up everything externally, no extra data at the casting object at all [Hinoko]}
 // {suggest to have the root node of a doubled linked list at the object [Shinomori]}
 //
-// do we assume nothing has been checked before the is_valid function is called?
-// where do we put checks that affect all skills or a particular class of skills
-// {my answer: assume nothing is checked and put global checks in the skillbase::create functions [FlavioJS]}
-// {gonna assume nothing has been checked, global checks are going to skill::is_valid in targetskill/groundskill/mapskill that calls a protected function skill::is_valid_sub that will be used in the skills [FlavioJS]}
-//
 // what will happen to the inf value? currently that value classifies the type 
 // of skill and there are restriction based on the type of skill,
 // like SC_HERMODE blocking supportive skills
 // {my answer: keep the inf value and do a global check [FlavioJS]}
 // {for the moment just adding functions in skillbase or higher up like skill::is_support_skill [FlavioJS]}
+// {i'm going to assume that skill_db.txt will dissapear, information is in the skill object itself [FlavioJS]}
 // 
 /*
 	proposed new flow for skills:
@@ -93,6 +89,24 @@
 	* start (ie by statusid)
 	* end
 	* load/save (actually some status_tobuffer/status_frombuffer equivalents)
+
+//-----------------------------------------------------------------------------
+
+	Flow of skill validity checks:
+	- skills should call the is_valid function of the derived function in it's own is_valid
+	- skillbase::is_valid calls fightable::can_castskill for checks that depend on the type of fightable
+	
+	          fightable::can_castskill         checks that depend on the type of fightable
+	                                                      ||
+	                                                      \/
+	                skillbase                  checks that affect all skills
+	       _____________|_________________                ||
+	      /             |          \      \               \/
+	targetskill   groundskill   mapskill  |    checks specific to the skill type
+	      \_____________|__________/______/               ||
+	                    |                                 \/
+	                 skill_*                   checks specific to the skill
+
 */
 
 
@@ -152,16 +166,15 @@ public:
 	virtual void stop()=0;
 	/// function called to test if skill is valid.
 	/// overload with specific needs
-	virtual bool is_valid(skillfail_t& errcode) const=0;
+	virtual bool is_valid(skillfail_t& errcode) const;
 	/// return object skill id
 	virtual ushort get_skillid() const=0;
 	/// return object skill level
 	virtual ushort get_skilllv() const=0;
 	/// check for doublecast.
-	virtual bool doublecast(unsigned long& timeoffset) const
-	{
-		return false;
-	}
+	virtual bool doublecast(unsigned long& timeoffset) const;
+	/// check if the skill is supportive
+	virtual bool is_supportive() const;
 	// different static constructors
 	static skillbase* create(fightable& caster, ushort skillid, ushort skilllv, uint32 targetid);
 	static skillbase* create(fightable& caster, ushort skillid, ushort skilllv, ushort x, ushort y, const char*extra=NULL);
