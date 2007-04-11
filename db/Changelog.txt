@@ -1,3 +1,5 @@
+04/12
+	* Merged the map_index updates from trunk. [Skotlex]
 04/08
 	* Merged recent fixes to the itemdb (aliza card, healing items)
 	* Fixed Marionette Control's sp cost (should be 100 sp, not 1 sp)
