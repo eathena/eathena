@@ -1,4 +1,6 @@
 04/12
+	* Ganbantein now has a range equal to the level used [Playtester]
+	- only mobs use levels higher than 1
 	* Merged the map_index updates from trunk. [Skotlex]
 04/08
 	* Merged recent fixes to the itemdb (aliza card, healing items)
