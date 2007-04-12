@@ -1,3 +1,9 @@
+04/13
+	* Merged item_db, job_db1, mob_skill_db, pet_db [Playtester]
+	- added some accessoires and fixed Valkyrie Helm
+	- fixed aspd of Fuuma Shuriken
+	- Thanatos, Kiel and Valkyrie now use Ganbantein
+	- added two pets
 04/12
 	* Ganbantein now has a range equal to the level used [Playtester]
 	- only mobs use levels higher than 1
