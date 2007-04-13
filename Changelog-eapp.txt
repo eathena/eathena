@@ -1,5 +1,7 @@
 Date	Added
 
+2007/04/15
+	* A bit more work on skills (AL_HEAL - incomplete). [FlavioJS]
 2007/04/11
 	* Fixed error in showmsg.cpp with VS8
 	  "cannot convert parameter 5 from 'uint32 *__w64 ' to 'LPDWORD'".

@@ -203,6 +203,21 @@ enum skillfail_t
 
 
 
+///////////////////////////////////////////////////////////////////////////////
+/// skill types. (equivalent to INF_*)
+/// TODO is this a bit field or not
+enum skilltype_t
+{
+	ST_PASSIVE = 0x00,// not target, can't be casted
+	ST_ENEMY   = 0x01,// the skill targets an enemy
+	ST_GROUND  = 0x02,// the skill targets the ground
+	ST_SELF    = 0x04,// the skill targets self
+	ST_FRIEND  = 0x10,// the skill targets a friend
+	ST_TRAP    = 0x20 // the skill lays a trap
+};
+
+
+
 enum status_t {	// map_session_data の status_changeの番?テ?ブル
 // MAX_STATUSCHANGE未?はクライアントへの通知あり。
 // 2-2次職の値はなんかめちゃくちゃっぽいので暫定。たぶん?更されます。

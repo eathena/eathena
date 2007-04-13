@@ -35,7 +35,15 @@ public:
 	virtual bool is_valid(skillfail_t& errcode) const
 	{
 		// TODO target skill checks
-		return skillbase::is_valid(errcode);
+		return skillbase::is_valid(errcode) &&
+			// self skills can only target self
+			(this->target_type() != ST_SELF || this->caster.id == this->target_id);
+	}
+	/// what the skill can target
+	/// default: attack skill
+	virtual skilltype_t target_type() const
+	{
+		return ST_ENEMY;
 	}
 };
 
@@ -149,6 +157,11 @@ public:
 	virtual ushort get_skilllv() const
 	{
 		return 1;
+	}
+	/// what the skill can target
+	virtual skilltype_t target_type() const
+	{
+		return ST_FRIEND;
 	}
 };
 
@@ -379,6 +392,11 @@ public:
 	{
 		return SKILLID;
 	}
+	/// what the skill can target
+	virtual skilltype_t target_type() const
+	{
+		return ST_SELF;
+	}
 };
 
 //////////////////////////////////////////
@@ -440,6 +458,11 @@ public:
 	{
 		return SKILLID;
 	}
+	/// what the skill can target
+	virtual skilltype_t target_type() const
+	{
+		return ST_SELF;
+	}
 };
 
 //////////////////////////////////////////
@@ -496,6 +519,11 @@ public:
 	virtual ushort get_skillid() const
 	{
 		return SKILLID;
+	}
+	/// what the skill can target
+	virtual skilltype_t target_type() const
+	{
+		return ST_SELF;
 	}
 };
 
@@ -1230,6 +1258,7 @@ public:
 /// Skillname: AL_WARP
 /// skill ID: 27
 /// TODO class skill_al_warp : public mapskill
+*/
 
 //////////////////////////////////////////
 /// Skillname: AL_HEAL
@@ -1256,44 +1285,26 @@ public:
 	virtual void action(unsigned long tick)
 	{
 		block_list* bl=block_list::from_blid(this->target_id);
-		if(bl)
+		if( bl )
 		{
-			// weapon attack
-			skill_unit unit;
-			struct skill_unit_group *sg = unit.group;
-			map_session_data *sd = this->caster.get_sd();
-			map_session_data *dstsd = this->caster.get_sd();
+			int hp;
+			if( this->skill_lvl > 10 )
+				hp = 9999;
+			else
+				hp = skill_calc_heal(&this->caster, this->skill_lvl);
+
+			// TODO sanctuary?
 
 			if( bl->is_undead() )
-			{// damage
-				int damage = skill_calc_heal(&this->caster, this->skill_lvl);
-			}
-			if (this->target_id != sg->src_id)
 			{
-				int heal = 30 + sg->skill_lv * 5 + ((sg->val1) >> 16) * 5 + ((sg->val2) & 0xfff) / 2;
-				clif_skill_nodamage(unit, bl, AL_HEAL, heal, 1);
-				battle_heal(NULL, &bl, heal, 0, 0);
-				skill_attack(BF_MAGIC,&this->caster,&this->caster,bl,SKILLID,this->skill_lvl,tick,0);
-			} else {
-			
-			// additional effect
-				int heal = skill_calc_heal(&this->caster, this->skill_lvl);
-				int skill;
-				if (this->skill_lvl > 10)
-					heal = 9999; //9999ƒq[ƒ‹
-				if (status_isimmune(bl))
-					heal=0;	// ?‹àå³ƒJ?ƒhiƒq?ƒ‹—Ê‚Oj
-				if (sd) {
-					if (skill = this->caster.skill_check(HP_MEDITATIO)>0)
-						heal += heal * skill * 2 / 100;
-				if (sd && dstsd && sd->status.partner_id == dstsd->status.char_id &&
-					pc_calc_base_job2(sd->status.class_) == 23 && sd->status.sex == 0) //©•ª‚à?Û‚àPCA?Û‚ª©•ª‚Ìƒp?ƒgƒi?A©•ª‚ªƒXƒpƒmƒrA©•ª‚ªŠ‚È‚ç
-					heal = heal*2;	//ƒXƒpƒmƒr‚Ì‰Å‚ª’U“ß‚Éƒq?ƒ‹‚·‚é‚Æ2”{‚É‚È‚é
-				}
-
-				clif_skill_nodamage (*src, *bl, skillid, heal, 1);
+				skill_attack(BF_MAGIC, &this->caster, &this->caster, bl, this->SKILLID, this->skill_lvl, tick, 0);
 			}
-				
+			else
+			{
+				// TODO motion delay, order of packets (update hp and skill use)
+				clif_skill_nodamage(this->caster, *bl, SKILLID, hp, 1);
+				bl->heal(hp);
+			}
 		}
 	}
 	/// function called when stopped
@@ -1304,6 +1315,7 @@ public:
 	/// function called to test if skill is valid.
 	virtual bool is_valid(skillfail_t& errcode) const
 	{
+		// TODO
 		block_list* bl;
 		return	(targetskill::is_valid(errcode) &&
 			(this->caster.skill_check(SKILLID)>0) &&
@@ -1317,8 +1329,14 @@ public:
 	{
 		return SKILLID;
 	}
+	/// what the skill can target
+	virtual skilltype_t target_type() const
+	{
+		return ST_FRIEND;
+	}
 };
 
+/*
 //////////////////////////////////////////
 /// Skillname: AL_INCAGI
 /// skill ID: 29
@@ -2507,6 +2525,7 @@ skillbase* skillbase::create(fightable& caster, ushort skillid, ushort skilllv, 
 	case skill_mg_fireball::SKILLID:	skill = new skill_mg_fireball(caster, skilllv, targetid); break;
 	case skill_mg_firebolt::SKILLID:	skill = new skill_mg_firebolt(caster, skilllv, targetid); break;
 	case skill_mg_lightningbolt::SKILLID:	skill = new skill_mg_lightningbolt(caster, skilllv, targetid); break;
+	case skill_al_heal::SKILLID:	skill = new skill_al_heal(caster, skilllv, targetid); break;
 
 	// add new target skills here
 	}
@@ -2681,65 +2700,11 @@ bool skillbase::doublecast(unsigned long& timeoffset) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// default virtual function stub
 /// check if the skill is supportive
-///
-/// list of supportive skills from trunk 10047
-/// 28, AL_HEAL
-/// 29, AL_INCAGI
-/// 34, AL_BLESSING
-/// 35, AL_CURE
-/// 53, TF_DETOXIFY
-/// 54, ALL_RESURRECTION
-/// 66, PR_IMPOSITIO
-/// 67, PR_SUFFRAGIUM
-/// 68, PR_ASPERSIO
-/// 71, PR_SLOWPOISON
-/// 72, PR_STRECOVERY
-/// 73, PR_KYRIE
-/// 108, BS_REPAIRWEAPON
-/// 138, AS_ENCHANTPOISON
-/// 231, AM_POTIONPITCHER
-/// 234, AM_CP_WEAPON
-/// 235, AM_CP_SHIELD
-/// 236, AM_CP_ARMOR
-/// 237, AM_CP_HELM
-/// 255, CR_DEVOTION
-/// 256, CR_PROVIDENCE
-/// 262, MO_ABSORBSPIRITS
-/// 280, SA_FLAMELAUNCHER
-/// 281, SA_FROSTWEAPON
-/// 282, SA_LIGHTNINGLOADER
-/// 283, SA_SEISMICWEAPON
-/// 361, HP_ASSUMPTIO
-/// 374, PF_SOULCHANGE
-/// 396, CG_MARIONETTE
-/// 445, SL_ALCHEMIST
-/// 446, AM_BERSERKPITCHER
-/// 447, SL_MONK
-/// 448, SL_STAR
-/// 449, SL_SAGE
-/// 450, SL_CRUSADER
-/// 451, SL_SUPERNOVICE
-/// 452, SL_KNIGHT
-/// 453, SL_WIZARD
-/// 454, SL_PRIEST
-/// 455, SL_BARDDANCER
-/// 456, SL_ROGUE
-/// 457, SL_ASSASIN
-/// 458, SL_BLACKSMITH
-/// 460, SL_HUNTER
-/// 461, SL_SOULLINKER
-/// 462, SL_KAIZEL
-/// 463, SL_KAAHI
-/// 464, SL_KAUPE
-/// 465, SL_KAITE
-/// 479, CR_FULLPROTECTION
-/// 494, SL_HIGH
-/// 1015, MO_KITRANSLATION
 bool skillbase::is_supportive() const
 {
-	return false;
+	//return skill_get_inf(this->SKILLID)&INF_SUPPORT_SKILL;
+	return (this->target_type() == ST_FRIEND);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2747,5 +2712,7 @@ bool skillbase::is_supportive() const
 bool skillbase::is_valid(skillfail_t& errcode) const
 {
 	// TODO global checks
-	return this->caster.can_castskill(*this,errcode);
+	return this->caster.can_castskill(*this,errcode) &&
+		this->caster.is_on_map() &&
+		!this->caster.is_dead();
 }

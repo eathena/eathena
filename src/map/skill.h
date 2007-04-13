@@ -93,7 +93,7 @@
 //-----------------------------------------------------------------------------
 
 	Flow of skill validity checks:
-	- skills should call the is_valid function of the derived function in it's own is_valid
+	- skills should call the is_valid function of the derived class in it's own is_valid
 	- skillbase::is_valid calls fightable::can_castskill for checks that depend on the type of fightable
 	
 	          fightable::can_castskill         checks that depend on the type of fightable
@@ -106,6 +106,10 @@
 	      \_____________|__________/______/               ||
 	                    |                                 \/
 	                 skill_*                   checks specific to the skill
+
+//-----------------------------------------------------------------------------
+
+	TODO sp consumption, all sort of checks
 
 */
 
@@ -174,7 +178,9 @@ public:
 	/// check for doublecast.
 	virtual bool doublecast(unsigned long& timeoffset) const;
 	/// check if the skill is supportive
-	virtual bool is_supportive() const;
+	bool is_supportive() const;
+	/// what the skill can target
+	virtual skilltype_t target_type() const=0;
 	// different static constructors
 	static skillbase* create(fightable& caster, ushort skillid, ushort skilllv, uint32 targetid);
 	static skillbase* create(fightable& caster, ushort skillid, ushort skilllv, ushort x, ushort y, const char*extra=NULL);

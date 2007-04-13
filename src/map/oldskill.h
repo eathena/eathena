@@ -259,7 +259,7 @@ void skill_devotion2(block_list *bl,uint32 crusader);
 int skill_devotion3(block_list *bl,uint32 target);
 void skill_devotion_end(map_session_data *md,map_session_data *sd,uint32 target);
 
-#define skill_calc_heal(bl,skill_lv) (( bl->get_lv()+bl->get_int() )/8 *(4+ skill_lv*8))
+#define skill_calc_heal(bl,skill_lv) (( (bl)->get_lv()+(bl)->get_int() )/8 *(4+ (skill_lv)*8))
 
 // ‚»‚Ì‘¼
 int skill_check_cloaking(block_list *bl);
