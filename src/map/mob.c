@@ -973,11 +973,34 @@ int mob_unlocktarget(struct mob_data *md,int tick)
 {
 	nullpo_retr(0, md);
 
-	md->target_id=0;
-	md->state.skillstate=MSS_IDLE;
-	md->next_walktime=tick+rand()%3000+3000;
-	mob_stop_attack(md);
-	md->ud.target = 0;
+	switch (md->state.skillstate) {
+	case MSS_WALK:
+		if (md->ud.walktimer != -1)
+			break;
+		//Because it is not unset when the mob finishes walking.
+		md->state.skillstate = MSS_IDLE;
+	case MSS_IDLE:
+		// Idle skill.
+		if (!(++md->ud.walk_count%IDLE_SKILL_INTERVAL) &&
+			mobskill_use(md, tick, -1))
+			break;
+		//Random walk.
+		if (!md->master_id &&
+			DIFF_TICK(md->next_walktime, tick) <= 0 &&
+			!mob_randomwalk(md,tick))
+			//Delay next random walk when this one failed.
+			md->next_walktime=tick+rand()%3000;
+		break;
+	default:
+		mob_stop_attack(md);
+		if (battle_config.mob_ai&0x8)
+			mob_stop_walking(md,1); //Inmediately stop chasing.
+		md->state.skillstate = MSS_IDLE;
+		md->target_id=0;
+		md->ud.target = 0;
+		md->next_walktime=tick+rand()%3000+3000;
+		break;
+	}
 	return 0;
 }
 /*==========================================
@@ -1128,7 +1151,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			)	{	//Rude attacked
 				if (md->state.attacked_count++ >= RUDE_ATTACKED_COUNT &&
 					!mobskill_use(md, tick, MSC_RUDEATTACKED) && can_move &&
-					unit_escape(bl, abl, rand()%10 +1))
+					!tbl && unit_escape(bl, abl, rand()%10 +1))
 				{	//Escaped.
 					//TODO: Maybe it shouldn't attempt to run if it has another, valid target?
 					md->attacked_id = 0;
@@ -1182,16 +1205,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	if (!tbl) { //No targets available.
 		if (mode&MD_ANGRY && !md->state.aggressive)
 			md->state.aggressive = 1; //Restore angry state when no targets are available.
-
-		if(md->ud.walktimer == -1) {
-			// Idle skill.
-			md->state.skillstate = MSS_IDLE;
-			if (!(++md->ud.walk_count%IDLE_SKILL_INTERVAL) && mobskill_use(md, tick, -1))
-				return 0;
-		}
-		// Random walk.
-		if (can_move && !md->master_id && DIFF_TICK(md->next_walktime, tick) <= 0)
-			mob_randomwalk(md,tick);
+		//This handles triggering idle walk/skill.
+		mob_unlocktarget(md, tick);
 		return 0;
 	}
 	
@@ -1204,7 +1219,6 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		if (md->lootitem == NULL)
 		{	//Can't loot...
 			mob_unlocktarget (md, tick);
-			mob_stop_walking(md,0);
 			return 0;
 		}
 		if (!check_distance_bl(&md->bl, tbl, 1))
@@ -1284,9 +1298,10 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		return 0;
 
 	//Follow up if possible.
-	if (!mob_can_reach(md, tbl, md->min_chase, MSS_RUSH) ||
+	if(!mob_can_reach(md, tbl, md->min_chase, MSS_RUSH) ||
 		!unit_walktobl(&md->bl, tbl, md->status.rhw.range, 2))
 		mob_unlocktarget(md,tick);
+
 	return 0;
 }
 
@@ -2729,8 +2744,10 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				map_search_freecell(&md->bl, md->bl.m, &x, &y, j, j, 3);
 			}
 			md->skillidx = i;
-			flag = unit_skilluse_pos2(&md->bl, x, y, ms[i].skill_id, ms[i].skill_lv,
-				ms[i].casttime, ms[i].cancel);
+			if (!unit_skilluse_pos2(&md->bl, x, y,
+				ms[i].skill_id, ms[i].skill_lv,
+				ms[i].casttime, ms[i].cancel))
+				continue;
 		} else {
 			//Targetted skill
 			switch (ms[i].target) {
@@ -2761,15 +2778,12 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 			}
 			if (!bl) continue;
 			md->skillidx = i;
-			flag = unit_skilluse_id2(&md->bl, bl->id, ms[i].skill_id, ms[i].skill_lv,
-				ms[i].casttime, ms[i].cancel);
+			if (!unit_skilluse_id2(&md->bl, bl->id,
+				ms[i].skill_id, ms[i].skill_lv,
+				ms[i].casttime, ms[i].cancel))
+				continue;
 		}
 		//Skill used. Post-setups... 
-		if (!flag) 
-		{	//Skill failed.
-			md->skillidx = -1;
-			return 0;
-		}
 		if(battle_config.mob_ai&0x200)
 		{ //pass on delay to same skill.
 			for (j = 0; j < md->db->maxskill; j++)
@@ -2780,6 +2794,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 		return 1;
 	}
 	//No skill was used.
+	md->skillidx = -1;
 	return 0;
 }
 /*==========================================

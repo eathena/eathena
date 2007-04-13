@@ -4421,10 +4421,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case AL_TELEPORT:
-		//Should fail when used on top of Land Protector [Skotlex]
-		if (map_getcell(bl->m, bl->x, bl->y, CELL_CHKLANDPROTECTOR))
-			break;
-
 		if(sd) {
 			if (map[bl->m].flag.noteleport) {
 				clif_skill_teleportmessage(sd,0);
@@ -4643,12 +4639,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		{
 			int i;
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			i = status_get_sc_def_mdef(bl);
-			if (i >= 10000 ||
+			i = tstatus->mdef;
+			if (i >= 100 ||
 				(dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) ||
 				tsc == NULL || (tsc->data[SC_SPIRIT].timer != -1 && tsc->data[SC_SPIRIT].val2 == SL_ROGUE) || //Rogue's spirit defends againt dispel.
 			//Fixed & changed to use a proportionnal reduction (no info, but seems far more logical) [DracoRPG]
-				rand()%10000 >= (10000-i)*(50+10*skilllv)/100)
+				rand()%100 >= (100-i)*(50+10*skilllv)/100)
 			{
 				if (sd)
 					clif_skill_fail(sd,skillid,0,0);
@@ -6288,9 +6284,13 @@ int skill_castend_map (struct map_session_data *sd, int skill_num, const char *m
 
 //Simplify skill_failed code.
 #define skill_failed(sd) { sd->menuskill_id = sd->menuskill_lv = 0; }
-
-	if( sd->bl.prev == NULL || pc_isdead(sd) )
+	if(skill_num != sd->menuskill_id) 
 		return 0;
+
+	if( sd->bl.prev == NULL || pc_isdead(sd) ) {
+		skill_failed(sd);
+		return 0;
+	}
 
 	if(sd->sc.opt1 || sd->sc.option&OPTION_HIDE ) {
 		skill_failed(sd);
@@ -6304,11 +6304,10 @@ int skill_castend_map (struct map_session_data *sd, int skill_num, const char *m
 		sd->sc.data[SC_DANCING].timer!=-1 ||
 		sd->sc.data[SC_BERSERK].timer != -1 ||
 		sd->sc.data[SC_MARIONETTE].timer != -1
-	 ))
+	 )) {
+		skill_failed(sd);
 		return 0;
-
-	if( skill_num != sd->menuskill_id) 
-		return 0;
+	}
 
 	if (strlen(map) > MAP_NAME_LENGTH-1)
 	{	//Map_length check, as it is sent by the client and we shouldn't trust it [Skotlex]
