@@ -1,4 +1,7 @@
 04/13
+	* Merged mob_skill_db [Playtester]
+	- fixed mobs not using their idle attack skills
+	- mobs now use Ganbantein on randomtarget
 	* Merged item_db, item_trade and mob_db [Playtester]
 	- updated various etc items
 	- added Kiel Hyre quest items to item_trade
