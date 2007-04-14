@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/04/15
+	* Lowered the amount of Dimiks spawning in Juperos F1 [Playtester]
 2007/04/12
 	* Merged duplicate Rachel Temple entrance into one NPC [Playtester]
 	- we need to add a quest that you need to enter later
