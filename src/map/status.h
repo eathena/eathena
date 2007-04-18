@@ -352,7 +352,7 @@ enum {
 	SI_MOONLIT		= 123,
 	SI_BLEEDING		= 124,
 	SI_JOINTBEAT		= 125,
-	SI_DEVOTION		= 130,
+	SI_BABY			= 130,
 	SI_STEELBODY		= 132,
 	SI_RUN			= 133,
 	SI_BUMP			= 134,
@@ -383,7 +383,7 @@ enum {
 	SI_STAR_COMFORT		= 171,	
 	SI_PRESERVE		= 181,
 	SI_INCSTR	= 182,
-	SI_INTRAVISION	= 184, //WTF?? creates the black shape of 4_m_02 NPC, with NPC talk cursor. Supposedly intravision shows this.
+	SI_INTRAVISION	= 184,
 	SI_DOUBLECAST		= 186,
 	SI_MAXOVERTHRUST	= 188,
 	SI_TAROT		= 191, // the icon allows no doubt... but what is it really used for ?? [DracoRPG]
@@ -620,11 +620,6 @@ int status_isdead(struct block_list *bl);
 int status_isimmune(struct block_list *bl);
 
 int status_get_sc_def(struct block_list *bl, int type);
-#define status_get_sc_def_mdef(bl)	(status_get_sc_def(bl, SP_MDEF1))
-#define status_get_sc_def_vit(bl)	(status_get_sc_def(bl, SP_DEF2))
-#define status_get_sc_def_int(bl)	(status_get_sc_def(bl, SP_MDEF2))
-#define status_get_sc_def_luk(bl)	(status_get_sc_def(bl, SP_LUK))
-
 //Short version, receives rate in 1->100 range, and does not uses a flag setting.
 #define sc_start(bl, type, rate, val1, tick) status_change_start(bl,type,100*(rate),val1,0,0,0,tick,0)
 #define sc_start2(bl, type, rate, val1, val2, tick) status_change_start(bl,type,100*(rate),val1,val2,0,0,tick,0)

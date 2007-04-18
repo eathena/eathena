@@ -1689,10 +1689,10 @@ int clif_changemap(struct map_session_data *sd, short map, int x, int y) {
 }
 
 /*==========================================
- *
- *------------------------------------------
- */
-int clif_changemapserver(struct map_session_data* sd, const char* mapname, int x, int y, int ip, int port) {
+ * Tells the client to connect to another map-server
+ *------------------------------------------*/
+int clif_changemapserver(struct map_session_data* sd, const char* mapname, int x, int y, int ip, int port)
+{
 	int fd;
 
 	nullpo_retr(0, sd);
@@ -3138,6 +3138,31 @@ int clif_changeoption(struct block_list* bl)
 		clif_send(buf,packet_len(0x119),bl,AREA);
 #endif
 
+	return 0;
+}
+
+int clif_changeoption2(struct block_list* bl)
+{
+	unsigned char buf[20];
+	struct status_change *sc;
+	
+	sc = status_get_sc(bl);
+	if (!sc) return 0; //How can an option change if there's no sc?
+
+	WBUFW(buf,0) = 0x28a;
+	WBUFL(buf,2) = bl->id;
+	WBUFL(buf,6) = sc->option;
+	WBUFL(buf,10) = clif_setlevel(status_get_lv(bl));
+	WBUFL(buf,14) = sc->opt3;
+	if(disguised(bl)) {
+		clif_send(buf,packet_len(0x28a),bl,AREA_WOS);
+		WBUFL(buf,2) = -bl->id;
+		clif_send(buf,packet_len(0x28a),bl,SELF);
+		WBUFL(buf,2) = bl->id;
+		WBUFL(buf,6) = OPTION_INVISIBLE;
+		clif_send(buf,packet_len(0x28a),bl,SELF);
+	} else
+		clif_send(buf,packet_len(0x28a),bl,AREA);
 	return 0;
 }
 
@@ -9553,6 +9578,8 @@ void clif_parse_PutItemToCart(int fd,struct map_session_data *sd)
 
 	if (clif_trading(sd))
 		return;
+	if (!pc_iscarton(sd))
+		return;
 	pc_putitemtocart(sd,RFIFOW(fd,2)-2,RFIFOL(fd,4));
 }
 /*==========================================
@@ -9562,6 +9589,8 @@ void clif_parse_PutItemToCart(int fd,struct map_session_data *sd)
 void clif_parse_GetItemFromCart(int fd,struct map_session_data *sd)
 {
 	RFIFOHEAD(fd);
+	if (!pc_iscarton(sd))
+		return;
 	pc_getitemfromcart(sd,RFIFOW(fd,2)-2,RFIFOL(fd,4));
 }
 
@@ -10190,7 +10219,8 @@ void clif_parse_MoveToKafraFromCart(int fd, struct map_session_data *sd) {
 
 	if(sd->vender_id)	
 		return;
-
+	if (!pc_iscarton(sd))
+		return;
 	if (sd->state.storage_flag == 1)
 		storage_storageaddfromcart(sd, RFIFOW(fd,2) - 2, RFIFOL(fd,4));
 	else	if (sd->state.storage_flag == 2)
@@ -10205,6 +10235,8 @@ void clif_parse_MoveFromKafraToCart(int fd, struct map_session_data *sd) {
 	RFIFOHEAD(fd);
 
 	if (sd->vender_id)
+		return;
+	if (!pc_iscarton(sd))
 		return;
 	if (sd->state.storage_flag == 1)
 		storage_storagegettocart(sd, RFIFOW(fd,2)-1, RFIFOL(fd,4));
@@ -11933,7 +11965,7 @@ static int packetdb_readdb(void)
 	int skip_ver = 0;
 	int warned = 0;
 	char *str[64],*p,*str2[64],*p2,w1[64],w2[64];
-	int packet_len_table[0x260] = {
+	int packet_len_table[0x290] = {
 	   10,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
 	    0,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
 	    0,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
@@ -11988,7 +12020,11 @@ static int packetdb_readdb(void)
 	   12, 26,   9, 11, -1, -1, 10,  2, 282, 11,  4, 36, -1,-1,  4,  2,
 	//#0x0240
 	   -1, -1,  -1, -1, -1,  3,  4,  8,  -1,  3, 70,  4,  8,12,  4, 10,
-	    3, 32,  -1,  3,  3,  5,  5,  8,   2,  3, -1, -1,  4,-1,  4,  0
+	    3, 32,  -1,  3,  3,  5,  5,  8,   2,  3, -1, -1,  4,-1,  4,  0,
+		 0,  0,   0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0, 0,  0,  0,
+		 0,  0,   0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0, 0,  0,  0,
+	//#0x0280
+		 0,  0,   0,  0,  0,  0,  0,  0,   0,  0, 18,  0,  0, 0,  0,  0
 	};
 	struct {
 		void (*func)(int, struct map_session_data *);
@@ -12131,7 +12167,7 @@ static int packetdb_readdb(void)
 
 	// Set server packet lengths - packet_db[SERVER]
 	memset(packet_db,0,sizeof(packet_db));
-	for( i = 0; i < 0x260; ++i )
+	for( i = 0; i < sizeof(packet_len_table)/sizeof(packet_len_table[0]); ++i )
 		packet_len(i) = packet_len_table[i];
 
 	sprintf(line, "%s/packet_db.txt", db_path);

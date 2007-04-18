@@ -581,8 +581,9 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 		ShowDebug("pc_authok: Received auth ok for already authorized client (account id %d)!\n", sd->bl.id);
 		return 1;
 	}
-		
+
 	sd->login_id2 = login_id2;
+	memcpy(&sd->status, st, sizeof(*st));
 
 	if (st->sex != sd->status.sex) {
 		clif_authfail_fd(sd->fd, 0);
@@ -599,7 +600,6 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 		clif_authfail_fd(sd->fd, 8); // still recognizes last connection
 		return 1;
 	}
-	memcpy(&sd->status, st, sizeof(*st));
 
 	//Set the map-server used job id. [Skotlex]
 	i = pc_jobid2mapid(sd->status.class_);
@@ -1237,7 +1237,7 @@ static int pc_bonus_autospell_del(struct s_autospell *spell, int max, short id, 
 	return rate;
 }
 
-static int pc_bonus_autospell(struct s_autospell *spell, int max, short id, short lv, short rate, short card_id) {
+static int pc_bonus_autospell(struct s_autospell *spell, int max, short id, short lv, short rate, short flag, short card_id) {
 	int i;
 	if (rate < 0) return //Remove the autobonus.
 		pc_bonus_autospell_del(spell, max, id, lv, -rate, card_id);
@@ -1261,6 +1261,7 @@ static int pc_bonus_autospell(struct s_autospell *spell, int max, short id, shor
 	spell[i].id = id;
 	spell[i].lv = lv;
 	spell[i].rate = rate;
+	spell[i].flag|= flag;
 	spell[i].card_id = card_id;
 	return 1;
 }
@@ -1443,7 +1444,20 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		switch (sd->state.lr_flag)
 		{
 		case 2:
-			sd->arrow_ele=val;
+			switch (sd->status.weapon) {
+				case W_BOW:
+				case W_REVOLVER:
+				case W_RIFLE:
+				case W_SHOTGUN:
+				case W_GATLING:
+				case W_GRENADE:
+					//Become weapon element.
+					status->rhw.ele=val;
+					break;
+				default: //Become arrow element.
+					sd->arrow_ele=val;
+					break;
+			}
 			break;
 		case 1:
 			status->lhw->ele=val;
@@ -2316,11 +2330,11 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 		break;
 	case SP_AUTOSPELL:
 		if(sd->state.lr_flag != 2)
-			pc_bonus_autospell(sd->autospell, MAX_PC_BONUS, type2, type3, val, current_equip_card_id);
+			pc_bonus_autospell(sd->autospell, MAX_PC_BONUS, type2, type3, val, BF_WEAPON|BF_SHORT|BF_LONG, current_equip_card_id);
 		break;
 	case SP_AUTOSPELL_WHENHIT:
 		if(sd->state.lr_flag != 2)
-			pc_bonus_autospell(sd->autospell2, MAX_PC_BONUS, type2, type3, val, current_equip_card_id);
+			pc_bonus_autospell(sd->autospell2, MAX_PC_BONUS, type2, type3, val, BF_WEAPON|BF_SHORT|BF_LONG, current_equip_card_id);
 		break;
 	case SP_HP_LOSS_RATE:
 		if(sd->state.lr_flag != 2) {
@@ -2409,16 +2423,39 @@ int pc_bonus4(struct map_session_data *sd,int type,int type2,int type3,int type4
 	switch(type){
 	case SP_AUTOSPELL:
 		if(sd->state.lr_flag != 2)
-			pc_bonus_autospell(sd->autospell, MAX_PC_BONUS, (val&1?type2:-type2), (val&2?-type3:type3), type4, current_equip_card_id);
+			pc_bonus_autospell(sd->autospell, MAX_PC_BONUS, (val&1?type2:-type2), (val&2?-type3:type3), type4, BF_WEAPON|BF_SHORT|BF_LONG, current_equip_card_id);
 		break;
 
 	case SP_AUTOSPELL_WHENHIT:
 		if(sd->state.lr_flag != 2)
-			pc_bonus_autospell(sd->autospell2, MAX_PC_BONUS, (val&1?type2:-type2), (val&2?-type3:type3), type4, current_equip_card_id);
+			pc_bonus_autospell(sd->autospell2, MAX_PC_BONUS, (val&1?type2:-type2), (val&2?-type3:type3), type4, BF_WEAPON|BF_SHORT|BF_LONG, current_equip_card_id);
 		break;
 	default:
 		if(battle_config.error_log)
 			ShowWarning("pc_bonus4: unknown type %d %d %d %d %d!\n",type,type2,type3,type4,val);
+		break;
+	}
+
+	return 0;
+}
+
+int pc_bonus5(struct map_session_data *sd,int type,int type2,int type3,int type4,int type5,int val)
+{
+	nullpo_retr(0, sd);
+
+	switch(type){
+	case SP_AUTOSPELL:
+		if(sd->state.lr_flag != 2)
+			pc_bonus_autospell(sd->autospell, MAX_PC_BONUS, (val&1?type2:-type2), (val&2?-type3:type3), type4, type5, current_equip_card_id);
+		break;
+
+	case SP_AUTOSPELL_WHENHIT:
+		if(sd->state.lr_flag != 2)
+			pc_bonus_autospell(sd->autospell2, MAX_PC_BONUS, (val&1?type2:-type2), (val&2?-type3:type3), type4, type5, current_equip_card_id);
+		break;
+	default:
+		if(battle_config.error_log)
+			ShowWarning("pc_bonus5: unknown type %d %d %d %d %d %d!\n",type,type2,type3,type4,type5,val);
 		break;
 	}
 
@@ -2789,9 +2826,9 @@ int pc_dropitem(struct map_session_data *sd,int n,int amount)
 		return 0;
 
 	if(sd->status.inventory[n].nameid <= 0 ||
-		sd->status.inventory[n].amount < amount ||
-		sd->trade_partner != 0 || sd->vender_id != 0 ||
 		sd->status.inventory[n].amount <= 0 ||
+		sd->status.inventory[n].amount < amount ||
+		sd->state.trading || sd->vender_id != 0 ||
 		!sd->inventory_data[n] //pc_delitem would fail on this case.
 		)
 		return 0;
@@ -3374,10 +3411,10 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 			sd->regen.state.gc = 0;
 	}
 
-	if(m<0){
-		if(sd->mapindex){
+	if(m<0) {
+		if(sd->mapindex) {
 			int ip,port;
-			if(map_mapname2ipport(mapindex,&ip,&port)==0){
+			if(map_mapname2ipport(mapindex,&ip,&port)==0) {
 				unit_remove_map(&sd->bl,clrtype);
 				sd->mapindex = mapindex;
 				sd->bl.x=x;

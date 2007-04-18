@@ -654,7 +654,7 @@ struct map_session_data {
 	// zeroed arrays end here.
 	// zeroed structures start here
 	struct s_autospell{
-		short id, lv, rate, card_id;
+		short id, lv, rate, card_id, flag;
 	} autospell[MAX_PC_BONUS], autospell2[MAX_PC_BONUS];
 	struct s_addeffect{
 		short id, rate, arrow_rate;
@@ -825,8 +825,8 @@ struct npc_data {
 	short n;
 	short class_;
 	short speed;
-	unsigned char name[NAME_LENGTH];
-	unsigned char exname[NAME_LENGTH];
+	char name[NAME_LENGTH];
+	char exname[NAME_LENGTH];
 	int chat_id;
 	unsigned int next_walktime;
 
@@ -1022,7 +1022,7 @@ enum { ATK_LUCKY=1,ATK_FLEE,ATK_DEF};	// ˆÍ‚Ü‚êƒyƒiƒ‹ƒeƒBŒvZ—p
 struct map_data {
 	char name[MAP_NAME_LENGTH];
 	unsigned short index; //Index is the map index used by the mapindex* functions.
-	unsigned char *gat;	// NULL‚È‚ç‰º‚Ìmap_data_other_server‚Æ‚µ‚Äˆµ‚¤
+	unsigned char *gat;	// If this is NULL‚ the map is not on this map-server
 	unsigned char *cell; //Contains temporary cell data that is set/unset on tiles.
 #ifdef CELL_NOSTACK
 	unsigned char *cell_bl; //Holds amount of bls in any given cell.
@@ -1238,8 +1238,8 @@ enum {
 struct chat_data {
 	struct block_list bl;
 
-	unsigned char pass[8+1];   /* password */
-	unsigned char title[60+1]; /* room title */
+	char pass[8+1];   /* password */
+	char title[60+1]; /* room title */
 	unsigned char limit;     /* join limit */
 	unsigned char trigger;
 	unsigned char users;     /* current users */
@@ -1284,9 +1284,7 @@ int map_getusers(void);
 // blockíœŠÖ˜A
 int map_freeblock(struct block_list *bl);
 int map_freeblock_lock(void);
-//int map_freeblock_unlock(void);
-int map_freeblock_unlock_sub (char *file, int lineno);
-#define map_freeblock_unlock() map_freeblock_unlock_sub (__FILE__, __LINE__)
+int map_freeblock_unlock(void);
 // blockŠÖ˜A
 int map_addblock_sub(struct block_list *, int);
 int map_delblock_sub(struct block_list *, int);
@@ -1345,7 +1343,6 @@ void map_foreachpc(int (*func)(DBKey,void*,va_list),...);
 int map_foreachiddb(int (*)(DBKey,void*,va_list),...);
 void map_addnickdb(struct map_session_data *);
 struct map_session_data * map_nick2sd(const char*);
-int compare_item(struct item *a, struct item *b);
 
 // ‚»‚Ì‘¼
 int map_check_dir(int s_dir,int t_dir);
@@ -1402,10 +1399,8 @@ extern char *map_server_dns;
 
 #ifndef TXT_ONLY
 
-// MySQL
-#ifdef __WIN32
-#include <my_global.h>
-#include <my_sys.h>
+#ifdef _WIN32
+#include <windows.h> // SOCKET
 #endif
 #include <mysql.h>
 

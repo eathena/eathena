@@ -1,3 +1,7 @@
+04/19
+	* Merged inf2&0x1000 update where it means "do not cast on enemies".
+	* Merged most of the mob_db (mob skills have a range of 9)
+	* Merged correct duration of Land Protector. [Skotlex]
 04/13
 	* Merged mob_skill_db [Playtester]
 	- fixed mobs not using their idle attack skills

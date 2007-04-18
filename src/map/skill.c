@@ -1413,13 +1413,15 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	//Reports say that autospell effects get triggered on skills and pretty much everything including splash attacks. [Skotlex]
 	//But Gravity Patched this silently, and it now seems to trigger only on
 	//weapon attacks.
-	if(sd && !status_isdead(bl) && src != bl && attack_type&BF_WEAPON
-//		!(skillid && skill_get_nk(skillid)&NK_NO_DAMAGE)
-	) {
+	if(sd && !status_isdead(bl) && src != bl && sd->autospell[0].id) {
 		struct block_list *tbl;
 		struct unit_data *ud;
 		int i, skilllv;
 		for (i = 0; i < MAX_PC_BONUS && sd->autospell[i].id; i++) {
+
+			if(!(sd->autospell[i].flag&attack_type&BF_RANGEMASK &&
+				sd->autospell[i].flag&attack_type&BF_WEAPONMASK))
+				continue; //Attack type or range type did not match.
 
 			skill = (sd->autospell[i].id > 0) ? sd->autospell[i].id : -sd->autospell[i].id;
 
@@ -1582,13 +1584,18 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	}
 
 	//Trigger counter-spells to retaliate against damage causing skills. [Skotlex]
-	if(dstsd && !status_isdead(bl) && src != bl && !(skillid && skill_get_nk(skillid)&NK_NO_DAMAGE)) 
+	if(dstsd && !status_isdead(bl) && src != bl && dstsd->autospell2[0].id &&
+		!(skillid && skill_get_nk(skillid)&NK_NO_DAMAGE)) 
 	{
 		struct block_list *tbl;
 		struct unit_data *ud;
 		int i, skillid, skilllv, rate;
 
 		for (i = 0; i < MAX_PC_BONUS && dstsd->autospell2[i].id; i++) {
+
+			if(!(dstsd->autospell2[i].flag&attack_type&BF_RANGEMASK &&
+				dstsd->autospell2[i].flag&attack_type&BF_WEAPONMASK))
+				continue; //Attack type or range type did not match.
 
 			skillid = (dstsd->autospell2[i].id > 0) ? dstsd->autospell2[i].id : -dstsd->autospell2[i].id;
 			skilllv = dstsd->autospell2[i].lv?dstsd->autospell2[i].lv:1;
@@ -1924,12 +1931,28 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			if (sc && !sc->count)
 				sc = NULL; //Don't need it.
 			//Spirit of Wizard blocks bounced back spells.
-			if (sc && sc->data[SC_SPIRIT].timer != -1 && sc->data[SC_SPIRIT].val2 == SL_WIZARD
-				&& !(tsd && (type = pc_search_inventory (tsd, 7321)) < 0))
+			if (sc && sc->data[SC_SPIRIT].timer != -1 &&
+				sc->data[SC_SPIRIT].val2 == SL_WIZARD)
 			{
-				if (tsd) pc_delitem(tsd, type, 1, 0);
-				dmg.damage = dmg.damage2 = 0;
-				dmg.dmg_lv = ATK_FLEE;
+				//It should only consume once per skill casted. Val3 is the skill
+				//id and val4 is the ID of the damage src, this should account for
+				//ground spells (and single target spells will be completed on
+				//castend_id) [Skotlex]
+				if (tsd && !(
+					sc->data[SC_SPIRIT].val3 == skillid &&
+				  	sc->data[SC_SPIRIT].val4 == dsrc->id)
+				) {	//Check if you have stone to consume.
+				  	type = pc_search_inventory (tsd, 7321);
+					if (type >= 0)
+						pc_delitem(tsd, type, 1, 0);
+				} else
+					type = 0;
+				if (type >= 0) {
+					dmg.damage = dmg.damage2 = 0;
+					dmg.dmg_lv = ATK_FLEE;
+					sc->data[SC_SPIRIT].val3 = skillid;
+					sc->data[SC_SPIRIT].val4 = dsrc->id;
+				}
 			}
 		}
 	
@@ -2574,8 +2597,14 @@ static int skill_timerskill (int tid, unsigned int tick, int id, int data)
 						skill_addtimerskill(src,tick+125,target->id,0,0,skl->skill_id,skl->skill_lv,skl->type-1,skl->flag);
 					} else {
 						struct status_change *sc = status_get_sc(src);
-						if(sc && sc->data[SC_MAGICPOWER].timer != -1)
-							status_change_end(src,SC_MAGICPOWER,-1);
+						if(sc) {
+							if(sc->data[SC_MAGICPOWER].timer != -1)
+								status_change_end(src,SC_MAGICPOWER,-1);
+							if(sc->data[SC_SPIRIT].timer != -1 &&
+								sc->data[SC_SPIRIT].val2 == SL_WIZARD &&
+								sc->data[SC_SPIRIT].val3 == skl->skill_id)
+								sc->data[SC_SPIRIT].val3 = 0; //Clear bounced spell check.
+						}
 					}
 					break;
 				default:
@@ -3442,11 +3471,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				{
 					int exp = 0,jexp = 0;
 					int lv = dstsd->status.base_level - sd->status.base_level, jlv = dstsd->status.job_level - sd->status.job_level;
-					if(lv > 0) {
+					if(lv > 0 && pc_nextbaseexp(dstsd)) {
 						exp = (int)((double)dstsd->status.base_exp * (double)lv * (double)battle_config.resurrection_exp / 1000000.);
 						if (exp < 1) exp = 1;
 					}
-					if(jlv > 0) {
+					if(jlv > 0 && pc_nextjobexp(dstsd)) {
 						jexp = (int)((double)dstsd->status.job_exp * (double)lv * (double)battle_config.resurrection_exp / 1000000.);
 						if (jexp < 1) jexp = 1;
 					}
@@ -5651,14 +5680,19 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 			if(inf&INF_ATTACK_SKILL ||
 				(inf&INF_SELF_SKILL && inf2&INF2_NO_TARGET_SELF)) //Combo skills
 				inf = BCT_ENEMY; //Offensive skill.
+			else if(inf2&INF2_NO_ENEMY)
+				inf = BCT_NOENEMY;
 			else
 				inf = 0;
 
 			if(inf2 & (INF2_PARTY_ONLY|INF2_GUILD_ONLY) && src != target)
+			{
 				inf |= 	
 					(inf2&INF2_PARTY_ONLY?BCT_PARTY:0)|
-					(inf2&INF2_GUILD_ONLY?BCT_GUILD:0)|
-					(inf2&INF2_ALLOW_ENEMY?BCT_ENEMY:0);
+					(inf2&INF2_GUILD_ONLY?BCT_GUILD:0);
+				//Remove neutral targets (but allow enemy if skill is designed to be so)
+				inf &= ~BCT_NEUTRAL;
+			}
 
 			if (inf && battle_check_target(src, target, inf) <= 0)
 				break;
@@ -5721,8 +5755,16 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 			skill_castend_damage_id(src,target,ud->skillid,ud->skilllv,tick,0);
 
 		sc = status_get_sc(src);
-		if(sc && sc->count && sc->data[SC_MAGICPOWER].timer != -1 && ud->skillid != HW_MAGICPOWER && ud->skillid != WZ_WATERBALL)
-			status_change_end(src,SC_MAGICPOWER,-1);		
+		if(sc && sc->count) {
+		  	if(sc->data[SC_MAGICPOWER].timer != -1 &&
+				ud->skillid != HW_MAGICPOWER && ud->skillid != WZ_WATERBALL)
+				status_change_end(src,SC_MAGICPOWER,-1);
+			if(sc->data[SC_SPIRIT].timer != -1 &&
+				sc->data[SC_SPIRIT].val2 == SL_WIZARD &&
+				sc->data[SC_SPIRIT].val3 == ud->skillid &&
+			  	ud->skillid != WZ_WATERBALL)
+				sc->data[SC_SPIRIT].val3 = 0; //Clear bounced spell check.
+		}
 
 		if (ud->skilltimer == -1) {
 			if(md) md->skillidx = -1;
@@ -6731,9 +6773,8 @@ struct skill_unit_group *skill_unitsetting (struct block_list *src, int skillid,
 		{
 		int element[5]={ELE_WIND,ELE_DARK,ELE_POISON,ELE_WATER,ELE_FIRE};
 
-		if (sd)
-			val1=sd->arrow_ele;
-		else
+		val1 = status->rhw.ele;
+		if (!val1)
 			val1=element[rand()%5];
 
 		switch (val1)

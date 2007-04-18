@@ -37,7 +37,7 @@ struct view_data* npc_get_viewdata(int class_);
 int npc_chat_sub(struct block_list *bl, va_list ap);
 int npc_event_dequeue(struct map_session_data *sd);
 int npc_event_timer(int tid,unsigned int tick,int id,int data);
-int npc_event(struct map_session_data *sd,const unsigned char *npcname,int);
+int npc_event(struct map_session_data *sd, const unsigned char *eventname, int mob_kill);
 int npc_timer_event(const unsigned char *eventname);				// Added by RoVeRT
 int npc_command(struct map_session_data* sd, const char* npcname, const char* command);
 int npc_touch_areanpc(struct map_session_data *,int,int,int);
@@ -63,9 +63,9 @@ struct npc_data* npc_name2id(const char *name);
 
 int npc_get_new_npc_id(void);
 
-void npc_addsrcfile(char *);
-void npc_delsrcfile(char *);
-void npc_parsesrcfile(char *);
+void npc_addsrcfile(const char* name);
+void npc_delsrcfile(const char* name);
+void npc_parsesrcfile(const char* name);
 int do_final_npc(void);
 int do_init_npc(void);
 int npc_event_do_oninit(void);
@@ -86,8 +86,6 @@ int npc_unload(struct npc_data *nd);
 int npc_reload(void);
 void npc_read_event_script(void);
 int npc_script_event(TBL_PC* sd, int type);
-
-extern char *current_file;
 
 struct npc_data *fake_nd;
 

@@ -1,23 +1,15 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <time.h>
-
 #include "../common/cbasetypes.h"
 #include "../common/timer.h"
 #include "../common/nullpo.h"
 #include "../common/malloc.h"
-#include "../common/grfio.h"
 #include "../common/showmsg.h"
 #include "../common/ers.h"
 #include "../common/db.h"
 #include "map.h"
 #include "log.h"
-#include "npc.h"
 #include "clif.h"
 #include "intif.h"
 #include "pc.h"
@@ -29,16 +21,23 @@
 #include "battle.h"
 #include "skill.h"
 #include "unit.h"
+#include "npc.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <time.h>
 
 
+
+// linked list of npc source files
 struct npc_src_list {
-	struct npc_src_list * next;
-//	struct npc_src_list * prev; //[Shinomori]
-	char name[4];
+	struct npc_src_list* next;
+	char name[4];// dynamic array, the structure is allocated with extra bytes (string length)
 };
+static struct npc_src_list* npc_src_files=NULL;
 
-static struct npc_src_list *npc_src_first=NULL;
-static struct npc_src_list *npc_src_last=NULL;
 static int npc_id=START_NPC_NUM;
 static int npc_warp=0;
 static int npc_shop=0;
@@ -46,7 +45,7 @@ static int npc_script=0;
 static int npc_mob=0;
 static int npc_delay_mob=0;
 static int npc_cache_mob=0;
-char *current_file = NULL;
+const char *current_file = NULL;
 int npc_get_new_npc_id(void){ return npc_id++; }
 
 static struct dbt *ev_db;
@@ -63,11 +62,11 @@ static struct eri *timer_event_ers; //For the npc timer data. [Skotlex]
 //For holding the view data of npc classes. [Skotlex]
 static struct view_data npc_viewdb[MAX_NPC_CLASS];
 
-static struct
+static struct script_event_s
 {	//Holds pointers to the commonly executed scripts for speedup. [Skotlex]
 	struct npc_data *nd;
 	struct event_data *event[UCHAR_MAX];
-	unsigned char *event_name[UCHAR_MAX];
+	const char *event_name[UCHAR_MAX];
 	unsigned char event_count;
 } script_event[NPCE_MAX];
 
@@ -320,7 +319,7 @@ int npc_event_sub(struct map_session_data *, struct event_data *, const unsigned
  */
 int npc_event_doall_sub(DBKey key,void *data,va_list ap)
 {
-	unsigned char*p = key.str;
+	const char*p = key.str;
 	struct event_data *ev;
 	int *c;
 	int rid;
@@ -362,7 +361,7 @@ int npc_event_doall_id(const unsigned char *name, int rid)
 
 int npc_event_do_sub(DBKey key,void *data,va_list ap)
 {
-	unsigned char *p = key.str;
+	const char *p = key.str;
 	struct event_data *ev;
 	int *c;
 	const unsigned char *name;
@@ -511,7 +510,7 @@ int npc_cleareventtimer(struct npc_data *nd)
 
 int npc_do_ontimer_sub(DBKey key,void *data,va_list ap)
 {
-	unsigned char *p = key.str;
+	const char *p = key.str;
 	struct event_data *ev = (struct event_data *)data;
 	int *c = va_arg(ap,int *);
 //	struct map_session_data *sd=va_arg(ap,struct map_session_data *);
@@ -1179,7 +1178,7 @@ int npc_click(struct map_session_data *sd,struct npc_data *nd)
 	if ((nd = npc_checknear(sd,&nd->bl)) == NULL)
 		return 1;
 	//Hidden/Disabled npc.
-	if (nd->class_ < 0 || nd->sc.option&OPTION_INVISIBLE)
+	if (nd->class_ < 0 || nd->sc.option&(OPTION_INVISIBLE|OPTION_HIDE))
 		return 1;
 
 	switch(nd->bl.subtype) {
@@ -1205,10 +1204,9 @@ int npc_scriptcont(struct map_session_data *sd,int id)
 	if( id != sd->npc_id ){
 		TBL_NPC* nd_sd=(TBL_NPC*)map_id2bl(sd->npc_id);
 		TBL_NPC* nd=(TBL_NPC*)map_id2bl(id);
-		if( nd_sd && nd )
-			ShowWarning("npc_scriptcont: %s (sd->npc_id=%d) is not %s (id=%d).\n", nd_sd->name, sd->npc_id, nd->name, id);
-		else
-			ShowDebug("npc_scriptcont: Invalid npc ID, npc_id variable not cleared? %x (sd->npc_id=%d) is not %x (id=%d)\n", (int)nd_sd, sd->npc_id, (int)nd, id);
+		ShowDebug("npc_scriptcont: %s (sd->npc_id=%d) is not %s (id=%d).\n",
+			nd_sd?(char*)nd_sd->name:"'Unknown NPC'", (int)sd->npc_id,
+		  	nd?(char*)nd->name:"'Unknown NPC'", (int)id);
 		return 1;
 	}
 	
@@ -1575,77 +1573,81 @@ int npc_unload(struct npc_data *nd)
 // 初期化関係
 //
 
-/*==========================================
- * 読み込むnpcファイルのクリア
- *------------------------------------------
- */
-void npc_clearsrcfile (void)
-{
-	struct npc_src_list *p = npc_src_first, *p2;
+//
+// NPC Source Files
+//
 
-	while (p) {
-		p2 = p;
-		p = p->next;
-		aFree(p2);
+/// Clears the npc source file list
+static void npc_clearsrcfile(void)
+{
+	struct npc_src_list* file = npc_src_files;
+	struct npc_src_list* file_tofree;
+
+	while( file != NULL )
+	{
+		file_tofree = file;
+		file = file->next;
+		aFree(file_tofree);
 	}
-	npc_src_first = NULL;
-	npc_src_last = NULL;
+	npc_src_files = NULL;
 }
-/*==========================================
- * 読み込むnpcファイルの追加
- *------------------------------------------
- */
-void npc_addsrcfile (char *name)
-{
-	struct npc_src_list *nsl;
 
-	if (strcmpi(name, "clear") == 0) {
+/// Adds a npc source file (or removes all)
+void npc_addsrcfile(const char* name)
+{
+	struct npc_src_list* file;
+	struct npc_src_list* file_prev = NULL;
+
+	if( strcmpi(name, "clear") == 0 )
+	{
 		npc_clearsrcfile();
 		return;
 	}
 
 	// prevent multiple insert of source files
-	nsl = npc_src_first;
-	while (nsl)
-	{   // found the file, no need to insert it again
-		if (0 == strcmp(name, nsl->name))
-			return;
-		nsl = nsl->next;
+	file = npc_src_files;
+	while( file != NULL )
+	{
+		if( strcmp(name, file->name) == 0 )
+			return;// found the file, no need to insert it again
+		file_prev = file;
+		file = file->next;
 	}
 
-	nsl = (struct npc_src_list *) aMalloc (sizeof(*nsl) + strlen(name));
-	nsl->next = NULL;
-	strncpy(nsl->name, name, strlen(name) + 1);
-	if (npc_src_first == NULL)
-		npc_src_first = nsl;
-	if (npc_src_last)
-		npc_src_last->next = nsl;
-	npc_src_last = nsl;
+	file = (struct npc_src_list*)aMalloc(sizeof(struct npc_src_list) + strlen(name));
+	file->next = NULL;
+	strncpy(file->name, name, strlen(name) + 1);
+	if( file_prev == NULL )
+		npc_src_files = file;
+	else
+		file_prev->next = file;
 }
-/*==========================================
- * 読み込むnpcファイルの削除
- *------------------------------------------
- */
-void npc_delsrcfile (char *name)
-{
-	struct npc_src_list *p = npc_src_first, *pp = NULL, **lp = &npc_src_first;
 
-	if (strcmpi(name, "all") == 0) {
+/// Removes a npc source file (or all)
+void npc_delsrcfile(const char* name)
+{
+	struct npc_src_list* file = npc_src_files;
+	struct npc_src_list* file_prev = NULL;
+
+	if( strcmpi(name, "all") == 0 )
+	{
 		npc_clearsrcfile();
 		return;
 	}
 
-	while (p) {
-		if (strcmp(p->name, name) == 0) {
-			*lp = p->next;
-			if (npc_src_last == p)
-				npc_src_last = pp;
-			aFree(p);
+	while( file != NULL )
+	{
+		if( strcmp(file->name, name) == 0 )
+		{
+			if( npc_src_files == file )
+				npc_src_files = file->next;
+			else
+				file_prev->next = file->next;
+			aFree(file);
 			break;
 		}
-		lp = &p->next;
-		pp = p;
-		p = p->next;
+		file_prev = file;
+		file = file->next;
 	}
 }
 
@@ -2783,7 +2785,7 @@ static int npc_parse_mapcell (char *w1, char *w2, char *w3, char *w4)
 	return 0;
 }
 
-void npc_parsesrcfile (char *name)
+void npc_parsesrcfile(const char* name)
 {
 	int m, lines = 0;
 	char line[2048];
@@ -2864,6 +2866,7 @@ void npc_parsesrcfile (char *name)
 		}
 	}
 	fclose(fp);
+	current_file = NULL;
 
 	return;
 }
@@ -2892,10 +2895,10 @@ int npc_script_event(TBL_PC* sd, int type) {
 
 static int npc_read_event_script_sub(DBKey key,void *data,va_list ap)
 {
-	unsigned char *p = key.str;
+	const char *p = key.str;
 	unsigned char *name = va_arg(ap,unsigned char *);
 	struct event_data **event_buf = va_arg(ap,struct event_data**);
-	unsigned char **event_name = va_arg(ap,unsigned char **);
+	const char **event_name = va_arg(ap,const char **);
 	unsigned char *count = va_arg(ap,char *);;
 
 	if (*count >= UCHAR_MAX) return 0;
@@ -3010,7 +3013,7 @@ int npc_reload (void)
 	npc_warp = npc_shop = npc_script = 0;
 	npc_mob = npc_cache_mob = npc_delay_mob = 0;
 
-	for (nsl = npc_src_first; nsl; nsl = nsl->next) {
+	for (nsl = npc_src_files; nsl; nsl = nsl->next) {
 		npc_parsesrcfile(nsl->name);
 		if (script_config.verbose_mode) {
 			printf("\r");
@@ -3032,14 +3035,14 @@ int npc_reload (void)
 		fflush(stdout);
 	}
 	printf("\r");
-	ShowInfo ("Done loading '"CL_WHITE"%d"CL_RESET"' NPCs:%30s\n\t-'"
-		CL_WHITE"%d"CL_RESET"' Warps\n\t-'"
-		CL_WHITE"%d"CL_RESET"' Shops\n\t-'"
-		CL_WHITE"%d"CL_RESET"' Scripts\n\t-'"
-		CL_WHITE"%d"CL_RESET"' Mobs\n\t-'"
-		CL_WHITE"%d"CL_RESET"' Mobs Cached\n\t-'"
-		CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
-		npc_id - npc_new_min, "", npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
+	ShowInfo ("Done loading '"CL_WHITE"%d"CL_RESET"' NPCs:\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Warps\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Shops\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Scripts\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs Cached\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
+		npc_id - npc_new_min, npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
 
 	//Re-read the NPC Script Events cache.
 	npc_read_event_script();
@@ -3123,17 +3126,17 @@ static void npc_debug_warps(void)
  */
 int do_init_npc(void)
 {
-	struct npc_src_list *nsl;
-	time_t last_time = time(0);
-	int busy, i;
+	struct npc_src_list *file;
+	time_t last_time = time(NULL);
+	int busy = 0;
+	int i;
 	char c = '-';
 
 	//Stock view data for normal npcs.
 	memset(&npc_viewdb, 0, sizeof(npc_viewdb));
 	npc_viewdb[0].class_ = INVISIBLE_CLASS; //Invisible class is stored here.
-	for (busy = 1; busy < MAX_NPC_CLASS; busy++) 
-		npc_viewdb[busy].class_ = busy;
-	busy = 0;
+	for( i = 1; i < MAX_NPC_CLASS; i++ ) 
+		npc_viewdb[i].class_ = i;
 
 	// comparing only the first 24 chars of labels that are 50 chars long isn't that nice
 	// will cause "duplicated" labels where actually no dup is...
@@ -3143,16 +3146,17 @@ int do_init_npc(void)
 	memset(&ev_tm_b, -1, sizeof(ev_tm_b));
 	timer_event_ers = ers_new(sizeof(struct timer_event_data));
 
-	for (nsl = npc_src_first; nsl; nsl = nsl->next) {
-		npc_parsesrcfile(nsl->name);
-		current_file = NULL;
+	for( file = npc_src_files; file != NULL; file = file->next) {
+		npc_parsesrcfile(file->name);
 		printf("\r");
 		if (script_config.verbose_mode)
-			ShowStatus ("Loading NPCs... %-53s", nsl->name);
-		else {
+			ShowStatus("Loading NPCs... %-53s", file->name);
+		else
+		{
 			ShowStatus("Loading NPCs... Working: ");
-			if (last_time != time(0)) {
-				last_time = time(0);
+			if (last_time != time(NULL))
+			{// change character at least every second
+				last_time = time(NULL);
 				switch(busy) {
 					case 0: c='\\'; busy++; break;
 					case 1: c='|'; busy++; break;
@@ -3165,37 +3169,31 @@ int do_init_npc(void)
 		fflush(stdout);
 	}
 	printf("\r");
-	ShowInfo ("Done loading '"CL_WHITE"%d"CL_RESET"' NPCs:%30s\n\t-'"
-		CL_WHITE"%d"CL_RESET"' Warps\n\t-'"
-		CL_WHITE"%d"CL_RESET"' Shops\n\t-'"
-		CL_WHITE"%d"CL_RESET"' Scripts\n\t-'"
-		CL_WHITE"%d"CL_RESET"' Mobs\n\t-'"
-		CL_WHITE"%d"CL_RESET"' Mobs Cached\n\t-'"
-		CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
-		npc_id - START_NPC_NUM, "", npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
+	ShowInfo ("Done loading '"CL_WHITE"%d"CL_RESET"' NPCs:\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Warps\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Shops\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Scripts\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs Cached\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
+		npc_id - START_NPC_NUM, npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
 
 	memset(script_event, 0, sizeof(script_event));
 	npc_read_event_script();
 	//Debug function to locate all endless loop warps.
 	if (battle_config.warp_point_debug)
 		npc_debug_warps();
-	
+
 	add_timer_func_list(npc_event_timer,"npc_event_timer");
 	add_timer_func_list(npc_event_do_clock,"npc_event_do_clock");
 	add_timer_func_list(npc_timerevent,"npc_timerevent");
 
 	// Init dummy NPC
-	fake_nd = (struct npc_data *)aCalloc(sizeof(struct npc_data),1);
-	fake_nd->bl.prev = fake_nd->bl.next = NULL;
+	fake_nd = (struct npc_data *)aCalloc(1,sizeof(struct npc_data));
 	fake_nd->bl.m = -1;
-	fake_nd->bl.x = 0;
-	fake_nd->bl.y = 0;
 	fake_nd->bl.id = npc_get_new_npc_id();
 	fake_nd->class_ = -1;
 	fake_nd->speed = 200;
-	fake_nd->u.scr.script = NULL;
-	fake_nd->u.scr.src_id = 0;
-	fake_nd->chatdb = NULL;
 	for (i = 0; i < MAX_EVENTTIMER; i++)
 		fake_nd->eventtimer[i] = -1;
 	strcpy(fake_nd->name,"FAKE_NPC");

@@ -20,6 +20,7 @@
 #include "../common/showmsg.h"
 #include "../common/version.h"
 #include "../common/nullpo.h"
+#include "../common/strlib.h"
 
 #include "map.h"
 #include "chrif.h"
@@ -263,16 +264,13 @@ int map_freeblock_lock (void)
  * バッファにたまっていたblockを全部削除
  *------------------------------------------
  */
-//int map_freeblock_unlock (void)
-int map_freeblock_unlock_sub(char *file, int lineno)
+int map_freeblock_unlock (void)
 {
 	if ((--block_free_lock) == 0) {
 		int i;
 		for (i = 0; i < block_free_count; i++)
 		{
-//			aFree(block_free[i]);
-//			_mfree(block_free[i], file, lineno, __func__);
-			_mfree(block_free[i], file, ((block_free[i]?block_free[i]->type:0)*100000)+lineno, __func__);
+			aFree(block_free[i]);
 			block_free[i] = NULL;
 		}
 		block_free_count = 0;
@@ -1659,11 +1657,15 @@ void map_deliddb(struct block_list *bl) {
 int map_quit(struct map_session_data *sd) {
 
 	if(!sd->state.auth) { //Removing a player that hasn't even finished loading
+		TBL_PC *sd2 = map_id2sd(sd->status.account_id);
 		if (sd->pd) unit_free(&sd->pd->bl,-1);
 		if (sd->hd) unit_free(&sd->hd->bl,-1);
+		//Double login, let original do the cleanups below.
+		if (sd2 && sd2 != sd)
+			return 0;
+		idb_remove(id_db,sd->bl.id);
 		idb_remove(pc_db,sd->status.account_id);
 		idb_remove(charid_db,sd->status.char_id);
-		idb_remove(id_db,sd->bl.id);
 		return 0;
 	}
 	if(!sd->state.waitingdisconnect) {
@@ -1679,13 +1681,11 @@ int map_quit(struct map_session_data *sd) {
 		chrif_save(sd,1);
 	} else { //Try to free some data, without saving anything (this could be invoked on map server change. [Skotlex]
 		if (sd->bl.prev != NULL)
-		{	//Remove from map...
 			unit_remove_map(&sd->bl, 0);
-			if (sd->pd && sd->pd->bl.prev != NULL)
-				unit_remove_map(&sd->pd->bl, 0);
-			if (sd->hd && sd->hd->bl.prev != NULL)
-			  	unit_remove_map(&sd->hd->bl, 0);
-		}
+		if (sd->pd && sd->pd->bl.prev != NULL)
+			unit_remove_map(&sd->pd->bl, 0);
+		if (sd->hd && sd->hd->bl.prev != NULL)
+			unit_remove_map(&sd->hd->bl, 0);
 	}
 
 	//Do we really need to remove the name?
@@ -2747,10 +2747,6 @@ int map_addmap(char *mapname) {
 	return 0;
 }
 
-/*==========================================
- * Removes the map in the index passed.
- *------------------------------------------
- */
 static void map_delmapid(int id)
 {
 	ShowNotice("Removing map [ %s ] from maplist\n",map[id].name);
@@ -2758,10 +2754,6 @@ static void map_delmapid(int id)
 	map_num--;
 }
 
-/*==========================================
- * ?み?むmapを削除する
- *------------------------------------------
- */
 int map_delmap(char *mapname) {
 
 	int i;
@@ -3326,7 +3318,6 @@ int map_config_read(char *cfgName) {
 			} else if(strcmpi(w1,"stdout_with_ansisequence")==0){
 				stdout_with_ansisequence = config_switch(w2);
 			} else if(strcmpi(w1,"console_silent")==0){
-				msg_silent = 0; //To always allow the next line to show up.
 				ShowInfo("Console Silent Setting: %d\n", atoi(w2));
 				msg_silent = atoi(w2);
 			} else if (strcmpi(w1, "userid")==0){
@@ -3801,13 +3792,14 @@ void map_versionscreen(int flag) {
 
 /*======================================================
  * Map-Server Init and Command-line Arguments [Valaris]
- *------------------------------------------------------
- */
+ *------------------------------------------------------*/
 void set_server_type(void)
 {
 	SERVER_TYPE = ATHENA_SERVER_MAP;
 }
-int do_init(int argc, char *argv[]) {
+
+int do_init(int argc, char *argv[])
+{
 	int i;
 
 #ifdef GCOLLECT
@@ -3951,19 +3943,5 @@ int do_init(int argc, char *argv[]) {
 
 	ShowStatus("Server is '"CL_GREEN"ready"CL_RESET"' and listening on port '"CL_WHITE"%d"CL_RESET"'.\n\n", map_port);
 
-	return 0;
-}
-
-int compare_item(struct item *a, struct item *b) {
-
-	if (a->nameid == b->nameid &&
-		a->identify == b->identify &&
-		a->refine == b->refine &&
-		a->attribute == b->attribute)
-	{
-		int i;
-		for (i = 0; i < MAX_SLOTS && (a->card[i] == b->card[i]); i++);
-		return (i == MAX_SLOTS);
-	}
 	return 0;
 }
