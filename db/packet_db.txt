@@ -1,19 +1,15 @@
 // The packet database allows you to add support for new clients,
 // because packets change every release.
-// By default this only allows 1 type of client at a time, make sure your
-// client is the last one in the list
-// EX: You have client 628 and it goes up to 1021,
-// delete or comment (use //) till your client is last.
+// Note: Every packet version needs a wanttoconnection specification,
+// since that is the packet used to identify a client's version.
 
-
-// Whether to allow identifying clients via the packet DB
+// Whether to process the contents of this file (otherwise uses hardcoded data)
 enable_packet_db: yes
-
-// Main packet version of the DB (default = Auto Detect)
-packet_db_ver: default
 
 // Whether the packet DB takes higher precedence over the hardcoded packet
 // length and functions, and whether to overwrite them when reading
+//--not yet implemented--//
+
 
 packet_ver: 5
 0x0064,55
@@ -445,9 +441,6 @@ packet_ver: 5
 0x020e,24
 0x020f,10
 
-
-//jRO‚Í‚±‚±‚Ü‚Å
-
 //2004-07-06kRO
 packet_ver: 6
 0x0072,22,wanttoconnection,5:9:13:17:21
@@ -491,7 +484,6 @@ packet_ver: 8
 //2004-08-09kRO
 packet_ver: 9
 0x0072,17,dropitem,8:15
-//9, +12, +7, +4, +4
 0x007e,37,wanttoconnection,9:21:28:32:36
 0x0085,26,useskilltoid,11:18:22
 0x0089,12,getcharnamerequest,8
@@ -508,8 +500,8 @@ packet_ver: 9
 0x0193,18,actionrequest,7:17
 
 //2004-08-16aSakexe
-// 0x020f,0
-// 0x0210,0
+0x020f,0
+0x0210,0
 0x0211,0
 0x0212,26
 0x0213,26
@@ -521,7 +513,7 @@ packet_ver: 9
 
 //2004-09-06aSakexe
 packet_ver: 10
-//0x0072,20,useitem,9:20
+0x0072,20,useitem,9:20
 0x007e,19,movetokafra,3:15
 0x0085,23,actionrequest,9:22
 0x0089,9,walktoxy,6
@@ -532,7 +524,6 @@ packet_ver: 10
 0x00a2,14,solvecharname,10
 0x00a7,25,useskilltopos,10:14:18:23
 0x00f3,10,changedir,4:9
-//7, +7, +10, +4, +6
 0x00f5,34,wanttoconnection,7:15:25:29:33
 0x00f7,2,closekafra,0
 0x0113,11,takeitem,7
@@ -595,7 +586,7 @@ packet_ver: 13
 //2004-11-01aSakexe by Sara
 // disabled
 packet_ver: 14
-0x0000,0,wanttoconnection,0
+//0x0000,0,wanttoconnection,0
 0x0143,23,npcamountinput,2:6
 0x0215,6
 0x0216,6
@@ -758,24 +749,24 @@ packet_ver: 17
 
 //2005-06-28aSakexe by Sara
 packet_ver: 18
-0x009b,32,wanttoconnection,9:15:23:30:31
-0x0089,13,ticksend,9
-0x00a7,11,walktoxy,8
-0x0190,24,actionrequest,11:23
-0x00f3,-1,globalmessage,2:4
-0x008c,8,getcharnamerequest,4
-0x0085,17,changedir,8:16
-0x0094,31,movetokafra,16:27
-0x0193,2,closekafra,0
-0x00f7,18,movefromkafra,11:14
-0x009f,19,useitem,9:15
-0x0116,12,dropitem,3:10
-0x00f5,13,takeitem,9
-0x0113,33,useskilltopos,12:15:18:31
 0x0072,34,useskilltoid,6:17:30
 0x007e,113,useskilltopos,12:15:18:31:33
+0x0085,17,changedir,8:16
+0x0089,13,ticksend,9
+0x008c,8,getcharnamerequest,4
+0x0094,31,movetokafra,16:27
+0x009b,32,wanttoconnection,9:15:23:30:31
+0x009f,19,useitem,9:15
 0x00a2,9,solvecharname,5
+0x00a7,11,walktoxy,8
+0x00f3,-1,globalmessage,2:4
+0x00f5,13,takeitem,9
+0x00f7,18,movefromkafra,11:14
+0x0113,33,useskilltopos,12:15:18:31
+0x0116,12,dropitem,3:10
 0x0143,10,npcamountinput,2:6
+0x0190,24,actionrequest,11:23
+0x0193,2,closekafra,0
 0x20e,10
 0x22e,71
 0x230,12
@@ -834,7 +825,7 @@ packet_ver: 18
 0x0286,4
 0x028a,18
 
-//2006-04-04aSakexe by blackhole89
+//2006-04-03aSakexe by blackhole89
 packet_ver: 19
 0x0072,26,useskilltoid,11:18:22
 0x007e,120,useskilltoposinfo,5:15:29:38:40
@@ -864,7 +855,6 @@ packet_ver: 19
 //2006-10-23aSakexe
 0x006d,110
 
-
 //2007-01-08aSakexe
 packet_ver: 20
 0x0072,30,useskilltoid,10:14:26
@@ -884,7 +874,27 @@ packet_ver: 20
 0x0116,19,dropitem,11:17
 0x0190,10,actionrequest,4:9
 0x0193,2,closekafra,0
-//2007-02-20aSakexe
+
+//2007-02-12aSakexe
+packet_ver: 21
+//0x006d,110
+0x0072,25,useskilltoid,6:10:21
+0x007e,102,useskilltoposinfo,5:9:12:20:22
+0x0085,11,changedir,7:10
+0x0089,8,ticksend,4
+0x008c,11,getcharnamerequest,7
+0x0094,14,movetokafra,7:10
+0x009b,26,wanttoconnection,4:9:17:18:25
+0x009f,14,useitem,4:10
+0x00a2,15,solvecharname,11
+0x00a7,8,walktoxy,5
+0x00f3,-1,globalmessage,2:4
+0x00f5,8,takeitem,4
+0x00f7,22,movefromkafra,14:18
+0x0113,22,useskilltopos,5:9:12:20
+0x0116,10,dropitem,5:8
+0x0190,19,actionrequest,5:18
+0x0193,2,closekafra,0
 0x028b,-1
 0x028c,46
 0x028d,34
@@ -901,27 +911,16 @@ packet_ver: 20
 0x0298,8
 0x0299,6
 0x029a,27
-0x029b,70
+0x029b,72
 0x029c,66
 0x029d,-1
 0x029e,11
 0x029f,3
-0x02a0,0
-0x02a1,0
 0x02a2,8
-0x02a3,0
-0x02a4,0
 0x02a5,8
-0x02a6,0
-0x02a7,0
-0x02a8,0
-0x02a9,0
 0x02aa,4
 0x02ab,36
 0x02ac,6
-0x02ad,0
-0x02ae,0
-0x02af,0
 
 // Add new packets here
-//packet_ver: 21
+//packet_ver: 22

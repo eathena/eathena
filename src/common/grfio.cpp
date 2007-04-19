@@ -1,26 +1,6 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-///////////////////////////////////////////////////////////////////////////////
-//
-//		Ragnarok Online Emulator : grfio.c -- grf file I/O Module
-//--------------------------------------------------------------------
-//		special need library : zlib
-//********************************************************************
-//
-//
-//	2002/12/18 ... the original edition
-//	2003/01/23 ... Code correction
-//	2003/02/01 ... An addition and decryption processing are improved for LocalFile and two or more GRF(s) check processing.
-//	2003/02/02 ... Even if there is no grf it does not stop -- as -- correction
-//	2003/02/02 ... grf reading specification can be added later -- as -- correction (grfio_add function addition)
-//	2003/02/03 ... at the time of grfio_resourcecheck processing the entry addition processing method -- correction
-//	2003/02/05 ... change of the processing in grfio_init
-//  2003/10/21 ... The data of alpha client was read.
-//	2003/11/10 ... Ready new grf format.
-//	2003/11/11 ... version check fix & bug fix
-///////////////////////////////////////////////////////////////////////////////
-
 #include "grfio.h"
 #include "utils.h"
 #include "malloc.h"
@@ -29,16 +9,8 @@
 #include <zlib.h>
 
 
-
 ///////////////////////////////////////////////////////////////////////////////
-#define	GENTRY_LIMIT	256		// maximum gentries
-#define	GENTRY_ADDS		16		// The number increment of gentry_table entries
-#define	FILELIST_LIMIT	2*65536	// temporary maximum, and a theory top maximum are 2G.
-#define	FILELIST_ADDS	1024	// number increment of file lists `
-
-
-///////////////////////////////////////////////////////////////////////////////
-// config data
+/// config data
 static char  data_dir[1024] = "";			///< external data directory.
 static uchar data_dir_priority = 0;			///< priority of external data.
 
@@ -80,7 +52,7 @@ size_t gentry_maxentry=0;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-//	grf decode data tables
+///	grf decode data tables
 static unsigned char BitMaskTable[8] = {
 	0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
 };
@@ -147,7 +119,8 @@ void NibbleSwap(unsigned char *src, size_t len)
 void BitConvert(unsigned char *src, unsigned char *BitSwapTable)
 {
 	size_t lop,prm;
-	unsigned char tmp[8]={0,0,0,0,0,0,0,0};
+	unsigned char tmp[8];
+	memset(tmp,0,8);
 	for(lop=0;lop!=64;++lop)
 	{
 		prm = BitSwapTable[lop]-1;
@@ -196,56 +169,55 @@ void BitConvert4(unsigned char *src)
 ///	Grf data sub : des decode
 void decode_des_etc(unsigned char *buf, size_t len, int type, int cycle)
 {
-	if(cycle>=0)
-	{
-		size_t lop,cnt=0;
-		if(cycle<3) cycle=3;
-		else if(cycle<5) ++cycle;
-		else if(cycle<7) cycle+=9;
-		else cycle+=15;
+	if(cycle < 0) return;
 
-		for(lop=0; lop*8<len; ++lop,buf+=8)
+	size_t lop,cnt=0;
+	if(cycle<3) cycle=3;
+	else if(cycle<5) ++cycle;
+	else if(cycle<7) cycle+=9;
+	else cycle+=15;
+
+	for(lop=0; lop*8<len; ++lop,buf+=8)
+	{
+		if( lop<20 || (type==0 && lop%cycle==0) )
+		{	// des
+			BitConvert(buf,BitSwapTable1);
+			BitConvert4(buf);
+			BitConvert(buf,BitSwapTable2);
+		}
+		else
 		{
-			if( lop<20 || (type==0 && lop%cycle==0) )
-			{	// des
-				BitConvert(buf,BitSwapTable1);
-				BitConvert4(buf);
-				BitConvert(buf,BitSwapTable2);
-			}
-			else
+			if(cnt==7 && type==0)
 			{
-				if(cnt==7 && type==0)
-				{
-					size_t a;
-					unsigned char tmp[8];
-					memcpy(tmp,buf,8);
-					cnt=0;
-					buf[0]=tmp[3];
-					buf[1]=tmp[4];
-					buf[2]=tmp[6];
-					buf[3]=tmp[0];
-					buf[4]=tmp[1];
-					buf[5]=tmp[2];
-					buf[6]=tmp[5];
-					a=tmp[7];
-					if(a==0x00) a=0x2b;
-					else if(a==0x2b) a=0x00;
-					else if(a==0x01) a=0x68;
-					else if(a==0x68) a=0x01;
-					else if(a==0x48) a=0x77;
-					else if(a==0x77) a=0x48;
-					else if(a==0x60) a=0xff;
-					else if(a==0xff) a=0x60;
-					else if(a==0x6c) a=0x80;
-					else if(a==0x80) a=0x6c;
-					else if(a==0xb9) a=0xc0;
-					else if(a==0xc0) a=0xb9;
-					else if(a==0xeb) a=0xfe;
-					else if(a==0xfe) a=0xeb;
-					buf[7]=a;
-				}
-				++cnt;
+				unsigned char a;
+				unsigned char tmp[8];
+				memcpy(tmp,buf,8);
+				cnt=0;
+				buf[0]=tmp[3];
+				buf[1]=tmp[4];
+				buf[2]=tmp[6];
+				buf[3]=tmp[0];
+				buf[4]=tmp[1];
+				buf[5]=tmp[2];
+				buf[6]=tmp[5];
+				a=tmp[7];
+				if(a==0x00) a=0x2b;
+				else if(a==0x2b) a=0x00;
+				else if(a==0x01) a=0x68;
+				else if(a==0x68) a=0x01;
+				else if(a==0x48) a=0x77;
+				else if(a==0x77) a=0x48;
+				else if(a==0x60) a=0xff;
+				else if(a==0xff) a=0x60;
+				else if(a==0x6c) a=0x80;
+				else if(a==0x80) a=0x6c;
+				else if(a==0xb9) a=0xc0;
+				else if(a==0xc0) a=0xb9;
+				else if(a==0xeb) a=0xfe;
+				else if(a==0xfe) a=0xeb;
+				buf[7]=a;
 			}
+			++cnt;
 		}
 	}
 }
@@ -282,6 +254,7 @@ int decode_zip(unsigned char *dest, unsigned long& destLen, const unsigned char*
 	err = inflateEnd(&stream);
 	return err;
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 ///	Grf data sub : zip encode 
 int encode_zip(unsigned char *dest, unsigned long& destLen, const unsigned char* source, unsigned long sourceLen)
@@ -314,79 +287,6 @@ int encode_zip(unsigned char *dest, unsigned long& destLen, const unsigned char*
 	err = deflateEnd(&stream);
 	return err;
 }
-///////////////////////////////////////////////////////////////////////////////
-// Decompress from file source to file dest until stream ends or EOF.
-// inf() returns Z_OK on success, Z_MEM_ERROR if memory could not be
-// allocated for processing, Z_DATA_ERROR if the deflate data is
-// invalid or incomplete, Z_VERSION_ERROR if the version of zlib.h and
-// the version of the library linked do not match, or Z_ERRNO if there
-// is an error reading or writing the files.
-//
-// Version 1.2  9 November 2004  Mark Adler
-///////////////////////////////////////////////////////////////////////////////
-#define CHUNK 16384
-
-int decode_file (FILE *source, FILE *dest)
-{
-	int err;
-	unsigned have;
-	z_stream strm;
-	unsigned char in[CHUNK];
-	unsigned char out[CHUNK];
-
-	// allocate inflate state 
-	strm.zalloc = Z_NULL;
-	strm.zfree = Z_NULL;
-	strm.opaque = Z_NULL;
-	strm.avail_in = 0;
-	strm.next_in = Z_NULL;
-
-	err = inflateInit(&strm);
-	if (err != Z_OK) return 0;	//return err;
-
-	// decompress until deflate stream ends or end of file
-	do {
-		strm.avail_in = fread(in, 1, CHUNK, source);
-		if (ferror(source)) {
-			inflateEnd(&strm);
-			return 0;
-		}
-		if (strm.avail_in == 0)
-			break;
-		strm.next_in = in;
-
-		// run inflate() on input until output buffer not full 
-		do {
-			strm.avail_out = CHUNK;
-			strm.next_out = out;
-			err = inflate(&strm, Z_NO_FLUSH);
-			assert(err != Z_STREAM_ERROR);  // state not clobbered 
-			switch (err) {
-			case Z_NEED_DICT:
-				err = Z_DATA_ERROR;     // and fall through 
-			case Z_DATA_ERROR:
-			case Z_MEM_ERROR:
-				inflateEnd(&strm);
-				//return err;
-				return 0;
-			}
-			have = CHUNK - strm.avail_out;
-			if (fwrite(out, 1, have, dest) != have || ferror(dest)) {
-				inflateEnd(&strm);
-				//return Z_ERRNO;
-				return 0;
-			}
-		} while (strm.avail_out == 0);
-		assert(strm.avail_in == 0);     // all input will be used 
-
-		// done when inflate() says it's done 
-	} while (err != Z_STREAM_END);
-
-	// clean up and return
-	inflateEnd(&strm);
-	return err == Z_STREAM_END ? 1 : 0;
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // File List Sobroutines
@@ -454,12 +354,7 @@ const file_entry& filelist_add(const file_entry &entry)
 {
 	int hash;
 
-	if (filelist_entrys>=FILELIST_LIMIT) {
-		ShowFatalError("filelist limit : filelist_add\n"
-					CL_SPACE"error not recoverable, quitting.\n");
-		exit(1);
-	}
-
+	#define	FILELIST_ADDS 1024 // number increment of file lists
 	if (filelist_entrys>=filelist_maxentry)
 	{
 		filelist_maxentry = new_realloc(filelist, filelist_maxentry, FILELIST_ADDS);
@@ -494,7 +389,7 @@ const file_entry& filelist_modify(const file_entry &entry)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-//	File List : filelist adjust
+///	File List : filelist adjust
 void filelist_adjust(void)
 {
 	if (filelist!=NULL && filelist_maxentry>filelist_entrys)
@@ -514,7 +409,7 @@ void filelist_adjust(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Grfio Subroutines
+/// Grfio Subroutines
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -982,14 +877,9 @@ int grfio_add_archive(const char *fname)
 	int len,result;
 	char *buf;
 
-	if (gentry_entrys>=GENTRY_LIMIT) {
-		ShowFatalError("gentrys limit : grfio_add\n"
-				CL_SPACE"error not recoverable, quitting.\n");
-		exit(1);
-	}
-
 	ShowStatus("Reading GRF File: '%s'.\n",fname);
 
+	#define	GENTRY_ADDS 16 // The number increment of gentry_table entries
 	if (gentry_entrys>=gentry_maxentry)
 	{
 		const size_t sz = gentry_maxentry+GENTRY_ADDS;

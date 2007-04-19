@@ -454,7 +454,7 @@ int clif_skill_failed(map_session_data& sd, ushort skill_id, skillfail_t type)
 
 bool clif_packetsend(int fd, map_session_data &sd, unsigned short cmd, int info[], size_t sz)
 {
-	if(cmd < MAX_PACKET_DB)
+	if(cmd <= MAX_PACKET_DB)
 	{
 		size_t i;
 		switch (cmd)
@@ -12651,7 +12651,7 @@ int clif_parse(int fd)
 		}
 		
 		// ゲーム用以外パケットか、認証を終える前に0072以外が来たら、切断する
-		if(cmd >= MAX_PACKET_DB || packet_ver>MAX_PACKET_VER || packet(packet_ver,cmd).len == 0)
+		if(cmd > MAX_PACKET_DB || packet_ver > MAX_PACKET_VER || packet(packet_ver,cmd).len == 0)
 		{	// packet is not inside these values: session is incorrect?? or auth packet is unknown
 			ShowMessage("clif_parse: session #%d, packet 0x%x ver. %i (%d bytes received) -> disconnected (unknown command).\n", fd, cmd, packet_ver, RFIFOREST(fd));
 			session_Remove(fd);

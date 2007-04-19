@@ -1725,7 +1725,6 @@ extern int agit_flag;
 extern int map_read_flag; // 0: grf«Υ«΅«¤«E1: «­«γ«Γ«·«E2: «­«γ«Γ«·«E?υκ)
 enum {
 	READ_FROM_GAT, 
-	READ_FROM_AFM,
 	READ_FROM_BITMAP, 
 	READ_FROM_BITMAP_COMPRESSED
 };

@@ -38,10 +38,6 @@
 #include "npcai.h"
 #endif
 
-#define USE_AFM
-#define USE_AF2
-
-
 
 const char *LOG_CONF_NAME="conf/log_athena.conf";
 const char *MAP_CONF_NAME = "conf/map_athena.conf";
@@ -53,7 +49,6 @@ const char *GRF_PATH_FILENAME = "conf/grf-files.txt";
 
 char motd_txt[256] = "conf/motd.txt";
 char help_txt[256] = "conf/help.txt";
-char afm_dir[1024] = "";
 char wisp_server_name[24] = "Server"; // can be modified in char-server configuration file
 
 
@@ -2772,171 +2767,6 @@ bool map_cache_write(struct map_data &block_list)
 	return false;
 }
 
-bool map_readafm(struct map_data& block_list, const char *fn=NULL)
-{
-	/*
-	Advanced Fusion Maps Support
-	(c) 2003-2004, The Fusion Project
-	- AlexKreuz
-
-	The following code has been provided by me for eAthena
-	under the GNU GPL.  It provides Advanced Fusion
-	Map, the map format desgined by me for Fusion, support
-	for the eAthena emulator.
-
-	I understand that because it is under the GPL
-	that other emulators may very well use this code in their
-	GNU project as well.
-
-	The AFM map format was not originally a part of the GNU
-	GPL. It originated from scratch by my own hand.  I understand
-	that distributing this code to read the AFM maps with eAthena
-	causes the GPL to apply to this code.  But the actual AFM
-	maps are STILL copyrighted to the Fusion Project.  By choosing
-
-	In exchange for that 'act of faith' I ask for the following.
-
-	A) Give credit where it is due.  If you use this code, do not
-	   place your name on the changelog.  Credit should be given
-	   to AlexKreuz.
-	B) As an act of courtesy, ask me and let me know that you are putting
-	   AFM support in your project.  You will have my blessings if you do.
-	C) Use the code in its entirety INCLUDING the copyright message.
-	   Although the code provided may now be GPL, the AFM maps are not
-	   and so I ask you to display the copyright message on the STARTUP
-	   SCREEN as I have done here. (refer to core.c)
-	   "Advanced Fusion Maps (c) 2003-2004 The Fusion Project"
-
-	Without this copyright, you are NOT entitled to bundle or distribute
-	the AFM maps at all.  On top of that, your "support" for AFM maps
-	becomes just as shady as your "support" for Gravity GRF files.
-
-	The bottom line is this.  I know that there are those of you who
-	would like to use this code but aren't going to want to provide the
-	proper credit.  I know this because I speak frome experience.  If
-	you are one of those people who is going to try to get around my
-	requests, then save your breath because I don't want to hear it.
-
-	I have zero faith in GPL and I know and accept that if you choose to
-	not display the copyright for the AFMs then there is absolutely nothing
-	I can do about it.  I am not about to start a legal battle over something
-	this silly.
-
-	Provide the proper credit because you believe in the GPL.  If you choose
-	not to and would rather argue about it, consider the GPL failed.
-
-	October 18th, 2004
-	- AlexKreuz
-	- The Fusion Project
-	*/
-
-	int x,y,xs,ys;
-	size_t size;
-
-	char afm_line[65535];
-	int afm_size[2];
-	FILE *afm_file;
-	char *str;
-	char buf[512];
-
-	if(!fn)
-	{
-		char *ip;
-		if(afm_dir && *afm_dir)
-			snprintf(buf, sizeof(buf),"%s%c%s",afm_dir, PATHSEP, block_list.mapname);
-		else
-			snprintf(buf, sizeof(buf),"%s", block_list.mapname);
-		ip = strrchr(buf,'.');
-		if(ip) *ip=0;
-		strcat(buf, ".afm");
-	}
-	else
-		safestrcpy(buf, sizeof(buf), fn);
-
-	afm_file = basics::safefopen(buf, "r");
-	if (afm_file != NULL)
-	{
-		str=fgets(afm_line, sizeof(afm_line), afm_file);
-		str=fgets(afm_line, sizeof(afm_line), afm_file);
-		str=fgets(afm_line, sizeof(afm_line), afm_file);
-		sscanf(str , "%d%d", &afm_size[0], &afm_size[1]);
-
-		xs = block_list.xs = afm_size[0];
-		ys = block_list.ys = afm_size[1];
-
-		block_list.npc_num=0;
-		block_list.users=0;
-		memset(&block_list.flag,0,sizeof(block_list.flag));
-
-		if(config.pk_mode) block_list.flag.pvp = 1; // make all maps pvp for pk_mode [Valaris]
-
-		block_list.gat = new struct mapgat[block_list.xs*block_list.ys];
-		for (y = 0; y < ys; ++y)
-		{
-			str=fgets(afm_line, sizeof(afm_line), afm_file);
-			for (x = 0; x < xs; ++x)
-			{
-				map_setcell(block_list.m,x,y, str[x] & CELL_MASK );
-			}
-		}
-
-		block_list.bxs=(xs+BLOCK_SIZE-1)/BLOCK_SIZE;
-		block_list.bys=(ys+BLOCK_SIZE-1)/BLOCK_SIZE;
-		size = block_list.bxs * block_list.bys;
-
-		block_list.objects = new struct map_data::_objects[size];
-
-		strdb_insert(map_db,block_list.mapname,&block_list);
-
-		fclose(afm_file);
-		return true;
-	}
-	return false;
-}
-
-bool map_readaf2(struct map_data& block_list, const char*fn=NULL)
-{
-	FILE *af2_file, *dest;
-	char buf[256];
-	bool ret=false;
-
-	if(!fn)
-	{
-		char *ip;
-		if(afm_dir && *afm_dir)
-			snprintf(buf, sizeof(buf),"%s%c%s",afm_dir, PATHSEP, block_list.mapname);
-		else
-			snprintf(buf, sizeof(buf),"%s", block_list.mapname);
-		ip = strrchr(buf,'.');
-		if(ip) *ip=0;
-		strcat(buf, ".af2");
-	}
-	else
-		safestrcpy(buf, sizeof(buf), fn);
-
-	af2_file = basics::safefopen(buf, "r");
-	if( af2_file != NULL )
-	{
-		memcpy(buf+strlen(buf)-4, ".out", 5);
-		dest = basics::safefopen(buf, "w");
-		if (dest == NULL)
-		{
-			ShowMessage("can't open\n");
-			fclose(af2_file);
-		}
-		else
-		{
-			ret = 0!=decode_file(af2_file, dest);
-			fclose(af2_file);
-			fclose(dest);
-			if(ret) ret = map_readafm(block_list, buf);
-			remove(buf);
-		}
-	}
-	return ret;
-}
-
-
 /*==========================================
  * マップ1枚読み甲ﾝ
  * ===================================================*/
@@ -3029,8 +2859,7 @@ int map_readallmap(void)
 
 	ShowStatus("Loading Maps%s...\n",
 		(map_read_flag == READ_FROM_BITMAP_COMPRESSED ? " (w/ Compressed Map Cache)" :
-		map_read_flag >= READ_FROM_BITMAP ? " (w/ Map Cache)" :
-		map_read_flag == READ_FROM_AFM ? " (w/ AFM)" : ""));
+		map_read_flag >= READ_FROM_BITMAP ? " (w/ Map Cache)" : ""));
 
 	// 先に全部のャbプの存在を確認
 	for(i=0;i<map_num;++i)
@@ -3039,10 +2868,7 @@ int map_readallmap(void)
 		maps[i].m=i;
 
 		/////////////////////////////////////////////////////////////////
-		if( (ch=map_cache_read(maps[i])) ||
-			map_readafm(maps[i]) ||
-			map_readaf2(maps[i]) ||
-			map_readgrf(maps[i]) )
+		if( (ch=map_cache_read(maps[i])) || map_readgrf(maps[i]) )
 		{	
 			ShowMessage("Loading Maps [%d/%d]: %s, size (%d %d)(%i)"CL_CLL"\r", i,map_num, maps[i].mapname, maps[i].xs,maps[i].ys, maps[i].wh);
 	
@@ -3321,10 +3147,6 @@ int map_config_read(const char *cfgName)
 				else if(strcasecmp(w1,"map_cache_file")==0)
 				{
 					safestrcpy(map_cache_file,sizeof(map_cache_file),w2);
-				}
-				else if(strcasecmp(w1,"afm_dir") == 0)
-				{
-					safestrcpy(afm_dir,sizeof(afm_dir), w2);
 				}
 				else if (strcasecmp(w1, "import") == 0)
 				{

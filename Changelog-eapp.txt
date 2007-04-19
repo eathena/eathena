@@ -1,5 +1,11 @@
 Date	Added
 
+2007/04/20
+	* Tweaked code that uses MAX_PACKET_VER to behave more logically
+	* Updated and corrected parts of the packet db, added missing entries
+	  (both ea's and eapp's db is in horrible condition and needs a cleanup)
+	* Fixed ddos protection conf settings (one missing, the other incorrect)
+	* Removed afm archive reading code [ultramage]
 2007/04/15
 	* A bit more work on skills (AL_HEAL - incomplete). [FlavioJS]
 2007/04/11

@@ -7,7 +7,7 @@ struct map_session_data;
 
 // packet DB
 #define MAX_PACKET_DB		0x02af
-#define MAX_PACKET_VER		20
+#define MAX_PACKET_VER		21
 
 
 class packet_cmd
