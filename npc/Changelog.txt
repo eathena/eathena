@@ -23,6 +23,7 @@ Playtester
 Date		Added
 ======
 2007/04/22
+	* Merged Zealotus Mask fix [Playtester]
 	* Fixed a typo in special archer quest [Playtester]
 2007/04/15
 	* Lowered the amount of Dimiks spawning in Juperos F1 [Playtester]
