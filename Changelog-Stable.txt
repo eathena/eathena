@@ -4,6 +4,14 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2007/04/22
+	* Corrected crash if itemskill is used without an attached player.
+	* Removed range checks for autospells as per UltraMage Aegis tests.
+	* Updated the autospell flag check to also account for normal/skill
+	  attacks. Merged setting auto-defaults when the bonus5 call does not uses
+	  enough arguments to make for a working implementation.
+	* Merged cleanup of status_get_sc_def, now rate and duration reductions can
+	  be independent of each other. Curse's duration is now reduced by vit.
 2007/04/19
 	* Merged the official Aegis WoE inviting/rejecting rules.
 	* Merged bonus5 Autospell to determine the type of attack that triggers

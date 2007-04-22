@@ -1349,7 +1349,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 	case TK_TURNKICK:
 	case MO_BALKYOUNG: //Note: attack_type is passed as BF_WEAPON for the actual target, BF_MISC for the splash-affected mobs.
-		if(attack_type == BF_MISC) //70% base stun chance...
+		if(attack_type&BF_MISC) //70% base stun chance...
 			sc_start(bl,SC_STUN,70,skilllv,skill_get_time2(skillid,skilllv));
 		break;
 	case GS_BULLSEYE: //0.1% coma rate.
@@ -1410,18 +1410,18 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		src = sd?&sd->bl:src;
 	}
 
-	//Reports say that autospell effects get triggered on skills and pretty much everything including splash attacks. [Skotlex]
-	//But Gravity Patched this silently, and it now seems to trigger only on
-	//weapon attacks.
+	// Autospell when attacking
 	if(sd && !status_isdead(bl) && src != bl && sd->autospell[0].id) {
 		struct block_list *tbl;
 		struct unit_data *ud;
 		int i, skilllv;
+
 		for (i = 0; i < MAX_PC_BONUS && sd->autospell[i].id; i++) {
 
-			if(!(sd->autospell[i].flag&attack_type&BF_RANGEMASK &&
-				sd->autospell[i].flag&attack_type&BF_WEAPONMASK))
-				continue; //Attack type or range type did not match.
+			if(!(sd->autospell[i].flag&attack_type&BF_WEAPONMASK &&
+				 sd->autospell[i].flag&attack_type&BF_RANGEMASK &&
+				 sd->autospell[i].flag&attack_type&BF_SKILLMASK))
+				continue; // one or more trigger conditions were not fulfilled
 
 			skill = (sd->autospell[i].id > 0) ? sd->autospell[i].id : -sd->autospell[i].id;
 
@@ -1440,9 +1440,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			else
 				tbl = bl;
 
-			if (tbl != src && !battle_check_range(src, tbl, skill_get_range2(src, skill, skilllv)))
-				continue; //Autoskills DO check for target-src range. [Skotlex]
-			rate = skill_get_inf(skill);
 			switch (skill_get_casttype(skill)) {
 				case CAST_GROUND:
 					skill_castend_pos2(src, tbl->x, tbl->y, skill, skilllv, tick, 0);
@@ -1583,7 +1580,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		}
 	}
 
-	//Trigger counter-spells to retaliate against damage causing skills. [Skotlex]
+	// Trigger counter-spells to retaliate against damage causing skills.
 	if(dstsd && !status_isdead(bl) && src != bl && dstsd->autospell2[0].id &&
 		!(skillid && skill_get_nk(skillid)&NK_NO_DAMAGE)) 
 	{
@@ -1593,9 +1590,10 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 
 		for (i = 0; i < MAX_PC_BONUS && dstsd->autospell2[i].id; i++) {
 
-			if(!(dstsd->autospell2[i].flag&attack_type&BF_RANGEMASK &&
-				dstsd->autospell2[i].flag&attack_type&BF_WEAPONMASK))
-				continue; //Attack type or range type did not match.
+			if(!(dstsd->autospell2[i].flag&attack_type&BF_WEAPONMASK &&
+				 dstsd->autospell2[i].flag&attack_type&BF_RANGEMASK &&
+				 dstsd->autospell2[i].flag&attack_type&BF_SKILLMASK))
+				continue; // one or more trigger conditions were not fulfilled
 
 			skillid = (dstsd->autospell2[i].id > 0) ? dstsd->autospell2[i].id : -dstsd->autospell2[i].id;
 			skilllv = dstsd->autospell2[i].lv?dstsd->autospell2[i].lv:1;
@@ -1613,9 +1611,6 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 				tbl = bl;
 			else
 				tbl = src;
-			
-			if (tbl != bl && !battle_check_range(bl, tbl, skill_get_range2(bl, skillid, skilllv)))
-				continue; //Autoskills DO check for target-src range. [Skotlex]
 			
 			switch (skill_get_casttype(skillid)) {
 				case CAST_GROUND:
@@ -7250,7 +7245,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 		case UNT_ANKLESNARE:
 			if(sg->val2==0 && tsc){
 				int sec = skill_get_time2(sg->skill_id,sg->skill_lv);
-				if (sc_start2(bl,type,100,sg->skill_lv,sg->group_id,sec))
+				if (status_change_start(bl,type,10000,sg->skill_lv,sg->group_id,0,0,sec, 8))
 				{
 					struct TimerData* td = get_timer(tsc->data[type].timer); 
 					if (td) sec = DIFF_TICK(td->tick, tick);

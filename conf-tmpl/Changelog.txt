@@ -1,5 +1,8 @@
 Date	Added
 
+2007/04/22
+	* pc_max_status_def and mob_max_status_def (status.conf) are now capped to
+	  100 for 100% (rather than 10000) [Skotlex]
 2007/04/13
 	* Added some Kiel Hyre quest related mapflags [Playtester]	
 2007/04/12

@@ -22,7 +22,6 @@
 #include "itemdb.h"
 #include "pc.h"
 #include "status.h"
-#include "script.h"
 #include "storage.h"
 #include "mob.h"
 #include "npc.h"
@@ -39,6 +38,7 @@
 #include "log.h"
 #include "unit.h"
 #include "pet.h"
+#include "script.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -6459,7 +6459,7 @@ BUILDIN_FUNC(statusup2)
 /// bonus2 <bonus type>,<val1>,<val2>
 /// bonus3 <bonus type>,<val1>,<val2>,<val3>
 /// bonus4 <bonus type>,<val1>,<val2>,<val3>,<val4>
-/// bonus4 <bonus type>,<val1>,<val2>,<val3>,<val4>,<val5>
+/// bonus5 <bonus type>,<val1>,<val2>,<val3>,<val4>,<val5>
 BUILDIN_FUNC(bonus)
 {
 	int type;
@@ -7009,8 +7009,7 @@ BUILDIN_FUNC(itemskill)
 	id=script_getnum(st,2);
 	lv=script_getnum(st,3);
 
-	// 詠唱中にスキルアイテムは使用できない
-	if(sd->ud.skilltimer != -1)
+	if(!sd || sd->ud.skilltimer != -1)
 		return 0;
 
 	sd->skillitem=id;
@@ -8029,7 +8028,7 @@ BUILDIN_FUNC(sc_end)
 BUILDIN_FUNC(getscrate)
 {
 	struct block_list *bl;
-	int sc_def=0,type,rate;
+	int type,rate;
 
 	type=script_getnum(st,2);
 	rate=script_getnum(st,3);
@@ -8039,13 +8038,10 @@ BUILDIN_FUNC(getscrate)
 		bl = map_id2bl(st->rid);
 
 	if (bl)
-		sc_def = status_get_sc_def(bl,type);
+		rate = status_get_sc_def(bl,type, 10000, 10000, 0);
 
-	rate = rate*(10000-sc_def)/10000;
-	script_pushint(st,rate<0?0:rate);
-
+	script_pushint(st,rate);
 	return 0;
-
 }
 
 /*==========================================
