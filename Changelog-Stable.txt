@@ -5,6 +5,15 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2007/04/23
+	* Fixed GMs in invisible mode being hidden from the output of @whogm even
+	  to GMs of higher level than them.
+	* Merged missing file from item group bonus update: itemdb.h, also fixed
+	  the group bonus since this updated code had an incorrect check.
+	* Merged support for splash area for  NPC_BLINDATTACK, NPC_SILENCEATTACK,
+	  NPC_STUNATTACK, NPC_PETRIFYATTACK, NPC_CURSEATTACK, NPC_SLEEPATTACK, Lex
+	  Divina,and Dispell. They automatically become splash effect attacks if the
+	  splash ratio for their used level is above 0.
+	* Soul Collect is usable now even if you already have 5 spheres. [Skotlex]
 	* Mass-merged the IP address/port code cleanup [ultramage]
 2007/04/22
 	* Corrected crash if itemskill is used without an attached player.

@@ -2763,12 +2763,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case NPC_COMBOATTACK:
 	case NPC_GUIDEDATTACK:
 	case NPC_POISON:
-	case NPC_BLINDATTACK:
-	case NPC_SILENCEATTACK:
-	case NPC_STUNATTACK:
-	case NPC_PETRIFYATTACK:
-	case NPC_CURSEATTACK:
-	case NPC_SLEEPATTACK:
 	case NPC_RANDOMATTACK:
 	case NPC_WATERATTACK:
 	case NPC_GROUNDATTACK:
@@ -2815,6 +2809,20 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case HFLI_MOON:	//[orn]
 	case HFLI_SBR44:	//[orn]
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+		break;
+	case NPC_BLINDATTACK:
+	case NPC_SILENCEATTACK:
+	case NPC_STUNATTACK:
+	case NPC_PETRIFYATTACK:
+	case NPC_CURSEATTACK:
+	case NPC_SLEEPATTACK:
+		if (flag&1 || skill_get_splash(skillid, skilllv) < 1)
+			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+		else
+			map_foreachinrange(skill_area_sub, bl,
+				skill_get_splash(skillid, skilllv),BL_CHAR,
+				src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
+				skill_castend_damage_id);
 		break;
 
 	case LK_JOINTBEAT: // decide the ailment first (affects attack damage and effect)
@@ -3504,14 +3512,21 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case PR_LEXDIVINA:
-		if (tsc && tsc->count && tsc->data[type].timer != -1) {
-			status_change_end(bl,type, -1);
-			clif_skill_nodamage (src, bl, skillid, skilllv, 1);
-		} else 
-			clif_skill_nodamage (src, bl, skillid, skilllv, 
-		  		sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv)));
+		if (flag&1 || (i = skill_get_splash(skillid, skilllv)) < 1)
+		{
+			if (tsc && tsc->count && tsc->data[type].timer != -1) {
+				status_change_end(bl,type, -1);
+				clif_skill_nodamage (src, bl, skillid, skilllv, 1);
+			} else 
+				clif_skill_nodamage (src, bl, skillid, skilllv, 
+					sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv)));
+			break;
+		}
+		//Affect all targets on splash area.
+		map_foreachinrange(skill_area_sub, bl, i, BL_CHAR,
+			src, skillid, skilllv, tick, flag|1,
+			skill_castend_damage_id);
 		break;
-
 	case SA_ABRACADABRA:
 		{
 			int abra_skillid = 0, abra_skilllv;
@@ -4071,8 +4086,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case GS_SPREADATTACK:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		skill_area_temp[1] = bl->id;
+		//Mob casted skills should also hit skills.
 		map_foreachinrange(skill_area_sub, bl,
-			skill_get_splash(skillid, skilllv), BL_CHAR,
+			skill_get_splash(skillid, skilllv), md?BL_CHAR|BL_SKILL:BL_CHAR,
 			src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
 			skill_castend_damage_id);
 		break;
@@ -4660,8 +4676,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 	case SA_DISPELL:
+		if (flag&1 || (i = skill_get_splash(skillid, skilllv)) < 1)
 		{
-			int i;
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			i = tstatus->mdef;
 			if (i >= 100 ||
@@ -4697,7 +4713,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				if(i==SC_BERSERK) tsc->data[i].val2=0; //Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
 				status_change_end(bl,i,-1);
 			}
+			break;
 		}
+		//Affect all targets on splash area.
+		map_foreachinrange(skill_area_sub, bl, i, BL_CHAR,
+			src, skillid, skilllv, tick, flag|1,
+			skill_castend_damage_id);
 		break;
 
 	case TF_BACKSLIDING: //This is the correct implementation as per packet logging information. [Skotlex]
@@ -8130,12 +8151,6 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 		break;
 	case MO_CALLSPIRITS:
 		if(sd->spiritball >= lv) {
-			clif_skill_fail(sd,skill,0,0);
-			return 0;
-		}
-		break;
-	case CH_SOULCOLLECT:
-		if(sd->spiritball >= 5) {
 			clif_skill_fail(sd,skill,0,0);
 			return 0;
 		}

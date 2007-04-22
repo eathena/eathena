@@ -1873,8 +1873,6 @@ int atcommand_whogm(const int fd, struct map_session_data* sd, const char* comma
 		pl_GM_level = pc_isGM(pl_sd);
 		if (!pl_GM_level)
 			continue;
-		if (pl_sd->sc.option & OPTION_INVISIBLE)
-			continue;
 
 		if (match_text[0])
 		{
@@ -1886,6 +1884,8 @@ int atcommand_whogm(const int fd, struct map_session_data* sd, const char* comma
 				continue;
 		}
 		if (pl_GM_level > GM_level) {
+			if (pl_sd->sc.option & OPTION_INVISIBLE)
+				continue;
 			sprintf(atcmd_output, "Name: %s (GM)", pl_sd->status.name);
 			clif_displaymessage(fd, atcmd_output);
 			count++;

@@ -12172,10 +12172,13 @@ static int packetdb_readdb(void)
 
 	clif_config.packet_db_ver = MAX_PACKET_VER;
 	packet_ver = MAX_PACKET_VER;	// read into packet_db's version by default
-	while(fgets(line,1020,fp)){
+	while( fgets(line,sizeof(line),fp) )
+	{
+		ln++;
 		if(line[0]=='/' && line[1]=='/')
 			continue;
-		if (sscanf(line,"%[^:]: %[^\r\n]",w1,w2) == 2) {
+		if (sscanf(line,"%256[^:]: %256[^\r\n]",w1,w2) == 2)
+		{
 			if(strcmpi(w1,"packet_ver")==0) {
 				int prev_ver = packet_ver;
 				skip_ver = 0;
@@ -12232,7 +12235,8 @@ static int packetdb_readdb(void)
 			continue; // Skipping current packet version
 
 		memset(str,0,sizeof(str));
-		for(j=0,p=line;j<4 && p;j++){
+		for(j=0,p=line;j<4 && p; ++j)
+		{
 			str[j]=p;
 			p=strchr(p,',');
 			if(p) *p++=0;
@@ -12242,7 +12246,7 @@ static int packetdb_readdb(void)
 		cmd=strtol(str[0],(char **)NULL,0);
 		if(max_cmd < cmd)
 			max_cmd = cmd;
-		if(cmd<=0 || cmd>=MAX_PACKET_DB)
+		if(cmd <= 0 || cmd >= MAX_PACKET_DB)
 			continue;
 		if(str[1]==NULL){
 			ShowError("packet_db: packet len error\n");
@@ -12290,10 +12294,6 @@ static int packetdb_readdb(void)
 			// if (packet_db[packet_ver][cmd].pos[j] != k && clif_config.prefer_packet_db)	// not used for now
 			packet_db[packet_ver][cmd].pos[j] = k;
 		}
-
-		ln++;
-//		if(packet_db[clif_config.packet_db_ver][cmd].len > 2 /* && packet_db[cmd].pos[0] == 0 */)
-//			printf("packet_db ver %d: %d 0x%x %d %s %p\n",packet_ver,ln,cmd,packet_db[packet_ver][cmd].len,str[2],packet_db[packet_ver][cmd].func);
 	}
 	fclose(fp);
 	if(max_cmd > MAX_PACKET_DB)
