@@ -2494,14 +2494,14 @@ void status_calc_regen(struct block_list *bl, struct status_data *status, struct
 
 		val = 0;
 		if((skill=pc_checkskill(sd,SM_RECOVERY)) > 0)
-			val += skill*5 + (status->max_hp*skill/500);
+			val += skill*(5 + status->max_hp/500);
 		sregen->hp = cap_value(val, 0, SHRT_MAX);
 
 		val = 0;
 		if((skill=pc_checkskill(sd,MG_SRECOVERY)) > 0)
-			val += skill*3 + (status->max_sp*skill/500);
+			val += skill*(3 + status->max_sp/500);
 		if((skill=pc_checkskill(sd,NJ_NINPOU)) > 0)
-			val += skill*3 + (status->max_sp*skill/500);
+			val += skill*(3 + status->max_sp/500);
 		sregen->sp = cap_value(val, 0, SHRT_MAX);
 
 		// Skill-related recovery (only when sit)
@@ -2509,21 +2509,21 @@ void status_calc_regen(struct block_list *bl, struct status_data *status, struct
 
 		val = 0;
 		if((skill=pc_checkskill(sd,MO_SPIRITSRECOVERY)) > 0)
-			val += skill*4 + (status->max_hp*skill/500);
+			val += skill*(4 + status->max_hp/500);
 
 		if((skill=pc_checkskill(sd,TK_HPTIME)) > 0 && sd->state.rest)
-			val += skill*30 + (status->max_hp*skill/500);
+			val += skill*(30 + status->max_hp/500);
 		sregen->hp = cap_value(val, 0, SHRT_MAX);
 
 		val = 0;
 		if((skill=pc_checkskill(sd,TK_SPTIME)) > 0 && sd->state.rest)
 		{
-			val += skill*3 + (status->max_sp*skill/500);
+			val += skill*(3 + status->max_sp/500);
 			if ((skill=pc_checkskill(sd,SL_KAINA)) > 0) //Power up Enjoyable Rest
 				val += (30+10*skill)*val/100;
 		}
 		if((skill=pc_checkskill(sd,MO_SPIRITSRECOVERY)) > 0)
-			val += skill*2 + (status->max_sp*skill/500);
+			val += skill*(2 + status->max_sp/500);
 		sregen->sp = cap_value(val, 0, SHRT_MAX);
 	}
 
@@ -3539,8 +3539,6 @@ static signed char status_calc_def(struct block_list *bl, struct status_change *
 		def += sc->data[SC_DEFENCE].val2 ;
 	if(sc->data[SC_INCDEFRATE].timer!=-1)
 		def += def * sc->data[SC_INCDEFRATE].val1/100;
-	if(sc->data[SC_FREEZE].timer!=-1)
-		def >>=1;
 	if(sc->data[SC_STONE].timer!=-1 && sc->opt1 == OPT1_STONE)
 		def >>=1;
 	if(sc->data[SC_SIGNUMCRUCIS].timer!=-1)
@@ -3606,8 +3604,6 @@ static signed char status_calc_mdef(struct block_list *bl, struct status_change 
 		return 90;
 	if(sc->data[SC_SKA].timer != -1) // [marquis007]
 		return 90;
-	if(sc->data[SC_FREEZE].timer!=-1)
-		mdef += 25*mdef/100;
 	if(sc->data[SC_STONE].timer!=-1 && sc->opt1 == OPT1_STONE)
 		mdef += 25*mdef/100;
 	if(sc->data[SC_ENDURE].timer!=-1 && sc->data[SC_ENDURE].val4 == 0)

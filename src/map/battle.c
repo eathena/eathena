@@ -365,9 +365,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 
 		if ((sc->data[SC_UTSUSEMI].timer != -1 || sc->data[SC_BUNSINJYUTSU].timer != -1)
 		&& 
-			(flag&BF_WEAPON || (flag&(BF_MISC|BF_SHORT)) == (BF_MISC|BF_SHORT)) &&
-			!(skill_get_nk(skill_num)&NK_NO_CARDFIX_ATK)
-		)
+			flag&BF_WEAPON && !(skill_get_nk(skill_num)&NK_NO_CARDFIX_ATK))
 		{
 			if (sc->data[SC_UTSUSEMI].timer != -1) {
 				clif_specialeffect(bl, 462, AREA);

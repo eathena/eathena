@@ -1,5 +1,7 @@
 Date	Added
 
+2007/04/24
+	* Merged typo fixes to msg_athena.conf [ultramage]
 2007/04/22
 	* pc_max_status_def and mob_max_status_def (status.conf) are now capped to
 	  100 for 100% (rather than 10000) [Skotlex]

@@ -7,4 +7,4 @@ convert:
 	$(CC) -o ../../tools/$@ convert.c
 
 clean:
-	rm -rf ../../tools/adduser ../../tools/convert
+	rm -rf *.o ../../tools/adduser ../../tools/convert

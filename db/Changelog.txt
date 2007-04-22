@@ -1,4 +1,5 @@
-
+04/24
+	* Merged corrected packet_db.txt [ultramage]
 04/23
 	* Merged skill_db (splash ranges for high level mob skills).
 04/19

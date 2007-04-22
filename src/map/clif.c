@@ -49,7 +49,7 @@ struct Clif_Config {
 	int connect_cmd[MAX_PACKET_VER + 1]; //Store the connect command for all versions. [Skotlex]
 } clif_config;
 
-struct packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB];
+struct packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB + 1];
 
 //Converts item type in case of pet eggs.
 #define itemtype(a) (a == 7)?4:a
@@ -11818,7 +11818,7 @@ int clif_parse(int fd)
 	}
 
 	// ゲーム用以外パケットか、認証を終える前に0072以外が来たら、切断する
-	if (cmd >= MAX_PACKET_DB || packet_db[packet_ver][cmd].len == 0) {	// if packet is not inside these values: session is incorrect?? or auth packet is unknown
+	if (cmd > MAX_PACKET_DB || packet_db[packet_ver][cmd].len == 0) {	// if packet is not inside these values: session is incorrect?? or auth packet is unknown
 		ShowWarning("clif_parse: Received unsupported packet (packet 0x%04x, %d bytes received), disconnecting session #%d.\n", cmd, RFIFOREST(fd), fd);
 		session[fd]->eof = 1;
 		return 0;
@@ -12246,7 +12246,7 @@ static int packetdb_readdb(void)
 		cmd=strtol(str[0],(char **)NULL,0);
 		if(max_cmd < cmd)
 			max_cmd = cmd;
-		if(cmd <= 0 || cmd >= MAX_PACKET_DB)
+		if(cmd <= 0 || cmd > MAX_PACKET_DB)
 			continue;
 		if(str[1]==NULL){
 			ShowError("packet_db: packet len error\n");
@@ -12266,7 +12266,7 @@ static int packetdb_readdb(void)
 			{
 				if (packet_db[packet_ver][cmd].func != clif_parse_func[j].func)
 				{	//If we are updating a function, we need to zero up the previous one. [Skotlex]
-					for(i=0;i<MAX_PACKET_DB;i++){
+					for(i=0;i<=MAX_PACKET_DB;i++){
 						if (packet_db[packet_ver][i].func == clif_parse_func[j].func)
 						{	
 							memset(&packet_db[packet_ver][i], 0, sizeof(struct packet_db));

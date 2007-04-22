@@ -125,7 +125,7 @@ char date_format[32] = "%Y-%m-%d %H:%M:%S";
 //
 //  check <account_name> <password>
 //    Check the validity of a password for an account
-//    NOTE: Server will never sends back a password.
+//    NOTE: Server will never send back a password.
 //          It's the only method you have to know if a password is correct.
 //          The other method is to have a ('physical') access to the accounts file.
 //
@@ -894,7 +894,7 @@ void display_help(char* param, int language) {
 		} else if (strcmp(command, "check") == 0) {
 			printf("check <account_name> <password>\n");
 			printf("  Check the validity of a password for an account.\n");
-			printf("  NOTE: Server will never sends back a password.\n");
+			printf("  NOTE: Server will never send back a password.\n");
 			printf("        It's the only method you have to know if a password is correct.\n");
 			printf("        The other method is to have a ('physical') access to the accounts file.\n");
 		} else if (strcmp(command, "create") == 0) {
@@ -2198,11 +2198,11 @@ int changememo(char* param) {
 
 	if (strlen(memo) > 254) {
 		if (defaultlanguage == 'F') {
-			printf("Mémo trop long (%d caractères).\n", strlen(memo));
+			printf("Mémo trop long (%lu caractères).\n", (unsigned long)strlen(memo));
 			printf("Entrez un mémo de 254 caractères maximum svp.\n");
 			ladmin_log("Mémo trop long (%d caractères). Entrez un mémo de 254 caractères maximum svp." RETCODE, strlen(memo));
 		} else {
-			printf("Memo is too long (%d characters).\n", strlen(memo));
+			printf("Memo is too long (%lu characters).\n", (unsigned long)strlen(memo));
 			printf("Please input a memo of 254 bytes at the maximum.\n");
 			ladmin_log("Email is too long (%d characters). Please input a memo of 254 bytes at the maximum." RETCODE, strlen(memo));
 		}
@@ -4245,8 +4245,8 @@ int ladmin_config_read(const char *cfgName) {
 
 		line[sizeof(line)-1] = '\0';
 		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2) {
-			remove_control_chars((unsigned char *) w1);
-			remove_control_chars((unsigned char *) w2);
+			remove_control_chars(w1);
+			remove_control_chars(w2);
 
 			if(strcmpi(w1,"login_ip")==0){
 				struct hostent *h = gethostbyname (w2);
