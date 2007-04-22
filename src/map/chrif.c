@@ -85,8 +85,8 @@ int chrif_connected = 0;
 int char_fd = 0; //Using 0 instead of -1 is safer against crashes. [Skotlex]
 int srvinfo;
 static char char_ip_str[128];
-static in_addr_t char_ip= 0;
-static int char_port = 6121;
+static uint32 char_ip = 0;
+static uint16 char_port = 6121;
 static char userid[NAME_LENGTH], passwd[NAME_LENGTH];
 static int chrif_state = 0;
 static int char_init_done = 0;
@@ -127,21 +127,21 @@ void chrif_checkdefaultlogin(void)
 }
 
 // sets char-server's ip address
-int chrif_setip(char *ip)
+int chrif_setip(const char* ip)
 {
 	char ip_str[16];
-	char_ip = resolve_hostbyname(ip,NULL,ip_str);
+	char_ip = host2ip(ip);
 	if (!char_ip) {
 		ShowWarning("Failed to Resolve Char Server Address! (%s)\n", ip);
 		return 0;
 	}
 	strncpy(char_ip_str, ip, sizeof(char_ip_str));
-	ShowInfo("Char Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", ip, ip_str);
+	ShowInfo("Char Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", ip, ip2str(char_ip, ip_str));
 	return 1;
 }
 
 // sets char-server's port number
-void chrif_setport(int port)
+void chrif_setport(uint16 port)
 {
 	char_port = port;
 }
@@ -212,8 +212,8 @@ int chrif_connect(int fd)
 	memcpy(WFIFOP(fd,2), userid, NAME_LENGTH);
 	memcpy(WFIFOP(fd,26), passwd, NAME_LENGTH);
 	WFIFOL(fd,50) = 0;
-	WFIFOL(fd,54) = clif_getip_long();
-	WFIFOW(fd,58) = clif_getport();	// [Valaris] thanks to fov
+	WFIFOL(fd,54) = htonl(clif_getip());
+	WFIFOW(fd,58) = htons(clif_getport());
 	WFIFOSET(fd,60);
 
 	return 0;
@@ -237,25 +237,28 @@ int chrif_sendmap(int fd)
 // receive maps from some other map-server (relayed via char-server)
 int chrif_recvmap(int fd)
 {
-	int i, j, ip, port;
-	unsigned char *p = (unsigned char *)&ip;
+	int i, j;
+	uint32 ip;
+	uint16 port;
 	RFIFOHEAD(fd);
-	ip = RFIFOL(fd,4);
-	port = RFIFOW(fd,8);
+	ip = ntohl(RFIFOL(fd,4));
+	port = ntohs(RFIFOW(fd,8));
 	for(i = 10, j = 0; i < RFIFOW(fd,2); i += 4, j++) {
 		map_setipport(RFIFOW(fd,i), ip, port);
 	}
 	if (battle_config.etc_log)
-		ShowStatus("recv map on %d.%d.%d.%d:%d (%d maps)\n", p[0], p[1], p[2], p[3], port, j);
+		ShowStatus("Received maps from %d.%d.%d.%d:%d (%d maps)\n", CONVIP(ip), port, j);
 
 	other_mapserver_count++;
 	return 0;
 }
 
 // remove specified maps (used when some other map-server disconnects)
-int chrif_removemap(int fd){
-	int i, j, ip, port;
-	unsigned char *p = (unsigned char *)&ip;
+int chrif_removemap(int fd)
+{
+	int i, j;
+	uint32 ip;
+	uint16 port;
 	RFIFOHEAD(fd);
 
 	ip = RFIFOL(fd, 4);
@@ -267,7 +270,7 @@ int chrif_removemap(int fd){
 
 	other_mapserver_count--;
 	if(battle_config.etc_log)
-		ShowStatus("remove map of server %d.%d.%d.%d:%d (%d maps)\n", p[0], p[1], p[2], p[3], port, j);
+		ShowStatus("remove map of server %d.%d.%d.%d:%d (%d maps)\n", CONVIP(ip), port, j);
 	return 0;
 }
 
@@ -284,9 +287,9 @@ int chrif_save_ack(int fd)
 }
 
 // request to move a character between mapservers
-int chrif_changemapserver(struct map_session_data *sd, short map, int x, int y, int ip, short port)
+int chrif_changemapserver(struct map_session_data *sd, short map, int x, int y, uint32 ip, uint16 port)
 {
-	int s_ip;
+	uint32 s_ip;
 
 	nullpo_retr(-1, sd);
 
@@ -299,7 +302,7 @@ int chrif_changemapserver(struct map_session_data *sd, short map, int x, int y, 
 	}
 
 	if (sd->fd && sd->fd < fd_max && session[sd->fd])
-		s_ip = session[sd->fd]->client_addr.sin_addr.s_addr;
+		s_ip = session[sd->fd]->client_addr;
 	else //Not connected? Can't retrieve IP
 		s_ip = 0;
 
@@ -312,10 +315,10 @@ int chrif_changemapserver(struct map_session_data *sd, short map, int x, int y, 
 	WFIFOW(char_fd,18) = map;
 	WFIFOW(char_fd,20) = x;
 	WFIFOW(char_fd,22) = y;
-	WFIFOL(char_fd,24) = ip;
-	WFIFOW(char_fd,28) = port;
+	WFIFOL(char_fd,24) = htonl(ip);
+	WFIFOW(char_fd,28) = htons(port);
 	WFIFOB(char_fd,30) = sd->status.sex;
-	WFIFOL(char_fd,31) = s_ip;
+	WFIFOL(char_fd,31) = htonl(s_ip); // not used
 	WFIFOSET(char_fd,35);
 
 	return 0;
@@ -524,7 +527,7 @@ int auth_db_cleanup(int tid, unsigned int tick, int id, int data) {
  *
  *------------------------------------------
  */
-int chrif_charselectreq(struct map_session_data* sd, unsigned long s_ip)
+int chrif_charselectreq(struct map_session_data* sd, uint32 s_ip)
 {
 	nullpo_retr(-1, sd);
 
@@ -537,7 +540,7 @@ int chrif_charselectreq(struct map_session_data* sd, unsigned long s_ip)
 	WFIFOL(char_fd, 2) = sd->bl.id;
 	WFIFOL(char_fd, 6) = sd->login_id1;
 	WFIFOL(char_fd,10) = sd->login_id2;
-	WFIFOL(char_fd,14) = s_ip;
+	WFIFOL(char_fd,14) = htonl(s_ip);
 	WFIFOSET(char_fd,18);
 
 	return 0;
@@ -1375,16 +1378,16 @@ int chrif_disconnect(int fd) {
 
 void chrif_update_ip(int fd)
 {
-	unsigned long new_ip;
+	uint32 new_ip;
 	WFIFOHEAD(fd, 6);
-	new_ip = resolve_hostbyname(char_ip_str, NULL, NULL);
+	new_ip = host2ip(char_ip_str);
 	if (new_ip && new_ip != char_ip)
 		char_ip = new_ip; //Update char_ip
 
 	new_ip = clif_refresh_ip();
 	if (!new_ip) return; //No change
 	WFIFOW(fd, 0) = 0x2736;
-	WFIFOL(fd, 2) = new_ip;
+	WFIFOL(fd, 2) = htonl(new_ip);
 	WFIFOSET(fd, 6);
 }
 
@@ -1408,7 +1411,7 @@ int chrif_parse(int fd)
 		return 0;
 	}
 
-	while (RFIFOREST(fd) >= 2 && !session[fd]->eof) { //Infinite loop on broken pipe fix. [Skotlex]
+	while (RFIFOREST(fd) >= 2) { //Infinite loop on broken pipe fix. [Skotlex]
 		RFIFOHEAD(fd);
 		cmd = RFIFOW(fd,0);
 		if (cmd < 0x2af8 || cmd >= 0x2af8 + (sizeof(packet_len_table) / sizeof(packet_len_table[0])) ||

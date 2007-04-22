@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <time.h>
 
 #include "../common/cbasetypes.h"
@@ -700,20 +699,20 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	sd->state.event_kill_mob = 1;
 
 	{	//Add IP field
-		unsigned char *ip = (unsigned char *) &session[sd->fd]->client_addr.sin_addr;
+		uint32 ip = session[sd->fd]->client_addr;
 		if (pc_isGM(sd))
 			ShowInfo("GM '"CL_WHITE"%s"CL_RESET"' logged in."
 				" (AID/CID: '"CL_WHITE"%d/%d"CL_RESET"',"
 				" Packet Ver: '"CL_WHITE"%d"CL_RESET"', IP: '"CL_WHITE"%d.%d.%d.%d"CL_RESET"',"
 				" GM Level '"CL_WHITE"%d"CL_RESET"').\n",
 				sd->status.name, sd->status.account_id, sd->status.char_id,
-				sd->packet_ver, ip[0],ip[1],ip[2],ip[3], pc_isGM(sd));
+				sd->packet_ver, CONVIP(ip), pc_isGM(sd));
 		else
 			ShowInfo("'"CL_WHITE"%s"CL_RESET"' logged in."
 				" (AID/CID: '"CL_WHITE"%d/%d"CL_RESET"',"
 				" Packet Ver: '"CL_WHITE"%d"CL_RESET"', IP: '"CL_WHITE"%d.%d.%d.%d"CL_RESET"').\n",
 				sd->status.name, sd->status.account_id, sd->status.char_id,
-				sd->packet_ver, ip[0],ip[1],ip[2],ip[3]);
+				sd->packet_ver, CONVIP(ip));
 	}
 	
 	// Send friends list
@@ -3420,7 +3419,8 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 
 	if(m<0) {
 		if(sd->mapindex) {
-			int ip,port;
+			uint32 ip;
+			uint16 port;
 			if(map_mapname2ipport(mapindex,&ip,&port)==0) {
 				unit_remove_map(&sd->bl,clrtype);
 				sd->mapindex = mapindex;
@@ -5540,7 +5540,7 @@ int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 		if (potion_flag > 1)
 			bonus += bonus*(potion_flag-1)*50/100;
 		//Item Group bonuses
-		bonus += bonus*itemdb_group_bonus(sd, itemid)/100;
+		bonus += bonus*itemdb_group_bonus(sd->itemgrouphealrate, itemid)/100;
 		//Individual item bonuses.
 		for(i = 0; i < MAX_PC_BONUS && sd->itemhealrate[i].nameid; i++)
 		{

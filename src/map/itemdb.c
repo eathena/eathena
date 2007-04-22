@@ -103,19 +103,18 @@ int itemdb_searchrandomid(int group)
 }
 
 /*==========================================
- * Calculates total item-group related bonuses for the given item. [Skotlex]
- *------------------------------------------
- */
-int itemdb_group_bonus(struct map_session_data *sd, int itemid)
+ * Calculates total item-group related bonuses for the given item
+ *------------------------------------------*/
+int itemdb_group_bonus(const int itemgrouphealrate[MAX_ITEMGROUP], int itemid)
 {
 	int bonus = 0, i, j;
 	for (i=0; i < MAX_ITEMGROUP; i++) {
-		if (!sd->itemgrouphealrate[i])
+		if (itemgrouphealrate[i])
 			continue;
 		for (j=0; j < itemgroup_db[i].qty; j++) {
 			if (itemgroup_db[i].nameid[j] == itemid)
 			{
-				bonus += sd->itemgrouphealrate[i];
+				bonus += itemgrouphealrate[i];
 				break;
 			}
 		}

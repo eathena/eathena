@@ -4,12 +4,15 @@
 #ifndef _STRLIB_H_
 #define _STRLIB_H_
 
+#include <stddef.h> // size_t
+
 char* jstrescape (char* pt);
 char* jstrescapecpy (char* pt, const char* spt);
 int jmemescapecpy (char* pt, const char* spt, int size);
 
-int remove_control_chars(char *);
-char *trim(char *str, const char *delim);
+int remove_control_chars(char* str);
+char* trim(char* str);
+char* normalize_name(char* str,const char* delims);
 const char *stristr(const char *haystack, const char *needle);
 
 #ifdef __WIN32
@@ -24,6 +27,5 @@ size_t strnlen (const char* string, size_t maxlen);
 
 int e_mail_check(char* email);
 int config_switch(const char* str);
-
 
 #endif /* _STRLIB_H_ */

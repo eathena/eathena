@@ -94,9 +94,9 @@ struct packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB];
 //Guarantees that the given string does not exceeds the allowed size, as well as making sure it's null terminated. [Skotlex\]
 #define mes_len_check(mes, len, max) if (len > max) { mes[max-1] = '\0'; len = max; } else mes[len-1] = '\0';
 static char map_ip_str[128];
-static in_addr_t map_ip;
-static in_addr_t bind_ip = INADDR_ANY;
-static int map_port = 5121;
+static uint32 map_ip;
+static uint32 bind_ip = INADDR_ANY;
+static uint16 map_port = 5121;
 int map_fd;
 
 //These two will be used to verify the incoming player's validity.
@@ -114,23 +114,23 @@ static void clif_hpmeter_single(int fd, struct map_session_data *sd);
 int clif_setip(const char* ip)
 {
 	char ip_str[16];
-	map_ip = resolve_hostbyname(ip,NULL,ip_str);
+	map_ip = host2ip(ip);
 	if (!map_ip) {
 		ShowWarning("Failed to Resolve Map Server Address! (%s)\n", ip);
 		return 0;
 	}
 
 	strncpy(map_ip_str, ip, sizeof(map_ip_str));
-	ShowInfo("Map Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", ip, ip_str);
+	ShowInfo("Map Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", ip, ip2str(map_ip, ip_str));
 	return 1;
 }
 
 void clif_setbindip(const char* ip)
 {
-	unsigned char ip_str[4];
-	bind_ip = resolve_hostbyname(ip,ip_str,NULL);
+	char ip_str[16];
+	bind_ip = host2ip(ip);
 	if (bind_ip) {
-		ShowInfo("Map Server Bind IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%d.%d.%d.%d"CL_RESET"'.\n", ip, ip_str[0], ip_str[1], ip_str[2], ip_str[3]);
+		ShowInfo("Map Server Bind IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", ip, ip2str(bind_ip, ip_str));
 	} else {
 		ShowWarning("Failed to Resolve Map Server Address! (%s)\n", ip);
 	}
@@ -140,7 +140,7 @@ void clif_setbindip(const char* ip)
  * mapŽI‚ÌportÝ’è
  *------------------------------------------
  */
-void clif_setport(int port)
+void clif_setport(uint16 port)
 {
 	map_port = port;
 }
@@ -149,27 +149,21 @@ void clif_setport(int port)
  * mapŽI‚Ìip“Ç‚Ýo‚µ
  *------------------------------------------
  */
-in_addr_t clif_getip(void)
+uint32 clif_getip(void)
 {
 	return map_ip;
 }
 
-//Returns the ip casted as a basic type, to avoid needing to include the socket/net related libs by calling modules.
-unsigned long clif_getip_long(void)
+//Refreshes map_server ip, returns the new ip if the ip changed, otherwise it returns 0.
+uint32 clif_refresh_ip(void)
 {
-	return (unsigned long)map_ip;
-}
+	uint32 new_ip;
 
-//Refreshes map_server ip, returns the new ip if the ip changed, otherwise it 
-//returns 0.
-unsigned long clif_refresh_ip(void) {
-	in_addr_t new_ip;
-
-	new_ip = resolve_hostbyname(map_ip_str, NULL, NULL);
+	new_ip = host2ip(map_ip_str);
 	if (new_ip && new_ip != map_ip) {
 		map_ip = new_ip;
-		ShowInfo("Updating IP resolution of [%s].\n",map_ip_str);
-		return (unsigned long)map_ip;
+		ShowInfo("Updating IP resolution of [%s].\n", map_ip_str);
+		return map_ip;
 	}
 	return 0;
 }
@@ -178,7 +172,7 @@ unsigned long clif_refresh_ip(void) {
  * mapŽI‚Ìport“Ç‚Ýo‚µ
  *------------------------------------------
  */
-int clif_getport(void)
+uint16 clif_getport(void)
 {
 	return map_port;
 }
@@ -1691,7 +1685,7 @@ int clif_changemap(struct map_session_data *sd, short map, int x, int y) {
 /*==========================================
  * Tells the client to connect to another map-server
  *------------------------------------------*/
-int clif_changemapserver(struct map_session_data* sd, const char* mapname, int x, int y, int ip, int port)
+int clif_changemapserver(struct map_session_data* sd, const char* mapname, int x, int y, uint32 ip, uint16 port)
 {
 	int fd;
 
@@ -1705,8 +1699,8 @@ int clif_changemapserver(struct map_session_data* sd, const char* mapname, int x
 	WFIFOB(fd,17) = 0;	//Null terminator for mapname
 	WFIFOW(fd,18) = x;
 	WFIFOW(fd,20) = y;
-	WFIFOL(fd,22) = ip;
-	WFIFOW(fd,26) = port;
+	WFIFOL(fd,22) = htonl(ip);
+	WFIFOW(fd,26) = ntows(htons(port)); // [!] LE byte order here [!]
 	WFIFOSET(fd, packet_len(0x92));
 
 	return 0;
@@ -8909,7 +8903,7 @@ void clif_parse_Restart(int fd, struct map_session_data *sd) {
 		/*	Rovert's Prevent logout option - Fixed [Valaris]	*/
 		if (!battle_config.prevent_logout || DIFF_TICK(gettick(), sd->canlog_tick) > battle_config.prevent_logout)
 		{	//Send to char-server for character selection.
-			chrif_charselectreq(sd, session[fd]->client_addr.sin_addr.s_addr);
+			chrif_charselectreq(sd, session[fd]->client_addr);
 		} else {
 			WFIFOHEAD(fd,packet_len(0x18b));
 			WFIFOW(fd,0)=0x18b;
@@ -11770,8 +11764,8 @@ int clif_parse(int fd)
 				map_quit(sd);
 			}
 		} else {
-			unsigned char *ip = (unsigned char *) &session[fd]->client_addr.sin_addr;
-			ShowInfo("Closed connection from '"CL_WHITE"%d.%d.%d.%d"CL_RESET"'.\n", ip[0],ip[1],ip[2],ip[3]);
+			uint32 ip = session[fd]->client_addr;
+			ShowInfo("Closed connection from '"CL_WHITE"%d.%d.%d.%d"CL_RESET"'.\n", CONVIP(ip));
 		}
 		do_close(fd);
 		return 0;

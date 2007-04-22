@@ -57,6 +57,7 @@
 #include "../common/timer.h"
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
+#include "../common/strlib.h"
 
 fd_set readfds;
 int fd_max;
@@ -80,7 +81,7 @@ int create_session(int fd, RecvFunc func_recv, SendFunc func_send, ParseFunc fun
 
 #ifndef MINICORE
 	int ip_rules = 1;
-	static int connect_check(unsigned int ip);
+	static int connect_check(uint32 ip);
 #endif
 
 
@@ -102,7 +103,7 @@ void set_defaultparse(ParseFunc defaultparse)
 /*======================================
  *	CORE : Socket options
  *--------------------------------------*/
-void set_nonblocking(int fd, int yes)
+void set_nonblocking(int fd, unsigned long yes)
 {
 	// TCP_NODELAY BOOL Disables the Nagle algorithm for send coalescing.
 	if(MODE_NODELAY)
@@ -171,7 +172,7 @@ int recv_to_fifo(int fd)
 		return 0;
 	}
 
-	if (len <= 0) { //Normal connection end.
+	if (len == 0) { //Normal connection end.
 		set_eof(fd);
 		return 0;
 	}
@@ -250,7 +251,7 @@ int connect_client(int listen_fd)
 
 	if ( fd >= FD_SETSIZE )
 	{	//More connections than we can handle!
-		ShowError("accept failed. Received socket #%d is greater than can we handle! Increase the value of FD_SETSIZE (%d) for your OS to fix this!\n", fd, FD_SETSIZE);
+		ShowError("accept failed. Received socket #%d is greater than can we handle! Increase the value of FD_SETSIZE (currently %d) for your OS to fix this!\n", fd, FD_SETSIZE);
 		closesocket(fd);
 		return -1;
 	}
@@ -258,7 +259,7 @@ int connect_client(int listen_fd)
 	set_nonblocking(fd, 1);
 
 #ifndef MINICORE
-	if( ip_rules && !connect_check(*(uint32*)(&client_address.sin_addr)) ){
+	if( ip_rules && !connect_check(ntohl(client_address.sin_addr.s_addr)) ) {
 		do_close(fd);
 		return -1;
 	}
@@ -270,13 +271,13 @@ int connect_client(int listen_fd)
 		fd_max = fd + 1;
 
 	create_session(fd, recv_to_fifo, send_from_fifo, default_func_parse);
-	session[fd]->client_addr = client_address;
+	session[fd]->client_addr = ntohl(client_address.sin_addr.s_addr);
 	session[fd]->rdata_tick = last_tick;
 
 	return fd;
 }
 
-int make_listen_bind(long ip,int port)
+int make_listen_bind(uint32 ip, uint16 port)
 {
 	struct sockaddr_in server_address;
 	int fd;
@@ -293,8 +294,8 @@ int make_listen_bind(long ip,int port)
 	set_nonblocking(fd, 1);
 
 	server_address.sin_family      = AF_INET;
-	server_address.sin_addr.s_addr = ip;
-	server_address.sin_port        = htons((unsigned short)port);
+	server_address.sin_addr.s_addr = htonl(ip);
+	server_address.sin_port        = htons(port);
 
 	result = bind(fd, (struct sockaddr*)&server_address, sizeof(server_address));
 	if( result == SOCKET_ERROR ) {
@@ -320,7 +321,7 @@ int make_listen_bind(long ip,int port)
 	return fd;
 }
 
-int make_connection(long ip, int port)
+int make_connection(uint32 ip, uint16 port)
 {
 	struct sockaddr_in server_address;
 	int fd;
@@ -336,11 +337,10 @@ int make_connection(long ip, int port)
 	setsocketopts(fd);
 
 	server_address.sin_family      = AF_INET;
-	server_address.sin_addr.s_addr = ip;
-	server_address.sin_port        = htons((unsigned short)port);
+	server_address.sin_addr.s_addr = htonl(ip);
+	server_address.sin_port        = htons(port);
 
-	ShowStatus("Connecting to %d.%d.%d.%d:%i\n",
-		(ip)&0xFF,(ip>>8)&0xFF,(ip>>16)&0xFF,(ip>>24)&0xFF,port);
+	ShowStatus("Connecting to %d.%d.%d.%d:%i\n", CONVIP(ip), port);
 
 	result = connect(fd, (struct sockaddr *)(&server_address), sizeof(struct sockaddr_in));
 	if( result == SOCKET_ERROR ) {
@@ -468,11 +468,10 @@ int WFIFOSET(int fd, int len)
 	// we have written len bytes to the buffer already before calling WFIFOSET
 	if(s->wdata_size+len > s->max_wdata)
 	{	// actually there was a buffer overflow already
-		unsigned char *sin_addr = (unsigned char *)&s->client_addr.sin_addr;
-		ShowFatalError("socket: Buffer Overflow. Connection %d (%d.%d.%d.%d) has written %d bytes on a %d/%d bytes buffer.\n", fd,
-			sin_addr[0], sin_addr[1], sin_addr[2], sin_addr[3], len, s->wdata_size, s->max_wdata);
-		ShowDebug("Likely command that caused it: 0x%x\n",
-			(*(unsigned short*)(s->wdata + s->wdata_size)));
+		uint32 ip = s->client_addr;
+		ShowFatalError("socket: Buffer Overflow. Connection %d (%d.%d.%d.%d) has written %d bytes on a %d/%d bytes buffer.\n",
+			fd, CONVIP(ip), len, s->wdata_size, s->max_wdata);
+		ShowDebug("Likely command that caused it: 0x%x\n", (*(unsigned short*)(s->wdata + s->wdata_size)));
 		// no other chance, make a better fifo model
 		exit(1);
 	}
@@ -524,7 +523,13 @@ int do_sendrecv(int next)
 		for(i = 1; i < fd_max; i++)
 		{
 			if(!session[i])
+			{
+				if (FD_ISSET(i, &readfds)) {
+					ShowError("Deleting non-cleared session %d\n", i);
+					FD_CLR(i, &readfds);
+				}
 				continue;
+			}
 
 			//check the validity of the socket. Does what the last thing did
 			//just alot faster [Meruru]
@@ -540,7 +545,8 @@ int do_sendrecv(int next)
 					continue;
 				}
 
-			FD_SET(i,&readfds);
+			if (!FD_ISSET(i, &readfds))
+				FD_SET(i,&readfds);
 			ret = i;
 		}
 		fd_max = ret;
@@ -585,23 +591,22 @@ int do_parsepacket(void)
 	int i;
 	for(i = 1; i < fd_max; i++)
 	{
-		struct socket_data *sd = session[i];
-		if(!sd)
+		if(!session[i])
 			continue;
 
-		if (sd->rdata_tick && DIFF_TICK(last_tick,sd->rdata_tick) > stall_time) {
+		if (session[i]->rdata_tick && DIFF_TICK(last_tick, session[i]->rdata_tick) > stall_time) {
 			ShowInfo ("Session #%d timed out\n", i);
-			sd->eof = 1;
+			session[i]->eof = 1;
 		}
 
-		sd->func_parse(i);
+		session[i]->func_parse(i);
 
 		if(!session[i])
 			continue;
 
 		/* after parse, check client's RFIFO size to know if there is an invalid packet (too big and not parsed) */
-		if (sd->rdata_size == rfifo_size && sd->max_rdata == rfifo_size) {
-			sd->eof = 1;
+		if (session[i]->rdata_size == rfifo_size && session[i]->max_rdata == rfifo_size) {
+			session[i]->eof = 1;
 			continue;
 		}
 		RFIFOFLUSH(i);
@@ -645,8 +650,6 @@ static int ddos_autoreset  = 10*60*1000;
 /// Connection history, an array of linked lists.
 /// The array's index for any ip is ip&0xFFFF
 static ConnectHistory* connect_history[0x10000];
-
-#define CONVIP(ip) ip&0xFF,(ip>>8)&0xFF,(ip>>16)&0xFF,ip>>24
 
 static int connect_check_(uint32 ip);
 
@@ -840,8 +843,7 @@ int access_ipmask(const char* str, AccessControl* acc)
 		}
 	}
 	if( access_debug ){
-		ShowMessage("access_ipmask: Loaded IP:%d.%d.%d.%d mask:%d.%d.%d.%d\n",
-			CONVIP(ip), CONVIP(mask));
+		ShowMessage("access_ipmask: Loaded IP:%d.%d.%d.%d mask:%d.%d.%d.%d\n", CONVIP(ip), CONVIP(mask));
 	}
 	acc->ip   = ip;
 	acc->mask = mask;
@@ -873,12 +875,7 @@ int socket_config_read(const char* cfgName)
 			stall_time = atoi(w2);
 #ifndef MINICORE
 		else if (!strcmpi(w1, "enable_ip_rules")) {
-			if (!strcmpi(w2, "yes"))
-				ip_rules = 1;
-			else if(!strcmpi(w2, "no"))
-				ip_rules = 0;
-			else
-				ip_rules = atoi(w2);
+			ip_rules = config_switch(w2);
 		} else if (!strcmpi(w1, "order")) {
 			if (!strcmpi(w2, "deny,allow"))
 				access_order = ACO_DENY_ALLOW;
@@ -906,12 +903,7 @@ int socket_config_read(const char* cfgName)
 		else if (!strcmpi(w1,"ddos_autoreset"))
 			ddos_autoreset = atoi(w2);
 		else if (!strcmpi(w1,"debug"))
-			if (!strcmpi(w2,"yes"))
-				access_debug = 1;
-			else if (!strcmpi(w2,"no"))
-				access_debug = 0;
-			else
-				access_debug = atoi(w2);
+			access_debug = config_switch(w2);
 #endif
 		else if (!strcmpi(w1, "import"))
 			socket_config_read(w2);
@@ -1104,18 +1096,31 @@ int session_isActive(int fd)
 	return ( session_isValid(fd) && !session[fd]->eof );
 }
 
-in_addr_t resolve_hostbyname(const char* hostname, unsigned char* ip, char* ip_str)
+// Resolves hostname into a numeric ip.
+uint32 host2ip(const char* hostname)
 {
-	struct hostent *h = gethostbyname(hostname);
-	char ip_buf[16];
-	unsigned char ip2[4];
-	if (!h) return 0;
-	if (ip == NULL) ip = ip2;
-	ip[0] = (unsigned char) h->h_addr[0];
-	ip[1] = (unsigned char) h->h_addr[1];
-	ip[2] = (unsigned char) h->h_addr[2];
-	ip[3] = (unsigned char) h->h_addr[3];
-	if (ip_str == NULL) ip_str = ip_buf;
-	sprintf(ip_str, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
-	return inet_addr(ip_str);
+	struct hostent* h = gethostbyname(hostname);
+	return (h != NULL) ? ntohl(*(uint32*)h->h_addr) : 0;
+}
+
+// Converts a numeric ip into a dot-formatted string.
+// Result is placed either into a user-provided buffer or a static system buffer.
+const char* ip2str(uint32 ip, char ip_str[16])
+{
+	struct in_addr addr;
+	addr.s_addr = htonl(ip);
+	return (ip_str == NULL) ? inet_ntoa(addr) : strncpy(ip_str, inet_ntoa(addr), 16);
+}
+
+// Converts a dot-formatted ip string into a numeric ip.
+uint32 str2ip(const char* ip_str)
+{
+	return ntohl(inet_addr(ip_str));
+}
+
+// Reorders bytes from network to little endian (Windows).
+// Neccessary for sending port numbers to the RO client until Gravity notices that they forgot ntohs() calls.
+uint16 ntows(uint16 neshort)
+{
+	return ((neshort & 0xFF) << 8) | ((neshort & 0xFF00) >> 8);
 }

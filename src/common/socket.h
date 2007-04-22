@@ -81,7 +81,7 @@ struct socket_data {
 	size_t rdata_size, wdata_size;
 	size_t rdata_pos;
 	time_t rdata_tick; // time of last receive (for detecting timeouts)
-	struct sockaddr_in client_addr; // remote client address (zero for s2s connections)
+	uint32 client_addr; // remote client address (zero for s2s connections)
 	void* session_data;
 	RecvFunc func_recv;
 	SendFunc func_send;
@@ -106,12 +106,12 @@ extern int session_isActive(int fd);
 
 // Function prototype declaration
 
-int make_listen_bind(long,int);
-int make_connection(long,int);
-int realloc_fifo(int fd,unsigned int rfifo_size,unsigned int wfifo_size);
+int make_listen_bind(uint32 ip, uint16 port);
+int make_connection(uint32 ip, uint16 port);
+int realloc_fifo(int fd, unsigned int rfifo_size, unsigned int wfifo_size);
 int realloc_writefifo(int fd, size_t addition);
-int WFIFOSET(int fd,int len);
-int RFIFOSKIP(int fd,int len);
+int WFIFOSET(int fd, int len);
+int RFIFOSKIP(int fd, int len);
 
 int do_sendrecv(int next);
 int do_parsepacket(void);
@@ -121,17 +121,16 @@ void socket_final(void);
 
 extern void flush_fifo(int fd);
 extern void flush_fifos(void);
-extern void set_nonblocking(int fd, int yes);
+extern void set_nonblocking(int fd, unsigned long yes);
 
 void set_defaultparse(ParseFunc defaultparse);
 
-//Resolves the hostname and stores the string representation of the string in ip.
-//Meant to simplify calls to gethostbyname without the need of all the
-//required network includes.
-//hostname is the name to resolve.
-//ip is an array of char[4] where the individual parts of the ip are stored (optional)
-//ip_str is a char[16] where the whole ip is stored in string notation (optional)
-in_addr_t resolve_hostbyname(const char* hostname, unsigned char* ip, char* ip_str);
+// hostname/ip conversion functions
+uint32 host2ip(const char* hostname);
+const char* ip2str(uint32 ip, char ip_str[16]);
+uint32 str2ip(const char* ip_str);
+#define CONVIP(ip) (ip>>24)&0xFF,(ip>>16)&0xFF,(ip>>8)&0xFF,(ip>>0)&0xFF
+uint16 ntows(uint16 netshort);
 
 int socket_getips(uint32* ips, int max);
 

@@ -53,7 +53,7 @@
 #endif
 
 // disable attributed stuff on non-GNU
-#ifndef __GNUC__
+#if !defined(__GNUC__) && !defined(MINGW)
 #  define  __attribute__(x)
 #endif
 
@@ -74,26 +74,10 @@
 // Integers with guaranteed _exact_ size.
 //////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////
-#ifdef WIN32
-//////////////////////////////
 #define SIZEOF_LONG 4
 #define SIZEOF_INT 4
 #define HAVE_INT_8_16_32
-typedef          __int8		int8;
-typedef          __int16	int16;
-typedef          __int32	int32;
 
-typedef signed __int8		sint8;
-typedef signed __int16		sint16;
-typedef signed __int32		sint32;
-
-typedef unsigned __int8		uint8;
-typedef unsigned __int16	uint16;
-typedef unsigned __int32	uint32;
-//////////////////////////////
-#else // GNU
-//////////////////////////////
 typedef char				int8;
 typedef short				int16;
 typedef int					int32;
@@ -105,9 +89,6 @@ typedef signed int			sint32;
 typedef unsigned char		uint8;
 typedef unsigned short		uint16;
 typedef unsigned int		uint32;
-//////////////////////////////
-#endif
-//////////////////////////////
 
 #undef UINT8_MIN
 #undef UINT16_MIN
@@ -155,9 +136,9 @@ typedef unsigned long int   ppuint32;
 
 //////////////////////////////////////////////////////////////////////////
 // integer with exact processor width (and best speed)
-//						size_t already defined in stdio.h
 //////////////////////////////
-//
+#include <stddef.h> // size_t
+
 #if defined(WIN32) && !defined(MINGW) // does not have a signed size_t
 //////////////////////////////
 #if defined(_WIN64)	// naive 64bit windows platform
@@ -309,7 +290,7 @@ typedef char bool;
 
 //////////////////////////////////////////////////////////////////////////
 // Has to be unsigned to avoid problems in some systems
-// Problems arise when these functions expect an argument in the range [0,256[ and are feed a signed char.
+// Problems arise when these functions expect an argument in the range [0,256[ and are fed a signed char.
 #include <ctype.h>
 #define ISALNUM(c) (isalnum((unsigned char)(c)))
 #define ISALPHA(c) (isalpha((unsigned char)(c)))
@@ -325,6 +306,5 @@ typedef char bool;
 #define TOASCII(c) (toascii((unsigned char)(c)))
 #define TOLOWER(c) (tolower((unsigned char)(c)))
 #define TOUPPER(c) (toupper((unsigned char)(c)))
-
 
 #endif /* _CBASETYPES_H_ */
