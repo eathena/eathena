@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/04/23
+	* Merged Airship and Job Skill quest fixes [Playtester]
 2007/04/22
 	* Merged Zealotus Mask fix [Playtester]
 	* Fixed a typo in special archer quest [Playtester]
