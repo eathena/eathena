@@ -93,6 +93,9 @@
 				RelativePath="..\src\map\fightable.cpp">
 			</File>
 			<File
+				RelativePath="..\src\map\flooritem.cpp">
+			</File>
+			<File
 				RelativePath="..\src\map\guild.cpp">
 			</File>
 			<File
@@ -109,6 +112,12 @@
 			</File>
 			<File
 				RelativePath="..\src\map\map.cpp">
+			</File>
+			<File
+				RelativePath="..\src\map\mapcache.cpp">
+			</File>
+			<File
+				RelativePath="..\src\map\mapobj.cpp">
 			</File>
 			<File
 				RelativePath="..\src\map\mercenary.cpp">
@@ -200,6 +209,9 @@
 				RelativePath="..\src\map\fightable.h">
 			</File>
 			<File
+				RelativePath="..\src\map\flooritem.h">
+			</File>
+			<File
 				RelativePath="..\src\map\guild.h">
 			</File>
 			<File
@@ -216,6 +228,12 @@
 			</File>
 			<File
 				RelativePath="..\src\map\map.h">
+			</File>
+			<File
+				RelativePath="..\src\map\mapcache.h">
+			</File>
+			<File
+				RelativePath="..\src\map\mapobj.h">
 			</File>
 			<File
 				RelativePath="..\src\map\mercenary.h">

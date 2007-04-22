@@ -14,6 +14,7 @@
 #include "pc.h"
 #include "status.h"
 #include "npc.h"
+#include "flooritem.h"
 #include "mob.h"
 #include "pet.h"
 #include "homun.h"
@@ -231,6 +232,108 @@ map_session_data::~map_session_data()
 	this->clean_db();
 }
 
+
+/// remove from map.
+void map_session_data::map_quit()
+{
+	map_session_data& sd = *this;
+
+	if( sd.state.event_disconnect )
+	{
+		npc_data::event("OnPCLogoutEvent", script_config.logout_event_name, sd);
+	}
+	sd.leavechat();
+	if(sd.trade_partner)	// 取引を中?する	
+		trade_tradecancel(sd);
+	if(sd.party_invite>0)	// パ?ティ?誘を拒否する
+		party_reply_invite(sd,sd.party_invite_account,0);
+	if(sd.guild_invite>0)	// ギルド?誘を拒否する
+		guild_reply_invite(sd,sd.guild_invite,0);
+	if(sd.guild_alliance>0)	// ギルド同盟?誘を拒否する
+		guild_reply_reqalliance(sd,sd.guild_alliance_account,0);
+
+	party_send_logout(sd);	// パ?ティのログアウトメッセ?ジ送信
+	party_send_dot_remove(sd);
+	guild_send_memberinfoshort(sd,0);	// ギルドのログアウトメッセ?ジ送信
+
+	chrif_save_sc(sd);
+
+	pc_cleareventtimer(sd);	// イベントタイマを破棄する
+	if(sd.state.storage_flag)
+		storage_guild_storage_quit(sd,0);
+	else
+		storage_storage_quit(sd);	// 倉庫を開いてるなら保存する
+
+	// check if we've been authenticated [celest]
+	if (sd.state.auth)
+		skill_castcancel(&sd,0);	// 詠唱を中?する
+
+	skill_stop_dancing(&sd,1);// ダンス/演奏中?
+	if( sd.has_status(SC_BERSERK) ) //バ?サ?ク中の終了はHPを100に
+	{
+		sd.status.hp = 100;
+		status_change_end(&sd,SC_BERSERK,-1);
+	}
+
+	status_change_clear(&sd,1);	// ステ?タス異常を解除する
+	skill_clear_unitgroup(&sd);	// スキルユニットグル?プの削除
+	skill_cleartimerskill(&sd);
+
+	sd.stop_walking(0);
+	sd.stop_attack();
+	pc_delinvincibletimer(sd);
+
+	pc_delspiritball(sd,sd.spiritball,1);
+	skill_gangsterparadise(&sd,0);
+	skill_unit_move(sd,gettick(),0);
+	
+	if( sd.state.auth )
+		status_calc_pc(sd,4);
+
+	if( !(sd.status.option & OPTION_HIDE) )
+		clif_clearchar_area(sd,2);
+
+	if( sd.status.pet_id && sd.pd )
+	{
+		sd.pd->droploot();
+		if(sd.pd->pet.intimate <= 0)
+		{
+			intif_delete_petdata(sd.status.pet_id);
+			sd.status.pet_id = 0;
+			sd.pd = NULL;
+		}
+		else
+			intif_save_petdata(sd.status.account_id,sd.pd->pet);
+		sd.pd->freeblock();
+	}
+	if( sd.is_dead() )
+		pc_setrestartvalue(sd,2);
+
+	homun_data::clear_homunculus(sd);
+	pc_clean_skilltree(sd);
+	pc_makesavestatus(sd);
+	chrif_save(sd);
+	storage_storage_dirty(sd);
+	storage_storage_save(sd);
+	sd.delblock();
+
+	
+	sd.ScriptEngine.clear();
+
+	chrif_char_offline(sd);
+		
+	if(sd.reg)
+	{
+		delete[] sd.reg;
+		sd.reg=NULL;
+	}
+		
+	if(sd.regstr)
+	{
+		delete[] sd.regstr;
+		sd.regstr=NULL;
+	}
+}
 
 
 /// insert to nick_db.
@@ -2892,7 +2995,7 @@ int pc_dropitem(map_session_data &sd,unsigned short inx, size_t amount)
 		return 1;
 	}
 
-	if( map_addflooritem(sd.status.inventory[inx], amount, sd.block_list::m, sd.block_list::x, sd.block_list::y, NULL, NULL, NULL, 0) )
+	if( flooritem_data::create(sd.status.inventory[inx], amount, sd.block_list::m, sd.block_list::x, sd.block_list::y, NULL, NULL, NULL, 0) )
 		pc_delitem(sd, inx, amount, 0);
 	else
 		clif_delitem(sd,inx,0);
@@ -2957,7 +3060,8 @@ int pc_takeitem(map_session_data &sd, flooritem_data &fitem)
 	{	// 取得成功 
 		sd.stop_attack();
 		clif_takeitem(sd,fitem);
-		map_clearflooritem(fitem.block_list::id);
+		fitem.item_data = item();
+		fitem.freeblock();
 	}
 	return 0;
 }
@@ -4894,7 +4998,7 @@ int pc_damage(map_session_data &sd, long damage, block_list *src)
 		item_tmp.card[1]=0;
 		item_tmp.card[2]=basics::GetWord(sd.status.char_id,0);	// キャラID 
 		item_tmp.card[3]=basics::GetWord(sd.status.char_id,1);
-		map_addflooritem(item_tmp,1,sd.block_list::m,sd.block_list::x,sd.block_list::y,NULL,NULL,NULL,0);
+		flooritem_data::create(item_tmp,1,sd.block_list::m,sd.block_list::x,sd.block_list::y,NULL,NULL,NULL,0);
 	}
 
 	// activate Steel body if a super novice dies at 99+% exp [celest]

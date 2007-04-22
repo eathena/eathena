@@ -518,7 +518,7 @@ extern inline void item_frombuffer(struct item &p, const uchar *buf)
 // item compare
 bool operator==(const struct item& a, const struct item& b);
 inline bool operator!=(const struct item& a, const struct item& b)		{ return !(a==b); }
-
+bool operator< (const struct item& a, const struct item& b);
 
 
 /////////////////////////////////////////////////////////////////////////////

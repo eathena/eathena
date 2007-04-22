@@ -311,7 +311,7 @@ void CSQLParameter::rebuild()
 			 "`account_id`   INTEGER UNSIGNED AUTO_INCREMENT,"
 			 "`user_id`      VARCHAR(24) NOT NULL,"
 			 "`user_pass`    VARCHAR(34) NOT NULL,"
-			 "`sex`          ENUM('M','F','S') default 'M',"
+			 "`sex`          ENUM('M','F') default 'M',"
 			 "`gm_level`     INT(3) UNSIGNED NOT NULL default '0',"
 			 "`online`       BOOL default '0',"
 			 "`email`        VARCHAR(40) NOT NULL default 'a@a.com',"

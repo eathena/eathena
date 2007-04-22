@@ -59,13 +59,13 @@ enum var_t
 template<typename T>
 struct is_string_type
 {
-	enum { Result = false };
+	enum _dummy { Result = false };
 	typedef bool_false Type;
 };
 template<>
 struct is_string_type< string<> >
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 };	
 
@@ -272,6 +272,7 @@ public:
 	virtual int64 get_int() const		{ return 0; }
 	virtual double get_float() const	{ return 0.0; }
 	virtual string<> get_string() const	{ return string<>(); }
+	virtual string<> get_arraystring() const { return this->get_string(); }
 	virtual const char* get_cstring() const	{ return ""; }
 
 	operator bool() const				{ return this->get_bool(); }
@@ -602,7 +603,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// access conversion 
 	virtual bool get_bool() const		{ return this->value != 0.0 /*&& !nan(value)*/; }
-	virtual int64 get_int() const		{ return (int64)floor( this->value+((this->value>0)?+0.5:-0.5)); }
+	virtual int64 get_int() const		{ return (int64)floor( this->value+((this->value>=0)?+0.5:-0.5)); }
 	virtual double get_float() const	{ return this->value; }
 	virtual string<> get_string() const	{ return string<>(this->value); }
 
@@ -705,7 +706,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// access conversion 
 	virtual bool get_bool() const		{ return value.size()>0; }
-	virtual int64 get_int() const		{ const double d=stringtod(this->value.c_str()); return (int64)floor(d+((d>0)?+0.5:-0.5)); }
+	virtual int64 get_int() const		{ const double d=stringtod(this->value.c_str()); return (int64)floor(d+((d>=0)?+0.5:-0.5)); }
 	virtual double get_float() const	{ return stringtod(this->value.c_str()); }
 	virtual string<> get_string() const	{ return this->value; }
 	virtual const char* get_cstring() const	{ return this->value.c_str(); }
@@ -779,7 +780,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// access conversion 
 	virtual bool get_bool() const		{ return this->value && *this->value; }
-	virtual int64 get_int() const		{ const double d=stringtod(this->value); return (int64)floor(d+((d>0)?+0.5:-0.5)); }
+	virtual int64 get_int() const		{ const double d=stringtod(this->value); return (int64)floor(d+((d>=0)?+0.5:-0.5)); }
 	virtual double get_float() const	{ return stringtod(this->value); }
 	virtual string<> get_string() const	{ return value; }
 	virtual const char* get_cstring() const	{ return value; }
@@ -865,6 +866,7 @@ public:
 	virtual int64 get_int() const;
 	virtual double get_float() const;
 	virtual string<> get_string() const;
+	virtual string<> get_arraystring() const;
 
 	///////////////////////////////////////////////////////////////////////////
 	// unary operations
@@ -1254,7 +1256,7 @@ public:
 struct value_union
 {
 private:
-	enum
+	enum _dummy
 	{
 		SizeA = sizeof(value_empty),
 		SizeB = (SizeA > sizeof(value_integer))    ? SizeA : sizeof(value_integer),
@@ -1497,6 +1499,7 @@ public:
 	int64 get_int() const		{ return this->value.exists() ? this->access().get_int() : 0; }
 	double get_float() const	{ return this->value.exists() ? this->access().get_float() : 0.0; }
 	string<> get_string() const	{ return this->value.exists() ? this->access().get_string() : string<>(); }
+	string<> get_arraystring() const	{ return this->value.exists() ? this->access().get_arraystring() : string<>(); }
 	const char* get_cstring() const	{ return this->value.exists() ? this->access().get_cstring() : ""; }
 
 private:
@@ -1543,6 +1546,7 @@ public:
 				(name=="int")?VAR_INTEGER:
 				(name=="string")?VAR_STRING:VAR_AUTO;
 	}
+	static const char* type2name(var_t type);
 	///////////////////////////////////////////////////////////////////////////
 	/// unary operations
 	void negate()	{ if( this->value.exists() ) this->access().negate(); }

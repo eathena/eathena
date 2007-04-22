@@ -15,7 +15,7 @@ NAMESPACE_BEGIN(basics)
 template< typename T >
 struct has_swap
 {
-	enum{ Result = false };
+	enum _dummy { Result = false };
 	typedef bool_false Type;
 };
 
@@ -41,7 +41,7 @@ template < typename T > char  has_swap_helper(has_swap_struct<T, &T::swap>*);
 template< typename T >
 struct has_swap
 {
-	enum{ Result = sizeof(detail::has_swap_helper<T>(0)) == sizeof(char) };
+	enum _dummy { Result = sizeof(detail::has_swap_helper<T>(0)) == sizeof(char) };
 	typedef typename bool2type<Result>::Type Type;
 };	
 

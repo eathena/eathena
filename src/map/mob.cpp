@@ -12,6 +12,7 @@
 #include "showmsg.h"
 
 #include "map.h"
+#include "flooritem.h"
 #include "clif.h"
 #include "chrif.h"
 #include "intif.h"
@@ -96,8 +97,8 @@ mob_data::mob_data(const char *mobname, int cl) :
 	recallmob_count(0),
 	recallcount(0)
 {
-	this->block_list::id = npc_get_new_npc_id();
-
+	this->register_id( npc_get_new_npc_id() );
+	
 	if(strcmp(mobname,"--en--")==0)
 		safestrcpy(this->name, sizeof(this->name), mob_db[this->class_].name);
 	else if(strcmp(mobname,"--ja--")==0)
@@ -135,7 +136,7 @@ mob_data::~mob_data()
 	this->remove_slaves();
 	clif_clearchar_area(*this, 0);
 	this->delblock();
-	this->deliddb();
+	this->unregister_id();
 	if(this->lootitem)
 	{
 		delete[] this->lootitem;
@@ -746,7 +747,6 @@ uint mob_data::summon_slaves(unsigned short skillid, unsigned short skilllv)
 				slavemd->block_list::m=m;
 				slavemd->block_list::x=x;
 				slavemd->block_list::y=y;
-				slavemd->addiddb();
 
 				if(config.mob_slaves_inherit_speed && (skillid != NPC_METAMORPHOSIS && skillid != NPC_TRANSFORMATION))
 					slavemd->speed = this->speed;
@@ -882,7 +882,6 @@ int mob_once_spawn (map_session_data *sd, const char *mapname,
 		md->block_list::m = m;
 		md->block_list::x = x;
 		md->block_list::y = y;
-		md->addiddb();
 		
 		//移動してアクティブで反撃する
 		if(random && config.dead_branch_active)
@@ -995,11 +994,9 @@ int mob_spawn_guardian(map_session_data *sd,const char *mapname,
 	{
 		guild_castle *gc;
 		md = new mob_data(mobname, class_);
-
 		md->block_list::m = m;
 		md->block_list::x = x;
 		md->block_list::y = y;
-		md->addiddb();
 
 		safestrcpy(md->npc_event, sizeof(md->npc_event), event);
 		mob_spawn(md->block_list::id);
@@ -1763,7 +1760,7 @@ public:
 						fitem = (flooritem_data *)tbl;
 						if(md.lootitem_count < LOOTITEM_SIZE)
 						{
-							memcpy (&md.lootitem[md.lootitem_count++], &fitem->item_data, sizeof(md.lootitem[0]));
+							md.lootitem[md.lootitem_count++] = fitem->item_data;
 						}
 						else if (config.monster_loot_type == 1 && md.lootitem_count >= LOOTITEM_SIZE)
 						{
@@ -1771,14 +1768,15 @@ public:
 							return 0;
 						}
 						else
-						{
-							if (md.lootitem[0].card[0] == 0xff00)
+						{	// consume oldest item
+							if( md.lootitem[0].card[0] == 0xff00 )
 								intif_delete_petdata( basics::MakeDWord(md.lootitem[0].card[1],md.lootitem[0].card[2]) );
-							for (i = 0; i < LOOTITEM_SIZE - 1; ++i)
-								memcpy (&md.lootitem[i], &md.lootitem[i+1], sizeof(md.lootitem[0]));
-							memcpy (&md.lootitem[LOOTITEM_SIZE-1], &fitem->item_data, sizeof(md.lootitem[0]));
+							for (i=0; i<LOOTITEM_SIZE-1; ++i)
+								md.lootitem[i] = md.lootitem[i+1];
+							md.lootitem[LOOTITEM_SIZE-1] = fitem->item_data;
 						}
-						map_clearflooritem (tbl->id);
+						fitem->item_data = item();
+						fitem->freeblock();
 						md.unlock_target(tick);
 					}
 					return 0;
@@ -1946,7 +1944,7 @@ int mob_delay_item_drop(int tid, unsigned long tick, int id, basics::numptr data
 	}
 	if (drop_flag)
 	{
-		map_addflooritem(temp_item,1,ditem->m,ditem->x,ditem->y,ditem->first_sd,ditem->second_sd,ditem->third_sd,0);
+		flooritem_data::create(temp_item,1,ditem->m,ditem->x,ditem->y,ditem->first_sd,ditem->second_sd,ditem->third_sd,0);
 	}
 	delete ditem;
 	return 0;
@@ -2009,7 +2007,7 @@ int mob_delay_item_drop2(int tid, unsigned long tick, int id, basics::numptr dat
 	}
 
 	if (drop_flag)
-		map_addflooritem(ditem->item_data,ditem->item_data.amount,ditem->m,ditem->x,ditem->y,ditem->first_sd,ditem->second_sd,ditem->third_sd,0);
+		flooritem_data::create(ditem->item_data,ditem->item_data.amount,ditem->m,ditem->x,ditem->y,ditem->first_sd,ditem->second_sd,ditem->third_sd,0);
 
 	delete ditem;
 	return 0;
@@ -2643,10 +2641,13 @@ int mob_damage(mob_data &md,int damage,int type,block_list *src)
 			clif_mvp_item(*mvp_sd,item.nameid);
 			log_mvp[0] = item.nameid;
 			if(mvp_sd->weight*2 > mvp_sd->max_weight)
-				map_addflooritem(item,1,mvp_sd->block_list::m,mvp_sd->block_list::x,mvp_sd->block_list::y,mvp_sd,second_sd,third_sd,1);
-			else if((ret = pc_additem(*mvp_sd,item,1))) {
+			{
+				flooritem_data::create(item,1,mvp_sd->block_list::m,mvp_sd->block_list::x,mvp_sd->block_list::y,mvp_sd,second_sd,third_sd,1);
+			}
+			else if((ret = pc_additem(*mvp_sd,item,1)))
+			{
 				clif_additem(*sd,0,0,ret);
-				map_addflooritem(item,1,mvp_sd->block_list::m,mvp_sd->block_list::x,mvp_sd->block_list::y,mvp_sd,second_sd,third_sd,1);
+				flooritem_data::create(item,1,mvp_sd->block_list::m,mvp_sd->block_list::x,mvp_sd->block_list::y,mvp_sd,second_sd,third_sd,1);
 			}
 			break;
 		}

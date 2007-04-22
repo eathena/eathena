@@ -315,7 +315,6 @@ int	VPRINTF(const char *fmt, va_list argptr)
 					//    \033[2J - Clears the screen and moves the cursor to the home position (line 1, column 1).
 					uint num = (numbers[numpoint]>>4)*10+(numbers[numpoint]&0x0F);
 					int cnt;
-					DWORD tmp;
 					COORD origin = {0,0};
 					if(num==1)
 					{	// chars from start up to and including cursor
@@ -330,9 +329,9 @@ int	VPRINTF(const char *fmt, va_list argptr)
 					{	// number of chars from cursor to end
 						origin = info.dwCursorPosition;
 						cnt = info.dwSize.X * (info.dwSize.Y - info.dwCursorPosition.Y) - info.dwCursorPosition.X; 
-					}				
-					FillConsoleOutputAttribute(handle, info.wAttributes, cnt, origin, &tmp);
-					FillConsoleOutputCharacter(handle, ' ',              cnt, origin, &tmp);
+					}
+					FillConsoleOutputAttribute(handle, info.wAttributes, cnt, origin, &written);
+					FillConsoleOutputCharacter(handle, ' ',              cnt, origin, &written);
 				}
 				else if( *q=='K' )
 				{	// \033[K  : clear line from actual position to end of the line
@@ -343,7 +342,6 @@ int	VPRINTF(const char *fmt, va_list argptr)
 					uint num = (numbers[numpoint]>>4)*10+(numbers[numpoint]&0x0F);
 					COORD origin = {0,info.dwCursorPosition.Y};
 					SHORT cnt;
-					DWORD tmp;
 					if(num==1)
 					{	
 						cnt = info.dwCursorPosition.X + 1;
@@ -357,8 +355,8 @@ int	VPRINTF(const char *fmt, va_list argptr)
 						origin = info.dwCursorPosition;
 						cnt = info.dwSize.X - info.dwCursorPosition.X; // how many spaces until line is full
 					}
-					FillConsoleOutputAttribute(handle, info.wAttributes, cnt, origin, &tmp);
-					FillConsoleOutputCharacter(handle, ' ',              cnt, origin, &tmp);
+					FillConsoleOutputAttribute(handle, info.wAttributes, cnt, origin, &written);
+					FillConsoleOutputCharacter(handle, ' ',              cnt, origin, &written);
 				}
 				else if( *q == 'H' || *q == 'f' )
 				{	// \033[#;#H - Cursor Position (CUP)

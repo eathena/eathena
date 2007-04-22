@@ -8,8 +8,71 @@
 #include "fightable.h"
 #include "skillunit.h"
 #include "status.h"
+#include "vending.h"
 
 
+
+///////////////////////////////////////////////////////////////////////////////
+struct weapon_data
+{
+	long watk;
+	long watk2;
+
+	long overrefine;
+	long star;
+	long atk_ele;
+	long atkmods[3];
+	long addsize[3];
+	long addele[10];
+	long addrace[12];
+	long addrace2[12];
+	long ignore_def_ele;
+	long ignore_def_race;
+	short ignore_def_mob;
+	long def_ratio_atk_ele;
+	long def_ratio_atk_race;
+	long add_damage_class_count;
+	short add_damage_classid[10];
+	long add_damage_classrate[10];
+	short hp_drain_rate;
+	short hp_drain_per;
+	short hp_drain_value;
+	short sp_drain_rate;
+	short sp_drain_per;
+	short sp_drain_value;
+
+	unsigned fameflag : 1;
+
+	// default constructor
+	weapon_data() : 
+		watk(0),
+		watk2(0),
+		overrefine(0),
+		star(0),
+		atk_ele(0),
+		ignore_def_ele(0),
+		ignore_def_race(0),
+		ignore_def_mob(0),
+		def_ratio_atk_ele(0),
+		def_ratio_atk_race(0),
+		add_damage_class_count(0),
+		hp_drain_rate(0),
+		hp_drain_per(0),
+		hp_drain_value(0),
+		sp_drain_rate(0),
+		sp_drain_per(0),
+		sp_drain_value(0),
+		fameflag(0)
+	{
+		memset(atkmods,0,sizeof(atkmods));
+		memset(addsize,0,sizeof(addsize));
+		memset(addele,0,sizeof(addele));
+		memset(addrace,0,sizeof(addrace));
+		memset(addrace2,0,sizeof(addrace2));
+		memset(add_damage_classid,0,sizeof(add_damage_classid));
+		memset(add_damage_classrate,0,sizeof(add_damage_classrate));
+	}
+};
 
 struct map_session_data : public affectable, public session_data
 {
@@ -450,12 +513,13 @@ public:
 	/// clean all entries of this object in dbs
 	//## could be placed only at the destructor
 	void clean_db();
-	
-	
+
 	///////////////////////////////////////////////////////////////////////////
 	// normal object access
 
-	
+	/// remove from map.
+	void map_quit();
+
 	/// returns GM level
 	unsigned char isGM() const;
 

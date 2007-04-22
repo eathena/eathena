@@ -106,10 +106,10 @@ enum command_t
 	OP_BLDFUNCTION2,			// followed by an string address
 	OP_BLDFUNCTION3,			// followed by an string address
 	OP_BLDFUNCTION4,			// followed by an string address
-	OP_SUBFUNCTION,				// followed by an string address
-	OP_SUBFUNCTION2,			// followed by an string address
-	OP_SUBFUNCTION3,			// followed by an string address
-	OP_SUBFUNCTION4,			// followed by an string address
+	OP_SUBFUNCTION,				// 
+	OP_SUBFUNCTION2,			// 
+	OP_SUBFUNCTION3,			// 
+	OP_SUBFUNCTION4,			// 
 	/////////////////////////////////////////////////////////////////
 	// explicit stack pushes
 	// Values pushed on stack directly
@@ -184,6 +184,10 @@ enum command_t
 	OP_EMPTY,					// clear a variable
 	OP_POP,						// clear the stack
 	OP_EVAL,					// evaluate
+	OP_REDUCE,					// evaluate reduction
+	OP_REDUCE2,					// evaluate reduction
+	OP_REDUCE3,					// evaluate reduction
+	OP_REDUCE4,					// evaluate reduction
 	OP_BOOLEAN,					// convert to boolean
 	/////////////////////////////////////////////////////////////////
 	// Jumps

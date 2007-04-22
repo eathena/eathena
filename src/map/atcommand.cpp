@@ -19,6 +19,7 @@
 #include "chrif.h"
 #include "itemdb.h"
 #include "pc.h"
+#include "flooritem.h"
 #include "mob.h"
 #include "party.h"
 #include "pet.h"
@@ -919,7 +920,7 @@ public:
 	~CAtCleanMap()	{}
 	virtual int process(block_list& bl) const
 	{
-		map_clearflooritem(bl.id);
+		bl.freeblock();
 		return 0;
 	}
 };
@@ -1449,7 +1450,7 @@ void getring(map_session_data &sd)
 	if( flag>0 )
 	{
 		clif_additem(sd,0,0,flag);
-		map_addflooritem(item_tmp,1,sd.block_list::m,sd.block_list::x,sd.block_list::y,NULL,NULL,NULL,0);
+		flooritem_data::create(item_tmp,1,sd.block_list::m,sd.block_list::x,sd.block_list::y,NULL,NULL,NULL,0);
 	}
 }
 

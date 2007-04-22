@@ -27,9 +27,9 @@ public:
 		val4()
 	{ }
 
-	bool is_active() const { return timerid!=-1; }
-	const int& timer() const { return timerid; }
-	int& timer() { return timerid; }
+	bool is_active() const		{ return timerid!=-1; }
+	const int& timer() const	{ return timerid; }
+	int& timer()				{ return timerid; }
 
 	const basics::numptr& value1() const	{ return val1; }
 	const basics::numptr& value2() const	{ return val2; }

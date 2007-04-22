@@ -20,12 +20,12 @@ struct scriptinstance
 
 	basics::string<>	cType;		///< instance type
 	property			cProperty;	///< instance properties
-	scriptprog::script	cScript;	///< instance script
+	basics::string<>	cScript;	///< instance script
 	basics::string<>	cStart;		///< instance start label
 
 	scriptinstance()
 	{}
-	scriptinstance(scriptprog::script s, const basics::string<>& p)
+	scriptinstance(const basics::string<>& s, const basics::string<>& p)
 		: cScript(s), cStart(p)
 	{}
 };

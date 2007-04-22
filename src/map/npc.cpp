@@ -791,7 +791,7 @@ void npc_data::remove_from_map()
 
 		clif_clearchar_area(*this,2);
 		this->delblock();
-		this->deliddb();
+		this->unregister_id();
 	}
 }
 
@@ -1301,8 +1301,7 @@ bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
 	m = map_mapname2mapid(mapname);
 
 	npcwarp_data *nd = new npcwarp_data(); 
-
-	nd->block_list::id = npc_get_new_npc_id();
+	nd->register_id( npc_get_new_npc_id() );
 	nd->n = map_addnpc(m, nd);
 	nd->block_list::m = m;
 	nd->block_list::x = x;
@@ -1338,7 +1337,6 @@ bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
 
 //	ShowMessage("warp npc %s %d read done\n",mapname,nd->block_list::id);
 	++npc_warp;
-	nd->addiddb();
 	nd->addblock();
 	clif_spawnnpc(*nd);
 
@@ -1405,11 +1403,11 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 	}
 
 	nd = new npcshop_data(shopitems, pos); 
-
+	nd->register_id( npc_get_new_npc_id() );
 	nd->block_list::m = m;
 	nd->block_list::x = x;
 	nd->block_list::y = y;
-	nd->block_list::id = npc_get_new_npc_id();
+
 	nd->init_dir(dir_t(dir&0x07),dir_t(dir&0x07));
 	nd->invalid = 0;
 	safestrcpy(nd->name,  sizeof(nd->name),  w3);
@@ -1424,7 +1422,6 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 	//ShowMessage("shop npc %s %d read done\n",mapname,nd->block_list::id);
 	++npc_shop;
 
-	nd->addiddb();
 	nd->n = map_addnpc(m,nd);
 	if (m >= 0)
 	{
@@ -1600,7 +1597,6 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 	nd->block_list::m = m;
 	nd->block_list::x = x;
 	nd->block_list::y = y;
-	nd->block_list::id = (!dummy_npc) ? npc_get_new_npc_id() : 0;
 	nd->init_dir(dir_t(dir&0x07),dir_t(dir&0x07));
 	nd->class_ = class_;
 	nd->speed = 200;
@@ -1611,7 +1607,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 	if(!dummy_npc)
 	{
 		++npc_script;
-		nd->addiddb();
+		nd->register_id( npc_get_new_npc_id() );
 	}
 	if(m>=0 && !dummy_npc)
 	{
@@ -1781,7 +1777,6 @@ int npc_parse_mob2(struct mob_list &mob)
 		md->block_list::m = mob.m;
 		md->block_list::x = mob.x0;
 		md->block_list::y = mob.y0;
-		md->addiddb();
 
 		md->level = mob.level;
 

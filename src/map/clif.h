@@ -6,6 +6,7 @@
 
 #include "socket.h"
 #include "map.h"
+#include "vending.h"
 
 
 

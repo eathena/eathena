@@ -15,8 +15,29 @@ struct scriptprog;
 /// script function declaration
 struct scriptdecl
 {
+	struct parameter
+	{
+		basics::var_t		cType;		///< parameter type
+		bool				cConst;		///< parameter const state
+		basics::variant		cValue;		///< parameter default value
+		
+		parameter()
+		{}
+		parameter(const basics::var_t t, const bool c, const basics::variant& v)
+			: cType(t), cConst(c), cValue(v)
+		{}
+		friend bool operator==(const parameter& a, const parameter& b)
+		{
+			return a.cType==b.cType && a.cConst==b.cConst && a.cValue==b.cValue;
+		}
+		friend bool operator!=(const parameter& a, const parameter& b)
+		{
+			return a.cType!=b.cType || a.cConst!=b.cConst || a.cValue!=b.cValue;
+		}
+	};
+
 	basics::string<>					cName;		///< function name
-	basics::vector<basics::variant>		cParam;		///< parameter type, default value, const state
+	basics::vector<parameter>			cParam;		///< parameter
 	basics::var_t						cReturn;	///< return value type
 	size_t								cVarCnt;	///< number of temporary variables
 	size_t								cEntry;		///< start position

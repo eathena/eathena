@@ -29,7 +29,7 @@ public:
 	packet_cmd& operator[](size_t i)
 	{
 #if defined(CHECK_BOUNDS)
-		if(i > MAX_PACKET_DB)
+		if(i>MAX_PACKET_DB)
 			return cmd[0];
 #endif//defined(CHECK_BOUNDS)
 		return cmd[i];
@@ -40,8 +40,10 @@ class _packet_db
 {
 	packet_ver	vers[MAX_PACKET_VER+1];
 public:
+	int default_ver;
 
 	_packet_db()
+		: default_ver(MAX_PACKET_VER)
 	{
 		 memset(vers,0,sizeof(vers)); //!!
 	}
@@ -51,8 +53,8 @@ public:
 	packet_ver& operator[](size_t i)
 	{
 #if defined(CHECK_BOUNDS)
-		if(i > MAX_PACKET_VER)
-			return vers[MAX_PACKET_VER];
+		if(i>MAX_PACKET_VER)
+			return vers[default_ver];
 #endif//defined(CHECK_BOUNDS)
 		return vers[i];
 	}
@@ -72,8 +74,11 @@ uint packet_connect(uint packet_ver)
 
 
 
+///////////////////////////////////////////////////////////////////////////////
+// パケットデータベース読み込み
 int packetdb_readdb(void)
-{
+{	// set defaults for packet_db ver 0..18
+
 	///////////////////////////////////////////////////////////////////////////
 	// the default packet used for connecting to the server
 	packet_db[0].connect_cmd = 0x72;
@@ -1179,12 +1184,16 @@ int packetdb_readdb(void)
 	while( fgets(line,sizeof(line),fp) )
 	{
 		ln++;
-		if( prepare_line(line) && 2==sscanf(line,"%256[^:=]%*[:=]%256[^\r\n]",w1,w2) )
+		if( !prepare_line(line) )
+			continue;
+
+		if( 2==sscanf(line,"%256[^:=]%*[:=]%256[^\r\n]",w1,w2) )
 		{
 			basics::itrim(w1);
-			if(!*w1) continue;
+			if(!*w1)
+				continue;
 			basics::itrim(w2);
-			
+
 			if(strcasecmp(w1,"packet_ver")==0)
 			{	// start of a new version
 				size_t prev_ver = packet_ver;
@@ -1198,74 +1207,85 @@ int packetdb_readdb(void)
 				// - indicating all following packets should be read into the newer version
 				for(i=prev_ver+1; i<=packet_ver; ++i)
 					packet_db[i]=packet_db[prev_ver];
-				continue;
 			}
 			else if(strcasecmp(w1,"enable_packet_db")==0)
-			{	// only working when found at the beginning of the packet_db file
+			{	// only working when found in the beginning of the packet_db file
 				if( !basics::config_switch<bool>(w2) )
 					return 0;
+			}
+			else if(strcasecmp(w1,"default_packet_ver")==0)
+			{	// use this when in daubt, but pretty useless
+				packet_db.default_ver = basics::config_switch<int>(w2,0,MAX_PACKET_VER);
+				// check for invalid version
+				if( packet_db.default_ver > MAX_PACKET_VER ||
+					packet_db.default_ver < 0 )
+					packet_db.default_ver = MAX_PACKET_VER;
+			}
+			else
+			{
+				ShowWarning("ignoring unknow packet option '"CL_WHITE"%s"CL_RESET"', line %i.\n", w1, ln);
 				continue;
 			}
 		}
-		
-		if(packet_ver > MAX_PACKET_VER)
-			continue; // only read valid packet_ver's
-		
-		memset(str,0,sizeof(str));
-		for(j = 0, p = line; j < 4 && p; ++j)
-		{
-			str[j]=p;
-			p=strchr(p,',');
-			if(p) *p++=0;
-		}
-		if(*str[0]=='\0') // empty line
-			continue;
-		cmd=strtol(str[0],(char **)NULL,0);
-		if(cmd <= 0 || cmd > MAX_PACKET_DB)
-		{
-			ShowWarning("'"CL_WHITE"%s"CL_RESET"', line %i: ignoring out-of-range packet description.\n", cfgName, ln);
-			continue;
-		}
-		if(str[1]==NULL)
-		{
-			ShowError("'"CL_WHITE"%s"CL_RESET"', line %i: packet len error.\n", cfgName, ln);
-			continue;
-		}
-		k = atoi(str[1]);
-		packet_db[packet_ver][cmd].len = k;
-
-		if(str[2]==NULL) {
-			continue;
-		}
-		for(j=0;j<sizeof(clif_parse_func)/sizeof(clif_parse_func[0]); ++j)
-		{
-			if( clif_parse_func[j].name != NULL &&
-				strcmp(str[2],clif_parse_func[j].name)==0)
+		else if(packet_ver<=MAX_PACKET_VER)
+		{	// only read valid packet_ver's
+			memset(str,0,sizeof(str));
+			for(j=0,p=line;j<4 && p; ++j)
 			{
-				// if (packet_db[packet_ver][cmd].func != clif_parse_func[j].func && !clif_config.prefer_packet_db)
-				//	break;	// not used for now
-				packet_db[packet_ver][cmd].func = clif_parse_func[j].func;
-				break;
+				str[j]=p;
+				p=strchr(p,',');
+				if(p) *p++=0;
 			}
-		}
-		if( j>=sizeof(clif_parse_func)/sizeof(clif_parse_func[0]) )
-		{
-			ShowError("'"CL_WHITE"%s"CL_RESET"', line %i: parse command '%s' not found.\n", cfgName, ln, str[2]);
-		}
-		// set the identifying cmd for the packet_db version
-		if(strcasecmp(str[2],"wanttoconnection")==0)
-			packet_db[packet_ver].connect_cmd = cmd;
+			if(str[0]==0)
+				continue;
+			cmd=strtol(str[0],(char **)NULL,0);
+			if(cmd<=0 || cmd>MAX_PACKET_DB)
+			{
+				ShowWarning("'"CL_WHITE"%s"CL_RESET"', line %i: ignoring out-of-range packet description.\n", cfgName, ln);
+				continue;
+			}
+			if(str[1]==NULL)
+			{
+				ShowError("'"CL_WHITE"%s"CL_RESET"', line %i: packet len error.\n", cfgName, ln);
+				continue;
+			}
+			k = atoi(str[1]);
+			packet_db[packet_ver][cmd].len = k;
 
-		if(str[3]==NULL)
-		{
-			ShowError("'"CL_WHITE"%s"CL_RESET"', line %i: no positions.\n", cfgName, ln);
-		}
-		for(j=0,p2=str[3];p2; ++j){
-			str2[j]=p2;
-			p2=strchr(p2,':');
-			if(p2) *p2++=0;
-			k = atoi(str2[j]);
-			packet_db[packet_ver][cmd].pos[j] = k;
+			if(str[2]==NULL){
+				continue;
+			}
+			for(j=0;j<sizeof(clif_parse_func)/sizeof(clif_parse_func[0]); ++j)
+			{
+				if( clif_parse_func[j].name != NULL &&
+					strcmp(str[2],clif_parse_func[j].name)==0)
+				{
+					// if (packet_db[packet_ver][cmd].func != clif_parse_func[j].func && !clif_config.prefer_packet_db)
+					//	break;	// not used for now
+					packet_db[packet_ver][cmd].func = clif_parse_func[j].func;
+					break;
+				}
+			}
+			if( j>=sizeof(clif_parse_func)/sizeof(clif_parse_func[0]) )
+			{
+				ShowError("'"CL_WHITE"%s"CL_RESET"', line %i: parse command '%s' not found.\n", cfgName, ln, str[2]);
+			}
+			// set the identifying cmd for the packet_db version
+			if(strcasecmp(str[2],"wanttoconnection")==0)
+			{
+				packet_db[packet_ver].connect_cmd = cmd;
+			}
+			if(str[3]==NULL)
+			{
+				ShowError("'"CL_WHITE"%s"CL_RESET"', line %i: no positions.\n", cfgName, ln);
+			}
+			for(j=0,p2=str[3];p2; ++j){
+				str2[j]=p2;
+				p2=strchr(p2,':');
+				if(p2) *p2++=0;
+				k = atoi(str2[j]);
+				packet_db[packet_ver][cmd].pos[j] = k;
+			}
 		}
 	}
 	fclose(fp);

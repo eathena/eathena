@@ -299,6 +299,7 @@ public:
 //////////////////////////////////////////////////////////////////////////
 class CFile : public global, public noncopyable
 {
+protected:
 	FILE *cFile;
 public:
 	CFile() : cFile(NULL)

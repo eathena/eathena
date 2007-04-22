@@ -4,7 +4,23 @@
 #ifndef	_VENDING_H_
 #define	_VENDING_H_
 
-#include "map.h"
+
+///////////////////////////////////////////////////////////////////////////////
+struct vending_element
+{
+	unsigned short index;
+	unsigned short amount;
+	uint32 value;
+
+	// default constructor
+	vending_element() : 
+		index(0),
+		amount(0),
+		value(0)
+	{}
+};
+
+struct map_session_data;
 
 void vending_closevending(map_session_data &sd);
 void vending_openvending(map_session_data &sd,unsigned short len,const char *message,int flag, unsigned char *buffer);

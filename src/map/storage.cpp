@@ -27,18 +27,9 @@ static struct dbt *guild_storage_db=NULL;
  */
 int storage_comp_item(const void *_i1, const void *_i2)
 {
-	struct item *i1=(struct item *)_i1;
-	struct item *i2=(struct item *)_i2;
-
-	if (i1->nameid == i2->nameid) {
-		return 0;
-	} else if (!(i1->nameid) || !(i1->amount)){
-		return -1;
-	} else if (!(i2->nameid) || !(i2->amount)){
-		return 1;
-	} else {
-		return i1->nameid - i2->nameid;
-	}
+	const struct item *i1=(const struct item *)_i1;
+	const struct item *i2=(const struct item *)_i2;
+	return i1->nameid - i2->nameid;
 }
 
  
@@ -103,7 +94,7 @@ struct pc_storage *account2storage(uint32 account_id)
 
 // Just to ask storage, without creation
 struct pc_storage *account2storage2(uint32 account_id)
- {
+{
 	return (struct pc_storage *)numdb_search(storage_db, account_id);
 }
 
@@ -643,3 +634,170 @@ int storage_guild_storage_quit(map_session_data &sd,int flag)
 	}
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+struct storitem
+{
+	item_data*	data;
+	uint32		id;
+	unsigned short	amount;
+	unsigned char	identified;
+	unsigned char	refine;
+	unsigned char	attribute;
+	unsigned short	card[4];
+	uint32	producer_id;
+
+	
+	storitem(item_data&	d)
+		: data(&d)
+		, id(0)
+		, amount(1)
+		, identified(0)
+		, refine(0)
+		, attribute(0)
+		, producer_id(0)
+	{
+		card[0]=card[1]=card[2]=card[3]=0;
+	}
+	storitem()
+		: data(NULL)
+		, id(0)
+		, amount(1)
+		, identified(0)
+		, refine(0)
+		, attribute(0)
+		, producer_id(0)
+	{
+		card[0]=card[1]=card[2]=card[3]=0;
+	}
+	friend int compare(const storitem& a, const storitem& b);
+};
+
+bool operator==(const storitem& a, const storitem& b)
+{
+	return compare(a,b)==0;
+}
+bool operator< (const storitem& a, const storitem& b)
+{
+	return compare(a,b)< 0;
+}
+
+int compare(const storitem& a, const storitem& b)
+{
+	if(a.data!=b.data)
+	{
+		return (a.data->name && b.data->name)?strcasecmp(a.data->name, b.data->name):a.data->name-b.data->name;
+	}
+	else
+	{
+		return	a.identified!=b.identified?a.identified-b.identified:
+				a.refine!=b.refine?a.refine-b.refine:
+				a.attribute!=b.attribute?a.attribute-b.attribute:
+				a.card[0]!=b.card[0]?a.card[0]-b.card[0]:
+				a.card[1]!=b.card[1]?a.card[1]-b.card[1]:
+				a.card[2]!=b.card[2]?a.card[2]-b.card[2]:
+				a.card[3]!=b.card[3]?a.card[3]-b.card[3]:
+				a.producer_id!=b.producer_id?a.producer_id-b.producer_id:
+				0;
+	}
+}
+
+template<typename T, size_t Limit>
+struct itemlist : public T
+{
+	basics::slist<storitem> items;
+public:
+	itemlist()
+	{
+		this->items.config.duplicates = true;
+	}
+	~itemlist()
+	{}
+
+	typedef storitem*			iterator;
+	typedef const storitem*		const_iterator;
+
+	iterator begin()				{ return items.begin(); }
+	iterator end()					{ return items.begin(); }
+	const_iterator begin() const	{ return items.end(); }
+	const_iterator end() const		{ return items.end(); }
+
+
+
+	bool additem(const storitem& new_item)
+	{
+		iterator obj;
+		if( new_item.data && new_item.amount > 0 &&	// test for invalid item
+			this->items.size()<Limit )				// storage not full
+		{
+			if( !itemdb_isSingleStorage(*new_item.data) && 
+				(obj=this->items.search(new_item)) )
+			{	// stackabe and exists, test for amount limit
+				if( MAX_AMOUNT - obj->amount >= new_item.amount )
+				{
+					obj->amount += new_item.amount;
+					this->change_entry(*obj);
+					return true;
+				}
+			}
+			else
+			{	// create new entry
+				this->items.append(new_item);
+				this->add_entry(new_item);
+				return true;
+			}
+		}
+		return false;
+	}
+	bool delitem(const storitem &old_item)
+	{
+		iterator obj;
+		if( old_item.data && old_item.amount>0 &&
+			(obj=this->items.search(old_item)) &&
+			obj->amount>=old_item.amount )
+		{
+			if( obj->amount==old_item.amount )
+			{
+				this->del_entry(*obj);
+				this->items.erase(obj);
+			}
+			else
+			{
+				obj->amount -= old_item.amount;
+				this->change_entry(*obj);
+			}
+			return true;
+		}
+		return false;
+	}
+};
+
+struct _dummy
+{
+	void change_entry(const storitem &obj)
+	{}
+	void add_entry(const storitem &obj)
+	{}
+	void del_entry(const storitem &obj)
+	{}
+};
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -181,7 +181,14 @@ bool CParameterList::add_commandline(const char* line)
 
 		// copy into the buffer up to a finishing delimiter
 		while( *rpp && wpp<epp && (delim?(*rpp!=delim):(!basics::stringcheck::isspace(*rpp) && *rpp!=',')) )
+		{
+			if(*rpp=='\\' )
+			{
+				++rpp;
+				if(*rpp) break;
+			}
 			*wpp++ = *rpp++;
+		}
 
 		// terminate the copied string
 		// either when there is something or when coma seperation

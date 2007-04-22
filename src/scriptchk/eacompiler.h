@@ -282,8 +282,8 @@ struct eacompiler
 	bool check_variable(uint scope, bool final=true) const;
 	bool export_variable(const parse_node &node, uint scope, CVariableScope& target) const;
 
-	bool put_function_call(const parse_node &node, uint scope, const basics::string<>& name, uint paramcnt, bool global);
-	bool put_subfunction_call(const parse_node &node, uint scope, const basics::string<>& host, const basics::string<>& name, uint paramcnt);
+	bool put_function_call(const parse_node &node, uint scope, const basics::string<>& name, bool membercall, bool global);
+	bool put_subfunction_call(const parse_node &node, uint scope, const basics::string<>& host, const basics::string<>& name, bool membercall);
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -307,13 +307,14 @@ struct eacompiler
 
 	///////////////////////////////////////////////////////////////////////////
 	// function declaration
+	bool compare_declarations(const parse_node &namenode, const scriptdecl&a, const scriptdecl& b, const bool b_has_values);
 	bool compile_funcdecl(const parse_node &node, uint scope, unsigned long flags, int& uservalue);
 	bool compile_subfuncdecl(const parse_node &node, uint scope, unsigned long flags, int& uservalue);
 	bool compile_parameter(const parse_node &node, uint scope, unsigned long flags, int& uservalue);
 
 	///////////////////////////////////////////////////////////////////////////
 	// function call
-	bool compile_function_parameter(const parse_node &node, uint scope, unsigned long flags, int& uservalue);
+	bool build_function_parameter(const scriptdecl& decl, const parse_node &node, uint scope, int& paramcount);
 	bool compile_function_call(const parse_node &node, uint scope, unsigned long flags, int& uservalue);
 	bool compile_subfunction_call(const parse_node &node, uint scope, unsigned long flags, int& uservalue);
 	bool compile_globalfunction_call(const parse_node &node, uint scope, unsigned long flags, int& uservalue);
@@ -414,7 +415,7 @@ public:
 	/// compiler entry point.
 	bool compile(const parse_node &node);
 
-	bool load_file(const basics::string<>& filename, int options, bool forced=false);
+	bool compile_file(const basics::string<>& filename, int options, bool forced=false);
 };
 
 

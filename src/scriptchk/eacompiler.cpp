@@ -13,9 +13,6 @@
 #include "scriptengine.h"
 
 
-
-
-
 ///////////////////////////////////////////////////////////////////////////////
 // compiler
 
@@ -155,17 +152,20 @@ bool eacompiler::compile_define(const parse_node &node, uint scope, unsigned lon
 bool eacompiler::compile_include(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {
 	basics::string<> name = basics::create_filespec(basics::folder_part(this->cFile->c_str()), basics::string<>(node[1].string().c_str()+1,node[1].string().size()-2));
-	if( !this->load_file(name, this->cCompileOptions) )
+	if( !this->compile_file(name, this->cCompileOptions) )
 	{
-		this->warning("included in '%s' at line %u\n", this->cFile->c_str(), node.line());
+		this->warning("included in '%s' at line %u\n", this->cFile->c_str(), node[1].line());
 	}
 	else
 	{	// connect the two files
 		scriptfile::scriptfile_ptr ptr = scriptfile::get_scriptfile(name);
-		this->cFile->childs.push(name);
-		ptr->parents.push(*this->cFile);
-		// get the defines from the included file
-		ptr->get_defines(this->cDefines_);
+		if( ptr.exists() )
+		{
+			this->cFile->parents.push(name);
+			ptr->childs.push(*this->cFile);
+			// get the defines from the parent file
+			ptr->get_defines(this->cDefines_);
+		}
 		return true;
 	}
 	return false;
@@ -275,6 +275,58 @@ bool eacompiler::compile_variable(const parse_node &node, uint scope, unsigned l
 	}
 	return accept;
 }
+///////////////////////////////////////////////////////////////////////////
+// compare function declaration
+bool eacompiler::compare_declarations(const parse_node &namenode, const scriptdecl&a, const scriptdecl& b, const bool b_has_values)
+{
+	if( a.cReturn != b.cReturn )
+	{
+		this->warning("function '%s' redefined with different return type (line %u)\n", (const char*)namenode.string(), namenode.line());
+		return false;
+	}
+	if(a.cParam.size()!=b.cParam.size())
+	{
+		this->warning("function '%s' redefined with different number of arguments (line %u)\n", (const char*)namenode.string(), namenode.line());
+		return false;
+	}
+	{
+		basics::vector<scriptdecl::parameter>::iterator a1(a.cParam);
+		basics::vector<scriptdecl::parameter>::iterator a2(b.cParam);
+		for(; a1; ++a1,++a2)
+		{
+			if( a1->cType != a2->cType )
+			{
+				this->warning("function '%s' redefined with different parameter types (line %u)\n", (const char*)namenode.string(), namenode.line());
+				this->warning("was %s, redefined as %s\n", basics::variant::type2name(a1->cType), basics::variant::type2name(a2->cType));
+				return false;
+			}
+			if( a1->cConst != a2->cConst )
+			{
+				this->warning("function '%s' redefined with different access type (line %u)\n", (const char*)namenode.string(), namenode.line());
+				this->warning(a1->cConst?"was const, redefined as non-const\n":"was non-const, redefined as const\n");
+				return false;
+			}
+			if( b_has_values )
+			{	// a and b have default values, so check for equivalence
+				if( a1->cValue != a2->cValue )
+				{
+					this->warning("function '%s' redefined with different default value (line %u)\n", (const char*)namenode.string(), namenode.line());
+					this->warning("was %s, redefined as %s\n", a1->cValue.get_arraystring().c_str(), a2->cValue.get_arraystring().c_str());
+					return false;
+				}
+			}
+			else
+			{	// only a has default values, b has to be empty
+				if( !a2->cValue.is_empty() )
+				{
+					this->warning("function '%s', definition of default value only allowed at predeclaration (line %u)\n", (const char*)namenode.string(), namenode.line());
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
 
 ///////////////////////////////////////////////////////////////////////////
 // function declaration
@@ -282,17 +334,23 @@ bool eacompiler::compile_funcdecl(const parse_node &node, uint scope, unsigned l
 {	// <VarType> identifier '(' <Paramse> ')' ';'
 	// <VarType> identifier '(' <Paramse> ')' <Block>
 
-	// make a real copy of a possible existing declaration
-	scriptprog::script temp  = scriptprog::get_script( node[1].string() );
-	if( temp.exists() )
+	const parse_node &namenode = node[1];
+
+	// check for a possible existing declaration
+	scriptprog::script temp  = scriptprog::get_script( namenode.string() );
+	if( temp.exists() && temp->cName.size() )
 	{
 		if( temp->size() )
 		{	// redefinition
-			this->warning("function '%s' already defined (line %u)\nignoring additional definition.\n", (const char*)node[1].string(), node.line());
+			this->warning("function '%s' already defined (line %u)\nignoring additional definition.\n", (const char*)namenode.string(), namenode.line());
 			// return true here as we want to skip the whole thing
 			return true;
 		}
-		temp.make_unique();
+		// otherwise there is a predeclaration only
+	}
+	else
+	{
+		temp.clear();
 	}
 
 	prog.clear();
@@ -305,7 +363,7 @@ bool eacompiler::compile_funcdecl(const parse_node &node, uint scope, unsigned l
 	
 	prog->cName = node[1].string();
 	const basics::string<> main_node("main");
-	this->funcdecl = temp->cHeader.search(main_node);
+	this->funcdecl = prog->cHeader.search(main_node);
 	if( !this->funcdecl )
 	{	// create new
 		prog->cHeader[main_node].cName = main_node;
@@ -319,13 +377,16 @@ bool eacompiler::compile_funcdecl(const parse_node &node, uint scope, unsigned l
 	if( param.symbol()!=PT_PARAMSE && !compile_main(param, scope, 0, uservalue) )
 		return false;
 
-
-	if(temp.exists())
+	if( temp.exists() )
 	{	// compare with the predeclaration
-		//##TODO
-
+		scriptdecl decl = temp->get_declaration(main_node);
+		if( !compare_declarations(namenode, decl, *this->funcdecl, true) )
+			return false;
+		// and delete the temporary, so it does unregister itself
+		temp.clear();
 	}
-	temp.clear(); // and delete the temporary, so it does unregister on deletion
+
+	
 	
 	bool accept;
 	const parse_node &body = node[5];
@@ -362,7 +423,6 @@ bool eacompiler::compile_funcdecl(const parse_node &node, uint scope, unsigned l
 				prog->dump();
 			this->cFile->scripts.push_back(prog->cName);
 		}
-
 	}
 
 	prog.clear();
@@ -389,7 +449,10 @@ bool eacompiler::compile_subfuncdecl(const parse_node &node, uint scope, unsigne
 	const bool declare_only = (body.symbol()==PT_SEMI);
 	scriptdecl* save = this->funcdecl;
 	basics::string<> savename;
-	if(this->funcdecl) savename = this->funcdecl->cName;
+	if(this->funcdecl) savename = this->funcdecl->cName; // name of the parent
+
+	bool has_predecl = false;
+	scriptdecl predecl;
 
 	// check conflicting function name
 	this->funcdecl = prog->cHeader.search(name.string());
@@ -401,11 +464,17 @@ bool eacompiler::compile_subfuncdecl(const parse_node &node, uint scope, unsigne
 	}
 	else if( name.string()=="main" || declare_only || this->funcdecl->cEntry )
 	{	// redeclaration
-		this->warning("redeclaration of function '%s' (line %u)\n", (const char*)name.string(), node.line());
+		this->warning("redeclaration of function '%s' (line %u)\n", (const char*)name.string(), name.line());
 		this->funcdecl = save;
 		return false;
 	}
-	funcdecl->cReturn = basics::variant::name2type(returnval.string());
+	else
+	{
+		has_predecl = true;
+		predecl = *this->funcdecl;
+		this->funcdecl->cParam.clear();
+	}
+	this->funcdecl->cReturn = basics::variant::name2type(returnval.string());
 	// parameter
 	uservalue = 0;
 
@@ -416,6 +485,9 @@ bool eacompiler::compile_subfuncdecl(const parse_node &node, uint scope, unsigne
 	// compile function parameters
 	bool accept = compile_main(parameter, scope, 0, uservalue);
 
+	if( has_predecl && !compare_declarations(name, predecl, *this->funcdecl, false) )
+		return false;
+	
 	// compile body if exists
 	if( accept && !declare_only )
 	{
@@ -466,11 +538,11 @@ bool eacompiler::compile_parameter(const parse_node &node, uint scope, unsigned 
 			{
 				paramvalue = this->cConstvalues.last();
 				this->cConstvalues.clear();
+
 			}
-			if(type!=basics::VAR_NONE)
-				paramvalue.cast(type);
+			paramvalue.cast(type);
 		}
-		this->funcdecl->cParam.push(paramvalue);
+		this->funcdecl->cParam.push(scriptdecl::parameter(type, isconst, paramvalue));
 		return create_variable(node[2], node[2].string(), CFLAG_PARAM, scope, type, isconst, true);
 	}
 	return false;
@@ -479,31 +551,126 @@ bool eacompiler::compile_parameter(const parse_node &node, uint scope, unsigned 
 
 ///////////////////////////////////////////////////////////////////////////
 // function call
-bool eacompiler::compile_function_parameter(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
-{	// function parameters are an expression list
-	// when compiling the expression list
-	// usertemp contains the number of given parameters
-	// add one parameter when beeing a scope/member function
-	uservalue=0;
-	bool accept = false;
-	if( node.symbol() == PT_EXPRLIST )
-	{	// we have a parameter list
-		accept = compile_main(node, scope, flags, uservalue);
+bool eacompiler::build_function_parameter(const scriptdecl& decl, const parse_node &node, uint scope, int& paramcount)
+{	// run flat through the parameter list
+	bool accept = true;
+	parse_node parameter = node;
+	parse_node worknode;
+	size_t count=0;
+	bool run=true;
+	for(;accept&&run ; ++count)
+	{	
+		if( parameter.symbol() == PT_EXPRLIST )
+		{	// <ExprList> = <Expr> ',' <ExprList>
+			worknode  = parameter[0];
+			parameter = parameter[2];
+		}
+		else
+		{
+			worknode = parameter;
+			run = false;
+		}
+		
+		const bool has_param = (count < decl.cParam.size());
+		basics::var_t t = has_param ? decl.cParam[count].cType : basics::VAR_AUTO;
+		if( worknode.symbol() == PT_EXPR )
+		{	// empty, put default value
+			this->put_value( has_param ? decl.cParam[count].cValue : basics::variant() );
+		}
+		else
+		{	// something else, compile it
+			const unsigned long myflags = (!has_param || decl.cParam[count].cConst)?CFLAG_LVALUE|CFLAG_RVALUE:CFLAG_RVALUE;
+			int uservalue=0;
+			accept = compile_main(worknode, scope, myflags, uservalue);
+		}
+		// do a cast when asked
+		if(t==basics::VAR_FLOAT)
+		{
+			this->put_command(OP_CAST_FLOAT);
+		}
+		else if(t==basics::VAR_INTEGER)
+		{
+			this->put_command(OP_CAST_INTEGER);
+		}
+		else if(t==basics::VAR_STRING)
+		{
+			this->put_command(OP_CAST_STRING);
+		}
+	};
+	// fill remaining parameter
+	for(; accept && count<decl.cParam.size(); ++count)
+	{	
+		basics::var_t t = decl.cParam[count].cType;
+		if( t!=basics::VAR_NONE )
+		{	// put default value
+			this->put_value( decl.cParam[count].cValue );
+			// do the cast
+			if(t==basics::VAR_FLOAT)
+			{
+				this->put_command(OP_CAST_FLOAT);
+			}
+			else if(t==basics::VAR_INTEGER)
+			{
+				this->put_command(OP_CAST_INTEGER);
+			}
+			else if(t==basics::VAR_STRING)
+			{
+				this->put_command(OP_CAST_STRING);
+			}
+		}
 	}
-	else if(node.symbol() != PT_EXPR )
-	{	// called with a single element but not empty
-		accept = compile_main(node, scope, flags, uservalue);
-		uservalue=1;
-	}
-	else
-	{	// otherwise called with no parameter
-		accept = true;
-	}
+	paramcount = count;
 	return accept;
 }
 
-bool eacompiler::put_function_call(const parse_node &node, uint scope, const basics::string<>& name, uint paramcnt, bool global)
+bool eacompiler::put_function_call(const parse_node &node, uint scope, const basics::string<>& name, bool membercall, bool global)
 {
+	scriptdecl decl;
+	if( !global )
+	{	//check for local subfunction
+		decl = prog->get_declaration(name);
+		if( !decl.cScript )
+			global = true;
+	}
+
+	if( global )
+	{	//check for global script function
+		scriptprog::script temp  = scriptprog::get_script( name );
+		if( temp.exists() )
+		{
+			decl = temp->get_declaration("main");
+		}
+		// check if function name exists on buildins
+		else if( !buildin::exists(name) )
+		{	// function name not found
+			this->warning("function '%s' undefined, call will abort at runtime (line %u)\n", name.c_str(), node.line());
+			// but accept it
+		}
+	}
+
+	int paramcount;
+	if( build_function_parameter(decl, node[2], scope, paramcount) )
+	{
+		if(membercall)
+			++paramcount;
+
+		this->put_nonconst();
+		this->put_intcommand(OP_PUSH_INT, paramcount);
+
+		if( global )
+		{
+			this->put_strcommand(OP_FUNCTION, name);
+		}
+		else
+		{
+			this->put_strcommand(OP_PUSH_STRING, prog->cName);
+			this->put_strcommand(OP_SUBFUNCTION, name);
+		}
+		return true;
+	}
+	return false;
+/*
+
 	this->put_nonconst();
 	if( !global )
 	{	//check for local subfunction
@@ -541,10 +708,63 @@ bool eacompiler::put_function_call(const parse_node &node, uint scope, const bas
 	this->put_intcommand(OP_PUSH_INT, paramcnt);
 	this->put_strcommand(OP_FUNCTION, name);
 	return true;
+*/
 }
 
-bool eacompiler::put_subfunction_call(const parse_node &node, uint scope, const basics::string<>& host, const basics::string<>& name, uint paramcnt)
+bool eacompiler::put_subfunction_call(const parse_node &node, uint scope, const basics::string<>& host, const basics::string<>& name, bool membercall)
 {
+	scriptdecl decl;
+	int paramcount;
+
+	if( host == "buildin" )
+	{	// forced usage of buildin's
+		if( !buildin::exists(name) )
+		{	// function name not found
+			this->warning("buildin function '%s' not defined (line %u)\n", name.c_str(), node.line());
+		}
+		else if( build_function_parameter(decl, node, scope, paramcount) )
+		{
+			if(membercall)
+				++paramcount;
+
+			this->put_nonconst();
+			this->put_intcommand(OP_PUSH_INT, paramcount);
+			this->put_strcommand(OP_BLDFUNCTION, name);
+			return true;
+		}
+	}
+	else if( host == "player" )
+	{	// some player member function, which actually is a readonly variable access
+		return put_knownvariable(node, name, CFLAG_RVALUE|CFLAG_VARCREATE|CFLAG_NOASSIGN, scope, CFLAG_PERM|CFLAG_PLY);
+	}
+	else
+	{	// call subfunction in another script
+		scriptprog::script scr = scriptprog::get_script(host);
+		if( !scr.exists() )
+		{
+			this->warning("script '%s' is not defined (line %u)\n", (const char*)host, node.line());
+		}
+		else
+		{
+			decl = scr->get_declaration(name);
+			if( !decl.cScript )
+			{	// subfunction name not found
+				this->warning("subfunction '%s' in script '%s' is not defined (line %u)\n", name.c_str(), host.c_str(), node.line());
+			}
+			else if( build_function_parameter(decl, node, scope, paramcount) )
+			{
+				if(membercall)
+					++paramcount;				
+				this->put_intcommand(OP_PUSH_INT, paramcount);
+				this->put_strcommand(OP_PUSH_STRING, host);
+				this->put_strcommand(OP_SUBFUNCTION, name);
+				return true;
+			}
+		}
+	}
+	return false;
+
+/*
 	this->put_nonconst();
 	if( host == "buildin" )
 	{	// forced usage of buildin's
@@ -587,6 +807,7 @@ bool eacompiler::put_subfunction_call(const parse_node &node, uint scope, const 
 		}
 	}
 	return false;
+	*/
 }
 
 bool eacompiler::compile_function_call(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
@@ -594,29 +815,18 @@ bool eacompiler::compile_function_call(const parse_node &node, uint scope, unsig
 	if(flags& CFLAG_LVALUE )
 	{	//##TODO: check if this function does return a lvalue
 	}
-	if( compile_function_parameter(node[2], scope, flags & ~CFLAG_LVALUE, uservalue) )
-	{	
-		const basics::string<>& name = node[0].string();
-		
-		// one additional parameter when called as memberfunction
-		uservalue += ((flags&CFLAG_MEMBER)!=0);
-		return put_function_call(node, scope, name, uservalue, false);
-	}
-	return false;
+
+	const basics::string<>& name = node[0].string();
+	// one additional parameter when called as memberfunction
+	return put_function_call(node, scope, name, ((flags&CFLAG_MEMBER)!=0), false);
 }
 bool eacompiler::compile_globalfunction_call(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {	// '::'  <Func Call>
 	// <Func Call> ::= identifier '(' <ExprList> ')'
 	const parse_node &childnode = node[1];
-	uservalue = 0;
-	if( compile_function_parameter(childnode[2], scope, flags, uservalue) )
-	{
-		const basics::string<>& name = childnode[0].string();
-		// one additional parameter when called as memberfunction
-		uservalue += ((flags&CFLAG_MEMBER)!=0);
-		return put_function_call(node, scope, name, uservalue, true);
-	}
-	return false;
+	const basics::string<>& name = childnode[0].string();
+	// one additional parameter when called as memberfunction
+	return put_function_call(node, scope, name, ((flags&CFLAG_MEMBER)!=0), true);
 }
 bool eacompiler::compile_subfunction_call(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {	// <Op Pointer> '::'  <Func Call>
@@ -627,15 +837,9 @@ bool eacompiler::compile_subfunction_call(const parse_node &node, uint scope, un
 	else
 	{	// <Func Call> ::= identifier '(' <ExprList> ')'
 		const parse_node &childnode = node[2];
-		uservalue = 0;
-		if( compile_function_parameter(childnode[2], scope, flags, uservalue) )
-		{
-			const basics::string<>& base = node[0].string();
-			const basics::string<>& name = childnode[0].string();
-			// one additional parameter when called as memberfunction
-			uservalue += ((flags&CFLAG_MEMBER)!=0);
-			return put_subfunction_call(node, scope, base, name, uservalue);
-		}
+		const basics::string<>& base = node[0].string();
+		const basics::string<>& name = childnode[0].string();
+		return put_subfunction_call(node, scope, base, name, ((flags&CFLAG_MEMBER)!=0));
 	}
 	return false;
 }
@@ -846,7 +1050,7 @@ bool eacompiler::compile_object(const parse_node &node, uint scope, unsigned lon
 			(*iter)->cType   = node[0].string();
 			if(prog.exists())
 			{
-				(*iter)->cScript = prog;
+				(*iter)->cScript = prog->cName;
 				(*iter)->cStart  = startlabel;
 			}
 			if( accept && cCompileOptions&OPT_COMPILEOUTPUT )
@@ -944,6 +1148,7 @@ bool eacompiler::compile_instance(const parse_node &node, uint scope, unsigned l
 {	// '(' <Spec List> ')'
 	return compile_main(node[1], scope, (flags & ~CFLAG_RVALUE) | CFLAG_RVALUE | CFLAG_CONST, uservalue);
 }
+
 bool eacompiler::compile_ordernpc(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {	// '(' StringLiteral ',' DecLiteral ',' DecLiteral ',' DecLiteral ',' StringLiteral ',' DecLiteral ')'
 	// ordered parameter access
@@ -958,6 +1163,7 @@ bool eacompiler::compile_ordernpc(const parse_node &node, uint scope, unsigned l
 	prop["sprite"]	= basics::variant(basics::stringtoi(node[13].string().c_str()));
 	return true;
 }
+
 bool eacompiler::compile_ordertouch(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {	// '(' StringLiteral ',' DecLiteral ',' DecLiteral ',' DecLiteral ',' StringLiteral ',' DecLiteral ',' DecLiteral ',' DecLiteral ')'
 	// ordered parameter access
@@ -1153,7 +1359,10 @@ bool eacompiler::compile_itemoverwrite(const parse_node &node, uint scope, unsig
 		compile_main(node[0], scope, (flags & ~CFLAG_RVALUE) | CFLAG_RVALUE | CFLAG_CONST, uservalue) )
 	{
 		//##TODO add check for valid items
-		put_function_call(node, scope, "sellitem", 2, true);
+		//put_function_call(node, scope, "sellitem", 2, true);
+		this->put_nonconst();
+		this->put_intcommand(OP_PUSH_INT, 2);
+		this->put_strcommand(OP_FUNCTION, "sellitem");
 		return true;
 	}
 	return false;
@@ -1299,14 +1508,16 @@ void eacompiler::put_value(const basics::string<>& s, bool constval)
 }
 void eacompiler::put_value(const basics::variant& v, bool constval)
 {
+	basics::variant x(v);
+	x.make_value();
 	if( constval )
 	{
-		this->cConstvalues.push( v );
+		this->cConstvalues.push( x );
 	}
 	else
 	{
 		this->put_nonconst();
-		this->put_value_unchecked(v);
+		this->put_value_unchecked(x);
 	}
 }
 void eacompiler::put_command(command_t command)
@@ -1454,9 +1665,22 @@ void eacompiler::put_command(command_t command)
 				return;
 			}
 			else if( command==OP_EVAL )
-			{
-				// nothing
+			{	// nothing
 				return;
+			}
+			else if( command==OP_RETURN )
+			{
+				if(this->funcdecl)
+				{	// do a cast when asked
+					const basics::var_t t = this->funcdecl->cReturn;
+					switch(t)
+					{ 
+					case basics::VAR_FLOAT: this->put_command(OP_CAST_FLOAT); break;
+					case basics::VAR_INTEGER: this->put_command(OP_CAST_INTEGER); break;
+					case basics::VAR_STRING: this->put_command(OP_CAST_STRING); break;
+					default: break;
+					}
+				}
 			}
 		}
 	}
@@ -1480,6 +1704,15 @@ void eacompiler::put_intcommand(command_t command, int p)
 			}
 			if(p>1)
 				this->cConstvalues.strip(p-1);
+			return;
+		}
+		else if( command==OP_REDUCE && this->cConstvalues.size() >= (size_t)p )
+		{
+			if(p>1)
+			{
+				this->cConstvalues[this->cConstvalues.size()-p] = this->cConstvalues[this->cConstvalues.size()-1];
+				this->cConstvalues.strip(p-1);
+			}
 			return;
 		}
 	}
@@ -2009,7 +2242,7 @@ bool eacompiler::compile_numberliteral(const parse_node &node, uint scope, unsig
 	// 0b{Bin Digit}+
 	// 0o{Oct Digit}+
 	// 0x{Hex Digit}+
-	if( 0 == (flags&CFLAG_LVALUE) )
+	if( flags&CFLAG_RVALUE || 0==(flags&CFLAG_LVALUE))
 	{
 		int64 num = 0;
 		if( node.symbol()== PT_DECLITERAL )
@@ -2038,7 +2271,7 @@ bool eacompiler::compile_floatliteral(const parse_node &node, uint scope, unsign
 {	// ({Digit}* '.' {Digit}+ (([eE][+-]?{Digit}+)|[TGMKkmunpfa])?)
 	// ({Digit}+ '.' {Digit}* (([eE][+-]?{Digit}+)|[TGMKkmunpfa])?)
 	// ({Digit}+              (([eE][+-]?{Digit}+)|[TGMKkmunpfa]) )
-	if( 0 == (flags&CFLAG_LVALUE) )
+	if( flags&CFLAG_RVALUE || 0==(flags&CFLAG_LVALUE) )
 	{
 		this->put_value( basics::stringtod(node.c_str()) );
 		return true;
@@ -2051,7 +2284,7 @@ bool eacompiler::compile_floatliteral(const parse_node &node, uint scope, unsign
 }
 bool eacompiler::compile_charliteral(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {	// '' ( {Char Ch}   | ('\'{&20 .. &FF}) )   ''
-	if( 0 == (flags&CFLAG_LVALUE) )
+	if( flags&CFLAG_RVALUE || 0==(flags&CFLAG_LVALUE) )
 	{
 		this->put_value( (int64)((node.c_str())? node.c_str()[1]:0) );
 		return true;
@@ -2066,7 +2299,7 @@ bool eacompiler::compile_charliteral(const parse_node &node, uint scope, unsigne
 bool eacompiler::compile_stringliteral(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {	// '"'( {String Ch} | ('\'{&20 .. &FF}) )* '"'
 	// '/' ( {RegEx Start Ch} | '\/' )( {RegEx Ch} | '\/' )* '/'
-	if( 0 == (flags&CFLAG_LVALUE) )
+	if( flags&CFLAG_RVALUE || 0==(flags&CFLAG_LVALUE) )
 	{
 		this->put_value( basics::string<>(node.string().c_str()+1, node.string().size()-2) );
 		return true;
@@ -2081,7 +2314,7 @@ bool eacompiler::compile_stringliteral(const parse_node &node, uint scope, unsig
 bool eacompiler::compile_emptyliteral(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {	// '-'
 	// 'default'
-	if( 0 == (flags&CFLAG_LVALUE) )
+	if( flags&CFLAG_RVALUE || 0==(flags&CFLAG_LVALUE) )
 	{
 		this->put_value( basics::variant() );
 		return true;
@@ -2469,7 +2702,8 @@ bool eacompiler::compile_lctrlstm(const parse_node &node, uint scope, unsigned l
 		this->cControl.break_target = prog->appendAddr( this->cControl.break_target );
 	}
 	else if( (node.childs()>0 && node[0].symbol() == PT_BREAK) )
-	{	// accept it as call to end
+	{	// accept break as synonym for "return <nothing>"
+		this->put_value(basics::variant());
 		this->put_command(OP_RETURN);
 	}
 	else
@@ -2486,7 +2720,7 @@ bool eacompiler::compile_returnstm(const parse_node &node, uint scope, unsigned 
 	bool accept;
 	if( node[0].is_terminal(PT_RETURN) )
 	{
-		accept = compile_main(node[1], scope, flags, uservalue);
+		accept = compile_main(node[1], scope, flags | CFLAG_RVALUE | CFLAG_LVALUE, uservalue);
 		this->put_command(OP_RETURN);
 	}
 	else
@@ -2499,9 +2733,29 @@ bool eacompiler::compile_returnstm(const parse_node &node, uint scope, unsigned 
 
 bool eacompiler::compile_regexpr(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {	// <Op If> '=~' RegExLiteral
-	return  compile_main(node[2], scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue) &&
-			compile_main(node[0], scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue) &&
-			put_function_call(node, scope, "regex", 2, true);
+	if( compile_main(node[2], scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue) &&
+		compile_main(node[0], scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue) )
+	{
+		this->put_nonconst();
+		
+		// reserve a temp variable
+		const basics::string<> varname("$re");
+		if( !this->cVariable[varname].exists(CFLAG_TEMP) )
+		{
+			this->create_variable(node, varname, CFLAG_TEMP, scope, basics::VAR_AUTO, false, true);
+			this->cVariable[varname][CFLAG_TEMP]->luse = 1;
+			this->cVariable[varname][CFLAG_TEMP]->ruse = 2;
+		}
+		if( this->put_knownvariable(node, varname, CFLAG_LVALUE, 0, CFLAG_TEMP) )
+		{
+			this->put_command(OP_EMPTY);
+
+			this->put_intcommand(OP_PUSH_INT, 2);
+			this->put_strcommand(OP_FUNCTION, "regex");
+			return true;
+		}
+	}
+	return false;
 }
 
 bool eacompiler::compile_opassign(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
@@ -2999,7 +3253,16 @@ bool eacompiler::compile_rangemod(const parse_node &node, uint scope, unsigned l
 bool eacompiler::compile_eval(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {	// '(' <Expr List> ')'
 	// go down for righthand as well as for lefthand expressions
-	return compile_main(node[1], scope, flags, uservalue);
+	const parse_node &exprlist = node[1];
+	if( compile_main(exprlist, scope, flags, uservalue) )
+	{
+		if( exprlist.symbol()==PT_EXPRLIST && uservalue>1 )
+			this->put_intcommand( OP_REDUCE, uservalue);
+		if(flags&CFLAG_RVALUE)
+			this->put_command(OP_EVAL);
+		return true;
+	}
+	return false;
 }
 
 bool eacompiler::compile_concat(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
@@ -3703,7 +3966,7 @@ bool eacompiler::compile(const parse_node &node)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-bool eacompiler::load_file(const basics::string<>& filename, int option, bool forced)
+bool eacompiler::compile_file(const basics::string<>& filename, int option, bool forced)
 {
 	if( !basics::file_exists(filename) )
 	{
@@ -3814,11 +4077,11 @@ bool eacompiler::load_file(const basics::string<>& filename, int option, bool fo
 		this->loadingfiles.removeindex(pos);
 
 	scriptfile::to_binary(this->cFile);
-	scriptfile::to_binary(this->cFile);
-
 	
 	// restore the file
 	this->cFile = safefile;
 
 	return ok;
 }
+
+

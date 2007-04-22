@@ -1342,7 +1342,7 @@ public:
 	// another workaround is to have a baseclass to derive the hierarchy from 
 	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
 	template<typename TT, typename AA>
-	slist<T,A>(const vectorbase<TT,AA>& v)
+	slist<T,A>(const vectorbase<TT,AA>& v) : config(true,false), compare(defaultcompare)
 	{
 		this->assign(v);
 	}
@@ -1731,6 +1731,15 @@ public:
 	}
 	template<typename TT>
 	const T* search(const TT& elem) const
+	{
+		size_t start=0;
+		size_t pos;
+		if( BinarySearchC<T,const T*,T>(elem, this->begin(), this->size(), start, pos, this->compare, this->config.ascending) )
+			return this->begin()+pos;
+		return NULL;
+	}
+	template<typename TT>
+	T* search(const TT& elem)
 	{
 		size_t start=0;
 		size_t pos;

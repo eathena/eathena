@@ -198,7 +198,7 @@ void homun_data::delete_data()
 	storage_storage_save(this->msd);
 
 	this->delblock();
-	this->deliddb();
+	this->unregister_id();
 	this->freeblock();
 }
 
@@ -643,7 +643,7 @@ bool homun_data::return_to_embryo()
 		this->save_data();
 
 		this->delblock();
-		this->deliddb();
+		this->unregister_id();
 		this->freeblock();
 		return true;
 	}
@@ -1043,7 +1043,7 @@ bool homun_data::set_dead()
 	hd.save_data();
 
 	hd.delblock();
-	hd.deliddb();
+	hd.unregister_id();
 	return true;
 }
 
@@ -1201,7 +1201,7 @@ bool homun_data::call_homunculus(map_session_data &sd)
 
 			sd.hd->view_size =  0;
 
-			sd.hd->addiddb();
+			sd.hd->register_id(sd.hd->block_list::id);
 			sd.hd->addblock();
 
 			clif_spawnhom(*sd.hd);

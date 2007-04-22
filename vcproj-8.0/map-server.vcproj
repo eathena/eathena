@@ -139,6 +139,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\map\flooritem.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\map\guild.cpp"
 				>
 			</File>
@@ -160,6 +164,14 @@
 			</File>
 			<File
 				RelativePath="..\src\map\map.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\mapcache.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\mapobj.cpp"
 				>
 			</File>
 			<File
@@ -281,6 +293,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\map\flooritem.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\map\guild.h"
 				>
 			</File>
@@ -302,6 +318,14 @@
 			</File>
 			<File
 				RelativePath="..\src\map\map.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\mapcache.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\mapobj.h"
 				>
 			</File>
 			<File

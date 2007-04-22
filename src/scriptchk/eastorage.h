@@ -38,6 +38,7 @@ struct scriptfile : public basics::string<>
 		~storage()		{}
 
 		bool erase(const basics::string<>& filename);
+		bool exists(const basics::string<>& filename) const;
 		scriptfile_ptr get_scriptfile(const basics::string<>& filename) const;
 		scriptfile_ptr create(const basics::string<>& filename);
 		void info() const;
@@ -72,9 +73,6 @@ struct scriptfile : public basics::string<>
 	///////////////////////////////////////////////////////////////////////////
 	// get definitions
 	void get_defines(scriptdefines& defs);
-	///////////////////////////////////////////////////////////////////////////
-	// (forced) loading/reloading of this file.
-//	bool load(bool forced=false, basics::TObjPtr<eacompiler> compiler=basics::TObjPtr<eacompiler>());
 
 	///////////////////////////////////////////////////////////////////////////
 	// checking file state and updating the locals at the same time
@@ -82,28 +80,44 @@ struct scriptfile : public basics::string<>
 
 
 
-	static storage stor;	///< storage
+	static storage stor;						///< storage
 
-	/// load a single file.
-	static bool load_file(const basics::string<>& filename, int option=0);
-	/// load list of file.
-	static bool load_file(const basics::vector< basics::string<> >& namelist, int option=0);
-	/// load list of file.
-	static bool load_file(const scriptfile_list& namelist, int option=0);
-	
-	/// load a folder of file.
-	static bool load_folder(const char* startfolder, int option=0);
+
+	struct loader : private eacompiler
+	{
+		basics::Mutex compile_mtx;
+
+		/// load a single file.
+		bool load_file(const basics::string<>& filename, int option=0);
+		/// load list of file.
+		bool load_file(const basics::vector< basics::string<> >& namelist, int option=0);
+		/// load list of file.
+		bool load_file(const scriptfile_list& namelist, int option=0);
+		/// load a folder of file.
+		bool load_folder(const char* startfolder, int option=0);
+		/// load a compiled script.
+		bool from_binary(const basics::string<>& name, int option);
+	};
+
+	/// load/save binaries.
+	static size_t scriptcount()
+	{
+		return scriptfile::stor.files.size();
+	}
+
+	/// load/save binaries.
+	static bool to_binary(const scriptfile_ptr& file);
+
 	/// remove a single file.
 	static bool erase_script(const basics::string<>& filename)
 	{
 		return scriptfile::stor.erase(filename);
 	}
-	/// remove a single file.
-	static void info()
-	{
-		scriptfile::stor.info();
-	}
 	/// get a scriptfile.
+	static bool exists(const basics::string<>& filename)
+	{
+		return scriptfile::stor.exists(filename);
+	}
 	static scriptfile_ptr get_scriptfile(const basics::string<>& filename)
 	{
 		return scriptfile::stor.get_scriptfile(filename);
@@ -112,8 +126,13 @@ struct scriptfile : public basics::string<>
 	{
 		return scriptfile::stor.create(filename);
 	}
-	static bool to_binary(const scriptfile_ptr& file);
-	static bool from_binary(const basics::string<>& name);
+
+	/// info.
+	static void info()
+	{
+		scriptfile::stor.info();
+	}
+
 };
 
 

@@ -14,6 +14,7 @@
 #include "map.h"
 #include "chrif.h"
 #include "clif.h"
+#include "flooritem.h"
 #include "pc.h"
 #include "status.h"
 #include "npc.h"
@@ -8126,7 +8127,7 @@ int clif_GM_silence(map_session_data &sd, map_session_data &tsd, int type)
 int clif_timedout(map_session_data &sd)
 {
 	ShowInfo("%sCharacter with Account ID '"CL_WHITE"%d"CL_RESET"' timed out.\n", (sd.isGM())?"GM ":"", sd.block_list::id);
-	map_quit(sd);
+	sd.map_quit();
 	clif_authfail(sd,3); // Even if player is not on we still send anyway
 	session_Remove(sd.fd); // Set session to EOF
 	return 0;
@@ -9010,7 +9011,7 @@ int clif_parse_WantToConnection(int fd, map_session_data &sd)
 		WFIFOL(fd,0) = plsd->block_list::id;
 		WFIFOSET(fd,4);
 
-		plsd->addiddb();
+		plsd->register_id(plsd->block_list::id);
 		chrif_authreq(*plsd);
 	}
 
@@ -9659,7 +9660,7 @@ int clif_parse_Restart(int fd, map_session_data &sd)
 		{	// ok
 			chrif_charselectreq(sd);
 			session_SetWaitClose(fd, 2000);
-			map_quit(sd);
+			sd.map_quit();
 		}
 		break;
 	}
@@ -12461,7 +12462,7 @@ int clif_terminate(int fd)
 			clif_clearchar(*sd, 0);
 			if(sd->state.auth) 
 			{	// the function doesn't send to inter-server/char-server ifit is not connected [Yor]
-				map_quit(*sd);
+				sd->map_quit();
 				if(sd->status.name != NULL)
 					ShowInfo("%sCharacter '"CL_WHITE"%s"CL_RESET"' logged off.\n", (sd->isGM())?"GM ":"",sd->status.name); // Player logout display [Valaris]
 				else
@@ -12470,7 +12471,7 @@ int clif_terminate(int fd)
 			else 
 			{	// not authentified! (refused by char-server or disconnect before to be authentified)
 				ShowInfo("Player not authenticated with Account ID '"CL_WHITE"%d"CL_RESET"' logged off.\n", sd->block_list::id); // Player logout display [Yor]
-				sd->deliddb(); // account_id has been included in the DB before auth answer [Yor]
+				sd->unregister_id(); // account_id has been included in the DB before auth answer [Yor]
 			} 
 			chrif_char_offline(*sd);
 
@@ -12651,7 +12652,7 @@ int clif_parse(int fd)
 		}
 		
 		// ゲーム用以外パケットか、認証を終える前に0072以外が来たら、切断する
-		if(cmd > MAX_PACKET_DB || packet_ver > MAX_PACKET_VER || packet(packet_ver,cmd).len == 0)
+		if(cmd > MAX_PACKET_DB || packet_ver>MAX_PACKET_VER || packet(packet_ver,cmd).len == 0)
 		{	// packet is not inside these values: session is incorrect?? or auth packet is unknown
 			ShowMessage("clif_parse: session #%d, packet 0x%x ver. %i (%d bytes received) -> disconnected (unknown command).\n", fd, cmd, packet_ver, RFIFOREST(fd));
 			session_Remove(fd);

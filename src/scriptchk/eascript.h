@@ -4,8 +4,8 @@
 #define PT_COMMENTEND    3 /* (Comment End) */
 #define PT_COMMENTLINE   4 /* (Comment Line) */
 #define PT_COMMENTSTART  5 /* (Comment Start) */
-#define PT_MINUS         6 /* '-' */
-#define PT_MINUSMINUS    7 /* '--' */
+#define PT_MINUS         6 /* - */
+#define PT_MINUSMINUS    7 /* -- */
 #define PT_EXCLAM        8 /* '!' */
 #define PT_EXCLAMEQ      9 /* '!=' */
 #define PT_PERCENT       10 /* '%' */

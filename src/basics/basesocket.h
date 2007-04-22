@@ -301,8 +301,8 @@ class CFDSET
 		SOCKET  fd_array[1];		// an array of SOCKETs 
 									// only one in the struct the others will be alloced outside
 	};
-	unsigned long	cSZ;			// alloced elements
 	struct winfdset *cSet;			// the set struct
+	unsigned long	cSZ;			// alloced elements
 
 	///////////////////////////////////////////////////////////////////////////
 	/// resize the array; only grow, no shrink

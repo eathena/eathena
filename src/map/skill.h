@@ -132,7 +132,6 @@ protected:
 		T& parent;
 		bool (T::*func)(block_list& bl);
 
-
 		map_callback(T& p, bool (T::*f)(block_list& bl))
 			: parent(p), func(f)
 		{}

@@ -8,6 +8,7 @@
 #include "pc.h"
 #include "status.h"
 #include "map.h"
+#include "flooritem.h"
 #include "intif.h"
 #include "clif.h"
 #include "chrif.h"
@@ -98,7 +99,7 @@ pet_data::~pet_data()
 
 	clif_clearchar_area(*this,0);
 	this->delblock();
-	this->deliddb();
+	this->unregister_id();
 }
 
 int pet_data::attacktimer_func(int tid, unsigned long tick, int id, basics::numptr data)
@@ -406,7 +407,7 @@ void pet_data::droploot(bool drop)
 			else if((flag = pc_additem(this->msd, this->loot->itemlist[i], this->loot->itemlist[i].amount)))
 			{	// drop items on floor
 				clif_additem(this->msd,0,0,flag);
-				map_addflooritem(this->loot->itemlist[i], this->loot->itemlist[i].amount, this->block_list::m, this->block_list::x, this->block_list::y, NULL, NULL, NULL, 0);
+				flooritem_data::create(this->loot->itemlist[i], this->loot->itemlist[i].amount, this->block_list::m, this->block_list::x, this->block_list::y, NULL, NULL, NULL, 0);
 			}
 		}
 		this->loot->count = 0;
@@ -452,7 +453,7 @@ void pet_data::return_to_egg()
 	if( flag )
 	{
 		clif_additem(this->msd,0,0,flag);
-		map_addflooritem(tmp_item,1,this->msd.block_list::m,this->msd.block_list::x,this->msd.block_list::y,NULL,NULL,NULL,0);
+		flooritem_data::create(tmp_item,1,this->msd.block_list::m,this->msd.block_list::x,this->msd.block_list::y,NULL,NULL,NULL,0);
 	}
 
 	this->msd.status.pet_id = 0;
@@ -830,16 +831,15 @@ int pet_data_init(map_session_data &sd, const petstatus &p)
 	pd->random_walktarget(sd);
 	pd->block_list::x = pd->walktarget.x;
 	pd->block_list::y = pd->walktarget.y;
-	pd->block_list::id = npc_get_new_npc_id();
+	
 	pd->dir = sd.dir;
 	pd->speed = pd->petDB.speed;
 	pd->next_walktime = pd->attackable_tick = pd->last_thinktime = gettick();
 
-	
 	for(i=0;i<MAX_MOBSKILLTIMERSKILL;++i)
 		pd->skilltimerskill[i].timer = -1;
 
-	pd->addiddb();
+	pd->register_id( npc_get_new_npc_id() );
 	pd->addblock();
 	// initialise
 	if (config.pet_lv_rate)	//[Skotlex]
@@ -1027,7 +1027,7 @@ int pet_get_egg(uint32 account_id, uint32 pet_id, int flag)
 			if((ret = pc_additem(*sd,tmp_item,1)))
 			{
 				clif_additem(*sd,0,0,ret);
-				map_addflooritem(tmp_item,1,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
+				flooritem_data::create(tmp_item,1,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
 			}
 		}
 		else
@@ -1118,7 +1118,7 @@ int pet_unequipitem(map_session_data &sd)
 	tmp_item.identify = 1;
 	if((flag = pc_additem(sd,tmp_item,1))) {
 		clif_additem(sd,0,0,flag);
-		map_addflooritem(tmp_item,1,sd.block_list::m,sd.block_list::x,sd.block_list::y,NULL,NULL,NULL,0);
+		flooritem_data::create(tmp_item,1,sd.block_list::m,sd.block_list::x,sd.block_list::y,NULL,NULL,NULL,0);
 	}
 	if (config.pet_equip_required)
 	{ 	//Skotlex: halt support timers if needed
@@ -1178,7 +1178,6 @@ public:
 int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 {
 	map_session_data *sd = &pd.msd;
-	struct mob_data *md = NULL;
 	int dist,i=0,dx=-1,dy=-1;
 
 	if( !pd.is_on_map() || sd == NULL || !sd->is_on_map() )
@@ -1207,6 +1206,9 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 
 	if(sd->pd->pet.intimate > 0)
 	{
+		struct mob_data *md = mob_data::from_blid(pd.target_id);
+		struct flooritem_data *fitem = md?NULL:flooritem_data::from_blid(pd.target_id);
+		
 		dist = distance(*sd,pd);
 		if(dist > 12)
 		{
@@ -1221,12 +1223,10 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 			if( !pd.walktoxy(pd.walktarget.x,pd.walktarget.y) )
 				pd.randomwalk(tick);
 		}
-		else if(pd.target_id > MAX_FLOORITEM)
+		else if( md )
 		{	//Mob targeted
-			md= mob_data::from_blid(pd.target_id);
-			if( md == NULL || 
-				//md->block_list::type != BL_MOB || 
-				pd.block_list::m != md->block_list::m || !md->is_on_map() ||
+			
+			if( pd.block_list::m != md->block_list::m || !md->is_on_map() ||
 				distance(pd, *md) > 13)
 			{
 				pd.unlock_target();
@@ -1280,10 +1280,9 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 				pd.start_attack();
 			}
 		}
-		else if(pd.target_id > 0 && pd.loot)
+		else if( fitem && pd.loot )
 		{	//Item Targeted, attempt loot
-			flooritem_data *fitem = flooritem_data::from_blid(pd.target_id);
-			if( fitem == NULL || fitem->m != pd.block_list::m || (dist=distance(pd,*fitem))>=5 )
+			if( fitem->m != pd.block_list::m || (dist=distance(pd,*fitem))>=5 )
 			{	// ‰“‚·‚¬‚é‚©ƒAƒCƒeƒ€‚ª‚È‚­‚È‚Á‚½
  				pd.unlock_target();
 			}
@@ -1306,7 +1305,9 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 				{
 					pd.loot->itemlist[pd.loot->count++] = fitem->item_data;
 					pd.loot->weight += itemdb_search(fitem->item_data.nameid)->weight*fitem->item_data.amount;
-					map_clearflooritem(fitem->id);
+
+					fitem->item_data = item();
+					fitem->freeblock();
 				}
 				pd.unlock_target();		
 			}
@@ -1359,7 +1360,7 @@ int pet_delay_item_drop2(int tid, unsigned long tick, int id, basics::numptr dat
 	delay_item_drop2 *ditem=(delay_item_drop2 *)data.ptr;
 	if(ditem)
 	{
-		map_addflooritem(ditem->item_data,ditem->item_data.amount,ditem->m,ditem->x,ditem->y,ditem->first_sd,ditem->second_sd,ditem->third_sd,0);
+		flooritem_data::create(ditem->item_data,ditem->item_data.amount,ditem->m,ditem->x,ditem->y,ditem->first_sd,ditem->second_sd,ditem->third_sd,0);
 		delete ditem;
 		get_timer(tid)->data=0;
 	}

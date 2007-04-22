@@ -497,7 +497,7 @@ public:
 		object._crit.addition() -= 100;
 		object._speed.factor() -= 30 - 3*this->lvl;
 	}
-	/// return true when autoresume.
+	/// return time>0 when autoresume.
 	virtual ulong resume(affectable& object)
 	{
 		map_session_data *psd = object.get_sd();
@@ -1052,7 +1052,7 @@ class sc_aeterna
 	: public status_identifier<SC_AETERNA>
 	, public status_savable<true>
 	, public status_needrestart<false>
-	, public status_timed<false>
+	, public status_timed<true>
 	, public status_resuming<false>
 	, public status_alwaysvalid<true>
 {
@@ -1061,17 +1061,23 @@ public:
 	{}
 	virtual ~sc_aeterna()
 	{}
+	/// return status duration.
+	virtual ulong duration() const
+	{
+		return 600*1000; // 10min
+	}
+	
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 
 class sc_adrenaline
 	: public status_identifier<SC_ADRENALINE>
-	, public status_savable<false>
+	, public status_savable<true>
 	, public status_needrestart<false>
-	, public status_timed<false>
+	, public status_timed<true>
 	, public status_resuming<false>
-	, public status_alwaysvalid<true>
+	, public status_alwaysvalid<false>
 {
 	int lvl;
 public:
@@ -1080,15 +1086,43 @@ public:
 	{}
 	virtual ~sc_adrenaline()
 	{}
+
+	/// true when needs to be terminated.
+	virtual bool is_invalid(affectable& object) const
+	{
+		return false;//object is not wearing axe or mace
+	}
+	/// true when possible to apply.
+	static bool is_applyable(affectable& object, const basics::numptr& v1, const basics::numptr& v2, const basics::numptr& v3, const basics::numptr& v4)
+	{
+		return true;//object is wearing axe or mace
+	}
+	/// return status duration.
+	virtual ulong duration() const
+	{
+		return lvl*30*1000; // 30sec per level
+		//##TODO:
+		// add 10% from Hilt Biding
+	}
+	/// executed when starting the status change.
+	virtual void start(affectable& object)
+	{
+		object._aspd.factor() += 100;
+	}
+	/// executed when stopping the status change.
+	virtual void stop(affectable& object)
+	{
+		object._aspd.factor() -= 100;
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 
 class sc_weaponperfection
 	: public status_identifier<SC_WEAPONPERFECTION>
-	, public status_savable<false>
+	, public status_savable<true>
 	, public status_needrestart<false>
-	, public status_timed<false>
+	, public status_timed<true>
 	, public status_resuming<false>
 	, public status_alwaysvalid<true>
 {
@@ -1099,15 +1133,20 @@ public:
 	{}
 	virtual ~sc_weaponperfection()
 	{}
+	/// return status duration.
+	virtual ulong duration() const
+	{
+		return lvl*10*1000; // 10sec per level
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 
 class sc_overthrust
 	: public status_identifier<SC_OVERTHRUST>
-	, public status_savable<false>
+	, public status_savable<true>
 	, public status_needrestart<false>
-	, public status_timed<false>
+	, public status_timed<true>
 	, public status_resuming<false>
 	, public status_alwaysvalid<true>
 {
@@ -1118,16 +1157,35 @@ public:
 	{}
 	virtual ~sc_overthrust()
 	{}
+
+	/// return status duration.
+	virtual ulong duration() const
+	{
+		return lvl*20*1000; // 20sec per level
+	}
+	/// executed when starting the status change.
+	virtual void start(affectable& object)
+	{
+		object._batk.factor() += 5*lvl;
+		//object.weaponbreak.factor() += 2/1000*lvl;
+	}
+	/// executed when stopping the status change.
+	virtual void stop(affectable& object)
+	{
+		object._batk.factor() -= 5*lvl;
+		//object.weaponbreak.factor() -= 2/1000*lvl;
+	}
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 
 class sc_maximizepower
 	: public status_identifier<SC_MAXIMIZEPOWER>
-	, public status_savable<false>
+	, public status_savable<true>
 	, public status_needrestart<false>
-	, public status_timed<false>
-	, public status_resuming<false>
+	, public status_timed<true>
+	, public status_resuming<true>
 	, public status_alwaysvalid<true>
 {
 	int lvl;
@@ -1137,13 +1195,44 @@ public:
 	{}
 	virtual ~sc_maximizepower()
 	{}
+	/// return status duration.
+	virtual ulong duration() const
+	{
+		return this->lvl*1000; // lvl sec, then resumed
+	}
+	/// executed when starting the status change.
+	virtual void start(affectable& object)
+	{	// apply effects
+	}
+	/// executed when stopping the status change.
+	virtual void stop(affectable& object)
+	{	// remove effects
+	}
+	/// return time>0 when autoresume.
+	virtual ulong resume(affectable& object)
+	{
+		map_session_data *psd = object.get_sd();
+		if( psd )
+		{
+			if( psd->status.sp > 0 )
+			{
+				--psd->status.sp;
+				clif_updatestatus(*psd,SP_SP);
+			}
+			else
+			{	// run out of sp
+				return 0;
+			}
+		}
+		return this->duration();
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 
 class sc_riding
 	: public status_identifier<SC_RIDING>
-	, public status_savable<false>
+	, public status_savable<true>
 	, public status_needrestart<false>
 	, public status_timed<false>
 	, public status_resuming<false>
@@ -1162,7 +1251,7 @@ public:
 /// 
 class sc_falcon
 	: public status_identifier<SC_FALCON>
-	, public status_savable<false>
+	, public status_savable<true>
 	, public status_needrestart<false>
 	, public status_timed<false>
 	, public status_resuming<false>
@@ -1328,7 +1417,8 @@ public:
 	{}
 
 	virtual void stop(affectable& object)
-	{	// check for starting the 50% status
+	{	// check for starting the 50% status, 
+		// could also be done outside with the weight calc that has to be done anyway
 		if( object.is_50overweight() )
 			object.create_status(SC_WEIGHT50);
 	}

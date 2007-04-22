@@ -90,7 +90,7 @@ bool CStackEngine::process()
 		stack = this->cStack.end()-1;
 
 		if( stacksize < (int)ccmd.cCount )
-		{	// soemthing wrong
+		{	// something wrong
 			fprintf(stderr, "stack underflow, %u values requited, have %i\n", (uint)ccmd.cCount, (int)stacksize);
 			return false;
 		}
@@ -421,7 +421,7 @@ bool CStackEngine::process()
 		case OP_ARRAYSEL:	// <Op Pointer> '[' <Expr List> ']'
 		{
 			if( stacksize < ccmd.cParam )
-			{	// soemthing wrong
+			{	// something wrong
 				fprintf(stderr, "stack underflow, %i values requited, have %i\n", (int)ccmd.cParam, (int)stacksize);
 				return false;
 			}
@@ -469,7 +469,7 @@ bool CStackEngine::process()
 			const int dim = ccmd.cParam;
 			int i;
 			if( stacksize < dim )
-			{	// soemthing wrong
+			{	// something wrong
 				fprintf(stderr, "stack underflow, %i values requited, have %i\n", dim, (int)stacksize);
 				return false;
 			}
@@ -536,7 +536,7 @@ bool CStackEngine::process()
 			int i;
 			basics::variant temp;
 			if( stacksize < cnt )
-			{	// soemthing wrong
+			{	// something wrong
 				fprintf(stderr, "stack underflow, %i values requited, have %i\n", cnt, (int)stacksize);
 				return false;
 			}
@@ -663,6 +663,22 @@ bool CStackEngine::process()
 			stack[0].make_value();
 			break;
 		}
+		case OP_REDUCE:
+		{	//reduce
+			const int cnt = ccmd.cParam;
+			basics::variant temp;
+			if( stacksize < cnt )
+			{	// something wrong
+				fprintf(stderr, "stack underflow, %i values requited, have %i\n", cnt, (int)stacksize);
+				return false;
+			}
+			if(cnt>1)
+			{
+				stack[1-cnt].assign(stack[0], true);
+				this->cStack.strip(cnt-1);
+			}
+			break;
+		}		
 		case OP_BOOLEAN:
 		{	//evaluate
 			stack[0].make_value();

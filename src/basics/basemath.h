@@ -7,104 +7,102 @@
 #include "basepair.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-// irregular part an missing functions
+// irregular part and missing functions
 #if defined(_MSC_VER) || defined(__BORLANDC__)
 ///////////////////////////////////////////////////////////////////////////////
-#include <float.h>
 
 inline int isfinite(double x)							{ return _finite(x); }
 inline int isnan(double x)								{ return _isnan(x); }
 
-inline float hypotf(float x, float y)					{ return (float)_hypot((double)x, (double)y); }
+inline float hypotf(float x, float y)					{ return (float)_hypot((float)x,(float)y); }
 inline double hypot(double x, double y)					{ return _hypot(x,y); }
-inline long double hypotl(long double x, long double y)	{ return (long double)_hypot((double)x, (double)y); }
+inline long double hypotl(long double x, long double y)	{ return (long double)_hypot((long double)x,(long double)y); }
 
 ///////////////////////////////////////////////////////////////////////////////
 #elif defined(__sun__)
 ///////////////////////////////////////////////////////////////////////////////
 
-#if !defined(fpclassify)
 #include <ieeefp.h>
 #define fpclassify fpclass
-#endif
-
 inline int isfinite(double x)		{ return finite(x); }
+inline int isnan(float x)			{ return isnanf(x); }
+inline int isnan(double x)			{ return isnand(x); }
 
-// does not exist on our ultrasparcs
-//#ifdef __sun
-//#include <sunmath.h>
-//#endif
-// so, might manually rearrange the math_iso.h things
-// if you have a better idea, tell me [marc]
-extern float __acosf(float);
-extern float __asinf(float);
-extern float __atanf(float);
-extern float __atan2f(float, float);
-extern float __ceilf(float);
-extern float __cosf(float);
-extern float __coshf(float);
-extern float __expf(float);
-extern float __fabsf(float);
-extern float __floorf(float);
-extern float __fmodf(float, float);
-extern float __frexpf(float, int *);
-extern float __ldexpf(float, int);
-extern float __logf(float);
-extern float __log10f(float);
-extern float __modff(float, float *);
-extern float __powf(float, float);
-extern float __sinf(float);
-extern float __sinhf(float);
-extern float __sqrtf(float);
-extern float __tanf(float);
-extern float __tanhf(float);
+#if defined(__GNUC__) 
+// sunmath.h does not exist for gcc
+// manually rearrange the math_iso.h things [marc]
+extern "C" {
+float __acosf(float);
+float __asinf(float);
+float __atanf(float);
+float __atan2f(float, float);
+float __ceilf(float);
+float __cosf(float);
+float __coshf(float);
+float __expf(float);
+float __fabsf(float);
+float __floorf(float);
+float __fmodf(float, float);
+float __frexpf(float, int *);
+float __ldexpf(float, int);
+float __logf(float);
+float __log10f(float);
+float __modff(float, float *);
+float __powf(float, float);
+float __sinf(float);
+float __sinhf(float);
+float __sqrtf(float);
+float __tanf(float);
+float __tanhf(float);
 
-extern long double __acosl(long double);
-extern long double __asinl(long double);
-extern long double __atanl(long double);
-extern long double __atan2l(long double, long double);
-extern long double __ceill(long double);
-extern long double __cosl(long double);
-extern long double __coshl(long double);
-extern long double __expl(long double);
-extern long double __fabsl(long double);
-extern long double __floorl(long double);
-extern long double __fmodl(long double, long double);
-extern long double __frexpl(long double, int *);
-extern long double __ldexpl(long double, int);
-extern long double __logl(long double);
-extern long double __log10l(long double);
-extern long double __modfl(long double, long double *);
-extern long double __powl(long double, long double);
-extern long double __sinl(long double);
-extern long double __sinhl(long double);
-extern long double __sqrtl(long double);
-extern long double __tanl(long double);
-extern long double __tanhl(long double);
+long double __acosl(long double);
+long double __asinl(long double);
+long double __atanl(long double);
+long double __atan2l(long double, long double);
+long double __ceill(long double);
+long double __cosl(long double);
+long double __coshl(long double);
+long double __expl(long double);
+long double __fabsl(long double);
+long double __floorl(long double);
+long double __fmodl(long double, long double);
+long double __frexpl(long double, int *);
+long double __ldexpl(long double, int);
+long double __logl(long double);
+long double __log10l(long double);
+long double __modfl(long double, long double *);
+long double __powl(long double, long double);
+long double __sinl(long double);
+long double __sinhl(long double);
+long double __sqrtl(long double);
+long double __tanl(long double);
+long double __tanhl(long double);
+}// extern "C"
 
-inline float acosf(float x)				{ return __acosf(x); }
-inline float asinf(float x)				{ return __asinf(x); }
-inline float atanf(float x)				{ return __atanf(x); }
-inline float atan2f(float x, float y)	{ return __atan2f(x,y); }
-inline float ceilf(float x)				{ return __ceilf(x); }
-inline float cosf(float x)				{ return __cosf(x); }
-inline float coshf(float x)				{ return __coshf(x); }
-inline float expf(float x)				{ return __expf(x); }
-inline float fabsf(float x)				{ return __fabsf(x); }
-inline float floorf(float x)			{ return __floorf(x); }
-inline float fmodf(float x, float y)	{ return __fmodf(x,y); }
-inline float frexpf(float x, int *e)	{ return __frexpf(x,e); }
-inline float hypotf(float x, float y)	{ return hypot((float)x, (float)y); }
-inline float ldexpf(float v, int e)		{ return __ldexpf(v,e); }
-inline float logf(float x)				{ return __logf(x); }
-inline float log10f(float x)			{ return __log10f(x); }
-inline float modff(float x, float *i)	{ return __modff(x,i); }
-inline float powf(float x, float y)		{ return __powf(x,y); }
-inline float sinf(float x)				{ return __sinf(x); }
-inline float sinhf(float x)				{ return __sinhf(x); }
-inline float sqrtf(float x)				{ return __sqrtf(x); }
-inline float tanf(float x)				{ return __tanf(x); }
-inline float tanhf(float x)				{ return __tanhf(x); }
+extern "C" {
+inline float acosf(float x)								{ return __acosf(x); }
+inline float asinf(float x)								{ return __asinf(x); }
+inline float atanf(float x)								{ return __atanf(x); }
+inline float atan2f(float x, float y)					{ return __atan2f(x,y); }
+inline float ceilf(float x)								{ return __ceilf(x); }
+inline float cosf(float x)								{ return __cosf(x); }
+inline float coshf(float x)								{ return __coshf(x); }
+inline float expf(float x)								{ return __expf(x); }
+inline float fabsf(float x)								{ return __fabsf(x); }
+inline float floorf(float x)							{ return __floorf(x); }
+inline float fmodf(float x, float y)					{ return __fmodf(x,y); }
+inline float frexpf(float x, int *e)					{ return __frexpf(x,e); }
+inline float hypotf(float x, float y)					{ return (float)hypot((float)x, (float)y); }
+inline float ldexpf(float v, int e)						{ return __ldexpf(v,e); }
+inline float logf(float x)								{ return __logf(x); }
+inline float log10f(float x)							{ return __log10f(x); }
+inline float modff(float x, float *i)					{ return __modff(x,i); }
+inline float powf(float x, float y)						{ return __powf(x,y); }
+inline float sinf(float x)								{ return __sinf(x); }
+inline float sinhf(float x)								{ return __sinhf(x); }
+inline float sqrtf(float x)								{ return __sqrtf(x); }
+inline float tanf(float x)								{ return __tanf(x); }
+inline float tanhf(float x)								{ return __tanhf(x); }
 
 inline long double acosl(long double x)					{ return __acosl(x); }
 inline long double asinl(long double x)					{ return __asinl(x); }
@@ -118,7 +116,7 @@ inline long double fabsl(long double x)					{ return __fabsl(x); }
 inline long double floorl(long double x)				{ return __floorl(x); }
 inline long double fmodl(long double x, long double y)	{ return __fmodl(x,y); }
 inline long double frexpl(long double x, int *e)		{ return __frexpl(x,e); }
-inline long double hypotl(long double x, long double y)	{ return hypot((double)x, (double)y); }
+inline long double hypotl(long double x, long double y)	{ return (long double)hypot((double)x, (double)y); }
 inline long double ldexpl(long double v, int e)			{ return __ldexpl(v,e); }
 inline long double logl(long double x)					{ return __logl(x); }
 inline long double log10l(long double x)				{ return __log10l(x); }
@@ -129,21 +127,77 @@ inline long double sinhl(long double x)					{ return __sinhl(x); }
 inline long double sqrtl(long double x)					{ return __sqrtl(x); }
 inline long double tanl(long double x)					{ return __tanl(x); }
 inline long double tanhl(long double x)					{ return __tanhl(x); }
+}// extern "C"
+
+#else//!defined(__GNUC__) 
+// use sunmath for native compilers
+#include <sunmath.h>
+#endif// !defined(__GNUC__) 
 
 ///////////////////////////////////////////////////////////////////////////////
-#else// others
+#elif defined(__alpha) && !defined (__linux)
 ///////////////////////////////////////////////////////////////////////////////
 
-// When isfinite is not available, try to use one of the alternatives, or bail out.
-#if (!defined(isfinite) || defined(__CYGWIN__))
+#include <nan.h>
+
+///////////////////////////////////////////////////////////////////////////////
+#elif defined(__CYGWIN__) 
+///////////////////////////////////////////////////////////////////////////////
+
 #undef isfinite
 #if defined(fpclassify)
 #define isfinite(x) (fpclassify(x) != FP_NAN && fpclassify(x) != FP_INFINITE)
 #else
 #define isfinite(x) ((x) - (x) == 0)
 #endif// !defined(fpclassify)
+
+#undef isnan
+#if !defined(fpclassify)
+#define isnan(x) ((x) != (x))
+#else
+#define isnan(x) (fpclassify(x) == FP_NAN)
+#endif// !defined(fpclassify)
+
+// cygwin has no standard long double math functions
+// manually add replacements
+extern "C" {
+inline long double acosl(long double x)					{ return (long double)acos((double)x); }
+inline long double asinl(long double x)					{ return (long double)asin((double)x); }
+inline long double atanl(long double x)					{ return (long double)atan((double)x); }
+inline long double atan2l(long double x, long double y)	{ return (long double)atan2((double)x,(double)y); }
+inline long double ceill(long double x)					{ return (long double)ceil((double)x); }
+inline long double cosl(long double x)					{ return (long double)cos((double)x); }
+inline long double coshl(long double x)					{ return (long double)cosh((double)x); }
+inline long double expl(long double x)					{ return (long double)exp((double)x); }
+inline long double fabsl(long double x)					{ return (long double)fabs((double)x); }
+inline long double floorl(long double x)				{ return (long double)floor((double)x); }
+inline long double fmodl(long double x, long double y)	{ return (long double)fmod((double)x,(double)y); }
+inline long double frexpl(long double x, int *e)		{ return (long double)frexpl((double)x,e); }
+inline long double hypotl(long double x, long double y)	{ return (long double)hypot((double)x, (double)y); }
+inline long double ldexpl(long double v, int e)			{ return (long double)ldexp((double)v,(double)e); }
+inline long double logl(long double x)					{ return (long double)log((double)x); }
+inline long double log10l(long double x)				{ return (long double)log10((double)x); }
+inline long double modfl(long double x, long double *i)	{ double tmp; double ret= modf((double)x,&tmp); *i=(long double)tmp; return (long double)ret; }
+inline long double powl(long double x, long double y)	{ return (long double)pow((double)x,(double)y); }
+inline long double sinl(long double x)					{ return (long double)sin((double)x); }
+inline long double sinhl(long double x)					{ return (long double)sinh((double)x); }
+inline long double sqrtl(long double x)					{ return (long double)sqrt((double)x); }
+inline long double tanl(long double x)					{ return (long double)tan((double)x); }
+inline long double tanhl(long double x)					{ return (long double)tanh((double)x); }
+}// extern "C"
+
+///////////////////////////////////////////////////////////////////////////////
+#else// others
+///////////////////////////////////////////////////////////////////////////////
+
+// When isfinite is not available, try to use one of the alternatives, or bail out.
+#if !defined(isfinite)
+#if defined(fpclassify)
+#define isfinite(x) (fpclassify(x) != FP_NAN && fpclassify(x) != FP_INFINITE)
+#else
+#define isfinite(x) ((x) - (x) == 0)
+#endif// !defined(fpclassify)
 #endif// !defined(isfinite)
-// TODO: find the C99 version of these an move into above ifdef.
 
 #if !defined(isnan)
 #if !defined(fpclassify)
@@ -151,15 +205,11 @@ inline long double tanhl(long double x)					{ return __tanhl(x); }
 #else
 #define isnan(x) (fpclassify(x) == FP_NAN)
 #endif// !defined(fpclassify)
-#endif// !defined(isfinite)
-// TODO: find the C99 version of these an move into above ifdef.
+#endif// !defined(isnan)
 
 ///////////////////////////////////////////////////////////////////////////////
 #endif//
 ///////////////////////////////////////////////////////////////////////////////
-
-
-
 
 
 NAMESPACE_BEGIN(basics)
@@ -170,14 +220,14 @@ NAMESPACE_BEGIN(basics)
 template <typename T>
 struct is_void
 {
-	enum { Result = false };
+	enum _dummy { Result = false };
 	typedef bool_false Type;
 };
 
 template<>
 struct is_void<void>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 };
 //@}
@@ -188,7 +238,7 @@ struct is_void<void>
 template <typename T>
 struct is_integral
 {
-	enum { Result = false };
+	enum _dummy { Result = false };
 	typedef bool_false Type;
 	typedef bool_false integral;
 	typedef bool_false issigned;
@@ -198,7 +248,7 @@ struct is_integral
 template<>
 struct is_integral<bool>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true integral;
 	typedef bool_false issigned;
@@ -208,7 +258,7 @@ struct is_integral<bool>
 template<>
 struct is_integral<char>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true integral;
 	typedef bool_true issigned;
@@ -218,7 +268,7 @@ struct is_integral<char>
 template<>
 struct is_integral<signed char>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true integral;
 	typedef bool_true issigned;
@@ -228,7 +278,7 @@ struct is_integral<signed char>
 template<>
 struct is_integral<unsigned char>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true integral;
 	typedef bool_false issigned;
@@ -239,7 +289,7 @@ struct is_integral<unsigned char>
 template<>
 struct is_integral<wchar_t>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true integral;
 	typedef bool_false issigned;
@@ -250,7 +300,7 @@ struct is_integral<wchar_t>
 template<>
 struct is_integral<short>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true integral;
 	typedef bool_true issigned;
@@ -260,7 +310,7 @@ struct is_integral<short>
 template<>
 struct is_integral<unsigned short>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true integral;
 	typedef bool_false issigned;
@@ -270,7 +320,7 @@ struct is_integral<unsigned short>
 template<>
 struct is_integral<int>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true integral;
 	typedef bool_true issigned;
@@ -280,7 +330,7 @@ struct is_integral<int>
 template<>
 struct is_integral<unsigned int>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true integral;
 	typedef bool_false issigned;
@@ -290,7 +340,7 @@ struct is_integral<unsigned int>
 template<>
 struct is_integral<long>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true integral;
 	typedef bool_true issigned;
@@ -300,7 +350,7 @@ struct is_integral<long>
 template<>
 struct is_integral<unsigned long>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true integral;
 	typedef bool_false issigned;
@@ -310,7 +360,7 @@ struct is_integral<unsigned long>
 template<>
 struct is_integral<sint64>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true integral;
 	typedef bool_true issigned;
@@ -320,7 +370,7 @@ struct is_integral<sint64>
 template<>
 struct is_integral<uint64>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true integral;
 	typedef bool_false issigned;
@@ -334,7 +384,7 @@ struct is_integral<uint64>
 template <typename T>
 struct is_rational
 {
-	enum { Result = false };
+	enum _dummy { Result = false };
 	typedef bool_false Type;
 	typedef bool_false rational;
 };
@@ -342,7 +392,7 @@ struct is_rational
 template<>
 struct is_rational<float>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_false Type;
 	typedef bool_true rational;
 };
@@ -350,7 +400,7 @@ struct is_rational<float>
 template<>
 struct is_rational<double>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true rational;
 };
@@ -358,7 +408,7 @@ struct is_rational<double>
 template<>
 struct is_rational<long double>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true rational;
 };
@@ -367,37 +417,37 @@ struct is_rational<long double>
 template<typename T>
 struct is_float
 {
-	enum { Result = false };
+	enum _dummy { Result = false };
 	typedef bool_false Type;
 };
 template<>
 struct is_float<float>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 };
 template<typename T>
 struct is_double
 {
-	enum { Result = false };
+	enum _dummy { Result = false };
 	typedef bool_false Type;
 };
 template<>
 struct is_double<double>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 };
 template<typename T>
 struct is_longdouble
 {
-	enum { Result = false };
+	enum _dummy { Result = false };
 	typedef bool_false Type;
 };
 template<>
 struct is_longdouble<long double>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 };
 
@@ -407,7 +457,7 @@ template<typename T>
 struct is_arithmetic
 {
 	typedef typename logic_or<typename is_integral<T>::Type, typename is_rational<T>::Type>::Type Type;
-	enum { Result = Type::Result };
+	enum _dummy { Result = Type::Result };
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -416,42 +466,42 @@ struct is_arithmetic
 template<typename T>
 struct is_signed
 {
-	enum { Result = false };
+	enum _dummy { Result = false };
 	typedef bool_false Type;
 	typedef bool_false issigned;
 };
 template<>
 struct is_signed<signed char>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true issigned;
 };
 template<>
 struct is_signed<signed short>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true issigned;
 };
 template<>
 struct is_signed<signed int>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true issigned;
 };
 template<>
 struct is_signed<signed long>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true issigned;
 };
 template<>
 struct is_signed<sint64>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true issigned;
 };
@@ -463,42 +513,42 @@ struct is_signed<sint64>
 template<typename T>
 struct is_unsigned
 {
-	enum { Result = false };
+	enum _dummy { Result = false };
 	typedef bool_false Type;
 	typedef bool_false isunsigned;
 };
 template<>
 struct is_unsigned<unsigned char>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true isunsigned;
 };
 template<>
 struct is_unsigned<unsigned short>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true isunsigned;
 };
 template<>
 struct is_unsigned<unsigned int>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true isunsigned;
 };
 template<>
 struct is_unsigned<unsigned long>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true isunsigned;
 };
 template<>
 struct is_unsigned<uint64>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 	typedef bool_true Type;
 	typedef bool_true isunsigned;
 };
@@ -721,7 +771,7 @@ namespace math {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// epsilon for real comparison.
-const float REAL_EPSILON		=((float)10e-6);
+const float REAL_EPSILON		=((float)1e-9);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -746,168 +796,179 @@ template<> inline long double abs<long double>(const long double& x)	{ return ::
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for arcus cosine.
-inline float acos(const float x)				{ return ::acosf(x); }
-inline double acos(const double x)				{ return ::acos(x); }
-inline long double acos(const long double x)	{ return ::acosl(x); }
+inline float acos(const float x)										{ return ::acosf(x); }
+inline double acos(const double x)										{ return ::acos(x); }
+inline long double acos(const long double x)							{ return ::acosl(x); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for arcus sine
-inline float asin(const float x)				{ return ::asinf(x); }
-inline double asin(const double x)				{ return ::asin(x); }
-inline long double asin(const long double x)	{ return ::asinl(x); }
+inline float asin(const float x)										{ return ::asinf(x); }
+inline double asin(const double x)										{ return ::asin(x); }
+inline long double asin(const long double x)							{ return ::asinl(x); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for arcus tangent and tangent2
-inline float atan(const float x)									{ return ::atanf(x); }
-inline double atan(const double x)									{ return ::atan(x); }
-inline long double atan(const long double x)						{ return ::atanl(x); }
-inline float atan(const float x, const float y)						{ return ::atan2f(x,y); }
-inline double atan(const double x, const double y)					{ return ::atan2(x,y); }
-inline long double atan(const long double x, const long double y)	{ return ::atan2l(x,y); }
+inline float atan(const float x)										{ return ::atanf(x); }
+inline double atan(const double x)										{ return ::atan(x); }
+inline long double atan(const long double x)							{ return ::atanl(x); }
+inline float atan(const float x, const float y)							{ return ::atan2f(x,y); }
+inline double atan(const double x, const double y)						{ return ::atan2(x,y); }
+inline long double atan(const long double x, const long double y)		{ return ::atan2l(x,y); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for ceiling
-inline float ceil(const float x)									{ return ::ceilf(x); }
-inline double ceil(const double x)									{ return ::ceil(x); }
-inline long double ceil(const long double x)						{ return ::ceill(x); }
+inline float ceil(const float x)										{ return ::ceilf(x); }
+inline double ceil(const double x)										{ return ::ceil(x); }
+inline long double ceil(const long double x)							{ return ::ceill(x); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for cosine
-inline float cos(const float x)					{ return ::cosf(x); }
-inline double cos(const double x)				{ return ::cos(x); }
-inline long double cos(const long double x)		{ return ::cosl(x); }
+inline float cos(const float x)											{ return ::cosf(x); }
+inline double cos(const double x)										{ return ::cos(x); }
+inline long double cos(const long double x)								{ return ::cosl(x); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for hyperbolic cosine 
-inline float cosh(const float x)				{ return ::coshf(x); }
-inline double cosh(const double x)				{ return ::cosh(x); }
-inline long double cosh(const long double x)	{ return ::coshl(x); }
+inline float cosh(const float x)										{ return ::coshf(x); }
+inline double cosh(const double x)										{ return ::cosh(x); }
+inline long double cosh(const long double x)							{ return ::coshl(x); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for exponent naturalis
-inline double exp(const int x)					{ return ::exp((double)x); }
-inline float exp(const float x)					{ return ::expf(x); }
-inline double exp(const double x)				{ return ::exp(x); }
-inline long double exp(const long double x)		{ return ::expl(x); }
+inline double exp(const int x)											{ return ::exp((double)x); }
+inline float exp(const float x)											{ return ::expf(x); }
+inline double exp(const double x)										{ return ::exp(x); }
+inline long double exp(const long double x)								{ return ::expl(x); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for exponent base10
-inline uint64 exp10(const uint x)				{ return pow10(x); }
-inline float exp10(const float x)				{ return ::expf(x*LN10); }
-inline double exp10(const double x)				{ return ::exp(x*LN10); }
-inline long double exp10(const long double x)	{ return ::expl(x*LN10); }
+inline uint64 exp10(const uint x)										{ return pow10(x); }
+inline float exp10(const float x)										{ return ::expf(x*LN10); }
+inline double exp10(const double x)										{ return ::exp(x*LN10); }
+inline long double exp10(const long double x)							{ return ::expl(x*LN10); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for floor
-inline float floor(const float x)				{ return ::floorf(x); }
-inline double floor(const double x)				{ return ::floor(x); }
-inline long double floor(const long double x)	{ return ::floorl(x); }
+inline float floor(const float x)										{ return ::floorf(x); }
+inline double floor(const double x)										{ return ::floor(x); }
+inline long double floor(const long double x)							{ return ::floorl(x); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for fmod
-inline float fmod(const float x, const float y)						{ return ::fmodf(x,y); }
-inline double fmod(const double x, const double y)					{ return ::fmod(x,y); }
-inline long double fmod(const long double x, const long double y)	{ return ::fmodl(x,y); }
+inline float fmod(const float x, const float y)							{ return ::fmodf(x,y); }
+inline double fmod(const double x, const double y)						{ return ::fmod(x,y); }
+inline long double fmod(const long double x, const long double y)		{ return ::fmodl(x,y); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for frexp. note that exponent is given as reference, not as pointer
-inline float frexp(const float x, int& y)							{ return ::frexpf(x,&y); }
-inline double frexp(const double x, int& y)							{ return ::frexp(x,&y); }
-inline long double frexp(const long double x, int& y)				{ return ::frexpl(x,&y); }
+inline float frexp(const float x, int& y)								{ return ::frexpf(x,&y); }
+inline double frexp(const double x, int& y)								{ return ::frexp(x,&y); }
+inline long double frexp(const long double x, int& y)					{ return ::frexpl(x,&y); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for frexp. returning a pair
-template<typename T> inline pair<T,int> frexp(const T& x)			{ int itmp; pair<T,int> ptmp( frexp<T>(x,&itmp),0); ptmp.second=itmp; return ptmp; }
+template<typename T> inline pair<T,int> frexp(const T& x)				{ int itmp; pair<T,int> ptmp( frexp<T>(x,&itmp),0); ptmp.second=itmp; return ptmp; }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for ldexp
-inline float ldexp(const float x, const int y)						{ return ::ldexpf(x,y); }
-inline double ldexp(const double x, const int y)					{ return ::ldexp(x,y); }
-inline long double ldexp(const long double x, const int y)			{ return ::ldexpl(x,y); }
+inline float ldexp(const float x, const int y)							{ return ::ldexpf(x,y); }
+inline double ldexp(const double x, const int y)						{ return ::ldexp(x,y); }
+inline long double ldexp(const long double x, const int y)				{ return ::ldexpl(x,y); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for hypotenuse
-inline float hypot(const float x, const float y)					{ return ::hypotf(x,y); }
-inline double hypot(const double x, const double y)					{ return ::hypot(x,y); }
-inline long double hypot(const long double x, const long double y)	{ return ::hypotl(x,y); }
+inline float hypot(const float x, const float y)						{ return ::hypotf(x,y); }
+inline double hypot(const double x, const double y)						{ return ::hypot(x,y); }
+inline long double hypot(const long double x, const long double y)		{ return ::hypotl(x,y); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for logarithm naturalis
-inline float log(const float x)										{ return ::logf(x); }
-inline double log(const double x)									{ return ::log(x); }
-inline long double log(const long double x)							{ return ::logl(x); }
+inline float log(const float x)											{ return ::logf(x); }
+inline double log(const double x)										{ return ::log(x); }
+inline long double log(const long double x)								{ return ::logl(x); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for logarithm base 10
-inline float log10(const float x)									{ return ::log10f(x); }
-inline double log10(const double x)									{ return ::log10(x); }
-inline long double log10(const long double x)						{ return ::log10l(x); }
+inline float log10(const float x)										{ return ::log10f(x); }
+inline double log10(const double x)										{ return ::log10(x); }
+inline long double log10(const long double x)							{ return ::log10l(x); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for modf. note that integer part is given as reference, not as pointer
-inline float modf(const float x, float& y)							{ return ::modff(x,&y); }
-inline double modf(const double x, double& y)						{ return ::modf(x,&y); }
-inline long double modf(const long double x, long double& y)		{ return ::modfl(x,&y); }
+inline float modf(const float x, float& y)								{ return ::modff(x,&y); }
+inline double modf(const double x, double& y)							{ return ::modf(x,&y); }
+inline long double modf(const long double x, long double& y)			{ return ::modfl(x,&y); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for modf. returning a pair
-template<typename T> inline pair<T,T> modf(const T& x)				{ return pair<T,T>(x,T()); }
+template<typename T> inline pair<T,T> modf(const T& x)					{ return pair<T,T>(x,T()); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for pow
-inline float pow(const float x, const float y)						{ return ::powf(x,y); }
-inline double pow(const double x, const double y)					{ return ::pow(x,y); }
-inline long double pow(const long double x, const long double y)	{ return ::powl(x,y); }
+inline float pow(const float x, const float y)							{ return ::powf(x,y); }
+inline double pow(const double x, const double y)						{ return ::pow(x,y); }
+inline long double pow(const long double x, const long double y)		{ return ::powl(x,y); }
+template<typename T>
+T pow(T x, unsigned int n)
+{
+	T y = (n%2)?x:1;
+	while ( n>>=1 )
+	{
+		x = x * x;
+		if( n%2 )
+			y = y * x;
+	}
+	return y;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for sine
-inline float sin(const float x)					{ return ::sinf(x); }
-inline double sin(const double x)				{ return ::sin(x); }
-inline long double sin(const long double x)		{ return ::sinl(x); }
+inline float sin(const float x)											{ return ::sinf(x); }
+inline double sin(const double x)										{ return ::sin(x); }
+inline long double sin(const long double x)								{ return ::sinl(x); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for hyperbolic sine
-inline float sinh(const float x)				{ return ::sinhf(x); }
-inline double sinh(const double x)				{ return ::sinh(x); }
-inline long double sinh(const long double x)	{ return ::sinhl(x); }
-
+inline float sinh(const float x)										{ return ::sinhf(x); }
+inline double sinh(const double x)										{ return ::sinh(x); }
+inline long double sinh(const long double x)							{ return ::sinhl(x); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// template for sqare.
 template<typename T>
-inline T sqr(const T x)							{ return x*x; }
+inline T sqr(const T x)													{ return x*x; }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for sqare root.
-inline float sqrt(const float x)				{ return ::sqrtf(x); }
-inline double sqrt(const double x)				{ return ::sqrt(x); }
-inline long double sqrt(const long double x)	{ return ::sqrtl(x); }
+inline float sqrt(const float x)										{ return ::sqrtf(x); }
+inline double sqrt(const double x)										{ return ::sqrt(x); }
+inline long double sqrt(const long double x)							{ return ::sqrtl(x); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for tangent
-inline float tan(const float x)					{ return ::tanf(x); }
-inline double tan(const double x)				{ return ::tan(x); }
-inline long double tan(const long double x)		{ return ::tanl(x); }
+inline float tan(const float x)											{ return ::tanf(x); }
+inline double tan(const double x)										{ return ::tan(x); }
+inline long double tan(const long double x)								{ return ::tanl(x); }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for hyperbolic tangent
-inline float tanh(const float x)				{ return ::tanhf(x); }
-inline double tanh(const double x)				{ return ::tanh(x); }
-inline long double tanh(const long double x)	{ return ::tanhl(x); }
+inline float tanh(const float x)										{ return ::tanhf(x); }
+inline double tanh(const double x)										{ return ::tanh(x); }
+inline long double tanh(const long double x)							{ return ::tanhl(x); }
 
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // templates for not-a-number checks
 //##TODO: add portability layer from altex version of caldon
-template<typename T> inline bool is_nan(const T& x)			{ return false; }
-template<> inline bool is_nan<double>(const double& x)		{ return 0!=isnan(x); }
+template<typename T> inline bool is_nan(const T& x)						{ return false; }
+template<> inline bool is_nan<double>(const double& x)					{ return 0!=isnan(x); }
 
 ///////////////////////////////////////////////////////////////////////////////
 // templates for finite checks
 //##TODO: add portability layer from altex version of caldon
-template<typename T> inline bool is_finite(const T& x)		{ return true; }
-template<> inline bool is_finite<double>(const double& x)	{ return 0!=isfinite(x); }
+template<typename T> inline bool is_finite(const T& x)					{ return true; }
+template<> inline bool is_finite<double>(const double& x)				{ return 0!=isfinite(x); }
 
 
 /////////////////////////////
@@ -917,9 +978,7 @@ namespace detail {
 template<typename T>
 bool equivalent(const T& a, const T& b, const T& EPSILON, const bool_true&)
 {
-	//return (a < b + EPSILON) && (a > b - EPSILON);
-	const T x = a-b;
-	return (x < EPSILON) && (x > -EPSILON);
+	return (a < b + EPSILON) && (a + EPSILON > b);
 }
 template<typename T>
 bool equivalent(const T& a, const T& b, const T&, const bool_false&)
@@ -941,6 +1000,44 @@ inline bool equivalent(const T& a, const T& b, const T& e=REAL_EPSILON)
 	return detail::equivalent(a, b, e, ratial());
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// Greatest Common Divider of two variables.
+/// usable types have to implement equal, lessthan, math::abs and modulo operation
+template<typename T>
+T gcd(T a, T b)
+{
+	const T zero = T();
+	T r;
+	if( a==zero || b==zero )
+		return T(1);
+	
+	a=math::abs(a);
+	b=math::abs(b);
+	if(a<b)
+	{	// swap
+		r = a;
+		a = b;
+		b = r;
+	}
+	do
+	{	// gcd
+		r = a % b;
+		a = b;
+		b = r;
+	}
+	while( !( r==zero ) );
+	return a;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Least Common Multiple (SCM).
+/// SCM of P(x) and Q(x) is defined by the relation
+/// P(x)*Q(x) = GCD(P,Q)*SCM(P,Q).
+template<typename T>
+T scm(T a, T b)
+{
+	return a*b/gcd(a,b);
+}
 
 
 ///////////////////////////////////////

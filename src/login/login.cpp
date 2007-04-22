@@ -26,9 +26,10 @@ CAccountDB account_db;
 
 ///////////////////////////////////////////////////////////////////////////////
 // account registration
-bool mfreg_enabled = true;			///< M/F registration allowed
-unsigned long mfreg_time = 10;		///< time in seconds between registrations
-unsigned long new_reg_tick = 0;		///< internal tickcounter for M/F registration
+bool new_account_flag = false;		///< creation of new accounts allowed
+bool mfreg_enabled = false;			///< M/F registration allowed
+unsigned long mfreg_time=10;		///< time in seconds between registrations (10)
+unsigned long new_reg_tick=0;		///< internal tickcounter for M/F registration
 
 
 
@@ -902,7 +903,7 @@ int parse_login(int fd)
 			if( !ok )
 			{	// try for account creation with _M/_F
 				int namelen = strlen(userid) - 2;
-				if( mfreg_enabled &&
+				if( new_account_flag && mfreg_enabled &&
 					namelen >= 4 &&
 					passwdenc == 0 && 
 					userid[namelen] == '_' &&
@@ -1375,6 +1376,18 @@ int login_config_read(const char *cfgName)
 			{
 				level_new_gm = atoi(w2);
 			}
+			else if (strcasecmp(w1, "new_account") == 0)
+			{
+				new_account_flag = basics::config_switch<bool>(w2);
+			}
+			else if (strcasecmp(w1, "mfreg_enabled") == 0)
+			{			
+				mfreg_enabled = basics::config_switch<bool>(w2);
+			}
+			else if (strcasecmp(w1, "mfreg_time") == 0)
+			{
+				mfreg_time = basics::config_switch<unsigned long>(w2);			
+			}
 			else if (strcasecmp(w1, "login_ip") == 0)
 			{
 				loginaddress = w2;
@@ -1446,14 +1459,6 @@ int login_config_read(const char *cfgName)
 			else if (strcasecmp(w1, "console") == 0)
 			{
 				console = basics::config_switch<bool>(w2);
-			}
-			else if (strcasecmp(w1, "mfreg_enabled") == 0)
-			{			
-				mfreg_enabled = basics::config_switch<bool>(w2);
-			}
-			else if (strcasecmp(w1, "mfreg_time") == 0)
-			{
-				mfreg_time = basics::config_switch<unsigned long>(w2);			
 			}
 		}
 	}
@@ -1550,10 +1555,10 @@ void save_config_in_log(void)
 	else
 		login_log("- to create GM with level '%d' when @gm is used." RETCODE, level_new_gm);
 
-	if( mfreg_enabled )
-		login_log("- to ALLOW new users (with _F/_M)." RETCODE);
+	if( new_account_flag )
+		login_log("- to ALLOW new users %s."RETCODE, mfreg_enabled?"(with _F/_M)":"");
 	else
-		login_log("- to NOT ALLOW new users (with _F/_M)." RETCODE);
+		login_log("- to NOT ALLOW new users." RETCODE);
 	login_log("- with port: %d." RETCODE, loginaddress.port());
 
 

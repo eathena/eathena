@@ -17,6 +17,7 @@
 
 
 #include "map.h"
+#include "flooritem.h"
 #include "clif.h"
 #include "chrif.h"
 #include "itemdb.h"
@@ -3816,7 +3817,7 @@ int buildin_getitem(CScriptEngine &st)
 			clif_additem(*sd,0,0,flag);
 			// create it on floor if dropable, let it vanish otherwise
 			if( itemdb_isdropable(nameid, sd->isGM()) )
-				map_addflooritem(item_tmp,amount,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
+				flooritem_data::create(item_tmp,amount,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
 		}
 	}
 
@@ -3896,7 +3897,7 @@ int buildin_getitem2(CScriptEngine &st)
 		item_tmp.card[3]=c4;
 		if((flag = pc_additem(*sd,item_tmp,amount))) {
 			clif_additem(*sd,0,0,flag);
-			map_addflooritem(item_tmp,amount,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
+			flooritem_data::create(item_tmp,amount,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
 		}
 	}
 
@@ -4028,7 +4029,7 @@ int buildin_makeitem(CScriptEngine &st)
 		else
 			item_tmp.identify = !itemdb_isEquipment(nameid);
 //		clif_additem(sd,0,0,flag);
-		map_addflooritem(item_tmp,amount,m,x,y,NULL,NULL,NULL,0);
+		flooritem_data::create(item_tmp,amount,m,x,y,NULL,NULL,NULL,0);
 	}
 
 	return 0;
@@ -7005,7 +7006,7 @@ int buildin_successremovecards(CScriptEngine &st)
 					if(flag)
 					{	// 持てないならドロップ
 						clif_additem(*st.sd,0,0,flag);
-						map_addflooritem(item_tmp,1,st.sd->block_list::m,st.sd->block_list::x,st.sd->block_list::y,NULL,NULL,NULL,0);
+						flooritem_data::create(item_tmp,1,st.sd->block_list::m,st.sd->block_list::x,st.sd->block_list::y,NULL,NULL,NULL,0);
 					}
 				}
 				c--;
@@ -7027,7 +7028,7 @@ int buildin_successremovecards(CScriptEngine &st)
 				if(flag)
 				{	// もてないならドロップ
 					clif_additem(*st.sd,0,0,flag);
-					map_addflooritem(item_tmp,1,st.sd->block_list::m,st.sd->block_list::x,st.sd->block_list::y,NULL,NULL,NULL,0);
+					flooritem_data::create(item_tmp,1,st.sd->block_list::m,st.sd->block_list::x,st.sd->block_list::y,NULL,NULL,NULL,0);
 				}
 				clif_misceffect(*st.sd,3);
 			}
@@ -7076,7 +7077,7 @@ int buildin_failedremovecards(CScriptEngine &st)
 						if(flag)
 						{
 							clif_additem(*st.sd,0,0,flag);
-							map_addflooritem(item_tmp,1,st.sd->block_list::m,st.sd->block_list::x,st.sd->block_list::y,NULL,NULL,NULL,0);
+							flooritem_data::create(item_tmp,1,st.sd->block_list::m,st.sd->block_list::x,st.sd->block_list::y,NULL,NULL,NULL,0);
 						}
 					}
 				}
@@ -7106,7 +7107,7 @@ int buildin_failedremovecards(CScriptEngine &st)
 					if((flag=pc_additem(*st.sd,item_tmp,1)))
 					{
 						clif_additem(*st.sd,0,0,flag);
-						map_addflooritem(item_tmp,1,st.sd->block_list::m,st.sd->block_list::x,st.sd->block_list::y,NULL,NULL,NULL,0);
+						flooritem_data::create(item_tmp,1,st.sd->block_list::m,st.sd->block_list::x,st.sd->block_list::y,NULL,NULL,NULL,0);
 					}
 				}
 				clif_misceffect(*st.sd,2);

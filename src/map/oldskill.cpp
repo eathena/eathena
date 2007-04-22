@@ -11,6 +11,7 @@
 #include "pc.h"
 #include "status.h"
 #include "pet.h"
+#include "flooritem.h"
 #include "mob.h"
 #include "npc.h"
 #include "homun.h"
@@ -1211,7 +1212,7 @@ public:
 							if(src && *src==BL_PC)
 							{
 								struct item item_tmp(1065);
-								map_addflooritem(item_tmp,1,bl.m,bl.x,bl.y,NULL,NULL,NULL,0);	// ?•ÔŠÒ
+								flooritem_data::create(item_tmp,1,bl.m,bl.x,bl.y,NULL,NULL,NULL,0);	// ?•ÔŠÒ
 							}
 						}
 						skill_delunit(&unit);
@@ -4712,7 +4713,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			if(eflag)
 			{
 				clif_additem(*sd,0,0,eflag);
-				map_addflooritem(item_tmp,1,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
+				flooritem_data::create(item_tmp,1,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
 			}
 		}
 		break;
@@ -4727,7 +4728,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			if(eflag)
 			{
 				clif_additem(*sd,0,0,eflag);
-				map_addflooritem(item_tmp,1,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
+				flooritem_data::create(item_tmp,1,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
 			}
 		}
 		break;
@@ -5434,7 +5435,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 								if( item_tmp.nameid && (myflag=pc_additem(*sd,item_tmp,skill_db[su->group->skill_id].amount[i])))
 								{
 									clif_additem(*sd,0,0,myflag);
-									map_addflooritem(item_tmp,skill_db[su->group->skill_id].amount[i],sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
+									flooritem_data::create(item_tmp,skill_db[su->group->skill_id].amount[i],sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
 								}
 							}
 						}
@@ -5445,7 +5446,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 						if(item_tmp.nameid && (myflag=pc_additem(*sd,item_tmp,1)))
 						{
 							clif_additem(*sd,0,0,myflag);
-							map_addflooritem(item_tmp,1,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
+							flooritem_data::create(item_tmp,1,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
 						}
 					}
 				}
@@ -9266,7 +9267,7 @@ struct skill_unit *skill_initunit(struct skill_unit_group *group,int idx,int x,i
 	if(!unit->alive)
 		group->alive_count++;
 
-	unit->block_list::id=map_addobject(*unit);
+	unit->register_id();
 	unit->block_list::m=group->map;
 	unit->block_list::x=x;
 	unit->block_list::y=y;
@@ -9313,7 +9314,7 @@ int skill_delunit(struct skill_unit *unit)
 
 	unit->group=NULL;
 	unit->alive=0;
-	map_delobjectnofree(unit->block_list::id);
+	unit->freeblock();
 	if(group->alive_count>0 && (--group->alive_count)<=0)
 		skill_delunitgroup(*group);
 
@@ -9920,7 +9921,7 @@ int skill_produce_mix(map_session_data &sd, unsigned short nameid, unsigned shor
 		if((flag = pc_additem(sd,tmp_item,1)))
 		{
 			clif_additem(sd,0,0,flag);
-			map_addflooritem(tmp_item,1,sd.block_list::m,sd.block_list::x,sd.block_list::y,NULL,NULL,NULL,0);
+			flooritem_data::create(tmp_item,1,sd.block_list::m,sd.block_list::x,sd.block_list::y,NULL,NULL,NULL,0);
 		}
 	}
 	else
@@ -9988,7 +9989,7 @@ int skill_arrow_create( map_session_data *sd,unsigned short nameid)
 		if((flag = pc_additem(*sd,tmp_item,tmp_item.amount)))
 		{
 			clif_additem(*sd,0,0,flag);
-			map_addflooritem(tmp_item,tmp_item.amount,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
+			flooritem_data::create(tmp_item,tmp_item.amount,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
 		}
 	}
 

@@ -11,7 +11,7 @@ NAMESPACE_BEGIN(basics)
 /// boolean true struct.
 struct bool_true
 {	
-	enum { Result = true };
+	enum _dummy { Result = true };
 	/// right hand cast. allow implicit type2value conversion
 	operator bool() const	{ return Result; }
 };
@@ -19,7 +19,7 @@ struct bool_true
 /// boolean false struct.
 struct bool_false
 {	
-	enum { Result = false };
+	enum _dummy { Result = false };
 	/// right hand cast. allow implicit type2value conversion
 	operator bool() const	{ return Result; }
 };
@@ -54,19 +54,19 @@ struct bool2type<false>
 template <typename T>
 struct type2bool
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 };
 
 template<>
 struct type2bool<bool_true>
 {
-	enum { Result = true };
+	enum _dummy { Result = true };
 };
 
 template<>
 struct type2bool<bool_false>
 {
-	enum { Result = false };
+	enum _dummy { Result = false };
 };
 
 

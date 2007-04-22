@@ -126,7 +126,7 @@ inline int intern_cmp(const T* a, const T* b, size_t cnt, bool_false)
 template<typename T>
 struct is_simple_type
 {
-	enum{ Result = sizeof(T)<sizeof(void*) };
+	enum _dummy { Result = sizeof(T)<sizeof(void*) };
 	typedef typename bool2type<Result>::Type Type;
 };
 

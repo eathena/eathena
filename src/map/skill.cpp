@@ -1508,7 +1508,7 @@ public:
 				if(eflag)
 				{
 					clif_additem(*sd,0,0,eflag);
-					map_addflooritem(item_tmp,1,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
+					flooritem_data::create(item_tmp,1,sd->block_list::m,sd->block_list::x,sd->block_list::y,NULL,NULL,NULL,0);
 				}
 			}
 		}

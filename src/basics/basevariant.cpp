@@ -505,6 +505,21 @@ void value_array::numeric_cast(const variant& v)
 	}
 }
 
+string<> value_array::get_arraystring() const
+{
+	string<> ret;
+	ret << '{';
+	vector<variant>::iterator iter(this->value);
+	if(iter)
+	{
+		ret << iter->get_arraystring();
+		for(++iter; iter; ++iter)
+			ret << ',' << iter->get_arraystring();
+	}
+	ret << '}';
+	return (ret);
+}
+
 void value_array::negate()
 {
 	vector<variant>::iterator iter(this->value);
@@ -1082,7 +1097,7 @@ int compare(const variant& va, const variant& vb)
 	else if( va.is_array() && vb.is_array() )
 	{	// two arrays
 		int val = va.size() - vb.size();
-		if(val)
+		if(!val)
 		{
 			value_array& a1 = (value_array&)va.access();
 			value_array& a2 = (value_array&)vb.access();
@@ -1118,6 +1133,27 @@ int compare(const variant& va, const variant& vb)
 	}
 	return 0;
 }
+
+
+
+
+const char* variant::type2name(var_t type)
+{
+	static const char* names[] =
+	{
+		"none",
+		"auto",
+		"integer",
+		"string",
+		"float",
+		"array"
+	};
+	return names[type];
+}
+
+
+
+
 
 
 

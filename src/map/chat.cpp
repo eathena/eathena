@@ -29,9 +29,7 @@ bool chat_data::create(map_session_data& sd, unsigned short limit, unsigned char
 	if( !sd.chat )
 	{
 		chat_data *cd = new chat_data;
-
-		cd->block_list::id	= map_addobject(*cd);
-		if(cd->block_list::id==0)
+		if( 0==cd->register_id() )
 		{
 			clif_createchat(sd,1);
 			delete cd;
@@ -159,7 +157,7 @@ bool chat_data::remove(map_session_data &sd)
 				if(this->users == 0 && this->owner && *this->owner==BL_PC)
 				{	// all users have left
 					clif_clearchat(*this,0);
-					map_delobject(this->block_list::id);	// free‚Ü‚Å‚µ‚Ä‚­‚ê‚é
+					this->freeblock();
 				}
 				else
 				{
@@ -247,8 +245,7 @@ bool chat_data::change_status(map_session_data &sd, unsigned short limit, unsign
 bool npcchat_data::create(npcscript_data &nd, unsigned short limit, unsigned char pub, int trigger, const char* title, const char *ev)
 {
 	npcchat_data *cd = new npcchat_data();
-	cd->block_list::id = map_addobject(*cd);
-	if(cd->block_list::id==0)
+	if( 0==cd->register_id() )
 	{
 		delete cd;
 	}
@@ -291,7 +288,7 @@ bool npcchat_data::erase(npcscript_data &nd)
 
 		cd->kickall();
 		clif_clearchat(*cd,0);
-		map_delobject(cd->block_list::id);	// free‚Ü‚Å‚µ‚Ä‚­‚ê‚é
+		cd->freeblock();
 		nd.chat = NULL;
 		return true;
 	}

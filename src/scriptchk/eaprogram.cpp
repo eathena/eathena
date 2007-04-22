@@ -137,6 +137,10 @@ scriptprog::COpcode scriptprog::cOpcodeTable[256] =
 	{0,0,1,OP_EMPTY,"clear variable"},
 	{0,0,0,OP_POP,"pop"},
 	{0,0,1,OP_EVAL,"eval"},
+	{1,0,0,OP_REDUCE,"reduce, %i elements"},
+	{2,0,0,OP_REDUCE,"reduce, %i elements"},
+	{3,0,0,OP_REDUCE,"reduce, %i elements"},
+	{4,0,0,OP_REDUCE,"reduce, %i elements"},
 	{0,0,1,OP_BOOLEAN,"boolean"},
 	{1,0,1,OP_NIF,"conditional jump on false to '%i'"},
 	{2,0,1,OP_NIF,"conditional jump on false to '%i'"},
@@ -197,33 +201,37 @@ scriptprog::script scriptprog::get_script(const basics::string<>& name)
 // register script
 bool scriptprog::regist(script& scr, uint line)
 {
-	if( 0==scr->cName.size() )
-	{	// when no name available, it's only used at the instances
-		return true;
-	}
-	else if( scriptprog::cNamedProgs.exists(scr->cName) )
+	if( scriptprog::cNamedProgs.exists(scr->cName) )
 	{	// conflicting name
 		fprintf(stderr, "programm with name '%s' (line %u) already exists\n"
-			"ignoring name, script will be not available for external duplication\n", 
+			"ignoring the new entry for external duplication\n",
 			scr->cName.c_str(), line); 
 		scr->cName.clear();
-		return true;
 	}
-	else
-	{	// ok, so insert it
-		scriptprog::cNamedProgs.insert(scr->cName, scr);
-		basics::map<basics::string<>, scriptdecl>::iterator iter(scr->cHeader);
-		for(; iter; ++iter)
-		{
-			buildin::create(scr->cName+"::"+iter->key, &iter->data);
-			if(iter->key=="main")
-			{	// register the main function also with the plain name
-				buildin::create(scr->cName, &iter->data);
-			}
+
+	if( 0==scr->cName.size() )
+	{	// no name available
+		do
+		{	// generate a random name
+			scr->cName.clear();
+			scr->cName << "rnd" << ((ushort)rand()) << ((ushort)rand());
+		} while( scriptprog::cNamedProgs.exists(scr->cName) );
+	}
+	// ok, so insert it
+	scriptprog::cNamedProgs.insert(scr->cName, scr);
+	// also register the declarations
+	basics::map<basics::string<>, scriptdecl>::iterator iter(scr->cHeader);
+	for(; iter; ++iter)
+	{
+		buildin::create(scr->cName+"::"+iter->key, &iter->data);
+		if(iter->key=="main")
+		{	// register the main function also with the plain name
+			buildin::create(scr->cName, &iter->data);
 		}
-		return true;
 	}
+	return true;
 }
+
 ///////////////////////////////////////////////////////////////////////////
 // unregister script
 void scriptprog::unregist() const

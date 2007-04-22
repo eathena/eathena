@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 	bool ok=false;
 
 	// parse commandline
-	int i, c, option=OPT_PARSE;
+	int i, c, option=OPT_PARSE;    
 
 	for(c=0, i=1; i<argc; ++i)
 	{
@@ -75,16 +75,17 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
+	scriptfile::loader ldr;
 	for(i=1; i<argc; ++i)
 	{
 		if( basics::is_file(argv[i]) )
 		{
-			if( !(ok=scriptfile::load_file(argv[i], option)) )
+			if( !(ok=ldr.load_file(argv[i], option)) )
 				break;
 		}
 		else if( basics::is_folder(argv[i]) )
 		{
-			if( !(ok=scriptfile::load_folder(argv[i], option)) )
+			if( !(ok=ldr.load_folder(argv[i], option)) )
 				break;
 		}
 	}
