@@ -4,14 +4,14 @@
 // since that is the packet used to identify a client's version.
 
 // Whether to process the contents of this file (otherwise uses hardcoded data)
-enable_packet_db: yes
+enable_packet_db= yes
 
 // Whether the packet DB takes higher precedence over the hardcoded packet
 // length and functions, and whether to overwrite them when reading
 //--not yet implemented--//
 
 
-packet_ver: 5
+packet_ver= 5
 0x0064,55
 0x0065,17
 0x0066,3
@@ -442,7 +442,7 @@ packet_ver: 5
 0x020f,10
 
 //2004-07-06kRO
-packet_ver: 6
+packet_ver= 6
 0x0072,22,wanttoconnection,5:9:13:17:21
 0x0085,8,walktoxy,5
 0x00a7,13,useitem,5:9
@@ -451,7 +451,7 @@ packet_ver: 6
 0x0190,95,useskilltopos,4:9:11:13:15
 
 //2004-07-13kRO
-packet_ver: 7
+packet_ver= 7
 0x0072,39,wanttoconnection,12:22:30:34:38
 0x0085,9,walktoxy,6
 0x009b,13,changedir,5:12
@@ -462,7 +462,7 @@ packet_ver: 7
 0x0190,99,useskilltopos,7:9:15:17:19
 
 //2004-07-26kRO
-packet_ver: 8
+packet_ver= 8
 0x0072,14,dropitem,5:12
 0x007e,33,wanttoconnection,12:18:24:28:32
 0x0085,20,useskilltoid,7:12:16
@@ -482,7 +482,7 @@ packet_ver: 8
 0x0193,9,actionrequest,3:8
 
 //2004-08-09kRO
-packet_ver: 9
+packet_ver= 9
 0x0072,17,dropitem,8:15
 0x007e,37,wanttoconnection,9:21:28:32:36
 0x0085,26,useskilltoid,11:18:22
@@ -512,7 +512,7 @@ packet_ver: 9
 0x0210,22
 
 //2004-09-06aSakexe
-packet_ver: 10
+packet_ver= 10
 0x0072,20,useitem,9:20
 0x007e,19,movetokafra,3:15
 0x0085,23,actionrequest,9:22
@@ -532,7 +532,7 @@ packet_ver: 10
 0x0193,17,movefromkafra,3:13
 
 //2004-09-21aSakexe by Sara
-packet_ver: 11
+packet_ver= 11
 0x0072,18,useitem,10:14
 0x007e,25,movetokafra,6:21
 0x0085,9,actionrequest,3:8
@@ -550,7 +550,7 @@ packet_ver: 11
 0x0193,12,movefromkafra,4:8
 
 //2004-10-11aSakexe by Sara
-packet_ver: 12
+packet_ver= 12
 0x0072,17,useitem,6:13
 0x007e,16,movetokafra,5:12
 0x0089,6,walktoxy,3
@@ -567,7 +567,7 @@ packet_ver: 12
 0x0193,26,movefromkafra,10:22
 
 //2004-10-25aSakexe by Sara
-packet_ver: 13
+packet_ver= 13
 0x0072,13,useitem,5:9
 0x007e,13,movetokafra,6:9
 0x0085,15,actionrequest,4:14
@@ -585,14 +585,14 @@ packet_ver: 13
 
 //2004-11-01aSakexe by Sara
 // disabled
-packet_ver: 14
+packet_ver= 14
 //0x0000,0,wanttoconnection,0
 0x0143,23,npcamountinput,2:6
 0x0215,6
 0x0216,6
 
 //2004-12-06aSakexe
-packet_ver: 15
+packet_ver= 15
 0x0190,15,useitem,3:11
 0x0094,14,movetokafra,4:10
 0x009f,18,actionrequest,6:17
@@ -623,7 +623,7 @@ packet_ver: 15
 0x0223,8
 
 //2005-01-10bSakexe by Sara
-packet_ver: 16
+packet_ver= 16
 0x009b,32,wanttoconnection,3:12:23:27:31
 0x0089,9,ticksend,5
 0x00a7,13,walktoxy,10
@@ -646,7 +646,7 @@ packet_ver: 16
 0x0220,10
 
 //2005-05-09aSakexe by Sara
-packet_ver: 17
+packet_ver= 17
 0x009b,26,wanttoconnection,4:9:17:18:25
 0x0089,8,ticksend,4
 0x00a7,8,walktoxy,5
@@ -748,7 +748,7 @@ packet_ver: 17
 0x0274,8
 
 //2005-06-28aSakexe by Sara
-packet_ver: 18
+packet_ver= 18
 0x0072,34,useskilltoid,6:17:30
 0x007e,113,useskilltopos,12:15:18:31:33
 0x0085,17,changedir,8:16
@@ -826,7 +826,7 @@ packet_ver: 18
 0x028a,18
 
 //2006-04-03aSakexe by blackhole89
-packet_ver: 19
+packet_ver= 19
 0x0072,26,useskilltoid,11:18:22
 0x007e,120,useskilltoposinfo,5:15:29:38:40
 0x0085,12,changedir,7:11
@@ -856,7 +856,7 @@ packet_ver: 19
 0x006d,110
 
 //2007-01-08aSakexe
-packet_ver: 20
+packet_ver= 20
 0x0072,30,useskilltoid,10:14:26
 0x007e,120,useskilltoposinfo,10:19:23:38:40
 0x0085,14,changedir,10:13
@@ -876,7 +876,7 @@ packet_ver: 20
 0x0193,2,closekafra,0
 
 //2007-02-12aSakexe
-packet_ver: 21
+packet_ver= 21
 //0x006d,110
 0x0072,25,useskilltoid,6:10:21
 0x007e,102,useskilltoposinfo,5:9:12:20:22
@@ -923,4 +923,4 @@ packet_ver: 21
 0x02ac,6
 
 // Add new packets here
-//packet_ver: 22
+//packet_ver= 22

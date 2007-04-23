@@ -1187,7 +1187,7 @@ int packetdb_readdb(void)
 		if( !prepare_line(line) )
 			continue;
 
-		if( 2==sscanf(line,"%256[^:=]%*[:=]%256[^\r\n]",w1,w2) )
+		if( 2==sscanf(line,"%256[^=]%*[=]%256[^\r\n]",w1,w2) )
 		{
 			basics::itrim(w1);
 			if(!*w1)
@@ -1250,7 +1250,7 @@ int packetdb_readdb(void)
 				continue;
 			}
 			k = atoi(str[1]);
-			packet_db[packet_ver][cmd].len = k;
+			packet_db[packet_ver][cmd].len = (short)k;
 
 			if(str[2]==NULL){
 				continue;
@@ -1273,18 +1273,19 @@ int packetdb_readdb(void)
 			// set the identifying cmd for the packet_db version
 			if(strcasecmp(str[2],"wanttoconnection")==0)
 			{
-				packet_db[packet_ver].connect_cmd = cmd;
+				packet_db[packet_ver].connect_cmd = (unsigned short)cmd;
 			}
 			if(str[3]==NULL)
 			{
 				ShowError("'"CL_WHITE"%s"CL_RESET"', line %i: no positions.\n", cfgName, ln);
 			}
-			for(j=0,p2=str[3];p2; ++j){
+			for(j=0,p2=str[3];p2 && j<sizeof(packet_db[packet_ver][cmd].pos)/sizeof(*packet_db[packet_ver][cmd].pos); ++j)
+			{
 				str2[j]=p2;
 				p2=strchr(p2,':');
 				if(p2) *p2++=0;
 				k = atoi(str2[j]);
-				packet_db[packet_ver][cmd].pos[j] = k;
+				packet_db[packet_ver][cmd].pos[j] = (short)k;
 			}
 		}
 	}

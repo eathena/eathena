@@ -1,4 +1,6 @@
 Date	Added
+2007/04/24
+	* additions to configure flow
 2007/04/22
 	* merged some changes from the main repo, 
 	  which mainly consits of splitting map.h and map.cpp

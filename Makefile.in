@@ -1,6 +1,6 @@
 CCC = g++ -pipe @OPT@
 CPPFLAGS = -Wall -g -O3 -ffast-math -D_REENTRANT @CPPFLAGS@
-LIBS = -lpthread -lz @LIBS@
+LIBS = @LIBS@
 
 ##########################################################
 PLATFORM = $(shell uname)
@@ -15,10 +15,17 @@ ifeq ($(findstring FreeBSD,$(PLATFORM)), FreeBSD)
 endif
 ifeq ($(findstring NetBSD,$(PLATFORM)), NetBSD)
    MAKE = gmake
-   OS_TYPE = -D__NETBSD__
+   OS_TYPE = -D__NetBSD__
+endif
+ifeq ($(findstring OpenBSD,$(PLATFORM)), OpenBSD)
+   MAKE = gmake
+   OS_TYPE = -D__OpenBSD__
 endif
 ifeq ($(findstring CYGWIN,$(PLATFORM)), CYGWIN)
    OS_TYPE = -DCYGWIN
+endif
+ifeq ($(findstring MINGW32,$(PLATFORM)), MINGW32)
+   LIBS += -lws2_32
 endif
 
 ##########################################################
@@ -99,6 +106,9 @@ help: options
 conf:
 	cp -r conf-tmpl conf
 	rm -rf conf/.svn conf/*/.svn
+	cp -r save-tmpl save
+	rm -rf save/.svn save/*/.svn
+
 
 .PHONY : basics
 basics: options

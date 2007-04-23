@@ -75,7 +75,7 @@
 //////////////////////////////////////////////////////////////////////////
 /// socketlen type definition
 //////////////////////////////////////////////////////////////////////////
-#ifndef __socklen_t_defined
+#if !defined(__socklen_t_defined) && !defined(HAVE_SOCKET_LEN_T)
   #if defined(__DARWIN__) || defined(WIN32)
     typedef int socklen_t;
   #elif CYGWIN
@@ -87,11 +87,14 @@
   #else// normal unix with undefined socklen_t
     typedef unsigned int socklen_t;
   #endif
-  // and set the proper macro
-  #define __socklen_t_defined
-#endif//__socklen_t_defined
-typedef char* sockval_t;
+#endif//!defined(__socklen_t_defined) && !defined(HAVE_SOCKET_LEN_T)
 
+// set the proper macro also in case of incomplete system headers
+#if !defined(__socklen_t_defined)
+#define __socklen_t_defined
+#endif
+
+typedef char* sockval_t;
 
 //////////////////////////////////////////////////////////////////////////
 #ifdef WIN32
