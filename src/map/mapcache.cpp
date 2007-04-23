@@ -531,7 +531,6 @@ if(pp.type!=1 && pp.type!=5)
 
 
 
-#define TEST_MAP_STRUCT
 #ifdef TEST_MAP_STRUCT
 
 
@@ -561,7 +560,7 @@ public:
 		unsigned char basilica : 1;	// 1bit for basilica (is on/off for basilica enough, what about two casting priests?)
 		unsigned char moonlit : 1;	// 1bit for moonlit
 		unsigned char regen : 1;	// 1bit for regen
-		unsigned char __unused : 1;
+		unsigned char _dummy : 1;
 	};
 
 private:
