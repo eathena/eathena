@@ -5,7 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2007/04/24
-	* Merged
+	* Merged [ultramage]
 	- the removal of not-aegis def/mdef changes while frozen (r10298)
 	- the adjusted packet db size and dimensions, + database (r10296)
 	- the official MAX_LEVEL value, HR servers need to change this (r10071)
