@@ -3328,25 +3328,25 @@ bool command_killer(int fd, map_session_data& sd, const char* command, const bas
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///
+class CAtKillMonster : public CMapProcessor
+{
+	ICL_EMPTY_COPYCONSTRUCTOR(CAtKillMonster)
+	int flag;
+public:
+	CAtKillMonster(int f) : flag(f)	{}
+	~CAtKillMonster()	{}
+	virtual int process(block_list& bl) const
+	{
+		struct mob_data &md = (mob_data &)bl;
+		if(flag)
+			mob_damage(md, md.hp, 2, NULL);
+		else
+			md.remove_map(1);
+		return 0;
+	}
+};
 bool command_killmonster(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	class CAtKillMonster : public CMapProcessor
-	{
-		ICL_EMPTY_COPYCONSTRUCTOR(CAtKillMonster)
-		int flag;
-	public:
-		CAtKillMonster(int f) : flag(f)	{}
-			~CAtKillMonster()			{}
-		virtual int process(block_list& bl) const
-		{
-			struct mob_data &md = (mob_data &)bl;
-			if(flag)
-				mob_damage(md, md.hp, 2, NULL);
-			else
-				md.remove_map(1);
-			return 0;
-		}
-	};
 
 	int drop = param[0];
 	int map_id=0;

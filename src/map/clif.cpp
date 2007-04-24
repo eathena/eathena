@@ -6686,6 +6686,34 @@ int clif_party_hp(struct party &p,map_session_data &sd)
  * GM‚ÖêŠ‚ÆHP’Ê’m
  *------------------------------------------
  */
+class CHPDisplay : public CMapProcessor
+{
+	const map_session_data &sd;
+	const unsigned char *buf1;
+	const unsigned char *buf2;
+public:
+	CHPDisplay(const map_session_data &s, const unsigned char *b1, const unsigned char *b2)
+		: sd(s),buf1(b1),buf2(b2)
+	{}
+	~CHPDisplay()	{}
+	virtual int process(block_list& bl) const
+	{
+		map_session_data *sd2 = bl.get_sd();
+		if( sd2 &&
+			sd2->isGM() >= config.disp_hpmeter &&
+			sd2->isGM() >= sd.isGM() &&
+			&sd != sd2 && 
+			sd2->state.auth)
+		{
+			memcpy(WFIFOP(sd2->fd,0), buf1, packet(sd.packet_ver,0x107).len);
+			WFIFOSET (sd2->fd, packet(sd.packet_ver,0x107).len);
+
+			memcpy (WFIFOP(sd2->fd,0), buf2, packet(sd.packet_ver,0x106).len);
+			WFIFOSET (sd2->fd, packet(sd.packet_ver,0x106).len);
+		}
+		return 0;
+	}
+};
 int clif_hpmeter(map_session_data &sd)
 {
 	unsigned char buf1[16];
@@ -6705,36 +6733,6 @@ int clif_hpmeter(map_session_data &sd)
 	WBUFL(buf2,2) = sd.status.account_id;
 	WBUFW(buf2,6) = (unsigned short)cur_hp;
 	WBUFW(buf2,8) = (unsigned short)max_hp;
-
-
-	class CHPDisplay : public CMapProcessor
-	{
-		const map_session_data &sd;
-		const unsigned char *buf1;
-		const unsigned char *buf2;
-	public:
-		CHPDisplay(const map_session_data &s, const unsigned char *b1, const unsigned char *b2)
-			: sd(s),buf1(b1),buf2(b2)
-		{}
-		~CHPDisplay()	{}
-		virtual int process(block_list& bl) const
-		{
-			map_session_data *sd2 = bl.get_sd();
-			if( sd2 &&
-				sd2->isGM() >= config.disp_hpmeter &&
-				sd2->isGM() >= sd.isGM() &&
-				&sd != sd2 && 
-				sd2->state.auth)
-			{
-				memcpy(WFIFOP(sd2->fd,0), buf1, packet(sd.packet_ver,0x107).len);
-				WFIFOSET (sd2->fd, packet(sd.packet_ver,0x107).len);
-
-				memcpy (WFIFOP(sd2->fd,0), buf2, packet(sd.packet_ver,0x106).len);
-				WFIFOSET (sd2->fd, packet(sd.packet_ver,0x106).len);
-			}
-			return 0;
-		}
-	};
 
 	block_list::foreachinarea(CHPDisplay(sd,buf1,buf2), 
 		sd.block_list::m, 

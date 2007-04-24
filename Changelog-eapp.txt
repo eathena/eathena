@@ -1,4 +1,6 @@
 Date	Added
+2007/04/25
+	* Fixed 2 compilation problem of map-server with g++ [Toms]
 2007/04/24
 	* additions to configure flow
 2007/04/22
