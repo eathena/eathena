@@ -23,6 +23,9 @@ Playtester
 Date		Added
 ======
 2007/04/25
+	* Merged official rachel episode warps [Playtester]
+	- moved rachel quest to a different location
+	- merged lighthalzen NPCs
 	* Merged Momotaro event and The Sign Quest fixes [Playtester]
 2007/04/24
 	* Fixed exploitable Valkyrie Randgris respawn time [Playtester]
