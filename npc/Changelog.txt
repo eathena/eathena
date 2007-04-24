@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/04/25
+	* Merged Momotaro event and The Sign Quest fixes [Playtester]
 2007/04/24
 	* Fixed exploitable Valkyrie Randgris respawn time [Playtester]
 	- did I put that? >-<
