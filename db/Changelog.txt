@@ -1,3 +1,5 @@
+04/26
+	* Merged const, item_db, mob_db, mob_skill_db and pet_db [Playtester]
 04/24
 	* Merged corrected packet_db.txt [ultramage]
 04/23
