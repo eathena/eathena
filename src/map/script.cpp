@@ -298,7 +298,7 @@ int buildin_callshop(CScriptEngine &st);
 int buildin_regex(CScriptEngine &st);
 
 
-struct {
+struct buildin_func_s {
 	int (*func)(CScriptEngine &);
 	char *name;
 	char *arg;

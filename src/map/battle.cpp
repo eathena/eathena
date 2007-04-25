@@ -271,8 +271,8 @@ int battle_calc_damage(block_list *src,block_list *bl,int damage,int div_,int sk
 	if(src->m != bl->m) // [ShAPoNe] Src and target same map check.
 		return 0;
 
-	map_session_data *sd=bl->get_sd();
-	mob_data *md = md=bl->get_md();
+	map_session_data *sd = bl->get_sd();
+	mob_data *md = bl->get_md();
 	int class_ = bl->get_class();
 
 	if( bl->has_status(SC_SAFETYWALL) && damage>0 && flag&BF_WEAPON &&

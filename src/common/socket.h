@@ -368,7 +368,7 @@ public:
 
 // define declaration
 
-#define RFIFOP(fd,pos) ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL))
+#define RFIFOP(fd,pos) ((session[fd]->rdata + session[fd]->rdata_pos + (pos)))
 #define RFIFOB(fd,pos) ((objB( ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL)) )))
 #define RFIFOW(fd,pos) ((objW( ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL)) )))
 #define RFIFOL(fd,pos) ((objL( ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL)) )))
@@ -383,7 +383,7 @@ public:
 
 #define WFIFOSPACE(fd) (((session[fd]&&session[fd]->wdata)?(session[fd]->wdata_max-session[fd]->wdata_size):0))
 
-#define WFIFOP(fd,pos) (((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL)))
+#define WFIFOP(fd,pos) ((session[fd]->wdata + session[fd]->wdata_size + (pos)))
 #define WFIFOB(fd,pos) ((objB( ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL)) )))
 #define WFIFOW(fd,pos) ((objW( ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL)) )))
 #define WFIFOL(fd,pos) ((objL( ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL)) )))
