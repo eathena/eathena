@@ -5,6 +5,15 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2007/04/26
+	* Moonlit petals now always knocks to the back of the character rather than
+	  pushing the character away from it's center.
+	* Pressure no longer does full damage to plants.
+	* Mob casted skills all have range 9 by default unless monster_ai 0x400 is
+	  specified.
+	* Spider Web can't be dispelled now.
+	* Magic Rod no longer shows an animation when used, only when it triggers.
+	* Ganbantein now only removes the specific tiles it touches, not the whole
+	  ground spell. [Skotlex]
 	* Updated sql files [Playtester]
 2007/04/24
 	* Merged the correct attacker-count (only online characters on the same map

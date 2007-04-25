@@ -751,7 +751,12 @@ int skill_get_casttype (int id)
 //Returns actual skill range taking into account attack range and AC_OWL [Skotlex]
 int skill_get_range2 (struct block_list *bl, int id, int lv)
 {
-	int range = skill_get_range(id, lv);
+	int range;
+	if(bl->type == BL_MOB && !(battle_config.mob_ai&0x400))
+		return 9; //Mobs have a range of 9 regardless of skill used.
+
+	range = skill_get_range(id, lv);
+
 	if(range < 0) {
 		if (battle_config.use_weapon_skill_range&bl->type)
 			return status_get_range(bl);
@@ -1770,7 +1775,7 @@ int skill_blown (struct block_list *src, struct block_list *target, int count)
 
 	if (src != target && map_flag_gvg(target->m))
 		return 0; //No knocking back in WoE
-	if (!count&0xffff)
+	if (!(count&0xffff))
 		return 0; //Actual knockback distance is 0.
 	
 	switch (target->type) {
@@ -4707,7 +4712,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				case SC_GUILDAURA:   case SC_EDP:         case SC_AUTOBERSERK:
 				case SC_CARTBOOST:   case SC_MELTDOWN:    case SC_SAFETYWALL:
 				case SC_SMA:         case SC_SPEEDUP0:    case SC_NOCHAT:
-				case SC_ANKLE:       case SC_JAILED:
+				case SC_ANKLE:       case SC_SPIDERWEB:   case SC_JAILED:
 					continue;
 				}
 				if(i==SC_BERSERK) tsc->data[i].val2=0; //Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
@@ -4802,7 +4807,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 	case SA_MAGICROD:
-		clif_skill_nodamage(src,bl,skillid,-1,0); //Skill animation with no yell.
+		//It activates silently, no use animation.
 		sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv));
 		break;
 	case SA_AUTOSPELL:
@@ -6513,7 +6518,7 @@ int skill_dance_overlap(struct skill_unit *unit, int flag)
  * Flag: 0 - Convert, 1 - Revert, 2 - Initialize.
  *------------------------------------------
  */
-#define skill_dance_switch(unit, group, flag) ((group->state.song_dance&0x1 && unit->val2&UF_ENSEMBLE)?skill_dance_switch_sub(unit, group, flag):0)
+#define skill_dance_switch(unit, group, flag) (((group)->state.song_dance&0x1 && (unit)->val2&UF_ENSEMBLE)?skill_dance_switch_sub(unit, group, flag):0)
 static int skill_dance_switch_sub(struct skill_unit *unit, struct skill_unit_group *group, int flag)
 {
 	static struct skill_unit_group original, dissonance, uglydance, *group2;
@@ -7084,7 +7089,7 @@ int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, unsigned 
 			break;
 		if (ss == bl) //Also needed to prevent infinite loop crash.
 			break;
-		skill_blown(ss, bl, skill_get_blewcount(sg->skill_id,sg->skill_lv));
+		skill_blown(ss, bl, 0x10000|skill_get_blewcount(sg->skill_id,sg->skill_lv));
 		break;
 	}
 	return skillid;
@@ -9538,10 +9543,7 @@ int skill_ganbatein (struct block_list *bl, va_list ap)
 	if (unit->group->state.song_dance&0x1)
 		return 0; //Don't touch song/dance.
 
-	if (unit->group->skill_id == SA_LANDPROTECTOR)
-		skill_delunit(unit, 1);
-	else skill_delunitgroup(NULL, unit->group, 1);
-
+	skill_delunit(unit, 1);
 	return 1;
 }
 

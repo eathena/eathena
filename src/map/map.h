@@ -229,12 +229,12 @@ enum {
 	ELE_MAX
 };
 
-enum {
+enum auto_trigger_flag {
 	ATF_SELF=0x01,
 	ATF_TARGET=0x02,
 	ATF_SHORT=0x04,
 	ATF_LONG=0x08
-} auto_trigger_flag;
+};
 
 struct block_list {
 	struct block_list *next,*prev;
@@ -519,7 +519,7 @@ struct map_session_data {
 	//status_calc_pc, while special_state is recalculated in each call. [Skotlex]
 	struct {
 		unsigned auth : 1;
-		unsigned menu_or_input : 1;
+		unsigned menu_or_input : 1;// if a script is waiting for feedback from the player
 		unsigned dead_sit : 2;
 		unsigned waitingdisconnect : 1;
 		unsigned lr_flag : 2;
@@ -917,7 +917,7 @@ struct mob_data {
 	struct guardian_data* guardian_data; 
 	struct {
 		int id;
-		int dmg;
+		unsigned int dmg;
 		unsigned flag : 1; //0: Normal. 1: Homunc exp
 	} dmglog[DAMAGELOG_SIZE];
 	struct spawn_data *spawn; //Spawn data.

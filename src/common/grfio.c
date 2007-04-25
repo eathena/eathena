@@ -63,7 +63,7 @@ typedef struct {
 	int		srclen_aligned;		//
 	int		declen;				// original size
 	int		srcpos;
-	short	next;
+	int	next;
 	int	cycle;
 	char	type;
 	char	fn[128-4*5];		// file name

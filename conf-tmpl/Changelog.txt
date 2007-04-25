@@ -1,5 +1,9 @@
 Date	Added
 
+2007/04/26
+	* Added monster_ai&0x400. It disables the feature where all mob skills have
+	  a fixed range of 9 (and makes normal skill range criteria apply).
+	  [Skotlex]
 2007/04/24
 	* Merged typo fixes to msg_athena.conf [ultramage]
 2007/04/22

@@ -1620,8 +1620,9 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 	}
 	//Log damage...
 	if (char_id && damage > 0) {
-		int i,minpos,mindmg;
-		for(i=0,minpos=DAMAGELOG_SIZE-1,mindmg=INT_MAX;i<DAMAGELOG_SIZE;i++){
+		int i,minpos;
+		unsigned int mindmg;
+		for(i=0,minpos=DAMAGELOG_SIZE-1,mindmg=UINT_MAX;i<DAMAGELOG_SIZE;i++){
 			if(md->dmglog[i].id==char_id &&
 				md->dmglog[i].flag==flag)
 				break;
@@ -1743,7 +1744,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			tmpsd[i] = NULL;
 			continue;
 		}
-		if(mvp_damage<(unsigned int)md->dmglog[i].dmg){
+		if(mvp_damage<md->dmglog[i].dmg){
 			third_sd = second_sd;
 			second_sd = mvp_sd;
 			mvp_sd=tmpsd[i];
