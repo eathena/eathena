@@ -23,6 +23,7 @@ Playtester
 Date		Added
 ======
 2007/04/27
+	* Merged Kiel Hyre quest [Playtester]
 	* Updated Kiel spawn amounts [Playtester]
 2007/04/25
 	* Merged official hugel episode warps [Playtester]
