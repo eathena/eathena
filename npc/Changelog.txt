@@ -23,6 +23,7 @@ Playtester
 Date		Added
 ======
 2007/04/27
+	* Some small Kiel quest fixes [Playtester]
 	* Merged Kiel Hyre quest [Playtester]
 	* Updated Kiel spawn amounts [Playtester]
 2007/04/25
