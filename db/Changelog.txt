@@ -1,3 +1,10 @@
+04/28
+	* Merged item_db, item_misc, mob_db, mob_skill_db, skill_cast_db [Playtester]
+	- fixed Wild Ginseng card
+	- raised Anubis's DEF
+	- changed attackpcgt to attackpcge
+	- some minor mob skill updates
+	- chase walk now has a cast time of 1 second
 04/26
 	* Merged const, item_db, mob_db, mob_skill_db and pet_db [Playtester]
 04/24
