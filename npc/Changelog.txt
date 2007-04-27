@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/04/28
+	* More Kiel quest fixes thanks to Toms and L0ne_W0lf [Playtester]
 2007/04/27
 	* Some small Kiel quest fixes [Playtester]
 	* Merged Kiel Hyre quest [Playtester]
