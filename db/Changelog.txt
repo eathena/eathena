@@ -1,3 +1,8 @@
+04/30
+	* Updated mob skills [Playtester]
+	- gave most mobs their MVP level skills
+	- other small skill updates
+	- also fixed format of some files
 04/28
 	* Merged item_db, item_misc, mob_db, mob_skill_db, skill_cast_db [Playtester]
 	- fixed Wild Ginseng card
