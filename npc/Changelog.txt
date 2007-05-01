@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/05/02
+	* Updated Bullet Merchant Tony (npc/merchants/ammo_dealer.txt) to Official One [Paradox924X]
 2007/05/01
 	* Changed the labels on the "Big Doors" to "Identifier Names" to prevent an error with using getvariableofnpc [L0ne_W0lf]
 	* Even more Fixes to the Kiel Hyre Quest [L0ne_W0lf]
