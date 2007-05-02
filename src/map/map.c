@@ -129,8 +129,6 @@ static int block_free_count = 0, block_free_lock = 0;
 static struct block_list *bl_list[BL_LIST_MAX];
 static int bl_list_count = 0;
 
-static char afm_dir[1024] = ""; // [Valaris]
-
 struct map_data map[MAX_MAP_PER_SERVER];
 int map_num = 0;
 
@@ -2486,7 +2484,7 @@ int map_waterheight(char *mapname) {
 	{	//Load water height from file
 		whtemp = *(float*)(rsw+166);
 		wh = (int) whtemp;
-		aFree(rsw);
+		free(rsw);
 		return wh;
 	}
 	ShowWarning("Failed to find water level for (%s)\n", mapname, fn);
@@ -2770,176 +2768,6 @@ int map_delmap(char *mapname) {
 	return 0;
 }
 
-////////////////////////////////////////////////
-
-/*
-	Advanced Fusion Maps Support
-	(c) 2003-2004, The Fusion Project
-	- AlexKreuz
-
-	The following code has been provided by me for eAthena
-	under the GNU GPL.  It provides Advanced Fusion
-	Map, the map format desgined by me for Fusion, support
-	for the eAthena emulator.
-
-	I understand that because it is under the GPL
-	that other emulators may very well use this code in their
-	GNU project as well.
-
-	The AFM map format was not originally a part of the GNU
-	GPL. It originated from scratch by my own hand.  I understand
-	that distributing this code to read the AFM maps with eAthena
-	causes the GPL to apply to this code.  But the actual AFM
-	maps are STILL copyrighted to the Fusion Project.  By choosing
-
-	In exchange for that 'act of faith' I ask for the following.
-
-	A) Give credit where it is due.  If you use this code, do not
-	   place your name on the changelog.  Credit should be given
-	   to AlexKreuz.
-	B) As an act of courtesy, ask me and let me know that you are putting
-	   AFM support in your project.  You will have my blessings if you do.
-	C) Use the code in its entirety INCLUDING the copyright message.
-	   Although the code provided may now be GPL, the AFM maps are not
-	   and so I ask you to display the copyright message on the STARTUP
-	   SCREEN as I have done here. (refer to core.c)
-	   "Advanced Fusion Maps (c) 2003-2004 The Fusion Project"
-
-	Without this copyright, you are NOT entitled to bundle or distribute
-	the AFM maps at all.  On top of that, your "support" for AFM maps
-	becomes just as shady as your "support" for Gravity GRF files.
-
-	The bottom line is this.  I know that there are those of you who
-	would like to use this code but aren't going to want to provide the
-	proper credit.  I know this because I speak frome experience.  If
-	you are one of those people who is going to try to get around my
-	requests, then save your breath because I don't want to hear it.
-
-	I have zero faith in GPL and I know and accept that if you choose to
-	not display the copyright for the AFMs then there is absolutely nothing
-	I can do about it.  I am not about to start a legal battle over something
-	this silly.
-
-	Provide the proper credit because you believe in the GPL.  If you choose
-	not to and would rather argue about it, consider the GPL failed.
-
-	October 18th, 2004
-	- AlexKreuz
-	- The Fusion Project
-	*/
-static int map_loadafm (struct map_data *m, char *fn)
-{
-	// check if .afm file exists
-	FILE *afm_file = fopen(fn, "r");
-	if (afm_file != NULL) {
-		int x,y,xs,ys;
-		char afm_line[65535];
-		int afm_size[2];
-		char *str;
-
-		//Gotta skip the first two lines which are just a header of sorts.
-		str = fgets(afm_line, sizeof(afm_line)-1, afm_file);
-		str = fgets(afm_line, sizeof(afm_line)-1, afm_file);
-		str = fgets(afm_line, sizeof(afm_line)-1, afm_file);
-		if (!str) return 0;
-		sscanf(str , "%d%d", &afm_size[0], &afm_size[1]);
-
-		xs = m->xs = afm_size[0];
-		ys = m->ys = afm_size[1];
-		m->water_height = map_waterheight(m->name);
-		// check this, unsigned where it might not need to be
-		m->gat = (unsigned char*)aMallocA(xs * ys);
-
-		for (y = 0; y < ys; y++) {
-			str = fgets(afm_line, sizeof(afm_line)-1, afm_file);
-			for (x = 0; x < xs; x++)
-				m->gat[x+y*xs] = str[x]-48;
-		}
-
-		fclose(afm_file);
-		return 1;
-	}
-
-	return 0;
-}
-/*==================================
- * .AFM format
- *----------------------------------
- */
-int map_readafm (struct map_data *m)
-{
-	char afm_name[256] = "";
-	char fn[256], *p;
-
-	// convert map name to .afm
-	if(!strstr(m->name, ".afm")) {
-		// check if it's necessary to replace the extension - speeds up loading a bit
-		strncpy(afm_name, m->name, strlen(m->name) - 4);
-		strcat(afm_name, ".afm");
-	} else {
-		strcpy(afm_name, m->name);
-	}
-	
-	sprintf(fn, "%s\\%s", afm_dir, afm_name);
-	for (p = &fn[0]; *p != 0; p++)
-		if (*p == '\\') *p = '/';	// * At the time of Unix
-
-	return map_loadafm(m, fn);
-}
-/*==================================
- * .AF2 format
- *----------------------------------
- */
-int map_readaf2 (struct map_data *m)
-{
-	FILE *af2_file;
-	char af2_name[256] = "";
-	char fn[256], *p, *out;
-	
-	// convert map name to .af2
-	p = out = m->name;
-	while ((p = strchr(p, '/')) != NULL)
-		out = ++p;
-	strncpy (af2_name, out, strlen(out));
-	// grr, this is so troublesome >.< [celest]
-	p = strrchr (af2_name, '.');
-	if (p) *p++ = 0;
-	strcat(af2_name, ".af2");	
-	sprintf(fn, "%s\\%s", afm_dir, af2_name);
-	for (p = &fn[0]; *p != 0; p++)
-		if (*p == '\\') *p = '/';	// * At the time of Unix
-
-	// check if .af2 file exists
-	af2_file = fopen(fn, "r");
-	if (af2_file != NULL) {
-		char out_file[256];
-
-		fclose(af2_file);
-		
-		// convert map name to .out
-		strncpy (out_file, out, strlen(out));
-		p = strrchr (out_file, '.');
-		if (p) *p++ = 0;
-		strcat(out_file, ".out");
-
-		// unzip .out file and use loadafm()
-		if (deflate_file(fn, out_file) &&
-			map_loadafm(m, out_file))
-		{
-			unlink (out_file);
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
-
-/*==========================================
- * ƒ}ƒbƒv1–‡“Ç‚ÝbÝ
- * ===================================================*/
-//static int map_readmap(int m,char *fn, char *alias, int *map_cache, int maxmap) {
-
 /*==================================
  * .GAT format
  *----------------------------------
@@ -2979,7 +2807,7 @@ int map_readgat (struct map_data *m)
 		}
 	}
 
-	aFree(gat);
+	free(gat);
 
 	return 1;
 }
@@ -2987,35 +2815,25 @@ int map_readgat (struct map_data *m)
 //////////////////////////////////////////////////////
 
 static int map_cache_init (void);
-static int map_readafm_init (void);
-static int map_readaf2_init (void);
 static int map_readgat_init (void);
 
 // Todo: Properly implement this system as plugins/safer code [Celest]
 enum {
 	MAP_CACHE = 0,	// jAthena map cache
-	MAP_AFM,	// Advanced Fusion Map
-	MAP_AF2,	// Advanced Fusion Map
 	MAP_GAT,	// GRF map
 	MAP_MAXSOURCE
 };
 // in descending order
 int (*mapsource_init[MAP_MAXSOURCE])(void) = {
 	map_cache_init,
-	map_readafm_init,
-	map_readaf2_init,
 	map_readgat_init
 };
 int (*mapsource_read[MAP_MAXSOURCE])(struct map_data *) = {
 	map_cache_read,
-	map_readafm,
-	map_readaf2,
 	map_readgat
 };
 void (*mapsource_final[MAP_MAXSOURCE])(void) = {
 	map_cache_close,
-	NULL,
-	NULL,
 	NULL
 };
 
@@ -3023,22 +2841,6 @@ static int map_cache_init (void)
 {
 	if (map_read_flag >= READ_FROM_BITMAP && map_cache_open(map_cache_file)) {
 		ShowMessage("[cache] ");
-		return 1;
-	}
-
-	return 0;
-}
-static int map_readafm_init (void)
-{
-	ShowMessage("[afm] ");
-	return 1;
-}
-static int map_readaf2_init (void)
-{
-	// check if AFM loading is available,
-	// otherwise disable AF2 loading
-	if (mapsource_read[1] != NULL) {
-		ShowMessage("[af2] ");
 		return 1;
 	}
 
@@ -3374,8 +3176,6 @@ int map_config_read(char *cfgName) {
 				strncpy(map_cache_file,w2,255);
 			} else if(strcmpi(w1,"db_path") == 0) {
 				strncpy(db_path,w2,255);
-			} else if(strcmpi(w1,"afm_dir") == 0) {
-				strcpy(afm_dir, w2);
 			} else if (strcmpi(w1, "console") == 0) {
 				if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 ) {
 					console = 1;
