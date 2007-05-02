@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="login-server_txt"
-	ProjectGUID="{D356871D-58E1-450B-967A-E2E9646175AF}"
-	RootNamespace="login-server_txt"
+	Name="ladmin"
+	ProjectGUID="{D356871D-58E1-450B-967A-E8E9646175AF}"
+	RootNamespace="ladmin"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -39,10 +39,9 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/wd4100"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src\common;..\src\zlib"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;TXT_ONLY;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
+				AdditionalIncludeDirectories="..\src\common"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_USE_32BIT_TIME_T;MINICORE;FD_SETSIZE=4096"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
 				ExceptionHandling="0"
@@ -67,14 +66,14 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcmtd.lib oldnames.lib ws2_32.lib zdll.lib"
-				ShowProgress="0"
-				OutputFile="$(OutDir)\login-server.exe"
+				AdditionalOptions="/FIXED:NO"
+				AdditionalDependencies="libcmtd.lib oldnames.lib ws2_32.lib"
+				OutputFile="$(OutDir)\ladmin.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\lib"
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)\login-server.pdb"
+				ProgramDatabaseFile="$(OutDir)\$(ProjectName).pdb"
 				SubSystem="1"
 				TargetMachine="1"
 			/>
@@ -135,10 +134,11 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="..\src\common;..\src\zlib"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;TXT_ONLY;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
+				AdditionalIncludeDirectories="..\src\common"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_USE_32BIT_TIME_T;MINICORE;FD_SETSIZE=4096"
 				StringPooling="true"
 				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="false"
 				DefaultCharIsUnsigned="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -157,13 +157,13 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcmt.lib oldnames.lib ws2_32.lib zdll.lib"
-				OutputFile="$(OutDir)\login-server.exe"
+				AdditionalDependencies="libcmt.lib oldnames.lib ws2_32.lib"
+				OutputFile="$(OutDir)\ladmin.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\lib"
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)\login-server.pdb"
+				ProgramDatabaseFile="$(OutDir)\$(ProjectName).pdb"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -201,14 +201,14 @@
 	</References>
 	<Files>
 		<Filter
-			Name="login_txt"
+			Name="ladmin"
 			>
 			<File
-				RelativePath="..\src\login\login.c"
+				RelativePath="..\src\ladmin\ladmin.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\login\login.h"
+				RelativePath="..\src\ladmin\ladmin.h"
 				>
 			</File>
 		</Filter>
@@ -216,35 +216,11 @@
 			Name="common"
 			>
 			<File
-				RelativePath="..\src\common\cbasetypes.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\common\core.c"
 				>
 			</File>
 			<File
 				RelativePath="..\src\common\core.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\db.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\db.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\ers.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\lock.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\lock.h"
 				>
 			</File>
 			<File
@@ -265,26 +241,6 @@
 			</File>
 			<File
 				RelativePath="..\src\common\mmo.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\nullpo.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\nullpo.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\plugin.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\plugins.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\plugins.h"
 				>
 			</File>
 			<File
