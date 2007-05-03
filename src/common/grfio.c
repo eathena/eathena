@@ -412,7 +412,7 @@ int grfio_size(char* fname)
 			lentry.gentry = 0;	// 0:LocalFile
 			entry = filelist_modify(&lentry);
 		} else if (entry == NULL) {
-			printf("%s not found (grfio_size)\n", fname);
+			ShowError("%s not found (grfio_size)\n", fname);
 			return -1;
 		}
 	}
@@ -458,7 +458,7 @@ void* grfio_reads(char* fname, int* size)
 			if (entry != NULL && entry->gentry < 0) {
 				entry->gentry = -entry->gentry;	// local file checked
 			} else {
-				printf("%s not found (grfio_reads - local file %s)\n", fname, lfname);
+				ShowError("%s not found (grfio_reads - local file %s)\n", fname, lfname);
 				return NULL;
 			}
 		}
@@ -479,7 +479,7 @@ void* grfio_reads(char* fname, int* size)
 				len = entry->declen;
 				decode_zip(buf2, &len, buf, entry->srclen);
 				if (len != (uLong)entry->declen) {
-					printf("decode_zip size mismatch err: %d != %d\n", (int)len, entry->declen);
+					ShowError("decode_zip size mismatch err: %d != %d\n", (int)len, entry->declen);
 					free(buf);
 					free(buf2);
 					return NULL;
@@ -489,7 +489,7 @@ void* grfio_reads(char* fname, int* size)
 			}
 			free(buf);
 		} else {
-			printf("%s not found (grfio_reads - GRF file %s)\n", fname, grfname);
+			ShowError("%s not found (grfio_reads - GRF file %s)\n", fname, grfname);
 			return NULL;
 		}
 	}
@@ -527,10 +527,10 @@ static int grfio_entryread(char* grfname, int gentry)
 
 	fp = fopen(grfname, "rb");
 	if (fp == NULL) {
-		printf("GRF data file not found: '%s'\n",grfname);
+		ShowWarning("GRF data file not found: '%s'\n",grfname);
 		return 1;	// 1:not found error
 	} else
-		printf("GRF data file found: '%s'\n",grfname);
+		ShowInfo("GRF data file found: '%s'\n",grfname);
 
 	fseek(fp,0,SEEK_END);
 	grf_size = ftell(fp);
@@ -540,7 +540,7 @@ static int grfio_entryread(char* grfname, int gentry)
 		fseek(fp,getlong(grf_header+0x1e),SEEK_CUR))
 	{
 		fclose(fp);
-		printf("GRF %s read error\n", grfname);
+		ShowError("GRF %s read error\n", grfname);
 		return 2;	// 2:file format error
 	}
 
@@ -566,7 +566,7 @@ static int grfio_entryread(char* grfname, int gentry)
 			if (type != 0) {	// Directory Index ... skip
 				fname = decode_filename(grf_filelist+ofs+6, grf_filelist[ofs]-6);
 				if (strlen(fname) > sizeof(aentry.fn) - 1) {
-					printf("GRF file name %s is too long\n", fname);
+					ShowFatalError("GRF file name %s is too long\n", fname);
 					free(grf_filelist);
 					exit(1);
 				}
@@ -616,7 +616,7 @@ static int grfio_entryread(char* grfname, int gentry)
 
 		if ((long)rSize > grf_size-ftell(fp)) {
 			fclose(fp);
-			printf("Illegal data format: GRF compress entry size\n");
+			ShowError("Illegal data format: GRF compress entry size\n");
 			return 4;
 		}
 
@@ -637,7 +637,7 @@ static int grfio_entryread(char* grfname, int gentry)
 
 			fname = (char*)(grf_filelist+ofs);
 			if (strlen(fname) > sizeof(aentry.fn)-1) {
-				printf("GRF file name %s is too long\n", fname);
+				ShowFatalError("GRF file name %s is too long\n", fname);
 				free(grf_filelist);
 				exit(1);
 			}
@@ -674,7 +674,7 @@ static int grfio_entryread(char* grfname, int gentry)
 
 	} else {	//****** Grf Other version ******
 		fclose(fp);
-		printf("GRF version %04x not supported\n",getlong(grf_header+0x2a));
+		ShowError("GRF version %04x not supported\n",getlong(grf_header+0x2a));
 		return 4;
 	}
 
@@ -720,6 +720,7 @@ static void grfio_resourcecheck(void)
 			}
 		}
 		fclose(fp);
+		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", i, "resnametable.txt");
 		return;	// we're done here!
 	}
 	
@@ -749,6 +750,7 @@ static void grfio_resourcecheck(void)
 			ptr++;
 		}
 		free(buf);
+		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", i, "data\\resnametable.txt");
 		return;
 	}
 
@@ -814,14 +816,14 @@ void grfio_init(char* fname)
 				grf_num += (grfio_add(w2) == 0);
 			else if(strcmp(w1,"data_dir") == 0) {	// Data directory
 				strcpy(data_dir, w2);
-				printf("Use data directory %s\n", w2);
 			}
 		}
 		fclose(data_conf);
+		ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n", fname);
 	} // end of reading grf-files.txt
 
 	if (grf_num == 0) {
-		printf("No GRF loaded, using default data directory\n");
+		ShowInfo("No GRF loaded, using default data directory\n");
 	}
 
 	// Unneccessary area release of filelist
