@@ -10,11 +10,9 @@
 #include "grfio.h"
 #include <zlib.h>
 
+#include "../common/cbasetypes.h"
+#include "../common/showmsg.h"
 
-#ifndef __WIN32
-	#define strcmpi strcasecmp
-#endif
-	
 
 //----------------------------
 //	file entry table struct
@@ -693,6 +691,7 @@ static void grfio_resourcecheck(void)
 	FILELIST* entry;
 	int size;
 	FILE* fp;
+	int i = 0;
 
 	// read resnametable from data directory and return if successful
 	sprintf(restable, "%sdata\\resnametable.txt", data_dir);
@@ -716,6 +715,7 @@ static void grfio_resourcecheck(void)
 					strncpy(fentry.fn, src, sizeof(fentry.fn) - 1);
 					fentry.fnd = strdup(dst);
 					filelist_modify(&fentry);
+					i++;
 				}
 			}
 		}
