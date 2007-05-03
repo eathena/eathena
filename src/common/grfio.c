@@ -743,6 +743,7 @@ static void grfio_resourcecheck(void)
 					strncpy(fentry.fn, src, sizeof(fentry.fn) - 1);
 					fentry.fnd = strdup(dst);
 					filelist_modify(&fentry);
+					i++;
 				}
 			}
 			ptr = strchr(ptr, '\n');	// Next line

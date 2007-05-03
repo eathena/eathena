@@ -3133,7 +3133,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case AL_HOLYLIGHT:
 	case WZ_JUPITEL:
 	case NPC_DARKTHUNDER:
-	case NPC_MAGICALATTACK:
 	case PR_ASPERSIO:
 	case MG_FROSTDIVER:
 	case WZ_SIGHTBLASTER:
@@ -3142,6 +3141,11 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case NJ_HYOUSENSOU:
 	case NJ_HUUJIN:
 		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+		break;
+
+	case NPC_MAGICALATTACK:
+		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+		sc_start(src,SkillStatusChangeTable(skillid),100,skilllv,skill_get_time(skillid,skilllv));
 		break;
 
 	case HVAN_CAPRICE: //[blackhole89]
@@ -4736,7 +4740,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			int x,y, dir = unit_getdir(src);
 
 		  	//Fails on noteleport maps, except for vs maps [Skotlex]
-			if(map[src->m].flag.noteleport && !map_flag_vs(src->m)) {
+			if(map[src->m].flag.noteleport &&
+				!(map_flag_vs(src->m) || map_flag_gvg2(src->m))
+			) {
 				x = src->x;
 				y = src->y;
 			} else {
@@ -5732,10 +5738,7 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 			break;
 
 		if(md) {
-			if(tid != -1) //Set afterskill delay.
-				md->last_thinktime=tick +md->status.amotion;
-			else
-				md->last_thinktime=tick +md->status.adelay;
+			md->last_thinktime=tick +MIN_MOBTHINKTIME;
 			if(md->skillidx >= 0 && md->db->skill[md->skillidx].emotion >= 0)
 				clif_emotion(src, md->db->skill[md->skillidx].emotion);
 		}
@@ -5920,10 +5923,7 @@ int skill_castend_pos (int tid, unsigned int tick, int id, int data)
 			break;
 
 		if(md) {
-			if (tid != -1)
-				md->last_thinktime=tick +md->status.amotion;
-			else
-				md->last_thinktime=tick +md->status.adelay;
+			md->last_thinktime=tick +MIN_MOBTHINKTIME;
 			if(md->skillidx >= 0 && md->db->skill[md->skillidx].emotion >= 0)
 				clif_emotion(src, md->db->skill[md->skillidx].emotion);
 		}

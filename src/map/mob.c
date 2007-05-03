@@ -34,7 +34,6 @@
 #include "atcommand.h"
 #include "date.h"
 
-#define MIN_MOBTHINKTIME 100
 #define IDLE_SKILL_INTERVAL 10	//Active idle skills should be triggered every 1 second (1000/MIN_MOBTHINKTIME)
 
 #define MOB_LAZYSKILLPERC 10	// Probability for mobs far from players from doing their IDLE skill. (rate of 1000 minute)
@@ -1477,7 +1476,10 @@ static void mob_item_drop(struct mob_data *md, struct item_drop_list *dlist, str
 	}
 
 	if (dlist->first_sd && dlist->first_sd->state.autoloot &&
-		(drop_rate <= dlist->first_sd->state.autoloot)
+		drop_rate <= dlist->first_sd->state.autoloot
+#ifdef AUTOLOOT_DISTANCE
+		&& check_distance_blxy(&dlist->first_sd->bl, dlist->x, dlist->y, AUTOLOOT_DISTANCE)
+#endif
 	) {	//Autoloot.
 		if (party_share_loot(
 			dlist->first_sd->status.party_id?
@@ -1552,7 +1554,14 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 
 	if (damage > 0)
 	{	//Store total damage...
-		md->tdmg+=damage;
+		if (UINT_MAX - (unsigned int)damage > md->tdmg)
+			md->tdmg+=damage;
+		else if (md->tdmg == UINT_MAX)
+			damage = 0; //Stop recording damage once the cap has been reached.
+		else { //Cap damage log...
+			damage = (int)(UINT_MAX - md->tdmg);
+			md->tdmg = UINT_MAX;
+		}
 		if (md->state.aggressive)
 		{	//No longer aggressive, change to retaliate AI.
 			md->state.aggressive = 0;
@@ -1755,8 +1764,13 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	if(!battle_config.exp_calc_type && count > 1)
 	{	//Apply first-attacker 200% exp share bonus
 		//TODO: Determine if this should go before calculating the MVP player instead of after.
-		md->tdmg += md->dmglog[0].dmg;
-		md->dmglog[0].dmg<<=1;
+		if (UINT_MAX - md->dmglog[0].dmg > md->tdmg) {
+			md->tdmg += md->dmglog[0].dmg;
+			md->dmglog[0].dmg<<=1;
+		} else {
+			md->dmglog[0].dmg+= UINT_MAX - md->tdmg;
+			md->tdmg = UINT_MAX;
+		}
 	}
 
 	if(!(type&2) && //No exp
