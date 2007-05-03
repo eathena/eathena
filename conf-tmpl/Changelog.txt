@@ -1,5 +1,7 @@
 Date	Added
 
+2007/05/04
+	* emergency_call is by default usable only on WoE maps [ultramage]
 2007/04/27
 	* Updated Kiel and Juperos mapflags [Playtester]
 2007/04/26
