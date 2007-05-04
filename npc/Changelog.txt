@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/05/05
+	* Updated Ammo Casing NPC Kenny to official version. [SinSloth]
 2007/05/04
 	* Another fix for Elly, no longer RESETS to 26 when you talk to her. [L0ne_W0lf]
 	* Applied a minor fix to Payon Archer Kafra. [SinSloth]
