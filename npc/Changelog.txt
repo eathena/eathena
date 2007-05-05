@@ -23,6 +23,9 @@ Playtester
 Date		Added
 ======
 2007/05/06
+	* Merged Veins city and field warps [Playtester]
+	- you can't access Thor Volcano yet
+	- also merged official Abyss Lake entrance
 	* Merged all spawn updates of the past days [Playtester]
 	- added Veins field spawns in the process
 	* Removed some unnecessary event spawns [Playtester]
