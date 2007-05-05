@@ -4,7 +4,7 @@
 	- added Red Pouch thanks to Spre
 	- updated and added various items thanks to L0ne_W0lf
 	- fixed Assassin Mask ID in OVB
-	- updated Magmaring
+	- updated Magmaring and MVPs
 	- reverted Kyrie Eleison until code gets merged
 04/30
 	* Updated mob skills [Playtester]
