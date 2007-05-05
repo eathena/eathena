@@ -23,6 +23,8 @@ Playtester
 Date		Added
 ======
 2007/05/06
+	* Merged all spawn updates of the past days [Playtester]
+	- added Veins field spawns in the process
 	* Removed some unnecessary event spawns [Playtester]
 	* Updated Food Seller to official [Playtester]
 	* Updated Ninja and Gunslinger Job Change quests to official. [SinSloth]
