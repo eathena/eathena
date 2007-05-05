@@ -1,3 +1,11 @@
+05/06
+	* Merged item_db, item_violetbox, mob_db, mob_skill_db and skill_db [Playtester]
+	- also updated mob summoning files
+	- added Red Pouch thanks to Spre
+	- updated and added various items thanks to L0ne_W0lf
+	- fixed Assassin Mask ID in OVB
+	- updated Magmaring
+	- reverted Kyrie Eleison until code gets merged
 04/30
 	* Updated mob skills [Playtester]
 	- gave most mobs their MVP level skills
