@@ -42,7 +42,7 @@
 #include "mail.h"
 #endif
 
-#define PVP_CALCRANK_INTERVAL 1000	// PVPÊŒvZÌŠÔŠu
+#define PVP_CALCRANK_INTERVAL 1000	// PVP‡ˆÊŒvZ‚ÌŠÔŠu
 static unsigned int exp_table[MAX_PC_CLASS][2][MAX_LEVEL];
 static unsigned int max_level[MAX_PC_CLASS][2];
 static short statp[MAX_LEVEL+1];
@@ -355,7 +355,7 @@ int pc_makesavestatus(struct map_session_data *sd)
 }
 
 /*==========================================
- * ?bÌ
+ * Ú?bÌ‰Šú‰»
  *------------------------------------------
  */
 int pc_setnewpc(struct map_session_data *sd, int account_id, int char_id, int login_id1, unsigned int client_tick, int sex, int fd) {
@@ -418,22 +418,22 @@ int pc_calcweapontype(struct map_session_data *sd)
 
 	if(sd->weapontype1 != W_FIST && sd->weapontype2 == W_FIST)
 		sd->status.weapon = sd->weapontype1;
-	else if(sd->weapontype1 == W_FIST && sd->weapontype2 != W_FIST)// è• Only
+	else if(sd->weapontype1 == W_FIST && sd->weapontype2 != W_FIST)// ¶è•Ší Only
 		sd->status.weapon = sd->weapontype2;
-	else if(sd->weapontype1 == W_DAGGER && sd->weapontype2 == W_DAGGER)// ?Z?
+	else if(sd->weapontype1 == W_DAGGER && sd->weapontype2 == W_DAGGER)// ?’Z?
 		sd->status.weapon = MAX_WEAPON_TYPE+1;
-	else if(sd->weapontype1 == W_1HSWORD && sd->weapontype2 == W_1HSWORD)// ???
+	else if(sd->weapontype1 == W_1HSWORD && sd->weapontype2 == W_1HSWORD)// ??è?
 		sd->status.weapon = MAX_WEAPON_TYPE+2;
-	else if(sd->weapontype1 == W_1HAXE && sd->weapontype2 == W_1HAXE)// ??è•€
+	else if(sd->weapontype1 == W_1HAXE && sd->weapontype2 == W_1HAXE)// ??è•€
 		sd->status.weapon = MAX_WEAPON_TYPE+3;
 	else if( (sd->weapontype1 == W_DAGGER && sd->weapontype2 == W_1HSWORD) ||
-		(sd->weapontype1 == W_1HSWORD && sd->weapontype2 == W_DAGGER) ) // Z? - ??
+		(sd->weapontype1 == W_1HSWORD && sd->weapontype2 == W_DAGGER) ) // ’Z? - ?è?
 		sd->status.weapon = MAX_WEAPON_TYPE+4;
 	else if( (sd->weapontype1 == W_DAGGER && sd->weapontype2 == W_1HAXE) ||
-		(sd->weapontype1 == W_1HAXE && sd->weapontype2 == W_DAGGER) ) // Z? - 
+		(sd->weapontype1 == W_1HAXE && sd->weapontype2 == W_DAGGER) ) // ’Z? - •€
 		sd->status.weapon = MAX_WEAPON_TYPE+5;
 	else if( (sd->weapontype1 == W_1HSWORD && sd->weapontype2 == W_1HAXE) ||
-		(sd->weapontype1 == W_1HAXE && sd->weapontype2 == W_1HSWORD) ) // ?? - 
+		(sd->weapontype1 == W_1HAXE && sd->weapontype2 == W_1HSWORD) ) // ?è? - •€
 		sd->status.weapon = MAX_WEAPON_TYPE+6;
 	else
 		sd->status.weapon = sd->weapontype1;
@@ -505,7 +505,7 @@ static int pc_isAllowedCardOn(struct map_session_data *sd,int s,int eqindex,int 
 int pc_isequip(struct map_session_data *sd,int n)
 {
 	struct item_data *item;
-	//?{qÌê‡ÌŒÌEÆ‚Zo
+	//?¶‚â—{q‚Ìê‡‚ÌŒ³‚ÌE‹Æ‚ğZo‚·‚é
 
 	nullpo_retr(0, sd);
 
@@ -565,8 +565,8 @@ int pc_isequip(struct map_session_data *sd,int n)
 }
 
 /*==========================================
- * session idÉ–è–³
- * charIç‘—Ä‚Xe?^Xİ’
+ * session id‚É–â‘è–³‚µ
+ * charI‚©‚ç‘—‚ç‚ê‚Ä‚«‚½ƒXƒe?ƒ^ƒX‚ğİ’è
  *------------------------------------------
  */
 int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_time, struct mmo_charstatus *st)
@@ -638,7 +638,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	// Request all registries.
 	intif_request_registry(sd,7);
 
-	// ACe`FbN
+	// ƒAƒCƒeƒ€ƒ`ƒFƒbƒN
 	pc_setinventorydata(sd);
 	pc_checkitem(sd);
 	
@@ -657,14 +657,14 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	sd->guild_x = -1;
 	sd->guild_y = -1;
 
-	// Cxg?WÌ
+	// ƒCƒxƒ“ƒg?ŒW‚Ì‰Šú‰»
 	for(i = 0; i < MAX_EVENTTIMER; i++)
 		sd->eventtimer[i] = -1;
 
 	for (i = 0; i < 3; i++)
 		sd->hate_mob[i] = -1;
 
-	// Ê’uÌİ’
+	// ˆÊ’u‚Ìİ’è
 	if ((i=pc_setpos(sd,sd->status.last_point.map, sd->status.last_point.x, sd->status.last_point.y, 0)) != 0) {
 		if(battle_config.error_log)
 			ShowError ("Last_point_map %s - id %d not found (error code %d)\n", mapindex_id2name(sd->status.last_point.map), sd->status.last_point.map, i);
@@ -911,7 +911,7 @@ static int pc_calc_skillpoint(struct map_session_data* sd)
 
 
 /*==========================================
- * ?XLÌŒvZ
+ * ?‚¦‚ç‚ê‚éƒXƒLƒ‹‚ÌŒvZ
  *------------------------------------------
  */
 int pc_calc_skilltree(struct map_session_data *sd)
@@ -1344,7 +1344,7 @@ static int pc_bonus_item_drop(struct s_add_drop *drop, short *count, short id, s
 }
 
 /*==========================================
- * ? iÉ‚\Í“Ìƒ{?iXİ’
+ * ? ”õ•i‚É‚æ‚é”\—Í“™‚Ìƒ{?ƒiƒXİ’è
  *------------------------------------------
  */
 int pc_bonus(struct map_session_data *sd,int type,int val)
@@ -1894,7 +1894,7 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 }
 
 /*==========================================
- * ? iÉ‚\Í“Ìƒ{?iXİ’
+ * ? ”õ•i‚É‚æ‚é”\—Í“™‚Ìƒ{?ƒiƒXİ’è
  *------------------------------------------
  */
 int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
@@ -2524,7 +2524,7 @@ int pc_skill(TBL_PC* sd, int id, int level, int flag)
 	return 1;
 }
 /*==========================================
- * J?h?
+ * ƒJ?ƒh?“ü
  *------------------------------------------
  */
 int pc_insert_card(struct map_session_data *sd,int idx_card,int idx_equip)
@@ -2573,19 +2573,19 @@ int pc_insert_card(struct map_session_data *sd,int idx_card,int idx_equip)
 }
 
 //
-// ACe
+// ƒAƒCƒeƒ€•¨
 //
 
 /*==========================================
- * XLÉ‚é”ƒlC
+ * ƒXƒLƒ‹‚É‚æ‚é”ƒ‚¢’lC³
  *------------------------------------------
  */
 int pc_modifybuyvalue(struct map_session_data *sd,int orig_value)
 {
 	int skill,val = orig_value,rate1 = 0,rate2 = 0;
-	if((skill=pc_checkskill(sd,MC_DISCOUNT))>0)	// fBXJEg
+	if((skill=pc_checkskill(sd,MC_DISCOUNT))>0)	// ƒfƒBƒXƒJƒEƒ“ƒg
 		rate1 = 5+skill*2-((skill==10)? 1:0);
-	if((skill=pc_checkskill(sd,RG_COMPULSION))>0)	// RpVfBXJEg
+	if((skill=pc_checkskill(sd,RG_COMPULSION))>0)	// ƒRƒ€ƒpƒ‹ƒVƒ‡ƒ“ƒfƒBƒXƒJƒEƒ“ƒg
 		rate2 = 5+skill*4;
 	if(rate1 < rate2) rate1 = rate2;
 	if(rate1)
@@ -2597,13 +2597,13 @@ int pc_modifybuyvalue(struct map_session_data *sd,int orig_value)
 }
 
 /*==========================================
- * XLÉ‚?lC
+ * ƒXƒLƒ‹‚É‚æ‚é?‚è’lC³
  *------------------------------------------
  */
 int pc_modifysellvalue(struct map_session_data *sd,int orig_value)
 {
 	int skill,val = orig_value,rate = 0;
-	if((skill=pc_checkskill(sd,MC_OVERCHARGE))>0)	// I?o?`?W
+	if((skill=pc_checkskill(sd,MC_OVERCHARGE))>0)	// ƒI?ƒo?ƒ`ƒƒ?ƒW
 		rate = 5+skill*2-((skill==10)? 1:0);
 	if(rate)
 		val = (int)((double)orig_value*(double)(100+rate)/100.);
@@ -2614,8 +2614,8 @@ int pc_modifysellvalue(struct map_session_data *sd,int orig_value)
 }
 
 /*==========================================
- * ACeğ”ƒ‚bÉAVACegA
- * 3ÂÉ‚é‚©mF
+ * ƒAƒCƒeƒ€‚ğ”ƒ‚Á‚½bÉAV‚µ‚¢ƒAƒCƒeƒ€—“‚ğg‚¤‚©A
+ * 3–œŒÂ§ŒÀ‚É‚©‚©‚é‚©Šm”F
  *------------------------------------------
  */
 int pc_checkadditem(struct map_session_data *sd,int nameid,int amount)
@@ -2641,7 +2641,7 @@ int pc_checkadditem(struct map_session_data *sd,int nameid,int amount)
 }
 
 /*==========================================
- * ó‚«ƒACeÌŒ?
+ * ‹ó‚«ƒAƒCƒeƒ€—“‚ÌŒÂ?
  *------------------------------------------
  */
 int pc_inventoryblank(struct map_session_data *sd)
@@ -2659,7 +2659,7 @@ int pc_inventoryblank(struct map_session_data *sd)
 }
 
 /*==========================================
- * ?
+ * ‚¨‹à‚ğ?‚¤
  *------------------------------------------
  */
 int pc_payzeny(struct map_session_data *sd,int zeny)
@@ -2682,7 +2682,7 @@ int pc_payzeny(struct map_session_data *sd,int zeny)
 }
 
 /*==========================================
- * ğ“¾‚
+ * ‚¨‹à‚ğ“¾‚é
  *------------------------------------------
  */
 int pc_getzeny(struct map_session_data *sd,int zeny)
@@ -2710,7 +2710,7 @@ int pc_getzeny(struct map_session_data *sd,int zeny)
 }
 
 /*==========================================
- * ACeTÄACfbNXÔ‚
+ * ƒAƒCƒeƒ€‚ğ’T‚µ‚ÄAƒCƒ“ƒfƒbƒNƒX‚ğ•Ô‚·
  *------------------------------------------
  */
 int pc_search_inventory(struct map_session_data *sd,int item_id)
@@ -2729,7 +2729,7 @@ int pc_search_inventory(struct map_session_data *sd,int item_id)
 }
 
 /*==========================================
- * ACeÇ‰B?Ì‚item\??ğ–³
+ * ƒAƒCƒeƒ€’Ç‰ÁBŒÂ?‚Ì‚İitem\‘¢?‚Ì?š‚ğ–³‹
  *------------------------------------------
  */
 int pc_additem(struct map_session_data *sd,struct item *item_data,int amount)
@@ -2791,7 +2791,7 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount)
 }
 
 /*==========================================
- * ACeç‚·
+ * ƒAƒCƒeƒ€‚ğŒ¸‚ç‚·
  *------------------------------------------
  */
 int pc_delitem(struct map_session_data *sd,int n,int amount,int type)
@@ -2818,7 +2818,7 @@ int pc_delitem(struct map_session_data *sd,int n,int amount,int type)
 }
 
 /*==========================================
- * ACeğ—‚
+ * ƒAƒCƒeƒ€‚ğ—‚·
  *------------------------------------------
  */
 int pc_dropitem(struct map_session_data *sd,int n,int amount)
@@ -2862,7 +2862,7 @@ int pc_dropitem(struct map_session_data *sd,int n,int amount)
 }
 
 /*==========================================
- * ACeE
+ * ƒAƒCƒeƒ€‚ğE‚¤
  *------------------------------------------
  */
 int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
@@ -2876,7 +2876,7 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 	nullpo_retr(0, fitem);
 
 	if(!check_distance_bl(&fitem->bl, &sd->bl, 2) && sd->ud.skillid!=BS_GREED)
-		return 0;	// 
+		return 0;	// ‹——£‚ª‰“‚¢
 
 	if (sd->status.party_id)
 		p = party_search(sd->status.party_id);
@@ -2964,7 +2964,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	//Butterfly Wing (can't use noreturn flag is on)
 	if(nameid == 602 && map[sd->bl.m].flag.noreturn)
 		return 0;
-	//Dead Branch & Red Pouch & Bloody Branch & Porings Box (can't use at GVG and when nobranch flag is on)
+	//Dead Branch & Red Pouch & Bloody Branch & Poring Box (can't use at GVG and when nobranch flag is on)
 	if((nameid == 604 || nameid == 12024 || nameid == 12103 || nameid == 12109) && (map[sd->bl.m].flag.nobranch || map_flag_gvg(sd->bl.m)))
 		return 0;
 
@@ -3009,7 +3009,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 }
 
 /*==========================================
- * ACeg
+ * ƒAƒCƒeƒ€‚ğg‚¤
  *------------------------------------------
  */
 int pc_useitem(struct map_session_data *sd,int n)
@@ -3073,7 +3073,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 }
 
 /*==========================================
- * J?gACeÇ‰B?Ì‚item\??ğ–³
+ * ƒJ?ƒgƒAƒCƒeƒ€’Ç‰ÁBŒÂ?‚Ì‚İitem\‘¢?‚Ì?š‚ğ–³‹
  *------------------------------------------
  */
 int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amount)
@@ -3134,7 +3134,7 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 }
 
 /*==========================================
- * J?gACeç‚·
+ * ƒJ?ƒgƒAƒCƒeƒ€‚ğŒ¸‚ç‚·
  *------------------------------------------
  */
 int pc_cart_delitem(struct map_session_data *sd,int n,int amount,int type)
@@ -3163,7 +3163,7 @@ int pc_cart_delitem(struct map_session_data *sd,int n,int amount,int type)
 }
 
 /*==========================================
- * J?gÖƒACeÚ“
+ * ƒJ?ƒg‚ÖƒAƒCƒeƒ€ˆÚ“®
  *------------------------------------------
  */
 int pc_putitemtocart(struct map_session_data *sd,int idx,int amount) {
@@ -3186,7 +3186,7 @@ int pc_putitemtocart(struct map_session_data *sd,int idx,int amount) {
 }
 
 /*==========================================
- * J?g?ÌƒACe?mF(?ÌÔ‚)
+ * ƒJ?ƒg?‚ÌƒAƒCƒeƒ€?Šm”F(ŒÂ?‚Ì·•ª‚ğ•Ô‚·)
  *------------------------------------------
  */
 int pc_cartitem_amount(struct map_session_data *sd,int idx,int amount)
@@ -3201,7 +3201,7 @@ int pc_cartitem_amount(struct map_session_data *sd,int idx,int amount)
 	return item_data->amount-amount;
 }
 /*==========================================
- * J?gACeÚ“
+ * ƒJ?ƒg‚©‚çƒAƒCƒeƒ€ˆÚ“®
  *------------------------------------------
  */
 
@@ -3227,7 +3227,7 @@ int pc_getitemfromcart(struct map_session_data *sd,int idx,int amount)
 }
 
 /*==========================================
- * XeBiJ
+ * ƒXƒeƒBƒ‹•iŒöŠJ
  *------------------------------------------
  */
 int pc_show_steal(struct block_list *bl,va_list ap)
@@ -3503,7 +3503,7 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 }
 
 /*==========================================
- * PCÌƒ_?v
+ * PC‚Ìƒ‰ƒ“ƒ_ƒ€ƒ?ƒv
  *------------------------------------------
  */
 int pc_randomwarp(struct map_session_data *sd, int type) {
@@ -3514,7 +3514,7 @@ int pc_randomwarp(struct map_session_data *sd, int type) {
 
 	m=sd->bl.m;
 
-	if (map[sd->bl.m].flag.noteleport)	// e|?gÖ~
+	if (map[sd->bl.m].flag.noteleport)	// ƒeƒŒƒ|?ƒg‹Ö~
 		return 0;
 
 	do{
@@ -3529,7 +3529,7 @@ int pc_randomwarp(struct map_session_data *sd, int type) {
 }
 
 /*==========================================
- * İˆÊ’uÌƒ
+ * Œ»İˆÊ’u‚Ìƒƒ‚
  *------------------------------------------
  */
 int pc_memo(struct map_session_data *sd, int i) {
@@ -3580,10 +3580,10 @@ int pc_memo(struct map_session_data *sd, int i) {
 }
 
 //
-// ??
+// •Ší??
 //
 /*==========================================
- * XL? LÄ‚ê‡LvÔ‚
+ * ƒXƒLƒ‹‚Ì?õ Š—L‚µ‚Ä‚¢‚½ê‡Lv‚ª•Ô‚é
  *------------------------------------------
  */
 int pc_checkskill(struct map_session_data *sd,int skill_id)
@@ -3603,13 +3603,13 @@ int pc_checkskill(struct map_session_data *sd,int skill_id)
 }
 
 /*==========================================
- * ?XÉ‚XL??`FbN
- * ?F
- *   struct map_session_data *sd	ZbVf?^
- *   int nameid						?iID
- * Ô‚lF
- *   0		?XÈ‚
- *   -1		XL
+ * •Ší?X‚É‚æ‚éƒXƒLƒ‹‚Ì??ƒ`ƒFƒbƒN
+ * ˆø?F
+ *   struct map_session_data *sd	ƒZƒbƒVƒ‡ƒ“ƒf?ƒ^
+ *   int nameid						?”õ•iID
+ * •Ô‚è’lF
+ *   0		?X‚È‚µ
+ *   -1		ƒXƒLƒ‹‚ğ‰ğœ
  *------------------------------------------
  */
 int pc_checkallowskill(struct map_session_data *sd)
@@ -3656,7 +3656,7 @@ int pc_checkallowskill(struct map_session_data *sd)
 }
 
 /*==========================================
- * ? iÌƒ`FbN
+ * ? ”õ•i‚Ìƒ`ƒFƒbƒN
  *------------------------------------------
  */
 int pc_checkequip(struct map_session_data *sd,int pos)
@@ -4256,7 +4256,7 @@ static void pc_calcexp(struct map_session_data *sd, unsigned int *base_exp, unsi
 	return;
 }
 /*==========================================
- * ??læ“¾
+ * ??’læ“¾
  *------------------------------------------
  */
 int pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int base_exp,unsigned int job_exp)
@@ -4344,7 +4344,7 @@ unsigned int pc_maxjoblv(struct map_session_data *sd) {
 };
 
 /*==========================================
- * base levelKv??lvZ
+ * base level‘¤•K—v??’lŒvZ
  *------------------------------------------
  */
 unsigned int pc_nextbaseexp(struct map_session_data *sd)
@@ -4358,7 +4358,7 @@ unsigned int pc_nextbaseexp(struct map_session_data *sd)
 }
 
 /*==========================================
- * job levelKv??lvZ
+ * job level‘¤•K—v??’lŒvZ
  *------------------------------------------
  */
 unsigned int pc_nextjobexp(struct map_session_data *sd)
@@ -4372,7 +4372,7 @@ unsigned int pc_nextjobexp(struct map_session_data *sd)
 
 /*==========================================
 
- * KvXe?^X|CgvZ
+ * •K—vƒXƒe?ƒ^ƒXƒ|ƒCƒ“ƒgŒvZ
  *------------------------------------------
  */
 int pc_need_status_point(struct map_session_data *sd,int type)
@@ -4394,7 +4394,7 @@ int pc_need_status_point(struct map_session_data *sd,int type)
 }
 
 /*==========================================
- * \Í’l
+ * ”\—Í’l¬’·
  *------------------------------------------
  */
 int pc_statusup(struct map_session_data *sd,int type)
@@ -4467,7 +4467,7 @@ int pc_statusup(struct map_session_data *sd,int type)
 }
 
 /*==========================================
- * \Í’l
+ * ”\—Í’l¬’·
  *------------------------------------------
  */
 int pc_statusup2(struct map_session_data *sd,int type,int val)
@@ -4544,7 +4544,7 @@ int pc_statusup2(struct map_session_data *sd,int type,int val)
 }
 
 /*==========================================
- * XL|CgU
+ * ƒXƒLƒ‹ƒ|ƒCƒ“ƒgŠ„‚èU‚è
  *------------------------------------------
  */
 int pc_skillup(struct map_session_data *sd,int skill_num)
@@ -5275,10 +5275,10 @@ void pc_revive(struct map_session_data *sd,unsigned int hp, unsigned int sp)
 	if(battle_config.pc_invincible_time > 0)
 		pc_setinvincibletimer(sd, battle_config.pc_invincible_time);
 }
-// script? A
+// script? ˜A
 //
 /*==========================================
- * scriptpPCXe?^X?İo
+ * script—pPCƒXƒe?ƒ^ƒX?‚İo‚µ
  *------------------------------------------
  */
 int pc_readparam(struct map_session_data *sd,int type)
@@ -5381,7 +5381,7 @@ int pc_readparam(struct map_session_data *sd,int type)
 }
 
 /*==========================================
- * scriptpPCXe?^Xİ’
+ * script—pPCƒXƒe?ƒ^ƒXİ’è
  *------------------------------------------
  */
 int pc_setparam(struct map_session_data *sd,int type,int val)
@@ -5525,7 +5525,7 @@ void pc_heal(struct map_session_data *sd,unsigned int hp,unsigned int sp, int ty
 }
 
 /*==========================================
- * HP/SP
+ * HP/SP‰ñ•œ
  *------------------------------------------
  */
 int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
@@ -5565,7 +5565,7 @@ int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 }
 
 /*==========================================
- * HP/SP
+ * HP/SP‰ñ•œ
  *------------------------------------------
  */
 int pc_percentheal(struct map_session_data *sd,int hp,int sp)
@@ -5604,9 +5604,9 @@ int pc_percentheal(struct map_session_data *sd,int hp,int sp)
 }
 
 /*==========================================
- * E?X
- * ?	job E 0`23
- *		upper Ê 0, ? 1, {q 2, Ì‚Ü‚ -1
+ * E?X
+ * ˆø?	job E‹Æ 0`23
+ *		upper ’Êí 0, ?¶ 1, —{q 2, ‚»‚Ì‚Ü‚Ü -1
  * Rewrote to make it tidider [Celest]
  *------------------------------------------
  */
@@ -5662,7 +5662,7 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 	for(i=0;i<EQI_MAX;i++) {
 		if(sd->equip_index[i] >= 0)
 			if(!pc_isequip(sd,sd->equip_index[i]))
-				pc_unequipitem(sd,sd->equip_index[i],2);	// ?O
+				pc_unequipitem(sd,sd->equip_index[i],2);	// ?”õŠO‚µ
 	}
 
 	//Change look, if disguised, you need to undisguise 
@@ -5721,7 +5721,7 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 }
 
 /*==========================================
- * ?X
+ * Œ©‚½–Ú?X
  *------------------------------------------
  */
 int pc_equiplookall(struct map_session_data *sd)
@@ -5743,7 +5743,7 @@ int pc_equiplookall(struct map_session_data *sd)
 }
 
 /*==========================================
- * ?X
+ * Œ©‚½–Ú?X
  *------------------------------------------
  */
 int pc_changelook(struct map_session_data *sd,int type,int val)
@@ -5807,7 +5807,7 @@ int pc_changelook(struct map_session_data *sd,int type,int val)
 }
 
 /*==========================================
- * t?i(,yR,J?g)İ’
+ * •t?•i(‘é,ƒyƒR,ƒJ?ƒg)İ’è
  *------------------------------------------
  */
 int pc_setoption(struct map_session_data *sd,int type)
@@ -5881,7 +5881,7 @@ int pc_setoption(struct map_session_data *sd,int type)
 }
 
 /*==========================================
- * J?gİ’
+ * ƒJ?ƒgİ’è
  *------------------------------------------
  */
 int pc_setcart(struct map_session_data *sd,int type)
@@ -5907,13 +5907,13 @@ int pc_setcart(struct map_session_data *sd,int type)
 }
 
 /*==========================================
- * İ’
+ * ‘éİ’è
  *------------------------------------------
  */
 int pc_setfalcon(TBL_PC* sd, int flag)
 {
 	if( flag ){
-		if( pc_checkskill(sd,HT_FALCON)>0 )	// t@R}X^?XL
+		if( pc_checkskill(sd,HT_FALCON)>0 )	// ƒtƒ@ƒ‹ƒRƒ“ƒ}ƒXƒ^ƒŠ?ƒXƒLƒ‹Š
 			pc_setoption(sd,sd->sc.option|OPTION_FALCON);
 	} else if( pc_isfalcon(sd) ){
 		pc_setoption(sd,sd->sc.option&~OPTION_FALCON); // remove falcon
@@ -5923,13 +5923,13 @@ int pc_setfalcon(TBL_PC* sd, int flag)
 }
 
 /*==========================================
- * yRyRİ’
+ * ƒyƒRƒyƒRİ’è
  *------------------------------------------
  */
 int pc_setriding(TBL_PC* sd, int flag)
 {
 	if( flag ){
-		if( pc_checkskill(sd,KN_RIDING) > 0 ) // CfBOXL
+		if( pc_checkskill(sd,KN_RIDING) > 0 ) // ƒ‰ƒCƒfƒBƒ“ƒOƒXƒLƒ‹Š
 			pc_setoption(sd, sd->sc.option|OPTION_RIDING);
 	} else if( pc_isriding(sd) ){
 		pc_setoption(sd, sd->sc.option&~OPTION_RIDING);
@@ -5939,7 +5939,7 @@ int pc_setriding(TBL_PC* sd, int flag)
 }
 
 /*==========================================
- * ACehbvÂ•sÂ”
+ * ƒAƒCƒeƒ€ƒhƒƒbƒv‰Â•s‰Â”»’è
  *------------------------------------------
  */
 int pc_candrop(struct map_session_data *sd,struct item *item)
@@ -5951,7 +5951,7 @@ int pc_candrop(struct map_session_data *sd,struct item *item)
 }
 
 /*==========================================
- * scriptp??Ì’l?
+ * script—p??‚Ì’l‚ğ?‚Ş
  *------------------------------------------
  */
 int pc_readreg(struct map_session_data *sd,int reg)
@@ -5967,7 +5967,7 @@ int pc_readreg(struct map_session_data *sd,int reg)
 	return 0;
 }
 /*==========================================
- * scriptp??Ì’lİ’
+ * script—p??‚Ì’l‚ğİ’è
  *------------------------------------------
  */
 int pc_setreg(struct map_session_data *sd,int reg,int val)
@@ -5992,7 +5992,7 @@ int pc_setreg(struct map_session_data *sd,int reg,int val)
 }
 
 /*==========================================
- * scriptp??Ì’l?
+ * script—p•¶š—ñ??‚Ì’l‚ğ?‚Ş
  *------------------------------------------
  */
 char *pc_readregstr(struct map_session_data *sd,int reg)
@@ -6008,7 +6008,7 @@ char *pc_readregstr(struct map_session_data *sd,int reg)
 	return NULL;
 }
 /*==========================================
- * scriptp??Ì’lİ’
+ * script—p•¶š—ñ??‚Ì’l‚ğİ’è
  *------------------------------------------
  */
 int pc_setregstr(struct map_session_data *sd,int reg,char *str)
@@ -6282,7 +6282,7 @@ int pc_setregistry_str(struct map_session_data *sd,char *reg,char *val,int type)
 }
 
 /*==========================================
- * Cxg^C}??
+ * ƒCƒxƒ“ƒgƒ^ƒCƒ}??—
  *------------------------------------------
  */
 static int pc_eventtimer(int tid,unsigned int tick,int id,int data)
@@ -6307,7 +6307,7 @@ static int pc_eventtimer(int tid,unsigned int tick,int id,int data)
 }
 
 /*==========================================
- * Cxg^C}?Ç‰
+ * ƒCƒxƒ“ƒgƒ^ƒCƒ}?’Ç‰Á
  *------------------------------------------
  */
 int pc_addeventtimer(struct map_session_data *sd,int tick,const char *name)
@@ -6331,7 +6331,7 @@ int pc_addeventtimer(struct map_session_data *sd,int tick,const char *name)
 }
 
 /*==========================================
- * Cxg^C}?íœ
+ * ƒCƒxƒ“ƒgƒ^ƒCƒ}?íœ
  *------------------------------------------
  */
 int pc_deleventtimer(struct map_session_data *sd,const char *name)
@@ -6359,7 +6359,7 @@ int pc_deleventtimer(struct map_session_data *sd,const char *name)
 }
 
 /*==========================================
- * Cxg^C}?JEglÇ‰
+ * ƒCƒxƒ“ƒgƒ^ƒCƒ}?ƒJƒEƒ“ƒg’l’Ç‰Á
  *------------------------------------------
  */
 int pc_addeventtimercount(struct map_session_data *sd,const char *name,int tick)
@@ -6379,7 +6379,7 @@ int pc_addeventtimercount(struct map_session_data *sd,const char *name,int tick)
 }
 
 /*==========================================
- * Cxg^C}?Síœ
+ * ƒCƒxƒ“ƒgƒ^ƒCƒ}?‘Síœ
  *------------------------------------------
  */
 int pc_cleareventtimer(struct map_session_data *sd)
@@ -6403,10 +6403,10 @@ int pc_cleareventtimer(struct map_session_data *sd)
 }
 
 //
-// ? 
+// ? ”õ•¨
 //
 /*==========================================
- * ACe?
+ * ƒAƒCƒeƒ€‚ğ?”õ‚·‚é
  *------------------------------------------
  */
 int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
@@ -6556,7 +6556,7 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 }
 
 /*==========================================
- * ? O
+ * ? ”õ‚µ‚½•¨‚ğŠO‚·
  * type:
  * 0 - only unequip
  * 1 - calculate status after unequipping
@@ -6653,8 +6653,8 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag)
 }
 
 /*==========================================
- * ACeindex?lß‚
- * ? i?Â”\`FbNsÈ‚
+ * ƒAƒCƒeƒ€‚Ìindex”Ô?‚ğ‹l‚ß‚½‚è
+ * ? ”õ•i‚Ì?”õ‰Â”\ƒ`ƒFƒbƒN‚ğs‚È‚¤
  *------------------------------------------
  */
 int pc_checkitem(struct map_session_data *sd)
@@ -6667,7 +6667,7 @@ int pc_checkitem(struct map_session_data *sd)
 	if (sd->vender_id) //Avoid reorganizing items when we are vending, as that leads to exploits (pointed out by End of Exam)
 		return 0;
 	
-	// ió‚«‹l
+	// Š•i‹ó‚«‹l‚ß
 	for(i=j=0;i<MAX_INVENTORY;i++){
 		if( (id=sd->status.inventory[i].nameid)==0)
 			continue;
@@ -6688,7 +6688,7 @@ int pc_checkitem(struct map_session_data *sd)
 	for(k=j;k<MAX_INVENTORY;k++)
 		sd->inventory_data[k] = NULL;
 
-	// J?g?ó‚«‹l
+	// ƒJ?ƒg?‹ó‚«‹l‚ß
 	for(i=j=0;i<MAX_CART;i++){
 		if( (id=sd->status.cart[i].nameid)==0 )
 			continue;
@@ -6706,7 +6706,7 @@ int pc_checkitem(struct map_session_data *sd)
 	if(j < MAX_CART)
 		memset(&sd->status.cart[j],0,sizeof(struct item)*(MAX_CART-j));
 
-	// ? Ê’u`FbN
+	// ? ”õˆÊ’uƒ`ƒFƒbƒN
 
 	for(i=0;i<MAX_INVENTORY;i++){
 
@@ -6718,7 +6718,7 @@ int pc_checkitem(struct map_session_data *sd)
 			sd->status.inventory[i].equip=0;
 			calc_flag = 1;
 		}
-		//?`FbN
+		//?”õ§ŒÀƒ`ƒFƒbƒN
 		if(sd->status.inventory[i].equip && it) {
 			if (map[sd->bl.m].flag.pvp && it->flag.no_equip&1)
 			{  //PVP check for forbiden items. optimized by [Lupus]
@@ -6756,7 +6756,7 @@ int pc_checkitem(struct map_session_data *sd)
 }
 
 /*==========================================
- * PVPÊŒvZp(foreachinarea)
+ * PVP‡ˆÊŒvZ—p(foreachinarea)
  *------------------------------------------
  */
 int pc_calc_pvprank_sub(struct block_list *bl,va_list ap)
@@ -6771,7 +6771,7 @@ int pc_calc_pvprank_sub(struct block_list *bl,va_list ap)
 	return 0;
 }
 /*==========================================
- * PVPÊŒvZ
+ * PVP‡ˆÊŒvZ
  *------------------------------------------
  */
 int pc_calc_pvprank(struct map_session_data *sd)
@@ -6787,7 +6787,7 @@ int pc_calc_pvprank(struct map_session_data *sd)
 	return sd->pvp_rank;
 }
 /*==========================================
- * PVPÊŒvZ(timer)
+ * PVP‡ˆÊŒvZ(timer)
  *------------------------------------------
  */
 int pc_calc_pvprank_timer(int tid,unsigned int tick,int id,int data)
@@ -6806,7 +6806,7 @@ int pc_calc_pvprank_timer(int tid,unsigned int tick,int id,int data)
 }
 
 /*==========================================
- * sdÍŒÄ‚é‚©(?Ìê‡Í‘char_idÔ‚)
+ * sd‚ÍŒ‹¥‚µ‚Ä‚¢‚é‚©(?¥‚Ìê‡‚Í‘Š•û‚Ìchar_id‚ğ•Ô‚·)
  *------------------------------------------
  */
 int pc_ismarried(struct map_session_data *sd)
@@ -6819,7 +6819,7 @@ int pc_ismarried(struct map_session_data *sd)
 		return 0;
 }
 /*==========================================
- * sddstsdÆŒ(dstsdsdÌŒ?bÉs)
+ * sd‚ªdstsd‚ÆŒ‹¥(dstsd¨sd‚ÌŒ‹¥?—‚à“¯bÉs‚¤)
  *------------------------------------------
  */
 int pc_marriage(struct map_session_data *sd,struct map_session_data *dstsd)
@@ -6834,7 +6834,7 @@ int pc_marriage(struct map_session_data *sd,struct map_session_data *dstsd)
 }
 
 /*==========================================
- * sd(sd->status.partner_idÉˆË‚)(bÉ—?wÖ?D)
+ * sd‚ª—£¥(‘Šè‚Ísd->status.partner_id‚ÉˆË‚é)(‘Šè‚à“¯bÉ—£¥?Œ‹¥w—Ö©“®?’D)
  *------------------------------------------
  */
 int pc_divorce(struct map_session_data *sd)
@@ -6914,7 +6914,7 @@ int pc_adoption(struct map_session_data *sd,struct map_session_data *dstsd, stru
 }
 
 /*==========================================
- * sdÌ‘map_session_dataÔ‚
+ * sd‚Ì‘Š•û‚Ìmap_session_data‚ğ•Ô‚·
  *------------------------------------------
  */
 struct map_session_data *pc_get_partner(struct map_session_data *sd)
@@ -6996,7 +6996,7 @@ void pc_bleeding (struct map_session_data *sd, unsigned int diff_tick)
 }
 
 /*==========================================
- * Z?u|CgÌ•Û‘
+ * ƒZ?ƒuƒ|ƒCƒ“ƒg‚Ì•Û‘¶
  *------------------------------------------
  */
 int pc_setsavepoint(struct map_session_data *sd, short mapindex,int x,int y)
@@ -7011,7 +7011,7 @@ int pc_setsavepoint(struct map_session_data *sd, short mapindex,int x,int y)
 }
 
 /*==========================================
- * Z?u eNCAg
+ * ©“®ƒZ?ƒu ŠeƒNƒ‰ƒCƒAƒ“ƒg
  *------------------------------------------
  */
 static int last_save_id=0,save_flag=0;
@@ -7049,7 +7049,7 @@ static int pc_autosave_sub(DBKey key,void * data,va_list ap)
 }
 
 /*==========================================
- * Z?u (timer??)
+ * ©“®ƒZ?ƒu (timer??)
  *------------------------------------------
  */
 int pc_autosave(int tid,unsigned int tick,int id,int data)
@@ -7380,17 +7380,17 @@ int pc_split_atoui(char *str,unsigned int *val, char sep, int max)
 }
 
 //
-// 
+// ‰Šú‰»•¨
 //
 /*==========================================
- * İ’t@C??
- * exp.txt Kv??l
- * job_db1.txt d,hp,sp,U?x
- * job_db2.txt job\Í’l{?iX
- * skill_tree.txt eE?ÌƒXLc?
- * attr_fix.txt ?Ce?u
- * size_fix.txt TCYâ³e?u
- * refine_db.txt ?f?^e?u
+ * İ’èƒtƒ@ƒCƒ‹?‚İ?‚Ş
+ * exp.txt •K—v??’l
+ * job_db1.txt d—Ê,hp,sp,U?‘¬“x
+ * job_db2.txt job”\—Í’lƒ{?ƒiƒX
+ * skill_tree.txt ŠeE?‚ÌƒXƒLƒ‹ƒcƒŠ?
+ * attr_fix.txt ?«C³ƒe?ƒuƒ‹
+ * size_fix.txt ƒTƒCƒY•â³ƒe?ƒuƒ‹
+ * refine_db.txt ¸?ƒf?ƒ^ƒe?ƒuƒ‹
  *------------------------------------------
  */
 int pc_readdb(void)
@@ -7399,7 +7399,7 @@ int pc_readdb(void)
 	FILE *fp;
 	char line[24000],*p;
 
-	// Kv??l??
+	// •K—v??’l?‚İ?‚İ
 	memset(exp_table,0,sizeof(exp_table));
 	memset(max_level,0,sizeof(max_level));
 	sprintf(line, "%s/exp.txt", db_path);
@@ -7477,7 +7477,7 @@ int pc_readdb(void)
 	}
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","exp.txt");
 
-	// XLc?
+	// ƒXƒLƒ‹ƒcƒŠ?
 	memset(skill_tree,0,sizeof(skill_tree));
 	sprintf(line, "%s/skill_tree.txt", db_path);
 	fp=fopen(line,"r");
@@ -7524,7 +7524,7 @@ int pc_readdb(void)
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","skill_tree.txt");
 
-	// ?Ce?u
+	// ?«C³ƒe?ƒuƒ‹
 	for(i=0;i<4;i++)
 		for(j=0;j<ELE_MAX;j++)
 			for(k=0;k<ELE_MAX;k++)
@@ -7571,7 +7571,7 @@ int pc_readdb(void)
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","attr_fix.txt");
 
-	// XLc?
+	// ƒXƒLƒ‹ƒcƒŠ?
 	memset(statp,0,sizeof(statp));
 	i=1;
 	j=45;	// base points
@@ -7633,7 +7633,7 @@ int pc_read_motd(void) {
 }
 
 /*==========================================
- * pc? W
+ * pc? ŒW‰Šú‰»
  *------------------------------------------
  */
 void do_final_pc(void) {

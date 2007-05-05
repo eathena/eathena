@@ -5,13 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <ctype.h> // tolower()
 
 #include "grfio.h"
 #include <zlib.h>
 
 #include "../common/cbasetypes.h"
 #include "../common/showmsg.h"
+#include "../common/malloc.h"
 
 
 //----------------------------
@@ -301,7 +301,7 @@ static int filehash(char* fname)
 {
 	unsigned int hash = 0;
 	while(*fname) {
-		hash = ((hash<<1) + (hash>>7)*9 + (unsigned int)tolower((unsigned char)(*fname)));
+		hash = (hash<<1) + (hash>>7)*9 + TOLOWER(*fname);
 		fname++;
 	}
 	return hash & 255;
@@ -339,7 +339,7 @@ static FILELIST* filelist_add(FILELIST* entry)
 	#define	FILELIST_ADDS	1024	// number increment of file lists `
 
 	if (filelist_entrys >= filelist_maxentry) {
-		filelist = (FILELIST *)realloc(filelist, (filelist_maxentry + FILELIST_ADDS) * sizeof(FILELIST));
+		filelist = (FILELIST *)aRealloc(filelist, (filelist_maxentry + FILELIST_ADDS) * sizeof(FILELIST));
 		memset(filelist + filelist_maxentry, '\0', FILELIST_ADDS * sizeof(FILELIST));
 		filelist_maxentry += FILELIST_ADDS;
 	}
@@ -376,7 +376,7 @@ static void filelist_adjust(void)
 		return;
 	
 	if (filelist_entrys < filelist_maxentry) {
-		filelist = (FILELIST *)realloc(filelist, filelist_entrys * sizeof(FILELIST));
+		filelist = (FILELIST *)aRealloc(filelist, filelist_entrys * sizeof(FILELIST));
 		filelist_maxentry = filelist_entrys;
 	}
 }
@@ -465,11 +465,11 @@ void* grfio_reads(char* fname, int* size)
 		char* grfname = gentry_table[entry->gentry - 1];
 		in = fopen(grfname, "rb");
 		if(in != NULL) {
-			unsigned char *buf = (unsigned char *)malloc(entry->srclen_aligned + 1024);
+			unsigned char *buf = (unsigned char *)aMallocA(entry->srclen_aligned + 1024);
 			fseek(in, entry->srcpos, 0);
 			fread(buf, 1, entry->srclen_aligned, in);
 			fclose(in);
-			buf2 = (unsigned char *)malloc(entry->declen + 1024);
+			buf2 = (unsigned char *)aMallocA(entry->declen + 1024);
 			if (entry->type == 1 || entry->type == 3 || entry->type == 5) {
 				uLongf len;
 				if (entry->cycle >= 0)
@@ -478,14 +478,14 @@ void* grfio_reads(char* fname, int* size)
 				decode_zip(buf2, &len, buf, entry->srclen);
 				if (len != (uLong)entry->declen) {
 					ShowError("decode_zip size mismatch err: %d != %d\n", (int)len, entry->declen);
-					free(buf);
-					free(buf2);
+					aFree(buf);
+					aFree(buf2);
 					return NULL;
 				}
 			} else {
 				memcpy(buf2, buf, entry->declen);
 			}
-			free(buf);
+			aFree(buf);
 		} else {
 			ShowError("%s not found (grfio_reads - GRF file %s)\n", fname, grfname);
 			return NULL;
@@ -546,7 +546,7 @@ static int grfio_entryread(char* grfname, int gentry)
 
 	if (grf_version == 0x01) {	//****** Grf version 01xx ******
 		list_size = grf_size - ftell(fp);
-		grf_filelist = (unsigned char *) malloc(list_size);
+		grf_filelist = (unsigned char *) aMallocA(list_size);
 		fread(grf_filelist,1,list_size,fp);
 		fclose(fp);
 
@@ -565,7 +565,7 @@ static int grfio_entryread(char* grfname, int gentry)
 				fname = decode_filename(grf_filelist+ofs+6, grf_filelist[ofs]-6);
 				if (strlen(fname) > sizeof(aentry.fn) - 1) {
 					ShowFatalError("GRF file name %s is too long\n", fname);
-					free(grf_filelist);
+					aFree(grf_filelist);
 					exit(1);
 				}
 				srclen = 0;
@@ -601,7 +601,7 @@ static int grfio_entryread(char* grfname, int gentry)
 			}
 			ofs = ofs2 + 17;
 		}
-		free(grf_filelist);
+		aFree(grf_filelist);
 
 	} else if (grf_version == 0x02) {	//****** Grf version 02xx ******
 		unsigned char eheader[8];
@@ -618,13 +618,13 @@ static int grfio_entryread(char* grfname, int gentry)
 			return 4;
 		}
 
-		rBuf = (unsigned char *)malloc(rSize);	// Get a Read Size
-		grf_filelist = (unsigned char *)malloc(eSize);	// Get a Extend Size
+		rBuf = (unsigned char *)aMallocA(rSize);	// Get a Read Size
+		grf_filelist = (unsigned char *)aMallocA(eSize);	// Get a Extend Size
 		fread(rBuf,1,rSize,fp);
 		fclose(fp);
 		decode_zip(grf_filelist, &eSize, rBuf, rSize);	// Decode function
 		list_size = eSize;
-		free(rBuf);
+		aFree(rBuf);
 
 		entrys = getlong(grf_header+0x26) - 7;
 
@@ -636,7 +636,7 @@ static int grfio_entryread(char* grfname, int gentry)
 			fname = (char*)(grf_filelist+ofs);
 			if (strlen(fname) > sizeof(aentry.fn)-1) {
 				ShowFatalError("GRF file name %s is too long\n", fname);
-				free(grf_filelist);
+				aFree(grf_filelist);
 				exit(1);
 			}
 			ofs2 = ofs + (int)strlen(fname)+1;
@@ -668,7 +668,7 @@ static int grfio_entryread(char* grfname, int gentry)
 			}
 			ofs = ofs2 + 17;
 		}
-		free(grf_filelist);
+		aFree(grf_filelist);
 
 	} else {	//****** Grf Other version ******
 		fclose(fp);
@@ -713,7 +713,7 @@ static void grfio_resourcecheck(void)
 					FILELIST fentry;
 					memcpy(&fentry, entry, sizeof(FILELIST));
 					strncpy(fentry.fn, src, sizeof(fentry.fn) - 1);
-					fentry.fnd = strdup(dst);
+					fentry.fnd = aStrdup(dst);
 					filelist_modify(&fentry);
 					i++;
 				}
@@ -741,7 +741,7 @@ static void grfio_resourcecheck(void)
 					FILELIST fentry;
 					memcpy(&fentry, entry, sizeof(FILELIST));
 					strncpy(fentry.fn, src, sizeof(fentry.fn) - 1);
-					fentry.fnd = strdup(dst);
+					fentry.fnd = aStrdup(dst);
 					filelist_modify(&fentry);
 					i++;
 				}
@@ -750,7 +750,7 @@ static void grfio_resourcecheck(void)
 			if (!ptr) break;
 			ptr++;
 		}
-		free(buf);
+		aFree(buf);
 		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", i, "data\\resnametable.txt");
 		return;
 	}
@@ -764,11 +764,11 @@ static int grfio_add(char* fname)
 
 	if (gentry_entrys >= gentry_maxentry) {
 		gentry_maxentry += GENTRY_ADDS;
-		gentry_table = (char**)realloc(gentry_table, gentry_maxentry * sizeof(char*));
+		gentry_table = (char**)aRealloc(gentry_table, gentry_maxentry * sizeof(char*));
 		memset(gentry_table + (gentry_maxentry - GENTRY_ADDS), 0, sizeof(char*) * GENTRY_ADDS);
 	}
 
-	gentry_table[gentry_entrys++] = strdup(fname);
+	gentry_table[gentry_entrys++] = aStrdup(fname);
 
 	return grfio_entryread(fname, gentry_entrys - 1);
 }
@@ -777,7 +777,7 @@ static int grfio_add(char* fname)
 void grfio_final(void)
 {
 	if (filelist != NULL)
-		free(filelist);
+		aFree(filelist);
 
 	filelist_entrys = filelist_maxentry = 0;
 
@@ -785,9 +785,9 @@ void grfio_final(void)
 		int i;
 		for (i = 0; i < gentry_entrys; i++) {
 			if (gentry_table[i] != NULL)
-				free(gentry_table[i]);
+				aFree(gentry_table[i]);
 		}
-		free(gentry_table);
+		aFree(gentry_table);
 	}
 	gentry_table = NULL;
 	gentry_entrys = gentry_maxentry = 0;

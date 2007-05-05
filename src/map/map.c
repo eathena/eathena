@@ -2484,7 +2484,7 @@ int map_waterheight(char *mapname) {
 	{	//Load water height from file
 		whtemp = *(float*)(rsw+166);
 		wh = (int) whtemp;
-		free(rsw);
+		aFree(rsw);
 		return wh;
 	}
 	ShowWarning("Failed to find water level for (%s)\n", mapname, fn);
@@ -2807,7 +2807,7 @@ int map_readgat (struct map_data *m)
 		}
 	}
 
-	free(gat);
+	aFree(gat);
 
 	return 1;
 }
