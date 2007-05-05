@@ -23,6 +23,7 @@ Playtester
 Date		Added
 ======
 2007/05/06
+	* Updated Food Seller to official [Playtester]
 	* Updated Ninja and Gunslinger Job Change quests to official. [SinSloth]
 	* Updated Gunslinger weapon quests (Inferno, Destroyer and Garrison) to official. [SinSloth]
 2007/05/05
