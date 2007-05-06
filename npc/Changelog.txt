@@ -23,6 +23,7 @@ Playtester
 Date		Added
 ======
 2007/05/06
+	* More "fixes" tot he Kiel Hyre quest, .KHQuestBusy was being set but was unused. No longer set. [L0ne_W0lf]
 	* Fixed some bugs in Einbech and Geffen spawns [Playtester]
 	* More official socket enchant success rates [Playtester]
 	* Merged Veins city and field warps [Playtester]
