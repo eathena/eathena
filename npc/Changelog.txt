@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/05/09
+	* Added Juperos Ruins History Quest. Thanks to Keplerk. [SinSloth]
 2007/05/07
 	* Various spawn fixes here and there [Playtester]
 	* Fixed a bug in Hugel field spawns [Playtester]
