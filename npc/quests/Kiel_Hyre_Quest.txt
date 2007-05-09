@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= L0ne_W0lf (Script), DZeroX (Timer)
 //===== Current Version: ===================================== 
-//= 2.4
+//= 2.6
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -41,7 +41,15 @@
 //= 2.3 Should NOT have been setting .KHQuestBusy at all. It's not used or accessed anymore. Removed. [L0ne_W0lf]
 //= 2.4 Lots of fixes (4ish) from Valandi. [L0ne_W0lf]
 //=	Added a getmapuser check to the mapwarp in KHTimerEnd so it's not trying to warp out 0 users. [L0ne_W0lf]
-//
+//= 2.5 FIxed several small issues (and large one) such as typos in cutins, typos in dialog, etc. [L0ne_W0lf]
+//=	Added some of the missing dialogs for several NPCs, and fixed a few NPC locations.
+//=	ALL books can now trigger the wall.
+//=	Allysia will now summon 4 (was 2) G_CONSTANTS instead of REGULAR constants.
+//=	Fixed where Golden_Key and Exquisite_Button are deleted.
+//=	Removed KHTimerEnd, and instead use OnReset.
+//=	Fixed typo in the second NPC that gives Black Keycards.
+//=	Added and Monster Warps. (Keeps monsters from being in dungeon quest area.) Non-functional though.
+//= 2.6 Stupid mistake, accidentally had 4 copies of the same script in 1... [L0ne_W0lf the bonehead]
 //============================================================ 
 
 
@@ -72,14 +80,8 @@
 //  - Near the end I finshed the quest with some people. Used packet logging to get dialog.
 //  - Because of the above mentioned, NPC placement and dialog is a little sloppier.
 //  - Possible missing dialog for "Kiel Hyre" (Accept and Okay responses)
-//  - Lots of missing dialog, possible improper order of some things in "Kiehl's room".
 //  - Parties are *NOT REQUIRED* as per Doddler's Wiki information.
 //  - Possible missing dialog for "Kiel Hyre" if you don't have Allysia's Ring.
-//  - Using "atcommand" to kill all players on kh_kiel02, if you think of a better way, let me know.
-//  - ALL of the 5 doors in kh_kiehl01 will disable after 30 seconds.
-//  - Due to lack of information, the boss room WILL reset 10 minutes after entering
-//  - For the same reason, the 3 minute timer after the boss battle will also reset the quest.
-//  - The effects during the 3 minute timer events are not official (as far as I know)
 //
 //----------------------------------------------------------------------------
 // [Maps]                [Use]
@@ -264,6 +266,15 @@
 // Juno Pub Master/Starting point.
 //----------------------------------------------------------------------------
 yuno_in01,35,179,1	script	Pub Master	46,4,4,{
+	if (checkweight(7487,1) == 1) {
+		mes "^3355FF- Wait!! -";
+		mes "- You are carrying too many items-";
+		mes "- so you can't receive any more items -";
+		mes "- please take off some items -";
+		mes "- and come for the challenge again -^000000";
+		close;
+	}
+
 	if (KielHyreQuest == 1) {
 		mes "[Vandt]";
 		mes "Hi there, welcome";
@@ -281,6 +292,7 @@ yuno_in01,35,179,1	script	Pub Master	46,4,4,{
 			mes "is out special Schwaltz Beer.";
 			next;
 			mes "^3355FF*Gulp gulp gulp*^000000";
+			percentheal 5,-5;
 			next;
 			mes "["+strcharinfo(0)+"]";
 			mes "Ahhh, it's really";
@@ -610,18 +622,20 @@ lighthalzen,365,300,2	script	Windmill Owner	46,{
 			close;
 
 		}
+
 	}
 
 	else if (KHToastGirlEnd >= 2) {
 		mes "[Mills]";
 		mes "That Cutz is such";
 		mes "a lazy rascal. The guy";
-		mes "thinks he can feel around";
+		mes "thinks he can fool around";
 		mes "when he's on the clock...!";
 		mes "Ah well, he knows I can't find";
 		mes "a better assistant. He'll learn...";
 		close;
 	}
+
 }
 
 //============================================================================
@@ -629,7 +643,7 @@ lighthalzen,365,300,2	script	Windmill Owner	46,{
 //============================================================================
 
 //----------------------------------------------------------------------------
-// Academy Security Guards
+// Girl (Talks about the academy)
 //----------------------------------------------------------------------------
 yuno_fild08,196,196,5	script	Hanie	102,{
 	mes "[Hanie]";
@@ -841,7 +855,15 @@ kh_school,57,139,1	script	Student::StudentKHQ2	893,{
 // Mrs. Lecollane
 //----------------------------------------------------------------------------
 kh_school,176,60,4	script	Lady::LadyKHQ	101,{
-	if (KielHyreQuest == 2) { 
+	if (KielHyreQuest < 2) {
+		mes "[Mrs. Lecollane]";
+		mes "Is there a problem?";
+		mes "Outsiders are not allowed to come";
+		mes "in here, please leave.";
+		close;
+	}
+
+	else if (KielHyreQuest == 2) { 
 		mes "[Mrs. Lecollane]";
 		mes "Oh, hello. Ah!";
 		mes "have you come to";
@@ -920,8 +942,9 @@ kh_school,176,60,4	script	Lady::LadyKHQ	101,{
 // Elly (In school)
 //----------------------------------------------------------------------------
 kh_school,179,39,1	script	Cute Student	895,{
-	cutin "kh_elly03",2;
+	cutin "kh_elly01",2;
 	if (KielHyreQuest < 4) { 
+		cutin "kh_elly03",2;
 		mes "[Elly]";
 		mes "W-wah! Oh...!";
 		mes "*Phew* That was close,";
@@ -932,10 +955,11 @@ kh_school,179,39,1	script	Cute Student	895,{
 	}
 
 	else if (KielHyreQuest == 4) { 
+		cutin "kh_elly03",2;
 		mes "[Elly]";
 		mes "Oh no, what should";
 		mes "I do? *Sob* Wh-what";
-		mes "am I going to do? *snuff*";
+		mes "am I going to do? *sniff*";
 		next;
 		switch(select("What happened?","......")) {
 
@@ -985,6 +1009,7 @@ kh_school,179,39,1	script	Cute Student	895,{
 				mes "this huge favor and bring";
 				mes "all these ingredients?";
 				next;
+				cutin "kh_elly01",2;
 				mes "[Elly]";
 				mes "^3355FF1 Wine^000000";
 				mes "^3355FF7 Milks^000000";
@@ -1228,7 +1253,7 @@ kh_school,179,39,1	script	Cute Student	895,{
 		mes "any business trips. I thought";
 		mes "he'd be at home all day...";
 		next;
-		cutin "klh_elly04",2;
+		cutin "kh_elly04",2;
 		mes "[Elly]";
 		mes "Would you go back to his";
 		mes "cottage once more time? Here,";
@@ -1266,7 +1291,7 @@ kh_school,179,39,1	script	Cute Student	895,{
 		mes "If you don't hear from me";
 		mes "7 days after I've written";
 		mes "it's possible I may be in";
-		mes "trouble. Don't trust anyone,";
+		mes "trouble. Don't trust anyone";
 		mes "at the Academy, Elly.";
 		mes "I've left something for you";
 		mes "In the Study.";
@@ -1566,10 +1591,13 @@ yuno_fild08,69,185,0	script	Window::WindowKHQ1	111,{
 kh_school,178,180,5	script	Elly	895,{
 	if (KielHyreQuest <= 30) {
 		mes "[Elly]";
-		mes "......";
-		mes ".........";
-		mes "............";
-		close;
+		mes "Oh~!";
+		mes "Who are you!";
+		mes "How did you get here? Please leave";
+		close2;
+		percentheal -99,0;
+		warp "yuno_fild08",100,100;
+		end;
 	}
 
 	else if (KielHyreQuest == 32) {
@@ -2140,37 +2168,42 @@ OnOpenDoor:
 //----------------------------------------------------------------------------
 // Store room interior; books
 //----------------------------------------------------------------------------
-kh_vila,184,20,0	script	Book::BookKHQ1	111,{
-	if (KielHyreQuest != 26) {
+kh_vila,184,20,0	script	Book#1::BookKHQ1	111,{
+	if ((KielHyreQuest < 26) || (KielHyreQuest > 26)) {
 		mes "^3355FFThis bookshelf is^000000";
 		mes "^3355FFcrammed with many^000000";
 		mes "^3355FFlarge, hardcover books^000000";
 		close;
 	}
 	else if (KielHyreQuest == 26) {
-		mes "^3355FFWithout thinking, you^000000";
-		mes "^3355FFreach for a book from^000000";
-		mes "^3355FFthe bookshelf. As you^000000";
-		mes "^3355FFpull it toward you, the^000000";
-		mes "^3355FFwall slides open to^000000";
-		mes "^3355FFreveal a secret path.^000000";
-		donpcevent "Wall::OnOpenDoor";
-		set KielHyreQuest,28;
-		close;
+		if (rand(1,10) == 8) {
+			mes "^3355FFWithout thinking, you^000000";
+			mes "^3355FFreach for a book from^000000";
+			mes "^3355FFthe bookshelf. As you^000000";
+			mes "^3355FFpull it toward you, the^000000";
+			mes "^3355FFwall slides open to^000000";
+			mes "^3355FFreveal a secret path.^000000";
+			donpcevent "Wall::OnOpenDoor";
+			set KielHyreQuest,28;
+			close;
+		}
+
+		else {
+			mes "^3355FFThis bookshelf is^000000";
+			mes "^3355FFcrammed with many^000000";
+			mes "^3355FFlarge, hardcover books^000000";
+			close;
+		}
+
 	}
 
 }
 
-kh_vila,181,20,0	script	Book::BookKHQ2	111,{
-	mes "^3355FFThis bookshelf is^000000";
-	mes "^3355FFcrammed with many^000000";
-	mes "^3355FFlarge, hardcover books^000000";
-	close;
-}
+kh_vila,181,20,0	duplicate(BookKHQ1)	Book#2::BookKHQ2	111
 
-kh_vila,178,20,0	duplicate(BookKHQ2)	Book::BookKHQ3	111
+kh_vila,178,20,0	duplicate(BookKHQ1)	Book#3::BookKHQ3	111
 
-kh_vila,175,19,0	duplicate(BookKHQ2)	Book::BookKHQ4	111
+kh_vila,175,19,0	duplicate(BookKHQ1)	Book#4::BookKHQ4	111
 
 //----------------------------------------------------------------------------
 // Store room interior; Letter to Elly on the floor.
@@ -2606,7 +2639,7 @@ kh_vila,39,41,0	script	pool	111,{
 //----------------------------------------------------------------------------
 // Cottage interior, upstairs; Vicious Dog
 //----------------------------------------------------------------------------
-kh_vila,180,178,4	script	Vicious Dog	81,7,7,{
+kh_vila,181,178,4	script	Vicious Dog	81,7,3,{
 OnTouch:
 	mes "*Grrr~*";
 	next;
@@ -3493,7 +3526,7 @@ kh_dun01,76,233,0	script	Heavy Door::HeavyDoorKHQ2	111,{
 
 kh_dun01,106,233,0	duplicate(HeavyDoorKHQ2)	Heavy Door::HeavyDoorKHQ3	111
 kh_dun01,6,164,0	duplicate(HeavyDoorKHQ2)	Heavy Door::HeavyDoorKHQ4	111
-kh_dun01,6,134,0	duplicate(HeavyDoorKHQ2)	Heavy Door::HeavyDoorKHQ5	111
+kh_dun01,6,133,0	duplicate(HeavyDoorKHQ2)	Heavy Door::HeavyDoorKHQ5	111
 kh_dun01,6,60,0		duplicate(HeavyDoorKHQ2)	Heavy Door::HeavyDoorKHQ6	111
 kh_dun01,6,30,0		duplicate(HeavyDoorKHQ2)	Heavy Door::HeavyDoorKHQ7	111
 kh_dun01,6,18,0		duplicate(HeavyDoorKHQ2)	Heavy Door::HeavyDoorKHQ8	111
@@ -3557,8 +3590,10 @@ kh_school,119,149,4	script	Beautiful lady::BeatifulLadyKHQ1	894,{
 			mes "not taking any changes!";
 			close2;
 			cutin "",255;
-			monster "kh_school",116,145,"Constant",1738,1;
-			monster "kh_school",117,143,"Constant",1738,1;
+			monster "kh_school",117,144,"Constant",1745,1;
+			monster "kh_school",117,144,"Constant",1745,1;
+			monster "kh_school",117,144,"Constant",1745,1;
+			monster "kh_school",117,144,"Constant",1745,1;
 			end;
 
 		case 5:
@@ -3825,9 +3860,24 @@ kh_dun01,166,223,0	script	Mechanical Device::KHKeyardReader	111,{
 kh_dun01,162,206,0	duplicate(KHKeyardReader)	Mechanical Device	111
 
 //----------------------------------------------------------------------------
+// Keep monsters out of the quest area.
+// Silly really sinc ehte rest of it's a dungeon
+//----------------------------------------------------------------------------
+//kh_dun01,180,220,0	script	Monster Warp#kh1::KHMobWarp	-1,5,20,{
+//OnTouchNPC:
+//	warp "kh_dun01",178,138;
+//	end;
+//}
+
+//kh_dun01,190,220,0	duplicate(KHMobWarp)	Monster Warp#kh2	-1,5,20
+//kh_dun01,200,250,0	duplicate(KHMobWarp)	Monster Warp#kh3	-1,5,20
+//kh_dun01,210,220,0	duplicate(KHMobWarp)	Monster Warp#kh4	-1,5,20
+//kh_dun01,220,220,0	duplicate(KHMobWarp)	Monster Warp#kh5	-1,5,10
+
+//----------------------------------------------------------------------------
 // Kiel Hyre - OnTouch
 //----------------------------------------------------------------------------
-kh_dun01,224,232,0	script	Kiel_Hyre_Door	-1,2,2,{
+kh_dun01,224,233,0	script	Kiel_Hyre_Door	-1,5,5,{
 OnTouch:
 	if (KielHyreQuest == 40) {
 		mes "^3355FFyou can faintly hear^000000";
@@ -3960,6 +4010,15 @@ kh_dun01,36,195,0	duplicate(KHAccess)	Entrance Device#KHEntry2	111
 // Kiel's Steward
 //----------------------------------------------------------------------------
 kh_mansion,78,55,5	script	Steward::StewardKHQ1	109,{
+	if (KielHyreQuest < 46) {
+		mes "[Steward]";
+		mes "This is a private residence,";
+		mes "please leave.";
+		close2;
+		warp "lighthalzen",188,201;
+		end;
+	}
+
 	if ((KielHyreQuest >= 46) && (KielHyreQuest < 50)) {
 		mes "[Steward]";
 		mes "Greetings.";
@@ -3975,7 +4034,6 @@ kh_mansion,78,55,5	script	Steward::StewardKHQ1	109,{
 			mes "Ah, Master "+strcharinfo(0)+".";
 			mes "I've been expecting your";
 			mes "arival. Please, this way.";
-			delitem 7493,1; //Golden_Key
 			close2;
 			warp "kh_mansion",21,14;
 			end;
@@ -4079,7 +4137,14 @@ kh_mansion,78,55,5	script	Steward::StewardKHQ1	109,{
 //----------------------------------------------------------------------------
 kh_mansion,22,28,4	script	Kiel Hyre	903,{
 	cutin "kh_kyel02",2;
-	if (KielHyreQuest == 46) {
+	if (KielHyreQuest < 46) {
+		mes "[Kiehl Hyre]";
+		mes ".........";
+		close;
+	}
+
+	else if (KielHyreQuest == 46) {
+		cutin "kh_kyel01",2;
 		mes "[Kiel Hyre]";
 		mes "Ah, you must be "+strcharinfo(0)+".";
 		mes "I'd like to thank you for saving";
@@ -4174,6 +4239,8 @@ kh_mansion,22,28,4	script	Kiel Hyre	903,{
 			mes "let me rest?? I'm still not";
 			mes "feeling well from the time";
 			mes "I was locked up in the factory.";
+			delitem 7493,1; //Golden_Key
+			delitem 7494,1; //Exquisite_Button
 			set KielHyreQuest,48;
 		}
 
@@ -4237,7 +4304,7 @@ kh_mansion,22,28,4	script	Kiel Hyre	903,{
 			mes "an old portrait of a woman";
 			mes "that looks just like Allysia.";
 			next;
-			cutin "kh_kyel01",2;
+			cutin "kh_kyel02",2;
 			mes "[Kiel Hyre]";
 			mes "Oh...";
 			mes "Is that all?";
@@ -4278,6 +4345,7 @@ kh_mansion,22,28,4	script	Kiel Hyre	903,{
 			mes "[Kiel Hyre]";
 			mes "............";
 			next;
+			cutin "kh_kyel01",2;
 			mes "["+strcharinfo(0)+"]";
 			mes "I think this is what happened:";
 			mes "when you were a young, poor";
@@ -4557,7 +4625,6 @@ kh_mansion,22,28,4	script	Kiel Hyre	903,{
 								delitem 7501,1; //K.H's_Letter
 								delitem 7502,1; //James's_Memo
 								delitem 7503,1; //Portrait_of_a_Guy
-								delitem 7494,1; //Exquisite_Button
 								close;
 
 							}
@@ -4891,7 +4958,7 @@ kh_mansion,22,28,4	script	Kiel Hyre	903,{
 		mes "your help, "+@KHTitle+". "+strcharinfo(0)+".";
 		getitem 616,1;  //Old card Album
 		delitem 7508,1; //Elisia's_Ring
-		getexp 1300000,0;
+		getexp 1000000,0;
 	}
 
 	else if (KielHyreQuest >= 108) {
@@ -4912,7 +4979,15 @@ kh_mansion,22,28,4	script	Kiel Hyre	903,{
 //----------------------------------------------------------------------------
 kh_mansion,18,30,4	script	Allysia	894,{
 	cutin "kh_ellisia",2;
-	if (KielHyreQuest < 70) {
+	if (KielHyreQuest <= 68) {
+		mes "[Allysia]";
+		mes "Who are you?";
+		mes "How did you get here?";
+		mes "Go away";
+		close;
+	}
+
+	else if (KielHyreQuest < 70) {
 		mes "[Allysia]";
 		mes "You must be surprised";
 		mes "by everything that's been";
@@ -5078,7 +5153,7 @@ kh_mansion,18,30,4	script	Allysia	894,{
 //----------------------------------------------------------------------------
 // Abduction triggering NPC
 //----------------------------------------------------------------------------
-lighthalzen,188,200,0	script	Abduction_trigger	-1,2,2{
+lighthalzen,188,200,0	script	Abduction_trigger	-1,3,1,{
 OnTouch:
 	if (KielHyreQuest == 50) {
 		mes "^3355FFAs you walked out of^000000";
@@ -5100,7 +5175,7 @@ OnTouch:
 //----------------------------------------------------------------------------
 // Mysterious Woman "Mitchell Layla"
 //----------------------------------------------------------------------------
-kh_mansion,25,79,4	script	Mysterious Woman	727,4,4,{
+kh_mansion,25,79,4	script	Mysterious Woman	727,3,3,{
 L_StartDialog:
 	if (KielHyreQuest == 50) {
 		mes "^3355FFYou awaken with your^000000";
@@ -6101,7 +6176,7 @@ kh_kiehl01,17,39,0	script	Receiver	111,{
 
 		close2;
 		monster "kh_kiehl01",16,32,"Alicel",1739,1,"Receiver::OnMyMobDead";
-		monster "kh_kiehl01",18,29,"Aliot",1740,1,"Receiver::OnMyMobDead";
+		monster "kh_kiehl01",18,31,"Aliot",1740,1,"Receiver::OnMyMobDead";
 		end;
 	}
 
@@ -6112,7 +6187,7 @@ kh_kiehl01,17,39,0	script	Receiver	111,{
 OnMyMobDead:
 	set .KHKilled,.KHKilled+1;
 	if (.KHKilled == 3) { 
-		makeitem 7506,1,"this",18,37; 
+		makeitem 7506,1,"this",19,36; 
 		set .KHKilled,0;
 	}
 	end;
@@ -6122,6 +6197,13 @@ OnMyMobDead:
 // Kiehl's Room; Flower Vase (Gives...password...for Box)
 //----------------------------------------------------------------------------
 kh_kiehl01,13,40,0	script	Flower Vase	111,{
+	if (KielHyreQuest < 74) {
+		mes "^3355FFYou found";
+		mes "a flower vase.^000000";
+		close;
+	}
+
+	if (KielHyreQuest >= 74) {
 		mes "^3355FFYou found";
 		mes "a flower vase.^000000";
 		next;
@@ -6154,6 +6236,8 @@ kh_kiehl01,13,40,0	script	Flower Vase	111,{
 			close;
 
 		}
+
+	}
 
 }
 
@@ -6450,7 +6534,7 @@ OnTouch:
 //----------------------------------------------------------------------------
 // Kiehl's Room; Robots
 //----------------------------------------------------------------------------
-kh_kiehl01,15,181,0	script	Robots	111,{
+kh_kiehl01,15,179,0	script	Robots#kh1	111,{
 	if (.KHKilled < 1) {
 		set .KHKilled,.KHKilled+1;
 		mes "^3355FFAs soon as you";
@@ -6458,10 +6542,10 @@ kh_kiehl01,15,181,0	script	Robots	111,{
 		mes "a bunch of robots";
 		mes "suddenly appeared.^000000.";
 		close2;
-		monster "kh_kiehl01",17,183,"Alicel",1739,1,"Robots::OnMyMobDead";
-		monster "kh_kiehl01",18,180,"Aliot",1740,1,"Robots::OnMyMobDead";
-		monster "kh_kiehl01",21,182,"Alicel",1739,1,"Robots::OnMyMobDead";
-		monster "kh_kiehl01",19,184,"Aliot",1740,1,"Robots::OnMyMobDead";
+		monster "kh_kiehl01",18,181,"Aliot",1740,1,"Robots#kh1::OnMyMobDead";
+		monster "kh_kiehl01",18,180,"Alicel",1739,1,"Robots#kh1::OnMyMobDead";
+		monster "kh_kiehl01",18,179,"Aliot",1740,1,"Robots#kh1::OnMyMobDead";
+		monster "kh_kiehl01",18,178,"Alicel",1739,1,"Robots#kh1::OnMyMobDead";
 		end;
 	}
 
@@ -6470,33 +6554,34 @@ kh_kiehl01,15,181,0	script	Robots	111,{
 	}
 
 OnMyMobDead:
-	set .HKilled,.KHKilled+1;
+	set .KHKilled,.KHKilled+1;
 	if (.KHKilled == 4) { 
-		makeitem 7506,1,"this",17,182; 
+		makeitem 7506,1,"this",18,180;
 		set .KHKilled,0;
 	}
 	end;
 }
 
 //----------------------------------------------------------------------------
+// Kiehl's Room; Dummy Robots
+//----------------------------------------------------------------------------
+kh_kiehl01,15,177,0	script	Robots#kh2::RobotsKHQ	111,{
+	end;
+}
+kh_kiehl01,15,180,0	duplicate(RobotsKHQ)	Robots#kh3	111
+kh_kiehl01,15,182,0	duplicate(RobotsKHQ)	Robots#kh4	111
+kh_kiehl01,35,187,0	duplicate(RobotsKHQ)	Robots#kh1	111
+kh_kiehl01,37,187,0	duplicate(RobotsKHQ)	Robots#kh2	111
+kh_kiehl01,39,187,0	duplicate(RobotsKHQ)	Robots#kh3	111
+kh_kiehl01,41,187,0	duplicate(RobotsKHQ)	Robots#kh4	111
+
+//----------------------------------------------------------------------------
 // Kiehl's Room; Big Door, (Fifth, and final)
 // - Anyone can pass through this door
 // - Consumes 4 Solid Iron Pieces
-// - 10 minute timer is QEUSTIONABLE, may not even be a 10 minute limit.
-//   Put it in anyway, used to make sure people don't abuse the room.
 //----------------------------------------------------------------------------
 kh_kiehl01,166,187,0	script	Big Door#BigDoorKHQ5	111,{
-	if (($@KH_DoorInvoker$ == "") && (KielHyreQuest >= 74) && (KielHyreQuest <= 106)) {
-
-		if ($@KHQuestBusy$ == "") {
-			initnpctimer;
-			set $@KHQuestBusy$,strcharinfo(0);
-		}
-
-		else if (strcharinfo(0) != $@KHQuestBusy$) {
-			goto L_CannotOpen;
-		}
-
+	if (($@KHQuestBusy == 0) && (KielHyreQuest >= 74) && (KielHyreQuest <= 106)) {
 		if (KielHyreQuest < 86) {
 			mes "^3355FFThis large door..";
 			mes "is closed shut.";
@@ -6532,8 +6617,8 @@ kh_kiehl01,166,187,0	script	Big Door#BigDoorKHQ5	111,{
 			mes "kind of security device.^000000";
 			close2;
 			set @KHDoorPushAttempt,@KHDoorPushAttempt+1;
-			monster "kh_kiehl01",162,183,"Alicel",1739,1;
-			monster "kh_kiehl01",162,179,"Aliot",1740,1;
+			monster "kh_kiehl01",163,183,"Alicel",1739,1;
+			monster "kh_kiehl01",163,179,"Aliot",1740,1;
 			monster "kh_kiehl01",169,183,"Alicel",1739,1;
 			monster "kh_kiehl01",169,179,"Aliot",1740,1;
 			if (@KHDoorPushAttempt >= 3) { 
@@ -6671,7 +6756,6 @@ kh_kiehl01,166,187,0	script	Big Door#BigDoorKHQ5	111,{
 	}
 
 	else {
-		L_CannotOpen:
 		mes "^3355FFThis large door..";
 		mes "is closed shut.";
 		mes "If you listen carefully,";
@@ -6680,13 +6764,11 @@ kh_kiehl01,166,187,0	script	Big Door#BigDoorKHQ5	111,{
 		close;
 	}
 
-OnTimer600000:
-	stopnpctimer;
-	set $@KHQuestBusy$,"";
-	end;
 }
 
 kh_kiehl01,166,186,0	script	Big_Door_5_Warp	45,1,1,{
+	end;
+
 OnEnable:
 	initnpctimer;
 	misceffect 215;
@@ -6704,14 +6786,12 @@ OnInit:
 	end;
 
 OnTouch:
-	if ($@KH_DoorInvoker$ == strcharinfo(0)) {
-		addtimer 600000,"KiehlRoom::OnKHTimerEnd";
-		warp "kh_kiehl02",50,6;
-		disablenpc "Big_Door_5_Warp";
-	}
 
-	else {
+	if (KielHyreQuest >= 46) {
 		warp "kh_kiehl02",50,6;
+	}
+	else {
+		warp "kh_kiehl01",166,183;
 	}
 
 	end;
@@ -6720,23 +6800,54 @@ OnTouch:
 //----------------------------------------------------------------------------
 // Kiehl's Room; Kiehl_Room_Trap (Entry way trap)
 //----------------------------------------------------------------------------
-kh_kiehl02,49,15,0	script	Kiehl_Room_Trap	-1,4,4,{
+kh_kiehl02,49,10,0	script	Kiehl_Room_Trap	-1,5,3,{
 	end;
 
 OnTouch:
 	if (.KHTrapSprung < 1) {
 		set .KHTrapSprung,1;
-		monster "kh_kiehl02",46,13,"Alicel",1739,1;
+		set $@KHQuestBusy,1;
+		initnpctimer;
 		monster "kh_kiehl02",47,13,"Aliot",1740,1;
-		monster "kh_kiehl02",48,13,"Alicel",1739,1;
-		monster "kh_kiehl02",49,13,"Aliot",1740,1;
-		monster "kh_kiehl02",50,13,"Alicel",1739,1;
+		monster "kh_kiehl02",54,13,"Alicel",1739,1;
+		monster "kh_kiehl02",49,13,"Constant",1745,1;
 		monster "kh_kiehl02",51,13,"Aliot",1740,1;
-		monster "kh_kiehl02",52,13,"Alicel",1739,1;
-		monster "kh_kiehl02",53,13,"Aliot",1740,1;
+		monster "kh_kiehl02",53,13,"Alicel",1739,1;
+		monster "kh_kiehl02",49,13,"Constant",1745,1;
 		end;
 	}
 
+	end;
+
+
+OnTimer300000:
+	if (getmapusers("kh_kiehl02") == 0) {
+		donpcevent "KiehlRoom::OnReset";
+		stopnpctimer;
+	}
+	end;
+
+OnTimer600000:
+	if (getmapusers("kh_kiehl02") == 0) {
+		donpcevent "KiehlRoom::OnReset";
+		stopnpctimer;
+	}
+	end;
+
+OnTimer900000:
+	if (getmapusers("kh_kiehl02") == 0) {
+		donpcevent "KiehlRoom::OnReset";
+		stopnpctimer;
+	}
+	end;
+
+OnTimer1200000:
+	donpcevent "KiehlRoom::OnReset";
+	stopnpctimer;
+	end;
+
+OnGlobalTimerOff:
+	stopnpctimer;
 	end;
 }
 
@@ -6745,13 +6856,17 @@ OnTouch:
 // - Only the player who invoked the final door should progress this npc.
 // - Only the player who invoked the final door should be able to get ring.
 // - Timer will drop to 3 minutes once Kiehl is defeated.
-//   You probably "Die" once the 3 minutes are up, or are returned to
-//   lighthalzen, at 193,202, maybe add some flare too it and make them explode?
 //----------------------------------------------------------------------------
 kh_kiehl02,50,52,4	script	Kiehl#Original	902,{
 	cutin "kh_kiel01",2;
+	if (KielHyreQuest < 94) {
+		mes "[Kiehl]";
+		mes ".........";
+		close;
+	}
+
 	if ($@KH_DoorInvoker$ == strcharinfo(0)) {
-		if (KielHyreQuest == 94) {
+		if ((KielHyreQuest == 94) && (getvariableofnpc(.KHKilled,"KiehlRoom") < 5)) {
 			mes "[Kiehl]";
 			mes "I'm surprised you made";
 			mes "it this far, adventurer~";
@@ -6759,14 +6874,7 @@ kh_kiehl02,50,52,4	script	Kiehl#Original	902,{
 			mes "humble room. I assume that";
 			mes "you've come for the Condensed";
 			mes "Memory Scroll... my mind.";
-			set KielHyreQuest,96;
-			close2;
-			cutin "",255;
-			end;
-		}
-
-		else if ((KielHyreQuest == 96) && (getvariableofnpc(.KHKilled,"KiehlRoom") < 6)) {
-			set getvariableofnpc(.KHKilled,"KiehlRoom"),0;
+			next;
 			mes "[Kiehl]";
 			mes "You can understand";
 			mes "why I can't let you have it,";
@@ -6775,18 +6883,20 @@ kh_kiehl02,50,52,4	script	Kiehl#Original	902,{
 			mes "then show me what you've got!";
 			close2;
 			cutin "",255;
-			monster "kh_kiehl02",46,50,"Alicel",1739,1,"KiehlRoom::OnKiehlMobDead";
+			set getvariableofnpc(.KHKilled,"KiehlRoom"),0;
 			monster "kh_kiehl02",49,48,"Aliot",1740,1,"KiehlRoom::OnKiehlMobDead";
-			monster "kh_kiehl02",53,50,"Alicel",1739,1,"KiehlRoom::OnKiehlMobDead";
+			monster "kh_kiehl02",46,50,"Alicel",1739,1,"KiehlRoom::OnKiehlMobDead";
+			monster "kh_kiehl02",49,50,"Constant",1745,1,"KiehlRoom::OnKiehlMobDead";
 			monster "kh_kiehl02",53,53,"Aliot",1740,1,"KiehlRoom::OnKiehlMobDead";
 			monster "kh_kiehl02",49,55,"Alicel",1739,1,"KiehlRoom::OnKiehlMobDead";
+			monster "kh_kiehl02",49,53,"Constant",1745,1,"KiehlRoom::OnKiehlMobDead";
 			monster "kh_kiehl02",46,53,"Aliot",1740,1,"KiehlRoom::OnKiehlMobDead";
 			donpcevent "Kiehl#Original::OnChangeState";
 			disablenpc "Kiehl#Original";
 			end;
 		}
 
-		else if ((KielHyreQuest == 96) && (getvariableofnpc(.KHKilled,"KiehlRoom") == 6)) {
+		else if ((KielHyreQuest == 94) && (getvariableofnpc(.KHKilled,"KiehlRoom") >= 5)) {
 			cutin "kh_kiel03",2;
 			mes "[Kiehl]";
 			mes "Hmpf! You're pretty good.";
@@ -6885,7 +6995,7 @@ kh_kiehl02,50,52,4	script	Kiehl#Original	902,{
 
 		else if ((KielHyreQuest == 100) && (getvariableofnpc(.KHKilledBoss,"KiehlRoom") < 1)) {
 			set getvariableofnpc(.KHKilledBoss,"KiehlRoom"),0;
-			cutin "kh_keil01",2;
+			cutin "kh_kiel01",2;
 			mes "[Kiehl]";
 			mes "Ah, Schwaltzvalt Republic";
 			mes "agents. Heh. I haven't had";
@@ -6979,7 +7089,7 @@ kh_kiehl02,50,52,4	script	Kiehl#Original	902,{
 			mes "Who are you...?";
 			mes "Show yourself!";
 			next;
-			donpcevent "Kiehl#Copy::OnEnable";
+			donpcevent "Kiehl#Copy::OnChangeState";
 			enablenpc "Kiehl#Copy";
 			mes "[????]";
 			mes "Please.";
@@ -7152,11 +7262,9 @@ kh_kiehl02,50,52,4	script	Kiehl#Original	902,{
 			enablenpc "Kiehl_Room_Exit";
 			close2;
 			cutin "",255;
-			donpcevent "Kiehl#Copy::OnDisable";
+			donpcevent "Kiehl#Copy::OnChangeState";
 			disablenpc "Kiehl#Copy";
-			deltimer "KiehlRoom::OnKHTimerEnd";
 			initnpctimer;
-			announce "3 minutes remaining until detonation.",bc_map,0xFF0000;
 			end;
 		}
 
@@ -7190,27 +7298,54 @@ kh_kiehl02,50,52,4	script	Kiehl#Original	902,{
 		end;
 	}
 
-OnTimer180050:
+OnTimer180000:
 	stopnpctimer;
-	mapwarp "kh_kiehl02","lighthalzen",193,202;
+	mapannounce "kh_kiehl02","Beeeeeeeeeeeeep~",bc_npc,0xFF0000;
 	donpcevent "KiehlRoom::OnReset";
 	end;
 
-OnTimer180000:
-	//Originally this was going to kill all players in the map, but that seemed far too mean.
-	//So instead it just sends people to lighthalzen regardless, and plays the NPC_SELFDESTRUCTION
-	//animation.
-	misceffect 183;
-	misceffect 563;
+OnTimer179000:
+	mapannounce "kh_kiehl02","1 second remaining until detonation",bc_npc,0xFF0000;
 	end;
 
-OnTimer90000:
-	mapannounce "kh_kiehl02","1 minutes remaining until detonation.",bc_npc,0xFF0000;
-	misceffect 563;
+OnTimer178000:
+	mapannounce "kh_kiehl02","2 seconds remaining until detonation",bc_npc,0xFF0000;
+	end;
+
+OnTimer177000:
+	mapannounce "kh_kiehl02","3 seconds remaining until detonation",bc_npc,0xFF0000;
+	end;
+
+OnTimer176000:
+	mapannounce "kh_kiehl02","4 seconds remaining until detonation",bc_npc,0xFF0000;
+	end;
+
+OnTimer175000:
+	mapannounce "kh_kiehl02","5 seconds remaining until detonation",bc_npc,0xFF0000;
+	end;
+
+OnTimer170000:
+	mapannounce "kh_kiehl02","10 seconds remaining until detonation",bc_npc,0xFF0000;
+	end;
+
+OnTimer160000:
+	mapannounce "kh_kiehl02","20 seconds remaining until detonation",bc_npc,0xFF0000;
+	end;
+
+OnTimer150000:
+	mapannounce "kh_kiehl02","30 seconds remaining until detonation",bc_npc,0xFF0000;
+	end;
+
+OnTimer120000:
+	mapannounce "kh_kiehl02","1 minute remaining until detonation.",bc_npc,0xFF0000;
 	end;
 
 OnTimer60000:
 	mapannounce "kh_kiehl02","2 minutes remaining until detonation.",bc_npc,0xFF0000;
+	end;
+
+OnTimer1000:
+	mapannounce "kh_kiehl02","3 minutes remaining until detonation.",bc_npc,0xFF0000;
 	end;
 
 OnChangeState:
@@ -7230,10 +7365,12 @@ OnInit:
 // Kiehl's Room; NPC for mob control, timers, and other junk.
 //----------------------------------------------------------------------------
 kh_kiehl02,1,1,0	script	KiehlRoom	-1,{
+	end;
 
 OnKiehlMobDead:
+debugmes "KLol: "+.KHKilled;
 	set .KHKilled,.KHKilled+1;
-	if (.KHKilled == 6) { 
+	if (.KHKilled == 5) { 
 		donpcevent "Kiehl#Original::OnChangeState";
 		enablenpc "Kiehl#Original"; 
 	}
@@ -7245,22 +7382,26 @@ OnKiehlDead:
 	enablenpc "Kiehl#Original";
 	end;
 	
-OnKHTimerEnd:
-	set $@KH_DoorInvoker$,"";
-	if (getmapusers("kh_kiehl02") > 0) {
-		mapwarp "kh_kiehl02","lighthalzen",193,202;
-	}
-	donpcevent "KiehlRoom::OnReset";
-	end;
-
 OnReset:
-	disablenpc "Kiehl_Room_Exit";
+	donpcevent "Kiehl_Room_Trap::OnGlobalTimerOff";
+	if (getmapusers("kh_kiehl02") > 0) {
+		mapwarp "kh_kiehl02","lighthalzen",192,200;
+	}
 	killmonsterall "kh_kiehl02";
-	set getvariableofnpc(.KHKilledBoss,"KiehlRoom"),0;
-	set getvariableofnpc(.KHKilled,"KiehlRoom"),0;
+	disablenpc "Kiehl_Room_Exit";
+	disablenpc "Mitchell#KiehlRoom";
+	disablenpc "Agent#KHAgent1";
+	disablenpc "Agent#KHAgent2";
+	disablenpc "Agent#KHAgent3";
+	disablenpc "Agent#KHAgent4";
+	disablenpc "Kiehl#Copy";
+	enablenpc "Kiehl#Original"; 
+	set .KHKilledBoss,0;
+	set .KHKilled,0;
 	set getvariableofnpc(.KHTrapSprung,"Kiehl_Room_Trap"),0;
-	set $@KHQuestBusy$,"";
+	set $@KHQuestBusy,0;
 	set $@KH_DoorInvoker$,"";
+	end;
 }
 
 //----------------------------------------------------------------------------
@@ -7296,11 +7437,7 @@ kh_kiehl02,46,53,6	duplicate(KHAgent)	Agent#KHAgent4	880
 kh_kiehl02,48,53,7	script	Kiehl#Copy	902,{
 	end;
 
-OnEnable:
-	misceffect 215;
-	end;
-
-OnDisable:
+OnChangeState:
 	misceffect 215;
 	end;
 
