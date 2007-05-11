@@ -1016,7 +1016,9 @@ int mob_randomwalk(struct mob_data *md,int tick)
 
 	nullpo_retr(0, md);
 
-	if(DIFF_TICK(md->next_walktime,tick)>0 || !unit_can_move(&md->bl))
+	if(DIFF_TICK(md->next_walktime,tick)>0 || 
+	   !unit_can_move(&md->bl) ||
+	   !(status_get_mode(&md->bl)&MD_CANMOVE))
 		return 0;
 	
 	d =12-md->move_fail_count;

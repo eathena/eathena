@@ -4594,10 +4594,14 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 		//Only affects demons and undead.
 		if(status->race != RC_DEMON && !undead_flag)
 			return 0;
-		break;
+	break;
 	case SC_AETERNA:
-	  if (sc->data[SC_STONE].timer != -1 || sc->data[SC_FREEZE].timer != -1)
-		  return 0;
+		if (sc->data[SC_STONE].timer != -1 || sc->data[SC_FREEZE].timer != -1)
+			return 0;
+	break;
+	case SC_KYRIE:
+		if (bl->type == BL_MOB)
+			return 0;
 	break;
 	case SC_OVERTHRUST:
 		if (sc->data[SC_MAXOVERTHRUST].timer != -1)
@@ -5751,6 +5755,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				val2 = val2%ELE_MAX;
 			else if (val2 < 0)
 				val2 = rand()%ELE_MAX;
+				skill_enchant_elemental_end(bl,type);
 			break;
 		case SC_ARMOR_ELEMENT:
 			//Place here SCs that have no SCB_* data, no skill associated, no ICON
