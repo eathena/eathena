@@ -1,3 +1,5 @@
+05/12
+	* Updated Magmaring [Playtester]
 05/06
 	* Merged item_db, item_violetbox, mob_db, mob_skill_db and skill_db [Playtester]
 	- also updated mob summoning files
