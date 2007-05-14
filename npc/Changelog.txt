@@ -23,6 +23,8 @@ Playtester
 Date		Added
 ======
 2007/02/15
+	* Added Cursed Spirit Quest. [SinSloth]
+	- Moved some NPCs and warps related to the quest in proper file.
 	* Fixed some bugs in Crusader Job change quest. [SinSloth]
 	* Minor fix on NPC name in Swordman tutorial quest. [SinSloth]
 2007/05/12
