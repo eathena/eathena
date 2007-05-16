@@ -89,6 +89,9 @@
 				RelativePath="..\src\basics\baseobjects.cpp">
 			</File>
 			<File
+				RelativePath="..\src\basics\basepacket.cpp">
+			</File>
+			<File
 				RelativePath="..\src\basics\baseparam.cpp">
 			</File>
 			<File
@@ -172,6 +175,9 @@
 			</File>
 			<File
 				RelativePath="..\src\basics\baseobjects.h">
+			</File>
+			<File
+				RelativePath="..\src\basics\basepacket.h">
 			</File>
 			<File
 				RelativePath="..\src\basics\baseparam.h">

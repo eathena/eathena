@@ -1,4 +1,7 @@
 Date	Added
+
+2007/05/16
+	* Initial non-functional prototype of a packet and how to write it to a socket. [FlavioJS]
 2007/04/26
 	* Removed useless check in RFIFOP & WFIFOP (it will crash anyway because they are used
 	  by memcpy, memset, ... (session_isActive should always be used before)

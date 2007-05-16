@@ -711,6 +711,14 @@ bool session_checkbuffer(int fd, size_t sz)
 }
 
 
+int WFIFOPACKET(int fd, const basics::packetbase& p)
+{
+	if( !session_isValid(fd) )
+		return 0;
+	memcpy(WFIFOP(fd,0), p.buffer(), p.length());
+	return WFIFOSET(fd, p.length());
+}
+
 int WFIFOSET(int fd,size_t len)
 {
 	size_t newreserve;
