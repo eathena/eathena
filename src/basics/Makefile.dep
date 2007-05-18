@@ -1,12 +1,12 @@
 BP = $(RETURN_PATH)/$(BASICS_PATH)
 ##########################################################
 BASICS_STATICLIB = $(BP)/libbasics.a
-BASICS_OBJ = $(BP)/basealgo.o $(BP)/basearray.o $(BP)/basecharset.o $(BP)/basefile.o $(BP)/baseinet.o $(BP)/baseipfilter.o $(BP)/basememory.o $(BP)/baseobjects.o $(BP)/basepacket.o $(BP)/baseparam.o $(BP)/baseparser.o $(BP)/basereentrant.o $(BP)/baseregex.o $(BP)/basesocket.o $(BP)/basesort.o $(BP)/basestrformat.o $(BP)/basestring.o $(BP)/basestrsearch.o $(BP)/basesync.o $(BP)/basetime.o $(BP)/basetimerhandler.o $(BP)/basetxtdb.o $(BP)/basetypes.o $(BP)/basevariant.o $(BP)/basezlib.o
+BASICS_OBJ = $(BP)/basealgo.o $(BP)/basearray.o $(BP)/basecharset.o $(BP)/basefile.o $(BP)/baseinet.o $(BP)/baseipfilter.o $(BP)/basememory.o $(BP)/baseobjects.o $(BP)/baseparam.o $(BP)/baseparser.o $(BP)/basereentrant.o $(BP)/baseregex.o $(BP)/basesocket.o $(BP)/basesort.o $(BP)/basestrformat.o $(BP)/basestring.o $(BP)/basestrsearch.o $(BP)/basesync.o $(BP)/basetime.o $(BP)/basetimerhandler.o $(BP)/basetxtdb.o $(BP)/basetypes.o $(BP)/basevariant.o $(BP)/basezlib.o
 ifeq ($(findstring -DWITH_MYSQL,$(CPPFLAGS)), -DWITH_MYSQL)
 BASICS_OBJ += $(BP)/basemysql.o
 endif
 ##########################################################
-BASICS_H = $(BP)/basealgo.h $(BP)/basearray.h $(BP)/basebits.h $(BP)/basebooltype.h $(BP)/basecharset.h $(BP)/baseexceptions.h $(BP)/basefile.h $(BP)/baseinet.h $(BP)/baseipfilter.h $(BP)/baselib.h $(BP)/baselinequate.h $(BP)/basemath.h $(BP)/basememory.h $(BP)/baseobjects.h $(BP)/basepacket.h $(BP)/baseparam.h $(BP)/baseparser.h $(BP)/basepool.h $(BP)/basereentrant.h $(BP)/baseregex.h $(BP)/basesafeptr.h $(BP)/basesocket.h $(BP)/basesort.h $(BP)/basestrformat.h $(BP)/basestring.h $(BP)/basestrsearch.h $(BP)/baseswap.h $(BP)/basesync.h $(BP)/basetime.h $(BP)/basetimerhandler.h $(BP)/basetxtdb.h $(BP)/basetypes.h $(BP)/basevariant.h $(BP)/basezlib.h
+BASICS_H = $(BP)/basealgo.h $(BP)/basearray.h $(BP)/basebits.h $(BP)/basebooltype.h $(BP)/basecharset.h $(BP)/baseexceptions.h $(BP)/basefile.h $(BP)/baseinet.h $(BP)/baseipfilter.h $(BP)/baselib.h $(BP)/baselinequate.h $(BP)/basemath.h $(BP)/basememory.h $(BP)/baseobjects.h $(BP)/baseparam.h $(BP)/baseparser.h $(BP)/basepool.h $(BP)/basereentrant.h $(BP)/baseregex.h $(BP)/basesafeptr.h $(BP)/basesocket.h $(BP)/basesort.h $(BP)/basestrformat.h $(BP)/basestring.h $(BP)/basestrsearch.h $(BP)/baseswap.h $(BP)/basesync.h $(BP)/basetime.h $(BP)/basetimerhandler.h $(BP)/basetxtdb.h $(BP)/basetypes.h $(BP)/basevariant.h $(BP)/basezlib.h
 ifeq ($(findstring -DWITH_MYSQL,$(CPPFLAGS)), -DWITH_MYSQL)
 BASICS_H += $(BP)/basemysql.h
 endif

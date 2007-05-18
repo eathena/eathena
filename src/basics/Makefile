@@ -30,7 +30,6 @@ baseipfilter.o: baseipfilter.cpp baseipfilter.h baseinet.h basetypes.h baseobjec
 basememory.o: basememory.cpp basetypes.h baseobjects.h basememory.h basebooltype.h basealgo.h basetime.h basestring.h basemath.h basebits.h basearray.h basesafeptr.h basesort.h baseswap.h basestrformat.h baseexceptions.h basesync.h
 basemysql.o: basemysql.cpp basemysql.h basetypes.h baseobjects.h basestring.h basemath.h basebooltype.h basebits.h basememory.h basealgo.h basetime.h basearray.h basesafeptr.h basesort.h baseswap.h basestrformat.h basestrsearch.h basepool.h basesync.h baseexceptions.h
 baseobjects.o: baseobjects.cpp basetypes.h baseobjects.h basesync.h baseexceptions.h
-basepacket.o: basepacket.cpp basepacket.h basetypes.h
 baseparam.o: baseparam.cpp basetypes.h baseobjects.h basesync.h baseexceptions.h basefile.h basetime.h basearray.h basesafeptr.h basememory.h basebooltype.h basealgo.h basesort.h baseswap.h basestring.h basemath.h basebits.h basestrformat.h baseparam.h basetimerhandler.h
 baseparser.o: baseparser.cpp basetypes.h baseobjects.h basesafeptr.h basememory.h basebooltype.h basealgo.h basetime.h basestring.h basemath.h basebits.h basearray.h basesort.h baseswap.h basestrformat.h baseexceptions.h baseparser.h
 basereentrant.o: basereentrant.cpp basesync.h basetypes.h baseobjects.h baseexceptions.h basereentrant.h

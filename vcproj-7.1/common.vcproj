@@ -64,6 +64,9 @@
 				RelativePath="..\src\common\baseio.cpp">
 			</File>
 			<File
+				RelativePath="..\src\common\basepacket.cpp">
+			</File>
+			<File
 				RelativePath="..\src\common\basesq.cpp">
 			</File>
 			<File
@@ -114,6 +117,9 @@
 			Filter="">
 			<File
 				RelativePath="..\src\common\baseio.h">
+			</File>
+			<File
+				RelativePath="..\src\common\basepacket.h">
 			</File>
 			<File
 				RelativePath="..\src\common\basesq.h">
