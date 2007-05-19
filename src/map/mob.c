@@ -59,8 +59,7 @@ static struct eri *item_drop_list_ers;
 
 /*==========================================
  * Local prototype declaration   (only required thing)
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_makedummymobdb(int);
 static int mob_spawn_guardian_sub(int,unsigned int,int,int);
 int mobskill_use(struct mob_data *md,unsigned int tick,int event);
@@ -68,8 +67,7 @@ int mob_skillid2skillidx(int class_,int skillid);
 
 /*==========================================
  * Mob is searched with a name.
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mobdb_searchname(const char *str)
 {
 	int i;
@@ -99,8 +97,7 @@ static int mobdb_searchname_array_sub(struct mob_db* mob, const char *str)
 
 /*==========================================
  * Founds up to N matches. Returns number of matches [Skotlex]
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mobdb_searchname_array(struct mob_db** data, int size, const char *str)
 {
 	int count = 0, i;
@@ -120,8 +117,7 @@ int mobdb_searchname_array(struct mob_db** data, int size, const char *str)
 
 /*==========================================
  * Id Mob is checked.
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mobdb_checkid(const int id)
 {
 	if (mob_db(id) == mob_dummy)
@@ -133,8 +129,7 @@ int mobdb_checkid(const int id)
 
 /*==========================================
  * Returns the view data associated to this mob class.
- *------------------------------------------
- */
+ *------------------------------------------*/
 struct view_data * mob_get_viewdata(int class_) 
 {
 	if (mob_db(class_) == mob_dummy)
@@ -143,9 +138,9 @@ struct view_data * mob_get_viewdata(int class_)
 }
 /*==========================================
  * Cleans up mob-spawn data to make it "valid"
- *------------------------------------------
- */
-int mob_parse_dataset(struct spawn_data *data) {
+ *------------------------------------------*/
+int mob_parse_dataset(struct spawn_data *data)
+{
 	int i;
 	//FIXME: This implementation is not stable, npc scripts will stop working once MAX_MOB_DB changes value! [Skotlex]
 	if(data->class_ > 2*MAX_MOB_DB){ // large/tiny mobs [Valaris]
@@ -196,8 +191,7 @@ int mob_parse_dataset(struct spawn_data *data) {
 }
 /*==========================================
  * Generates the basic mob data using the spawn_data provided.
- *------------------------------------------
- */
+ *------------------------------------------*/
 struct mob_data* mob_spawn_dataset(struct spawn_data *data)
 {
 	struct mob_data *md = aCalloc(1, sizeof(struct mob_data));
@@ -243,10 +237,9 @@ struct mob_data* mob_spawn_dataset(struct spawn_data *data)
  * &4: Selected monster should not be a boss type
  * &8: Selected monster must give base exp.
  * lv: Mob level to check against
- *------------------------------------------
- */
-
-int mob_get_random_id(int type, int flag, int lv) {
+ *------------------------------------------*/
+int mob_get_random_id(int type, int flag, int lv)
+{
 	struct mob_db *mob;
 	int i=0, class_;
 	if(type < 0 || type >= MAX_RANDOMMONSTER) {
@@ -307,8 +300,7 @@ struct mob_data *mob_once_spawn_sub(struct block_list *bl, int m,
 }
 /*==========================================
  * The MOB appearance for one time (for scripts)
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_once_spawn (struct map_session_data *sd, const char *mapname,
 	short x, short y, const char *mobname, int class_, int amount, const char *event)
 {
@@ -360,8 +352,7 @@ int mob_once_spawn (struct map_session_data *sd, const char *mapname,
 }
 /*==========================================
  * The MOB appearance for one time (& area specification for scripts)
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_once_spawn_area(struct map_session_data *sd,const char *mapname,
 	int x0,int y0,int x1,int y1,
 	const char *mobname,int class_,int amount,const char *event)
@@ -402,8 +393,7 @@ int mob_once_spawn_area(struct map_session_data *sd,const char *mapname,
 }
 /*==========================================
  * Set a Guardian's guild data [Skotlex]
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_spawn_guardian_sub(int tid,unsigned int tick,int id,int data)
 {	//Needed because the guild_data may not be available at guardian spawn time.
 	struct block_list* bl = map_id2bl(id);
@@ -455,8 +445,7 @@ static int mob_spawn_guardian_sub(int tid,unsigned int tick,int id,int data)
 
 /*==========================================
  * Summoning Guardians [Valaris]
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_spawn_guardian(const char* mapname, short x, short y, const char* mobname, int class_, const char* event, int guardian)
 {
 	struct mob_data *md=NULL;
@@ -547,8 +536,7 @@ int mob_spawn_guardian(const char* mapname, short x, short y, const char* mobnam
  * - MSS_LOOT: Looking for item, path must be easy.
  * - MSS_RUSH: Chasing attacking player, path is complex
  * - MSS_FOLLOW: Initiative/support seek, path is complex
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_can_reach(struct mob_data *md,struct block_list *bl,int range, int state)
 {
 	int easy = 0;
@@ -570,8 +558,7 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range, int state
 
 /*==========================================
  * Links nearby mobs (supportive mobs)
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_linksearch(struct block_list *bl,va_list ap)
 {
 	struct mob_data *md;
@@ -602,8 +589,7 @@ int mob_linksearch(struct block_list *bl,va_list ap)
 
 /*==========================================
  * mob spawn with delay (timer function)
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_delayspawn(int tid, unsigned int tick, int m, int n)
 {
 	struct block_list *bl = map_id2bl(m);
@@ -614,8 +600,7 @@ static int mob_delayspawn(int tid, unsigned int tick, int m, int n)
 
 /*==========================================
  * spawn timing calculation
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_setdelayspawn(struct mob_data *md)
 {
 	unsigned int spawntime, spawntime1, spawntime2, spawntime3;
@@ -646,8 +631,7 @@ static int mob_count_sub(struct block_list *bl,va_list ap)
 
 /*==========================================
  * Mob spawning. Initialization is also variously here.
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_spawn (struct mob_data *md)
 {
 	int i=0;
@@ -722,8 +706,7 @@ int mob_spawn (struct mob_data *md)
 
 /*==========================================
  * Determines if the mob can change target. [Skotlex]
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_can_changetarget(struct mob_data* md, struct block_list* target, int mode)
 {
 	// if the monster was provoked ignore the above rule [celest]
@@ -755,8 +738,7 @@ static int mob_can_changetarget(struct mob_data* md, struct block_list* target, 
 
 /*==========================================
  * Determination for an attack of a monster
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_target(struct mob_data *md,struct block_list *bl,int dist)
 {
 	nullpo_retr(0, md);
@@ -780,8 +762,7 @@ int mob_target(struct mob_data *md,struct block_list *bl,int dist)
 
 /*==========================================
  * The ?? routine of an active monster
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 {
 	struct mob_data *md;
@@ -830,8 +811,7 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 
 /*==========================================
  * chase target-change routine.
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_ai_sub_hard_changechase(struct block_list *bl,va_list ap)
 {
 	struct mob_data *md;
@@ -860,8 +840,7 @@ static int mob_ai_sub_hard_changechase(struct block_list *bl,va_list ap)
 
 /*==========================================
  * loot monster item search
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 {
 	struct mob_data* md;
@@ -884,8 +863,7 @@ static int mob_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 
 /*==========================================
  * Processing of slave monsters
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 {
 	struct block_list *bl;
@@ -966,8 +944,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 
 /*==========================================
  * A lock of target is stopped and mob moves to a standby state.
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_unlocktarget(struct mob_data *md,int tick)
 {
 	nullpo_retr(0, md);
@@ -1006,8 +983,7 @@ int mob_unlocktarget(struct mob_data *md,int tick)
 }
 /*==========================================
  * Random walk
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_randomwalk(struct mob_data *md,int tick)
 {
 	const int retrycount=20;
@@ -1059,8 +1035,7 @@ int mob_randomwalk(struct mob_data *md,int tick)
 
 /*==========================================
  * AI of MOB whose is near a Player
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 {
 	struct mob_data *md;
@@ -1308,8 +1283,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 
 /*==========================================
  * Serious processing for mob in PC field of view (foreachclient)
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_ai_sub_foreachclient(struct map_session_data *sd,va_list ap)
 {
 	unsigned int tick;
@@ -1321,8 +1295,7 @@ static int mob_ai_sub_foreachclient(struct map_session_data *sd,va_list ap)
 
 /*==========================================
  * Negligent mode MOB AI (PC is not in near)
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_ai_sub_lazy(DBKey key,void * data,va_list ap)
 {
 	struct mob_data *md = (struct mob_data *)data;
@@ -1388,8 +1361,7 @@ static int mob_ai_sub_lazy(DBKey key,void * data,va_list ap)
 
 /*==========================================
  * Negligent processing for mob outside PC field of view   (interval timer function)
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_ai_lazy(int tid,unsigned int tick,int id,int data)
 {
 	map_foreachiddb(mob_ai_sub_lazy,tick);
@@ -1398,8 +1370,7 @@ static int mob_ai_lazy(int tid,unsigned int tick,int id,int data)
 
 /*==========================================
  * Serious processing for mob in PC field of view   (interval timer function)
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_ai_hard(int tid,unsigned int tick,int id,int data)
 {
 
@@ -1413,8 +1384,7 @@ static int mob_ai_hard(int tid,unsigned int tick,int id,int data)
 
 /*==========================================
  * Initializes the delay drop structure for mob-dropped items.
- *------------------------------------------
- */
+ *------------------------------------------*/
 static struct item_drop* mob_setdropitem(int nameid, int qty)
 {
 	struct item_drop *drop = ers_alloc(item_drop_ers, struct item_drop);
@@ -1428,8 +1398,7 @@ static struct item_drop* mob_setdropitem(int nameid, int qty)
 
 /*==========================================
  * Initializes the delay drop structure for mob-looted items.
- *------------------------------------------
- */
+ *------------------------------------------*/
 static struct item_drop* mob_setlootitem(struct item* item)
 {
 	struct item_drop *drop = ers_alloc(item_drop_ers, struct item_drop);
@@ -1440,8 +1409,7 @@ static struct item_drop* mob_setlootitem(struct item* item)
 
 /*==========================================
  * item drop with delay (timer function)
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_delay_item_drop(int tid,unsigned int tick,int id,int data)
 {
 	struct item_drop_list *list;
@@ -1464,9 +1432,7 @@ static int mob_delay_item_drop(int tid,unsigned int tick,int id,int data)
  * Sets the item_drop into the item_drop_list.
  * Also performs logging and autoloot if enabled.
  * rate is the drop-rate of the item, required for autoloot.
- *------------------------------------------
- * by [Skotlex]
- */
+ *------------------------------------------*/
 static void mob_item_drop(struct mob_data *md, struct item_drop_list *dlist, struct item_drop *ditem, int loot, int drop_rate)
 {
 	if(log_config.enable_logs&0x10)
@@ -1511,8 +1477,7 @@ int mob_timer_delete(int tid, unsigned int tick, int id, int data)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_deleteslave_sub(struct block_list *bl,va_list ap)
 {
 	struct mob_data *md;
@@ -1530,8 +1495,7 @@ int mob_deleteslave_sub(struct block_list *bl,va_list ap)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_deleteslave(struct mob_data *md)
 {
 	nullpo_retr(0, md);
@@ -1666,8 +1630,7 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 
 /*==========================================
  * Signals death of mob. type&1 -> no drops, type&2 -> no exp
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_dead(struct mob_data *md, struct block_list *src, int type)
 {
 	struct status_data *status;
@@ -2234,8 +2197,7 @@ int mob_guardian_guildchange(struct block_list *bl,va_list ap)
 	
 /*==========================================
  * Pick a random class for the mob
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_random_class (int *value, size_t count)
 {
 	nullpo_retr(0, value);
@@ -2257,8 +2219,7 @@ int mob_random_class (int *value, size_t count)
 
 /*==========================================
  * Change mob base class
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_class_change (struct mob_data *md, int class_)
 {
 	unsigned int tick = gettick();
@@ -2325,8 +2286,7 @@ int mob_class_change (struct mob_data *md, int class_)
 
 /*==========================================
  * mob‰ñ•œ
- *------------------------------------------
- */
+ *------------------------------------------*/
 void mob_heal(struct mob_data *md,unsigned int heal)
 {
 	if(md->guardian_data && md->guardian_data->number < MAX_GUARDIANS)
@@ -2339,8 +2299,7 @@ void mob_heal(struct mob_data *md,unsigned int heal)
 
 /*==========================================
  * Added by RoVeRT
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_warpslave_sub(struct block_list *bl,va_list ap)
 {
 	struct mob_data *md=(struct mob_data *)bl;
@@ -2361,8 +2320,7 @@ int mob_warpslave_sub(struct block_list *bl,va_list ap)
  * Added by RoVeRT
  * Warps slaves. Range is the area around the master that they can
  * appear in randomly.
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_warpslave(struct block_list *bl, int range)
 {
 	if (range < 1)
@@ -2373,8 +2331,7 @@ int mob_warpslave(struct block_list *bl, int range)
 
 /*==========================================
  * ‰æ–Ê“à‚ÌŽæ‚èŠª‚«‚Ì”ŒvŽZ—p(foreachinarea)
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_countslave_sub(struct block_list *bl,va_list ap)
 {
 	int id;
@@ -2389,16 +2346,15 @@ int mob_countslave_sub(struct block_list *bl,va_list ap)
 
 /*==========================================
  * ‰æ–Ê“à‚ÌŽæ‚èŠª‚«‚Ì”ŒvŽZ
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_countslave(struct block_list *bl)
 {
 	return map_foreachinmap(mob_countslave_sub, bl->m, BL_MOB,bl->id);
 }
+
 /*==========================================
  * Summons amount slaves contained in the value[5] array using round-robin. [adapted by Skotlex]
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_summonslave(struct mob_data *md2,int *value,int amount,int skill_id)
 {
 	struct mob_data *md;
@@ -2494,8 +2450,7 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,int skill_id)
 
 /*==========================================
  *MOBskill‚©‚çŠY“–skillid‚Ìskillidx‚ð•Ô‚·
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_skillid2skillidx(int class_,int skillid)
 {
 	int i, max = mob_db(class_)->maxskill;
@@ -2514,8 +2469,7 @@ int mob_skillid2skillidx(int class_,int skillid)
 
 /*==========================================
  * Friendly Mob whose HP is decreasing by a nearby MOB is looked for.
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_getfriendhprate_sub(struct block_list *bl,va_list ap)
 {
 	int min_rate, max_rate,rate;
@@ -2557,8 +2511,7 @@ static struct block_list *mob_getfriendhprate(struct mob_data *md,int min_rate,i
 }
 /*==========================================
  * Check hp rate of its master
- *------------------------------------------
- */
+ *------------------------------------------*/
 struct block_list *mob_getmasterhpltmaxrate(struct mob_data *md,int rate)
 {
 	if (md && md->master_id > 0) {
@@ -2571,8 +2524,7 @@ struct block_list *mob_getmasterhpltmaxrate(struct mob_data *md,int rate)
 }
 /*==========================================
  * What a status state suits by nearby MOB is looked for.
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mob_getfriendstatus_sub(struct block_list *bl,va_list ap)
 {
 	int cond1,cond2;
@@ -2605,6 +2557,7 @@ int mob_getfriendstatus_sub(struct block_list *bl,va_list ap)
 
 	return 0;
 }
+
 struct mob_data *mob_getfriendstatus(struct mob_data *md,int cond1,int cond2)
 {
 	struct mob_data *fr=NULL;
@@ -2618,8 +2571,7 @@ struct mob_data *mob_getfriendstatus(struct mob_data *md,int cond1,int cond2)
 
 /*==========================================
  * Skill use judging
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 {
 	struct mob_skill *ms;
@@ -2820,8 +2772,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 }
 /*==========================================
  * Skill use event processing
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mobskill_event(struct mob_data *md, struct block_list *src, unsigned int tick, int flag)
 {
 	int target_id, res = 0;
@@ -3065,8 +3016,7 @@ int mob_clone_delete(int class_)
 //
 /*==========================================
  * Since un-setting [ mob ] up was used, it is an initial provisional value setup.
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_makedummymobdb(int class_)
 {
 	if (mob_dummy != NULL)
@@ -3348,8 +3298,7 @@ int mob_parse_dbrow(char** str)
 
 /*==========================================
  * mob_db.txt reading
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_readdb(void)
 {
 	FILE *fp;
@@ -3401,8 +3350,7 @@ static int mob_readdb(void)
 #ifndef TXT_ONLY
 /*==========================================
  * SQL reading
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_read_sqldb(void)
 {
 	char *mob_db_name[] = { mob_db_db, mob_db2_db };
@@ -3437,8 +3385,7 @@ static int mob_read_sqldb(void)
 
 /*==========================================
  * MOB display graphic change data reading
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_readdb_mobavail(void)
 {
 	FILE *fp;
@@ -3509,8 +3456,7 @@ static int mob_readdb_mobavail(void)
 
 /*==========================================
  * Reading of random monster data
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_read_randommonster(void)
 {
 	FILE *fp;
@@ -3559,8 +3505,7 @@ static int mob_read_randommonster(void)
 
 /*==========================================
  * mob_skill_db.txt reading
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_readskilldb(void)
 {
 	FILE *fp;
@@ -3849,8 +3794,7 @@ static int mob_readskilldb(void)
 }
 /*==========================================
  * mob_race_db.txt reading
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int mob_readdb_race(void)
 {
 	FILE *fp;
@@ -3924,8 +3868,7 @@ void mob_reload(void)
 
 /*==========================================
  * Circumference initialization of mob
- *------------------------------------------
- */
+ *------------------------------------------*/
 int do_init_mob(void)
 {	//Initialize the mob database
 	memset(mob_db_data,0,sizeof(mob_db_data)); //Clear the array
@@ -3961,8 +3904,7 @@ int do_init_mob(void)
 
 /*==========================================
  * Clean memory usage.
- *------------------------------------------
- */
+ *------------------------------------------*/
 int do_final_mob(void)
 {
 	int i;

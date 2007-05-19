@@ -224,18 +224,11 @@ enum AtCommandType {
 	AtCommand_DMStart, // by MouseJstr
 	AtCommand_DMTick, // by MouseJstr
 
-	AtCommand_JumpToId, // by Dino9021
 	AtCommand_JumpToId2, // by Dino9021
-	AtCommand_RecallId, // by Dino9021
 	AtCommand_RecallId2, // by Dino9021
-	AtCommand_KickId, // by Dino9021
 	AtCommand_KickId2, // by Dino9021
-	AtCommand_ReviveId, // by Dino9021
 	AtCommand_ReviveId2, // by Dino9021
-	AtCommand_KillId, // by Dino9021
 	AtCommand_KillId2, // by Dino9021
-	AtCommand_CharKillableId, // by Dino9021
-	AtCommand_CharKillableId2, // by Dino9021
 	AtCommand_Sound,
 	AtCommand_UndisguiseAll,
 	AtCommand_DisguiseAll,

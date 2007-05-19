@@ -197,8 +197,7 @@ static struct linkdb_node *sleep_db;
 
 /*==========================================
  * ローカルプロトタイプ宣言 (必要な物のみ)
- *------------------------------------------
- */
+ *------------------------------------------*/
 const char* parse_subexpr(const char* p,int limit);
 void push_val(struct script_stack *stack,int type,int val);
 int run_func(struct script_state *st);
@@ -296,7 +295,8 @@ enum {
 };
 
 //Reports on the console the src of a script error.
-static void report_src(struct script_state *st) {
+static void report_src(struct script_state *st)
+{
 	struct block_list *bl;
 	if (!st->oid) return; //Can't report source.
 	bl = map_id2bl(st->oid);
@@ -320,8 +320,7 @@ static void report_src(struct script_state *st) {
 
 /*==========================================
  * エラーメッセージ出力
- *------------------------------------------
- */
+ *------------------------------------------*/
 static void disp_error_message2(const char *mes,const char *pos,int report)
 {
 	error_msg = aStrdup(mes);
@@ -342,8 +341,7 @@ static void check_event(struct script_state *st, const char *evt)
 
 /*==========================================
  * 文字列のハッシュを計算
- *------------------------------------------
- */
+ *------------------------------------------*/
 #define calc_hash(x) (calc_hash2(x)%SCRIPT_HASH_SIZE)
 static unsigned int calc_hash2(const unsigned char *p)
 {
@@ -390,8 +388,7 @@ static unsigned int calc_hash2(const unsigned char *p)
 
 /*==========================================
  * str_dataの中に名前があるか検索する
- *------------------------------------------
- */
+ *------------------------------------------*/
 // 既存のであれば番号、無ければ-1
 static int search_str(const char *p)
 {
@@ -408,8 +405,7 @@ static int search_str(const char *p)
 
 /*==========================================
  * str_dataに名前を登録
- *------------------------------------------
- */
+ *------------------------------------------*/
 // 既存のであれば番号、無ければ登録して新規番号
 int add_str(const char* p)
 {
@@ -456,8 +452,7 @@ int add_str(const char* p)
 
 /*==========================================
  * スクリプトバッファサイズの確認と拡張
- *------------------------------------------
- */
+ *------------------------------------------*/
 static void expand_script_buf(void)
 {
 	script_size+=SCRIPT_BLOCK_SIZE;
@@ -466,8 +461,7 @@ static void expand_script_buf(void)
 
 /*==========================================
  * スクリプトバッファに１バイト書き込む
- *------------------------------------------
- */
+ *------------------------------------------*/
  
 #define add_scriptb(a) if( script_pos+1>=script_size ) expand_script_buf(); script_buf[script_pos++]=(uint8)(a)
 
@@ -481,8 +475,7 @@ static void add_scriptb(int a)
 
 /*==========================================
  * スクリプトバッファにデータタイプを書き込む
- *------------------------------------------
- */
+ *------------------------------------------*/
 static void add_scriptc(int a)
 {
 	while(a>=0x40){
@@ -494,8 +487,7 @@ static void add_scriptc(int a)
 
 /*==========================================
  * スクリプトバッファに整数を書き込む
- *------------------------------------------
- */
+ *------------------------------------------*/
 static void add_scripti(int a)
 {
 	while(a>=0x40){
@@ -507,8 +499,7 @@ static void add_scripti(int a)
 
 /*==========================================
  * スクリプトバッファにラベル/変数/関数を書き込む
- *------------------------------------------
- */
+ *------------------------------------------*/
 // 最大16Mまで
 static void add_scriptl(int l)
 {
@@ -548,8 +539,7 @@ static void add_scriptl(int l)
 
 /*==========================================
  * ラベルを解決する
- *------------------------------------------
- */
+ *------------------------------------------*/
 void set_label(int l,int pos, const char* script_pos)
 {
 	int i,next;
@@ -750,8 +740,7 @@ const char* parse_callfunc(const char* p, int require_paren)
 
 /*==========================================
  * 項の解析
- *------------------------------------------
- */
+ *------------------------------------------*/
 const char* parse_simpleexpr(const char *p)
 {
 	int i;
@@ -836,8 +825,7 @@ const char* parse_simpleexpr(const char *p)
 
 /*==========================================
  * 式の解析
- *------------------------------------------
- */
+ *------------------------------------------*/
 const char* parse_subexpr(const char* p,int limit)
 {
 	int op,opl,len;
@@ -906,8 +894,7 @@ const char* parse_subexpr(const char* p,int limit)
 
 /*==========================================
  * 式の評価
- *------------------------------------------
- */
+ *------------------------------------------*/
 const char* parse_expr(const char *p)
 {
 #ifdef DEBUG_FUNCIN
@@ -929,8 +916,7 @@ const char* parse_expr(const char *p)
 
 /*==========================================
  * 行の解析
- *------------------------------------------
- */
+ *------------------------------------------*/
 const char* parse_line(const char* p)
 {
 	const char* p2;
@@ -979,7 +965,8 @@ const char* parse_line(const char* p)
 }
 
 // { ... } の閉じ処理
-const char* parse_curly_close(const char* p) {
+const char* parse_curly_close(const char* p)
+{
 	if(syntax.curly_count <= 0) {
 		disp_error_message("parse_curly_close: unexpected string",p);
 		return p + 1;
@@ -1446,7 +1433,8 @@ const char* parse_syntax_close(const char *p) {
 // if, for , while , do の閉じ判定
 //	 flag == 1 : 閉じられた
 //	 flag == 0 : 閉じられない
-const char* parse_syntax_close_sub(const char* p,int* flag) {
+const char* parse_syntax_close_sub(const char* p,int* flag)
+{
 	char label[256];
 	int pos = syntax.curly_count - 1;
 	int l;
@@ -1609,8 +1597,7 @@ const char* parse_syntax_close_sub(const char* p,int* flag) {
 
 /*==========================================
  * 組み込み関数の追加
- *------------------------------------------
- */
+ *------------------------------------------*/
 static void add_buildin_func(void)
 {
 	int i,n;
@@ -1643,8 +1630,7 @@ static void add_buildin_func(void)
 
 /*==========================================
  * 定数データベースの読み込み
- *------------------------------------------
- */
+ *------------------------------------------*/
 static void read_constdb(void)
 {
 	FILE *fp;
@@ -1676,10 +1662,9 @@ static void read_constdb(void)
 
 /*==========================================
  * エラー表示
- *------------------------------------------
- */
-
-const char* script_print_line( const char *p, const char *mark, int line ) {
+ *------------------------------------------*/
+const char* script_print_line( const char *p, const char *mark, int line )
+{
 	int i;
 	if( p == NULL || !p[0] ) return NULL;
 	if( line < 0 ) 
@@ -1696,7 +1681,8 @@ const char* script_print_line( const char *p, const char *mark, int line ) {
 	return p+i+(p[i] == '\n' ? 1 : 0);
 }
 
-void script_error(const char *src,const char *file,int start_line, const char *error_msg, const char *error_pos) {
+void script_error(const char *src,const char *file,int start_line, const char *error_msg, const char *error_pos)
+{
 	// エラーが発生した行を求める
 	int j;
 	int line = start_line;
@@ -1729,9 +1715,7 @@ void script_error(const char *src,const char *file,int start_line, const char *e
 
 /*==========================================
  * スクリプトの解析
- *------------------------------------------
- */
-
+ *------------------------------------------*/
 struct script_code* parse_script(const char *src,const char *file,int line,int options)
 {
 	const char *p,*tmpp;
@@ -2095,8 +2079,7 @@ int set_var(TBL_PC* sd, char* name, void* val)
 
 /*==========================================
  * 文字列への変換
- *------------------------------------------
- */
+ *------------------------------------------*/
 const char* conv_str(struct script_state *st,struct script_data *data)
 {
 	get_val(st,data);
@@ -2120,8 +2103,7 @@ const char* conv_str(struct script_state *st,struct script_data *data)
 
 /*==========================================
  * 数値へ変換
- *------------------------------------------
- */
+ *------------------------------------------*/
 int conv_num(struct script_state *st,struct script_data *data)
 {
 	char *p;
@@ -2231,9 +2213,9 @@ void pop_stack(struct script_stack* stack,int start,int end)
 
 /*==========================================
  * スクリプト依存変数、関数依存変数の解放
- *------------------------------------------
- */
-void script_free_vars(struct linkdb_node **node) {
+ *------------------------------------------*/
+void script_free_vars(struct linkdb_node **node)
+{
 	struct linkdb_node *n = *node;
 	while(n) {
 		char *name   = str_buf + str_data[(int)(n->key)&0x00ffffff].str;
@@ -2249,9 +2231,9 @@ void script_free_vars(struct linkdb_node **node) {
 
 /*==========================================
  * Free's the whole stack. Invoked when clearing a character. [Skotlex]
- *------------------------------------------
- */
-void script_free_stack(struct script_stack *stack) {
+ *------------------------------------------*/
+void script_free_stack(struct script_stack *stack)
+{
 	int i;
 	for(i = 0; i < stack->sp; i++) {
 		if( stack->stack_data[i].type == C_STR ) {
@@ -2269,7 +2251,8 @@ void script_free_stack(struct script_stack *stack) {
 	aFree(stack);
 }
 
-void script_free_code(struct script_code* code) {
+void script_free_code(struct script_code* code)
+{
 	script_free_vars( &code->script_vars );
 	aFree( code->script_buf );
 	aFree( code );
@@ -2280,8 +2263,7 @@ void script_free_code(struct script_code* code) {
 //
 /*==========================================
  * コマンドの読み取り
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int unget_com_data=-1;
 int get_com(unsigned char *script,int *pos)
 {
@@ -2304,8 +2286,7 @@ int get_com(unsigned char *script,int *pos)
 
 /*==========================================
  * コマンドのプッシュバック
- *------------------------------------------
- */
+ *------------------------------------------*/
 void unget_com(int c)
 {
 	if(unget_com_data!=-1){
@@ -2317,8 +2298,7 @@ void unget_com(int c)
 
 /*==========================================
  * 数値の所得
- *------------------------------------------
- */
+ *------------------------------------------*/
 int get_num(unsigned char *script,int *pos)
 {
 	int i,j;
@@ -2332,8 +2312,7 @@ int get_num(unsigned char *script,int *pos)
 
 /*==========================================
  * スタックから値を取り出す
- *------------------------------------------
- */
+ *------------------------------------------*/
 int pop_val(struct script_state* st)
 {
 	if(st->stack->sp<=0)
@@ -2345,7 +2324,8 @@ int pop_val(struct script_state* st)
 	return 0;
 }
 
-int isstr(struct script_data *c) {
+int isstr(struct script_data *c)
+{
 	if( data_isstring(c) )
 		return 1;
 	else if( data_isreference(c) ) {
@@ -2586,8 +2566,7 @@ void op_1num(struct script_state *st,int op)
 
 /*==========================================
  * 関数の実行
- *------------------------------------------
- */
+ *------------------------------------------*/
 int run_func(struct script_state *st)
 {
 	int i,start_sp,end_sp,func;
@@ -2697,8 +2676,7 @@ int run_func(struct script_state *st)
 
 /*==========================================
  * スクリプトの実行
- *------------------------------------------
- */
+ *------------------------------------------*/
 void run_script_main(struct script_state *st);
 
 void run_script(struct script_code *rootscript,int pos,int rid,int oid)
@@ -2749,8 +2727,7 @@ void script_stop_sleeptimers(int id)
 
 /*==========================================
  * 指定ノードをsleep_dbから削除
- *------------------------------------------
- */
+ *------------------------------------------*/
 struct linkdb_node* script_erase_sleepdb(struct linkdb_node *n)
 {
 	struct linkdb_node *retnode;
@@ -2770,8 +2747,7 @@ struct linkdb_node* script_erase_sleepdb(struct linkdb_node *n)
 
 /*==========================================
  * sleep用タイマー関数
- *------------------------------------------
- */
+ *------------------------------------------*/
 int run_script_timer(int tid, unsigned int tick, int id, int data)
 {
 	struct script_state *st     = (struct script_state *)data;
@@ -2799,8 +2775,7 @@ int run_script_timer(int tid, unsigned int tick, int id, int data)
 
 /*==========================================
  * スクリプトの実行メイン部分
- *------------------------------------------
- */
+ *------------------------------------------*/
 void run_script_main(struct script_state *st)
 {
 	int c;
@@ -2984,8 +2959,7 @@ void run_script_main(struct script_state *st)
 
 /*==========================================
  * マップ変数の変更
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mapreg_setreg(int num,int val)
 {
 #if !defined(TXT_ONLY) && defined(MAPREGSQL)
@@ -3024,8 +2998,7 @@ int mapreg_setreg(int num,int val)
 }
 /*==========================================
  * 文字列型マップ変数の変更
- *------------------------------------------
- */
+ *------------------------------------------*/
 int mapreg_setregstr(int num,const char *str)
 {
 	char *p;
@@ -3071,8 +3044,7 @@ int mapreg_setregstr(int num,const char *str)
 
 /*==========================================
  * 永続的マップ変数の読み込み
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int script_load_mapreg(void)
 {
 #if defined(TXT_ONLY) || !defined(MAPREGSQL)
@@ -3156,8 +3128,7 @@ static int script_load_mapreg(void)
 }
 /*==========================================
  * 永続的マップ変数の書き込み
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int script_save_mapreg_intsub(DBKey key,void *data,va_list ap)
 {
 #if defined(TXT_ONLY) || !defined(MAPREGSQL)
@@ -3245,8 +3216,7 @@ static int script_autosave_mapreg(int tid,unsigned int tick,int id,int data)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int set_posword(char *p)
 {
 	char* np,* str[15];
@@ -3382,8 +3352,7 @@ static int do_final_userfunc_sub (DBKey key,void *data,va_list ap)
 
 /*==========================================
  * 終了
- *------------------------------------------
- */
+ *------------------------------------------*/
 int do_final_script()
 {
 	if(mapreg_dirty>=0)
@@ -3413,8 +3382,7 @@ int do_final_script()
 }
 /*==========================================
  * 初期化
- *------------------------------------------
- */
+ *------------------------------------------*/
 int do_init_script()
 {
 	mapreg_db= db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));
@@ -4364,8 +4332,7 @@ BUILDIN_FUNC(goto)
 
 /*==========================================
  * ユーザー定義関数の呼び出し
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(callfunc)
 {
 	struct script_code *scr, *oldscr;
@@ -4412,8 +4379,7 @@ BUILDIN_FUNC(callfunc)
 }
 /*==========================================
  * サブルーティンの呼び出し
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(callsub)
 {
 	int pos=script_getnum(st,2);
@@ -4456,8 +4422,7 @@ BUILDIN_FUNC(callsub)
 
 /*==========================================
  * 引数の所得
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getarg)
 {
 	int num=script_getnum(st,2);
@@ -4544,8 +4509,7 @@ BUILDIN_FUNC(rand)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(warp)
 {
 	int x,y;
@@ -4571,8 +4535,7 @@ BUILDIN_FUNC(warp)
 }
 /*==========================================
  * エリア指定ワープ
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int buildin_areawarp_sub(struct block_list *bl,va_list ap)
 {
 	int x,y;
@@ -4621,8 +4584,7 @@ BUILDIN_FUNC(areawarp)
  * Useful for warp one player from 
  * another player npc-session.
  * Using: warpchar "mapname",x,y,Char_ID;
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(warpchar)
 {
 	int x,y,a,i;
@@ -4659,8 +4621,7 @@ BUILDIN_FUNC(warpchar)
 /*==========================================
  * Warpparty - [Fredzilla]
  * Syntax: warpparty "mapname",x,y,Party_ID;
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(warpparty)
 {
 	int x,y;
@@ -4742,8 +4703,7 @@ BUILDIN_FUNC(warpparty)
 /*==========================================
  * Warpguild - [Fredzilla]
  * Syntax: warpguild "mapname",x,y,Guild_ID;
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(warpguild)
 {
 	int x,y;
@@ -4831,8 +4791,7 @@ BUILDIN_FUNC(warpguild)
 }
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(heal)
 {
 	TBL_PC *sd;
@@ -4848,8 +4807,7 @@ BUILDIN_FUNC(heal)
 }
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(itemheal)
 {
 	TBL_PC *sd;
@@ -4871,8 +4829,7 @@ BUILDIN_FUNC(itemheal)
 }
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(percentheal)
 {
 	int hp,sp;
@@ -4892,8 +4849,7 @@ BUILDIN_FUNC(percentheal)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(jobchange)
 {
 	int job, upper=-1;
@@ -4910,8 +4866,7 @@ BUILDIN_FUNC(jobchange)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(jobname)
 {
 	int class_=script_getnum(st,2);
@@ -4921,8 +4876,7 @@ BUILDIN_FUNC(jobname)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(input)
 {
 	TBL_PC *sd = script_rid2sd(st);
@@ -4966,8 +4920,7 @@ BUILDIN_FUNC(input)
 
 /*==========================================
  * 変数設定
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(set)
 {
 	TBL_PC *sd=NULL;
@@ -4999,8 +4952,7 @@ BUILDIN_FUNC(set)
 
 /*==========================================
  * 配列変数設定
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(setarray)
 {
 	TBL_PC *sd=NULL;
@@ -5029,8 +4981,7 @@ BUILDIN_FUNC(setarray)
 }
 /*==========================================
  * 配列変数クリア
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(cleararray)
 {
 	TBL_PC *sd=NULL;
@@ -5060,8 +5011,7 @@ BUILDIN_FUNC(cleararray)
 }
 /*==========================================
  * 配列変数コピー
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(copyarray)
 {
 	TBL_PC *sd=NULL;
@@ -5149,8 +5099,7 @@ BUILDIN_FUNC(getarraysize)
 }
 /*==========================================
  * 配列変数から要素削除
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(deletearray)
 {
 	TBL_PC *sd=NULL;
@@ -5192,8 +5141,7 @@ BUILDIN_FUNC(deletearray)
 
 /*==========================================
  * 指定要素を表す値(キー)を所得する
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getelementofarray)
 {
 	if( data_isreference(script_getdata(st, 2)) ){
@@ -5215,8 +5163,7 @@ BUILDIN_FUNC(getelementofarray)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(setlook)
 {
 	int type,val;
@@ -5231,8 +5178,7 @@ BUILDIN_FUNC(setlook)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(cutin)
 {
 	clif_cutin(script_rid2sd(st),script_getstr(st,2),script_getnum(st,3));
@@ -5241,8 +5187,7 @@ BUILDIN_FUNC(cutin)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(viewpoint)
 {
 	int type,x,y,id,color;
@@ -5260,8 +5205,7 @@ BUILDIN_FUNC(viewpoint)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(countitem)
 {
 	int nameid=0,count=0,i;
@@ -5364,8 +5308,7 @@ BUILDIN_FUNC(countitem2)
 
 /*==========================================
  * 重量チェック
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(checkweight)
 {
 	int nameid=0,amount,i;
@@ -5413,8 +5356,7 @@ BUILDIN_FUNC(checkweight)
 /*==========================================
  * getitem <item id>,<amount>{,<character ID>};
  * getitem "<item name>",<amount>{,<character ID>};
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getitem)
 {
 	int nameid,amount,flag = 0;
@@ -5489,8 +5431,7 @@ BUILDIN_FUNC(getitem)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getitem2)
 {
 	int nameid,amount,flag = 0;
@@ -5578,8 +5519,7 @@ BUILDIN_FUNC(getitem2)
  * getinscribeditem item_num, character_name
  * Returned Qty is always 1, only works on equip-able
  * equipment
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getnameditem)
 {
 	int nameid;
@@ -5650,8 +5590,7 @@ BUILDIN_FUNC(getnameditem)
 /*==========================================
  * gets a random item ID from an item group [Skotlex]
  * groupranditem group_num
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(grouprandomitem)
 {
 	int group;
@@ -5663,8 +5602,7 @@ BUILDIN_FUNC(grouprandomitem)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(makeitem)
 {
 	int nameid,amount,flag = 0;
@@ -5719,8 +5657,7 @@ BUILDIN_FUNC(makeitem)
 }
 /*==========================================
  * script DELITEM command (fixed 2 bugs by Lupus, added deletion priority by Lupus)
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(delitem)
 {
 	int nameid=0,amount,i,important_item=0;
@@ -5822,9 +5759,8 @@ BUILDIN_FUNC(delitem)
 }
 
 /*==========================================
-* advanced version of delitem [modified by Mihilion]
-*------------------------------------------
-*/
+ * advanced version of delitem [modified by Mihilion]
+ *------------------------------------------*/
 BUILDIN_FUNC(delitem2)
 {
 	int nameid=0,amount,i=0;
@@ -5898,8 +5834,7 @@ BUILDIN_FUNC(delitem2)
 
 /*==========================================
  * Enables/Disables use of items while in an NPC [Skotlex]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(enableitemuse)
 {
 	TBL_PC *sd;
@@ -5920,8 +5855,7 @@ BUILDIN_FUNC(disableitemuse)
 
 /*==========================================
  *キャラ関係のパラメータ取得
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(readparam)
 {
 	int type;
@@ -5944,8 +5878,7 @@ BUILDIN_FUNC(readparam)
 }
 /*==========================================
  *キャラ関係のID取得
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getcharid)
 {
 	int num;
@@ -5972,8 +5905,7 @@ BUILDIN_FUNC(getcharid)
 }
 /*==========================================
  *指定IDのPT名取得
- *------------------------------------------
- */
+ *------------------------------------------*/
 char *buildin_getpartyname_sub(int party_id)
 {
 	struct party_data *p;
@@ -6006,8 +5938,7 @@ BUILDIN_FUNC(getpartyname)
 }
 /*==========================================
  *指定IDのPT人数とメンバーID取得
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getpartymember)
 {
 	struct party_data *p;
@@ -6043,8 +5974,7 @@ BUILDIN_FUNC(getpartymember)
 /*==========================================
  * Retrieves party leader. if flag is specified, 
  * return some of the leader data. Otherwise, return name.
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getpartyleader)
 {
 	int party_id, type = 0, i=0;
@@ -6092,8 +6022,7 @@ BUILDIN_FUNC(getpartyleader)
 
 /*==========================================
  *指定IDのギルド名取得
- *------------------------------------------
- */
+ *------------------------------------------*/
 char *buildin_getguildname_sub(int guild_id)
 {
 	struct guild *g=NULL;
@@ -6122,8 +6051,7 @@ BUILDIN_FUNC(getguildname)
 
 /*==========================================
  *指定IDのGuildMaster名取得
- *------------------------------------------
- */
+ *------------------------------------------*/
 char *buildin_getguildmaster_sub(int guild_id)
 {
 	struct guild *g=NULL;
@@ -6171,8 +6099,7 @@ BUILDIN_FUNC(getguildmasterid)
 
 /*==========================================
  * キャラクタの名前
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(strcharinfo)
 {
 	TBL_PC *sd;
@@ -6216,8 +6143,7 @@ unsigned int equip[10]={EQP_HEAD_TOP,EQP_ARMOR,EQP_HAND_L,EQP_HAND_R,EQP_GARMENT
 
 /*==========================================
  * GetEquipID(Pos);     Pos: 1-10
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getequipid)
 {
 	int i,num;
@@ -6246,8 +6172,7 @@ BUILDIN_FUNC(getequipid)
 
 /*==========================================
  * 装備名文字列（精錬メニュー用）
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getequipname)
 {
 	int i,num;
@@ -6275,8 +6200,7 @@ BUILDIN_FUNC(getequipname)
 
 /*==========================================
  * getbrokenid [Valaris]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getbrokenid)
 {
 	int i,num,id=0,brokencounter=0;
@@ -6302,8 +6226,7 @@ BUILDIN_FUNC(getbrokenid)
 
 /*==========================================
  * repair [Valaris]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(repair)
 {
 	int i,num;
@@ -6332,8 +6255,7 @@ BUILDIN_FUNC(repair)
 
 /*==========================================
  * 装備チェック
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getequipisequiped)
 {
 	int i,num;
@@ -6357,8 +6279,7 @@ BUILDIN_FUNC(getequipisequiped)
 
 /*==========================================
  * 装備品精錬可能チェック
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getequipisenableref)
 {
 	int i,num;
@@ -6379,8 +6300,7 @@ BUILDIN_FUNC(getequipisenableref)
 
 /*==========================================
  * 装備品鑑定チェック
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getequipisidentify)
 {
 	int i,num;
@@ -6399,8 +6319,7 @@ BUILDIN_FUNC(getequipisidentify)
 
 /*==========================================
  * 装備品精錬度
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getequiprefinerycnt)
 {
 	int i,num;
@@ -6419,8 +6338,7 @@ BUILDIN_FUNC(getequiprefinerycnt)
 
 /*==========================================
  * 装備品武器LV
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getequipweaponlv)
 {
 	int i,num;
@@ -6439,8 +6357,7 @@ BUILDIN_FUNC(getequipweaponlv)
 
 /*==========================================
  * 装備品精錬成功率
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getequippercentrefinery)
 {
 	int i,num;
@@ -6459,8 +6376,7 @@ BUILDIN_FUNC(getequippercentrefinery)
 
 /*==========================================
  * 精錬成功
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(successrefitem)
 {
 	int i,num,ep;
@@ -6512,8 +6428,7 @@ BUILDIN_FUNC(successrefitem)
 
 /*==========================================
  * 精錬失敗
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(failedrefitem)
 {
 	int i,num;
@@ -6542,8 +6457,7 @@ BUILDIN_FUNC(failedrefitem)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(statusup)
 {
 	int type;
@@ -6557,8 +6471,7 @@ BUILDIN_FUNC(statusup)
 }
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(statusup2)
 {
 	int type,val;
@@ -6993,8 +6906,7 @@ BUILDIN_FUNC(savepoint)
 
 /*==========================================
  * GetTimeTick(0: System Tick, 1: Time Second Tick)
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(gettimetick)	/* Asgard Version */
 {
 	int type;
@@ -7029,8 +6941,7 @@ BUILDIN_FUNC(gettimetick)	/* Asgard Version */
  * 1: Sec     2: Min     3: Hour
  * 4: WeekDay     5: MonthDay     6: Month
  * 7: Year
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(gettime)	/* Asgard Version */
 {
 	int type;
@@ -7076,8 +6987,7 @@ BUILDIN_FUNC(gettime)	/* Asgard Version */
 
 /*==========================================
  * GetTimeStr("TimeFMT", Length);
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(gettimestr)
 {
 	char *tmpstr;
@@ -7098,8 +7008,7 @@ BUILDIN_FUNC(gettimestr)
 
 /*==========================================
  * カプラ倉庫を開く
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(openstorage)
 {
 	storage_storageopen(script_rid2sd(st));
@@ -7117,8 +7026,7 @@ BUILDIN_FUNC(guildopenstorage)
 
 /*==========================================
  * アイテムによるスキル発動
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(itemskill)
 {
 	int id,lv;
@@ -7137,8 +7045,7 @@ BUILDIN_FUNC(itemskill)
 }
 /*==========================================
  * アイテム作成
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(produce)
 {
 	int trigger;
@@ -7150,8 +7057,7 @@ BUILDIN_FUNC(produce)
 }
 /*==========================================
  * NPCでペット作る
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(makepet)
 {
 	TBL_PC *sd = script_rid2sd(st);
@@ -7176,8 +7082,7 @@ BUILDIN_FUNC(makepet)
 }
 /*==========================================
  * NPCで経験値上げる
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getexp)
 {
 	TBL_PC *sd = script_rid2sd(st);
@@ -7195,8 +7100,7 @@ BUILDIN_FUNC(getexp)
 
 /*==========================================
  * Gain guild exp [Celest]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(guildgetexp)
 {
 	TBL_PC *sd = script_rid2sd(st);
@@ -7213,8 +7117,7 @@ BUILDIN_FUNC(guildgetexp)
 
 /*==========================================
  * Changes the guild master of a guild [Skotlex]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(guildchangegm)
 {
 	TBL_PC *sd;
@@ -7235,8 +7138,7 @@ BUILDIN_FUNC(guildchangegm)
 
 /*==========================================
  * モンスター発生
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(monster)
 {
 	int class_,amount,x,y;
@@ -7262,8 +7164,7 @@ BUILDIN_FUNC(monster)
 }
 /*==========================================
  * モンスター発生
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(areamonster)
 {
 	int class_,amount,x0,y0,x1,y1;
@@ -7287,8 +7188,7 @@ BUILDIN_FUNC(areamonster)
 }
 /*==========================================
  * モンスター削除
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int buildin_killmonster_sub(struct block_list *bl,va_list ap)
 {
 	TBL_MOB* md = (TBL_MOB*)bl;
@@ -7342,8 +7242,7 @@ BUILDIN_FUNC(killmonsterall)
 /*==========================================
  * Creates a clone of a player.
  * clone map, x, y, event, char_id, master_id, mode, flag, duration
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(clone)
 {
 	TBL_PC *sd, *msd=NULL;
@@ -7392,8 +7291,7 @@ BUILDIN_FUNC(clone)
 }
 /*==========================================
  * イベント実行
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(doevent)
 {
 	const char *event;
@@ -7404,8 +7302,7 @@ BUILDIN_FUNC(doevent)
 }
 /*==========================================
  * NPC主体イベント実行
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(donpcevent)
 {
 	const char *event;
@@ -7416,8 +7313,7 @@ BUILDIN_FUNC(donpcevent)
 }
 /*==========================================
  * イベントタイマー追加
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(addtimer)
 {
 	const char *event;
@@ -7430,8 +7326,7 @@ BUILDIN_FUNC(addtimer)
 }
 /*==========================================
  * イベントタイマー削除
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(deltimer)
 {
 	const char *event;
@@ -7442,8 +7337,7 @@ BUILDIN_FUNC(deltimer)
 }
 /*==========================================
  * イベントタイマーのカウント値追加
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(addtimercount)
 {
 	const char *event;
@@ -7457,8 +7351,7 @@ BUILDIN_FUNC(addtimercount)
 
 /*==========================================
  * NPCタイマー初期化
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(initnpctimer)
 {
 	struct npc_data *nd;
@@ -7497,8 +7390,7 @@ BUILDIN_FUNC(initnpctimer)
 }
 /*==========================================
  * NPCタイマー開始
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(startnpctimer)
 {
 	struct npc_data *nd;
@@ -7536,8 +7428,7 @@ BUILDIN_FUNC(startnpctimer)
 }
 /*==========================================
  * NPCタイマー停止
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(stopnpctimer)
 {
 	struct npc_data *nd;
@@ -7573,8 +7464,7 @@ BUILDIN_FUNC(stopnpctimer)
 }
 /*==========================================
  * NPCタイマー情報所得
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getnpctimer)
 {
 	struct npc_data *nd;
@@ -7615,8 +7505,7 @@ BUILDIN_FUNC(getnpctimer)
 }
 /*==========================================
  * NPCタイマー値設定
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(setnpctimer)
 {
 	int tick;
@@ -7633,8 +7522,7 @@ BUILDIN_FUNC(setnpctimer)
 
 /*==========================================
  * attaches the player rid to the timer [Celest]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(attachnpctimer)
 {
 	TBL_PC *sd;
@@ -7655,8 +7543,7 @@ BUILDIN_FUNC(attachnpctimer)
 
 /*==========================================
  * detaches a player rid from the timer [Celest]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(detachnpctimer)
 {
 	struct npc_data *nd;
@@ -7673,8 +7560,7 @@ BUILDIN_FUNC(detachnpctimer)
  * To avoid "player not attached" script errors, this function is provided,
  * it checks if there is a player attached to the current script. [Skotlex]
  * If no, returns 0, if yes, returns the account_id of the attached player.
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(playerattached)
 {
 	if(st->rid == 0 || map_id2sd(st->rid) == NULL)
@@ -7686,8 +7572,7 @@ BUILDIN_FUNC(playerattached)
 
 /*==========================================
  * 天の声アナウンス
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(announce)
 {
 	const char *str, *color=NULL;
@@ -7714,8 +7599,7 @@ BUILDIN_FUNC(announce)
 }
 /*==========================================
  * 天の声アナウンス（特定マップ）
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int buildin_mapannounce_sub(struct block_list *bl,va_list ap)
 {
 	char *str, *color;
@@ -7750,8 +7634,7 @@ BUILDIN_FUNC(mapannounce)
 }
 /*==========================================
  * 天の声アナウンス（特定エリア）
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(areaannounce)
 {
 	const char *map,*str,*color=NULL;
@@ -7778,8 +7661,7 @@ BUILDIN_FUNC(areaannounce)
 
 /*==========================================
  * ユーザー数所得
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getusers)
 {
 	int flag=script_getnum(st,2);
@@ -7794,8 +7676,7 @@ BUILDIN_FUNC(getusers)
 }
 /*==========================================
  * Works like @WHO - displays all online users names in window
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getusersname)
 {
 	TBL_PC *sd, *pl_sd = NULL, **pl_allsd;
@@ -7820,8 +7701,7 @@ BUILDIN_FUNC(getusersname)
 }
 /*==========================================
  * getmapguildusers("mapname",guild ID) Returns the number guild members present on a map [Reddozen]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getmapguildusers)
 {
 	const char *str;
@@ -7849,8 +7729,7 @@ BUILDIN_FUNC(getmapguildusers)
 }
 /*==========================================
  * マップ指定ユーザー数所得
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getmapusers)
 {
 	const char *str;
@@ -7865,8 +7744,7 @@ BUILDIN_FUNC(getmapusers)
 }
 /*==========================================
  * エリア指定ユーザー数所得
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int buildin_getareausers_sub(struct block_list *bl,va_list ap)
 {
 	int *users=va_arg(ap,int *);
@@ -7894,8 +7772,7 @@ BUILDIN_FUNC(getareausers)
 
 /*==========================================
  * エリア指定ドロップアイテム数所得
- *------------------------------------------
- */
+ *------------------------------------------*/
 static int buildin_getareadropitem_sub(struct block_list *bl,va_list ap)
 {
 	int item=va_arg(ap,int);
@@ -7941,8 +7818,7 @@ BUILDIN_FUNC(getareadropitem)
 }
 /*==========================================
  * NPCの有効化
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(enablenpc)
 {
 	const char *str;
@@ -7952,8 +7828,7 @@ BUILDIN_FUNC(enablenpc)
 }
 /*==========================================
  * NPCの無効化
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(disablenpc)
 {
 	const char *str;
@@ -7988,8 +7863,7 @@ BUILDIN_FUNC(disablearena)	// Added by RoVeRT
 }
 /*==========================================
  * 隠れているNPCの表示
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(hideoffnpc)
 {
 	const char *str;
@@ -7999,8 +7873,7 @@ BUILDIN_FUNC(hideoffnpc)
 }
 /*==========================================
  * NPCをハイディング
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(hideonnpc)
 {
 	const char *str;
@@ -8010,8 +7883,7 @@ BUILDIN_FUNC(hideonnpc)
 }
 /*==========================================
  * 状態異常にかかる
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(sc_start)
 {
 	struct block_list *bl;
@@ -8044,8 +7916,7 @@ BUILDIN_FUNC(sc_start)
 
 /*==========================================
  * 状態異常にかかる(確率指定)
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(sc_start2)
 {
 	struct block_list *bl;
@@ -8083,8 +7954,7 @@ BUILDIN_FUNC(sc_start2)
  * Starts a SC_ change with the four values passed. [Skotlex]
  * Final optional argument is the ID of player to affect.
  * sc_start4 type, duration, val1, val2, val3, val4, <id>;
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(sc_start4)
 {
 	struct block_list *bl;
@@ -8120,8 +7990,7 @@ BUILDIN_FUNC(sc_start4)
 
 /*==========================================
  * 状態異常が直る
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(sc_end)
 {
 	struct block_list *bl;
@@ -8141,8 +8010,7 @@ BUILDIN_FUNC(sc_end)
 }
 /*==========================================
  * 状態異常耐性を計算した確率を返す
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getscrate)
 {
 	struct block_list *bl;
@@ -8164,8 +8032,7 @@ BUILDIN_FUNC(getscrate)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(debugmes)
 {
 	const char *str;
@@ -8176,8 +8043,7 @@ BUILDIN_FUNC(debugmes)
 
 /*==========================================
  *捕獲アイテム使用
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(catchpet)
 {
 	int pet_id;
@@ -8190,8 +8056,7 @@ BUILDIN_FUNC(catchpet)
 
 /*==========================================
  * [orn]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(homunculus_evolution)
 {
 	TBL_PC *sd;
@@ -8241,8 +8106,7 @@ BUILDIN_FUNC(roclass)
 
 /*==========================================
  *携帯卵孵化機使用
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(birthpet)
 {
 	TBL_PC *sd;
@@ -8253,8 +8117,7 @@ BUILDIN_FUNC(birthpet)
 
 /*==========================================
  * Added - AppleGirl For Advanced Classes, (Updated for Cleaner Script Purposes)
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(resetlvl)
 {
 	TBL_PC *sd;
@@ -8267,8 +8130,7 @@ BUILDIN_FUNC(resetlvl)
 }
 /*==========================================
  * ステータスリセット
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(resetstatus)
 {
 	TBL_PC *sd;
@@ -8279,8 +8141,7 @@ BUILDIN_FUNC(resetstatus)
 
 /*==========================================
  * script command resetskill
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(resetskill)
 {
 	TBL_PC *sd;
@@ -8291,8 +8152,7 @@ BUILDIN_FUNC(resetskill)
 
 /*==========================================
  * Counts total amount of skill points.
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(skillpointcount)
 {
 	TBL_PC *sd;
@@ -8303,8 +8163,7 @@ BUILDIN_FUNC(skillpointcount)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(changebase)
 {
 	TBL_PC *sd=NULL;
@@ -8341,8 +8200,7 @@ BUILDIN_FUNC(changebase)
 
 /*==========================================
  * 性別変換
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(changesex)
 {
 	TBL_PC *sd = NULL;
@@ -8398,8 +8256,7 @@ BUILDIN_FUNC(waitingroom)
 }
 /*==========================================
  * Works like 'announce' but outputs in the common chat window
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(globalmes)
 {
 	struct block_list *bl = map_id2bl(st->oid);
@@ -8579,8 +8436,7 @@ BUILDIN_FUNC(warpwaitingpc)
 }
 /*==========================================
  * RIDのアタッチ
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(attachrid)
 {
 	st->rid=script_getnum(st,2);
@@ -8589,8 +8445,7 @@ BUILDIN_FUNC(attachrid)
 }
 /*==========================================
  * RIDのデタッチ
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(detachrid)
 {
 	st->rid=0;
@@ -8598,8 +8453,7 @@ BUILDIN_FUNC(detachrid)
 }
 /*==========================================
  * 存在チェック
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(isloggedin)
 {
 	push_val(st->stack,C_INT, map_id2sd(
@@ -8610,8 +8464,7 @@ BUILDIN_FUNC(isloggedin)
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(setmapflagnosave)
 {
 	int m,x,y;
@@ -9034,8 +8887,7 @@ BUILDIN_FUNC(gvgoff)
 /*==========================================
  *	Shows an emoticon on top of the player/npc
  *	emotion emotion#, <target: 0 - NPC, 1 - PC>
- *------------------------------------------
- */
+ *------------------------------------------*/
 //Optional second parameter added by [Skotlex]
 BUILDIN_FUNC(emotion)
 {
@@ -9122,8 +8974,7 @@ BUILDIN_FUNC(agitend)
 
 /*==========================================
  * Returns whether woe is on or off.	// choice script
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(agitcheck)
 {
 	script_pushint(st,agit_flag);
@@ -9292,8 +9143,7 @@ BUILDIN_FUNC(setcastledata)
 
 /* =====================================================================
  * ギルド情報を要求する
- * ---------------------------------------------------------------------
- */
+ * ---------------------------------------------------------------------*/
 BUILDIN_FUNC(requestguildinfo)
 {
 	int guild_id=script_getnum(st,2);
@@ -9311,8 +9161,7 @@ BUILDIN_FUNC(requestguildinfo)
 
 /* =====================================================================
  * カードの数を得る
- * ---------------------------------------------------------------------
- */
+ * ---------------------------------------------------------------------*/
 BUILDIN_FUNC(getequipcardcnt)
 {
 	int i,num;
@@ -9340,8 +9189,7 @@ BUILDIN_FUNC(getequipcardcnt)
 
 /* ================================================================
  * カード取り外し成功
- * ----------------------------------------------------------------
- */
+ * ----------------------------------------------------------------*/
 BUILDIN_FUNC(successremovecards)
 {
 	int i,j,num,cardflag=0,flag;
@@ -9408,8 +9256,7 @@ BUILDIN_FUNC(successremovecards)
 /* ================================================================
  * カード取り外し失敗 slot,type
  * type=0: 両方損失、1:カード損失、2:武具損失、3:損失無し
- * ----------------------------------------------------------------
- */
+ * ----------------------------------------------------------------*/
 BUILDIN_FUNC(failedremovecards)
 {
 	int i,j,num,cardflag=0,flag,typefail;
@@ -9492,8 +9339,7 @@ BUILDIN_FUNC(failedremovecards)
 /* ================================================================
  * mapwarp "<from map>","<to map>",<x>,<y>;
  * improved by [Lance]
- * ================================================================
- */
+ * ================================================================*/
 BUILDIN_FUNC(mapwarp)	// Added by RoVeRT
 {
 	int x,y,m;
@@ -9699,8 +9545,7 @@ BUILDIN_FUNC(warppartner)
 
 /*================================================
  * Script for Displaying MOB Information [Valaris]
- *------------------------------------------------
- */
+ *------------------------------------------------*/
 BUILDIN_FUNC(strmobinfo)
 {
 
@@ -9745,8 +9590,7 @@ BUILDIN_FUNC(strmobinfo)
 /*==========================================
  * Summon guardians [Valaris]
  * guardian "<map name>",<x>,<y>,"<name to show>",<mob id>,{,"<event label>"}{,<guardian index>};
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(guardian)
 {
 	int class_=0,x=0,y=0,guardian=0;
@@ -9787,8 +9631,7 @@ BUILDIN_FUNC(guardian)
 
 /*================================================
  * Script for Displaying Guardian Info [Valaris]
- *------------------------------------------------
- */
+ *------------------------------------------------*/
 BUILDIN_FUNC(guardianinfo)
 {
 	int guardian=script_getnum(st,2);
@@ -9809,8 +9652,7 @@ BUILDIN_FUNC(guardianinfo)
 }
 /*==========================================
  * IDからItem名
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getitemname)
 {
 	int item_id=0;
@@ -9843,8 +9685,7 @@ BUILDIN_FUNC(getitemname)
 }
 /*==========================================
  * Returns number of slots an item has. [Skotlex]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getitemslots)
 {
 	int item_id;
@@ -9882,8 +9723,7 @@ BUILDIN_FUNC(getitemslots)
 		12 elv;
 		13 wlv;
 		14 view id
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getiteminfo)
 {
 	int item_id,n;
@@ -9913,8 +9753,7 @@ BUILDIN_FUNC(getiteminfo)
 		it's useful when you want to check item cards or if it's signed
 	Useful for such quests as "Sign this refined item with players name" etc
 		Hat[0] +4 -> Player's Hat[0] +4
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getequipcardid)
 {
 	int i,num,slot;
@@ -9934,9 +9773,7 @@ BUILDIN_FUNC(getequipcardid)
 
 /*==========================================
  * petskillbonus [Valaris] //Rewritten by [Skotlex]
- *------------------------------------------
- */
-
+ *------------------------------------------*/
 BUILDIN_FUNC(petskillbonus)
 {
 	struct pet_data *pd;
@@ -9973,8 +9810,7 @@ BUILDIN_FUNC(petskillbonus)
 
 /*==========================================
  * pet looting [Valaris] //Rewritten by [Skotlex]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(petloot)
 {
 	int max;
@@ -10010,8 +9846,7 @@ BUILDIN_FUNC(petloot)
 }
 /*==========================================
  * PCの所持品情報読み取り
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getinventorylist)
 {
 	TBL_PC *sd=script_rid2sd(st);
@@ -10115,8 +9950,7 @@ BUILDIN_FUNC(undisguise)
  * NPCクラスチェンジ
  * classは変わりたいclass
  * typeは通常0なのかな？
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(classchange)
 {
 	int _class,type;
@@ -10132,8 +9966,7 @@ BUILDIN_FUNC(classchange)
 
 /*==========================================
  * NPCから発生するエフェクト
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(misceffect)
 {
 	int type;
@@ -10152,8 +9985,7 @@ BUILDIN_FUNC(misceffect)
 }
 /*==========================================
  * サウンドエフェクト
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(soundeffect)
 {
 
@@ -10227,8 +10059,7 @@ BUILDIN_FUNC(soundeffectall)
 }
 /*==========================================
  * pet status recovery [Valaris] / Rewritten by [Skotlex]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(petrecovery)
 {
 	struct pet_data *pd;
@@ -10256,8 +10087,7 @@ BUILDIN_FUNC(petrecovery)
 
 /*==========================================
  * pet healing [Valaris] //Rewritten by [Skotlex]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(petheal)
 {
 	struct pet_data *pd;
@@ -10297,8 +10127,7 @@ BUILDIN_FUNC(petheal)
 
 /*==========================================
  * pet attack skills [Valaris] //Rewritten by [Skotlex]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(petskillattack)
 {
 	struct pet_data *pd;
@@ -10322,8 +10151,7 @@ BUILDIN_FUNC(petskillattack)
 
 /*==========================================
  * pet attack skills [Valaris]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(petskillattack2)
 {
 	struct pet_data *pd;
@@ -10347,8 +10175,7 @@ BUILDIN_FUNC(petskillattack2)
 
 /*==========================================
  * pet support skills [Skotlex]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(petskillsupport)
 {
 	struct pet_data *pd;
@@ -10387,8 +10214,7 @@ BUILDIN_FUNC(petskillsupport)
 
 /*==========================================
  * Scripted skill effects [Celest]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(skilleffect)
 {
 	TBL_PC *sd;
@@ -10404,8 +10230,7 @@ BUILDIN_FUNC(skilleffect)
 
 /*==========================================
  * NPC skill effects [Valaris]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(npcskilleffect)
 {
 	struct block_list *bl= map_id2bl(st->oid);
@@ -10423,8 +10248,7 @@ BUILDIN_FUNC(npcskilleffect)
 
 /*==========================================
  * Special effects [Valaris]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(specialeffect)
 {
 	struct block_list *bl=map_id2bl(st->oid);
@@ -10451,9 +10275,7 @@ BUILDIN_FUNC(specialeffect2)
 
 /*==========================================
  * Nude [Valaris]
- *------------------------------------------
- */
-
+ *------------------------------------------*/
 BUILDIN_FUNC(nude)
 {
 	TBL_PC *sd=script_rid2sd(st);
@@ -10480,9 +10302,7 @@ BUILDIN_FUNC(nude)
  *
  * suggested on the forums...
  * splitted into atcommand & charcommand by [Skotlex]
- *------------------------------------------
- */
-
+ *------------------------------------------*/
 BUILDIN_FUNC(atcommand)
 {
 	TBL_PC *sd=NULL;
@@ -10561,8 +10381,7 @@ BUILDIN_FUNC(charcommand)
 
 /*==========================================
  * Displays a message for the player only (like system messages like "you got an apple" )
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(dispbottom)
 {
 	TBL_PC *sd=script_rid2sd(st);
@@ -10575,9 +10394,8 @@ BUILDIN_FUNC(dispbottom)
 
 /*==========================================
  * All The Players Full Recovery
-   (HP/SP full restore and resurrect if need)
- *------------------------------------------
- */
+ * (HP/SP full restore and resurrect if need)
+ *------------------------------------------*/
 BUILDIN_FUNC(recovery)
 {
 	TBL_PC *sd, **all_sd;
@@ -10600,8 +10418,7 @@ BUILDIN_FUNC(recovery)
  * Get your pet info: getpetinfo(n)  
  * n -> 0:pet_id 1:pet_class 2:pet_name
  * 3:friendly 4:hungry, 5: rename flag.
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getpetinfo)
 {
 	TBL_PC *sd=script_rid2sd(st);
@@ -10645,8 +10462,7 @@ BUILDIN_FUNC(getpetinfo)
  * Shows wether your inventory(and equips) contain
    selected card or not.
 	checkequipedcard(4001);
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(checkequipedcard)
 {
 	TBL_PC *sd=script_rid2sd(st);
@@ -10696,8 +10512,7 @@ BUILDIN_FUNC(jump_zero)
 	returns mob counts on a set map:
 	e.g. GetMapMobs("prontera")
 	use "this" - for player's map
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getmapmobs)
 {
 	const char *str=NULL;
@@ -10739,9 +10554,7 @@ BUILDIN_FUNC(getmapmobs)
 
 /*==========================================
  * movenpc [MouseJstr]
- *------------------------------------------
- */
-
+ *------------------------------------------*/
 BUILDIN_FUNC(movenpc)
 {
 	TBL_NPC *nd = NULL;
@@ -10761,9 +10574,7 @@ BUILDIN_FUNC(movenpc)
 
 /*==========================================
  * message [MouseJstr]
- *------------------------------------------
- */
-
+ *------------------------------------------*/
 BUILDIN_FUNC(message)
 {
 	TBL_PC *sd;
@@ -10807,9 +10618,7 @@ BUILDIN_FUNC(npctalk)
  * hasitems (checks to see if player has any
  * items on them, if so will return a 1)
  * [Valaris]
- *------------------------------------------
- */
-
+ *------------------------------------------*/
 BUILDIN_FUNC(hasitems)
 {
 	int i;
@@ -10871,9 +10680,8 @@ BUILDIN_FUNC(npcstop)
 
 
 /*==========================================
-  * getlook char info. getlook(arg)
-  *------------------------------------------
-  */
+ * getlook char info. getlook(arg)
+ *------------------------------------------*/
 BUILDIN_FUNC(getlook)
 {
         int type,val;
@@ -10916,9 +10724,8 @@ BUILDIN_FUNC(getlook)
 }
 
 /*==========================================
-  *     get char save point. argument: 0- map name, 1- x, 2- y
-  *------------------------------------------
-*/
+ *     get char save point. argument: 0- map name, 1- x, 2- y
+ *------------------------------------------*/
 BUILDIN_FUNC(getsavepoint)
 {
 	int x,y,type;
@@ -10970,8 +10777,7 @@ BUILDIN_FUNC(getsavepoint)
   *             Return:
   *                     0        - success
   *                     -1       - some error, MapName$,MapX,MapY contains unknown value.
-  *------------------------------------------
-*/
+  *------------------------------------------*/
 BUILDIN_FUNC(getmapxy)
 {
 	struct block_list *bl = NULL;
@@ -11094,8 +10900,7 @@ BUILDIN_FUNC(getmapxy)
 
 /*==========================================
  * Allows player to write NPC logs (i.e. Bank NPC, etc) [Lupus]
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(logmes)
 {
 	const char *str;
@@ -11141,8 +10946,7 @@ BUILDIN_FUNC(summon)
 
 /*==========================================
  * Checks whether it is daytime/nighttime
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(isnight)
 {
 	script_pushint(st,(night_flag == 1));
@@ -11158,8 +10962,7 @@ BUILDIN_FUNC(isday)
 /*================================================
  * Check whether another item/card has been
  * equipped - used for 2/15's cards patch [celest]
- *------------------------------------------------
- */
+ *------------------------------------------------*/
 // leave this here, just in case
 #if 0
 BUILDIN_FUNC(isequipped)
@@ -11221,8 +11024,7 @@ BUILDIN_FUNC(isequipped)
 /*================================================
  * Check how many items/cards in the list are
  * equipped - used for 2/15's cards patch [celest]
- *------------------------------------------------
- */
+ *------------------------------------------------*/
 BUILDIN_FUNC(isequippedcnt)
 {
 	TBL_PC *sd;
@@ -11274,8 +11076,7 @@ BUILDIN_FUNC(isequippedcnt)
  * equipped - used for 2/15's cards patch [celest]
  * -- Items checked cannot be reused in another
  * card set to prevent exploits
- *------------------------------------------------
- */
+ *------------------------------------------------*/
 BUILDIN_FUNC(isequipped)
 {
 	TBL_PC *sd;
@@ -11362,8 +11163,7 @@ BUILDIN_FUNC(isequipped)
 /*================================================
  * Check how many given inserted cards in the CURRENT
  * weapon - used for 2/15's cards patch [Lupus]
- *------------------------------------------------
- */
+ *------------------------------------------------*/
 BUILDIN_FUNC(cardscnt)
 {
 	TBL_PC *sd;
@@ -11404,8 +11204,7 @@ BUILDIN_FUNC(cardscnt)
 /*=======================================================
  * Returns the refined number of the current item, or an
  * item with inventory index specified
- *-------------------------------------------------------
- */
+ *-------------------------------------------------------*/
 BUILDIN_FUNC(getrefine)
 {
 	TBL_PC *sd;
@@ -11418,8 +11217,7 @@ BUILDIN_FUNC(getrefine)
 
 /*=======================================================
  * Allows 2 Parents to adopt a character as a Baby
- *-------------------------------------------------------
- */
+ *-------------------------------------------------------*/
 BUILDIN_FUNC(adopt)
 {
 	int ret;
@@ -11445,8 +11243,7 @@ BUILDIN_FUNC(adopt)
 
 /*=======================================================
  * Day/Night controls
- *-------------------------------------------------------
- */
+ *-------------------------------------------------------*/
 BUILDIN_FUNC(night)
 {
 	if (night_flag != 1) map_night_timer(night_timer_tid, 0, 0, 1);
@@ -12022,8 +11819,7 @@ BUILDIN_FUNC(npcshopattach)
 	0 - script
 	1 - Equip script
 	2 - Unequip script
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(setitemscript)
 {
 	int item_id,n=0;
@@ -12086,12 +11882,12 @@ BUILDIN_FUNC(delmonsterdrop)
 	}
 }
 */
+
 /*==========================================
  * Returns some values of a monster [Lupus]
  * Name, Level, race, size, etc...
 	getmonsterinfo(monsterID,queryIndex);
- *------------------------------------------
- */
+ *------------------------------------------*/
 BUILDIN_FUNC(getmonsterinfo)
 {
 	struct mob_db *mob;

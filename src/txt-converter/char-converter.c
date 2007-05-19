@@ -31,7 +31,8 @@ char t_name[256];
 #define SQL_CONF_NAME "conf/inter_athena.conf"
 #define INTER_CONF_NAME "conf/inter_athena.conf"
 //--------------------------------------------------------
-int convert_init(void){
+int convert_init(void)
+{
 	char line[65536];
 	int ret;
 	int set,tmp_int[2], lineno, count;
@@ -265,8 +266,8 @@ int convert_init(void){
 	return 0;
 }
 
-int do_init(int argc, char **argv){
-
+int do_init(int argc, char **argv)
+{
 	char_config_read((argc>1)?argv[1]:CHAR_CONF_NAME);
 	mapindex_init();
 	sql_config_read((argc>2)?argv[2]:SQL_CONF_NAME);
@@ -278,4 +279,6 @@ int do_init(int argc, char **argv){
 	exit (0);
 }
 
-void do_final () {}
+void do_abort(void) {}
+
+void do_final(void) {}

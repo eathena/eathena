@@ -68,7 +68,8 @@ static int mapindex_addmap(int index, const char *name)
 	return 1;
 }
 
-unsigned short mapindex_name2id(const char* name) {
+unsigned short mapindex_name2id(const char* name)
+{
 	//TODO: Perhaps use a db to speed this up? [Skotlex]
 	int i;
 	int length = strlen(name);
@@ -94,7 +95,8 @@ unsigned short mapindex_name2id(const char* name) {
 #endif
 }
 
-const char* mapindex_id2name(unsigned short id) {
+const char* mapindex_id2name(unsigned short id)
+{
 	if (id > MAX_MAPINDEX || !indexes[id].length) {
 		ShowDebug("mapindex_id2name: Requested name for non-existant map index [%d] in cache.\n", id);
 		return indexes[0].name; //Theorically this should never happen, hence we return this string to prevent null pointer crashes.
@@ -102,7 +104,8 @@ const char* mapindex_id2name(unsigned short id) {
 	return indexes[id].name;
 }
 
-void mapindex_init(void) {
+void mapindex_init(void)
+{
 	FILE *fp;
 	char line[1024];
 	int last_index = -1;
@@ -133,5 +136,6 @@ void mapindex_init(void) {
 	fclose(fp);
 }
 
-void mapindex_final(void) {
+void mapindex_final(void)
+{
 }
