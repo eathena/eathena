@@ -6,6 +6,7 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2007/05/19
 	* Merged [ultramage]
+	- the socket shortlist for improved performance (r10506,r10507,r10518)
 	- the crashfix for long database server hostnames (r10579)
 	- the fix to allow compiling using VS9 (r10574)
 	- the fix to countitem2 to make it work for all characters (r10573)

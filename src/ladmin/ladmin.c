@@ -7,6 +7,17 @@
 // if you modify this software, modify ladmin in tool too.
 ///////////////////////////////////////////////////////////////////////////
 
+#include "../common/cbasetypes.h"
+#include "../common/core.h"
+#include "../common/strlib.h"
+#include "../common/socket.h"
+#include "../common/timer.h"
+#include "../common/version.h"
+#include "../common/mmo.h"
+#include "../common/md5calc.h"
+#include "../common/showmsg.h"
+#include "ladmin.h"
+
 #include <sys/types.h>
 #include <time.h>
 #ifdef WIN32
@@ -36,17 +47,6 @@ void Gettimeofday(struct timeval *timenow)
 #include <fcntl.h>
 #include <string.h> // str*
 #include <stdarg.h> // valist
-#include <ctype.h> // tolower
-
-#include "../common/core.h"
-#include "../common/strlib.h"
-#include "../common/socket.h"
-#include "../common/timer.h"
-#include "../common/version.h"
-#include "../common/mmo.h"
-#include "../common/md5calc.h"
-#include "../common/showmsg.h"
-#include "ladmin.h"
 
 
 //-------------------------------INSTRUCTIONS------------------------------
@@ -586,7 +586,7 @@ void display_help(char* param, int language)
 
 	// lowercase for command
 	for (i = 0; command[i]; i++)
-		command[i] = tolower(command[i]);
+		command[i] = TOLOWER(command[i]);
 
 	// Analyse of the command
 	check_command(command); // give complete name to the command
@@ -1141,7 +1141,7 @@ int addaccount(char* param, int emailflag)
 		return 102;
 	}
 
-	sex[0] = toupper(sex[0]);
+	sex[0] = TOUPPER(sex[0]);
 	if (strchr("MF", sex[0]) == NULL) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Sexe incorrect [%s]. Entrez M ou F svp.\n", sex);
@@ -1247,7 +1247,7 @@ int banaddaccount(char* param)
 
 	// lowercase for modif
 	for (i = 0; modif[i]; i++)
-		modif[i] = tolower(modif[i]);
+		modif[i] = TOLOWER(modif[i]);
 	p_modif = modif;
 	while (strlen(p_modif) > 0) {
 		value = atoi(p_modif);
@@ -2083,7 +2083,7 @@ int changelanguage(char* language)
 		return 136;
 	}
 
-	language[0] = toupper(language[0]);
+	language[0] = TOUPPER(language[0]);
 	if (language[0] == 'F' || language[0] == 'E') {
 		defaultlanguage = language[0];
 		if (defaultlanguage == 'F') {
@@ -2125,7 +2125,7 @@ int listaccount(char* param, int type)
 		// get all accounts = use default
 	} else if (list_type == 2) { // if search
 		for (i = 0; param[i]; i++)
-			param[i] = tolower(param[i]);
+			param[i] = TOLOWER(param[i]);
 		// get all accounts = use default
 	} else if (list_type == 3) { // if listban
 		// get all accounts = use default
@@ -2370,7 +2370,7 @@ int changesex(char* param)
 		return 102;
 	}
 
-	sex[0] = toupper(sex[0]);
+	sex[0] = TOUPPER(sex[0]);
 	if (strchr("MF", sex[0]) == NULL) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Sexe incorrect [%s]. Entrez M ou F svp.\n", sex);
@@ -2627,7 +2627,7 @@ int timeaddaccount(char* param)
 
 	// lowercase for modif
 	for (i = 0; modif[i]; i++)
-		modif[i] = tolower(modif[i]);
+		modif[i] = TOLOWER(modif[i]);
 	p_modif = modif;
 	while (strlen(p_modif) > 0) {
 		value = atoi(p_modif);
@@ -3105,7 +3105,7 @@ int prompt(void)
 
 		// lowercase for command line
 		for (i = 0; command[i]; i++)
-			command[i] = tolower(command[i]);
+			command[i] = TOLOWER(command[i]);
 
 		if (command[0] == '?' || strlen(command) == 0) {
 			if (defaultlanguage == 'F') {
@@ -3274,7 +3274,7 @@ int parse_fromlogin(int fd)
 					ShowMessage(" - unauthorised IP.\n");
 					ladmin_log("Error at login: incorrect password, administration system not activated, or unauthorised IP." RETCODE);
 				}
-				session[fd]->eof = 1;
+				set_eof(fd);
 				//bytes_to_read = 1; // not stop at prompt
 				return 0;
 			} else {
@@ -3385,7 +3385,7 @@ int parse_fromlogin(int fd)
 					userid[sizeof(userid)-1] = '\0';
 					memset(lower_userid, '\0', sizeof(lower_userid));
 					for (j = 0; userid[j]; j++)
-						lower_userid[j] = tolower(userid[j]);
+						lower_userid[j] = TOLOWER(userid[j]);
 					list_first = RFIFOL(fd,i) + 1;
 					// here are checks...
 					if (list_type == 0 ||
@@ -4172,7 +4172,7 @@ int parse_fromlogin(int fd)
 		default:
 			ShowMessage("Remote administration has been disconnected (unknown packet).\n");
 			ladmin_log("'End of connection, unknown packet." RETCODE);
-			session[fd]->eof = 1;
+			set_eof(fd);
 			return 0;
 		}
 	}
