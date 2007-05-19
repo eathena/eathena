@@ -1507,7 +1507,7 @@ int clif_walkok(struct map_session_data *sd)
 	return 0;
 }
 
-static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_data *ud)
+int clif_movepc(struct map_session_data *sd)
 {
 	unsigned char buf[256];
 
