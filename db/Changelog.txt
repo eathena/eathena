@@ -1,3 +1,5 @@
+05/20
+	* Set Chase Walk's cast time to 1200ms [ultramage]
 05/12
 	* Updated Magmaring [Playtester]
 05/06

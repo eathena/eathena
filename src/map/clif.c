@@ -7455,9 +7455,9 @@ int clif_specialeffect(struct block_list *bl, int type, int flag)
 int clif_refresh(struct map_session_data *sd)
 {
 	nullpo_retr(-1, sd);
-	clif_changemap(sd,sd->mapindex,sd->bl.x,sd->bl.y);
+	clif_changemap(sd, sd->mapindex,sd->bl.x, sd->bl.y);
 	clif_inventorylist(sd);
-	if(pc_iscarton(sd)){
+	if(pc_iscarton(sd)) {
 		clif_cartlist(sd);
 		clif_updatestatus(sd,SP_CARTINFO);
 	}
@@ -8002,7 +8002,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		clif_updatestatus(sd,SP_CARTINFO);
 	}
 
-	// weight max , now
+	// weight max, now
 	clif_updatestatus(sd,SP_MAXWEIGHT);
 	clif_updatestatus(sd,SP_WEIGHT);
 
@@ -8025,40 +8025,39 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if(sd->status.guild_id)
 		guild_send_memberinfoshort(sd,1);
 
-	if(map[sd->bl.m].flag.pvp){
+	if(map[sd->bl.m].flag.pvp) {
 		if(!battle_config.pk_mode) { // remove pvp stuff for pk_mode [Valaris]
 			if (!map[sd->bl.m].flag.pvp_nocalcrank)
-				sd->pvp_timer= add_timer(gettick()+200,
-					pc_calc_pvprank_timer,sd->bl.id,0);
-			sd->pvp_rank=0;
-			sd->pvp_lastusers=0;
-			sd->pvp_point=5;
-			sd->pvp_won=0;
-			sd->pvp_lost=0;
+				sd->pvp_timer = add_timer(gettick()+200, pc_calc_pvprank_timer, sd->bl.id, 0);
+			sd->pvp_rank = 0;
+			sd->pvp_lastusers = 0;
+			sd->pvp_point = 5;
+			sd->pvp_won = 0;
+			sd->pvp_lost = 0;
 		}
 		clif_set0199(fd,1);
 	} else
 	// set flag, if it's a duel [LuzZza]
 	if(sd->duel_group)
-		clif_set0199(fd, 1);
+		clif_set0199(fd,1);
 
 	if (map[sd->bl.m].flag.gvg_dungeon)
 	{
-		clif_set0199(fd, 1); //TODO: Figure out the real packet to send here.
+		clif_set0199(fd,1); //TODO: Figure out the real packet to send here.
 		if (!sd->pvp_point)
 		{
-			sd->pvp_point=5; //Need to die twice to be warped out.
-			sd->pvp_won=0;
-			sd->pvp_lost=0;
+			sd->pvp_point = 5; //Need to die twice to be warped out.
+			sd->pvp_won = 0;
+			sd->pvp_lost = 0;
 		}
 	}
 
 	if(map_flag_gvg(sd->bl.m))
 		clif_set0199(fd,3);
 
-	map_foreachinarea(clif_getareachar,sd->bl.m,
-		sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,
-		BL_ALL,sd);
+	map_foreachinarea(clif_getareachar, sd->bl.m,
+		sd->bl.x-AREA_SIZE, sd->bl.y-AREA_SIZE, sd->bl.x+AREA_SIZE, sd->bl.y+AREA_SIZE,
+		BL_ALL, sd);
 
 	// pet
 	if(sd->pd) {
@@ -8419,7 +8418,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data* sd)
 	{
 		//Hacked message, or infamous "client desynch" issue where they pick one char while loading another.
 		clif_setwaitclose(fd); // Just kick them out to correct it.
-		ShowWarning("clif_parse_GlobalMessage: Player '%.*s' sent a messsage using an incorrect name ('%s')! Forcing a relog...", namelen, sd->status.name, message);
+		ShowWarning("clif_parse_GlobalMessage: Player '%.*s' sent a message using an incorrect name ('%s')! Forcing a relog...", namelen, sd->status.name, message);
 		return;
 	}
 	
@@ -8453,39 +8452,42 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data* sd)
 	WFIFOSET(fd, WFIFOW(fd,2));
 
 #ifdef PCRE_SUPPORT
+	// trigger listening npcs
 	map_foreachinrange(npc_chat_sub, &sd->bl, AREA_SIZE, BL_NPC, message, strlen(message), &sd->bl);
 #endif
 
-	// Celest
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE) { //Super Novice.
-		char buf[256];
+	// check for special supernovice phrase
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE) {
 		int next = pc_nextbaseexp(sd);
-		if (next > 0 && (sd->status.base_exp * 1000 / next)% 100 == 0) {
+		if (next > 0 && (sd->status.base_exp * 1000 / next)% 100 == 0) { // 0%, 10%, 20%, ...
 			switch (sd->state.snovice_call_flag) {
 			case 0:
-				if (strstr(message, msg_txt(504)))
-					sd->state.snovice_call_flag++;
-				break;
-			case 1:
-				sprintf(buf, msg_txt(505), sd->status.name);
-				if (strstr(message, buf))
-					sd->state.snovice_call_flag++;
-				break;
+					if (strstr(message, msg_txt(504))) // "Guardian Angel, can you hear my voice? ^^;"
+						sd->state.snovice_call_flag++;
+			break;
+			case 1: {
+					char buf[256];
+					sprintf(buf, msg_txt(505), sd->status.name);
+					if (strstr(message, buf)) // "My name is %s, and I'm a Super Novice~"
+						sd->state.snovice_call_flag++;
+					}
+			break;
 			case 2:
-				if (strstr(message, msg_txt(506)))
-					sd->state.snovice_call_flag++;
-				break;
+					if (strstr(message, msg_txt(506))) // "Please help me~ T.T"
+						sd->state.snovice_call_flag++;
+			break;
 			case 3:
 				if (skillnotok(MO_EXPLOSIONSPIRITS,sd))
 					break; //Do not override the noskill mapflag. [Skotlex]
 				clif_skill_nodamage(&sd->bl,&sd->bl,MO_EXPLOSIONSPIRITS,-1,
 					sc_start(&sd->bl,SkillStatusChangeTable(MO_EXPLOSIONSPIRITS),100,
 						17,skill_get_time(MO_EXPLOSIONSPIRITS,1))); //Lv17-> +50 critical (noted by Poki) [Skotlex]
-				sd->state.snovice_call_flag= 0;
-				break;
+				sd->state.snovice_call_flag = 0;
+			break;
 			}
 		}
 	}
+
 	return;
 }
 
@@ -9767,7 +9769,7 @@ void clif_parse_WeaponRefine(int fd, struct map_session_data *sd)
  *------------------------------------------*/
 void clif_parse_NpcSelectMenu(int fd,struct map_session_data *sd)
 {
-	unsigned char select;
+	uint8 select;
 	RFIFOHEAD(fd);
 
 	select = RFIFOB(fd,6);
