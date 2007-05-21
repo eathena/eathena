@@ -563,7 +563,7 @@ int party_send_xy_clear(struct party &p)
 	}
 	return 0;
 }
-// HP通知の必要性検査用（map_foreachinmoveareaから呼ばれる）
+
 int CPartySendHP::process(block_list& bl) const
 {
 	map_session_data *sd = bl.get_sd();

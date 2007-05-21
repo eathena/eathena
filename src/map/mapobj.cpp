@@ -136,12 +136,11 @@ bool block_list::is_undead() const
 }
 
 
-
 ///////////////////////////////////////////////////////////////////////////////
 /// process blocks standing on a path.
-int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int range,object_t type)
+int map_intern::foreachinpath(const CMapProcessor& elem, int x0,int y0,int x1,int y1,int range,object_t type)
 {
-	int returnCount =0;  //total sum of returned values of func() [Skotlex]
+	int returnCount =0;
 /*
 //////////////////////////////////////////////////////////////
 //
@@ -202,8 +201,8 @@ int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0
 	// xy out of range
 	if (x0 < 0) x0 = 0;
 	if (y0 < 0) y0 = 0;
-	if (x1 >= maps[m].xs) x1 = maps[m].xs-1;
-	if (y1 >= maps[m].ys) y1 = maps[m].ys-1;
+	if (x1 >= this->xs) x1 = this->xs-1;
+	if (y1 >= this->ys) y1 = this->ys-1;
 
 	///////////////////////////////
 	// stuff for a linear equation in xy coord to calculate 
@@ -250,16 +249,16 @@ int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0
 	i = (range/BLOCK_SIZE+1);//temp value
 	if(bx0>i)				bx0 -=i; else bx0=0;
 	if(by0>i)				by0 -=i; else by0=0;
-	if(bx1+i<maps[m].bxs)	bx1 +=i; else bx1=maps[m].bxs-1;
-	if(by1+i<maps[m].bys)	by1 +=i; else by1=maps[m].bys-1;
+	if(bx1+i<this->bxs)	bx1 +=i; else bx1=this->bxs-1;
+	if(by1+i<this->bys)	by1 +=i; else by1=this->bys-1;
 
 
 //ShowMessage("run for (%i,%i)(%i,%i)\n",bx0,by0,bx1,by1);
 	for(bx=bx0; bx<=bx1; ++bx)
 	for(by=by0; by<=by1; ++by)
 	{	// block xy
-		c1  = maps[m].block_count[bx+by*maps[m].bxs];		// number of elements in the block
-		c2  = maps[m].block_mob_count[bx+by*maps[m].bxs];	// number of mobs in the mob block
+		c1  = this->block_count[bx+by*this->bxs];		// number of elements in the block
+		c2  = this->block_mob_count[bx+by*this->bxs];	// number of mobs in the mob block
 		if( (c1==0) && (c2==0) ) continue;				// skip if nothing in the blocks
 
 //ShowMessage("block(%i,%i) %i %i\n",bx,by,c1,c2);fflush(stdout);
@@ -267,14 +266,14 @@ int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0
 		// so we could skip the whole block in this case 
 		v1 = (bx*BLOCK_SIZE+BLOCK_SIZE/2-xm)*(bx*BLOCK_SIZE+BLOCK_SIZE/2-xm)
 			+(by*BLOCK_SIZE+BLOCK_SIZE/2-ym)*(by*BLOCK_SIZE+BLOCK_SIZE/2-ym);
-//ShowMessage("block(%i,%i) v1=%f rd=%f\n",bx,by,v1,rd);fflush(stdout);		
+//ShowMessage("block(%i,%i) v1=%f rd=%f\n",bx,by,v1,rd);fflush(stdout);
 		// check for the worst case scenario
 		if(v1 > rd)	continue;
 
 		// it seems that the block is at least partially covered by the shooting range
 		// so we go into it
 		if(type==0 || type!=BL_MOB) {
-  			bl = maps[m].block[bx+by*maps[m].bxs];		// a block with the elements
+  			bl = this->block[bx+by*this->bxs];		// a block with the elements
 			for(i=0;i<c1 && bl;i++,bl=bl->next){		// go through all elements
 				if( bl && ( !type || bl->type==type ) && bl_list_count<BL_LIST_MAX )
 				{
@@ -295,7 +294,7 @@ int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0
 		}
 
 		if(type==0 || type==BL_MOB) {
-			bl = maps[m].block_mob[bx+by*maps[m].bxs];	// and the mob block
+			bl = this->block_mob[bx+by*this->bxs];	// and the mob block
 			for(i=0;i<c2 && bl;i++,bl=bl->next){
 				if(bl && bl_list_count<BL_LIST_MAX) {
 					// calculate the perpendicular from block xy to the straight line
@@ -328,16 +327,16 @@ int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0
 	}
 
 	
-	block_list::map_freeblock_lock();	// メモリからの解放を禁止する
+	block_list::map_freeblock_lock();
 
 	for(i=blockcount;i<bl_list_count;++i)
 	{
-		if(bl_list[i]->prev)	// 有?かどうかチェック
+		if(bl_list[i]->prev)
 		{
 			returnCount += elem.process(bl_list[i]);
 		}
 	}
-	block_list::map_freeblock_unlock();	// 解放を許可する
+	block_list::map_freeblock_unlock();
 	bl_list_count = blockcount;
 
 */
@@ -380,8 +379,8 @@ int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0
 	// xy out of range
 	if (x0 < 0) x0 = 0;
 	if (y0 < 0) y0 = 0;
-	if (x1 >= maps[m].xs) x1 = maps[m].xs-1;
-	if (y1 >= maps[m].ys) y1 = maps[m].ys-1;
+	if (x1 >= this->xs) x1 = this->xs-1;
+	if (y1 >= this->ys) y1 = this->ys-1;
 
 	///////////////////////////////
 	// find maximum runindex
@@ -409,12 +408,12 @@ int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0
 			by = y/BLOCK_SIZE;
 
 			// and process the data
-			c1  = maps[m].block_count[bx+by*maps[m].bxs];		// number of elements in the block
-			c2  = maps[m].block_mob_count[bx+by*maps[m].bxs];	// number of mobs in the mob block
+			c1  = this->block_count[bx+by*this->bxs];		// number of elements in the block
+			c2  = this->block_mob_count[bx+by*this->bxs];	// number of mobs in the mob block
 			if( (c1==0) && (c2==0) ) continue;				// skip if nothing in the block
 
 			if(type==0 || type!=BL_MOB) {
-				bl = maps[m].block[bx+by*maps[m].bxs];		// a block with the elements
+				bl = this->block[bx+by*this->bxs];		// a block with the elements
 				for(i=0;i<c1 && bl;i++,bl=bl->next){		// go through all elements
 					if( bl && ( !type || bl->type==type ) && bl_list_count<BL_LIST_MAX )
 					{	
@@ -430,7 +429,7 @@ int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0
 			}
 
 			if(type==0 || type==BL_MOB) {
-				bl = maps[m].block_mob[bx+by*maps[m].bxs];	// and the mob block
+				bl = this->block_mob[bx+by*this->bxs];	// and the mob block
 				for(i=0;i<c2 && bl;i++,bl=bl->next){
 					if(bl && bl_list_count<BL_LIST_MAX) {
 						// check if mob xy is on the line
@@ -451,16 +450,16 @@ int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0
 			ShowWarning("map_foreachinpath: *WARNING* block count too many!\n");
 	}
 
-	block_list::map_freeblock_lock();	// メモリからの解放を禁止する
+	block_list::map_freeblock_lock();
 
 	for(i=blockcount;i<bl_list_count;++i)
 	{
-		if(bl_list[i]->prev)	// 有?かどうかチェック
+		if(bl_list[i]->prev)
 		{
 			returnCount += elem.process(bl_list[i]);
 		}
 	}
-	block_list::map_freeblock_unlock();	// 解放を許可する
+	block_list::map_freeblock_unlock();
 	bl_list_count = blockcount;
 */
 
@@ -499,18 +498,17 @@ int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0
 	int save_x[BLOCK_SIZE],save_y[BLOCK_SIZE],save_cnt=0;
 
 	// no map
-	if(m >= MAX_MAP_PER_SERVER) return 0;
-	block_list::freeblock_lock();	// メモリからの解放を禁止する
+	block_list::freeblock_lock();
 
 	// xy out of range
 	if (x0 < 0) x0 = 0;
 	if (y0 < 0) y0 = 0;
-	if (x0 >= maps[m].xs) x0 = maps[m].xs-1;
-	if (y0 >= maps[m].ys) y0 = maps[m].ys-1;
+	if (x0 >= this->xs) x0 = this->xs-1;
+	if (y0 >= this->ys) y0 = this->ys-1;
 	if (x1 < 0) x1 = 0;
 	if (y1 < 0) y1 = 0;
-	if (x1 >= maps[m].xs) x1 = maps[m].xs-1;
-	if (y1 >= maps[m].ys) y1 = maps[m].ys-1;
+	if (x1 >= this->xs) x1 = this->xs-1;
+	if (y1 >= this->ys) y1 = this->ys-1;
 
 	///////////////////////////////
 	// find maximum runindex, 
@@ -539,13 +537,13 @@ int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0
 			// and process the data of the formerly stored block, if any
 			if( save_cnt!=0 )
 			{
-				c1  = maps[m].objects[bx+by*maps[m].bxs].cnt_blk;	// number of elements in the block
-				c2  = maps[m].objects[bx+by*maps[m].bxs].cnt_mob;	// number of mobs in the mob block
-				if( (c1!=0) || (c2!=0) )							// skip if nothing in the block
+				c1  = this->objects[bx+by*this->bxs].cnt_blk;	// number of elements in the block
+				c2  = this->objects[bx+by*this->bxs].cnt_mob;	// number of mobs in the mob block
+				if( (c1!=0) || (c2!=0) )						// skip if nothing in the block
 				{
 					if(type==0 || type!=BL_MOB)
 					{
-						bl = maps[m].objects[bx+by*maps[m].bxs].root_blk;	// a block with the elements
+						bl = this->objects[bx+by*this->bxs].root_blk;	// a block with the elements
 						for(i=0;i<c1 && bl;++i,bl=bl->next)
 						{	// go through all elements
 							if( bl && bl->is_type(type) && bl_list_count<BL_LIST_MAX )
@@ -564,7 +562,7 @@ int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0
 
 					if(type==0 || type==BL_MOB)
 					{
-						bl = maps[m].objects[bx+by*maps[m].bxs].root_mob;	// and the mob block
+						bl = this->objects[bx+by*this->bxs].root_mob;	// and the mob block
 						for(i=0;i<c2 && bl;i++,bl=bl->next)
 						{
 							if(bl && bl_list_count<BL_LIST_MAX)
@@ -602,12 +600,12 @@ int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0
 
 	for(i=blockcount;i<bl_list_count;++i)
 	{
-		if(bl_list[i] && bl_list[i]->prev)	// 有?かどうかチェック
+		if(bl_list[i] && bl_list[i]->prev)
 		{
 			returnCount += elem.process(*bl_list[i]);
 		}
 	}
-	block_list::freeblock_unlock();	// 解放を許可する
+	block_list::freeblock_unlock();
 	bl_list_count = blockcount;
 
 	return returnCount;
@@ -615,165 +613,171 @@ int block_list::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0
 }
 ///////////////////////////////////////////////////////////////////////////////
 /// process blocks standing on a exact position.
-int block_list::foreachincell(const CMapProcessor& elem, unsigned short m,int x,int y,object_t type)
+int map_intern::foreachincell(const CMapProcessor& elem, int x,int y, object_t type)
 {
-	int bx,by;
-	int returnCount =0;  //total sum of returned values of func() [Skotlex]
-	block_list *bl=NULL;
-	int blockcount=bl_list_count,i,c;
-	block_list::freeblock_lock();	// メモリからの解放を禁止する
-
-	by=y/BLOCK_SIZE;
-	bx=x/BLOCK_SIZE;
-
-	if(type==0 || type!=BL_MOB)
+	int returnCount =0;
+	if(x > 0 && y > 0 && x < this->xs &&  y < this->ys )
 	{
-		bl = maps[m].objects[bx+by*maps[m].bxs].root_blk;
-		c = maps[m].objects[bx+by*maps[m].bxs].cnt_blk;
-		for(i=0;i<c && bl;i++,bl=bl->next)
+		int bx,by;
+		block_list *bl=NULL;
+		int blockcount=bl_list_count,i,c;
+		block_list::freeblock_lock();
+
+		by=y/BLOCK_SIZE;
+		bx=x/BLOCK_SIZE;
+
+		if(type==0 || type!=BL_MOB)
 		{
-			if( bl && !bl->is_type(type) )
-				continue;
-			if( bl && bl->x==x && bl->y==y && bl_list_count<BL_LIST_MAX )
-				bl_list[bl_list_count++]=bl;
+			bl = this->objects[bx+by*this->bxs].root_blk;
+			c = this->objects[bx+by*this->bxs].cnt_blk;
+			for(i=0;i<c && bl;i++,bl=bl->next)
+			{
+				if( bl && !bl->is_type(type) )
+					continue;
+				if( bl && bl->x==x && bl->y==y && bl_list_count<BL_LIST_MAX )
+					bl_list[bl_list_count++]=bl;
+			}
 		}
-	}
 
-	if(type==0 || type==BL_MOB)
-	{
-		bl = maps[m].objects[bx+by*maps[m].bxs].root_mob;
-		c = maps[m].objects[bx+by*maps[m].bxs].cnt_mob;
-		for(i=0;i<c && bl;i++,bl=bl->next)
+		if(type==0 || type==BL_MOB)
 		{
-			if(bl && bl->x==x && bl->y==y && bl_list_count<BL_LIST_MAX)
-				bl_list[bl_list_count++]=bl;
+			bl = this->objects[bx+by*this->bxs].root_mob;
+			c = this->objects[bx+by*this->bxs].cnt_mob;
+			for(i=0;i<c && bl;i++,bl=bl->next)
+			{
+				if(bl && bl->x==x && bl->y==y && bl_list_count<BL_LIST_MAX)
+					bl_list[bl_list_count++]=bl;
+			}
 		}
-	}
 
-	if(bl_list_count>=BL_LIST_MAX) {
-		if(config.error_log)
-			ShowMessage("map_foreachincell: *WARNING* block count too many!\n");
-	}
+		if(bl_list_count>=BL_LIST_MAX) {
+			if(config.error_log)
+				ShowMessage("map_foreachincell: *WARNING* block count too many!\n");
+		}
 
-	for(i=blockcount;i<bl_list_count;++i)
-	{
-		if(bl_list[i] && bl_list[i]->prev)	// 有?かどうかチェック
-			returnCount += elem.process(*bl_list[i]);
+		for(i=blockcount;i<bl_list_count;++i)
+		{
+			if(bl_list[i] && bl_list[i]->prev)
+				returnCount += elem.process(*bl_list[i]);
+		}
+		block_list::freeblock_unlock();
+		bl_list_count = blockcount;
 	}
-	block_list::freeblock_unlock();	// 解放を許可する
-	bl_list_count = blockcount;
 	return returnCount;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// count blocks standing on a exact position.
-int block_list::countoncell(unsigned short m, int x, int y, object_t type)
+int map_intern::countoncell(int x, int y, object_t type)
 {
-	int bx,by;
-	block_list *bl=NULL;
-	int i,c;
 	int count = 0;
-
-	if (x < 0 || y < 0 || (x >= maps[m].xs) || (y >= maps[m].ys))
-		return 0;
-	block_list::freeblock_lock();
-
-	bx = x/BLOCK_SIZE;
-	by = y/BLOCK_SIZE;
-
-	if( type == BL_ALL || type != BL_MOB )
+	if(x > 0 && y > 0 && x < this->xs &&  y < this->ys )
 	{
-		bl = maps[m].objects[bx+by*maps[m].bxs].root_blk;
-		c = maps[m].objects[bx+by*maps[m].bxs].cnt_blk;
-		for(i=0;i<c && bl;i++,bl=bl->next)
+		int bx = x/BLOCK_SIZE;
+		int by = y/BLOCK_SIZE;
+		block_list *bl=NULL;
+		int i,c;
+
+		block_list::freeblock_lock();
+		if( type == BL_ALL || type != BL_MOB )
 		{
-			if( bl->x == x && bl->y == y && *bl == BL_PC )
-				++count;
+			bl = this->objects[bx+by*this->bxs].root_blk;
+			c = this->objects[bx+by*this->bxs].cnt_blk;
+			for(i=0;i<c && bl;i++,bl=bl->next)
+			{
+				if( bl->x == x && bl->y == y && *bl == BL_PC )
+					++count;
+			}
 		}
-	}
-	if( type == BL_ALL || type == BL_MOB )
-	{
-		bl = maps[m].objects[bx+by*maps[m].bxs].root_mob;
-		c = maps[m].objects[bx+by*maps[m].bxs].cnt_mob;
-		for(i=0;i<c && bl;i++,bl=bl->next)
+		if( type == BL_ALL || type == BL_MOB )
 		{
-			if( bl->x == x && bl->y == y )
-				++count;
+			bl = this->objects[bx+by*this->bxs].root_mob;
+			c = this->objects[bx+by*this->bxs].cnt_mob;
+			for(i=0;i<c && bl;i++,bl=bl->next)
+			{
+				if( bl->x == x && bl->y == y )
+					++count;
+			}
 		}
+		block_list::freeblock_unlock();
 	}
-	block_list::freeblock_unlock();
 	return count;
 }
 ///////////////////////////////////////////////////////////////////////////////
 /// process blocks standing inside a move area.
 /// (move area is the difference cut between the source and target area
-int block_list::foreachinmovearea(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,object_t type)
+int map_intern::foreachinmovearea(const CMapProcessor& elem, int x0,int y0,int x1,int y1,int dx,int dy,object_t type)
 {
 	int bx,by;
-	int returnCount =0;  //total sum of returned values of func() [Skotlex]
+	int returnCount =0;
 	block_list *bl=NULL;
 	int blockcount=bl_list_count,i,c;
-	block_list::freeblock_lock();	// メモリからの解放を禁止する
+	block_list::freeblock_lock();
 
 	if(x0>x1) basics::swap(x0,x1);
 	if(y0>y1) basics::swap(y0,y1);
 	if(dx==0 || dy==0)
 	{
-		// 矩形領域の場合
-		if(dx==0){
-			if(dy<0){
+		if(dx==0)
+		{
+			if(dy<0)
+			{
 				y0=y1+dy+1;
-			} else {
+			}
+			else
+			{
 				y1=y0+dy-1;
 			}
-		} else if(dy==0){
-			if(dx<0){
+		}
+		else if(dy==0)
+		{
+			if(dx<0)
+			{
 				x0=x1+dx+1;
-			} else {
+			}
+			else
+			{
 				x1=x0+dx-1;
 			}
 		}
 		if(x0<0) x0=0;
 		if(y0<0) y0=0;
-		if(x1>=maps[m].xs) x1=maps[m].xs-1;
-		if(y1>=maps[m].ys) y1=maps[m].ys-1;
+		if(x1>=this->xs) x1=this->xs-1;
+		if(y1>=this->ys) y1=this->ys-1;
 		for(by=y0/BLOCK_SIZE;by<=y1/BLOCK_SIZE; ++by)
+		for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE; ++bx)
 		{
-			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE; ++bx)
+			bl = this->objects[bx+by*this->bxs].root_blk;
+			c  = this->objects[bx+by*this->bxs].cnt_blk;
+			for(i=0;i<c && bl;i++,bl=bl->next)
 			{
-				bl = maps[m].objects[bx+by*maps[m].bxs].root_blk;
-				c  = maps[m].objects[bx+by*maps[m].bxs].cnt_blk;
-				for(i=0;i<c && bl;i++,bl=bl->next)
-				{
-					if(bl && !bl->is_type(type) )
-						continue;
-					if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
-						bl_list[bl_list_count++]=bl;
-				}
-				bl = maps[m].objects[bx+by*maps[m].bxs].root_mob;
-				c  = maps[m].objects[bx+by*maps[m].bxs].cnt_mob;
-				for(i=0;i<c && bl;i++,bl=bl->next)
-				{
-					if(bl && !bl->is_type(type) )
-						continue;
-					if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
-						bl_list[bl_list_count++]=bl;
-				}
+				if(bl && !bl->is_type(type) )
+					continue;
+				if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
+					bl_list[bl_list_count++]=bl;
+			}
+			bl = this->objects[bx+by*this->bxs].root_mob;
+			c  = this->objects[bx+by*this->bxs].cnt_mob;
+			for(i=0;i<c && bl;i++,bl=bl->next)
+			{
+				if(bl && !bl->is_type(type) )
+					continue;
+				if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
+					bl_list[bl_list_count++]=bl;
 			}
 		}
 	}
 	else
-	{	// L字領域の場合
-
+	{
 		if(x0<0) x0=0;
 		if(y0<0) y0=0;
-		if(x1>=maps[m].xs) x1=maps[m].xs-1;
-		if(y1>=maps[m].ys) y1=maps[m].ys-1;
+		if(x1>=this->xs) x1=this->xs-1;
+		if(y1>=this->ys) y1=this->ys-1;
 		for(by=y0/BLOCK_SIZE;by<=y1/BLOCK_SIZE; ++by)
 		for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE; ++bx)
 		{
-			bl = maps[m].objects[bx+by*maps[m].bxs].root_blk;
-			c  = maps[m].objects[bx+by*maps[m].bxs].cnt_blk;
+			bl = this->objects[bx+by*this->bxs].root_blk;
+			c  = this->objects[bx+by*this->bxs].cnt_blk;
 			for(i=0;i<c && bl;i++,bl=bl->next)
 			{
 				if( bl && !bl->is_type(type) )
@@ -785,8 +789,8 @@ int block_list::foreachinmovearea(const CMapProcessor& elem, unsigned short m,in
 					bl_list_count<BL_LIST_MAX)
 						bl_list[bl_list_count++]=bl;
 			}
-			bl = maps[m].objects[bx+by*maps[m].bxs].root_mob;
-			c  = maps[m].objects[bx+by*maps[m].bxs].cnt_mob;
+			bl = this->objects[bx+by*this->bxs].root_mob;
+			c  = this->objects[bx+by*this->bxs].cnt_mob;
 			for(i=0;i<c && bl;i++,bl=bl->next)
 			{
 				if( bl && !bl->is_type(type) )
@@ -810,8 +814,7 @@ int block_list::foreachinmovearea(const CMapProcessor& elem, unsigned short m,in
 	for(i=blockcount;i<bl_list_count;++i)
 	{
 		if(bl_list[i] && bl_list[i]->prev)
-		{	// 有?かどうかチェック
-
+		{
 			map_session_data *sd = bl_list[i]->get_sd();
 			if( sd && !session_isActive(sd->fd) )
 				continue;
@@ -819,37 +822,35 @@ int block_list::foreachinmovearea(const CMapProcessor& elem, unsigned short m,in
 			returnCount += elem.process(*bl_list[i]);
 		}
 	}
-	block_list::freeblock_unlock();	// 解放を許可する
+	block_list::freeblock_unlock();
 	bl_list_count = blockcount;
 	return returnCount;
 }
 ///////////////////////////////////////////////////////////////////////////////
 /// process blocks standing inside an area.
-int block_list::foreachinarea(const CMapProcessor& elem, unsigned short m, int x0,int y0,int x1,int y1,object_t type)
+int map_intern::foreachinarea(const CMapProcessor& elem, int x0,int y0,int x1,int y1,object_t type)
 {
 	int bx,by;
-	int returnCount =0;	//total sum of returned values of func() [Skotlex]
+	int returnCount =0;
 	block_list *bl=NULL;
 	int blockcount=bl_list_count,i,c;
 
-	if(m >= map_num )
-		return 0;
-	block_list::freeblock_lock();	// メモリからの解放を禁止する
+	block_list::freeblock_lock();
 	
 	if(x0>x1) basics::swap(x0,x1);
 	if(y0>y1) basics::swap(y0,y1);
 
 	if (x0 < 0) x0 = 0;
 	if (y0 < 0) y0 = 0;
-	if (x1 >= maps[m].xs) x1 = maps[m].xs-1;
-	if (y1 >= maps[m].ys) y1 = maps[m].ys-1;
+	if (x1 >= this->xs) x1 = this->xs-1;
+	if (y1 >= this->ys) y1 = this->ys-1;
 	if (type == 0 || type != BL_MOB)
 	{
-		for(by = y0/BLOCK_SIZE; by <= y1/BLOCK_SIZE; ++by)
-		for(bx = x0/BLOCK_SIZE; bx <= x1/BLOCK_SIZE; ++bx)
+		for(by = y0/BLOCK_SIZE; by<=y1/BLOCK_SIZE; ++by)
+		for(bx = x0/BLOCK_SIZE; bx<=x1/BLOCK_SIZE; ++bx)
 		{
-			bl = maps[m].objects[bx+by*maps[m].bxs].root_blk;
-			c  = maps[m].objects[bx+by*maps[m].bxs].cnt_blk;
+			bl = this->objects[bx+by*this->bxs].root_blk;
+			c  = this->objects[bx+by*this->bxs].cnt_blk;
 			for(i=0;i<c && bl;i++,bl=bl->next)
 			{
 				if(bl && !bl->is_type(type) )
@@ -861,11 +862,11 @@ int block_list::foreachinarea(const CMapProcessor& elem, unsigned short m, int x
 	}
 	if(type==0 || type==BL_MOB)
 	{
-		for(by = y0/BLOCK_SIZE; by <= y1/BLOCK_SIZE; ++by)
-		for(bx = x0/BLOCK_SIZE; bx <= x1/BLOCK_SIZE; ++bx)
+		for(by = y0/BLOCK_SIZE; by<=y1/BLOCK_SIZE; ++by)
+		for(bx = x0/BLOCK_SIZE; bx<=x1/BLOCK_SIZE; ++bx)
 		{
-			bl = maps[m].objects[bx+by*maps[m].bxs].root_mob;
-			c  = maps[m].objects[bx+by*maps[m].bxs].cnt_mob;
+			bl = this->objects[bx+by*this->bxs].root_mob;
+			c  = this->objects[bx+by*this->bxs].cnt_mob;
 			for(i=0;i<c && bl;i++,bl=bl->next)
 			{
 				if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
@@ -882,14 +883,74 @@ int block_list::foreachinarea(const CMapProcessor& elem, unsigned short m, int x
 
 
 	for(i=blockcount;i<bl_list_count;++i)
-		if(bl_list[i] && bl_list[i]->prev)	// 有?かどうかチェック
+		if(bl_list[i] && bl_list[i]->prev)
 			returnCount += elem.process(*bl_list[i]);
 
-	block_list::freeblock_unlock();	// 解放を許可する
+	block_list::freeblock_unlock();
 	bl_list_count = blockcount;
 
-	return returnCount;	//[Skotlex]
+	return returnCount;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// process each block
+int map_intern::foreach(const CMapProcessor& elem, object_t type)
+{
+	int bx,by;
+	int returnCount =0;
+	block_list *bl=NULL;
+	int blockcount=bl_list_count,i,c;
+
+	block_list::freeblock_lock();
+	
+	if (type == 0 || type != BL_MOB)
+	{
+		for(by = 0; by < this->bys; ++by)
+		for(bx = 0; bx < this->bxs; ++bx)
+		{
+			bl = this->objects[bx+by*this->bxs].root_blk;
+			c  = this->objects[bx+by*this->bxs].cnt_blk;
+			for(i=0;i<c && bl;i++,bl=bl->next)
+			{
+				if(bl && !bl->is_type(type) )
+					continue;
+				if(bl && bl_list_count<BL_LIST_MAX)
+					bl_list[bl_list_count++]=bl;
+			}
+		}
+	}
+	if(type==0 || type==BL_MOB)
+	{
+		for(by = 0; by < this->bys; ++by)
+		for(bx = 0; bx < this->bxs; ++bx)
+		{
+			bl = this->objects[bx+by*this->bxs].root_mob;
+			c  = this->objects[bx+by*this->bxs].cnt_mob;
+			for(i=0;i<c && bl;i++,bl=bl->next)
+			{
+				if(bl && bl_list_count<BL_LIST_MAX)
+					bl_list[bl_list_count++]=bl;
+			}
+		}
+	}
+
+	if(bl_list_count>=BL_LIST_MAX)
+	{
+		if(config.error_log)
+			ShowMessage("map_foreach: *WARNING* block count too many!\n");
+	}
+
+
+	for(i=blockcount;i<bl_list_count;++i)
+		if(bl_list[i] && bl_list[i]->prev)
+			returnCount += elem.process(*bl_list[i]);
+
+	block_list::freeblock_unlock();
+	bl_list_count = blockcount;
+
+	return returnCount;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// process party members on same map.
 int block_list::foreachpartymemberonmap(const CMapProcessor& elem, map_session_data &sd, bool area)
@@ -1039,10 +1100,10 @@ bool block_list::addblock()
 		this->delblock();
 	}
 
-	if( this->m<map_num && this->x<maps[this->m].xs && this->y<maps[this->m].ys )
+	if( this->m<maps.size() && this->x<maps[this->m].xs && this->y<maps[this->m].ys )
 	{
 		const size_t pos = this->x/BLOCK_SIZE+(this->y/BLOCK_SIZE)*maps[this->m].bxs;
-		map_data::_objects &obj = maps[this->m].objects[pos];
+		map_intern::_objects &obj = maps[this->m].objects[pos];
 
 		if( this->is_type(BL_MOB) )
 		{
@@ -1069,7 +1130,7 @@ bool block_list::addblock()
 					sd.pd->menu(3); // Option 3 is return to egg.
 				}
 				if(maps[this->m].users++ == 0 && config.dynamic_mobs)	// Skotlex
-					map_spawnmobs(this->m);
+					maps[this->m].moblist_spawn();
 			}
 		}
 
@@ -1092,15 +1153,15 @@ bool block_list::delblock()
 				ShowError("map_delblock error : bl->next!=NULL\n");
 		}
 	}
-	else if( this->m < map_num )
+	else if( this->m < maps.size() )
 	{
 		const size_t pos = this->x/BLOCK_SIZE+(this->y/BLOCK_SIZE)*maps[this->m].bxs;
-		map_data::_objects &obj = maps[this->m].objects[pos];
+		map_intern::_objects &obj = maps[this->m].objects[pos];
 
 		if( this->is_type(BL_PC) )
 		{
 			if( maps[this->m].users>0 && --maps[this->m].users == 0 && config.dynamic_mobs)
-				map_removemobs(this->m);
+				maps[this->m].moblist_release();
 		}
 		
 		if( this->is_type(BL_MOB) )

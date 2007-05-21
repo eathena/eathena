@@ -45,7 +45,7 @@ void parseCommandline(int argc, char **argv)
 			CParamBase::loadFile(argv[i]);
 
 			// and clear the string, start new search
-			str.empty();
+			str.clear();
 		}
 		else
 		{	// not a file, check if it is a direct parameter
@@ -73,7 +73,7 @@ void parseCommandline(int argc, char **argv)
 					createParam(w1, w2, true);
 				}
 				// clear the string, start new search
-				str.empty();
+				str.clear();
 			}
 		}
 	}
@@ -174,7 +174,7 @@ bool CParameterList::add_commandline(const char* line)
 		}
 		// delimiter decision
 		// skip the quote when string parameter
-		delim = (*rpp=='"') ? *rpp++ : 0;
+		delim = (*rpp=='"') ? *rpp++ : '\0';
 
 		// save the parameter start pointer
 		this->cParam[this->cCnt] = wpp;

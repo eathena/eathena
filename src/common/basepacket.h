@@ -99,6 +99,8 @@ void test_packet(void);
 class IPacket
 {
 public:
+	virtual ~IPacket()
+	{}
 	///////////////////////////////////////////////////////////////////////////
 	/// Returns the length of this packet.
 	virtual size_t length() const=0;
@@ -113,6 +115,8 @@ public:
 class IFieldBuffer
 {
 public:
+	virtual ~IFieldBuffer()
+	{}
 	///////////////////////////////////////////////////////////////////////////
 	/// Returns the length of this buffer.
 	virtual size_t length() const=0;
@@ -139,6 +143,8 @@ public:
 class IFieldBufferController
 {
 public:
+	virtual ~IFieldBufferController()
+	{}
 	///////////////////////////////////////////////////////////////////////////
 	/// Changes the size of the target buffer. There is no warranty that the 
 	/// size will change to the requested value or change at all.
@@ -169,6 +175,8 @@ public:
 	CBufFieldBuffer();
 
 public:
+	virtual ~CBufFieldBuffer()
+	{}
 	///////////////////////////////////////////////////////////////////////////
 	/// Returns the length of this buffer.
 	virtual size_t length() const;
@@ -352,4 +360,453 @@ private:
 NAMESPACE_END(basics)
 ///////////////////////////////////////////////////////////////////////////////
 
+
+
+
+
+
+#include "baseinet.h"
+#include "basearray.h"
+
+///////////////////////////////////////////////////////////////////////////////
+// example code from caldon, adopted version provided by Hinoko
+// I just put it here as reference; 
+// as the implementation above is almost identical it might be not 
+// necessary to have adoptions, but maybe the question with the 
+// dynamic buffer can be answered by example here
+
+namespace example_socket {
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// base class for accessing default types.
+/// empty to cause compile time errors
+template <typename T>
+struct subscript_typed
+{};
+
+///////////////////////////////////////////////////////////////////////////////
+/// type access specialisation for bytes.
+template <>
+struct subscript_typed<uint8>
+{
+	uint8* cWpp;
+	subscript_typed(uint8* p) : cWpp(p)
+	{}
+	operator uint8() const
+	{
+		return (cWpp)?*cWpp:0;
+	}
+	const subscript_typed& operator=(uint8 v)
+	{
+		if(cWpp)
+			*cWpp = v;
+		return *this;
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// type access specialisation for words.
+/// transfer in little endian byte order
+template <>
+struct subscript_typed<uint16>
+{
+	uint8* cWpp;
+	subscript_typed(uint8* p) : cWpp(p)
+	{}
+	
+	operator uint16() const
+	{
+		if(cWpp)
+		{
+			return	(uint16)
+					 ( ((uint16)(cWpp[0]))        )
+					|( ((uint16)(cWpp[1])) << 0x08);
+		}
+		return 0;
+	}
+	const subscript_typed& operator=(uint16 v)
+	{
+		if(cWpp)
+		{
+			uint8*p=cWpp;
+			*p++ = (unsigned char)(v); v>>=8;
+			*p   = (unsigned char)(v);
+		}
+		return *this;
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// type access specialisation for doublewords.
+/// transfer in little endian byte order
+template <>
+struct subscript_typed<uint32>
+{
+	uint8* cWpp;
+	subscript_typed(uint8* p) : cWpp(p)
+	{}
+	
+	operator uint32() const
+	{
+		if(cWpp)
+		{
+			return	 ( ((uint32)(cWpp[0]))        )
+					|( ((uint32)(cWpp[1])) << 0x08)
+					|( ((uint32)(cWpp[2])) << 0x10)
+					|( ((uint32)(cWpp[3])) << 0x18);
+		}
+		return 0;
+	}
+	const subscript_typed& operator=(uint32 v)
+	{
+		if(cWpp)
+		{
+			uint8*p=cWpp;
+			*p++ = (unsigned char)(v); v>>=8;
+			*p++ = (unsigned char)(v); v>>=8;
+			*p++ = (unsigned char)(v); v>>=8;
+			*p   = (unsigned char)(v);
+		}
+		return *this;
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// type access specialisation for quadwords.
+/// transfer in little endian byte order
+template <>
+struct subscript_typed<uint64>
+{
+	uint8* cWpp;
+	subscript_typed(uint8* p) : cWpp(p)
+	{}
+	operator uint64() const
+	{
+		if(cWpp)
+		{
+			return	 ( ((uint64)(cWpp[0]))        )
+					|( ((uint64)(cWpp[1])) << 0x08)
+					|( ((uint64)(cWpp[2])) << 0x10)
+					|( ((uint64)(cWpp[3])) << 0x18)
+					|( ((uint64)(cWpp[4])) << 0x20)
+					|( ((uint64)(cWpp[5])) << 0x28)
+					|( ((uint64)(cWpp[6])) << 0x30)
+					|( ((uint64)(cWpp[7])) << 0x38);
+		}
+		return 0;
+	}
+	const subscript_typed& operator=(uint64 v)
+	{
+		if(cWpp)
+		{
+			uint8*p=cWpp;
+			*p++ = (unsigned char)(v); v>>=8;
+			*p++ = (unsigned char)(v); v>>=8;
+			*p++ = (unsigned char)(v); v>>=8;
+			*p++ = (unsigned char)(v); v>>=8;
+			*p++ = (unsigned char)(v); v>>=8;
+			*p++ = (unsigned char)(v); v>>=8;
+			*p++ = (unsigned char)(v); v>>=8;
+			*p   = (unsigned char)(v);
+		}
+		return *this;
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// type access specialisation for cstring.
+/// does never return null pointer
+template <>
+struct subscript_typed<const char*>
+{
+	uint8* cWpp;
+	size_t sz;
+	subscript_typed(uint8* p, size_t s) : cWpp(p), sz(s)
+	{}
+	operator const char*() const
+	{
+		if(cWpp&&sz)
+		{
+			cWpp[sz-1]=0;// force eos
+			return	(const char*)(cWpp);
+		}
+		return "";
+	}
+	const subscript_typed& operator=(const char* v)
+	{
+		if(cWpp&&v&&sz)
+		{
+			memcpy(cWpp, v, sz);
+			cWpp[sz-1]=0;
+		}
+		return *this;
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// type access specialisation for byte buffers.
+/// returns null pointer when accessing out-of-bound
+template <>
+struct subscript_typed<const unsigned char*>
+{
+	uint8* cWpp;
+	size_t sz;
+	subscript_typed(uint8* p, size_t s) : cWpp(p), sz(s)
+	{}
+	operator const unsigned char*() const
+	{
+		return (const unsigned char*)cWpp;
+	}
+	const subscript_typed& operator=(const char* v)
+	{
+		if(cWpp&&v&&sz)
+			memcpy(cWpp, v, sz);
+		return *this;
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// type access specialisation for basics::ipaddess.
+/// transfer ipaddresses as big endian (network byte order)
+template <>
+struct subscript_typed<basics::ipaddress>
+{
+	uint8* cWpp;
+	subscript_typed(uint8* p) : cWpp(p)
+	{}
+	operator basics::ipaddress() const
+	{
+		if(cWpp)
+		{
+			return	 ( ((unsigned long)(cWpp[3]))        )
+					|( ((unsigned long)(cWpp[2])) << 0x08)
+					|( ((unsigned long)(cWpp[1])) << 0x10)
+					|( ((unsigned long)(cWpp[0])) << 0x18);
+		}
+		return basics::ipaddress();
+	}
+	const subscript_typed& operator=(const basics::ipaddress& v)
+	{
+		if(cWpp)
+		{
+			cWpp[3] = (unsigned char)((v & 0x000000FF)          );
+			cWpp[2] = (unsigned char)((v & 0x0000FF00)  >> 0x08 );
+			cWpp[1] = (unsigned char)((v & 0x00FF0000)  >> 0x10 );
+			cWpp[0] = (unsigned char)((v & 0xFF000000)  >> 0x18 );
+		}
+		return *this;
+	}
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// abstract subscript type.
+/// handles type specification for accessing the parent object 
+/// by aquiring a piece of buffer space inside the parent
+template <typename Parent>
+struct subscript
+{
+	Parent& parent;
+	size_t  index;
+	subscript(Parent& p, size_t inx) : parent(p),index(inx)
+	{}
+	~subscript()
+	{}
+	subscript_typed<uint8> u8()
+	{
+		return subscript_typed<uint8>(parent.aquire(index,1));
+	}
+	subscript_typed<uint16> u16()
+	{
+		return subscript_typed<uint16>(parent.aquire(index,2));
+	}
+	subscript_typed<uint32> u32()
+	{
+		return subscript_typed<uint32>(parent.aquire(index,4));
+	}
+	subscript_typed<uint64> u64()
+	{
+		return subscript_typed<uint64>(parent.aquire(index,8));
+	}
+	subscript_typed<const char*> string(size_t sz)
+	{
+		return subscript_typed<const char*>(parent.aquire(index,sz),sz);
+	}
+	subscript_typed<const unsigned char*> blob(size_t sz)
+	{
+		return subscript_typed<const unsigned char*>(parent.aquire(index,sz),sz);
+	}
+	subscript_typed<basics::ipaddress> ip()
+	{
+		return subscript_typed<basics::ipaddress>(parent.aquire(index,4));
+	}
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// base packet.
+class packet
+{
+protected:
+	friend struct subscript<packet>;
+	///////////////////////////////////////////////////////////////////////////
+	/// aquire a block of sz bytes starting from pos inside the buffer.
+	/// return NULL when accessing out-of-range, overloadable
+	virtual uint8* aquire(size_t pos, size_t sz)
+	{
+		return (pos+sz<=this->length())?const_cast<uint8*>(this->operator()()+pos):NULL;
+	}
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// destructor.
+	virtual ~packet()
+	{}
+	///////////////////////////////////////////////////////////////////////////
+	/// access to typed elements
+	subscript<packet> operator[](unsigned int inx)
+	{
+		return subscript<packet>(*this, inx);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	/// Length of the packet.
+	virtual size_t length() const=0;
+	///////////////////////////////////////////////////////////////////////////
+	/// Data of the packet.
+	virtual const uint8* operator()() const=0;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// fixed size packet.
+template<size_t SZ>
+class packet_fixed : public packet
+{
+protected:
+	uint8 data[SZ];
+public:
+	///////////////////////////////////////////////////////////////////////////
+	virtual ~packet_fixed()
+	{}
+	///////////////////////////////////////////////////////////////////////////
+	/// Length of the packet
+	virtual size_t length() const			{ return SZ; }
+	///////////////////////////////////////////////////////////////////////////
+	/// Data of the packet
+	virtual const uint8* operator()() const	{ return data; }
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// dynamic size packet.
+class packet_dynamic : public packet
+{
+protected:
+	basics::vector<uint8> data;	/// the buffer
+	///////////////////////////////////////////////////////////////////////////
+	/// aquire a block of sz bytes starting from pos inside the buffer.
+	/// resize the vector when accessing out-of-range
+	virtual uint8* aquire(size_t pos, size_t sz)
+	{
+		if( pos+sz>this->data.size() )
+			data.resize(pos+sz);
+		return this->data.begin()+pos;
+	}
+public:
+	///////////////////////////////////////////////////////////////////////////
+	virtual ~packet_dynamic()
+	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// Length of the packet
+	virtual size_t length() const			{ return this->data.size(); }
+	///////////////////////////////////////////////////////////////////////////
+	/// Data of the packet
+	virtual const uint8* operator()() const	{ return this->data.begin(); }
+};
+
+
+
+
+
+inline void send(const packet& pk)
+{
+	// would do sending here in a real implementation
+	// pk() and pk.size() give access to the necessary internals
+}
+
+
+} // end namespace example_socket
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+namespace example_code {
+
+// some packet
+struct my_packet12345
+	: public example_socket::packet_fixed<21>	// derive from fixed size packet as we might know that size is fixed
+{
+public:
+	my_packet12345(int a, int b, int c)
+	{
+		// does whatever to put a,b,c into correct positions of this->data
+	}
+};
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4189) // variable declared but not used
+#endif
+inline void usage_example()
+{
+	// create temporary and send it
+	example_socket::send( my_packet12345(1,2,3) );
+
+	// create explicit var
+	my_packet12345 pk(1,2,3);
+	// and send it
+	example_socket::send( pk );
+
+
+	// free read/write from packets
+	{
+		example_socket::packet_dynamic pk1;
+
+		pk1[5].u16() = 5;						// put 5 as ushort to position 5
+		uint64 ss  = pk1[5].u32();				// read a uint32 from position 5, then cast it to uint64
+		char ss1 = pk1[5].u32();				// read a byte from position 5, then cast it to char
+		pk1[10].string(10) = "hallo";			// write a string with 10 chars max to position 10
+		const char* str = pk1[12].string(5);	// read a string with 5 chars max from position 12
+		// prevent unused variable warning
+		ss1+=ss++;
+		str = " ";
+		str++;
+	}
+	{
+		example_socket::packet_fixed<12> pk1;
+
+		pk1[5].u16() = 5;						// put 5 as ushort to position 5
+		uint64 ss  = pk1[5].u32();				// read a uint32 from position 5, then cast it to uint64
+		char ss1 = pk1[5].u32();				// read a byte from position 5, then cast it to char
+		pk1[10].string(10) = "hallo";			// write a string with 10 chars max to position 10
+		const char* str = pk1[12].string(5);	// read a string with 5 chars max from position 12
+		// prevent unused variable warning
+		ss1+=ss++;
+		str = " ";
+		str++;
+	}
+}
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
+
+}; // end namespace example_code
+
+
+///////////////////////////////////////////////////////////////////////////////
+
 #endif//__BASEPACKET_H__
+
+

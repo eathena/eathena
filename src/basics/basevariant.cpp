@@ -1238,225 +1238,222 @@ variant_host::reference variant_defaults<bool>::get_variable(const string<>& nam
 void test_variant()
 {
 #if defined(DEBUG)
+	ttt2_i.val="";
 	int prev_count = global::getcount();
-
 	{
-		{
-			ttt2& x = ttt2_i;
-			variant a;
-			a /= 0;
-			a += 1;
+		ttt2& x = ttt2_i;
+		variant a;
+		a /= 0;
+		a += 1;
 
-			a =variant(ttt2_i, &ttt2::val);
+		a =variant(ttt2_i, &ttt2::val);
 
-			a = 123;
-			//a = "hallo";
-			a += 123;
+		a = 123;
+		a += 123;
 
-			x.val = "";
+		a = "hallo";
+		a += 123;
 
-			string<> str;
-			variant bb(ttt2_i, "val");
+		x.val = "";
 
-			bb = 100;
-			bb = 100;
-			bb = 100;
-		}
-	
-		{
-			int i;
+		variant bb(ttt2_i, "val");
 
-			
-			printf(tostring(stringtov<char>("\"a\\na\\x64\\123\"",NULL)));
-			printf("\n");
-
-			i = sizeof(value_empty);
-			i = sizeof(value_integer);
-			i = sizeof(value_float);
-			i = sizeof(value_string);
-			i = sizeof(value_array);
-			i = sizeof(value_extern);
-			i = sizeof(value_unnamed<int>);
-			i = sizeof(value_named);
-			i = sizeof(value_union);
-			i = sizeof(variant);
-			i = sizeof(string<>);
-			i = sizeof(stringoperator<>);
-			i = sizeof(stringinterface<>);
-			i = sizeof(allocator<>);
-			i = sizeof(vectorinterface<char>);
-			i = sizeof(allocator_w_dy<char>);
-			i = sizeof(vectorbase<char,allocator_w_dy<char> >);
-			
-			i = sizeof(TObjPtrCommon<char>);
-			i = sizeof(TObjPtrCount<char>);
-			i = sizeof(TObjPtr<char>);
-			i = sizeof(variant);
-			printf("%i\n", i);
-
-		}
-
-		{
-			value_union aa("hallo");
-			value_union bb(aa);
-
-			printf(aa.access().get_string());printf("\n");
-			printf(bb.access().get_string());printf("\n");
-		}
-		{
-
-
-			variant tmp;
-			tmp = "hallo";
-
-			tmp.append_array(5);
-			tmp[3] = 1;
-			
-		}
-	
-		{
-			variant a,b,c;
-
-			a = 1.8;
-			b = "12hallo";
-			c = 2.2;
-
-			var_t vt = c.type();
-			printf("%i\n",vt);
-			c += a;
-			vt = c.type();
-			double xy = c();
-			printf("%lf\n",xy);
-
-			a=10, b=3;
-
-			xy = (a/b)();
-			xy = (a%b)();
-			a=10.6, b=2.4;
-			xy = (a/b)();
-			xy = (a%b)();
-
-			a.cast(VAR_INTEGER);
-
-			ttt2 xx;
-			c = xx;
-			c.access_member("val");
-			c = 2.2;
-
-			b.cast(VAR_INTEGER);
-			variant d = (a+b)*c;
-			double xd = d.get_float();
-
-			variant tmp("hallo");
-
-			xd=5;
-			tmp.append_array((int)xd);
-			tmp[3] = 1;
-		}
-
-		{
-			int i; 
-			double d;
-			string<> s;
-			const char* b;
-
-			variant ext;
-
-			ext = 1.2;
-
-
-			ttt1& xxxx = ttt1_i;
-			xxxx.val=0;
-
-			{
-				ttt2 xx;
-
-				ext = xx;
-				ext.access_member("val");
-				ext = 1234;
-
-			}
-			ext = 0000;
-
-
-			ext.clear();
-
-			ext.access_member("tti");
-	//		ext.access_member("val");
-
-			ext.access_member("other");
-			ext.access_member("val");
-
-			i = ext();
-			ext = i;
-			ext = 1;
-			i = ext();
-			ext = 2.5;
-			i = ext();
-			ext = "123hallo";
-			i = ext();
-
-
-
-
-			
-			
-
-			variant  a;
-
-			a = 1;
-			a = 4;
-
-
-
-			a = 1;
-			i = a();
-			d = a();
-			s = a.get_string();
-			b = s;
-
-			a = 1.3;
-			i = a();
-			d = a();
-			s = a.get_string();
-			b = s;
-
-			a = "hallo";
-			i = a();
-			d = a();
-			s = a.get_string();
-			b = s;
-
-			a.append_array(5);
-			i = a();
-			d = a();
-			s = a.get_string();
-			b = s;
-
-			i = a[0]();
-			d = a[0]();
-			s = a.get_string();
-			b = s;
-			printf("%s\n",b);
-
-
-
-			a[3] = "no3";
-			a[2] = 1;
-
-			a.append_array(3);
-			i = a.size();
-			i = a[3].size();
-			i = a[3][1].size();
-
-			a[3].get_value(i);
-			a[3].get_value(d);
-			a[3].get_value(s);
-			b = s;
-		}
+		bb = 100;
+		bb = 100;
+		bb = 100;
+		
 	}
 
+	{
+		int i;
+		
+		printf(tostring(stringtov<char>("\"a\\na\\x64\\123\"",NULL)));
+		printf("\n");
 
+		i = sizeof(value_empty);
+		i = sizeof(value_integer);
+		i = sizeof(value_float);
+		i = sizeof(value_string);
+		i = sizeof(value_array);
+		i = sizeof(value_extern);
+		i = sizeof(value_unnamed<int>);
+		i = sizeof(value_named);
+		i = sizeof(value_union);
+		i = sizeof(variant);
+		i = sizeof(string<>);
+		i = sizeof(stringoperator<>);
+		i = sizeof(stringinterface<>);
+		i = sizeof(allocator<>);
+		i = sizeof(vectorinterface<char>);
+		i = sizeof(allocator_w_dy<char>);
+		i = sizeof(vectorbase<char,allocator_w_dy<char> >);
+		
+		i = sizeof(TObjPtrCommon<char>);
+		i = sizeof(TObjPtrCount<char>);
+		i = sizeof(TObjPtr<char>);
+		i = sizeof(variant);
+		printf("%i\n", i);
+
+	}
+
+	{
+		value_union aa("hallo");
+		value_union bb(aa);
+
+		printf(aa.access().get_string());printf("\n");
+		printf(bb.access().get_string());printf("\n");
+	}
+	{
+
+
+		variant tmp;
+		tmp = "hallo";
+
+		tmp.append_array(5);
+		tmp[3] = 1;
+		
+	}
+
+	{
+		variant a,b,c;
+
+		a = 1.8;
+		b = "12hallo";
+		c = 2.2;
+
+		var_t vt = c.type();
+		printf("%i\n",vt);
+		c += a;
+		vt = c.type();
+		double xy = c();
+		printf("%lf\n",xy);
+
+		a=10, b=3;
+
+		xy = (a/b)();
+		xy = (a%b)();
+		a=10.6, b=2.4;
+		xy = (a/b)();
+		xy = (a%b)();
+
+		a.cast(VAR_INTEGER);
+
+		ttt2 xx;
+		c = xx;
+		c.access_member("val");
+		c = 2.2;
+
+		b.cast(VAR_INTEGER);
+		variant d = (a+b)*c;
+		double xd = d.get_float();
+
+		variant tmp("hallo");
+
+		xd=5;
+		tmp.append_array((int)xd);
+		tmp[3] = 1;
+	}
+
+	{
+		int i; 
+		double d;
+		string<> s;
+		const char* b;
+
+		variant ext;
+
+		ext = 1.2;
+
+
+		ttt1& xxxx = ttt1_i;
+		xxxx.val=0;
+
+		{
+			ttt2 xx;
+
+			ext = xx;
+			ext.access_member("val");
+			ext = 1234;
+
+		}
+		ext = 0000;
+
+
+		ext.clear();
+
+		ext.access_member("tti");
+//		ext.access_member("val");
+
+		ext.access_member("other");
+		ext.access_member("val");
+
+		i = ext();
+		ext = i;
+		ext = 1;
+		i = ext();
+		ext = 2.5;
+		i = ext();
+		ext = "123hallo";
+		i = ext();
+
+
+
+
+		
+		
+
+		variant  a;
+
+		a = 1;
+		a = 4;
+
+
+
+		a = 1;
+		i = a();
+		d = a();
+		s = a.get_string();
+		b = s;
+
+		a = 1.3;
+		i = a();
+		d = a();
+		s = a.get_string();
+		b = s;
+
+		a = "hallo";
+		i = a();
+		d = a();
+		s = a.get_string();
+		b = s;
+
+		a.append_array(5);
+		i = a();
+		d = a();
+		s = a.get_string();
+		b = s;
+
+		i = a[0]();
+		d = a[0]();
+		s = a.get_string();
+		b = s;
+		printf("%s\n",b);
+
+
+
+		a[3] = "no3";
+		a[2] = 1;
+
+		a.append_array(3);
+		i = a.size();
+		i = a[3].size();
+		i = a[3][1].size();
+
+		a[3].get_value(i);
+		a[3].get_value(d);
+		a[3].get_value(s);
+		b = s;
+	}
 	{
 		/////////////////////////
 		variant a,b,c;
@@ -1548,8 +1545,9 @@ void test_variant()
 		printf("%s (37.8)\n", (const char*)c[1].get_string());
 		printf("%s (1)\n\n", (const char*)c[2].get_string());
 	}
+
 	if( global::getcount() != prev_count )
-		printf("missing destruction (%i %i)", (int)global::getcount(), (int)prev_count);
+		printf("missing destruction (%i %i)\n", (int)global::getcount(), (int)prev_count);
 #endif//DEBUG
 }
 

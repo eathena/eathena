@@ -250,7 +250,6 @@ int skill_castcancel(block_list *bl,int type);
 
 int skill_gangsterparadise(map_session_data *sd ,int type);
 int skill_rest(map_session_data &sd ,int type);
-int skill_check_moonlit (block_list *bl, int dx, int dy);
 void skill_brandishspear_first(struct square *tc,int dir,int x,int y);
 void skill_brandishspear_dir(struct square *tc,int dir,int are);
 int skill_autospell(map_session_data *md,int skillid);

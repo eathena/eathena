@@ -4,7 +4,7 @@
 #include "basesocket.h"
 #include "basestring.h"
 #include "baseregex.h"
-
+#include "basebits.h"
 
 NAMESPACE_BEGIN(basics)
 

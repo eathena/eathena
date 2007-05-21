@@ -362,8 +362,8 @@ public:
 		if(bl)
 		{	
 			// weapon attack
-			block_list::foreachinarea(  spash_damage(*this, tick),
-				this->caster.m,((int)this->caster.x)-2,((int)this->caster.y)-2,((int)this->caster.x)+2,((int)this->caster.y)+2,BL_ALL);
+			maps[this->caster.m].foreachinarea(  spash_damage(*this, tick),
+				this->caster.x, this->caster.y, 2, BL_ALL);
 			clif_skill_nodamage(this->caster,this->caster,SKILLID,this->skill_lvl,1);
 
 			status_change_start(&this->caster,SC_WATK_ELEMENT,3,10,0,0,10000,0); //Initiate 10% of your damage becomes fire element.
@@ -614,17 +614,17 @@ public:
 		{
 			// get surrounding enemies
 			// calling with own callback objects
-	//		const uint count = block_list::foreachinarea(  splash_count(*this),
-	//			bl->m,((int)bl->x)-1,((int)bl->y)-1,((int)bl->x)+1,((int)bl->y)+1,BL_ALL);
+	//		const uint count = maps[bl->m].foreachinarea(  splash_count(*this),
+	//			bl->x, bl->y, 1, BL_ALL);
 
 			// calling with default object template
-			const uint count = block_list::foreachinarea(  skillbase::map_callback<skill_mg_napalmbeat>(*this,&skill_mg_napalmbeat::splash_count),
-				bl->m,((int)bl->x)-1,((int)bl->y)-1,((int)bl->x)+1,((int)bl->y)+1,BL_ALL);
+			const uint count = maps[bl->m].foreachinarea(  skillbase::map_callback<skill_mg_napalmbeat>(*this,&skill_mg_napalmbeat::splash_count),
+				bl->x, bl->y, 1, BL_ALL);
 
 			// calling with own callback objects
 			// attack the surround
-			block_list::foreachinarea(  splash_damage(*this, tick, count),
-				bl->m,((int)bl->x)-1,((int)bl->y)-1,((int)bl->x)+1,((int)bl->y)+1,BL_ALL);
+			maps[bl->m].foreachinarea(  splash_damage(*this, tick, count),
+				bl->x, bl->y, 1, BL_ALL);
 
 			// additional effect
 		}
@@ -975,8 +975,8 @@ public:
 //				skill_area_temp[3]=bl->y;
 //				skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,skill_area_temp[0]);
 //				skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,skill_area_temp[0]);
-//				block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1, skill_castend_damage_id),
-//					bl->m,((int)bl->x)-ar,((int)bl->y)-ar,((int)bl->x)+ar,((int)bl->y)+ar,BL_ALL);
+//				maps[bl->m].foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1, skill_castend_damage_id),
+//					bl->x, bl->y, ar, BL_ALL);
 			}
 
 			// additional effect
@@ -1577,8 +1577,8 @@ public:
 				}
 			} else {
 				clif_skill_nodamage(*src, *bl, skillid, skilllv, 1);
-				block_list::foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ENEMY|1,skill_castend_nodamage_id),
-					src->m, ((int)src->x)-15, ((int)src->y)-15, ((int)src->x)+15, ((int)src->y)+15, BL_ALL);
+				maps[src->m].foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ENEMY|1,skill_castend_nodamage_id),
+					src->x, src->y, 15, BL_ALL);
 			}
 		}
 	}
@@ -2004,8 +2004,8 @@ public:
 			int range = 1;
 			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 			status_change_start(bl,(status_t)SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
-			block_list::foreachinarea( CStatusChangetimer(*src,SkillStatusChangeTable[skillid],tick),
-				src->m, ((int)src->x)-range, ((int)src->y)-range, ((int)src->x)+range, ((int)src->y)+range,BL_ALL);
+			maps[src->m].foreachinarea( CStatusChangetimer(*src,SkillStatusChangeTable[skillid],tick),
+				src->x, src->y, range, BL_ALL);
 
 		}
 	}
@@ -2135,8 +2135,8 @@ public:
 				skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0);
 				// その後タ?ゲット以外の範??の敵全?に?理を行う
 
-				block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
-					bl->m,x-ar,y-ar,x+ar,y+ar,BL_ALL);
+				maps[bl->].foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
+					x, y, ar, BL_ALL);
 			}
 
 			// additional effect

@@ -67,13 +67,8 @@ bool console = false;
 
 
 
-// 極力 staticでロ?カルに?める
-static dbt* map_db=NULL;
-struct map_data maps[MAX_MAP_PER_SERVER];
-size_t map_num = 0;
 int  map_read_flag = READ_FROM_GAT;
 char map_cache_file[256]="db/map.info";
-CWaterlist waterlist;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -103,15 +98,704 @@ int map_getusers(void)
 
 
 
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// temporary map structures
+///////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// dummy structure used for out-of-bound
+mapcell_t map_intern::dummy_wall(mapcell_t::GAT_WALL);
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// 
+map_intern::map_intern()
+	: gat(NULL)
+	, objects(NULL)
+	, xs(0)
+	, ys(0)
+	, bxs(0)
+	, bys(0)
+	, npc_num(0)
+	, users(0)
+	, mob_delete_timer(-1)
+{
+	memset(npc, 0, sizeof(npc));
+	memset(drop_list, 0, sizeof(drop_list));
+	memset(moblist, 0, sizeof(moblist));
+	if(config.pk_mode)
+		this->flag.pvp = 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// 
+map_intern::map_intern(const char* name)
+	: map_base(name)
+	, gat(NULL)
+	, objects(NULL)
+	, xs(0)
+	, ys(0)
+	, bxs(0)
+	, bys(0)
+	, npc_num(0)
+	, users(0)
+	, mob_delete_timer(-1)
+{
+	memset(npc, 0, sizeof(npc));
+	memset(drop_list, 0, sizeof(drop_list));
+	memset(moblist, 0, sizeof(moblist));
+	if(config.pk_mode)
+		this->flag.pvp = 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// 
+bool map_intern::initialize()
+{
+	// initialize terrain data
+	if(this->gat)
+	{
+		delete[] this->gat;
+		this->gat = NULL;
+	}
+	const char* str_from="cache";
+	bool fromcache = map_cache_read(*this);
+	if(	!fromcache )
+	{
+		if( map_readafm(*this) )
+		{
+			str_from="afm";
+		}
+		else if( map_readaf2(*this) )
+		{
+			str_from="af2";
+		}
+		else if( map_readgrf(*this) )
+		{
+			str_from="grf";
+		}
+		else
+		{
+			ShowError("Failed Loading Map '%s'"CL_CLL"\n", this->mapname);
+			return false;
+		}
+		// cache it
+		map_cache_write(*this);
+	}
+	ShowMessage("Loading Map '%s', size (%dx%d), from %s"CL_CLL"\r", this->mapname, this->xs, this->ys, str_from);
+
+	// initialize block storage
+	this->bxs= ((this->xs+BLOCK_SIZE-1)/BLOCK_SIZE);
+	this->bys= ((this->ys+BLOCK_SIZE-1)/BLOCK_SIZE);
+	if(this->objects)
+	{
+		delete[] this->objects;
+		this->objects = NULL;
+	}
+	this->objects = new struct map_intern::_objects[this->bxs*this->bys];
+
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// 
+void map_intern::clear()
+{
+	this->moblist_clear();
+	if(this->objects)	{ delete[] this->objects; this->objects=NULL; }
+	if(this->gat)		{ delete[] this->gat; this->gat=NULL; }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// get a cell inside a map
+const mapcell_t& map_intern::operator()(unsigned short x, unsigned short y) const
+{
+	if(this->gat && x<this->xs && y<this->ys)
+	{
+		return this->gat[x + y*this->xs];
+	}
+	return dummy_wall;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// get a cell inside a map
+mapcell_t& map_intern::operator()(unsigned short x, unsigned short y)
+{
+	if(this->gat && x<this->xs && y<this->ys)
+	{
+		return this->gat[x + y*this->xs];
+	}
+	static mapcell_t local_dummy_wall;
+	local_dummy_wall = dummy_wall;
+	return local_dummy_wall;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// map.npcへ追加 (warp等の領域持ちのみ)
+int map_intern::addnpc(npc_data *nd)
+{
+	size_t i;
+	for(i=0; i<this->npc_num && i<MAX_NPC_PER_MAP;++i)
+	{
+		if( this->npc[i]==NULL )
+			break;
+	}
+	if( i==MAX_NPC_PER_MAP )
+	{
+		if(config.error_log)
+			ShowMessage("too many NPCs in one map %s\n",this->mapname);
+		return -1;
+	}
+	if(i==this->npc_num)
+	{
+		this->npc_num++;
+	}
+	nullpo_retr(0, nd);
+	this->npc[i]=nd;
+	nd->n = i;
+	return i;
+}
+///////////////////////////////////////////////////////////////////////////////
+///
+int map_intern::searchrandfreecell(unsigned short x, unsigned short y, unsigned short range)
+{
+	int free_cell,i,j;
+	if( range > 15 )
+		return -1;
+	CREATE_BUFFER(free_cells, uint32, (2*range+1)*(2*range+1));
+	for(free_cell=0,i=-range;i<=range;++i)
+	{
+		if(i+y<0 || i+y>=this->ys)
+			continue;
+		for(j=-range;j<=range; ++j)
+		{
+			if(j+x<0 || j+x>=this->xs)
+				continue;
+			if( !this->is_passable(j+x,i+y) )
+				continue;
+			if( this->countoncell(j+x,i+y, BL_ITEM) > 1 )
+				continue;
+			free_cells[free_cell++] = j+x+((i+y)<<16);
+		}
+	}
+	free_cell = (free_cell==0)?-1:(int)free_cells[rand()%free_cell];
+	DELETE_BUFFER(free_cells);
+	return free_cell;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+///
+class CMapMobCacheCleanup : public CMapProcessor
+{
+public:
+	CMapMobCacheCleanup()	{}
+	~CMapMobCacheCleanup()	{}
+	virtual int process(block_list& bl) const
+	{
+		// When not to remove:
+		//  1: Mob is not from a cache
+		//  2: Mob is damaged 
+
+		struct mob_data *md = bl.get_md();
+		if( md &&
+			// cached, not delayed and not already on delete schedule
+			(md->cache && !md->cache->delay1 && !md->cache->delay2 && -1==md->deletetimer) &&
+			// unhurt enemies	
+			(config.mob_remove_damaged || (md->hp == md->max_hp)) )
+		{
+			// cleaning a master will also clean its slaves
+			md->remove_slaves();
+			// check the mob into the cache
+			++md->cache->num;
+			// and unload it
+			md->freeblock();	
+			return 1;
+		}
+		return 0;
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+///
+int map_intern::moblist_timer(int tid, unsigned long tick, int id, basics::numptr data)
+{
+	int k;
+	unsigned short m = id;
+	map_intern* md = (map_intern*)data.pointer();
+	if( m >= maps.size() || &maps[m]!=md )
+	{	//Incorrect map id!
+		if (config.error_log)
+			ShowError("map_intern::moblist_timer error: timer %d points to invalid map %d\n",tid, m);
+		return 0;
+	}
+	if(md->mob_delete_timer != tid)
+	{	//Incorrect timer call!
+		if (config.error_log)
+			ShowError("map_intern::moblist_timer mismatch: %d != %d (map %s)\n",md->mob_delete_timer, tid, md->mapname);
+		return 0;
+	}
+	md->mob_delete_timer = -1;
+	if( md->users > 0 ) //Map not empty!
+		return 1;
+
+	k = maps[m].foreach(CMapMobCacheCleanup(), BL_MOB);
+
+	if (config.etc_log && k > 0)
+		ShowStatus("Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n", md->mapname, k);
+	return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///
+struct mob_list* map_intern::moblist_create()
+{
+	size_t i;
+    for(i=0; i<MAX_MOB_LIST_PER_MAP; ++i)
+	{
+		if(this->moblist[i]==NULL)
+		{
+			this->moblist[i] = new struct mob_list();
+			return this->moblist[i];
+		}
+	}
+	return NULL;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///
+void map_intern::moblist_clear()
+{
+	size_t i;
+	for(i=0; i<MAX_MOB_LIST_PER_MAP; ++i)
+	{
+		if(this->moblist[i]!=NULL)
+		{
+			delete this->moblist[i];
+			this->moblist[i] = NULL;
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///
+void map_intern::moblist_spawn()
+{
+	size_t i, k=0;
+	if( this->mob_delete_timer != -1 )
+	{	// Mobs have not been removed yet [Skotlex]
+		delete_timer(this->mob_delete_timer, map_intern::moblist_timer);
+		this->mob_delete_timer = -1;
+		return;
+	}
+	for(i=0; i<MAX_MOB_LIST_PER_MAP; ++i)	
+	{
+		if(this->moblist[i]!=NULL)
+		{
+			k+=this->moblist[i]->num;
+			npc_parse_mob2(*this->moblist[i]);
+		}
+	}
+	if (config.etc_log && k > 0)
+		ShowStatus("Map %s: Spawned '"CL_WHITE"%d"CL_RESET"' mobs.\n",this->mapname, k);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///
+bool map_intern::moblist_release()
+{
+	static char initializer=add_timer_func_list(map_intern::moblist_timer, "map_intern::moblist_timer");
+	if( this->mob_delete_timer == -1 )
+		this->mob_delete_timer = add_timer(gettick()+config.mob_remove_delay, map_intern::moblist_timer, maps.index_of(*this), basics::numptr(this));
+	return initializer;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// iterator-like access
+map_intern* _map::begin()
+{
+	return this->map_array;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// iterator-like access
+const map_intern* _map::begin() const
+{
+	return this->map_array;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// iterator-like access
+map_intern* _map::end()
+{
+	return this->map_array+this->map_num;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// iterator-like access
+const map_intern* _map::end() const
+{
+	return this->map_array+this->map_num;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// random-access
+map_intern& _map::operator[](size_t i)
+{
+	return this->map_array[(i<this->map_num)?i:0];
+}
+///////////////////////////////////////////////////////////////////////////////
+/// random-access
+const map_intern& _map::operator[](size_t i) const
+{
+	return this->map_array[(i<this->map_num)?i:0];
+}
+///////////////////////////////////////////////////////////////////////////////
+/// array size
+size_t _map::size() const
+{
+	return this->map_num;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// clear the array
+void _map::clear()
+{
+	size_t cnt = this->map_num;
+	map_intern* ptr = this->map_array;
+	for(; cnt; --cnt, ++ptr)
+		ptr->clear();
+	this->map_num=0;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// aquire the strdb
+void _map::initialize()
+{
+	this->finalize();
+	this->map_db = strdb_init(24);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// clear array and release the strdb
+void _map::finalize()
+{
+	this->clear();
+	if(this->map_db)
+	{
+		strdb_final(this->map_db);
+		this->map_db=NULL;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// remove a map
+map_intern* _map::erase(map_intern* pos)
+{
+	if( this->map_num )
+	{
+		const map_intern* wpp = this->map_array+this->map_num;
+		const map_intern* rp  = pos+1;
+		map_intern* wp  = pos;
+		if(wp<wpp)
+			wp->clear();
+		for(; rp<wpp; ++rp, ++wp)
+			*wp = *rp;
+		--this->map_num;
+	}
+	return pos;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// append a map
+void _map::push_back(const map_intern& x)
+{
+	this->map_array[this->map_num].clear();
+	this->map_array[this->map_num] = x;
+	++this->map_num;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// look up a map
+map_intern* _map::search(const char *name)
+{
+	char finename[32], *wpp=finename;
+	const char *rpp=name, *epp=finename+sizeof(finename)-1;
+
+	// make a copy in order to cut off the extension
+	if(rpp)
+	while(*rpp && *rpp!='.' && wpp<epp) *wpp++ = *rpp++;
+	*wpp=0;
+
+	// lookup
+	map_base *mb = (struct map_base*)strdb_search(this->map_db, finename);
+	if(mb)
+	{
+		map_intern*md = mb->get_local();
+		if(md)
+			return md;
+	}
+	return this->end();
+}
+///////////////////////////////////////////////////////////////////////////////
+/// get index of a map by name
+int _map::index_of(const char *name) const
+{
+	const map_intern*md = this->search(name);
+	if(md!=this->end())
+		return md-this->begin();
+	return -1;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// get index of a map by map iterator
+int _map::index_of(const map_intern& md) const
+{
+	if( &md>=this->begin() && &md<this->end() )
+		return &md-this->begin();
+	return -1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//// 他鯖map名からip,port?換
+bool _map::mapname2ipport(const char *name, basics::ipset &mapset)
+{
+	char finename[32], *wpp=finename;
+	const char *rpp=name, *epp=finename+sizeof(finename)-1;
+
+	// make a copy in order to cut off the extension
+	if(rpp)
+	while(*rpp && *rpp!='.' && wpp<epp) *wpp++ = *rpp++;
+	*wpp=0;
+
+	map_base *mb = (struct map_base*)strdb_search(this->map_db, finename);
+	map_extern *me = mb?mb->get_extern():NULL;
+	if(me)
+	{
+		mapset = me->mapset;
+		return true;
+	}
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// 他鯖管理のマップをdbに追加
+int _map::setipport(const char *name, basics::ipset &mapset)
+{
+	map_base *mb = (struct map_base*)strdb_search(this->map_db,name);
+	if( mb==NULL )
+	{	// does not exist -> add new data
+		map_extern* me = new map_extern(name,mapset,NULL);
+		strdb_insert(this->map_db, me->mapname, me);
+	}
+	else
+	{
+		map_intern *md = mb->get_local();
+		map_extern *me = md?NULL:mb->get_extern();
+		if( md )
+		{	// has a locally loaded map
+			if( mapset != getmapaddress() )
+			{	// a differnt server then the local one is owning the map
+				// 読み甲ﾅいたけど、担当外になったマップ
+				me = new map_extern(name,mapset,md);
+				strdb_insert(this->map_db, me->mapname, me);
+				// ShowMessage("from char server : %s -> %08lx:%d\n",name,ip,port);
+
+				// warp players from this map to the new one
+				map_session_data::iterator iter(map_session_data::nickdb());
+				for(; iter; ++iter)
+				{
+					map_session_data*sd = iter.data();
+					if( sd && sd->block_list::m == maps.index_of(*md) )
+						pc_setpos(*sd, sd->mapname, sd->block_list::x, sd->block_list::y, 3);
+				}
+			}
+			// else nothing to do, just keep the map as it is
+			// 読み甲ﾅいて、担当になったマップ（何もしない）
+		}
+		else if( me )
+		{	// is an external map
+			if( mapset == getmapaddress() )
+			{	// the current server is claiming the map
+				// 自分の担当になったマップ
+
+				// reclaim the real mapdata
+				// 読み甲ﾅいるので置き換える
+				md = me->map;
+				strdb_erase(this->map_db, me->mapname);
+				delete me;
+				
+				if(md)
+					strdb_insert(this->map_db,md->mapname,md);
+			}
+			else
+			{	// the ip of the hostig mapserver has changed
+				// 他の鯖の担当マップなので置き換えるだけ
+				me->mapset=mapset;
+			}
+		}
+	}
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// 他鯖管理のマップを全て削除
+int _map::eraseallipport(void)
+{
+	db_iterator<const char*, map_base*> iter(this->map_db);
+	for(;iter; ++iter)
+	{
+		map_base *mb = iter.data();
+		map_extern *me = mb?mb->get_extern():NULL;
+		if( me )
+		{	
+			map_intern *md = me->map;
+			
+			strdb_erase(this->map_db, iter.key());
+			delete me;
+
+			if( md )
+			{	// real mapdata exists
+				strdb_insert(this->map_db, md->mapname, md);
+			}
+		}
+	}
+	return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// 他鯖管理のマップをdbから削除
+int _map::eraseipport(const char *name, basics::ipset &mapset)
+{
+	map_base *mb = (struct map_base*)strdb_search(this->map_db, name);
+	map_extern *me = mb?mb->get_extern():NULL;
+	if(me)
+	{
+		if(me->mapset==mapset)
+		{
+			map_intern* md = me->map;
+			strdb_erase(this->map_db, name);
+			delete me;
+			if( md )
+			{	// local mapdata exists, insert it
+				strdb_insert(this->map_db, md->mapname, md);
+			}
+		}
+	}
+	return 0;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// 
+int _map::addmap(const char *mapname)
+{
+	if (strcasecmp(mapname,"clear")==0)
+	{
+		this->clear();
+	}
+	else if( maps.size() >= MAX_MAP_PER_SERVER - 1)
+	{
+		ShowError("Could not add map '"CL_WHITE"%s"CL_RESET"', the limit of maps has been reached.\n",mapname);
+		return 1;
+	}
+	else if( strdb_search(this->map_db, mapname) )
+	{
+		ShowWarning("Map '"CL_WHITE"%s"CL_RESET"', already added to maplist.\n",mapname);
+		return 1;
+	}
+	else
+	{
+		this->push_back( map_intern(mapname) );
+	}
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// 
+int _map::delmap(const char *mapname)
+{
+	if (strcasecmp(mapname, "all") == 0)
+	{
+		this->clear();
+	}
+	else
+	{
+		size_t i;
+		char buffer[32], *ip;
+		strcpy(buffer, mapname);
+		ip = strchr(buffer, '.');
+		if(ip) *ip=0;
+		
+		for(i=0; i<this->size(); ++i)
+		{
+			if (strcmp(maps[i].mapname, buffer) == 0)
+			{
+				ShowMessage("Removing map [ %s ] from maplist"CL_CLL"\n", buffer);
+				this->erase(this->begin()+i);
+			}
+		}
+	}
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// 
+void _map::loadallmaps()
+{
+	map_intern* current_map = this->begin();
+	size_t cnt = this->size();
+	for(; cnt; --cnt, ++current_map)
+	{
+		if( !current_map->initialize() )
+			current_map = this->erase(current_map);
+		else
+			strdb_insert(this->map_db, current_map->mapname, current_map);
+	}
+	ShowMessage("\r");
+	ShowInfo("Successfully loaded '"CL_WHITE"%d"CL_RESET"' maps."CL_CLL"\n", this->size());
+}
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// map array wrapper
+_map maps;
+
+
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 // permanent char name storage
-///////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////////////////////
 // predeclarations
 class CNameRequest;
 class CNameStorage;
 
+///////////////////////////////////////////////////////////////////////////////
 /// name storage baseclass.
 /// only offers virtual destruction and upcast
 class CNameStorageBase : public basics::noncopyable
@@ -130,7 +814,7 @@ public:
 	virtual CNameRequest*	get_request()	{ return NULL; }
 	virtual CNameStorage*	get_storage()	{ return NULL; }
 };
-
+///////////////////////////////////////////////////////////////////////////////
 /// request element.
 /// single-linked list of requests to the same char_id
 class CNameRequest : public CNameStorageBase
@@ -152,6 +836,7 @@ public:
 	virtual CNameRequest*	get_request()	{ return this; }
 };
 
+///////////////////////////////////////////////////////////////////////////////
 /// name storage element.
 class CNameStorage : public CNameStorageBase
 {
@@ -169,7 +854,7 @@ public:
 	virtual CNameStorage*	get_storage()	{ return this; }
 };
 
-
+///////////////////////////////////////////////////////////////////////////////
 /// temporary wrapper around dbt.
 /// remove when db rewrite finished
 static struct _namereq_db
@@ -402,621 +1087,20 @@ int map_daynight_timer(int tid, unsigned long tick, int id, basics::numptr data)
 
 
 
-/*==========================================
- * (m,x,y)の周?rangeマス?の空き(=侵入可能)cellの
- * ?から適?なマス目の座標をx+(y<<16)で返す
- *
- * 現?range=1でアイテムドロップ用途のみ
- *------------------------------------------
- */
-int map_searchrandfreecell(unsigned short m, unsigned short x, unsigned short y, unsigned short range)
-{
-	int free_cell,i,j;
 
-	if (range > 15 || m>=map_num)
-		return -1;
-	
-	CREATE_BUFFER(free_cells, uint32, (2*range+1)*(2*range+1));
 
-	for(free_cell=0,i=-range;i<=range;++i)
-	{
-		if(i+y<0 || i+y>=maps[m].ys)
-			continue;
-		for(j=-range;j<=range; ++j)
-		{
-			if(j+x<0 || j+x>=maps[m].xs)
-				continue;
-			if(map_getcell(m,j+x,i+y,CELL_CHKNOPASS))
-				continue;
-			if(block_list::countoncell(m,j+x,i+y, BL_ITEM) > 1)
-				continue;
-			free_cells[free_cell++] = j+x+((i+y)<<16);
-		}
-	}
-	free_cell = (free_cell==0)?-1:(int)free_cells[rand()%free_cell];
-	DELETE_BUFFER(free_cells);
-	return free_cell;
-}
 
 
 
 
 
-/*==========================================
- * map.npcへ追加 (warp等の領域持ちのみ)
- *------------------------------------------
- */
-int map_addnpc(unsigned short m, npc_data *nd)
-{
-	size_t i;
-	if(m>=map_num)
-		return -1;
-	for(i=0;i<maps[m].npc_num && i<MAX_NPC_PER_MAP;++i)
-		if(maps[m].npc[i]==NULL)
-			break;
-	if(i==MAX_NPC_PER_MAP){
-		if(config.error_log)
-			ShowMessage("too many NPCs in one map %s\n",maps[m].mapname);
-		return -1;
-	}
-	if(i==maps[m].npc_num){
-		maps[m].npc_num++;
-	}
 
-	nullpo_retr(0, nd);
 
-	maps[m].npc[i]=nd;
-	nd->n = i;
 
-	return i;
-}
 
 
-/*=========================================
- * Dynamic Mobs [Wizputer]
- *-----------------------------------------
- */
 
-struct mob_list* map_addmobtolist(unsigned short m)
-{
-	size_t i;
-    for(i=0; i<MAX_MOB_LIST_PER_MAP; ++i)
-	{
-		if(maps[m].moblist[i]==NULL)
-		{
-			maps[m].moblist[i] = new struct mob_list();
-			return maps[m].moblist[i];
-		}
-	}
-	return NULL;
-}
 
-void clear_moblist(unsigned short m)
-{
-	size_t i;
-	if(m<MAX_MAP_PER_SERVER)
-	for (i = 0; i < MAX_MOB_LIST_PER_MAP; ++i)
-	{
-		if(maps[m].moblist[i]!=NULL)
-		{
-			delete maps[m].moblist[i];
-			maps[m].moblist[i] = NULL;
-		}
-	}
-}
-
-void map_spawnmobs(unsigned short m)
-{
-	size_t i, k=0;
-
-	if(m>=map_num)
-		return;
-
-	if (maps[m].mob_delete_timer != -1)
-	{	//Mobs have not been removed yet [Skotlex]
-		delete_timer(maps[m].mob_delete_timer, map_removemobs_timer);
-		maps[m].mob_delete_timer = -1;
-		return;
-	}
-	for(i=0; i<MAX_MOB_LIST_PER_MAP; ++i)	
-	{
-		if(maps[m].moblist[i]!=NULL)
-		{
-			k+=maps[m].moblist[i]->num;
-			npc_parse_mob2(*maps[m].moblist[i]);
-		}
-	}
-	if (config.etc_log && k > 0)
-		ShowStatus("Map %s: Spawned '"CL_WHITE"%d"CL_RESET"' mobs.\n",maps[m].mapname, k);
-}
-
-class CMapMobCacheCleanup : public CMapProcessor
-{
-public:
-	CMapMobCacheCleanup()	{}
-	~CMapMobCacheCleanup()	{}
-	virtual int process(block_list& bl) const
-	{
-		// When not to remove:
-		//  1: Mob is not from a cache
-		//  2: Mob is damaged 
-
-		struct mob_data *md = bl.get_md();
-		if( md &&
-			// cached, not delayed and not already on delete schedule
-			(md->cache && !md->cache->delay1 && !md->cache->delay2 && -1==md->deletetimer) &&
-			// unhurt enemies	
-			(config.mob_remove_damaged || (md->hp == md->max_hp)) )
-		{
-			// cleaning a master will also clean its slaves
-			md->remove_slaves();
-			// check the mob into the cache
-			++md->cache->num;
-			// and unload it
-			md->freeblock();	
-			return 1;
-		}
-		return 0;
-	}
-};
-int map_removemobs_timer(int tid, unsigned long tick, int id, basics::numptr data)
-{
-	int k;
-	unsigned short m = id;
-	if(m >= map_num)
-	{	//Incorrect map id!
-		if (config.error_log)
-			ShowError("map_removemobs_timer error: timer %d points to invalid map %d\n",tid, m);
-		return 0;
-	}
-	if (maps[m].mob_delete_timer != tid)
-	{	//Incorrect timer call!
-		if (config.error_log)
-			ShowError("map_removemobs_timer mismatch: %d != %d (map %s)\n",maps[m].mob_delete_timer, tid, maps[m].mapname);
-		return 0;
-	}
-	maps[m].mob_delete_timer = -1;
-	if (maps[m].users > 0) //Map not empty!
-		return 1;
-
-	k = block_list::foreachinarea( CMapMobCacheCleanup(),
-		m, 0, 0, maps[m].xs-1, maps[m].ys-1, BL_MOB);		
-//	k = map_foreachinarea(mob_cache_cleanup_sub, 
-//		m, 0, 0, maps[m].xs-1, maps[m].ys-1, BL_MOB);
-
-	if (config.etc_log && k > 0)
-		ShowStatus("Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n",maps[m].mapname, k);
-	return 1;
-}
-
-void map_removemobs(unsigned short m)
-{
-	if (maps[m].mob_delete_timer != -1)
-		return; //Mobs are already scheduled for removal
-
-	maps[m].mob_delete_timer = add_timer(gettick()+config.mob_remove_delay, map_removemobs_timer, m, 0);
-}
-
-/*==========================================
- * map名からmap番?へ?換
- *------------------------------------------
- */
-int map_mapname2mapid(const char *name)
-{
-	char finename[32], *wpp=finename;
-	const char *rpp=name, *epp=finename+sizeof(finename)-1;
-
-	// make a copy in order to cut off the extension
-	if(rpp)
-	while(*rpp && *rpp!='.' && wpp<epp) *wpp++ = *rpp++;
-	*wpp=0;
-
-	// lookup
-	struct map_data *md = (struct map_data*)strdb_search(map_db, finename);
-	if(md==NULL || md->gat==NULL)
-		return -1;
-	return md->m;
-}
-
-/*==========================================
- * 他鯖map名からip,port?換
- *------------------------------------------
- */
-bool map_mapname2ipport(const char *name, basics::ipset &mapset)
-{
-	char finename[32], *wpp=finename;
-	const char *rpp=name, *epp=finename+sizeof(finename)-1;
-
-	// make a copy in order to cut off the extension
-	if(rpp)
-	while(*rpp && *rpp!='.' && wpp<epp) *wpp++ = *rpp++;
-	*wpp=0;
-
-	struct map_data_other_server *mdos = (struct map_data_other_server*)strdb_search(map_db, finename);
-	if(mdos==NULL || mdos->gat)
-		return false;
-	mapset = mdos->mapset;
-	return true;
-}
-
-
-// gat系
-/*==========================================
- * (m,x,y)の状態を調べる
- *------------------------------------------
- */
-/////////////////////////////////////////////////////////////////////
-// as far as I have seen the gat.type values can contain
-// GAT_NONE		= 0,
-// GAT_WALL		= 1,
-// GAT_UNUSED1	= 2,
-// GAT_WATER	= 3,
-// GAT_UNUSED2	= 4,
-// GAT_GROUND	= 5,
-// GAT_HOLE		= 6,	// holes in morroc desert
-// GAT_UNUSED3	= 7,
-// change the gat to a bitfield with three bits 
-// instead of using an unsigned char have it merged with other usages
-/////////////////////////////////////////////////////////////////////
-
-int map_getcell(unsigned short m, unsigned short x, unsigned short y, cell_t cellchk)
-{
-	return (m>=map_num) ? (cellchk==CELL_CHKNOPASS) : map_getcellp(maps[m],x,y,cellchk);
-}
-
-int map_getcellp(struct map_data& m, unsigned short x, unsigned short y, cell_t cellchk)
-{
-	struct mapgat *mg;
-
-	if(x>=m.xs || y>=m.ys)
-	{
-		if(cellchk==CELL_CHKNOPASS) return 1;
-		return 0;
-	}
-	mg = m.gat + x + y*m.xs;
-
-	switch(cellchk)
-	{
-	case CELL_CHKPASS:
-		return (mg->type != GAT_WALL && mg->type != GAT_GROUND);
-	case CELL_CHKNOPASS:
-		return (mg->type == GAT_WALL || mg->type == GAT_GROUND);
-	case CELL_CHKNOPASS_NPC:
-		return (mg->type == GAT_WALL || mg->type == GAT_GROUND || mg->npc);
-	case CELL_CHKWALL:
-		return (mg->type == GAT_WALL);
-	case CELL_CHKWATER:
-		return (mg->type == GAT_WATER);
-	case CELL_CHKGROUND:
-		return (mg->type == GAT_GROUND);
-	case CELL_CHKHOLE:
-		return (mg->type == GAT_HOLE);
-	case CELL_GETTYPE:
-		return mg->type;
-	case CELL_CHKNPC:
-		return mg->npc;
-	case CELL_CHKBASILICA:
-		return mg->basilica;
-	case CELL_CHKMOONLIT:
-		return mg->moonlit;
-	case CELL_CHKREGEN:
-		return mg->regen;
-	default:
-		return 0;
-	}
-}
-/*==========================================
- * (m,x,y)の状態を設定する
- *------------------------------------------
- */
-void map_setcell(unsigned short m,unsigned short x, unsigned short y, int cellck)
-{
-	struct mapgat *mg;
-	if(m >= MAX_MAP_PER_SERVER || x>=maps[m].xs || y>=maps[m].ys)
-		return;
-
-	mg = maps[m].gat+x+y*maps[m].xs;
-
-	switch(cellck)
-	{
-	case CELL_SETNPC:
-		if(mg->npc < 15) // max for a 4bit counter
-			mg->npc++;
-		else
-			ShowWarning("usage of more then 15 stacked npc touchup areas\n");
-			break;
-	case CELL_CLRNPC:
-		if(mg->npc > 0) // 4bit counter
-			mg->npc--;
-		//else no warning, has been warned at setting up the touchups already
-		break;
-		case CELL_SETBASILICA:
-		mg->basilica = 1;
-			break;
-		case CELL_CLRBASILICA:
-		mg->basilica = 0;
-			break;
-	case CELL_SETMOONLIT:
-		mg->moonlit = 1;
-		break;
-	case CELL_CLRMOONLIT:
-		mg->moonlit = 0;
-		break;
-		case CELL_SETREGEN:
-		mg->regen = 1;
-			break;
-	case CELL_CLRREGEN:
-		mg->regen = 0;
-		break;
-	default:
-		// check the numbers from the gat and warn on an unknown type
-		if( (cellck != GAT_NONE) && (cellck != GAT_WALL) && (cellck != GAT_WATER) && 
-			(cellck != GAT_GROUND) && (cellck != GAT_HOLE) )
-			ShowWarning("Setting mapcell with improper value %i on %s (%i,%i)\n", cellck,maps[m].mapname,x,y);
-		else
-			mg->type = cellck & CELL_MASK;
-			break;
-	};
-}
-
-/*==========================================
- * 他鯖管理のマップをdbに追加
- *------------------------------------------
- */
-int map_setipport(const char *name, basics::ipset &mapset)
-{
-	struct map_data *md=NULL;
-	struct map_data_other_server *mdos=NULL;
-
-	md = (struct map_data*)strdb_search(map_db,name);
-	if(md==NULL)
-	{	// does not exist -> add new data
-		mdos = new struct map_data_other_server;
-		memcpy(mdos->name,name,24);
-		mdos->gat  = NULL;
-		mdos->mapset=mapset;
-		mdos->map  = NULL;
-		strdb_insert(map_db,mdos->name,mdos);
-	}
-	else if(md->gat)
-	{	// exists and has a locally loaded map
-		if( mapset != getmapaddress() )
-		{	// a differnt server then the local one is owning the map
-			// 読み甲ﾅいたけど、担当外になったマップ
-			mdos= new struct map_data_other_server;
-			memcpy(mdos->name,name,24);
-			mdos->gat  = NULL;
-			mdos->mapset=mapset;
-			mdos->map  = md;	// safe the locally loaded map data
-			strdb_insert(map_db,mdos->name,mdos);
-			// ShowMessage("from char server : %s -> %08lx:%d\n",name,ip,port);
-
-			// warp players from this map to the new one
-			map_session_data::iterator iter(map_session_data::nickdb());
-			for(; iter; ++iter)
-			{
-				map_session_data*sd = iter.data();
-				if( sd && sd->block_list::m == md->m )
-					pc_setpos(*sd, sd->mapname, sd->block_list::x, sd->block_list::y, 3);
-			}
-		}
-		else
-		{	// nothing to do, just keep the map as it is
-			// 読み甲ﾅいて、担当になったマップ（何もしない）
-			;
-		}
-	}
-	else
-	{	// exists and is an other_server_map
-		mdos=(struct map_data_other_server *)md;
-		if( mapset == getmapaddress() )
-		{	// the current server is claiming the map
-			// 自分の担当になったマップ
-
-			// reclaim the real mapdata
-			// 読み甲ﾅいるので置き換える
-			md = mdos->map;
-			delete mdos;
-			
-			if(md)
-				strdb_insert(map_db,md->mapname,md);
-			else
-				ShowError("map_setipport error: data for local map %s does not exist.\n",name);
-		}
-		else
-		{	// the ip of the hostig mapserver has changed
-			// 他の鯖の担当マップなので置き換えるだけ
-			mdos->mapset=mapset;
-		}
-	}
-	return 0;
-}
-
-/*==========================================
- * 他鯖管理のマップを全て削除
- *------------------------------------------
- */
-int map_eraseallipport(void)
-{
-	db_iterator<const char*, map_data_other_server*> iter(map_db);
-	for(;iter; ++iter)
-	{
-		map_data_other_server *mdos = iter.data();
-		// decision between map_data and map_data_other_server 
-		// is currently done with having member ->gat == NULL
-		if(mdos && mdos->gat == NULL)
-		{	
-			map_data *md = mdos->map;
-			
-			strdb_erase(map_db, iter.key());
-			delete mdos;
-
-			if( md )
-			{	// real mapdata exists
-				strdb_insert(map_db, md->mapname, md);
-			}
-		}
-	}
-	return 1;
-}
-
-/*==========================================
- * 他鯖管理のマップをdbから削除
- *------------------------------------------
- */
-int map_eraseipport(const char *name, basics::ipset &mapset)
-{
-	struct map_data *md;
-	struct map_data_other_server *mdos;
-
-	md=(struct map_data *) strdb_search(map_db,name);
-	if(md && NULL==md->gat)
-	{	// check if map exists and if it is a other_server_map
-		mdos=(struct map_data_other_server *)md;
-		if(mdos->mapset==mapset)
-		{
-			md = mdos->map;
-			strdb_erase(map_db,name);
-			delete mdos;
-			if( md )
-			{	// saved real mapdata exists, insert it again
-				strdb_insert(map_db,md->mapname, md);
-			}
-		}
-	}
-	return 0;
-}
-
-/*==========================================
- * 全てのmapデ?タを?み?む
- *------------------------------------------
- */
-
-
-
-
-int map_readallmap(void)
-{
-	size_t i, maps_removed=0;
-	bool ch;
-
-	// マップキャッシュを開く
-	if(map_read_flag >= READ_FROM_BITMAP)
-	{
-		map_cache_open(map_cache_file);
-	}
-
-	ShowStatus("Loading Maps%s...\n",
-		(map_read_flag == READ_FROM_BITMAP_COMPRESSED ? " (w/ Compressed Map Cache)" :
-		map_read_flag >= READ_FROM_BITMAP ? " (w/ Map Cache)" :
-		map_read_flag == READ_FROM_AFM ? " (w/ AFM)" : ""));
-
-	// 先に全部のャbプの存在を確認
-	for(i=0;i<map_num;++i)
-	{
-		maps[i].wh=waterlist[maps[i].mapname];
-		maps[i].m=i;
-
-		/////////////////////////////////////////////////////////////////
-		if( (ch=map_cache_read(maps[i])) ||
-			map_readafm(maps[i]) ||
-			map_readaf2(maps[i]) ||
-			map_readgrf(maps[i]) )
-		{	
-			ShowMessage("Loading Maps [%d/%d]: %s, size (%d %d)(%i)"CL_CLL"\r", i,map_num, maps[i].mapname, maps[i].xs,maps[i].ys, maps[i].wh);
-	
-			// initialize
-			memset(maps[i].moblist, 0, sizeof(maps[i].moblist));	
-			maps[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
-
-			memset(&maps[i].flag,0,sizeof(maps[i].flag));
-			if(config.pk_mode)
-				maps[i].flag.pvp = 1; // make all maps pvp for pk_mode [Valaris]
-
-			maps[i].npc_num=0;
-			maps[i].users=0;
-			maps[i].bxs= ((maps[i].xs+BLOCK_SIZE-1)/BLOCK_SIZE);
-			maps[i].bys= ((maps[i].ys+BLOCK_SIZE-1)/BLOCK_SIZE);
-			
-			maps[i].objects = new struct map_data::_objects[maps[i].bxs*maps[i].bys];
-
-			strdb_insert(map_db,maps[i].mapname,&maps[i]);
-
-			// cache it
-			if(!ch) map_cache_write(maps[i]);
-		}
-		else
-		{
-			ShowMessage("Removing Map [%d/%d]: %s"CL_CLL"\r", i,map_num, maps[i].mapname);
-			map_delmap(maps[i].mapname);
-			maps_removed++;
-			i--;
-		}
-	}
-
-	ShowMessage("\r");
-	ShowInfo("Successfully loaded '"CL_WHITE"%d"CL_RESET"' maps.%30s\n",map_num,"");
-
-	map_cache_close();
-
-	if (maps_removed) {
-		ShowNotice("Maps Removed: '"CL_WHITE"%d"CL_RESET"'\n",maps_removed);
-	}
-	return 0;
-}
-
-/*==========================================
- * ?み?むmapを追加する
- *------------------------------------------
- */
-int map_addmap(const char *mapname)
-{
-	if (strcasecmp(mapname,"clear")==0) {
-		map_num=0;
-		return 0;
-	}
-
-	if (map_num >= MAX_MAP_PER_SERVER - 1) {
-		ShowError("Could not add map '"CL_WHITE"%s"CL_RESET"', the limit of maps has been reached.\n",mapname);
-		return 1;
-	}
-	safestrcpy(maps[map_num].mapname, sizeof(maps[map_num].mapname), mapname);
-	char *ip = strchr(maps[map_num].mapname, '.');
-	if(ip) *ip=0;
-
-	map_num++;
-	return 0;
-}
-
-/*==========================================
- * ?み?むmapを削除する
- *------------------------------------------
- */
-int map_delmap(const char *mapname)
-{
-	if (strcasecmp(mapname, "all") == 0)
-	{
-		map_num = 0;
-	}
-	else
-	{
-		size_t i;
-		char buffer[32], *ip;
-		strcpy(buffer, mapname);
-		ip = strchr(buffer, '.');
-		if(ip) *ip=0;
-		
-		for(i=0; i<map_num; ++i)
-		{
-			if (strcmp(maps[i].mapname, buffer) == 0) {
-				ShowMessage("Removing map [ %s ] from maplist"CL_CLL"\n", buffer);
-				memmove(maps+i, maps+i+1, sizeof(maps[0])*(map_num-i-1));
-				map_num--;
-			}
-		}
-	}
-	return 0;
-}
 
 /*==========================================
  * Console Command Parser [Wizputer]
@@ -1052,7 +1136,7 @@ int parse_console(const char *buf)
 			sd.block_list::y = y;
 		}
 
-		m = map_mapname2mapid(map);
+		m = maps.index_of(map);
 		if ( m >= 0 )
 			sd.block_list::m = m;
 		else {
@@ -1111,7 +1195,8 @@ int map_config_read(const char *cfgName)
 	{
 		while(fgets(line, sizeof(line), fp))
 		{
-			if( prepare_line(line) && 2==sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
+			if( prepare_line(line) && 
+				2==sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
 			{
 				basics::itrim(w1);
 				if(!*w1) continue;
@@ -1145,15 +1230,15 @@ int map_config_read(const char *cfgName)
 				}
 				else if (strcasecmp(w1, "water_height") == 0)
 				{
-					waterlist.open(w2);
+					map_waterlist_open(w2);
 				}
 				else if (strcasecmp(w1, "map") == 0)
 				{
-					map_addmap(w2);
+					maps.addmap(w2);
 				}
 				else if (strcasecmp(w1, "delmap") == 0)
 				{
-					map_delmap(w2);
+					maps.delmap(w2);
 				}
 				else if (strcasecmp(w1, "npc") == 0)
 				{
@@ -1229,8 +1314,6 @@ int online_timer(int tid, unsigned long tick, int id, basics::numptr data)
 }
 
 
-
-
 class CMapCleanup : public CMapProcessor
 {
 public:
@@ -1253,7 +1336,7 @@ void map_checknpcsleft(void)
 {
 	size_t i, m,n=0;
 	block_list::freeblock_lock();
-	for(m=0;m<map_num;++m)
+	for(m=0;m<maps.size();++m)
 	{
 		for(i=0;i<maps[m].npc_num && i<MAX_NPC_PER_MAP;++i)
 		{
@@ -1287,7 +1370,7 @@ void do_final(void)
 	///////////////////////////////////////////////////////////////////////////
 
 	grfio_final();
-	map_eraseallipport();
+	maps.eraseallipport();
 
 	chrif_char_reset_offline();
 	chrif_flush_fifo();
@@ -1297,14 +1380,11 @@ void do_final(void)
 /////////
 // possibly unnecessary
 	// additional removing
-	for (i = 0; i < map_num; ++i)
+	for (i = 0; i < maps.size(); ++i)
 	{
-		if (maps[i].m >= 0)
-		{
-			const int ll=block_list::foreachinarea( CMapCleanup(), i, 0, 0, maps[i].xs-1, maps[i].ys-1, BL_ALL);
-			if(ll)
-				ShowWarning("map cleanup '"CL_WHITE"%d"CL_RESET"' objects.\n", ll);
-		}
+		const int ll=maps[i].foreach( CMapCleanup(), BL_ALL);
+		if(ll)
+			ShowWarning("map cleanup '"CL_WHITE"%d"CL_RESET"' objects.\n", ll);
 	}
 	// and a check
 	map_checknpcsleft();
@@ -1321,23 +1401,13 @@ void do_final(void)
 	do_final_chrif(); // この内部でキャラを全て切断する
 
 
-	for (i=0; i<map_num; ++i)
-	{
-		clear_moblist(i);
-		if(maps[i].gat)		{ delete[] maps[i].gat; maps[i].gat=NULL; }
-		if(maps[i].objects)	{ delete[] (maps[i].objects); maps[i].objects=NULL; }
-	}
 	if(block_list::id_db)
 	{
 		numdb_final(block_list::id_db);
 		block_list::id_db=NULL;
 	}
-	if(map_db)
-	{
-		strdb_final(map_db);
-		map_db=NULL;
-	}
 
+	maps.finalize();
 	map_session_data::finalize();
 	log_final();
 
@@ -1401,9 +1471,6 @@ int do_init(int argc, char *argv[])
 	npcai_test();
 #endif
 
-	// just clear all maps
-	memset(maps, 0, MAX_MAP_PER_SERVER*sizeof(struct map_data));
-
 	for (i = 1; i < argc ; ++i)
 	{
 		if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "--h") == 0 || strcmp(argv[i], "--?") == 0 || strcmp(argv[i], "/?") == 0)
@@ -1428,28 +1495,27 @@ int do_init(int argc, char *argv[])
 			core_stoprunning();
 	}
 
-	map_config_read(MAP_CONF_NAME);
 	basics::CParamBase::loadFile(MAP_CONF_NAME);
-
+	
+	maps.initialize();
+	map_config_read(MAP_CONF_NAME);
+	grfio_init(GRF_PATH_FILENAME);
 	config.read(BATTLE_CONF_FILENAME);
 	msg_txt.read(MSG_CONF_NAME);
 	CommandInfo::config_read(COMMAND_CONF_FILENAME);
 	script_config_read(SCRIPT_CONF_NAME);
-
 	log_init(LOG_CONF_NAME);
 
+
+	map_cache_open(map_cache_file);
+	maps.loadallmaps();
+	map_cache_close();
+
 	block_list::id_db = numdb_init();
-	map_db = strdb_init(24);
 	map_session_data::initialize();
-
-	grfio_init(GRF_PATH_FILENAME);
-
 	battle_init();
-	map_readallmap();
-
 	add_timer_func_list(map_freeblock_timer, "map_freeblock_timer");
 	add_timer_func_list(flooritem_data::clear_timer, "flooritem_data::clear_timer");
-	add_timer_func_list(map_removemobs_timer, "map_removemobs_timer");
 	add_timer_interval(gettick()+1000, 60*1000, map_freeblock_timer, 0, 0);
 
 	add_timer_func_list(online_timer, "online_timer");

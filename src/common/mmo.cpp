@@ -334,8 +334,8 @@ void CCharCharacter::_tobuffer(unsigned char* &buf, bool new_charscreen) const
 		_L_tobuffer( 0, buf);// probably opt2
 		_L_tobuffer( option, buf);
 
-		_L_tobuffer( karma, buf);
-		_L_tobuffer( manner, buf);
+		_L_tobuffer( (uint32)karma, buf);
+		_L_tobuffer( (sint32)manner, buf);
 
 		_W_tobuffer( status_point, buf );
 		_W_tobuffer( ushort((hp > 0x7fff) ? 0x7fff : hp), buf );

@@ -59,6 +59,10 @@ class nonallocable
 {	// prevent allocation
 	void* operator new(size_t s);
 	void* operator new[](size_t s);
+#if defined(__GNUC__) && __GNUC__ < 3
+// problems with gcc prior to v3
+protected:
+#endif//defined(__GNUC__) && __GNUC__ < 3
 	void operator delete(void* p);
 	void operator delete[](void* p);
 protected:

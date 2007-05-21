@@ -5,6 +5,7 @@
 
 #include "baseparam.h"
 #include "baseipfilter.h"
+#include "basebits.h"
 #include "socket.h"
 #include "mmo.h"	// [Valaris] thanks to fov
 #include "utils.h"

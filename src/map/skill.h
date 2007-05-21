@@ -192,5 +192,4 @@ private:
 };
 
 
-
 #endif//_SKILL_H_

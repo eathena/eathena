@@ -3564,17 +3564,17 @@ int buildin_areawarp(CScriptEngine &st)
 	const char *targetmap=st.GetString((st[7]));
 	int x=st.GetInt(st[8]);
 	int y=st.GetInt(st[9]);
-	int m=map_mapname2mapid(mapname);
+	int m=maps.index_of(mapname);
 
-	if( m>=0 && (size_t)m<map_num)
+	if( m>=0 && (size_t)m<maps.size())
 	{	//!! broadcast command if not on this mapserver
 
-		if( 0==strcmp(targetmap,"Random") )
-			block_list::foreachinarea( CBuildinAreawarpRnd(),
-				m,x0,y0,x1,y1,BL_PC);
+		if( 0==strcasecmp(targetmap,"Random") )
+			maps[m].foreachinarea( CBuildinAreawarpRnd(),
+				x0,y0,x1,y1,BL_PC);
 		else
-			block_list::foreachinarea( CBuildinAreawarpXY(targetmap,x,y),
-				m,x0,y0,x1,y1,BL_PC);
+			maps[m].foreachinarea( CBuildinAreawarpXY(targetmap,x,y),
+				x0,y0,x1,y1,BL_PC);
 	}
 	return 0;
 }
@@ -4014,7 +4014,7 @@ int buildin_makeitem(CScriptEngine &st)
 	if( st.sd && strcmp(mapname,"this")==0)
 		m=st.sd->block_list::m;
 	else
-		m=map_mapname2mapid(mapname);
+		m=maps.index_of(mapname);
 
 	if(nameid<0) { // ƒ‰ƒ“ƒ_ƒ€
 		nameid=itemdb_searchrandomid(-nameid);
@@ -5324,16 +5324,14 @@ int buildin_killmonster(CScriptEngine &st)
 {
 	const char *mapname=st.GetString(st[2]);
 	const char *event=st.GetString(st[3]);
-	unsigned short m=map_mapname2mapid(mapname);
+	unsigned short m=maps.index_of(mapname);
 
-	if( m < map_num )
+	if( m < maps.size() )
 	{	//!! broadcast command if not on this mapserver
-		if(strcmp(event,"All")==0)
-			block_list::foreachinarea( CBuildinKillSummonedmob(),
-				m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
+		if( strcasecmp(event,"All")==0 )
+			maps[m].foreach( CBuildinKillSummonedmob(), BL_MOB);
 		else
-			block_list::foreachinarea( CBuildinKillEventmob(event),
-				m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
+			maps[m].foreach( CBuildinKillEventmob(event), BL_MOB);
 	}
 	return 0;
 }
@@ -5341,11 +5339,10 @@ int buildin_killmonster(CScriptEngine &st)
 int buildin_killmonsterall(CScriptEngine &st)
 {
 	const char *mapname=st.GetString(st[2]);
-	ushort m =map_mapname2mapid(mapname);
-	if( m < map_num )
+	ushort m =maps.index_of(mapname);
+	if( m < maps.size() )
 	{	//!! broadcast command if not on this mapserver
-		block_list::foreachinarea( CBuildinKillallmob(),
-			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
+		maps[m].foreach( CBuildinKillallmob(), BL_MOB);
 	}
 	return 0;
 }
@@ -5593,11 +5590,10 @@ int buildin_mapannounce(CScriptEngine &st)
 	const char *mapname=st.GetString(st[2]);
 	const char *str=st.GetString(st[3]);
 	int flag=st.GetInt(st[4]);
-	ushort m=map_mapname2mapid(mapname);
-	if( m<map_num )
+	ushort m=maps.index_of(mapname);
+	if( m<maps.size() )
 	{	//!! broadcast command if not on this mapserver
-		block_list::foreachinarea( CBuildinMapannounce(str,1+strlen(str),flag),
-			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_PC);
+		maps[m].foreach( CBuildinMapannounce(str,1+strlen(str),flag), BL_PC);
 	}
 	return 0;
 }
@@ -5614,11 +5610,11 @@ int buildin_areaannounce(CScriptEngine &st)
 	int y1=st.GetInt(st[6]);
 	const char *str=st.GetString(st[7]);
 	int flag=st.GetInt(st[8]);
-	ushort m=map_mapname2mapid(mapname);
-	if( m<map_num )
+	ushort m=maps.index_of(mapname);
+	if( m<maps.size() )
 	{	//!! broadcast command if not on this mapserver
-		block_list::foreachinarea( CBuildinMapannounce(str,1+strlen(str),flag&0x10),
-			m,x0,y0,x1,y1,BL_PC);
+		maps[m].foreachinarea( CBuildinMapannounce(str,1+strlen(str),flag&0x10),
+			x0,y0,x1,y1,BL_PC);
 	}
 	return 0;
 }
@@ -5673,9 +5669,9 @@ int buildin_getmapusers(CScriptEngine &st)
 {
 	
 	const char *mapname=st.GetString(st[2]);
-	ushort m=map_mapname2mapid(mapname);
+	ushort m=maps.index_of(mapname);
 	//!! broadcast command if not on this mapserver
-	int val = (m<map_num) ? (int)maps[m].users : -1;
+	int val = (m<maps.size()) ? (int)maps[m].users : -1;
 	st.push_val(CScriptEngine::C_INT, val);
 	return 0;
 }
@@ -5702,10 +5698,10 @@ int buildin_getareausers(CScriptEngine &st)
 	int y0=st.GetInt(st[4]);
 	int x1=st.GetInt(st[5]);
 	int y1=st.GetInt(st[6]);
-	ushort m=map_mapname2mapid(mapname);
+	ushort m=maps.index_of(mapname);
 	//!! broadcast command if not on this mapserver
-	int users = ( m>=map_num )? -1 : 
-		block_list::foreachinarea( CBuildinCountObject(BL_PC), m,x0,y0,x1,y1,BL_PC);
+	int users = ( m>=maps.size() )? -1 : 
+		maps[m].foreachinarea( CBuildinCountObject(BL_PC), x0,y0,x1,y1,BL_PC);
 
 	st.push_val(CScriptEngine::C_INT,users);
 	return 0;
@@ -5737,9 +5733,9 @@ int buildin_getareadropitem(CScriptEngine &st)
 	int y1  = st.GetInt(st[6]);
 	int item;
 	int amount=0;
-	ushort m=map_mapname2mapid(mapname);
+	ushort m=maps.index_of(mapname);
 
-	if( m<map_num )
+	if( m<maps.size() )
 	{	//!! broadcast command if not on this mapserver
 		CScriptEngine::CValue &data= st[7];
 		st.ConvertName(data);
@@ -5754,8 +5750,8 @@ int buildin_getareadropitem(CScriptEngine &st)
 		else
 			item=st.GetInt(data);
 
-		amount = block_list::foreachinarea( CBuildinCountDropitem(item),
-			m,x0,y0,x1,y1,BL_ITEM);
+		amount = maps[m].foreachinarea( CBuildinCountDropitem(item),
+			x0,y0,x1,y1,BL_ITEM);
 	}
 	st.push_val(CScriptEngine::C_INT,amount);
 	return 0;
@@ -6349,7 +6345,7 @@ int buildin_setmapflagnosave(CScriptEngine &st)
 	str2=st.GetString(st[3]);
 	x=st.GetInt(st[4]);
 	y=st.GetInt(st[5]);
-	m = map_mapname2mapid(str);
+	m = maps.index_of(str);
 //!! broadcast command if not on this mapserver
 	if(m >= 0) {
 		maps[m].flag.nosave=1;
@@ -6370,9 +6366,9 @@ int buildin_setmapflag(CScriptEngine &st)
 
 	str=st.GetString(st[2]);
 	i=st.GetInt(st[3]);
-	m = map_mapname2mapid(str);
+	m = maps.index_of(str);
 //!! broadcast command if not on this mapserver
-	if(m < map_num)
+	if(m < maps.size())
 	{
 		switch(i)
 		{
@@ -6477,9 +6473,9 @@ int buildin_removemapflag(CScriptEngine &st)
 
 	str=st.GetString(st[2]);
 	i=st.GetInt(st[3]);
-	m = map_mapname2mapid(str);
+	m = maps.index_of(str);
 //!! broadcast command if not on this mapserver
-	if(m < map_num)
+	if(m < maps.size())
 	{
 		switch(i)
 		{
@@ -6584,7 +6580,7 @@ int buildin_pvpon(CScriptEngine &st)
 	map_session_data *pl_sd=NULL;
 
 	str=st.GetString(st[2]);
-	m = map_mapname2mapid(str);
+	m = maps.index_of(str);
 //!! broadcast command if not on this mapserver
 	if(m >= 0 && !maps[m].flag.pvp && !maps[m].flag.nopvp) {
 		maps[m].flag.pvp = 1;
@@ -6617,7 +6613,7 @@ int buildin_pvpoff(CScriptEngine &st)
 	map_session_data *pl_sd=NULL;
 
 	str=st.GetString(st[2]);
-	m = map_mapname2mapid(str);
+	m = maps.index_of(str);
 //!! broadcast command if not on this mapserver
 	if(m >= 0 && maps[m].flag.pvp && maps[m].flag.nopvp) {
 		maps[m].flag.pvp = 0;
@@ -6647,7 +6643,7 @@ int buildin_gvgon(CScriptEngine &st)
 	const char *str;
 
 	str=st.GetString(st[2]);
-	m = map_mapname2mapid(str);
+	m = maps.index_of(str);
 //!! broadcast command if not on this mapserver
 	if(m >= 0 && !maps[m].flag.gvg) {
 		maps[m].flag.gvg = 1;
@@ -6662,7 +6658,7 @@ int buildin_gvgoff(CScriptEngine &st)
 	const char *str;
 
 	str=st.GetString(st[2]);
-	m = map_mapname2mapid(str);
+	m = maps.index_of(str);
 //!! broadcast command if not on this mapserver
 	if(m >= 0 && maps[m].flag.gvg) {
 		maps[m].flag.gvg = 0;
@@ -6727,13 +6723,10 @@ int buildin_maprespawnguildid(CScriptEngine &st)
 	const char *mapname=st.GetString(st[2]);
 	int g_id=st.GetInt(st[3]);
 	int flag=st.GetInt(st[4]);
-	ushort m=map_mapname2mapid(mapname);
-	if( m<map_num )
+	ushort m=maps.index_of(mapname);
+	if( m<maps.size() )
 	{
-		block_list::foreachinarea( CBuildinRespawnGuild(g_id,flag),
-			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_NUL);
-//		map_foreachinarea(buildin_maprespawnguildid_sub,
-//			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_NUL,g_id,flag);
+		maps[m].foreach( CBuildinRespawnGuild(g_id,flag), BL_NUL);
 	}
 	return 0;
 }
@@ -7123,20 +7116,20 @@ int buildin_mapwarp(CScriptEngine &st)	// Added by RoVeRT
 	const char *targetmap=st.GetString(st[3]);
 	int x=st.GetInt(st[4]);
 	int y=st.GetInt(st[5]);
-	ushort m = map_mapname2mapid(mapname);
-	if( m<map_num )
+	ushort m = maps.index_of(mapname);
+	if( m<maps.size() )
 	{	//!! broadcast command if not on this mapserver
 		int x0=0;
 		int y0=0;
 		int x1=maps[m].xs;
 		int y1=maps[m].ys;
-
-		if( 0==strcmp(targetmap,"Random") )
-			block_list::foreachinarea( CBuildinAreawarpRnd(),
-				m,x0,y0,x1,y1,BL_PC);
+ 
+		if( 0==strcasecmp(targetmap,"Random") )
+			maps[m].foreachinarea( CBuildinAreawarpRnd(),
+				x0,y0,x1,y1,BL_PC);
 		else
-			block_list::foreachinarea( CBuildinAreawarpXY(targetmap,x,y),
-				m,x0,y0,x1,y1,BL_PC);
+			maps[m].foreachinarea( CBuildinAreawarpXY(targetmap,x,y),
+				x0,y0,x1,y1,BL_PC);
 	}
 	return 0;
 }
@@ -7202,12 +7195,11 @@ int buildin_mobcount(CScriptEngine &st)
 {
 	const char *mapname=st.GetString(st[2]);
 	const char *event=st.GetString(st[3]);
-	ushort m = map_mapname2mapid(mapname);
+	ushort m = maps.index_of(mapname);
 	int amount = -1;
-	if( m<map_num )
+	if( m<maps.size() )
 	{	//!! broadcast if not on this mapserver
-		amount = block_list::foreachinarea( CBuildinMobCount(event),
-			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
+		amount = maps[m].foreach( CBuildinMobCount(event), BL_MOB);
 		return 0;
 	}
 	st.push_val(CScriptEngine::C_INT, amount);
@@ -8028,11 +8020,10 @@ int buildin_getmapmobs(CScriptEngine &st)
 			m=st.sd->block_list::m;
 	}
 	else
-		m=map_mapname2mapid(str);
-	if(m < map_num)
+		m=maps.index_of(str);
+	if(m < maps.size())
 	{
-		count = block_list::foreachinarea( CBuildinMobCount(NULL),
-			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
+		count = maps[m].foreach( CBuildinMobCount(NULL), BL_MOB);
 	}
 	st.push_val(CScriptEngine::C_INT,count);
 	return 0;

@@ -5,6 +5,7 @@
 #include "basebooltype.h"
 #include "basebits.h"
 #include "basepair.h"
+#include "basemathtypes.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // irregular part and missing functions
@@ -971,122 +972,6 @@ struct unsigned_type<sint64>
 //@}
 
 
-///////////////////////////////////////////////////////////////////////////////
-/// functional conversion overloads.
-/// to change signed types to the appropriate unsigned
-inline unsigned char to_unsigned(char t)
-{
-	return (unsigned char)(t);
-}
-inline unsigned char to_unsigned(unsigned char t)
-{
-	return (unsigned char)(t);
-}
-// UCT2
-inline unsigned short to_unsigned(short t)
-{
-	return (unsigned short)(t);
-}
-inline unsigned short to_unsigned(unsigned short t)
-{
-	return (unsigned short)(t);
-}
-// others, just to be complete
-inline unsigned int to_unsigned(int t)
-{
-	return (unsigned int)(t);
-}
-inline unsigned int to_unsigned(unsigned int t)
-{
-	return (unsigned int)(t);
-}
-inline unsigned long to_unsigned(long t)
-{
-	return (unsigned long)(t);
-}
-inline unsigned long to_unsigned(unsigned long t)
-{
-	return (unsigned long)(t);
-}
-inline uint64 to_unsigned(int64 t)
-{
-	return (uint64)(t);
-}
-inline uint64 to_unsigned(uint64 t)
-{
-	return (uint64)(t);
-}
-inline float to_unsigned(float t)
-{
-	return t;
-}
-inline double to_unsigned(double t)
-{
-	return t;
-}
-inline long double to_unsigned(long double t)
-{
-	return t;
-}
-///////////////////////////////////////////////////////////////////////////////
-/// functional conversion overloads.
-/// to change unsigned types to the appropriate signed
-inline signed char to_signed(char t)
-{
-	return (signed char)(t);
-}
-inline signed char to_signed(unsigned char t)
-{
-	return (signed char)(t);
-}
-// UCT2
-inline signed short to_signed(short t)
-{
-	return (signed short)(t);
-}
-inline signed short to_signed(unsigned short t)
-{
-	return (signed short)(t);
-}
-// others, just to be complete
-inline signed int to_signed(int t)
-{
-	return (signed int)(t);
-}
-inline signed int to_signed(unsigned int t)
-{
-	return (signed int)(t);
-}
-inline signed long to_signed(long t)
-{
-	return (signed long)(t);
-}
-inline signed long to_signed(unsigned long t)
-{
-	return (signed long)(t);
-}
-inline sint64 to_signed(int64 t)
-{
-	return (sint64)(t);
-}
-inline sint64 to_signed(uint64 t)
-{
-	return (sint64)(t);
-}
-inline float to_signed(float t)
-{
-	return t;
-}
-inline double to_signed(double t)
-{
-	return t;
-}
-inline long double to_signed(long double t)
-{
-	return t;
-}
-///////////////////////////////////////////////////////////////////////////////
-
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1188,7 +1073,7 @@ inline long double exp(const long double x)								{ return ::expl(x); }
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for exponent base10
 inline uint64 exp10(const uint x)										{ return pow10(x); }
-inline float exp10(const float x)										{ return ::expf(x*LN10); }
+inline float exp10(const float x)										{ return ::expf((float)(x*LN10)); }
 inline double exp10(const double x)										{ return ::exp(x*LN10); }
 inline long double exp10(const long double x)							{ return ::expl(x*LN10); }
 
@@ -1205,14 +1090,14 @@ inline double fmod(const double x, const double y)						{ return ::fmod(x,y); }
 inline long double fmod(const long double x, const long double y)		{ return ::fmodl(x,y); }
 
 ///////////////////////////////////////////////////////////////////////////////
+/// overloads for frexp. returning a pair
+template<typename T> inline pair<T,int> frexp(const T& x)				{ int itmp; pair<T,int> ptmp( frexp<T>(x,&itmp),0); ptmp.second=itmp; return ptmp; }
+
+///////////////////////////////////////////////////////////////////////////////
 /// overloads for frexp. note that exponent is given as reference, not as pointer
 inline float frexp(const float x, int& y)								{ return ::frexpf(x,&y); }
 inline double frexp(const double x, int& y)								{ return ::frexp(x,&y); }
 inline long double frexp(const long double x, int& y)					{ return ::frexpl(x,&y); }
-
-///////////////////////////////////////////////////////////////////////////////
-/// overloads for frexp. returning a pair
-template<typename T> inline pair<T,int> frexp(const T& x)				{ int itmp; pair<T,int> ptmp( frexp<T>(x,&itmp),0); ptmp.second=itmp; return ptmp; }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// overloads for ldexp
@@ -1374,6 +1259,7 @@ T gcd(T a, T b)
 	return a;
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Least Common Multiple (SCM).
 /// SCM of P(x) and Q(x) is defined by the relation
@@ -1384,6 +1270,17 @@ T scm(T a, T b)
 	return a*b/gcd(a,b);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// log base 2, the obvious way.
+/// look at basebits for faster code
+template <typename T>
+inline T lg(T sz)
+{
+	T k;
+	for (k = 0; sz != 1; sz >>= 1)
+		++k;
+	return k;
+}
 
 ///////////////////////////////////////
 }// end namespace math

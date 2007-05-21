@@ -713,7 +713,7 @@ void test_array(void)
 		a = f1.pop();
 		if( 0!=memcmp(f1.begin(), "vv_rep__copy_abccczxy", f1.size()) ) err++,printf("err 22\n");
 		if( a != 'b' ) err++,printf("err 23\n");
-		char el;
+		char el=0;
 		f1.pop(el);
 		if( 0!=memcmp(f1.begin(), "v_rep__copy_abccczxy", f1.size()) ) err++,printf("err 24\n");
 		if( el != 'v' ) err++,printf("err 25\n");
@@ -726,7 +726,7 @@ void test_array(void)
 	/////////////////////////////////////////////////////
 	{
 		int err=0;
-		int a;
+		int a=0;
 		printf("stack test sequence\n");
 		stack<char> f1;
 		f1.clear();
@@ -775,7 +775,7 @@ void test_array(void)
 		a = f1.pop();
 		if( 0!=memcmp(f1.begin(), "bvv_rep__copy_abccczx", f1.size()) ) err++,printf("err 22\n");
 		if( a != 'y' ) err++,printf("err 23\n");
-		char el;
+		char el=0;
 		f1.pop(el);
 		if( 0!=memcmp(f1.begin(), "bvv_rep__copy_abcccz", f1.size()) ) err++,printf("err 24\n");
 		if( el != 'x' ) err++,printf("err 25\n");
@@ -837,7 +837,7 @@ void test_array(void)
 		a = f1.pop();
 		if( 0!=memcmp(f1.begin(), "vv_rep__copy_abccczxy", f1.size()) ) err++,printf("err 22\n");
 		if( a != 'b' ) err++,printf("err 23\n");
-		char el;
+		char el=0;
 		f1.pop(el);
 		if( 0!=memcmp(f1.begin(), "v_rep__copy_abccczxy", f1.size()) ) err++,printf("err 24\n");
 		if( el != 'v' ) err++,printf("err 25\n");

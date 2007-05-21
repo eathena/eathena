@@ -92,17 +92,17 @@ void CParser::print_expects(const char*name) const
 {
 	fprintf(stderr, "Parse Error at line %u, col %u\n", this->cScanToken.line, this->cScanToken.column);
 	if(name&&*name) fprintf(stderr, "in file '%s'\n", name);
-
+	
 	if(this->cScanToken.id >=0)
 	{
 		fprintf(stderr,"recognized: %s '%s'\n", 
-			(const char*) pconfig->sym[this->cScanToken.id].Name,
+			(const char*)pconfig->sym[this->cScanToken.id].Name,
 			(const char*)this->cScanToken.cLexeme);
 	}
 	else
 	{
 		fprintf(stderr,"unrecognized token: '%c'\n", 
-			const_cast<CParser*>(this)->input.get_char());
+			const_cast<CParser*>(this)->pinput->get_char());
 	}
 	if(this->lalr_state>=0)
 	{
@@ -161,14 +161,14 @@ bool CParser::MatchFunction(short type, const string<>& name, short symbol)
 	switch(type) {
 	case SymbolTypeCommentLine: // ;
 	{
-		c = this->input.get_char();
+		c = this->pinput->get_char();
 		while( c != EEOF )
 		{
 			if(c == 13 || c == 10)
 				break;
 
-			this->input.next_char();
-			c = this->input.get_char();
+			this->pinput->next_char();
+			c = this->pinput->get_char();
 		}
 /*		c = this->input.get_charstep();
 		while( c != EEOF )
@@ -191,18 +191,18 @@ bool CParser::MatchFunction(short type, const string<>& name, short symbol)
 	}
 	case SymbolTypeCommentStart: // /* */
 	{
-		c = this->input.get_charstep();
+		c = this->pinput->get_charstep();
 		while( c != EEOF )
 		{
 			if (c == '*')
 			{
-				c = this->input.get_charstep();
+				c = this->pinput->get_charstep();
 				if(c == '/')
 					break;
 			}
 			else
 			{
-				c = this->input.get_charstep();
+				c = this->pinput->get_charstep();
 			}
 		}
 		return false;
@@ -217,17 +217,17 @@ bool CParser_CommentStore::MatchFunction(short type, const string<>& name, short
 	switch(type) {
 	case SymbolTypeCommentLine: // ;
 	{
-		size_t line = this->input.line;
+		size_t line = this->pinput->line;
 		string<> str;
 
-		c = this->input.get_char();
+		c = this->pinput->get_char();
 		while( c != EEOF )
 		{
 			if(c == 13 || c == 10)
 				break;
 			str.append( (char)c );
-			this->input.next_char();
-			c = this->input.get_char();
+			this->pinput->next_char();
+			c = this->pinput->get_char();
 		}
 /*
 		c = this->input.get_charstep();
@@ -256,15 +256,15 @@ bool CParser_CommentStore::MatchFunction(short type, const string<>& name, short
 	}
 	case SymbolTypeCommentStart: // / * * /
 	{
-		size_t line = this->input.line;
+		size_t line = this->pinput->line;
 		string<> str;
 
-		c = this->input.get_charstep();
+		c = this->pinput->get_charstep();
 		while( c != EEOF )
 		{
 			if (c == '*')
 			{
-				c = this->input.get_charstep();
+				c = this->pinput->get_charstep();
 				if(c == '/')
 					break;
 				else
@@ -273,7 +273,7 @@ bool CParser_CommentStore::MatchFunction(short type, const string<>& name, short
 			else
 			{
 				str.append( (char)c );
-				c = this->input.get_charstep();
+				c = this->pinput->get_charstep();
 			}
 		}
 		cCommentList.append( CLineStorage(line, str, true) );
@@ -301,7 +301,7 @@ short CParseInput::scan(CParser& parser, CToken& target)
 	target.column = this->column;
 
 	// check for eof
-	if( this->get_eof(false) )
+	if( this->is_eof(false) )
 		return 0;
 
 	while(1)
@@ -382,7 +382,7 @@ short CParseInput::scan(CParser& parser, CToken& target)
 	}
 	else
 	{	// accept
-		target.id=last_accepted;
+		target.id = (short)last_accepted;
 	}
 	return target.id;
 }
@@ -562,7 +562,7 @@ void CParser::reinit()
 ///////////////////////////////////////////////////////////////////////////////
 void CParser::reset()
 {
-	this->input.close();
+	this->close();
 	this->cStack.clear();
 	this->tokens.clear();
 
@@ -596,7 +596,7 @@ short CParser::parse(short reduce_sym)
 {
 	size_t i;
 	char bfound;
-	CParseInput* pinput = &this->input;
+	//CParseInput* pinput = &this->input;
 
 	if(this->reduction)
 	{
@@ -781,7 +781,7 @@ const unsigned char* getws(const unsigned char* b, char* s)
 const unsigned char* getsh(const unsigned char* b, short* s)
 {
 	*s = *b++;
-	*s |= (*b++) << 8;
+	*s |= ((*b++) << 8);
 	return b;
 }
 const unsigned char* getvws(const unsigned char* b, char* str)
@@ -906,7 +906,7 @@ bool CParseConfig::create(const unsigned char* b, size_t len)
 			b = getvsh(b, &idx);
 			b = getvb(b, &byt);
 			b = getvsh(b, &this->dfa_state[idx].AcceptIndex);
-			this->dfa_state[idx].Accept = byt?1:0;
+			this->dfa_state[idx].Accept = (byt?1:0);
 			b++; // reserved
 			this->dfa_state[idx].cEdge.resize(((nEntries-5)/3)>0?((nEntries-5)/3):0);
 			for (i=0; i<this->dfa_state[idx].cEdge.size(); ++i)

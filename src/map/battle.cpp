@@ -59,8 +59,7 @@ public:
 unsigned int battle_counttargeted(block_list &bl,block_list *src,  unsigned short target_lv)
 {
 	CBattleCountTargeted bct(bl.id, src, target_lv);
-	block_list::foreachinarea( bct,
-		bl.m, ((int)bl.x)-AREA_SIZE, ((int)bl.y)-AREA_SIZE, ((int)bl.x)+AREA_SIZE, ((int)bl.y)+AREA_SIZE, BL_ALL);
+	maps[bl.m].foreachinarea( bct, bl.x, bl.y, AREA_SIZE, BL_ALL);
 	return bct.c;
 }
 
@@ -97,8 +96,7 @@ public:
 block_list* battle_gettargeted(block_list &target)
 {
 	CBattleGetTargeted bgt(target);
-	block_list::foreachinarea( bgt,
-		target.m, ((int)target.x)-AREA_SIZE, ((int)target.y)-AREA_SIZE, ((int)target.x)+AREA_SIZE, ((int)target.y)+AREA_SIZE, BL_ALL);
+	maps[target.m].foreachinarea( bgt, target.x, target.y, AREA_SIZE, BL_ALL);
 	if(bgt.c<1)
 		return NULL;
 	else
@@ -5118,8 +5116,8 @@ int battle_check_target(const block_list *src, const block_list *target, int fla
 	if (flag&BCT_ENEMY && !maps[m].flag.gvg)	//Offensive stuff can't be casted on Basilica
 	{	// Celest
 		//No offensive stuff while in Basilica.
-		if (map_getcell(m,src->x,src->y,CELL_CHKBASILICA) ||
-			map_getcell(m,target->x,target->y,CELL_CHKBASILICA))
+		if( maps[m].is_basilica(src->x,src->y) ||
+			maps[m].is_basilica(target->x,target->y) )
 			return -1;
 	}
 

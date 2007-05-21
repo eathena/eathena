@@ -649,7 +649,7 @@ int unit_skilluse_pos2( block_list *src, int skill_x, int skill_y, int skill_num
 	if (!status_check_skilluse(src, NULL, skill_num, 0))
 		return 0;
 
-	if (map_getcell(src->m, skill_x, skill_y, CELL_CHKNOREACH))
+	if (maps[src->m].getcell(skill_x, skill_y, CELL_CHKNOREACH))
 	{	//prevent casting ground targeted spells on non-walkable areas. [Skotlex] 
 		if (sd) sd.skill_failed(skill_num);
 		return 0;
@@ -1291,7 +1291,7 @@ int unit_run(block_list *bl)
 
 	for(i=0;i<AREA_SIZE;i++)
 	{
-		if(!map_getcell(bl->m,to_x+dir_x,to_y+dir_y,CELL_CHKPASS))
+		if(!maps[bl->m].is_passable(to_x+dir_x,to_y+dir_y))
 			break;
 		to_x += dir_x;
 		to_y += dir_y;

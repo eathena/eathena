@@ -3992,7 +3992,7 @@ bool eacompiler::compile_file(const basics::string<>& filename, int option, bool
 	bool ok = true;
 	bool run = true;
 	// open input file
-	if( !parser.input.open(filename) )
+	if( !parser.open(filename) )
 	{
 		fprintf(stderr, "Could not open input file '%s'\n", filename.c_str());
 		return false;

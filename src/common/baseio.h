@@ -7,6 +7,7 @@
 #include "basetypes.h"
 #include "basecharset.h"
 #include "baseparam.h"
+#include "basebits.h"
 
 #include "showmsg.h"	// ShowMessage
 #include "utils.h"		// safefopen

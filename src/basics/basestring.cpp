@@ -850,7 +850,7 @@ sint64 stringtoib(T const* str, T const** run)
 		// skip leading whitespace
 		while( stringcheck::isspace(*str) ) ++str;
 
-		if(str[0]=='0' && basics::locase(str[1]) == 'b') str+=2;
+		if(str[0]=='0' && locase(str[1]) == 'b') str+=2;
 		for(; *str=='0' || *str=='1'; ++str)
 		{
 			if( (base>>63)!=0 )
@@ -880,7 +880,7 @@ sint64 stringtoio(T const* str, T const** run)
 		// skip leading whitespace
 		while( stringcheck::isspace(*str) ) ++str;
 
-		if(str[0]=='0' && basics::locase(str[1]) == 'o') str+=2;
+		if(str[0]=='0' && locase(str[1]) == 'o') str+=2;
 		for(; *str>='0' && *str<='7'; ++str)
 		{
 			if( (base>>61)!=0 )
@@ -910,7 +910,7 @@ sint64 stringtoix(T const* str, T const** run)
 		// skip leading whitespace
 		while( stringcheck::isspace(*str) ) ++str;
 
-		if(str[0]=='0' && basics::locase(str[1]) == 'x') str+=2;
+		if(str[0]=='0' && locase(str[1]) == 'x') str+=2;
 		for( str+=2; ; ++str)
 		{
 			if( (base>>60)!=0 )
@@ -920,8 +920,8 @@ sint64 stringtoix(T const* str, T const** run)
 			}
 			else if(*str>='0' && *str<='9')
 				base = (base<<4) | (0x0F & (*str-'0'));
-			else if( basics::locase(*str)>='a' && basics::locase(*str)<='f')
-				base = (base<<4) | (0x0F & (basics::locase(*str)-'a'+10));
+			else if( locase(*str)>='a' && locase(*str)<='f')
+				base = (base<<4) | (0x0F & (locase(*str)-'a'+10));
 			else
 				break;
 		}
@@ -2020,7 +2020,10 @@ class yyytest
 	char array[16];
 public:
 	const char* c_str() const	{ return array;}
-	yyytest()	{}
+	yyytest()
+	{
+		memset(array,0,sizeof(array));
+	}
 };
 
 class xxxtest : public yyytest

@@ -419,7 +419,7 @@ int chrif_sendmap(int fd)
 		return -1;
 	
 	WFIFOW(fd,0) = 0x2afa;
-	for(i = 0; i < map_num; ++i)
+	for(i = 0; i < maps.size(); ++i)
 		memcpy(WFIFOP(fd,4+i*16), maps[i].mapname, 16);
 	WFIFOW(fd,2) = 4 + i * 16;
 	WFIFOSET(fd,WFIFOW(fd,2));
@@ -444,7 +444,7 @@ int chrif_recvmap(int fd)
 
 	for(i = 20, j = 0; i < RFIFOW(fd,2); i += 16, ++j)
 	{
-		map_setipport((char*)RFIFOP(fd,i), mapset);
+		maps.setipport((char*)RFIFOP(fd,i), mapset);
 	}
 	if (config.etc_log)
 		ShowStatus("recv maps from %s (%d maps)\n", mapset.tostring(NULL), j);
@@ -466,7 +466,7 @@ int chrif_removemap(int fd)
 
 	for(i=20, j=0; i<RFIFOW(fd, 2); i+=16, ++j)
 	{
-		map_eraseipport((char*)RFIFOP(fd, i), mapset);
+		maps.eraseipport((char*)RFIFOP(fd, i), mapset);
 	}
 	if(config.etc_log)
 		ShowStatus("remove maps of server %s (%d maps)\n", mapset.tostring(NULL), j);
@@ -1981,7 +1981,7 @@ int chrif_parse(int fd)
 		session_Remove(fd);// have it removed by do_sendrecv
 
 		// ‘¼‚Ìmap ŽI‚Ìƒf[ƒ^‚ðÁ‚·
-		map_eraseallipport();
+		maps.eraseallipport();
 
 		return 0;
 	}

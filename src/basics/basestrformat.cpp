@@ -1,6 +1,5 @@
 #include "basestrformat.h"
 #include "basestring.h"
-#include "baseinet.h"
 
 
 
@@ -194,8 +193,11 @@ template<typename T> ssize_t dvsprintf(stringoperator<T>& formatted, const T* fm
 				{
 				case 'a': 
 				{
-					ipaddress value =(ulong)va_arg(args, size_t);
-					formatted << value;
+					ulong value =(ulong)va_arg(args, size_t);
+					formatted	<< ((int)(value>>0x18)&0xFF) << '.'
+								<< ((int)(value>>0x10)&0xFF) << '.'
+								<< ((int)(value>>0x08)&0xFF) << '.'
+								<< ((int)(value      )&0xFF);
 					break;
 				}
 				case 'd': 

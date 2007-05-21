@@ -269,16 +269,16 @@ void mob_data::do_stop_walking()
 bool mob_data::do_walkstep(unsigned long tick, const coordinate &target, int dx, int dy)
 {
 //---
-	if( map_getcell(this->block_list::m,target.x,target.y,CELL_CHKBASILICA) && 
+	if( maps[this->block_list::m].is_basilica(target.x,target.y) && 
 		!(this->get_mode()&0x20) )
 	{
 		return false;
 	}
 
-	if( skill_check_moonlit(this,target.x,target.y) )
-	{
+	const int mcnt = maps[this->block_list::m].foreachinarea( CSkillMoonlitCount(this->block_list::id), target.x, target.y, 1, BL_PC);
+	if( mcnt>0 )
 		return false;
-	}
+
 //---
 	if(this->min_chase>13)
 		--this->min_chase;
@@ -347,7 +347,7 @@ bool mob_data::randomwalk(unsigned long tick)
 			x+=md.block_list::x;
 			y+=md.block_list::y;
 
-			if( map_getcell(md.block_list::m,x,y,CELL_CHKPASS) && md.walktoxy(x,y,1) )
+			if( maps[md.block_list::m].is_passable(x,y) && md.walktoxy(x,y,1) )
 			{
 				md.move_fail_count=0;
 				break;
@@ -670,8 +670,7 @@ void mob_data::remove_slaves() const
 {
 	if( this->state.is_master )
 	{
-		block_list::foreachinarea( CMobDeleteSlave(this->block_list::id),
-			this->block_list::m, 0,0, maps[this->block_list::m].xs-1,maps[this->block_list::m].ys-1, BL_MOB);
+		maps[this->block_list::m].foreach( CMobDeleteSlave(this->block_list::id), BL_MOB);
 	}
 }
 
@@ -700,8 +699,7 @@ uint mob_data::count_slaves() const
 {
 	if( this->state.is_master )
 	{
-		return block_list::foreachinarea( CMobCountSlave(this->block_list::id),
-			this->block_list::m, 0,0,maps[this->block_list::m].xs-1,maps[this->block_list::m].ys-1, BL_MOB);
+		return maps[this->block_list::m].foreach( CMobCountSlave(this->block_list::id), BL_MOB);
 	}
 	return 0;
 }
@@ -736,7 +734,8 @@ uint mob_data::summon_slaves(unsigned short skillid, unsigned short skilllv)
 				{
 					x=bx + rand()%15-7;
 					y=by + rand()%15-7;
-				}while( map_getcell(m,x,y,CELL_CHKNOPASS_NPC) && ((t++)<100));
+				}
+				while( (!maps[m].is_passable(x,y) || maps[m].is_npc(x,y)) && ((t++)<100));
 				if(t>=100)
 				{
 					x=bx;
@@ -820,9 +819,9 @@ int mob_once_spawn (map_session_data *sd, const char *mapname,
 	if(sd && strcmp(mapname,"this")==0)
 		m = sd->block_list::m;
 	else
-		m = map_mapname2mapid(mapname);
+		m = maps.index_of(mapname);
 
-	if (m < 0 || m>(int)map_num || amount <= 0 || (class_ >= 0 && class_ <= 1000) || class_ > MAX_MOB_DB + 2*MAX_MOB_DB)	// 値が異常なら召喚を止める
+	if (m < 0 || m>(int)maps.size() || amount <= 0 || (class_ >= 0 && class_ <= 1000) || class_ > MAX_MOB_DB + 2*MAX_MOB_DB)	// 値が異常なら召喚を止める
 		return 0;
 
 	if (class_ < 0)
@@ -857,20 +856,25 @@ int mob_once_spawn (map_session_data *sd, const char *mapname,
 			if (x <= 0 || y <= 0) {
 				if (x <= 0) x = sd->block_list::x + rand() % 3 - 1;
 				if (y <= 0) y = sd->block_list::y + rand() % 3 - 1;
-				if (map_getcell(m, x, y, CELL_CHKNOPASS)) {
+				if( !maps[m].is_passable(x, y) )
+				{
 					x = sd->block_list::x;
 					y = sd->block_list::y;
 				}
 			}
 		}
-		else if (x <= 0 || y <= 0 || map_getcell(m, x, y, CELL_CHKNOPASS_NPC))
+		else if (x <= 0 || y <= 0 || !maps[m].is_passable(x,y) || maps[m].is_npc(x,y) )
 		{
 			i = j = 0;
-			do {
+			do
+			{
 				x = rand() % (maps[m].xs - 2) + 1;
 				y = rand() % (maps[m].ys - 2) + 1;
-			} while ((i = map_getcell(m, x, y, CELL_CHKNOPASS_NPC)) && j++ < 64);
-			if (i) {
+				i = !maps[m].is_passable(x,y) || maps[m].is_npc(x,y);
+			}
+			while( i && j++ < 64 );
+			if (i)
+			{
 				ShowMessage("mob_once_spawn: ?? %i %i %p (%s,%s)\n", x,y,sd,mapname,event);
 				x = 0;
 				y = 0;
@@ -917,10 +921,10 @@ int mob_once_spawn_area(map_session_data *sd,const char *mapname,
 	if(sd && strcmp(mapname,"this")==0)
 		m=sd->block_list::m;
 	else
-		m=map_mapname2mapid(mapname);
+		m=maps.index_of(mapname);
 
 	// A summon is stopped if a value is unusual
-	if(m<0 || m>(int)map_num || amount<=0 || (class_>=0 && class_<=1000) || class_>MAX_MOB_DB)	
+	if(m<0 || m>(int)maps.size() || amount<=0 || (class_>=0 && class_<=1000) || class_>MAX_MOB_DB)	
 		return 0;
 
 	if(x0>x1) basics::swap(x0,x1);
@@ -940,7 +944,8 @@ int mob_once_spawn_area(map_session_data *sd,const char *mapname,
 		{
 			x=rand()%(x1-x0+1)+x0;
 			y=rand()%(y1-y0+1)+y0;
-		} while(map_getcell(m,x,y,CELL_CHKNOPASS_NPC) && (++j)<max);
+		}
+		while( (!maps[m].is_passable(x,y) || maps[m].is_npc(x,y)) && (++j)<max);
 		if(j>=max)
 		{
 			if(dx>=0)
@@ -973,9 +978,9 @@ int mob_spawn_guardian(map_session_data *sd,const char *mapname,
 	if( sd && strcmp(mapname,"this")==0)
 		m=sd->block_list::m;
 	else
-		m=map_mapname2mapid(mapname);
+		m=maps.index_of(mapname);
 
-	if(m<0 || m>=(int)map_num || amount<=0 || (class_>=0 && class_<=1000) || class_>MAX_MOB_DB)	// Invalid monster classes
+	if(m<0 || m>=(int)maps.size() || amount<=0 || (class_>=0 && class_<=1000) || class_>MAX_MOB_DB)	// Invalid monster classes
 		return 0;
 
 	if(class_<0)
@@ -1137,7 +1142,7 @@ int mob_spawn(uint32 id)
 				y = md->cache->y0+rand()%(md->cache->ys+1)-md->cache->ys/2;
 			}
 			i++;
-		} while(map_getcell(md->block_list::m,x,y,CELL_CHKNOPASS_NPC) && i < 50);
+		} while( (!maps[md->block_list::m].is_passable(x,y) || maps[md->block_list::m].is_npc(x,y)) && i < 50);
 
 		if (i >= 50) {
 			// retry again later
@@ -1505,8 +1510,8 @@ public:
 
 			if( abl && !abl->is_dead() && !(asd && asd->is_invisible()) )
 			{
-				block_list::foreachinarea(CMobAiHardLinksearch(md, *abl),
-					md.block_list::m, ((int)md.block_list::x)-AREA_SIZE, ((int)md.block_list::y)-AREA_SIZE, ((int)md.block_list::x)+AREA_SIZE, ((int)md.block_list::y)+AREA_SIZE, BL_MOB);
+				maps[md.block_list::m].foreachinarea(CMobAiHardLinksearch(md, *abl),
+					md.block_list::x, md.block_list::y, AREA_SIZE, BL_MOB);
 			}
 			else 
 			{	//target is not reachable, unlock it. [Skotlex]
@@ -1599,17 +1604,8 @@ public:
 		{
 			search_size = (blind_flag) ? 3 : AREA_SIZE*2;
 			i=0;
-			block_list::foreachinarea( CMobAiHardActivesearch(md,i),
-				md.block_list::m, ((int)md.block_list::x)-search_size, ((int)md.block_list::y)-search_size, ((int)md.block_list::x)+search_size, ((int)md.block_list::y)+search_size, (md.state.special_mob_ai)?BL_ALL:BL_PC);
-
-//			if (md.state.special_mob_ai)
-//				map_foreachinarea(mob_ai_sub_hard_activesearch, 
-//					md.block_list::m, ((int)md.block_list::x)-search_size, ((int)md.block_list::y)-search_size, ((int)md.block_list::x)+search_size, ((int)md.block_list::y)+search_size, 0,
-//					&md, &i);
-//			else 
-//				map_foreachinarea(mob_ai_sub_hard_activesearch, 
-//					md.block_list::m, ((int)md.block_list::x)-search_size, ((int)md.block_list::y)-search_size, ((int)md.block_list::x)+search_size, ((int)md.block_list::y)+search_size, BL_PC,
-//					&md, &i);
+			maps[md.block_list::m].foreachinarea( CMobAiHardActivesearch(md,i),
+				md.block_list::x, md.block_list::y, search_size, (md.state.special_mob_ai)?BL_ALL:BL_PC);
 		}
 
 		// The item search of a loot monster
@@ -1617,8 +1613,8 @@ public:
 		{
 			i = 0;
 			search_size = (blind_flag) ? 3 : AREA_SIZE*2;
-			block_list::foreachinarea( CMobAiHardLootsearch(md,i),
-				md.block_list::m, ((int)md.block_list::x)-search_size, ((int)md.block_list::y)-search_size, ((int)md.block_list::x)+search_size, ((int)md.block_list::y)+search_size, BL_ITEM);
+			maps[md.block_list::m].foreachinarea( CMobAiHardLootsearch(md,i),
+				md.block_list::x, md.block_list::y, search_size, BL_ITEM);
 		}
 		// It will attack, if the candidate for an attack is.
 		if (md.target_id > 0)
@@ -1826,8 +1822,8 @@ int mob_ai_hard(int tid, unsigned long tick, int id, basics::numptr data)
 		const map_session_data *sd = iter.data();
 		if(sd)
 		{
-			block_list::foreachinarea( CMobAiHard(tick),
-				sd->block_list::m, ((int)sd->block_list::x)-AREA_SIZE*2,((int)sd->block_list::y)-AREA_SIZE*2, ((int)sd->block_list::x)+AREA_SIZE*2,((int)sd->block_list::y)+AREA_SIZE*2, BL_MOB);
+			maps[sd->block_list::m].foreachinarea( CMobAiHard(tick),
+				sd->block_list::x, sd->block_list::y, AREA_SIZE*2, BL_MOB);
 		}
 	}
 	return 0;
@@ -2845,11 +2841,9 @@ public:
  */
 int mob_warpslave(mob_data &md, int x, int y)
 {
-	block_list::foreachinarea( CMobWarpSlave(md.block_list::id, md.block_list::x, md.block_list::y),
-		md.block_list::m, ((int)x)-AREA_SIZE,((int)y)-AREA_SIZE, ((int)x)+AREA_SIZE,((int)y)+AREA_SIZE,BL_MOB);
-//	map_foreachinarea(mob_warpslave_sub, 
-//		md.block_list::m, x-AREA_SIZE,y-AREA_SIZE, x+AREA_SIZE,y+AREA_SIZE,BL_MOB,
-//		md.block_list::id, md.block_list::x, md.block_list::y );
+	maps[md.block_list::m].foreachinarea( CMobWarpSlave(md.block_list::id, md.block_list::x, md.block_list::y),
+		x, y, AREA_SIZE, BL_MOB);
+
 	return 0;
 }
 
@@ -2866,7 +2860,7 @@ int mob_warp(mob_data &md,int m,int x,int y,int type)
 	if( !md.is_on_map() )
 		return 0;
 
-	if( m<0 || (size_t)m>=map_num ) m=md.block_list::m;
+	if( m<0 || (size_t)m>=maps.size() ) m=md.block_list::m;
 
 	if(type >= 0) {
 		if(maps[md.block_list::m].flag.monster_noteleport)
@@ -2880,21 +2874,28 @@ int mob_warp(mob_data &md,int m,int x,int y,int type)
 		xs=ys=9;
 	}
 
-	while( ( x<0 || y<0 || map_getcell(m,x,y,CELL_CHKNOPASS)) && (i++)<1000 ){
-		if( xs>0 && ys>0 && i<250 ){	// 指定位置付近の探索
+	while( ( x<0 || y<0 || !maps[m].is_passable(x, y)) && (i++)<1000 )
+	{
+		if( xs>0 && ys>0 && i<250 )
+		{	// 指定位置付近の探索
 			x=bx+rand()%xs-xs/2;
 			y=by+rand()%ys-ys/2;
-		}else{			// 完全ランダム探索
+		}
+		else
+		{			// 完全ランダム探索
 			x=rand()%(maps[m].xs-2)+1;
 			y=rand()%(maps[m].ys-2)+1;
 		}
 	}
 	md.dir=0;
-	if(i<1000){
+	if(i<1000)
+	{
 		md.block_list::x=md.walktarget.x=x;
 		md.block_list::y=md.walktarget.y=y;
 		md.block_list::m=m;
-	}else {
+	}
+	else
+	{
 		m=md.block_list::m;
 		if(config.error_log==1)
 			ShowMessage("MOB %d warp failed, class_ = %d\n",md.block_list::id,md.class_);
@@ -3359,10 +3360,8 @@ public:
 mob_data *mob_getfriendhpltmaxrate(mob_data &md,int rate)
 {
 	mob_data *fr=NULL;
-	const int r=8;
 	CMobGetfriendhpltmaxrate obj(md,rate,fr);
-	block_list::foreachinarea( obj,
-		md.block_list::m, ((int)md.block_list::x)-r, ((int)md.block_list::y)-r, ((int)md.block_list::x)+r, ((int)md.block_list::y)+r, BL_MOB);
+	maps[md.block_list::m].foreachinarea( obj, md.block_list::x, md.block_list::y, 8, BL_MOB);
 	return fr;
 }
 /*==========================================
@@ -3419,11 +3418,8 @@ public:
 mob_data *mob_getfriendstatus(mob_data &md,int cond1,int cond2)
 {
 	mob_data *fr=NULL;
-	const int r=8;
-
-	block_list::foreachinarea( CMobGetfriendstatus(md,cond1,cond2,fr),
-		md.block_list::m, ((int)md.block_list::x)-r ,((int)md.block_list::y)-r, ((int)md.block_list::x)+r, ((int)md.block_list::y)+r, BL_MOB);
-
+	maps[md.block_list::m].foreachinarea( CMobGetfriendstatus(md,cond1,cond2,fr),
+		md.block_list::x, md.block_list::y, 8, BL_MOB);
 	return fr;
 }
 
@@ -3568,9 +3564,7 @@ int mobskill_use(mob_data &md,unsigned long tick,int event)
 					{
 						bx = x + rand() % (r*2+3) - r;
 						by = y + rand() % (r*2+3) - r;
-					} while ((
-						//bx <= 0 || by <= 0 || bx >= maps[m].xs || by >= maps[m].ys ||	// checked in getcell
-						map_getcell(m, bx, by, CELL_CHKNOPASS)) && (i++) < 1000);
+					}while ( !maps[m].is_passable(bx, by) && (i++) < 1000 );
 					if (i < 1000)
 					{
 						x = bx;
@@ -3586,9 +3580,7 @@ int mobskill_use(mob_data &md,unsigned long tick,int event)
 					{
 						bx = x + rand() % (r*2+1) - r;
 						by = y + rand() % (r*2+1) - r;
-					} while ((
-						//bx <= 0 || by <= 0 || bx >= maps[m].xs || by >= maps[m].ys ||	// checked in getcell
-						map_getcell(m, bx, by, CELL_CHKNOPASS)) && (i++) < 1000);
+					} while ( !maps[m].is_passable(bx, by) && (i++) < 1000 );
 					if (i < 1000)
 					{
 						x = bx;

@@ -7,7 +7,7 @@
 
 
 #include "basetypes.h"
-#include "baseswap.h"
+#include "basebooltype.h"
 #include "baseobjects.h"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -57,7 +57,7 @@ struct random_access_iterator_tag : public bidirectional_iterator_tag {};
 #endif//BASICS_HAS_ITERATOR_TAGS
 
 
-NAMESPACE_BEGIN(elaborator)
+namespace elaborator {
 
 
 template<typename T>
@@ -149,7 +149,7 @@ inline int intern_cmp(const T* a, const T* b, size_t cnt)
 	return intern_cmp(a, b, cnt, is_simple());
 }
 
-NAMESPACE_END(elaborator)
+} // end namespace elaborator
 
 ///////////////////////////////////////////////////////////////////////////////
 /// basic allocator interface.
@@ -606,7 +606,7 @@ protected:
 
 	// std construct/destruct
 	allocator_r()	: cBuf(NULL), cEnd(NULL), cRpp(NULL), cWpp(NULL), cScn(NULL) {}
-	allocator_r(T* buf, size_t sz, size_t fill=0) : cBuf(buf), cEnd(buf+sz), cRpp(buf), cWpp(buf+min(sz,fill)), cScn(buf) {}
+	allocator_r(T* buf, size_t sz, size_t fill=0) : cBuf(buf), cEnd(buf+sz), cRpp(buf), cWpp(buf+(sz<fill?sz:fill)), cScn(buf) {}
 	virtual ~allocator_r() { cBuf=cEnd=cRpp=cScn=cWpp=NULL; }
 
 	// default read function, reads max sz elements to buf and returns the actual count of read elements
@@ -696,6 +696,7 @@ protected:
 template <typename T=unsigned char>
 class allocator_file : public allocator_r_dy<T>
 {
+	ICL_EMPTY_COPYCONSTRUCTOR(allocator_file)
 	FILE *cFile;
 public:
 	allocator_file() : allocator_r_dy<T>(1024), cFile(NULL)

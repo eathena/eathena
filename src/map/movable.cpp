@@ -165,8 +165,8 @@ bool movable::walktimer_func(unsigned long tick)
 
 			// signal out-of-sight
 			this->walktimer=1;
-			block_list::foreachinmovearea( CClifOutsight(*this),
-				this->block_list::m,this->block_list::x-AREA_SIZE,this->block_list::y-AREA_SIZE,this->block_list::x+AREA_SIZE,this->block_list::y+AREA_SIZE,dx,dy,this->get_sd()?BL_ALL:BL_PC);
+			maps[this->block_list::m].foreachinmovearea( CClifOutsight(*this),
+				this->block_list::x-AREA_SIZE,this->block_list::y-AREA_SIZE,this->block_list::x+AREA_SIZE,this->block_list::y+AREA_SIZE,dx,dy,this->get_sd()?BL_ALL:BL_PC);
 			this->walktimer=-1;
 
 
@@ -186,8 +186,8 @@ bool movable::walktimer_func(unsigned long tick)
 
 			// signal in-sight
 			this->walktimer=1;
-			block_list::foreachinmovearea( CClifInsight(*this),
-				this->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,this->get_sd()?BL_ALL:BL_PC);
+			maps[this->block_list::m].foreachinmovearea( CClifInsight(*this),
+				x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,this->get_sd()?BL_ALL:BL_PC);
 			this->walktimer=-1;
 
 			// do object depending stuff at the end of the walk step.
@@ -243,7 +243,7 @@ bool movable::random_position(coordinate &pos) const
 	{
 		xi = this->x + rand()%(2*dist) - dist;
 		yi = this->y + rand()%(2*dist) - dist;
-		if( map_getcell(this->m, xi, yi, CELL_CHKPASS) )
+		if( maps[this->block_list::m].is_passable(xi, yi) )
 		{
 			pos.x = xi;
 			pos.y = yi;
@@ -414,7 +414,7 @@ void movable::set_delay(ulong delay)
 ///
 bool movable::can_walk(unsigned short m, unsigned short x, unsigned short y)
 {	// default only checks for non-passable cells
-	return !map_getcell(m,x,y,CELL_CHKNOPASS);
+	return maps[m].is_passable(x,y);
 }
 ///////////////////////////////////////////////////////////////////////////////
 /// initialize walkpath. uses current target position as walk target
@@ -545,8 +545,8 @@ bool movable::movepos(const coordinate &target)
 	{
 		bool moveblock = ( this->block_list::x/BLOCK_SIZE != target.x/BLOCK_SIZE || this->block_list::y/BLOCK_SIZE != target.y/BLOCK_SIZE);
 
-		block_list::foreachinmovearea( CClifOutsight(*this),
-			this->block_list::m,((int)this->block_list::x)-AREA_SIZE,((int)this->block_list::y)-AREA_SIZE,((int)this->block_list::x)+AREA_SIZE,((int)this->block_list::y)+AREA_SIZE,dx,dy,BL_ALL);
+		maps[this->block_list::m].foreachinmovearea( CClifOutsight(*this),
+			((int)this->block_list::x)-AREA_SIZE,((int)this->block_list::y)-AREA_SIZE,((int)this->block_list::x)+AREA_SIZE,((int)this->block_list::y)+AREA_SIZE,dx,dy,BL_ALL);
 
 		skill_unit_move(*this,tick,0);
 		if(moveblock) this->delblock();
@@ -555,8 +555,8 @@ bool movable::movepos(const coordinate &target)
 		if(moveblock) this->addblock();
 		skill_unit_move(*this,tick,1);
 
-		block_list::foreachinmovearea( CClifInsight(*this),
-			this->block_list::m,((int)this->block_list::x)-AREA_SIZE,((int)this->block_list::y)-AREA_SIZE,((int)this->block_list::x)+AREA_SIZE,((int)this->block_list::y)+AREA_SIZE,-dx,-dy,BL_ALL);
+		maps[this->block_list::m].foreachinmovearea( CClifInsight(*this),
+			((int)this->block_list::x)-AREA_SIZE,((int)this->block_list::y)-AREA_SIZE,((int)this->block_list::x)+AREA_SIZE,((int)this->block_list::y)+AREA_SIZE,-dx,-dy,BL_ALL);
 	}
 	return true;
 }
@@ -574,7 +574,7 @@ bool movable::warp(unsigned short m, unsigned short x, unsigned short y, int typ
 		// Type 1 is invalid, since you shouldn't warp a bl with the "death" animation
 		return false;
 	
-	if( m>=map_num )
+	if( m>=maps.size() )
 		m = this->block_list::m;
 	
 	

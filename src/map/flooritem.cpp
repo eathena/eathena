@@ -17,7 +17,7 @@ int flooritem_data::create(const struct item &item_data,unsigned short amount,
 	unsigned long tick;
 	flooritem_data *fitem=NULL;
 
-	if((xy=map_searchrandfreecell(m,x,y,2))<0)
+	if((xy=maps[m].searchrandfreecell(x,y,2))<0)
 		return 0;
 	r=rand();
 

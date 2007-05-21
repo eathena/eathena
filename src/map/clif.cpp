@@ -627,18 +627,10 @@ int clif_send (unsigned char *buf, size_t len, const block_list *bl, int type)
 	case AREA_WOS:
 	case AREA_WOC:
 	case AREA_WOSC:
-		block_list::foreachinarea( CClifSend(buf, len, *bl, type),
-			bl->m, ((int)bl->x)-AREA_SIZE, ((int)bl->y)-AREA_SIZE, ((int)bl->x)+AREA_SIZE, ((int)bl->y)+AREA_SIZE,BL_PC);
-//		map_foreachinarea(clif_send_sub, 
-//			bl->m, ((int)bl->x)-AREA_SIZE, ((int)bl->y)-AREA_SIZE, ((int)bl->x)+AREA_SIZE, ((int)bl->y)+AREA_SIZE,BL_PC, 
-//			buf, len, bl, type);
+		maps[bl->m].foreachinarea( CClifSend(buf, len, *bl, type), bl->x, bl->y, AREA_SIZE,BL_PC);
 		break;
 	case AREA_CHAT_WOC:
-		block_list::foreachinarea( CClifSend(buf, len, *bl, type),
-			bl->m, ((int)bl->x)-(AREA_SIZE-5), ((int)bl->y)-(AREA_SIZE-5),((int)bl->x)+(AREA_SIZE-5), ((int)bl->y)+(AREA_SIZE-5), BL_PC);
-//		map_foreachinarea(clif_send_sub, 
-//			bl->m, ((int)bl->x)-(AREA_SIZE-5), ((int)bl->y)-(AREA_SIZE-5),((int)bl->x)+(AREA_SIZE-5), ((int)bl->y)+(AREA_SIZE-5), BL_PC, 
-//			buf, len, bl, AREA_WOC);
+		maps[bl->m].foreachinarea( CClifSend(buf, len, *bl, type), bl->x, bl->y, AREA_SIZE-5, BL_PC);
 		break;
 	case CHAT:
 	case CHAT_WOS:
@@ -889,13 +881,11 @@ void clif_send_chat(const block_list& bl, unsigned char *buf, size_t len, int ty
 }
 void clif_send_area(const block_list& bl, unsigned char *buf, size_t len, int type)
 {
-	block_list::foreachinarea( CClifSend(buf, len, bl, type),
-		bl.m, ((int)bl.x)-AREA_SIZE, ((int)bl.y)-AREA_SIZE, ((int)bl.x)+AREA_SIZE, ((int)bl.y)+AREA_SIZE, BL_PC);
+	maps[bl.m].foreachinarea( CClifSend(buf, len, bl, type), bl.x, bl.y, AREA_SIZE, BL_PC);
 }
 void clif_send_chatarea(const block_list& bl, unsigned char *buf, size_t len, int type)
 {
-	block_list::foreachinarea( CClifSend(buf, len, bl, type),
-		bl.m, ((int)bl.x)-(AREA_SIZE-5), ((int)bl.y)-(AREA_SIZE-5), ((int)bl.x)+(AREA_SIZE-5), ((int)bl.y)+(AREA_SIZE-5), BL_PC);
+	maps[bl.m].foreachinarea( CClifSend(buf, len, bl, type), bl.x, bl.y, AREA_SIZE-5, BL_PC);
 }
 
 
@@ -6734,43 +6724,8 @@ int clif_hpmeter(map_session_data &sd)
 	WBUFW(buf2,6) = (unsigned short)cur_hp;
 	WBUFW(buf2,8) = (unsigned short)max_hp;
 
-	block_list::foreachinarea(CHPDisplay(sd,buf1,buf2), 
-		sd.block_list::m, 
-		sd.block_list::x - AREA_SIZE,sd.block_list::y - AREA_SIZE,
-		sd.block_list::x + AREA_SIZE,sd.block_list::y + AREA_SIZE,
-		BL_PC);
-
-/*
-	map_session_data *sd2;
-	size_t i;
-	int x0, y0, x1, y1;
-
-	// some kind of self written foreach_client
-	x0 = sd.block_list::x - AREA_SIZE;
-	y0 = sd.block_list::y - AREA_SIZE;
-	x1 = sd.block_list::x + AREA_SIZE;
-	y1 = sd.block_list::y + AREA_SIZE;
-
-	for (i = 0; i < fd_max; ++i)
-	{
-		if( session[i] && 
-			(sd2 = (map_session_data*)session[i]->user_session) &&  
-			sd2->block_list::m == sd.block_list::m &&
-			sd2->block_list::x > x0 && sd2->block_list::x < x1 &&
-			sd2->block_list::y > y0 && sd2->block_list::y < y1 &&
-			sd2->isGM() >= config.disp_hpmeter &&
-			sd2->isGM() >= sd.isGM() &&
-			&sd != sd2 && 
-			sd2->state.auth)
-		{
-			memcpy(WFIFOP(i,0), buf1, packet(sd.packet_ver,0x107).len);
-			WFIFOSET (i, packet(sd.packet_ver,0x107).len);
-
-			memcpy (WFIFOP(i,0), buf2, packet(sd.packet_ver,0x106).len);
-			WFIFOSET (i, packet(sd.packet_ver,0x106).len);
-		}
-	}
-*/
+	maps[sd.block_list::m].foreachinarea(CHPDisplay(sd,buf1,buf2), 
+		sd.block_list::x, sd.block_list::y, AREA_SIZE, BL_PC);
 	return 0;
 }
 /*==================================================
@@ -9181,8 +9136,8 @@ int clif_parse_LoadEndAck(int fd, map_session_data &sd)
 			status_change_start(&sd,SC_BROKNARMOR,0,0,0,0,0,0);
 	}
 
-	block_list::foreachinarea( CClifGetAreaChar(sd),
-		sd.block_list::m,((int)sd.block_list::x)-AREA_SIZE,((int)sd.block_list::y)-AREA_SIZE,((int)sd.block_list::x)+AREA_SIZE,((int)sd.block_list::y)+AREA_SIZE,BL_ALL);
+	maps[sd.block_list::m].foreachinarea( CClifGetAreaChar(sd),
+		sd.block_list::x, sd.block_list::y, AREA_SIZE, BL_ALL);
 
 
 	
@@ -9361,8 +9316,8 @@ int clif_parse_GlobalMessage(int fd, map_session_data &sd)
 	WFIFOSET(fd, buffersize);
 
 	// execute npcchats in the area
-	block_list::foreachinarea( CNpcChat(message, sd),
-		sd.block_list::m, ((int)sd.block_list::x)-AREA_SIZE, ((int)sd.block_list::y)-AREA_SIZE, ((int)sd.block_list::x)+AREA_SIZE, ((int)sd.block_list::y)+AREA_SIZE, BL_NPC);
+	maps[sd.block_list::m].foreachinarea( CNpcChat(message, sd),
+		sd.block_list::x, sd.block_list::y, AREA_SIZE, BL_NPC);
 
 	// novice message induced automata
 	if( pc_calc_base_job2 (sd.status.class_) == 23 )

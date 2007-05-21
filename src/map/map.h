@@ -188,169 +188,6 @@ enum skilltype_t
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-
-// map_getcell()/map_setcell()で使用されるフラグ
-typedef enum { 
-	CELL_CHKWALL=0,		// 壁(セルタイプ1)
-	CELL_CHKWATER,		// 水場(セルタイプ3)
-	CELL_CHKGROUND,		// 地面障害物(セルタイプ5)
-	CELL_CHKPASS,		// 通過可能(セルタイプ1,5以外)
-	CELL_CHKNOPASS,		// 通過不可(セルタイプ1,5)
-	CELL_CHKHOLE,		// a hole in morroc desert
-	CELL_GETTYPE,		// セルタイプを返す
-	CELL_CHKNOPASS_NPC,
-
-	CELL_CHKNPC=0x10,	// タッチタイプのNPC(セルタイプ0x80フラグ)
-	CELL_SETNPC,		// タッチタイプのNPCをセット
-	CELL_CLRNPC,		// タッチタイプのNPCをclear suru
-	CELL_CHKBASILICA,	// バジリカ(セルタイプ0x40フラグ)
-	CELL_SETBASILICA,	// バジリカをセット
-	CELL_CLRBASILICA,	// バジリカをクリア
-	CELL_CHKMOONLIT,
-	CELL_SETMOONLIT,
-	CELL_CLRMOONLIT,
-	CELL_CHKREGEN,
-	CELL_SETREGEN,
-	CELL_CLRREGEN
-} cell_t;
-
-// CELL
-#define CELL_MASK		0x07	// 3 bit for cell mask
-
-// celests new stuff
-//#define CELL_MOONLIT	0x100
-//#define CELL_REGEN		0x200
-
-enum {
-	GAT_NONE		= 0,	// normal ground
-	GAT_WALL		= 1,	// not passable and blocking
-	GAT_UNUSED1		= 2,
-	GAT_WATER		= 3,	// water
-	GAT_UNUSED2		= 4,
-	GAT_GROUND		= 5,	// not passable but can shoot/cast over it
-	GAT_HOLE		= 6,	// holes in morroc desert
-	GAT_UNUSED3		= 7
-};
-
-struct mapgat // values from .gat & 
-{
-	unsigned char type : 3;		// 3bit used for land,water,wall,(hole) (values 0,1,3,5,6 used)
-								// providing 4 bit space and interleave two cells in x dimension
-								// would not waste memory too much; will implement it later on a new map model
-	unsigned char npc : 4;		// 4bit counter for npc touchups, can hold 15 touchups;
-	unsigned char basilica : 1;	// 1bit for basilica (is on/off for basilica enough, what about two casting priests?)
-	unsigned char moonlit : 1;	// 1bit for moonlit
-	unsigned char regen : 1;	// 1bit for regen
-	unsigned char _unused : 6;	// 6 bits left
-
-	mapgat() :
-		type(0),npc(0),basilica(0),moonlit(0),regen(0),_unused(0)
-	{}
-};
-// will alloc a short now
-
-
-struct map_data
-{
-	///////////////////////////////////////////////////////////////////////////
-	char mapname[24];
-	struct mapgat	*gat;	// NULLなら下のmap_data_other_serverとして扱う
-	///////////////////////////////////////////////////////////////////////////
-
-	struct _objects
-	{
-		block_list*	root_blk;
-		block_list*	root_mob;
-		uint				cnt_blk;
-		uint				cnt_mob;
-		_objects() :
-			root_blk(NULL),
-			root_mob(NULL),
-			cnt_blk(0),
-			cnt_mob(0)
-		{}
-	} *objects;
-	int m;
-	unsigned short xs;
-	unsigned short ys;
-	unsigned short bxs;
-	unsigned short bys;
-	int wh;
-	size_t npc_num;
-	size_t users;
-	struct mapflags
-	{
-		unsigned nomemo : 1;					//  0
-		unsigned noteleport : 1;				//  1
-		unsigned noreturn : 1;					//  2
-		unsigned monster_noteleport : 1;		//  3
-		unsigned nosave : 1;					//  4
-		unsigned nobranch : 1;					//  5
-		unsigned nopenalty : 1;					//  6
-		unsigned pvp : 1;						//  7 (byte 1)
-		unsigned pvp_noparty : 1;				//  8
-		unsigned pvp_noguild : 1;				//  9
-		unsigned pvp_nightmaredrop :1;			// 10
-		unsigned pvp_nocalcrank : 1;			// 11
-		unsigned gvg : 1;						// 12
-		unsigned gvg_noparty : 1;				// 13
-		unsigned gvg_dungeon : 1;				// 14
-		unsigned nozenypenalty : 1;				// 15 (byte 2)
-		unsigned notrade : 1;					// 16
-		unsigned noskill : 1;					// 17
-		unsigned nowarp : 1;					// 18
-		unsigned nowarpto : 1;					// 19
-		unsigned nopvp : 1;						// 20
-		unsigned noicewall : 1;					// 21
-		unsigned snow : 1;						// 22
-		unsigned rain : 1;						// 23 (byte 3)
-		unsigned sakura : 1;					// 24
-		unsigned leaves : 1;					// 25
-		unsigned clouds : 1;					// 26
-		unsigned clouds2 : 1;					// 27
-		unsigned fog : 1;						// 28
-		unsigned fireworks : 1;					// 29
-		unsigned indoors : 1;					// 30
-		unsigned nogo : 1;						// 31 (byte 4)
-		unsigned nobaseexp	: 1;				// 32
-		unsigned nojobexp	: 1;				// 33
-		unsigned nomobloot	: 1;				// 34
-		unsigned nomvploot	: 1;				// 35
-		unsigned _unused : 4;					// 36-39 (byte 5)
-	} flag;
-	struct point nosave;
-	npc_data *npc[MAX_NPC_PER_MAP];
-	struct
-	{
-		int drop_id;
-		int drop_type;
-		int drop_per;
-	}
-	drop_list[MAX_DROP_PER_MAP];
-
-	struct mob_list *moblist[MAX_MOB_LIST_PER_MAP]; // [Wizputer]
-	int mob_delete_timer;	// [Skotlex]
-};
-
-struct map_data_other_server
-{
-	///////////////////////////////////////////////////////////////////////////
-	char name[24];
-	struct mapgat *gat;	// NULL固定にして判断
-	///////////////////////////////////////////////////////////////////////////
-	basics::ipset mapset;
-	struct map_data* map;
-
-	map_data_other_server() : 
-		gat(NULL),
-		map(NULL)
-	{
-		name[0]=0;
-	}
-};
-
-
 enum {
 	SP_SPEED,SP_BASEEXP,SP_JOBEXP,SP_KARMA,SP_MANNER,SP_HP,SP_MAXHP,SP_SP,	// 0-7
 	SP_MAXSP,SP_STATUSPOINT,SP_0a,SP_BASELEVEL,SP_SKILLPOINT,SP_STR,SP_AGI,SP_VIT,	// 8-15
@@ -404,14 +241,564 @@ enum {
 	SP_INTRAVISION, SP_ADD_MONSTER_DROP_ITEMGROUP, SP_SP_LOSS_RATE // 2038-2040
 };
 
-enum {
+enum
+{
 	LOOK_BASE,LOOK_HAIR,LOOK_WEAPON,LOOK_HEAD_BOTTOM,LOOK_HEAD_TOP,LOOK_HEAD_MID,LOOK_HAIR_COLOR,LOOK_CLOTHES_COLOR,LOOK_SHIELD,LOOK_SHOES
 };
 
 
 
-extern struct map_data maps[];
-extern size_t map_num;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// cell on a map.
+/// holds the values from .gat & dynamic things
+struct mapcell_t
+{
+	enum cell_t
+	{
+		GAT_NONE		= 0,	// normal ground
+		GAT_WALL		= 1,	// not passable and blocking
+		GAT_UNUSED1		= 2,
+		GAT_WATER		= 3,	// water
+		GAT_UNUSED2		= 4,
+		GAT_GROUND		= 5,	// not passable but can shoot/cast over it
+		GAT_HOLE		= 6,	// holes in morroc desert
+		GAT_UNUSED3		= 7,
+		CELL_MASK=0x07	// 3 bit for cell mask
+	};
+
+	unsigned char type : 3;		// 3bit used for land,water,wall,(hole) (values 0,1,3,5,6 used)
+								// providing 4 bit space and interleave two cells in x dimension
+								// would not waste memory too much; will implement it later on a new map model
+	unsigned char npc : 4;		// 4bit counter for npc touchups, can hold 15 touchups;
+	unsigned char basilica : 1;	// 1bit for basilica (is on/off for basilica enough, what about two casting priests?)
+	unsigned char moonlit : 1;	// 1bit for moonlit
+	unsigned char regen : 1;	// 1bit for regen
+	unsigned char icewall : 1;	// 1bits for icewall, leave type intact
+	unsigned char _unused : 5;	// 5 bits left
+	// will alloc a short
+
+	mapcell_t(int t=0)
+		: type(t&0x07)
+		, npc(0)
+		, basilica(0)
+		, moonlit(0)
+		, regen(0)
+		, _unused(0)
+	{}
+	void set_type(int t)
+	{
+		this->type=t&0x07;
+	}
+	int get_type() const
+	{
+		return this->type;
+	}
+
+	bool is_passable() const
+	{
+		return (this->type != GAT_WALL && this->type != GAT_GROUND && !this->icewall );
+	}
+	bool is_wall() const
+	{
+		return (this->type == GAT_WALL);
+	}
+	bool is_ground() const
+	{
+		return (this->type == GAT_GROUND) && !this->icewall;
+	}
+	bool is_water() const
+	{
+		return (this->type == GAT_WATER);
+	}
+	bool is_quicksand() const
+	{
+		return (this->type == GAT_HOLE);
+	}
+
+	bool is_npc() const
+	{
+		return this->npc;
+	}
+	void set_npc()
+	{
+		if(this->npc<0xF)
+			++this->npc;
+	}
+	void clr_npc()
+	{
+		if(this->npc>0)
+			--this->npc;
+	}
+
+	bool is_basilica() const
+	{
+		return this->basilica;
+	}
+	void set_basilica()
+	{
+		this->basilica=1;
+	}
+	void clr_basilica()
+	{
+		this->basilica=0;
+	}
+	
+	bool is_moonlit() const
+	{
+		return this->moonlit;
+	}
+	void set_moonlit()
+	{
+		this->moonlit=1;
+	}
+	void clr_moonlit()
+	{
+		this->moonlit=0;
+	}
+
+	bool is_regen() const
+	{
+		return this->regen;
+	}
+	void set_regen()
+	{
+		this->regen=1;
+	}
+	void clr_regen()
+	{
+		this->regen=0;
+	}
+
+	bool is_icewall() const
+	{
+		return this->icewall;
+	}
+	void set_icewall()
+	{
+		this->icewall=1;
+	}
+	void clr_icewall()
+	{
+		this->icewall=0;
+	}
+};
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// predecl
+struct map_intern;
+struct map_extern;
+
+///////////////////////////////////////////////////////////////////////////////
+/// base type for maps
+struct map_base
+{
+	virtual map_intern*			get_local()			{ return NULL; }
+	virtual const map_intern*	get_local() const	{ return NULL; }
+	virtual map_extern*			get_extern()		{ return NULL; }
+	virtual const map_extern*	get_extern() const	{ return NULL; }
+	char mapname[24];
+	map_base()
+	{
+		mapname[0]=0;
+	}
+	map_base(const char* name)
+	{
+		buffer2mapname(mapname, sizeof(mapname), name);
+	}
+	virtual ~map_base()
+	{}
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// internal maps with terain info.
+struct map_intern : public map_base
+{
+	struct _objects
+	{
+		block_list*	root_blk;
+		block_list*	root_mob;
+		uint		cnt_blk;
+		uint		cnt_mob;
+		_objects() :
+			root_blk(NULL),
+			root_mob(NULL),
+			cnt_blk(0),
+			cnt_mob(0)
+		{}
+	};
+
+	virtual map_intern*			get_local()			{ return this; }
+	virtual const map_intern*	get_local() const	{ return this; }
+
+	mapcell_t	*gat;
+	_objects *objects;
+	unsigned short xs;
+	unsigned short ys;
+	unsigned short bxs;
+	unsigned short bys;
+	size_t npc_num;
+	size_t users;
+	struct mapflags
+	{
+		unsigned nomemo : 1;					//  0
+		unsigned noteleport : 1;				//  1
+		unsigned noreturn : 1;					//  2
+		unsigned monster_noteleport : 1;		//  3
+		unsigned nosave : 1;					//  4
+		unsigned nobranch : 1;					//  5
+		unsigned nopenalty : 1;					//  6
+		unsigned pvp : 1;						//  7 (byte 1)
+		unsigned pvp_noparty : 1;				//  8
+		unsigned pvp_noguild : 1;				//  9
+		unsigned pvp_nightmaredrop :1;			// 10
+		unsigned pvp_nocalcrank : 1;			// 11
+		unsigned gvg : 1;						// 12
+		unsigned gvg_noparty : 1;				// 13
+		unsigned gvg_dungeon : 1;				// 14
+		unsigned nozenypenalty : 1;				// 15 (byte 2)
+		unsigned notrade : 1;					// 16
+		unsigned noskill : 1;					// 17
+		unsigned nowarp : 1;					// 18
+		unsigned nowarpto : 1;					// 19
+		unsigned nopvp : 1;						// 20
+		unsigned noicewall : 1;					// 21
+		unsigned snow : 1;						// 22
+		unsigned rain : 1;						// 23 (byte 3)
+		unsigned sakura : 1;					// 24
+		unsigned leaves : 1;					// 25
+		unsigned clouds : 1;					// 26
+		unsigned clouds2 : 1;					// 27
+		unsigned fog : 1;						// 28
+		unsigned fireworks : 1;					// 29
+		unsigned indoors : 1;					// 30
+		unsigned nogo : 1;						// 31 (byte 4)
+		unsigned nobaseexp	: 1;				// 32
+		unsigned nojobexp	: 1;				// 33
+		unsigned nomobloot	: 1;				// 34
+		unsigned nomvploot	: 1;				// 35
+		unsigned _unused : 4;					// 36-39 (byte 5)
+
+		mapflags()
+			: nomemo(0)
+			, noteleport(0)
+			, noreturn(0)
+			, monster_noteleport(0)
+			, nosave(0)
+			, nobranch(0)
+			, nopenalty(0)
+			, pvp(0)
+			, pvp_noparty(0)
+			, pvp_noguild(0)
+			, pvp_nightmaredrop(0)
+			, pvp_nocalcrank(0)
+			, gvg(0)
+			, gvg_noparty(0)
+			, gvg_dungeon(0)
+			, nozenypenalty(0)
+			, notrade(0)
+			, noskill(0)
+			, nowarp(0)
+			, nowarpto(0)
+			, nopvp(0)
+			, noicewall(0)
+			, snow(0)
+			, rain(0)
+			, sakura(0)
+			, leaves(0)
+			, clouds(0)
+			, clouds2(0)
+			, fog(0)
+			, fireworks(0)
+			, indoors(0)
+			, nogo(0)
+			, nobaseexp(0)
+			, nojobexp(0)
+			, nomobloot(0)
+			, nomvploot(0)
+			, _unused(0)
+		{}
+	} flag;
+	struct point nosave;
+	npc_data *npc[MAX_NPC_PER_MAP];
+	struct
+	{
+		int drop_id;
+		int drop_type;
+		int drop_per;
+	}
+	drop_list[MAX_DROP_PER_MAP];
+
+	///////////////////////////////////////////////////////////////////////////
+	struct mob_list *moblist[MAX_MOB_LIST_PER_MAP];
+	int mob_delete_timer;
+
+	///////////////////////////////////////////////////////////////////////////
+	typedef mapcell_t cell_t;
+
+
+	///////////////////////////////////////////////////////////////////////////
+	map_intern();
+	map_intern(const char* name);
+	virtual ~map_intern()
+	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	// use default copy/assignment
+	// which is inherently dangerous as this struct contains dynamic data
+	// will change on the new design
+
+	///////////////////////////////////////////////////////////////////////////
+	bool initialize();
+	void clear();
+
+	///////////////////////////////////////////////////////////////////////////
+	const mapcell_t& operator()(unsigned short x, unsigned short y) const;
+	mapcell_t& operator()(unsigned short x, unsigned short y);
+
+	///////////////////////////////////////////////////////////////////////////
+	int get_type(unsigned short x, unsigned short y) const
+	{
+		return this->operator()(x,y).get_type();
+	}
+	void set_type(unsigned short x, unsigned short y, int t)
+	{
+		this->operator()(x,y).set_type(t);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	bool is_passable(unsigned short x, unsigned short y) const
+	{
+		return this->operator()(x,y).is_passable();
+	}
+	bool is_wall(unsigned short x, unsigned short y) const
+	{
+		return this->operator()(x,y).is_wall();
+	}
+	bool is_ground(unsigned short x, unsigned short y) const
+	{
+		return this->operator()(x,y).is_ground();
+	}
+	bool is_water(unsigned short x, unsigned short y) const
+	{
+		return this->operator()(x,y).is_water();
+	}
+	bool is_quicksand(unsigned short x, unsigned short y) const
+	{
+		return this->operator()(x,y).is_quicksand();
+	}
+	///////////////////////////////////////////////////////////////////////////
+	bool is_npc(unsigned short x, unsigned short y) const
+	{
+		return this->operator()(x,y).is_npc();
+	}
+	void set_npc(unsigned short x, unsigned short y)
+	{
+		this->operator()(x,y).set_npc();
+	}
+	void clr_npc(unsigned short x, unsigned short y)
+	{
+		this->operator()(x,y).clr_npc();
+	}
+	///////////////////////////////////////////////////////////////////////////
+	bool is_basilica(unsigned short x, unsigned short y) const
+	{
+		return this->operator()(x,y).is_basilica();
+	}
+	void set_basilica(unsigned short x, unsigned short y)
+	{
+		this->operator()(x,y).set_basilica();
+	}
+	void clr_basilica(unsigned short x, unsigned short y)
+	{
+		this->operator()(x,y).clr_basilica();
+	}
+	///////////////////////////////////////////////////////////////////////////
+	bool is_moonlit(unsigned short x, unsigned short y) const
+	{
+		return this->operator()(x,y).is_moonlit();
+	}
+	void set_moonlit(unsigned short x, unsigned short y)
+	{
+		this->operator()(x,y).set_moonlit();
+	}
+	void clr_moonlit(unsigned short x, unsigned short y)
+	{
+		this->operator()(x,y).clr_moonlit();
+	}
+	///////////////////////////////////////////////////////////////////////////
+	bool is_regen(unsigned short x, unsigned short y) const
+	{
+		return this->operator()(x,y).is_regen();
+	}
+	void set_regen(unsigned short x, unsigned short y)
+	{
+		this->operator()(x,y).set_regen();
+	}
+	void clr_regen(unsigned short x, unsigned short y)
+	{
+		this->operator()(x,y).clr_regen();
+	}
+	///////////////////////////////////////////////////////////////////////////
+	bool is_icewall(unsigned short x, unsigned short y) const
+	{
+		return this->operator()(x,y).is_icewall();
+	}
+	void set_icewall(unsigned short x, unsigned short y)
+	{
+		this->operator()(x,y).set_icewall();
+	}
+	void clr_icewall(unsigned short x, unsigned short y)
+	{
+		this->operator()(x,y).clr_icewall();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	int addnpc(npc_data *nd);
+
+
+	int searchrandfreecell(unsigned short x, unsigned short y, unsigned short range);
+
+	int countoncell(int x, int y, object_t type);
+	int foreachinmovearea(const CMapProcessor& elem, int x0, int y0, int x1, int y1, int dx, int dy, object_t type);
+	int foreach(const CMapProcessor& elem, object_t type);
+	int foreachinarea(const CMapProcessor& elem, int x0,int y0,int x1,int y1,object_t type);
+	int foreachinarea(const CMapProcessor& elem, int x,int y, int range, object_t type)
+	{
+		return this->foreachinarea(elem, x-range, y-range, x+range, y+range, type);
+	}
+	int foreachinpath(const CMapProcessor& elem, int x0, int y0, int x1, int y1, int range, object_t type);
+	int foreachincell(const CMapProcessor& elem, int x, int y, object_t type);
+
+
+	///////////////////////////////////////////////////////////////////////////
+private:
+	static int moblist_timer(int tid, unsigned long tick, int id, basics::numptr data);
+public:
+	struct mob_list* moblist_create();
+	void moblist_clear();
+	void moblist_spawn();
+	bool moblist_release();
+
+private:
+	static mapcell_t dummy_wall;
+
+public:
+	friend void swap(map_intern& a, map_intern&b);
+};
+void swap(map_intern& a, map_intern&b);
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// external map with ip of the hosting map server
+struct map_extern : public map_base
+{
+	virtual map_extern*			get_extern()		{ return this; }
+	virtual const map_extern*	get_extern() const	{ return this; }
+
+	basics::ipset mapset;
+	map_intern* map;
+
+	map_extern(const char* name, const basics::ipset& ip, map_intern* m)
+		: map_base(name)
+		, mapset(ip)
+		, map(m)
+	{}
+	virtual ~map_extern()
+	{}
+};
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// map array wrapper
+struct _map
+{
+private:
+	dbt* map_db;
+	struct map_intern map_array[MAX_MAP_PER_SERVER];
+	size_t map_num;
+public:
+	typedef map_intern			value_type;
+	typedef map_intern*			pointer_type;
+	typedef map_intern&			reference_type;
+	typedef map_intern*			iterator;
+	typedef const map_intern*	const_iterator;
+
+	_map() : map_db(NULL), map_num(0)
+	{}
+	~_map()
+	{
+		this->clear();
+	}
+
+	map_intern& operator[](size_t i);
+	const map_intern& operator[](size_t i) const;
+
+	size_t size() const;
+	iterator begin();
+	const_iterator begin() const;
+	iterator end();
+	const_iterator end() const;
+	size_t capacity();
+
+	void clear();
+private:
+	iterator erase(iterator pos);
+	void push_back(const map_intern& x);
+public:
+	iterator search(const char *name);
+	const_iterator search(const char *name) const
+	{
+		return const_cast<_map*>(this)->search(name);
+	}
+	int index_of(const char *name) const;
+	int index_of(const map_intern& md) const;
+
+	bool mapname2ipport(const char *name, basics::ipset &mapset);
+	int setipport(const char *name, basics::ipset &mapset);
+	int eraseipport(const char *name, basics::ipset &mapset);
+	int eraseallipport(void);
+
+
+	void initialize();
+	void finalize();
+
+	int addmap(const char *mapname);
+	int delmap(const char *mapname);
+
+	void loadallmaps();
+};
+
+extern _map maps;
+
+
+
+
+
+
+
 extern int autosave_interval;
 extern int agit_flag;
 
@@ -432,12 +819,6 @@ extern char talkie_mes[];
 extern char wisp_server_name[];
 
 
-///////////////////////////////////////////////////////////////////////////////
-// gat?ﾖｧ
-int map_getcell(unsigned short m,unsigned short x, unsigned short y,cell_t cellchk);
-int map_getcellp(struct map_data& m,unsigned short x, unsigned short y,cell_t cellchk);
-void map_setcell(unsigned short m,unsigned short x, unsigned short y,int cellck);
-
 
 
 
@@ -447,42 +828,10 @@ void map_setcell(unsigned short m,unsigned short x, unsigned short y,int cellck)
 // 鯖全体情報
 void map_setusers(int fd);
 int map_getusers(void);
+void map_helpscreen();
 
 
 
-
-
-
-
-
-
-
-// npc
-int map_addnpc(unsigned short m, npc_data *nd);
-
-// 床アイテム関連
-int map_removemobs_timer(int tid, unsigned long tick, int id, basics::numptr data);
-
-
-int map_mapname2mapid(const char *name);
-bool map_mapname2ipport(const char *name, basics::ipset &mapset);
-int map_setipport(const char *name, basics::ipset &mapset);
-int map_eraseipport(const char *name, basics::ipset &mapset);
-int map_eraseallipport(void);
-
-
-
-
-
-
-void map_helpscreen(); // [Valaris]
-int map_delmap(const char *mapname);
-int map_searchrandfreecell(unsigned short m, unsigned short x, unsigned short y, unsigned short range);
-
-struct mob_list* map_addmobtolist(unsigned short m);	// [Wizputer]
-void clear_moblist(unsigned short m);
-void map_spawnmobs(unsigned short m);		// [Wizputer]
-void map_removemobs(unsigned short m);		// [Wizputer]
 
 extern const char *LOG_CONF_NAME;
 extern const char *MAP_CONF_NAME;
@@ -503,6 +852,7 @@ extern const char *GRF_PATH_FILENAME;
 extern int daynight_flag;		// 0=day, 1=night
 extern int daynight_timer_tid;	// timer for night.day
 int map_daynight_timer(int tid, unsigned long tick, int id, basics::numptr data);
+///////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -511,6 +861,9 @@ int map_daynight_timer(int tid, unsigned long tick, int id, basics::numptr data)
 const char*	map_src_namedb(uint32 charid);
 bool		map_req_namedb(const map_session_data &sd, uint32 charid);
 void		map_add_namedb(uint32 charid, const char *name);
+///////////////////////////////////////////////////////////////////////////////
 
-#endif
+
+
+#endif// _MAP_H_
 

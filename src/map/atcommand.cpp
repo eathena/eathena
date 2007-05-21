@@ -927,8 +927,7 @@ public:
 
 bool command_cleanmap(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	block_list::foreachinarea( CAtCleanMap(),
-		sd.block_list::m, ((int)sd.block_list::x)-AREA_SIZE*2, ((int)sd.block_list::y)-AREA_SIZE*2, ((int)sd.block_list::x)+AREA_SIZE*2, ((int)sd.block_list::y)+AREA_SIZE*2, BL_ITEM);
+	maps[sd.block_list::m].foreachinarea( CAtCleanMap(), sd.block_list::x, sd.block_list::y, AREA_SIZE*2, BL_ITEM);
 	clif_displaymessage(fd, "All dropped items have been cleaned up.");
 	return true;
 }
@@ -940,8 +939,8 @@ bool command_cleanmap(int fd, map_session_data& sd, const char* command, const b
 bool command_clearweather(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
-	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
-	if(m<map_num)
+	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),maps.index_of(mapname)):sd.block_list::m;
+	if(m<maps.size())
 	{
 		maps[m].flag.rain=0;
 		maps[m].flag.snow=0;
@@ -967,8 +966,8 @@ bool command_clearweather(int fd, map_session_data& sd, const char* command, con
 bool command_clouds(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
-	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
-	if(m<map_num)
+	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),maps.index_of(mapname)):sd.block_list::m;
+	if(m<maps.size())
 	{
 		if(maps[m].flag.clouds)
 		{
@@ -995,8 +994,8 @@ bool command_clouds(int fd, map_session_data& sd, const char* command, const bas
 bool command_clouds2(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
-	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
-	if(m<map_num)
+	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),maps.index_of(mapname)):sd.block_list::m;
+	if(m<maps.size())
 	{
 		if(maps[m].flag.clouds2)
 		{
@@ -1024,8 +1023,8 @@ bool command_clouds2(int fd, map_session_data& sd, const char* command, const ba
 bool command_rain(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
-	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
-	if(m<map_num)
+	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),maps.index_of(mapname)):sd.block_list::m;
+	if(m<maps.size())
 	{
 		if(maps[m].flag.rain)
 		{
@@ -1053,8 +1052,8 @@ bool command_rain(int fd, map_session_data& sd, const char* command, const basic
 bool command_snow(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
-	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
-	if(m<map_num)
+	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),maps.index_of(mapname)):sd.block_list::m;
+	if(m<maps.size())
 	{
 		if(maps[m].flag.snow)
 		{
@@ -1082,8 +1081,8 @@ bool command_snow(int fd, map_session_data& sd, const char* command, const basic
 bool command_sakura(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
-	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
-	if(m<map_num)
+	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),maps.index_of(mapname)):sd.block_list::m;
+	if(m<maps.size())
 	{
 		if(maps[m].flag.sakura)
 		{
@@ -1111,8 +1110,8 @@ bool command_sakura(int fd, map_session_data& sd, const char* command, const bas
 bool command_fog(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
-	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
-	if(m<map_num)
+	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),maps.index_of(mapname)):sd.block_list::m;
+	if(m<maps.size())
 	{
 		if(maps[m].flag.fog)
 		{
@@ -1140,8 +1139,8 @@ bool command_fog(int fd, map_session_data& sd, const char* command, const basics
 bool command_leaves(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
-	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
-	if(m<map_num)
+	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),maps.index_of(mapname)):sd.block_list::m;
+	if(m<maps.size())
 	{
 		if(maps[m].flag.leaves)
 		{
@@ -1169,8 +1168,8 @@ bool command_leaves(int fd, map_session_data& sd, const char* command, const bas
 bool command_fireworks(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char mapname[32];
-	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),map_mapname2mapid(mapname)):sd.block_list::m;
-	if(m<map_num)
+	size_t m = ( param.size() ) ? (buffer2mapname(mapname, sizeof(mapname), param[0]),maps.index_of(mapname)):sd.block_list::m;
+	if(m<maps.size())
 	{
 		if(maps[m].flag.fireworks)
 		{
@@ -1893,11 +1892,11 @@ bool command_gat(int fd, map_session_data& sd, const char* command, const basics
 	for (y = 2; y >= -2; y--) {
 		snprintf(output, sizeof(output), "%s (x= %d, y= %d) %02X %02X %02X %02X %02X",
 			maps[sd.block_list::m].mapname,sd.block_list::x - 2, sd.block_list::y + y,
- 			map_getcell(sd.block_list::m, sd.block_list::x - 2, sd.block_list::y + y, CELL_GETTYPE),
- 			map_getcell(sd.block_list::m, sd.block_list::x - 1, sd.block_list::y + y, CELL_GETTYPE),
- 			map_getcell(sd.block_list::m, sd.block_list::x,     sd.block_list::y + y, CELL_GETTYPE),
- 			map_getcell(sd.block_list::m, sd.block_list::x + 1, sd.block_list::y + y, CELL_GETTYPE),
- 			map_getcell(sd.block_list::m, sd.block_list::x + 2, sd.block_list::y + y, CELL_GETTYPE));
+ 			maps[sd.block_list::m].get_type(sd.block_list::x - 2, sd.block_list::y + y),
+ 			maps[sd.block_list::m].get_type(sd.block_list::x - 1, sd.block_list::y + y),
+ 			maps[sd.block_list::m].get_type(sd.block_list::x,     sd.block_list::y + y),
+ 			maps[sd.block_list::m].get_type(sd.block_list::x + 1, sd.block_list::y + y),
+ 			maps[sd.block_list::m].get_type(sd.block_list::x + 2, sd.block_list::y + y));
 
 		clif_displaymessage(fd, output);
 	}
@@ -2070,13 +2069,13 @@ bool command_go(int fd, map_session_data& sd, const char* command, const basics:
 		{
 			if (sd.status.memo_point[-town-1].mapname[0])
 			{
-				m = map_mapname2mapid(sd.status.memo_point[-town-1].mapname);
+				m = maps.index_of(sd.status.memo_point[-town-1].mapname);
 				if (m >= 0 && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM())
 				{
 					clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_TO));
 					return false;
 				}
-				else if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
+				else if (sd.block_list::m < maps.size() && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
 				{
 					clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_FROM));
 					return false;
@@ -2100,12 +2099,12 @@ bool command_go(int fd, map_session_data& sd, const char* command, const basics:
 		}
 		else if (town >= 0 && town < (int)(sizeof(data) / sizeof(data[0])))
 		{
-			m = map_mapname2mapid(data[town].map);
+			m = maps.index_of(data[town].map);
 			if (m >= 0 && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
 				clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_TO));
 				return false;
 			}
-			if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
+			if (sd.block_list::m < maps.size() && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
 				clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_FROM));
 				return false;
 			}
@@ -2250,7 +2249,7 @@ bool command_guildrecall(int fd, map_session_data& sd, const char* command, cons
 		return false;
 	}
 
-	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
+	if (sd.block_list::m < maps.size() && maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
 		clif_displaymessage(fd, "You are not authorised to warp somenone to your actual map.");
 		return false;
 	}
@@ -2263,7 +2262,7 @@ bool command_guildrecall(int fd, map_session_data& sd, const char* command, cons
 			if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 			    sd.status.account_id != pl_sd->status.account_id &&
 			    pl_sd->status.guild_id == g->guild_id) {
-				if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
+				if (pl_sd->block_list::m < maps.size() && maps[pl_sd->block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
 					count++;
 				else
 					pc_setpos(*pl_sd, sd.mapname, sd.block_list::x, sd.block_list::y, 2);
@@ -2944,7 +2943,7 @@ bool command_unjail(int fd, map_session_data& sd, const char* command, const bas
 	{
 		if (sd.isGM() >= pl_sd->isGM())
 		{	// you can jail only lower or same GM
-			if (pl_sd->block_list::m != map_mapname2mapid("sec_pri.gat"))
+			if (pl_sd->block_list::m != maps.index_of("sec_pri.gat"))
 			{
 				clif_displaymessage(fd, msg_txt(MSG_THIS_PLAYER_IS_NOT_IN_JAILS)); // This player is not in jails.
 				return false;
@@ -3127,7 +3126,7 @@ bool command_jump(int fd, map_session_data& sd, const char* command, const basic
 	char output[128];
 	int x = param[1], y = param[2];
 
-	if( sd.block_list::m >= map_num ||
+	if( sd.block_list::m >= maps.size() ||
 		maps[sd.block_list::m].flag.nowarp ||
 		(maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) )
 	{
@@ -3173,11 +3172,11 @@ bool command_jumpto(int fd, map_session_data& sd, const char* command, const bas
 		if( sd.block_list::id == pl_sd->block_list::id ) //Yourself mate? Tsk tsk tsk.
 			return false;
 
-		if (pl_sd->block_list::m <map_num  && maps[pl_sd->block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
+		if (pl_sd->block_list::m <maps.size()  && maps[pl_sd->block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
 			clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_TO));
 			return false;
 		}
-		if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
+		if (sd.block_list::m < maps.size() && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
 			clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_FROM));
 			return false;
 		}
@@ -3334,7 +3333,7 @@ class CAtKillMonster : public CMapProcessor
 	int flag;
 public:
 	CAtKillMonster(int f) : flag(f)	{}
-	~CAtKillMonster()	{}
+	~CAtKillMonster()				{}
 	virtual int process(block_list& bl) const
 	{
 		struct mob_data &md = (mob_data &)bl;
@@ -3347,16 +3346,14 @@ public:
 };
 bool command_killmonster(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-
 	int drop = param[0];
 	int map_id=0;
-	if( param.size()<1 || ((map_id = map_mapname2mapid(param[0])) < 0) )
+	if( param.size()<1 || ((map_id = maps.index_of(param[0])) < 0) )
 		map_id = sd.block_list::m;
 
-	if(map_id>0 && map_id<(int)map_num)
+	if(map_id>0 && map_id<(int)maps.size())
 	{
-		block_list::foreachinarea( CAtKillMonster(drop),
-			map_id, 0, 0, maps[map_id].xs-1, maps[map_id].ys-1, BL_MOB);
+		maps[map_id].foreach( CAtKillMonster(drop), BL_MOB);
 		clif_displaymessage(fd, msg_txt(MSG_ALL_MONSTERS_KILLED)); // All monsters killed!
 		return true;
 	}
@@ -3368,12 +3365,12 @@ bool command_killmonster(int fd, map_session_data& sd, const char* command, cons
 ///
 bool command_load(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	int m = map_mapname2mapid(sd.status.save_point.mapname);
+	int m = maps.index_of(sd.status.save_point.mapname);
 	if (m >= 0 && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM()) {
 		clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_SAVE));
 		return false;
 	}
-	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
+	if (sd.block_list::m < maps.size() && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM()) {
 		clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_FROM));
 		return false;
 	}
@@ -3580,7 +3577,7 @@ bool command_mapinfo(int fd, map_session_data& sd, const char* command, const ba
 	}
 
 
-	if((m_id = map_mapname2mapid(mapname)) < 0)
+	if((m_id = maps.index_of(mapname)) < 0)
 	{
 		clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
 		return false;
@@ -3772,7 +3769,7 @@ bool command_mapmove(int fd, map_session_data& sd, const char* command, const ba
 	{
 		clif_displaymessage(fd, "Please, enter a map (usage: mapmove/rura/warp <mapname> <x> <y>).");
 	}
-	else if( (m = map_mapname2mapid(mapname)) >= map_num )
+	else if( (m = maps.index_of(mapname)) >= maps.size() )
 	{
 		clif_displaymessage(fd, msg_txt(MSG_MAP_NOT_FOUND)); // Map not found.
 	}
@@ -3780,7 +3777,7 @@ bool command_mapmove(int fd, map_session_data& sd, const char* command, const ba
 	{
 		clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_TO));
 	}
-	else if( sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM() )
+	else if( sd.block_list::m < maps.size() && maps[sd.block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM() )
 	{
 		clif_displaymessage(fd, msg_txt(MSG_NOT_AUTHORIZED_TO_WARP_FROM));
 	}
@@ -3840,7 +3837,7 @@ bool command_memo(int fd, map_session_data& sd, const char* command, const basic
 		size_t position = param[0];
 		if(position < MAX_PORTAL_MEMO)
 		{
-			if( sd.block_list::m < map_num &&
+			if( sd.block_list::m < maps.size() &&
 				(maps[sd.block_list::m].flag.nowarpto || maps[sd.block_list::m].flag.nomemo) &&
 				config.any_warp_GM_min_level > sd.isGM() )
 			{
@@ -4030,7 +4027,7 @@ bool command_mobsearch(int fd, map_session_data& sd, const char* command, const 
 	snprintf(output, sizeof output, "Mob Search... %s %s", mob_name, sd.mapname);
 	clif_displaymessage(fd, output);
 
-	block_list::foreachinarea( CAtMobSearch(mob_id, fd), map_id, 0, 0, maps[map_id].xs-1, maps[map_id].ys-1, BL_MOB);
+	maps[map_id].foreach( CAtMobSearch(mob_id, fd), BL_MOB);
 	return true;
 }
 
@@ -4470,8 +4467,8 @@ bool command_mutearea(int fd, map_session_data& sd, const char* command, const b
 	int time = param[0];
 	if (time <= 0)
 		time = 15; // 15 minutes default
-	block_list::foreachinarea( CAtMuteArea(sd.block_list::id, time),
-		sd.block_list::m,  ((int)sd.block_list::x)-AREA_SIZE, ((int)sd.block_list::y)-AREA_SIZE,  ((int)sd.block_list::x)+AREA_SIZE, ((int)sd.block_list::y)+AREA_SIZE, BL_PC);
+	maps[sd.block_list::m].foreachinarea( CAtMuteArea(sd.block_list::id, time),
+		 sd.block_list::x, sd.block_list::y, AREA_SIZE, BL_PC);
 	return true;
 }
 
@@ -4726,7 +4723,7 @@ bool command_partyrecall(int fd, map_session_data& sd, const char* command, cons
 		return false;
 	}
 
-	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM())
+	if (sd.block_list::m < maps.size() && maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM())
 	{
 		clif_displaymessage(fd, "You are not authorised to warp somenone to your actual map.");
 		return false;
@@ -4740,7 +4737,7 @@ bool command_partyrecall(int fd, map_session_data& sd, const char* command, cons
 			if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth &&
 			    sd.status.account_id != pl_sd->status.account_id &&
 			    pl_sd->status.party_id == p->party_id) {
-				if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
+				if (pl_sd->block_list::m < maps.size() && maps[pl_sd->block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
 					count++;
 				else
 					pc_setpos(*pl_sd, sd.mapname, sd.block_list::x, sd.block_list::y, 2);
@@ -5165,12 +5162,12 @@ bool command_recall(int fd, map_session_data& sd, const char* command, const bas
 	{
 		if (sd.isGM() >= pl_sd->isGM())
 		{	// you can recall only lower or same level
-			if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM())
+			if (sd.block_list::m < maps.size() && maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM())
 			{
 				clif_displaymessage(fd, "You are not authorised to warp somenone to your actual map.");
 				return false;
 			}
-			if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
+			if (pl_sd->block_list::m < maps.size() && maps[pl_sd->block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
 			{
 				clif_displaymessage(fd, "You are not authorised to warp this player from its actual map.");
 				return false;
@@ -5203,7 +5200,7 @@ bool command_recallall(int fd, map_session_data& sd, const char* command, const 
 	char output[128];
 	size_t i, count;
 
-	if (sd.block_list::m < map_num && maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM())
+	if (sd.block_list::m < maps.size() && maps[sd.block_list::m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM())
 	{
 		clif_displaymessage(fd, "You are not authorised to warp somenone to your actual map.");
 		return false;
@@ -5214,7 +5211,7 @@ bool command_recallall(int fd, map_session_data& sd, const char* command, const 
 		if (session[i] && (pl_sd = (map_session_data *) session[i]->user_session) && pl_sd->state.auth && sd.status.account_id != pl_sd->status.account_id &&
 			sd.isGM() >= pl_sd->isGM() )
 		{
-			if (pl_sd->block_list::m < map_num && maps[pl_sd->block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
+			if (pl_sd->block_list::m < maps.size() && maps[pl_sd->block_list::m].flag.nowarp && config.any_warp_GM_min_level > sd.isGM())
 				count++;
 			else
 				pc_setpos(*pl_sd, sd.mapname, sd.block_list::x, sd.block_list::y, 2);
@@ -5496,12 +5493,12 @@ bool command_save(int fd, map_session_data& sd, const char* command, const basic
 	unsigned short y = sd.block_list::y;
 
 	if( param.size() && 
-		( param.size()<3 || (m = map_mapname2mapid(param[0]))>=map_num ||
+		( param.size()<3 || (m = maps.index_of(param[0]))>=maps.size() ||
 		(x=param[1])<=0 || x>=maps[m].xs || (y=param[2])<=0 || y>=maps[m].ys ) )
 	{
 		clif_displaymessage(fd, "Please, enter a valid save point and a player name (usage: #save <map> <x> <y> <charname>).");
 	}
-	else if( m<map_num && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM())
+	else if( m<maps.size() && maps[m].flag.nowarpto && config.any_warp_GM_min_level > sd.isGM())
 	{
 		clif_displaymessage(fd, "You are not authorised to set this map as a save map.");
 	}
@@ -5723,13 +5720,12 @@ bool command_shuffle(int fd, map_session_data& sd, const char* command, const ba
 	const char* message = param[0];
 	if(strcmp(message, "area")== 0)
 	{
-		block_list::foreachinarea( CAtShuffle(),
-			sd.block_list::m, ((int)sd.block_list::x)-AREA_SIZE, ((int)sd.block_list::y)-AREA_SIZE, ((int)sd.block_list::x)+AREA_SIZE, ((int)sd.block_list::y)+AREA_SIZE, BL_PC);
+		maps[sd.block_list::m].foreachinarea( CAtShuffle(),
+			sd.block_list::x, sd.block_list::y, AREA_SIZE, BL_PC);
 	}
 	else if(strcmp(message, "map")== 0)
 	{
-		block_list::foreachinarea( CAtShuffle(),
-			sd.block_list::m, 0, 0, maps[sd.block_list::m].xs, maps[sd.block_list::m].ys, BL_PC);
+		maps[sd.block_list::m].foreach( CAtShuffle(), BL_PC);
 	}
 	else if(strcmp(message, "world") == 0)
 	{
@@ -6424,11 +6420,11 @@ bool command_users(int fd, map_session_data& sd, const char* command, const basi
 	size_t i, all;
 
 	//## replace with querying the number of items in charid_db
-	for(i=0, all=0; i<map_num; ++i)
+	for(i=0, all=0; i<maps.size(); ++i)
 	{
 		all += maps[i].users;
 	}
-	for(i=0; i<map_num; ++i)
+	for(i=0; i<maps.size(); ++i)
 	{
 		snprintf(buf, sizeof(buf), "%s : %lu (%lu%%)",maps[i].mapname, (unsigned long)maps[i].users,(unsigned long)(maps[i].users*100/all));
 		clif_displaymessage(fd,buf);
@@ -6679,7 +6675,7 @@ bool command_whomap(int fd, map_session_data& sd, const char* command, const bas
 	int map_id=-1;
 	char output[128];
 
-	if( param.size()<1 ||  ((map_id = map_mapname2mapid(param[0])) < 0) )
+	if( param.size()<1 ||  ((map_id = maps.index_of(param[0])) < 0) )
 		map_id = sd.block_list::m;
 	
 	count = 0;
@@ -6723,7 +6719,7 @@ bool command_whomap2(int fd, map_session_data& sd, const char* command, const ba
 	int map_id = 0;
 	char output[128];
 
-	if( param.size()<1 ||  ((map_id = map_mapname2mapid(param[0])) < 0) )
+	if( param.size()<1 ||  ((map_id = maps.index_of(param[0])) < 0) )
 		map_id = sd.block_list::m;
 
 	count = 0;
@@ -6771,7 +6767,7 @@ bool command_whomap3(int fd, map_session_data& sd, const char* command, const ba
 	struct guild *g;
 	struct party *p;
 
-	if( param.size()<1 ||  ((map_id = map_mapname2mapid(param[0])) < 0) )
+	if( param.size()<1 ||  ((map_id = maps.index_of(param[0])) < 0) )
 		map_id = sd.block_list::m;
 
 	count = 0;

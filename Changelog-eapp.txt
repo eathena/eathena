@@ -1,5 +1,11 @@
 Date	Added
-
+2007/05/21
+	* code examples
+	* reworking map interface and associated components,
+	  this includes access to maps, behaviour of maps and maps[i] variables
+	  and the map-related foreach functions
+	* some more refinements at the new mapcache [Shinomori]
+	* new basics extract, simplified some templates, more cleaning ahead [Hinoko]
 2007/05/21
 	* Reworked the packet design taking into consideration Shinomori's 
 	  comments and problems i had trying to make the array field work.
@@ -9,6 +15,12 @@ Date	Added
 	* Concept of how a packet works internally.
 2007/05/16
 	* Initial non-functional prototype of a packet and how to write it to a socket. [FlavioJS]
+2007/05/14
+	* started modifying the map storage interfaces
+	* merged more of Hinoko's mapcache suggestion [Shinomori]
+2007/05/16
+	* rewrote the basics export files, removed some unused und obsolete things [Hinoko]
+	* moved the temporary binstream to basics for using it at the new mapcache [Shinomori]
 2007/04/26
 	* Removed useless check in RFIFOP & WFIFOP (it will crash anyway because they are used
 	  by memcpy, memset, ... (session_isActive should always be used before)

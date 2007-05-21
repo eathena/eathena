@@ -226,6 +226,21 @@
 #include <signal.h>
 #include <assert.h>
 
+#if defined (__sun) 
+#include <floatingpoint.h>
+#endif
+
+#if defined (__sun) || defined (__digital__) || defined (__sgi) || defined (__NCR_SVR)
+// DEC, SGI & Solaris need this
+#include <values.h>
+#include <nan.h>
+#endif
+
+#if defined(__MRC__) || defined(__SC__)  || defined(_CRAY)
+# include <fp.h>
+#endif
+
+
 //////////////////////////////
 /// additional includes for wchar support
 #include <wchar.h>
@@ -835,8 +850,13 @@ typedef unsigned __int64	uint64;
 typedef long long			int64;
 typedef signed long long	sint64;
 typedef unsigned long long	uint64;
+#if defined(__64BIT__)
+#define LLCONST(a)			(a##l)
+#define ULLCONST(a)			(a##ul)
+#else
 #define LLCONST(a)			(a##ll)
 #define ULLCONST(a)			(a##ull)
+#endif
 #endif
 
 #ifndef INT64_MIN
@@ -909,8 +929,29 @@ typedef int bool;
 #endif
 
 
+#if defined (WIN32)
+typedef int mbstate_t;
+#endif
 
+///////////////////////////////////////////////////////////////////////////////
 NAMESPACE_BEGIN(basics)
+///////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////
+/// some other types
+#if defined (WIN32)
+typedef int streamsize;
+#else
+typedef ptrdiff_t streamsize;
+#endif
+
+
+#if defined (WIN32)
+typedef long streamoff;
+#else
+typedef ptrdiff_t streamoff;
+#endif
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -967,6 +1008,8 @@ inline T* atomiccompareexchange(T**target, T* value, T* comperand)
 }
 
 
+///////////////////////////////////////////////////////////////////////////////
 NAMESPACE_END(basics)
+///////////////////////////////////////////////////////////////////////////////
 
 #endif//__BASETYPES_H__

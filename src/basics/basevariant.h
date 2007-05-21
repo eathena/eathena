@@ -221,7 +221,7 @@ public:
 	//
 	virtual inline void clear()				{}
 	virtual inline void invalidate();
-	virtual inline void empty();
+	virtual inline void make_empty();
 
 	///////////////////////////////////////////////////////////////////////////
 	virtual inline bool is_valid() const		{ return true; }
@@ -1347,7 +1347,7 @@ public:
 /// variant.
 /// implements a smart pointer to a value_union object 
 /// which provides both call-by-value and call-by-reference schemes
-struct variant
+struct variant : public global
 {
 private:
 	friend struct value_empty;
@@ -1443,7 +1443,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// clear the variant.
 	void clear()				{ this->value.clear(); this->make_value(); }
-	void empty()				{ if(this->value.exists()) this->access().empty(); }
+	void make_empty()			{ if(this->value.exists()) this->access().make_empty(); }
 	void invalidate()			{ if(this->value.exists()) this->access().invalidate(); }
 	///////////////////////////////////////////////////////////////////////////
 	bool is_valid() const		{ return !this->value.exists() || this->access().is_valid(); }
@@ -1515,7 +1515,8 @@ private:
 		operator string<>() const	{ return this->parent.get_string(); }
 	};
 public:
-	variant_conversion operator()()	{ return variant_conversion(*this); }
+	variant_conversion operator()() const	{ return variant_conversion(*this); }
+	variant_conversion operator()()			{ return variant_conversion(*this); }
 
 	template<typename T>
 	void get_value(T& v) const
@@ -1726,7 +1727,7 @@ inline void value_empty::invalidate()
 {
 	value_invalid::convert(*this);
 }
-inline void value_empty::empty()
+inline void value_empty::make_empty()
 {
 	value_empty::convert(*this);
 }

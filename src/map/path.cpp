@@ -218,18 +218,17 @@ int add_path(int heap[],struct tmp_path tp[],int x,int y,int dist,int dir,int be
  * flag 0x10000 遠距離攻撃判定
  *------------------------------------------
  */
-inline bool can_place(struct map_data &m, int x, int y, int flag)
+inline bool can_place(struct map_intern &m, int x, int y, int flag)
 {	// cell is passable when it is passable by itself
 	// or when it is a ground cell in case it's flagged
-	return map_getcellp(m,x,y,CELL_CHKPASS) ||
-			((flag&0x10000) && map_getcellp(m,x,y,CELL_CHKGROUND));
+	return m.is_passable(x,y) || ((flag&0x10000) && m.is_ground(x,y));
 }
 
 /*==========================================
  * (x0,y0)から(x1,y1)へ1歩で移動可能か計算
  *------------------------------------------
  */
-bool can_move(struct map_data &m, const int x0, const int y0, const int x1, const int y1, const int flag)
+bool can_move(struct map_intern &m, const int x0, const int y0, const int x1, const int y1, const int flag)
 {	// check if the position is valid
 	if( x0-x1<-1 || x0-x1>1 || y0-y1<-1 || y0-y1>1 ||
 		x1<0 || y1<0 || x1>=m.xs || y1>=m.ys)
@@ -252,7 +251,7 @@ void path_blownpos(unsigned short m,int x0,int y0,int dx,int dy,int count, int& 
 {
 	if( count )
 	{
-		if(m >= map_num || !maps[m].gat)
+		if(m >= maps.size() || !maps[m].gat)
 		{
 			nx=ny=0xFFFF;
 			return;
@@ -300,7 +299,7 @@ bool path_search_long(unsigned short m,unsigned short x0,unsigned short y0,unsig
 	int wx = 0, wy = 0;
 	int weight;
 
-	if(m >= map_num || !maps[m].gat)
+	if(m >= maps.size() || !maps[m].gat)
 		return false;
 
 	dx = ((int)x1 - (int)x0);
@@ -312,7 +311,7 @@ bool path_search_long(unsigned short m,unsigned short x0,unsigned short y0,unsig
 	dy = ((int)y1 - (int)y0);
 
 
-	if (map_getcellp(maps[m],x1,y1,CELL_CHKWALL))
+	if( maps[m].is_wall(x1,y1) )
 		return false;
 
 	if (dx > abs(dy)) {
@@ -322,7 +321,7 @@ bool path_search_long(unsigned short m,unsigned short x0,unsigned short y0,unsig
 	}
 
 	while (x0 != x1 || y0 != y1) {
-		if (map_getcellp(maps[m],x0,y0,CELL_CHKWALL))
+		if( maps[m].is_wall(x0,y0) )
 			return false;
 		wx += dx;
 		wy += dy;
@@ -348,7 +347,7 @@ bool path_search_long2(unsigned short m,unsigned short x0,unsigned short y0,unsi
 	int dx, dy,x,y;
 	int w = 0;
 
-	if(m >=map_num || !maps[m].gat)
+	if(m >=maps.size() || !maps[m].gat)
 		return false;
 
 	dx = ((int)x1 - (int)x0);
@@ -366,7 +365,7 @@ bool path_search_long2(unsigned short m,unsigned short x0,unsigned short y0,unsi
 
 		for(x=x0,y=y0; x<=x1; ++x)
 		{
-			if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
+			if( maps[m].is_wall(x,y) )
 				return false;
 
 			// next point on smaller axis
@@ -395,7 +394,7 @@ bool path_search_long2(unsigned short m,unsigned short x0,unsigned short y0,unsi
 
 		for(x=x0,y=y0; y<=y1; ++y)
 		{
-			if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
+			if( maps[m].is_wall(x,y) )
 				return false;
 
 			// next point on smaller axis
@@ -422,7 +421,7 @@ bool path_search_long3(unsigned short m,unsigned short x0,unsigned short y0,unsi
 	int dx, dy,x,y;
 	int w = 0;
 
-	if(m >= map_num || !maps[m].gat)
+	if(m >= maps.size() || !maps[m].gat)
 		return false;
 
 	dx = ((int)x1 - (int)x0);
@@ -442,7 +441,7 @@ bool path_search_long3(unsigned short m,unsigned short x0,unsigned short y0,unsi
 		{
 			for(x=x0,y=y0; x<=x1; ++x)
 			{
-				if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
+				if( maps[m].is_wall(x,y) )
 					return false;
 				// next point on smaller axis
 				w += dy;
@@ -457,7 +456,7 @@ bool path_search_long3(unsigned short m,unsigned short x0,unsigned short y0,unsi
 		{
 			for(x=x0,y=y0; x<=x1; ++x)
 			{
-				if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
+				if( maps[m].is_wall(x,y) )
 					return false;
 				// next point on smaller axis
 				w += dy;
@@ -483,7 +482,7 @@ bool path_search_long3(unsigned short m,unsigned short x0,unsigned short y0,unsi
 		{
 			for(x=x0,y=y0; y<=y1; ++y)
 			{
-				if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
+				if( maps[m].is_wall(x,y) )
 					return false;
 
 				// next point on smaller axis
@@ -499,9 +498,8 @@ bool path_search_long3(unsigned short m,unsigned short x0,unsigned short y0,unsi
 		{
 			for(x=x0,y=y0; y<=y1; ++y)
 			{
-				if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
+				if( maps[m].is_wall(x,y) )
 					return false;
-
 				// next point on smaller axis
 				w += dx;
 				if(w <= -dy)
@@ -824,7 +822,7 @@ char gat[64][64]={
 	{0,0,0,0,0,0,0,0,0,0},
 	{0,0,0,0,1,0,0,0,0,0},
 };
-struct map_data maps[1];
+struct map_intern maps[1];
 
 /*==========================================
  * 経路探索ルーチン単体テスト用main関数

@@ -98,9 +98,9 @@ bool npc_data::do_walkstep(unsigned long tick, const coordinate &target, int dx,
 			if( i>=0 && i<maps[this->block_list::m].xs &&	// inside map
 				k>=0 && k<maps[this->block_list::m].ys &&
 				(i<xnl || i>xnr || k<ynl || k>ynr) &&		// not inside of new rect
-				!map_getcell(this->block_list::m,i,k,CELL_CHKNOPASS) )
+				maps[this->block_list::m].is_passable(i,k) )
 			{	// remove npc ontouch area from map_cells
-				map_setcell(this->block_list::m,i,k,CELL_CLRNPC);
+				maps[this->block_list::m].clr_npc(i,k);
 			}
 		}
 
@@ -111,9 +111,9 @@ bool npc_data::do_walkstep(unsigned long tick, const coordinate &target, int dx,
 			if( i>=0 && i<maps[this->block_list::m].xs &&	// inside map
 				k>=0 && k<maps[this->block_list::m].ys &&
 				(i<xol || i>xo_ || k<yol || k>yor) &&		// not inside of old rect
-				!map_getcell(this->block_list::m,i,k,CELL_CHKNOPASS) )
+				maps[this->block_list::m].is_passable(i,k) )
 			{	// add npc ontouch area to map_cells
-				map_setcell(this->block_list::m,i,k,CELL_SETNPC);
+				maps[this->block_list::m].set_npc(i,k);
 			}
 		}
 	}
@@ -140,7 +140,7 @@ void npc_data::click(map_session_data &sd, uint32 npcid)
 /// static function called from map_session_data::do_walkend.
 void npc_data::touch(map_session_data &sd, unsigned short m, int x,int y)
 {
-	if( !sd.ScriptEngine.isRunning() && m<map_num && map_getcell(m,x,y,CELL_CHKNPC) )
+	if( !sd.ScriptEngine.isRunning() && m<maps.size() && maps[m].is_npc(x,y) )
 	{
 		size_t i;
 		int xs,ys;
@@ -742,8 +742,8 @@ bool npc_data::enable(int flag)
 	}
 	if( flag&3 && (this->xs > 0 || this->ys >0) )
 	{
-		block_list::foreachinarea( CNpcEnable(*this),
-			this->block_list::m, ((int)this->block_list::x)-this->xs,((int)this->block_list::y)-this->ys, ((int)this->block_list::x)+this->xs,((int)this->block_list::y)+this->ys,BL_PC);
+		maps[this->block_list::m].foreachinarea( CNpcEnable(*this),
+			this->block_list::x-this->xs, this->block_list::y-this->ys, this->block_list::x+this->xs, this->block_list::y+this->ys, BL_PC);
 	}
 	return true;
 }
@@ -784,8 +784,8 @@ void npc_data::remove_from_map()
 			for (i = 0; i < ys; ++i)
 			for (j = 0; j < xs; ++j)
 			{
-				if (map_getcell(m, x-xs/2+j, y-ys/2+i, CELL_CHKNPC))
-					map_setcell(m, x-xs/2+j, y-ys/2+i, CELL_CLRNPC);
+				if( maps[m].is_npc(x-xs/2+j, y-ys/2+i) )
+					maps[m].clr_npc(x-xs/2+j, y-ys/2+i);
 			}
 		}
 
@@ -805,8 +805,8 @@ npc_data::~npc_data()
 		strdb_erase(npc_data::npcname_db, this->exname);
 	
 	// unlink from map, if exist there
-	map_data &map = maps[this->block_list::m];
-	if( this->block_list::m<map_num && this->n >=0 && this->n< MAX_NPC_PER_MAP &&
+	map_intern &map = maps[this->block_list::m];
+	if( this->block_list::m<maps.size() && this->n >=0 && this->n< MAX_NPC_PER_MAP &&
 		map.npc[this->n]==this )
 	{
 		--map.npc_num;
@@ -1298,11 +1298,11 @@ bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
 	if(ip) *ip=0;
 	basics::itrim(to_mapname);
 
-	m = map_mapname2mapid(mapname);
+	m = maps.index_of(mapname);
 
 	npcwarp_data *nd = new npcwarp_data(); 
 	nd->register_id( npc_get_new_npc_id() );
-	nd->n = map_addnpc(m, nd);
+	nd->n = maps[m].addnpc(nd);
 	nd->block_list::m = m;
 	nd->block_list::x = x;
 	nd->block_list::y = y;
@@ -1327,13 +1327,13 @@ bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
 	nd->xs = xs;
 	nd->ys = ys;
 
-	for (i = 0; i < ys; ++i) {
-		for (j = 0; j < xs; ++j) {
-			if (map_getcell(m, x-xs/2+j, y-ys/2+i, CELL_CHKNOPASS))
-				continue;
-			map_setcell(m, x-xs/2+j, y-ys/2+i, CELL_SETNPC);
-		}
+	for (i = 0; i < ys; ++i)
+	for (j = 0; j < xs; ++j)
+	{
+		if( maps[m].is_passable(x-xs/2+j, y-ys/2+i) )
+			maps[m].set_npc(x-xs/2+j, y-ys/2+i);
 	}
+
 
 //	ShowMessage("warp npc %s %d read done\n",mapname,nd->block_list::id);
 	++npc_warp;
@@ -1371,7 +1371,7 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 		ip = strchr(mapname, '.');
 		if(ip) *ip=0;
 		basics::itrim(mapname);
-		m = map_mapname2mapid(mapname);
+		m = maps.index_of(mapname);
 	}
 
 	p = strchr(w4, ',');
@@ -1422,7 +1422,7 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 	//ShowMessage("shop npc %s %d read done\n",mapname,nd->block_list::id);
 	++npc_shop;
 
-	nd->n = map_addnpc(m,nd);
+	nd->n = maps[m].addnpc(nd);
 	if (m >= 0)
 	{
 		nd->addblock();
@@ -1467,7 +1467,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 		ip = strchr(mapname, '.');
 		if(ip) *ip=0;
 		basics::itrim(mapname);
-		m = map_mapname2mapid(mapname);
+		m = maps.index_of(mapname);
 	}
 
 	if(strcmp(w2,"script")==0)
@@ -1564,9 +1564,8 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 			for(i=0;i<ys;++i)
 			for(j=0;j<xs;++j) 
 			{
-				if (map_getcell(m, x - xs/2 + j, y - ys/2 + i, CELL_CHKNOPASS))
-					continue;
-				map_setcell(m, x - xs/2 + j, y - ys/2 + i, CELL_SETNPC);
+				if( maps[m].is_passable(x - xs/2 + j, y - ys/2 + i) )
+					maps[m].set_npc(x - xs/2 + j, y - ys/2 + i);
 			}
 		}
 		nd->xs = xs;
@@ -1611,7 +1610,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 	}
 	if(m>=0 && !dummy_npc)
 	{
-		nd->n = map_addnpc(m, nd);
+		nd->n = maps[m].addnpc(nd);
 		nd->addblock();
 		if( class_<0 )
 		{	// ƒCƒxƒ“ƒgŒ^NPC
@@ -1827,13 +1826,13 @@ int npc_parse_mob(const char *w1, const char *w2, const char *w3, const char *w4
 	basics::itrim(mapname);
 	basics::itrim(eventname);
 
-	m = map_mapname2mapid(mapname);
+	m = maps.index_of(mapname);
 	if(m >= MAX_MAP_PER_SERVER)
 		return 1;
 	if(v5 <= 1000 || v5 > MAX_MOB_DB) // class check
 		return 1;
 		
-	struct mob_list *dynmob = map_addmobtolist(m);
+	struct mob_list *dynmob = maps[m].moblist_create();
 	if( !dynmob )
 	{
 		ShowError("no place for mob cache on map: %s\n", maps[m].mapname);
@@ -1894,7 +1893,7 @@ int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const char *w
 	ip = strchr(mapname,'.');
 	if(ip) *ip=0;
 	basics::itrim(mapname);
-	m = map_mapname2mapid(mapname);
+	m = maps.index_of(mapname);
 	if (m < 0)
 		return 1;
 
@@ -2119,7 +2118,7 @@ int npc_parse_mapcell(const char *w1,const char *w2,const char *w3,const char *w
 	ip = strchr(mapname,'.');
 	if(ip) *ip=0;
 	basics::itrim(mapname);
-	m = map_mapname2mapid(mapname);
+	m = maps.index_of(mapname);
 	if (m < 0)
 		return 1;
 
@@ -2136,10 +2135,9 @@ int npc_parse_mapcell(const char *w1,const char *w2,const char *w3,const char *w
 	for (x = x0; x <= x1; ++x)
 	for (y = y0; y <= y1; ++y)
 	{
-			map_setcell(m, x, y, cell);
+		maps[m].set_type(x, y, cell);
 		//ShowMessage("setcell 0x%x %d %d %d\n", cell, m, x, y);
-		}
-
+	}
 	return 0;
 }
 
@@ -2202,7 +2200,7 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 				ip = strchr(mapname,'.');
 				if(ip) *ip=0;
 				basics::itrim(mapname);
-				m = map_mapname2mapid(mapname);
+				m = maps.index_of(mapname);
 				if( strlen(mapname)>16 || m<0 )
 				{	// "mapname" is not assigned to this server
 					m = -1;
@@ -2346,7 +2344,7 @@ int npc_read_indoors (void)
 			{
 				char* ip = strchr(mapname, '.');
 				if(ip) *ip=0;
-				if ((m = map_mapname2mapid(mapname)) >= 0)
+				if ((m = maps.index_of(mapname)) >= 0)
 					maps[m].flag.indoors = 1;
 			}
 				p=strchr(p, '\n');
@@ -2398,10 +2396,10 @@ int npc_reload (void)
 {
 	size_t m;
 
-	for (m = 0; m < map_num; ++m)
+	for (m = 0; m < maps.size(); ++m)
 	{
-		block_list::foreachinarea( CNpcCleanup(), m, 0, 0, maps[m].xs-1, maps[m].ys-1, BL_ALL);
-		clear_moblist(m);
+		maps[m].foreach( CNpcCleanup(), BL_ALL);
+		maps[m].moblist_clear();
 		maps[m].npc_num = 0;
 	}
 	if(ev_db)

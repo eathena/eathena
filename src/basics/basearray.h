@@ -6,6 +6,7 @@
 #include "basesafeptr.h"
 #include "basememory.h"
 #include "basealgo.h"
+#include "baseswap.h"
 #include "basesort.h"
 
 
@@ -73,7 +74,10 @@ public:
 	virtual size_t capacity() const=0;
 	virtual size_t length() const=0;
 	virtual bool is_empty() const=0;
-
+	bool empty() const
+	{
+		return is_empty();
+	}
 	///////////////////////////////////////////////////////////////////////////
 	/// (re)allocates to newsize but leaves cnt as it is
 	// usefull prior to large insertions
@@ -113,12 +117,19 @@ public:
 	virtual bool assign(const T* e, size_t cnt)=0;
 	virtual bool assign(const T& e)=0;
 	virtual bool assign(const T& e, size_t cnt)=0;
-
+	bool assign(const T* s, const T* e)
+	{
+		return this->assign(s, e-s);
+	}
 	///////////////////////////////////////////////////////////////////////////
 	/// add an element at position pos (at the end by default)
 	virtual bool append(const T* elem, size_t cnt)=0;
 	virtual bool append(const T& elem)=0;
 	virtual bool append(const T& elem, size_t cnt)=0;
+	bool append(const T* s, const T* e)
+	{
+		return this->append(s, e-s);
+	}
 	///////////////////////////////////////////////////////////////////////////
 	/// add an array of elements at position pos (at the end by default)
 	virtual bool insert(const T* elem, size_t cnt, size_t pos=~0)=0;
@@ -220,12 +231,13 @@ public:
 	//
 	void swap(vectorbase& t)
 	{
-		basics::swap(this->cBuf, t.cBuf);
-		basics::swap(this->cWpp, t.cWpp);
-		basics::swap(this->cEnd, t.cEnd);
+		swap(this->cBuf, t.cBuf);
+		swap(this->cWpp, t.cWpp);
+		swap(this->cEnd, t.cEnd);
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// some of the stl compatible methods
+	void reserve(size_t sz)			{ this->realloc(sz); }
 	void push_back(const T& elem)	{ this->insert(elem,1,this->size()); }
 	void push_front(const T& elem)	{ this->insert(elem,1,0); }
 	size_t erase(const iterator& it)
@@ -278,6 +290,10 @@ public:
 		if( first>=this->begin() && first<this->end() )
 			this->removeindex(first-this->begin(), last-first);
 		return first;
+	}
+	T& front()
+	{
+		return this->operator[](0);
 	}
 };
 
@@ -345,6 +361,8 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// with variable argument array (use with care)
+#if !defined(__GNUC__) || __GNUC__ >= 3
+// problems with gcc prior to v3
 	explicit vector(size_t sz, const T& t0, ...)
 	{	// we are clean and empty here
 		if( sz && this->checkwrite( sz ) )
@@ -359,7 +377,7 @@ public:
 			va_end(va);
 		}
 	}
-
+#endif//!defined(__GNUC__) || __GNUC__ >= 3
 	///////////////////////////////////////////////////////////////////////////
     /// Scalar assignment
     ListInit<vector<T,A>, T> operator=(const T& x)
@@ -976,6 +994,8 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// with variable argument array (use with care)
+#if !defined(__GNUC__) || __GNUC__ >= 3
+// problems with gcc prior to v3
 	explicit stack(size_t sz, const T& t0, ...)
 	{	// we are clean and empty here
 		if( this->checkwrite( sz ) )
@@ -990,6 +1010,7 @@ public:
 			va_end(va);
 		}
 	}
+#endif//!defined(__GNUC__) || __GNUC__ >= 3
 
 	///////////////////////////////////////////////////////////////////////////
     /// Scalar assignment
@@ -1120,6 +1141,8 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// with variable argument array (use with care)
+#if !defined(__GNUC__) || __GNUC__ >= 3
+// problems with gcc prior to v3
 	explicit fifo(size_t sz, const T& t0, ...)
 	{	// we are clean and empty here
 		if( this->checkwrite( sz ) )
@@ -1134,6 +1157,7 @@ public:
 			va_end(va);
 		}
 	}
+#endif//!defined(__GNUC__) || __GNUC__ >= 3
 
 	///////////////////////////////////////////////////////////////////////////
     /// Scalar assignment
@@ -1299,35 +1323,38 @@ public:
 			casesens(0)
 		{}
     } config;
-
-	int (*compare)(T const &, T const &);
-
-	static int defaultcompare(T const &a, T const &b)
+private:
+	//template<typename T1, typename T2>
+	struct compare
 	{
-		if(a==b)
-			return 0;
-		else if(a < b)
-			return -1;
-		else
-			return +1;
-	}
+		int asc;
+		compare(bool a=true) : asc(a?1:-1)	{}
+		int operator()(T const & a, T const & b) const
+		{
+			if(a==b)
+				return 0;
+			else if(a < b)
+				return -asc;
+			else
+				return +asc;
+		}
+	};
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard constructor / destructor
-	slist<T,A>(bool a=true, bool d=false) : config(a,d), compare(defaultcompare)
+	slist<T,A>(bool a=true, bool d=false) : config(a,d)
 	{ }
 	virtual ~slist<T,A>() {}
 
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assignment
-	slist<T,A>(const slist<T,A>& v) : config(v.config), compare(v.compare)
+	slist<T,A>(const slist<T,A>& v) : config(v.config)
 	{
 		this->assign(v);
 	}
 	const slist<T,A>& operator=(const slist<T,A>& v)
 	{	
 		this->config = v.config;
-		this->compare= v.compare;
 		this->assign(v);
 		return *this;
 	}
@@ -1342,7 +1369,7 @@ public:
 	// another workaround is to have a baseclass to derive the hierarchy from 
 	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
 	template<typename TT, typename AA>
-	slist<T,A>(const vectorbase<TT,AA>& v) : config(true,false), compare(defaultcompare)
+	slist<T,A>(const vectorbase<TT,AA>& v) : config(true,false)
 	{
 		this->assign(v);
 	}
@@ -1355,24 +1382,26 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// carray constructor
 	template<typename TT>
-	explicit slist(const TT* elem, size_t sz) : config(true,false), compare(defaultcompare)
+	explicit slist(const TT* elem, size_t sz) : config(true,false)
 	{	// we are clean and empty here
 		this->convert_append(elem, sz);
 	}
-	explicit slist(const T& elem) : config(true,false), compare(defaultcompare)
+	explicit slist(const T& elem) : config(true,false)
 	{	// we are clean and empty here
 		this->convert_append(elem);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// just size constructor (leaving the elements default constructed)
-	explicit slist(size_t sz, const T& elem=T()) : config(true,false), compare(defaultcompare)
+	explicit slist(size_t sz, const T& elem=T()) : config(true,false)
 	{	// we are clean and empty here
 		this->convert_append(elem, sz);
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// with variable argument array (use with care)
-	explicit slist(size_t sz, const T& t0, ...) : config(true,false), compare(defaultcompare)
+#if !defined(__GNUC__) || __GNUC__ >= 3
+// problems with gcc prior to v3
+	explicit slist(size_t sz, const T& t0, ...) : config(true,false)
 	{	// we are clean and empty here
 		if( this->checkwrite( sz ) )
 		{
@@ -1384,6 +1413,7 @@ public:
 			va_end(va);
 		}
 	}
+#endif//!defined(__GNUC__) || __GNUC__ >= 3
 
 	///////////////////////////////////////////////////////////////////////////
     /// Scalar assignment
@@ -1477,9 +1507,10 @@ public:
 		{	
 			typename AA::iterator iter(array);
 			size_t pos;
+			compare cmp(this->config.ascending);
 			for( ; iter; ++iter )
 			{
-				if( !BinarySearchC<T, const T*, T>( *iter, this->begin(), this->size(), 0, pos, this->compare, this->config.ascending) || this->config.duplicates )
+				if( !BinarySearch( *iter, this->begin(), this->size(), 0, pos, cmp) || this->config.duplicates )
 				{
 					T* xptr = this->ptrRpp()+pos, *xeptr=xptr+1;
 					elaborator::intern_move(xeptr, xptr, this->cWpp-this->ptrRpp()-pos);
@@ -1499,9 +1530,10 @@ public:
 		{	
 			size_t pos;
 			const TT* ptr = elem, *eptr = ptr+cnt;
+			compare cmp(this->config.ascending);
 			while( ptr<eptr)
 			{
-				if( !BinarySearchC<T, const T*, T>( *ptr, this->begin(), this->size(), 0, pos, this->compare, this->config.ascending) || this->config.duplicates )
+				if( !BinarySearch( *ptr, this->begin(), this->size(), 0, pos, cmp) || this->config.duplicates )
 				{
 					T* xptr = this->ptrRpp()+pos, *xeptr=xptr+1;
 					elaborator::intern_move(xeptr, xptr, this->cWpp-this->ptrRpp()-pos);
@@ -1521,7 +1553,7 @@ public:
 		if( this->cWpp < this->cEnd || this->checkwrite(1) )
 		{	
 			size_t pos;
-			if( !BinarySearchC<T, const T*, T>( elem, this->begin(), this->size(), 0, pos, this->compare, this->config.ascending) || this->config.duplicates )
+			if( !BinarySearch( elem, this->begin(), this->size(), 0, pos, compare(this->config.ascending)) || this->config.duplicates )
 			{	
 				T* xptr = this->ptrRpp()+pos, *xeptr=xptr+1;
 				elaborator::intern_move(xeptr, xptr, this->cWpp-this->ptrRpp()-pos);
@@ -1541,7 +1573,7 @@ public:
 		if( this->cWpp+cnt <= this->cEnd || this->checkwrite(cnt) )
 		{	
 			size_t pos;
-			if( !BinarySearchC<T, const T*, T>( elem, this->begin(), this->size(), 0, pos, this->compare, this->config.ascending) || this->config.duplicates )
+			if( !BinarySearch( elem, this->begin(), this->size(), 0, pos, compare(this->config.ascending)) || this->config.duplicates )
 			{
 				if( !this->config.duplicates ) cnt = 1;
 				T* xptr = this->ptrRpp()+pos, *xeptr=xptr+cnt;
@@ -1720,21 +1752,21 @@ public:
 	template<typename TT>
 	bool find(const TT& elem, size_t start, size_t& pos) const
 	{
-		return BinarySearchC<T,const T*,T>(elem, this->begin(), this->size(), start, pos, this->compare, this->config.ascending);
+		return BinarySearch(elem, this->begin(), this->size(), start, pos, compare(this->config.ascending));
 	}
 	template<typename TT>
 	bool find(const TT& elem) const
 	{
 		size_t start=0;
 		size_t pos;
-		return BinarySearchC<T,const T*,T>(elem, this->begin(), this->size(), start, pos, this->compare, this->config.ascending);
+		return BinarySearch(elem, this->begin(), this->size(), start, pos, compare(this->config.ascending));
 	}
 	template<typename TT>
 	const T* search(const TT& elem) const
 	{
 		size_t start=0;
 		size_t pos;
-		if( BinarySearchC<T,const T*,T>(elem, this->begin(), this->size(), start, pos, this->compare, this->config.ascending) )
+		if( BinarySearch(elem, this->begin(), this->size(), start, pos, compare(this->config.ascending)) )
 			return this->begin()+pos;
 		return NULL;
 	}
@@ -1743,16 +1775,15 @@ public:
 	{
 		size_t start=0;
 		size_t pos;
-		if( BinarySearchC<T,const T*,T>(elem, this->begin(), this->size(), start, pos, this->compare, this->config.ascending) )
+		if( BinarySearch(elem, this->begin(), this->size(), start, pos, compare(this->config.ascending)) )
 			return this->begin()+pos;
 		return NULL;
 	}
 	void sort()
 	{
 		if(this->size()>1)
-			QuickSortClassicC<T>( const_cast<T*>(this->begin()), 0, this->size()-1, this->compare); 
+			QuickSortClassic(this->begin(), this->size(), compare(this->config.ascending)); 
 	}
-
 };
 
 
@@ -2357,28 +2388,31 @@ public:
 	/// search within the field
 	bool find(T*const& elem, size_t start, size_t& pos) const
 	{
-		return BinarySearch((void*)elem, (const void**)(this->cVect.begin()), this->cVect.size(), start, pos, &this->cmp, this->config.ascending);
+		return BinarySearch((void*)elem, (const void**)(this->cVect.begin()), this->cVect.size(), start, pos, compare(this->config.ascending));
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// sort the array
 	void sort()
 	{
 		if(this->size()>1)
-			QuickSortClassic( this->cVect.begin(), 0, this->cVect.size()-1, &this->cmp, this->config.ascending); 
+			QuickSortClassic( this->cVect.begin(), this->cVect.size(), compare(this->config.ascending)); 
 	}
 private:
 	///////////////////////////////////////////////////////////////////////////
-	/// callback for searching and sorting
-	static int cmp(const void* elem, const void* listelem, bool asc)
+	struct compare
 	{
-		if( elem == listelem || *((const T*)elem)==*((const T*)listelem) )
-			return 0;
-		else if( *((const T*)elem) < *((const T*)listelem) )
-			return (asc)?-1:+1;
-		else
-			return (asc)?+1:-1;
-	}
-
+		bool asc;
+		compare(bool a) : asc(a)	{}
+		int operator()(const void* listelem, const void* elem) const
+		{
+			if( elem == listelem || *((const T*)elem)==*((const T*)listelem) )
+				return 0;
+			else if( *((const T*)elem) < *((const T*)listelem) )
+				return (asc)?-1:+1;
+			else
+				return (asc)?+1:-1;
+		}
+	};
 };
 
 
@@ -2974,25 +3008,31 @@ public:
 
 	bool find(const T& elem, size_t start, size_t& pos) const
 	{
-		return BinarySearch((void*)&elem, (const void**)this->cVect.begin(), this->cVect.size(), start, pos, &this->cmp, this->config.ascending);
+		return BinarySearch((void*)&elem, (const void**)this->cVect.begin(), this->cVect.size(), start, pos, compare(this->config.ascending));
 	}
 
 	void sort()
 	{
 		if(this->size()>1)
-			QuickSortClassic( (const void**)this->cVect.begin(), 0, this->cVect.size()-1, &this->cmp, this->config.ascending); 
+			QuickSortClassic( (const void**)this->cVect.begin(), 0, this->cVect.size()-1, compare(this->config.ascending));
 	}
 
 private:
-	static int cmp(const void* elem, const void* listelem, bool asc)
+	struct compare
 	{
-		if( elem == listelem || *((const T*)elem)==*((const T*)listelem) )
-			return 0;
-		else if( *((const T*)elem) < *((const T*)listelem) )
-			return (asc)?-1:+1;
-		else
-			return (asc)?+1:-1;
-	}
+		bool asc;
+		compare(bool a) : asc(a) {}
+
+		int operator()(const void* listelem, const void* elem) const
+		{
+			if( elem == listelem || *((const T*)elem)==*((const T*)listelem) )
+				return 0;
+			else if( *((const T*)elem) < *((const T*)listelem) )
+				return (asc)?-1:+1;
+			else
+				return (asc)?+1:-1;
+		}
+	};
 };
 
 
@@ -3040,25 +3080,27 @@ public:
 	virtual size_t size() const				{ return this->cVect.size(); }
 	virtual size_t capacity() const			{ return this->cVect.capacity(); }
 	virtual size_t length() const			{ return this->cVect.size(); }
+	bool empty() const						{ return this->size()==0; }
 
 private:
-	static int cmp(const K& k,  node* const & n)
+	struct compare
 	{
-		if(k==n->key)
+		int operator()(node* const & n, const K& k) const
 		{
-			return 0;
+			if(k==n->key)
+			{
+				return 0;
+			}
+			else if(k<n->key)
+				return -1;
+			else
+				return +1;
 		}
-		else if(k<n->key)
-			return -1;
-		else
-			return +1;
-	}
-
+	};
 	bool find(const K& key, size_t& pos) const
 	{
-		return BinarySearchC<K, ptrvector<node>, node*> (key, cVect, cVect.size(), 0, pos, &this->cmp);
+		return BinarySearch(key, cVect, cVect.size(), 0, pos, compare());
 	}
-
 
 public:
 	map()
@@ -3178,16 +3220,9 @@ private:
 		// array compares
 		bool operator==(const _node& n) const	{ return key==n.key; }
 		bool operator< (const _node& n) const	{ return key< n.key; }
-
-
-		friend bool operator==(const K& key, const _node& n)	{ return key==n.key; }
-		friend bool operator!=(const K& key, const _node& n)	{ return key!=n.key; }
-		friend bool operator< (const K& key, const _node& n)	{ return key< n.key; }
-		friend bool operator<=(const K& key, const _node& n)	{ return key<=n.key; }
-		friend bool operator> (const K& key, const _node& n)	{ return key> n.key; }
-		friend bool operator>=(const K& key, const _node& n)	{ return key>=n.key; }
+		bool operator==(const K& k) const		{ return key==k; }
+		bool operator< (const K& k) const		{ return key< k; }
 	} node ;
-
 
 	vector<node>	cVect;
 public:
@@ -3211,11 +3246,12 @@ public:
 	virtual size_t size() const				{ return this->cVect.size(); }
 	virtual size_t capacity() const			{ return this->cVect.capacity(); }
 	virtual size_t length() const			{ return this->cVect.size(); }
+	bool empty() const						{ return this->size()==0; }
 
 private:
 	bool find(const K& key, size_t& pos) const
 	{
-		return BinarySearch<K, const node*>(key, cVect.begin(), cVect.size(), 0, pos);
+		return BinarySearch(key, cVect.begin(), cVect.size(), 0, pos);
 	}
 
 public:
@@ -3326,36 +3362,39 @@ public:
 	virtual size_t length() const			{ return this->cVect1.size(); }
 
 private:
-	static int cmp1(const K1& k,  node* const & n)
+	struct compare
 	{
-		if(k==n->key1)
+		int operator()(node* const & n, const K1& k) const
 		{
-			return 0;
+			if(k==n->key1)
+			{
+				return 0;
+			}
+			else if(k<n->key1)
+				return -1;
+			else
+				return +1;
 		}
-		else if(k<n->key1)
-			return -1;
-		else
-			return +1;
-	}
-	static int cmp2(const K2& k,  node* const & n)
-	{
-		if(k==n->key2)
+		int operator()(node* const & n, const K2& k) const
 		{
-			return 0;
+			if(k==n->key2)
+			{
+				return 0;
+			}
+			else if(k<n->key2)
+				return -1;
+			else
+				return +1;
 		}
-		else if(k<n->key2)
-			return -1;
-		else
-			return +1;
-	}
+	};
 
 	bool find(const K1& key, size_t& pos)
 	{
-		return BinarySearchC<K1, ptrvector<node>, node*> (key, cVect1, cVect1.size(), 0, pos, &this->cmp1);
+		return BinarySearch(key, cVect1.begin(), cVect1.size(), 0, pos, compare());
 	}
 	bool find(const K2& key, size_t& pos)
 	{
-		return BinarySearchC<K2, ptrvector<node>, node*> (key, cVect2, cVect2.size(), 0, pos, &this->cmp2);
+		return BinarySearch(key, cVect2.begin(), cVect2.size(), 0, pos, compare());
 	}
 public:
 	bimap()

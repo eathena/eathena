@@ -74,7 +74,7 @@ template<size_t SZ>
 CFixPacket<SZ>::CFixPacket(uint8* buf, size_t sz)
 {
 	if( buf )
-		memcpy(_buf.buffer(), buf, min(sz,SZ));
+		memcpy(_buf.buffer(), buf, (sz<SZ)?sz:SZ);
 }
 
 template<size_t SZ>
@@ -263,7 +263,7 @@ const char* CFieldStringFix<SZ>::operator=(const char* str)
 // Array of fields - fixed size (the fields can be dynamic)
 
 template<class T, size_t TSZ, size_t LEN>
-CFieldStaticArrayFix<T,TSZ,LEN>::CFieldStaticArrayFix(IFieldBuffer& buf, size_t off=0)
+CFieldStaticArrayFix<T,TSZ,LEN>::CFieldStaticArrayFix(IFieldBuffer& buf, size_t off)
 :	_buf(buf)
 ,	_off(off)
 {}
@@ -335,7 +335,7 @@ void dump(IPacket& p)
 	size_t i;
 	for( i = 0; i < p.length(); i++ )
 		printf("%02X ", p.buffer()[i]);
-	printf("size=%d\n", p.length());
+	printf("size=%u\n", (uint)p.length());
 }
 
 void test_packet(void)

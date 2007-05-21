@@ -201,8 +201,147 @@ public:
 };
 
 
+class CParseInput : public allocator_r_dy<char>
+{
+	ICL_EMPTY_COPYCONSTRUCTOR(CParseInput)
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// position marker
+	unsigned int	line;
+	unsigned int	column;
+
+	CParseInput()
+		: line(1),column(1)
+	{}
+	CParseInput(size_t sz)
+		: allocator_r_dy<char>(sz), line(1),column(1)
+	{}
+	virtual ~CParseInput()
+	{}
+
+	void init()
+	{
+		this->line =1;
+		this->column =1;
+	}
+
+	short scan(CParser& parser, CToken& target); 
+
+	void next_char()
+	{
+		if( this->checkread(1) )
+		{
+			if( 10==*this->cScn )
+			{
+				++this->line;
+				this->column=1;
+			}
+			else if( 13 != *this->cScn)
+				++this->column;
+
+			++this->cScn;
+		}
+	}
+	short get_char()
+	{
+		if( this->checkread(1) )
+		{
+			return (*((unsigned char*)this->cScn));
+		}
+		else
+			return  EEOF;
+	}
+	// get the current character from the input stream
+	// to make sure that
+	short get_charstep()
+	{
+		if( this->checkread(1) )
+		{
+			if( 10==*this->cScn )
+			{
+				++this->line;
+				this->column=1;
+			}
+			else if( 13 != *this->cScn)
+				++this->column;
+
+			return (*((unsigned char*)this->cScn++));
+		}
+		else
+			return  EEOF;
+	}
+	bool is_eof(bool reserve=true)
+	{
+		return !this->checkread(1);
+	}
+};
+
+class CParseInputMem : public CParseInput
+{
+	ICL_EMPTY_COPYCONSTRUCTOR(CParseInputMem)
+public:
+	CParseInputMem(const char* sp, size_t sz)
+		: CParseInput(sz)
+	{
+		this->cWpp = elaborator::intern_copy<char>(this->cBuf, sp, sz);
+	}
+	virtual ~CParseInputMem()
+	{}
+protected:
+	virtual size_t readdata(char*, size_t)
+	{
+		return 0;
+	}
+};
+
+class CParseInputFile : public CParseInput
+{
+	ICL_EMPTY_COPYCONSTRUCTOR(CParseInputFile)
+	FILE *cFile;
+public:
+	CParseInputFile()
+		: CParseInput(1024), cFile(NULL)
+	{}
+	CParseInputFile(const char* name)
+		: CParseInput(1024), cFile(NULL)
+	{
+		this->open(name);
+	}
+	virtual ~CParseInputFile()
+	{
+		this->close();
+	}
+	bool open(const char* name)
+	{
+		this->close();
+		if(name)
+		{
+			this->cFile = fopen(name, "rb");
+			this->checkread(1);
+		}
+		this->init();
+		return (NULL!=this->cFile);
+	}
+	void close()
+	{
+		if(this->cFile)
+		{
+			fclose(this->cFile);
+			this->cFile=NULL;
+			this->cWpp=this->cRpp=this->cScn=this->cBuf;
+		}
+	}
+protected:
+	virtual size_t readdata(char* buf, size_t sz)
+	{
+		return (this->cFile)?fread(buf, 1, sz,this->cFile):0;
+	}
+};
 
 
+
+
+/*
 class CParseInput : public allocator_file<char>
 {
 	ICL_EMPTY_COPYCONSTRUCTOR(CParseInput)
@@ -274,7 +413,7 @@ public:
 	}
 };
 
-/*
+
 
 class CParseInput
 {
@@ -481,7 +620,7 @@ public:
 	vector<CToken>			tokens;
 
 	CParseConfig*			pconfig;
-	CParseInput				input;
+	CParseInput*			pinput;
 
 
 	// Reduction Tree
@@ -490,18 +629,42 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	CParser()
 		: reduction(false),reduce_rule(0),lalr_state(0),
-		nstackofs(0),pconfig(NULL)
+		nstackofs(0),pconfig(NULL),pinput(NULL)
 	{}
 
 	CParser(CParseConfig* pcfg)
 		: reduction(false),reduce_rule(0),lalr_state(0),
-		nstackofs(0),pconfig(NULL)
+		nstackofs(0),pconfig(NULL),pinput(NULL)
 	{
 		create(pcfg);
 	}
 
 
-	virtual ~CParser()	{}
+	virtual ~CParser()
+	{
+		this->close();
+	}
+
+	bool open(const char *name)
+	{
+		this->close();
+		this->pinput = new CParseInputFile(name);
+		return this->pinput!=NULL && !this->pinput->is_eof();
+	}
+	bool open(const char *sp, size_t sz)
+	{
+		this->close();
+		this->pinput = new CParseInputMem(sp,sz);
+		return this->pinput!=NULL;
+	}
+	void close()
+	{
+		if( this->pinput )
+		{
+			delete this->pinput;
+			this->pinput = NULL;
+		}
+	}
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -584,6 +747,98 @@ protected:
 
 	virtual bool MatchFunction(short type, const string<>& name, short symbol);
 };
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////
+/// some simplifying interface to the parser reduction tree.
+struct parse_node
+{
+	const CParser*			parser;
+	const CStackElement*	se;
+	
+	parse_node() : parser(NULL), se(NULL)
+	{}
+	// default copy/assignment
+	parse_node(const CParser& p, size_t rtpos) : parser(&p), se(&p.rt[rtpos])
+	{
+		advance();
+	}
+	parse_node(const CParser& p) : parser(&p), se(&p.rt[0])
+	{
+		advance();
+	}
+	const parse_node& advance()
+	{	// truncate single node reductions
+		if( this->se )
+		{
+			while( this->se->cChildNum==1 )
+				this->se = &this->parser->rt[this->se->cChildPos];
+		}
+		return *this;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// element access
+	const char* c_str() const		{ return (se)? se->cToken.cLexeme.c_str():""; }
+	const string<> string() const	{ return (se)? se->cToken.cLexeme.c_str():""; }
+	const char*name() const			{ return (se)? se->symbol.Name.c_str():""; }
+	unsigned short symbol() const	{ return (se)? se->symbol.idx :0; }
+	unsigned short type() const		{ return (se)? se->symbol.Type:0; }
+	size_t childs()	const			{ return (se)? se->cChildNum:0; }
+	unsigned int line() const		{ return (se)? se->cToken.line:0; }
+	unsigned int column() const		{ return (se)? se->cToken.column:0; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// check for terminal
+	bool is_terminal(int idx) const
+	{
+		return ( se && this->type()==1 && this->symbol()==idx );
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// check for nonterminal
+	bool is_nonterminal(int idx) const
+	{
+		return ( se && this->type()==0 && this->symbol()==idx );
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// get a child
+	parse_node operator[](size_t inx) const	{ return (se && inx<se->cChildNum)?(parse_node(*this->parser, se->cChildPos+inx)):(*this); }
+
+	///////////////////////////////////////////////////////////////////////////
+	void print(bool line_number=true, bool first=true) const
+	{
+		if( first && !this->type()==1 )
+		{
+			printf("<%s>: ", this->name());
+		}
+		if(first) printf("'");
+		if( this->type()==1 )
+		{	// terminals
+			printf("%s", this->c_str());
+		}
+		else
+		{
+			size_t i;
+			for(i=0; i<this->childs(); ++i)
+			{
+				this->operator[](i).print(false, false);
+			}
+		}
+		if(first) printf("'");
+		if(line_number)
+			printf(" (line %u, column %u)", this->line(), this->column());
+	}
+};
+
 
 NAMESPACE_END(basics)
 

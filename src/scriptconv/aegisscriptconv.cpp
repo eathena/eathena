@@ -1771,7 +1771,7 @@ bool aegisParser::process(const char*name) const
 	bool run = true;
 
 	// Open input file
-	if( !parser->input.open(name) )
+	if( !parser->open(name) )
 	{
 		fprintf(stderr, "Could not open input file %s\n", name);
 		return false;

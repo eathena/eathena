@@ -1162,8 +1162,8 @@ public:
 		// onplace_timerイベント呼び出し 
 		if (range>=0 && group->interval!=-1)
 		{
-			block_list::foreachinarea( CSkillUnitTimerOnplace(unit,tick),
-				bl.m, ((int)bl.x)-range,((int)bl.y)-range,((int)bl.x)+range,((int)bl.y)+range,BL_ALL);
+			maps[bl.m].foreachinarea( CSkillUnitTimerOnplace(unit,tick),
+				bl.x, bl.y, range, BL_ALL);
 
 			if (!unit.alive)
 				return 0;
@@ -1181,8 +1181,8 @@ public:
 			block_list *src = block_list::from_blid(group->src_id);
 			nullpo_retr(0, src);
 			range = skill_get_unit_layout_type(group->skill_id,group->skill_lv);
-			block_list::foreachinarea( CSkillIdunheal(unit),
-				src->m,((int)src->x)-range,((int)src->y)-range,((int)src->x)+range,((int)src->y)+range,BL_ALL);
+			maps[src->m].foreachinarea( CSkillIdunheal(unit),
+				src->x, src->y, range, BL_ALL);
 			group->val3++;
 		}
 		// 時間切れ削除 
@@ -1905,7 +1905,7 @@ int skill_additional_effect(block_list* src, block_list *bl,unsigned short skill
 /*=========================================================================
  スキル攻?吹き飛ばし?理
 -------------------------------------------------------------------------*/
-int skill_blown( block_list *src, block_list *target,int count)
+int skill_blown(block_list *src, block_list *target,int count)
 {
 	int dx=0,dy=0,nx,ny;
 	int x=target->x,y=target->y;
@@ -1971,8 +1971,8 @@ int skill_blown( block_list *src, block_list *target,int count)
 	dx = nx - x;
 	dy = ny - y;
 
-	block_list::foreachinmovearea( CClifOutsight(*target),
-		target->block_list::m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,target->get_sd()?BL_ALL:BL_PC);
+	maps[target->block_list::m].foreachinmovearea( CClifOutsight(*target),
+		x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,target->get_sd()?BL_ALL:BL_PC);
 
 	if( target->has_status(SC_DANCING) )
 	{
@@ -1995,8 +1995,8 @@ int skill_blown( block_list *src, block_list *target,int count)
 		skill_unit_move(*target,tick,1);
 	}
 
-	block_list::foreachinmovearea( CClifInsight(*target),
-		target->block_list::m,nx-AREA_SIZE,ny-AREA_SIZE,nx+AREA_SIZE,ny+AREA_SIZE,-dx,-dy,target->get_sd()?BL_ALL:BL_PC);
+	maps[target->block_list::m].foreachinmovearea( CClifInsight(*target),
+		nx-AREA_SIZE,ny-AREA_SIZE,nx+AREA_SIZE,ny+AREA_SIZE,-dx,-dy,target->get_sd()?BL_ALL:BL_PC);
 
 	if(count&0x20000)
 		target->stop_walking();
@@ -2515,8 +2515,7 @@ int skill_check_unit_range(int m,int x,int y,unsigned short skillid,unsigned sho
 	}
 	// とりあえず正方形のユニットレイアウトのみ対応
 	range += layout_type;
-	return block_list::foreachinarea( CSkillCheckUnitrange(skillid),
-		m,x-range,y-range,x+range,y+range,BL_SKILL);
+	return maps[m].foreachinarea( CSkillCheckUnitrange(skillid),x,y,range,BL_SKILL);
 }
 
 class CSkillCheckUnitrange2 : public CMapProcessor
@@ -2572,8 +2571,7 @@ int skill_check_unit_range2(int m,int x,int y,unsigned short skillid, unsigned s
 	else 
 		type = BL_PC;
 
-	return block_list::foreachinarea( CSkillCheckUnitrange2(skillid),
-		m, x-range, y-range, x+range, y+range, type);
+	return maps[m].foreachinarea( CSkillCheckUnitrange2(skillid), x, y, range, type);
 }
 
 
@@ -2616,7 +2614,7 @@ int skill_count_water(block_list &src,int range)
 	{
 		x = src.x+xi;
 		y = src.y+yi;
-		if(  map_getcell(src.m, x, y, CELL_CHKWATER) ||
+		if(  maps[src.m].is_water(x, y) ||
 			(maps[src.m].flag.rain==1 && config.rainy_waterball && rand()%2) ) // half as strong on rain
 		{
 			++cnt;
@@ -2710,7 +2708,7 @@ int skill_timerskill(int tid, unsigned long tick, int id, basics::numptr data)
 						j = rand()%8;
 						x = sd->block_list::x + dirx[j];
 						y = sd->block_list::y + diry[j];
-						if(map_getcell(sd->block_list::m,x,y,CELL_CHKPASS))
+						if( maps[sd->block_list::m].is_passable(x,y) )
 							break;
 					}
 					if(i >= 16) {
@@ -2733,7 +2731,7 @@ int skill_timerskill(int tid, unsigned long tick, int id, basics::numptr data)
 						j = rand()%8;
 						x = md->block_list::x + dirx[j];
 						y = md->block_list::y + diry[j];
-						if(map_getcell(md->block_list::m,x,y,CELL_CHKPASS))
+						if( maps[md->block_list::m].is_passable(x,y) )
 							break;
 					}
 					if(i >= 16) {
@@ -2754,9 +2752,7 @@ int skill_timerskill(int tid, unsigned long tick, int id, basics::numptr data)
 			case DC_SCREAM:				// スクリ?ム
 				range=config.area_size;		//視界全?
 
-				block_list::foreachinarea( CSkillFrostjoke(*src, skl->skill_id, skl->skill_lv, tick),
-					src->m,((int)src->x)-range,((int)src->y)-range, ((int)src->x)+range,((int)src->y)+range,BL_ALL);
-
+				maps[src->m].foreachinarea( CSkillFrostjoke(*src, skl->skill_id, skl->skill_lv, tick), src->x, src->y, range, BL_ALL);
 				break;
 
 			case WZ_WATERBALL:
@@ -3051,8 +3047,7 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 	{
 		if( src->has_status(SC_STORMKICK) )
 		{
-			block_list::foreachinarea( CSkillAttackArea(BF_WEAPON, *src, *src, skillid, skilllv, tick, flag, BCT_ENEMY),
-				src->m, src->x-2, src->y-2, src->x+2, src->y+2, BL_ALL);
+			maps[src->m].foreachinarea( CSkillAttackArea(BF_WEAPON, *src, *src, skillid, skilllv, tick, flag, BCT_ENEMY), src->x, src->y, 2, BL_ALL);
 			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 		}
 		status_change_end(src, SC_STORMKICK, -1);
@@ -3106,9 +3101,8 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 	
 	case SN_SHARPSHOOTING:			// シャ?プシュ?ティング
 
-		block_list::foreachinpath(
+		maps[src->m].foreachinpath(
 			CSkillAttackArea(BF_WEAPON,*src,*src,skillid,skilllv,tick,flag,BCT_ENEMY),
-			src->m,					// function, map
 			src->x,src->y,			// source xy
 			bl->x,bl->y,			// target xy
 			2,BL_ALL				// range, type
@@ -3268,8 +3262,7 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0);
 			// その後タ?ゲット以外の範??の敵全?に?理を行う
 
-			block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
-				bl->m,x-ar,y-ar,x+ar,y+ar,BL_ALL);
+			maps[bl->m].foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1,skill_castend_damage_id), x,y,ar,BL_ALL);
 		}
 		break;
 
@@ -3282,8 +3275,8 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 			skill_area_temp[1]=src->id;
 			skill_area_temp[2]=src->x;
 			skill_area_temp[3]=src->y;
-			block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1, skill_castend_damage_id),
-				src->m,((int)src->x)-2,((int)src->y)-2,((int)src->x)+2,((int)src->y)+2,BL_ALL);
+			maps[src->m].foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1, skill_castend_damage_id),
+				src->x, src->y, 2, BL_ALL);
 			clif_skill_nodamage (*src,*src,skillid,skilllv,1);
 			status_change_start (src,SC_WATK_ELEMENT,3,10,0,0,10000,0); //Initiate 10% of your damage becomes fire element.
 		}
@@ -3308,16 +3301,16 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 				skill_blown(src,bl,1);
 				clif_fixobject(*bl);
 				skill_area_temp[0]=0;
-				block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY, skill_area_sub_count),
-					bl->m,((int)bl->x)-1,((int)bl->y)-1,((int)bl->x)+1,((int)bl->y)+1,BL_ALL);
+				maps[bl->m].foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY, skill_area_sub_count),
+					bl->x, bl->y, 1, BL_ALL);
 				skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0);
 				if(skill_area_temp[0]>1) break;
 			}
 			skill_area_temp[1]=bl->id;
 			// その後タ?ゲット以外の範??の敵全?に?理を行う 
 
-			block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1, skill_castend_damage_id),
-				bl->m,((int)bl->x)-1,((int)bl->y)-1,((int)bl->x)+1,((int)bl->y)+1,BL_ALL);
+			maps[bl->m].foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1, skill_castend_damage_id),
+				bl->x, bl->y, 1, BL_ALL);
 			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0);
 		}
 		break;
@@ -3342,8 +3335,7 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 				skill_blown(src,bl,skill_area_temp[2]);
 			for (i=0;i<4;++i)
 			{
-				block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick,flag|BCT_ENEMY|1, skill_castend_damage_id),
-					bl->m,x,y,x,y,BL_ALL);
+				maps[bl->m].foreachincell(  CSkillArea(*src,skillid,skilllv,tick,flag|BCT_ENEMY|1, skill_castend_damage_id), x,y, BL_ALL);
 				x += dirx[dir];
 				y += diry[dir];
 			}
@@ -3419,8 +3411,8 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 				case MG_NAPALMBEAT:
 					ar = 1;
 					// ナパームビートは分散ダメージなので敵の数を数える
-					block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick,flag|BCT_ENEMY,skill_area_sub_count),
-						bl->m,((int)bl->x)-ar,((int)bl->y)-ar,((int)bl->x)+ar,((int)bl->y)+ar,BL_ALL);
+					maps[bl->m].foreachinarea(  CSkillArea(*src,skillid,skilllv,tick,flag|BCT_ENEMY,skill_area_sub_count),
+						bl->x, bl->y, ar, BL_ALL);
 					break;
 				case MG_FIREBALL:
 					ar = 2;
@@ -3446,8 +3438,8 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 						skill_area_temp[0]);
 			}
 			// ターゲット以外の範囲内の敵全体に処理を行う
-			block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1, skill_castend_damage_id),
-				bl->m,((int)bl->x)-ar,((int)bl->y)-ar,((int)bl->x)+ar,((int)bl->y)+ar,BL_ALL);
+			maps[bl->m].foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1, skill_castend_damage_id),
+				bl->x, bl->y, ar, BL_ALL);
 		}
 		break;
 
@@ -3459,18 +3451,18 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 			skill_area_temp[0] = 0;
 			skill_area_temp[1] = bl->id;
 
-			block_list::foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ENEMY,skill_area_sub_count),
-				bl->m,((int)bl->x)-1, ((int)bl->y)-1, ((int)bl->x)+1, ((int)bl->y)+1, BL_ALL);
+			maps[bl->m].foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ENEMY,skill_area_sub_count),
+				bl->x, bl->y, 1, BL_ALL);
 			skill_attack(BF_MAGIC, src, src, bl, skillid, skilllv, tick, skill_area_temp[0]);
 
-			block_list::foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
-				bl->m, ((int)bl->x)-1, ((int)bl->y)-1, ((int)bl->x)+1, ((int)bl->y)+1, BL_ALL);
+			maps[bl->m].foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
+				bl->x, bl->y, 1, BL_ALL);
 		}
 		break;
 
 	case WZ_FROSTNOVA:			// フロストノヴァ
-		block_list::foreachinarea( CSkillAttackArea(BF_MAGIC, *src, *src, skillid, skilllv, tick, flag, BCT_ENEMY),
-			src->m, ((int)src->x)-5, ((int)src->y)-5, ((int)bl->x)+5, ((int)bl->y)+5, BL_ALL);
+		maps[src->m].foreachinarea( CSkillAttackArea(BF_MAGIC, *src, *src, skillid, skilllv, tick, flag, BCT_ENEMY),
+			src->x, src->y, 5, BL_ALL);
 		break;
 	// その他
 	case HT_BLITZBEAT:			// ブリッツビ?ト
@@ -3483,14 +3475,14 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 			skill_area_temp[1] = bl->id;
 			if (flag & 0xf00000)
 			{
-				block_list::foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, BCT_ENEMY, skill_area_sub_count),
-					bl->m, ((int)bl->x)-1, ((int)bl->y)-1, ((int)bl->x)+1, ((int)bl->y)+1, BL_ALL);
+				maps[bl->m].foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, BCT_ENEMY, skill_area_sub_count),
+					bl->x, bl->y, 1, BL_ALL);
 			}
 			// まずタ?ゲットに攻?を加える
 			skill_attack(BF_MISC, src, src, bl, skillid, skilllv, tick, skill_area_temp[0]|(flag&0xf00000));
 			// その後タ?ゲット以外の範??の敵全?に?理を行う
-			block_list::foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, BCT_ENEMY|1,skill_castend_damage_id),
-				bl->m, ((int)bl->x)-1, ((int)bl->y)-1, ((int)bl->x)+1, ((int)bl->y)+1, BL_ALL);
+			maps[bl->m].foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, BCT_ENEMY|1,skill_castend_damage_id),
+				bl->x, bl->y, 1, BL_ALL);
 		}
 		break;
 
@@ -3538,8 +3530,8 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 				skill_area_temp[2] = 999999;
 				clif_skill_nodamage(*src,*src, NPC_SELFDESTRUCTION, 0xFFFF, 1);
 
-				block_list::foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
-					bl->m, ((int)bl->x)-10, ((int)bl->y)-10, ((int)bl->x)+10, ((int)bl->y)+10, BL_ALL);
+				maps[bl->m].foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
+					bl->x, bl->y, 10, BL_ALL);
 				battle_damage(src, src, skill_area_temp[2], 0);
 			}
 			else
@@ -3548,8 +3540,8 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 				skill_area_temp[2] = src->get_hp();
 				clif_skill_nodamage(*src,*src, NPC_SELFDESTRUCTION, 0xFFFF, 1);
 
-				block_list::foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
-					bl->m, ((int)bl->x)-5, ((int)bl->y)-5, ((int)bl->x)+5, ((int)bl->y)+5, BL_ALL);
+				maps[bl->m].foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
+					bl->x, bl->y, 5, BL_ALL);
 				battle_damage(src, src, skill_area_temp[2], 0);
 			}
 			break;
@@ -3581,8 +3573,8 @@ int skill_castend_damage_id( block_list* src, block_list *bl, unsigned short ski
 			} else {
 				int ar = sd->splash_range;
 				skill_area_temp[1] = bl->id;
-				block_list::foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag | BCT_ENEMY | 1,skill_castend_damage_id),
-					bl->m, ((int)bl->x)-ar, ((int)bl->y)-ar, ((int)bl->x)+ar, ((int)bl->y)+ar, BL_ALL);
+				maps[bl->m].foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag | BCT_ENEMY | 1,skill_castend_damage_id),
+					bl->x, bl->y, ar, BL_ALL);
 			}
 		}
 		break;
@@ -3745,8 +3737,8 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			}
 		} else {
 			clif_skill_nodamage(*src, *bl, skillid, skilllv, 1);
-			block_list::foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ENEMY|1,skill_castend_nodamage_id),
-				src->m, ((int)src->x)-15, ((int)src->y)-15, ((int)src->x)+15, ((int)src->y)+15, BL_ALL);
+			maps[src->m].foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ENEMY|1,skill_castend_nodamage_id),
+				src->x, src->y, 15, BL_ALL);
 		}
 		break;
 
@@ -4035,11 +4027,8 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 		else
 		{
 			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
-			block_list::foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ALL|1,skill_castend_nodamage_id),
-				bl->m, ((int)bl->x)-1, ((int)bl->y)-1, ((int)bl->x)+1, ((int)bl->y)+1, BL_PC);
-//			map_foreachinarea(skill_area_sub, 
-//				bl->m, ((int)bl->x)-1, ((int)bl->y)-1, ((int)bl->x)+1, ((int)bl->y)+1, BL_PC,
-//				src, skillid, skilllv, tick, flag|BCT_ALL|1,skill_castend_nodamage_id);
+			maps[bl->m].foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ALL|1,skill_castend_nodamage_id),
+				bl->x, bl->y, 1, BL_PC);
 		}
 		break;
 	case SM_ENDURE:			// インデュア
@@ -4087,11 +4076,11 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 
 	case AC_CONCENTRATION:	// 集中力向上
 		{
-			int range = 1;
+			const int range = 1;
 			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 			status_change_start(bl,(status_t)SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
-			block_list::foreachinarea( CStatusChangetimer(*src,SkillStatusChangeTable[skillid],tick),
-				src->m, ((int)src->x)-range, ((int)src->y)-range, ((int)src->x)+range, ((int)src->y)+range,BL_ALL);
+			maps[src->m].foreachinarea( CStatusChangetimer(*src,SkillStatusChangeTable[skillid],tick),
+				src->x, src->y, range, BL_ALL);
 		}
 		break;
 
@@ -4305,16 +4294,16 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 
 	case RG_RAID:			// サプライズアタック
 		clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
-		block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
-			bl->m,((int)bl->x)-1,((int)bl->y)-1,((int)bl->x)+1,((int)bl->y)+1,BL_ALL);
+		maps[bl->m].foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
+			bl->x, bl->y, 1, BL_ALL);
 		status_change_end(src, SC_HIDING, -1);	// ハイディング解除
 		break;
 
 	case ASC_METEORASSAULT:	// メテオアサルト
 		clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 
-		block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
-			bl->m,((int)bl->x)-2,((int)bl->y)-2,((int)bl->x)+2,((int)bl->y)+2,BL_ALL);
+		maps[bl->m].foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
+			bl->x, bl->y, 2, BL_ALL);
 		break;
 
 	case KN_BRANDISHSPEAR:	// ブランディッシュスピア
@@ -4328,11 +4317,12 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			skill_brandishspear_first(&tc,dir,x,y);
 			skill_brandishspear_dir(&tc,dir,4);
 			// 範?④
-			if(skilllv == 10){
+			if(skilllv == 10)
+			{
 				for(c=1;c<4;++c)
 				{
-					block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|n,skill_castend_damage_id),
-						bl->m,tc.val1[c],tc.val2[c],tc.val1[c],tc.val2[c],BL_ALL);
+					maps[bl->m].foreachincell(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|n,skill_castend_damage_id),
+						tc.val1[c],tc.val2[c],BL_ALL);
 				}
 			}
 			// 範?③②
@@ -4347,8 +4337,8 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			if(skilllv > 3){
 				for(c=0;c<5;++c)
 				{
-					block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|n,skill_castend_damage_id),
-						bl->m,tc.val1[c],tc.val2[c],tc.val1[c],tc.val2[c],BL_ALL);
+					maps[bl->m].foreachincell(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|n,skill_castend_damage_id),
+						tc.val1[c],tc.val2[c],BL_ALL);
 					if(skilllv > 6 && n==3 && c==4){
 						skill_brandishspear_dir(&tc,dir,-1);
 						n--;c=-1;
@@ -4359,8 +4349,8 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 			for(c=0;c<10;++c)
 			{
 				if(c==0||c==5) skill_brandishspear_dir(&tc,dir,-1);
-				block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
-					bl->m,tc.val1[c%5],tc.val2[c%5],tc.val1[c%5],tc.val2[c%5],BL_ALL);
+				maps[bl->m].foreachincell(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
+					tc.val1[c%5],tc.val2[c%5],BL_ALL);
 			}
 		}
 		break;
@@ -5746,8 +5736,8 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 				strcmp(sd->status.name,g->master)==0) {
 				clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 
-				block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ALL|1,skill_castend_nodamage_id),
-					src->m,((int)src->x)-15,((int)src->y)-15,((int)src->x)+15,((int)src->y)+15,BL_ALL);
+				maps[src->m].foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ALL|1,skill_castend_nodamage_id),
+					src->x, src->y, 15, BL_ALL);
 				pc_blockskill_start(*sd, skillid, 300000);
 			}
 		}
@@ -5770,8 +5760,8 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 				strcmp(sd->status.name,g->master)==0) {
 				clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 
-				block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ALL|1,skill_castend_nodamage_id),
-					src->m,((int)src->x)-15,((int)src->y)-15,((int)src->x)+15,((int)src->y)+15,BL_ALL);
+				maps[src->m].foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ALL|1,skill_castend_nodamage_id),
+					src->x, src->y, 15, BL_ALL);
 				
 				pc_blockskill_start(*sd, skillid, 300000);
 			}
@@ -5800,8 +5790,8 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 				strcmp(sd->status.name,g->master)==0) {
 				clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 
-				block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ALL|1,skill_castend_nodamage_id),
-					src->m,((int)src->x)-15,((int)src->y)-15,((int)src->x)+15,((int)src->y)+15,BL_ALL);
+				maps[src->m].foreachinarea(  CSkillArea(*src,skillid,skilllv,tick, flag|BCT_ALL|1,skill_castend_nodamage_id),
+					src->x, src->y, 15, BL_ALL);
 				pc_blockskill_start(*sd, skillid, 300000);
 			}
 		}
@@ -5830,7 +5820,7 @@ int skill_castend_nodamage_id( block_list *src, block_list *bl,unsigned short sk
 							 guild_mapname2gc(sd->mapname) == NULL)
 							 continue;
 						clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
-						if(map_getcell(sd->block_list::m,sd->block_list::x+dx[j],sd->block_list::y+dy[j],CELL_CHKNOPASS))
+						if( !maps[sd->block_list::m].is_passable(sd->block_list::x+dx[j],sd->block_list::y+dy[j]) )
 							dx[j] = dy[j] = 0;
 						pc_setpos(*dstsd, sd->mapname, sd->block_list::x+dx[j], sd->block_list::y+dy[j], 2);
 					}
@@ -6141,11 +6131,11 @@ int skill_castend_pos2(block_list *src, int x,int y,unsigned short skillid,unsig
 	case PR_BENEDICTIO:			// 聖?降福
 		skill_area_temp[1] = src->id;
 
-		block_list::foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ALL|1,skill_castend_nodamage_id),
-			src->m, x-1, y-1, x+1, y+1, BL_PC);
+		maps[src->m].foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ALL|1,skill_castend_nodamage_id),
+			x, y, 1, BL_PC);
 
-		block_list::foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
-			src->m, x-1, y-1, x+1, y+1, BL_ALL);
+		maps[src->m].foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ENEMY|1,skill_castend_damage_id),
+			x, y, 1, BL_ALL);
 		break;
 
 	case BS_HAMMERFALL:			// ハンマ?フォ?ル
@@ -6159,8 +6149,8 @@ int skill_castend_pos2(block_list *src, int x,int y,unsigned short skillid,unsig
 			skill_area_temp[2] = x;
 			skill_area_temp[3] = y;
 
-			block_list::foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ENEMY|2,skill_castend_nodamage_id),
-				src->m, x-r, y-r, x+r, y+r, BL_ALL);
+			maps[src->m].foreachinarea(  CSkillArea(*src, skillid, skilllv, tick, flag|BCT_ENEMY|2,skill_castend_nodamage_id),
+				x, y, r, BL_ALL);
 		}
 		break;
 
@@ -6172,8 +6162,8 @@ int skill_castend_pos2(block_list *src, int x,int y,unsigned short skillid,unsig
 			if(src->y!=y)
 				y+=(src->y-y>0)?-range:range;
 
-			block_list::foreachinarea( CStatusChangetimer(*src,SC_SIGHT,tick),
-				src->m, x-range, y-range, x+range,y+range,BL_ALL);
+			maps[src->m].foreachinarea( CStatusChangetimer(*src,SC_SIGHT,tick),
+				x, y, range, BL_ALL);
 		}
 		break;
 
@@ -6215,10 +6205,8 @@ int skill_castend_pos2(block_list *src, int x,int y,unsigned short skillid,unsig
 
 	case RG_CLEANER: // [Valaris]
 
-		block_list::foreachinarea( CSkillGraffitiRemover(),
-			src->m,x-5,y-5,x+5,y+5,BL_SKILL);
-//		map_foreachinarea(skill_graffitiremover,
-//			src->m,x-5,y-5,x+5,y+5,BL_SKILL);
+		maps[src->m].foreachinarea( CSkillGraffitiRemover(),
+			x,y,5,BL_SKILL);
 		break;
 	case SA_VOLCANO:		// ボルケ?ノ
 	case SA_DELUGE:			// デリュ?ジ
@@ -6245,7 +6233,7 @@ int skill_castend_pos2(block_list *src, int x,int y,unsigned short skillid,unsig
 					else if(tmpy >= maps[src->m].ys)
 						tmpy = maps[src->m].ys - 1;
 					++j;
-				} while((map_getcell(src->m,tmpx,tmpy,CELL_CHKNOPASS)) && j<100);
+				} while( !maps[src->m].is_passable(tmpx,tmpy) && j<100 );
 				if(j >= 100)
 					continue;
 				if(myflag==0){
@@ -6352,8 +6340,8 @@ int skill_castend_pos2(block_list *src, int x,int y,unsigned short skillid,unsig
 				clif_skill_poseffect(*src,skillid,skilllv,x,y,tick);
 				if(sd->potion_hp > 0) {
 
-					block_list::foreachinarea(  CSkillArea(*src,skillid,skilllv,tick,flag|BCT_PARTY|BCT_GUILD|1,skill_castend_nodamage_id),
-						src->m,x-3,y-3,x+3,y+3,BL_ALL);
+					maps[src->m].foreachinarea(  CSkillArea(*src,skillid,skilllv,tick,flag|BCT_PARTY|BCT_GUILD|1,skill_castend_nodamage_id),
+						x,y,3,BL_ALL);
 				}
 			}
 		}
@@ -6362,10 +6350,8 @@ int skill_castend_pos2(block_list *src, int x,int y,unsigned short skillid,unsig
 	case HW_GANBANTEIN:
 		if (rand()%100 < 80) {
 			clif_skill_poseffect(*src,skillid,skilllv,x,y,tick);
-			block_list::foreachinarea( CSkillGanbatein(),
-				src->m, x-1, y-1, x+1, y+1, BL_SKILL);
-//			map_foreachinarea (skill_ganbatein, 
-//				src->m, x-1, y-1, x+1, y+1, BL_SKILL);
+			maps[src->m].foreachinarea( CSkillGanbatein(),
+				x, y, 1, BL_SKILL);
 		} else {
 			sd->skill_failed(skillid);
 			return 1;
@@ -6712,29 +6698,24 @@ struct skill_unit_group *skill_unitsetting(block_list *src, unsigned short skill
 			uy+=(i/5-2);
 			break;
 		}
-		//’??a?X?L???I?e?‡?Y’u?A?W?a?E?‰?“?h?v???e?N?^??a?E?￠?c?`?F?b?N
 		if(range<=0)
 		{
-			block_list::foreachinarea(CSkillLandprotector(skillid,alive),
-				src->m,ux,uy,ux,uy,BL_SKILL);
-//			map_foreachinarea(skill_landprotector,
-//				src->m,ux,uy,ux,uy,BL_SKILL,
-//				skillid,&alive);
+			maps[src->m].foreachincell(CSkillLandprotector(skillid,alive),ux,uy,BL_SKILL);
 		}
 
 		if(skillid==WZ_ICEWALL && alive)
 		{
 
-			if( (src->x == x && src->y==y) || map_getcell(src->m,ux,uy,CELL_CHKNOPASS) )
+			if( (src->x == x && src->y==y) || !maps[src->m].is_passable(ux,uy) )
 				alive=0;
 			else
 			{
-				myval2=map_getcell(src->m,ux,uy,CELL_GETTYPE);
-				map_setcell(src->m,ux,uy,GAT_GROUND);
-				clif_changemapcell(src->m,ux,uy,GAT_GROUND,0);
+				myval2=maps[src->m].get_type(ux,uy);
+				maps[src->m].set_icewall(ux,uy);
+				clif_changemapcell(src->m,ux,uy,mapcell_t::GAT_GROUND,0);
 			}
 		}
-		if(alive && map_getcell(src->m,ux,uy,CELL_CHKWALL))
+		if( alive && maps[src->m].is_wall(ux,uy) )
 			alive = 0;
 
 		if(alive)
@@ -6747,8 +6728,8 @@ struct skill_unit_group *skill_unitsetting(block_list *src, unsigned short skill
 
 			if (range==0 && active_flag)
 			{
-				block_list::foreachinarea( CSkillUnitEffect(*unit,gettick(),1),
-					unit->block_list::m, unit->block_list::x,unit->block_list::y,unit->block_list::x,unit->block_list::y,BL_ALL);
+				maps[unit->block_list::m].foreachincell( CSkillUnitEffect(*unit,gettick(),1),
+					unit->block_list::x,unit->block_list::y,BL_ALL);
 			}
 		}
 	}
@@ -6811,7 +6792,7 @@ int skill_unit_onplace(struct skill_unit *src,block_list *bl,unsigned long tick)
 				}
 			}
 		} else if(*bl==BL_MOB && config.mob_warpportal){
-			int m = map_mapname2mapid(sg->valstring);
+			int m = maps.index_of(sg->valstring);
 			mob_warp(*((struct mob_data *)bl),m,sg->val2>>16,sg->val2&0xffff,3);
 		}
 		break;
@@ -6974,7 +6955,10 @@ int skill_unit_onplace_timer(struct skill_unit *src,block_list *bl,unsigned long
 	ts->tick = tick+sg->interval;
 	// GXは重なっていたら3HITしない
 	if( (sg->skill_id==CR_GRANDCROSS ||sg->skill_id==NPC_GRANDDARKNESS)&& !config.gx_allhit)
-		ts->tick += sg->interval*(block_list::countoncell(bl->m,bl->x,bl->y,BL_ALL)-1);
+	{
+		const int cnt = maps[bl->m].countoncell(bl->x,bl->y,BL_ALL);
+		ts->tick += sg->interval*(cnt-1);
+	}
 
 	switch (sg->unit_id) {
 	case UNT_SANCTUARY:	// サンクチュアリ
@@ -7027,8 +7011,8 @@ int skill_unit_onplace_timer(struct skill_unit *src,block_list *bl,unsigned long
 		break;
 
 	case UNT_FIREPILLAR_ACTIVE:	// ファイアーピラー(発動後)
-		block_list::foreachinarea( CSkillAttackArea(BF_MAGIC,*ss,*src,sg->skill_id,sg->skill_lv,tick,0,BCT_ENEMY),
-			bl->m,((int)bl->x)-1,((int)bl->y)-1,((int)bl->x)+1,((int)bl->y)+1,BL_ALL);
+		maps[bl->m].foreachinarea( CSkillAttackArea(BF_MAGIC,*ss,*src,sg->skill_id,sg->skill_lv,tick,0,BCT_ENEMY),
+			bl->x,bl->y,1,BL_ALL);
 		break;
 
 	case UNT_SKIDTRAP:	// スキッドトラップ
@@ -7057,11 +7041,11 @@ int skill_unit_onplace_timer(struct skill_unit *src,block_list *bl,unsigned long
 	case UNT_FREEZINGTRAP:	// フリ?ジングトラップ
 	case UNT_CLAYMORETRAP:	// クレイモア?トラップ
 
-		splash_count = block_list::foreachinarea( CSkillCounttarget(*src),
-			src->block_list::m,((int)src->block_list::x)-src->range,((int)src->block_list::y)-src->range,((int)src->block_list::x)+src->range,((int)src->block_list::y)+src->range,BL_ALL);
+		splash_count = maps[src->block_list::m].foreachinarea( CSkillCounttarget(*src),
+			src->block_list::x, src->block_list::y, src->range, BL_ALL);
 
-		block_list::foreachinarea( CSkillTrapsplash(*src,tick,splash_count),			
-			src->block_list::m,((int)src->block_list::x)-src->range,((int)src->block_list::y)-src->range,((int)src->block_list::x)+src->range,((int)src->block_list::y)+src->range,BL_ALL);
+		maps[src->block_list::m].foreachinarea( CSkillTrapsplash(*src,tick,splash_count),			
+			src->block_list::x, src->block_list::y, src->range, BL_ALL);
 
 		sg->unit_id = UNT_USEDTRAP;
 		clif_changelook(*src,LOOK_BASE,sg->unit_id);
@@ -7323,22 +7307,27 @@ int skill_unit_onlimit(struct skill_unit *src,unsigned long tick)
 		break;
 
 	case UNT_ICEWALL:	// アイスウォ?ル
-		map_setcell(src->block_list::m,src->block_list::x,src->block_list::y,src->val2);
-		clif_changemapcell(src->block_list::m,src->block_list::x,src->block_list::y,src->val2,1);
-		break;
-	case UNT_CALLPARTNER:	// あなたに?いたい
-		{
-			map_session_data *sd = NULL;
-			map_session_data *p_sd = NULL;
-			if((sd = map_session_data::from_blid(sg->src_id)) == NULL)
-				return 0;
-			if((p_sd = pc_get_partner(*sd)) == NULL)
-				return 0;
-
-			pc_setpos(*p_sd,maps[src->block_list::m].mapname,src->block_list::x,src->block_list::y,3);
-		}
+	{
+		const unsigned short m=src->block_list::m;
+		const unsigned short x=src->block_list::x;
+		const unsigned short y=src->block_list::y;
+		maps[m].clr_icewall(x,y);
+		clif_changemapcell(m,x,y,maps[m].get_type(x,y),1);
 		break;
 	}
+	case UNT_CALLPARTNER:	// あなたに?いたい
+	{
+		map_session_data *sd = NULL;
+		map_session_data *p_sd = NULL;
+		if((sd = map_session_data::from_blid(sg->src_id)) == NULL)
+			return 0;
+		if((p_sd = pc_get_partner(*sd)) == NULL)
+			return 0;
+
+		pc_setpos(*p_sd,maps[src->block_list::m].mapname,src->block_list::x,src->block_list::y,3);
+		break;
+	}
+	}// end switch
 	return 0;
 }
 /*==========================================
@@ -7597,21 +7586,15 @@ int skill_check_condition(map_session_data *sd,int type)
 			int c = 0;
 			if  (!(type & 1)) {
 
-				block_list::foreachinarea( CSkillCheckConditionChar(*sd,skill,c),
-					sd->block_list::m, ((int)sd->block_list::x)-range, ((int)sd->block_list::y)-range, ((int)sd->block_list::x)+range, ((int)sd->block_list::y)+range, BL_PC);
-//				map_foreachinarea(skill_check_condition_char_sub, 
-//					sd->block_list::m, ((int)sd->block_list::x)-range, ((int)sd->block_list::y)-range, ((int)sd->block_list::x)+range, ((int)sd->block_list::y)+range, BL_PC,
-//					sd, &c, skill);
+				maps[sd->block_list::m].foreachinarea( CSkillCheckConditionChar(*sd,skill,c),
+					sd->block_list::x, sd->block_list::y, range, BL_PC);
 				if (c < 2) {
 					sd->skill_failed(skill);
 					return 0;
 				}
 			} else {
-				block_list::foreachinarea( CSkillCheckConditionUse(*sd,c),
-					sd->block_list::m,((int)sd->block_list::x)-range, ((int)sd->block_list::y)-range,((int)sd->block_list::x)+range, ((int)sd->block_list::y)+range, BL_PC);
-//				map_foreachinarea (skill_check_condition_use_sub, 
-//					sd->block_list::m,((int)sd->block_list::x)-range, ((int)sd->block_list::y)-range,((int)sd->block_list::x)+range, ((int)sd->block_list::y)+range, BL_PC, 
-//					sd, &c);
+				maps[sd->block_list::m].foreachinarea( CSkillCheckConditionUse(*sd,c),
+					sd->block_list::x, sd->block_list::y, range, BL_PC);
 			}
 		}
 		break;
@@ -7630,11 +7613,7 @@ int skill_check_condition(map_session_data *sd,int type)
 			int mob_class = (skill==AM_CANNIBALIZE)? summons[lv-1] :1142;
 			if(config.pc_land_skill_limit && maxcount>0)
 			{
-				c = block_list::foreachinarea( CSkillCheckConditionMobmaster(sd->block_list::id, mob_class),
-					sd->block_list::m, 0, 0, maps[sd->block_list::m].xs-1, maps[sd->block_list::m].ys-1, BL_MOB);
-//				map_foreachinarea(skill_check_condition_mob_master_sub,
-//					sd->block_list::m, 0, 0, maps[sd->block_list::m].xs-1, maps[sd->block_list::m].ys-1, BL_MOB, 
-//					sd->block_list::id, mob_class, &c );
+				c = maps[sd->block_list::m].foreach( CSkillCheckConditionMobmaster(sd->block_list::id, mob_class), BL_MOB);
 				if(c >= maxcount){
 					sd->skill_failed(skill);
 					return 0;
@@ -7763,8 +7742,8 @@ int skill_check_condition(map_session_data *sd,int type)
 		// It will also block any magic spells that are cast upon Hermode's Rod's targets.
 		// For the duration of this skill, only the caster can use skills.
 		// Hermode's Rod is canceled when the caster leaves its effective range.
-		int c = block_list::foreachinarea( CSkillCheckConditionHermod(),
-			sd->block_list::m, ((int)sd->block_list::x)-3, ((int)sd->block_list::y)-3, ((int)sd->block_list::x)+3, ((int)sd->block_list::y)+3, BL_NPC);
+		int c = maps[sd->block_list::m].foreachinarea( CSkillCheckConditionHermod(),
+			sd->block_list::x, sd->block_list::y, 3, BL_NPC);
 		if (c < 1)
 		{
 			sd->skill_failed(skill);
@@ -7877,7 +7856,7 @@ int skill_check_condition(map_session_data *sd,int type)
 	case ST_WATER:
 		if( maps[sd->block_list::m].flag.rain==1 && config.rainy_waterball==1)
 			break;
-		if( !map_getcell(sd->block_list::m,sd->block_list::x,sd->block_list::y,CELL_CHKWATER) &&
+		if( !maps[sd->block_list::m].is_water(sd->block_list::x,sd->block_list::y) &&
 			!sd->has_status(SC_DELUGE) )
 		{	//水場判定
 			sd->skill_failed(skill);
@@ -8190,8 +8169,8 @@ if(config._temp_)
 	{
 		range = 1;
 		int c = 0;
-		block_list::foreachinarea( CSkillCheckConditionChar(*sd,skill_num,c),
-			sd->block_list::m,((int)sd->block_list::x)-range, ((int)sd->block_list::y)-range,((int)sd->block_list::x)+range, ((int)sd->block_list::y)+range, BL_PC);
+		maps[sd->block_list::m].foreachinarea( CSkillCheckConditionChar(*sd,skill_num,c),
+			sd->block_list::x, sd->block_list::y, range, BL_PC);
 		if(c < 1)
 		{
 			sd->skill_failed(skill_num);
@@ -8462,7 +8441,7 @@ int skill_use_pos( map_session_data *sd, int skill_x, int skill_y, unsigned shor
 		sd->skill_failed(sd->skillid);
 		return 0;
 	}
-	if( map_getcell(sd->block_list::m, skill_x, skill_y, CELL_CHKNOPASS) )
+	if( !maps[sd->block_list::m].is_passable(skill_x, skill_y) )
 	{	//prevent casting traps on non-walkable areas. [Skotlex] 
 		sd->skill_failed(skill_num);
 		return 0;
@@ -8931,24 +8910,24 @@ int skill_gangsterparadise(map_session_data *sd ,int type)
 
 	if(type==1) {// 座った時の?理
 
-		c = block_list::foreachinarea( CSkillGangsterCount(),
-			sd->block_list::m,((int)sd->block_list::x)-range,((int)sd->block_list::y)-range,((int)sd->block_list::x)+range,((int)sd->block_list::y)+range,BL_PC);
+		c = maps[sd->block_list::m].foreachinarea( CSkillGangsterCount(),
+			sd->block_list::x, sd->block_list::y, range, BL_PC);
 		if(c > 1)
 		{	// ギャングスタ?成功したら自分にもギャングスタ??性付?
-			block_list::foreachinarea( CSkillGangsterIn(),
-				sd->block_list::m,((int)sd->block_list::x)-range,((int)sd->block_list::y)-range,((int)sd->block_list::x)+range,((int)sd->block_list::y)+range,BL_PC);
+			maps[sd->block_list::m].foreachinarea( CSkillGangsterIn(),
+				sd->block_list::x, sd->block_list::y, range, BL_PC);
 			sd->state.gangsterparadise = 1;
 		}
 		return 0;
 	}
 	else if(type==0)
 	{	// 立ち上がったときの?理 
-		c = block_list::foreachinarea( CSkillGangsterCount(),
-			sd->block_list::m,((int)sd->block_list::x)-range,((int)sd->block_list::y)-range,((int)sd->block_list::x)+range,((int)sd->block_list::y)+range,BL_PC);
+		c = maps[sd->block_list::m].foreachinarea( CSkillGangsterCount(),
+			sd->block_list::x, sd->block_list::y, range, BL_PC);
 		if(c < 2)
 		{
-			block_list::foreachinarea( CSkillGangsterOut(),
-				sd->block_list::m,((int)sd->block_list::x)-range,((int)sd->block_list::y)-range,((int)sd->block_list::x)+range,((int)sd->block_list::y)+range,BL_PC);
+			maps[sd->block_list::m].foreachinarea( CSkillGangsterOut(),
+				sd->block_list::x, sd->block_list::y, range, BL_PC);
 		}
 		sd->state.gangsterparadise = 0;
 		return 0;
@@ -9014,12 +8993,12 @@ int skill_rest(map_session_data &sd ,int type)
 
 	if(type==1)
 	{	//When you sit down
-		c_r = block_list::foreachinarea( CSkillRestCount(),
-			sd.block_list::m,sd.block_list::x-range,sd.block_list::y-range,sd.block_list::x+range,sd.block_list::y+range,BL_PC);
+		c_r = maps[sd.block_list::m].foreachinarea( CSkillRestCount(),
+			sd.block_list::x, sd.block_list::y, range, BL_PC);
 		if(c_r > 1)
 		{
-			block_list::foreachinarea( CSkillRestIn(),
-				sd.block_list::m,sd.block_list::x-range,sd.block_list::y-range,sd.block_list::x+range,sd.block_list::y+range,BL_PC);
+			maps[sd.block_list::m].foreachinarea( CSkillRestIn(),
+				sd.block_list::x, sd.block_list::y, range, BL_PC);
 			sd.state.rest = 1;
 			status_calc_pc(sd,0);
 		}
@@ -9027,12 +9006,12 @@ int skill_rest(map_session_data &sd ,int type)
 	}
 	else if(type==0)
 	{	//When you stand up
-		c_r = block_list::foreachinarea( CSkillRestCount(),
-			sd.block_list::m,sd.block_list::x-range,sd.block_list::y-range,sd.block_list::x+range,sd.block_list::y+range,BL_PC);
+		c_r = maps[sd.block_list::m].foreachinarea( CSkillRestCount(),
+			sd.block_list::x, sd.block_list::y, range, BL_PC);
 		if(c_r < 2)
 		{
-			block_list::foreachinarea( CSkillRestIn(),
-				sd.block_list::m,sd.block_list::x-range,sd.block_list::y-range,sd.block_list::x+range,sd.block_list::y+range,BL_PC);
+			maps[sd.block_list::m].foreachinarea( CSkillRestIn(),
+				sd.block_list::x, sd.block_list::y, range, BL_PC);
 		}
 		sd.state.rest = 0;
 		status_calc_pc(sd,0);
@@ -9041,47 +9020,26 @@ int skill_rest(map_session_data &sd ,int type)
 	return 0;
 }
 
-/*==========================================
- * Moonlit creates a 'safe zone' [celest]
- *------------------------------------------
- */
-class CSkillMoonlitCount : public CMapProcessor
-{
-	ICL_EMPTY_COPYCONSTRUCTOR(CSkillMoonlitCount)
-	uint32 id;
-public:
-	CSkillMoonlitCount(uint32 i) : id(i)	{}
-	~CSkillMoonlitCount()	{}
-	virtual int process(block_list& bl) const
-	{
-		if( bl.block_list::id != id && bl.has_status(SC_MOONLIT) )
-			return 1;
-		return 0;
-	}
-};
-int skill_check_moonlit (block_list *bl, int dx, int dy)
-{
-	int c=0;
-	nullpo_retr(0, bl);
 
-	c = block_list::foreachinarea( CSkillMoonlitCount(bl->id),
-		bl->m,dx-1,dy-1,dx+1,dy+1,BL_PC);
-	return (c>0);
-}
 
 /*==========================================
  * バジリカのセルを設定する
  *------------------------------------------
  */
-void skill_basilica_cell(struct skill_unit *unit,int flag)
+
+void skill_basilica_cell(struct skill_unit *unit, bool on)
 {
 	int i,x,y,range = skill_get_unit_range(HP_BASILICA);
 	int size = range*2+1;
 
-	for (i=0;i<size*size;++i) {
+	for (i=0;i<size*size;++i)
+	{
 		x = unit->block_list::x+(i%size-range);
 		y = unit->block_list::y+(i/size-range);
-		map_setcell(unit->block_list::m,x,y,flag);
+		if(on)
+			maps[unit->block_list::m].set_basilica(x,y);
+		else
+			maps[unit->block_list::m].clr_basilica(x,y);
 	}
 }
 
@@ -9165,8 +9123,10 @@ int skill_check_cloaking(block_list *bl)
 	} else if (*bl == BL_MOB && !config.monster_cloak_check_type)
 		return 0;
 
-	for (i = 0; i < 8; ++i) {
-		if (map_getcell(bl->m, bl->x+dx[i], bl->y+dy[i], CELL_CHKNOPASS)) {
+	for (i = 0; i < 8; ++i)
+	{
+		if( !maps[bl->m].is_passable(bl->x+dx[i], bl->y+dy[i]) )
+		{
 			end = 0;
 			break;
 		}
@@ -9279,7 +9239,7 @@ struct skill_unit *skill_initunit(struct skill_unit_group *group,int idx,int x,i
 	clif_skill_setunit(*unit);
 
 	if (group->skill_id==HP_BASILICA)
-		skill_basilica_cell(unit,CELL_SETBASILICA);
+		skill_basilica_cell(unit,true);
 
 	return unit;
 }
@@ -9303,12 +9263,12 @@ int skill_delunit(struct skill_unit *unit)
 	// onoutイベント呼び出し
 	if (!unit->range)
 	{
-		block_list::foreachinarea( CSkillUnitEffect(*unit,gettick(),0),
-			unit->block_list::m, unit->block_list::x,unit->block_list::y,unit->block_list::x,unit->block_list::y,BL_ALL);
+		maps[unit->block_list::m].foreachincell( CSkillUnitEffect(*unit,gettick(),0),
+			unit->block_list::x, unit->block_list::y, BL_ALL);
 	}
 
 	if (group->skill_id==HP_BASILICA)
-		skill_basilica_cell(unit,CELL_CLRBASILICA);
+		skill_basilica_cell(unit,false);
 
 	clif_skill_delunit(*unit);
 
@@ -9404,11 +9364,8 @@ struct skill_unit_group *skill_initunitgroup(block_list *src,int count,unsigned 
 		//合奏スキルは相方をダンス状態にする
 		if (sd && skill_get_unit_flag(skillid)&UF_ENSEMBLE) {
 			int c=0;
-			block_list::foreachinarea( CSkillCheckConditionUse(*sd,c),
-				sd->block_list::m,((int)sd->block_list::x)-1,((int)sd->block_list::y)-1,((int)sd->block_list::x)+1,((int)sd->block_list::y)+1,BL_PC);
-//			map_foreachinarea(skill_check_condition_use_sub,
-//				sd->block_list::m,((int)sd->block_list::x)-1,((int)sd->block_list::y)-1,((int)sd->block_list::x)+1,((int)sd->block_list::y)+1,BL_PC,
-//				sd,&c);
+			maps[sd->block_list::m].foreachinarea( CSkillCheckConditionUse(*sd,c),
+				sd->block_list::x, sd->block_list::y, 1, BL_PC);
 		}
 	}
 	return group;
@@ -9558,7 +9515,7 @@ int skill_unit_move(block_list &bl,unsigned long tick,int flag)
 		return 0;
 
 	block_list::freeblock_lock();
-	block_list::foreachinarea( CSkillUnitMove(bl,tick,flag), bl.m,bl.x,bl.y,bl.x,bl.y,BL_SKILL);
+	maps[bl.m].foreachincell( CSkillUnitMove(bl,tick,flag), bl.x, bl.y, BL_SKILL);
 	block_list::freeblock_unlock();
 	return 0;
 }
@@ -9626,8 +9583,8 @@ int skill_unit_move_unit_group(struct skill_unit_group& group, unsigned short m,
 			continue;
 		if( !(m_flag[i]&0x2) )
 		{	// ユニットがなくなる場所でスキルユニット影響を消す
-			block_list::foreachinarea( CSkillUnitEffect( unit1, tick, 0),
-				unit1.block_list::m,unit1.block_list::x,unit1.block_list::y,unit1.block_list::x,unit1.block_list::y,BL_ALL);
+			maps[unit1.block_list::m].foreachincell( CSkillUnitEffect( unit1, tick, 0),
+				unit1.block_list::x, unit1.block_list::y, BL_ALL);
 		}
 		if( m_flag[i]==0 )
 		{
@@ -9661,8 +9618,8 @@ int skill_unit_move_unit_group(struct skill_unit_group& group, unsigned short m,
 		}
 		if (!(m_flag[i]&0x2))
 		{	// 移動後の場所でスキルユニットを発動
-			block_list::foreachinarea( CSkillUnitEffect(unit1, tick, 1),
-				unit1.block_list::m, unit1.block_list::x,unit1.block_list::y,unit1.block_list::x,unit1.block_list::y,BL_ALL);
+			maps[unit1.block_list::m].foreachincell( CSkillUnitEffect(unit1, tick, 1),
+				unit1.block_list::x, unit1.block_list::y, BL_ALL);
 		}
 	}
 	delete[] m_flag;

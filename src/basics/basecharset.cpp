@@ -17,12 +17,12 @@ NAMESPACE_BEGIN(basics)
 template <typename T>
 uchar char2hex(T c) 
 {
-    if( c>='a' && c<='f')
-        return uchar(c - 'a' + 10);
-    else if( c >= 'A' && c <= 'F')
-        return uchar(c - 'A' + 10);
-    else if( c >= '0' && c <= '9')
-        return uchar(c - '0');
+	if( c>='a' && c<='f')
+		return uchar(c - 'a' + 10);
+	else if( c >= 'A' && c <= 'F')
+		return uchar(c - 'A' + 10);
+	else if( c >= '0' && c <= '9')
+		return uchar(c - '0');
 	else
 		return 0;
 }
@@ -57,10 +57,10 @@ template <typename T>
 T hex2char(uchar c)
 {
 	c &= 0x0f;
-    if( c < 10 )
-        return char(c + '0');
-    else 
-        return char(c - 10 + 'a');
+	if( c < 10 )
+		return char(c + '0');
+	else 
+		return char(c - 10 + 'a');
 }
 // explicit instantiation
 template char hex2char<char>(uchar c);
@@ -183,96 +183,96 @@ bool charset::le(const charset& s) const
 
 inline bool isprintable(uchar c) 
 {
-    return ((c >= ' ') && (c < 127));
+	return ((c >= ' ') && (c < 127));
 }
 
 template<typename T>
 static size_t showmember(uchar c, T *buffer) 
 {
-    if( (c == '-') || (c == '~') )
+	if( (c == '-') || (c == '~') )
 	{
 		buffer[0] = '~';
 		buffer[1] = c;
 		buffer[2] = 0;
-        return 2;
+		return 2;
 	}
-    else if( isprintable(c) )
+	else if( isprintable(c) )
 	{
 		buffer[0] = c;
 		buffer[1] = 0;
-        return 1;
+		return 1;
 	}
-    else 
-    {
+	else 
+	{
 		buffer[0] = '~';
 		buffer[1] = hex2char<T>(uchar(c >> 4));
 		buffer[2] = hex2char<T>(uchar(c & 0x0f));
 		buffer[3] = 0;
-        return 3;
-    }
+		return 3;
+	}
 }
 
 string<char   >& tostring(string<char   >& str, const charset& s)
 {
-    int i, l = -1, r = -1;
-	str.empty();
-    for(i=0; i<=_csetbits; ++i) 
-    {
-        if( i<_csetbits && (uchar(i)&s) ) 
-        {
-            if (l == -1)
-                l = i;
-            else
-                r = i;
-        }
-        else if (l != -1) 
-        {	
+	int i, l = -1, r = -1;
+	str.clear();
+	for(i=0; i<=_csetbits; ++i) 
+	{
+		if( i<_csetbits && (uchar(i)&s) ) 
+		{
+			if (l == -1)
+				l = i;
+			else
+				r = i;
+		}
+		else if (l != -1) 
+		{	
 			char buffer[16];
 			size_t sz = showmember(uchar(l), buffer);
-            str.append(buffer,sz);
-            if (r != -1)
+			str.append(buffer,sz);
+			if (r != -1)
 			{
-                if (r > l + 1) 
-                    str.append('-');
+				if (r > l + 1) 
+					str.append('-');
 				sz = showmember(uchar(r), buffer);
 				str.append(buffer,sz);
-            }
-            l = -1;
-            r = -1;
-        }
-    }
-    return str;
+			}
+			l = -1;
+			r = -1;
+		}
+	}
+	return str;
 }
 string<wchar_t>& tostring(string<wchar_t>& str, const charset& s)
 {
-    int i, l = -1, r = -1;
-	str.empty();
-    for(i=0; i<=_csetbits; ++i) 
-    {
-        if( i<_csetbits && (uchar(i)&s) ) 
-        {
-            if (l == -1)
-                l = i;
-            else
-                r = i;
-        }
-        else if (l != -1) 
-        {	
+	int i, l = -1, r = -1;
+	str.clear();
+	for(i=0; i<=_csetbits; ++i) 
+	{
+		if( i<_csetbits && (uchar(i)&s) ) 
+		{
+			if (l == -1)
+				l = i;
+			else
+				r = i;
+		}
+		else if (l != -1) 
+		{	
 			wchar_t buffer[16];
 			size_t sz = showmember(uchar(l), buffer);
-            str.append(buffer,sz);
-            if (r != -1)
+			str.append(buffer,sz);
+			if (r != -1)
 			{
-                if (r > l + 1) 
-                    str.append('-');
+				if (r > l + 1) 
+					str.append('-');
 				sz = showmember(uchar(r), buffer);
 				str.append(buffer,sz);
-            }
-            l = -1;
-            r = -1;
-        }
-    }
-    return str;
+			}
+			l = -1;
+			r = -1;
+		}
+	}
+	return str;
 }
 
 

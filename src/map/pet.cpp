@@ -201,7 +201,7 @@ bool pet_data::randomwalk(unsigned long tick)
 				y=pd.block_list::y+r/(d*2+1)%(d*2+1)-d;
 			}
 
-			if( map_getcell(pd.block_list::m,x,y,CELL_CHKPASS) && pd.walktoxy(x,y) )
+			if( maps[pd.block_list::m].is_passable(x,y) && pd.walktoxy(x,y) )
 			{
 				pd.move_fail_count=0;
 				break;
@@ -1198,9 +1198,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 	if(!pd.target_id && pd.loot && pd.loot->count < pd.loot->max && DIFF_TICK(gettick(),pd.loot->loottick)>0)
 	{
 		CPetAiHardLootsearch pal(pd);
-
-		block_list::foreachinarea( pal,
-			pd.block_list::m, ((int)pd.block_list::x)-AREA_SIZE/2,((int)pd.block_list::y)-AREA_SIZE/2, ((int)pd.block_list::x)+AREA_SIZE/2,((int)pd.block_list::y)+AREA_SIZE/2,BL_ITEM);
+		maps[pd.block_list::m].foreachinarea( pal, pd.block_list::x, pd.block_list::y, AREA_SIZE/2, BL_ITEM);
 		i=pal.itc;
 	}
 

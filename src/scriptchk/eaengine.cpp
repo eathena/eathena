@@ -526,7 +526,7 @@ bool CStackEngine::process()
 		}
 		case OP_EMPTY:
 		{
-			stack[0].empty();
+			stack[0].make_empty();
 			break;
 		}
 		case OP_CONCAT:

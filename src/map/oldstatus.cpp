@@ -1943,17 +1943,17 @@ int status_recalc_speed(block_list *bl)
 
 	// map tile dependend reducing of speed
 
-	if( map_getcell(bl->m, bl->x, bl->y, CELL_CHKHOLE) )
+	if( maps[bl->m].is_quicksand(bl->x, bl->y) )
 	{
 		int i,k;
 		for(i=-1; i<=1; ++i)
 		for(k=-1; k<=1; ++k)
 		{
-			if( map_getcell(bl->m, bl->x+i, bl->y+k, CELL_CHKHOLE) )
+			if( maps[bl->m].is_quicksand(bl->x+i, bl->y+k) )
 				speed = speed*116/100; // slow down by 16% per surrounding quicksand tile
 		}
 	}
-	else if( map_getcell(bl->m, bl->x, bl->y, CELL_CHKWATER) )
+	else if( maps[bl->m].is_water(bl->x, bl->y) )
 	{
 		speed *= 2; // slower in water
 	}
@@ -4615,8 +4615,8 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 			int range = 5;
 			if ( type == SC_SIGHT ) range = 7;
 
-			block_list::foreachinarea( CStatusChangetimer(*bl,type,tick),
-				bl->m, ((int)bl->x)-range, ((int)bl->y)-range, ((int)bl->x)+range,((int)bl->y)+range,BL_ALL);
+			maps[bl->m].foreachinarea( CStatusChangetimer(*bl,type,tick),
+				bl->x, bl->y, range, BL_ALL);
 
 			if( (--bl->get_statusvalue2(type).integer())>0 )
 			{

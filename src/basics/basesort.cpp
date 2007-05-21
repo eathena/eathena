@@ -270,7 +270,7 @@ void test_sort(int scale)
 	copy(array[1], array[0], CFIELDSIZE);
 	elems = CFIELDSIZE;
 	tick = clock();
-	QuickSortClassic<int>(array[1], elems/100, elems-1);
+	QuickSortClassic_(array[1], elems/100, elems-1);
 	printf("classic quicksort %lu (%u elems)\n", clock()-tick, elems);
 	for(k=elems/100; k<elems-1; ++k) if( array[1][k]>array[1][k+1]) { printf("error inx %u\n", k); break; }
 
@@ -286,14 +286,14 @@ void test_sort(int scale)
 	copy(array[1], array[0], CFIELDSIZE);
 	elems = CFIELDSIZE;
 	tick = clock();
-	QuickSort<int>(array[1], elems/100, elems-1);
+	QuickSort(array[1], elems/100, elems-1);
 	printf("mod quicksort %lu (%u elems)\n", clock()-tick, elems);
 	for(k=elems/100; k<elems-1; ++k) if( array[1][k]>array[1][k+1]) { printf("error inx %u\n", k); break; }
 	
 	copy(array[1], array[0], CFIELDSIZE);
 	elems = CFIELDSIZE;
 	tick = clock();
-	QuickSort<int>(array[1], elems);
+	QuickSort(array[1], elems);
 	printf("mod quicksort %lu (%u elems)\n", clock()-tick, elems);
 	for(k=0; k<elems-1; ++k) if( array[1][k]>array[1][k+1]) { printf("error inx %u\n", k); break; }
 
@@ -439,13 +439,13 @@ void test_sort(int scale)
 
 	elems = CFIELDSIZE;
 	tick = clock();
-	QuickSortClassic<int>(array[1], elems/100, elems-1);
+	QuickSortClassic_(array[1], elems/100, elems-1);
 	printf("classic quicksort %lu (%u elems)\n", clock()-tick, elems);
 	for(k=elems/100; k<elems-1; ++k) if( array[1][k]>array[1][k+1]) { printf("error inx %u\n", k); break; }
 
 	elems = CFIELDSIZE;
 	tick = clock();
-	QuickSortClassic<int>(array[1], elems);
+	QuickSortClassic(array[1], elems);
 	printf("classic quicksort %lu (%u elems)\n", clock()-tick, elems);
 	for(k=0; k<elems-1; ++k) if( array[1][k]>array[1][k+1]) { printf("error inx %u\n", k); break; }
 
@@ -453,13 +453,13 @@ void test_sort(int scale)
 
 	elems = CFIELDSIZE;
 	tick = clock();
-	QuickSort<int>(array[1], elems/100, elems-1);
+	QuickSort(array[1], elems/100, elems-1);
 	printf("mod quicksort %lu (%u elems)\n", clock()-tick, elems);
 	for(k=elems/100; k<elems-1; ++k) if( array[1][k]>array[1][k+1]) { printf("error inx %u\n", k); break; }
 	
 	elems = CFIELDSIZE;
 	tick = clock();
-	QuickSort<int>(array[1], elems);
+	QuickSort(array[1], elems);
 	printf("mod quicksort %lu (%u elems)\n", clock()-tick, elems);
 	for(k=0; k<elems-1; ++k) if( array[1][k]>array[1][k+1]) { printf("error inx %u\n", k); break; }
 

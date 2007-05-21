@@ -14,83 +14,11 @@ NAMESPACE_BEGIN(basics)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Binary Search used in pointer vectors
-bool BinarySearch(const void* elem, const void* list[], size_t sz, size_t startpos, size_t& findpos, int (*cmp)(const void* a, const void* b, bool asc), bool asc)
-{	// do a binary search
-	// make some initial stuff
-	bool ret = false;
-	size_t a= (startpos>=sz) ? 0 : startpos;
-	size_t b= sz-1;
-	size_t c;
-
-	if( sz < 1)
-	{
-		findpos = 0;
-		ret = false;
-	}
-	else
-	{	
-		if( 0>=(*cmp)(elem, list[a], asc) )
-		{	
-			if( 0 == (*cmp)(elem, list[a], asc) ) 
-			{
-				findpos=a;
-				ret = true;
-			}
-			else
-			{
-				findpos = a;
-				ret = false;
-			}
-		}
-		else if( 0 <= (*cmp)(elem, list[b], asc) )
-		{	
-			if( 0 == (*cmp)(elem, list[b], asc) )
-			{
-				findpos = b;
-				ret = true;
-			}
-			else
-			{
-				findpos = b+1;
-				ret = false;
-			}
-		}
-		else
-		{	// binary search
-			do
-			{
-				c=(a+b)/2;
-				if( 0 == (*cmp)(elem, list[c], asc) )
-				{
-					b=c;
-					ret = true;
-					break;
-				}
-				else if( 0 > (*cmp)(elem, list[c], asc) )
-					b=c;
-				else
-					a=c;
-			} while( (a+1) < b );
-			findpos = b;
-		}
-	}
-	return ret;
-}
-
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
 #if defined(DEBUG)
 
-int cmp(const int& a, const char&b)
-{
-	return a-(int)b;
-}
+
 
 
 class aaaa
@@ -101,7 +29,20 @@ public:
 	aaaa(int i):val(i)	{}
 
 	int compare(const int& a) const { return val-a; }
+
+
+
+	struct cmp
+	{
+		int operator()(const aaaa& a, const char&b) const
+		{
+			return a.val-(int)((unsigned char)b);
+		}
+	};
+	friend struct cmp;
 };
+
+
 
 
 #endif//DEBUG
@@ -116,8 +57,8 @@ void test_algo(int scale)
 	int a = 4;
 	size_t findpos;
 
-	BinarySearchC<int,char*,char>(a, buf1, 8, 0, findpos, cmp);
-	BinarySearchB<int,aaaa*,aaaa>(7, buf2, 8, 0, findpos, &aaaa::compare);
+	BinarySearch(a, buf1, 8, 0, findpos);
+	BinarySearch(7, buf2, 8, 0, findpos, aaaa::cmp());
 
 
 	a = findpos;
@@ -129,7 +70,7 @@ void test_algo(int scale)
 	size_t tpos=1, spos=5, cnt=8;
 
 	elementmove(array,20,tpos,spos,cnt);
-	elementmove(ta, 20, tpos,spos,cnt);
+	elementmove(ta.begin(), ta.size(), tpos,spos,cnt);
 
 	for(k=0; k<sz; ++k)
 		printf("%i ", array[k]);

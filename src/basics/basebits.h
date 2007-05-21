@@ -87,8 +87,10 @@ extern inline ulong GetLowDWord(sint64 val)
 /// byte/word/dword access, 32bit limited
 extern inline ushort MakeWord(uchar byte0, uchar byte1)
 {
-	return	  (((ushort)byte0)      )
-			| (((ushort)byte1)<<0x08);
+	return (ushort)(
+			  (((ushort)byte0)      )
+			| (((ushort)byte1)<<0x08)
+			);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -123,8 +125,10 @@ extern inline void SwapTwoBytes(char *p)
 /// Swap the bytes within a 16-bit WORD.
 extern inline ushort SwapTwoBytes(ushort w)
 {
-    return	  ((w & 0x00FF) << 0x08)
-			| ((w & 0xFF00) >> 0x08);
+    return	 (ushort)(
+			  ((w & 0x00FF) << 0x08)
+			| ((w & 0xFF00) >> 0x08)
+			);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -629,18 +633,33 @@ inline bool has_zeros(unsigned long v)
 /// so x and y are combined into a single number that can be compared 
 /// easily and has the property that a number is usually close to another 
 /// if their x and y values are close. 
-inline unsigned long interleave(unsigned short x, unsigned short y)
+inline unsigned long interleave(unsigned long x, unsigned long y)
 {	// Interleave bits by Binary Magic Numbers 
-	const unsigned int B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF};
-	const unsigned int S[] = {1, 2, 4, 8};
-	x = (x | (x << S[3])) & B[3];
-	x = (x | (x << S[2])) & B[2];
-	x = (x | (x << S[1])) & B[1];
-	x = (x | (x << S[0])) & B[0];
-	y = (y | (y << S[3])) & B[3];
-	y = (y | (y << S[2])) & B[2];
-	y = (y | (y << S[1])) & B[1];
-	y = (y | (y << S[0])) & B[0];
+#if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
+	const unsigned long B[] = {ULLCONST(0x5555555555555555), ULLCONST(0x3333333333333333), ULLCONST(0x0F0F0F0F0F0F0F0F), ULLCONST(0x00FF00FF00FF00FF), ULLCONST(0x0000FFFF0000FFFF)};
+	const unsigned long S[] = {1, 2, 4, 8, 16};
+	x = ((x | (x << S[4])) & B[4]);
+	x = ((x | (x << S[3])) & B[3]);
+	x = ((x | (x << S[2])) & B[2]);
+	x = ((x | (x << S[1])) & B[1]);
+	x = ((x | (x << S[0])) & B[0]);
+	y = ((y | (y << S[4])) & B[4]);
+	y = ((y | (y << S[3])) & B[3]);
+	y = ((y | (y << S[2])) & B[2]);
+	y = ((y | (y << S[1])) & B[1]);
+	y = ((y | (y << S[0])) & B[0]);
+#else
+	const unsigned long B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF};
+	const unsigned long S[] = {1, 2, 4, 8};
+	x = ((x | (x << S[3])) & B[3]);
+	x = ((x | (x << S[2])) & B[2]);
+	x = ((x | (x << S[1])) & B[1]);
+	x = ((x | (x << S[0])) & B[0]);
+	y = ((y | (y << S[3])) & B[3]);
+	y = ((y | (y << S[2])) & B[2]);
+	y = ((y | (y << S[1])) & B[1]);
+	y = ((y | (y << S[0])) & B[0]);
+#endif
 	return x | (y << 1);
 }
 
@@ -853,6 +872,26 @@ inline uint64 pow10(uint exp)
 		}
 	}
 	return res;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Multiplication of two 64-bit integers, giving a 128-bit result.
+// Algorithm M in Knuth section 4.3.1, with the loop hand-unrolled.
+inline void mult64(const uint64 u, const uint64 v, uint64& high, uint64& low)
+{
+	const uint64 low_mask = LLCONST(0xffffffff);
+	const uint64 u0 = u & low_mask;
+	const uint64 u1 = u >> 32;
+	const uint64 v0 = v & low_mask;
+	const uint64 v1 = v >> 32;
+	uint64 t = u0 * v0;
+	low = t & low_mask;
+	t = u1 * v0 + (t >> 32);
+	uint64 w1 = t & low_mask;
+	uint64 w2 = t >> 32;
+	uint64 x = u0 * v1 + w1;
+	low += (x & low_mask) << 32;
+	high = u1 * v1 + w2 + (x >> 32);
 }
 
 NAMESPACE_END(basics)

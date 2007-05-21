@@ -501,10 +501,10 @@ bool map_session_data::do_walkstep(unsigned long tick, const coordinate &target,
 //->
 // move this check into "can_calk"
 // then the object will stop automatically
-	if( skill_check_moonlit(this,target.x,target.y) )
-	{
+	const int mcnt = maps[this->block_list::m].foreachinarea( CSkillMoonlitCount(this->block_list::id), target.x, target.y, 1, BL_PC);
+	if( mcnt>0 )
 		return false;
-	}
+
 //<-
 
 	if(this->status.party_id > 0)
@@ -513,8 +513,8 @@ bool map_session_data::do_walkstep(unsigned long tick, const coordinate &target,
 		if (p != NULL) {
 			int p_flag = 0;
 
-			block_list::foreachinmovearea(CPartySendHP(this->status.party_id, p_flag),
-				this->block_list::m, target.x-AREA_SIZE, target.y-AREA_SIZE, target.x+AREA_SIZE, target.y+AREA_SIZE, -dx, -dy, BL_PC);
+			maps[this->block_list::m].foreachinmovearea(CPartySendHP(this->status.party_id, p_flag),
+				target.x-AREA_SIZE, target.y-AREA_SIZE, target.x+AREA_SIZE, target.y+AREA_SIZE, -dx, -dy, BL_PC);
 			if (p_flag)
 				this->party_hp = -1;
 		}
@@ -586,8 +586,8 @@ void map_session_data::do_walkto()
 
 			if (guildflag)
 			{	
-				block_list::foreachinarea( CSkillGuildaura(this->block_list::id, this->status.guild_id, guildflag),
-					this->block_list::m,((int)this->block_list::x)-2, ((int)this->block_list::y)-2, ((int)this->block_list::x)+2, ((int)this->block_list::y)+2, BL_PC);
+				maps[this->block_list::m].foreachinarea( CSkillGuildaura(this->block_list::id, this->status.guild_id, guildflag),
+					this->block_list::x, this->block_list::y, 2, BL_PC);
 			}
 		}
 	}
@@ -1297,12 +1297,12 @@ int pc_authok(uint32 charid, uint32 login_id2, time_t connect_until_time, unsign
 			ShowError("Last_point_map %s not found\n", sd->status.last_point.mapname);
 
 		// try warping to a default map instead
-		for(i=0; i<map_num; ++i)
+		for(i=0; i<maps.size(); ++i)
 		{
 			if(maps[i].gat) 
 				break;
 		}
-		if( i>=map_num || !pc_setpos(*sd, maps[i].mapname, 100, 100, 0) ) {
+		if( i>=maps.size() || !pc_setpos(*sd, maps[i].mapname, 100, 100, 0) ) {
 			// if we fail again
 			clif_authfail(*sd, 0);
 			return 1;
@@ -3697,13 +3697,13 @@ bool pc_setpos(map_session_data &sd, const char *mapname_org, unsigned short x, 
 	ip = strchr(mapname, '.');
 	if(ip) *ip=0;
 
-	m=map_mapname2mapid(mapname);
+	m=maps.index_of(mapname);
 
 	if(m<0)
 	{
 		basics::ipset mapset;
-		if( map_mapname2ipport(mapname,mapset) )
-		{
+		if( maps.mapname2ipport(mapname,mapset) )
+		{	// is foreign map
 			if(sd.status.pet_id > 0 && sd.pd)
 			{
 				if(sd.pd->block_list::m != m && sd.pd->pet.intimate <= 0)
@@ -3768,7 +3768,7 @@ bool pc_setpos(map_session_data &sd, const char *mapname_org, unsigned short x, 
 
 	if(x >= maps[m].xs || y >= maps[m].ys)
 		x=y=0;
-	if((x==0 && y==0) || map_getcell(m,x,y,CELL_CHKNOPASS))
+	if((x==0 && y==0) || !maps[m].is_passable(x,y) )
 	{
 		if(x||y)
 		{
@@ -3778,7 +3778,7 @@ bool pc_setpos(map_session_data &sd, const char *mapname_org, unsigned short x, 
 		do {
 			x=rand()%(maps[m].xs-2)+1;
 			y=rand()%(maps[m].ys-2)+1;
-		} while(map_getcell(m,x,y,CELL_CHKNOPASS));
+		} while( !maps[m].is_passable(x,y) );
 	}
 
 	if(m == sd.block_list::m)
@@ -3886,7 +3886,7 @@ int pc_randomwarp(map_session_data &sd, int type)
 	do{
 		x=rand()%(maps[m].xs-2)+1;
 		y=rand()%(maps[m].ys-2)+1;
-	}while(map_getcell(m,x,y,CELL_CHKNOPASS_NPC) && (i++)<1000 );
+	}while( (!maps[m].is_passable(x,y) || maps[m].is_npc(x,y)) && (i++)<1000 );
 
 	if (i < 1000)
 		pc_setpos(sd,maps[m].mapname,x,y,type);
@@ -6593,15 +6593,13 @@ public:
  */
 int pc_calc_pvprank(map_session_data &sd)
 {
-	struct map_data &m=maps[sd.block_list::m];
+	struct map_intern &m=maps[sd.block_list::m];
 	if( (m.flag.pvp) )
 	{
 		uint32 old=sd.pvp_rank;
 		sd.pvp_rank=1;
 
-		block_list::foreachinarea( CPcCalcPvprank(sd),
-			sd.block_list::m,0,0,m.xs-1,m.ys-1,BL_PC);
-//		map_foreachinarea(pc_calc_pvprank_sub,sd.block_list::m,0,0,m.xs-1,m.ys-1,BL_PC,&sd);
+		maps[sd.block_list::m].foreach(CPcCalcPvprank(sd), BL_PC);
 
 		if(old!=sd.pvp_rank || sd.pvp_lastusers!=m.users)
 			clif_pvpset(sd,sd.pvp_rank,sd.pvp_lastusers=m.users,0);
@@ -6803,7 +6801,7 @@ int pc_spheal(map_session_data &sd)
 		}	// end addition [Valaris]
 	}
 
-	if (map_getcell(sd.block_list::m,sd.block_list::x,sd.block_list::y,CELL_CHKREGEN))
+	if( maps[sd.block_list::m].is_regen(sd.block_list::x,sd.block_list::y) )
 		a += a;
 
 	return a;
@@ -6835,7 +6833,7 @@ int pc_hpheal(map_session_data &sd)
 		}	// end addition [Valaris]
 	}
 
-	if (map_getcell(sd.block_list::m,sd.block_list::x,sd.block_list::y,CELL_CHKREGEN))
+	if( maps[sd.block_list::m].is_regen(sd.block_list::x,sd.block_list::y) )
 		a += a;
 
 	return a;

@@ -150,10 +150,10 @@ extern inline void _L_tobuffer(const basics::ipaddress &valin, uchar *&buf)
 }
 extern inline void _T_tobuffer(const time_t &valin, uchar *&buf)
 {	
-	*buf++ = (uchar)((valin & 0xFF000000)>> 0x18 );
-	*buf++ = (uchar)((valin & 0x00FF0000)>> 0x10 );
-	*buf++ = (uchar)((valin & 0x0000FF00)>> 0x08 );
 	*buf++ = (uchar)((valin & 0x000000FF)        );
+	*buf++ = (uchar)((valin & 0x0000FF00)>> 0x08 );
+	*buf++ = (uchar)((valin & 0x00FF0000)>> 0x10 );
+	*buf++ = (uchar)((valin & 0xFF000000)>> 0x18 );
 }
 
 extern inline void _W_tobuffer(const unsigned short &valin, uchar *&buf)
@@ -224,10 +224,10 @@ extern inline void _L_frombuffer(basics::ipaddress &valin, const uchar *&buf)
 }
 extern inline void _T_frombuffer(time_t &valin, const uchar *&buf)
 {	
-	valin =  ( ((uint32)(buf[3]))        )
-			|( ((uint32)(buf[2])) << 0x08)
-			|( ((uint32)(buf[1])) << 0x10)
-			|( ((uint32)(buf[0])) << 0x18);
+	valin =  ( ((uint32)(buf[0]))        )
+			|( ((uint32)(buf[1])) << 0x08)
+			|( ((uint32)(buf[2])) << 0x10)
+			|( ((uint32)(buf[3])) << 0x18);
 	buf += 4;
 }
 extern inline void _W_frombuffer(unsigned short &valin, const uchar *&buf)

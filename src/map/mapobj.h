@@ -760,6 +760,9 @@ public:
 	virtual int process(block_list& bl) const = 0;
 };
 
+// predeclaration
+struct map_intern;
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -767,6 +770,7 @@ public:
 struct block_list : public coordinate
 {
 //private:
+	friend struct map_intern;
 	/////////////////////////////////////////////////////////////////
 	static block_list bl_head;
 	static dbt* id_db;
@@ -778,13 +782,8 @@ public:
 	static block_list* from_name(const char *name)	{ return NULL; }
 
 	// functions that work on block_lists
-	static int foreachinarea(const CMapProcessor& elem, unsigned short m, int x0,int y0,int x1,int y1,object_t type);
-	static int foreachincell(const CMapProcessor& elem, unsigned short m,int x,int y,object_t type);
-	static int countoncell(unsigned short m, int x, int y, object_t type);
-	static int foreachinmovearea(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,object_t type);
-	static int foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int range,object_t type);
 	static int foreachpartymemberonmap(const CMapProcessor& elem, map_session_data &sd, bool area);
-	static int foreachobject(const CMapProcessor& elem,object_t type);
+	static int foreachobject(const CMapProcessor& elem, object_t type);
 	static skill_unit *skillunit_oncell(block_list &target, int x, int y, ushort skill_id, skill_unit *out_unit);
 
 
@@ -1097,6 +1096,34 @@ public:
 
 int map_freeblock_timer (int tid, unsigned long tick, int id, basics::numptr data);
 
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// Moonlit creates a 'safe zone' [celest]
+class CSkillMoonlitCount : public CMapProcessor
+{
+	ICL_EMPTY_COPYCONSTRUCTOR(CSkillMoonlitCount)
+	uint32 id;
+public:
+	CSkillMoonlitCount(uint32 i) : id(i)	{}
+	~CSkillMoonlitCount()	{}
+	virtual int process(block_list& bl) const
+	{
+		if( bl.block_list::id != id && bl.has_status(SC_MOONLIT) )
+			return 1;
+		return 0;
+	}
+};
 
 
 #endif//_MAPOBJ_H_
