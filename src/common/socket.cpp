@@ -711,7 +711,7 @@ bool session_checkbuffer(int fd, size_t sz)
 }
 
 
-int WFIFOPACKET(int fd, const basics::packetbase& p)
+int WFIFOPACKET(int fd, const basics::IPacket& p)
 {
 	if( !session_isValid(fd) )
 		return 0;

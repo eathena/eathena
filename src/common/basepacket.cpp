@@ -7,305 +7,362 @@ NAMESPACE_BEGIN(basics)
 ///////////////////////////////////////////////////////////////////////////////
 
 
-packetbase::packetbase()
-:	_buf(NULL)
-,	_len(0)
-,	_max(0)
-,	_fields()
-{ }
 
-packetbase::packetbase(size_t num_fields)
-:	_buf(NULL)
-,	_len(0)
-,	_max(0)
-,	_fields(num_fields)
-{ }
 
-packetbase::~packetbase()
-{
-	delete [] _buf;
-	_buf = NULL;
-	_len = 0;
-	_max = 0;
-	_fields.clear();
-}
-
-void packetbase::init()
-{
-	ptrvector<packetfield>::iterator field(_fields);
-	if( _buf == NULL )
-	{// create the buffer
-		for( _max = 0; field; field++ )
-			_max += field->_sizeof();
-		_len = _max;
-		_buf = new uint8[_len];
-		field = _fields;
-	}
-	// set the buffer of the fields
-	size_t off;
-	for( off = 0; field; field++ )
-	{
-		field->_setbuf(_buf + off);
-		off += field->_sizeof();
-	}
-}
-
-/// One of the fields was resized.
-/// Move data around and realloc the buffer if necessary.
-void packetbase::on_resize(packetfield& target, size_t new_len)
-{
-	ptrvector<packetfield>::iterator field(_fields);
-	size_t off;
-
-	// get target field
-	for( off = 0; field; field++ )
-	{
-		if( field() == &target )
-			break;// target found
-		off += field->_sizeof();
-	}
-	if( !field )
-		return;// not found - TODO error message or exception
-
-	size_t old_len = field->_sizeof();
-
-	if( new_len > old_len )
-	{// size increased
-		size_t needed = new_len - old_len;
-		size_t available = _max - _len;
-
-		if( available < needed )
-		{// not enough space - reallocate
-			_max += needed;
-			uint8* tmp = new uint8[_max];
-			memcpy(tmp, _buf, off+old_len);// start -> old_len
-			memset(tmp+off+old_len, 0, needed);// old_len -> new_len
-			memcpy(tmp+off+new_len, _buf+off+old_len, _len-off-old_len);// new_len -> end
-			delete [] _buf;
-			_buf = tmp;
-
-			// update field buffers up to the target
-			ptrvector<packetfield>::iterator it(_fields);
-			for( off = 0; it < field; it++ )
-			{
-				it->_setbuf(_buf + off);
-				off += it->_sizeof();
-			}
-			field->_setbuf(_buf + off);
-		}
-		else
-		{// move the rest of the data
-			memmove(_buf+off+new_len, _buf+off+old_len, _len-off-old_len);
-		}
-		_len += needed;
-	}
-	else
-	{// size decreased
-		// move the rest of the data back
-		memmove(_buf+off+new_len, _buf+off+old_len, _len-off-old_len);
-		_len -= old_len - new_len;
-	}
-
-	// update field buffers after the target
-	for( field++; field; field++ )
-	{
-		field->_setbuf(_buf + off);
-		off += field->_sizeof();
-	}
-}
-
-/// Length of the packet
-size_t packetbase::length() const
-{ 
-	return _len;
-}
-
-/// Data of the packet
-const uint8* packetbase::buffer() const
-{ 
-	return _buf;
-}
 
 ///////////////////////////////////////////////////////////////////////////////
-// Field with a fixed size
-//
+// Fixed-size packets and fields
+///////////////////////////////////////////////////////////////////////////////
 
-/// Size of this field
-template<size_t LENGTH>
-size_t staticfield<LENGTH>::_sizeof() const
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Field buffer with a fixed internal buffer.
+// Does not support resizing or being managed by a field buffer controller.
+
+template<size_t SZ>
+CBufFieldBuffer<SZ>::CBufFieldBuffer()
 {
-	return LENGTH;
+	memset(_buf, 0, SZ);
 }
 
-/// Set the buffer of the field
-template<size_t LENGTH>
-void staticfield<LENGTH>::_setbuf(uint8* buf)
+/// Returns the length of this buffer.
+template<size_t SZ>
+size_t CBufFieldBuffer<SZ>::length() const
 {
-	_buf = buf;
+	return SZ;
 }
+
+/// Returns the data of this buffer.
+template<size_t SZ>
+uint8* CBufFieldBuffer<SZ>::buffer() const
+{
+	return (uint8*)_buf;
+}
+
+/// Returns false.
+/// Resizing is not supported.
+template<size_t SZ>
+bool CBufFieldBuffer<SZ>::do_resize(size_t sz)
+{
+	return false;
+}
+
+/// Does nothing.
+/// Resizing is not supported.
+template<size_t SZ>
+void CBufFieldBuffer<SZ>::length(size_t sz)
+{}
+
+/// Does nothing.
+/// An internal buffer is always used.
+template<size_t SZ>
+void CBufFieldBuffer<SZ>::buffer(uint8* buf)
+{}
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// Fixed-size packet.
+
+template<size_t SZ>
+CFixPacket<SZ>::CFixPacket()
+{}
+
+template<size_t SZ>
+CFixPacket<SZ>::CFixPacket(uint8* buf, size_t sz)
+{
+	if( buf )
+		memcpy(_buf.buffer(), buf, min(sz,SZ));
+}
+
+template<size_t SZ>
+CFixPacket<SZ>::~CFixPacket()
+{}
+
+/// Returns the length of this packet.
+template<size_t SZ>
+size_t CFixPacket<SZ>::length() const
+{ 
+	return SZ;
+}
+
+/// Returns the data of this packet.
+template<size_t SZ>
+const uint8* CFixPacket<SZ>::buffer() const
+{ 
+	return _buf.buffer();
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Byte field
-field_B::operator uint8() const
+
+CFieldB::CFieldB(IFieldBuffer& buf, size_t off)
+:	_buf(buf)
+,	_off(off)
+{}
+
+CFieldB::operator uint8() const
 {
 	return this->operator()();
 }
 
-uint8 field_B::operator()() const
+uint8 CFieldB::operator()() const
 {
-	return _buf[0];
+	return _buf.buffer()[_off];
 }
 
-field_B& field_B::operator=(const field_B& b)
+CFieldB& CFieldB::operator=(const CFieldB& f)
 {
-	_buf[0] = b._buf[0];
+	_buf.buffer()[_off] = f._buf.buffer()[f._off];
 	return *this;
 }
 
-uint8 field_B::operator=(uint8 val)
+uint8 CFieldB::operator=(uint8 val)
 {
-	_buf[0] = val;
+	_buf.buffer()[_off] = val;
 	return val;
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Word field
-field_W::operator uint16() const
+
+CFieldW::CFieldW(IFieldBuffer& buf, size_t off)
+:	_buf(buf)
+,	_off(off)
+{}
+
+CFieldW::operator uint16() const
 {
 	return this->operator()();
 }
 
-uint16 field_W::operator()() const
+uint16 CFieldW::operator()() const
 {
+	uint8* buf = _buf.buffer() + _off;
 	return
-		( uint16(_buf[0])         )|
-		( uint16(_buf[1]) << 0x08 );
+		( uint16(buf[0])         )|
+		( uint16(buf[1]) << 0x08 );
 }
 
-field_W& field_W::operator=(const field_W& w)
+CFieldW& CFieldW::operator=(const CFieldW& f)
 {
-	memcpy(_buf, w._buf, 2);
+	uint8* buf = _buf.buffer() + _off;
+	uint8* fbuf = f._buf.buffer() + f._off;
+	memcpy(buf, fbuf, 2);
 	return *this;
 }
 
-uint16 field_W::operator=(uint16 val)
+uint16 CFieldW::operator=(uint16 val)
 {
-	_buf[0] = uint8( (val & 0x00FF)         );
-	_buf[1] = uint8( (val & 0xFF00) >> 0x08 );
+	uint8* buf = _buf.buffer() + _off;
+	buf[0] = uint8( (val & 0x00FF)         );
+	buf[1] = uint8( (val & 0xFF00) >> 0x08 );
 	return val;
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Long field
-field_L::operator uint32() const
+
+CFieldL::CFieldL(IFieldBuffer& buf, size_t off)
+:	_buf(buf)
+,	_off(off)
+{}
+
+CFieldL::operator uint32() const
 {
 	return this->operator()();
 }
 
-uint32 field_L::operator()() const
+uint32 CFieldL::operator()() const
 {
+	uint8* buf = _buf.buffer() + _off;
 	return
-		( uint32(_buf[0])         )|
-		( uint32(_buf[1]) << 0x08 )|
-		( uint32(_buf[2]) << 0x10 )|
-		( uint32(_buf[3]) << 0x18 );
+		( uint32(buf[0])         )|
+		( uint32(buf[1]) << 0x08 )|
+		( uint32(buf[2]) << 0x10 )|
+		( uint32(buf[3]) << 0x18 );
 }
 
-field_L& field_L::operator=(const field_L& w)
+CFieldL& CFieldL::operator=(const CFieldL& f)
 {
-	memcpy(_buf, w._buf, 4);
+	uint8* buf = _buf.buffer() + _off;
+	uint8* fbuf = f._buf.buffer() + f._off;
+	memcpy(buf, fbuf, 4);
 	return *this;
 }
 
-uint32 field_L::operator=(uint32 val)
+uint32 CFieldL::operator=(uint32 val)
 {
-	_buf[0] = uint8( (val & 0x000000FF)         );
-	_buf[1] = uint8( (val & 0x0000FF00) >> 0x08 );
-	_buf[2] = uint8( (val & 0x00FF0000) >> 0x10 );
-	_buf[3] = uint8( (val & 0xFF000000) >> 0x18 );
+	uint8* buf = _buf.buffer() + _off;
+	buf[0] = uint8( (val & 0x000000FF)         );
+	buf[1] = uint8( (val & 0x0000FF00) >> 0x08 );
+	buf[2] = uint8( (val & 0x00FF0000) >> 0x10 );
+	buf[3] = uint8( (val & 0xFF000000) >> 0x18 );
 	return val;
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////
-/// String - fixed size
-template<size_t LENGTH>
-field_staticstring<LENGTH>::operator const uint8*&()
+// String field - fixed size
+
+template<size_t SZ>
+CFieldStringFix<SZ>::CFieldStringFix(IFieldBuffer& buf, size_t off)
+:	_buf(buf)
+,	_off(off)
+{}
+
+template<size_t SZ>
+CFieldStringFix<SZ>::operator const char*()
 {
 	return this->operator()();
 }
 
-template<size_t LENGTH>
-const uint8*& field_staticstring<LENGTH>::operator()() const
+template<size_t SZ>
+const char* CFieldStringFix<SZ>::operator()() const
 {
-	return _buf;
+	return (const char*)(_buf.buffer() + _off);
 }
 
-template<size_t LENGTH>
-size_t field_staticstring<LENGTH>::length() const
+template<size_t SZ>
+size_t CFieldStringFix<SZ>::length() const
 {
-	return strnlen(_buf, LENGTH);
+	const char* str = (const char*)(_buf.buffer() + _off);
+	return strnlen(str, SZ);
 }
 
-template<size_t LENGTH>
-size_t field_staticstring<LENGTH>::capacity() const
+template<size_t SZ>
+size_t CFieldStringFix<SZ>::capacity() const
 {
-	return LENGTH;
+	return SZ;
 }
 
-template<size_t LENGTH>
-field_staticstring<LENGTH>& field_staticstring<LENGTH>::operator=(const field_staticstring<LENGTH>& str)
+template<size_t SZ>
+CFieldStringFix<SZ>& CFieldStringFix<SZ>::operator=(const CFieldStringFix<SZ>& f)
 {
-	strncpy(_buf, str._buf, LENGTH);
+	char* buf = (char*)(_buf.buffer() + _off);
+	char* str = (char*)(f._buf.buffer() + f._off);
+	strncpy(buf, str, SZ);
 	return *this;
 }
 
-template<size_t LENGTH>
-const uint8*& field_staticstring<LENGTH>::operator=(const uint8* str)
+template<size_t SZ>
+const char* CFieldStringFix<SZ>::operator=(const char* str)
 {
-	strncpy(_buf, str, LENGTH);
-	return *this;
+	char* buf = (char*)(_buf.buffer() + _off);
+	strncpy(buf, str, SZ);
+	return (const char*)buf;
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Array - fixed size
-template<class T, size_t SIZE>
-T& field_staticarray<T,SIZE>::operator[](size_t inx)
+// Array of fields - fixed size (the fields can be dynamic)
+
+template<class T, size_t TSZ, size_t LEN>
+CFieldStaticArrayFix<T,TSZ,LEN>::CFieldStaticArrayFix(IFieldBuffer& buf, size_t off=0)
+:	_buf(buf)
+,	_off(off)
+{}
+
+/// Returns the element at the target index.
+template<class T, size_t TSZ, size_t LEN>
+T CFieldStaticArrayFix<T,TSZ,LEN>::operator[](size_t idx)
 {
-	return _arr[i];
+	//## TODO when idx is out of range? throw an expection?
+	return T(_buf, _off + TSZ*idx);
 }
 
-template<class T, size_t SIZE>
-size_t field_staticarray<T,SIZE>::_sizeof() const
+/// Returns the number of elements in this array.
+template<class T, size_t TSZ, size_t LEN>
+size_t CFieldStaticArrayFix<T,TSZ,LEN>::length() const
 {
-	size_t size = 0;
-	size_t i;
-	for( i = 0; i < SIZE; i++ )
-		size += _arr[i]._sizeof();
-	return size;
+	return LEN;
 }
 
-template<class T, size_t SIZE>
-void field_staticarray<T,SIZE>::_setbuf(uint8* buf)
-{
-	size_t off = 0;
-	size_t i;
-	for( i = 0; i < SIZE; i++ )
-	{
-		_arr[i]._setbuf(buf + off);
-		off += _arr[i]._sizeof();
-	}
-}
+
 
 
 
 ///////////////////////////////////////////////////////////////////////////////
+// Dynamic packets and fields
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+//## TODO
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+class CTestFixPacket : public CFixPacket<20>
+{
+public:
+	CTestFixPacket()
+	:	CFixPacket<20>()
+	,	b(_buf)
+	,	w(_buf, 1)
+	,	l(_buf, 3)
+	,	str(_buf, 7)
+	,	arr(_buf, 17)
+	{ }
+	CTestFixPacket(uint8* buf, size_t sz=20)
+	:	CFixPacket<20>(buf,sz)
+	,	b(_buf)
+	,	w(_buf, 1)
+	,	l(_buf, 3)
+	,	str(_buf, 7)
+	,	arr(_buf, 17)
+	{}
+
+	CFieldB b;
+	CFieldW w;
+	CFieldL l;
+	CFieldStringFix<10> str;
+	CFieldStaticArrayFix<CFieldB,1,3> arr;
+};
+
+void dump(IPacket& p)
+{
+	size_t i;
+	for( i = 0; i < p.length(); i++ )
+		printf("%02X ", p.buffer()[i]);
+	printf("size=%d\n", p.length());
+}
+
 void test_packet(void)
 {
 #if defined(DEBUG)
-	//## TODO
+	{// CFixPacket
+		CTestFixPacket p;
+		dump(p);
+		p.b = 100;
+		dump(p);
+		p.w = 10000;
+		dump(p);
+		p.l = 100000000 + p.b + p.w;
+		dump(p);
+		p.str = "ABCD";
+		dump(p);
+		p.str = "1234567890 OVER!!!";
+		dump(p);
+		p.arr[0] = 1;
+		dump(p);
+		p.arr[1] = 2;
+		dump(p);
+		p.arr[2] = 3;
+		dump(p);
+	}
 #endif//DEBUG
 }
-
 
 
 ///////////////////////////////////////////////////////////////////////////////

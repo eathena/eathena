@@ -17,187 +17,334 @@ NAMESPACE_BEGIN(basics)
 Concept:
 	A packet has an internal buffer with data and a set of fields.
 	Every field of the packet is a public object in the packet.
-	These objects point to their corresponding offsets in the packet buffer.
+	These objects point to their corresponding offsets in the field buffer.
 
 	The number of fields is fixed by design.
 	When there is a dynamic number of fields in a packet, they are grouped 
 	together as a dynamic field.
 	ex: an array of inventory items
 
-	The packet contains an array with pointers to the field objects in-order.
-	Each field knows it's size, so to get the offsets we just iterate 
-	the array and add-up the sizes.
+	The packet contains one or more internal field buffers and, if required, 
+	a field buffer controller.
 
 	Resizing a dynamic field:
 	- the data of the field is being changed so the field packs it's data if necessary
 	  ex: removing an entry in the middle of an array
-	- the field invokes packetbase::on_resize(packetfield& target, size_t new_len)
-	  with itself and the new length.
-	- the packet reallocs, moves data around and updates the buffers of the 
-	  fields as necessary.
-	- the field updates it's length and does final changes to the data
+	- the field requests the internal IFieldBuffer to resize
+	- IFieldBuffer applies restrictions to the size and requests IFieldBufferController to resize
+	- IFieldBufferController applies more restrictions to the size and resizes IFieldBuffer
+	- the field does final changes to the data
+
+              ,---.  ,---.  ,---.  ,-----.  ,-----.  ,-----.
+,-------------| B |--| W |--| L |--| Str |--| Arr |--| ... |--.
+| IPacket     `---'  `---'  `---'  `-----'  `-----'  `-----'  |
+|               /      /      /       /        /        /     |
+|          ,.../....../....../......./......../......../      |
+|          |                                                  |
+|         \|/                                                 |
+|          `                                                  |
+|   ,--------------.      _                                   |
+|   | ,--------------.  .:....................                |
+|   `-| ,--------------. `-                  |                |
+|     `-| IFieldBuffer |                     |                |
+|       `--------------'                    \|/               |
+|              |                             `                |
+|              |                 ,------------------------.   |
+|              |                 | IFieldBufferController |   |
+|             \|/                `------------------------'   |
+|              `                                              |
+|  ,-------------------------------------------------------.  |
+|  | internal buffer                                       |  |
+|  `-------------------------------------------------------'  |
+`-------------------------------------------------------------'
+
+	IPacket - public packet interface
+
+	B,W,L,Str,Arr,... - public fields, linked internally to one or more field buffers
+
+	IFieldBuffer - updatable buffer used internally by the public fields
+
+	IFieldBufferController - updates and controls the field buffers
+		Handles internal buffer changes like reallocating or resizing.
+		It is invoked by an IFieldBuffer when it wants to resize.
+		Only needed for dynamic packets/fields.
+
+	internal buffer - where the data is actually stored
+		It is probably owned by the buffer controller.
 
 */
 
 
 
-//////////////////////////////////////////////////////////////////////////
-/// test function
+/// test packet functions
 void test_packet(void);
 
+/// The client can handle packet sizes up to 20480, 20k.
+#define CLIENTPACKET_MAX 20480
+
+
+
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
-/// base packet
-class packetbase
-{
+// Abstract base definitions
+///////////////////////////////////////////////////////////////////////////////
 
-	friend class packetfield;
+
+
+
+
+/// Packet
+class IPacket
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Returns the length of this packet.
+	virtual size_t length() const=0;
+
+	/// Returns the data of this packet.
+	virtual const uint8* buffer() const=0;
+};
+
+
+
+/// Field buffer
+class IFieldBuffer
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Returns the length of this buffer.
+	virtual size_t length() const=0;
+
+	/// Returns the data of this buffer.
+	virtual uint8* buffer() const=0;
+
+	/// Tries to resize the buffer, applying restrictions to the size.
+	/// There is no warranty that the length will change to the requested 
+	/// value or change at all.
+	/// Returns if the buffer size changed.
+	virtual bool do_resize(size_t sz)=0;
+
+	/// Sets the length of the buffer
+	virtual void length(size_t sz)=0;
+
+	/// Sets the data of this buffer.
+	virtual void buffer(uint8* buf)=0;
+};
+
+
+
+/// FieldBuffer controler
+class IFieldBufferController
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Changes the size of the target buffer. There is no warranty that the 
+	/// size will change to the requested value or change at all.
+	/// Returns if the buffer size changed.
+	virtual bool do_resize(IFieldBuffer& buf, size_t new_len)=0;
+};
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Fixed-size packets and fields
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+/// Field buffer with a fixed internal buffer.
+/// Does not support resizing or being managed by a field buffer controller.
+///
+/// @param SZ Size of the buffer
+template<size_t SZ>
+class CBufFieldBuffer : public IFieldBuffer
+{
+public:
+	CBufFieldBuffer();
 
 public:
 	///////////////////////////////////////////////////////////////////////////
-	/// Length of the packet data
-	size_t length() const;
-	/// Data of the packet
-	const uint8* buffer() const;
+	/// Returns the length of this buffer.
+	virtual size_t length() const;
 
+	/// Returns the data of this buffer.
+	virtual uint8* buffer() const;
+
+	/// Returns false.
+	/// Resizing is not supported.
+	virtual bool do_resize(size_t sz);
+
+	/// Does nothing.
+	/// Resizing is not supported.
+	virtual void length(size_t sz);
+
+	/// Does nothing.
+	/// An internal buffer is always used.
+	virtual void buffer(uint8* buf);
+
+private:
+	/// Internal buffer
+	uint8 _buf[SZ];
+};
+
+
+
+/// Fixed-size packet.
+///
+/// @param SZ Size of the buffer
+template<size_t SZ=CLIENTPACKET_MAX>
+class CFixPacket : public IPacket
+{
 protected:
-	///////////////////////////////////////////////////////////////////////////
-	packetbase();
-	packetbase(size_t num_fields);
+	CFixPacket();
+	CFixPacket(uint8* buf, size_t sz=SZ);
 public:
-	virtual ~packetbase();
+	virtual ~CFixPacket();
 
-private:
+public:
 	///////////////////////////////////////////////////////////////////////////
-	/// One of the fields was resized.
-	/// Move data around and realloc the buffer if necessary.
-	void on_resize(packetfield& field, size_t new_len);
+	/// Returns the length of this packet.
+	virtual size_t length() const;
 
-	/// Allocate the buffer if it doesn't exist
-	void init();
+	/// Returns the data of this packet.
+	virtual const uint8* buffer() const;
 
-	// internal buffer with packet data
-	uint8* _buf;
-	size_t _len;
-	size_t _max;
-
-	// array of fields in-order
-	ptrvector<packetfield> _fields;
-
-};
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-/// Field of a packet
-class packetfield
-{
-
-	friend class packetbase;
-
-private:
-	///////////////////////////////////////////////////////////////////////////
-	/// Size of this field
-	virtual size_t _sizeof() const=0;
-
-	/// Set the buffer of the field
-	virtual void _setbuf(uint8* buf);
-
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Fixed size fields
-//
-
-/// Field with a fixed size
-template<size_t LENGTH>
-class staticfield : public packetfield
-{
 protected:
-	// pointer to the data
-	uint8* _buf;
-
-private:
-	///////////////////////////////////////////////////////////////////////////
-	/// Size of this field
-	virtual size_t _sizeof() const=0;
-
-	/// Set the buffer of the field
-	virtual void _setbuf(uint8* buf);
+	/// Packet data
+	CBufFieldBuffer<SZ> _buf;
 };
+
 
 
 /// Byte field
-class field_B : public staticfield<1>
+class CFieldB
 {
 public:
+	CFieldB(IFieldBuffer& buf, size_t off=0);
+
 	operator uint8() const;
 	uint8 operator()() const;
 
-	field_B& operator=(const field_B& b);
+	CFieldB& operator=(const CFieldB& f);
 	uint8 operator=(uint8 val);
+
+private:
+	IFieldBuffer& _buf;
+	size_t _off;
 };
+
 
 
 /// Word field
-class field_W : public staticfield<2>
+class CFieldW
 {
 public:
+	CFieldW(IFieldBuffer& buf, size_t off=0);
+
 	operator uint16() const;
 	uint16 operator()() const;
 
-	field_W& operator=(const field_W& w);
+	CFieldW& operator=(const CFieldW& f);
 	uint16 operator=(uint16 val);
+
+private:
+	IFieldBuffer& _buf;
+	size_t _off;
 };
+
 
 
 /// Long field
-class field_L : public staticfield<4>
+class CFieldL
 {
 public:
+	CFieldL(IFieldBuffer& buf, size_t off=0);
+
 	operator uint32() const;
 	uint32 operator()() const;
 
-	field_L& operator=(const field_L& w);
+	CFieldL& operator=(const CFieldL& l);
 	uint32 operator=(uint32 val);
-};
-
-
-/// String - fixed size
-template<size_t LENGTH>
-class field_staticstring : public staticfield<LENGTH>
-{
-public:
-	operator const uint8*&();
-	const uint8*& operator()() const;
-	size_t length() const;
-	size_t capacity() const;
-
-	field_staticstring<LENGTH>& operator=(const field_staticstring<LENGTH>& str);
-	const uint8*& operator=(const uint8* str);
-};
-
-/// Array - fixed size
-/// T must be derived from packetfield
-template<class T, size_t SIZE>
-class field_staticarray : public packetfield
-{
-public:
-	T& operator[](size_t inx);
 
 private:
-	///////////////////////////////////////////////////////////////////////////
-	/// Size of this field
-	virtual size_t _sizeof() const=0;
-
-	/// Set the buffer of the field
-	virtual void _setbuf(uint8* buf);
-
-	/// Array of fields
-	T _arr[SIZE];
+	IFieldBuffer& _buf;
+	size_t _off;
 };
+
+
+
+/// Fixed-size string
+///
+/// @param SZ Size of the string
+template<size_t SZ>
+class CFieldStringFix
+{
+public:
+	CFieldStringFix(IFieldBuffer& buf, size_t off=0);
+
+	/// Value of the string
+	operator const char*();
+	const char* operator()() const;
+
+	/// Length of the string.
+	size_t length() const;
+
+	/// Size of this field
+	size_t capacity() const;
+
+	CFieldStringFix<SZ>& operator=(const CFieldStringFix<SZ>& str);
+	const char* operator=(const char* str);
+
+private:
+	IFieldBuffer& _buf;
+	size_t _off;
+};
+
+
+
+/// Static array of fixed-size fields
+///
+/// @param T Type of field with a (IFieldBuffer& buf, size_t off) constructor
+/// @param TSZ Size of each field
+/// @param LEN Size of the array (number of sub-fields)
+template<class T, size_t TSZ, size_t LEN>
+class CFieldStaticArrayFix
+{
+public:
+	CFieldStaticArrayFix(IFieldBuffer& buf, size_t off=0);
+
+	/// Returns the element at the target index.
+	T operator[](size_t idx);
+
+	/// Returns the number of elements in this array.
+	size_t length() const;
+
+private:
+	IFieldBuffer& _buf;
+	size_t _off;
+};
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Dynamic packets and fields
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+//## TODO
+
+
 
 
 

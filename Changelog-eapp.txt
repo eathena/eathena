@@ -1,5 +1,8 @@
 Date	Added
 
+2007/05/21
+	* Reworked the packet design taking into consideration Shinomori's 
+	  comments and problems i had trying to make the array field work.
 2007/05/18
 	* Moving basepacket from basics to common.
 	* Fixed-size packet fields (B/W/L/staticstring/staticarray).
