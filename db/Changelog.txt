@@ -1,3 +1,8 @@
+05/22
+	* Merged item_db, mob_db, mob_skill_db [Playtester]
+	- various item fixes
+	- added mostly safe to use Thor Volcano mobs & skills
+	- currently they only have their 11.2 drops
 05/20
 	* Set Chase Walk's cast time to 1200ms [ultramage]
 05/12
