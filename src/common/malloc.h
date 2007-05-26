@@ -211,7 +211,7 @@ struct simple_buffer
 		: array(new T[sz])
 	{
 		if(clearmem)
-			memset(this->array,0,sz*sizeof(T))
+			memset(this->array,0,sz*sizeof(T));
 	}
 	~simple_buffer()
 	{
