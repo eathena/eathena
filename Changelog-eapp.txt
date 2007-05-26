@@ -1,4 +1,9 @@
 Date	Added
+2007/05/26
+	* Current state of the packet code: [FlavioJS]
+	- Concept was reworked again due to problems in arrays of dynamic fields.
+	- Code of functions moved to the header while the concept is not final
+	  (while the base functionality isn't fully implemented).
 2007/05/21
 	* code examples
 	* reworking map interface and associated components,
