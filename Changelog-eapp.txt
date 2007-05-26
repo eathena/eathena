@@ -1,5 +1,7 @@
 Date	Added
 2007/05/26
+	* Fixed some errors in the code and commented out CChildIdxFieldBuffer 
+	  because of an error in cygwin that i don't know how to fix.
 	* Current state of the packet code: [FlavioJS]
 	- Concept was reworked again due to problems in arrays of dynamic fields.
 	- Code of functions moved to the header while the concept is not final

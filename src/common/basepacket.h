@@ -79,13 +79,13 @@ Composite field:
 |                                          |
 `------------------------------------------'
 
-	ACompositeField - a field that is composed or other sub-fields
+	ACompositeField - a field that is composed of other sub-fields
 
-	sub-fields... - public fields, linked internaly to the internal field handler of ACompositeField
+	sub-fields... - public fields, linked internaly to the field handler of ACompositeField
 
 	CChildIdxFieldHandler - an IFieldHandler that uses a CChildBuffer for buffer
 
-	CChildBuffer - buffer that is linked to another IFieldHandler for the data
+	CChildBuffer - buffer that is linked to another IFieldHandler for data
 
 --------------------------------------------------
 
@@ -507,7 +507,7 @@ public:
 		if( _buf.length() < _pos(id) && !_buf.resize(_pos(id), out) )
 		{
 			//## critical error, bad packet definition?
-			printf("[Debug] CIdxFieldHandler::init(%u,%u,%u): resize failed - bad packet definition?\n", (uint)id, (uint)off, (uint)len);
+			printf("[Debug] CIdxFieldHandler::setup(%u,%u,%u): resize failed - bad packet definition?\n", (uint)id, (uint)off, (uint)len);
 			_pos(id).off = 0;
 			_pos(id).len = 0;
 		}
@@ -607,7 +607,7 @@ protected:
 };
 
 
-
+/*
 /// Field buffer that uses another field buffer for data.
 /// Ids are indexes in the position array.
 ///
@@ -617,7 +617,7 @@ class CChildIdxFieldBuffer : public CIdxFieldHandler<P,CChildBuffer>
 {
 public:
 	CChildIdxFieldBuffer()
-	:	CChildIdxFieldBuffer<P,CChildBuffer>()
+	:	CIdxFieldHandler<P,CChildBuffer>()
 	{}
 	virtual ~CChildIdxFieldBuffer()
 	{}
@@ -626,9 +626,12 @@ public:
 	/// Initializes this child buffer.
 	void Init(IFieldHandler* buf, size_t id, size_t off, size_t len)
 	{
+		//## wtf? why is cygwin saying _buf is undeclared here?
+		// _buf has protected access in CIdxFieldHandler... ò.ó /pif
 		_buf.Init(buf, id, off, len);
 	}
 };
+//*/
 
 
 
@@ -722,12 +725,12 @@ class AField
 protected:
 	AField()
 	:	_buf(NULL)
-	,	_id(~0)
+	,	_id(~size_t(0))
 	{}
 	virtual ~AField()
 	{
 		_buf = NULL;
-		_id = ~0;
+		_id = ~size_t(0);
 	}
 
 public:
@@ -759,7 +762,7 @@ protected:
 
 
 /*
-//## TODO why is this erroring?
+//## uncomment when the error at CChildIdxFieldBuffer is delt with
 
 /// Abstract composite field
 ///
@@ -798,9 +801,9 @@ protected:
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// Field handler
-	CChildIdxFieldBuffer<P> _buf;
+	NFieldHandler::CChildIdxFieldBuffer<P> _buf;
 };
-*/
+//*/
 
 
 
@@ -1014,7 +1017,7 @@ public:
 	/// Returns the length of this string.
 	size_t length() const
 	{
-		return strnlen((char*)_buf->data(_id));
+		return strnlen((const char*)_buf->data(_id), SZ);
 	}
 
 	/// Returns the capacity of this field.
