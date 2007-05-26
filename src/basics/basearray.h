@@ -1015,7 +1015,7 @@ public:
 	explicit stack(size_t sz, const T& e)
 		:  vector<T>()
 	{	// we are clean and empty here
-		this->convert_append_multiple(e, cnt);
+		this->convert_append_multiple(e, sz);
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// with variable argument array (use with care)
@@ -1176,7 +1176,7 @@ public:
 	explicit fifo(size_t sz, const T& e)
 		: base()
 	{	// we are clean and empty here
-		this->convert_append_multiple(e, cnt);
+		this->convert_append_multiple(e, sz);
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// with variable argument array (use with care)
@@ -1455,7 +1455,7 @@ public:
 		: vector<T,A>()
 		, config(true,false)
 	{	// we are clean and empty here
-		this->convert_append_multiple(e, cnt);
+		this->convert_append_multiple(e, sz);
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// with variable argument array (use with care)

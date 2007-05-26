@@ -514,7 +514,7 @@ void test_socket()
 		socklen_t socklen = sizeof(client_address);
 
 		client = accept(server,(struct sockaddr*)&client_address, &socklen);
-		if(client==-1) 
+		if( client==INVALID_SOCKET ) 
 		{	// same here, app might have passed away
 			perror("accept");
 			return;
