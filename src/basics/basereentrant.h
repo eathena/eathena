@@ -7,16 +7,15 @@
 
 const char* strerror(int err, char* buf, size_t size);
 
-
-#ifdef WIN32
-
+#if defined(WIN32) || defined(_MINGW)
 char* strtok_r( char *strToken, const char *strDelimit, char**pt);
+#endif
 
+#if defined(WIN32)
 inline const char* strerror_r(int err, char* buf, size_t size)
 {
 	return strerror(err, buf, size);
 }
-
 #endif
 
 

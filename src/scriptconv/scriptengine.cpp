@@ -42,8 +42,16 @@ void buildEngine(const char*filename)
 
 bool parserstorage::init(const char* enginefile)
 {
-	if(parser_config) delete parser_config;
-	if(parser) delete parser;
+	if(this->parser_config)
+	{
+		delete this->parser_config;
+		this->parser_config=NULL;
+	}
+	if(this->parser)
+	{
+		delete this->parser;
+		this->parser=NULL;
+	}
 	if(enginefile)
 	{
 		try
@@ -79,7 +87,7 @@ bool parserstorage::init(const char* enginefile)
 		}
 	}
 
-	this->parser = new basics::CParser_CommentStore(parser_config);
+	this->parser = new basics::CParser_CommentStore(this->parser_config);
 	if (!this->parser)
 	{
 		fprintf(stderr, "Error creating parser\n");

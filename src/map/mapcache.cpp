@@ -828,7 +828,7 @@ typedef basics::TObjPtrCount<mapcacheentry> mapcacheentry_ptr;
 ///////////////////////////////////////////////////////////////////////////////
 /// mapcache.
 /// holds a list of mapcache entries and a list of name references.
-/// only exists for at startup, can be removed when loading is finished
+/// only exists at startup, can be removed when loading is finished
 struct mapcache
 {
 	///////////////////////////////////////////////////////////////////////////

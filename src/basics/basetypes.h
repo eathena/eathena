@@ -879,7 +879,16 @@ typedef unsigned long long	uint64;
 #define snprintf			_snprintf
 #define vsnprintf			_vsnprintf
 #define vswprintf			_vsnwprintf
-#endif
+#endif//defined(_MSC_VER) || defined(__BORLANDC__)
+
+
+#if defined(_MINGW)
+int scandir(const char *dir, struct dirent ***namelist, int (*select)(const struct dirent *), int (*compar)(const struct dirent **, const struct dirent **));
+int alphasort(const struct dirent **a, const struct dirent **b);
+char * strndup (const char *s, size_t n);
+size_t strnlen (const char *string, size_t maxlen);
+#endif//defined(_MINGW)
+
 
 
 //////////////////////////////////////////////////////////////////////////

@@ -3,7 +3,7 @@
 
 USING_NAMESPACE(basics)
 
-#ifdef WIN32
+#if defined(WIN32) || defined(_MINGW)
 
 char* strtok_r( char *strToken, const char *strDelimit, char**pt)
 {
@@ -34,7 +34,6 @@ char* strtok_r( char *strToken, const char *strDelimit, char**pt)
 	}
 	return NULL;
 }
-
 #endif
 
 

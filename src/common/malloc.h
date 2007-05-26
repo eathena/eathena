@@ -207,7 +207,7 @@ template<typename T>
 struct simple_buffer
 {
 	T* array;
-	simple_buffer(size_t sz, bool clearmen=false)
+	simple_buffer(size_t sz, bool clearmem=false)
 		: array(new T[sz])
 	{
 		if(clearmem)
