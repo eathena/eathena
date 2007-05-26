@@ -302,10 +302,14 @@ class CFile : public global, public noncopyable
 protected:
 	FILE *cFile;
 public:
-	CFile() : cFile(NULL)
+	CFile()
+		: global(), noncopyable(), cFile(NULL)
 	{}
-	CFile(const char* name, const char* mode="rb") : cFile(NULL)
-							{ open(name, mode); }
+	CFile(const char* name, const char* mode="rb")
+		: global(), noncopyable(), cFile(NULL)
+	{
+		open(name, mode);
+	}
 	~CFile()				{ close(); }
 	bool ok()				{ return (cFile!=NULL); }
 

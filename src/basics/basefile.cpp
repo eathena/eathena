@@ -573,7 +573,7 @@ void file_iterator::findclose()
 #endif
 
 file_iterator::file_iterator(const string<>& spath, const string<>& pat, bool recurse)
-	: recursive(recurse), pattern(pat)
+	: noncopyable(), recursive(recurse), pattern(pat)
 {
 	string<> path = spath;
 	if( !is_folder(path) )
@@ -583,7 +583,7 @@ file_iterator::file_iterator(const string<>& spath, const string<>& pat, bool re
 }
 
 file_iterator::file_iterator(const string<>& pat, bool recurse)
-	: recursive(recurse), pattern(pat)
+	: noncopyable(), recursive(recurse), pattern(pat)
 {
 	string<> path = pat;
 	if( this->pattern.length()==0 )

@@ -414,7 +414,7 @@ const value_empty& value_string::operator&=(const variant& v)
 
 
 value_array::value_array(const vector<variant>& v)
-	: value(v)
+	: value_empty(), value(v)
 {}
 const value_array& value_array::convert(value_empty& convertee, const size_t sz, const variant& elem)
 {
@@ -601,7 +601,7 @@ void value_array::operate(const variant& v, const variant& (variant::*func)(cons
 ///////////////////////////////////////////////////////////////////////////
 // default constructor
 value_named::value_named()
-	: value(new variant)
+	: value_extern(), value(new variant)
 {}
 ///////////////////////////////////////////////////////////////////////////
 // type constructors
@@ -614,7 +614,7 @@ value_named::value_named(const variant_host::reference& parent, const string<>& 
 
 value_named::~value_named()
 {
-	//printf("destroy %p value_named\n", this);
+	//printf("destroy %p value_named\n", static_cast<void*>(this));
 	if(value) delete value;
 }
 
@@ -1326,7 +1326,7 @@ void test_variant()
 		c += a;
 		vt = c.type();
 		double xy = c();
-		printf("%lf\n",xy);
+		printf("%f\n",xy);
 
 		a=10, b=3;
 

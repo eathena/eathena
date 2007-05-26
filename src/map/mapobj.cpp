@@ -1020,8 +1020,6 @@ int block_list::foreachobject(const CMapProcessor& elem, object_t type)
 				bl_list[bl_list_count++]=quickobj_list[i];
 		}
 	}
-
-
 	for(i=blockcount;i<bl_list_count;++i)
 	{
 		if( bl_list[i]->prev || bl_list[i]->next )

@@ -52,9 +52,11 @@ struct iprulelist_t : protected Mutex
 	slist<iprule_t> list;
 public:
 	iprulelist_t()
+		: Mutex()
 	{}
 	iprulelist_t(const iprulelist_t& a)
-		: list(a.list)
+		: Mutex()
+		, list(a.list)
 	{}
 	const iprulelist_t& operator=(const iprulelist_t& a)
 	{
@@ -117,6 +119,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// constructor.
 	iprulelist()
+		: iprulelist_t()
 	{}
 	///////////////////////////////////////////////////////////////////////////
 	/// destructor.

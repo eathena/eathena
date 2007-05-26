@@ -168,7 +168,7 @@ protected:
 public:
 	virtual ~value_empty()
 	{
-		//printf("destroy %p value_empty\n", this);
+		//printf("destroy %p value_empty\n", static_cast<void*>(this));
 	}
 	///////////////////////////////////////////////////////////////////////////
 	//
@@ -373,11 +373,12 @@ protected:
 	///////////////////////////////////////////////////////////////////////
 	// default constructor/destructor
 	value_invalid()
+		: value_empty()
 	{}
 public:
 	virtual ~value_invalid()
 	{
-		//printf("destroy %p value_invalid\n", this);
+		//printf("destroy %p value_invalid\n", static_cast<void*>(this));
 	}
 	///////////////////////////////////////////////////////////////////////
 	//
@@ -453,18 +454,17 @@ protected:
 	sint64 value;
 	///////////////////////////////////////////////////////////////////////////
 	// default constructor/destructor
-	value_integer() : value(0)
-	{}
+	value_integer() : value_empty(), value(0)							{}
 	///////////////////////////////////////////////////////////////////////////
 	// type constructors
-	explicit value_integer(const int v) : value(v)		{}
-	explicit value_integer(const uint v) : value(v)		{}
-	explicit value_integer(const sint64 v) : value(v)	{}
-	explicit value_integer(const uint64 v) : value(v)	{}
+	explicit value_integer(const int v) : value_empty(), value(v)		{}
+	explicit value_integer(const uint v) : value_empty(), value(v)		{}
+	explicit value_integer(const sint64 v) : value_empty(), value(v)	{}
+	explicit value_integer(const uint64 v) : value_empty(), value(v)	{}
 public:
 	virtual ~value_integer()
 	{
-		//printf("destroy %p value_integer\n", this);
+		//printf("destroy %p value_integer\n", static_cast<void*>(this));
 	}
 	///////////////////////////////////////////////////////////////////////////
 	//
@@ -552,15 +552,14 @@ protected:
 	double value;
 	///////////////////////////////////////////////////////////////////////////
 	// default constructor/destructor
-	value_float() : value(0)
-	{}
+	value_float() : value_empty(), value(0)							{}
 	///////////////////////////////////////////////////////////////////////////
 	// type constructors
-	explicit value_float(const double v) : value(v)		{}
+	explicit value_float(const double v) : value_empty(), value(v)	{}
 public:
 	virtual ~value_float()
 	{
-		//printf("destroy %p value_float\n", this);
+		//printf("destroy %p value_float\n", static_cast<void*>(this));
 	}
 	///////////////////////////////////////////////////////////////////////////
 	//
@@ -644,16 +643,15 @@ protected:
 	string<> value;
 	///////////////////////////////////////////////////////////////////////////
 	// default constructor/destructor
-	value_string()
-	{}
+	value_string() : value_empty()										{}
 	///////////////////////////////////////////////////////////////////////////
 	// type constructors
-	explicit value_string(const char* v) : value(v)		{}
-	explicit value_string(const string<>& v) : value(v)	{}
+	explicit value_string(const char* v) : value_empty(), value(v)		{}
+	explicit value_string(const string<>& v) : value_empty(), value(v)	{}
 public:
 	virtual ~value_string()
 	{
-		//printf("destroy %p value_string\n", this);
+		//printf("destroy %p value_string\n", static_cast<void*>(this));
 	}
 	///////////////////////////////////////////////////////////////////////////
 	//
@@ -729,15 +727,14 @@ protected:
 	const char* value;
 	///////////////////////////////////////////////////////////////////////////
 	// default constructor/destructor
-	value_conststring() : value(NULL)
-	{}
+	value_conststring() : value_empty(), value(NULL)					{}
 	///////////////////////////////////////////////////////////////////////////
 	// type constructors
-	explicit value_conststring(const char* v) : value(v)	{}
+	explicit value_conststring(const char* v) : value_empty(), value(v)	{}
 public:
 	virtual ~value_conststring()
 	{
-		//printf("destroy %p value_conststring\n", this);
+		//printf("destroy %p value_conststring\n", static_cast<void*>(this));
 	}
 	///////////////////////////////////////////////////////////////////////////
 	//
@@ -922,20 +919,22 @@ protected:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// default constructor/destructor
-	value_extern()
+	value_extern() : value_empty()
 	{}
 	///////////////////////////////////////////////////////////////////////////
 	// type constructors
 	explicit value_extern(const variant_host& parent)
-		: parent_ref(parent.access())
+		: value_empty()
+		, parent_ref(parent.access())
 	{}
 	explicit value_extern(const variant_host::reference& parent)
-		: parent_ref(parent)
+		: value_empty()
+		, parent_ref(parent)
 	{}
 public:
 	virtual ~value_extern()
 	{
-		//printf("destroy %p value_extern\n", this);
+		//printf("destroy %p value_extern\n", static_cast<void*>(this));
 	}
 	///////////////////////////////////////////////////////////////////////////
 	//
@@ -1012,7 +1011,8 @@ protected:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// default constructor/destructor
-	value_unnamed() : value(NULL)
+	value_unnamed()
+		: value_extern(), value(NULL)
 	{}
 	///////////////////////////////////////////////////////////////////////////
 	// type constructors
@@ -1025,7 +1025,7 @@ public:
 public:
 	virtual ~value_unnamed()
 	{
-		//printf("destroy %p value_unnamed\n", this);
+		//printf("destroy %p value_unnamed\n", static_cast<void*>(this));
 	}
 	///////////////////////////////////////////////////////////////////////////
 	//
@@ -1277,7 +1277,7 @@ public:
 	~value_union()
 	{
 		//printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
-		//printf("destroy %p value_union\n", dummy);
+		//printf("destroy %p value_union\n", static_cast<void*>(dummy) );
 		this->access().~value_empty();
 		//printf("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 	}
@@ -1370,11 +1370,11 @@ public:
 	/// type create construction template.
 	/// gives the type creation down to the pointer type
 	template<typename T>
-	variant(const T& v)							{ this->value.create(v); }
+	variant(const T& v) : global()				{ this->value.create(v); }
 	///////////////////////////////////////////////////////////////////////////
 	/// copy constructor. 
 	/// set the access behaviour to copy-on-write
-	variant(const variant& v) : value(v.value)	{ this->make_value(); }
+	variant(const variant& v) : global(), value(v.value)	{ this->make_value(); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// assignment template.
@@ -1388,13 +1388,14 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// constructor for direct access to externals
 	template <typename P, typename T>
-	explicit variant(const P& v, const T P::*t)	{ this->value.create(v, t); }
-	explicit variant(const variant_host& v, const string<>& n) { this->value.create(v, n); }
-	explicit variant(const variant_host& v, const char* n) { this->value.create(v, string<>(n)); }
+	explicit variant(const P& v, const T P::*t) : global()	{ this->value.create(v, t); }
+	explicit variant(const variant_host& v, const string<>& n) : global() { this->value.create(v, n); }
+	explicit variant(const variant_host& v, const char* n) : global() { this->value.create(v, string<>(n)); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// constructor with specifying access behaviour
 	explicit variant(const variant &v, bool ref)
+		 : global()
 	{
 		this->assign(v, ref);
 	}
@@ -1840,10 +1841,11 @@ bool set_namedmember(value_empty& target, const P& v, const T P::*t, const strin
 
 
 inline value_array::value_array()
+	: value_empty()
 {}
 inline value_array::~value_array()
 {
-	//printf("destroy %p value_array\n", this);
+	//printf("destroy %p value_array\n", static_cast<void*>(this));
 }
 inline const value_empty& value_array::operator=(const vector<variant>& v)
 {

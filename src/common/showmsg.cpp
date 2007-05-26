@@ -8,20 +8,6 @@
 
 #include "showmsg.h"
 
-///////////////////////////////////////////////////////////////////////////////
-#ifdef __GNUC__ 
-// message convention for gnu compilers
-#warning "INFO: build with gnu compiler, using defines with variable arguments"
-
-#else // no __GNUC__ 
-// message convention for visual c compilers
-#pragma message ( "INFO: no gnu compiler, using variable argument functions" )
-
-#endif
-///////////////////////////////////////////////////////////////////////////////
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /// behavioral parameter.
@@ -675,15 +661,4 @@ int _vShowMessage(msg_type flag, const char *str, va_list ap)
 	fflush(stdout);
 
 	return 0;
-}
-
-
-int _ShowMessage(msg_type flag, const char *str, ...){ 
-
-	int ret;
-	va_list ap;
-	va_start(ap,str);
-	ret = _vShowMessage(flag,str,ap);
-	va_end(ap);
-	return ret;
 }

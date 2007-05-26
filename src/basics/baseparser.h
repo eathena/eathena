@@ -53,11 +53,11 @@ public:
 	short		Type;
 	string<>	Name;
 
-	CSymbol() : idx(0),Type(0)
+	CSymbol() : defaultcmp(), idx(0),Type(0)
 	{}
 	~CSymbol()
 	{}
-	CSymbol(const CSymbol& s) : idx(s.idx),Type(s.Type),Name(s.Name)
+	CSymbol(const CSymbol& s) : defaultcmp(), idx(s.idx),Type(s.Type),Name(s.Name)
 	{}
 	const CSymbol& operator=(const CSymbol& s)
 	{
@@ -81,7 +81,7 @@ public:
 	//TArrayDST<short>	cSymbol;
 	vector<short>		cSymbol;
 
-	CRule() : NonTerminal(0)	{}
+	CRule() : defaultcmp(), NonTerminal(0)	{}
 	~CRule()					{}
 };
 class CEdge : public defaultcmp
@@ -89,7 +89,7 @@ class CEdge : public defaultcmp
 public:
 	short	CharSetIndex;
 	short	TargetIndex;
-	CEdge() : CharSetIndex(0),TargetIndex(0) {}
+	CEdge() : defaultcmp(), CharSetIndex(0),TargetIndex(0) {}
 	~CEdge()	{}
 };
 class CDFAState : public defaultcmp
@@ -100,7 +100,7 @@ public:
 	//TArrayDST<CEdge>	cEdge;
 	vector<CEdge>		cEdge;
 
-	CDFAState() : Accept(0),AcceptIndex(0)	{}
+	CDFAState() : defaultcmp(), Accept(0),AcceptIndex(0)	{}
 	~CDFAState()	{}
 };
 class CAction : public defaultcmp
@@ -109,7 +109,7 @@ public:
 	short SymbolIndex;
 	short Action;
 	short Target;
-	CAction() : SymbolIndex(0),Action(0),Target(0)	{}
+	CAction() : defaultcmp(), SymbolIndex(0),Action(0),Target(0)	{}
 	~CAction()	{}
 
 };
@@ -118,7 +118,7 @@ class CLALRState : public defaultcmp
 public:
 	//TArrayDST<CAction>	cAction;
 	vector<CAction>	cAction;
-	CLALRState()	{}
+	CLALRState() : defaultcmp()	{}
 	~CLALRState()	{}
 
 };
@@ -130,10 +130,10 @@ public:
 	unsigned int	line;
 	unsigned int	column;
 
-	CToken() : id(0),line(0),column(0)	{}
-	CToken(short i) : id(i), line(0),column(0)	{}
+	CToken() : defaultcmp(), id(0),line(0),column(0)	{}
+	CToken(short i) : defaultcmp(), id(i), line(0),column(0)	{}
 	CToken(short i, const string<>& s)
-		: id(i), cLexeme(s),line(0),column(0)	{}
+		: defaultcmp(), id(i), cLexeme(s),line(0),column(0)	{}
 	~CToken()	{}
 
 	void clear()
@@ -143,7 +143,7 @@ public:
 	}
 
 	CToken(const CToken& t)
-		: id(t.id), cLexeme(t.cLexeme),line(t.line),column(t.column)
+		: defaultcmp(), id(t.id), cLexeme(t.cLexeme),line(t.line),column(t.column)
 	{}
 	const CToken& operator=(const CToken& t)
 	{
@@ -168,13 +168,13 @@ public:
 	size_t cChildNum;
 
 	CStackElement()
-		: state(0),rule(0)
+		: defaultcmp(), state(0),rule(0)
 		,cChildPos(0), cChildNum(0)
 	{}
 	~CStackElement()	{}
 
 	CStackElement(const CStackElement& se)
-		: symbol(se.symbol), cToken(se.cToken),state(se.state),rule(se.rule)
+		: defaultcmp(), symbol(se.symbol), cToken(se.cToken),state(se.state),rule(se.rule)
 		,cChildPos(se.cChildPos),cChildNum(se.cChildNum)
 	{}
 	const CStackElement& operator=(const CStackElement& se)
@@ -211,7 +211,7 @@ public:
 	unsigned int	column;
 
 	CParseInput()
-		: line(1),column(1)
+		: allocator_r_dy<char>(), line(1),column(1)
 	{}
 	CParseInput(size_t sz)
 		: allocator_r_dy<char>(sz), line(1),column(1)

@@ -307,6 +307,8 @@ struct binmemory : public binstream
 struct binaryfile : public CFile, public binstream
 {
 	binaryfile(const char* name, const char* mode)
+		: CFile()
+		, binstream()
 	{
 		this->open(name, mode);
 	}

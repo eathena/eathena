@@ -631,7 +631,8 @@ public:
 		_buf.Init(buf, id, off, len);
 	}
 };
-//*/
+// nested comments are not allowed
+ */
 
 
 
@@ -803,7 +804,8 @@ protected:
 	/// Field handler
 	NFieldHandler::CChildIdxFieldBuffer<P> _buf;
 };
-//*/
+// nested comments are not allowed
+*/
 
 
 
@@ -1334,11 +1336,7 @@ protected:
 	friend struct subscript<packet>;
 	///////////////////////////////////////////////////////////////////////////
 	/// aquire a block of sz bytes starting from pos inside the buffer.
-	/// return NULL when accessing out-of-range, overloadable
-	virtual uint8* aquire(size_t pos, size_t sz)
-	{
-		return (pos+sz<=this->length())?const_cast<uint8*>(this->operator()()+pos):NULL;
-	}
+	virtual uint8* aquire(size_t pos, size_t sz)=0;
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// destructor.
@@ -1365,7 +1363,14 @@ template<size_t SZ>
 class packet_fixed : public packet
 {
 protected:
-	uint8 data[SZ];
+	uint8 data[SZ];	///< the buffer
+	///////////////////////////////////////////////////////////////////////////
+	/// aquire a block of sz bytes starting from pos inside the buffer.
+	/// return NULL when accessing out-of-range, overloadable
+	virtual uint8* aquire(size_t pos, size_t sz)
+	{
+		return (pos+sz<=this->length())?const_cast<uint8*>(this->operator()()+pos):NULL;
+	}
 public:
 	///////////////////////////////////////////////////////////////////////////
 	virtual ~packet_fixed()
@@ -1375,7 +1380,7 @@ public:
 	virtual size_t length() const			{ return SZ; }
 	///////////////////////////////////////////////////////////////////////////
 	/// Data of the packet
-	virtual const uint8* operator()() const	{ return data; }
+	virtual const uint8* operator()() const	{ return this->data; }
 };
 
 
@@ -1385,14 +1390,14 @@ public:
 class packet_dynamic : public packet
 {
 protected:
-	basics::vector<uint8> data;	/// the buffer
+	basics::vector<uint8> data;	///< the buffer
 	///////////////////////////////////////////////////////////////////////////
 	/// aquire a block of sz bytes starting from pos inside the buffer.
 	/// resize the vector when accessing out-of-range
 	virtual uint8* aquire(size_t pos, size_t sz)
 	{
 		if( pos+sz>this->data.size() )
-			data.resize(pos+sz);
+			this->data.resize(pos+sz);
 		return this->data.begin()+pos;
 	}
 public:
@@ -1484,7 +1489,7 @@ inline void usage_example()
 #endif
 
 
-}; // end namespace example_code
+} // end namespace example_code
 
 
 ///////////////////////////////////////////////////////////////////////////////

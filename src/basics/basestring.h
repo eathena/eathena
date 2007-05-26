@@ -231,20 +231,46 @@ public:
 /// defines all reading access on a string object
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T=char>
-class stringinterface : public allocator<T>
+class stringinterface : public global, public noncopyable
 {
+public:
+	typedef size_t						size_type;			///< type of positions
+	typedef random_access_iterator_tag	iterator_category;
+	typedef T							value_type;
+	typedef ssize_t						difference_type;
+	typedef T*							pointer;
+	typedef T&							reference;
+
+	typedef const value_type*			const_iterator;		///< stl like pointer iterator
+	typedef value_type*					simple_iterator;	///< stl like pointer iterator
+
+	static const size_type				npos;				///< not-valid-position constant
+
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// internal StringConstant aquire
 	const T*getStringConstant(size_t i) const;
 
-	stringinterface<T>()			{}
+	stringinterface<T>() : global(),noncopyable()
+	{}
 public:
-	virtual ~stringinterface<T>()	{}
-
+	virtual ~stringinterface<T>()
+	{}
 
 	virtual operator const T*() const =0;
 	virtual const T* c_str() const =0;
+
+	virtual size_t length()	const =0;
+	virtual size_t size() const { return length(); }
+	virtual size_t capacity() const =0;
+
+	virtual const T* begin() const=0;
+	virtual const T* final() const=0;
+	virtual const T* end() const=0;
+	virtual       T* begin()=0;
+	virtual       T* final()=0;
+	virtual       T* end()=0;
+
 	virtual bool empty() const =0;
 	bool is_empty() const	{ return this->empty(); }
 	const T* data() const	{ return this->c_str(); }
@@ -304,6 +330,10 @@ public:
 };
 
 
+template <typename T>
+const RETURN_TYPENAME stringinterface<T>::size_type stringinterface<T>::npos = static_cast<typename stringinterface<T>::size_type>(-1);
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// basic string functions
 ///////////////////////////////////////////////////////////////////////////////
@@ -326,9 +356,12 @@ template <typename T=char>
 class stringoperator : public stringinterface<T>
 {
 protected:
-	stringoperator<T>()				{}
+	stringoperator()
+		: stringinterface<T>()
+	{}
 public:
-	virtual ~stringoperator<T>()	{}
+	virtual ~stringoperator<T>()
+	{}
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -486,20 +519,23 @@ template <typename T> void _ftostring(stringoperator<T>& result, double value, i
 /// writable part
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T=char, typename A=allocator_ws_dy<T> >
-class TString : public A, public stringoperator<T>
+class TString : public stringoperator<T>, public A
 {
 #if !defined(__GNUC__) || __GNUC__ >= 3
 // problems with gcc prior to v3
 	friend void test_stringbuffer(void);
 #endif//!defined(__GNUC__) || __GNUC__ >= 3
 
+public:
+	using stringinterface<T>::npos;
+
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// protected constructors, only derived can create
 	///////////////////////////////////////////////////////////////////////////
-	TString<T,A>()									{}
-	TString<T,A>(size_t sz) : A(sz)					{}
-	TString<T,A>(T* buf, size_t sz) : A(buf, sz)	{}
+	TString<T,A>() : stringoperator<T>(), A()							{}
+	TString<T,A>(size_t sz) : stringoperator<T>(),A(sz)					{}
+	TString<T,A>(T* buf, size_t sz) : stringoperator<T>(), A(buf, sz) 	{}
 
 	///////////////////////////////////////////////////////////////////////////
 	// M$ VisualC does not allow template generated copy/assignment operators
@@ -507,17 +543,17 @@ protected:
 	// mixing template and explicit definition does also not work because
 	// it "detects" ambiguities in this case
 //	template <typename A>
-//	TString<T,A>(const TString<T, A>& b) : alloc(b.length())
+//	TString<T,A>(const TString<T, A>& b) : A(b.length())
 //	{
 //		this->append(b);
 //	}
 	/// declare standard copy constructor
-	TString<T,A>(const TString<T,A>& b) : A(b.length())
+	TString<T,A>(const TString<T,A>& b) :  stringoperator<T>(), A(b.length())
 	{
 		this->append(b);
 	}
 	/// declare copy of base class types
-	TString<T,A>(const stringinterface<T>& t) : A(t.length())
+	TString<T,A>(const stringinterface<T>& t) : stringoperator<T>(), A(t.length())
 	{
 		this->append(t);
 	}
@@ -647,7 +683,7 @@ public:
 			if( *ptr == ch )
 				return ptr-this->begin();
 		}
-		return this->npos;
+		return stringinterface<T>::npos;
 	}
 	size_t find_last_of(const T& ch) const
 	{
@@ -659,7 +695,7 @@ public:
 			if( *ptr == ch )
 				return ptr-this->begin();
 		}
-		return this->npos;
+		return stringinterface<T>::npos;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -878,7 +914,16 @@ public:
 	virtual const stringoperator<T>& assign_process(const T* c, size_t slen=~((size_t)0), T (*func)(T)=NULL)
 	{
 		this->cWpp = this->cBuf;
-		return this->assign_process(c,slen);
+		if(c)
+		{
+			for( ; *c && slen && this->checkwrite(1); --slen, ++c, ++this->cWpp)
+			{
+				if( '\0' == (*this->cWpp = func(*c)) )
+					break;
+			}
+			if(this->cWpp) *this->cWpp=0;
+		}
+		return *this;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1310,35 +1355,43 @@ class basestring : public TString< T, allocator_ws_dy<T> >
 public:
 	basestring()
 	{}
-	basestring<T>(const basestring<T>& t) : TString< T, allocator_ws_dy<T> >()
+	basestring<T>(const basestring<T>& t)
+		: TString< T, allocator_ws_dy<T> >()
 	{
 		this->TString< T, allocator_ws_dy<T> >::assign(t);
 	}
-	basestring<T>(const stringinterface<T>& t) : TString< T, allocator_ws_dy<T> >()
+	basestring<T>(const stringinterface<T>& t)
+		: TString< T, allocator_ws_dy<T> >()
 	{
 		this->TString< T, allocator_ws_dy<T> >::assign(t);
 	}
-	basestring<T>(const T* t) : TString< T, allocator_ws_dy<T> >()
+	basestring<T>(const T* t)
+		: TString< T, allocator_ws_dy<T> >()
 	{
 		this->TString< T, allocator_ws_dy<T> >::assign(t);
 	}
-	basestring<T>(const T* t, size_t sz) : TString< T, allocator_ws_dy<T> >()
+	basestring<T>(const T* t, size_t sz)
+		: TString< T, allocator_ws_dy<T> >()
 	{
 		this->TString< T, allocator_ws_dy<T> >::assign(t, sz);
 	}
-	explicit basestring<T>(T t) : TString< T, allocator_ws_dy<T> >()
+	explicit basestring<T>(T t)
+		: TString< T, allocator_ws_dy<T> >()
 	{
 		this->TString< T, allocator_ws_dy<T> >::assign(t);
 	}
-	explicit basestring<T>(int t) : TString< T, allocator_ws_dy<T> >()
+	explicit basestring<T>(int t)
+		: TString< T, allocator_ws_dy<T> >()
 	{
 		this->TString< T, allocator_ws_dy<T> >::assign(t);
 	}
-	explicit basestring<T>(unsigned int t) : TString< T, allocator_ws_dy<T> >()
+	explicit basestring<T>(unsigned int t)
+		: TString< T, allocator_ws_dy<T> >()
 	{
 		this->TString< T, allocator_ws_dy<T> >::assign(t);
 	}
-	explicit basestring<T>(double t) : TString< T, allocator_ws_dy<T> >()
+	explicit basestring<T>(double t)
+		: TString< T, allocator_ws_dy<T> >()
 	{
 		this->TString< T, allocator_ws_dy<T> >::assign(t);
 	}
@@ -1408,6 +1461,9 @@ class conststring : public stringinterface<T>, public allocator_ws_st<T>
 	// prevent default construction
 	conststring<T>();
 public:
+
+	using stringinterface<T>::npos;
+
 	explicit conststring<T>(const T* cstr)
 		: allocator_ws_st<T>(const_cast<T*>(cstr), 0)
 	{	// set up a zero-length buffer, 
@@ -1555,7 +1611,7 @@ public:
 				return ptr-this->begin();
 			++ptr;
 		}
-		return this->npos;
+		return stringinterface<T>::npos;
 	}
 	size_t find_last_of(const T& ch) const
 	{
@@ -1568,7 +1624,7 @@ public:
 				return ptr-this->begin();
 			--ptr;
 		}
-		return this->npos;
+		return stringinterface<T>::npos;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1616,7 +1672,7 @@ private:
 		unsigned int cRefCnt;
 
 		/// construction
-		ptrstring() : cRefCnt(1)	{}
+		ptrstring() : basestring<T>(), cRefCnt(1)	{}
 		ptrstring(const ptrstring& b) : basestring<T>(b), cRefCnt(1)	{}
 		ptrstring(const basestring<T>& b) : basestring<T>(b), cRefCnt(1)	{}
 
@@ -1760,53 +1816,68 @@ public:
 	/////////////////////////////////////////////////////////////////
 	/// construction/destruction
 	/////////////////////////////////////////////////////////////////
-	string<T>() : cCountObj(NULL)					{  }
-	string<T>(const string& r) : cCountObj(NULL)	{ this->acquire(r); }
+	string<T>()
+		: stringoperator<T>(), cCountObj(NULL)
+	{  }
+	string<T>(const string<T>& r)
+		: stringoperator<T>(), cCountObj(NULL)
+	{
+		this->acquire(r);
+	}
 	const string<T>& operator=(const string<T>& r)	{ this->acquire(r); return *this; }
 	virtual ~string<T>()							{ this->release(); }
 
 	/////////////////////////////////////////////////////////////////
 	/// type construction
 	/////////////////////////////////////////////////////////////////
-	string<T>(const stringinterface<T>& t) : cCountObj(NULL)
+	string<T>(const stringinterface<T>& t)
+		: stringoperator<T>(), cCountObj(NULL)
 	{
 		if(t.size())
 			this->writeaccess().assign(t);
 	}
-	string<T>(const substring<T>& t) : cCountObj(NULL)
+	string<T>(const substring<T>& t)
+		: stringoperator<T>(), cCountObj(NULL)
 	{
 		if(t.size())
 			this->writeaccess().assign(t);
 	}
-	string<T>(const T* t) : cCountObj(NULL)
+	string<T>(const T* t)
+		: stringoperator<T>(), cCountObj(NULL)
 	{
 		if(t && *t)
 			this->writeaccess().assign(t);
 	}
-	string<T>(const T* t, size_t sz) : cCountObj(NULL)
+	string<T>(const T* t, size_t sz)
+		: stringoperator<T>(), cCountObj(NULL)
 	{
 		if(t && sz)
 			this->writeaccess().assign(t, sz);
 	}
-	string<T>(const T* s, const T* e) : cCountObj(NULL)
+	string<T>(const T* s, const T* e)
+		: stringoperator<T>(), cCountObj(NULL)
 	{
 		if(s && s<e)
 			this->writeaccess().assign(s, e-s);
 	}
-	string<T>(T t) : cCountObj(NULL)
+	string<T>(T t)
+		: stringoperator<T>(), cCountObj(NULL)
 	{
 		if(t)
 			this->writeaccess().assign(t);
 	}
-	explicit string<T>(int t) : cCountObj(NULL)
+	explicit string<T>(int t)
+		: stringoperator<T>(), cCountObj(NULL)
 	{
 		this->writeaccess().assign(t);
 	}
-	explicit string<T>(unsigned int t) : cCountObj(NULL)
+	explicit string<T>(unsigned int t)
+		: stringoperator<T>(), cCountObj(NULL)
 	{
 		this->writeaccess().assign(t);
 	}
-	explicit string<T>(double t) : cCountObj(NULL)
+	explicit string<T>(double t)
+		: stringoperator<T>(), cCountObj(NULL)
 	{
 		this->writeaccess().assign(t);
 	}
@@ -2397,7 +2468,7 @@ public:
 		{
 			while(*ip)
 			{
-				if( splitter.find_first_of(*ip) != string<>::npos )
+				if( splitter.find_first_of(*ip) != this->npos )
 				{
 					ret.push( string<T>(cp, ip-cp) );
 					cp = ip = ip+1;
@@ -3186,8 +3257,7 @@ template<typename T> inline string<T> dup(const string<T>& s)
 
 template<typename T> inline bool contains(const T* s1, size_t s1len, const string<T>& s, size_t at)
 {
-	return (s1len >= 0) && (at >= 0) && (at+s1len <= hstrlen(s))
-        && (s1len == 0 || memcmp(s.c_str()+at, s1, s1len*sizeof(T)) == 0);
+	return (at+s1len <= hstrlen(s)) && (s1len == 0 || memcmp(s.c_str()+at, s1, s1len*sizeof(T)) == 0);
 }
 
 template<typename T> inline bool contains(const T* s1, const string<T>& s, size_t at)

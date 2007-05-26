@@ -12,31 +12,87 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-// defines
-//////////////////////////////////////////////////////////////////////////
 #ifdef WIN32
-// nothing necessary here
-// we change the unix to equal windows style
-#else
+//////////////////////////////////////////////////////////////////////////
+
+// using windows builtins for
+//HINSTANCE LoadLibrary(const char* lpLibFileName)
+//bool FreeLibrary(HINSTANCE hLibModule)
+//FARPROC* GetProcAddress(HINSTANCE hModule, const char* lpProcName)
+
+extern inline FARPROC GetProcFunction(HINSTANCE hModule, const char* lpProcName)
+{	// ignore the conversion issue here as M$ is not standard conform anyway
+	return GetProcAddress(hModule, lpProcName);
+}
+
+extern inline void* GetProcAddress(FARPROC functionpointer)
+{	// ignore the conversion issue here as M$ is not standard conform anyway
+	return (void*)functionpointer;
+}
+
+extern inline FARPROC GetProcFunction(void* pointer)
+{	// ignore the conversion issue here as M$ is not standard conform anyway
+	return (FARPROC)pointer;
+}
+
+//////////////////////////////////////////////////////////////////////////
+#else//not WIN32
+//////////////////////////////////////////////////////////////////////////
 
 #  include <dlfcn.h>
 /// implement a windows like loading environment
 typedef void* HINSTANCE;
+typedef int (*FARPROC)(void);
 
 extern inline HINSTANCE LoadLibrary(const char* lpLibFileName)
 {
 	return dlopen(lpLibFileName,RTLD_LAZY);
 }
+
 extern inline bool FreeLibrary(HINSTANCE hLibModule)
 {
 	return 0==dlclose(hLibModule);
 }
-extern inline void *GetProcAddress(HINSTANCE hModule, const char* lpProcName)
+
+extern inline void* GetProcAddress(HINSTANCE hModule, const char* lpProcName)
 {
 	return dlsym(hModule, lpProcName);
 }
 
-#endif
+extern inline FARPROC GetProcFunction(HINSTANCE hModule, const char* lpProcName)
+{
+	return GetProcFunction( GetProcAddress(hModule, lpProcName) );
+}
+
+extern inline void* GetProcAddress(FARPROC functionpointer)
+{	// dealing with C++ Standard Core Language Active Issue #195
+	// breaking the language rules could be done with:
+	// cast via integral, via union or memcpy
+	// use the union here
+	union
+	{
+		void *	vptr;
+		FARPROC fptr;
+	} conv;
+	conv.fptr = functionpointer;
+	return conv.vptr;
+}
+
+extern inline FARPROC GetProcFunction(void* pointer)
+{
+	union
+	{
+		void *	vptr;
+		FARPROC fptr;
+	} conv;
+	conv.vptr = pointer;
+	return conv.fptr;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+#endif//not WIN32
+//////////////////////////////////////////////////////////////////////////
 
 
 NAMESPACE_BEGIN(basics)

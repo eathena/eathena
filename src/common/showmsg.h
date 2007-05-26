@@ -71,64 +71,6 @@
 enum msg_type {MSG_NONE,MSG_STATUS,MSG_SQL,MSG_INFORMATION,MSG_CONSOLE,MSG_NOTICE,MSG_WARNING,MSG_DEBUG,MSG_ERROR,MSG_FATALERROR};
 
 extern int _vShowMessage(msg_type flag, const char *str, va_list va);
-extern int _ShowMessage(msg_type flag, const char *str, ...);
-
-#ifdef __GNUC__ 
-
-// direct printf replacement
-	#define ShowMessage(str...) _ShowMessage(MSG_NONE,##str)
-
-// MSG_XX
-	#define ShowMsg(flag,str...) _ShowMessage(flag,##str)
-//	#define DisplayMsg(flag,str...) _ShowMessage(flag,##str)
-//	#define ShowMessage(flag,str...) _ShowMessage(flag,##str)
-
-// MSG_STATUS
-	#define ShowStatus(str...) _ShowMessage(MSG_STATUS,##str)
-//	#define DisplayStatus(str...) _ShowMessage(MSG_STATUS,##str)
-
-// MSG_SQL
-	#define ShowSQL(str...) _ShowMessage(MSG_SQL,##str)
-//	#define DisplaySQL(str...) _ShowMessage(MSG_SQL,##str)
-
-// MSG_INFORMATION
-	#define ShowInfo(str...) _ShowMessage(MSG_INFORMATION,##str)
-//	#define DisplayInfo(str...) _ShowMessage(MSG_INFORMATION,##str)
-//	#define ShowInformation(str...) _ShowMessage(MSG_INFORMATION,##str)
-//	#define DisplayInformation(str...) _ShowMessage(MSG_INFORMATION,##str)
-
-// MSG_CONSOLE
-	#define ShowConsole(str...) _ShowMessage(MSG_CONSOLE,##str)
-//	#define DisplayNotice(str...) _ShowMessage(MSG_NOTICE,##str)
-
-// MSG_NOTICE
-	#define ShowNotice(str...) _ShowMessage(MSG_NOTICE,##str)
-//	#define DisplayNotice(str...) _ShowMessage(MSG_NOTICE,##str)
-
-// MSG_WARNING
-	#define ShowWarning(str...) _ShowMessage(MSG_WARNING,##str)
-//	#define DisplayWarning(str...) _ShowMessage(MSG_WARNING,##str)
-//	#define Warn(str...) _ShowMessage(MSG_WARNING,##str)
-
-// MSG_DEBUG
-	#define ShowDebug(str...) _ShowMessage(MSG_DEBUG,##str)
-	#define DisplayDebug(str...) _ShowMessage(MSG_DEBUG,##str)
-	#define Debug(str...) _ShowMessage(MSG_DEBUG,##str)
-	#define printDebug(str...) _ShowMessage(MSG_DEBUG,##str)
-
-// MSG_ERROR
-	#define ShowError(str...) _ShowMessage(MSG_ERROR,##str)
-//	#define DisplayError(str...) _ShowMessage(MSG_ERROR,##str)
-//	#define OutputError(str...) _ShowMessage(MSG_ERROR,##str)
-
-// MSG_FATALERROR
-	#define ShowFatalError(str...) _ShowMessage(MSG_FATALERROR,##str)
-//	#define DisplayFatalError(str...) _ShowMessage(MSG_ERROR,##str)
-//	#define Terminate(str...) _ShowMessage(MSG_FATALERROR,##str)
-//	#define Kill(str...) _ShowMessage(MSG_FATALERROR,##str)
-//	#define AbortEx(str...) _ShowMessage(MSG_FATALERROR,##str)
-
-#else// no __GNUC__
 
 // direct printf replacement
 static inline int ShowMessage(const char *str, ...)
@@ -143,8 +85,6 @@ static inline int ShowMessage(const char *str, ...)
 
 // MSG_XX
 static inline int ShowMsg(msg_type flag, const char *str, ...)
-//	static inline int DisplayMsg(msg_type flag, const char *str, ...)
-//	static inline int ShowMessage(msg_type flag, const char *str, ...)
 {
 	va_list va;
 	int ret;
@@ -156,7 +96,6 @@ static inline int ShowMsg(msg_type flag, const char *str, ...)
 
 // MSG_STATUS
 static inline int ShowStatus(const char *str, ...)
-//	static inline int DisplayStatus(const char *str, ...)
 {
 	va_list va;
 	int ret;
@@ -169,7 +108,6 @@ static inline int ShowStatus(const char *str, ...)
 
 // MSG_SQL
 static inline int ShowSQL(const char *str, ...)
-//	static inline int DisplaySQL(const char *str, ...)
 {
 	va_list va;
 	int ret;
@@ -181,9 +119,6 @@ static inline int ShowSQL(const char *str, ...)
 
 // MSG_INFORMATION
 static inline int ShowInfo(const char *str, ...)
-//	static inline int DisplayInfo(const char *str, ...)
-//	static inline int ShowInformation(const char *str, ...)
-//	static inline int DisplayInformation(const char *str, ...)
 {
 	va_list va;
 	int ret;
@@ -205,7 +140,6 @@ static inline int ShowConsole(const char *str, ...)
 
 // MSG_NOTICE
 static inline int ShowNotice(const char *str, ...)
-//	static inline int DisplayNotice(const char *str, ...)
 {
 	va_list va;
 	int ret;
@@ -217,8 +151,6 @@ static inline int ShowNotice(const char *str, ...)
 
 // MSG_WARNING
 static inline int ShowWarning(const char *str, ...)
-//	static inline int DisplayWarning(const char *str, ...)
-//	static inline int Warn(const char *str, ...)
 {
 	va_list va;
 	int ret;
@@ -230,9 +162,6 @@ static inline int ShowWarning(const char *str, ...)
 
 // MSG_DEBUG
 static inline int ShowDebug(const char *str, ...)
-//	static inline int DisplayDebug(const char *str, ...)
-//	static inline int Debug(const char *str, ...)
-//	static inline int printDebug(const char *str, ...)
 {
 	va_list va;
 	int ret;
@@ -244,8 +173,6 @@ static inline int ShowDebug(const char *str, ...)
 
 // MSG_ERROR
 static inline int ShowError(const char *str, ...)
-//	static inline int DisplayError(const char *str, ...)
-//	static inline int OutputError(const char *str, ...)
 {
 	va_list va;
 	int ret;
@@ -257,10 +184,6 @@ static inline int ShowError(const char *str, ...)
 
 // MSG_FATALERROR
 static inline int ShowFatalError(const char *str, ...)
-//	static inline int DisplayFatalError(const char *str, ...)
-//	static inline int Terminate(const char *str, ...)
-//	static inline int Kill(const char *str, ...)
-//	static inline int AbortEx(const char *str, ...)
 {
 	va_list va;
 	int ret;
@@ -269,11 +192,6 @@ static inline int ShowFatalError(const char *str, ...)
 	va_end(va);
 	return ret;
 }
-
-
-
-
-#endif//__GNUC__
 
 
 #endif//_SHOWMSG_H_

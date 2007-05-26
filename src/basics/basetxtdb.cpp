@@ -775,7 +775,7 @@ public:
 
 		while(iter)
 		{
-			printf("%lu %lf %i %u\n",
+			printf("%lu %f %i %u\n",
 				(ulong)iter->id, iter->dnum, iter->inum, iter->unum);
 		
 			iter++;
@@ -843,11 +843,11 @@ void test_txtdb()
 		for(i=0; i<elems; ++i)
 		{
 			str.assign('x', rand()%64);
-			len = sprintf(buf, "%i %lf %i %s", (int)i, (double)rand()/(0.1+(double)rand()), (int)rand(), (const char*)str);
+			len = sprintf(buf, "%i %f %i %s", (int)i, (double)rand()/(0.1+(double)rand()), (int)rand(), (const char*)str);
 			txtdb.rawwrite(buf, len, i);
 		}
 		res = ((double)txtdb.counts)/((double)txtdb.searches);
-		printf("db %i entries linear create => %lu\n (%lf)", (int)elems, clock()-tick, res);
+		printf("db %i entries linear create => %lu\n (%f)", (int)elems, clock()-tick, res);
 		
 
 		i = txtdb.getfreeid();
@@ -862,11 +862,11 @@ void test_txtdb()
 		{
 			k = rand()%elems;
 			str.assign('x', rand()%64);
-			len = sprintf(buf, "%i %lf %i %s", (int)k, (double)rand()/(0.1+(double)rand()), (int)rand(), (const char*)str);
+			len = sprintf(buf, "%i %f %i %s", (int)k, (double)rand()/(0.1+(double)rand()), (int)rand(), (const char*)str);
 			txtdb.rawwrite(buf, len, k);
 		}
 		printf("db %i entries %i random save => %lu\n", (int)elems, (int)runs, clock()-tick);
-		printf("done %i searches with %i iterations (%lf)\n", (int)txtdb.searches, (int)txtdb.counts, ((double)txtdb.counts)/((double)txtdb.searches));
+		printf("done %i searches with %i iterations (%f)\n", (int)txtdb.searches, (int)txtdb.counts, ((double)txtdb.counts)/((double)txtdb.searches));
 
 		res = ((double)txtdb.counts)/((double)txtdb.searches);
 
@@ -882,7 +882,7 @@ void test_txtdb()
 		for(i=0; i<elems; ++i)
 		{
 			str.assign('x', rand()%64);
-			len = sprintf(buf, "%i %lf %i %s", (int)i, (double)rand()/(0.1+(double)rand()), (int)rand(), (const char*)str);
+			len = sprintf(buf, "%i %f %i %s", (int)i, (double)rand()/(0.1+(double)rand()), (int)rand(), (const char*)str);
 			txtdb.rawwrite(buf, len, i);
 		}
 		printf("db %i entries linear cleansave => %lu\n", (int)elems, clock()-tick);

@@ -226,7 +226,7 @@ void test_array(void)
 	}
 	{
 
-		string<> printtest = dprintf("%i %lf", 3, 3.3);
+		string<> printtest = dprintf("%i %f", 3, 3.3);
 
 		printtest << 3.3;
 

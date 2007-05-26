@@ -281,7 +281,7 @@ Plugin *plugin_open (const char *filename, bool force=false)
 			if (strcasecmp(events[i].event_name, "Plugin_Test") == 0)
 			{
 				int (*test_func)(void);
-				test_func = (int (*)(void))GetProcAddress(plugin->dll, events[i].func_name);
+				test_func = (int (*)(void))GetProcFunction(plugin->dll, events[i].func_name);
 				if (test_func && test_func() == 0)
 				{
 					// plugin has failed test, disabling
@@ -292,7 +292,7 @@ Plugin *plugin_open (const char *filename, bool force=false)
 			else
 			{
 				void (*func)(void);
-				func = (void (*)(void))GetProcAddress(plugin->dll, events[i].func_name);
+				func = (void (*)(void))GetProcFunction(plugin->dll, events[i].func_name);
 				if (func) register_plugin_event (func, events[i].event_name);
 			}
 			++i;
@@ -371,23 +371,23 @@ void plugin_init (void)
 	register_plugin_func("Athena_Init");
 	register_plugin_func("Athena_Final");
 
-//	export_symbol (addr_,						12);
-//	export_symbol((void*)get_uptime,			11);
-	export_symbol((void*)NULL,					11);
-	export_symbol((void*)delete_timer,			10);
-	export_symbol((void*)add_timer_func_list,	 9);
-//	export_symbol((void*)add_timer_interval,	 8);
-//	export_symbol((void*)add_timer,				 7);
-	export_symbol((void*)get_revision,			 6);
-	export_symbol((void*)gettick,				 5);
-//	export_symbol(&runflag,						 4);
-	export_symbol(NULL,							 4);
-//	export_symbol(arg_v,						 3);
-	export_symbol(NULL,							 3);
-//	export_symbol(&arg_c,						 2);
-	export_symbol(NULL,							 2);
-	export_symbol(argp,							 1);
-	export_symbol(&st,							 0);
+//	export_symbol (addr_,										12);
+//	export_symbol(GetProcAddress(get_uptime),					11);
+	export_symbol((void*)NULL,									11);
+	export_symbol(GetProcAddress((FARPROC)delete_timer),		10);
+	export_symbol(GetProcAddress((FARPROC)add_timer_func_list),	 9);
+//	export_symbol(GetProcAddress((FARPROC)add_timer_interval),	 8);
+//	export_symbol(GetProcAddress((FARPROC)add_timer),			 7);
+	export_symbol(GetProcAddress((FARPROC)get_revision),		 6);
+	export_symbol(GetProcAddress((FARPROC)gettick),				 5);
+//	export_symbol(&runflag,										 4);
+	export_symbol(NULL,											 4);
+//	export_symbol(arg_v,										 3);
+	export_symbol(NULL,											 3);
+//	export_symbol(&arg_c,										 2);
+	export_symbol(NULL,											 2);
+	export_symbol(argp,											 1);
+	export_symbol(&st,											 0);
 
 	plugins_config_read (PLUGIN_CONF_FILENAME);
 

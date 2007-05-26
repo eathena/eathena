@@ -311,12 +311,13 @@ class vector : public vectorbase<T,A>
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// standard constructor / destructor
-	vector<T,A>()				{}
-	virtual ~vector<T,A>()	{}
+	vector<T,A>() : vectorbase<T,A>()	{}
+	virtual ~vector<T,A>()				{}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// copy/assignment
 	vector<T,A>(const vector<T,A>& v)
+		: vectorbase<T,A>()
 	{
 		this->assign(v);
 	}
@@ -336,6 +337,7 @@ public:
 	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
 	template<typename TT, typename AA>
 	vector<T,A>(const vectorbase<TT,AA>& v)
+		: vectorbase<T,A>()
 	{
 		this->assign(v);
 	}
@@ -349,21 +351,33 @@ public:
 	/// carray constructor
 	template<typename TT>
 	explicit vector(const TT* elem, size_t sz)
+		: vectorbase<T,A>()
 	{	// we are clean and empty here
 		this->convert_assign(elem, sz);
 	}
-
+	template<typename TT>
+	explicit vector(const TT* s, const TT* e)
+		: vectorbase<T,A>()
+	{	// we are clean and empty here
+		if(s && e && s<e)
+			this->convert_assign(s, e-s);
+	}
 	///////////////////////////////////////////////////////////////////////////
 	/// just size constructor (leaving the elements default constructed)
 	explicit vector(size_t sz)
 	{	// we are clean and empty here
 		this->resize( sz );
 	}
+	explicit vector(size_t sz, const T& e)
+	{	// we are clean and empty here
+		this->convert_append_multiple(e, sz);
+	}
 	///////////////////////////////////////////////////////////////////////////
 	/// with variable argument array (use with care)
 #if !defined(__GNUC__) || __GNUC__ >= 3
 // problems with gcc prior to v3
 	explicit vector(size_t sz, const T& t0, ...)
+		: vectorbase<T,A>()
 	{	// we are clean and empty here
 		if( sz && this->checkwrite( sz ) )
 		{
@@ -947,12 +961,13 @@ class stack : public vector<T>
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard constructor / destructor
-	stack<T>()				{}
-	virtual ~stack<T>()		{}
+	stack<T>() : vector<T>()	{}
+	virtual ~stack<T>()			{}
 
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assignment
 	stack<T>(const stack<T>& v)
+		:  vector<T>()
 	{
 		this->assign(v);
 	}
@@ -972,31 +987,42 @@ public:
 	// another workaround is to have a baseclass to derive the hierarchy from 
 	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
 	template<typename TT, typename AA>
-	stack<T>(const vectorbase<TT,AA>& v)					{ this->convert_assign(v); }
+	stack<T>(const vectorbase<TT,AA>& v):  vector<T>()		{ this->convert_assign(v); }
 	template<typename TT, typename AA>
 	const stack<T>& operator=(const vectorbase<TT,AA>& v)	{ this->convert_assign(v); return *this; }
 	///////////////////////////////////////////////////////////////////////////
 	/// carray constructor
 	template<typename TT>
 	explicit stack(const TT* elem, size_t sz)
+		:  vector<T>()
 	{	// we are clean and empty here
 		this->convert_assign(elem, sz);
 	}
-	explicit stack(const T& elem)
+	template<typename TT>
+	explicit stack(const TT* s, const TT* e)
+		:  vector<T>()
 	{	// we are clean and empty here
-		this->convert_assign(elem);
+		if(s && e && s<e)
+			this->convert_assign(s, e-s);
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// just size constructor (leaving the elements default constructed)
 	explicit stack(size_t sz)
+		:  vector<T>()
 	{	// we are clean and empty here
 		this->resize( sz );
+	}
+	explicit stack(size_t sz, const T& e)
+		:  vector<T>()
+	{	// we are clean and empty here
+		this->convert_append_multiple(e, cnt);
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// with variable argument array (use with care)
 #if !defined(__GNUC__) || __GNUC__ >= 3
 // problems with gcc prior to v3
 	explicit stack(size_t sz, const T& t0, ...)
+		:  vector<T>()
 	{	// we are clean and empty here
 		if( this->checkwrite( sz ) )
 		{
@@ -1090,16 +1116,18 @@ public:
 template <typename T>
 class fifo : public vector<T, allocator_rw_dy<T> >
 {
+	typedef vector<T, allocator_rw_dy<T> > base;
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard constructor / destructor
-	fifo()			{}
-	virtual ~fifo()	{}
+	fifo() : base()		{}
+	virtual ~fifo()		{}
 
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assignment
 	///////////////////////////////////////////////////////////////////////////
 	fifo(const fifo<T>& v)
+		: base()
 	{
 		this->assign(v);
 	}
@@ -1112,6 +1140,7 @@ public:
 	/// templated baseclasse copy/assignment
 	template<typename TT, typename AA>
 	fifo<T>(const vectorbase<TT,AA>& v)
+		: base()
 	{
 		this->assign(v);
 	}
@@ -1125,25 +1154,36 @@ public:
 	/// carray constructor
 	template<typename TT>
 	explicit fifo(const TT* elem, size_t sz)
+		: base()
 	{	
 		this->convert_assign(elem, sz);
 	}
-	explicit fifo(const T& elem)
-	{	
-		this->convert_assign(elem);
+	template<typename TT>
+	explicit fifo(const TT* s, const TT* e)
+		:  base()
+	{	// we are clean and empty here
+		if(s && e && s<e)
+			this->convert_assign(s, e-s);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// just size constructor (leaving the elements default constructed)
 	explicit fifo(size_t sz)
+		: base()
 	{	// we are clean and empty here
 		this->resize( sz );
+	}
+	explicit fifo(size_t sz, const T& e)
+		: base()
+	{	// we are clean and empty here
+		this->convert_append_multiple(e, cnt);
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// with variable argument array (use with care)
 #if !defined(__GNUC__) || __GNUC__ >= 3
 // problems with gcc prior to v3
 	explicit fifo(size_t sz, const T& t0, ...)
+		: base()
 	{	// we are clean and empty here
 		if( this->checkwrite( sz ) )
 		{
@@ -1342,13 +1382,17 @@ private:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard constructor / destructor
-	slist<T,A>(bool a=true, bool d=false) : config(a,d)
+	slist<T,A>(bool a=true, bool d=false)
+		: vector<T,A>()
+		, config(a,d)
 	{ }
 	virtual ~slist<T,A>() {}
 
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assignment
-	slist<T,A>(const slist<T,A>& v) : config(v.config)
+	slist<T,A>(const slist<T,A>& v)
+		: vector<T,A>()
+		, config(v.config)
 	{
 		this->assign(v);
 	}
@@ -1369,7 +1413,9 @@ public:
 	// another workaround is to have a baseclass to derive the hierarchy from 
 	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
 	template<typename TT, typename AA>
-	slist<T,A>(const vectorbase<TT,AA>& v) : config(true,false)
+	slist<T,A>(const vectorbase<TT,AA>& v)
+		: vector<T,A>()
+		, config(true,false)
 	{
 		this->assign(v);
 	}
@@ -1382,26 +1428,42 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// carray constructor
 	template<typename TT>
-	explicit slist(const TT* elem, size_t sz) : config(true,false)
+	explicit slist(const TT* elem, size_t sz)
+		: vector<T,A>()
+		, config(true,false)
 	{	// we are clean and empty here
 		this->convert_append(elem, sz);
 	}
-	explicit slist(const T& elem) : config(true,false)
+	template<typename TT>
+	explicit slist(const TT* s, const TT* e)
+		:  vector<T>()
+		, config(true,false)
 	{	// we are clean and empty here
-		this->convert_append(elem);
+		if(s && e && s<e)
+			this->convert_append(s, e-s);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// just size constructor (leaving the elements default constructed)
-	explicit slist(size_t sz, const T& elem=T()) : config(true,false)
+	explicit slist(size_t sz)
+		: vector<T,A>()
+		, config(true,false)
 	{	// we are clean and empty here
-		this->convert_append(elem, sz);
+		this->convert_append(T(), sz);
+	}
+	explicit slist(size_t sz, const T& e)
+		: vector<T,A>()
+		, config(true,false)
+	{	// we are clean and empty here
+		this->convert_append_multiple(e, cnt);
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// with variable argument array (use with care)
 #if !defined(__GNUC__) || __GNUC__ >= 3
 // problems with gcc prior to v3
-	explicit slist(size_t sz, const T& t0, ...) : config(true,false)
+	explicit slist(size_t sz, const T& t0, ...)
+		: vector<T,A>()
+		, config(true,false)
 	{	// we are clean and empty here
 		if( this->checkwrite( sz ) )
 		{
@@ -1450,7 +1512,7 @@ public:
 private:
 	///////////////////////////////////////////////////////////////////////////
 	/// move elements inside the buffer
-	virtual bool move(size_t tarpos, size_t srcpos, size_t cnt=1)
+	virtual bool move(size_t, size_t, size_t=1)
 	{	// not allowed
 		return false;
 	}
@@ -1590,11 +1652,11 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// add an array of elements at position pos
-	virtual bool insert(const T* elem, size_t cnt, size_t pos=~0)
+	virtual bool insert(const T* elem, size_t cnt, size_t=~0)
 	{
 		return this->convert_append(elem,cnt);
 	}
-	virtual bool insert(const T& elem, size_t cnt=1, size_t pos=~0)
+	virtual bool insert(const T& elem, size_t cnt=1, size_t=~0)
 	{
 		return this->convert_append_multiple(elem,cnt);
 	}
@@ -1622,7 +1684,7 @@ public:
 	/// copy the given array to pos, 
 	/// overwrites existing elements, 
 	/// expands automatically but does not shrink when array is already larger
-	virtual bool copy(const T* elem, size_t cnt, size_t pos=0)
+	virtual bool copy(const T* elem, size_t cnt, size_t=0)
 	{
 		return this->convert_append(elem, cnt);
 	}
@@ -1908,10 +1970,13 @@ public:
 	{	// we are clean and empty here
 		this->assign(elem, sz);
 	}
-	explicit ptrvector(T*const& elem)
+	template<typename TT>
+	explicit ptrvector(const TT* s, const TT* e)
 	{	// we are clean and empty here
-		this->assign(elem);
+		if(s && e && s<e)
+			this->assign(s, e-s);
 	}
+
 
 	///////////////////////////////////////////////////////////////////////////
 	/// just size constructor (leaving the elements default constructed)
@@ -2162,12 +2227,13 @@ protected:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard constructor / destructor
-	ptrslist<T,A>()				{}
-	virtual ~ptrslist<T,A>()	{}
+	ptrslist<T,A>() : ptrvector<T,A>()	{}
+	virtual ~ptrslist<T,A>()			{}
 
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assignment
 	ptrslist<T,A>(const ptrslist<T,A>& v)
+		: ptrvector<T,A>()
 	{
 		this->assign(v);
 	}
@@ -2187,6 +2253,7 @@ public:
 	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
 	template<typename AA>
 	ptrslist<T,A>(const ptrvector<T,AA>& v)
+		: ptrvector<T,A>()
 	{
 		this->assign(v);
 	}
@@ -2199,17 +2266,23 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// carray constructor
 	explicit ptrslist(T*const* elem, size_t sz)
+		: ptrvector<T,A>()
 	{	// we are clean and empty here
 		this->assign(elem, sz);
 	}
-	explicit ptrslist(T*const& elem)
+	template<typename TT>
+	explicit ptrslist(const TT* s, const TT* e)
+		:  ptrvector<T>()
 	{	// we are clean and empty here
-		this->assign(elem);
+		if(s && e && s<e)
+			this->assign(s, e-s);
 	}
+
 
 	///////////////////////////////////////////////////////////////////////////
 	/// just size constructor (leaving the elements default constructed)
 	explicit ptrslist(size_t sz)
+		: ptrvector<T,A>()
 	{	// we are clean and empty here
 		this->resize( sz );
 	}
@@ -2508,13 +2581,16 @@ protected:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// 
-	objvector<T,A>()				{}
-	virtual ~objvector<T,A>()		{ this->clear(); }
+	objvector<T,A>() : vectorinterface<T>()	{}
+	virtual ~objvector<T,A>()				{ this->clear(); }
 
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// constructors/assignments
-	objvector<T,A>(const objvector<T,A>& v) : cVect(v.cVect){}
+	objvector<T,A>(const objvector<T,A>& v)
+		: vectorinterface<T>()
+		, cVect(v.cVect)
+	{}
 	const objvector<T,A> operator=(const objvector<T,A>& v)	{ cVect = v.cVect; return *this;}
 
 
@@ -2845,16 +2921,16 @@ protected:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// 
-	objslist<T,A>()				{}
-	virtual ~objslist<T,A>()		{}
+	objslist<T,A>() : objvector<T,A>()	{}
+	virtual ~objslist<T,A>()			{}
 
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// constructors/assignments
-	objslist<T,A>(const objvector<T,A>& v)					{ this->append(v); }
-	const objslist<T,A> operator=(const objvector<T,A>& v)	{ this->assign(v); return *this; }
-	objslist<T,A>(const objslist<T,A>& v)					{ this->append(v); }
-	const objslist<T,A> operator=(const objslist<T,A>& v)	{ this->assign(v); return *this; }
+	objslist<T,A>(const objvector<T,A>& v) : objvector<T,A>()	{ this->append(v); }
+	const objslist<T,A> operator=(const objvector<T,A>& v)		{ this->assign(v); return *this; }
+	objslist<T,A>(const objslist<T,A>& v) : objvector<T,A>()	{ this->append(v); }
+	const objslist<T,A> operator=(const objslist<T,A>& v)		{ this->assign(v); return *this; }
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -2879,7 +2955,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// move elements inside the buffer
 	// using element assignments
-	virtual bool move(size_t tarpos, size_t srcpos, size_t cnt=1)
+	virtual bool move(size_t, size_t, size_t=1)
 	{
 		return false;
 	}
@@ -2918,11 +2994,11 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// add an array of elements at position pos (at the end by default)
-	virtual bool insert(const T* elem, size_t cnt, size_t pos=~0)
+	virtual bool insert(const T* elem, size_t cnt, size_t=~0)
 	{
 		return this->append(elem, cnt);
 	}
-	virtual bool insert(const T& elem, size_t cnt=1, size_t pos=~0)
+	virtual bool insert(const T& elem, size_t cnt=1, size_t=~0)
 	{
 		return this->append(elem, cnt);
 	}

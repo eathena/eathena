@@ -178,8 +178,8 @@ class ScopeLock: public noncopyable
 // empty for singlethread
 //////////////////////////////////////////////////////////////////////////
 public:
-    ScopeLock(const Mutex& imtx)	{}
-    ~ScopeLock()					{}
+    ScopeLock(const Mutex&)	{}
+    ~ScopeLock()			{}
 #else
 protected:
     Mutex& mtx;
@@ -200,7 +200,7 @@ class event: public noncopyable
 // empty for singlethread
 //////////////////////////////////////////////////////////////////////////
 public:
-    event(bool autoreset=true, bool state=true) {}
+    event(bool=true, bool=true)		{}
     ~event()						{}
     void wait()						{}
     void post()						{}
@@ -261,7 +261,7 @@ class Gate : public event
 // empty for singlethread
 //////////////////////////////////////////////////////////////////////////
 public:
-	Gate(bool state=false)			{}
+	Gate(bool=false)				{}
 	void open()						{}
 	void close()					{}
 //////////////////////////////////////////////////////////////////////////
@@ -551,7 +551,7 @@ class ScopeRead: public noncopyable, public nonallocable
 // empty for singlethread
 //////////////////////////////////////////////////////////////////////////
 public:
-    ScopeRead(rwlock& irw)			{}
+    ScopeRead(rwlock&)				{}
     ~ScopeRead()  					{}
 //////////////////////////////////////////////////////////////////////////
 #else
@@ -576,7 +576,7 @@ class ScopeWrite: public noncopyable, public nonallocable
 // empty for singlethread
 //////////////////////////////////////////////////////////////////////////
 public:
-    ScopeWrite(rwlock& irw)			{}
+    ScopeWrite(rwlock&)				{}
     ~ScopeWrite()  					{}
 //////////////////////////////////////////////////////////////////////////
 #else
@@ -618,7 +618,7 @@ class Semaphore: public global
 // empty for singlethread
 //////////////////////////////////////////////////////////////////////////
 public:
-    Semaphore(ulong initvalue=0)	{}
+    Semaphore(ulong=0)				{}
     virtual ~Semaphore()			{}
     void wait()						{}
     void post()						{}
@@ -653,9 +653,9 @@ class SemaphoreTimed: public global
 // empty for singlethread
 //////////////////////////////////////////////////////////////////////////
 public:
-    SemaphoreTimed(ulong initvalue=0){}
+    SemaphoreTimed(ulong=0)			{}
     virtual ~SemaphoreTimed()		{}
-    bool wait(ulong msecs = -1)		{ return false; }
+    bool wait(ulong = -1)			{ return false; }
     void post()						{}
     void signal()  					{}
 

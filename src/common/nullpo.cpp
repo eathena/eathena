@@ -8,23 +8,7 @@
 static void nullpo_info_core(const char *file, int line, const char *func, 
                              const char *fmt, va_list ap);
 
-/*======================================
- * Nullチェック 及び 情報出力
- *--------------------------------------
- */
-int nullpo_chk_f(const char *file, int line, const char *func, const void *target,
-                 const char *fmt, ...)
-{
-	va_list ap;
-	
-	if (target != NULL)
-		return 0;
-	
-	va_start(ap, fmt);
-	nullpo_info_core(file, line, func, fmt, ap);
-	va_end(ap);
-	return 1;
-}
+
 
 int nullpo_chk(const char *file, int line, const char *func, const void *target)
 {
@@ -36,19 +20,6 @@ int nullpo_chk(const char *file, int line, const char *func, const void *target)
 }
 
 
-/*======================================
- * nullpo情報出力(外部呼出し向けラッパ)
- *--------------------------------------
- */
-void nullpo_info_f(const char *file, int line, const char *func, 
-                 const char *fmt, ...)
-{
-	va_list ap;
-	
-	va_start(ap, fmt);
-	nullpo_info_core(file, line, func, fmt, ap);
-	va_end(ap);
-}
 
 void nullpo_info(const char *file, int line, const char *func)
 {

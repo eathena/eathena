@@ -2198,7 +2198,7 @@ size_t sz=0;
 
 	tick = clock();
 	for(i=0; i<runs; ++i)
-		sz = snprintf(buffer1, sizeof(buffer1), "hallo %u ballo %u no %lf", i, i*2/3+i, ((double)i)*1.3);
+		sz = snprintf(buffer1, sizeof(buffer1), "hallo %u ballo %u no %f", i, i*2/3+i, ((double)i)*1.3);
 	printf("sprintf %lu (%u)\n", clock()-tick, (uint)sz);
 
 	tick = clock();

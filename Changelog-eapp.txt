@@ -1,5 +1,13 @@
 Date	Added
 2007/05/26
+	* Added applyinging base class default construction to basics export script
+	* applied some proper casting before passing types to ellipsis
+	* separated string class hierarchy from allocators as in this export
+	  there is no real necessity to have a virtual allocator base
+	* removed variable parameter defines as those are not STDC but a gcc extension
+	* pre-implementation from C++ Standard Core Language Active Issue #195
+	  (dlsym and casting of member pointers to function pointers)
+	  and adopted the usages accordingly [Shinomori]
 	* Fixed some errors in the code and commented out CChildIdxFieldBuffer 
 	  because of an error in cygwin that i don't know how to fix.
 	* Current state of the packet code: [FlavioJS]

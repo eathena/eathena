@@ -1410,7 +1410,7 @@ bool eacompiler::is_const() const
 
 void eacompiler::put_value_unchecked(double d)
 {
-//	printf("push float '%lf'\n", d);
+//	printf("push float '%f'\n", d);
 	prog->appendInt( prog->float2int(d) );
 }
 void eacompiler::put_value_unchecked(int64 i)

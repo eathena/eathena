@@ -798,11 +798,11 @@ public:
 	mapcacheentry()
 		: x(0), y(0), csz(0), ofs(0), ifo(NULL)
 	{
-		printf("create mapcacheentry %p\n", this);
+		printf("create mapcacheentry %p\n", static_cast<void*>(this));
 	}
 	~mapcacheentry()
 	{
-		printf("delete mapcacheentry %p\n", this);
+		printf("delete mapcacheentry %p\n", static_cast<void*>(this));
 	}
 	///////////////////////////////////////////////////////////////////////////
 	mapcacheentry(const mapcacheentry& a)
@@ -813,7 +813,7 @@ public:
 		, ofs(a.ofs)
 		, ifo(a.ifo)
 	{
-		printf("create mapcacheentry %p from %p\n", this, &a);
+		printf("create mapcacheentry %p from %p\n", static_cast<void*>(this), static_cast<const void*>(&a));
 	}
 private:
 	///////////////////////////////////////////////////////////////////////////
@@ -847,12 +847,12 @@ struct mapcache
 	///////////////////////////////////////////////////////////////////////////
 	mapcache(const char* mcfile=NULL, const char* whfile=NULL)
 	{
-		printf("create mapcache %p\n", this);
+		printf("create mapcache %p\n", static_cast<void*>(this));
 		this->initialize(mcfile, whfile);
 	}
 	~mapcache()
 	{
-		printf("delete mapcache %p\n", this);
+		printf("delete mapcache %p\n", static_cast<void*>(this));
 	}
 	///////////////////////////////////////////////////////////////////////////
 	mapcache(const mapcache& a)
@@ -860,7 +860,7 @@ struct mapcache
 		, waterdata(a.waterdata)
 		, mapdata(a.mapdata)
 	{
-		printf("create mapcache copy %p from %p\n", this, &a);
+		printf("create mapcache copy %p from %p\n", static_cast<void*>(this), static_cast<const void*>(&a));
 	}
 private:
 	///////////////////////////////////////////////////////////////////////////
@@ -1046,12 +1046,12 @@ public:
 		: terrain_map(NULL)
 		, modify_map(NULL)
 	{
-		printf("create empty map %p\n", this);
+		printf("create empty map %p\n", static_cast<void*>(this));
 	}
 	///////////////////////////////////////////////////////////////////////////
 	~real_map()
 	{
-		printf("delete map %p\n", this);
+		printf("delete map %p\n", static_cast<void*>(this));
 		this->release();
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -1062,7 +1062,7 @@ public:
 		, terrain_map(NULL)
 		, modify_map(NULL)
 	{
-		printf("create map %p from %p\n", this, &a);
+		printf("create map %p from %p\n", static_cast<void*>(this), static_cast<const void*>(&a));
 		this->initialize();
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -1079,7 +1079,7 @@ public:
 		: terrain_map(NULL)
 		, modify_map(NULL)
 	{
-		printf("create map %p from string\n", this);
+		printf("create map %p from string\n", static_cast<void*>(this));
 		this->load(name);
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -1170,7 +1170,7 @@ public:
 terrain::terrain(const basics::string<>& name, const terrain::index_t x, const terrain::index_t y)
 	: cName(name), cX(x), cY(y), cType(NULL), cRefCount(0)
 {
-	printf("create terrain %p\n", this);
+	printf("create terrain %p\n", static_cast<void*>(this));
 	const size_t num_stor = this->size();
 	if(num_stor)
 	{
@@ -1181,7 +1181,7 @@ terrain::terrain(const basics::string<>& name, const terrain::index_t x, const t
 ///////////////////////////////////////////////////////////////////////////////
 terrain::~terrain()
 {
-	printf("delete terrain %p\n", this);
+	printf("delete terrain %p\n", static_cast<void*>(this));
 	if( this->cType ) delete[] this->cType;
 }
 ///////////////////////////////////////////////////////////////////////////////

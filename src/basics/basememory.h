@@ -274,7 +274,7 @@ public:
 	};
 
 
-	allocator()				{}
+	allocator() : global(), noncopyable()	{}
 	virtual ~allocator()	{}
 
 	//virtual operator const T*() const =0;
@@ -298,7 +298,7 @@ const RETURN_TYPENAME allocator<T>::size_type allocator<T>::npos = static_cast<t
 /// allocators for write buffers.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T=char>
-class allocator_w : public virtual allocator<T>
+class allocator_w : public allocator<T>
 {
 	ICL_EMPTY_COPYCONSTRUCTOR(allocator_w)
 protected:
@@ -312,7 +312,7 @@ protected:
 	const T*& ptrEnd() const	{ return cEnd; }
 
 	// std construct/destruct
-	allocator_w()	: cBuf(NULL), cEnd(NULL), cWpp(NULL)				{}
+	allocator_w() : cBuf(NULL), cEnd(NULL), cWpp(NULL)					{}
 	allocator_w(T* buf, size_t sz) : cBuf(buf), cEnd(buf+sz), cWpp(buf)	{}
 	virtual ~allocator_w()	{ cBuf=cEnd=cWpp=NULL; }
 
@@ -467,7 +467,7 @@ protected:
 /// ie. for FIFO implementations
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T=unsigned char>
-class allocator_rw : public virtual allocator<T>
+class allocator_rw : public allocator<T>
 {
 	ICL_EMPTY_COPYCONSTRUCTOR(allocator_rw)
 protected:
@@ -588,7 +588,7 @@ protected:
 /// ie. for the parser
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T=unsigned char>
-class allocator_r : public virtual allocator<T>
+class allocator_r : public allocator<T>
 {
 	ICL_EMPTY_COPYCONSTRUCTOR(allocator_r)
 protected:

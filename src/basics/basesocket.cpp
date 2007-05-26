@@ -797,7 +797,7 @@ public:
 
 	virtual int run()
 	{
-		//printf("run testproc %p (socket %i) ", this, this->sock); fflush(stdout);
+		//printf("run testproc %p (socket %i) ", static_cast<void*>(this), this->sock); fflush(stdout);
 		unsigned long arg=0, len;
 		int rv = ioctlsocket(this->sock, FIONREAD, &arg);
 		//printf("(ioctlsocket %i len=%lu) ", rv, arg); fflush(stdout);
@@ -808,7 +808,7 @@ public:
 			(len=read(this->sock,buffer,arg)) )
 		{
 			buffer[len]=0;
-			printf("[%5i]recv %p,%i (len=%lu): '%s' \n", (int)server.sessionmap.size(), this, (int)this->sock, len, buffer); fflush(stdout);
+			printf("[%5i]recv %p,%i (len=%lu): '%s' \n", (int)server.sessionmap.size(), static_cast<void*>(this), (int)this->sock, len, buffer); fflush(stdout);
 		}
 		else
 		{
@@ -830,7 +830,7 @@ int testserver::run()
 	if(s!=INVALID_SOCKET) 
 	{
 		testproc* p = new testproc(s, *this);
-		printf("incoming from %X (%p = #%i)(socket %i)\n", (int)ntohl(client_address.sin_addr.s_addr), p, (int)this->sessionmap.size(), (int)s );
+		printf("incoming from %X (%p = #%i)(socket %i)\n", (int)ntohl(client_address.sin_addr.s_addr), static_cast<void*>(p), (int)this->sessionmap.size(), (int)s );
 	}
 	else
 	{
@@ -855,7 +855,7 @@ public:
 	}
 	virtual int run()
 	{
-		//printf("run testproc %p (socket %i) ", this, this->sock); fflush(stdout);
+		//printf("run testproc %p (socket %i) ", static_cast<void*>(this), this->sock); fflush(stdout);
 		unsigned long arg=0, len;
 		int rv = ioctlsocket(this->sock, FIONREAD, &arg);
 		//printf("(ioctlsocket %i len=%lu) ", rv, arg); fflush(stdout);
@@ -866,7 +866,7 @@ public:
 			(len=read(this->sock,buffer,arg)) )
 		{
 			buffer[len]=0;
-			printf("[%5i]recv %p,%i (len=%lu): '%s' \n", 0, this, (int)this->sock, len, buffer); fflush(stdout);
+			printf("[%5i]recv %p,%i (len=%lu): '%s' \n", 0, static_cast<void*>(this), (int)this->sock, len, buffer); fflush(stdout);
 		}
 		else
 		{

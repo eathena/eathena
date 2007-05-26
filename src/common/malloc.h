@@ -203,19 +203,50 @@ public:
 */
 
 
+template<typename T>
+struct simple_buffer
+{
+	T* array;
+	simple_buffer(size_t sz, bool clearmen=false)
+		: array(new T[sz])
+	{
+		if(clearmem)
+			memset(this->array,0,sz*sizeof(T))
+	}
+	~simple_buffer()
+	{
+		if(array)
+			delete[] array;
+	}
+	T& operator[](int p)
+	{
+		return array[p];
+	}
+	const T& operator[](int p) const 
+	{
+		return array[p];
+	}
+	operator T*()				{ return array; }
+	operator const T*() const	{ return array; }
+	T* operator()()				{ return array; }
+	const T* operator()() const	{ return array; }
+};
+
 /////////////// Buffer Creation /////////////////
 // Full credit for this goes to Shinomori [Ajarn]
 
-#ifdef __GNUC__ // GCC has variable length arrays
-
+#if defined(__GNUC__)// GCC has variable length arrays, though they are not ISO C++ conform
 	#define CREATE_BUFFER(name, type, size) type name[size]; memset(name,0,size*sizeof(type))
 	#define DELETE_BUFFER(name)
-
 #else // others don't, so we emulate them
-
+// c style
 	#define CREATE_BUFFER(name, type, size) type *name = (type *) calloc (size, sizeof(type))
 	#define DELETE_BUFFER(name) free(name)
-
+// c++ style
+// note that only pod's can be used here
+// and the buffer cannot be passed through ellipsis
+//	#define CREATE_BUFFER(name, type, size) simple_buffer<type> name(size, true);
+//	#define DELETE_BUFFER(name)
 #endif
 
 

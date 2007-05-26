@@ -144,7 +144,7 @@ public:
 	CMySQL();
 	/// constructor with initialisation.
 	CMySQL(const string<>& id, const string<>& pw, const string<>& db, const string<>& ip, const ushort port, const string<>& cp=nullstring)
-		: cDBPool(*this)	// initialize the first database object
+		: global(), noncopyable(), cDBPool(*this)	// initialize the first database object
 	{
 		this->init(id, pw, db, ip, port, cp);
 	}

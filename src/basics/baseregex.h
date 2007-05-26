@@ -168,31 +168,34 @@ private:
 	public:
 		///////////////////////////////////////////////////////////////////////
 		/// construction
-		CRegProgram() :
-			cMust(0),
-			cMustLen(0),
-			cStartChar(0),
-			cAnchor(0),
-			cConfig(false,false,true,true,true)
+		CRegProgram()
+			: CRegErrorHandler()
+			, cMust(0)
+			, cMustLen(0)
+			, cStartChar(0)
+			, cAnchor(0)
+			, cConfig(false,false,true,true,true)
 		{}
-		CRegProgram(const char *exp, bool iCase=true, bool multi=true, bool conform=true) :
-			cMust(0),
-			cMustLen(0),
-			cStartChar(0),
-			cAnchor(0),
-			cConfig(false,iCase,multi,multi,conform)
+		CRegProgram(const char *exp, bool iCase=true, bool multi=true, bool conform=true)
+			: CRegErrorHandler()
+			, cMust(0)
+			, cMustLen(0)
+			, cStartChar(0)
+			, cAnchor(0)
+			, cConfig(false,iCase,multi,multi,conform)
 		{	//
 			Compile( exp );
 		}
 		///////////////////////////////////////////////////////////////////////
 		/// copy/assignment
-		CRegProgram(const CRegProgram& a) :
-			cProgramm(a.cProgramm),
-			cMust(a.cMust),
-			cMustLen(a.cMustLen),
-			cStartChar(a.cStartChar),
-			cAnchor(a.cAnchor),
-			cConfig(a.cConfig)
+		CRegProgram(const CRegProgram& a)
+			: CRegErrorHandler()
+			, cProgramm(a.cProgramm)
+			, cMust(a.cMust)
+			, cMustLen(a.cMustLen)
+			, cStartChar(a.cStartChar)
+			, cAnchor(a.cAnchor)
+			, cConfig(a.cConfig)
 
 	#ifdef DEBUG
 			,

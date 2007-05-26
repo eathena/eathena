@@ -96,7 +96,7 @@ scriptprog::COpcode scriptprog::cOpcodeTable[256] =
 	{2,1,0,OP_PUSH_STRING,"push string '%s'"},
 	{3,1,0,OP_PUSH_STRING,"push string '%s'"},
 	{4,1,0,OP_PUSH_STRING,"push string '%s'"},
-	{4,0,0,OP_PUSH_FLOAT,"push float '%lf'"},
+	{4,0,0,OP_PUSH_FLOAT,"push float '%f'"},
 	{1,1,2,OP_PUSH_VAR,"push variable reference '%s'"},
 	{2,1,2,OP_PUSH_VAR,"push variable reference '%s'"},
 	{3,1,2,OP_PUSH_VAR,"push variable reference '%s'"},

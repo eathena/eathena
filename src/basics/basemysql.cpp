@@ -9,7 +9,9 @@ NAMESPACE_BEGIN(basics)
 ///////////////////////////////////////////////////////////////////////////////
 /// CMySQL Class Constructor
 CMySQL::CMySQL()
-	: cDBPool(*this)			// initialize the first database object
+	: global()
+	, noncopyable() 
+	, cDBPool(*this)			// initialize the first database object
 	, mysqldb_id("ragnarok")
 	, mysqldb_pw("ragnarok")
 	, mysqldb_db("ragnarok")

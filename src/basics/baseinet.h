@@ -333,7 +333,7 @@ protected:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// standard constructor/destructor
-    subnetaddress():cMask((uint32)INADDR_ANY)	{}
+    subnetaddress():netaddress(),cMask((uint32)INADDR_ANY)	{}
 	virtual ~subnetaddress()	{}
 	///////////////////////////////////////////////////////////////////////////
 	/// copy/assign (actually not really necessary)
@@ -344,8 +344,8 @@ public:
 	/// construction set
 	subnetaddress(uint32 a, uint32 m, ushort p):netaddress(a,p),cMask(m)	{}
 	subnetaddress(netaddress a, ipaddress m):netaddress(a),cMask(m)	{}
-	subnetaddress(const char* str):cMask((uint32)INADDR_ANY)	{ init(str); }
-	subnetaddress(const string<>& str):cMask((uint32)INADDR_ANY)	{ init(str); }
+	subnetaddress(const char* str):netaddress(),cMask((uint32)INADDR_ANY)	{ init(str); }
+	subnetaddress(const string<>& str):netaddress(),cMask((uint32)INADDR_ANY)	{ init(str); }
 	///////////////////////////////////////////////////////////////////////////
 	/// assignment set
 	const subnetaddress& operator= (const char* str)	{ init(str); return *this; }
@@ -419,8 +419,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// construction set
-	ipset(const char* str)		{ init(str); }
-	ipset(const string<>& str)	{ init(str); }
+	ipset(const char* str) : subnetaddress()		{ init(str); }
+	ipset(const string<>& str) : subnetaddress()	{ init(str); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// assignment set

@@ -385,7 +385,7 @@ class CParamObj : public string<>
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// construction/destruction
-	CParamObj() : cParamRoot(NULL), cReferenced(false),cFixed(false),cCallback(NULL)	{}
+	CParamObj() : string<>(), cParamRoot(NULL), cReferenced(false),cFixed(false),cCallback(NULL)	{}
 	CParamObj(const string<>& name) : string<>(name), cParamRoot(NULL), cReferenced(false),cFixed(false),cCallback(NULL)	{}
 	~CParamObj()	{}
 
@@ -437,7 +437,7 @@ class CParamBase
 
 		///////////////////////////////////////////////////////////////////////
 		/// construction/destruction
-		CParamFile() : fileproc(NULL), entrproc(NULL)	{}
+		CParamFile() : string<>(), CConfig(), fileproc(NULL), entrproc(NULL)	{}
 		explicit CParamFile(const string<>& filename);
 		CParamFile(const string<>& filename, paramfileproc p);
 		CParamFile(const string<>& filename, paramentrproc p);
@@ -656,7 +656,7 @@ protected:
 /// construction.
 template <typename T>
 CParam<T>::CParam(const string<>& name, bool (*callback)(const string<>& name, T& newval, const T& oldval))
-	: cLocalCallback(callback)
+	: CParamBase(), cLocalCallback(callback)
 {
 	string<> tmp;
 	this->cParamObj = CParamBase::getParam(name, tmp);
@@ -668,7 +668,7 @@ CParam<T>::CParam(const string<>& name, bool (*callback)(const string<>& name, T
 /// construction.
 template <typename T>
 CParam<T>::CParam(const string<>& name, const T& value, bool (*callback)(const string<>& name, T& newval, const T& oldval))
-	: cLocalCallback(callback)
+	: CParamBase(), cLocalCallback(callback)
 {
 	string<> tmp;
 	tmp << value;

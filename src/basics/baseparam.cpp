@@ -339,7 +339,7 @@ void CParamObj::print()
 ///////////////////////////////////////////////////////////////////////////////
 // construction
 CParamBase::CParamFile::CParamFile(const string<>& filename)
-	: string<>(filename), fileproc(NULL), entrproc(NULL)
+	: string<>(filename), CConfig(), fileproc(NULL), entrproc(NULL)
 {
 	struct stat s;
 	if( 0==stat((const char*)filename, &s) )
@@ -347,7 +347,7 @@ CParamBase::CParamFile::CParamFile(const string<>& filename)
 }
 
 CParamBase::CParamFile::CParamFile(const string<>& filename, paramfileproc p)
-	: string<>(filename), fileproc(p), entrproc(NULL)
+	: string<>(filename), CConfig(), fileproc(p), entrproc(NULL)
 {
 	struct stat s;
 	if( 0==stat((const char*)filename, &s) )
@@ -355,7 +355,7 @@ CParamBase::CParamFile::CParamFile(const string<>& filename, paramfileproc p)
 }
 
 CParamBase::CParamFile::CParamFile(const string<>& filename, paramentrproc p)
-	: string<>(filename), fileproc(NULL), entrproc(p)
+	: string<>(filename), CConfig(), fileproc(NULL), entrproc(p)
 {
 	struct stat s;
 	if( 0==stat((const char*)filename, &s) )
@@ -363,7 +363,7 @@ CParamBase::CParamFile::CParamFile(const string<>& filename, paramentrproc p)
 }
 
 CParamBase::CParamFile::CParamFile(const string<>& filename, const CParamFile& orig)
-	: string<>(filename), fileproc(orig.fileproc), entrproc(orig.entrproc)
+	: string<>(filename), CConfig(), fileproc(orig.fileproc), entrproc(orig.entrproc)
 {
 	struct stat s;
 	if( 0==stat((const char*)filename, &s) )
@@ -437,7 +437,7 @@ bool CParamBase::CParamLoader::loadParamFile(const CParamFile& fileobj)
 	// this prevents invalidated objects 
 	// when a call within the load 
 	// is modifying the storage vector
-	CParamFile workobj = this->cFileList[pos];
+	CParamFile workobj(this->cFileList[pos]);
 	const bool ret = workobj.load();
 	// remove when loading has failed
 	if( this->cFileList.find(fileobj, 0, pos) )
@@ -626,7 +626,7 @@ void CParamBase::unlink()
 #if defined(DEBUG)
 bool doublecallback(const string<>& name, double&newval, const double&oldval)
 {
-	printf( "%s is changing from %lf to %lf\n", (const char*)name, oldval, newval);
+	printf( "%s is changing from %f to %f\n", (const char*)name, oldval, newval);
 	return true;
 }
 
@@ -663,26 +663,26 @@ void test_parameter()
 		CParam<double> parameter("double param", 0.0, doublecallback);
 
 		a=parameter;
-		printf("%lf %s\n", a, (const char*)b);
+		printf("%f %s\n", a, (const char*)b);
 
 		// modify param entry
 		createParam("double param", "0.4");
 
 		a=parameter;
-		printf("%lf %s\n", a, (const char*)b);
+		printf("%f %s\n", a, (const char*)b);
 
 		CParam<double> testvar("double param", 0.0, doublecallback);
 
 		a=parameter;
 		b=testvar;
-		printf("%lf %s\n", a, (const char*)b);
+		printf("%f %s\n", a, (const char*)b);
 
 		testvar = 5;
 		parameter = xx;
 
 		a=parameter;
 		b=testvar;
-		printf("%lf %s\n", a, (const char*)b);
+		printf("%f %s\n", a, (const char*)b);
 
 
 		printf("%s\n", typeid(testvar).name() );

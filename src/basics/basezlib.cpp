@@ -1336,12 +1336,12 @@ bool CZlib::_CZlib::LoadLib(const char* name)
 	czlib = ::LoadLibrary(name);
 	if( NULL != czlib )
 	{
-		cinflateInit = (int (*)(z_streamp, const char *, int))GetProcAddress(czlib,"inflateInit_");
-		cinflate     = (int (*)(z_streamp, int))GetProcAddress(czlib,"inflate");
-		cinflateEnd  = (int (*)(z_streamp))GetProcAddress(czlib,"inflateEnd");
-		cdeflateInit = (int (*)(z_streamp, int, const char *, int))GetProcAddress(czlib,"deflateInit_");
-		cdeflate     = (int (*)(z_streamp, int))GetProcAddress(czlib,"deflate");
-		cdeflateEnd  = (int (*)(z_streamp))GetProcAddress(czlib,"deflateEnd");
+		cinflateInit = (int (*)(z_streamp, const char *, int))GetProcFunction(czlib,"inflateInit_");
+		cinflate     = (int (*)(z_streamp, int))GetProcFunction(czlib,"inflate");
+		cinflateEnd  = (int (*)(z_streamp))GetProcFunction(czlib,"inflateEnd");
+		cdeflateInit = (int (*)(z_streamp, int, const char *, int))GetProcFunction(czlib,"deflateInit_");
+		cdeflate     = (int (*)(z_streamp, int))GetProcFunction(czlib,"deflate");
+		cdeflateEnd  = (int (*)(z_streamp))GetProcFunction(czlib,"deflateEnd");
 	}
 	else
 	{	

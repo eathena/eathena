@@ -138,12 +138,12 @@ private:
 		}
 	}
 public:
-	explicit TPtrAuto(X* p = NULL) : itsPtr(p)				{ }
+	explicit TPtrAuto(X* p = NULL) : TPtr<X>(),itsPtr(p)	{ }
 	virtual ~TPtrAuto()										{ if(this->itsPtr) delete this->itsPtr; }
 
-	TPtrAuto(const TPtr<X>& p) : itsPtr(NULL)				{ this->copy(p); }
+	TPtrAuto(const TPtr<X>& p) : TPtr<X>(),itsPtr(NULL)		{ this->copy(p); }
 	const TPtr<X>& operator=(const TPtr<X>& p)				{ this->copy(p); return *this; }
-	TPtrAuto(const TPtrAuto<X>& p): itsPtr(NULL)			{ this->copy(p); }
+	TPtrAuto(const TPtrAuto<X>& p) : TPtr<X>(),itsPtr(NULL)	{ this->copy(p); }
 	const TPtr<X>& operator=(const TPtrAuto<X>& p)			{ this->copy(p); return *this; }
 
 	virtual bool exists() const					{ return this->itsPtr!=NULL; }
@@ -307,7 +307,7 @@ public:
 	{ }
 	explicit TPtrCount<X>(X* p) : cCntObj(p?new CPtrCounter<X>(p):NULL)
 	{ }
-	TPtrCount<X>(const TPtrCount<X>& r) : cCntObj(NULL)
+	TPtrCount<X>(const TPtrCount<X>& r) : TPtr<X>(), cCntObj(NULL)
 	{
 		this->acquire(r);
 	}
@@ -761,7 +761,8 @@ public:
 //		this->cCntObj=new CObjCounter<X>(p1);
 //	}
 	TObjPtr(const TObjPtr& r)
-		: cCntObj(NULL)
+		: TPtr<X>()
+		, cCntObj(NULL)
 	{
 		this->acquire(r);
 	}
@@ -928,6 +929,7 @@ public:
 //		: TObjPtr<X>(p1)
 //	{}
 	TObjPtrCount(const TObjPtrCount& r)
+		: TObjPtr<X>()
 	{
 		this->acquire(r);
 	}
@@ -1008,7 +1010,8 @@ public:
 //		: TObjPtr<X>(p1), fAccess(&TObjPtr<X>::copyonwrite)
 //	{}
 	TObjPtrCommon(const TObjPtrCommon& r)
-		: fAccess(r.fAccess)
+		: TObjPtr<X>()
+		, fAccess(r.fAccess)
 	{
 		this->acquire(r);
 	}

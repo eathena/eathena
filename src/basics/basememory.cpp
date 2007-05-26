@@ -274,7 +274,7 @@ public:
 		data7 = rand();
 	}
 
-	simple_class() : data(0x1234)
+	simple_class() : defaultcmp(), global(), data(0x1234)
 	{
 		init();
 		if(sscount==sslimit)
@@ -282,7 +282,7 @@ public:
 		++sscount;
 		if(printcreate) printf("d");
 	}
-	simple_class(const simple_class& c) : data(c.data)
+	simple_class(const simple_class& c) : defaultcmp(), global(), data(c.data)
 	{
 		init();
 		if(sscount==sslimit)
@@ -303,7 +303,7 @@ public:
 		if(printcreate) printf("a");
 		return *this;
 	}
-	simple_class(int v) : data(v)
+	simple_class(int v) : defaultcmp(), global(), data(v)
 	{
 		init();
 		if(sscount==sslimit)

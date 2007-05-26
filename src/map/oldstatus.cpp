@@ -4538,11 +4538,7 @@ int status_change_timer(int tid, unsigned long tick, int id, basics::numptr data
 	struct mob_data *md=NULL;
 	affectable *bl=affectable::from_blid(id);
 
-#ifdef nullpo_retr_f
-	nullpo_retr_f(0, bl, "id=%d data=%ld",id,(unsigned long)data.num);
-#else
 	nullpo_retr(0, bl);
-#endif
 
 	if( bl->status_timer(type) != tid )
 	{

@@ -5136,7 +5136,7 @@ bool command_raise(int fd, map_session_data& sd, const char* command, const basi
 bool command_rates(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
 	char buf[256];
-	snprintf(buf, sizeof(buf), "Experience rates: Base %lf.1x / Job %lf.1x",
+	snprintf(buf, sizeof(buf), "Experience rates: Base %f.1x / Job %f.1x",
 		(double)config.base_exp_rate/100., (double)config.job_exp_rate/100.);
 	clif_displaymessage(fd, buf);
 	return true;
