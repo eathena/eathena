@@ -54,16 +54,6 @@ extern inline bool FreeLibrary(HINSTANCE hLibModule)
 	return 0==dlclose(hLibModule);
 }
 
-extern inline void* GetProcAddress(HINSTANCE hModule, const char* lpProcName)
-{
-	return dlsym(hModule, lpProcName);
-}
-
-extern inline FARPROC GetProcFunction(HINSTANCE hModule, const char* lpProcName)
-{
-	return GetProcFunction( GetProcAddress(hModule, lpProcName) );
-}
-
 extern inline void* GetProcAddress(FARPROC functionpointer)
 {	// dealing with C++ Standard Core Language Active Issue #195
 	// breaking the language rules could be done with:
@@ -87,6 +77,16 @@ extern inline FARPROC GetProcFunction(void* pointer)
 	} conv;
 	conv.vptr = pointer;
 	return conv.fptr;
+}
+
+extern inline void* GetProcAddress(HINSTANCE hModule, const char* lpProcName)
+{
+	return dlsym(hModule, lpProcName);
+}
+
+extern inline FARPROC GetProcFunction(HINSTANCE hModule, const char* lpProcName)
+{
+	return GetProcFunction( GetProcAddress(hModule, lpProcName) );
 }
 
 

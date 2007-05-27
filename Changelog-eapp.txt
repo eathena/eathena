@@ -1,4 +1,7 @@
 Date	Added
+2007/05/27
+	* Using this-> to access all members/functions of classes.
+	  (error i was having with cygwin's gcc 3.4.4). [FlavioJS]
 2007/05/26
 	* Added applyinging base class default construction to basics export script
 	* applied some proper casting before passing types to ellipsis

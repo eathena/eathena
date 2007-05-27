@@ -795,7 +795,7 @@ int connect_client(int listen_fd)
 		return -1;
 
 	sock = accept(SessionGetSocket(listen_fd),(struct sockaddr*)&client_address,&len);
-	if(sock==-1) 
+	if( sock==INVALID_SOCKET )
 	{	// same here, app might have passed away
 		ShowError("accept: %s\n",
 			basics::sockerrmsg(basics::sockerrno()));
@@ -891,14 +891,14 @@ int make_listen(unsigned long ip, unsigned short port)
 	server_address.sin_port        = htons(port);
 
 	result = bind(sock, (struct sockaddr*)&server_address, sizeof(server_address));
-	if( result == -1 ) {
+	if( result == SOCKET_ERROR ) {
 		ShowError("bind: %s\n"CL_SPACE"error not recoverable, quitting.\n",
 			basics::sockerrmsg(basics::sockerrno()));
 		closesocket(sock);
 		exit(1);
 	}
 	result = listen( sock, 5 );
-	if( result == -1 ) {
+	if( result == SOCKET_ERROR ) {
 		ShowError("listen: %s\n"CL_SPACE"error not recoverable, quitting.\n",
 			basics::sockerrmsg(basics::sockerrno()));
 		closesocket(sock);

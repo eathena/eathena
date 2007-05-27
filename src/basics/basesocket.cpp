@@ -489,13 +489,13 @@ void test_socket()
 		server_address.sin_port        = htons(port);
 
 		result = bind(server, (struct sockaddr*)&server_address, sizeof(server_address));
-		if( result == -1 ) {
+		if( result == SOCKET_ERROR ) {
 			closesocket(server);
 			perror("bind");
 			exit(1);
 		}
 		result = listen( server, 5 );
-		if( result == -1 ) {
+		if( result == SOCKET_ERROR ) {
 			closesocket(server);
 			perror("listen");
 			exit(1);
@@ -630,11 +630,11 @@ void test_socket()
 		server_address.sin_addr.s_addr = htonl( ipaddress::GetSystemIP() );
 		server_address.sin_port        = htons( 1414 );
 		int result = bind(s1, (struct sockaddr*)&server_address, sizeof(server_address));
-		if( result == -1 ) {
+		if( result == SOCKET_ERROR ) {
 			exit(1);
 		}
 		result = listen( s1, 5 );
-		if( result == -1 ) {
+		if( result == SOCKET_ERROR ) {
 			exit(1);
 		}
 
@@ -722,8 +722,8 @@ public:
 			server_address.sin_addr.s_addr = htonl( ipany );
 			server_address.sin_port        = htons( port );
 
-			if( -1 != bind(this->sock, (struct sockaddr*)&server_address, sizeof(server_address)) &&
-				-1 != ::listen(this->sock, SOMAXCONN) )
+			if( SOCKET_ERROR != bind(this->sock, (struct sockaddr*)&server_address, sizeof(server_address)) &&
+				SOCKET_ERROR != ::listen(this->sock, SOMAXCONN) )
 			{
 				this->fds.set_bit(this->sock);
 				this->sessionmap[this->sock] = this;

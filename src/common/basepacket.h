@@ -91,14 +91,18 @@ Composite field:
 
 	TODO
 
-	CFieldCString - nul-terminated dynamic-size string
-	ACompositeField - abstract composite field
-	CFieldFixArray - array with a fixed number of sub-fields
 	CFieldLimArray - array with a limited number of sub-fields
 	CFieldDynArray - array with a dynamic number of sub-fields
 	CLimPacket - dynamic-size packet with a fixed-size buffer
 	CDynPacket - dynamic-size packet
 	more test cases
+
+
+
+	TESTING
+
+	CFieldCString - nul-terminated dynamic-size string
+	CFieldFixArray - array with a fixed number of sub-fields
 
 */
 
@@ -150,6 +154,9 @@ public:
 	/// Returns the length of the target id.
 	virtual size_t length(size_t id) const=0;
 
+	/// Returns the capcity of the target id.
+	virtual size_t capacity(size_t id) const=0;
+
 	/// Inserts n bytes in the offset of the target id.
 	/// On success, out contains n.
 	/// On failure, out contains the max it can grow.
@@ -177,7 +184,10 @@ struct SPos
 	,	len(0)
 	{}
 
-	inline operator size_t() const {return off + len;}
+	inline operator size_t() const
+	{
+		return this->off + this->len;
+	}
 
 	size_t off;
 	size_t len;
@@ -201,17 +211,17 @@ public:
 	{
 		if( id >= SZ )
 			return false;
-		_pos[id].off = 0;
-		_pos[id].len = 0;
+		this->_pos[id].off = 0;
+		this->_pos[id].len = 0;
 		return true;
 	}
 	const SPos& operator ()(size_t id) const
 	{
-		return _pos[id];
+		return this->_pos[id];
 	}
 	SPos& operator ()(size_t id)
 	{
-		return _pos[id];
+		return this->_pos[id];
 	}
 private:
 	SPos _pos[SZ];
@@ -229,23 +239,23 @@ public:
 
 	bool contains(size_t id) const
 	{
-		return (id < _pos.size() );
+		return (id < this->_pos.size() );
 	}
 	bool add(size_t id)
 	{
-		if( id >= _pos.size() && !_pos.resize(id + 1) )
+		if( id >= this->_pos.size() && !this->_pos.resize(id + 1) )
 			return false;
-		_pos[id].off = 0;
-		_pos[id].len = 0;
+		this->_pos[id].off = 0;
+		this->_pos[id].len = 0;
 		return true;
 	}
 	const SPos& operator ()(size_t id) const
 	{
-		return _pos(id);
+		return this->_pos(id);
 	}
 	SPos& operator ()(size_t id)
 	{
-		return _pos(id);
+		return this->_pos(id);
 	}
 private:
 	vector<SPos> _pos;
@@ -253,24 +263,21 @@ private:
 
 
 
-//## TODO try to make vector work with the normal allocator_w_st
-template<size_t SZ,typename T=uint8>
-class allocator_w_st_fx : public allocator_w_st<T>
+/// vector with a fixed size buffer
+template<size_t SZ,typename T>
+class vector_fx : public vector<T,allocator_w_st<T> >
 {
-	ICL_EMPTY_COPYCONSTRUCTOR(allocator_w_st_fx)
-protected:
-	allocator_w_st_fx()
-	:	allocator_w_st<T>((T*)_arr, SZ)
-	{}
-	allocator_w_st_fx(size_t sz)//## FIXME sz?
-	:	allocator_w_st<T>((T*)_arr, SZ)
-	{}
-	allocator_w_st_fx(T* buf, size_t sz)//## FIXME buf? sz?
-	:	allocator_w_st<T>((T*)_arr, SZ)
-	{}
+public:
+	vector_fx<SZ,T>()
+	:	vector<T,allocator_w_st<T> >()
+	{
+		this->cBuf = this->cWpp = (T*)this->_arr;
+		this->cEnd = (T*)this->_arr + SZ;
+	}
 private:
 	T _arr[SZ];
 };
+
 
 
 /// Buffer with a fixed size.
@@ -285,41 +292,41 @@ public:
 	:	_buf()
 	{
 		sz = min(sz, SZ);
-		_buf.resize(sz);
-		memset(_buf.begin(), 0, SZ);
+		this->_buf.resize(sz);
+		memset(this->_buf.begin(), 0, SZ);
 		if( buf )
-			memcpy(_buf.begin(), buf, sz);
+			memcpy(this->_buf.begin(), buf, sz);
 	}
 	const uint8* data(size_t off=0) const
 	{
-		return _buf.begin() + off;
+		return this->_buf.begin() + off;
 	}
 	uint8* data(size_t off=0)
 	{
-		return _buf.begin() + off;
+		return this->_buf.begin() + off;
 	}
 	size_t length() const
 	{
-		return _buf.length();
+		return this->_buf.length();
 	}
 	size_t capacity() const
 	{
-		return _buf.capacity();
+		return this->_buf.capacity();
 	}
 	bool insert(size_t off, size_t n, size_t& out)
 	{
-		if( !_buf.resize(length() + n) )
+		if( !this->_buf.resize(this->length() + n) )
 		{// failed
-			out = capacity() - length();
+			out = this->capacity() - this->length();
 			return false;
 		}
-		_buf.move(off + n, off, length() - n);
+		this->_buf.move(off + n, off, this->length() - n);
 		out = n;
 		return true;
 	}
 	bool remove(size_t off, size_t n, size_t& out)
 	{
-		if( !_buf.removeindex(off, n) )
+		if( !this->_buf.removeindex(off, n) )
 		{// failed
 			out = 0;
 			return false;
@@ -329,16 +336,16 @@ public:
 	}
 	bool resize(size_t sz, size_t& out)
 	{
-		if( !_buf.resize(sz) )
+		if( !this->_buf.resize(sz) )
 		{// failed
-			out = capacity();
+			out = this->capacity();
 			return false;
 		}
 		out = sz;
 		return true;
 	}
 private:
-	vector<uint8,allocator_w_st_fx<SZ,uint8> > _buf;
+	vector_fx<SZ,uint8> _buf;
 };
 
 
@@ -353,42 +360,42 @@ public:
 	CDynBuffer(const uint8* buf, size_t sz)
 	:	_buf()
 	{
-		_buf.resize(sz);
+		this->_buf.resize(sz);
 		if( buf )
-			memcpy(_buf.begin(), buf, sz);
+			memcpy(this->_buf.begin(), buf, sz);
 		else
-			memset(_buf.begin(), 0, sz);
+			memset(this->_buf.begin(), 0, sz);
 	}
 	const uint8* data(size_t off=0) const
 	{
-		return _buf.begin() + off;
+		return this->_buf.begin() + off;
 	}
 	uint8* data(size_t off=0)
 	{
-		return _buf.begin() + off;
+		return this->_buf.begin() + off;
 	}
 	size_t length() const
 	{
-		return _buf.length();
+		return this->_buf.length();
 	}
 	size_t capacity() const
 	{
-		return _buf.capacity();
+		return this->_buf.capacity();
 	}
 	bool insert(size_t off, size_t n, size_t& out)
 	{
 		if( !_buf.resize(length() + n) )
 		{// failed
-			out = capacity() - length();
+			out = this->capacity() - this->length();
 			return false;
 		}
-		_buf.move(off + n, off, length() - n);
+		this->_buf.move(off + n, off, this->length() - n);
 		out = n;
 		return true;
 	}
 	bool remove(size_t off, size_t n, size_t& out)
 	{
-		if( !_buf.removeindex(off, n) )
+		if( !this->_buf.removeindex(off, n) )
 		{// failed
 			out = 0;
 			return false;
@@ -398,9 +405,9 @@ public:
 	}
 	bool resize(size_t sz, size_t& out)
 	{
-		if( !_buf.resize(sz) )
+		if( !this->_buf.resize(sz) )
 		{// failed
-			out = capacity();
+			out = this->capacity();
 			return false;
 		}
 		out = sz;
@@ -421,51 +428,53 @@ public:
 	{}
 	void Init(IFieldHandler* buf, size_t id, size_t off, size_t len)
 	{
-		_id = id;
-		_buf = buf;
-		if( _buf )
-			_buf->setup(id, off, len);
+		this->_id = id;
+		this->_buf = buf;
+		if( buf )
+			buf->setup(id, off, len);
 	}
 	const uint8* data(size_t off=0) const
 	{
-		if( _buf )
-			return _buf->data(_id);
+		if( this->_buf )
+			return this->_buf->data(this->_id) + off;
 		return NULL;
 	}
 	uint8* data(size_t off=0)
 	{
-		if( _buf )
-			return _buf->data(_id);
+		if( this->_buf )
+			return this->_buf->data(this->_id) + off;
 		return NULL;
 	}
 	size_t length() const
 	{
-		if( _buf )
-			return _buf->length(_id);
+		if( this->_buf )
+			return this->_buf->length(this->_id);
 		return 0;
 	}
 	size_t capacity() const
 	{
-		return length();
+		if( this->_buf )
+			return this->_buf->capacity(this->_id);
+		return 0;
 	}
 	bool insert(size_t off, size_t n, size_t& out)
 	{
-		if( _buf )
-			return _buf->insert(_id, off, n, out);
+		if( this->_buf )
+			return this->_buf->insert(this->_id, off, n, out);
 		out = 0;
 		return false;
 	}
 	bool remove(size_t off, size_t n, size_t& out)
 	{
-		if( _buf )
-			return _buf->remove(_id, off, n, out);
+		if( this->_buf )
+			return this->_buf->remove(this->_id, off, n, out);
 		out = 0;
 		return false;
 	}
 	bool resize(size_t sz, size_t& out)
 	{
-		if( _buf )
-			return _buf->resize(_id, sz, out);
+		if( this->_buf )
+			return this->_buf->resize(this->_id, sz, out);
 		return false;
 	}
 private:
@@ -499,50 +508,58 @@ public:
 	/// Sets the offset and length of the target id.
 	virtual void setup(size_t id, size_t off, size_t len)
 	{
-		if( !_pos.contains(id) && !_pos.add(id) )
+		if( !this->_pos.contains(id) && !this->_pos.add(id) )
 			return;
-		_pos(id).off = off;
-		_pos(id).len = len;
+		this->_pos(id).off = off;
+		this->_pos(id).len = len;
 		size_t out;
-		if( _buf.length() < _pos(id) && !_buf.resize(_pos(id), out) )
+		if( this->_buf.data() && this->_buf.length() < this->_pos(id) && !this->_buf.resize(this->_pos(id), out) )
 		{
 			//## critical error, bad packet definition?
 			printf("[Debug] CIdxFieldHandler::setup(%u,%u,%u): resize failed - bad packet definition?\n", (uint)id, (uint)off, (uint)len);
-			_pos(id).off = 0;
-			_pos(id).len = 0;
+			this->_pos(id).off = 0;
+			this->_pos(id).len = 0;
 		}
 	}
 
 	/// Returns the data of the target id.
 	virtual const uint8* data(size_t id) const
 	{
-		if( !_pos.contains(id) )
+		if( !this->_pos.contains(id) )
 			return NULL;
-		return _buf.data(_pos(id).off);
+		return this->_buf.data(_pos(id).off);
 	}
 
 	/// Returns the data of the target id.
 	virtual uint8* data(size_t id)
 	{
-		if( !_pos.contains(id) )
+		if( !this->_pos.contains(id) )
 			return NULL;
-		return _buf.data(_pos(id).off);
+		return this->_buf.data(_pos(id).off);
 	}
 
 	/// Returns the offset of the target id.
 	virtual size_t offset(size_t id) const
 	{
-		if( !_pos.contains(id) )
+		if( !this->_pos.contains(id) )
 			return 0;
-		return _pos(id).off;
+		return this->_pos(id).off;
 	}
 
 	/// Returns the length of the target id.
 	virtual size_t length(size_t id) const
 	{
-		if( !_pos.contains(id) )
+		if( !this->_pos.contains(id) )
 			return 0;
-		return _pos(id).len;
+		return this->_pos(id).len;
+	}
+
+	/// Returns the capacity of the target id.
+	virtual size_t capacity(size_t id) const
+	{
+		if( !this->_pos.contains(id) )
+			return 0;
+		return this->_pos(id).len + this->_buf.capacity() - this->_buf.length();
 	}
 
 	/// Inserts n bytes in the offset of the target id.
@@ -550,9 +567,9 @@ public:
 	/// On failure, out contains the max it can grow.
 	virtual bool insert(size_t id, size_t off, size_t n, size_t& out)
 	{
-		if( !_pos.contains(id) )
+		if( !this->_pos.contains(id) )
 			return false;
-		return _buf.insert(off, n, out);
+		return this->_buf.insert(off, n, out);
 	}
 
 	/// Removes n bytes in the offset of the target id.
@@ -560,9 +577,9 @@ public:
 	/// On failure, out contains the max it can shrink.
 	virtual bool remove(size_t id, size_t off, size_t n, size_t& out)
 	{
-		if( !_pos.contains(id) )
+		if( !this->_pos.contains(id) )
 			return false;
-		return _buf.remove(off, n, out);
+		return this->_buf.remove(off, n, out);
 	}
 
 	/// Tries to resize the target id.
@@ -571,30 +588,30 @@ public:
 	/// the minimum size if decreasing.
 	virtual bool resize(size_t id, size_t sz, size_t& out)
 	{
-		if( !_pos.contains(id) )
+		if( !this->_pos.contains(id) )
 		{
 			out = 0;
 			return false;
 		}
-		return _buf.resize(sz, out);
+		return this->_buf.resize(sz, out);
 	}
 
 	/// Returns the data of this buffer.
 	const uint8* data() const
 	{
-		return _buf.data();
+		return this->_buf.data();
 	}
 
 	/// Returns the data of this buffer.
 	uint8* data()
 	{
-		return _buf.data();
+		return this->_buf.data();
 	}
 
 	/// Returns the length of this buffer.
 	size_t length() const
 	{
-		return _buf.length();
+		return this->_buf.length();
 	}
 
 protected:
@@ -607,7 +624,7 @@ protected:
 };
 
 
-/*
+
 /// Field buffer that uses another field buffer for data.
 /// Ids are indexes in the position array.
 ///
@@ -626,13 +643,9 @@ public:
 	/// Initializes this child buffer.
 	void Init(IFieldHandler* buf, size_t id, size_t off, size_t len)
 	{
-		//## wtf? why is cygwin saying _buf is undeclared here?
-		// _buf has protected access in CIdxFieldHandler... ò.ó /pif
-		_buf.Init(buf, id, off, len);
+		this->_buf.Init(buf, id, off, len);
 	}
 };
-// nested comments are not allowed
- */
 
 
 
@@ -683,7 +696,7 @@ public:
 	:	_buf(NULL, SZ)
 	{
 		if( buf )
-			memcpy(_buf.data(), buf, min(sz, SZ));
+			memcpy(this->_buf.data(), buf, min(sz, SZ));
 	}
 	virtual ~CFixPacket()
 	{}
@@ -693,7 +706,7 @@ public:
 	/// Returns the data of this packet.
 	virtual const uint8* data() const
 	{
-		return _buf.data();
+		return this->_buf.data();
 	}
 
 	/// Returns SZ.
@@ -730,24 +743,29 @@ protected:
 	{}
 	virtual ~AField()
 	{
-		_buf = NULL;
-		_id = ~size_t(0);
+		this->_buf = NULL;
+		this->_id = ~size_t(0);
 	}
 
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Initializes the field.
+	///
+	/// @param len Maxiumu length the field can take
 	void Init(NFieldHandler::IFieldHandler* buf, size_t id, size_t off, size_t len=0)
 	{
+		this->_id = id;
+		this->_buf = buf;
 		if( buf )
-			buf->setup(id, off, _initlength(len));
-		_buf = buf;
-		_id = id;
+			buf->setup(id, off, this->_initlength(len));// length based on contents
 	}
 
 protected:
-	/// Returns the initial length, applying restrictions when necessary.
+	/// Returns the length of the field.
+	/// When no data is available, it returns the minimum length.
+	/// When data is available, it returns the length based on the contents.
 	///
+	/// @param len Maximum length of the field
 	/// @abstract
 	virtual size_t _initlength(size_t len)=0;
 
@@ -761,9 +779,6 @@ protected:
 };
 
 
-
-/*
-//## uncomment when the error at CChildIdxFieldBuffer is delt with
 
 /// Abstract composite field
 ///
@@ -783,17 +798,16 @@ public:
 	/// Initializes the field.
 	///
 	/// @param len Maximum length of the composite field
-	void Init(NFieldHandler::IFieldHandler* buf, size_t id, size_t off, size_t len)
+	void Init(NFieldHandler::IFieldHandler* buf, size_t id, size_t off, size_t len=0)
 	{
-		_buf.Init(buf, id, off, _initlength(len));//buffer has no data - minimum length
-		size_t real_len = _initlength(len);//buffer has data - length based on contents
-		if( real_len != _buf.length(id) )
-			_buf.Init(buf, id, off, real_len);
+		this->_buf.Init(buf, id, off, this->_initlength(len));//buffer has no data - minimum length
+		this->_buf.Init(buf, id, off, this->_initlength(len));//buffer has data - length based on contents
 	}
 
 protected:
-	/// Returns the minimum length if the buffer has data.
-	/// Returns the real length based on the contents if buffer has data.
+	/// Returns the length of the composite field.
+	/// When no data is available, it returns the minimum length.
+	/// When data is available, it returns the length based on the contents.
 	///
 	/// @param len Maximum length of the composite field
 	/// @abstract
@@ -804,8 +818,6 @@ protected:
 	/// Field handler
 	NFieldHandler::CChildIdxFieldBuffer<P> _buf;
 };
-// nested comments are not allowed
-*/
 
 
 
@@ -824,21 +836,21 @@ public:
 	}
 	uint8 operator ()() const
 	{
-		if( _buf )
-			return _buf->data(_id)[0];
+		if( this->_buf )
+			return this->_buf->data(this->_id)[0];
 		return 0;
 	}
 
 	CFieldB& operator =(const CFieldB& f)
 	{
-		if( _buf && f._buf )
-			_buf->data(_id)[0] = f._buf->data(f._id)[0];
+		if( this->_buf && f._buf )
+			this->_buf->data(this->_id)[0] = f._buf->data(f._id)[0];
 		return *this;
 	}
 	uint8 operator =(uint8 val)
 	{
-		if( _buf )
-			_buf->data(_id)[0] = val;
+		if( this->_buf )
+			this->_buf->data(this->_id)[0] = val;
 		return val;
 	}
 
@@ -869,9 +881,9 @@ public:
 	}
 	uint16 operator ()() const
 	{
-		if( _buf )
+		if( this->_buf )
 		{
-			uint8* buf = _buf->data(_id);
+			uint8* buf = this->_buf->data(this->_id);
 			return
 				( uint16(buf[0])         )|
 				( uint16(buf[1]) << 0x08 );
@@ -881,15 +893,15 @@ public:
 
 	CFieldW& operator =(const CFieldW& f)
 	{
-		if( _buf && f._buf )
-			memcpy(_buf->data(_id), f._buf->data(f._id), 2);
+		if( this->_buf && f._buf )
+			memcpy(this->_buf->data(this->_id), f._buf->data(f._id), 2);
 		return *this;
 	}
 	uint16 operator =(uint16 val)
 	{
-		if( _buf )
+		if( this->_buf )
 		{
-			uint8* buf = _buf->data(_id);
+			uint8* buf = this->_buf->data(this->_id);
 			buf[0] = uint8( (val & 0x00FF)         );
 			buf[1] = uint8( (val & 0xFF00) >> 0x08 );
 		}
@@ -922,9 +934,9 @@ public:
 	}
 	uint32 operator ()() const
 	{
-		if( _buf )
+		if( this->_buf )
 		{
-			uint8* buf = _buf->data(_id);
+			uint8* buf = this->_buf->data(this->_id);
 			return
 				( uint32(buf[0])         )|
 				( uint32(buf[1]) << 0x08 )|
@@ -936,15 +948,15 @@ public:
 
 	CFieldL& operator =(const CFieldL& f)
 	{
-		if( _buf && f._buf )
-			memcpy(_buf->data(_id), f._buf->data(f._id), 4);
+		if( this->_buf && f._buf )
+			memcpy(this->_buf->data(this->_id), f._buf->data(f._id), 4);
 		return *this;
 	}
 	uint32 operator =(uint32 val)
 	{
-		if( _buf )
+		if( this->_buf )
 		{
-			uint8* buf = _buf->data(_id);
+			uint8* buf = this->_buf->data(this->_id);
 			buf[0] = uint8( (val & 0x000000FF)         );
 			buf[1] = uint8( (val & 0x0000FF00) >> 0x08 );
 			buf[2] = uint8( (val & 0x00FF0000) >> 0x10 );
@@ -984,22 +996,22 @@ public:
 	}
 	const char* operator ()() const
 	{
-		if( _buf )
-			return (const char*)_buf->data(_id);
+		if( this->_buf )
+			return (const char*)this->_buf->data(this->_id);
 		return "";
 	}
 
 	CFieldFixString<SZ>& operator =(const CFieldFixString<SZ>& f)
 	{
-		if( _buf && f._buf )
-			memcpy(_buf->data(_id), f._buf->data(f._id), SZ);
+		if( this->_buf && f._buf )
+			memcpy(this->_buf->data(this->_id), f._buf->data(f._id), SZ);
 		return *this;
 	}
 	const char* operator =(const char* str)
 	{
-		if( _buf )
+		if( this->_buf )
 		{
-			char* buf = (char*)_buf->data(_id);
+			char* buf = (char*)this->_buf->data(this->_id);
 			strncpy(buf, str, SZ);
 			return buf;
 		}
@@ -1009,9 +1021,9 @@ public:
 	/// Copies the string with the specified size to this field.
 	void copy(const char* str, size_t sz)
 	{
-		if( _buf )
+		if( this->_buf )
 		{
-			char* buf = (char*)_buf->data(_id);
+			char* buf = (char*)this->_buf->data(this->_id);
 			strncpy(buf, str, min(SZ, sz));
 		}
 	}
@@ -1019,7 +1031,7 @@ public:
 	/// Returns the length of this string.
 	size_t length() const
 	{
-		return strnlen((const char*)_buf->data(_id), SZ);
+		return strnlen((const char*)this->_buf->data(this->_id), SZ);
 	}
 
 	/// Returns the capacity of this field.
@@ -1035,6 +1047,193 @@ private:
 	{
 		return SZ;
 	}
+};
+
+
+
+/// Dynamic-size nul-terminated string.
+class CFieldCString : public AField
+{
+public:
+	CFieldCString()
+	:	AField()
+	{}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	operator const char*() const
+	{
+		return this->operator ()();
+	}
+	const char* operator ()() const
+	{
+		if( this->_buf )
+			return (const char*)this->_buf->data(this->_id);
+		return "";
+	}
+
+	CFieldCString& operator =(const CFieldCString& f)
+	{
+		if( this->_buf && f._buf )
+		{
+			size_t len;
+			if( !this->_buf->resize(this->_id, f._buf->length(f._id), len) )
+			{
+#if defined(DEBUG)
+				if( len == 0 )//## ERROR this should never happen
+					printf("[Debug] resize failed (len=0) at CFieldCString::operator=(const CFieldCString& f)\n");
+#endif//DEBUG
+				this->_buf->resize(this->_id, len, len);// resize to max instead
+			}
+			uint8* buf = this->_buf->data(this->_id);
+			memcpy(buf, f._buf->data(f._id), len - 1);
+			buf[len - 1] = 0;
+		}
+		return *this;
+	}
+	const char* operator =(const char* str)
+	{
+		if( this->_buf )
+		{
+			if( str )
+				str = "";
+			size_t len = strlen(str) + 1;
+			if( !this->_buf->resize(this->_id, len, len) )
+			{
+#if defined(DEBUG)
+				if( len == 0 )//## ERROR this should never happen
+					printf("[Debug] resize failed (len=0) at CFieldCString::operator=(const char* str)\n");
+#endif//DEBUG
+				this->_buf->resize(this->_id, len, len);// resize to max instead
+			}
+
+			uint8* buf = this->_buf->data(this->_id);
+			memcpy(buf, str, len - 1);
+			buf[len - 1] = '\0';
+			return (const char*)buf;
+		}
+		return "";
+	}
+
+	/// Copies the string with at most the specified size to this field.
+	void copy(const char* str, size_t sz)
+	{
+		if( this->_buf )
+		{
+			if( str )
+				str = "";
+			size_t len = strlen(str);
+			len = min(len, sz) + 1;
+			if( !this->_buf->resize(this->_id, len, len) )
+			{
+#if defined(DEBUG)
+				if( len == 0 )//## ERROR this should never happen
+					printf("[Debug] resize failed (len=0) at CFieldCString::copy(const char* str, size_t sz)\n");
+#endif//DEBUG
+				this->_buf->resize(this->_id, len, len);// resize to max instead
+			}
+			char* buf = (char*)this->_buf->data(this->_id);
+			memcpy(buf, str, len - 1);
+			buf[len - 1] = '\0';
+		}
+	}
+
+	/// Returns the length of this string.
+	size_t length() const
+	{
+		if( this->_buf )
+		{
+			size_t len = this->_buf->length(this->_id);
+			if( len > 0 )
+				return len - 1;
+		}
+		return 0;
+	}
+
+	/// Returns the capacity of this string.
+	size_t capacity() const
+	{
+		if( this->_buf )
+		{
+			size_t len = this->_buf->capacity(this->_id);
+			if( len > 0 )
+				return len - 1;
+		}
+		return 0;
+	}
+
+private:
+	///////////////////////////////////////////////////////////////////////////
+	/// Returns SZ.
+	virtual size_t _initlength(size_t len)
+	{
+		if( this->_buf && this->_buf->data(this->_id) )// length based on data
+		{
+			char* buf = (char*)this->_buf->data(this->_id);
+			size_t real_len = strnlen(buf, len);
+			if( real_len == len )
+				buf[real_len - 1] = '\0';
+			else
+				++real_len;
+			return real_len;// string length + nul-terminator
+		}
+		else// minimum length
+			return 1;// nul-terminator
+	}
+};
+
+
+
+/// Array of a fixed number of sub-fields.
+///
+/// @param T Type of sub-field
+/// @param SZ Number of sub-fields
+template<class T,size_t SZ>
+class CFieldFixArray : public ACompositeField<NFieldHandler::CFixPosSet<SZ> >
+{
+public:
+	CFieldFixArray()
+	:	ACompositeField<NFieldHandler::CFixPosSet<SZ> >()
+	{}
+	virtual ~CFieldFixArray()
+	{}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	const T& operator [](size_t idx) const
+	{
+		return this->_arr[idx];
+	}
+	T& operator [](size_t idx)
+	{
+		return this->_arr[idx];
+	}
+	size_t length() const
+	{
+		return SZ;
+	}
+	size_t capacity() const
+	{
+		return SZ;
+	}
+private:
+	/// Returns the sum of lengths of the sub-fields.
+	virtual size_t _initlength(size_t len)
+	{
+		size_t i;
+		size_t off = 0;
+		for( i = 0; i < SZ; ++i )
+		{
+			this->_arr[i].Init(&this->_buf, i, off, len - min(off, len));
+			off += this->_buf.length(i);
+		}
+		return off;
+	}
+
+private:
+	///////////////////////////////////////////////////////////////////////////
+	/// Array of fields
+	T _arr[SZ];
 };
 
 

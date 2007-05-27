@@ -31,7 +31,7 @@ public:
 	CFieldW w;
 	CFieldL l;
 	CFieldFixString<10> str;
-	//CFieldFixArray<CFieldB,3> arr;
+	CFieldFixArray<CFieldB,3> arr;
 
 private:
 	void Init()
@@ -40,7 +40,7 @@ private:
 		w.Init(&_buf, 1, 1);
 		l.Init(&_buf, 2, 3);
 		str.Init(&_buf, 3, 7);
-		//arr.Init(&_buf, 4, 17);
+		arr.Init(&_buf, 4, 17);
 	}
 };
 
@@ -76,12 +76,12 @@ void test_packet(void)
 		dump(p);
 		p.str = "under";
 		dump(p);
-		//p.arr[0] = 1;
-		//dump(p);
-		//p.arr[1] = 2;
-		//dump(p);
-		//p.arr[2] = 3;
-		//dump(p);
+		p.arr[0] = 1;
+		dump(p);
+		p.arr[1] = 2;
+		dump(p);
+		p.arr[2] = 3;
+		dump(p);
 	}
 	{
 		printf("test_packet: fixed size packet constructors\n");
