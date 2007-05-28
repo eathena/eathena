@@ -1,4 +1,7 @@
 Date	Added
+2007/05/28
+	* Ironing out bugs in dynamic packets and fields.
+	* Packet fields are no longer virtual.
 2007/05/27
 	* Using this-> to access all members/functions of classes.
 	  (error i was having with cygwin's gcc 3.4.4). [FlavioJS]
