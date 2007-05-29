@@ -64,6 +64,7 @@
 				AdditionalDependencies="WSOCK32.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
+				SubSystem="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
