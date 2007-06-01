@@ -1,3 +1,6 @@
+06/01
+	* Merged random item fixes [Playtester]
+	- updated sql files
 05/26
 	* Merged mob_db and mob_skill_db [Playtester]
 	- fixed mob name Atros -> Atroce
