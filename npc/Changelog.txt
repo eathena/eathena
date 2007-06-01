@@ -22,6 +22,12 @@ Playtester
 
 Date		Added
 ======
+2007/06/01
+	* Added Thor Volcano [Playtester]
+	- access to Thor Volcano 1-3
+	- no access to Thor Camp yet
+	- added Thor Volcano spawns
+	- random warp fixes
 2007/05/26
 	* Updated Thanatos Tower quest to official. [SinSloth]
 	- Moved some NPC in proper quest file and updated warps.

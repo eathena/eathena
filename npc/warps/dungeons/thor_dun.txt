@@ -1,0 +1,22 @@
+//===== Athena Script ========================================
+//= Thor's Volcano Dungeon Warp Script
+//===== By: ==================================================
+//= $ephiroth
+//===== Current Version: =====================================
+//= 1.2
+//===== Compatible With: =====================================
+//= Any Athena Version 
+//===== Description: =========================================
+//= Warp Points for Thor's Volcano Dungeon
+//===== Additional Comments: =================================
+//= 1.0 Initial version [$ephiroth]
+//= 1.1 Updated warps, according to Japan site [$ephiroth]
+//= 1.2 Updated more warps to thor_camp [$ephiroth]
+//============================================================
+
+//= Thor's Volcano Dungeon====================================
+thor_v01,21,223,0	warp	veinswarp0504	1,1,ve_fild03,168,238
+thor_v01,202,34,0	warp	veinswarp4001	1,1,thor_v02,74,205
+thor_v02,72,206,0	warp	veinswarp4002	1,1,thor_v01,199,34
+thor_v02,191,55,0	warp	veinswarp4003	1,1,thor_v03,31,272
+thor_v03,28,272,0	warp	veinswarp4004	1,1,thor_v02,190,57

@@ -19,6 +19,7 @@
 ve_fild02,196,382,0	warp	veinswarp5001	1,1,rachel,130,23
 ve_fild06,154,219,0	warp	veinswarp5002	1,1,veins,218,358
 ve_fild07,147,372,0	warp	veinswarp5003	1,1,veins,146,27
+ve_fild03,168,241,0	warp	veinswarp5004	1,1,thor_v01,21,226
 ve_fild01,243,369,0	warp	veinswarp5005	1,1,ra_fild11,232,29
 ra_fild11,232,26,0	warp	veinswarp5006	1,1,ve_fild01,243,366
 ve_fild01,367,263,0	warp	veinswarp5007	1,1,ve_fild02,33,259
@@ -38,12 +39,9 @@ ve_fild05,359,192,0	warp	veinswarp5019	1,1,ve_fild06,84,179
 ve_fild04,115,49,0	warp	veinswarp5020	1,1,ve_fild06,84,179
 
 ve_fild06,88,176,0	script	veinswarp5021	45,1,1,{
-	switch(rand(2)){
-		case 1:
-			warp "ve_fild04",115,52;
-			break;
-		default:
-			warp "ve_fild05",354,192;
-			break;
-	}
+	if (rand(2))
+		warp "ve_fild04",115,52;
+	else
+		warp "ve_fild05",354,192;
+	end;
 }
