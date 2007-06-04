@@ -23,6 +23,7 @@ Playtester
 Date		Added
 ======
 2007/06/03
+	* Merged Comodo Gambling with updated prizes from trunk to stable. [Paradox924X]
 	* Rev. 10670 Added Rachel NPCs, (City, Quests, and warps from trunk) [L0ne_W0lf]
 2007/06/01
 	* Added Thor Volcano [Playtester]
