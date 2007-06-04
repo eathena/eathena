@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/06/03
+	* Rev. 10700 Added Rachel NPCs, (City, Quests, and warps from trunk) [L0ne_W0lf]
 2007/06/01
 	* Added Thor Volcano [Playtester]
 	- access to Thor Volcano 1-3
