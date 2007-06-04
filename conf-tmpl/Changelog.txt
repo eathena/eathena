@@ -1,7 +1,7 @@
 Date	Added
 
 2007/06/03
-	* Rev. 10700 updated map flags for Rachel quests. [L0ne_W0lf]
+	* Rev. 10670 updated map flags for Rachel quests. [L0ne_W0lf]
 2007/05/04
 	* emergency_call is by default usable only on WoE maps [ultramage]
 2007/04/27
