@@ -89,18 +89,14 @@ Composite field:
 
 --------------------------------------------------
 
-	TODO
-
-	CFieldLimArray - array with a limited number of sub-fields
-	CFieldDynArray - array with a dynamic number of sub-fields
-	more test cases
-
-
-
 	TESTING
 
+	CFieldFixBlob - fixed-size blob of data
+	CFieldDynBlob - fixed-size blob of data
 	CFieldCString - nul-terminated dynamic-size string
 	CFieldFixArray - array with a fixed number of sub-fields
+	CFieldLimArray - array with a limited number of sub-fields
+	CFieldDynArray - array with a dynamic number of sub-fields
 	CLimPacket - dynamic-size packet with a fixed-size buffer
 	CDynPacket - dynamic-size packet
 
@@ -122,8 +118,6 @@ void test_packet(void);
 // Field handler
 ///////////////////////////////////////////////////////////////////////////////
 namespace NFieldHandler {
-
-
 
 
 
@@ -179,15 +173,10 @@ public:
 /// Position of a field in the buffer
 struct SPos
 {
-	SPos()
-	:	off(0)
-	,	len(0)
-	{}
+	SPos():off(0),len(0){}
 
-	inline operator size_t() const
-	{
-		return this->off + this->len;
-	}
+	/// End of this position.
+	inline operator size_t() const{ return this->off + this->len; }
 
 	size_t off;
 	size_t len;
@@ -200,43 +189,34 @@ template<size_t SZ>
 class CFixPosSet
 {
 public:
-	CFixPosSet()
-	{}
+	CFixPosSet();
+	~CFixPosSet();
 
-	bool contains(size_t id) const
-	{
-		return ( id < SZ );
-	}
-	bool add(size_t id)
-	{
-		if( id >= SZ )
-			return false;
-		this->_pos[id].off = 0;
-		this->_pos[id].len = 0;
-		return true;
-	}
-	const SPos& operator ()(size_t id) const
-	{
-		return this->_pos[id];
-	}
-	SPos& operator ()(size_t id)
-	{
-		return this->_pos[id];
-	}
-	size_t begin() const
-	{
-		return 0;
-	}
-	size_t end() const
-	{
-		return SZ;
-	}
-	size_t next(size_t idx) const
-	{
-		return idx + 1;
-	}
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Returns if id is included in this set.
+	bool contains(size_t id) const;
+
+	/// Adds id to this set.
+	bool add(size_t id);
+
+	/// Array access.
+	const SPos& operator [](size_t id) const;
+	SPos& operator [](size_t id);
+
+	/// List access.
+	const SPos& operator ()(size_t id) const;
+	SPos& operator ()(size_t id);
+
+	// Forward id iteration
+	size_t start_id() const;
+	size_t next_id(size_t id) const;
+	size_t end_id() const;
+
 private:
-	SPos _pos[SZ];
+	///////////////////////////////////////////////////////////////////////////
+	/// Array of positions
+	SPos _arr[SZ];
 };
 
 
@@ -245,44 +225,34 @@ private:
 class CDynPosSet
 {
 public:
-	CDynPosSet()
-	:	_pos()
-	{}
+	CDynPosSet();
+	~CDynPosSet();
 
-	bool contains(size_t id) const
-	{
-		return (id < this->_pos.size() );
-	}
-	bool add(size_t id)
-	{
-		if( id >= this->_pos.size() && !this->_pos.resize(id + 1) )
-			return false;
-		this->_pos[id].off = 0;
-		this->_pos[id].len = 0;
-		return true;
-	}
-	const SPos& operator ()(size_t id) const
-	{
-		return this->_pos(id);
-	}
-	SPos& operator ()(size_t id)
-	{
-		return this->_pos(id);
-	}
-	size_t begin() const
-	{
-		return 0;
-	}
-	size_t end() const
-	{
-		return this->_pos.size();
-	}
-	size_t next(size_t idx) const
-	{
-		return idx + 1;
-	}
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Returns if id is included in this set.
+	bool contains(size_t id) const;
+
+	/// Adds id to this set.
+	bool add(size_t id);
+	
+	/// Array access.
+	const SPos& operator [](size_t id) const;
+	SPos& operator [](size_t id);
+
+	/// List access.
+	const SPos& operator ()(size_t id) const;
+	SPos& operator ()(size_t id);
+
+	// Forward id iteration
+	size_t start_id() const;
+	size_t next_id(size_t id) const;
+	size_t end_id() const;
+
 private:
-	vector<SPos> _pos;
+	///////////////////////////////////////////////////////////////////////////
+	/// Array of positions
+	vector<SPos> _arr;
 };
 
 
@@ -292,73 +262,45 @@ template<size_t SZ>
 class CFixBuffer
 {
 public:
-	CFixBuffer()
-	:	_len(0)
-	{}
-	CFixBuffer(const uint8* buf, size_t sz)
-	:	_len(min(sz, SZ))
-	{
-		if( buf )
-			memcpy(this->_buf, buf, this->length());
-		else
-			memset(this->_buf, 0, this->length());
-	}
-	const uint8* data(size_t off=0) const
-	{
-		return (const uint8*)this->_buf + off;
-	}
-	uint8* data(size_t off=0)
-	{
-		return (uint8*)this->_buf + off;
-	}
-	size_t length() const
-	{
-		return this->_len;
-	}
-	size_t capacity() const
-	{
-		return SZ;
-	}
-	bool insert(size_t off, size_t n, size_t& out)
-	{
-		if( this->capacity() - this->length() < n )
-		{// failed
-			out = this->capacity() - this->length();
-			return false;
-		}
-		memmove(this->data(off + n), this->data(off), this->length() - off);
-		memset(this->data(off), 0, n);
-		this->_len += n;
-		out = n;
-		return true;
-	}
-	bool remove(size_t off, size_t n, size_t& out)
-	{
-		if( this->length() < off + n )
-		{// failed
-			out = this->length() - off;
-			return false;
-		}
-		memmove(this->data(off), this->data(off + n), this->length() - off - n);
-		this->_len -= n;
-		out = n;
-		return true;
-	}
-	bool resize(size_t sz, size_t& out)
-	{
-		if( this->capacity() < sz )
-		{// failed
-			out = this->capacity();
-			return false;
-		}
-		if( sz > this->length() )// increasing
-			memset(this->data(this->length()), 0, sz - this->length());
-		this->_len = out = sz;
-		return true;
-	}
+	CFixBuffer();
+	CFixBuffer(const uint8* buf, size_t sz);
+	~CFixBuffer();
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Returns the data of this buffer.
+	uint8* data(size_t off=0);
+	const uint8* data(size_t off=0) const;
+
+	/// Returns the length of this buffer.
+	size_t length() const;
+
+	/// Returns the capacity of this buffer.
+	size_t capacity() const;
+
+	/// Inserts n bytes in off.
+	/// If successfull out contains n.
+	/// Otherwise out contains the maximum n that can inserted in off.
+	bool insert(size_t off, size_t n, size_t& out);
+
+	/// Removes n bytes from off. [off,off+n[
+	/// If successfull out contains n.
+	/// Otherwise out contains the maximum n that can be removed from off.
+	bool remove(size_t off, size_t n, size_t& out);
+
+	/// Resizes the buffer to sz.
+	/// If successfull out contains sz.
+	/// Otherwise out contains the maximum size if increasing 
+	/// or the minimum size if decreasing.
+	bool resize(size_t sz, size_t& out);
+
 private:
-	size_t _len;
+	///////////////////////////////////////////////////////////////////////////
+	/// Array of bytes.
 	uint8 _buf[SZ];
+
+	/// Current length.
+	size_t _len;
 };
 
 
@@ -367,71 +309,41 @@ private:
 class CDynBuffer
 {
 public:
-	CDynBuffer()
-	:	_buf()
-	{}
-	CDynBuffer(const uint8* buf, size_t sz)
-	:	_buf()
-	{
-		this->_buf.resize(sz);
-		if( buf )
-			memcpy(this->_buf.begin(), buf, sz);
-		else
-			memset(this->_buf.begin(), 0, sz);
-	}
-	const uint8* data(size_t off=0) const
-	{
-		return this->_buf.begin() + off;
-	}
-	uint8* data(size_t off=0)
-	{
-		return this->_buf.begin() + off;
-	}
-	size_t length() const
-	{
-		return this->_buf.length();
-	}
-	size_t capacity() const
-	{
-		return this->_buf.capacity();
-	}
-	bool insert(size_t off, size_t n, size_t& out)
-	{
-		size_t old_len = this->length();
-		if( !this->_buf.resize(old_len + n) )
-		{// failed
-			out = this->capacity() - old_len;
-			return false;
-		}
-		memset(this->data(old_len), 0, n);
-		this->_buf.move(off, old_len, n);
-		out = n;
-		return true;
-	}
-	bool remove(size_t off, size_t n, size_t& out)
-	{
-		if( !this->_buf.removeindex(off, n) )
-		{// failed
-			out = 0;
-			return false;
-		}
-		out = n;
-		return true;
-	}
-	bool resize(size_t sz, size_t& out)
-	{
-		size_t old_len = this->length();
-		if( !this->_buf.resize(sz) )
-		{// failed
-			out = this->capacity();
-			return false;
-		}
-		if( old_len < this->length() )// increase
-			memset(this->data(old_len), 0, this->length() - old_len);
-		out = sz;
-		return true;
-	}
+	CDynBuffer();
+	CDynBuffer(const uint8* buf, size_t sz);
+	~CDynBuffer();
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Returns the data of this buffer.
+	const uint8* data(size_t off=0) const;
+	uint8* data(size_t off=0);
+
+	/// Returns the length of this buffer.
+	size_t length() const;
+
+	/// Returns the capacity of this buffer.
+	size_t capacity() const;
+
+	/// Inserts n bytes in off.
+	/// If successfull out contains n.
+	/// Otherwise out contains the maximum n that can inserted in off.
+	bool insert(size_t off, size_t n, size_t& out);
+
+	/// Removes n bytes from off. [off,off+n[
+	/// If successfull out contains n.
+	/// Otherwise out contains the maximum n that can be removed from off.
+	bool remove(size_t off, size_t n, size_t& out);
+
+	/// Resizes the buffer to sz.
+	/// If successfull out contains sz.
+	/// Otherwise out contains the maximum size if increasing 
+	/// or the minimum size if decreasing.
+	bool resize(size_t sz, size_t& out);
+
 private:
+	///////////////////////////////////////////////////////////////////////////
+	/// Vector of bytes.
 	vector<uint8> _buf;
 };
 
@@ -600,10 +512,7 @@ public:
 			return false;
 #if defined(DEBUG)
 		if( off > this->_pos(id).len )// out of range
-		{
-			printf("[Debug] off is out of range at CIdxFieldHandler::insert(%u,%u,%u,-)\n", (uint)id, (uint)off, (uint)n);
-			printf("pos: off=%u len=%u\n", (uint)this->_pos(id).off, (uint)this->_pos(id).len);
-		}
+			printf("[Debug] off is out of range (len=%u) at CIdxFieldHandler::insert(%u,%u,%u,-)\n", (uint)this->_pos(id).len, (uint)id, (uint)off, (uint)n);
 #endif//DEBUG
 		off += this->_pos(id).off;
 		if( !this->_buf.insert(off, n, out) )
@@ -611,8 +520,8 @@ public:
 		this->_pos(id).len += n;
 		// adjust positions
 		size_t i;
-		for( i = this->_pos.begin(); i != this->_pos.end(); i = this->_pos.next(i) )
-			if( this->_pos(i).off >= off )
+		for( i = this->_pos.start_id(); i != this->_pos.end_id(); i = this->_pos.next_id(i) )
+			if( this->_pos(i).off >= off && i != id )
 				this->_pos(i).off += n;
 		return true;
 	}
@@ -634,8 +543,8 @@ public:
 		this->_pos(id).len -= n;
 		// adjust positions
 		size_t i;
-		for( i = this->_pos.begin(); i != this->_pos.end(); i = this->_pos.next(i) )
-			if( this->_pos(i).off >= off )
+		for( i = this->_pos.start_id(); i != this->_pos.end_id(); i = this->_pos.next_id(i) )
+			if( this->_pos(i).off >= off && i != id )
 				this->_pos(i).off -= n;
 		return true;
 	}
@@ -722,7 +631,29 @@ public:
 	{
 		this->_buf.Init(h, id, off, len);
 	}
-	///////////////////////////////////////////////////////////////////////////
+
+	/// Normalizes the size of this field buffer.
+	/// Invoke after initializing fields and restricting size.
+	void normalize()
+	{
+		size_t len = 0;
+		size_t i;
+		for( i = this->_pos.start_id(); i != this->_pos.end_id(); i = this->_pos.next_id(i) )
+			len = max<size_t>(len, this->_pos(i));
+
+		IFieldHandler* parent = this->_buf.parent();
+		if( parent == NULL )
+		{
+#if defined(DEBUG)
+			printf("[Debug] buffer has no parent - bug in the source? at CChildIdxFieldBuffer::normalize()\n");
+#endif
+			return;
+		}
+		size_t id = this->_buf.id();
+		size_t off = parent->offset(id);
+		this->_buf.Init(parent, id, off, len);
+	}
+
 	/// Sets the offset and length of the target id.
 	virtual void setup(size_t id, size_t off, size_t len)
 	{
@@ -730,12 +661,45 @@ public:
 			return;
 		this->_pos(id).off = off;
 		this->_pos(id).len = len;
-		size_t end = off + len;
-		if( this->_buf.length() < end )
-			this->_buf.Init(this->_buf.parent(), this->_buf.id(), off, len);
 	}
 };
 
+
+
+class CIdxAutoRegistry
+{
+public:
+	CIdxAutoRegistry(IFieldHandler& h)
+	:	_h(h)
+	,	_idx(0)
+	,	_off(0)
+	{}
+
+	/// Registers a field at the next index.
+	template<typename T>
+	CIdxAutoRegistry& operator <<(T& f)
+	{
+		return this->append(f);
+	}
+
+	/// Registers a field at the next index with the target maximum length.
+	template<typename T>
+	CIdxAutoRegistry& append(T& f, size_t maxlen=0)
+	{		
+		f.Init(&this->_h, this->_idx, this->_off, maxlen);
+		this->_off += this->_h.length(this->_idx);
+		++this->_idx;
+		return *this;
+	}
+
+private:
+	/// Target field handler
+	IFieldHandler& _h;
+	/// Offset of the next field
+	size_t _off;
+	/// Index of the next field
+	size_t _idx;
+};
 
 
 
@@ -1173,7 +1137,7 @@ public:
 
 
 /// Fixed-size string.
-/// Warning: It's not nul-terminated if length equals SZ.
+/// Warning: not nul-terminated if length equals capacity (SZ).
 ///
 /// @param SZ Size of the string
 template<size_t SZ>
@@ -1265,23 +1229,24 @@ public:
 		if( h )
 		{
 			// length based on contents
-			char* data = (char*)this->_h->data(this->_id);
 			if( len == 0 )
-				len = 1;// minimum length
+				h->setup(id, off, 1);// minimum length
 			else if( len == 1 )
 			{// nul-terminator
+				h->setup(id, off, len);// get access to data
+				char* data = (char*)this->_h->data(this->_id);
 				data[0] = '\0';
-				len = 1;
 			}
 			else
 			{// string length + nul-terminator
+				h->setup(id, off, len);// get access to data
+				char* data = (char*)this->_h->data(this->_id);
 				size_t real_len = strnlen(data, len);
 				if( real_len == len )
 					data[real_len - 1] = '\0';
 				else
-					len = real_len + 1;
+					h->setup(id, off, real_len + 1);
 			}
-			h->setup(id, off, len);
 		}
 	}
 	operator const char*() const
@@ -1388,7 +1353,241 @@ public:
 
 
 
-/// Array of a fixed number of sub-fields.
+/// Fixed-size blob of data.
+///
+/// @param SZ Size of the string
+template<size_t SZ>
+class CFieldFixBlob : public AFixField<SZ>
+{
+public:
+	CFieldFixBlob()
+	:	AFixField<SZ>()
+	{}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	operator const uint8*() const
+	{
+		return this->data();
+	}
+	operator uint8*()
+	{
+		return this->data();
+	}
+
+	const uint8* operator ()() const
+	{
+		return this->data();
+	}
+	uint8* operator ()()
+	{
+		return this->data();
+	}
+
+	const uint8& operator [](size_t idx) const
+	{
+		return *(this->data() + idx);
+	}
+	uint8& operator [](size_t idx)
+	{
+		return *(this->data() + idx);
+	}
+
+	const uint8& operator ()(size_t idx) const
+	{
+		return *(this->data() + idx);
+	}
+	uint8& operator ()(size_t idx)
+	{
+		return *(this->data() + idx);
+	}
+
+	const uint8* data() const
+	{
+		return this->_h->data(this->_id);
+	}
+	uint8* data()
+	{
+		return this->_h->data(this->_id);
+	}
+
+	CFieldFixBlob<SZ>& operator =(const CFieldFixBlob<SZ>& f)
+	{
+		if( this->_h && f._h )
+			memcpy(this->_h->data(this->_id), f._h->data(f._id), SZ);
+		return *this;
+	}
+
+	const uint8* operator =(const uint8* data)
+	{
+		if( this->_h )
+		{
+			uint8* buf = this->_h->data(this->_id);
+			strncpy(buf, data, SZ);
+			return uint8;
+		}
+		return NULL;
+	}
+
+	/// Copies sz bytes from data to this field.
+	void copy(uint8* data, size_t sz)
+	{
+		if( this->_h )
+		{
+			uint8* buf = this->_h->data(this->_id);
+			if( sz < SZ )
+			{
+				memcpy(buf, data, sz);
+				memset(buf + sz, 0, SZ - sz);
+			}
+			else
+				memcpy(buf, data, SZ);
+		}
+	}
+
+	size_t size() const
+	{
+		return SZ;
+	}
+	size_t length() const
+	{
+		return SZ;
+	}
+	bool resize(size_t len)
+	{
+		return false;
+	}
+};
+
+
+
+/// Fixed-size blob of data.
+///
+/// @param SZ Size of the string
+class CFieldDynBlob : public AField
+{
+public:
+	CFieldDynBlob()
+	:	AField()
+	{}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Initializes the field.
+	///
+	/// @param len Maximum length the field can have
+	void Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t maxlen=0)
+	{
+		this->_id = id;
+		this->_h = h;
+		if( h )
+			h->setup(id, off, maxlen);// take over all the data
+	}
+
+	operator const uint8*() const
+	{
+		return this->data();
+	}
+	operator uint8*()
+	{
+		return this->data();
+	}
+
+	const uint8* operator ()() const
+	{
+		return this->data();
+	}
+	uint8* operator ()()
+	{
+		return this->data();
+	}
+
+	const uint8& operator [](size_t idx) const
+	{
+		return *(this->data() + idx);
+	}
+	uint8& operator [](size_t idx)
+	{
+		return *(this->data() + idx);
+	}
+
+	const uint8& operator ()(size_t idx) const
+	{
+		return *(this->data() + idx);
+	}
+	uint8& operator ()(size_t idx)
+	{
+		return *(this->data() + idx);
+	}
+
+	const uint8* data() const
+	{
+		if( this->_h )
+			return this->_h->data(this->_id);
+		return NULL;
+	}
+	uint8* data()
+	{
+		if( this->_h )
+			return this->_h->data(this->_id);
+		return NULL;
+	}
+
+	CFieldDynBlob& operator =(const CFieldDynBlob& f)
+	{
+		if( this->_h && f._h )
+		{
+			size_t len;
+			if( !this->_h->resize(this->_id, f.length(), len) )
+				this->_h->resize(this->_id, len, len);// resize to the supported len
+			if( len <= f.length() )
+				memcpy(this->data(), f.data(), len);
+			else//if( len > f.length() )
+			{
+				memcpy(this->data(), f.data(), f.length());
+				memset(this->data() + f.length(), 0, len - f.length());
+			}
+		}
+		return *this;
+	}
+
+	/// Copies sz bytes from data to this field.
+	void assign(uint8* data, size_t sz)
+	{
+		if( this->_h )
+		{
+			size_t len;
+			if( !this->_h->resize(this->_id, sz, len) )
+				this->_h->resize(this->_id, len, len);// resize to the supported len
+			if( len <= sz )
+				memcpy(this->data(), data, len);
+			else//if( len > sz )
+			{
+				memcpy(this->data(), data, sz);
+				memset(this->data() + sz, 0, len - sz);
+			}
+		}
+	}
+
+	size_t size() const
+	{
+		return this->length();
+	}
+	size_t length() const
+	{
+		return this->_h->length(this->_id);
+	}
+	bool resize(size_t len)
+	{
+		if( this->_h )
+			return this->_h->resize(this->_id, len, len);
+		return false;
+	}
+};
+
+
+
+/// Array with a fixed number of sub-fields.
 ///
 /// @param T Type of sub-field
 /// @param SZ Number of sub-fields
@@ -1417,7 +1616,7 @@ public:
 				this->_arr[i].Init(&this->_h, i, sum, len - min(sum, len));
 				sum += this->_h.length(i);
 			}
-			this->_h.Init(h, id, off, sum);// register with the real size
+			this->_h.normalize();// Adjust to the total occupied length
 		}
 		else
 			this->_h.Init(NULL, id, 0, 0);
@@ -1430,6 +1629,18 @@ public:
 	{
 		return this->_arr[idx];
 	}
+	const T& operator ()(size_t idx) const
+	{
+		return this->_arr[idx];
+	}
+	T& operator ()(size_t idx)
+	{
+		return this->_arr[idx];
+	}
+	size_t size() const
+	{
+		return SZ;
+	}
 	size_t length() const
 	{
 		return SZ;
@@ -1439,10 +1650,329 @@ public:
 		return SZ;
 	}
 
+	bool insert(size_t idx, size_t count=1)
+	{
+		return false;// not supported
+	}
+	bool remove(size_t idx, size_t count=1)
+	{
+		return false;// not supported
+	}
+	bool resize(size_t len)
+	{
+		return false;// not supported
+	}
+
 private:
 	///////////////////////////////////////////////////////////////////////////
 	/// Array of fields
 	T _arr[SZ];
+};
+
+
+
+/// Array with a limited number of sub-fields.
+///
+/// @param T Type of sub-field
+/// @param SZ Maximum number of sub-fields
+template<class T,size_t SZ>
+class CFieldLimArray : public ACompositeField<NFieldHandler::CFixPosSet<SZ> >
+{
+public:
+	CFieldLimArray()
+	:	ACompositeField<NFieldHandler::CFixPosSet<SZ> >()
+	{
+		// get minimum size of a field
+		this->_arr[0].Init(&this->_h, 0, 0, 0);
+		this->_min = this->_h.length(0);
+		this->_arr[0].Init(NULL, 0, 0, 0);
+		this->_h.setup(0, 0, 0);
+	}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Initializes the field.
+	///
+	/// @param len Maximum length of this field
+	void Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t len=0)
+	{
+		if( h )
+		{
+			this->_h.Init(h, id, off, len);// gain access to data
+			size_t i;
+			size_t off = 0;
+			for( i = 0; i < SZ && off + this->_min <= len; ++i )
+			{
+				this->_arr[i].Init(&this->_h, i, off, len - off);
+				if( this->_h.length(i) == 0 )
+				{// no length - remove the field and stop
+					this->_arr[i].Init(NULL, i, 0, 0);
+					this->_h.setup(i, 0, 0);
+					break;
+				}
+				off += this->_h.length(i);
+			}
+			this->_len = i;
+			this->_h.normalize();// Adjust to the total occupied length
+		}
+		else
+			this->_h.Init(NULL, id, 0, 0);
+	}
+
+	const T& operator [](size_t idx) const
+	{
+		return this->_arr[idx];
+	}
+	T& operator [](size_t idx)
+	{
+		return this->_arr[idx];
+	}
+	const T& operator ()(size_t idx) const
+	{
+		return this->_arr[idx];
+	}
+	T& operator ()(size_t idx)
+	{
+		return this->_arr[idx];
+	}
+
+	size_t size() const
+	{
+		return this->_len;
+	}
+	size_t length() const
+	{
+		return this->_len;
+	}
+	size_t capacity() const
+	{
+		return SZ;
+	}
+
+	bool resize(size_t len)
+	{
+		if( len > this->capacity() )
+			return false;// not enough space
+
+		if( len > this->length() )
+		{// increasing
+			size_t id = this->length();
+			size_t off = this->_h.length();
+
+			// resize buffer
+			this->_h.setup(id, off, 0);
+			size_t out;
+			if( !this->_h.resize(id, (len - id)*this->_min, out) )
+			{// failed - not enough buffer space
+				this->_h.setup(id, 0, 0);
+				return false;
+			}
+
+			// update sub-fields
+			for( ; id < len; ++id )
+			{
+				this->_arr[id].Init(&this->_h, id, off, this->_min);
+				off += this->_min;
+			}
+		}
+		else if( len < this->length() )
+		{// decreasing
+			size_t id = len;
+			size_t id_off = this->_h.offset(id);
+			size_t id_len = this->_h.length(id);
+
+			// resize buffer
+			size_t out;
+			this->_h.setup(id, id_off, this->_h.length() - id_off);
+			if( !this->_h.resize(id, 0, out) )
+			{// failed - ???unknown cause
+#if defined(DEBUG)
+				printf("[Debug] failed to resize (length=%u) at CFieldLimArray<T,SZ>::resize(%u)\n", (uint)this->length(), (uint)len);
+#endif
+				this->_h.setup(id, id_off, id_len);
+				return false;
+			}
+
+			// update sub-fields
+			for( ; id < this->length(); ++id )
+				this->_arr[id].Init(NULL, id, 0, 0);
+		}
+		this->_len = len;
+		return true;
+	}
+
+private:
+	///////////////////////////////////////////////////////////////////////////
+	/// Array of fields
+	T _arr[SZ];
+
+	/// Length of this array
+	size_t _len;
+
+	/// Minimum size of a field
+	size_t _min;
+};
+
+
+
+/// Array with a limited number of sub-fields.
+///
+/// @param T Type of sub-field
+template<class T>
+class CFieldDynArray : public ACompositeField<NFieldHandler::CDynPosSet>
+{
+public:
+	CFieldDynArray()
+	:	ACompositeField<NFieldHandler::CDynPosSet>()
+	{
+		// get minimum size of a field
+		this->_arr.resize(1);
+		this->_arr[0].Init(&this->_h, 0, 0, 0);
+		this->_min = this->_h.length(0);
+		this->_h.setup(0, 0, 0);
+		this->_arr[0].Init(NULL, 0, 0, 0);
+		this->_arr.resize(0);
+	}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Initializes the field.
+	///
+	/// @param len Maximum length of this field
+	void Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t len=0)
+	{
+		if( h )
+		{
+			this->_h.Init(h, id, off, len);// gain access to data
+			size_t i;
+			size_t off = 0;
+
+			for( i = 0; off + this->_min <= len; ++i )
+			{
+				this->_arr.resize(i + 1);
+				this->_reconnect();
+				this->_arr[i].Init(&this->_h, i, off, len - off);
+				if( this->_h.length(i) == 0 )
+				{// no length - remove the field and stop
+					this->_arr[i].Init(NULL, i, 0, 0);
+					this->_arr.resize(i);
+					this->_h.setup(i, 0, 0);
+					break;
+				}
+				off += this->_h.length(i);
+			}
+			this->_h.normalize();// Adjust to the total occupied length
+			this->_reconnect();
+		}
+		else
+			this->_h.Init(NULL, id, 0, 0);
+	}
+
+	const T& operator [](size_t idx) const
+	{
+		return this->_arr[idx];
+	}
+	T& operator [](size_t idx)
+	{
+		return this->_arr[idx];
+	}
+	const T& operator ()(size_t idx) const
+	{
+		return this->_arr[idx];
+	}
+	T& operator ()(size_t idx)
+	{
+		return this->_arr[idx];
+	}
+
+	size_t size() const
+	{
+		return this->length();
+	}
+	size_t length() const
+	{
+		return this->_arr.length();
+	}
+	size_t capacity() const
+	{//## TODO capacity based on buffer capacity or just the length of _arr?
+		return this->length();
+	}
+
+	bool resize(size_t len)
+	{
+		if( len > this->length() )
+		{// increasing
+			size_t id = this->length();
+			size_t off = this->_h.length();
+
+			// resize buffer
+			this->_h.setup(id, off, 0);
+			size_t out;
+			if( !this->_h.resize(id, (len - id)*this->_min, out) )
+			{// failed - not enough buffer space
+				this->_h.setup(id, 0, 0);
+				return false;
+			}
+
+			// update sub-fields
+			this->_arr.resize(len);
+			for( ; id < len; ++id )
+			{
+				this->_h.setup(id, off, this->_min);
+				off += this->_min;
+			}
+			this->_reconnect();
+		}
+		else if( len < this->length() )
+		{// decreasing
+			size_t id = len;
+			size_t id_off = this->_h.offset(id);
+			size_t id_len = this->_h.length(id);
+
+			// resize buffer
+			size_t out;
+			this->_h.setup(id, id_off, this->_h.length() - id_off);
+			if( !this->_h.resize(id, 0, out) )
+			{// failed - ???unknown cause
+#if defined(DEBUG)
+				printf("[Debug] failed to resize (length=%u) at CFieldLimArray<T,SZ>::resize(%u)\n", (uint)this->length(), (uint)len);
+#endif
+				this->_h.setup(id, id_off, id_len);
+				return false;
+			}
+
+			// update sub-fields
+			for( ; id < this->length(); ++id )
+				this->_arr[id].Init(NULL, id, 0, 0);
+			this->_arr.resize(len);
+			this->_reconnect();
+		}
+		return true;
+	}
+
+private:
+	// Reconnects the fields in this array. Call this after setting up _h and resizing _arr.
+	void _reconnect()
+	{
+		size_t id;
+		for( id = 0; id < this->length(); ++id )
+		{
+			size_t old_len = this->_h.length(id);
+			this->_arr[id].Init(&this->_h, id, this->_h.offset(id), old_len);
+#if defined(DEBUG)
+			if( old_len != this->_h.length(id) )
+				printf("[Debug] sub-field length changed (%u -> %u) at CFieldDynArray::_reconnect()\n", old_len, this->_h.length(id));
+#endif
+		}
+	}
+
+private:
+	///////////////////////////////////////////////////////////////////////////
+	/// Array of fields
+	vector<T> _arr;
+
+	/// Minimum size of a field
+	size_t _min;
 };
 
 
