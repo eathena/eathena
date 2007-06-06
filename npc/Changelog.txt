@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/06/06
+	* More Breeder fixes [Playtester]
 2007/06/05
 	* Merged latest MVP Arena script and functions from trunk to fix bugged NPC and to optimize. [Paradox924X]
 	* Fixed Grand Peco breeder [Playtester]
