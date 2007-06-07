@@ -23,6 +23,9 @@ Playtester
 Date		Added
 ======
 2007/06/07
+	* Rev. 10715 Optimized Rachel donation quest, and added Rachel Guide. [L0ne_W0lf]
+	- Fixed the name of one of Rachel's shops. (Tool Dealer -> Fruit Gardener)
+	- Fixed some typos in the Kyle Hyre Quest's additional comments.
 	* Fixed a bug and some typos to Socket Enchant NPC. [SinSloth]
 2007/06/06
 	* More Breeder fixes [Playtester]
