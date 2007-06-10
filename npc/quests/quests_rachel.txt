@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= L0ne_W0lf
 //===== Current Version: ===================================== 
-//= 1.2
+//= 1.4
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -36,6 +36,8 @@
 //= 1.0 First version, needs testing. [L0ne_W0lf]
 //= 1.1 Some slight optimization. [L0ne_W0lf]
 //= 1.2 Fixed Man Stuck in Ice only giving 1 Freezing Snow Powder. [L0ne_W0lf]
+//= 1.3 Added hte ability to redeem lottery tickets before donation max is met. [L0ne_W0lf]
+//= 1.4 Removed an erroneous "case". Thanks, Jet. [L0ne_W0lf]
 //============================================================ 
 
 // Lost Child Quest (Prerequisite to High Priest quest)
@@ -3957,15 +3959,15 @@ ra_temple,116,174,3	script	Nemma#ra_temple	920,{
 			switch(select("50,000z - 1 Lottery Ticket:100,000z - 2 Lottery Ticket:150,000z - 3 Lottery Ticket:Cancel")) {
 
 			case 1:
-				callsub S_Donate,50000,"50,000",1;
+				callsub S_Donate,1,"50,000";
 				break;
 
 			case 2:
-				callsub S_Donate,100000,"100,000",3;
+				callsub S_Donate,2,"100,000";
 				break;
 
 			case 3:
-				callsub S_Donate,150000,"150,000",3;
+				callsub S_Donate,3,"150,000";
 				break;
 
 			case 4:
@@ -4009,15 +4011,15 @@ ra_temple,116,174,3	script	Nemma#ra_temple	920,{
 				switch(select("50,000z - 1 Lottery Ticket:100,000z - 2 Lottery Ticket:150,000z - 3 Lottery Ticket:Cancel")) {
 
 				case 1:
-					callsub S_Donate,50000,"50,000",1;
+					callsub S_Donate,1,"50,000";
 					break;
 
 				case 2:
-					callsub S_Donate,100000,"100,000",3;
+					callsub S_Donate,2,"100,000";
 					break;
 
 				case 3:
-					callsub S_Donate,150000,"150,000",3;
+					callsub S_Donate,3,"150,000";
 					break;
 
 				case 4:
@@ -4277,9 +4279,10 @@ S_Donate:
 	mes "[Priestess Nemma]";
 	mes "So, " + strcharinfo(0) + "...";
 	mes "I just want to make sure:";
-	mes "you want to donate "+getarg(1);
-	mes "zeny, and receive 1 Lottery ";
-	mes "Ticket. Is that correct?";
+	mes "You want to donate "+getarg(1);
+	mes "zeny, and receive "+getarg(0)+" Lottery";
+	if(getarg(0) == 1) mes "Ticket. Is that correct?";
+	else mes "Tickets. Is that correct?";
 	next;
 	if (select("No:Yes") == 1) {
 		mes "[Priestess Nemma]";
@@ -4291,8 +4294,8 @@ S_Donate:
 		mes "generous and rewards the patient!";
 		return;
 	}
-	if (zeny >= getarg(0)) {
-		if (!checkweight(7570,getarg(2))) {
+	if (zeny >= getarg(0)*50000) {
+		if (!checkweight(7570,getarg(0))) {
 			cutin "ra_nemma02",2;
 			mes "[Priestess Nemma]";
 			mes "I can scarcely believe it...";
@@ -4311,9 +4314,9 @@ S_Donate:
 			mes "donate if you can, okay?";
 			return;
 		}
-		set $rachel_donate,$rachel_donate+getarg(2);
-		getitem 7570,getarg(2); //Temple_Lottery_Ticket
-		set zeny,zeny-getarg(0);
+		set $rachel_donate,$rachel_donate+getarg(0);
+		getitem 7570,getarg(0); //Temple_Lottery_Ticket
+		set zeny,zeny-getarg(0)*50000;
 		set ra_have_donated,1;
 		if ($rachel_donate > 9999) {
 			cutin "ra_nemma03",2;
@@ -5447,7 +5450,83 @@ L_End:
 
 ra_temin,170,46,3	script	Panno#rachel	920,{
 	cutin "ra_fano03",2;
-	if (ra_tem_q == 10) {
+	if (ra_tem_q < 2) {
+		mes "[Priestess Panno]";
+		mes "Greetings.";
+		mes "May Freya fill";
+		mes "your days with joy.";
+		mes "Laughter. And prosperity.";
+		next;
+		switch(select("Redeem Lottery Tickets:Temple Information:Hey, what's happening?")) {
+		case 1:
+			cutin "ra_fano03",2;
+			mes "[Priestess Panno]";
+			mes "Fine. You really";
+			mes "want to exchange your";
+			mes "Lottery Tickets? It's my job";
+			mes "to ask and make sure, you";
+			mes "know, in case you were saving";
+			mes "them for some weird reason.";
+			next;
+			if (select("Yes:No") == 1) goto L_Lottery;
+			cutin "ra_fano03",2;
+			mes "[Priestess Panno]";;
+			mes "You can redeem your";
+			mes "Lottery Tickets at any";
+			mes "time, so please visit";
+			mes "me at your leisure.";
+			mes "Go with Freya.";
+			goto L_End;
+
+		case 2:
+			cutin "ra_fano01",2;
+			mes "[Priestess Panno]";
+			mes "The Chapel is located";
+			mes "over the wall behind me.";
+			mes "Our pope's office and chambers";
+			mes "are upstairs. You can only go";
+			mes "there if you have special";
+			mes "authorization.";
+			next;
+			mes "["+strcharinfo(0)+"]";
+			mes "......";
+			mes ".........";
+			next;
+			mes "[Priestess Panno]";
+			mes "............";
+			mes ".........";
+			mes "......";
+			next;
+			mes "["+strcharinfo(0)+"]";
+			mes "...?";
+			next;
+			cutin "ra_fano02",2;
+			mes "[Priestess Panno]";
+			mes "You come to a temple";
+			mes "to pray, not to look";
+			mes "around. Or chit-chat";
+			mes "with the priestesses";
+			mes "like me. Don't forget it.";
+			next;
+			cutin "ra_fano03",2;
+			mes "[Priestess Panno]";
+			mes "The offices for the High";
+			mes "Priests are located on each";
+			mes "side of the hallway. However,";
+			mes "you can only enter if you've";
+			mes "been permitted beforehand.";
+			goto L_End;
+
+		case 3:
+			mes "[Priestess Panno]";
+			mes "......................";
+			mes "No chit-chat";
+			mes "inside the temple.";
+			goto L_End;
+		}
+	}
+
+	else if (ra_tem_q == 10) {
 		mes "[Priestess Panno]";
 		mes "Good day.";
 		next;
@@ -5721,30 +5800,29 @@ ra_temin,170,46,3	script	Panno#rachel	920,{
 			mes "everything I know.";
 			mes "Remember to keep";
 			mes "quiet about what I said.";
+			goto L_End;
 		}
-		else {
-			cutin "ra_fano02",2;
-			mes "[Priestess Panno]";
-			mes "This is a holy place";
-			mes "Behave yourself, and";
-			mes "respect those who have";
-			mes "come here just to worship.";
-		}
-		goto L_End;
-
 	}
-
-	else {
-		cutin "ra_fano02",2;
-		mes "[Priestess Panno]";
-		mes "This is a holy place";
-		mes "Behave yourself, and";
-		mes "respect those who have";
-		mes "come here just to worship.";
-		goto L_End;
-	}
+	cutin "ra_fano02",2;
+	mes "[Priestess Panno]";
+	mes "This is a holy place";
+	mes "Behave yourself, and";
+	mes "respect those who have";
+	mes "come here just to worship.";
+	goto L_End;
 
 L_Lottery:
+	if(checkweight(607,1) == 0){
+		cutin "ra_fano02",2;
+		mes "[Priestess Panno]";
+		mes "You're carrying too much";
+		mes "right now. What are you";
+		mes "going to do if I give you";
+		mes "something large, unwieldy";
+		mes "and heavy? Put your junk";
+		mes "away in Storage first.";
+		goto L_End;
+	}
 	mes "[Priestess Panno]";
 	mes "Here we go";
 	mes "Excited? Mm";
@@ -5784,10 +5862,17 @@ L_Lottery:
 	mes "[Priestess Panno]";
 	mes "You...";
 	mes "Don't have any Lottery";
-	mes "Tickets to redeem";
-	mes "We're not distributing";
-	mes "them now, but maybe you";
-	mes "can ask your friends for one.";
+	mes "Tickets to redeem.";
+	if ($rachel_donate > 9999) {
+		mes "We're not distributing";
+		mes "them now, but maybe you";
+		mes "can ask your friends for one.";
+	}
+	else {
+		mes "You can obtain them from";
+		mes "Priestess Nemma at the temple";
+		mes "entrance after you donate zeny.";
+	}
 	next;
 	cutin "ra_fano03",2;
 	mes "[Priestess Panno]";

@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/06/10
+	* Merged recent fixes to Rachel and Kiel quest [Playtester]
 2007/06/07
 	* Rev. 10718 Fixed Man Stuck in Ice only giving 1 Freezing Snow Powder. [L0ne_W0lf]
 	* Rev. 10715 Optimized Rachel donation quest, and added Rachel Guide. [L0ne_W0lf]
