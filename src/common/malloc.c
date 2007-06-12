@@ -1,12 +1,14 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
+#include "../common/cbasetypes.h"
+#include "../common/core.h"
+#include "../common/showmsg.h"
+#include "malloc.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../common/malloc.h"
-#include "../common/core.h"
-#include "../common/showmsg.h"
 
 #ifdef MINICORE
 	#undef LOG_MEMMGR
@@ -187,7 +189,7 @@ static struct chunk *chunk_first = NULL;
 static struct block* block_malloc(void);
 static void   block_free(struct block* p);
 static void memmgr_info(void);
-static unsigned int memmgr_usage_bytes = 0;
+static size_t memmgr_usage_bytes = 0;
 
 void* _mmalloc(size_t size, const char *file, int line, const char *func )
 {
@@ -542,7 +544,7 @@ static void block_free(struct block* p)
 	}
 }
 
-unsigned int memmgr_usage (void)
+size_t memmgr_usage (void)
 {
 	return memmgr_usage_bytes / 1024;
 }
@@ -665,7 +667,7 @@ static void memmgr_init (void)
  *--------------------------------------
  */
 
-unsigned int malloc_usage (void)
+size_t malloc_usage (void)
 {
 #ifdef USE_MEMMGR
 	return memmgr_usage ();

@@ -56,117 +56,134 @@ void dump(const unsigned char* buffer, int num)
 }
 #endif
 
-// Allocate a StringBuf  [MouseJstr]
-struct StringBuf * StringBuf_Malloc() 
+/////////////////////////////////////////////////////////////////////
+// StringBuf - dynamic string
+//
+// @author MouseJstr (original)
+
+/// Allocates a StringBuf
+struct StringBuf* StringBuf_Malloc() 
 {
-	struct StringBuf * ret = (struct StringBuf *) aMallocA(sizeof(struct StringBuf));
-	StringBuf_Init(ret);
-	return ret;
+	struct StringBuf* self;
+	CREATE(self, struct StringBuf, 1);
+	StringBuf_Init(self);
+	return self;
 }
 
-// Initialize a previously allocated StringBuf [MouseJstr]
-void StringBuf_Init(struct StringBuf * sbuf)  {
-	sbuf->max_ = 1024;
-	sbuf->ptr_ = sbuf->buf_ = (char *) aMallocA(sbuf->max_ + 1);
-}
-
-// vprintf into a StringBuf, moving the pointer [MouseJstr]
-int StringBuf_Vprintf(struct StringBuf *sbuf,const char *fmt,va_list ap) 
+/// Initializes a previously allocated StringBuf
+void StringBuf_Init(struct StringBuf* self)
 {
-	int n, size, off;
-
-	while (1) {
-		/* Try to print in the allocated space. */
-		size = sbuf->max_ - (sbuf->ptr_ - sbuf->buf_);
-		n = vsnprintf (sbuf->ptr_, size, fmt, ap);
-		/* If that worked, return the length. */
-		if (n > -1 && n < size) {
-			sbuf->ptr_ += n;
-			return (int)(sbuf->ptr_ - sbuf->buf_);
-		}
-		/* Else try again with more space. */
-		sbuf->max_ *= 2; // twice the old size
-		off = (int)(sbuf->ptr_ - sbuf->buf_);
-		sbuf->buf_ = (char *) aRealloc(sbuf->buf_, sbuf->max_ + 1);
-		sbuf->ptr_ = sbuf->buf_ + off;
-	}
+	self->max_ = 1024;
+	self->ptr_ = self->buf_ = (char*)aMallocA(self->max_ + 1);
 }
 
-// printf into a StringBuf, moving the pointer [MouseJstr]
-int StringBuf_Printf(struct StringBuf *sbuf,const char *fmt,...) 
+/// Appends the result of printf to the StringBuf
+int StringBuf_Printf(struct StringBuf* self, const char* fmt, ...)
 {
 	int len;
 	va_list ap;
 
-	va_start(ap,fmt);
-	len = StringBuf_Vprintf(sbuf,fmt,ap);
+	va_start(ap, fmt);
+	len = StringBuf_Vprintf(self, fmt, ap);
 	va_end(ap);
 
 	return len;
 }
 
-// Append buf2 onto the end of buf1 [MouseJstr]
-int StringBuf_Append(struct StringBuf *buf1,const struct StringBuf *buf2) 
+/// Appends the result of vprintf to the StringBuf
+int StringBuf_Vprintf(struct StringBuf* self, const char* fmt, va_list ap)
 {
-	int buf1_avail = buf1->max_ - (buf1->ptr_ - buf1->buf_);
-	int size2 = (int)(buf2->ptr_ - buf2->buf_);
+	int n, size, off;
 
-	if (size2 >= buf1_avail)  {
-		int off = (int)(buf1->ptr_ - buf1->buf_);
-		buf1->max_ += size2;
-		buf1->buf_ = (char *) aRealloc(buf1->buf_, buf1->max_ + 1);
-		buf1->ptr_ = buf1->buf_ + off;
+	for(;;)
+	{
+		/* Try to print in the allocated space. */
+		size = self->max_ - (self->ptr_ - self->buf_);
+		n = vsnprintf(self->ptr_, size, fmt, ap);
+		/* If that worked, return the length. */
+		if( n > -1 && n < size )
+		{
+			self->ptr_ += n;
+			return (int)(self->ptr_ - self->buf_);
+		}
+		/* Else try again with more space. */
+		self->max_ *= 2; // twice the old size
+		off = (int)(self->ptr_ - self->buf_);
+		self->buf_ = (char*)aRealloc(self->buf_, self->max_ + 1);
+		self->ptr_ = self->buf_ + off;
 	}
-
-	memcpy(buf1->ptr_, buf2->buf_, size2);
-	buf1->ptr_ += size2;
-	return (int)(buf1->ptr_ - buf1->buf_);
 }
 
-// Appends str onto the end of buf
-int StringBuf_AppendStr(struct StringBuf* sbuf, const char* str) 
+/// Appends the contents of another StringBuf to the StringBuf
+int StringBuf_Append(struct StringBuf* self, const struct StringBuf* sbuf)
 {
-	int available = sbuf->max_ - (sbuf->ptr_ - sbuf->buf_);
-	int size = (int)strlen(str);
+	int available = self->max_ - (self->ptr_ - self->buf_);
+	int needed = (int)(sbuf->ptr_ - sbuf->buf_);
 
-	if( size >= available )
+	if( needed >= available )
+	{
+		int off = (int)(self->ptr_ - self->buf_);
+		self->max_ += needed;
+		self->buf_ = (char*)aRealloc(self->buf_, self->max_ + 1);
+		self->ptr_ = self->buf_ + off;
+	}
+
+	memcpy(self->ptr_, sbuf->buf_, needed);
+	self->ptr_ += needed;
+	return (int)(self->ptr_ - self->buf_);
+}
+
+// Appends str to the StringBuf
+int StringBuf_AppendStr(struct StringBuf* self, const char* str) 
+{
+	int available = self->max_ - (self->ptr_ - self->buf_);
+	int needed = (int)strlen(str);
+
+	if( needed >= available )
 	{// not enough space, expand the buffer (minimum expansion = 1024)
-		int off = (int)(sbuf->ptr_ - sbuf->buf_);
-		sbuf->max_ += max(size, 1024);
-		sbuf->buf_ = (char *) aRealloc(sbuf->buf_, sbuf->max_ + 1);
-		sbuf->ptr_ = sbuf->buf_ + off;
+		int off = (int)(self->ptr_ - self->buf_);
+		self->max_ += max(needed, 1024);
+		self->buf_ = (char*)aRealloc(self->buf_, self->max_ + 1);
+		self->ptr_ = self->buf_ + off;
 	}
 
-	memcpy(sbuf->ptr_, str, size);
-	sbuf->ptr_ += size;
-	return (int)(sbuf->ptr_ - sbuf->buf_);
+	memcpy(self->ptr_, str, needed);
+	self->ptr_ += needed;
+	return (int)(self->ptr_ - self->buf_);
 }
 
-// Returns the length of the data in a Stringbuf
-int StringBuf_Length(struct StringBuf *sbuf) 
+// Returns the length of the data in the Stringbuf
+int StringBuf_Length(struct StringBuf* self) 
 {
-	return (int)(sbuf->ptr_ - sbuf->buf_);
+	return (int)(self->ptr_ - self->buf_);
 }
 
-// Destroy a StringBuf [MouseJstr]
-void StringBuf_Destroy(struct StringBuf *sbuf) 
+/// Returns the data in the StringBuf
+char* StringBuf_Value(struct StringBuf* self) 
 {
-	aFree(sbuf->buf_);
-	sbuf->ptr_ = sbuf->buf_ = 0;
+	*self->ptr_ = '\0';
+	return self->buf_;
 }
 
-// Free a StringBuf returned by StringBuf_Malloc [MouseJstr]
-void StringBuf_Free(struct StringBuf *sbuf) 
+/// Clears the contents of the StringBuf
+void StringBuf_Clear(struct StringBuf* self) 
 {
-	StringBuf_Destroy(sbuf);
-	aFree(sbuf);
+	self->ptr_ = self->buf_;
 }
 
-// Return the built string from the StringBuf [MouseJstr]
-char * StringBuf_Value(struct StringBuf *sbuf) 
+/// Destroys the StringBuf
+void StringBuf_Destroy(struct StringBuf* self)
 {
-	*sbuf->ptr_ = '\0';
-	return sbuf->buf_;
+	aFree(self->buf_);
+	self->ptr_ = self->buf_ = 0;
+	self->max_ = 0;
+}
+
+// Frees a StringBuf returned by StringBuf_Malloc
+void StringBuf_Free(struct StringBuf* self) 
+{
+	StringBuf_Destroy(self);
+	aFree(self);
 }
 
 #ifdef WIN32
@@ -294,30 +311,43 @@ void findfile(const char *p, const char *pat, void (func)(const char*))
 }
 #endif
 
-unsigned char GetByte(unsigned long val, size_t num)
+uint8 GetByte(uint32 val, int idx)
 {
-	switch(num) {
-	case 0:  return (unsigned char)((val & 0x000000FF)      );
-	case 1:	 return (unsigned char)((val & 0x0000FF00)>>0x08);
-	case 2:	 return (unsigned char)((val & 0x00FF0000)>>0x10);
-	case 3:	 return (unsigned char)((val & 0xFF000000)>>0x18);
-	default: return 0;	//better throw something here
+	switch( idx )
+	{
+	case 0: return (uint8)( (val & 0x000000FF)         );
+	case 1: return (uint8)( (val & 0x0000FF00) >> 0x08 );
+	case 2: return (uint8)( (val & 0x00FF0000) >> 0x10 );
+	case 3: return (uint8)( (val & 0xFF000000) >> 0x18 );
+	default:
+#if defined(DEBUG)
+		ShowDebug("GetByte: invalid index (idx=%d)\n", idx);
+#endif
+		return 0;
 	}
 }
-unsigned short GetWord(unsigned long val, size_t num)
+
+uint16 GetWord(uint32 val, int idx)
 {
-	switch(num) {
-	case 0:  return (unsigned short)((val & 0x0000FFFF)      );
-	case 1:  return (unsigned short)((val & 0xFFFF0000)>>0x10);
-	default: return 0;	//better throw something here
+	switch( idx )
+	{
+	case 0: return (uint16)( (val & 0x0000FFFF)         );
+	case 1: return (uint16)( (val & 0xFFFF0000) >> 0x10 );
+	default:
+#if defined(DEBUG)
+		ShowDebug("GetWord: invalid index (idx=%d)\n", idx);
+#endif
+		return 0;
 	}
 }
-unsigned short MakeWord(unsigned char byte0, unsigned char byte1)
+uint16 MakeWord(uint8 byte0, uint8 byte1)
 {
-	return byte0 | (byte1<<0x08);
+	return byte0 | (byte1 << 0x08);
 }
-unsigned long MakeDWord(unsigned short word0, unsigned short word1)
+
+uint32 MakeDWord(uint16 word0, uint16 word1)
 {
-	return 	  ((unsigned long)word0)
-			| ((unsigned long)word1<<0x10);
+	return
+		( (uint32)(word0        ) )|
+		( (uint32)(word1 << 0x10) );
 }

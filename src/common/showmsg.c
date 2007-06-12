@@ -198,7 +198,7 @@ int	VFPRINTF(HANDLE handle, const char *fmt, va_list argptr)
 	*/
 
 	/////////////////////////////////////////////////////////////////
-	unsigned long	written;
+	DWORD written;
 	char *p, *q;
 	NEWBUF(tempbuf); // temporary buffer
 
@@ -218,8 +218,8 @@ int	VFPRINTF(HANDLE handle, const char *fmt, va_list argptr)
 	p = BUFVAL(tempbuf);
 	while ((q = strchr(p, 0x1b)) != NULL)
 	{	// find the escape character
-		if( 0==WriteConsole(handle, p, q-p, &written, 0) ) // write up to the escape
-			WriteFile(handle, p, q-p, &written, 0);
+		if( 0==WriteConsole(handle, p, (DWORD)(q-p), &written, 0) ) // write up to the escape
+			WriteFile(handle, p, (DWORD)(q-p), &written, 0);
 
 		if( q[1]!='[' )
 		{	// write the escape char (whatever purpose it has) 
@@ -240,7 +240,7 @@ int	VFPRINTF(HANDLE handle, const char *fmt, va_list argptr)
 
 			// skip escape and bracket
 			q=q+2;	
-			while(1)
+			for(;;)
 			{
 				if( ISDIGIT(*q) ) 
 				{	// add number to number array, only accept 2digits, shift out the rest
@@ -501,8 +501,8 @@ int	VFPRINTF(HANDLE handle, const char *fmt, va_list argptr)
 		}
 	}
 	if (*p)	// write the rest of the buffer
-		if( 0==WriteConsole(handle, p, strlen(p), &written, 0) )
-			WriteFile(handle,p, strlen(p), &written, 0);
+		if( 0==WriteConsole(handle, p, (DWORD)strlen(p), &written, 0) )
+			WriteFile(handle, p, (DWORD)strlen(p), &written, 0);
 	FREEBUF(tempbuf);
 	return 0;
 }
@@ -689,7 +689,10 @@ int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
 		ShowError("Empty string passed to _vShowMessage().\n");
 		return 1;
 	}
-	if ((flag == MSG_DEBUG && !SHOW_DEBUG_MSG) ||
+	if (
+#if !defined(SHOW_DEBUG_MSG)
+			(flag == MSG_DEBUG) ||
+#endif
 			(flag == MSG_INFORMATION && msg_silent&1) ||
 			(flag == MSG_STATUS && msg_silent&2) ||
 			(flag == MSG_NOTICE && msg_silent&4) ||

@@ -258,7 +258,7 @@ int e_mail_check(char* email)
 {
 	char ch;
 	char* last_arobas;
-	int len = strlen(email);
+	size_t len = strlen(email);
 
 	// athena limits
 	if (len < 3 || len > 39)

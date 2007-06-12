@@ -40,9 +40,10 @@
 \*****************************************************************************/
 #include <stdlib.h>
 
-#include "ers.h"
+#include "../common/cbasetypes.h"
 #include "../common/malloc.h" // CREATE, RECREATE, aMalloc, aFree
 #include "../common/showmsg.h" // ShowMessage, ShowError, ShowFatalError, CL_BOLD, CL_NORMAL
+#include "ers.h"
 
 #ifndef DISABLE_ERS
 /*****************************************************************************\
@@ -244,7 +245,7 @@ static void ers_obj_free_entry(ERS self, void *entry)
  * @see ERS_impl#size
  * @see ERS_impl::vtable#entry_size
  */
-static uint32 ers_obj_entry_size(ERS self)
+static size_t ers_obj_entry_size(ERS self)
 {
 	ERS_impl obj = (ERS_impl)self;
 

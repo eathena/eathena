@@ -40,7 +40,9 @@
 #ifndef _ERS_H_
 #define _ERS_H_
 
+#ifndef _CBASETYPES_H_
 #include "../common/cbasetypes.h"
+#endif
 
 /*****************************************************************************\
  *  (1) All public parts of the Entry Reusage System.                        *
@@ -101,7 +103,7 @@ typedef struct eri {
 	 * @param self Interface of the entry manager
 	 * @return Size of the entries of this manager in bytes
 	 */
-	uint32 (*entry_size)(struct eri *self);
+	size_t (*entry_size)(struct eri *self);
 
 	/**
 	 * Destroy this instance of the manager.
