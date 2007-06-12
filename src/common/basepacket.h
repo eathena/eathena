@@ -695,10 +695,10 @@ public:
 private:
 	/// Target field handler
 	IFieldHandler& _h;
-	/// Offset of the next field
-	size_t _off;
 	/// Index of the next field
 	size_t _idx;
+	/// Offset of the next field
+	size_t _off;
 };
 
 
