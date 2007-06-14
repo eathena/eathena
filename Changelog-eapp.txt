@@ -1,4 +1,10 @@
 Date	Added
+2007/06/14
+	* Added some real packets for testing.
+	* Changed packet stuff from namespace basics to namespace NSocket.
+	* Moved code from the class definitions so it's not explicitely inlined.
+	  Templated code always in the header, other code in the cpp.
+	* Normalized the methods of the packet fields.
 2007/06/05
 	* Moved some code to the .cpp and added more packet test/example cases.
 	* All base packet fields implemented.

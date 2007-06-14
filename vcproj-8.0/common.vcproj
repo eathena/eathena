@@ -122,6 +122,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\common\lpacket.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\common\malloc.cpp"
 				>
 			</File>
@@ -191,6 +195,10 @@
 			</File>
 			<File
 				RelativePath="..\src\common\lock.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\lpacket.h"
 				>
 			</File>
 			<File

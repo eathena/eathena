@@ -123,7 +123,7 @@ int make_connection(unsigned long ip, unsigned short port);
 
 int realloc_fifo(int fd, size_t rfifo_size,size_t wfifo_size);
 
-int WFIFOPACKET(int fd, const basics::IPacket& p);
+int WFIFOPACKET(int fd, const NSocket::IPacket& p);
 int WFIFOSET(int fd, size_t len);
 int RFIFOSKIP(int fd, size_t len);
 

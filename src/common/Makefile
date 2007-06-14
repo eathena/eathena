@@ -39,6 +39,7 @@ core.o: core.cpp mmo.h socket.h malloc.h timer.h utils.h core.h version.h db.h s
 db.o: db.cpp db.h malloc.h showmsg.h mmo.h socket.h timer.h utils.h $(BASICS_H)
 grfio.o: grfio.cpp utils.h socket.h malloc.h timer.h mmo.h grfio.h showmsg.h $(BASICS_H)
 lock.o: lock.cpp lock.h utils.h socket.h malloc.h timer.h showmsg.h $(BASICS_H)
+lpacket.o: lpacket.cpp lpacket.h $(BASICS_H)
 malloc.o: malloc.cpp malloc.h showmsg.h utils.h socket.h timer.h $(BASICS_H)
 md5calc.o: md5calc.cpp md5calc.h $(BASICS_H)
 mmo.o: mmo.cpp mmo.h socket.h malloc.h timer.h utils.h showmsg.h $(BASICS_H)

@@ -1,7 +1,7 @@
 CP = $(RETURN_PATH)/$(COMMON_PATH)
 ##########################################################
 COMMON_STATICLIB = $(CP)/libcommon.a
-COMMON_OBJ = $(CP)/baseio.o $(CP)/basesq.o $(CP)/basetx.o $(CP)/basepacket.o $(CP)/core.o $(CP)/db.o $(CP)/plugins.o $(CP)/lock.o $(CP)/malloc.o $(CP)/md5calc.o $(CP)/mmo.o $(CP)/nullpo.o $(CP)/showmsg.o $(CP)/socket.o $(CP)/timer.o $(CP)/utils.o
+COMMON_OBJ = $(CP)/baseio.o $(CP)/basesq.o $(CP)/basetx.o $(CP)/basepacket.o $(CP)/core.o $(CP)/db.o $(CP)/plugins.o $(CP)/lock.o $(CP)/lpacket.o $(CP)/malloc.o $(CP)/md5calc.o $(CP)/mmo.o $(CP)/nullpo.o $(CP)/showmsg.o $(CP)/socket.o $(CP)/timer.o $(CP)/utils.o
 ##########################################################
-COMMON_H = $(CP)/baseio.h $(CP)/basesq.h $(CP)/basetx.h $(CP)/basepacket.h $(CP)/core.h $(CP)/db.h $(CP)/plugins.h $(CP)/lock.h $(CP)/malloc.h $(CP)/md5calc.h $(CP)/mmo.h $(CP)/nullpo.h $(CP)/showmsg.h $(CP)/socket.h $(CP)/timer.h $(CP)/utils.h $(CP)/version.h
+COMMON_H = $(CP)/baseio.h $(CP)/basesq.h $(CP)/basetx.h $(CP)/basepacket.h $(CP)/core.h $(CP)/db.h $(CP)/plugins.h $(CP)/lock.h $(CP)/lpacket.h $(CP)/malloc.h $(CP)/md5calc.h $(CP)/mmo.h $(CP)/nullpo.h $(CP)/showmsg.h $(CP)/socket.h $(CP)/timer.h $(CP)/utils.h $(CP)/version.h
 ##########################################################

@@ -3,91 +3,18 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-NAMESPACE_BEGIN(basics)
+namespace NSocket {
 ///////////////////////////////////////////////////////////////////////////////
 
 
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-// Field handler
 ///////////////////////////////////////////////////////////////////////////////
 namespace NFieldHandler {
-
-
-
-
-
 ///////////////////////////////////////////////////////////////////////////////
-// Fixed set of positions.
 
-template<size_t SZ>
-CFixPosSet<SZ>::CFixPosSet()
-{}
 
-template<size_t SZ>
-CFixPosSet<SZ>::~CFixPosSet()
-{}
-
-/// Returns if id is included in this set.
-template<size_t SZ>
-bool CFixPosSet<SZ>::contains(size_t id) const
-{
-	return (id < SZ);
-}
-
-/// Adds id to this set.
-template<size_t SZ>
-bool CFixPosSet<SZ>::add(size_t id)
-{
-	if( id >= SZ )
-		return false;
-	this->_arr[id].off = 0;
-	this->_arr[id].len = 0;
-	return true;
-}
-
-/// Array access.
-template<size_t SZ>
-const SPos& CFixPosSet<SZ>::operator [](size_t id) const
-{
-	return this->_arr[id];
-}
-template<size_t SZ>
-SPos& CFixPosSet<SZ>::operator [](size_t id)
-{
-	return this->_arr[id];
-}
-
-/// List access.
-template<size_t SZ>
-const SPos& CFixPosSet<SZ>::operator ()(size_t id) const
-{
-	return this->_arr[id];
-}
-template<size_t SZ>
-SPos& CFixPosSet<SZ>::operator ()(size_t id)
-{
-	return this->_arr[id];
-}
-
-/// Iteration operators.
-template<size_t SZ>
-size_t CFixPosSet<SZ>::start_id() const
-{
-	return 0;
-}
-template<size_t SZ>
-size_t CFixPosSet<SZ>::next_id(size_t id) const
-{
-	return id + 1;
-}
-template<size_t SZ>
-size_t CFixPosSet<SZ>::end_id() const
-{
-	return SZ;
-}
 
 
 
@@ -136,7 +63,7 @@ SPos& CDynPosSet::operator ()(size_t id)
 	return this->_arr(id);
 }
 
-/// Iteration operators.
+/// Forward id iteration.
 size_t CDynPosSet::start_id() const
 {
 	return 0;
@@ -148,109 +75,6 @@ size_t CDynPosSet::next_id(size_t id) const
 size_t CDynPosSet::end_id() const
 {
 	return this->_arr.size();
-}
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Buffer with a fixed size.
-
-template<size_t SZ>
-CFixBuffer<SZ>::CFixBuffer()
-:	_len(0)
-{}
-
-template<size_t SZ>
-CFixBuffer<SZ>::CFixBuffer(const uint8* buf, size_t sz)
-:	_len(min(sz, SZ))
-{
-	if( buf )
-		memcpy(this->_buf, buf, _len);
-	else
-		memset(this->_buf, 0, _len);
-}
-
-template<size_t SZ>
-CFixBuffer<SZ>::~CFixBuffer()
-{}
-
-/// Returns the data of this buffer.
-template<size_t SZ>
-const uint8* CFixBuffer<SZ>::data(size_t off) const
-{
-	return (const uint8*)this->_buf + off;
-}
-template<size_t SZ>
-uint8* CFixBuffer<SZ>::data(size_t off)
-{
-	return (uint8*)this->_buf + off;
-}
-
-/// Returns the length of this buffer.
-template<size_t SZ>
-size_t CFixBuffer<SZ>::length() const
-{
-	return this->_len;
-}
-
-/// Returns the capacity of this buffer.
-template<size_t SZ>
-size_t CFixBuffer<SZ>::capacity() const
-{
-	return SZ;
-}
-
-/// Inserts n bytes in off.
-/// If successfull out contains n.
-/// Otherwise out contains the maximum n that can inserted in off.
-template<size_t SZ>
-bool CFixBuffer<SZ>::insert(size_t off, size_t n, size_t& out)
-{
-	if( this->capacity() - this->length() < n )
-	{// failed
-		out = this->capacity() - this->length();
-		return false;
-	}
-	memmove(this->data(off + n), this->data(off), this->length() - off);
-	memset(this->data(off), 0, n);
-	this->_len += n;
-	out = n;
-	return true;
-}
-
-/// Removes n bytes from off. [off,off+n[
-/// If successfull out contains n.
-/// Otherwise out contains the maximum n that can be removed from off.
-template<size_t SZ>
-bool CFixBuffer<SZ>::remove(size_t off, size_t n, size_t& out)
-{
-	if( this->length() < off + n )
-	{// failed
-		out = this->length() - off;
-		return false;
-	}
-	memmove(this->data(off), this->data(off + n), this->length() - off - n);
-	this->_len -= n;
-	out = n;
-	return true;
-}
-
-/// Resizes the buffer to sz.
-/// If successfull out contains sz.
-/// Otherwise out contains the maximum size if increasing 
-/// or the minimum size if decreasing.
-template<size_t SZ>
-bool CFixBuffer<SZ>::resize(size_t sz, size_t& out)
-{
-	if( this->capacity() < sz )
-	{// failed
-		out = this->capacity();
-		return false;
-	}
-	if( sz > this->length() )// increasing
-		memset(this->data(this->length()), 0, sz - this->length());
-	this->_len = out = sz;
-	return true;
 }
 
 
@@ -348,18 +172,356 @@ bool CDynBuffer::resize(size_t sz, size_t& out)
 
 
 
+///////////////////////////////////////////////////////////////////////////////
+// Buffer backed by a field handler.
+
+CChildBuffer::CChildBuffer()
+:	_id(~size_t(0))
+,	_h(NULL)
+{}
+
+CChildBuffer::~CChildBuffer()
+{}
+
+/// Initializes this child buffer.
+void CChildBuffer::Init(IFieldHandler* h, size_t id, size_t off, size_t len)
+{
+	this->_id = id;
+	this->_h = h;
+	if( h )
+		h->setup(id, off, len);
+}
+
+/// Returns the data of this buffer.
+const uint8* CChildBuffer::data(size_t off) const
+{
+	if( this->_h )
+		return this->_h->data(this->_id) + off;
+	return NULL;
+}
+uint8* CChildBuffer::data(size_t off)
+{
+	if( this->_h )
+		return this->_h->data(this->_id) + off;
+	return NULL;
+}
+
+/// Returns the length of this buffer.
+size_t CChildBuffer::length() const
+{
+	if( this->_h )
+		return this->_h->length(this->_id);
+	return 0;
+}
+
+/// Returns the capacity of this buffer.
+size_t CChildBuffer::capacity() const
+{
+	if( this->_h )
+		return this->_h->capacity(this->_id);
+	return 0;
+}
+
+/// Inserts n bytes in off.
+/// If successfull out contains n.
+/// Otherwise out contains the maximum n that can inserted in off.
+bool CChildBuffer::insert(size_t off, size_t n, size_t& out)
+{
+	if( this->_h )
+		return this->_h->insert(this->_id, off, n, out);
+	out = 0;
+	return false;
+}
+
+/// Removes n bytes from off. [off,off+n[
+/// If successfull out contains n.
+/// Otherwise out contains the maximum n that can be removed from off.
+bool CChildBuffer::remove(size_t off, size_t n, size_t& out)
+{
+	if( this->_h )
+		return this->_h->remove(this->_id, off, n, out);
+	out = 0;
+	return false;
+}
+
+/// Resizes the buffer to sz.
+/// If successfull out contains sz.
+/// Otherwise out contains the maximum size if increasing 
+/// or the minimum size if decreasing.
+bool CChildBuffer::resize(size_t sz, size_t& out)
+{
+	if( this->_h )
+		return this->_h->resize(this->_id, sz, out);
+	return false;
+}
+
+/// Returns the id of this child buffer in the parent.
+size_t CChildBuffer::id() const
+{
+	return this->_id;
+}
+
+/// Returns the parent of this child buffer.
+const IFieldHandler* CChildBuffer::parent() const
+{
+	return this->_h;
+}
+IFieldHandler* CChildBuffer::parent()
+{
+	return this->_h;
+}
 
 
+
+///////////////////////////////////////////////////////////////////////////////
 }// end namespace NFieldHandler
 ///////////////////////////////////////////////////////////////////////////////
-// Packets
-///////////////////////////////////////////////////////////////////////////////
 
 
 
 
 
 ///////////////////////////////////////////////////////////////////////////////
+/// Dynamic-size nul-terminated string.
+
+CFieldCString::CFieldCString()
+:	AField()
+{}
+
+/// Initializes this field.
+///
+/// @param len Maximum length of the field
+void CFieldCString::Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t len)
+{
+	this->_id = id;
+	this->_h = h;
+	if( h )
+	{
+		// length based on contents
+		if( len == 0 )
+			h->setup(id, off, 1);// minimum length
+		else if( len == 1 )
+		{// nul-terminator
+			h->setup(id, off, len);// get access to data
+			char* data = (char*)this->_h->data(this->_id);
+			data[0] = '\0';
+		}
+		else
+		{// string length + nul-terminator
+			h->setup(id, off, len);// get access to data
+			char* data = (char*)this->_h->data(this->_id);
+			size_t real_len = strnlen(data, len);
+			if( real_len == len )
+				data[real_len - 1] = '\0';
+			else
+				h->setup(id, off, real_len + 1);
+		}
+	}
+}
+
+/// Converts this c-string to data.
+CFieldCString::operator const char*() const
+{
+	return this->data();
+}
+
+/// Returns the data of this c-string.
+const char* CFieldCString::operator ()() const
+{
+	return this->data();
+}
+const char* CFieldCString::data() const
+{
+	if( this->_h )
+		return (const char*)this->_h->data(this->_id);
+	return "";
+}
+
+/// Assigns data to this c-string.
+CFieldCString& CFieldCString::operator =(const CFieldCString& f)
+{
+	return this->assign(f.data(), f.length());
+}
+CFieldCString& CFieldCString::operator =(const char* str)
+{
+	return this->assign(str, ~size_t(0));
+}
+CFieldCString& CFieldCString::assign(const char* str, size_t sz)
+{
+	if( this->_h )
+	{
+		if( str == NULL )
+			str = "";
+		size_t len = strnlen(str, sz) + 1;
+		if( !this->_h->resize(this->_id, len, len) )
+		{
+#if defined(DEBUG)
+			if( len == 0 )//## error, this should never happen
+				printf("[Debug] resize failed (len=0) at CFieldCString::assign(const char* str, size_t sz)\n");
+#endif//DEBUG
+			this->_h->resize(this->_id, len, len);// resize to max instead
+		}
+		char* buf = (char*)this->_h->data(this->_id);
+		memcpy(buf, str, len - 1);
+		buf[len - 1] = '\0';
+	}
+	return *this;
+}
+
+/// Returns the length of this c-string.
+size_t CFieldCString::size() const
+{
+	return this->length();
+}
+size_t CFieldCString::length() const
+{
+	if( this->_h )
+	{
+		size_t len = this->_h->length(this->_id);
+		if( len > 0 )
+			return len - 1;
+	}
+	return 0;
+}
+
+/// Returns the capacity of this c-string.
+size_t CFieldCString::capacity() const
+{
+	if( this->_h )
+	{
+		size_t len = this->_h->capacity(this->_id);
+		if( len > 0 )
+			return len - 1;
+	}
+	return 0;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Dynamic-size blob of data.
+
+CFieldDynBlob::CFieldDynBlob()
+:	AField()
+{}
+
+/// Initializes the field.
+///
+/// @param len Maximum length the field can have
+void CFieldDynBlob::Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t maxlen)
+{
+	this->_id = id;
+	this->_h = h;
+	if( h )
+		h->setup(id, off, maxlen);// take over all the data
+}
+
+/// Array access.
+const uint8& CFieldDynBlob::operator [](size_t idx) const
+{
+	return *(this->data() + idx);
+}
+uint8& CFieldDynBlob::operator [](size_t idx)
+{
+	return *(this->data() + idx);
+}
+
+/// List access.
+const uint8& CFieldDynBlob::operator ()(size_t idx) const
+{
+	return *(this->data() + idx);
+}
+uint8& CFieldDynBlob::operator ()(size_t idx)
+{
+	return *(this->data() + idx);
+}
+
+/// Converts this blob to data.
+CFieldDynBlob::operator const uint8*() const
+{
+	return this->data();
+}
+CFieldDynBlob::operator uint8*()
+{
+	return this->data();
+}
+
+/// Returns the data of this blob.
+const uint8* CFieldDynBlob::data() const
+{
+	if( this->_h )
+		return this->_h->data(this->_id);
+	return NULL;
+}
+uint8* CFieldDynBlob::data()
+{
+	if( this->_h )
+		return this->_h->data(this->_id);
+	return NULL;
+}
+const uint8* CFieldDynBlob::operator ()() const
+{
+	return this->data();
+}
+uint8* CFieldDynBlob::operator ()()
+{
+	return this->data();
+}
+
+/// Assigns data to this blob.
+CFieldDynBlob& CFieldDynBlob::operator =(const CFieldDynBlob& f)
+{
+	return this->assign(f, f.length());
+}
+
+/// Copies sz bytes from data to this field.
+CFieldDynBlob& CFieldDynBlob::assign(const uint8* data, size_t sz)
+{
+	if( this->_h )
+	{
+		size_t len;
+		if( !this->_h->resize(this->_id, sz, len) )
+			this->_h->resize(this->_id, len, len);// resize to the supported len
+		if( len <= sz )
+			memcpy(this->data(), data, len);
+		else//if( len > sz )
+		{
+			memcpy(this->data(), data, sz);
+			memset(this->data() + sz, 0, len - sz);
+		}
+	}
+	return *this;
+}
+
+/// Returns the length of this blob.
+size_t CFieldDynBlob::size() const
+{
+	return this->length();
+}
+size_t CFieldDynBlob::length() const
+{
+	return this->_h->length(this->_id);
+}
+
+/// Resizes this blob.
+bool CFieldDynBlob::resize(size_t len)
+{
+	if( this->_h )
+		return this->_h->resize(this->_id, len, len);
+	return false;
+}
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Test/example packets
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
 
 #if defined(DEBUG)
 template<size_t SZ>
@@ -780,5 +942,5 @@ void test_packet(void)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-NAMESPACE_END(basics)
+}// end namespace NSocket
 ///////////////////////////////////////////////////////////////////////////////
