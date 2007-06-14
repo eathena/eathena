@@ -745,7 +745,7 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 		unit_stop_attack(target);
 		unit_stop_walking(target,0);
 		unit_skillcastcancel(target,0);
-		clif_clearchar_area(target,1);
+		clif_clearunit_area(target,1);
 		skill_unit_move(target,gettick(),4);
 		skill_cleartimerskill(target);
 	}
@@ -4151,6 +4151,41 @@ int status_get_guild_id(struct block_list *bl)
 	return 0;
 }
 
+int status_get_emblem_id(struct block_list *bl)
+{
+	nullpo_retr(0, bl);
+	switch (bl->type) {
+	case BL_PC:
+		return ((TBL_PC*)bl)->guild_emblem_id;
+	case BL_PET:
+		if (((TBL_PET*)bl)->msd)
+			return ((TBL_PET*)bl)->msd->guild_emblem_id;
+		break;
+	case BL_MOB:
+	{
+		struct map_session_data *msd;
+		struct mob_data *md = (struct mob_data *)bl;
+		if (md->guardian_data)	//Guardian's guild [Skotlex]
+			return md->guardian_data->emblem_id;
+		if (md->special_state.ai && (msd = map_id2sd(md->master_id)) != NULL)
+			return msd->guild_emblem_id; //Alchemist's mobs [Skotlex]
+	}
+		break;
+	case BL_HOM:
+	  	if (((TBL_HOM*)bl)->master)
+			return ((TBL_HOM*)bl)->master->guild_emblem_id;
+		break;
+	case BL_NPC:
+		if (bl->subtype == SCRIPT && ((TBL_NPC*)bl)->u.scr.guild_id > 0) {
+			struct guild *g = guild_search(((TBL_NPC*)bl)->u.scr.guild_id);
+			if (g)
+				return g->emblem_id;
+		}
+		break;
+	}
+	return 0;
+}
+
 int status_get_mexp(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
@@ -5285,7 +5320,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 		case SC_TENSIONRELAX:
 			if (sd) {
 				pc_setsit(sd);
-				clif_sitting(sd);
+				clif_sitting(sd, AREA);
 			}
 			val2 = 12; //SP cost
 			val4 = 10000; //Decrease at 10secs intervals.

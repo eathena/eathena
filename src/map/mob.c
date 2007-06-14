@@ -203,7 +203,7 @@ struct mob_data* mob_spawn_dataset(struct spawn_data *data)
 	md->bl.y = data->y;
 	md->class_ = data->class_;
 	md->db = mob_db(md->class_);
-	memcpy(md->name, data->name, NAME_LENGTH-1);
+	memcpy(md->name, data->name, NAME_LENGTH);
 	if (data->state.ai)
 		md->special_state.ai = data->state.ai;
 	if (data->state.size)
@@ -2121,7 +2121,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 
 	if(pcdb_checkid(md->vd->class_))
 		//Player mobs are not removed automatically by the client.
-		clif_clearchar_delay(tick+3000,&md->bl,0);
+		clif_clearunit_delayed(&md->bl, tick+3000);
 
 	if(!md->spawn) //Tell status_damage to remove it from memory.
 		return 5; // Note: Actually, it's 4. Oh well...
@@ -2250,9 +2250,9 @@ int mob_class_change (struct mob_data *md, int class_)
 	md->class_ = class_;
 	md->db = mob_db(class_);
 	if (battle_config.override_mob_names==1)
-		memcpy(md->name,md->db->name,NAME_LENGTH-1);
+		memcpy(md->name,md->db->name,NAME_LENGTH);
 	else
-		memcpy(md->name,md->db->jname,NAME_LENGTH-1);
+		memcpy(md->name,md->db->jname,NAME_LENGTH);
 
 	mob_stop_attack(md);
 	mob_stop_walking(md, 0);
@@ -3099,9 +3099,9 @@ int mob_parse_dbrow(char** str)
 	status = &db->status;
 	
 	db->vd.class_ = class_;
-	memcpy(db->sprite, str[1], NAME_LENGTH-1);
-	memcpy(db->jname, str[2], NAME_LENGTH-1);
-	memcpy(db->name, str[3], NAME_LENGTH-1);
+	strncpy(db->sprite, str[1], NAME_LENGTH);
+	strncpy(db->jname, str[2], NAME_LENGTH);
+	strncpy(db->name, str[3], NAME_LENGTH);
 	db->lv = atoi(str[4]);
 	db->lv = cap_value(db->lv, 1, USHRT_MAX);
 	status->max_hp = atoi(str[5]);
@@ -3518,7 +3518,7 @@ static int mob_readskilldb(void)
 	} cond1[] = {
 		{	"always",			MSC_ALWAYS				},
 		{	"myhpltmaxrate",	MSC_MYHPLTMAXRATE		},
-		{  "myhpinrate",		MSC_MYHPINRATE 		},
+		{	"myhpinrate",		MSC_MYHPINRATE 		},
 		{	"friendhpltmaxrate",MSC_FRIENDHPLTMAXRATE	},
 		{	"friendhpinrate",	MSC_FRIENDHPINRATE	},
 		{	"mystatuson",		MSC_MYSTATUSON			},
@@ -3538,7 +3538,7 @@ static int mob_readskilldb(void)
 		{	"masterhpltmaxrate",MSC_MASTERHPLTMAXRATE	},
 		{	"masterattacked",	MSC_MASTERATTACKED		},
 		{	"alchemist",		MSC_ALCHEMIST			},
-		{	"onspawn",		MSC_SPAWN},
+		{	"onspawn",			MSC_SPAWN},
 	}, cond2[] ={
 		{	"anybad",		-1				},
 		{	"stone",		SC_STONE		},
@@ -3553,14 +3553,14 @@ static int mob_readskilldb(void)
 		{	"hiding",		SC_HIDING		},
 		{	"sight",		SC_SIGHT		},
 	}, state[] = {
-		{	"any",		MSS_ANY	}, //All states except Dead
+		{	"any",		MSS_ANY		}, //All states except Dead
 		{	"idle",		MSS_IDLE	},
 		{	"walk",		MSS_WALK	},
 		{	"loot",		MSS_LOOT	},
 		{	"dead",		MSS_DEAD	},
 		{	"attack",	MSS_BERSERK	}, //Retaliating attack
-		{	"angry",		MSS_ANGRY	}, //Preemptive attack (aggressive mobs)
-		{	"chase",		MSS_RUSH		}, //Chase escaping target
+		{	"angry",	MSS_ANGRY	}, //Preemptive attack (aggressive mobs)
+		{	"chase",	MSS_RUSH	}, //Chase escaping target
 		{	"follow",	MSS_FOLLOW	}, //Preemptive chase (aggressive mobs)
 		{	"anytarget",MSS_ANYTARGET	}, //Berserk+Angry+Rush+Follow
 	}, target[] = {

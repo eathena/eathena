@@ -248,7 +248,7 @@ void pc_addfame(struct map_session_data *sd,int count)
 }
 
 // Check whether a player ID is in the fame rankers' list of its job, returns his/her position if so, 0 else
-unsigned char pc_famerank(int char_id,int job)
+unsigned char pc_famerank(int char_id, int job)
 {
 	int i;
 	
@@ -333,10 +333,12 @@ int pc_makesavestatus(struct map_session_data *sd)
 		
 	if (sd->sc.count && sd->sc.data[SC_JAILED].timer != -1)
 	{	//When Jailed, do not move last point.
-		if(pc_isdead(sd))
+		if(pc_isdead(sd)){
 			pc_setrestartvalue(sd,0);
-		sd->status.hp = sd->battle_status.hp;
-		sd->status.sp = sd->battle_status.sp;
+		} else {
+			sd->status.hp = sd->battle_status.hp;
+			sd->status.sp = sd->battle_status.sp;
+		}
 		sd->status.last_point.map = sd->mapindex;
 		sd->status.last_point.x = sd->bl.x;
 		sd->status.last_point.y = sd->bl.y;
@@ -1196,7 +1198,7 @@ int pc_disguise(struct map_session_data *sd, int class_)
 	}
 	
 	pc_stop_walking(sd, 0);
-	clif_clearchar(&sd->bl, 0);
+	clif_clearunit_area(&sd->bl, 0);
 
 	if (!class_) {
 		sd->disguise = 0;
@@ -1284,7 +1286,7 @@ static int pc_bonus_autospell(struct s_autospell *spell, int max, short id, shor
 	return 1;
 }
 
-static int pc_bonus_addeff(struct s_addeffect *effect, int max, short id, short rate, short arrow_rate, unsigned char flag)
+static int pc_bonus_addeff(struct s_addeffect* effect, int max, short id, short rate, short arrow_rate, unsigned char flag)
 {
 	int i;
 	for (i = 0; i < max && effect[i].flag; i++) {
@@ -3623,8 +3625,7 @@ int pc_checkallowskill(struct map_session_data *sd)
 	for (i = 0; i < sizeof(scw_list)/sizeof(scw_list[0]); i++)
 	{	// Skills requiring specific weapon types
 		if(sd->sc.data[scw_list[i]].timer!=-1 &&
-			!pc_check_weapontype(sd,
-			  	skill_get_weapontype(StatusSkillChangeTable[scw_list[i]])))
+			!pc_check_weapontype(sd,skill_get_weapontype(StatusSkillChangeTable[scw_list[i]])))
 			status_change_end(&sd->bl,scw_list[i],-1);
 	}
 	
@@ -3634,7 +3635,7 @@ int pc_checkallowskill(struct map_session_data *sd)
 	
 	if(sd->status.shield <= 0) { // Skills requiring a shield
 		for (i = 0; i < sizeof(scs_list)/sizeof(scs_list[0]); i++)
-			if(sd->sc.data[scs_list[i]].timer!=-1)	// Guard
+			if(sd->sc.data[scs_list[i]].timer!=-1)
 				status_change_end(&sd->bl,scs_list[i],-1);
 	}
 	return 0;
@@ -4579,9 +4580,9 @@ int pc_allskillup(struct map_session_data *sd)
 	//pc_calc_skilltree takes care of setting the ID to valid skills. [Skotlex]
 	if (battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill)
 	{	//Get ALL skills except npc/guild ones. [Skotlex]
-		//and except SG_DEVIL [Komurka]
+		//and except SG_DEVIL [Komurka] and MO_TRIPLEATTACK and RG_SNATCHER [ultramage]
 		for(i=0;i<MAX_SKILL;i++){
-			if(!(skill_get_inf2(i)&(INF2_NPC_SKILL|INF2_GUILD_SKILL)) && i!=SG_DEVIL)
+			if(!(skill_get_inf2(i)&(INF2_NPC_SKILL|INF2_GUILD_SKILL)) && i!=SG_DEVIL && i!=MO_TRIPLEATTACK && i!=RG_SNATCHER)
 				sd->status.skill[i].lv=skill_get_max(i); //Nonexistant skills should return a max of 0 anyway.
 		}
 	}
@@ -4870,7 +4871,9 @@ static int pc_respawn(int tid,unsigned int tick,int id,int data)
 	{	//Auto-respawn [Skotlex]
 		pc_setstand(sd);
 		pc_setrestartvalue(sd,3);
-		pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,0);
+		if(pc_setpos(sd, sd->status.save_point.map, sd->status.save_point.x, sd->status.save_point.y, 0))
+			clif_resurrection(&sd->bl, 1); //If warping fails, send a normal stand up packet.
+
 	}
 	return 0;
 }
@@ -5505,7 +5508,7 @@ int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 		if (potion_flag > 1)
 			bonus += bonus*(potion_flag-1)*50/100;
 		//Item Group bonuses
-		bonus += bonus*itemdb_group_bonus(sd->itemgrouphealrate, itemid)/100;
+		bonus += bonus*itemdb_group_bonus(sd, itemid)/100;
 		//Individual item bonuses.
 		for(i = 0; i < MAX_PC_BONUS && sd->itemhealrate[i].nameid; i++)
 		{
@@ -7098,8 +7101,7 @@ void duel_savetime(struct map_session_data* sd)
 	time(&timer);
 	t = localtime(&timer);
 	
-	pc_setglobalreg(sd, "PC_LAST_DUEL_TIME",
-		t->tm_mday*24*60 + t->tm_hour*60 + t->tm_min);	
+	pc_setglobalreg(sd, "PC_LAST_DUEL_TIME", t->tm_mday*24*60 + t->tm_hour*60 + t->tm_min);	
 	return;
 }
 
@@ -7112,12 +7114,11 @@ int duel_checktime(struct map_session_data* sd)
 	time(&timer);
     t = localtime(&timer);
 	
-	diff = t->tm_mday*24*60 + t->tm_hour*60 + t->tm_min -
-		pc_readglobalreg(sd, "PC_LAST_DUEL_TIME");
+	diff = t->tm_mday*24*60 + t->tm_hour*60 + t->tm_min - pc_readglobalreg(sd, "PC_LAST_DUEL_TIME");
 	
 	return !(diff >= 0 && diff < battle_config.duel_time_interval);
 }
-static int duel_showinfo_sub(struct map_session_data* sd,va_list va)
+static int duel_showinfo_sub(struct map_session_data* sd, va_list va)
 {
 	struct map_session_data *ssd = va_arg(va, struct map_session_data*);
 	int *p = va_arg(va, int*);
@@ -7125,13 +7126,12 @@ static int duel_showinfo_sub(struct map_session_data* sd,va_list va)
 
 	if (sd->duel_group != ssd->duel_group) return 0;
 	
-	sprintf(output, "      %d. %s", ++(*p), (unsigned char *)sd->status.name);
+	sprintf(output, "      %d. %s", ++(*p), sd->status.name);
 	clif_disp_onlyself(ssd, output, strlen(output));
 	return 1;
 }
 
-int duel_showinfo(
-	const unsigned int did, struct map_session_data* sd)
+int duel_showinfo(const unsigned int did, struct map_session_data* sd)
 {
 	int p=0;
 	char output[256];
@@ -7149,12 +7149,11 @@ int duel_showinfo(
 			duel_list[did].members_count + duel_list[did].invites_count);
 
 	clif_disp_onlyself(sd, output, strlen(output));
-   clif_foreachclient(duel_showinfo_sub, sd, &p);
+	clif_foreachclient(duel_showinfo_sub, sd, &p);
 	return 0;
 }
 
-int duel_create(
-	struct map_session_data* sd, const unsigned int maxpl)
+int duel_create(struct map_session_data* sd, const unsigned int maxpl)
 {
 	int i=1;
 	char output[256];
@@ -7176,27 +7175,24 @@ int duel_create(
 	return i;
 }
 
-int duel_invite(
-	const unsigned int did, struct map_session_data* sd,
-	struct map_session_data* target_sd)
+int duel_invite(const unsigned int did, struct map_session_data* sd, struct map_session_data* target_sd)
 {
 	char output[256];
 
-	sprintf(output, msg_txt(373), // " -- Player %s invites %s to duel --"
-		(unsigned char *)sd->status.name, (unsigned char *)target_sd->status.name);
-
+	// " -- Player %s invites %s to duel --"
+	sprintf(output, msg_txt(373), sd->status.name, target_sd->status.name);
 	clif_disp_message(&sd->bl, output, strlen(output), DUEL_WOS);
 
 	target_sd->duel_invite = did;
 	duel_list[did].invites_count++;
 	
 	// "Blue -- Player %s invites you to PVP duel (@accept/@reject) --"
-	sprintf(output, msg_txt(374), (unsigned char *)sd->status.name);
+	sprintf(output, msg_txt(374), sd->status.name);
 	clif_GMmessage((struct block_list *)target_sd, output, strlen(output)+1, 3);
 	return 0;
 }
 
-static int duel_leave_sub(struct map_session_data* sd,va_list va)
+static int duel_leave_sub(struct map_session_data* sd, va_list va)
 {
 	int did = va_arg(va, int);
 	if (sd->duel_invite == did)
@@ -7204,13 +7200,12 @@ static int duel_leave_sub(struct map_session_data* sd,va_list va)
 	return 0;
 }
 
-int duel_leave(
-	const unsigned int did, struct map_session_data* sd)
+int duel_leave(const unsigned int did, struct map_session_data* sd)
 {
 	char output[256];
 	
 	// " <- Player %s has left duel --"
-	sprintf(output, msg_txt(375), (unsigned char *)sd->status.name);
+	sprintf(output, msg_txt(375), sd->status.name);
 	clif_disp_message(&sd->bl, output, strlen(output), DUEL_WOS);
 	
 	duel_list[did].members_count--;
@@ -7226,8 +7221,7 @@ int duel_leave(
 	return 0;
 }
 
-int duel_accept(
-	const unsigned int did, struct map_session_data* sd)
+int duel_accept(const unsigned int did, struct map_session_data* sd)
 {
 	char output[256];
 	
@@ -7237,7 +7231,7 @@ int duel_accept(
 	sd->duel_invite = 0;
 	
 	// " -> Player %s has accepted duel --"
-	sprintf(output, msg_txt(376), (unsigned char *)sd->status.name);
+	sprintf(output, msg_txt(376), sd->status.name);
 	clif_disp_message(&sd->bl, output, strlen(output), DUEL_WOS);
 
 	clif_set0199(sd->fd, 1);
@@ -7245,13 +7239,12 @@ int duel_accept(
 	return 0;
 }
 
-int duel_reject(
-	const unsigned int did, struct map_session_data* sd)
+int duel_reject(const unsigned int did, struct map_session_data* sd)
 {
 	char output[256];
 	
 	// " -- Player %s has rejected duel --"
-	sprintf(output, msg_txt(377), (unsigned char *)sd->status.name);
+	sprintf(output, msg_txt(377), sd->status.name);
 	clif_disp_message(&sd->bl, output, strlen(output), DUEL_WOS);
 	
 	duel_list[did].invites_count--;
@@ -7272,7 +7265,7 @@ int pc_split_str(char *str,char **val,int num)
 	return i;
 }
 
-int pc_split_atoi(char *str,int *val, char sep, int max)
+int pc_split_atoi(char* str, int* val, char sep, int max)
 {
 	int i,j;
 	for (i=0; i<max; i++) {
@@ -7288,7 +7281,7 @@ int pc_split_atoi(char *str,int *val, char sep, int max)
 	return i;
 }
 
-int pc_split_atoui(char *str,unsigned int *val, char sep, int max)
+int pc_split_atoui(char* str, unsigned int* val, char sep, int max)
 {
 	static int warning=0;
 	int i,j;

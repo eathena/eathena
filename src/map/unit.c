@@ -945,7 +945,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 	break;
 	case MO_FINGEROFFENSIVE:
 		if(sd)
-			casttime += casttime * ((skill_lv > sd->spiritball)? sd->spiritball:skill_lv);
+			casttime += casttime * min(skill_lv, sd->spiritball);
 	break;
 	case MO_EXTREMITYFIST:
 		if (sc && sc->data[SC_COMBO].timer != -1 &&
@@ -972,6 +972,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 	break;
 	}
   	
+	// moved here to prevent Suffragium from ending if skill fails
 	if (!(skill_get_castnodex(skill_num, skill_lv)&2))
 		casttime = skill_castfix_sc(src, casttime);
 
@@ -1107,7 +1108,7 @@ int unit_skilluse_pos2( struct block_list *src, int skill_x, int skill_y, int sk
 	unit_stop_attack(src);
 	ud->state.skillcastcancel = castcancel;
 
-
+	// moved here to prevent Suffragium from ending if skill fails
 	if (!(skill_get_castnodex(skill_num, skill_lv)&2))
 		casttime = skill_castfix_sc(src, casttime);
 
@@ -1701,7 +1702,7 @@ int unit_remove_map(struct block_list *bl, int clrtype)
 		if(pd->pet.intimate <= 0 &&
 			!(pd->msd && pd->msd->state.waitingdisconnect)
 		) {	//If logging out, this is deleted on unit_free
-			clif_clearchar_area(bl,clrtype);
+			clif_clearunit_area(bl,clrtype);
 			map_delblock(bl);
 			unit_free(bl,0);
 			map_freeblock_unlock();
@@ -1713,14 +1714,14 @@ int unit_remove_map(struct block_list *bl, int clrtype)
 			!(hd->master && hd->master->state.waitingdisconnect)
 		) {	//If logging out, this is deleted on unit_free
 			clif_emotion(bl, 28) ;	//sob
-			clif_clearchar_area(bl,clrtype);
+			clif_clearunit_area(bl,clrtype);
 			map_delblock(bl);
 			unit_free(bl,0);
 			map_freeblock_unlock();
 			return 0;
 		}
 	}
-	clif_clearchar_area(bl,clrtype);
+	clif_clearunit_area(bl,clrtype);
 	map_delblock(bl);
 	map_freeblock_unlock();
 	return 1;

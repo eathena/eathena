@@ -70,13 +70,12 @@ int lowest_gm_level = 1;
 
 char *SQL_CONF_NAME = "conf/inter_athena.conf";
 
-struct mmo_map_server{
-  uint32 ip;
-  uint16 port;
-  int users;
-  unsigned short map[MAX_MAP_PER_SERVER];
+struct mmo_map_server {
+	uint32 ip;
+	uint16 port;
+	int users;
+	unsigned short map[MAX_MAP_PER_SERVER];
 } server[MAX_MAP_SERVERS];
-
 int server_fd[MAX_MAP_SERVERS];
 
 int login_fd, char_fd;
@@ -93,10 +92,11 @@ char bind_ip_str[128];
 uint32 bind_ip = INADDR_ANY;
 uint16 char_port = 6121;
 int char_maintenance = 0;
-int char_new;
-int char_new_display;
+int char_new = 1;
+int char_new_display = 0;
 int name_ignoring_case = 0; // Allow or not identical name for characters but with a different case by [Yor]
 int char_name_option = 0; // Option to know which letters/symbols are authorised in the name of a character (0: all, 1: only those in char_name_letters, 2: all EXCEPT those in char_name_letters) by [Yor]
+char unknown_char_name[NAME_LENGTH] = "Unknown"; // Name to use when the requested name cannot be determined
 char char_name_letters[1024] = ""; // list of letters/symbols used to authorise or not a name of a character. by [Yor]
 //The following are characters that are trimmed regardless because they cause confusion and problems on the servers. [Skotlex]
 #define TRIM_CHARS "\032\t\x0A\x0D "
@@ -116,7 +116,6 @@ struct _subnet {
 
 int subnet_count = 0;
 
-char unknown_char_name[NAME_LENGTH] = "Unknown";
 char db_path[1024]="db";
 
 //These are used to aid the map server in identifying valid clients. [Skotlex]
@@ -185,18 +184,6 @@ struct online_char_data {
 
 struct dbt *online_char_db; //Holds all online characters.
 
-#ifndef SQL_DEBUG
-
-#define mysql_query(_x, _y) mysql_real_query(_x, _y, strlen(_y)) //supports ' in names and runs faster [Kevin]
-
-#else
-
-#define mysql_query(_x, _y) debug_mysql_query(__FILE__, __LINE__, _x, _y)
-
-#endif
-
-static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, int data);
-
 static void * create_online_char_data(DBKey key, va_list args) {
 	struct online_char_data* character;
 	character = aCalloc(1, sizeof(struct online_char_data));
@@ -208,12 +195,15 @@ static void * create_online_char_data(DBKey key, va_list args) {
 	return character;
 }
 
+static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, int data);
+
 //-------------------------------------------------
 // Set Character online/offline [Wizputer]
 //-------------------------------------------------
 
 void set_char_online(int map_id, int char_id, int account_id) {
 	struct online_char_data* character;
+	
 	if ( char_id != 99 ) {
 		sprintf(tmp_sql, "UPDATE `%s` SET `online`='1' WHERE `char_id`='%d'",char_db,char_id);
 		if (mysql_query(&mysql_handle, tmp_sql)) {
@@ -1851,7 +1841,6 @@ int parse_tologin(int fd) {
 	RFIFOHEAD(fd);
 	// only login-server can have an access to here.
 	// so, if it isn't the login-server, we disconnect the session.
-	//session eof check!
 	if(fd != login_fd)
 		set_eof(fd);
 	if(session[fd]->eof) {
@@ -2413,8 +2402,6 @@ void char_update_fame_list(int type, int index, int fame)
 	mapif_sendall(buf, 8);
 }
 
-int search_mapserver(unsigned short map, uint32 ip, uint16 port);
-				
 //Loads a character's name and stores it in the buffer given (must be NAME_LENGTH in size)
 //Returns 1 on found, 0 on not found (buffer is filled with Unknown char name)
 int char_loadName(int char_id, char* name)
@@ -2433,9 +2420,11 @@ int char_loadName(int char_id, char* name)
 	else
 		memcpy(name, unknown_char_name, NAME_LENGTH);
 	if (sql_res) mysql_free_result(sql_res);
-	return sql_row?1:0;
+
+	return (sql_row) ? 1 : 0;
 }
 
+int search_mapserver(unsigned short map, uint32 ip, uint16 port);
 
 int parse_frommap(int fd)
 {
@@ -2713,7 +2702,7 @@ int parse_frommap(int fd)
 		{
 			WFIFOHEAD(fd,7);
 			WFIFOW(fd,0) = 0x2b03;
-			WFIFOL(fd,2) = RFIFOL(fd, 2);
+			WFIFOL(fd,2) = RFIFOL(fd,2);
 			WFIFOB(fd,6) = 0;
 			WFIFOSET(fd,7);
 		}
@@ -2778,20 +2767,18 @@ int parse_frommap(int fd)
 			}
 			break;
 
-		case 0x2b08: // char name check
+		case 0x2b08: // char name request
 			if (RFIFOREST(fd) < 6)
 				return 0;
-			{
-				char name[NAME_LENGTH];
-				WFIFOHEAD(fd,30);
-				char_loadName((int)RFIFOL(fd,2), name);
-				WFIFOW(fd,0) = 0x2b09;
-				WFIFOL(fd,2) = RFIFOL(fd,2);
-				memcpy(WFIFOP(fd,6), name, NAME_LENGTH);
-				WFIFOSET(fd,30);
-				RFIFOSKIP(fd,6);
-			}
-			break;
+
+			WFIFOHEAD(fd,30);
+			WFIFOW(fd,0) = 0x2b09;
+			WFIFOL(fd,2) = RFIFOL(fd,2);
+			char_loadName((int)RFIFOL(fd,2), (char*)WFIFOP(fd,6));
+			WFIFOSET(fd,30);
+
+			RFIFOSKIP(fd,6);
+		break;
 
 		case 0x2b0a: // request to become GM
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
@@ -2818,7 +2805,7 @@ int parse_frommap(int fd)
 			RFIFOSKIP(fd, 86);
 			break;
 
-		case 0x2b0e: // Request from map-server to change a char's status (all operations are transmitted to login-server)
+		case 0x2b0e: // Request from map-server to change an account's status (all operations are transmitted to login-server)
 			if (RFIFOREST(fd) < 44)
 				return 0;
 		  {
@@ -2934,65 +2921,57 @@ int parse_frommap(int fd)
 //		case 0x2b0f: Not used anymore, available for future use
 
 		case 0x2b10: // Update and send fame ranking list
-			if (RFIFOREST(fd) < 12)
+			if (RFIFOREST(fd) < 11)
 				return 0;
-			{
-				int cid = RFIFOL(fd, 2);
-				int fame = RFIFOL(fd, 6);
-				char type = RFIFOB(fd, 10);
-				char pos = RFIFOB(fd, 11);
-				int size;
-				struct fame_list *list = NULL;
-				RFIFOSKIP(fd,12);
-				
-				switch(type) {
-					case 1:
-						size = fame_list_size_smith;
-						list = smith_fame_list;
-						break;
-					case 2:
-						size = fame_list_size_chemist;
-						list = chemist_fame_list;
-						break;
-					case 3:
-						size = fame_list_size_taekwon;
-						list = taekwon_fame_list;
-						break;
-					default:
-						size = 0;
-						break;
-				}
-				if(!size) break; //No list.
-				if(pos)
-				{
-				 	pos--; //Convert from pos to index.
-					if(
-						(pos == 0 || fame < list[pos-1].fame) &&
-						(pos == size-1 || fame > list[pos+1].fame)
-					) { //No change in order.
-						list[(int)pos].fame = fame;
-						char_update_fame_list(type, pos, fame);
-						break;
-					}
-					// If the player's already in the list, remove the entry and shift the following ones 1 step up
-					memmove(list+pos, list+pos+1, (size-pos-1) * sizeof(struct fame_list));
-					//Clear out last entry.
-					list[size-1].id = 0;
-					list[size-1].fame = 0;
-				}
+		{
+			int cid = RFIFOL(fd, 2);
+			int fame = RFIFOL(fd, 6);
+			char type = RFIFOB(fd, 10);
+			int size;
+			struct fame_list* list;
+			int player_pos;
+			int fame_pos;
 
-				// Find the position where the player has to be inserted
-				for(i = 0; i < size && fame < list[i].fame; i++);
-				if(i >= size) break; //Out of ranking.
-				// When found someone with less or as much fame, insert just above
-				memmove(list+i+1, list+i, (size-i-1) * sizeof(struct fame_list));
-				list[i].id = cid;
-				list[i].fame = fame;
-				// Look for the player's name
-				char_loadName(list[i].id, list[i].name);
+			switch(type)
+			{
+				case 1:  size = fame_list_size_smith;   list = smith_fame_list;   break;
+				case 2:  size = fame_list_size_chemist; list = chemist_fame_list; break;
+				case 3:  size = fame_list_size_taekwon; list = taekwon_fame_list; break;
+				default: size = 0;                      list = NULL;              break;
+			}
+
+			ARR_FIND(0, size, player_pos, list[player_pos].id == cid);// position of the player
+			ARR_FIND(0, size, fame_pos, list[fame_pos].fame <= fame);// where the player should be
+
+			if( player_pos == size && fame_pos == size )
+				;// not on list and not enough fame to get on it
+			else if( fame_pos == player_pos )
+			{// same position
+				list[player_pos].fame = fame;
+				char_update_fame_list(type, player_pos, fame);
+			}
+			else
+			{// move in the list
+				if( player_pos == size )
+				{// new ranker - not in the list
+					ARR_MOVE(size - 1, fame_pos, list, struct fame_list);
+					list[fame_pos].id = cid;
+					list[fame_pos].fame = fame;
+					char_loadName(cid, list[fame_pos].name);
+				}
+				else
+				{// already in the list
+					if( fame_pos == size )
+						--fame_pos;// move to the end of the list
+					ARR_MOVE(player_pos, fame_pos, list, struct fame_list);
+					list[fame_pos].fame = fame;
+				}
 				char_send_fame_list(-1);
 			}
-			break;
+
+			RFIFOSKIP(fd,11);
+		}
+		break;
 
 		case 0x2b16: // Receive rates [Wizputer]
 			if (RFIFOREST(fd) < 6 || RFIFOREST(fd) < RFIFOW(fd,8))
@@ -3083,19 +3062,20 @@ int parse_frommap(int fd)
 			break;
 
 		default:
+		{
 			// inter server - packet
-			{
-				int r = inter_parse_frommap(fd);
-				if (r == 1) break;		// processed
-				if (r == 2) return 0;	// need more packet
-			}
+			int r = inter_parse_frommap(fd);
+			if (r == 1) break;		// processed
+			if (r == 2) return 0;	// need more packet
 
 			// no inter server packet. no char server packet -> disconnect
 			ShowError("Unknown packet 0x%04x from map server, disconnecting.\n", RFIFOW(fd,0));
 			set_eof(fd);
 			return 0;
 		}
-	}
+		} // switch
+	} // while
+	
 	return 0;
 }
 
@@ -3338,7 +3318,7 @@ int parse_char(int fd)
 				char_dat.last_point.map = j;
 			}
 			{
-				//Send player to map.
+				//Send player to map
 				uint32 subnet_map_ip;
 				WFIFOHEAD(fd,28);
 				WFIFOW(fd,0) = 0x71;
@@ -3365,11 +3345,11 @@ int parse_char(int fd)
 			//Send NEW auth packet [Kevin]
 			if ((map_fd = server_fd[i]) < 1 || session[map_fd] == NULL)
 			{	
-				WFIFOHEAD(fd,3);
 				ShowError("parse_char: Attempting to write to invalid session %d! Map Server #%d disconnected.\n", map_fd, i);
 				server_fd[i] = -1;
 				memset(&server[i], 0, sizeof(struct mmo_map_server));
 				//Send server closed.
+				WFIFOHEAD(fd,3);
 				WFIFOW(fd,0) = 0x81;
 				WFIFOB(fd,2) = 1; // 01 = Server closed
 				WFIFOSET(fd,3);
@@ -3389,7 +3369,7 @@ int parse_char(int fd)
 
 			set_char_online(i, auth_fifo[auth_fifo_pos].char_id, auth_fifo[auth_fifo_pos].account_id);
 			auth_fifo_pos++;
-			break;
+		break;
 
 		case 0x67:	// make new
 			FIFOSD_CHECK(37);
@@ -3430,7 +3410,7 @@ int parse_char(int fd)
 					break;
 				}
 			}
-			break;
+		break;
 
 		case 0x68:	// delete char
 			FIFOSD_CHECK(46);
@@ -3507,8 +3487,8 @@ int parse_char(int fd)
 			/* Char successfully deleted.*/
 			WFIFOW(fd,0) = 0x6f;
 			WFIFOSET(fd,2);
-			break;
 		}
+		break;
 
 		case 0x2af8: // login as map-server
 			if (RFIFOREST(fd) < 60)
@@ -3554,14 +3534,14 @@ int parse_char(int fd)
 				WFIFOW(fd,2) = len;
 				WFIFOSET(fd,len);
 			}
-			break;
 		}
+		break;
 
 		case 0x187:	// Alive?
 			if (RFIFOREST(fd) < 6)
 				return 0;
 			RFIFOSKIP(fd, 6);
-			break;
+		break;
 
 		case 0x7530:	// Athena info get
 		{
@@ -3578,6 +3558,7 @@ int parse_char(int fd)
 			RFIFOSKIP(fd,2);
 			return 0;
 		}
+
 		case 0x7532:	// disconnect(default also disconnect)
 		default:
 			set_eof(fd);
@@ -3696,7 +3677,7 @@ static int send_accounts_tologin_sub(DBKey key, void* data, va_list ap) {
 		return 0; //This is an error that shouldn't happen....
 	if(character->server > -1) {
 		WFIFOHEAD(login_fd,8+count*4);
-		WFIFOL(login_fd,8+(*i)*4) =character->account_id;
+		WFIFOL(login_fd,8+(*i)*4) = character->account_id;
 		(*i)++;
 		return 1;
 	}
@@ -3719,7 +3700,7 @@ int send_accounts_tologin(int tid, unsigned int tick, int id, int data) {
 }
 
 int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
-	if (login_fd > 0 && session[login_fd] != NULL) 
+	if (login_fd > 0 && session[login_fd] != NULL)
 		return 0;
 
 	ShowInfo("Attempt to connect to login-server...\n");
@@ -3916,7 +3897,7 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 
 	}
 	fclose(fp);
-	ShowInfo("done reading %s.\n", cfgName);
+	ShowInfo("Done reading %s.\n", cfgName);
 }
 #ifndef TXT_SQL_CONVERT
 
@@ -4200,11 +4181,11 @@ int do_init(int argc, char **argv)
 			ShowStatus("Defaulting to %s as our IP address\n", ip_str);
 		if (!login_ip) {
 			strcpy(login_ip_str, ip_str);
-			login_ip = ntohl(inet_addr(login_ip_str));
+			login_ip = str2ip(login_ip_str);
 		}
 		if (!char_ip) {
 			strcpy(char_ip_str, ip_str);
-			char_ip = ntohl(inet_addr(char_ip_str));
+			char_ip = str2ip(char_ip_str);
 		}
 	}
 

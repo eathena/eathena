@@ -674,7 +674,7 @@ int chrif_char_ask_name_answer(int fd)
 	RFIFOHEAD(fd);
 
 	acc = RFIFOL(fd,2); // account_id of who has asked (-1 if nobody)
-	memcpy(player_name, RFIFOP(fd,6), NAME_LENGTH-1);
+	memcpy(player_name, RFIFOP(fd,6), NAME_LENGTH);
 	player_name[NAME_LENGTH-1] = '\0';
 
 	sd = map_id2sd(acc);
@@ -1078,12 +1078,11 @@ int chrif_updatefamelist(struct map_session_data *sd)
 	}
 
 	WFIFOHEAD(char_fd, 12);
-	WFIFOW(char_fd, 0) = 0x2b10;
-	WFIFOL(char_fd, 2) = sd->status.char_id;
-	WFIFOL(char_fd, 6) = sd->status.fame;
-	WFIFOB(char_fd, 10) = type;
-	WFIFOB(char_fd, 11) = pc_famerank(sd->status.char_id, sd->class_&MAPID_UPPERMASK);
-	WFIFOSET(char_fd, 12);
+	WFIFOW(char_fd,0) = 0x2b10;
+	WFIFOL(char_fd,2) = sd->status.char_id;
+	WFIFOL(char_fd,6) = sd->status.fame;
+	WFIFOB(char_fd,10) = type;
+	WFIFOSET(char_fd,11);
 
 	return 0;
 }

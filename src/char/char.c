@@ -43,7 +43,7 @@
 #include <stdlib.h>
 
 #ifndef TXT_SQL_CONVERT
-struct mmo_map_server{
+struct mmo_map_server {
 	uint32 ip;
 	uint16 port;
 	int users;
@@ -57,16 +57,16 @@ char passwd[24];
 char server_name[20];
 char wisp_server_name[NAME_LENGTH] = "Server";
 char login_ip_str[128];
-uint32 login_ip;
+uint32 login_ip = 0;
 uint16 login_port = 6900;
 char char_ip_str[128];
-uint32 char_ip;
+uint32 char_ip = 0;
 char bind_ip_str[128];
 uint32 bind_ip = INADDR_ANY;
 uint16 char_port = 6121;
-int char_maintenance;
-int char_new;
-int char_new_display;
+int char_maintenance = 0;
+int char_new = 1;
+int char_new_display = 0;
 int email_creation = 0; // disabled by default
 #endif
 char char_txt[1024]="save/athena.txt";
@@ -74,7 +74,7 @@ char backup_txt[1024]="save/backup.txt"; //By zanetheinsane
 char friends_txt[1024]="save/friends.txt"; // davidsiaw
 #ifndef TXT_SQL_CONVERT
 char backup_txt_flag = 0; // The backup_txt file was created because char deletion bug existed. Now it's finish and that take a lot of time to create a second file when there are a lot of characters. => option By [Yor]
-char unknown_char_name[1024] = "Unknown";
+char unknown_char_name[1024] = "Unknown"; // Name to use when the requested name cannot be determined
 char char_log_filename[1024] = "log/char.log";
 char db_path[1024]="db";
 
@@ -353,13 +353,7 @@ void set_char_offline(int char_id, int account_id) {
 			character->waiting_disconnect = -1;
 		}
 	}
-	if (login_fd <= 0 || session[login_fd]->eof)
-		return;
-	WFIFOHEAD(login_fd,6);
-	WFIFOW(login_fd,0) = 0x272c;
-	WFIFOL(login_fd,2) = account_id;
-	WFIFOSET(login_fd,6);
-
+	
 }
 
 static int char_db_setoffline(DBKey key, void* data, va_list ap) {
@@ -635,7 +629,7 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 		tmp_int[46] = mapindex_name2id(tmp_str[2]);
 	}	// Char structure of version 1500 (homun + mapindex maps)
 
-	memcpy(p->name, tmp_str[0], NAME_LENGTH-1); //Overflow protection [Skotlex]
+	memcpy(p->name, tmp_str[0], NAME_LENGTH); //Overflow protection [Skotlex]
 	p->char_id = tmp_int[0];
 	p->account_id = tmp_int[1];
 	p->char_num = tmp_int[2];
@@ -1919,7 +1913,7 @@ int parse_tologin(int fd) {
 	RFIFOHEAD(fd);
 
 	// only login-server can have an access to here.
-	// so, if it isn't the login-server, we disconnect the session (fd != login_fd).
+	// so, if it isn't the login-server, we disconnect the session.
 	if (fd != login_fd)
 		set_eof(fd);
 	if(session[fd]->eof) {
@@ -2307,61 +2301,60 @@ int parse_tologin(int fd) {
 
 		// Receive GM accounts [Freya login server packet by Yor]
 		case 0x2733:
-		// add test here to remember that the login-server is Freya-type
-		// sprintf (login_server_type, "Freya");
 			if (RFIFOREST(fd) < 7)
 				return 0;
-			{
-				unsigned char buf[32000];
-				int new_level = 0;
-				for(i = 0; i < GM_num; i++)
-					if (gm_account[i].account_id == RFIFOL(fd,2)) {
-						if (gm_account[i].level != (int)RFIFOB(fd,6)) {
-							gm_account[i].level = (int)RFIFOB(fd,6);
-							new_level = 1;
-						}
-						break;
-					}
-				// if not found, add it
-				if (i == GM_num) {
-					// limited to 4000, because we send information to char-servers (more than 4000 GM accounts???)
-					// int (id) + int (level) = 8 bytes * 4000 = 32k (limit of packets in windows)
-					if (((int)RFIFOB(fd,6)) > 0 && GM_num < 4000) {
-						if (GM_num == 0) {
-							gm_account = (struct gm_account*)aMalloc(sizeof(struct gm_account));
-						} else {
-							gm_account = (struct gm_account*)aRealloc(gm_account, sizeof(struct gm_account) * (GM_num + 1));						
-						}
-						gm_account[GM_num].account_id = RFIFOL(fd,2);
-						gm_account[GM_num].level = (int)RFIFOB(fd,6);
+		{
+			int new_level = 0;
+			for(i = 0; i < GM_num; i++)
+				if (gm_account[i].account_id == RFIFOL(fd,2)) {
+					if (gm_account[i].level != (int)RFIFOB(fd,6)) {
+						gm_account[i].level = (int)RFIFOB(fd,6);
 						new_level = 1;
-						GM_num++;
-						if (GM_num >= 4000) {
-							ShowWarning("4000 GM accounts found. Next GM accounts are not readed.\n");
-							char_log("***WARNING: 4000 GM accounts found. Next GM accounts are not readed." RETCODE);
-						}
 					}
+					break;
 				}
-				if (new_level == 1) {
-					int len;
-					ShowStatus("From login-server: receiving GM account information (%d: level %d).\n", RFIFOL(fd,2), (int)RFIFOB(fd,6));
-					char_log("From login-server: receiving a GM account information (%d: level %d)." RETCODE, RFIFOL(fd,2), (int)RFIFOB(fd,6));
-					//create_online_files(); // not change online file for only 1 player (in next timer, that will be done
-					// send gm acccounts level to map-servers
-					len = 4;
-					WBUFW(buf,0) = 0x2b15;
-				
-					for(i = 0; i < GM_num; i++) {
-						WBUFL(buf, len) = gm_account[i].account_id;
-						WBUFB(buf, len+4) = (unsigned char)gm_account[i].level;
-						len += 5;
+			// if not found, add it
+			if (i == GM_num) {
+				// limited to 4000, because we send information to char-servers (more than 4000 GM accounts???)
+				// int (id) + int (level) = 8 bytes * 4000 = 32k (limit of packets in windows)
+				if (((int)RFIFOB(fd,6)) > 0 && GM_num < 4000) {
+					if (GM_num == 0) {
+						gm_account = (struct gm_account*)aMalloc(sizeof(struct gm_account));
+					} else {
+						gm_account = (struct gm_account*)aRealloc(gm_account, sizeof(struct gm_account) * (GM_num + 1));
 					}
-					WBUFW(buf, 2) = len;
-					mapif_sendall(buf, len);
+					gm_account[GM_num].account_id = RFIFOL(fd,2);
+					gm_account[GM_num].level = (int)RFIFOB(fd,6);
+					new_level = 1;
+					GM_num++;
+					if (GM_num >= 4000) {
+						ShowWarning("4000 GM accounts found. Next GM accounts are not readed.\n");
+						char_log("***WARNING: 4000 GM accounts found. Next GM accounts are not readed." RETCODE);
+					}
 				}
 			}
+			if (new_level == 1) {
+				unsigned char buf[32000];
+				int len;
+				ShowStatus("From login-server: receiving GM account information (%d: level %d).\n", RFIFOL(fd,2), (int)RFIFOB(fd,6));
+				char_log("From login-server: receiving a GM account information (%d: level %d)." RETCODE, RFIFOL(fd,2), (int)RFIFOB(fd,6));
+				//create_online_files(); // not change online file for only 1 player (in next timer, that will be done
+				// send gm acccounts level to map-servers
+				len = 4;
+				WBUFW(buf,0) = 0x2b15;
+			
+				for(i = 0; i < GM_num; i++) {
+					WBUFL(buf, len) = gm_account[i].account_id;
+					WBUFB(buf, len+4) = (unsigned char)gm_account[i].level;
+					len += 5;
+				}
+				WBUFW(buf, 2) = len;
+				mapif_sendall(buf, len);
+			}
+			
 			RFIFOSKIP(fd,7);
-			break;
+		}
+		break;
 
 		//Login server request to kick a character out. [Skotlex]
 		case 0x2734:
@@ -2619,6 +2612,21 @@ void char_update_fame_list(int type, int index, int fame)
 	WBUFB(buf,3) = index;
 	WBUFL(buf,4) = fame;
 	mapif_sendall(buf, 8);
+}
+
+//Loads a character's name and stores it in the buffer given (must be NAME_LENGTH in size)
+//Returns 1 on found, 0 on not found (buffer is filled with Unknown char name)
+int char_loadName(int char_id, char* name)
+{
+	int j;
+	for( j = 0; j < char_num && char_dat[j].status.char_id != char_id; ++j )
+		;// find char
+	if( j < char_num )
+		strncpy(name, char_dat[j].status.name, NAME_LENGTH);
+	else
+		strncpy(name, unknown_char_name, NAME_LENGTH);
+
+	return (j < char_num) ? 1 : 0;
 }
 
 int search_mapserver(unsigned short map, uint32 ip, uint16 port);
@@ -2910,20 +2918,16 @@ int parse_frommap(int fd)
 			}
 			break;
 
-		case 0x2b08: // char name check
+		case 0x2b08: // char name request
 			if (RFIFOREST(fd) < 6)
 				return 0;
-			for(i = 0; i < char_num; i++) {
-				if (char_dat[i].status.char_id == RFIFOL(fd,2))
-					break;
-			}
+
+			WFIFOHEAD(fd,30);
 			WFIFOW(fd,0) = 0x2b09;
 			WFIFOL(fd,2) = RFIFOL(fd,2);
-			if (i != char_num)
-				memcpy(WFIFOP(fd,6), char_dat[i].status.name, NAME_LENGTH);
-			else
-				memcpy(WFIFOP(fd,6), unknown_char_name, NAME_LENGTH);
-			WFIFOSET(fd,6+NAME_LENGTH);
+			char_loadName((int)RFIFOL(fd,2), (char*)WFIFOP(fd,6));
+			WFIFOSET(fd,30);
+
 			RFIFOSKIP(fd,6);
 			break;
 
@@ -2958,13 +2962,13 @@ int parse_frommap(int fd)
 			RFIFOSKIP(fd, 86);
 			break;
 
-		case 0x2b0e: // Request from map-server to change a char's status (all operations are transmitted to login-server)
+		case 0x2b0e: // Request from map-server to change an account's status (all operations are transmitted to login-server)
 			if (RFIFOREST(fd) < 44)
 				return 0;
 		  {
 			char character_name[NAME_LENGTH];
 			int acc = RFIFOL(fd,2); // account_id of who ask (-1 if nobody)
-			memcpy(character_name, RFIFOP(fd,6), NAME_LENGTH-1);
+			memcpy(character_name, RFIFOP(fd,6), NAME_LENGTH);
 			character_name[NAME_LENGTH-1] = '\0';
 			// prepare answer
 			WFIFOW(fd,0) = 0x2b0f; // answer
@@ -3070,69 +3074,57 @@ int parse_frommap(int fd)
 //		case 0x2b0f: Not used anymore, available for future use
 
 		case 0x2b10: // Update and send fame ranking list
-			if (RFIFOREST(fd) < 12)
+			if (RFIFOREST(fd) < 11)
 				return 0;
-			{
-				int cid = RFIFOL(fd, 2);
-				int fame = RFIFOL(fd, 6);
-				char type = RFIFOB(fd, 10);
-				char pos = RFIFOB(fd, 11);
-				int size;
-				struct fame_list *list = NULL;
-				RFIFOSKIP(fd,12);
-				
-				switch(type) {
-					case 1:
-						size = fame_list_size_smith;
-						list = smith_fame_list;
-						break;
-					case 2:
-						size = fame_list_size_chemist;
-						list = chemist_fame_list;
-						break;
-					case 3:
-						size = fame_list_size_taekwon;
-						list = taekwon_fame_list;
-						break;
-					default:
-						size = 0;
-						break;
-				}
-				if(!size) break; //No list.
-				if(pos)
-				{
-				 	pos--; //Convert from pos to index.
-					if(
-						(pos == 0 || fame < list[pos-1].fame) &&
-						(pos == size-1 || fame > list[pos+1].fame)
-					) { //No change in order.
-						list[(int)pos].fame = fame;
-						char_update_fame_list(type, pos, fame);
-						break;
-					}
-					// If the player's already in the list, remove the entry and shift the following ones 1 step up
-					memmove(list+pos, list+pos+1, (size-pos-1) * sizeof(struct fame_list));
-					//Clear out last entry.
-					list[size-1].id = 0;
-					list[size-1].fame = 0;
-				}
+		{
+			int cid = RFIFOL(fd, 2);
+			int fame = RFIFOL(fd, 6);
+			char type = RFIFOB(fd, 10);
+			int size;
+			struct fame_list* list;
+			int player_pos;
+			int fame_pos;
 
-				// Find the position where the player has to be inserted
-				for(i = 0; i < size && fame < list[i].fame; i++);
-				if(i >= size) break;//Out of ranking.
-				// When found someone with less or as much fame, insert just above
-				memmove(list+i+1, list+i, (size-i-1) * sizeof(struct fame_list));
-				list[i].id = cid;
-				list[i].fame = fame;
-				// Look for the player's name
-				for(j = 0; j < char_num && char_dat[j].status.char_id != id; j++);
-				if(j < char_num)
-					strncpy(list[i].name, char_dat[j].status.name, NAME_LENGTH);
-				else //Not found??
-					strncpy(list[i].name, "Unknown", NAME_LENGTH);
+			switch(type)
+			{
+				case 1:  size = fame_list_size_smith;   list = smith_fame_list;   break;
+				case 2:  size = fame_list_size_chemist; list = chemist_fame_list; break;
+				case 3:  size = fame_list_size_taekwon; list = taekwon_fame_list; break;
+				default: size = 0;                      list = NULL;              break;
+			}
+
+			ARR_FIND(0, size, player_pos, list[player_pos].id == cid);// position of the player
+			ARR_FIND(0, size, fame_pos, list[fame_pos].fame <= fame);// where the player should be
+
+			if( player_pos == size && fame_pos == size )
+				;// not on list and not enough fame to get on it
+			else if( fame_pos == player_pos )
+			{// same position
+				list[player_pos].fame = fame;
+				char_update_fame_list(type, player_pos, fame);
+			}
+			else
+			{// move in the list
+				if( player_pos == size )
+				{// new ranker - not in the list
+					ARR_MOVE(size - 1, fame_pos, list, struct fame_list);
+					list[fame_pos].id = cid;
+					list[fame_pos].fame = fame;
+					char_loadName(cid, list[fame_pos].name);
+				}
+				else
+				{// already in the list
+					if( fame_pos == size )
+						--fame_pos;// move to the end of the list
+					ARR_MOVE(player_pos, fame_pos, list, struct fame_list);
+					list[fame_pos].fame = fame;
+				}
 				char_send_fame_list(-1);
 			}
-			break;
+
+			RFIFOSKIP(fd,11);
+		}
+		break;
 
 		case 0x2b16: // Receive rates [Wizputer]
 			if (RFIFOREST(fd) < 6 || RFIFOREST(fd) < RFIFOW(fd,8))
@@ -3152,7 +3144,7 @@ int parse_frommap(int fd)
 			set_all_offline(id);
 			RFIFOSKIP(fd,2);
 			break;
-
+		
 		case 0x2b19: // Character set online [Wizputer]
 			if (RFIFOREST(fd) < 6)
 				return 0;
@@ -3200,20 +3192,21 @@ int parse_frommap(int fd)
 			break;
 
 		default:
-			// inter serverˆ—‚É“n‚·
-			{
-				int r = inter_parse_frommap(fd);
-				if (r == 1) // ˆ—‚Å‚«‚½
-					break;
-				if (r == 2) // ƒpƒPƒbƒg’·‚ª‘«‚è‚È‚¢
-					return 0;
-			}
-			// inter serverˆ—‚Å‚à‚È‚¢ê‡‚ÍØ’f
+		{
+			// inter server - packet
+			int r = inter_parse_frommap(fd);
+			if (r == 1) break;		// processed
+			if (r == 2) return 0;	// need more packet
+
+			// no inter server packet. no char server packet -> disconnect
 			ShowError("Unknown packet 0x%04x from map server, disconnecting.\n", RFIFOW(fd,0));
 			set_eof(fd);
 			return 0;
 		}
-	}
+		} // switch
+	} // while
+	
+	
 	return 0;
 }
 
@@ -3525,7 +3518,7 @@ int parse_char(int fd)
 			if (i < 0)
 			{
 				WFIFOHEAD(fd,3);
-				WFIFOW(fd, 0) = 0x6e;
+				WFIFOW(fd,0) = 0x6e;
 				switch (i) {
 				case -1: WFIFOB(fd,2) = 0x00; break;
 				case -2: WFIFOB(fd,2) = 0x02; break;
@@ -3838,7 +3831,7 @@ static int send_accounts_tologin_sub(DBKey key, void* data, va_list ap) {
 		return 0; //This is an error that shouldn't happen....
 	if(character->server > -1) {
 		WFIFOHEAD(login_fd,8+count*4);
-		WFIFOL(login_fd, 8+(*i)*4) =character->account_id;
+		WFIFOL(login_fd,8+(*i)*4) = character->account_id;
 		(*i)++;
 		return 1;
 	}
@@ -3885,7 +3878,7 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data)
 	memcpy(WFIFOP(login_fd,60), server_name, 20);
 	WFIFOW(login_fd,80) = 0;
 	WFIFOW(login_fd,82) = char_maintenance;
-	WFIFOW(login_fd,84) = char_new_display; //only display (New) if they want to [Kevin]	
+	WFIFOW(login_fd,84) = char_new_display; //only display (New) if they want to [Kevin]
 	WFIFOSET(login_fd,86);
 	}
 	return 1;
@@ -4151,7 +4144,7 @@ int char_config_read(const char *cfgName) {
 	}
 	fclose(fp);
 
-	ShowInfo("done reading %s.\n", cfgName);
+	ShowInfo("Done reading %s.\n", cfgName);
 	return 0;
 }
 

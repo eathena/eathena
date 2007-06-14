@@ -329,8 +329,9 @@ void map_delblcell(struct block_list *bl)
 
 /*==========================================
  * Adds a block to the map.
- * If flag is 1, then the block was just added
+ * If flag is 1, then the block was just added,
  * otherwise it is part of a transition.
+ * Returns 0 on success, 1 on failure (illegal coordinates).
  *------------------------------------------*/
 int map_addblock_sub (struct block_list *bl, int flag)
 {
@@ -1931,7 +1932,7 @@ void map_removenpc(void)
 	for(m=0;m<map_num;m++) {
 		for(i=0;i<map[m].npc_num && i<MAX_NPC_PER_MAP;i++) {
 			if(map[m].npc[i]!=NULL) {
-				clif_clearchar_area(&map[m].npc[i]->bl,2);
+				clif_clearunit_area(&map[m].npc[i]->bl,2);
 				map_delblock(&map[m].npc[i]->bl);
 				idb_remove(id_db,map[m].npc[i]->bl.id);
 				if(map[m].npc[i]->bl.subtype==SCRIPT) {

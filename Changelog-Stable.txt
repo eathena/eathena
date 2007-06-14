@@ -4,6 +4,17 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2007/06/14
+	* Merges from trunk
+	- r10747 - NPC_PROVOCATION bugfix, effects list update
+	- r10746 - pet equip bugfix, clif.c cleanup
+	- r10668 - jail escape exploit fix, added update packet when respawning
+	- r10640, r10667 - fame code fix, safestrncpy, op names instead of numbers
+	- r10624 - minimap indicator fixes
+	- r10633 - various code cleaning
+	- r10619 - @statall sets stats to 99, @npctalk doesn't display the # part
+	- r10613 - delay_dependon_agi -> dex, cleaned up skill_castnodex_db.txt,
+                   removed 2 skills from @skillall, improved gm_skill_unconditional
 2007/05/29
 	* Hopefully fixed the vsnprintf incompatibility (caused by r10192)
 2007/05/23
