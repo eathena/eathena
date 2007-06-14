@@ -1,7 +1,9 @@
 Date	Added
 
 2007/06/14
-	* Reverted delay_dependon_agi -> dex
+	* Enhanced log_athena.conf with global/main chat support
+	- readjust the logging setting because the values have changed!
+	* Reverted delay_dependon_agi -> dex [ultramage]
 2007/06/04
 	* Merged all mapflags [Playtester]
 2007/06/03
