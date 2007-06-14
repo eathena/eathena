@@ -7309,7 +7309,8 @@ int status_readdb(void)
 		return 1;
 	}
 	i = 0;
-	while(fgets(line, sizeof(line)-1, fp)){
+	while(fgets(line, sizeof(line), fp))
+	{
 		char *split[MAX_WEAPON_TYPE + 5];
 		i++;
 		if(line[0]=='/' && line[1]=='/')
@@ -7344,8 +7345,9 @@ int status_readdb(void)
 		ShowError("can't read %s\n", path);
 		return 1;
 	}
-	while(fgets(line, sizeof(line)-1, fp)){
-       	char *split[MAX_LEVEL+1]; //Job Level is limited to MAX_LEVEL, so the bonuses should likewise be limited to it. [Skotlex]
+	while(fgets(line, sizeof(line), fp))
+	{
+		char *split[MAX_LEVEL+1]; //Job Level is limited to MAX_LEVEL, so the bonuses should likewise be limited to it. [Skotlex]
 		if(line[0]=='/' && line[1]=='/')
 			continue;
 		for(j=0,p=line;j<MAX_LEVEL+1 && p;j++){
@@ -7372,7 +7374,8 @@ int status_readdb(void)
 		return 1;
 	}
 	i=0;
-	while(fgets(line, sizeof(line)-1, fp)){
+	while(fgets(line, sizeof(line), fp))
+	{
 		char *split[MAX_WEAPON_TYPE];
 		if(line[0]=='/' && line[1]=='/')
 			continue;
@@ -7407,7 +7410,8 @@ int status_readdb(void)
 		return 1;
 	}
 	i=0;
-	while(fgets(line, sizeof(line)-1, fp)){
+	while(fgets(line, sizeof(line), fp))
+	{
 		char *split[MAX_REFINE+4];
 		if(line[0]=='/' && line[1]=='/')
 			continue;

@@ -863,7 +863,8 @@ int msg_config_read(const char *cfgName)
 
 	if ((--called) == 0)
 		memset(msg_table, 0, sizeof(msg_table[0]) * MAX_MSG);
-	while(fgets(line, sizeof(line)-1, fp)) {
+	while(fgets(line, sizeof(line), fp))
+	{
 		if (line[0] == '/' && line[1] == '/')
 			continue;
 		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2) {
@@ -925,7 +926,8 @@ int atcommand_config_read(const char *cfgName)
 		return 1;
 	}
 
-	while (fgets(line, sizeof(line)-1, fp)) {
+	while(fgets(line, sizeof(line), fp))
+	{
 		if (line[0] == '/' && line[1] == '/')
 			continue;
 
@@ -2037,8 +2039,7 @@ int atcommand_speed(const int fd, struct map_session_data* sd, const char* comma
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 int atcommand_charspeed(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -2742,7 +2743,7 @@ int atcommand_help(const int fd, struct map_session_data* sd, const char* comman
 	if ((fp = fopen(help_txt, "r")) != NULL) {
 		clif_displaymessage(fd, msg_txt(26)); // Help commands:
 		gm_level = pc_isGM(sd);
-		while(fgets(buf, sizeof(buf) - 1, fp) != NULL) {
+		while(fgets(buf, sizeof(buf), fp) != NULL) {
 			if (buf[0] == '/' && buf[1] == '/')
 				continue;
 			for (i = 0; buf[i] != '\0'; i++) {
@@ -2780,7 +2781,7 @@ int atcommand_help2(const int fd, struct map_session_data* sd, const char* comma
 	if ((fp = fopen(help2_txt, "r")) != NULL) {
 		clif_displaymessage(fd, msg_txt(26)); // Help commands:
 		gm_level = pc_isGM(sd);
-		while(fgets(buf, sizeof(buf) - 1, fp) != NULL) {
+		while(fgets(buf, sizeof(buf), fp) != NULL) {
 			if (buf[0] == '/' && buf[1] == '/')
 				continue;
 			for (i = 0; buf[i] != '\0'; i++) {
@@ -5181,7 +5182,7 @@ int atcommand_reloadstatusdb(const int fd, struct map_session_data* sd, const ch
 	return 0;
 }
 /*==========================================
- * @reloadpcdb - reloads exp.txt skill_tree.txt attr_fix.txt 
+ * @reloadpcdb - reloads exp.txt skill_tree.txt attr_fix.txt statpoint.txt
  *------------------------------------------*/
 int atcommand_reloadpcdb(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
@@ -5485,8 +5486,7 @@ int atcommand_mount_peco(const int fd, struct map_session_data* sd, const char* 
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 int atcommand_char_mount_peco(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -6460,8 +6460,7 @@ int atcommand_localbroadcast(const int fd, struct map_session_data* sd, const ch
 
 /*==========================================
  * @chardisguise <mob_id> <character> by Kalaspuff (based off Valaris' and Yor's work)
- *------------------------------------------
- */
+ *------------------------------------------*/
 int atcommand_chardisguise(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	int mob_id;
@@ -7151,21 +7150,18 @@ int atcommand_skilltree(const int fd, struct map_session_data* sd, const char* c
 }
 
 // Hand a ring with partners name on it to this char
-void getring (struct map_session_data *sd)
+void getring (struct map_session_data* sd)
 {
-	int flag,item_id = 0;
+	int flag, item_id;
 	struct item item_tmp;
-	if(sd->status.sex==0)
-		item_id = 2635;
-	else
-		item_id = 2634;
+	item_id = (sd->status.sex) ? WEDDING_RING_M : WEDDING_RING_F;
 
-	memset(&item_tmp,0,sizeof(item_tmp));
-	item_tmp.nameid=item_id;
-	item_tmp.identify=1;
-	item_tmp.card[0]=255;
-	item_tmp.card[2]=sd->status.partner_id;
-	item_tmp.card[3]=sd->status.partner_id >> 16;
+	memset(&item_tmp, 0, sizeof(item_tmp));
+	item_tmp.nameid = item_id;
+	item_tmp.identify = 1;
+	item_tmp.card[0] = 255;
+	item_tmp.card[2] = sd->status.partner_id;
+	item_tmp.card[3] = sd->status.partner_id >> 16;
 
 	//Logs (A)dmins items [Lupus]
 	if(log_config.enable_logs&0x400)
@@ -7175,7 +7171,6 @@ void getring (struct map_session_data *sd)
 		clif_additem(sd,0,0,flag);
 		map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
 	}
-
 }
 
 /*==========================================
@@ -7273,8 +7268,7 @@ int atcommand_dmtick(const int fd, struct map_session_data* sd, const char* comm
 
 /*==========================================
  * @grind by [MouseJstr]
- *------------------------------------------
- */
+ *------------------------------------------*/
 int atcommand_grind(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd = NULL;
@@ -8243,11 +8237,12 @@ int atcommand_gmotd(const int fd, struct map_session_data* sd, const char* comma
 		char buf[256];
 		FILE *fp;
 	nullpo_retr(-1, sd);
-		if(	(fp = fopen(motd_txt, "r"))!=NULL){
-			while (fgets(buf, 250, fp) != NULL){
+		if((fp = fopen(motd_txt, "r"))!=NULL){
+			while(fgets(buf, sizeof(buf), fp) != NULL)
+			{
 				int i;
-				for( i=0; buf[i]; i++){
-					if( buf[i]=='\r' || buf[i]=='\n'){
+				for(i=0; buf[i]; i++){
+					if(buf[i]=='\r' || buf[i]=='\n'){
 						buf[i]=0;
 						break;
 					}

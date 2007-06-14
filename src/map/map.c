@@ -164,11 +164,9 @@ int enable_spy = 0; //To enable/disable @spy commands, which consume too much cp
  *------------------------------------------*/
 void map_setusers(int fd)
 {
-	RFIFOHEAD(fd);
-	WFIFOHEAD(fd, 2);
-
 	map_users = RFIFOL(fd,2);
 	// send some answer
+	WFIFOHEAD(fd, 2);
 	WFIFOW(fd,0) = 0x2718;
 	WFIFOSET(fd,2);
 }
@@ -2404,7 +2402,6 @@ int map_eraseipport(unsigned short mapindex, uint32 ip, uint16 port)
 }
 
 #define NO_WATER 1000000
-
 static int map_setwaterheight_sub(int m)
 {
 	char fn[256];
@@ -3097,7 +3094,8 @@ int map_config_read(char *cfgName)
 		ShowFatalError("Map configuration file not found at: %s\n", cfgName);
 		exit(1);
 	}
-	while(fgets(line, sizeof(line) -1, fp)) {
+	while(fgets(line, sizeof(line), fp))
+	{
 		if (line[0] == '/' && line[1] == '/')
 			continue;
 
@@ -3206,7 +3204,8 @@ int inter_config_read(char *cfgName)
 		ShowError("File not found: '%s'.\n",cfgName);
 		return 1;
 	}
-	while(fgets(line,1020,fp)){
+	while(fgets(line, sizeof(line), fp))
+	{
 		if(line[0] == '/' && line[1] == '/')
 			continue;
 		i=sscanf(line,"%[^:]: %[^\r\n]",w1,w2);

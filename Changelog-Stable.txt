@@ -15,6 +15,7 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 	- r10619 - @statall sets stats to 99, @npctalk doesn't display the # part
 	- r10613 - delay_dependon_agi -> dex, cleaned up skill_castnodex_db.txt,
                    removed 2 skills from @skillall, improved gm_skill_unconditional
+	- r10581, r10599, r10616, r10658 - reformatting and typo fixes
 2007/05/29
 	* Hopefully fixed the vsnprintf incompatibility (caused by r10192)
 2007/05/23

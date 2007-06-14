@@ -859,7 +859,7 @@ int skillnotok (int skillid, struct map_session_data *sd)
 		return 1;
 	
 	if (battle_config.gm_skilluncond && pc_isGM(sd) >= battle_config.gm_skilluncond)
-		return 0;  // gm's can do anything damn thing they want
+		return 0;  // GMs can do any damn thing they want
 
 	if (sd->blockskill[i] > 0)
 		return 1;
@@ -8716,7 +8716,7 @@ int skill_castfix_sc (struct block_list *bl, int time)
 }
 
 /*==========================================
- * Does delay reductions based on dex, 
+ * Does delay reductions based on dex, sc data, item bonuses, ...
  *------------------------------------------*/
 int skill_delayfix (struct block_list *bl, int skill_id, int skill_lv)
 {
@@ -11176,7 +11176,8 @@ int skill_readdb (void)
 		ShowError("can't read %s\n", path);
 		return 1;
 	}
-	while(fgets(line,1020,fp)){
+	while(fgets(line, sizeof(line), fp))
+	{
 		char *split[50];
 		if(line[0]=='/' && line[1]=='/')
 			continue;
@@ -11238,7 +11239,8 @@ int skill_readdb (void)
 		ShowError("can't read %s\n", path);
 		return 1;
 	}
-	while(fgets(line,1020,fp)){
+	while(fgets(line, sizeof(line), fp))
+	{
 		char *split[50];
 		if(line[0]=='/' && line[1]=='/')
 			continue;
@@ -11325,7 +11327,8 @@ int skill_readdb (void)
 	}
 
 	l=0;
-	while(fgets(line,1020,fp)){
+	while(fgets(line, sizeof(line), fp))
+	{
 		char *split[50];
 		l++;
 		memset(split,0,sizeof(split));	// [Valaris] thanks to fov
@@ -11363,7 +11366,8 @@ int skill_readdb (void)
 		return 1;
 	}
         k = 0;
-	while (fgets(line,1020,fp)) {
+	while (fgets(line, sizeof(line), fp))
+	{
 		char *split[50];
 		if (line[0]=='/' && line[1]=='/')
 			continue;
@@ -11424,7 +11428,8 @@ int skill_readdb (void)
 			ShowError("can't read %s\n",path);
 			return 1;
 		}
-		while(fgets(line,1020,fp)){
+		while(fgets(line, sizeof(line), fp))
+		{
 			char *split[7 + MAX_PRODUCE_RESOURCE * 2];
 			int x,y;
 			if(line[0]=='/' && line[1]=='/')
@@ -11465,7 +11470,8 @@ int skill_readdb (void)
 		return 1;
 	}
 	k=0;
-	while(fgets(line,1020,fp)){
+	while(fgets(line, sizeof(line), fp))
+	{
 		char *split[16];
 		int x,y;
 		if(line[0]=='/' && line[1]=='/')
@@ -11499,7 +11505,8 @@ int skill_readdb (void)
 		return 1;
 	}
 	k=0;
-	while(fgets(line,1020,fp)){
+	while(fgets(line, sizeof(line), fp))
+	{
 		char *split[16];
 		if(line[0]=='/' && line[1]=='/')
 			continue;
@@ -11527,7 +11534,8 @@ int skill_readdb (void)
 		ShowError("can't read %s\n", path);
 		return 1;
 	}
-	while(fgets(line,1020,fp)){
+	while(fgets(line, sizeof(line), fp))
+	{
 		char *split[50];
 		if(line[0]=='/' && line[1]=='/')
 			continue;
@@ -11556,7 +11564,8 @@ int skill_readdb (void)
 		return 1;
 	}
 	k=0;
-	while(fgets(line,1020,fp)){
+	while(fgets(line, sizeof(line), fp))
+	{
 		char *split[16];
 		if(line[0]=='/' && line[1]=='/')
 			continue;

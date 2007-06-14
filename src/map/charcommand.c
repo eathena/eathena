@@ -64,8 +64,7 @@ CCMD_FUNC(help);
 
 /*==========================================
  *CharCommandInfo charcommand_info[]構造体の定義
- *------------------------------------------
- */
+ *------------------------------------------*/
 
 // First char of commands is configured in charcommand_athena.conf. Leave # in this list for default value.
 // to set default level, read charcommand_athena.conf first please.
@@ -111,7 +110,8 @@ static CharCommandInfo charcommand_info[] = {
 	{ CharCommand_Unknown, 		            NULL, 				       1, NULL }
 };
 
-int get_charcommand_level(const CharCommandType type) {
+int get_charcommand_level(const CharCommandType type)
+{
 	int i;
 
 	for (i = 0; charcommand_info[i].type != CharCommand_None; i++)
@@ -204,9 +204,9 @@ is_charcommand(const int fd, struct map_session_data* sd, const char* message) {
 
 /*==========================================
  *
- *------------------------------------------
- */
-CharCommandType charcommand(struct map_session_data* sd, const int level, const char* message, CharCommandInfo* info) {
+ *------------------------------------------*/
+CharCommandType charcommand(struct map_session_data* sd, const int level, const char* message, CharCommandInfo* info)
+{
 	char* p = (char *)message; 
 
 	if (!info)
@@ -253,9 +253,9 @@ CharCommandType charcommand(struct map_session_data* sd, const int level, const 
 
 /*==========================================
  *
- *------------------------------------------
- */
-static CharCommandInfo* get_charcommandinfo_byname(const char* name) {
+ *------------------------------------------*/
+static CharCommandInfo* get_charcommandinfo_byname(const char* name)
+{
 	int i;
 
 	for (i = 0; charcommand_info[i].type != CharCommand_Unknown; i++)
@@ -267,9 +267,9 @@ static CharCommandInfo* get_charcommandinfo_byname(const char* name) {
 
 /*==========================================
  *
- *------------------------------------------
- */
-int charcommand_config_read(const char *cfgName) {
+ *------------------------------------------*/
+int charcommand_config_read(const char *cfgName)
+{
 	char line[1024], w1[1024], w2[1024];
 	CharCommandInfo* p;
 	FILE* fp;
@@ -279,7 +279,8 @@ int charcommand_config_read(const char *cfgName) {
 		return 1;
 	}
 
-	while (fgets(line, sizeof(line)-1, fp)) {
+	while (fgets(line, sizeof(line), fp))
+	{
 		if (line[0] == '/' && line[1] == '/')
 			continue;
 
@@ -310,11 +311,8 @@ int charcommand_config_read(const char *cfgName) {
 
 /*==========================================
  * 対象キャラクターを転職させる upper指定で転生や養子も可能
- *------------------------------------------
- */
-int charcommand_jobchange(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_jobchange(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	char character[100];
 	struct map_session_data* pl_sd;
@@ -367,11 +365,8 @@ int charcommand_jobchange(
 
 /*==========================================
  *
- *------------------------------------------
- */
-int charcommand_petrename(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_petrename(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	char character[NAME_LENGTH];
 	struct map_session_data *pl_sd;
@@ -410,11 +405,8 @@ int charcommand_petrename(
 
 /*==========================================
  * 
- *------------------------------------------
- */
-int charcommand_petfriendly(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_petfriendly(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	int friendly = 0;
 	char character[NAME_LENGTH];
@@ -460,11 +452,8 @@ int charcommand_petfriendly(
 
 /*==========================================
  *
- *------------------------------------------
- */
-int charcommand_stats(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_stats(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	char character[NAME_LENGTH];
 	char job_jobname[100];
@@ -533,11 +522,8 @@ int charcommand_stats(
 
 /*==========================================
  * Character Reset
- *------------------------------------------
- */
-int charcommand_reset(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_reset(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	char character[NAME_LENGTH];
 	char output[200];
@@ -571,11 +557,8 @@ int charcommand_reset(
 
 /*==========================================
  *
- *------------------------------------------
- */
-int charcommand_option(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_option(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	char character[NAME_LENGTH];
 	int opt1 = 0, opt2 = 0, opt3 = 0;
@@ -610,11 +593,8 @@ int charcommand_option(
 
 /*==========================================
  *
- *------------------------------------------
- */
-int charcommand_save(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_save(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	char map_name[MAP_NAME_LENGTH];
 	char character[NAME_LENGTH];
@@ -665,8 +645,7 @@ int charcommand_save(
 
 /*==========================================
  *
- *------------------------------------------
- */
+ *------------------------------------------*/
 //** Character Stats All by fritz
 int charcommand_stats_all(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
@@ -711,8 +690,7 @@ int charcommand_stats_all(const int fd, struct map_session_data* sd, const char*
 
 /*==========================================
  * CharSpiritBall Function by PalasX
- *------------------------------------------
- */
+ *------------------------------------------*/
 int charcommand_spiritball(const int fd, struct map_session_data* sd,const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
@@ -913,12 +891,8 @@ charcommand_effect(const int fd, struct map_session_data* sd,
 
 /*==========================================
  * #storagelist <character>: Displays the items list of a player's storage.
- *------------------------------------------
- */
-int
-charcommand_storagelist(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_storagelist(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct storage *stor;
 	struct map_session_data *pl_sd;
@@ -996,8 +970,7 @@ charcommand_storagelist(
 	return 0;
 }
 
-static void 
-charcommand_giveitem_sub(struct map_session_data *sd,struct item_data *item_data,int number)
+static void charcommand_giveitem_sub(struct map_session_data *sd,struct item_data *item_data,int number)
 {
 	int flag = 0;
 	int loop = 1, get_count = number,i;
@@ -1027,11 +1000,8 @@ charcommand_giveitem_sub(struct map_session_data *sd,struct item_data *item_data
 /*==========================================
  * #item command (usage: #item <name/id_of_item> <quantity> <player>)
  * by MC Cameri
- *------------------------------------------
- */
-int charcommand_item(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_item(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	char item_name[100];
 	char character[NAME_LENGTH];
@@ -1126,11 +1096,8 @@ int charcommand_item(
 
 /*==========================================
  * #warp/#rura/#rura+ <mapname> <x> <y> <char name>
- *------------------------------------------
- */
-int charcommand_warp(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_warp(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	char map_name[MAP_NAME_LENGTH];
 	char character[NAME_LENGTH];
@@ -1187,11 +1154,8 @@ int charcommand_warp(
 
 /*==========================================
  * #zeny <charname>
- *------------------------------------------
- */
-int charcommand_zeny(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_zeny(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
 	char character[NAME_LENGTH];
@@ -1232,12 +1196,8 @@ int charcommand_zeny(
 
 /*==========================================
  * #fakename <char name> <fake name>
- *------------------------------------------
- */
-
-int charcommand_fakename(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_fakename(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
 	char name[NAME_LENGTH];
@@ -1284,11 +1244,8 @@ int charcommand_fakename(
 /*==========================================
  * #baselvl <#> <nickname> 
  * Transferred by: Kevin
- *------------------------------------------
-*/
-int charcommand_baselevel(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_baselevel(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
 	char player[NAME_LENGTH];
@@ -1362,11 +1319,8 @@ int charcommand_baselevel(
 /*==========================================
  * #jlvl <#> <nickname> 
  * Transferred by: Kevin
- *------------------------------------------
- */
-int charcommand_joblevel(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_joblevel(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
 	char player[NAME_LENGTH];
@@ -1438,11 +1392,8 @@ int charcommand_joblevel(
 /*==========================================
  * #questskill <skill_#> <nickname>
  * Transferred by: Kevin
- *------------------------------------------
- */
-int charcommand_questskill(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_questskill(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
 	char player[NAME_LENGTH];
@@ -1484,11 +1435,8 @@ int charcommand_questskill(
 /*==========================================
  * #lostskill <skill_#> <nickname>
  * Transferred by: Kevin
- *------------------------------------------
- */
-int charcommand_lostskill(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_lostskill(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
 	char player[NAME_LENGTH];
@@ -1530,11 +1478,8 @@ int charcommand_lostskill(
 
 /*==========================================
  * Character Skill Reset
- *------------------------------------------
- */
-int charcommand_skreset(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_skreset(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
 	char player[NAME_LENGTH];
@@ -1565,11 +1510,8 @@ int charcommand_skreset(
 
 /*==========================================
  * Character Stat Reset
- *------------------------------------------
- */
-int charcommand_streset(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_streset(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
 	char player[NAME_LENGTH];
@@ -1600,11 +1542,8 @@ int charcommand_streset(
 
 /*==========================================
  * Character Model by chbrules
- *------------------------------------------
- */
-int charcommand_model(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_model(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	int hair_style = 0, hair_color = 0, cloth_color = 0;
 	struct map_session_data *pl_sd;
@@ -1635,7 +1574,6 @@ int charcommand_model(
 				pc_changelook(pl_sd, LOOK_HAIR_COLOR, hair_color);
 				pc_changelook(pl_sd, LOOK_CLOTHES_COLOR, cloth_color);
 				clif_displaymessage(fd, msg_table[36]); // Appearence changed.
-//			}
 		} else {
 			clif_displaymessage(fd, msg_table[37]); // An invalid number was specified.
 			return -1;
@@ -1650,11 +1588,8 @@ int charcommand_model(
 
 /*==========================================
  * Character Skill Point (Rewritten by [Yor])
- *------------------------------------------
- */
-int charcommand_skpoint(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_skpoint(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
 	char player[NAME_LENGTH];
@@ -1695,11 +1630,8 @@ int charcommand_skpoint(
 
 /*==========================================
  * Character Status Point (rewritten by [Yor])
- *------------------------------------------
- */
-int charcommand_stpoint(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_stpoint(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
 	char player[NAME_LENGTH];
@@ -1740,11 +1672,8 @@ int charcommand_stpoint(
 
 /*==========================================
  * charchangesex command (usage: charchangesex <player_name>)
- *------------------------------------------
- */
-int charcommand_changesex(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_changesex(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	char player[NAME_LENGTH];
 	nullpo_retr(-1, sd);
@@ -1771,11 +1700,8 @@ int charcommand_changesex(
 
 /*==========================================
  * Feel (SG save map) Reset
- *------------------------------------------
- */
-int charcommand_feelreset(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_feelreset(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	char character[NAME_LENGTH];
 	char output[200];
@@ -1808,11 +1734,8 @@ int charcommand_feelreset(
 
 /*==========================================
  * #help - Char commands [Kayla]
- *------------------------------------------
- */
-int charcommand_help(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
+ *------------------------------------------*/
+int charcommand_help(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	char buf[2048], w1[2048], w2[2048];
 	int i, gm_level;
@@ -1824,7 +1747,8 @@ int charcommand_help(
 	if ((fp = fopen(charhelp_txt, "r")) != NULL) {
 		clif_displaymessage(fd, msg_table[26]); /* Help commands: */
 		gm_level = pc_isGM(sd);
-		while(fgets(buf, sizeof(buf) - 1, fp) != NULL) {
+		while(fgets(buf, sizeof(buf), fp) != NULL)
+		{
 			if (buf[0] == '/' && buf[1] == '/')
 				continue;
 			for (i = 0; buf[i] != '\0'; i++) {

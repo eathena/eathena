@@ -944,6 +944,9 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 
 /*==========================================
  * A lock of target is stopped and mob moves to a standby state.
+ * This also triggers idle skill/movement since the AI can get stuck
+ * when trying to pick new targets when the current chosen target is
+ * unreachable.
  *------------------------------------------*/
 int mob_unlocktarget(struct mob_data *md,int tick)
 {
@@ -3316,7 +3319,7 @@ static int mob_readdb(void)
 			return -1;
 		}
 		
-		while(fgets(line, 1020, fp))
+		while(fgets(line, sizeof(line), fp))
 		{
 			char *str[38+2*MAX_MOB_DROP], *p, *np;
 			
@@ -3400,7 +3403,8 @@ static int mob_readdb_mobavail(void)
 		return -1;
 	}
 
-	while(fgets(line,1020,fp)){
+	while(fgets(line, sizeof(line), fp))
+	{
 		if(line[0]=='/' && line[1]=='/')
 			continue;
 		memset(str,0,sizeof(str));
@@ -3478,7 +3482,8 @@ static int mob_read_randommonster(void)
 			ShowError("can't read %s\n",line);
 			return -1;
 		}
-		while(fgets(line,1020,fp)){
+		while(fgets(line, sizeof(line), fp))
+		{
 			int class_,per;
 			if(line[0] == '/' && line[1] == '/')
 				continue;
@@ -3597,7 +3602,8 @@ static int mob_readskilldb(void)
 				ShowError("can't read %s\n",line);
 			continue;
 		}
-		while(fgets(line,1020,fp)){
+		while(fgets(line, sizeof(line), fp))
+		{
 			char *sp[20],*p;
 			int mob_id;
 			struct mob_skill *ms, gms;
@@ -3808,7 +3814,8 @@ static int mob_readdb_race(void)
 		return -1;
 	}
 	
-	while(fgets(line,1020,fp)){
+	while(fgets(line, sizeof(line), fp))
+	{
 		if(line[0]=='/' && line[1]=='/')
 			continue;
 		memset(str,0,sizeof(str));
