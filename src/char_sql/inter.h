@@ -7,6 +7,7 @@
 #ifndef _CBASETYPES_H_
 #include "../common/cbasetypes.h"
 #endif
+#include "../common/sql.h"
 
 int inter_init_sql(const char *file);
 void inter_final(void);
@@ -25,21 +26,8 @@ int inter_log(char *fmt,...);
 extern unsigned int party_share_level;
 extern char inter_log_filename[1024];
 
-#ifdef WIN32
-#include <winsock2.h>
-#endif
-//add include for DBMS(mysql)
-#include <mysql.h>
-
-extern MYSQL mysql_handle;
-extern char tmp_sql[65535];
-extern MYSQL_RES* 	sql_res ;
-extern MYSQL_ROW	sql_row ;
-extern int 	sql_cnt;
-
-extern MYSQL lmysql_handle;
-extern MYSQL_RES* 	lsql_res ;
-extern MYSQL_ROW	lsql_row ;
+extern struct Sql* sql_handle;
+extern struct Sql* lsql_handle;
 
 extern int char_server_port;
 extern char char_server_ip[32];

@@ -135,64 +135,49 @@ static int itemdb_readdb(void)
 
 static int itemdb_read_sqldb(void) // sql item_db read, shortened version of map-server item_db read [Valaris]
 {
-	unsigned short nameid;
-	struct item_data *id;
 	char *item_db_name[] = { item_db_db, item_db2_db };
-	long unsigned int ln = 0;
-	int i;	
+	unsigned long ln;
+	struct item_data* item;
+	int nameid;
+	int i;
+	char* data;
+	size_t len;
 
 	// ----------
 
-	for (i = 0; i < 2; i++) {
-		sprintf(tmp_sql, "SELECT * FROM `%s`", item_db_name[i]);
-
-		// Execute the query; if the query execution succeeded...
-		if (mysql_query(&mysql_handle, tmp_sql) == 0) {
-			sql_res = mysql_store_result(&mysql_handle);
-
-			// If the storage of the query result succeeded...
-			if (sql_res) {
-				// Parse each row in the query result into sql_row
-				while ((sql_row = mysql_fetch_row(sql_res)))
-				{	/*Table structure is:
-					00  id
-					01  name_english
-					02  name_japanese
-					03  type
-					...
-					*/
-					nameid = atoi(sql_row[0]);
-
-					// If the identifier is not within the valid range, process the next row
-					if (nameid == 0)
-						continue;
-
-					ln++;
-
-					// ----------
-         		id=itemdb_search(nameid);
-					
-					strncpy(id->name, sql_row[1], ITEM_NAME_LENGTH-1);
-					strncpy(id->jname, sql_row[2], ITEM_NAME_LENGTH-1);
-
-					id->type = atoi(sql_row[3]);
-					if (id->type == IT_DELAYCONSUME)
-						id->type = IT_USABLE;
-				}
-				ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, item_db_name[i]);
-				ln = 0;
-			} else {
-				ShowSQL("DB error (%s) - %s\n",item_db_name[i], mysql_error(&mysql_handle));
-				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			}
-
-			// Free the query result
-			mysql_free_result(sql_res);
-		} else {
-			ShowSQL("DB error (%s) - %s\n",item_db_name[i], mysql_error(&mysql_handle));
-			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+	for( i = 0; i < ARRAYLENGTH(item_db_name); ++i )
+	{
+		ln = 0;
+		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `id`,`name_english`,`name_japanese`,`type` FROM `%s`", item_db_name[i]) )
+			Sql_ShowDebug(sql_handle);
+		else while( SQL_SUCCESS == Sql_NextRow(sql_handle) )
+		{
+			// id
+			Sql_GetData(sql_handle, 0, &data, NULL);
+			nameid = atoi(data);
+			if( nameid == 0 )// If the identifier is not within the valid range, process the next row
+				continue;
+			item = itemdb_search(nameid);
+			item->nameid = nameid;
+			// name_english
+			Sql_GetData(sql_handle, 1, &data, &len);
+			len = min(len, sizeof(item->name) - 1);
+			memcpy(item->name, data, len);
+			memset(item->name + len, 0, sizeof(item->name) - len);
+			// name_japanese
+			Sql_GetData(sql_handle, 2, &data, &len);
+			len = min(len, sizeof(item->jname) - 1);
+			memcpy(item->jname, data, len);
+			memset(item->jname + len, 0, sizeof(item->jname) - len);
+			// type
+			Sql_GetData(sql_handle, 3, &data, NULL);
+			item->type = atoi(data);
+			if( item->type == IT_DELAYCONSUME )
+				item->type = IT_USABLE;
 		}
+		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, item_db_name[i]);
 	}
+	Sql_FreeResult(sql_handle);
 
 	return 0;
 }

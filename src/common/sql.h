@@ -10,6 +10,8 @@
 #include <stdarg.h>// va_list
 
 
+//## TODO improve documentation
+
 
 // Return codes
 #define SQL_ERROR -1
@@ -21,6 +23,7 @@
 enum SqlDataType
 {
 	SQLDT_NULL,
+	// fixed size
 	SQLDT_INT8,
 	SQLDT_INT16,
 	SQLDT_INT32,
@@ -29,8 +32,21 @@ enum SqlDataType
 	SQLDT_UINT16,
 	SQLDT_UINT32,
 	SQLDT_UINT64,
+	// platform dependent size
+	SQLDT_CHAR,
+	SQLDT_SHORT,
+	SQLDT_INT,
+	SQLDT_LONG,
+	SQLDT_LONGLONG,
+	SQLDT_UCHAR,
+	SQLDT_USHORT,
+	SQLDT_UINT,
+	SQLDT_ULONG,
+	SQLDT_ULONGLONG,
+	// floating point
 	SQLDT_FLOAT,
 	SQLDT_DOUBLE,
+	// other
 	SQLDT_STRING,
 	SQLDT_BLOB,
 	SQLDT_LASTID
@@ -71,6 +87,9 @@ int Sql_Query(struct Sql* self, const char* query, ...);
 /// Executes a query.
 int Sql_QueryV(struct Sql* self, const char* query, va_list args);
 
+/// Executes a query.
+int Sql_QueryStr(struct Sql* self, const char* query);
+
 /// Returns the number of the AUTO_INCREMENT column of the last INSERT/UPDATE query.
 uint64 Sql_LastInsertId(struct Sql* self);
 
@@ -89,8 +108,12 @@ int Sql_GetData(struct Sql* self, size_t col, char** out_buf, size_t* out_len);
 /// Frees the result of the query.
 void Sql_FreeResult(struct Sql* self);
 
-/// Shows debug information (last query).
+#if defined(SQL_REMOVE_SHOWDEBUG)
+#define Sql_ShowDebug(self) (void)0
+#else
 #define Sql_ShowDebug(self) Sql_ShowDebug_(self, __FILE__, __LINE__)
+#endif
+/// Shows debug information (last query).
 void Sql_ShowDebug_(struct Sql* self, const char* debug_file, const unsigned long debug_line);
 
 /// Frees a Sql handle returned by Sql_Malloc.
@@ -112,6 +135,9 @@ int SqlStmt_Prepare(struct SqlStmt* self, const char* query, ...);
 
 /// Prepares the statement.
 int SqlStmt_PrepareV(struct SqlStmt* self, const char* query, va_list args);
+
+/// Prepares the statement.
+int SqlStmt_PrepareStr(struct SqlStmt* self, const char* query);
 
 /// Returns the number of parameters in the statement.
 size_t SqlStmt_NumParams(struct SqlStmt* self);
@@ -140,8 +166,12 @@ int SqlStmt_NextRow(struct SqlStmt* self);
 /// Frees the result of the last execution.
 void SqlStmt_FreeResult(struct SqlStmt* self);
 
-/// Shows debug information (with statement).
+#if defined(SQL_REMOVE_SHOWDEBUG)
+#define SqlStmt_ShowDebug(self) (void)0
+#else
 #define SqlStmt_ShowDebug(self) SqlStmt_ShowDebug_(self, __FILE__, __LINE__)
+#endif
+/// Shows debug information (with statement).
 void SqlStmt_ShowDebug_(struct SqlStmt* self, const char* debug_file, const unsigned long debug_line);
 
 /// Frees a SqlStmt returned by SqlStmt_Malloc.

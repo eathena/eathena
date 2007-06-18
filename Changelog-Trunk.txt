@@ -1,7 +1,11 @@
 Date	Added
 
 Temporary branch for sql abstraction (from trunk r10748)
+to change the database driver just reimplement common/sql.c with the new driver
 
+2007/06/18
+	* Added support for platform dependent types to sql statements.
+	* Char sql server using the new code. (testing is needed)
 2007/06/12
 	* Abstraction for the sql code created. (common/sql)
 	* Login sql server using the new code. (testing is needed)

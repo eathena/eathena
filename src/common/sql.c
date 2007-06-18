@@ -10,10 +10,11 @@
 #ifdef WIN32
 #include <winsock2.h>
 #endif
-//add include for DBMS(mysql)
 #include <mysql.h>
 #include <stdlib.h>
 
+
+//##TODO protect against NULL
 
 
 struct Sql
@@ -110,6 +111,7 @@ int Sql_GetColumnNames(struct Sql* self, const char* table, char* out_buf, size_
 		if( off + len + 2 > buf_len )
 		{
 			ShowDebug("Sql_GetColumns: output buffer is too small\n");
+			*out_buf = '\0';
 			return SQL_ERROR;
 		}
 		memcpy(out_buf+off, data, len);
@@ -174,10 +176,33 @@ int Sql_Query(struct Sql* self, const char* query, ...)
 
 
 /// Executes a query.
-int Sql_QueryV(struct Sql* self, const char* fmt, va_list args)
+int Sql_QueryV(struct Sql* self, const char* query, va_list args)
 {
 	Sql_FreeResult(self);
-	StringBuf_Vprintf(&self->buf, fmt, args);
+	StringBuf_Clear(&self->buf);
+	StringBuf_Vprintf(&self->buf, query, args);
+	if( mysql_real_query(&self->handle, StringBuf_Value(&self->buf), (unsigned long)StringBuf_Length(&self->buf)) )
+	{
+		ShowSQL("DB error - %s\n", mysql_error(&self->handle));
+		return SQL_ERROR;
+	}
+	self->result = mysql_store_result(&self->handle);
+	if( mysql_errno(&self->handle) != 0 )
+	{
+		ShowSQL("DB error - %s\n", mysql_error(&self->handle));
+		return SQL_ERROR;
+	}
+	return SQL_SUCCESS;
+}
+
+
+
+/// Executes a query.
+int Sql_QueryStr(struct Sql* self, const char* query)
+{
+	Sql_FreeResult(self);
+	StringBuf_Clear(&self->buf);
+	StringBuf_AppendStr(&self->buf, query);
 	if( mysql_real_query(&self->handle, StringBuf_Value(&self->buf), (unsigned long)StringBuf_Length(&self->buf)) )
 	{
 		ShowSQL("DB error - %s\n", mysql_error(&self->handle));
@@ -297,6 +322,25 @@ void Sql_Free(struct Sql *self)
 
 
 
+/// Returns the mysql integer type with the target size.
+///
+/// @private
+static enum enum_field_types SizeToMysqlIntType(int sz)
+{
+	switch( sz )
+	{
+	case 1: return MYSQL_TYPE_TINY;
+	case 2: return MYSQL_TYPE_SHORT;
+	case 4: return MYSQL_TYPE_LONG;
+	case 8: return MYSQL_TYPE_LONGLONG;
+	default:
+		ShowDebug("SizeToMysqlIntType: unsupported size (%d)\n", sz);
+		return MYSQL_TYPE_NULL;
+	}
+}
+
+
+
 /// Binds a parameter/result.
 ///
 /// @private
@@ -307,6 +351,7 @@ static int BindSqlDataType(MYSQL_BIND* bind, enum SqlDataType buffer_type, void*
 	{
 	case SQLDT_NULL: bind->buffer_type = MYSQL_TYPE_NULL;
 		break;
+	// fixed size
 	case SQLDT_UINT8: bind->is_unsigned = 1;
 	case SQLDT_INT8: bind->buffer_type = MYSQL_TYPE_TINY;
 		break;
@@ -319,10 +364,28 @@ static int BindSqlDataType(MYSQL_BIND* bind, enum SqlDataType buffer_type, void*
 	case SQLDT_UINT64: bind->is_unsigned = 1;
 	case SQLDT_INT64: bind->buffer_type = MYSQL_TYPE_LONGLONG;
 		break;
+	// platform dependent size
+	case SQLDT_UCHAR: bind->is_unsigned = 1;
+	case SQLDT_CHAR: bind->buffer_type = SizeToMysqlIntType(sizeof(char));
+		break;
+	case SQLDT_USHORT: bind->is_unsigned = 1;
+	case SQLDT_SHORT: bind->buffer_type = SizeToMysqlIntType(sizeof(short));
+		break;
+	case SQLDT_UINT: bind->is_unsigned = 1;
+	case SQLDT_INT: bind->buffer_type = SizeToMysqlIntType(sizeof(int));
+		break;
+	case SQLDT_ULONG: bind->is_unsigned = 1;
+	case SQLDT_LONG: bind->buffer_type = SizeToMysqlIntType(sizeof(long));
+		break;
+	case SQLDT_ULONGLONG: bind->is_unsigned = 1;
+	case SQLDT_LONGLONG: bind->buffer_type = SizeToMysqlIntType(sizeof(long long));
+		break;
+	// floating point
 	case SQLDT_FLOAT: bind->buffer_type = MYSQL_TYPE_FLOAT;
 		break;
 	case SQLDT_DOUBLE: bind->buffer_type = MYSQL_TYPE_DOUBLE;
 		break;
+	// other
 	case SQLDT_STRING: bind->buffer_type = MYSQL_TYPE_STRING;
 		break;
 	case SQLDT_BLOB: bind->buffer_type = MYSQL_TYPE_BLOB;
@@ -382,7 +445,26 @@ int SqlStmt_Prepare(struct SqlStmt* self, const char* query, ...)
 int SqlStmt_PrepareV(struct SqlStmt* self, const char* query, va_list args)
 {
 	SqlStmt_FreeResult(self);
+	StringBuf_Clear(&self->buf);
 	StringBuf_Vprintf(&self->buf, query, args);
+	if( mysql_stmt_prepare(self->stmt, StringBuf_Value(&self->buf), (unsigned long)StringBuf_Length(&self->buf)) )
+	{
+		ShowSQL("DB error - %s\n", mysql_stmt_error(self->stmt));
+		return SQL_ERROR;
+	}
+	self->bind_params = false;
+
+	return SQL_SUCCESS;
+}
+
+
+
+/// Prepares the statement.
+int SqlStmt_PrepareStr(struct SqlStmt* self, const char* query)
+{
+	SqlStmt_FreeResult(self);
+	StringBuf_Clear(&self->buf);
+	StringBuf_AppendStr(&self->buf, query);
 	if( mysql_stmt_prepare(self->stmt, StringBuf_Value(&self->buf), (unsigned long)StringBuf_Length(&self->buf)) )
 	{
 		ShowSQL("DB error - %s\n", mysql_stmt_error(self->stmt));
