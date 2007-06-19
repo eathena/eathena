@@ -22,6 +22,9 @@ Playtester
 
 Date		Added
 ======
+2007/06/19
+	* Fixed Some variables like "@item", and changed to ".@item". [Samuray22]
+	- Thanks to BrainStorm for the fix.
 2007/06/18
 	* Merged Updated Airship [Samuray22]
 	* Added Heart Fragment Quest [Samuray22]
