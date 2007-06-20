@@ -1,4 +1,11 @@
 Date	Added
+2007/06/20
+	* Added append methods to CFieldFixString and CFieldCString.
+	* Fixed mapcell_t not initializing icewall, creating an infinite loop 
+	  when someone enters the game if the server is compiled with VS in 
+	  debug mode.
+	* Converted the current real packets to offset-based implementations.
+	* Created offset-based counterparts of packets and arrays of fields.
 2007/06/14
 	* Added some real packets for testing.
 	* Changed packet stuff from namespace basics to namespace NSocket.

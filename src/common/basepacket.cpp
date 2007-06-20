@@ -368,6 +368,38 @@ CFieldCString& CFieldCString::assign(const char* str, size_t sz)
 	return *this;
 }
 
+/// Appends data to this c-string.
+CFieldCString& CFieldCString::operator <<(const CFieldCString& f)
+{
+	return this->append(f.data(), f.length());
+}
+CFieldCString& CFieldCString::operator <<(const char* str)
+{
+	return this->append(str, ~size_t(0));
+}
+CFieldCString& CFieldCString::append(const char* str, size_t sz)
+{
+	if( this->_h )
+	{
+		if( str == NULL )
+			str = "";
+		size_t off = this->length();
+		size_t len = strnlen(str, sz) + off + 1;
+		if( !this->_h->resize(this->_id, len, len) )
+		{
+#if defined(DEBUG)
+			if( len == 0 )//## error, this should never happen
+				printf("[Debug] resize failed (len=0) at CFieldCString::append(const char* str, size_t sz)\n");
+#endif//DEBUG
+			this->_h->resize(this->_id, len, len);// resize to max instead
+		}
+		char* buf = (char*)this->_h->data(this->_id);
+		memcpy(buf + off, str, len - off - 1);
+		buf[len - 1] = '\0';
+	}
+	return *this;
+}
+
 /// Returns the length of this c-string.
 size_t CFieldCString::size() const
 {

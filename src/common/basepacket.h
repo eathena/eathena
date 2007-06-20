@@ -1692,6 +1692,15 @@ public:
 	CFieldFixString<SZ>& operator =(const char* str);
 	CFieldFixString<SZ>& assign(const char* str, size_t sz);
 
+	/// Appends data to this string.
+	template<size_t SZ2>
+	CFieldFixString<SZ>& operator <<(const CFieldFixString<SZ2>& f)
+	{
+		return this->append(f.data(), SZ2);
+	}
+	CFieldFixString<SZ>& operator <<(const char* str);
+	CFieldFixString<SZ>& append(const char* str, size_t sz);
+
 	/// Returns the length of this string.
 	size_t size() const;
 	size_t length() const;
@@ -1748,6 +1757,29 @@ CFieldFixString<SZ>& CFieldFixString<SZ>::assign(const char* str, size_t sz)
 	return *this;
 }
 
+/// Appends data to this string.
+template<size_t SZ>
+CFieldFixString<SZ>& CFieldFixString<SZ>::operator <<(const char* str)
+{
+	return this->append(str, ~size_t(0));
+}
+template<size_t SZ>
+CFieldFixString<SZ>& CFieldFixString<SZ>::append(const char* str, size_t sz)
+{
+	if( this->_h )
+	{
+		if( str == NULL )
+			str = "";
+		size_t off = this->length();
+		size_t len = strnlen(str, basics::min<size_t>(sz, SZ - off));
+		char* buf = (char*)this->_h->data(this->_id);
+		memcpy(buf + off, str, len);
+		if( off + len < SZ )
+			memset(buf + off + len, 0, SZ - len);
+	}
+	return *this;
+}
+
 /// Returns the length of this string.
 template<size_t SZ>
 size_t CFieldFixString<SZ>::size() const
@@ -1794,6 +1826,11 @@ public:
 	CFieldCString& operator =(const CFieldCString& f);
 	CFieldCString& operator =(const char* str);
 	CFieldCString& assign(const char* str, size_t sz);
+
+	/// Appends data to this c-string.
+	CFieldCString& operator <<(const CFieldCString& f);
+	CFieldCString& operator <<(const char* str);
+	CFieldCString& append(const char* str, size_t sz);
 
 	/// Returns the length of this c-string.
 	size_t size() const;
