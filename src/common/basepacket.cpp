@@ -525,44 +525,52 @@ bool CFieldDynBlob::resize(size_t len)
 
 #if defined(DEBUG)
 template<size_t SZ>
-class CPublicFixPacket : public CFixPacket<1,SZ>
+class CPublicFixOffPacket : public CFixOffPacket<SZ>
 {
 public:
-	CPublicFixPacket() : CFixPacket<1,SZ>() {}
-	CPublicFixPacket(const uint8* buf, size_t sz) : CFixPacket<1,SZ>(buf, sz) {}
+	CPublicFixOffPacket() : CFixOffPacket<SZ>() {}
+	CPublicFixOffPacket(const uint8* buf, size_t sz) : CFixOffPacket<SZ>(buf, sz) {}
 };
 
 template<size_t SZ>
-class CPublicLimPacket : public CLimPacket<1,SZ>
+class CPublicFixIdxPacket : public CFixIdxPacket<1,SZ>
 {
 public:
-	CPublicLimPacket() : CLimPacket<1,SZ>() {}
-	CPublicLimPacket(const uint8* buf, size_t sz) : CLimPacket<1,SZ>(buf, sz) {}
+	CPublicFixIdxPacket() : CFixIdxPacket<1,SZ>() {}
+	CPublicFixIdxPacket(const uint8* buf, size_t sz) : CFixIdxPacket<1,SZ>(buf, sz) {}
 };
 
-class CPublicDynPacket : public CDynPacket<1>
+template<size_t SZ>
+class CPublicLimIdxPacket : public CLimIdxPacket<1,SZ>
 {
 public:
-	CPublicDynPacket() : CDynPacket<1>() {}
-	CPublicDynPacket(const uint8* buf, size_t sz) : CDynPacket<1>(buf, sz) {}
+	CPublicLimIdxPacket() : CLimIdxPacket<1,SZ>() {}
+	CPublicLimIdxPacket(const uint8* buf, size_t sz) : CLimIdxPacket<1,SZ>(buf, sz) {}
 };
 
-class CTestFixPacket : public CFixPacket<5,20>
+class CPublicDynIdxPacket : public CDynIdxPacket<1>
 {
 public:
-	CFieldB                   b;
-	CFieldW                   w;
-	CFieldL                   l;
-	CFieldFixString<10>       str;
-	CFieldFixArray<CFieldB,3> arr;
+	CPublicDynIdxPacket() : CDynIdxPacket<1>() {}
+	CPublicDynIdxPacket(const uint8* buf, size_t sz) : CDynIdxPacket<1>(buf, sz) {}
+};
+
+class CTestFixPacket : public CFixIdxPacket<5,20>
+{
+public:
+	CFieldB							b;
+	CFieldW							w;
+	CFieldL							l;
+	CFieldFixString<10>				str;
+	CFieldFixIdxArray<CFieldB,3>	arr;
 public:
 	CTestFixPacket()
-	:	CFixPacket<5,20>()
+	:	CFixIdxPacket<5,20>()
 	{
 		Init();
 	}
 	CTestFixPacket(const uint8* buf, size_t sz)
-	:	CFixPacket<5,20>(buf, sz)
+	:	CFixIdxPacket<5,20>(buf, sz)
 	{
 		Init();
 	}
@@ -579,15 +587,47 @@ private:
 	}
 };
 
-class CTestLimPacket : public CLimPacket<3,10>
+class CTestFixPacket2 : public CFixOffPacket<20>
 {
 public:
-	CFieldW       pre;
-	CFieldCString str;
-	CFieldW       post;
+	CFieldB							b;
+	CFieldW							w;
+	CFieldL							l;
+	CFieldFixString<10>				str;
+	CFieldFixOffArray<CFieldB,3>	arr;
+public:
+	CTestFixPacket2()
+	:	CFixOffPacket<20>()
+	{
+		Init();
+	}
+	CTestFixPacket2(const uint8* buf, size_t sz)
+	:	CFixOffPacket<20>(buf, sz)
+	{
+		Init();
+	}
+
+private:
+	void Init()
+	{
+		// handler,off,-,-
+		b.Init(&this->_h, 0, 0, 0);
+		w.Init(&this->_h, 1, 0, 0);
+		l.Init(&this->_h, 3, 0, 0);
+		str.Init(&this->_h, 7, 0, 0);
+		arr.Init(&this->_h, 17, 0, 0);
+	}
+};
+
+class CTestLimPacket : public CLimIdxPacket<3,10>
+{
+public:
+	CFieldW			pre;
+	CFieldCString	str;
+	CFieldW			post;
 public:
 	CTestLimPacket()
-	:	CLimPacket<3,10>()
+	:	CLimIdxPacket<3,10>()
 	{
 		NFieldHandler::CIdxAutoRegistry reg(this->_h);
 		reg << pre
@@ -597,15 +637,15 @@ public:
 
 };
 
-class CTestDynPacket : public CDynPacket<3>
+class CTestDynPacket : public CDynIdxPacket<3>
 {
 public:
-	CFieldW       pre;
-	CFieldCString str;
-	CFieldW       post;
+	CFieldW			pre;
+	CFieldCString	str;
+	CFieldW			post;
 public:
 	CTestDynPacket()
-	:	CDynPacket<3>()
+	:	CDynIdxPacket<3>()
 	{
 		NFieldHandler::CIdxAutoRegistry reg(this->_h);
 		reg << pre
@@ -615,16 +655,16 @@ public:
 
 };
 
-class CTestDynPacket2 : public CDynPacket<4>
+class CTestDynPacket2 : public CDynIdxPacket<4>
 {
 public:
-	CFieldCString                    str1;
-	CFieldCString                    str2;
-	CFieldFixArray<CFieldCString, 2> arr;
-	CFieldCString                    str3;
+	CFieldCString						str1;
+	CFieldCString						str2;
+	CFieldFixIdxArray<CFieldCString,2>	arr;
+	CFieldCString						str3;
 public:
 	CTestDynPacket2()
-	:	CDynPacket<4>()
+	:	CDynIdxPacket<4>()
 	{
 		NFieldHandler::CIdxAutoRegistry reg(this->_h);
 		reg << str1
@@ -634,15 +674,15 @@ public:
 	}
 };
 
-class CTestDynPacket3 : public CDynPacket<3>
+class CTestDynPacket3 : public CDynIdxPacket<3>
 {
 public:
-	CFieldB                       b1;
-	CFieldDynArray<CFieldCString> arr;
-	CFieldB                       b2;
+	CFieldB								b1;
+	CFieldDynIdxArray<CFieldCString>	arr;
+	CFieldB								b2;
 public:
 	CTestDynPacket3()
-	:	CDynPacket<3>()
+	:	CDynIdxPacket<3>()
 	{
 		NFieldHandler::CIdxAutoRegistry reg(this->_h);
 		reg << b1
@@ -652,18 +692,18 @@ public:
 
 };
 
-class CTestMorphPacket : public CDynPacket<5>
+class CTestMorphPacket : public CDynIdxPacket<5>
 {
 public:
-	CFieldB val0;
-	CFieldB val1;
+	CFieldB	val0;
+	CFieldB	val1;
 private:
-	CFieldDynBlob pad0;
-	CFieldDynBlob pad1;
-	CFieldDynBlob pad2;
+	CFieldDynBlob	pad0;
+	CFieldDynBlob	pad1;
+	CFieldDynBlob	pad2;
 public:
 	CTestMorphPacket()
-	:	CDynPacket<5>()
+	:	CDynIdxPacket<5>()
 	{
 		NFieldHandler::CIdxAutoRegistry reg(this->_h);
 		reg << pad0// 0
@@ -673,7 +713,7 @@ public:
 			<< pad2;// 4
 	}
 	CTestMorphPacket(uint8* buf, size_t len, size_t off0, size_t off1)
-	:	CDynPacket<5>(buf, len)
+	:	CDynIdxPacket<5>(buf, len)
 	{
 		this->Register(off0, off1);
 	}
@@ -725,86 +765,133 @@ void test_packet(void)
 {
 #if defined(DEBUG)
 	{
-		printf("test_packet: fixed-size packet constructors\n");
+		printf("test_packet: fixed-size packet constructors (off)\n");
 		{// default constructor
-			CPublicFixPacket<20> p;
+			CPublicFixOffPacket<20> p;
 			dump(p);
 		}
 		{// null data constructor
-			CPublicFixPacket<20> p(NULL, 5);
+			CPublicFixOffPacket<20> p(NULL, 5);
 			dump(p);
 		}
 		{// size under
 			uint8 buf[] = {0,1,2,3,4,5,6,7,8,9};
-			CPublicFixPacket<20> p(buf, sizeof(buf));
+			CPublicFixOffPacket<20> p(buf, sizeof(buf));
 			dump(p);
 		}
 		{// size minus one
 			uint8 buf[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18};
-			CPublicFixPacket<20> p(buf, sizeof(buf));
+			CPublicFixOffPacket<20> p(buf, sizeof(buf));
 			dump(p);
 		}
 		{// exact size
 			uint8 buf[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19};
-			CPublicFixPacket<20> p(buf, sizeof(buf));
+			CPublicFixOffPacket<20> p(buf, sizeof(buf));
 			dump(p);
 		}
 		{// size over
 			uint8 buf[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29};
-			CPublicFixPacket<20> p(buf, sizeof(buf));
+			CPublicFixOffPacket<20> p(buf, sizeof(buf));
+			dump(p);
+		}
+	}
+	{
+		printf("test_packet: fixed-size packet constructors (idx)\n");
+		{// default constructor
+			CPublicFixIdxPacket<20> p;
+			dump(p);
+		}
+		{// null data constructor
+			CPublicFixIdxPacket<20> p(NULL, 5);
+			dump(p);
+		}
+		{// size under
+			uint8 buf[] = {0,1,2,3,4,5,6,7,8,9};
+			CPublicFixIdxPacket<20> p(buf, sizeof(buf));
+			dump(p);
+		}
+		{// size minus one
+			uint8 buf[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18};
+			CPublicFixIdxPacket<20> p(buf, sizeof(buf));
+			dump(p);
+		}
+		{// exact size
+			uint8 buf[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19};
+			CPublicFixIdxPacket<20> p(buf, sizeof(buf));
+			dump(p);
+		}
+		{// size over
+			uint8 buf[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29};
+			CPublicFixIdxPacket<20> p(buf, sizeof(buf));
 			dump(p);
 		}
 	}
 	{
 		printf("test_packet: limited-size packet constructors\n");
 		{// default constructor
-			CPublicLimPacket<20> p;
+			CPublicLimIdxPacket<20> p;
 			dump(p);
 		}
 		{// null data constructor
-			CPublicLimPacket<20> p(NULL, 5);
+			CPublicLimIdxPacket<20> p(NULL, 5);
 			dump(p);
 		}
 		{// size under
 			uint8 buf[] = {0,1,2,3,4,5,6,7,8,9};
-			CPublicLimPacket<20> p(buf, sizeof(buf));
+			CPublicLimIdxPacket<20> p(buf, sizeof(buf));
 			dump(p);
 		}
 		{// size minus one
 			uint8 buf[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18};
-			CPublicLimPacket<20> p(buf, sizeof(buf));
+			CPublicLimIdxPacket<20> p(buf, sizeof(buf));
 			dump(p);
 		}
 		{// exact size
 			uint8 buf[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19};
-			CPublicLimPacket<20> p(buf, sizeof(buf));
+			CPublicLimIdxPacket<20> p(buf, sizeof(buf));
 			dump(p);
 		}
 		{// size over
 			uint8 buf[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29};
-			CPublicLimPacket<20> p(buf, sizeof(buf));
+			CPublicLimIdxPacket<20> p(buf, sizeof(buf));
 			dump(p);
 		}
 	}
 	{
 		printf("test_packet: dynamic-size packet constructors\n");
 		{// default constructor
-			CPublicDynPacket p;
+			CPublicDynIdxPacket p;
 			dump(p);
 		}
 		{// null data constructor
-			CPublicDynPacket p(NULL, 5);
+			CPublicDynIdxPacket p(NULL, 5);
 			dump(p);
 		}
 		{// data constructor
 			uint8 buf[] = {0,1,2,3,4,5,6,7,8,9};
-			CPublicDynPacket p(buf, sizeof(buf));
+			CPublicDynIdxPacket p(buf, sizeof(buf));
 			dump(p);
 		}
 	}
 	{
 		printf("test_packet: CTestFixPacket\n");
 		CTestFixPacket p;
+		dump(p); p.b = 100;
+		dump(p); p.w = 10000;
+		dump(p); p.l = 100000000 + p.b + p.w;
+		dump(p); p.str = "under";
+		dump(p); p.str = "minus one";
+		dump(p); p.str = "exact-----";
+		dump(p); p.str = "1234567890 OVER!!!";
+		dump(p); p.str = "under";
+		dump(p); p.arr[0] = 1;
+		dump(p); p.arr[1] = 2;
+		dump(p); p.arr[2] = 3;
+		dump(p);
+	}
+	{
+		printf("test_packet: CTestFixPacket2\n");
+		CTestFixPacket2 p;
 		dump(p); p.b = 100;
 		dump(p); p.w = 10000;
 		dump(p); p.l = 100000000 + p.b + p.w;

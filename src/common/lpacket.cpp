@@ -11,12 +11,12 @@ namespace NSocket {
 
 /// Login failed.
 CPacket006A::CPacket006A(uint8 err, const char* msg)
-:	CFixPacket<3,23>()
+:	CFixOffPacket<23>()
 {
-	NFieldHandler::CIdxAutoRegistry reg(this->_h);
-	reg << this->pid;
-	reg << this->err;
-	reg << this->msg;
+	// handler,offset,-,-
+	this->pid.Init(&this->_h, 0, 0, 0);
+	this->err.Init(&this->_h, 2, 0, 0);
+	this->msg.Init(&this->_h, 3, 0, 0);
 
 	this->pid = 0x6a;
 	this->err = err;
@@ -28,11 +28,11 @@ CPacket006A::CPacket006A(uint8 err, const char* msg)
 
 /// Rejected from server
 CPacket0074::CPacket0074(uint8 err)
-:	CFixPacket<2,3>()
+:	CFixOffPacket<3>()
 {
-	NFieldHandler::CIdxAutoRegistry reg(this->_h);
-	reg << this->pid;
-	reg << this->err;
+	// handler,offset,-,-
+	this->pid.Init(&this->_h, 0, 0, 0);
+	this->err.Init(&this->_h, 2, 0, 0);
 
 	this->pid = 0x74;
 	this->err = err;
@@ -42,11 +42,11 @@ CPacket0074::CPacket0074(uint8 err)
 
 /// Kick/ban notification
 CPacket0081::CPacket0081(uint8 err)
-:	CFixPacket<2,3>()
+:	CFixOffPacket<3>()
 {
-	NFieldHandler::CIdxAutoRegistry reg(this->_h);
-	reg << this->pid;
-	reg << this->err;
+	// handler,offset,-,-
+	this->pid.Init(&this->_h, 0, 0, 0);
+	this->err.Init(&this->_h, 2, 0, 0);
 
 	this->pid = 0x81;
 	this->err = err;
@@ -56,10 +56,10 @@ CPacket0081::CPacket0081(uint8 err)
 
 /// No packet encryption
 CPacket01C7::CPacket01C7()
-:	CFixPacket<1,2>()
+:	CFixOffPacket<2>()
 {
-	NFieldHandler::CIdxAutoRegistry reg(this->_h);
-	reg << this->pid;
+	// handler,offset,-,-
+	this->pid.Init(&this->_h, 0, 0, 0);
 
 	this->pid = 0x1c7;
 }
@@ -68,11 +68,11 @@ CPacket01C7::CPacket01C7()
 
 /// Won event prize
 CPacket023D::CPacket023D(uint32 unk)
-:	CFixPacket<2,6>()
+:	CFixOffPacket<6>()
 {
-	NFieldHandler::CIdxAutoRegistry reg(this->_h);
-	reg << this->pid;
-	reg << this->unk;
+	// handler,offset,-,-
+	this->pid.Init(&this->_h, 0, 0, 0);
+	this->unk.Init(&this->_h, 2, 0, 0);
 
 	this->pid = 0x23d;
 	this->unk = unk;

@@ -43,6 +43,7 @@ namespace NSocket {
 
 
 
+///////////////////////////////////////////////////////////////////////////////
 /// S->C
 /// Login failed (disconnects and goes to login screen)
 ///
@@ -72,7 +73,7 @@ namespace NSocket {
 /// other = MsgStringTable[9] = "Rejected from server"
 ///
 /// msg: used in err=6, err=100 and err=101
-class CPacket006A : public CFixPacket<3,23>
+class CPacket006A : public CFixOffPacket<23>
 {
 public:
 	CFieldW				pid;// packet id
@@ -84,11 +85,12 @@ public:
 
 
 
+///////////////////////////////////////////////////////////////////////////////
 /// S->C
 /// Rejected from server (disconnects and goes to login screen)
 ///
 /// MsgStringTable[9] = "Rejected from server"
-class CPacket0074 : public CFixPacket<2,3>
+class CPacket0074 : public CFixOffPacket<3>
 {
 public:
 	CFieldW	pid;// packet id
@@ -99,6 +101,7 @@ public:
 
 
 
+///////////////////////////////////////////////////////////////////////////////
 /// S->C
 /// Kick/ban notification (disconnects and goes to login screen)
 ///
@@ -128,7 +131,7 @@ public:
 /// 101 = MsgStringTable[1178] = "More than 30 players sharing the same IP have logged into the game for an hour"
 /// 102 = MsgStringTable[1179] = "More than 10 connections sharing the same IP have logged into the game for an hour"
 /// other = MsgStringTable[3] = "Disconnected"
-class CPacket0081 : public CFixPacket<2,3>
+class CPacket0081 : public CFixOffPacket<3>
 {
 public:
 	CFieldW	pid;// packet id
@@ -139,9 +142,10 @@ public:
 
 
 
+///////////////////////////////////////////////////////////////////////////////
 /// S->C
 /// Error message "No Packet Encryption !!!"
-class CPacket01C7 : public CFixPacket<1,2>
+class CPacket01C7 : public CFixOffPacket<2>
 {
 public:
 	CFieldW	pid;// packet id
@@ -151,8 +155,10 @@ public:
 
 
 
+///////////////////////////////////////////////////////////////////////////////
+/// S->C
 /// Displays message MsgStringTable[1020] = "[EVENT] You have won an event prize. Please claim your prize in game."
-class CPacket023D : public CFixPacket<2,6>
+class CPacket023D : public CFixOffPacket<6>
 {
 public:
 	CFieldW	pid;// packet id

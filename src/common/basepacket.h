@@ -91,7 +91,6 @@ Composite field:
 
 	TODO
 
-	specialization for fixed-size packets: ids are offsets
 	move the code of CNumField specializations outside the definitions
 
 */
@@ -299,7 +298,7 @@ public:
 
 	/// Adds id to this set.
 	bool add(size_t id);
-	
+
 	/// Array access.
 	const SPos& operator [](size_t id) const;
 	SPos& operator [](size_t id);
@@ -571,6 +570,178 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
+/// Field handler where ids are offsets in the buffer.
+/// If used Only use in fixed-size packets with fixed-size fields.
+///
+/// @param B Buffer
+template<class B>
+class COffFieldHandler : public IFieldHandler
+{
+public:
+	COffFieldHandler();
+	COffFieldHandler(const uint8* buf, size_t sz);
+	virtual ~COffFieldHandler();
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Ensures that the buffer is big enough.
+	virtual void setup(size_t id, size_t off, size_t len);
+
+	/// Returns the data of the target id.
+	virtual const uint8* data(size_t id) const;
+	virtual uint8* data(size_t id);
+
+	/// Returns the offset of the target id.
+	virtual size_t offset(size_t id) const;
+
+	/// Returns the length of the target id.
+	virtual size_t length(size_t id) const;
+
+	/// Returns the capacity of the target id.
+	virtual size_t capacity(size_t id) const;
+
+	/// Inserts n bytes in the offset of the target id.
+	/// On success, out contains n.
+	/// On failure, out contains the max it can grow.
+	virtual bool insert(size_t id, size_t off, size_t n, size_t& out);
+
+	/// Removes n bytes in the offset of the target id.
+	/// On success, out contains sz.
+	/// On failure, out contains the max it can shrink.
+	virtual bool remove(size_t id, size_t off, size_t n, size_t& out);
+
+	/// Tries to resize the target id.
+	/// On success out contains the new size.
+	/// On failure out contains the maximum size if increasing or
+	/// the minimum size if decreasing.
+	virtual bool resize(size_t id, size_t sz, size_t& out);
+
+	/// Returns the data of this buffer.
+	const uint8* data() const;
+	uint8* data();
+
+	/// Returns the length of this buffer.
+	size_t length() const;
+
+protected:
+	///////////////////////////////////////////////////////////////////////////
+	/// Buffer
+	B _buf;
+};
+
+template<class B>
+COffFieldHandler<B>::COffFieldHandler()
+:	_buf()
+{}
+template<class B>
+COffFieldHandler<B>::COffFieldHandler(const uint8* buf, size_t sz)
+:	_buf(buf, sz)
+{}
+template<class B>
+COffFieldHandler<B>::~COffFieldHandler()
+{}
+
+/// Ensures that the buffer is big enough.
+template<class B>
+void COffFieldHandler<B>::setup(size_t id, size_t off, size_t len)
+{
+	size_t maxlen;
+	if( this->_buf.length() < id + len && !this->_buf.resize(id + len, maxlen) )
+	{
+		//## critical error, bad packet definition?
+		printf("[Debug] resize failed - bad packet definition? at COffFieldHandler::setup(%u,%u,%u)\n", (uint)id, (uint)off, (uint)len);
+	}
+}
+
+/// Returns the data of the target id.
+template<class B>
+const uint8* COffFieldHandler<B>::data(size_t id) const
+{
+	return this->_buf.data(id);
+}
+template<class B>
+uint8* COffFieldHandler<B>::data(size_t id)
+{
+	return this->_buf.data(id);
+}
+
+/// Returns the offset of the target id.
+template<class B>
+size_t COffFieldHandler<B>::offset(size_t id) const
+{
+	return id;
+}
+
+/// Returns the length of the target id.
+template<class B>
+size_t COffFieldHandler<B>::length(size_t id) const
+{
+	if( this->length() < id )
+		return 0;
+	return this->length() - id;
+}
+
+/// Returns the capacity of the target id.
+template<class B>
+size_t COffFieldHandler<B>::capacity(size_t id) const
+{
+	if( this->_buf.capacity() < id )
+		return 0;
+	return this->_buf.capacity() - id;
+}
+
+/// Inserts n bytes in the offset of the target id.
+/// On success, out contains n.
+/// On failure, out contains the max it can grow.
+template<class B>
+bool COffFieldHandler<B>::insert(size_t id, size_t off, size_t n, size_t& out)
+{
+	return this->_buf.insert(id + off, n, out);
+}
+
+/// Removes n bytes in the offset of the target id.
+/// On success, out contains sz.
+/// On failure, out contains the max it can shrink.
+template<class B>
+bool COffFieldHandler<B>::remove(size_t id, size_t off, size_t n, size_t& out)
+{
+	return this->_buf.remove(id + off, n, out);
+}
+
+/// Tries to resize the target id.
+/// On success out contains the new size.
+/// On failure out contains the maximum size if increasing or
+/// the minimum size if decreasing.
+template<class B>
+bool COffFieldHandler<B>::resize(size_t id, size_t sz, size_t& out)
+{
+	bool res = this->_buf.resize(id + sz, out);
+	out -= id;
+	return res;
+}
+
+/// Returns the data of the buffer.
+template<class B>
+const uint8* COffFieldHandler<B>::data() const
+{
+	return this->_buf.data();
+}
+template<class B>
+uint8* COffFieldHandler<B>::data()
+{
+	return this->_buf.data();
+}
+
+/// Returns the length of the buffer.
+template<class B>
+size_t COffFieldHandler<B>::length() const
+{
+	return this->_buf.length();
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
 /// Field handler where ids are indexes in a position array.
 ///
 /// @param P Positions
@@ -617,11 +788,11 @@ public:
 	/// the minimum size if decreasing.
 	virtual bool resize(size_t id, size_t sz, size_t& out);
 
-	/// Returns the data of this buffer.
+	/// Returns the data of the buffer.
 	const uint8* data() const;
 	uint8* data();
 
-	/// Returns the length of this buffer.
+	/// Returns the length of the buffer.
 	size_t length() const;
 
 protected:
@@ -656,15 +827,12 @@ void CIdxFieldHandler<P,B>::setup(size_t id, size_t off, size_t len)
 	this->_pos(id).off = off;
 	this->_pos(id).len = len;
 	size_t end = off + len;
-	if( this->_buf.length() < end )
+	if( this->_buf.length() < end && !this->_buf.resize(end, end) )
 	{
-		if( !this->_buf.resize(end, end) )
-		{
-			//## critical error, bad packet definition?
-			printf("[Debug] resize failed - bad packet definition? at CIdxFieldHandler::setup(%u,%u,%u)\n", (uint)id, (uint)off, (uint)len);
-			this->_pos(id).off = 0;
-			this->_pos(id).len = 0;
-		}
+		//## critical error, bad packet definition?
+		printf("[Debug] resize failed (maxlen=%u)- bad packet definition? at CIdxFieldHandler::setup(%u,%u,%u)\n", (uint)end, (uint)id, (uint)off, (uint)len);
+		this->_pos(id).off = 0;
+		this->_pos(id).len = 0;
 	}
 }
 
@@ -794,7 +962,7 @@ bool CIdxFieldHandler<P,B>::resize(size_t id, size_t sz, size_t& out)
 	return true;
 }
 
-/// Returns the data of this buffer.
+/// Returns the data of the buffer.
 template<class P, class B>
 const uint8* CIdxFieldHandler<P,B>::data() const
 {
@@ -806,7 +974,7 @@ uint8* CIdxFieldHandler<P,B>::data()
 	return this->_buf.data();
 }
 
-/// Returns the length of this buffer.
+/// Returns the length of the buffer.
 template<class P, class B>
 size_t CIdxFieldHandler<P,B>::length() const
 {
@@ -928,6 +1096,45 @@ private:
 
 
 
+///////////////////////////////////////////////////////////////////////////////
+/// Field handler to get the values passed on to the setup method.
+class CSetupFieldHandler : public IFieldHandler
+{
+public:
+	/// Values of the setup method.
+	size_t id;
+	size_t off;
+	size_t len;
+public:
+	CSetupFieldHandler()
+	:	id(0)
+	,	off(0)
+	,	len(0)
+	{}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Records the setup values.
+	virtual void setup(size_t id, size_t off, size_t len)
+	{
+		this->id = id;
+		this->off = off;
+		this->len = len;
+	}
+
+	/// Not Supported
+	virtual const uint8* data(size_t) const					{ return NULL; }
+	virtual uint8* data(size_t)								{ return NULL; }
+	virtual size_t offset(size_t) const						{ return 0; }
+	virtual size_t length(size_t) const						{ return 0; }
+	virtual size_t capacity(size_t) const					{ return 0; }
+	virtual bool insert(size_t, size_t, size_t, size_t&)	{ return false; }
+	virtual bool remove(size_t, size_t, size_t, size_t&)	{ return false; }
+	virtual bool resize(size_t, size_t, size_t&)			{ return false; }
+};
+
+
+
 
 
 }// end namespace NFieldHandler
@@ -1001,45 +1208,98 @@ protected:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Fixed-size packet.
+/// Fixed-size packet with an offset-based field handler.
 /// Must contain fixed-size fields only.
 ///
-/// @param NUM Number of fields 
 /// @param SZ Size of the buffer
-template<size_t NUM,size_t SZ>
-class CFixPacket : public APacket<NFieldHandler::CIdxFieldHandler<NFieldHandler::CFixPosSet<NUM>,NFieldHandler::CFixBuffer<SZ> > >
+template<size_t SZ>
+class CFixOffPacket : public APacket<NFieldHandler::COffFieldHandler<NFieldHandler::CFixBuffer<SZ> > >
 {
 protected:
-	CFixPacket<NUM,SZ>()
-	:	APacket<NFieldHandler::CIdxFieldHandler<NFieldHandler::CFixPosSet<NUM>,NFieldHandler::CFixBuffer<SZ> > >(NULL, SZ)
+	CFixOffPacket<SZ>()
+	:	APacket<NFieldHandler::COffFieldHandler<NFieldHandler::CFixBuffer<SZ> > >(NULL, SZ)
 	{}
-	CFixPacket<NUM,SZ>(const uint8* buf, size_t sz)
-	:	APacket<NFieldHandler::CIdxFieldHandler<NFieldHandler::CFixPosSet<NUM>,NFieldHandler::CFixBuffer<SZ> > >(NULL, SZ)
+	CFixOffPacket<SZ>(const uint8* buf, size_t sz)
+	:	APacket<NFieldHandler::COffFieldHandler<NFieldHandler::CFixBuffer<SZ> > >(NULL, SZ)
 	{
 		if( buf )
-		{
-			if( sz > SZ )
-				sz = SZ;
-			memcpy(this->_h.data(), buf, sz);
-		}
+			memcpy(this->_h.data(), buf, basics::min<size_t>(sz, SZ));
 	}
 };
 
 
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Dynamic-size packet with a limited buffer.
+/// Dynamic-size packet with a limited buffer and an offset-based field handler.
+/// There can be only one dynamic-size field and it must be the last one.
+///
+/// @param SZ Size of the buffer
+template<size_t SZ>
+class CLimOffPacket : public APacket<NFieldHandler::COffFieldHandler<NFieldHandler::CFixBuffer<SZ> > >
+{
+protected:
+	CLimOffPacket<SZ>()
+	:	APacket<NFieldHandler::COffFieldHandler<NFieldHandler::CFixBuffer<SZ> > >()
+	{}
+	CLimOffPacket<SZ>(const uint8* buf, size_t sz)
+	:	APacket<NFieldHandler::COffFieldHandler<NFieldHandler::CFixBuffer<SZ> > >(buf,sz)
+	{}
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// Dynamic-size packet with an offset-based field handler.
+/// There can be only one dynamic-size field and it must be the last one.
+class CDynOffPacket : public APacket<NFieldHandler::COffFieldHandler<NFieldHandler::CDynBuffer> >
+{
+protected:
+	CDynOffPacket()
+	:	APacket<NFieldHandler::COffFieldHandler<NFieldHandler::CDynBuffer> >()
+	{}
+	CDynOffPacket(const uint8* buf, size_t sz)
+	:	APacket<NFieldHandler::COffFieldHandler<NFieldHandler::CDynBuffer> >(buf,sz)
+	{}
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// Fixed-size packet with an index-based field handler.
+/// Must contain fixed-size fields only.
 ///
 /// @param NUM Number of fields 
 /// @param SZ Size of the buffer
 template<size_t NUM,size_t SZ>
-class CLimPacket : public APacket<NFieldHandler::CIdxFieldHandler<NFieldHandler::CFixPosSet<NUM>,NFieldHandler::CFixBuffer<SZ> > >
+class CFixIdxPacket : public APacket<NFieldHandler::CIdxFieldHandler<NFieldHandler::CFixPosSet<NUM>,NFieldHandler::CFixBuffer<SZ> > >
 {
 protected:
-	CLimPacket<NUM,SZ>()
+	CFixIdxPacket<NUM,SZ>()
+	:	APacket<NFieldHandler::CIdxFieldHandler<NFieldHandler::CFixPosSet<NUM>,NFieldHandler::CFixBuffer<SZ> > >(NULL, SZ)
+	{}
+	CFixIdxPacket<NUM,SZ>(const uint8* buf, size_t sz)
+	:	APacket<NFieldHandler::CIdxFieldHandler<NFieldHandler::CFixPosSet<NUM>,NFieldHandler::CFixBuffer<SZ> > >(NULL, SZ)
+	{
+		if( buf )
+			memcpy(this->_h.data(), buf, basics::min<size_t>(sz, SZ));
+	}
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// Dynamic-size packet with a limited buffer and an index-based field handler.
+///
+/// @param NUM Number of fields 
+/// @param SZ Size of the buffer
+template<size_t NUM,size_t SZ>
+class CLimIdxPacket : public APacket<NFieldHandler::CIdxFieldHandler<NFieldHandler::CFixPosSet<NUM>,NFieldHandler::CFixBuffer<SZ> > >
+{
+protected:
+	CLimIdxPacket<NUM,SZ>()
 	:	APacket<NFieldHandler::CIdxFieldHandler<NFieldHandler::CFixPosSet<NUM>,NFieldHandler::CFixBuffer<SZ> > >()
 	{}
-	CLimPacket<NUM,SZ>(const uint8* buf, size_t sz)
+	CLimIdxPacket<NUM,SZ>(const uint8* buf, size_t sz)
 	:	APacket<NFieldHandler::CIdxFieldHandler<NFieldHandler::CFixPosSet<NUM>,NFieldHandler::CFixBuffer<SZ> > >(buf,sz)
 	{}
 };
@@ -1047,17 +1307,17 @@ protected:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Dynamic-size packet.
+/// Dynamic-size packet with an index-based field handler.
 ///
 /// @param NUM Number of fields
 template<size_t NUM>
-class CDynPacket : public APacket<NFieldHandler::CIdxFieldHandler<NFieldHandler::CFixPosSet<NUM>,NFieldHandler::CDynBuffer> >
+class CDynIdxPacket : public APacket<NFieldHandler::CIdxFieldHandler<NFieldHandler::CFixPosSet<NUM>,NFieldHandler::CDynBuffer> >
 {
 protected:
-	CDynPacket<NUM>()
+	CDynIdxPacket<NUM>()
 	:	APacket<NFieldHandler::CIdxFieldHandler<NFieldHandler::CFixPosSet<NUM>,NFieldHandler::CDynBuffer> >()
 	{}
-	CDynPacket<NUM>(const uint8* buf, size_t sz)
+	CDynIdxPacket<NUM>(const uint8* buf, size_t sz)
 	:	APacket<NFieldHandler::CIdxFieldHandler<NFieldHandler::CFixPosSet<NUM>,NFieldHandler::CDynBuffer> >(buf,sz)
 	{}
 };
@@ -1135,17 +1395,17 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Abstract composite field
+/// Abstract composite index-based field
 ///
 /// @param P Positions
 template<class P>
-class ACompositeField
+class ACompositeIdxField
 {
 protected:
-	ACompositeField()
+	ACompositeIdxField()
 	:	_h()
 	{}
-	~ACompositeField()
+	~ACompositeIdxField()
 	{
 		_h.Init(NULL, 0, 0, 0);
 	}
@@ -1698,6 +1958,7 @@ bool CFieldFixBlob<SZ>::resize(size_t len)
 }
 
 
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Dynamic-size blob of data.
 ///
@@ -1748,20 +2009,23 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Array with a fixed number of sub-fields.
+/// Can ONLY be used in offset-based packets.
+/// Must contain fixed-size sub-fields only.
 ///
 /// @param T Type of sub-field
 /// @param SZ Number of sub-fields
 template<class T,size_t SZ>
-class CFieldFixArray : public ACompositeField<NFieldHandler::CFixPosSet<SZ> >
+class CFieldFixOffArray : public AField
 {
 public:
-	CFieldFixArray();
+	CFieldFixOffArray();
 
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Initializes the field.
 	///
-	/// @param len Maximum length of this field
+	/// @param h Parent field handler (COffFieldHandler)
+	/// @param id Offset in the parent field handler
 	void Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t len=0);
 
 	/// Array access.
@@ -1789,78 +2053,82 @@ private:
 };
 
 template<class T,size_t SZ>
-CFieldFixArray<T,SZ>::CFieldFixArray()
-:	ACompositeField<NFieldHandler::CFixPosSet<SZ> >()
+CFieldFixOffArray<T,SZ>::CFieldFixOffArray()
+:	AField()
 {}
 
 /// Initializes the field.
 ///
 /// @param len Maximum length of this field
 template<class T,size_t SZ>
-void CFieldFixArray<T,SZ>::Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t len=0)
+void CFieldFixOffArray<T,SZ>::Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t len)
 {
+	this->_h = h;
+	this->_id = id;
+#if defined(DEBUG)
+	if( off != 0 )
+		printf("[Debug] unexpected argument off=%u at CFieldFixOffArray::Init(%p,%u,%u,%u)\n", (uint)off, h, (uint)id, (uint)off, (uint)len);
+#endif
+
 	if( h )
 	{
-		this->_h.Init(h, id, off, len);// gain access to data
+		// get minimum field length
+		NFieldHandler::CSetupFieldHandler field;
+		this->_arr[0].Init(&field, 0, 0, 0);
+
+		// initialize sub-fields
 		size_t i;
-		size_t sum = 0;
 		for( i = 0; i < SZ; ++i )
-		{
-			this->_arr[i].Init(&this->_h, i, sum, len - basics::min<size_t>(sum, len));
-			sum += this->_h.length(i);
-		}
-		this->_h.normalize();// Adjust to the total occupied length
+			this->_arr[i].Init(h, id + i*field.len, 0, 0);
 	}
-	else
-		this->_h.Init(NULL, id, 0, 0);
 }
 
 /// Array access.
 template<class T,size_t SZ>
-const T& CFieldFixArray<T,SZ>::operator [](size_t idx) const
+const T& CFieldFixOffArray<T,SZ>::operator [](size_t idx) const
 {
 	return this->_arr[idx];
 }
 template<class T,size_t SZ>
-T& CFieldFixArray<T,SZ>::operator [](size_t idx)
+T& CFieldFixOffArray<T,SZ>::operator [](size_t idx)
 {
 	return this->_arr[idx];
 }
 
 /// List access.
 template<class T,size_t SZ>
-const T& CFieldFixArray<T,SZ>::operator ()(size_t idx) const
+const T& CFieldFixOffArray<T,SZ>::operator ()(size_t idx) const
 {
 	return this->_arr[idx];
 }
 template<class T,size_t SZ>
-T& CFieldFixArray<T,SZ>::operator ()(size_t idx)
+T& CFieldFixOffArray<T,SZ>::operator ()(size_t idx)
 {
 	return this->_arr[idx];
 }
 
 /// Returns the number of items.
 template<class T,size_t SZ>
-size_t CFieldFixArray<T,SZ>::size() const
+size_t CFieldFixOffArray<T,SZ>::size() const
 {
 	return SZ;
 }
 template<class T,size_t SZ>
-size_t CFieldFixArray<T,SZ>::length() const
+size_t CFieldFixOffArray<T,SZ>::length() const
 {
 	return SZ;
 }
 
 /// Returns the capacity.
 template<class T,size_t SZ>
-size_t CFieldFixArray<T,SZ>::capacity() const
+size_t CFieldFixOffArray<T,SZ>::capacity() const
 {
 	return SZ;
 }
 
 /// Resizes this array.
 template<class T,size_t SZ>
-bool CFieldFixArray<T,SZ>::resize(size_t len)
+bool CFieldFixOffArray<T,SZ>::resize(size_t len)
 {
 	return false;// not supported
 }
@@ -1869,14 +2137,16 @@ bool CFieldFixArray<T,SZ>::resize(size_t len)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Array with a limited number of sub-fields.
+/// Can ONLY be used as the last field in offset-based packets.
+/// Must contain fixed-size sub-fields only.
 ///
 /// @param T Type of sub-field
 /// @param SZ Maximum number of sub-fields
 template<class T,size_t SZ>
-class CFieldLimArray : public ACompositeField<NFieldHandler::CFixPosSet<SZ> >
+class CFieldLimOffArray : public AField
 {
 public:
-	CFieldLimArray();
+	CFieldLimOffArray();
 
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -1910,97 +2180,553 @@ private:
 
 	/// Length of this array
 	size_t _len;
-
-	/// Minimum size of a field
-	size_t _min;
 };
 
 template<class T,size_t SZ>
-CFieldLimArray<T,SZ>::CFieldLimArray()
-:	ACompositeField<NFieldHandler::CFixPosSet<SZ> >()
-{
-	// get minimum size of a field
-	this->_arr[0].Init(&this->_h, 0, 0, 0);
-	this->_min = this->_h.length(0);
-	this->_arr[0].Init(NULL, 0, 0, 0);
-	this->_h.setup(0, 0, 0);
-}
+CFieldLimOffArray<T,SZ>::CFieldLimOffArray()
+:	AField()
+{}
 
 /// Initializes the field.
 ///
 /// @param len Maximum length of this field
 template<class T,size_t SZ>
-void CFieldLimArray<T,SZ>::Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t len)
+void CFieldLimOffArray<T,SZ>::Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t len)
 {
+	this->_h = h;
+	this->_id = id;
+#if defined(DEBUG)
+	if( off != 0 )
+		printf("[Debug] unexpected argument off=%u at CFieldLimOffArray::Init(%p,%u,%u,%u)\n", (uint)off, h, (uint)id, (uint)off, (uint)len);
+#endif
+
 	if( h )
 	{
-		this->_h.Init(h, id, off, len);// gain access to data
+		// get field length
+		NFieldHandler::CSetupFieldHandler field;
+		this->_arr[0].Init(&field, 0, 0, 0);
+
+		// clear sub-fields
 		size_t i;
-		size_t off = 0;
-		for( i = 0; i < SZ && off + this->_min <= len; ++i )
-		{
-			this->_arr[i].Init(&this->_h, i, off, len - off);
-			if( this->_h.length(i) == 0 )
-			{// no length - remove the field and stop
-				this->_arr[i].Init(NULL, i, 0, 0);
-				this->_h.setup(i, 0, 0);
-				break;
-			}
-			off += this->_h.length(i);
-		}
-		this->_len = i;
-		this->_h.normalize();// Adjust to the total occupied length
+		for( i = 0; i < SZ; ++i )
+			this->_arr[i].Init(NULL, 0, 0, 0);
+
+		// resize array
+		this->_len = len / field.len;
+
+		// initialize sub-fields
+		for( i = 0; i < this->length(); ++i )
+			this->_arr[i].Init(h, id + i*field.len, 0, 0);
 	}
-	else
-		this->_h.Init(NULL, id, 0, 0);
 }
 
 /// Array access.
 template<class T,size_t SZ>
-const T& CFieldLimArray<T,SZ>::operator [](size_t idx) const
+const T& CFieldLimOffArray<T,SZ>::operator [](size_t idx) const
 {
 	return this->_arr[idx];
 }
 template<class T,size_t SZ>
-T& CFieldLimArray<T,SZ>::operator [](size_t idx)
+T& CFieldLimOffArray<T,SZ>::operator [](size_t idx)
 {
 	return this->_arr[idx];
 }
 
 /// List access.
 template<class T,size_t SZ>
-const T& CFieldLimArray<T,SZ>::operator ()(size_t idx) const
+const T& CFieldLimOffArray<T,SZ>::operator ()(size_t idx) const
 {
 	return this->_arr[idx];
 }
 template<class T,size_t SZ>
-T& CFieldLimArray<T,SZ>::operator ()(size_t idx)
+T& CFieldLimOffArray<T,SZ>::operator ()(size_t idx)
 {
 	return this->_arr[idx];
 }
 
 /// Returns the number of items.
 template<class T,size_t SZ>
-size_t CFieldLimArray<T,SZ>::size() const
+size_t CFieldLimOffArray<T,SZ>::size() const
 {
 	return this->_len;
 }
 template<class T,size_t SZ>
-size_t CFieldLimArray<T,SZ>::length() const
+size_t CFieldLimOffArray<T,SZ>::length() const
 {
 	return this->_len;
 }
 
 /// Returns the capacity.
 template<class T,size_t SZ>
-size_t CFieldLimArray<T,SZ>::capacity() const
+size_t CFieldLimOffArray<T,SZ>::capacity() const
 {
 	return SZ;
 }
 
 /// Resizes this array.
 template<class T,size_t SZ>
-bool CFieldLimArray<T,SZ>::resize(size_t len)
+bool CFieldLimOffArray<T,SZ>::resize(size_t len)
+{
+	if( len > this->capacity() )
+		return false;// not enough array space
+
+	if( this->_h == NULL )
+		return false;// no field handler
+
+	// get field length
+	NFieldHandler::CSetupFieldHandler field;
+	this->_arr[0].Init(&field, 0, 0, 0);
+	this->_arr[0].Init(this->_h, this->_id, 0, 0);
+
+	// resize buffer
+	size_t out;
+	if( !this->_h->resize(this->_id, len*field.len, out) )
+		return false;// failed - not enough buffer space
+
+	// update sub-fields
+	size_t i;
+	size_t id;
+	for( i = 0, id = this->_id; i < len; ++i, id += field.len )
+		this->_arr[i].Init(this->_h, id, 0, 0);
+	for( ; i < this->length(); ++i )
+		this->_arr[i].Init(NULL, 0, 0, 0);
+
+	this->_len = len;
+	return true;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// Array with a dynamic number of sub-fields.
+/// Can ONLY be used as the last field in offset-based packets.
+/// Must contain fixed-size sub-fields only.
+///
+/// @param T Type of sub-field
+template<class T>
+class CFieldDynOffArray : public AField
+{
+public:
+	CFieldDynOffArray();
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Initializes the field.
+	///
+	/// @param len Maximum length of this field
+	void Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t len=0);
+
+	/// Array access.
+	const T& operator [](size_t idx) const;
+	T& operator [](size_t idx);
+
+	/// List access.
+	const T& operator ()(size_t idx) const;
+	T& operator ()(size_t idx);
+
+	/// Returns the number of items.
+	size_t size() const;
+	size_t length() const;
+
+	/// Returns the capacity.
+	size_t capacity() const;
+
+	/// Resizes this array.
+	bool resize(size_t len);
+
+private:
+	///////////////////////////////////////////////////////////////////////////
+	/// Array of fields
+	basics::vector<T> _arr;
+};
+
+template<class T>
+CFieldDynOffArray<T>::CFieldDynOffArray()
+:	AField()
+{}
+
+/// Initializes the field.
+///
+/// @param len Maximum length of this field
+template<class T>
+void CFieldDynOffArray<T>::Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t len)
+{
+	this->_h = h;
+	this->_id = id;
+#if defined(DEBUG)
+	if( off != 0 )
+		printf("[Debug] unexpected argument off=%u at CFieldDynOffArray::Init(%p,%u,%u,%u)\n", (uint)off, h, (uint)id, (uint)off, (uint)len);
+#endif
+
+	if( h )
+	{
+		// get field length
+		NFieldHandler::CSetupFieldHandler field;
+		if( this->length() == 0 )
+			this->_arr.resize(1);
+		this->_arr[0].Init(&field, 0, 0, 0);
+
+		// clear sub-fields
+		size_t i;
+		for( i = 0; i < this->length(); ++i )
+			this->_arr[i].Init(NULL, 0, 0, 0);
+
+		// resize array
+		this->_arr.resize(len / field.len);
+
+		// initialize sub-fields
+		for( i = 0; i < this->length(); ++i )
+			this->_arr[i].Init(h, id + i*field.len, 0, 0);
+	}
+}
+
+/// Array access.
+template<class T>
+const T& CFieldDynOffArray<T>::operator [](size_t idx) const
+{
+	return this->_arr[idx];
+}
+template<class T>
+T& CFieldDynOffArray<T>::operator [](size_t idx)
+{
+	return this->_arr[idx];
+}
+
+/// List access.
+template<class T>
+const T& CFieldDynOffArray<T>::operator ()(size_t idx) const
+{
+	return this->_arr[idx];
+}
+template<class T>
+T& CFieldDynOffArray<T>::operator ()(size_t idx)
+{
+	return this->_arr[idx];
+}
+
+/// Returns the number of items.
+template<class T>
+size_t CFieldDynOffArray<T>::size() const
+{
+	return this->length();
+}
+template<class T>
+size_t CFieldDynOffArray<T>::length() const
+{
+	return this->_arr.length();
+}
+
+/// Returns the capacity.
+template<class T>
+size_t CFieldDynOffArray<T>::capacity() const
+{
+	return this->length();
+}
+
+/// Resizes this array.
+template<class T>
+bool CFieldDynOffArray<T>::resize(size_t len)
+{
+	if( this->_h == NULL )
+		return false;// no field handler
+
+	// get field length
+	NFieldHandler::CSetupFieldHandler field;
+	if( this->length() == 0 )
+	{
+		this->_arr.resize(1);
+		this->_arr[0].Init(&field, 0, 0, 0);
+		this->_arr[0].Init(NULL, 0, 0, 0);
+		this->_arr.resize(0);
+	}
+	else
+	{
+		this->_arr[0].Init(&field, 0, 0, 0);
+		this->_arr[0].Init(this->_h, this->_id, 0, 0);
+	}
+
+	// clear extra sub-fields
+	size_t i;
+	for( i = len; i < this->length(); ++i )
+		this->_arr[i].Init(NULL, 0, 0, 0);
+
+	// resize buffer
+	size_t out;
+	if( !this->_h->resize(this->_id, len*field.len, out) )
+	{// failed - not enough buffer space
+		// initialize extra sub-fields
+		for( i = len; i < this->length(); ++i )
+			this->_arr[i].Init(this->_h, this->_id + i*field.len, 0, 0);
+		return false;
+	}
+
+	// resize array
+	this->_arr.resize(len);
+
+	// initialize sub-fields
+	for( i = 0; i < this->length(); ++i )
+		this->_arr[i].Init(this->_h, this->_id + i*field.len, 0, 0);
+
+	return true;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// Array with a fixed number of sub-fields.
+///
+/// @param T Type of sub-field
+/// @param SZ Number of sub-fields
+template<class T,size_t SZ>
+class CFieldFixIdxArray : public ACompositeIdxField<NFieldHandler::CFixPosSet<SZ> >
+{
+public:
+	CFieldFixIdxArray();
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Initializes the field.
+	///
+	/// @param len Maximum length of this field
+	void Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t len=0);
+
+	/// Array access.
+	const T& operator [](size_t idx) const;
+	T& operator [](size_t idx);
+
+	/// List access.
+	const T& operator ()(size_t idx) const;
+	T& operator ()(size_t idx);
+
+	/// Returns the number of items.
+	size_t size() const;
+	size_t length() const;
+
+	/// Returns the capacity.
+	size_t capacity() const;
+
+	/// Resizes this array.
+	bool resize(size_t len);
+
+private:
+	///////////////////////////////////////////////////////////////////////////
+	/// Array of fields
+	T _arr[SZ];
+};
+
+template<class T,size_t SZ>
+CFieldFixIdxArray<T,SZ>::CFieldFixIdxArray()
+:	ACompositeIdxField<NFieldHandler::CFixPosSet<SZ> >()
+{}
+
+/// Initializes the field.
+///
+/// @param len Maximum length of this field
+template<class T,size_t SZ>
+void CFieldFixIdxArray<T,SZ>::Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t len)
+{
+	this->_h.Init(h, id, off, len);// gain access to data
+	if( h )
+	{
+		// initialize sub-fields
+		size_t i;
+		size_t suboff = 0;
+		for( i = 0; i < SZ; ++i )
+		{
+			this->_arr[i].Init(&this->_h, i, suboff, len - basics::min<size_t>(suboff, len));
+			suboff += this->_h.length(i);
+		}
+		// adjust to the total occupied length
+		this->_h.normalize();
+	}
+}
+
+/// Array access.
+template<class T,size_t SZ>
+const T& CFieldFixIdxArray<T,SZ>::operator [](size_t idx) const
+{
+	return this->_arr[idx];
+}
+template<class T,size_t SZ>
+T& CFieldFixIdxArray<T,SZ>::operator [](size_t idx)
+{
+	return this->_arr[idx];
+}
+
+/// List access.
+template<class T,size_t SZ>
+const T& CFieldFixIdxArray<T,SZ>::operator ()(size_t idx) const
+{
+	return this->_arr[idx];
+}
+template<class T,size_t SZ>
+T& CFieldFixIdxArray<T,SZ>::operator ()(size_t idx)
+{
+	return this->_arr[idx];
+}
+
+/// Returns the number of items.
+template<class T,size_t SZ>
+size_t CFieldFixIdxArray<T,SZ>::size() const
+{
+	return SZ;
+}
+template<class T,size_t SZ>
+size_t CFieldFixIdxArray<T,SZ>::length() const
+{
+	return SZ;
+}
+
+/// Returns the capacity.
+template<class T,size_t SZ>
+size_t CFieldFixIdxArray<T,SZ>::capacity() const
+{
+	return SZ;
+}
+
+/// Resizes this array.
+template<class T,size_t SZ>
+bool CFieldFixIdxArray<T,SZ>::resize(size_t len)
+{
+	return false;// not supported
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// Array with a limited number of sub-fields.
+///
+/// @param T Type of sub-field
+/// @param SZ Maximum number of sub-fields
+template<class T,size_t SZ>
+class CFieldLimIdxArray : public ACompositeIdxField<NFieldHandler::CFixPosSet<SZ> >
+{
+public:
+	CFieldLimIdxArray();
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Initializes the field.
+	///
+	/// @param len Maximum length of this field
+	void Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t len=0);
+
+	/// Array access.
+	const T& operator [](size_t idx) const;
+	T& operator [](size_t idx);
+
+	/// List access.
+	const T& operator ()(size_t idx) const;
+	T& operator ()(size_t idx);
+
+	/// Returns the number of items.
+	size_t size() const;
+	size_t length() const;
+
+	/// Returns the capacity.
+	size_t capacity() const;
+
+	/// Resizes this array.
+	bool resize(size_t len);
+
+private:
+	///////////////////////////////////////////////////////////////////////////
+	/// Array of fields
+	T _arr[SZ];
+
+	/// Length of this array
+	size_t _len;
+};
+
+template<class T,size_t SZ>
+CFieldLimIdxArray<T,SZ>::CFieldLimIdxArray()
+:	ACompositeIdxField<NFieldHandler::CFixPosSet<SZ> >()
+{}
+
+/// Initializes the field.
+///
+/// @param len Maximum length of this field
+template<class T,size_t SZ>
+void CFieldLimIdxArray<T,SZ>::Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t len)
+{
+	this->_h.Init(h, id, off, len);// gain access to data
+	if( h )
+	{
+		// get minimum field length
+		NFieldHandler::CSetupFieldHandler min;
+		this->_arr[0].Init(&min, 0, 0, 0);
+		this->_arr[0].Init(NULL, 0, 0, 0);
+
+		// initialize sub-fields
+		size_t i;
+		size_t suboff = 0;
+		for( i = 0; i < SZ && suboff + min.len <= len; ++i )
+		{
+			this->_arr[i].Init(&this->_h, i, suboff, len - suboff);
+			if( this->_h.length(i) == 0 )
+				break;// no length - stop (and clear the field)
+			suboff += this->_h.length(i);
+		}
+		this->_len = i;
+
+		// clear the rest of the sub-fields
+		for( ; i < SZ; ++i )
+		{
+			this->_arr[i].Init(NULL, i, 0, 0);
+			this->_h.setup(i, 0, 0);
+		}
+
+		// adjust to the total occupied length
+		this->_h.normalize();
+	}
+}
+
+/// Array access.
+template<class T,size_t SZ>
+const T& CFieldLimIdxArray<T,SZ>::operator [](size_t idx) const
+{
+	return this->_arr[idx];
+}
+template<class T,size_t SZ>
+T& CFieldLimIdxArray<T,SZ>::operator [](size_t idx)
+{
+	return this->_arr[idx];
+}
+
+/// List access.
+template<class T,size_t SZ>
+const T& CFieldLimIdxArray<T,SZ>::operator ()(size_t idx) const
+{
+	return this->_arr[idx];
+}
+template<class T,size_t SZ>
+T& CFieldLimIdxArray<T,SZ>::operator ()(size_t idx)
+{
+	return this->_arr[idx];
+}
+
+/// Returns the number of items.
+template<class T,size_t SZ>
+size_t CFieldLimIdxArray<T,SZ>::size() const
+{
+	return this->_len;
+}
+template<class T,size_t SZ>
+size_t CFieldLimIdxArray<T,SZ>::length() const
+{
+	return this->_len;
+}
+
+/// Returns the capacity.
+template<class T,size_t SZ>
+size_t CFieldLimIdxArray<T,SZ>::capacity() const
+{
+	return SZ;
+}
+
+/// Resizes this array.
+template<class T,size_t SZ>
+bool CFieldLimIdxArray<T,SZ>::resize(size_t len)
 {
 	if( len > this->capacity() )
 		return false;// not enough space
@@ -2010,10 +2736,15 @@ bool CFieldLimArray<T,SZ>::resize(size_t len)
 		size_t id = this->length();
 		size_t off = this->_h.length();
 
+		// get minimum field length
+		NFieldHandler::CSetupFieldHandler min;
+		this->_arr[id].Init(&min, 0, 0, 0);
+		this->_arr[id].Init(NULL, 0, 0, 0);
+
 		// resize buffer
 		this->_h.setup(id, off, 0);
 		size_t out;
-		if( !this->_h.resize(id, (len - id)*this->_min, out) )
+		if( !this->_h.resize(id, (len - id)*min.len, out) )
 		{// failed - not enough buffer space
 			this->_h.setup(id, 0, 0);
 			return false;
@@ -2055,14 +2786,14 @@ bool CFieldLimArray<T,SZ>::resize(size_t len)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Array with a limited number of sub-fields.
+/// Array with a dynamic number of sub-fields.
 ///
 /// @param T Type of sub-field
 template<class T>
-class CFieldDynArray : public ACompositeField<NFieldHandler::CDynPosSet>
+class CFieldDynIdxArray : public ACompositeIdxField<NFieldHandler::CDynPosSet>
 {
 public:
-	CFieldDynArray();
+	CFieldDynIdxArray();
 
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -2098,115 +2829,122 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	/// Array of fields
 	basics::vector<T> _arr;
-
-	/// Minimum size of a field
-	size_t _min;
 };
 
 template<class T>
-CFieldDynArray<T>::CFieldDynArray()
-:	ACompositeField<NFieldHandler::CDynPosSet>()
-{
-	// get minimum size of a field
-	this->_arr.resize(1);
-	this->_arr[0].Init(&this->_h, 0, 0, 0);
-	this->_min = this->_h.length(0);
-	this->_h.setup(0, 0, 0);
-	this->_arr[0].Init(NULL, 0, 0, 0);
-	this->_arr.resize(0);
-}
+CFieldDynIdxArray<T>::CFieldDynIdxArray()
+:	ACompositeIdxField<NFieldHandler::CDynPosSet>()
+{}
 
 /// Initializes the field.
 ///
 /// @param len Maximum length of this field
 template<class T>
-void CFieldDynArray<T>::Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t len)
+void CFieldDynIdxArray<T>::Init(NFieldHandler::IFieldHandler* h, size_t id, size_t off, size_t len)
 {
+	this->_h.Init(h, id, off, len);// gain access to data
 	if( h )
 	{
-		this->_h.Init(h, id, off, len);// gain access to data
-		size_t i;
-		size_t off = 0;
+		// get minimum field length
+		NFieldHandler::CSetupFieldHandler min;
+		if( this->length() == 0 )
+			this->_arr.resize(1);
+		this->_arr[0].Init(&min, 0, 0, 0);
+		this->_arr[0].Init(NULL, 0, 0, 0);
 
-		for( i = 0; off + this->_min <= len; ++i )
+		// initialize sub-fields
+		size_t i;
+		size_t suboff = 0;
+		for( i = 0; suboff + min.len <= len; ++i )
 		{
-			this->_arr.resize(i + 1);
-			this->_reconnect();
+			if( this->length() < i + 1 )
+				this->_arr.resize(i + 1);
 			this->_arr[i].Init(&this->_h, i, off, len - off);
 			if( this->_h.length(i) == 0 )
-			{// no length - remove the field and stop
-				this->_arr[i].Init(NULL, i, 0, 0);
-				this->_arr.resize(i);
-				this->_h.setup(i, 0, 0);
-				break;
-			}
-			off += this->_h.length(i);
+				break;// no length - stop (and clear the field)
+			suboff += this->_h.length(i);
 		}
-		this->_h.normalize();// Adjust to the total occupied length
+
+		// clear the rest of the sub-fields
+		while( this->length() > i )
+		{
+			this->_arr[i].Init(NULL, i, 0, 0);
+			this->_h.setup(i, 0, 0);
+			this->_arr.resize(this->length() - 1);
+		}
+
+		// adjust to the total occupied length
+		this->_h.normalize();
 		this->_reconnect();
 	}
-	else
-		this->_h.Init(NULL, id, 0, 0);
 }
 
 /// Array access.
 template<class T>
-const T& CFieldDynArray<T>::operator [](size_t idx) const
+const T& CFieldDynIdxArray<T>::operator [](size_t idx) const
 {
 	return this->_arr[idx];
 }
 template<class T>
-T& CFieldDynArray<T>::operator [](size_t idx)
+T& CFieldDynIdxArray<T>::operator [](size_t idx)
 {
 	return this->_arr[idx];
 }
 
 /// List access.
 template<class T>
-const T& CFieldDynArray<T>::operator ()(size_t idx) const
+const T& CFieldDynIdxArray<T>::operator ()(size_t idx) const
 {
 	return this->_arr[idx];
 }
 template<class T>
-T& CFieldDynArray<T>::operator ()(size_t idx)
+T& CFieldDynIdxArray<T>::operator ()(size_t idx)
 {
 	return this->_arr[idx];
 }
 
 /// Returns the number of items.
 template<class T>
-size_t CFieldDynArray<T>::size() const
+size_t CFieldDynIdxArray<T>::size() const
 {
 	return this->length();
 }
 template<class T>
-size_t CFieldDynArray<T>::length() const
+size_t CFieldDynIdxArray<T>::length() const
 {
 	return this->_arr.length();
 }
 
 /// Returns the capacity.
 template<class T>
-size_t CFieldDynArray<T>::capacity() const
-{//## TODO capacity based on buffer capacity or just the length of _arr?
+size_t CFieldDynIdxArray<T>::capacity() const
+{
 	return this->length();
 }
 
 /// Resizes this array.
 template<class T>
-bool CFieldDynArray<T>::resize(size_t len)
+bool CFieldDynIdxArray<T>::resize(size_t len)
 {
 	if( len > this->length() )
 	{// increasing
 		size_t id = this->length();
 		size_t off = this->_h.length();
 
+		// get minimum field length
+		NFieldHandler::CSetupFieldHandler min;
+		this->_arr.resize(id + 1);
+		this->_arr[id].Init(&min, 0, 0, 0);
+		this->_arr[id].Init(NULL, 0, 0, 0);
+
 		// resize buffer
 		this->_h.setup(id, off, 0);
 		size_t out;
-		if( !this->_h.resize(id, (len - id)*this->_min, out) )
+		if( !this->_h.resize(id, (len - id)*min.len, out) )
 		{// failed - not enough buffer space
 			this->_h.setup(id, 0, 0);
+			this->_arr.resize(id);
+			this->_reconnect();
 			return false;
 		}
 
@@ -2214,8 +2952,8 @@ bool CFieldDynArray<T>::resize(size_t len)
 		this->_arr.resize(len);
 		for( ; id < len; ++id )
 		{
-			this->_h.setup(id, off, this->_min);
-			off += this->_min;
+			this->_h.setup(id, off, min.len);
+			off += min.len;
 		}
 		this->_reconnect();
 	}
@@ -2249,7 +2987,7 @@ bool CFieldDynArray<T>::resize(size_t len)
 /// Reconnects the fields in this array.
 /// Call this after setting up _h and resizing _arr.
 template<class T>
-void CFieldDynArray<T>::_reconnect()
+void CFieldDynIdxArray<T>::_reconnect()
 {
 	size_t id;
 	for( id = 0; id < this->length(); ++id )
@@ -2262,6 +3000,9 @@ void CFieldDynArray<T>::_reconnect()
 #endif
 	}
 }
+
+
+
 
 
 ///////////////////////////////////////////////////////////////////////////////

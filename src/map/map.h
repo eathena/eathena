@@ -300,6 +300,7 @@ struct mapcell_t
 		, basilica(0)
 		, moonlit(0)
 		, regen(0)
+		, icewall(0)
 		, _unused(0)
 	{}
 	void set_type(int t)

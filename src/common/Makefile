@@ -20,7 +20,7 @@ include $(RETURN_PATH)/$(COMMON_PATH)/Makefile.dep
 
 
 ##########################################################
-OBJECTS = baseio.o basesq.o basetx.o basepacket.o core.o db.o grfio.o plugins.o lock.o malloc.o md5calc.o mmo.o nullpo.o showmsg.o socket.o timer.o utils.o
+OBJECTS = baseio.o basesq.o basetx.o basepacket.o core.o db.o grfio.o plugins.o lock.o lpacket.o malloc.o md5calc.o mmo.o nullpo.o showmsg.o socket.o timer.o utils.o
 
 all: common staticlib
 
