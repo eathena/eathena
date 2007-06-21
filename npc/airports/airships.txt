@@ -20,7 +20,7 @@
 //= 0.5a Fixed a typo [Evera] 
 //= 0.5b Fixed appledice bugs [Lupus]
 //= 0.6 Added Rachel to the international route [Playtester]
-//= 0.7 Implemented Few Missings NPCs like (Pilot, Aanos, etc...). [Samuray22]
+//= 0.7 Implemented Few Missings NPCs like (Pilot, Aanos, etc...).
 //=	Corrected Dialogs from some NPCs.
 //=	Added sistem to work with the "How Does the Airship Work" Quest [Samuray22]
 //= 0.8 Moved Gambling NPC Kaci since it's part of a quest. [SinSloth]

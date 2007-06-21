@@ -22,6 +22,15 @@ Playtester
 
 Date		Added
 ======
+2007/06/21
+	* Added all Hugel-related quests. Thanks to MasterOfMuppets for scripting most of them. [SinSloth]
+	- Updated some Hugel, Lighthalzen, Einbroch and Airship NPCs regarding those new quests.
+	- Moved a lot of Hugel NPCs to proper quest file.
+	* Added Hugel Bingo Game system. [SinSloth]
+	* Added Odin Temple Excavation quest. [SinSloth]
+	- Updated Hugel warps and Odin Temple Sailor according to the quest.
+	* Updated Ayothaya's Ring quest to official. Credits to MasterOfMuppets. [SinSloth]
+	* Fixed a small bug in Dandelion's Request. [SinSloth]
 2007/06/20
 	* Reverted wrong fix in Ninja Job quest. [SinSloth]
 2007/06/19

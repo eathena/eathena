@@ -14,7 +14,7 @@
 //= Reward: -Base Experience 200.000
 //=	    -Job Experience 10.000
 //===== Additional Comments: ================================= 
-//= 1.0 First Beta. [Samuray22]
+//= 1.0 First Beta.
 //= 1.1 Added Heart Fragment quest. [SinSloth]
 //============================================================ 
 
