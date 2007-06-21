@@ -23,6 +23,7 @@ Playtester
 Date		Added
 ======
 2007/06/21
+	* Fixed a little minor bug in "Crusader Job Quest". [Samuray22]
 	* Added all Hugel-related quests. Thanks to MasterOfMuppets for scripting most of them. [SinSloth]
 	- Updated some Hugel, Lighthalzen, Einbroch and Airship NPCs regarding those new quests.
 	- Moved a lot of Hugel NPCs to proper quest file.
